@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="icon" type="image/png" sizes="512x512" href="icon-512.png?v=3.8.14">
+<link rel="apple-touch-icon" sizes="192x192" href="icon-192.png?v=3.8.14">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#06111f">
+<link rel="stylesheet" href="assets/mmhvault.css">
+<title>MMHVAULT · Sign In</title>
+</head><body class="auth-page-active mmhvault-auth-standalone-v328">
+<section class="page active login" id="login">
+<div class="mmhvault-auth-stage">
+<div class="mmhvault-auth-orbit orbit-a"></div>
+<div class="mmhvault-auth-orbit orbit-b"></div>
+<div class="mmhvault-auth-market market-a"><span>₿</span><i></i><b></b><em></em></div>
+<div class="mmhvault-auth-market market-b"><span>◈</span><i></i><b></b><em></em></div>
+<div class="mmhvault-auth-chart chart-left"><span></span><span></span><span></span><span></span><span></span><strong></strong></div>
+<div class="mmhvault-auth-chart chart-right"><span></span><span></span><span></span><span></span><span></span><strong></strong></div>
+<div class="mmhvault-auth-brandtop"><span>SECURE · PRIVATE · YOURS</span><span class="auth-version">V3.28.6</span></div>
+<div class="mmhvault-login-brand mmhvault-auth-brand">
+<img alt="MMHVAULT logo" class="mmhvault-login-logo" src="mmhvault-logo-transparent.png?v=3.8.14"/>
+<div class="mmhvault-login-tagline">Personal Finance &amp; Wealth Management</div>
+<div class="mmhvault-login-slogan">One place for your money, assets and goals.</div>
+</div>
+<div class="panel mmhvault-login-panel mmhvault-auth-card">
+<div aria-label="Authentication mode" class="mmhvault-auth-tabs" role="tablist">
+<button aria-selected="true" class="mmhvault-auth-tab active" id="authSignInTab" onclick="window.myFinanceSetAuthMode('signin')" role="tab" type="button">🔒 <span>Sign In</span></button>
+<button aria-selected="false" class="mmhvault-auth-tab" id="authSignUpTab" onclick="window.myFinanceSetAuthMode('signup')" role="tab" type="button">♙ <span>Sign Up</span></button>
+</div>
+<div class="mmhvault-auth-card-inner">
+<div class="mmhvault-auth-title" id="authTitle">Welcome Back</div>
+<div class="mmhvault-auth-subtitle" id="authSubtitle">Access your MMHVAULT account</div>
+<div class="mmhvault-login-rule"></div>
+<div id="authMsg"></div>
+<form id="authForm" onsubmit="event.preventDefault(); window.myFinanceLogin(event); return false;">
+<label class="login-field">Email<input autocomplete="username" id="email" placeholder="Email address" required="" type="email"/></label>
+<label class="login-field">Password
+            <div class="password-wrap"><input autocomplete="current-password" id="password" minlength="6" placeholder="Password" required="" spellcheck="false" type="password"/><button class="password-toggle" id="passwordToggle" type="button">Show</button></div>
+</label>
+<div class="mmhvault-auth-options">
+<label class="remember-option"><input checked="" id="rememberMe" type="checkbox"/> <span>Remember me</span></label>
+<button class="link-btn" id="forgotPasswordBtn" onclick="window.myFinanceForgotPassword()" type="button">Forgot password?</button>
+</div>
+<div class="actions mmhvault-auth-actions"><button class="btn primary mmhvault-auth-primary" id="loginBtn" type="submit"><span id="authSubmitText">Sign In</span><span class="auth-arrow">→</span></button></div>
+<div class="login-divider"><span>or continue with</span></div>
+<button class="btn google-login-btn mmhvault-google-btn" id="googleLoginBtn" onclick="window.myFinanceGoogleLogin()" type="button">
+<svg aria-hidden="true" class="google-icon" viewbox="0 0 24 24"><path d="M21.35 12.23c0-.79-.07-1.55-.2-2.28H12v4.32h5.23a4.47 4.47 0 0 1-1.94 2.93v2.42h3.14c1.84-1.69 2.92-4.18 2.92-7.39z" fill="#4285F4"></path><path d="M12 21.75c2.63 0 4.84-.87 6.45-2.36l-3.14-2.42c-.87.58-1.98.92-3.31.92-2.54 0-4.69-1.72-5.46-4.03H3.29v2.5A9.75 9.75 0 0 0 12 21.75z" fill="#34A853"></path><path d="M6.54 13.86A5.86 5.86 0 0 1 6.23 12c0-.64.11-1.26.31-1.86v-2.5H3.29A9.75 9.75 0 0 0 2.25 12c0 1.57.38 3.05 1.04 4.36l3.25-2.5z" fill="#FBBC05"></path><path d="M12 6.11c1.43 0 2.72.49 3.73 1.45l2.8-2.8C16.84 3.14 14.63 2.25 12 2.25a9.75 9.75 0 0 0-8.71 5.39l3.25 2.5C7.31 7.83 9.46 6.11 12 6.11z" fill="#EA4335"></path></svg>
+<span>Continue with Google</span>
+</button>
+</form>
+<div class="mmhvault-auth-bottom" id="authBottom">Don't have an account? <button onclick="window.myFinanceSetAuthMode('signup')" type="button">Sign up →</button></div>
+</div>
+</div>
+<div class="mmhvault-auth-features">
+<div><span>☁</span><b>Cloud Sync</b><small>Secure data</small></div>
+<div><span>◈</span><b>RLS Protected</b><small>Your privacy</small></div>
+<div><span>▥</span><b>Multi-Assets</b><small>Crypto · Gold</small></div>
+<div><span>↗</span><b>Wealth Growth</b><small>Track goals</small></div>
+</div>
+<div class="mmhvault-auth-footerline">ONE PLACE FOR YOUR MONEY, ASSETS AND GOALS</div>
+</div>
+</section>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="assets/auth.js" defer></script>
+</body></html>
