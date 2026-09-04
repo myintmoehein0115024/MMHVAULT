@@ -9,7 +9,14 @@
 <link href="manifest.webmanifest" rel="manifest"/>
 <meta content="#06111f" name="theme-color"/>
 <title>MMHVAULT · Personal Finance &amp; Wealth Management</title>
-<link href="assets/mmhvault.css" rel="stylesheet"/><meta content="V3.28.7 · Navigation &amp; Init Fix" name="mmhvault-architecture"/></head>
+<link href="assets/mmhvault.css" rel="stylesheet"/><meta content="V3.28.7 · Navigation &amp; Init Fix" name="mmhvault-architecture"/>
+<style id="mmhvault-v32810-wealth-rules-location-css">
+  .analyze-tabs-v371{overflow-x:auto;scrollbar-width:thin;}
+  .analyze-tabs-v371 .analyze-tab-v371{flex:0 0 auto;min-width:110px;}
+  @media (max-width:720px){.analyze-tabs-v371 .analyze-tab-v371{min-width:96px}.settings-tabs-v371{grid-template-columns:repeat(3,minmax(0,1fr)) !important;}}
+  #settingsTabRulesV326,#settingsPanelRulesV326{display:none !important;}
+</style>
+</head>
 <body>
 <div id="mmhvaultAppBootGuardV3282" style="position:fixed;inset:0;z-index:30000;display:none;align-items:center;justify-content:center;background:#050a18;color:#dce8ff;font-family:Arial,sans-serif;padding:24px;text-align:center;">
 <div style="max-width:420px;border:1px solid rgba(78,164,255,.25);border-radius:18px;padding:24px 22px;background:rgba(10,20,42,.92);box-shadow:0 18px 60px rgba(0,0,0,.4);">
@@ -30,7 +37,7 @@
 <button class="btn" onclick="retryLoadAllV384()" type="button">Retry</button>
 </div>
 <header id="header" style="display:none">
-<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.28.9</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
+<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.28.10</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
 <div class="header-spacer"></div>
 <div aria-label="Signed in user" class="header-profile" id="headerProfile">
 <div class="header-avatar" id="headerAvatar">MF</div>
@@ -3784,12 +3791,103 @@ window.MM_HVAULT_UI_AUDIT = { version:'V3.18.0', duplicatePresentationCleanup:tr
     const rules=document.getElementById('settingsPanelRulesV326');
     const settings=document.getElementById('settings');
     const account=document.getElementById('settingsPanelAccountV371');
-    if(rules && settings && account && rules.parentElement!==settings) account.before(rules);
+    if(rules && settings && account && rules.parentElement===settings) rules.style.display='none';
     let tab='account';
     try{tab=localStorage.getItem('myfinance_settings_tab_v371')||'account';}catch(e){}
     apply(tab);
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
-</script></body>
+</script><script id="mmhvault-v32810-wealth-rules-analyze-location">
+(function(){
+  const TAB='wealthrules', BTN_ID='analyzeTabWealthRulesV32810', PANEL_ID='analyzePanelWealthRulesV32810';
+  function by(id){return document.getElementById(id)}
+  function ensure(){
+    const tabs=document.querySelector('.analyze-tabs-v371');
+    const rules=by('settingsPanelRulesV326');
+    const oldBtn=by('settingsTabRulesV326');
+    if(!tabs || !rules) return false;
+    if(oldBtn) oldBtn.style.display='none';
+    let btn=by(BTN_ID);
+    if(!btn){
+      btn=document.createElement('button');
+      btn.id=BTN_ID; btn.type='button'; btn.className='analyze-tab-v371';
+      btn.dataset.tab=TAB; btn.setAttribute('role','tab'); btn.setAttribute('aria-selected','false');
+      btn.textContent='Wealth Rules';
+      tabs.appendChild(btn);
+    }
+    let panel=by(PANEL_ID);
+    if(!panel){
+      panel=document.createElement('div');
+      panel.id=PANEL_ID; panel.className='analyze-tab-panel-v371';
+      panel.dataset.panel=TAB; panel.setAttribute('role','tabpanel'); panel.setAttribute('aria-hidden','true');
+      panel.innerHTML='<div class="panel analyze-panel wealth-rules-analyze-wrap-v32810">'+rules.innerHTML+'</div>';
+      // Reuse the original rule field/button elements by moving them into the new panel.
+      const inner=panel.querySelector('.panel');
+      while(rules.firstChild) inner.appendChild(rules.firstChild);
+      tabs.parentElement.appendChild(panel);
+    }
+    // Keep only one rules view alive and never expose it under Settings.
+    rules.style.display='none';
+    rules.setAttribute('aria-hidden','true');
+    const settingsSection=by('settings');
+    if(settingsSection) {
+      settingsSection.querySelectorAll('#settingsTabRulesV326').forEach(x=>x.remove());
+      const moved=panel.querySelector('#wealthRuleReserveV326');
+      if(moved && moved.closest('#settings')) console.warn('Wealth Rules relocation guard: panel still under settings');
+    }
+    return true;
+  }
+  function activateRules(){
+    if(!ensure()) return;
+    document.querySelectorAll('.analyze-tab-v371').forEach(b=>{
+      const on=b.dataset.tab===TAB; b.classList.toggle('active',on); b.setAttribute('aria-selected',on?'true':'false');
+    });
+    document.querySelectorAll('.analyze-tab-panel-v371').forEach(p=>{
+      const on=p.dataset.panel===TAB; p.classList.toggle('active',on); p.setAttribute('aria-hidden',on?'false':'true');
+    });
+    try{localStorage.setItem('myfinance_analyze_tab',TAB)}catch(e){}
+    window.fillWealthRulesV32810?.();
+  }
+  function patchSetter(){
+    const current=window.setAnalyzeTabV371;
+    if(typeof current!=='function' || current.__v32810) return;
+    function wrapped(tab){
+      if(tab===TAB){activateRules();return;}
+      ensure();
+      return current(tab);
+    }
+    wrapped.__v32810=true;
+    window.setAnalyzeTabV371=wrapped;
+  }
+  function exposeFill(){
+    if(window.getPersonalWealthRulesV326 && typeof window.getPersonalWealthRulesV326==='function'){
+      window.fillWealthRulesV32810=function(){
+        const r=window.getPersonalWealthRulesV326();
+        const map={wealthRuleReserveV326:r.reserveMin,wealthRuleComfortV326:r.reserveComfort,wealthRuleSavingsV326:r.savingsTarget,wealthRuleInvestV326:r.investmentCeiling};
+        Object.entries(map).forEach(([id,v])=>{const e=by(id);if(e)e.value=v;});
+      };
+    }
+  }
+  function bind(){
+    ensure(); patchSetter(); exposeFill();
+    document.addEventListener('click',function(e){
+      const b=e.target.closest?.('#'+BTN_ID); if(b){e.preventDefault();e.stopPropagation();activateRules();}
+    },true);
+    const saved=(()=>{try{return localStorage.getItem('myfinance_analyze_tab')}catch(e){return null}})();
+    if(saved===TAB) setTimeout(activateRules,0);
+  }
+  function repair(){
+    ensure(); patchSetter(); exposeFill();
+    const existing=by(BTN_ID); const panel=by(PANEL_ID);
+    if(existing && panel && !existing.classList.contains('active')){
+      // no-op; ordinary tab handler owns non-rules state
+    }
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',bind,{once:true}); else bind();
+  document.addEventListener('DOMContentLoaded',function(){setTimeout(repair,20)},{once:true});
+  window.addEventListener('load',function(){setTimeout(repair,30)},{once:true});
+})();
+</script>
+</body>
 </html>
