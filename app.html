@@ -9,7 +9,7 @@
 <link href="manifest.webmanifest" rel="manifest"/>
 <meta content="#06111f" name="theme-color"/>
 <title>MMHVAULT · Personal Finance &amp; Wealth Management</title>
-<link href="assets/mmhvault.css" rel="stylesheet"/><meta content="V3.28.14 · Wealth Rules Clean Navigation + Cash Flow" name="mmhvault-architecture"/>
+<link href="assets/mmhvault.css" rel="stylesheet"/><meta content="V3.28.15 · Analyze Tabs Navigation + Cash Flow" name="mmhvault-architecture"/>
 <style id="mmhvault-v32811-wealth-rules-location-css">
   .analyze-tabs-v371{overflow-x:auto;scrollbar-width:thin;}
   .analyze-tabs-v371 .analyze-tab-v371{flex:0 0 auto;min-width:110px;}
@@ -3806,5 +3806,52 @@ window.MM_HVAULT_UI_AUDIT = { version:'V3.18.0', duplicatePresentationCleanup:tr
     });
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
-})();</script></body>
+})();</script>
+<script id="mmhvault-v32815-analyze-tabs-final-fix">
+(function(){
+  const validTabs=['overview','health','cashflow','expenses','networth','goals','decisions','wealthrules'];
+  function activate(tab){
+    if(!validTabs.includes(tab)) tab='overview';
+    document.querySelectorAll('.analyze-tab-v371').forEach(function(b){
+      const on=b.dataset.tab===tab;
+      b.classList.toggle('active',on);
+      b.setAttribute('aria-selected',on?'true':'false');
+      b.setAttribute('tabindex',on?'0':'-1');
+    });
+    document.querySelectorAll('.analyze-tab-panel-v371').forEach(function(p){
+      const on=p.dataset.panel===tab;
+      p.classList.toggle('active',on);
+      p.setAttribute('aria-hidden',on?'false':'true');
+      p.style.display=on?'block':'none';
+    });
+    try{localStorage.setItem('myfinance_analyze_tab',tab)}catch(e){}
+    try{
+      if(tab==='health' && typeof window.renderFinancialHealthV371==='function') window.renderFinancialHealthV371();
+      if(tab==='networth' && typeof window.renderNetWorthAnalyzeV371==='function') window.renderNetWorthAnalyzeV371();
+      if(tab==='goals' && typeof window.renderGoalsV371==='function') window.renderGoalsV371();
+      if(tab==='decisions' && typeof window.renderFinancialDecisionV325==='function') window.renderFinancialDecisionV325();
+      if(tab==='wealthrules' && typeof window.mmhActivateWealthRulesV32814==='function') window.mmhActivateWealthRulesV32814();
+    }catch(err){ console.warn('Analyze tab render warning:',err); }
+    return false;
+  }
+  window.setAnalyzeTabV371=activate;
+  function bind(){
+    document.querySelectorAll('.analyze-tab-v371').forEach(function(btn){
+      btn.onclick=function(e){
+        e.preventDefault();
+        e.stopPropagation();
+        activate(btn.dataset.tab);
+      };
+      btn.onkeydown=function(e){
+        if(e.key==='Enter'||e.key===' '){e.preventDefault();activate(btn.dataset.tab);}
+      };
+    });
+    const saved=localStorage.getItem('myfinance_analyze_tab')||'overview';
+    if(document.getElementById('analyze')?.classList.contains('active')) activate(saved);
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',bind,{once:true}); else bind();
+  window.addEventListener('pageshow',bind);
+})();
+</script>
+</body>
 </html>
