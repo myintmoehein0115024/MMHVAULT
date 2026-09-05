@@ -3867,7 +3867,7 @@ window.MM_HVAULT_UI_AUDIT = { version:'V3.18.0', duplicatePresentationCleanup:tr
 </style>
 
 <script id="mmhvault-v32816-analyze-intelligence-sync-js">
-/* MMHVAULT V3.29.0 · Unified Analyze period + Cash Flow income rules */
+/* MMHVAULT V3.29.1 · Financial Intelligence runtime fix */
 (function(){
   const moneyTHB=v=>typeof thb==='function'?thb(v):('฿ '+Number(v||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}));
   const moneyUSD=v=>typeof usd==='function'?usd(v):('$ '+Number(v||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}));
@@ -3914,14 +3914,15 @@ window.MM_HVAULT_UI_AUDIT = { version:'V3.18.0', duplicatePresentationCleanup:tr
       const expenseMap={};
       rows.forEach(x=>{if(expenseEligible(x)){const v=num(x.from_amount)*toUSD(x.from_account);const c=x.category||'Other';expenseMap[c]=(expenseMap[c]||0)+v;}});
       const top=Object.entries(expenseMap).sort((a,b)=>b[1]-a[1])[0]||['No spending',0];
-      const cashUSD=['Bath','TrueMoney','OKX','ByBit','MetaMask','KPay'].reduce((sum,a)=>sum+Math.max(0,balance(a))*toUSD(a),0);
+      const cashUSD=['Bath','TrueMoney','OKX','ByBit','MetaMask','KPay'].reduce((sum,a)=>sum+(typeof balance==='function'?Math.max(0,num(balance(a)))*num(toUSD(a)):0),0);
       const recentKeys=[];
       const anchor=p.month==='annual'?new Date(p.year,11,1):new Date(p.year,Number(p.month)-1,1);
       for(let i=5;i>=1;i--){const d=new Date(anchor);d.setMonth(d.getMonth()-i);recentKeys.push(d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'));}
       const priorExp=recentKeys.map(k=>window.fhMonthlyFlow(k).exp).filter(x=>x>0);
       const avgExp=priorExp.length?priorExp.reduce((a,b)=>a+b,0)/priorExp.length:0;
       const runway=avgExp>0?cashUSD/avgExp:null;
-      const tIncUSD=toUSD(t.inc); const tExpUSD=toUSD(t.exp); const tSaveUSD=tIncUSD-tExpUSD;
+      const totalsUSD=rows.reduce((acc,x)=>{if(incomeEligible(x)) acc.inc+=num(x.to_amount)*toUSD(x.to_account); if(expenseEligible(x)) acc.exp+=num(x.from_amount)*toUSD(x.from_account); return acc;},{inc:0,exp:0});
+      const tIncUSD=totalsUSD.inc; const tExpUSD=totalsUSD.exp; const tSaveUSD=tIncUSD-tExpUSD;
       const status=tIncUSD<=0?'No income recorded':t.sr>=60?'Above savings target':t.sr>=40?'Room to improve':'Needs attention';
       const statusCls=tIncUSD<=0?'fi316-sync-warn':t.sr>=60?'fi316-sync-ok':t.sr>=40?'fi316-sync-warn':'fi316-sync-bad';
       const loanExclusion=`Loan Repayment excluded from Income.`;
@@ -3931,7 +3932,7 @@ window.MM_HVAULT_UI_AUDIT = { version:'V3.18.0', duplicatePresentationCleanup:tr
           <div class="fi316-sync-card"><div class="label">Income</div><div class="value fi316-sync-ok">${moneyUSD(tIncUSD)}</div><div class="meta">${loanExclusion}</div></div>
           <div class="fi316-sync-card"><div class="label">Ordinary Expenses</div><div class="value fi316-sync-bad">${moneyUSD(tExpUSD)}</div><div class="meta">Loans, investments and linked investment cash flows excluded.</div></div>
           <div class="fi316-sync-card"><div class="label">Net Saved</div><div class="value ${tSaveUSD>=0?'fi316-sync-cyan':'fi316-sync-bad'}">${moneyUSD(tSaveUSD)}</div><div class="meta">Savings rate ${t.sr.toFixed(1)}% · target 60%.</div></div>
-          <div class="fi316-sync-card"><div class="label">Largest Expense</div><div class="value fi316-sync-warn" style="font-size:18px">${esc(top[0])}</div><div class="meta">${moneyUSD(top[1])}${tExpUSD?` · ${(top[1]/tExpUSD*100).toFixed(1)}% of ordinary expenses`:''}</div></div>
+          <div class="fi316-sync-card"><div class="label">Largest Expense</div><div class="value fi316-sync-warn" style="font-size:18px">${String(top[0]||'No spending').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','\"':'&quot;',"'":'&#39;'}[c]))}</div><div class="meta">${moneyUSD(top[1])}${tExpUSD?` · ${(top[1]/tExpUSD*100).toFixed(1)}% of ordinary expenses`:''}</div></div>
         </div>
         <div class="small" style="margin-top:12px;color:#8fa3c8">This center now uses the same Year / Month selector and the same Cash Flow Income / Expense rules. ${runway!==null?`Cash runway is about ${runway.toFixed(1)} months based on recent ordinary spending.`:'Cash runway will appear after enough spending history is available.'}</div>
       </div>`;
