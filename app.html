@@ -887,6 +887,7 @@ if(toOff){$("toAccount").value="";$("toAmount").value="";}
 }
 let loadAllPromiseV384=null;
 let lastLoadErrorV384="";
+let realtimeRefreshTimerV384=null;
 function setDataLoadingV384(show,sub="Syncing your private cloud records."){const el=$("dataLoadOverlayV384"),txt=$("dataLoadSubV384");if(txt)txt.textContent=sub;if(el){el.classList.toggle("show",!!show);el.setAttribute("aria-hidden",show?"false":"true");}}
 function setDataErrorV384(message=""){lastLoadErrorV384=message||"";const box=$("dataErrorBannerV384"),msg=$("dataErrorMsgV384");if(msg)msg.textContent=message||"";if(box)box.classList.toggle("show",!!message);}
 function retryLoadAllV384(){setDataErrorV384("");return loadAll({force:true});}
@@ -897,39 +898,50 @@ async function loadAll(opts={}){
     setDataErrorV384("");
     setDataLoadingV384(true,hadExisting?"Refreshing your private cloud records…":"Loading your private cloud records…");
     try{
-      const [a,b,r]=await Promise.all([
+      // Keep each request independent: an auxiliary request must never turn a
+      // successful Transactions/Investments refresh into a global cloud error.
+      const results=await Promise.allSettled([
         db.from("transactions").select("*").order("tx_date",{ascending:false}).order("created_at",{ascending:false}),
         db.from("investments").select("*").order("inv_date",{ascending:false}).order("created_at",{ascending:false}),
         db.from("exchange_rates").select("*").maybeSingle()
       ]);
+      const [ta,ib,er]=results;
       const errors=[];
-      if(a.error){console.error(a.error);errors.push("Transactions: "+a.error.message);} else transactions=a.data||[];
-      if(b.error){console.error(b.error);errors.push("Investments: "+b.error.message);} else investments=b.data||[];
-      // Exchange rates are auxiliary data. Do not show a global cloud-load failure
-      // when Transactions and Investments loaded successfully.
-      if(r.error){console.warn("Exchange Rates refresh failed; keeping current rates.",r.error);} else if(r.data) rates=r.data;
-      loadRateInputs();
-      render();
+      const txResult=ta.status==="fulfilled"?ta.value:{error:ta.reason};
+      const invResult=ib.status==="fulfilled"?ib.value:{error:ib.reason};
+      const rateResult=er.status==="fulfilled"?er.value:{error:er.reason};
+
+      if(txResult.error){console.error(txResult.error);errors.push("Transactions: "+(txResult.error.message||String(txResult.error)));}
+      else transactions=txResult.data||[];
+      if(invResult.error){console.error(invResult.error);errors.push("Investments: "+(invResult.error.message||String(invResult.error)));}
+      else investments=invResult.data||[];
+
+      // Rates are optional/auxiliary. Keep the last known values if this request fails.
+      if(rateResult.error) console.warn("Exchange Rates refresh failed; keeping current rates.",rateResult.error);
+      else if(rateResult.data) rates=rateResult.data;
+
+      try{loadRateInputs();}catch(e){console.warn("Rate input UI refresh failed; data is still loaded.",e);}
+      try{render();}catch(e){console.error("UI render failed after cloud data loaded:",e);}
+
+      // Only show a cloud error when a PRIMARY dataset actually failed.
       if(errors.length){
-        const msg=hadExisting?"Some cloud data could not be refreshed. Your last loaded data is still shown. "+errors.join(" "):"Unable to load cloud data. "+errors.join(" ");
+        const msg=hadExisting?"Some cloud records could not be refreshed. Your last loaded data is still shown. "+errors.join(" "):"Unable to load cloud data. "+errors.join(" ");
         setDataErrorV384(msg);
       }
       return {ok:errors.length===0,errors};
     }catch(err){
       console.error("loadAll failed",err);
+      // A true unexpected failure is the only case that reaches here.
       const msg=hadExisting?"Cloud refresh failed. Your last loaded data is still shown. Please check your connection and retry.":"Unable to load cloud data. Please check your connection and retry.";
       setDataErrorV384(msg);
       return {ok:false,errors:[err?.message||String(err)]};
-    }finally{
-      setDataLoadingV384(false);
-    }
+    }finally{setDataLoadingV384(false);}
   })();
   try{return await loadAllPromiseV384;}finally{loadAllPromiseV384=null;}
 }
 function scheduleRealtimeRefreshV384(){clearTimeout(realtimeRefreshTimerV384);realtimeRefreshTimerV384=setTimeout(()=>loadAll(),350);}
 function subscribeRealtime(){
 if(realtimeReady)return;realtimeReady=true;
-let realtimeRefreshTimerV384=null;
 db.channel("myfinance-sync").on("postgres_changes",{event:"*",schema:"public",table:"transactions"},()=>scheduleRealtimeRefreshV384()).on("postgres_changes",{event:"*",schema:"public",table:"investments"},()=>scheduleRealtimeRefreshV384()).on("postgres_changes",{event:"*",schema:"public",table:"exchange_rates"},()=>scheduleRealtimeRefreshV384()).subscribe();
 }
 function currency(a){if(["OKX","ByBit","MetaMask"].includes(a))return"USD";if(["Bath","TrueMoney"].includes(a))return"THB";return"MMK";}
