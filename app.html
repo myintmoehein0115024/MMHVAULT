@@ -9,7 +9,7 @@
 <link href="manifest.webmanifest" rel="manifest"/>
 <meta content="#06111f" name="theme-color"/>
 <title>MMHVAULT · Personal Finance &amp; Wealth Management</title>
-<link href="assets/mmhvault.css" rel="stylesheet"/><meta content="V3.28.12 · Cash Flow + Wealth Rules" name="mmhvault-architecture"/>
+<link href="assets/mmhvault.css" rel="stylesheet"/><meta content="V3.28.13 · Wealth Rules Navigation Fix + Cash Flow" name="mmhvault-architecture"/>
 <style id="mmhvault-v32811-wealth-rules-location-css">
   .analyze-tabs-v371{overflow-x:auto;scrollbar-width:thin;}
   .analyze-tabs-v371 .analyze-tab-v371{flex:0 0 auto;min-width:110px;}
@@ -17,7 +17,7 @@
   
 </style>
 <style id="mmhvault-v32811-organization-style">
-/* MMHVAULT V3.28.12 · Cash Flow + Wealth Rules fixes */
+/* MMHVAULT V3.28.13 · Wealth Rules Navigation Fix + Cash Flow fixes */
 #txIntelligencePanelV323{animation:txFade371 .16s ease-out}
 #analyzePanelWealthRulesV32811{animation:analyzeFade32811 .16s ease-out}
 #analyzePanelWealthRulesV32811 .wealth-rules-v326{margin-top:0}
@@ -3770,7 +3770,7 @@ window.MM_HVAULT_UI_AUDIT = { version:'V3.18.0', duplicatePresentationCleanup:tr
 </script>
 <script id="mmhvault-v32811-wealth-rules-analyze-location">
 (function(){
-  const TAB='wealthrules', BTN_ID='analyzeTabWealthRulesV32810', PANEL_ID='analyzePanelWealthRulesV32810';
+  const TAB='wealthrules', BTN_ID='analyzeTabWealthRulesV32811', PANEL_ID='analyzePanelWealthRulesV32811';
   function by(id){return document.getElementById(id)}
   function ensure(){
     const tabs=document.querySelector('.analyze-tabs-v371');
@@ -3965,6 +3965,50 @@ window.MM_HVAULT_UI_AUDIT = { version:'V3.18.0', duplicatePresentationCleanup:tr
 
   // Update immediately when the current Analyze render has already happened.
   try{window.renderCashFlowSummaryV32812();refreshCashFlowExtras();}catch(e){console.warn('V3.28.12 Cash Flow refresh',e)}
+})();
+</script>
+
+<script id="mmhvault-v32813-wealth-rules-direct-nav">
+(function(){
+  function activate(){
+    const tab='wealthrules';
+    const btn=document.getElementById('analyzeTabWealthRulesV32811');
+    const panel=document.getElementById('analyzePanelWealthRulesV32811');
+    if(!btn||!panel) return false;
+    document.querySelectorAll('.analyze-tab-v371').forEach(b=>{
+      const on=b.dataset.tab===tab;
+      b.classList.toggle('active',on);
+      b.setAttribute('aria-selected',on?'true':'false');
+    });
+    document.querySelectorAll('.analyze-tab-panel-v371').forEach(p=>{
+      const on=p.dataset.panel===tab;
+      p.classList.toggle('active',on);
+      p.setAttribute('aria-hidden',on?'false':'true');
+      if(p===panel || on) p.style.display=on?'block':'none';
+    });
+    panel.style.display='block';
+    panel.setAttribute('aria-hidden','false');
+    try{localStorage.setItem('myfinance_analyze_tab',tab);}catch(e){}
+    try{window.getPersonalWealthRulesV326?.();}catch(e){}
+    // Refill the controls directly so the panel is immediately usable.
+    try{
+      const r=window.getPersonalWealthRulesV326?.();
+      const map={wealthRuleReserveV326:r?.reserveMin,wealthRuleComfortV326:r?.reserveComfort,wealthRuleSavingsV326:r?.savingsTarget,wealthRuleInvestV326:r?.investmentCeiling};
+      Object.entries(map).forEach(([id,v])=>{const el=document.getElementById(id); if(el&&v!=null) el.value=v;});
+    }catch(e){}
+    return true;
+  }
+  function bind(){
+    document.addEventListener('click',function(e){
+      const btn=e.target.closest?.('#analyzeTabWealthRulesV32811');
+      if(!btn) return;
+      e.preventDefault();
+      e.stopPropagation();
+      activate();
+    },true);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});
+  else bind();
 })();
 </script>
 </body>
