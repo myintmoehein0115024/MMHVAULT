@@ -23,7 +23,22 @@
 #analyzePanelWealthRulesV32811 .wealth-rules-v326{margin-top:0}
 @keyframes analyzeFade32811{from{opacity:.72;transform:translateY(3px)}to{opacity:1;transform:none}}
 @media(max-width:650px){.tx-tabs-v371{overflow-x:auto}.tx-tab-v371{min-width:0;white-space:nowrap}}
-</style></head>
+</style>
+<style id="mmhvault-receipt-modal-v3297">
+#receiptViewerModalV3297{position:fixed;inset:0;z-index:50000;display:none;align-items:center;justify-content:center;padding:24px;background:rgba(3,7,18,.82);backdrop-filter:blur(8px)}
+#receiptViewerModalV3297.show{display:flex}
+.receipt-viewer-dialog-v3297{width:min(1180px,96vw);height:min(820px,90vh);background:#0b1326;border:1px solid rgba(112,160,255,.28);border-radius:18px;box-shadow:0 28px 100px rgba(0,0,0,.6);display:flex;flex-direction:column;overflow:hidden}
+.receipt-viewer-head-v3297{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:15px 18px;border-bottom:1px solid rgba(112,160,255,.18)}
+.receipt-viewer-title-v3297{font-weight:800;font-size:16px;color:#edf4ff}
+.receipt-viewer-body-v3297{position:relative;flex:1;min-height:0;background:#050914;display:flex;align-items:center;justify-content:center}
+.receipt-viewer-body-v3297 img{max-width:100%;max-height:100%;object-fit:contain}
+.receipt-viewer-body-v3297 iframe{width:100%;height:100%;border:0;background:#fff}
+.receipt-viewer-close-v3297{border:1px solid rgba(255,255,255,.16);background:#151f35;color:#eef4ff;border-radius:10px;padding:8px 13px;cursor:pointer;font-size:14px}
+.receipt-viewer-close-v3297:hover{background:#202d49}
+.receipt-viewer-loading-v3297{color:#9db0cf;font-size:14px}
+@media(max-width:650px){#receiptViewerModalV3297{padding:8px}.receipt-viewer-dialog-v3297{width:100%;height:94vh;border-radius:14px}.receipt-viewer-head-v3297{padding:12px}.receipt-viewer-title-v3297{font-size:14px}}
+</style>
+</head>
 <body>
 <div id="mmhvaultAppBootGuardV3282" style="position:fixed;inset:0;z-index:30000;display:none;align-items:center;justify-content:center;background:#050a18;color:#dce8ff;font-family:Arial,sans-serif;padding:24px;text-align:center;">
 <div style="max-width:420px;border:1px solid rgba(78,164,255,.25);border-radius:18px;padding:24px 22px;background:rgba(10,20,42,.92);box-shadow:0 18px 60px rgba(0,0,0,.4);">
@@ -894,14 +909,31 @@ async function uploadTransactionReceiptV396(userId,txId,file){
   if(error)throw error;
   return {ok:true,path};
 }
+function closeTransactionReceiptV3297(){
+  const modal=$("receiptViewerModalV3297"),body=$("receiptViewerBodyV3297");
+  if(body)body.innerHTML='';
+  if(modal)modal.classList.remove('show');
+}
 async function openTransactionReceiptV396(id){
   const u=(await db.auth.getUser()).data.user;
   if(!u){alert('Please sign in first.');return;}
+  const modal=$("receiptViewerModalV3297"),body=$("receiptViewerBodyV3297");
+  if(!modal||!body){alert('Receipt viewer is unavailable.');return;}
+  body.innerHTML='<div class="receipt-viewer-loading-v3297">Loading receipt…</div>';
+  modal.classList.add('show');
   const path=receiptPathV396(u.id,id);
   const {data,error}=await db.storage.from(RECEIPTS_BUCKET_V396).createSignedUrl(path,3600);
-  if(error){alert('No receipt was found for this transaction.');return;}
-  window.open(data.signedUrl,'_blank','noopener');
+  if(error){closeTransactionReceiptV3297();alert('No receipt was found for this transaction.');return;}
+  const url=data.signedUrl;
+  const clean=url.split('?')[0].toLowerCase();
+  if(clean.endsWith('.pdf')){
+    body.innerHTML='<iframe title="Receipt PDF" src="'+url+'"></iframe>';
+  }else{
+    body.innerHTML='<img alt="Receipt" src="'+url+'" onerror="this.parentElement.innerHTML='<div class=&quot;receipt-viewer-loading-v3297&quot;>Unable to display this receipt.</div>'">';
+  }
 }
+document.addEventListener('click',e=>{const m=$("receiptViewerModalV3297");if(m&&e.target===m)closeTransactionReceiptV3297();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeTransactionReceiptV3297();});
 async function deleteTransactionReceiptV396(userId,id){
   if(!userId)return;
   try{await db.storage.from(RECEIPTS_BUCKET_V396).remove([receiptPathV396(userId,id)]);}catch(_e){}
@@ -4174,6 +4206,17 @@ window.MM_HVAULT_UI_AUDIT = { version:'V3.18.0', duplicatePresentationCleanup:tr
 })();
 </script>
 
+
+<!-- MMHVAULT V3.29.7 · In-page Receipt Viewer -->
+<div id="receiptViewerModalV3297" role="dialog" aria-modal="true" aria-label="Receipt viewer">
+  <div class="receipt-viewer-dialog-v3297" role="document">
+    <div class="receipt-viewer-head-v3297">
+      <div class="receipt-viewer-title-v3297">📎 Receipt Preview</div>
+      <button class="receipt-viewer-close-v3297" type="button" onclick="closeTransactionReceiptV3297()">✕ Close</button>
+    </div>
+    <div class="receipt-viewer-body-v3297" id="receiptViewerBodyV3297"><div class="receipt-viewer-loading-v3297">Loading receipt…</div></div>
+  </div>
+</div>
 </body>
 </html>
 <script id="mmhvault-v3295-financial-behavior-period-fix">
