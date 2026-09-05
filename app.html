@@ -30,8 +30,14 @@
 .receipt-viewer-dialog-v3297{width:min(1180px,96vw);height:min(820px,90vh);background:#0b1326;border:1px solid rgba(112,160,255,.28);border-radius:18px;box-shadow:0 28px 100px rgba(0,0,0,.6);display:flex;flex-direction:column;overflow:hidden}
 .receipt-viewer-head-v3297{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:15px 18px;border-bottom:1px solid rgba(112,160,255,.18)}
 .receipt-viewer-title-v3297{font-weight:800;font-size:16px;color:#edf4ff}
-.receipt-viewer-body-v3297{position:relative;flex:1;min-height:0;background:#050914;display:flex;align-items:center;justify-content:center}
-.receipt-viewer-body-v3297 img{max-width:100%;max-height:100%;object-fit:contain}
+.receipt-viewer-actions-v3297{display:flex;align-items:center;gap:8px}
+.receipt-viewer-zoom-v3297{display:flex;align-items:center;gap:5px;padding:4px 6px;border:1px solid rgba(255,255,255,.12);background:#0e1930;border-radius:10px}
+.receipt-viewer-zoom-v3297 button{width:30px;height:30px;border:0;border-radius:7px;background:#17243e;color:#eef4ff;font-size:18px;line-height:1;cursor:pointer}
+.receipt-viewer-zoom-v3297 button:hover{background:#243657}
+#receiptZoomLabelV3297{min-width:48px;text-align:center;color:#b9c9e8;font-size:12px;font-weight:700}
+.receipt-viewer-body-v3297{position:relative;flex:1;min-height:0;background:#050914;display:flex;align-items:center;justify-content:center;overflow:auto}
+.receipt-viewer-body-v3297 img{display:block;max-width:100%;max-height:100%;object-fit:contain;transition:transform .15s ease;transform-origin:center center;cursor:zoom-in}
+.receipt-viewer-body-v3297 img.zoomed-v3297{cursor:zoom-out}
 .receipt-viewer-body-v3297 iframe{width:100%;height:100%;border:0;background:#fff}
 .receipt-viewer-close-v3297{border:1px solid rgba(255,255,255,.16);background:#151f35;color:#eef4ff;border-radius:10px;padding:8px 13px;cursor:pointer;font-size:14px}
 .receipt-viewer-close-v3297:hover{background:#202d49}
@@ -909,9 +915,23 @@ async function uploadTransactionReceiptV396(userId,txId,file){
   if(error)throw error;
   return {ok:true,path};
 }
+let receiptZoomV3297=1;
+function updateReceiptZoomV3297(){
+  const img=$("receiptViewerImageV3297"),label=$("receiptZoomLabelV3297"),controls=$("receiptZoomControlsV3297");
+  if(!img)return;
+  receiptZoomV3297=Math.max(.5,Math.min(3,receiptZoomV3297));
+  img.style.transform=`scale(${receiptZoomV3297})`;
+  img.classList.toggle('zoomed-v3297',receiptZoomV3297>1.01);
+  if(label)label.textContent=Math.round(receiptZoomV3297*100)+'%';
+  if(controls)controls.style.display='flex';
+}
+function changeReceiptZoomV3297(delta){receiptZoomV3297+=delta;updateReceiptZoomV3297();}
+function resetReceiptZoomV3297(){receiptZoomV3297=1;updateReceiptZoomV3297();}
 function closeTransactionReceiptV3297(){
-  const modal=$("receiptViewerModalV3297"),body=$("receiptViewerBodyV3297");
+  const modal=$("receiptViewerModalV3297"),body=$("receiptViewerBodyV3297"),controls=$("receiptZoomControlsV3297");
+  receiptZoomV3297=1;
   if(body)body.innerHTML='';
+  if(controls)controls.style.display='none';
   if(modal)modal.classList.remove('show');
 }
 async function openTransactionReceiptV396(id){
@@ -929,15 +949,19 @@ async function openTransactionReceiptV396(id){
   if(clean.endsWith('.pdf')){
     body.innerHTML='<iframe title="Receipt PDF" src="'+url+'"></iframe>';
   }else{
-    body.innerHTML='<img alt="Receipt" src="'+url+'">';
+    body.innerHTML='<img id="receiptViewerImageV3297" alt="Receipt" src="'+url+'">';
     const receiptImg=body.querySelector('img');
     if(receiptImg){
-      receiptImg.onerror=()=>{body.innerHTML='';};
+      receiptZoomV3297=1;
+      updateReceiptZoomV3297();
+      receiptImg.onclick=()=>{receiptZoomV3297=receiptZoomV3297>1.01?1:1.5;updateReceiptZoomV3297();};
+      receiptImg.onerror=()=>{body.innerHTML='';const controls=$("receiptZoomControlsV3297");if(controls)controls.style.display='none';};
     }
   }
 }
 document.addEventListener('click',e=>{const m=$("receiptViewerModalV3297");if(m&&e.target===m)closeTransactionReceiptV3297();});
 document.addEventListener('keydown',e=>{if(e.key==='Escape')closeTransactionReceiptV3297();});
+document.addEventListener('wheel',e=>{const modal=$("receiptViewerModalV3297");if(!modal||!modal.classList.contains('show')||!$("receiptViewerImageV3297"))return;if(e.ctrlKey||e.metaKey)return;e.preventDefault();changeReceiptZoomV3297(e.deltaY<0?.1:-.1);},{passive:false});
 async function deleteTransactionReceiptV396(userId,id){
   if(!userId)return;
   try{await db.storage.from(RECEIPTS_BUCKET_V396).remove([receiptPathV396(userId,id)]);}catch(_e){}
@@ -4216,7 +4240,15 @@ window.MM_HVAULT_UI_AUDIT = { version:'V3.18.0', duplicatePresentationCleanup:tr
   <div class="receipt-viewer-dialog-v3297" role="document">
     <div class="receipt-viewer-head-v3297">
       <div class="receipt-viewer-title-v3297">📎 Receipt Preview</div>
-      <button class="receipt-viewer-close-v3297" type="button" onclick="closeTransactionReceiptV3297()">✕ Close</button>
+      <div class="receipt-viewer-actions-v3297">
+        <div class="receipt-viewer-zoom-v3297" id="receiptZoomControlsV3297" style="display:none">
+          <button type="button" onclick="changeReceiptZoomV3297(-.1)" aria-label="Zoom out">−</button>
+          <span id="receiptZoomLabelV3297">100%</span>
+          <button type="button" onclick="changeReceiptZoomV3297(.1)" aria-label="Zoom in">＋</button>
+          <button type="button" onclick="resetReceiptZoomV3297()" style="font-size:12px;width:auto;padding:0 8px" aria-label="Reset zoom">Reset</button>
+        </div>
+        <button class="receipt-viewer-close-v3297" type="button" onclick="closeTransactionReceiptV3297()">✕ Close</button>
+      </div>
     </div>
     <div class="receipt-viewer-body-v3297" id="receiptViewerBodyV3297"><div class="receipt-viewer-loading-v3297">Loading receipt…</div></div>
   </div>
