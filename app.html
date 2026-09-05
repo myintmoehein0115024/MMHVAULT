@@ -15,6 +15,26 @@
   .analyze-tabs-v371 .analyze-tab-v371{flex:0 0 auto;min-width:110px;}
   @media (max-width:720px){.analyze-tabs-v371 .analyze-tab-v371{min-width:96px}.settings-tabs-v371{grid-template-columns:repeat(3,minmax(0,1fr)) !important;}}
   
+
+/* MMHVAULT V3.30.0 · Modern receipt attachment */
+.receipt-upload-v3300{grid-column:1/-1;border:1px solid rgba(83,143,255,.24);border-radius:18px;padding:16px;background:linear-gradient(135deg,rgba(20,31,58,.82),rgba(10,18,36,.94));box-shadow:inset 0 1px 0 rgba(255,255,255,.035),0 10px 28px rgba(0,0,0,.16)}
+.receipt-upload-head-v3300{display:flex;align-items:center;gap:11px;margin-bottom:13px}
+.receipt-upload-icon-v3300{width:38px;height:38px;display:grid;place-items:center;border-radius:12px;background:rgba(63,127,255,.13);border:1px solid rgba(100,158,255,.22);font-size:17px}
+.receipt-upload-title-v3300{font-size:15px;font-weight:850;color:#edf4ff;letter-spacing:.01em}
+.receipt-upload-sub-v3300{margin-top:2px;font-size:11px;color:#8fa4c5}
+.receipt-upload-badge-v3300{margin-left:auto;padding:5px 9px;border-radius:999px;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.035);color:#9db1d0;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em}
+.receipt-dropzone-v3300{min-height:72px;display:flex;align-items:center;gap:12px;padding:10px 12px;border:1px dashed rgba(99,153,255,.34);border-radius:14px;background:rgba(5,12,26,.35);cursor:pointer;transition:.18s ease;user-select:none}
+.receipt-dropzone-v3300:hover,.receipt-dropzone-v3300.dragging{border-color:rgba(98,173,255,.78);background:rgba(33,75,145,.14);transform:translateY(-1px)}
+.receipt-dropzone-v3300 input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.receipt-drop-icon-v3300{width:40px;height:40px;flex:0 0 40px;display:grid;place-items:center;border-radius:11px;background:#182744;border:1px solid rgba(112,165,255,.2);color:#8fc3ff;font-size:24px;font-weight:300;line-height:1}
+.receipt-drop-copy-v3300{min-width:0;display:flex;flex-direction:column;gap:4px}
+.receipt-drop-copy-v3300 strong{font-size:13px;color:#dce9ff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.receipt-drop-copy-v3300 span{font-size:11px;color:#8297b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.receipt-drop-action-v3300{margin-left:auto;padding:8px 12px;border-radius:9px;background:rgba(67,120,211,.16);border:1px solid rgba(104,164,255,.22);color:#bcd8ff;font-size:11px;font-weight:800}
+.receipt-upload-footer-v3300{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px;font-size:10px;color:#7185a5}
+.receipt-secure-v3300{color:#7f96b9}.receipt-file-state-v3300{color:#9cb5d8;font-weight:700;text-align:right}.receipt-file-state-v3300.ready{color:#73e0ae}.receipt-file-state-v3300.error{color:#ff9b9b}
+@media(max-width:620px){.receipt-upload-v3300{padding:13px}.receipt-upload-sub-v3300{display:none}.receipt-drop-action-v3300{display:none}.receipt-upload-footer-v3300{align-items:flex-start;flex-direction:column}.receipt-file-state-v3300{text-align:left}.receipt-dropzone-v3300{min-height:66px}}
+
 </style>
 <style id="mmhvault-v32811-organization-style">
 /* MMHVAULT V3.28.14 · Wealth Rules Navigation Fix + Cash Flow fixes */
@@ -140,7 +160,29 @@
 <label>To Account<select id="toAccount"></select></label>
 <label>Account To Amount<input id="toAmount" min="0" step="0.000001" type="number"/></label>
 <label>Note<input id="txNote"/></label>
-<label class="full">📎 Receipt / Image (optional)<input accept="image/*,.pdf" id="txReceipt" type="file"/><div class="small" id="txReceiptHint">Images or PDF · stored securely in Supabase Storage · max 10 MB</div></label>
+<div class="full receipt-upload-v3300" id="receiptUploadV3300">
+  <div class="receipt-upload-head-v3300">
+    <div class="receipt-upload-icon-v3300">📎</div>
+    <div>
+      <div class="receipt-upload-title-v3300">Receipt attachment</div>
+      <div class="receipt-upload-sub-v3300">Optional · add proof, invoice or payment screenshot</div>
+    </div>
+    <div class="receipt-upload-badge-v3300">Optional</div>
+  </div>
+  <label class="receipt-dropzone-v3300" for="txReceipt" id="receiptDropzoneV3300">
+    <input accept="image/*,.pdf" id="txReceipt" type="file"/>
+    <div class="receipt-drop-icon-v3300">＋</div>
+    <div class="receipt-drop-copy-v3300">
+      <strong id="receiptDropTitleV3300">Choose a receipt</strong>
+      <span id="receiptDropMetaV3300">PNG, JPG, WEBP or PDF · up to 10 MB</span>
+    </div>
+    <div class="receipt-drop-action-v3300">Browse</div>
+  </label>
+  <div class="receipt-upload-footer-v3300">
+    <span class="receipt-secure-v3300">🔒 Stored privately in your secure cloud storage</span>
+    <span class="receipt-file-state-v3300" id="txReceiptHint">No file selected</span>
+  </div>
+</div>
 </div><div class="actions"><button class="btn" onclick="clearTxForm()" type="button">Clear</button><button class="btn primary">Add Transaction</button></div></form></div></div>
 <div class="tx-tab-panel-v371" id="txHistoryPanel" style="display:none"><div class="panel"><div class="toolbar"><div><h2>History</h2><div class="small" id="txResultCount">0 records</div></div><button class="btn danger" onclick="deleteAllTx()">Clear All</button></div>
 <div class="filter-grid" style="display:grid;grid-template-columns:2fr repeat(4,1fr);gap:10px;margin-bottom:12px">
@@ -991,7 +1033,7 @@ if(receiptFile){
   catch(err){console.error(err);alert('Transaction was saved, but the receipt upload failed: '+(err?.message||err));}
 }
 // Keep the user's selections for rapid consecutive entries; only transaction-specific values are cleared.
-txType.value=selected.type;syncTransactionGroup();txGroup.value=selected.group;updateCategories();txCategory.value=[...txCategory.options].some(o=>o.value===selected.category)?selected.category:txCategory.value;fromAccount.value=selected.fromAccount;toAccount.value=selected.toAccount;fromAmount.value="";toAmount.value="";txNote.value="";if($("txReceipt"))$("txReceipt").value="";updateAccountLocks();await loadAll();
+txType.value=selected.type;syncTransactionGroup();txGroup.value=selected.group;updateCategories();txCategory.value=[...txCategory.options].some(o=>o.value===selected.category)?selected.category:txCategory.value;fromAccount.value=selected.fromAccount;toAccount.value=selected.toAccount;fromAmount.value="";toAmount.value="";txNote.value="";if($("txReceipt"))$("txReceipt").value="";if(window.resetReceiptUploadUIV3300)window.resetReceiptUploadUIV3300();updateAccountLocks();await loadAll();
 }
 function renderTransactions(){
 if(!transactions.length){txList.innerHTML='<div class="empty">No transactions.</div>';return}
@@ -4245,6 +4287,33 @@ window.MM_HVAULT_UI_AUDIT = { version:'V3.18.0', duplicatePresentationCleanup:tr
 </script>
 
 
+
+<script>
+/* MMHVAULT V3.30.0 · Receipt upload UX */
+(function(){
+  const input=document.getElementById('txReceipt');
+  const zone=document.getElementById('receiptDropzoneV3300');
+  const title=document.getElementById('receiptDropTitleV3300');
+  const meta=document.getElementById('receiptDropMetaV3300');
+  const hint=document.getElementById('txReceiptHint');
+  if(!input||!zone)return;
+  const reset=()=>{if(title)title.textContent='Choose a receipt';if(meta)meta.textContent='PNG, JPG, WEBP or PDF · up to 10 MB';if(hint){hint.textContent='No file selected';hint.classList.remove('ready','error')}};
+  const update=file=>{
+    if(!file){reset();return;}
+    const max=10*1024*1024;
+    if(file.size>max){if(hint){hint.textContent='File is larger than 10 MB';hint.classList.remove('ready');hint.classList.add('error')}return;}
+    if(title)title.textContent=file.name;
+    if(meta)meta.textContent=(file.type||'File')+' · '+(file.size/1024/1024).toFixed(file.size>=1024*1024?2:3)+' MB';
+    if(hint){hint.textContent='✓ Ready to upload';hint.classList.remove('error');hint.classList.add('ready')}
+  };
+  input.addEventListener('change',()=>update(input.files&&input.files[0]));
+  ['dragenter','dragover'].forEach(ev=>zone.addEventListener(ev,e=>{e.preventDefault();zone.classList.add('dragging')}));
+  ['dragleave','drop'].forEach(ev=>zone.addEventListener(ev,e=>{e.preventDefault();zone.classList.remove('dragging')}));
+  zone.addEventListener('drop',e=>{const f=e.dataTransfer&&e.dataTransfer.files&&e.dataTransfer.files[0];if(!f)return;try{const dt=new DataTransfer();dt.items.add(f);input.files=dt.files;}catch(_e){}update(f)});
+  window.resetReceiptUploadUIV3300=reset;
+})();
+
+</script>
 <!-- MMHVAULT V3.29.7 · In-page Receipt Viewer -->
 <div id="receiptViewerModalV3297" role="dialog" aria-modal="true" aria-label="Receipt viewer">
   <div class="receipt-viewer-dialog-v3297" role="document">
