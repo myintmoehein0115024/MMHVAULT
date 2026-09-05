@@ -606,6 +606,78 @@ html{scroll-behavior:smooth}
 }
 </style>
 
+
+<style id="landing-v3300-ux-accessibility">
+/* V3.30.0 — UX, accessibility & mobile interaction polish */
+
+/* Clear keyboard navigation */
+a:focus-visible,
+button:focus-visible{
+  outline:2px solid #8ee6e7;
+  outline-offset:4px;
+}
+
+/* Prevent decorative layers from blocking clicks */
+.landing-final-cta-inner-v3294:before,
+.landing-visual-v327:before,
+.landing-section-v327:before,
+.landing-privacy-v327:after,
+.landing-service-grid-v327 article:after{
+  pointer-events:none;
+}
+
+/* Better mobile tap targets */
+@media(max-width:760px){
+  .landing-header-v327 a,
+  .landing-footer-links-v3298 a{
+    min-height:42px;
+    display:flex;
+    align-items:center;
+  }
+
+  .landing-final-primary-v3294{
+    min-height:54px;
+  }
+
+  .landing-how-step-v3297,
+  .landing-service-grid-v327 article{
+    -webkit-tap-highlight-color:transparent;
+  }
+}
+
+/* Respect reduced-motion preferences */
+@media(prefers-reduced-motion:reduce){
+  *,
+  *:before,
+  *:after{
+    animation-duration:.01ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:.01ms !important;
+    scroll-behavior:auto !important;
+  }
+}
+
+/* Cleaner text wrapping on modern browsers */
+.landing-hero-v327 h1,
+.landing-section-head-v327 h2,
+.landing-how-head-v3297 h2,
+.landing-final-cta-v3294 h2{
+  text-wrap:balance;
+}
+
+/* Prevent accidental horizontal overflow */
+body{
+  overflow-x:hidden;
+}
+
+/* Improve section anchor positioning */
+#how-it-works,
+#landingServicesV327,
+#landingPrivacyV327{
+  scroll-margin-top:96px;
+}
+</style>
+
 </head><body class="landing-gateway-page-v3283">
 <section aria-label="MMHVAULT public landing page" class="mmhvault-landing-v327" id="mmhvaultLandingV327">
 <header class="landing-header-v327">
