@@ -44,7 +44,7 @@
 <button class="btn" onclick="retryLoadAllV384()" type="button">Retry</button>
 </div>
 <header id="header" style="display:none">
-<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.28.16</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
+<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.29.4</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
 <div class="header-spacer"></div>
 <div aria-label="Signed in user" class="header-profile" id="headerProfile">
 <div class="header-avatar" id="headerAvatar">MF</div>
@@ -4020,5 +4020,128 @@ window.MM_HVAULT_UI_AUDIT = { version:'V3.18.0', duplicatePresentationCleanup:tr
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
 })();
 </script>
+
+
+<script id="mmhvault-v3294-financial-health-period-fix">
+/* MMHVAULT V3.29.4 · Financial Health period-aware calculation repair */
+(function(){
+  const num=v=>{const x=Number(v);return Number.isFinite(x)?x:0};
+  const pad=m=>String(m).padStart(2,'0');
+  const ym=(y,m)=>`${y}-${pad(m)}`;
+  const addMonths=(key,delta)=>{const [y,m]=String(key).split('-').map(Number);const d=new Date(y,m-1+delta,1);return ym(d.getFullYear(),d.getMonth()+1)};
+  const period=()=>{
+    const y=Number(document.getElementById('analyzeYear')?.value)||new Date().getFullYear();
+    const m=document.getElementById('analyzeMonth')?.value||'annual';
+    return {year:y,month:m};
+  };
+  const incomeOK=t=>t?.type==='Income'&&String(t?.category||'').trim().toLowerCase()!=='loan repayment';
+  const expenseOK=t=>{
+    if(!t||t.type!=='Expense')return false;
+    const c=String(t.category||'').trim();
+    if(['Investment','Loan Out','PaidDeb','Paid Debt','Debt'].includes(c))return false;
+    try{if(typeof isLinkedInvestmentTx==='function'&&isLinkedInvestmentTx(t))return false;}catch(e){}
+    try{if(Array.isArray(CATS?.Loans)&&CATS.Loans.includes(c))return false;}catch(e){}
+    return true;
+  };
+  function flowForRows(rows){
+    let inc=0,exp=0;
+    (rows||[]).forEach(t=>{
+      if(incomeOK(t))inc+=num(t.to_amount)*toUSD(t.to_account);
+      if(expenseOK(t))exp+=num(t.from_amount)*toUSD(t.from_account);
+    });
+    const save=inc-exp;
+    return {inc,exp,save,sr:inc?save/inc*100:0,er:inc?exp/inc*100:0};
+  }
+  function flowForMonth(key){
+    const rows=(transactions||[]).filter(t=>String(t.tx_date||'').slice(0,7)===key);
+    return flowForRows(rows);
+  }
+  function annualAnchor(year){
+    const keys=(transactions||[]).map(t=>String(t.tx_date||'').slice(0,7)).filter(k=>k.startsWith(String(year)+'-')&&/^\d{4}-\d{2}$/.test(k)).sort();
+    if(keys.length)return keys[keys.length-1];
+    const now=new Date();
+    return year===now.getFullYear()?ym(year,now.getMonth()+1):ym(year,12);
+  }
+  function selectedContext(){
+    const p=period();
+    if(p.month==='annual'){
+      const rows=(transactions||[]).filter(t=>String(t.tx_date||'').slice(0,4)===String(p.year));
+      const anchor=annualAnchor(p.year);
+      return {p,mode:'annual',anchor,flow:flowForRows(rows),label:`${p.year} Annual`};
+    }
+    const anchor=ym(p.year,Number(p.month));
+    return {p,mode:'month',anchor,flow:flowForMonth(anchor),label:new Date(p.year,Number(p.month)-1,1).toLocaleDateString(undefined,{month:'long',year:'numeric'})};
+  }
+  function trailing3(anchor){
+    const keys=[addMonths(anchor,-2),addMonths(anchor,-1),anchor];
+    const rows=keys.map(flowForMonth);
+    const inc=rows.reduce((s,x)=>s+x.inc,0);
+    const exp=rows.reduce((s,x)=>s+x.exp,0);
+    const save=inc-exp;
+    const active=rows.filter(x=>x.inc>0||x.exp>0);
+    return {keys,rows,inc,exp,save,sr:inc?save/inc*100:0,er:inc?exp/inc*100:0,avgExpense:exp/Math.max(1,active.length),activeMonths:active.length};
+  }
+  function assetMix(){
+    const accounts=['Bath','TrueMoney','OKX','ByBit','MetaMask','KPay'];
+    const cash=accounts.reduce((s,a)=>s+Math.max(0,num(balance(a)))*toUSD(a),0);
+    const invest=Math.max(0,num(investmentValue())/(num(rates?.usd_mmk)||1));
+    const base=cash+invest;
+    return {cash,invest,base,cashRatio:base?cash/base*100:0,investRatio:base?invest/base*100:0};
+  }
+  function band(score){return score>=75?{cls:'fin-health-good',label:'Healthy'}:score>=55?{cls:'fin-health-warn',label:'Needs Attention'}:{cls:'fin-health-bad',label:'At Risk'};}
+  function render(){
+    const el=document.getElementById('financialHealthV371');if(!el)return;
+    const ctx=selectedContext();
+    const avg=trailing3(ctx.anchor);
+    const cap=assetMix();
+    const emergency=avg.avgExpense>0?cap.cash/avg.avgExpense:0;
+
+    const savingsScore=Math.max(0,Math.min(30,(avg.sr/60)*30));
+    const expenseScore=Math.max(0,Math.min(20,(70-avg.er)/40*20));
+    const invScore=cap.base<=0?0:(cap.investRatio>=30&&cap.investRatio<=60?15:(cap.investRatio<30?Math.max(0,15-(30-cap.investRatio)/2):Math.max(0,15-(cap.investRatio-60)/2)));
+    const cashScore=cap.base<=0?0:(cap.cashRatio>=30&&cap.cashRatio<=70?15:(cap.cashRatio<30?Math.max(0,15-(30-cap.cashRatio)/2):Math.max(0,15-(cap.cashRatio-70)/2)));
+    const emergencyScore=Math.min(20,(emergency/6)*20);
+    const score=Math.round(Math.max(0,Math.min(100,savingsScore+expenseScore+invScore+cashScore+emergencyScore)));
+    const b=band(score);
+    const periodText=ctx.mode==='annual'?`${ctx.label} · ratios use the selected year`:ctx.label;
+    const avgText=`3M window ending ${ctx.anchor} · ${avg.activeMonths||0} active month${avg.activeMonths===1?'':'s'}`;
+    const emergencyNote=avg.avgExpense>0?`Cash covers ${emergency.toFixed(1)} months of recent ordinary spending.`:'No ordinary spending history in this 3-month window.';
+    el.innerHTML=`
+      <div class="fin-health-score">
+        <div class="fin-health-score-main">
+          <div class="fin-health-score-number ${b.cls}">${score}</div>
+          <div class="fin-health-score-label">Financial Health Score · 100</div>
+          <div class="fin-health-status ${b.cls}">${b.label}</div>
+          <div class="fin-health-progress"><span style="width:${score}%"></span></div>
+          <div class="fin-health-note">Selected period: ${periodText}. Savings and spending use the selected period's trailing 3-month window; asset allocation uses the current account snapshot.</div>
+        </div>
+        <div class="fin-health-grid">
+          <div class="fin-health-card"><div class="label">Savings Rate</div><div class="value ${avg.sr>=60?'fin-health-good':avg.sr>=40?'fin-health-warn':'fin-health-bad'}">${avg.sr.toFixed(1)}%</div><div class="detail">${avgText}<br>Selected period ${ctx.flow.sr.toFixed(1)}%</div></div>
+          <div class="fin-health-card"><div class="label">Expense Ratio</div><div class="value ${avg.er<=60?'fin-health-good':avg.er<=80?'fin-health-warn':'fin-health-bad'}">${avg.er.toFixed(1)}%</div><div class="detail">${avgText}<br>${usd(avg.avgExpense)} average ordinary spending / active month</div></div>
+          <div class="fin-health-card"><div class="label">Investment Ratio</div><div class="value">${cap.investRatio.toFixed(1)}%</div><div class="detail">Current allocation · target 30–60%<br>${usd(cap.invest)} invested</div></div>
+          <div class="fin-health-card"><div class="label">Cash Ratio</div><div class="value">${cap.cashRatio.toFixed(1)}%</div><div class="detail">Current allocation · target 30–70%<br>${usd(cap.cash)} liquid cash</div></div>
+          <div class="fin-health-card"><div class="label">Emergency Fund</div><div class="value ${emergency>=6?'fin-health-good':emergency>=3?'fin-health-warn':'fin-health-bad'}">${avg.avgExpense>0?emergency.toFixed(1):'—'} ${avg.avgExpense>0?'Months':''}</div><div class="detail">Recent ordinary-spending baseline<br>${emergencyNote}</div></div>
+        </div>
+        <div class="fin-health-breakdown-v371">
+          <div class="fin-health-breakdown-title-v371"><span class="label">How your score is calculated</span><span class="total ${b.cls}">${score} / 100</span></div>
+          <div class="fin-health-score-row-v371"><div class="fin-health-score-name-v371">Savings Rate <span class="small">30 pts</span></div><div class="fin-health-score-bar-v371"><span style="width:${(savingsScore/30*100).toFixed(1)}%"></span></div><div class="fin-health-score-points-v371">${savingsScore.toFixed(1)} / 30</div></div>
+          <div class="fin-health-score-row-v371"><div class="fin-health-score-name-v371">Expense Ratio <span class="small">20 pts</span></div><div class="fin-health-score-bar-v371"><span style="width:${(expenseScore/20*100).toFixed(1)}%"></span></div><div class="fin-health-score-points-v371">${expenseScore.toFixed(1)} / 20</div></div>
+          <div class="fin-health-score-row-v371"><div class="fin-health-score-name-v371">Investment Ratio <span class="small">15 pts</span></div><div class="fin-health-score-bar-v371"><span style="width:${(invScore/15*100).toFixed(1)}%"></span></div><div class="fin-health-score-points-v371">${invScore.toFixed(1)} / 15</div></div>
+          <div class="fin-health-score-row-v371"><div class="fin-health-score-name-v371">Cash Ratio <span class="small">15 pts</span></div><div class="fin-health-score-bar-v371"><span style="width:${(cashScore/15*100).toFixed(1)}%"></span></div><div class="fin-health-score-points-v371">${cashScore.toFixed(1)} / 15</div></div>
+          <div class="fin-health-score-row-v371"><div class="fin-health-score-name-v371">Emergency Fund <span class="small">20 pts</span></div><div class="fin-health-score-bar-v371"><span style="width:${(emergencyScore/20*100).toFixed(1)}%"></span></div><div class="fin-health-score-points-v371">${emergencyScore.toFixed(1)} / 20</div></div>
+          <div class="small" style="margin-top:10px">Income excludes Loan Repayment. Ordinary expenses exclude loans, investments and linked investment cash flows. Emergency Fund uses recent ordinary spending because the current data model has no separate essential-expense tag.</div>
+        </div>
+      </div>`;
+  }
+  window.renderFinancialHealthV371=render;
+  function bind(){
+    ['analyzeYear','analyzeMonth'].forEach(id=>document.getElementById(id)?.addEventListener('change',()=>setTimeout(render,0)));
+    document.querySelectorAll('.analyze-tab-v371').forEach(btn=>btn.addEventListener('click',()=>setTimeout(()=>{if(btn.dataset.tab==='health')render();},0)));
+    render(); setTimeout(render,250); setTimeout(render,900);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
+})();
+</script>
+
 </body>
 </html>
