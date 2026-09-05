@@ -366,6 +366,135 @@ html{scroll-behavior:smooth}
 }
 </style>
 
+
+<style id="landing-v3297-how-it-works">
+/* V3.29.7 — Product flow: How MMHVAULT Works */
+.landing-how-v3297{
+  position:relative;
+  max-width:1240px;
+  margin:0 auto;
+  padding:105px 28px;
+}
+.landing-how-inner-v3297{
+  position:relative;
+  padding:54px 52px;
+  border-radius:30px;
+  background:
+    radial-gradient(circle at 12% 15%,rgba(63,216,223,.08),transparent 32%),
+    linear-gradient(145deg,rgba(8,25,41,.72),rgba(5,16,28,.88));
+  border:1px solid rgba(110,198,208,.13);
+}
+.landing-how-head-v3297{
+  max-width:720px;
+  margin:0 auto;
+  text-align:center;
+}
+.landing-how-head-v3297>span{
+  display:inline-block;
+  color:#62d9dd;
+  font-size:.72rem;
+  font-weight:850;
+  letter-spacing:.17em;
+  margin-bottom:14px;
+}
+.landing-how-head-v3297 h2{
+  margin:0;
+  color:#edf8fb;
+  font-size:clamp(2.1rem,4vw,3.7rem);
+  line-height:1.06;
+  letter-spacing:-.055em;
+}
+.landing-how-head-v3297 h2 strong{
+  background:linear-gradient(90deg,#8ee6e7,#d9b66d);
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+}
+.landing-how-head-v3297 p{
+  margin:20px auto 0;
+  color:#9eb5be;
+  line-height:1.8;
+  max-width:650px;
+}
+.landing-how-steps-v3297{
+  position:relative;
+  display:grid;
+  grid-template-columns:1fr auto 1fr auto 1fr;
+  align-items:stretch;
+  gap:18px;
+  margin-top:54px;
+}
+.landing-how-step-v3297{
+  position:relative;
+  min-height:300px;
+  padding:30px 27px;
+  border-radius:22px;
+  background:linear-gradient(145deg,rgba(12,33,52,.84),rgba(7,20,34,.88));
+  border:1px solid rgba(109,198,208,.15);
+  transition:transform .28s ease,border-color .28s ease,box-shadow .28s ease;
+}
+.landing-how-step-v3297:hover{
+  transform:translateY(-5px);
+  border-color:rgba(63,216,223,.32);
+  box-shadow:0 24px 52px rgba(0,0,0,.20);
+}
+.landing-how-number-v3297{
+  color:#d9b66d;
+  font-size:.72rem;
+  font-weight:850;
+  letter-spacing:.18em;
+}
+.landing-how-icon-v3297{
+  width:50px;height:50px;
+  display:grid;place-items:center;
+  margin:22px 0;
+  border-radius:15px;
+  color:#91eaeb;
+  font-size:1.4rem;
+  background:rgba(63,216,223,.08);
+  border:1px solid rgba(63,216,223,.16);
+}
+.landing-how-step-v3297 h3{
+  margin:0 0 11px;
+  color:#e9f8f9;
+  font-size:1.32rem;
+}
+.landing-how-step-v3297 p{
+  margin:0;
+  color:#9db5be;
+  line-height:1.75;
+}
+.landing-how-tags-v3297{
+  position:absolute;
+  left:27px;right:27px;bottom:25px;
+  color:#6fc8cb;
+  font-size:.72rem;
+  line-height:1.5;
+}
+.landing-how-line-v3297{
+  align-self:center;
+  width:34px;
+  height:1px;
+  background:linear-gradient(90deg,rgba(63,216,223,.18),rgba(217,182,109,.48),rgba(63,216,223,.18));
+}
+@media(max-width:900px){
+  .landing-how-steps-v3297{
+    grid-template-columns:1fr;
+    gap:14px;
+  }
+  .landing-how-line-v3297{display:none}
+  .landing-how-step-v3297{min-height:260px}
+}
+@media(max-width:760px){
+  .landing-how-v3297{padding:74px 16px}
+  .landing-how-inner-v3297{padding:34px 20px;border-radius:24px}
+  .landing-how-steps-v3297{margin-top:35px}
+  .landing-how-step-v3297{padding:25px 21px}
+  .landing-how-tags-v3297{left:21px;right:21px}
+  .landing-how-step-v3297:hover{transform:none}
+}
+</style>
+
 </head><body class="landing-gateway-page-v3283">
 <section aria-label="MMHVAULT public landing page" class="mmhvault-landing-v327" id="mmhvaultLandingV327">
 <header class="landing-header-v327">
@@ -489,5 +618,46 @@ html{scroll-behavior:smooth}
   update();
 })();
 </script>
+
+
+<section class="landing-how-v3297" id="how-it-works">
+  <div class="landing-how-inner-v3297">
+    <div class="landing-how-head-v3297">
+      <span>HOW MMHVAULT WORKS</span>
+      <h2>A clearer financial life.<br/><strong>Three simple steps.</strong></h2>
+      <p>MMHVAULT helps turn everyday financial activity into a clearer picture — so you can understand where you are and decide what comes next.</p>
+    </div>
+
+    <div class="landing-how-steps-v3297">
+      <article class="landing-how-step-v3297">
+        <div class="landing-how-number-v3297">01</div>
+        <div class="landing-how-icon-v3297">↗</div>
+        <h3>Track</h3>
+        <p>Record income, expenses, accounts and financial activity in one private workspace.</p>
+        <div class="landing-how-tags-v3297">Income · Expenses · Accounts</div>
+      </article>
+
+      <div class="landing-how-line-v3297" aria-hidden="true"></div>
+
+      <article class="landing-how-step-v3297">
+        <div class="landing-how-number-v3297">02</div>
+        <div class="landing-how-icon-v3297">◌</div>
+        <h3>Understand</h3>
+        <p>Turn your financial records into a clearer view of cash flow, assets and your overall position.</p>
+        <div class="landing-how-tags-v3297">Cash Flow · Assets · Insights</div>
+      </article>
+
+      <div class="landing-how-line-v3297" aria-hidden="true"></div>
+
+      <article class="landing-how-step-v3297">
+        <div class="landing-how-number-v3297">03</div>
+        <div class="landing-how-icon-v3297">✦</div>
+        <h3>Plan</h3>
+        <p>Use what you understand to shape goals, budgets and practical next steps for your future.</p>
+        <div class="landing-how-tags-v3297">Goals · Budget · Wealth Rules</div>
+      </article>
+    </div>
+  </div>
+</section>
 
 </body></html>
