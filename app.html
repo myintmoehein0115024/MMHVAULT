@@ -44,7 +44,7 @@
 <button class="btn" onclick="retryLoadAllV384()" type="button">Retry</button>
 </div>
 <header id="header" style="display:none">
-<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.29.6</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
+<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.29.7</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
 <div class="header-spacer"></div>
 <div aria-label="Signed in user" class="header-profile" id="headerProfile">
 <div class="header-avatar" id="headerAvatar">MF</div>
@@ -4023,7 +4023,7 @@ window.MM_HVAULT_UI_AUDIT = { version:'V3.18.0', duplicatePresentationCleanup:tr
 
 
 <script id="mmhvault-v3294-financial-health-period-fix">
-/* MMHVAULT V3.29.6 · Financial Health period-aware calculation repair */
+/* MMHVAULT V3.29.7 · Financial Health period-aware calculation repair */
 (function(){
   const num=v=>{const x=Number(v);return Number.isFinite(x)?x:0};
   const pad=m=>String(m).padStart(2,'0');
@@ -4260,7 +4260,7 @@ window.MM_HVAULT_UI_AUDIT = { version:'V3.18.0', duplicatePresentationCleanup:tr
 </script>
 
 <script id="mmhvault-v3296-financial-behavior-data-sync-fix">
-/* MMHVAULT V3.29.6 · Financial Behavior Intelligence data-sync repair */
+/* MMHVAULT V3.29.7 · Financial Behavior Intelligence data-source repair */
 (function(){
   const $b=id=>document.getElementById(id);
   const num=v=>{const x=Number(v);return Number.isFinite(x)?x:0};
@@ -4279,14 +4279,14 @@ window.MM_HVAULT_UI_AUDIT = { version:'V3.18.0', duplicatePresentationCleanup:tr
     return true;
   };
   function monthData(key){
-    const rows=(window.transactions||[]).filter(t=>String(t.tx_date||'').slice(0,7)===key);
+    const rows=(transactions||[]).filter(t=>String(t.tx_date||'').slice(0,7)===key);
     let inc=0,exp=0;
     rows.forEach(t=>{
       if(isIncome(t)) inc+=num(t.to_amount)*num(typeof toTHB==='function'?toTHB(t.to_account):1);
       if(isExpense(t)) exp+=num(t.from_amount)*num(typeof toTHB==='function'?toTHB(t.from_account):1);
     });
     const linkedInvestment=rows.some(t=>{try{return typeof isLinkedInvestmentTx==='function'&&isLinkedInvestmentTx(t)}catch(e){return false}});
-    const investmentRecord=(window.investments||[]).some(x=>String(x.inv_date||'').slice(0,7)===key);
+    const investmentRecord=(investments||[]).some(x=>String(x.inv_date||'').slice(0,7)===key);
     const save=inc-exp;
     return {ym:key,inc,exp,save,sr:inc>0?save/inc*100:null,hasInvestment:linkedInvestment||investmentRecord};
   }
