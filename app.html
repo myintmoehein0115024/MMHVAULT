@@ -77,6 +77,23 @@
 .receipt-drop-copy-v3300 span{display:block!important;font-size:10px!important;line-height:1.25!important;}
 @media(max-width:620px){.receipt-dropzone-v3300{width:100%!important;padding:8px 12px!important;}.receipt-drop-icon-v3300{flex-basis:34px!important;width:34px!important;height:34px!important;}.receipt-drop-copy-v3300 strong{font-size:11px!important}.receipt-drop-copy-v3300 span{font-size:9px!important}}
 </style>
+
+<style id="mmhvault-v3303-edit-receipt-style">
+.edit-receipt-box-v3303{margin-top:14px;padding:14px 15px;border:1px solid rgba(91,147,245,.22);border-radius:14px;background:linear-gradient(135deg,rgba(20,31,58,.55),rgba(9,17,34,.78))}
+.edit-receipt-head-v3303{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.edit-receipt-title-v3303{font-size:13px;font-weight:800;color:#edf4ff}
+.edit-receipt-sub-v3303{margin-top:2px;font-size:10px;color:#8ea4c6}
+.edit-receipt-badge-v3303{margin-left:auto;padding:4px 8px;border:1px solid rgba(255,255,255,.09);border-radius:999px;color:#9bb0d0;font-size:9px;font-weight:800;letter-spacing:.06em}
+.edit-receipt-drop-v3303{display:flex;align-items:center;justify-content:center;gap:9px;min-height:48px;width:min(100%,560px);margin:0 auto;border:1px dashed rgba(99,153,255,.32);border-radius:11px;background:rgba(5,12,26,.28);cursor:pointer}
+.edit-receipt-plus-v3303{display:grid;place-items:center;width:30px;height:30px;border-radius:9px;background:#172844;border:1px solid rgba(112,165,255,.2);color:#8fc3ff;font-size:19px;line-height:1}
+.edit-receipt-copy-v3303{display:flex;flex-direction:column;gap:2px;text-align:left}
+.edit-receipt-copy-v3303 strong{font-size:12px;color:#dce9ff}
+.edit-receipt-copy-v3303 small{font-size:10px;color:#7f95b5}
+.edit-receipt-status-v3303{margin-top:7px;text-align:center;font-size:9px;color:#6f84a5}
+.edit-receipt-status-v3303.ready{color:#63d6a5}
+.edit-receipt-status-v3303.error{color:#ff7d92}
+@media(max-width:650px){.edit-receipt-box-v3303{padding:12px}.edit-receipt-drop-v3303{width:100%}}
+</style>
 </head>
 <body>
 <div id="mmhvaultAppBootGuardV3282" style="position:fixed;inset:0;z-index:30000;display:none;align-items:center;justify-content:center;background:#050a18;color:#dce8ff;font-family:Arial,sans-serif;padding:24px;text-align:center;">
@@ -98,7 +115,7 @@
 <button class="btn" onclick="retryLoadAllV384()" type="button">Retry</button>
 </div>
 <header id="header" style="display:none">
-<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.30.2</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
+<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.30.3</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
 <div class="header-spacer"></div>
 <div aria-label="Signed in user" class="header-profile" id="headerProfile">
 <div class="header-avatar" id="headerAvatar">MF</div>
@@ -1053,7 +1070,127 @@ function txCategoryOptions(type,group){if(type==='Transfer')return ['Transfer'];
 function inferTxGroup(t){if(t.type==='Transfer')return 'Transfer';if(t.type==='Income')return CATS.LoanIncome.includes(t.category)?'Loans':'Income';if(t.type==='Expense'){if(CATS.Expense.includes(t.category))return 'Expense';if(CATS.Personal.includes(t.category))return 'Personal';if(CATS.LoanExpense.includes(t.category))return 'Loans';}return t.type;}
 
 function editTransaction(id){ return editTx(id); }
-function editTx(id){const t=transactions.find(x=>x.id===id);if(!t)return;const group=inferTxGroup(t);openEditModal('Edit Transaction',`<form id="editTxForm"><div class="formgrid"><label>Date<input id="eDate" type="date" value="${esc(t.tx_date)}" required></label><label>Type<select id="eType"><option ${t.type==='Income'?'selected':''}>Income</option><option ${t.type==='Expense'?'selected':''}>Expense</option><option ${t.type==='Transfer'?'selected':''}>Transfer</option></select></label><label>Transaction<select id="eGroup"></select></label><label>Category<select id="eCat"></select></label><label>From Account<select id="eFrom">${ACC.map(a=>`<option ${t.from_account===a?'selected':''}>${a}</option>`).join('')}</select></label><label>From Amount<input id="eFromAmt" type="number" step="0.000001" value="${n(t.from_amount)||''}"></label><label>To Account<select id="eTo">${ACC.map(a=>`<option ${t.to_account===a?'selected':''}>${a}</option>`).join('')}</select></label><label>To Amount<input id="eToAmt" type="number" step="0.000001" value="${n(t.to_amount)||''}"></label><label class="full">Note<input id="eNote" value="${esc(t.note||'')}"></label></div><div class="actions"><button class="btn" type="button" onclick="closeEditModal()">Cancel</button><button class="btn primary">Save Changes</button></div></form>`);const sync=()=>{const type=$('eType').value;const groups=type==='Income'?['Income','Loans']:type==='Expense'?['Expense','Personal','Loans']:['Transfer'];$('eGroup').innerHTML=groups.map(x=>`<option>${x}</option>`).join('');$('eGroup').value=groups.includes($('eGroup').value)?$('eGroup').value:group;const g=$('eGroup').value;$('eCat').innerHTML=txCategoryOptions(type,g).map(x=>`<option>${x}</option>`).join('');$('eCat').value=txCategoryOptions(type,g).includes(t.category)?t.category:$('eCat').options[0]?.value||'';$('eFrom').disabled=type==='Income';$('eFromAmt').disabled=type==='Income';$('eTo').disabled=type==='Expense';$('eToAmt').disabled=type==='Expense';};sync();$('eType').onchange=sync;$('eGroup').onchange=sync;$('editTxForm').onsubmit=async e=>{e.preventDefault();const row={tx_date:$('eDate').value,type:$('eType').value,category:$('eCat').value,from_account:$('eType').value==='Income'?null:$('eFrom').value,from_amount:$('eType').value==='Income'?0:n($('eFromAmt').value),to_account:$('eType').value==='Expense'?null:$('eTo').value,to_amount:$('eType').value==='Expense'?0:n($('eToAmt').value),note:$('eNote').value||null};const r=await db.from('transactions').update(row).eq('id',id);if(r.error)alert(r.error.message);else{closeEditModal();await loadAll();}};}
+function editTx(id){
+  const t=transactions.find(x=>x.id===id);
+  if(!t)return;
+  const group=inferTxGroup(t);
+  openEditModal('Edit Transaction',`<form id="editTxForm">
+    <div class="formgrid">
+      <label>Date<input id="eDate" type="date" value="${esc(t.tx_date)}" required></label>
+      <label>Type<select id="eType"><option ${t.type==='Income'?'selected':''}>Income</option><option ${t.type==='Expense'?'selected':''}>Expense</option><option ${t.type==='Transfer'?'selected':''}>Transfer</option></select></label>
+      <label>Transaction<select id="eGroup"></select></label>
+      <label>Category<select id="eCat"></select></label>
+      <label>From Account<select id="eFrom">${ACC.map(a=>`<option ${t.from_account===a?'selected':''}>${a}</option>`).join('')}</select></label>
+      <label>From Amount<input id="eFromAmt" type="number" step="0.000001" value="${n(t.from_amount)||''}"></label>
+      <label>To Account<select id="eTo">${ACC.map(a=>`<option ${t.to_account===a?'selected':''}>${a}</option>`).join('')}</select></label>
+      <label>To Amount<input id="eToAmt" type="number" step="0.000001" value="${n(t.to_amount)||''}"></label>
+      <label class="full">Note<input id="eNote" value="${esc(t.note||'')}"></label>
+    </div>
+
+    <div class="edit-receipt-box-v3303">
+      <div class="edit-receipt-head-v3303">
+        <div>
+          <div class="edit-receipt-title-v3303">📎 Receipt attachment</div>
+          <div class="edit-receipt-sub-v3303">Add a receipt or replace the existing one for this transaction.</div>
+        </div>
+        <span class="edit-receipt-badge-v3303">OPTIONAL</span>
+      </div>
+      <label class="edit-receipt-drop-v3303" for="editReceiptFile">
+        <input id="editReceiptFile" type="file" accept="image/*,.pdf" hidden>
+        <span class="edit-receipt-plus-v3303">＋</span>
+        <span class="edit-receipt-copy-v3303">
+          <strong>Choose a receipt</strong>
+          <small>PNG, JPG, WEBP or PDF · up to 10 MB</small>
+        </span>
+      </label>
+      <div class="edit-receipt-status-v3303" id="editReceiptStatusV3303">No new file selected · existing receipt will remain unchanged.</div>
+    </div>
+
+    <div class="actions">
+      <button class="btn" type="button" onclick="closeEditModal()">Cancel</button>
+      <button class="btn primary">Save Changes</button>
+    </div>
+  </form>`);
+
+  const sync=()=>{
+    const type=$('eType').value;
+    const groups=type==='Income'?['Income','Loans']:type==='Expense'?['Expense','Personal','Loans']:['Transfer'];
+    $('eGroup').innerHTML=groups.map(x=>`<option>${x}</option>`).join('');
+    $('eGroup').value=groups.includes($('eGroup').value)?$('eGroup').value:group;
+    const g=$('eGroup').value;
+    $('eCat').innerHTML=txCategoryOptions(type,g).map(x=>`<option>${x}</option>`).join('');
+    $('eCat').value=txCategoryOptions(type,g).includes(t.category)?t.category:$('eCat').options[0]?.value||'';
+    $('eFrom').disabled=type==='Income';
+    $('eFromAmt').disabled=type==='Income';
+    $('eTo').disabled=type==='Expense';
+    $('eToAmt').disabled=type==='Expense';
+  };
+
+  sync();
+  $('eType').onchange=sync;
+  $('eGroup').onchange=sync;
+
+  $('editReceiptFile').addEventListener('change',()=>{
+    const file=$('editReceiptFile').files?.[0];
+    const status=$('editReceiptStatusV3303');
+    if(!status)return;
+    if(!file){
+      status.textContent='No new file selected · existing receipt will remain unchanged.';
+      status.classList.remove('ready','error');
+      return;
+    }
+    if(file.size>10*1024*1024){
+      status.textContent='File is larger than 10 MB.';
+      status.classList.remove('ready');
+      status.classList.add('error');
+      $('editReceiptFile').value='';
+      return;
+    }
+    status.textContent=`✓ ${file.name} · ${(file.size/1024/1024).toFixed(file.size>=1024*1024?2:3)} MB · will replace the current receipt when saved.`;
+    status.classList.remove('error');
+    status.classList.add('ready');
+  });
+
+  $('editTxForm').onsubmit=async e=>{
+    e.preventDefault();
+    const saveBtn=$('editTxForm').querySelector('button.primary');
+    if(saveBtn)saveBtn.disabled=true;
+
+    const receiptFile=$('editReceiptFile')?.files?.[0]||null;
+    const row={
+      tx_date:$('eDate').value,
+      type:$('eType').value,
+      category:$('eCat').value,
+      from_account:$('eType').value==='Income'?null:$('eFrom').value,
+      from_amount:$('eType').value==='Income'?0:n($('eFromAmt').value),
+      to_account:$('eType').value==='Expense'?null:$('eTo').value,
+      to_amount:$('eType').value==='Expense'?0:n($('eToAmt').value),
+      note:$('eNote').value||null
+    };
+
+    try{
+      const r=await db.from('transactions').update(row).eq('id',id);
+      if(r.error)throw r.error;
+
+      if(receiptFile){
+        const u=(await db.auth.getUser()).data.user;
+        if(!u)throw new Error('Please sign in again before uploading a receipt.');
+        const status=$('editReceiptStatusV3303');
+        if(status)status.textContent='Uploading receipt…';
+        await uploadTransactionReceiptV396(u.id,id,receiptFile);
+        if(status)status.textContent='✓ Receipt updated successfully';
+      }
+
+      closeEditModal();
+      await loadAll();
+      window.mmHVaultRefreshReceiptFlagsV3302?.();
+    }catch(err){
+      console.error(err);
+      alert(err?.message||'Unable to save the transaction.');
+      if(saveBtn)saveBtn.disabled=false;
+    }
+  };
+}
 async function editInvestment(id){const x=investments.find(i=>i.id===id);if(!x)return;const defaultSource=x.source_account||(x.asset==="Gold"?"KPay":"OKX");openEditModal("Edit Investment",`<form id="editInvForm"><div class="formgrid"><label>Date<input id="eiDate" type="date" value="${esc(x.inv_date)}" required></label><label>Asset<input id="eiAsset" value="${esc(x.asset)}" readonly></label><label>Symbol<input id="eiSymbol" value="${esc(x.symbol)}" readonly></label><label>Source Account<select id="eiSource"></select></label><label>Invested Amount<input id="eiAmount" type="number" step="0.000001" value="${n(x.amount)}" required></label><label>Fee<input id="eiFee" type="number" step="0.000001" value="${n(x.fee)}"></label><label>Other Cost<input id="eiOther" type="number" step="0.000001" value="${n(x.other_cost)}"></label><label>Purchase-day Market Price<input id="eiBuy" type="number" step="0.000001" value="${n(x.buy_price)}" required></label><label>Current Market Price<input id="eiMarket" type="number" step="0.000001" value="${n(x.market_price)}"></label><label>Quantity<input id="eiQty" type="number" step="0.0000000001" value="${n(x.quantity)}"></label><label class="full">Note<input id="eiNote" value="${esc(x.note||"")}"></label></div><div class="actions"><button class="btn" type="button" onclick="closeEditModal()">Cancel</button><button class="btn primary">Save Changes</button></div></form>`);eiSource.innerHTML=(x.asset==="Gold"?["KPay"]:["OKX","ByBit"]).map(a=>`<option ${a===defaultSource?"selected":""}>${a}</option>`).join("");$('editInvForm').onsubmit=async e=>{e.preventDefault();const amount=n($('eiAmount').value),buy=n($('eiBuy').value);const row={inv_date:$('eiDate').value,source_account:$('eiSource').value,amount,fee:n($('eiFee').value),other_cost:n($('eiOther').value),buy_price:buy,market_price:n($('eiMarket').value),quantity:n($('eiQty').value)||(buy?amount/buy:0),note:$('eiNote').value||null};const r=await db.from('investments').update(row).eq('id',id);if(r.error)alert(r.error.message);else{closeEditModal();await loadAll();}};}
 async function deleteTx(id){const u=(await db.auth.getUser()).data.user;const r=await db.from("transactions").delete().eq("id",id);if(r.error)alert(r.error.message);else{await deleteTransactionReceiptV396(u?.id,id);await loadAll();}}
 async function deleteAllTx(){if(!confirm("Delete all your transactions?"))return;const u=(await db.auth.getUser()).data.user;const r=await db.from("transactions").delete().eq("user_id",u.id);if(r.error)alert(r.error.message);else await loadAll();}
