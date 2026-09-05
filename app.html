@@ -9,7 +9,7 @@
 <link href="manifest.webmanifest" rel="manifest"/>
 <meta content="#06111f" name="theme-color"/>
 <title>MMHVAULT · Personal Finance &amp; Wealth Management</title>
-<link href="assets/mmhvault.css" rel="stylesheet"/><meta content="V3.28.11 · Wealth Rules → Analyze" name="mmhvault-architecture"/>
+<link href="assets/mmhvault.css" rel="stylesheet"/><meta content="V3.28.12 · Cash Flow + Wealth Rules" name="mmhvault-architecture"/>
 <style id="mmhvault-v32811-wealth-rules-location-css">
   .analyze-tabs-v371{overflow-x:auto;scrollbar-width:thin;}
   .analyze-tabs-v371 .analyze-tab-v371{flex:0 0 auto;min-width:110px;}
@@ -17,7 +17,7 @@
   
 </style>
 <style id="mmhvault-v32811-organization-style">
-/* MMHVAULT V3.28.11 · Transaction Intelligence + Wealth Rules organization */
+/* MMHVAULT V3.28.12 · Cash Flow + Wealth Rules fixes */
 #txIntelligencePanelV323{animation:txFade371 .16s ease-out}
 #analyzePanelWealthRulesV32811{animation:analyzeFade32811 .16s ease-out}
 #analyzePanelWealthRulesV32811 .wealth-rules-v326{margin-top:0}
@@ -3857,6 +3857,114 @@ window.MM_HVAULT_UI_AUDIT = { version:'V3.18.0', duplicatePresentationCleanup:tr
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',bind,{once:true}); else bind();
   document.addEventListener('DOMContentLoaded',function(){setTimeout(repair,20)},{once:true});
   window.addEventListener('load',function(){setTimeout(repair,30)},{once:true});
+})();
+</script>
+
+<script id="mmhvault-v32812-cashflow-wealthrules-fix">
+(function(){
+  // V3.28.12 — Keep Wealth Rules visible when its Analyze tab is active.
+  function forceWealthRulesPanel(tab){
+    const panel=document.getElementById('analyzePanelWealthRulesV32811');
+    if(!panel) return;
+    const on=tab==='wealthrules';
+    panel.style.display=on?'block':'none';
+    panel.setAttribute('aria-hidden',on?'false':'true');
+  }
+
+  const baseTab=window.setAnalyzeTabV371;
+  if(typeof baseTab==='function' && !baseTab.__v32812Wrapped){
+    const wrapped=function(tab){
+      const result=baseTab.apply(this,arguments);
+      forceWealthRulesPanel(tab);
+      return result;
+    };
+    wrapped.__v32812Wrapped=true;
+    window.setAnalyzeTabV371=wrapped;
+  }
+
+  // Direct capture handler protects against stale listeners or inline display:none.
+  document.addEventListener('click',function(e){
+    const btn=e.target.closest?.('#analyzeTabWealthRulesV32811');
+    if(!btn) return;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    if(typeof window.setAnalyzeTabV371==='function') window.setAnalyzeTabV371('wealthrules');
+    forceWealthRulesPanel('wealthrules');
+  },true);
+
+  // Restore the last selected state after the page has rendered.
+  function restore(){
+    const saved=localStorage.getItem('myfinance_analyze_tab');
+    if(saved==='wealthrules'){
+      if(typeof window.setAnalyzeTabV371==='function') window.setAnalyzeTabV371('wealthrules');
+      forceWealthRulesPanel('wealthrules');
+    }else{
+      forceWealthRulesPanel('');
+    }
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',restore,{once:true});
+  else restore();
+
+  // V3.28.12 — Cash Flow income excludes loan transactions (including Loan Repayment).
+  function cashFlowTotals(rows){
+    let inc=0, exp=0;
+    (rows||[]).forEach(t=>{
+      if(t.type==='Income' && !(Array.isArray(CATS.LoanIncome)&&CATS.LoanIncome.includes(t.category))){
+        inc += n(t.to_amount)*toTHB(t.to_account);
+      }
+      if(t.type==='Expense' && !CATS.Loans.includes(t.category) && t.category!=='Investment' && !isLinkedInvestmentTx(t)){
+        exp += n(t.from_amount)*toTHB(t.from_account);
+      }
+    });
+    return {inc,exp,save:inc-exp,er:inc?exp/inc*100:0,sr:inc?(inc-exp)/inc*100:0};
+  }
+
+  window.renderCashFlowSummaryV32812=function(){
+    const el=$("cashFlowSummary"), periodEl=$("cashFlowSummaryPeriod"), statusEl=$("cashFlowSummaryStatus");
+    if(!el||!periodEl||!statusEl)return;
+    const p=typeof v37Period==='function'?v37Period():{year:new Date().getFullYear(),month:String(new Date().getMonth()+1).padStart(2,'0')};
+    const rows=typeof v37Rows==='function'?v37Rows():(transactions||[]);
+    const t=cashFlowTotals(rows), net=t.save, sr=t.sr, er=t.er;
+    const status=net>0?'Positive Cash Flow':net===0?'Break-even':'Negative Cash Flow';
+    periodEl.textContent=`${typeof v37Label==='function'?v37Label(p):'Selected period'} · THB`;
+    statusEl.textContent=status;
+    statusEl.className='pill '+(net>0?'green':net<0?'red':'yellow');
+    el.innerHTML=`
+      <div class="cashflow-summary-grid-v371">
+        <div class="cashflow-card-v371"><div class="label">Income</div><div class="value green">${thb(t.inc)}</div></div>
+        <div class="cashflow-card-v371"><div class="label">Expenses</div><div class="value red">${thb(t.exp)}</div></div>
+        <div class="cashflow-card-v371"><div class="label">Net Cash Flow</div><div class="value ${net>0?'green':net<0?'red':'yellow'}">${thb(net)}</div></div>
+        <div class="cashflow-card-v371"><div class="label">Savings Rate</div><div class="value ${sr>=60?'green':sr>=40?'yellow':'red'}">${sr.toFixed(1)}%</div></div>
+      </div>
+      <div class="cashflow-summary-note-v371">Expense Ratio <b>${er.toFixed(1)}%</b> · Net cash flow is Income minus ordinary Expenses; loan transactions and linked investment transactions are excluded.</div>`;
+  };
+
+  function refreshCashFlowExtras(){
+    const panel=document.querySelector('.analyze-tab-panel-v371[data-panel="cashflow"]');
+    if(!panel) return;
+    const p=typeof v37Period==='function'?v37Period():{year:new Date().getFullYear(),month:String(new Date().getMonth()+1).padStart(2,'0')};
+    const months=p.month==='annual'?Array.from({length:12},(_,i)=>`${p.year}-${String(i+1).padStart(2,'0')}`):[`${p.year}-${p.month}`];
+    const ar=months.map(ym=>({ym,...cashFlowTotals((transactions||[]).filter(t=>String(t.tx_date||'').slice(0,7)===ym))}));
+    const maxE=Math.max(1,...ar.map(x=>x.exp)), maxI=Math.max(1,...ar.map(x=>x.inc));
+    const ie=$("incomeExpenseTrend");
+    if(ie) ie.innerHTML=`<div class="spark">${ar.map(x=>`<span title="Income ${thb(x.inc)} · Expense ${thb(x.exp)}" style="height:${Math.max(4,x.inc/maxI*100)}%"></span>`).join('')}</div><div class="spark-labels">${ar.map(x=>`<span>${monthLabel(x.ym).split(' ')[0]}</span>`).join('')}</div><div class="small" style="margin-top:6px">Income · THB</div>`;
+    const et=$("expenseTrend");
+    if(et) et.innerHTML=`<div class="spark">${ar.map(x=>`<span title="${monthLabel(x.ym)} · ${thb(x.exp)}" style="height:${Math.max(4,x.exp/maxE*100)}%"></span>`).join('')}</div><div class="spark-labels">${ar.map(x=>`<span>${monthLabel(x.ym).split(' ')[0]}</span>`).join('')}</div><div class="small" style="margin-top:6px">Expenses · THB</div>`;
+  }
+
+  const originalCash=window.renderCashFlowSummaryV371;
+  if(typeof originalCash==='function' && !originalCash.__v32812Wrapped){
+    const wrappedCash=function(){
+      originalCash.apply(this,arguments);
+      window.renderCashFlowSummaryV32812();
+      refreshCashFlowExtras();
+    };
+    wrappedCash.__v32812Wrapped=true;
+    window.renderCashFlowSummaryV371=wrappedCash;
+  }
+
+  // Update immediately when the current Analyze render has already happened.
+  try{window.renderCashFlowSummaryV32812();refreshCashFlowExtras();}catch(e){console.warn('V3.28.12 Cash Flow refresh',e)}
 })();
 </script>
 </body>
