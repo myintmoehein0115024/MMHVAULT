@@ -44,7 +44,7 @@
 <button class="btn" onclick="retryLoadAllV384()" type="button">Retry</button>
 </div>
 <header id="header" style="display:none">
-<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.28.16</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
+<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.29.0</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
 <div class="header-spacer"></div>
 <div aria-label="Signed in user" class="header-profile" id="headerProfile">
 <div class="header-avatar" id="headerAvatar">MF</div>
@@ -3519,7 +3519,7 @@ window.MM_HVAULT_UI_AUDIT = { version:'V3.18.0', duplicatePresentationCleanup:tr
   function monthlyB(ym){
     const r=rowsB(ym);let inc=0,exp=0,personal=0,inv=0;
     for(const t of r){
-      if(t.type==='Income')inc+=numB(t.to_amount)*toTHB(t.to_account);
+      if(typeof window.mmhIncomeEligible==='function' ? window.mmhIncomeEligible(t) : (t.type==='Income' && String(t.category||'').trim().toLowerCase()!=='loan repayment'))inc+=numB(t.to_amount)*toTHB(t.to_account);
       if(t.type==='Expense'&&!CATS.Loans.includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t)){
         const v=numB(t.from_amount)*toTHB(t.from_account); exp+=v;
         if(['Family Support','Special Transfer','Gifts','Donation'].includes(t.category))personal+=v;
@@ -3591,7 +3591,7 @@ window.MM_HVAULT_UI_AUDIT = { version:'V3.18.0', duplicatePresentationCleanup:tr
   function monthDataD(ym){
     const r=(transactions||[]).filter(t=>String(t.tx_date||'').slice(0,7)===ym); let inc=0,exp=0;
     for(const t of r){
-      if(t.type==='Income') inc+=numD(t.to_amount)*toUSD(t.to_account);
+      if((typeof window.mmhIncomeEligible==='function'?window.mmhIncomeEligible(t):(t.type==='Income' && String(t.category||'').trim().toLowerCase()!=='loan repayment'))) inc+=numD(t.to_amount)*toUSD(t.to_account);
       if(t.type==='Expense'&&!CATS.Loans.includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t)) exp+=numD(t.from_amount)*toUSD(t.from_account);
     }
     return {ym,inc,exp,save:inc-exp,sr:inc?(inc-exp)/inc*100:0};
@@ -3867,7 +3867,7 @@ window.MM_HVAULT_UI_AUDIT = { version:'V3.18.0', duplicatePresentationCleanup:tr
 </style>
 
 <script id="mmhvault-v32816-analyze-intelligence-sync-js">
-/* MMHVAULT V3.28.16 · Unified Analyze period + Cash Flow income rules */
+/* MMHVAULT V3.29.0 · Unified Analyze period + Cash Flow income rules */
 (function(){
   const moneyTHB=v=>typeof thb==='function'?thb(v):('฿ '+Number(v||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}));
   const moneyUSD=v=>typeof usd==='function'?usd(v):('$ '+Number(v||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}));
@@ -3935,7 +3935,7 @@ window.MM_HVAULT_UI_AUDIT = { version:'V3.18.0', duplicatePresentationCleanup:tr
         </div>
         <div class="small" style="margin-top:12px;color:#8fa3c8">This center now uses the same Year / Month selector and the same Cash Flow Income / Expense rules. ${runway!==null?`Cash runway is about ${runway.toFixed(1)} months based on recent ordinary spending.`:'Cash runway will appear after enough spending history is available.'}</div>
       </div>`;
-    }catch(err){console.warn('V3.28.16 Financial Intelligence sync failed:',err);el.innerHTML='<div class="panel analyze-panel"><div class="fi316-sync-period">Financial Intelligence is temporarily unavailable. Cash Flow data is unchanged.</div></div>';}
+    }catch(err){console.warn('V3.29.0 Financial Intelligence sync failed:',err);el.innerHTML='<div class="panel analyze-panel"><div class="fi316-sync-period">Financial Intelligence is temporarily unavailable. Cash Flow data is unchanged.</div></div>';}
   }
   window.renderFinancialIntelligenceSyncV316=renderUnifiedFI;
   const prevAnalyze=window.renderAnalyzeV37;
@@ -3947,6 +3947,48 @@ window.MM_HVAULT_UI_AUDIT = { version:'V3.18.0', duplicatePresentationCleanup:tr
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{bindPeriod();setTimeout(renderUnifiedFI,250);},{once:true});
   else {bindPeriod();setTimeout(renderUnifiedFI,250);}
+})();
+</script>
+
+<script id="mmhvault-v329-analyze-data-engine">
+/* ===================== MMHVAULT V3.29.0 ANALYZE DATA ENGINE =====================
+   Single source of truth for Analyze period metrics.
+   Income excludes Loan Repayment. Expense excludes Loans, Investment and linked investment cash flows.
+*/
+(function(){
+  const hasCat=(t,name)=>String(t?.category||'').trim().toLowerCase()===String(name).trim().toLowerCase();
+  const isLoanRepayment=t=>hasCat(t,'Loan Repayment');
+  const isLinked=t=>typeof window.isLinkedInvestmentTx==='function'&&window.isLinkedInvestmentTx(t);
+  const incomeEligible=t=>t?.type==='Income'&&!isLoanRepayment(t);
+  const expenseEligible=t=>t?.type==='Expense'&&!isLoanRepayment(t)&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinked(t);
+  const num=v=>{const x=Number(v);return Number.isFinite(x)?x:0;};
+  const thb=(t,dir)=>dir==='in'?num(t.to_amount)*(typeof window.toTHB==='function'?window.toTHB(t.to_account):1):num(t.from_amount)*(typeof window.toTHB==='function'?window.toTHB(t.from_account):1);
+  const usd=(t,dir)=>dir==='in'?num(t.to_amount)*(typeof window.toUSD==='function'?window.toUSD(t.to_account):1):num(t.from_amount)*(typeof window.toUSD==='function'?window.toUSD(t.from_account):1);
+  function rows(ym){return (window.transactions||[]).filter(t=>String(t.tx_date||'').slice(0,7)===ym);}
+  function totals(list){let inc=0,exp=0;for(const t of (list||[])){if(incomeEligible(t))inc+=thb(t,'in');if(expenseEligible(t))exp+=thb(t,'out');}return {inc,exp,save:inc-exp,sr:inc?((inc-exp)/inc*100):0,er:inc?((exp/inc)*100):0};}
+  function selected(){const y=Number(document.getElementById('analyzeYear')?.value)||new Date().getFullYear();const m=document.getElementById('analyzeMonth')?.value||'annual';return{year:y,month:m};}
+  function periodTotals(p=selected()){
+    const list=p.month==='annual'?(window.transactions||[]).filter(t=>String(t.tx_date||'').slice(0,4)===String(p.year)):rows(String(p.year)+'-'+String(p.month).padStart(2,'0'));
+    return {...totals(list),rows:list.length,period:p};
+  }
+  window.mmhIncomeEligible=incomeEligible;
+  window.mmhExpenseEligible=expenseEligible;
+  window.mmhAnalyzeEngineV329={rows,totals,selected,periodTotals,isLoanRepayment};
+  // Re-bind the legacy global entry points used throughout Analyze.
+  window.v37Totals=function(list){return totals(list||[]);};
+  window.v37MonthTotals=function(ym){return totals(rows(ym));};
+  window.fhMonthlyFlow=function(ym){const r=rows(ym);let inc=0,exp=0;for(const t of r){if(incomeEligible(t))inc+=usd(t,'in');if(expenseEligible(t))exp+=usd(t,'out');}return{inc,exp,save:inc-exp,sr:inc?((inc-exp)/inc*100):0,er:inc?((exp/inc)*100):0};};
+  // Ensure period-based refreshes use the same source of truth.
+  const refresh=()=>{
+    try{
+      if(typeof window.renderAnalyzeV37==='function') window.renderAnalyzeV37();
+      if(typeof window.renderFinancialIntelligenceSyncV316==='function') window.renderFinancialIntelligenceSyncV316();
+    }catch(e){console.warn('V3.29.0 Analyze refresh failed:',e);}
+  };
+  const bind=()=>{
+    document.querySelectorAll('#analyzeYear,#analyzeMonth').forEach(el=>el.addEventListener('change',()=>setTimeout(refresh,0)));
+  };
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
 })();
 </script>
 </body>
