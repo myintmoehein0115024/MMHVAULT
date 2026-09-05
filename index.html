@@ -60,6 +60,65 @@ body.landing-gateway-page-v3283:before{content:"";position:fixed;inset:0;pointer
 }
 </style>
 
+
+<style id="landing-v3292-hero-visual">
+/* V3.29.2 — richer wealth-management visual, still lightweight */
+.landing-visual-v327{position:relative}
+.landing-visual-v327:before{
+  content:"";position:absolute;inset:8% 4% 5% 6%;z-index:-1;
+  border-radius:42px;
+  background:linear-gradient(135deg,rgba(63,216,223,.07),rgba(217,182,109,.035));
+  border:1px solid rgba(112,210,218,.09);
+  transform:rotate(-2deg);
+}
+.landing-chart-card-v327{
+  position:relative;
+  overflow:hidden;
+}
+.landing-chart-card-v327:before{
+  content:"MMHVAULT";
+  position:absolute;right:18px;top:13px;
+  font-size:10px;letter-spacing:.16em;
+  color:rgba(142,230,231,.30);
+}
+.landing-chart-v327{
+  filter:drop-shadow(0 14px 22px rgba(0,0,0,.18));
+}
+.landing-mini-card-v327{
+  transition:transform .25s ease,border-color .25s ease;
+}
+.landing-mini-card-v327:hover{
+  transform:translateY(-3px);
+  border-color:rgba(63,216,223,.28);
+}
+.landing-orb-v327:after{
+  content:"PRIVATE\nWEALTH\nWORKSPACE";
+  white-space:pre;
+  position:absolute;inset:0;
+  display:grid;place-items:center;
+  text-align:center;
+  font-size:9px;line-height:1.65;letter-spacing:.14em;
+  color:rgba(159,224,225,.34);
+  pointer-events:none;
+}
+.landing-orb-core-v327{position:relative;z-index:2}
+.landing-hero-v327 .landing-secondary-v327{
+  background:rgba(255,255,255,.025);
+}
+@media(max-width:760px){
+  .landing-visual-v327:before{display:none}
+  .landing-mini-card-v327:hover{transform:none}
+}
+</style>
+
+
+<style id="landing-v3292-trust">
+.landing-premium-trust-v3292{
+  font-size:.68rem;letter-spacing:.15em;color:#7ebfc2;
+  margin-bottom:12px;font-weight:700;
+}
+</style>
+
 </head><body class="landing-gateway-page-v3283">
 <section aria-label="MMHVAULT public landing page" class="mmhvault-landing-v327" id="mmhvaultLandingV327">
 <header class="landing-header-v327">
@@ -92,7 +151,7 @@ body.landing-gateway-page-v3283:before{content:"";position:fixed;inset:0;pointer
 <small>Enter your MMHVAULT workspace</small>
 </span>
 </button>
-<div class="landing-trust-v327"><span>🔒</span> Your financial data stays inside your account.</div>
+<div class="landing-trust-v327"><div class="landing-premium-trust-v3292">PRIVATE • CLEAR • BUILT AROUND YOUR FINANCIAL LIFE</div><span>🔒</span> Your financial data stays inside your account.</div>
 </div>
 <div aria-hidden="true" class="landing-hero-progress-v327"><span class="active"></span><span></span><span></span></div>
 </div>
