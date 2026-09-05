@@ -9,7 +9,7 @@
 <link href="manifest.webmanifest" rel="manifest"/>
 <meta content="#06111f" name="theme-color"/>
 <title>MMHVAULT · Personal Finance &amp; Wealth Management</title>
-<link href="assets/mmhvault.css" rel="stylesheet"/><meta content="V3.28.13 · Wealth Rules Navigation Fix + Cash Flow" name="mmhvault-architecture"/>
+<link href="assets/mmhvault.css" rel="stylesheet"/><meta content="V3.28.14 · Wealth Rules Clean Navigation + Cash Flow" name="mmhvault-architecture"/>
 <style id="mmhvault-v32811-wealth-rules-location-css">
   .analyze-tabs-v371{overflow-x:auto;scrollbar-width:thin;}
   .analyze-tabs-v371 .analyze-tab-v371{flex:0 0 auto;min-width:110px;}
@@ -17,7 +17,7 @@
   
 </style>
 <style id="mmhvault-v32811-organization-style">
-/* MMHVAULT V3.28.13 · Wealth Rules Navigation Fix + Cash Flow fixes */
+/* MMHVAULT V3.28.14 · Wealth Rules Navigation Fix + Cash Flow fixes */
 #txIntelligencePanelV323{animation:txFade371 .16s ease-out}
 #analyzePanelWealthRulesV32811{animation:analyzeFade32811 .16s ease-out}
 #analyzePanelWealthRulesV32811 .wealth-rules-v326{margin-top:0}
@@ -124,7 +124,6 @@
 <label>Account<select id="txFilterAccount"><option value="">All</option></select></label>
 </div><div class="actions" style="margin-top:0;justify-content:flex-end;gap:8px"><button class="btn" onclick="clearTxFilters()" type="button">↺ Clear Filters</button><button class="btn" onclick="exportTransactionsCSV()" type="button">Export CSV</button></div>
 <div class="scroll" id="txList"></div>
-
 </div></div><div class="tx-tab-panel-v371" id="txIntelligencePanelV323" style="display:none"><div class="panel tx-intel-v323" id="txIntelligenceV323">
 <div class="toolbar"><div><h2>Transaction Intelligence</h2><div class="small">Checks your existing records for duplicate-like entries, unusual data gaps and investment-link consistency. It never blocks saving.</div></div><span class="pill">Audit · Informational</span></div>
 <div class="tx-intel-grid-v323" id="txIntelSummaryV323"></div>
@@ -265,7 +264,7 @@
 <div aria-label="Settings sections" class="settings-tabs-v371" role="tablist">
 <button aria-selected="true" class="settings-tab-v371 active" id="settingsTabAccountV371" role="tab" type="button">Account</button>
 <button aria-selected="false" class="settings-tab-v371" id="settingsTabAppearanceV371" role="tab" type="button">Appearance</button>
-<button aria-selected="false" class="settings-tab-v371" id="settingsTabDataV371" role="tab" type="button">Data &amp; Backup</button> 
+<button aria-selected="false" class="settings-tab-v371" id="settingsTabDataV371" role="tab" type="button">Data &amp; Backup</button>
 </div>
 <div class="settings-panel-v371" id="settingsPanelAccountV371" role="tabpanel">
 <div class="panel"><div class="toolbar"><div><h2>Account Center</h2><div class="small">Manage your MMHVAULT identity and sign-in status.</div></div><button class="btn danger" onclick="signOut()" type="button">Logout</button></div>
@@ -3768,248 +3767,44 @@ window.MM_HVAULT_UI_AUDIT = { version:'V3.18.0', duplicatePresentationCleanup:tr
   else harden();
 })();
 </script>
-<script id="mmhvault-v32811-wealth-rules-analyze-location">
-(function(){
-  const TAB='wealthrules', BTN_ID='analyzeTabWealthRulesV32811', PANEL_ID='analyzePanelWealthRulesV32811';
-  function by(id){return document.getElementById(id)}
-  function ensure(){
-    const tabs=document.querySelector('.analyze-tabs-v371');
-    const rules=by('settingsPanelRulesV326');
-    const oldBtn=by('settingsTabRulesV326');
-    if(!tabs || !rules) return false;
-    if(oldBtn) oldBtn.style.display='none';
-    let btn=by(BTN_ID);
-    if(!btn){
-      btn=document.createElement('button');
-      btn.id=BTN_ID; btn.type='button'; btn.className='analyze-tab-v371';
-      btn.dataset.tab=TAB; btn.setAttribute('role','tab'); btn.setAttribute('aria-selected','false');
-      btn.textContent='Wealth Rules';
-      tabs.appendChild(btn);
-    }
-    let panel=by(PANEL_ID);
-    if(!panel){
-      panel=document.createElement('div');
-      panel.id=PANEL_ID; panel.className='analyze-tab-panel-v371';
-      panel.dataset.panel=TAB; panel.setAttribute('role','tabpanel'); panel.setAttribute('aria-hidden','true');
-      panel.innerHTML='<div class="panel analyze-panel wealth-rules-analyze-wrap-v32811">'+rules.innerHTML+'</div>';
-      // Reuse the original rule field/button elements by moving them into the new panel.
-      const inner=panel.querySelector('.panel');
-      while(rules.firstChild) inner.appendChild(rules.firstChild);
-      tabs.parentElement.appendChild(panel);
-    }
-    // Keep only one rules view alive and never expose it under Settings.
-    rules.style.display='none';
-    rules.setAttribute('aria-hidden','true');
-    const settingsSection=by('settings');
-    if(settingsSection) {
-      settingsSection.querySelectorAll('#settingsTabRulesV326').forEach(x=>x.remove());
-      const moved=panel.querySelector('#wealthRuleReserveV326');
-      if(moved && moved.closest('#settings')) console.warn('Wealth Rules relocation guard: panel still under settings');
-    }
-    return true;
-  }
-  function activateRules(){
-    if(!ensure()) return;
-    document.querySelectorAll('.analyze-tab-v371').forEach(b=>{
-      const on=b.dataset.tab===TAB; b.classList.toggle('active',on); b.setAttribute('aria-selected',on?'true':'false');
-    });
-    document.querySelectorAll('.analyze-tab-panel-v371').forEach(p=>{
-      const on=p.dataset.panel===TAB; p.classList.toggle('active',on); p.setAttribute('aria-hidden',on?'false':'true');
-    });
-    try{localStorage.setItem('myfinance_analyze_tab',TAB)}catch(e){}
-    window.fillWealthRulesV32810?.();
-  }
-  function patchSetter(){
-    const current=window.setAnalyzeTabV371;
-    if(typeof current!=='function' || current.__v32811) return;
-    function wrapped(tab){
-      if(tab===TAB){activateRules();return;}
-      ensure();
-      return current(tab);
-    }
-    wrapped.__v32811=true;
-    window.setAnalyzeTabV371=wrapped;
-  }
-  function exposeFill(){
-    if(window.getPersonalWealthRulesV326 && typeof window.getPersonalWealthRulesV326==='function'){
-      window.fillWealthRulesV32810=function(){
-        const r=window.getPersonalWealthRulesV326();
-        const map={wealthRuleReserveV326:r.reserveMin,wealthRuleComfortV326:r.reserveComfort,wealthRuleSavingsV326:r.savingsTarget,wealthRuleInvestV326:r.investmentCeiling};
-        Object.entries(map).forEach(([id,v])=>{const e=by(id);if(e)e.value=v;});
-      };
-    }
-  }
-  function bind(){
-    ensure(); patchSetter(); exposeFill();
-    document.addEventListener('click',function(e){
-      const b=e.target.closest?.('#'+BTN_ID); if(b){e.preventDefault();e.stopPropagation();activateRules();}
-    },true);
-    const saved=(()=>{try{return localStorage.getItem('myfinance_analyze_tab')}catch(e){return null}})();
-    if(saved===TAB) setTimeout(activateRules,0);
-  }
-  function repair(){
-    ensure(); patchSetter(); exposeFill();
-    const existing=by(BTN_ID); const panel=by(PANEL_ID);
-    if(existing && panel && !existing.classList.contains('active')){
-      // no-op; ordinary tab handler owns non-rules state
-    }
-  }
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',bind,{once:true}); else bind();
-  document.addEventListener('DOMContentLoaded',function(){setTimeout(repair,20)},{once:true});
-  window.addEventListener('load',function(){setTimeout(repair,30)},{once:true});
-})();
-</script>
 
-<script id="mmhvault-v32812-cashflow-wealthrules-fix">
-(function(){
-  // V3.28.12 — Keep Wealth Rules visible when its Analyze tab is active.
-  function forceWealthRulesPanel(tab){
-    const panel=document.getElementById('analyzePanelWealthRulesV32811');
-    if(!panel) return;
-    const on=tab==='wealthrules';
-    panel.style.display=on?'block':'none';
-    panel.setAttribute('aria-hidden',on?'false':'true');
-  }
 
-  const baseTab=window.setAnalyzeTabV371;
-  if(typeof baseTab==='function' && !baseTab.__v32812Wrapped){
-    const wrapped=function(tab){
-      const result=baseTab.apply(this,arguments);
-      forceWealthRulesPanel(tab);
-      return result;
-    };
-    wrapped.__v32812Wrapped=true;
-    window.setAnalyzeTabV371=wrapped;
-  }
 
-  // Direct capture handler protects against stale listeners or inline display:none.
-  document.addEventListener('click',function(e){
-    const btn=e.target.closest?.('#analyzeTabWealthRulesV32811');
-    if(!btn) return;
-    e.preventDefault();
-    e.stopImmediatePropagation();
-    if(typeof window.setAnalyzeTabV371==='function') window.setAnalyzeTabV371('wealthrules');
-    forceWealthRulesPanel('wealthrules');
-  },true);
-
-  // Restore the last selected state after the page has rendered.
-  function restore(){
-    const saved=localStorage.getItem('myfinance_analyze_tab');
-    if(saved==='wealthrules'){
-      if(typeof window.setAnalyzeTabV371==='function') window.setAnalyzeTabV371('wealthrules');
-      forceWealthRulesPanel('wealthrules');
-    }else{
-      forceWealthRulesPanel('');
-    }
-  }
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',restore,{once:true});
-  else restore();
-
-  // V3.28.12 — Cash Flow income excludes loan transactions (including Loan Repayment).
-  function cashFlowTotals(rows){
-    let inc=0, exp=0;
-    (rows||[]).forEach(t=>{
-      if(t.type==='Income' && !(Array.isArray(CATS.LoanIncome)&&CATS.LoanIncome.includes(t.category))){
-        inc += n(t.to_amount)*toTHB(t.to_account);
-      }
-      if(t.type==='Expense' && !CATS.Loans.includes(t.category) && t.category!=='Investment' && !isLinkedInvestmentTx(t)){
-        exp += n(t.from_amount)*toTHB(t.from_account);
-      }
-    });
-    return {inc,exp,save:inc-exp,er:inc?exp/inc*100:0,sr:inc?(inc-exp)/inc*100:0};
-  }
-
-  window.renderCashFlowSummaryV32812=function(){
-    const el=$("cashFlowSummary"), periodEl=$("cashFlowSummaryPeriod"), statusEl=$("cashFlowSummaryStatus");
-    if(!el||!periodEl||!statusEl)return;
-    const p=typeof v37Period==='function'?v37Period():{year:new Date().getFullYear(),month:String(new Date().getMonth()+1).padStart(2,'0')};
-    const rows=typeof v37Rows==='function'?v37Rows():(transactions||[]);
-    const t=cashFlowTotals(rows), net=t.save, sr=t.sr, er=t.er;
-    const status=net>0?'Positive Cash Flow':net===0?'Break-even':'Negative Cash Flow';
-    periodEl.textContent=`${typeof v37Label==='function'?v37Label(p):'Selected period'} · THB`;
-    statusEl.textContent=status;
-    statusEl.className='pill '+(net>0?'green':net<0?'red':'yellow');
-    el.innerHTML=`
-      <div class="cashflow-summary-grid-v371">
-        <div class="cashflow-card-v371"><div class="label">Income</div><div class="value green">${thb(t.inc)}</div></div>
-        <div class="cashflow-card-v371"><div class="label">Expenses</div><div class="value red">${thb(t.exp)}</div></div>
-        <div class="cashflow-card-v371"><div class="label">Net Cash Flow</div><div class="value ${net>0?'green':net<0?'red':'yellow'}">${thb(net)}</div></div>
-        <div class="cashflow-card-v371"><div class="label">Savings Rate</div><div class="value ${sr>=60?'green':sr>=40?'yellow':'red'}">${sr.toFixed(1)}%</div></div>
-      </div>
-      <div class="cashflow-summary-note-v371">Expense Ratio <b>${er.toFixed(1)}%</b> · Net cash flow is Income minus ordinary Expenses; loan transactions and linked investment transactions are excluded.</div>`;
-  };
-
-  function refreshCashFlowExtras(){
-    const panel=document.querySelector('.analyze-tab-panel-v371[data-panel="cashflow"]');
-    if(!panel) return;
-    const p=typeof v37Period==='function'?v37Period():{year:new Date().getFullYear(),month:String(new Date().getMonth()+1).padStart(2,'0')};
-    const months=p.month==='annual'?Array.from({length:12},(_,i)=>`${p.year}-${String(i+1).padStart(2,'0')}`):[`${p.year}-${p.month}`];
-    const ar=months.map(ym=>({ym,...cashFlowTotals((transactions||[]).filter(t=>String(t.tx_date||'').slice(0,7)===ym))}));
-    const maxE=Math.max(1,...ar.map(x=>x.exp)), maxI=Math.max(1,...ar.map(x=>x.inc));
-    const ie=$("incomeExpenseTrend");
-    if(ie) ie.innerHTML=`<div class="spark">${ar.map(x=>`<span title="Income ${thb(x.inc)} · Expense ${thb(x.exp)}" style="height:${Math.max(4,x.inc/maxI*100)}%"></span>`).join('')}</div><div class="spark-labels">${ar.map(x=>`<span>${monthLabel(x.ym).split(' ')[0]}</span>`).join('')}</div><div class="small" style="margin-top:6px">Income · THB</div>`;
-    const et=$("expenseTrend");
-    if(et) et.innerHTML=`<div class="spark">${ar.map(x=>`<span title="${monthLabel(x.ym)} · ${thb(x.exp)}" style="height:${Math.max(4,x.exp/maxE*100)}%"></span>`).join('')}</div><div class="spark-labels">${ar.map(x=>`<span>${monthLabel(x.ym).split(' ')[0]}</span>`).join('')}</div><div class="small" style="margin-top:6px">Expenses · THB</div>`;
-  }
-
-  const originalCash=window.renderCashFlowSummaryV371;
-  if(typeof originalCash==='function' && !originalCash.__v32812Wrapped){
-    const wrappedCash=function(){
-      originalCash.apply(this,arguments);
-      window.renderCashFlowSummaryV32812();
-      refreshCashFlowExtras();
-    };
-    wrappedCash.__v32812Wrapped=true;
-    window.renderCashFlowSummaryV371=wrappedCash;
-  }
-
-  // Update immediately when the current Analyze render has already happened.
-  try{window.renderCashFlowSummaryV32812();refreshCashFlowExtras();}catch(e){console.warn('V3.28.12 Cash Flow refresh',e)}
-})();
-</script>
-
-<script id="mmhvault-v32813-wealth-rules-direct-nav">
-(function(){
-  function activate(){
-    const tab='wealthrules';
+<script id="mmhvault-v32814-wealth-rules-clean-nav">(function(){
+  function activateWealthRules(){
     const btn=document.getElementById('analyzeTabWealthRulesV32811');
     const panel=document.getElementById('analyzePanelWealthRulesV32811');
-    if(!btn||!panel) return false;
-    document.querySelectorAll('.analyze-tab-v371').forEach(b=>{
-      const on=b.dataset.tab===tab;
+    if(!btn||!panel)return;
+    document.querySelectorAll('.analyze-tab-v371').forEach(function(b){
+      const on=b.dataset.tab==='wealthrules';
       b.classList.toggle('active',on);
       b.setAttribute('aria-selected',on?'true':'false');
     });
-    document.querySelectorAll('.analyze-tab-panel-v371').forEach(p=>{
-      const on=p.dataset.panel===tab;
+    document.querySelectorAll('.analyze-tab-panel-v371').forEach(function(p){
+      const on=p.dataset.panel==='wealthrules';
       p.classList.toggle('active',on);
       p.setAttribute('aria-hidden',on?'false':'true');
-      if(p===panel || on) p.style.display=on?'block':'none';
+      p.style.display=on?'block':'none';
     });
     panel.style.display='block';
     panel.setAttribute('aria-hidden','false');
-    try{localStorage.setItem('myfinance_analyze_tab',tab);}catch(e){}
-    try{window.getPersonalWealthRulesV326?.();}catch(e){}
-    // Refill the controls directly so the panel is immediately usable.
-    try{
-      const r=window.getPersonalWealthRulesV326?.();
-      const map={wealthRuleReserveV326:r?.reserveMin,wealthRuleComfortV326:r?.reserveComfort,wealthRuleSavingsV326:r?.savingsTarget,wealthRuleInvestV326:r?.investmentCeiling};
-      Object.entries(map).forEach(([id,v])=>{const el=document.getElementById(id); if(el&&v!=null) el.value=v;});
-    }catch(e){}
-    return true;
+    try{localStorage.setItem('myfinance_analyze_tab','wealthrules')}catch(e){}
   }
+  window.mmhActivateWealthRulesV32814=activateWealthRules;
   function bind(){
-    document.addEventListener('click',function(e){
-      const btn=e.target.closest?.('#analyzeTabWealthRulesV32811');
-      if(!btn) return;
+    const btn=document.getElementById('analyzeTabWealthRulesV32811');
+    if(!btn)return;
+    btn.onclick=function(e){
       e.preventDefault();
       e.stopPropagation();
-      activate();
-    },true);
+      activateWealthRules();
+      setTimeout(activateWealthRules,0);
+      setTimeout(activateWealthRules,80);
+    };
+    btn.addEventListener('keydown',function(e){
+      if(e.key==='Enter'||e.key===' '){e.preventDefault();activateWealthRules();}
+    });
   }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});
-  else bind();
-})();
-</script>
-</body>
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
+})();</script></body>
 </html>
