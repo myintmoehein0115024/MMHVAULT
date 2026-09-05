@@ -1041,7 +1041,7 @@ if(receiptFile){
   catch(err){console.error(err);alert('Transaction was saved, but the receipt upload failed: '+(err?.message||err));}
 }
 // Keep the user's selections for rapid consecutive entries; only transaction-specific values are cleared.
-txType.value=selected.type;syncTransactionGroup();txGroup.value=selected.group;updateCategories();txCategory.value=[...txCategory.options].some(o=>o.value===selected.category)?selected.category:txCategory.value;fromAccount.value=selected.fromAccount;toAccount.value=selected.toAccount;fromAmount.value="";toAmount.value="";txNote.value="";if($("txReceipt"))$("txReceipt").value="";if(window.resetReceiptUploadUIV3300)window.resetReceiptUploadUIV3300();updateAccountLocks();await loadAll();
+txType.value=selected.type;syncTransactionGroup();txGroup.value=selected.group;updateCategories();txCategory.value=[...txCategory.options].some(o=>o.value===selected.category)?selected.category:txCategory.value;fromAccount.value=selected.fromAccount;toAccount.value=selected.toAccount;fromAmount.value="";toAmount.value="";txNote.value="";if($("txReceipt"))$("txReceipt").value="";if(window.resetReceiptUploadUIV3300)window.resetReceiptUploadUIV3300();updateAccountLocks();await loadAll();window.mmHVaultRefreshReceiptFlagsV3302?.();
 }
 function renderTransactions(){
 if(!transactions.length){txList.innerHTML='<div class="empty">No transactions.</div>';return}
@@ -1386,7 +1386,7 @@ function monthLabel(m){const d=new Date((m||today().slice(0,7))+'-01T00:00:00');
 function v28FilteredTx(){const s=($('txSearch')?.value||'').toLowerCase();const ty=$('txFilterType')?.value||'';const gr=$('txFilterGroup')?.value||'';const ca=$('txFilterCategory')?.value||'';const ac=$('txFilterAccount')?.value||'';return transactions.filter(t=>{const hay=[t.tx_date,t.type,transactionGroupFor(t),t.category,t.from_account,t.to_account,t.note].join(' ').toLowerCase();return(!s||hay.includes(s))&&(!ty||t.type===ty)&&(!gr||transactionGroupFor(t)===gr)&&(!ca||t.category===ca)&&(!ac||t.from_account===ac||t.to_account===ac);});}
 function refreshTxFilters(){const cv=$('txFilterCategory')?.value||'',av=$('txFilterAccount')?.value||'';const cats=[...new Set(transactions.map(t=>t.category).filter(Boolean))].sort();$('txFilterCategory').innerHTML='<option value="">All</option>'+cats.map(x=>`<option>${esc(x)}</option>`).join('');$('txFilterCategory').value=cats.includes(cv)?cv:'';$('txFilterAccount').innerHTML='<option value="">All</option>'+ACC.map(x=>`<option>${x}</option>`).join('');$('txFilterAccount').value=ACC.includes(av)?av:'';}
 const _renderTransactionsV27=renderTransactions;
-function renderTransactionsV28(){refreshTxFilters();const rows=v28FilteredTx();$('txResultCount').textContent=`${rows.length} of ${transactions.length} records`;if(!rows.length){$('txList').innerHTML='<div class="empty">No matching transactions.</div>';return}$('txList').innerHTML=`<table><tr><th>Date</th><th>Type</th><th>Transaction</th><th>Category</th><th>From</th><th>From Amount</th><th>To</th><th>To Amount</th><th>Note</th><th>Receipt</th><th></th></tr>${rows.map(t=>`<tr><td>${t.tx_date}</td><td>${t.type}</td><td>${transactionGroupFor(t)}</td><td>${esc(t.category)}</td><td>${esc(t.from_account||'—')}</td><td>${t.from_amount?fmt(t.from_amount):'—'}</td><td>${esc(t.to_account||'—')}</td><td>${t.to_amount?fmt(t.to_amount):'—'}</td><td>${esc(t.note)}</td><td><button class="btn" type="button" onclick="openTransactionReceiptV396(${t.id})">👁 View</button></td><td class="icon-actions"><button class="btn" type="button" data-action="edit-tx" data-id="${t.id}" onclick="editTransaction(${t.id})">Edit</button><button class="btn danger" onclick="deleteTx(${t.id})">×</button></td></tr>`).join('')}</table>`;}
+function renderTransactionsV28(){refreshTxFilters();const rows=v28FilteredTx();$('txResultCount').textContent=`${rows.length} of ${transactions.length} records`;if(!rows.length){$('txList').innerHTML='<div class="empty">No matching transactions.</div>';return}$('txList').innerHTML=`<table><tr><th>Date</th><th>Type</th><th>Transaction</th><th>Category</th><th>From</th><th>From Amount</th><th>To</th><th>To Amount</th><th>Note</th><th>Receipt</th><th></th></tr>${rows.map(t=>`<tr><td>${t.tx_date}</td><td>${t.type}</td><td>${transactionGroupFor(t)}</td><td>${esc(t.category)}</td><td>${esc(t.from_account||'—')}</td><td>${t.from_amount?fmt(t.from_amount):'—'}</td><td>${esc(t.to_account||'—')}</td><td>${t.to_amount?fmt(t.to_amount):'—'}</td><td>${esc(t.note)}</td><td>${window.mmHVaultHasReceiptV3302?.(t.id)?`<button class="btn" type="button" onclick="openTransactionReceiptV396(${t.id})">👁 View</button>`:''}</td><td class="icon-actions"><button class="btn" type="button" data-action="edit-tx" data-id="${t.id}" onclick="editTransaction(${t.id})">Edit</button><button class="btn danger" onclick="deleteTx(${t.id})">×</button></td></tr>`).join('')}</table>`;}
 async function duplicateTransaction(id){const t=transactions.find(x=>x.id===id);if(!t)return;const u=(await db.auth.getUser()).data.user;if(!u)return;const row={user_id:u.id,tx_date:t.tx_date,type:t.type,category:t.category,from_account:t.from_account,from_amount:t.from_amount,to_account:t.to_account,to_amount:t.to_amount,note:t.note?String(t.note)+' · copy':'Duplicate'};const r=await db.from('transactions').insert(row);if(r.error)alert(r.error.message);else await loadAll();}
 function exportTransactionsCSV(){const rows=v28FilteredTx();const head=['Date','Type','Transaction','Category','From','From Amount','To','To Amount','Note'];const csv=[head,...rows.map(t=>[t.tx_date,t.type,transactionGroupFor(t),t.category,t.from_account||'',t.from_amount||0,t.to_account||'',t.to_amount||0,t.note||''])].map(r=>r.map(v=>`"${String(v).replaceAll('"','""')}"`).join(',')).join('\n');const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`MMHVAULT_Transactions_${today()}.csv`;a.click();URL.revokeObjectURL(a.href);}
 function bindTxFilters(){['txSearch','txFilterType','txFilterGroup','txFilterCategory','txFilterAccount'].forEach(id=>{const el=$(id);if(el)el.addEventListener(el.tagName==='INPUT'?'input':'change',renderTransactionsV28);});}
@@ -2286,7 +2286,7 @@ function renderTransactionsMobileCardsV371(){
         <div class="tx-mobile-detail-v371"><div class="tx-mobile-detail-label-v371">To Amount</div><div class="tx-mobile-detail-value-v371">${toAmt}</div></div>
         <div class="tx-mobile-detail-v371" style="grid-column:1/-1"><div class="tx-mobile-detail-label-v371">Note</div><div class="tx-mobile-detail-value-v371">${esc(note)}</div></div>
         <div class="tx-mobile-actions-v371" style="grid-column:1/-1">
-          <button class="btn" type="button" onclick="event.stopPropagation();openTransactionReceiptV396(${t.id})">👁 Receipt</button>
+          ${window.mmHVaultHasReceiptV3302?.(t.id)?`<button class="btn" type="button" onclick="event.stopPropagation();openTransactionReceiptV396(${t.id})">👁 Receipt</button>`:''}
           <button class="btn" type="button" onclick="event.stopPropagation();editTransaction(${t.id})">Edit</button>
           <button class="btn danger" type="button" onclick="event.stopPropagation();deleteTx(${t.id})">Delete</button>
         </div>
@@ -4345,6 +4345,46 @@ window.MM_HVAULT_UI_AUDIT = { version:'V3.18.0', duplicatePresentationCleanup:tr
     </div>
   </div>
 </div>
+
+<script id="mmhvault-v3302-history-receipt-cache">
+/* V3.30.2 · History only shows View when a receipt object exists. */
+window.mmHVaultReceiptIdsV3302 = window.mmHVaultReceiptIdsV3302 || new Set();
+window.mmHVaultRefreshReceiptFlagsV3302 = async function(){
+  try{
+    const u=(await db.auth.getUser()).data.user;
+    if(!u || !db?.storage) return;
+    const bucket = typeof RECEIPTS_BUCKET_V396!=='undefined' ? RECEIPTS_BUCKET_V396 : 'receipts';
+    const {data,error}=await db.storage.from(bucket).list(u.id,{limit:1000});
+    if(error || !Array.isArray(data)) return;
+    const ids=new Set();
+    for(const item of data){
+      const m=String(item?.name||'').match(/^tx-(\d+)(?:\.[^.]*)?$/i);
+      if(m) ids.add(Number(m[1]));
+    }
+    window.mmHVaultReceiptIdsV3302=ids;
+    try{
+      if(typeof renderTransactionsV28==='function') renderTransactionsV28();
+      else if(typeof renderTransactions==='function') renderTransactions();
+      if(typeof renderTransactionsMobileCardsV371==='function') renderTransactionsMobileCardsV371();
+    }catch(_e){}
+  }catch(e){
+    console.debug('Receipt visibility refresh unavailable',e);
+  }
+};
+window.mmHVaultHasReceiptV3302 = function(id){
+  return window.mmHVaultReceiptIdsV3302.has(Number(id));
+};
+</script>
+
+<script id="mmhvault-v3302-history-receipt-boot">
+(function(){
+  function bootReceiptFlagsV3302(){
+    window.mmHVaultRefreshReceiptFlagsV3302?.();
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>setTimeout(bootReceiptFlagsV3302,900),{once:true});
+  else setTimeout(bootReceiptFlagsV3302,900);
+})();
+</script>
 </body>
 </html>
 <script id="mmhvault-v3295-financial-behavior-period-fix">
