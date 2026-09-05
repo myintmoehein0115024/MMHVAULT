@@ -23,18 +23,7 @@
 #analyzePanelWealthRulesV32811 .wealth-rules-v326{margin-top:0}
 @keyframes analyzeFade32811{from{opacity:.72;transform:translateY(3px)}to{opacity:1;transform:none}}
 @media(max-width:650px){.tx-tabs-v371{overflow-x:auto}.tx-tab-v371{min-width:0;white-space:nowrap}}
-</style>
-<style id="mmhvault-v3297-expense-performance-css">
-.budget-intelligence-v316 .bi-row{grid-template-columns:120px minmax(90px,1fr) 110px 130px 78px}
-.budget-intelligence-v316 .bi-plan input{width:100%;min-width:0;padding:7px 8px;border:1px solid var(--line);border-radius:9px;background:#0b1030;color:var(--text)}
-@media(max-width:760px){
-  .budget-intelligence-v316 .bi-row{grid-template-columns:1fr 92px 92px;gap:8px;padding:11px 0}
-  .budget-intelligence-v316 .bi-bar{grid-column:1/-1;order:5}
-  .budget-intelligence-v316 .bi-state{text-align:left}
-}
-</style>
-
-</head>
+</style></head>
 <body>
 <div id="mmhvaultAppBootGuardV3282" style="position:fixed;inset:0;z-index:30000;display:none;align-items:center;justify-content:center;background:#050a18;color:#dce8ff;font-family:Arial,sans-serif;padding:24px;text-align:center;">
 <div style="max-width:420px;border:1px solid rgba(78,164,255,.25);border-radius:18px;padding:24px 22px;background:rgba(10,20,42,.92);box-shadow:0 18px 60px rgba(0,0,0,.4);">
@@ -125,6 +114,7 @@
 <label>To Account<select id="toAccount"></select></label>
 <label>Account To Amount<input id="toAmount" min="0" step="0.000001" type="number"/></label>
 <label>Note<input id="txNote"/></label>
+<label class="full">📎 Receipt / Image (optional)<input accept="image/*,.pdf" id="txReceipt" type="file"/><div class="small" id="txReceiptHint">Images or PDF · stored securely in Supabase Storage · max 10 MB</div></label>
 </div><div class="actions"><button class="btn" onclick="clearTxForm()" type="button">Clear</button><button class="btn primary">Add Transaction</button></div></form></div></div>
 <div class="tx-tab-panel-v371" id="txHistoryPanel" style="display:none"><div class="panel"><div class="toolbar"><div><h2>History</h2><div class="small" id="txResultCount">0 records</div></div><button class="btn danger" onclick="deleteAllTx()">Clear All</button></div>
 <div class="filter-grid" style="display:grid;grid-template-columns:2fr repeat(4,1fr);gap:10px;margin-bottom:12px">
@@ -892,17 +882,46 @@ transactions.filter(t=>t.tx_date.startsWith(m)).forEach(t=>{if(t.type==="Income"
 const r=i-e,p=i?e/i*100:0;
 monthly.innerHTML=`<table><tr><th>Month</th><th>Income</th><th>Expenses</th><th>Remaining</th><th>Expense Ratio</th><th>Remaining Ratio</th></tr><tr><td>${m}</td><td>${fmt(i)}</td><td>${fmt(e)}</td><td>${fmt(r)}</td><td>${p.toFixed(2)}%</td><td>${(100-p).toFixed(2)}%</td></tr></table>`;
 }
-function clearTxForm(){fromAmount.value="";toAmount.value="";txNote.value="";txDate.value=txDate.value||today();updateCategories();}
+function clearTxForm(){fromAmount.value="";toAmount.value="";txNote.value="";if($("txReceipt"))$("txReceipt").value="";txDate.value=txDate.value||today();updateCategories();}
+
+const RECEIPTS_BUCKET_V396='receipts';
+function receiptPathV396(userId,txId){return `${userId}/tx-${txId}`;}
+async function uploadTransactionReceiptV396(userId,txId,file){
+  if(!file)return {ok:true};
+  if(file.size>10*1024*1024)throw new Error('Receipt file is too large. Maximum size is 10 MB.');
+  const path=receiptPathV396(userId,txId);
+  const {error}=await db.storage.from(RECEIPTS_BUCKET_V396).upload(path,file,{upsert:true,contentType:file.type||undefined,cacheControl:'3600'});
+  if(error)throw error;
+  return {ok:true,path};
+}
+async function openTransactionReceiptV396(id){
+  const u=(await db.auth.getUser()).data.user;
+  if(!u){alert('Please sign in first.');return;}
+  const path=receiptPathV396(u.id,id);
+  const {data,error}=await db.storage.from(RECEIPTS_BUCKET_V396).createSignedUrl(path,3600);
+  if(error){alert('No receipt was found for this transaction.');return;}
+  window.open(data.signedUrl,'_blank','noopener');
+}
+async function deleteTransactionReceiptV396(userId,id){
+  if(!userId)return;
+  try{await db.storage.from(RECEIPTS_BUCKET_V396).remove([receiptPathV396(userId,id)]);}catch(_e){}
+}
 async function addTransaction(e){
 e.preventDefault();const u=(await db.auth.getUser()).data.user;if(!u)return;
 const type=txType.value;
 const selected={type,group:txGroup.value,category:txCategory.value,fromAccount:fromAccount.value,toAccount:toAccount.value};
+const receiptFile=$("txReceipt")?.files?.[0]||null;
 const row={user_id:u.id,tx_date:txDate.value,type,category:txCategory.value,from_account:type==="Income"?null:fromAccount.value,from_amount:type==="Income"?0:n(fromAmount.value),to_account:type==="Expense"?null:toAccount.value,to_amount:type==="Expense"?0:n(toAmount.value),note:txNote.value||null};
 if(type==="Income"){row.from_account=null;row.from_amount=0}
 if(type==="Expense"){row.to_account=null;row.to_amount=0}
-const r=await db.from("transactions").insert(row);if(r.error){alert(r.error.message);return}
+const r=await db.from("transactions").insert(row).select('id').single();if(r.error){alert(r.error.message);return}
+if(receiptFile){
+  const hint=$("txReceiptHint"); if(hint)hint.textContent='Uploading receipt…';
+  try{await uploadTransactionReceiptV396(u.id,r.data.id,receiptFile);if(hint)hint.textContent='✓ Receipt uploaded successfully';}
+  catch(err){console.error(err);alert('Transaction was saved, but the receipt upload failed: '+(err?.message||err));}
+}
 // Keep the user's selections for rapid consecutive entries; only transaction-specific values are cleared.
-txType.value=selected.type;syncTransactionGroup();txGroup.value=selected.group;updateCategories();txCategory.value=[...txCategory.options].some(o=>o.value===selected.category)?selected.category:txCategory.value;fromAccount.value=selected.fromAccount;toAccount.value=selected.toAccount;fromAmount.value="";toAmount.value="";txNote.value="";updateAccountLocks();await loadAll();
+txType.value=selected.type;syncTransactionGroup();txGroup.value=selected.group;updateCategories();txCategory.value=[...txCategory.options].some(o=>o.value===selected.category)?selected.category:txCategory.value;fromAccount.value=selected.fromAccount;toAccount.value=selected.toAccount;fromAmount.value="";toAmount.value="";txNote.value="";if($("txReceipt"))$("txReceipt").value="";updateAccountLocks();await loadAll();
 }
 function renderTransactions(){
 if(!transactions.length){txList.innerHTML='<div class="empty">No transactions.</div>';return}
@@ -916,7 +935,7 @@ function inferTxGroup(t){if(t.type==='Transfer')return 'Transfer';if(t.type==='I
 function editTransaction(id){ return editTx(id); }
 function editTx(id){const t=transactions.find(x=>x.id===id);if(!t)return;const group=inferTxGroup(t);openEditModal('Edit Transaction',`<form id="editTxForm"><div class="formgrid"><label>Date<input id="eDate" type="date" value="${esc(t.tx_date)}" required></label><label>Type<select id="eType"><option ${t.type==='Income'?'selected':''}>Income</option><option ${t.type==='Expense'?'selected':''}>Expense</option><option ${t.type==='Transfer'?'selected':''}>Transfer</option></select></label><label>Transaction<select id="eGroup"></select></label><label>Category<select id="eCat"></select></label><label>From Account<select id="eFrom">${ACC.map(a=>`<option ${t.from_account===a?'selected':''}>${a}</option>`).join('')}</select></label><label>From Amount<input id="eFromAmt" type="number" step="0.000001" value="${n(t.from_amount)||''}"></label><label>To Account<select id="eTo">${ACC.map(a=>`<option ${t.to_account===a?'selected':''}>${a}</option>`).join('')}</select></label><label>To Amount<input id="eToAmt" type="number" step="0.000001" value="${n(t.to_amount)||''}"></label><label class="full">Note<input id="eNote" value="${esc(t.note||'')}"></label></div><div class="actions"><button class="btn" type="button" onclick="closeEditModal()">Cancel</button><button class="btn primary">Save Changes</button></div></form>`);const sync=()=>{const type=$('eType').value;const groups=type==='Income'?['Income','Loans']:type==='Expense'?['Expense','Personal','Loans']:['Transfer'];$('eGroup').innerHTML=groups.map(x=>`<option>${x}</option>`).join('');$('eGroup').value=groups.includes($('eGroup').value)?$('eGroup').value:group;const g=$('eGroup').value;$('eCat').innerHTML=txCategoryOptions(type,g).map(x=>`<option>${x}</option>`).join('');$('eCat').value=txCategoryOptions(type,g).includes(t.category)?t.category:$('eCat').options[0]?.value||'';$('eFrom').disabled=type==='Income';$('eFromAmt').disabled=type==='Income';$('eTo').disabled=type==='Expense';$('eToAmt').disabled=type==='Expense';};sync();$('eType').onchange=sync;$('eGroup').onchange=sync;$('editTxForm').onsubmit=async e=>{e.preventDefault();const row={tx_date:$('eDate').value,type:$('eType').value,category:$('eCat').value,from_account:$('eType').value==='Income'?null:$('eFrom').value,from_amount:$('eType').value==='Income'?0:n($('eFromAmt').value),to_account:$('eType').value==='Expense'?null:$('eTo').value,to_amount:$('eType').value==='Expense'?0:n($('eToAmt').value),note:$('eNote').value||null};const r=await db.from('transactions').update(row).eq('id',id);if(r.error)alert(r.error.message);else{closeEditModal();await loadAll();}};}
 async function editInvestment(id){const x=investments.find(i=>i.id===id);if(!x)return;const defaultSource=x.source_account||(x.asset==="Gold"?"KPay":"OKX");openEditModal("Edit Investment",`<form id="editInvForm"><div class="formgrid"><label>Date<input id="eiDate" type="date" value="${esc(x.inv_date)}" required></label><label>Asset<input id="eiAsset" value="${esc(x.asset)}" readonly></label><label>Symbol<input id="eiSymbol" value="${esc(x.symbol)}" readonly></label><label>Source Account<select id="eiSource"></select></label><label>Invested Amount<input id="eiAmount" type="number" step="0.000001" value="${n(x.amount)}" required></label><label>Fee<input id="eiFee" type="number" step="0.000001" value="${n(x.fee)}"></label><label>Other Cost<input id="eiOther" type="number" step="0.000001" value="${n(x.other_cost)}"></label><label>Purchase-day Market Price<input id="eiBuy" type="number" step="0.000001" value="${n(x.buy_price)}" required></label><label>Current Market Price<input id="eiMarket" type="number" step="0.000001" value="${n(x.market_price)}"></label><label>Quantity<input id="eiQty" type="number" step="0.0000000001" value="${n(x.quantity)}"></label><label class="full">Note<input id="eiNote" value="${esc(x.note||"")}"></label></div><div class="actions"><button class="btn" type="button" onclick="closeEditModal()">Cancel</button><button class="btn primary">Save Changes</button></div></form>`);eiSource.innerHTML=(x.asset==="Gold"?["KPay"]:["OKX","ByBit"]).map(a=>`<option ${a===defaultSource?"selected":""}>${a}</option>`).join("");$('editInvForm').onsubmit=async e=>{e.preventDefault();const amount=n($('eiAmount').value),buy=n($('eiBuy').value);const row={inv_date:$('eiDate').value,source_account:$('eiSource').value,amount,fee:n($('eiFee').value),other_cost:n($('eiOther').value),buy_price:buy,market_price:n($('eiMarket').value),quantity:n($('eiQty').value)||(buy?amount/buy:0),note:$('eiNote').value||null};const r=await db.from('investments').update(row).eq('id',id);if(r.error)alert(r.error.message);else{closeEditModal();await loadAll();}};}
-async function deleteTx(id){const r=await db.from("transactions").delete().eq("id",id);if(r.error)alert(r.error.message);else await loadAll();}
+async function deleteTx(id){const u=(await db.auth.getUser()).data.user;const r=await db.from("transactions").delete().eq("id",id);if(r.error)alert(r.error.message);else{await deleteTransactionReceiptV396(u?.id,id);await loadAll();}}
 async function deleteAllTx(){if(!confirm("Delete all your transactions?"))return;const u=(await db.auth.getUser()).data.user;const r=await db.from("transactions").delete().eq("user_id",u.id);if(r.error)alert(r.error.message);else await loadAll();}
 function loadRateInputs(){usdMmk.value=rates.usd_mmk;usdThb.value=rates.usd_thb;usdCny.value=rates.usd_cny;}
 async function saveRates(){
@@ -1247,7 +1266,7 @@ function monthLabel(m){const d=new Date((m||today().slice(0,7))+'-01T00:00:00');
 function v28FilteredTx(){const s=($('txSearch')?.value||'').toLowerCase();const ty=$('txFilterType')?.value||'';const gr=$('txFilterGroup')?.value||'';const ca=$('txFilterCategory')?.value||'';const ac=$('txFilterAccount')?.value||'';return transactions.filter(t=>{const hay=[t.tx_date,t.type,transactionGroupFor(t),t.category,t.from_account,t.to_account,t.note].join(' ').toLowerCase();return(!s||hay.includes(s))&&(!ty||t.type===ty)&&(!gr||transactionGroupFor(t)===gr)&&(!ca||t.category===ca)&&(!ac||t.from_account===ac||t.to_account===ac);});}
 function refreshTxFilters(){const cv=$('txFilterCategory')?.value||'',av=$('txFilterAccount')?.value||'';const cats=[...new Set(transactions.map(t=>t.category).filter(Boolean))].sort();$('txFilterCategory').innerHTML='<option value="">All</option>'+cats.map(x=>`<option>${esc(x)}</option>`).join('');$('txFilterCategory').value=cats.includes(cv)?cv:'';$('txFilterAccount').innerHTML='<option value="">All</option>'+ACC.map(x=>`<option>${x}</option>`).join('');$('txFilterAccount').value=ACC.includes(av)?av:'';}
 const _renderTransactionsV27=renderTransactions;
-function renderTransactionsV28(){refreshTxFilters();const rows=v28FilteredTx();$('txResultCount').textContent=`${rows.length} of ${transactions.length} records`;if(!rows.length){$('txList').innerHTML='<div class="empty">No matching transactions.</div>';return}$('txList').innerHTML=`<table><tr><th>Date</th><th>Type</th><th>Transaction</th><th>Category</th><th>From</th><th>From Amount</th><th>To</th><th>To Amount</th><th>Note</th><th></th></tr>${rows.map(t=>`<tr><td>${t.tx_date}</td><td>${t.type}</td><td>${transactionGroupFor(t)}</td><td>${esc(t.category)}</td><td>${esc(t.from_account||'—')}</td><td>${t.from_amount?fmt(t.from_amount):'—'}</td><td>${esc(t.to_account||'—')}</td><td>${t.to_amount?fmt(t.to_amount):'—'}</td><td>${esc(t.note)}</td><td class="icon-actions"><button class="btn" type="button" data-action="edit-tx" data-id="${t.id}" onclick="editTransaction(${t.id})">Edit</button><button class="btn danger" onclick="deleteTx(${t.id})">×</button></td></tr>`).join('')}</table>`;}
+function renderTransactionsV28(){refreshTxFilters();const rows=v28FilteredTx();$('txResultCount').textContent=`${rows.length} of ${transactions.length} records`;if(!rows.length){$('txList').innerHTML='<div class="empty">No matching transactions.</div>';return}$('txList').innerHTML=`<table><tr><th>Date</th><th>Type</th><th>Transaction</th><th>Category</th><th>From</th><th>From Amount</th><th>To</th><th>To Amount</th><th>Note</th><th>Receipt</th><th></th></tr>${rows.map(t=>`<tr><td>${t.tx_date}</td><td>${t.type}</td><td>${transactionGroupFor(t)}</td><td>${esc(t.category)}</td><td>${esc(t.from_account||'—')}</td><td>${t.from_amount?fmt(t.from_amount):'—'}</td><td>${esc(t.to_account||'—')}</td><td>${t.to_amount?fmt(t.to_amount):'—'}</td><td>${esc(t.note)}</td><td><button class="btn" type="button" onclick="openTransactionReceiptV396(${t.id})">👁 View</button></td><td class="icon-actions"><button class="btn" type="button" data-action="edit-tx" data-id="${t.id}" onclick="editTransaction(${t.id})">Edit</button><button class="btn danger" onclick="deleteTx(${t.id})">×</button></td></tr>`).join('')}</table>`;}
 async function duplicateTransaction(id){const t=transactions.find(x=>x.id===id);if(!t)return;const u=(await db.auth.getUser()).data.user;if(!u)return;const row={user_id:u.id,tx_date:t.tx_date,type:t.type,category:t.category,from_account:t.from_account,from_amount:t.from_amount,to_account:t.to_account,to_amount:t.to_amount,note:t.note?String(t.note)+' · copy':'Duplicate'};const r=await db.from('transactions').insert(row);if(r.error)alert(r.error.message);else await loadAll();}
 function exportTransactionsCSV(){const rows=v28FilteredTx();const head=['Date','Type','Transaction','Category','From','From Amount','To','To Amount','Note'];const csv=[head,...rows.map(t=>[t.tx_date,t.type,transactionGroupFor(t),t.category,t.from_account||'',t.from_amount||0,t.to_account||'',t.to_amount||0,t.note||''])].map(r=>r.map(v=>`"${String(v).replaceAll('"','""')}"`).join(',')).join('\n');const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`MMHVAULT_Transactions_${today()}.csv`;a.click();URL.revokeObjectURL(a.href);}
 function bindTxFilters(){['txSearch','txFilterType','txFilterGroup','txFilterCategory','txFilterAccount'].forEach(id=>{const el=$(id);if(el)el.addEventListener(el.tagName==='INPUT'?'input':'change',renderTransactionsV28);});}
@@ -2147,6 +2166,7 @@ function renderTransactionsMobileCardsV371(){
         <div class="tx-mobile-detail-v371"><div class="tx-mobile-detail-label-v371">To Amount</div><div class="tx-mobile-detail-value-v371">${toAmt}</div></div>
         <div class="tx-mobile-detail-v371" style="grid-column:1/-1"><div class="tx-mobile-detail-label-v371">Note</div><div class="tx-mobile-detail-value-v371">${esc(note)}</div></div>
         <div class="tx-mobile-actions-v371" style="grid-column:1/-1">
+          <button class="btn" type="button" onclick="event.stopPropagation();openTransactionReceiptV396(${t.id})">👁 Receipt</button>
           <button class="btn" type="button" onclick="event.stopPropagation();editTransaction(${t.id})">Edit</button>
           <button class="btn danger" type="button" onclick="event.stopPropagation();deleteTx(${t.id})">Delete</button>
         </div>
@@ -3279,22 +3299,9 @@ renderDashboard=function(){
     }
     const {p,year,monthKey,rows}=periodData();
     const cats=Array.isArray(CATS.Expense)?CATS.Expense:[];
-    // Performance: aggregate selected-period expenses once instead of filtering
-    // the full transaction list separately for every category.
-    const spentByCat=Object.create(null);
-    for(const t of rows){
-      if(t.type!=='Expense') continue;
-      if(!cats.includes(t.category)) continue;
-      if(CATS.Loans.includes(t.category)) continue;
-      if(isLinkedInvestmentTx(t)) continue;
-      const amount=n(t.from_amount)*toTHB(t.from_account);
-      spentByCat[t.category]=(spentByCat[t.category]||0)+amount;
-    }
     const data=cats.map(cat=>{
-      const spent=spentByCat[cat]||0;
-      const budget=typeof v37Budget==='function'?v37Budget(cat):0;
-      const pct=budget>0?spent/budget*100:0;
-      return {cat,spent,budget,pct};
+      const spent=rows.filter(t=>t.type==='Expense'&&t.category===cat&&!CATS.Loans.includes(t.category)&&!isLinkedInvestmentTx(t)).reduce((s,t)=>s+n(t.from_amount)*toTHB(t.from_account),0);
+      const budget=typeof v37Budget==='function'?v37Budget(cat):0; const pct=budget>0?spent/budget*100:0; return {cat,spent,budget,pct};
     });
     const totalSpent=data.reduce((s,x)=>s+x.spent,0), totalBudget=data.reduce((s,x)=>s+x.budget,0), totalPct=totalBudget?totalSpent/totalBudget*100:0;
     const budgeted=data.filter(x=>x.budget>0), over=budgeted.filter(x=>x.pct>100), near=budgeted.filter(x=>x.pct>80&&x.pct<=100);
@@ -3318,7 +3325,7 @@ renderDashboard=function(){
     else if(budgetGap<0) insights.push(['Recovery needed',`The combined budget is over by ${money(Math.abs(budgetGap))}. Review the categories marked above 100%.`]);
     const sorted=[...data].sort((a,b)=>b.spent-a.spent);
     const periodTitle=`${periodLabel} · Budget vs actual · THB`;
-    old.innerHTML=`<div class="bi-head"><div><div class="bi-kicker">V3.16.0 · Spending Control</div><h2>Budget &amp; Spending Intelligence</h2><div class="sub">One place to manage category limits, current usage and spending pace — no duplicate budget panels.</div></div><span class="pill">${periodLabel}</span></div><div class="bi-body"><div class="bi-summary"><div class="bi-card"><div class="label">Total Spending</div><div class="value ${totalPct>100?'red':totalPct>80?'yellow':'green'}">${money(totalSpent)} <span class="small">/ ${money(totalBudget)}</span></div><div class="bi-progress"><span style="width:${Math.min(100,totalPct)}%"></span></div><div class="meta">${totalBudget?`${totalPct.toFixed(1)}% of combined budget · ${budgetGap>=0?money(budgetGap)+' remaining':money(Math.abs(budgetGap))+' over'}`:'Set category budgets below.'}</div></div><div class="bi-card"><div class="label">Daily Pace</div><div class="value">${money(pace)}</div><div class="meta">Average spending per recorded day</div></div><div class="bi-card"><div class="label">Projected Month</div><div class="value ${projected>totalBudget&&totalBudget>0?'red':'cyan'}">${monthKey?money(projected):'—'}</div><div class="meta">Based on current daily pace</div></div><div class="bi-card"><div class="label">Categories Over</div><div class="value ${over.length?'red':'green'}">${over.length}</div><div class="meta">${near.length} close to limit · ${budgeted.length} with budgets</div></div></div><div class="bi-main"><div class="bi-panel"><div class="bi-panel-head"><div><div class="bi-title">Category Budget Control</div><div class="bi-sub">Edit planned amounts directly. Actual spending stays linked to your transactions.</div></div><span class="pill">${periodTitle}</span></div><div>${sorted.map(r=>{const has=r.budget>0;const cls=!has?'':r.pct>100?'bad':r.pct>80?'warn':'good';const st=!has?'No budget':r.pct>100?`+${(r.pct-100).toFixed(0)}% over`:r.pct>80?`${r.pct.toFixed(0)}% used`:`${r.pct.toFixed(0)}% used`;return `<div class="bi-row"><div class="bi-cat">${esc(r.cat)}</div><div class="bi-bar"><span style="width:${has?Math.min(100,r.pct):0}%"></span></div><div class="bi-amt">${money(r.spent)}</div><div class="bi-plan"><input type="number" min="0" step="0.01" value="${r.budget||''}" aria-label="${esc(r.cat)} planned amount" onchange="if(typeof v37SaveBudget==='function')v37SaveBudget('${String(r.cat).replace(/'/g,"\\'")}',this.value)"></div><div class="bi-state ${cls}">${st}</div></div>`;}).join('')}</div><div class="bi-control">Planned Amount is editable directly here. Your budget is saved for the selected period and Usage updates automatically.</div></div><div class="bi-panel"><div class="bi-panel-head"><div><div class="bi-title">Spending Intelligence</div><div class="bi-sub">Practical signals from the selected period.</div></div><span class="pill">${insights.length} checks</span></div><div class="bi-insights">${insights.map(x=>`<div class="bi-insight"><b>${x[0]}</b><p>${x[1]}</p></div>`).join('')}</div></div></div></div>`;
+    old.innerHTML=`<div class="bi-head"><div><div class="bi-kicker">V3.16.0 · Spending Control</div><h2>Budget &amp; Spending Intelligence</h2><div class="sub">One place to manage category limits, current usage and spending pace — no duplicate budget panels.</div></div><span class="pill">${periodLabel}</span></div><div class="bi-body"><div class="bi-summary"><div class="bi-card"><div class="label">Total Spending</div><div class="value ${totalPct>100?'red':totalPct>80?'yellow':'green'}">${money(totalSpent)} <span class="small">/ ${money(totalBudget)}</span></div><div class="bi-progress"><span style="width:${Math.min(100,totalPct)}%"></span></div><div class="meta">${totalBudget?`${totalPct.toFixed(1)}% of combined budget · ${budgetGap>=0?money(budgetGap)+' remaining':money(Math.abs(budgetGap))+' over'}`:'Set category budgets below.'}</div></div><div class="bi-card"><div class="label">Daily Pace</div><div class="value">${money(pace)}</div><div class="meta">Average spending per recorded day</div></div><div class="bi-card"><div class="label">Projected Month</div><div class="value ${projected>totalBudget&&totalBudget>0?'red':'cyan'}">${monthKey?money(projected):'—'}</div><div class="meta">Based on current daily pace</div></div><div class="bi-card"><div class="label">Categories Over</div><div class="value ${over.length?'red':'green'}">${over.length}</div><div class="meta">${near.length} close to limit · ${budgeted.length} with budgets</div></div></div><div class="bi-main"><div class="bi-panel"><div class="bi-panel-head"><div><div class="bi-title">Category Budget Control</div><div class="bi-sub">Edit planned amounts directly. Actual spending stays linked to your transactions.</div></div><span class="pill">${periodTitle}</span></div><div>${sorted.map(r=>{const has=r.budget>0;const cls=!has?'':r.pct>100?'bad':r.pct>80?'warn':'good';const st=!has?'No budget':r.pct>100?`+${(r.pct-100).toFixed(0)}% over`:r.pct>80?`${r.pct.toFixed(0)}% used`:`${r.pct.toFixed(0)}% used`;return `<div class="bi-row"><div class="bi-cat">${esc(r.cat)}</div><div class="bi-bar"><span style="width:${has?Math.min(100,r.pct):0}%"></span></div><div class="bi-amt">${money(r.spent)}${has?` / ${money(r.budget)}`:''}</div><div class="bi-state ${cls}">${st}</div></div>`;}).join('')}</div><div class="bi-control">Budgets remain editable in the existing Budget Progress controls below; this view is the single visual summary to avoid showing the same budget data twice.</div></div><div class="bi-panel"><div class="bi-panel-head"><div><div class="bi-title">Spending Intelligence</div><div class="bi-sub">Practical signals from the selected period.</div></div><span class="pill">${insights.length} checks</span></div><div class="bi-insights">${insights.map(x=>`<div class="bi-insight"><b>${x[0]}</b><p>${x[1]}</p></div>`).join('')}</div></div></div></div>`;
     const legacyBudget=document.querySelector('.budget-panel'); if(legacyBudget)legacyBudget.style.display='none';
     const sub=host.querySelector('.sub'); if(sub)sub.textContent=periodTitle;
   }
@@ -3529,6 +3536,79 @@ window.MM_HVAULT_UI_AUDIT = { version:'V3.18.0', duplicatePresentationCleanup:tr
   window.renderTransactionIntelligenceV323=renderTransactionIntelligenceV323;
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',renderTransactionIntelligenceV323,{once:true});
   else renderTransactionIntelligenceV323();
+})();
+</script>
+<script id="v324-financial-behavior-js">
+/* ===================== MMHVAULT V3.24.0 FINANCIAL BEHAVIOR INTELLIGENCE ===================== */
+(function(){
+  const escB=window.esc||function(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));};
+  const numB=v=>typeof n==='function'?n(v):(Number(v)||0);
+  const thbB=v=>typeof thb==='function'?thb(v):`${Math.round(v||0).toLocaleString()} THB`;
+  const monthsB=()=>{const out=[];const d=new Date();d.setDate(1);for(let i=6;i>=1;i--){const x=new Date(d);x.setMonth(d.getMonth()-i);out.push(`${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}`);}return out;};
+  const monthNameB=ym=>new Date(Number(ym.slice(0,4)),Number(ym.slice(5,7))-1,1).toLocaleString(undefined,{month:'short'});
+  function rowsB(ym){return (transactions||[]).filter(t=>String(t.tx_date||'').slice(0,7)===ym);}
+  function monthlyB(ym){
+    const r=rowsB(ym);let inc=0,exp=0,personal=0,inv=0;
+    for(const t of r){
+      if(t.type==='Income')inc+=numB(t.to_amount)*toTHB(t.to_account);
+      if(t.type==='Expense'&&!CATS.Loans.includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t)){
+        const v=numB(t.from_amount)*toTHB(t.from_account); exp+=v;
+        if(['Family Support','Special Transfer','Gifts','Donation'].includes(t.category))personal+=v;
+      }
+    }
+    inv=(investments||[]).filter(x=>String(x.inv_date||'').slice(0,7)===ym).reduce((s,x)=>s+numB(x.amount)+numB(x.fee)+numB(x.other_cost),0);
+    return {ym,inc,exp,save:inc-exp,sr:inc?(inc-exp)/inc*100:0,personal,inv};
+  }
+  function calcB(){
+    const ms=monthsB(), data=ms.map(monthlyB);
+    const positive=data.filter(x=>x.inc>0&&x.save>0), rates=data.filter(x=>x.inc>0).map(x=>x.sr);
+    const avgSr=rates.length?rates.reduce((a,b)=>a+b,0)/rates.length:0;
+    const variance=rates.length>1?rates.reduce((s,x)=>s+(x-avgSr)**2,0)/rates.length:0;
+    const stability=Math.max(0,Math.min(100,100-Math.sqrt(variance)*2));
+    let streak=0; for(let i=data.length-1;i>=0;i--){if(data[i].inc>0&&data[i].save>0)streak++;else break;}
+    const prior=data.slice(0,3), recent=data.slice(3);
+    const avg=(a,k)=>a.length?a.reduce((s,x)=>s+x[k],0)/a.length:0;
+    const priorExp=avg(prior,'exp'), recentExp=avg(recent,'exp'), expenseDrift=priorExp?((recentExp-priorExp)/priorExp*100):0;
+    const invMonths=data.filter(x=>x.inv>0).length, invCadence=invMonths/6*100;
+    const avgPersonal=avg(data,'personal'), personalRatio=avg(data,'inc')?avgPersonal/avg(data,'inc')*100:0;
+    const activeIncome=data.filter(x=>x.inc>0).length;
+    const targetMonths=data.filter(x=>x.inc>0&&x.sr>=60).length;
+    const behaviorScore=Math.round(Math.max(0,Math.min(100,stability*0.35 + Math.min(100,targetMonths/Math.max(1,activeIncome)*100)*0.35 + Math.min(100,Math.max(0,100-expenseDrift))*0.15 + invCadence*0.15)));
+    let band=behaviorScore>=80?'Strong':behaviorScore>=65?'Stable':behaviorScore>=50?'Needs attention':'Needs reset';
+    const actions=[];
+    if(targetMonths<Math.max(1,Math.ceil(activeIncome/2))) actions.push(['Savings consistency','Your 60% savings target was reached in fewer than half of active months.','Focus on making the baseline repeatable before increasing investment risk.','Review']);
+    else actions.push(['Savings consistency','Your savings habit is showing repeatability across recent months.','Protect the baseline and keep large one-off spending from breaking the pattern.','Good']);
+    if(expenseDrift>10) actions.push(['Expense drift',`Recent 3-month average spending is ${expenseDrift.toFixed(1)}% above the previous 3-month average.`,'Identify whether the increase is recurring or one-off before changing your budget.','Watch']);
+    else actions.push(['Expense drift',`Recent 3-month spending is ${Math.abs(expenseDrift).toFixed(1)}% ${expenseDrift<0?'lower':'near the prior level'}.`,'Keep the current expense system unless the next month confirms a new trend.','Stable']);
+    if(streak>=3) actions.push(['Savings streak',`${streak} consecutive completed months show positive savings.`,'Use the streak as your operating baseline, not as a reason to over-invest.','Good']);
+    else actions.push(['Savings streak',`Current positive-savings streak: ${streak} month${streak===1?'':'s'}.`,'Aim for consistency first: fewer negative months matters more than one unusually strong month.','Review']);
+    if(invMonths===0) actions.push(['Investment cadence','No investment activity was recorded in the last 6 completed months.','Confirm whether this is intentional before changing allocation.','Info']);
+    else actions.push(['Investment cadence',`${invMonths} of 6 completed months contain investment activity.`,'Keep contributions deliberate and aligned with your cash-reserve needs.','Good']);
+    return {data,avgSr,stability,streak,expenseDrift,invMonths,invCadence,personalRatio,behaviorScore,band,actions,targetMonths,activeIncome};
+  }
+  function renderBehavior(){
+    const el=$('financialBehaviorV324'); if(!el)return;
+    const c=calcB();
+    const scoreCls=c.behaviorScore>=80?'behavior-good-v324':c.behaviorScore>=65?'behavior-cyan-v324':c.behaviorScore>=50?'behavior-warn-v324':'behavior-bad-v324';
+    const driftCls=c.expenseDrift>10?'behavior-bad-v324':c.expenseDrift>5?'behavior-warn-v324':'behavior-good-v324';
+    el.innerHTML=`<div class="behavior-intel-v324">
+      <div class="toolbar"><div><h2>Financial Behavior Intelligence</h2><div class="sub">Behavior patterns from the last 6 completed months · derived from your existing records</div></div><span class="pill ${scoreCls}">${c.band} · ${c.behaviorScore}/100</span></div>
+      <div class="behavior-intel-grid-v324">
+        <div class="behavior-card-v324"><div class="label">Savings Consistency</div><div class="value ${scoreCls}">${c.avgSr.toFixed(1)}%</div><div class="detail">6M average savings rate · ${c.targetMonths}/${c.activeIncome||0} active months at or above 60%</div><div class="behavior-meter-v324 ${scoreCls}"><span style="width:${Math.min(100,Math.max(0,c.avgSr))}%"></span></div></div>
+        <div class="behavior-card-v324"><div class="label">Positive Savings Streak</div><div class="value">${c.streak} mo</div><div class="detail">Consecutive completed months ending with positive savings</div></div>
+        <div class="behavior-card-v324"><div class="label">Expense Drift</div><div class="value ${driftCls}">${c.expenseDrift>0?'+':''}${c.expenseDrift.toFixed(1)}%</div><div class="detail">Recent 3M average vs previous 3M average</div></div>
+        <div class="behavior-card-v324"><div class="label">Investment Cadence</div><div class="value behavior-cyan-v324">${c.invMonths}/6</div><div class="detail">Completed months with at least one investment record</div></div>
+      </div>
+      <div class="behavior-section-v324">
+        <div class="panel" style="margin:0"><div class="toolbar"><div><h3 style="margin:0">Month-by-Month Pattern</h3><div class="sub">Positive savings is shown as the first signal; expense is secondary context.</div></div></div><div class="behavior-months-v324">${c.data.map(x=>`<div class="behavior-month-v324"><div class="m">${monthNameB(x.ym)}</div><div class="s ${x.inc>0?(x.save>0?'behavior-good-v324':'behavior-bad-v324'):''}">${x.inc>0?x.sr.toFixed(0)+'%':'—'}</div><div class="e">${x.exp?thbB(x.exp):'No expense'}</div></div>`).join('')}</div><div class="behavior-note-v324">This panel excludes the current partial month to avoid treating an unfinished month as a behavior signal.</div></div>
+        <div class="panel" style="margin:0"><div class="toolbar"><div><h3 style="margin:0">What To Do Next</h3><div class="sub">Actions are advisory and do not change your records.</div></div></div><div class="behavior-list-v324">${c.actions.map(a=>`<div class="behavior-row-v324"><div><div class="title">${escB(a[0])}</div><div class="sub">${escB(a[1])}<br>${escB(a[2])}</div></div><span class="behavior-pill-v324">${escB(a[3])}</span></div>`).join('')}</div></div>
+      </div>
+    </div>`;
+  }
+  window.renderFinancialBehaviorV324=renderBehavior;
+  const oldHealth=renderFinancialHealthV371;
+  renderFinancialHealthV371=function(){oldHealth();renderBehavior();};
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',renderBehavior,{once:true});else renderBehavior();
 })();
 </script>
 <script id="v325-decision-center-js">
@@ -4094,24 +4174,239 @@ window.MM_HVAULT_UI_AUDIT = { version:'V3.18.0', duplicatePresentationCleanup:tr
 })();
 </script>
 
-
-<script id="mmhvault-remove-financial-behavior-final">
+</body>
+</html>
+<script id="mmhvault-v3295-financial-behavior-period-fix">
+/* MMHVAULT V3.29.5 · Financial Behavior Intelligence repair */
 (function(){
-  function removeFinancialBehavior(){
-    const nodes=[...document.querySelectorAll('h1,h2,h3,h4,h5,h6,.card-title,.section-title')];
-    nodes.forEach(n=>{
-      if((n.textContent||'').trim()==='Financial Behavior Intelligence'){
-        const card=n.closest('.card,.panel,.analyze-card,.health-card,section');
-        if(card) card.remove();
-        else n.remove();
-      }
+  const $b=id=>document.getElementById(id);
+  const num=v=>{const x=Number(v);return Number.isFinite(x)?x:0};
+  const pad=m=>String(m).padStart(2,'0');
+  const ym=(y,m)=>`${y}-${pad(m)}`;
+  const addMonths=(key,delta)=>{const [y,m]=String(key).split('-').map(Number);const d=new Date(y,m-1+delta,1);return ym(d.getFullYear(),d.getMonth()+1)};
+  const monthName=key=>new Date(Number(key.slice(0,4)),Number(key.slice(5,7))-1,1).toLocaleString(undefined,{month:'short'});
+  const period=()=>({year:Number($b('analyzeYear')?.value)||new Date().getFullYear(),month:$b('analyzeMonth')?.value||'annual'});
+  const isIncome=t=>t?.type==='Income'&&String(t.category||'').trim().toLowerCase()!=='loan repayment';
+  const isExpense=t=>{
+    if(!t||t.type!=='Expense')return false;
+    const c=String(t.category||'').trim();
+    if(['Investment','Loan Out','PaidDeb','Paid Debt','Debt'].includes(c))return false;
+    try{if(Array.isArray(CATS?.Loans)&&CATS.Loans.includes(c))return false;}catch(e){}
+    try{if(typeof isLinkedInvestmentTx==='function'&&isLinkedInvestmentTx(t))return false;}catch(e){}
+    return true;
+  };
+  function monthData(key){
+    const rows=(transactions||[]).filter(t=>String(t.tx_date||'').slice(0,7)===key);
+    let inc=0,exp=0;
+    rows.forEach(t=>{
+      if(isIncome(t))inc+=num(t.to_amount)*toTHB(t.to_account);
+      if(isExpense(t))exp+=num(t.from_amount)*toTHB(t.from_account);
     });
+    const linkedInvestment=rows.some(t=>{try{return typeof isLinkedInvestmentTx==='function'&&isLinkedInvestmentTx(t)}catch(e){return false}});
+    const investmentRecord=(investments||[]).some(x=>String(x.inv_date||'').slice(0,7)===key);
+    const save=inc-exp;
+    return {ym:key,inc,exp,save,sr:inc?save/inc*100:null,hasInvestment:linkedInvestment||investmentRecord};
   }
-  if(document.readyState==='loading'){
-    document.addEventListener('DOMContentLoaded',removeFinancialBehavior,{once:true});
-  }else removeFinancialBehavior();
+  function latestCompletedAnchor(){
+    const p=period();
+    const now=new Date();
+    const current=ym(now.getFullYear(),now.getMonth()+1);
+    if(p.month!=='annual'){
+      const selected=ym(p.year,Number(p.month));
+      return selected>=current?addMonths(current,-1):selected;
+    }
+    let anchor=ym(p.year,12);
+    if(p.year===now.getFullYear())anchor=addMonths(current,-1);
+    return anchor;
+  }
+  function calc(){
+    const anchor=latestCompletedAnchor();
+    const keys=Array.from({length:6},(_,i)=>addMonths(anchor,-5+i));
+    const data=keys.map(monthData);
+    const active=data.filter(x=>x.inc>0);
+    const rates=active.map(x=>x.sr);
+    const avgSr=rates.length?rates.reduce((a,b)=>a+b,0)/rates.length:0;
+    const variance=rates.length>1?rates.reduce((s,x)=>s+(x.sr-avgSr)**2,0)/rates.length:0;
+    const stability=rates.length>1?Math.max(0,Math.min(100,100-Math.sqrt(variance)*2)):0;
+    let streak=0;
+    for(let i=data.length-1;i>=0;i--){
+      const x=data[i];
+      if(x.inc<=0)break;
+      if(x.save>0)streak++; else break;
+    }
+    const prior=data.slice(0,3),recent=data.slice(3);
+    const avgExpense=a=>{const active=a.filter(x=>x.inc>0||x.exp>0);return active.length?active.reduce((s,x)=>s+x.exp,0)/active.length:0};
+    const priorExp=avgExpense(prior),recentExp=avgExpense(recent);
+    let expenseDrift=null;
+    if(priorExp>0)expenseDrift=(recentExp-priorExp)/priorExp*100;
+    else if(recentExp===0)expenseDrift=0;
+    const invMonths=data.filter(x=>x.hasInvestment).length;
+    const activeIncome=active.length;
+    const targetMonths=active.filter(x=>x.sr>=60).length;
+    const consistency=activeIncome?targetMonths/activeIncome*100:0;
+    const driftScore=expenseDrift===null?50:Math.max(0,Math.min(100,100-Math.max(0,expenseDrift)));
+    const cadence=invMonths/6*100;
+    const stabilityScore=stability||Math.min(100,consistency);
+    const behaviorScore=Math.round(Math.max(0,Math.min(100,stabilityScore*.30+consistency*.40+driftScore*.15+cadence*.15)));
+    const band=behaviorScore>=80?'Strong':behaviorScore>=65?'Stable':behaviorScore>=50?'Needs attention':'Needs reset';
+    const actions=[];
+    if(activeIncome===0)actions.push(['Data coverage','No ordinary income was found in this 6-month behavior window.','Add or correct income records before using behavior scores for decisions.','Check']);
+    else if(targetMonths<Math.ceil(activeIncome/2))actions.push(['Savings consistency',`Your 60% savings target was reached in ${targetMonths} of ${activeIncome} active months.`,'Focus on making the baseline repeatable before increasing investment risk.','Review']);
+    else actions.push(['Savings consistency',`Your savings target was reached in ${targetMonths} of ${activeIncome} active months.`,'Protect the baseline and keep large one-off spending from breaking the pattern.','Good']);
+    if(expenseDrift===null)actions.push(['Expense drift','There was no spending baseline in the earlier 3-month window.','The system will compare drift once both periods contain ordinary spending.','Info']);
+    else if(expenseDrift>10)actions.push(['Expense drift',`Recent 3-month average spending is ${expenseDrift.toFixed(1)}% above the previous 3-month average.`,'Identify whether the increase is recurring or one-off before changing your budget.','Watch']);
+    else actions.push(['Expense drift',`Recent 3-month spending is ${Math.abs(expenseDrift).toFixed(1)}% ${expenseDrift<0?'lower':'near the prior level'}.`,'Keep the current expense system unless the next month confirms a new trend.','Stable']);
+    actions.push(['Savings streak',streak?`${streak} consecutive completed months end with positive savings.`:'No current positive-savings streak in this window.','Aim for consistency first: fewer negative months matters more than one unusually strong month.',streak>=3?'Good':'Review']);
+    actions.push(['Investment cadence',`${invMonths} of 6 completed months contain recorded investment activity.`,'Keep contributions deliberate and aligned with your cash-reserve needs.',invMonths?'Good':'Info']);
+    return {anchor,data,avgSr,stability,streak,expenseDrift,invMonths,targetMonths,activeIncome,behaviorScore,band,actions};
+  }
+  function render(){
+    const el=$b('financialBehaviorV324');if(!el)return;
+    const c=calc();
+    const scoreCls=c.behaviorScore>=80?'behavior-good-v324':c.behaviorScore>=65?'behavior-cyan-v324':c.behaviorScore>=50?'behavior-warn-v324':'behavior-bad-v324';
+    const driftCls=c.expenseDrift===null?'behavior-warn-v324':c.expenseDrift>10?'behavior-bad-v324':c.expenseDrift>5?'behavior-warn-v324':'behavior-good-v324';
+    const driftText=c.expenseDrift===null?'—':`${c.expenseDrift>0?'+':''}${c.expenseDrift.toFixed(1)}%`;
+    el.innerHTML=`<div class="behavior-intel-v324">
+      <div class="toolbar"><div><h2>Financial Behavior Intelligence</h2><div class="sub">6 completed months ending ${c.anchor} · follows your selected Analyze period · Loan Repayment excluded</div></div><span class="pill ${scoreCls}">${c.band} · ${c.behaviorScore}/100</span></div>
+      <div class="behavior-intel-grid-v324">
+        <div class="behavior-card-v324"><div class="label">Savings Consistency</div><div class="value ${scoreCls}">${c.avgSr.toFixed(1)}%</div><div class="detail">Average active-month savings rate · ${c.targetMonths}/${c.activeIncome||0} active months at or above 60%</div><div class="behavior-meter-v324 ${scoreCls}"><span style="width:${Math.min(100,Math.max(0,c.avgSr))}%"></span></div></div>
+        <div class="behavior-card-v324"><div class="label">Positive Savings Streak</div><div class="value">${c.streak} mo</div><div class="detail">Consecutive completed months ending with positive savings</div></div>
+        <div class="behavior-card-v324"><div class="label">Expense Drift</div><div class="value ${driftCls}">${driftText}</div><div class="detail">Recent 3M average vs previous 3M average</div></div>
+        <div class="behavior-card-v324"><div class="label">Investment Cadence</div><div class="value behavior-cyan-v324">${c.invMonths}/6</div><div class="detail">Completed months with investment records or linked investment activity</div></div>
+      </div>
+      <div class="behavior-section-v324">
+        <div class="panel" style="margin:0"><div class="toolbar"><div><h3 style="margin:0">Month-by-Month Pattern</h3><div class="sub">Each month uses ordinary income and ordinary expenses only.</div></div></div><div class="behavior-months-v324">${c.data.map(x=>`<div class="behavior-month-v324"><div class="m">${monthName(x.ym)}</div><div class="s ${x.inc>0?(x.save>0?'behavior-good-v324':'behavior-bad-v324'):''}">${x.inc>0?x.sr.toFixed(0)+'%':'—'}</div><div class="e">${x.exp?thbB(x.exp):'No expense'}</div></div>`).join('')}</div><div class="behavior-note-v324">The window is anchored to the selected Analyze period. The current unfinished month is never treated as a completed behavior signal.</div></div>
+        <div class="panel" style="margin:0"><div class="toolbar"><div><h3 style="margin:0">What To Do Next</h3><div class="sub">Actions are advisory and do not change your records.</div></div></div><div class="behavior-list-v324">${c.actions.map(a=>`<div class="behavior-row-v324"><div><div class="title">${a[0]}</div><div class="sub">${a[1]}<br>${a[2]}</div></div><span class="behavior-pill-v324">${a[3]}</span></div>`).join('')}</div></div>
+      </div>
+    </div>`;
+  }
+  window.renderFinancialBehaviorV324=render;
+  function bind(){
+    ['analyzeYear','analyzeMonth'].forEach(id=>$b(id)?.addEventListener('change',()=>setTimeout(render,0)));
+    document.querySelectorAll('.analyze-tab-v371').forEach(btn=>btn.addEventListener('click',()=>setTimeout(()=>{if(btn.dataset.tab==='health')render();},0)));
+    render();setTimeout(render,250);setTimeout(render,900);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
 })();
 </script>
 
-</body>
-</html>
+<script id="mmhvault-v3296-financial-behavior-data-sync-fix">
+/* MMHVAULT V3.29.7 · Financial Behavior Intelligence data-sync repair */
+(function(){
+  const $b=id=>document.getElementById(id);
+  const num=v=>{const x=Number(v);return Number.isFinite(x)?x:0};
+  const pad=m=>String(m).padStart(2,'0');
+  const ym=(y,m)=>`${y}-${pad(m)}`;
+  const addMonths=(key,delta)=>{const [y,m]=String(key).split('-').map(Number);const d=new Date(y,m-1+delta,1);return ym(d.getFullYear(),d.getMonth()+1)};
+  const monthName=key=>new Date(Number(key.slice(0,4)),Number(key.slice(5,7))-1,1).toLocaleString(undefined,{month:'short'});
+  const period=()=>({year:Number($b('analyzeYear')?.value)||new Date().getFullYear(),month:$b('analyzeMonth')?.value||'annual'});
+  const isIncome=t=>t?.type==='Income'&&String(t.category||'').trim().toLowerCase()!=='loan repayment';
+  const isExpense=t=>{
+    if(!t||t.type!=='Expense')return false;
+    const c=String(t.category||'').trim();
+    if(['Investment','Loan Out','PaidDeb','Paid Debt','Debt','Loan Repayment'].includes(c))return false;
+    try{if(Array.isArray(CATS?.Loans)&&CATS.Loans.includes(c))return false;}catch(e){}
+    try{if(typeof isLinkedInvestmentTx==='function'&&isLinkedInvestmentTx(t))return false;}catch(e){}
+    return true;
+  };
+  function monthData(key){
+    const rows=(window.transactions||[]).filter(t=>String(t.tx_date||'').slice(0,7)===key);
+    let inc=0,exp=0;
+    rows.forEach(t=>{
+      if(isIncome(t)) inc+=num(t.to_amount)*num(typeof toTHB==='function'?toTHB(t.to_account):1);
+      if(isExpense(t)) exp+=num(t.from_amount)*num(typeof toTHB==='function'?toTHB(t.from_account):1);
+    });
+    const linkedInvestment=rows.some(t=>{try{return typeof isLinkedInvestmentTx==='function'&&isLinkedInvestmentTx(t)}catch(e){return false}});
+    const investmentRecord=(window.investments||[]).some(x=>String(x.inv_date||'').slice(0,7)===key);
+    const save=inc-exp;
+    return {ym:key,inc,exp,save,sr:inc>0?save/inc*100:null,hasInvestment:linkedInvestment||investmentRecord};
+  }
+  function latestCompletedAnchor(){
+    const p=period(), now=new Date(), current=ym(now.getFullYear(),now.getMonth()+1);
+    if(p.month!=='annual'){
+      const selected=ym(p.year,Number(p.month));
+      return selected>=current?addMonths(current,-1):selected;
+    }
+    let anchor=ym(p.year,12);
+    if(p.year===now.getFullYear()) anchor=addMonths(current,-1);
+    return anchor;
+  }
+  function calc(){
+    const anchor=latestCompletedAnchor();
+    const keys=Array.from({length:6},(_,i)=>addMonths(anchor,-5+i));
+    const data=keys.map(monthData);
+    const active=data.filter(x=>x.inc>0);
+    const rates=active.map(x=>x.sr);
+    const avgSr=rates.length?rates.reduce((a,b)=>a+b,0)/rates.length:0;
+    const variance=rates.length>1?rates.reduce((s,x)=>s+(x.sr-avgSr)**2,0)/rates.length:0;
+    const stability=rates.length>1?Math.max(0,Math.min(100,100-Math.sqrt(variance)*2)):0;
+    let streak=0;
+    for(let i=data.length-1;i>=0;i--){const x=data[i];if(x.inc<=0||x.save<=0)break;streak++;}
+    const prior=data.slice(0,3),recent=data.slice(3);
+    const avgExpense=a=>{const used=a.filter(x=>x.inc>0||x.exp>0);return used.length?used.reduce((s,x)=>s+x.exp,0)/used.length:0};
+    const priorExp=avgExpense(prior),recentExp=avgExpense(recent);
+    let expenseDrift=null;
+    if(priorExp>0)expenseDrift=(recentExp-priorExp)/priorExp*100;
+    else if(recentExp===0)expenseDrift=0;
+    const invMonths=data.filter(x=>x.hasInvestment).length;
+    const activeIncome=active.length,targetMonths=active.filter(x=>x.sr>=60).length;
+    const consistency=activeIncome?targetMonths/activeIncome*100:0;
+    const driftScore=expenseDrift===null?50:Math.max(0,Math.min(100,100-Math.max(0,expenseDrift)));
+    const cadence=invMonths/6*100, stabilityScore=stability||Math.min(100,consistency);
+    const behaviorScore=Math.round(Math.max(0,Math.min(100,stabilityScore*.30+consistency*.40+driftScore*.15+cadence*.15)));
+    const band=behaviorScore>=80?'Strong':behaviorScore>=65?'Stable':behaviorScore>=50?'Needs attention':'Needs reset';
+    return {anchor,data,avgSr,streak,expenseDrift,invMonths,targetMonths,activeIncome,behaviorScore,band};
+  }
+  function renderBehavior(){
+    const el=$b('financialBehaviorV324'); if(!el)return;
+    const c=calc();
+    const scoreCls=c.behaviorScore>=80?'behavior-good-v324':c.behaviorScore>=65?'behavior-cyan-v324':c.behaviorScore>=50?'behavior-warn-v324':'behavior-bad-v324';
+    const driftCls=c.expenseDrift===null?'behavior-warn-v324':c.expenseDrift>10?'behavior-bad-v324':c.expenseDrift>5?'behavior-warn-v324':'behavior-good-v324';
+    const driftText=c.expenseDrift===null?'—':`${c.expenseDrift>0?'+':''}${c.expenseDrift.toFixed(1)}%`;
+    const actions=[];
+    if(c.activeIncome===0) actions.push(['Data coverage','No ordinary income was found in this 6-month behavior window.','The behavior panel will update automatically after your cloud transactions finish loading.','Check']);
+    else actions.push(['Savings consistency',`Your 60% savings target was reached in ${c.targetMonths} of ${c.activeIncome} active months.`,'Focus on making the baseline repeatable before increasing investment risk.',c.targetMonths>=Math.ceil(c.activeIncome/2)?'Good':'Review']);
+    if(c.expenseDrift===null) actions.push(['Expense drift','There was no spending baseline in the earlier 3-month window.','The system will compare drift once both periods contain ordinary spending.','Info']);
+    else actions.push(['Expense drift',`Recent 3-month spending is ${Math.abs(c.expenseDrift).toFixed(1)}% ${c.expenseDrift<0?'lower':'near the prior level'}.`,'Keep the current expense system unless the next month confirms a new trend.','Stable']);
+    actions.push(['Savings streak',c.streak?`${c.streak} consecutive completed months end with positive savings.`:'No current positive-savings streak in this window.','Aim for consistency first.','Review']);
+    actions.push(['Investment cadence',`${c.invMonths} of 6 completed months contain recorded investment activity.`,'Keep contributions deliberate and aligned with your cash-reserve needs.',c.invMonths?'Good':'Info']);
+    el.innerHTML=`<div class="behavior-intel-v324">
+      <div class="toolbar"><div><h2>Financial Behavior Intelligence</h2><div class="sub">6 completed months ending ${c.anchor} · follows your selected Analyze period · Loan Repayment excluded</div></div><span class="pill ${scoreCls}">${c.band} · ${c.behaviorScore}/100</span></div>
+      <div class="behavior-intel-grid-v324">
+        <div class="behavior-card-v324"><div class="label">Savings Consistency</div><div class="value ${scoreCls}">${c.avgSr.toFixed(1)}%</div><div class="detail">Average active-month savings rate · ${c.targetMonths}/${c.activeIncome} active months at or above 60%</div><div class="behavior-meter-v324 ${scoreCls}"><span style="width:${Math.min(100,Math.max(0,c.avgSr))}%"></span></div></div>
+        <div class="behavior-card-v324"><div class="label">Positive Savings Streak</div><div class="value">${c.streak} mo</div><div class="detail">Consecutive completed months ending with positive savings</div></div>
+        <div class="behavior-card-v324"><div class="label">Expense Drift</div><div class="value ${driftCls}">${driftText}</div><div class="detail">Recent 3M average vs previous 3M average</div></div>
+        <div class="behavior-card-v324"><div class="label">Investment Cadence</div><div class="value behavior-cyan-v324">${c.invMonths}/6</div><div class="detail">Completed months with investment records or linked investment activity</div></div>
+      </div>
+      <div class="behavior-section-v324">
+        <div class="panel" style="margin:0"><div class="toolbar"><div><h3 style="margin:0">Month-by-Month Pattern</h3><div class="sub">Each month uses ordinary income and ordinary expenses only.</div></div></div><div class="behavior-months-v324">${c.data.map(x=>`<div class="behavior-month-v324"><div class="m">${monthName(x.ym)}</div><div class="s ${x.inc>0?(x.save>0?'behavior-good-v324':'behavior-bad-v324'):''}">${x.inc>0?x.sr.toFixed(0)+'%':'—'}</div><div class="e">${x.exp?thbB(x.exp):'No expense'}</div></div>`).join('')}</div><div class="behavior-note-v324">The window is anchored to the selected Analyze period. Cloud data is re-read whenever Analyze refreshes.</div></div>
+        <div class="panel" style="margin:0"><div class="toolbar"><div><h3 style="margin:0">What To Do Next</h3><div class="sub">Actions are advisory and do not change your records.</div></div></div><div class="behavior-list-v324">${actions.map(a=>`<div class="behavior-row-v324"><div><div class="title">${a[0]}</div><div class="sub">${a[1]}<br>${a[2]}</div></div><span class="behavior-pill-v324">${a[3]}</span></div>`).join('')}</div></div>
+      </div>
+    </div>`;
+  }
+  window.renderFinancialBehaviorV324=renderBehavior;
+
+  /* Critical fix: rerender after Analyze and after cloud data finishes loading. */
+  const hookAnalyze=()=>{
+    if(typeof window.renderAnalyzeV37==='function'&&!window.renderAnalyzeV37.__behaviorV3296){
+      const old=window.renderAnalyzeV37;
+      const wrapped=function(){const r=old.apply(this,arguments);setTimeout(renderBehavior,0);return r;};
+      wrapped.__behaviorV3296=true; window.renderAnalyzeV37=wrapped;
+    }
+  };
+  const hookLoad=()=>{
+    if(typeof window.loadAll==='function'&&!window.loadAll.__behaviorV3296){
+      const old=window.loadAll;
+      const wrapped=async function(){const r=await old.apply(this,arguments);setTimeout(renderBehavior,0);return r;};
+      wrapped.__behaviorV3296=true; window.loadAll=wrapped;
+    }
+  };
+  function bind(){
+    hookAnalyze();hookLoad();
+    ['analyzeYear','analyzeMonth'].forEach(id=>$b(id)?.addEventListener('change',()=>setTimeout(renderBehavior,50)));
+    document.querySelectorAll('.analyze-tab-v371').forEach(btn=>btn.addEventListener('click',()=>setTimeout(renderBehavior,50)));
+    renderBehavior();setTimeout(renderBehavior,500);setTimeout(renderBehavior,1500);setTimeout(renderBehavior,3000);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
+})();
+</script>
