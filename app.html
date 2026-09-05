@@ -3950,63 +3950,75 @@ window.MM_HVAULT_UI_AUDIT = { version:'V3.18.0', duplicatePresentationCleanup:tr
 })();
 </script>
 
-<script id="mmhvault-v3292-overview-fi-only-fix">
-/* MMHVAULT V3.29.2 · Overview-only Financial Intelligence repair */
+<script id="mmhvault-v3293-overview-data-binding-fix">
+/* MMHVAULT V3.29.3 · Overview Financial Intelligence data-binding repair */
 (function(){
   const num=v=>{const n=Number(v);return Number.isFinite(n)?n:0};
   const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const eligibleIncome=t=>t&&t.type==='Income'&&String(t.category||'').trim().toLowerCase()!=='loan repayment';
-  const eligibleExpense=t=>{
-    if(!t||t.type!=='Expense')return false;
-    const c=String(t.category||'');
-    if(c==='Investment')return false;
-    if(window.CATS&&Array.isArray(CATS.Loans)&&CATS.Loans.includes(c))return false;
-    try{if(typeof window.isLinkedInvestmentTx==='function'&&window.isLinkedInvestmentTx(t))return false;}catch(e){}
-    return true;
-  };
-  const accountTHB=a=>{try{return typeof window.toTHB==='function'?num(window.toTHB(a)):1}catch(e){return 1}};
-  const money=v=>typeof window.thb==='function'?window.thb(v):('฿ '+num(v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}));
-  function period(){
+  const money=v=>typeof thb==='function'?thb(v):('฿ '+num(v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}));
+  function selected(){
     const y=document.getElementById('analyzeYear')?.value;
     const m=document.getElementById('analyzeMonth')?.value;
-    return {y:String(y||new Date().getFullYear()),m:String(m||'annual')};
+    return {year:String(y||new Date().getFullYear()),month:String(m||'annual')};
   }
-  function render(){
+  function rowsFor(p){
+    const list=Array.isArray(transactions)?transactions:[];
+    return list.filter(t=>{
+      const d=String(t.tx_date||'');
+      if(p.month==='annual'||p.month==='all'||p.month==='')return d.slice(0,4)===p.year;
+      return d.slice(0,7)===p.year+'-'+String(p.month).padStart(2,'0');
+    });
+  }
+  function isIncome(t){
+    return t&&t.type==='Income'&&String(t.category||'').trim().toLowerCase()!=='loan repayment';
+  }
+  function isExpense(t){
+    if(!t||t.type!=='Expense')return false;
+    const c=String(t.category||'').trim();
+    if(['Investment','Loan Out','PaidDeb','Paid Debt','Debt'].includes(c))return false;
+    try{if(typeof isLinkedInvestmentTx==='function'&&isLinkedInvestmentTx(t))return false;}catch(e){}
+    return true;
+  }
+  function renderFI(){
     const el=document.getElementById('financialIntelligenceV314'); if(!el)return;
     try{
-      const p=period();
-      const rows=(Array.isArray(window.transactions)?window.transactions:[]).filter(t=>{
-        const d=String(t.tx_date||'');
-        if(p.m==='annual'||p.m==='all'||p.m==='')return d.slice(0,4)===p.y;
-        return d.slice(0,7)===p.y+'-'+String(p.m).padStart(2,'0');
-      });
+      const p=selected(), rows=rowsFor(p);
       let inc=0,exp=0; const cats={};
       rows.forEach(t=>{
-        if(eligibleIncome(t))inc+=num(t.to_amount)*accountTHB(t.to_account);
-        if(eligibleExpense(t)){
-          const v=num(t.from_amount)*accountTHB(t.from_account); exp+=v;
-          const c=t.category||'Other'; cats[c]=(cats[c]||0)+v;
+        if(isIncome(t)) inc+=num(t.to_amount)*(typeof toTHB==='function'?num(toTHB(t.to_account)):1);
+        if(isExpense(t)){
+          const v=num(t.from_amount)*(typeof toTHB==='function'?num(toTHB(t.from_account)):1);
+          exp+=v; const c=t.category||'Other'; cats[c]=(cats[c]||0)+v;
         }
       });
-      const saved=inc-exp, sr=inc? saved/inc*100:0;
+      const saved=inc-exp, sr=inc?(saved/inc*100):0;
       const top=Object.entries(cats).sort((a,b)=>b[1]-a[1])[0]||['No spending',0];
-      const label=p.m==='annual'||p.m==='all'||p.m===''?p.y+' Annual':new Date(Number(p.y),Number(p.m)-1,1).toLocaleDateString(undefined,{month:'long',year:'numeric'});
+      const label=(p.month==='annual'||p.month==='all'||p.month==='')?p.year+' Annual':new Date(Number(p.year),Number(p.month)-1,1).toLocaleDateString(undefined,{month:'long',year:'numeric'});
       const insight=inc<=0?'No ordinary income recorded for this period.':sr>=60?'Excellent savings rate — you are at or above your 60% target.':sr>=40?'Savings are positive, but still below your 60% target.':'Savings rate needs attention this period.';
-      el.innerHTML=`<div class="panel analyze-panel"><div class="toolbar"><div><h2>Financial Intelligence Center</h2><div class="small">Selected period · ${esc(label)}</div></div><span class="pill">Overview diagnosis</span></div><div class="stats fi316-sync-grid"><div class="card fi316-sync-card"><div class="label">Income</div><div class="value green">${money(inc)}</div><div class="meta">Loan Repayment excluded</div></div><div class="card fi316-sync-card"><div class="label">Ordinary Expenses</div><div class="value red">${money(exp)}</div><div class="meta">Loans & investments excluded</div></div><div class="card fi316-sync-card"><div class="label">Net Saved</div><div class="value ${saved>=0?'green':'red'}">${money(saved)}</div><div class="meta">Savings rate ${sr.toFixed(1)}%</div></div><div class="card fi316-sync-card"><div class="label">Largest Expense</div><div class="value yellow" style="font-size:18px">${esc(top[0])}</div><div class="meta">${money(top[1])}</div></div></div><div class="small" style="margin-top:12px;color:#8fa3c8">${esc(insight)}</div></div>`;
+      el.innerHTML=`<div class="panel analyze-panel"><div class="toolbar"><div><h2>Financial Intelligence Center</h2><div class="small">Selected period · ${esc(label)} · ${rows.length} transaction record${rows.length===1?'':'s'} loaded</div></div><span class="pill">Overview diagnosis</span></div><div class="stats fi316-sync-grid"><div class="card fi316-sync-card"><div class="label">Income</div><div class="value green">${money(inc)}</div><div class="meta">Loan Repayment excluded</div></div><div class="card fi316-sync-card"><div class="label">Ordinary Expenses</div><div class="value red">${money(exp)}</div><div class="meta">Loans & investments excluded</div></div><div class="card fi316-sync-card"><div class="label">Net Saved</div><div class="value ${saved>=0?'green':'red'}">${money(saved)}</div><div class="meta">Savings rate ${sr.toFixed(1)}%</div></div><div class="card fi316-sync-card"><div class="label">Largest Expense</div><div class="value yellow" style="font-size:18px">${esc(top[0])}</div><div class="meta">${money(top[1])}</div></div></div><div class="small" style="margin-top:12px;color:#8fa3c8">${esc(insight)}</div></div>`;
     }catch(e){
-      console.warn('V3.29.2 Overview FI failed',e);
+      console.warn('V3.29.3 Overview FI failed',e);
       el.innerHTML='<div class="panel analyze-panel"><div class="small">Financial Intelligence could not be calculated for this period.</div></div>';
     }
   }
-  window.renderFinancialIntelligenceV3292=render;
+  window.renderFinancialIntelligenceV3293=renderFI;
   function bind(){
-    ['analyzeYear','analyzeMonth'].forEach(id=>document.getElementById(id)?.addEventListener('change',()=>setTimeout(render,50)));
-    document.querySelectorAll('.analyze-tab-v371').forEach(b=>b.addEventListener('click',()=>setTimeout(render,80)));
-    render(); setTimeout(render,300); setTimeout(render,1000);
+    ['analyzeYear','analyzeMonth'].forEach(id=>document.getElementById(id)?.addEventListener('change',()=>setTimeout(renderFI,0)));
+    document.querySelectorAll('.analyze-tab-v371').forEach(b=>b.addEventListener('click',()=>setTimeout(()=>{if(b.dataset.tab==='overview')renderFI();},0)));
+    const base=window.renderAnalyzeV37;
+    if(typeof base==='function'&&!base.__fi3293){
+      const wrapped=function(){const r=base.apply(this,arguments);renderFI();return r;};
+      wrapped.__fi3293=true; window.renderAnalyzeV37=wrapped;
+    }
+    const old=window.renderAnalyze;
+    if(typeof old==='function'&&!old.__fi3293){
+      const wrapped=function(){const r=old.apply(this,arguments);renderFI();return r;};
+      wrapped.__fi3293=true; window.renderAnalyze=wrapped;
+    }
+    renderFI(); setTimeout(renderFI,300); setTimeout(renderFI,1200);
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
 })();
 </script>
-
 </body>
 </html>
