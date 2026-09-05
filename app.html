@@ -905,7 +905,9 @@ async function loadAll(opts={}){
       const errors=[];
       if(a.error){console.error(a.error);errors.push("Transactions: "+a.error.message);} else transactions=a.data||[];
       if(b.error){console.error(b.error);errors.push("Investments: "+b.error.message);} else investments=b.data||[];
-      if(r.error){console.error(r.error);errors.push("Exchange Rates: "+r.error.message);} else if(r.data) rates=r.data;
+      // Exchange rates are auxiliary data. Do not show a global cloud-load failure
+      // when Transactions and Investments loaded successfully.
+      if(r.error){console.warn("Exchange Rates refresh failed; keeping current rates.",r.error);} else if(r.data) rates=r.data;
       loadRateInputs();
       render();
       if(errors.length){
