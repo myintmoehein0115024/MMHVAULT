@@ -9,14 +9,21 @@
 <link href="manifest.webmanifest" rel="manifest"/>
 <meta content="#06111f" name="theme-color"/>
 <title>MMHVAULT · Personal Finance &amp; Wealth Management</title>
-<link href="assets/mmhvault.css" rel="stylesheet"/><meta content="V3.28.7 · Navigation &amp; Init Fix" name="mmhvault-architecture"/>
-<style id="mmhvault-v32810-wealth-rules-location-css">
+<link href="assets/mmhvault.css" rel="stylesheet"/><meta content="V3.28.11 · Wealth Rules → Analyze" name="mmhvault-architecture"/>
+<style id="mmhvault-v32811-wealth-rules-location-css">
   .analyze-tabs-v371{overflow-x:auto;scrollbar-width:thin;}
   .analyze-tabs-v371 .analyze-tab-v371{flex:0 0 auto;min-width:110px;}
   @media (max-width:720px){.analyze-tabs-v371 .analyze-tab-v371{min-width:96px}.settings-tabs-v371{grid-template-columns:repeat(3,minmax(0,1fr)) !important;}}
-  #settingsTabRulesV326,#settingsPanelRulesV326{display:none !important;}
+  
 </style>
-</head>
+<style id="mmhvault-v32811-organization-style">
+/* MMHVAULT V3.28.11 · Transaction Intelligence + Wealth Rules organization */
+#txIntelligencePanelV323{animation:txFade371 .16s ease-out}
+#analyzePanelWealthRulesV32811{animation:analyzeFade32811 .16s ease-out}
+#analyzePanelWealthRulesV32811 .wealth-rules-v326{margin-top:0}
+@keyframes analyzeFade32811{from{opacity:.72;transform:translateY(3px)}to{opacity:1;transform:none}}
+@media(max-width:650px){.tx-tabs-v371{overflow-x:auto}.tx-tab-v371{min-width:0;white-space:nowrap}}
+</style></head>
 <body>
 <div id="mmhvaultAppBootGuardV3282" style="position:fixed;inset:0;z-index:30000;display:none;align-items:center;justify-content:center;background:#050a18;color:#dce8ff;font-family:Arial,sans-serif;padding:24px;text-align:center;">
 <div style="max-width:420px;border:1px solid rgba(78,164,255,.25);border-radius:18px;padding:24px 22px;background:rgba(10,20,42,.92);box-shadow:0 18px 60px rgba(0,0,0,.4);">
@@ -37,7 +44,7 @@
 <button class="btn" onclick="retryLoadAllV384()" type="button">Retry</button>
 </div>
 <header id="header" style="display:none">
-<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.28.10</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
+<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.28.11</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
 <div class="header-spacer"></div>
 <div aria-label="Signed in user" class="header-profile" id="headerProfile">
 <div class="header-avatar" id="headerAvatar">MF</div>
@@ -96,7 +103,7 @@
 </section>
 <section class="page" id="transactions">
 <h1>Transactions</h1><div class="sub">Type controls the money direction. Transaction separates Income / Expense / Personal / Loans; Category changes accordingly. Transfer allows different From / To amounts for fees.</div>
-<div aria-label="Transactions sections" class="tx-tabs-v371" role="tablist"><button class="tx-tab-v371 active" id="txTabAdd" onclick="showTxTab('add')" type="button">＋ Add Transaction</button><button class="tx-tab-v371" id="txTabHistory" onclick="showTxTab('history')" type="button">▤ History</button></div>
+<div aria-label="Transactions sections" class="tx-tabs-v371" role="tablist"><button class="tx-tab-v371 active" id="txTabAdd" onclick="showTxTab('add')" type="button">＋ Add Transaction</button><button class="tx-tab-v371" id="txTabHistory" onclick="showTxTab('history')" type="button">▤ History</button><button class="tx-tab-v371" id="txTabIntelligence" onclick="showTxTab('intelligence')" type="button">◈ Intelligence</button></div>
 <div class="tx-tab-panel-v371" id="txAddPanel"><div class="panel"><h2>Add Transaction</h2><form id="txForm"><div class="formgrid">
 <label>Date<input id="txDate" required="" type="date"/></label>
 <label>Type<select id="txType"><option>Income</option><option>Expense</option><option>Transfer</option></select></label>
@@ -117,11 +124,11 @@
 <label>Account<select id="txFilterAccount"><option value="">All</option></select></label>
 </div><div class="actions" style="margin-top:0;justify-content:flex-end;gap:8px"><button class="btn" onclick="clearTxFilters()" type="button">↺ Clear Filters</button><button class="btn" onclick="exportTransactionsCSV()" type="button">Export CSV</button></div>
 <div class="scroll" id="txList"></div>
-<div class="panel tx-intel-v323" id="txIntelligenceV323">
+
+</div></div><div class="tx-tab-panel-v371" id="txIntelligencePanelV323" style="display:none"><div class="panel tx-intel-v323" id="txIntelligenceV323">
 <div class="toolbar"><div><h2>Transaction Intelligence</h2><div class="small">Checks your existing records for duplicate-like entries, unusual data gaps and investment-link consistency. It never blocks saving.</div></div><span class="pill">Audit · Informational</span></div>
 <div class="tx-intel-grid-v323" id="txIntelSummaryV323"></div>
 <div class="tx-intel-list-v323" id="txIntelIssuesV323"></div>
-</div>
 </div></div>
 </section>
 <section class="page" id="analyze">
@@ -139,7 +146,7 @@
 <button aria-selected="false" class="analyze-tab-v371" data-tab="networth" role="tab" type="button">Net Worth</button>
 <button aria-selected="false" class="analyze-tab-v371" data-tab="goals" role="tab" type="button">Goals</button>
 <button aria-selected="false" class="analyze-tab-v371" data-tab="decisions" role="tab" type="button">Decisions</button>
-</div>
+<button aria-selected="false" class="analyze-tab-v371" data-tab="wealthrules" id="analyzeTabWealthRulesV32811" role="tab" type="button">Wealth Rules</button></div>
 <div class="analyze-tab-panel-v371 active" data-panel="overview" role="tabpanel">
 <div aria-label="Financial Intelligence Center" class="panel financial-intelligence-v314" id="financialIntelligenceV314"></div>
 <div class="panel analyze-panel overview-snapshot-panel-v371"><div class="toolbar"><div><h2>Period Overview</h2><div class="sub">Quick summary for your selected analysis period.</div><div class="small" style="margin-top:4px">All period-based Analyze modules use the same transaction dataset and selected Year / Month.</div></div><span class="pill" id="overviewSnapshotPeriodV371">—</span></div><div class="overview-snapshot-grid-v371" id="overviewSnapshotV371"></div></div>
@@ -186,6 +193,18 @@
 </div>
 <div aria-hidden="true" class="analyze-tab-panel-v371" data-panel="decisions" role="tabpanel">
 <div class="panel analyze-panel"><div id="financialDecisionCenterV325"></div></div>
+</div><div aria-hidden="true" class="analyze-tab-panel-v371" data-panel="wealthrules" id="analyzePanelWealthRulesV32811" role="tabpanel" style="display:none">
+<div class="panel wealth-rules-v326">
+<div class="toolbar"><div><h2>Personal Wealth Rules</h2><div class="small">Your decision rules live here. They guide recommendations without changing transactions or investments automatically.</div></div><span class="pill">Local preferences</span></div>
+<div class="wealth-rule-grid-v326">
+<div class="wealth-rule-card-v326"><div class="label">Minimum Cash Reserve</div><div class="wealth-rule-input"><input id="wealthRuleReserveV326" inputmode="decimal" max="36" min="0.5" step="0.5" type="number"/><span>months</span></div><div class="small">Below this level, liquidity takes priority over new risk.</div></div>
+<div class="wealth-rule-card-v326"><div class="label">Comfortable Cash Reserve</div><div class="wealth-rule-input"><input id="wealthRuleComfortV326" inputmode="decimal" max="60" min="1" step="0.5" type="number"/><span>months</span></div><div class="small">A stronger reserve level used for the “comfortable” state.</div></div>
+<div class="wealth-rule-card-v326"><div class="label">Target Savings Rate</div><div class="wealth-rule-input"><input id="wealthRuleSavingsV326" inputmode="numeric" max="100" min="1" step="1" type="number"/><span>%</span></div><div class="small">Your repeatable monthly savings baseline before increasing investment pace.</div></div>
+<div class="wealth-rule-card-v326"><div class="label">Investment Weight Ceiling</div><div class="wealth-rule-input"><input id="wealthRuleInvestV326" inputmode="numeric" max="100" min="1" step="1" type="number"/><span>%</span></div><div class="small">Above this share of net worth, the decision layer asks you to review concentration.</div></div>
+</div>
+<div class="wealth-rule-actions-v326"><button class="btn primary" id="saveWealthRulesV326" type="button">Save Rules</button><button class="btn" id="resetWealthRulesV326" type="button">Reset Defaults</button><span aria-live="polite" class="small" id="wealthRulesStatusV326"></span></div>
+<div class="wealth-rule-live-v326"><div><div class="label">Rule flow</div><div class="value">Liquidity → Savings → Goals → Investment</div></div><div class="small">These thresholds are advisory. Changing them only changes how MMHVAULT evaluates your existing data.</div></div>
+</div>
 </div>
 </section>
 <section class="page" id="exchange">
@@ -246,21 +265,9 @@
 <div aria-label="Settings sections" class="settings-tabs-v371" role="tablist">
 <button aria-selected="true" class="settings-tab-v371 active" id="settingsTabAccountV371" role="tab" type="button">Account</button>
 <button aria-selected="false" class="settings-tab-v371" id="settingsTabAppearanceV371" role="tab" type="button">Appearance</button>
-<button aria-selected="false" class="settings-tab-v371" id="settingsTabDataV371" role="tab" type="button">Data &amp; Backup</button> <button aria-selected="false" class="settings-tab-v371" id="settingsTabRulesV326" role="tab" type="button">Wealth Rules</button>
+<button aria-selected="false" class="settings-tab-v371" id="settingsTabDataV371" role="tab" type="button">Data &amp; Backup</button> 
 </div>
-<div class="settings-panel-v371" id="settingsPanelRulesV326" role="tabpanel" style="display:none">
-<div class="panel wealth-rules-v326">
-<div class="toolbar"><div><h2>Personal Wealth Rules</h2><div class="small">Your decision rules live here. They guide recommendations without changing transactions or investments automatically.</div></div><span class="pill">Local preferences</span></div>
-<div class="wealth-rule-grid-v326">
-<div class="wealth-rule-card-v326"><div class="label">Minimum Cash Reserve</div><div class="wealth-rule-input"><input id="wealthRuleReserveV326" inputmode="decimal" max="36" min="0.5" step="0.5" type="number"/><span>months</span></div><div class="small">Below this level, liquidity takes priority over new risk.</div></div>
-<div class="wealth-rule-card-v326"><div class="label">Comfortable Cash Reserve</div><div class="wealth-rule-input"><input id="wealthRuleComfortV326" inputmode="decimal" max="60" min="1" step="0.5" type="number"/><span>months</span></div><div class="small">A stronger reserve level used for the “comfortable” state.</div></div>
-<div class="wealth-rule-card-v326"><div class="label">Target Savings Rate</div><div class="wealth-rule-input"><input id="wealthRuleSavingsV326" inputmode="numeric" max="100" min="1" step="1" type="number"/><span>%</span></div><div class="small">Your repeatable monthly savings baseline before increasing investment pace.</div></div>
-<div class="wealth-rule-card-v326"><div class="label">Investment Weight Ceiling</div><div class="wealth-rule-input"><input id="wealthRuleInvestV326" inputmode="numeric" max="100" min="1" step="1" type="number"/><span>%</span></div><div class="small">Above this share of net worth, the decision layer asks you to review concentration.</div></div>
-</div>
-<div class="wealth-rule-actions-v326"><button class="btn primary" id="saveWealthRulesV326" type="button">Save Rules</button><button class="btn" id="resetWealthRulesV326" type="button">Reset Defaults</button><span aria-live="polite" class="small" id="wealthRulesStatusV326"></span></div>
-<div class="wealth-rule-live-v326"><div><div class="label">Rule flow</div><div class="value">Liquidity → Savings → Goals → Investment</div></div><div class="small">These thresholds are advisory. Changing them only changes how MMHVAULT evaluates your existing data.</div></div>
-</div>
-</div><div class="settings-panel-v371" id="settingsPanelAccountV371" role="tabpanel">
+<div class="settings-panel-v371" id="settingsPanelAccountV371" role="tabpanel">
 <div class="panel"><div class="toolbar"><div><h2>Account Center</h2><div class="small">Manage your MMHVAULT identity and sign-in status.</div></div><button class="btn danger" onclick="signOut()" type="button">Logout</button></div>
 <div class="account-center-v375">
 <div class="account-center-card-v375">
@@ -423,7 +430,6 @@
 <div class="data-center-actions-v380"><button class="btn danger" onclick="resetMyCloudDataV380()" type="button">Reset My Cloud Data</button></div>
 <div class="small" style="margin-top:10px">This action cannot be undone from MMHVAULT. Export a backup first.</div>
 </div>
-
 </div>
 </section>
 </main>
@@ -799,14 +805,18 @@ function investmentValue(){return investments.reduce((s,x)=>{
  return s+(q&&m?q*m*(x.asset==="Crypto"?rates.usd_mmk:1):0);
 },0);}
 function showTxTab(tab){
-  const add=$('txAddPanel'), history=$('txHistoryPanel'), addBtn=$('txTabAdd'), histBtn=$('txTabHistory');
-  if(!add||!history||!addBtn||!histBtn)return;
-  const isAdd=tab!=='history';
-  add.style.display=isAdd?'block':'none';
-  history.style.display=isAdd?'none':'block';
-  addBtn.classList.toggle('active',isAdd);
-  histBtn.classList.toggle('active',!isAdd);
-  sessionStorage.setItem('myfinance_tx_tab',isAdd?'add':'history');
+  const add=$('txAddPanel'), history=$('txHistoryPanel'), intel=$('txIntelligencePanelV323');
+  const addBtn=$('txTabAdd'), histBtn=$('txTabHistory'), intBtn=$('txTabIntelligence');
+  if(!add||!history||!intel||!addBtn||!histBtn||!intBtn)return;
+  const safe=['add','history','intelligence'].includes(tab)?tab:'add';
+  add.style.display=safe==='add'?'block':'none';
+  history.style.display=safe==='history'?'block':'none';
+  intel.style.display=safe==='intelligence'?'block':'none';
+  addBtn.classList.toggle('active',safe==='add');
+  histBtn.classList.toggle('active',safe==='history');
+  intBtn.classList.toggle('active',safe==='intelligence');
+  if(safe==='intelligence') window.renderTransactionIntelligenceV323?.();
+  sessionStorage.setItem('myfinance_tx_tab',safe);
 }
 function restoreTxTab(){showTxTab(sessionStorage.getItem('myfinance_tx_tab')||'add');}
 
@@ -1939,7 +1949,7 @@ function deleteGoalV371(id){
 
 /* ===================== V3.7.1 ANALYZE TABS ===================== */
 function setAnalyzeTabV371(tab){
-  const valid=['overview','health','cashflow','expenses','networth','goals'];
+  const valid=['overview','health','cashflow','expenses','networth','goals','decisions','wealthrules'];
   if(!valid.includes(tab))tab='overview';
   document.querySelectorAll('.analyze-tab-v371').forEach(b=>{const on=b.dataset.tab===tab;b.classList.toggle('active',on);b.setAttribute('aria-selected',on?'true':'false');});
   document.querySelectorAll('.analyze-tab-panel-v371').forEach(p=>{const on=p.dataset.panel===tab;p.classList.toggle('active',on);p.setAttribute('aria-hidden',on?'false':'true');});
@@ -2147,7 +2157,7 @@ renderTransactions=renderTransactionsV28;
 
 /* ===================== V3.7.1 Settings tabs ===================== */
 function setSettingsTabV371(tab){
-  const map={account:['settingsTabAccountV371','settingsPanelAccountV371'],appearance:['settingsTabAppearanceV371','settingsPanelAppearanceV371'],data:['settingsTabDataV371','settingsPanelDataV371'],rules:['settingsTabRulesV326','settingsPanelRulesV326']};
+  const map={account:['settingsTabAccountV371','settingsPanelAccountV371'],appearance:['settingsTabAppearanceV371','settingsPanelAppearanceV371'],data:['settingsTabDataV371','settingsPanelDataV371']};
   const cfg=map[tab]||map.account;
   Object.keys(map).forEach(k=>{
     const [btnId,panelId]=map[k];
@@ -3677,14 +3687,8 @@ window.MM_HVAULT_UI_AUDIT = { version:'V3.18.0', duplicatePresentationCleanup:tr
     window.renderFinancialDecisionV325?.();
   }
   function reset(){localStorage.removeItem(KEY);fill();status('Defaults restored locally.');window.renderFinancialDecisionV325?.();}
-  const oldSet=window.setSettingsTabV371;
-  window.setSettingsTabV371=function(tab){
-    if(tab!=='rules')return typeof oldSet==='function'?oldSet(tab):undefined;
-    ['account','appearance','data','rules'].forEach(k=>{const btn=document.getElementById(k==='account'?'settingsTabAccountV371':k==='appearance'?'settingsTabAppearanceV371':k==='data'?'settingsTabDataV371':'settingsTabRulesV326');const panel=document.getElementById(k==='account'?'settingsPanelAccountV371':k==='appearance'?'settingsPanelAppearanceV371':k==='data'?'settingsPanelDataV371':'settingsPanelRulesV326');if(btn){btn.classList.toggle('active',k===tab);btn.setAttribute('aria-selected',k===tab?'true':'false');}if(panel)panel.style.display=k===tab?'block':'none';});localStorage.setItem('myfinance_settings_tab_v371','rules');fill();
-  };
   function init(){
     fill();
-    document.getElementById('settingsTabRulesV326')?.addEventListener('click',()=>window.setSettingsTabV371('rules'));
     document.getElementById('saveWealthRulesV326')?.addEventListener('click',save);
     document.getElementById('resetWealthRulesV326')?.addEventListener('click',reset);
   }
@@ -3764,41 +3768,7 @@ window.MM_HVAULT_UI_AUDIT = { version:'V3.18.0', duplicatePresentationCleanup:tr
   else harden();
 })();
 </script>
-<script id="mmhvault-v3289-settings-rules-fix">
-(function(){
-  const configs={account:['settingsTabAccountV371','settingsPanelAccountV371'],appearance:['settingsTabAppearanceV371','settingsPanelAppearanceV371'],data:['settingsTabDataV371','settingsPanelDataV371'],rules:['settingsTabRulesV326','settingsPanelRulesV326']};
-  function apply(tab){
-    const safe=Object.prototype.hasOwnProperty.call(configs,tab)?tab:'account';
-    Object.keys(configs).forEach(k=>{
-      const [bid,pid]=configs[k];
-      const b=document.getElementById(bid), p=document.getElementById(pid);
-      if(b){b.classList.toggle('active',k===safe);b.setAttribute('aria-selected',k===safe?'true':'false');}
-      if(p)p.style.display=k===safe?'block':'none';
-    });
-    try{localStorage.setItem('myfinance_settings_tab_v371',safe);}catch(e){}
-  }
-  document.addEventListener('click',function(e){
-    const b=e.target.closest && e.target.closest('#settingsTabRulesV326');
-    if(b){e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();apply('rules');}
-  },true);
-  document.addEventListener('click',function(e){
-    const b=e.target.closest && e.target.closest('.settings-tab-v371');
-    if(!b || b.id==='settingsTabRulesV326') return;
-    const map={settingsTabAccountV371:'account',settingsTabAppearanceV371:'appearance',settingsTabDataV371:'data'};
-    if(map[b.id]) apply(map[b.id]);
-  },true);
-  function boot(){
-    const rules=document.getElementById('settingsPanelRulesV326');
-    const settings=document.getElementById('settings');
-    const account=document.getElementById('settingsPanelAccountV371');
-    if(rules && settings && account && rules.parentElement===settings) rules.style.display='none';
-    let tab='account';
-    try{tab=localStorage.getItem('myfinance_settings_tab_v371')||'account';}catch(e){}
-    apply(tab);
-  }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
-})();
-</script><script id="mmhvault-v32810-wealth-rules-analyze-location">
+<script id="mmhvault-v32811-wealth-rules-analyze-location">
 (function(){
   const TAB='wealthrules', BTN_ID='analyzeTabWealthRulesV32810', PANEL_ID='analyzePanelWealthRulesV32810';
   function by(id){return document.getElementById(id)}
@@ -3821,7 +3791,7 @@ window.MM_HVAULT_UI_AUDIT = { version:'V3.18.0', duplicatePresentationCleanup:tr
       panel=document.createElement('div');
       panel.id=PANEL_ID; panel.className='analyze-tab-panel-v371';
       panel.dataset.panel=TAB; panel.setAttribute('role','tabpanel'); panel.setAttribute('aria-hidden','true');
-      panel.innerHTML='<div class="panel analyze-panel wealth-rules-analyze-wrap-v32810">'+rules.innerHTML+'</div>';
+      panel.innerHTML='<div class="panel analyze-panel wealth-rules-analyze-wrap-v32811">'+rules.innerHTML+'</div>';
       // Reuse the original rule field/button elements by moving them into the new panel.
       const inner=panel.querySelector('.panel');
       while(rules.firstChild) inner.appendChild(rules.firstChild);
@@ -3851,13 +3821,13 @@ window.MM_HVAULT_UI_AUDIT = { version:'V3.18.0', duplicatePresentationCleanup:tr
   }
   function patchSetter(){
     const current=window.setAnalyzeTabV371;
-    if(typeof current!=='function' || current.__v32810) return;
+    if(typeof current!=='function' || current.__v32811) return;
     function wrapped(tab){
       if(tab===TAB){activateRules();return;}
       ensure();
       return current(tab);
     }
-    wrapped.__v32810=true;
+    wrapped.__v32811=true;
     window.setAnalyzeTabV371=wrapped;
   }
   function exposeFill(){
