@@ -316,6 +316,56 @@ body.landing-gateway-page-v3283:before{content:"";position:fixed;inset:0;pointer
 .landing-top-action-v327{white-space:nowrap}
 </style>
 
+
+<style id="landing-v3296-final-polish">
+/* V3.29.6 — final visual rhythm + responsive polish */
+html{scroll-behavior:smooth}
+.landing-header-v327{
+  transition:background .25s ease,border-color .25s ease,box-shadow .25s ease;
+}
+.landing-header-v327.is-scrolled-v3296{
+  background:rgba(5,15,27,.94);
+  border-bottom-color:rgba(112,208,214,.16);
+  box-shadow:0 12px 36px rgba(0,0,0,.18);
+}
+.landing-section-v327{
+  position:relative;
+}
+.landing-section-v327:before{
+  content:"";
+  position:absolute;
+  top:0;left:50%;
+  width:min(88%,1100px);
+  height:1px;
+  transform:translateX(-50%);
+  background:linear-gradient(90deg,transparent,rgba(88,194,202,.14),transparent);
+}
+.landing-section-v327:first-of-type:before{display:none}
+.landing-service-grid-v327 article{
+  will-change:transform;
+}
+.landing-service-grid-v327 article h3{
+  color:#e8f6f8;
+}
+.landing-privacy-v327{
+  scroll-margin-top:100px;
+}
+.landing-final-cta-v3294{
+  scroll-margin-top:100px;
+}
+.landing-footer-v327 a{
+  transition:color .2s ease;
+}
+.landing-footer-v327 a:hover{color:#8ee6e7}
+@media(max-width:760px){
+  html{scroll-behavior:auto}
+  .landing-section-v327:before{width:calc(100% - 32px)}
+  .landing-header-v327.is-scrolled-v3296{
+    box-shadow:0 6px 24px rgba(0,0,0,.16);
+  }
+}
+</style>
+
 </head><body class="landing-gateway-page-v3283">
 <section aria-label="MMHVAULT public landing page" class="mmhvault-landing-v327" id="mmhvaultLandingV327">
 <header class="landing-header-v327">
@@ -420,4 +470,24 @@ body.landing-gateway-page-v3283:before{content:"";position:fixed;inset:0;pointer
 </section>
 <script src="assets/landing.js" defer></script>
 <script id="landing-v3290-refresh-js">(function(){const a=document.querySelectorAll(".landing-service-grid-v327 article,.landing-privacy-v327,.landing-section-head-v327");if(!("IntersectionObserver"in window)||matchMedia("(prefers-reduced-motion: reduce)").matches)return;a.forEach(e=>{e.style.opacity="0";e.style.transform="translateY(16px)";e.style.transition="opacity .55s ease,transform .55s ease"});const o=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.style.opacity="1";e.target.style.transform="translateY(0)";o.unobserve(e.target)}}),{threshold:.12});a.forEach(e=>o.observe(e))})();</script>
+
+<script id="landing-v3296-header-js">
+(function(){
+  const header=document.querySelector('.landing-header-v327');
+  if(!header) return;
+  let ticking=false;
+  function update(){
+    header.classList.toggle('is-scrolled-v3296',window.scrollY>16);
+    ticking=false;
+  }
+  window.addEventListener('scroll',function(){
+    if(!ticking){
+      requestAnimationFrame(update);
+      ticking=true;
+    }
+  },{passive:true});
+  update();
+})();
+</script>
+
 </body></html>
