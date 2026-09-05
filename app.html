@@ -68,6 +68,15 @@
 #receiptZoomFloatLabelV3299{min-width:46px;text-align:center;color:#d8e5ff;font-size:12px;font-weight:800}
 @media(max-width:650px){#receiptViewerModalV3297{padding:8px}.receipt-viewer-dialog-v3297{width:100%;height:94vh;border-radius:14px}.receipt-viewer-head-v3297{padding:12px}.receipt-viewer-title-v3297{font-size:14px}}
 </style>
+<style>
+/* V3.30.2 · Compact receipt chooser: icon beside text */
+.receipt-dropzone-v3300{width:min(100%,540px)!important;min-height:58px!important;display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:center!important;gap:12px!important;padding:8px 18px!important;}
+.receipt-drop-icon-v3300{flex:0 0 36px!important;width:36px!important;height:36px!important;}
+.receipt-drop-copy-v3300{display:flex!important;flex:0 1 auto!important;min-width:0!important;flex-direction:column!important;align-items:flex-start!important;justify-content:center!important;gap:3px!important;text-align:left!important;}
+.receipt-drop-copy-v3300 strong{display:block!important;font-size:12px!important;line-height:1.2!important;}
+.receipt-drop-copy-v3300 span{display:block!important;font-size:10px!important;line-height:1.25!important;}
+@media(max-width:620px){.receipt-dropzone-v3300{width:100%!important;padding:8px 12px!important;}.receipt-drop-icon-v3300{flex-basis:34px!important;width:34px!important;height:34px!important;}.receipt-drop-copy-v3300 strong{font-size:11px!important}.receipt-drop-copy-v3300 span{font-size:9px!important}}
+</style>
 </head>
 <body>
 <div id="mmhvaultAppBootGuardV3282" style="position:fixed;inset:0;z-index:30000;display:none;align-items:center;justify-content:center;background:#050a18;color:#dce8ff;font-family:Arial,sans-serif;padding:24px;text-align:center;">
@@ -89,7 +98,7 @@
 <button class="btn" onclick="retryLoadAllV384()" type="button">Retry</button>
 </div>
 <header id="header" style="display:none">
-<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.30.1</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
+<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.30.2</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
 <div class="header-spacer"></div>
 <div aria-label="Signed in user" class="header-profile" id="headerProfile">
 <div class="header-avatar" id="headerAvatar">MF</div>
