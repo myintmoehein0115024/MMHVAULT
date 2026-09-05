@@ -94,6 +94,22 @@
 .edit-receipt-status-v3303.error{color:#ff7d92}
 @media(max-width:650px){.edit-receipt-box-v3303{padding:12px}.edit-receipt-drop-v3303{width:100%}}
 </style>
+
+<style id="mmhvault-v3304-investment-receipt-style">
+.invest-receipt-box-v3304{margin-top:2px;padding:12px 14px;border:1px solid rgba(91,147,245,.20);border-radius:14px;background:linear-gradient(135deg,rgba(20,31,58,.52),rgba(9,17,34,.76))}
+.invest-receipt-head-v3304{display:flex;align-items:center;gap:10px;margin-bottom:9px}
+.invest-receipt-title-v3304{font-size:13px;font-weight:800;color:#edf4ff}
+.invest-receipt-sub-v3304{margin-top:2px;font-size:10px;color:#8ea4c6}
+.invest-receipt-badge-v3304{margin-left:auto;padding:4px 8px;border:1px solid rgba(255,255,255,.08);border-radius:999px;color:#9bb0d0;font-size:9px;font-weight:800;letter-spacing:.06em}
+.invest-receipt-drop-v3304{display:flex;align-items:center;justify-content:center;gap:9px;min-height:48px;width:min(100%,560px);margin:0 auto;border:1px dashed rgba(99,153,255,.30);border-radius:11px;background:rgba(5,12,26,.26);cursor:pointer}
+.invest-receipt-plus-v3304{display:grid;place-items:center;width:30px;height:30px;border-radius:9px;background:#172844;border:1px solid rgba(112,165,255,.18);color:#8fc3ff;font-size:19px;line-height:1}
+.invest-receipt-copy-v3304{display:flex;flex-direction:column;gap:2px;text-align:left}
+.invest-receipt-copy-v3304 strong{font-size:12px;color:#dce9ff}
+.invest-receipt-copy-v3304 small{font-size:10px;color:#7f95b5}
+.invest-receipt-status-v3304{margin-top:6px;text-align:center;font-size:9px;color:#6f84a5}
+.invest-receipt-status-v3304.ready{color:#63d6a5}
+.invest-receipt-status-v3304.error{color:#ff7d92}
+</style>
 </head>
 <body>
 <div id="mmhvaultAppBootGuardV3282" style="position:fixed;inset:0;z-index:30000;display:none;align-items:center;justify-content:center;background:#050a18;color:#dce8ff;font-family:Arial,sans-serif;padding:24px;text-align:center;">
@@ -115,7 +131,7 @@
 <button class="btn" onclick="retryLoadAllV384()" type="button">Retry</button>
 </div>
 <header id="header" style="display:none">
-<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.30.3</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
+<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.30.4</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
 <div class="header-spacer"></div>
 <div aria-label="Signed in user" class="header-profile" id="headerProfile">
 <div class="header-avatar" id="headerAvatar">MF</div>
@@ -347,6 +363,27 @@
 <label>Quantity (Auto)<input id="invQty" readonly=""/></label>
 <label id="goldWeightWrap">Gold Weight (Auto)<input id="invGoldWeight" placeholder="ကျပ်သား / ပဲ / ရွေး" readonly=""/></label>
 <label class="full">Note<textarea id="invNote"></textarea></label>
+<label class="full">
+  <div class="invest-receipt-box-v3304">
+    <div class="invest-receipt-head-v3304">
+      <div>
+        <div class="invest-receipt-title-v3304">📎 Receipt attachment</div>
+        <div class="invest-receipt-sub-v3304">Optional · add proof of this investment</div>
+      </div>
+      <span class="invest-receipt-badge-v3304">OPTIONAL</span>
+    </div>
+    <label class="invest-receipt-drop-v3304" for="invReceipt">
+      <input id="invReceipt" type="file" accept="image/*,.pdf" hidden>
+      <span class="invest-receipt-plus-v3304">＋</span>
+      <span class="invest-receipt-copy-v3304">
+        <strong id="invReceiptTitleV3304">Choose a receipt</strong>
+        <small id="invReceiptMetaV3304">PNG, JPG, WEBP or PDF · up to 10 MB</small>
+      </span>
+    </label>
+    <div class="invest-receipt-status-v3304" id="invReceiptHint">No file selected</div>
+  </div>
+</label>
+
 </div><div class="notice small" id="invHint"></div><div class="actions"><button class="btn" onclick="clearInvestForm()" type="button">Clear</button><button class="btn primary">Buy &amp; Record</button></div></form></div>
 <div class="panel invest-list-panel v371-crypto" id="v371CryptoPortfolio"><div class="toolbar"><div><h2>Crypto Portfolio</h2><div class="sub">All crypto values and P/L are shown in USD.</div></div><span class="pill">Profit / Loss · ROI</span></div><div class="scroll" id="cryptoInvList"></div></div>
 <div class="panel invest-list-panel v371-gold gold-portfolio-shell" id="v371GoldPortfolio"><div class="toolbar"><div><h2>Gold Portfolio</h2><div class="sub">Gold cost, value and P/L are shown in MMK.</div></div><span class="pill">1 ကျပ်သား = 16 ပဲ = 128 ရွေး</span></div><div class="scroll" id="goldInvList"></div></div>
@@ -1191,243 +1228,71 @@ function editTx(id){
     }
   };
 }
-async function editInvestment(id){const x=investments.find(i=>i.id===id);if(!x)return;const defaultSource=x.source_account||(x.asset==="Gold"?"KPay":"OKX");openEditModal("Edit Investment",`<form id="editInvForm"><div class="formgrid"><label>Date<input id="eiDate" type="date" value="${esc(x.inv_date)}" required></label><label>Asset<input id="eiAsset" value="${esc(x.asset)}" readonly></label><label>Symbol<input id="eiSymbol" value="${esc(x.symbol)}" readonly></label><label>Source Account<select id="eiSource"></select></label><label>Invested Amount<input id="eiAmount" type="number" step="0.000001" value="${n(x.amount)}" required></label><label>Fee<input id="eiFee" type="number" step="0.000001" value="${n(x.fee)}"></label><label>Other Cost<input id="eiOther" type="number" step="0.000001" value="${n(x.other_cost)}"></label><label>Purchase-day Market Price<input id="eiBuy" type="number" step="0.000001" value="${n(x.buy_price)}" required></label><label>Current Market Price<input id="eiMarket" type="number" step="0.000001" value="${n(x.market_price)}"></label><label>Quantity<input id="eiQty" type="number" step="0.0000000001" value="${n(x.quantity)}"></label><label class="full">Note<input id="eiNote" value="${esc(x.note||"")}"></label></div><div class="actions"><button class="btn" type="button" onclick="closeEditModal()">Cancel</button><button class="btn primary">Save Changes</button></div></form>`);eiSource.innerHTML=(x.asset==="Gold"?["KPay"]:["OKX","ByBit"]).map(a=>`<option ${a===defaultSource?"selected":""}>${a}</option>`).join("");$('editInvForm').onsubmit=async e=>{e.preventDefault();const amount=n($('eiAmount').value),buy=n($('eiBuy').value);const row={inv_date:$('eiDate').value,source_account:$('eiSource').value,amount,fee:n($('eiFee').value),other_cost:n($('eiOther').value),buy_price:buy,market_price:n($('eiMarket').value),quantity:n($('eiQty').value)||(buy?amount/buy:0),note:$('eiNote').value||null};const r=await db.from('investments').update(row).eq('id',id);if(r.error)alert(r.error.message);else{closeEditModal();await loadAll();}};}
-async function deleteTx(id){const u=(await db.auth.getUser()).data.user;const r=await db.from("transactions").delete().eq("id",id);if(r.error)alert(r.error.message);else{await deleteTransactionReceiptV396(u?.id,id);await loadAll();}}
-async function deleteAllTx(){if(!confirm("Delete all your transactions?"))return;const u=(await db.auth.getUser()).data.user;const r=await db.from("transactions").delete().eq("user_id",u.id);if(r.error)alert(r.error.message);else await loadAll();}
-function loadRateInputs(){usdMmk.value=rates.usd_mmk;usdThb.value=rates.usd_thb;usdCny.value=rates.usd_cny;}
-async function saveRates(){
-const u=(await db.auth.getUser()).data.user;if(!u)return;
-const row={user_id:u.id,usd_mmk:n(usdMmk.value),usd_thb:n(usdThb.value),usd_cny:n(usdCny.value),updated_at:new Date().toISOString()};
-const r=await db.from("exchange_rates").upsert(row);if(r.error)alert(r.error.message);else{rates=row;render();}
-}
-function renderRates(){
-const th=rates.usd_mmk/rates.usd_thb,cn=rates.usd_mmk/rates.usd_cny;
-rateCards.innerHTML=[["USD → MMK",rates.usd_mmk,"Manual"],["THB → MMK",th,"Auto"],["MMK → THB",1/th,"Auto"],["USD → THB",rates.usd_thb,"Reference"],["CNY → MMK",cn,"Auto"],["CNY → THB",rates.usd_thb/rates.usd_cny,"Auto"],["USD → CNY",rates.usd_cny,"Reference"]].map(x=>`<div class="card"><div class="name">${x[0]}</div><div class="amount cyan">${Number(x[1]).toFixed(6)}</div><div class="small">${x[2]}</div></div>`).join("");
-renderExchangeConverter();
-}
-
-function exchangeCurrencyToMMK(currency){
-  const c=String(currency||'').toUpperCase();
-  if(c==='MMK') return 1;
-  if(c==='USD') return Number(rates.usd_mmk)||0;
-  if(c==='THB') return (Number(rates.usd_mmk)||0)/(Number(rates.usd_thb)||1);
-  if(c==='CNY') return (Number(rates.usd_mmk)||0)/(Number(rates.usd_cny)||1);
-  return 0;
-}
-function renderExchangeConverter(){
-  const wrap=$('exchangeConverterResult');
-  if(!wrap)return;
-  const amount=Math.max(0,Number($('exchangeAmount')?.value||0));
-  const from=$('exchangeFrom')?.value||'USD';
-  const to=$('exchangeTo')?.value||'MMK';
-  const fromRate=exchangeCurrencyToMMK(from);
-  const toRate=exchangeCurrencyToMMK(to);
-  if(!fromRate||!toRate){
-    wrap.innerHTML='<div class="label">Conversion unavailable</div><div class="meta">Please save valid USD exchange rates first.</div>';
-    return;
-  }
-  const result=amount*fromRate/toRate;
-  const rateOne=fromRate/toRate;
-  wrap.innerHTML=`<div class="label">Converted Amount</div><div class="value">${result.toLocaleString(undefined,{maximumFractionDigits:6})} ${to}</div><div class="meta">1 ${from} = ${rateOne.toLocaleString(undefined,{maximumFractionDigits:6})} ${to}</div>`;
-}
-function swapExchangeCurrencies(){
-  const f=$('exchangeFrom'),t=$('exchangeTo');
-  if(!f||!t)return;
-  const v=f.value;f.value=t.value;t.value=v;renderExchangeConverter();
-}
-let goldMarketState={pricePerOzMMK:0,pricePerKyattha:Number(localStorage.getItem("myfinance_manual_gold_mmk")||0),updatedAt:null,source:Number(localStorage.getItem("myfinance_manual_gold_mmk")||0)>0?"Manual":""};
-const GOLD_OZ_GRAMS=31.1034768;
-const GOLD_KYATTHA_GRAMS=16.329325;
-async function fetchGoldPrice(){const saved=Number(localStorage.getItem("myfinance_manual_gold_mmk")||0);if(saved>0){goldMarketState={pricePerOzMMK:0,pricePerKyattha:saved,updatedAt:new Date().toISOString(),source:"Manual"};goldMarket.textContent="MMK "+fmt(saved);goldMarketMeta.textContent="Manual price · "+new Date().toLocaleString();manualGoldPrice.value=saved;if(invAsset.value==="Gold")updateInvestCalc();renderInvest();}else{goldMarket.textContent="—";goldMarketMeta.textContent="No saved price · enter a market price below";}}
-function saveManualGoldPrice(){const v=Number(manualGoldPrice.value||0);if(v<=0){alert('Enter a valid gold price per ကျပ်သား.');return;}localStorage.setItem('myfinance_manual_gold_mmk',String(v));goldMarketState={pricePerOzMMK:0,pricePerKyattha:v,updatedAt:new Date().toISOString(),source:'Manual'};goldMarket.textContent='MMK '+fmt(v);goldMarketMeta.textContent='Manual price · '+new Date().toLocaleString();if(invAsset.value==='Gold')updateInvestCalc();renderInvest();}
-function loadManualGoldPrice(){const v=Number(localStorage.getItem('myfinance_manual_gold_mmk')||0);if(v>0){manualGoldPrice.value=v;if(!goldMarketState.pricePerKyattha){goldMarketState.pricePerKyattha=v;goldMarketState.source='Manual';goldMarket.textContent='MMK '+fmt(v);goldMarketMeta.textContent='Manual price';}}}
-
-let livePrices={BTC:null,ETH:null,SOL:null,BNB:null,XRP:null,DOGE:null,ADA:null,TRX:null};
-function cryptoSourceOptions(){invSource.innerHTML=["OKX","ByBit"].map(x=>`<option>${x}</option>`).join("");}
-function updateInvestFields(){
-const a=invAsset.value, crypto=a==="Crypto", gold=a==="Gold";
-invSymbol.disabled=!crypto;invSource.innerHTML=(crypto?["OKX","ByBit"]:["KPay"]).map(x=>`<option>${x}</option>`).join("");
-invSymbol.disabled=!crypto;goldWeightWrap.style.display=gold?"flex":"none";
-if(crypto && livePrices[invSymbol.value]){invBuy.value=livePrices[invSymbol.value].price;invMarket.value=livePrices[invSymbol.value].price;}
-if(gold && goldMarketState.pricePerKyattha)invBuy.value=goldMarketState.pricePerKyattha;
-invHint.textContent=crypto?"Crypto is USD. Quantity = Invested USD ÷ purchase-day market price. Current P/L = Quantity × current market price − total invested cost.":"Gold is MMK. Weight = Invested MMK ÷ purchase-day gold price. 1 ကျပ်သား = 16 ပဲ = 128 ရွေး. Investment purchase will deduct directly from KPay.";
-updateInvestCalc();
-}
-function updateInvestCalc(){const a=invAsset.value,amount=n(invAmount.value),buy=n(invBuy.value);if(!buy){invQty.value="";invGoldWeight.value="";return}const q=amount/buy;if(a==="Crypto")invQty.value=q.toFixed(10);else if(a==="Gold")invGoldWeight.value=`${Math.floor(q)} ကျပ်သား · ${((q-Math.floor(q))*16).toFixed(6)} ပဲ · ${((((q-Math.floor(q))*16)%1)*8).toFixed(4)} ရွေး`;}
-function clearInvestForm(){invForm.reset();invDate.value=today();invAsset.value="Crypto";updateInvestFields();}
-async function addInvestment(e){
-e.preventDefault();const u=(await db.auth.getUser()).data.user;if(!u)return;
-const asset=invAsset.value,source=invSource.value,amount=n(invAmount.value),fee=n(invFee.value),other=n(invOther.value),buy=n(invBuy.value),market=asset==="Gold"?(goldMarketState.pricePerKyattha||buy):(n(invMarket.value)||livePrices[invSymbol.value]?.price||buy);
-if(!buy||!amount){alert("Please enter amount and purchase-day market price.");return}
-const quantity=amount/buy;
-const row={user_id:u.id,inv_date:invDate.value,asset,symbol:asset==="Crypto"?invSymbol.value:"Gold",source_account:source,amount,fee,other_cost:other,buy_price:buy,market_price:market,quantity,note:invNote.value||null};
-const r=await db.from("investments").insert(row);if(r.error){alert(r.error.message+"\n\nIf this mentions source_account, run migration_v2.7.sql once in Supabase SQL Editor.");return}
-clearInvestForm();await loadAll();
-}
-async function fetchCryptoPrices(){try{const ids="bitcoin,ethereum,solana,binancecoin,ripple,dogecoin,cardano,tron";const r=await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true`,{cache:"no-store"});if(!r.ok)throw new Error("HTTP "+r.status);const d=await r.json();const map={BTC:d.bitcoin,ETH:d.ethereum,SOL:d.solana,BNB:d.binancecoin,XRP:d.ripple,DOGE:d.dogecoin,ADA:d.cardano,TRX:d.tron};livePrices=Object.fromEntries(Object.entries(map).map(([k,v])=>[k,v&&{price:Number(v.usd),change:Number(v.usd_24h_change||0)}]));marketStatus.textContent="Live · 8-coin public feed";renderCryptoPrices();if(invAsset.value==="Crypto")updateInvestFields();renderDashboard();renderInvest();}catch(e){marketStatus.textContent="Feed unavailable · using saved prices";renderCryptoPrices();}}
-function renderCryptoPrices(){const symbols=["BTC","ETH","SOL","BNB","XRP","DOGE","ADA","TRX"];cryptoPrices.innerHTML=symbols.map(s=>{const p=livePrices[s];return`<div class="price-card"><div class="symbol">${s}</div><div class="price">${p&&Number.isFinite(p.price)?"$"+fmt(p.price):"Unavailable"}</div><div class="change ${p&&p.change>=0?"green":"red"}">${p&&Number.isFinite(p.change)?(p.change>=0?"+":"")+p.change.toFixed(2)+"% 24h":"Market feed unavailable"}</div></div>`}).join("");}
-function openGoldSearch(){window.open("https://www.google.com/search?q=Myanmar+gold+price+MMK+per+kyattha","_blank","noopener")}
-function renderPortfolioManagerV310(cryptoCost,cryptoValue,goldCost,goldValue){
-  const rate=n(rates.usd_mmk)||0;
-  const cryptoValueUSD=cryptoValue;
-  const goldValueUSD=rate>0?goldValue/rate:0;
-  const cryptoCostUSD=cryptoCost;
-  const goldCostUSD=rate>0?goldCost/rate:0;
-  const totalValueUSD=cryptoValueUSD+goldValueUSD;
-  const totalCostUSD=cryptoCostUSD+goldCostUSD;
-  const totalPLUSD=totalValueUSD-totalCostUSD;
-  const totalROI=totalCostUSD?totalPLUSD/totalCostUSD*100:0;
-  const cryptoW=totalValueUSD?cryptoValueUSD/totalValueUSD*100:0;
-  const goldW=totalValueUSD?goldValueUSD/totalValueUSD*100:0;
-  const totalRecords=investments.length;
-  const monthlyMap={};
-  investments.forEach(x=>{
-    const d=String(x.inv_date||'').slice(0,7); if(!d)return;
-    const cost=n(x.amount)+n(x.fee)+n(x.other_cost);
-    const usd=x.asset==='Crypto'?cost:(rate>0?cost/rate:0);
-    monthlyMap[d]=(monthlyMap[d]||0)+usd;
+async function editInvestment(id){
+  const x=investments.find(i=>i.id===id);if(!x)return;
+  const defaultSource=x.source_account||(x.asset==="Gold"?"KPay":"OKX");
+  openEditModal("Edit Investment",`<form id="editInvForm">
+    <div class="formgrid">
+      <label>Date<input id="eiDate" type="date" value="${esc(x.inv_date)}" required></label>
+      <label>Asset<input id="eiAsset" value="${esc(x.asset)}" readonly></label>
+      <label>Symbol<input id="eiSymbol" value="${esc(x.symbol)}" readonly></label>
+      <label>Source Account<select id="eiSource"></select></label>
+      <label>Invested Amount<input id="eiAmount" type="number" step="0.000001" value="${n(x.amount)}" required></label>
+      <label>Fee<input id="eiFee" type="number" step="0.000001" value="${n(x.fee)}"></label>
+      <label>Other Cost<input id="eiOther" type="number" step="0.000001" value="${n(x.other_cost)}"></label>
+      <label>Purchase-day Market Price<input id="eiBuy" type="number" step="0.000001" value="${n(x.buy_price)}" required></label>
+      <label>Current Market Price<input id="eiMarket" type="number" step="0.000001" value="${n(x.market_price)}"></label>
+      <label>Quantity<input id="eiQty" type="number" step="0.0000000001" value="${n(x.quantity)}"></label>
+      <label class="full">Note<input id="eiNote" value="${esc(x.note||"")}"></label>
+    </div>
+    <div class="edit-receipt-box-v3303">
+      <div class="edit-receipt-head-v3303">
+        <div>
+          <div class="edit-receipt-title-v3303">📎 Receipt attachment</div>
+          <div class="edit-receipt-sub-v3303">Add a receipt or replace the existing one for this investment.</div>
+        </div>
+        <span class="edit-receipt-badge-v3303">OPTIONAL</span>
+      </div>
+      <label class="edit-receipt-drop-v3303" for="editInvestmentReceiptFile">
+        <input id="editInvestmentReceiptFile" type="file" accept="image/*,.pdf" hidden>
+        <span class="edit-receipt-plus-v3303">＋</span>
+        <span class="edit-receipt-copy-v3303">
+          <strong>Choose a receipt</strong>
+          <small>PNG, JPG, WEBP or PDF · up to 10 MB</small>
+        </span>
+      </label>
+      <div class="edit-receipt-status-v3303" id="editInvestmentReceiptStatusV3304">No new file selected · existing receipt will remain unchanged.</div>
+    </div>
+    <div class="actions">
+      <button class="btn" type="button" onclick="closeEditModal()">Cancel</button>
+      <button class="btn primary">Save Changes</button>
+    </div>
+  </form>`);
+  eiSource.innerHTML=(x.asset==="Gold"?["KPay"]:["OKX","ByBit"]).map(a=>`<option ${a===defaultSource?"selected":""}>${a}</option>`).join("");
+  const picker=$("editInvestmentReceiptFile"),status=$("editInvestmentReceiptStatusV3304");
+  picker?.addEventListener("change",()=>{
+    const file=picker.files?.[0];
+    if(!status)return;
+    status.classList.remove('ready','error');
+    if(!file){status.textContent='No new file selected · existing receipt will remain unchanged.';return;}
+    if(file.size>10*1024*1024){status.textContent='File is larger than 10 MB.';status.classList.add('error');picker.value='';return;}
+    status.textContent=`✓ ${file.name} · ${(file.size/1024/1024).toFixed(2)} MB · will replace the current receipt when saved.`;
+    status.classList.add('ready');
   });
-  const keys=Object.keys(monthlyMap).sort().slice(-6);
-  const recent=keys.length?Math.max(...keys.map(k=>Math.abs(monthlyMap[k]))):0;
-  const latestKey=keys[keys.length-1];
-  const latestCost=latestKey?monthlyMap[latestKey]:0;
-  const positions=[];
-  const positionMap={};
-  investments.forEach(x=>{
-    const key=x.asset==='Gold'?'Gold':(x.symbol||'Other');
-    if(!positionMap[key])positionMap[key]={key,asset:x.asset,cost:0,value:0,quantity:0};
-    const q=n(x.quantity); const cost=n(x.amount)+n(x.fee)+n(x.other_cost);
-    const price=x.asset==='Crypto'?(livePrices[x.symbol]?.price||n(x.market_price)):(goldMarketState.pricePerKyattha||n(x.market_price));
-    positionMap[key].cost+=cost;
-    positionMap[key].value+=q*price;
-    positionMap[key].quantity+=q;
-  });
-  Object.values(positionMap).forEach(x=>{x.usd=x.asset==='Crypto'?x.value:(rate>0?x.value/rate:0);x.costUSD=x.asset==='Crypto'?x.cost:(rate>0?x.cost/rate:0);x.pnl=x.usd-x.costUSD;x.weight=totalValueUSD?x.usd/totalValueUSD*100:0;positions.push(x);});
-  positions.sort((a,b)=>b.usd-a.usd);
-  const top=positions[0];
-  const holdings=cryptoHoldingsForV310();
-  const concentration=top?top.weight:0;
-  const diversification = positions.length>=4?'Diversified':positions.length>=2?'Balanced':positions.length===1?'Single asset':'No positions';
-  const diversificationClass=concentration>=70?'warn':concentration>=90?'bad':'good';
-  const pnlClass=totalPLUSD>=0?'good':'bad';
-  const roiClass=totalROI>=0?'good':'bad';
-  const mixRate = totalValueUSD?1:0;
-  const summaryEl=$('portfolioManagerSummaryV310');
-  if(summaryEl){summaryEl.innerHTML=`
-    <div class="portfolio-kpi-v310"><div class="label">Portfolio Value</div><div class="value green">$${fmt(totalValueUSD)}</div><div class="meta">Crypto + Gold · USD view</div></div>
-    <div class="portfolio-kpi-v310"><div class="label">Net Invested</div><div class="value">$${fmt(totalCostUSD)}</div><div class="meta">${totalRecords} investment records</div></div>
-    <div class="portfolio-kpi-v310"><div class="label">Portfolio P/L</div><div class="value ${pnlClass}">${totalPLUSD>=0?'+':''}$${fmt(totalPLUSD)}</div><div class="meta">Current value vs recorded cost</div></div>
-    <div class="portfolio-kpi-v310"><div class="label">Portfolio ROI</div><div class="value ${roiClass}">${totalROI>=0?'+':''}${totalROI.toFixed(2)}%</div><div class="meta">Weighted by combined cost</div></div>
-    <div class="portfolio-kpi-v310"><div class="label">Largest Position</div><div class="value">${top?esc(top.key):'—'}</div><div class="meta">${top?top.weight.toFixed(1)+'% of portfolio':'No holdings yet'}</div></div>`;}
-
-  const mixEl=$('portfolioMixV310');
-  if(mixEl){
-    mixEl.innerHTML=`
-      <div class="portfolio-mix-row-v310"><div class="portfolio-mix-name-v310">Crypto</div><div><div class="portfolio-mix-bar-v310"><span style="width:${Math.min(100,cryptoW).toFixed(1)}%"></span></div></div><div class="portfolio-mix-meta-v310"><b>$${fmt(cryptoValueUSD)}</b><small>${cryptoW.toFixed(1)}%</small></div></div>
-      <div class="portfolio-mix-row-v310"><div class="portfolio-mix-name-v310">Gold</div><div><div class="portfolio-mix-bar-v310"><span style="width:${Math.min(100,goldW).toFixed(1)}%"></span></div></div><div class="portfolio-mix-meta-v310"><b>$${fmt(goldValueUSD)}</b><small>${goldW.toFixed(1)}%</small></div></div>
-      <div class="small" style="margin-top:10px">Gold is converted using your saved USD → MMK rate${rate>0?' of '+fmt(rate):''}.${mixRate?'':' Save a valid USD/MMK rate for a combined view.'}</div>`;
-  }
-  const signalsEl=$('portfolioSignalsV310');
-  if(signalsEl){signalsEl.innerHTML=`
-    <div class="signal-row-v310"><div class="label">Performance</div><div class="value ${pnlClass}">${totalPLUSD>=0?'Positive':'Negative'} · ${totalROI.toFixed(2)}% ROI</div></div>
-    <div class="signal-row-v310"><div class="label">Concentration</div><div class="value ${concentration>=70?'warn':'good'}">${concentration.toFixed(1)}% top position</div></div>
-    <div class="signal-row-v310"><div class="label">Diversification</div><div class="value ${diversificationClass}">${diversification}</div></div>
-    <div class="signal-row-v310"><div class="label">Latest monthly investment</div><div class="value">${latestKey?('$'+fmt(Math.abs(latestCost))):'—'}</div></div>
-    <div class="signal-row-v310"><div class="label">Tracked assets</div><div class="value">${holdings} active position${holdings===1?'':'s'}</div></div>`;}
-
-  const leadersEl=$('portfolioLeadersV310');
-  if(leadersEl){
-    if(!positions.length) leadersEl.innerHTML='<div class="portfolio-empty-v310">No investment records yet.</div>';
-    else leadersEl.innerHTML=positions.slice(0,5).map((x,i)=>`<div class="portfolio-leader-v310"><div class="leader-rank-v310">${i+1}</div><div class="leader-main-v310"><b>${esc(x.key)}</b><small>${x.asset==='Gold'?'Gold · MMK':'Crypto · '+esc(x.key)}</small></div><div class="leader-value-v310"><b>$${fmt(x.usd)}</b><small class="${x.pnl>=0?'green':'red'}">${x.pnl>=0?'+':''}$${fmt(x.pnl)} · ${x.weight.toFixed(1)}%</small></div></div>`).join('');
-  }
-  const actEl=$('portfolioActivityV310');
-  if(actEl){
-    if(!keys.length) actEl.innerHTML='<div class="portfolio-empty-v310">Investment activity will appear here after you add records.</div>';
-    else { const max=Math.max(recent,1); actEl.innerHTML=keys.map(k=>{const v=monthlyMap[k],h=Math.max(6,Math.min(100,Math.abs(v)/max*100));return `<div class="activity-col-v310"><div class="activity-value-v310">$${fmt(Math.abs(v))}</div><div class="activity-bar-wrap-v310"><div class="activity-bar-v310" style="height:${h}%" title="${k} · $${fmt(Math.abs(v))}"></div></div><div class="activity-label-v310">${k.slice(5)}/${k.slice(2,4)}</div></div>`}).join(''); }
-  }
-  const updated=$('portfolioManagerUpdatedV310'); if(updated)updated.textContent=(rate>0?'Live valuation · USD/MMK '+fmt(rate):'USD/MMK rate required');
+  $("editInvForm").onsubmit=async e=>{
+    e.preventDefault();
+    const amount=n($("eiAmount").value),buy=n($("eiBuy").value),newReceipt=picker?.files?.[0]||null;
+    if(newReceipt&&newReceipt.size>10*1024*1024){alert('Receipt file is too large. Maximum size is 10 MB.');return;}
+    const row={inv_date:$("eiDate").value,source_account:$("eiSource").value,amount,fee:n($("eiFee").value),other_cost:n($("eiOther").value),buy_price:buy,market_price:n($("eiMarket").value),quantity:n($("eiQty").value)||(buy?amount/buy:0),note:$("eiNote").value||null};
+    const r=await db.from('investments').update(row).eq('id',id);
+    if(r.error){alert(r.error.message);return;}
+    if(newReceipt){
+      try{await uploadInvestmentReceiptV3304((await db.auth.getUser()).data.user.id,id,newReceipt);}
+      catch(err){alert('Investment was updated, but receipt upload failed: '+(err?.message||err));}
+    }
+    closeEditModal();await loadAll();window.refreshInvestmentReceiptFlagsV3304?.();
+  };
 }
-function cryptoHoldingsForV310(){
-  const keys=new Set();
-  investments.filter(x=>x.asset==='Crypto').forEach(x=>{const q=n(x.quantity);const p=livePrices[x.symbol]?.price||n(x.market_price);if(Math.abs(q*p)>0.000001)keys.add(x.symbol||'Other');});
-  if(investments.some(x=>x.asset==='Gold'&&Math.abs(n(x.quantity)*(goldMarketState.pricePerKyattha||n(x.market_price)))>0.000001))keys.add('Gold');
-  return keys.size;
-}
-
-function renderInvest(){
-const cryptos=investments.filter(x=>x.asset==="Crypto"),golds=investments.filter(x=>x.asset==="Gold");
-let cryptoCost=0,cryptoValue=0,goldCost=0,goldValue=0;
-cryptos.forEach(x=>{const q=n(x.quantity),p=livePrices[x.symbol]?.price||n(x.market_price),cost=n(x.amount)+n(x.fee)+n(x.other_cost);cryptoCost+=cost;cryptoValue+=q*p});
-golds.forEach(x=>{const q=n(x.quantity),p=(goldMarketState.pricePerKyattha||n(x.market_price));goldCost+=n(x.amount)+n(x.fee)+n(x.other_cost);goldValue+=q*p});
-const cp=cryptoValue-cryptoCost,cr=cryptoCost?cp/cryptoCost*100:0,gp=goldValue-goldCost,gr=goldCost?gp/goldCost*100:0;
-renderPortfolioManagerV310(cryptoCost,cryptoValue,goldCost,goldValue);
-const activeView=(localStorage.getItem("myfinance_invest_view_v371")||"Crypto")==="Gold"?"Gold":"Crypto";renderInvestMetricsV371(activeView,cryptoCost,cryptoValue,cp,cr,goldCost,goldValue,gp,gr);
-cryptoInvList.innerHTML=renderCryptoTable(cryptos);goldInvList.innerHTML=renderGoldTable(golds);renderCurrentHoldings(cryptos);renderCryptoPrices();
-}
-function renderInvestMetricsV371(view,cryptoCost,cryptoValue,cp,cr,goldCost,goldValue,gp,gr){
-  const items=view==="Gold"?[
-    ["Gold Invest",goldCost,"pink","MMK"],["Gold Value",goldValue,"green","MMK"],["Gold P/L",gp,gp>=0?"green":"red","MMK"],["Gold ROI",gr.toFixed(2)+"%","yellow",""]
-  ]:[
-    ["Crypto Invest",cryptoCost,"cyan","USD"],["Crypto Value",cryptoValue,"green","USD"],["Crypto P/L",cp,cp>=0?"green":"red","USD"],["Crypto ROI",cr.toFixed(2)+"%","yellow",""]
-  ];
-  if($("investMetrics"))$("investMetrics").innerHTML=items.map(x=>`<div class="card metric"><div class="name">${x[0]}</div><div class="value ${x[2]}">${typeof x[1]==="number"?fmt(x[1]):x[1]} ${x[3]}</div></div>`).join("");
-}
-
-function renderInvestMetricsFromDataV371(view){
-  let cryptoCost=0,cryptoValue=0,goldCost=0,goldValue=0;
-  investments.filter(x=>x.asset==="Crypto").forEach(x=>{const q=n(x.quantity),p=livePrices[x.symbol]?.price||n(x.market_price);cryptoCost+=n(x.amount)+n(x.fee)+n(x.other_cost);cryptoValue+=q*p;});
-  investments.filter(x=>x.asset==="Gold").forEach(x=>{const q=n(x.quantity),p=(goldMarketState.pricePerKyattha||n(x.market_price));goldCost+=n(x.amount)+n(x.fee)+n(x.other_cost);goldValue+=q*p;});
-  const cp=cryptoValue-cryptoCost,cr=cryptoCost?cp/cryptoCost*100:0,gp=goldValue-goldCost,gr=goldCost?gp/goldCost*100:0;
-  renderInvestMetricsV371(view,cryptoCost,cryptoValue,cp,cr,goldCost,goldValue,gp,gr);
-}
-
-function renderCryptoTable(rows){
-  if(!rows.length)return'<div class="empty crypto-empty-note">No crypto investments.</div>';
-  let totalCost=0,totalValue=0,totalQty=0;
-  rows.forEach(x=>{const q=n(x.quantity),cost=n(x.amount)+n(x.fee)+n(x.other_cost),cur=livePrices[x.symbol]?.price||n(x.market_price),val=q*cur;totalCost+=cost;totalValue+=val;totalQty+=q;});
-  const totalPL=totalValue-totalCost,totalROI=totalCost?totalPL/totalCost*100:0;
-  const summary=`<div class="crypto-summary">
-    <div class="crypto-summary-card"><div class="label">Total Invested</div><div class="value">$${fmt(totalCost)}</div><div class="meta">Across ${rows.length} record${rows.length===1?'':'s'}</div></div>
-    <div class="crypto-summary-card"><div class="label">Current Value</div><div class="value green">$${fmt(totalValue)}</div><div class="meta">Live market value</div></div>
-    <div class="crypto-summary-card"><div class="label">Total P/L</div><div class="value ${totalPL>=0?'green':'red'}">$${fmt(totalPL)}</div><div class="meta">${totalPL>=0?'+':''}${totalROI.toFixed(2)}% ROI</div></div>
-    <div class="crypto-summary-card"><div class="label">Holdings</div><div class="value">${new Set(rows.map(x=>x.symbol)).size}</div><div class="meta">Assets held</div></div>
-  </div>`;
-  const table=`<div class="crypto-table-wrap"><table><tr><th>Date</th><th>Side</th><th>Symbol</th><th>Source</th><th>Amount</th><th>Buy Price</th><th>Quantity</th><th>Current Price</th><th>Current Value</th><th></th></tr>${rows.map(x=>{const q=n(x.quantity),cur=livePrices[x.symbol]?.price||n(x.market_price),side=q<0?'SELL':'BUY',val=q*cur;return`<tr><td>${esc(x.inv_date)}</td><td class="${side==='BUY'?'green':'red'}">${side}</td><td><b>${esc(x.symbol)}</b></td><td>${esc(x.source_account||'OKX')}</td><td>$${fmt(Math.abs(n(x.amount)))}</td><td>$${fmt(x.buy_price)}</td><td>${q.toFixed(10)}</td><td>$${fmt(cur)}</td><td>$${fmt(val)}</td><td class="icon-actions"><button class="btn" onclick="editInvestment(${x.id})">Edit</button><button class="btn danger" onclick="deleteInvestment(${x.id})">×</button></td></tr>`}).join('')}</table></div>`;
-  const cards=`<div class="crypto-mobile-list">${rows.map(x=>{const q=n(x.quantity),cur=livePrices[x.symbol]?.price||n(x.market_price),side=q<0?'SELL':'BUY',val=q*cur,cost=n(x.amount)+n(x.fee)+n(x.other_cost),p=val-cost,roi=cost?p/cost*100:0;return`<div class="crypto-mobile-card"><div class="crypto-mobile-top"><div class="crypto-mobile-main"><div class="crypto-mobile-date">${esc(x.inv_date)}</div><div class="crypto-mobile-title"><span class="${side==='BUY'?'green':'red'}">${side}</span> · ${esc(x.symbol)}</div><div class="crypto-mobile-sub">${esc(x.source_account||'OKX')} · Buy $${fmt(x.buy_price)}</div></div><div class="crypto-mobile-value"><div>$${fmt(val)}</div><div class="${p>=0?'green':'red'}">${p>=0?'+':''}$${fmt(p)}</div></div></div><div class="crypto-mobile-grid"><div><span>Invested</span><b>$${fmt(cost)}</b></div><div><span>Quantity</span><b>${q.toFixed(8)}</b></div><div><span>Current Price</span><b>$${fmt(cur)}</b></div><div><span>ROI</span><b class="${roi>=0?'green':'red'}">${roi.toFixed(2)}%</b></div></div><div class="crypto-mobile-actions"><button class="btn" onclick="event.stopPropagation();editInvestment(${x.id})">Edit</button><button class="btn danger" onclick="event.stopPropagation();deleteInvestment(${x.id})">Delete</button></div></div>`}).join('')}</div>`;
-  return summary+table+cards;
-}
-function renderGoldTable(rows){
-  if(!rows.length)return '<div class="empty gold-empty-note">No gold investments.</div>';
-  const price=goldMarketState.pricePerKyattha||n(rows[0]?.market_price);
-  let totalCost=0,totalValue=0,totalWeight=0;
-  rows.forEach(x=>{const q=n(x.quantity),cost=n(x.amount)+n(x.fee)+n(x.other_cost),val=q*price;totalCost+=cost;totalValue+=val;totalWeight+=q;});
-  const totalPL=totalValue-totalCost,totalROI=totalCost?totalPL/totalCost*100:0;
-  const tKy=Math.floor(totalWeight),tPe=Math.floor((totalWeight-tKy)*16),tRe=((((totalWeight-tKy)*16)-tPe)*8);
-  const summary=`<div class="gold-summary">
-    <div class="gold-summary-card"><div class="label">Total Invested</div><div class="value">MMK ${fmt(totalCost)}</div><div class="meta">Across ${rows.length} record${rows.length===1?'':'s'}</div></div>
-    <div class="gold-summary-card"><div class="label">Current Value</div><div class="value green">MMK ${fmt(totalValue)}</div><div class="meta">Market ${fmt(price)} / ကျပ်သား</div></div>
-    <div class="gold-summary-card"><div class="label">Total P/L</div><div class="value ${totalPL>=0?'green':'red'}">MMK ${fmt(totalPL)}</div><div class="meta">${totalPL>=0?'+':''}${totalROI.toFixed(2)}% ROI</div></div>
-    <div class="gold-summary-card"><div class="label">Total Weight</div><div class="value">${tKy} ကျပ်</div><div class="meta">${tPe} ပဲ ${tRe.toFixed(2)} ရွေး</div></div>
-  </div>`;
-  const table=`<div class="gold-table-wrap"><table><tr><th>Date</th><th>Source</th><th>Invested</th><th>Buy Price</th><th>Weight</th><th>Current Price</th><th>Current Value</th><th>P/L</th><th>ROI</th><th></th></tr>${rows.map(x=>{
-    const q=n(x.quantity),cur=(goldMarketState.pricePerKyattha||n(x.market_price)),cost=n(x.amount)+n(x.fee)+n(x.other_cost),val=q*cur,p=val-cost,roi=cost?p/cost*100:0;
-    const ky=Math.floor(q),pe=Math.floor((q-ky)*16),re=((((q-ky)*16)-pe)*8);
-    return`<tr><td>${esc(x.inv_date)}</td><td>${esc(x.source_account||"KPay")}</td><td>MMK ${fmt(x.amount)}</td><td>${fmt(x.buy_price)}</td><td><div class="gold-weight-main">${ky} ကျပ် ${pe} ပဲ</div><div class="gold-weight-sub">${re.toFixed(2)} ရွေး</div></td><td>${fmt(cur)}</td><td>MMK ${fmt(val)}</td><td class="${p>=0?"green":"red"}">MMK ${fmt(p)}</td><td>${roi.toFixed(2)}%</td><td class="icon-actions"><button class="btn" onclick="editInvestment(${x.id})">Edit</button><button class="btn danger" onclick="deleteInvestment(${x.id})">×</button></td></tr>`}).join('')}</table></div>`;
-  const cards=`<div class="gold-mobile-list">${rows.map(x=>{
-    const q=n(x.quantity),cur=(goldMarketState.pricePerKyattha||n(x.market_price)),cost=n(x.amount)+n(x.fee)+n(x.other_cost),val=q*cur,p=val-cost,roi=cost?p/cost*100:0;
-    const ky=Math.floor(q),pe=Math.floor((q-ky)*16),re=((((q-ky)*16)-pe)*8);
-    return`<div class="gold-mobile-card"><div class="gold-mobile-top"><div><div class="gold-mobile-date">${esc(x.inv_date)}</div><div class="gold-mobile-source">${esc(x.source_account||'KPay')}</div></div><div class="gold-mobile-roi ${roi>=0?'green':'red'}">${roi.toFixed(2)}%</div></div><div class="gold-mobile-grid">
-      <div class="gold-mobile-item"><div class="label">Invested</div><div class="value">MMK ${fmt(cost)}</div></div>
-      <div class="gold-mobile-item"><div class="label">Current Value</div><div class="value">MMK ${fmt(val)}</div></div>
-      <div class="gold-mobile-item"><div class="label">Buy Price</div><div class="value">${fmt(x.buy_price)} / ကျပ်သား</div></div>
-      <div class="gold-mobile-item"><div class="label">Current Price</div><div class="value">${fmt(cur)} / ကျပ်သား</div></div>
-      <div class="gold-mobile-item"><div class="label">Weight</div><div class="value">${ky} ကျပ် ${pe} ပဲ ${re.toFixed(2)} ရွေး</div></div>
-      <div class="gold-mobile-item"><div class="label">P/L</div><div class="value ${p>=0?'green':'red'}">MMK ${fmt(p)}</div></div>
-    </div><div class="gold-mobile-actions"><button class="btn" onclick="editInvestment(${x.id})">Edit</button><button class="btn danger" onclick="deleteInvestment(${x.id})">Delete</button></div></div>`;
-  }).join('')}</div>`;
-  return summary+table+cards;
-}
-async function deleteInvestment(id){if(!confirm("Delete this investment record?"))return;const r=await db.from("investments").delete().eq("id",id);if(r.error)alert(r.error.message);else await loadAll();}
 let selectedExcelRows=null;
 function normalizeAccountName(v){const s=String(v??'').trim();if(!s)return null;const m={Kpay:'KPay',kpay:'KPay',KPay:'KPay',Metamask:'MetaMask',metamask:'MetaMask',USDT:'OKX'};return m[s]||s;}
 function excelDate(v){
@@ -4522,6 +4387,120 @@ window.mmHVaultHasReceiptV3302 = function(id){
   else setTimeout(bootReceiptFlagsV3302,900);
 })();
 </script>
+
+<script id="mmhvault-v3304-investment-receipts">
+/* V3.30.4 · Investment receipt attachments */
+window.mmHVaultInvestmentReceiptIdsV3304 = window.mmHVaultInvestmentReceiptIdsV3304 || new Set();
+
+function investmentReceiptExtV3304(file){
+  const name=String(file?.name||'').toLowerCase();
+  const m=name.match(/\.([a-z0-9]+)$/);
+  const ext=(m?m[1]:'bin').toLowerCase();
+  return ['jpg','jpeg','png','webp','gif','pdf'].includes(ext)?ext:'bin';
+}
+function investmentReceiptPrefixV3304(userId,id){return `${userId}/inv-${id}`;}
+function investmentReceiptPathV3304(userId,id,file){return `${investmentReceiptPrefixV3304(userId,id)}.${investmentReceiptExtV3304(file)}`;}
+
+async function removeInvestmentReceiptV3304(userId,id){
+  if(!userId)return;
+  try{
+    const bucket=typeof RECEIPTS_BUCKET_V396!=='undefined'?RECEIPTS_BUCKET_V396:'receipts';
+    const prefix=investmentReceiptPrefixV3304(userId,id);
+    const {data}=await db.storage.from(bucket).list(userId,{limit:1000});
+    const names=(Array.isArray(data)?data:[]).filter(x=>String(x?.name||'').startsWith(`inv-${id}.`)).map(x=>x.name);
+    if(names.length) await db.storage.from(bucket).remove(names.map(name=>`${userId}/${name}`));
+  }catch(e){console.debug('Investment receipt remove skipped',e);}
+}
+
+async function uploadInvestmentReceiptV3304(userId,id,file){
+  if(!file)return {ok:true};
+  if(file.size>10*1024*1024)throw new Error('Receipt file is too large. Maximum size is 10 MB.');
+  await removeInvestmentReceiptV3304(userId,id);
+  const bucket=typeof RECEIPTS_BUCKET_V396!=='undefined'?RECEIPTS_BUCKET_V396:'receipts';
+  const path=investmentReceiptPathV3304(userId,id,file);
+  const {error}=await db.storage.from(bucket).upload(path,file,{upsert:true,contentType:file.type||undefined,cacheControl:'3600'});
+  if(error)throw error;
+  window.mmHVaultInvestmentReceiptIdsV3304.add(Number(id));
+  return {ok:true,path};
+}
+
+async function findInvestmentReceiptPathV3304(userId,id){
+  const bucket=typeof RECEIPTS_BUCKET_V396!=='undefined'?RECEIPTS_BUCKET_V396:'receipts';
+  const {data,error}=await db.storage.from(bucket).list(userId,{limit:1000});
+  if(error||!Array.isArray(data))return null;
+  const item=data.find(x=>String(x?.name||'').startsWith(`inv-${id}.`));
+  return item?`${userId}/${item.name}`:null;
+}
+
+async function refreshInvestmentReceiptFlagsV3304(){
+  try{
+    const u=(await db.auth.getUser()).data.user;
+    if(!u)return;
+    const bucket=typeof RECEIPTS_BUCKET_V396!=='undefined'?RECEIPTS_BUCKET_V396:'receipts';
+    const {data,error}=await db.storage.from(bucket).list(u.id,{limit:1000});
+    if(error||!Array.isArray(data))return;
+    const ids=new Set();
+    data.forEach(x=>{
+      const m=String(x?.name||'').match(/^inv-(\d+)\./i);
+      if(m)ids.add(Number(m[1]));
+    });
+    window.mmHVaultInvestmentReceiptIdsV3304=ids;
+    try{renderInvest();}catch(_e){}
+  }catch(e){console.debug('Investment receipt visibility refresh unavailable',e);}
+}
+window.mmHVaultHasInvestmentReceiptV3304=id=>window.mmHVaultInvestmentReceiptIdsV3304.has(Number(id));
+
+async function openInvestmentReceiptV3304(id){
+  const u=(await db.auth.getUser()).data.user;
+  if(!u){alert('Please sign in first.');return;}
+  const modal=$("receiptViewerModalV3297"),body=$("receiptViewerBodyV3297");
+  if(!modal||!body){alert('Receipt viewer is unavailable.');return;}
+  body.innerHTML='<div class="receipt-viewer-loading-v3297">Loading receipt…</div>';
+  modal.classList.add('show');
+  const path=await findInvestmentReceiptPathV3304(u.id,id);
+  if(!path){closeTransactionReceiptV3297();alert('No receipt was found for this investment.');return;}
+  const bucket=typeof RECEIPTS_BUCKET_V396!=='undefined'?RECEIPTS_BUCKET_V396:'receipts';
+  const {data,error}=await db.storage.from(bucket).createSignedUrl(path,3600);
+  if(error){closeTransactionReceiptV3297();alert('Unable to open this investment receipt.');return;}
+  const url=data.signedUrl;
+  const name=path.toLowerCase();
+  if(name.endsWith('.pdf')){
+    const float=$("receiptZoomFloatV3299");if(float)float.classList.remove('show');
+    body.innerHTML='<iframe title="Investment receipt PDF" src="'+url+'"></iframe>';
+  }else{
+    body.innerHTML='<img id="receiptViewerImageV3297" alt="Investment receipt" src="'+url+'">';
+    const float=$("receiptZoomFloatV3299");if(float)float.classList.add('show');
+    const img=body.querySelector('img');
+    if(img){
+      receiptZoomV3297=1;updateReceiptZoomV3297();
+      img.onclick=()=>{receiptZoomV3297=receiptZoomV3297>1.01?1:1.5;updateReceiptZoomV3297();};
+      img.onerror=()=>{body.innerHTML='';if(float)float.classList.remove('show');};
+    }
+  }
+}
+</script>
+
+
+<script id="mmhvault-v3304-investment-receipt-bind">
+(function(){
+  function bindInvestmentReceiptV3304(){
+    const input=$("invReceipt"),title=$("invReceiptTitleV3304"),meta=$("invReceiptMetaV3304"),hint=$("invReceiptHint");
+    if(!input||input.dataset.v3304==='1')return;
+    input.dataset.v3304='1';
+    input.addEventListener('change',()=>{
+      const file=input.files?.[0];
+      if(!file){if(title)title.textContent='Choose a receipt';if(meta)meta.textContent='PNG, JPG, WEBP or PDF · up to 10 MB';if(hint)hint.textContent='No file selected';return;}
+      if(file.size>10*1024*1024){input.value='';if(hint){hint.textContent='File is larger than 10 MB.';hint.classList.add('error');}return;}
+      if(title)title.textContent=file.name;
+      if(meta)meta.textContent=`${String(file.type||'File').split('/').pop().toUpperCase()} · ${(file.size/1024/1024).toFixed(2)} MB`;
+      if(hint){hint.textContent='✓ Ready to upload';hint.classList.remove('error');hint.classList.add('ready');}
+    });
+  }
+  function boot(){bindInvestmentReceiptV3304();setTimeout(()=>window.refreshInvestmentReceiptFlagsV3304?.(),1000);}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+})();
+</script>
+
 </body>
 </html>
 <script id="mmhvault-v3295-financial-behavior-period-fix">
