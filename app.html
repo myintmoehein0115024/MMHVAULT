@@ -42,6 +42,11 @@
 .receipt-viewer-close-v3297{border:1px solid rgba(255,255,255,.16);background:#151f35;color:#eef4ff;border-radius:10px;padding:8px 13px;cursor:pointer;font-size:14px}
 .receipt-viewer-close-v3297:hover{background:#202d49}
 .receipt-viewer-loading-v3297{color:#9db0cf;font-size:14px}
+#receiptZoomFloatV3299{position:absolute;top:16px;right:16px;z-index:20;display:none;align-items:center;gap:8px;padding:8px 10px;background:rgba(14,25,48,.96);border:1px solid rgba(140,180,255,.35);border-radius:12px;box-shadow:0 10px 28px rgba(0,0,0,.35);backdrop-filter:blur(10px)}
+#receiptZoomFloatV3299.show{display:flex}
+#receiptZoomFloatV3299 button{width:34px;height:34px;border:1px solid rgba(255,255,255,.12);border-radius:8px;background:#17243e;color:#f4f7ff;font-size:21px;font-weight:700;line-height:1;cursor:pointer}
+#receiptZoomFloatV3299 button:hover{background:#243657}
+#receiptZoomFloatLabelV3299{min-width:46px;text-align:center;color:#d8e5ff;font-size:12px;font-weight:800}
 @media(max-width:650px){#receiptViewerModalV3297{padding:8px}.receipt-viewer-dialog-v3297{width:100%;height:94vh;border-radius:14px}.receipt-viewer-head-v3297{padding:12px}.receipt-viewer-title-v3297{font-size:14px}}
 </style>
 </head>
@@ -917,13 +922,16 @@ async function uploadTransactionReceiptV396(userId,txId,file){
 }
 let receiptZoomV3297=1;
 function updateReceiptZoomV3297(){
-  const img=$("receiptViewerImageV3297"),label=$("receiptZoomLabelV3297"),controls=$("receiptZoomControlsV3297");
+  const img=$("receiptViewerImageV3297"),label=$("receiptZoomLabelV3297"),floatLabel=$("receiptZoomFloatLabelV3299"),controls=$("receiptZoomControlsV3297"),float=$("receiptZoomFloatV3299");
   if(!img)return;
   receiptZoomV3297=Math.max(.5,Math.min(3,receiptZoomV3297));
   img.style.transform=`scale(${receiptZoomV3297})`;
   img.classList.toggle('zoomed-v3297',receiptZoomV3297>1.01);
-  if(label)label.textContent=Math.round(receiptZoomV3297*100)+'%';
-  if(controls)controls.style.display='flex';
+  const text=Math.round(receiptZoomV3297*100)+'%';
+  if(label)label.textContent=text;
+  if(floatLabel)floatLabel.textContent=text;
+  if(controls)controls.style.display='none';
+  if(float)float.classList.add('show');
 }
 function changeReceiptZoomV3297(delta){receiptZoomV3297+=delta;updateReceiptZoomV3297();}
 function resetReceiptZoomV3297(){receiptZoomV3297=1;updateReceiptZoomV3297();}
@@ -932,6 +940,7 @@ function closeTransactionReceiptV3297(){
   receiptZoomV3297=1;
   if(body)body.innerHTML='';
   if(controls)controls.style.display='none';
+  const float=$("receiptZoomFloatV3299"); if(float)float.classList.remove('show');
   if(modal)modal.classList.remove('show');
 }
 async function openTransactionReceiptV396(id){
@@ -947,9 +956,10 @@ async function openTransactionReceiptV396(id){
   const url=data.signedUrl;
   const clean=url.split('?')[0].toLowerCase();
   if(clean.endsWith('.pdf')){
+    const float=$("receiptZoomFloatV3299"); if(float)float.classList.remove('show');
     body.innerHTML='<iframe title="Receipt PDF" src="'+url+'"></iframe>';
   }else{
-    body.innerHTML='<img id="receiptViewerImageV3297" alt="Receipt" src="'+url+'">';
+    body.innerHTML='<div id="receiptZoomFloatV3299" class="show" aria-label="Image zoom controls"><button type="button" onclick="changeReceiptZoomV3297(-.1)" title="Zoom out">−</button><span id="receiptZoomFloatLabelV3299">100%</span><button type="button" onclick="changeReceiptZoomV3297(.1)" title="Zoom in">+</button></div><img id="receiptViewerImageV3297" alt="Receipt" src="'+url+'">';
     const receiptImg=body.querySelector('img');
     if(receiptImg){
       receiptZoomV3297=1;
