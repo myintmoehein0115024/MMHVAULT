@@ -232,13 +232,13 @@
 <button class="btn" onclick="retryLoadAllV384()" type="button">Retry</button>
 </div>
 <header id="header" style="display:none">
-<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.33.1</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
+<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.34.2</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
 <div class="header-spacer"></div>
 <div aria-label="Signed in user" class="header-profile" id="headerProfile">
 <div class="header-avatar" id="headerAvatar">MF</div>
 <div class="header-profile-copy"><b id="headerDisplayName">MMHVAULT User</b><span id="headerDisplayEmail">Personal Finance &amp; Wealth Management</span></div>
 </div>
-<div id="mmhvaultSyncStatusV337" class="mmhvault-sync-status-v337" aria-live="polite" title="Cloud sync status"><span class="sync-dot"></span><span class="sync-label">Cloud Synced</span></div>
+<div aria-live="polite" class="mmhvault-sync-status-v337" id="mmhvaultSyncStatusV337" title="Cloud sync status"><span class="sync-dot"></span><span class="sync-label">Cloud Synced</span></div>
 </header>
 <div class="bottom-nav" id="bottomNav" style="display:none">
 <button data-page="dashboard">📊<span>Dashboard</span></button>
@@ -639,17 +639,7 @@
 </div>
 <div class="system-status-note-v313">Status is derived from the MMHVAULT session, loaded account records, realtime subscription state and the backup history stored on this device.</div>
 </div>
-<div class="panel data-integrity-panel-v339" id="dataIntegrityPanelV339">
-<div class="toolbar"><div><h2>Data Integrity</h2><div class="small">Compare the data currently loaded in this app with your cloud records.</div></div><span class="pill" id="dataIntegrityBadgeV339">Not checked</span></div>
-<div class="data-integrity-grid-v339">
-<div class="data-integrity-card-v339"><div class="label">Transactions</div><div class="value" id="integrityTxV339">—</div><div class="meta" id="integrityTxMetaV339">Local / Cloud</div></div>
-<div class="data-integrity-card-v339"><div class="label">Investments</div><div class="value" id="integrityInvV339">—</div><div class="meta" id="integrityInvMetaV339">Local / Cloud</div></div>
-<div class="data-integrity-card-v339"><div class="label">Duplicate IDs</div><div class="value" id="integrityDupV339">—</div><div class="meta">Loaded records</div></div>
-<div class="data-integrity-card-v339"><div class="label">Last Check</div><div class="value" id="integrityTimeV339">Never</div><div class="meta" id="integrityTimeMetaV339">Run a consistency check when needed.</div></div>
-</div>
-<div class="data-integrity-actions-v339"><button class="btn" id="integrityCheckBtnV339" onclick="runDataIntegrityCheckV339()" type="button">Run Integrity Check</button></div>
-<div class="data-integrity-result-v339" id="integrityResultV339">Cloud consistency has not been checked yet.</div>
-</div>
+
 <div class="panel backup-history-v381">
 <div class="backup-history-head-v381"><div><h2 style="margin-bottom:3px">Backup History</h2><div class="small">Recent backup points saved on this device for this account.</div></div><button class="btn" onclick="clearBackupHistoryV381()" type="button">Clear History</button></div>
 <div class="backup-history-list-v381" id="backupHistoryListV381"></div>
@@ -5400,7 +5390,6 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
 })();
 </script>
-
 <script id="mmhvault-v332-render-data-sync-kernel">
 /* MMHVAULT V3.33.3 · Unified render/data sync kernel. Non-destructive compatibility layer. */
 (function(){
@@ -5443,8 +5432,6 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
   }catch(err){console.warn('MMHVAULT loadAll sync hook skipped:',err);}
 })();
 </script>
-
-
 <script id="mmhvault-v333-data-mutation-bridge">
 /* MMHVAULT V3.33.3 · Mutation bridge
    Routes successful user-data mutations into the unified render kernel. UI/data model unchanged. */
@@ -5484,8 +5471,6 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(bind,0),{once:true});else setTimeout(bind,0);
 })();
 </script>
-
-
 <script id="mmhvault-v334-data-lifecycle-kernel">
 /* MMHVAULT V3.33.4 · Data lifecycle kernel.
    Keeps cloud/local/render boundaries observable without changing existing data rules. */
@@ -5527,8 +5512,6 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
   snapshot();
 })();
 </script>
-
-
 <script id="mmhvault-v335-realtime-data-kernel">
 /* MMHVAULT V3.33.6 · Unified Realtime → Cloud Load → Render bridge.
    Keeps the existing data model intact while making realtime state and refresh flow deterministic. */
@@ -5547,7 +5530,6 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
   if(typeof subscribeRealtime==='function') setTimeout(()=>{try{subscribeRealtime();}catch(err){console.warn("Realtime kernel init skipped:",err);}},0);
 })();
 </script>
-
 <style id="mmhvault-v337-sync-status-css">
 .mmhvault-sync-status-v337{display:flex;align-items:center;gap:7px;margin-left:10px;padding:6px 10px;border:1px solid var(--line);border-radius:999px;background:rgba(11,16,48,.5);color:var(--muted);font-size:11px;font-weight:800;white-space:nowrap;box-shadow:0 5px 18px rgba(0,0,0,.08)}
 .mmhvault-sync-status-v337 .sync-dot{width:7px;height:7px;border-radius:50%;background:#39e6a1;box-shadow:0 0 0 3px rgba(57,230,161,.10);flex:0 0 7px}
@@ -5592,7 +5574,6 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
   setNet();
 })();
 </script>
-
 <script id="mmhvault-v337-sync-status-ui">
 /* MMHVAULT V3.33.7 · Sync status / error recovery UI. Visual + observability layer only. */
 (function(){
@@ -5627,8 +5608,6 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(syncFromState,0),{once:true}); else setTimeout(syncFromState,0);
 })();
 </script>
-
-
 <script id="mmhvault-v338-retry-recovery">
 /* MMHVAULT V3.33.8 · Sync error recovery + exponential retry.
    Retries failed cloud refreshes without changing data rules or schema. */
@@ -5712,69 +5691,5 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
 })();
 </script>
 
-<script id="mmhvault-v339-data-integrity">
-/* MMHVAULT V3.34.0 · Data Integrity / Sync Consistency check. Read-only diagnostics. */
-(function(){
-  if(window.__mmhV339IntegrityInstalled)return; window.__mmhV339IntegrityInstalled=true;
-  const $=id=>document.getElementById(id);
-  const esc=window.esc||function(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));};
-  function badge(kind,label){const e=$('dataIntegrityBadgeV339');if(!e)return;e.textContent=label;e.className='pill';if(kind==='ok')e.classList.add('green');if(kind==='warn')e.classList.add('yellow');if(kind==='err')e.classList.add('red');}
-  function dup(list){const s=new Set();let d=0;for(const x of(Array.isArray(list)?list:[])){const id=String(x?.id??'');if(!id)continue;if(s.has(id))d++;else s.add(id);}return d;}
-  async function run(){
-    const btn=$('integrityCheckBtnV339'),result=$('integrityResultV339');if(!btn||!result)return;
-    if(typeof db==='undefined'){badge('err','Unavailable');result.className='data-integrity-result-v339 err';result.textContent='Cloud database client is not available.';return;}
-    btn.disabled=true;btn.textContent='Checking…';result.className='data-integrity-result-v339';result.textContent='Comparing loaded records with Supabase…';
-    try{
-      const localTx=(typeof transactions!=='undefined'&&Array.isArray(transactions))?transactions:[];
-      const localInv=(typeof investments!=='undefined'&&Array.isArray(investments))?investments:[];
-      const [txR,invR,rateR]=await Promise.all([
-        db.from('transactions').select('id'),
-        db.from('investments').select('id'),
-        db.from('exchange_rates').select('id')
-      ]);
-      const errs=[txR.error,invR.error,rateR.error].filter(Boolean);
-      if(errs.length)throw new Error(errs.map(e=>e.message||String(e)).join(' · '));
-      const cloudTx=Array.isArray(txR.data)?txR.data:[], cloudInv=Array.isArray(invR.data)?invR.data:[];
-      const localTxIds=new Set(localTx.map(x=>String(x?.id??'')).filter(Boolean));
-      const localInvIds=new Set(localInv.map(x=>String(x?.id??'')).filter(Boolean));
-      const cloudTxIds=new Set(cloudTx.map(x=>String(x?.id??'')).filter(Boolean));
-      const cloudInvIds=new Set(cloudInv.map(x=>String(x?.id??'')).filter(Boolean));
-      const missingTx=cloudTx.filter(x=>!localTxIds.has(String(x?.id??''))).length;
-      const extraTx=localTx.filter(x=>!cloudTxIds.has(String(x?.id??''))).length;
-      const missingInv=cloudInv.filter(x=>!localInvIds.has(String(x?.id??''))).length;
-      const extraInv=localInv.filter(x=>!cloudInvIds.has(String(x?.id??''))).length;
-      const dups=dup(localTx)+dup(localInv);
-      const lt=localTx.length,li=localInv.length,ct=cloudTx.length,ci=cloudInv.length,cr=Array.isArray(rateR.data)?rateR.data.length:0;
-      $('integrityTxV339').textContent=`${lt.toLocaleString()} / ${ct.toLocaleString()}`;
-      $('integrityTxMetaV339').textContent=(missingTx||extraTx)?`Mismatch · ${missingTx} missing · ${extraTx} extra`:'Local / Cloud match';
-      $('integrityInvV339').textContent=`${li.toLocaleString()} / ${ci.toLocaleString()}`;
-      $('integrityInvMetaV339').textContent=(missingInv||extraInv)?`Mismatch · ${missingInv} missing · ${extraInv} extra`:'Local / Cloud match';
-      $('integrityDupV339').textContent=String(dups);
-      const now=new Date();
-      $('integrityTimeV339').textContent=now.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'});
-      $('integrityTimeMetaV339').textContent=now.toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'})+` · ${cr} exchange-rate record${cr===1?'':'s'}`;
-      if(!missingTx&&!extraTx&&!missingInv&&!extraInv&&dups===0){
-        badge('ok','Consistent');result.className='data-integrity-result-v339 ok';
-        result.innerHTML='<b>Data is consistent.</b> Local Transaction / Investment IDs match Supabase exactly, with no duplicate loaded IDs.';
-      }else{
-        const notes=[];
-        if(missingTx||extraTx)notes.push(`Transactions · ${missingTx} cloud record${missingTx===1?'':'s'} missing locally · ${extraTx} local record${extraTx===1?'':'s'} not in cloud`);
-        if(missingInv||extraInv)notes.push(`Investments · ${missingInv} cloud record${missingInv===1?'':'s'} missing locally · ${extraInv} local record${extraInv===1?'':'s'} not in cloud`);
-        if(dups)notes.push(`${dups} duplicate loaded ID${dups===1?'':'s'}`);
-        badge('warn','Review');result.className='data-integrity-result-v339 warn';
-        result.innerHTML='<b>Consistency needs review.</b> '+notes.map(esc).join(' · ');
-      }
-    }catch(e){
-      badge('err','Check Unavailable');result.className='data-integrity-result-v339 err';
-      result.textContent='Unable to complete the cloud integrity check: '+(e?.message||e);
-      $('integrityTimeV339').textContent='Unavailable';
-      $('integrityTimeMetaV339').textContent='Cloud query failed. Your existing data was not changed.';
-    }finally{btn.disabled=false;btn.textContent='Run Integrity Check';}
-  }
-  window.runDataIntegrityCheckV339=run;
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{window.addEventListener('mmhvault:data-loaded',()=>setTimeout(run,450));},{once:true});else window.addEventListener('mmhvault:data-loaded',()=>setTimeout(run,450));
-})();
-</script>
 </body>
 </html>
-
