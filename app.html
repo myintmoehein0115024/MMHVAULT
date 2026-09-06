@@ -95,37 +95,9 @@
 @media(max-width:650px){.edit-receipt-box-v3303{padding:12px}.edit-receipt-drop-v3303{width:100%}}
 </style>
 
-<style id="mmhvault-v3304-investment-receipt-style">
-.invest-receipt-box-v3304{margin-top:2px;padding:12px 14px;border:1px solid rgba(91,147,245,.20);border-radius:14px;background:linear-gradient(135deg,rgba(20,31,58,.52),rgba(9,17,34,.76))}
-.invest-receipt-head-v3304{display:flex;align-items:center;gap:10px;margin-bottom:9px}
-.invest-receipt-title-v3304{font-size:13px;font-weight:800;color:#edf4ff}
-.invest-receipt-sub-v3304{margin-top:2px;font-size:10px;color:#8ea4c6}
-.invest-receipt-badge-v3304{margin-left:auto;padding:4px 8px;border:1px solid rgba(255,255,255,.08);border-radius:999px;color:#9bb0d0;font-size:9px;font-weight:800;letter-spacing:.06em}
-.invest-receipt-drop-v3304{display:flex;align-items:center;justify-content:center;gap:9px;min-height:48px;width:min(100%,560px);margin:0 auto;border:1px dashed rgba(99,153,255,.30);border-radius:11px;background:rgba(5,12,26,.26);cursor:pointer}
-.invest-receipt-plus-v3304{display:grid;place-items:center;width:30px;height:30px;border-radius:9px;background:#172844;border:1px solid rgba(112,165,255,.18);color:#8fc3ff;font-size:19px;line-height:1}
-.invest-receipt-copy-v3304{display:flex;flex-direction:column;gap:2px;text-align:left}
-.invest-receipt-copy-v3304 strong{font-size:12px;color:#dce9ff}
-.invest-receipt-copy-v3304 small{font-size:10px;color:#7f95b5}
-.invest-receipt-status-v3304{margin-top:6px;text-align:center;font-size:9px;color:#6f84a5}
-.invest-receipt-status-v3304.ready{color:#63d6a5}
-.invest-receipt-status-v3304.error{color:#ff7d92}
-</style>
 
-<style id="mmhvault-v3305-investment-receipt-style">
-.invest-receipt-box-v3304{margin-top:2px;padding:12px 14px;border:1px solid rgba(91,147,245,.20);border-radius:14px;background:linear-gradient(135deg,rgba(20,31,58,.52),rgba(9,17,34,.76))}
-.invest-receipt-head-v3304{display:flex;align-items:center;gap:10px;margin-bottom:9px}
-.invest-receipt-title-v3304{font-size:13px;font-weight:800;color:#edf4ff}
-.invest-receipt-sub-v3304{margin-top:2px;font-size:10px;color:#8ea4c6}
-.invest-receipt-badge-v3304{margin-left:auto;padding:4px 8px;border:1px solid rgba(255,255,255,.08);border-radius:999px;color:#9bb0d0;font-size:9px;font-weight:800;letter-spacing:.06em}
-.invest-receipt-drop-v3304{display:flex;align-items:center;justify-content:center;gap:9px;min-height:48px;width:min(100%,560px);margin:0 auto;border:1px dashed rgba(99,153,255,.30);border-radius:11px;background:rgba(5,12,26,.26);cursor:pointer}
-.invest-receipt-plus-v3304{display:grid;place-items:center;width:30px;height:30px;border-radius:9px;background:#172844;border:1px solid rgba(112,165,255,.18);color:#8fc3ff;font-size:19px;line-height:1}
-.invest-receipt-copy-v3304{display:flex;flex-direction:column;gap:2px;text-align:left}
-.invest-receipt-copy-v3304 strong{font-size:12px;color:#dce9ff}
-.invest-receipt-copy-v3304 small{font-size:10px;color:#7f95b5}
-.invest-receipt-status-v3304{margin-top:6px;text-align:center;font-size:9px;color:#6f84a5}
-.invest-receipt-status-v3304.ready{color:#63d6a5}
-.invest-receipt-status-v3304.error{color:#ff7d92}
-</style>
+
+
 </head>
 <body>
 <div id="mmhvaultAppBootGuardV3282" style="position:fixed;inset:0;z-index:30000;display:none;align-items:center;justify-content:center;background:#050a18;color:#dce8ff;font-family:Arial,sans-serif;padding:24px;text-align:center;">
@@ -147,7 +119,7 @@
 <button class="btn" onclick="retryLoadAllV384()" type="button">Retry</button>
 </div>
 <header id="header" style="display:none">
-<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.30.5</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
+<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.30.6</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
 <div class="header-spacer"></div>
 <div aria-label="Signed in user" class="header-profile" id="headerProfile">
 <div class="header-avatar" id="headerAvatar">MF</div>
@@ -379,26 +351,28 @@
 <label>Quantity (Auto)<input id="invQty" readonly=""/></label>
 <label id="goldWeightWrap">Gold Weight (Auto)<input id="invGoldWeight" placeholder="ကျပ်သား / ပဲ / ရွေး" readonly=""/></label>
 <label class="full">Note<textarea id="invNote"></textarea></label>
-<label class="full">
-  <div class="invest-receipt-box-v3304">
-    <div class="invest-receipt-head-v3304">
-      <div>
-        <div class="invest-receipt-title-v3304">📎 Receipt attachment</div>
-        <div class="invest-receipt-sub-v3304">Optional · add proof of this investment</div>
-      </div>
-      <span class="invest-receipt-badge-v3304">OPTIONAL</span>
+<div class="full receipt-upload-v3300" id="investmentReceiptUploadV3300">
+  <div class="receipt-upload-head-v3300">
+    <div class="receipt-upload-icon-v3300">📎</div>
+    <div>
+      <div class="receipt-upload-title-v3300">Receipt attachment</div>
+      <div class="receipt-upload-sub-v3300">Optional · add proof, invoice or payment screenshot</div>
     </div>
-    <label class="invest-receipt-drop-v3304" for="invReceipt">
-      <input id="invReceipt" type="file" accept="image/*,.pdf" hidden>
-      <span class="invest-receipt-plus-v3304">＋</span>
-      <span class="invest-receipt-copy-v3304">
-        <strong id="invReceiptTitleV3304">Choose a receipt</strong>
-        <small id="invReceiptMetaV3304">PNG, JPG, WEBP or PDF · up to 10 MB</small>
-      </span>
-    </label>
-    <div class="invest-receipt-status-v3304" id="invReceiptHint">No file selected</div>
+    <div class="receipt-upload-badge-v3300">Optional</div>
   </div>
-</label>
+  <label class="receipt-dropzone-v3300" for="invReceipt" id="investmentReceiptDropzoneV3300">
+    <input accept="image/*,.pdf" id="invReceipt" type="file"/>
+    <div class="receipt-drop-icon-v3300">＋</div>
+    <div class="receipt-drop-copy-v3300">
+      <strong id="invReceiptTitleV3304">Choose a receipt</strong>
+      <span id="invReceiptMetaV3304">PNG, JPG, WEBP or PDF · up to 10 MB</span>
+    </div>
+  </label>
+  <div class="receipt-upload-footer-v3300">
+    <span class="receipt-secure-v3300">🔒 Stored privately in your secure cloud storage</span>
+    <span class="receipt-file-state-v3300" id="invReceiptHint">No file selected</span>
+  </div>
+</div>
 
 </div><div class="notice small" id="invHint"></div><div class="actions"><button class="btn" onclick="clearInvestForm()" type="button">Clear</button><button class="btn primary">Buy &amp; Record</button></div></form></div>
 <div class="panel invest-list-panel v371-crypto" id="v371CryptoPortfolio"><div class="toolbar"><div><h2>Crypto Portfolio</h2><div class="sub">All crypto values and P/L are shown in USD.</div></div><span class="pill">Profit / Loss · ROI</span></div><div class="scroll" id="cryptoInvList"></div></div>
@@ -887,7 +861,6 @@ if(toOff){$("toAccount").value="";$("toAmount").value="";}
 }
 let loadAllPromiseV384=null;
 let lastLoadErrorV384="";
-let realtimeRefreshTimerV384=null;
 function setDataLoadingV384(show,sub="Syncing your private cloud records."){const el=$("dataLoadOverlayV384"),txt=$("dataLoadSubV384");if(txt)txt.textContent=sub;if(el){el.classList.toggle("show",!!show);el.setAttribute("aria-hidden",show?"false":"true");}}
 function setDataErrorV384(message=""){lastLoadErrorV384=message||"";const box=$("dataErrorBannerV384"),msg=$("dataErrorMsgV384");if(msg)msg.textContent=message||"";if(box)box.classList.toggle("show",!!message);}
 function retryLoadAllV384(){setDataErrorV384("");return loadAll({force:true});}
@@ -898,50 +871,37 @@ async function loadAll(opts={}){
     setDataErrorV384("");
     setDataLoadingV384(true,hadExisting?"Refreshing your private cloud records…":"Loading your private cloud records…");
     try{
-      // Keep each request independent: an auxiliary request must never turn a
-      // successful Transactions/Investments refresh into a global cloud error.
-      const results=await Promise.allSettled([
+      const [a,b,r]=await Promise.all([
         db.from("transactions").select("*").order("tx_date",{ascending:false}).order("created_at",{ascending:false}),
         db.from("investments").select("*").order("inv_date",{ascending:false}).order("created_at",{ascending:false}),
         db.from("exchange_rates").select("*").maybeSingle()
       ]);
-      const [ta,ib,er]=results;
       const errors=[];
-      const txResult=ta.status==="fulfilled"?ta.value:{error:ta.reason};
-      const invResult=ib.status==="fulfilled"?ib.value:{error:ib.reason};
-      const rateResult=er.status==="fulfilled"?er.value:{error:er.reason};
-
-      if(txResult.error){console.error(txResult.error);errors.push("Transactions: "+(txResult.error.message||String(txResult.error)));}
-      else transactions=txResult.data||[];
-      if(invResult.error){console.error(invResult.error);errors.push("Investments: "+(invResult.error.message||String(invResult.error)));}
-      else investments=invResult.data||[];
-
-      // Rates are optional/auxiliary. Keep the last known values if this request fails.
-      if(rateResult.error) console.warn("Exchange Rates refresh failed; keeping current rates.",rateResult.error);
-      else if(rateResult.data) rates=rateResult.data;
-
-      try{loadRateInputs();}catch(e){console.warn("Rate input UI refresh failed; data is still loaded.",e);}
-      try{render();}catch(e){console.error("UI render failed after cloud data loaded:",e);}
-
-      // Only show a cloud error when a PRIMARY dataset actually failed.
+      if(a.error){console.error(a.error);errors.push("Transactions: "+a.error.message);} else transactions=a.data||[];
+      if(b.error){console.error(b.error);errors.push("Investments: "+b.error.message);} else investments=b.data||[];
+      if(r.error){console.error(r.error);errors.push("Exchange Rates: "+r.error.message);} else if(r.data) rates=r.data;
+      loadRateInputs();
+      render();
       if(errors.length){
-        const msg=hadExisting?"Some cloud records could not be refreshed. Your last loaded data is still shown. "+errors.join(" "):"Unable to load cloud data. "+errors.join(" ");
+        const msg=hadExisting?"Some cloud data could not be refreshed. Your last loaded data is still shown. "+errors.join(" "):"Unable to load cloud data. "+errors.join(" ");
         setDataErrorV384(msg);
       }
       return {ok:errors.length===0,errors};
     }catch(err){
       console.error("loadAll failed",err);
-      // A true unexpected failure is the only case that reaches here.
       const msg=hadExisting?"Cloud refresh failed. Your last loaded data is still shown. Please check your connection and retry.":"Unable to load cloud data. Please check your connection and retry.";
       setDataErrorV384(msg);
       return {ok:false,errors:[err?.message||String(err)]};
-    }finally{setDataLoadingV384(false);}
+    }finally{
+      setDataLoadingV384(false);
+    }
   })();
   try{return await loadAllPromiseV384;}finally{loadAllPromiseV384=null;}
 }
 function scheduleRealtimeRefreshV384(){clearTimeout(realtimeRefreshTimerV384);realtimeRefreshTimerV384=setTimeout(()=>loadAll(),350);}
 function subscribeRealtime(){
 if(realtimeReady)return;realtimeReady=true;
+let realtimeRefreshTimerV384=null;
 db.channel("myfinance-sync").on("postgres_changes",{event:"*",schema:"public",table:"transactions"},()=>scheduleRealtimeRefreshV384()).on("postgres_changes",{event:"*",schema:"public",table:"investments"},()=>scheduleRealtimeRefreshV384()).on("postgres_changes",{event:"*",schema:"public",table:"exchange_rates"},()=>scheduleRealtimeRefreshV384()).subscribe();
 }
 function currency(a){if(["OKX","ByBit","MetaMask"].includes(a))return"USD";if(["Bath","TrueMoney"].includes(a))return"THB";return"MMK";}
