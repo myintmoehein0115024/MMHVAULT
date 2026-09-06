@@ -5320,11 +5320,11 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
 })();
 </script>
-<script id="mmhvault-v330-stability-cleanup-note">/* MMHVAULT V3.33.2 · Stability/render sync baseline. No data model changes. */</script><script id="mmhvault-v3312-transaction-receipt-ui">
+<script id="mmhvault-v330-stability-cleanup-note">/* MMHVAULT V3.33.3 · Stability/render sync baseline. No data model changes. */</script><script id="mmhvault-v3312-transaction-receipt-ui">
 /* V3.31.2 · Transaction edit receipt management UI */
 </script>
 <script id="mmhvault-v331-period-sync-kernel">
-/* MMHVAULT V3.33.2 · Period + render/data sync kernel. Non-destructive compatibility layer. */
+/* MMHVAULT V3.33.3 · Period + render/data sync kernel. Non-destructive compatibility layer. */
 (function(){
   const KEY_Y='myfinance_analyze_year', KEY_M='myfinance_analyze_month';
   let last='';
@@ -5356,7 +5356,7 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
 </script>
 
 <script id="mmhvault-v332-render-data-sync-kernel">
-/* MMHVAULT V3.33.2 · Unified render/data sync kernel. Non-destructive compatibility layer. */
+/* MMHVAULT V3.33.3 · Unified render/data sync kernel. Non-destructive compatibility layer. */
 (function(){
   let queued=false;
   let reasons=[];
@@ -5395,6 +5395,47 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
       try{loadAll=wrapped;}catch(_e){}
     }
   }catch(err){console.warn('MMHVAULT loadAll sync hook skipped:',err);}
+})();
+</script>
+
+
+<script id="mmhvault-v333-data-mutation-bridge">
+/* MMHVAULT V3.33.3 · Mutation bridge
+   Routes successful user-data mutations into the unified render kernel. UI/data model unchanged. */
+(function(){
+  const bridge={
+    addTransaction:'transaction-add',
+    deleteTx:'transaction-delete',
+    deleteAllTx:'transaction-clear',
+    editTx:'transaction-edit',
+    addInvestment:'investment-add',
+    deleteInvestment:'investment-delete',
+    saveRates:'exchange-rates-save',
+    saveManualGoldPrice:'gold-price-save',
+    saveGoalV371:'goal-save',
+    deleteGoalV371:'goal-delete'
+  };
+  function notify(reason){
+    try{
+      if(typeof window.mmhvaultNotifyDataChangeV332==='function') window.mmhvaultNotifyDataChangeV332(reason);
+      window.dispatchEvent(new CustomEvent('mmhvault:data-change',{detail:{reason:String(reason||'data')}}));
+    }catch(e){console.warn('MMHVAULT mutation bridge skipped:',e);}
+  }
+  function wrap(name,reason){
+    const fn=window[name];
+    if(typeof fn!=='function'||fn.__mmh333Wrapped)return;
+    const wrapped=async function(){
+      const result=await fn.apply(this,arguments);
+      notify(reason);
+      return result;
+    };
+    wrapped.__mmh333Wrapped=true;
+    wrapped.__mmh333Original=fn;
+    window[name]=wrapped;
+    try{globalThis[name]=wrapped;}catch(_e){}
+  }
+  function bind(){Object.entries(bridge).forEach(([name,reason])=>wrap(name,reason));}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(bind,0),{once:true});else setTimeout(bind,0);
 })();
 </script>
 
