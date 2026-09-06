@@ -133,7 +133,7 @@
 <button class="btn" onclick="retryLoadAllV384()" type="button">Retry</button>
 </div>
 <header id="header" style="display:none">
-<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.31.1</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
+<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.31.3</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
 <div class="header-spacer"></div>
 <div aria-label="Signed in user" class="header-profile" id="headerProfile">
 <div class="header-avatar" id="headerAvatar">MF</div>
@@ -1180,24 +1180,28 @@ function editTx(id){
       <label class="full">Note<input id="eNote" value="${esc(t.note||'')}"></label>
     </div>
 
-    <div class="edit-receipt-box-v3303">
-      <div class="edit-receipt-head-v3303">
+    <div class="receipt-upload-v3300 edit-receipt-box-v3303">
+      <div class="receipt-upload-head-v3300">
+        <div class="receipt-upload-icon-v3300">📎</div>
         <div>
-          <div class="edit-receipt-title-v3303">📎 Receipt attachment</div>
-          <div class="edit-receipt-sub-v3303">Add a receipt or replace the existing one for this transaction.</div>
+          <div class="receipt-upload-title-v3300">Receipt attachment</div>
+          <div class="receipt-upload-sub-v3300">Optional · add proof, invoice or payment screenshot</div>
         </div>
-        <span class="edit-receipt-badge-v3303">OPTIONAL</span>
+        <div class="receipt-upload-badge-v3300">Optional</div>
       </div>
-      <label class="edit-receipt-drop-v3303" for="editReceiptFile">
+      <label class="receipt-dropzone-v3300" for="editReceiptFile">
         <input id="editReceiptFile" type="file" accept="image/*,.pdf" hidden>
-        <span class="edit-receipt-plus-v3303">＋</span>
-        <span class="edit-receipt-copy-v3303">
+        <div class="receipt-drop-icon-v3300">＋</div>
+        <div class="receipt-drop-copy-v3300">
           <strong>Choose a receipt</strong>
-          <small>PNG, JPG, WEBP or PDF · up to 10 MB</small>
-        </span>
+          <span>PNG, JPG, WEBP or PDF · up to 10 MB</span>
+        </div>
       </label>
+      <div class="receipt-upload-footer-v3300">
+        <span class="receipt-secure-v3300">🔒 Stored privately in your secure cloud storage</span>
+        <span class="receipt-file-state-v3300" id="editReceiptStatusV3303">No new file selected · existing receipt will remain unchanged.</span>
+      </div>
       <div class="receipt-manage-v3309" id="editReceiptManageV3309"></div>
-      <div class="edit-receipt-status-v3303" id="editReceiptStatusV3303">No new file selected · existing receipt will remain unchanged.</div>
     </div>
 
     <div class="actions">
@@ -1542,23 +1546,27 @@ async function editInvestment(id){
       <label>Quantity<input id="eiQty" type="number" step="0.0000000001" value="${n(x.quantity)}"></label>
       <label class="full">Note<input id="eiNote" value="${esc(x.note||"")}"></label>
     </div>
-    <div class="edit-receipt-box-v3303">
-      <div class="edit-receipt-head-v3303">
+    <div class="receipt-upload-v3300 edit-receipt-box-v3303">
+      <div class="receipt-upload-head-v3300">
+        <div class="receipt-upload-icon-v3300">📎</div>
         <div>
-          <div class="edit-receipt-title-v3303">📎 Receipt attachment</div>
-          <div class="edit-receipt-sub-v3303">Add a receipt or replace the existing one for this investment.</div>
+          <div class="receipt-upload-title-v3300">Receipt attachment</div>
+          <div class="receipt-upload-sub-v3300">Optional · add proof, invoice or payment screenshot</div>
         </div>
-        <span class="edit-receipt-badge-v3303">OPTIONAL</span>
+        <div class="receipt-upload-badge-v3300">Optional</div>
       </div>
-      <label class="edit-receipt-drop-v3303" for="editInvestmentReceiptFile">
+      <label class="receipt-dropzone-v3300" for="editInvestmentReceiptFile">
         <input id="editInvestmentReceiptFile" type="file" accept="image/*,.pdf" hidden>
-        <span class="edit-receipt-plus-v3303">＋</span>
-        <span class="edit-receipt-copy-v3303">
+        <div class="receipt-drop-icon-v3300">＋</div>
+        <div class="receipt-drop-copy-v3300">
           <strong>Choose a receipt</strong>
-          <small>PNG, JPG, WEBP or PDF · up to 10 MB</small>
-        </span>
+          <span>PNG, JPG, WEBP or PDF · up to 10 MB</span>
+        </div>
       </label>
-      <div class="edit-receipt-status-v3303" id="editInvestmentReceiptStatusV3304">No new file selected · existing receipt will remain unchanged.</div>
+      <div class="receipt-upload-footer-v3300">
+        <span class="receipt-secure-v3300">🔒 Stored privately in your secure cloud storage</span>
+        <span class="receipt-file-state-v3300" id="editInvestmentReceiptStatusV3304">No new file selected · existing receipt will remain unchanged.</span>
+      </div>
       <div id="editInvestmentReceiptManageV3309" class="receipt-manage-wrap-v3309"></div>
     </div>
     <div class="actions">
