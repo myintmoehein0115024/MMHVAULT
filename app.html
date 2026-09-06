@@ -98,6 +98,20 @@
 
 
 
+
+<style id="mmhvault-v3309-receipt-management-style">
+.receipt-manage-v3309{margin-top:10px;padding:10px 12px;border:1px solid rgba(91,147,245,.20);border-radius:12px;background:rgba(7,15,30,.28)}
+.receipt-manage-state-v3309{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.receipt-manage-meta-v3309{min-width:0;display:flex;align-items:center;gap:8px}
+.receipt-manage-icon-v3309{width:30px;height:30px;display:grid;place-items:center;border-radius:9px;background:rgba(67,120,211,.12);border:1px solid rgba(104,164,255,.18)}
+.receipt-manage-copy-v3309{min-width:0}
+.receipt-manage-copy-v3309 strong{display:block;font-size:11px;color:#dce9ff}
+.receipt-manage-copy-v3309 span{display:block;margin-top:2px;font-size:9px;color:#7489a8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.receipt-manage-actions-v3309{display:flex;gap:6px;flex:0 0 auto}
+.receipt-manage-actions-v3309 .btn{padding:6px 9px;font-size:10px}
+.receipt-manage-actions-v3309 .btn.danger{color:#ff9aaa}
+.receipt-manage-empty-v3309{font-size:10px;color:#7489a8;text-align:center}
+</style>
 </head>
 <body>
 <div id="mmhvaultAppBootGuardV3282" style="position:fixed;inset:0;z-index:30000;display:none;align-items:center;justify-content:center;background:#050a18;color:#dce8ff;font-family:Arial,sans-serif;padding:24px;text-align:center;">
@@ -119,7 +133,7 @@
 <button class="btn" onclick="retryLoadAllV384()" type="button">Retry</button>
 </div>
 <header id="header" style="display:none">
-<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.30.8</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
+<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.30.9</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
 <div class="header-spacer"></div>
 <div aria-label="Signed in user" class="header-profile" id="headerProfile">
 <div class="header-avatar" id="headerAvatar">MF</div>
@@ -1521,6 +1535,26 @@ async function editInvestment(id){
       <button class="btn primary">Save Changes</button>
     </div>
   </form>`);
+  const receiptManageInvestmentV3309=$('editInvestmentReceiptManageV3309');
+  const renderInvestmentReceiptManageV3309=async()=>{
+    if(!receiptManageInvestmentV3309)return;
+    const u=(await db.auth.getUser()).data.user;
+    if(!u){receiptManageInvestmentV3309.innerHTML='<div class="receipt-manage-empty-v3309">Sign in to manage receipt.</div>';return;}
+    const path=await window.mmHVaultListUserReceiptV3309(u.id,`inv-${id}.`);
+    receiptManageInvestmentV3309.innerHTML=path
+      ? `<div class="receipt-manage-state-v3309"><div class="receipt-manage-meta-v3309"><div class="receipt-manage-icon-v3309">✓</div><div class="receipt-manage-copy-v3309"><strong>Receipt attached</strong><span>${esc(path.split('/').pop())}</span></div></div><div class="receipt-manage-actions-v3309"><button type="button" class="btn" id="editInvestmentViewReceiptV3309">View</button><label class="btn" for="replaceInvestmentReceiptV3309">Replace<input hidden id="replaceInvestmentReceiptV3309" type="file" accept="image/*,.pdf"></label><button type="button" class="btn danger" id="removeInvestmentReceiptV3309">Remove</button></div></div>`
+      : `<div class="receipt-manage-empty-v3309">No receipt attached · choose one below to add it.</div>`;
+    $('editInvestmentViewReceiptV3309')?.addEventListener('click',()=>window.mmHVaultOpenManagedReceiptV3309(id,'investment'));
+    $('removeInvestmentReceiptV3309')?.addEventListener('click',async()=>{
+      if(!confirm('Remove this receipt?'))return;
+      try{await window.mmHVaultRemoveExistingReceiptV3309(u.id,id,'investment');await renderInvestmentReceiptManageV3309();await window.refreshInvestmentReceiptFlagsV3304?.();}catch(e){alert(e?.message||'Unable to remove receipt.');}
+    });
+    $('replaceInvestmentReceiptV3309')?.addEventListener('change',async ev=>{
+      const file=ev.target.files?.[0];if(!file)return;
+      try{await window.mmHVaultReplaceReceiptV3309(u.id,id,file,'investment');await renderInvestmentReceiptManageV3309();await window.refreshInvestmentReceiptFlagsV3304?.();}catch(e){alert(e?.message||'Unable to replace receipt.');}
+    });
+  };
+  await renderInvestmentReceiptManageV3309();
   eiSource.innerHTML=(x.asset==="Gold"?["KPay"]:["OKX","ByBit"]).map(a=>`<option ${a===defaultSource?"selected":""}>${a}</option>`).join("");
   const picker=$("editInvestmentReceiptFile"),status=$("editInvestmentReceiptStatusV3304");
   picker?.addEventListener("change",()=>{
