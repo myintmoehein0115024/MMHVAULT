@@ -133,7 +133,7 @@
 <button class="btn" onclick="retryLoadAllV384()" type="button">Retry</button>
 </div>
 <header id="header" style="display:none">
-<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.30.9</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
+<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.31.1</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
 <div class="header-spacer"></div>
 <div aria-label="Signed in user" class="header-profile" id="headerProfile">
 <div class="header-avatar" id="headerAvatar">MF</div>
@@ -4795,6 +4795,78 @@ async function openInvestmentReceiptV3304(id){
   }
   function boot(){bindInvestmentReceiptV3304();setTimeout(()=>window.refreshInvestmentReceiptFlagsV3304?.(),1000);}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+})();
+</script>
+
+
+<script id="mmhvault-v3311-receipt-remove-fix">
+/* V3.31.1 · Robust receipt removal / replacement */
+window.mmHVaultReceiptBucketV3309 = function(){
+  return typeof RECEIPTS_BUCKET_V396!=="undefined" ? RECEIPTS_BUCKET_V396 : "receipts";
+};
+
+window.mmHVaultListUserReceiptV3309 = async function(userId,prefix){
+  if(!userId)return null;
+  const bucket=window.mmHVaultReceiptBucketV3309();
+  const {data,error}=await db.storage.from(bucket).list(userId,{limit:1000});
+  if(error||!Array.isArray(data))return null;
+  const p=String(prefix||"");
+  const item=data.find(x=>{
+    const name=String(x?.name||"");
+    // Transaction receipts are stored as tx-<id> with NO extension.
+    if(p.startsWith("tx-")) return name===p || name.startsWith(p+".");
+    // Investment receipts are inv-<id>.<extension>.
+    return name.startsWith(p);
+  });
+  return item ? `${userId}/${item.name}` : null;
+};
+
+window.mmHVaultRemoveReceiptPathV3309 = async function(path){
+  if(!path)return;
+  const bucket=window.mmHVaultReceiptBucketV3309();
+  const {error}=await db.storage.from(bucket).remove([path]);
+  if(error)throw error;
+};
+
+window.mmHVaultRemoveExistingReceiptV3309 = async function(userId,id,kind){
+  if(!userId)throw new Error("Please sign in again.");
+  const prefix=(kind==="investment"?`inv-${id}.`:`tx-${id}`);
+  const path=await window.mmHVaultListUserReceiptV3309(userId,prefix);
+  if(!path) return false;
+  await window.mmHVaultRemoveReceiptPathV3309(path);
+  return true;
+};
+
+window.mmHVaultReplaceReceiptV3309 = async function(userId,id,file,kind){
+  if(!userId||!file)throw new Error("No receipt file selected.");
+  if(file.size>10*1024*1024)throw new Error("Receipt file is too large. Maximum size is 10 MB.");
+  const bucket=window.mmHVaultReceiptBucketV3309();
+  await window.mmHVaultRemoveExistingReceiptV3309(userId,id,kind);
+  const ext=(String(file.name||"").split(".").pop()||"bin").toLowerCase();
+  const safeExt=["jpg","jpeg","png","webp","gif","pdf"].includes(ext)?ext:"bin";
+  const path=kind==="investment"
+    ? `${userId}/inv-${id}.${safeExt}`
+    : `${userId}/tx-${id}`;
+  const {error}=await db.storage.from(bucket).upload(path,file,{upsert:true,contentType:file.type||undefined,cacheControl:"3600"});
+  if(error)throw error;
+  return path;
+};
+
+window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
+  if(kind==="investment")return openInvestmentReceiptV3304(id);
+  return openTransactionReceiptV396(id);
+};
+</script>
+
+
+<script id="mmhvault-v3311-receipt-refresh">
+(function(){
+  window.mmHVaultRefreshReceiptManagementV3309 = async function(){
+    try{
+      if(typeof window.mmHVaultRefreshReceiptFlagsV3302==="function")await window.mmHVaultRefreshReceiptFlagsV3302();
+      if(typeof window.refreshInvestmentReceiptFlagsV3304==="function")await window.refreshInvestmentReceiptFlagsV3304();
+    }catch(e){console.debug("Receipt state refresh skipped",e);}
+  };
 })();
 </script>
 
