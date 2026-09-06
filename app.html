@@ -5713,7 +5713,7 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
 </script>
 
 <script id="mmhvault-v339-data-integrity">
-/* MMHVAULT V3.33.9 · Data Integrity / Sync Consistency check. Read-only diagnostics. */
+/* MMHVAULT V3.34.0 · Data Integrity / Sync Consistency check. Read-only diagnostics. */
 (function(){
   if(window.__mmhV339IntegrityInstalled)return; window.__mmhV339IntegrityInstalled=true;
   const $=id=>document.getElementById(id);
@@ -5725,14 +5725,51 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
     if(typeof db==='undefined'){badge('err','Unavailable');result.className='data-integrity-result-v339 err';result.textContent='Cloud database client is not available.';return;}
     btn.disabled=true;btn.textContent='Checking…';result.className='data-integrity-result-v339';result.textContent='Comparing loaded records with Supabase…';
     try{
-      const [txR,invR,rateR]=await Promise.all([db.from('transactions').select('id',{count:'exact',head:true}),db.from('investments').select('id',{count:'exact',head:true}),db.from('exchange_rates').select('id',{count:'exact',head:true})]);
-      const errs=[txR.error,invR.error,rateR.error].filter(Boolean);if(errs.length)throw new Error(errs.map(e=>e.message).join(' · '));
-      const lt=Array.isArray(window.transactions)?window.transactions.length:0,li=Array.isArray(window.investments)?window.investments.length:0,ct=Number(txR.count||0),ci=Number(invR.count||0),cr=Number(rateR.count||0),dups=dup(window.transactions)+dup(window.investments);
-      $('integrityTxV339').textContent=`${lt.toLocaleString()} / ${ct.toLocaleString()}`;$('integrityTxMetaV339').textContent=lt===ct?'Local / Cloud match':'Local / Cloud differ';$('integrityInvV339').textContent=`${li.toLocaleString()} / ${ci.toLocaleString()}`;$('integrityInvMetaV339').textContent=li===ci?'Local / Cloud match':'Local / Cloud differ';$('integrityDupV339').textContent=String(dups);const now=new Date();$('integrityTimeV339').textContent=now.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'});$('integrityTimeMetaV339').textContent=now.toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'})+` · ${cr} exchange-rate record${cr===1?'':'s'}`;
-      if(lt===ct&&li===ci&&dups===0){badge('ok','Consistent');result.className='data-integrity-result-v339 ok';result.innerHTML='<b>Data looks consistent.</b> Loaded Transaction / Investment counts match Supabase and no duplicate record IDs were detected.';}
-      else{const notes=[];if(lt!==ct)notes.push(`Transactions ${lt} local vs ${ct} cloud`);if(li!==ci)notes.push(`Investments ${li} local vs ${ci} cloud`);if(dups)notes.push(`${dups} duplicate loaded ID${dups===1?'':'s'}`);badge('warn','Review');result.className='data-integrity-result-v339 warn';result.innerHTML='<b>Consistency needs review.</b> '+notes.map(esc).join(' · ');}
-    }catch(e){badge('err','Check Failed');result.className='data-integrity-result-v339 err';result.textContent='Integrity check failed: '+(e?.message||e);$('integrityTimeV339').textContent='Failed';$('integrityTimeMetaV339').textContent='Try again after cloud sync is restored.';}
-    finally{btn.disabled=false;btn.textContent='Run Integrity Check';}
+      const localTx=(typeof transactions!=='undefined'&&Array.isArray(transactions))?transactions:[];
+      const localInv=(typeof investments!=='undefined'&&Array.isArray(investments))?investments:[];
+      const [txR,invR,rateR]=await Promise.all([
+        db.from('transactions').select('id'),
+        db.from('investments').select('id'),
+        db.from('exchange_rates').select('id')
+      ]);
+      const errs=[txR.error,invR.error,rateR.error].filter(Boolean);
+      if(errs.length)throw new Error(errs.map(e=>e.message||String(e)).join(' · '));
+      const cloudTx=Array.isArray(txR.data)?txR.data:[], cloudInv=Array.isArray(invR.data)?invR.data:[];
+      const localTxIds=new Set(localTx.map(x=>String(x?.id??'')).filter(Boolean));
+      const localInvIds=new Set(localInv.map(x=>String(x?.id??'')).filter(Boolean));
+      const cloudTxIds=new Set(cloudTx.map(x=>String(x?.id??'')).filter(Boolean));
+      const cloudInvIds=new Set(cloudInv.map(x=>String(x?.id??'')).filter(Boolean));
+      const missingTx=cloudTx.filter(x=>!localTxIds.has(String(x?.id??''))).length;
+      const extraTx=localTx.filter(x=>!cloudTxIds.has(String(x?.id??''))).length;
+      const missingInv=cloudInv.filter(x=>!localInvIds.has(String(x?.id??''))).length;
+      const extraInv=localInv.filter(x=>!cloudInvIds.has(String(x?.id??''))).length;
+      const dups=dup(localTx)+dup(localInv);
+      const lt=localTx.length,li=localInv.length,ct=cloudTx.length,ci=cloudInv.length,cr=Array.isArray(rateR.data)?rateR.data.length:0;
+      $('integrityTxV339').textContent=`${lt.toLocaleString()} / ${ct.toLocaleString()}`;
+      $('integrityTxMetaV339').textContent=(missingTx||extraTx)?`Mismatch · ${missingTx} missing · ${extraTx} extra`:'Local / Cloud match';
+      $('integrityInvV339').textContent=`${li.toLocaleString()} / ${ci.toLocaleString()}`;
+      $('integrityInvMetaV339').textContent=(missingInv||extraInv)?`Mismatch · ${missingInv} missing · ${extraInv} extra`:'Local / Cloud match';
+      $('integrityDupV339').textContent=String(dups);
+      const now=new Date();
+      $('integrityTimeV339').textContent=now.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'});
+      $('integrityTimeMetaV339').textContent=now.toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'})+` · ${cr} exchange-rate record${cr===1?'':'s'}`;
+      if(!missingTx&&!extraTx&&!missingInv&&!extraInv&&dups===0){
+        badge('ok','Consistent');result.className='data-integrity-result-v339 ok';
+        result.innerHTML='<b>Data is consistent.</b> Local Transaction / Investment IDs match Supabase exactly, with no duplicate loaded IDs.';
+      }else{
+        const notes=[];
+        if(missingTx||extraTx)notes.push(`Transactions · ${missingTx} cloud record${missingTx===1?'':'s'} missing locally · ${extraTx} local record${extraTx===1?'':'s'} not in cloud`);
+        if(missingInv||extraInv)notes.push(`Investments · ${missingInv} cloud record${missingInv===1?'':'s'} missing locally · ${extraInv} local record${extraInv===1?'':'s'} not in cloud`);
+        if(dups)notes.push(`${dups} duplicate loaded ID${dups===1?'':'s'}`);
+        badge('warn','Review');result.className='data-integrity-result-v339 warn';
+        result.innerHTML='<b>Consistency needs review.</b> '+notes.map(esc).join(' · ');
+      }
+    }catch(e){
+      badge('err','Check Unavailable');result.className='data-integrity-result-v339 err';
+      result.textContent='Unable to complete the cloud integrity check: '+(e?.message||e);
+      $('integrityTimeV339').textContent='Unavailable';
+      $('integrityTimeMetaV339').textContent='Cloud query failed. Your existing data was not changed.';
+    }finally{btn.disabled=false;btn.textContent='Run Integrity Check';}
   }
   window.runDataIntegrityCheckV339=run;
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{window.addEventListener('mmhvault:data-loaded',()=>setTimeout(run,450));},{once:true});else window.addEventListener('mmhvault:data-loaded',()=>setTimeout(run,450));
