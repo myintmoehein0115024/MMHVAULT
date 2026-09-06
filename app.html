@@ -119,7 +119,7 @@
 <button class="btn" onclick="retryLoadAllV384()" type="button">Retry</button>
 </div>
 <header id="header" style="display:none">
-<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.30.6</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
+<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.30.7</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
 <div class="header-spacer"></div>
 <div aria-label="Signed in user" class="header-profile" id="headerProfile">
 <div class="header-avatar" id="headerAvatar">MF</div>
@@ -871,22 +871,26 @@ async function loadAll(opts={}){
     setDataErrorV384("");
     setDataLoadingV384(true,hadExisting?"Refreshing your private cloud records…":"Loading your private cloud records…");
     try{
+      /* Transaction + investment data are authoritative. Rate/render issues should not
+         be reported as a generic cloud connection failure. */
       const [a,b,r]=await Promise.all([
         db.from("transactions").select("*").order("tx_date",{ascending:false}).order("created_at",{ascending:false}),
         db.from("investments").select("*").order("inv_date",{ascending:false}).order("created_at",{ascending:false}),
-        db.from("exchange_rates").select("*").maybeSingle()
+        db.from("exchange_rates").select("*").limit(1).maybeSingle()
       ]);
-      const errors=[];
-      if(a.error){console.error(a.error);errors.push("Transactions: "+a.error.message);} else transactions=a.data||[];
-      if(b.error){console.error(b.error);errors.push("Investments: "+b.error.message);} else investments=b.data||[];
-      if(r.error){console.error(r.error);errors.push("Exchange Rates: "+r.error.message);} else if(r.data) rates=r.data;
-      loadRateInputs();
-      render();
-      if(errors.length){
-        const msg=hadExisting?"Some cloud data could not be refreshed. Your last loaded data is still shown. "+errors.join(" "):"Unable to load cloud data. "+errors.join(" ");
+      const hardErrors=[];
+      const optionalErrors=[];
+      if(a.error){console.error("Transactions load failed",a.error);hardErrors.push("Transactions: "+a.error.message);}else transactions=a.data||[];
+      if(b.error){console.error("Investments load failed",b.error);hardErrors.push("Investments: "+b.error.message);}else investments=b.data||[];
+      if(r.error){console.warn("Exchange rates load skipped",r.error);optionalErrors.push("Exchange Rates: "+r.error.message);}else if(r.data)rates=r.data;
+      try{loadRateInputs();}catch(e){console.warn("Rate input render skipped",e);}
+      try{render();}catch(e){console.error("MMHVAULT render failed after cloud load",e);}
+      if(hardErrors.length){
+        const msg=hadExisting?"Some cloud data could not be refreshed. Your last loaded data is still shown. "+hardErrors.join(" " ):"Unable to load cloud data. "+hardErrors.join(" " );
         setDataErrorV384(msg);
       }
-      return {ok:errors.length===0,errors};
+      if(optionalErrors.length)console.warn("Optional cloud data warning",optionalErrors);
+      return {ok:hardErrors.length===0,errors:[...hardErrors,...optionalErrors]};
     }catch(err){
       console.error("loadAll failed",err);
       const msg=hadExisting?"Cloud refresh failed. Your last loaded data is still shown. Please check your connection and retry.":"Unable to load cloud data. Please check your connection and retry.";
