@@ -232,7 +232,7 @@
 <button class="btn" onclick="retryLoadAllV384()" type="button">Retry</button>
 </div>
 <header id="header" style="display:none">
-<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.34.3</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
+<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.35.0</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
 <div class="header-spacer"></div>
 <div aria-label="Signed in user" class="header-profile" id="headerProfile">
 <div class="header-avatar" id="headerAvatar">MF</div>
@@ -3445,6 +3445,16 @@ renderDashboard=function(){
   renderWealthMilestonesV388();
 };
 </script>
+
+<style id="v350-networth-allocation-css">
+.dashboard35-wealth-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+.dashboard35-networth-card,.dashboard35-allocation-card{border:1px solid var(--line);border-radius:16px;background:rgba(10,16,42,.52);padding:16px;min-width:0}
+.dashboard35-networth-main{font-size:36px;font-weight:900;letter-spacing:-.03em;margin:10px 0 14px}
+.dashboard35-networth-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:12px;align-items:center;padding:10px 0;border-top:1px solid rgba(255,255,255,.06)}
+.dashboard35-networth-row span{color:var(--muted);font-size:13px}.dashboard35-networth-row b{font-size:15px}.dashboard35-networth-row em{font-style:normal;color:var(--muted);font-size:12px;min-width:48px;text-align:right}.dashboard35-networth-row.total{margin-top:2px}.dashboard35-networth-foot,.dashboard35-allocation-foot{margin-top:11px;color:var(--muted);font-size:11px;line-height:1.45}
+.dashboard35-allocation-list{margin-top:8px}.dashboard35-allocation-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:10px;align-items:center;margin-top:9px}.dashboard35-allocation-row>div{display:flex;align-items:center;gap:7px}.dashboard35-allocation-row strong{font-size:14px}.dashboard35-allocation-row>span{font-size:12px;color:var(--muted);min-width:48px;text-align:right}.dashboard35-dot{width:8px;height:8px;border-radius:50%;display:inline-block}.dashboard35-dot.cash{background:#38c6ee}.dashboard35-dot.crypto{background:#d23cff}.dashboard35-dot.gold{background:#ffc84a}.dashboard35-allocation-track{height:6px;border-radius:999px;background:rgba(255,255,255,.06);overflow:hidden;margin-top:5px}.dashboard35-allocation-track i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#38c6ee,#d23cff)}.dashboard35-allocation-summary{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;margin-top:13px;padding-top:11px;border-top:1px solid rgba(255,255,255,.07);font-size:12px}.dashboard35-allocation-summary span{color:var(--muted)}.dashboard35-allocation-summary strong{font-size:15px}
+@media(max-width:800px){.dashboard35-wealth-grid{grid-template-columns:1fr}.dashboard35-networth-main{font-size:30px}}
+</style>
 <script id="mmhvault-v390-dashboard2-js">
 /* ===================== MMHVAULT V3.11.0 Dashboard 2.0 ===================== */
 (function(){
@@ -3534,6 +3544,12 @@ renderDashboard=function(){
       const monthName=monthLabel(today().slice(0,7));
       const cashPct=m.netWorth?m.cash/m.netWorth*100:0;
       const investPct=m.netWorth?m.investments/m.netWorth*100:0;
+      const cryptoV35=(investments||[]).filter(x=>x.asset==='Crypto').reduce((sum,x)=>sum+n(x.quantity)*(livePrices[x.symbol]?.price||n(x.market_price)),0);
+      const goldV35=(investments||[]).filter(x=>x.asset==='Gold').reduce((sum,x)=>sum+(n(x.quantity)*(goldMarketState.pricePerKyattha||n(x.market_price))),0)/(n(rates.usd_mmk)||1);
+      const cryptoPct35=m.netWorth?cryptoV35/m.netWorth*100:0;
+      const goldPct35=m.netWorth?goldV35/m.netWorth*100:0;
+      const alloc35=[{label:'Cash',pct:cashPct},{label:'Crypto',pct:cryptoPct35},{label:'Gold',pct:goldPct35}];
+      const largestAlloc35=alloc35.reduce((a,b)=>b.pct>a.pct?b:a,alloc35[0]);
       const goalCount=typeof loadGoalsV371==='function'?loadGoalsV371().filter(g=>n(g.target)>0).length:0;
       const nextMilestone=(function(){
         const levels=[10000,25000,50000,100000,250000,500000,1000000,2000000,5000000,10000000];
@@ -3543,7 +3559,7 @@ renderDashboard=function(){
       const momText=m.prev.save!==0?((m.current.save-m.prev.save)/Math.abs(m.prev.save)*100):null;
       el.innerHTML=`
         <div class="dashboard39-head">
-          <div><div class="dashboard39-kicker">V3.9 · Dashboard 2.0</div><h2>Wealth Command Center</h2><div class="sub">Your balance sheet first, then the signals that explain where your wealth is moving.</div></div>
+          <div><div class="dashboard39-kicker">V3.35 · Net Worth & Allocation 2.0</div><h2>Wealth Command Center</h2><div class="sub">Your balance sheet first, then the signals that explain where your wealth is moving.</div></div>
           <div class="dashboard39-badges"><span class="dashboard39-badge">${monthName}</span><span class="dashboard39-badge">Net worth basis: USD</span><span class="dashboard39-badge">Recorded data</span></div>
         </div>
         <div class="dashboard39-grid">
@@ -3570,9 +3586,30 @@ renderDashboard=function(){
             </div>
           </div>
         </div>
+        <div class="dashboard35-wealth-grid">
+          <div class="dashboard35-networth-card">
+            <div class="dashboard39-card-head"><div><div class="label">NET WORTH</div><div class="small" style="margin-top:3px">Current balance sheet · USD</div></div><span class="pill">Current</span></div>
+            <div class="dashboard35-networth-main">${d39Money(m.netWorth)}</div>
+            <div class="dashboard35-networth-row"><span>Cash</span><b class="cyan">${d39Money(m.cash)}</b><em>${cashPct.toFixed(1)}%</em></div>
+            <div class="dashboard35-networth-row"><span>Investments</span><b class="pink">${d39Money(m.investments)}</b><em>${investPct.toFixed(1)}%</em></div>
+            <div class="dashboard35-networth-row total"><span>Month-end saving pace</span><b class="${delta>=0?'green':'red'}">${d39Money(delta)}</b><em>${momText===null?'No baseline':`${momText>=0?'+':''}${momText.toFixed(1)}%`}</em></div>
+            <div class="dashboard35-networth-foot">Net worth = current cash + current investment market value.</div>
+          </div>
+          <div class="dashboard35-allocation-card">
+            <div class="dashboard39-card-head"><div><div class="label">ASSET ALLOCATION</div><div class="small" style="margin-top:3px">Current portfolio mix · USD</div></div><span class="pill">Live mix</span></div>
+            <div class="dashboard35-allocation-list">
+              <div class="dashboard35-allocation-row"><div><span class="dashboard35-dot cash"></span><b>Cash</b></div><strong>${d39Money(m.cash)}</strong><span>${cashPct.toFixed(1)}%</span></div>
+              <div class="dashboard35-allocation-track"><i style="width:${Math.min(100,cashPct)}%"></i></div>
+              <div class="dashboard35-allocation-row"><div><span class="dashboard35-dot crypto"></span><b>Crypto</b></div><strong>${d39Money(cryptoV35)}</strong><span>${cryptoPct35.toFixed(1)}%</span></div>
+              <div class="dashboard35-allocation-track"><i style="width:${Math.min(100,cryptoPct35)}%"></i></div>
+              <div class="dashboard35-allocation-row"><div><span class="dashboard35-dot gold"></span><b>Gold</b></div><strong>${d39Money(goldV35)}</strong><span>${goldPct35.toFixed(1)}%</span></div>
+              <div class="dashboard35-allocation-track"><i style="width:${Math.min(100,goldPct35)}%"></i></div>
+            </div>
+            <div class="dashboard35-allocation-summary"><span>Largest allocation</span><b>${esc(largestAlloc35.label)}</b><strong>${largestAlloc35.pct.toFixed(1)}%</strong></div>
+            <div class="dashboard35-allocation-foot">Current market-value mix. Target allocation can be added later without changing today's balances.</div>
+          </div>
+        </div>
         <div class="dashboard39-driver-grid">
-          <div class="dashboard39-driver"><div class="label">Cash position</div><div class="value cyan">${d39Money(m.cash)}</div><div class="meta">${cashPct.toFixed(1)}% of net worth</div></div>
-          <div class="dashboard39-driver"><div class="label">Investments</div><div class="value pink">${d39Money(m.investments)}</div><div class="meta">${investPct.toFixed(1)}% of net worth</div></div>
           <div class="dashboard39-driver"><div class="label">Next milestone</div><div class="value yellow">${d39Money(nextMilestone)}</div><div class="meta">${d39Money(milestoneGap)} remaining</div></div>
           <div class="dashboard39-driver"><div class="label">Active goals</div><div class="value green">${goalCount}</div><div class="meta">Tracked in Analyze → Goals</div></div>
         </div>
