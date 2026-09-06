@@ -208,6 +208,9 @@
   #budgetIntelligenceV316 .bi-state{grid-column:1 / -1 !important;grid-row:3 !important;justify-self:start !important;width:auto !important;min-width:0 !important;text-align:left !important}
 }
 </style>
+<style id="mmhvault-v339-integrity-css">
+.data-integrity-grid-v339{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:14px}.data-integrity-card-v339{padding:14px;border:1px solid var(--line);border-radius:14px;background:rgba(11,16,48,.34);min-width:0}.data-integrity-card-v339 .label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}.data-integrity-card-v339 .value{font-size:20px;font-weight:850;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.data-integrity-card-v339 .meta{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.35}.data-integrity-actions-v339{display:flex;justify-content:flex-end;margin-top:12px}.data-integrity-result-v339{margin-top:10px;padding:11px 12px;border:1px solid var(--line);border-radius:12px;color:var(--muted);font-size:12px;line-height:1.45;background:rgba(11,16,48,.24)}.data-integrity-result-v339.ok{color:#80e6b4;border-color:rgba(57,230,161,.25)}.data-integrity-result-v339.warn{color:#ffd36b;border-color:rgba(255,211,107,.25)}.data-integrity-result-v339.err{color:#ff9aaa;border-color:rgba(255,113,133,.25)}@media(max-width:800px){.data-integrity-grid-v339{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:520px){.data-integrity-grid-v339{grid-template-columns:1fr}.data-integrity-actions-v339 .btn{width:100%}}
+</style>
 </head>
 <body>
 <div id="mmhvaultAppBootGuardV3282" style="position:fixed;inset:0;z-index:30000;display:none;align-items:center;justify-content:center;background:#050a18;color:#dce8ff;font-family:Arial,sans-serif;padding:24px;text-align:center;">
@@ -635,6 +638,17 @@
 <button class="btn primary" onclick="exportMyFinanceBackupV380()" type="button">Create Backup Now</button>
 </div>
 <div class="system-status-note-v313">Status is derived from the MMHVAULT session, loaded account records, realtime subscription state and the backup history stored on this device.</div>
+</div>
+<div class="panel data-integrity-panel-v339" id="dataIntegrityPanelV339">
+<div class="toolbar"><div><h2>Data Integrity</h2><div class="small">Compare the data currently loaded in this app with your cloud records.</div></div><span class="pill" id="dataIntegrityBadgeV339">Not checked</span></div>
+<div class="data-integrity-grid-v339">
+<div class="data-integrity-card-v339"><div class="label">Transactions</div><div class="value" id="integrityTxV339">—</div><div class="meta" id="integrityTxMetaV339">Local / Cloud</div></div>
+<div class="data-integrity-card-v339"><div class="label">Investments</div><div class="value" id="integrityInvV339">—</div><div class="meta" id="integrityInvMetaV339">Local / Cloud</div></div>
+<div class="data-integrity-card-v339"><div class="label">Duplicate IDs</div><div class="value" id="integrityDupV339">—</div><div class="meta">Loaded records</div></div>
+<div class="data-integrity-card-v339"><div class="label">Last Check</div><div class="value" id="integrityTimeV339">Never</div><div class="meta" id="integrityTimeMetaV339">Run a consistency check when needed.</div></div>
+</div>
+<div class="data-integrity-actions-v339"><button class="btn" id="integrityCheckBtnV339" onclick="runDataIntegrityCheckV339()" type="button">Run Integrity Check</button></div>
+<div class="data-integrity-result-v339" id="integrityResultV339">Cloud consistency has not been checked yet.</div>
 </div>
 <div class="panel backup-history-v381">
 <div class="backup-history-head-v381"><div><h2 style="margin-bottom:3px">Backup History</h2><div class="small">Recent backup points saved on this device for this account.</div></div><button class="btn" onclick="clearBackupHistoryV381()" type="button">Clear History</button></div>
@@ -5698,6 +5712,32 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
 })();
 </script>
 
+<script id="mmhvault-v339-data-integrity">
+/* MMHVAULT V3.33.9 · Data Integrity / Sync Consistency check. Read-only diagnostics. */
+(function(){
+  if(window.__mmhV339IntegrityInstalled)return; window.__mmhV339IntegrityInstalled=true;
+  const $=id=>document.getElementById(id);
+  const esc=window.esc||function(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));};
+  function badge(kind,label){const e=$('dataIntegrityBadgeV339');if(!e)return;e.textContent=label;e.className='pill';if(kind==='ok')e.classList.add('green');if(kind==='warn')e.classList.add('yellow');if(kind==='err')e.classList.add('red');}
+  function dup(list){const s=new Set();let d=0;for(const x of(Array.isArray(list)?list:[])){const id=String(x?.id??'');if(!id)continue;if(s.has(id))d++;else s.add(id);}return d;}
+  async function run(){
+    const btn=$('integrityCheckBtnV339'),result=$('integrityResultV339');if(!btn||!result)return;
+    if(typeof db==='undefined'){badge('err','Unavailable');result.className='data-integrity-result-v339 err';result.textContent='Cloud database client is not available.';return;}
+    btn.disabled=true;btn.textContent='Checking…';result.className='data-integrity-result-v339';result.textContent='Comparing loaded records with Supabase…';
+    try{
+      const [txR,invR,rateR]=await Promise.all([db.from('transactions').select('id',{count:'exact',head:true}),db.from('investments').select('id',{count:'exact',head:true}),db.from('exchange_rates').select('id',{count:'exact',head:true})]);
+      const errs=[txR.error,invR.error,rateR.error].filter(Boolean);if(errs.length)throw new Error(errs.map(e=>e.message).join(' · '));
+      const lt=Array.isArray(window.transactions)?window.transactions.length:0,li=Array.isArray(window.investments)?window.investments.length:0,ct=Number(txR.count||0),ci=Number(invR.count||0),cr=Number(rateR.count||0),dups=dup(window.transactions)+dup(window.investments);
+      $('integrityTxV339').textContent=`${lt.toLocaleString()} / ${ct.toLocaleString()}`;$('integrityTxMetaV339').textContent=lt===ct?'Local / Cloud match':'Local / Cloud differ';$('integrityInvV339').textContent=`${li.toLocaleString()} / ${ci.toLocaleString()}`;$('integrityInvMetaV339').textContent=li===ci?'Local / Cloud match':'Local / Cloud differ';$('integrityDupV339').textContent=String(dups);const now=new Date();$('integrityTimeV339').textContent=now.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'});$('integrityTimeMetaV339').textContent=now.toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'})+` · ${cr} exchange-rate record${cr===1?'':'s'}`;
+      if(lt===ct&&li===ci&&dups===0){badge('ok','Consistent');result.className='data-integrity-result-v339 ok';result.innerHTML='<b>Data looks consistent.</b> Loaded Transaction / Investment counts match Supabase and no duplicate record IDs were detected.';}
+      else{const notes=[];if(lt!==ct)notes.push(`Transactions ${lt} local vs ${ct} cloud`);if(li!==ci)notes.push(`Investments ${li} local vs ${ci} cloud`);if(dups)notes.push(`${dups} duplicate loaded ID${dups===1?'':'s'}`);badge('warn','Review');result.className='data-integrity-result-v339 warn';result.innerHTML='<b>Consistency needs review.</b> '+notes.map(esc).join(' · ');}
+    }catch(e){badge('err','Check Failed');result.className='data-integrity-result-v339 err';result.textContent='Integrity check failed: '+(e?.message||e);$('integrityTimeV339').textContent='Failed';$('integrityTimeMetaV339').textContent='Try again after cloud sync is restored.';}
+    finally{btn.disabled=false;btn.textContent='Run Integrity Check';}
+  }
+  window.runDataIntegrityCheckV339=run;
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{window.addEventListener('mmhvault:data-loaded',()=>setTimeout(run,450));},{once:true});else window.addEventListener('mmhvault:data-loaded',()=>setTimeout(run,450));
+})();
+</script>
 </body>
 </html>
 
