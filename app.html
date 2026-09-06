@@ -119,7 +119,7 @@
 <button class="btn" onclick="retryLoadAllV384()" type="button">Retry</button>
 </div>
 <header id="header" style="display:none">
-<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.30.7</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
+<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.30.8</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
 <div class="header-spacer"></div>
 <div aria-label="Signed in user" class="header-profile" id="headerProfile">
 <div class="header-avatar" id="headerAvatar">MF</div>
@@ -1093,12 +1093,60 @@ txType.value=selected.type;syncTransactionGroup();txGroup.value=selected.group;u
 }
 function renderTransactions(){
 if(!transactions.length){txList.innerHTML='<div class="empty">No transactions.</div>';return}
-txList.innerHTML=`<table><tr><th>Date</th><th>Type</th><th>Category</th><th>From</th><th>From Amount</th><th>To</th><th>To Amount</th><th>Note</th><th></th></tr>${transactions.filter(t=>!isLinkedInvestmentTx(t)).map(t=>`<tr><td>${t.tx_date}</td><td>${t.type}</td><td>${esc(t.category)}</td><td>${esc(t.from_account||"—")}</td><td>${t.from_amount?fmt(t.from_amount):"—"}</td><td>${esc(t.to_account||"—")}</td><td>${t.to_amount?fmt(t.to_amount):"—"}</td><td>${esc(t.note)}</td><td class="icon-actions"><button class="btn" onclick="editTx(${t.id})">Edit</button><button class="btn danger" onclick="deleteTx(${t.id})">×</button></td></tr>`).join("")}</table>`;
+txList.innerHTML=`<table><tr><th>Date</th><th>Type</th><th>Category</th><th>From</th><th>From Amount</th><th>To</th><th>To Amount</th><th>Note</th><th></th></tr>${transactions.filter(t=>!isLinkedInvestmentTx(t)).map(t=>`<tr><td>${t.tx_date}</td><td>${t.type}</td><td>${esc(t.category)}</td><td>${esc(t.from_account||"—")}</td><td>${t.from_amount?fmt(t.from_amount):"—"}</td><td>${esc(t.to_account||"—")}</td><td>${t.to_amount?fmt(t.to_amount):"—"}</td><td>${esc(t.note)}</td><td class="icon-actions"><button class="btn" onclick="editTx(${t.id})">Edit</button><button class="btn danger" type="button" onclick="deleteTx(${t.id})">×</button></td></tr>`).join("")}</table>`;
 }
 function closeEditModal(){$('editModal').classList.remove('open');$('editModalBody').innerHTML='';}
 function openEditModal(title,body){$('editModalTitle').textContent=title;$('editModalBody').innerHTML=body;$('editModal').classList.add('open');}
 function txCategoryOptions(type,group){if(type==='Transfer')return ['Transfer'];if(group==='Income')return ['Salary','Meal Allowance','Bonus','Other Income'];if(group==='Expense')return ['Dining','Snacks','Smoking','Transport','Wellness','Lifestyle','Other'];if(group==='Personal')return ['Family Support','Special Transfer','Gifts','Donation'];if(group==='Loans')return type==='Income'?['Debt','Loan Repayment']:['PaidDeb','Loan Out'];return ['Other'];}
 function inferTxGroup(t){if(t.type==='Transfer')return 'Transfer';if(t.type==='Income')return CATS.LoanIncome.includes(t.category)?'Loans':'Income';if(t.type==='Expense'){if(CATS.Expense.includes(t.category))return 'Expense';if(CATS.Personal.includes(t.category))return 'Personal';if(CATS.LoanExpense.includes(t.category))return 'Loans';}return t.type;}
+
+
+/* V3.30.8 · Transaction delete repair */
+async function deleteTx(id){
+  try{
+    const u=(await db.auth.getUser()).data.user;
+    if(!u){alert("Please sign in again.");return;}
+    if(!confirm("Delete this transaction?"))return;
+
+    const r=await db.from("transactions").delete().eq("id",id).eq("user_id",u.id);
+    if(r.error){
+      console.error("Transaction delete failed:",r.error);
+      alert("Unable to delete this transaction.\n\n"+(r.error.message||"Unknown error"));
+      return;
+    }
+
+    // Database row is deleted first; receipt cleanup is best-effort.
+    try{await deleteTransactionReceiptV396(u.id,id);}catch(e){console.debug("Receipt cleanup skipped:",e);}
+    await loadAll();
+    if(typeof window.mmHVaultRefreshReceiptFlagsV3302==="function"){
+      await window.mmHVaultRefreshReceiptFlagsV3302();
+    }
+  }catch(e){
+    console.error("Transaction delete exception:",e);
+    alert("Unable to delete this transaction. Please try again.");
+  }
+}
+async function deleteAllTx(){
+  try{
+    const u=(await db.auth.getUser()).data.user;
+    if(!u){alert("Please sign in again.");return;}
+    if(!confirm("Delete all your transactions? This cannot be undone."))return;
+
+    const r=await db.from("transactions").delete().eq("user_id",u.id);
+    if(r.error){
+      console.error("Clear transactions failed:",r.error);
+      alert("Unable to delete transactions.\n\n"+(r.error.message||"Unknown error"));
+      return;
+    }
+    await loadAll();
+    if(typeof window.mmHVaultRefreshReceiptFlagsV3302==="function"){
+      await window.mmHVaultRefreshReceiptFlagsV3302();
+    }
+  }catch(e){
+    console.error("Clear transactions exception:",e);
+    alert("Unable to delete transactions. Please try again.");
+  }
+}
 
 function editTransaction(id){ return editTx(id); }
 function editTx(id){
@@ -1603,7 +1651,7 @@ function monthLabel(m){const d=new Date((m||today().slice(0,7))+'-01T00:00:00');
 function v28FilteredTx(){const s=($('txSearch')?.value||'').toLowerCase();const ty=$('txFilterType')?.value||'';const gr=$('txFilterGroup')?.value||'';const ca=$('txFilterCategory')?.value||'';const ac=$('txFilterAccount')?.value||'';return transactions.filter(t=>{const hay=[t.tx_date,t.type,transactionGroupFor(t),t.category,t.from_account,t.to_account,t.note].join(' ').toLowerCase();return(!s||hay.includes(s))&&(!ty||t.type===ty)&&(!gr||transactionGroupFor(t)===gr)&&(!ca||t.category===ca)&&(!ac||t.from_account===ac||t.to_account===ac);});}
 function refreshTxFilters(){const cv=$('txFilterCategory')?.value||'',av=$('txFilterAccount')?.value||'';const cats=[...new Set(transactions.map(t=>t.category).filter(Boolean))].sort();$('txFilterCategory').innerHTML='<option value="">All</option>'+cats.map(x=>`<option>${esc(x)}</option>`).join('');$('txFilterCategory').value=cats.includes(cv)?cv:'';$('txFilterAccount').innerHTML='<option value="">All</option>'+ACC.map(x=>`<option>${x}</option>`).join('');$('txFilterAccount').value=ACC.includes(av)?av:'';}
 const _renderTransactionsV27=renderTransactions;
-function renderTransactionsV28(){refreshTxFilters();const rows=v28FilteredTx();$('txResultCount').textContent=`${rows.length} of ${transactions.length} records`;if(!rows.length){$('txList').innerHTML='<div class="empty">No matching transactions.</div>';return}$('txList').innerHTML=`<table><tr><th>Date</th><th>Type</th><th>Transaction</th><th>Category</th><th>From</th><th>From Amount</th><th>To</th><th>To Amount</th><th>Note</th><th>Receipt</th><th></th></tr>${rows.map(t=>`<tr><td>${t.tx_date}</td><td>${t.type}</td><td>${transactionGroupFor(t)}</td><td>${esc(t.category)}</td><td>${esc(t.from_account||'—')}</td><td>${t.from_amount?fmt(t.from_amount):'—'}</td><td>${esc(t.to_account||'—')}</td><td>${t.to_amount?fmt(t.to_amount):'—'}</td><td>${esc(t.note)}</td><td>${window.mmHVaultHasReceiptV3302?.(t.id)?`<button class="btn" type="button" onclick="openTransactionReceiptV396(${t.id})">👁 View</button>`:''}</td><td class="icon-actions"><button class="btn" type="button" data-action="edit-tx" data-id="${t.id}" onclick="editTransaction(${t.id})">Edit</button><button class="btn danger" onclick="deleteTx(${t.id})">×</button></td></tr>`).join('')}</table>`;}
+function renderTransactionsV28(){refreshTxFilters();const rows=v28FilteredTx();$('txResultCount').textContent=`${rows.length} of ${transactions.length} records`;if(!rows.length){$('txList').innerHTML='<div class="empty">No matching transactions.</div>';return}$('txList').innerHTML=`<table><tr><th>Date</th><th>Type</th><th>Transaction</th><th>Category</th><th>From</th><th>From Amount</th><th>To</th><th>To Amount</th><th>Note</th><th>Receipt</th><th></th></tr>${rows.map(t=>`<tr><td>${t.tx_date}</td><td>${t.type}</td><td>${transactionGroupFor(t)}</td><td>${esc(t.category)}</td><td>${esc(t.from_account||'—')}</td><td>${t.from_amount?fmt(t.from_amount):'—'}</td><td>${esc(t.to_account||'—')}</td><td>${t.to_amount?fmt(t.to_amount):'—'}</td><td>${esc(t.note)}</td><td>${window.mmHVaultHasReceiptV3302?.(t.id)?`<button class="btn" type="button" onclick="openTransactionReceiptV396(${t.id})">👁 View</button>`:''}</td><td class="icon-actions"><button class="btn" type="button" data-action="edit-tx" data-id="${t.id}" onclick="editTransaction(${t.id})">Edit</button><button class="btn danger" type="button" onclick="deleteTx(${t.id})">×</button></td></tr>`).join('')}</table>`;}
 async function duplicateTransaction(id){const t=transactions.find(x=>x.id===id);if(!t)return;const u=(await db.auth.getUser()).data.user;if(!u)return;const row={user_id:u.id,tx_date:t.tx_date,type:t.type,category:t.category,from_account:t.from_account,from_amount:t.from_amount,to_account:t.to_account,to_amount:t.to_amount,note:t.note?String(t.note)+' · copy':'Duplicate'};const r=await db.from('transactions').insert(row);if(r.error)alert(r.error.message);else await loadAll();}
 function exportTransactionsCSV(){const rows=v28FilteredTx();const head=['Date','Type','Transaction','Category','From','From Amount','To','To Amount','Note'];const csv=[head,...rows.map(t=>[t.tx_date,t.type,transactionGroupFor(t),t.category,t.from_account||'',t.from_amount||0,t.to_account||'',t.to_amount||0,t.note||''])].map(r=>r.map(v=>`"${String(v).replaceAll('"','""')}"`).join(',')).join('\n');const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`MMHVAULT_Transactions_${today()}.csv`;a.click();URL.revokeObjectURL(a.href);}
 function bindTxFilters(){['txSearch','txFilterType','txFilterGroup','txFilterCategory','txFilterAccount'].forEach(id=>{const el=$(id);if(el)el.addEventListener(el.tagName==='INPUT'?'input':'change',renderTransactionsV28);});}
