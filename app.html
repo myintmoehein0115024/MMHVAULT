@@ -5320,11 +5320,11 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
 })();
 </script>
-<script id="mmhvault-v330-stability-cleanup-note">/* MMHVAULT V3.33.0 · Stability cleanup baseline. No data model changes. */</script><script id="mmhvault-v3312-transaction-receipt-ui">
+<script id="mmhvault-v330-stability-cleanup-note">/* MMHVAULT V3.33.2 · Stability/render sync baseline. No data model changes. */</script><script id="mmhvault-v3312-transaction-receipt-ui">
 /* V3.31.2 · Transaction edit receipt management UI */
 </script>
 <script id="mmhvault-v331-period-sync-kernel">
-/* MMHVAULT V3.33.1 · Period/data sync kernel. Non-destructive compatibility layer. */
+/* MMHVAULT V3.33.2 · Period + render/data sync kernel. Non-destructive compatibility layer. */
 (function(){
   const KEY_Y='myfinance_analyze_year', KEY_M='myfinance_analyze_month';
   let last='';
@@ -5354,6 +5354,50 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
 })();
 </script>
+
+<script id="mmhvault-v332-render-data-sync-kernel">
+/* MMHVAULT V3.33.2 · Unified render/data sync kernel. Non-destructive compatibility layer. */
+(function(){
+  let queued=false;
+  let reasons=[];
+  function run(){
+    queued=false;
+    const why=reasons.join(',')||'sync';
+    reasons=[];
+    try{
+      if(typeof window.render==='function') window.render();
+      window.dispatchEvent(new CustomEvent('mmhvault:rendered',{detail:{reason:why}}));
+    }catch(err){console.warn('MMHVAULT render kernel failed:',err);}
+  }
+  function request(reason='sync'){
+    reasons.push(String(reason));
+    if(queued)return;
+    queued=true;
+    if(typeof queueMicrotask==='function') queueMicrotask(run); else setTimeout(run,0);
+  }
+  window.mmhvaultRequestRenderV332=request;
+  window.mmhvaultNotifyDataChangeV332=function(reason='data'){request(reason);};
+
+  window.addEventListener('mmhvault:period-change',function(){request('period-change');});
+  window.addEventListener('mmhvault:data-change',function(e){request(e?.detail?.reason||'data-change');});
+
+  // Keep cloud refreshes and future data mutations on the same render queue.
+  try{
+    const base=window.loadAll;
+    if(typeof base==='function'&&!base.__mmh332Wrapped){
+      const wrapped=async function(){
+        const result=await base.apply(this,arguments);
+        request('cloud-refresh');
+        return result;
+      };
+      wrapped.__mmh332Wrapped=true;
+      window.loadAll=wrapped;
+      try{loadAll=wrapped;}catch(_e){}
+    }
+  }catch(err){console.warn('MMHVAULT loadAll sync hook skipped:',err);}
+})();
+</script>
+
 </body>
 </html>
 
