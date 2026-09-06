@@ -235,6 +235,7 @@
 <div class="header-avatar" id="headerAvatar">MF</div>
 <div class="header-profile-copy"><b id="headerDisplayName">MMHVAULT User</b><span id="headerDisplayEmail">Personal Finance &amp; Wealth Management</span></div>
 </div>
+<div id="mmhvaultSyncStatusV337" class="mmhvault-sync-status-v337" aria-live="polite" title="Cloud sync status"><span class="sync-dot"></span><span class="sync-label">Cloud Synced</span></div>
 </header>
 <div class="bottom-nav" id="bottomNav" style="display:none">
 <button data-page="dashboard">📊<span>Dashboard</span></button>
@@ -5533,6 +5534,16 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
 })();
 </script>
 
+<style id="mmhvault-v337-sync-status-css">
+.mmhvault-sync-status-v337{display:flex;align-items:center;gap:7px;margin-left:10px;padding:6px 10px;border:1px solid var(--line);border-radius:999px;background:rgba(11,16,48,.5);color:var(--muted);font-size:11px;font-weight:800;white-space:nowrap;box-shadow:0 5px 18px rgba(0,0,0,.08)}
+.mmhvault-sync-status-v337 .sync-dot{width:7px;height:7px;border-radius:50%;background:#39e6a1;box-shadow:0 0 0 3px rgba(57,230,161,.10);flex:0 0 7px}
+.mmhvault-sync-status-v337.syncing .sync-dot{background:#55c9ff;box-shadow:0 0 0 3px rgba(85,201,255,.10);animation:mmhvaultSyncPulse337 1.1s ease-in-out infinite}
+.mmhvault-sync-status-v337.offline .sync-dot{background:#ffd36b;box-shadow:0 0 0 3px rgba(255,211,107,.10)}
+.mmhvault-sync-status-v337.error .sync-dot{background:#ff7185;box-shadow:0 0 0 3px rgba(255,113,133,.10)}
+.mmhvault-sync-status-v337.stale .sync-dot{background:#ffd36b;box-shadow:0 0 0 3px rgba(255,211,107,.10)}
+@keyframes mmhvaultSyncPulse337{0%,100%{transform:scale(1);opacity:.72}50%{transform:scale(1.25);opacity:1}}
+@media(max-width:720px){.mmhvault-sync-status-v337{display:none}}
+</style>
 <script id="mmhvault-v336-offline-cache-kernel">
 /* MMHVAULT V3.33.6 · Local cache + offline recovery layer.
    Non-destructive: Supabase remains authoritative whenever reachable. */
@@ -5565,6 +5576,41 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
   window.addEventListener('offline',function(){setNet();dispatch('mmhvault:network-change',{online:false});});
   window.addEventListener('mmhvault:data-loaded',function(){safeWrite();});
   setNet();
+})();
+</script>
+
+<script id="mmhvault-v337-sync-status-ui">
+/* MMHVAULT V3.33.7 · Sync status / error recovery UI. Visual + observability layer only. */
+(function(){
+  if(window.__mmhV337SyncStatusInstalled)return;
+  window.__mmhV337SyncStatusInstalled=true;
+  function el(){return document.getElementById('mmhvaultSyncStatusV337');}
+  function set(status,label,title){
+    const root=el(); if(!root)return;
+    root.classList.remove('syncing','offline','error','stale');
+    if(status==='syncing')root.classList.add('syncing');
+    else if(status==='offline')root.classList.add('offline');
+    else if(status==='error')root.classList.add('error');
+    else if(status==='stale')root.classList.add('stale');
+    const labelEl=root.querySelector('.sync-label'); if(labelEl)labelEl.textContent=label;
+    if(title)root.title=title;
+  }
+  function syncFromState(){
+    const net=navigator.onLine;
+    if(!net){set('offline','Offline','No network connection · showing the latest available data');return;}
+    const ds=window.mmhvaultDataStateV334||{};
+    if(ds.status==='loading'){set('syncing','Syncing','Loading the latest data from Supabase');return;}
+    if(ds.status==='error'){set('error','Sync Error','The latest cloud refresh failed · retrying when possible');return;}
+    if(ds.status==='stale'){set('stale','Cached Data','Showing the latest locally cached snapshot');return;}
+    if(ds.status==='ready'){set('ready','Cloud Synced','Latest cloud data loaded');return;}
+    const rt=window.mmhvaultGetRealtimeStateV335?window.mmhvaultGetRealtimeStateV335():{};
+    if(rt.status==='connecting'){set('syncing','Connecting','Connecting to Supabase Realtime');return;}
+    set('ready','Cloud Synced','Cloud sync ready');
+  }
+  ['mmhvault:data-loading','mmhvault:data-loaded','mmhvault:data-error','mmhvault:cache-restored','mmhvault:network-change','mmhvault:sync-complete','mmhvault:realtime-state'].forEach(ev=>window.addEventListener(ev,syncFromState));
+  window.addEventListener('online',()=>setTimeout(syncFromState,80));
+  window.addEventListener('offline',()=>set('offline','Offline','No network connection · showing the latest available data'));
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(syncFromState,0),{once:true}); else setTimeout(syncFromState,0);
 })();
 </script>
 
