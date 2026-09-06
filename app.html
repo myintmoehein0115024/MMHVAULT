@@ -5439,6 +5439,49 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
 })();
 </script>
 
+
+<script id="mmhvault-v334-data-lifecycle-kernel">
+/* MMHVAULT V3.33.4 · Data lifecycle kernel.
+   Keeps cloud/local/render boundaries observable without changing existing data rules. */
+(function(){
+  if(window.__mmhV334DataLifecycleInstalled)return;
+  window.__mmhV334DataLifecycleInstalled=true;
+  const state={status:'idle',lastReason:'boot',lastLoadedAt:0,transactions:0,investments:0};
+  window.mmhvaultDataStateV334=state;
+  function snapshot(){
+    state.transactions=Array.isArray(window.__mmhTransactionsMirror)?window.__mmhTransactionsMirror.length:(typeof transactions!=='undefined'&&Array.isArray(transactions)?transactions.length:0);
+    state.investments=Array.isArray(window.__mmhInvestmentsMirror)?window.__mmhInvestmentsMirror.length:(typeof investments!=='undefined'&&Array.isArray(investments)?investments.length:0);
+    return {status:state.status,lastReason:state.lastReason,lastLoadedAt:state.lastLoadedAt,transactions:state.transactions,investments:state.investments};
+  }
+  function publish(name,detail){
+    try{window.dispatchEvent(new CustomEvent(name,{detail:Object.assign(snapshot(),detail||{})}));}catch(e){}
+  }
+  window.mmhvaultGetDataStateV334=snapshot;
+  window.addEventListener('mmhvault:data-change',()=>{state.lastReason='mutation';state.status='dirty';publish('mmhvault:data-state');});
+  window.addEventListener('mmhvault:period-change',()=>publish('mmhvault:data-state',{reason:'period-change'}));
+  const base=window.loadAll;
+  if(typeof base==='function'&&!base.__mmh334Wrapped){
+    const wrapped=async function(){
+      state.status='loading';state.lastReason='cloud-refresh';publish('mmhvault:data-loading');
+      try{
+        const result=await base.apply(this,arguments);
+        state.status=result&&result.ok===false?'stale':'ready';state.lastLoadedAt=Date.now();
+        try{window.__mmhTransactionsMirror=Array.isArray(transactions)?transactions.slice():[];}catch(e){}
+        try{window.__mmhInvestmentsMirror=Array.isArray(investments)?investments.slice():[];}catch(e){}
+        publish('mmhvault:data-loaded',{reason:'cloud-refresh',result:result||null});
+        return result;
+      }catch(err){
+        state.status='error';state.lastReason='cloud-refresh-error';publish('mmhvault:data-error',{error:String(err?.message||err)});throw err;
+      }
+    };
+    wrapped.__mmh334Wrapped=true;wrapped.__mmh334Original=base;
+    window.loadAll=wrapped;
+    try{globalThis.loadAll=wrapped;}catch(e){}
+  }
+  snapshot();
+})();
+</script>
+
 </body>
 </html>
 
