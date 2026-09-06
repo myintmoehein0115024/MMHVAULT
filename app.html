@@ -1015,12 +1015,38 @@ async function loadAll(opts={}){
   })();
   try{return await loadAllPromiseV384;}finally{loadAllPromiseV384=null;}
 }
-function scheduleRealtimeRefreshV384(){clearTimeout(realtimeRefreshTimerV384);realtimeRefreshTimerV384=setTimeout(()=>loadAll(),350);}
-function subscribeRealtime(){
-if(realtimeReady)return;realtimeReady=true;
 let realtimeRefreshTimerV384=null;
-db.channel("myfinance-sync").on("postgres_changes",{event:"*",schema:"public",table:"transactions"},()=>scheduleRealtimeRefreshV384()).on("postgres_changes",{event:"*",schema:"public",table:"investments"},()=>scheduleRealtimeRefreshV384()).on("postgres_changes",{event:"*",schema:"public",table:"exchange_rates"},()=>scheduleRealtimeRefreshV384()).subscribe();
+let realtimeChannelV384=null;
+function scheduleRealtimeRefreshV384(reason="realtime-change"){
+  clearTimeout(realtimeRefreshTimerV384);
+  realtimeRefreshTimerV384=setTimeout(async()=>{
+    realtimeRefreshTimerV384=null;
+    try{
+      if(typeof window.mmhvaultRequestRenderV332==='function') window.mmhvaultRequestRenderV332(reason);
+      if(typeof loadAll==='function') await loadAll();
+    }catch(err){console.warn("MMHVAULT realtime refresh failed:",err);}
+  },250);
 }
+function subscribeRealtime(){
+  if(realtimeChannelV384)return realtimeChannelV384;
+  const setState=(connected,status)=>{
+    realtimeReady=!!connected;
+    window.mmhvaultRealtimeStateV335={connected:!!connected,status:String(status||""),at:Date.now()};
+    try{window.dispatchEvent(new CustomEvent("mmhvault:realtime-state",{detail:window.mmhvaultRealtimeStateV335}));}catch(_e){}
+  };
+  const channel=db.channel("myfinance-sync-v335")
+    .on("postgres_changes",{event:"*",schema:"public",table:"transactions"},()=>scheduleRealtimeRefreshV384("transactions"))
+    .on("postgres_changes",{event:"*",schema:"public",table:"investments"},()=>scheduleRealtimeRefreshV384("investments"))
+    .on("postgres_changes",{event:"*",schema:"public",table:"exchange_rates"},()=>scheduleRealtimeRefreshV384("exchange_rates"))
+    .subscribe((status)=>{
+      if(status==="SUBSCRIBED") setState(true,status);
+      else if(status==="CHANNEL_ERROR"||status==="TIMED_OUT"||status==="CLOSED") setState(false,status);
+    });
+  realtimeChannelV384=channel;
+  setState(false,"CONNECTING");
+  return channel;
+}
+
 function currency(a){if(["OKX","ByBit","MetaMask"].includes(a))return"USD";if(["Bath","TrueMoney"].includes(a))return"THB";return"MMK";}
 function toMMK(a){if(!a)return 1;if(currency(a)==="USD")return rates.usd_mmk;if(currency(a)==="THB")return rates.usd_mmk/rates.usd_thb;return 1;}
 function isLinkedInvestmentTx(t){return t?.category==="Investment" && String(t?.note||"").startsWith("Investment:");}
@@ -5482,6 +5508,25 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
 })();
 </script>
 
+
+<script id="mmhvault-v335-realtime-data-kernel">
+/* MMHVAULT V3.33.5 · Unified Realtime → Cloud Load → Render bridge.
+   Keeps the existing data model intact while making realtime state and refresh flow deterministic. */
+(function(){
+  if(window.__mmhV335RealtimeInstalled)return;
+  window.__mmhV335RealtimeInstalled=true;
+  window.mmhvaultRealtimeStateV335=window.mmhvaultRealtimeStateV335||{connected:false,status:"idle",at:0};
+  window.mmhvaultGetRealtimeStateV335=function(){return Object.assign({},window.mmhvaultRealtimeStateV335);};
+  window.addEventListener("mmhvault:realtime-state",function(e){
+    const d=e?.detail||{};
+    try{document.documentElement.dataset.realtime=String(d.connected?"connected":(d.status||"unknown")).toLowerCase();}catch(_e){}
+  });
+  window.addEventListener("mmhvault:data-loaded",function(){
+    try{window.dispatchEvent(new CustomEvent("mmhvault:sync-complete",{detail:window.mmhvaultGetRealtimeStateV335()}));}catch(_e){}
+  });
+  if(typeof subscribeRealtime==='function') setTimeout(()=>{try{subscribeRealtime();}catch(err){console.warn("Realtime kernel init skipped:",err);}},0);
+})();
+</script>
 </body>
 </html>
 
