@@ -1196,6 +1196,7 @@ function editTx(id){
           <small>PNG, JPG, WEBP or PDF · up to 10 MB</small>
         </span>
       </label>
+      <div class="receipt-manage-v3309" id="editReceiptManageV3309"></div>
       <div class="edit-receipt-status-v3303" id="editReceiptStatusV3303">No new file selected · existing receipt will remain unchanged.</div>
     </div>
 
@@ -1222,6 +1223,35 @@ function editTx(id){
   sync();
   $('eType').onchange=sync;
   $('eGroup').onchange=sync;
+
+  const receiptManageTxV3309=$('editReceiptManageV3309');
+  const renderTransactionReceiptManageV3309=async()=>{
+    if(!receiptManageTxV3309)return;
+    const u=(await db.auth.getUser()).data.user;
+    if(!u){receiptManageTxV3309.innerHTML='<div class="receipt-manage-empty-v3309">Sign in to manage receipt.</div>';return;}
+    const path=await window.mmHVaultListUserReceiptV3309(u.id,`tx-${id}`);
+    receiptManageTxV3309.innerHTML=path
+      ? `<div class="receipt-manage-state-v3309"><div class="receipt-manage-meta-v3309"><div class="receipt-manage-icon-v3309">✓</div><div class="receipt-manage-copy-v3309"><strong>Receipt attached</strong><span>${esc(path.split('/').pop())}</span></div></div><div class="receipt-manage-actions-v3309"><button type="button" class="btn" id="editTransactionViewReceiptV3309">View</button><label class="btn" for="replaceTransactionReceiptV3309">Replace<input hidden id="replaceTransactionReceiptV3309" type="file" accept="image/*,.pdf"></label><button type="button" class="btn danger" id="removeTransactionReceiptV3309">Remove</button></div></div>`
+      : `<div class="receipt-manage-empty-v3309">No receipt attached · choose one below to add it.</div>`;
+    $('editTransactionViewReceiptV3309')?.addEventListener('click',()=>window.mmHVaultOpenManagedReceiptV3309(id,'transaction'));
+    $('removeTransactionReceiptV3309')?.addEventListener('click',async()=>{
+      if(!confirm('Remove this receipt?'))return;
+      try{
+        await window.mmHVaultRemoveExistingReceiptV3309(u.id,id,'transaction');
+        await renderTransactionReceiptManageV3309();
+        await window.mmHVaultRefreshReceiptManagementV3309?.();
+      }catch(e){alert(e?.message||'Unable to remove receipt.');}
+    });
+    $('replaceTransactionReceiptV3309')?.addEventListener('change',async ev=>{
+      const file=ev.target.files?.[0];if(!file)return;
+      try{
+        await window.mmHVaultReplaceReceiptV3309(u.id,id,file,'transaction');
+        await renderTransactionReceiptManageV3309();
+        await window.mmHVaultRefreshReceiptManagementV3309?.();
+      }catch(e){alert(e?.message||'Unable to replace receipt.');}
+    });
+  };
+  renderTransactionReceiptManageV3309();
 
   $('editReceiptFile').addEventListener('change',()=>{
     const file=$('editReceiptFile').files?.[0];
@@ -4813,10 +4843,7 @@ window.mmHVaultListUserReceiptV3309 = async function(userId,prefix){
   const p=String(prefix||"");
   const item=data.find(x=>{
     const name=String(x?.name||"");
-    // Transaction receipts are stored as tx-<id> with NO extension.
-    if(p.startsWith("tx-")) return name===p || name.startsWith(p+".");
-    // Investment receipts are inv-<id>.<extension>.
-    return name.startsWith(p);
+    return p.startsWith("tx-") ? (name===p || name.startsWith(p+".")) : name.startsWith(p);
   });
   return item ? `${userId}/${item.name}` : null;
 };
@@ -4830,10 +4857,22 @@ window.mmHVaultRemoveReceiptPathV3309 = async function(path){
 
 window.mmHVaultRemoveExistingReceiptV3309 = async function(userId,id,kind){
   if(!userId)throw new Error("Please sign in again.");
-  const prefix=(kind==="investment"?`inv-${id}.`:`tx-${id}`);
-  const path=await window.mmHVaultListUserReceiptV3309(userId,prefix);
-  if(!path) return false;
-  await window.mmHVaultRemoveReceiptPathV3309(path);
+  const bucket=window.mmHVaultReceiptBucketV3309();
+  const base=kind==="investment"?`inv-${id}`:`tx-${id}`;
+  const list=await db.storage.from(bucket).list(userId,{limit:1000});
+  if(list.error)throw list.error;
+  const names=(Array.isArray(list.data)?list.data:[])
+    .map(x=>String(x?.name||""))
+    .filter(name=>name===base || name.startsWith(base+"."));
+  // Transaction uploads use the exact extensionless path; remove it directly as well.
+  if(!names.length && kind!=="investment"){
+    const {error}=await db.storage.from(bucket).remove([`${userId}/${base}`]);
+    if(error)throw error;
+    return true;
+  }
+  if(!names.length)return false;
+  const {error}=await db.storage.from(bucket).remove(names.map(name=>`${userId}/${name}`));
+  if(error)throw error;
   return true;
 };
 
@@ -5105,4 +5144,8 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
 })();
+</script>
+
+<script id="mmhvault-v3312-transaction-receipt-ui">
+/* V3.31.2 · Transaction edit receipt management UI */
 </script>
