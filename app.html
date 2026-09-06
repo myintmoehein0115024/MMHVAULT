@@ -134,6 +134,89 @@
 @media(max-width:720px){.excel-import-head-v318{flex-direction:column}.excel-badge-v318{align-self:flex-start}.excel-import-footer-v318{align-items:stretch;flex-direction:column}.excel-import-footer-v318 .actions{display:flex;width:100%}.excel-import-footer-v318 .btn{flex:1}.excel-dropzone-v318{min-height:112px}}
 </style>
 
+
+<style id="mmhvault-v322-budget-layout-fix">
+/* V3.32.2 — Budget rows: prevent amount/state overlap and improve readability */
+#budgetIntelligenceV316 .bi-row{
+  display:grid !important;
+  grid-template-columns:120px minmax(220px,1fr) 250px 92px !important;
+  align-items:center !important;
+  column-gap:16px !important;
+  row-gap:8px !important;
+  min-width:0 !important;
+  overflow:visible !important;
+}
+#budgetIntelligenceV316 .bi-cat{
+  grid-column:1 !important;
+  min-width:0 !important;
+  font-size:14px !important;
+  font-weight:800 !important;
+}
+#budgetIntelligenceV316 .bi-bar{
+  grid-column:2 !important;
+  width:100% !important;
+  min-width:0 !important;
+}
+#budgetIntelligenceV316 .bi-amt{
+  grid-column:3 !important;
+  display:grid !important;
+  grid-template-columns:88px 12px 140px !important;
+  align-items:center !important;
+  justify-content:stretch !important;
+  width:250px !important;
+  min-width:250px !important;
+  gap:5px !important;
+  overflow:visible !important;
+}
+#budgetIntelligenceV316 .bi-spent{
+  width:88px !important;
+  min-width:88px !important;
+  text-align:right !important;
+  white-space:nowrap !important;
+  font-size:14px !important;
+  font-weight:850 !important;
+  font-variant-numeric:tabular-nums !important;
+}
+#budgetIntelligenceV316 .bi-slash{width:12px !important;text-align:center !important}
+#budgetIntelligenceV316 .bi-plan{
+  width:140px !important;
+  min-width:140px !important;
+  height:36px !important;
+  border-radius:11px !important;
+}
+#budgetIntelligenceV316 .bi-plan-currency{padding-left:11px !important;font-size:13px !important}
+#budgetIntelligenceV316 .bi-budget-input-v319{
+  height:34px !important;
+  font-size:15px !important;
+  font-weight:850 !important;
+  padding:6px 11px 6px 5px !important;
+}
+#budgetIntelligenceV316 .bi-state{
+  grid-column:4 !important;
+  justify-self:end !important;
+  width:92px !important;
+  min-width:92px !important;
+  white-space:nowrap !important;
+  text-align:right !important;
+  font-size:12px !important;
+  line-height:1 !important;
+  margin:0 !important;
+}
+@media(max-width:1100px){
+  #budgetIntelligenceV316 .bi-row{grid-template-columns:105px minmax(170px,1fr) 225px 80px !important;column-gap:10px !important}
+  #budgetIntelligenceV316 .bi-amt{grid-template-columns:78px 10px 127px !important;width:225px !important;min-width:225px !important}
+  #budgetIntelligenceV316 .bi-spent{width:78px !important;min-width:78px !important;font-size:13px !important}
+  #budgetIntelligenceV316 .bi-plan{width:127px !important;min-width:127px !important}
+  #budgetIntelligenceV316 .bi-state{width:80px !important;min-width:80px !important;font-size:11px !important}
+}
+@media(max-width:760px){
+  #budgetIntelligenceV316 .bi-row{grid-template-columns:1fr 1fr !important;column-gap:8px !important;row-gap:7px !important}
+  #budgetIntelligenceV316 .bi-cat{grid-column:1 !important;grid-row:1 !important}
+  #budgetIntelligenceV316 .bi-bar{grid-column:2 !important;grid-row:1 !important}
+  #budgetIntelligenceV316 .bi-amt{grid-column:1 / -1 !important;grid-row:2 !important;width:auto !important;min-width:0 !important;display:grid !important;grid-template-columns:78px 10px 127px !important;justify-content:start !important}
+  #budgetIntelligenceV316 .bi-state{grid-column:1 / -1 !important;grid-row:3 !important;justify-self:start !important;width:auto !important;min-width:0 !important;text-align:left !important}
+}
+</style>
 </head>
 <body>
 <div id="mmhvaultAppBootGuardV3282" style="position:fixed;inset:0;z-index:30000;display:none;align-items:center;justify-content:center;background:#050a18;color:#dce8ff;font-family:Arial,sans-serif;padding:24px;text-align:center;">
@@ -3834,7 +3917,7 @@ renderDashboard=function(){
     else if(budgetGap<0) insights.push(['Recovery needed',`The combined budget is over by ${money(Math.abs(budgetGap))}. Review the categories marked above 100%.`]);
     const sorted=[...data].sort((a,b)=>b.spent-a.spent);
     const periodTitle=`${periodLabel} · Budget vs actual · THB`;
-    old.innerHTML=`<div class="bi-head"><div><div class="bi-kicker">V3.32.1 · Spending Control</div><h2>Budget Control</h2><div class="sub">One place to manage category limits, current usage and spending pace — no duplicate budget panels.</div></div><span class="pill">${periodLabel}</span></div><div class="bi-body"><div class="bi-summary"><div class="bi-card"><div class="label">Total Spending</div><div class="value ${totalPct>100?'red':totalPct>80?'yellow':'green'}">${money(totalSpent)} <span class="small">/ ${money(totalBudget)}</span></div><div class="bi-progress"><span style="width:${Math.min(100,totalPct)}%"></span></div><div class="meta">${totalBudget?`${totalPct.toFixed(1)}% of combined budget · ${budgetGap>=0?money(budgetGap)+' remaining':money(Math.abs(budgetGap))+' over'}`:'Set category budgets below.'}</div></div><div class="bi-card"><div class="label">Daily Pace</div><div class="value">${money(pace)}</div><div class="meta">Average spending per recorded day</div></div><div class="bi-card"><div class="label">Projected Month</div><div class="value ${projected>totalBudget&&totalBudget>0?'red':'cyan'}">${monthKey?money(projected):'—'}</div><div class="meta">Based on current daily pace</div></div><div class="bi-card"><div class="label">Categories Over</div><div class="value ${over.length?'red':'green'}">${over.length}</div><div class="meta">${near.length} close to limit · ${budgeted.length} with budgets</div></div></div><div class="bi-main"><div class="bi-panel"><div class="bi-panel-head"><div><div class="bi-title">Category Budget Control</div><div class="bi-sub">Edit planned amounts directly. Actual spending stays linked to your transactions.</div></div><span class="pill">${periodTitle}</span></div><div>${sorted.map(r=>{const has=r.budget>0;const cls=!has?'':r.pct>100?'bad':r.pct>80?'warn':'good';const st=!has?'No budget':r.pct>100?`+${(r.pct-100).toFixed(0)}% over`:r.pct>80?`${r.pct.toFixed(0)}% used`:`${r.pct.toFixed(0)}% used`;return `<div class="bi-row"><div class="bi-cat">${esc(r.cat)}</div><div class="bi-bar"><span style="width:${has?Math.min(100,r.pct):0}%"></span></div><div class="bi-amt"><span class="bi-spent">${money(r.spent)}</span><span class="bi-slash">/</span><span class="bi-plan"><span class="bi-plan-currency">฿</span><input class="bi-budget-input-v319" type="number" min="0" step="0.01" value="${r.budget||''}" placeholder="0" aria-label="Planned amount for ${esc(r.cat)}" onchange="v37SaveBudget('${r.cat}',this.value)" onkeydown="if(event.key==='Enter'){this.blur();}"></span></div><div class="bi-state ${cls}">${st}</div></div>`;}).join('')}</div><div class="bi-control">Set each planned amount directly here. Changes are saved for the selected period and immediately update the budget signals.</div></div></div></div>`;
+    old.innerHTML=`<div class="bi-head"><div><div class="bi-kicker">V3.32.2 · Spending Control</div><h2>Budget Control</h2><div class="sub">One place to manage category limits, current usage and spending pace — no duplicate budget panels.</div></div><span class="pill">${periodLabel}</span></div><div class="bi-body"><div class="bi-summary"><div class="bi-card"><div class="label">Total Spending</div><div class="value ${totalPct>100?'red':totalPct>80?'yellow':'green'}">${money(totalSpent)} <span class="small">/ ${money(totalBudget)}</span></div><div class="bi-progress"><span style="width:${Math.min(100,totalPct)}%"></span></div><div class="meta">${totalBudget?`${totalPct.toFixed(1)}% of combined budget · ${budgetGap>=0?money(budgetGap)+' remaining':money(Math.abs(budgetGap))+' over'}`:'Set category budgets below.'}</div></div><div class="bi-card"><div class="label">Daily Pace</div><div class="value">${money(pace)}</div><div class="meta">Average spending per recorded day</div></div><div class="bi-card"><div class="label">Projected Month</div><div class="value ${projected>totalBudget&&totalBudget>0?'red':'cyan'}">${monthKey?money(projected):'—'}</div><div class="meta">Based on current daily pace</div></div><div class="bi-card"><div class="label">Categories Over</div><div class="value ${over.length?'red':'green'}">${over.length}</div><div class="meta">${near.length} close to limit · ${budgeted.length} with budgets</div></div></div><div class="bi-main"><div class="bi-panel"><div class="bi-panel-head"><div><div class="bi-title">Category Budget Control</div><div class="bi-sub">Edit planned amounts directly. Actual spending stays linked to your transactions.</div></div><span class="pill">${periodTitle}</span></div><div>${sorted.map(r=>{const has=r.budget>0;const cls=!has?'':r.pct>100?'bad':r.pct>80?'warn':'good';const st=!has?'No budget':r.pct>100?`+${(r.pct-100).toFixed(0)}% over`:r.pct>80?`${r.pct.toFixed(0)}% used`:`${r.pct.toFixed(0)}% used`;return `<div class="bi-row"><div class="bi-cat">${esc(r.cat)}</div><div class="bi-bar"><span style="width:${has?Math.min(100,r.pct):0}%"></span></div><div class="bi-amt"><span class="bi-spent">${money(r.spent)}</span><span class="bi-slash">/</span><span class="bi-plan"><span class="bi-plan-currency">฿</span><input class="bi-budget-input-v319" type="number" min="0" step="0.01" value="${r.budget||''}" placeholder="0" aria-label="Planned amount for ${esc(r.cat)}" onchange="v37SaveBudget('${r.cat}',this.value)" onkeydown="if(event.key==='Enter'){this.blur();}"></span></div><div class="bi-state ${cls}">${st}</div></div>`;}).join('')}</div><div class="bi-control">Set each planned amount directly here. Changes are saved for the selected period and immediately update the budget signals.</div></div></div></div>`;
     const legacyBudget=document.querySelector('.budget-panel'); if(legacyBudget)legacyBudget.style.display='none';
     const sub=host.querySelector('.sub'); if(sub)sub.textContent=periodTitle;
   }
