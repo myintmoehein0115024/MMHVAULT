@@ -238,7 +238,7 @@
 <button class="btn" onclick="retryLoadAllV384()" type="button">Retry</button>
 </div>
 <header id="header" style="display:none">
-<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.32.0</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
+<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.32.4</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
 <div class="header-spacer"></div>
 <div aria-label="Signed in user" class="header-profile" id="headerProfile">
 <div class="header-avatar" id="headerAvatar">MF</div>
@@ -5361,6 +5361,56 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
         if(btn.dataset.tab==='expenses') requestAnimationFrame(refreshExpenseNow);
       });
     });
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
+})();
+</script>
+
+<script id="mmhvault-v324-expense-period-final-sync">
+/* V3.32.4 · Final Expense tab period sync. */
+(function(){
+  let lastSignature='';
+  function currentSignature(){
+    const y=document.getElementById('analyzeYear')?.value||'';
+    const m=document.getElementById('analyzeMonth')?.value||'annual';
+    return `${y}|${m}`;
+  }
+  function refreshExpensePeriod(){
+    try{
+      const sig=currentSignature();
+      if(sig===lastSignature)return;
+      lastSignature=sig;
+      localStorage.setItem('myfinance_analyze_year', String(document.getElementById('analyzeYear')?.value||''));
+      localStorage.setItem('myfinance_analyze_month', String(document.getElementById('analyzeMonth')?.value||'annual'));
+      /* The visible Budget Control panel is rendered by the canonical renderAnalyze wrapper. */
+      if(typeof window.renderAnalyze==='function') window.renderAnalyze();
+      else if(typeof window.renderAnalyzeV37==='function') window.renderAnalyzeV37();
+      if(typeof window.renderDashboardExpenseControlV1==='function') window.renderDashboardExpenseControlV1();
+      if(typeof window.renderPersonalExpenseAnalysisV371==='function') window.renderPersonalExpenseAnalysisV371();
+    }catch(err){console.warn('V3.32.4 expense period sync failed:',err);}
+  }
+  function bind(){
+    ['analyzeYear','analyzeMonth'].forEach(id=>{
+      const el=document.getElementById(id);
+      if(!el || el.__v324ExpenseSync)return;
+      el.__v324ExpenseSync=true;
+      el.addEventListener('change',()=>{
+        lastSignature='';
+        queueMicrotask(refreshExpensePeriod);
+        requestAnimationFrame(refreshExpensePeriod);
+      },true);
+    });
+    document.querySelectorAll('.analyze-tab-v371').forEach(btn=>{
+      if(btn.__v324ExpenseSync)return;
+      btn.__v324ExpenseSync=true;
+      btn.addEventListener('click',()=>{
+        if(btn.dataset.tab==='expenses'){
+          lastSignature='';
+          requestAnimationFrame(refreshExpensePeriod);
+        }
+      });
+    });
+    lastSignature=currentSignature();
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
 })();
