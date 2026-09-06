@@ -232,7 +232,7 @@
 <button class="btn" onclick="retryLoadAllV384()" type="button">Retry</button>
 </div>
 <header id="header" style="display:none">
-<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.35.0</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
+<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.36.1</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
 <div class="header-spacer"></div>
 <div aria-label="Signed in user" class="header-profile" id="headerProfile">
 <div class="header-avatar" id="headerAvatar">MF</div>
@@ -453,8 +453,9 @@
 <div class="panel invest-holdings v371-crypto" id="v371CurrentHoldings"><div class="toolbar"><div><h2>Current Holdings</h2><div class="sub">Live market value and the quantity you currently hold.</div></div><span class="pill">Crypto · USD</span></div><div class="price-grid holdings-grid" id="currentHoldings"></div></div><div class="panel invest-holdings v371-crypto" id="v371Allocation"><div class="toolbar"><div><h2>Portfolio Allocation</h2><div class="sub">Current weight vs target weight.</div></div><span class="pill">Crypto Target</span></div><div id="allocation"></div></div>
 <div class="panel invest-entry"><div class="toolbar"><div><h2>Add Investment</h2><div class="sub">Record Crypto in USD or Gold in MMK. The source account is deducted automatically.</div></div><span class="pill">Crypto / Gold</span></div><form id="invForm"><div class="formgrid">
 <label>Date<input id="invDate" required="" type="date"/></label>
+<label>Trade Type<select id="invSideV336"><option value="BUY">Buy</option><option value="SELL">Sell</option></select></label>
 <label>Asset<select id="invAsset"><option>Crypto</option><option>Gold</option></select></label>
-<label>Symbol<select id="invSymbol"><option>BTC</option><option>ETH</option><option>SOL</option><option>BNB</option></select></label>
+<label>Symbol<input id="invSymbol" list="cryptoSymbolSuggestionsV336" maxlength="20" placeholder="BTC" autocomplete="off"/><datalist id="cryptoSymbolSuggestionsV336"><option value="BTC"></option><option value="ETH"></option><option value="SOL"></option><option value="BNB"></option><option value="XRP"></option><option value="DOGE"></option><option value="ADA"></option><option value="TRX"></option></datalist></label>
 <label>Source Account<select id="invSource"></select></label>
 <label>Invested Amount<input id="invAmount" min="0" required="" step="0.000001" type="number"/></label>
 <label>Fee<input id="invFee" min="0" step="0.000001" type="number" value="0"/></label>
@@ -5728,5 +5729,191 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
 })();
 </script>
 
+
+<style id="mmhvault-v336-crypto-portfolio-css">
+/* MMHVAULT V3.36.1 · Dynamic Crypto + Buy/Sell portfolio UX */
+.v336-trade-badge{display:inline-flex;align-items:center;gap:6px;padding:5px 9px;border:1px solid var(--line);border-radius:999px;font-weight:800;font-size:11px;letter-spacing:.04em;text-transform:uppercase}
+.v336-trade-badge.buy{color:#39e6a1}.v336-trade-badge.sell{color:#ff7185}
+.v336-position-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.v336-position-card{padding:14px 15px;border:1px solid var(--line);border-radius:15px;background:rgba(255,255,255,.018)}
+.v336-position-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}
+.v336-position-symbol{font-weight:900;font-size:16px}.v336-position-name{font-size:11px;color:var(--muted);margin-top:3px}
+.v336-position-value{text-align:right;font-weight:900;font-size:17px}.v336-position-meta{font-size:11px;color:var(--muted);margin-top:4px}
+.v336-position-grid .empty{grid-column:1/-1}
+.v336-realized{margin-top:8px;font-size:11px;color:var(--muted)}
+.v336-history-note{margin-top:10px;color:var(--muted);font-size:11px}
+.v336-sell-warning{margin-top:9px;padding:9px 11px;border:1px solid rgba(255,113,133,.28);border-radius:11px;color:#ff9eac;background:rgba(255,113,133,.05);font-size:12px;display:none}
+@media(max-width:760px){.v336-position-grid{grid-template-columns:1fr}}
+</style>
+<script id="mmhvault-v336-crypto-buy-sell-js">
+/* ===================== MMHVAULT V3.36.1 CRYPTO BUY/SELL ===================== */
+(function(){
+  const $=id=>document.getElementById(id);
+  const N=v=>{const x=Number(v);return Number.isFinite(x)?x:0};
+  const sym=v=>String(v||'').trim().toUpperCase();
+  const cryptoRows=()=>typeof investments!=='undefined'&&Array.isArray(investments)?investments.filter(x=>x&&x.asset==='Crypto'):[];
+  const signedAmount=x=>N(x.amount);
+  const signedQty=x=>N(x.quantity);
+  function rowsBySymbol(symbol){return cryptoRows().filter(x=>sym(x.symbol)===sym(symbol)).sort((a,b)=>String(a.inv_date||'').localeCompare(String(b.inv_date||'')) || N(a.id)-N(b.id));}
+  function cryptoLedger(symbol){
+    let qty=0,basis=0,realized=0,bought=0,sold=0,buyQty=0,sellQty=0;
+    for(const x of rowsBySymbol(symbol)){
+      const q=signedQty(x), amt=signedAmount(x), fee=Math.abs(N(x.fee)), other=Math.abs(N(x.other_cost));
+      if(q>=0){
+        const cost=Math.max(0,amt)+fee+other;
+        qty+=q; basis+=cost; bought+=Math.max(0,amt); buyQty+=q;
+      }else{
+        const sq=Math.abs(q); const avg=qty>0?basis/qty:0;
+        const proceeds=Math.abs(amt); realized+=proceeds-fee-other-sq*avg;
+        qty=Math.max(0,qty-sq); basis=Math.max(0,basis-sq*avg); sold+=proceeds; sellQty+=sq;
+      }
+    }
+    return {symbol:sym(symbol),qty,basis,realized,bought,sold,buyQty,sellQty,avgCost:qty>0?basis/qty:0};
+  }
+  function currentPositions(){
+    const syms=[...new Set(cryptoRows().map(x=>sym(x.symbol)).filter(Boolean))];
+    return syms.map(cryptoLedger).filter(x=>x.qty>1e-12);
+  }
+  function historicalSymbols(){return [...new Set(cryptoRows().map(x=>sym(x.symbol)).filter(Boolean))].sort();}
+  window.mmHVaultCryptoLedgerV336=cryptoLedger;
+  window.mmHVaultCurrentCryptoPositionsV336=currentPositions;
+  window.mmHVaultCryptoSymbolsV336=historicalSymbols;
+
+  function currentPrice(s){
+    const p=window.livePrices?.[s]?.price;
+    if(Number.isFinite(Number(p))&&Number(p)>0)return Number(p);
+    const row=rowsBySymbol(s).slice(-1)[0];
+    return row?N(row.market_price):0;
+  }
+  function totalCryptoCurrentValue(){return currentPositions().reduce((t,p)=>t+p.qty*currentPrice(p.symbol),0)}
+  function totalCryptoBasis(){return currentPositions().reduce((t,p)=>t+p.basis,0)}
+  function totalCryptoRealized(){return historicalSymbols().reduce((t,s)=>t+cryptoLedger(s).realized,0)}
+  window.mmHVaultCryptoCurrentValueV336=totalCryptoCurrentValue;
+  window.mmHVaultCryptoBasisV336=totalCryptoBasis;
+  window.mmHVaultCryptoRealizedV336=totalCryptoRealized;
+
+  function renderCurrentHoldingsV336(){
+    const el=$('currentHoldings');if(!el)return;
+    const pos=currentPositions();
+    if(!pos.length){el.innerHTML='<div class="empty">No active crypto positions.</div>';return;}
+    el.classList.add('v336-position-grid');
+    el.innerHTML=pos.map(p=>{
+      const cur=currentPrice(p.symbol),value=p.qty*cur,unrealized=value-p.basis,roi=p.basis?unrealized/p.basis*100:0;
+      return `<div class="v336-position-card"><div class="v336-position-head"><div><div class="v336-position-symbol">${esc(p.symbol)}</div><div class="v336-position-name">Crypto · current holding</div></div><div class="v336-position-value">$${fmt(value)}<div class="v336-position-meta">${fmt(p.qty)} ${esc(p.symbol)}</div></div></div><div class="v336-position-meta">Cost basis $${fmt(p.basis)} · Avg $${fmt(p.avgCost)} / ${esc(p.symbol)}</div><div class="${unrealized>=0?'green':'red'}" style="margin-top:7px;font-weight:900">${unrealized>=0?'+':''}$${fmt(unrealized)} · ${roi>=0?'+':''}${roi.toFixed(2)}%</div><div class="v336-realized">Realized P/L · ${p.realized>=0?'+':''}$${fmt(p.realized)}</div></div>`;
+    }).join('');
+  }
+  window.renderCurrentHoldings=renderCurrentHoldingsV336;
+
+  function renderCryptoHistoryV336(rows){
+    if(!rows.length)return '<div class="empty crypto-empty-note">No crypto investment history.</div>';
+    const syms=historicalSymbols();
+    const positions=currentPositions();
+    const activeMap=new Map(positions.map(p=>[p.symbol,p]));
+    const totalValue=positions.reduce((t,p)=>t+p.qty*currentPrice(p.symbol),0);
+    const totalBasis=positions.reduce((t,p)=>t+p.basis,0);
+    const unrealized=totalValue-totalBasis;
+    const realized=totalCryptoRealized();
+    const summary=`<div class="crypto-summary"><div class="crypto-summary-card"><div class="label">Current Value</div><div class="value green">$${fmt(totalValue)}</div><div class="meta">${positions.length} active asset${positions.length===1?'':'s'}</div></div><div class="crypto-summary-card"><div class="label">Cost Basis</div><div class="value">$${fmt(totalBasis)}</div><div class="meta">Remaining holdings</div></div><div class="crypto-summary-card"><div class="label">Unrealized P/L</div><div class="value ${unrealized>=0?'green':'red'}">${unrealized>=0?'+':''}$${fmt(unrealized)}</div><div class="meta">Current value vs basis</div></div><div class="crypto-summary-card"><div class="label">Realized P/L</div><div class="value ${realized>=0?'green':'red'}">${realized>=0?'+':''}$${fmt(realized)}</div><div class="meta">Completed sell trades</div></div></div>`;
+    const table=`<div class="crypto-table-wrap"><table><tr><th>Date</th><th>Side</th><th>Symbol</th><th>Account</th><th>Amount</th><th>Trade Price</th><th>Quantity</th><th>Current Price</th><th>Current Position</th><th>P/L</th><th></th></tr>${rows.map(x=>{
+      const q=signedQty(x),side=q<0?'SELL':'BUY',s=sym(x.symbol),cur=currentPrice(s),pos=activeMap.get(s); const tradeAmount=Math.abs(signedAmount(x));
+      let plText='—';
+      if(side==='SELL'){const ledgerBefore=(()=>{let qty=0,basis=0;for(const r of rowsBySymbol(s)){if(N(r.id)>=N(x.id))break;const rq=signedQty(r),ra=signedAmount(r),f=Math.abs(N(r.fee)),o=Math.abs(N(r.other_cost));if(rq>=0){qty+=rq;basis+=Math.max(0,ra)+f+o}else{const sq=Math.abs(rq),avg=qty>0?basis/qty:0;qty=Math.max(0,qty-sq);basis=Math.max(0,basis-sq*avg);}}return {qty,basis};})();const avg=ledgerBefore.qty?ledgerBefore.basis/ledgerBefore.qty:0;const rp=tradeAmount-Math.abs(N(x.fee))-Math.abs(N(x.other_cost))-Math.abs(q)*avg;plText=`<span class="${rp>=0?'green':'red'}">${rp>=0?'+':''}$${fmt(rp)}</span>`;
+      } else {plText='<span class="small">Acquired</span>';}
+      return `<tr><td>${esc(x.inv_date)}</td><td class="${side==='BUY'?'green':'red'}"><b>${side}</b></td><td><b>${esc(s)}</b></td><td>${esc(x.source_account||'OKX')}</td><td>$${fmt(tradeAmount)}</td><td>$${fmt(x.buy_price)}</td><td>${fmt(Math.abs(q))}</td><td>$${fmt(cur)}</td><td>${pos?fmt(pos.qty)+' '+esc(s):'0 '+esc(s)}</td><td>${plText}</td><td class="icon-actions">${window.mmHVaultHasInvestmentReceiptV3304?.(x.id)?`<button class="btn" onclick="openInvestmentReceiptV3304(${x.id})">👁 View</button>`:''}<button class="btn" onclick="editInvestment(${x.id})">Edit</button><button class="btn danger" onclick="deleteInvestment(${x.id})">×</button></td></tr>`;
+    }).join('')}</table></div>`;
+    const cards=`<div class="crypto-mobile-list">${rows.map(x=>{const q=signedQty(x),side=q<0?'SELL':'BUY',s=sym(x.symbol),cur=currentPrice(s),pos=activeMap.get(s),tradeAmount=Math.abs(signedAmount(x));return `<div class="crypto-mobile-card"><div class="crypto-mobile-top"><div class="crypto-mobile-main"><div class="crypto-mobile-date">${esc(x.inv_date)}</div><div class="crypto-mobile-title"><span class="${side==='BUY'?'green':'red'}">${side}</span> · ${esc(s)}</div><div class="crypto-mobile-sub">${esc(x.source_account||'OKX')} · $${fmt(x.buy_price)}</div></div><div class="crypto-mobile-value"><div>$${fmt(tradeAmount)}</div><div>${pos?fmt(pos.qty)+' '+esc(s):'0 '+esc(s)}</div></div></div><div class="crypto-mobile-grid"><div><span>Trade Amount</span><b>$${fmt(tradeAmount)}</b></div><div><span>Quantity</span><b>${fmt(Math.abs(q))}</b></div><div><span>Current Price</span><b>$${fmt(cur)}</b></div><div><span>Position</span><b>${pos?fmt(pos.qty):'0'} ${esc(s)}</b></div></div><div class="crypto-mobile-actions">${window.mmHVaultHasInvestmentReceiptV3304?.(x.id)?`<button class="btn" onclick="event.stopPropagation();openInvestmentReceiptV3304(${x.id})">👁 View</button>`:''}<button class="btn" onclick="event.stopPropagation();editInvestment(${x.id})">Edit</button><button class="btn danger" onclick="event.stopPropagation();deleteInvestment(${x.id})">Delete</button></div></div>`}).join('')}</div>`;
+    return summary+'<div class="v336-history-note">BUY adds to your holding. SELL reduces it. Sold trades remain here permanently as historical records.</div>'+table+cards;
+  }
+  window.renderCryptoTable=renderCryptoHistoryV336;
+
+  function renderInvestV336(){
+    const cryptos=cryptoRows(),golds=investments.filter(x=>x.asset==='Gold');
+    const cryptoValue=totalCryptoCurrentValue(), cryptoBasis=totalCryptoBasis(), cryptoPnl=cryptoValue-cryptoBasis;
+    let goldCost=0,goldValue=0;golds.forEach(x=>{const q=N(x.quantity),p=(goldMarketState.pricePerKyattha||N(x.market_price));goldCost+=N(x.amount)+N(x.fee)+N(x.other_cost);goldValue+=q*p;});
+    const goldPnl=goldValue-goldCost;
+    renderPortfolioManagerV310(cryptoBasis,cryptoValue,goldCost,goldValue);
+    const activeView=(localStorage.getItem('myFinance_invest_view_v371')||'Crypto')==='Gold'?'Gold':'Crypto';
+    renderInvestMetricsV371(activeView,cryptoBasis,cryptoValue,cryptoPnl,cryptoBasis?cryptoPnl/cryptoBasis*100:0,goldCost,goldValue,goldPnl,goldCost?goldPnl/goldCost*100:0);
+    if($('cryptoInvList'))$('cryptoInvList').innerHTML=renderCryptoHistoryV336(cryptos);
+    if($('goldInvList'))$('goldInvList').innerHTML=renderGoldTable(golds);
+    renderCurrentHoldingsV336();
+    if(typeof renderCryptoPrices==='function')renderCryptoPrices();
+    refreshTradeFormV336();
+  }
+  window.renderInvest=renderInvestV336;
+
+  function ensureSellWarning(){
+    const form=$('invForm'); if(!form||$('invSellWarningV336'))return;
+    const el=document.createElement('div');el.id='invSellWarningV336';el.className='v336-sell-warning';form.querySelector('.actions')?.before(el);
+  }
+  function holdingsFor(s){const p=cryptoLedger(sym(s));return p.qty;}
+  function refreshTradeFormV336(){
+    const side=$('invSideV336'),asset=$('invAsset'),symbol=$('invSymbol'); if(!side||!asset||!symbol)return;
+    ensureSellWarning();
+    const sell=side.value==='SELL'&&asset.value==='Crypto';
+    const buyLabel=[...document.querySelectorAll('#invForm label')].find(l=>l.querySelector('#invAmount'));
+    const priceLabel=[...document.querySelectorAll('#invForm label')].find(l=>l.querySelector('#invBuy'));
+    const btn=$('invSubmitV336')||$('invForm')?.querySelector('button[type="submit"]');
+    if(buyLabel){const t=buyLabel.firstChild;t.textContent=sell?'Sale Proceeds':'Invested Amount';}
+    if(priceLabel){const t=priceLabel.firstChild;t.textContent=sell?'Sale Price':'Purchase-day Market Price';}
+    if(btn)btn.textContent=sell?'Sell & Record':'Buy & Record';
+    const warn=$('invSellWarningV336');
+    if(warn){const q=holdingsFor(symbol.value);warn.style.display=sell?'block':'none';warn.textContent=sell?`Current ${sym(symbol.value)||'asset'} holding: ${fmt(q)} ${sym(symbol.value)||''}. You cannot sell more than you hold.`:'';}
+    if(sell&&asset.value!=='Crypto'){side.value='BUY';}
+  }
+  function bindFormV336(){
+    const form=$('invForm');if(!form||form.dataset.v336Bound==='1')return;
+    form.dataset.v336Bound='1';
+    const side=$('invSideV336'),asset=$('invAsset'),symbol=$('invSymbol'),amount=$('invAmount'),buy=$('invBuy'),market=$('invMarket'),qty=$('invQty');
+    [side,asset,symbol].forEach(el=>el?.addEventListener('change',()=>{refreshTradeFormV336();updateInvestFields();}));
+    symbol?.addEventListener('input',()=>{refreshTradeFormV336();updateInvestFields();});
+    side?.addEventListener('change',()=>{ if(side.value==='SELL' && asset.value==='Gold') side.value='BUY'; refreshTradeFormV336(); updateInvestFields(); });
+    window.mmHVaultRefreshTradeFormV336=refreshTradeFormV336;
+    // Replace the original form submit with a no-schema-change buy/sell ledger writer.
+    form.onsubmit=async function(e){
+      e.preventDefault();
+      const u=(await db.auth.getUser()).data.user;if(!u)return;
+      const tradeSide=(side?.value==='SELL'?'SELL':'BUY'), tradeAsset=asset.value, s=sym(symbol.value);
+      if(tradeAsset!=='Crypto'){
+        // Preserve existing Gold behavior through the original implementation, temporarily.
+        alert('Gold investment entries remain in Buy mode in V3.36.1.');
+        return;
+      }
+      const source=$('invSource').value, cashAmount=N(amount.value), fee=Math.max(0,N($('invFee').value)), other=Math.max(0,N($('invOther').value));
+      const price=N(buy.value), mkt=N(market.value)||window.livePrices?.[s]?.price||price;
+      if(!s){alert('Please enter a crypto symbol.');return;}
+      if(!(cashAmount>0)||!(price>0)){alert('Please enter a valid amount and trade price.');return;}
+      const q=cashAmount/price;
+      if(tradeSide==='SELL'){
+        const held=holdingsFor(s);
+        if(q>held+1e-10){alert(`Cannot sell ${fmt(q)} ${s}. Current holding is only ${fmt(held)} ${s}.`);return;}
+      }
+      const signedCash=tradeSide==='SELL'?-cashAmount:cashAmount;
+      const signedQuantity=tradeSide==='SELL'?-q:q;
+      const row={user_id:u.id,inv_date:$('invDate').value,asset:'Crypto',symbol:s,source_account:source,amount:signedCash,fee,other_cost:other,buy_price:price,market_price:mkt,quantity:signedQuantity,note:$('invNote').value||null};
+      const r=await db.from('investments').insert(row).select('id').single();
+      if(r.error){alert(r.error.message);return;}
+      const file=$('invReceipt')?.files?.[0]||null;
+      if(file){try{await uploadInvestmentReceiptV3304(u.id,r.data.id,file);}catch(err){alert('Investment was saved, but the receipt upload failed: '+(err?.message||err));}}
+      if(typeof window.mmHVaultNotifyDataChangeV332==='function')window.mmHVaultNotifyDataChangeV332('investment-'+tradeSide.toLowerCase());
+      await loadAll();
+      clearInvestForm(); if($('invSideV336'))$('invSideV336').value='BUY'; refreshTradeFormV336();
+      window.refreshInvestmentReceiptFlagsV3304?.();
+    };
+    refreshTradeFormV336();
+  }
+  function boot(){
+    bindFormV336();
+    const asset=$('invAsset');asset?.addEventListener('change',()=>{if($('invSideV336')?.value==='SELL'){$('invSideV336').value='BUY';refreshTradeFormV336();}});
+    // re-render on price updates and existing app refreshes
+    const oldFetch=window.fetchCryptoPrices;
+    if(typeof oldFetch==='function'&&!oldFetch.__v336){
+      const wrapped=async function(){const r=await oldFetch.apply(this,arguments);try{renderInvestV336()}catch(_e){}return r;};wrapped.__v336=true;window.fetchCryptoPrices=wrapped;
+    }
+    try{renderInvestV336()}catch(_e){}
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,0),{once:true});else setTimeout(boot,0);
+})();
+</script>
 </body>
 </html>
