@@ -5367,7 +5367,7 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
 </script>
 
 <script id="mmhvault-v324-expense-period-final-sync">
-/* V3.32.6 · Final Expense tab period sync. */
+/* V3.32.7 · Final Expense tab period sync. */
 (function(){
   let lastSignature='';
   function currentSignature(){
@@ -5417,7 +5417,7 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
 </script>
 
 <script id="mmhvault-v326-period-canonical-expense-sync">
-/* MMHVAULT V3.32.6 · Canonical Analyze period flow for Expense tab.
+/* MMHVAULT V3.32.7 · Canonical Analyze period flow for Expense tab.
    Expense Budget Control is the V3.16 renderer mounted from the global render()/renderAnalyze() chain.
    Period controls therefore follow the same canonical render flow as the other Analyze modules. */
 (function(){
@@ -5428,7 +5428,7 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
       else if(typeof window.renderAnalyzeV37==='function') window.renderAnalyzeV37();
       if(typeof window.renderDashboardExpenseControlV1==='function') window.renderDashboardExpenseControlV1();
       if(typeof window.renderPersonalExpenseAnalysisV371==='function') window.renderPersonalExpenseAnalysisV371();
-    }catch(err){ console.warn('V3.32.6 canonical period sync failed:',err); }
+    }catch(err){ console.warn('V3.32.7 canonical period sync failed:',err); }
   }
   function bind(){
     const ids=['analyzeYear','analyzeMonth'];
@@ -5450,10 +5450,104 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
   else bind();
 })();
 </script>
+
+<script id="mmhvault-v327-expense-period-canonical">
+/* MMHVAULT V3.32.7 · Expense tab owns its visible Period rendering directly.
+   This intentionally bypasses the legacy Analyze render wrapper chain so changing
+   Year / Month updates the visible Budget Control immediately without a page refresh. */
+(function(){
+  const $=id=>document.getElementById(id);
+  const num=v=>{const x=Number(v);return Number.isFinite(x)?x:0};
+  const money=v=>typeof thb==='function'?thb(v):('฿ '+num(v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}));
+  const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const period=()=>({year:Number($('analyzeYear')?.value)||new Date().getFullYear(),month:$('analyzeMonth')?.value||'annual'});
+  const label=p=>p.month==='annual'?`${p.year} Annual`:(typeof v37Label==='function'?v37Label(p):new Date(p.year,Number(p.month)-1,1).toLocaleDateString(undefined,{month:'long',year:'numeric'}));
+  const rowsFor=p=>{
+    const list=Array.isArray(window.transactions)?window.transactions:[];
+    if(p.month==='annual')return list.filter(t=>String(t.tx_date||'').slice(0,4)===String(p.year));
+    const ym=`${p.year}-${String(p.month).padStart(2,'0')}`;
+    return list.filter(t=>String(t.tx_date||'').slice(0,7)===ym);
+  };
+  const budget=cat=>typeof v37Budget==='function'?num(v37Budget(cat)):num(localStorage.getItem('myFinance_budget_'+cat));
+  let painting=false;
+  function render(){
+    const host=document.querySelector('.expense-control-panel');
+    if(!host)return;
+    let root=$('budgetIntelligenceV316');
+    if(!root){
+      root=document.createElement('div');root.id='budgetIntelligenceV316';root.className='panel budget-intelligence-v316';
+      host.parentNode.insertBefore(root,host);
+    }
+    host.style.display='none';
+    const legacy=$('budgetProgress')?.closest('.budget-panel'); if(legacy)legacy.style.display='none';
+    const p=period(),rows=rowsFor(p),cats=Array.isArray(CATS?.Expense)?CATS.Expense:[];
+    const data=cats.map(cat=>{
+      const spent=rows.filter(t=>t.type==='Expense'&&t.category===cat&&!isLinkedInvestmentTx(t)&&!(Array.isArray(CATS?.Loans)&&CATS.Loans.includes(t.category)))
+        .reduce((s,t)=>s+num(t.from_amount)*toTHB(t.from_account),0);
+      const plan=budget(cat),pct=plan>0?spent/plan*100:0;
+      return {cat,spent,plan,pct};
+    });
+    const totalSpent=data.reduce((s,x)=>s+x.spent,0);
+    const totalBudget=data.reduce((s,x)=>s+x.plan,0);
+    const totalPct=totalBudget?totalSpent/totalBudget*100:0;
+    const budgeted=data.filter(x=>x.plan>0),over=budgeted.filter(x=>x.pct>100),near=budgeted.filter(x=>x.pct>80&&x.pct<=100);
+    const now=new Date();
+    const monthNum=p.month==='annual'?0:Number(p.month);
+    const daysInPeriod=p.month==='annual'?365:new Date(p.year,monthNum,0).getDate();
+    const isCurrentMonth=p.month!=='annual'&&p.year===now.getFullYear()&&monthNum===now.getMonth()+1;
+    const dayNumber=p.month==='annual'?daysInPeriod:(isCurrentMonth?Math.min(now.getDate(),daysInPeriod):daysInPeriod);
+    const pace=dayNumber?totalSpent/dayNumber:0;
+    const projected=p.month==='annual'?totalSpent:pace*daysInPeriod;
+    const gap=totalBudget-totalSpent;
+    const sorted=[...data].sort((a,b)=>b.spent-a.spent);
+    const top=sorted.find(x=>x.spent>0);
+    const remainingDays=p.month==='annual'?0:Math.max(0,daysInPeriod-dayNumber);
+    const allowance=gap>0&&remainingDays>0?gap/remainingDays:0;
+    const periodLabel=label(p),periodTitle=`${periodLabel} · Budget vs actual · THB`;
+    const status=over.length?'Over Budget':near.length?'Close to Limit':'On Track';
+    const pctCls=totalPct>100?'red':totalPct>80?'yellow':'green';
+    painting=true;
+    root.innerHTML=`
+      <div class="bi-head"><div><div class="bi-kicker">V3.32.7 · Spending Control</div><h2>Budget Control</h2><div class="sub">One place to manage category limits, current usage and spending pace — no duplicate budget panels.</div></div><span class="pill">${esc(periodLabel)}</span></div>
+      <div class="bi-body">
+        <div class="bi-summary">
+          <div class="bi-card"><div class="label">Total Spending</div><div class="value ${pctCls}">${money(totalSpent)} <span class="small">/ ${money(totalBudget)}</span></div><div class="bi-progress"><span style="width:${Math.min(100,totalPct)}%"></span></div><div class="meta">${totalBudget?`${totalPct.toFixed(1)}% of combined budget · ${gap>=0?money(gap)+' remaining':money(Math.abs(gap))+' over'}`:'Set category budgets below.'}</div></div>
+          <div class="bi-card"><div class="label">Daily Pace</div><div class="value">${money(pace)}</div><div class="meta">Average spending per recorded day</div></div>
+          <div class="bi-card"><div class="label">Projected Month</div><div class="value ${projected>totalBudget&&totalBudget>0?'red':'cyan'}">${p.month==='annual'?'—':money(projected)}</div><div class="meta">Based on current daily pace</div></div>
+          <div class="bi-card"><div class="label">Categories Over</div><div class="value ${over.length?'red':'green'}">${over.length}</div><div class="meta">${near.length} close to limit · ${budgeted.length} with budgets</div></div>
+        </div>
+        <div class="bi-main"><div class="bi-panel">
+          <div class="bi-panel-head"><div><div class="bi-title">Category Budget Control</div><div class="bi-sub">Edit planned amounts directly. Actual spending stays linked to your transactions.</div></div><span class="pill">${esc(periodTitle)}</span></div>
+          <div>${sorted.map(r=>{const has=r.plan>0,cls=!has?'':r.pct>100?'bad':r.pct>80?'warn':'good',st=!has?'No budget':r.pct>100?`+${(r.pct-100).toFixed(0)}% over`:`${r.pct.toFixed(0)}% used`;return `<div class="bi-row"><div class="bi-cat">${esc(r.cat)}</div><div class="bi-bar"><span style="width:${has?Math.min(100,r.pct):0}%"></span></div><div class="bi-amt"><span class="bi-spent">${money(r.spent)}</span><span class="bi-slash">/</span><span class="bi-plan"><span class="bi-plan-currency">฿</span><input class="bi-budget-input-v319" type="number" min="0" step="0.01" value="${r.plan||''}" placeholder="0" aria-label="Planned amount for ${esc(r.cat)}" onchange="v37SaveBudget('${esc(r.cat)}',this.value)" onkeydown="if(event.key==='Enter'){this.blur();}"></span></div><div class="bi-state ${cls}">${st}</div></div>`;}).join('')}</div>
+          <div class="bi-control">Set each planned amount directly here. Changes are saved for the selected period and immediately update the budget signals.</div>
+        </div></div>
+      </div>`;
+    const sub=host.querySelector('.sub'); if(sub)sub.textContent=periodTitle;
+    painting=false;
+  }
+  function schedule(){[0,15,60,180,400].forEach(ms=>setTimeout(render,ms));}
+  function bind(){
+    ['analyzeYear','analyzeMonth'].forEach(id=>{
+      const el=$(id); if(!el||el.__v327ExpenseCanonical)return;
+      el.__v327ExpenseCanonical=true;
+      el.addEventListener('change',schedule,true);
+      el.addEventListener('input',schedule,true);
+    });
+    document.addEventListener('click',e=>{if(e.target.closest?.('.analyze-tab-v371[data-tab="expenses"]'))schedule();},true);
+    const observerTarget=$('budgetIntelligenceV316');
+    if(observerTarget){
+      const mo=new MutationObserver(()=>{if(!painting)schedule();});
+      mo.observe(observerTarget,{childList:true,subtree:true});
+    }
+    render();schedule();
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
+})();
+</script>
 </body>
 
 <script id="mmhvault-v325-expense-period-hard-sync">
-/* MMHVAULT V3.32.6 · Hard synchronization for Analyze Period -> Expenses */
+/* MMHVAULT V3.32.7 · Hard synchronization for Analyze Period -> Expenses */
 (function(){
   function readPeriod(){
     const y=document.getElementById('analyzeYear')?.value || String(new Date().getFullYear());
