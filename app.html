@@ -414,6 +414,7 @@
 </div>
 <div class="account-center-grid-v375">
 <div class="account-center-info-v375"><div class="label">Customer ID</div><div class="value row"><span id="accountUserIdV372">MF----</span><button class="account-center-copy-v375" onclick="copyCustomerIdV375()" type="button">Copy</button></div></div>
+<div class="account-center-info-v375"><div class="label">Supabase User UUID</div><div class="value row"><span id="accountSupabaseUserUuidV395">—</span><button class="account-center-copy-v375" onclick="copySupabaseUserUuidV395()" type="button">Copy</button></div></div>
 <div class="account-center-info-v375"><div class="label">Login method</div><div class="value" id="accountLoginMethodV372">—</div></div>
 <div class="account-center-info-v375"><div class="label">Member since</div><div class="value" id="accountMemberSinceV375">—</div></div>
 <div class="account-center-info-v375"><div class="label">Account status</div><div class="value good" id="accountStatusV375">Active</div></div>
@@ -429,6 +430,7 @@
 </div>
 </div>
 </div>
+<div class="panel" style="margin-top:14px"><div class="toolbar"><div><h2>Supabase account mapping</h2><div class="small">Customer ID and Supabase User UUID are shown together so the backend account can be identified without changing your receipt storage structure.</div></div></div></div>
 <div class="panel account-security-v379">
 <div class="toolbar">
 <div><h2>Security</h2><div class="small">Manage your sign-in security without changing your Google / Email account connection.</div></div>
@@ -719,6 +721,7 @@ function applyUserProfile(user){
   setText("headerDisplayName",p.name);setText("headerDisplayEmail",p.email||"—");
   setText("accountDisplayNameV372",p.name);setText("accountDisplayEmailV372",p.email||"—");
   setText("accountUserIdV372",currentCustomerId||"MF----");
+  setText("accountSupabaseUserUuidV395",user?.id||"—");
   const method=p.provider==="google"?"Google":"Email / Password";
   setText("accountLoginMethodV372",method);setText("accountProviderV372",method);
   const created=user?.created_at?new Date(user.created_at):null;
@@ -834,6 +837,11 @@ async function copyCustomerIdV375(){
   const id=currentCustomerId||$("accountUserIdV372")?.textContent||"";
   if(!id||!/^MF\d{4,}$/.test(id))return;
   try{await navigator.clipboard.writeText(id);const btn=document.querySelector(".account-center-copy-v375");if(btn){const old=btn.textContent;btn.textContent="Copied";setTimeout(()=>btn.textContent=old,1000);}}catch(e){console.warn("Copy Customer ID failed",e);}
+}
+async function copySupabaseUserUuidV395(){
+  const id=currentSessionUser?.id||$("accountSupabaseUserUuidV395")?.textContent||"";
+  if(!id||id==="—")return;
+  try{await navigator.clipboard.writeText(id);const el=document.getElementById("accountSupabaseUserUuidV395")?.closest(".account-center-info-v375")?.querySelector(".account-center-copy-v375");if(el){const old=el.textContent;el.textContent="Copied";setTimeout(()=>el.textContent=old,1000);}}catch(e){console.warn("Copy Supabase User UUID failed",e);}
 }
 
 let gettingStartedStep=0;
@@ -4920,7 +4928,7 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
 
 
 <script id="mmhvault-v3314-receipt-storage-structure">
-/* V3.31.4 · Receipt storage structure: user/transactions/tx-* and user/investments/inv-*.*
+/* V3.31.5 · Receipt storage structure: user/transactions/tx-* and user/investments/inv-*.*
    Keeps backward compatibility with legacy files stored directly under user/. */
 (function(){
   const BUCKET=()=>typeof RECEIPTS_BUCKET_V396!=='undefined'?RECEIPTS_BUCKET_V396:'receipts';
