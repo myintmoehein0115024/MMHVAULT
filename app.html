@@ -5367,7 +5367,7 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
 </script>
 
 <script id="mmhvault-v324-expense-period-final-sync">
-/* V3.32.5 · Final Expense tab period sync. */
+/* V3.32.6 · Final Expense tab period sync. */
 (function(){
   let lastSignature='';
   function currentSignature(){
@@ -5415,10 +5415,45 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
 })();
 </script>
+
+<script id="mmhvault-v326-period-canonical-expense-sync">
+/* MMHVAULT V3.32.6 · Canonical Analyze period flow for Expense tab.
+   Expense Budget Control is the V3.16 renderer mounted from the global render()/renderAnalyze() chain.
+   Period controls therefore follow the same canonical render flow as the other Analyze modules. */
+(function(){
+  function syncNow(){
+    try{
+      if(typeof window.render==='function') window.render();
+      else if(typeof window.renderAnalyze==='function') window.renderAnalyze();
+      else if(typeof window.renderAnalyzeV37==='function') window.renderAnalyzeV37();
+      if(typeof window.renderDashboardExpenseControlV1==='function') window.renderDashboardExpenseControlV1();
+      if(typeof window.renderPersonalExpenseAnalysisV371==='function') window.renderPersonalExpenseAnalysisV371();
+    }catch(err){ console.warn('V3.32.6 canonical period sync failed:',err); }
+  }
+  function bind(){
+    const ids=['analyzeYear','analyzeMonth'];
+    ids.forEach(id=>{
+      const el=document.getElementById(id);
+      if(!el || el.__v326CanonicalExpense)return;
+      el.__v326CanonicalExpense=true;
+      el.addEventListener('change',()=>setTimeout(syncNow,0),false);
+    });
+    document.querySelectorAll('.analyze-tab-v371').forEach(btn=>{
+      if(btn.__v326CanonicalExpense)return;
+      btn.__v326CanonicalExpense=true;
+      btn.addEventListener('click',()=>{
+        if(btn.dataset.tab==='expenses') setTimeout(syncNow,0);
+      },false);
+    });
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',bind,{once:true});
+  else bind();
+})();
+</script>
 </body>
 
 <script id="mmhvault-v325-expense-period-hard-sync">
-/* MMHVAULT V3.32.5 · Hard synchronization for Analyze Period -> Expenses */
+/* MMHVAULT V3.32.6 · Hard synchronization for Analyze Period -> Expenses */
 (function(){
   function readPeriod(){
     const y=document.getElementById('analyzeYear')?.value || String(new Date().getFullYear());
