@@ -4918,6 +4918,208 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
 })();
 </script>
 
+
+<script id="mmhvault-v3314-receipt-storage-structure">
+/* V3.31.4 · Receipt storage structure: user/transactions/tx-* and user/investments/inv-*.*
+   Keeps backward compatibility with legacy files stored directly under user/. */
+(function(){
+  const BUCKET=()=>typeof RECEIPTS_BUCKET_V396!=='undefined'?RECEIPTS_BUCKET_V396:'receipts';
+
+  async function listFolderFiles(folder){
+    try{
+      const {data,error}=await db.storage.from(BUCKET()).list(folder,{limit:1000});
+      if(error||!Array.isArray(data))return [];
+      return data.map(x=>String(x?.name||'')).filter(Boolean);
+    }catch(_e){return []}
+  }
+
+  async function listReceiptPathsV3314(userId,kind,id){
+    if(!userId)return [];
+    const base=kind==='investment'?`inv-${id}`:`tx-${id}`;
+    const folder=kind==='investment'?`${userId}/investments`:`${userId}/transactions`;
+    const out=[];
+
+    /* New structured location */
+    const nested=await listFolderFiles(folder);
+    for(const name of nested){
+      const ok=kind==='investment'
+        ? (name===base || name.startsWith(base+'.'))
+        : (name===base || name.startsWith(base+'.'));
+      if(ok)out.push(`${folder}/${name}`);
+    }
+
+    /* Legacy location: user/tx-* or user/inv-*.* */
+    const root=await listFolderFiles(userId);
+    for(const name of root){
+      const ok=kind==='investment'
+        ? name.startsWith(base+'.')
+        : (name===base || name.startsWith(base+'.'));
+      if(ok)out.push(`${userId}/${name}`);
+    }
+
+    return [...new Set(out)];
+  }
+  window.mmHVaultListReceiptPathsV3314=listReceiptPathsV3314;
+
+  /* Transaction: new uploads go into /transactions/. */
+  receiptPathV396=function(userId,txId){return `${userId}/transactions/tx-${txId}`;};
+  uploadTransactionReceiptV396=async function(userId,txId,file){
+    if(!file)return {ok:true};
+    if(file.size>10*1024*1024)throw new Error('Receipt file is too large. Maximum size is 10 MB.');
+    const existing=await listReceiptPathsV3314(userId,'transaction',txId);
+    if(existing.length){
+      const {error:removeError}=await db.storage.from(BUCKET()).remove(existing);
+      if(removeError)throw removeError;
+    }
+    const path=receiptPathV396(userId,txId);
+    const {error}=await db.storage.from(BUCKET()).upload(path,file,{upsert:true,contentType:file.type||undefined,cacheControl:'3600'});
+    if(error)throw error;
+    return {ok:true,path};
+  };
+
+  openTransactionReceiptV396=async function(id){
+    const u=(await db.auth.getUser()).data.user;
+    if(!u){alert('Please sign in first.');return;}
+    const modal=$("receiptViewerModalV3297"),body=$("receiptViewerBodyV3297");
+    if(!modal||!body){alert('Receipt viewer is unavailable.');return;}
+    body.innerHTML='<div class="receipt-viewer-loading-v3297">Loading receipt…</div>';
+    modal.classList.add('show');
+    const paths=await listReceiptPathsV3314(u.id,'transaction',id);
+    const path=paths[0];
+    if(!path){closeTransactionReceiptV3297();alert('No receipt was found for this transaction.');return;}
+    const {data,error}=await db.storage.from(BUCKET()).createSignedUrl(path,3600);
+    if(error){closeTransactionReceiptV3297();alert('No receipt was found for this transaction.');return;}
+    const url=data.signedUrl;
+    const clean=path.toLowerCase();
+    if(clean.endsWith('.pdf')){
+      const float=$("receiptZoomFloatV3299");if(float)float.classList.remove('show');
+      body.innerHTML='<iframe title="Receipt PDF" src="'+url+'"></iframe>';
+    }else{
+      body.innerHTML='<img id="receiptViewerImageV3297" alt="Receipt" src="'+url+'">';
+      const float=$("receiptZoomFloatV3299");if(float)float.classList.add('show');
+      const img=body.querySelector('img');
+      if(img){
+        receiptZoomV3297=1;updateReceiptZoomV3297();
+        img.onclick=()=>{receiptZoomV3297=receiptZoomV3297>1.01?1:1.5;updateReceiptZoomV3297();};
+        img.onerror=()=>{body.innerHTML='';if(float)float.classList.remove('show');};
+      }
+    }
+  };
+
+  deleteTransactionReceiptV396=async function(userId,id){
+    if(!userId)return;
+    try{
+      const paths=await listReceiptPathsV3314(userId,'transaction',id);
+      if(paths.length)await db.storage.from(BUCKET()).remove(paths);
+    }catch(e){console.debug('Transaction receipt remove skipped',e);}
+  };
+
+  /* Investment: new uploads go into /investments/. */
+  investmentReceiptPrefixV3304=function(userId,id){return `${userId}/investments/inv-${id}`;};
+  investmentReceiptPathV3304=function(userId,id,file){return `${investmentReceiptPrefixV3304(userId,id)}.${investmentReceiptExtV3304(file)}`;};
+
+  removeInvestmentReceiptV3304=async function(userId,id){
+    if(!userId)return;
+    const paths=await listReceiptPathsV3314(userId,'investment',id);
+    if(paths.length){
+      const {error}=await db.storage.from(BUCKET()).remove(paths);
+      if(error)throw error;
+    }
+  };
+
+  uploadInvestmentReceiptV3304=async function(userId,id,file){
+    if(!file)return {ok:true};
+    if(file.size>10*1024*1024)throw new Error('Receipt file is too large. Maximum size is 10 MB.');
+    await removeInvestmentReceiptV3304(userId,id);
+    const path=investmentReceiptPathV3304(userId,id,file);
+    const {error}=await db.storage.from(BUCKET()).upload(path,file,{upsert:true,contentType:file.type||undefined,cacheControl:'3600'});
+    if(error)throw error;
+    window.mmHVaultInvestmentReceiptIdsV3304.add(Number(id));
+    return {ok:true,path};
+  };
+
+  findInvestmentReceiptPathV3304=async function(userId,id){
+    const paths=await listReceiptPathsV3314(userId,'investment',id);
+    return paths[0]||null;
+  };
+
+  refreshInvestmentReceiptFlagsV3304=async function(){
+    try{
+      const u=(await db.auth.getUser()).data.user;if(!u)return;
+      const root=await listFolderFiles(u.id);
+      const nested=await listFolderFiles(`${u.id}/investments`);
+      const ids=new Set();
+      for(const name of [...root,...nested]){
+        const m=String(name).match(/^inv-(\d+)\./i);
+        if(m)ids.add(Number(m[1]));
+      }
+      window.mmHVaultInvestmentReceiptIdsV3304=ids;
+      try{renderInvest();}catch(_e){}
+    }catch(e){console.debug('Investment receipt visibility refresh unavailable',e);}
+  };
+
+  /* Transaction history visibility: detect both legacy and new structured paths. */
+  window.mmHVaultRefreshReceiptFlagsV3302=async function(){
+    try{
+      const u=(await db.auth.getUser()).data.user;
+      if(!u||!db?.storage)return;
+      const root=await listFolderFiles(u.id);
+      const nested=await listFolderFiles(`${u.id}/transactions`);
+      const ids=new Set();
+      for(const name of [...root,...nested]){
+        const m=String(name).match(/^tx-(\d+)(?:\.[^.]*)?$/i);
+        if(m)ids.add(Number(m[1]));
+      }
+      window.mmHVaultReceiptIdsV3302=ids;
+      try{
+        if(typeof renderTransactionsV28==='function')renderTransactionsV28();
+        else if(typeof renderTransactions==='function')renderTransactions();
+        if(typeof renderTransactionsMobileCardsV371==='function')renderTransactionsMobileCardsV371();
+      }catch(_e){}
+    }catch(e){console.debug('Receipt visibility refresh unavailable',e);}
+  };
+
+  /* Receipt management UI: search/remove/replace in both new and legacy locations. */
+  window.mmHVaultListUserReceiptV3309=async function(userId,prefix){
+    if(!userId)return null;
+    const isTx=String(prefix||'').startsWith('tx-');
+    const idMatch=String(prefix||'').match(/^(?:tx|inv)-(\d+)/i);
+    if(idMatch){
+      const paths=await listReceiptPathsV3314(userId,isTx?'transaction':'investment',Number(idMatch[1]));
+      return paths[0]||null;
+    }
+    return null;
+  };
+
+  window.mmHVaultRemoveExistingReceiptV3309=async function(userId,id,kind){
+    if(!userId)throw new Error('Please sign in again.');
+    const paths=await listReceiptPathsV3314(userId,kind,id);
+    if(!paths.length)return false;
+    const {error}=await db.storage.from(BUCKET()).remove(paths);
+    if(error)throw error;
+    return true;
+  };
+
+  window.mmHVaultReplaceReceiptV3309=async function(userId,id,file,kind){
+    if(!userId||!file)throw new Error('No receipt file selected.');
+    if(file.size>10*1024*1024)throw new Error('Receipt file is too large. Maximum size is 10 MB.');
+    await window.mmHVaultRemoveExistingReceiptV3309(userId,id,kind);
+    const ext=(String(file.name||'').split('.').pop()||'bin').toLowerCase();
+    const safeExt=['jpg','jpeg','png','webp','gif','pdf'].includes(ext)?ext:'bin';
+    const path=kind==='investment'
+      ? `${userId}/investments/inv-${id}.${safeExt}`
+      : `${userId}/transactions/tx-${id}`;
+    const {error}=await db.storage.from(BUCKET()).upload(path,file,{upsert:true,contentType:file.type||undefined,cacheControl:'3600'});
+    if(error)throw error;
+    return path;
+  };
+
+  window.mmHVaultOpenManagedReceiptV3309=async function(id,kind){
+    if(kind==='investment')return openInvestmentReceiptV3304(id);
+    return openTransactionReceiptV396(id);
+  };
+})();
+</script>
 </body>
 </html>
 <script id="mmhvault-v3295-financial-behavior-period-fix">
