@@ -112,6 +112,28 @@
 .receipt-manage-actions-v3309 .btn.danger{color:#ff9aaa}
 .receipt-manage-empty-v3309{font-size:10px;color:#7489a8;text-align:center}
 </style>
+
+<style id="mmhvault-excel-v318">
+.excel-import-v318{position:relative;overflow:hidden;background:linear-gradient(145deg,rgba(15,24,60,.92),rgba(7,14,38,.96));border-color:rgba(116,145,255,.26)}
+.excel-import-head-v318{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;margin-bottom:16px}
+.excel-kicker-v318{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#7f9cf5;font-weight:800;margin-bottom:5px}
+.excel-import-head-v318 h2{margin-bottom:4px}
+.excel-badge-v318{flex:0 0 auto;padding:7px 10px;border:1px solid rgba(93,224,166,.24);border-radius:999px;background:rgba(93,224,166,.07);color:#82e4b0;font-size:10px;font-weight:800;letter-spacing:.08em}
+#excelFile{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.excel-dropzone-v318{min-height:126px;border:1px dashed rgba(111,143,255,.55);border-radius:18px;background:radial-gradient(circle at 50% 0%,rgba(98,131,255,.12),transparent 58%),rgba(5,12,32,.42);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:22px;cursor:pointer;transition:transform .18s ease,border-color .18s ease,background .18s ease,box-shadow .18s ease}
+.excel-dropzone-v318:hover{transform:translateY(-1px);border-color:rgba(133,159,255,.9);background:radial-gradient(circle at 50% 0%,rgba(98,131,255,.17),transparent 58%),rgba(5,12,32,.52);box-shadow:0 12px 28px rgba(2,7,22,.25)}
+.excel-dropzone-v318.dragover{border-color:#9cb0ff;background:rgba(75,105,230,.14);box-shadow:0 0 0 4px rgba(75,105,230,.08) inset}
+.excel-drop-icon-v318{width:42px;height:42px;display:grid;place-items:center;border-radius:13px;background:linear-gradient(180deg,rgba(87,122,235,.28),rgba(41,63,138,.28));border:1px solid rgba(130,158,255,.34);font-size:28px;color:#a9beff;line-height:1}
+.excel-drop-title-v318{font-weight:850;font-size:15px;color:#f2f6ff;margin-top:2px}
+.excel-drop-sub-v318{font-size:11px;color:#91a4ca}
+.excel-preview-v318{margin-top:14px;padding:14px 16px;border:1px solid rgba(96,126,231,.2);border-radius:14px;background:rgba(2,8,25,.38);line-height:1.65;font-size:12px;color:#c8d5f2;overflow:auto}
+.excel-preview-v318 b{color:#f0f4ff}
+.excel-import-footer-v318{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-top:14px}
+.excel-tip-v318{font-size:11px;color:#7890bb}
+.excel-import-v318 .btn.primary:disabled{opacity:.45;cursor:not-allowed;transform:none}
+@media(max-width:720px){.excel-import-head-v318{flex-direction:column}.excel-badge-v318{align-self:flex-start}.excel-import-footer-v318{align-items:stretch;flex-direction:column}.excel-import-footer-v318 .actions{display:flex;width:100%}.excel-import-footer-v318 .btn{flex:1}.excel-dropzone-v318{min-height:112px}}
+</style>
+
 </head>
 <body>
 <div id="mmhvaultAppBootGuardV3282" style="position:fixed;inset:0;z-index:30000;display:none;align-items:center;justify-content:center;background:#050a18;color:#dce8ff;font-family:Arial,sans-serif;padding:24px;text-align:center;">
@@ -133,7 +155,7 @@
 <button class="btn" onclick="retryLoadAllV384()" type="button">Retry</button>
 </div>
 <header id="header" style="display:none">
-<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.31.7</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
+<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.31.8</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
 <div class="header-spacer"></div>
 <div aria-label="Signed in user" class="header-profile" id="headerProfile">
 <div class="header-avatar" id="headerAvatar">MF</div>
@@ -545,11 +567,16 @@
 <div class="backup-history-head-v381"><div><h2 style="margin-bottom:3px">Backup History</h2><div class="small">Recent backup points saved on this device for this account.</div></div><button class="btn" onclick="clearBackupHistoryV381()" type="button">Clear History</button></div>
 <div class="backup-history-list-v381" id="backupHistoryListV381"></div>
 </div>
-<div class="panel">
-<div class="toolbar"><div><h2>Excel Import</h2><div class="small">Import transaction and investment records from your workbook. Existing cloud records are preserved.</div></div></div>
-<input accept=".xlsx,.xls,.xlsm" id="excelFile" style="padding:12px" type="file"/>
-<div class="notice" id="excelPreview" style="display:none;margin-top:12px"></div>
-<div class="actions"><button class="btn" onclick="clearExcelPreview()" type="button">Clear</button><button class="btn primary" disabled="" id="excelImportBtn" onclick="importSelectedExcel()" type="button">Import to My Account</button></div>
+<div class="panel excel-import-v318">
+<div class="excel-import-head-v318"><div><div class="excel-kicker-v318">📊 Workbook import</div><h2>Excel Import</h2><div class="small">Bring your transaction and investment history into MMHVAULT without overwriting existing cloud records.</div></div><span class="excel-badge-v318">SAFE MERGE</span></div>
+<input accept=".xlsx,.xls,.xlsm" id="excelFile" type="file" aria-label="Choose Excel workbook"/>
+<label class="excel-dropzone-v318" for="excelFile" id="excelDropzoneV318">
+  <span class="excel-drop-icon-v318">＋</span>
+  <span class="excel-drop-title-v318" id="excelDropTitleV318">Choose a workbook</span>
+  <span class="excel-drop-sub-v318" id="excelDropSubV318">.XLSX, .XLS or .XLSM · select your finance workbook</span>
+</label>
+<div class="excel-preview-v318" id="excelPreview" style="display:none"></div>
+<div class="excel-import-footer-v318"><div class="excel-tip-v318">💡 Existing cloud records are preserved. Only new rows are imported.</div><div class="actions" style="margin:0"><button class="btn" onclick="clearExcelPreview()" type="button">Clear</button><button class="btn primary" disabled="" id="excelImportBtn" onclick="importSelectedExcel()" type="button">Import to My Account</button></div></div>
 </div>
 <div class="panel">
 <h2>Data Safety</h2>
@@ -1708,10 +1735,10 @@ async function handleExcelFile(file){
 async function importSelectedExcel(){if(!selectedExcelRows)return;const u=(await db.auth.getUser()).data.user;if(!u)return;const {newTx,newInv,fileName}=selectedExcelRows;if(!confirm(`Import ${newTx.length} transactions and ${newInv.length} investments from ${fileName}?`))return; if(newTx.length){const r=await db.from('transactions').insert(newTx.map(x=>({user_id:u.id,tx_date:x.date,type:x.type,category:x.category,from_account:x.from_account,from_amount:x.from_amount,to_account:x.to_account,to_amount:x.to_amount,note:x.note})));if(r.error){alert('Transaction import failed: '+r.error.message);return;}}
  if(newInv.length){const r=await db.from('investments').insert(newInv.map(x=>({user_id:u.id,inv_date:x.date,asset:x.asset,symbol:x.symbol,amount:x.amount,fee:x.fee,other_cost:x.other_cost,buy_price:x.buy_price,market_price:x.market_price,quantity:x.quantity,note:x.note})));if(r.error){alert('Investment import failed: '+r.error.message);return;}}
  selectedExcelRows=null;$('excelFile').value='';clearExcelPreview();await loadAll();setPage('dashboard');alert('Excel import completed. Dashboard, Analyze and Invest are now linked to the imported Supabase data.');}
-function clearExcelPreview(){selectedExcelRows=null;const p=$('excelPreview');if(p){p.style.display='none';p.innerHTML='';}$('excelImportBtn').disabled=true;if($('excelFile'))$('excelFile').value='';}
+function clearExcelPreview(){selectedExcelRows=null;const p=$('excelPreview');if(p){p.style.display='none';p.innerHTML='';}$('excelImportBtn').disabled=true;if($('excelFile'))$('excelFile').value='';const t=$('excelDropTitleV318');const s=$('excelDropSubV318');if(t)t.textContent='Choose a workbook';if(s)s.textContent='.XLSX, .XLS or .XLSM · select your finance workbook';}
 async function resetMyCloudData(){if(!confirm('This will delete your Transactions, Investments and Exchange Rates from Supabase. Continue?'))return;const u=(await db.auth.getUser()).data.user;if(!u)return;for(const table of ['transactions','investments','exchange_rates']){const r=await db.from(table).delete().eq('user_id',u.id);if(r.error){alert(`Reset failed on ${table}: ${r.error.message}`);return;}}await loadAll();alert('Your cloud data has been reset.');}
 
-autoBindExcel=()=>{const f=$('excelFile');if(f)f.addEventListener('change',e=>handleExcelFile(e.target.files?.[0]));};
+autoBindExcel=()=>{const f=$('excelFile');const zone=$('excelDropzoneV318');const title=$('excelDropTitleV318');const sub=$('excelDropSubV318');if(!f)return;f.addEventListener('change',e=>{const file=e.target.files?.[0];if(file){if(title)title.textContent=file.name;if(sub)sub.textContent=`${(file.size/1024/1024).toFixed(2)} MB · ready to preview`; }else{if(title)title.textContent='Choose a workbook';if(sub)sub.textContent='.XLSX, .XLS or .XLSM · select your finance workbook';}handleExcelFile(file);});if(zone){['dragenter','dragover'].forEach(ev=>zone.addEventListener(ev,e=>{e.preventDefault();zone.classList.add('dragover')}));['dragleave','drop'].forEach(ev=>zone.addEventListener(ev,e=>{e.preventDefault();zone.classList.remove('dragover')}));zone.addEventListener('drop',e=>{const file=e.dataTransfer?.files?.[0];if(!file)return;try{const dt=new DataTransfer();dt.items.add(file);f.files=dt.files;}catch(_e){}if(title)title.textContent=file.name;if(sub)sub.textContent=`${(file.size/1024/1024).toFixed(2)} MB · ready to preview`;handleExcelFile(file);});}};
 autoBindExcel();
 
 /* ===================== V2.8 functional upgrades ===================== */
@@ -3827,7 +3854,7 @@ window.MM_HVAULT_UI_AUDIT = { version:'V3.18.0', duplicatePresentationCleanup:tr
 </script>
 <div aria-live="polite" class="v321-network-banner" id="mmhvaultV321NetworkBanner" role="status">You are offline. Cloud changes will not be submitted.</div>
 <script id="mmhvault-v317-exchange-repair-js">
-/* ===================== MMHVAULT V3.31.7 · Exchange Center Repair ===================== */
+/* ===================== MMHVAULT V3.31.8 · Exchange Center Repair ===================== */
 function loadRateInputs(){
   const mmk=$('usdMmk'), thb=$('usdThb'), cny=$('usdCny');
   if(mmk)mmk.value=Number(rates?.usd_mmk||0);
