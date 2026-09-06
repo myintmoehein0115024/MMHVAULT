@@ -238,7 +238,7 @@
 <button class="btn" onclick="retryLoadAllV384()" type="button">Retry</button>
 </div>
 <header id="header" style="display:none">
-<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.32.5</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
+<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.32.8</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
 <div class="header-spacer"></div>
 <div aria-label="Signed in user" class="header-profile" id="headerProfile">
 <div class="header-avatar" id="headerAvatar">MF</div>
@@ -5463,7 +5463,7 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
   const period=()=>({year:Number($('analyzeYear')?.value)||new Date().getFullYear(),month:$('analyzeMonth')?.value||'annual'});
   const label=p=>p.month==='annual'?`${p.year} Annual`:(typeof v37Label==='function'?v37Label(p):new Date(p.year,Number(p.month)-1,1).toLocaleDateString(undefined,{month:'long',year:'numeric'}));
   const rowsFor=p=>{
-    const list=Array.isArray(window.transactions)?window.transactions:[];
+    const list=Array.isArray(transactions)?transactions:[];
     if(p.month==='annual')return list.filter(t=>String(t.tx_date||'').slice(0,4)===String(p.year));
     const ym=`${p.year}-${String(p.month).padStart(2,'0')}`;
     return list.filter(t=>String(t.tx_date||'').slice(0,7)===ym);
@@ -5508,7 +5508,7 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
     const pctCls=totalPct>100?'red':totalPct>80?'yellow':'green';
     painting=true;
     root.innerHTML=`
-      <div class="bi-head"><div><div class="bi-kicker">V3.32.7 · Spending Control</div><h2>Budget Control</h2><div class="sub">One place to manage category limits, current usage and spending pace — no duplicate budget panels.</div></div><span class="pill">${esc(periodLabel)}</span></div>
+      <div class="bi-head"><div><div class="bi-kicker">V3.32.8 · Spending Control</div><h2>Budget Control</h2><div class="sub">One place to manage category limits, current usage and spending pace — no duplicate budget panels.</div></div><span class="pill">${esc(periodLabel)}</span></div>
       <div class="bi-body">
         <div class="bi-summary">
           <div class="bi-card"><div class="label">Total Spending</div><div class="value ${pctCls}">${money(totalSpent)} <span class="small">/ ${money(totalBudget)}</span></div><div class="bi-progress"><span style="width:${Math.min(100,totalPct)}%"></span></div><div class="meta">${totalBudget?`${totalPct.toFixed(1)}% of combined budget · ${gap>=0?money(gap)+' remaining':money(Math.abs(gap))+' over'}`:'Set category budgets below.'}</div></div>
@@ -5541,6 +5541,7 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
     }
     render();schedule();
   }
+  window.__mmhExpenseCanonicalRenderV327=render;
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
 })();
 </script>
