@@ -238,7 +238,7 @@
 <button class="btn" onclick="retryLoadAllV384()" type="button">Retry</button>
 </div>
 <header id="header" style="display:none">
-<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.32.4</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
+<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.32.5</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
 <div class="header-spacer"></div>
 <div aria-label="Signed in user" class="header-profile" id="headerProfile">
 <div class="header-avatar" id="headerAvatar">MF</div>
@@ -5367,7 +5367,7 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
 </script>
 
 <script id="mmhvault-v324-expense-period-final-sync">
-/* V3.32.4 · Final Expense tab period sync. */
+/* V3.32.5 · Final Expense tab period sync. */
 (function(){
   let lastSignature='';
   function currentSignature(){
@@ -5387,7 +5387,7 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
       else if(typeof window.renderAnalyzeV37==='function') window.renderAnalyzeV37();
       if(typeof window.renderDashboardExpenseControlV1==='function') window.renderDashboardExpenseControlV1();
       if(typeof window.renderPersonalExpenseAnalysisV371==='function') window.renderPersonalExpenseAnalysisV371();
-    }catch(err){console.warn('V3.32.4 expense period sync failed:',err);}
+    }catch(err){console.warn('V3.32.5 expense period sync failed:',err);}
   }
   function bind(){
     ['analyzeYear','analyzeMonth'].forEach(id=>{
@@ -5416,6 +5416,59 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
 })();
 </script>
 </body>
+
+<script id="mmhvault-v325-expense-period-hard-sync">
+/* MMHVAULT V3.32.5 · Hard synchronization for Analyze Period -> Expenses */
+(function(){
+  function readPeriod(){
+    const y=document.getElementById('analyzeYear')?.value || String(new Date().getFullYear());
+    const m=document.getElementById('analyzeMonth')?.value || 'annual';
+    return {year:String(y),month:String(m)};
+  }
+  function signature(){
+    const p=readPeriod(); return p.year+'|'+p.month;
+  }
+  function forceExpenseRefresh(){
+    try{
+      const p=readPeriod();
+      window.__mmhSelectedAnalyzePeriodV325=p;
+      try{
+        localStorage.setItem('myfinance_analyze_year',p.year);
+        localStorage.setItem('myfinance_analyze_month',p.month);
+      }catch(_e){}
+      /* Refresh only the visible Expense data block. Do not recreate the period controls. */
+      if(typeof window.renderDashboardExpenseControlV1==='function') window.renderDashboardExpenseControlV1();
+      if(typeof window.renderPersonalExpenseAnalysisV371==='function') window.renderPersonalExpenseAnalysisV371();
+      /* Expense ranking / budget / trend are rendered by the main Analyze renderer. */
+      if(typeof window.renderAnalyzeV37==='function') window.renderAnalyzeV37();
+      if(typeof window.renderDashboardExpenseControlV1==='function') window.renderDashboardExpenseControlV1();
+      if(typeof window.renderPersonalExpenseAnalysisV371==='function') window.renderPersonalExpenseAnalysisV371();
+    }catch(err){console.warn('V3.32.5 expense period hard sync failed:',err);}
+  }
+  function schedule(){
+    /* Multiple post-event passes handle the existing legacy render wrappers in this monolithic app. */
+    [0,25,100,250,500].forEach(ms=>setTimeout(forceExpenseRefresh,ms));
+  }
+  function bind(){
+    document.addEventListener('change',function(e){
+      const t=e.target;
+      if(t && (t.id==='analyzeYear'||t.id==='analyzeMonth')) schedule();
+    },true);
+    document.addEventListener('input',function(e){
+      const t=e.target;
+      if(t && (t.id==='analyzeYear'||t.id==='analyzeMonth')) schedule();
+    },true);
+    document.addEventListener('click',function(e){
+      const tab=e.target.closest?.('.analyze-tab-v371[data-tab="expenses"]');
+      if(tab) schedule();
+    },true);
+    window.__mmhForceExpensePeriodSyncV325=forceExpenseRefresh;
+    window.__mmhGetSelectedPeriodV325=readPeriod;
+    schedule();
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
+})();
+</script>
 </html>
 <script id="mmhvault-v3295-financial-behavior-period-fix">
 /* MMHVAULT V3.29.5 · Financial Behavior Intelligence repair */
