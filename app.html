@@ -1003,12 +1003,17 @@ async function loadAll(opts={}){
         setDataErrorV384(msg);
       }
       if(optionalErrors.length)console.warn("Optional cloud data warning",optionalErrors);
+      try{window.transactions=transactions;window.investments=investments;window.rates=rates;}catch(_e){}
+      try{window.dispatchEvent(new CustomEvent("mmhvault:data-loaded",{detail:{ok:hardErrors.length===0,at:Date.now()}}));}catch(_e){}
       return {ok:hardErrors.length===0,errors:[...hardErrors,...optionalErrors]};
     }catch(err){
       console.error("loadAll failed",err);
-      const msg=hadExisting?"Cloud refresh failed. Your last loaded data is still shown. Please check your connection and retry.":"Unable to load cloud data. Please check your connection and retry.";
+      let restored=false;
+      try{if(!hadExisting&&typeof window.mmhvaultRestoreCacheV336==='function'){restored=window.mmhvaultRestoreCacheV336();if(restored){try{transactions=window.transactions||transactions;investments=window.investments||investments;rates=Object.assign({},rates||{},window.rates||{});}catch(_e){}try{render();}catch(_e){}}}}catch(_e){}
+      const msg=restored?"Cloud is temporarily unavailable. Showing your last saved data. Reconnect to refresh.":(hadExisting?"Cloud refresh failed. Your last loaded data is still shown. Please check your connection and retry.":"Unable to load cloud data. Please check your connection and retry.");
       setDataErrorV384(msg);
-      return {ok:false,errors:[err?.message||String(err)]};
+      try{window.dispatchEvent(new CustomEvent("mmhvault:data-loaded",{detail:{ok:false,restored,at:Date.now()}}));}catch(_e){}
+      return {ok:false,restored,errors:[err?.message||String(err)]};
     }finally{
       setDataLoadingV384(false);
     }
@@ -5510,7 +5515,7 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
 
 
 <script id="mmhvault-v335-realtime-data-kernel">
-/* MMHVAULT V3.33.5 · Unified Realtime → Cloud Load → Render bridge.
+/* MMHVAULT V3.33.6 · Unified Realtime → Cloud Load → Render bridge.
    Keeps the existing data model intact while making realtime state and refresh flow deterministic. */
 (function(){
   if(window.__mmhV335RealtimeInstalled)return;
@@ -5527,6 +5532,42 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
   if(typeof subscribeRealtime==='function') setTimeout(()=>{try{subscribeRealtime();}catch(err){console.warn("Realtime kernel init skipped:",err);}},0);
 })();
 </script>
+
+<script id="mmhvault-v336-offline-cache-kernel">
+/* MMHVAULT V3.33.6 · Local cache + offline recovery layer.
+   Non-destructive: Supabase remains authoritative whenever reachable. */
+(function(){
+  if(window.__mmhV336OfflineInstalled)return;
+  window.__mmhV336OfflineInstalled=true;
+  const KEY='mmhvault_data_snapshot_v336';
+  const MAX_AGE=7*24*60*60*1000;
+  function safeRead(){try{const raw=localStorage.getItem(KEY);return raw?JSON.parse(raw):null;}catch(e){return null;}}
+  function safeWrite(){try{
+    const payload={savedAt:Date.now(),transactions:Array.isArray(window.transactions)?window.transactions:[],investments:Array.isArray(window.investments)?window.investments:[],rates:window.rates||{}};
+    localStorage.setItem(KEY,JSON.stringify(payload));
+  }catch(e){console.warn('MMHVAULT cache write skipped:',e);}}
+  function setNet(){document.documentElement.dataset.network=navigator.onLine?'online':'offline';}
+  function dispatch(name,detail){try{window.dispatchEvent(new CustomEvent(name,{detail}));}catch(_e){}}
+  window.mmhvaultCacheSnapshotV336=safeWrite;
+  window.mmhvaultRestoreCacheV336=function(){
+    const snap=safeRead(); if(!snap)return false;
+    if(!Array.isArray(snap.transactions)||!Array.isArray(snap.investments))return false;
+    if(Date.now()-Number(snap.savedAt||0)>MAX_AGE)return false;
+    try{
+      window.transactions=snap.transactions;
+      window.investments=snap.investments;
+      if(snap.rates&&typeof snap.rates==='object')window.rates=Object.assign({},window.rates||{},snap.rates);
+      dispatch('mmhvault:cache-restored',{savedAt:snap.savedAt});
+      return true;
+    }catch(e){console.warn('MMHVAULT cache restore failed:',e);return false;}
+  };
+  window.addEventListener('online',function(){setNet();dispatch('mmhvault:network-change',{online:true});if(typeof loadAll==='function')setTimeout(()=>{try{loadAll({force:true});}catch(_e){}},150);});
+  window.addEventListener('offline',function(){setNet();dispatch('mmhvault:network-change',{online:false});});
+  window.addEventListener('mmhvault:data-loaded',function(){safeWrite();});
+  setNet();
+})();
+</script>
+
 </body>
 </html>
 
