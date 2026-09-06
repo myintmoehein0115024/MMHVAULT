@@ -133,7 +133,7 @@
 <button class="btn" onclick="retryLoadAllV384()" type="button">Retry</button>
 </div>
 <header id="header" style="display:none">
-<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.31.6</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
+<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.31.7</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
 <div class="header-spacer"></div>
 <div aria-label="Signed in user" class="header-profile" id="headerProfile">
 <div class="header-avatar" id="headerAvatar">MF</div>
@@ -3826,6 +3826,84 @@ window.MM_HVAULT_UI_AUDIT = { version:'V3.18.0', duplicatePresentationCleanup:tr
 })();
 </script>
 <div aria-live="polite" class="v321-network-banner" id="mmhvaultV321NetworkBanner" role="status">You are offline. Cloud changes will not be submitted.</div>
+<script id="mmhvault-v317-exchange-repair-js">
+/* ===================== MMHVAULT V3.31.7 · Exchange Center Repair ===================== */
+function loadRateInputs(){
+  const mmk=$('usdMmk'), thb=$('usdThb'), cny=$('usdCny');
+  if(mmk)mmk.value=Number(rates?.usd_mmk||0);
+  if(thb)thb.value=Number(rates?.usd_thb||0);
+  if(cny)cny.value=Number(rates?.usd_cny||0);
+}
+async function saveRates(){
+  const u=(await db.auth.getUser()).data.user;
+  if(!u) return;
+  const row={
+    user_id:u.id,
+    usd_mmk:n($('usdMmk')?.value),
+    usd_thb:n($('usdThb')?.value),
+    usd_cny:n($('usdCny')?.value),
+    updated_at:new Date().toISOString()
+  };
+  const r=await db.from('exchange_rates').upsert(row);
+  if(r.error) throw r.error;
+  rates=row;
+  loadRateInputs();
+  renderRates();
+}
+function renderRates(){
+  const mmk=Number(rates?.usd_mmk)||0;
+  const thb=Number(rates?.usd_thb)||0;
+  const cny=Number(rates?.usd_cny)||0;
+  const thbToMmk=thb>0?mmk/thb:0;
+  const mmkToThb=thbToMmk>0?1/thbToMmk:0;
+  const cnyToMmk=cny>0?mmk/cny:0;
+  const cnyToThb=cny>0?thb/cny:0;
+  const cards=$('rateCards');
+  if(cards){
+    cards.innerHTML=[
+      ['USD → MMK',mmk,'Manual'],
+      ['THB → MMK',thbToMmk,'Auto'],
+      ['MMK → THB',mmkToThb,'Auto'],
+      ['USD → THB',thb,'Reference'],
+      ['CNY → MMK',cnyToMmk,'Auto'],
+      ['CNY → THB',cnyToThb,'Auto'],
+      ['USD → CNY',cny,'Reference']
+    ].map(x=>`<div class="card"><div class="name">${x[0]}</div><div class="amount cyan">${Number(x[1]).toFixed(6)}</div><div class="small">${x[2]}</div></div>`).join('');
+  }
+  renderExchangeConverter();
+}
+function exchangeCurrencyToMMK(currency){
+  const c=String(currency||'').toUpperCase();
+  const mmk=Number(rates?.usd_mmk)||0;
+  if(c==='MMK')return 1;
+  if(c==='USD')return mmk;
+  if(c==='THB')return (Number(rates?.usd_thb)||0)>0?mmk/Number(rates.usd_thb):0;
+  if(c==='CNY')return (Number(rates?.usd_cny)||0)>0?mmk/Number(rates.usd_cny):0;
+  return 0;
+}
+function renderExchangeConverter(){
+  const wrap=$('exchangeConverterResult');
+  if(!wrap)return;
+  const amount=Math.max(0,Number($('exchangeAmount')?.value||0));
+  const from=$('exchangeFrom')?.value||'USD';
+  const to=$('exchangeTo')?.value||'MMK';
+  const fromRate=exchangeCurrencyToMMK(from);
+  const toRate=exchangeCurrencyToMMK(to);
+  if(!fromRate||!toRate){
+    wrap.innerHTML='<div class="label">Conversion unavailable</div><div class="meta">Please save valid USD exchange rates first.</div>';
+    return;
+  }
+  const result=amount*fromRate/toRate;
+  const rateOne=fromRate/toRate;
+  wrap.innerHTML=`<div class="label">Converted Amount</div><div class="value">${result.toLocaleString(undefined,{maximumFractionDigits:6})} ${to}</div><div class="meta">1 ${from} = ${rateOne.toLocaleString(undefined,{maximumFractionDigits:6})} ${to}</div>`;
+}
+function swapExchangeCurrencies(){
+  const from=$('exchangeFrom'),to=$('exchangeTo');
+  if(!from||!to)return;
+  const v=from.value;from.value=to.value;to.value=v;
+  renderExchangeConverter();
+}
+</script>
 <script id="mmhvault-v321-integrity-js">
 /* ===================== MMHVAULT V3.21.0 DATA INTEGRITY ===================== */
 (function(){
