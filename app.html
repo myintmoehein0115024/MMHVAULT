@@ -1143,28 +1143,31 @@ function renderDashboardV372(){
     const cash=Math.max(0,net-invest);
     const rawTarget=Number(localStorage.getItem('mmhSavingsTarget')||localStorage.getItem('targetSavingsRate')||60);
     const target=Number.isFinite(rawTarget)?rawTarget:60;
+    const dashLang=(localStorage.getItem('mmhvault_language_v3363')||'en')==='zh';
+    const tr=(en,zh)=>dashLang?zh:en;
     const status=cur.rate>=target?'Healthy':cur.rate>=target-10?'Watch':'Needs Attention';
+    const statusLabel=tr(status,status==='Healthy'?'健康':status==='Watch'?'关注':'需要注意');
     const change=(a,b)=>b===0?null:(a-b)/Math.abs(b)*100;
     const signed=v=>`${v>=0?'+':''}${fmt(v)}`;
     const pct=v=>`${v>=0?'+':''}${v.toFixed(1)}%`;
     const expCh=change(cur.exp,prev.exp), saveCh=change(cur.save,prev.save);
     host.innerHTML=`
-      <div class="toolbar mmh-dash372-head"><div><h2>Wealth Control Center</h2><div class="sub">Current financial position and this month vs last month.</div></div><span class="pill">${monthKey} · ${status}</span></div>
+      <div class="toolbar mmh-dash372-head"><div><h2>${tr('Wealth Control Center','财富控制中心')}</h2><div class="sub">${tr('Current financial position and this month vs last month.','当前财务状况及本月与上月对比。')}</div></div><span class="pill">${monthKey} · ${statusLabel}</span></div>
       <div class="mmh-dash372-grid">
-        <div class="mmh-dash372-card"><span>Net Worth</span><b>MMK ${fmt(net)}</b><small>Current net worth</small></div>
-        <div class="mmh-dash372-card"><span>Cash &amp; Stable Assets</span><b>MMK ${fmt(cash)}</b><small>Outside investment assets</small></div>
-        <div class="mmh-dash372-card"><span>Investments</span><b>MMK ${fmt(invest)}</b><small>${net?((invest/net)*100).toFixed(1):'0.0'}% of net worth</small></div>
-        <div class="mmh-dash372-card"><span>Monthly Savings</span><b class="${cur.save>=0?'green':'red'}">MMK ${fmt(cur.save)}</b><small>${cur.rate.toFixed(1)}% savings rate</small></div>
+        <div class="mmh-dash372-card"><span>${tr('Net Worth','净资产')}</span><b>MMK ${fmt(net)}</b><small>${tr('Current net worth','当前净资产')}</small></div>
+        <div class="mmh-dash372-card"><span>${tr('Cash &amp; Stable Assets','现金与稳定资产')}</span><b>MMK ${fmt(cash)}</b><small>${tr('Outside investment assets','非投资资产')}</small></div>
+        <div class="mmh-dash372-card"><span>${tr('Investments','投资')}</span><b>MMK ${fmt(invest)}</b><small>${net?((invest/net)*100).toFixed(1):'0.0'}% ${tr('of net worth','占净资产')}</small></div>
+        <div class="mmh-dash372-card"><span>${tr('Monthly Savings','月度储蓄')}</span><b class="${cur.save>=0?'green':'red'}">MMK ${fmt(cur.save)}</b><small>${cur.rate.toFixed(1)}% ${tr('savings rate','储蓄率')}</small></div>
       </div>
-      <div class="mmh-dash372-compare"><div class="mmh-dash372-compare-head"><div><strong>${monthKey} vs ${prevKey}</strong><span>Automatic comparison from transaction data.</span></div><div class="mmh-dash372-target">Target savings: ${target.toFixed(0)}%</div></div>
+      <div class="mmh-dash372-compare"><div class="mmh-dash372-compare-head"><div><strong>${monthKey} vs ${prevKey}</strong><span>${tr('Automatic comparison from transaction data.','根据交易数据自动比较。')}</span></div><div class="mmh-dash372-target">${tr('Target savings','储蓄目标')}: ${target.toFixed(0)}%</div></div>
         <div class="mmh-dash372-rows">
-          <div><span>Income</span><b>MMK ${fmt(cur.inc)}</b><em>${signed(cur.inc-prev.inc)} vs last month</em></div>
-          <div><span>Expenses</span><b>MMK ${fmt(cur.exp)}</b><em>${expCh===null?'No prior data':pct(expCh)} vs last month</em></div>
-          <div><span>Net Savings</span><b class="${cur.save>=0?'green':'red'}">MMK ${fmt(cur.save)}</b><em>${saveCh===null?'No prior data':pct(saveCh)} vs last month</em></div>
-          <div><span>Savings Rate</span><b>${cur.rate.toFixed(1)}%</b><em>${(cur.rate-prev.rate>=0?'+':'')+(cur.rate-prev.rate).toFixed(1)} percentage points</em></div>
+          <div><span>${tr('Income','收入')}</span><b>MMK ${fmt(cur.inc)}</b><em>${signed(cur.inc-prev.inc)} ${tr('vs last month','较上月')}</em></div>
+          <div><span>${tr('Expenses','支出')}</span><b>MMK ${fmt(cur.exp)}</b><em>${expCh===null?tr('No prior data','暂无上月数据'):pct(expCh)} ${tr('vs last month','较上月')}</em></div>
+          <div><span>${tr('Net Savings','净储蓄')}</span><b class="${cur.save>=0?'green':'red'}">MMK ${fmt(cur.save)}</b><em>${saveCh===null?tr('No prior data','暂无上月数据'):pct(saveCh)} ${tr('vs last month','较上月')}</em></div>
+          <div><span>${tr('Savings Rate','储蓄率')}</span><b>${cur.rate.toFixed(1)}%</b><em>${(cur.rate-prev.rate>=0?'+':'')+(cur.rate-prev.rate).toFixed(1)} ${tr('percentage points','个百分点')}</em></div>
         </div>
       </div>
-      <div class="mmh-dash372-status ${status==='Healthy'?'good':status==='Watch'?'warn':'bad'}"><div><strong>Financial Status · ${status}</strong><span>${status==='Healthy'?'You are meeting your savings target this month.':status==='Watch'?'Savings are close to target. Keep discretionary spending under control.':'Savings are below target. Review expenses before increasing new investments.'}</span></div><button class="btn" type="button" onclick="setPage('analyze')">Open Analyze →</button></div>`;
+      <div class="mmh-dash372-status ${status==='Healthy'?'good':status==='Watch'?'warn':'bad'}"><div><strong>${tr('Financial Status','财务状态')} · ${statusLabel}</strong><span>${status==='Healthy'?tr('You are meeting your savings target this month.','本月储蓄率达到您的目标。'):status==='Watch'?tr('Savings are close to target. Keep discretionary spending under control.','储蓄率接近目标，请继续控制弹性支出。'):tr('Savings are below target. Review expenses before increasing new investments.','储蓄率低于目标，请先检查支出，再考虑增加新增投资。')}</span></div><button class="btn" type="button" onclick="setPage('analyze')">${tr('Open Analyze','打开分析')} →</button></div>`;
   }catch(err){
     console.warn('MMHVAULT Dashboard 2.0 render skipped:',err);
     host.innerHTML='<div class="empty">Dashboard summary is temporarily unavailable. The existing dashboard remains available below.</div>';
@@ -6047,6 +6050,7 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
 (function(){
 const zh={
 'Dashboard':'仪表盘','Analyze':'分析','Transactions':'交易记录','Invest':'投资','Exchange':'汇率','Settings':'设置','Welcome back':'欢迎回来','Financial Dashboard':'财务仪表盘','Account Overview':'账户概览','Asset Allocation':'资产配置','Net Worth History':'净资产历史','Add Transaction':'添加交易','Add Investment':'添加投资','Open Analyze':'打开分析','Exchange Center':'汇率中心','Base Currency: MMK. Exchange settings do not change transaction amounts.':'基础货币：MMK。汇率设置不会改变交易金额。','Manage your account, appearance and data tools.':'管理您的账户、外观和数据工具。','Account':'账户','Appearance':'外观','Data & Backup':'数据与备份','App Icon':'应用图标','Used when you add MMHVAULT to your phone home screen.':'当您将 MMHVAULT 添加到手机主屏幕时使用。','Language':'语言','Choose the language used across MMHVAULT on this device.':'选择此设备上 MMHVAULT 使用的语言。','Choose the theme for this device. Your financial data remains securely synced with Supabase.':'选择此设备的主题。您的财务数据仍会安全同步。','Black / Dark':'黑色 / 深色','Original MMHVAULT theme':'原始 MMHVAULT 主题','White / Light':'白色 / 浅色','Clean light theme':'简洁浅色主题','Data Center':'数据中心','Your private finance data, backup status and cloud tools.':'您的私人财务数据、备份状态和云端工具。','Transactions':'交易记录','Investments':'投资','Exchange Rates':'汇率','Last Backup':'上次备份','Cloud records for this account':'此账户的云端记录','Crypto + Gold records':'加密货币 + 黄金记录','Personal account rates':'个人账户汇率','Never':'从未','Create a local copy before major changes.':'重大更改前创建本地副本。','Export Backup':'导出备份','Select Backup':'选择备份','Export Transactions CSV':'导出交易 CSV','Backup preview':'备份预览','Update Password':'更新密码','Cash & Investment Accounts':'现金与投资账户','Net Worth Mix':'净资产构成','Last 6 Months':'最近 6 个月','Detailed analysis separated from the main Dashboard.':'与主仪表盘分开的详细分析。','Savings Rate Trend':'储蓄率趋势','Monthly Expense Control':'每月支出控制','Current month · Budget vs actual · THB':'本月 · 预算与实际 · THB','NET WORTH':'净资产','CASH ASSETS':'现金资产','INVESTMENTS':'投资资产','SAVING RATIO':'储蓄率','Cash + Investments':'现金 + 投资','Cloud Synced':'云端已同步','Personal Finance & Wealth Management':'个人财务与财富管理','Customer':'客户','Income':'收入','Expense':'支出','Cancel':'取消','Save':'保存','Delete':'删除','Edit':'编辑','Loading...':'加载中...'};
+Object.assign(zh,{'Wealth Control Center':'财富控制中心','Current financial position and this month vs last month.':'当前财务状况及本月与上月对比。','Cash & Stable Assets':'现金与稳定资产','Monthly Savings':'月度储蓄','of net worth':'占净资产','savings rate':'储蓄率','Automatic comparison from transaction data.':'根据交易数据自动比较。','Target savings':'储蓄目标','vs last month':'较上月','No prior data':'暂无上月数据','percentage points':'个百分点','Financial Status':'财务状态','You are meeting your savings target this month.':'本月储蓄率达到您的目标。','Savings are close to target. Keep discretionary spending under control.':'储蓄率接近目标，请继续控制弹性支出。','Savings are below target. Review expenses before increasing new investments.':'储蓄率低于目标，请先检查支出，再考虑增加新增投资。','Monthly Financial Report':'月度财务报告','Automatically summarize this month’s financial performance and compare it with the previous month.':'自动总结本月财务表现，并与上个月进行对比。','Net Savings':'净储蓄','Previous month':'上月','This Month’s Spending Focus':'本月支出重点','% of total spending':'占总支出','Largest spending category':'最大支出分类','Current Wealth Status':'本月财富状态','Cash Assets':'现金资产','Investment Assets':'投资资产','Non-investment assets':'非投资资产','Current valuation':'当前估值','This month':'本月','Next Month’s Recommendation':'下个月建议'});
 let lang=localStorage.getItem('mmhvault_language_v3363')||'en';
 
 // Comprehensive Chinese language pack v3.36.6 · full Analyze/Dashboard coverage
@@ -7209,6 +7213,8 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
   document.addEventListener('change',e=>{if(e.target?.id==='month'||e.target?.id==='year')setTimeout(render,0);});
   document.addEventListener('click',e=>{if(e.target?.closest?.('#dashboard'))setTimeout(render,0);});
   window.addEventListener('storage',e=>{if(e.key==='mmhvault_language_v3363')setTimeout(render,0);});
+  document.addEventListener('click',e=>{if(e.target?.closest?.('.language-choice-v3363'))setTimeout(render,140);});
+  window.addEventListener('mmhvault-language-change',()=>setTimeout(render,60));
 })();
 </script>
 
