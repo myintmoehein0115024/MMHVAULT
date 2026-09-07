@@ -6605,5 +6605,82 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
 })();
 </script>
 
+
+<!-- MMHVAULT V3.37.1.5 · Net Worth Growth Breakdown -->
+<style id="mmhvault-v3715-networth-style">
+#netWorthAnalyzeSummaryV371{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:12px}
+#netWorthAnalyzeSummaryV371 .networth-trend-v371{grid-column:1/-1}
+.networth-growth-v371{grid-column:1/-1;border:1px solid rgba(94,151,210,.28);border-radius:16px;padding:15px;background:linear-gradient(135deg,rgba(17,28,57,.88),rgba(11,20,40,.78));margin-top:2px}
+.networth-growth-head-v371{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
+.networth-growth-grid-v371{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.networth-growth-item-v371{padding:13px;border-radius:13px;border:1px solid rgba(255,255,255,.07);background:rgba(6,13,29,.35)}
+.networth-growth-item-v371 .label{margin-bottom:6px}.networth-growth-item-v371 .value{font-size:22px;font-weight:900;letter-spacing:.2px}.networth-growth-note-v371{margin-top:12px;color:var(--muted);font-size:12px;line-height:1.55}
+@media(max-width:900px){#netWorthAnalyzeSummaryV371{grid-template-columns:repeat(2,minmax(0,1fr))}.networth-growth-grid-v371{grid-template-columns:1fr}}
+@media(max-width:560px){#netWorthAnalyzeSummaryV371{grid-template-columns:1fr}}
+</style>
+<script id="mmhvault-v3715-networth-growth-breakdown">
+(function(){
+  const num=v=>{v=Number(v);return Number.isFinite(v)?v:0};
+  const zh=()=>((localStorage.getItem('mmhvault_language_v3363')||'en')==='zh');
+  const tr=(en,cn)=>zh()?cn:en;
+  const money=v=>{try{return typeof usd==='function'?usd(v):'$ '+num(v).toLocaleString(undefined,{maximumFractionDigits:2});}catch(e){return '$ '+num(v).toFixed(2)}};
+  const monthKey=offset=>{const d=new Date();d.setDate(1);d.setMonth(d.getMonth()+offset);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`};
+  const monthText=ym=>{try{return typeof monthLabel==='function'?monthLabel(ym):ym}catch(e){return ym}};
+  function currentNet(){
+    const accounts=['Bath','TrueMoney','OKX','ByBit','MetaMask','KPay'];
+    const cash=accounts.reduce((sum,a)=>sum+(typeof balance==='function'?num(balance(a)):0)*(typeof toUSD==='function'?num(toUSD(a)):0),0);
+    const inv=typeof investmentValue==='function'?num(investmentValue())/Math.max(1,num(rates?.usd_mmk)):0;
+    return {cash,invest:inv,net:cash+inv};
+  }
+  function render(){
+    const el=document.getElementById('netWorthAnalyzeSummaryV371');
+    if(!el||typeof nwEstimateAtV371!=='function')return;
+    const now=currentNet();
+    const prevKey=monthKey(-1), thisKey=monthKey(0);
+    const prev=nwEstimateAtV371(prevKey);
+    const change=now.net-num(prev.net);
+    const growth=prev.net?change/prev.net*100:null;
+    let flow={inc:0,exp:0,save:0};
+    try{ if(typeof monthTotals==='function')flow=monthTotals(thisKey)||flow; }catch(e){}
+    const savingsUSD=num(flow.save)/Math.max(1,num(rates?.usd_mmk));
+    // Remaining change is the estimated investment/valuation contribution after removing this month's net saving.
+    const valuationImpact=change-savingsUSD;
+    const months=Array.from({length:6},(_,i)=>monthKey(i-5));
+    const series=months.map(ym=>({ym,...nwEstimateAtV371(ym)}));
+    const max=Math.max(1,...series.map(x=>num(x.net)));
+    const min=Math.min(0,...series.map(x=>num(x.net)));
+    const range=Math.max(1,max-min);
+    const sign=v=>v>=0?'+':'';
+    const cls=v=>v>0?'green':v<0?'red':'yellow';
+    const cashPct=now.net?now.cash/now.net*100:0;
+    const invPct=now.net?now.invest/now.net*100:0;
+    el.innerHTML=`
+      <div class="networth-analyze-card-v371"><div class="label">${tr('Current Net Worth','当前净资产')}</div><div class="value cyan">${money(now.net)}</div><div class="small">${tr('Cash + Investments · USD','现金 + 投资 · USD')}</div></div>
+      <div class="networth-analyze-card-v371"><div class="label">${tr('Change vs Last Month','相比上月变化')}</div><div class="value ${cls(change)}">${sign(change)}${money(change)}</div><div class="small">${growth===null?tr('No prior baseline','暂无上月基准'):`${sign(growth)}${growth.toFixed(1)}% ${tr('vs prior month','相比上月')}`}</div></div>
+      <div class="networth-analyze-card-v371"><div class="label">${tr('Cash Share','现金占比')}</div><div class="value cyan">${cashPct.toFixed(1)}%</div><div class="small">${money(now.cash)} ${tr('in cash accounts','现金账户')}</div></div>
+      <div class="networth-analyze-card-v371"><div class="label">${tr('Investment Share','投资占比')}</div><div class="value pink">${invPct.toFixed(1)}%</div><div class="small">${money(now.invest)} ${tr('current investment value','当前投资价值')}</div></div>
+      <div class="networth-growth-v371">
+        <div class="networth-growth-head-v371"><div><h3 style="margin:0">${tr('Where Did This Month’s Net Worth Change Come From?','本月净资产变化来自哪里？')}</h3><div class="small" style="margin-top:4px">${tr('Current month compared with the end of the previous calendar month','当前月份与上一个自然月月底进行对比')}</div></div><span class="pill">${monthText(thisKey)}</span></div>
+        <div class="networth-growth-grid-v371">
+          <div class="networth-growth-item-v371"><div class="label">${tr('Net Savings This Month','本月净储蓄')}</div><div class="value ${cls(savingsUSD)}">${sign(savingsUSD)}${money(savingsUSD)}</div><div class="small">${tr('Income minus personal expenses','收入减去个人支出')}</div></div>
+          <div class="networth-growth-item-v371"><div class="label">${tr('Investment & Valuation Impact','投资与估值影响')}</div><div class="value ${cls(valuationImpact)}">${sign(valuationImpact)}${money(valuationImpact)}</div><div class="small">${tr('Estimated remaining change after savings','扣除净储蓄后的估算剩余变化')}</div></div>
+          <div class="networth-growth-item-v371"><div class="label">${tr('Total Net Worth Change','净资产总变化')}</div><div class="value ${cls(change)}">${sign(change)}${money(change)}</div><div class="small">${tr(`${monthText(prevKey)} → ${monthText(thisKey)}`,`${monthText(prevKey)} → ${monthText(thisKey)}`)}</div></div>
+        </div>
+        <div class="networth-growth-note-v371">${tr('Method: total net worth change is compared with the previous month-end estimate. Net savings are calculated from this month’s recorded income minus eligible personal expenses. The remaining amount is shown as estimated investment and valuation impact, so it may also include other balance adjustments not classified as income or expense.','计算方式：净资产总变化与上一个月月底的估算值进行对比；本月净储蓄根据已记录的收入减去符合条件的个人支出计算；剩余变化显示为投资与估值影响，因此也可能包含未归类为收入或支出的其他余额调整。')}</div>
+      </div>
+      <div class="networth-trend-v371">
+        <div class="toolbar"><div><h3>${tr('6-Month Net Worth Trend','近 6 个月净资产趋势')}</h3><div class="small">${tr('Estimated from recorded cash flow and current holdings','根据已记录现金流和当前持仓进行估算')}</div></div><span class="pill">USD</span></div>
+        <div class="nw-bars-v371">${series.map(x=>{const h=Math.max(6,Math.min(100,((num(x.net)-min)/range)*100));const c=num(x.net)>=0?'hi':'red';return `<div class="nw-bar-wrap-v371"><div class="nw-bar-value-v371">${money(num(x.net))}</div><div class="nw-bar-v371 ${c}" style="height:${h}%" title="${monthText(x.ym)} · ${money(num(x.net))}"></div><div class="nw-bar-label-v371">${String(monthText(x.ym)).split(' ')[0]}</div></div>`;}).join('')}</div>
+      </div>`;
+  }
+  const old=window.renderNetWorthAnalyzeV371;
+  window.renderNetWorthAnalyzeV371=function(){const r=typeof old==='function'?old.apply(this,arguments):undefined;render();return r};
+  window.renderNetWorthGrowthBreakdownV3715=render;
+  window.addEventListener('mmhvault-language-change',()=>setTimeout(render,0));
+  document.addEventListener('change',e=>{if(e.target&&((e.target.id==='analyzeYear')||(e.target.id==='analyzeMonth')))setTimeout(render,30)});
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(render,800),{once:true});else setTimeout(render,500);
+})();
+</script>
+
 </body>
 </html>
