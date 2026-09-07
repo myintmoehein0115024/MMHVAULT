@@ -567,6 +567,7 @@
 </div>
 <div class="settings-panel-v371" id="settingsPanelAppearanceV371" role="tabpanel" style="display:none">
 <div class="panel"><div class="toolbar"><div><h2>App Icon</h2><div class="sub">Used when you add MMHVAULT to your phone home screen.</div></div></div><div class="pwa-row"><img alt="MMHVAULT icon" class="app-icon-preview v381-logo" src="icon-192.png"/><div><b>MMHVAULT</b><div class="small">PWA icon · 192×192 / 512×512</div></div></div></div>
+<div class="panel"><h2>Language</h2><div class="sub" style="margin-bottom:12px">Choose the language used across MMHVAULT on this device.</div><div class="language-options-v3363"><button class="language-choice-v3363" data-lang="en" type="button">🇬🇧 English</button><button class="language-choice-v3363" data-lang="zh" type="button">🇨🇳 中文</button></div></div>
 <div class="panel"><h2>Appearance</h2><div class="sub" style="margin-bottom:12px">Choose the theme for this device. Your financial data remains securely synced with Supabase.</div><div class="theme-options"><label class="theme-choice"><input name="theme" type="radio" value="dark"/> <span><b>Black / Dark</b><div class="small">Original MMHVAULT theme</div></span></label><label class="theme-choice"><input name="theme" type="radio" value="light"/> <span><b>White / Light</b><div class="small">Clean light theme</div></span></label></div></div>
 </div>
 <div class="settings-panel-v371" id="settingsPanelDataV371" role="tabpanel" style="display:none">
@@ -5946,6 +5947,24 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
   window.mmHVaultRefreshCryptoHistoryFiltersV336=sync;
   function boot(){setTimeout(sync,0);}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+})();
+</script>
+
+<style id="mmhvault-language-v3363">
+.language-options-v3363{display:flex;gap:10px;flex-wrap:wrap}.language-choice-v3363{border:1px solid var(--line,#334155);background:var(--panel,#111827);color:inherit;border-radius:12px;padding:11px 18px;font:inherit;cursor:pointer;font-weight:700}.language-choice-v3363.active{border-color:#22d3ee;box-shadow:0 0 0 2px rgba(34,211,238,.15);color:#22d3ee}
+</style>
+<script id="mmhvault-i18n-v3363">
+(function(){
+const zh={
+'Dashboard':'仪表盘','Analyze':'分析','Transactions':'交易记录','Invest':'投资','Exchange':'汇率','Settings':'设置','Welcome back':'欢迎回来','Financial Dashboard':'财务仪表盘','Account Overview':'账户概览','Asset Allocation':'资产配置','Net Worth History':'净资产历史','Add Transaction':'添加交易','Add Investment':'添加投资','Open Analyze':'打开分析','Exchange Center':'汇率中心','Base Currency: MMK. Exchange settings do not change transaction amounts.':'基础货币：MMK。汇率设置不会改变交易金额。','Manage your account, appearance and data tools.':'管理您的账户、外观和数据工具。','Account':'账户','Appearance':'外观','Data & Backup':'数据与备份','App Icon':'应用图标','Used when you add MMHVAULT to your phone home screen.':'当您将 MMHVAULT 添加到手机主屏幕时使用。','Language':'语言','Choose the language used across MMHVAULT on this device.':'选择此设备上 MMHVAULT 使用的语言。','Choose the theme for this device. Your financial data remains securely synced with Supabase.':'选择此设备的主题。您的财务数据仍会安全同步。','Black / Dark':'黑色 / 深色','Original MMHVAULT theme':'原始 MMHVAULT 主题','White / Light':'白色 / 浅色','Clean light theme':'简洁浅色主题','Data Center':'数据中心','Your private finance data, backup status and cloud tools.':'您的私人财务数据、备份状态和云端工具。','Transactions':'交易记录','Investments':'投资','Exchange Rates':'汇率','Last Backup':'上次备份','Cloud records for this account':'此账户的云端记录','Crypto + Gold records':'加密货币 + 黄金记录','Personal account rates':'个人账户汇率','Never':'从未','Create a local copy before major changes.':'重大更改前创建本地副本。','Export Backup':'导出备份','Select Backup':'选择备份','Export Transactions CSV':'导出交易 CSV','Backup preview':'备份预览','Update Password':'更新密码','Cash & Investment Accounts':'现金与投资账户','Net Worth Mix':'净资产构成','Last 6 Months':'最近 6 个月','Detailed analysis separated from the main Dashboard.':'与主仪表盘分开的详细分析。','Savings Rate Trend':'储蓄率趋势','Monthly Expense Control':'每月支出控制','Current month · Budget vs actual · THB':'本月 · 预算与实际 · THB','NET WORTH':'净资产','CASH ASSETS':'现金资产','INVESTMENTS':'投资资产','SAVING RATIO':'储蓄率','Cash + Investments':'现金 + 投资','Cloud Synced':'云端已同步','Personal Finance & Wealth Management':'个人财务与财富管理','Customer':'客户','Income':'收入','Expense':'支出','Cancel':'取消','Save':'保存','Delete':'删除','Edit':'编辑','Loading...':'加载中...'};
+let lang=localStorage.getItem('mmhvault_language_v3363')||'en';
+function walk(root){const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);const a=[];while(w.nextNode())a.push(w.currentNode);a.forEach(n=>{const t=n.nodeValue.trim();if(!t)return;if(!n.parentElement.dataset.i18nBase)n.parentElement.dataset.i18nBase=t;const base=n.parentElement.dataset.i18nBase;if(lang==='zh'&&zh[base])n.nodeValue=n.nodeValue.replace(t,zh[base]);else n.nodeValue=n.nodeValue.replace(t,base);});}
+function apply(){document.documentElement.lang=lang==='zh'?'zh-CN':'en';walk(document.body);document.querySelectorAll('.language-choice-v3363').forEach(b=>b.classList.toggle('active',b.dataset.lang===lang));}
+window.setMMHVAULTLanguage=function(next){lang=next;localStorage.setItem('mmhvault_language_v3363',lang);apply();setTimeout(apply,80);};
+document.addEventListener('click',e=>{const b=e.target.closest('.language-choice-v3363');if(b)window.setMMHVAULTLanguage(b.dataset.lang);});
+document.addEventListener('DOMContentLoaded',()=>{apply();setTimeout(apply,300);});
+const mo=new MutationObserver(()=>{if(lang==='zh')apply();});
+document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{childList:true,subtree:true}));
 })();
 </script>
 </body>
