@@ -7112,6 +7112,14 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
     try{return typeof fmt==='function' ? fmt(v) : Number(v||0).toLocaleString(undefined,{maximumFractionDigits:2});}
     catch(_){return Number(v||0).toLocaleString(undefined,{maximumFractionDigits:2});}
   };
+  const isZh=()=>((localStorage.getItem('mmhvault_language_v3363')||'en')==='zh');
+  const T=(en,zh)=>isZh()?zh:en;
+  const CAT_ZH={
+    'Dining':'餐饮','Snacks':'零食','Smoking':'烟草','Transport':'交通','Wellness':'健康','Lifestyle':'生活方式',
+    'Special Transfer':'特别转账','Family Support':'家庭支持','Gifts':'礼物','Donation':'捐赠','Loan Out':'借出','Debt':'债务',
+    'PaidDeb':'还款','Loan Repayment':'贷款还款','Investment':'投资','Other':'其他'
+  };
+  const catLabel=cat=>isZh()?(CAT_ZH[cat]||cat):cat;
   const toMMKSafe=(amount,account)=>{
     try{return num(amount)*(typeof toMMK==='function'?toMMK(account):1);}catch(_){return num(amount);}
   };
@@ -7136,11 +7144,11 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
     return `${y}/${m}`;
   }
   function pctText(a,b){
-    if(b===0) return a===0?'—':'新数据';
+    if(b===0) return a===0?'—':T('New data','新数据');
     const p=(a-b)/Math.abs(b)*100;
     return `${p>=0?'+':''}${p.toFixed(1)}%`;
   }
-  function signed(v){return `${v>=0?'+':''}MMK ${moneyLocal(v)}`}
+  function signed(v){return `${v>=0?'+':'-'}MMK ${moneyLocal(Math.abs(v))}`}
   function render(){
     const host=$('monthlyReportV373'); if(!host)return;
     try{
@@ -7153,37 +7161,44 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
       const top=Object.entries(cur.cats).sort((a,b)=>b[1]-a[1]).slice(0,5);
       const biggest=top[0]?.[0]||'—';
       const biggestAmt=top[0]?.[1]||0;
-      let status='Healthy', statusText='本月储蓄率达到或超过您的目标。';
-      if(cur.rate < target-10){status='Needs Attention';statusText='本月储蓄率明显低于目标，建议优先控制可调整支出。';}
-      else if(cur.rate < target){status='Watch';statusText='本月储蓄率接近目标，建议留意可调整支出。';}
-      const statusCN={Healthy:'健康',Watch:'关注', 'Needs Attention':'需要注意'}[status];
+      let status='Healthy', statusText=T('You are meeting your savings target this month.','本月储蓄率达到或超过您的目标。');
+      if(cur.rate < target-10){status='Needs Attention';statusText=T('Your savings rate is well below target this month. Focus on controllable spending first.','本月储蓄率明显低于目标，建议优先控制可调整支出。');}
+      else if(cur.rate < target){status='Watch';statusText=T('Your savings rate is close to target this month. Keep an eye on controllable spending.','本月储蓄率接近目标，建议留意可调整支出。');}
+      const statusLabel=T(status,status==='Healthy'?'健康':status==='Watch'?'关注':'需要注意');
       const expenseDelta=cur.exp-old.exp, saveDelta=cur.save-old.save;
+      const nextAdvice=cur.save<0
+        ?T('Prioritize restoring positive savings before increasing new investments.','优先恢复正储蓄，再考虑增加新增投资。')
+        :cur.rate<target
+          ?T('Focus on improving the savings rate and controlling flexible spending.','优先提高储蓄率，控制弹性支出。')
+          :expenseDelta>0
+            ?T('Spending is higher than last month. Review the largest spending categories.','本月支出高于上月，建议重点检查最大支出分类。')
+            :T('Maintain the current savings pace and keep monitoring your spending structure.','保持当前储蓄节奏，并继续观察支出结构。');
       host.innerHTML=`
         <div class="mmh-v373-head">
-          <div><h2 class="mmh-v373-title">Monthly Financial Report · 月度财务报告</h2><div class="mmh-v373-sub">自动总结本月财务表现，并与上个月进行对比。</div></div>
-          <span class="mmh-v373-pill">${monthLabel(key)} · ${statusCN}</span>
+          <div><h2 class="mmh-v373-title">${T('Monthly Financial Report','月度财务报告')}</h2><div class="mmh-v373-sub">${T('Automatically summarize this month’s financial performance and compare it with the previous month.','自动总结本月财务表现，并与上个月进行对比。')}</div></div>
+          <span class="mmh-v373-pill">${monthLabel(key)} · ${statusLabel}</span>
         </div>
         <div class="mmh-v373-grid">
-          <div class="mmh-v373-card"><div class="k">收入</div><div class="v">MMK ${moneyLocal(cur.inc)}</div><div class="m">上月：MMK ${moneyLocal(old.inc)} · ${pctText(cur.inc,old.inc)}</div></div>
-          <div class="mmh-v373-card"><div class="k">支出</div><div class="v">MMK ${moneyLocal(cur.exp)}</div><div class="m">上月：MMK ${moneyLocal(old.exp)} · ${pctText(cur.exp,old.exp)}</div></div>
-          <div class="mmh-v373-card"><div class="k">净储蓄</div><div class="v ${cur.save>=0?'green':'red'}">MMK ${moneyLocal(cur.save)}</div><div class="m">较上月：${signed(saveDelta)}</div></div>
-          <div class="mmh-v373-card"><div class="k">储蓄率</div><div class="v">${cur.rate.toFixed(1)}%</div><div class="m">目标：${target.toFixed(0)}% · 较上月 ${(cur.rate-old.rate>=0?'+':'')+(cur.rate-old.rate).toFixed(1)} 个百分点</div></div>
+          <div class="mmh-v373-card"><div class="k">${T('Income','收入')}</div><div class="v">MMK ${moneyLocal(cur.inc)}</div><div class="m">${T('Previous month','上月')}：MMK ${moneyLocal(old.inc)} · ${pctText(cur.inc,old.inc)}</div></div>
+          <div class="mmh-v373-card"><div class="k">${T('Expenses','支出')}</div><div class="v">MMK ${moneyLocal(cur.exp)}</div><div class="m">${T('Previous month','上月')}：MMK ${moneyLocal(old.exp)} · ${pctText(cur.exp,old.exp)}</div></div>
+          <div class="mmh-v373-card"><div class="k">${T('Net Savings','净储蓄')}</div><div class="v ${cur.save>=0?'green':'red'}">MMK ${moneyLocal(cur.save)}</div><div class="m">${T('vs previous month','较上月')}：${signed(saveDelta)}</div></div>
+          <div class="mmh-v373-card"><div class="k">${T('Savings Rate','储蓄率')}</div><div class="v">${cur.rate.toFixed(1)}%</div><div class="m">${T('Target','目标')}：${target.toFixed(0)}% · ${T('vs previous month','较上月')} ${(cur.rate-old.rate>=0?'+':'')+(cur.rate-old.rate).toFixed(1)} ${T('pp','个百分点')}</div></div>
         </div>
         <div class="mmh-v373-split">
-          <div class="mmh-v373-panel"><h3>本月支出重点</h3><div class="mmh-v373-list">
-            ${top.length?top.map((x,i)=>`<div class="mmh-v373-row"><div class="name">${i+1}. ${x[0]}</div><div class="amt">MMK ${moneyLocal(x[1])}</div><div class="delta">占总支出 ${cur.exp?(x[1]/cur.exp*100).toFixed(1):'0.0'}%</div></div>`).join(''):'<div class="mmh-v373-sub">本月暂无普通支出记录。</div>'}
-          </div><div class="mmh-v373-advice">最大支出分类：<b>${biggest}</b> · MMK ${moneyLocal(biggestAmt)}。${old.cats[biggest]!==undefined?` 上月为 MMK ${moneyLocal(old.cats[biggest])}。`:''}</div></div>
-          <div class="mmh-v373-panel"><h3>本月财富状态</h3><div class="mmh-v373-list">
-            <div class="mmh-v373-row"><div class="name">当前净资产</div><div class="amt">MMK ${moneyLocal(net)}</div><div class="delta">现金 + 投资</div></div>
-            <div class="mmh-v373-row"><div class="name">现金资产</div><div class="amt">MMK ${moneyLocal(cash)}</div><div class="delta">非投资资产</div></div>
-            <div class="mmh-v373-row"><div class="name">投资资产</div><div class="amt">MMK ${moneyLocal(invest)}</div><div class="delta">当前估值</div></div>
-            <div class="mmh-v373-row"><div class="name">交易记录</div><div class="amt">${cur.count}</div><div class="delta">本月</div></div>
+          <div class="mmh-v373-panel"><h3>${T('This Month’s Spending Focus','本月支出重点')}</h3><div class="mmh-v373-list">
+            ${top.length?top.map((x,i)=>`<div class="mmh-v373-row"><div class="name">${i+1}. ${catLabel(x[0])}</div><div class="amt">MMK ${moneyLocal(x[1])}</div><div class="delta">${T('% of total spending','占总支出')} ${cur.exp?(x[1]/cur.exp*100).toFixed(1):'0.0'}%</div></div>`).join(''):`<div class="mmh-v373-sub">${T('No ordinary spending records this month.','本月暂无普通支出记录。')}</div>`}
+          </div><div class="mmh-v373-advice">${T('Largest spending category','最大支出分类')}：<b>${catLabel(biggest)}</b> · MMK ${moneyLocal(biggestAmt)}。${old.cats[biggest]!==undefined?` ${T('Previous month','上月')}：MMK ${moneyLocal(old.cats[biggest])}。`:''}</div></div>
+          <div class="mmh-v373-panel"><h3>${T('Current Wealth Status','本月财富状态')}</h3><div class="mmh-v373-list">
+            <div class="mmh-v373-row"><div class="name">${T('Current Net Worth','当前净资产')}</div><div class="amt">MMK ${moneyLocal(net)}</div><div class="delta">${T('Cash + Investments','现金 + 投资')}</div></div>
+            <div class="mmh-v373-row"><div class="name">${T('Cash Assets','现金资产')}</div><div class="amt">MMK ${moneyLocal(cash)}</div><div class="delta">${T('Non-investment assets','非投资资产')}</div></div>
+            <div class="mmh-v373-row"><div class="name">${T('Investment Assets','投资资产')}</div><div class="amt">MMK ${moneyLocal(invest)}</div><div class="delta">${T('Current valuation','当前估值')}</div></div>
+            <div class="mmh-v373-row"><div class="name">${T('Transactions','交易记录')}</div><div class="amt">${cur.count}</div><div class="delta">${T('This month','本月')}</div></div>
           </div></div>
         </div>
-        <div class="mmh-v373-status"><div><b>下个月建议：</b> ${cur.save<0?'优先恢复正储蓄，再考虑增加新增投资。':cur.rate<target?'优先提高储蓄率，控制弹性支出。':expenseDelta>0?'本月支出高于上月，建议重点检查最大支出分类。':'保持当前储蓄节奏，并继续观察支出结构。'}</div><span class="mmh-v373-pill">${monthLabel(prev)} → ${monthLabel(key)}</span></div>`;
+        <div class="mmh-v373-status"><div><b>${T('Next Month’s Recommendation','下个月建议')}：</b> ${nextAdvice}</div><span class="mmh-v373-pill">${monthLabel(prev)} → ${monthLabel(key)}</span></div>`;
     }catch(err){
       console.warn('MMHVAULT V3.37.3 monthly report skipped:',err);
-      host.innerHTML='<div class="mmh-v373-head"><div><h2 class="mmh-v373-title">Monthly Financial Report · 月度财务报告</h2><div class="mmh-v373-sub">当前数据正在加载，报告会自动刷新。</div></div></div>';
+      host.innerHTML='<div class="mmh-v373-head"><div><h2 class="mmh-v373-title">'+T('Monthly Financial Report','月度财务报告')+'</h2><div class="mmh-v373-sub">'+T('Data is loading; the report will refresh automatically.','当前数据正在加载，报告会自动刷新。')+'</div></div></div>';
     }
   }
   window.renderMonthlyReportV373=render;
@@ -7191,8 +7206,9 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',arm,{once:true});else arm();
   window.addEventListener('mmhvault:data-loaded',arm);
   window.addEventListener('mmhvault:data-state',arm);
-  document.addEventListener('change',e=>{if(e.target?.id==='month')setTimeout(render,0);});
+  document.addEventListener('change',e=>{if(e.target?.id==='month'||e.target?.id==='year')setTimeout(render,0);});
   document.addEventListener('click',e=>{if(e.target?.closest?.('#dashboard'))setTimeout(render,0);});
+  window.addEventListener('storage',e=>{if(e.key==='mmhvault_language_v3363')setTimeout(render,0);});
 })();
 </script>
 
