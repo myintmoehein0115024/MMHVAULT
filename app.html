@@ -246,7 +246,7 @@
 <button class="btn" onclick="retryLoadAllV384()" type="button">Retry</button>
 </div>
 <header id="header" style="display:none">
-<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.37.1.1</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
+<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.37.2.1</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
 <div class="header-spacer"></div>
 <div aria-label="Signed in user" class="header-profile" id="headerProfile">
 <div class="header-avatar" id="headerAvatar">MF</div>
@@ -7041,5 +7041,37 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
 })();
 </script>
 <!-- V3.37.1.8.1 STABILITY + INVEST FIX -->
+
+<script id="mmhvault-v3721-dashboard2-activation">
+/* MMHVAULT V3.37.2.1 · Dashboard 2.0 activation guard.
+   The summary panel is intentionally isolated. This guard only asks the already-defined
+   renderDashboardV372() to render when the dashboard is visible and the host is empty.
+   It does not replace render()/navigation or touch Period, Settings, Invest, or data. */
+(function(){
+  if(window.__mmhV3721Dashboard2GuardInstalled)return;
+  window.__mmhV3721Dashboard2GuardInstalled=true;
+  function tryRender(){
+    try{
+      const host=document.getElementById('dashboardCoreV372');
+      if(!host || typeof window.renderDashboardV372!=='function') return;
+      const dashboard=document.getElementById('dashboard');
+      const visible=dashboard ? dashboard.classList.contains('active') || getComputedStyle(dashboard).display!=='none' : true;
+      if(!visible) return;
+      if(!host.dataset.v372Rendered || !host.innerHTML.trim() || /temporarily unavailable/i.test(host.textContent||'')){
+        window.renderDashboardV372();
+        if(host.innerHTML.trim()) host.dataset.v372Rendered='1';
+      }
+    }catch(err){ console.warn('MMHVAULT V3.37.2.1 Dashboard 2.0 guard:',err); }
+  }
+  function arm(){
+    tryRender();
+    [250,700,1500,3000].forEach(ms=>setTimeout(tryRender,ms));
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',arm,{once:true}); else arm();
+  window.addEventListener('mmhvault:data-loaded',arm);
+  window.addEventListener('mmhvault:data-state',arm);
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)tryRender();});
+})();
+</script>
 </body>
 </html>
