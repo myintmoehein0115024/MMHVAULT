@@ -1079,7 +1079,7 @@ function totalAssetMMK(){
  const cashMMK=ACC.reduce((s,a)=>s+balance(a)*toMMK(a),0);
  return cashMMK+investmentValue();
 }
-function expenseMMK(){return transactions.filter(t=>t.type==="Expense"&&!CATS.Loans.includes(t.category)&&t.category!=="Investment"&&!isLinkedInvestmentTx(t)).reduce((s,t)=>s+n(t.from_amount)*toMMK(t.from_account),0);}
+function expenseMMK(){return transactions.filter(t=>t.type==="Expense"&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=="Investment"&&!isLinkedInvestmentTx(t)).reduce((s,t)=>s+n(t.from_amount)*toMMK(t.from_account),0);}
 function incomeMMK(){return transactions.filter(t=>t.type==="Income").reduce((s,t)=>s+n(t.to_amount)*toMMK(t.to_account),0);}
 function loanOutMMK(){return transactions.filter(t=>t.category==="Loan Out").reduce((s,t)=>s+n(t.from_amount)*toMMK(t.from_account),0);}
 function loanPaidMMK(){return transactions.filter(t=>t.category==="Loan Repayment").reduce((s,t)=>s+n(t.to_amount)*toMMK(t.to_account),0);}
@@ -1135,7 +1135,7 @@ $("accounts").innerHTML=groups.map(g=>{
 }).join("");
 $("metrics").innerHTML=[["Asset",A,"cyan"],["Expense",E,"red"],["Available Balance",available,available>=0?"green":"red"],["Total Invest",investedCost(),"pink"],["Net Change",incomeMMK()-E-L,"yellow"]].map(x=>`<div class="card metric"><div class="name">${x[0]} · MMK</div><div class="value ${x[2]}">${fmt(x[1])}</div></div>`).join("");
 const month=$("month")?.value||today().slice(0,7);const monthTx=transactions.filter(t=>t.tx_date.startsWith(month));
-let mi=0,me=0;monthTx.forEach(t=>{if(t.type==="Income")mi+=n(t.to_amount)*toMMK(t.to_account);if(t.type==="Expense"&&!CATS.Loans.includes(t.category)&&t.category!=="Investment")me+=n(t.from_amount)*toMMK(t.from_account);});
+let mi=0,me=0;monthTx.forEach(t=>{if(t.type==="Income")mi+=n(t.to_amount)*toMMK(t.to_account);if(t.type==="Expense"&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=="Investment")me+=n(t.from_amount)*toMMK(t.from_account);});
 const mr=mi-me,er=mi?me/mi*100:0;
 $("dashMonthLabel").textContent=month;
 $("dashFlow").innerHTML=`<div class="flow-grid"><div><span>Income</span><b class="green">MMK ${fmt(mi)}</b></div><div><span>Expenses</span><b class="red">MMK ${fmt(me)}</b></div><div><span>Remaining</span><b class="${mr>=0?"green":"red"}">MMK ${fmt(mr)}</b></div><div><span>Expense Ratio</span><b>${er.toFixed(2)}%</b></div></div>`;
@@ -1163,7 +1163,7 @@ renderDashboardMonth();
 }
 function renderDashboardMonth(){
 const m=$("month").value;let i=0,e=0;
-transactions.filter(t=>t.tx_date.startsWith(m)).forEach(t=>{if(t.type==="Income")i+=n(t.to_amount)*toMMK(t.to_account);if(t.type==="Expense"&&!CATS.Loans.includes(t.category)&&t.category!=="Investment")e+=n(t.from_amount)*toMMK(t.from_account);});
+transactions.filter(t=>t.tx_date.startsWith(m)).forEach(t=>{if(t.type==="Income")i+=n(t.to_amount)*toMMK(t.to_account);if(t.type==="Expense"&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=="Investment")e+=n(t.from_amount)*toMMK(t.from_account);});
 const r=i-e,p=i?e/i*100:0;
 monthly.innerHTML=`<table><tr><th>Month</th><th>Income</th><th>Expenses</th><th>Remaining</th><th>Expense Ratio</th><th>Remaining Ratio</th></tr><tr><td>${m}</td><td>${fmt(i)}</td><td>${fmt(e)}</td><td>${fmt(r)}</td><td>${p.toFixed(2)}%</td><td>${(100-p).toFixed(2)}%</td></tr></table>`;
 }
@@ -1914,7 +1914,7 @@ function renderDashboardV29(){
   const cash=cashAccounts.reduce((s,a)=>s+balance(a)*toUSD(a),0);
   const invest=investmentValue();
   const net=cash+invest;
-  const expense=transactions.filter(t=>t.type==='Expense'&&!CATS.Loans.includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t)).reduce((s,t)=>s+n(t.from_amount)*toUSD(t.from_account),0);
+  const expense=transactions.filter(t=>t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t)).reduce((s,t)=>s+n(t.from_amount)*toUSD(t.from_account),0);
   const inc=transactions.filter(t=>t.type==='Income').reduce((s,t)=>s+n(t.to_amount)*toUSD(t.to_account),0);
   const save=inc-expense, saveRatio=inc?save/inc*100:0;
   const loan=Math.max(0,loanOutMMK()-loanPaidMMK())/rates.usd_mmk;
@@ -1923,7 +1923,7 @@ function renderDashboardV29(){
   $('metrics').innerHTML=[['Income',inc,'green'],['Expense',expense,'red'],['Available Balance',Math.max(0,cash-loan),'cyan'],['Total Invest',invest,'pink'],['Net Change',save-loan,'yellow']].map(x=>`<div class="card metric"><div class="name">${x[0]} · USD</div><div class="value ${x[2]}">${usd(x[1])}</div></div>`).join('');
   const cryptoV=investmentValue(); const goldMMK=investments.filter(x=>x.asset==='Gold').reduce((s,x)=>s+n(x.quantity)*(goldMarketState.pricePerKyattha||n(x.market_price)),0)/rates.usd_mmk; const cashV=cash; const total=cryptoV+goldMMK+cashV||1;
   $('assetAllocation').innerHTML=[['Cash',cashV],['Crypto',cryptoV],['Gold',goldMMK]].map(([k,v])=>`<div class="alloc-row"><b>${k}</b><div class="alloc-bar"><span style="width:${Math.min(100,v/total*100)}%"></span></div><span>${(v/total*100).toFixed(1)}%</span><span>${usd(v)}</span></div>`).join('');
-  const vals=monthSeries().map(m=>{let i=0,e=0;transactions.filter(t=>t.tx_date.startsWith(m)).forEach(t=>{if(t.type==='Income')i+=n(t.to_amount)*toUSD(t.to_account);if(t.type==='Expense'&&!CATS.Loans.includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t))e+=n(t.from_amount)*toUSD(t.from_account);});return{m,i,e};}); const max=Math.max(1,...vals.map(x=>Math.max(x.i,x.e))); $('netWorthHistory').innerHTML=`<div class="spark">${vals.map(x=>`<span title="${monthLabel(x.m)} · Income ${usd(x.i)} / Expense ${usd(x.e)}" style="height:${Math.max(4,x.i/max*100)}%"></span>`).join('')}</div><div class="spark-labels">${vals.map(x=>`<span>${monthLabel(x.m).split(' ')[0]}</span>`).join('')}</div><div class="small" style="margin-top:6px">Monthly income bars · USD</div>`;
+  const vals=monthSeries().map(m=>{let i=0,e=0;transactions.filter(t=>t.tx_date.startsWith(m)).forEach(t=>{if(t.type==='Income')i+=n(t.to_amount)*toUSD(t.to_account);if(t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t))e+=n(t.from_amount)*toUSD(t.from_account);});return{m,i,e};}); const max=Math.max(1,...vals.map(x=>Math.max(x.i,x.e))); $('netWorthHistory').innerHTML=`<div class="spark">${vals.map(x=>`<span title="${monthLabel(x.m)} · Income ${usd(x.i)} / Expense ${usd(x.e)}" style="height:${Math.max(4,x.i/max*100)}%"></span>`).join('')}</div><div class="spark-labels">${vals.map(x=>`<span>${monthLabel(x.m).split(' ')[0]}</span>`).join('')}</div><div class="small" style="margin-top:6px">Monthly income bars · USD</div>`;
   const m=today().slice(0,7); $('dashMonthLabel').textContent=monthLabel(m); $('dashFlow').innerHTML=`<div class="flow-grid"><div><span>Income</span><b class="green">${usd(inc)}</b></div><div><span>Expenses</span><b class="red">${usd(expense)}</b></div><div><span>Saved</span><b>${usd(save)}</b></div><div><span>Saving Ratio</span><b>${saveRatio.toFixed(1)}%</b></div></div>`;
   const holds=['BTC','ETH','SOL','BNB'].map(s=>{const q=investments.filter(x=>x.asset==='Crypto'&&x.symbol===s).reduce((a,x)=>a+n(x.quantity),0);return{s,q};}); $('dashInvest').innerHTML=holds.map(x=>`<div class="mini-stat"><b>${x.s}</b><span>${x.q.toFixed(10)} held</span></div>`).join('');
   const recentAll=transactions.filter(t=>!isLinkedInvestmentTx(t)); const recent=recentAll.slice(0,5); $('dashTxCount').textContent=`${recent.length} shown of ${recentAll.length}`; $('dashRecent').innerHTML=recent.length?`<table class="recent-one"><tr><th>Date</th><th>Type</th><th>Category</th><th>Amount · USD</th></tr>${recent.map(t=>`<tr><td>${t.tx_date}</td><td>${t.type}</td><td>${esc(t.category)}</td><td>${t.type==='Income'?usd(n(t.to_amount)*toUSD(t.to_account)):usd(n(t.from_amount)*toUSD(t.from_account))}</td></tr>`).join('')}</table>`:'<div class="empty">No recent transactions.</div>';
@@ -1931,10 +1931,10 @@ function renderDashboardV29(){
 renderDashboard=renderDashboardV29;
 const _renderAnalyzeV27=renderAnalyze;
 function monthSeries(){const ms=[];const d=new Date();for(let i=5;i>=0;i--){const x=new Date(d.getFullYear(),d.getMonth()-i,1);ms.push(`${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}`);}return ms;}
-function monthTotals(m){let inc=0,expv=0;transactions.filter(t=>t.tx_date.startsWith(m)).forEach(t=>{if(t.type==='Income')inc+=n(t.to_amount)*toMMK(t.to_account);if(t.type==='Expense'&&!CATS.Loans.includes(t.category)&&t.category!=='Investment')expv+=n(t.from_amount)*toMMK(t.from_account);});return{inc,exp:expv,save:inc-expv};}
+function monthTotals(m){let inc=0,expv=0;transactions.filter(t=>t.tx_date.startsWith(m)).forEach(t=>{if(t.type==='Income')inc+=n(t.to_amount)*toMMK(t.to_account);if(t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment')expv+=n(t.from_amount)*toMMK(t.from_account);});return{inc,exp:expv,save:inc-expv};}
 function toTHB(a){const cur=currency(a); if(cur==='THB')return 1; if(cur==='USD')return rates.usd_thb; return rates.usd_thb/rates.usd_mmk;}
 function thb(v){return '฿ '+fmt(v);}
-function analyzeTotals(m){let inc=0,expv=0;transactions.filter(t=>t.tx_date.startsWith(m)).forEach(t=>{if(t.type==='Income')inc+=n(t.to_amount)*toTHB(t.to_account);if(t.type==='Expense'&&!CATS.Loans.includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t))expv+=n(t.from_amount)*toTHB(t.from_account);});return{inc,exp:expv,save:inc-expv};}
+function analyzeTotals(m){let inc=0,expv=0;transactions.filter(t=>t.tx_date.startsWith(m)).forEach(t=>{if(t.type==='Income')inc+=n(t.to_amount)*toTHB(t.to_account);if(t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t))expv+=n(t.from_amount)*toTHB(t.from_account);});return{inc,exp:expv,save:inc-expv};}
 function renderAnalyzeV29(){
   const m=$('month').value||today().slice(0,7); const cur=analyzeTotals(m); const ratio=cur.inc?cur.exp/cur.inc*100:0; const sratio=cur.inc?cur.save/cur.inc*100:0;
   $('expenses').innerHTML=`<table><tr><th>Category</th><th>THB</th><th>% of Income</th></tr>${CATS.Expense.map(c=>{const v=transactions.filter(t=>t.type==='Expense'&&t.category===c&&!isLinkedInvestmentTx(t)).reduce((s,t)=>s+n(t.from_amount)*toTHB(t.from_account),0);return`<tr><td>${c}</td><td>${fmt(v)}</td><td>${cur.inc?(v/cur.inc*100).toFixed(2):'0.00'}%</td></tr>`}).join('')}<tr><td><b>Total</b></td><td><b>${fmt(cur.exp)}</b></td><td><b>${ratio.toFixed(2)}%</b></td></tr></table>`;
@@ -1973,7 +1973,7 @@ function mmhvaultTxExpenseUSD(t){
   return mmhvaultAmountUSD(t.from_account,t.from_amount);
 }
 function mmhvaultPeriodTotalsUSD(monthKey){
-  const rows=(transactions||[]).filter(t=>!monthKey||String(t.tx_date||'').slice(0,7)===monthKey);
+  const rows=(window.transactions||[]).filter(t=>!monthKey||String(t.tx_date||'').slice(0,7)===monthKey);
   let income=0,expense=0;
   rows.forEach(t=>{income+=mmhvaultTxIncomeUSD(t);expense+=mmhvaultTxExpenseUSD(t);});
   return {income,expense,saved:income-expense};
@@ -1985,13 +1985,13 @@ function mmhvaultCompletedMonths(count=6){
 }
 function mmhvaultCashUSD(){return ['Bath','TrueMoney','OKX','ByBit','MetaMask','KPay'].reduce((sum,a)=>sum+balance(a)*mmhvaultAmountUSD(a,1),0);}
 function mmhvaultInvestmentCostUSD(){
-  return (investments||[]).reduce((sum,x)=>{
+  return (window.investments||[]).reduce((sum,x)=>{
     const cost=n(x.amount)+n(x.fee)+n(x.other_cost);
     return sum + (x.asset==='Crypto'?cost:cost/(n(rates.usd_mmk)||1));
   },0);
 }
 function mmhvaultInvestmentValueUSD(){
-  return (investments||[]).reduce((sum,x)=>{
+  return (window.investments||[]).reduce((sum,x)=>{
     const q=n(x.quantity); if(!q)return sum;
     if(x.asset==='Crypto'){const p=livePrices[x.symbol]?.price||n(x.market_price);return sum+q*p;}
     const p=goldMarketState.pricePerKyattha||n(x.market_price);
@@ -2010,7 +2010,7 @@ function renderDashboardV30(){
   const netWorth=cash+investmentsUSD;
   const monthlyMonth=today().slice(0,7);
   const income=transactions.filter(t=>t.tx_date.startsWith(monthlyMonth)&&t.type==='Income').reduce((sum,t)=>sum+n(t.to_amount)*toUSD(t.to_account),0);
-  const expense=transactions.filter(t=>t.tx_date.startsWith(monthlyMonth)&&t.type==='Expense'&&!CATS.Loans.includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t)).reduce((sum,t)=>sum+n(t.from_amount)*toUSD(t.from_account),0);
+  const expense=transactions.filter(t=>t.tx_date.startsWith(monthlyMonth)&&t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t)).reduce((sum,t)=>sum+n(t.from_amount)*toUSD(t.from_account),0);
   const saving=income-expense, savingRatio=income?saving/income*100:0;
   const outstanding=Math.max(0,loanOutMMK()-loanPaidMMK())/rates.usd_mmk;
 
@@ -2089,13 +2089,13 @@ function v35Period(){
 function v35Rows(){
   const p=v35Period();
   if(p==="annual") return Array.isArray(transactions)?transactions:[];
-  return (transactions||[]).filter(t=>String(t.tx_date||"").slice(0,7)===p);
+  return (window.transactions||[]).filter(t=>String(t.tx_date||"").slice(0,7)===p);
 }
 function v35Totals(rows){
   let inc=0,exp=0;
   rows.forEach(t=>{
     if(t.type==="Income") inc+=n(t.to_amount)*toTHB(t.to_account);
-    if(t.type==="Expense" && !CATS.Loans.includes(t.category) && t.category!=="Investment" && !isLinkedInvestmentTx(t))
+    if(t.type==="Expense" && !(window.CATS?.Loans||[]).includes(t.category) && t.category!=="Investment" && !isLinkedInvestmentTx(t))
       exp+=n(t.from_amount)*toTHB(t.from_account);
   });
   return {inc,exp,save:inc-exp,expenseRatio:inc?exp/inc*100:0,savingRatio:inc?(inc-exp)/inc*100:0};
@@ -2155,12 +2155,12 @@ function renderAnalyzeV35(){
   }
   const trend=$("expenseTrend"),months=p==="annual"?monthSeries():[p];
   if(trend){
-    const arr=months.map(m=>({m,...v35Totals((transactions||[]).filter(x=>String(x.tx_date||"").slice(0,7)===m))})), max=Math.max(1,...arr.map(x=>x.exp));
+    const arr=months.map(m=>({m,...v35Totals((window.transactions||[]).filter(x=>String(x.tx_date||"").slice(0,7)===m))})), max=Math.max(1,...arr.map(x=>x.exp));
     trend.innerHTML=`<div class="spark">${arr.map(x=>`<span title="${monthLabel(x.m)} · ${thb(x.exp)}" style="height:${Math.max(4,x.exp/max*100)}%"></span>`).join("")}</div><div class="spark-labels">${arr.map(x=>`<span>${monthLabel(x.m).split(" ")[0]}</span>`).join("")}</div><div class="small" style="margin-top:6px">Monthly expenses · THB</div>`;
   }
   const ie=$("incomeExpenseTrend");
   if(ie){
-    const arr=months.map(m=>({m,...v35Totals((transactions||[]).filter(x=>String(x.tx_date||"").slice(0,7)===m))})), max=Math.max(1,...arr.flatMap(x=>[x.inc,x.exp]));
+    const arr=months.map(m=>({m,...v35Totals((window.transactions||[]).filter(x=>String(x.tx_date||"").slice(0,7)===m))})), max=Math.max(1,...arr.flatMap(x=>[x.inc,x.exp]));
     ie.innerHTML=`<div class="spark">${arr.map(x=>`<span title="Income ${thb(x.inc)} · Expense ${thb(x.exp)}" style="height:${Math.max(4,x.inc/max*100)}%"></span>`).join("")}</div><div class="spark-labels">${arr.map(x=>`<span>${monthLabel(x.m).split(" ")[0]}</span>`).join("")}</div><div class="small" style="margin-top:6px">Income · THB</div>`;
   }
   const hs=$("healthScore");if(hs){const score=Math.max(0,Math.min(100,Math.round(45+Math.max(0,t.savingRatio)*0.8-Math.max(0,t.expenseRatio-70)*0.25)));hs.innerHTML=`<div class="score ${score>=75?'good':score>=55?'warn':'bad'}">${score}</div><div class="small">Financial Health Score</div><div class="mini-stat">Saving Ratio <b>${t.savingRatio.toFixed(1)}%</b></div><div class="mini-stat">Expense Ratio <b>${t.expenseRatio.toFixed(1)}%</b></div>`;}
@@ -2200,7 +2200,7 @@ document.addEventListener("click",e=>{
 /* ===================== V3.7 ===================== */
 function v37YearList(){
   const years=new Set([new Date().getFullYear()]);
-  (transactions||[]).forEach(t=>{const y=String(t.tx_date||"").slice(0,4);if(/^\d{4}$/.test(y))years.add(Number(y));});
+  (window.transactions||[]).forEach(t=>{const y=String(t.tx_date||"").slice(0,4);if(/^\d{4}$/.test(y))years.add(Number(y));});
   return [...years].sort((a,b)=>a-b);
 }
 function v37Period(){
@@ -2222,20 +2222,20 @@ function v37EnsurePeriodControls(){
 }
 function v37Rows(){
   const p=v37Period();
-  if(p.month==="annual")return (transactions||[]).filter(t=>String(t.tx_date||"").slice(0,4)===String(p.year));
+  if(p.month==="annual")return (window.transactions||[]).filter(t=>String(t.tx_date||"").slice(0,4)===String(p.year));
   const ym=`${p.year}-${p.month}`;
-  return (transactions||[]).filter(t=>String(t.tx_date||"").slice(0,7)===ym);
+  return (window.transactions||[]).filter(t=>String(t.tx_date||"").slice(0,7)===ym);
 }
 function v37Totals(rows){
   let inc=0,exp=0;
   for(const t of rows){
     if(t.type==="Income")inc+=n(t.to_amount)*toTHB(t.to_account);
-    if(t.type==="Expense"&&!CATS.Loans.includes(t.category)&&t.category!=="Investment"&&!isLinkedInvestmentTx(t))exp+=n(t.from_amount)*toTHB(t.from_account);
+    if(t.type==="Expense"&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=="Investment"&&!isLinkedInvestmentTx(t))exp+=n(t.from_amount)*toTHB(t.from_account);
   }
   return {inc,exp,save:inc-exp,er:inc?exp/inc*100:0,sr:inc?(inc-exp)/inc*100:0};
 }
 function v37MonthTotals(ym){
-  return v37Totals((transactions||[]).filter(t=>String(t.tx_date||"").slice(0,7)===ym));
+  return v37Totals((window.transactions||[]).filter(t=>String(t.tx_date||"").slice(0,7)===ym));
 }
 function v37BudgetKey(cat){
   const p=v37Period();return `myfinance_budget_${p.year}_${p.month}_${cat}`;
@@ -2252,7 +2252,7 @@ function v37Label(p){
 }
 function v37ConsistencyCheck(){
   const p=v37Period(), rows=v37Rows(), t=v37Totals(rows);
-  const selectedYearRows=(transactions||[]).filter(x=>String(x.tx_date||'').slice(0,4)===String(p.year));
+  const selectedYearRows=(window.transactions||[]).filter(x=>String(x.tx_date||'').slice(0,4)===String(p.year));
   const annualMatches=p.month==='annual' && rows.length===selectedYearRows.length;
   return {period:v37Label(p),rows:rows.length,incomeTHB:t.inc,expenseTHB:t.exp,netSavingsTHB:t.save,savingsRate:t.sr,annualPeriodMatchesYearFilter:annualMatches};
 }
@@ -2404,7 +2404,7 @@ function renderDashboardExpenseControlV1(){
   const label=(typeof v37Label==='function')?v37Label(period):(period.year+'');
   const rowsForPeriod=(typeof v37Rows==='function')?v37Rows():transactions.filter(t=>t.tx_date?.startsWith(today().slice(0,7)));
   const rows=CATS.Expense.map(cat=>{
-    const spent=rowsForPeriod.filter(t=>t.type==='Expense'&&t.category===cat&&!isLinkedInvestmentTx(t)&&!CATS.Loans.includes(t.category)).reduce((sum,t)=>sum+n(t.from_amount)*toTHB(t.from_account),0);
+    const spent=rowsForPeriod.filter(t=>t.type==='Expense'&&t.category===cat&&!isLinkedInvestmentTx(t)&&!(window.CATS?.Loans||[]).includes(t.category)).reduce((sum,t)=>sum+n(t.from_amount)*toTHB(t.from_account),0);
     const budget=v37Budget(cat);
     const pct=budget>0?(spent/budget*100):0;
     return{cat,spent,budget,pct};
@@ -2462,14 +2462,14 @@ function renderDashboardInsightsV37(){
 /* ===================== V3.7.1 Financial Health ===================== */
 function fhNumber(v){return Number.isFinite(Number(v))?Number(v):0;}
 function fhMonthKeyFromOffset(offset){const d=new Date();d.setDate(1);d.setMonth(d.getMonth()+offset);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;}
-function fhMonthRows(key){return (transactions||[]).filter(t=>String(t.tx_date||'').slice(0,7)===key);}
-function fhMonthlyFlow(key){let inc=0,exp=0;for(const t of fhMonthRows(key)){if(t.type==='Income')inc+=fhNumber(t.to_amount)*toUSD(t.to_account);if(t.type==='Expense'&&!CATS.Loans.includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t))exp+=fhNumber(t.from_amount)*toUSD(t.from_account);}return{inc,exp,save:inc-exp,sr:inc?((inc-exp)/inc*100):0,er:inc?(exp/inc*100):0};}
+function fhMonthRows(key){return (window.transactions||[]).filter(t=>String(t.tx_date||'').slice(0,7)===key);}
+function fhMonthlyFlow(key){let inc=0,exp=0;for(const t of fhMonthRows(key)){if(t.type==='Income')inc+=fhNumber(t.to_amount)*toUSD(t.to_account);if(t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t))exp+=fhNumber(t.from_amount)*toUSD(t.from_account);}return{inc,exp,save:inc-exp,sr:inc?((inc-exp)/inc*100):0,er:inc?(exp/inc*100):0};}
 function fhThreeMonthAverage(){const ms=[fhMonthKeyFromOffset(-3),fhMonthKeyFromOffset(-2),fhMonthKeyFromOffset(-1)];const rows=ms.map(fhMonthlyFlow);const inc=rows.reduce((s,x)=>s+x.inc,0),exp=rows.reduce((s,x)=>s+x.exp,0),save=inc-exp;return{months:ms,inc,exp,save,sr:inc?save/inc*100:0,er:inc?exp/inc*100:0,avgExpense:exp/3,avgIncome:inc/3,rows};}
 function fhEssentialExpense3M(){
   const essential=new Set(['Dining','Transport','Wellness','Lifestyle','Other','Family Support']);
   let total=0;
   const start=new Date();start.setDate(1);start.setMonth(start.getMonth()-3);start.setHours(0,0,0,0);
-  for(const t of (transactions||[])){
+  for(const t of (window.transactions||[])){
     if(t.type!=='Expense'||isLinkedInvestmentTx(t)||CATS.Loans.includes(t.category)||!essential.has(t.category))continue;
     const d=new Date(String(t.tx_date||'')+'T00:00:00');
     if(d>=start&&d<new Date(new Date().getFullYear(),new Date().getMonth(),1))total+=fhNumber(t.from_amount)*toUSD(t.from_account);
@@ -2553,7 +2553,7 @@ function goalCurrentV371(type){
   if(type==='Net Worth')return net;
   if(type==='Emergency Fund')return cash;
   const inc=transactions.filter(t=>t.type==='Income').reduce((sum,t)=>sum+n(t.to_amount)*toUSD(t.to_account),0);
-  const exp=transactions.filter(t=>t.type==='Expense'&&!CATS.Loans.includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t)).reduce((sum,t)=>sum+n(t.from_amount)*toUSD(t.from_account),0);
+  const exp=transactions.filter(t=>t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t)).reduce((sum,t)=>sum+n(t.from_amount)*toUSD(t.from_account),0);
   return Math.max(0,inc-exp);
 }
 function goalDateLabelV371(v){if(!v)return 'No target date';const d=new Date(v+'T00:00:00');return Number.isNaN(d.getTime())?'No target date':d.toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'});}
@@ -2623,13 +2623,13 @@ function nwMonthEndKeyV371(offset){
 function nwBalanceAtV371(account,ym){
   const cutoff=ym+'-31';
   let v=0;
-  for(const t of (transactions||[])){
+  for(const t of (window.transactions||[])){
     if(String(t.tx_date||'')>cutoff) continue;
     if(isLinkedInvestmentTx(t)) continue;
     if(t.to_account===account) v+=n(t.to_amount);
     if(t.from_account===account) v-=n(t.from_amount);
   }
-  const investedBefore=(investments||[])
+  const investedBefore=(window.investments||[])
     .filter(x=>String(x.inv_date||'')<=cutoff && (x.source_account || (x.asset==='Gold'?'KPay':'OKX'))===account)
     .reduce((sum,x)=>sum+n(x.amount)+n(x.fee)+n(x.other_cost),0);
   return v-investedBefore;
@@ -2637,7 +2637,7 @@ function nwBalanceAtV371(account,ym){
 function nwEstimateAtV371(ym){
   const cashAccounts=['Bath','TrueMoney','OKX','ByBit','MetaMask','KPay'];
   const cash=cashAccounts.reduce((sum,a)=>sum+nwBalanceAtV371(a,ym)*toUSD(a),0);
-  const invest=(investments||[])
+  const invest=(window.investments||[])
     .filter(x=>String(x.inv_date||'')<=ym+'-31')
     .reduce((sum,x)=>{
       const q=n(x.quantity);
@@ -3260,11 +3260,11 @@ function renderWealthSnapshotV386(){
     const investmentsUSD=investmentValueUSD();
     const netWorth=cash+investmentsUSD;
     const ym=today().slice(0,7);
-    const rows=(transactions||[]).filter(t=>String(t.tx_date||'').slice(0,7)===ym);
+    const rows=(window.transactions||[]).filter(t=>String(t.tx_date||'').slice(0,7)===ym);
     let inc=0,exp=0;
     rows.forEach(t=>{
       if(t.type==='Income')inc+=n(t.to_amount)*toUSD(t.to_account);
-      if(t.type==='Expense'&&!CATS.Loans.includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t))exp+=n(t.from_amount)*toUSD(t.from_account);
+      if(t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t))exp+=n(t.from_amount)*toUSD(t.from_account);
     });
     const save=inc-exp;
     const sr=inc?(save/inc*100):0;
@@ -3331,11 +3331,11 @@ function renderWealthPlanningV387(){
   try{
     const currentDate=new Date();
     const ym=today().slice(0,7);
-    const rows=(transactions||[]).filter(t=>String(t.tx_date||'').slice(0,7)===ym);
+    const rows=(window.transactions||[]).filter(t=>String(t.tx_date||'').slice(0,7)===ym);
     let inc=0,exp=0;
     rows.forEach(t=>{
       if(t.type==='Income')inc+=n(t.to_amount)*toUSD(t.to_account);
-      if(t.type==='Expense'&&!CATS.Loans.includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t))exp+=n(t.from_amount)*toUSD(t.from_account);
+      if(t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t))exp+=n(t.from_amount)*toUSD(t.from_account);
     });
     const currentMonthSave=inc-exp;
     const monthly=[];
@@ -3343,9 +3343,9 @@ function renderWealthPlanningV387(){
       const d=new Date(currentDate.getFullYear(),currentDate.getMonth()-i,1);
       const key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
       let mi=0,me=0;
-      (transactions||[]).filter(t=>String(t.tx_date||'').slice(0,7)===key).forEach(t=>{
+      (window.transactions||[]).filter(t=>String(t.tx_date||'').slice(0,7)===key).forEach(t=>{
         if(t.type==='Income')mi+=n(t.to_amount)*toUSD(t.to_account);
-        if(t.type==='Expense'&&!CATS.Loans.includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t))me+=n(t.from_amount)*toUSD(t.from_account);
+        if(t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t))me+=n(t.from_amount)*toUSD(t.from_account);
       });
       monthly.push({key,save:mi-me});
     }
@@ -3496,9 +3496,9 @@ renderDashboard=function(){
   function d39Money(v){ return usd(Math.max(0,n(v)||0)); }
   function d39MonthTotals(key){
     let inc=0,exp=0;
-    (transactions||[]).filter(t=>String(t.tx_date||'').slice(0,7)===key).forEach(t=>{
+    (window.transactions||[]).filter(t=>String(t.tx_date||'').slice(0,7)===key).forEach(t=>{
       if(t.type==='Income') inc+=n(t.to_amount)*toUSD(t.to_account);
-      if(t.type==='Expense'&&!CATS.Loans.includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t)) exp+=n(t.from_amount)*toUSD(t.from_account);
+      if(t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t)) exp+=n(t.from_amount)*toUSD(t.from_account);
     });
     return {inc,exp,save:inc-exp};
   }
@@ -3578,8 +3578,8 @@ renderDashboard=function(){
       const monthName=monthLabel(today().slice(0,7));
       const cashPct=m.netWorth?m.cash/m.netWorth*100:0;
       const investPct=m.netWorth?m.investments/m.netWorth*100:0;
-      const cryptoV35=(investments||[]).filter(x=>x.asset==='Crypto').reduce((sum,x)=>sum+n(x.quantity)*(livePrices[x.symbol]?.price||n(x.market_price)),0);
-      const goldV35=(investments||[]).filter(x=>x.asset==='Gold').reduce((sum,x)=>sum+(n(x.quantity)*(goldMarketState.pricePerKyattha||n(x.market_price))),0)/(n(rates.usd_mmk)||1);
+      const cryptoV35=(window.investments||[]).filter(x=>x.asset==='Crypto').reduce((sum,x)=>sum+n(x.quantity)*(livePrices[x.symbol]?.price||n(x.market_price)),0);
+      const goldV35=(window.investments||[]).filter(x=>x.asset==='Gold').reduce((sum,x)=>sum+(n(x.quantity)*(goldMarketState.pricePerKyattha||n(x.market_price))),0)/(n(rates.usd_mmk)||1);
       const cryptoPct35=m.netWorth?cryptoV35/m.netWorth*100:0;
       const goldPct35=m.netWorth?goldV35/m.netWorth*100:0;
       const alloc35=[{label:'Cash',pct:cashPct},{label:'Crypto',pct:cryptoPct35},{label:'Gold',pct:goldPct35}];
@@ -3689,7 +3689,7 @@ renderDashboard=function(){
         rows.forEach(t=>{
           if(String(t.tx_date||'').slice(0,7)!==key)return;
           if(t.type==='Income')inc+=g311Num(t.to_amount)*toUSD(t.to_account);
-          if(t.type==='Expense'&&!CATS.Loans.includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t))exp+=g311Num(t.from_amount)*toUSD(t.from_account);
+          if(t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t))exp+=g311Num(t.from_amount)*toUSD(t.from_account);
         });
         months.push(Math.max(0,inc-exp));
         d.setMonth(d.getMonth()-1);
@@ -3866,7 +3866,7 @@ renderDashboard=function(){
   const num=v=>{const x=Number(v);return Number.isFinite(x)?x:0};
   const money=v=>typeof usd==='function'?usd(v):('$ '+fmt(v));
   const keyFromOffset=o=>{const d=new Date();d.setDate(1);d.setMonth(d.getMonth()+o);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')};
-  const flow=key=>{let inc=0,exp=0;for(const t of(transactions||[])){if(String(t.tx_date||'').slice(0,7)!==key)continue;if(t.type==='Income')inc+=num(t.to_amount)*toUSD(t.to_account);if(t.type==='Expense'&&!CATS.Loans.includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t))exp+=num(t.from_amount)*toUSD(t.from_account)}return{inc,exp,save:inc-exp,sr:inc?((inc-exp)/inc*100):0}};
+  const flow=key=>{let inc=0,exp=0;for(const t of(window.transactions||[])){if(String(t.tx_date||'').slice(0,7)!==key)continue;if(t.type==='Income')inc+=num(t.to_amount)*toUSD(t.to_account);if(t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t))exp+=num(t.from_amount)*toUSD(t.from_account)}return{inc,exp,save:inc-exp,sr:inc?((inc-exp)/inc*100):0}};
   const pct=(a,b)=>b===0?null:(a-b)/Math.abs(b)*100;
   function render(){
     const el=$('financialIntelligenceV314');if(!el)return;
@@ -3875,7 +3875,7 @@ renderDashboard=function(){
       const prevDate=new Date(key+'-01T00:00:00');prevDate.setMonth(prevDate.getMonth()-1);const prevKey=prevDate.getFullYear()+'-'+String(prevDate.getMonth()+1).padStart(2,'0');const prev=flow(prevKey);
       const hist=[];for(let i=5;i>=0;i--){const k=keyFromOffset(-i);hist.push({key:k,...flow(k)})}
       const avgExp=hist.slice(0,5).reduce((a,x)=>a+x.exp,0)/5;const cash=['Bath','TrueMoney','OKX','ByBit','MetaMask','KPay'].reduce((a,k)=>a+Math.max(0,balance(k))*toUSD(k),0);const inv=Math.max(0,investmentValue()/rates.usd_mmk);const net=cash+inv;const invPct=net?inv/net*100:0;const runway=avgExp>0?cash/avgExp:0;
-      const mix={};for(const t of(transactions||[])){if(String(t.tx_date||'').slice(0,7)!==key||t.type!=='Expense'||CATS.Loans.includes(t.category)||t.category==='Investment'||isLinkedInvestmentTx(t))continue;const c=t.category||'Other';mix[c]=(mix[c]||0)+num(t.from_amount)*toUSD(t.from_account)}const top=Object.entries(mix).sort((a,b)=>b[1]-a[1])[0]||['No spending',0];
+      const mix={};for(const t of(window.transactions||[])){if(String(t.tx_date||'').slice(0,7)!==key||t.type!=='Expense'||CATS.Loans.includes(t.category)||t.category==='Investment'||isLinkedInvestmentTx(t))continue;const c=t.category||'Other';mix[c]=(mix[c]||0)+num(t.from_amount)*toUSD(t.from_account)}const top=Object.entries(mix).sort((a,b)=>b[1]-a[1])[0]||['No spending',0];
       const checks=[];const e=pct(cur.exp,prev.exp);const s=pct(cur.save,prev.save);const i=pct(cur.inc,prev.inc);
       checks.push(cur.inc<=0?['warn','Needs Data','📥','Income coverage','This period has no recorded income.']:cur.sr>=60?['good','Above Target','✅','Savings performance','Savings rate is '+cur.sr.toFixed(1)+'%, above the 60% target.']:cur.sr>=40?['warn','Room to Improve','🎯','Savings performance','Savings rate is '+cur.sr.toFixed(1)+'%, below the 60% target.']:['alert','Attention','⚠️','Savings performance','Savings rate is '+cur.sr.toFixed(1)+'%. Review the largest spending categories first.']);
       checks.push(e===null?['warn','No Baseline','🧭','Spending trend','Not enough prior-period data for comparison.']:e<=-5?['good','Improving','📉','Spending trend','Spending is '+Math.abs(e).toFixed(1)+'% lower than the previous period.']:e>=10?['alert','Rising','📈','Spending trend','Spending is '+e.toFixed(1)+'% higher than the previous period.']:['good','Stable','🧭','Spending trend','Spending changed '+Math.abs(e).toFixed(1)+'% versus the previous period.']);
@@ -3903,12 +3903,12 @@ renderDashboard=function(){
     const completed=[];const d=new Date();d.setDate(1);d.setMonth(d.getMonth()-6);
     for(let i=0;i<6;i++){
       const key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;let inc=0,exp=0;
-      (transactions||[]).forEach(t=>{if(String(t.tx_date||'').slice(0,7)!==key)return;if(t.type==='Income')inc+=wsNum(t.to_amount)*toUSD(t.to_account);if(t.type==='Expense'&&!CATS.Loans.includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t))exp+=wsNum(t.from_amount)*toUSD(t.from_account);});
+      (window.transactions||[]).forEach(t=>{if(String(t.tx_date||'').slice(0,7)!==key)return;if(t.type==='Income')inc+=wsNum(t.to_amount)*toUSD(t.to_account);if(t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t))exp+=wsNum(t.from_amount)*toUSD(t.from_account);});
       completed.push({inc,exp,save:inc-exp});d.setMonth(d.getMonth()+1);
     }
     const avg=completed.length?completed.reduce((s,x)=>s+x.save,0)/completed.length:0;
     const currentMonthKey=today().slice(0,7);let curInc=0,curExp=0;
-    (transactions||[]).forEach(t=>{if(String(t.tx_date||'').slice(0,7)!==currentMonthKey)return;if(t.type==='Income')curInc+=wsNum(t.to_amount)*toUSD(t.to_account);if(t.type==='Expense'&&!CATS.Loans.includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t))curExp+=wsNum(t.from_amount)*toUSD(t.from_account);});
+    (window.transactions||[]).forEach(t=>{if(String(t.tx_date||'').slice(0,7)!==currentMonthKey)return;if(t.type==='Income')curInc+=wsNum(t.to_amount)*toUSD(t.to_account);if(t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t))curExp+=wsNum(t.from_amount)*toUSD(t.from_account);});
     const currentSave=curInc-curExp;
     const goals=typeof loadGoalsV371==='function'?loadGoalsV371():[];
     const goalRows=goals.filter(g=>wsNum(g.target)>0).map(g=>{const target=wsNum(g.target),current=Math.max(0,wsNum(typeof goalCurrentV371==='function'?goalCurrentV371(g.type):0));return {g,target,current,remain:Math.max(0,target-current)};});
@@ -3988,7 +3988,7 @@ renderDashboard=function(){
     const {p,year,monthKey,rows}=periodData();
     const cats=Array.isArray(CATS.Expense)?CATS.Expense:[];
     const data=cats.map(cat=>{
-      const spent=rows.filter(t=>t.type==='Expense'&&t.category===cat&&!CATS.Loans.includes(t.category)&&!isLinkedInvestmentTx(t)).reduce((s,t)=>s+n(t.from_amount)*toTHB(t.from_account),0);
+      const spent=rows.filter(t=>t.type==='Expense'&&t.category===cat&&!(window.CATS?.Loans||[]).includes(t.category)&&!isLinkedInvestmentTx(t)).reduce((s,t)=>s+n(t.from_amount)*toTHB(t.from_account),0);
       const budget=typeof v37Budget==='function'?v37Budget(cat):0; const pct=budget>0?spent/budget*100:0; return {cat,spent,budget,pct};
     });
     const totalSpent=data.reduce((s,x)=>s+x.spent,0), totalBudget=data.reduce((s,x)=>s+x.budget,0), totalPct=totalBudget?totalSpent/totalBudget*100:0;
@@ -4313,10 +4313,10 @@ function swapExchangeCurrencies(){
   const usdD=v=>typeof usd==='function'?usd(v):('$'+Math.round(v||0).toLocaleString());
   const monthsD=()=>{const out=[];const d=new Date();d.setDate(1);for(let i=3;i>=1;i--){const x=new Date(d);x.setMonth(d.getMonth()-i);out.push(`${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}`);}return out;};
   function monthDataD(ym){
-    const r=(transactions||[]).filter(t=>String(t.tx_date||'').slice(0,7)===ym); let inc=0,exp=0;
+    const r=(window.transactions||[]).filter(t=>String(t.tx_date||'').slice(0,7)===ym); let inc=0,exp=0;
     for(const t of r){
       if(t.type==='Income') inc+=numD(t.to_amount)*toUSD(t.to_account);
-      if(t.type==='Expense'&&!CATS.Loans.includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t)) exp+=numD(t.from_amount)*toUSD(t.from_account);
+      if(t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t)) exp+=numD(t.from_amount)*toUSD(t.from_account);
     }
     return {ym,inc,exp,save:inc-exp,sr:inc?(inc-exp)/inc*100:0};
   }
@@ -4593,16 +4593,16 @@ function swapExchangeCurrencies(){
   const num=v=>{const x=Number(v);return Number.isFinite(x)?x:0};
   const isLoanRepayment=t=>String(t?.category||'').trim().toLowerCase()==='loan repayment';
   const incomeEligible=t=>t?.type==='Income' && !isLoanRepayment(t);
-  const expenseEligible=t=>t?.type==='Expense' && !CATS.Loans.includes(t.category) && t.category!=='Investment' && !(typeof isLinkedInvestmentTx==='function'&&isLinkedInvestmentTx(t));
+  const expenseEligible=t=>t?.type==='Expense' && !(window.CATS?.Loans||[]).includes(t.category) && t.category!=='Investment' && !(typeof isLinkedInvestmentTx==='function'&&isLinkedInvestmentTx(t));
   function selectedPeriod(){
     const y=Number(document.getElementById('analyzeYear')?.value);
     const m=document.getElementById('analyzeMonth')?.value||'annual';
     return {year:Number.isFinite(y)&&y>0?y:new Date().getFullYear(),month:m};
   }
   function rowsForPeriod(p){
-    if(p.month==='annual') return (transactions||[]).filter(t=>String(t.tx_date||'').slice(0,4)===String(p.year));
+    if(p.month==='annual') return (window.transactions||[]).filter(t=>String(t.tx_date||'').slice(0,4)===String(p.year));
     const ym=String(p.year)+'-'+String(p.month);
-    return (transactions||[]).filter(t=>String(t.tx_date||'').slice(0,7)===ym);
+    return (window.transactions||[]).filter(t=>String(t.tx_date||'').slice(0,7)===ym);
   }
   function totalsTHB(rows){
     let inc=0,exp=0;
@@ -4614,11 +4614,11 @@ function swapExchangeCurrencies(){
   }
   // Cash Flow: use the agreed rule — Loan Repayment is never counted as Income.
   window.v37Totals=function(rows){return totalsTHB(rows||[]);};
-  window.v37MonthTotals=function(ym){return totalsTHB((transactions||[]).filter(t=>String(t.tx_date||'').slice(0,7)===ym));};
+  window.v37MonthTotals=function(ym){return totalsTHB((window.transactions||[]).filter(t=>String(t.tx_date||'').slice(0,7)===ym));};
   // Financial Health / savings trend: same income rule, keep their established USD unit.
   window.fhMonthlyFlow=function(key){
     let inc=0,exp=0;
-    for(const t of ((transactions||[]).filter(x=>String(x.tx_date||'').slice(0,7)===key))){
+    for(const t of ((window.transactions||[]).filter(x=>String(x.tx_date||'').slice(0,7)===key))){
       if(incomeEligible(t)) inc+=num(t.to_amount)*toUSD(t.to_account);
       if(expenseEligible(t)) exp+=num(t.from_amount)*toUSD(t.from_account);
     }
@@ -4769,11 +4769,11 @@ function swapExchangeCurrencies(){
     return {inc,exp,save,sr:inc?save/inc*100:0,er:inc?exp/inc*100:0};
   }
   function flowForMonth(key){
-    const rows=(transactions||[]).filter(t=>String(t.tx_date||'').slice(0,7)===key);
+    const rows=(window.transactions||[]).filter(t=>String(t.tx_date||'').slice(0,7)===key);
     return flowForRows(rows);
   }
   function annualAnchor(year){
-    const keys=(transactions||[]).map(t=>String(t.tx_date||'').slice(0,7)).filter(k=>k.startsWith(String(year)+'-')&&/^\d{4}-\d{2}$/.test(k)).sort();
+    const keys=(window.transactions||[]).map(t=>String(t.tx_date||'').slice(0,7)).filter(k=>k.startsWith(String(year)+'-')&&/^\d{4}-\d{2}$/.test(k)).sort();
     if(keys.length)return keys[keys.length-1];
     const now=new Date();
     return year===now.getFullYear()?ym(year,now.getMonth()+1):ym(year,12);
@@ -4781,7 +4781,7 @@ function swapExchangeCurrencies(){
   function selectedContext(){
     const p=period();
     if(p.month==='annual'){
-      const rows=(transactions||[]).filter(t=>String(t.tx_date||'').slice(0,4)===String(p.year));
+      const rows=(window.transactions||[]).filter(t=>String(t.tx_date||'').slice(0,4)===String(p.year));
       const anchor=annualAnchor(p.year);
       return {p,mode:'annual',anchor,flow:flowForRows(rows),label:`${p.year} Annual`};
     }
@@ -6756,7 +6756,7 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
   const T=(en,cn)=>zh()?cn:en;
   const rules=()=>{let r={reserveMin:3,reserveComfort:6,savingsTarget:60,investmentCeiling:30};try{const x=JSON.parse(localStorage.getItem('mmhvault_wealth_rules_v326')||'null');if(x)r={...r,...x};}catch(e){}return r;};
   function ymOffset(i){const d=new Date();d.setDate(1);d.setMonth(d.getMonth()+i);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;}
-  function monthFlow(ym){let inc=0,exp=0;(transactions||[]).filter(t=>String(t.tx_date||'').slice(0,7)===ym).forEach(t=>{if(t.type==='Income')inc+=num(t.to_amount)*toUSD(t.to_account);if(t.type==='Expense'&&!CATS.Loans.includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t))exp+=num(t.from_amount)*toUSD(t.from_account);});return{inc,exp,save:inc-exp};}
+  function monthFlow(ym){let inc=0,exp=0;(window.transactions||[]).filter(t=>String(t.tx_date||'').slice(0,7)===ym).forEach(t=>{if(t.type==='Income')inc+=num(t.to_amount)*toUSD(t.to_account);if(t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t))exp+=num(t.from_amount)*toUSD(t.from_account);});return{inc,exp,save:inc-exp};}
   function calc(){
     const rr=rules(); const hist=[-3,-2,-1].map(ymOffset).map(monthFlow).filter(x=>x.inc>0); const avgExp=hist.length?hist.reduce((s,x)=>s+x.exp,0)/hist.length:0; const positive=hist.map(x=>Math.max(0,x.save)).filter(x=>x>0); const current=monthFlow(ymOffset(0)); const capacity=positive.length?positive.reduce((s,x)=>s+x,0)/positive.length:Math.max(0,current.save);
     const accounts=['Bath','TrueMoney','OKX','ByBit','MetaMask','KPay'];const cash=accounts.reduce((s,a)=>s+Math.max(0,balance(a))*toUSD(a),0);const runway=avgExp?cash/avgExp:0;const inv=Math.max(0,investmentValue());const net=cash+inv;const invPct=net?inv/net*100:0;
@@ -6770,16 +6770,61 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
     if(!priority){cashP+=goalP;goalP=0;}
     const sum=cashP+goalP+investP||1;cashP=cashP/sum*100;goalP=goalP/sum*100;investP=investP/sum*100;
     let btc=45,eth=30,gold=25;
-    const vals={};['BTC','ETH','SOL','BNB'].forEach(sym=>{const q=(investments||[]).filter(x=>x.asset==='Crypto'&&x.symbol===sym).reduce((s,x)=>s+num(x.quantity),0);vals[sym]=q*num(livePrices?.[sym]?.price);});
+    const vals={};['BTC','ETH','SOL','BNB'].forEach(sym=>{const q=(window.investments||[]).filter(x=>x.asset==='Crypto'&&x.symbol===sym).reduce((s,x)=>s+num(x.quantity),0);vals[sym]=q*num(window.livePrices?.[sym]?.price);});
     const cryptoTotal=Object.values(vals).reduce((s,x)=>s+x,0);const btcShare=cryptoTotal?vals.BTC/cryptoTotal*100:0;
     if(btcShare>55){btc=20;eth=45;gold=35;}else if(btcShare>45){btc=30;eth=40;gold=30;}
     const goalName=priority?String(priority.g.type||'Goal'):null;
     return{capacity,cashP,goalP,investP,runway,invPct,priority,goalName,reason,btc,eth,gold};
   }
   function render(){const root=$id('financialDecisionCenterV325');if(!root)return;const main=root.querySelector('.decision-main-v325');if(!main)return;let el=$id('surplusAllocationPlanV3717');if(!el){el=document.createElement('div');el.id='surplusAllocationPlanV3717';el.className='surplus-plan-v3717';main.parentNode.insertBefore(el,main.nextSibling);}const c=calc();const cap=c.capacity;const rows=[['💧 '+T('Cash reserve','现金储备'),c.cashP],['🎯 '+(c.goalName?T('Priority goal','优先目标'):T('Flexible reserve','灵活储备')),c.goalP],['📈 '+T('Investing','投资'),c.investP]].filter(x=>x[2]>0.01);const card=(cls,label,pct,amt,meta)=>`<div class="surplus-plan-card-v3717 ${cls}"><div class="label">${label}</div><div class="value">${pct.toFixed(0)}%</div><div class="meta">${cap>0?money(amt)+' / '+T('month','月'):meta}</div></div>`;el.innerHTML=`<div class="sp-head"><div><h3>${T('Next Surplus Allocation','下一笔剩余资金分配建议')}</h3><div class="sp-sub">${T('Based on your current wealth rules, cash reserve, goals and investment weight. This is advisory and never moves money automatically.','根据您当前的财富规则、现金储备、目标和投资占比自动计算。仅提供建议，不会自动转移资金。')}</div></div><span class="sp-badge">${cap>0?T('Recent funding capacity','近期资金能力')+' · '+money(cap)+'/mo':T('No positive savings baseline yet','暂时没有正向储蓄基准')}</span></div><div class="surplus-plan-grid-v3717">${card('cash',T('Cash Reserve','现金储备'),c.cashP,cap*c.cashP/100,T('Build liquidity first','优先建立流动性'))}${c.goalP>0?card('goal',T('Priority Goal','优先目标'),c.goalP,cap*c.goalP/100,c.goalName||'—'):''}${card('invest',T('Investing','投资'),c.investP,cap*c.investP/100,T('Only after earlier priorities','在前面的优先级之后'))}</div><div class="surplus-bars-v3717">${rows.map(r=>`<div class="surplus-row-v3717"><b>${r[0]}</b><div class="surplus-track-v3717"><i style="width:${Math.min(100,r[2])}%"></i></div><strong>${r[2].toFixed(0)}%</strong></div>`).join('')}</div>${c.investP>0.01?`<div class="surplus-invest-breakdown-v3717"><b>${T('Suggested split inside the investment portion','投资部分的建议分配')}</b><div class="sp-mini"><span>₿ BTC</span><b>${c.btc}%</b></div><div class="sp-mini"><span>Ξ ETH</span><b>${c.eth}%</b></div><div class="sp-mini"><span>🥇 ${T('Gold','黄金')}</span><b>${c.gold}%</b></div></div>`:''}<div class="surplus-plan-note-v3717">${c.reason}<br>${T('Current cash coverage:','当前现金可覆盖：')} ${c.runway?c.runway.toFixed(1)+' '+T('months of recent spending','个月近期平均支出'):'—'} · ${T('Investment weight:','投资占比：')} ${c.invPct.toFixed(1)}%</div>`;}
-  const obs=new MutationObserver(()=>setTimeout(render,0));const start=()=>{const root=$id('financialDecisionCenterV325');if(root)obs.observe(root,{childList:true,subtree:true});render();};document.addEventListener('DOMContentLoaded',start,{once:true});if(document.readyState!=='loading')setTimeout(start,300);window.addEventListener('mmhvault-language-change',()=>setTimeout(render,30));document.addEventListener('change',e=>{if(e.target?.id==='analyzeYear'||e.target?.id==='analyzeMonth')setTimeout(render,80)});window.renderSurplusAllocationPlanV3717=render;
+  // Avoid observing the entire decision tree: rendering this card itself changes the tree and can cause a recursive render loop.
+  const start=()=>render();
+  document.addEventListener('DOMContentLoaded',start,{once:true});
+  if(document.readyState!=='loading')setTimeout(start,300);
+  window.addEventListener('mmhvault-language-change',()=>setTimeout(render,30));
+  document.addEventListener('change',e=>{if(e.target?.id==='analyzeYear'||e.target?.id==='analyzeMonth')setTimeout(render,80)});
+  const previousDecisionRender=window.renderFinancialDecisionV325;
+  window.renderSurplusAllocationPlanV3717=render;
 })();
 </script>
 
+
+<script id="v3718-decision-tab-repair">
+/* MMHVAULT V3.37.1.8 · Decision Center stability repair */
+(function(){
+  const $=id=>document.getElementById(id);
+  const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+  const N=v=>Number(v)||0;
+  const tx=()=>Array.isArray(window.transactions)?window.transactions:[];
+  const invs=()=>Array.isArray(window.investments)?window.investments:[];
+  const usd=v=>typeof window.usd==='function'?window.usd(v):'$'+Math.round(N(v)).toLocaleString();
+  const monthKey=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+  const flow=ym=>{let inc=0,exp=0;tx().filter(t=>String(t.tx_date||'').slice(0,7)===ym).forEach(t=>{try{if(t.type==='Income')inc+=N(t.to_amount)*(typeof window.toUSD==='function'?N(window.toUSD(t.to_account)):1);if(t.type==='Expense'&&!((window.CATS?.Loans)||[]).includes(t.category)&&t.category!=='Investment'&&!(typeof window.isLinkedInvestmentTx==='function'&&window.isLinkedInvestmentTx(t)))exp+=N(t.from_amount)*(typeof window.toUSD==='function'?N(window.toUSD(t.from_account)):1);}catch(e){}});return{inc,exp,save:inc-exp};};
+  function safeData(){
+    const now=new Date(); now.setDate(1);
+    const hist=[3,2,1].map(i=>{const d=new Date(now);d.setMonth(now.getMonth()-i);return flow(monthKey(d));}).filter(x=>x.inc>0);
+    const avgExp=hist.length?hist.reduce((a,x)=>a+x.exp,0)/hist.length:0;
+    const avgSave=hist.length?hist.reduce((a,x)=>a+x.save,0)/hist.length:0;
+    let cash=0;['Bath','TrueMoney','OKX','ByBit','MetaMask','KPay'].forEach(a=>{try{cash+=Math.max(0,N(window.balance?.(a)))*N(window.toUSD?.(a)||1)}catch(e){}});
+    let invest=0;try{invest=Math.max(0,N(window.investmentValue?.()))}catch(e){}
+    const runway=avgExp?cash/avgExp:0, net=cash+invest, investPct=net?invest/net*100:0;
+    const capacity=Math.max(0,avgSave);
+    return{cash,invest,runway,avgExp,avgSave,investPct,capacity};
+  }
+  function renderSafe(){
+    const root=$('financialDecisionCenterV325');if(!root)return;
+    try{
+      const d=safeData(); const zh=(localStorage.getItem('mmhvault_language_v3363')||'en')==='zh';
+      const T=(a,b)=>zh?b:a;
+      const reserve=d.runway<3?100:d.runway<6?50:20; const invest=d.runway<3?0:d.investPct>30?20:50; const goal=Math.max(0,100-reserve-invest);
+      root.innerHTML=`<div class="decision-center-v325"><div class="toolbar"><div><h2>${T('Financial Decision Center','财务决策中心')}</h2><div class="sub">${T('A clear summary of what your money should prioritize next.','根据您的现金、储蓄和投资情况，帮助判断下一步资金优先级。')}</div></div><span class="pill">${T('Advisory only','仅供参考')}</span></div><div class="decision-grid-v325"><div class="decision-card-v325"><div class="label">${T('Cash Coverage','现金覆盖')}</div><div class="value">${d.runway?d.runway.toFixed(1)+' '+T('mo','个月'):'—'}</div><div class="detail">${T('Based on recent average spending','基于近期平均支出')}</div></div><div class="decision-card-v325"><div class="label">${T('Savings Capacity','储蓄能力')}</div><div class="value decision-good-v325">${usd(d.capacity)}${T('/mo','/月')}</div><div class="detail">${T('Average of recent completed months','近期完整月份平均值')}</div></div><div class="decision-card-v325"><div class="label">${T('Investment Weight','投资占比')}</div><div class="value decision-cyan-v325">${d.investPct.toFixed(1)}%</div><div class="detail">${T('Current investment share','当前投资资产占比')}</div></div><div class="decision-card-v325"><div class="label">${T('Current Priority','当前优先级')}</div><div class="value">${d.runway<3?T('Cash','现金'):d.investPct>30?T('Balance','平衡'):T('Grow','增长')}</div><div class="detail">${T('Calculated automatically','自动计算')}</div></div></div><div class="decision-main-v325"><div class="panel" style="margin:0"><div class="toolbar"><div><h3 style="margin:0">${T('Recommended Order','建议资金优先顺序')}</h3><div class="sub">${T('Review before moving new money.','在投入新资金前查看建议。')}</div></div></div><div class="decision-list-v325"><div class="decision-row-v325"><div><div class="title">1 · ${T('Cash reserve','现金储备')}</div><div class="sub">${T('Protect liquidity before increasing risk.','增加风险投资前，先保证现金流动性。')}</div></div><span class="decision-pill-v325">${reserve.toFixed(0)}%</span></div><div class="decision-row-v325"><div><div class="title">2 · ${T('Goals / flexible reserve','目标 / 灵活储备')}</div><div class="sub">${T('Use part of the surplus for important goals.','将部分剩余资金用于重要目标。')}</div></div><span class="decision-pill-v325">${goal.toFixed(0)}%</span></div><div class="decision-row-v325"><div><div class="title">3 · ${T('Investing','投资')}</div><div class="sub">${T('Only add risk when earlier priorities are protected.','只有当前面的优先事项得到保障后，再增加投资风险。')}</div></div><span class="decision-pill-v325">${invest.toFixed(0)}%</span></div></div></div></div><div id="surplusAllocationPlanV3717" class="surplus-plan-v3717"><div class="sp-head"><div><h3>${T('Next Surplus Allocation','下一笔剩余资金分配建议')}</h3><div class="sp-sub">${T('Based on your current data. This never moves money automatically.','根据您当前数据自动生成，仅提供建议，不会自动操作资金。')}</div></div><span class="sp-badge">${T('Monthly capacity','月度资金能力')} · ${usd(d.capacity)}${T('/mo','/月')}</span></div><div class="surplus-plan-grid-v3717"><div class="surplus-plan-card-v3717 cash"><div class="label">${T('Cash Reserve','现金储备')}</div><div class="value">${reserve.toFixed(0)}%</div><div class="meta">${usd(d.capacity*reserve/100)} / ${T('month','月')}</div></div><div class="surplus-plan-card-v3717 goal"><div class="label">${T('Goals','目标')}</div><div class="value">${goal.toFixed(0)}%</div><div class="meta">${usd(d.capacity*goal/100)} / ${T('month','月')}</div></div><div class="surplus-plan-card-v3717 invest"><div class="label">${T('Investing','投资')}</div><div class="value">${invest.toFixed(0)}%</div><div class="meta">${usd(d.capacity*invest/100)} / ${T('month','月')}</div></div></div></div></div>`;
+    }catch(err){root.innerHTML='<div class="panel"><h3>Decision Center</h3><div class="sub">Unable to calculate this view yet. Your existing data is safe.</div></div>';console.error(err);}
+  }
+  window.renderFinancialDecisionV325=renderSafe;
+  document.addEventListener('click',e=>{const b=e.target.closest?.('.analyze-tab-v371[data-tab="decisions"]');if(b)setTimeout(renderSafe,0);});
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(renderSafe,50),{once:true});else setTimeout(renderSafe,50);
+  window.addEventListener('mmhvault-language-change',()=>setTimeout(renderSafe,30));
+})();
+</script>
 </body>
 </html>
