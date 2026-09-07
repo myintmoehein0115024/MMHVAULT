@@ -6485,81 +6485,48 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
 .ab371-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.ab371-actions .btn{font-size:12px}.ab371-note{margin-top:10px;color:var(--muted);font-size:12px;line-height:1.55}
 @media(max-width:900px){.ab371-grid{grid-template-columns:repeat(2,1fr)}.ab371-row{grid-template-columns:1fr 1fr}.ab371-status{text-align:left}.ab371-amount{grid-column:1/-1}}@media(max-width:560px){.ab371-grid{grid-template-columns:1fr}.ab371-row{grid-template-columns:1fr}.ab371-amount{grid-column:auto}}
 </style>
-<script id="mmhvault-v3711-advanced-budget-auto">
+<script id="mmhvault-v3713-monthly-comparison">
 (function(){
   const id='advancedBudgetV371';
   const num=v=>{v=Number(v);return Number.isFinite(v)?v:0};
   const zh=()=>((localStorage.getItem('mmhvault_language_v3363')||'en')==='zh');
   const tr=(en,cn)=>zh()?cn:en;
   const money=v=>{try{return typeof thb==='function'?thb(num(v)):'฿ '+num(v).toLocaleString(undefined,{maximumFractionDigits:2})}catch(e){return '฿ '+num(v).toFixed(2)}};
+  const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
   function root(){let el=document.getElementById(id);if(el)return el;el=document.createElement('div');el.id=id;el.className='panel analyze-panel advanced-budget-v371';const host=document.querySelector('#analyze [data-panel="expenses"]');const before=host&&host.querySelector('.expense-control-panel');if(before&&before.parentNode)before.parentNode.insertBefore(el,before);else if(host)host.prepend(el);return el}
   function period(){try{return typeof v37Period==='function'?v37Period():{year:new Date().getFullYear(),month:String(new Date().getMonth()+1).padStart(2,'0')}}catch(e){return {year:new Date().getFullYear(),month:String(new Date().getMonth()+1).padStart(2,'0')}}}
-  function rowsFor(){try{return typeof v37Rows==='function'?v37Rows():Array.isArray(window.transactions)?window.transactions:[]}catch(e){return []}}
-  function isExpense(t){return String(t.type||'')==='Expense'&&!((window.CATS&&CATS.Loans)||[]).includes(t.category)&&t.category!=='Investment'&&!(typeof isLinkedInvestmentTx==='function'&&isLinkedInvestmentTx(t))}
-  function spent(rows,cat){return rows.filter(t=>isExpense(t)&&String(t.category||'')===cat).reduce((s,t)=>{let v=num(t.from_amount||t.amount);try{if(typeof toTHB==='function')v*=num(toTHB(t.from_account));}catch(e){}return s+v},0)}
-  function budget(cat){try{return typeof v37Budget==='function'?num(v37Budget(cat)):0}catch(e){const p=period();return num(localStorage.getItem(`myfinance_budget_${p.year}_${p.month}_${cat}`))}}
-  function setBudget(cat,val){try{if(typeof v37SaveBudget==='function'){v37SaveBudget(cat,val);setTimeout(draw,20);return}}catch(e){}const p=period();localStorage.setItem(`myfinance_budget_${p.year}_${p.month}_${cat}`,String(num(val)));draw()}
-  function daysInfo(p){if(p.month==='annual')return {elapsed:365,total:365,remaining:0,isCurrent:false};const now=new Date(),selected=new Date(p.year,Number(p.month)-1,1),isCurrent=selected.getFullYear()===now.getFullYear()&&selected.getMonth()===now.getMonth();const total=new Date(p.year,Number(p.month),0).getDate();if(!isCurrent)return {elapsed:total,total,remaining:0,isCurrent:false};return {elapsed:Math.max(1,now.getDate()),total,remaining:Math.max(0,total-now.getDate()),isCurrent:true}}
+  function rowsFor(){try{return typeof v37Rows==='function'?v37Rows():allTransactions()}catch(e){return allTransactions()}}
   function allTransactions(){return Array.isArray(window.transactions)?window.transactions:[]}
-  function categories(){const base=((window.CATS&&Array.isArray(CATS.Expense))?CATS.Expense:[]).filter(Boolean);const dynamic=allTransactions().filter(isExpense).map(t=>String(t.category||'').trim()).filter(Boolean);return [...new Set([...base,...dynamic])].filter(Boolean)}
+  function isExpense(t){return String(t.type||'')==='Expense'&&!((window.CATS&&CATS.Loans)||[]).includes(t.category)&&t.category!=='Investment'&&!(typeof isLinkedInvestmentTx==='function'&&isLinkedInvestmentTx(t))}
+  function amount(t){let v=num(t.from_amount||t.amount);try{if(typeof toTHB==='function')v*=num(toTHB(t.from_account));}catch(e){}return v}
+  function spent(rows,cat){return rows.filter(t=>isExpense(t)&&String(t.category||'')===cat).reduce((s,t)=>s+amount(t),0)}
+  function keyOf(p){return p.year+'-'+String(p.month).padStart(2,'0')}
+  function previousPeriod(p){const d=new Date(p.year,Number(p.month)-2,1);return {year:d.getFullYear(),month:String(d.getMonth()+1).padStart(2,'0')}}
+  function rowsForPeriod(p){const key=keyOf(p);return allTransactions().filter(t=>String(t.tx_date||'').slice(0,7)===key&&isExpense(t))}
+  function categories(currentRows,previousRows){const base=((window.CATS&&Array.isArray(CATS.Expense))?CATS.Expense:[]).filter(Boolean);const dynamic=[...currentRows,...previousRows].map(t=>String(t.category||'').trim()).filter(Boolean);return [...new Set([...base,...dynamic])].filter(Boolean)}
   function catLabel(cat){if(!zh())return cat;const m={Dining:'餐饮',Food:'餐饮',Groceries:'日常采购',Transport:'交通',Shopping:'购物',Entertainment:'娱乐',Smoking:'烟草',Snacks:'零食',Bills:'账单',Rent:'房租',Family:'家庭',FamilySupport:'家庭支持','Family Support':'家庭支持',Donation:'捐赠',Gifts:'礼物',Gift:'礼物',Personal:'个人支出',Medical:'医疗',Education:'教育',Travel:'旅行',Other:'其他'};return m[cat]||cat}
-  function monthKey(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')}
-  function recentHistoryMonths(p,tx){
-    let anchor=p.month==='annual'?new Date():new Date(p.year,Number(p.month)-1,1);
-    const candidates=[];
-    for(let i=1;i<=6&&candidates.length<3;i++){
-      const d=new Date(anchor.getFullYear(),anchor.getMonth()-i,1), key=monthKey(d);
-      const hasExpense=tx.some(t=>String(t.tx_date||'').slice(0,7)===key&&isExpense(t));
-      if(hasExpense)candidates.push(key);
-    }
-    return candidates.reverse();
-  }
-  function suggest(){
-    const p=period(), cats=categories(), tx=allTransactions();
-    if(!tx.length){alert(tr('No transaction data is available yet. Add transactions first.','暂时没有可用于计算的交易数据，请先添加交易记录。'));return}
-    const months=recentHistoryMonths(p,tx);
-    const fallbackRows=rowsFor().filter(isExpense);
-    let changed=0;
-    cats.forEach(cat=>{
-      let base=0;
-      if(months.length){
-        // True monthly average: every historical month counts, including months with zero spending in this category.
-        const total=months.reduce((sum,key)=>sum+spent(tx.filter(t=>String(t.tx_date||'').slice(0,7)===key),cat),0);
-        base=total/months.length;
-      }else{
-        const current=spent(fallbackRows,cat);
-        if(current>0){const info=daysInfo(p);base=info.isCurrent?current/info.elapsed*info.total:current}
-      }
-      if(base>0){const suggested=Math.round(base/10)*10;setBudget(cat,suggested);changed++}
-    });
-    setTimeout(draw,80);
-    if(!changed)alert(tr('No recent expense categories were found for the selected period.','没有找到可用于生成预算建议的近期支出分类。'));
-  }
-  function clear(){if(!confirm(tr('Clear all budgets for the selected period?','清除当前分析周期的全部预算吗？')))return;categories().forEach(cat=>{const p=period();localStorage.removeItem(`myfinance_budget_${p.year}_${p.month}_${cat}`)});try{if(typeof renderAnalyzeV37==='function')renderAnalyzeV37()}catch(e){}draw()}
+  function daysInfo(p){if(p.month==='annual')return {elapsed:365,total:365,remaining:0,isCurrent:false};const now=new Date(),selected=new Date(p.year,Number(p.month)-1,1),isCurrent=selected.getFullYear()===now.getFullYear()&&selected.getMonth()===now.getMonth();const total=new Date(p.year,Number(p.month),0).getDate();if(!isCurrent)return {elapsed:total,total,remaining:0,isCurrent:false};return {elapsed:Math.max(1,now.getDate()),total,remaining:Math.max(0,total-now.getDate()),isCurrent:true}}
+  function monthName(p){const d=new Date(p.year,Number(p.month)-1,1);return zh()?`${p.year}年${Number(p.month)}月`:`${d.toLocaleString(undefined,{month:'long'})} ${p.year}`}
   function draw(){
-    const el=root();if(!el)return;const p=period(),rows=rowsFor(),cats=categories(),info=daysInfo(p);
-    const data=cats.map(cat=>{const s=spent(rows,cat),b=budget(cat),pct=b?s/b*100:0;return {cat,spent:s,budget:b,pct}}).filter(x=>x.spent>0||x.budget>0||cats.length<=12);
-    const active=data.filter(x=>x.budget>0),totalBudget=active.reduce((s,x)=>s+x.budget,0),totalSpent=data.reduce((s,x)=>s+x.spent,0),budgetSpent=active.reduce((s,x)=>s+x.spent,0),remaining=totalBudget?totalBudget-budgetSpent:0,pct=totalBudget?budgetSpent/totalBudget*100:0;
-    const histMonths=recentHistoryMonths(p,allTransactions());
-    const historicalMonthlyAverage=histMonths.length?histMonths.reduce((sum,key)=>{const monthRows=allTransactions().filter(t=>String(t.tx_date||'').slice(0,7)===key&&isExpense(t));return sum+monthRows.reduce((subtotal,t)=>{let v=num(t.from_amount||t.amount);try{if(typeof toTHB==='function')v*=num(toTHB(t.from_account));}catch(e){}return subtotal+v},0)},0)/histMonths.length:0;
-    const projected=historicalMonthlyAverage>0?historicalMonthlyAverage:(info.elapsed?totalSpent/info.elapsed*info.total:totalSpent);const daily=totalBudget&&info.remaining>0?Math.max(0,remaining)/info.remaining:0;
-    const over=active.filter(x=>x.pct>100),near=active.filter(x=>x.pct>80&&x.pct<=100);
-    const status=over.length?tr('Over Budget','已超预算'):near.length?tr('Needs Attention','需要关注'):totalBudget?tr('On Track','预算正常'):tr('Set Budgets','请设置预算');
-    const alerts=[];
-    if(!active.length)alerts.push(['warn',tr('Your real spending is already shown below. Click the estimate button to calculate this month from your previous monthly averages.','您的真实支出已经显示在下方。点击预估按钮后，系统会根据前几个月的月平均消费来预估本月。')]);
-    if(over.length)alerts.push(['bad',tr(`${over.length} category budget${over.length>1?'s are':' is'} already exceeded. Focus on the largest overspend first.`,`已有 ${over.length} 个分类超出预算，建议优先控制超支最多的项目。`)]);
-    else if(near.length)alerts.push(['warn',tr(`${near.length} category budget${near.length>1?'s are':' is'} above 80% used.`,`已有 ${near.length} 个分类预算使用超过 80%。`)]);
-    if(totalBudget&&info.remaining>0)alerts.push([projected>totalBudget?'warn':'good',projected>totalBudget?tr(`At the current pace, month-end spending may reach ${money(projected)}.`,`按当前消费速度，月末支出预计可能达到 ${money(projected)}。`):tr(`Current pace projects ${money(projected)} by month-end.`,`按当前消费速度，月末预计支出约 ${money(projected)}。`)]);
-    const noBudgetSpent=totalSpent-budgetSpent;
-    el.innerHTML=`<div class="toolbar"><div><h2>${tr('Advanced Budget System','高级预算管理')}</h2><div class="sub">${tr('Historical monthly average · this-month forecast · budget control · THB','前几个月月平均 · 本月消费预估 · 预算控制 · THB')}</div></div><span class="pill">${status}</span></div>
-      <div class="ab371-grid"><div class="ab371-stat"><div class="label">${tr('Total Budget','总预算')}</div><div class="value">${money(totalBudget)}</div><div class="detail">${active.length} ${tr('active categories','个已设置分类')}</div></div><div class="ab371-stat"><div class="label">${tr('Actual Spending','实际支出')}</div><div class="value ${pct>100?'red':pct>80?'yellow':'green'}">${money(totalSpent)}</div><div class="detail">${totalBudget?pct.toFixed(1)+'% '+tr('of budgeted categories','预算分类已使用'):tr('From your transaction records','来自您的交易记录')}</div></div><div class="ab371-stat"><div class="label">${tr('Remaining Budget','剩余预算')}</div><div class="value ${remaining<0?'red':'green'}">${totalBudget?money(Math.abs(remaining)):'฿ 0'}${totalBudget&&remaining<0?' '+tr('over','超支'):''}</div><div class="detail">${totalBudget?tr('Budgeted categories only','仅计算已设置预算的分类'):tr('Apply the monthly estimate to start tracking','应用月平均预估后开始追踪')}</div></div><div class="ab371-stat"><div class="label">${tr('Safe Daily Allowance','每日可消费额度')}</div><div class="value">${totalBudget&&info.remaining>0?money(daily):'—'}</div><div class="detail">${info.remaining>0?info.remaining+' '+tr('days remaining','天剩余'):tr('Period ended','周期已结束')}</div></div></div>
-      <div class="ab371-progress"><span style="width:${Math.min(100,pct)}%"></span></div><div class="small">${tr('Budget usage','预算使用率')}: ${totalBudget?pct.toFixed(1)+'%':'—'} · ${tr('Estimated monthly spending','预计本月消费')}: ${money(projected)}${noBudgetSpent>0?' · '+tr('Unbudgeted spending','未设置预算的支出')+': '+money(noBudgetSpent):''}</div>
-      <div class="ab371-alerts">${alerts.map(a=>`<div class="ab371-alert ${a[0]}">${a[1]}</div>`).join('')}</div>
-      <div class="ab371-actions"><button class="btn primary" type="button" onclick="window.mmhBudgetSuggestV3711()">✨ ${tr('Estimate from Previous Months & Apply','根据前几个月月平均预估并应用')}</button><button class="btn" type="button" onclick="window.mmhBudgetClearV3711()">↺ ${tr('Clear selected period budgets','清除当前周期预算')}</button></div>
-      <div class="ab371-cats">${data.map(x=>{const cls=x.budget&&x.pct>100?'bad':x.budget&&x.pct>80?'warn':'good';const state=!x.budget?tr('No budget yet','暂未设置预算'):x.pct>100?tr('Over budget','已超预算'):x.pct>80?tr('Near limit','接近上限'):tr('On track','正常');return `<div class="ab371-row ${cls}"><div class="ab371-cat"><b>${catLabel(x.cat)}</b><small>${state}</small></div><div class="ab371-bar"><span style="width:${x.budget?Math.min(100,x.pct):0}%"></span></div><div class="ab371-amount"><strong>${money(x.spent)}</strong><span>/</span><input aria-label="${x.cat} budget" type="number" min="0" step="10" value="${x.budget||''}" onchange="window.mmhBudgetSetV3711(${JSON.stringify(x.cat)},this.value)"></div><div class="ab371-status ${cls}">${x.budget?x.pct.toFixed(0)+'%':tr('Set budget','设置预算')}</div></div>`}).join('')}</div>
-      <div class="ab371-note">${tr('This estimate uses the average monthly spending from up to the latest 3 previous months. No extra buffer is added. Each historical month is counted so the result reflects your real monthly habit. If no prior history exists, the current spending pace is used as a fallback.','本月预估会参考最近最多 3 个有交易记录的历史月份，计算真实的月平均消费，不再额外增加 10% 缓冲。每个历史月份都会参与平均计算，更接近您的真实消费习惯；如果没有历史数据，才会使用当前消费速度作为备用预估。')}</div>`;
+    const el=root();if(!el)return;
+    const p=period();if(p.month==='annual'){el.innerHTML='';return}
+    const prev=previousPeriod(p), currentRows=rowsFor(), previousRows=rowsForPeriod(prev), info=daysInfo(p);
+    const cats=categories(currentRows,previousRows);
+    const data=cats.map(cat=>{const current=spent(currentRows,cat),previous=spent(previousRows,cat);const change=current-previous;const pct=previous>0?current/previous*100:null;return {cat,current,previous,change,pct}}).filter(x=>x.current>0||x.previous>0);
+    const totalCurrent=data.reduce((s,x)=>s+x.current,0),totalPrevious=data.reduce((s,x)=>s+x.previous,0),diff=totalCurrent-totalPrevious;
+    const forecast=info.isCurrent?totalCurrent/info.elapsed*info.total:totalCurrent;
+    const forecastDiff=forecast-totalPrevious;
+    const comparePct=totalPrevious>0?diff/totalPrevious*100:null;
+    const status=totalPrevious===0?tr('No Previous-Month Data','暂无上月数据'):diff>0?tr('Spending Higher','本月支出较高'):diff<0?tr('Spending Lower','本月支出较低'):tr('Same Level','消费基本持平');
+    const cls=diff>0?'red':diff<0?'green':'yellow';
+    const summaryText=totalPrevious>0?(diff>0?tr(`This month is ${money(diff)} higher than last month.`,`本月比上月多消费 ${money(diff)}。`):diff<0?tr(`This month is ${money(Math.abs(diff))} lower than last month.`,`本月比上月少消费 ${money(Math.abs(diff))}。`):tr('This month is currently the same as last month.','本月目前与上月消费基本相同。')):tr('No expense records were found for the previous calendar month.','上一个自然月没有找到支出记录。');
+    el.innerHTML=`<div class="toolbar"><div><h2>${tr('Monthly Spending Comparison','月度消费对比')}</h2><div class="sub">${tr('Compare this month directly with the previous calendar month · THB','直接使用上一个自然月的数据对比本月消费 · THB')}</div></div><span class="pill">${esc(status)}</span></div>
+      <div class="ab371-grid"><div class="ab371-stat"><div class="label">${tr('This Month Spending','本月实际消费')}</div><div class="value cyan">${money(totalCurrent)}</div><div class="detail">${monthName(p)}</div></div><div class="ab371-stat"><div class="label">${tr('Previous Month Spending','上月实际消费')}</div><div class="value">${money(totalPrevious)}</div><div class="detail">${monthName(prev)}</div></div><div class="ab371-stat"><div class="label">${tr('Difference vs Last Month','与上月差额')}</div><div class="value ${cls}">${diff===0?'± ':diff>0?'+ ':'- '}${money(Math.abs(diff))}</div><div class="detail">${comparePct===null?tr('No comparison data','暂无对比数据'):(comparePct>0?'+':'')+comparePct.toFixed(1)+'%'}</div></div><div class="ab371-stat"><div class="label">${tr('Estimated Month-End Spending','预计本月月底消费')}</div><div class="value ${forecastDiff>0?'red':forecastDiff<0?'green':'yellow'}">${money(forecast)}</div><div class="detail">${info.isCurrent?tr('Based on this month\'s current pace','根据本月当前消费速度') : tr('Selected month total','所选月份实际总额')}</div></div></div>
+      <div class="ab371-progress"><span style="width:${totalPrevious>0?Math.min(100,totalCurrent/totalPrevious*100):0}%"></span></div><div class="small">${summaryText}</div>
+      <div class="ab371-cats">${data.length?data.sort((a,b)=>Math.max(b.current,b.previous)-Math.max(a.current,a.previous)).map(x=>{const relation=x.previous===0?(x.current>0?tr('New spending','新增消费'):tr('No activity','无消费')):x.change>0?tr('Higher than last month','高于上月'):x.change<0?tr('Lower than last month','低于上月'):tr('Same as last month','与上月持平');const cls=x.change>0?'bad':x.change<0?'good':'warn';const width=x.previous>0?Math.min(100,x.current/x.previous*100):x.current>0?100:0;return `<div class="ab371-row ${cls}"><div class="ab371-cat"><b>${esc(catLabel(x.cat))}</b><small>${relation}</small></div><div class="ab371-bar"><span style="width:${width}%"></span></div><div class="ab371-amount"><strong>${money(x.current)}</strong><span>/</span><strong>${money(x.previous)}</strong></div><div class="ab371-status ${cls}">${x.previous>0?(x.change===0?'0%':(x.change>0?'+':'')+(x.change/x.previous*100).toFixed(0)+'%'):tr('—','—')}</div></div>`}).join(''):`<div class="ab371-alert warn">${tr('No expense records are available for this comparison yet.','暂时没有可用于本月对比的支出记录。')}</div>`}</div>
+      <div class="ab371-note">${tr('Left side = this month actual spending. Right side = previous calendar month actual spending. No manual budget or forecast amount needs to be entered. The month-end estimate is calculated automatically from this month\'s current spending pace.','左边显示本月实际消费，右边显示上一个自然月的实际消费。不需要手动输入预算或预估金额；本月月底预估会根据本月当前的真实消费速度自动计算。')}</div>`;
   }
-  window.mmhBudgetSetV3711=setBudget;window.mmhBudgetSuggestV3711=suggest;window.mmhBudgetClearV3711=clear;window.renderAdvancedBudgetV3711=draw;
+  window.renderAdvancedBudgetV3711=draw;
   document.addEventListener('change',e=>{if(e.target&&((e.target.id==='analyzeYear')||(e.target.id==='analyzeMonth')))setTimeout(draw,30)});
   window.addEventListener('mmhvault-language-change',()=>setTimeout(draw,0));
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(draw,700),{once:true});else setTimeout(draw,300);
