@@ -2696,68 +2696,85 @@ render=function(){
 };
 
 
-/* ===================== V3.7.1 INVEST VIEW SWITCH ===================== */
-function setInvestViewV371(view){
+/* ===================== V3.7.1 INVEST VIEW SWITCH — STABLE SPLIT FIX ===================== */
+function applyInvestVisibilityV371(){
   const root=$("invest"); if(!root)return;
-  const gold=view==="Gold";
-  root.classList.toggle("v371-gold",gold);
-  root.classList.toggle("v371-crypto",!gold);
-  $("v371CryptoBtn")?.classList.toggle("active",!gold);
-  $("v371GoldBtn")?.classList.toggle("active",gold);
+  const view=localStorage.getItem("myfinance_invest_view_v371")||"Crypto";
+  const tab=localStorage.getItem("myfinance_invest_subtab_v371")||"overview";
+  const isGold=view==="Gold";
+
+  root.dataset.investViewV371=view;
+  $("v371CryptoBtn")?.classList.toggle("active",!isGold);
+  $("v371GoldBtn")?.classList.toggle("active",isGold);
+
+  const buttons={overview:$('investSubOverviewV371'),portfolio:$('investSubPortfolioV371'),add:$('investSubAddV371')};
+  Object.entries(buttons).forEach(([key,btn])=>{
+    if(!btn)return;
+    const active=key===tab;
+    btn.classList.toggle('active',active);
+    btn.setAttribute('aria-selected',active?'true':'false');
+  });
+
+  const ids=['v371CryptoMarket','v371GoldMarket','investMetrics','portfolioManagerV310','v371CurrentHoldings','v371Allocation','v371CryptoPortfolio','v371GoldPortfolio'];
+  ids.forEach(id=>{const el=$(id);if(el)el.style.setProperty('display','none','important');});
+  const addForm=document.querySelector('#invest .invest-entry');
+  if(addForm)addForm.style.setProperty('display','none','important');
+
+  const show=id=>{const el=$(id);if(el)el.style.removeProperty('display');};
+  if(tab==='overview'){
+    show(isGold?'v371GoldMarket':'v371CryptoMarket');
+    show('investMetrics');
+    show('portfolioManagerV310');
+  }else if(tab==='portfolio'){
+    if(isGold){
+      show('v371GoldPortfolio');
+    }else{
+      show('v371CurrentHoldings');
+      show('v371Allocation');
+      show('v371CryptoPortfolio');
+    }
+  }else if(tab==='add'){
+    if(addForm)addForm.style.removeProperty('display');
+  }
+}
+
+function setInvestViewV371(view){
+  const normalized=view==='Gold'?'Gold':'Crypto';
+  localStorage.setItem("myfinance_invest_view_v371",normalized);
   if($("invAsset")){
-    $("invAsset").value=gold?"Gold":"Crypto";
+    $("invAsset").value=normalized;
     if(typeof updateInvestFields==="function")updateInvestFields();
   }
-  localStorage.setItem("myfinance_invest_view_v371",view);
-  if(typeof renderInvestMetricsFromDataV371==="function")renderInvestMetricsFromDataV371(view);
+  if(typeof renderInvestMetricsFromDataV371==="function")renderInvestMetricsFromDataV371(normalized);
+  applyInvestVisibilityV371();
 }
+
 (function initInvestViewV371(){
   $("v371CryptoBtn")?.addEventListener("click",()=>setInvestViewV371("Crypto"));
   $("v371GoldBtn")?.addEventListener("click",()=>setInvestViewV371("Gold"));
-  setTimeout(()=>setInvestViewV371(localStorage.getItem("myfinance_invest_view_v371")||"Crypto"),0);
+  setTimeout(()=>applyInvestVisibilityV371(),0);
 })();
 
-
-
-/* ===================== V3.7.1 INVEST SECONDARY TABS ===================== */
+/* ===================== V3.7.1 INVEST SECONDARY TABS — STABLE SPLIT FIX ===================== */
 function setInvestSubtabV371(tab){
-  const map={
-    overview:['v371CryptoMarket','v371GoldMarket','investMetrics','portfolioManagerV310'],
-    portfolio:['v371CurrentHoldings','v371Allocation','v371CryptoPortfolio','v371GoldPortfolio'],
-    add:['.invest-entry']
-  };
-  const buttons={overview:$('investSubOverviewV371'),portfolio:$('investSubPortfolioV371'),add:$('investSubAddV371')};
-  Object.entries(buttons).forEach(([k,b])=>{if(!b)return;const on=k===tab;b.classList.toggle('active',on);b.setAttribute('aria-selected',on?'true':'false');});
-  document.querySelectorAll('#invest .v371-crypto,#invest .v371-gold,#invest #investMetrics,#invest #portfolioManagerV310,#invest .invest-entry').forEach(el=>{el.dataset.investVisibleV371='0';});
-  Object.values(map).flat().forEach(sel=>{if(typeof sel!=='string')return;const node=sel.startsWith('.')?document.querySelector('#invest'+sel):$(sel);if(node)node.dataset.investVisibleV371='0';});
-  (map[tab]||map.overview).forEach(sel=>{const node=sel.startsWith('.')?document.querySelector('#invest'+sel):$(sel);if(node)node.dataset.investVisibleV371='1';});
-  document.querySelectorAll('#invest [data-investVisible-v371]').forEach(()=>{});
-  const all=[...document.querySelectorAll('#invest [data-invest-visible-v371]')];
-  all.forEach(el=>{
-    const show=el.dataset.investVisibleV371==='1';
-    el.style.setProperty('display',show?'':'none','important');
-  });
-  // The Add Investment form is exclusive to the Add Investment tab.
-  const addForm=document.querySelector('#invest .invest-entry');
-  if(addForm){ addForm.style.setProperty('display',tab==='add'?'':'none','important'); }
-  localStorage.setItem('myfinance_invest_subtab_v371',tab);
+  const normalized=['overview','portfolio','add'].includes(tab)?tab:'overview';
+  localStorage.setItem('myfinance_invest_subtab_v371',normalized);
+  applyInvestVisibilityV371();
 }
 (function initInvestSubtabsV371(){
   $('investSubOverviewV371')?.addEventListener('click',()=>setInvestSubtabV371('overview'));
   $('investSubPortfolioV371')?.addEventListener('click',()=>setInvestSubtabV371('portfolio'));
   $('investSubAddV371')?.addEventListener('click',()=>setInvestSubtabV371('add'));
-  setTimeout(()=>setInvestSubtabV371(localStorage.getItem('myfinance_invest_subtab_v371')||'overview'),0);
+  setTimeout(()=>applyInvestVisibilityV371(),0);
 })();
 
 (function(){
   const _renderInvestStableV371=renderInvest;
   renderInvest=function(){
     _renderInvestStableV371();
-    setInvestViewV371(localStorage.getItem("myfinance_invest_view_v371")||"Crypto");
-    setInvestSubtabV371(localStorage.getItem("myfinance_invest_subtab_v371")||"overview");
+    applyInvestVisibilityV371();
   };
 })();
-
 
 /* ===================== V3.7.1 TRANSACTIONS MOBILE CARDS ===================== */
 function renderTransactionsMobileCardsV371(){
