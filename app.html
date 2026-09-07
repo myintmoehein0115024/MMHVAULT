@@ -6504,23 +6504,33 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
   function categories(){const base=((window.CATS&&Array.isArray(CATS.Expense))?CATS.Expense:[]).filter(Boolean);const dynamic=allTransactions().filter(isExpense).map(t=>String(t.category||'').trim()).filter(Boolean);return [...new Set([...base,...dynamic])].filter(Boolean)}
   function catLabel(cat){if(!zh())return cat;const m={Dining:'餐饮',Food:'餐饮',Groceries:'日常采购',Transport:'交通',Shopping:'购物',Entertainment:'娱乐',Smoking:'烟草',Snacks:'零食',Bills:'账单',Rent:'房租',Family:'家庭',FamilySupport:'家庭支持','Family Support':'家庭支持',Donation:'捐赠',Gifts:'礼物',Gift:'礼物',Personal:'个人支出',Medical:'医疗',Education:'教育',Travel:'旅行',Other:'其他'};return m[cat]||cat}
   function monthKey(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')}
+  function recentHistoryMonths(p,tx){
+    let anchor=p.month==='annual'?new Date():new Date(p.year,Number(p.month)-1,1);
+    const candidates=[];
+    for(let i=1;i<=6&&candidates.length<3;i++){
+      const d=new Date(anchor.getFullYear(),anchor.getMonth()-i,1), key=monthKey(d);
+      const hasExpense=tx.some(t=>String(t.tx_date||'').slice(0,7)===key&&isExpense(t));
+      if(hasExpense)candidates.push(key);
+    }
+    return candidates.reverse();
+  }
   function suggest(){
     const p=period(), cats=categories(), tx=allTransactions();
     if(!tx.length){alert(tr('No transaction data is available yet. Add transactions first.','暂时没有可用于计算的交易数据，请先添加交易记录。'));return}
-    let anchor=p.month==='annual'?new Date():new Date(p.year,Number(p.month)-1,1);
-    const months=[];for(let i=1;i<=3;i++){const d=new Date(anchor.getFullYear(),anchor.getMonth()-i,1);months.push(monthKey(d))}
-    const history=tx.filter(t=>months.includes(String(t.tx_date||'').slice(0,7))&&isExpense(t));
+    const months=recentHistoryMonths(p,tx);
     const fallbackRows=rowsFor().filter(isExpense);
     let changed=0;
     cats.forEach(cat=>{
-      let samples=months.map(key=>spent(history.filter(t=>String(t.tx_date||'').slice(0,7)===key),cat)).filter(v=>v>0);
       let base=0;
-      if(samples.length){base=samples.reduce((a,b)=>a+b,0)/samples.length}
-      else {
+      if(months.length){
+        // True monthly average: every historical month counts, including months with zero spending in this category.
+        const total=months.reduce((sum,key)=>sum+spent(tx.filter(t=>String(t.tx_date||'').slice(0,7)===key),cat),0);
+        base=total/months.length;
+      }else{
         const current=spent(fallbackRows,cat);
         if(current>0){const info=daysInfo(p);base=info.isCurrent?current/info.elapsed*info.total:current}
       }
-      if(base>0){const suggested=Math.ceil((base*1.10)/10)*10;setBudget(cat,suggested);changed++}
+      if(base>0){const suggested=Math.round(base/10)*10;setBudget(cat,suggested);changed++}
     });
     setTimeout(draw,80);
     if(!changed)alert(tr('No recent expense categories were found for the selected period.','没有找到可用于生成预算建议的近期支出分类。'));
@@ -6530,22 +6540,24 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
     const el=root();if(!el)return;const p=period(),rows=rowsFor(),cats=categories(),info=daysInfo(p);
     const data=cats.map(cat=>{const s=spent(rows,cat),b=budget(cat),pct=b?s/b*100:0;return {cat,spent:s,budget:b,pct}}).filter(x=>x.spent>0||x.budget>0||cats.length<=12);
     const active=data.filter(x=>x.budget>0),totalBudget=active.reduce((s,x)=>s+x.budget,0),totalSpent=data.reduce((s,x)=>s+x.spent,0),budgetSpent=active.reduce((s,x)=>s+x.spent,0),remaining=totalBudget?totalBudget-budgetSpent:0,pct=totalBudget?budgetSpent/totalBudget*100:0;
-    const projected=info.elapsed?totalSpent/info.elapsed*info.total:totalSpent;const daily=totalBudget&&info.remaining>0?Math.max(0,remaining)/info.remaining:0;
+    const histMonths=recentHistoryMonths(p,allTransactions());
+    const historicalMonthlyAverage=histMonths.length?histMonths.reduce((sum,key)=>{const monthRows=allTransactions().filter(t=>String(t.tx_date||'').slice(0,7)===key&&isExpense(t));return sum+monthRows.reduce((subtotal,t)=>{let v=num(t.from_amount||t.amount);try{if(typeof toTHB==='function')v*=num(toTHB(t.from_account));}catch(e){}return subtotal+v},0)},0)/histMonths.length:0;
+    const projected=historicalMonthlyAverage>0?historicalMonthlyAverage:(info.elapsed?totalSpent/info.elapsed*info.total:totalSpent);const daily=totalBudget&&info.remaining>0?Math.max(0,remaining)/info.remaining:0;
     const over=active.filter(x=>x.pct>100),near=active.filter(x=>x.pct>80&&x.pct<=100);
     const status=over.length?tr('Over Budget','已超预算'):near.length?tr('Needs Attention','需要关注'):totalBudget?tr('On Track','预算正常'):tr('Set Budgets','请设置预算');
     const alerts=[];
-    if(!active.length)alerts.push(['warn',tr('Your real spending is already shown below. Click “Suggest from recent spending” to create budgets automatically from your transaction history.','您的真实支出已经显示在下方。点击“根据近期支出自动建议”，系统会根据交易记录自动生成预算。')]);
+    if(!active.length)alerts.push(['warn',tr('Your real spending is already shown below. Click the estimate button to calculate this month from your previous monthly averages.','您的真实支出已经显示在下方。点击预估按钮后，系统会根据前几个月的月平均消费来预估本月。')]);
     if(over.length)alerts.push(['bad',tr(`${over.length} category budget${over.length>1?'s are':' is'} already exceeded. Focus on the largest overspend first.`,`已有 ${over.length} 个分类超出预算，建议优先控制超支最多的项目。`)]);
     else if(near.length)alerts.push(['warn',tr(`${near.length} category budget${near.length>1?'s are':' is'} above 80% used.`,`已有 ${near.length} 个分类预算使用超过 80%。`)]);
     if(totalBudget&&info.remaining>0)alerts.push([projected>totalBudget?'warn':'good',projected>totalBudget?tr(`At the current pace, month-end spending may reach ${money(projected)}.`,`按当前消费速度，月末支出预计可能达到 ${money(projected)}。`):tr(`Current pace projects ${money(projected)} by month-end.`,`按当前消费速度，月末预计支出约 ${money(projected)}。`)]);
     const noBudgetSpent=totalSpent-budgetSpent;
-    el.innerHTML=`<div class="toolbar"><div><h2>${tr('Advanced Budget System','高级预算管理')}</h2><div class="sub">${tr('Actual spending · budget control · spending pace · daily allowance · THB','真实支出 · 预算控制 · 消费速度 · 每日可消费额度 · THB')}</div></div><span class="pill">${status}</span></div>
-      <div class="ab371-grid"><div class="ab371-stat"><div class="label">${tr('Total Budget','总预算')}</div><div class="value">${money(totalBudget)}</div><div class="detail">${active.length} ${tr('active categories','个已设置分类')}</div></div><div class="ab371-stat"><div class="label">${tr('Actual Spending','实际支出')}</div><div class="value ${pct>100?'red':pct>80?'yellow':'green'}">${money(totalSpent)}</div><div class="detail">${totalBudget?pct.toFixed(1)+'% '+tr('of budgeted categories','预算分类已使用'):tr('From your transaction records','来自您的交易记录')}</div></div><div class="ab371-stat"><div class="label">${tr('Remaining Budget','剩余预算')}</div><div class="value ${remaining<0?'red':'green'}">${totalBudget?money(Math.abs(remaining)):'฿ 0'}${totalBudget&&remaining<0?' '+tr('over','超支'):''}</div><div class="detail">${totalBudget?tr('Budgeted categories only','仅计算已设置预算的分类'):tr('Set budgets to start tracking','设置预算后开始追踪')}</div></div><div class="ab371-stat"><div class="label">${tr('Safe Daily Allowance','每日可消费额度')}</div><div class="value">${totalBudget&&info.remaining>0?money(daily):'—'}</div><div class="detail">${info.remaining>0?info.remaining+' '+tr('days remaining','天剩余'):tr('Period ended','周期已结束')}</div></div></div>
-      <div class="ab371-progress"><span style="width:${Math.min(100,pct)}%"></span></div><div class="small">${tr('Budget usage','预算使用率')}: ${totalBudget?pct.toFixed(1)+'%':'—'} · ${tr('Projected period spending','预计周期支出')}: ${money(projected)}${noBudgetSpent>0?' · '+tr('Unbudgeted spending','未设置预算的支出')+': '+money(noBudgetSpent):''}</div>
+    el.innerHTML=`<div class="toolbar"><div><h2>${tr('Advanced Budget System','高级预算管理')}</h2><div class="sub">${tr('Historical monthly average · this-month forecast · budget control · THB','前几个月月平均 · 本月消费预估 · 预算控制 · THB')}</div></div><span class="pill">${status}</span></div>
+      <div class="ab371-grid"><div class="ab371-stat"><div class="label">${tr('Total Budget','总预算')}</div><div class="value">${money(totalBudget)}</div><div class="detail">${active.length} ${tr('active categories','个已设置分类')}</div></div><div class="ab371-stat"><div class="label">${tr('Actual Spending','实际支出')}</div><div class="value ${pct>100?'red':pct>80?'yellow':'green'}">${money(totalSpent)}</div><div class="detail">${totalBudget?pct.toFixed(1)+'% '+tr('of budgeted categories','预算分类已使用'):tr('From your transaction records','来自您的交易记录')}</div></div><div class="ab371-stat"><div class="label">${tr('Remaining Budget','剩余预算')}</div><div class="value ${remaining<0?'red':'green'}">${totalBudget?money(Math.abs(remaining)):'฿ 0'}${totalBudget&&remaining<0?' '+tr('over','超支'):''}</div><div class="detail">${totalBudget?tr('Budgeted categories only','仅计算已设置预算的分类'):tr('Apply the monthly estimate to start tracking','应用月平均预估后开始追踪')}</div></div><div class="ab371-stat"><div class="label">${tr('Safe Daily Allowance','每日可消费额度')}</div><div class="value">${totalBudget&&info.remaining>0?money(daily):'—'}</div><div class="detail">${info.remaining>0?info.remaining+' '+tr('days remaining','天剩余'):tr('Period ended','周期已结束')}</div></div></div>
+      <div class="ab371-progress"><span style="width:${Math.min(100,pct)}%"></span></div><div class="small">${tr('Budget usage','预算使用率')}: ${totalBudget?pct.toFixed(1)+'%':'—'} · ${tr('Estimated monthly spending','预计本月消费')}: ${money(projected)}${noBudgetSpent>0?' · '+tr('Unbudgeted spending','未设置预算的支出')+': '+money(noBudgetSpent):''}</div>
       <div class="ab371-alerts">${alerts.map(a=>`<div class="ab371-alert ${a[0]}">${a[1]}</div>`).join('')}</div>
-      <div class="ab371-actions"><button class="btn primary" type="button" onclick="window.mmhBudgetSuggestV3711()">✨ ${tr('Suggest & Apply from Recent Spending','根据近期支出自动建议并应用')}</button><button class="btn" type="button" onclick="window.mmhBudgetClearV3711()">↺ ${tr('Clear selected period budgets','清除当前周期预算')}</button></div>
+      <div class="ab371-actions"><button class="btn primary" type="button" onclick="window.mmhBudgetSuggestV3711()">✨ ${tr('Estimate from Previous Months & Apply','根据前几个月月平均预估并应用')}</button><button class="btn" type="button" onclick="window.mmhBudgetClearV3711()">↺ ${tr('Clear selected period budgets','清除当前周期预算')}</button></div>
       <div class="ab371-cats">${data.map(x=>{const cls=x.budget&&x.pct>100?'bad':x.budget&&x.pct>80?'warn':'good';const state=!x.budget?tr('No budget yet','暂未设置预算'):x.pct>100?tr('Over budget','已超预算'):x.pct>80?tr('Near limit','接近上限'):tr('On track','正常');return `<div class="ab371-row ${cls}"><div class="ab371-cat"><b>${catLabel(x.cat)}</b><small>${state}</small></div><div class="ab371-bar"><span style="width:${x.budget?Math.min(100,x.pct):0}%"></span></div><div class="ab371-amount"><strong>${money(x.spent)}</strong><span>/</span><input aria-label="${x.cat} budget" type="number" min="0" step="10" value="${x.budget||''}" onchange="window.mmhBudgetSetV3711(${JSON.stringify(x.cat)},this.value)"></div><div class="ab371-status ${cls}">${x.budget?x.pct.toFixed(0)+'%':tr('Set budget','设置预算')}</div></div>`}).join('')}</div>
-      <div class="ab371-note">${tr('Auto suggestion uses up to the previous 3 months of real spending. If there is no prior history, it falls back to the selected period and estimates the monthly pace automatically.','自动建议会优先参考前 3 个月的真实支出；如果没有历史记录，系统会使用当前选择周期的真实支出，并自动估算整月消费水平。')}</div>`;
+      <div class="ab371-note">${tr('This estimate uses the average monthly spending from up to the latest 3 previous months. No extra buffer is added. Each historical month is counted so the result reflects your real monthly habit. If no prior history exists, the current spending pace is used as a fallback.','本月预估会参考最近最多 3 个有交易记录的历史月份，计算真实的月平均消费，不再额外增加 10% 缓冲。每个历史月份都会参与平均计算，更接近您的真实消费习惯；如果没有历史数据，才会使用当前消费速度作为备用预估。')}</div>`;
   }
   window.mmhBudgetSetV3711=setBudget;window.mmhBudgetSuggestV3711=suggest;window.mmhBudgetClearV3711=clear;window.renderAdvancedBudgetV3711=draw;
   document.addEventListener('change',e=>{if(e.target&&((e.target.id==='analyzeYear')||(e.target.id==='analyzeMonth')))setTimeout(draw,30)});
