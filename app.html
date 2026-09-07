@@ -6826,5 +6826,86 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
   window.addEventListener('mmhvault-language-change',()=>setTimeout(renderSafe,30));
 })();
 </script>
+
+<script id="mmhvault-v338-hotfix-runtime-recovery">
+/* MMHVAULT V3.37.1.8 runtime recovery hotfix
+   Fixes stale window data mirrors, Analyze period controls, and Settings tab interaction.
+   Non-destructive: cloud data remains authoritative. */
+(function(){
+  if(window.__mmhV338RuntimeRecoveryInstalled)return;
+  window.__mmhV338RuntimeRecoveryInstalled=true;
+
+  function syncMirrors(){
+    try{
+      if(typeof transactions!=='undefined' && Array.isArray(transactions)) window.transactions=transactions;
+      if(typeof investments!=='undefined' && Array.isArray(investments)) window.investments=investments;
+      if(typeof rates!=='undefined' && rates && typeof rates==='object') window.rates=rates;
+    }catch(e){console.warn('MMHVAULT data mirror recovery skipped',e);}
+  }
+
+  function repairPeriod(){
+    const y=document.getElementById('analyzeYear');
+    const m=document.getElementById('analyzeMonth');
+    if(!y||!m)return;
+    const rows=Array.isArray(window.transactions)?window.transactions:[];
+    const years=new Set([new Date().getFullYear()]);
+    rows.forEach(t=>{
+      const yy=String(t&&t.tx_date||'').slice(0,4);
+      if(/^\d{4}$/.test(yy))years.add(Number(yy));
+    });
+    const current=String(y.value||localStorage.getItem('myfinance_analyze_year')||'');
+    const list=[...years].sort((a,b)=>a-b);
+    y.innerHTML=list.map(v=>`<option value="${v}">${v}</option>`).join('');
+    y.value=list.includes(Number(current))?current:String(list[list.length-1]);
+    if(m.options.length<13){
+      const old=String(m.value||localStorage.getItem('myfinance_analyze_month')||'annual');
+      m.innerHTML='<option value="annual">Annual</option>'+Array.from({length:12},(_,i)=>{
+        const value=String(i+1).padStart(2,'0');
+        const label=new Date(2000,i,1).toLocaleString(undefined,{month:'long'});
+        return `<option value="${value}">${label}</option>`;
+      }).join('');
+      m.value=(old==='annual'||/^\d{2}$/.test(old))?old:'annual';
+    }
+    if(!y.dataset.mmhV338Bound){
+      y.dataset.mmhV338Bound='1';
+      y.addEventListener('change',()=>{localStorage.setItem('myfinance_analyze_year',y.value);try{window.renderAnalyzeV37?.();}catch(e){console.warn(e);}});
+      m.addEventListener('change',()=>{localStorage.setItem('myfinance_analyze_month',m.value);try{window.renderAnalyzeV37?.();}catch(e){console.warn(e);}});
+    }
+  }
+
+  function repairSettings(){
+    const root=document.getElementById('settings');
+    if(!root)return;
+    root.querySelectorAll('.settings-tab-v371').forEach(btn=>{
+      btn.style.pointerEvents='auto';
+      btn.style.cursor='pointer';
+      btn.disabled=false;
+    });
+  }
+
+  document.addEventListener('click',function(e){
+    const b=e.target.closest?.('#settings .settings-tab-v371');
+    if(!b)return;
+    const id=b.id||'';
+    const tab=id.includes('Appearance')?'appearance':id.includes('Data')?'data':'account';
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    try{window.setSettingsTabV371?.(tab);}catch(err){console.error('Settings tab recovery failed',err);}
+  },true);
+
+  function refresh(){
+    syncMirrors();
+    repairPeriod();
+    repairSettings();
+    try{window.renderAnalyzeV37?.();}catch(e){console.warn('Analyze recovery render skipped',e);}
+  }
+
+  window.addEventListener('mmhvault:data-loaded',()=>setTimeout(refresh,0));
+  window.addEventListener('load',()=>setTimeout(refresh,0),{once:true});
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(refresh,0),{once:true});
+  else setTimeout(refresh,0);
+})();
+</script>
+
 </body>
 </html>
