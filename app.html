@@ -254,7 +254,7 @@
 <button class="btn" onclick="retryLoadAllV384()" type="button">Retry</button>
 </div>
 <header id="header" style="display:none">
-<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.39.2</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
+<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.39.3</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
 <div class="header-spacer"></div>
 <div aria-label="Signed in user" class="header-profile" id="headerProfile">
 <div class="header-avatar" id="headerAvatar">MF</div>
@@ -7325,4 +7325,86 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
 })();
 </script>\n</body>
+</html>
+<script id="mmhvault-v393-wealth-planning-thb-fix">
+(function(){
+  if(window.__mmhV393WealthPlanningFix)return; window.__mmhV393WealthPlanningFix=true;
+  const $=id=>document.getElementById(id);
+  const N=v=>{const x=Number(v);return Number.isFinite(x)?x:0};
+  const zh=()=>localStorage.getItem('mmhvault_language_v3363')==='zh';
+  const T=(en,cn)=>zh()?cn:en;
+  const numTHB=v=>N(v);
+  const moneyTHB=v=>{
+    try{return '฿ '+(typeof fmt==='function'?fmt(Math.max(0,N(v))):Math.max(0,N(v)).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}));}
+    catch(e){return '฿ '+Math.max(0,N(v)).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});}
+  };
+  const toTHBsafe=(amount,account)=>{
+    try{return N(amount)*(typeof toTHB==='function'?toTHB(account):1)}catch(e){return N(amount)}
+  };
+  const currentNetTHB=()=>{
+    try{
+      const mmk=Math.max(0,(typeof totalAssetMMK==='function'?N(totalAssetMMK()):0)-(typeof loanOutMMK==='function'?N(loanOutMMK()):0));
+      return toTHBsafe(mmk,'__MMK__');
+    }catch(e){
+      try{return N(window.netWorth||0)*(typeof toTHB==='function'?N(rates?.usd_thb||1):1)}catch(_){return 0}
+    }
+  };
+  const monthlySavingsTHB=ym=>{
+    let inc=0,exp=0;
+    (window.transactions||[]).filter(x=>String(x.tx_date||'').slice(0,7)===ym).forEach(x=>{
+      if(x.type==='Income')inc+=toTHBsafe(x.to_amount,x.to_account);
+      if(x.type==='Expense'&&x.category!=='Investment'&&!((window.CATS?.Loans)||[]).includes(x.category)&&!(typeof isLinkedInvestmentTx==='function'&&isLinkedInvestmentTx(x)))exp+=toTHBsafe(x.from_amount,x.from_account);
+    });
+    return inc-exp;
+  };
+  const lastMonths=n=>{const a=[],d=new Date();d.setDate(1);for(let i=1;i<=n;i++){d.setMonth(d.getMonth()-1);a.push(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`)}return a;};
+  const goalCurrentTHB=g=>{
+    try{
+      const usd=typeof goalCurrentV371==='function'?N(goalCurrentV371(g.type)):0;
+      return usd*(typeof rates?.usd_thb==='number'?rates.usd_thb:1);
+    }catch(e){return 0}
+  };
+  const goalTargetTHB=g=>N(g.target)*(typeof rates?.usd_thb==='number'?rates.usd_thb:1);
+  function cleanWealthPlanningNoise(){
+    try{
+      const host=document.getElementById('wealthPlanningPage')||document.getElementById('wealthPlanning')||document.querySelector('[data-page="wealth-planning"]');
+      document.querySelectorAll('#mmhV380Summary,#mmhV380Goals,#mmhV380Milestones,#mmhV380Forecast').forEach(el=>{
+        el.textContent=el.textContent.replace(/\bn\s*\/\s*n\b/g,'');
+      });
+      document.querySelectorAll('body *').forEach(el=>{
+        if(el.children.length===0 && /^\s*n\s*\/\s*n\s*$/i.test(el.textContent||''))el.remove();
+      });
+    }catch(e){}
+  }
+  function render(){
+    const host=$('mmhV380Summary'); if(!host)return;
+    const goals=typeof loadGoalsV371==='function'?loadGoalsV371():[];
+    const key=today().slice(0,7);
+    const hist=lastMonths(3), savings=hist.map(monthlySavingsTHB), positive=savings.filter(x=>x>0);
+    const capacity=positive.length?positive.reduce((a,b)=>a+b,0)/positive.length:Math.max(0,monthlySavingsTHB(key));
+    const net=currentNetTHB();
+    const goalRows=goals.map(g=>{const cur=goalCurrentTHB(g),target=goalTargetTHB(g),pct=target?Math.min(100,Math.max(0,cur/target*100)):0,remain=Math.max(0,target-cur);const eta=remain>0&&capacity>0?`${Math.ceil(remain/capacity)} ${T('months','个月')}`:T('Not enough data','数据不足');return {g,name:g.type,cur,target,pct,remain,eta};});
+    const milestones=[10000,25000,50000,100000].map(v=>{const target=v*(typeof rates?.usd_thb==='number'?rates.usd_thb:1),pct=target?Math.min(100,net/target*100):0;return{target,pct,remain:Math.max(0,target-net)}});
+    const scenarios=[['Conservative',.7],['Current Pace',1],['Accelerated',1.25]].map(([name,m])=>({name,months:[12,24,36].map(mm=>Math.max(0,net+capacity*m*mm))}));
+    $('mmhV380Period').textContent=`${key} · ${T('Planning','规划')}`; $('mmhV380GoalCount').textContent=String(goals.length);
+    host.innerHTML=`<div class="mmh-v380-hero-grid">
+      <div class="mmh-v380-card"><div class="k">${T('Current Net Worth','当前净资产')}</div><div class="v">${moneyTHB(net)}</div><div class="s">${T('Current position','当前财富规模')}</div></div>
+      <div class="mmh-v380-card"><div class="k">${T('Monthly Savings Capacity','月度储蓄能力')}</div><div class="v">${moneyTHB(capacity)}</div><div class="s">${T('Average positive savings from recent months','近期月份平均正储蓄')}</div></div>
+      <div class="mmh-v380-card"><div class="k">${T('Active Goals','当前目标')}</div><div class="v">${goals.length}</div><div class="s">${T('Tracked financial goals','正在追踪的财务目标')}</div></div>
+      <div class="mmh-v380-card"><div class="k">${T('Next Focus','下一优先事项')}</div><div class="v" style="font-size:18px">${goalRows[0]?esc(goalRows[0].name):T('Build your first goal','建立您的第一个目标')}</div><div class="s">${goalRows[0]?`${T('Remaining','剩余')} ${moneyTHB(goalRows[0].remain)}`:T('Add a target in Analyze → Goals','前往分析 → 目标添加目标')}</div></div>
+    </div>`;
+    const g=$('mmhV380Goals');
+    g.innerHTML=goalRows.length?goalRows.map(x=>`<div class="mmh-v380-row"><div class="mmh-v380-name">${esc(x.name)}</div><div class="mmh-v380-main"><div class="mmh-v380-bar"><span style="width:${x.pct}%"></span></div><div class="mmh-v380-meta"><span>${T('Current','当前')} ${moneyTHB(x.cur)} / ${moneyTHB(x.target)}</span><span>${x.pct.toFixed(1)}% · ${x.eta}</span></div></div><span class="mmh-v380-badge ${x.pct>=100?'mmh-v380-good':x.pct>=70?'mmh-v380-warn':'mmh-v380-bad'}">${x.pct>=100?T('Done','已完成'):x.pct>=70?T('On track','接近目标'):T('Needs funding','需要加速')}</span></div>`).join(''):`<div class="mmh-v380-empty">${T('No goals yet. Add goals from Analyze → Goals.','暂无目标。请前往分析 → 目标添加。')}</div>`;
+    $('mmhV380Milestones').innerHTML=milestones.map(x=>`<div class="mmh-v380-row"><div class="mmh-v380-name">${moneyTHB(x.target)}</div><div class="mmh-v380-main"><div class="mmh-v380-bar"><span style="width:${x.pct}%"></span></div><div class="mmh-v380-meta"><span>${T('Progress','进度')} ${x.pct.toFixed(1)}%</span><span>${x.remain>0?T('Remaining','剩余')+' '+moneyTHB(x.remain):T('Reached','已达成')}</span></div></div><span class="mmh-v380-badge ${x.pct>=100?'mmh-v380-good':x.pct>=60?'mmh-v380-warn':'mmh-v380-bad'}">${x.pct>=100?T('Reached','已达成'):T('Upcoming','待达成')}</span></div>`).join('');
+    $('mmhV380Forecast').innerHTML=`<div class="mmh-v380-scenarios">${scenarios.map(x=>`<div class="mmh-v380-scenario"><b>${T(x.name,x.name==='Conservative'?'保守':x.name==='Current Pace'?'当前速度':'加速')}</b>${[12,24,36].map((m,i)=>`<span class="big">${moneyTHB(x.months[i])}</span><div class="small">${m} ${T('months','个月')}</div>`).join('')}</div>`).join('')}</div>`;
+    cleanWealthPlanningNoise();
+  }
+  const arm=()=>[0,250,700,1500].forEach(ms=>setTimeout(render,ms));
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',arm,{once:true});else arm();
+  window.addEventListener('mmhvault:data-loaded',arm); window.addEventListener('mmhvault:data-state',arm); window.addEventListener('storage',e=>{if(e.key==='mmhvault_language_v3363')arm();});
+  document.addEventListener('click',e=>{if(e.target?.closest?.('[data-page="wealthPlanning"],[data-page="wealth-planning"],#wealthPlanningPage,#wealthPlanning'))setTimeout(render,0)});
+  window.renderWealthPlanningV393=render;
+})();
+</script>
+
 </html>
