@@ -232,7 +232,7 @@
 <button class="btn" onclick="retryLoadAllV384()" type="button">Retry</button>
 </div>
 <header id="header" style="display:none">
-<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.37.0</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
+<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.37.1</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
 <div class="header-spacer"></div>
 <div aria-label="Signed in user" class="header-profile" id="headerProfile">
 <div class="header-avatar" id="headerAvatar">MF</div>
@@ -6465,6 +6465,81 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
   window.renderSmartFinancialAdvisorV370=draw;
   setTimeout(draw,200);setTimeout(draw,1000);setTimeout(draw,2500);
   window.addEventListener('mmhvault-language-change',()=>setTimeout(draw,0));
+})();
+</script>
+
+
+<!-- MMHVAULT V3.37.1 · Advanced Budget System -->
+<style id="mmhvault-v371-budget-style">
+#advancedBudgetV371{margin-bottom:14px}
+.advanced-budget-v371 .toolbar{align-items:flex-start}
+.ab371-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:12px}
+.ab371-stat{background:linear-gradient(180deg,rgba(14,27,53,.9),rgba(10,20,41,.86));border:1px solid var(--line);border-radius:14px;padding:14px}
+.ab371-stat .label{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.ab371-stat .value{font-size:23px;font-weight:900;margin-top:7px}.ab371-stat .detail{font-size:12px;color:var(--muted);margin-top:5px}
+.ab371-progress{height:8px;background:#0b1530;border-radius:999px;overflow:hidden;margin:13px 0 8px}.ab371-progress>span{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#55d8f7,#a8b7ff,#df79eb)}
+.ab371-alerts{display:grid;gap:8px;margin:12px 0}.ab371-alert{padding:10px 12px;border:1px solid var(--line);border-radius:11px;background:rgba(13,24,48,.75);font-size:13px}.ab371-alert.bad{border-color:rgba(255,111,139,.42)}.ab371-alert.warn{border-color:rgba(255,205,93,.4)}.ab371-alert.good{border-color:rgba(80,220,166,.35)}
+.ab371-cats{display:grid;gap:8px;margin-top:12px}.ab371-row{display:grid;grid-template-columns:150px minmax(150px,1fr) 250px 95px;gap:10px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:rgba(9,18,37,.62)}
+.ab371-cat b{display:block}.ab371-cat small{color:var(--muted)}.ab371-bar{height:9px;background:#0b1530;border-radius:999px;overflow:hidden}.ab371-bar span{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#55d8f7,#a8b7ff,#df79eb)}.ab371-row.bad .ab371-bar span{filter:hue-rotate(315deg)}
+.ab371-amount{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:7px}.ab371-amount strong{color:var(--text);font-size:13px}.ab371-amount input{width:105px;padding:8px 9px;border-radius:9px;border:1px solid #29466f;background:#0c1930;color:var(--text);font-weight:700}.ab371-status{text-align:right;font-size:12px;font-weight:800}.ab371-status.good{color:#62dfb0}.ab371-status.warn{color:#ffd36a}.ab371-status.bad{color:#ff819a}
+.ab371-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.ab371-actions .btn{font-size:12px}.ab371-note{margin-top:10px;color:var(--muted);font-size:12px;line-height:1.55}
+@media(max-width:900px){.ab371-grid{grid-template-columns:repeat(2,1fr)}.ab371-row{grid-template-columns:1fr 1fr}.ab371-status{text-align:left}.ab371-amount{grid-column:1/-1}}@media(max-width:560px){.ab371-grid{grid-template-columns:1fr}.ab371-row{grid-template-columns:1fr}.ab371-amount{grid-column:auto}}
+</style>
+<script id="mmhvault-v371-advanced-budget">
+(function(){
+  const id='advancedBudgetV371';
+  const num=v=>{v=Number(v);return Number.isFinite(v)?v:0};
+  const zh=()=>((localStorage.getItem('mmhvault_language_v3363')||'en')==='zh');
+  const tr=(en,cn)=>zh()?cn:en;
+  const money=v=>{try{return typeof thb==='function'?thb(num(v)):'฿ '+num(v).toLocaleString(undefined,{maximumFractionDigits:2})}catch(e){return '฿ '+num(v).toFixed(2)}};
+  function root(){
+    let el=document.getElementById(id);if(el)return el;
+    el=document.createElement('div');el.id=id;el.className='panel analyze-panel advanced-budget-v371';
+    const host=document.querySelector('#analyze [data-panel="expenses"]');
+    const before=host&&host.querySelector('.expense-control-panel');
+    if(before&&before.parentNode)before.parentNode.insertBefore(el,before);else if(host)host.prepend(el);
+    return el;
+  }
+  function period(){try{return typeof v37Period==='function'?v37Period():{year:new Date().getFullYear(),month:String(new Date().getMonth()+1).padStart(2,'0')}}catch(e){return {year:new Date().getFullYear(),month:String(new Date().getMonth()+1).padStart(2,'0')}}}
+  function rowsFor(p){try{return typeof v37Rows==='function'?v37Rows():Array.isArray(window.transactions)?window.transactions:[]}catch(e){return []}}
+  function isExpense(t){return String(t.type||'')==='Expense'&&!((window.CATS&&CATS.Loans)||[]).includes(t.category)&&t.category!=='Investment'&&!(typeof isLinkedInvestmentTx==='function'&&isLinkedInvestmentTx(t))}
+  function spent(rows,cat){return rows.filter(t=>isExpense(t)&&String(t.category||'')===cat).reduce((s,t)=>{let v=num(t.from_amount||t.amount);try{if(typeof toTHB==='function')v*=num(toTHB(t.from_account));}catch(e){}return s+v},0)}
+  function budget(cat){try{return typeof v37Budget==='function'?num(v37Budget(cat)):0}catch(e){return 0}}
+  function setBudget(cat,val){try{if(typeof v37SaveBudget==='function'){v37SaveBudget(cat,val);return}}catch(e){} const p=period();localStorage.setItem(`myfinance_budget_${p.year}_${p.month}_${cat}`,String(num(val)));draw();}
+  function daysInfo(p){if(p.month==='annual')return {elapsed:365,total:365,remaining:0};const now=new Date(),selected=new Date(p.year,Number(p.month)-1,1),isCurrent=selected.getFullYear()===now.getFullYear()&&selected.getMonth()===now.getMonth();const total=new Date(p.year,Number(p.month),0).getDate();if(!isCurrent)return {elapsed:total,total,remaining:0};return {elapsed:Math.max(1,now.getDate()),total,remaining:Math.max(0,total-now.getDate())}}
+  function categories(){return ((window.CATS&&Array.isArray(CATS.Expense))?CATS.Expense:[]).filter(Boolean)}
+  function catLabel(cat){if(!zh())return cat;const m={Dining:'餐饮',Food:'餐饮',Groceries:'日常采购',Transport:'交通',Shopping:'购物',Entertainment:'娱乐',Smoking:'烟草',Snacks:'零食',Bills:'账单',Rent:'房租',Family:'家庭',FamilySupport:'家庭支持','Family Support':'家庭支持',Donation:'捐赠',Gifts:'礼物',Gift:'礼物',Personal:'个人支出',Medical:'医疗',Education:'教育',Travel:'旅行',Other:'其他'};return m[cat]||cat}
+  function suggest(){
+    const p=period();const cats=categories();
+    cats.forEach(cat=>{let total=0,count=0;for(let i=1;i<=3;i++){let d=new Date(p.year, p.month==='annual'?11:Number(p.month)-1,1);d.setMonth(d.getMonth()-i);const key=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');const rr=(Array.isArray(window.transactions)?window.transactions:[]).filter(t=>String(t.tx_date||'').slice(0,7)===key);const v=spent(rr,cat);if(v>0){total+=v;count++}}if(count)setBudget(cat,Math.ceil((total/count)*1.1/10)*10)});draw();
+  }
+  function clear(){if(!confirm(tr('Clear all budgets for the selected period?','清除当前分析周期的全部预算吗？')))return;categories().forEach(cat=>{const p=period();localStorage.removeItem(`myfinance_budget_${p.year}_${p.month}_${cat}`)});try{if(typeof renderAnalyzeV37==='function')renderAnalyzeV37()}catch(e){}draw()}
+  function draw(){
+    const el=root();if(!el)return;const p=period(),rows=rowsFor(p),cats=categories(),info=daysInfo(p);
+    const data=cats.map(cat=>{const s=spent(rows,cat),b=budget(cat),pct=b?s/b*100:0;return {cat,spent:s,budget:b,pct}});
+    const active=data.filter(x=>x.budget>0),totalBudget=active.reduce((s,x)=>s+x.budget,0),totalSpent=active.reduce((s,x)=>s+x.spent,0),remaining=totalBudget-totalSpent,pct=totalBudget?totalSpent/totalBudget*100:0;
+    const projected=info.elapsed?totalSpent/info.elapsed*info.total:totalSpent;const daily=info.remaining>0?Math.max(0,remaining)/info.remaining:0;
+    const over=active.filter(x=>x.pct>100),near=active.filter(x=>x.pct>80&&x.pct<=100);
+    const status=over.length?tr('Over Budget','已超预算'):near.length?tr('Needs Attention','需要关注'):totalBudget?tr('On Track','预算正常'):tr('Set Budgets','请设置预算');
+    const alerts=[];
+    if(!active.length)alerts.push(['warn',tr('Set your category budgets to unlock automatic budget alerts and daily spending guidance.','设置分类预算后，即可获得自动预算提醒和每日可消费额度。')]);
+    if(over.length)alerts.push(['bad',tr(`${over.length} category budget${over.length>1?'s are':' is'} already exceeded. Focus on the largest overspend first.`,`已有 ${over.length} 个分类超出预算，建议优先控制超支最多的项目。`)]);
+    else if(near.length)alerts.push(['warn',tr(`${near.length} category budget${near.length>1?'s are':' is'} above 80% used.`,`已有 ${near.length} 个分类预算使用超过 80%。`)]);
+    if(totalBudget&&info.remaining>0)alerts.push([projected>totalBudget?'warn':'good',projected>totalBudget?tr(`At the current pace, month-end spending may reach ${money(projected)}.`,`按当前消费速度，月末支出预计可能达到 ${money(projected)}。`):tr(`Current pace projects ${money(projected)} by month-end.`,`按当前消费速度，月末预计支出约 ${money(projected)}。`)]);
+    el.innerHTML=`<div class="toolbar"><div><h2>${tr('Advanced Budget System','高级预算管理')}</h2><div class="sub">${tr('Budget vs actual · spending pace · daily allowance · THB','预算与实际支出 · 消费速度 · 每日可消费额度 · THB')}</div></div><span class="pill">${status}</span></div>
+      <div class="ab371-grid"><div class="ab371-stat"><div class="label">${tr('Total Budget','总预算')}</div><div class="value">${money(totalBudget)}</div><div class="detail">${active.length} ${tr('active categories','个已设置分类')}</div></div><div class="ab371-stat"><div class="label">${tr('Spent','已支出')}</div><div class="value ${pct>100?'red':pct>80?'yellow':'green'}">${money(totalSpent)}</div><div class="detail">${totalBudget?pct.toFixed(1)+'% '+tr('used','已使用'):tr('No budget set','尚未设置预算')}</div></div><div class="ab371-stat"><div class="label">${tr('Remaining','剩余预算')}</div><div class="value ${remaining<0?'red':'green'}">${money(Math.abs(remaining))}${remaining<0?' '+tr('over','超支'):''}</div><div class="detail">${tr('Selected period','当前分析周期')}</div></div><div class="ab371-stat"><div class="label">${tr('Safe Daily Allowance','每日可消费额度')}</div><div class="value">${info.remaining>0?money(daily):'—'}</div><div class="detail">${info.remaining>0?info.remaining+' '+tr('days remaining','天剩余'):tr('Period ended','周期已结束')}</div></div></div>
+      <div class="ab371-progress"><span style="width:${Math.min(100,pct)}%"></span></div><div class="small">${tr('Budget usage','预算使用率')}: ${totalBudget?pct.toFixed(1)+'%':'—'} · ${tr('Projected period spending','预计周期支出')}: ${money(projected)}</div>
+      <div class="ab371-alerts">${alerts.map(a=>`<div class="ab371-alert ${a[0]}">${a[1]}</div>`).join('')}</div>
+      <div class="ab371-actions"><button class="btn primary" type="button" onclick="window.mmhBudgetSuggestV371()">✨ ${tr('Suggest from recent spending','根据近期支出自动建议')}</button><button class="btn" type="button" onclick="window.mmhBudgetClearV371()">↺ ${tr('Clear selected period budgets','清除当前周期预算')}</button></div>
+      <div class="ab371-cats">${data.map(x=>{const cls=x.budget&&x.pct>100?'bad':x.budget&&x.pct>80?'warn':'good';const state=!x.budget?tr('No budget','未设置'):x.pct>100?tr('Over budget','已超预算'):x.pct>80?tr('Near limit','接近上限'):tr('On track','正常');return `<div class="ab371-row ${cls}"><div class="ab371-cat"><b>${catLabel(x.cat)}</b><small>${state}</small></div><div class="ab371-bar"><span style="width:${x.budget?Math.min(100,x.pct):0}%"></span></div><div class="ab371-amount"><strong>${money(x.spent)}</strong><span>/</span><input aria-label="${x.cat} budget" type="number" min="0" step="10" value="${x.budget||''}" onchange="window.mmhBudgetSetV371(${JSON.stringify(x.cat)},this.value)"></div><div class="ab371-status ${cls}">${x.budget?x.pct.toFixed(0)+'%':tr('Set budget','设置预算')}</div></div>`}).join('')}</div>
+      <div class="ab371-note">${tr('Tip: budgets are stored separately for each selected Year / Month, so historical periods remain comparable.','提示：预算会按当前选择的年份和月份分别保存，因此不同月份的历史数据可以独立比较。')}</div>`;
+  }
+  window.mmhBudgetSetV371=setBudget;window.mmhBudgetSuggestV371=suggest;window.mmhBudgetClearV371=clear;window.renderAdvancedBudgetV371=draw;
+  const base=window.renderAnalyzeV37;
+  if(typeof base==='function'&&!base.__advancedBudgetV371){const wrapped=function(){const r=base.apply(this,arguments);setTimeout(draw,0);return r};wrapped.__advancedBudgetV371=true;window.renderAnalyzeV37=wrapped}
+  document.addEventListener('change',e=>{if(e.target&&((e.target.id==='analyzeYear')||(e.target.id==='analyzeMonth')))setTimeout(draw,20)});
+  window.addEventListener('mmhvault-language-change',()=>setTimeout(draw,0));
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(draw,500),{once:true});else setTimeout(draw,300);
 })();
 </script>
 
