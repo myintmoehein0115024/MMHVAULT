@@ -254,7 +254,7 @@
 <button class="btn" onclick="retryLoadAllV384()" type="button">Retry</button>
 </div>
 <header id="header" style="display:none">
-<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.39.3</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
+<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.39.4</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
 <div class="header-spacer"></div>
 <div aria-label="Signed in user" class="header-profile" id="headerProfile">
 <div class="header-avatar" id="headerAvatar">MF</div>
@@ -7278,7 +7278,7 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
   document.addEventListener('DOMContentLoaded',()=>setTimeout(renderWealthPlanningV380,250));
 })();
 </script>
-\n<style id="mmh-v391-reports-enhance-css">
+<style id="mmh-v391-reports-enhance-css">
 .mmh-v391-top{margin-top:16px;padding:18px;border:1px solid rgba(95,125,210,.34);border-radius:16px;background:linear-gradient(180deg,rgba(17,28,70,.72),rgba(8,14,34,.86));}
 .mmh-v391-top-head{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:12px}.mmh-v391-top-head b{font-size:18px}.mmh-v391-top-head span{font-size:12px;color:#8ea2c7}
 .mmh-v391-list{display:grid;gap:10px}.mmh-v391-item{display:grid;grid-template-columns:34px minmax(150px,1fr) auto;gap:12px;align-items:center;padding:12px 14px;border:1px solid rgba(79,112,194,.25);border-radius:12px;background:rgba(7,13,33,.48)}
@@ -7298,7 +7298,9 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
   const catMap={'Dining':'餐饮','Snacks':'零食','Smoking':'烟草','Transport':'交通','Wellness':'健康','Lifestyle':'生活方式','Special Transfer':'特别转账','Family Support':'家庭支持','Gifts':'礼物','Donation':'捐赠','Loan Out':'借出','Debt':'债务','PaidDeb':'还款','Loan Repayment':'贷款还款','Investment':'投资','Other':'其他'};
   const cat=raw=>zh()?(catMap[raw]||raw):raw;
   const mmk=(amt,acct)=>{try{return n(amt)*(typeof toMMK==='function'?toMMK(acct):1)}catch(e){return n(amt)}};
+  const mmkToTHBRate=()=>{try{return Number(rates?.usd_thb||0)/Math.max(1,Number(rates?.usd_mmk||1))}catch(e){return 0}};
   const money=v=>{try{return typeof fmt==='function'?fmt(v):Number(v||0).toLocaleString(undefined,{maximumFractionDigits:2})}catch(e){return Number(v||0).toLocaleString(undefined,{maximumFractionDigits:2})}};
+  const moneyTHB=v=>`฿ ${money(Math.max(0,n(v))*mmkToTHBRate())}`;
   const monthsBetween=(a,b)=>(new Date(b+'-01').getFullYear()-new Date(a+'-01').getFullYear())*12+(new Date(b+'-01').getMonth()-new Date(a+'-01').getMonth());
   function ymList(end,count){const d=new Date(end+'-01');const arr=[];for(let i=count-1;i>=0;i--){const x=new Date(d.getFullYear(),d.getMonth()-i,1);arr.push(x.toISOString().slice(0,7))}return arr}
   function label(m){const [y,mo]=m.split('-'); return zh()?`${y}年${Number(mo)}月`:`${y}-${mo}`;}
@@ -7310,21 +7312,34 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
   function render(){const page=$('reports');if(!page||!page.classList.contains('active'))return;fillYears();const y=$('reportsYear')?.value||String(new Date().getFullYear());const mv=$('reportsMonth')?.value||'annual';const end=mv==='annual'?`${y}-12`:`${y}-${mv}`;const months6=ymList(end,6);const cur=mv==='annual'?annualCalc(y):calc(end);const prev=mv==='annual'?annualCalc(Number(y)-1):calc(ymList(end,2)[0]);const diff=(a,b)=>a-b;
     $('reportsSubtitle').textContent=T('Review your financial performance across monthly, 3-month, 6-month and annual views.','查看月度、3个月、6个月和年度财务表现。');
     const k=[['Income',cur.inc,T('Current selected month','当前选择月份')],['Expenses',cur.exp,T('Ordinary spending','日常支出')],['Net Savings',cur.save,T('Income minus expenses','收入减去支出')],['Savings Rate',cur.sr.toFixed(1)+'%',T('Monthly savings rate','月度储蓄率')]];
-    $('reportsKpis').innerHTML=k.map(([a,v,s])=>`<div class="panel"><div class="label">${T(a,({Income:'收入','Expenses':'支出','Net Savings':'净储蓄','Savings Rate':'储蓄率'})[a])}</div><div class="value ${a==='Expenses'?'red':a==='Net Savings'?'green':''}">${a==='Savings Rate'?'':(a==='Net Savings'&&v<0?'−':'')}${a==='Savings Rate'?'':money(Math.abs(v))}${a==='Savings Rate'?v:' MMK'}</div><div class="small mmh-v390-muted">${s}</div></div>`).join('');
+    $('reportsKpis').innerHTML=k.map(([a,v,s])=>`<div class="panel"><div class="label">${T(a,({Income:'收入','Expenses':'支出','Net Savings':'净储蓄','Savings Rate':'储蓄率'})[a])}</div><div class="value ${a==='Expenses'?'red':a==='Net Savings'?'green':''}">${a==='Savings Rate'?'':(a==='Net Savings'&&v<0?'−':'')}${a==='Savings Rate'?'':moneyTHB(Math.abs(v))}${a==='Savings Rate'?v:''}</div><div class="small mmh-v390-muted">${s}</div></div>`).join('');
     $('reportsStatus').textContent=`${mv==='annual'?T(y+' Annual',y+'年'):label(cur.m)} · ${cur.sr>=60?T('Healthy','健康'):cur.sr>=40?T('Watch','关注'):T('Needs Attention','需要注意')}`;
     $('reportsMonthlyTitle').textContent=mv==='annual'?T('Annual Overview','年度概览'):T('Monthly Overview','月度概览'); $('reportsMonthlySub').textContent=mv==='annual'?T(`Selected year · ${y}`,`选择年份 · ${y}年`):T(`Selected month · ${label(cur.m)}`,`选择月份 · ${label(cur.m)}`);
     const top=cur.top.slice(0,5); const dsave=cur.save-prev.save;
-    $('reportsMonthly').innerHTML=`<table class="mmh-v390-table"><thead><tr><th>${T('Metric','指标')}</th><th>${T('Current','本月')}</th><th>${T('Previous month','上月')}</th><th>${T('Change','变化')}</th></tr></thead><tbody>${[['Income',cur.inc,prev.inc],['Expenses',cur.exp,prev.exp],['Net Savings',cur.save,prev.save]].map(([labv,a,b])=>`<tr><td>${T(labv,({Income:'收入','Expenses':'支出','Net Savings':'净储蓄'})[labv])}</td><td>${money(a)} MMK</td><td>${money(b)} MMK</td><td class="${a-b>=0?'mmh-v390-positive':'mmh-v390-negative'}">${a-b>=0?'+':''}${money(a-b)} MMK</td></tr>`).join('')}<tr><td>${T('Savings Rate','储蓄率')}</td><td>${cur.sr.toFixed(1)}%</td><td>${prev.sr.toFixed(1)}%</td><td class="${cur.sr-prev.sr>=0?'mmh-v390-positive':'mmh-v390-negative'}">${cur.sr-prev.sr>=0?'+':''}${(cur.sr-prev.sr).toFixed(1)} ${T('pp','个百分点')}</td></tr></tbody></table><div class="mmh-v391-top"><div class="mmh-v391-top-head"><b>${T('Top spending categories','主要支出分类')}</b><span>${T('Ranked by this month’s spending','按本月支出金额排名')}</span></div>${top.length?`<div class="mmh-v391-list">${top.map(([c,v],i)=>{const pct=cur.exp?(v/cur.exp*100):0;return `<div class="mmh-v391-item"><div class="mmh-v391-rank">${i+1}</div><div class="mmh-v391-main"><div class="mmh-v391-row"><span class="mmh-v391-cat">${cat(c)}</span><span class="mmh-v391-amt">${money(v)} MMK</span></div><div class="mmh-v391-bar"><span class="mmh-v391-fill" style="display:block;width:${Math.min(100,pct)}%"></span></div><div class="mmh-v391-meta"><span>${T('Share of expenses','占支出')} ${pct.toFixed(1)}%</span><span>${money(cur.exp-v)} ${T('MMK remaining outside this category','MMK 为其余支出')}</span></div></div><span class="mmh-v391-chip">${i===0?T('Largest','最高'):i===1?T('2nd largest','第二高'):T('Top '+(i+1), '前'+(i+1))}</span></div>`}).join('')}</div>`:`<div class="mmh-v390-empty">${T('No ordinary expenses recorded.','暂无日常支出记录。')}</div>`}</div><div class="mmh-v390-insight"><b>${T('Monthly assessment','本月评价')}</b> ${cur.sr>=60?T('You are meeting your savings target.','本月储蓄率达到目标。'):T('Savings rate is below the current target.','本月储蓄率低于当前目标。')}</div>`;
-    function trend(id,arr){const max=Math.max(1,...arr.map(x=>Math.max(x.inc,x.exp,Math.abs(x.save))));$(id).innerHTML=`<div class="mmh-v390-bar">${arr.map(x=>`<div class="mmh-v390-bar-item"><div class="mmh-v390-bar-fill" style="height:${Math.max(5,Math.round(Math.max(x.inc,x.exp)/max*100))}%" title="${label(x.m)}"></div><div class="mmh-v390-bar-label">${label(x.m).slice(0,7)}</div></div>`).join('')}</div><table class="mmh-v390-table"><tbody>${arr.map(x=>`<tr><td>${label(x.m)}</td><td>${money(x.inc)}</td><td>${money(x.exp)}</td><td>${money(x.save)}</td></tr>`).join('')}</tbody></table>`} 
+    $('reportsMonthly').innerHTML=`<table class="mmh-v390-table"><thead><tr><th>${T('Metric','指标')}</th><th>${mv==='annual'?T('Year total','年度'):T('Current','本月')}</th><th>${mv==='annual'?T('Previous year','上年'):T('Previous month','上月')}</th><th>${T('Change','变化')}</th></tr></thead><tbody>${[['Income',cur.inc,prev.inc],['Expenses',cur.exp,prev.exp],['Net Savings',cur.save,prev.save]].map(([labv,a,b])=>`<tr><td>${T(labv,({Income:'收入','Expenses':'支出','Net Savings':'净储蓄'})[labv])}</td><td>${moneyTHB(a)}</td><td>${moneyTHB(b)}</td><td class="${a-b>=0?'mmh-v390-positive':'mmh-v390-negative'}">${a-b>=0?'+':''}${moneyTHB(a-b)}</td></tr>`).join('')}<tr><td>${T('Savings Rate','储蓄率')}</td><td>${cur.sr.toFixed(1)}%</td><td>${prev.sr.toFixed(1)}%</td><td class="${cur.sr-prev.sr>=0?'mmh-v390-positive':'mmh-v390-negative'}">${cur.sr-prev.sr>=0?'+':''}${(cur.sr-prev.sr).toFixed(1)} ${T('pp','个百分点')}</td></tr></tbody></table><div class="mmh-v391-top"><div class="mmh-v391-top-head"><b>${T('Top spending categories','主要支出分类')}</b><span>${T('Ranked by selected period spending','按所选期间支出金额排名')}</span></div>${top.length?`<div class="mmh-v391-list">${top.map(([c,v],i)=>{const pct=cur.exp?(v/cur.exp*100):0;return `<div class="mmh-v391-item"><div class="mmh-v391-rank">${i+1}</div><div class="mmh-v391-main"><div class="mmh-v391-row"><span class="mmh-v391-cat">${cat(c)}</span><span class="mmh-v391-amt">${moneyTHB(v)}</span></div><div class="mmh-v391-bar"><span class="mmh-v391-fill" style="display:block;width:${Math.min(100,pct)}%"></span></div><div class="mmh-v391-meta"><span>${T('Share of expenses','占支出')} ${pct.toFixed(1)}%</span><span>${moneyTHB(cur.exp-v)} ${T('remaining outside this category','其余支出')}</span></div></div><span class="mmh-v391-chip">${i===0?T('Largest','最高'):i===1?T('2nd largest','第二高'):T('Top '+(i+1), '前'+(i+1))}</span></div>`}).join('')}</div>`:`<div class="mmh-v390-empty">${T('No ordinary expenses recorded.','暂无日常支出记录。')}</div>`}</div><div class="mmh-v390-insight"><b>${T('Monthly assessment','本月评价')}</b> ${cur.sr>=60?T('You are meeting your savings target.','本月储蓄率达到目标。'):T('Savings rate is below the current target.','本月储蓄率低于当前目标。')}</div>`;
+    function trend(id,arr){const max=Math.max(1,...arr.map(x=>Math.max(x.inc,x.exp,Math.abs(x.save))));$(id).innerHTML=`<div class="mmh-v390-bar">${arr.map(x=>`<div class="mmh-v390-bar-item"><div class="mmh-v390-bar-fill" style="height:${Math.max(5,Math.round(Math.max(x.inc,x.exp)/max*100))}%" title="${label(x.m)}"></div><div class="mmh-v390-bar-label">${label(x.m).slice(0,7)}</div></div>`).join('')}</div><table class="mmh-v390-table"><tbody>${arr.map(x=>`<tr><td>${label(x.m)}</td><td>${moneyTHB(x.inc)}</td><td>${moneyTHB(x.exp)}</td><td>${moneyTHB(x.save)}</td></tr>`).join('')}</tbody></table>`} 
     const three=months6.slice(-3).map(calc); const six=months6.map(calc); $('reportsThreeTitle').textContent=T('3-Month Trend','3个月趋势'); $('reportsThreeSub').textContent=T('Recent monthly performance','近期月度表现'); trend('reportsThree',three); $('reportsSixTitle').textContent=T('6-Month Trend','6个月趋势'); $('reportsSixSub').textContent=T('Recent monthly performance','近6个月月度表现'); trend('reportsSix',six);
-    const annualMonths=ymList(`${y}-12`,12).map(calc); const ain=annualMonths.reduce((s,x)=>s+x.inc,0), aex=annualMonths.reduce((s,x)=>s+x.exp,0), asa=ain-aex, asr=ain?asa/ain*100:0; $('reportsAnnualTitle').textContent=T('Annual Summary','年度总结'); $('reportsAnnualSub').textContent=T(`Calendar year ${y}` ,`${y}年`); $('reportsAnnual').innerHTML=`<table class="mmh-v390-table"><tbody><tr><td>${T('Total Income','总收入')}</td><td>${money(ain)} MMK</td></tr><tr><td>${T('Total Expenses','总支出')}</td><td>${money(aex)} MMK</td></tr><tr><td>${T('Total Net Savings','总净储蓄')}</td><td>${money(asa)} MMK</td></tr><tr><td>${T('Average Savings Rate','平均储蓄率')}</td><td>${asr.toFixed(1)}%</td></tr><tr><td>${T('Recorded transactions','交易记录')}</td><td>${annualMonths.reduce((s,x)=>s+x.count,0)}</td></tr></tbody></table>`;
+    const annualMonths=ymList(`${y}-12`,12).map(calc); const ain=annualMonths.reduce((s,x)=>s+x.inc,0), aex=annualMonths.reduce((s,x)=>s+x.exp,0), asa=ain-aex, asr=ain?asa/ain*100:0; $('reportsAnnualTitle').textContent=T('Annual Summary','年度总结'); $('reportsAnnualSub').textContent=T(`Calendar year ${y}` ,`${y}年`); $('reportsAnnual').innerHTML=`<table class="mmh-v390-table"><tbody><tr><td>${T('Total Income','总收入')}</td><td>${moneyTHB(ain)}</td></tr><tr><td>${T('Total Expenses','总支出')}</td><td>${moneyTHB(aex)}</td></tr><tr><td>${T('Total Net Savings','总净储蓄')}</td><td>${moneyTHB(asa)}</td></tr><tr><td>${T('Average Savings Rate','平均储蓄率')}</td><td>${asr.toFixed(1)}%</td></tr><tr><td>${T('Recorded transactions','交易记录')}</td><td>${annualMonths.reduce((s,x)=>s+x.count,0)}</td></tr></tbody></table>`;
   }
   function bind(){['reportsYear','reportsMonth'].forEach(id=>$(id)?.addEventListener('change',render));render();setTimeout(render,250);setTimeout(render,900)}
   window.renderReportsV390=render;
   const base=window.render; if(typeof base==='function'&&!window.__mmhV390Wrapped){window.__mmhV390Wrapped=true;window.render=function(){base();render()}}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
 })();
-</script>\n</body>
+</script>
+<script id="mmhvault-v394-stability-hooks">
+(function(){
+  function rerender(){
+    try{window.renderWealthPlanningV393?.();}catch(e){}
+    try{window.renderReportsV390?.();}catch(e){}
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(rerender,1200),{once:true});else setTimeout(rerender,1200);
+  window.addEventListener('mmhvault:data-loaded',()=>setTimeout(rerender,120));
+  window.addEventListener('mmhvault:data-state',()=>setTimeout(rerender,120));
+  window.addEventListener('storage',e=>{if(e.key==='mmhvault_language_v3363')setTimeout(rerender,0);});
+})();
+</script>
+</body>
 </html>
 <script id="mmhvault-v393-wealth-planning-thb-fix">
 (function(){
@@ -7368,12 +7383,14 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
   function cleanWealthPlanningNoise(){
     try{
       const host=document.getElementById('wealthPlanningPage')||document.getElementById('wealthPlanning')||document.querySelector('[data-page="wealth-planning"]');
-      document.querySelectorAll('#mmhV380Summary,#mmhV380Goals,#mmhV380Milestones,#mmhV380Forecast').forEach(el=>{
-        el.textContent=el.textContent.replace(/\bn\s*\/\s*n\b/g,'');
-      });
-      document.querySelectorAll('body *').forEach(el=>{
-        if(el.children.length===0 && /^\s*n\s*\/\s*n\s*$/i.test(el.textContent||''))el.remove();
-      });
+      // Remove only standalone malformed text nodes; never overwrite container.textContent.
+      const walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
+      const doomed=[];
+      while(walker.nextNode()){
+        const node=walker.currentNode, txt=String(node.nodeValue||'').trim();
+        if(/^n\s*\/\s*n$/i.test(txt) || txt==='\\n') doomed.push(node);
+      }
+      doomed.forEach(n=>n.parentNode?.removeChild(n));
     }catch(e){}
   }
   function render(){
