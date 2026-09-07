@@ -34,6 +34,12 @@
 .receipt-secure-v3300{color:#7f96b9}.receipt-file-state-v3300{color:#9cb5d8;font-weight:700;text-align:right}.receipt-file-state-v3300.ready{color:#73e0ae}.receipt-file-state-v3300.error{color:#ff9b9b}
 @media(max-width:620px){.receipt-upload-v3300{padding:13px}.receipt-upload-sub-v3300{display:none}.receipt-drop-action-v3300{display:none}.receipt-upload-footer-v3300{align-items:flex-start;flex-direction:column}.receipt-file-state-v3300{text-align:left}.receipt-dropzone-v3300{min-height:66px}}
 
+
+/* V3.7.1 stable Invest visibility */
+.invest-subtabs-v371{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0 28px;padding:5px;border:1px solid var(--line,#2a4168);border-radius:14px;background:rgba(10,18,38,.72)}
+.invest-subtab-v371{border:0;background:transparent;color:var(--muted,#aeb8ca);padding:12px 16px;border-radius:10px;font:inherit;font-weight:700;cursor:pointer}
+.invest-subtab-v371.active{background:linear-gradient(135deg,rgba(74,160,215,.36),rgba(190,71,183,.30));color:#fff;box-shadow:inset 0 0 0 1px rgba(123,187,255,.32)}
+.v371-switch{display:flex;gap:10px;align-items:center}.v371-switch .btn.active{background:linear-gradient(135deg,#39b8dc,#c63fbc);color:#fff}
 </style>
 <style id="mmhvault-v32811-organization-style">
 /* MMHVAULT V3.28.14 · Wealth Rules Navigation Fix + Cash Flow fixes */
@@ -2696,84 +2702,70 @@ render=function(){
 };
 
 
-/* ===================== V3.7.1 INVEST VIEW SWITCH — STABLE SPLIT FIX ===================== */
-function applyInvestVisibilityV371(){
-  const root=$("invest"); if(!root)return;
-  const view=localStorage.getItem("myfinance_invest_view_v371")||"Crypto";
-  const tab=localStorage.getItem("myfinance_invest_subtab_v371")||"overview";
-  const isGold=view==="Gold";
-
-  root.dataset.investViewV371=view;
-  $("v371CryptoBtn")?.classList.toggle("active",!isGold);
-  $("v371GoldBtn")?.classList.toggle("active",isGold);
-
-  const buttons={overview:$('investSubOverviewV371'),portfolio:$('investSubPortfolioV371'),add:$('investSubAddV371')};
-  Object.entries(buttons).forEach(([key,btn])=>{
-    if(!btn)return;
-    const active=key===tab;
-    btn.classList.toggle('active',active);
-    btn.setAttribute('aria-selected',active?'true':'false');
-  });
-
-  const ids=['v371CryptoMarket','v371GoldMarket','investMetrics','portfolioManagerV310','v371CurrentHoldings','v371Allocation','v371CryptoPortfolio','v371GoldPortfolio'];
-  ids.forEach(id=>{const el=$(id);if(el)el.style.setProperty('display','none','important');});
-  const addForm=document.querySelector('#invest .invest-entry');
-  if(addForm)addForm.style.setProperty('display','none','important');
-
-  const show=id=>{const el=$(id);if(el)el.style.removeProperty('display');};
-  if(tab==='overview'){
-    show(isGold?'v371GoldMarket':'v371CryptoMarket');
-    show('investMetrics');
-    show('portfolioManagerV310');
-  }else if(tab==='portfolio'){
-    if(isGold){
-      show('v371GoldPortfolio');
-    }else{
-      show('v371CurrentHoldings');
-      show('v371Allocation');
-      show('v371CryptoPortfolio');
-    }
-  }else if(tab==='add'){
-    if(addForm)addForm.style.removeProperty('display');
-  }
-}
-
-function setInvestViewV371(view){
-  const normalized=view==='Gold'?'Gold':'Crypto';
-  localStorage.setItem("myfinance_invest_view_v371",normalized);
-  if($("invAsset")){
-    $("invAsset").value=normalized;
-    if(typeof updateInvestFields==="function")updateInvestFields();
-  }
-  if(typeof renderInvestMetricsFromDataV371==="function")renderInvestMetricsFromDataV371(normalized);
-  applyInvestVisibilityV371();
-}
-
-(function initInvestViewV371(){
-  $("v371CryptoBtn")?.addEventListener("click",()=>setInvestViewV371("Crypto"));
-  $("v371GoldBtn")?.addEventListener("click",()=>setInvestViewV371("Gold"));
-  setTimeout(()=>applyInvestVisibilityV371(),0);
-})();
-
-/* ===================== V3.7.1 INVEST SECONDARY TABS — STABLE SPLIT FIX ===================== */
-function setInvestSubtabV371(tab){
-  const normalized=['overview','portfolio','add'].includes(tab)?tab:'overview';
-  localStorage.setItem('myfinance_invest_subtab_v371',normalized);
-  applyInvestVisibilityV371();
-}
-(function initInvestSubtabsV371(){
-  $('investSubOverviewV371')?.addEventListener('click',()=>setInvestSubtabV371('overview'));
-  $('investSubPortfolioV371')?.addEventListener('click',()=>setInvestSubtabV371('portfolio'));
-  $('investSubAddV371')?.addEventListener('click',()=>setInvestSubtabV371('add'));
-  setTimeout(()=>applyInvestVisibilityV371(),0);
-})();
-
+/* ===================== V3.7.1 INVEST VIEW + SECONDARY TABS (STABLE) ===================== */
 (function(){
-  const _renderInvestStableV371=renderInvest;
-  renderInvest=function(){
-    _renderInvestStableV371();
-    applyInvestVisibilityV371();
+  const SUBKEY='myfinance_invest_subtab_v371';
+  const VIEWKEY='myfinance_invest_view_v371';
+  const ids={
+    overview:['v371CryptoMarket','v371GoldMarket','investMetrics','portfolioManagerV310'],
+    portfolio:['v371CurrentHoldings','v371Allocation','v371CryptoPortfolio','v371GoldPortfolio'],
+    add:['v371AddInvestment']
   };
+  function node(id){return document.getElementById(id)}
+  function show(el,on){ if(!el)return; el.style.setProperty('display',on?'':'none','important'); }
+  function currentView(){return localStorage.getItem(VIEWKEY)==='Gold'?'Gold':'Crypto'}
+  function currentTab(){const t=localStorage.getItem(SUBKEY);return ['overview','portfolio','add'].includes(t)?t:'overview'}
+  window.setInvestViewV371=function(view){
+    view=view==='Gold'?'Gold':'Crypto';
+    localStorage.setItem(VIEWKEY,view);
+    const root=node('invest');
+    if(root){root.dataset.investAssetV371=view;}
+    node('v371CryptoBtn')?.classList.toggle('active',view==='Crypto');
+    node('v371GoldBtn')?.classList.toggle('active',view==='Gold');
+    if(node('invAsset')){node('invAsset').value=view==='Gold'?'Gold':'Crypto'; if(typeof updateInvestFields==='function')updateInvestFields();}
+    if(typeof renderInvestMetricsFromDataV371==='function')renderInvestMetricsFromDataV371(view);
+    window.setInvestSubtabV371(currentTab());
+  };
+  window.setInvestSubtabV371=function(tab){
+    tab=['overview','portfolio','add'].includes(tab)?tab:'overview';
+    localStorage.setItem(SUBKEY,tab);
+    const view=currentView();
+    const crypto=view==='Crypto';
+    // Explicitly control every Invest block. No class-based bulk hiding, so root/page classes cannot collide.
+    const visible=new Set();
+    if(tab==='overview'){
+      visible.add(crypto?'v371CryptoMarket':'v371GoldMarket');
+      visible.add('investMetrics');
+      // The combined manager belongs to Overview and remains visible for either asset view.
+      visible.add('portfolioManagerV310');
+    }else if(tab==='portfolio'){
+      if(crypto){['v371CurrentHoldings','v371Allocation','v371CryptoPortfolio'].forEach(x=>visible.add(x));}
+      else visible.add('v371GoldPortfolio');
+    }else if(tab==='add') visible.add('v371AddInvestment');
+    Object.values(ids).flat().forEach(id=>show(node(id),visible.has(id)));
+    [['overview','investSubOverviewV371'],['portfolio','investSubPortfolioV371'],['add','investSubAddV371']].forEach(([name,id])=>{
+      const b=node(id); if(!b)return; const on=name===tab; b.classList.toggle('active',on); b.setAttribute('aria-selected',on?'true':'false');
+    });
+  };
+  function init(){
+    // Give the form a stable id without changing its HTML structure elsewhere.
+    const formPanel=document.querySelector('#invest .invest-entry'); if(formPanel)formPanel.id='v371AddInvestment';
+    node('v371CryptoBtn')?.addEventListener('click',()=>window.setInvestViewV371('Crypto'));
+    node('v371GoldBtn')?.addEventListener('click',()=>window.setInvestViewV371('Gold'));
+    node('investSubOverviewV371')?.addEventListener('click',()=>window.setInvestSubtabV371('overview'));
+    node('investSubPortfolioV371')?.addEventListener('click',()=>window.setInvestSubtabV371('portfolio'));
+    node('investSubAddV371')?.addEventListener('click',()=>window.setInvestSubtabV371('add'));
+    window.setInvestViewV371(currentView());
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+  const base=window.renderInvest;
+  if(typeof base==='function'){
+    window.renderInvest=function(){
+      const r=base.apply(this,arguments);
+      setTimeout(()=>{window.setInvestViewV371(currentView());},0);
+      return r;
+    };
+  }
 })();
 
 /* ===================== V3.7.1 TRANSACTIONS MOBILE CARDS ===================== */
