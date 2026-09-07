@@ -232,7 +232,7 @@
 <button class="btn" onclick="retryLoadAllV384()" type="button">Retry</button>
 </div>
 <header id="header" style="display:none">
-<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.36.6</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
+<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.37.0</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
 <div class="header-spacer"></div>
 <div aria-label="Signed in user" class="header-profile" id="headerProfile">
 <div class="header-avatar" id="headerAvatar">MF</div>
@@ -6330,5 +6330,96 @@ const mo=new MutationObserver(()=>{if(lang==='zh')apply();});
 document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{childList:true,subtree:true}));
 })();
 </script>
+
+<!-- MMHVAULT V3.37.0 · Smart Financial Advisor -->
+<style id="mmhvault-v370-smart-advisor-css">
+.mmh-advisor-v370{margin-top:14px;position:relative;overflow:hidden}
+.mmh-advisor-v370:before{content:"";position:absolute;inset:0 auto 0 0;width:4px;background:linear-gradient(#55d9ff,#c67cff);opacity:.95}
+.mmh-advisor-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:14px}
+.mmh-advisor-kicker{font-size:11px;font-weight:900;letter-spacing:.14em;color:#e5bf67;margin-bottom:5px}
+.mmh-advisor-title{font-size:22px;font-weight:900;letter-spacing:-.02em}
+.mmh-advisor-sub{margin-top:5px;color:var(--muted);font-size:12px;line-height:1.55}
+.mmh-advisor-status{flex:0 0 auto;border:1px solid var(--line);border-radius:14px;padding:9px 12px;text-align:right;background:rgba(255,255,255,.02)}
+.mmh-advisor-status b{display:block;font-size:13px}.mmh-advisor-status span{display:block;font-size:11px;color:var(--muted);margin-top:2px}
+.mmh-advisor-status.good b{color:#66e2a4}.mmh-advisor-status.warn b{color:#ffd36b}.mmh-advisor-status.risk b{color:#ff8797}
+.mmh-advisor-main{display:grid;grid-template-columns:1.05fr 1.45fr;gap:12px}
+.mmh-advisor-next{border:1px solid var(--line);border-radius:15px;padding:15px;background:linear-gradient(135deg,rgba(66,199,255,.10),rgba(196,124,255,.06))}
+.mmh-advisor-label{font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);font-weight:900;margin-bottom:8px}
+.mmh-advisor-next h3{margin:0 0 7px;font-size:18px}.mmh-advisor-next p{margin:0;color:var(--muted);font-size:12px;line-height:1.55}
+.mmh-advisor-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.mmh-advisor-action{border:1px solid var(--line);border-radius:14px;padding:13px;background:rgba(255,255,255,.018);min-width:0}
+.mmh-advisor-action .num{font-size:11px;font-weight:900;color:#72dfff}.mmh-advisor-action b{display:block;margin:7px 0 5px;font-size:13px}.mmh-advisor-action span{display:block;font-size:11px;color:var(--muted);line-height:1.5}
+.mmh-advisor-foot{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.mmh-advisor-chip{border:1px solid var(--line);border-radius:999px;padding:6px 10px;font-size:11px;color:var(--muted);background:rgba(255,255,255,.018)}
+@media(max-width:850px){.mmh-advisor-main{grid-template-columns:1fr}.mmh-advisor-actions{grid-template-columns:1fr}.mmh-advisor-head{flex-direction:column}.mmh-advisor-status{text-align:left}}
+</style>
+<script id="mmhvault-v370-smart-advisor-js">
+(function(){
+  const $id=id=>document.getElementById(id);
+  const num=v=>Number.isFinite(Number(v))?Number(v):0;
+  const usdFmt=v=>{try{return typeof usd==='function'?usd(v):'$'+num(v).toLocaleString(undefined,{maximumFractionDigits:2});}catch(e){return '$'+num(v).toFixed(2)}};
+  const tr=(en,zh)=>((localStorage.getItem('mmhvault_language_v3363')||'en')==='zh'?zh:en);
+  function monthKey(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')}
+  function getTx(){try{return typeof transactions!=='undefined'&&Array.isArray(transactions)?transactions:[]}catch(e){return []}}
+  function loanCats(){try{return typeof CATS!=='undefined'&&Array.isArray(CATS.Loans)?CATS.Loans:[]}catch(e){return []}}
+  function toUsdSafe(amount,account){try{return num(amount)*(typeof toUSD==='function'?num(toUSD(account)):1)}catch(e){return num(amount)}}
+  function monthly(){
+    const key=monthKey(); let income=0,expense=0;
+    const rows=getTx();
+    rows.filter(x=>String(x.tx_date||'').slice(0,7)===key).forEach(t=>{
+      if(t.type==='Income'&&t.category!=='Loan Repayment') income+=toUsdSafe(t.to_amount,t.to_account);
+      if(t.type==='Expense'&&!loanCats().includes(t.category)&&t.category!=='Investment'&&!(typeof isLinkedInvestmentTx==='function'&&isLinkedInvestmentTx(t))) expense+=toUsdSafe(t.from_amount,t.from_account);
+    });
+    return {income,expense,save:income-expense,rate:income?((income-expense)/income*100):0};
+  }
+  function avg3(){
+    const rows=getTx();
+    let inc=0,exp=0,active=0;const now=new Date();
+    for(let i=1;i<=3;i++){const d=new Date(now.getFullYear(),now.getMonth()-i,1);const key=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');let mi=0,me=0;
+      rows.filter(x=>String(x.tx_date||'').slice(0,7)===key).forEach(t=>{if(t.type==='Income'&&t.category!=='Loan Repayment')mi+=toUsdSafe(t.to_amount,t.to_account);if(t.type==='Expense'&&!loanCats().includes(t.category)&&t.category!=='Investment'&&!(typeof isLinkedInvestmentTx==='function'&&isLinkedInvestmentTx(t)))me+=toUsdSafe(t.from_amount,t.from_account)});
+      if(mi||me)active++;inc+=mi;exp+=me;
+    }
+    return {income:inc,expense:exp,save:inc-expense,rate:inc?((inc-exp)/inc*100):0,avgExpense:active?exp/active:0,active};
+  }
+  function assets(){
+    let cash=0,invest=0;
+    try{const accounts=['Bath','TrueMoney','OKX','ByBit','MetaMask','KPay'];cash=accounts.reduce((s,a)=>s+Math.max(0,num(balance(a)))*toUsdSafe(1,a),0)}catch(e){}
+    try{invest=Math.max(0,num(investmentValue())/Math.max(1,num(window.rates?.usd_mmk)||1))}catch(e){}
+    const total=cash+invest;return {cash,invest,total,cashRatio:total?cash/total*100:0,investRatio:total?invest/total*100:0};
+  }
+  function insertPanel(){
+    let el=$id('smartAdvisorV370');if(el)return el;
+    el=document.createElement('section');el.id='smartAdvisorV370';el.className='panel mmh-advisor-v370';el.setAttribute('aria-label','Smart Financial Advisor');
+    const anchor=$id('wealthPlanningV387')||$id('wealthSnapshotV386')||$id('dashboardHero');
+    if(anchor&&anchor.parentNode)anchor.parentNode.insertBefore(el,anchor.nextSibling); else $id('dashboard')?.prepend(el);
+    return el;
+  }
+  function buildActions(m,a,as){
+    const zh=(localStorage.getItem('mmhvault_language_v3363')||'en')==='zh';const actions=[];
+    if(a.avgExpense>0 && as.cash/a.avgExpense<3) actions.push({title:zh?'优先建立紧急备用金':'Build your emergency fund',text:zh?`当前现金约可覆盖 ${(as.cash/a.avgExpense).toFixed(1)} 个月平均支出，优先提升到 3–6 个月。`:`Current cash covers about ${(as.cash/a.avgExpense).toFixed(1)} months of average spending. Prioritize 3–6 months.`});
+    if(a.rate<20) actions.push({title:zh?'提高储蓄率':'Improve your savings rate',text:zh?`近 3 个月平均储蓄率为 ${a.rate.toFixed(1)}%，先减少可控支出，再提高每月净储蓄。`:`Your 3-month average savings rate is ${a.rate.toFixed(1)}%. Reduce controllable spending and raise monthly net savings.`});
+    else if(a.rate<60) actions.push({title:zh?'向 60% 储蓄目标靠近':'Move toward your 60% savings target',text:zh?`当前平均储蓄率 ${a.rate.toFixed(1)}%，保持正现金流并逐步提升剩余资金比例。`:`Average savings rate is ${a.rate.toFixed(1)}%. Keep positive cash flow and steadily increase your surplus.`});
+    if(as.investRatio>65) actions.push({title:zh?'控制新增投资风险':'Control new investment risk',text:zh?`投资资产占可统计资产 ${as.investRatio.toFixed(1)}%，新增资金可优先补充现金缓冲。`:`Investments are ${as.investRatio.toFixed(1)}% of tracked assets. Consider rebuilding cash buffers before adding risk.`});
+    else if(as.investRatio<25 && a.rate>0) actions.push({title:zh?'建立长期投资节奏':'Build a long-term investing rhythm',text:zh?'在备用金基础稳定后，可用固定比例的新增结余逐步投资。':'Once your emergency buffer is stable, consider investing a fixed portion of new surplus gradually.'});
+    while(actions.length<3) actions.push({title:zh?'保持当前节奏':'Keep the current rhythm',text:zh?'当前没有发现更高优先级的风险信号，继续记录数据并按月复盘。':'No higher-priority risk signal was found. Keep recording data and review progress monthly.'});
+    return actions.slice(0,3);
+  }
+  function render(){
+    const el=insertPanel();if(!el)return;const m=monthly(),a=avg3(),as=assets();const zh=(localStorage.getItem('mmhvault_language_v3363')||'en')==='zh';
+    const emergency=a.avgExpense>0?as.cash/a.avgExpense:0;
+    let score=70;score+=Math.max(-25,Math.min(15,a.rate-20)*.6);score+=emergency>=6?12:emergency>=3?5:emergency*1.5;score-=as.investRatio>75?10:0;score=Math.max(20,Math.min(100,Math.round(score)));
+    const cls=score>=75?'good':score>=55?'warn':'risk';const label=score>=75?tr('On Track','状态良好'):score>=55?tr('Needs Attention','需要关注'):tr('Priority Action','优先处理');
+    const actions=buildActions(m,a,as);
+    const next=actions[0];
+    el.innerHTML=`<div class="mmh-advisor-head"><div><div class="mmh-advisor-kicker">V3.37.0 · SMART FINANCIAL ADVISOR</div><div class="mmh-advisor-title">🤖 ${tr('Smart Financial Advisor','智能财务顾问')}</div><div class="mmh-advisor-sub">${tr('Automatically turns your current cash flow, savings, assets and investment mix into practical next steps.','自动分析当前现金流、储蓄、资产和投资结构，并给出下一步行动建议。')}</div></div><div class="mmh-advisor-status ${cls}"><b>${score}/100 · ${label}</b><span>${tr('Updated from your current records','根据当前记录自动更新')}</span></div></div><div class="mmh-advisor-main"><div class="mmh-advisor-next"><div class="mmh-advisor-label">${tr('NEXT BEST MOVE','下一步最佳行动')}</div><h3>${next.title}</h3><p>${next.text}</p></div><div class="mmh-advisor-actions">${actions.map((x,i)=>`<div class="mmh-advisor-action"><div class="num">0${i+1}</div><b>${x.title}</b><span>${x.text}</span></div>`).join('')}</div></div><div class="mmh-advisor-foot"><div class="mmh-advisor-chip">${tr('This month savings','本月净储蓄')}: ${usdFmt(m.save)}</div><div class="mmh-advisor-chip">${tr('3M savings rate','近3个月储蓄率')}: ${a.rate.toFixed(1)}%</div><div class="mmh-advisor-chip">${tr('Emergency coverage','紧急备用金覆盖')}: ${a.avgExpense>0?emergency.toFixed(1):'—'} ${tr('months','个月')}</div><div class="mmh-advisor-chip">${tr('Investment ratio','投资比例')}: ${as.investRatio.toFixed(1)}%</div></div>`;
+  }
+  const base=window.renderDashboard;
+  window.renderDashboard=function(){const r=base&&base.apply(this,arguments);try{render()}catch(e){console.warn('Smart Advisor render skipped:',e)}return r};
+  const oldSet=window.setMMHVAULTLanguage;
+  if(typeof oldSet==='function'&&!oldSet.__mmh370){const wrapped=function(next){const r=oldSet(next);setTimeout(render,30);return r};wrapped.__mmh370=true;window.setMMHVAULTLanguage=wrapped}
+  window.renderSmartFinancialAdvisorV370=render;
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(render,500),{once:true});else setTimeout(render,100);
+})();
+</script>
+
 </body>
 </html>
