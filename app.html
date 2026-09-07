@@ -6533,5 +6533,77 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
 })();
 </script>
 
+
+<!-- MMHVAULT V3.37.1.4 · Dynamic Savings Target Sync -->
+<script id="mmhvault-v3714-savings-target-sync">
+(function(){
+  const rulesKey='mmhvault_wealth_rules_v326';
+  const num=v=>{v=Number(v);return Number.isFinite(v)?v:0};
+  const zh=()=>((localStorage.getItem('mmhvault_language_v3363')||'en')==='zh');
+  const tr=(en,cn)=>zh()?cn:en;
+  function target(){
+    try{
+      if(typeof window.getPersonalWealthRulesV326==='function'){
+        const r=window.getPersonalWealthRulesV326();
+        const v=num(r&&r.savingsTarget);
+        if(v>0&&v<=100)return v;
+      }
+      const r=JSON.parse(localStorage.getItem(rulesKey)||'{}');
+      const v=num(r.savingsTarget);
+      return v>0&&v<=100?v:60;
+    }catch(e){return 60;}
+  }
+  function money(v){try{return typeof usd==='function'?usd(v):'$ '+num(v).toLocaleString(undefined,{maximumFractionDigits:2});}catch(e){return '$ '+num(v).toFixed(2);}}
+  function refreshTrend(){
+    const el=document.getElementById('dashboardSavingsTrend');
+    const changeEl=document.getElementById('savingsTrendChange');
+    if(!el||typeof window.monthSeries!=='function'||typeof window.fhMonthlyFlow!=='function')return;
+    const tgt=target();
+    const months=window.monthSeries();
+    const rows=months.map(m=>{const x=window.fhMonthlyFlow(m);return{m,sr:num(x.sr),inc:num(x.inc),exp:num(x.exp),save:num(x.save)};});
+    const vals=rows.map(x=>Math.max(0,x.sr));
+    const max=Math.max(tgt,...vals,1);
+    const current=rows[rows.length-1]||{sr:0,inc:0,save:0};
+    const prev=rows[rows.length-2]||{sr:0};
+    const delta=current.sr-prev.sr;
+    if(changeEl){
+      changeEl.textContent=delta===0?tr('No change','没有变化'):`${delta>0?'+':''}${delta.toFixed(1)}% ${tr('vs last month','相比上月')}`;
+      changeEl.className='pill '+(delta>0?'green':delta<0?'red':'yellow');
+    }
+    const threshold=Math.max(1,tgt*2/3);
+    const state=x=>x.sr>=tgt?'green':x.sr>=threshold?'yellow':'red';
+    const status=current.sr>=tgt?tr('Above Target','达到目标'):current.sr>=threshold?tr('Below Target','接近目标'):tr('Needs Attention','需要关注');
+    const avg=rows.reduce((a,x)=>a+x.sr,0)/(rows.length||1);
+    const targetTop=Math.max(4,120-(tgt/max)*120);
+    el.innerHTML=`<div class="savings-trend-chart"><div class="savings-trend-target" style="top:${targetTop}px"><span>${tr('Target','目标')} ${tgt}%</span></div><div class="savings-bars">${rows.map(x=>{const h=Math.max(4,Math.min(100,(x.sr/max)*100));const cls=state(x);const label=(typeof window.monthLabel==='function'?window.monthLabel(x.m):x.m).split(' ')[0];return`<div class="savings-bar"><div class="pct ${cls}">${x.sr.toFixed(1)}%</div><div class="bar" style="height:${h}%" title="${label} · ${tr('Savings','储蓄率')} ${x.sr.toFixed(1)}% · ${tr('Income','收入')} ${money(x.inc)} · ${tr('Saved','结余')} ${money(x.save)}"></div><div class="month">${label}</div></div>`;}).join('')}</div></div><div class="savings-trend-meta"><div class="stat"><span>${tr('Current Month','本月')}</span><b>${current.sr.toFixed(1)}%</b></div><div class="stat"><span>${tr('6M Average','近6个月平均')}</span><b>${avg.toFixed(1)}%</b></div><div class="stat"><span>${tr('Target','目标')}</span><b>${tgt}%</b></div><div class="stat"><span>${tr('Status','状态')}</span><b class="${state(current)}">${status}</b></div></div>`;
+    const panel=el.closest('.savings-trend-panel');
+    if(panel){
+      const sub=panel.querySelector('.sub');
+      if(sub)sub.textContent=tr(`Last 6 months · target ${tgt}%`,`最近 6 个月 · 目标 ${tgt}%`);
+    }
+  }
+  function refreshCashFlowTarget(){
+    const tgt=target();
+    const threshold=Math.max(1,tgt*2/3);
+    document.querySelectorAll('#cashFlowSummary .cashflow-card-v371 .label').forEach(()=>{});
+    const trendTitle=document.querySelector('.savings-trend-panel .toolbar .sub');
+    if(trendTitle)trendTitle.textContent=tr(`Last 6 months · target ${tgt}%`,`最近 6 个月 · 目标 ${tgt}%`);
+    return threshold;
+  }
+  const old=window.renderDashboardSavingsTrendV1;
+  window.renderDashboardSavingsTrendV1=function(){
+    const r=typeof old==='function'?old.apply(this,arguments):undefined;
+    setTimeout(refreshTrend,0);return r;
+  };
+  window.refreshMMHVAULTSavingsTargetV3714=refreshTrend;
+  document.addEventListener('click',e=>{
+    if(e.target&&e.target.closest&&e.target.closest('#saveWealthRulesV326,#resetWealthRulesV326'))setTimeout(refreshTrend,80);
+  });
+  window.addEventListener('storage',e=>{if(e.key===rulesKey)setTimeout(refreshTrend,0);});
+  window.addEventListener('mmhvault-language-change',()=>setTimeout(refreshTrend,0));
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{refreshCashFlowTarget();setTimeout(refreshTrend,700);},{once:true});else setTimeout(refreshTrend,400);
+})();
+</script>
+
 </body>
 </html>
