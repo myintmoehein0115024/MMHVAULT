@@ -6826,5 +6826,57 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
   window.addEventListener('mmhvault-language-change',()=>setTimeout(renderSafe,30));
 })();
 </script>
+
+
+<!-- MMHVAULT V3.37.1.9 · Financial Alert Center -->
+<style id="mmhvault-v3719-alert-style">
+.fin-alert-v3719{margin-bottom:14px}
+.fin-alert-head-v3719{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
+.fin-alert-summary-v3719{display:flex;gap:8px;flex-wrap:wrap}
+.fin-alert-count-v3719{border-radius:999px;padding:6px 10px;font-size:11px;font-weight:800;border:1px solid rgba(255,255,255,.1)}
+.fin-alert-count-v3719.good{color:#7fe0b4;background:rgba(70,190,130,.08)}.fin-alert-count-v3719.warn{color:#ffd47a;background:rgba(255,196,80,.08)}.fin-alert-count-v3719.alert{color:#ff9aa7;background:rgba(255,90,110,.08)}
+.fin-alert-grid-v3719{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.fin-alert-card-v3719{border:1px solid rgba(120,150,220,.18);border-radius:14px;background:rgba(6,13,30,.42);padding:13px;position:relative;overflow:hidden}
+.fin-alert-card-v3719.good{border-color:rgba(90,210,160,.28)}.fin-alert-card-v3719.warn{border-color:rgba(255,198,90,.28)}.fin-alert-card-v3719.alert{border-color:rgba(255,110,125,.34)}
+.fin-alert-card-v3719 .top{display:flex;align-items:center;justify-content:space-between;gap:10px}.fin-alert-card-v3719 .title{font-weight:850;font-size:14px}.fin-alert-card-v3719 .badge{font-size:10px;font-weight:850;padding:5px 8px;border-radius:999px;background:rgba(255,255,255,.05);white-space:nowrap}.fin-alert-card-v3719 .desc{font-size:12px;color:var(--muted);line-height:1.5;margin-top:7px}.fin-alert-card-v3719 .metric{font-size:18px;font-weight:900;margin-top:9px}
+.fin-alert-card-v3719.good .metric{color:#7fe0b4}.fin-alert-card-v3719.warn .metric{color:#ffd47a}.fin-alert-card-v3719.alert .metric{color:#ff9aa7}
+.fin-alert-note-v3719{margin-top:11px;color:var(--muted);font-size:11px;line-height:1.5}
+@media(max-width:760px){.fin-alert-grid-v3719{grid-template-columns:1fr}.fin-alert-head-v3719{flex-direction:column}}
+</style>
+<script id="mmhvault-v3719-financial-alert-center">
+(function(){
+  const N=v=>Number.isFinite(Number(v))?Number(v):0;
+  const $=id=>document.getElementById(id);
+  const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  const zh=()=>((localStorage.getItem('mmhvault_language_v3363')||'en')==='zh');
+  const T=(en,cn)=>zh()?cn:en;
+  const usd=v=>{try{return typeof window.usd==='function'?window.usd(v):'$ '+N(v).toLocaleString(undefined,{maximumFractionDigits:2});}catch(e){return '$ '+N(v).toFixed(2)}};
+  const ymAdd=(ym,delta)=>{const [y,m]=String(ym||'').split('-').map(Number);if(!y||!m)return '';const d=new Date(y,m-1+delta,1);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`};
+  function selectedYM(){try{const p=typeof window.v37Period==='function'?window.v37Period():null;if(p&&p.month&&p.month!=='annual')return `${p.year}-${p.month}`;}catch(e){}return new Date().toISOString().slice(0,7)}
+  function flow(ym){let inc=0,exp=0;const rows=(window.transactions||[]).filter(t=>String(t.tx_date||'').slice(0,7)===ym);for(const t of rows){try{const rate=typeof window.toUSD==='function'?N(window.toUSD(t.type==='Income'?t.to_account:t.from_account)):1;if(t.type==='Income')inc+=N(t.to_amount)*rate;else if(t.type==='Expense'&&!((window.CATS?.Loans)||[]).includes(t.category)&&t.category!=='Investment'&&!(typeof window.isLinkedInvestmentTx==='function'&&window.isLinkedInvestmentTx(t)))exp+=N(t.from_amount)*rate;}catch(e){}}return{inc,exp,save:inc-exp,sr:inc?((inc-exp)/inc*100):0,rows};}
+  function categoryTotals(ym){const map={};for(const t of (window.transactions||[])){if(String(t.tx_date||'').slice(0,7)!==ym||t.type!=='Expense')continue;if(((window.CATS?.Loans)||[]).includes(t.category)||t.category==='Investment')continue;if(typeof window.isLinkedInvestmentTx==='function'&&window.isLinkedInvestmentTx(t))continue;const rate=typeof window.toUSD==='function'?N(window.toUSD(t.from_account)):1;map[t.category]=(map[t.category]||0)+N(t.from_amount)*rate;}return map;}
+  function rules(){try{const r=JSON.parse(localStorage.getItem('mmhvault_wealth_rules_v326')||'{}');return{reserve:N(r.reserve||3),savings:N(r.savings||60)}}catch(e){return{reserve:3,savings:60}}}
+  function cashRunway(){const now=new Date();now.setDate(1);const ms=[-3,-2,-1].map(x=>{const d=new Date(now);d.setMonth(now.getMonth()+x);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`});const avg=ms.reduce((s,ym)=>s+flow(ym).exp,0)/Math.max(1,ms.length);let cash=0;for(const a of ['Bath','TrueMoney','OKX','ByBit','MetaMask','KPay']){try{cash+=Math.max(0,N(window.balance?.(a)))*N(window.toUSD?.(a)||1)}catch(e){}}return avg?cash/avg:0;}
+  function maxConcentration(){try{const arr=Array.isArray(window.investments)?window.investments:[];const prices=window.marketPrices||{};const vals={};for(const x of arr){const sym=String(x.symbol||x.asset||'').toUpperCase();const q=N(x.quantity);const p=N(prices[sym]?.price||x.market_price||x.buy_price);if(sym&&q>0&&p>0)vals[sym]=(vals[sym]||0)+q*p;}const total=Object.values(vals).reduce((s,v)=>s+v,0);if(!total)return null;const pair=Object.entries(vals).sort((a,b)=>b[1]-a[1])[0];return{symbol:pair[0],pct:pair[1]/total*100};}catch(e){return null}}
+  function buildAlerts(){const ym=selectedYM(),prev=ymAdd(ym,-1),cur=flow(ym),old=flow(prev),r=rules(),alerts=[];
+    if(old.exp>0){const change=(cur.exp-old.exp)/old.exp*100;alerts.push(change>=20?['alert',T('Spending increased sharply','支出明显上升'),T('This period’s ordinary expenses are much higher than last month.','本期正常支出比上个月明显增加。'),`${change>=0?'+':''}${change.toFixed(1)}%`,T('Review the largest categories first','优先检查支出最大的分类')]:change<=-10?['good',T('Spending improved','支出有所改善'),T('Ordinary spending is lower than last month.','正常支出比上个月降低。'),`${change.toFixed(1)}%`,T('Keep the current spending discipline','继续保持当前消费习惯')]:['good',T('Spending stable','支出保持稳定'),T('Ordinary spending is close to last month.','正常支出与上个月接近。'),`${change>=0?'+':''}${change.toFixed(1)}%`,T('No unusual spending change detected','暂未发现异常支出变化')]);}
+    else alerts.push(['warn',T('No spending baseline','暂无支出基准'),T('There is not enough prior-month spending data for comparison.','上个月没有足够的支出数据进行对比。'),'—',T('Record another full month for a stronger comparison','再积累一个完整月份的数据即可更准确比较')]);
+    const srStatus=cur.inc<=0?'warn':cur.sr>=r.savings?'good':cur.sr>=r.savings-15?'warn':'alert';alerts.push([srStatus,T('Savings rate','储蓄率'),cur.inc>0?(cur.sr>=r.savings?T('You are meeting your personal savings target.','您目前达到个人储蓄目标。'):T('Your savings rate is below the target set in Wealth Rules.','您的储蓄率低于财富规则中的目标。')):T('No recorded income in this period.','本期暂无记录收入。'),cur.inc>0?`${cur.sr.toFixed(1)}% / ${r.savings.toFixed(0)}%`:'—',cur.sr>=r.savings?T('Target achieved','已达到目标'):T('Protect savings by controlling the biggest expense categories','优先控制最大的支出分类，保护储蓄率')]);
+    const runway=cashRunway();const rwStatus=runway>=r.reserve?'good':runway>=Math.max(1,r.reserve*.75)?'warn':'alert';alerts.push([rwStatus,T('Cash reserve','现金储备'),runway?T('Cash coverage is measured against recent average spending.','现金覆盖能力按照近期平均支出计算。'):T('Not enough completed spending history to estimate coverage.','完整历史支出不足，暂时无法准确估算覆盖能力。'),runway?`${runway.toFixed(1)} ${T('months','个月')}`:'—',runway>=r.reserve?T('Liquidity is above your minimum rule','流动性高于您的最低规则'):T('Consider rebuilding liquidity before adding more risk','增加更多风险投资前，优先补充现金流动性')]);
+    const cats=categoryTotals(ym),oldCats=categoryTotals(prev);let spike=null;for(const [cat,val] of Object.entries(cats)){if(oldCats[cat]>0){const c=(val-oldCats[cat])/oldCats[cat]*100;if(!spike||c>spike.change)spike={cat,change:c,val};}}if(spike&&spike.change>=30)alerts.push(['alert',T('Category spike','分类支出异常上升'),T('One spending category increased significantly compared with last month.','某个支出分类相比上个月明显增加。'),`${spike.cat} · +${spike.change.toFixed(0)}%`,T('Check whether this was a one-time expense or a new trend','检查这是一次性支出还是新的消费趋势')]);
+    else alerts.push(['good',T('Category changes','分类变化正常'),T('No major category spike was detected against last month.','与上个月相比暂未发现明显的分类支出暴涨。'),'OK',T('Continue monitoring monthly category changes','继续观察每月分类变化')]);
+    const conc=maxConcentration();if(conc){alerts.push([conc.pct>60?'alert':conc.pct>45?'warn':'good',T('Investment concentration','投资集中度'),T('Largest tracked position in your current portfolio.','当前投资组合中占比最大的持仓。'),`${conc.symbol} · ${conc.pct.toFixed(1)}%`,conc.pct>60?T('Avoid increasing the largest position without a clear reason','没有明确理由时，避免继续加重最大持仓'):conc.pct>45?T('Watch concentration before adding new money','投入新资金前注意持仓集中度'):T('Current concentration looks reasonably balanced','当前集中度相对合理')]);}
+    return{ym,alerts};}
+  function render(){const host=$('financialAlertCenterV3719')||(()=>{const overview=document.querySelector('.analyze-tab-panel-v371[data-panel="overview"]');const ref=$('financialIntelligenceV314');if(!overview)return null;const el=document.createElement('div');el.id='financialAlertCenterV3719';el.className='panel fin-alert-v3719';if(ref&&ref.parentNode===overview)overview.insertBefore(el,ref.nextSibling);else overview.insertBefore(el,overview.firstChild);return el})();if(!host)return;try{const d=buildAlerts(),bad=d.alerts.filter(a=>a[0]==='alert').length,warn=d.alerts.filter(a=>a[0]==='warn').length,good=d.alerts.filter(a=>a[0]==='good').length;host.innerHTML=`<div class="fin-alert-head-v3719"><div><h2 style="margin:0">${T('Financial Alert Center','财务预警中心')}</h2><div class="sub" style="margin-top:5px">${T('Automatically checks important changes and highlights what deserves your attention first.','自动检查重要财务变化，并优先提示值得您关注的问题。')}</div></div><div class="fin-alert-summary-v3719"><span class="fin-alert-count-v3719 alert">${bad} ${T('alerts','项警报')}</span><span class="fin-alert-count-v3719 warn">${warn} ${T('watch','项关注')}</span><span class="fin-alert-count-v3719 good">${good} ${T('normal','项正常')}</span></div></div><div class="fin-alert-grid-v3719">${d.alerts.map(a=>`<div class="fin-alert-card-v3719 ${a[0]}"><div class="top"><div class="title">${esc(a[1])}</div><span class="badge">${a[0]==='good'?T('NORMAL','正常'):a[0]==='warn'?T('WATCH','关注'):T('ALERT','警报')}</span></div><div class="desc">${esc(a[2])}</div><div class="metric">${esc(a[3])}</div><div class="desc">💡 ${esc(a[4])}</div></div>`).join('')}</div><div class="fin-alert-note-v3719">${T('Alerts are advisory and based only on recorded MMHVAULT data. Missing history can reduce comparison accuracy.','预警仅根据 MMHVAULT 已记录的数据生成；历史数据不足时，对比准确度会降低。')}</div>`;}catch(e){host.innerHTML='';console.error('Financial Alert Center',e)}}
+  window.renderFinancialAlertCenterV3719=render;
+  const hook=()=>setTimeout(render,0);
+  document.addEventListener('click',e=>{if(e.target?.closest?.('.analyze-tab-v371[data-tab="overview"]'))hook()});
+  document.addEventListener('change',e=>{if(e.target?.id==='analyzeYear'||e.target?.id==='analyzeMonth')setTimeout(render,80)});
+  window.addEventListener('mmhvault-language-change',hook);
+  const old=window.renderAnalyzeV37;if(typeof old==='function'){window.renderAnalyzeV37=function(){const r=old.apply(this,arguments);hook();return r;};}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(render,700),{once:true});else setTimeout(render,300);
+})();
+</script>
+
 </body>
 </html>
