@@ -6421,5 +6421,52 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
 })();
 </script>
 
+
+<!-- MMHVAULT V3.37.0.1 · Smart Advisor Render Hotfix -->
+<script id="mmhvault-v3701-smart-advisor-hotfix">
+(function(){
+  const id='smartAdvisorV370';
+  const n=v=>{v=Number(v);return Number.isFinite(v)?v:0};
+  const zh=()=>((localStorage.getItem('mmhvault_language_v3363')||'en')==='zh');
+  const t=(en,cn)=>zh()?cn:en;
+  const money=v=>{try{return typeof usd==='function'?usd(n(v)):'$'+n(v).toLocaleString(undefined,{maximumFractionDigits:2})}catch(e){return '$'+n(v).toFixed(2)}};
+  function panel(){
+    let el=document.getElementById(id);
+    if(!el){el=document.createElement('section');el.id=id;el.className='panel mmh-advisor-v370';const anchor=document.getElementById('wealthPlanningV387')||document.getElementById('wealthSnapshotV386')||document.getElementById('dashboardHero');if(anchor&&anchor.parentNode)anchor.parentNode.insertBefore(el,anchor.nextSibling);else {const dash=document.getElementById('dashboard');if(dash)dash.prepend(el)}}
+    return el;
+  }
+  function safeRows(){try{return Array.isArray(window.transactions)?window.transactions:[]}catch(e){return []}}
+  function month(k){let inc=0,exp=0;for(const x of safeRows()){if(String(x.tx_date||'').slice(0,7)!==k)continue;const typ=String(x.type||'');const cat=String(x.category||'');try{if(typ==='Income'&&cat!=='Loan Repayment'){let v=n(x.to_amount||x.amount);if(typeof toUSD==='function')v=n(v)*n(toUSD(x.to_account));inc+=v}else if(typ==='Expense'&&cat!=='Investment'){let v=n(x.from_amount||x.amount);if(typeof toUSD==='function')v=n(v)*n(toUSD(x.from_account));exp+=v}}catch(e){}}return {inc,exp}}
+  function calc(){
+    const now=new Date(), key=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0');
+    const cur=month(key);let inc=0,exp=0,active=0;
+    for(let i=1;i<=3;i++){const d=new Date(now.getFullYear(),now.getMonth()-i,1);const q=month(d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'));if(q.inc||q.exp)active++;inc+=q.inc;exp+=q.exp}
+    const rate=inc?((inc-exp)/inc*100):0,avg=active?exp/active:0;
+    let invest=0;try{if(typeof investmentValue==='function'){invest=n(investmentValue());const r=n(window.rates&&window.rates.usd_mmk);if(r>100)invest/=r}}catch(e){}
+    let cash=0;try{for(const a of ['Bath','TrueMoney','OKX','ByBit','MetaMask','KPay']){let v=n(typeof balance==='function'?balance(a):0);let r=1;if(typeof toUSD==='function')r=n(toUSD(a));cash+=Math.max(0,v)*r}}catch(e){}
+    const total=cash+invest, investRatio=total?invest/total*100:0, emergency=avg?cash/avg:0;
+    return {cur,rate,avg,cash,investRatio,emergency};
+  }
+  function draw(){
+    const el=panel();if(!el)return;
+    try{
+      const d=calc();const actions=[];
+      if(d.avg>0&&d.emergency<3)actions.push([t('Build emergency fund','建立紧急备用金'),t(`Current cash covers about ${d.emergency.toFixed(1)} months of average spending.`,`当前现金约可覆盖 ${d.emergency.toFixed(1)} 个月平均支出。`)]);
+      if(d.rate<20)actions.push([t('Improve savings rate','提高储蓄率'),t(`Your recent savings rate is ${d.rate.toFixed(1)}%. Reduce controllable spending first.`,`近期储蓄率为 ${d.rate.toFixed(1)}%，优先减少可控支出。`)]);
+      if(d.investRatio>65)actions.push([t('Control new investment risk','控制新增投资风险'),t(`Investments are ${d.investRatio.toFixed(1)}% of tracked assets.`,`投资占可统计资产 ${d.investRatio.toFixed(1)}%。`)]);
+      while(actions.length<3)actions.push([t('Keep your current rhythm','保持当前节奏'),t('Keep recording your finances and review progress every month.','继续记录财务数据，并按月复盘进度。')]);
+      const score=Math.max(20,Math.min(100,Math.round(65+(d.rate>0?10:0)+(d.emergency>=3?10:0)-(d.investRatio>75?10:0))));
+      const status=score>=75?t('On Track','状态良好'):score>=55?t('Needs Attention','需要关注'):t('Priority Action','优先处理');
+      el.innerHTML='<div class="mmh-advisor-head"><div><div class="mmh-advisor-kicker">V3.37.0 · SMART FINANCIAL ADVISOR</div><div class="mmh-advisor-title">🤖 '+t('Smart Financial Advisor','智能财务顾问')+'</div><div class="mmh-advisor-sub">'+t('Turns your current financial data into practical next steps.','根据当前财务数据，自动给出下一步行动建议。')+'</div></div><div class="mmh-advisor-status '+(score>=75?'good':score>=55?'warn':'risk')+'"><b>'+score+'/100 · '+status+'</b><span>'+t('Updated from your current records','根据当前记录自动更新')+'</span></div></div><div class="mmh-advisor-main"><div class="mmh-advisor-next"><div class="mmh-advisor-label">'+t('NEXT BEST MOVE','下一步最佳行动')+'</div><h3>'+actions[0][0]+'</h3><p>'+actions[0][1]+'</p></div><div class="mmh-advisor-actions">'+actions.slice(0,3).map((a,i)=>'<div class="mmh-advisor-action"><div class="num">0'+(i+1)+'</div><b>'+a[0]+'</b><span>'+a[1]+'</span></div>').join('')+'</div></div><div class="mmh-advisor-foot"><div class="mmh-advisor-chip">'+t('This month net savings','本月净储蓄')+': '+money(d.cur.inc-d.cur.exp)+'</div><div class="mmh-advisor-chip">'+t('3M savings rate','近3个月储蓄率')+': '+d.rate.toFixed(1)+'%</div><div class="mmh-advisor-chip">'+t('Emergency coverage','紧急备用金覆盖')+': '+(d.avg?d.emergency.toFixed(1):'—')+' '+t('months','个月')+'</div><div class="mmh-advisor-chip">'+t('Investment ratio','投资比例')+': '+d.investRatio.toFixed(1)+'%</div></div>';
+    }catch(e){el.innerHTML='<div class="mmh-advisor-title">🤖 '+t('Smart Financial Advisor','智能财务顾问')+'</div><div class="mmh-advisor-sub">'+t('Advisor data is loading. Refresh the dashboard to update.','智能顾问数据正在加载，刷新仪表盘后会自动更新。')+'</div>';}
+  }
+  const base=window.renderDashboard;
+  if(!window.__mmh3701wrapped){window.__mmh3701wrapped=true;window.renderDashboard=function(){const r=typeof base==='function'?base.apply(this,arguments):undefined;setTimeout(draw,0);return r};}
+  window.renderSmartFinancialAdvisorV370=draw;
+  setTimeout(draw,200);setTimeout(draw,1000);setTimeout(draw,2500);
+  window.addEventListener('mmhvault-language-change',()=>setTimeout(draw,0));
+})();
+</script>
+
 </body>
 </html>
