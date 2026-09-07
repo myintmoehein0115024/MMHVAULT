@@ -232,6 +232,30 @@
 <style id="mmhvault-v390-reports-css">
 .mmh-v390-page-head{display:flex;justify-content:space-between;align-items:end;gap:18px;flex-wrap:wrap}.report-period-controls{display:flex;gap:10px}.report-period-controls label{min-width:140px}.mmh-v390-kpis{margin-top:14px}.mmh-v390-kpis .panel{min-height:110px}.mmh-v390-table{width:100%;border-collapse:collapse}.mmh-v390-table th,.mmh-v390-table td{padding:11px 10px;border-bottom:1px solid rgba(130,155,210,.18);text-align:left}.mmh-v390-table th{font-size:12px;letter-spacing:.06em;text-transform:uppercase;opacity:.72}.mmh-v390-positive{color:#35e5a1}.mmh-v390-negative{color:#ff6f88}.mmh-v390-muted{opacity:.72}.mmh-v390-bar{display:flex;gap:6px;align-items:end;height:120px;padding:8px 2px}.mmh-v390-bar-item{flex:1;display:flex;flex-direction:column;justify-content:end;align-items:center;gap:5px;min-width:18px}.mmh-v390-bar-fill{width:70%;min-height:3px;border-radius:8px;background:linear-gradient(180deg,#48d7ff,#c971ff)}.mmh-v390-bar-label{font-size:10px;opacity:.65}.mmh-v390-insight{padding:12px 14px;border:1px solid rgba(110,155,220,.2);border-radius:14px;background:rgba(16,31,68,.45);margin-top:10px}.mmh-v390-empty{padding:20px 0;opacity:.7}
 </style>
+<style id="mmhvault-v340-insights-css">
+.mmh-insights-head-v340{display:flex;justify-content:space-between;align-items:flex-end;gap:18px;margin-bottom:18px}
+.mmh-insights-kpis-v340{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:14px}
+.mmh-insights-kpi-v340{padding:16px 18px;border:1px solid rgba(96,145,255,.20);border-radius:16px;background:linear-gradient(135deg,rgba(24,37,87,.75),rgba(10,17,45,.82));box-shadow:inset 0 1px 0 rgba(255,255,255,.03)}
+.mmh-insights-kpi-v340 .label{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#8191bc}
+.mmh-insights-kpi-v340 .value{font-size:24px;font-weight:900;margin-top:6px}
+.mmh-insights-kpi-v340 .meta{font-size:11px;color:#7786ae;margin-top:5px}
+.mmh-insights-grid-v340{display:grid;grid-template-columns:1.08fr .92fr;gap:14px}
+.mmh-insight-card-v340{display:grid;grid-template-columns:auto 1fr auto;gap:12px;align-items:center;padding:13px 0;border-bottom:1px solid rgba(255,255,255,.07)}
+.mmh-insight-card-v340:last-child{border-bottom:0}
+.mmh-insight-icon-v340{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;background:rgba(98,145,255,.12);border:1px solid rgba(98,145,255,.2)}
+.mmh-insight-title-v340{font-weight:800;font-size:13px}.mmh-insight-desc-v340{font-size:11px;color:#7d8bb4;margin-top:3px;line-height:1.45}
+.mmh-insight-badge-v340{padding:6px 9px;border-radius:999px;font-size:10px;font-weight:800;white-space:nowrap}
+.mmh-good-v340{background:rgba(49,220,156,.12);color:#3be6a1;border:1px solid rgba(49,220,156,.25)}
+.mmh-warn-v340{background:rgba(255,211,107,.10);color:#ffd36b;border:1px solid rgba(255,211,107,.24)}
+.mmh-alert-v340{background:rgba(255,113,133,.11);color:#ff7185;border:1px solid rgba(255,113,133,.25)}
+.mmh-neutral-v340{background:rgba(130,150,190,.10);color:#9fb0d4;border:1px solid rgba(130,150,190,.18)}
+.mmh-progress-v340{height:8px;border-radius:999px;background:#0a1230;overflow:hidden;border:1px solid rgba(255,255,255,.05)}
+.mmh-progress-v340 span{display:block;height:100%;background:linear-gradient(90deg,#55c9ff,#d25cff);border-radius:999px}
+.mmh-spend-row-v340{display:grid;grid-template-columns:150px 1fr auto;gap:10px;align-items:center;padding:11px 0}
+.mmh-spend-row-v340 .name{font-weight:800}.mmh-spend-row-v340 .amt{font-weight:900}.mmh-spend-row-v340 .meta{font-size:10px;color:#7b89b0}
+@media(max-width:1050px){.mmh-insights-kpis-v340{grid-template-columns:repeat(2,1fr)}.mmh-insights-grid-v340{grid-template-columns:1fr}}
+@media(max-width:620px){.mmh-insights-kpis-v340{grid-template-columns:1fr}.mmh-insights-head-v340{display:block}.mmh-spend-row-v340{grid-template-columns:1fr auto}.mmh-spend-row-v340 .bar{grid-column:1/-1;grid-row:2}}
+</style>
 </head>
 <!-- MMHVAULT V3.37.2 · Dashboard 2.0 · isolated summary layer -->
 <body>
@@ -254,7 +278,7 @@
 <button class="btn" onclick="retryLoadAllV384()" type="button">Retry</button>
 </div>
 <header id="header" style="display:none">
-<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.39.4</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
+<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.40.0</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
 <div class="header-spacer"></div>
 <div aria-label="Signed in user" class="header-profile" id="headerProfile">
 <div class="header-avatar" id="headerAvatar">MF</div>
@@ -269,6 +293,7 @@
 <button data-page="invest">📊<span>Invest</span></button>
 <button data-page="wealth-planning">🎯<span>Wealth Planning</span></button>
 <button data-page="reports">📑<span>Reports</span></button>
+<button data-page="insights">🔔<span>Insights</span></button>
 <button data-page="exchange">💱<span>Exchange</span></button>
 <button data-page="settings">⚙️<span>Settings</span></button>
 </div>
@@ -470,6 +495,21 @@
     <div class="panel"><div class="toolbar"><div><h2 id="reportsSixTitle">6-Month Trend</h2><div class="sub" id="reportsSixSub"></div></div></div><div id="reportsSix"></div></div>
   </div>
   <div class="panel" style="margin-top:14px"><div class="toolbar"><div><h2 id="reportsAnnualTitle">Annual Summary</h2><div class="sub" id="reportsAnnualSub"></div></div></div><div id="reportsAnnual"></div></div>
+</section>
+<section class="page" id="insights">
+  <div class="mmh-insights-head-v340">
+    <div>
+      <h1 data-i18n-en="Insights" data-i18n-zh="智能洞察">Insights</h1>
+      <div class="sub" data-i18n-en="Actionable signals from your recent financial activity." data-i18n-zh="根据近期财务数据，自动找出最值得关注的变化。">Actionable signals from your recent financial activity.</div>
+    </div>
+    <span class="pill" id="mmhInsightsPeriodV340"></span>
+  </div>
+  <div class="mmh-insights-kpis-v340" id="mmhInsightsKpisV340"></div>
+  <div class="mmh-insights-grid-v340">
+    <div class="panel"><div class="toolbar"><div><h2 data-i18n-en="Priority Signals" data-i18n-zh="重点信号">Priority Signals</h2><div class="sub" data-i18n-en="What deserves your attention first." data-i18n-zh="优先处理最值得关注的问题。">What deserves your attention first.</div></div></div><div id="mmhInsightsSignalsV340"></div></div>
+    <div class="panel"><div class="toolbar"><div><h2 data-i18n-en="Spending Watch" data-i18n-zh="支出观察">Spending Watch</h2><div class="sub" data-i18n-en="Current month compared with the recent 3-month average." data-i18n-zh="将本月支出与最近3个月平均水平比较。">Current month compared with the recent 3-month average.</div></div></div><div id="mmhInsightsSpendingV340"></div></div>
+  </div>
+  <div class="panel" style="margin-top:14px"><div class="toolbar"><div><h2 data-i18n-en="Financial Snapshot" data-i18n-zh="财务快照">Financial Snapshot</h2><div class="sub" data-i18n-en="A concise view of liquidity, savings and investment weight." data-i18n-zh="快速查看现金流动性、储蓄和投资占比。">A concise view of liquidity, savings and investment weight.</div></div></div><div id="mmhInsightsSnapshotV340"></div></div>
 </section>
 <section class="page" id="exchange">
 <h1>Exchange Center</h1><div class="sub">Base Currency: MMK. Exchange settings do not change transaction amounts.</div>
@@ -7339,7 +7379,64 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
   window.addEventListener('storage',e=>{if(e.key==='mmhvault_language_v3363')setTimeout(rerender,0);});
 })();
 </script>
-</body>
+<script id="mmhvault-v340-insights-js">
+(function(){
+  const N=v=>{const n=Number(v);return Number.isFinite(n)?n:0};
+  const zh=()=>localStorage.getItem('mmhvault_language_v3363')==='zh';
+  const tr=(e,z)=>zh()?z:e;
+  const money=v=>typeof thb==='function'?thb(N(v)):'฿ '+N(v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+  const pct=v=>N(v).toFixed(1)+'%';
+  const txs=()=>Array.isArray(window.transactions)?window.transactions:[];
+  const eligibleInc=t=>t?.type==='Income' && String(t?.category||'').trim().toLowerCase()!=='loan repayment';
+  const eligibleExp=t=>t?.type==='Expense' && !(window.CATS?.Loans||[]).includes(t.category) && t.category!=='Investment' && !(typeof window.isLinkedInvestmentTx==='function'&&window.isLinkedInvestmentTx(t));
+  const sumPeriod=(ym)=>{let inc=0,exp=0;for(const t of txs()){if(String(t.tx_date||'').slice(0,7)!==ym)continue;if(eligibleInc(t))inc+=N(t.to_amount)*N(typeof toTHB==='function'?toTHB(t.to_account):0);if(eligibleExp(t))exp+=N(t.from_amount)*N(typeof toTHB==='function'?toTHB(t.from_account):0);}return {inc,exp,save:inc-exp,sr:inc?((inc-exp)/inc*100):0};};
+  const monthKey=(d=new Date())=>{const m=String(d.getMonth()+1).padStart(2,'0');return d.getFullYear()+'-'+m};
+  const shift=(ym,delta)=>{const [y,m]=ym.split('-').map(Number);const d=new Date(y,m-1+delta,1);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')};
+  const monthlyCats=(ym)=>{const o={};for(const t of txs()){if(String(t.tx_date||'').slice(0,7)!==ym||!eligibleExp(t))continue;const c=t.category||'Other';o[c]=(o[c]||0)+N(t.from_amount)*N(typeof toTHB==='function'?toTHB(t.from_account):0)}return o};
+  const avg3Exp=ym=>{let s=0;for(let i=1;i<=3;i++)s+=sumPeriod(shift(ym,-i)).exp;return s/3};
+  const cashTHB=()=>{const names=['Bath','TrueMoney','OKX','ByBit','MetaMask','KPay'];return names.reduce((a,k)=>a+Math.max(0,N(typeof balance==='function'?balance(k):0))*N(typeof toTHB==='function'?toTHB(k):0),0)};
+  function statusClass(kind){return kind==='good'?'mmh-good-v340':kind==='alert'?'mmh-alert-v340':kind==='warn'?'mmh-warn-v340':'mmh-neutral-v340'}
+  function render(){
+    const page=document.getElementById('insights'); if(!page)return;
+    try{
+      const ym=monthKey(); const cur=sumPeriod(ym), prev=sumPeriod(shift(ym,-1)); const a3=avg3Exp(ym);
+      const invTHB=Math.max(0,N(typeof window.investmentValue==='function'?window.investmentValue():0));
+      const cash=cashTHB(); const net=cash+invTHB; const runway=a3>0?cash/a3:0;
+      const prevDelta=prev.exp>0?((cur.exp-prev.exp)/prev.exp*100):null;
+      document.getElementById('mmhInsightsPeriodV340').textContent=ym+' · '+(cur.sr>=60?tr('Healthy','健康'):cur.sr>=40?tr('Watch','关注'):tr('Needs Attention','需要注意'));
+      const kpi=[
+        [tr('Monthly Savings','本月净储蓄'),money(cur.save),tr('Income minus ordinary expenses','收入减日常支出'),'good'],
+        [tr('Savings Rate','储蓄率'),pct(cur.sr),tr('Target 60%','目标 60%'),cur.sr>=60?'good':'warn'],
+        [tr('Cash Runway','现金可覆盖月数'),runway?runway.toFixed(1)+' mo':'—',tr('Based on 3-month average spending','按近3个月平均支出计算'),runway>=6?'good':runway>=3?'warn':'alert'],
+        [tr('Investment Weight','投资占比'),net?pct(invTHB/net*100):'0.0%',tr('Share of current net worth','占当前净资产比例'),invTHB/net<=.8?'good':'warn']
+      ];
+      document.getElementById('mmhInsightsKpisV340').innerHTML=kpi.map(x=>`<div class="mmh-insights-kpi-v340"><div class="label">${x[0]}</div><div class="value">${x[1]}</div><div class="meta">${x[2]}</div></div>`).join('');
+      const signals=[];
+      if(cur.inc<=0) signals.push(['📥','alert',tr('No ordinary income recorded','本月暂无日常收入记录'),tr('Check whether this month\'s salary or income has been recorded.','请检查本月工资或其他收入是否已经记录。')]);
+      else if(cur.sr>=60) signals.push(['✅','good',tr('Savings target on track','储蓄目标达标'),tr('Your savings rate is meeting the 60% target.','当前储蓄率达到 60% 目标。')]);
+      else signals.push(['🎯','warn',tr('Savings rate below target','储蓄率低于目标'),tr(`Current savings rate is ${pct(cur.sr)}.`, `当前储蓄率为 ${pct(cur.sr)}。`)]);
+      if(prevDelta!==null && prevDelta>=20) signals.push(['📈','alert',tr('Spending is rising','支出正在上升'),tr(`Ordinary spending is ${pct(prevDelta)} higher than last month.`,`日常支出比上月高 ${pct(prevDelta)}。`)]);
+      else if(prevDelta!==null && prevDelta<=-10) signals.push(['📉','good',tr('Spending is improving','支出正在改善'),tr(`Ordinary spending is ${pct(Math.abs(prevDelta))} lower than last month.`,`日常支出比上月低 ${pct(Math.abs(prevDelta))}。`)]);
+      else signals.push(['🧭','neutral',tr('Spending is stable','支出整体稳定'),tr('No major month-over-month spending change detected.','暂未发现明显的月度支出异常变化。')]);
+      if(runway<3) signals.push(['🛡️','alert',tr('Liquidity is thin','现金储备偏薄'),tr(`Cash covers about ${runway.toFixed(1)} months of recent spending.`,`现金约可覆盖 ${runway.toFixed(1)} 个月的近期支出。`)]);
+      else if(runway>=6) signals.push(['🛡️','good',tr('Liquidity is comfortable','现金储备充足'),tr(`Cash covers about ${runway.toFixed(1)} months of recent spending.`,`现金约可覆盖 ${runway.toFixed(1)} 个月的近期支出。`)]);
+      else signals.push(['🛡️','warn',tr('Liquidity is moderate','现金储备适中'),tr(`Cash covers about ${runway.toFixed(1)} months of recent spending.`,`现金约可覆盖 ${runway.toFixed(1)} 个月的近期支出。`)]);
+      document.getElementById('mmhInsightsSignalsV340').innerHTML=signals.slice(0,5).map(s=>`<div class="mmh-insight-card-v340"><div class="mmh-insight-icon-v340">${s[0]}</div><div><div class="mmh-insight-title-v340">${s[2]}</div><div class="mmh-insight-desc-v340">${s[3]}</div></div><span class="mmh-insight-badge-v340 ${statusClass(s[1])}">${s[1]==='good'?tr('Good','良好'):s[1]==='warn'?tr('Watch','关注'):tr('Alert','预警')}</span></div>`).join('');
+      const cats=monthlyCats(ym); const rows=Object.entries(cats).sort((a,b)=>b[1]-a[1]).slice(0,5); const max=rows[0]?.[1]||1;
+      document.getElementById('mmhInsightsSpendingV340').innerHTML=rows.length?rows.map(([c,v],i)=>`<div class="mmh-spend-row-v340"><div class="name">${i+1}. ${c}</div><div class="bar"><div class="mmh-progress-v340"><span style="width:${Math.max(4,(v/max)*100)}%"></span></div><div class="meta" style="margin-top:4px">${a3?tr('vs 3-month avg spending','对比近3个月平均支出')+': '+pct(v/(a3/Math.max(1,Object.keys(cats).length))*100):tr('Current month','本月')}</div></div><div class="amt">${money(v)}</div></div>`).join(''):`<div class="small">${tr('No ordinary spending recorded for this month.','本月暂无日常支出记录。')}</div>`;
+      const invPct=net?invTHB/net*100:0;
+      document.getElementById('mmhInsightsSnapshotV340').innerHTML=`<div class="mmh-insights-grid-v340"><div>${[['💰',tr('Current Net Worth','当前净资产'),money(net),tr('Cash + investment value','现金 + 投资估值')],['💧',tr('Cash Assets','现金资产'),money(cash),tr('Available cash accounts','现金账户余额')],['📈',tr('Investments','投资资产'),money(invTHB),tr('Current investment valuation','当前投资估值')]].map(r=>`<div class="mmh-insight-card-v340"><div class="mmh-insight-icon-v340">${r[0]}</div><div><div class="mmh-insight-title-v340">${r[1]}</div><div class="mmh-insight-desc-v340">${r[3]}</div></div><div class="amt">${r[2]}</div></div>`).join('')}</div><div style="padding:6px 2px"><div class="small" style="margin-bottom:8px">${tr('Investment weight','投资占比')} · ${pct(invPct)}</div><div class="mmh-progress-v340"><span style="width:${Math.min(100,invPct)}%"></span></div><div class="small" style="margin-top:8px">${invPct>80?tr('Investment concentration deserves a review.','投资占比偏高，建议关注集中度。'):tr('Current investment weight is within the 80% review threshold.','当前投资占比处于 80% 关注阈值以内。')}</div></div></div>`;
+    }catch(err){console.warn('V3.40.0 Insights render failed',err)}
+  }
+  function bind(){
+    document.querySelectorAll('.bottom-nav button[data-page="insights"]').forEach(b=>b.addEventListener('click',()=>setTimeout(render,0)));
+    const old=window.setMMHVAULTLanguage;
+    if(typeof old==='function'&&!old.__v340){const w=function(next){const r=old.apply(this,arguments);setTimeout(render,40);return r};w.__v340=true;window.setMMHVAULTLanguage=w;}
+    window.renderInsightsV340=render; render(); setTimeout(render,300); setTimeout(render,1000);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
+})();
+</script>\n</body>
 </html>
 <script id="mmhvault-v393-wealth-planning-thb-fix">
 (function(){
