@@ -211,6 +211,16 @@
 <style id="mmhvault-v339-integrity-css">
 .data-integrity-grid-v339{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:14px}.data-integrity-card-v339{padding:14px;border:1px solid var(--line);border-radius:14px;background:rgba(11,16,48,.34);min-width:0}.data-integrity-card-v339 .label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}.data-integrity-card-v339 .value{font-size:20px;font-weight:850;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.data-integrity-card-v339 .meta{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.35}.data-integrity-actions-v339{display:flex;justify-content:flex-end;margin-top:12px}.data-integrity-result-v339{margin-top:10px;padding:11px 12px;border:1px solid var(--line);border-radius:12px;color:var(--muted);font-size:12px;line-height:1.45;background:rgba(11,16,48,.24)}.data-integrity-result-v339.ok{color:#80e6b4;border-color:rgba(57,230,161,.25)}.data-integrity-result-v339.warn{color:#ffd36b;border-color:rgba(255,211,107,.25)}.data-integrity-result-v339.err{color:#ff9aaa;border-color:rgba(255,113,133,.25)}@media(max-width:800px){.data-integrity-grid-v339{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:520px){.data-integrity-grid-v339{grid-template-columns:1fr}.data-integrity-actions-v339 .btn{width:100%}}
 </style>
+
+<!-- MMHVAULT V3.37.1.6 · Portfolio Health & Concentration -->
+<style id="mmhvault-v3716-portfolio-health-css">
+.portfolio-health-v3716{margin-top:12px;border:1px solid rgba(99,150,255,.24);border-radius:18px;padding:16px;background:linear-gradient(135deg,rgba(18,31,58,.94),rgba(9,18,35,.96));box-shadow:inset 0 1px 0 rgba(255,255,255,.025)}
+.portfolio-health-head-v3716{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;margin-bottom:14px}.portfolio-health-title-v3716{font-size:16px;font-weight:900}.portfolio-health-sub-v3716{margin-top:4px;font-size:11px;color:var(--muted);line-height:1.5}.portfolio-health-badge-v3716{min-width:112px;padding:8px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.10);text-align:center;background:rgba(255,255,255,.025)}.portfolio-health-badge-v3716 b{display:block;font-size:13px}.portfolio-health-badge-v3716 span{display:block;margin-top:2px;font-size:10px;color:var(--muted)}
+.portfolio-health-main-v3716{display:grid;grid-template-columns:180px 1fr;gap:18px;align-items:center}.portfolio-score-v3716{position:relative;min-height:112px;display:flex;align-items:center;justify-content:center;border-radius:16px;background:rgba(6,14,30,.46);border:1px solid rgba(255,255,255,.055)}.portfolio-score-v3716 .num{font-size:42px;font-weight:950;line-height:1}.portfolio-score-v3716 .den{font-size:12px;color:var(--muted);margin-left:4px}.portfolio-score-v3716.good .num{color:#66e2a4}.portfolio-score-v3716.warn .num{color:#ffd36b}.portfolio-score-v3716.risk .num{color:#ff8797}
+.portfolio-health-metrics-v3716{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.portfolio-health-metric-v3716{padding:11px 12px;border-radius:13px;background:rgba(255,255,255,.018);border:1px solid rgba(255,255,255,.06)}.portfolio-health-metric-v3716 .label{font-size:10px;color:var(--muted);font-weight:800;letter-spacing:.04em;text-transform:uppercase}.portfolio-health-metric-v3716 .value{margin-top:5px;font-size:16px;font-weight:900}.portfolio-health-metric-v3716 .small{margin-top:4px;font-size:10px;color:var(--muted)}
+.portfolio-health-reco-v3716{margin-top:13px;padding:11px 13px;border-radius:13px;border-left:3px solid #6fcfff;background:rgba(73,159,255,.07);font-size:12px;line-height:1.55;color:#cbd9f0}.portfolio-health-reco-v3716.warn{border-left-color:#ffd36b;background:rgba(255,201,87,.07)}.portfolio-health-reco-v3716.risk{border-left-color:#ff8797;background:rgba(255,94,120,.07)}
+@media(max-width:900px){.portfolio-health-main-v3716{grid-template-columns:150px 1fr}.portfolio-health-metrics-v3716{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:620px){.portfolio-health-head-v3716{flex-direction:column}.portfolio-health-badge-v3716{min-width:0;width:100%;text-align:left}.portfolio-health-main-v3716{grid-template-columns:1fr}.portfolio-score-v3716{min-height:94px}.portfolio-health-metrics-v3716{grid-template-columns:1fr 1fr}}
+</style>
 </head>
 <body>
 <div id="mmhvaultAppBootGuardV3282" style="position:fixed;inset:0;z-index:30000;display:none;align-items:center;justify-content:center;background:#050a18;color:#dce8ff;font-family:Arial,sans-serif;padding:24px;text-align:center;">
@@ -447,6 +457,7 @@
 <div class="portfolio-panel-v310"><div class="mini-head-v310"><div><b>Asset Mix</b><span>Current portfolio value</span></div><span class="pill">Crypto · Gold</span></div><div id="portfolioMixV310"></div></div>
 <div class="portfolio-panel-v310"><div class="mini-head-v310"><div><b>Portfolio Signals</b><span>Simple risk and performance indicators</span></div></div><div id="portfolioSignalsV310"></div></div>
 </div>
+<div class="portfolio-health-v3716" id="portfolioHealthV3716"></div>
 <div class="portfolio-panel-v310 portfolio-holdings-v310"><div class="mini-head-v310"><div><b>Current Position Leaders</b><span>Largest positions by current value</span></div><span class="pill">Top holdings</span></div><div id="portfolioLeadersV310"></div></div>
 <div class="portfolio-panel-v310 portfolio-activity-v310"><div class="mini-head-v310"><div><b>Investment Activity</b><span>Net investment cost recorded by month</span></div><span class="pill">Record history</span></div><div class="portfolio-activity-chart-v310" id="portfolioActivityV310"></div></div>
 </div>
@@ -1505,6 +1516,26 @@ window.refreshInvestmentReceiptFlagsV3304?.();
 async function fetchCryptoPrices(){try{const ids="bitcoin,ethereum,solana,binancecoin,ripple,dogecoin,cardano,tron";const r=await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true`,{cache:"no-store"});if(!r.ok)throw new Error("HTTP "+r.status);const d=await r.json();const map={BTC:d.bitcoin,ETH:d.ethereum,SOL:d.solana,BNB:d.binancecoin,XRP:d.ripple,DOGE:d.dogecoin,ADA:d.cardano,TRX:d.tron};livePrices=Object.fromEntries(Object.entries(map).map(([k,v])=>[k,v&&{price:Number(v.usd),change:Number(v.usd_24h_change||0)}]));marketStatus.textContent="Live · 8-coin public feed";renderCryptoPrices();if(invAsset.value==="Crypto")updateInvestFields();renderDashboard();renderInvest();}catch(e){marketStatus.textContent="Feed unavailable · using saved prices";renderCryptoPrices();}}
 function renderCryptoPrices(){const symbols=["BTC","ETH","SOL","BNB","XRP","DOGE","ADA","TRX"];cryptoPrices.innerHTML=symbols.map(s=>{const p=livePrices[s];return`<div class="price-card"><div class="symbol">${s}</div><div class="price">${p&&Number.isFinite(p.price)?"$"+fmt(p.price):"Unavailable"}</div><div class="change ${p&&p.change>=0?"green":"red"}">${p&&Number.isFinite(p.change)?(p.change>=0?"+":"")+p.change.toFixed(2)+"% 24h":"Market feed unavailable"}</div></div>`}).join("");}
 function openGoldSearch(){window.open("https://www.google.com/search?q=Myanmar+gold+price+MMK+per+kyattha","_blank","noopener")}
+function renderPortfolioHealthV3716({totalROI,concentration,positionsCount,cryptoW,goldW,top}){
+  const el=$("portfolioHealthV3716"); if(!el)return;
+  let concentrationScore=concentration<=35?35:concentration<=50?28:concentration<=65?20:concentration<=80?10:2;
+  let diversificationScore=positionsCount>=5?25:positionsCount===4?22:positionsCount===3?18:positionsCount===2?10:positionsCount===1?3:0;
+  let performanceScore=totalROI>=0?20:totalROI>=-5?15:totalROI>=-15?8:2;
+  const bothMix=cryptoW>0&&goldW>0;
+  let balanceScore=bothMix?(cryptoW<=85&&goldW>=15?20:cryptoW<=95?14:8):(positionsCount?6:0);
+  const score=Math.max(0,Math.min(100,Math.round(concentrationScore+diversificationScore+performanceScore+balanceScore)));
+  const level=score>=85?"Excellent":score>=70?"Healthy":score>=50?"Needs Attention":"High Risk";
+  const cls=score>=70?"good":score>=50?"warn":"risk";
+  let reco="Your portfolio structure is balanced for the current holdings. Continue monitoring position weights as values move.";
+  let recoCls="";
+  if(!positionsCount){reco="Add investment records to unlock portfolio health analysis.";recoCls="warn";}
+  else if(concentration>=70){reco=`${top?top.key+" represents "+concentration.toFixed(1)+"% of your portfolio.":"Your largest position is highly concentrated."} Consider reducing concentration or building other positions gradually.`;recoCls="risk";}
+  else if(positionsCount<3){reco="Your portfolio has limited diversification. Adding uncorrelated assets gradually can reduce single-position dependence.";recoCls="warn";}
+  else if(totalROI<-10){reco="Recent valuation is under pressure. Avoid making decisions only from short-term losses and review position sizing against your risk tolerance.";recoCls="warn";}
+  else if(!bothMix){reco="Your portfolio is currently concentrated in one asset class. A second asset class can improve diversification if it fits your strategy.";recoCls="warn";}
+  el.innerHTML=`<div class="portfolio-health-head-v3716"><div><div class="portfolio-health-title-v3716">Portfolio Health</div><div class="portfolio-health-sub-v3716">A practical score based on concentration, diversification, performance and asset-class balance.</div></div><div class="portfolio-health-badge-v3716 ${cls}"><b>${level}</b><span>Current portfolio status</span></div></div><div class="portfolio-health-main-v3716"><div class="portfolio-score-v3716 ${cls}"><span class="num">${score}</span><span class="den">/ 100</span></div><div class="portfolio-health-metrics-v3716"><div class="portfolio-health-metric-v3716"><div class="label">Top Position</div><div class="value ${concentration>=70?'red':concentration>=50?'yellow':'green'}">${concentration.toFixed(1)}%</div><div class="small">${top?top.key:'No holdings'}</div></div><div class="portfolio-health-metric-v3716"><div class="label">Diversification</div><div class="value">${positionsCount}</div><div class="small">Tracked positions</div></div><div class="portfolio-health-metric-v3716"><div class="label">Asset Mix</div><div class="value">${cryptoW.toFixed(0)} / ${goldW.toFixed(0)}</div><div class="small">Crypto / Gold %</div></div><div class="portfolio-health-metric-v3716"><div class="label">Portfolio ROI</div><div class="value ${totalROI>=0?'green':'red'}">${totalROI>=0?'+':''}${totalROI.toFixed(2)}%</div><div class="small">Current valuation</div></div></div></div><div class="portfolio-health-reco-v3716 ${recoCls}"><b>Portfolio insight:</b> ${reco}</div>`;
+}
+
 function renderPortfolioManagerV310(cryptoCost,cryptoValue,goldCost,goldValue){
   const rate=n(rates.usd_mmk)||0;
   const cryptoValueUSD=cryptoValue;
@@ -1546,7 +1577,7 @@ function renderPortfolioManagerV310(cryptoCost,cryptoValue,goldCost,goldValue){
   const holdings=cryptoHoldingsForV310();
   const concentration=top?top.weight:0;
   const diversification = positions.length>=4?'Diversified':positions.length>=2?'Balanced':positions.length===1?'Single asset':'No positions';
-  const diversificationClass=concentration>=70?'warn':concentration>=90?'bad':'good';
+  const diversificationClass=concentration>=90?'bad':concentration>=70?'warn':'good';
   const pnlClass=totalPLUSD>=0?'good':'bad';
   const roiClass=totalROI>=0?'good':'bad';
   const mixRate = totalValueUSD?1:0;
@@ -1572,6 +1603,7 @@ function renderPortfolioManagerV310(cryptoCost,cryptoValue,goldCost,goldValue){
     <div class="signal-row-v310"><div class="label">Diversification</div><div class="value ${diversificationClass}">${diversification}</div></div>
     <div class="signal-row-v310"><div class="label">Latest monthly investment</div><div class="value">${latestKey?('$'+fmt(Math.abs(latestCost))):'—'}</div></div>
     <div class="signal-row-v310"><div class="label">Tracked assets</div><div class="value">${holdings} active position${holdings===1?'':'s'}</div></div>`;}
+  renderPortfolioHealthV3716({totalROI,concentration,positionsCount:positions.length,cryptoW,goldW,top});
 
   const leadersEl=$('portfolioLeadersV310');
   if(leadersEl){
@@ -6003,7 +6035,29 @@ Object.assign(zh,{
 'Current':'当前',
 '6M Change':'6个月变化',
 '6M Growth':'6个月增长',
-'Financial Health Score':'财务健康评分',
+'Portfolio Health':'投资组合健康度',
+'Current portfolio status':'当前投资组合状态',
+'A practical score based on concentration, diversification, performance and asset-class balance.':'根据集中度、分散程度、表现和资产类别平衡计算的实用评分。',
+'Excellent':'优秀',
+'Healthy':'健康',
+'Needs Attention':'需要关注',
+'High Risk':'高风险',
+'Top Position':'最大持仓',
+'No holdings':'暂无持仓',
+'Tracked positions':'追踪持仓数量',
+'Asset Mix':'资产构成',
+'Crypto / Gold %':'加密货币 / 黄金 %',
+'Portfolio ROI':'投资组合投资回报率',
+'Current valuation':'当前估值',
+'Portfolio insight:':'投资组合提示：',
+'Add investment records to unlock portfolio health analysis.':'添加投资记录后即可解锁投资组合健康分析。',
+'Your portfolio structure is balanced for the current holdings. Continue monitoring position weights as values move.':'以当前持仓来看，您的投资组合结构较为平衡。请继续随着市场变化关注各持仓比例。',
+'Your portfolio has limited diversification. Adding uncorrelated assets gradually can reduce single-position dependence.':'您的投资组合分散程度有限。根据自己的策略逐步增加相关性较低的资产，可以降低对单一持仓的依赖。',
+'Recent valuation is under pressure. Avoid making decisions only from short-term losses and review position sizing against your risk tolerance.':'近期估值承压。避免只因为短期亏损而做决定，并检查持仓规模是否符合您的风险承受能力。',
+'Your portfolio is currently concentrated in one asset class. A second asset class can improve diversification if it fits your strategy.':'您的投资目前集中在单一资产类别。如果符合您的策略，增加第二种资产类别可以提升分散程度。',
+'Current portfolio status':'当前投资组合状态',
+'Current holdings':'当前持仓'
+,'Financial Health Score':'财务健康评分',
 'At Risk':'存在风险',
 'Savings Rate':'储蓄率',
 'Expense Ratio':'支出率',
@@ -6316,6 +6370,7 @@ function translateDynamicText(base){
     [/^(\d+\.\d+)% top position$/,'最大持仓占比 $1%'],
     [/^(.+) active assets$/,'$1 个有效资产'],
     [/^(\d+) active assets$/,'$1 个有效资产'],
+    [/^(.+) represents (\d+\.\d+)% of your portfolio\. Consider reducing concentration or building other positions gradually\.$/,'$1 占您的投资组合 $2%。可以考虑逐步降低集中度，或逐步建立其他持仓。'],
     [/^(.+) months$/,'$1个月']
   ];
   for(const [re,out] of reps){if(re.test(x)) return x.replace(re,out);}
@@ -6607,6 +6662,7 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
 
 
 <!-- MMHVAULT V3.37.1.5 · Net Worth Growth Breakdown -->
+<!-- MMHVAULT V3.37.1.6 · Portfolio Health & Concentration -->
 <style id="mmhvault-v3715-networth-style">
 #netWorthAnalyzeSummaryV371{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:12px}
 #netWorthAnalyzeSummaryV371 .networth-trend-v371{grid-column:1/-1}
