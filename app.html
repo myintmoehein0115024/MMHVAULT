@@ -256,6 +256,16 @@
 @media(max-width:1050px){.mmh-insights-kpis-v340{grid-template-columns:repeat(2,1fr)}.mmh-insights-grid-v340{grid-template-columns:1fr}}
 @media(max-width:620px){.mmh-insights-kpis-v340{grid-template-columns:1fr}.mmh-insights-head-v340{display:block}.mmh-spend-row-v340{grid-template-columns:1fr auto}.mmh-spend-row-v340 .bar{grid-column:1/-1;grid-row:2}}
 </style>
+
+<style id="mmhvault-v341-compact-nav-css">
+.more-nav-trigger{cursor:pointer;}
+.more-nav-menu{position:fixed;left:50%;bottom:82px;transform:translate(-50%,12px) scale(.98);width:min(420px,calc(100vw - 28px));padding:10px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;background:rgba(6,11,30,.96);border:1px solid rgba(99,151,255,.28);border-radius:18px;box-shadow:0 18px 50px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.04);backdrop-filter:blur(18px);opacity:0;pointer-events:none;transition:.18s ease;z-index:22000;}
+.more-nav-menu.open{opacity:1;pointer-events:auto;transform:translate(-50%,0) scale(1);}
+.more-nav-menu button{display:flex;align-items:center;gap:9px;min-height:44px;padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.025);color:var(--text,#eef3ff);font:inherit;font-weight:800;text-align:left;cursor:pointer;}
+.more-nav-menu button:hover,.more-nav-menu button.active{background:linear-gradient(135deg,rgba(25,199,255,.16),rgba(216,60,255,.12));border-color:rgba(255,193,70,.24);}
+.more-nav-menu button span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+@media(max-width:520px){.more-nav-menu{grid-template-columns:1fr;bottom:76px;}}
+</style>
 </head>
 <!-- MMHVAULT V3.37.2 · Dashboard 2.0 · isolated summary layer -->
 <body>
@@ -278,7 +288,7 @@
 <button class="btn" onclick="retryLoadAllV384()" type="button">Retry</button>
 </div>
 <header id="header" style="display:none">
-<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.40.0</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
+<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.41.0</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
 <div class="header-spacer"></div>
 <div aria-label="Signed in user" class="header-profile" id="headerProfile">
 <div class="header-avatar" id="headerAvatar">MF</div>
@@ -288,14 +298,17 @@
 </header>
 <div class="bottom-nav" id="bottomNav" style="display:none">
 <button data-page="dashboard">📊<span>Dashboard</span></button>
-<button data-page="analyze">📈<span>Analyze</span></button>
 <button data-page="transactions">💳<span>Transactions</span></button>
-<button data-page="invest">📊<span>Invest</span></button>
-<button data-page="wealth-planning">🎯<span>Wealth Planning</span></button>
-<button data-page="reports">📑<span>Reports</span></button>
-<button data-page="insights">🔔<span>Insights</span></button>
-<button data-page="exchange">💱<span>Exchange</span></button>
-<button data-page="settings">⚙️<span>Settings</span></button>
+<button data-page="invest">📈<span>Invest</span></button>
+<button type="button" id="moreNavButton" class="more-nav-trigger" aria-haspopup="menu" aria-expanded="false">☰<span>More</span></button>
+</div>
+<div id="moreNavMenu" class="more-nav-menu" role="menu" aria-hidden="true">
+  <button type="button" role="menuitem" data-more-page="analyze">📊<span>Analyze</span></button>
+  <button type="button" role="menuitem" data-more-page="wealth-planning">🎯<span>Wealth Planning</span></button>
+  <button type="button" role="menuitem" data-more-page="reports">📑<span>Reports</span></button>
+  <button type="button" role="menuitem" data-more-page="insights">🔔<span>Insights</span></button>
+  <button type="button" role="menuitem" data-more-page="exchange">💱<span>Exchange</span></button>
+  <button type="button" role="menuitem" data-more-page="settings">⚙️<span>Settings</span></button>
 </div>
 <div aria-hidden="true" class="welcome-screen" id="welcomeScreen">
 <div class="welcome-card">
@@ -7436,7 +7449,50 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
 })();
-</script>\n</body>
+</script>\n
+<script id="mmhvault-v341-compact-nav-js">
+(function(){
+  const nav=document.getElementById('bottomNav');
+  const more=document.getElementById('moreNavButton');
+  const menu=document.getElementById('moreNavMenu');
+  if(!nav||!more||!menu)return;
+  const morePages=new Set(['analyze','wealth-planning','reports','insights','exchange','settings']);
+  const setOpen=(open)=>{
+    menu.classList.toggle('open',open);
+    menu.setAttribute('aria-hidden',String(!open));
+    more.setAttribute('aria-expanded',String(open));
+    more.classList.toggle('active',open || morePages.has(document.querySelector('.page.active')?.id));
+  };
+  more.addEventListener('click',(e)=>{e.preventDefault();e.stopPropagation();setOpen(!menu.classList.contains('open'));});
+  menu.querySelectorAll('[data-more-page]').forEach(btn=>{
+    btn.addEventListener('click',(e)=>{
+      e.preventDefault();
+      const p=btn.dataset.morePage;
+      if(typeof window.setPage==='function')window.setPage(p);
+      setOpen(false);
+      sync();
+    });
+  });
+  document.addEventListener('click',(e)=>{if(!menu.contains(e.target)&&!more.contains(e.target))setOpen(false);});
+  document.addEventListener('keydown',(e)=>{if(e.key==='Escape')setOpen(false);});
+  function sync(){
+    const page=document.querySelector('.page.active')?.id||'';
+    nav.querySelectorAll('button[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===page));
+    menu.querySelectorAll('[data-more-page]').forEach(b=>b.classList.toggle('active',b.dataset.morePage===page));
+    more.classList.toggle('active',morePages.has(page));
+  }
+  const oldSetPage=window.setPage;
+  if(typeof oldSetPage==='function'&&!oldSetPage.__v341compact){
+    const wrapped=function(){const r=oldSetPage.apply(this,arguments);setTimeout(sync,0);return r;};
+    wrapped.__v341compact=true;window.setPage=wrapped;
+    nav.querySelectorAll('button[data-page]').forEach(b=>b.onclick=()=>window.setPage(b.dataset.page));
+  }
+  sync();
+  setTimeout(sync,250);
+  setTimeout(sync,900);
+})();
+</script>
+</body>
 </html>
 <script id="mmhvault-v393-wealth-planning-thb-fix">
 (function(){
