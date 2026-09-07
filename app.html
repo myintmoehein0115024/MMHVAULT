@@ -246,7 +246,7 @@
 <button class="btn" onclick="retryLoadAllV384()" type="button">Retry</button>
 </div>
 <header id="header" style="display:none">
-<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.37.2.1</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
+<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.37.3</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
 <div class="header-spacer"></div>
 <div aria-label="Signed in user" class="header-profile" id="headerProfile">
 <div class="header-avatar" id="headerAvatar">MF</div>
@@ -294,6 +294,7 @@
 </div><div class="hero-networth" id="dashboardHero"></div>
 <div aria-label="Wealth snapshot" class="panel wealth-snapshot-v386" id="wealthSnapshotV386"></div>
 <div aria-label="Dashboard 2.0" class="panel mmh-dashboard-v372" id="dashboardCoreV372"></div>
+<div aria-label="Monthly financial report" class="panel mmh-monthly-report-v373" id="monthlyReportV373"></div>
 <div aria-label="Wealth planning" class="panel wealth-planning-v387" id="wealthPlanningV387"></div>
 <div aria-label="Financial milestones" class="panel wealth-milestones-v388" id="wealthMilestonesV388"></div>
 <div class="panel" style="margin-top:20px"><div class="toolbar"><div><h2 style="margin-bottom:3px">Account Overview</h2><div class="sub">Day-to-day cash accounts · native currency + USD equivalent</div></div><div class="actions" style="margin:0"><span class="pill">Cash &amp; Investment Accounts</span></div></div><div class="account-groups" id="accounts"></div></div><div class="grid metrics kpi-polish" id="metrics" style="display:none !important;margin-top:14px"></div><div class="grid two" style="margin-top:14px"><div class="panel"><div class="toolbar"><h2>Asset Allocation</h2><span class="pill">Net Worth Mix</span></div><div id="assetAllocation"></div></div><div class="panel"><div class="toolbar"><h2>Net Worth History</h2><span class="pill">Last 6 Months</span></div><div id="netWorthHistory"></div></div></div><div aria-label="Quick actions" class="dashboard-quick-actions-v371"><button class="btn primary" onclick="setPage('transactions');setTimeout(()=&gt;showTxTab('add'),0)">＋ Add Transaction</button><button class="btn" onclick="setPage('invest');setTimeout(()=&gt;setInvestSubtabV371('add'),0)">＋ Add Investment</button><button class="btn" onclick="setPage('analyze')">📊 Open Analyze</button></div>
@@ -6966,6 +6967,33 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
 
 
 
+
+<style id="mmhvault-v373-monthly-report-css">
+.mmh-monthly-report-v373{margin-top:20px;background:linear-gradient(180deg,rgba(18,29,73,.86),rgba(8,14,37,.9));border:1px solid rgba(95,125,210,.42)}
+.mmh-v373-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px}
+.mmh-v373-title{font-size:1.15rem;font-weight:800;margin:0 0 4px}
+.mmh-v373-sub{color:#aebad8;font-size:.92rem}
+.mmh-v373-pill{padding:7px 10px;border-radius:999px;border:1px solid rgba(113,140,221,.45);font-size:.78rem;color:#cdd7f3;white-space:nowrap}
+.mmh-v373-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:16px}
+.mmh-v373-card{padding:14px 15px;border:1px solid rgba(90,119,203,.3);border-radius:14px;background:rgba(8,17,43,.68)}
+.mmh-v373-card .k{font-size:.72rem;color:#8f9fc2;text-transform:uppercase;letter-spacing:.08em}
+.mmh-v373-card .v{font-size:1.25rem;font-weight:800;margin-top:6px}
+.mmh-v373-card .m{font-size:.78rem;color:#96a5c7;margin-top:4px}
+.mmh-v373-split{display:grid;grid-template-columns:1.2fr .8fr;gap:12px;margin-top:14px}
+.mmh-v373-panel{padding:14px 15px;border:1px solid rgba(90,119,203,.3);border-radius:14px;background:rgba(8,17,43,.68)}
+.mmh-v373-panel h3{margin:0 0 10px;font-size:.92rem}
+.mmh-v373-list{display:grid;gap:8px}
+.mmh-v373-row{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid rgba(96,116,170,.16)}
+.mmh-v373-row:last-child{border-bottom:0}
+.mmh-v373-row .name{font-weight:700}
+.mmh-v373-row .amt{font-variant-numeric:tabular-nums}
+.mmh-v373-row .delta{font-size:.76rem;color:#96a5c7}
+.mmh-v373-advice{margin-top:12px;padding:12px;border-radius:12px;border:1px solid rgba(94,126,207,.28);background:rgba(14,30,70,.45);color:#cdd7ee;line-height:1.55}
+.mmh-v373-status{margin-top:14px;padding:13px 14px;border-radius:12px;display:flex;justify-content:space-between;gap:12px;align-items:center;border:1px solid rgba(94,126,207,.28)}
+@media(max-width:900px){.mmh-v373-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.mmh-v373-split{grid-template-columns:1fr}}
+@media(max-width:560px){.mmh-v373-grid{grid-template-columns:1fr}.mmh-v373-head,.mmh-v373-status{flex-direction:column;align-items:flex-start}}
+</style>
+
 <!-- V3.37.1.8 INVEST NAVIGATION HARD FIX -->
 <script>
 (function(){
@@ -7073,5 +7101,100 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)tryRender();});
 })();
 </script>
+
+<script id="mmhvault-v373-monthly-report">
+(function(){
+  if(window.__mmhV373Installed)return;
+  window.__mmhV373Installed=true;
+  const $=id=>document.getElementById(id);
+  const num=v=>Number(v)||0;
+  const moneyLocal=v=>{
+    try{return typeof fmt==='function' ? fmt(v) : Number(v||0).toLocaleString(undefined,{maximumFractionDigits:2});}
+    catch(_){return Number(v||0).toLocaleString(undefined,{maximumFractionDigits:2});}
+  };
+  const toMMKSafe=(amount,account)=>{
+    try{return num(amount)*(typeof toMMK==='function'?toMMK(account):1);}catch(_){return num(amount);}
+  };
+  const monthFromUI=()=>($('month')?.value||new Date().toISOString().slice(0,7));
+  function prevMonth(k){const d=new Date(k+'-01T00:00:00');d.setMonth(d.getMonth()-1);return d.toISOString().slice(0,7)}
+  function monthTx(key){return (window.transactions||[]).filter(t=>String(t.tx_date||'').slice(0,7)===key)}
+  function calc(key){
+    let inc=0,exp=0,count=0;
+    const cats={};
+    for(const t of monthTx(key)){
+      count++;
+      if(t.type==='Income') inc+=toMMKSafe(t.to_amount,t.to_account);
+      if(t.type==='Expense' && !(window.CATS?.Loans||[]).includes(t.category) && t.category!=='Investment'){
+        const a=toMMKSafe(t.from_amount,t.from_account); exp+=a; cats[t.category]=(cats[t.category]||0)+a;
+      }
+    }
+    const save=inc-exp, rate=inc?save/inc*100:0;
+    return {inc,exp,save,rate,count,cats};
+  }
+  function monthLabel(key){
+    const [y,m]=key.split('-');
+    return `${y}/${m}`;
+  }
+  function pctText(a,b){
+    if(b===0) return a===0?'—':'新数据';
+    const p=(a-b)/Math.abs(b)*100;
+    return `${p>=0?'+':''}${p.toFixed(1)}%`;
+  }
+  function signed(v){return `${v>=0?'+':''}MMK ${moneyLocal(v)}`}
+  function render(){
+    const host=$('monthlyReportV373'); if(!host)return;
+    try{
+      const key=monthFromUI(), prev=prevMonth(key), cur=calc(key), old=calc(prev);
+      const net=typeof totalAssetMMK==='function'&&typeof loanOutMMK==='function'?Math.max(0,totalAssetMMK()-loanOutMMK()):0;
+      const invest=typeof investmentValue==='function'?num(investmentValue()):0;
+      const cash=Math.max(0,net-invest);
+      const targetRaw=Number(localStorage.getItem('mmhSavingsTarget')||localStorage.getItem('targetSavingsRate')||60);
+      const target=Number.isFinite(targetRaw)?targetRaw:60;
+      const top=Object.entries(cur.cats).sort((a,b)=>b[1]-a[1]).slice(0,5);
+      const biggest=top[0]?.[0]||'—';
+      const biggestAmt=top[0]?.[1]||0;
+      let status='Healthy', statusText='本月储蓄率达到或超过您的目标。';
+      if(cur.rate < target-10){status='Needs Attention';statusText='本月储蓄率明显低于目标，建议优先控制可调整支出。';}
+      else if(cur.rate < target){status='Watch';statusText='本月储蓄率接近目标，建议留意可调整支出。';}
+      const statusCN={Healthy:'健康',Watch:'关注', 'Needs Attention':'需要注意'}[status];
+      const expenseDelta=cur.exp-old.exp, saveDelta=cur.save-old.save;
+      host.innerHTML=`
+        <div class="mmh-v373-head">
+          <div><h2 class="mmh-v373-title">Monthly Financial Report · 月度财务报告</h2><div class="mmh-v373-sub">自动总结本月财务表现，并与上个月进行对比。</div></div>
+          <span class="mmh-v373-pill">${monthLabel(key)} · ${statusCN}</span>
+        </div>
+        <div class="mmh-v373-grid">
+          <div class="mmh-v373-card"><div class="k">收入</div><div class="v">MMK ${moneyLocal(cur.inc)}</div><div class="m">上月：MMK ${moneyLocal(old.inc)} · ${pctText(cur.inc,old.inc)}</div></div>
+          <div class="mmh-v373-card"><div class="k">支出</div><div class="v">MMK ${moneyLocal(cur.exp)}</div><div class="m">上月：MMK ${moneyLocal(old.exp)} · ${pctText(cur.exp,old.exp)}</div></div>
+          <div class="mmh-v373-card"><div class="k">净储蓄</div><div class="v ${cur.save>=0?'green':'red'}">MMK ${moneyLocal(cur.save)}</div><div class="m">较上月：${signed(saveDelta)}</div></div>
+          <div class="mmh-v373-card"><div class="k">储蓄率</div><div class="v">${cur.rate.toFixed(1)}%</div><div class="m">目标：${target.toFixed(0)}% · 较上月 ${(cur.rate-old.rate>=0?'+':'')+(cur.rate-old.rate).toFixed(1)} 个百分点</div></div>
+        </div>
+        <div class="mmh-v373-split">
+          <div class="mmh-v373-panel"><h3>本月支出重点</h3><div class="mmh-v373-list">
+            ${top.length?top.map((x,i)=>`<div class="mmh-v373-row"><div class="name">${i+1}. ${x[0]}</div><div class="amt">MMK ${moneyLocal(x[1])}</div><div class="delta">占总支出 ${cur.exp?(x[1]/cur.exp*100).toFixed(1):'0.0'}%</div></div>`).join(''):'<div class="mmh-v373-sub">本月暂无普通支出记录。</div>'}
+          </div><div class="mmh-v373-advice">最大支出分类：<b>${biggest}</b> · MMK ${moneyLocal(biggestAmt)}。${old.cats[biggest]!==undefined?` 上月为 MMK ${moneyLocal(old.cats[biggest])}。`:''}</div></div>
+          <div class="mmh-v373-panel"><h3>本月财富状态</h3><div class="mmh-v373-list">
+            <div class="mmh-v373-row"><div class="name">当前净资产</div><div class="amt">MMK ${moneyLocal(net)}</div><div class="delta">现金 + 投资</div></div>
+            <div class="mmh-v373-row"><div class="name">现金资产</div><div class="amt">MMK ${moneyLocal(cash)}</div><div class="delta">非投资资产</div></div>
+            <div class="mmh-v373-row"><div class="name">投资资产</div><div class="amt">MMK ${moneyLocal(invest)}</div><div class="delta">当前估值</div></div>
+            <div class="mmh-v373-row"><div class="name">交易记录</div><div class="amt">${cur.count}</div><div class="delta">本月</div></div>
+          </div></div>
+        </div>
+        <div class="mmh-v373-status"><div><b>下个月建议：</b> ${cur.save<0?'优先恢复正储蓄，再考虑增加新增投资。':cur.rate<target?'优先提高储蓄率，控制弹性支出。':expenseDelta>0?'本月支出高于上月，建议重点检查最大支出分类。':'保持当前储蓄节奏，并继续观察支出结构。'}</div><span class="mmh-v373-pill">${monthLabel(prev)} → ${monthLabel(key)}</span></div>`;
+    }catch(err){
+      console.warn('MMHVAULT V3.37.3 monthly report skipped:',err);
+      host.innerHTML='<div class="mmh-v373-head"><div><h2 class="mmh-v373-title">Monthly Financial Report · 月度财务报告</h2><div class="mmh-v373-sub">当前数据正在加载，报告会自动刷新。</div></div></div>';
+    }
+  }
+  window.renderMonthlyReportV373=render;
+  function arm(){[0,250,700,1500].forEach(ms=>setTimeout(render,ms));}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',arm,{once:true});else arm();
+  window.addEventListener('mmhvault:data-loaded',arm);
+  window.addEventListener('mmhvault:data-state',arm);
+  document.addEventListener('change',e=>{if(e.target?.id==='month')setTimeout(render,0);});
+  document.addEventListener('click',e=>{if(e.target?.closest?.('#dashboard'))setTimeout(render,0);});
+})();
+</script>
+
 </body>
 </html>
