@@ -221,7 +221,11 @@
 .portfolio-health-reco-v3716{margin-top:13px;padding:11px 13px;border-radius:13px;border-left:3px solid #6fcfff;background:rgba(73,159,255,.07);font-size:12px;line-height:1.55;color:#cbd9f0}.portfolio-health-reco-v3716.warn{border-left-color:#ffd36b;background:rgba(255,201,87,.07)}.portfolio-health-reco-v3716.risk{border-left-color:#ff8797;background:rgba(255,94,120,.07)}
 @media(max-width:900px){.portfolio-health-main-v3716{grid-template-columns:150px 1fr}.portfolio-health-metrics-v3716{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:620px){.portfolio-health-head-v3716{flex-direction:column}.portfolio-health-badge-v3716{min-width:0;width:100%;text-align:left}.portfolio-health-main-v3716{grid-template-columns:1fr}.portfolio-score-v3716{min-height:94px}.portfolio-health-metrics-v3716{grid-template-columns:1fr 1fr}}
 </style>
+<style id="mmhvault-v372-dashboard2-css">
+.mmh-dashboard-v372{margin-top:14px}.mmh-dash372-head{margin-bottom:14px}.mmh-dash372-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.mmh-dash372-card{padding:16px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.02);min-height:110px}.mmh-dash372-card span{display:block;color:var(--muted);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.05em}.mmh-dash372-card b{display:block;margin-top:10px;font-size:22px;line-height:1.15}.mmh-dash372-card small{display:block;margin-top:8px;color:var(--muted);font-size:11px}.mmh-dash372-compare{margin-top:14px;border-top:1px solid var(--line);padding-top:14px}.mmh-dash372-compare-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:12px}.mmh-dash372-compare-head strong{display:block;font-size:14px}.mmh-dash372-compare-head span{display:block;color:var(--muted);font-size:11px;margin-top:4px}.mmh-dash372-target{font-size:11px;color:var(--muted);font-weight:800}.mmh-dash372-rows{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.mmh-dash372-rows>div{padding:12px;border-radius:12px;background:rgba(255,255,255,.018);border:1px solid var(--line)}.mmh-dash372-rows span{display:block;color:var(--muted);font-size:11px}.mmh-dash372-rows b{display:block;margin-top:6px;font-size:16px}.mmh-dash372-rows em{display:block;margin-top:6px;font-style:normal;color:var(--muted);font-size:10px}.mmh-dash372-status{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px;padding:13px 14px;border-radius:12px;border:1px solid var(--line)}.mmh-dash372-status strong{display:block;font-size:12px}.mmh-dash372-status span{display:block;margin-top:4px;color:var(--muted);font-size:11px}.mmh-dash372-status.good{background:rgba(57,230,161,.07)}.mmh-dash372-status.warn{background:rgba(255,211,107,.07)}.mmh-dash372-status.bad{background:rgba(255,113,133,.07)}@media(max-width:900px){.mmh-dash372-grid,.mmh-dash372-rows{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:600px){.mmh-dash372-grid,.mmh-dash372-rows{grid-template-columns:1fr}.mmh-dash372-compare-head,.mmh-dash372-status{align-items:flex-start;flex-direction:column}}
+</style>
 </head>
+<!-- MMHVAULT V3.37.2 · Dashboard 2.0 · isolated summary layer -->
 <body>
 <div id="mmhvaultAppBootGuardV3282" style="position:fixed;inset:0;z-index:30000;display:none;align-items:center;justify-content:center;background:#050a18;color:#dce8ff;font-family:Arial,sans-serif;padding:24px;text-align:center;">
 <div style="max-width:420px;border:1px solid rgba(78,164,255,.25);border-radius:18px;padding:24px 22px;background:rgba(10,20,42,.92);box-shadow:0 18px 60px rgba(0,0,0,.4);">
@@ -289,6 +293,7 @@
 <div class="pill" id="dashboardCustomerBadge">Customer</div>
 </div><div class="hero-networth" id="dashboardHero"></div>
 <div aria-label="Wealth snapshot" class="panel wealth-snapshot-v386" id="wealthSnapshotV386"></div>
+<div aria-label="Dashboard 2.0" class="panel mmh-dashboard-v372" id="dashboardCoreV372"></div>
 <div aria-label="Wealth planning" class="panel wealth-planning-v387" id="wealthPlanningV387"></div>
 <div aria-label="Financial milestones" class="panel wealth-milestones-v388" id="wealthMilestonesV388"></div>
 <div class="panel" style="margin-top:20px"><div class="toolbar"><div><h2 style="margin-bottom:3px">Account Overview</h2><div class="sub">Day-to-day cash accounts · native currency + USD equivalent</div></div><div class="actions" style="margin:0"><span class="pill">Cash &amp; Investment Accounts</span></div></div><div class="account-groups" id="accounts"></div></div><div class="grid metrics kpi-polish" id="metrics" style="display:none !important;margin-top:14px"></div><div class="grid two" style="margin-top:14px"><div class="panel"><div class="toolbar"><h2>Asset Allocation</h2><span class="pill">Net Worth Mix</span></div><div id="assetAllocation"></div></div><div class="panel"><div class="toolbar"><h2>Net Worth History</h2><span class="pill">Last 6 Months</span></div><div id="netWorthHistory"></div></div></div><div aria-label="Quick actions" class="dashboard-quick-actions-v371"><button class="btn primary" onclick="setPage('transactions');setTimeout(()=&gt;showTxTab('add'),0)">＋ Add Transaction</button><button class="btn" onclick="setPage('invest');setTimeout(()=&gt;setInvestSubtabV371('add'),0)">＋ Add Investment</button><button class="btn" onclick="setPage('analyze')">📊 Open Analyze</button></div>
@@ -1114,6 +1119,57 @@ function renderCurrentHoldings(cryptos){
    return `<div class="hold-card"><div class="symbol">${s}</div><div class="qty">${q.toFixed(10)}</div><div class="value">$${fmt(v)} current value</div></div>`;
  }).join('');
 }
+function renderDashboardV372(){
+  const host=$('dashboardCoreV372');
+  if(!host)return;
+  try{
+    const monthKey=$('month')?.value||today().slice(0,7);
+    const d=new Date(monthKey+'-01T00:00:00'); d.setMonth(d.getMonth()-1);
+    const prevKey=d.toISOString().slice(0,7);
+    const calc=(rows)=>{
+      let inc=0,exp=0;
+      rows.forEach(t=>{
+        if(t.type==='Income')inc+=n(t.to_amount)*toMMK(t.to_account);
+        if(t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment')exp+=n(t.from_amount)*toMMK(t.from_account);
+      });
+      const save=inc-exp;
+      return {inc,exp,save,rate:inc?save/inc*100:0};
+    };
+    const cur=calc(transactions.filter(t=>String(t.tx_date||'').startsWith(monthKey)));
+    const prev=calc(transactions.filter(t=>String(t.tx_date||'').startsWith(prevKey)));
+    const net=totalAssetMMK()-loanOutMMK();
+    const invest=investmentValue();
+    const cash=Math.max(0,net-invest);
+    const rawTarget=Number(localStorage.getItem('mmhSavingsTarget')||localStorage.getItem('targetSavingsRate')||60);
+    const target=Number.isFinite(rawTarget)?rawTarget:60;
+    const status=cur.rate>=target?'Healthy':cur.rate>=target-10?'Watch':'Needs Attention';
+    const change=(a,b)=>b===0?null:(a-b)/Math.abs(b)*100;
+    const signed=v=>`${v>=0?'+':''}${fmt(v)}`;
+    const pct=v=>`${v>=0?'+':''}${v.toFixed(1)}%`;
+    const expCh=change(cur.exp,prev.exp), saveCh=change(cur.save,prev.save);
+    host.innerHTML=`
+      <div class="toolbar mmh-dash372-head"><div><h2>Wealth Control Center</h2><div class="sub">Current financial position and this month vs last month.</div></div><span class="pill">${monthKey} · ${status}</span></div>
+      <div class="mmh-dash372-grid">
+        <div class="mmh-dash372-card"><span>Net Worth</span><b>MMK ${fmt(net)}</b><small>Current net worth</small></div>
+        <div class="mmh-dash372-card"><span>Cash &amp; Stable Assets</span><b>MMK ${fmt(cash)}</b><small>Outside investment assets</small></div>
+        <div class="mmh-dash372-card"><span>Investments</span><b>MMK ${fmt(invest)}</b><small>${net?((invest/net)*100).toFixed(1):'0.0'}% of net worth</small></div>
+        <div class="mmh-dash372-card"><span>Monthly Savings</span><b class="${cur.save>=0?'green':'red'}">MMK ${fmt(cur.save)}</b><small>${cur.rate.toFixed(1)}% savings rate</small></div>
+      </div>
+      <div class="mmh-dash372-compare"><div class="mmh-dash372-compare-head"><div><strong>${monthKey} vs ${prevKey}</strong><span>Automatic comparison from transaction data.</span></div><div class="mmh-dash372-target">Target savings: ${target.toFixed(0)}%</div></div>
+        <div class="mmh-dash372-rows">
+          <div><span>Income</span><b>MMK ${fmt(cur.inc)}</b><em>${signed(cur.inc-prev.inc)} vs last month</em></div>
+          <div><span>Expenses</span><b>MMK ${fmt(cur.exp)}</b><em>${expCh===null?'No prior data':pct(expCh)} vs last month</em></div>
+          <div><span>Net Savings</span><b class="${cur.save>=0?'green':'red'}">MMK ${fmt(cur.save)}</b><em>${saveCh===null?'No prior data':pct(saveCh)} vs last month</em></div>
+          <div><span>Savings Rate</span><b>${cur.rate.toFixed(1)}%</b><em>${(cur.rate-prev.rate>=0?'+':'')+(cur.rate-prev.rate).toFixed(1)} percentage points</em></div>
+        </div>
+      </div>
+      <div class="mmh-dash372-status ${status==='Healthy'?'good':status==='Watch'?'warn':'bad'}"><div><strong>Financial Status · ${status}</strong><span>${status==='Healthy'?'You are meeting your savings target this month.':status==='Watch'?'Savings are close to target. Keep discretionary spending under control.':'Savings are below target. Review expenses before increasing new investments.'}</span></div><button class="btn" type="button" onclick="setPage('analyze')">Open Analyze →</button></div>`;
+  }catch(err){
+    console.warn('MMHVAULT Dashboard 2.0 render skipped:',err);
+    host.innerHTML='<div class="empty">Dashboard summary is temporarily unavailable. The existing dashboard remains available below.</div>';
+  }
+}
+
 function renderDashboard(){
 const A=totalAssetMMK(),E=expenseMMK(),I=investmentValue(),L=Math.max(0,loanOutMMK()-loanPaidMMK());
 const available=A-I-L;
@@ -1144,6 +1200,7 @@ const holdings=["BTC","ETH","SOL","BNB"].map(sym=>{const q=crypto.filter(x=>x.sy
 $("dashInvest").innerHTML=`<div class="mini-invest"><div><span>Crypto Cost</span><b>$${fmt(crypto.reduce((s,x)=>s+n(x.amount)+n(x.fee)+n(x.other_cost),0))}</b></div><div><span>Gold Cost</span><b>MMK ${fmt(gold.reduce((s,x)=>s+n(x.amount)+n(x.fee)+n(x.other_cost),0))}</b></div></div><div class="holding-line">${holdings.map(h=>`<span><b>${h.sym}</b> ${h.q.toFixed(8)}</span>`).join("")}</div>`;
 $("dashTxCount").textContent=`${transactions.length} records`;
 $("dashRecent").innerHTML=transactions.filter(t=>!isLinkedInvestmentTx(t)).slice(0,10).map(t=>`<table class="recent-one"><tr><td>${t.tx_date}</td><td>${t.type}</td><td>${esc(t.category)}</td><td>${esc(t.from_account||"—")}</td><td>${t.from_amount?fmt(t.from_amount):"—"}</td><td>${esc(t.to_account||"—")}</td><td>${t.to_amount?fmt(t.to_amount):"—"}</td></tr></table>`).join("")||'<div class="empty">No transactions imported yet.</div>';
+renderDashboardV372();
 renderDashboardMonth();
 }
 function renderAnalyze(){
@@ -6983,7 +7040,6 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
   setTimeout(window.renderInvestNavigationHardFixV371,500);
 })();
 </script>
-
-
+<!-- V3.37.1.8.1 STABILITY + INVEST FIX -->
 </body>
 </html>
