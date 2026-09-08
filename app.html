@@ -334,8 +334,8 @@ h1,h2,h3,.title,.value,.kpi,.metric,.page-title,.nav-title{font-family:Manrope,"
 @keyframes mmhSpin34210{to{transform:rotate(360deg)}}@keyframes mmhPulse34210{50%{transform:scale(1.25);opacity:.65}}@keyframes mmhFloat34210{50%{transform:translateY(-2px)}}@keyframes mmhSweep34210{0%,55%{transform:translateX(-70%);opacity:0}70%{opacity:1}100%{transform:translateX(80%);opacity:0}}@media(max-width:900px){.mmh-command-main{grid-template-columns:1fr}.mmh-command-orbit{right:-150px;top:-120px;opacity:.7}}@media(max-width:620px){.mmh-command-v34210{padding:17px;border-radius:18px}.mmh-command-head{flex-direction:column}.mmh-command-stats{grid-template-columns:1fr}.mmh-command-foot{align-items:flex-start;flex-direction:column}.mmh-networth-value{font-size:32px}.mmh-command-head h2{font-size:21px}}
 </style>
 
-<style id="mmhvault-v34211-dashboard-command-visuals">
-/* MMHVAULT V3.42.11 — Dashboard Command Center visual system. Additive + dashboard scoped. */
+<style id="mmhvault-v34212-dashboard-command-visuals">
+/* MMHVAULT V3.42.12 — Dashboard Command Center visual system. Additive + dashboard scoped. */
 #dashboard{position:relative;isolation:isolate;overflow:visible}
 #dashboard:before{content:"";position:absolute;left:-3vw;right:-3vw;top:0;height:760px;pointer-events:none;z-index:-2;background:
  radial-gradient(circle at 76% 8%,rgba(72,176,255,.22),transparent 24%),
@@ -351,7 +351,7 @@ h1,h2,h3,.title,.value,.kpi,.metric,.page-title,.nav-title{font-family:Manrope,"
  box-shadow:0 0 0 1px rgba(244,197,93,.04) inset,0 24px 80px rgba(0,0,0,.33),0 0 80px rgba(50,135,255,.08)!important;
  transform:translateZ(0);
 }
-#dashboard .mmh-command-v34210:before{content:"";position:absolute;inset:-30%;pointer-events:none;background:conic-gradient(from 20deg,transparent 0 36%,rgba(79,184,255,.12) 40%,rgba(245,198,95,.10) 44%,transparent 48% 100%);animation:mmh34211Beam 12s linear infinite;z-index:0}
+#dashboard .mmh-command-v34210:before{content:"";position:absolute;inset:-30%;pointer-events:none;background:conic-gradient(from 20deg,transparent 0 36%,rgba(79,184,255,.12) 40%,rgba(245,198,95,.10) 44%,transparent 48% 100%);animation:mmh34212Beam 12s linear infinite;z-index:0}
 #dashboard .mmh-command-v34210:after{content:"";position:absolute;inset:0;pointer-events:none;background:
  radial-gradient(circle at 15% 10%,rgba(75,190,255,.08),transparent 22%),
  radial-gradient(circle at 85% 35%,rgba(245,198,95,.09),transparent 22%),
@@ -360,8 +360,8 @@ h1,h2,h3,.title,.value,.kpi,.metric,.page-title,.nav-title{font-family:Manrope,"
 #dashboard .mmh-command-v34210>*{position:relative;z-index:1}
 #dashboard .mmh-command-orbit{right:-38px!important;top:-78px!important;width:470px!important;height:470px!important;opacity:.9;filter:drop-shadow(0 0 18px rgba(77,180,255,.08));animation-duration:26s!important}
 #dashboard .mmh-command-orbit:before{box-shadow:0 0 24px rgba(77,180,255,.05)}
-#dashboard .mmh-command-orbit span{animation:mmh34211Pulse 1.5s ease-in-out infinite}
-#dashboard .mmh-command-gridline{opacity:.85!important;transform:perspective(700px) rotateX(64deg) scale(1.12)!important;animation:mmh34211Grid 9s linear infinite}
+#dashboard .mmh-command-orbit span{animation:mmh34212Pulse 1.5s ease-in-out infinite}
+#dashboard .mmh-command-gridline{opacity:.85!important;transform:perspective(700px) rotateX(64deg) scale(1.12)!important;animation:mmh34212Grid 9s linear infinite}
 #dashboard .mmh-command-head{padding-bottom:12px}
 #dashboard .mmh-kicker{font-size:11px!important;letter-spacing:.26em!important;color:#f4c95d!important;text-shadow:0 0 14px rgba(244,201,93,.18)}
 #dashboard .mmh-command-head h2{font-size:32px!important;font-weight:950!important;letter-spacing:-.03em!important}
@@ -374,19 +374,19 @@ h1,h2,h3,.title,.value,.kpi,.metric,.page-title,.nav-title{font-family:Manrope,"
  linear-gradient(145deg,rgba(9,29,53,.94),rgba(5,12,26,.98))!important;
  border:1px solid rgba(244,201,93,.34)!important;box-shadow:inset 0 0 50px rgba(244,201,93,.035),0 16px 40px rgba(0,0,0,.23)!important}
 #dashboard .mmh-networth-card:before{content:"";position:absolute;inset:1px;border-radius:23px;border:1px solid rgba(88,199,255,.06);pointer-events:none}
-#dashboard .mmh-networth-value{font-size:56px!important;font-weight:950!important;text-shadow:0 0 34px rgba(87,210,255,.18)!important;animation:mmh34211Float 4.6s ease-in-out infinite!important}
+#dashboard .mmh-networth-value{font-size:56px!important;font-weight:950!important;text-shadow:0 0 34px rgba(87,210,255,.18)!important;animation:mmh34212Float 4.6s ease-in-out infinite!important}
 #dashboard .mmh-networth-pulse{height:98px!important;margin-top:20px!important}
-#dashboard .mmh-networth-pulse svg path{stroke-dasharray:760 420;animation:mmh34211Trace 6.5s linear infinite}
+#dashboard .mmh-networth-pulse svg path{stroke-dasharray:760 420;animation:mmh34212Trace 6.5s linear infinite}
 #dashboard .mmh-command-stats{gap:14px!important}
 #dashboard .mmh-command-stat{min-height:116px;padding:20px!important;border-radius:20px!important;background:linear-gradient(145deg,rgba(10,28,54,.82),rgba(6,13,28,.80))!important;backdrop-filter:blur(12px);box-shadow:inset 0 0 24px rgba(117,178,255,.028),0 12px 30px rgba(0,0,0,.18);transition:transform .28s ease,box-shadow .28s ease,border-color .28s ease}
 #dashboard .mmh-command-stat:hover{transform:translateY(-4px);box-shadow:0 18px 34px rgba(0,0,0,.24),0 0 28px rgba(78,179,255,.07);border-color:rgba(96,180,255,.36)}
-#dashboard .mmh-command-stat:after{content:"";position:absolute;top:-50%;left:-70%;width:42%;height:200%;transform:rotate(18deg);background:linear-gradient(90deg,transparent,rgba(255,255,255,.08),transparent);animation:mmh34211Sweep 7s ease-in-out infinite}
+#dashboard .mmh-command-stat:after{content:"";position:absolute;top:-50%;left:-70%;width:42%;height:200%;transform:rotate(18deg);background:linear-gradient(90deg,transparent,rgba(255,255,255,.08),transparent);animation:mmh34212Sweep 7s ease-in-out infinite}
 #dashboard .mmh-command-stat b{font-size:27px!important;font-weight:950!important;letter-spacing:-.02em}
 #dashboard .mmh-command-foot{margin-top:17px!important;padding-top:16px!important;border-color:rgba(102,147,198,.20)!important}
 #dashboard .mmh-status-chip{font-size:12px!important}
 #dashboard .mmh-mini-metrics{font-size:11px!important}
 #dashboard .mmh-mini-metrics b{font-size:12px;color:#eef5ff}
-#dashboard .mmh-live-badge{animation:mmh34211BadgeGlow 2.6s ease-in-out infinite}
+#dashboard .mmh-live-badge{animation:mmh34212BadgeGlow 2.6s ease-in-out infinite}
 #dashboard .dashboard-quick-actions-v371 .btn,#dashboard .actions .btn{transition:transform .2s ease,box-shadow .2s ease,filter .2s ease}
 #dashboard .dashboard-quick-actions-v371 .btn:hover,#dashboard .actions .btn:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(42,121,204,.18);filter:brightness(1.05)}
 #dashboard .panel{position:relative;overflow:hidden;transition:transform .28s ease,box-shadow .28s ease,border-color .28s ease}
@@ -398,30 +398,30 @@ h1,h2,h3,.title,.value,.kpi,.metric,.page-title,.nav-title{font-family:Manrope,"
 #dashboard .account-groups{position:relative}
 #dashboard .account-groups>.account-group,#dashboard .account-card{transition:transform .25s ease,box-shadow .25s ease}
 #dashboard .account-groups>.account-group:hover,#dashboard .account-card:hover{transform:translateY(-2px)}
-@keyframes mmh34211Beam{to{transform:rotate(360deg)}}
-@keyframes mmh34211Grid{to{background-position:0 120px}}
-@keyframes mmh34211Trace{to{stroke-dashoffset:-1180}}
-@keyframes mmh34211Sweep{0%,58%{left:-70%;opacity:0}70%{left:130%;opacity:1}100%{left:130%;opacity:0}}
-@keyframes mmh34211Pulse{50%{transform:scale(1.35);opacity:.6}}
-@keyframes mmh34211Float{50%{transform:translateY(-3px)}}
-@keyframes mmh34211BadgeGlow{50%{box-shadow:0 0 30px rgba(49,228,154,.11),inset 0 0 22px rgba(49,228,154,.05)}}
+@keyframes mmh34212Beam{to{transform:rotate(360deg)}}
+@keyframes mmh34212Grid{to{background-position:0 120px}}
+@keyframes mmh34212Trace{to{stroke-dashoffset:-1180}}
+@keyframes mmh34212Sweep{0%,58%{left:-70%;opacity:0}70%{left:130%;opacity:1}100%{left:130%;opacity:0}}
+@keyframes mmh34212Pulse{50%{transform:scale(1.35);opacity:.6}}
+@keyframes mmh34212Float{50%{transform:translateY(-3px)}}
+@keyframes mmh34212BadgeGlow{50%{box-shadow:0 0 30px rgba(49,228,154,.11),inset 0 0 22px rgba(49,228,154,.05)}}
 @media(max-width:900px){#dashboard .mmh-command-v34210{padding:22px!important;border-radius:24px!important}#dashboard .mmh-command-head h2{font-size:28px!important}#dashboard .mmh-networth-value{font-size:48px!important}}
 @media(max-width:620px){#dashboard .mmh-command-v34210{padding:18px!important}#dashboard .mmh-command-head h2{font-size:24px!important}#dashboard .mmh-networth-card{min-height:230px!important}#dashboard .mmh-networth-value{font-size:38px!important}#dashboard .mmh-command-stat{min-height:108px} }
 @media (prefers-reduced-motion:reduce){#dashboard .mmh-command-v34210:before,#dashboard .mmh-command-orbit,#dashboard .mmh-command-gridline,#dashboard .mmh-networth-value,#dashboard .mmh-networth-pulse svg path,#dashboard .mmh-live-badge{animation:none!important}#dashboard .panel,#dashboard .mmh-command-stat{transition:none!important}}
 </style>
 
-<style id="mmhvault-v34211-dashboard-ribbon-css">
-#dashboard .mmh-v34211-live-ribbon{position:relative;display:grid;grid-template-columns:repeat(4,minmax(0,1fr)) auto;gap:10px;align-items:center;margin:14px 0 18px;padding:12px 14px;border:1px solid rgba(96,180,255,.16);border-radius:18px;background:linear-gradient(115deg,rgba(6,16,32,.82),rgba(8,24,45,.72));overflow:hidden;box-shadow:inset 0 0 26px rgba(74,178,255,.03)}
-#dashboard .mmh-v34211-ribbon-glow{position:absolute;inset:-120% 10% auto auto;width:40%;height:340%;background:linear-gradient(90deg,transparent,rgba(84,194,255,.07),transparent);transform:rotate(18deg);animation:mmh34211RibbonSweep 8s ease-in-out infinite;pointer-events:none}
-#dashboard .mmh-v34211-ribbon-item{display:grid;grid-template-columns:auto 1fr;column-gap:8px;align-items:center;min-width:0}
-#dashboard .mmh-v34211-ribbon-item .dot{grid-row:span 2;width:8px;height:8px;border-radius:50%;box-shadow:0 0 12px currentColor}
-#dashboard .mmh-v34211-ribbon-item .dot.cyan{color:#56d8ff;background:#56d8ff}.mmh-v34211-ribbon-item .dot.green{color:#31e49a;background:#31e49a}.mmh-v34211-ribbon-item .dot.gold{color:#f2c55d;background:#f2c55d}.mmh-v34211-ribbon-item .dot.red{color:#ff7187;background:#ff7187}
-#dashboard .mmh-v34211-ribbon-item small{font-size:9px;color:#6f86aa;letter-spacing:.14em;font-weight:900}
-#dashboard .mmh-v34211-ribbon-item b{font-size:13px;color:#eaf1fb;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-#dashboard .mmh-v34211-ribbon-state{display:flex;align-items:center;gap:7px;padding-left:8px}.mmh-v34211-ribbon-state span{width:7px;height:7px;border-radius:50%;background:#31e49a;box-shadow:0 0 12px #31e49a;animation:mmh34211Pulse 1.6s ease-in-out infinite}.mmh-v34211-ribbon-state strong{font-size:9px;letter-spacing:.16em;color:#8fa5c6}
-@keyframes mmh34211RibbonSweep{0%,60%{transform:translateX(-160%) rotate(18deg);opacity:0}70%{opacity:1}100%{transform:translateX(180%) rotate(18deg);opacity:0}}
-@media(max-width:860px){#dashboard .mmh-v34211-live-ribbon{grid-template-columns:repeat(2,1fr) auto}.mmh-v34211-ribbon-state{grid-column:1/-1;justify-content:flex-end}}
-@media(max-width:520px){#dashboard .mmh-v34211-live-ribbon{grid-template-columns:1fr 1fr;padding:10px}.mmh-v34211-ribbon-state{grid-column:1/-1;justify-content:flex-start}.mmh-v34211-ribbon-item b{font-size:12px}}
+<style id="mmhvault-v34212-dashboard-ribbon-css">
+#dashboard .mmh-v34212-live-ribbon{position:relative;display:grid;grid-template-columns:repeat(4,minmax(0,1fr)) auto;gap:10px;align-items:center;margin:14px 0 18px;padding:12px 14px;border:1px solid rgba(96,180,255,.16);border-radius:18px;background:linear-gradient(115deg,rgba(6,16,32,.82),rgba(8,24,45,.72));overflow:hidden;box-shadow:inset 0 0 26px rgba(74,178,255,.03)}
+#dashboard .mmh-v34212-ribbon-glow{position:absolute;inset:-120% 10% auto auto;width:40%;height:340%;background:linear-gradient(90deg,transparent,rgba(84,194,255,.07),transparent);transform:rotate(18deg);animation:mmh34212RibbonSweep 8s ease-in-out infinite;pointer-events:none}
+#dashboard .mmh-v34212-ribbon-item{display:grid;grid-template-columns:auto 1fr;column-gap:8px;align-items:center;min-width:0}
+#dashboard .mmh-v34212-ribbon-item .dot{grid-row:span 2;width:8px;height:8px;border-radius:50%;box-shadow:0 0 12px currentColor}
+#dashboard .mmh-v34212-ribbon-item .dot.cyan{color:#56d8ff;background:#56d8ff}.mmh-v34212-ribbon-item .dot.green{color:#31e49a;background:#31e49a}.mmh-v34212-ribbon-item .dot.gold{color:#f2c55d;background:#f2c55d}.mmh-v34212-ribbon-item .dot.red{color:#ff7187;background:#ff7187}
+#dashboard .mmh-v34212-ribbon-item small{font-size:9px;color:#6f86aa;letter-spacing:.14em;font-weight:900}
+#dashboard .mmh-v34212-ribbon-item b{font-size:13px;color:#eaf1fb;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#dashboard .mmh-v34212-ribbon-state{display:flex;align-items:center;gap:7px;padding-left:8px}.mmh-v34212-ribbon-state span{width:7px;height:7px;border-radius:50%;background:#31e49a;box-shadow:0 0 12px #31e49a;animation:mmh34212Pulse 1.6s ease-in-out infinite}.mmh-v34212-ribbon-state strong{font-size:9px;letter-spacing:.16em;color:#8fa5c6}
+@keyframes mmh34212RibbonSweep{0%,60%{transform:translateX(-160%) rotate(18deg);opacity:0}70%{opacity:1}100%{transform:translateX(180%) rotate(18deg);opacity:0}}
+@media(max-width:860px){#dashboard .mmh-v34212-live-ribbon{grid-template-columns:repeat(2,1fr) auto}.mmh-v34212-ribbon-state{grid-column:1/-1;justify-content:flex-end}}
+@media(max-width:520px){#dashboard .mmh-v34212-live-ribbon{grid-template-columns:1fr 1fr;padding:10px}.mmh-v34212-ribbon-state{grid-column:1/-1;justify-content:flex-start}.mmh-v34212-ribbon-item b{font-size:12px}}
 </style>
 </head>
 <!-- MMHVAULT V3.37.2 · Dashboard 2.0 · isolated summary layer -->
@@ -445,7 +445,7 @@ h1,h2,h3,.title,.value,.kpi,.metric,.page-title,.nav-title{font-family:Manrope,"
 <button class="btn" onclick="retryLoadAllV384()" type="button">Retry</button>
 </div>
 <header id="header" style="display:none">
-<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.42.11</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
+<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.42.12</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
 <div class="header-spacer"></div>
 <div aria-label="Signed in user" class="header-profile" id="headerProfile">
 <div class="header-avatar" id="headerAvatar">MF</div>
@@ -8058,9 +8058,9 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
 })();
 </script>
 
-<script id="mmhvault-v34211-dashboard-live-ribbon-js">
+<script id="mmhvault-v34212-dashboard-live-ribbon-js">
 (function(){
-  if(window.__mmhV34211RibbonInstalled)return;window.__mmhV34211RibbonInstalled=true;
+  if(window.__mmhV34212RibbonInstalled)return;window.__mmhV34212RibbonInstalled=true;
   const $=id=>document.getElementById(id);
   function copy(id,source){const a=$(id),b=$(source);if(a&&b)a.textContent=b.textContent||'—';}
   function languageFix(){
@@ -8072,12 +8072,12 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
   }
   function render(){
     if(!document.getElementById('dashboard')?.classList.contains('active'))return;
-    ['mmhRibbonNetV34211','mmhCommandNetWorthV34210'].forEach(()=>{});
-    copy('mmhRibbonNetV34211','mmhCommandNetWorthV34210');
-    copy('mmhRibbonSaveV34211','mmhCommandSavingsV34210');
-    copy('mmhRibbonRateV34211','mmhCommandRateV34210');
-    copy('mmhRibbonExpV34211','mmhCommandExpenseV34210');
-    const state=$('mmhCommandStatusV34210'),out=$('mmhRibbonStateV34211');
+    ['mmhRibbonNetV34212','mmhCommandNetWorthV34210'].forEach(()=>{});
+    copy('mmhRibbonNetV34212','mmhCommandNetWorthV34210');
+    copy('mmhRibbonSaveV34212','mmhCommandSavingsV34210');
+    copy('mmhRibbonRateV34212','mmhCommandRateV34210');
+    copy('mmhRibbonExpV34212','mmhCommandExpenseV34210');
+    const state=$('mmhCommandStatusV34210'),out=$('mmhRibbonStateV34212');
     if(state&&out){const t=(state.textContent||'').trim();out.textContent=(t==='')?'LIVE':(t.replace(/^[^A-Za-z\u4e00-\u9fff]+/,'').toUpperCase()||'LIVE');}
     languageFix();
   }
@@ -8085,6 +8085,89 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
   window.addEventListener('storage',e=>{if(e.key==='mmhvault_language_v3363')setTimeout(languageFix,80)});
   setInterval(render,2500);
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(render,240),{once:true});else setTimeout(render,240);
+})();
+</script>
+
+<style id="mmhvault-v34212-dashboard-visual-fix-css">
+#dashboard .mmh-command-v34212,#dashboard .mmh-command-v34210{
+  height:auto!important;min-height:0!important;max-height:none!important;
+  overflow:hidden!important;padding:22px 24px 18px!important;
+}
+#dashboard .mmh-command-v34212 .mmh-command-orbit,
+#dashboard .mmh-command-v34210 .mmh-command-orbit{
+  position:absolute!important;right:-96px!important;top:-210px!important;
+  width:430px!important;height:430px!important;opacity:.28!important;
+  z-index:0!important;pointer-events:none!important;
+  filter:blur(.15px) drop-shadow(0 0 18px rgba(77,180,255,.10))!important;
+}
+#dashboard .mmh-command-v34212 .mmh-command-gridline,
+#dashboard .mmh-command-v34210 .mmh-command-gridline{opacity:.34!important;height:34%!important;bottom:-12%!important}
+#dashboard .mmh-command-v34212 .mmh-command-head,
+#dashboard .mmh-command-v34212 .mmh-command-main,
+#dashboard .mmh-command-v34212 .mmh-command-foot,
+#dashboard .mmh-command-v34210 .mmh-command-head,
+#dashboard .mmh-command-v34210 .mmh-command-main,
+#dashboard .mmh-command-v34210 .mmh-command-foot{position:relative!important;z-index:2!important}
+#dashboard .mmh-command-head{margin-bottom:0!important;padding-bottom:8px!important}
+#dashboard .mmh-command-main{margin-top:10px!important;gap:12px!important}
+#dashboard .mmh-networth-card{min-height:210px!important;padding:20px!important}
+#dashboard .mmh-networth-pulse{height:64px!important;margin-top:14px!important}
+#dashboard .mmh-networth-value{font-size:52px!important}
+#dashboard .mmh-command-stat{min-height:98px!important;padding:16px!important}
+#dashboard .mmh-command-stat b{font-size:24px!important}
+#dashboard .mmh-command-foot{margin-top:11px!important;padding-top:11px!important}
+#dashboard .mmh-command-v34212::before,#dashboard .mmh-command-v34210::before{opacity:.9!important;}
+#dashboard .mmh-command-v34212::after,#dashboard .mmh-command-v34210::after{opacity:.55!important;}
+@media(max-width:620px){
+  #dashboard .mmh-command-v34212,#dashboard .mmh-command-v34210{padding:17px!important}
+  #dashboard .mmh-command-v34212 .mmh-command-orbit,#dashboard .mmh-command-v34210 .mmh-command-orbit{right:-150px!important;top:-150px!important;width:360px!important;height:360px!important;opacity:.22!important}
+  #dashboard .mmh-networth-card{min-height:185px!important}
+}
+</style>
+
+<script id="mmhvault-v34212-dashboard-currency-and-spacing-fix-js">
+(function(){
+  if(window.__mmhV34212FixInstalled)return;window.__mmhV34212FixInstalled=true;
+  const $=id=>document.getElementById(id), N=v=>Number.isFinite(Number(v))?Number(v):0;
+  const money=v=>{try{return '$ '+fmt(N(v));}catch(_){return '$ '+N(v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});}};
+  function monthKey(d){return String(d||'').slice(0,7)}
+  function prevMonthKey(key){const [y,m]=key.split('-').map(Number);const d=new Date(y,m-2,1);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;}
+  function totals(key){let inc=0,exp=0;(window.transactions||[]).forEach(t=>{if(monthKey(t.tx_date)!==key)return;if(t.type==='Income')inc+=N(t.to_amount)*N(toUSD(t.to_account));if(t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t))exp+=N(t.from_amount)*N(toUSD(t.from_account));});const save=inc-exp;return{inc,exp,save,rate:inc?save/inc*100:0};}
+  function data(){
+    const key=today().slice(0,7),prev=prevMonthKey(key),cur=totals(key),old=totals(prev);
+    const cash=['Bath','TrueMoney','OKX','ByBit','MetaMask','KPay'].reduce((s,a)=>s+Math.max(0,N(balance(a))*N(toUSD(a))),0);
+    const invest=Math.max(0,typeof investmentValueUSD==='function'?N(investmentValueUSD()):N(investmentValue())/Math.max(1,N(window.rates?.usd_mmk)||1));
+    const net=Math.max(0,cash+invest), weight=net?invest/net*100:0;
+    return {key,cur,old,cash,invest,net,weight};
+  }
+  function delta(a,b){if(!b)return '—';const d=(a-b)/Math.abs(b)*100;return (d>=0?'+':'')+d.toFixed(1)+'%';}
+  function apply(){
+    if(!document.getElementById('dashboard')?.classList.contains('active'))return;
+    try{
+      const d=data();
+      $('mmhCommandNetWorthV34210').textContent=money(d.net);
+      $('mmhCommandIncomeV34210').textContent=money(d.cur.inc);
+      $('mmhCommandExpenseV34210').textContent=money(d.cur.exp);
+      $('mmhCommandSavingsV34210').textContent=money(d.cur.save);
+      $('mmhCommandRateV34210').textContent=d.cur.rate.toFixed(1)+'%';
+      $('mmhCommandIncomeDeltaV34210').textContent=delta(d.cur.inc,d.old.inc)+' vs last month';
+      $('mmhCommandExpenseDeltaV34210').textContent=delta(d.cur.exp,d.old.exp)+' vs last month';
+      $('mmhCommandSavingsDeltaV34210').textContent=delta(d.cur.save,d.old.save)+' vs last month';
+      $('mmhCommandRateDeltaV34210').textContent=`Target 60% · ${d.cur.rate>=60?'On target':'Below target'}`;
+      $('mmhCommandCashV34210').textContent=money(d.cash);
+      $('mmhCommandInvestV34210').textContent=money(d.invest);
+      $('mmhCommandWeightV34210').textContent=d.weight.toFixed(1)+'%';
+      const state=$('mmhCommandStatusV34210');
+      if(state){const status=d.cur.rate>=60?'Financial state is healthy':d.cur.rate>=40?'Savings are close to target':'Savings need attention';state.innerHTML='<span></span> '+status;state.classList.toggle('warn',d.cur.rate<60&&d.cur.rate>=40);state.classList.toggle('bad',d.cur.rate<40);}
+      const t=$('mmhCommandTimeV34210');if(t)t.textContent=new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
+      const path=$('mmhCommandSparkV34210');if(path){const ratio=d.cur.inc?Math.max(-.8,Math.min(.8,d.cur.save/d.cur.inc)):0;const base=72,amp=18+Math.abs(ratio)*18;const lift=ratio>=0?amp:-amp*.55;path.setAttribute('d',`M0,${base+8} C65,${base+lift*.3} 92,${base-4} 140,${base+lift*.1} S220,${base+lift*.65} 286,${base-lift*.2} S360,${base-lift*.75} 420,${base-lift*.1} S510,${base-lift*.9} 600,${base-lift}`);}
+    }catch(e){console.warn('V3.42.12 dashboard fix skipped',e)}
+  }
+  window.addEventListener('mmhvault:data-loaded',()=>setTimeout(apply,80));
+  window.addEventListener('mmhvault:sync-complete',()=>setTimeout(apply,80));
+  window.addEventListener('mmhvault:cache-restored',()=>setTimeout(apply,80));
+  setInterval(apply,1800);
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(apply,220),{once:true});else setTimeout(apply,220);
 })();
 </script>
 </body>
