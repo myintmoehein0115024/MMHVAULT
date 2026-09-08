@@ -7537,10 +7537,85 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
   setTimeout(sync,900);
 })();
 </script>
+
+<!-- MMHVAULT V3.42.5 · Financial Data Labels Stay English -->
+<style id="mmhvault-v3425-financial-label-style">
+/* Financial data labels intentionally remain English in all UI languages. */
+</style>
+<script id="mmhvault-v3425-financial-label-i18n-js">
+(function(){
+  const PROTECTED = new Set([
+    'Income','Expense','Transfer','Personal','Loans',
+    'Dining','Snacks','Smoking','Transport','Wellness','Lifestyle','Other',
+    'Salary','Meal Allowance','Bonus','Other Income',
+    'Family Support','Special Transfer','Gifts','Donation',
+    'Debt','Loan Repayment','PaidDeb','Loan Out',
+    'BTC','ETH','SOL','BNB','XRP','DOGE','ADA','TRX','USDT','USDC',
+    'OKX','Bybit','MetaMask','TrueMoney','KPay','BINANCE',
+    'Buy','Sell','BUY','SELL','Acquired'
+  ]);
+
+  let restoring=false;
+  function restoreNodeText(n){
+    if(restoring || n.nodeType!==Node.TEXT_NODE) return;
+    const raw=n.nodeValue||'';
+    const trimmed=raw.trim();
+    if(!trimmed || !PROTECTED.has(trimmed)) return;
+    if(trimmed!==raw.trim()) return;
+    const parent=n.parentElement;
+    if(parent) parent.dataset.mmhFinancialEnglish='1';
+    if(raw!==trimmed){
+      restoring=true;
+      n.nodeValue=trimmed;
+      restoring=false;
+    }
+  }
+
+  function scan(root){
+    if(!root) return;
+    if(root.nodeType===Node.TEXT_NODE){restoreNodeText(root);return;}
+    const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
+    const nodes=[];
+    while(walker.nextNode()) nodes.push(walker.currentNode);
+    nodes.forEach(restoreNodeText);
+  }
+
+  function protectKnownLabels(){
+    if(restoring) return;
+    scan(document.body);
+  }
+
+  const observer=new MutationObserver(muts=>{
+    if(restoring) return;
+    for(const m of muts){
+      if(m.type==='characterData') restoreNodeText(m.target);
+      else m.addedNodes.forEach(scan);
+    }
+  });
+
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',()=>{
+      protectKnownLabels();
+      observer.observe(document.body,{childList:true,subtree:true,characterData:true});
+      setTimeout(protectKnownLabels,120);
+      setTimeout(protectKnownLabels,500);
+      setTimeout(protectKnownLabels,1200);
+    },{once:true});
+  }else{
+    protectKnownLabels();
+    observer.observe(document.body,{childList:true,subtree:true,characterData:true});
+    setTimeout(protectKnownLabels,120);
+    setTimeout(protectKnownLabels,500);
+    setTimeout(protectKnownLabels,1200);
+  }
+
+  window.MM_HVAULT_FINANCIAL_LABELS_ENGLISH = {version:'3.42.5',protected:[...PROTECTED]};
+})();
+</script>
 </body>
 
 <script id="mmhvault-v3424-transaction-i18n-values-fix">
-/* MMHVAULT V3.42.4 · Transaction language-safe option values.
+/* MMHVAULT V3.42.5 · Transaction language-safe option values.
    Keep machine values in English while allowing visible labels to be translated. */
 (function(){
   const byId=id=>document.getElementById(id);
@@ -7740,7 +7815,7 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
 
 
 <script id="mmhvault-v3422-insights-data-fix">
-/* MMHVAULT V3.42.4 · Insights THB investment conversion fix.
+/* MMHVAULT V3.42.5 · Insights THB investment conversion fix.
    Reuse the canonical transaction/account calculations and rerender after cloud data loads. */
 (function(){
   const N=v=>{const n=Number(v);return Number.isFinite(n)?n:0};
@@ -7835,7 +7910,7 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
       spendEl.innerHTML=rows.length?rows.map(([c,v],i)=>`<div class="mmh-spend-row-v340"><div class="name">${i+1}. ${c}</div><div class="bar"><div class="mmh-progress-v340"><span style="width:${Math.max(4,(v/max)*100)}%"></span></div><div class="meta" style="margin-top:4px">${a3?tr('Compared with the recent 3-month average','对比最近3个月平均支出')+': '+pct((v/a3)*100):tr('Current month','本月')}</div></div><div class="amt">${money(v)}</div></div>`).join(''):`<div class="small">${tr('No ordinary spending recorded for this month.','本月暂无日常支出记录。')}</div>`;
       const invPct=net?invTHB/net*100:0;
       snapEl.innerHTML=`<div class="mmh-insights-grid-v340"><div>${[['💰',tr('Current Net Worth','当前净资产'),money(net),tr('Cash + investment value','现金 + 投资估值')],['💧',tr('Cash Assets','现金资产'),money(cash),tr('Available cash accounts','现金账户余额')],['📈',tr('Investments','投资资产'),money(invTHB),tr('Current investment valuation','当前投资估值')]].map(r=>`<div class="mmh-insight-card-v340"><div class="mmh-insight-icon-v340">${r[0]}</div><div><div class="mmh-insight-title-v340">${r[1]}</div><div class="mmh-insight-desc-v340">${r[3]}</div></div><div class="amt">${r[2]}</div></div>`).join('')}</div><div style="padding:6px 2px"><div class="small" style="margin-bottom:8px">${tr('Investment weight','投资占比')} · ${pct(invPct)}</div><div class="mmh-progress-v340"><span style="width:${Math.min(100,invPct)}%"></span></div><div class="small" style="margin-top:8px">${invPct>80?tr('Investment concentration deserves a review.','投资占比偏高，建议关注集中度。'):tr('Current investment weight is within the 80% review threshold.','当前投资占比处于 80% 关注阈值以内。')}</div></div></div>`;
-    }catch(err){console.warn('V3.42.4 Insights render failed',err);}
+    }catch(err){console.warn('V3.42.5 Insights render failed',err);}
   }
   function bind(){
     window.renderInsightsV340=render;
@@ -7851,7 +7926,7 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
 </script>
 
 <script id="mmhvault-v3424-transaction-i18n-values-fix">
-/* MMHVAULT V3.42.4 · Transaction language-safe option values.
+/* MMHVAULT V3.42.5 · Transaction language-safe option values.
    Keep machine values in English while allowing visible labels to be translated. */
 (function(){
   const byId=id=>document.getElementById(id);
