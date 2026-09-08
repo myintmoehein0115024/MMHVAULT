@@ -6517,7 +6517,7 @@ Object.assign(zh,{
 '3M window ending':'3个月周期截至',
 'Financial Health Score':'财务健康评分'
 });
-// V3.42.7 — Financial data labels stay English in every UI language.
+// V3.42.8 — Financial data labels stay English in every UI language.
 Object.assign(zh, {
 'Income':'Income',
 'Expense':'Expense',
@@ -7568,7 +7568,7 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
 })();
 </script>
 
-<!-- MMHVAULT V3.42.7 · Financial Data Labels Stay English -->
+<!-- MMHVAULT V3.42.8 · Financial Data Labels Stay English -->
 <style id="mmhvault-v3425-financial-label-style">
 /* Financial data labels intentionally remain English in all UI languages. */
 </style>
@@ -7677,13 +7677,13 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
   const mo=new MutationObserver(muts=>{ if(busy)return; for(const m of muts){ if(m.type==='characterData') restoreTextNode(m.target); else m.addedNodes.forEach(scan); } });
   if(document.body) mo.observe(document.body,{subtree:true,childList:true,characterData:true});
   document.addEventListener('change',e=>{ if(e.target && (e.target.matches?.('select')||e.target.closest?.('#transactions,#dashboard,#invest,#wealth-planning,#reports,#insights'))) setTimeout(run,0); });
-  window.MM_HVAULT_FINANCIAL_DATA_ENGLISH={version:'V3.42.7',protected:[...EXACT]};
+  window.MM_HVAULT_FINANCIAL_DATA_ENGLISH={version:'V3.42.8',protected:[...EXACT]};
 })();
 </script>
 </body>
 
 <script id="mmhvault-v3424-transaction-i18n-values-fix">
-/* MMHVAULT V3.42.7 · Transaction language-safe option values.
+/* MMHVAULT V3.42.8 · Transaction language-safe option values.
    Keep machine values in English while allowing visible labels to be translated. */
 (function(){
   const byId=id=>document.getElementById(id);
@@ -7883,7 +7883,7 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
 
 
 <script id="mmhvault-v3422-insights-data-fix">
-/* MMHVAULT V3.42.7 · Insights THB investment conversion fix.
+/* MMHVAULT V3.42.8 · Insights THB investment conversion fix.
    Reuse the canonical transaction/account calculations and rerender after cloud data loads. */
 (function(){
   const N=v=>{const n=Number(v);return Number.isFinite(n)?n:0};
@@ -7978,7 +7978,7 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
       spendEl.innerHTML=rows.length?rows.map(([c,v],i)=>`<div class="mmh-spend-row-v340"><div class="name">${i+1}. ${c}</div><div class="bar"><div class="mmh-progress-v340"><span style="width:${Math.max(4,(v/max)*100)}%"></span></div><div class="meta" style="margin-top:4px">${a3?tr('Compared with the recent 3-month average','对比最近3个月平均支出')+': '+pct((v/a3)*100):tr('Current month','本月')}</div></div><div class="amt">${money(v)}</div></div>`).join(''):`<div class="small">${tr('No ordinary spending recorded for this month.','本月暂无日常支出记录。')}</div>`;
       const invPct=net?invTHB/net*100:0;
       snapEl.innerHTML=`<div class="mmh-insights-grid-v340"><div>${[['💰',tr('Current Net Worth','当前净资产'),money(net),tr('Cash + investment value','现金 + 投资估值')],['💧',tr('Cash Assets','现金资产'),money(cash),tr('Available cash accounts','现金账户余额')],['📈',tr('Investments','投资资产'),money(invTHB),tr('Current investment valuation','当前投资估值')]].map(r=>`<div class="mmh-insight-card-v340"><div class="mmh-insight-icon-v340">${r[0]}</div><div><div class="mmh-insight-title-v340">${r[1]}</div><div class="mmh-insight-desc-v340">${r[3]}</div></div><div class="amt">${r[2]}</div></div>`).join('')}</div><div style="padding:6px 2px"><div class="small" style="margin-bottom:8px">${tr('Investment weight','投资占比')} · ${pct(invPct)}</div><div class="mmh-progress-v340"><span style="width:${Math.min(100,invPct)}%"></span></div><div class="small" style="margin-top:8px">${invPct>80?tr('Investment concentration deserves a review.','投资占比偏高，建议关注集中度。'):tr('Current investment weight is within the 80% review threshold.','当前投资占比处于 80% 关注阈值以内。')}</div></div></div>`;
-    }catch(err){console.warn('V3.42.7 Insights render failed',err);}
+    }catch(err){console.warn('V3.42.8 Insights render failed',err);}
   }
   function bind(){
     window.renderInsightsV340=render;
@@ -7994,7 +7994,7 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
 </script>
 
 <script id="mmhvault-v3424-transaction-i18n-values-fix">
-/* MMHVAULT V3.42.7 · Transaction language-safe option values.
+/* MMHVAULT V3.42.8 · Transaction language-safe option values.
    Keep machine values in English while allowing visible labels to be translated. */
 (function(){
   const byId=id=>document.getElementById(id);
@@ -8108,9 +8108,76 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
 })();
 </script>
 
+
+<script id="mmhvault-v3428-transaction-financial-labels-en-js">
+/* MMHVAULT V3.42.8 · Financial transaction labels are ALWAYS English.
+   UI language may change, but transaction type/group/category labels never do. */
+(function(){
+  const $=id=>document.getElementById(id);
+  const normalizeType=v=>({
+    '收入':'Income','支出':'Expense','转账':'Transfer','Income':'Income','Expense':'Expense','Transfer':'Transfer'
+  }[String(v??'').trim()]||String(v??'').trim());
+  const normalizeGroup=v=>({
+    '收入':'Income','支出':'Expense','个人':'Personal','贷款':'Loans','借贷':'Loans','转账':'Transfer',
+    'Income':'Income','Expense':'Expense','Personal':'Personal','Loans':'Loans','Transfer':'Transfer'
+  }[String(v??'').trim()]||String(v??'').trim());
+  const groupLabels={Income:'Income',Expense:'Expense',Personal:'Personal',Loans:'Loans',Transfer:'Transfer'};
+  const categoryZhToEn={
+    '餐饮':'Dining','零食':'Snacks','烟草':'Smoking','交通':'Transport','健康':'Wellness','生活方式':'Lifestyle','其他':'Other',
+    '工资':'Salary','餐补':'Meal Allowance','奖金':'Bonus','其他收入':'Other Income','家庭支持':'Family Support','特别转账':'Special Transfer',
+    '礼物':'Gifts','捐赠':'Donation','债务':'Debt','贷款还款':'Loan Repayment','还款':'PaidDeb','借出':'Loan Out','投资':'Investment',
+    '转账':'Transfer','买入':'BUY','卖出':'SELL','已买入':'Acquired'
+  };
+  const normalizeCat=v=>categoryZhToEn[String(v??'').trim()]||String(v??'').trim();
+
+  function setEnglish(select,keys,selected){
+    if(!select)return;
+    const current=String(selected ?? select.value ?? '');
+    const norm=keys.includes(normalizeGroup(current))?normalizeGroup(current):normalizeType(current);
+    select.innerHTML=keys.map(k=>`<option value="${k}">${groupLabels[k]||k}</option>`).join('');
+    select.value=keys.includes(norm)?norm:keys[0];
+  }
+  function sync(){
+    const type=$('txType'), group=$('txGroup'), cat=$('txCategory');
+    const ft=$('txFilterType'), fg=$('txFilterGroup');
+    const t=normalizeType(type?.value||'Income');
+    if(type)setEnglish(type,['Income','Expense','Transfer'],t);
+    const gKeys=t==='Income'?['Income','Loans']:t==='Expense'?['Expense','Personal','Loans']:['Transfer'];
+    if(group)setEnglish(group,gKeys,group?.value||gKeys[0]), group.disabled=t==='Transfer';
+    if(cat){
+      if(t==='Transfer') cat.innerHTML='<option value="Transfer">Transfer</option>';
+      else {
+        const g=normalizeGroup(group?.value||gKeys[0]);
+        const list=g==='Loans'?(t==='Income'?(window.CATS?.LoanIncome||['Debt','Loan Repayment']):(window.CATS?.LoanExpense||['PaidDeb','Loan Out'])):(window.CATS?.[g]||[]);
+        cat.innerHTML=list.map(x=>{const en=normalizeCat(x);return `<option value="${en}">${en}</option>`;}).join('');
+      }
+    }
+    // Transaction filters: values stay English; the generic 'All' UI label may remain localized.
+    if(ft){const val=normalizeType(ft.value);ft.innerHTML='<option value="">All</option>'+['Income','Expense','Transfer'].map(k=>`<option value="${k}">${k}</option>`).join('');ft.value=['Income','Expense','Transfer'].includes(val)?val:'';}
+    if(fg){const val=normalizeGroup(fg.value);fg.innerHTML='<option value="">All</option>'+['Income','Expense','Personal','Loans','Transfer'].map(k=>`<option value="${k}">${k}</option>`).join('');fg.value=['Income','Expense','Personal','Loans','Transfer'].includes(val)?val:'';}
+    if(typeof updateAccountLocks==='function') updateAccountLocks();
+  }
+  function scan(root){
+    if(!root)return;
+    const options=root.querySelectorAll?root.querySelectorAll('#transactions option'):[];
+    options.forEach(o=>{
+      const v=normalizeType(normalizeGroup(normalizeCat(o.textContent)));
+      if(groupLabels[v]) o.textContent=groupLabels[v];
+      else if(categoryZhToEn[String(o.textContent||'').trim()]) o.textContent=categoryZhToEn[String(o.textContent||'').trim()];
+    });
+  }
+  window.syncTransactionGroup=sync;
+  window.updateCategories=function(){sync();};
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(sync,0),{once:true});else setTimeout(sync,0);
+  ['mmhvault:data-loaded','mmhvault:cache-restored','mmhvault:sync-complete'].forEach(ev=>window.addEventListener(ev,()=>setTimeout(sync,0)));
+  const mo=new MutationObserver(()=>setTimeout(()=>{sync();scan(document);},0));
+  if(document.body)mo.observe(document.body,{subtree:true,childList:true,characterData:true});
+  window.MM_HVAULT_TRANSACTION_LABELS_ENGLISH={version:'3.42.8'};
+})();
+</script>
 </html>
 
-<!-- MMHVAULT V3.42.7 · Planning/Insights organization -->
+<!-- MMHVAULT V3.42.8 · Planning/Insights organization -->
 <script id="mmhvault-v3426-organization-fix">
 (function(){
   function moveAdvisor(){
