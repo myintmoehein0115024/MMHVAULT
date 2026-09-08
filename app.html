@@ -333,6 +333,96 @@ h1,h2,h3,.title,.value,.kpi,.metric,.page-title,.nav-title{font-family:Manrope,"
 .mmh-command-foot{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:15px;padding-top:13px;border-top:1px solid rgba(100,135,188,.15)}.mmh-status-chip{display:inline-flex;align-items:center;gap:8px;color:#c6d6ec;font-size:11px;font-weight:800}.mmh-status-chip span{width:8px;height:8px;border-radius:50%;background:#31e49a;box-shadow:0 0 12px rgba(49,228,154,.55)}.mmh-status-chip.warn span{background:#f2c55d;box-shadow:0 0 12px rgba(242,197,93,.45)}.mmh-status-chip.bad span{background:#ff7187;box-shadow:0 0 12px rgba(255,113,135,.45)}.mmh-mini-metrics{display:flex;gap:18px;flex-wrap:wrap;color:#7187ab;font-size:10px}.mmh-mini-metrics b{color:#dbe6f7;margin-left:4px}
 @keyframes mmhSpin34210{to{transform:rotate(360deg)}}@keyframes mmhPulse34210{50%{transform:scale(1.25);opacity:.65}}@keyframes mmhFloat34210{50%{transform:translateY(-2px)}}@keyframes mmhSweep34210{0%,55%{transform:translateX(-70%);opacity:0}70%{opacity:1}100%{transform:translateX(80%);opacity:0}}@media(max-width:900px){.mmh-command-main{grid-template-columns:1fr}.mmh-command-orbit{right:-150px;top:-120px;opacity:.7}}@media(max-width:620px){.mmh-command-v34210{padding:17px;border-radius:18px}.mmh-command-head{flex-direction:column}.mmh-command-stats{grid-template-columns:1fr}.mmh-command-foot{align-items:flex-start;flex-direction:column}.mmh-networth-value{font-size:32px}.mmh-command-head h2{font-size:21px}}
 </style>
+
+<style id="mmhvault-v34211-dashboard-command-visuals">
+/* MMHVAULT V3.42.11 — Dashboard Command Center visual system. Additive + dashboard scoped. */
+#dashboard{position:relative;isolation:isolate;overflow:visible}
+#dashboard:before{content:"";position:absolute;left:-3vw;right:-3vw;top:0;height:760px;pointer-events:none;z-index:-2;background:
+ radial-gradient(circle at 76% 8%,rgba(72,176,255,.22),transparent 24%),
+ radial-gradient(circle at 66% 20%,rgba(246,198,92,.10),transparent 23%),
+ linear-gradient(180deg,rgba(3,9,20,.05),rgba(3,9,20,0));
+}
+#dashboard .mmhvault-dashboard-head{position:relative;z-index:2;padding:8px 2px 12px}
+#dashboard .mmhvault-dashboard-head h1{font-weight:950;letter-spacing:-.035em;text-shadow:0 0 30px rgba(93,198,255,.13)}
+#dashboard .mmhvault-dashboard-head .sub{letter-spacing:.01em}
+#dashboard .mmh-command-v34210{position:relative;overflow:hidden;border-radius:30px!important;padding:28px!important;background:
+ linear-gradient(135deg,rgba(5,16,34,.96),rgba(7,18,38,.80) 46%,rgba(5,11,24,.95));
+ border:1px solid rgba(97,190,255,.26)!important;
+ box-shadow:0 0 0 1px rgba(244,197,93,.04) inset,0 24px 80px rgba(0,0,0,.33),0 0 80px rgba(50,135,255,.08)!important;
+ transform:translateZ(0);
+}
+#dashboard .mmh-command-v34210:before{content:"";position:absolute;inset:-30%;pointer-events:none;background:conic-gradient(from 20deg,transparent 0 36%,rgba(79,184,255,.12) 40%,rgba(245,198,95,.10) 44%,transparent 48% 100%);animation:mmh34211Beam 12s linear infinite;z-index:0}
+#dashboard .mmh-command-v34210:after{content:"";position:absolute;inset:0;pointer-events:none;background:
+ radial-gradient(circle at 15% 10%,rgba(75,190,255,.08),transparent 22%),
+ radial-gradient(circle at 85% 35%,rgba(245,198,95,.09),transparent 22%),
+ repeating-linear-gradient(90deg,transparent 0 68px,rgba(93,163,220,.025) 69px 70px),
+ linear-gradient(180deg,transparent 0 72%,rgba(89,191,255,.028) 100%);mix-blend-mode:screen;z-index:0}
+#dashboard .mmh-command-v34210>*{position:relative;z-index:1}
+#dashboard .mmh-command-orbit{right:-38px!important;top:-78px!important;width:470px!important;height:470px!important;opacity:.9;filter:drop-shadow(0 0 18px rgba(77,180,255,.08));animation-duration:26s!important}
+#dashboard .mmh-command-orbit:before{box-shadow:0 0 24px rgba(77,180,255,.05)}
+#dashboard .mmh-command-orbit span{animation:mmh34211Pulse 1.5s ease-in-out infinite}
+#dashboard .mmh-command-gridline{opacity:.85!important;transform:perspective(700px) rotateX(64deg) scale(1.12)!important;animation:mmh34211Grid 9s linear infinite}
+#dashboard .mmh-command-head{padding-bottom:12px}
+#dashboard .mmh-kicker{font-size:11px!important;letter-spacing:.26em!important;color:#f4c95d!important;text-shadow:0 0 14px rgba(244,201,93,.18)}
+#dashboard .mmh-command-head h2{font-size:32px!important;font-weight:950!important;letter-spacing:-.03em!important}
+#dashboard .mmh-command-head h2 span{font-size:14px!important;color:#80a0c8!important}
+#dashboard .mmh-command-head p{font-size:13px!important;color:#a9bbd7!important;max-width:760px}
+#dashboard .mmh-live-badge{backdrop-filter:blur(16px);background:rgba(7,26,47,.58)!important;box-shadow:0 0 24px rgba(49,228,154,.06)}
+#dashboard .mmh-command-main{gap:16px!important;margin-top:16px!important}
+#dashboard .mmh-networth-card{min-height:260px!important;padding:26px!important;border-radius:24px!important;background:
+ radial-gradient(circle at 75% 30%,rgba(71,176,255,.10),transparent 28%),
+ linear-gradient(145deg,rgba(9,29,53,.94),rgba(5,12,26,.98))!important;
+ border:1px solid rgba(244,201,93,.34)!important;box-shadow:inset 0 0 50px rgba(244,201,93,.035),0 16px 40px rgba(0,0,0,.23)!important}
+#dashboard .mmh-networth-card:before{content:"";position:absolute;inset:1px;border-radius:23px;border:1px solid rgba(88,199,255,.06);pointer-events:none}
+#dashboard .mmh-networth-value{font-size:56px!important;font-weight:950!important;text-shadow:0 0 34px rgba(87,210,255,.18)!important;animation:mmh34211Float 4.6s ease-in-out infinite!important}
+#dashboard .mmh-networth-pulse{height:98px!important;margin-top:20px!important}
+#dashboard .mmh-networth-pulse svg path{stroke-dasharray:760 420;animation:mmh34211Trace 6.5s linear infinite}
+#dashboard .mmh-command-stats{gap:14px!important}
+#dashboard .mmh-command-stat{min-height:116px;padding:20px!important;border-radius:20px!important;background:linear-gradient(145deg,rgba(10,28,54,.82),rgba(6,13,28,.80))!important;backdrop-filter:blur(12px);box-shadow:inset 0 0 24px rgba(117,178,255,.028),0 12px 30px rgba(0,0,0,.18);transition:transform .28s ease,box-shadow .28s ease,border-color .28s ease}
+#dashboard .mmh-command-stat:hover{transform:translateY(-4px);box-shadow:0 18px 34px rgba(0,0,0,.24),0 0 28px rgba(78,179,255,.07);border-color:rgba(96,180,255,.36)}
+#dashboard .mmh-command-stat:after{content:"";position:absolute;top:-50%;left:-70%;width:42%;height:200%;transform:rotate(18deg);background:linear-gradient(90deg,transparent,rgba(255,255,255,.08),transparent);animation:mmh34211Sweep 7s ease-in-out infinite}
+#dashboard .mmh-command-stat b{font-size:27px!important;font-weight:950!important;letter-spacing:-.02em}
+#dashboard .mmh-command-foot{margin-top:17px!important;padding-top:16px!important;border-color:rgba(102,147,198,.20)!important}
+#dashboard .mmh-status-chip{font-size:12px!important}
+#dashboard .mmh-mini-metrics{font-size:11px!important}
+#dashboard .mmh-mini-metrics b{font-size:12px;color:#eef5ff}
+#dashboard .mmh-live-badge{animation:mmh34211BadgeGlow 2.6s ease-in-out infinite}
+#dashboard .dashboard-quick-actions-v371 .btn,#dashboard .actions .btn{transition:transform .2s ease,box-shadow .2s ease,filter .2s ease}
+#dashboard .dashboard-quick-actions-v371 .btn:hover,#dashboard .actions .btn:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(42,121,204,.18);filter:brightness(1.05)}
+#dashboard .panel{position:relative;overflow:hidden;transition:transform .28s ease,box-shadow .28s ease,border-color .28s ease}
+#dashboard .panel:after{content:"";position:absolute;inset:-2px;pointer-events:none;background:linear-gradient(120deg,transparent 20%,rgba(96,202,255,.035) 50%,transparent 80%);transform:translateX(-70%);transition:transform .9s ease}
+#dashboard .panel:hover{transform:translateY(-3px);box-shadow:0 18px 38px rgba(0,0,0,.20)}
+#dashboard .panel:hover:after{transform:translateX(70%)}
+#dashboard .kpi-polish,.dashboard-quick-actions-v371,.dashboard-details{position:relative}
+#dashboard .mmh-dashboard-v372,#dashboard .mmh-monthly-report-v373,#dashboard .wealth-snapshot-v386{border-radius:26px!important}
+#dashboard .account-groups{position:relative}
+#dashboard .account-groups>.account-group,#dashboard .account-card{transition:transform .25s ease,box-shadow .25s ease}
+#dashboard .account-groups>.account-group:hover,#dashboard .account-card:hover{transform:translateY(-2px)}
+@keyframes mmh34211Beam{to{transform:rotate(360deg)}}
+@keyframes mmh34211Grid{to{background-position:0 120px}}
+@keyframes mmh34211Trace{to{stroke-dashoffset:-1180}}
+@keyframes mmh34211Sweep{0%,58%{left:-70%;opacity:0}70%{left:130%;opacity:1}100%{left:130%;opacity:0}}
+@keyframes mmh34211Pulse{50%{transform:scale(1.35);opacity:.6}}
+@keyframes mmh34211Float{50%{transform:translateY(-3px)}}
+@keyframes mmh34211BadgeGlow{50%{box-shadow:0 0 30px rgba(49,228,154,.11),inset 0 0 22px rgba(49,228,154,.05)}}
+@media(max-width:900px){#dashboard .mmh-command-v34210{padding:22px!important;border-radius:24px!important}#dashboard .mmh-command-head h2{font-size:28px!important}#dashboard .mmh-networth-value{font-size:48px!important}}
+@media(max-width:620px){#dashboard .mmh-command-v34210{padding:18px!important}#dashboard .mmh-command-head h2{font-size:24px!important}#dashboard .mmh-networth-card{min-height:230px!important}#dashboard .mmh-networth-value{font-size:38px!important}#dashboard .mmh-command-stat{min-height:108px} }
+@media (prefers-reduced-motion:reduce){#dashboard .mmh-command-v34210:before,#dashboard .mmh-command-orbit,#dashboard .mmh-command-gridline,#dashboard .mmh-networth-value,#dashboard .mmh-networth-pulse svg path,#dashboard .mmh-live-badge{animation:none!important}#dashboard .panel,#dashboard .mmh-command-stat{transition:none!important}}
+</style>
+
+<style id="mmhvault-v34211-dashboard-ribbon-css">
+#dashboard .mmh-v34211-live-ribbon{position:relative;display:grid;grid-template-columns:repeat(4,minmax(0,1fr)) auto;gap:10px;align-items:center;margin:14px 0 18px;padding:12px 14px;border:1px solid rgba(96,180,255,.16);border-radius:18px;background:linear-gradient(115deg,rgba(6,16,32,.82),rgba(8,24,45,.72));overflow:hidden;box-shadow:inset 0 0 26px rgba(74,178,255,.03)}
+#dashboard .mmh-v34211-ribbon-glow{position:absolute;inset:-120% 10% auto auto;width:40%;height:340%;background:linear-gradient(90deg,transparent,rgba(84,194,255,.07),transparent);transform:rotate(18deg);animation:mmh34211RibbonSweep 8s ease-in-out infinite;pointer-events:none}
+#dashboard .mmh-v34211-ribbon-item{display:grid;grid-template-columns:auto 1fr;column-gap:8px;align-items:center;min-width:0}
+#dashboard .mmh-v34211-ribbon-item .dot{grid-row:span 2;width:8px;height:8px;border-radius:50%;box-shadow:0 0 12px currentColor}
+#dashboard .mmh-v34211-ribbon-item .dot.cyan{color:#56d8ff;background:#56d8ff}.mmh-v34211-ribbon-item .dot.green{color:#31e49a;background:#31e49a}.mmh-v34211-ribbon-item .dot.gold{color:#f2c55d;background:#f2c55d}.mmh-v34211-ribbon-item .dot.red{color:#ff7187;background:#ff7187}
+#dashboard .mmh-v34211-ribbon-item small{font-size:9px;color:#6f86aa;letter-spacing:.14em;font-weight:900}
+#dashboard .mmh-v34211-ribbon-item b{font-size:13px;color:#eaf1fb;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#dashboard .mmh-v34211-ribbon-state{display:flex;align-items:center;gap:7px;padding-left:8px}.mmh-v34211-ribbon-state span{width:7px;height:7px;border-radius:50%;background:#31e49a;box-shadow:0 0 12px #31e49a;animation:mmh34211Pulse 1.6s ease-in-out infinite}.mmh-v34211-ribbon-state strong{font-size:9px;letter-spacing:.16em;color:#8fa5c6}
+@keyframes mmh34211RibbonSweep{0%,60%{transform:translateX(-160%) rotate(18deg);opacity:0}70%{opacity:1}100%{transform:translateX(180%) rotate(18deg);opacity:0}}
+@media(max-width:860px){#dashboard .mmh-v34211-live-ribbon{grid-template-columns:repeat(2,1fr) auto}.mmh-v34211-ribbon-state{grid-column:1/-1;justify-content:flex-end}}
+@media(max-width:520px){#dashboard .mmh-v34211-live-ribbon{grid-template-columns:1fr 1fr;padding:10px}.mmh-v34211-ribbon-state{grid-column:1/-1;justify-content:flex-start}.mmh-v34211-ribbon-item b{font-size:12px}}
+</style>
 </head>
 <!-- MMHVAULT V3.37.2 · Dashboard 2.0 · isolated summary layer -->
 <body>
@@ -355,7 +445,7 @@ h1,h2,h3,.title,.value,.kpi,.metric,.page-title,.nav-title{font-family:Manrope,"
 <button class="btn" onclick="retryLoadAllV384()" type="button">Retry</button>
 </div>
 <header id="header" style="display:none">
-<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.42.10</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
+<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.42.11</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
 <div class="header-spacer"></div>
 <div aria-label="Signed in user" class="header-profile" id="headerProfile">
 <div class="header-avatar" id="headerAvatar">MF</div>
@@ -413,8 +503,8 @@ h1,h2,h3,.title,.value,.kpi,.metric,.page-title,.nav-title{font-family:Manrope,"
   <div class="mmh-command-head">
     <div>
       <div class="mmh-kicker">WEALTH COMMAND CENTER</div>
-      <h2>财富中枢 <span>· Wealth Command</span></h2>
-      <p>您的财富正在实时更新。这里集中显示最重要的当前状态。</p>
+      <h2><span data-i18n-en="Wealth Command Center" data-i18n-zh="财富中枢">Wealth Command Center</span></h2>
+      <p data-i18n-en="Your wealth is updating in real time. This is the fastest view of your current position." data-i18n-zh="您的财富正在实时更新。这里集中显示最重要的当前状态。">Your wealth is updating in real time. This is the fastest view of your current position.</p>
     </div>
     <div class="mmh-live-badge"><span></span> LIVE <small id="mmhCommandTimeV34210">--:--</small></div>
   </div>
@@ -7965,6 +8055,36 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
   ['mmhvault:data-loaded','mmhvault:cache-restored','mmhvault:sync-complete'].forEach(ev=>window.addEventListener(ev,()=>setTimeout(render,100)));
   setInterval(()=>{if(document.getElementById('dashboard')?.classList.contains('active'))render();},30000);
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(render,180),{once:true});else setTimeout(render,180);
+})();
+</script>
+
+<script id="mmhvault-v34211-dashboard-live-ribbon-js">
+(function(){
+  if(window.__mmhV34211RibbonInstalled)return;window.__mmhV34211RibbonInstalled=true;
+  const $=id=>document.getElementById(id);
+  function copy(id,source){const a=$(id),b=$(source);if(a&&b)a.textContent=b.textContent||'—';}
+  function languageFix(){
+    const zh=(localStorage.getItem('mmhvault_language_v3363')||'en')==='zh';
+    const title=document.querySelector('#dashboardCommandCenterV34210 .mmh-command-head h2 span');
+    const p=document.querySelector('#dashboardCommandCenterV34210 .mmh-command-head p');
+    if(title) title.textContent=zh?'财富中枢':'Wealth Command Center';
+    if(p) p.textContent=zh?'您的财富正在实时更新。这里集中显示最重要的当前状态。':'Your wealth is updating in real time. This is the fastest view of your current position.';
+  }
+  function render(){
+    if(!document.getElementById('dashboard')?.classList.contains('active'))return;
+    ['mmhRibbonNetV34211','mmhCommandNetWorthV34210'].forEach(()=>{});
+    copy('mmhRibbonNetV34211','mmhCommandNetWorthV34210');
+    copy('mmhRibbonSaveV34211','mmhCommandSavingsV34210');
+    copy('mmhRibbonRateV34211','mmhCommandRateV34210');
+    copy('mmhRibbonExpV34211','mmhCommandExpenseV34210');
+    const state=$('mmhCommandStatusV34210'),out=$('mmhRibbonStateV34211');
+    if(state&&out){const t=(state.textContent||'').trim();out.textContent=(t==='')?'LIVE':(t.replace(/^[^A-Za-z\u4e00-\u9fff]+/,'').toUpperCase()||'LIVE');}
+    languageFix();
+  }
+  ['mmhvault:data-loaded','mmhvault:cache-restored','mmhvault:sync-complete'].forEach(ev=>window.addEventListener(ev,()=>setTimeout(render,140)));
+  window.addEventListener('storage',e=>{if(e.key==='mmhvault_language_v3363')setTimeout(languageFix,80)});
+  setInterval(render,2500);
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(render,240),{once:true});else setTimeout(render,240);
 })();
 </script>
 </body>
