@@ -445,7 +445,7 @@ h1,h2,h3,.title,.value,.kpi,.metric,.page-title,.nav-title{font-family:Manrope,"
 <button class="btn" onclick="retryLoadAllV384()" type="button">Retry</button>
 </div>
 <header id="header" style="display:none">
-<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.42.13</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
+<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.42.14</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
 <div class="header-spacer"></div>
 <div aria-label="Signed in user" class="header-profile" id="headerProfile">
 <div class="header-avatar" id="headerAvatar">MF</div>
@@ -8755,5 +8755,150 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
   window.addEventListener('mmhvault:data-loaded',()=>setTimeout(refresh,100));
   window.addEventListener('mmhvault-language-change',()=>setTimeout(refresh,30));
   document.addEventListener('click',e=>{if(e.target?.closest?.('[data-page="insights"]'))setTimeout(refresh,80);});
+})();
+</script>
+
+
+<style id="mmhvault-v34214-dashboard-stage-css">
+/* MMHVAULT V3.42.14 — Dashboard stage lighting + coordinated panel surfaces. */
+#dashboardCommandCenterV34210{
+  --stage-blue:rgba(66,190,255,.16);
+  --stage-gold:rgba(246,199,92,.15);
+  --stage-green:rgba(49,228,154,.10);
+  box-shadow:0 0 0 1px rgba(244,201,93,.045) inset,0 24px 86px rgba(0,0,0,.34),0 0 110px rgba(66,175,255,.10)!important;
+}
+/* Keep a visible cinematic light behind the whole command center instead of a beam that disappears. */
+#dashboardCommandCenterV34210::before{
+  content:"";position:absolute;inset:-18%;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(ellipse 50% 42% at 48% 24%,rgba(75,192,255,.16),transparent 68%),
+    radial-gradient(ellipse 34% 34% at 79% 30%,rgba(246,199,92,.14),transparent 72%),
+    linear-gradient(112deg,transparent 28%,rgba(84,196,255,.055) 41%,rgba(246,199,92,.085) 49%,transparent 62%);
+  filter:blur(10px);mix-blend-mode:screen;opacity:.92;
+  animation:mmh34214StageLight 9s ease-in-out infinite;
+}
+#dashboardCommandCenterV34210::after{
+  content:"";position:absolute;inset:0;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(circle at 50% 18%,rgba(255,255,255,.035),transparent 25%),
+    repeating-linear-gradient(90deg,transparent 0 78px,rgba(92,164,220,.025) 79px 80px),
+    linear-gradient(180deg,transparent 0 72%,rgba(77,188,255,.04) 100%);
+  opacity:.95;animation:mmh34214GridDrift 15s linear infinite;
+}
+#dashboardCommandCenterV34210 .mmh-command-orbit,
+#dashboardCommandCenterV34210 .mmh-command-gridline{z-index:1!important}
+#dashboardCommandCenterV34210 .mmh-command-head,
+#dashboardCommandCenterV34210 .mmh-command-main,
+#dashboardCommandCenterV34210 .mmh-command-foot{z-index:3!important}
+
+/* Match the supporting dashboard panels to the Command Center surface. */
+#dashboard .mmh-dashboard-stage-panel{
+  position:relative!important;overflow:hidden!important;
+  background:
+    radial-gradient(circle at 82% 18%,rgba(77,185,255,.065),transparent 27%),
+    radial-gradient(circle at 18% 82%,rgba(245,198,92,.045),transparent 29%),
+    linear-gradient(145deg,rgba(5,16,34,.94),rgba(7,18,38,.82) 48%,rgba(5,11,24,.95))!important;
+  border:1px solid rgba(97,190,255,.24)!important;
+  box-shadow:0 18px 58px rgba(0,0,0,.24),inset 0 0 46px rgba(70,150,240,.035),0 0 70px rgba(52,139,255,.045)!important;
+  isolation:isolate;
+}
+#dashboard .mmh-dashboard-stage-panel::before{
+  content:"";position:absolute;inset:-30%;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(ellipse 34% 25% at 18% 24%,rgba(75,190,255,.11),transparent 70%),
+    radial-gradient(ellipse 25% 28% at 86% 72%,rgba(246,199,92,.08),transparent 72%),
+    linear-gradient(115deg,transparent 20%,rgba(82,193,255,.045) 43%,rgba(246,199,92,.055) 51%,transparent 70%);
+  opacity:.9;mix-blend-mode:screen;filter:blur(8px);
+  animation:mmh34214PanelAura 11s ease-in-out infinite;
+}
+#dashboard .mmh-dashboard-stage-panel::after{
+  content:"";position:absolute;inset:0;pointer-events:none;z-index:0;
+  background:repeating-linear-gradient(90deg,transparent 0 84px,rgba(95,169,220,.020) 85px 86px),linear-gradient(180deg,transparent 0 70%,rgba(85,192,255,.025) 100%);
+  opacity:.8;animation:mmh34214PanelGrid 17s linear infinite;
+}
+#dashboard .mmh-dashboard-stage-panel > *{position:relative;z-index:2}
+#dashboard .mmh-dashboard-stage-panel .toolbar{position:relative;z-index:3}
+#dashboard .mmh-dashboard-stage-panel:hover{
+  transform:translateY(-3px)!important;
+  border-color:rgba(104,198,255,.34)!important;
+  box-shadow:0 22px 62px rgba(0,0,0,.28),0 0 90px rgba(52,139,255,.075),inset 0 0 52px rgba(70,150,240,.045)!important;
+}
+#dashboard .mmh-dashboard-stage-panel .toolbar h2{font-weight:900;letter-spacing:-.02em}
+#dashboard .mmh-dashboard-stage-panel .sub{color:#9fb4d5}
+#dashboard .mmh-dashboard-stage-panel .pill{border-color:rgba(96,190,255,.20);box-shadow:0 0 18px rgba(61,167,255,.04)}
+/* Make the three supporting areas visually related, but not as dominant as the Command Center. */
+#dashboard .mmh-dashboard-stage-panel .account-groups,
+#dashboard .mmh-dashboard-stage-panel #assetAllocation,
+#dashboard .mmh-dashboard-stage-panel #dashRecent{position:relative;z-index:2}
+
+/* Fix the compressed English title seen in the previous build. */
+#dashboardCommandCenterV34210 .mmh-command-head h2 span{white-space:pre!important}
+
+@keyframes mmh34214StageLight{
+  0%,100%{transform:translate3d(-4%,0,0) scale(1);opacity:.78}
+  50%{transform:translate3d(5%,2%,0) scale(1.045);opacity:1}
+}
+@keyframes mmh34214GridDrift{
+  0%{transform:translateX(-1.5%)}
+  50%{transform:translateX(1.5%)}
+  100%{transform:translateX(-1.5%)}
+}
+@keyframes mmh34214PanelAura{
+  0%,100%{transform:translate3d(-2%,0,0) rotate(-1deg);opacity:.72}
+  50%{transform:translate3d(3%,1%,0) rotate(1deg);opacity:1}
+}
+@keyframes mmh34214PanelGrid{
+  0%{transform:translateX(-1%)}
+  100%{transform:translateX(1%)}
+}
+@media(max-width:620px){
+  #dashboardCommandCenterV34210::before{inset:-25%;opacity:.8}
+  #dashboard .mmh-dashboard-stage-panel::before{inset:-35%}
+}
+@media(prefers-reduced-motion:reduce){
+  #dashboardCommandCenterV34210::before,
+  #dashboardCommandCenterV34210::after,
+  #dashboard .mmh-dashboard-stage-panel::before,
+  #dashboard .mmh-dashboard-stage-panel::after{animation:none!important}
+}
+</style>
+
+<script id="mmhvault-v34214-dashboard-stage-js">
+(function(){
+  if(window.__mmhV34214DashboardStageInstalled)return;
+  window.__mmhV34214DashboardStageInstalled=true;
+  const titleMap={
+    'Account Overview':'account',
+    'Asset Allocation':'allocation',
+    'Recent Transactions':'recent'
+  };
+  function markPanels(){
+    const dash=document.getElementById('dashboard'); if(!dash)return;
+    const panels=[...dash.querySelectorAll('.panel')];
+    panels.forEach(panel=>{
+      const h2=panel.querySelector('.toolbar h2');
+      const text=(h2?.textContent||'').trim();
+      if(titleMap[text] && !panel.classList.contains('mmh-dashboard-stage-panel')){
+        panel.classList.add('mmh-dashboard-stage-panel','mmh-dashboard-stage-'+titleMap[text]);
+      }
+    });
+  }
+  function fixCommandTitle(){
+    const el=document.querySelector('#dashboardCommandCenterV34210 .mmh-command-head h2 span');
+    if(!el)return;
+    const raw=(localStorage.getItem('mmhvault_language_v3363')||document.documentElement.lang||'en').toLowerCase();
+    const zh=raw.startsWith('zh');
+    el.textContent=zh?'财富中枢':'Wealth Command Center';
+  }
+  function refresh(){
+    if(!document.getElementById('dashboard'))return;
+    markPanels();
+    fixCommandTitle();
+  }
+  ['mmhvault:data-loaded','mmhvault:cache-restored','mmhvault:sync-complete'].forEach(ev=>window.addEventListener(ev,()=>setTimeout(refresh,160)));
+  window.addEventListener('storage',e=>{if(e.key==='mmhvault_language_v3363')setTimeout(fixCommandTitle,80)});
+  setInterval(refresh,2200);
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(refresh,240),{once:true});
+  else setTimeout(refresh,240);
 })();
 </script>
