@@ -348,7 +348,7 @@ h1,h2,h3,.title,.value,.kpi,.metric,.page-title,.nav-title{font-family:Manrope,"
 </style>
 
 <style id="mmhvault-v34212-dashboard-command-visuals">
-/* MMHVAULT V3.42.19 — Dashboard Command Center visual system. Additive + dashboard scoped. */
+/* MMHVAULT V3.42.20 — Dashboard Command Center visual system. Additive + dashboard scoped. */
 #dashboard{position:relative;isolation:isolate;overflow:visible}
 #dashboard:before{content:"";position:absolute;left:-3vw;right:-3vw;top:0;height:760px;pointer-events:none;z-index:-2;background:
  radial-gradient(circle at 76% 8%,rgba(72,176,255,.22),transparent 24%),
@@ -458,7 +458,7 @@ h1,h2,h3,.title,.value,.kpi,.metric,.page-title,.nav-title{font-family:Manrope,"
 <button class="btn" onclick="retryLoadAllV384()" type="button">Retry</button>
 </div>
 <header id="header" style="display:none">
-<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.42.19</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
+<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.42.20</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
 <div class="header-spacer"></div>
 <div aria-label="Signed in user" class="header-profile" id="headerProfile">
 <div class="header-avatar" id="headerAvatar">MF</div>
@@ -8251,7 +8251,7 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
       if(state){const status=d.cur.rate>=60?'Financial state is healthy':d.cur.rate>=40?'Savings are close to target':'Savings need attention';state.innerHTML='<span></span> '+status;state.classList.toggle('warn',d.cur.rate<60&&d.cur.rate>=40);state.classList.toggle('bad',d.cur.rate<40);}
       const t=$('mmhCommandTimeV34210');if(t)t.textContent=new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
       const path=$('mmhCommandSparkV34210');if(path){const ratio=d.cur.inc?Math.max(-.8,Math.min(.8,d.cur.save/d.cur.inc)):0;const base=72,amp=18+Math.abs(ratio)*18;const lift=ratio>=0?amp:-amp*.55;path.setAttribute('d',`M0,${base+8} C65,${base+lift*.3} 92,${base-4} 140,${base+lift*.1} S220,${base+lift*.65} 286,${base-lift*.2} S360,${base-lift*.75} 420,${base-lift*.1} S510,${base-lift*.9} 600,${base-lift}`);}
-    }catch(e){console.warn('V3.42.19 dashboard fix skipped',e)}
+    }catch(e){console.warn('V3.42.20 dashboard fix skipped',e)}
   }
   window.addEventListener('mmhvault:data-loaded',()=>setTimeout(apply,80));
   window.addEventListener('mmhvault:sync-complete',()=>setTimeout(apply,80));
@@ -8263,7 +8263,7 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
 
 
 <style id="mmhvault-v34219-age-green-css">
-/* V3.42.19 — Your Age receives the same live green status cue as LIVE. */
+/* V3.42.20 — Your Age receives the same live green status cue as LIVE. */
 #dashboard .mmh-age-live-badge-v34218{position:relative;overflow:hidden}
 #dashboard .mmh-age-live-badge-v34218::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:#2fe6a0;box-shadow:0 0 0 3px rgba(47,230,160,.10),0 0 12px rgba(47,230,160,.80);position:absolute;left:10px;top:10px;animation:mmhAgeLiveDot34219 2.4s ease-in-out infinite}
 @keyframes mmhAgeLiveDot34219{0%,100%{opacity:.55;transform:scale(.9);box-shadow:0 0 0 3px rgba(47,230,160,.08),0 0 10px rgba(47,230,160,.55)}50%{opacity:1;transform:scale(1.08);box-shadow:0 0 0 4px rgba(47,230,160,.12),0 0 18px rgba(47,230,160,.95)}}
@@ -8271,7 +8271,7 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
 </style>
 
 <style id="mmhvault-v34219-transaction-visual-css">
-/* V3.42.19 — Transaction page visual stage. Data/logic untouched. */
+/* V3.42.20 — Transaction page visual stage. Data/logic untouched. */
 #transactions{position:relative;overflow:hidden;isolation:isolate}
 #transactions::before{content:"";position:absolute;inset:0;z-index:-2;pointer-events:none;border-radius:30px;background:
   radial-gradient(circle at 15% 18%,rgba(61,190,255,.14),transparent 24%),
@@ -8345,120 +8345,7 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
 </style>
 </body>
 
-<script id="mmhvault-v3424-transaction-i18n-values-fix">
-/* MMHVAULT V3.42.10 · Transaction language-safe option values.
-   Keep machine values in English while allowing visible labels to be translated. */
-(function(){
-  const byId=id=>document.getElementById(id);
-  const normalizeType=v=>({
-    '收入':'Income','支出':'Expense','转账':'Transfer',
-    'Income':'Income','Expense':'Expense','Transfer':'Transfer'
-  }[String(v??'').trim()] || String(v??'').trim());
-  const normalizeGroup=v=>({
-    '收入':'Income','支出':'Expense','个人':'Personal','贷款':'Loans','转账':'Transfer',
-    'Income':'Income','Expense':'Expense','Personal':'Personal','Loans':'Loans','Transfer':'Transfer'
-  }[String(v??'').trim()] || String(v??'').trim());
-  const labels={
-    Income:['收入','Income'], Expense:['支出','Expense'], Transfer:['转账','Transfer'],
-    Personal:['个人','Personal'], Loans:['贷款','Loans']
-  };
-  function setOptions(select, keys, selected){
-    if(!select)return;
-    const current=String(selected ?? select.value ?? '');
-    const normalizedCurrent=normalizeType(current)==='Income'||normalizeType(current)==='Expense'||normalizeType(current)==='Transfer'
-      ? normalizeType(current) : normalizeGroup(current);
-    const zh=((localStorage.getItem('mmhvault_language_v3363')||'en')==='zh');
-    select.innerHTML=keys.map(k=>{
-      const pair=labels[k]||[k,k];
-      return `<option value="${k}">${zh?pair[0]:pair[1]}</option>`;
-    }).join('');
-    select.value=keys.includes(normalizedCurrent)?normalizedCurrent:keys[0];
-  }
-  function ensureValues(){
-    const t=byId('txType');
-    const g=byId('txGroup');
-    const ft=byId('txFilterType');
-    const fg=byId('txFilterGroup');
-    const curT=t?normalizeType(t.value):'Income';
-    if(t)setOptions(t,['Income','Expense','Transfer'],curT);
-    const curG=g?normalizeGroup(g.value):'Income';
-    if(g){
-      const type=normalizeType(t?.value||curT);
-      const keys=type==='Income'?['Income','Loans']:type==='Expense'?['Expense','Personal','Loans']:['Transfer'];
-      setOptions(g,keys,curG);
-      g.disabled=type==='Transfer';
-    }
-    if(ft){
-      const saved=normalizeType(ft.value);
-      const zh=((localStorage.getItem('mmhvault_language_v3363')||'en')==='zh');
-      ft.innerHTML=`<option value="">${zh?'全部':'All'}</option>`+['Income','Expense','Transfer'].map(k=>`<option value="${k}">${zh?labels[k][0]:labels[k][1]}</option>`).join('');
-      ft.value=['Income','Expense','Transfer'].includes(saved)?saved:'';
-    }
-    if(fg){
-      const saved=normalizeGroup(fg.value);
-      const zh=((localStorage.getItem('mmhvault_language_v3363')||'en')==='zh');
-      const keys=['Income','Expense','Personal','Loans','Transfer'];
-      fg.innerHTML=`<option value="">${zh?'全部':'All'}</option>`+keys.map(k=>`<option value="${k}">${zh?labels[k][0]:labels[k][1]}</option>`).join('');
-      fg.value=keys.includes(saved)?saved:'';
-    }
-  }
-  window.syncTransactionGroup=function(){
-    const type=normalizeType(byId('txType')?.value||'Income');
-    const g=byId('txGroup'); if(!g)return;
-    const keys=type==='Income'?['Income','Loans']:type==='Expense'?['Expense','Personal','Loans']:['Transfer'];
-    const current=normalizeGroup(g.value);
-    const zh=((localStorage.getItem('mmhvault_language_v3363')||'en')==='zh');
-    g.innerHTML=keys.map(k=>`<option value="${k}">${zh?(labels[k]||[k,k])[0]:(labels[k]||[k,k])[1]}</option>`).join('');
-    g.value=keys.includes(current)?current:keys[0];
-    g.disabled=type==='Transfer';
-  };
-  window.updateCategories=function(){
-    const type=normalizeType(byId('txType')?.value||'Income');
-    const group=normalizeGroup(byId('txGroup')?.value||'Income');
-    const cat=byId('txCategory'); if(!cat)return;
-    if(type==='Transfer'){
-      const zh=((localStorage.getItem('mmhvault_language_v3363')||'en')==='zh');
-      cat.innerHTML=`<option value="Transfer">${zh?'转账':'Transfer'}</option>`;
-      if(byId('txGroup'))byId('txGroup').disabled=true;
-    }else{
-      if(byId('txGroup'))byId('txGroup').disabled=false;
-      const list=group==='Loans'?(type==='Income'?CATS.LoanIncome:CATS.LoanExpense):(CATS[group]||[]);
-      cat.innerHTML=list.map(x=>`<option value="${x}">${x}</option>`).join('');
-    }
-    if(typeof updateAccountLocks==='function') updateAccountLocks();
-  };
-  window.updateAccountLocks=function(){
-    const type=normalizeType(byId('txType')?.value||'Income');
-    const fromOff=type==='Income', toOff=type==='Expense';
-    if(byId('fromAccount'))byId('fromAccount').disabled=fromOff;
-    if(byId('fromAmount'))byId('fromAmount').disabled=fromOff;
-    if(byId('toAccount'))byId('toAccount').disabled=toOff;
-    if(byId('toAmount'))byId('toAmount').disabled=toOff;
-    if(fromOff){if(byId('fromAccount'))byId('fromAccount').value='';if(byId('fromAmount'))byId('fromAmount').value='';}
-    if(toOff){if(byId('toAccount'))byId('toAccount').value='';if(byId('toAmount'))byId('toAmount').value='';}
-  };
-  function bind(){
-    const t=byId('txType');
-    if(t)t.onchange=()=>{window.syncTransactionGroup();window.updateCategories();};
-    const g=byId('txGroup');
-    if(g)g.onchange=window.updateCategories;
-    ensureValues();
-    window.syncTransactionGroup();
-    window.updateCategories();
-  }
-  const oldLang=window.setMMHVAULTLanguage;
-  if(typeof oldLang==='function'&&!oldLang.__v3424){
-    const wrapped=function(next){
-      const r=oldLang.apply(this,arguments);
-      setTimeout(()=>{ensureValues();window.syncTransactionGroup();window.updateCategories();},40);
-      return r;
-    };
-    wrapped.__v3424=true;
-    window.setMMHVAULTLanguage=wrapped;
-  }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
-})();
-</script>
+
 
 </html>
 <script id="mmhvault-v393-wealth-planning-thb-fix">
@@ -8656,191 +8543,13 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
 })();
 </script>
 
-<script id="mmhvault-v3424-transaction-i18n-values-fix">
-/* MMHVAULT V3.42.10 · Transaction language-safe option values.
-   Keep machine values in English while allowing visible labels to be translated. */
-(function(){
-  const byId=id=>document.getElementById(id);
-  const normalizeType=v=>({
-    '收入':'Income','支出':'Expense','转账':'Transfer',
-    'Income':'Income','Expense':'Expense','Transfer':'Transfer'
-  }[String(v??'').trim()] || String(v??'').trim());
-  const normalizeGroup=v=>({
-    '收入':'Income','支出':'Expense','个人':'Personal','贷款':'Loans','转账':'Transfer',
-    'Income':'Income','Expense':'Expense','Personal':'Personal','Loans':'Loans','Transfer':'Transfer'
-  }[String(v??'').trim()] || String(v??'').trim());
-  const labels={
-    Income:['收入','Income'], Expense:['支出','Expense'], Transfer:['转账','Transfer'],
-    Personal:['个人','Personal'], Loans:['贷款','Loans']
-  };
-  function setOptions(select, keys, selected){
-    if(!select)return;
-    const current=String(selected ?? select.value ?? '');
-    const normalizedCurrent=normalizeType(current)==='Income'||normalizeType(current)==='Expense'||normalizeType(current)==='Transfer'
-      ? normalizeType(current) : normalizeGroup(current);
-    const zh=((localStorage.getItem('mmhvault_language_v3363')||'en')==='zh');
-    select.innerHTML=keys.map(k=>{
-      const pair=labels[k]||[k,k];
-      return `<option value="${k}">${zh?pair[0]:pair[1]}</option>`;
-    }).join('');
-    select.value=keys.includes(normalizedCurrent)?normalizedCurrent:keys[0];
-  }
-  function ensureValues(){
-    const t=byId('txType');
-    const g=byId('txGroup');
-    const ft=byId('txFilterType');
-    const fg=byId('txFilterGroup');
-    const curT=t?normalizeType(t.value):'Income';
-    if(t)setOptions(t,['Income','Expense','Transfer'],curT);
-    const curG=g?normalizeGroup(g.value):'Income';
-    if(g){
-      const type=normalizeType(t?.value||curT);
-      const keys=type==='Income'?['Income','Loans']:type==='Expense'?['Expense','Personal','Loans']:['Transfer'];
-      setOptions(g,keys,curG);
-      g.disabled=type==='Transfer';
-    }
-    if(ft){
-      const saved=normalizeType(ft.value);
-      const zh=((localStorage.getItem('mmhvault_language_v3363')||'en')==='zh');
-      ft.innerHTML=`<option value="">${zh?'全部':'All'}</option>`+['Income','Expense','Transfer'].map(k=>`<option value="${k}">${zh?labels[k][0]:labels[k][1]}</option>`).join('');
-      ft.value=['Income','Expense','Transfer'].includes(saved)?saved:'';
-    }
-    if(fg){
-      const saved=normalizeGroup(fg.value);
-      const zh=((localStorage.getItem('mmhvault_language_v3363')||'en')==='zh');
-      const keys=['Income','Expense','Personal','Loans','Transfer'];
-      fg.innerHTML=`<option value="">${zh?'全部':'All'}</option>`+keys.map(k=>`<option value="${k}">${zh?labels[k][0]:labels[k][1]}</option>`).join('');
-      fg.value=keys.includes(saved)?saved:'';
-    }
-  }
-  window.syncTransactionGroup=function(){
-    const type=normalizeType(byId('txType')?.value||'Income');
-    const g=byId('txGroup'); if(!g)return;
-    const keys=type==='Income'?['Income','Loans']:type==='Expense'?['Expense','Personal','Loans']:['Transfer'];
-    const current=normalizeGroup(g.value);
-    const zh=((localStorage.getItem('mmhvault_language_v3363')||'en')==='zh');
-    g.innerHTML=keys.map(k=>`<option value="${k}">${zh?(labels[k]||[k,k])[0]:(labels[k]||[k,k])[1]}</option>`).join('');
-    g.value=keys.includes(current)?current:keys[0];
-    g.disabled=type==='Transfer';
-  };
-  window.updateCategories=function(){
-    const type=normalizeType(byId('txType')?.value||'Income');
-    const group=normalizeGroup(byId('txGroup')?.value||'Income');
-    const cat=byId('txCategory'); if(!cat)return;
-    if(type==='Transfer'){
-      const zh=((localStorage.getItem('mmhvault_language_v3363')||'en')==='zh');
-      cat.innerHTML=`<option value="Transfer">${zh?'转账':'Transfer'}</option>`;
-      if(byId('txGroup'))byId('txGroup').disabled=true;
-    }else{
-      if(byId('txGroup'))byId('txGroup').disabled=false;
-      const list=group==='Loans'?(type==='Income'?CATS.LoanIncome:CATS.LoanExpense):(CATS[group]||[]);
-      cat.innerHTML=list.map(x=>`<option value="${x}">${x}</option>`).join('');
-    }
-    if(typeof updateAccountLocks==='function') updateAccountLocks();
-  };
-  window.updateAccountLocks=function(){
-    const type=normalizeType(byId('txType')?.value||'Income');
-    const fromOff=type==='Income', toOff=type==='Expense';
-    if(byId('fromAccount'))byId('fromAccount').disabled=fromOff;
-    if(byId('fromAmount'))byId('fromAmount').disabled=fromOff;
-    if(byId('toAccount'))byId('toAccount').disabled=toOff;
-    if(byId('toAmount'))byId('toAmount').disabled=toOff;
-    if(fromOff){if(byId('fromAccount'))byId('fromAccount').value='';if(byId('fromAmount'))byId('fromAmount').value='';}
-    if(toOff){if(byId('toAccount'))byId('toAccount').value='';if(byId('toAmount'))byId('toAmount').value='';}
-  };
-  function bind(){
-    const t=byId('txType');
-    if(t)t.onchange=()=>{window.syncTransactionGroup();window.updateCategories();};
-    const g=byId('txGroup');
-    if(g)g.onchange=window.updateCategories;
-    ensureValues();
-    window.syncTransactionGroup();
-    window.updateCategories();
-  }
-  const oldLang=window.setMMHVAULTLanguage;
-  if(typeof oldLang==='function'&&!oldLang.__v3424){
-    const wrapped=function(next){
-      const r=oldLang.apply(this,arguments);
-      setTimeout(()=>{ensureValues();window.syncTransactionGroup();window.updateCategories();},40);
-      return r;
-    };
-    wrapped.__v3424=true;
-    window.setMMHVAULTLanguage=wrapped;
-  }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
-})();
-</script>
 
 
-<script id="mmhvault-v3428-transaction-financial-labels-en-js">
-/* MMHVAULT V3.42.10 · Financial transaction labels are ALWAYS English.
-   UI language may change, but transaction type/group/category labels never do. */
-(function(){
-  const $=id=>document.getElementById(id);
-  const normalizeType=v=>({
-    '收入':'Income','支出':'Expense','转账':'Transfer','Income':'Income','Expense':'Expense','Transfer':'Transfer'
-  }[String(v??'').trim()]||String(v??'').trim());
-  const normalizeGroup=v=>({
-    '收入':'Income','支出':'Expense','个人':'Personal','贷款':'Loans','借贷':'Loans','转账':'Transfer',
-    'Income':'Income','Expense':'Expense','Personal':'Personal','Loans':'Loans','Transfer':'Transfer'
-  }[String(v??'').trim()]||String(v??'').trim());
-  const groupLabels={Income:'Income',Expense:'Expense',Personal:'Personal',Loans:'Loans',Transfer:'Transfer'};
-  const categoryZhToEn={
-    '餐饮':'Dining','零食':'Snacks','烟草':'Smoking','交通':'Transport','健康':'Wellness','生活方式':'Lifestyle','其他':'Other',
-    '工资':'Salary','餐补':'Meal Allowance','奖金':'Bonus','其他收入':'Other Income','家庭支持':'Family Support','特别转账':'Special Transfer',
-    '礼物':'Gifts','捐赠':'Donation','债务':'Debt','贷款还款':'Loan Repayment','还款':'PaidDeb','借出':'Loan Out','投资':'Investment',
-    '转账':'Transfer','买入':'BUY','卖出':'SELL','已买入':'Acquired'
-  };
-  const normalizeCat=v=>categoryZhToEn[String(v??'').trim()]||String(v??'').trim();
 
-  function setEnglish(select,keys,selected){
-    if(!select)return;
-    const current=String(selected ?? select.value ?? '');
-    const norm=keys.includes(normalizeGroup(current))?normalizeGroup(current):normalizeType(current);
-    select.innerHTML=keys.map(k=>`<option value="${k}">${groupLabels[k]||k}</option>`).join('');
-    select.value=keys.includes(norm)?norm:keys[0];
-  }
-  function sync(){
-    const type=$('txType'), group=$('txGroup'), cat=$('txCategory');
-    const ft=$('txFilterType'), fg=$('txFilterGroup');
-    const t=normalizeType(type?.value||'Income');
-    if(type)setEnglish(type,['Income','Expense','Transfer'],t);
-    const gKeys=t==='Income'?['Income','Loans']:t==='Expense'?['Expense','Personal','Loans']:['Transfer'];
-    if(group)setEnglish(group,gKeys,group?.value||gKeys[0]), group.disabled=t==='Transfer';
-    if(cat){
-      if(t==='Transfer') cat.innerHTML='<option value="Transfer">Transfer</option>';
-      else {
-        const g=normalizeGroup(group?.value||gKeys[0]);
-        const list=g==='Loans'?(t==='Income'?(window.CATS?.LoanIncome||['Debt','Loan Repayment']):(window.CATS?.LoanExpense||['PaidDeb','Loan Out'])):(window.CATS?.[g]||[]);
-        cat.innerHTML=list.map(x=>{const en=normalizeCat(x);return `<option value="${en}">${en}</option>`;}).join('');
-      }
-    }
-    // Transaction filters: values stay English; the generic 'All' UI label may remain localized.
-    if(ft){const val=normalizeType(ft.value);ft.innerHTML='<option value="">All</option>'+['Income','Expense','Transfer'].map(k=>`<option value="${k}">${k}</option>`).join('');ft.value=['Income','Expense','Transfer'].includes(val)?val:'';}
-    if(fg){const val=normalizeGroup(fg.value);fg.innerHTML='<option value="">All</option>'+['Income','Expense','Personal','Loans','Transfer'].map(k=>`<option value="${k}">${k}</option>`).join('');fg.value=['Income','Expense','Personal','Loans','Transfer'].includes(val)?val:'';}
-    if(typeof updateAccountLocks==='function') updateAccountLocks();
-  }
-  function scan(root){
-    if(!root)return;
-    const options=root.querySelectorAll?root.querySelectorAll('#transactions option'):[];
-    options.forEach(o=>{
-      const v=normalizeType(normalizeGroup(normalizeCat(o.textContent)));
-      if(groupLabels[v]) o.textContent=groupLabels[v];
-      else if(categoryZhToEn[String(o.textContent||'').trim()]) o.textContent=categoryZhToEn[String(o.textContent||'').trim()];
-    });
-  }
-  window.syncTransactionGroup=sync;
-  window.updateCategories=function(){sync();};
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(sync,0),{once:true});else setTimeout(sync,0);
-  ['mmhvault:data-loaded','mmhvault:cache-restored','mmhvault:sync-complete'].forEach(ev=>window.addEventListener(ev,()=>setTimeout(sync,0)));
-  const mo=new MutationObserver(()=>setTimeout(()=>{sync();scan(document);},0));
-  if(document.body)mo.observe(document.body,{subtree:true,childList:true,characterData:true});
-  window.MM_HVAULT_TRANSACTION_LABELS_ENGLISH={version:'3.42.8'};
-})();
-</script>
+
 
 <style id="mmhvault-v34216-dashboard-stage-harmony-css">
-/* MMHVAULT V3.42.19 — Command Center light extended + full dashboard stage harmony. */
+/* MMHVAULT V3.42.20 — Command Center light extended + full dashboard stage harmony. */
 #dashboard .mmh-command-v34210{
   background:linear-gradient(135deg,rgba(5,16,34,.96),rgba(7,18,38,.80) 46%,rgba(5,11,24,.95))!important;
   border-color:rgba(97,190,255,.28)!important;
@@ -8980,7 +8689,7 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
 
 
 <style id="mmhvault-v34214-dashboard-stage-css">
-/* MMHVAULT V3.42.19 — Dashboard stage lighting + coordinated panel surfaces. */
+/* MMHVAULT V3.42.20 — Dashboard stage lighting + coordinated panel surfaces. */
 #dashboardCommandCenterV34210{
   --stage-blue:rgba(66,190,255,.16);
   --stage-gold:rgba(246,199,92,.15);
@@ -9150,7 +8859,7 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
 })();
 </script>
 <style id="mmhvault-v34218-dashboard-supporting-visuals">
-/* V3.42.19 — Supporting Dashboard panels. Wealth Command Center is intentionally untouched. */
+/* V3.42.20 — Supporting Dashboard panels. Wealth Command Center is intentionally untouched. */
 #dashboard .dashboard-premium-panel{
   position:relative!important;overflow:hidden!important;isolation:isolate;
   background:
@@ -9279,3 +8988,84 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
 })();
 </script>
 
+
+<style id="mmhvault-v34220-performance-css">
+/* V3.42.20 performance stabilization. Keep visual motion, remove expensive/continuous flicker during interaction. */
+#transactions::after{animation-duration:34s!important;opacity:.72!important}
+#transactions > .tx-tabs-v371::after{animation-duration:18s!important;opacity:.48!important}
+#transactions .tx-tab-panel-v371 > .panel::before{animation-duration:26s!important;opacity:.72!important}
+#transactions .receipt-upload-v3300::after{animation-duration:22s!important;opacity:.22!important}
+#transactions #txHistoryPanel .scroll::before{animation-duration:14s!important;opacity:.25!important}
+#transactions .mmh-tx-visual-orbit-v34219{animation-duration:34s!important}
+#dashboard .dashboard-premium-panel::before{animation-duration:22s!important}
+#dashboard .dashboard-premium-panel::after{animation-duration:32s!important}
+#dashboard .dashboard-account-panel .account-groups > *::after{animation-duration:16s!important}
+#dashboard .dashboard-allocation-panel #assetAllocation::before{animation-duration:28s!important}
+#dashboard .dashboard-recent-panel .scroll::before{animation-duration:14s!important}
+@media(prefers-reduced-motion:reduce){
+  #transactions::after,#transactions > .tx-tabs-v371::after,#transactions .tx-tab-panel-v371 > .panel::before,
+  #transactions .receipt-upload-v3300::after,#transactions #txHistoryPanel .scroll::before,
+  #transactions .mmh-tx-visual-orbit-v34219,
+  #dashboard .dashboard-premium-panel::before,#dashboard .dashboard-premium-panel::after,
+  #dashboard .dashboard-account-panel .account-groups > *::after,#dashboard .dashboard-allocation-panel #assetAllocation::before,
+  #dashboard .dashboard-recent-panel .scroll::before{animation:none!important}
+}
+</style>
+<script id="mmhvault-v34220-performance-js">
+(function(){
+  if(window.__mmhV34220PerformanceInstalled)return;
+  window.__mmhV34220PerformanceInstalled=true;
+  const $=id=>document.getElementById(id);
+  const typeMap={'收入':'Income','支出':'Expense','转账':'Transfer','Income':'Income','Expense':'Expense','Transfer':'Transfer'};
+  const groupMap={'收入':'Income','支出':'Expense','个人':'Personal','贷款':'Loans','借贷':'Loans','转账':'Transfer','Income':'Income','Expense':'Expense','Personal':'Personal','Loans':'Loans','Transfer':'Transfer'};
+  const catMap={'餐饮':'Dining','零食':'Snacks','烟草':'Smoking','交通':'Transport','健康':'Wellness','生活方式':'Lifestyle','其他':'Other','工资':'Salary','餐补':'Meal Allowance','奖金':'Bonus','其他收入':'Other Income','家庭支持':'Family Support','特别转账':'Special Transfer','礼物':'Gifts','捐赠':'Donation','债务':'Debt','贷款还款':'Loan Repayment','还款':'PaidDeb','借出':'Loan Out','投资':'Investment','转账':'Transfer'};
+  const norm=(v,map)=>map[String(v??'').trim()]||String(v??'').trim();
+  const setSelect=(el,keys,normalizer)=>{
+    if(!el)return;
+    const old=normalizer(el.value);
+    // Avoid rewriting if the exact value set is already correct: this is the key anti-flicker guard.
+    const same=el.options.length===keys.length && keys.every((k,i)=>el.options[i]?.value===k && el.options[i]?.textContent===k);
+    if(!same){
+      const frag=document.createDocumentFragment();
+      keys.forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=k;frag.appendChild(o);});
+      el.replaceChildren(frag);
+    }
+    el.value=keys.includes(old)?old:keys[0];
+  };
+  function sync(){
+    const type=$('txType'), group=$('txGroup'), cat=$('txCategory');
+    const ft=$('txFilterType'), fg=$('txFilterGroup');
+    const t=norm(type?.value,typeMap)||'Income';
+    setSelect(type,['Income','Expense','Transfer'],v=>norm(v,typeMap));
+    const gKeys=t==='Income'?['Income','Loans']:t==='Expense'?['Expense','Personal','Loans']:['Transfer'];
+    setSelect(group,gKeys,v=>norm(v,groupMap));
+    if(group)group.disabled=t==='Transfer';
+    if(cat){
+      const g=norm(group?.value,groupMap)||gKeys[0];
+      const list=t==='Transfer'?['Transfer']:(g==='Loans'?(t==='Income'?(window.CATS?.LoanIncome||['Debt','Loan Repayment']):(window.CATS?.LoanExpense||['PaidDeb','Loan Out'])):(window.CATS?.[g]||['Other']));
+      setSelect(cat,list,v=>catMap[String(v??'').trim()]||String(v??'').trim());
+    }
+    setSelect(ft,['','Income','Expense','Transfer'],v=>norm(v,typeMap));
+    setSelect(fg,['','Income','Expense','Personal','Loans','Transfer'],v=>norm(v,groupMap));
+    if(typeof window.updateAccountLocks==='function' && window.updateAccountLocks!==sync) {
+      try{window.updateAccountLocks();}catch(_e){}
+    }
+  }
+  function bind(){
+    const t=$('txType'), g=$('txGroup'), langKey='mmhvault_language_v3363';
+    if(t && !t.dataset.v34220Bound){t.addEventListener('change',()=>{sync(); if(typeof window.updateCategories==='function' && window.updateCategories!==sync){try{window.updateCategories();}catch(_e){}}});t.dataset.v34220Bound='1';}
+    if(g && !g.dataset.v34220Bound){g.addEventListener('change',()=>{sync();});g.dataset.v34220Bound='1';}
+    sync();
+    if(!window.__mmhV34220LangBound){
+      window.__mmhV34220LangBound=true;
+      window.addEventListener('mmhvault-language-change',()=>requestAnimationFrame(sync));
+      window.addEventListener('storage',e=>{if(e.key===langKey)requestAnimationFrame(sync)});
+      window.addEventListener('mmhvault:data-loaded',()=>requestAnimationFrame(sync));
+      window.addEventListener('mmhvault:cache-restored',()=>requestAnimationFrame(sync));
+      window.addEventListener('mmhvault:sync-complete',()=>requestAnimationFrame(sync));
+    }
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
+  window.MM_HVAULT_TRANSACTION_LABELS_ENGLISH={version:'3.42.20',stable:true};
+})();
+</script>
