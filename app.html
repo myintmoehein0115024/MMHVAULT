@@ -388,9 +388,7 @@ h1,h2,h3,.title,.value,.kpi,.metric,.page-title,.nav-title{font-family:Manrope,"
 <div aria-label="Wealth snapshot" class="panel wealth-snapshot-v386" id="wealthSnapshotV386"></div>
 <div aria-label="Dashboard 2.0" class="panel mmh-dashboard-v372" id="dashboardCoreV372"></div>
 <div aria-label="Monthly financial report" class="panel mmh-monthly-report-v373" id="monthlyReportV373"></div>
-<div aria-label="Wealth planning" class="panel wealth-planning-v387" id="wealthPlanningV387"></div>
-<div aria-label="Financial milestones" class="panel wealth-milestones-v388" id="wealthMilestonesV388"></div>
-<div class="panel" style="margin-top:20px"><div class="toolbar"><div><h2 style="margin-bottom:3px">Account Overview</h2><div class="sub">Day-to-day cash accounts · native currency + USD equivalent</div></div><div class="actions" style="margin:0"><span class="pill">Cash &amp; Investment Accounts</span></div></div><div class="account-groups" id="accounts"></div></div><div class="grid metrics kpi-polish" id="metrics" style="display:none !important;margin-top:14px"></div><div class="grid two" style="margin-top:14px"><div class="panel"><div class="toolbar"><h2>Asset Allocation</h2><span class="pill">Net Worth Mix</span></div><div id="assetAllocation"></div></div><div class="panel"><div class="toolbar"><h2>Net Worth History</h2><span class="pill">Last 6 Months</span></div><div id="netWorthHistory"></div></div></div><div aria-label="Quick actions" class="dashboard-quick-actions-v371"><button class="btn primary" onclick="setPage('transactions');setTimeout(()=&gt;showTxTab('add'),0)">＋ Add Transaction</button><button class="btn" onclick="setPage('invest');setTimeout(()=&gt;setInvestSubtabV371('add'),0)">＋ Add Investment</button><button class="btn" onclick="setPage('analyze')">📊 Open Analyze</button></div>
+<div class="panel" style="margin-top:20px"><div class="toolbar"><div><h2 style="margin-bottom:3px">Account Overview</h2><div class="sub">Day-to-day cash accounts · native currency + USD equivalent</div></div><div class="actions" style="margin:0"><span class="pill">Cash &amp; Investment Accounts</span></div></div><div class="account-groups" id="accounts"></div></div><div class="grid metrics kpi-polish" id="metrics" style="display:none !important;margin-top:14px"></div><div class="panel" style="margin-top:14px"><div class="toolbar"><h2>Asset Allocation</h2><span class="pill">Net Worth Mix</span></div><div id="assetAllocation"></div></div><div aria-label="Quick actions" class="dashboard-quick-actions-v371"><button class="btn primary" onclick="setPage('transactions');setTimeout(()=&gt;showTxTab('add'),0)">＋ Add Transaction</button><button class="btn" onclick="setPage('invest');setTimeout(()=&gt;setInvestSubtabV371('add'),0)">＋ Add Investment</button><button class="btn" onclick="setPage('analyze')">📊 Open Analyze</button></div>
 <div class="dashboard-details" id="dashboardDetails">
 <div class="grid dash-top">
 <div class="panel"><div class="toolbar"><h2>Income / Expense</h2><span class="pill" id="dashMonthLabel">Current Month</span></div><div id="dashFlow"></div></div>
@@ -413,6 +411,7 @@ h1,h2,h3,.title,.value,.kpi,.metric,.page-title,.nav-title{font-family:Manrope,"
     <div class="panel"><div class="toolbar"><div><h2 data-i18n-en="Milestones" data-i18n-zh="财富里程碑">Milestones</h2><div class="sub" data-i18n-en="Progress toward major net worth milestones." data-i18n-zh="查看净资产重要里程碑的进度。">Progress toward major net worth milestones.</div></div></div><div id="mmhV380Milestones"></div></div>
   </div>
   <div class="panel" style="margin-top:14px"><div class="toolbar"><div><h2 data-i18n-en="Wealth Forecast" data-i18n-zh="财富预测">Wealth Forecast</h2><div class="sub" data-i18n-en="Projection uses your recent savings capacity and excludes market returns." data-i18n-zh="预测基于近期储蓄能力，不包含市场投资回报。">Projection uses your recent savings capacity and excludes market returns.</div></div><span class="pill" data-i18n-en="Scenario view" data-i18n-zh="情景视图">Scenario view</span></div><div id="mmhV380Forecast"></div></div>
+  <div class="panel" style="margin-top:14px" id="wealthPlanningNetWorthHistoryV426"><div class="toolbar"><div><h2 data-i18n-en="Net Worth History" data-i18n-zh="净资产历史">Net Worth History</h2><div class="sub" data-i18n-en="Income and expense movement across the last 6 months." data-i18n-zh="查看最近6个月的收入与支出变化。">Income and expense movement across the last 6 months.</div></div><span class="pill" data-i18n-en="Last 6 Months" data-i18n-zh="最近6个月">Last 6 Months</span></div><div id="netWorthHistory"></div></div>
 </section>
 <section class="page" id="transactions">
 <h1>Transactions</h1><div class="sub">Type controls the money direction. Transaction separates Income / Expense / Personal / Loans; Category changes accordingly. Transfer allows different From / To amounts for fees.</div>
@@ -3596,7 +3595,6 @@ function renderWealthPlanningV387(){
 const _renderDashboardV387Base=renderDashboard;
 renderDashboard=function(){
   _renderDashboardV387Base();
-  renderWealthPlanningV387();
 };
 </script>
 <script id="mmhvault-v388-milestones-js">
@@ -3671,7 +3669,6 @@ function renderWealthMilestonesV388(){
 const _renderDashboardV388Base=renderDashboard;
 renderDashboard=function(){
   _renderDashboardV388Base();
-  renderWealthMilestonesV388();
 };
 </script>
 
@@ -6639,8 +6636,8 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
   function insertPanel(){
     let el=$id('smartAdvisorV370');if(el)return el;
     el=document.createElement('section');el.id='smartAdvisorV370';el.className='panel mmh-advisor-v370';el.setAttribute('aria-label','Smart Financial Advisor');
-    const anchor=$id('wealthPlanningV387')||$id('wealthSnapshotV386')||$id('dashboardHero');
-    if(anchor&&anchor.parentNode)anchor.parentNode.insertBefore(el,anchor.nextSibling); else $id('dashboard')?.prepend(el);
+    const anchor=$id('mmhInsightsSnapshotV340');
+    if(anchor&&anchor.parentNode)anchor.parentNode.insertBefore(el,anchor); else $id('insights')?.appendChild(el);
     return el;
   }
   function buildActions(m,a,as){
@@ -6682,7 +6679,7 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
   const money=v=>{try{return typeof usd==='function'?usd(n(v)):'$'+n(v).toLocaleString(undefined,{maximumFractionDigits:2})}catch(e){return '$'+n(v).toFixed(2)}};
   function panel(){
     let el=document.getElementById(id);
-    if(!el){el=document.createElement('section');el.id=id;el.className='panel mmh-advisor-v370';const anchor=document.getElementById('wealthPlanningV387')||document.getElementById('wealthSnapshotV386')||document.getElementById('dashboardHero');if(anchor&&anchor.parentNode)anchor.parentNode.insertBefore(el,anchor.nextSibling);else {const dash=document.getElementById('dashboard');if(dash)dash.prepend(el)}}
+    if(!el){el=document.createElement('section');el.id=id;el.className='panel mmh-advisor-v370';const anchor=document.getElementById('mmhInsightsSnapshotV340');if(anchor&&anchor.parentNode)anchor.parentNode.insertBefore(el,anchor);else {const ins=document.getElementById('insights');if(ins)ins.appendChild(el)}}
     return el;
   }
   function safeRows(){try{return Array.isArray(window.transactions)?window.transactions:[]}catch(e){return []}}
@@ -7538,7 +7535,7 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
 })();
 </script>
 
-<!-- MMHVAULT V3.42.5 · Financial Data Labels Stay English -->
+<!-- MMHVAULT V3.42.6 · Financial Data Labels Stay English -->
 <style id="mmhvault-v3425-financial-label-style">
 /* Financial data labels intentionally remain English in all UI languages. */
 </style>
@@ -7615,7 +7612,7 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
 </body>
 
 <script id="mmhvault-v3424-transaction-i18n-values-fix">
-/* MMHVAULT V3.42.5 · Transaction language-safe option values.
+/* MMHVAULT V3.42.6 · Transaction language-safe option values.
    Keep machine values in English while allowing visible labels to be translated. */
 (function(){
   const byId=id=>document.getElementById(id);
@@ -7815,7 +7812,7 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
 
 
 <script id="mmhvault-v3422-insights-data-fix">
-/* MMHVAULT V3.42.5 · Insights THB investment conversion fix.
+/* MMHVAULT V3.42.6 · Insights THB investment conversion fix.
    Reuse the canonical transaction/account calculations and rerender after cloud data loads. */
 (function(){
   const N=v=>{const n=Number(v);return Number.isFinite(n)?n:0};
@@ -7910,7 +7907,7 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
       spendEl.innerHTML=rows.length?rows.map(([c,v],i)=>`<div class="mmh-spend-row-v340"><div class="name">${i+1}. ${c}</div><div class="bar"><div class="mmh-progress-v340"><span style="width:${Math.max(4,(v/max)*100)}%"></span></div><div class="meta" style="margin-top:4px">${a3?tr('Compared with the recent 3-month average','对比最近3个月平均支出')+': '+pct((v/a3)*100):tr('Current month','本月')}</div></div><div class="amt">${money(v)}</div></div>`).join(''):`<div class="small">${tr('No ordinary spending recorded for this month.','本月暂无日常支出记录。')}</div>`;
       const invPct=net?invTHB/net*100:0;
       snapEl.innerHTML=`<div class="mmh-insights-grid-v340"><div>${[['💰',tr('Current Net Worth','当前净资产'),money(net),tr('Cash + investment value','现金 + 投资估值')],['💧',tr('Cash Assets','现金资产'),money(cash),tr('Available cash accounts','现金账户余额')],['📈',tr('Investments','投资资产'),money(invTHB),tr('Current investment valuation','当前投资估值')]].map(r=>`<div class="mmh-insight-card-v340"><div class="mmh-insight-icon-v340">${r[0]}</div><div><div class="mmh-insight-title-v340">${r[1]}</div><div class="mmh-insight-desc-v340">${r[3]}</div></div><div class="amt">${r[2]}</div></div>`).join('')}</div><div style="padding:6px 2px"><div class="small" style="margin-bottom:8px">${tr('Investment weight','投资占比')} · ${pct(invPct)}</div><div class="mmh-progress-v340"><span style="width:${Math.min(100,invPct)}%"></span></div><div class="small" style="margin-top:8px">${invPct>80?tr('Investment concentration deserves a review.','投资占比偏高，建议关注集中度。'):tr('Current investment weight is within the 80% review threshold.','当前投资占比处于 80% 关注阈值以内。')}</div></div></div>`;
-    }catch(err){console.warn('V3.42.5 Insights render failed',err);}
+    }catch(err){console.warn('V3.42.6 Insights render failed',err);}
   }
   function bind(){
     window.renderInsightsV340=render;
@@ -7926,7 +7923,7 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
 </script>
 
 <script id="mmhvault-v3424-transaction-i18n-values-fix">
-/* MMHVAULT V3.42.5 · Transaction language-safe option values.
+/* MMHVAULT V3.42.6 · Transaction language-safe option values.
    Keep machine values in English while allowing visible labels to be translated. */
 (function(){
   const byId=id=>document.getElementById(id);
@@ -8041,3 +8038,23 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
 </script>
 
 </html>
+
+<!-- MMHVAULT V3.42.6 · Planning/Insights organization -->
+<script id="mmhvault-v3426-organization-fix">
+(function(){
+  function moveAdvisor(){
+    const el=document.getElementById('smartAdvisorV370'), host=document.getElementById('insights'), anchor=document.getElementById('mmhInsightsSnapshotV340');
+    if(!el||!host)return;
+    if(anchor&&el.parentNode!==host){host.insertBefore(el,anchor);return;}
+    if(el.parentNode!==host){host.appendChild(el);}
+  }
+  function refresh(){
+    try{ if(typeof window.renderSmartFinancialAdvisorV370==='function') window.renderSmartFinancialAdvisorV370(); }catch(e){}
+    moveAdvisor();
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(refresh,300),{once:true});else setTimeout(refresh,300);
+  window.addEventListener('mmhvault:data-loaded',()=>setTimeout(refresh,100));
+  window.addEventListener('mmhvault-language-change',()=>setTimeout(refresh,30));
+  document.addEventListener('click',e=>{if(e.target?.closest?.('[data-page="insights"]'))setTimeout(refresh,80);});
+})();
+</script>
