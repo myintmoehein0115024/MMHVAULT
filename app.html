@@ -617,12 +617,13 @@ h1,h2,h3,.title,.value,.kpi,.metric,.page-title,.nav-title{font-family:Manrope,"
     if(n) n.textContent=`${nb.getFullYear()}-${pad(nb.getMonth()+1)}-${pad(nb.getDate())}`;
     if(c) c.textContent=zh?`${days}天 ${hrs}小时 ${mins}分 ${secs}秒`:`${days}d ${hrs}h ${mins}m ${secs}s`;
   }
+  function tick(){render();window.dispatchEvent(new CustomEvent('mmhvault:age-tick'));}
   const bind=()=>{
     const input=document.getElementById('mmhBirthDateInputV34215');
     if(input&&!input.__v34216){ input.__v34216=true; input.value=getBirthISO(); input.addEventListener('change',()=>{const v=input.value; if(/^\d{4}-\d{2}-\d{2}$/.test(v)){localStorage.setItem(KEY,v); render(); window.dispatchEvent(new CustomEvent('mmhvault-birthday-change'));}}); }
     render();
   };
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{bind();setInterval(render,1000)},{once:true}); else {bind();setInterval(render,1000);}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{bind();setInterval(()=>{if(document.visibilityState!=='hidden' && (document.getElementById('dashboard')?.classList.contains('active') || document.getElementById('settings')?.classList.contains('active')))tick();},1000)},{once:true}); else {bind();setInterval(()=>{if(document.visibilityState!=='hidden' && (document.getElementById('dashboard')?.classList.contains('active') || document.getElementById('settings')?.classList.contains('active')))tick();},1000);}
   window.addEventListener('languagechange',render);
   window.addEventListener('mmhvault-birthday-change',render);
 })();
@@ -6839,7 +6840,8 @@ function apply(){document.documentElement.lang=lang==='zh'?'zh-CN':'en';walk(doc
 window.setMMHVAULTLanguage=function(next){lang=next;localStorage.setItem('mmhvault_language_v3363',lang);apply();setTimeout(apply,80);};
 document.addEventListener('click',e=>{const b=e.target.closest('.language-choice-v3363');if(b)window.setMMHVAULTLanguage(b.dataset.lang);});
 document.addEventListener('DOMContentLoaded',()=>{apply();setTimeout(apply,300);});
-const mo=new MutationObserver(()=>{if(lang==='zh')apply();});
+let moQueued=false;
+const mo=new MutationObserver(()=>{if(lang!=='zh'||moQueued)return;moQueued=true;const run=()=>{moQueued=false;apply();};if(typeof requestAnimationFrame==='function')requestAnimationFrame(run);else setTimeout(run,0);});
 document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{childList:true,subtree:true}));
 })();
 </script>
@@ -8121,6 +8123,7 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
       chip.classList.toggle('warn',status==='Watch'); chip.classList.toggle('bad',status==='Needs Attention');
       const tm=$('mmhCommandTimeV34210'); if(tm)tm.textContent=now.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
       const path=$('mmhCommandSparkV34210'); if(path){const amp=Math.min(28,Math.max(8,Math.abs(cur.save)/(Math.max(1,cur.inc))*46)); path.setAttribute('d',`M0,96 C55,${88-amp/2} 80,${82+amp/4} 120,${88-amp/3} S190,${74-amp/2} 232,${79+amp/5} S300,${60-amp} 345,${68+amp/3} S420,${48-amp/2} 462,${56+amp/3} S530,${34-amp/2} 600,${40}`);}
+      window.dispatchEvent(new CustomEvent('mmhvault:dashboard-rendered'));
     }catch(e){console.warn('MMHVAULT v34210 command center render skipped',e);}
   }
   const old=window.renderDashboard; if(typeof old==='function'&&!old.__mmhV34210){const wrapped=function(){const r=old.apply(this,arguments);setTimeout(render,60);return r;};wrapped.__mmhV34210=true;window.renderDashboard=wrapped;}
@@ -8155,7 +8158,7 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
   }
   ['mmhvault:data-loaded','mmhvault:cache-restored','mmhvault:sync-complete'].forEach(ev=>window.addEventListener(ev,()=>setTimeout(render,140)));
   window.addEventListener('storage',e=>{if(e.key==='mmhvault_language_v3363')setTimeout(languageFix,80)});
-  setInterval(()=>{if(document.visibilityState!=='hidden' && document.getElementById('dashboard')?.classList.contains('active'))render();},60000);
+  window.addEventListener('mmhvault:dashboard-rendered',()=>requestAnimationFrame(render),{passive:true});
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(render,240),{once:true});else setTimeout(render,240);
 })();
 </script>
@@ -8238,7 +8241,7 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
   window.addEventListener('mmhvault:data-loaded',()=>setTimeout(apply,80));
   window.addEventListener('mmhvault:sync-complete',()=>setTimeout(apply,80));
   window.addEventListener('mmhvault:cache-restored',()=>setTimeout(apply,80));
-  setInterval(()=>{if(document.visibilityState!=='hidden' && document.getElementById('dashboard')?.classList.contains('active'))apply();},60000);
+  window.addEventListener('mmhvault:dashboard-rendered',()=>requestAnimationFrame(apply),{passive:true});
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(apply,220),{once:true});else setTimeout(apply,220);
 })();
 </script>
@@ -9061,7 +9064,7 @@ body::before{background-attachment:scroll!important}
   }
   ['mmhvault-birthday-change','mmhvault-language-change','mmhvault:data-loaded','mmhvault:cache-restored','mmhvault:sync-complete'].forEach(ev=>window.addEventListener(ev,()=>setTimeout(render,80)));
   window.addEventListener('storage',e=>{if(e.key==='mmhvault_language_v3363'||e.key==='mmhvault_birth_date_v34216')setTimeout(render,80);});
-  setInterval(()=>{if(document.visibilityState!=='hidden' && (document.getElementById('dashboard')?.classList.contains('active') || document.getElementById('settings')?.classList.contains('active')))render();},1000);
+  window.addEventListener('mmhvault:age-tick',()=>{if(document.visibilityState!=='hidden' && document.getElementById('dashboard')?.classList.contains('active'))render();},{passive:true});
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(render,220),{once:true}); else setTimeout(render,220);
 })();
 </script>
@@ -9276,3 +9279,5 @@ body::before{background-attachment:scroll!important}
   window.MM_HVAULT_TRANSACTION_LABELS_ENGLISH={version:'3.42.20',stable:true};
 })();
 </script>
+
+<!-- MMHVAULT V3.42.35 · Performance Architecture v1 Step 1: Dynamic Render Cleanup -->
