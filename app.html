@@ -348,7 +348,7 @@ h1,h2,h3,.title,.value,.kpi,.metric,.page-title,.nav-title{font-family:Manrope,"
 </style>
 
 <style id="mmhvault-v34212-dashboard-command-visuals">
-/* MMHVAULT V3.42.16 — Dashboard Command Center visual system. Additive + dashboard scoped. */
+/* MMHVAULT V3.42.17 — Dashboard Command Center visual system. Additive + dashboard scoped. */
 #dashboard{position:relative;isolation:isolate;overflow:visible}
 #dashboard:before{content:"";position:absolute;left:-3vw;right:-3vw;top:0;height:760px;pointer-events:none;z-index:-2;background:
  radial-gradient(circle at 76% 8%,rgba(72,176,255,.22),transparent 24%),
@@ -458,7 +458,7 @@ h1,h2,h3,.title,.value,.kpi,.metric,.page-title,.nav-title{font-family:Manrope,"
 <button class="btn" onclick="retryLoadAllV384()" type="button">Retry</button>
 </div>
 <header id="header" style="display:none">
-<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.42.16</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
+<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.42.17</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
 <div class="header-spacer"></div>
 <div aria-label="Signed in user" class="header-profile" id="headerProfile">
 <div class="header-avatar" id="headerAvatar">MF</div>
@@ -565,13 +565,13 @@ h1,h2,h3,.title,.value,.kpi,.metric,.page-title,.nav-title{font-family:Manrope,"
 <div aria-label="Wealth snapshot" class="panel wealth-snapshot-v386" id="wealthSnapshotV386"></div>
 <div aria-label="Dashboard 2.0" class="panel mmh-dashboard-v372" id="dashboardCoreV372"></div>
 <div aria-label="Monthly financial report" class="panel mmh-monthly-report-v373" id="monthlyReportV373"></div>
-<div class="panel" style="margin-top:20px"><div class="toolbar"><div><h2 style="margin-bottom:3px">Account Overview</h2><div class="sub">Day-to-day cash accounts · native currency + USD equivalent</div></div><div class="actions" style="margin:0"><span class="pill">Cash &amp; Investment Accounts</span></div></div><div class="account-groups" id="accounts"></div></div><div class="grid metrics kpi-polish" id="metrics" style="display:none !important;margin-top:14px"></div><div class="panel" style="margin-top:14px"><div class="toolbar"><h2>Asset Allocation</h2><span class="pill">Net Worth Mix</span></div><div id="assetAllocation"></div></div><div aria-label="Quick actions" class="dashboard-quick-actions-v371"><button class="btn primary" onclick="setPage('transactions');setTimeout(()=&gt;showTxTab('add'),0)">＋ Add Transaction</button><button class="btn" onclick="setPage('invest');setTimeout(()=&gt;setInvestSubtabV371('add'),0)">＋ Add Investment</button><button class="btn" onclick="setPage('analyze')">📊 Open Analyze</button></div>
+<div class="panel dashboard-premium-panel dashboard-account-panel" style="margin-top:20px"><div class="toolbar"><div><h2 style="margin-bottom:3px">Account Overview</h2><div class="sub">Day-to-day cash accounts · native currency + USD equivalent</div></div><div class="actions" style="margin:0"><span class="pill">Cash &amp; Investment Accounts</span></div></div><div class="account-groups" id="accounts"></div></div><div class="grid metrics kpi-polish" id="metrics" style="display:none !important;margin-top:14px"></div><div class="panel dashboard-premium-panel dashboard-allocation-panel" style="margin-top:14px"><div class="toolbar"><h2>Asset Allocation</h2><span class="pill">Net Worth Mix</span></div><div id="assetAllocation"></div></div><div aria-label="Quick actions" class="dashboard-quick-actions-v371"><button class="btn primary" onclick="setPage('transactions');setTimeout(()=&gt;showTxTab('add'),0)">＋ Add Transaction</button><button class="btn" onclick="setPage('invest');setTimeout(()=&gt;setInvestSubtabV371('add'),0)">＋ Add Investment</button><button class="btn" onclick="setPage('analyze')">📊 Open Analyze</button></div>
 <div class="dashboard-details" id="dashboardDetails">
 <div class="grid dash-top">
 <div class="panel"><div class="toolbar"><h2>Income / Expense</h2><span class="pill" id="dashMonthLabel">Current Month</span></div><div id="dashFlow"></div></div>
 <div class="panel"><div class="toolbar"><h2>Investment Snapshot</h2><span class="pill">Current holdings</span></div><div id="dashInvest"></div></div>
 </div>
-<div class="panel"><div class="toolbar"><h2>Recent Transactions</h2><div class="actions" style="margin:0"><span class="pill" id="dashTxCount">0 shown</span><button class="btn" onclick="setPage('transactions');setTimeout(()=&gt;showTxTab('history'),0)" type="button">View All →</button></div></div><div class="scroll" id="dashRecent"></div></div>
+<div class="panel dashboard-premium-panel dashboard-recent-panel"><div class="toolbar"><h2>Recent Transactions</h2><div class="actions" style="margin:0"><span class="pill" id="dashTxCount">0 shown</span><button class="btn" onclick="setPage('transactions');setTimeout(()=&gt;showTxTab('history'),0)" type="button">View All →</button></div></div><div class="scroll" id="dashRecent"></div></div>
 </div>
 </section>
 
@@ -8245,7 +8245,7 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
       if(state){const status=d.cur.rate>=60?'Financial state is healthy':d.cur.rate>=40?'Savings are close to target':'Savings need attention';state.innerHTML='<span></span> '+status;state.classList.toggle('warn',d.cur.rate<60&&d.cur.rate>=40);state.classList.toggle('bad',d.cur.rate<40);}
       const t=$('mmhCommandTimeV34210');if(t)t.textContent=new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
       const path=$('mmhCommandSparkV34210');if(path){const ratio=d.cur.inc?Math.max(-.8,Math.min(.8,d.cur.save/d.cur.inc)):0;const base=72,amp=18+Math.abs(ratio)*18;const lift=ratio>=0?amp:-amp*.55;path.setAttribute('d',`M0,${base+8} C65,${base+lift*.3} 92,${base-4} 140,${base+lift*.1} S220,${base+lift*.65} 286,${base-lift*.2} S360,${base-lift*.75} 420,${base-lift*.1} S510,${base-lift*.9} 600,${base-lift}`);}
-    }catch(e){console.warn('V3.42.16 dashboard fix skipped',e)}
+    }catch(e){console.warn('V3.42.17 dashboard fix skipped',e)}
   }
   window.addEventListener('mmhvault:data-loaded',()=>setTimeout(apply,80));
   window.addEventListener('mmhvault:sync-complete',()=>setTimeout(apply,80));
@@ -8751,7 +8751,7 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
 </script>
 
 <style id="mmhvault-v34216-dashboard-stage-harmony-css">
-/* MMHVAULT V3.42.16 — Command Center light extended + full dashboard stage harmony. */
+/* MMHVAULT V3.42.17 — Command Center light extended + full dashboard stage harmony. */
 #dashboard .mmh-command-v34210{
   background:linear-gradient(135deg,rgba(5,16,34,.96),rgba(7,18,38,.80) 46%,rgba(5,11,24,.95))!important;
   border-color:rgba(97,190,255,.28)!important;
@@ -8891,7 +8891,7 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
 
 
 <style id="mmhvault-v34214-dashboard-stage-css">
-/* MMHVAULT V3.42.16 — Dashboard stage lighting + coordinated panel surfaces. */
+/* MMHVAULT V3.42.17 — Dashboard stage lighting + coordinated panel surfaces. */
 #dashboardCommandCenterV34210{
   --stage-blue:rgba(66,190,255,.16);
   --stage-gold:rgba(246,199,92,.15);
@@ -9033,3 +9033,135 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
   else setTimeout(refresh,240);
 })();
 </script>
+
+
+<style id="mmhvault-v34217-dashboard-supporting-visuals">
+/* V3.42.17 — Supporting Dashboard panels. Wealth Command Center is intentionally untouched. */
+#dashboard .dashboard-premium-panel{
+  position:relative!important;overflow:hidden!important;isolation:isolate;
+  background:
+    linear-gradient(145deg,rgba(7,22,45,.96),rgba(6,16,34,.92) 46%,rgba(4,11,25,.97))!important;
+  border:1px solid rgba(103,191,255,.28)!important;
+  box-shadow:
+    0 18px 70px rgba(0,0,0,.30),
+    inset 0 1px 0 rgba(255,255,255,.03),
+    inset 0 0 55px rgba(64,157,255,.055),
+    0 0 68px rgba(42,143,255,.06)!important;
+  transition:transform .35s ease,box-shadow .35s ease,border-color .35s ease,background .35s ease;
+}
+#dashboard .dashboard-premium-panel::before{
+  content:"";position:absolute;inset:-45%;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 30% 24% at 20% 22%,rgba(71,197,255,.14),transparent 70%),
+    radial-gradient(ellipse 28% 26% at 82% 76%,rgba(247,201,93,.11),transparent 72%),
+    linear-gradient(116deg,transparent 30%,rgba(70,190,255,.055) 43%,rgba(247,201,93,.05) 49%,transparent 62%);
+  mix-blend-mode:screen;filter:blur(10px);opacity:.78;transform:translate3d(-6%,0,0) rotate(-2deg);
+  animation:mmh34217Aura 12s ease-in-out infinite alternate;
+}
+#dashboard .dashboard-premium-panel::after{
+  content:"";position:absolute;inset:0;z-index:0;pointer-events:none;
+  background:
+    repeating-linear-gradient(90deg,transparent 0 72px,rgba(108,191,246,.018) 73px 74px),
+    repeating-linear-gradient(180deg,transparent 0 58px,rgba(108,191,246,.012) 59px 60px),
+    linear-gradient(115deg,transparent 0 47%,rgba(90,196,255,.035) 49%,transparent 52%);
+  opacity:.9;mix-blend-mode:screen;animation:mmh34217Grid 18s linear infinite;
+}
+#dashboard .dashboard-premium-panel > *{position:relative;z-index:2}
+#dashboard .dashboard-premium-panel .toolbar{position:relative;z-index:4}
+#dashboard .dashboard-premium-panel .toolbar h2{font-weight:900;letter-spacing:-.02em;text-shadow:0 0 22px rgba(84,186,255,.08)}
+#dashboard .dashboard-premium-panel .sub{color:#a9bbd6}
+#dashboard .dashboard-premium-panel .pill{background:rgba(8,22,45,.68);border-color:rgba(96,191,255,.24);box-shadow:0 0 22px rgba(61,167,255,.05)}
+
+/* Account Overview: luminous account rows + an ambient sweep. */
+#dashboard .dashboard-account-panel{
+  --panel-accent:rgba(66,190,255,.18);
+  background:
+    radial-gradient(circle at 18% 82%,rgba(68,193,255,.08),transparent 28%),
+    radial-gradient(circle at 88% 18%,rgba(245,199,92,.075),transparent 24%),
+    linear-gradient(145deg,rgba(6,24,48,.97),rgba(6,17,37,.92) 50%,rgba(4,12,27,.97))!important;
+}
+#dashboard .dashboard-account-panel .account-groups{margin-top:12px}
+#dashboard .dashboard-account-panel .account-groups > *{
+  position:relative;overflow:hidden;border:1px solid rgba(95,176,236,.12);border-radius:16px!important;
+  background:linear-gradient(100deg,rgba(255,255,255,.028),rgba(73,171,240,.035) 52%,rgba(246,198,92,.018));
+  box-shadow:inset 0 0 30px rgba(66,188,255,.018);transition:transform .25s ease,border-color .25s ease,box-shadow .25s ease;
+}
+#dashboard .dashboard-account-panel .account-groups > *::after{
+  content:"";position:absolute;left:-20%;right:-20%;top:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(76,202,255,.75),rgba(247,201,93,.60),transparent);
+  opacity:.35;transform:translateX(-30%);animation:mmh34217Sweep 7s linear infinite;
+}
+#dashboard .dashboard-account-panel .account-groups > *:hover{
+  transform:translateY(-2px) translateX(2px);border-color:rgba(102,202,255,.26);box-shadow:0 12px 30px rgba(0,0,0,.18),inset 0 0 34px rgba(70,160,255,.035)
+}
+
+/* Asset Allocation: animated ring / light field behind the existing allocation bars. */
+#dashboard .dashboard-allocation-panel{
+  background:
+    radial-gradient(circle at 78% 28%,rgba(246,198,92,.08),transparent 26%),
+    radial-gradient(circle at 24% 76%,rgba(74,193,255,.09),transparent 28%),
+    linear-gradient(145deg,rgba(7,24,48,.97),rgba(6,16,35,.93) 48%,rgba(4,11,25,.97))!important;
+}
+#dashboard .dashboard-allocation-panel #assetAllocation{position:relative;min-height:150px;padding:8px 4px}
+#dashboard .dashboard-allocation-panel #assetAllocation::before{
+  content:"";position:absolute;inset:6% 22% 6% 22%;border-radius:50%;
+  background:conic-gradient(from 0deg,rgba(71,195,255,.03),rgba(241,197,94,.11),rgba(71,195,255,.03),rgba(214,140,255,.09),rgba(71,195,255,.03));
+  filter:blur(10px);opacity:.7;animation:mmh34217Orbit 16s linear infinite;
+}
+#dashboard .dashboard-allocation-panel #assetAllocation > *{position:relative;z-index:2}
+
+/* Recent Transactions: timeline scan line and richer row surfaces without changing data. */
+#dashboard .dashboard-recent-panel{
+  background:
+    radial-gradient(circle at 88% 24%,rgba(69,194,255,.075),transparent 28%),
+    radial-gradient(circle at 15% 84%,rgba(247,201,93,.055),transparent 28%),
+    linear-gradient(145deg,rgba(6,24,48,.97),rgba(6,16,35,.93) 52%,rgba(4,11,25,.97))!important;
+}
+#dashboard .dashboard-recent-panel .scroll{position:relative;padding-top:8px}
+#dashboard .dashboard-recent-panel .scroll::before{
+  content:"";position:absolute;top:2px;bottom:2px;left:0;width:2px;border-radius:3px;
+  background:linear-gradient(180deg,transparent,rgba(73,196,255,.35) 20%,rgba(245,199,93,.8) 50%,rgba(73,196,255,.35) 80%,transparent);
+  opacity:.45;animation:mmh34217Pulse 5.5s ease-in-out infinite;
+}
+#dashboard .dashboard-recent-panel tr{transition:background .22s ease,transform .22s ease}
+#dashboard .dashboard-recent-panel tr:hover{background:rgba(77,180,255,.035);transform:translateX(2px)}
+#dashboard .dashboard-recent-panel td{position:relative}
+
+#dashboard .dashboard-premium-panel:hover{
+  transform:translateY(-3px)!important;border-color:rgba(111,203,255,.34)!important;
+  box-shadow:0 24px 78px rgba(0,0,0,.34),0 0 88px rgba(48,151,255,.09),inset 0 0 62px rgba(60,146,255,.045)!important;
+}
+@keyframes mmh34217Aura{0%{transform:translate3d(-6%,0,0) rotate(-2deg) scale(1);opacity:.68}50%{transform:translate3d(2%,1%,0) rotate(1deg) scale(1.04);opacity:.92}100%{transform:translate3d(7%,-1%,0) rotate(-1deg) scale(1.02);opacity:.74}}
+@keyframes mmh34217Grid{0%{transform:translateX(-1%)}50%{transform:translateX(1.2%)}100%{transform:translateX(-1%)}}
+@keyframes mmh34217Sweep{0%{transform:translateX(-35%);opacity:0}20%{opacity:.55}65%{opacity:.4}100%{transform:translateX(35%);opacity:0}}
+@keyframes mmh34217Orbit{to{transform:rotate(360deg)}}
+@keyframes mmh34217Pulse{0%,100%{opacity:.22;filter:blur(0)}50%{opacity:.7;filter:blur(1px)}}
+@media(max-width:720px){
+  #dashboard .dashboard-allocation-panel #assetAllocation{min-height:120px}
+  #dashboard .dashboard-allocation-panel #assetAllocation::before{inset:8% 10%}
+}
+@media(prefers-reduced-motion:reduce){
+  #dashboard .dashboard-premium-panel::before,#dashboard .dashboard-premium-panel::after,
+  #dashboard .dashboard-account-panel .account-groups > *::after,
+  #dashboard .dashboard-allocation-panel #assetAllocation::before,
+  #dashboard .dashboard-recent-panel .scroll::before{animation:none!important}
+}
+</style>
+<script id="mmhvault-v34217-dashboard-supporting-js">
+(function(){
+  if(window.__mmhV34217DashboardSupportingInstalled)return;
+  window.__mmhV34217DashboardSupportingInstalled=true;
+  function ensure(){
+    const d=document.getElementById('dashboard'); if(!d)return;
+    const rules=[['Account Overview','dashboard-premium-panel dashboard-account-panel'],['Asset Allocation','dashboard-premium-panel dashboard-allocation-panel'],['Recent Transactions','dashboard-premium-panel dashboard-recent-panel']];
+    d.querySelectorAll('.panel').forEach(p=>{
+      const t=(p.querySelector('.toolbar h2')?.textContent||'').trim();
+      const r=rules.find(x=>x[0]===t); if(r) r[1].split(' ').forEach(c=>p.classList.add(c));
+    });
+  }
+  const run=()=>{try{ensure()}catch(e){}};
+  ['mmhvault:data-loaded','mmhvault:cache-restored','mmhvault:sync-complete','mmhvault-language-change'].forEach(ev=>window.addEventListener(ev,()=>setTimeout(run,120)));
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(run,180),{once:true}); else setTimeout(run,180);
+})();
+</script>
+
