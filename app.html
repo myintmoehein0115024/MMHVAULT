@@ -335,7 +335,7 @@ h1,h2,h3,.title,.value,.kpi,.metric,.page-title,.nav-title{font-family:Manrope,"
 </style>
 
 <style id="mmhvault-v34212-dashboard-command-visuals">
-/* MMHVAULT V3.42.12 — Dashboard Command Center visual system. Additive + dashboard scoped. */
+/* MMHVAULT V3.42.13 — Dashboard Command Center visual system. Additive + dashboard scoped. */
 #dashboard{position:relative;isolation:isolate;overflow:visible}
 #dashboard:before{content:"";position:absolute;left:-3vw;right:-3vw;top:0;height:760px;pointer-events:none;z-index:-2;background:
  radial-gradient(circle at 76% 8%,rgba(72,176,255,.22),transparent 24%),
@@ -445,7 +445,7 @@ h1,h2,h3,.title,.value,.kpi,.metric,.page-title,.nav-title{font-family:Manrope,"
 <button class="btn" onclick="retryLoadAllV384()" type="button">Retry</button>
 </div>
 <header id="header" style="display:none">
-<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.42.12</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
+<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.42.13</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
 <div class="header-spacer"></div>
 <div aria-label="Signed in user" class="header-profile" id="headerProfile">
 <div class="header-avatar" id="headerAvatar">MF</div>
@@ -497,6 +497,21 @@ h1,h2,h3,.title,.value,.kpi,.metric,.page-title,.nav-title{font-family:Manrope,"
 </div>
 <div class="pill" id="dashboardCustomerBadge">Customer</div>
 </div>
+
+<style id="mmhvault-v34213-age-strip-css">
+.mmh-age-strip-v34213{position:relative;display:grid;grid-template-columns:1.35fr .85fr .85fr;gap:12px;align-items:stretch;margin:14px 0 18px;padding:12px 14px;border:1px solid rgba(86,145,235,.28);border-radius:18px;background:linear-gradient(110deg,rgba(7,18,38,.86),rgba(10,25,46,.72),rgba(6,14,30,.9));overflow:hidden;box-shadow:0 12px 30px rgba(0,0,0,.16),inset 0 1px 0 rgba(255,255,255,.035)}
+.mmh-age-strip-v34213:before{content:"";position:absolute;inset:-60% -10%;background:radial-gradient(circle at 20% 50%,rgba(72,214,255,.12),transparent 26%),radial-gradient(circle at 82% 50%,rgba(242,197,93,.10),transparent 24%);animation:mmhAgeGlow34213 8s ease-in-out infinite alternate;pointer-events:none}
+.mmh-age-strip-v34213>*{position:relative;z-index:1}
+.mmh-age-main-v34213{display:flex;align-items:center;gap:12px;min-width:0}
+.mmh-age-icon-v34213{width:42px;height:42px;flex:0 0 42px;border-radius:13px;display:grid;place-items:center;background:linear-gradient(145deg,rgba(75,216,255,.14),rgba(233,141,255,.12));border:1px solid rgba(110,178,255,.25);box-shadow:0 0 28px rgba(76,191,255,.10);font-size:20px}
+.mmh-age-copy-v34213{min-width:0}.mmh-age-kicker-v34213{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:#f2c55d;font-weight:900}.mmh-age-title-v34213{margin-top:3px;font-size:16px;font-weight:900;color:var(--text)}.mmh-age-sub-v34213{margin-top:2px;font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mmh-age-value-v34213{font-size:24px;font-weight:950;letter-spacing:.01em;color:#fff;text-shadow:0 0 24px rgba(80,210,255,.12);font-variant-numeric:tabular-nums}.mmh-age-meta-v34213{margin-top:3px;font-size:10px;color:var(--muted)}
+.mmh-age-stat-v34213{padding:8px 10px;border-radius:13px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.05)}
+.mmh-age-stat-v34213 .label{display:block;font-size:9px;color:#7f91b6;text-transform:uppercase;letter-spacing:.08em}.mmh-age-stat-v34213 b{display:block;margin-top:4px;font-size:15px;color:#dce8ff;font-variant-numeric:tabular-nums}.mmh-age-stat-v34213 small{display:block;margin-top:3px;font-size:9px;color:#66779f}
+@keyframes mmhAgeGlow34213{from{transform:translate3d(-1%,0,0) scale(1)}to{transform:translate3d(2%,1%,0) scale(1.04)}}
+@media(max-width:860px){.mmh-age-strip-v34213{grid-template-columns:1fr 1fr}.mmh-age-main-v34213{grid-column:1/-1}}
+@media(max-width:560px){.mmh-age-strip-v34213{grid-template-columns:1fr}.mmh-age-main-v34213{grid-column:auto}.mmh-age-sub-v34213{white-space:normal}}
+</style>
 <section class="mmh-command-v34210" id="dashboardCommandCenterV34210" aria-label="Dashboard Command Center">
   <div class="mmh-command-orbit" aria-hidden="true"><span></span><i></i><b></b></div>
   <div class="mmh-command-gridline" aria-hidden="true"></div>
@@ -531,6 +546,27 @@ h1,h2,h3,.title,.value,.kpi,.metric,.page-title,.nav-title{font-family:Manrope,"
     </div>
   </div>
 </section>
+<section class="mmh-age-strip-v34213" id="mmhAgeStripV34213" aria-label="Personal age">
+  <div class="mmh-age-main-v34213">
+    <div class="mmh-age-icon-v34213" aria-hidden="true">🎂</div>
+    <div class="mmh-age-copy-v34213">
+      <div class="mmh-age-kicker-v34213" data-i18n-en="PERSONAL TIME" data-i18n-zh="个人时间">PERSONAL TIME</div>
+      <div class="mmh-age-title-v34213" data-i18n-en="Your age in real time" data-i18n-zh="您的实时年龄">Your age in real time</div>
+      <div class="mmh-age-sub-v34213"><span data-i18n-en="Birth date" data-i18n-zh="出生日期">Birth date</span>: <b>2002-03-21</b></div>
+    </div>
+  </div>
+  <div class="mmh-age-stat-v34213">
+    <span class="label" data-i18n-en="CURRENT AGE" data-i18n-zh="当前年龄">CURRENT AGE</span>
+    <b id="mmhAgeValueV34213">24 years, 5 months, 18 days</b>
+    <small id="mmhAgeMetaV34213">24</small>
+  </div>
+  <div class="mmh-age-stat-v34213">
+    <span class="label" data-i18n-en="NEXT BIRTHDAY" data-i18n-zh="下次生日">NEXT BIRTHDAY</span>
+    <b id="mmhNextBirthdayV34213">2027-03-21</b>
+    <small id="mmhBirthdayCountdownV34213">—</small>
+  </div>
+</section>
+
 <div class="hero-networth" id="dashboardHero"></div>
 <div aria-label="Wealth snapshot" class="panel wealth-snapshot-v386" id="wealthSnapshotV386"></div>
 <div aria-label="Dashboard 2.0" class="panel mmh-dashboard-v372" id="dashboardCoreV372"></div>
@@ -544,6 +580,41 @@ h1,h2,h3,.title,.value,.kpi,.metric,.page-title,.nav-title{font-family:Manrope,"
 <div class="panel"><div class="toolbar"><h2>Recent Transactions</h2><div class="actions" style="margin:0"><span class="pill" id="dashTxCount">0 shown</span><button class="btn" onclick="setPage('transactions');setTimeout(()=&gt;showTxTab('history'),0)" type="button">View All →</button></div></div><div class="scroll" id="dashRecent"></div></div>
 </div>
 </section>
+
+
+<script id="mmhvault-v34213-age-js">
+(function(){
+  if(window.__mmhAgeV34213Installed)return; window.__mmhAgeV34213Installed=true;
+  const birth=new Date(2002,2,21,0,0,0);
+  const TLocal=(en,zh)=>typeof T==='function'?T(en,zh):(document.documentElement.lang==='zh-CN'?zh:en);
+  const pad=n=>String(n).padStart(2,'0');
+  function parts(now){
+    let years=now.getFullYear()-birth.getFullYear();
+    let anchor=new Date(birth); anchor.setFullYear(birth.getFullYear()+years);
+    if(now<anchor){years--; anchor=new Date(birth); anchor.setFullYear(birth.getFullYear()+years);}
+    let months=now.getMonth()-anchor.getMonth();
+    if(months<0){months+=12;}
+    let monthAnchor=new Date(anchor); monthAnchor.setMonth(anchor.getMonth()+months);
+    if(monthAnchor>now){months--; monthAnchor=new Date(anchor); monthAnchor.setMonth(anchor.getMonth()+months);}
+    let days=Math.floor((now-monthAnchor)/(24*60*60*1000));
+    return {years,months,days};
+  }
+  function nextBirthday(now){
+    let y=now.getFullYear(); let d=new Date(y,2,21,0,0,0); if(d<=now)d=new Date(y+1,2,21,0,0,0); return d;
+  }
+  function render(){
+    const v=document.getElementById('mmhAgeValueV34213'), m=document.getElementById('mmhAgeMetaV34213'), n=document.getElementById('mmhNextBirthdayV34213'), c=document.getElementById('mmhBirthdayCountdownV34213');
+    if(!v)return; const now=new Date(), a=parts(now), nb=nextBirthday(now), diff=Math.max(0,nb-now), days=Math.floor(diff/86400000), hrs=Math.floor((diff%86400000)/3600000), mins=Math.floor((diff%3600000)/60000), secs=Math.floor((diff%60000)/1000);
+    const zh=document.documentElement.lang==='zh-CN';
+    v.textContent=zh?`${a.years}岁 ${a.months}个月 ${a.days}天`:`${a.years} years, ${a.months} months, ${a.days} days`;
+    m.textContent=zh?`${a.years}岁`:`Age ${a.years}`;
+    n.textContent=`${nb.getFullYear()}-${pad(nb.getMonth()+1)}-${pad(nb.getDate())}`;
+    c.textContent=zh?`${days}天 ${hrs}小时 ${mins}分 ${secs}秒`:`${days}d ${hrs}h ${mins}m ${secs}s`;
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{render();setInterval(render,1000)},{once:true}); else {render();setInterval(render,1000);}
+  window.addEventListener('languagechange',render);
+})();
+</script>
 
 <section class="page" id="wealth-planning">
   <div class="mmh-v380-page-head">
@@ -8161,7 +8232,7 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
       if(state){const status=d.cur.rate>=60?'Financial state is healthy':d.cur.rate>=40?'Savings are close to target':'Savings need attention';state.innerHTML='<span></span> '+status;state.classList.toggle('warn',d.cur.rate<60&&d.cur.rate>=40);state.classList.toggle('bad',d.cur.rate<40);}
       const t=$('mmhCommandTimeV34210');if(t)t.textContent=new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
       const path=$('mmhCommandSparkV34210');if(path){const ratio=d.cur.inc?Math.max(-.8,Math.min(.8,d.cur.save/d.cur.inc)):0;const base=72,amp=18+Math.abs(ratio)*18;const lift=ratio>=0?amp:-amp*.55;path.setAttribute('d',`M0,${base+8} C65,${base+lift*.3} 92,${base-4} 140,${base+lift*.1} S220,${base+lift*.65} 286,${base-lift*.2} S360,${base-lift*.75} 420,${base-lift*.1} S510,${base-lift*.9} 600,${base-lift}`);}
-    }catch(e){console.warn('V3.42.12 dashboard fix skipped',e)}
+    }catch(e){console.warn('V3.42.13 dashboard fix skipped',e)}
   }
   window.addEventListener('mmhvault:data-loaded',()=>setTimeout(apply,80));
   window.addEventListener('mmhvault:sync-complete',()=>setTimeout(apply,80));
