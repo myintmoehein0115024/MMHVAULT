@@ -5836,7 +5836,7 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
     const sub=host.querySelector('.sub'); if(sub)sub.textContent=periodTitle;
     painting=false;
   }
-  function schedule(){[0,15,60,180,400].forEach(ms=>setTimeout(render,ms));}
+  function schedule(){ if(window.__mmhV327ExpenseScheduled)return; window.__mmhV327ExpenseScheduled=true; const cb=()=>{window.__mmhV327ExpenseScheduled=false; try{render();}catch(e){console.warn('Expense render failed',e);}}; if(typeof requestAnimationFrame==='function')requestAnimationFrame(cb); else setTimeout(cb,60); }
   function bind(){
     ['analyzeYear','analyzeMonth'].forEach(id=>{
       const el=$(id); if(!el||el.__v327ExpenseCanonical)return;
@@ -5845,11 +5845,7 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
       el.addEventListener('input',schedule,true);
     });
     document.addEventListener('click',e=>{if(e.target.closest?.('.analyze-tab-v371[data-tab="expenses"]'))schedule();},true);
-    const observerTarget=$('budgetIntelligenceV316');
-    if(observerTarget){
-      const mo=new MutationObserver(()=>{if(!painting)schedule();});
-      mo.observe(observerTarget,{childList:true,subtree:true});
-    }
+    // Do not observe budgetIntelligenceV316: it re-renders its own DOM and can create a feedback loop / flicker.
     render();schedule();
   }
   window.__mmhExpenseCanonicalRenderV327=render;
@@ -8790,102 +8786,82 @@ body::before{background-attachment:scroll!important}
 })();
 </script>
 
-<script id="mmhvault-v34232-remaining-funds-budget-source-fix">
+<script id="mmhvault-v34233-remaining-funds-stable-fix">
 (function(){
-  if(window.__mmhV34232RemainingFundsIndependentCurrentMonth)return;
-  window.__mmhV34232RemainingFundsIndependentCurrentMonth=true;
+  if(window.__mmhV34233RemainingFundsStable)return;
+  window.__mmhV34233RemainingFundsStable=true;
   const N=v=>{const x=Number(v);return Number.isFinite(x)?x:0};
-  const fmt=v=>{try{return typeof thb==='function'?thb(N(v)):'฿ '+N(v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}catch(e){return '฿ '+N(v).toFixed(2)}};
   const txs=()=>Array.isArray(window.transactions)?window.transactions:[];
   const excluded=new Set(['Family Support','Special Transfer','Gifts','Donation','Investment']);
-  const loans=()=>new Set(Array.isArray(window.CATS?.Loans)?window.CATS.Loans:[]);
+  const loanCats=()=>new Set([...(Array.isArray(window.CATS?.Loans)?window.CATS.Loans:[]),...(Array.isArray(window.CATS?.LoanExpense)?window.CATS.LoanExpense:[])]);
+  const fmt=v=>{try{return typeof thb==='function'?thb(N(v)):'฿ '+N(v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}catch(_){return '฿ '+N(v).toFixed(2)}};
   const currentYM=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`};
-  const isOrdinary=t=>String(t?.type||'')==='Expense'&&!excluded.has(String(t?.category||''))&&!loans().has(String(t?.category||''))&&!(typeof isLinkedInvestmentTx==='function'&&isLinkedInvestmentTx(t));
+  const isOrdinary=t=>String(t?.type||'')==='Expense'&&!excluded.has(String(t?.category||''))&&!loanCats().has(String(t?.category||''))&&!(typeof isLinkedInvestmentTx==='function'&&isLinkedInvestmentTx(t));
   function actualCurrentMonth(){
     const key=currentYM();
-    return txs().filter(t=>String(t?.tx_date||'').slice(0,7)===key&&isOrdinary(t)).reduce((s,t)=>{
-      const a=N(t?.from_amount); const r=typeof toTHB==='function'?N(toTHB(t?.from_account)):0; return s+a*r;
+    return txs().filter(t=>String(t?.tx_date||'').slice(0,7)===key&&isOrdinary(t)).reduce((sum,t)=>{
+      const amount=N(t?.from_amount);
+      const rate=typeof toTHB==='function'?N(toTHB(t?.from_account)):0;
+      return sum+(rate>0?amount*rate:0);
     },0);
   }
   function budgetCurrentMonth(){
-    const cats=(typeof CATS!=='undefined'&&Array.isArray(CATS.Expense))?CATS.Expense:[];
-    const loansSet=(typeof CATS!=='undefined'&&Array.isArray(CATS.LoanExpense))?new Set(CATS.LoanExpense):new Set();
-    const d=new Date(), y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0');
-    const excludedBudget=new Set(['Family Support','Special Transfer','Gifts','Donation','Investment']);
-    let total=0, found=false;
-    // v3.37 budget keys (current Budget Control uses these keys).
-    for(const cat of cats){
-      const name=String(cat);
-      if(excludedBudget.has(name)||loansSet.has(name)) continue;
-      const key=`myfinance_budget_${y}_${m}_${name}`;
-      const raw=localStorage.getItem(key);
-      if(raw!==null){ total+=Math.max(0,N(raw)); found=true; }
+    const cats=(Array.isArray(window.CATS?.Expense)?window.CATS.Expense:[]).map(String);
+    const y=new Date().getFullYear(),m=String(new Date().getMonth()+1).padStart(2,'0');
+    const skip=new Set(['Family Support','Special Transfer','Gifts','Donation','Investment',...Array.from(loanCats())]);
+    const keys=[cat=>`myfinance_budget_${y}_${m}_${cat}`,cat=>`myfinance_budget_thb_v35_${y}-${m}_${cat}`];
+    let total=0,found=false;
+    for(const makeKey of keys){
+      for(const cat of cats){
+        if(skip.has(cat))continue;
+        const raw=localStorage.getItem(makeKey(cat));
+        if(raw!==null&&raw!==''){total+=Math.max(0,N(raw));found=true;}
+      }
+      if(found)return total;
     }
-    if(found)return total;
-    // v3.5 THB budget keys used by some existing saved budgets.
-    for(const cat of cats){
-      const name=String(cat);
-      if(excludedBudget.has(name)||loansSet.has(name)) continue;
-      const key=`myfinance_budget_thb_v35_${y}-${m}_${name}`;
-      const raw=localStorage.getItem(key);
-      if(raw!==null){ total+=Math.max(0,N(raw)); found=true; }
-    }
-    if(found)return total;
-    // Final fallback: scan both current-month budget key namespaces.
-    const prefixes=[`myfinance_budget_${y}_${m}_`,`myfinance_budget_thb_v35_${y}-${m}_`];
-    for(let i=0;i<localStorage.length;i++){
-      const k=localStorage.key(i); if(!k)continue;
-      const prefix=prefixes.find(x=>k.startsWith(x)); if(!prefix)continue;
-      const cat=k.slice(prefix.length);
-      if(excludedBudget.has(cat)||loansSet.has(cat))continue;
-      total+=Math.max(0,N(localStorage.getItem(k))); found=true;
-    }
-    return found?total:0;
+    // Budget Control defaults already used by the app when no month-specific value exists.
+    const defaults=window.V28_BUDGETS||{Dining:10000,Snacks:3000,Smoking:2500,Transport:2000,Wellness:8000,Lifestyle:2000,Other:1000};
+    return cats.filter(c=>!skip.has(c)).reduce((sum,c)=>sum+Math.max(0,N(defaults[c])),0);
   }
   function totalFundsTHB(){
-    if(typeof window.__mmhV34228TotalFundsTHB==='function'){
-      const v=N(window.__mmhV34228TotalFundsTHB()); if(v>0)return v;
-    }
     let cash=0;
     const accounts=Array.isArray(window.ACC)?window.ACC:['Bath','TrueMoney','OKX','ByBit','MetaMask','KPay'];
-    for(const a of accounts){try{const b=typeof balance==='function'?N(balance(a)):0; cash+=Math.max(0,b)*(typeof toTHB==='function'?N(toTHB(a)):0)}catch(e){}}
+    for(const a of accounts){try{const bal=typeof balance==='function'?N(balance(a)):0;const rate=typeof toTHB==='function'?N(toTHB(a)):0;cash+=bal*rate;}catch(_){} }
     let invest=0;
     try{
       const usd=N(typeof investmentValueUSD==='function'?investmentValueUSD():0);
-      const usdThb=N(window.rates?.usd_thb||window.rates?.usdThb||0);
-      invest=usdThb>0?usd*usdThb:0;
-    }catch(e){}
-    return Math.max(0,cash)+Math.max(0,invest);
+      const rate=N(window.rates?.usd_thb||window.rates?.usdThb||0);
+      invest=usd*rate;
+    }catch(_){}
+    return Math.max(0,cash+invest);
   }
+  let queued=false;
   function render(){
-    const panel=document.getElementById('remainingFundsPanelV34226'); if(!panel)return;
-    const funds=totalFundsTHB();
-    const budget=budgetCurrentMonth();
-    const spent=actualCurrentMonth();
-    const remainingBudget=Math.max(0,budget-spent);
-    const remaining=funds-remainingBudget;
-    const coverage=remainingBudget>0?funds/remainingBudget:null;
-    const pct=funds>0?Math.max(0,Math.min(100,remaining/funds*100)):0;
-    const set=(id,v)=>{const el=document.getElementById(id); if(el)el.textContent=v};
+    queued=false;
+    const panel=document.getElementById('remainingFundsPanelV34226');if(!panel)return;
+    const funds=totalFundsTHB(), budget=budgetCurrentMonth(), spent=actualCurrentMonth();
+    const remainingBudget=Math.max(0,budget-spent), remaining=funds-remainingBudget;
+    const set=(id,v)=>{const el=document.getElementById(id);if(el&&el.textContent!==String(v))el.textContent=String(v)};
     set('rfAvailableV34226',fmt(funds));
     set('rfSpendV34226',fmt(remainingBudget));
     set('rfRemainingV34226',fmt(remaining));
-    set('rfCoverageV34226',coverage===null?'No remaining budget':coverage.toFixed(1)+'x budget coverage');
-    set('rfCoveragePctV34226',funds>0?pct.toFixed(0)+'% funds left after remaining budget':'—');
+    set('rfCoverageV34226',remainingBudget>0?(funds/remainingBudget).toFixed(1)+'x budget coverage':'No remaining budget');
+    set('rfCoveragePctV34226',funds>0?Math.max(0,Math.min(100,remaining/funds*100)).toFixed(0)+'% funds left after remaining budget':'—');
     set('rfRemainingMetaV34226',budget>0?('Current month budget '+fmt(budget)+' · Spent '+fmt(spent)+' · Budget remaining '+fmt(remainingBudget)):'Set Category Budget Control amounts for this month');
-    const bar=document.getElementById('rfBarV34226'); if(bar)bar.style.width=pct+'%';
-    const st=document.getElementById('remainingFundsStatusV34226');
-    if(st){st.textContent=budget<=0?'No Budget':(spent>budget?'Budget Exhausted':'On Track');st.className='pill '+(budget<=0?'yellow':(spent>budget?'red':'green'))}
-    const sub=panel.querySelector('.sub'); if(sub)sub.textContent='Current total funds (cash + investments) minus this month’s remaining budget · THB';
-    const s1=panel.querySelector('.rf-stat-v34226:nth-child(1) .small'); if(s1)s1.textContent='Cash + current investment value available in total';
-    const s2=panel.querySelector('.rf-stat-v34226:nth-child(2) .small'); if(s2)s2.textContent='This month’s Category Budget Control remaining after actual spending';
+    const bar=document.getElementById('rfBarV34226');if(bar){const w=funds>0?Math.max(0,Math.min(100,remaining/funds*100)):0;if(bar.style.width!==w+'%')bar.style.width=w+'%';}
+    const st=document.getElementById('remainingFundsStatusV34226');if(st){const text=budget<=0?'No Budget':(spent>budget?'Budget Exhausted':'On Track');if(st.textContent!==text)st.textContent=text;st.className='pill '+(budget<=0?'yellow':spent>budget?'red':'green');}
   }
-  window.renderRemainingFundsV34232=render;
-  const schedule=()=>{ if(window.requestIdleCallback)requestIdleCallback(render,{timeout:250}); else setTimeout(render,50); };
-  // Data events only. Do not listen to Analyze period changes because this module is deliberately independent.
-  ['mmhvault:data-loaded','mmhvault:sync-complete','mmhvault:cache-restored','mmhvault:data-state','mmhvault-language-change'].forEach(ev=>window.addEventListener(ev,schedule,{passive:true}));
-  document.addEventListener('change',e=>{if(e.target?.classList?.contains('bi-budget-input-v319'))schedule()},{passive:true});
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(render,500),{once:true}); else setTimeout(render,500);
+  function schedule(){
+    if(queued)return;
+    queued=true;
+    const cb=()=>render();
+    if(typeof requestAnimationFrame==='function')requestAnimationFrame(cb);else setTimeout(cb,60);
+  }
+  window.renderRemainingFundsV34233=render;
+  ['mmhvault:data-loaded','mmhvault:sync-complete','mmhvault:cache-restored'].forEach(ev=>window.addEventListener(ev,schedule,{passive:true}));
+  document.addEventListener('change',e=>{if(e.target?.classList?.contains('bi-budget-input-v319'))schedule();},{passive:true});
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)schedule()},{passive:true});
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',schedule,{once:true});else schedule();
 })();
 </script>
 </html>
@@ -8912,7 +8888,7 @@ body::before{background-attachment:scroll!important}
 
 
 <style id="mmhvault-v34214-dashboard-stage-css">
-/* MMHVAULT V3.42.32 — Dashboard stage lighting + coordinated panel surfaces. */
+/* MMHVAULT V3.42.33 — Dashboard stage lighting + coordinated panel surfaces. */
 #dashboardCommandCenterV34210{
   --stage-blue:rgba(66,190,255,.16);
   --stage-gold:rgba(246,199,92,.15);
