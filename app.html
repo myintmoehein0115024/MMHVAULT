@@ -6517,7 +6517,7 @@ Object.assign(zh,{
 '3M window ending':'3个月周期截至',
 'Financial Health Score':'财务健康评分'
 });
-// V3.42.8 — Financial data labels stay English in every UI language.
+// V3.42.9 — Financial data labels stay English in every UI language.
 Object.assign(zh, {
 'Income':'Income',
 'Expense':'Expense',
@@ -7568,7 +7568,7 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
 })();
 </script>
 
-<!-- MMHVAULT V3.42.8 · Financial Data Labels Stay English -->
+<!-- MMHVAULT V3.42.9 · Financial Data Labels Stay English -->
 <style id="mmhvault-v3425-financial-label-style">
 /* Financial data labels intentionally remain English in all UI languages. */
 </style>
@@ -7677,13 +7677,198 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
   const mo=new MutationObserver(muts=>{ if(busy)return; for(const m of muts){ if(m.type==='characterData') restoreTextNode(m.target); else m.addedNodes.forEach(scan); } });
   if(document.body) mo.observe(document.body,{subtree:true,childList:true,characterData:true});
   document.addEventListener('change',e=>{ if(e.target && (e.target.matches?.('select')||e.target.closest?.('#transactions,#dashboard,#invest,#wealth-planning,#reports,#insights'))) setTimeout(run,0); });
-  window.MM_HVAULT_FINANCIAL_DATA_ENGLISH={version:'V3.42.8',protected:[...EXACT]};
+  window.MM_HVAULT_FINANCIAL_DATA_ENGLISH={version:'V3.42.9',protected:[...EXACT]};
 })();
 </script>
+
+<style id="mmhvault-v3429-dashboard-command-center-css">
+/* MMHVAULT V3.42.9 · Dashboard Command Center — presentation-only layer */
+#dashboardHero{display:none!important}
+#wealthSnapshotV386.v3429-command{position:relative;overflow:hidden;padding:0!important;border-radius:22px!important;background:
+ linear-gradient(135deg,rgba(8,16,38,.97),rgba(4,10,25,.96) 52%,rgba(9,18,40,.97));
+ border:1px solid rgba(91,179,255,.20)!important;box-shadow:0 24px 70px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.035)}
+#wealthSnapshotV386.v3429-command::before{content:"";position:absolute;inset:-35% -10% auto -10%;height:280px;pointer-events:none;background:radial-gradient(circle at 72% 38%,rgba(45,208,255,.16),transparent 34%),radial-gradient(circle at 26% 0%,rgba(244,201,93,.11),transparent 32%),radial-gradient(circle at 88% 0%,rgba(185,92,255,.12),transparent 28%);filter:blur(2px)}
+#wealthSnapshotV386.v3429-command::after{content:"";position:absolute;width:420px;height:420px;right:-190px;top:-170px;border-radius:50%;border:1px solid rgba(88,182,255,.12);box-shadow:0 0 0 18px rgba(88,182,255,.025),0 0 0 36px rgba(244,201,93,.02);animation:v3429-orbit 18s linear infinite;pointer-events:none}
+@keyframes v3429-orbit{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+.v3429-hero{position:relative;z-index:1;padding:26px 28px 24px}
+.v3429-topline{display:flex;justify-content:space-between;gap:20px;align-items:flex-start;margin-bottom:18px}
+.v3429-brandline{font-size:10px;letter-spacing:.20em;text-transform:uppercase;color:#6f82ab;font-weight:900}
+.v3429-title{font-size:34px;line-height:1.08;margin:7px 0 8px;font-weight:950;letter-spacing:-.045em;color:#f7fbff;text-shadow:0 0 28px rgba(81,188,255,.08)}
+.v3429-title .accent{background:linear-gradient(90deg,#f5cf73,#8be4ff 62%,#d58cff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.v3429-sub{max-width:720px;color:#95a9c9;font-size:13px;line-height:1.55}
+.v3429-status{display:flex;align-items:center;gap:8px;padding:9px 12px;border:1px solid rgba(95,192,255,.18);border-radius:999px;background:rgba(10,23,48,.62);font-size:11px;font-weight:900;color:#bdd4f3;white-space:nowrap;backdrop-filter:blur(10px)}
+.v3429-dot{width:8px;height:8px;border-radius:50%;background:#36e6a5;box-shadow:0 0 0 5px rgba(54,230,165,.08),0 0 16px rgba(54,230,165,.65);animation:v3429-pulse 1.8s ease-in-out infinite}
+@keyframes v3429-pulse{50%{transform:scale(.72);opacity:.65}}
+.v3429-metrics{display:grid;grid-template-columns:1.35fr 1fr 1fr 1fr;gap:12px;margin-top:8px}
+.v3429-card{position:relative;min-height:126px;padding:17px 18px;border-radius:18px;border:1px solid rgba(97,145,207,.18);background:linear-gradient(145deg,rgba(20,35,72,.72),rgba(6,13,31,.72));box-shadow:inset 0 1px 0 rgba(255,255,255,.03);overflow:hidden;transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease}
+.v3429-card:hover{transform:translateY(-2px);border-color:rgba(102,202,255,.34);box-shadow:0 14px 32px rgba(0,0,0,.22),0 0 34px rgba(53,174,255,.07)}
+.v3429-card::before{content:"";position:absolute;left:-25%;bottom:-45%;width:80%;height:120%;background:radial-gradient(circle,rgba(71,195,255,.11),transparent 64%);pointer-events:none}
+.v3429-label{font-size:9px;letter-spacing:.13em;text-transform:uppercase;color:#8094b7;font-weight:900}
+.v3429-value{font-size:29px;font-weight:950;letter-spacing:-.035em;margin-top:8px;color:#f4f7fb;white-space:nowrap}
+.v3429-value.primary{font-size:38px;background:linear-gradient(90deg,#f6d574,#66dcff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.v3429-meta{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-top:8px;font-size:10px;color:#778bae}
+.v3429-meta .up{color:#31e5a0;font-weight:900}.v3429-meta .down{color:#ff7187;font-weight:900}
+.v3429-bar{margin-top:12px;height:5px;border-radius:999px;background:rgba(255,255,255,.055);overflow:hidden}.v3429-bar i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#55d8ff,#c38dff);box-shadow:0 0 15px rgba(85,216,255,.18);width:0;animation:v3429-barfill 1.2s ease-out forwards}
+@keyframes v3429-barfill{to{width:var(--w)}}
+.v3429-lower{display:grid;grid-template-columns:1.25fr .95fr;gap:12px;margin-top:12px}
+.v3429-panel{padding:16px 18px;border-radius:18px;border:1px solid rgba(97,145,207,.16);background:rgba(6,13,30,.62)}
+.v3429-panelhead{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}.v3429-panelhead b{font-size:12px}.v3429-panelhead span{font-size:10px;color:#7185aa}
+.v3429-mini-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.v3429-mini{padding:13px 14px;border-radius:14px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.045)}.v3429-mini span{display:block;font-size:9px;color:#7185aa;text-transform:uppercase;letter-spacing:.09em}.v3429-mini strong{display:block;margin-top:6px;font-size:18px}.v3429-mini small{display:block;margin-top:4px;color:#65769a;font-size:9px}
+.v3429-signal{display:grid;grid-template-columns:1fr auto;gap:6px 12px;padding:11px 12px;border-radius:13px;background:linear-gradient(90deg,rgba(255,255,255,.025),rgba(255,255,255,.01));border:1px solid rgba(255,255,255,.04)}.v3429-signal+.v3429-signal{margin-top:8px}.v3429-signal .name{font-size:10px;color:#8899bb}.v3429-signal .v{font-size:12px;font-weight:900;text-align:right}.v3429-signal .line{grid-column:1/-1;height:4px;border-radius:999px;background:rgba(255,255,255,.05);overflow:hidden}.v3429-signal .line i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#55d8ff,#c88cff)}
+.v3429-footer{margin-top:12px;display:flex;justify-content:space-between;align-items:center;gap:12px;color:#60739a;font-size:9px}.v3429-footer .quote{font-style:italic;color:#8da0c0}
+@media(max-width:1050px){.v3429-metrics{grid-template-columns:1fr 1fr}.v3429-lower{grid-template-columns:1fr}}
+@media(max-width:680px){.v3429-hero{padding:20px 16px}.v3429-topline{display:block}.v3429-status{display:inline-flex;margin-top:12px}.v3429-title{font-size:28px}.v3429-metrics{grid-template-columns:1fr}.v3429-lower{grid-template-columns:1fr}.v3429-mini-grid{grid-template-columns:1fr}.v3429-card{min-height:112px}.v3429-value.primary{font-size:34px}.v3429-footer{display:block}.v3429-footer .quote{display:block;margin-top:7px}}
+</style>
+
+
+<script id="mmhvault-v3429-dashboard-command-center-js">
+/* MMHVAULT V3.42.9 · Dynamic Dashboard Command Center. Presentation/data-read only. */
+(function(){
+  if(window.__mmhV3429Installed)return;
+  window.__mmhV3429Installed=true;
+  const $=id=>document.getElementById(id);
+  const num=v=>Number.isFinite(Number(v))?Number(v):0;
+  const lang3429=()=>((document.documentElement.lang||'').toLowerCase().startsWith('zh')?'zh':(localStorage.getItem('mmhvault_language_v3363')||'en'));
+  const ui=(en,zh)=>lang3429()==='zh'?zh:en;
+  const moneyTHB = v => {
+    try{
+      const usdVal=num(v);
+      const thbPerUsd=num(rates?.usd_thb)||32;
+      return '฿ '+usdVal*thbPerUsd?fmt(usdVal*thbPerUsd):'0';
+    }catch(_){return '฿ 0';}
+  };
+  const pct=(v,d=1)=>num(v).toFixed(d)+'%';
+  function thbFromUSD(usdVal){try{return num(usdVal)*(num(rates?.usd_thb)||32);}catch(_){return 0;}}
+  function formatTHB(usdVal){return '฿ '+fmt(thbFromUSD(usdVal));}
+  function currentData(){
+    try{
+      const accounts=['Bath','TrueMoney','OKX','ByBit','MetaMask','KPay'];
+      const cash=accounts.reduce((s,a)=>s+num(balance(a))*num(toUSD(a)),0);
+      const investments=num(investmentValueUSD());
+      const netWorth=Math.max(0,cash+investments);
+      const ym=today().slice(0,7);
+      let inc=0,exp=0;
+      (window.transactions||[]).forEach(t=>{
+        if(String(t.tx_date||'').slice(0,7)!==ym)return;
+        if(t.type==='Income')inc+=num(t.to_amount)*num(toUSD(t.to_account));
+        if(t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t))exp+=num(t.from_amount)*num(toUSD(t.from_account));
+      });
+      const save=inc-exp,sr=inc?save/inc*100:0;
+      const prevYm=new Date();prevYm.setDate(1);prevYm.setMonth(prevYm.getMonth()-1);
+      const pk=`${prevYm.getFullYear()}-${String(prevYm.getMonth()+1).padStart(2,'0')}`;
+      let pinc=0,pexp=0;
+      (window.transactions||[]).forEach(t=>{
+        if(String(t.tx_date||'').slice(0,7)!==pk)return;
+        if(t.type==='Income')pinc+=num(t.to_amount)*num(toUSD(t.to_account));
+        if(t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t))pexp+=num(t.from_amount)*num(toUSD(t.from_account));
+      });
+      const ps=pinc-pexp;
+      const netDelta = pinc||pexp ? sr-(pinc?ps/pinc*100:0) : 0;
+      const cashPct=netWorth?cash/netWorth*100:0;
+      const investPct=netWorth?investments/netWorth*100:0;
+      const runway=(()=>{
+        const ex=[]; const d=new Date(); d.setDate(1);
+        for(let i=0;i<3;i++){const k=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;let e=0;(window.transactions||[]).forEach(t=>{if(String(t.tx_date||'').slice(0,7)!==k)return;if(t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t))e+=num(t.from_amount)*num(toUSD(t.from_account));});ex.push(e);d.setMonth(d.getMonth()-1)}
+        const avg=ex.filter(x=>x>0).reduce((a,b)=>a+b,0)/(ex.filter(x=>x>0).length||1);return avg?cash/avg:0;
+      })();
+      return {cash,investments,netWorth,inc,exp,save,sr,netDelta,cashPct,investPct,runway,pinc,pexp,ps};
+    }catch(e){console.warn('V3.42.9 dashboard read failed',e);return {cash:0,investments:0,netWorth:0,inc:0,exp:0,save:0,sr:0,netDelta:0,cashPct:0,investPct:0,runway:0,pinc:0,pexp:0,ps:0};}
+  }
+  function trend(current,previous){ if(!previous)return '—'; const d=((current-previous)/Math.abs(previous))*100; return `${d>=0?'+':''}${d.toFixed(1)}%`; }
+  function render(){
+    const host=$('wealthSnapshotV386'); if(!host)return;
+    const m=currentData();
+    const status=m.sr>=60?ui('Healthy','状态良好'):m.sr>=40?ui('Watch','需要关注'):ui('Needs Attention','需要注意');
+    const statusClass=m.sr>=60?'good':m.sr>=40?'watch':'alert';
+    const month=today().slice(0,7);
+    const date=new Date();
+    const dateText=date.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'});
+    const title=ui('Good financial day','今天，也是在为财富加分');
+    const sub=ui('Your dashboard, upgraded into a live wealth command center.','把最重要的财富变化集中在这里，打开 Dashboard 就能看到。');
+    const quote=ui('Discipline today · freedom tomorrow.','今天的纪律，换来明天的自由。');
+    const srWidth=Math.max(0,Math.min(100,m.sr));
+    const investWidth=Math.max(0,Math.min(100,m.investPct));
+    host.className='panel wealth-snapshot-v386 v3429-command';
+    host.innerHTML=`
+      <div class="v3429-hero">
+        <div class="v3429-topline">
+          <div>
+            <div class="v3429-brandline">MMHVAULT · LIVE WEALTH SYSTEM</div>
+            <div class="v3429-title">${title} <span class="accent">${ui('Your Money at a Glance','财富全景尽在眼前')}</span></div>
+            <div class="v3429-sub">${sub}</div>
+          </div>
+          <div class="v3429-status"><i class="v3429-dot"></i>${status}<span>·</span>${dateText}</div>
+        </div>
+        <div class="v3429-metrics">
+          <div class="v3429-card">
+            <div class="v3429-label">Net Worth</div>
+            <div class="v3429-value primary" data-v3429-number="${thbFromUSD(m.netWorth)}">฿ ${fmt(thbFromUSD(m.netWorth))}</div>
+            <div class="v3429-meta"><span>${ui('Current wealth position','当前财富总额')}</span><span class="up">${trend(m.netWorth,m.netWorth-m.ps)}</span></div>
+            <div class="v3429-bar"><i style="--w:${Math.min(100,100)}%"></i></div>
+          </div>
+          <div class="v3429-card">
+            <div class="v3429-label">Monthly Income</div>
+            <div class="v3429-value" data-v3429-number="${thbFromUSD(m.inc)}">฿ ${fmt(thbFromUSD(m.inc))}</div>
+            <div class="v3429-meta"><span>${month}</span><span class="${m.inc>=m.pinc?'up':'down'}">${trend(m.inc,m.pinc)}</span></div>
+          </div>
+          <div class="v3429-card">
+            <div class="v3429-label">Monthly Expenses</div>
+            <div class="v3429-value" data-v3429-number="${thbFromUSD(m.exp)}">฿ ${fmt(thbFromUSD(m.exp))}</div>
+            <div class="v3429-meta"><span>${ui('Ordinary spending','日常支出')}</span><span class="${m.exp<=m.pexp?'up':'down'}">${trend(m.exp,m.pexp)}</span></div>
+          </div>
+          <div class="v3429-card">
+            <div class="v3429-label">Savings Rate</div>
+            <div class="v3429-value">${pct(m.sr)}</div>
+            <div class="v3429-meta"><span>${ui('Target','目标')} 60%</span><span class="${m.sr>=60?'up':'down'}">${m.netDelta>=0?'+':''}${m.netDelta.toFixed(1)} pp</span></div>
+            <div class="v3429-bar"><i style="--w:${srWidth}%"></i></div>
+          </div>
+        </div>
+        <div class="v3429-lower">
+          <div class="v3429-panel">
+            <div class="v3429-panelhead"><b>${ui('This Month in Motion','本月资金动态')}</b><span>${ui('Auto-calculated from recorded transactions','根据已记录交易自动计算')}</span></div>
+            <div class="v3429-mini-grid">
+              <div class="v3429-mini"><span>Net Savings</span><strong class="${m.save>=0?'up':'down'}">${formatTHB(m.save)}</strong><small>${ui('Income minus expenses','收入减日常支出')}</small></div>
+              <div class="v3429-mini"><span>Cash Runway</span><strong>${m.runway?m.runway.toFixed(1)+' mo':'—'}</strong><small>${ui('Based on recent ordinary spending','按近期日常支出估算')}</small></div>
+              <div class="v3429-mini"><span>Investment Weight</span><strong>${pct(m.investPct)}</strong><small>${ui('Share of current net worth','占当前净资产')}</small></div>
+            </div>
+          </div>
+          <div class="v3429-panel">
+            <div class="v3429-panelhead"><b>${ui('Wealth Signals','财富信号')}</b><span>${month}</span></div>
+            <div class="v3429-signal"><div class="name">Savings Rate</div><div class="v">${pct(m.sr)}</div><div class="line"><i style="width:${srWidth}%"></i></div></div>
+            <div class="v3429-signal"><div class="name">Cash Weight</div><div class="v">${pct(m.cashPct)}</div><div class="line"><i style="width:${Math.min(100,m.cashPct)}%"></i></div></div>
+            <div class="v3429-signal"><div class="name">Investment Weight</div><div class="v">${pct(m.investPct)}</div><div class="line"><i style="width:${investWidth}%"></i></div></div>
+          </div>
+        </div>
+        <div class="v3429-footer"><span>${ui('Live data · values update after cloud sync','实时数据 · 云端同步完成后自动更新')}</span><span class="quote">${quote}</span></div>
+      </div>`;
+  }
+  function animate(){
+    hostAnim();
+  }
+  function hostAnim(){
+    document.querySelectorAll('#wealthSnapshotV386 [data-v3429-number]').forEach(el=>{
+      const target=num(el.dataset.v3429Number); if(!target)return;
+      const duration=850,start=performance.now();
+      const tick=now=>{const p=Math.min(1,(now-start)/duration);const e=1-Math.pow(1-p,3);const v=target*e;el.textContent='฿ '+fmt(v);if(p<1)requestAnimationFrame(tick);};
+      requestAnimationFrame(tick);
+    });
+  }
+  function boot(){
+    try{render();setTimeout(animate,30);setTimeout(render,600);setTimeout(animate,630);}catch(e){console.warn('V3.42.9 boot failed',e)}
+  }
+  const old=window.renderDashboard;
+  if(typeof old==='function')window.renderDashboard=function(){old.apply(this,arguments);setTimeout(boot,0)};
+  document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,120),{once:true});
+  ['click','change'].forEach(ev=>document.addEventListener(ev,e=>{if(e.target.closest('.language-choice-v3363'))setTimeout(boot,60)}));
+  window.addEventListener('mmhvault:data-loaded',()=>setTimeout(boot,80));
+  window.addEventListener('mmhvault:sync-complete',()=>setTimeout(boot,80));
+})();
+</script>
+
 </body>
 
 <script id="mmhvault-v3424-transaction-i18n-values-fix">
-/* MMHVAULT V3.42.8 · Transaction language-safe option values.
+/* MMHVAULT V3.42.9 · Transaction language-safe option values.
    Keep machine values in English while allowing visible labels to be translated. */
 (function(){
   const byId=id=>document.getElementById(id);
@@ -7883,7 +8068,7 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
 
 
 <script id="mmhvault-v3422-insights-data-fix">
-/* MMHVAULT V3.42.8 · Insights THB investment conversion fix.
+/* MMHVAULT V3.42.9 · Insights THB investment conversion fix.
    Reuse the canonical transaction/account calculations and rerender after cloud data loads. */
 (function(){
   const N=v=>{const n=Number(v);return Number.isFinite(n)?n:0};
@@ -7978,7 +8163,7 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
       spendEl.innerHTML=rows.length?rows.map(([c,v],i)=>`<div class="mmh-spend-row-v340"><div class="name">${i+1}. ${c}</div><div class="bar"><div class="mmh-progress-v340"><span style="width:${Math.max(4,(v/max)*100)}%"></span></div><div class="meta" style="margin-top:4px">${a3?tr('Compared with the recent 3-month average','对比最近3个月平均支出')+': '+pct((v/a3)*100):tr('Current month','本月')}</div></div><div class="amt">${money(v)}</div></div>`).join(''):`<div class="small">${tr('No ordinary spending recorded for this month.','本月暂无日常支出记录。')}</div>`;
       const invPct=net?invTHB/net*100:0;
       snapEl.innerHTML=`<div class="mmh-insights-grid-v340"><div>${[['💰',tr('Current Net Worth','当前净资产'),money(net),tr('Cash + investment value','现金 + 投资估值')],['💧',tr('Cash Assets','现金资产'),money(cash),tr('Available cash accounts','现金账户余额')],['📈',tr('Investments','投资资产'),money(invTHB),tr('Current investment valuation','当前投资估值')]].map(r=>`<div class="mmh-insight-card-v340"><div class="mmh-insight-icon-v340">${r[0]}</div><div><div class="mmh-insight-title-v340">${r[1]}</div><div class="mmh-insight-desc-v340">${r[3]}</div></div><div class="amt">${r[2]}</div></div>`).join('')}</div><div style="padding:6px 2px"><div class="small" style="margin-bottom:8px">${tr('Investment weight','投资占比')} · ${pct(invPct)}</div><div class="mmh-progress-v340"><span style="width:${Math.min(100,invPct)}%"></span></div><div class="small" style="margin-top:8px">${invPct>80?tr('Investment concentration deserves a review.','投资占比偏高，建议关注集中度。'):tr('Current investment weight is within the 80% review threshold.','当前投资占比处于 80% 关注阈值以内。')}</div></div></div>`;
-    }catch(err){console.warn('V3.42.8 Insights render failed',err);}
+    }catch(err){console.warn('V3.42.9 Insights render failed',err);}
   }
   function bind(){
     window.renderInsightsV340=render;
@@ -7994,7 +8179,7 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
 </script>
 
 <script id="mmhvault-v3424-transaction-i18n-values-fix">
-/* MMHVAULT V3.42.8 · Transaction language-safe option values.
+/* MMHVAULT V3.42.9 · Transaction language-safe option values.
    Keep machine values in English while allowing visible labels to be translated. */
 (function(){
   const byId=id=>document.getElementById(id);
@@ -8110,7 +8295,7 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
 
 
 <script id="mmhvault-v3428-transaction-financial-labels-en-js">
-/* MMHVAULT V3.42.8 · Financial transaction labels are ALWAYS English.
+/* MMHVAULT V3.42.9 · Financial transaction labels are ALWAYS English.
    UI language may change, but transaction type/group/category labels never do. */
 (function(){
   const $=id=>document.getElementById(id);
@@ -8177,7 +8362,7 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
 </script>
 </html>
 
-<!-- MMHVAULT V3.42.8 · Planning/Insights organization -->
+<!-- MMHVAULT V3.42.9 · Planning/Insights organization -->
 <script id="mmhvault-v3426-organization-fix">
 (function(){
   function moveAdvisor(){
