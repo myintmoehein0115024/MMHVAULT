@@ -35,6 +35,19 @@
 @media(max-width:620px){.receipt-upload-v3300{padding:13px}.receipt-upload-sub-v3300{display:none}.receipt-drop-action-v3300{display:none}.receipt-upload-footer-v3300{align-items:flex-start;flex-direction:column}.receipt-file-state-v3300{text-align:left}.receipt-dropzone-v3300{min-height:66px}}
 
 </style>
+
+<style id="mmhvault-v34215-birthday-settings-css">
+.mmh-birthday-settings-v34215{margin-top:14px;background:linear-gradient(140deg,rgba(9,23,45,.88),rgba(4,11,24,.95));border:1px solid rgba(80,140,220,.28);box-shadow:0 18px 48px rgba(0,0,0,.16)}
+.mmh-birthday-grid-v34215{display:grid;grid-template-columns:minmax(220px,.65fr) minmax(0,1.35fr);gap:14px;align-items:stretch}
+.mmh-birthday-field-v34215{display:flex;flex-direction:column;gap:8px;color:var(--muted);font-size:12px;font-weight:800}
+.mmh-birthday-field-v34215 input{width:100%;min-height:46px;border-radius:12px;border:1px solid rgba(87,145,219,.42);background:rgba(4,13,28,.82);color:var(--text);padding:0 13px;font:inherit;font-size:14px}
+.mmh-birthday-preview-v34215{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.mmh-birthday-preview-v34215>div{padding:14px;border-radius:13px;border:1px solid rgba(74,121,190,.2);background:linear-gradient(160deg,rgba(20,42,78,.38),rgba(6,13,28,.6));display:flex;flex-direction:column;justify-content:center;min-width:0}
+.mmh-birthday-preview-v34215 .k{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:#8ea4c8}
+.mmh-birthday-preview-v34215 b{margin-top:6px;font-size:16px;color:#f6f8ff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mmh-birthday-countdown-v34215 b{color:#f4c95d}
+@media(max-width:780px){.mmh-birthday-grid-v34215{grid-template-columns:1fr}.mmh-birthday-preview-v34215{grid-template-columns:1fr}}
+</style>
 <style id="mmhvault-v32811-organization-style">
 /* MMHVAULT V3.28.14 · Wealth Rules Navigation Fix + Cash Flow fixes */
 #txIntelligencePanelV323{animation:txFade371 .16s ease-out}
@@ -335,7 +348,7 @@ h1,h2,h3,.title,.value,.kpi,.metric,.page-title,.nav-title{font-family:Manrope,"
 </style>
 
 <style id="mmhvault-v34212-dashboard-command-visuals">
-/* MMHVAULT V3.42.13 — Dashboard Command Center visual system. Additive + dashboard scoped. */
+/* MMHVAULT V3.42.15 — Dashboard Command Center visual system. Additive + dashboard scoped. */
 #dashboard{position:relative;isolation:isolate;overflow:visible}
 #dashboard:before{content:"";position:absolute;left:-3vw;right:-3vw;top:0;height:760px;pointer-events:none;z-index:-2;background:
  radial-gradient(circle at 76% 8%,rgba(72,176,255,.22),transparent 24%),
@@ -445,7 +458,7 @@ h1,h2,h3,.title,.value,.kpi,.metric,.page-title,.nav-title{font-family:Manrope,"
 <button class="btn" onclick="retryLoadAllV384()" type="button">Retry</button>
 </div>
 <header id="header" style="display:none">
-<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.42.14</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
+<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.42.15</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
 <div class="header-spacer"></div>
 <div aria-label="Signed in user" class="header-profile" id="headerProfile">
 <div class="header-avatar" id="headerAvatar">MF</div>
@@ -546,26 +559,7 @@ h1,h2,h3,.title,.value,.kpi,.metric,.page-title,.nav-title{font-family:Manrope,"
     </div>
   </div>
 </section>
-<section class="mmh-age-strip-v34213" id="mmhAgeStripV34213" aria-label="Personal age">
-  <div class="mmh-age-main-v34213">
-    <div class="mmh-age-icon-v34213" aria-hidden="true">🎂</div>
-    <div class="mmh-age-copy-v34213">
-      <div class="mmh-age-kicker-v34213" data-i18n-en="PERSONAL TIME" data-i18n-zh="个人时间">PERSONAL TIME</div>
-      <div class="mmh-age-title-v34213" data-i18n-en="Your age in real time" data-i18n-zh="您的实时年龄">Your age in real time</div>
-      <div class="mmh-age-sub-v34213"><span data-i18n-en="Birth date" data-i18n-zh="出生日期">Birth date</span>: <b>2002-03-21</b></div>
-    </div>
-  </div>
-  <div class="mmh-age-stat-v34213">
-    <span class="label" data-i18n-en="CURRENT AGE" data-i18n-zh="当前年龄">CURRENT AGE</span>
-    <b id="mmhAgeValueV34213">24 years, 5 months, 18 days</b>
-    <small id="mmhAgeMetaV34213">24</small>
-  </div>
-  <div class="mmh-age-stat-v34213">
-    <span class="label" data-i18n-en="NEXT BIRTHDAY" data-i18n-zh="下次生日">NEXT BIRTHDAY</span>
-    <b id="mmhNextBirthdayV34213">2027-03-21</b>
-    <small id="mmhBirthdayCountdownV34213">—</small>
-  </div>
-</section>
+
 
 <div class="hero-networth" id="dashboardHero"></div>
 <div aria-label="Wealth snapshot" class="panel wealth-snapshot-v386" id="wealthSnapshotV386"></div>
@@ -582,13 +576,17 @@ h1,h2,h3,.title,.value,.kpi,.metric,.page-title,.nav-title{font-family:Manrope,"
 </section>
 
 
-<script id="mmhvault-v34213-age-js">
+<script id="mmhvault-v34215-age-js">
 (function(){
-  if(window.__mmhAgeV34213Installed)return; window.__mmhAgeV34213Installed=true;
-  const birth=new Date(2002,2,21,0,0,0);
+  if(window.__mmhAgeV34215Installed)return; window.__mmhAgeV34215Installed=true;
+  const KEY='mmhvault_birth_date_v34215';
+  const DEFAULT='2002-03-21';
+  const getBirth=()=>{const raw=localStorage.getItem(KEY)||DEFAULT; const m=/^(\d{4})-(\d{2})-(\d{2})$/.exec(raw); if(!m)return new Date(2002,2,21,0,0,0); const d=new Date(Number(m[1]),Number(m[2])-1,Number(m[3]),0,0,0); return Number.isNaN(d.getTime())?new Date(2002,2,21,0,0,0):d;};
+  const getBirthISO=()=>{const raw=localStorage.getItem(KEY)||DEFAULT; return /^\d{4}-\d{2}-\d{2}$/.test(raw)?raw:DEFAULT;};
   const TLocal=(en,zh)=>typeof T==='function'?T(en,zh):(document.documentElement.lang==='zh-CN'?zh:en);
   const pad=n=>String(n).padStart(2,'0');
   function parts(now){
+    const birth=getBirth();
     let years=now.getFullYear()-birth.getFullYear();
     let anchor=new Date(birth); anchor.setFullYear(birth.getFullYear()+years);
     if(now<anchor){years--; anchor=new Date(birth); anchor.setFullYear(birth.getFullYear()+years);}
@@ -600,19 +598,27 @@ h1,h2,h3,.title,.value,.kpi,.metric,.page-title,.nav-title{font-family:Manrope,"
     return {years,months,days};
   }
   function nextBirthday(now){
-    let y=now.getFullYear(); let d=new Date(y,2,21,0,0,0); if(d<=now)d=new Date(y+1,2,21,0,0,0); return d;
+    const birth=getBirth();
+    let y=now.getFullYear(); let d=new Date(y,birth.getMonth(),birth.getDate(),0,0,0); if(d<=now)d=new Date(y+1,birth.getMonth(),birth.getDate(),0,0,0); return d;
   }
   function render(){
-    const v=document.getElementById('mmhAgeValueV34213'), m=document.getElementById('mmhAgeMetaV34213'), n=document.getElementById('mmhNextBirthdayV34213'), c=document.getElementById('mmhBirthdayCountdownV34213');
-    if(!v)return; const now=new Date(), a=parts(now), nb=nextBirthday(now), diff=Math.max(0,nb-now), days=Math.floor(diff/86400000), hrs=Math.floor((diff%86400000)/3600000), mins=Math.floor((diff%3600000)/60000), secs=Math.floor((diff%60000)/1000);
+    const v=document.getElementById('mmhSettingsAgeValueV34215'), n=document.getElementById('mmhSettingsBirthdayValueV34215'), c=document.getElementById('mmhSettingsBirthdayCountdownV34215');
+    const input=document.getElementById('mmhBirthDateInputV34215');
+    const now=new Date(), a=parts(now), nb=nextBirthday(now), diff=Math.max(0,nb-now), days=Math.floor(diff/86400000), hrs=Math.floor((diff%86400000)/3600000), mins=Math.floor((diff%3600000)/60000), secs=Math.floor((diff%60000)/1000);
     const zh=document.documentElement.lang==='zh-CN';
-    v.textContent=zh?`${a.years}岁 ${a.months}个月 ${a.days}天`:`${a.years} years, ${a.months} months, ${a.days} days`;
-    m.textContent=zh?`${a.years}岁`:`Age ${a.years}`;
-    n.textContent=`${nb.getFullYear()}-${pad(nb.getMonth()+1)}-${pad(nb.getDate())}`;
-    c.textContent=zh?`${days}天 ${hrs}小时 ${mins}分 ${secs}秒`:`${days}d ${hrs}h ${mins}m ${secs}s`;
+    if(input && input.value!==getBirthISO()) input.value=getBirthISO();
+    if(v) v.textContent=zh?`${a.years}岁 ${a.months}个月 ${a.days}天`:`${a.years} years, ${a.months} months, ${a.days} days`;
+    if(n) n.textContent=`${nb.getFullYear()}-${pad(nb.getMonth()+1)}-${pad(nb.getDate())}`;
+    if(c) c.textContent=zh?`${days}天 ${hrs}小时 ${mins}分 ${secs}秒`:`${days}d ${hrs}h ${mins}m ${secs}s`;
   }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{render();setInterval(render,1000)},{once:true}); else {render();setInterval(render,1000);}
+  const bind=()=>{
+    const input=document.getElementById('mmhBirthDateInputV34215');
+    if(input&&!input.__v34215){ input.__v34215=true; input.value=getBirthISO(); input.addEventListener('change',()=>{const v=input.value; if(/^\d{4}-\d{2}-\d{2}$/.test(v)){localStorage.setItem(KEY,v); render(); window.dispatchEvent(new CustomEvent('mmhvault-birthday-change'));}}); }
+    render();
+  };
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{bind();setInterval(render,1000)},{once:true}); else {bind();setInterval(render,1000);}
   window.addEventListener('languagechange',render);
+  window.addEventListener('mmhvault-birthday-change',render);
 })();
 </script>
 
@@ -933,6 +939,13 @@ h1,h2,h3,.title,.value,.kpi,.metric,.page-title,.nav-title{font-family:Manrope,"
 <div class="security-password-note-v379">For Google-only accounts, password management stays with Google and this form is not shown.</div>
 </div>
 </div>
+</div>
+</div>
+<div class="panel mmh-birthday-settings-v34215" id="mmhBirthdaySettingsV34215">
+<div class="toolbar"><div><h2 data-i18n-en="Personal Time" data-i18n-zh="个人时间">Personal Time</h2><div class="small" data-i18n-en="Set your birth date to calculate your age and next birthday in real time." data-i18n-zh="设置出生日期，系统会实时计算您的年龄和下次生日。">Set your birth date to calculate your age and next birthday in real time.</div></div><span class="pill" data-i18n-en="Live calculation" data-i18n-zh="实时计算">Live calculation</span></div>
+<div class="mmh-birthday-grid-v34215">
+<label class="mmh-birthday-field-v34215"><span data-i18n-en="Birth Date" data-i18n-zh="出生日期">Birth Date</span><input id="mmhBirthDateInputV34215" type="date" value="2002-03-21"/></label>
+<div class="mmh-birthday-preview-v34215"><div><span class="k" data-i18n-en="Current Age" data-i18n-zh="当前年龄">Current Age</span><b id="mmhSettingsAgeValueV34215">—</b></div><div><span class="k" data-i18n-en="Next Birthday" data-i18n-zh="下次生日">Next Birthday</span><b id="mmhSettingsBirthdayValueV34215">—</b></div><div class="mmh-birthday-countdown-v34215"><span class="k" data-i18n-en="Countdown" data-i18n-zh="倒计时">Countdown</span><b id="mmhSettingsBirthdayCountdownV34215">—</b></div></div>
 </div>
 </div>
 </div>
@@ -8232,7 +8245,7 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
       if(state){const status=d.cur.rate>=60?'Financial state is healthy':d.cur.rate>=40?'Savings are close to target':'Savings need attention';state.innerHTML='<span></span> '+status;state.classList.toggle('warn',d.cur.rate<60&&d.cur.rate>=40);state.classList.toggle('bad',d.cur.rate<40);}
       const t=$('mmhCommandTimeV34210');if(t)t.textContent=new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
       const path=$('mmhCommandSparkV34210');if(path){const ratio=d.cur.inc?Math.max(-.8,Math.min(.8,d.cur.save/d.cur.inc)):0;const base=72,amp=18+Math.abs(ratio)*18;const lift=ratio>=0?amp:-amp*.55;path.setAttribute('d',`M0,${base+8} C65,${base+lift*.3} 92,${base-4} 140,${base+lift*.1} S220,${base+lift*.65} 286,${base-lift*.2} S360,${base-lift*.75} 420,${base-lift*.1} S510,${base-lift*.9} 600,${base-lift}`);}
-    }catch(e){console.warn('V3.42.13 dashboard fix skipped',e)}
+    }catch(e){console.warn('V3.42.15 dashboard fix skipped',e)}
   }
   window.addEventListener('mmhvault:data-loaded',()=>setTimeout(apply,80));
   window.addEventListener('mmhvault:sync-complete',()=>setTimeout(apply,80));
@@ -8760,7 +8773,7 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
 
 
 <style id="mmhvault-v34214-dashboard-stage-css">
-/* MMHVAULT V3.42.14 — Dashboard stage lighting + coordinated panel surfaces. */
+/* MMHVAULT V3.42.15 — Dashboard stage lighting + coordinated panel surfaces. */
 #dashboardCommandCenterV34210{
   --stage-blue:rgba(66,190,255,.16);
   --stage-gold:rgba(246,199,92,.15);
