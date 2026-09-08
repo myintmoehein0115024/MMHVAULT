@@ -348,7 +348,7 @@ h1,h2,h3,.title,.value,.kpi,.metric,.page-title,.nav-title{font-family:Manrope,"
 </style>
 
 <style id="mmhvault-v34212-dashboard-command-visuals">
-/* MMHVAULT V3.42.24 — Dashboard Command Center visual system. Additive + dashboard scoped. */
+/* MMHVAULT V3.42.25 — Dashboard Command Center visual system. Additive + dashboard scoped. */
 #dashboard{position:relative;isolation:isolate;overflow:visible}
 #dashboard:before{content:"";position:absolute;left:-3vw;right:-3vw;top:0;height:760px;pointer-events:none;z-index:-2;background:
  radial-gradient(circle at 76% 8%,rgba(72,176,255,.22),transparent 24%),
@@ -436,6 +436,32 @@ h1,h2,h3,.title,.value,.kpi,.metric,.page-title,.nav-title{font-family:Manrope,"
 @media(max-width:860px){#dashboard .mmh-v34212-live-ribbon{grid-template-columns:repeat(2,1fr) auto}.mmh-v34212-ribbon-state{grid-column:1/-1;justify-content:flex-end}}
 @media(max-width:520px){#dashboard .mmh-v34212-live-ribbon{grid-template-columns:1fr 1fr;padding:10px}.mmh-v34212-ribbon-state{grid-column:1/-1;justify-content:flex-start}.mmh-v34212-ribbon-item b{font-size:12px}}
 </style>
+
+<style id="mmhvault-v34225-remaining-funds-css">
+  .remaining-funds-v34225{margin:0 0 16px;border:1px solid rgba(85,216,255,.24);border-radius:16px;padding:14px;background:
+    radial-gradient(circle at 15% 0%,rgba(85,216,255,.09),transparent 34%),
+    radial-gradient(circle at 88% 100%,rgba(244,201,93,.08),transparent 34%),
+    linear-gradient(145deg,rgba(12,28,54,.92),rgba(5,12,26,.96));
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.03),0 12px 30px rgba(0,0,0,.12);
+  }
+  .remaining-funds-v34225 .rf-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:12px}
+  .remaining-funds-v34225 .rf-kicker{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--cyan);font-weight:900}
+  .remaining-funds-v34225 .rf-title{font-size:18px;font-weight:900;margin-top:4px}
+  .remaining-funds-v34225 .rf-formula{font-size:11px;color:var(--muted);margin-top:3px}
+  .remaining-funds-v34225 .rf-period{font-size:10px;color:var(--muted);border:1px solid var(--line);padding:6px 9px;border-radius:999px;white-space:nowrap}
+  .remaining-funds-v34225 .rf-grid{display:grid;grid-template-columns:1fr 1fr 1.25fr;gap:10px}
+  .remaining-funds-v34225 .rf-card{padding:12px 13px;border-radius:13px;background:rgba(255,255,255,.022);border:1px solid rgba(70,104,154,.28)}
+  .remaining-funds-v34225 .rf-label{font-size:10px;color:#91a5c8;text-transform:uppercase;letter-spacing:.06em}
+  .remaining-funds-v34225 .rf-value{font-size:20px;font-weight:900;margin-top:6px;color:#eef6ff}
+  .remaining-funds-v34225 .rf-value.cyan{color:var(--cyan)}
+  .remaining-funds-v34225 .rf-value.red{color:var(--red)}
+  .remaining-funds-v34225 .rf-meta{font-size:10px;color:var(--muted);margin-top:4px;line-height:1.4}
+  .remaining-funds-v34225 .rf-bar{height:7px;background:rgba(4,10,24,.72);border-radius:999px;overflow:hidden;margin-top:9px}
+  .remaining-funds-v34225 .rf-bar span{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--cyan),#8ea6ff,var(--pink));transform-origin:left center;animation:rfGrow34225 .7s ease-out}
+  @keyframes rfGrow34225{from{transform:scaleX(.02)}to{transform:scaleX(1)}}
+  @media(max-width:760px){.remaining-funds-v34225 .rf-grid{grid-template-columns:1fr}.remaining-funds-v34225 .rf-head{display:block}.remaining-funds-v34225 .rf-period{display:inline-block;margin-top:8px}}
+</style>
+
 </head>
 <!-- MMHVAULT V3.37.2 · Dashboard 2.0 · isolated summary layer -->
 <body>
@@ -458,7 +484,7 @@ h1,h2,h3,.title,.value,.kpi,.metric,.page-title,.nav-title{font-family:Manrope,"
 <button class="btn" onclick="retryLoadAllV384()" type="button">Retry</button>
 </div>
 <header id="header" style="display:none">
-<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.42.24</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
+<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.42.25</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
 <div class="header-spacer"></div>
 <div aria-label="Signed in user" class="header-profile" id="headerProfile">
 <div class="header-avatar" id="headerAvatar">MF</div>
@@ -4428,6 +4454,20 @@ renderDashboard=function(){
     const budgetGap=totalBudget-totalSpent;
     status.textContent=over.length?'Over Budget':near.length?'Close to Limit':'On Track';
     status.className='pill '+(over.length?'red':near.length?'yellow':'green');
+    // v3.42.25: Current available funds after expected monthly spending.
+    // Keep this separate from net worth/investments: this is the liquid-funds view for spending capacity.
+    const currentFundsTHB = typeof mmhvaultCashUSD === 'function'
+      ? Math.max(0, mmhvaultCashUSD()) * (Number(rates?.usd_thb) || 1)
+      : (['Bath','TrueMoney','OKX','ByBit','MetaMask','KPay'].reduce((sum,a)=>sum+(typeof balance==='function'?Math.max(0,balance(a)):0)*(typeof toTHB==='function'?toTHB(a):1),0));
+    let histMonths = typeof mmhvaultCompletedMonths === 'function' ? mmhvaultCompletedMonths(3) : [];
+    let histWithData = histMonths.filter(m=>Number(m.expense)>0);
+    if(!histWithData.length) histWithData = histMonths;
+    const estimatedMonthlySpendUSD = histWithData.length
+      ? histWithData.reduce((sum,m)=>sum+Number(m.expense||0),0)/histWithData.length
+      : 0;
+    const estimatedMonthlySpendTHB = estimatedMonthlySpendUSD * (Number(rates?.usd_thb)||1);
+    const remainingFundsTHB = currentFundsTHB - estimatedMonthlySpendTHB;
+    const coveragePct = estimatedMonthlySpendTHB>0 ? Math.max(0,Math.min(100,currentFundsTHB/estimatedMonthlySpendTHB*100)) : 100;
     const periodLabel=monthKey?(typeof v37Label==='function'?v37Label(p):monthKey):String(year);
     const top=[...data].sort((a,b)=>b.spent-a.spent).find(x=>x.spent>0);
     const remainingDays=monthKey?Math.max(0,daysInMonth-dayNumber):0;
@@ -8237,7 +8277,7 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
       if(state){const status=d.cur.rate>=60?'Financial state is healthy':d.cur.rate>=40?'Savings are close to target':'Savings need attention';state.innerHTML='<span></span> '+status;state.classList.toggle('warn',d.cur.rate<60&&d.cur.rate>=40);state.classList.toggle('bad',d.cur.rate<40);}
       const t=$('mmhCommandTimeV34210');if(t)t.textContent=new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
       const path=$('mmhCommandSparkV34210');if(path){const ratio=d.cur.inc?Math.max(-.8,Math.min(.8,d.cur.save/d.cur.inc)):0;const base=72,amp=18+Math.abs(ratio)*18;const lift=ratio>=0?amp:-amp*.55;path.setAttribute('d',`M0,${base+8} C65,${base+lift*.3} 92,${base-4} 140,${base+lift*.1} S220,${base+lift*.65} 286,${base-lift*.2} S360,${base-lift*.75} 420,${base-lift*.1} S510,${base-lift*.9} 600,${base-lift}`);}
-    }catch(e){console.warn('V3.42.24 dashboard fix skipped',e)}
+    }catch(e){console.warn('V3.42.25 dashboard fix skipped',e)}
   }
   window.addEventListener('mmhvault:data-loaded',()=>setTimeout(apply,80));
   window.addEventListener('mmhvault:sync-complete',()=>setTimeout(apply,80));
@@ -8249,7 +8289,7 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
 
 
 <style id="mmhvault-v34219-age-green-css">
-/* V3.42.24 — Your Age receives the same live green status cue as LIVE. */
+/* V3.42.25 — Your Age receives the same live green status cue as LIVE. */
 #dashboard .mmh-age-live-badge-v34218{position:relative;overflow:hidden}
 #dashboard .mmh-age-live-badge-v34218::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:#2fe6a0;box-shadow:0 0 0 3px rgba(47,230,160,.10),0 0 12px rgba(47,230,160,.80);position:absolute;left:10px;top:10px;animation:mmhAgeLiveDot34219 2.4s ease-in-out infinite}
 @keyframes mmhAgeLiveDot34219{0%,100%{opacity:.55;transform:scale(.9);box-shadow:0 0 0 3px rgba(47,230,160,.08),0 0 10px rgba(47,230,160,.55)}50%{opacity:1;transform:scale(1.08);box-shadow:0 0 0 4px rgba(47,230,160,.12),0 0 18px rgba(47,230,160,.95)}}
@@ -8257,7 +8297,7 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
 </style>
 
 <style id="mmhvault-v34219-transaction-visual-css">
-/* V3.42.24 — Transaction page visual stage. Data/logic untouched. */
+/* V3.42.25 — Transaction page visual stage. Data/logic untouched. */
 #transactions{position:relative;overflow:hidden;isolation:isolate}
 #transactions::before{content:"";position:absolute;inset:0;z-index:-2;pointer-events:none;border-radius:30px;background:
   radial-gradient(circle at 15% 18%,rgba(61,190,255,.14),transparent 24%),
@@ -8331,7 +8371,7 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
 </style>
 
 <style id="mmhvault-v34222-performance-css">
-/* V3.42.24 — performance layer: preserve visual quality while reducing off-screen/GPU work. */
+/* V3.42.25 — performance layer: preserve visual quality while reducing off-screen/GPU work. */
 #dashboard .panel:not(#dashboardCommandCenterV34210),
 #dashboard .dashboard-premium-panel{
   content-visibility:auto;
@@ -8377,7 +8417,7 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
 </script>
 
 <style id="mmhvault-v34222-dashboard-scroll-performance">
-/* V3.42.24 — scroll/render performance. Preserve the Command Center look, reduce repaint pressure. */
+/* V3.42.25 — scroll/render performance. Preserve the Command Center look, reduce repaint pressure. */
 html{scroll-behavior:auto!important}
 body{background-attachment:scroll!important}
 body::before{background-attachment:scroll!important}
@@ -8433,7 +8473,7 @@ body::before{background-attachment:scroll!important}
 
 
 <script id="mmhvault-v34224-command-currency-safe-js">
-/* V3.42.24 — Dashboard currency safety without DOM observers. */
+/* V3.42.25 — Dashboard currency safety without DOM observers. */
 (function(){
   if(window.__mmhV34224CurrencySafeInstalled)return;
   window.__mmhV34224CurrencySafeInstalled=true;
@@ -8456,7 +8496,7 @@ body::before{background-attachment:scroll!important}
       if(i)i.textContent=money(invest);
       if(w)w.textContent=weight.toFixed(1)+'%';
       if(nw)nw.textContent=money(net);
-    }catch(e){ console.warn('MMHVAULT v3.42.24 currency sync skipped',e); }
+    }catch(e){ console.warn('MMHVAULT v3.42.25 currency sync skipped',e); }
   }
   const schedule=()=>{ if(window.requestIdleCallback) requestIdleCallback(sync,{timeout:250}); else setTimeout(sync,80); };
   ['mmhvault:data-loaded','mmhvault:sync-complete','mmhvault:cache-restored','mmhvault-language-change'].forEach(ev=>window.addEventListener(ev,schedule,{passive:true}));
@@ -8467,7 +8507,7 @@ body::before{background-attachment:scroll!important}
 
 
 
-<!-- MMHVAULT V3.42.24 performance baseline: event-driven data labels + reduced visual polling. -->
+<!-- MMHVAULT V3.42.25 performance baseline: event-driven data labels + reduced visual polling. -->
 </html>
 <script id="mmhvault-v393-wealth-planning-thb-fix">
 (function(){
@@ -8670,7 +8710,7 @@ body::before{background-attachment:scroll!important}
 
 
 <style id="mmhvault-v34216-dashboard-stage-harmony-css">
-/* MMHVAULT V3.42.24 — Command Center light extended + full dashboard stage harmony. */
+/* MMHVAULT V3.42.25 — Command Center light extended + full dashboard stage harmony. */
 #dashboard .mmh-command-v34210{
   background:linear-gradient(135deg,rgba(5,16,34,.96),rgba(7,18,38,.80) 46%,rgba(5,11,24,.95))!important;
   border-color:rgba(97,190,255,.28)!important;
@@ -8810,7 +8850,7 @@ body::before{background-attachment:scroll!important}
 
 
 <style id="mmhvault-v34214-dashboard-stage-css">
-/* MMHVAULT V3.42.24 — Dashboard stage lighting + coordinated panel surfaces. */
+/* MMHVAULT V3.42.25 — Dashboard stage lighting + coordinated panel surfaces. */
 #dashboardCommandCenterV34210{
   --stage-blue:rgba(66,190,255,.16);
   --stage-gold:rgba(246,199,92,.15);
@@ -8980,7 +9020,7 @@ body::before{background-attachment:scroll!important}
 })();
 </script>
 <style id="mmhvault-v34218-dashboard-supporting-visuals">
-/* V3.42.24 — Supporting Dashboard panels. Wealth Command Center is intentionally untouched. */
+/* V3.42.25 — Supporting Dashboard panels. Wealth Command Center is intentionally untouched. */
 #dashboard .dashboard-premium-panel{
   position:relative!important;overflow:hidden!important;isolation:isolate;
   background:
@@ -9111,7 +9151,7 @@ body::before{background-attachment:scroll!important}
 
 
 <style id="mmhvault-v34220-performance-css">
-/* V3.42.24 performance stabilization. Keep visual motion, remove expensive/continuous flicker during interaction. */
+/* V3.42.25 performance stabilization. Keep visual motion, remove expensive/continuous flicker during interaction. */
 #transactions::after{animation-duration:34s!important;opacity:.72!important}
 #transactions > .tx-tabs-v371::after{animation-duration:18s!important;opacity:.48!important}
 #transactions .tx-tab-panel-v371 > .panel::before{animation-duration:26s!important;opacity:.72!important}
