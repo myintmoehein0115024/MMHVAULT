@@ -9281,3 +9281,100 @@ body::before{background-attachment:scroll!important}
 </script>
 
 <!-- MMHVAULT V3.42.35 · Performance Architecture v1 Step 1: Dynamic Render Cleanup -->
+
+<script id="mmhvault-v34236-render-diff-gate">
+/* MMHVAULT V3.42.36 · Performance Architecture v1 Step 2: Render Diff Gate
+   Suppresses redundant whole-page render passes while preserving explicit data/UI invalidation. */
+(function(){
+  if(window.__mmhV34236RenderDiffGateInstalled)return;
+  window.__mmhV34236RenderDiffGateInstalled=true;
+  const DIRTY={dashboard:true,transactions:true,analyze:true,invest:true,exchange:true,settings:true};
+  const PAGE_IDS=['dashboard','transactions','analyze','invest','exchange','settings'];
+  const markAll=()=>PAGE_IDS.forEach(k=>{DIRTY[k]=true;});
+  const mark=k=>{if(DIRTY[k]!==undefined)DIRTY[k]=true;};
+  const active=()=>PAGE_IDS.find(k=>document.getElementById(k)?.classList.contains('active'))||null;
+  const markForEvent=()=>markAll();
+  ['mmhvault:data-loaded','mmhvault:cache-restored','mmhvault:sync-complete','mmhvault:data-state','mmhvault-language-change','languagechange','mmhvault-birthday-change'].forEach(ev=>window.addEventListener(ev,markForEvent,{passive:true}));
+  window.addEventListener('mmhvault:age-tick',()=>{if(document.visibilityState!=='hidden')mark('dashboard');},{passive:true});
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState!=='hidden')markAll();},{passive:true});
+  window.addEventListener('storage',e=>{
+    if(!e)return;
+    if(e.key==='mmhvault_language_v3363'||e.key==='mmhvault_birth_date_v34216'||e.key==='myfinance_analyze_period'||e.key==='myfinance_invest_view_v371'||e.key==='myfinance_invest_subtab_v371')markAll();
+  },{passive:true});
+
+  // Preserve the latest explicit render API, but skip duplicate calls for the same clean page.
+  const currentRender=window.render;
+  if(typeof currentRender==='function'&&!currentRender.__mmhV34236){
+    const wrappedRender=function(){
+      const pages=PAGE_IDS.filter(k=>document.getElementById(k)?.classList.contains('active'));
+      const targets=pages.length?pages:PAGE_IDS;
+      let didRender=false;
+      for(const page of targets){
+        if(!DIRTY[page])continue;
+        didRender=true;
+        switch(page){
+          case 'dashboard':
+            if(typeof window.renderDashboard==='function')window.renderDashboard();
+            break;
+          case 'transactions':
+            if(typeof window.renderTransactions==='function')window.renderTransactions();
+            break;
+          case 'analyze':
+            if(typeof window.renderAnalyze==='function')window.renderAnalyze();
+            break;
+          case 'invest':
+            if(typeof window.renderInvest==='function')window.renderInvest();
+            break;
+          case 'exchange':
+            if(typeof window.renderRates==='function')window.renderRates();
+            break;
+          case 'settings':
+            // Settings has no heavy data renderer; mark it clean after the common pass.
+            break;
+        }
+        DIRTY[page]=false;
+      }
+      return didRender;
+    };
+    wrappedRender.__mmhV34236=true;
+    wrappedRender.__mmhV34236Base=currentRender;
+    window.render=wrappedRender;
+  }
+
+  // Any direct page renderer invocation is still treated as an explicit request.
+  // Invalidate the corresponding page so the next common render stays consistent.
+  ['renderDashboard','renderTransactions','renderAnalyze','renderInvest'].forEach(name=>{
+    const fn=window[name];
+    if(typeof fn!=='function'||fn.__mmhV34236Explicit)return;
+    const key={renderDashboard:'dashboard',renderTransactions:'transactions',renderAnalyze:'analyze',renderInvest:'invest'}[name];
+    const wrapped=function(){
+      const r=fn.apply(this,arguments);
+      DIRTY[key]=false;
+      return r;
+    };
+    wrapped.__mmhV34236Explicit=true;
+    wrapped.__mmhV34236Base=fn;
+    window[name]=wrapped;
+  });
+
+  // Price polling changes displayed investment values; invalidate Dashboard/Invest after completion.
+  const fp=window.fetchCryptoPrices;
+  if(typeof fp==='function'&&!fp.__mmhV34236PriceHook){
+    const wrapped=async function(){
+      const r=await fp.apply(this,arguments);
+      mark('dashboard');mark('invest');
+      return r;
+    };
+    wrapped.__mmhV34236PriceHook=true;
+    wrapped.__mmhV34236Base=fp;
+    window.fetchCryptoPrices=wrapped;
+  }
+
+  // Expose a tiny invalidation API for future modules; no polling is created here.
+  window.mmhvaultInvalidateRenderV34236=function(page){
+    if(page==='all'||!page)markAll(); else mark(page);
+  };
+  window.MM_HVAULT_PERFORMANCE_V34236={version:'3.42.36',renderDiffGate:true,noNewPolling:true};
+})();
+</script>
+
