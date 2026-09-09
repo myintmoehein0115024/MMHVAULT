@@ -9,7 +9,7 @@
 <link href="manifest.webmanifest" rel="manifest"/>
 <meta content="#06111f" name="theme-color"/>
 <title>MMHVAULT · Personal Finance &amp; Wealth Management</title>
-<link href="assets/mmhvault.css" rel="stylesheet"/><meta content="V3.28.15 · Analyze Tabs Navigation + Cash Flow" name="mmhvault-architecture"/>
+<link href="assets/mmhvault.css" rel="stylesheet"/><meta content="V3.42.48 · Transaction Visual Rebalance + Performance" name="mmhvault-architecture"/>
 <style id="mmhvault-v32811-wealth-rules-location-css">
   .analyze-tabs-v371{overflow-x:auto;scrollbar-width:thin;}
   .analyze-tabs-v371 .analyze-tab-v371{flex:0 0 auto;min-width:110px;}
@@ -447,6 +447,73 @@ body.mmhvault-scroll-active #dashboard::before,
 body.mmhvault-scroll-active #dashboard::after{animation-play-state:paused!important}
 body.mmhvault-scroll-active .panel,
 body.mmhvault-scroll-active .card{transition:none!important}
+</style>
+<style id="mmhvault-v34248-transaction-paint-budget">
+/* V3.42.48 — Transaction Visual Rebalance. Reduce paint/compositing cost while preserving the finance-tech look. */
+#transactions .tx-tab-panel-v371 > .panel,
+#transactions .tx-intel-v323{
+  backdrop-filter:blur(7px)!important;
+  -webkit-backdrop-filter:blur(7px)!important;
+  box-shadow:0 14px 40px rgba(0,0,0,.22),inset 0 0 34px rgba(74,171,255,.022)!important;
+}
+#transactions .tx-tab-panel-v371 > .panel::before{
+  filter:blur(6px)!important;
+  opacity:.72!important;
+  animation-duration:18s!important;
+}
+#transactions::after{
+  animation-duration:32s!important;
+  opacity:.8!important;
+}
+#transactions > .tx-tabs-v371::after,
+#transactions .receipt-upload-v3300::after{
+  animation-duration:14s!important;
+  opacity:.45!important;
+}
+#transactions .mmh-tx-visual-orbit-v34219{
+  width:230px!important;height:230px!important;
+  animation-duration:28s!important;
+  box-shadow:inset 0 0 28px rgba(73,179,255,.025),0 0 34px rgba(73,179,255,.025)!important;
+}
+#transactions #txHistoryPanel .scroll::before{
+  animation-duration:8s!important;
+  opacity:.24!important;
+}
+#transactions #txList table{border-spacing:0 4px!important}
+#transactions #txList tbody tr,
+#transactions #txList tr{
+  transition:background-color .18s ease,border-color .18s ease!important;
+}
+#transactions #txList tr:hover{
+  transform:none!important;
+  filter:none!important;
+  background:rgba(77,180,255,.025)!important;
+}
+#transactions #txList td{background:rgba(7,20,42,.56)!important}
+body.mmhvault-scroll-active #transactions::after,
+body.mmhvault-scroll-active #transactions > .tx-tabs-v371::after,
+body.mmhvault-scroll-active #transactions .tx-tab-panel-v371 > .panel::before,
+body.mmhvault-scroll-active #transactions .receipt-upload-v3300::after,
+body.mmhvault-scroll-active #transactions .mmh-tx-visual-orbit-v34219,
+body.mmhvault-scroll-active #transactions #txHistoryPanel .scroll::before{
+  animation-play-state:paused!important;
+}
+@media(max-width:900px){
+  #transactions .tx-tab-panel-v371 > .panel,
+  #transactions .tx-intel-v323{
+    backdrop-filter:blur(5px)!important;
+    -webkit-backdrop-filter:blur(5px)!important;
+  }
+}
+@media(max-width:650px){
+  #transactions::after{opacity:.55!important}
+  #transactions .mmh-tx-visual-orbit-v34219{width:190px!important;height:190px!important;opacity:.72}
+}
+@media(prefers-reduced-motion:reduce){
+  #transactions::after,#transactions > .tx-tabs-v371::after,#transactions .tx-tab-panel-v371 > .panel::before,
+  #transactions .receipt-upload-v3300::after,#transactions .mmh-tx-visual-orbit-v34219,
+  #transactions #txHistoryPanel .scroll::before{animation:none!important}
+}
 </style>
 </head>
 <!-- MMHVAULT V3.37.2 · Dashboard 2.0 · isolated summary layer -->
