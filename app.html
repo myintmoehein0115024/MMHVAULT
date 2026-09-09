@@ -794,8 +794,164 @@ body.mmhvault-scroll-active .card{transition:none!important}
   #dashboard .dashboard-details>.dash-top>.panel{border-radius:18px!important}
 }
 </style>
+
+<style id="mmhvault-v34256-layout-precision-css">
+/* V3.42.56 · Monthly report relocation */
+#reports .mmh-monthly-report-relocated-v34256{
+  margin-top:18px!important;
+}
+/* Transaction receipt: keep the full-width architecture, but center the large frame itself. */
+#transactions .receipt-upload-v3300,
+#invest .invest-entry .receipt-upload-v3300{
+  width:min(100%,1040px)!important;
+  margin:18px auto 4px!important;
+  box-sizing:border-box;
+}
+#transactions .receipt-upload-v3300 .receipt-dropzone-v3300,
+#invest .invest-entry .receipt-upload-v3300 .receipt-dropzone-v3300{
+  width:min(100%,720px)!important;
+}
+/* Invest overview breathing room: separate market, KPI, and manager layers. */
+#invest .invest-top{margin-bottom:20px!important;}
+#invest #investMetrics{margin-top:0!important;margin-bottom:20px!important;}
+#invest #portfolioManagerV310{margin-top:0!important;}
+#invest #portfolioManagerV310 + .invest-holdings,
+#invest #portfolioManagerV310 + #v371CurrentHoldings{margin-top:20px!important;}
+/* Add Investment adopts the same premium form language as Add Transaction. */
+#invest .invest-entry{
+  margin-top:6px!important;
+  padding:22px!important;
+  border-radius:24px!important;
+  border:1px solid rgba(88,144,220,.28)!important;
+  background:linear-gradient(180deg,rgba(8,18,39,.93),rgba(4,12,27,.88))!important;
+  box-shadow:0 14px 44px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.025)!important;
+}
+#invest .invest-entry>.toolbar{
+  padding-bottom:15px!important;
+  margin-bottom:18px!important;
+  border-bottom:1px solid rgba(88,144,220,.16)!important;
+}
+#invest .invest-entry>.toolbar h2{
+  font-weight:900!important;
+  letter-spacing:-.025em!important;
+}
+#invest .invest-entry>.toolbar .sub{color:#91a6c8!important;}
+#invest .invest-entry .formgrid{gap:16px!important;}
+#invest .invest-entry .formgrid>label{
+  gap:7px!important;
+  color:#a7b8d2!important;
+  font-weight:800!important;
+}
+#invest .invest-entry .formgrid input,
+#invest .invest-entry .formgrid select,
+#invest .invest-entry .formgrid textarea{
+  min-height:48px!important;
+  border-radius:14px!important;
+  border:1px solid rgba(88,144,220,.28)!important;
+  background:rgba(5,14,30,.72)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.02)!important;
+}
+#invest .invest-entry .formgrid textarea{min-height:96px!important;padding-top:12px!important;}
+#invest .invest-entry .formgrid input:focus,
+#invest .invest-entry .formgrid select:focus,
+#invest .invest-entry .formgrid textarea:focus{
+  border-color:rgba(85,165,255,.62)!important;
+  box-shadow:0 0 0 3px rgba(45,121,255,.10),inset 0 1px 0 rgba(255,255,255,.03)!important;
+}
+#invest .invest-entry .receipt-upload-v3300{
+  margin-top:6px!important;
+  background:linear-gradient(135deg,rgba(12,27,56,.82),rgba(6,15,32,.94))!important;
+}
+#invest .invest-entry .notice.small{
+  margin-top:12px!important;
+  padding:11px 13px!important;
+  border-radius:12px!important;
+  border:1px solid rgba(88,144,220,.16)!important;
+  background:rgba(6,14,30,.38)!important;
+}
+#invest .invest-entry .actions{
+  justify-content:flex-end!important;
+  gap:10px!important;
+  margin-top:16px!important;
+  padding-top:15px!important;
+  border-top:1px solid rgba(88,144,220,.14)!important;
+}
+#invest .invest-entry .actions .btn{min-height:48px!important;border-radius:14px!important;}
+#invest .invest-entry .actions .btn.primary{
+  min-width:150px!important;
+  font-weight:900!important;
+}
+@media(max-width:620px){
+  #reports .mmh-monthly-report-relocated-v34256{margin-top:14px!important;}
+  #transactions .receipt-upload-v3300,
+  #invest .invest-entry .receipt-upload-v3300{width:100%!important;margin-left:auto!important;margin-right:auto!important;}
+  #invest .invest-entry{padding:16px!important;border-radius:18px!important;}
+  #invest .invest-entry .formgrid{gap:12px!important;}
+  #invest .invest-entry .actions{justify-content:stretch!important;}
+  #invest .invest-entry .actions .btn{flex:1 1 0;min-width:0!important;}
+}
+</style>
+
+<style id="mmhvault-v34256-final-polish-css">
+/* V3.42.56 final visual polish — user-directed layout corrections. */
+/* Keep Monthly Financial Report on Reports, not Dashboard. */
+#dashboard #monthlyReportV373{display:none!important}
+#reports .mmh-monthly-report-relocated-v34256{display:block!important;margin-top:18px!important}
+/* Transaction: the wide receipt frame is centered inside the form. */
+#transactions #txAddPanel .receipt-upload-v3300{
+  width:min(100%,1040px)!important;
+  margin:18px auto 6px!important;
+  justify-self:center!important;
+}
+#transactions #txAddPanel .receipt-dropzone-v3300{
+  width:min(100%,720px)!important;
+  margin-left:auto!important;margin-right:auto!important;
+}
+/* Invest: add breathing room between the market / KPI / manager layers. */
+#invest .invest-top{margin-bottom:22px!important}
+#invest #investMetrics{margin-bottom:22px!important}
+#invest #portfolioManagerV310{margin-top:0!important;margin-bottom:22px!important}
+/* Invest Add Investment mirrors the established Add Transaction visual shell. */
+#invest .invest-entry{
+  width:100%!important;box-sizing:border-box!important;
+  border-radius:24px!important;border:1px solid rgba(95,160,224,.24)!important;
+  background:linear-gradient(145deg,rgba(8,23,45,.92),rgba(4,13,28,.96))!important;
+  box-shadow:0 18px 48px rgba(0,0,0,.18),inset 0 1px 0 rgba(255,255,255,.03)!important;
+}
+#invest .invest-entry>.toolbar{
+  padding:17px 18px 15px!important;margin-bottom:0!important;
+  border-bottom:1px solid rgba(93,160,222,.14)!important;
+}
+#invest .invest-entry form{padding:18px!important}
+#invest .invest-entry .formgrid{gap:16px!important}
+#invest .invest-entry .receipt-upload-v3300{
+  width:min(100%,1040px)!important;
+  margin:18px auto 6px!important;
+  justify-self:center!important;
+}
+#invest .invest-entry .receipt-dropzone-v3300{
+  width:min(100%,720px)!important;margin-left:auto!important;margin-right:auto!important;
+}
+#invest .invest-entry .actions{
+  margin-top:18px!important;padding-top:15px!important;
+  border-top:1px solid rgba(93,160,222,.12)!important;
+}
+/* Desktop: full-width, deliberate breathing room. */
+@media(min-width:901px){
+  #invest .invest-entry .formgrid{column-gap:18px!important;row-gap:16px!important}
+  #invest .invest-entry .formgrid>label.full{grid-column:1/-1!important}
+}
+@media(max-width:620px){
+  #reports .mmh-monthly-report-relocated-v34256{margin-top:14px!important}
+  #transactions #txAddPanel .receipt-upload-v3300,
+  #invest .invest-entry .receipt-upload-v3300{width:100%!important;margin-left:auto!important;margin-right:auto!important}
+  #invest .invest-entry form{padding:13px!important}
+  #invest .invest-entry>.toolbar{padding:13px!important}
+  #invest .invest-entry .formgrid{gap:12px!important}
+}
+</style>
 </head>
-<!-- MMHVAULT V3.37.2 · Dashboard 2.0 · isolated summary layer -->
+<!-- MMHVAULT V3.42.56 · Dashboard report relocation + Transaction receipt center + Invest Add precision -->
 <body>
 <div id="mmhvaultAppBootGuardV3282" style="position:fixed;inset:0;z-index:30000;display:none;align-items:center;justify-content:center;background:#050a18;color:#dce8ff;font-family:Arial,sans-serif;padding:24px;text-align:center;">
 <div style="max-width:420px;border:1px solid rgba(78,164,255,.25);border-radius:18px;padding:24px 22px;background:rgba(10,20,42,.92);box-shadow:0 18px 60px rgba(0,0,0,.4);">
@@ -925,7 +1081,6 @@ body.mmhvault-scroll-active .card{transition:none!important}
 <div class="hero-networth" id="dashboardHero"></div>
 <div aria-label="Wealth snapshot" class="panel wealth-snapshot-v386" id="wealthSnapshotV386"></div>
 <div aria-label="Dashboard 2.0" class="panel mmh-dashboard-v372" id="dashboardCoreV372"></div>
-<div aria-label="Monthly financial report" class="panel mmh-monthly-report-v373" id="monthlyReportV373"></div>
 <div class="panel dashboard-premium-panel dashboard-account-panel" style="margin-top:20px"><div class="toolbar"><div><h2 style="margin-bottom:3px">Account Overview</h2><div class="sub">Day-to-day cash accounts · native currency + USD equivalent</div></div><div class="actions" style="margin:0"><span class="pill">Cash &amp; Investment Accounts</span></div></div><div class="account-groups" id="accounts"></div></div><div class="grid metrics kpi-polish" id="metrics" style="display:none !important;margin-top:14px"></div><div class="panel dashboard-premium-panel dashboard-allocation-panel" style="margin-top:14px"><div class="toolbar"><h2>Asset Allocation</h2><span class="pill">Net Worth Mix</span></div><div id="assetAllocation"></div></div><div aria-label="Quick actions" class="dashboard-quick-actions-v371"><button class="btn primary" onclick="setPage('transactions');setTimeout(()=&gt;showTxTab('add'),0)">＋ Add Transaction</button><button class="btn" onclick="setPage('invest');setTimeout(()=&gt;setInvestSubtabV371('add'),0)">＋ Add Investment</button><button class="btn" onclick="setPage('analyze')">📊 Open Analyze</button></div>
 <div class="dashboard-details" id="dashboardDetails">
 <div class="grid dash-top">
@@ -1124,6 +1279,7 @@ body.mmhvault-scroll-active .card{transition:none!important}
 <div class="report-period-controls"><label>Year<select id="reportsYear"></select></label><label>Month<select id="reportsMonth"><option value="annual">Annual</option></select></label></div>
 </div>
 <div class="grid four mmh-v390-kpis" id="reportsKpis"></div>
+<div aria-label="Monthly financial report" class="panel mmh-monthly-report-v373 mmh-monthly-report-relocated-v34256" id="monthlyReportV373"></div>
 <div class="panel" style="margin-top:14px"><div class="toolbar"><div><h2 id="reportsMonthlyTitle">Monthly Overview</h2><div class="sub" id="reportsMonthlySub"></div></div><span class="pill" id="reportsStatus">—</span></div><div id="reportsMonthly"></div></div>
 <div class="grid two" style="margin-top:14px">
 <div class="panel"><div class="toolbar"><div><h2 id="reportsThreeTitle">3-Month Trend</h2><div class="sub" id="reportsThreeSub"></div></div></div><div id="reportsThree"></div></div>
@@ -7939,7 +8095,7 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
   window.addEventListener('mmhvault:data-loaded',arm);
   window.addEventListener('mmhvault:data-state',arm);
   document.addEventListener('change',e=>{if(e.target?.id==='month'||e.target?.id==='year')setTimeout(render,0);});
-  document.addEventListener('click',e=>{if(e.target?.closest?.('#dashboard'))setTimeout(render,0);});
+  document.addEventListener('click',e=>{if(e.target?.closest?.('#dashboard,#reports'))setTimeout(render,0);});
   window.addEventListener('storage',e=>{if(e.key==='mmhvault_language_v3363')setTimeout(render,0);});
 })();
 </script>
