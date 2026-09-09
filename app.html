@@ -8523,6 +8523,64 @@ html.mmhv-tab-hidden .mmh-glow-anim{animation-play-state:paused!important}
   window.MM_HVAULT_PERFORMANCE_V34239={version:'3.42.39',visibilityGovernor:true};
 })();
 </script>
+
+
+<!-- MMHVAULT V3.42.40 · Performance Architecture v1.5: Transaction Render Gate -->
+<script id="mmhvault-v34240-transaction-render-gate">
+(function(){
+  if(window.__mmhV34240TransactionRenderGateInstalled)return;
+  window.__mmhV34240TransactionRenderGateInstalled=true;
+  const source=window.renderTransactionsV28;
+  if(typeof source!=='function')return;
+  if(source.__mmhV34240)return;
+  let lastSignature=null;
+  let renderQueued=false;
+
+  function filteredRows(){
+    try{return typeof v28FilteredTx==='function' ? (v28FilteredTx()||[]) : [];}catch(_){return [];}
+  }
+  function receiptKey(t){
+    try{
+      const ids=window.mmHVaultReceiptIdsV3302;
+      if(ids&&typeof ids.has==='function')return ids.has(Number(t?.id))?'1':'0';
+    }catch(_){ }
+    return '?';
+  }
+  function signature(rows){
+    return rows.map(t=>[
+      t?.id,t?.tx_date,t?.type,t?.category,t?.transaction_group,
+      t?.from_account,t?.from_amount,t?.to_account,t?.to_amount,t?.note,
+      receiptKey(t)
+    ].map(v=>String(v==null?'':v)).join('\x1f')).join('\x1e');
+  }
+  function run(force){
+    const rows=filteredRows();
+    const sig=signature(rows);
+    const list=document.getElementById('txList');
+    if(!force && sig===lastSignature && list?.querySelector('[data-v34240-rendered="1"],table,.tx-mobile-list-v371,.empty,.tx-mobile-empty-v371')){
+      return false;
+    }
+    lastSignature=sig;
+    source.apply(this,arguments);
+    const host=document.getElementById('txList');
+    if(host)host.setAttribute('data-v34240-rendered','1');
+    return true;
+  }
+  function wrapped(){return run(false);}
+  wrapped.__mmhV34240=true;
+  wrapped.__mmhV34240Base=source;
+  window.renderTransactionsV28=wrapped;
+  window.renderTransactions=wrapped;
+  window.mmhvaultInvalidateTransactionRenderV34240=function(){lastSignature=null;};
+  window.mmhvaultScheduleTransactionRenderV34240=function(){
+    if(renderQueued)return;
+    renderQueued=true;
+    const cb=()=>{renderQueued=false;try{window.renderTransactionsV28();}catch(_){}};
+    if(window.requestAnimationFrame)requestAnimationFrame(cb);else setTimeout(cb,0);
+  };
+  window.MM_HVAULT_PERFORMANCE_V34240={version:'3.42.40',transactionRenderGate:true,signatureBasedSkip:true,noNewPolling:true};
+})();
+</script>
 </body>
 
 
