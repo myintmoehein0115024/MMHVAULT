@@ -8210,7 +8210,7 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
   }
   ['mmhvault:data-loaded','mmhvault:cache-restored','mmhvault:sync-complete'].forEach(ev=>window.addEventListener(ev,()=>setTimeout(render,140)));
   window.addEventListener('storage',e=>{if(e.key==='mmhvault_language_v3363')setTimeout(languageFix,80)});
-  window.addEventListener('mmhvault:dashboard-rendered',()=>requestAnimationFrame(render),{passive:true});
+  window.addEventListener('mmhvault:dashboard-rendered',()=>mmhvaultScheduleFrameV34244('dashboard-render',render),{passive:true});
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(render,240),{once:true});else setTimeout(render,240);
 })();
 </script>
@@ -8293,7 +8293,7 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
   window.addEventListener('mmhvault:data-loaded',()=>setTimeout(apply,80));
   window.addEventListener('mmhvault:sync-complete',()=>setTimeout(apply,80));
   window.addEventListener('mmhvault:cache-restored',()=>setTimeout(apply,80));
-  window.addEventListener('mmhvault:dashboard-rendered',()=>requestAnimationFrame(apply),{passive:true});
+  window.addEventListener('mmhvault:dashboard-rendered',()=>mmhvaultScheduleFrameV34244('dashboard-apply',apply),{passive:true});
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(apply,220),{once:true});else setTimeout(apply,220);
 })();
 </script>
@@ -8697,12 +8697,34 @@ html.mmhv-tab-hidden .mmh-glow-anim{animation-play-state:paused!important}
   }
   function boot(){
     install();
-    window.addEventListener('mmhvault:page-visible',()=>requestAnimationFrame(refreshVisiblePage),{passive:true});
-    document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')requestAnimationFrame(refreshVisiblePage);},{passive:true});
+    window.addEventListener('mmhvault:page-visible',()=>mmhvaultScheduleFrameV34244('page-visible',refreshVisiblePage),{passive:true});
+    document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')mmhvaultScheduleFrameV34244('visibility-refresh',refreshVisiblePage);},{passive:true});
     requestAnimationFrame(()=>{install();});
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
   window.MM_HVAULT_PERFORMANCE_V34243={version:'3.42.43',hiddenPageRenderSuspension:true,noNewPolling:true};
+})();
+</script>
+
+<script id="mmhvault-v34244-animation-frame-governor">
+(function(){
+  if(window.__mmhV34244AnimationGovernor)return;
+  window.__mmhV34244AnimationGovernor=true;
+  const pending=new Map();
+  window.mmhvaultScheduleFrameV34244=function(key,fn){
+    key=String(key||'default');
+    if(pending.has(key))return;
+    const run=()=>{pending.delete(key);try{fn();}catch(e){console.warn('[MMHVAULT] frame task failed',e);}};
+    const id=typeof requestAnimationFrame==='function'?requestAnimationFrame(run):setTimeout(run,0);
+    pending.set(key,id);
+  };
+  window.mmhvaultCancelFrameV34244=function(key){
+    key=String(key||'default');
+    const id=pending.get(key); if(id==null)return;
+    try{if(typeof cancelAnimationFrame==='function')cancelAnimationFrame(id);else clearTimeout(id);}catch(_e){}
+    pending.delete(key);
+  };
+  window.MM_HVAULT_PERFORMANCE_V34244={version:'3.42.44',animationFrameGovernor:true,keyedFrameDedup:true,noGlobalRafOverride:true};
 })();
 </script>
 </body>
@@ -9715,11 +9737,11 @@ html.mmhv-tab-hidden .mmh-glow-anim{animation-play-state:paused!important}
     sync();
     if(!window.__mmhV34220LangBound){
       window.__mmhV34220LangBound=true;
-      window.addEventListener('mmhvault-language-change',()=>requestAnimationFrame(sync));
-      window.addEventListener('storage',e=>{if(e.key===langKey)requestAnimationFrame(sync)});
-      window.addEventListener('mmhvault:data-loaded',()=>requestAnimationFrame(sync));
-      window.addEventListener('mmhvault:cache-restored',()=>requestAnimationFrame(sync));
-      window.addEventListener('mmhvault:sync-complete',()=>requestAnimationFrame(sync));
+      window.addEventListener('mmhvault-language-change',()=>mmhvaultScheduleFrameV34244('language-sync',sync));
+      window.addEventListener('storage',e=>{if(e.key===langKey)mmhvaultScheduleFrameV34244('language-sync',sync)});
+      window.addEventListener('mmhvault:data-loaded',()=>mmhvaultScheduleFrameV34244('language-sync-data',sync));
+      window.addEventListener('mmhvault:cache-restored',()=>mmhvaultScheduleFrameV34244('language-sync-cache',sync));
+      window.addEventListener('mmhvault:sync-complete',()=>mmhvaultScheduleFrameV34244('language-sync-complete',sync));
     }
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
