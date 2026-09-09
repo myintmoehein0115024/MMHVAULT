@@ -950,6 +950,140 @@ body.mmhvault-scroll-active .card{transition:none!important}
   #invest .invest-entry .formgrid{gap:12px!important}
 }
 </style>
+
+<style id="mmhvault-v34257-add-form-unification-css">
+/* V3.42.57 · Add Investment uses the same visual shell as Add Transaction.
+   Keep data/logic intact; only normalize the presentation layer. */
+#invest .invest-entry{
+  padding:24px!important;
+  border-radius:26px!important;
+  border:1px solid rgba(82,159,223,.24)!important;
+  background:linear-gradient(145deg,rgba(7,23,47,.975),rgba(5,15,31,.97) 56%,rgba(4,12,26,.985))!important;
+  box-shadow:0 20px 54px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.035)!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+  overflow:clip!important;
+}
+#invest .invest-entry>.toolbar{
+  display:block!important;
+  padding:0 0 14px!important;
+  margin:0 0 18px!important;
+  border:0!important;
+  border-bottom:1px solid rgba(93,160,222,.12)!important;
+  background:transparent!important;
+}
+#invest .invest-entry>.toolbar>div:first-child{min-width:0!important;}
+#invest .invest-entry>.toolbar h2{
+  margin:0!important;
+  font-size:20px!important;
+  line-height:1.25!important;
+  font-weight:900!important;
+  letter-spacing:-.02em!important;
+}
+#invest .invest-entry>.toolbar h2:after{
+  content:"";display:block;width:28px;height:3px;margin-top:8px;border-radius:99px;
+  background:linear-gradient(90deg,rgba(238,190,67,.9),rgba(238,190,67,.05));
+}
+#invest .invest-entry>.toolbar .sub{
+  margin-top:8px!important;
+  color:rgba(163,182,211,.78)!important;
+  font-size:13px!important;
+  line-height:1.5!important;
+}
+#invest .invest-entry>.toolbar>.pill{
+  float:right!important;
+  margin-top:-46px!important;
+  border-color:rgba(95,160,224,.18)!important;
+  background:rgba(7,20,40,.64)!important;
+}
+#invest .invest-entry .formgrid{
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:14px 16px!important;
+}
+#invest .invest-entry .formgrid>label{
+  min-width:0!important;
+  display:flex!important;
+  flex-direction:column!important;
+  gap:7px!important;
+  font-size:12px!important;
+  font-weight:750!important;
+  letter-spacing:.025em!important;
+  color:rgba(212,229,250,.72)!important;
+}
+#invest .invest-entry .formgrid .full{grid-column:1/-1!important;}
+#invest .invest-entry .formgrid input,
+#invest .invest-entry .formgrid select,
+#invest .invest-entry .formgrid textarea{
+  min-height:46px!important;
+  width:100%!important;
+  border-radius:14px!important;
+  border:1px solid rgba(96,161,220,.21)!important;
+  background:linear-gradient(180deg,rgba(10,27,50,.88),rgba(6,18,35,.92))!important;
+  color:#eef7ff!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.025)!important;
+  outline:none!important;
+  transition:border-color .16s ease,box-shadow .16s ease,background-color .16s ease;
+}
+#invest .invest-entry .formgrid textarea{min-height:96px!important;padding-top:12px!important;}
+#invest .invest-entry .formgrid input:focus,
+#invest .invest-entry .formgrid select:focus,
+#invest .invest-entry .formgrid textarea:focus{
+  border-color:rgba(75,190,255,.5)!important;
+  box-shadow:0 0 0 3px rgba(58,167,237,.08),inset 0 1px 0 rgba(255,255,255,.035)!important;
+}
+#invest .invest-entry .formgrid input:hover,
+#invest .invest-entry .formgrid select:hover{border-color:rgba(106,180,239,.32)!important;}
+#invest .invest-entry .receipt-upload-v3300{
+  border-radius:20px!important;
+  border:1px solid rgba(95,160,224,.18)!important;
+  background:linear-gradient(145deg,rgba(11,31,57,.72),rgba(6,18,35,.76))!important;
+  box-shadow:none!important;
+  width:min(100%,1040px)!important;
+  margin:18px auto 4px!important;
+  box-sizing:border-box!important;
+}
+#invest .invest-entry .receipt-upload-head-v3300{padding:16px 16px 10px!important;}
+#invest .invest-entry .receipt-dropzone-v3300{
+  margin:0 16px!important;
+  width:min(100%,720px)!important;
+  border-radius:16px!important;
+  border:1px dashed rgba(87,177,237,.28)!important;
+  background:rgba(6,20,39,.42)!important;
+}
+#invest .invest-entry .receipt-upload-footer-v3300{padding:10px 16px 14px!important;opacity:.8!important;}
+#invest .invest-entry .notice.small{
+  margin-top:12px!important;
+  padding:11px 13px!important;
+  border-radius:12px!important;
+  border:1px solid rgba(88,144,220,.16)!important;
+  background:rgba(6,14,30,.38)!important;
+}
+#invest .invest-entry .actions{
+  display:flex!important;
+  justify-content:flex-end!important;
+  gap:10px!important;
+  flex-wrap:wrap!important;
+  margin-top:18px!important;
+  padding-top:0!important;
+  border-top:0!important;
+}
+#invest .invest-entry .actions .btn{min-height:44px!important;border-radius:14px!important;}
+#invest .invest-entry .actions .btn.primary{
+  min-width:170px!important;
+  font-weight:900!important;
+  box-shadow:0 10px 24px rgba(37,132,218,.16)!important;
+}
+@media(max-width:760px){
+  #invest .invest-entry{padding:20px!important;border-radius:22px!important;}
+  #invest .invest-entry>.toolbar>.pill{float:none!important;margin:12px 0 0!important;display:inline-flex!important;}
+  #invest .invest-entry .formgrid{grid-template-columns:1fr!important;gap:14px!important;}
+  #invest .invest-entry .formgrid .full{grid-column:auto!important;}
+  #invest .invest-entry .receipt-upload-v3300{width:100%!important;margin:16px auto 4px!important;}
+  #invest .invest-entry .receipt-dropzone-v3300{width:calc(100% - 32px)!important;}
+}
+</style>
+
 </head>
 <!-- MMHVAULT V3.42.56 · Dashboard report relocation + Transaction receipt center + Invest Add precision -->
 <body>
