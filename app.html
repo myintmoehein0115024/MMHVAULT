@@ -8465,6 +8465,37 @@ body::before{background-attachment:scroll!important}
 <style id="mmhvault-v34228-remaining-funds-style">
 /* V3.42.34 — remaining funds is always based on the real current calendar month, independent of Analyze period. */
 </style>
+
+<!-- MMHVAULT V3.42.37 · Performance Architecture v1 Step 3: Heavy DOM Update Gate -->
+<script id="mmhvault-v34237-heavy-dom-update-gate">
+(function(){
+  if(window.__mmhV34237HeavyDOMUpdateGateInstalled)return;
+  window.__mmhV34237HeavyDOMUpdateGateInstalled=true;
+  const targets=['accounts','metrics','dashFlow','dashInvest','dashRecent','expenses','loans','monthly','txList','cryptoInvList','goldInvList'];
+  const protoDesc=Object.getOwnPropertyDescriptor(Element.prototype,'innerHTML')||Object.getOwnPropertyDescriptor(HTMLElement.prototype,'innerHTML');
+  if(!protoDesc||typeof protoDesc.get!=='function'||typeof protoDesc.set!=='function')return;
+  const state=new WeakMap();
+  function install(id){
+    const el=document.getElementById(id);
+    if(!el||state.has(el))return;
+    let last=protoDesc.get.call(el);
+    state.set(el,{last});
+    try{
+      Object.defineProperty(el,'innerHTML',{configurable:true,enumerable:false,get(){return protoDesc.get.call(this);},set(value){
+        const rec=state.get(this);
+        const next=String(value);
+        if(rec&&rec.last===next)return;
+        if(rec)rec.last=next;
+        protoDesc.set.call(this,next);
+      }});
+    }catch(e){state.delete(el);}
+  }
+  targets.forEach(install);
+  document.addEventListener('DOMContentLoaded',()=>targets.forEach(install),{once:true,passive:true});
+  window.mmhReinstallHeavyDOMGateV34237=()=>targets.forEach(install);
+  window.MM_HVAULT_PERFORMANCE_V34237={version:'3.42.37',heavyDOMUpdateGate:true,targetCount:targets.length};
+})();
+</script>
 </body>
 
 
@@ -9374,7 +9405,7 @@ body::before{background-attachment:scroll!important}
   window.mmhvaultInvalidateRenderV34236=function(page){
     if(page==='all'||!page)markAll(); else mark(page);
   };
-  window.MM_HVAULT_PERFORMANCE_V34236={version:'3.42.36',renderDiffGate:true,noNewPolling:true};
+  window.MM_HVAULT_PERFORMANCE_V34236={version:'3.42.36',renderDiffGate:true,noNewPolling:true,heavyDOMUpdateGate:'3.42.37'};
 })();
 </script>
 
