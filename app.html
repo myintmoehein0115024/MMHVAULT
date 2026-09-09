@@ -1123,7 +1123,7 @@ body.mmhvault-scroll-active .card{transition:none!important}
 <button class="btn" onclick="retryLoadAllV384()" type="button">Retry</button>
 </div>
 <header id="header" style="display:none">
-<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.42.75</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
+<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.42.76</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
 <div class="header-spacer"></div>
 <div aria-label="Signed in user" class="header-profile" id="headerProfile">
 <div class="header-avatar" id="headerAvatar">MF</div>
@@ -9388,6 +9388,85 @@ body.mmhvault-scroll-active #invest .invest-top>.panel{box-shadow:inset 0 1px 0 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(run,120),{once:true});
   else setTimeout(run,120);
   ['mmhvault:data-loaded','mmhvault:cache-restored','mmhvault:sync-complete','mmhvault:dashboard-rendered'].forEach(ev=>window.addEventListener(ev,()=>setTimeout(run,80),{passive:true}));
+})();
+</script>
+
+<style id="mmhvault-v34276-allocation-layout">
+.dashboard-allocation-panel .allocation-polished{display:grid!important;grid-template-columns:minmax(240px,.8fr) minmax(0,2.2fr)!important;gap:26px!important;align-items:center!important;padding:24px 18px 20px!important}
+.dashboard-allocation-panel .allocation-donut-wrap{display:grid!important;place-items:center!important;min-height:245px!important}
+.dashboard-allocation-panel .allocation-list{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:14px!important;min-width:0!important}
+.dashboard-allocation-panel .allocation-item{min-width:0!important;padding:16px!important;border:1px solid rgba(79,141,226,.22)!important;border-radius:18px!important;background:linear-gradient(150deg,rgba(8,23,46,.88),rgba(5,15,31,.76))!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.03)!important}
+.dashboard-allocation-panel .allocation-item-top{display:grid!important;grid-template-columns:auto 1fr auto!important;align-items:center!important;gap:8px!important}
+.dashboard-allocation-panel .allocation-item-top b{font-weight:750!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+.dashboard-allocation-panel .allocation-pct{font-weight:800!important;font-size:17px!important}
+.dashboard-allocation-panel .allocation-track{height:7px!important;margin:13px 0 9px!important}
+.dashboard-allocation-panel .allocation-note{grid-column:1/-1!important;margin:0!important;padding:0 18px 16px!important;text-align:right!important}
+@media(max-width:900px){.dashboard-allocation-panel .allocation-list{grid-template-columns:1fr 1fr!important}}
+@media(max-width:650px){.dashboard-allocation-panel .allocation-polished{grid-template-columns:1fr!important;gap:12px!important;padding:18px 10px 10px!important}.dashboard-allocation-panel .allocation-list{grid-template-columns:1fr!important}.dashboard-allocation-panel .allocation-donut-wrap{min-height:200px!important}.dashboard-allocation-panel .allocation-donut{width:190px!important;height:190px!important}.dashboard-allocation-panel .allocation-donut:after{inset:22px!important}.dashboard-allocation-panel .allocation-note{text-align:left!important;padding:0 10px 14px!important}}
+</style>
+<script id="mmhvault-v34276-gold-authority">
+(function(){
+  const N=v=>{const x=Number(v);return Number.isFinite(x)?x:0};
+  const rows=()=> (Array.isArray(window.investments)?window.investments:investments||[]).filter(x=>x&&x.asset==='Gold');
+  window.mmhGoldAuthorityV376=()=>{
+    const r=rows();
+    if(!r.length)return{rows:0,weight:0,costMMK:0,priceMMK:0,valueMMK:0,valueUSD:0};
+    const ordered=[...r].sort((a,b)=>{const ad=String(a?.inv_date||'');const bd=String(b?.inv_date||'');if(ad!==bd)return bd.localeCompare(ad);return String(b?.created_at||'').localeCompare(String(a?.created_at||''));});
+    const weight=r.reduce((s,x)=>{const amt=N(x.amount),buy=N(x.buy_price),q=N(x.quantity);return s+(amt>0&&buy>0?amt/buy:q);},0);
+    const costMMK=r.reduce((s,x)=>s+N(x.amount)+N(x.fee)+N(x.other_cost),0);
+    const recorded=ordered.map(x=>N(x.market_price)).find(v=>v>0)||0;
+    const active=N(goldMarketState?.pricePerKyattha);
+    const priceMMK=recorded||active||N(ordered[0]?.buy_price);
+    const valueMMK=weight>0&&priceMMK>0?weight*priceMMK:costMMK;
+    const fx=N(rates?.usd_mmk);
+    return{rows:r.length,weight,costMMK,priceMMK,valueMMK,valueUSD:fx>0?valueMMK/fx:0};
+  };
+  window.mmhInvestmentValueV376=()=>{
+    const inv=Array.isArray(window.investments)?window.investments:investments||[];
+    const fx=N(rates?.usd_mmk);
+    const crypto=inv.filter(x=>x&&x.asset==='Crypto').reduce((s,x)=>{const q=N(x.quantity),p=N(livePrices?.[x.symbol]?.price)||N(x.market_price);return s+(q>0&&p>0?q*p*fx:0);},0);
+    return crypto+window.mmhGoldAuthorityV376().valueMMK;
+  };
+  window.mmhRefreshGoldBlocksV376=()=>{
+    const dash=document.getElementById('dashboard');if(!dash?.classList.contains('active'))return;
+    const inv=Array.isArray(window.investments)?window.investments:investments||[];
+    const gold=window.mmhGoldAuthorityV376();
+    const cryptoUSD=inv.filter(x=>x&&x.asset==='Crypto').reduce((s,x)=>s+N(x.quantity)*(N(livePrices?.[x.symbol]?.price)||N(x.market_price)),0);
+    const cashUSD=['Bath','TrueMoney','OKX','ByBit','MetaMask','KPay'].reduce((s,a)=>s+N(balance(a))*((()=>{const c=currency(a);if(c==='USD')return 1;if(c==='THB')return 1/(N(rates?.usd_thb)||1);return 1/(N(rates?.usd_mmk)||1);})()),0);
+    const mix=[['Cash',cashUSD],['Crypto',cryptoUSD],['Gold',gold.valueUSD]];const total=mix.reduce((s,x)=>s+x[1],0)||1;
+    const cPct=mix[0][1]/total*100, crPct=mix[1][1]/total*100, gPct=mix[2][1]/total*100;
+    const sig=[cashUSD,cryptoUSD,gold.valueUSD,gold.weight,gold.priceMMK,N(rates?.usd_mmk),...['Bath','TrueMoney','KPay','OKX','ByBit','MetaMask'].map(a=>balance(a))].map(v=>N(v).toFixed(6)).join('|');
+    if(window.__mmhV376Sig===sig)return;window.__mmhV376Sig=sig;
+    const accounts=document.getElementById('accounts');
+    if(accounts){
+      accounts.innerHTML=`<div class="account-group"><div class="group-title"><strong><span>Cash</span></strong><span class="group-total">Native Currency</span></div><div class="account-list"><div class="account-row"><div class="left"><div class="name"><span>Bath</span><div class="small">THB</div></div></div><div class="amount">฿ ${fmt(balance('Bath'))}</div></div><div class="account-row"><div class="left"><div class="name"><span>TrueMoney</span><div class="small">THB</div></div></div><div class="amount">฿ ${fmt(balance('TrueMoney'))}</div></div><div class="account-row"><div class="left"><div class="name"><span>KPay</span><div class="small">MMK</div></div></div><div class="amount">MMK ${fmt(balance('KPay'))}</div></div></div></div><div class="account-group"><div class="group-title"><strong><span>USD</span></strong><span class="group-total">USD</span></div><div class="account-list"><div class="account-row"><div class="left"><div class="name"><span>OKX</span></div></div><div class="amount">${usd(balance('OKX'))}</div></div><div class="account-row"><div class="left"><div class="name"><span>ByBit</span></div></div><div class="amount">${usd(balance('ByBit'))}</div></div><div class="account-row"><div class="left"><div class="name"><span>MetaMask</span></div></div><div class="amount">${usd(balance('MetaMask'))}</div></div></div></div><div class="account-group investment-account"><div class="group-title"><strong><span>Investment</span></strong><span class="group-total">USD</span></div><div class="account-list"><div class="account-row"><div class="left"><div class="name"><span>Crypto Portfolio</span><div class="small">USD</div></div></div><div class="amount">${usd(cryptoUSD)}</div></div><div class="account-row"><div class="left"><div class="name"><span>Gold Portfolio</span><div class="small">Converted from MMK</div></div></div><div class="amount">${usd(gold.valueUSD)}</div></div></div></div>`;
+    }
+    const alloc=document.getElementById('assetAllocation');
+    if(alloc){
+      const stops=`#38c6ee 0 ${cPct*3.6}deg,#d23cff ${cPct*3.6}deg ${(cPct+crPct)*3.6}deg,#ffc84a ${(cPct+crPct)*3.6}deg 360deg`;
+      const cards=[['Cash',cashUSD,cPct,'cash'],['Crypto',cryptoUSD,crPct,'crypto'],['Gold',gold.valueUSD,gPct,'gold']].map(([label,val,pct,cl])=>`<div class="allocation-item"><div class="allocation-item-top"><span class="allocation-dot ${cl}"></span><b>${label}</b><span class="allocation-pct">${pct.toFixed(1)}%</span></div><div class="allocation-track"><span style="width:${Math.min(100,pct)}%"></span></div><div class="allocation-value">${usd(val)}</div></div>`).join('');
+      alloc.innerHTML=`<div class="allocation-polished"><div class="allocation-donut-wrap"><div class="allocation-donut" style="background:conic-gradient(${stops})"><div class="allocation-donut-center"><strong>${usd(total)}</strong><span>Net Worth Mix</span></div></div></div><div class="allocation-list">${cards}</div></div><div class="small allocation-note">Based on current USD-equivalent market value.</div>`;
+    }
+  };
+  /* Canonical calculation: Gold uses the latest persisted Gold market_price and all Gold records. */
+  window.investmentValue=function(){return window.mmhInvestmentValueV376();};
+  window.mmhvaultInvestmentValueUSD=function(){const fx=N(rates?.usd_mmk);return fx>0?window.mmhInvestmentValueV376()/fx:0;};
+  /* Gate the heavyweight legacy dashboard render so unchanged data does not rebuild the whole page. */
+  const baseV30=window.renderDashboardV30;
+  if(typeof baseV30==='function'&&!window.__mmhV376Wrapped){
+    window.__mmhV376Wrapped=true;
+    window.renderDashboardV30=function(){
+      if(!document.getElementById('dashboard')?.classList.contains('active'))return;
+      const inv=Array.isArray(window.investments)?window.investments:investments||[];
+      const sig=[...inv.map(x=>[x.id,x.asset,x.symbol,x.amount,x.buy_price,x.market_price,x.quantity].join(':')),...['Bath','TrueMoney','KPay','OKX','ByBit','MetaMask'].map(a=>`${a}:${balance(a)}`),N(rates?.usd_mmk),N(rates?.usd_thb),...['BTC','ETH','SOL','BNB'].map(k=>N(livePrices?.[k]?.price))].join('|');
+      if(window.__mmhV30DataSig===sig){window.mmhRefreshGoldBlocksV376();return;}
+      window.__mmhV30DataSig=sig;
+      baseV30();
+      window.mmhRefreshGoldBlocksV376();
+    };
+    window.renderDashboard=window.renderDashboardV30;
+  }
+  setTimeout(()=>{try{window.mmhRefreshGoldBlocksV376();window.renderDashboard?.();}catch(_e){}},0);
 })();
 </script>
 </body>
