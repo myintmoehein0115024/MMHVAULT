@@ -613,7 +613,7 @@ body.mmhvault-scroll-active .card{transition:none!important}
   #transactions #txHistoryPanel .filter-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
 }
 @media(max-width:650px){
-  #transactions > .tx-tabs-v371{grid-template-columns:1fr;padding:6px;border-radius:18px;}
+  #transactions > .tx-tabs-v371{grid-template-columns:repeat(2,minmax(0,1fr));padding:6px;border-radius:18px;}
   #transactions .tx-tab-v371{min-height:46px;border-radius:13px!important;}
   #transactions .tx-tab-panel-v371 > .panel{border-radius:20px;}
   #transactions #txAddPanel > .panel,#transactions #txHistoryPanel > .panel{padding:16px;}
@@ -624,6 +624,16 @@ body.mmhvault-scroll-active .card{transition:none!important}
 }
 @media(prefers-reduced-motion:reduce){
   #transactions .tx-tab-v371,#transactions #txForm input,#transactions #txForm select,#transactions #txList tbody tr{transition:none!important;}
+}
+</style>
+
+<style id="mmhvault-v34254-tx-tabs-side-by-side">
+/* V3.42.54 · Transaction tabs stay side-by-side on every viewport */
+#transactions > .tx-tabs-v371{grid-template-columns:repeat(2,minmax(0,1fr))!important;}
+#transactions .tx-tab-v371{width:100%;min-width:0;}
+@media(max-width:650px){
+  #transactions > .tx-tabs-v371{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:6px;padding:6px;}
+  #transactions .tx-tab-v371{min-height:50px;font-size:14px;}
 }
 </style>
 </head>
