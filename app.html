@@ -1546,37 +1546,89 @@ function renderDashboardV372(){
 }
 
 function renderDashboard(){
-const A=totalAssetMMK(),E=expenseMMK(),I=investmentValue(),L=Math.max(0,loanOutMMK()-loanPaidMMK());
-const available=A-I-L;
-const groups=[
- {title:"💵 Cash",accounts:["Bath","TrueMoney","KPay"]},
- {title:"💵 USD",accounts:["OKX","ByBit","MetaMask"]},
- {title:"🥇 Investment",accounts:[]}
-];
-$("accounts").innerHTML=groups.map(g=>{
- if(g.title.includes("Investment")){
-   const gold=investments.filter(x=>x.asset==="Gold");
-   const goldValue=gold.reduce((s,x)=>s+(n(x.quantity)*(goldMarketState.pricePerKyattha||n(x.market_price))),0);
-   const goldCost=gold.reduce((s,x)=>s+n(x.amount)+n(x.fee)+n(x.other_cost),0);
-   const pnl=goldValue-goldCost;
-   return `<div class="account-group investment-account"><div class="group-title"><strong>${g.title}</strong><span class="group-total">MMK ${fmt(goldValue)}</span></div><div class="account-list"><div class="account-row"><div class="left"><div class="name">Gold Portfolio</div><div class="small">MMK · ${gold.length} record${gold.length===1?"":"s"}</div></div><div class="amount">${fmt(goldValue)}</div></div><div class="small" style="padding:2px 4px">Cost ${fmt(goldCost)} · P/L <span class="${pnl>=0?"green":"red"}">${pnl>=0?"+":""}${fmt(pnl)}</span></div></div></div>`;
- }
- const total=g.accounts.reduce((sum,a)=>sum+balance(a)*toMMK(a),0);
- return `<div class="account-group"><div class="group-title"><strong>${g.title}</strong><span class="group-total">MMK ${fmt(total)}</span></div><div class="account-list">${g.accounts.map(a=>`<div class="account-row"><div class="left"><div class="name">${a}</div><div class="small">${currency(a)}</div></div><div class="amount">${fmt(balance(a))}</div></div>`).join("")}</div></div>`;
-}).join("");
-$("metrics").innerHTML=[["Asset",A,"cyan"],["Expense",E,"red"],["Available Balance",available,available>=0?"green":"red"],["Total Invest",investedCost(),"pink"],["Net Change",incomeMMK()-E-L,"yellow"]].map(x=>`<div class="card metric"><div class="name">${x[0]} · MMK</div><div class="value ${x[2]}">${fmt(x[1])}</div></div>`).join("");
-const month=$("month")?.value||today().slice(0,7);const monthTx=transactions.filter(t=>t.tx_date.startsWith(month));
-let mi=0,me=0;monthTx.forEach(t=>{if(t.type==="Income")mi+=n(t.to_amount)*toMMK(t.to_account);if(t.type==="Expense"&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=="Investment")me+=n(t.from_amount)*toMMK(t.from_account);});
-const mr=mi-me,er=mi?me/mi*100:0;
-$("dashMonthLabel").textContent=month;
-$("dashFlow").innerHTML=`<div class="flow-grid"><div><span>Income</span><b class="green">MMK ${fmt(mi)}</b></div><div><span>Expenses</span><b class="red">MMK ${fmt(me)}</b></div><div><span>Remaining</span><b class="${mr>=0?"green":"red"}">MMK ${fmt(mr)}</b></div><div><span>Expense Ratio</span><b>${er.toFixed(2)}%</b></div></div>`;
-const crypto=investments.filter(x=>x.asset==="Crypto");const gold=investments.filter(x=>x.asset==="Gold");
-const holdings=["BTC","ETH","SOL","BNB"].map(sym=>{const q=crypto.filter(x=>x.symbol===sym).reduce((s,x)=>s+n(x.quantity),0);const m=livePrices[sym]?.price||0;const v=q*m;return {sym,q,v};});
-$("dashInvest").innerHTML=`<div class="mini-invest"><div><span>Crypto Cost</span><b>$${fmt(crypto.reduce((s,x)=>s+n(x.amount)+n(x.fee)+n(x.other_cost),0))}</b></div><div><span>Gold Cost</span><b>MMK ${fmt(gold.reduce((s,x)=>s+n(x.amount)+n(x.fee)+n(x.other_cost),0))}</b></div></div><div class="holding-line">${holdings.map(h=>`<span><b>${h.sym}</b> ${h.q.toFixed(8)}</span>`).join("")}</div>`;
-$("dashTxCount").textContent=`${transactions.length} records`;
-$("dashRecent").innerHTML=transactions.filter(t=>!isLinkedInvestmentTx(t)).slice(0,10).map(t=>`<table class="recent-one"><tr><td>${t.tx_date}</td><td>${t.type}</td><td>${esc(t.category)}</td><td>${esc(t.from_account||"—")}</td><td>${t.from_amount?fmt(t.from_amount):"—"}</td><td>${esc(t.to_account||"—")}</td><td>${t.to_amount?fmt(t.to_amount):"—"}</td></tr></table>`).join("")||'<div class="empty">No transactions imported yet.</div>';
-renderDashboardV372();
-renderDashboardMonth();
+  /* MMHVAULT V3.42.42 — Dashboard Partial DOM + lightweight memoization.
+     Keeps existing markup/visuals intact. Rebuild only the Dashboard blocks whose data changed. */
+  const monthEl=$('month');
+  const month=monthEl?.value||today().slice(0,7);
+  const hash=(str)=>{let h=2166136261;for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619);}return (h>>>0).toString(16)};
+  const txSig=()=>hash((transactions||[]).map(t=>[
+    t?.id,t?.tx_date,t?.type,t?.category,t?.from_account,t?.from_amount,t?.to_account,t?.to_amount,t?.note,t?.receipt_url,t?.receipt_path
+  ].join('\u001f')).join('\u001e'));
+  const invSig=()=>hash((investments||[]).map(x=>[
+    x?.id,x?.asset,x?.symbol,x?.quantity,x?.amount,x?.fee,x?.other_cost,x?.market_price,x?.source_account
+  ].join('\u001f')).join('\u001e'));
+  const priceSig=()=>['BTC','ETH','SOL','BNB'].map(k=>`${k}:${livePrices?.[k]?.price||0}`).join('|')+'|G:'+((goldMarketState?.pricePerKyattha)||0);
+  const rateSig=()=>`${rates?.usd_mmk||0}|${rates?.usd_thb||0}`;
+  const baseSig=`${txSig()}|${invSig()}|${priceSig()}|${rateSig()}`;
+  window.__mmhDashV34242Cache=window.__mmhDashV34242Cache||{};
+  const C=window.__mmhDashV34242Cache;
+
+  const calcBase=()=>{
+    const A=totalAssetMMK(),E=expenseMMK(),I=investmentValue(),L=Math.max(0,loanOutMMK()-loanPaidMMK());
+    return {A,E,I,L,available:A-I-L};
+  };
+  if(C.baseSig!==baseSig){
+    C.baseSig=baseSig;
+    C.base=calcBase();
+  }
+  const {A,E,I,L,available}=C.base;
+
+  const accountSig=`${baseSig}|accounts`;
+  if(C.accountSig!==accountSig){
+    C.accountSig=accountSig;
+    const groups=[
+      {title:"💵 Cash",accounts:["Bath","TrueMoney","KPay"]},
+      {title:"💵 USD",accounts:["OKX","ByBit","MetaMask"]},
+      {title:"🥇 Investment",accounts:[]}
+    ];
+    $("accounts").innerHTML=groups.map(g=>{
+      if(g.title.includes("Investment")){
+        const gold=investments.filter(x=>x.asset==="Gold");
+        const goldValue=gold.reduce((s,x)=>s+(n(x.quantity)*(goldMarketState.pricePerKyattha||n(x.market_price))),0);
+        const goldCost=gold.reduce((s,x)=>s+n(x.amount)+n(x.fee)+n(x.other_cost),0);
+        const pnl=goldValue-goldCost;
+        return `<div class="account-group investment-account"><div class="group-title"><strong>${g.title}</strong><span class="group-total">MMK ${fmt(goldValue)}</span></div><div class="account-list"><div class="account-row"><div class="left"><div class="name">Gold Portfolio</div><div class="small">MMK · ${gold.length} record${gold.length===1?"":"s"}</div></div><div class="amount">${fmt(goldValue)}</div></div><div class="small" style="padding:2px 4px">Cost ${fmt(goldCost)} · P/L <span class="${pnl>=0?"green":"red"}">${pnl>=0?"+":""}${fmt(pnl)}</span></div></div></div>`;
+      }
+      const total=g.accounts.reduce((sum,a)=>sum+balance(a)*toMMK(a),0);
+      return `<div class="account-group"><div class="group-title"><strong>${g.title}</strong><span class="group-total">MMK ${fmt(total)}</span></div><div class="account-list">${g.accounts.map(a=>`<div class="account-row"><div class="left"><div class="name">${a}</div><div class="small">${currency(a)}</div></div><div class="amount">${fmt(balance(a))}</div></div>`).join("")}</div></div>`;
+    }).join("");
+  }
+
+  const metricSig=`${baseSig}|metrics`;
+  if(C.metricSig!==metricSig){
+    C.metricSig=metricSig;
+    $("metrics").innerHTML=[["Asset",A,"cyan"],["Expense",E,"red"],["Available Balance",available,available>=0?"green":"red"],["Total Invest",investedCost(),"pink"],["Net Change",incomeMMK()-E-L,"yellow"]].map(x=>`<div class="card metric"><div class="name">${x[0]} · MMK</div><div class="value ${x[2]}">${fmt(x[1])}</div></div>`).join("");
+  }
+
+  const monthTx=transactions.filter(t=>String(t.tx_date||'').startsWith(month));
+  const flowSig=`${baseSig}|${month}`;
+  if(C.flowSig!==flowSig){
+    C.flowSig=flowSig;
+    let mi=0,me=0;monthTx.forEach(t=>{if(t.type==="Income")mi+=n(t.to_amount)*toMMK(t.to_account);if(t.type==="Expense"&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=="Investment")me+=n(t.from_amount)*toMMK(t.from_account);});
+    const mr=mi-me,er=mi?me/mi*100:0;
+    $("dashMonthLabel").textContent=month;
+    $("dashFlow").innerHTML=`<div class="flow-grid"><div><span>Income</span><b class="green">MMK ${fmt(mi)}</b></div><div><span>Expenses</span><b class="red">MMK ${fmt(me)}</b></div><div><span>Remaining</span><b class="${mr>=0?"green":"red"}">MMK ${fmt(mr)}</b></div><div><span>Expense Ratio</span><b>${er.toFixed(2)}%</b></div></div>`;
+  }
+
+  const investSig=`${baseSig}|invest`;
+  if(C.investSig!==investSig){
+    C.investSig=investSig;
+    const crypto=investments.filter(x=>x.asset==="Crypto"), gold=investments.filter(x=>x.asset==="Gold");
+    const holdings=["BTC","ETH","SOL","BNB"].map(sym=>{const q=crypto.filter(x=>x.symbol===sym).reduce((s,x)=>s+n(x.quantity),0);const m=livePrices[sym]?.price||0;return {sym,q,v:q*m};});
+    $("dashInvest").innerHTML=`<div class="mini-invest"><div><span>Crypto Cost</span><b>$${fmt(crypto.reduce((s,x)=>s+n(x.amount)+n(x.fee)+n(x.other_cost),0))}</b></div><div><span>Gold Cost</span><b>MMK ${fmt(gold.reduce((s,x)=>s+n(x.amount)+n(x.fee)+n(x.other_cost),0))}</b></div></div><div class="holding-line">${holdings.map(h=>`<span><b>${h.sym}</b> ${h.q.toFixed(8)}</span>`).join("")}</div>`;
+  }
+
+  const recentSig=`${txSig()}|recent`;
+  if(C.recentSig!==recentSig){
+    C.recentSig=recentSig;
+    $("dashTxCount").textContent=`${transactions.length} records`;
+    $("dashRecent").innerHTML=transactions.filter(t=>!isLinkedInvestmentTx(t)).slice(0,10).map(t=>`<table class="recent-one"><tr><td>${t.tx_date}</td><td>${t.type}</td><td>${esc(t.category)}</td><td>${esc(t.from_account||"—")}</td><td>${t.from_amount?fmt(t.from_amount):"—"}</td><td>${esc(t.to_account||"—")}</td><td>${esc(t.to_account||"—")}</td><td>${t.to_amount?fmt(t.to_amount):"—"}</td></tr></table>`).join("")||'<div class="empty">No transactions imported yet.</div>';
+  }
+
+  const v372Sig=`${baseSig}|${month}|target`;
+  if(C.v372Sig!==v372Sig){C.v372Sig=v372Sig;renderDashboardV372();}
+  const monthSummarySig=`${txSig()}|${month}`;
+  if(C.monthSummarySig!==monthSummarySig){C.monthSummarySig=monthSummarySig;renderDashboardMonth();}
 }
 function renderAnalyze(){
 const m=$("month").value||today().slice(0,7); let i=0,e=0;
@@ -8579,6 +8631,15 @@ html.mmhv-tab-hidden .mmh-glow-anim{animation-play-state:paused!important}
     if(window.requestAnimationFrame)requestAnimationFrame(cb);else setTimeout(cb,0);
   };
   window.MM_HVAULT_PERFORMANCE_V34240={version:'3.42.41',transactionRenderGate:true,signatureBasedSkip:true,noNewPolling:true};
+})();
+</script>
+
+<script id="mmhvault-v34242-dashboard-partial-dom">
+(function(){
+  if(window.__mmhV34242DashboardPartialGate)return;
+  window.__mmhV34242DashboardPartialGate=true;
+  window.mmhvaultInvalidateDashboardV34242=function(){if(window.__mmhDashV34242Cache)window.__mmhDashV34242Cache={};};
+  window.MM_HVAULT_PERFORMANCE_V34242={version:'3.42.42',dashboardPartialDOM:true,sectionMemoization:true,noNewPolling:true};
 })();
 </script>
 </body>
