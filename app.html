@@ -8128,7 +8128,7 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
   }
   const old=window.renderDashboard; if(typeof old==='function'&&!old.__mmhV34210){const wrapped=function(){const r=old.apply(this,arguments);setTimeout(render,60);return r;};wrapped.__mmhV34210=true;window.renderDashboard=wrapped;}
   ['mmhvault:data-loaded','mmhvault:cache-restored','mmhvault:sync-complete'].forEach(ev=>window.addEventListener(ev,()=>setTimeout(render,100)));
-  setInterval(()=>{if(document.getElementById('dashboard')?.classList.contains('active'))render();},30000);
+  // V3.42.39: redundant 30s dashboard polling removed; renderDashboard wrapper + data/price events now drive updates.
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(render,180),{once:true});else setTimeout(render,180);
 })();
 </script>
@@ -8494,6 +8494,33 @@ body::before{background-attachment:scroll!important}
   document.addEventListener('DOMContentLoaded',()=>targets.forEach(install),{once:true,passive:true});
   window.mmhReinstallHeavyDOMGateV34237=()=>targets.forEach(install);
   window.MM_HVAULT_PERFORMANCE_V34237={version:'3.42.37',heavyDOMUpdateGate:true,targetCount:targets.length};
+})();
+</script>
+
+<!-- MMHVAULT V3.42.39 · Performance Architecture v1.4: Visibility / Animation Governor -->
+<style id="mmhvault-v34239-visibility-governor-css"> 
+html.mmhv-tab-hidden [data-mmhdynamic="pause-when-hidden"],
+html.mmhv-tab-hidden .mmh-orbit-v34210,
+html.mmhv-tab-hidden .mmh-command-orbit,
+html.mmhv-tab-hidden .mmh-command-grid,
+html.mmhv-tab-hidden .mmh-scanline,
+html.mmhv-tab-hidden .mmh-pulse,
+html.mmhv-tab-hidden .mmh-glow-anim{animation-play-state:paused!important}
+</style>
+<script id="mmhvault-v34239-visibility-governor-js">
+(function(){
+  if(window.__mmhV34239VisibilityGovernorInstalled)return;
+  window.__mmhV34239VisibilityGovernorInstalled=true;
+  const root=document.documentElement;
+  function sync(){
+    root.classList.toggle('mmhv-tab-hidden',document.visibilityState==='hidden');
+    if(document.visibilityState==='visible'){
+      window.dispatchEvent(new CustomEvent('mmhvault:tab-visible'));
+    }
+  }
+  document.addEventListener('visibilitychange',sync,{passive:true});
+  sync();
+  window.MM_HVAULT_PERFORMANCE_V34239={version:'3.42.39',visibilityGovernor:true};
 })();
 </script>
 </body>
