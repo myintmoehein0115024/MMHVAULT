@@ -9509,6 +9509,207 @@ body.mmhvault-scroll-active #invest .invest-top>.panel{box-shadow:inset 0 1px 0 
 <script id="mmhvault-v34252-version-stamp">
 window.MM_HVAULT_PERFORMANCE_V34252={version:"3.42.52",investFullSpectrum:true,goldPortfolioLanguageShared:true,noNewPolling:true};
 </script>
+
+<style id="mmhvault-v34259-visual-premium-polish">
+/* V3.42.59 — Visual Premium Polish
+   No new features. Static-first visual refinement across Dashboard / Transactions / Invest.
+*/
+
+/* ===================== DASHBOARD ===================== */
+#dashboard .wealth-snapshot-v386,
+#dashboard .mmh-dashboard-v372,
+#dashboard .dashboard-account-panel,
+#dashboard .dashboard-allocation-panel,
+#dashboard .dashboard-recent-panel,
+#dashboard .dashboard-details>.dash-top>.panel{
+  background:
+    linear-gradient(145deg,rgba(8,21,42,.88),rgba(5,14,30,.78) 48%,rgba(3,10,23,.90))!important;
+  border-color:rgba(92,151,226,.22)!important;
+  box-shadow:0 12px 36px rgba(0,0,0,.20),inset 0 1px 0 rgba(255,255,255,.026)!important;
+}
+#dashboard .wealth-snapshot-v386 .toolbar,
+#dashboard .mmh-dashboard-v372 .toolbar,
+#dashboard .dashboard-account-panel .toolbar,
+#dashboard .dashboard-allocation-panel .toolbar,
+#dashboard .dashboard-recent-panel .toolbar{
+  min-height:42px;
+}
+#dashboard .wealth-snapshot-v386 .toolbar h2,
+#dashboard .mmh-dashboard-v372 .toolbar h2,
+#dashboard .dashboard-account-panel .toolbar h2,
+#dashboard .dashboard-allocation-panel .toolbar h2,
+#dashboard .dashboard-recent-panel .toolbar h2{
+  font-weight:900!important;
+  letter-spacing:-.03em!important;
+}
+#dashboard .dashboard-account-panel .account-groups>.account-group,
+#dashboard .dashboard-account-panel .account-groups>.account-card,
+#dashboard .dashboard-allocation-panel .allocation-item,
+#dashboard .dashboard-recent-panel .recent-row{
+  border-color:rgba(94,157,228,.16)!important;
+  background:linear-gradient(135deg,rgba(11,27,53,.66),rgba(5,14,30,.54))!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.022)!important;
+}
+#dashboard .dashboard-account-panel .account-groups>.account-group:hover,
+#dashboard .dashboard-account-panel .account-groups>.account-card:hover,
+#dashboard .dashboard-recent-panel .recent-row:hover{
+  transform:none!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.028)!important;
+}
+
+/* ===================== YOUR AGE ===================== */
+#dashboard .mmh-age-live-badge-v34218{
+  padding:8px 12px 9px!important;
+  gap:3px!important;
+  align-items:flex-start!important;
+  overflow:hidden!important;
+}
+#dashboard .mmh-age-live-badge-v34218::before{
+  display:none!important;
+}
+#dashboard .mmh-age-live-label-v34218{
+  position:relative;
+  display:flex!important;
+  align-items:center;
+  gap:7px;
+  font-size:10px!important;
+  line-height:1.1!important;
+  font-weight:950!important;
+  letter-spacing:.12em!important;
+  color:#dff7ec!important;
+  text-transform:uppercase;
+}
+#dashboard .mmh-age-live-label-v34218::before{
+  content:"";
+  width:7px;
+  height:7px;
+  flex:0 0 7px;
+  border-radius:50%;
+  background:#2fe6a0;
+  box-shadow:0 0 0 3px rgba(47,230,160,.08),0 0 10px rgba(47,230,160,.45);
+}
+#dashboard .mmh-age-live-badge-v34218 b{
+  font-size:11px!important;
+  line-height:1.25!important;
+  font-weight:650!important;
+  color:#8ea4c7!important;
+  letter-spacing:.01em!important;
+  text-shadow:none!important;
+}
+@media(max-width:620px){
+  #dashboard .mmh-age-live-badge-v34218{min-width:146px!important;padding:8px 11px 9px!important;}
+  #dashboard .mmh-age-live-label-v34218{font-size:10px!important;}
+  #dashboard .mmh-age-live-badge-v34218 b{font-size:11px!important;}
+}
+
+/* ===================== TRANSACTIONS ===================== */
+#transactions .tx-tabs-v371{
+  background:linear-gradient(180deg,rgba(7,18,36,.72),rgba(4,11,24,.62))!important;
+  border:1px solid rgba(87,149,222,.18)!important;
+  box-shadow:0 8px 24px rgba(0,0,0,.14),inset 0 1px 0 rgba(255,255,255,.024)!important;
+}
+#transactions .tx-tab-v371{
+  border-color:rgba(92,154,224,.14)!important;
+  color:#94a9c9!important;
+  background:rgba(8,20,39,.26)!important;
+  font-weight:850!important;
+}
+#transactions .tx-tab-v371.active{
+  color:#f2f7ff!important;
+  background:linear-gradient(135deg,rgba(36,91,153,.54),rgba(13,32,62,.78))!important;
+  border-color:rgba(76,175,255,.42)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.045),0 8px 22px rgba(17,79,145,.10)!important;
+}
+#transactions .tx-form-v371,
+#transactions .tx-history-v371,
+#transactions .receipt-upload-v3300{
+  background:linear-gradient(145deg,rgba(7,21,42,.83),rgba(4,12,26,.74))!important;
+  border-color:rgba(87,149,222,.18)!important;
+  box-shadow:0 12px 34px rgba(0,0,0,.16),inset 0 1px 0 rgba(255,255,255,.024)!important;
+}
+#transactions .receipt-upload-v3300{
+  display:block!important;
+  max-width:100%!important;
+  margin:18px auto 0!important;
+}
+#transactions .receipt-dropzone-v3300{
+  margin-left:auto!important;
+  margin-right:auto!important;
+}
+#transactions .tx-form-v371 input:focus,
+#transactions .tx-form-v371 select:focus,
+#transactions .tx-form-v371 textarea:focus{
+  box-shadow:0 0 0 3px rgba(76,199,255,.055),inset 0 1px 0 rgba(255,255,255,.03)!important;
+}
+
+/* ===================== INVEST ===================== */
+#invest .invest-top>.panel,
+#invest .invest-list-panel,
+#invest .invest-entry,
+#invest #v371CurrentHoldings,
+#invest #v371Allocation,
+#invest #v371CryptoPortfolio,
+#invest #v371GoldPortfolio{
+  box-shadow:0 12px 34px rgba(0,0,0,.17),inset 0 1px 0 rgba(255,255,255,.026)!important;
+}
+#invest .invest-top>.panel>.toolbar,
+#invest .invest-list-panel>.toolbar,
+#invest .invest-entry>.toolbar,
+#invest #v371CurrentHoldings>.toolbar,
+#invest #v371Allocation>.toolbar,
+#invest #v371CryptoPortfolio>.toolbar,
+#invest #v371GoldPortfolio>.toolbar{
+  background:linear-gradient(100deg,rgba(11,28,55,.70),rgba(6,15,32,.34))!important;
+  border-radius:18px 18px 0 0!important;
+}
+#invest .invest-entry{
+  background:linear-gradient(145deg,rgba(8,22,45,.90),rgba(4,11,24,.82))!important;
+}
+#invest .invest-entry>.toolbar h2{
+  font-weight:900!important;
+  letter-spacing:-.03em!important;
+}
+#invest .invest-entry .formgrid input,
+#invest .invest-entry .formgrid select,
+#invest .invest-entry .formgrid textarea{
+  background:rgba(3,11,24,.62)!important;
+  border-color:rgba(93,153,221,.18)!important;
+}
+#invest .invest-entry .actions{
+  margin-top:16px!important;
+}
+#invest .invest-entry .actions .btn{
+  min-width:128px;
+}
+#invest .crypto-summary-card,
+#invest .gold-summary-card{
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.028),0 10px 24px rgba(0,0,0,.11)!important;
+}
+#invest .crypto-table-wrap,
+#invest .gold-table-wrap{
+  background:rgba(3,10,22,.24)!important;
+  border-color:rgba(95,151,216,.15)!important;
+}
+
+/* ===================== SHARED FINISH ===================== */
+#dashboard .pill,
+#transactions .pill,
+#invest .pill{
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.028)!important;
+}
+@media(max-width:900px){
+  #dashboard .wealth-snapshot-v386,
+  #dashboard .mmh-dashboard-v372,
+  #dashboard .dashboard-account-panel,
+  #dashboard .dashboard-allocation-panel,
+  #dashboard .dashboard-recent-panel{
+    box-shadow:0 10px 28px rgba(0,0,0,.16),inset 0 1px 0 rgba(255,255,255,.024)!important;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  #dashboard .mmh-age-live-badge-v34218::before{animation:none!important}
+}
+</style>
 </body>
 <!-- MMHVAULT V3.42.34 performance baseline: event-driven data labels + reduced visual polling. -->
 </html>\n<script id="mmhvault-v34241-transaction-partial-dom">
