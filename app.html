@@ -9,7 +9,7 @@
 <link href="manifest.webmanifest" rel="manifest"/>
 <meta content="#06111f" name="theme-color"/>
 <title>MMHVAULT · Personal Finance &amp; Wealth Management</title>
-<link href="assets/mmhvault.css" rel="stylesheet"/><meta content="V3.42.48 · Transaction Visual Rebalance + Performance" name="mmhvault-architecture"/>
+<link href="assets/mmhvault.css" rel="stylesheet"/><meta content="V3.42.51 · Invest layout polish + premium portfolio snapshot" name="mmhvault-architecture"/>
 <style id="mmhvault-v32811-wealth-rules-location-css">
   .analyze-tabs-v371{overflow-x:auto;scrollbar-width:thin;}
   .analyze-tabs-v371 .analyze-tab-v371{flex:0 0 auto;min-width:110px;}
@@ -10111,6 +10111,126 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
 @media(max-width:900px){#invest .panel{backdrop-filter:blur(6px)!important;-webkit-backdrop-filter:blur(6px)!important}#invest .v371-switch{margin-top:4px}#invest .big-price{font-size:30px!important}}
 @media(max-width:620px){#invest:before{height:420px;opacity:.72}#invest .invest-subtabs-v371{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));width:100%}#invest .invest-subtab-v371{padding:9px 7px;font-size:11px}#invest .v371-switch{width:100%}#invest .v371-switch .btn{flex:1}#invest .panel{box-shadow:0 10px 24px rgba(0,0,0,.14),inset 0 1px 0 rgba(255,255,255,.02)!important}}
 @media(prefers-reduced-motion:reduce){#invest .v371-switch .btn,#invest .invest-subtab-v371,#invest .price-grid .price-card{transition:none!important}}
+<style id="mmhvault-v34251-invest-layout-polish">
+/* MMHVAULT V3.42.51 · Invest precision polish: hero, full-width subnav, premium portfolio snapshot. */
+#invest .v371-head{
+  position:relative!important;
+  margin:0 0 14px!important;
+  padding:22px 24px 20px!important;
+  min-height:118px;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:24px!important;
+  overflow:hidden!important;
+  border:1px solid rgba(92,160,230,.20)!important;
+  border-radius:28px 38px 24px 40px!important;
+  background:
+    radial-gradient(circle at 88% 14%,rgba(75,201,255,.14),transparent 28%),
+    radial-gradient(circle at 62% 110%,rgba(246,199,91,.085),transparent 32%),
+    linear-gradient(125deg,rgba(7,18,38,.96),rgba(7,18,42,.84) 48%,rgba(5,12,27,.90))!important;
+  box-shadow:0 18px 46px rgba(0,0,0,.16),inset 0 1px 0 rgba(255,255,255,.045)!important;
+}
+#invest .v371-head:before{
+  content:"";position:absolute;right:-70px;top:-80px;width:330px;height:250px;border-radius:48%;
+  border:1px solid rgba(76,199,255,.10);transform:rotate(-12deg);pointer-events:none;
+  box-shadow:0 0 44px rgba(76,199,255,.05),inset 0 0 42px rgba(76,199,255,.025);
+}
+#invest .v371-head:after{
+  content:"INVESTMENT COMMAND DECK  •  DISCIPLINE  /  DIVERSIFICATION  /  LONG-TERM";
+  position:absolute;left:25px;bottom:7px;font-size:8px;letter-spacing:.22em;font-weight:800;color:rgba(143,181,224,.55);
+  pointer-events:none;white-space:nowrap;
+}
+#invest .v371-head>div:first-child{position:relative;z-index:2;min-width:0}
+#invest .v371-head h1{font-size:clamp(34px,4vw,48px)!important;line-height:1!important;letter-spacing:-.045em!important;text-shadow:0 0 30px rgba(76,199,255,.12)}
+#invest .v371-head .sub{max-width:900px;margin-top:8px;line-height:1.6}
+#invest .v371-switch{position:relative;z-index:3;flex:0 0 auto;min-width:214px;justify-content:stretch;padding:5px!important;border-radius:18px!important;background:rgba(4,11,25,.58)!important;border-color:rgba(103,163,226,.22)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.035),0 10px 26px rgba(0,0,0,.12)!important}
+#invest .v371-switch .btn{flex:1;min-width:96px;min-height:44px;border-radius:13px!important;font-weight:900!important;letter-spacing:.01em}
+#invest .v371-switch .btn.active{background:linear-gradient(135deg,rgba(63,191,255,.18),rgba(246,199,91,.09))!important;border-color:rgba(104,194,255,.33)!important;box-shadow:0 0 22px rgba(76,199,255,.08),inset 0 1px 0 rgba(255,255,255,.05)!important}
+
+#invest .invest-subtabs-v371{
+  display:flex!important;width:100%!important;box-sizing:border-box!important;margin:0 0 16px!important;padding:6px!important;
+  border-radius:18px!important;background:linear-gradient(180deg,rgba(6,14,31,.78),rgba(3,9,21,.88))!important;
+  border:1px solid rgba(92,157,221,.17)!important;box-shadow:0 10px 26px rgba(0,0,0,.12),inset 0 1px 0 rgba(255,255,255,.035)!important;
+}
+#invest .invest-subtab-v371{
+  flex:1 1 0!important;min-height:46px;padding:11px 18px!important;border-radius:13px!important;text-align:center;
+  font-size:13px!important;color:#91a8c9!important;font-weight:900!important;letter-spacing:.01em!important;
+}
+#invest .invest-subtab-v371.active{
+  color:#f2f8ff!important;background:linear-gradient(135deg,rgba(49,174,237,.18),rgba(110,84,255,.10),rgba(246,199,91,.06))!important;
+  border-color:rgba(97,187,255,.28)!important;box-shadow:0 0 24px rgba(76,199,255,.07),inset 0 1px 0 rgba(255,255,255,.045)!important;
+}
+
+#invest .gold-portfolio-shell{
+  overflow:hidden!important;border-radius:24px!important;border-color:rgba(111,157,219,.23)!important;
+  background:linear-gradient(145deg,rgba(9,22,45,.92),rgba(4,11,24,.96))!important;
+  box-shadow:0 18px 48px rgba(0,0,0,.18),inset 0 1px 0 rgba(255,255,255,.03)!important;
+}
+#invest .gold-portfolio-shell>.toolbar{margin-bottom:0!important;padding-bottom:14px!important}
+#invest .gold-portfolio-shell>.toolbar h2{font-size:21px!important;font-weight:930!important;letter-spacing:-.028em!important}
+#invest .gold-portfolio-shell>.toolbar:before{
+  content:"◈";display:grid;place-items:center;flex:0 0 34px;width:34px;height:34px;margin-right:10px;border-radius:11px;
+  color:#f6d46c;background:linear-gradient(145deg,rgba(246,199,91,.16),rgba(83,174,255,.08));border:1px solid rgba(246,199,91,.22);font-size:16px;
+  box-shadow:0 0 22px rgba(246,199,91,.06)
+}
+#invest .gold-portfolio-shell>.toolbar{display:flex;align-items:center}
+#invest .gold-portfolio-shell>.toolbar>div{min-width:0}
+#invest .gold-portfolio-shell #goldInvList{padding:0 16px 16px}
+#invest .gold-portfolio-shell .gold-summary{
+  display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px!important;padding:2px 0 14px!important;
+}
+#invest .gold-portfolio-shell .gold-summary-card{
+  position:relative;overflow:hidden;min-width:0;min-height:116px;padding:17px 18px!important;border-radius:18px!important;
+  border:1px solid rgba(104,157,223,.19)!important;background:linear-gradient(145deg,rgba(15,31,58,.80),rgba(6,14,29,.92))!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.035),0 12px 26px rgba(0,0,0,.14)!important;
+}
+#invest .gold-portfolio-shell .gold-summary-card:before{
+  content:"";position:absolute;left:14px;right:14px;top:0;height:2px;border-radius:999px;background:linear-gradient(90deg,rgba(76,199,255,.82),rgba(76,199,255,0));opacity:.82
+}
+#invest .gold-portfolio-shell .gold-summary-card:after{
+  content:"";position:absolute;width:120px;height:120px;right:-58px;bottom:-66px;border-radius:50%;background:radial-gradient(circle,rgba(76,199,255,.10),transparent 67%);pointer-events:none
+}
+#invest .gold-portfolio-shell .gold-summary-card:nth-child(1):before{background:linear-gradient(90deg,rgba(246,199,91,.92),rgba(246,199,91,0))}
+#invest .gold-portfolio-shell .gold-summary-card:nth-child(2):before{background:linear-gradient(90deg,rgba(57,230,161,.92),rgba(57,230,161,0))}
+#invest .gold-portfolio-shell .gold-summary-card:nth-child(3):before{background:linear-gradient(90deg,rgba(255,113,133,.92),rgba(255,113,133,0))}
+#invest .gold-portfolio-shell .gold-summary-card:nth-child(4):before{background:linear-gradient(90deg,rgba(142,125,255,.92),rgba(142,125,255,0))}
+#invest .gold-portfolio-shell .gold-summary-card .label{font-size:10px!important;letter-spacing:.11em!important;text-transform:uppercase;color:#91a8c9!important;font-weight:900!important}
+#invest .gold-portfolio-shell .gold-summary-card .value{margin-top:10px!important;font-size:23px!important;line-height:1.08!important;font-weight:950!important;letter-spacing:-.025em!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#invest .gold-portfolio-shell .gold-summary-card .meta{margin-top:7px!important;font-size:10px!important;color:#7188aa!important;line-height:1.4}
+#invest .gold-portfolio-shell .gold-summary-card:nth-child(1) .value{text-shadow:0 0 24px rgba(246,199,91,.10)}
+#invest .gold-portfolio-shell .gold-summary-card:nth-child(2) .value{color:#3be4ab!important;text-shadow:0 0 24px rgba(57,230,161,.10)}
+#invest .gold-portfolio-shell .gold-summary-card:nth-child(3) .value{color:#ff7185!important;text-shadow:0 0 24px rgba(255,113,133,.08)}
+#invest .gold-portfolio-shell .gold-summary-card:nth-child(4) .value{color:#eef4ff!important}
+#invest .gold-portfolio-shell .gold-table-wrap{
+  border:1px solid rgba(98,150,214,.16);border-radius:18px;padding:6px;background:rgba(3,10,22,.32);overflow:auto
+}
+#invest .gold-portfolio-shell .gold-table-wrap table{min-width:980px}
+#invest .gold-portfolio-shell .gold-table-wrap thead,
+#invest .gold-portfolio-shell .gold-table-wrap tr:first-child{background:linear-gradient(180deg,rgba(23,43,76,.36),rgba(7,16,31,.12))}
+#invest .gold-portfolio-shell .gold-table-wrap th{color:#f0c85f!important;font-size:10px!important;letter-spacing:.09em!important;text-transform:uppercase;border-bottom-color:rgba(246,199,91,.20)!important}
+#invest .gold-portfolio-shell .gold-table-wrap td{border-bottom-color:rgba(98,150,214,.13)!important}
+#invest .gold-portfolio-shell .gold-table-wrap tr:last-child td{border-bottom:0!important}
+#invest .gold-portfolio-shell .gold-table-wrap .icon-actions .btn{border-radius:11px!important}
+
+@media(max-width:900px){
+  #invest .v371-head{padding:20px!important;min-height:0!important;align-items:flex-start!important;flex-direction:column!important}
+  #invest .v371-switch{width:100%;min-width:0}
+  #invest .gold-portfolio-shell .gold-summary{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+@media(max-width:620px){
+  #invest .v371-head{border-radius:22px 28px 20px 30px!important}
+  #invest .v371-head h1{font-size:32px!important}
+  #invest .v371-head:after{display:none}
+  #invest .invest-subtabs-v371{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important}
+  #invest .invest-subtab-v371{min-height:42px;padding:9px 6px!important;font-size:10px!important}
+  #invest .gold-portfolio-shell #goldInvList{padding:0 10px 12px}
+  #invest .gold-portfolio-shell .gold-summary{gap:8px!important}
+  #invest .gold-portfolio-shell .gold-summary-card{min-height:104px;padding:14px!important}
+  #invest .gold-portfolio-shell .gold-summary-card .value{font-size:18px!important}
+}
 </style>
 
-<script id="mmhvault-v34250-version-stamp">window.MM_HVAULT_PERFORMANCE_V34250={version:"3.42.50",investVisualRebalance:true,premiumScoped:true,noNewPolling:true};</script>
+</style>
+
+<script id="mmhvault-v34250-version-stamp">window.MM_HVAULT_PERFORMANCE_V34250={version:"3.42.51",investVisualRebalance:true,investLayoutPolish:true,premiumScoped:true,noNewPolling:true};</script>
