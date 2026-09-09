@@ -436,7 +436,19 @@ h1,h2,h3,.title,.value,.kpi,.metric,.page-title,.nav-title{font-family:Manrope,"
 @media(max-width:860px){#dashboard .mmh-v34212-live-ribbon{grid-template-columns:repeat(2,1fr) auto}.mmh-v34212-ribbon-state{grid-column:1/-1;justify-content:flex-end}}
 @media(max-width:520px){#dashboard .mmh-v34212-live-ribbon{grid-template-columns:1fr 1fr;padding:10px}.mmh-v34212-ribbon-state{grid-column:1/-1;justify-content:flex-start}.mmh-v34212-ribbon-item b{font-size:12px}}
 </style>
-<style id="mmhvault-v34226-remaining-funds-css">.remaining-funds-panel-v34226{position:relative;overflow:hidden;background:linear-gradient(145deg,rgba(13,27,52,.94),rgba(6,13,28,.98));border-color:rgba(85,155,230,.32);}.remaining-funds-panel-v34226:before{content:"";position:absolute;inset:-30% -15%;pointer-events:none;background:linear-gradient(100deg,transparent 28%,rgba(85,216,255,.04) 46%,rgba(244,201,93,.04) 58%,transparent 76%);animation:none;opacity:.7;}@keyframes rfSweep34226{from{transform:translateX(-7%)}to{transform:translateX(7%)}}.remaining-funds-grid-v34226{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;position:relative;z-index:1}.rf-stat-v34226{padding:16px 18px;border:1px solid rgba(75,111,165,.34);border-radius:16px;background:rgba(8,18,38,.66);border-left:3px solid rgba(85,216,255,.72)}.rf-main-v34226{border-left-color:rgba(50,227,154,.82)}.rf-stat-v34226 .label{font-size:12px;letter-spacing:.07em;text-transform:uppercase;color:#9db0cc;font-weight:700;margin-bottom:8px}.rf-stat-v34226 .value{font-size:28px;font-weight:800;color:#f4f7fb;line-height:1.1}.rf-main-v34226 .value{color:#32e39a}.rf-stat-v34226 .small{margin-top:7px;color:#7f95b5;font-size:11px;line-height:1.45}.rf-bar-wrap-v34226{position:relative;z-index:1;margin-top:14px;padding:11px 12px;border-radius:13px;background:rgba(5,13,28,.52);border:1px solid rgba(60,96,147,.27)}.rf-bar-v34226{height:8px;border-radius:99px;background:#081326;overflow:hidden}.rf-bar-v34226 span{display:block;height:100%;width:0;background:linear-gradient(90deg,#55d8ff,#d98cff,#32e39a);border-radius:inherit;transition:width .4s ease}.rf-bar-meta-v34226{display:flex;justify-content:space-between;margin-top:7px;color:#91a6c4;font-size:11px}@media(max-width:900px){.remaining-funds-grid-v34226{grid-template-columns:1fr}.rf-stat-v34226 .value{font-size:24px}}</style></head>
+<style id="mmhvault-v34226-remaining-funds-css">.remaining-funds-panel-v34226{position:relative;overflow:hidden;background:linear-gradient(145deg,rgba(13,27,52,.94),rgba(6,13,28,.98));border-color:rgba(85,155,230,.32);}.remaining-funds-panel-v34226:before{content:"";position:absolute;inset:-30% -15%;pointer-events:none;background:linear-gradient(100deg,transparent 28%,rgba(85,216,255,.04) 46%,rgba(244,201,93,.04) 58%,transparent 76%);animation:none;opacity:.7;}@keyframes rfSweep34226{from{transform:translateX(-7%)}to{transform:translateX(7%)}}.remaining-funds-grid-v34226{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;position:relative;z-index:1}.rf-stat-v34226{padding:16px 18px;border:1px solid rgba(75,111,165,.34);border-radius:16px;background:rgba(8,18,38,.66);border-left:3px solid rgba(85,216,255,.72)}.rf-main-v34226{border-left-color:rgba(50,227,154,.82)}.rf-stat-v34226 .label{font-size:12px;letter-spacing:.07em;text-transform:uppercase;color:#9db0cc;font-weight:700;margin-bottom:8px}.rf-stat-v34226 .value{font-size:28px;font-weight:800;color:#f4f7fb;line-height:1.1}.rf-main-v34226 .value{color:#32e39a}.rf-stat-v34226 .small{margin-top:7px;color:#7f95b5;font-size:11px;line-height:1.45}.rf-bar-wrap-v34226{position:relative;z-index:1;margin-top:14px;padding:11px 12px;border-radius:13px;background:rgba(5,13,28,.52);border:1px solid rgba(60,96,147,.27)}.rf-bar-v34226{height:8px;border-radius:99px;background:#081326;overflow:hidden}.rf-bar-v34226 span{display:block;height:100%;width:0;background:linear-gradient(90deg,#55d8ff,#d98cff,#32e39a);border-radius:inherit;transition:width .4s ease}.rf-bar-meta-v34226{display:flex;justify-content:space-between;margin-top:7px;color:#91a6c4;font-size:11px}@media(max-width:900px){.remaining-funds-grid-v34226{grid-template-columns:1fr}.rf-stat-v34226 .value{font-size:24px}}</style>
+<style id="mmhvault-v34246-scroll-performance">
+/* V3.42.46 — Scroll Performance Layer. Keep normal visuals intact; only suspend expensive animated effects while the user is actively scrolling. */
+html{scroll-behavior:auto!important}
+body.mmhvault-scroll-active .dashboard-recent-panel .scroll::before,
+body.mmhvault-scroll-active #transactions #txHistoryPanel .scroll::before,
+body.mmhvault-scroll-active #transactions .receipt-upload-v3300::after,
+body.mmhvault-scroll-active #dashboard::before,
+body.mmhvault-scroll-active #dashboard::after{animation-play-state:paused!important}
+body.mmhvault-scroll-active .panel,
+body.mmhvault-scroll-active .card{transition:none!important}
+</style>
+</head>
 <!-- MMHVAULT V3.37.2 · Dashboard 2.0 · isolated summary layer -->
 <body>
 <div id="mmhvaultAppBootGuardV3282" style="position:fixed;inset:0;z-index:30000;display:none;align-items:center;justify-content:center;background:#050a18;color:#dce8ff;font-family:Arial,sans-serif;padding:24px;text-align:center;">
@@ -8765,6 +8777,33 @@ html.mmhv-tab-hidden .mmh-glow-anim{animation-play-state:paused!important}
   if(window.MM_HVAULT_PERFORMANCE_V34245)return;
   window.MM_HVAULT_PERFORMANCE_V34245={version:'3.42.45',cssPaintBudget:true,noNewPolling:true};
 })();</script>
+
+<script id="mmhvault-v34246-version-stamp">window.MM_HVAULT_PERFORMANCE_V34246={version:'3.42.46',scrollGovernor:true,changes:'scroll animation/transition governor',noNewPolling:true};</script>
+
+<script id="mmhvault-v34246-scroll-governor">
+(()=>{
+  if(window.__mmhV34246ScrollGovernor)return;
+  window.__mmhV34246ScrollGovernor=true;
+  let raf=0, stopTimer=0;
+  const mark=()=>{
+    if(raf)return;
+    const run=()=>{
+      raf=0;
+      document.body.classList.add('mmhvault-scroll-active');
+    };
+    if(typeof requestAnimationFrame==='function')raf=requestAnimationFrame(run);
+    else run();
+  };
+  const release=()=>{
+    clearTimeout(stopTimer);
+    stopTimer=setTimeout(()=>document.body.classList.remove('mmhvault-scroll-active'),120);
+  };
+  const onScroll=()=>{mark();release();};
+  window.addEventListener('scroll',onScroll,{passive:true});
+  window.addEventListener('wheel',onScroll,{passive:true});
+  window.addEventListener('touchmove',onScroll,{passive:true});
+})();
+</script>
 </body>
 
 
