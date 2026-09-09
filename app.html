@@ -636,6 +636,164 @@ body.mmhvault-scroll-active .card{transition:none!important}
   #transactions .tx-tab-v371{min-height:50px;font-size:14px;}
 }
 </style>
+
+<style id="mmhvault-v34255-dashboard-precision-visual">
+/* MMHVAULT V3.42.55 — Dashboard Visual Rebalance
+   Scope: all Dashboard regions EXCEPT WEALTH COMMAND CENTER motion/visual effects.
+*/
+#dashboard .mmh-command-v34210 .mmh-kicker,
+#dashboard .mmh-command-v34210 h2,
+#dashboard .mmh-command-v34210 p,
+#dashboard .mmh-command-v34210 .mmh-networth-label,
+#dashboard .mmh-command-v34210 .mmh-networth-value,
+#dashboard .mmh-command-v34210 .mmh-command-stat span,
+#dashboard .mmh-command-v34210 .mmh-command-stat b,
+#dashboard .mmh-command-v34210 .mmh-command-stat em{
+  font-family:Inter,"SF Pro Display","SF Pro Text",system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;
+  font-variant-numeric:tabular-nums;
+}
+#dashboard .mmh-command-v34210 h2{letter-spacing:-.035em!important;font-weight:900!important}
+#dashboard .mmh-command-v34210 .mmh-networth-value{letter-spacing:-.045em!important;font-weight:950!important}
+
+/* Keep every other Dashboard section spacious and premium on desktop. */
+#dashboard .wealth-snapshot-v386,
+#dashboard .mmh-dashboard-v372,
+#dashboard .mmh-monthly-report-v373,
+#dashboard .dashboard-account-panel,
+#dashboard .dashboard-allocation-panel,
+#dashboard .dashboard-recent-panel,
+#dashboard .dashboard-details>.dash-top>.panel{
+  border-radius:24px!important;
+  border:1px solid rgba(88,144,220,.24)!important;
+  background:linear-gradient(180deg,rgba(8,18,39,.90),rgba(4,12,27,.82))!important;
+  box-shadow:0 14px 44px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.025)!important;
+}
+#dashboard .wealth-snapshot-v386,
+#dashboard .mmh-dashboard-v372,
+#dashboard .mmh-monthly-report-v373{padding:22px!important}
+#dashboard .dashboard-account-panel,
+#dashboard .dashboard-allocation-panel,
+#dashboard .dashboard-recent-panel{padding:20px!important}
+
+/* One coherent toolbar across Dashboard modules. */
+#dashboard .dashboard-premium-panel>.toolbar,
+#dashboard .dashboard-details>.dash-top .toolbar{
+  padding-bottom:13px;
+  margin-bottom:15px;
+  border-bottom:1px solid rgba(88,144,220,.16);
+}
+#dashboard .dashboard-premium-panel>.toolbar h2,
+#dashboard .dashboard-details>.dash-top .toolbar h2{
+  font-weight:900;
+  letter-spacing:-.025em;
+}
+#dashboard .dashboard-premium-panel>.toolbar .sub,
+#dashboard .dashboard-details>.dash-top .toolbar .pill{
+  color:#8fa6ca;
+}
+
+/* Accounts: more like an asset terminal, less like stacked cards. */
+#dashboard .dashboard-account-panel .account-groups{
+  display:grid;
+  gap:12px;
+}
+#dashboard .dashboard-account-panel .account-groups>.account-group{
+  border-radius:18px!important;
+  border:1px solid rgba(76,143,222,.20)!important;
+  background:linear-gradient(135deg,rgba(10,24,50,.82),rgba(6,15,32,.72))!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.025)!important;
+}
+#dashboard .dashboard-account-panel .account-groups>.account-group:hover,
+#dashboard .dashboard-account-panel .account-card:hover{
+  transform:none!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.025)!important;
+}
+
+/* Asset allocation: give the section an intentional terminal hierarchy. */
+#dashboard .dashboard-allocation-panel #assetAllocation{
+  min-height:140px;
+  display:flex;
+  align-items:stretch;
+}
+#dashboard .dashboard-allocation-panel #assetAllocation>*{flex:1;min-width:0}
+
+/* Quick actions become a compact command strip rather than floating buttons. */
+#dashboard .dashboard-quick-actions-v371{
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:10px;
+  margin-top:15px!important;
+  padding:4px;
+}
+#dashboard .dashboard-quick-actions-v371 .btn{
+  min-height:48px;
+  border-radius:14px!important;
+  transition:background-color .18s ease,border-color .18s ease,box-shadow .18s ease,filter .18s ease!important;
+}
+#dashboard .dashboard-quick-actions-v371 .btn:hover{
+  transform:none!important;
+  filter:none!important;
+  box-shadow:0 8px 24px rgba(30,98,170,.12)!important;
+}
+
+/* Flow + investment snapshot: use balanced two-column terminals on desktop. */
+#dashboard .dash-top{gap:14px!important}
+#dashboard .dash-top>.panel{
+  min-width:0;
+}
+#dashboard .dash-top>.panel #dashFlow,
+#dashboard .dash-top>.panel #dashInvest{
+  min-height:170px;
+}
+
+/* Recent transactions: premium ledger treatment without per-row motion. */
+#dashboard .dashboard-recent-panel .scroll{
+  border-radius:16px;
+  border:1px solid rgba(88,144,220,.13);
+  background:rgba(2,8,20,.34);
+}
+#dashboard .dashboard-recent-panel .toolbar .actions .btn:hover{
+  transform:none!important;
+}
+
+/* Disable the generic Dashboard panel lift on everything outside Command Center. */
+#dashboard .wealth-snapshot-v386:hover,
+#dashboard .mmh-dashboard-v372:hover,
+#dashboard .mmh-monthly-report-v373:hover,
+#dashboard .dashboard-account-panel:hover,
+#dashboard .dashboard-allocation-panel:hover,
+#dashboard .dashboard-recent-panel:hover,
+#dashboard .dashboard-details>.dash-top>.panel:hover{
+  transform:none!important;
+  box-shadow:0 14px 44px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.025)!important;
+}
+#dashboard .wealth-snapshot-v386:after,
+#dashboard .mmh-dashboard-v372:after,
+#dashboard .mmh-monthly-report-v373:after,
+#dashboard .dashboard-account-panel:after,
+#dashboard .dashboard-allocation-panel:after,
+#dashboard .dashboard-recent-panel:after,
+#dashboard .dashboard-details>.dash-top>.panel:after{
+  display:none!important;
+}
+
+@media(max-width:900px){
+  #dashboard .dashboard-quick-actions-v371{grid-template-columns:1fr 1fr}
+  #dashboard .dashboard-quick-actions-v371 .btn:last-child{grid-column:1/-1}
+}
+@media(max-width:620px){
+  #dashboard .wealth-snapshot-v386,
+  #dashboard .mmh-dashboard-v372,
+  #dashboard .mmh-monthly-report-v373,
+  #dashboard .dashboard-account-panel,
+  #dashboard .dashboard-allocation-panel,
+  #dashboard .dashboard-recent-panel{padding:16px!important;border-radius:18px!important}
+  #dashboard .dashboard-quick-actions-v371{grid-template-columns:1fr;gap:8px}
+  #dashboard .dashboard-quick-actions-v371 .btn:last-child{grid-column:auto}
+  #dashboard .dashboard-details>.dash-top{grid-template-columns:1fr!important}
+  #dashboard .dashboard-details>.dash-top>.panel{border-radius:18px!important}
+}
+</style>
 </head>
 <!-- MMHVAULT V3.37.2 · Dashboard 2.0 · isolated summary layer -->
 <body>
