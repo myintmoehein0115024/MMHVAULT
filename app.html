@@ -1123,7 +1123,7 @@ body.mmhvault-scroll-active .card{transition:none!important}
 <button class="btn" onclick="retryLoadAllV384()" type="button">Retry</button>
 </div>
 <header id="header" style="display:none">
-<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.42.74</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
+<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.42.75</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
 <div class="header-spacer"></div>
 <div aria-label="Signed in user" class="header-profile" id="headerProfile">
 <div class="header-avatar" id="headerAvatar">MF</div>
@@ -2117,8 +2117,19 @@ function incomeMMK(){return transactions.filter(t=>t.type==="Income").reduce((s,
 function loanOutMMK(){return transactions.filter(t=>t.category==="Loan Out").reduce((s,t)=>s+n(t.from_amount)*toMMK(t.from_account),0);}
 function loanPaidMMK(){return transactions.filter(t=>t.category==="Loan Repayment").reduce((s,t)=>s+n(t.to_amount)*toMMK(t.to_account),0);}
 function investedCost(){return investments.reduce((s,x)=>{const rate=x.asset==="Crypto"?rates.usd_mmk:1;return s+(n(x.amount)+n(x.fee)+n(x.other_cost))*rate;},0);}
+function goldHoldingQty(x){
+ const amount=n(x?.amount), buy=n(x?.buy_price), stored=n(x?.quantity);
+ if(x?.asset!=='Gold') return stored;
+ // Gold records are valued from the purchase amount and purchase-day price.
+ // This keeps Dashboard/Invest/Allocation aligned even when legacy quantity is stale.
+ return amount>0 && buy>0 ? amount/buy : stored;
+}
+function goldCurrentMMK(x){
+ const price=goldMarketState?.pricePerKyattha||n(x?.market_price);
+ return goldHoldingQty(x)*price;
+}
 function investmentValue(){return investments.reduce((s,x)=>{
- const q=n(x.quantity);
+ const q=x.asset==="Gold"?goldHoldingQty(x):n(x.quantity);
  const m=x.asset==="Crypto"?(livePrices[x.symbol]?.price||n(x.market_price)):(goldMarketState.pricePerKyattha||n(x.market_price));
  return s+(q&&m?q*m*(x.asset==="Crypto"?rates.usd_mmk:1):0);
 },0);}
@@ -2196,6 +2207,7 @@ function renderDashboardV372(){
 }
 
 function renderDashboard(){
+  if(!document.getElementById("dashboard")?.classList.contains("active")) return;
   /* MMHVAULT V3.42.42 — Dashboard Partial DOM + lightweight memoization.
      Keeps existing markup/visuals intact. Rebuild only the Dashboard blocks whose data changed. */
   const monthEl=$('month');
@@ -2608,7 +2620,7 @@ let goldMarketState={pricePerOzMMK:0,pricePerKyattha:Number(localStorage.getItem
 const GOLD_OZ_GRAMS=31.1034768;
 const GOLD_KYATTHA_GRAMS=16.329325;
 async function fetchGoldPrice(){const saved=Number(localStorage.getItem("myfinance_manual_gold_mmk")||0);if(saved>0){goldMarketState={pricePerOzMMK:0,pricePerKyattha:saved,updatedAt:new Date().toISOString(),source:"Manual"};goldMarket.textContent="MMK "+fmt(saved);goldMarketMeta.textContent="Manual price · "+new Date().toLocaleString();manualGoldPrice.value=saved;if(invAsset.value==="Gold")updateInvestCalc();renderInvest();}else{goldMarket.textContent="—";goldMarketMeta.textContent="No saved price · enter a market price below";}}
-function saveManualGoldPrice(){const v=Number(manualGoldPrice.value||0);if(v<=0){alert('Enter a valid gold price per ကျပ်သား.');return;}localStorage.setItem('myfinance_manual_gold_mmk',String(v));goldMarketState={pricePerOzMMK:0,pricePerKyattha:v,updatedAt:new Date().toISOString(),source:'Manual'};goldMarket.textContent='MMK '+fmt(v);goldMarketMeta.textContent='Manual price · '+new Date().toLocaleString();if(invAsset.value==='Gold')updateInvestCalc();renderInvest();}
+function saveManualGoldPrice(){const v=Number(manualGoldPrice.value||0);if(v<=0){alert('Enter a valid gold price per ကျပ်သား.');return;}localStorage.setItem('myfinance_manual_gold_mmk',String(v));goldMarketState={pricePerOzMMK:0,pricePerKyattha:v,updatedAt:new Date().toISOString(),source:'Manual'};goldMarket.textContent='MMK '+fmt(v);goldMarketMeta.textContent='Manual price · '+new Date().toLocaleString();if(invAsset.value==='Gold')updateInvestCalc();renderInvest();try{window.dispatchEvent(new CustomEvent('mmhvault:market-updated'));}catch(_e){} }
 function loadManualGoldPrice(){const v=Number(localStorage.getItem('myfinance_manual_gold_mmk')||0);if(v>0){manualGoldPrice.value=v;if(!goldMarketState.pricePerKyattha){goldMarketState.pricePerKyattha=v;goldMarketState.source='Manual';goldMarket.textContent='MMK '+fmt(v);goldMarketMeta.textContent='Manual price';}}}
 
 let livePrices={BTC:null,ETH:null,SOL:null,BNB:null,XRP:null,DOGE:null,ADA:null,TRX:null};
@@ -2651,7 +2663,7 @@ if($("invReceiptHint")){$("invReceiptHint").textContent='No file selected';$("in
 await loadAll();
 window.refreshInvestmentReceiptFlagsV3304?.();
 }
-async function fetchCryptoPrices(){try{const ids="bitcoin,ethereum,solana,binancecoin,ripple,dogecoin,cardano,tron";const r=await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true`,{cache:"no-store"});if(!r.ok)throw new Error("HTTP "+r.status);const d=await r.json();const map={BTC:d.bitcoin,ETH:d.ethereum,SOL:d.solana,BNB:d.binancecoin,XRP:d.ripple,DOGE:d.dogecoin,ADA:d.cardano,TRX:d.tron};livePrices=Object.fromEntries(Object.entries(map).map(([k,v])=>[k,v&&{price:Number(v.usd),change:Number(v.usd_24h_change||0)}]));marketStatus.textContent="Live · 8-coin public feed";renderCryptoPrices();if(invAsset.value==="Crypto")updateInvestFields();renderDashboard();renderInvest();}catch(e){marketStatus.textContent="Feed unavailable · using saved prices";renderCryptoPrices();}}
+async function fetchCryptoPrices(){try{const ids="bitcoin,ethereum,solana,binancecoin,ripple,dogecoin,cardano,tron";const r=await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true`,{cache:"no-store"});if(!r.ok)throw new Error("HTTP "+r.status);const d=await r.json();const map={BTC:d.bitcoin,ETH:d.ethereum,SOL:d.solana,BNB:d.binancecoin,XRP:d.ripple,DOGE:d.dogecoin,ADA:d.cardano,TRX:d.tron};livePrices=Object.fromEntries(Object.entries(map).map(([k,v])=>[k,v&&{price:Number(v.usd),change:Number(v.usd_24h_change||0)}]));marketStatus.textContent="Live · 8-coin public feed";renderCryptoPrices();if(invAsset.value==="Crypto")updateInvestFields();if(document.getElementById("dashboard")?.classList.contains("active"))renderDashboard();if(document.getElementById("invest")?.classList.contains("active"))renderInvest();try{window.dispatchEvent(new CustomEvent('mmhvault:market-updated'));}catch(_e){}}catch(e){marketStatus.textContent="Feed unavailable · using saved prices";renderCryptoPrices();}}
 function renderCryptoPrices(){const symbols=["BTC","ETH","SOL","BNB","XRP","DOGE","ADA","TRX"];cryptoPrices.innerHTML=symbols.map(s=>{const p=livePrices[s];return`<div class="price-card"><div class="symbol">${s}</div><div class="price">${p&&Number.isFinite(p.price)?"$"+fmt(p.price):"Unavailable"}</div><div class="change ${p&&p.change>=0?"green":"red"}">${p&&Number.isFinite(p.change)?(p.change>=0?"+":"")+p.change.toFixed(2)+"% 24h":"Market feed unavailable"}</div></div>`}).join("");}
 function openGoldSearch(){window.open("https://www.google.com/search?q=Myanmar+gold+price+MMK+per+kyattha","_blank","noopener")}
 function renderPortfolioHealthV3716({totalROI,concentration,positionsCount,cryptoW,goldW,top}){
@@ -2703,7 +2715,7 @@ function renderPortfolioManagerV310(cryptoCost,cryptoValue,goldCost,goldValue){
   investments.forEach(x=>{
     const key=x.asset==='Gold'?'Gold':(x.symbol||'Other');
     if(!positionMap[key])positionMap[key]={key,asset:x.asset,cost:0,value:0,quantity:0};
-    const q=n(x.quantity); const cost=n(x.amount)+n(x.fee)+n(x.other_cost);
+    const q=x.asset==='Gold'?goldHoldingQty(x):n(x.quantity); const cost=n(x.amount)+n(x.fee)+n(x.other_cost);
     const price=x.asset==='Crypto'?(livePrices[x.symbol]?.price||n(x.market_price)):(goldMarketState.pricePerKyattha||n(x.market_price));
     positionMap[key].cost+=cost;
     positionMap[key].value+=q*price;
@@ -2758,7 +2770,7 @@ function renderPortfolioManagerV310(cryptoCost,cryptoValue,goldCost,goldValue){
 function cryptoHoldingsForV310(){
   const keys=new Set();
   investments.filter(x=>x.asset==='Crypto').forEach(x=>{const q=n(x.quantity);const p=livePrices[x.symbol]?.price||n(x.market_price);if(Math.abs(q*p)>0.000001)keys.add(x.symbol||'Other');});
-  if(investments.some(x=>x.asset==='Gold'&&Math.abs((typeof goldHoldingQty==='function'?goldHoldingQty(x):n(x.quantity))*(goldMarketState.pricePerKyattha||n(x.market_price)))>0.000001))keys.add('Gold');
+  if(investments.some(x=>x.asset==='Gold'&&Math.abs(goldHoldingQty(x)*(goldMarketState.pricePerKyattha||n(x.market_price)))>0.000001))keys.add('Gold');
   return keys.size;
 }
 
@@ -2766,7 +2778,7 @@ function renderInvest(){
 const cryptos=investments.filter(x=>x.asset==="Crypto"),golds=investments.filter(x=>x.asset==="Gold");
 let cryptoCost=0,cryptoValue=0,goldCost=0,goldValue=0;
 cryptos.forEach(x=>{const q=n(x.quantity),p=livePrices[x.symbol]?.price||n(x.market_price),cost=n(x.amount)+n(x.fee)+n(x.other_cost);cryptoCost+=cost;cryptoValue+=q*p});
-golds.forEach(x=>{const q=(typeof goldHoldingQty==='function'?goldHoldingQty(x):n(x.quantity)),p=(goldMarketState.pricePerKyattha||n(x.market_price));goldCost+=n(x.amount)+n(x.fee)+n(x.other_cost);goldValue+=q*p});
+golds.forEach(x=>{const q=goldHoldingQty(x),p=(goldMarketState.pricePerKyattha||n(x.market_price));goldCost+=n(x.amount)+n(x.fee)+n(x.other_cost);goldValue+=q*p});
 const cp=cryptoValue-cryptoCost,cr=cryptoCost?cp/cryptoCost*100:0,gp=goldValue-goldCost,gr=goldCost?gp/goldCost*100:0;
 renderPortfolioManagerV310(cryptoCost,cryptoValue,goldCost,goldValue);
 const activeView=(localStorage.getItem("myfinance_invest_view_v371")||"Crypto")==="Gold"?"Gold":"Crypto";renderInvestMetricsV371(activeView,cryptoCost,cryptoValue,cp,cr,goldCost,goldValue,gp,gr);
@@ -2784,7 +2796,7 @@ function renderInvestMetricsV371(view,cryptoCost,cryptoValue,cp,cr,goldCost,gold
 function renderInvestMetricsFromDataV371(view){
   let cryptoCost=0,cryptoValue=0,goldCost=0,goldValue=0;
   investments.filter(x=>x.asset==="Crypto").forEach(x=>{const q=n(x.quantity),p=livePrices[x.symbol]?.price||n(x.market_price);cryptoCost+=n(x.amount)+n(x.fee)+n(x.other_cost);cryptoValue+=q*p;});
-  investments.filter(x=>x.asset==="Gold").forEach(x=>{const q=(typeof goldHoldingQty==='function'?goldHoldingQty(x):n(x.quantity)),p=(goldMarketState.pricePerKyattha||n(x.market_price));goldCost+=n(x.amount)+n(x.fee)+n(x.other_cost);goldValue+=q*p;});
+  investments.filter(x=>x.asset==="Gold").forEach(x=>{const q=goldHoldingQty(x),p=(goldMarketState.pricePerKyattha||n(x.market_price));goldCost+=n(x.amount)+n(x.fee)+n(x.other_cost);goldValue+=q*p;});
   const cp=cryptoValue-cryptoCost,cr=cryptoCost?cp/cryptoCost*100:0,gp=goldValue-goldCost,gr=goldCost?gp/goldCost*100:0;
   renderInvestMetricsV371(view,cryptoCost,cryptoValue,cp,cr,goldCost,goldValue,gp,gr);
 }
@@ -2808,7 +2820,7 @@ function renderGoldTable(rows){
   if(!rows.length)return '<div class="empty gold-empty-note">No gold investments.</div>';
   const price=goldMarketState.pricePerKyattha||n(rows[0]?.market_price);
   let totalCost=0,totalValue=0,totalWeight=0;
-  rows.forEach(x=>{const q=n(x.quantity),cost=n(x.amount)+n(x.fee)+n(x.other_cost),val=q*price;totalCost+=cost;totalValue+=val;totalWeight+=q;});
+  rows.forEach(x=>{const q=goldHoldingQty(x),cost=n(x.amount)+n(x.fee)+n(x.other_cost),val=q*price;totalCost+=cost;totalValue+=val;totalWeight+=q;});
   const totalPL=totalValue-totalCost,totalROI=totalCost?totalPL/totalCost*100:0;
   const tKy=Math.floor(totalWeight),tPe=Math.floor((totalWeight-tKy)*16),tRe=((((totalWeight-tKy)*16)-tPe)*8);
   const summary=`<div class="gold-summary">
@@ -2818,11 +2830,11 @@ function renderGoldTable(rows){
     <div class="gold-summary-card"><div class="label">Total Weight</div><div class="value">${tKy} ကျပ်</div><div class="meta">${tPe} ပဲ ${tRe.toFixed(2)} ရွေး</div></div>
   </div>`;
   const table=`<div class="gold-table-wrap"><table><tr><th>Date</th><th>Source</th><th>Invested</th><th>Buy Price</th><th>Weight</th><th>Current Price</th><th>Current Value</th><th>P/L</th><th>ROI</th><th></th></tr>${rows.map(x=>{
-    const q=n(x.quantity),cur=(goldMarketState.pricePerKyattha||n(x.market_price)),cost=n(x.amount)+n(x.fee)+n(x.other_cost),val=q*cur,p=val-cost,roi=cost?p/cost*100:0;
+    const q=goldHoldingQty(x),cur=(goldMarketState.pricePerKyattha||n(x.market_price)),cost=n(x.amount)+n(x.fee)+n(x.other_cost),val=q*cur,p=val-cost,roi=cost?p/cost*100:0;
     const ky=Math.floor(q),pe=Math.floor((q-ky)*16),re=((((q-ky)*16)-pe)*8);
     return`<tr><td>${esc(x.inv_date)}</td><td>${esc(x.source_account||"KPay")}</td><td>MMK ${fmt(x.amount)}</td><td>${fmt(x.buy_price)}</td><td><div class="gold-weight-main">${ky} ကျပ် ${pe} ပဲ</div><div class="gold-weight-sub">${re.toFixed(2)} ရွေး</div></td><td>${fmt(cur)}</td><td>MMK ${fmt(val)}</td><td class="${p>=0?"green":"red"}">MMK ${fmt(p)}</td><td>${roi.toFixed(2)}%</td><td class="icon-actions">${window.mmHVaultHasInvestmentReceiptV3304?.(x.id)?`<button class="btn" onclick="openInvestmentReceiptV3304(${x.id})">👁 View</button>`:""}<button class="btn" onclick="editInvestment(${x.id})">Edit</button><button class="btn danger" onclick="deleteInvestment(${x.id})">×</button></td></tr>`}).join('')}</table></div>`;
   const cards=`<div class="gold-mobile-list">${rows.map(x=>{
-    const q=n(x.quantity),cur=(goldMarketState.pricePerKyattha||n(x.market_price)),cost=n(x.amount)+n(x.fee)+n(x.other_cost),val=q*cur,p=val-cost,roi=cost?p/cost*100:0;
+    const q=goldHoldingQty(x),cur=(goldMarketState.pricePerKyattha||n(x.market_price)),cost=n(x.amount)+n(x.fee)+n(x.other_cost),val=q*cur,p=val-cost,roi=cost?p/cost*100:0;
     const ky=Math.floor(q),pe=Math.floor((q-ky)*16),re=((((q-ky)*16)-pe)*8);
     return`<div class="gold-mobile-card"><div class="gold-mobile-top"><div><div class="gold-mobile-date">${esc(x.inv_date)}</div><div class="gold-mobile-source">${esc(x.source_account||'KPay')}</div></div><div class="gold-mobile-roi ${roi>=0?'green':'red'}">${roi.toFixed(2)}%</div></div><div class="gold-mobile-grid">
       <div class="gold-mobile-item"><div class="label">Invested</div><div class="value">MMK ${fmt(cost)}</div></div>
@@ -3070,9 +3082,9 @@ function renderDashboardV29(){
   const save=inc-expense, saveRatio=inc?save/inc*100:0;
   const loan=Math.max(0,loanOutMMK()-loanPaidMMK())/rates.usd_mmk;
   $('dashboardHero').innerHTML=`<div class="card"><div class="name">NET WORTH</div><div class="big cyan">${usd(net)}</div><div class="small">Cash + Investments</div></div><div class="card"><div class="name">CASH ASSETS</div><div class="big">${usd(cash)}</div></div><div class="card"><div class="name">INVESTMENTS</div><div class="big pink">${usd(invest)}</div></div><div class="card"><div class="name">SAVING RATIO</div><div class="big ${saveRatio>=40?'green':saveRatio>=20?'yellow':'red'}">${saveRatio.toFixed(1)}%</div><div class="small">Outstanding loans: ${usd(loan)}</div></div>`;
-  $('accounts').innerHTML=`<div class="account-group"><div class="group-title"><strong>💵 Cash</strong><span class="group-total">USD</span></div><div class="account-list">${['Bath','TrueMoney','KPay'].map(a=>`<div class="account-row"><div class="left"><div class="name">${a}</div></div><div class="amount">${usd(balance(a)*toUSD(a))}</div></div>`).join('')}</div></div><div class="account-group"><div class="group-title"><strong>💵 USD</strong><span class="group-total">USD</span></div><div class="account-list">${['OKX','ByBit','MetaMask'].map(a=>`<div class="account-row"><div class="left"><div class="name">${a}</div></div><div class="amount">${usd(balance(a)*toUSD(a))}</div></div>`).join('')}</div></div><div class="account-group investment-account"><div class="group-title"><strong>🥇 Investment</strong><span class="group-total">USD</span></div><div class="account-list"><div class="account-row"><div class="left"><div class="name">Crypto Portfolio</div></div><div class="amount">${usd(investments.filter(x=>x.asset==='Crypto').reduce((s,x)=>{const p=livePrices[x.symbol]?.price||0;return s+n(x.quantity)*p;},0))}</div></div><div class="account-row"><div class="left"><div class="name">Gold Portfolio</div></div><div class="amount">${usd((investments.filter(x=>x.asset==='Gold').reduce((s,x)=>s+((typeof goldHoldingQty==='function'?goldHoldingQty(x):n(x.quantity))*(goldMarketState.pricePerKyattha||n(x.market_price))),0))/rates.usd_mmk)}</div></div></div></div>`;
+  $('accounts').innerHTML=`<div class="account-group"><div class="group-title"><strong>💵 Cash</strong><span class="group-total">USD</span></div><div class="account-list">${['Bath','TrueMoney','KPay'].map(a=>`<div class="account-row"><div class="left"><div class="name">${a}</div></div><div class="amount">${usd(balance(a)*toUSD(a))}</div></div>`).join('')}</div></div><div class="account-group"><div class="group-title"><strong>💵 USD</strong><span class="group-total">USD</span></div><div class="account-list">${['OKX','ByBit','MetaMask'].map(a=>`<div class="account-row"><div class="left"><div class="name">${a}</div></div><div class="amount">${usd(balance(a)*toUSD(a))}</div></div>`).join('')}</div></div><div class="account-group investment-account"><div class="group-title"><strong>🥇 Investment</strong><span class="group-total">USD</span></div><div class="account-list"><div class="account-row"><div class="left"><div class="name">Crypto Portfolio</div></div><div class="amount">${usd(investments.filter(x=>x.asset==='Crypto').reduce((s,x)=>{const p=livePrices[x.symbol]?.price||0;return s+n(x.quantity)*p;},0))}</div></div><div class="account-row"><div class="left"><div class="name">Gold Portfolio</div></div><div class="amount">${usd((investments.filter(x=>x.asset==='Gold').reduce((s,x)=>s+(goldHoldingQty(x)*(goldMarketState.pricePerKyattha||n(x.market_price))),0))/rates.usd_mmk)}</div></div></div></div>`;
   $('metrics').innerHTML=[['Income',inc,'green'],['Expense',expense,'red'],['Available Balance',Math.max(0,cash-loan),'cyan'],['Total Invest',invest,'pink'],['Net Change',save-loan,'yellow']].map(x=>`<div class="card metric"><div class="name">${x[0]} · USD</div><div class="value ${x[2]}">${usd(x[1])}</div></div>`).join('');
-  const cryptoV=investmentValue(); const goldMMK=investments.filter(x=>x.asset==='Gold').reduce((s,x)=>s+(typeof goldHoldingQty==='function'?goldHoldingQty(x):n(x.quantity))*(goldMarketState.pricePerKyattha||n(x.market_price)),0)/rates.usd_mmk; const cashV=cash; const total=cryptoV+goldMMK+cashV||1;
+  const cryptoV=investmentValue(); const goldMMK=investments.filter(x=>x.asset==='Gold').reduce((s,x)=>s+goldHoldingQty(x)*(goldMarketState.pricePerKyattha||n(x.market_price)),0)/rates.usd_mmk; const cashV=cash; const total=cryptoV+goldMMK+cashV||1;
   $('assetAllocation').innerHTML=[['Cash',cashV],['Crypto',cryptoV],['Gold',goldMMK]].map(([k,v])=>`<div class="alloc-row"><b>${k}</b><div class="alloc-bar"><span style="width:${Math.min(100,v/total*100)}%"></span></div><span>${(v/total*100).toFixed(1)}%</span><span>${usd(v)}</span></div>`).join('');
   const vals=monthSeries().map(m=>{let i=0,e=0;transactions.filter(t=>t.tx_date.startsWith(m)).forEach(t=>{if(t.type==='Income')i+=n(t.to_amount)*toUSD(t.to_account);if(t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t))e+=n(t.from_amount)*toUSD(t.from_account);});return{m,i,e};}); const max=Math.max(1,...vals.map(x=>Math.max(x.i,x.e))); $('netWorthHistory').innerHTML=`<div class="spark">${vals.map(x=>`<span title="${monthLabel(x.m)} · Income ${usd(x.i)} / Expense ${usd(x.e)}" style="height:${Math.max(4,x.i/max*100)}%"></span>`).join('')}</div><div class="spark-labels">${vals.map(x=>`<span>${monthLabel(x.m).split(' ')[0]}</span>`).join('')}</div><div class="small" style="margin-top:6px">Monthly income bars · USD</div>`;
   const m=today().slice(0,7); $('dashMonthLabel').textContent=monthLabel(m); $('dashFlow').innerHTML=`<div class="flow-grid"><div><span>Income</span><b class="green">${usd(inc)}</b></div><div><span>Expenses</span><b class="red">${usd(expense)}</b></div><div><span>Saved</span><b>${usd(save)}</b></div><div><span>Saving Ratio</span><b>${saveRatio.toFixed(1)}%</b></div></div>`;
@@ -3148,7 +3160,7 @@ function mmhvaultInvestmentValueUSD(){
       return sum+(q>0?p*q:0);
     }
     if(x.asset==='Gold'){
-      const q=typeof goldHoldingQty==='function'?goldHoldingQty(x):n(x.quantity);
+      const q=goldHoldingQty(x);
       const p=goldMarketState.pricePerKyattha||n(x.market_price);
       const fx=n(rates.usd_mmk)||0;
       return sum+(q>0&&p>0&&fx>0?(q*p)/fx:0);
@@ -4088,7 +4100,7 @@ function refineCashOnlyAccountOverviewV371(){
     let usdVal=0;
     if(name==='Gold Portfolio'){
       const gold=investments.filter(x=>x.asset==='Gold');
-      const goldValue=gold.reduce((s,x)=>s+((typeof goldHoldingQty==='function'?goldHoldingQty(x):n(x.quantity))*(goldMarketState.pricePerKyattha||n(x.market_price))),0);
+      const goldValue=gold.reduce((s,x)=>s+(goldHoldingQty(x)*(goldMarketState.pricePerKyattha||n(x.market_price))),0);
       usdVal=goldValue/rates.usd_mmk;
     }else{
       usdVal=balance(name)*toUSD(name);
@@ -4429,76 +4441,6 @@ setTimeout(()=>{refreshDataCenterV380();renderBackupHistoryV381();},100);
 const _renderV380Old=render;
 render=function(){_renderV380Old();refreshDataCenterV380();};
 </script>
-<script id="mmhvault-v386-wealth-dashboard-js">
-/* ===================== V3.8.8 Wealth Dashboard ===================== */
-function renderWealthSnapshotV386(){
-  const el=$('wealthSnapshotV386');
-  if(!el)return;
-  try{
-    const cashAccounts=['Bath','TrueMoney','OKX','ByBit','MetaMask','KPay'];
-    const cash=cashAccounts.reduce((sum,a)=>sum+balance(a)*toUSD(a),0);
-    const investmentsUSD=investmentValueUSD();
-    const netWorth=cash+investmentsUSD;
-    const ym=today().slice(0,7);
-    const rows=(window.transactions||[]).filter(t=>String(t.tx_date||'').slice(0,7)===ym);
-    let inc=0,exp=0;
-    rows.forEach(t=>{
-      if(t.type==='Income')inc+=n(t.to_amount)*toUSD(t.to_account);
-      if(t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t))exp+=n(t.from_amount)*toUSD(t.from_account);
-    });
-    const save=inc-exp;
-    const sr=inc?(save/inc*100):0;
-    const er=inc?(exp/inc*100):0;
-    const score=Math.max(0,Math.min(100,Math.round(45+Math.max(0,sr)*0.8-Math.max(0,er-70)*0.25)));
-    const scoreClass=score>=75?'green':score>=55?'yellow':'red';
-
-    const goals=(typeof loadGoalsV371==='function'?loadGoalsV371():[]).slice(0,3);
-    const goalHtml=goals.length?goals.map(g=>{
-      const current=typeof goalCurrentV371==='function'?goalCurrentV371(g.type):0;
-      const target=Math.max(0,n(g.target));
-      const pct=target?Math.max(0,Math.min(100,current/target*100)):0;
-      return `<div class="wealth-goal-v386"><div class="wealth-goal-head-v386"><div class="wealth-goal-name-v386">${esc(g.type)}</div><div class="wealth-goal-pct-v386">${pct.toFixed(0)}%</div></div><div class="wealth-goal-bar-v386"><span style="width:${pct.toFixed(1)}%"></span></div></div>`;
-    }).join(''):`<div class="wealth-empty-v386">No goals yet. Add your first goal in Analyze → Goals.</div>`;
-
-    el.innerHTML=`
-      <div class="toolbar" style="margin-bottom:10px"><div><h2 style="margin-bottom:3px">Wealth Snapshot</h2><div class="sub">A quick view of your current wealth position, monthly performance and goals.</div></div><span class="pill">${monthLabel(ym)}</span></div>
-      <div class="wealth-snapshot-grid-v386">
-        <div class="wealth-snapshot-card-v386">
-          <div class="label">Current Net Worth</div>
-          <div class="title">MMHVAULT Wealth Position</div>
-          <div class="value cyan">${usd(netWorth)}</div>
-          <div class="meta">Cash ${usd(cash)} · Investments ${usd(investmentsUSD)}</div>
-          <div class="wealth-snapshot-flow-v386">
-            <div class="wealth-snapshot-mini-v386"><span>Income</span><b class="green">${usd(inc)}</b></div>
-            <div class="wealth-snapshot-mini-v386"><span>Expenses</span><b class="red">${usd(exp)}</b></div>
-            <div class="wealth-snapshot-mini-v386"><span>Saved</span><b class="${save>=0?'green':'red'}">${usd(save)}</b></div>
-          </div>
-        </div>
-        <div class="wealth-snapshot-card-v386">
-          <div class="label">Financial Health</div>
-          <div class="wealth-score-v386"><div class="score ${scoreClass}">${score}</div><div class="small">/ 100</div></div>
-          <div class="wealth-progress-v386"><span style="width:${score}%"></span></div>
-          <div class="meta">Saving Ratio ${sr.toFixed(1)}% · Expense Ratio ${er.toFixed(1)}%</div>
-          <div class="meta">${score>=75?'Healthy financial momentum':score>=55?'Needs some attention this month':'Review spending and cash flow'}</div>
-        </div>
-        <div class="wealth-snapshot-card-v386">
-          <div class="label">Goals</div>
-          <div class="title">Your active goals</div>
-          <div class="wealth-goal-list-v386">${goalHtml}</div>
-          <div class="wealth-snapshot-actions-v386"><button class="btn" type="button" onclick="setPage('analyze');setTimeout(()=>setAnalyzeTabV371('goals'),0)">${goals.length?'Manage Goals':'Add Goal'}</button></div>
-        </div>
-      </div>`;
-  }catch(err){
-    console.warn('Wealth Snapshot V3.8.8:',err);
-  }
-}
-
-const _renderDashboardV386Base=renderDashboard;
-renderDashboard=function(){
-  _renderDashboardV386Base();
-  renderWealthSnapshotV386();
-};
-</script>
 <script id="mmhvault-v387-wealth-planning-js">
 /* ===================== V3.8.8 Wealth Planning ===================== */
 function mmhMonthsBetween387(fromDate,toDate){
@@ -4666,171 +4608,6 @@ renderDashboard=function(){
 .dashboard35-allocation-list{margin-top:8px}.dashboard35-allocation-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:10px;align-items:center;margin-top:9px}.dashboard35-allocation-row>div{display:flex;align-items:center;gap:7px}.dashboard35-allocation-row strong{font-size:14px}.dashboard35-allocation-row>span{font-size:12px;color:var(--muted);min-width:48px;text-align:right}.dashboard35-dot{width:8px;height:8px;border-radius:50%;display:inline-block}.dashboard35-dot.cash{background:#38c6ee}.dashboard35-dot.crypto{background:#d23cff}.dashboard35-dot.gold{background:#ffc84a}.dashboard35-allocation-track{height:6px;border-radius:999px;background:rgba(255,255,255,.06);overflow:hidden;margin-top:5px}.dashboard35-allocation-track i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#38c6ee,#d23cff)}.dashboard35-allocation-summary{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;margin-top:13px;padding-top:11px;border-top:1px solid rgba(255,255,255,.07);font-size:12px}.dashboard35-allocation-summary span{color:var(--muted)}.dashboard35-allocation-summary strong{font-size:15px}
 @media(max-width:800px){.dashboard35-wealth-grid{grid-template-columns:1fr}.dashboard35-networth-main{font-size:30px}}
 </style>
-<script id="mmhvault-v390-dashboard2-js">
-/* ===================== MMHVAULT V3.11.0 Dashboard 2.0 ===================== */
-(function(){
-  const cashAccounts39=['Bath','TrueMoney','OKX','ByBit','MetaMask','KPay'];
-  function d39Money(v){ return usd(Math.max(0,n(v)||0)); }
-  function d39MonthTotals(key){
-    let inc=0,exp=0;
-    (window.transactions||[]).filter(t=>String(t.tx_date||'').slice(0,7)===key).forEach(t=>{
-      if(t.type==='Income') inc+=n(t.to_amount)*toUSD(t.to_account);
-      if(t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t)) exp+=n(t.from_amount)*toUSD(t.from_account);
-    });
-    return {inc,exp,save:inc-exp};
-  }
-  function d39Key(offset){
-    const d=new Date(); d.setDate(1); d.setMonth(d.getMonth()+offset);
-    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
-  }
-  function d39MonthLabel(key){
-    const [y,m]=key.split('-').map(Number);
-    return new Date(y,m-1,1).toLocaleDateString(undefined,{month:'short'});
-  }
-  function d39Score(metrics){
-    const saveScore=Math.max(0,Math.min(40,metrics.saveRatio*0.40));
-    const expenseScore=metrics.expRatio<=50?25:metrics.expRatio<=65?18:metrics.expRatio<=80?10:4;
-    const liquidityScore=metrics.avgExpense>0?Math.max(0,Math.min(20,(metrics.liquidityMonths/6)*20)):10;
-    const debtScore=metrics.netWorth>0?Math.max(0,Math.min(15,(1-Math.min(1,metrics.loan/netWorthSafe(metrics.netWorth)))*15)):10;
-    return Math.round(Math.max(0,Math.min(100,saveScore+expenseScore+liquidityScore+debtScore)));
-  }
-  function netWorthSafe(v){return Math.max(1,v)}
-  function d39Data(){
-    const cash=cashAccounts39.reduce((sum,a)=>sum+balance(a)*toUSD(a),0);
-    const investments=investmentValueUSD();
-    const netWorth=Math.max(0,cash+investments);
-    const current=d39MonthTotals(d39Key(0));
-    const prev=d39MonthTotals(d39Key(-1));
-    const expenseWindow=[];
-    for(let i=-2;i<=0;i++) expenseWindow.push(d39MonthTotals(d39Key(i)).exp);
-    const avgExpense=expenseWindow.reduce((a,b)=>a+b,0)/expenseWindow.length;
-    const liquidityMonths=avgExpense>0?cash/avgExpense:0;
-    const loan=Math.max(0,loanOutMMK()-loanPaidMMK())/rates.usd_mmk;
-    const saveRatio=current.inc?current.save/current.inc*100:0;
-    const expRatio=current.inc?current.exp/current.inc*100:0;
-    const metrics={cash,investments,netWorth,current,prev,avgExpense,liquidityMonths,loan,saveRatio,expRatio};
-    metrics.score=d39Score(metrics);
-    metrics.momSavePct=prev.save!==0?((current.save-prev.save)/Math.abs(prev.save)*100):null;
-    return metrics;
-  }
-  function d39Series(netWorth){
-    const keys=[]; const d=new Date(); d.setDate(1);
-    for(let i=11;i>=0;i--){ const x=new Date(d.getFullYear(),d.getMonth()-i,1); keys.push(`${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}`); }
-    const flows=keys.map(k=>{const z=d39MonthTotals(k); return {k,save:z.save};});
-    let running=netWorth; const series=new Array(flows.length);
-    for(let i=flows.length-1;i>=0;i--){series[i]={k:flows[i].k,net:running};running-=flows[i].save;}
-    return series;
-  }
-  function d39Chart(series){
-    const W=760,H=230,L=50,R=16,T=12,B=30,iw=W-L-R,ih=H-T-B;
-    const vals=series.map(x=>x.net); const min=Math.min(...vals),max=Math.max(...vals),span=Math.max(1,max-min||1);
-    const pts=series.map((x,i)=>{const px=L+(i/(Math.max(1,series.length-1)))*iw;const py=T+(1-(x.net-min)/span)*ih;return {...x,px,py};});
-    const p=pts.map(x=>`${x.px.toFixed(1)},${x.py.toFixed(1)}`).join(' ');
-    const area=`${L},${T+ih} ${p} ${L+iw},${T+ih}`;
-    const lines=[0,.5,1].map(r=>{const y=T+(1-r)*ih;const v=min+span*r;return `<line class="grid" x1="${L}" y1="${y}" x2="${W-R}" y2="${y}"></line><text x="4" y="${y+3}">${d39Money(v)}</text>`}).join('');
-    const labels=pts.map((x,i)=>i===0||i===pts.length-1||i%2===0?`<text x="${x.px}" y="${H-7}" text-anchor="middle">${d39MonthLabel(x.k)}</text>`:'').join('');
-    const focus=pts[pts.length-1];
-    return `<svg class="dashboard39-chart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-label="Estimated 12 month net worth trend">
-      <defs><linearGradient id="dash39Area" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#39c8f4" stop-opacity=".20"/><stop offset="100%" stop-color="#39c8f4" stop-opacity="0"/></linearGradient></defs>
-      ${lines}<polygon class="area" points="${area}"/><polyline class="line" points="${p}"/>
-      ${pts.map(x=>`<circle class="dot" cx="${x.px}" cy="${x.py}" r="${x===focus?5:3.4}"><title>${monthLabel(x.k)} · ${d39Money(x.net)}</title></circle>`).join('')}
-      ${focus?`<rect class="focus" x="${Math.max(8,focus.px-48)}" y="${Math.max(4,focus.py-28)}" width="96" height="22" rx="8"></rect><text x="${focus.px}" y="${Math.max(18,focus.py-13)}" text-anchor="middle" style="fill:#dbe6ff;font-weight:800">${d39Money(focus.net)}</text>`:''}
-      ${labels}
-    </svg>`;
-  }
-  function healthCopy(score){
-    if(score>=80)return ['Excellent','Your current money system is operating strongly.'];
-    if(score>=65)return ['Healthy','Your core financial habits are moving in the right direction.'];
-    if(score>=50)return ['Balanced','There is room to improve savings or liquidity.'];
-    return ['Needs attention','Review spending, savings pace and outstanding debt.'];
-  }
-  function render39(){
-    const el=$('wealthSnapshotV386'); if(!el)return;
-    try{
-      const m=d39Data();
-      const series=d39Series(m.netWorth);
-      const [health,healthSub]=healthCopy(m.score);
-      const momNet=Math.max(0,m.netWorth-m.prev.save);
-      const delta=m.current.save;
-      const monthName=monthLabel(today().slice(0,7));
-      const cashPct=m.netWorth?m.cash/m.netWorth*100:0;
-      const investPct=m.netWorth?m.investments/m.netWorth*100:0;
-      const cryptoV35=(window.investments||[]).filter(x=>x.asset==='Crypto').reduce((sum,x)=>sum+n(x.quantity)*(livePrices[x.symbol]?.price||n(x.market_price)),0);
-      const goldV35=(window.investments||[]).filter(x=>x.asset==='Gold').reduce((sum,x)=>sum+((typeof goldHoldingQty==='function'?goldHoldingQty(x):n(x.quantity))*(goldMarketState.pricePerKyattha||n(x.market_price))),0)/(n(rates.usd_mmk)||1);
-      const cryptoPct35=m.netWorth?cryptoV35/m.netWorth*100:0;
-      const goldPct35=m.netWorth?goldV35/m.netWorth*100:0;
-      const alloc35=[{label:'Cash',pct:cashPct},{label:'Crypto',pct:cryptoPct35},{label:'Gold',pct:goldPct35}];
-      const largestAlloc35=alloc35.reduce((a,b)=>b.pct>a.pct?b:a,alloc35[0]);
-      const goalCount=typeof loadGoalsV371==='function'?loadGoalsV371().filter(g=>n(g.target)>0).length:0;
-      const nextMilestone=(function(){
-        const levels=[10000,25000,50000,100000,250000,500000,1000000,2000000,5000000,10000000];
-        return levels.find(x=>m.netWorth<x)||Math.ceil((m.netWorth*1.5)/10000)*10000;
-      })();
-      const milestoneGap=Math.max(0,nextMilestone-m.netWorth);
-      const momText=m.prev.save!==0?((m.current.save-m.prev.save)/Math.abs(m.prev.save)*100):null;
-      el.innerHTML=`
-        <div class="dashboard39-head">
-          <div><div class="dashboard39-kicker">V3.35 · Net Worth & Allocation 2.0</div><h2>Wealth Command Center</h2><div class="sub">Your balance sheet first, then the signals that explain where your wealth is moving.</div></div>
-          <div class="dashboard39-badges"><span class="dashboard39-badge">${monthName}</span><span class="dashboard39-badge">Net worth basis: USD</span><span class="dashboard39-badge">Recorded data</span></div>
-        </div>
-        <div class="dashboard39-grid">
-          <div class="dashboard39-chart-card">
-            <div class="dashboard39-card-head"><div><div class="label">Estimated Wealth Growth</div><div class="small" style="margin-top:3px">Current position: <b class="cyan">${d39Money(m.netWorth)}</b></div></div><span class="pill">12 months</span></div>
-            <div class="dashboard39-chart-wrap">${d39Chart(series)}</div>
-            <div class="dashboard39-chart-note">Trend is estimated from your current net worth and recorded monthly cash-flow history. It is a planning view, not a historical statement.</div>
-            <div class="dashboard39-pulse">
-              <div class="dashboard39-pulse-card"><span>Income · ${monthName}</span><b class="green">${d39Money(m.current.inc)}</b><small>${m.prev.inc?`${((m.current.inc-m.prev.inc)/Math.abs(m.prev.inc)*100).toFixed(1)}% vs last month`: 'No prior-month baseline'}</small></div>
-              <div class="dashboard39-pulse-card"><span>Expenses · ${monthName}</span><b class="red">${d39Money(m.current.exp)}</b><small>${m.prev.exp?`${((m.current.exp-m.prev.exp)/Math.abs(m.prev.exp)*100).toFixed(1)}% vs last month`: 'No prior-month baseline'}</small></div>
-              <div class="dashboard39-pulse-card"><span>Saved · ${monthName}</span><b class="${delta>=0?'green':'red'}">${d39Money(delta)}</b><small>${momText===null?'No prior-month baseline':`${momText.toFixed(1)}% vs last month`}</small></div>
-            </div>
-          </div>
-          <div class="dashboard39-health-card">
-            <div class="dashboard39-card-head"><div class="label">Financial Health</div><span class="pill">0–100</span></div>
-            <div class="dashboard39-health-score"><div class="num ${m.score>=70?'green':m.score>=50?'yellow':'red'}">${m.score}</div><div class="outof">/ 100</div></div>
-            <div class="dashboard39-health-bar"><span style="width:${m.score}%"></span></div>
-            <div class="dashboard39-health-status">${health}</div><div class="dashboard39-health-sub">${healthSub}</div>
-            <div class="dashboard39-health-list">
-              <div class="dashboard39-health-row"><div class="name">Savings ratio</div><div class="value ${m.saveRatio>=40?'green':m.saveRatio>=20?'yellow':'red'}">${m.saveRatio.toFixed(1)}%</div></div>
-              <div class="dashboard39-health-row"><div class="name">Expense ratio</div><div class="value">${m.expRatio.toFixed(1)}%</div></div>
-              <div class="dashboard39-health-row"><div class="name">Cash runway</div><div class="value cyan">${m.liquidityMonths.toFixed(1)} mo</div></div>
-              <div class="dashboard39-health-row"><div class="name">Outstanding loans</div><div class="value ${m.loan>0?'red':'green'}">${d39Money(m.loan)}</div></div>
-            </div>
-          </div>
-        </div>
-        <div class="dashboard35-wealth-grid">
-          <div class="dashboard35-networth-card">
-            <div class="dashboard39-card-head"><div><div class="label">NET WORTH</div><div class="small" style="margin-top:3px">Current balance sheet · USD</div></div><span class="pill">Current</span></div>
-            <div class="dashboard35-networth-main">${d39Money(m.netWorth)}</div>
-            <div class="dashboard35-networth-row"><span>Cash</span><b class="cyan">${d39Money(m.cash)}</b><em>${cashPct.toFixed(1)}%</em></div>
-            <div class="dashboard35-networth-row"><span>Investments</span><b class="pink">${d39Money(m.investments)}</b><em>${investPct.toFixed(1)}%</em></div>
-            <div class="dashboard35-networth-row total"><span>Month-end saving pace</span><b class="${delta>=0?'green':'red'}">${d39Money(delta)}</b><em>${momText===null?'No baseline':`${momText>=0?'+':''}${momText.toFixed(1)}%`}</em></div>
-            <div class="dashboard35-networth-foot">Net worth = current cash + current investment market value.</div>
-          </div>
-          <div class="dashboard35-allocation-card">
-            <div class="dashboard39-card-head"><div><div class="label">ASSET ALLOCATION</div><div class="small" style="margin-top:3px">Current portfolio mix · USD</div></div><span class="pill">Live mix</span></div>
-            <div class="dashboard35-allocation-list">
-              <div class="dashboard35-allocation-row"><div><span class="dashboard35-dot cash"></span><b>Cash</b></div><strong>${d39Money(m.cash)}</strong><span>${cashPct.toFixed(1)}%</span></div>
-              <div class="dashboard35-allocation-track"><i style="width:${Math.min(100,cashPct)}%"></i></div>
-              <div class="dashboard35-allocation-row"><div><span class="dashboard35-dot crypto"></span><b>Crypto</b></div><strong>${d39Money(cryptoV35)}</strong><span>${cryptoPct35.toFixed(1)}%</span></div>
-              <div class="dashboard35-allocation-track"><i style="width:${Math.min(100,cryptoPct35)}%"></i></div>
-              <div class="dashboard35-allocation-row"><div><span class="dashboard35-dot gold"></span><b>Gold</b></div><strong>${d39Money(goldV35)}</strong><span>${goldPct35.toFixed(1)}%</span></div>
-              <div class="dashboard35-allocation-track"><i style="width:${Math.min(100,goldPct35)}%"></i></div>
-            </div>
-            <div class="dashboard35-allocation-summary"><span>Largest allocation</span><b>${esc(largestAlloc35.label)}</b><strong>${largestAlloc35.pct.toFixed(1)}%</strong></div>
-            <div class="dashboard35-allocation-foot">Current market-value mix. Target allocation can be added later without changing today's balances.</div>
-          </div>
-        </div>
-        <div class="dashboard39-driver-grid">
-          <div class="dashboard39-driver"><div class="label">Next milestone</div><div class="value yellow">${d39Money(nextMilestone)}</div><div class="meta">${d39Money(milestoneGap)} remaining</div></div>
-          <div class="dashboard39-driver"><div class="label">Active goals</div><div class="value green">${goalCount}</div><div class="meta">Tracked in Analyze → Goals</div></div>
-        </div>
-        <div class="dashboard39-footer-note">MMHVAULT health scoring uses the records currently stored in your account. It is a dashboard signal, not financial advice.</div>`;
-    }catch(err){console.warn('Dashboard 2.0 render failed:',err);}
-  }
-  const _renderDashboardV390Base=renderDashboard;
-  renderDashboard=function(){ _renderDashboardV390Base(); render39(); };
-})();
-</script>
 <script id="mmhvault-v311-goals-2-js">
 /* ===================== V3.11.0 GOALS 2.0 ===================== */
 (function(){
@@ -6967,7 +6744,7 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
   function renderInvestV336(){
     const cryptos=cryptoRows(),golds=investments.filter(x=>x.asset==='Gold');
     const cryptoValue=totalCryptoCurrentValue(), cryptoBasis=totalCryptoBasis(), cryptoPnl=cryptoValue-cryptoBasis;
-    let goldCost=0,goldValue=0;golds.forEach(x=>{const q=N(x.quantity),p=(goldMarketState.pricePerKyattha||N(x.market_price));goldCost+=N(x.amount)+N(x.fee)+N(x.other_cost);goldValue+=q*p;});
+    let goldCost=0,goldValue=0;golds.forEach(x=>{const q=goldHoldingQty(x),p=(goldMarketState.pricePerKyattha||N(x.market_price));goldCost+=N(x.amount)+N(x.fee)+N(x.other_cost);goldValue+=q*p;});
     const goldPnl=goldValue-goldCost;
     renderPortfolioManagerV310(cryptoBasis,cryptoValue,goldCost,goldValue);
     const activeView=(localStorage.getItem('myFinance_invest_view_v371')||'Crypto')==='Gold'?'Gold':'Crypto';
@@ -7604,8 +7381,8 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
     const next=actions[0];
     el.innerHTML=`<div class="mmh-advisor-head"><div><div class="mmh-advisor-kicker">V3.37.0 · SMART FINANCIAL ADVISOR</div><div class="mmh-advisor-title">🤖 ${tr('Smart Financial Advisor','智能财务顾问')}</div><div class="mmh-advisor-sub">${tr('Automatically turns your current cash flow, savings, assets and investment mix into practical next steps.','自动分析当前现金流、储蓄、资产和投资结构，并给出下一步行动建议。')}</div></div><div class="mmh-advisor-status ${cls}"><b>${score}/100 · ${label}</b><span>${tr('Updated from your current records','根据当前记录自动更新')}</span></div></div><div class="mmh-advisor-main"><div class="mmh-advisor-next"><div class="mmh-advisor-label">${tr('NEXT BEST MOVE','下一步最佳行动')}</div><h3>${next.title}</h3><p>${next.text}</p></div><div class="mmh-advisor-actions">${actions.map((x,i)=>`<div class="mmh-advisor-action"><div class="num">0${i+1}</div><b>${x.title}</b><span>${x.text}</span></div>`).join('')}</div></div><div class="mmh-advisor-foot"><div class="mmh-advisor-chip">${tr('This month savings','本月净储蓄')}: ${usdFmt(m.save)}</div><div class="mmh-advisor-chip">${tr('3M savings rate','近3个月储蓄率')}: ${a.rate.toFixed(1)}%</div><div class="mmh-advisor-chip">${tr('Emergency coverage','紧急备用金覆盖')}: ${a.avgExpense>0?emergency.toFixed(1):'—'} ${tr('months','个月')}</div><div class="mmh-advisor-chip">${tr('Investment ratio','投资比例')}: ${as.investRatio.toFixed(1)}%</div></div>`;
   }
-  const base=window.renderDashboard;
-  window.renderDashboard=function(){const r=base&&base.apply(this,arguments);try{render()}catch(e){console.warn('Smart Advisor render skipped:',e)}return r};
+  // Advisor updates are event-driven; do not wrap the global dashboard renderer.
+
   const oldSet=window.setMMHVAULTLanguage;
   if(typeof oldSet==='function'&&!oldSet.__mmh370){const wrapped=function(next){const r=oldSet(next);setTimeout(render,30);return r};wrapped.__mmh370=true;window.setMMHVAULTLanguage=wrapped}
   window.renderSmartFinancialAdvisorV370=render;
@@ -7650,8 +7427,8 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
       el.innerHTML='<div class="mmh-advisor-head"><div><div class="mmh-advisor-kicker">V3.37.0 · SMART FINANCIAL ADVISOR</div><div class="mmh-advisor-title">🤖 '+t('Smart Financial Advisor','智能财务顾问')+'</div><div class="mmh-advisor-sub">'+t('Turns your current financial data into practical next steps.','根据当前财务数据，自动给出下一步行动建议。')+'</div></div><div class="mmh-advisor-status '+(score>=75?'good':score>=55?'warn':'risk')+'"><b>'+score+'/100 · '+status+'</b><span>'+t('Updated from your current records','根据当前记录自动更新')+'</span></div></div><div class="mmh-advisor-main"><div class="mmh-advisor-next"><div class="mmh-advisor-label">'+t('NEXT BEST MOVE','下一步最佳行动')+'</div><h3>'+actions[0][0]+'</h3><p>'+actions[0][1]+'</p></div><div class="mmh-advisor-actions">'+actions.slice(0,3).map((a,i)=>'<div class="mmh-advisor-action"><div class="num">0'+(i+1)+'</div><b>'+a[0]+'</b><span>'+a[1]+'</span></div>').join('')+'</div></div><div class="mmh-advisor-foot"><div class="mmh-advisor-chip">'+t('This month net savings','本月净储蓄')+': '+money(d.cur.inc-d.cur.exp)+'</div><div class="mmh-advisor-chip">'+t('3M savings rate','近3个月储蓄率')+': '+d.rate.toFixed(1)+'%</div><div class="mmh-advisor-chip">'+t('Emergency coverage','紧急备用金覆盖')+': '+(d.avg?d.emergency.toFixed(1):'—')+' '+t('months','个月')+'</div><div class="mmh-advisor-chip">'+t('Investment ratio','投资比例')+': '+d.investRatio.toFixed(1)+'%</div></div>';
     }catch(e){el.innerHTML='<div class="mmh-advisor-title">🤖 '+t('Smart Financial Advisor','智能财务顾问')+'</div><div class="mmh-advisor-sub">'+t('Advisor data is loading. Refresh the dashboard to update.','智能顾问数据正在加载，刷新仪表盘后会自动更新。')+'</div>';}
   }
-  const base=window.renderDashboard;
-  if(!window.__mmh3701wrapped){window.__mmh3701wrapped=true;window.renderDashboard=function(){const r=typeof base==='function'?base.apply(this,arguments):undefined;setTimeout(draw,0);return r};}
+  // Hotfix no longer wraps the global dashboard renderer.
+
   window.renderSmartFinancialAdvisorV370=draw;
   setTimeout(draw,200);setTimeout(draw,1000);setTimeout(draw,2500);
   window.addEventListener('mmhvault-language-change',()=>setTimeout(draw,0));
@@ -8554,187 +8331,6 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
   window.MM_HVAULT_FINANCIAL_DATA_ENGLISH={version:'V3.42.10',protected:[...EXACT]};
 })();
 </script>
-<style id="mmhvault-v3429-dashboard-command-center-css">
-/* MMHVAULT V3.42.10 · Dashboard Command Center — presentation-only layer */
-#dashboardHero{display:none!important}
-#wealthSnapshotV386.v3429-command{position:relative;overflow:hidden;padding:0!important;border-radius:22px!important;background:
- linear-gradient(135deg,rgba(8,16,38,.97),rgba(4,10,25,.96) 52%,rgba(9,18,40,.97));
- border:1px solid rgba(91,179,255,.20)!important;box-shadow:0 24px 70px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.035)}
-#wealthSnapshotV386.v3429-command::before{content:"";position:absolute;inset:-35% -10% auto -10%;height:280px;pointer-events:none;background:radial-gradient(circle at 72% 38%,rgba(45,208,255,.16),transparent 34%),radial-gradient(circle at 26% 0%,rgba(244,201,93,.11),transparent 32%),radial-gradient(circle at 88% 0%,rgba(185,92,255,.12),transparent 28%);filter:blur(2px)}
-#wealthSnapshotV386.v3429-command::after{content:"";position:absolute;width:420px;height:420px;right:-190px;top:-170px;border-radius:50%;border:1px solid rgba(88,182,255,.12);box-shadow:0 0 0 18px rgba(88,182,255,.025),0 0 0 36px rgba(244,201,93,.02);animation:v3429-orbit 18s linear infinite;pointer-events:none}
-@keyframes v3429-orbit{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
-.v3429-hero{position:relative;z-index:1;padding:26px 28px 24px}
-.v3429-topline{display:flex;justify-content:space-between;gap:20px;align-items:flex-start;margin-bottom:18px}
-.v3429-brandline{font-size:10px;letter-spacing:.20em;text-transform:uppercase;color:#6f82ab;font-weight:900}
-.v3429-title{font-size:34px;line-height:1.08;margin:7px 0 8px;font-weight:950;letter-spacing:-.045em;color:#f7fbff;text-shadow:0 0 28px rgba(81,188,255,.08)}
-.v3429-title .accent{background:linear-gradient(90deg,#f5cf73,#8be4ff 62%,#d58cff);-webkit-background-clip:text;background-clip:text;color:transparent}
-.v3429-sub{max-width:720px;color:#95a9c9;font-size:13px;line-height:1.55}
-.v3429-status{display:flex;align-items:center;gap:8px;padding:9px 12px;border:1px solid rgba(95,192,255,.18);border-radius:999px;background:rgba(10,23,48,.62);font-size:11px;font-weight:900;color:#bdd4f3;white-space:nowrap;backdrop-filter:blur(10px)}
-.v3429-dot{width:8px;height:8px;border-radius:50%;background:#36e6a5;box-shadow:0 0 0 5px rgba(54,230,165,.08),0 0 16px rgba(54,230,165,.65);animation:v3429-pulse 1.8s ease-in-out infinite}
-@keyframes v3429-pulse{50%{transform:scale(.72);opacity:.65}}
-.v3429-metrics{display:grid;grid-template-columns:1.35fr 1fr 1fr 1fr;gap:12px;margin-top:8px}
-.v3429-card{position:relative;min-height:126px;padding:17px 18px;border-radius:18px;border:1px solid rgba(97,145,207,.18);background:linear-gradient(145deg,rgba(20,35,72,.72),rgba(6,13,31,.72));box-shadow:inset 0 1px 0 rgba(255,255,255,.03);overflow:hidden;transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease}
-.v3429-card:hover{transform:translateY(-2px);border-color:rgba(102,202,255,.34);box-shadow:0 14px 32px rgba(0,0,0,.22),0 0 34px rgba(53,174,255,.07)}
-.v3429-card::before{content:"";position:absolute;left:-25%;bottom:-45%;width:80%;height:120%;background:radial-gradient(circle,rgba(71,195,255,.11),transparent 64%);pointer-events:none}
-.v3429-label{font-size:9px;letter-spacing:.13em;text-transform:uppercase;color:#8094b7;font-weight:900}
-.v3429-value{font-size:29px;font-weight:950;letter-spacing:-.035em;margin-top:8px;color:#f4f7fb;white-space:nowrap}
-.v3429-value.primary{font-size:38px;background:linear-gradient(90deg,#f6d574,#66dcff);-webkit-background-clip:text;background-clip:text;color:transparent}
-.v3429-meta{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-top:8px;font-size:10px;color:#778bae}
-.v3429-meta .up{color:#31e5a0;font-weight:900}.v3429-meta .down{color:#ff7187;font-weight:900}
-.v3429-bar{margin-top:12px;height:5px;border-radius:999px;background:rgba(255,255,255,.055);overflow:hidden}.v3429-bar i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#55d8ff,#c38dff);box-shadow:0 0 15px rgba(85,216,255,.18);width:0;animation:v3429-barfill 1.2s ease-out forwards}
-@keyframes v3429-barfill{to{width:var(--w)}}
-.v3429-lower{display:grid;grid-template-columns:1.25fr .95fr;gap:12px;margin-top:12px}
-.v3429-panel{padding:16px 18px;border-radius:18px;border:1px solid rgba(97,145,207,.16);background:rgba(6,13,30,.62)}
-.v3429-panelhead{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}.v3429-panelhead b{font-size:12px}.v3429-panelhead span{font-size:10px;color:#7185aa}
-.v3429-mini-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.v3429-mini{padding:13px 14px;border-radius:14px;background:rgba(255,255,255,.025);border:1px solid rgba(255,255,255,.045)}.v3429-mini span{display:block;font-size:9px;color:#7185aa;text-transform:uppercase;letter-spacing:.09em}.v3429-mini strong{display:block;margin-top:6px;font-size:18px}.v3429-mini small{display:block;margin-top:4px;color:#65769a;font-size:9px}
-.v3429-signal{display:grid;grid-template-columns:1fr auto;gap:6px 12px;padding:11px 12px;border-radius:13px;background:linear-gradient(90deg,rgba(255,255,255,.025),rgba(255,255,255,.01));border:1px solid rgba(255,255,255,.04)}.v3429-signal+.v3429-signal{margin-top:8px}.v3429-signal .name{font-size:10px;color:#8899bb}.v3429-signal .v{font-size:12px;font-weight:900;text-align:right}.v3429-signal .line{grid-column:1/-1;height:4px;border-radius:999px;background:rgba(255,255,255,.05);overflow:hidden}.v3429-signal .line i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#55d8ff,#c88cff)}
-.v3429-footer{margin-top:12px;display:flex;justify-content:space-between;align-items:center;gap:12px;color:#60739a;font-size:9px}.v3429-footer .quote{font-style:italic;color:#8da0c0}
-@media(max-width:1050px){.v3429-metrics{grid-template-columns:1fr 1fr}.v3429-lower{grid-template-columns:1fr}}
-@media(max-width:680px){.v3429-hero{padding:20px 16px}.v3429-topline{display:block}.v3429-status{display:inline-flex;margin-top:12px}.v3429-title{font-size:28px}.v3429-metrics{grid-template-columns:1fr}.v3429-lower{grid-template-columns:1fr}.v3429-mini-grid{grid-template-columns:1fr}.v3429-card{min-height:112px}.v3429-value.primary{font-size:34px}.v3429-footer{display:block}.v3429-footer .quote{display:block;margin-top:7px}}
-</style>
-<script id="mmhvault-v3429-dashboard-command-center-js">
-/* MMHVAULT V3.42.10 · Dynamic Dashboard Command Center. Presentation/data-read only. */
-(function(){
-  if(window.__mmhV3429Installed)return;
-  window.__mmhV3429Installed=true;
-  const $=id=>document.getElementById(id);
-  const num=v=>Number.isFinite(Number(v))?Number(v):0;
-  const lang3429=()=>((document.documentElement.lang||'').toLowerCase().startsWith('zh')?'zh':(localStorage.getItem('mmhvault_language_v3363')||'en'));
-  const ui=(en,zh)=>lang3429()==='zh'?zh:en;
-  const moneyTHB = v => {
-    try{
-      const usdVal=num(v);
-      const thbPerUsd=num(rates?.usd_thb)||32;
-      return '฿ '+usdVal*thbPerUsd?fmt(usdVal*thbPerUsd):'0';
-    }catch(_){return '฿ 0';}
-  };
-  const pct=(v,d=1)=>num(v).toFixed(d)+'%';
-  function thbFromUSD(usdVal){try{return num(usdVal)*(num(rates?.usd_thb)||32);}catch(_){return 0;}}
-  function formatTHB(usdVal){return '฿ '+fmt(thbFromUSD(usdVal));}
-  function currentData(){
-    try{
-      const accounts=['Bath','TrueMoney','OKX','ByBit','MetaMask','KPay'];
-      const cash=accounts.reduce((s,a)=>s+num(balance(a))*num(toUSD(a)),0);
-      const investments=num(investmentValueUSD());
-      const netWorth=Math.max(0,cash+investments);
-      const ym=today().slice(0,7);
-      let inc=0,exp=0;
-      (window.transactions||[]).forEach(t=>{
-        if(String(t.tx_date||'').slice(0,7)!==ym)return;
-        if(t.type==='Income')inc+=num(t.to_amount)*num(toUSD(t.to_account));
-        if(t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t))exp+=num(t.from_amount)*num(toUSD(t.from_account));
-      });
-      const save=inc-exp,sr=inc?save/inc*100:0;
-      const prevYm=new Date();prevYm.setDate(1);prevYm.setMonth(prevYm.getMonth()-1);
-      const pk=`${prevYm.getFullYear()}-${String(prevYm.getMonth()+1).padStart(2,'0')}`;
-      let pinc=0,pexp=0;
-      (window.transactions||[]).forEach(t=>{
-        if(String(t.tx_date||'').slice(0,7)!==pk)return;
-        if(t.type==='Income')pinc+=num(t.to_amount)*num(toUSD(t.to_account));
-        if(t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t))pexp+=num(t.from_amount)*num(toUSD(t.from_account));
-      });
-      const ps=pinc-pexp;
-      const netDelta = pinc||pexp ? sr-(pinc?ps/pinc*100:0) : 0;
-      const cashPct=netWorth?cash/netWorth*100:0;
-      const investPct=netWorth?investments/netWorth*100:0;
-      const runway=(()=>{
-        const ex=[]; const d=new Date(); d.setDate(1);
-        for(let i=0;i<3;i++){const k=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;let e=0;(window.transactions||[]).forEach(t=>{if(String(t.tx_date||'').slice(0,7)!==k)return;if(t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t))e+=num(t.from_amount)*num(toUSD(t.from_account));});ex.push(e);d.setMonth(d.getMonth()-1)}
-        const avg=ex.filter(x=>x>0).reduce((a,b)=>a+b,0)/(ex.filter(x=>x>0).length||1);return avg?cash/avg:0;
-      })();
-      return {cash,investments,netWorth,inc,exp,save,sr,netDelta,cashPct,investPct,runway,pinc,pexp,ps};
-    }catch(e){console.warn('V3.42.10 dashboard read failed',e);return {cash:0,investments:0,netWorth:0,inc:0,exp:0,save:0,sr:0,netDelta:0,cashPct:0,investPct:0,runway:0,pinc:0,pexp:0,ps:0};}
-  }
-  function trend(current,previous){ if(!previous)return '—'; const d=((current-previous)/Math.abs(previous))*100; return `${d>=0?'+':''}${d.toFixed(1)}%`; }
-  function render(){
-    const host=$('wealthSnapshotV386'); if(!host)return;
-    const m=currentData();
-    const status=m.sr>=60?ui('Healthy','状态良好'):m.sr>=40?ui('Watch','需要关注'):ui('Needs Attention','需要注意');
-    const statusClass=m.sr>=60?'good':m.sr>=40?'watch':'alert';
-    const month=today().slice(0,7);
-    const date=new Date();
-    const dateText=date.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'});
-    const title=ui('Good financial day','今天，也是在为财富加分');
-    const sub=ui('Your dashboard, upgraded into a live wealth command center.','把最重要的财富变化集中在这里，打开 Dashboard 就能看到。');
-    const quote=ui('Discipline today · freedom tomorrow.','今天的纪律，换来明天的自由。');
-    const srWidth=Math.max(0,Math.min(100,m.sr));
-    const investWidth=Math.max(0,Math.min(100,m.investPct));
-    host.className='panel wealth-snapshot-v386 v3429-command';
-    host.innerHTML=`
-      <div class="v3429-hero">
-        <div class="v3429-topline">
-          <div>
-            <div class="v3429-brandline">MMHVAULT · LIVE WEALTH SYSTEM</div>
-            <div class="v3429-title">${title} <span class="accent">${ui('Your Money at a Glance','财富全景尽在眼前')}</span></div>
-            <div class="v3429-sub">${sub}</div>
-          </div>
-          <div class="v3429-status"><i class="v3429-dot"></i>${status}<span>·</span>${dateText}</div>
-        </div>
-        <div class="v3429-metrics">
-          <div class="v3429-card">
-            <div class="v3429-label">Net Worth</div>
-            <div class="v3429-value primary" data-v3429-number="${thbFromUSD(m.netWorth)}">฿ ${fmt(thbFromUSD(m.netWorth))}</div>
-            <div class="v3429-meta"><span>${ui('Current wealth position','当前财富总额')}</span><span class="up">${trend(m.netWorth,m.netWorth-m.ps)}</span></div>
-            <div class="v3429-bar"><i style="--w:${Math.min(100,100)}%"></i></div>
-          </div>
-          <div class="v3429-card">
-            <div class="v3429-label">Monthly Income</div>
-            <div class="v3429-value" data-v3429-number="${thbFromUSD(m.inc)}">฿ ${fmt(thbFromUSD(m.inc))}</div>
-            <div class="v3429-meta"><span>${month}</span><span class="${m.inc>=m.pinc?'up':'down'}">${trend(m.inc,m.pinc)}</span></div>
-          </div>
-          <div class="v3429-card">
-            <div class="v3429-label">Monthly Expenses</div>
-            <div class="v3429-value" data-v3429-number="${thbFromUSD(m.exp)}">฿ ${fmt(thbFromUSD(m.exp))}</div>
-            <div class="v3429-meta"><span>${ui('Ordinary spending','日常支出')}</span><span class="${m.exp<=m.pexp?'up':'down'}">${trend(m.exp,m.pexp)}</span></div>
-          </div>
-          <div class="v3429-card">
-            <div class="v3429-label">Savings Rate</div>
-            <div class="v3429-value">${pct(m.sr)}</div>
-            <div class="v3429-meta"><span>${ui('Target','目标')} 60%</span><span class="${m.sr>=60?'up':'down'}">${m.netDelta>=0?'+':''}${m.netDelta.toFixed(1)} pp</span></div>
-            <div class="v3429-bar"><i style="--w:${srWidth}%"></i></div>
-          </div>
-        </div>
-        <div class="v3429-lower">
-          <div class="v3429-panel">
-            <div class="v3429-panelhead"><b>${ui('This Month in Motion','本月资金动态')}</b><span>${ui('Auto-calculated from recorded transactions','根据已记录交易自动计算')}</span></div>
-            <div class="v3429-mini-grid">
-              <div class="v3429-mini"><span>Net Savings</span><strong class="${m.save>=0?'up':'down'}">${formatTHB(m.save)}</strong><small>${ui('Income minus expenses','收入减日常支出')}</small></div>
-              <div class="v3429-mini"><span>Cash Runway</span><strong>${m.runway?m.runway.toFixed(1)+' mo':'—'}</strong><small>${ui('Based on recent ordinary spending','按近期日常支出估算')}</small></div>
-              <div class="v3429-mini"><span>Investment Weight</span><strong>${pct(m.investPct)}</strong><small>${ui('Share of current net worth','占当前净资产')}</small></div>
-            </div>
-          </div>
-          <div class="v3429-panel">
-            <div class="v3429-panelhead"><b>${ui('Wealth Signals','财富信号')}</b><span>${month}</span></div>
-            <div class="v3429-signal"><div class="name">Savings Rate</div><div class="v">${pct(m.sr)}</div><div class="line"><i style="width:${srWidth}%"></i></div></div>
-            <div class="v3429-signal"><div class="name">Cash Weight</div><div class="v">${pct(m.cashPct)}</div><div class="line"><i style="width:${Math.min(100,m.cashPct)}%"></i></div></div>
-            <div class="v3429-signal"><div class="name">Investment Weight</div><div class="v">${pct(m.investPct)}</div><div class="line"><i style="width:${investWidth}%"></i></div></div>
-          </div>
-        </div>
-        <div class="v3429-footer"><span>${ui('Live data · values update after cloud sync','实时数据 · 云端同步完成后自动更新')}</span><span class="quote">${quote}</span></div>
-      </div>`;
-  }
-  function animate(){
-    hostAnim();
-  }
-  function hostAnim(){
-    document.querySelectorAll('#wealthSnapshotV386 [data-v3429-number]').forEach(el=>{
-      const target=num(el.dataset.v3429Number); if(!target)return;
-      const duration=850,start=performance.now();
-      const tick=now=>{const p=Math.min(1,(now-start)/duration);const e=1-Math.pow(1-p,3);const v=target*e;el.textContent='฿ '+fmt(v);if(p<1)requestAnimationFrame(tick);};
-      requestAnimationFrame(tick);
-    });
-  }
-  function boot(){
-    try{render();setTimeout(animate,30);setTimeout(render,600);setTimeout(animate,630);}catch(e){console.warn('V3.42.10 boot failed',e)}
-  }
-  const old=window.renderDashboard;
-  if(typeof old==='function')window.renderDashboard=function(){old.apply(this,arguments);setTimeout(boot,0)};
-  document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,120),{once:true});
-  ['click','change'].forEach(ev=>document.addEventListener(ev,e=>{if(e.target.closest('.language-choice-v3363'))setTimeout(boot,60)}));
-  window.addEventListener('mmhvault:data-loaded',()=>setTimeout(boot,80));
-  window.addEventListener('mmhvault:sync-complete',()=>setTimeout(boot,80));
-})();
-</script>
 <script id="mmhvault-v34210-dashboard-command-js">
 (function(){
   if(window.__mmhV34210CommandInstalled)return; window.__mmhV34210CommandInstalled=true;
@@ -8775,8 +8371,8 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
       window.dispatchEvent(new CustomEvent('mmhvault:dashboard-rendered'));
     }catch(e){console.warn('MMHVAULT v34210 command center render skipped',e);}
   }
-  const old=window.renderDashboard; if(typeof old==='function'&&!old.__mmhV34210){const wrapped=function(){const r=old.apply(this,arguments);setTimeout(render,60);return r;};wrapped.__mmhV34210=true;window.renderDashboard=wrapped;}
-  ['mmhvault:data-loaded','mmhvault:cache-restored','mmhvault:sync-complete'].forEach(ev=>window.addEventListener(ev,()=>setTimeout(render,100)));
+  // Use explicit data/market events instead of wrapping the global renderer.
+  ['mmhvault:data-loaded','mmhvault:cache-restored','mmhvault:sync-complete','mmhvault:market-updated'].forEach(ev=>window.addEventListener(ev,()=>setTimeout(render,80)));
   // V3.42.39: redundant 30s dashboard polling removed; renderDashboard wrapper + data/price events now drive updates.
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(render,180),{once:true});else setTimeout(render,180);
 })();
