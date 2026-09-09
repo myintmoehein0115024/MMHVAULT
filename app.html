@@ -1092,6 +1092,64 @@ body.mmhvault-scroll-active .card{transition:none!important}
 }
 </style>
 
+
+<style id="mmhvault-v34261-asset-allocation-logo-fix">
+/* V3.42.61 · Fix Asset Allocation layout + premium portfolio identity marks. */
+#dashboard .dashboard-allocation-panel #assetAllocation{
+  display:block!important;
+  min-height:240px!important;
+  width:100%!important;
+}
+#dashboard .dashboard-allocation-panel #assetAllocation>.allocation-polished{
+  display:grid!important;
+  grid-template-columns:minmax(250px,300px) minmax(0,1fr)!important;
+  gap:24px!important;
+  width:100%!important;
+  align-items:center!important;
+}
+#dashboard .dashboard-allocation-panel .allocation-list{
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:14px!important;
+  align-items:stretch!important;
+}
+#dashboard .dashboard-allocation-panel .allocation-item{
+  min-height:118px!important;
+  padding:16px!important;
+}
+#dashboard .dashboard-allocation-panel .allocation-note{
+  margin:10px 3px 0!important;
+  color:#8198bc!important;
+  font-size:11px!important;
+  line-height:1.45!important;
+}
+#dashboard .account-overview-polished .account-row .asset-identity-logo-v34261{
+  width:30px;height:30px;min-width:30px;border-radius:10px;display:inline-flex;align-items:center;justify-content:center;
+  margin-right:10px;position:relative;overflow:hidden;
+  border:1px solid rgba(110,174,235,.24);
+  background:linear-gradient(145deg,rgba(15,42,76,.96),rgba(4,17,35,.96));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 6px 16px rgba(0,0,0,.18);
+}
+#dashboard .account-overview-polished .asset-identity-logo-v34261::after{
+  content:"";position:absolute;inset:3px;border-radius:8px;opacity:.92;pointer-events:none;
+}
+#dashboard .asset-identity-logo-v34261.crypto{color:#79e8ff;box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 0 20px rgba(53,208,255,.16);border-color:rgba(79,207,255,.36);}
+#dashboard .asset-identity-logo-v34261.crypto::after{background:radial-gradient(circle at 40% 35%,rgba(88,220,255,.28),transparent 58%);}
+#dashboard .asset-identity-logo-v34261.gold{color:#ffd66d;box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 0 20px rgba(255,203,92,.14);border-color:rgba(246,201,91,.36);}
+#dashboard .asset-identity-logo-v34261.gold::after{background:radial-gradient(circle at 42% 34%,rgba(255,214,112,.25),transparent 60%);}
+#dashboard .asset-identity-logo-v34261 .logo-mark{position:relative;z-index:1;font-weight:950;letter-spacing:-.05em;font-size:14px;line-height:1;text-shadow:0 0 10px currentColor;}
+#dashboard .asset-identity-logo-v34261 .logo-ring{position:absolute;inset:7px;border:1px solid currentColor;border-radius:50%;opacity:.28;}
+@media(max-width:980px){
+  #dashboard .dashboard-allocation-panel #assetAllocation{min-height:0!important;}
+  #dashboard .dashboard-allocation-panel #assetAllocation>.allocation-polished{grid-template-columns:190px minmax(0,1fr)!important;gap:16px!important;}
+}
+@media(max-width:620px){
+  #dashboard .dashboard-allocation-panel #assetAllocation>.allocation-polished{grid-template-columns:1fr!important;gap:10px!important;}
+  #dashboard .dashboard-allocation-panel .allocation-list{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:8px!important;}
+  #dashboard .dashboard-allocation-panel .allocation-item{min-height:104px!important;padding:12px 9px!important;}
+  #dashboard .dashboard-allocation-panel .allocation-note{margin-top:8px!important;}
+}
+</style>
 </head>
 <!-- MMHVAULT V3.42.56 · Dashboard report relocation + Transaction receipt center + Invest Add precision -->
 <body>
@@ -9710,6 +9768,30 @@ window.MM_HVAULT_PERFORMANCE_V34252={version:"3.42.52",investFullSpectrum:true,g
   #dashboard .mmh-age-live-badge-v34218::before{animation:none!important}
 }
 </style>
+
+<script id="mmhvault-v34261-portfolio-logo-js">
+(function(){
+  if(window.__mmhPortfolioLogosV34261Installed)return;
+  window.__mmhPortfolioLogosV34261Installed=true;
+  function mark(name,type,label){
+    const row=[...document.querySelectorAll('#accounts .account-row')].find(r=>r.querySelector('.left .name')?.textContent?.trim()===name);
+    if(!row)return;
+    const left=row.querySelector('.left'); if(!left||left.querySelector('.asset-identity-logo-v34261'))return;
+    const logo=document.createElement('span'); logo.className='asset-identity-logo-v34261 '+type;
+    const ring=document.createElement('span'); ring.className='logo-ring';
+    const mark=document.createElement('span'); mark.className='logo-mark'; mark.textContent=label;
+    logo.append(ring,mark); left.prepend(logo);
+  }
+  function apply(){
+    mark('Crypto Portfolio','crypto','₿');
+    mark('Gold Portfolio','gold','Au');
+  }
+  const _render=renderDashboard;
+  renderDashboard=function(){ _render(); apply(); };
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')setTimeout(apply,0);});
+  setTimeout(apply,0);
+})();
+</script>
 </body>
 <!-- MMHVAULT V3.42.34 performance baseline: event-driven data labels + reduced visual polling. -->
 </html>\n<script id="mmhvault-v34241-transaction-partial-dom">
