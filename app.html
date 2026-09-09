@@ -8642,6 +8642,69 @@ html.mmhv-tab-hidden .mmh-glow-anim{animation-play-state:paused!important}
   window.MM_HVAULT_PERFORMANCE_V34242={version:'3.42.42',dashboardPartialDOM:true,sectionMemoization:true,noNewPolling:true};
 })();
 </script>
+
+<!-- MMHVAULT V3.42.43 · Hidden Page Render Suspension -->
+<script id="mmhvault-v34243-hidden-page-render-suspension">
+(function(){
+  if(window.__mmhV34243HiddenPageGate)return;
+  window.__mmhV34243HiddenPageGate=true;
+  const PAGE_RENDER_MAP={
+    renderAnalyze:'analyze',
+    renderInvest:'invest',
+    renderWealthPlanningV380:'wealth-planning',
+    renderWealthPlanningV393:'wealth-planning',
+    renderReportsV390:'reports',
+    renderInsightsV340:'insights'
+  };
+  const wrapped={};
+  const canRender=(pageId)=>document.visibilityState!=='hidden' && document.getElementById(pageId)?.classList.contains('active');
+  const wrapOne=(name,pageId)=>{
+    const fn=window[name];
+    if(typeof fn!=='function' || fn.__mmhV34243Wrapped)return;
+    function gate(){
+      if(!canRender(pageId)) return;
+      return fn.apply(this,arguments);
+    }
+    gate.__mmhV34243Wrapped=true;
+    gate.__mmhV34243Original=fn;
+    window[name]=gate;
+    wrapped[name]=true;
+  };
+  function install(){
+    Object.entries(PAGE_RENDER_MAP).forEach(([name,page])=>wrapOne(name,page));
+    const sp=window.setPage;
+    if(typeof sp==='function' && !sp.__mmhV34243Wrapped){
+      const next=function(){
+        const r=sp.apply(this,arguments);
+        requestAnimationFrame(()=>window.dispatchEvent(new CustomEvent('mmhvault:page-visible')));
+        return r;
+      };
+      next.__mmhV34243Wrapped=true;
+      next.__mmhV34243Original=sp;
+      window.setPage=next;
+    }
+  }
+  function refreshVisiblePage(){
+    if(document.visibilityState==='hidden')return;
+    const page=document.querySelector('.page.active')?.id||'';
+    try{
+      if(page==='analyze') window.renderAnalyze?.();
+      else if(page==='invest') window.renderInvest?.();
+      else if(page==='wealth-planning') (window.renderWealthPlanningV393||window.renderWealthPlanningV380)?.();
+      else if(page==='reports') window.renderReportsV390?.();
+      else if(page==='insights') window.renderInsightsV340?.();
+    }catch(e){console.warn('V3.42.43 visible-page refresh warning:',e);}
+  }
+  function boot(){
+    install();
+    window.addEventListener('mmhvault:page-visible',()=>requestAnimationFrame(refreshVisiblePage),{passive:true});
+    document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')requestAnimationFrame(refreshVisiblePage);},{passive:true});
+    requestAnimationFrame(()=>{install();});
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+  window.MM_HVAULT_PERFORMANCE_V34243={version:'3.42.43',hiddenPageRenderSuspension:true,noNewPolling:true};
+})();
+</script>
 </body>
 
 
