@@ -8525,7 +8525,7 @@ html.mmhv-tab-hidden .mmh-glow-anim{animation-play-state:paused!important}
 </script>
 
 
-<!-- MMHVAULT V3.42.40 · Performance Architecture v1.5: Transaction Render Gate -->
+<!-- MMHVAULT V3.42.41 · Performance Architecture v1.5: Transaction Render Gate -->
 <script id="mmhvault-v34240-transaction-render-gate">
 (function(){
   if(window.__mmhV34240TransactionRenderGateInstalled)return;
@@ -8578,7 +8578,7 @@ html.mmhv-tab-hidden .mmh-glow-anim{animation-play-state:paused!important}
     const cb=()=>{renderQueued=false;try{window.renderTransactionsV28();}catch(_){}};
     if(window.requestAnimationFrame)requestAnimationFrame(cb);else setTimeout(cb,0);
   };
-  window.MM_HVAULT_PERFORMANCE_V34240={version:'3.42.40',transactionRenderGate:true,signatureBasedSkip:true,noNewPolling:true};
+  window.MM_HVAULT_PERFORMANCE_V34240={version:'3.42.41',transactionRenderGate:true,signatureBasedSkip:true,noNewPolling:true};
 })();
 </script>
 </body>
@@ -8586,7 +8586,130 @@ html.mmhv-tab-hidden .mmh-glow-anim{animation-play-state:paused!important}
 
 
 <!-- MMHVAULT V3.42.34 performance baseline: event-driven data labels + reduced visual polling. -->
-</html>
+</html>\n<script id="mmhvault-v34241-transaction-partial-dom">
+(function(){
+  if(window.__mmhV34241TransactionPartialDOMInstalled)return;
+  window.__mmhV34241TransactionPartialDOMInstalled=true;
+  const $=id=>document.getElementById(id);
+  let lastOrderKey=null,lastRowsKey=null;
+  let queued=false;
+
+  const receiptHas=t=>{try{return !!window.mmHVaultHasReceiptV3302?.(t.id);}catch(_){return false;}};
+  const rowKey=t=>String(t?.id??'');
+  const dataKey=t=>JSON.stringify([
+    t?.tx_date,t?.type,transactionGroupFor(t),t?.category,t?.from_account,t?.from_amount,
+    t?.to_account,t?.to_amount,t?.note,receiptHas(t)
+  ]);
+  const rows=()=>{try{return typeof v28FilteredTx==='function'?(v28FilteredTx()||[]):[];}catch(_){return [];}};
+  const orderOf=rs=>rs.map(rowKey).join('\\x1e');
+  const valueOf=rs=>rs.map(dataKey).join('\\x1e');
+
+  function setCell(row,i,value){
+    const c=row.cells?.[i]; if(!c)return;
+    if(c.textContent!==String(value))c.textContent=String(value);
+  }
+  function updateDesktopRow(row,t){
+    setCell(row,0,t.tx_date||'');
+    setCell(row,1,t.type||'');
+    setCell(row,2,transactionGroupFor(t)||'');
+    setCell(row,3,t.category||'');
+    setCell(row,4,t.from_account||'—');
+    setCell(row,5,t.from_amount?fmt(t.from_amount):'—');
+    setCell(row,6,t.to_account||'—');
+    setCell(row,7,t.to_amount?fmt(t.to_amount):'—');
+    setCell(row,8,t.note||'');
+    const receiptCell=row.cells?.[9];
+    if(receiptCell){
+      const want=receiptHas(t);
+      const have=!!receiptCell.querySelector('button');
+      if(want&&!have){receiptCell.innerHTML=`<button class="btn" type="button" onclick="openTransactionReceiptV396(${Number(t.id)})">👁 View</button>`;}
+      else if(!want&&have){receiptCell.innerHTML='';}
+    }
+    const actionCell=row.cells?.[10];
+    if(actionCell){
+      const edit=actionCell.querySelector('[data-action="edit-tx"]');
+      const del=actionCell.querySelector('.danger');
+      if(edit){edit.dataset.id=String(t.id);edit.onclick=()=>editTransaction(t.id);}
+      if(del)del.onclick=()=>deleteTx(t.id);
+    }
+    row.dataset.mmhV34241Key=dataKey(t);
+  }
+
+  function buildDesktop(list,rs){
+    list.innerHTML=`<table><tr><th>Date</th><th>Type</th><th>Transaction</th><th>Category</th><th>From</th><th>From Amount</th><th>To</th><th>To Amount</th><th>Note</th><th>Receipt</th><th></th></tr>${rs.map(t=>`<tr data-mmh-tx-id="${esc(String(t.id))}"><td>${esc(t.tx_date||'')}</td><td>${esc(t.type||'')}</td><td>${esc(transactionGroupFor(t)||'')}</td><td>${esc(t.category||'')}</td><td>${esc(t.from_account||'—')}</td><td>${t.from_amount?fmt(t.from_amount):'—'}</td><td>${esc(t.to_account||'—')}</td><td>${t.to_amount?fmt(t.to_amount):'—'}</td><td>${esc(t.note||'')}</td><td>${receiptHas(t)?`<button class="btn" type="button" onclick="openTransactionReceiptV396(${Number(t.id)})">👁 View</button>`:''}</td><td class="icon-actions"><button class="btn" type="button" data-action="edit-tx" data-id="${esc(String(t.id))}">Edit</button><button class="btn danger" type="button">×</button></td></tr>`).join('')}</table>`;
+    rs.forEach(t=>{
+      const row=list.querySelector(`tr[data-mmh-tx-id="${CSS.escape(String(t.id))}"]`);
+      if(!row)return;
+      const edit=row.querySelector('[data-action="edit-tx"]');
+      const del=row.querySelector('.danger');
+      if(edit)edit.addEventListener('click',()=>editTransaction(t.id));
+      if(del)del.addEventListener('click',()=>deleteTx(t.id));
+      row.dataset.mmhV34241Key=dataKey(t);
+    });
+  }
+
+  function mobileCardHTML(t){
+    const from=t.from_account||'—',to=t.to_account||'—';
+    const fromAmt=t.from_amount?fmt(t.from_amount):'—',toAmt=t.to_amount?fmt(t.to_amount):'—';
+    const note=t.note||'—',amount=t.to_amount||t.from_amount||0;
+    return `<div class="tx-mobile-top-v371"><div class="tx-mobile-main-v371"><div class="tx-mobile-date-v371">${esc(t.tx_date||'—')}</div><div class="tx-mobile-title-v371">${esc(t.category||'—')}</div><div class="tx-mobile-sub-v371">${esc(t.type||'—')} · ${esc(transactionGroupFor(t)||'—')}</div></div><div class="tx-mobile-amount-v371">${fmt(amount)}</div><div class="tx-mobile-chevron-v371">▼</div></div><div class="tx-mobile-details-v371"><div class="tx-mobile-detail-v371"><div class="tx-mobile-detail-label-v371">From</div><div class="tx-mobile-detail-value-v371">${esc(from)}</div></div><div class="tx-mobile-detail-v371"><div class="tx-mobile-detail-label-v371">From Amount</div><div class="tx-mobile-detail-value-v371">${fromAmt}</div></div><div class="tx-mobile-detail-v371"><div class="tx-mobile-detail-label-v371">To</div><div class="tx-mobile-detail-value-v371">${esc(to)}</div></div><div class="tx-mobile-detail-v371"><div class="tx-mobile-detail-label-v371">To Amount</div><div class="tx-mobile-detail-value-v371">${toAmt}</div></div><div class="tx-mobile-detail-v371" style="grid-column:1/-1"><div class="tx-mobile-detail-label-v371">Note</div><div class="tx-mobile-detail-value-v371">${esc(note)}</div></div><div class="tx-mobile-actions-v371" style="grid-column:1/-1">${receiptHas(t)?`<button class="btn" type="button" data-role="receipt">👁 Receipt</button>`:''}<button class="btn" type="button" data-role="edit">Edit</button><button class="btn danger" type="button" data-role="delete">Delete</button></div></div>`;
+  }
+  function updateMobileCard(card,t){
+    const open=card.classList.contains('open');
+    if(card.dataset.mmhV34241Key!==dataKey(t)){card.innerHTML=mobileCardHTML(t);}
+    card.dataset.mmhV34241Key=dataKey(t); card.dataset.txId=String(t.id);
+    if(open)card.classList.add('open'); else card.classList.remove('open');
+    const rec=card.querySelector('[data-role="receipt"]'); if(rec)rec.onclick=e=>{e.stopPropagation();openTransactionReceiptV396(t.id);};
+    const edit=card.querySelector('[data-role="edit"]'); if(edit)edit.onclick=e=>{e.stopPropagation();editTransaction(t.id);};
+    const del=card.querySelector('[data-role="delete"]'); if(del)del.onclick=e=>{e.stopPropagation();deleteTx(t.id);};
+  }
+  function patchMobile(rs){
+    const list=$('txList'); if(!list)return;
+    let host=$('txMobileListV371');
+    if(!host){host=document.createElement('div');host.id='txMobileListV371';host.className='tx-mobile-list-v371';list.appendChild(host);}
+    const wanted=new Set(rs.map(t=>String(t.id)));
+    host.querySelectorAll('.tx-mobile-card-v371').forEach(c=>{if(!wanted.has(c.dataset.txId))c.remove();});
+    const existing=new Map([...host.querySelectorAll('.tx-mobile-card-v371')].map(c=>[c.dataset.txId,c]));
+    if(!rs.length){host.innerHTML='<div class="tx-mobile-empty-v371">No matching transactions.</div>';return;}
+    host.querySelector('.tx-mobile-empty-v371')?.remove();
+    rs.forEach(t=>{
+      let card=existing.get(String(t.id));
+      if(!card){card=document.createElement('div');card.className='tx-mobile-card-v371';card.dataset.txId=String(t.id);card.onclick=()=>card.classList.toggle('open');card.innerHTML=mobileCardHTML(t);host.appendChild(card);}
+      updateMobileCard(card,t);
+    });
+    const desired=[...rs].map(t=>String(t.id));
+    desired.forEach(id=>{const card=existing.get(id)||host.querySelector(`.tx-mobile-card-v371[data-tx-id="${CSS.escape(id)}"]`);if(card)host.appendChild(card);});
+  }
+
+  function renderPartial(){
+    refreshTxFilters();
+    const rs=rows(), list=$('txList');
+    if(!$('txResultCount')||!list)return;
+    $('txResultCount').textContent=`${rs.length} of ${transactions.length} records`;
+    const ord=orderOf(rs), val=valueOf(rs);
+    const table=list.querySelector('table');
+    const existingRows=table?[...table.querySelectorAll('tr[data-mmh-tx-id]')]:[];
+    const existingOrd=existingRows.map(r=>r.dataset.mmhTxId).join('\\x1e');
+    if(!rs.length){
+      if(!(list.children.length===1&&list.querySelector('.empty')))list.innerHTML='<div class="empty">No matching transactions.</div>';
+      patchMobile(rs); lastOrderKey=ord; lastRowsKey=val; return;
+    }
+    if(!table||existingRows.length!==rs.length||existingOrd!==ord){
+      buildDesktop(list,rs);
+    }else{
+      const map=new Map(existingRows.map(r=>[r.dataset.mmhTxId,r]));
+      rs.forEach(t=>{const r=map.get(String(t.id)); if(r&&r.dataset.mmhV34241Key!==dataKey(t))updateDesktopRow(r,t);});
+    }
+    patchMobile(rs); lastOrderKey=ord; lastRowsKey=val;
+  }
+
+  window.renderTransactions=function(){renderPartial();};
+  window.renderTransactionsV28=window.renderTransactions;
+  window.mmhvaultInvalidateTransactionRenderV34241=function(){lastOrderKey=null;lastRowsKey=null;};
+  window.mmhvaultScheduleTransactionRenderV34241=function(){if(queued)return;queued=true;const cb=()=>{queued=false;try{renderPartial();}catch(e){console.warn('[MMHVAULT] tx partial render',e);}};requestAnimationFrame?requestAnimationFrame(cb):setTimeout(cb,0);};
+  window.MM_HVAULT_PERFORMANCE_V34241={version:'3.42.41',partialTransactionDOM:true,keyedMobileCards:true,desktopRowPatch:true};
+})();
+</script>\n
 <script id="mmhvault-v393-wealth-planning-thb-fix">
 (function(){
   if(window.__mmhV393WealthPlanningFix)return; window.__mmhV393WealthPlanningFix=true;
