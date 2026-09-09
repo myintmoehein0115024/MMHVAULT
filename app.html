@@ -11523,3 +11523,109 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
   window.MM_HVAULT_PERFORMANCE_V34264={version:'3.42.64',accountLogoDedupe:true,authoritativeGoldValue:true,allocationUsesLiveData:true,noNewPolling:true};
 })();
 </script>
+
+<!-- MMHVAULT V3.42.65 · Gold valuation authority + allocation parity fix -->
+<script id="mmhvault-v34265-gold-parity-fix">
+(function(){
+  if(window.__mmhV34265Installed)return;
+  window.__mmhV34265Installed=true;
+  const N=v=>{const x=Number(v);return Number.isFinite(x)?x:0};
+  function goldQty(x){
+    const q=N(x?.quantity);
+    if(q>0)return q;
+    const cost=N(x?.amount)+N(x?.fee)+N(x?.other_cost);
+    const buy=N(x?.buy_price);
+    return buy>0?cost/buy:0;
+  }
+  function goldPrice(){
+    const live=N(window.goldMarketState?.pricePerKyattha);
+    if(live>0)return live;
+    const rows=(window.investments||[]).filter(x=>x?.asset==='Gold').slice().sort((a,b)=>String(b?.inv_date||'').localeCompare(String(a?.inv_date||'')));
+    return rows.length?(N(rows[0].market_price)||N(rows[0].buy_price)):0;
+  }
+  function goldValueMMK(){
+    const p=goldPrice();
+    if(!(p>0))return 0;
+    return (window.investments||[]).filter(x=>x?.asset==='Gold').reduce((s,x)=>s+goldQty(x)*p,0);
+  }
+  function goldValueUSD(){
+    const fx=N(window.rates?.usd_mmk);
+    return fx>0?goldValueMMK()/fx:0;
+  }
+  // Make the shared investment valuation use the same Gold quantity fallback everywhere.
+  window.mmhGoldValueMMKV34265=goldValueMMK;
+  window.mmhGoldValueUSDV34265=goldValueUSD;
+  try{
+    investmentValue=function(){
+      return (window.investments||[]).reduce((s,x)=>{
+        if(x?.asset==='Gold')return s+goldQty(x)*goldPrice();
+        const q=N(x?.quantity);
+        const p=N(window.livePrices?.[x?.symbol]?.price)||N(x?.market_price);
+        return s+(q&&p?q*p*N(window.rates?.usd_mmk):0);
+      },0);
+    };
+  }catch(_e){}
+  function patchDashboard(){
+    const root=document.getElementById('accounts');
+    if(root){
+      root.querySelectorAll('.account-row').forEach(row=>{
+        const name=(row.querySelector('.name')?.textContent||'').replace(/\s+/g,' ').trim();
+        if(name.startsWith('Gold Portfolio')){
+          const amount=row.querySelector('.amount');
+          if(amount){
+            amount.textContent=typeof usd==='function'?usd(goldValueUSD()):('$ '+goldValueUSD().toFixed(2));
+          }
+        }
+      });
+    }
+    const el=document.getElementById('assetAllocation');
+    if(!el)return;
+    const fx=N(window.rates?.usd_mmk); if(!(fx>0))return;
+    const cash=['Bath','TrueMoney','OKX','ByBit','MetaMask','KPay'].reduce((s,a)=>s+N(balance(a))*N(toUSD(a)),0);
+    const crypto=(window.investments||[]).filter(x=>x?.asset==='Crypto').reduce((s,x)=>s+N(x.quantity)*(N(window.livePrices?.[x.symbol]?.price)||N(x.market_price)),0);
+    const gold=goldValueUSD();
+    const total=Math.max(.000001,cash+crypto+gold);
+    const vals=[['Cash',cash,'#38c6ee'],['Crypto',crypto,'#d23cff'],['Gold',gold,'#ffc84a']];
+    const cPct=cash/total*100, crPct=crypto/total*100;
+    const sig=[cash,crypto,gold,fx,goldPrice()].map(v=>N(v).toFixed(6)).join('|');
+    el.dataset.v34265Sig=sig;
+    const cards=vals.map(([label,val,color])=>{const pct=val/total*100;return `<div class="mmh-allocation-card-v34263"><div class="top"><div class="label"><span class="dot" style="color:${color};background:${color}"></span>${label}</div><span class="pct">${pct.toFixed(1)}%</span></div><div class="track"><span style="width:${Math.min(100,pct)}%;background:linear-gradient(90deg,${color},rgba(255,255,255,.20));"></span></div><div class="value">${typeof usd==='function'?usd(val):('$ '+val.toFixed(2))}</div></div>`;}).join('');
+    const cDeg=cPct*3.6, crDeg=crPct*3.6;
+    el.innerHTML=`<div class="mmh-allocation-v34263"><div class="mmh-allocation-donut-v34263"><div class="allocation-donut" style="background:conic-gradient(#38c6ee 0 ${cDeg}deg,#d23cff ${cDeg}deg ${cDeg+crDeg}deg,#ffc84a ${cDeg+crDeg}deg 360deg)"><div class="allocation-donut-center"><strong>${typeof usd==='function'?usd(total):('$ '+total.toFixed(2))}</strong><span>Net Worth Mix</span></div></div></div><div class="mmh-allocation-cards-v34263">${cards}</div></div><div class="small mmh-allocation-note-v34263">Gold: MMK ${typeof fmt==='function'?fmt(goldPrice()):goldPrice().toLocaleString()} / ကျပ်သား · USD/MMK ${typeof fmt==='function'?fmt(fx):fx.toLocaleString()} · based on current USD-equivalent market value.</div>`;
+  }
+  const prevDash=window.renderDashboard;
+  if(typeof prevDash==='function'){
+    const wrappedDash=function(){
+      const r=prevDash.apply(this,arguments);
+      try{patchDashboard();}catch(_e){}
+      return r;
+    };
+    window.renderDashboard=wrappedDash;
+    try{renderDashboard=wrappedDash;}catch(_e){}
+  }
+  // Keep the Invest page's Gold headline values aligned with the same authoritative quantity/price model.
+  const prevInvest=window.renderInvest;
+  if(typeof prevInvest==='function'){
+    const wrappedInvest=function(){
+      const r=prevInvest.apply(this,arguments);
+      try{
+        const golds=(window.investments||[]).filter(x=>x?.asset==='Gold');
+        const cost=golds.reduce((s,x)=>s+N(x.amount)+N(x.fee)+N(x.other_cost),0);
+        const value=goldValueMMK();
+        const pnl=value-cost, roi=cost?pnl/cost*100:0;
+        const view=(localStorage.getItem('myFinance_invest_view_v371')||localStorage.getItem('myfinance_invest_view_v371')||'Crypto')==='Gold'?'Gold':'Crypto';
+        const el=document.getElementById('investMetrics');
+        if(el&&view==='Gold'){
+          const items=[['Gold Invest',cost,'pink','MMK'],['Gold Value',value,'green','MMK'],['Gold P/L',pnl,pnl>=0?'green':'red','MMK'],['Gold ROI',roi.toFixed(2)+'%','yellow','']];
+          el.innerHTML=items.map(x=>`<div class="card metric"><div class="name">${x[0]}</div><div class="value ${x[2]}">${typeof x[1]==='number'?fmt(x[1]):x[1]} ${x[3]}</div></div>`).join('');
+        }
+      }catch(_e){}
+      return r;
+    };
+    window.renderInvest=wrappedInvest;
+    try{renderInvest=wrappedInvest;}catch(_e){}
+  }
+  setTimeout(()=>{try{patchDashboard();}catch(_e){}},0);
+})();
+</script>
+<script id="mmhvault-v34265-version-stamp">window.MM_HVAULT_PERFORMANCE_V34265={version:'3.42.65',goldQuantityAuthoritative:true,goldAllocationParity:true,goldInvestParity:true,noNewPolling:true};</script>
