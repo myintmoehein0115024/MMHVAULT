@@ -8727,6 +8727,44 @@ html.mmhv-tab-hidden .mmh-glow-anim{animation-play-state:paused!important}
   window.MM_HVAULT_PERFORMANCE_V34244={version:'3.42.44',animationFrameGovernor:true,keyedFrameDedup:true,noGlobalRafOverride:true};
 })();
 </script>
+
+<style id="mmhvault-v34245-css-paint-budget">
+/* V3.42.45 — CSS paint budget: isolate dense module paint/layout without changing visuals. */
+#transactions .tx-tab-panel-v371 > .panel,
+#transactions #txHistoryPanel,
+#invest > .panel,
+#analyze > .panel,
+#reports > .panel,
+#insights > .panel,
+#wealthPlanning > .panel,
+#exchange > .panel{
+  contain:layout paint;
+  contain-intrinsic-size:520px;
+}
+#settings > .panel,
+#more > .panel{
+  contain:layout paint;
+  contain-intrinsic-size:420px;
+}
+@media(max-width:900px){
+  #transactions .tx-tab-panel-v371 > .panel,
+  #transactions #txHistoryPanel,
+  #invest > .panel,
+  #analyze > .panel,
+  #reports > .panel,
+  #insights > .panel,
+  #wealthPlanning > .panel,
+  #exchange > .panel,
+  #settings > .panel,
+  #more > .panel{
+    contain-intrinsic-size:360px;
+  }
+}
+</style>
+<script id="mmhvault-v34245-performance-css-paint-budget-js">(function(){
+  if(window.MM_HVAULT_PERFORMANCE_V34245)return;
+  window.MM_HVAULT_PERFORMANCE_V34245={version:'3.42.45',cssPaintBudget:true,noNewPolling:true};
+})();</script>
 </body>
 
 
