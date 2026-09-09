@@ -2392,7 +2392,20 @@ const _renderTransactionsV27=renderTransactions;
 function renderTransactionsV28(){refreshTxFilters();const rows=v28FilteredTx();$('txResultCount').textContent=`${rows.length} of ${transactions.length} records`;if(!rows.length){$('txList').innerHTML='<div class="empty">No matching transactions.</div>';return}$('txList').innerHTML=`<table><tr><th>Date</th><th>Type</th><th>Transaction</th><th>Category</th><th>From</th><th>From Amount</th><th>To</th><th>To Amount</th><th>Note</th><th>Receipt</th><th></th></tr>${rows.map(t=>`<tr><td>${t.tx_date}</td><td>${t.type}</td><td>${transactionGroupFor(t)}</td><td>${esc(t.category)}</td><td>${esc(t.from_account||'—')}</td><td>${t.from_amount?fmt(t.from_amount):'—'}</td><td>${esc(t.to_account||'—')}</td><td>${t.to_amount?fmt(t.to_amount):'—'}</td><td>${esc(t.note)}</td><td>${window.mmHVaultHasReceiptV3302?.(t.id)?`<button class="btn" type="button" onclick="openTransactionReceiptV396(${t.id})">👁 View</button>`:''}</td><td class="icon-actions"><button class="btn" type="button" data-action="edit-tx" data-id="${t.id}" onclick="editTransaction(${t.id})">Edit</button><button class="btn danger" type="button" onclick="deleteTx(${t.id})">×</button></td></tr>`).join('')}</table>`;}
 async function duplicateTransaction(id){const t=transactions.find(x=>x.id===id);if(!t)return;const u=(await db.auth.getUser()).data.user;if(!u)return;const row={user_id:u.id,tx_date:t.tx_date,type:t.type,category:t.category,from_account:t.from_account,from_amount:t.from_amount,to_account:t.to_account,to_amount:t.to_amount,note:t.note?String(t.note)+' · copy':'Duplicate'};const r=await db.from('transactions').insert(row);if(r.error)alert(r.error.message);else await loadAll();}
 function exportTransactionsCSV(){const rows=v28FilteredTx();const head=['Date','Type','Transaction','Category','From','From Amount','To','To Amount','Note'];const csv=[head,...rows.map(t=>[t.tx_date,t.type,transactionGroupFor(t),t.category,t.from_account||'',t.from_amount||0,t.to_account||'',t.to_amount||0,t.note||''])].map(r=>r.map(v=>`"${String(v).replaceAll('"','""')}"`).join(',')).join('\n');const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`MMHVAULT_Transactions_${today()}.csv`;a.click();URL.revokeObjectURL(a.href);}
-function bindTxFilters(){['txSearch','txFilterType','txFilterGroup','txFilterCategory','txFilterAccount'].forEach(id=>{const el=$(id);if(el)el.addEventListener(el.tagName==='INPUT'?'input':'change',renderTransactionsV28);});}
+function bindTxFilters(){
+  const key='__mmhV34247TxFilterAbort';
+  window.__mmhV34247Bind=(el,event,handler)=>{
+    if(!el)return;
+    try{el[key]?.abort?.();}catch(_e){}
+    const ctrl=new AbortController();
+    el[key]=ctrl;
+    el.addEventListener(event,handler,{signal:ctrl.signal});
+  };
+  ['txSearch','txFilterType','txFilterGroup','txFilterCategory','txFilterAccount'].forEach(id=>{
+    const el=$(id);if(!el)return;
+    window.__mmhV34247Bind(el,el.tagName==='INPUT'?'input':'change',renderTransactionsV28);
+  });
+}
 function clearTxFilters(){
   const search=$('txSearch'), type=$('txFilterType'), group=$('txFilterGroup'), category=$('txFilterCategory'), account=$('txFilterAccount');
   if(search) search.value='';
@@ -2952,8 +2965,14 @@ function renderDashboardInsightsV37(){
   const y=$("analyzeYear"),m=$("analyzeMonth");
   if(!y||!m)return;
   v37EnsurePeriodControls();
-  y.addEventListener("change",()=>{localStorage.setItem("myfinance_analyze_year",y.value);renderAnalyzeV37();});
-  m.addEventListener("change",()=>{localStorage.setItem("myfinance_analyze_month",m.value);renderAnalyzeV37();});
+  const bindPeriodChange=(el,key)=>{
+    if(!el)return;
+    try{el.__mmhV34247Abort?.abort?.();}catch(_e){}
+    const ctrl=new AbortController();el.__mmhV34247Abort=ctrl;
+    el.addEventListener("change",()=>{localStorage.setItem(key,el.value);renderAnalyzeV37();},{signal:ctrl.signal});
+  };
+  bindPeriodChange(y,"myfinance_analyze_year");
+  bindPeriodChange(m,"myfinance_analyze_month");
 })();
 /* ===================== V3.7.1 Financial Health ===================== */
 function fhNumber(v){return Number.isFinite(Number(v))?Number(v):0;}
@@ -3208,8 +3227,14 @@ function setInvestViewV371(view){
   if(typeof renderInvestMetricsFromDataV371==="function")renderInvestMetricsFromDataV371(view);
 }
 (function initInvestViewV371(){
-  $("v371CryptoBtn")?.addEventListener("click",()=>setInvestViewV371("Crypto"));
-  $("v371GoldBtn")?.addEventListener("click",()=>setInvestViewV371("Gold"));
+  const bindInvestView=(el,view)=>{
+    if(!el)return;
+    try{el.__mmhV34247Abort?.abort?.();}catch(_e){}
+    const ctrl=new AbortController();el.__mmhV34247Abort=ctrl;
+    el.addEventListener("click",()=>setInvestViewV371(view),{signal:ctrl.signal});
+  };
+  bindInvestView($("v371CryptoBtn"),"Crypto");
+  bindInvestView($("v371GoldBtn"),"Gold");
   setTimeout(()=>setInvestViewV371(localStorage.getItem("myfinance_invest_view_v371")||"Crypto"),0);
 })();
 
@@ -8802,6 +8827,15 @@ html.mmhv-tab-hidden .mmh-glow-anim{animation-play-state:paused!important}
   window.addEventListener('scroll',onScroll,{passive:true});
   window.addEventListener('wheel',onScroll,{passive:true});
   window.addEventListener('touchmove',onScroll,{passive:true});
+})();
+</script>
+<script id="mmhvault-v34247-memory-listener-cleanup">
+(function(){
+  // V3.42.47 · listener lifecycle guard for re-initialized UI controls.
+  // Abortable bindings above replace previous handlers instead of accumulating them.
+  window.mmHVaultListenerCleanupV34247=function(){
+    document.querySelectorAll('[data-mmhv34247-cleanup]').forEach(el=>{try{el.__mmhV34247Abort?.abort?.();}catch(_e){}});
+  };
 })();
 </script>
 </body>
