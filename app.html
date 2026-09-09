@@ -8942,6 +8942,203 @@ html.mmhv-tab-hidden .mmh-glow-anim{animation-play-state:paused!important}
 }
 </style>
 
+<style id="mmhvault-v34252-invest-full-spectrum">
+/* MMHVAULT V3.42.52 · Full Invest Spectrum
+   Apply the V3.42.51 Gold Portfolio premium language to every Invest mode/tab. */
+#invest{--invest-accent:76,199,255;--invest-accent-2:246,199,91}
+#invest.v371-gold{--invest-accent:246,199,91;--invest-accent-2:76,199,255}
+
+/* Shared section shell */
+#invest .invest-top,
+#invest .invest-metrics,
+#invest .portfolio-manager-v310,
+#invest .invest-entry,
+#invest .invest-holdings,
+#invest .invest-list-panel{width:100%;box-sizing:border-box}
+#invest .invest-top{grid-template-columns:minmax(0,1fr)!important;gap:14px!important}
+#invest .invest-top>.panel{
+  overflow:hidden!important;border-radius:24px!important;border:1px solid rgba(var(--invest-accent),.20)!important;
+  background:
+    radial-gradient(circle at 88% 10%,rgba(var(--invest-accent),.075),transparent 28%),
+    linear-gradient(145deg,rgba(11,26,51,.94),rgba(4,11,24,.97))!important;
+  box-shadow:0 18px 44px rgba(0,0,0,.17),inset 0 1px 0 rgba(255,255,255,.035)!important;
+}
+#invest .invest-top>.panel:before{
+  background:
+    radial-gradient(circle at 92% 10%,rgba(var(--invest-accent),.10),transparent 23%),
+    linear-gradient(115deg,transparent 0 38%,rgba(255,255,255,.024) 50%,transparent 62%)!important;
+  opacity:.82!important
+}
+#invest .invest-top>.panel>.toolbar,
+#invest .invest-list-panel>.toolbar,
+#invest .invest-holdings>.toolbar,
+#invest .invest-entry>.toolbar{
+  min-height:44px;align-items:center!important;margin-bottom:0!important;padding:14px 16px!important;
+  border-bottom:1px solid rgba(99,156,214,.12)!important;
+}
+#invest .invest-top>.panel>.toolbar h2,
+#invest .invest-list-panel>.toolbar h2,
+#invest .invest-holdings>.toolbar h2,
+#invest .invest-entry>.toolbar h2{font-size:20px!important;font-weight:930!important;letter-spacing:-.028em!important}
+#invest .invest-top>.panel>.toolbar .pill,
+#invest .invest-list-panel>.toolbar .pill,
+#invest .invest-holdings>.toolbar .pill,
+#invest .invest-entry>.toolbar .pill{border-color:rgba(var(--invest-accent),.18)!important;background:rgba(255,255,255,.025)!important}
+
+/* Overview: metrics become terminal-grade cards like Gold Portfolio */
+#invest .invest-metrics{
+  display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px!important;margin:0 0 14px!important;
+}
+#invest .invest-metrics .metric{
+  position:relative!important;overflow:hidden!important;min-width:0;min-height:112px!important;padding:17px 18px!important;
+  border-radius:18px!important;border:1px solid rgba(104,157,223,.19)!important;
+  background:linear-gradient(145deg,rgba(15,31,58,.80),rgba(6,14,29,.93))!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.035),0 12px 26px rgba(0,0,0,.14)!important;
+}
+#invest .invest-metrics .metric:before{
+  content:"";position:absolute;left:14px;right:14px;top:0;height:2px;border-radius:999px;
+  background:linear-gradient(90deg,rgba(var(--invest-accent),.92),rgba(var(--invest-accent),0));opacity:.86
+}
+#invest.v371-gold .invest-metrics .metric:nth-child(1):before{background:linear-gradient(90deg,rgba(246,199,91,.92),rgba(246,199,91,0))}
+#invest.v371-gold .invest-metrics .metric:nth-child(2):before{background:linear-gradient(90deg,rgba(57,230,161,.92),rgba(57,230,161,0))}
+#invest .invest-metrics .metric:nth-child(3):before{background:linear-gradient(90deg,rgba(255,113,133,.92),rgba(255,113,133,0))}
+#invest .invest-metrics .metric:nth-child(4):before{background:linear-gradient(90deg,rgba(142,125,255,.92),rgba(142,125,255,0))}
+#invest .invest-metrics .metric .name{font-size:10px!important;letter-spacing:.11em!important;text-transform:uppercase;color:#91a8c9!important;font-weight:900!important}
+#invest .invest-metrics .metric .value{margin-top:10px!important;font-size:23px!important;line-height:1.08!important;font-weight:950!important;letter-spacing:-.025em!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#invest .invest-metrics .metric:nth-child(1) .value{text-shadow:0 0 24px rgba(var(--invest-accent),.09)}
+#invest .invest-metrics .metric:nth-child(2) .value.green{color:#3be4ab!important;text-shadow:0 0 24px rgba(57,230,161,.10)}
+#invest .invest-metrics .metric:nth-child(3) .value.red{color:#ff7185!important;text-shadow:0 0 24px rgba(255,113,133,.08)}
+
+/* Overview market area */
+#invest .v371-crypto#v371CryptoMarket,
+#invest .v371-gold#v371GoldMarket{min-height:220px!important}
+#invest #cryptoPrices{padding:14px 16px 6px!important}
+#invest .gold-market{padding:16px!important;margin:0!important;display:flex;align-items:center;justify-content:space-between;gap:18px;border-bottom:1px solid rgba(99,156,214,.08)}
+#invest .manual-gold{margin:0 16px 16px!important;padding:12px;border-radius:15px;border:1px solid rgba(246,199,91,.12);background:rgba(255,255,255,.015)}
+#invest .v371-gold .manual-gold input{border-color:rgba(246,199,91,.16)!important}
+#invest .v371-gold .big-price{font-size:34px!important;font-weight:950!important;letter-spacing:-.035em!important;text-shadow:0 0 28px rgba(246,199,91,.10)}
+#invest .v371-crypto .price-grid .price-card{min-height:112px!important}
+#invest .v371-crypto .price-grid .price-card:before{
+  content:"";position:absolute;left:12px;right:12px;top:0;height:2px;border-radius:999px;background:linear-gradient(90deg,rgba(76,199,255,.75),rgba(76,199,255,0))
+}
+
+/* Portfolio tab: Crypto gets the same premium language as Gold */
+#invest #v371CryptoPortfolio,
+#invest #v371GoldPortfolio{
+  overflow:hidden!important;border-radius:24px!important;border-color:rgba(111,157,219,.23)!important;
+  background:linear-gradient(145deg,rgba(9,22,45,.92),rgba(4,11,24,.96))!important;
+  box-shadow:0 18px 48px rgba(0,0,0,.18),inset 0 1px 0 rgba(255,255,255,.03)!important;
+}
+#invest #v371CryptoPortfolio>.toolbar,
+#invest #v371GoldPortfolio>.toolbar{padding:14px 16px 13px!important}
+#invest #v371CryptoPortfolio>.toolbar:before{content:"₿";display:grid;place-items:center;flex:0 0 34px;width:34px;height:34px;margin-right:10px;border-radius:11px;color:#9ee8ff;border:1px solid rgba(76,199,255,.22);background:rgba(76,199,255,.08);box-shadow:0 0 20px rgba(76,199,255,.05);font-weight:950}
+#invest #v371GoldPortfolio>.toolbar:before{content:"◈";display:grid;place-items:center;flex:0 0 34px;width:34px;height:34px;margin-right:10px;border-radius:11px;color:#ffd970;border:1px solid rgba(246,199,91,.24);background:rgba(246,199,91,.09);box-shadow:0 0 20px rgba(246,199,91,.05);font-weight:950}
+#invest #v371CryptoPortfolio #cryptoInvList,
+#invest #v371GoldPortfolio #goldInvList{padding:0 16px 16px!important}
+
+#invest .crypto-summary,
+#invest .gold-summary{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px!important;padding:2px 0 14px!important}
+#invest .crypto-summary-card,
+#invest .gold-summary-card{position:relative;overflow:hidden;min-width:0;min-height:116px;padding:17px 18px!important;border-radius:18px!important;border:1px solid rgba(104,157,223,.19)!important;background:linear-gradient(145deg,rgba(15,31,58,.80),rgba(6,14,29,.92))!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.035),0 12px 26px rgba(0,0,0,.14)!important}
+#invest .crypto-summary-card:before,
+#invest .gold-summary-card:before{content:"";position:absolute;left:14px;right:14px;top:0;height:2px;border-radius:999px;background:linear-gradient(90deg,rgba(var(--invest-accent),.92),rgba(var(--invest-accent),0));opacity:.82}
+#invest .crypto-summary-card:after,
+#invest .gold-summary-card:after{content:"";position:absolute;width:120px;height:120px;right:-58px;bottom:-66px;border-radius:50%;background:radial-gradient(circle,rgba(var(--invest-accent),.10),transparent 67%);pointer-events:none}
+#invest .crypto-summary-card .label,
+#invest .gold-summary-card .label{font-size:10px!important;letter-spacing:.11em!important;text-transform:uppercase;color:#91a8c9!important;font-weight:900!important}
+#invest .crypto-summary-card .value,
+#invest .gold-summary-card .value{margin-top:10px!important;font-size:23px!important;line-height:1.08!important;font-weight:950!important;letter-spacing:-.025em!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#invest .crypto-summary-card .meta,
+#invest .gold-summary-card .meta{margin-top:7px!important;font-size:10px!important;color:#7188aa!important;line-height:1.4}
+#invest .crypto-summary-card:nth-child(1):before{background:linear-gradient(90deg,rgba(76,199,255,.92),rgba(76,199,255,0))}
+#invest .crypto-summary-card:nth-child(2):before{background:linear-gradient(90deg,rgba(57,230,161,.92),rgba(57,230,161,0))}
+#invest .crypto-summary-card:nth-child(3):before{background:linear-gradient(90deg,rgba(255,113,133,.92),rgba(255,113,133,0))}
+#invest .crypto-summary-card:nth-child(4):before{background:linear-gradient(90deg,rgba(142,125,255,.92),rgba(142,125,255,0))}
+#invest .crypto-summary-card:nth-child(2) .value.green{color:#3be4ab!important;text-shadow:0 0 24px rgba(57,230,161,.10)}
+#invest .crypto-summary-card:nth-child(3) .value.red{color:#ff7185!important;text-shadow:0 0 24px rgba(255,113,133,.08)}
+#invest .gold-summary-card:nth-child(1):before{background:linear-gradient(90deg,rgba(246,199,91,.92),rgba(246,199,91,0))}
+#invest .gold-summary-card:nth-child(2):before{background:linear-gradient(90deg,rgba(57,230,161,.92),rgba(57,230,161,0))}
+#invest .gold-summary-card:nth-child(3):before{background:linear-gradient(90deg,rgba(255,113,133,.92),rgba(255,113,133,0))}
+#invest .gold-summary-card:nth-child(4):before{background:linear-gradient(90deg,rgba(142,125,255,.92),rgba(142,125,255,0))}
+
+#invest .crypto-table-wrap,
+#invest .gold-table-wrap{border:1px solid rgba(98,150,214,.16);border-radius:18px;padding:6px;background:rgba(3,10,22,.32);overflow:auto}
+#invest .crypto-table-wrap table,
+#invest .gold-table-wrap table{min-width:980px}
+#invest .crypto-table-wrap th,
+#invest .gold-table-wrap th{font-size:10px!important;letter-spacing:.09em!important;text-transform:uppercase;border-bottom-color:rgba(76,199,255,.20)!important}
+#invest .gold-table-wrap th{color:#f0c85f!important;border-bottom-color:rgba(246,199,91,.20)!important}
+#invest .crypto-table-wrap tr:last-child td,
+#invest .gold-table-wrap tr:last-child td{border-bottom:0!important}
+#invest .crypto-table-wrap .icon-actions .btn,
+#invest .gold-table-wrap .icon-actions .btn{border-radius:11px!important}
+
+/* Crypto current holdings / allocation use the same card language */
+#invest #v371CurrentHoldings,
+#invest #v371Allocation{overflow:hidden!important;border-radius:24px!important;border-color:rgba(111,157,219,.20)!important;background:linear-gradient(145deg,rgba(9,22,45,.92),rgba(4,11,24,.96))!important;box-shadow:0 18px 44px rgba(0,0,0,.16),inset 0 1px 0 rgba(255,255,255,.03)!important}
+#invest #currentHoldings{padding:0 16px 16px!important}
+#invest #allocation{padding:0 16px 16px!important}
+#invest #currentHoldings .price-card,
+#invest #allocation .target-card{position:relative;overflow:hidden;border-radius:17px!important;border:1px solid rgba(76,199,255,.16)!important;background:linear-gradient(145deg,rgba(13,29,56,.78),rgba(5,12,27,.91))!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.03),0 10px 24px rgba(0,0,0,.12)!important}
+#invest #currentHoldings .price-card:before{content:"";position:absolute;left:12px;right:12px;top:0;height:2px;border-radius:999px;background:linear-gradient(90deg,rgba(76,199,255,.76),rgba(76,199,255,0))}
+
+/* Add Investment: premium terminal form, same visual weight as Portfolio */
+#invest .invest-entry{
+  overflow:hidden!important;border-radius:24px!important;border-color:rgba(111,157,219,.22)!important;
+  background:linear-gradient(145deg,rgba(9,22,45,.93),rgba(4,11,24,.97))!important;
+  box-shadow:0 18px 48px rgba(0,0,0,.18),inset 0 1px 0 rgba(255,255,255,.03)!important;
+}
+#invest .invest-entry>.toolbar{padding:15px 16px!important}
+#invest .invest-entry>.toolbar:before{content:"＋";display:grid;place-items:center;flex:0 0 34px;width:34px;height:34px;margin-right:10px;border-radius:11px;color:#b9eaff;border:1px solid rgba(76,199,255,.22);background:rgba(76,199,255,.08);box-shadow:0 0 20px rgba(76,199,255,.045);font-weight:950}
+#invest.v371-gold .invest-entry>.toolbar:before{color:#ffe28c;border-color:rgba(246,199,91,.24);background:rgba(246,199,91,.09)}
+#invest .invest-entry form{padding:16px!important}
+#invest .invest-entry .formgrid{gap:12px!important}
+#invest .invest-entry .formgrid label{font-size:10px!important;letter-spacing:.06em!important;text-transform:uppercase;color:#91a8c9!important;font-weight:900!important}
+#invest .invest-entry .formgrid input,
+#invest .invest-entry .formgrid select,
+#invest .invest-entry .formgrid textarea{margin-top:6px!important;border-radius:12px!important;border-color:rgba(94,154,218,.17)!important;background:rgba(4,12,27,.74)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.025)!important;transition:border-color .16s ease,box-shadow .16s ease,background-color .16s ease!important}
+#invest .invest-entry .formgrid input:focus,
+#invest .invest-entry .formgrid select:focus,
+#invest .invest-entry .formgrid textarea:focus{border-color:rgba(76,199,255,.42)!important;box-shadow:0 0 0 3px rgba(76,199,255,.06),inset 0 1px 0 rgba(255,255,255,.03)!important}
+#invest.v371-gold .invest-entry .formgrid input:focus,
+#invest.v371-gold .invest-entry .formgrid select:focus,
+#invest.v371-gold .invest-entry .formgrid textarea:focus{border-color:rgba(246,199,91,.40)!important;box-shadow:0 0 0 3px rgba(246,199,91,.055),inset 0 1px 0 rgba(255,255,255,.03)!important}
+#invest .invest-entry .actions{margin-top:14px!important;padding-top:14px;border-top:1px solid rgba(98,150,214,.11);justify-content:flex-end}
+#invest .invest-entry .actions .btn{min-height:42px;border-radius:12px!important;font-weight:900!important}
+
+/* Scroll governor keeps the richer shell calm during motion */
+body.mmhvault-scroll-active #invest .invest-entry,
+body.mmhvault-scroll-active #invest #v371CryptoPortfolio,
+body.mmhvault-scroll-active #invest #v371GoldPortfolio,
+body.mmhvault-scroll-active #invest #v371CurrentHoldings,
+body.mmhvault-scroll-active #invest #v371Allocation,
+body.mmhvault-scroll-active #invest .invest-top>.panel{box-shadow:inset 0 1px 0 rgba(255,255,255,.025)!important}
+
+@media(max-width:900px){
+  #invest .invest-metrics{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  #invest .crypto-summary,#invest .gold-summary{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  #invest .invest-entry form{padding:13px!important}
+}
+@media(max-width:620px){
+  #invest .invest-metrics{gap:8px!important}
+  #invest .invest-metrics .metric{min-height:104px!important;padding:14px!important}
+  #invest .invest-metrics .metric .value{font-size:18px!important}
+  #invest .crypto-summary,#invest .gold-summary{gap:8px!important}
+  #invest .crypto-summary-card,#invest .gold-summary-card{min-height:104px;padding:14px!important}
+  #invest .crypto-summary-card .value,#invest .gold-summary-card .value{font-size:18px!important}
+  #invest .invest-entry>.toolbar{padding:13px!important}
+  #invest .invest-top>.panel>.toolbar,
+  #invest .invest-list-panel>.toolbar,
+  #invest .invest-holdings>.toolbar{padding:12px!important}
+}
+@media(prefers-reduced-motion:reduce){
+  #invest .invest-entry .formgrid input,#invest .invest-entry .formgrid select,#invest .invest-entry .formgrid textarea{transition:none!important}
+}
+</style>
+<script id="mmhvault-v34252-version-stamp">
+window.MM_HVAULT_PERFORMANCE_V34252={version:"3.42.52",investFullSpectrum:true,goldPortfolioLanguageShared:true,noNewPolling:true};
+</script>
+
 </body>
 
 
