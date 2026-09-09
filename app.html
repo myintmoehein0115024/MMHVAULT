@@ -9710,6 +9710,72 @@ window.MM_HVAULT_PERFORMANCE_V34252={version:"3.42.52",investFullSpectrum:true,g
   #dashboard .mmh-age-live-badge-v34218::before{animation:none!important}
 }
 </style>
+
+<!-- MMHVAULT V3.42.66 · Dashboard motion-light / typography polish -->
+<style id="mmhvault-v34266-dashboard-motion-light">
+/* Keep the approved WEALTH COMMAND CENTER identity and dynamics, but make them calmer. */
+#dashboard .mmh-command-v34210{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans SC","PingFang SC","Microsoft YaHei",Arial,sans-serif}
+#dashboard .mmh-command-orbit{animation-duration:34s!important}
+#dashboard .mmh-command-orbit span{animation-duration:2.8s!important}
+#dashboard .mmh-command-v34210:before{animation-duration:18s!important}
+#dashboard .mmh-command-gridline{animation-duration:16s!important}
+#dashboard .mmh-command-stat:after{animation-duration:11s!important}
+#dashboard .mmh-networth-value{animation-duration:6s!important}
+#dashboard .mmh-age-strip-v34213:before{animation-duration:14s!important}
+#dashboard .mmh-live-badge{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+/* Your Age: match LIVE hierarchy; keep status green readable and isolate the glow. */
+#dashboard .mmh-age-live-badge-v34218{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;display:flex!important;flex-direction:column!important;gap:4px!important;position:relative!important;min-width:0!important;max-width:100%!important;padding:9px 12px 10px 13px!important;background:rgba(9,21,40,.78)!important;border:1px solid rgba(83,170,238,.25)!important;border-radius:15px!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.03)!important;overflow:visible!important}
+#dashboard .mmh-age-live-badge-v34218:before{display:none!important}
+#dashboard .mmh-age-live-badge-v34218:after{content:"";position:absolute;left:12px;top:11px;width:6px;height:6px;border-radius:50%;background:#2fe6a0;box-shadow:0 0 8px rgba(47,230,160,.42);pointer-events:none}
+#dashboard .mmh-age-live-label-v34218{display:block!important;margin:0!important;padding-left:11px!important;font-size:10px!important;line-height:1!important;letter-spacing:.16em!important;text-transform:uppercase!important;font-weight:900!important;color:#8fa8cb!important}
+#dashboard #mmhCommandAgeValueV34218{display:block!important;margin:0!important;font-size:16px!important;line-height:1.25!important;font-weight:800!important;color:#d4dfef!important;letter-spacing:-.01em!important;text-shadow:none!important;font-variant-numeric:tabular-nums!important}
+/* Dashboard support modules: visual presence stays, continuous motion does not. */
+#dashboard .mmh-age-strip-v34213:before,
+#dashboard .hero-networth *[style*="animation"],
+#dashboard .wealth-snapshot-v386 *[style*="animation"],
+#dashboard .mmh-dashboard-v372 *[style*="animation"],
+#dashboard .dashboard-details .panel *[style*="animation"]{animation-play-state:paused!important}
+#dashboard .dashboard-premium-panel,
+#dashboard .dashboard-account-panel,
+#dashboard .dashboard-allocation-panel,
+#dashboard .dashboard-recent-panel,
+#dashboard .dashboard-details>.panel,
+#dashboard .dashboard-details .dash-top>.panel,
+#dashboard .dashboard-quick-actions-v371{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans SC","PingFang SC","Microsoft YaHei",Arial,sans-serif;letter-spacing:-.012em}
+/* Softer paint budget on non-command Dashboard surfaces. */
+#dashboard .dashboard-premium-panel,
+#dashboard .dashboard-details>.panel,
+#dashboard .dashboard-details .dash-top>.panel{
+  transition:none!important;
+  box-shadow:0 14px 46px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.026),inset 0 0 38px rgba(64,157,255,.04)!important;
+}
+#dashboard .dashboard-premium-panel::before,
+#dashboard .dashboard-premium-panel::after{animation:none!important;opacity:.12!important}
+#dashboard .dashboard-details>.panel::before,
+#dashboard .dashboard-details>.panel::after{animation:none!important}
+#dashboard .dashboard-quick-actions-v371 .btn{transition:background-color .18s ease,border-color .18s ease,box-shadow .18s ease!important;transform:none!important}
+@media(max-width:620px){
+  #dashboard .mmh-age-live-badge-v34218{width:min(100%,280px)!important}
+  #dashboard #mmhCommandAgeValueV34218{font-size:15px!important}
+}
+</style>
+<script id="mmhvault-v34266-dashboard-motion-light-js">
+(function(){
+  if(window.__mmhV34266MotionLightInstalled)return;
+  window.__mmhV34266MotionLightInstalled=true;
+  function sync(){
+    const dash=document.getElementById('dashboard'); if(!dash)return;
+    /* Keep command center dynamic, but explicitly freeze non-command CSS animations. */
+    dash.querySelectorAll(':not(#dashboardCommandCenterV34210) [style*="animation"]').forEach(el=>{try{el.style.animationPlayState='paused'}catch(_e){}});
+  }
+  const run=()=>{try{sync()}catch(_e){}};
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(run,120),{once:true});
+  else setTimeout(run,120);
+  ['mmhvault:data-loaded','mmhvault:cache-restored','mmhvault:sync-complete','mmhvault:dashboard-rendered'].forEach(ev=>window.addEventListener(ev,()=>setTimeout(run,80),{passive:true}));
+})();
+</script>
+<script id="mmhvault-v34266-version-stamp">window.MM_HVAULT_PERFORMANCE_V34266={version:'3.42.66',dashboardMotionLight:true,commandCenterMotionPreserved:true,investTypographyAligned:true,noNewPolling:true};</script>
+
 </body>
 <!-- MMHVAULT V3.42.34 performance baseline: event-driven data labels + reduced visual polling. -->
 </html>\n<script id="mmhvault-v34241-transaction-partial-dom">
