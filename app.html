@@ -8466,7 +8466,7 @@ body::before{background-attachment:scroll!important}
 /* V3.42.34 — remaining funds is always based on the real current calendar month, independent of Analyze period. */
 </style>
 
-<!-- MMHVAULT V3.42.37 · Performance Architecture v1 Step 3: Heavy DOM Update Gate -->
+<!-- MMHVAULT V3.42.38 · Performance Architecture v1 Step 3: Heavy DOM Update Gate -->
 <script id="mmhvault-v34237-heavy-dom-update-gate">
 (function(){
   if(window.__mmhV34237HeavyDOMUpdateGateInstalled)return;
@@ -8906,6 +8906,90 @@ body::before{background-attachment:scroll!important}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(schedule,120),{once:true});else setTimeout(schedule,120);
 })();
 </script>
+<script id="mmhvault-v34238-render-scope-partial-update">
+(function(){
+  if(window.__mmhV34238RenderScopeInstalled)return;
+  window.__mmhV34238RenderScopeInstalled=true;
+
+  // 1) Keep Investment holding cards stable when neither holdings nor live prices changed.
+  try{
+    const baseHoldings=window.renderCurrentHoldings || (typeof renderCurrentHoldings==='function' ? renderCurrentHoldings : null);
+    if(baseHoldings && !baseHoldings.__mmhV34238Wrapped){
+      let lastKey='';
+      const wrapped=function(cryptos){
+        try{
+          const rows=Array.isArray(cryptos)?cryptos:[];
+          const syms=['BTC','ETH','SOL','BNB'];
+          const key=syms.map(s=>{
+            let q=0;
+            rows.forEach(x=>{if(x&&x.symbol===s)q+=Number(x.quantity)||0;});
+            const p=Number(window.livePrices?.[s]?.price)||0;
+            return s+':'+q.toFixed(12)+':'+p.toFixed(8);
+          }).join('|');
+          if(key===lastKey)return;
+          lastKey=key;
+        }catch(_e){ lastKey=''; }
+        return baseHoldings.apply(this,arguments);
+      };
+      wrapped.__mmhV34238Wrapped=true;
+      window.renderCurrentHoldings=wrapped;
+      try{ renderCurrentHoldings=wrapped; }catch(_e){}
+    }
+  }catch(_e){}
+
+  // 2) Scope Dashboard Core refreshes by a compact data signature.
+  try{
+    const baseDashCore=window.renderDashboardV372 || (typeof renderDashboardV372==='function' ? renderDashboardV372 : null);
+    if(baseDashCore && !baseDashCore.__mmhV34238Wrapped){
+      let lastKey='';
+      const wrapped=function(){
+        try{
+          const monthKey=document.getElementById('month')?.value || (typeof today==='function'?today().slice(0,7):'');
+          const tx=Array.isArray(window.transactions)?window.transactions:[];
+          let amountSum=0, idSum=0, dateSum=0;
+          const prefix=monthKey;
+          for(const t of tx){
+            if(String(t?.tx_date||'').startsWith(prefix)){
+              amountSum += (Number(t?.from_amount)||0) + (Number(t?.to_amount)||0);
+              idSum += Number(t?.id)||0;
+              dateSum += String(t?.tx_date||'').length;
+            }
+          }
+          const invCount=Array.isArray(window.investments)?window.investments.length:0;
+          const liveSum=Object.values(window.livePrices||{}).reduce((s,x)=>s+(Number(x?.price)||0),0);
+          const key=[monthKey,tx.length,amountSum.toFixed(8),idSum, dateSum, invCount, liveSum.toFixed(8), localStorage.getItem('mmhSavingsTarget')||localStorage.getItem('targetSavingsRate')||60].join('|');
+          if(key===lastKey)return;
+          lastKey=key;
+        }catch(_e){ lastKey=''; }
+        return baseDashCore.apply(this,arguments);
+      };
+      wrapped.__mmhV34238Wrapped=true;
+      window.renderDashboardV372=wrapped;
+      try{ renderDashboardV372=wrapped; }catch(_e){}
+    }
+  }catch(_e){}
+
+  // 3) Debounce only the free-text transaction search input; selects remain immediate.
+  try{
+    const search=document.getElementById('txSearch');
+    if(search && !search.__mmhV34238Debounced){
+      search.__mmhV34238Debounced=true;
+      let timer=null;
+      search.addEventListener('input',function(ev){
+        ev.stopImmediatePropagation();
+        clearTimeout(timer);
+        timer=setTimeout(()=>{
+          if(typeof renderTransactionsV28==='function')renderTransactionsV28();
+          else if(typeof window.renderTransactions==='function')window.renderTransactions();
+        },120);
+      },true);
+    }
+  }catch(_e){}
+
+  window.MM_HVAULT_PERFORMANCE_V34238={version:'3.42.38',renderScopePartialUpdate:true,noNewPolling:true,heavyDomGate:'3.42.37'};
+})();
+</script>
+
 </html>
 
 <!-- MMHVAULT V3.42.10 · Planning/Insights organization -->
