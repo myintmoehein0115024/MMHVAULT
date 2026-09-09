@@ -266,12 +266,20 @@
 </style>
 <style id="mmhvault-v341-compact-nav-css">
 .more-nav-trigger{cursor:pointer;}
-.more-nav-menu{position:fixed;left:50%;bottom:82px;transform:translate(-50%,12px) scale(.98);width:min(420px,calc(100vw - 28px));padding:10px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;background:rgba(6,11,30,.96);border:1px solid rgba(99,151,255,.28);border-radius:18px;box-shadow:0 18px 50px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.04);backdrop-filter:blur(18px);opacity:0;pointer-events:none;transition:.18s ease;z-index:22000;}
-.more-nav-menu.open{opacity:1;pointer-events:auto;transform:translate(-50%,0) scale(1);}
-.more-nav-menu button{display:flex;align-items:center;gap:9px;min-height:44px;padding:10px 12px;border-radius:12px;border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.025);color:var(--text,#eef3ff);font:inherit;font-weight:800;text-align:left;cursor:pointer;}
-.more-nav-menu button:hover,.more-nav-menu button.active{background:linear-gradient(135deg,rgba(25,199,255,.16),rgba(216,60,255,.12));border-color:rgba(255,193,70,.24);}
+.more-nav-menu{position:fixed;left:50%;bottom:84px;transform:translate(-50%,18px);width:min(560px,calc(100vw - 28px));padding:14px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;background:linear-gradient(145deg,rgba(7,15,36,.985),rgba(4,10,24,.97));border:1px solid rgba(84,155,255,.34);border-radius:24px;box-shadow:0 24px 70px rgba(0,0,0,.46),0 0 0 1px rgba(255,255,255,.025) inset,0 0 34px rgba(58,148,255,.08);backdrop-filter:blur(12px);opacity:0;pointer-events:none;transition:opacity .16s ease,transform .16s ease;z-index:22000;overflow:hidden;}
+.more-nav-menu::before{content:'MORE  •  COMMAND MENU';grid-column:1/-1;padding:2px 4px 6px;color:#d9e7ff;font-size:10px;font-weight:900;letter-spacing:.22em;text-transform:uppercase;opacity:.72;}
+.more-nav-menu::after{content:'Navigate MMHVAULT modules';grid-column:1/-1;padding:4px 4px 1px;color:#7085aa;font-size:9px;letter-spacing:.08em;text-transform:uppercase;text-align:right;border-top:1px solid rgba(255,255,255,.06);margin-top:1px;}
+.more-nav-menu.open{opacity:1;pointer-events:auto;transform:translate(-50%,0);}
+.more-nav-menu button{position:relative;display:flex;align-items:center;gap:11px;min-height:54px;padding:12px 14px;border-radius:15px;border:1px solid rgba(91,142,220,.18);background:linear-gradient(135deg,rgba(16,31,62,.72),rgba(9,18,42,.82));color:var(--text,#eef3ff);font:inherit;font-weight:850;text-align:left;cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.035);transition:background .14s ease,border-color .14s ease,transform .14s ease;}
+.more-nav-menu button::after{content:'›';margin-left:auto;font-size:20px;line-height:1;color:#607ca8;opacity:.75;transition:transform .14s ease,color .14s ease;}
+.more-nav-menu button:hover,.more-nav-menu button.active{background:linear-gradient(135deg,rgba(23,73,125,.74),rgba(37,24,73,.74));border-color:rgba(72,183,255,.48);transform:translateY(-1px);}
+.more-nav-menu button:hover::after,.more-nav-menu button.active::after{transform:translateX(2px);color:#f5c451;}
 .more-nav-menu button span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-@media(max-width:520px){.more-nav-menu{grid-template-columns:1fr;bottom:76px;}}
+@media(max-width:520px){.more-nav-menu{width:min(520px,calc(100vw - 20px));bottom:78px;padding:12px;border-radius:22px;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.more-nav-menu button{min-height:50px;padding:11px 12px;font-size:13px;gap:9px}.more-nav-menu::before{font-size:9px}.more-nav-menu::after{font-size:8px;}}
+</style>
+<style id="mmhvault-v34258-more-command-menu">
+/* v3.42.58 — More command menu visual polish; presentation only. */
+.more-nav-trigger[aria-expanded="true"]{background:linear-gradient(135deg,rgba(25,64,116,.82),rgba(17,23,52,.94))!important;border-color:rgba(88,175,255,.42)!important;box-shadow:0 0 22px rgba(60,160,255,.12),inset 0 1px 0 rgba(255,255,255,.05)!important;}
 </style>
 <style id="mmhvault-v342-visual-background-typography">/* MMHVAULT v3.42.0 · Futuristic finance visual system. Presentation only; no data logic changes. */
 :root{--mmhvault-bg:#030916;--mmhvault-ink:#eaf3ff;--mmhvault-muted:#9fb2d1;--mmhvault-gold:#f5c451;--mmhvault-blue:#46c7ff;--mmhvault-violet:#bb7cff}
