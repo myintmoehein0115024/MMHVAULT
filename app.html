@@ -1114,7 +1114,7 @@ body.mmhvault-scroll-active .card{transition:none!important}
 <button class="btn" onclick="retryLoadAllV384()" type="button">Retry</button>
 </div>
 <header id="header" style="display:none">
-<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.42.70</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
+<div class="mmhvault-header-brand"><div class="logo"><img alt="MMHVAULT logo" class="mmhvault-header-logo-img" src="icon-192.png?v=3.8.14"/><span>MMHVAULT</span> <span class="version">V3.42.71</span></div><div class="mmhvault-brand-tagline">Personal Finance &amp; Wealth Management</div></div>
 <div class="header-spacer"></div>
 <div aria-label="Signed in user" class="header-profile" id="headerProfile">
 <div class="header-avatar" id="headerAvatar">MF</div>
@@ -11904,7 +11904,7 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
 })();
 </script>
 
-<!-- MMHVAULT V3.42.70 · Gold valuation authority hardening + version authority -->
+<!-- MMHVAULT V3.42.71 · Gold valuation authority hardening + version authority -->
 <style id="mmhvault-v34270-gold-hardening-css">
 #dashboard .account-logo-v34270{width:24px;height:24px;min-width:24px;display:inline-flex;align-items:center;justify-content:center;border-radius:8px;overflow:hidden;border:1px solid rgba(100,165,245,.24);background:linear-gradient(145deg,rgba(16,34,66,.92),rgba(4,12,25,.86));box-shadow:inset 0 1px 0 rgba(255,255,255,.03)}
 #dashboard .account-logo-v34270 img{width:18px;height:18px;object-fit:contain;display:block}
@@ -11966,7 +11966,7 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
         }
       });
     }
-    document.querySelectorAll('#header .version').forEach(el=>el.textContent='V3.42.70');
+    document.querySelectorAll('#header .version').forEach(el=>el.textContent='V3.42.71');
   }
   let queued=false;
   function schedule(){if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;try{applyDashboardGold();}catch(_e){}})}
@@ -11975,5 +11975,106 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
   const accounts=document.getElementById('accounts');
   if(accounts){const mo=new MutationObserver(schedule);mo.observe(accounts,{childList:true,subtree:true});}
   window.MM_HVAULT_PERFORMANCE_V34270={version:'3.42.70',goldValuationUnified:true,goldAccountParity:true,globalInvestmentParity:true,versionStampSource:'html+runtime',logoStable:true,noNewPolling:true};
+})();
+</script>
+
+<!-- MMHVAULT V3.42.71 · FINAL GOLD AUTHORITY / DASHBOARD PARITY -->
+<style id="mmhvault-v34271-gold-authority-css">
+#dashboard .mmh-gold-v34271-logo{width:24px;height:24px;min-width:24px;display:inline-flex;align-items:center;justify-content:center;margin-right:8px;border-radius:7px;overflow:hidden;background:linear-gradient(145deg,rgba(20,25,28,.94),rgba(7,11,16,.88));border:1px solid rgba(247,199,93,.34);box-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 0 7px rgba(247,199,93,.10)}
+#dashboard .mmh-gold-v34271-logo img{width:17px;height:17px;object-fit:contain;display:block}
+</style>
+<script id="mmhvault-v34271-gold-authority-final">
+(function(){
+  if(window.__mmhV34271Installed)return;
+  window.__mmhV34271Installed=true;
+  const N=v=>{const x=Number(v);return Number.isFinite(x)?x:0};
+  function getInvestments(){try{if(Array.isArray(investments))return investments;}catch(_e){}return Array.isArray(window.investments)?window.investments:[];}
+  function getRates(){try{if(rates)return rates;}catch(_e){}return window.rates||{};}
+  function getGoldState(){try{if(goldMarketState)return goldMarketState;}catch(_e){}return window.goldMarketState||{};}
+  function goldQty(x){
+    const amount=N(x?.amount), buy=N(x?.buy_price), q=N(x?.quantity), market=N(x?.market_price);
+    if(amount>0&&buy>0)return amount/buy;
+    if(q>0)return q;
+    if(amount>0&&market>0)return amount/market;
+    return 0;
+  }
+  function goldPrice(){
+    const state=getGoldState();
+    const p=N(state?.pricePerKyattha);
+    if(p>0)return p;
+    const rows=getInvestments().filter(x=>String(x?.asset||'').trim().toLowerCase()==='gold');
+    if(!rows.length)return 0;
+    const latest=rows.slice().sort((a,b)=>String(b?.inv_date||b?.date||'').localeCompare(String(a?.inv_date||a?.date||'')))[0];
+    return N(latest?.market_price)||N(latest?.buy_price);
+  }
+  function goldRows(){return getInvestments().filter(x=>String(x?.asset||'').trim().toLowerCase()==='gold');}
+  function goldMMK(){
+    const p=goldPrice();
+    if(!(p>0))return 0;
+    return goldRows().reduce((s,x)=>s+goldQty(x)*p,0);
+  }
+  function goldUSD(){
+    const fx=N(getRates()?.usd_mmk);
+    return fx>0?goldMMK()/fx:0;
+  }
+  const GOLD_SRC=(function(){
+    const img=document.querySelector('#dashboard .account-logo-v34260.logo-gold img')||document.querySelector('#dashboard .mmh-gold-v34270-logo img')||document.querySelector('#dashboard .mmh-gold-final-logo img');
+    return img?.src||'data:image/svg+xml;charset=utf-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect x="8" y="8" width="48" height="48" rx="14" fill="#111a2b"/><path d="M18 42l10-19 8 10 7-10 3 19H18z" fill="#ffc84a"/></svg>');
+  })();
+  function ensureLogo(nameEl){
+    if(!nameEl)return;
+    nameEl.querySelectorAll('.mmh-gold-v34269-logo,.mmh-gold-v34270-logo,.mmh-gold-final-logo,.mmh-gold-v34271-logo').forEach((el)=>{if(el.classList.contains('mmh-gold-v34271-logo'))return;el.remove();});
+    if(!nameEl.querySelector('.mmh-gold-v34271-logo')){
+      const h=document.createElement('span');h.className='mmh-gold-v34271-logo';h.setAttribute('aria-hidden','true');
+      const im=document.createElement('img');im.alt='';im.src=GOLD_SRC;h.appendChild(im);nameEl.insertBefore(h,nameEl.firstChild);
+    }
+  }
+  function patch(){
+    const value=goldUSD();
+    if(!(value>=0))return;
+    document.querySelectorAll('#accounts .account-row').forEach(row=>{
+      const nameEl=row.querySelector('.name');
+      const text=(nameEl?.textContent||'').replace(/\s+/g,' ').trim();
+      if(text==='Gold Portfolio'){
+        ensureLogo(nameEl);
+        const amount=row.querySelector('.amount');
+        const next=typeof window.usd==='function'?window.usd(value):('$ '+value.toFixed(2));
+        if(amount && amount.textContent!==next)amount.textContent=next;
+      }
+    });
+    const alloc=document.getElementById('assetAllocation');
+    if(alloc){
+      let cash=0,crypto=0;
+      try{if(typeof balance==='function'&&typeof toUSD==='function')cash=['Bath','TrueMoney','OKX','ByBit','MetaMask','KPay'].reduce((s,a)=>s+Math.max(0,N(balance(a)))*N(toUSD(a)),0);}catch(_e){}
+      try{const rows=getInvestments();crypto=rows.filter(x=>String(x?.asset||'').trim().toLowerCase()==='crypto').reduce((s,x)=>s+N(x?.quantity)*(N((window.livePrices||{})[x?.symbol]?.price)||N(x?.market_price)),0);}catch(_e){}
+      const total=Math.max(0.000001,cash+crypto+value),pct=value/total*100;
+      alloc.querySelectorAll('.mmh-allocation-card-v34263').forEach(card=>{
+        const label=(card.querySelector('.label')?.textContent||'').trim();
+        if(label==='Gold'){
+          const p=card.querySelector('.pct'),v=card.querySelector('.value'),track=card.querySelector('.track span');
+          const ptxt=pct.toFixed(1)+'%'; const vtxt=typeof window.usd==='function'?window.usd(value):('$ '+value.toFixed(2));
+          if(p&&p.textContent!==ptxt)p.textContent=ptxt;
+          if(v&&v.textContent!==vtxt)v.textContent=vtxt;
+          if(track){const w=Math.min(100,pct)+'%';if(track.style.width!==w)track.style.width=w;}
+        }
+      });
+    }
+    document.querySelectorAll('#header .version').forEach(el=>{if(el.textContent!=='V3.42.71')el.textContent='V3.42.71';});
+  }
+  function install(){
+    const old=window.renderDashboard;
+    if(typeof old==='function'&&!old.__mmhV34271Wrapped){
+      const wrapped=function(){const r=old.apply(this,arguments);setTimeout(patch,0);requestAnimationFrame(patch);return r;};
+      wrapped.__mmhV34271Wrapped=true;window.renderDashboard=wrapped;try{renderDashboard=wrapped;}catch(_e){}
+    }
+    ['mmhvault:data-loaded','mmhvault:cache-restored','mmhvault:sync-complete','mmhvault:dashboard-rendered'].forEach(ev=>window.addEventListener(ev,()=>{setTimeout(patch,0);},{passive:true}));
+    const host=document.getElementById('dashboard');
+    if(host){const mo=new MutationObserver(()=>{if(!window.__mmhV34271Patching){window.__mmhV34271Patching=true;requestAnimationFrame(()=>{window.__mmhV34271Patching=false;patch();});}});mo.observe(host,{childList:true,subtree:true});window.__mmhV34271Observer=mo;}
+    patch();
+  }
+  window.mmhGoldCurrentMMKV34271=goldMMK;
+  window.mmhGoldCurrentUSDV34271=goldUSD;
+  window.MM_HVAULT_PERFORMANCE_V34271={version:'3.42.71',goldSource:'lexical-investments',goldAccountParity:true,allocationParity:true,versionStamp:'3.42.71',noNewPolling:true};
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',install,{once:true});else install();
 })();
 </script>
