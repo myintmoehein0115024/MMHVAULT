@@ -1299,6 +1299,25 @@ body.mmhvault-scroll-active .card{transition:none!important}
   }
 }
 </style>
+
+<style id="mmhvault-v3436-premium-polish">
+/* MMHVAULT V3.43.6 · Premium interaction polish */
+/* 1) Respect OS/browser reduced-motion preferences without changing normal animations. */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto !important; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+/* 2) Make keyboard focus states clearer and consistent for interactive controls. */
+:where(button, a, input, select, textarea, [role="button"], [tabindex]:not([tabindex="-1"])):focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+}
+</style>
 </head>
 <!-- MMHVAULT V3.42.56 · Dashboard report relocation + Transaction receipt center + Invest Add precision -->
 <body>
