@@ -240,6 +240,26 @@
 <style id="mmhvault-v372-dashboard2-css">
 .mmh-dashboard-v372{margin-top:14px}.mmh-dash372-head{margin-bottom:14px}.mmh-dash372-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.mmh-dash372-card{padding:16px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.02);min-height:110px}.mmh-dash372-card span{display:block;color:var(--muted);font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.05em}.mmh-dash372-card b{display:block;margin-top:10px;font-size:22px;line-height:1.15}.mmh-dash372-card small{display:block;margin-top:8px;color:var(--muted);font-size:11px}.mmh-dash372-compare{margin-top:14px;border-top:1px solid var(--line);padding-top:14px}.mmh-dash372-compare-head{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:12px}.mmh-dash372-compare-head strong{display:block;font-size:14px}.mmh-dash372-compare-head span{display:block;color:var(--muted);font-size:11px;margin-top:4px}.mmh-dash372-target{font-size:11px;color:var(--muted);font-weight:800}.mmh-dash372-rows{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.mmh-dash372-rows>div{padding:12px;border-radius:12px;background:rgba(255,255,255,.018);border:1px solid var(--line)}.mmh-dash372-rows span{display:block;color:var(--muted);font-size:11px}.mmh-dash372-rows b{display:block;margin-top:6px;font-size:16px}.mmh-dash372-rows em{display:block;margin-top:6px;font-style:normal;color:var(--muted);font-size:10px}.mmh-dash372-status{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:14px;padding:13px 14px;border-radius:12px;border:1px solid var(--line)}.mmh-dash372-status strong{display:block;font-size:12px}.mmh-dash372-status span{display:block;margin-top:4px;color:var(--muted);font-size:11px}.mmh-dash372-status.good{background:rgba(57,230,161,.07)}.mmh-dash372-status.warn{background:rgba(255,211,107,.07)}.mmh-dash372-status.bad{background:rgba(255,113,133,.07)}@media(max-width:900px){.mmh-dash372-grid,.mmh-dash372-rows{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:600px){.mmh-dash372-grid,.mmh-dash372-rows{grid-template-columns:1fr}.mmh-dash372-compare-head,.mmh-dash372-status{align-items:flex-start;flex-direction:column}}
 </style>
+<style id="mmhvault-v3441-dashboard-mobile-polish">
+/* V3.44.1 — Dashboard mobile density refinement. */
+@media(max-width:600px){
+  #dashboard .mmh-dash372-card{min-height:0;padding:14px 13px;border-radius:15px}
+  #dashboard .mmh-dash372-card b{font-size:20px;overflow-wrap:anywhere}
+  #dashboard .mmh-dash372-card small{line-height:1.4}
+  #dashboard .mmh-dash372-compare{padding-top:12px}
+  #dashboard .mmh-dash372-compare-head{gap:6px;margin-bottom:10px}
+  #dashboard .mmh-dash372-target{font-size:10px}
+  #dashboard .mmh-dash372-rows{gap:8px}
+  #dashboard .mmh-dash372-rows>div{padding:11px;border-radius:13px}
+  #dashboard .mmh-dash372-rows b{font-size:15px;overflow-wrap:anywhere}
+  #dashboard .mmh-dash372-status{padding:12px 13px}
+  #dashboard .mmh-dash372-status .btn{width:100%;justify-content:center}
+}
+@media(max-width:380px){
+  #dashboard .mmh-dash372-card b{font-size:18px}
+  #dashboard .mmh-dash372-card span,#dashboard .mmh-dash372-card small{font-size:10px}
+}
+</style>
 <style id="mmhvault-v380-wealth-planning-css">
 .mmh-v380-page-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:16px}.mmh-v380-page-head h1{margin:0 0 6px}.mmh-v380-hero{padding:22px}.mmh-v380-hero-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.mmh-v380-card{padding:16px;border:1px solid rgba(111,150,230,.2);border-radius:16px;background:rgba(7,16,39,.62)}.mmh-v380-card .k{font-size:11px;color:#91a7ca;text-transform:uppercase;letter-spacing:.08em}.mmh-v380-card .v{margin-top:7px;font-size:24px;font-weight:900;color:#eef5ff}.mmh-v380-card .s{margin-top:4px;color:#9fb2d0;font-size:12px}.mmh-v380-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid rgba(120,150,220,.12)}.mmh-v380-row:last-child{border-bottom:0}.mmh-v380-name{font-weight:800;min-width:120px}.mmh-v380-main{flex:1}.mmh-v380-bar{height:8px;border-radius:999px;background:rgba(60,86,140,.25);overflow:hidden}.mmh-v380-bar>span{display:block;height:100%;background:linear-gradient(90deg,#42d9ff,#d268ff);border-radius:999px}.mmh-v380-meta{display:flex;justify-content:space-between;gap:8px;margin-top:5px;color:#9fb2d0;font-size:11px}.mmh-v380-badge{padding:5px 8px;border-radius:999px;font-size:10px;font-weight:800;border:1px solid rgba(255,255,255,.08)}.mmh-v380-good{color:#39e6a1;background:rgba(57,230,161,.08)}.mmh-v380-warn{color:#ffd36b;background:rgba(255,211,107,.08)}.mmh-v380-bad{color:#ff7185;background:rgba(255,113,133,.08)}.mmh-v380-empty{color:#95a8c8;padding:12px 0}.mmh-v380-scenarios{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.mmh-v380-scenario{padding:16px;border:1px solid rgba(111,150,230,.18);border-radius:16px;background:rgba(7,16,39,.56)}.mmh-v380-scenario b{font-size:12px}.mmh-v380-scenario .big{display:block;margin-top:8px;font-size:24px;font-weight:900}.mmh-v380-scenario .small{margin-top:4px;color:#9fb2d0;font-size:11px}@media(max-width:900px){.mmh-v380-hero-grid,.mmh-v380-scenarios{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:640px){.mmh-v380-page-head{align-items:flex-start;flex-direction:column}.mmh-v380-hero-grid,.mmh-v380-scenarios{grid-template-columns:1fr}}
 </style>
@@ -2063,7 +2083,7 @@ function openLoginFromLandingV327(){
 window.mmHVaultOpenLoginV327=openLoginFromLandingV327;
 window.mmHVaultShowLandingV327=showLandingV327;
 
-function setPage(p){document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));$(p).classList.add("active");document.body.classList.toggle("auth-page-active",p==="login");document.querySelectorAll(".bottom-nav button").forEach(b=>{const active=b.dataset.page===p;b.classList.toggle("active",active);if(active)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current");});if(p!=="login")sessionStorage.setItem("myfinance_page",p);if(p==="settings"){const se=$("settingsEmail");if(se&&currentUserEmail)se.textContent=currentUserEmail;}render();}
+function setPage(p){document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));$(p).classList.add("active");document.body.classList.toggle("auth-page-active",p==="login");document.querySelectorAll(".bottom-nav button").forEach(b=>{const active=b.dataset.page===p;b.classList.toggle("active",active);if(active)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current");});if(p!=="login")sessionStorage.setItem("myfinance_page",p);if(p==="settings"){const se=$("settingsEmail");if(se&&currentUserEmail)se.textContent=currentUserEmail;}scheduleRenderV3441();}
 function applyTheme(theme){document.body.classList.toggle('light',theme==='light');document.querySelectorAll('input[name="theme"]').forEach(r=>r.checked=r.value===theme);localStorage.setItem('myfinance_theme',theme);}
 function initTheme(){const t=localStorage.getItem('myfinance_theme')||'dark';applyTheme(t);document.querySelectorAll('input[name="theme"]').forEach(r=>r.addEventListener('change',()=>applyTheme(r.value)));}
 function editTheme(){initTheme();}
@@ -2099,7 +2119,7 @@ document.addEventListener('visibilitychange',()=>{
 });
 ACC.forEach(a=>{const fa=$("fromAccount"),ta=$("toAccount");if(fa)fa.insertAdjacentHTML("beforeend",`<option>${a}</option>`);if(ta)ta.insertAdjacentHTML("beforeend",`<option>${a}</option>`);});
 $("txType").onchange=()=>{syncTransactionGroup();updateCategories();};$("txGroup").onchange=updateCategories;updateCategories();
-if($("authForm"))$("authForm").onsubmit=auth;if($("txForm"))$("txForm").onsubmit=addTransaction;if($("invForm"))$("invForm").onsubmit=addInvestment;if($("month"))$("month").onchange=()=>{renderDashboard();renderAnalyze();};
+if($("authForm"))$("authForm").onsubmit=auth;if($("txForm"))$("txForm").onsubmit=addTransaction;if($("invForm"))$("invForm").onsubmit=addInvestment;if($("month"))$("month").onchange=scheduleRenderV3441;
 document.addEventListener("click",e=>{const b=e.target.closest?.("#bottomNav [data-page]");if(!b)return;e.preventDefault();e.stopPropagation();setPage(b.dataset.page);},{capture:true});
 }
 let mmhvaultAuthMode="signin";
@@ -2421,6 +2441,7 @@ function showTxTab(tab){
 }
 function restoreTxTab(){showTxTab(sessionStorage.getItem('myfinance_tx_tab')||'add');}
 
+let mmhvaultRenderFrameV3441=0; function scheduleRenderV3441(){ if(mmhvaultRenderFrameV3441)return; const run=()=>{mmhvaultRenderFrameV3441=0; try{render();}catch(err){console.warn("MMHVAULT render warning:",err);}}; if(typeof requestAnimationFrame==="function")mmhvaultRenderFrameV3441=requestAnimationFrame(run); else mmhvaultRenderFrameV3441=setTimeout(run,0);}
 function render(){if($("dashboard").classList.contains("active"))renderDashboard();if($("transactions").classList.contains("active"))renderTransactions();if($("analyze").classList.contains("active"))renderAnalyze();if($("exchange").classList.contains("active"))renderRates();if($("invest").classList.contains("active"))renderInvest();if($("wealth-planning")?.classList.contains("active"))renderWealthPlanningV380();}
 function renderCurrentHoldings(cryptos){
  const syms=['BTC','ETH','SOL','BNB'];
