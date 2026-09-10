@@ -11354,7 +11354,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
 #txForm .btn.primary.balance-blocked{opacity:.58;cursor:not-allowed;filter:saturate(.72);}
 </style>
 <script id="mmhvault-v34431-balance-guard">
-/* MMHVAULT V3.44.31 · Transaction Balance Guard
+/* MMHVAULT V3.44.32 · Balance Guard Localization
    Block Expense/Transfer saves when the source account does not have enough native-currency balance. */
 (function(){
   const $=id=>document.getElementById(id);
@@ -11392,14 +11392,19 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
     }
     return el;
   }
+  const isZh=()=>((localStorage.getItem('mmhvault_language_v3363')||'en')==='zh');
+  const txText=(en,zh)=>isZh()?zh:en;
   function refresh(){
     const form=$('txForm'); if(!form)return;
     const state=check();
     const submit=form.querySelector('button[type="submit"]');
     const status=ensureStatus();
     if(state.blocked){
-      if(submit){submit.disabled=true;submit.classList.add('balance-blocked');submit.title='账户余额不足';}
-      if(status){status.classList.add('show');status.textContent=`⚠️ 账户余额不足 · ${state.account} 可用余额：${money(state.available,state.account)}，当前需要：${money(state.amount,state.account)}`;}
+      const title=txText('Insufficient account balance','账户余额不足');
+      const availableLabel=txText('Available','可用余额');
+      const requiredLabel=txText('Required','当前需要');
+      if(submit){submit.disabled=true;submit.classList.add('balance-blocked');submit.title=title;}
+      if(status){status.classList.add('show');status.textContent=`⚠️ ${title} · ${state.account} · ${availableLabel}: ${money(state.available,state.account)} · ${requiredLabel}: ${money(state.amount,state.account)}`;}
     }else{
       if(submit && !submit.classList.contains('v321-submit-busy')){submit.disabled=false;submit.classList.remove('balance-blocked');submit.removeAttribute('title');}
       if(status){status.classList.remove('show');status.textContent='';}
