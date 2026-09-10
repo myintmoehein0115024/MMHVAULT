@@ -11347,3 +11347,89 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
   window.mmhvaultStabilizeTransactionCascadeV34430=stabilize;
 })();
 </script>
+
+<style id="mmhvault-v34431-balance-guard-style">
+.mmhvault-balance-guard{margin-top:10px;padding:10px 12px;border:1px solid rgba(255,120,120,.34);border-radius:12px;background:rgba(125,28,40,.16);color:#ffd0d0;font-size:13px;font-weight:700;display:none;align-items:center;gap:8px;}
+.mmhvault-balance-guard.show{display:flex;}
+#txForm .btn.primary.balance-blocked{opacity:.58;cursor:not-allowed;filter:saturate(.72);}
+</style>
+<script id="mmhvault-v34431-balance-guard">
+/* MMHVAULT V3.44.31 · Transaction Balance Guard
+   Block Expense/Transfer saves when the source account does not have enough native-currency balance. */
+(function(){
+  const $=id=>document.getElementById(id);
+  const N=v=>{const x=Number(v);return Number.isFinite(x)?x:0;};
+  const money=(v,account)=>{
+    const cur=(typeof currency==='function'?currency(account):'');
+    const n=N(v);
+    if(cur==='USD')return '$'+n.toLocaleString(undefined,{maximumFractionDigits:6});
+    if(cur==='THB')return '฿ '+n.toLocaleString(undefined,{maximumFractionDigits:6});
+    if(cur==='MMK')return 'MMK '+n.toLocaleString(undefined,{maximumFractionDigits:2});
+    return n.toLocaleString(undefined,{maximumFractionDigits:6});
+  };
+  function requiredSource(){
+    const type=$('txType')?.value||'';
+    if(type==='Income')return null;
+    const account=$('fromAccount')?.value||'';
+    const amount=N($('fromAmount')?.value);
+    return {type,account,amount};
+  }
+  function check(){
+    const req=requiredSource();
+    if(!req||!req.account||req.amount<=0)return {blocked:false};
+    const available=typeof balance==='function'?N(balance(req.account)):0;
+    const blocked=req.amount>available+1e-9;
+    return {blocked,available,...req};
+  }
+  function ensureStatus(){
+    const form=$('txForm'); if(!form)return null;
+    let el=form.querySelector('.mmhvault-balance-guard');
+    if(!el){
+      el=document.createElement('div');
+      el.className='mmhvault-balance-guard';
+      const actions=form.querySelector('.actions');
+      if(actions)actions.before(el);else form.appendChild(el);
+    }
+    return el;
+  }
+  function refresh(){
+    const form=$('txForm'); if(!form)return;
+    const state=check();
+    const submit=form.querySelector('button[type="submit"]');
+    const status=ensureStatus();
+    if(state.blocked){
+      if(submit){submit.disabled=true;submit.classList.add('balance-blocked');submit.title='账户余额不足';}
+      if(status){status.classList.add('show');status.textContent=`⚠️ 账户余额不足 · ${state.account} 可用余额：${money(state.available,state.account)}，当前需要：${money(state.amount,state.account)}`;}
+    }else{
+      if(submit && !submit.classList.contains('v321-submit-busy')){submit.disabled=false;submit.classList.remove('balance-blocked');submit.removeAttribute('title');}
+      if(status){status.classList.remove('show');status.textContent='';}
+    }
+    return state;
+  }
+  function bind(){
+    const form=$('txForm'); if(!form||form.dataset.balanceGuardV34431==='1')return;
+    form.dataset.balanceGuardV34431='1';
+    ['txType','fromAccount','fromAmount'].forEach(id=>{
+      const el=$(id); if(!el)return;
+      el.addEventListener('change',refresh);
+      el.addEventListener('input',refresh);
+    });
+    const old=form.onsubmit;
+    form.onsubmit=async function(e){
+      const state=refresh();
+      if(state?.blocked){
+        e?.preventDefault?.();
+        const status=ensureStatus();
+        if(status){status.classList.add('show');}
+        return false;
+      }
+      return old?await old.call(this,e):false;
+    };
+    refresh();
+  }
+  function stabilize(){bind();refresh();}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',stabilize,{once:true});else stabilize();
+  ['mmhvault:data-loaded','mmhvault:sync-complete','mmhvault-language-change'].forEach(ev=>window.addEventListener(ev,()=>setTimeout(stabilize,0)));
+  window.mmhvaultRefreshTransactionBalanceGuardV34431=refresh;
+})();
+</script>
