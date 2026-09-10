@@ -11302,60 +11302,90 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
 }
 </style>
 
-<script id="mmhvault-v34414-goal-submit-reliability">
-/* MMHVAULT V3.44.14 · Goals submit reliability hotfix.
-   Keeps the existing goal data model and save logic. Provides a direct submit bridge
-   and a click-safe foreground layer so the Add Goal action remains reliable after
-   repeated Analyze / Goals re-renders. */
+<script id="mmhvault-v34415-goal-submit-reliability">
+/* MMHVAULT V3.44.15 — self-contained Goals submit bridge.
+   Does not rely on saveGoalV371 being exposed on window. */
 (function(){
+  const KEY_PREFIX='myfinance_goals_v371_';
+  function key(){
+    let email='guest';
+    try { email = (typeof window.currentUserEmail === 'string' && window.currentUserEmail) || email; } catch(e) {}
+    return KEY_PREFIX + email;
+  }
+  function readGoals(){
+    try{
+      const raw=localStorage.getItem(key());
+      const arr=raw?JSON.parse(raw):[];
+      return Array.isArray(arr)?arr:[];
+    }catch(e){ return []; }
+  }
+  function writeGoals(arr){
+    localStorage.setItem(key(),JSON.stringify(arr));
+  }
+  function num(v){ const n=parseFloat(v); return Number.isFinite(n)?n:0; }
+  function usd(v){
+    try{
+      if(typeof window.usd==='function') return window.usd(v);
+    }catch(e){}
+    return '$'+num(v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+  }
+  function escapeHtml(v){
+    return String(v).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+  }
+  function fallbackRender(){
+    const list=document.getElementById('goalsListV371');
+    if(!list) return;
+    const goals=readGoals();
+    if(!goals.length){
+      list.innerHTML='<div class="goal-empty-v371" style="grid-column:1/-1">No goals yet. Add your first financial goal above.</div>';
+      return;
+    }
+    list.innerHTML=goals.map(g=>{
+      const target=Math.max(0,num(g.target));
+      return `<div class="goal-card-v371"><div class="goal-top"><div><div class="goal-name">${escapeHtml(g.type)}</div><div class="goal-target">Target · ${usd(target)}${g.date?' · '+escapeHtml(g.date):''}</div></div><div class="goal-actions-v371"><button class="btn" type="button" data-mmh-edit-goal="${escapeHtml(g.id)}">Edit</button><button class="btn danger" type="button" data-mmh-delete-goal="${escapeHtml(g.id)}">Delete</button></div></div><div class="goal-current cyan">${usd(0)}</div><div class="goal-progress-v371"><span style="width:0%"></span></div><div class="goal-meta"><span>0.0% complete</span><span>${usd(target)} remaining</span></div></div>`;
+    }).join('');
+  }
+  function resetForm(){
+    const form=document.getElementById('goalFormV371'); if(!form) return;
+    const t=document.getElementById('goalTypeV371'), a=document.getElementById('goalTargetV371'), d=document.getElementById('goalDateV371'), b=document.getElementById('goalSubmitV371'), c=document.getElementById('goalCancelV371');
+    if(t)t.value='Emergency Fund'; if(a)a.value=''; if(d)d.value=''; if(b)b.textContent='Add Goal'; if(c)c.style.display='none';
+  }
+  function save(){
+    const type=document.getElementById('goalTypeV371')?.value||'';
+    const target=num(document.getElementById('goalTargetV371')?.value);
+    const date=document.getElementById('goalDateV371')?.value||'';
+    if(!type || target<=0){ alert('Enter a target amount greater than 0.'); return false; }
+    const goals=readGoals();
+    if(goals.some(g=>g.type===type)){
+      alert(`${type} goal already exists. Edit the existing goal instead.`);
+      return false;
+    }
+    goals.push({id:'g_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,7),type,target,date});
+    writeGoals(goals);
+    try { if(typeof window.wsInvalidateBaseV34412==='function') window.wsInvalidateBaseV34412(); } catch(e){}
+    resetForm();
+    try { if(typeof window.renderGoalsV371==='function') window.renderGoalsV371(); else fallbackRender(); } catch(e){ fallbackRender(); }
+    return false;
+  }
   function bind(){
     const form=document.getElementById('goalFormV371');
     const btn=document.getElementById('goalSubmitV371');
-    if(!form || !btn || btn.dataset.mmhV34414Bound==='1') return;
-    btn.dataset.mmhV34414Bound='1';
+    if(!form || !btn || btn.dataset.mmhV34415Bound==='1') return;
+    btn.dataset.mmhV34415Bound='1';
     btn.type='button';
-    btn.addEventListener('click',function(e){
-      e.preventDefault();
-      e.stopPropagation();
-      try{
-        const result=typeof window.saveGoalV371==='function' ? window.saveGoalV371(e) : false;
-        if(result && typeof result.then==='function'){ result.catch(err=>console.error('MMHVAULT goal save failed:',err)); }
-      }catch(err){
-        console.error('MMHVAULT goal submit failed:',err);
-      }
-      return false;
-    },false);
-    form.addEventListener('submit',function(e){
-      e.preventDefault();
-      e.stopPropagation();
-      try{
-        if(typeof window.saveGoalV371==='function') window.saveGoalV371(e);
-      }catch(err){
-        console.error('MMHVAULT goal form submit failed:',err);
-      }
-      return false;
-    },false);
+    btn.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();save();},false);
+    form.addEventListener('submit',e=>{e.preventDefault();e.stopPropagation();save();},false);
   }
-  function arm(){
-    requestAnimationFrame(()=>requestAnimationFrame(bind));
-  }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',arm,{once:true});
-  else arm();
-  window.addEventListener('mmhvault:data-loaded',arm);
-  window.addEventListener('mmhvault:data-state',arm);
-  document.addEventListener('click',function(e){
-    const b=e.target?.closest?.('#goalSubmitV371');
-    if(!b || b.dataset.mmhV34414Bound==='1') return;
-    try{
-      e.preventDefault();
-      e.stopImmediatePropagation();
-      if(typeof window.saveGoalV371==='function') window.saveGoalV371(e);
-    }catch(err){ console.error('MMHVAULT goal click bridge failed:',err); }
-  },true);
+  window.addEventListener('mmhvault:data-loaded',bind);
+  window.addEventListener('mmhvault:data-state',bind);
+  document.addEventListener('DOMContentLoaded',bind,{once:true});
+  bind();
 })();
 </script>
-<style id="mmhvault-v34414-goal-submit-css">
-/* Keep the Goals form controls in the interactive foreground. */\n#goalFormV371,#goalFormV371 .form-actions,#goalSubmitV371{position:relative;z-index:20;pointer-events:auto;}\n#goalSubmitV371{touch-action:manipulation;cursor:pointer;}\n@media(prefers-reduced-motion:reduce){#goalSubmitV371{transition:none!important;}}\n</style>
+<style id="mmhvault-v34415-goal-submit-css">
+#goalFormV371,#goalFormV371 .form-actions,#goalSubmitV371{position:relative;z-index:9999;pointer-events:auto;}
+#goalSubmitV371{touch-action:manipulation;cursor:pointer;position:relative;z-index:10000;pointer-events:auto;}
+</style>
 </body>
 <!-- MMHVAULT V3.42.78 performance baseline: logo-free account cards + restrained dashboard rendering. -->
 
