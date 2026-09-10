@@ -9697,6 +9697,40 @@ body.mmhvault-scroll-active #invest .invest-top>.panel{box-shadow:inset 0 1px 0 
 })();
 </script>
 
+<style id="mmhvault-v3442-transactions-mobile-polish">
+#transactions #txMobileListV371{display:none;}
+@media (max-width:950px){
+#transactions #txList{overflow:visible!important;}
+#transactions #txList>table{display:none!important;}
+#transactions #txMobileListV371{display:grid;gap:10px;}
+#transactions .tx-mobile-card-v371{position:relative;display:block;padding:13px 14px;border:1px solid rgba(86,162,225,.18);border-radius:17px;background:linear-gradient(180deg,rgba(9,28,50,.96),rgba(5,17,32,.97));box-shadow:0 10px 26px rgba(0,0,0,.16),inset 0 1px 0 rgba(255,255,255,.025);transition:border-color .16s ease,background-color .16s ease,box-shadow .16s ease;}
+#transactions .tx-mobile-card-v371:active{background:linear-gradient(180deg,rgba(12,35,60,.98),rgba(7,20,37,.98));}
+#transactions .tx-mobile-card-v371.open{border-color:rgba(79,184,255,.34);box-shadow:0 14px 30px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.035);}
+#transactions .tx-mobile-top-v371{display:grid;grid-template-columns:minmax(0,1fr) auto 18px;gap:10px;align-items:center;min-width:0;}
+#transactions .tx-mobile-main-v371{min-width:0;}
+#transactions .tx-mobile-date-v371{font-size:10px;line-height:1.3;color:rgba(170,197,225,.72);margin-bottom:3px;}
+#transactions .tx-mobile-title-v371{font-size:14px;font-weight:800;line-height:1.35;color:#f2f7ff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#transactions .tx-mobile-sub-v371{font-size:10px;line-height:1.35;color:rgba(170,197,225,.72);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#transactions .tx-mobile-amount-v371{font-size:13px;font-weight:900;white-space:nowrap;color:#eaf6ff;font-variant-numeric:tabular-nums;}
+#transactions .tx-mobile-chevron-v371{font-size:11px;color:rgba(131,193,239,.72);transition:transform .16s ease;}
+#transactions .tx-mobile-card-v371.open .tx-mobile-chevron-v371{transform:rotate(180deg);}
+#transactions .tx-mobile-details-v371{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:11px;padding-top:11px;border-top:1px solid rgba(86,162,225,.12);}
+#transactions .tx-mobile-card-v371:not(.open) .tx-mobile-details-v371{display:none;}
+#transactions .tx-mobile-detail-v371{min-width:0;padding:8px 9px;border-radius:11px;background:rgba(255,255,255,.025);}
+#transactions .tx-mobile-detail-label-v371{font-size:9px;line-height:1.25;text-transform:uppercase;letter-spacing:.06em;color:rgba(156,188,220,.65);}
+#transactions .tx-mobile-detail-value-v371{margin-top:3px;font-size:11px;line-height:1.35;color:rgba(235,244,255,.9);word-break:break-word;}
+#transactions .tx-mobile-actions-v371{display:flex;gap:7px;flex-wrap:wrap;}
+#transactions .tx-mobile-actions-v371 .btn{min-height:34px;padding:7px 11px;border-radius:10px;}
+#transactions .tx-mobile-empty-v371{padding:24px 16px;text-align:center;border:1px dashed rgba(86,162,225,.18);border-radius:16px;color:rgba(177,202,229,.72);background:rgba(5,17,31,.5);}
+}
+@media (max-width:430px){
+#transactions .tx-mobile-card-v371{padding:12px;}
+#transactions .tx-mobile-top-v371{grid-template-columns:minmax(0,1fr) auto 16px;gap:7px;}
+#transactions .tx-mobile-amount-v371{font-size:12px;}
+#transactions .tx-mobile-actions-v371 .btn{flex:1 1 auto;}
+}
+@media (prefers-reduced-motion:reduce){#transactions .tx-mobile-card-v371,#transactions .tx-mobile-chevron-v371{transition:none!important;}}
+</style>
 <!-- MMHVAULT V3.43.0 · Phase 1 Structural Cleanup: legacy appended patches normalized inside the document. -->
 <script id="mmhvault-v34241-transaction-partial-dom">
 (function(){
@@ -9704,6 +9738,7 @@ body.mmhvault-scroll-active #invest .invest-top>.panel{box-shadow:inset 0 1px 0 
   window.__mmhV34241TransactionPartialDOMInstalled=true;
   const $=id=>document.getElementById(id);
   let lastOrderKey=null,lastRowsKey=null;
+  let lastMobileOrderKey=null,lastRowsCache=null,lastFilterCacheKey=null;
   let queued=false;
 
   const receiptHas=t=>{try{return !!window.mmHVaultHasReceiptV3302?.(t.id);}catch(_){return false;}};
@@ -9712,8 +9747,18 @@ body.mmhvault-scroll-active #invest .invest-top>.panel{box-shadow:inset 0 1px 0 
     t?.tx_date,t?.type,transactionGroupFor(t),t?.category,t?.from_account,t?.from_amount,
     t?.to_account,t?.to_amount,t?.note,receiptHas(t)
   ]);
-  const rows=()=>{try{return typeof v28FilteredTx==='function'?(v28FilteredTx()||[]):[];}catch(_){return [];}};
-  const orderOf=rs=>rs.map(rowKey).join('\\x1e');
+  const currentFilterKey=()=>['txSearch','txFilterType','txFilterGroup','txFilterCategory','txFilterAccount'].map(id=>String($(id)?.value||'')).join('\x1f');
+  const rows=()=>{
+    try{
+      const fk=currentFilterKey(), source=Array.isArray(window.transactions)?window.transactions:transactions;
+      const sourceKey=Array.isArray(source)?`${source.length}:${source[source.length-1]?.id??''}:${source[source.length-1]?.tx_date??''}`:'0';
+      const key=fk+'\x1e'+sourceKey;
+      if(lastRowsCache&&lastFilterCacheKey===key)return lastRowsCache;
+      const rs=typeof v28FilteredTx==='function'?(v28FilteredTx()||[]):[];
+      lastFilterCacheKey=key;lastRowsCache=rs;
+      return rs;
+    }catch(_){lastFilterCacheKey=null;lastRowsCache=null;return [];}
+  };
   const valueOf=rs=>rs.map(dataKey).join('\\x1e');
 
   function setCell(row,i,value){
@@ -9790,7 +9835,11 @@ body.mmhvault-scroll-active #invest .invest-top>.panel{box-shadow:inset 0 1px 0 
       updateMobileCard(card,t);
     });
     const desired=[...rs].map(t=>String(t.id));
-    desired.forEach(id=>{const card=existing.get(id)||host.querySelector(`.tx-mobile-card-v371[data-tx-id="${CSS.escape(id)}"]`);if(card)host.appendChild(card);});
+    const mobileOrderKey=desired.join('\x1e');
+    if(mobileOrderKey!==lastMobileOrderKey){
+      desired.forEach(id=>{const card=existing.get(id)||host.querySelector(`.tx-mobile-card-v371[data-tx-id="${CSS.escape(id)}"]`);if(card)host.appendChild(card);});
+      lastMobileOrderKey=mobileOrderKey;
+    }
   }
 
   function renderPartial(){
