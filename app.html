@@ -11201,21 +11201,51 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
 }
 @media(prefers-reduced-motion:reduce){.page-enter-v34424{animation:none!important}.btn{transition:none!important}}
 </style>
-<script id="mmhvault-v34424-page-enter">
+<script id="mmhvault-v34429-page-enter">
 (function(){
-  const apply=()=>{
+  let scheduled=false;
+  function apply(){
+    scheduled=false;
     const active=document.querySelector('.page.active');
     if(!active)return;
     active.classList.remove('page-enter-v34424');
-    void active.offsetWidth;
-    active.classList.add('page-enter-v34424');
-  };
+    requestAnimationFrame(()=>{
+      if(!active.classList.contains('active'))return;
+      active.classList.add('page-enter-v34424');
+    });
+  }
   document.addEventListener('click',function(e){
-    const b=e.target.closest('.bottom-nav button,[data-page],.more-nav-menu button');
-    if(!b)return;
+    const b=e.target.closest('.bottom-nav button,.more-nav-menu button');
+    if(!b || scheduled)return;
+    scheduled=true;
     requestAnimationFrame(apply);
   },true);
 })();
 </script>
+
+
+<!-- MMHVAULT V3.44.29 Phase 1: interaction polish -->
+<style id="mmhvault-v34429-premium-polish">
+/* Forms and modals: clearer hierarchy without changing business logic */
+input,select,textarea{font-variant-numeric:tabular-nums;}
+input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visible{outline:2px solid rgba(110,180,255,.72);outline-offset:2px;}
+.modal,.modal-overlay{overscroll-behavior:contain;}
+.modal-content,.modal-box,.modal-card{max-width:min(720px,calc(100vw - 28px));}
+.modal-content,.modal-box,.modal-card{scrollbar-gutter:stable both-edges;}
+.table-wrap,.history-table,.transactions-table{overscroll-behavior-inline:contain;scrollbar-gutter:stable;}
+.table-wrap{max-width:100%;}
+.table-wrap table{font-variant-numeric:tabular-nums;}
+@media (hover:hover) and (pointer:fine){
+  input:not(:disabled):hover,select:not(:disabled):hover,textarea:not(:disabled):hover{border-color:rgba(110,180,255,.28);}
+}
+@media(max-width:700px){
+  input,select,textarea{font-size:max(16px,1em);}
+  .modal-content,.modal-box,.modal-card{max-width:calc(100vw - 20px);}
+  .table-wrap{border-radius:14px;}
+}
+@media(prefers-reduced-motion:reduce){
+  *{scroll-behavior:auto!important;}
+}
+</style>
 
 </html>
