@@ -4637,78 +4637,7 @@ function mmhMonthsBetween387(fromDate,toDate){
   return Math.max(0,(b.getFullYear()-a.getFullYear())*12+(b.getMonth()-a.getMonth()));
 }
 function mmhMoney387(v){return usd(Math.max(0,n(v)||0));}
-function renderWealthPlanningV387(){
-  const el=$('wealthPlanningV387'); if(!el)return;
-  try{
-    const currentDate=new Date();
-    const ym=today().slice(0,7);
-    const rows=(window.transactions||[]).filter(t=>String(t.tx_date||'').slice(0,7)===ym);
-    let inc=0,exp=0;
-    rows.forEach(t=>{
-      if(t.type==='Income')inc+=n(t.to_amount)*toUSD(t.to_account);
-      if(t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t))exp+=n(t.from_amount)*toUSD(t.from_account);
-    });
-    const currentMonthSave=inc-exp;
-    const monthly=[];
-    for(let i=0;i<6;i++){
-      const d=new Date(currentDate.getFullYear(),currentDate.getMonth()-i,1);
-      const key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
-      let mi=0,me=0;
-      (window.transactions||[]).filter(t=>String(t.tx_date||'').slice(0,7)===key).forEach(t=>{
-        if(t.type==='Income')mi+=n(t.to_amount)*toUSD(t.to_account);
-        if(t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t))me+=n(t.from_amount)*toUSD(t.from_account);
-      });
-      monthly.push({key,save:mi-me});
-    }
-    const positive=monthly.filter(x=>x.save>0).map(x=>x.save);
-    const avgMonthly=positive.length?positive.reduce((a,b)=>a+b,0)/positive.length:Math.max(0,currentMonthSave);
-    const goals=(typeof loadGoalsV371==='function'?loadGoalsV371():[]);
-    const active=goals.filter(g=>n(g.target)>0).slice(0,4);
-    const planTarget=active.reduce((s,g)=>s+n(g.target),0);
-    const planCurrent=active.reduce((s,g)=>s+Math.max(0,n(typeof goalCurrentV371==='function'?goalCurrentV371(g.type):0)),0);
-    const gap=Math.max(0,planTarget-planCurrent);
-    const monthsToPlan=avgMonthly>0?Math.ceil(gap/avgMonthly):null;
-    const annualProjected=Math.max(0,avgMonthly*12);
-    const targetDate=monthsToPlan!==null?new Date(currentDate.getFullYear(),currentDate.getMonth()+monthsToPlan,1):null;
-    const goalHtml=active.length?active.map(g=>{
-      const current=Math.max(0,n(typeof goalCurrentV371==='function'?goalCurrentV371(g.type):0));
-      const target=Math.max(0,n(g.target));
-      const pct=target?Math.min(100,current/target*100):0;
-      const remain=Math.max(0,target-current);
-      let eta='Set a target date';
-      if(remain<=0) eta='Goal reached';
-      else if(avgMonthly>0){const months=Math.ceil(remain/avgMonthly);const d=new Date(currentDate.getFullYear(),currentDate.getMonth()+months,1);eta=`Est. ${d.toLocaleDateString(undefined,{year:'numeric',month:'short'})}`;}
-      else eta='Needs positive monthly savings';
-      return `<div class="wealth-goal-plan-v387"><div class="wealth-goal-plan-head-v387"><div class="name">${esc(g.type)}</div><div class="pct">${pct.toFixed(0)}%</div></div><div class="wealth-plan-progress-v387"><span style="width:${pct.toFixed(1)}%"></span></div><div class="wealth-goal-plan-meta-v387"><span>${mmhMoney387(current)} / ${mmhMoney387(target)}</span><span>${remain>0?mmhMoney387(remain)+' remaining · ':''}${eta}</span></div></div>`;
-    }).join(''):`<div class="wealth-plan-note-v387">No active goals yet. Create goals in Analyze → Goals to build a personal wealth plan.</div>`;
-    el.innerHTML=`
-      <div class="toolbar" style="margin-bottom:10px"><div><h2 style="margin-bottom:3px">Wealth Planning</h2><div class="sub">A practical view of your savings pace, annual potential and goal timelines.</div></div><span class="pill">Planning view</span></div>
-      <div class="wealth-planning-grid-v387">
-        <div class="wealth-plan-card-v387">
-          <div class="label">Savings Pace</div>
-          <div class="value ${avgMonthly>0?'green':'yellow'}">${mmhMoney387(avgMonthly)} / month</div>
-          <div class="meta">Based on positive savings across the last 6 calendar months. Current month: ${mmhMoney387(currentMonthSave)}.</div>
-          <div class="wealth-plan-kpis-v387">
-            <div class="wealth-plan-mini-v387"><span>Projected / year</span><b class="cyan">${mmhMoney387(annualProjected)}</b></div>
-            <div class="wealth-plan-mini-v387"><span>Goal gap</span><b class="pink">${mmhMoney387(gap)}</b></div>
-            <div class="wealth-plan-mini-v387 wide"><span>Plan ETA</span><b>${targetDate?targetDate.toLocaleDateString(undefined,{year:'numeric',month:'short'}):'Set positive savings'}</b></div>
-          </div>
-          <div class="wealth-plan-note-v387">Projection is an estimate, not a guarantee. It uses your recent positive saving pace and current goal balances.</div>
-        </div>
-        <div class="wealth-plan-card-v387">
-          <div class="label">Goal Planning</div>
-          <div class="title" style="font-size:18px;font-weight:900;margin-top:5px">Goals are tracked with your milestones</div>
-          <div class="meta" style="margin-top:7px">Your goal progress is shown once in Financial Milestones to keep the Dashboard clean and avoid duplicate information.</div>
-          <div class="wealth-plan-kpis-v387" style="margin-top:12px">
-            <div class="wealth-plan-mini-v387"><span>Active goals</span><b class="cyan">${active.length}</b></div>
-            <div class="wealth-plan-mini-v387"><span>Goals reached</span><b class="green">${active.filter(g=>goalCurrentV371(g.type)>=n(g.target)&&n(g.target)>0).length}</b></div>
-            <div class="wealth-plan-mini-v387 wide"><span>Manage</span><b>${active.length?'Review goals':'Create first goal'}</b></div>
-          </div>
-          <div class="actions" style="margin-top:10px"><button class="btn" type="button" onclick="setPage('analyze');setTimeout(()=>setAnalyzeTabV371('goals'),0)">${active.length?'Manage Goals':'Add Goal'}</button></div>
-        </div>
-      </div>`;
-  }catch(err){console.warn('Wealth Planning V3.8.8:',err);}
-}
+
 const _renderDashboardV387Base=renderDashboard;
 renderDashboard=function(){
   _renderDashboardV387Base();
