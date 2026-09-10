@@ -4167,13 +4167,15 @@ function goalsStorageKeyV371(){return 'myfinance_goals_v371_'+(currentUserEmail|
 function loadGoalsV371(){try{const raw=localStorage.getItem(goalsStorageKeyV371());const arr=raw?JSON.parse(raw):[];return Array.isArray(arr)?arr:[];}catch(e){return []}}
 function saveGoalsV371(arr){localStorage.setItem(goalsStorageKeyV371(),JSON.stringify(arr));}
 function goalCurrentV371(type){
+  // Goals 2.0 is USD-based end-to-end: targets, current values, remaining,
+  // progress and monthly funding requirements are all compared in USD.
   const cashAccounts=['Bath','TrueMoney','OKX','ByBit','MetaMask','KPay'];
-  const cash=cashAccounts.reduce((sum,a)=>sum+balance(a)*toUSD(a),0);
-  const invest=investmentValue();
-  const net=cash+invest;
-  if(type==='Investment')return invest;
-  if(type==='Net Worth')return net;
-  if(type==='Emergency Fund')return cash;
+  const cashUSD=cashAccounts.reduce((sum,a)=>sum+balance(a)*toUSD(a),0);
+  const investUSD=typeof investmentValueUSD==='function' ? investmentValueUSD() : (investmentValue()/Math.max(1,n(rates?.usd_mmk)));
+  const netUSD=cashUSD+investUSD;
+  if(type==='Investment')return Math.max(0,investUSD);
+  if(type==='Net Worth')return Math.max(0,netUSD);
+  if(type==='Emergency Fund')return Math.max(0,cashUSD);
   const inc=transactions.filter(t=>t.type==='Income').reduce((sum,t)=>sum+n(t.to_amount)*toUSD(t.to_account),0);
   const exp=transactions.filter(t=>t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t)).reduce((sum,t)=>sum+n(t.from_amount)*toUSD(t.from_account),0);
   return Math.max(0,inc-exp);
@@ -4189,7 +4191,7 @@ function renderGoalsV371(){
     const remain=Math.max(0,target-current);
     const done=current>=target&&target>0;
     return `<div class="goal-card-v371">
-      <div class="goal-top"><div><div class="goal-name">${esc(g.type)}</div><div class="goal-target">Target · ${usd(target)} · ${goalDateLabelV371(g.date)}</div></div><div class="goal-actions-v371"><button class="btn" type="button" data-mmh-edit-goal="${g.id}">Edit</button><button class="btn danger" type="button" onclick="deleteGoalV371('${g.id}')">Delete</button></div></div>
+      <div class="goal-top"><div><div class="goal-name">${esc(g.type)}</div><div class="goal-target">Target · ${usd(target)} · ${goalDateLabelV371(g.date)}</div></div><div class="goal-actions-v371"><button class="btn" type="button" onclick="return window.__mmhEditGoalV34418('${g.id}')">Edit</button><button class="btn danger" type="button" onclick="deleteGoalV371('${g.id}')">Delete</button></div></div>
       <div class="goal-current ${done?'green':'cyan'}">${usd(current)}</div>
       <div class="goal-progress-v371"><span style="width:${pct.toFixed(1)}%"></span></div>
       <div class="goal-meta"><span>${pct.toFixed(1)}% complete</span><span>${done?'Goal reached':usd(remain)+' remaining'}</span></div>
@@ -4215,6 +4217,25 @@ function editGoalV371(id){
   $('goalTypeV371').value=g.type;$('goalTargetV371').value=g.target;$('goalDateV371').value=g.date||'';$('goalSubmitV371').textContent='Save Changes';$('goalCancelV371').style.display='inline-flex';
   try{$('goalTypeV371').scrollIntoView({behavior:'smooth',block:'center'});}catch(e){}
 }
+window.__mmhEditGoalV34418=function(id){
+  try{
+    const goals=typeof loadGoalsV371==='function'?loadGoalsV371():[];
+    const g=goals.find(x=>String(x.id)===String(id));
+    if(!g)return false;
+    editingGoalIdV371=g.id;
+    window.__mmhEditingGoalIdV371=g.id;
+    const t=$('goalTypeV371'),a=$('goalTargetV371'),d=$('goalDateV371'),b=$('goalSubmitV371'),c=$('goalCancelV371');
+    if(!t||!a||!d||!b)return false;
+    t.value=g.type||'Emergency Fund';
+    a.value=String(g.target??'');
+    d.value=g.date||'';
+    b.textContent='Save Changes';
+    if(c)c.style.display='inline-flex';
+    try{t.focus({preventScroll:true});}catch(e){}
+    try{t.scrollIntoView({behavior:'smooth',block:'center'});}catch(e){}
+  }catch(e){console.error('Goal edit failed:',e);}
+  return false;
+};
 function cancelGoalEditV371(){
   editingGoalIdV371=null;window.__mmhEditingGoalIdV371=null;if(!$('goalFormV371'))return;
   $('goalTypeV371').value='Emergency Fund';$('goalTargetV371').value='';$('goalDateV371').value='';$('goalSubmitV371').textContent='Add Goal';$('goalCancelV371').style.display='none';
@@ -5111,7 +5132,7 @@ renderDashboard=function(){
           <div><span>Target timing</span><b>${g311Countdown(d)}</b></div>
         </div>
         <div class="goals-plan-note-v311">${d.remain<=0?'Goal reached.':d.required>0?(capacityForNote(d.capacity,d.required)):(d.days===null?'Add a target date to calculate the monthly amount.':'Target date is too close to produce a monthly plan.')}</div>
-        <div class="goals-roadmap-actions-v311"><button class="btn" type="button" data-mmh-edit-goal="${g.id}">Edit</button><button class="btn danger" type="button" onclick="deleteGoalV371('${g.id}')">Delete</button></div>
+        <div class="goals-roadmap-actions-v311"><button class="btn" type="button" onclick="return window.__mmhEditGoalV34418('${g.id}')">Edit</button><button class="btn danger" type="button" onclick="deleteGoalV371('${g.id}')">Delete</button></div>
       </div>`;
     }).join('');
     function capacityForNote(cap,req){
@@ -5517,12 +5538,8 @@ function swapExchangeCurrencies(){
     try{t.scrollIntoView({behavior:'smooth',block:'center'});}catch(e){}
   }
   function bindGoalActions(){
-    if(document.documentElement.dataset.mmhGoalActionsBound==='1')return;
-    document.documentElement.dataset.mmhGoalActionsBound='1';
-    document.addEventListener('click',e=>{
-      const edit=e.target?.closest?.('[data-mmh-edit-goal]');
-      if(edit){e.preventDefault();e.stopPropagation();beginEdit(edit.getAttribute('data-mmh-edit-goal'));return;}
-    },true);
+    // Edit actions are now attached directly to the rendered buttons so they remain reliable
+    // after Goals 2.0 rerenders. Keep this hook as a no-op for compatibility with old events.
   }
   function bind(){
     const txForm=$$('txForm');
@@ -11367,7 +11384,7 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
     }
     list.innerHTML=goals.map(g=>{
       const target=Math.max(0,num(g.target));
-      return `<div class="goal-card-v371"><div class="goal-top"><div><div class="goal-name">${escapeHtml(g.type)}</div><div class="goal-target">Target · ${usd(target)}${g.date?' · '+escapeHtml(g.date):''}</div></div><div class="goal-actions-v371"><button class="btn" type="button" data-mmh-edit-goal="${escapeHtml(g.id)}">Edit</button><button class="btn danger" type="button" data-mmh-delete-goal="${escapeHtml(g.id)}">Delete</button></div></div><div class="goal-current cyan">${usd(0)}</div><div class="goal-progress-v371"><span style="width:0%"></span></div><div class="goal-meta"><span>0.0% complete</span><span>${usd(target)} remaining</span></div></div>`;
+      return `<div class="goal-card-v371"><div class="goal-top"><div><div class="goal-name">${escapeHtml(g.type)}</div><div class="goal-target">Target · ${usd(target)}${g.date?' · '+escapeHtml(g.date):''}</div></div><div class="goal-actions-v371"><button class="btn" type="button" onclick="return window.__mmhEditGoalV34418('${escapeHtml(g.id)}')">Edit</button><button class="btn danger" type="button" data-mmh-delete-goal="${escapeHtml(g.id)}">Delete</button></div></div><div class="goal-current cyan">${usd(0)}</div><div class="goal-progress-v371"><span style="width:0%"></span></div><div class="goal-meta"><span>0.0% complete</span><span>${usd(target)} remaining</span></div></div>`;
     }).join('');
   }
   function resetForm(){
@@ -11471,6 +11488,7 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
 @media(prefers-reduced-motion:reduce){#analyze .overview-snapshot-card-v371,#analyze .cashflow-card-v371{transition:none!important;}}
 </style>
 <meta name="mmhvault-architecture" content="V3.44.6 · Phase1 dual optimization" />
+<meta name="mmhvault-goals-v34418" content="Goals 2.0 · USD-based calculations + direct edit action" />
 
 <style id="mmhvault-v34412-goals-status-premium">
 /* MMHVAULT V3.44.12 — Goals status / progress clarity. */
