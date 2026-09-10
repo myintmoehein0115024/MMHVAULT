@@ -1401,8 +1401,19 @@ button,.btn,.bottom-nav button,.more-nav-menu button,[role="button"]{touch-actio
 @media(max-width:760px){#cashFlowSummary .cashflow-summary-grid-v371{grid-template-columns:repeat(2,minmax(0,1fr))}#cashFlowSummary .cashflow-card-v371 .value{font-size:21px}#expenses th,#expenses td{padding:9px 10px;font-size:12px}#expenseRanking .rank-row{grid-template-columns:28px minmax(0,1fr) auto;padding:10px}}
 @media(max-width:420px){#cashFlowSummary .cashflow-summary-grid-v371{grid-template-columns:1fr}#cashFlowSummary .cashflow-card-v371{padding:14px}#expenses table{font-size:11px}#expenses th,#expenses td{padding:8px 7px}}
 @media (prefers-reduced-motion: reduce){#expenseRanking .rank-row{transition:none}#expenseRanking .rank-row:hover{transform:none}}
-</style>
-</head>
+<style id="mmhvault-v3449-trend-polish">
+/* MMHVAULT V3.44.9 · Analyze trend chart performance + visual polish */
+#expenseTrend .spark,#incomeExpenseTrend .spark{display:flex;align-items:flex-end;gap:8px;min-height:150px;padding:18px 12px 8px;border:1px solid rgba(96,138,220,.16);border-radius:14px;background:linear-gradient(180deg,rgba(12,24,53,.52),rgba(6,13,31,.28));overflow:hidden}
+#expenseTrend .spark>span,#incomeExpenseTrend .spark>span{position:relative;display:block;flex:1 1 0;min-width:0;height:var(--bar-h,4%);max-width:56px;border-radius:8px 8px 4px 4px;background:linear-gradient(180deg,rgba(102,216,255,.9),rgba(76,123,255,.5));box-shadow:0 7px 18px rgba(55,126,221,.12);transition:height .22s ease,filter .18s ease}
+#expenseTrend .spark>span:hover,#incomeExpenseTrend .spark>span:hover{filter:brightness(1.12)}
+#incomeExpenseTrend .spark>span{background:linear-gradient(180deg,rgba(107,226,165,.92),rgba(58,145,113,.5));box-shadow:0 7px 18px rgba(58,145,113,.12)}
+#expenseTrend .spark-labels,#incomeExpenseTrend .spark-labels{display:flex;gap:8px;padding:7px 12px 0;color:#7f92b7;font-size:10px}
+#expenseTrend .spark-labels>span,#incomeExpenseTrend .spark-labels>span{flex:1 1 0;min-width:0;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#expenseTrend .trend-empty,#incomeExpenseTrend .trend-empty{min-height:150px;display:grid;place-items:center;border:1px dashed rgba(96,138,220,.2);border-radius:14px;color:#7f92b7;font-size:12px;background:rgba(6,13,31,.22)}
+@media(max-width:760px){#expenseTrend .spark,#incomeExpenseTrend .spark{min-height:132px;gap:5px;padding:15px 8px 7px}#expenseTrend .spark>span,#incomeExpenseTrend .spark>span{border-radius:6px 6px 3px 3px}#expenseTrend .spark-labels,#incomeExpenseTrend .spark-labels{gap:5px;padding-left:8px;padding-right:8px;font-size:9px}}
+@media(max-width:420px){#expenseTrend .spark,#incomeExpenseTrend .spark{min-height:118px;padding-left:6px;padding-right:6px}#expenseTrend .spark-labels,#incomeExpenseTrend .spark-labels{font-size:8.5px}}
+@media (prefers-reduced-motion: reduce){#expenseTrend .spark>span,#incomeExpenseTrend .spark>span{transition:none}}
+</style>\n</head>
 <!-- MMHVAULT V3.42.56 · Dashboard report relocation + Transaction receipt center + Invest Add precision -->
 <body>
 <div id="mmhvaultAppBootGuardV3282" style="position:fixed;inset:0;z-index:30000;display:none;align-items:center;justify-content:center;background:#050a18;color:#dce8ff;font-family:Arial,sans-serif;padding:24px;text-align:center;">
@@ -3884,10 +3895,14 @@ function renderAnalyzeV37(){
   renderCashFlowSummaryV371({rows,t});
   renderDashboardExpenseControlV1();
   const months=p.month==='annual'?Array.from({length:12},(_,i)=>`${p.year}-${String(i+1).padStart(2,'0')}`):[`${p.year}-${p.month}`];
-  const ar=months.map(m=>{const z=totalsMap?.get?.(m);return{m,inc:z?.inc||0,exp:z?.exp||0,save:(z?.inc||0)-(z?.exp||0)};});
+  const ar=months.map(m=>{const z=totalsMap.get(m);return{m,inc:z?.inc||0,exp:z?.exp||0,save:(z?.inc||0)-(z?.exp||0)};});
   const maxE=Math.max(1,...ar.map(x=>x.exp)),maxI=Math.max(1,...ar.map(x=>x.inc));
-  $('expenseTrend').innerHTML=`<div class="spark">${ar.map(x=>`<span title="${monthLabel(x.m)} · ${thb(x.exp)}" style="height:${Math.max(4,x.exp/maxE*100)}%"></span>`).join('')}</div><div class="spark-labels">${ar.map(x=>`<span>${monthLabel(x.m).split(' ')[0]}</span>`).join('')}</div><div class="small" style="margin-top:6px">Expenses · THB</div>`;
-  $('incomeExpenseTrend').innerHTML=`<div class="spark">${ar.map(x=>`<span title="Income ${thb(x.inc)} · Expense ${thb(x.exp)}" style="height:${Math.max(4,x.inc/maxI*100)}%"></span>`).join('')}</div><div class="spark-labels">${ar.map(x=>`<span>${monthLabel(x.m).split(' ')[0]}</span>`).join('')}</div><div class="small" style="margin-top:6px">Income · THB</div>`;
+  const expenseTrendEl=$('expenseTrend'),incomeExpenseTrendEl=$('incomeExpenseTrend');
+  const expenseHasData=ar.some(x=>x.exp>0),incomeHasData=ar.some(x=>x.inc>0);
+  const expenseBars=ar.map(x=>{const h=Math.max(4,x.exp/maxE*100);return`<span title="${monthLabel(x.m)} · ${thb(x.exp)}" style="--bar-h:${h}%"></span>`;}).join('');
+  const incomeBars=ar.map(x=>{const h=Math.max(4,x.inc/maxI*100);return`<span title="Income ${thb(x.inc)} · Expense ${thb(x.exp)}" style="--bar-h:${h}%"></span>`;}).join('');
+  if(expenseTrendEl)expenseTrendEl.innerHTML=expenseHasData?`<div class="spark">${expenseBars}</div><div class="spark-labels">${ar.map(x=>`<span>${monthLabel(x.m).split(' ')[0]}</span>`).join('')}</div><div class="small" style="margin-top:6px">Monthly expenses · THB</div>`:`<div class="trend-empty">No expense data for this period.</div>`;
+  if(incomeExpenseTrendEl)incomeExpenseTrendEl.innerHTML=incomeHasData?`<div class="spark">${incomeBars}</div><div class="spark-labels">${ar.map(x=>`<span>${monthLabel(x.m).split(' ')[0]}</span>`).join('')}</div><div class="small" style="margin-top:6px">Monthly income · THB</div>`:`<div class="trend-empty">No income data for this period.</div>`;
   const score=Math.max(0,Math.min(100,Math.round(45+Math.max(0,t.sr)*0.8-Math.max(0,t.er-70)*0.25)));
   $('healthScore').innerHTML=`<div class="score ${score>=75?'good':score>=55?'warn':'bad'}">${score}</div><div class="small">Financial Health Score</div><div class="mini-stat">Saving Ratio <b>${t.sr.toFixed(1)}%</b></div><div class="mini-stat">Expense Ratio <b>${t.er.toFixed(1)}%</b></div>`;
 
