@@ -2827,75 +2827,30 @@ function txCategoryOptions(type,group){if(type==='Transfer')return ['Transfer'];
 function inferTxGroup(t){if(t.type==='Transfer')return 'Transfer';if(t.type==='Income')return CATS.LoanIncome.includes(t.category)?'Loans':'Income';if(t.type==='Expense'){if(CATS.Expense.includes(t.category))return 'Expense';if(CATS.Personal.includes(t.category))return 'Personal';if(CATS.LoanExpense.includes(t.category))return 'Loans';}return t.type;}
 
 
-/* V3.44.33 · Transaction delete UX repair — one reliable confirmation, no repeated native-confirm clicks */
-let mmhTxDeleteBusyV34433=false;
-function mmhTxLangV34433(){return (localStorage.getItem('mmhvault_language_v3363')||'en')==='zh';}
-function mmhEnsureTxDeleteModalV34433(){
-  let modal=document.getElementById('mmhTxDeleteModalV34433');
-  if(modal)return modal;
-  modal=document.createElement('div');
-  modal.id='mmhTxDeleteModalV34433';
-  modal.className='mmh-tx-delete-modal-v34433';
-  modal.innerHTML=`<div class="mmh-tx-delete-card-v34433" role="dialog" aria-modal="true">
-    <div class="mmh-tx-delete-icon-v34433">!</div>
-    <div class="mmh-tx-delete-title-v34433"></div>
-    <div class="mmh-tx-delete-copy-v34433"></div>
-    <div class="mmh-tx-delete-actions-v34433">
-      <button type="button" class="btn mmh-tx-delete-cancel-v34433"></button>
-      <button type="button" class="btn danger mmh-tx-delete-confirm-v34433"></button>
-    </div>
-  </div>`;
-  document.body.appendChild(modal);
-  return modal;
-}
-function mmhConfirmDeleteTxV34433(){
-  return new Promise(resolve=>{
-    const zh=mmhTxLangV34433();
-    const modal=mmhEnsureTxDeleteModalV34433();
-    const title=modal.querySelector('.mmh-tx-delete-title-v34433');
-    const copy=modal.querySelector('.mmh-tx-delete-copy-v34433');
-    const cancel=modal.querySelector('.mmh-tx-delete-cancel-v34433');
-    const ok=modal.querySelector('.mmh-tx-delete-confirm-v34433');
-    title.textContent=zh?'删除这条交易记录？':'Delete this transaction?';
-    copy.textContent=zh?'删除后将无法恢复。':'This action cannot be undone.';
-    cancel.textContent=zh?'取消':'Cancel';
-    ok.textContent=zh?'确认删除':'Delete';
-    let done=false;
-    const finish=v=>{if(done)return;done=true;modal.classList.remove('show');cleanup();resolve(v);};
-    const onCancel=()=>finish(false),onOk=()=>finish(true),onBg=e=>{if(e.target===modal)finish(false)},onKey=e=>{if(e.key==='Escape')finish(false)};
-    const cleanup=()=>{cancel.removeEventListener('click',onCancel);ok.removeEventListener('click',onOk);modal.removeEventListener('click',onBg);document.removeEventListener('keydown',onKey);};
-    cancel.addEventListener('click',onCancel,{once:true});
-    ok.addEventListener('click',onOk,{once:true});
-    modal.addEventListener('click',onBg);
-    document.addEventListener('keydown',onKey);
-    modal.classList.add('show');
-    requestAnimationFrame(()=>ok.focus());
-  });
-}
+/* V3.30.8 · Transaction delete repair */
 async function deleteTx(id){
-  if(mmhTxDeleteBusyV34433)return;
-  const u=(await db.auth.getUser()).data.user;
-  if(!u){alert(mmhTxLangV34433()?'请重新登录。':'Please sign in again.');return;}
-  const approved=await mmhConfirmDeleteTxV34433();
-  if(!approved)return;
-  mmhTxDeleteBusyV34433=true;
-  const rowButton=[...document.querySelectorAll(`button[onclick="deleteTx(${id})"]`)][0];
-  const originalText=rowButton?.textContent;
-  if(rowButton){rowButton.disabled=true;rowButton.textContent=mmhTxLangV34433()?'删除中…':'Deleting…';}
   try{
+    const u=(await db.auth.getUser()).data.user;
+    if(!u){alert("Please sign in again.");return;}
+    if(!confirm("Delete this transaction?"))return;
+
     const r=await db.from("transactions").delete().eq("id",id).eq("user_id",u.id);
-    if(r.error)throw r.error;
+    if(r.error){
+      console.error("Transaction delete failed:",r.error);
+      alert("Unable to delete this transaction.\n\n"+(r.error.message||"Unknown error"));
+      return;
+    }
+
+    // Database row is deleted first; receipt cleanup is best-effort.
     try{await deleteTransactionReceiptV396(u.id,id);}catch(e){console.debug("Receipt cleanup skipped:",e);}
-    // Refresh immediately after the successful mutation so the row disappears without a manual reload.
     await loadAll({force:true});
     window.mmhvaultForceRenderAllV34421?.('transaction-mutation');
-    if(typeof window.mmHVaultRefreshReceiptFlagsV3302==="function")await window.mmHVaultRefreshReceiptFlagsV3302();
+    if(typeof window.mmHVaultRefreshReceiptFlagsV3302==="function"){
+      await window.mmHVaultRefreshReceiptFlagsV3302();
+    }
   }catch(e){
     console.error("Transaction delete exception:",e);
-    alert((mmhTxLangV34433()?'无法删除这条交易记录。\n\n':'Unable to delete this transaction.\n\n')+(e?.message||''));
-    if(rowButton){rowButton.disabled=false;rowButton.textContent=originalText||'×';}
-  }finally{
-    mmhTxDeleteBusyV34433=false;
+    alert("Unable to delete this transaction. Please try again.");
   }
 }
 async function deleteAllTx(){
@@ -7124,21 +7079,6 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
 </script>
-
-/* V3.44.33 · Reliable transaction delete confirmation */
-.icon-actions .btn.danger{min-width:46px;min-height:42px;font-size:18px;line-height:1;font-weight:800;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
-.icon-actions .btn.danger:disabled{opacity:.65;cursor:wait}
-.mmh-tx-delete-modal-v34433{position:fixed;inset:0;z-index:99999;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(2,6,16,.72);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
-.mmh-tx-delete-modal-v34433.show{display:flex}
-.mmh-tx-delete-card-v34433{width:min(420px,100%);padding:26px;border:1px solid rgba(248,113,113,.35);border-radius:20px;background:linear-gradient(145deg,#17243b,#0b1322);box-shadow:0 24px 80px rgba(0,0,0,.5);text-align:center;animation:mmhTxDeleteInV34433 .16s ease-out}
-.mmh-tx-delete-icon-v34433{width:46px;height:46px;margin:0 auto 12px;border-radius:50%;display:grid;place-items:center;background:rgba(248,113,113,.14);border:1px solid rgba(248,113,113,.35);color:#fca5a5;font-size:25px;font-weight:900}
-.mmh-tx-delete-title-v34433{font-size:20px;font-weight:800;color:#f8fafc}
-.mmh-tx-delete-copy-v34433{margin-top:8px;color:#94a3b8;font-size:14px}
-.mmh-tx-delete-actions-v34433{display:flex;gap:10px;justify-content:center;margin-top:22px}
-.mmh-tx-delete-actions-v34433 .btn{min-width:120px;min-height:44px;touch-action:manipulation}
-@keyframes mmhTxDeleteInV34433{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}
-@media(max-width:520px){.mmh-tx-delete-card-v34433{padding:22px 18px}.mmh-tx-delete-actions-v34433 .btn{flex:1;min-width:0}}
-
 <style id="mmhvault-language-v3363">
 .language-options-v3363{display:flex;gap:10px;flex-wrap:wrap}.language-choice-v3363{border:1px solid var(--line,#334155);background:var(--panel,#111827);color:inherit;border-radius:12px;padding:11px 18px;font:inherit;cursor:pointer;font-weight:700}.language-choice-v3363.active{border-color:#22d3ee;box-shadow:0 0 0 2px rgba(34,211,238,.15);color:#22d3ee}
 </style>
@@ -11190,6 +11130,89 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
 })();
 </script>
 
+
+
+<!-- MMHVAULT V3.44.33 · Transaction Delete Stability Hotfix -->
+<style id="mmhvault-v34433-delete-stability">
+#mmhDeleteConfirmV34433{position:fixed;inset:0;z-index:2147483000;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(2,7,18,.72);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+#mmhDeleteConfirmV34433.show{display:flex}
+#mmhDeleteConfirmV34433 .mmh-delete-card{width:min(420px,calc(100vw - 32px));background:linear-gradient(145deg,#10213a,#081321);border:1px solid rgba(105,177,255,.28);border-radius:22px;padding:22px;box-shadow:0 28px 90px rgba(0,0,0,.55);color:#eef6ff}
+#mmhDeleteConfirmV34433 .mmh-delete-title{font-size:20px;font-weight:900;margin:0 0 8px}
+#mmhDeleteConfirmV34433 .mmh-delete-copy{color:#9fb0c8;line-height:1.55;margin-bottom:20px}
+#mmhDeleteConfirmV34433 .mmh-delete-actions{display:flex;justify-content:flex-end;gap:10px}
+#mmhDeleteConfirmV34433 button{min-height:42px;border-radius:12px;padding:0 17px;font-weight:800;cursor:pointer}
+#mmhDeleteConfirmV34433 .mmh-cancel{background:#14243b;border:1px solid rgba(120,165,215,.24);color:#e9f3ff}
+#mmhDeleteConfirmV34433 .mmh-confirm{background:linear-gradient(135deg,#d95b6a,#b73d50);border:1px solid rgba(255,160,170,.35);color:white}
+#mmhDeleteConfirmV34433 .mmh-confirm[disabled]{opacity:.55;cursor:wait}
+</style>
+<script id="mmhvault-v34433-delete-stability-script">
+/* V3.44.33 — prevents the History delete flow from blanking the page.
+   Delete updates the current list first; cloud refresh and receipt cleanup are background work. */
+(function(){
+  let deleting=false;
+  const isZh=()=>((localStorage.getItem('mmhvault_language_v3363')||'en')==='zh');
+
+  function ensureConfirm(){
+    let el=document.getElementById('mmhDeleteConfirmV34433');
+    if(el)return el;
+    el=document.createElement('div');
+    el.id='mmhDeleteConfirmV34433';
+    el.setAttribute('aria-hidden','true');
+    el.innerHTML='<div class="mmh-delete-card" role="dialog" aria-modal="true">'+
+      '<div class="mmh-delete-title"></div><div class="mmh-delete-copy"></div>'+ 
+      '<div class="mmh-delete-actions"><button type="button" class="mmh-cancel"></button><button type="button" class="mmh-confirm"></button></div></div>';
+    document.body.appendChild(el);
+    return el;
+  }
+
+  function confirmDelete(){
+    return new Promise(resolve=>{
+      const el=ensureConfirm(), zh=isZh();
+      const title=el.querySelector('.mmh-delete-title'),copy=el.querySelector('.mmh-delete-copy');
+      const cancel=el.querySelector('.mmh-cancel'),ok=el.querySelector('.mmh-confirm');
+      title.textContent=zh?'删除这条交易记录？':'Delete this transaction?';
+      copy.textContent=zh?'此操作无法撤销。':'This action cannot be undone.';
+      cancel.textContent=zh?'取消':'Cancel'; ok.textContent=zh?'删除':'Delete';
+      const finish=(v)=>{el.classList.remove('show');el.setAttribute('aria-hidden','true');cleanup();resolve(v);};
+      const onCancel=()=>finish(false),onOk=()=>finish(true),onBg=(e)=>{if(e.target===el)finish(false);};
+      const onKey=(e)=>{if(e.key==='Escape')finish(false);};
+      const cleanup=()=>{cancel.removeEventListener('click',onCancel);ok.removeEventListener('click',onOk);el.removeEventListener('click',onBg);document.removeEventListener('keydown',onKey);};
+      cancel.addEventListener('click',onCancel,{once:true});ok.addEventListener('click',onOk,{once:true});el.addEventListener('click',onBg);document.addEventListener('keydown',onKey);
+      el.classList.add('show');el.setAttribute('aria-hidden','false');
+      setTimeout(()=>cancel.focus(),0);
+    });
+  }
+
+  window.deleteTx=async function(id){
+    if(deleting)return;
+    const confirmed=await confirmDelete();
+    if(!confirmed)return;
+    deleting=true;
+    try{
+      const u=(await db.auth.getUser()).data.user;
+      if(!u){alert(isZh()?'请重新登录。':'Please sign in again.');return;}
+      const r=await db.from('transactions').delete().eq('id',id).eq('user_id',u.id);
+      if(r.error)throw r.error;
+
+      // Immediate local update: never clear the page while waiting for a full cloud reload.
+      if(Array.isArray(transactions))transactions=transactions.filter(t=>String(t.id)!==String(id));
+      try{renderTransactions();}catch(err){console.warn('[MMHVAULT] transaction list refresh failed',err);}
+      try{window.dispatchEvent(new CustomEvent('mmhvault:data-change',{detail:{reason:'transaction-delete'}}));}catch(_e){}
+
+      // Non-blocking cleanup/sync. Neither task may replace the visible page with a blank state.
+      Promise.resolve().then(()=>deleteTransactionReceiptV396?.(u.id,id)).catch(()=>{});
+      Promise.resolve().then(()=>loadAll?.({force:true})).then(()=>{
+        try{window.mmhvaultForceRenderAllV34421?.('transaction-delete-sync');}catch(_e){}
+      }).catch(err=>console.warn('[MMHVAULT] background transaction sync failed',err));
+    }catch(err){
+      console.error('Transaction delete failed:',err);
+      alert((isZh()?'无法删除这条交易记录。\n\n':'Unable to delete this transaction.\n\n')+(err?.message||''));
+    }finally{
+      deleting=false;
+    }
+  };
+})();
+</script>
 </body>
 <!-- MMHVAULT V3.42.78 performance baseline: logo-free account cards + restrained dashboard rendering. -->
 
