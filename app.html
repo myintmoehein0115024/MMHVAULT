@@ -3452,7 +3452,8 @@ function usd(v){return '$ '+fmt(v);}
 function renderDashboardV29(){
   const cashAccounts=['Bath','TrueMoney','OKX','ByBit','MetaMask','KPay'];
   const cash=cashAccounts.reduce((s,a)=>s+balance(a)*toUSD(a),0);
-  const invest=investmentValue();
+  const investRaw=investmentValue();
+  const invest=investRaw/(Number(rates?.usd_mmk)||1);
   const net=cash+invest;
   const expense=transactions.filter(t=>t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t)).reduce((s,t)=>s+n(t.from_amount)*toUSD(t.from_account),0);
   const inc=transactions.filter(t=>t.type==='Income').reduce((s,t)=>s+n(t.to_amount)*toUSD(t.to_account),0);
@@ -4188,7 +4189,7 @@ function renderGoalsV371(){
     const remain=Math.max(0,target-current);
     const done=current>=target&&target>0;
     return `<div class="goal-card-v371">
-      <div class="goal-top"><div><div class="goal-name">${esc(g.type)}</div><div class="goal-target">Target · ${usd(target)} · ${goalDateLabelV371(g.date)}</div></div><div class="goal-actions-v371"><button class="btn" type="button" onclick="editGoalV371('${g.id}')">Edit</button><button class="btn danger" type="button" onclick="deleteGoalV371('${g.id}')">Delete</button></div></div>
+      <div class="goal-top"><div><div class="goal-name">${esc(g.type)}</div><div class="goal-target">Target · ${usd(target)} · ${goalDateLabelV371(g.date)}</div></div><div class="goal-actions-v371"><button class="btn" type="button" data-mmh-edit-goal="${g.id}">Edit</button><button class="btn danger" type="button" onclick="deleteGoalV371('${g.id}')">Delete</button></div></div>
       <div class="goal-current ${done?'green':'cyan'}">${usd(current)}</div>
       <div class="goal-progress-v371"><span style="width:${pct.toFixed(1)}%"></span></div>
       <div class="goal-meta"><span>${pct.toFixed(1)}% complete</span><span>${done?'Goal reached':usd(remain)+' remaining'}</span></div>
@@ -4210,12 +4211,12 @@ function saveGoalV371(e){
   saveGoalsV371(goals);if(window.wsInvalidateBaseV34412)window.wsInvalidateBaseV34412();cancelGoalEditV371();renderGoalsV371();return false;
 }
 function editGoalV371(id){
-  const g=loadGoalsV371().find(x=>x.id===id);if(!g)return;editingGoalIdV371=id;
+  const g=loadGoalsV371().find(x=>x.id===id);if(!g)return;editingGoalIdV371=id;window.__mmhEditingGoalIdV371=id;
   $('goalTypeV371').value=g.type;$('goalTargetV371').value=g.target;$('goalDateV371').value=g.date||'';$('goalSubmitV371').textContent='Save Changes';$('goalCancelV371').style.display='inline-flex';
-  $('goalTypeV371').scrollIntoView({behavior:'smooth',block:'center'});
+  try{$('goalTypeV371').scrollIntoView({behavior:'smooth',block:'center'});}catch(e){}
 }
 function cancelGoalEditV371(){
-  editingGoalIdV371=null;if(!$('goalFormV371'))return;
+  editingGoalIdV371=null;window.__mmhEditingGoalIdV371=null;if(!$('goalFormV371'))return;
   $('goalTypeV371').value='Emergency Fund';$('goalTargetV371').value='';$('goalDateV371').value='';$('goalSubmitV371').textContent='Add Goal';$('goalCancelV371').style.display='none';
 }
 function deleteGoalV371(id){
@@ -5110,7 +5111,7 @@ renderDashboard=function(){
           <div><span>Target timing</span><b>${g311Countdown(d)}</b></div>
         </div>
         <div class="goals-plan-note-v311">${d.remain<=0?'Goal reached.':d.required>0?(capacityForNote(d.capacity,d.required)):(d.days===null?'Add a target date to calculate the monthly amount.':'Target date is too close to produce a monthly plan.')}</div>
-        <div class="goals-roadmap-actions-v311"><button class="btn" type="button" onclick="editGoalV371('${g.id}')">Edit</button><button class="btn danger" type="button" onclick="deleteGoalV371('${g.id}')">Delete</button></div>
+        <div class="goals-roadmap-actions-v311"><button class="btn" type="button" data-mmh-edit-goal="${g.id}">Edit</button><button class="btn danger" type="button" onclick="deleteGoalV371('${g.id}')">Delete</button></div>
       </div>`;
     }).join('');
     function capacityForNote(cap,req){
@@ -5500,6 +5501,28 @@ function swapExchangeCurrencies(){
   async function guardedCall(fn){
     if(navigator.onLine===false) throw new Error('You appear to be offline. Check your connection and try again.');
     return await fn();
+  }
+  function beginEdit(id){
+    const goals=readGoals();
+    const g=goals.find(x=>String(x.id)===String(id));
+    if(!g)return;
+    const t=document.getElementById('goalTypeV371'), a=document.getElementById('goalTargetV371'), d=document.getElementById('goalDateV371'), b=document.getElementById('goalSubmitV371'), c=document.getElementById('goalCancelV371');
+    if(!t||!a||!d||!b)return;
+    window.__mmhEditingGoalIdV371=g.id;
+    t.value=g.type||'Emergency Fund';
+    a.value=String(g.target??'');
+    d.value=g.date||'';
+    b.textContent='Save Changes';
+    if(c)c.style.display='inline-flex';
+    try{t.scrollIntoView({behavior:'smooth',block:'center'});}catch(e){}
+  }
+  function bindGoalActions(){
+    if(document.documentElement.dataset.mmhGoalActionsBound==='1')return;
+    document.documentElement.dataset.mmhGoalActionsBound='1';
+    document.addEventListener('click',e=>{
+      const edit=e.target?.closest?.('[data-mmh-edit-goal]');
+      if(edit){e.preventDefault();e.stopPropagation();beginEdit(edit.getAttribute('data-mmh-edit-goal'));return;}
+    },true);
   }
   function bind(){
     const txForm=$$('txForm');
@@ -11350,6 +11373,7 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
   function resetForm(){
     const form=document.getElementById('goalFormV371'); if(!form) return;
     const t=document.getElementById('goalTypeV371'), a=document.getElementById('goalTargetV371'), d=document.getElementById('goalDateV371'), b=document.getElementById('goalSubmitV371'), c=document.getElementById('goalCancelV371');
+    window.__mmhEditingGoalIdV371=null;
     if(t)t.value='Emergency Fund'; if(a)a.value=''; if(d)d.value=''; if(b)b.textContent='Add Goal'; if(c)c.style.display='none';
   }
   function save(){
@@ -11358,6 +11382,20 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
     const date=document.getElementById('goalDateV371')?.value||'';
     if(!type || target<=0){ alert('Enter a target amount greater than 0.'); return false; }
     const goals=readGoals();
+    const editId=window.__mmhEditingGoalIdV371||null;
+    if(editId){
+      const existing=goals.find(g=>g.id===editId);
+      if(!existing){ alert('The selected goal no longer exists.'); resetForm(); window.__mmhEditingGoalIdV371=null; return false; }
+      const duplicate=goals.find(g=>g.id!==editId && g.type===type);
+      if(duplicate){ alert(`${type} goal already exists. Edit the existing goal instead.`); return false; }
+      existing.type=type; existing.target=target; existing.date=date;
+      writeGoals(goals);
+      window.__mmhEditingGoalIdV371=null;
+      try { if(typeof window.wsInvalidateBaseV34412==='function') window.wsInvalidateBaseV34412(); } catch(e){}
+      resetForm();
+      try { if(typeof window.renderGoalsV371==='function') window.renderGoalsV371(); else fallbackRender(); } catch(e){ fallbackRender(); }
+      return false;
+    }
     if(goals.some(g=>g.type===type)){
       alert(`${type} goal already exists. Edit the existing goal instead.`);
       return false;
@@ -11370,6 +11408,7 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
     return false;
   }
   function bind(){
+    bindGoalActions();
     const form=document.getElementById('goalFormV371');
     const btn=document.getElementById('goalSubmitV371');
     if(!form || !btn || btn.dataset.mmhV34415Bound==='1') return;
