@@ -10078,6 +10078,28 @@ body.mmhvault-scroll-active #invest .invest-top>.panel{box-shadow:inset 0 1px 0 
     }catch(e){return 0}
   };
   const goalTargetTHB=g=>N(g.target)*(typeof rates?.usd_thb==='number'?rates.usd_thb:1);
+  let wealthBaseCacheV34413=null, wealthBaseCacheAtV34413=0;
+  function buildWealthBase(){
+    const now=Date.now();
+    if(wealthBaseCacheV34413 && now-wealthBaseCacheAtV34413<500) return wealthBaseCacheV34413;
+    const key=today().slice(0,7);
+    const goals=typeof loadGoalsV371==='function'?loadGoalsV371():[];
+    const hist=lastMonths(3);
+    const savings=hist.map(monthlySavingsTHB);
+    const positive=savings.filter(x=>x>0);
+    const capacity=positive.length?positive.reduce((a,b)=>a+b,0)/positive.length:Math.max(0,monthlySavingsTHB(key));
+    const net=currentNetTHB();
+    const goalRows=goals.map(g=>{
+      const cur=goalCurrentTHB(g),target=goalTargetTHB(g),pct=target?Math.min(100,Math.max(0,cur/target*100)):0,remain=Math.max(0,target-cur);
+      const eta=remain>0&&capacity>0?`${Math.ceil(remain/capacity)} ${T('months','个月')}`:T('Not enough data','数据不足');
+      return {g,name:g.type,cur,target,pct,remain,eta};
+    });
+    wealthBaseCacheV34413={key,goals,capacity,net,goalRows};
+    wealthBaseCacheAtV34413=now;
+    return wealthBaseCacheV34413;
+  }
+  function invalidateWealthBaseV34413(){wealthBaseCacheV34413=null;wealthBaseCacheAtV34413=0;}
+  window.invalidateWealthBaseV34413=invalidateWealthBaseV34413;
   function cleanWealthPlanningNoise(){
     try{
       const host=document.getElementById('wealthPlanningPage')||document.getElementById('wealthPlanning')||document.querySelector('[data-page="wealth-planning"]');
@@ -10093,12 +10115,8 @@ body.mmhvault-scroll-active #invest .invest-top>.panel{box-shadow:inset 0 1px 0 
   }
   function render(){
     const host=$('mmhV380Summary'); if(!host)return;
-    const goals=typeof loadGoalsV371==='function'?loadGoalsV371():[];
-    const key=today().slice(0,7);
-    const hist=lastMonths(3), savings=hist.map(monthlySavingsTHB), positive=savings.filter(x=>x>0);
-    const capacity=positive.length?positive.reduce((a,b)=>a+b,0)/positive.length:Math.max(0,monthlySavingsTHB(key));
-    const net=currentNetTHB();
-    const goalRows=goals.map(g=>{const cur=goalCurrentTHB(g),target=goalTargetTHB(g),pct=target?Math.min(100,Math.max(0,cur/target*100)):0,remain=Math.max(0,target-cur);const eta=remain>0&&capacity>0?`${Math.ceil(remain/capacity)} ${T('months','个月')}`:T('Not enough data','数据不足');return {g,name:g.type,cur,target,pct,remain,eta};});
+    const base=buildWealthBase();
+    const {goals,key,capacity,net,goalRows}=base;
     const milestones=[10000,25000,50000,100000].map(v=>{const target=v*(typeof rates?.usd_thb==='number'?rates.usd_thb:1),pct=target?Math.min(100,net/target*100):0;return{target,pct,remain:Math.max(0,target-net)}});
     const scenarios=[['Conservative',.7],['Current Pace',1],['Accelerated',1.25]].map(([name,m])=>({name,months:[12,24,36].map(mm=>Math.max(0,net+capacity*m*mm))}));
     $('mmhV380Period').textContent=`${key} · ${T('Planning','规划')}`; $('mmhV380GoalCount').textContent=String(goals.length);
@@ -10111,16 +10129,32 @@ body.mmhvault-scroll-active #invest .invest-top>.panel{box-shadow:inset 0 1px 0 
     const g=$('mmhV380Goals');
     g.innerHTML=goalRows.length?goalRows.map(x=>`<div class="mmh-v380-row"><div class="mmh-v380-name">${esc(x.name)}</div><div class="mmh-v380-main"><div class="mmh-v380-bar"><span style="width:${x.pct}%"></span></div><div class="mmh-v380-meta"><span>${T('Current','当前')} ${moneyTHB(x.cur)} / ${moneyTHB(x.target)}</span><span>${x.pct.toFixed(1)}% · ${x.eta}</span></div></div><span class="mmh-v380-badge ${x.pct>=100?'mmh-v380-good':x.pct>=70?'mmh-v380-warn':'mmh-v380-bad'}">${x.pct>=100?T('Done','已完成'):x.pct>=70?T('On track','接近目标'):T('Needs funding','需要加速')}</span></div>`).join(''):`<div class="mmh-v380-empty">${T('No goals yet. Add goals from Analyze → Goals.','暂无目标。请前往分析 → 目标添加。')}</div>`;
     $('mmhV380Milestones').innerHTML=milestones.map(x=>`<div class="mmh-v380-row"><div class="mmh-v380-name">${moneyTHB(x.target)}</div><div class="mmh-v380-main"><div class="mmh-v380-bar"><span style="width:${x.pct}%"></span></div><div class="mmh-v380-meta"><span>${T('Progress','进度')} ${x.pct.toFixed(1)}%</span><span>${x.remain>0?T('Remaining','剩余')+' '+moneyTHB(x.remain):T('Reached','已达成')}</span></div></div><span class="mmh-v380-badge ${x.pct>=100?'mmh-v380-good':x.pct>=60?'mmh-v380-warn':'mmh-v380-bad'}">${x.pct>=100?T('Reached','已达成'):T('Upcoming','待达成')}</span></div>`).join('');
-    $('mmhV380Forecast').innerHTML=`<div class="mmh-v380-scenarios">${scenarios.map(x=>`<div class="mmh-v380-scenario"><b>${T(x.name,x.name==='Conservative'?'保守':x.name==='Current Pace'?'当前速度':'加速')}</b>${[12,24,36].map((m,i)=>`<span class="big">${moneyTHB(x.months[i])}</span><div class="small">${m} ${T('months','个月')}</div>`).join('')}</div>`).join('')}</div>`;
+    $('mmhV380Forecast').innerHTML=`<div class="mmh-v380-scenarios">${scenarios.map(x=>`<div class="mmh-v380-scenario"><div class="mmh-v380-scenario-head"><b>${T(x.name,x.name==='Conservative'?'保守':x.name==='Current Pace'?'当前速度':'加速')}</b><span>${x.name==='Conservative'?'70%':x.name==='Current Pace'?'100%':'125%'}</span></div><div class="mmh-v380-scenario-horizons">${[12,24,36].map((m,i)=>`<div class="mmh-v380-horizon"><div class="small">${m} ${T('months','个月')}</div><span class="big">${moneyTHB(x.months[i])}</span></div>`).join('')}</div><div class="mmh-v380-scenario-foot">${T('Savings-only projection','仅按储蓄能力预测')}</div></div>`).join('')}</div>`;
     cleanWealthPlanningNoise();
   }
   const arm=()=>[0,250,700,1500].forEach(ms=>setTimeout(render,ms));
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',arm,{once:true});else arm();
-  window.addEventListener('mmhvault:data-loaded',arm); window.addEventListener('mmhvault:data-state',arm); window.addEventListener('storage',e=>{if(e.key==='mmhvault_language_v3363')arm();});
+  window.addEventListener('mmhvault:data-loaded',()=>{invalidateWealthBaseV34413();arm();});
+  window.addEventListener('mmhvault:data-state',()=>{invalidateWealthBaseV34413();arm();});
+  window.addEventListener('storage',e=>{if(e.key==='mmhvault_language_v3363'){invalidateWealthBaseV34413();arm();}});
   document.addEventListener('click',e=>{if(e.target?.closest?.('[data-page="wealthPlanning"],[data-page="wealth-planning"],#wealthPlanningPage,#wealthPlanning'))setTimeout(render,0)});
   window.renderWealthPlanningV393=render;
 })();
 </script>
+<style id="mmhvault-v34413-wealth-planning-polish">
+  .mmh-v380-scenario{position:relative;overflow:hidden;transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease}
+  .mmh-v380-scenario::before{content:"";position:absolute;inset:0 0 auto;height:1px;background:linear-gradient(90deg,rgba(82,214,255,.75),rgba(210,104,255,.65));opacity:.55}
+  .mmh-v380-scenario:hover{transform:translateY(-2px);border-color:rgba(116,168,255,.35);box-shadow:0 10px 26px rgba(0,0,0,.18)}
+  .mmh-v380-scenario-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+  .mmh-v380-scenario-head>span{padding:4px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.035);color:#9fb2d0;font-size:10px;font-weight:800}
+  .mmh-v380-scenario-horizons{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+  .mmh-v380-horizon{padding:9px 8px;border:1px solid rgba(120,150,220,.10);border-radius:11px;background:rgba(255,255,255,.018);min-width:0}
+  .mmh-v380-horizon .small{margin:0 0 4px;color:#7f96bb;font-size:10px;text-transform:uppercase;letter-spacing:.05em}
+  .mmh-v380-horizon .big{display:block;margin:0;font-size:16px;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .mmh-v380-scenario-foot{margin-top:9px;color:#7187aa;font-size:10px}
+  @media(max-width:640px){.mmh-v380-scenario-horizons{grid-template-columns:1fr}.mmh-v380-horizon{display:grid;grid-template-columns:68px minmax(0,1fr);align-items:center;gap:8px}.mmh-v380-horizon .small{margin:0}.mmh-v380-scenario:hover{transform:none;box-shadow:none}}
+  @media(prefers-reduced-motion:reduce){.mmh-v380-scenario{transition:none}.mmh-v380-scenario:hover{transform:none}}
+</style>
 <script id="mmhvault-v3422-insights-data-fix">
 /* MMHVAULT V3.42.10 · Insights THB investment conversion fix.
    Reuse the canonical transaction/account calculations and rerender after cloud data loads. */
