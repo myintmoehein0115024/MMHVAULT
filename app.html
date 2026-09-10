@@ -1413,7 +1413,35 @@ button,.btn,.bottom-nav button,.more-nav-menu button,[role="button"]{touch-actio
 @media(max-width:760px){#expenseTrend .spark,#incomeExpenseTrend .spark{min-height:132px;gap:5px;padding:15px 8px 7px}#expenseTrend .spark>span,#incomeExpenseTrend .spark>span{border-radius:6px 6px 3px 3px}#expenseTrend .spark-labels,#incomeExpenseTrend .spark-labels{gap:5px;padding-left:8px;padding-right:8px;font-size:9px}}
 @media(max-width:420px){#expenseTrend .spark,#incomeExpenseTrend .spark{min-height:118px;padding-left:6px;padding-right:6px}#expenseTrend .spark-labels,#incomeExpenseTrend .spark-labels{font-size:8.5px}}
 @media (prefers-reduced-motion: reduce){#expenseTrend .spark>span,#incomeExpenseTrend .spark>span{transition:none}}
-</style>\n</head>
+</style>\n
+<style id="mmhvault-v34410-analyze-responsive">
+/* MMHVAULT V3.44.10 · Analyze responsive finishing polish */
+.analyze-tab-panel-v371 .panel{min-width:0;}
+.analyze-tab-panel-v371 .toolbar{gap:12px;}
+.analyze-tab-panel-v371 .toolbar>div{min-width:0;}
+.analyze-tab-panel-v371 .toolbar h2{overflow-wrap:anywhere;}
+#cashFlowSummary .cashflow-summary-grid-v371,
+#netWorthAnalyzeSummaryV371 .networth-grid-v371,
+#financialHealthV371{min-width:0;}
+@media(max-width:760px){
+  .analyze-tab-panel-v371 .toolbar{align-items:flex-start;}
+  .analyze-tab-panel-v371 .toolbar .pill{flex:0 0 auto;max-width:45%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .analyze-extra{grid-template-columns:1fr!important;}
+  .analyze-tab-panel-v371 .panel{border-radius:15px;}
+  .savings-trend-meta{grid-template-columns:repeat(2,minmax(0,1fr));}
+}
+@media(max-width:420px){
+  .analyze-tab-panel-v371 .toolbar{gap:8px;}
+  .analyze-tab-panel-v371 .toolbar h2{font-size:16px;}
+  .analyze-tab-panel-v371 .toolbar .sub{font-size:10px;line-height:1.4;}
+  .analyze-tab-panel-v371 .toolbar .pill{max-width:42%;font-size:9px;padding:5px 8px;}
+  .savings-trend-meta{grid-template-columns:1fr 1fr;gap:7px;}
+  .savings-trend-meta .stat{min-width:0;padding:10px;}
+  .savings-trend-meta .stat b{font-size:15px;overflow-wrap:anywhere;}
+}
+@media (prefers-reduced-motion: reduce){.analyze-tab-panel-v371 .panel{scroll-behavior:auto;}}
+</style>
+</head>
 <!-- MMHVAULT V3.42.56 · Dashboard report relocation + Transaction receipt center + Invest Add precision -->
 <body>
 <div id="mmhvaultAppBootGuardV3282" style="position:fixed;inset:0;z-index:30000;display:none;align-items:center;justify-content:center;background:#050a18;color:#dce8ff;font-family:Arial,sans-serif;padding:24px;text-align:center;">
@@ -7903,11 +7931,17 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
   const old=window.renderDashboardSavingsTrendV1;
   window.renderDashboardSavingsTrendV1=function(){
     const r=typeof old==='function'?old.apply(this,arguments):undefined;
-    setTimeout(refreshTrend,0);return r;
+    __mmhScheduleSavingsTrend();return r;
   };
-  window.refreshMMHVAULTSavingsTargetV3714=refreshTrend;
+  let __mmhSavingsTrendRAF=0;
+  const __mmhScheduleSavingsTrend=()=>{
+    if(__mmhSavingsTrendRAF) return;
+    __mmhSavingsTrendRAF=requestAnimationFrame(()=>{__mmhSavingsTrendRAF=0;refreshTrend();});
+  };
+  window.refreshMMHVAULTSavingsTargetV3714=__mmhScheduleSavingsTrend;
+
   document.addEventListener('click',e=>{
-    if(e.target&&e.target.closest&&e.target.closest('#saveWealthRulesV326,#resetWealthRulesV326'))setTimeout(refreshTrend,80);
+    if(e.target&&e.target.closest&&e.target.closest('#saveWealthRulesV326,#resetWealthRulesV326'))requestAnimationFrame(()=>refreshTrend());
   });
   window.addEventListener('storage',e=>{if(e.key===rulesKey)setTimeout(refreshTrend,0);});
   window.addEventListener('mmhvault-language-change',()=>setTimeout(refreshTrend,0));
