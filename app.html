@@ -1642,15 +1642,12 @@ button,.btn,.bottom-nav button,.more-nav-menu button,[role="button"]{touch-actio
 <section class="page" id="wealth-planning">
 <div class="mmh-v380-page-head">
 <div><h1 data-i18n-en="Wealth Planning" data-i18n-zh="财富规划">Wealth Planning</h1>
-<div class="sub" data-i18n-en="Goals, milestones and future wealth scenarios in one place." data-i18n-zh="把目标、里程碑和未来财富规划集中在一个页面。">Goals, milestones and future wealth scenarios in one place.</div>
+<div class="sub" data-i18n-en="Milestones and future wealth scenarios in one place." data-i18n-zh="把里程碑和未来财富规划集中在一个页面。">Milestones and future wealth scenarios in one place.</div>
 </div>
 <span class="pill" id="mmhV380Period">—</span>
 </div>
 <div class="panel mmh-v380-hero" id="mmhV380Summary"></div>
-<div class="grid two mmh-v380-grid" style="margin-top:14px">
-<div class="panel"><div class="toolbar"><div><h2 data-i18n-en="Active Goals" data-i18n-zh="当前目标">Active Goals</h2><div class="sub" data-i18n-en="Your tracked financial targets and pace." data-i18n-zh="您正在追踪的财务目标与完成速度。">Your tracked financial targets and pace.</div></div><span class="pill" id="mmhV380GoalCount">0</span></div><div id="mmhV380Goals"></div></div>
-<div class="panel"><div class="toolbar"><div><h2 data-i18n-en="Milestones" data-i18n-zh="财富里程碑">Milestones</h2><div class="sub" data-i18n-en="Progress toward major net worth milestones." data-i18n-zh="查看净资产重要里程碑的进度。">Progress toward major net worth milestones.</div></div></div><div id="mmhV380Milestones"></div></div>
-</div>
+<div class="panel" style="margin-top:14px"><div class="toolbar"><div><h2 data-i18n-en="Milestones" data-i18n-zh="财富里程碑">Milestones</h2><div class="sub" data-i18n-en="Progress toward major net worth milestones." data-i18n-zh="查看净资产重要里程碑的进度。">Progress toward major net worth milestones.</div></div></div><div id="mmhV380Milestones"></div></div>
 <div class="panel" style="margin-top:14px"><div class="toolbar"><div><h2 data-i18n-en="Wealth Forecast" data-i18n-zh="财富预测">Wealth Forecast</h2><div class="sub" data-i18n-en="Projection uses your recent savings capacity and excludes market returns." data-i18n-zh="预测基于近期储蓄能力，不包含市场投资回报。">Projection uses your recent savings capacity and excludes market returns.</div></div><span class="pill" data-i18n-en="Scenario view" data-i18n-zh="情景视图">Scenario view</span></div><div id="mmhV380Forecast"></div></div>
 <div class="panel" id="wealthPlanningNetWorthHistoryV426" style="margin-top:14px"><div class="toolbar"><div><h2 data-i18n-en="Net Worth History" data-i18n-zh="净资产历史">Net Worth History</h2><div class="sub" data-i18n-en="Income and expense movement across the last 6 months." data-i18n-zh="查看最近6个月的收入与支出变化。">Income and expense movement across the last 6 months.</div></div><span class="pill" data-i18n-en="Last 6 Months" data-i18n-zh="最近6个月">Last 6 Months</span></div><div id="netWorthHistory"></div></div>
 </section>
@@ -1714,7 +1711,6 @@ button,.btn,.bottom-nav button,.more-nav-menu button,[role="button"]{touch-actio
 <button aria-selected="false" class="analyze-tab-v371" data-tab="cashflow" role="tab" type="button">Cash Flow</button>
 <button aria-selected="false" class="analyze-tab-v371" data-tab="expenses" role="tab" type="button">Expenses</button>
 <button aria-selected="false" class="analyze-tab-v371" data-tab="networth" role="tab" type="button">Net Worth</button>
-<button aria-selected="false" class="analyze-tab-v371" data-tab="goals" role="tab" type="button">Goals</button>
 <button aria-selected="false" class="analyze-tab-v371" data-tab="decisions" role="tab" type="button">Decisions</button>
 <button aria-selected="false" class="analyze-tab-v371" data-tab="wealthrules" id="analyzeTabWealthRulesV32811" role="tab" type="button">Wealth Rules</button></div>
 <div class="analyze-tab-panel-v371 active" data-panel="overview" role="tabpanel">
@@ -1744,22 +1740,6 @@ button,.btn,.bottom-nav button,.more-nav-menu button,[role="button"]{touch-actio
 <div aria-hidden="true" class="analyze-tab-panel-v371" data-panel="networth" role="tabpanel">
 <div class="panel analyze-panel"><div class="toolbar"><div><h2>Net Worth</h2><span class="pill">Current snapshot</span></div></div><div class="networth-analyze-summary-v371" id="netWorthAnalyzeSummaryV371"></div></div>
 </div>
-<div aria-hidden="true" class="analyze-tab-panel-v371" data-panel="goals" role="tabpanel">
-<div class="panel analyze-panel">
-<div class="goals-toolbar-v371"><div><h2>Financial Goals</h2><div class="sub">Track Emergency Fund, Savings, Investment and Net Worth goals.</div></div><span class="pill">Auto-updated</span></div>
-<div class="goals-command-v311" id="goalsCommandV311"></div>
-<div class="goals-form-section-v311">
-<div class="small" style="margin-bottom:9px;color:var(--muted)">Add or update a target below. Goals 2.0 turns each target into a dated plan with a monthly funding requirement.</div>
-<form class="goals-form-v371" id="goalFormV371" onsubmit="return window.__mmhSubmitGoalV34419(event)">
-<label>Goal Type<select id="goalTypeV371"><option value="Emergency Fund">Emergency Fund</option><option value="Savings">Savings</option><option value="Investment">Investment</option><option value="Net Worth">Net Worth</option></select></label>
-<label>Target Amount ($)<input id="goalTargetV371" min="0" placeholder="5000" required="" step="0.01" type="number"/></label>
-<label>Target Date<input id="goalDateV371" type="date"/></label>
-<div class="form-actions"><button class="btn primary" id="goalSubmitV371" type="submit">Add Goal</button><button class="btn" id="goalCancelV371" onclick="cancelGoalEditV371()" style="display:none" type="button">Cancel</button></div>
-</form>
-<div class="goals-grid-v371" id="goalsListV371"></div>
-</div>
-</div>
-</div>
 <div aria-hidden="true" class="analyze-tab-panel-v371" data-panel="decisions" role="tabpanel">
 <div class="panel analyze-panel"><div id="financialDecisionCenterV325"></div></div>
 </div><div aria-hidden="true" class="analyze-tab-panel-v371" data-panel="wealthrules" id="analyzePanelWealthRulesV32811" role="tabpanel" style="display:none">
@@ -1772,7 +1752,7 @@ button,.btn,.bottom-nav button,.more-nav-menu button,[role="button"]{touch-actio
 <div class="wealth-rule-card-v326"><div class="label">Investment Weight Ceiling</div><div class="wealth-rule-input"><input id="wealthRuleInvestV326" inputmode="numeric" max="100" min="1" step="1" type="number"/><span>%</span></div><div class="small">Above this share of net worth, the decision layer asks you to review concentration.</div></div>
 </div>
 <div class="wealth-rule-actions-v326"><button class="btn primary" id="saveWealthRulesV326" type="button">Save Rules</button><button class="btn" id="resetWealthRulesV326" type="button">Reset Defaults</button><span aria-live="polite" class="small" id="wealthRulesStatusV326"></span></div>
-<div class="wealth-rule-live-v326"><div><div class="label">Rule flow</div><div class="value">Liquidity → Savings → Goals → Investment</div></div><div class="small">These thresholds are advisory. Changing them only changes how MMHVAULT evaluates your existing data.</div></div>
+<div class="wealth-rule-live-v326"><div><div class="label">Rule flow</div><div class="value">Liquidity → Savings → Investment</div></div><div class="small">These thresholds are advisory. Changing them only changes how MMHVAULT evaluates your existing data.</div></div>
 </div>
 </div>
 </section>
@@ -2339,7 +2319,7 @@ async function enter(session){
 }
 async function copyCustomerIdV375(){
   const id=currentCustomerId||$("accountUserIdV372")?.textContent||"";
-  if(!id||!/^MF\d{4,}$/.test(id))return;
+  if(!id||!/^MF\d{4}$/.test(id))return;
   try{await navigator.clipboard.writeText(id);const btn=document.querySelector(".account-center-copy-v375");if(btn){const old=btn.textContent;btn.textContent="Copied";setTimeout(()=>btn.textContent=old,1000);}}catch(e){console.warn("Copy Customer ID failed",e);}
 }
 
@@ -2504,7 +2484,7 @@ function showTxTab(tab){
 function restoreTxTab(){showTxTab(sessionStorage.getItem('myfinance_tx_tab')||'add');}
 
 let mmhvaultRenderFrameV3441=0; function scheduleRenderV3441(){ if(mmhvaultRenderFrameV3441)return; const run=()=>{mmhvaultRenderFrameV3441=0; try{render();}catch(err){console.warn("MMHVAULT render warning:",err);}}; if(typeof requestAnimationFrame==="function")mmhvaultRenderFrameV3441=requestAnimationFrame(run); else mmhvaultRenderFrameV3441=setTimeout(run,0);}
-function render(){if($("dashboard").classList.contains("active"))renderDashboard();if($("transactions").classList.contains("active"))renderTransactions();if($("analyze").classList.contains("active"))renderAnalyze();if($("exchange").classList.contains("active"))renderRates();if($("invest").classList.contains("active"))renderInvest();if($("wealth-planning")?.classList.contains("active"))renderWealthPlanningV380();}
+function render(){if($("dashboard").classList.contains("active"))renderDashboard();if($("transactions").classList.contains("active"))renderTransactions();if($("analyze").classList.contains("active"))renderAnalyze();if($("exchange").classList.contains("active"))renderRates();if($("invest").classList.contains("active"))renderInvest();}
 function renderCurrentHoldings(cryptos){
  const syms=['BTC','ETH','SOL','BNB'];
  currentHoldings.innerHTML=syms.map(s=>{
@@ -4161,108 +4141,16 @@ renderDashboard=function(){_renderDashboardV371Health();renderFinancialHealthV37
 
 
 
-/* ===================== V3.7.1 GOALS ===================== */
-let editingGoalIdV371=null;
-function goalsStorageKeyV371(){return 'myfinance_goals_v371_'+(currentUserEmail||'guest');}
-function loadGoalsV371(){try{const raw=localStorage.getItem(goalsStorageKeyV371());const arr=raw?JSON.parse(raw):[];return Array.isArray(arr)?arr:[];}catch(e){return []}}
-function saveGoalsV371(arr){localStorage.setItem(goalsStorageKeyV371(),JSON.stringify(arr));}
-function goalCurrentV371(type){
-  // Goals 2.0 is USD-based end-to-end: targets, current values, remaining,
-  // progress and monthly funding requirements are all compared in USD.
-  const cashAccounts=['Bath','TrueMoney','OKX','ByBit','MetaMask','KPay'];
-  const cashUSD=cashAccounts.reduce((sum,a)=>sum+balance(a)*toUSD(a),0);
-  const investUSD=typeof investmentValueUSD==='function' ? investmentValueUSD() : (investmentValue()/Math.max(1,n(rates?.usd_mmk)));
-  const netUSD=cashUSD+investUSD;
-  if(type==='Investment')return Math.max(0,investUSD);
-  if(type==='Net Worth')return Math.max(0,netUSD);
-  if(type==='Emergency Fund')return Math.max(0,cashUSD);
-  const inc=transactions.filter(t=>t.type==='Income').reduce((sum,t)=>sum+n(t.to_amount)*toUSD(t.to_account),0);
-  const exp=transactions.filter(t=>t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t)).reduce((sum,t)=>sum+n(t.from_amount)*toUSD(t.from_account),0);
-  return Math.max(0,inc-exp);
-}
-function goalDateLabelV371(v){if(!v)return 'No target date';const d=new Date(v+'T00:00:00');return Number.isNaN(d.getTime())?'No target date':d.toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'});}
-function renderGoalsV371(){
-  const el=$('goalsListV371');if(!el)return;
-  const goals=loadGoalsV371();
-  if(!goals.length){el.innerHTML='<div class="goal-empty-v371" style="grid-column:1/-1">No goals yet. Add your first financial goal above.</div>';return;}
-  el.innerHTML=goals.map(g=>{
-    const current=goalCurrentV371(g.type),target=Math.max(0,n(g.target));
-    const pct=target?Math.max(0,Math.min(100,current/target*100)):0;
-    const remain=Math.max(0,target-current);
-    const done=current>=target&&target>0;
-    return `<div class="goal-card-v371">
-      <div class="goal-top"><div><div class="goal-name">${esc(g.type)}</div><div class="goal-target">Target · ${usd(target)} · ${goalDateLabelV371(g.date)}</div></div><div class="goal-actions-v371"><button class="btn" type="button" onclick="return window.__mmhEditGoalV34419('${g.id}')">Edit</button><button class="btn danger" type="button" onclick="deleteGoalV371('${g.id}')">Delete</button></div></div>
-      <div class="goal-current ${done?'green':'cyan'}">${usd(current)}</div>
-      <div class="goal-progress-v371"><span style="width:${pct.toFixed(1)}%"></span></div>
-      <div class="goal-meta"><span>${pct.toFixed(1)}% complete</span><span>${done?'Goal reached':usd(remain)+' remaining'}</span></div>
-    </div>`;
-  }).join('');
-}
-function saveGoalV371(e){
-  if(e)e.preventDefault();
-  const type=$('goalTypeV371')?.value,target=n($('goalTargetV371')?.value),date=$('goalDateV371')?.value||'';
-  if(!type||target<=0){alert('Enter a target amount greater than 0.');return false;}
-  const goals=loadGoalsV371();
-  if(editingGoalIdV371){
-    const g=goals.find(x=>x.id===editingGoalIdV371);if(g){g.type=type;g.target=target;g.date=date;}
-  }else{
-    const existing=goals.find(x=>x.type===type);
-    if(existing){alert(`${type} goal already exists. Edit the existing goal instead.`);return false;}
-    goals.push({id:'g_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,7),type,target,date});
-  }
-  saveGoalsV371(goals);if(window.wsInvalidateBaseV34412)window.wsInvalidateBaseV34412();cancelGoalEditV371();renderGoalsV371();return false;
-}
-function editGoalV371(id){
-  const g=loadGoalsV371().find(x=>x.id===id);if(!g)return;editingGoalIdV371=id;window.__mmhEditingGoalIdV371=id;
-  $('goalTypeV371').value=g.type;$('goalTargetV371').value=g.target;$('goalDateV371').value=g.date||'';$('goalSubmitV371').textContent='Save Changes';$('goalCancelV371').style.display='inline-flex';
-  try{$('goalTypeV371').scrollIntoView({behavior:'smooth',block:'center'});}catch(e){}
-}
-window.__mmhEditGoalV34419=function(id){
-  try{ editGoalV371(String(id)); }catch(e){ console.error('Goal edit failed:',e); }
-  return false;
-};
-window.__mmhSubmitGoalV34419=function(e){
-  try{ return saveGoalV371(e); }catch(err){ console.error('Goal save failed:',err); alert('Unable to save this goal. Please refresh and try again.'); return false; }
-};
-window.__mmhEditGoalV34418=function(id){
-  try{
-    const goals=typeof loadGoalsV371==='function'?loadGoalsV371():[];
-    const g=goals.find(x=>String(x.id)===String(id));
-    if(!g)return false;
-    editingGoalIdV371=g.id;
-    window.__mmhEditingGoalIdV371=g.id;
-    const t=$('goalTypeV371'),a=$('goalTargetV371'),d=$('goalDateV371'),b=$('goalSubmitV371'),c=$('goalCancelV371');
-    if(!t||!a||!d||!b)return false;
-    t.value=g.type||'Emergency Fund';
-    a.value=String(g.target??'');
-    d.value=g.date||'';
-    b.textContent='Save Changes';
-    if(c)c.style.display='inline-flex';
-    try{t.focus({preventScroll:true});}catch(e){}
-    try{t.scrollIntoView({behavior:'smooth',block:'center'});}catch(e){}
-  }catch(e){console.error('Goal edit failed:',e);}
-  return false;
-};
-function cancelGoalEditV371(){
-  editingGoalIdV371=null;window.__mmhEditingGoalIdV371=null;if(!$('goalFormV371'))return;
-  $('goalTypeV371').value='Emergency Fund';$('goalTargetV371').value='';$('goalDateV371').value='';$('goalSubmitV371').textContent='Add Goal';$('goalCancelV371').style.display='none';
-}
-function deleteGoalV371(id){
-  const g=loadGoalsV371().find(x=>x.id===id);if(!g)return;
-  if(!confirm(`Delete ${g.type} goal?`))return;
-  saveGoalsV371(loadGoalsV371().filter(x=>x.id!==id));if(window.wsInvalidateBaseV34412)window.wsInvalidateBaseV34412();if(editingGoalIdV371===id)cancelGoalEditV371();renderGoalsV371();
-}
-
 /* ===================== V3.7.1 ANALYZE TABS ===================== */
 function setAnalyzeTabV371(tab){
-  const valid=['overview','health','cashflow','expenses','networth','goals','decisions','wealthrules'];
+  const valid=['overview','health','cashflow','expenses','networth','decisions','wealthrules'];
   if(!valid.includes(tab))tab='overview';
   document.querySelectorAll('.analyze-tab-v371').forEach(b=>{const on=b.dataset.tab===tab;b.classList.toggle('active',on);b.setAttribute('aria-selected',on?'true':'false');});
   document.querySelectorAll('.analyze-tab-panel-v371').forEach(p=>{const on=p.dataset.panel===tab;p.classList.toggle('active',on);p.setAttribute('aria-hidden',on?'false':'true');});
   localStorage.setItem('myfinance_analyze_tab',tab);
   if(tab==='health')renderFinancialHealthV371();
   if(tab==='networth')renderNetWorthAnalyzeV371();
-  if(tab==='goals')renderGoalsV371();
+  
 }
 function nwMonthEndKeyV371(offset){
   const d=new Date();
@@ -4347,7 +4235,7 @@ function renderNetWorthAnalyzeV371(){
 
 renderAnalyze=renderAnalyzeV37;
 const _renderAnalyzeV371Base=renderAnalyzeV37;
-renderAnalyzeV37=function(){_renderAnalyzeV371Base();renderFinancialHealthV371();renderNetWorthAnalyzeV371();renderGoalsV371();};
+renderAnalyzeV37=function(){_renderAnalyzeV371Base();renderFinancialHealthV371();renderNetWorthAnalyzeV371();};
 
 render=function(){
   if($("dashboard")?.classList.contains("active"))renderDashboard();
@@ -4939,7 +4827,6 @@ function renderWealthMilestonesV388(){
     const cash=cashAccounts.reduce((sum,a)=>sum+balance(a)*toUSD(a),0);
     const investmentsUSD=investmentValueUSD();
     const netWorth=Math.max(0,cash+investmentsUSD);
-    const goals=(typeof loadGoalsV371==='function'?loadGoalsV371():[]);
     const baseMilestones=[10000,25000,50000,100000];
     const reached=baseMilestones.filter(x=>netWorth>=x).length;
     let next=baseMilestones.find(x=>netWorth<x);
@@ -4984,19 +4871,7 @@ function renderWealthMilestonesV388(){
         </div>
       </div>
       <div class="milestone-roadmap-v388">${itemHtml}</div>
-      <div style="margin-top:14px;display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap">
-        <div><div class="label" style="font-size:11px;color:var(--muted);font-weight:900">GOALS LINKED TO YOUR WEALTH PLAN</div><div class="sub" style="margin-top:3px">Your personal goals are shown here once alongside your net worth milestones.</div></div>
-        <button class="btn" type="button" onclick="setPage('analyze');setTimeout(()=>setAnalyzeTabV371('goals'),0)">${goals.length?'Manage Goals':'Add Goal'}</button>
-      </div>
-      ${goals.length?`<div class="goal-link-grid-v389">${goals.slice(0,4).map(g=>{
-          const current=Math.max(0,n(goalCurrentV371(g.type)));
-          const target=Math.max(0,n(g.target));
-          const gp=target?Math.min(100,current/target*100):0;
-          const rem=Math.max(0,target-current);
-          return `<div class="goal-link-card-v389"><div class="goal-link-head-v389"><div class="goal-link-name-v389">${esc(g.type)}</div><div class="goal-link-pct-v389">${gp.toFixed(0)}%</div></div><div class="goal-link-bar-v389"><span style="width:${gp.toFixed(1)}%"></span></div><div class="goal-link-meta-v389"><span>${usd(current)} / ${usd(target)}</span><span>${rem>0?usd(rem)+' remaining':'Goal reached'}</span></div></div>`;
-        }).join('')}</div>`:`<div class="goal-link-empty-v389">No financial goals yet. Create one in Analyze → Goals and it will appear here automatically.</div>`}
-      <div class="goal-link-note-v389">Goals measure your personal targets; milestones measure net worth progress. Keeping them together here makes the Dashboard easier to read.</div>
-      <div class="milestone-note-v388">MMHVAULT updates milestone and goal progress automatically as your cash and investment values change.</div>`;
+      <div class="milestone-note-v388">MMHVAULT updates milestone progress automatically as your cash and investment values change.</div>`;
   }catch(err){console.warn('Financial Milestones V3.8.12:',err);}
 }
 const _renderDashboardV388Base=renderDashboard;
@@ -5013,146 +4888,6 @@ renderDashboard=function(){
 .dashboard35-allocation-list{margin-top:8px}.dashboard35-allocation-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:10px;align-items:center;margin-top:9px}.dashboard35-allocation-row>div{display:flex;align-items:center;gap:7px}.dashboard35-allocation-row strong{font-size:14px}.dashboard35-allocation-row>span{font-size:12px;color:var(--muted);min-width:48px;text-align:right}.dashboard35-dot{width:8px;height:8px;border-radius:50%;display:inline-block}.dashboard35-dot.cash{background:#38c6ee}.dashboard35-dot.crypto{background:#d23cff}.dashboard35-dot.gold{background:#ffc84a}.dashboard35-allocation-track{height:6px;border-radius:999px;background:rgba(255,255,255,.06);overflow:hidden;margin-top:5px}.dashboard35-allocation-track i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#38c6ee,#d23cff)}.dashboard35-allocation-summary{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;margin-top:13px;padding-top:11px;border-top:1px solid rgba(255,255,255,.07);font-size:12px}.dashboard35-allocation-summary span{color:var(--muted)}.dashboard35-allocation-summary strong{font-size:15px}
 @media(max-width:800px){.dashboard35-wealth-grid{grid-template-columns:1fr}.dashboard35-networth-main{font-size:30px}}
 </style>
-<script id="mmhvault-v311-goals-2-js">
-/* ===================== V3.11.0 GOALS 2.0 ===================== */
-(function(){
-  function g311Num(v){return Number.isFinite(Number(v))?Number(v):0;}
-  function g311Money(v){return typeof usd==='function'?usd(v):('$ '+fmt(v));}
-  function g311GoalMonths(date){
-    if(!date)return null;
-    const target=new Date(date+'T00:00:00');
-    if(Number.isNaN(target.getTime()))return null;
-    const now=new Date(); now.setHours(0,0,0,0);
-    const months=(target.getFullYear()-now.getFullYear())*12+(target.getMonth()-now.getMonth())+(target.getDate()-now.getDate())/30.4375;
-    return Math.max(0,months);
-  }
-  function g311DateText(date){
-    if(!date)return 'No target date';
-    const d=new Date(date+'T00:00:00');
-    if(Number.isNaN(d.getTime()))return 'No target date';
-    return d.toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'});
-  }
-  function g311Days(date){
-    if(!date)return null;
-    const target=new Date(date+'T00:00:00'); if(Number.isNaN(target.getTime()))return null;
-    const now=new Date(); now.setHours(0,0,0,0);
-    return Math.ceil((target-now)/86400000);
-  }
-  function g311MonthlyCapacity(){
-    try{
-      const rows=typeof transactions!=='undefined'?transactions:[];
-      const months=[]; const d=new Date(); d.setDate(1);
-      for(let i=0;i<3;i++){
-        const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),key=`${y}-${m}`;
-        let inc=0,exp=0;
-        rows.forEach(t=>{
-          if(String(t.tx_date||'').slice(0,7)!==key)return;
-          if(t.type==='Income')inc+=g311Num(t.to_amount)*toUSD(t.to_account);
-          if(t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t))exp+=g311Num(t.from_amount)*toUSD(t.from_account);
-        });
-        months.push(Math.max(0,inc-exp));
-        d.setMonth(d.getMonth()-1);
-      }
-      return months.length?months.reduce((a,b)=>a+b,0)/months.length:0;
-    }catch(e){return 0;}
-  }
-  function g311GoalData(g,ctx){
-    const current=Math.max(0,g311Num(ctx&&ctx.currentByType?ctx.currentByType[g.type]:goalCurrentV371(g.type)));
-    const target=Math.max(0,g311Num(g.target));
-    const pct=target?Math.min(100,current/target*100):0;
-    const remain=Math.max(0,target-current);
-    const months=g311GoalMonths(g.date);
-    const required=remain>0&&months!==null&&months>0?remain/months:0;
-    const capacity=ctx&&Number.isFinite(ctx.capacity)?ctx.capacity:g311MonthlyCapacity();
-    const days=g311Days(g.date);
-    const projectedMonths=remain>0&&capacity>0?remain/capacity:0;
-    let projectedDate=null;
-    if(remain<=0) projectedDate=new Date();
-    else if(projectedMonths>0){projectedDate=new Date();projectedDate.setMonth(projectedDate.getMonth()+Math.ceil(projectedMonths));}
-    let status='No date';
-    if(remain<=0)status='Reached';
-    else if(days!==null&&days<0)status='Past due';
-    else if(required>0&&capacity>=required)status=(days!==null&&days<=90)?'On track · Soon':'On track';
-    else if(required>0)status='Behind pace';
-    else status='Needs date';
-    return {current,target,pct,remain,months,required,capacity,days,projectedMonths,projectedDate,status};
-  }
-  function g311StatusClass(s){return s==='Reached'?'reached':s.includes('Behind')||s==='Past due'?'behind':s.includes('Soon')?'soon':s.includes('On track')?'ontrack':'';}
-  function g311ProjectedText(d){
-    if(d.remain<=0)return 'Reached';
-    if(!d.capacity)return 'No projection';
-    return d.projectedDate?d.projectedDate.toLocaleDateString(undefined,{year:'numeric',month:'short'}):'No projection';
-  }
-  function g311Countdown(d){
-    if(d.remain<=0)return 'Goal completed';
-    if(d.days===null)return 'Set a target date';
-    if(d.days<0)return `${Math.abs(d.days)} days overdue`;
-    if(d.days===0)return 'Due today';
-    return `${d.days} days remaining`;
-  }
-  function renderGoals311(){
-    const host=$('goalsCommandV311'), list=$('goalsListV371'); if(!host||!list)return;
-    const goals=typeof loadGoalsV371==='function'?loadGoalsV371():[];
-    const capacity=g311MonthlyCapacity();
-    const currentByType={};
-    goals.forEach(g=>{if(!Object.prototype.hasOwnProperty.call(currentByType,g.type)){currentByType[g.type]=goalCurrentV371(g.type);}});
-    const goalCtx={capacity,currentByType};
-    const data=goals.map(g=>({g,d:g311GoalData(g,goalCtx)}));
-    const active=data.filter(x=>x.d.remain>0);
-    const onTrack=active.filter(x=>x.d.status.includes('On track')).length;
-    const dueSoon=active.filter(x=>x.d.days!==null&&x.d.days>=0&&x.d.days<=90).length;
-    const remaining=active.reduce((s,x)=>s+x.d.remain,0);
-    const priority=active.slice().sort((a,b)=>{
-      const aa=a.d.required||Number.POSITIVE_INFINITY,bb=b.d.required||Number.POSITIVE_INFINITY;
-      return bb-aa;
-    })[0]||null;
-    host.innerHTML=`
-      <div class="goals-command-head-v311">
-        <div><div class="goals-command-kicker-v311">V3.11 · Goals 2.0</div><div class="goals-command-title-v311">Wealth Goal Roadmap</div><div class="goals-command-sub-v311">Turn each target into a deadline, funding requirement and pace signal. The plan uses your recorded transaction history and current goal values.</div></div>
-        <div class="goals-command-badge-v311">Monthly savings capacity · ${g311Money(capacity)}</div>
-      </div>
-      <div class="goals-kpi-grid-v311">
-        <div class="goals-kpi-v311"><div class="label">Active goals</div><div class="value cyan">${active.length}</div><div class="meta">${goals.length} total tracked</div></div>
-        <div class="goals-kpi-v311"><div class="label">On track</div><div class="value green">${onTrack}</div><div class="meta">Based on current funding capacity</div></div>
-        <div class="goals-kpi-v311"><div class="label">Due within 90 days</div><div class="value yellow">${dueSoon}</div><div class="meta">Needs near-term attention</div></div>
-        <div class="goals-kpi-v311"><div class="label">Total remaining</div><div class="value pink">${g311Money(remaining)}</div><div class="meta">Across active goals</div></div>
-      </div>
-      ${priority?`<div class="goals-next-v311"><div class="goals-next-head-v311"><div><div class="goals-next-name-v311">Next funding priority · ${esc(priority.g.type)}</div><div class="goals-next-copy-v311">Target ${g311Money(priority.d.target)} · ${g311Countdown(priority.d)} · projected completion ${g311ProjectedText(priority.d)}</div></div><div class="goals-next-amount-v311">${g311Money(priority.d.required)}/mo required</div></div></div>`:'<div class="goals-next-v311"><div class="goals-next-name-v311">Create your first goal</div><div class="goals-next-copy-v311">Once you add a target, MMHVAULT will calculate the remaining amount, target-date funding requirement and pace.</div></div>'}`;
-
-    if(!data.length){
-      list.innerHTML='<div class="goal-empty-v371" style="grid-column:1/-1">No goals yet. Add your first financial goal above.</div>';
-      return;
-    }
-    list.className='goals-roadmap-v311'; list.innerHTML=data.sort((a,b)=>(b.d.required||0)-(a.d.required||0)).map(({g,d})=>{
-      const cls=g311StatusClass(d.status);
-      const dateLine=d.dateLabel||g311DateText(g.date);
-      const targetMeta=g311Money(d.target)+' · '+dateLine;
-      const goalType=esc(g.type);
-      const color=d.remain<=0?'green':d.status.includes('Behind')||d.status==='Past due'?'red':'cyan';
-      return `<div class="goals-roadmap-card-v311">
-        <div class="goals-roadmap-top-v311"><div><div class="goals-roadmap-name-v311">${goalType}</div><div class="goals-roadmap-target-v311">${targetMeta}</div></div><span class="goals-status-v311 ${cls}">${esc(d.status)}</span></div>
-        <div class="goals-roadmap-values-v311"><div class="goals-roadmap-current-v311 ${color}">${g311Money(d.current)} <small>current</small></div><div class="goals-roadmap-remain-v311">Remaining<b>${g311Money(d.remain)}</b></div></div>
-        <div class="goals-roadmap-bar-v311"><span style="width:${d.pct.toFixed(1)}%"></span></div>
-        <div class="goals-roadmap-meta-v311">
-          <div><span>Progress</span><b>${d.pct.toFixed(1)}%</b></div>
-          <div><span>Required / month</span><b>${d.required?g311Money(d.required):'—'}</b></div>
-          <div><span>Target timing</span><b>${g311Countdown(d)}</b></div>
-        </div>
-        <div class="goals-plan-note-v311">${d.remain<=0?'Goal reached.':d.required>0?(capacityForNote(d.capacity,d.required)):(d.days===null?'Add a target date to calculate the monthly amount.':'Target date is too close to produce a monthly plan.')}</div>
-        <div class="goals-roadmap-actions-v311"><button class="btn" type="button" onclick="return window.__mmhEditGoalV34419('${g.id}')">Edit</button><button class="btn danger" type="button" onclick="deleteGoalV371('${g.id}')">Delete</button></div>
-      </div>`;
-    }).join('');
-    function capacityForNote(cap,req){
-      if(req<=0)return 'No monthly contribution is currently required.';
-      const gap=req-cap;
-      if(gap<=0)return `Your 3-month average savings capacity is ${g311Money(cap)}/mo, enough to cover the required pace.`;
-      return `Your 3-month average savings capacity is ${g311Money(cap)}/mo. You need about ${g311Money(gap)}/mo more to stay on the target-date pace.`;
-    }
-  }
-  /* Goals 2.0 owns the roadmap render. Skip the legacy card render so each refresh builds the list once. */
-  renderGoalsV371=function(){ renderGoals311(); };
-})();
-</script>
 <script id="v313-security-data-center-js">
 (function(){
   function statusSet(id,text,cls){
@@ -5270,10 +5005,7 @@ renderDashboard=function(){
     const currentMonthKey=today().slice(0,7);let curInc=0,curExp=0;
     (window.transactions||[]).forEach(t=>{if(String(t.tx_date||'').slice(0,7)!==currentMonthKey)return;if(t.type==='Income')curInc+=wsNum(t.to_amount)*toUSD(t.to_account);if(t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t))curExp+=wsNum(t.from_amount)*toUSD(t.from_account);});
     const currentSave=curInc-curExp;
-    const goals=typeof loadGoalsV371==='function'?loadGoalsV371():[];
-    const goalRows=goals.filter(g=>wsNum(g.target)>0).map(g=>{const target=wsNum(g.target),current=Math.max(0,wsNum(typeof goalCurrentV371==='function'?goalCurrentV371(g.type):0));return {g,target,current,remain:Math.max(0,target-current)};});
-    const gap=goalRows.reduce((s,x)=>s+x.remain,0);
-    return {cash,invest,net,avg,currentSave,currentMonthKey,goals:goalRows,gap};
+    return {cash,invest,net,avg,currentSave,currentMonthKey};
   }
   let wsBaseCacheV34412=null;
   let wsBaseCacheAtV34412=0;
@@ -5297,16 +5029,12 @@ renderDashboard=function(){
       const scenarios=[{id:'conservative',name:'Conservative',rate:.70,desc:'70% of recent positive savings pace'},{id:'balanced',name:'Current Pace',rate:1,desc:'100% of recent positive savings pace'},{id:'aggressive',name:'Accelerated',rate:1.25,desc:'125% of recent positive savings pace'}];
       const selected=scenarios.find(x=>x.id===mode)||scenarios[1];
       const selectedValue=Math.max(0,b.net+monthly*months);
-      const totalGoalGap=b.gap;
-      const goalMonths=monthly>0?Math.ceil(totalGoalGap/monthly):null;
-      const nextGoal=b.goals.filter(x=>x.remain>0).sort((x,y)=>x.remain-y.remain)[0]||null;
-      const goalProgress=nextGoal?Math.min(100,nextGoal.current/nextGoal.target*100):100;
       const scenarioCards=scenarios.map(s=>{
-        const sm=Math.max(0,b.avg*s.rate);const vals=[12,24,36].map(h=>b.net+sm*h);const goalEta=totalGoalGap>0&&sm>0?Math.ceil(totalGoalGap/sm):null;
-        return `<div class="ws-scenario ${s.id===selected.id?'active':''}"><div class="ws-scenario-head"><div class="ws-scenario-name">${s.name}</div><div class="ws-scenario-rate">${Math.round(s.rate*100)}%</div></div><div class="ws-horizon">${vals.map((v,i)=>`<div class="ws-horizon-card"><div class="h">${[12,24,36][i]} months</div><div class="v">${wsMoney(v)}</div></div>`).join('')}</div><div class="ws-progress"><span style="width:${Math.min(100,b.net?Math.max(0,Math.min(100,vals[1]/Math.max(vals[1],b.net)*100)):0)}%"></span></div><div class="ws-scenario-meta">${s.desc}. Estimated goal funding time: ${goalEta?goalEta+' months':'needs positive savings pace'}.</div></div>`;
+        const sm=Math.max(0,b.avg*s.rate);const vals=[12,24,36].map(h=>b.net+sm*h)
+        return `<div class="ws-scenario ${s.id===selected.id?'active':''}"><div class="ws-scenario-head"><div class="ws-scenario-name">${s.name}</div><div class="ws-scenario-rate">${Math.round(s.rate*100)}%</div></div><div class="ws-horizon">${vals.map((v,i)=>`<div class="ws-horizon-card"><div class="h">${[12,24,36][i]} months</div><div class="v">${wsMoney(v)}</div></div>`).join('')}</div><div class="ws-progress"><span style="width:${Math.min(100,b.net?Math.max(0,Math.min(100,vals[1]/Math.max(vals[1],b.net)*100)):0)}%"></span></div><div class="ws-scenario-meta">${s.desc}.</div></div>`;
       }).join('');
       el.className='panel wealth-scenarios-v315';
-      el.innerHTML=`<div class="ws-head"><div><div class="ws-kicker">V3.15.0 · Wealth Planning</div><h2>Wealth Forecast &amp; Scenarios</h2><div class="sub">Project future net worth using your recent savings pace. Market returns are intentionally excluded.</div></div><span class="ws-badge">Savings-only model</span></div><div class="ws-body"><div class="ws-summary"><div class="ws-card"><div class="label">Current Net Worth</div><div class="value cyan">${wsMoney(b.net)}</div><div class="meta">Cash + current investment value</div></div><div class="ws-card"><div class="label">Recent Savings Pace</div><div class="value green">${wsMoney(b.avg)} / mo</div><div class="meta">Average of positive savings across the last 6 completed months</div></div><div class="ws-card"><div class="label">${months}-Month Projection</div><div class="value pink">${wsMoney(selectedValue)}</div><div class="meta">${selected.name} scenario · ${wsMoney(monthly)} / mo</div></div><div class="ws-card"><div class="label">Goal Gap</div><div class="value yellow">${wsMoney(totalGoalGap)}</div><div class="meta">Total remaining across active goals</div></div></div><div class="ws-controls"><div class="ws-control"><div class="label">Scenario</div><select id="wsModeV315"><option value="conservative">Conservative · 70%</option><option value="balanced">Current Pace · 100%</option><option value="aggressive">Accelerated · 125%</option></select></div><div class="ws-control"><div class="label">Projection Horizon</div><select id="wsMonthsV315"><option value="12">12 months</option><option value="24">24 months</option><option value="36">36 months</option></select></div><div class="ws-control"><div class="label">Next Review</div><input type="text" value="${wsDate(1)}" readonly aria-label="Next review date"></div></div><div class="ws-scenario-grid">${scenarioCards}</div><div class="ws-goal-strip"><div class="ws-goal-box"><div class="label">Next Goal Priority</div><div class="value">${nextGoal?esc(nextGoal.g.type):'No active goal'}</div><div class="meta">${nextGoal?wsMoney(nextGoal.remain)+' remaining · '+goalProgress.toFixed(0)+'% complete':'Create a goal in Analyze → Goals to include it here.'}</div></div><div class="ws-goal-box"><div class="label">Annual Saving Potential</div><div class="value cyan">${wsMoney(annual)}</div><div class="meta">Based on selected scenario</div></div><div class="ws-goal-box"><div class="label">Goal Funding ETA</div><div class="value">${goalMonths?goalMonths+' mo':'—'}</div><div class="meta">Selected scenario · ${wsMoney(monthly)} / mo</div></div></div><div class="ws-note">This planning view is a scenario tool, not a market forecast. It assumes the selected monthly savings pace continues and does not assume BTC, gold, or other investment returns.</div></div>`;
+      el.innerHTML=`<div class="ws-head"><div><div class="ws-kicker">V3.15.0 · Wealth Planning</div><h2>Wealth Forecast &amp; Scenarios</h2><div class="sub">Project future net worth using your recent savings pace. Market returns are intentionally excluded.</div></div><span class="ws-badge">Savings-only model</span></div><div class="ws-body"><div class="ws-summary"><div class="ws-card"><div class="label">Current Net Worth</div><div class="value cyan">${wsMoney(b.net)}</div><div class="meta">Cash + current investment value</div></div><div class="ws-card"><div class="label">Recent Savings Pace</div><div class="value green">${wsMoney(b.avg)} / mo</div><div class="meta">Average of positive savings across the last 6 completed months</div></div><div class="ws-card"><div class="label">${months}-Month Projection</div><div class="value pink">${wsMoney(selectedValue)}</div><div class="meta">${selected.name} scenario · ${wsMoney(monthly)} / mo</div></div><div class="ws-card"><div class="label">Annual Saving Potential</div><div class="value yellow">${wsMoney(annual)}</div><div class="meta">Based on selected scenario</div></div></div><div class="ws-controls"><div class="ws-control"><div class="label">Scenario</div><select id="wsModeV315"><option value="conservative">Conservative · 70%</option><option value="balanced">Current Pace · 100%</option><option value="aggressive">Accelerated · 125%</option></select></div><div class="ws-control"><div class="label">Projection Horizon</div><select id="wsMonthsV315"><option value="12">12 months</option><option value="24">24 months</option><option value="36">36 months</option></select></div><div class="ws-control"><div class="label">Next Review</div><input type="text" value="${wsDate(1)}" readonly aria-label="Next review date"></div></div><div class="ws-scenario-grid">${scenarioCards}</div><div class="ws-note">This planning view is a scenario tool, not a market forecast. It assumes the selected monthly savings pace continues and does not assume BTC, gold, or other investment returns.</div></div>`;
       $('wsModeV315').value=mode;$('wsMonthsV315').value=String(months);
       $('wsModeV315').onchange=()=>{localStorage.setItem('myfinance_ws_mode_v315',$('wsModeV315').value);renderWealthPlanningV387();};
       $('wsMonthsV315').onchange=()=>{localStorage.setItem('myfinance_ws_months_v315',$('wsMonthsV315').value);renderWealthPlanningV387();};
@@ -5413,8 +5141,7 @@ window.MM_HVAULT_UI_AUDIT = { version:'V3.18.0', duplicatePresentationCleanup:tr
 </script>
 <script id="mmhvault-v319-quality-audit-js">
 (function(){
-  /* Keep the Goals host stable: future renders update its class/content instead of replacing an element with the same id. */
-  window.MM_HVAULT_V319={version:'V3.21.0',qualityAudit:true,stableGoalsHost:true,malformedStyleBoundaryFixed:true};
+  window.MM_HVAULT_V319={version:'V3.21.0',qualityAudit:true,malformedStyleBoundaryFixed:true};
   const runAudit=()=>{
     try{
       const ids=[...document.querySelectorAll('[id]')].map(el=>el.id).filter(Boolean);
@@ -5530,25 +5257,7 @@ function swapExchangeCurrencies(){
     if(navigator.onLine===false) throw new Error('You appear to be offline. Check your connection and try again.');
     return await fn();
   }
-  function beginEdit(id){
-    const goals=readGoals();
-    const g=goals.find(x=>String(x.id)===String(id));
-    if(!g)return;
-    const t=document.getElementById('goalTypeV371'), a=document.getElementById('goalTargetV371'), d=document.getElementById('goalDateV371'), b=document.getElementById('goalSubmitV371'), c=document.getElementById('goalCancelV371');
-    if(!t||!a||!d||!b)return;
-    window.__mmhEditingGoalIdV371=g.id;
-    t.value=g.type||'Emergency Fund';
-    a.value=String(g.target??'');
-    d.value=g.date||'';
-    b.textContent='Save Changes';
-    if(c)c.style.display='inline-flex';
-    try{t.scrollIntoView({behavior:'smooth',block:'center'});}catch(e){}
-  }
-  function bindGoalActions(){
-    // Edit actions are now attached directly to the rendered buttons so they remain reliable
-    // after Goals 2.0 rerenders. Keep this hook as a no-op for compatibility with old events.
-  }
-  function bind(){
+function bind(){
     const txForm=$$('txForm');
     if(txForm){
       const old=txForm.onsubmit;
@@ -5656,48 +5365,37 @@ function swapExchangeCurrencies(){
     const investVal=Math.max(0,investmentValue());
     const net=cash+investVal;
     const investPct=net?investVal/net*100:0;
-    const goals=typeof loadGoalsV371==='function'?loadGoalsV371():[];
-    const activeGoals=goals.map(g=>{const target=Math.max(0,numD(g.target));const cur=Math.max(0,numD(typeof goalCurrentV371==='function'?goalCurrentV371(g.type):0));return {g,target,cur,remain:Math.max(0,target-cur),pct:target?Math.min(100,cur/target*100):0};}).filter(x=>x.target>0&&x.remain>0);
-    activeGoals.sort((a,b)=>{const da=a.g.date?new Date(a.g.date).getTime():Infinity, db=b.g.date?new Date(b.g.date).getTime():Infinity; if(da!==db)return da-db; return b.remain-a.remain;});
-    const priority=activeGoals[0]||null;
     const rules=rulesD();
     let cashStatus=runway>=rules.reserveComfort?'Strong':runway>=rules.reserveMin?'Ready':runway>0?'Tight':'Unknown';
     let investStatus=runway<rules.reserveMin?'Protect cash':investPct>rules.investmentCeiling?'Review allocation':avgSr>=rules.savingsTarget?'Investment-ready':'Build savings';
-    let goalStatus=priority?`${priority.g.pct.toFixed(0)}% funded`:'No active gap';
     let headline='Hold your current system steady.';
     let copy='No single pressure point is strong enough to justify a major change. Keep recording normally and review the next completed month.';
     if(runway<rules.reserveMin){headline='Protect cash before increasing risk.';copy=`Your current cash covers about ${runway.toFixed(1)} months of recent average spending. The decision center prioritizes liquidity first.`;}
-    else if(priority&&priority.g.date&&new Date(priority.g.date+'T23:59:59')<new Date(Date.now()+1000*60*60*24*90)){headline=`Prioritize ${priority.g.type}.`;copy=`This goal is ${priority.pct.toFixed(0)}% funded and has a near-term target date. Direct new surplus here before adding complexity.`;}
     else if(avgSr>=rules.savingsTarget && investPct<=rules.investmentCeiling){headline='Your surplus can support deliberate investing.';copy=`Recent completed months average ${avgSr.toFixed(1)}% savings, while cash covers about ${runway.toFixed(1)} months of average spending.`;}
     else if(avgSr>0){headline='Build the savings base first.';copy=`Recent completed months average ${avgSr.toFixed(1)}% savings. Improve repeatability before materially increasing investment pace.`;}
     const actions=[];
     actions.push(['Liquidity',`Cash reserve covers about ${runway.toFixed(1)} months of recent spending.`,runway<rules.reserveMin?'Keep the next surplus in cash until the reserve improves.':runway<rules.reserveComfort?'Maintain the reserve while making only deliberate new investments.':'Liquidity is currently supportive of planned investing.',cashStatus,runway<3?'High':'Normal']);
     actions.push(['Savings rate',`Recent completed months average ${avgSr.toFixed(1)}%.`,avgSr>=rules.savingsTarget?'Keep the '+rules.savingsTarget+'% baseline repeatable.':'Focus on raising the baseline before increasing risk.',avgSr>=rules.savingsTarget?'On track':avgSr>0?'Build':'No data',avgSr>=rules.savingsTarget?'Good':'Watch']);
     actions.push(['Investment capacity',`${investPct.toFixed(1)}% of current net worth is invested.`,investStatus==='Investment-ready'?'New contributions can be considered within your allocation rules.':investStatus==='Protect cash'?'Do not let investment contributions weaken the cash reserve.':investStatus==='Review allocation'?'Review concentration before adding more investment risk.':'Use surplus to strengthen the savings base first.',investStatus,investStatus==='Investment-ready'?'Good':'Watch']);
-    actions.push(['Goal priority',priority?`${priority.g.type} has ${usdD(priority.remain)} remaining.`:'No active unfinished goal is available.',priority?'Route a defined share of new surplus toward the highest-priority goal.':'Create a goal only when you have a clear target and date.',priority?goalStatus:'Info',priority?'Focus':'Info']);
-    return {cash,runway,avgExp,avgSr,investVal,net,investPct,priority,activeGoals,headline,copy,actions};
+    return {cash,runway,avgExp,avgSr,investVal,net,investPct,headline,copy,actions};
   }
   function renderDecision(){
     const el=$('financialDecisionCenterV325');if(!el)return;const c=calcD();
     const reserveCls=c.runway<3?'decision-bad-v325':c.runway<6?'decision-warn-v325':'decision-good-v325';
     const saveCls=c.avgSr>=60?'decision-good-v325':c.avgSr>0?'decision-warn-v325':'decision-bad-v325';
     el.innerHTML=`<div class="decision-center-v325">
-      <div class="toolbar"><div><h2>Financial Decision Center</h2><div class="sub">Decision layer built from your existing cash flow, investments and goals.</div></div><span class="pill">Advisory · No auto changes</span></div>
+      <div class="toolbar"><div><h2>Financial Decision Center</h2><div class="sub">Decision layer built from your existing cash flow and investments.</div></div><span class="pill">Advisory · No auto changes</span></div>
       <div class="decision-hero-v325"><div class="label" style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">Today’s priority</div><div class="headline">${escD(c.headline)}</div><div class="copy">${escD(c.copy)}</div></div>
       <div class="decision-grid-v325">
         <div class="decision-card-v325"><div class="label">Cash Reserve</div><div class="value ${reserveCls}">${c.runway?c.runway.toFixed(1)+' mo':'—'}</div><div class="detail">Cash / recent average monthly spending · target rule: ${rulesD().reserveMin}+ months</div></div>
         <div class="decision-card-v325"><div class="label">Savings Base</div><div class="value ${saveCls}">${c.avgSr.toFixed(1)}%</div><div class="detail">Average savings rate across the last 3 completed active months</div></div>
         <div class="decision-card-v325"><div class="label">Investment Weight</div><div class="value decision-cyan-v325">${c.investPct.toFixed(1)}%</div><div class="detail">Investment value as a share of current estimated net worth</div></div>
-        <div class="decision-card-v325"><div class="label">Goal Priority</div><div class="value">${c.priority?escD(c.priority.g.type):'—'}</div><div class="detail">${c.priority?escD(usdD(c.priority.remain)+' remaining'): 'No unfinished goal gap found'}</div></div>
       </div>
       <div class="decision-main-v325">
-        <div class="panel" style="margin:0"><div class="toolbar"><div><h3 style="margin:0">Decision Checks</h3><div class="sub">Rules are transparent and advisory.</div></div></div><div class="decision-list-v325">${c.actions.map(a=>`<div class="decision-row-v325"><div><div class="title">${escD(a[0])}</div><div class="sub">${escD(a[1])}<br>${escD(a[2])}</div></div><span class="decision-pill-v325">${escD(a[3])}</span></div>`).join('')}</div><div class="decision-rule-v325">Core rule order: liquidity → savings consistency → goal urgency → investment capacity.</div></div>
+        <div class="panel" style="margin:0"><div class="toolbar"><div><h3 style="margin:0">Decision Checks</h3><div class="sub">Rules are transparent and advisory.</div></div></div><div class="decision-list-v325">${c.actions.map(a=>`<div class="decision-row-v325"><div><div class="title">${escD(a[0])}</div><div class="sub">${escD(a[1])}<br>${escD(a[2])}</div></div><span class="decision-pill-v325">${escD(a[3])}</span></div>`).join('')}</div><div class="decision-rule-v325">Core rule order: liquidity → savings consistency → investment capacity.</div></div>
         <div class="panel" style="margin:0"><div class="toolbar"><div><h3 style="margin:0">Recommended Order</h3><div class="sub">What new surplus should generally do next</div></div></div><div class="decision-list-v325">
           <div class="decision-row-v325"><div><div class="title">1 · Protect liquidity</div><div class="sub">Keep the reserve above the minimum cash threshold before taking more risk.</div></div><span class="decision-pill-v325 ${reserveCls}">${c.runway>=rulesD().reserveMin?'OK':'Priority'}</span></div>
           <div class="decision-row-v325"><div><div class="title">2 · Preserve the savings baseline</div><div class="sub">Treat repeatable savings as the engine that funds every later decision.</div></div><span class="decision-pill-v325 ${saveCls}">${c.avgSr>=rulesD().savingsTarget?'Stable':'Build'}</span></div>
-          <div class="decision-row-v325"><div><div class="title">3 · Fund the highest-priority goal</div><div class="sub">${c.priority?escD(c.priority.g.type)+' · '+escD(usdD(c.priority.remain))+' remaining.':'No active goal is currently forcing a funding decision.'}</div></div><span class="decision-pill-v325">${c.priority?'Focus':'Optional'}</span></div>
-          <div class="decision-row-v325"><div><div class="title">4 · Invest deliberate surplus</div><div class="sub">Only the surplus left after liquidity, baseline savings and goal obligations should increase investment pace.</div></div><span class="decision-pill-v325">Rule</span></div>
-        </div></div>
       </div>
     </div>`;
   }
@@ -5855,7 +5553,7 @@ function swapExchangeCurrencies(){
 })();</script>
 <script id="mmhvault-v32815-analyze-tabs-final-fix">
 (function(){
-  const validTabs=['overview','health','cashflow','expenses','networth','goals','decisions','wealthrules'];
+  const validTabs=['overview','health','cashflow','expenses','networth','decisions','wealthrules'];
   function activate(tab){
     if(!validTabs.includes(tab)) tab='overview';
     document.querySelectorAll('.analyze-tab-v371').forEach(function(b){
@@ -5874,7 +5572,7 @@ function swapExchangeCurrencies(){
     try{
       if(tab==='health' && typeof window.renderFinancialHealthV371==='function') window.renderFinancialHealthV371();
       if(tab==='networth' && typeof window.renderNetWorthAnalyzeV371==='function') window.renderNetWorthAnalyzeV371();
-      if(tab==='goals' && typeof window.renderGoalsV371==='function') window.renderGoalsV371();
+      
       if(tab==='decisions' && typeof window.renderFinancialDecisionV325==='function') window.renderFinancialDecisionV325();
       if(tab==='wealthrules' && typeof window.mmhActivateWealthRulesV32814==='function') window.mmhActivateWealthRulesV32814();
     }catch(err){ console.warn('Analyze tab render warning:',err); }
@@ -6837,8 +6535,6 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
     deleteInvestment:'investment-delete',
     saveRates:'exchange-rates-save',
     saveManualGoldPrice:'gold-price-save',
-    saveGoalV371:'goal-save',
-    deleteGoalV371:'goal-delete'
   };
   function notify(reason){
     try{
@@ -7311,7 +7007,7 @@ let lang=localStorage.getItem('mmhvault_language_v3363')||'en';
 
 // Comprehensive Chinese language pack v3.36.6 · full Analyze/Dashboard coverage
 Object.assign(zh,{
-'MMHVAULT · Personal Finance & Wealth Management':'MMHVAULT · 个人财务与财富管理','Loading your private finance workspace…':'正在加载您的私人财务空间…','Loading your finance data…':'正在加载您的财务数据…','Syncing your private cloud records.':'正在同步您的私人云端数据。','Unable to load cloud data.':'无法加载云端数据。','Retry':'重试','Personal Finance & Wealth Management':'个人财务与财富管理','MMHVAULT User':'MMHVAULT 用户','Your MMHVAULT dashboard is getting ready.':'您的 MMHVAULT 仪表盘正在准备中。','Loading your latest financial data…':'正在加载最新财务数据…','Welcome to MMHVAULT':'欢迎使用 MMHVAULT','Let’s get your personal wealth workspace ready.':'让我们准备好您的个人财富管理空间。','Skip':'跳过','1. Your account is ready':'1. 您的账户已准备就绪','Your Customer ID is created automatically and your account stays connected to your own cloud data.':'您的客户 ID 会自动创建，账户将持续连接到您自己的云端数据。','Secure sign-in with Google or Email / Password':'使用 Google 或邮箱 / 密码安全登录','Personal Customer ID such as MF0001':'个人客户 ID，例如 MF0001','Your finance records remain separated by account':'您的财务记录按账户独立保存','2. Add your first transaction':'2. 添加您的第一笔交易','Income — salary, bonus or other income':'收入 — 工资、奖金或其他收入','Expense — dining, transport, lifestyle and more':'支出 — 餐饮、交通、生活等','Analyze updates automatically':'分析数据自动更新','3. You’re ready to go':'3. 一切准备就绪','Track Crypto & Gold investments':'追踪加密货币与黄金投资','Manage your exchange rates':'管理您的汇率','Account, Appearance and Data & Backup':'账户、外观和数据与备份','This introduction appears once on each device. You can skip it at any time.':'此介绍每台设备仅显示一次，您可以随时跳过。','Back':'返回','Next':'下一步','Display Currency:':'显示货币：','Day-to-day cash accounts · native currency + USD equivalent':'日常现金账户 · 原币种 + USD 等值','Income / Expense':'收入 / 支出','Current Month':'本月','Investment Snapshot':'投资概览','Current holdings':'当前持仓','Recent Transactions':'最近交易','0 shown':'显示 0 条','View All →':'查看全部 →','▤ History':'▤ 历史记录','◈ Intelligence':'◈ 智能分析','Date':'日期','Type':'类型','Transfer':'转账','Transaction':'交易','Personal':'个人','Loans':'借贷','Category':'分类','From Account':'转出账户','Account From Amount':'转出账户金额','To Account':'转入账户','Account To Amount':'转入账户金额','Note':'备注','Receipt attachment':'收据附件','Optional · add proof, invoice or payment screenshot':'可选 · 添加凭证、发票或付款截图','Optional':'可选','Choose a receipt':'选择收据','PNG, JPG, WEBP or PDF · up to 10 MB':'PNG、JPG、WEBP 或 PDF · 最大 10 MB','🔒 Stored privately in your secure cloud storage':'🔒 私密存储在您的安全云端空间','No file selected':'未选择文件','Clear':'清除','0 records':'0 条记录','Clear All':'清除全部','Search':'搜索','All':'全部','↺ Clear Filters':'↺ 清除筛选','Export CSV':'导出 CSV','Transaction Intelligence':'交易智能分析','Audit · Informational':'审计 · 信息参考','Year':'年份','Month':'月份','Annual':'年度','Overview':'概览','Financial Health':'财务健康','Cash Flow':'现金流','Expenses':'支出','Net Worth':'净资产','Goals':'目标','Decisions':'决策','Wealth Rules':'财富规则','Period Overview':'周期概览','Quick summary for your selected analysis period.':'您所选分析周期的快速摘要。','All period-based Analyze modules use the same transaction dataset and selected Year / Month.':'所有周期分析模块均使用相同的交易数据及所选年份 / 月份。','Expense Details':'支出详情','Loans excluded':'不包含借贷','Outstanding':'未偿还','Monthly Overview':'月度概览','Selected period':'所选周期','Health score based on your selected analysis period.':'健康评分基于您选择的分析周期。','Cash Flow Summary':'现金流摘要','Selected period · THB':'所选周期 · THB','Last 6 months · target 60%':'最近 6 个月 · 目标 60%','Expense Trend':'支出趋势','Income vs Expense':'收入与支出','Personal Expense Analysis':'个人支出分析','Family Support · Special Transfer · Gifts · Donation':'家庭支持 · 特别转账 · 礼物 · 捐赠','Personal · THB':'个人 · THB','Expense Ranking':'支出排行','Budget Progress':'预算进度','Edit planned amount for each category · THB':'编辑每个分类的计划金额 · THB','Current snapshot':'当前快照','Financial Goals':'财务目标','Track Emergency Fund, Savings, Investment and Net Worth goals.':'追踪紧急备用金、储蓄、投资和净资产目标。','Auto-updated':'自动更新','Goal Type':'目标类型','Emergency Fund':'紧急备用金','Savings':'储蓄','Investment':'投资','Target Amount ($)':'目标金额 ($)','Target Date':'目标日期','Add Goal':'添加目标','Local preferences':'本地偏好设置','Minimum Cash Reserve':'最低现金储备','months':'个月','Below this level, liquidity takes priority over new risk.':'低于此水平时，流动性优先于新的风险投资。','Comfortable Cash Reserve':'舒适现金储备','A stronger reserve level used for the “comfortable” state.':'用于“舒适”状态的更高储备水平。','Target Savings Rate':'目标储蓄率','Your repeatable monthly savings baseline before increasing investment pace.':'提高投资节奏前可持续执行的月度储蓄基准。','Investment Weight Ceiling':'投资比例上限','Above this share of net worth, the decision layer asks you to review concentration.':'超过该净资产比例时，决策系统会提示您检查集中度。','Save Rules':'保存规则','Reset Defaults':'恢复默认','Rule flow':'规则流程','Liquidity → Savings → Goals → Investment':'流动性 → 储蓄 → 目标 → 投资','Rates':'汇率','USD → MMK (manual)':'USD → MMK（手动）','USD → THB':'USD → THB','USD → CNY':'USD → CNY','Currency Converter':'货币转换器','Convert between USD, MMK, THB and CNY using your saved exchange rates.':'使用已保存的汇率在 USD、MMK、THB 和 CNY 之间转换。','Live from saved rates':'使用已保存汇率','Amount':'金额','From':'从','To':'到','⇄ Swap':'⇄ 交换','Investment Center':'投资中心','Crypto is displayed in':'加密货币显示单位为','Gold is displayed in':'黄金显示单位为','₿ Crypto':'₿ 加密货币','🥇 Gold':'🥇 黄金','Portfolio':'投资组合','Crypto Market':'加密货币市场','Live feed':'实时数据','Gold Market':'黄金市场','Manual · MMK / ကျပ်သား':'手动 · MMK / 缅甸甲','Current Gold Price · MMK / ကျပ်သား':'当前黄金价格 · MMK / 缅甸甲','Enter your current market price below.':'请在下方输入当前市场价格。','Open Google':'打开 Google','Gold Market Price / ကျပ်သား':'黄金市场价格 / 缅甸甲','Save Price':'保存价格','Portfolio Manager':'投资组合管理','A combined view of your Crypto + Gold portfolio, converted to USD for comparison.':'加密货币 + 黄金投资组合综合视图，并统一换算为 USD 方便比较。','Live valuation':'实时估值','Asset Mix':'资产构成','Current portfolio value':'当前投资组合价值','Crypto · Gold':'加密货币 · 黄金','Portfolio Signals':'投资组合信号','Simple risk and performance indicators':'简单的风险与表现指标','Current Position Leaders':'当前主要持仓','Largest positions by current value':'按当前价值排名的最大持仓','Top holdings':'主要持仓','Investment Activity':'投资活动','Net investment cost recorded by month':'按月记录的净投资成本','Record history':'记录历史','Current Holdings':'当前持仓','Live market value and the quantity you currently hold.':'实时市场价值及您当前持有的数量。','Crypto · USD':'加密货币 · USD','Portfolio Allocation':'投资组合配置','Current weight vs target weight.':'当前比例与目标比例。','Crypto Target':'加密货币目标','Record Crypto in USD or Gold in MMK. The source account is deducted automatically.':'加密货币以 USD 记录，黄金以 MMK 记录。来源账户将自动扣除。','Crypto / Gold':'加密货币 / 黄金','Trade Type':'交易类型','Buy':'买入','Sell':'卖出','Asset':'资产','Symbol':'代码','Source Account':'来源账户','Invested Amount':'投资金额','Fee':'手续费','Other Cost':'其他成本','Purchase-day Market Price':'购买日市场价格','Current Market Price':'当前市场价格','Quantity (Auto)':'数量（自动）','Gold Weight (Auto)':'黄金重量（自动）','Buy & Record':'买入并记录','Crypto Portfolio':'加密货币投资组合','All crypto values and P/L are shown in USD.':'所有加密货币价值及盈亏均以 USD 显示。','Profit / Loss · ROI':'盈亏 · ROI','Gold Portfolio':'黄金投资组合','Gold cost, value and P/L are shown in MMK.':'黄金成本、价值及盈亏均以 MMK 显示。','Account Center':'账户中心','Manage your MMHVAULT identity and sign-in status.':'管理您的 MMHVAULT 身份与登录状态。','Logout':'退出登录','Email / Password':'邮箱 / 密码','Customer ID':'客户 ID','Copy':'复制','Login method':'登录方式','Member since':'注册时间','Account status':'账户状态','Active':'正常','Account is active':'账户正常','Your cloud finance data is linked to this account.':'您的云端财务数据已关联此账户。','Not connected':'未连接','Session':'会话','Signed in':'已登录','Security':'安全','Manage your sign-in security without changing your Google / Email account connection.':'管理登录安全设置，无需更改 Google / 邮箱账户连接。','Security status':'安全状态','A quick view of the current authentication state for this account.':'快速查看此账户当前认证状态。','Authentication':'身份验证','Email verification':'邮箱验证','Google connection':'Google 连接','Last sign-in':'最后登录','Sign out other devices':'退出其他设备','Sign out all devices':'退出所有设备','Password':'密码','Change the password for your Email / Password account.':'更改您的邮箱 / 密码账户密码。','Current Password':'当前密码','New Password':'新密码','Confirm New Password':'确认新密码','For Google-only accounts, password management stays with Google and this form is not shown.':'仅使用 Google 登录的账户，密码由 Google 管理，因此不会显示此表单。','PWA icon · 192×192 / 512×512':'PWA 图标 · 192×192 / 512×512','RLS Protected':'RLS 保护','Preview Only':'仅预览','New Transactions':'新增交易','New Investments':'新增投资','Duplicates':'重复项','Review & Restore':'检查并恢复','Security & Data Status':'安全与数据状态','A quick operational check for your MMHVAULT account, cloud data and local backup state.':'快速检查您的 MMHVAULT 账户、云端数据和本地备份状态。','Checking…':'检查中…','Cloud connection':'云端连接','Signed-in account status':'登录账户状态','Account security':'账户安全','Authentication status':'认证状态','Backup state':'备份状态','Local backup history':'本地备份历史','Data footprint':'数据占用','Transactions + investments + rates':'交易 + 投资 + 汇率','Refresh Status':'刷新状态','Create Backup Now':'立即创建备份','Backup History':'备份历史','Recent backup points saved on this device for this account.':'此设备上为该账户保存的最近备份点。','Clear History':'清除历史','📊 Workbook import':'📊 工作簿导入','Excel Import':'Excel 导入','SAFE MERGE':'安全合并','Choose a workbook':'选择工作簿','.XLSX, .XLS or .XLSM · select your finance workbook':'.XLSX、.XLS 或 .XLSM · 选择您的财务工作簿','💡 Existing cloud records are preserved. Only new rows are imported.':'💡 保留现有云端记录，仅导入新增数据。','Import to My Account':'导入到我的账户','Data Safety':'数据安全','🔒 Private by account':'🔒 按账户私密保存','☁️ Cloud sync':'☁️ 云端同步','Danger Zone':'危险区域','Delete only your own Transactions, Investments and Exchange Rates.':'仅删除您自己的交易、投资和汇率数据。','Reset My Cloud Data':'重置我的云端数据','This action cannot be undone from MMHVAULT. Export a backup first.':'此操作无法在 MMHVAULT 中撤销，请先导出备份。','Close':'关闭','You are offline. Cloud changes will not be submitted.':'您当前离线，云端更改不会提交。','📎 Receipt Preview':'📎 收据预览','Reset':'重置','✕ Close':'✕ 关闭','Loading receipt…':'正在加载收据…',
+'MMHVAULT · Personal Finance & Wealth Management':'MMHVAULT · 个人财务与财富管理','Loading your private finance workspace…':'正在加载您的私人财务空间…','Loading your finance data…':'正在加载您的财务数据…','Syncing your private cloud records.':'正在同步您的私人云端数据。','Unable to load cloud data.':'无法加载云端数据。','Retry':'重试','Personal Finance & Wealth Management':'个人财务与财富管理','MMHVAULT User':'MMHVAULT 用户','Your MMHVAULT dashboard is getting ready.':'您的 MMHVAULT 仪表盘正在准备中。','Loading your latest financial data…':'正在加载最新财务数据…','Welcome to MMHVAULT':'欢迎使用 MMHVAULT','Let’s get your personal wealth workspace ready.':'让我们准备好您的个人财富管理空间。','Skip':'跳过','1. Your account is ready':'1. 您的账户已准备就绪','Your Customer ID is created automatically and your account stays connected to your own cloud data.':'您的客户 ID 会自动创建，账户将持续连接到您自己的云端数据。','Secure sign-in with Google or Email / Password':'使用 Google 或邮箱 / 密码安全登录','Personal Customer ID such as MF0001':'个人客户 ID，例如 MF0001','Your finance records remain separated by account':'您的财务记录按账户独立保存','2. Add your first transaction':'2. 添加您的第一笔交易','Income — salary, bonus or other income':'收入 — 工资、奖金或其他收入','Expense — dining, transport, lifestyle and more':'支出 — 餐饮、交通、生活等','Analyze updates automatically':'分析数据自动更新','3. You’re ready to go':'3. 一切准备就绪','Track Crypto & Gold investments':'追踪加密货币与黄金投资','Manage your exchange rates':'管理您的汇率','Account, Appearance and Data & Backup':'账户、外观和数据与备份','This introduction appears once on each device. You can skip it at any time.':'此介绍每台设备仅显示一次，您可以随时跳过。','Back':'返回','Next':'下一步','Display Currency:':'显示货币：','Day-to-day cash accounts · native currency + USD equivalent':'日常现金账户 · 原币种 + USD 等值','Income / Expense':'收入 / 支出','Current Month':'本月','Investment Snapshot':'投资概览','Current holdings':'当前持仓','Recent Transactions':'最近交易','0 shown':'显示 0 条','View All →':'查看全部 →','▤ History':'▤ 历史记录','◈ Intelligence':'◈ 智能分析','Date':'日期','Type':'类型','Transfer':'转账','Transaction':'交易','Personal':'个人','Loans':'借贷','Category':'分类','From Account':'转出账户','Account From Amount':'转出账户金额','To Account':'转入账户','Account To Amount':'转入账户金额','Note':'备注','Receipt attachment':'收据附件','Optional · add proof, invoice or payment screenshot':'可选 · 添加凭证、发票或付款截图','Optional':'可选','Choose a receipt':'选择收据','PNG, JPG, WEBP or PDF · up to 10 MB':'PNG、JPG、WEBP 或 PDF · 最大 10 MB','🔒 Stored privately in your secure cloud storage':'🔒 私密存储在您的安全云端空间','No file selected':'未选择文件','Clear':'清除','0 records':'0 条记录','Clear All':'清除全部','Search':'搜索','All':'全部','↺ Clear Filters':'↺ 清除筛选','Export CSV':'导出 CSV','Transaction Intelligence':'交易智能分析','Audit · Informational':'审计 · 信息参考','Year':'年份','Month':'月份','Annual':'年度','Overview':'概览','Financial Health':'财务健康','Cash Flow':'现金流','Expenses':'支出','Net Worth':'净资产','Decisions':'决策','Wealth Rules':'财富规则','Period Overview':'周期概览','Quick summary for your selected analysis period.':'您所选分析周期的快速摘要。','All period-based Analyze modules use the same transaction dataset and selected Year / Month.':'所有周期分析模块均使用相同的交易数据及所选年份 / 月份。','Expense Details':'支出详情','Loans excluded':'不包含借贷','Outstanding':'未偿还','Monthly Overview':'月度概览','Selected period':'所选周期','Health score based on your selected analysis period.':'健康评分基于您选择的分析周期。','Cash Flow Summary':'现金流摘要','Selected period · THB':'所选周期 · THB','Last 6 months · target 60%':'最近 6 个月 · 目标 60%','Expense Trend':'支出趋势','Income vs Expense':'收入与支出','Personal Expense Analysis':'个人支出分析','Family Support · Special Transfer · Gifts · Donation':'家庭支持 · 特别转账 · 礼物 · 捐赠','Personal · THB':'个人 · THB','Expense Ranking':'支出排行','Budget Progress':'预算进度','Edit planned amount for each category · THB':'编辑每个分类的计划金额 · THB','Current snapshot':'当前快照','Auto-updated':'自动更新','Emergency Fund':'紧急备用金','Savings':'储蓄','Investment':'投资','Local preferences':'本地偏好设置','Minimum Cash Reserve':'最低现金储备','months':'个月','Below this level, liquidity takes priority over new risk.':'低于此水平时，流动性优先于新的风险投资。','Comfortable Cash Reserve':'舒适现金储备','A stronger reserve level used for the “comfortable” state.':'用于“舒适”状态的更高储备水平。','Target Savings Rate':'目标储蓄率','Your repeatable monthly savings baseline before increasing investment pace.':'提高投资节奏前可持续执行的月度储蓄基准。','Investment Weight Ceiling':'投资比例上限','Above this share of net worth, the decision layer asks you to review concentration.':'超过该净资产比例时，决策系统会提示您检查集中度。','Save Rules':'保存规则','Reset Defaults':'恢复默认','Rule flow':'规则流程','Rates':'汇率','USD → MMK (manual)':'USD → MMK（手动）','USD → THB':'USD → THB','USD → CNY':'USD → CNY','Currency Converter':'货币转换器','Convert between USD, MMK, THB and CNY using your saved exchange rates.':'使用已保存的汇率在 USD、MMK、THB 和 CNY 之间转换。','Live from saved rates':'使用已保存汇率','Amount':'金额','From':'从','To':'到','⇄ Swap':'⇄ 交换','Investment Center':'投资中心','Crypto is displayed in':'加密货币显示单位为','Gold is displayed in':'黄金显示单位为','₿ Crypto':'₿ 加密货币','🥇 Gold':'🥇 黄金','Portfolio':'投资组合','Crypto Market':'加密货币市场','Live feed':'实时数据','Gold Market':'黄金市场','Manual · MMK / ကျပ်သား':'手动 · MMK / 缅甸甲','Current Gold Price · MMK / ကျပ်သား':'当前黄金价格 · MMK / 缅甸甲','Enter your current market price below.':'请在下方输入当前市场价格。','Open Google':'打开 Google','Gold Market Price / ကျပ်သား':'黄金市场价格 / 缅甸甲','Save Price':'保存价格','Portfolio Manager':'投资组合管理','A combined view of your Crypto + Gold portfolio, converted to USD for comparison.':'加密货币 + 黄金投资组合综合视图，并统一换算为 USD 方便比较。','Live valuation':'实时估值','Asset Mix':'资产构成','Current portfolio value':'当前投资组合价值','Crypto · Gold':'加密货币 · 黄金','Portfolio Signals':'投资组合信号','Simple risk and performance indicators':'简单的风险与表现指标','Current Position Leaders':'当前主要持仓','Largest positions by current value':'按当前价值排名的最大持仓','Top holdings':'主要持仓','Investment Activity':'投资活动','Net investment cost recorded by month':'按月记录的净投资成本','Record history':'记录历史','Current Holdings':'当前持仓','Live market value and the quantity you currently hold.':'实时市场价值及您当前持有的数量。','Crypto · USD':'加密货币 · USD','Portfolio Allocation':'投资组合配置','Current weight vs target weight.':'当前比例与目标比例。','Crypto Target':'加密货币目标','Record Crypto in USD or Gold in MMK. The source account is deducted automatically.':'加密货币以 USD 记录，黄金以 MMK 记录。来源账户将自动扣除。','Crypto / Gold':'加密货币 / 黄金','Trade Type':'交易类型','Buy':'买入','Sell':'卖出','Asset':'资产','Symbol':'代码','Source Account':'来源账户','Invested Amount':'投资金额','Fee':'手续费','Other Cost':'其他成本','Purchase-day Market Price':'购买日市场价格','Current Market Price':'当前市场价格','Quantity (Auto)':'数量（自动）','Gold Weight (Auto)':'黄金重量（自动）','Buy & Record':'买入并记录','Crypto Portfolio':'加密货币投资组合','All crypto values and P/L are shown in USD.':'所有加密货币价值及盈亏均以 USD 显示。','Profit / Loss · ROI':'盈亏 · ROI','Gold Portfolio':'黄金投资组合','Gold cost, value and P/L are shown in MMK.':'黄金成本、价值及盈亏均以 MMK 显示。','Account Center':'账户中心','Manage your MMHVAULT identity and sign-in status.':'管理您的 MMHVAULT 身份与登录状态。','Logout':'退出登录','Email / Password':'邮箱 / 密码','Customer ID':'客户 ID','Copy':'复制','Login method':'登录方式','Member since':'注册时间','Account status':'账户状态','Active':'正常','Account is active':'账户正常','Your cloud finance data is linked to this account.':'您的云端财务数据已关联此账户。','Not connected':'未连接','Session':'会话','Signed in':'已登录','Security':'安全','Manage your sign-in security without changing your Google / Email account connection.':'管理登录安全设置，无需更改 Google / 邮箱账户连接。','Security status':'安全状态','A quick view of the current authentication state for this account.':'快速查看此账户当前认证状态。','Authentication':'身份验证','Email verification':'邮箱验证','Google connection':'Google 连接','Last sign-in':'最后登录','Sign out other devices':'退出其他设备','Sign out all devices':'退出所有设备','Password':'密码','Change the password for your Email / Password account.':'更改您的邮箱 / 密码账户密码。','Current Password':'当前密码','New Password':'新密码','Confirm New Password':'确认新密码','For Google-only accounts, password management stays with Google and this form is not shown.':'仅使用 Google 登录的账户，密码由 Google 管理，因此不会显示此表单。','PWA icon · 192×192 / 512×512':'PWA 图标 · 192×192 / 512×512','RLS Protected':'RLS 保护','Preview Only':'仅预览','New Transactions':'新增交易','New Investments':'新增投资','Duplicates':'重复项','Review & Restore':'检查并恢复','Security & Data Status':'安全与数据状态','A quick operational check for your MMHVAULT account, cloud data and local backup state.':'快速检查您的 MMHVAULT 账户、云端数据和本地备份状态。','Checking…':'检查中…','Cloud connection':'云端连接','Signed-in account status':'登录账户状态','Account security':'账户安全','Authentication status':'认证状态','Backup state':'备份状态','Local backup history':'本地备份历史','Data footprint':'数据占用','Transactions + investments + rates':'交易 + 投资 + 汇率','Refresh Status':'刷新状态','Create Backup Now':'立即创建备份','Backup History':'备份历史','Recent backup points saved on this device for this account.':'此设备上为该账户保存的最近备份点。','Clear History':'清除历史','📊 Workbook import':'📊 工作簿导入','Excel Import':'Excel 导入','SAFE MERGE':'安全合并','Choose a workbook':'选择工作簿','.XLSX, .XLS or .XLSM · select your finance workbook':'.XLSX、.XLS 或 .XLSM · 选择您的财务工作簿','💡 Existing cloud records are preserved. Only new rows are imported.':'💡 保留现有云端记录，仅导入新增数据。','Import to My Account':'导入到我的账户','Data Safety':'数据安全','🔒 Private by account':'🔒 按账户私密保存','☁️ Cloud sync':'☁️ 云端同步','Danger Zone':'危险区域','Delete only your own Transactions, Investments and Exchange Rates.':'仅删除您自己的交易、投资和汇率数据。','Reset My Cloud Data':'重置我的云端数据','This action cannot be undone from MMHVAULT. Export a backup first.':'此操作无法在 MMHVAULT 中撤销，请先导出备份。','Close':'关闭','You are offline. Cloud changes will not be submitted.':'您当前离线，云端更改不会提交。','📎 Receipt Preview':'📎 收据预览','Reset':'重置','✕ Close':'✕ 关闭','Loading receipt…':'正在加载收据…',
 // v3.36.6 — complete Dashboard / Analyze language coverage
 'Wealth Forecast & Scenarios':'财富预测与情景方案',
 'Project future net worth using your recent savings pace. Market returns are intentionally excluded.':'根据您近期的储蓄速度预测未来净资产，不包含市场投资回报。',
@@ -7320,8 +7016,6 @@ Object.assign(zh,{
 'Cash + current investment value':'现金 + 当前投资价值',
 'Recent Savings Pace':'近期储蓄速度',
 'Average of positive savings across the last 6 completed months':'最近 6 个完整月份正储蓄的平均值',
-'Goal Gap':'目标差额',
-'Total remaining across active goals':'所有进行中目标的剩余总额',
 'Scenario':'情景方案',
 'Conservative · 70%':'保守 · 70%',
 'Current Pace · 100%':'当前速度 · 100%',
@@ -7332,19 +7026,13 @@ Object.assign(zh,{
 '36 months':'36 个月',
 'Next Review':'下次复查',
 'Next review date':'下次复查日期',
-'Next Goal Priority':'下一目标优先级',
-'No active goal':'暂无进行中的目标',
 'Annual Saving Potential':'年度储蓄潜力',
 'Based on selected scenario':'基于所选情景方案',
-'Goal Funding ETA':'目标预计完成时间',
 'This planning view is a scenario tool, not a market forecast. It assumes the selected monthly savings pace continues and does not assume BTC, gold, or other investment returns.':'此规划视图是情景分析工具，并非市场预测。它假设所选的月度储蓄速度持续，不假设 BTC、黄金或其他投资产生回报。',
 'Wealth planning is temporarily unavailable. Your underlying finance data is unchanged.':'财富规划暂时不可用，您的基础财务数据不会受到影响。',
 'Financial Milestones':'财务里程碑',
 'Track your progress toward major net worth milestones as your MMHVAULT assets grow.':'随着 MMHVAULT 资产增长，追踪您迈向重要净资产里程碑的进度。',
 'Net worth milestones':'净资产里程碑',
-'Your goal progress is shown once in Financial Milestones to keep the Dashboard clean and avoid duplicate information.':'您的目标进度会统一显示在“财务里程碑”中，以保持仪表盘简洁并避免重复信息。',
-'Wealth Goal Roadmap':'财富目标路线图',
-'Turn each target into a deadline, funding requirement and pace signal. The plan uses your recorded transaction history and current goal values.':'将每个目标转化为截止日期、资金需求和进度信号。该计划使用您已记录的交易历史和当前目标数值。',
 'Personal Wealth Rules':'个人财富规则',
 'Your decision rules live here. They guide recommendations without changing transactions or investments automatically.':'您的个人决策规则在这里设置。它们会指导系统建议，但不会自动修改交易或投资。',
 'Estimated trend from monthly cash flow and current holdings. Historical Crypto/Gold market prices are not stored.':'根据月度现金流和当前持仓估算趋势。系统不会保存历史加密货币 / 黄金市场价格。',
@@ -7469,27 +7157,15 @@ Object.assign(zh,{
 'Progress toward next milestone:':'距下一里程碑进度：',
 'Major milestones reached:':'已达成的重要里程碑：',
 'Milestones are based on current net worth in USD. They are personal progress markers, not investment return forecasts.':'里程碑基于当前 USD 净资产计算，仅用于个人财富进度追踪，并非投资收益预测。',
-'GOALS LINKED TO YOUR WEALTH PLAN':'与您的财富计划关联的目标',
-'Your personal goals are shown here once alongside your net worth milestones.':'您的个人目标会与净资产里程碑统一显示在这里。',
-'Manage Goals':'管理目标',
-'Goal reached':'目标已达成',
-'No financial goals yet. Create one in Analyze → Goals and it will appear here automatically.':'暂无财务目标。请在“分析 → 目标”中创建，创建后会自动显示在这里。',
-'Goals measure your personal targets; milestones measure net worth progress. Keeping them together here makes the Dashboard easier to read.':'目标用于衡量您的个人目标，里程碑用于衡量净资产进度。统一展示可以让仪表盘更清晰。',
-'MMHVAULT updates milestone and goal progress automatically as your cash and investment values change.':'随着现金和投资价值变化，MMHVAULT 会自动更新里程碑和目标进度。',
-'Wealth Goal Roadmap':'财富目标路线图',
 'Monthly savings capacity':'每月储蓄能力',
-'Active goals':'进行中的目标',
 'total tracked':'总追踪目标',
 'On track':'进展正常',
 'Based on current funding capacity':'基于当前资金投入能力',
 'Due within 90 days':'90 天内到期',
 'Needs near-term attention':'需要近期关注',
 'Total remaining':'剩余总额',
-'Across active goals':'所有进行中目标',
-'Next funding priority':'下一资金优先级',
-'Create your first goal':'创建您的第一个目标',
+
 'Once you add a target, MMHVAULT will calculate the remaining amount, target-date funding requirement and pace.':'添加目标后，MMHVAULT 会计算剩余金额、目标日期所需资金和完成节奏。',
-'No goals yet. Add your first financial goal above.':'暂无目标，请在上方添加您的第一个财务目标。',
 'current':'当前',
 'Remaining':'剩余',
 'Progress':'进度',
@@ -7561,8 +7237,6 @@ Object.assign(zh,{
 'Selected period':'所选周期',
 'No matching transactions.':'没有符合条件的交易记录。',
 'History':'历史记录',
-'Add or update a target below. Goals 2.0 turns each target into a dated plan with a monthly funding requirement.':'在下方添加或更新目标。Goals 2.0 会将每个目标转化为带日期和每月资金需求的计划。',
-'Add Goal':'添加目标',
 'Behind pace':'进度落后',
 'On track':'进展正常',
 'Close to Limit':'接近预算上限',
@@ -7585,7 +7259,6 @@ Object.assign(zh,{
 '70% of recent positive savings pace':'近期正储蓄速度的 70%',
 '100% of recent positive savings pace':'近期正储蓄速度的 100%',
 '125% of recent positive savings pace':'近期正储蓄速度的 125%',
-'Estimated goal funding time':'预计目标资金完成时间',
 'needs positive savings pace':'需要保持正向储蓄速度',
 '15 mo':'15个月',
 '12 mo':'12个月',
@@ -7634,11 +7307,10 @@ Object.assign(zh,{
 'SELL':'卖出',
 'Acquired':'已买入',
 'History':'历史记录',
-'Active goals':'进行中的目标',
 'On track':'进展正常',
 'Due within 90 days':'90天内到期',
 'Total remaining':'剩余总额',
-'Next funding priority':'下一资金优先级',
+
 'Financial Health Score · 100':'财务健康评分 · 100',
 '3M window ending':'3个月周期截至',
 'Financial Health Score':'财务健康评分'
@@ -7708,7 +7380,7 @@ function translateDynamicText(base){
     [/^(.+) of combined budget · (.+)$/,'占总预算 $1 · $2'],
     [/^(\d+)-Month Projection$/,'$1个月预测'],
     [/^(Conservative|Current Pace|Accelerated) scenario · (\$[\d,.]+) \/ mo$/,(m,mode,money)=>`${mode==='Conservative'?'保守':mode==='Current Pace'?'当前速度':'加速'}情景 · ${money}/月`],
-    [/^(70|100|125)% of recent positive savings pace\. Estimated goal funding time: (.+)\.$/,(m,pct,eta)=>`近期正储蓄速度的 ${pct}%。预计目标资金完成时间：${eta==='needs positive savings pace'?'需要保持正向储蓄速度':eta+'个月'}。`],
+    
     [/^Selected scenario · (\$[\d,.]+) \/ mo$/,'所选情景 · $1/月'],
     [/^(\d+) mo$/,'$1个月'],
     [/^(\$[\d,.]+) remaining · (\d+)% complete$/,'剩余 $1 · 已完成 $2%'],
@@ -8089,7 +7761,7 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
 <style id="v3717-surplus-allocation-css">
 .surplus-plan-v3717{margin-top:16px;border:1px solid var(--line);border-radius:16px;background:linear-gradient(135deg,rgba(17,30,66,.82),rgba(11,18,43,.72));padding:16px}
 .surplus-plan-v3717 .sp-head{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;margin-bottom:12px}.surplus-plan-v3717 h3{margin:0;font-size:17px}.surplus-plan-v3717 .sp-sub{margin-top:4px;color:var(--muted);font-size:12px;line-height:1.45}.surplus-plan-v3717 .sp-badge{border:1px solid rgba(99,210,255,.35);border-radius:999px;padding:7px 10px;font-size:11px;color:#9be7ff;white-space:nowrap}
-.surplus-plan-grid-v3717{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.surplus-plan-card-v3717{border:1px solid rgba(120,150,220,.2);border-radius:13px;background:rgba(5,12,31,.42);padding:13px}.surplus-plan-card-v3717 .label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}.surplus-plan-card-v3717 .value{font-size:22px;font-weight:800;margin-top:6px}.surplus-plan-card-v3717 .meta{font-size:11px;color:var(--muted);margin-top:5px;line-height:1.4}.surplus-plan-card-v3717.cash .value{color:#7adfff}.surplus-plan-card-v3717.goal .value{color:#dba4ff}.surplus-plan-card-v3717.invest .value{color:#7fe0b4}
+.surplus-plan-grid-v3717{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.surplus-plan-card-v3717{border:1px solid rgba(120,150,220,.2);border-radius:13px;background:rgba(5,12,31,.42);padding:13px}.surplus-plan-card-v3717 .label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}.surplus-plan-card-v3717 .value{font-size:22px;font-weight:800;margin-top:6px}.surplus-plan-card-v3717 .meta{font-size:11px;color:var(--muted);margin-top:5px;line-height:1.4}.surplus-plan-card-v3717.cash .value{color:#7adfff}.surplus-plan-card-v3717.invest .value{color:#7fe0b4}
 .surplus-bars-v3717{margin-top:14px;display:grid;gap:9px}.surplus-row-v3717{display:grid;grid-template-columns:150px minmax(0,1fr) 82px;gap:10px;align-items:center;font-size:12px}.surplus-row-v3717 b{font-size:12px}.surplus-track-v3717{height:8px;border-radius:999px;background:rgba(255,255,255,.06);overflow:hidden}.surplus-track-v3717 i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#4fd5ff,#b889ff,#ee70d7)}.surplus-row-v3717 strong{text-align:right}.surplus-invest-breakdown-v3717{margin-top:13px;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.08);background:rgba(5,12,31,.35)}.surplus-invest-breakdown-v3717 .sp-mini{display:flex;justify-content:space-between;gap:10px;font-size:12px;margin-top:6px}.surplus-invest-breakdown-v3717 .sp-mini span{color:var(--muted)}.surplus-plan-note-v3717{margin-top:12px;padding-top:11px;border-top:1px solid rgba(255,255,255,.08);font-size:11px;color:var(--muted);line-height:1.5}
 @media(max-width:800px){.surplus-plan-grid-v3717{grid-template-columns:1fr}.surplus-row-v3717{grid-template-columns:110px minmax(0,1fr) 70px}.surplus-plan-v3717 .sp-head{flex-direction:column}.surplus-plan-v3717 .sp-badge{white-space:normal}}
 </style>
@@ -8107,23 +7779,19 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
   function calc(){
     const rr=rules(); const hist=[-3,-2,-1].map(ymOffset).map(monthFlow).filter(x=>x.inc>0); const avgExp=hist.length?hist.reduce((s,x)=>s+x.exp,0)/hist.length:0; const positive=hist.map(x=>Math.max(0,x.save)).filter(x=>x>0); const current=monthFlow(ymOffset(0)); const capacity=positive.length?positive.reduce((s,x)=>s+x,0)/positive.length:Math.max(0,current.save);
     const accounts=['Bath','TrueMoney','OKX','ByBit','MetaMask','KPay'];const cash=accounts.reduce((s,a)=>s+Math.max(0,balance(a))*toUSD(a),0);const runway=avgExp?cash/avgExp:0;const inv=Math.max(0,investmentValue());const net=cash+inv;const invPct=net?inv/net*100:0;
-    const goals=(typeof loadGoalsV371==='function'?loadGoalsV371():[]).map(g=>{const target=Math.max(0,num(g.target));const cur=Math.max(0,num(typeof goalCurrentV371==='function'?goalCurrentV371(g.type):0));return{g,remain:Math.max(0,target-cur),pct:target?cur/target*100:0};}).filter(x=>x.remain>0).sort((a,b)=>{const da=a.g.date?new Date(a.g.date).getTime():Infinity,db=b.g.date?new Date(b.g.date).getTime():Infinity;return da-db||b.remain-a.remain;});const priority=goals[0]||null;const near=priority&&priority.g.date&&new Date(priority.g.date+'T23:59:59').getTime()<Date.now()+90*86400000;
-    let cashP=0,goalP=0,investP=0,reason='';
-    if(runway<rr.reserveMin){cashP=100;reason=T('Cash reserve is below your minimum rule, so new surplus stays focused on liquidity first.','现金储备低于您设定的最低标准，因此新的剩余资金优先补充流动性。');}
-    else if(runway<rr.reserveComfort){cashP=50;goalP=priority?30:0;investP=priority?20:50;reason=T('Your minimum reserve is protected, but the comfort reserve is still being built.','最低现金储备已经满足，但舒适储备仍在建立中。');}
-    else if(near){cashP=20;goalP=60;investP=20;reason=T('A priority goal is approaching its target date, so funding urgency takes the lead.','重要目标的截止日期临近，因此资金优先级转向完成目标。');}
-    else if(invPct>rr.investmentCeiling){cashP=35;goalP=priority?45:0;investP=priority?20:65;reason=T('Investment weight is above your rule ceiling, so new money should rebalance the plan before adding more risk.','投资占比高于您设定的上限，因此新的资金应先帮助整体计划重新平衡。');}
-    else {cashP=15;goalP=priority?35:0;investP=priority?50:85;reason=T('Liquidity is supportive, so the surplus can balance goal progress with deliberate investing.','流动性状态良好，因此剩余资金可以在目标推进和有计划的投资之间分配。');}
-    if(!priority){cashP+=goalP;goalP=0;}
-    const sum=cashP+goalP+investP||1;cashP=cashP/sum*100;goalP=goalP/sum*100;investP=investP/sum*100;
+    let cashP=0,investP=0,reason='';
+    if(runway<rr.reserveMin){cashP=100;investP=0;reason=T('Cash reserve is below your minimum rule, so new surplus stays focused on liquidity first.','现金储备低于您设定的最低标准，因此新的剩余资金优先补充流动性。');}
+    else if(runway<rr.reserveComfort){cashP=50;investP=50;reason=T('Your minimum reserve is protected, but the comfort reserve is still being built.','最低现金储备已经满足，但舒适储备仍在建立中。');}
+    else if(invPct>rr.investmentCeiling){cashP=35;investP=65;reason=T('Investment weight is above your rule ceiling, so new money should rebalance the plan before adding more risk.','投资占比高于您设定的上限，因此新的资金应先帮助整体计划重新平衡。');}
+    else {cashP=15;investP=85;reason=T('Liquidity is supportive, so the surplus can focus on deliberate investing.','流动性状态良好，因此剩余资金可以更集中地用于有计划的投资。');}
+    const sum=cashP+investP||1;cashP=cashP/sum*100;investP=investP/sum*100;
     let btc=45,eth=30,gold=25;
     const vals={};['BTC','ETH','SOL','BNB'].forEach(sym=>{const q=(window.investments||[]).filter(x=>x.asset==='Crypto'&&x.symbol===sym).reduce((s,x)=>s+num(x.quantity),0);vals[sym]=q*num(window.livePrices?.[sym]?.price);});
     const cryptoTotal=Object.values(vals).reduce((s,x)=>s+x,0);const btcShare=cryptoTotal?vals.BTC/cryptoTotal*100:0;
     if(btcShare>55){btc=20;eth=45;gold=35;}else if(btcShare>45){btc=30;eth=40;gold=30;}
-    const goalName=priority?String(priority.g.type||'Goal'):null;
-    return{capacity,cashP,goalP,investP,runway,invPct,priority,goalName,reason,btc,eth,gold};
+    return{capacity,cashP,investP,runway,invPct,reason,btc,eth,gold};
   }
-  function render(){const root=$id('financialDecisionCenterV325');if(!root)return;const main=root.querySelector('.decision-main-v325');if(!main)return;let el=$id('surplusAllocationPlanV3717');if(!el){el=document.createElement('div');el.id='surplusAllocationPlanV3717';el.className='surplus-plan-v3717';main.parentNode.insertBefore(el,main.nextSibling);}const c=calc();const cap=c.capacity;const rows=[['💧 '+T('Cash reserve','现金储备'),c.cashP],['🎯 '+(c.goalName?T('Priority goal','优先目标'):T('Flexible reserve','灵活储备')),c.goalP],['📈 '+T('Investing','投资'),c.investP]].filter(x=>x[2]>0.01);const card=(cls,label,pct,amt,meta)=>`<div class="surplus-plan-card-v3717 ${cls}"><div class="label">${label}</div><div class="value">${pct.toFixed(0)}%</div><div class="meta">${cap>0?money(amt)+' / '+T('month','月'):meta}</div></div>`;el.innerHTML=`<div class="sp-head"><div><h3>${T('Next Surplus Allocation','下一笔剩余资金分配建议')}</h3><div class="sp-sub">${T('Based on your current wealth rules, cash reserve, goals and investment weight. This is advisory and never moves money automatically.','根据您当前的财富规则、现金储备、目标和投资占比自动计算。仅提供建议，不会自动转移资金。')}</div></div><span class="sp-badge">${cap>0?T('Recent funding capacity','近期资金能力')+' · '+money(cap)+'/mo':T('No positive savings baseline yet','暂时没有正向储蓄基准')}</span></div><div class="surplus-plan-grid-v3717">${card('cash',T('Cash Reserve','现金储备'),c.cashP,cap*c.cashP/100,T('Build liquidity first','优先建立流动性'))}${c.goalP>0?card('goal',T('Priority Goal','优先目标'),c.goalP,cap*c.goalP/100,c.goalName||'—'):''}${card('invest',T('Investing','投资'),c.investP,cap*c.investP/100,T('Only after earlier priorities','在前面的优先级之后'))}</div><div class="surplus-bars-v3717">${rows.map(r=>`<div class="surplus-row-v3717"><b>${r[0]}</b><div class="surplus-track-v3717"><i style="width:${Math.min(100,r[2])}%"></i></div><strong>${r[2].toFixed(0)}%</strong></div>`).join('')}</div>${c.investP>0.01?`<div class="surplus-invest-breakdown-v3717"><b>${T('Suggested split inside the investment portion','投资部分的建议分配')}</b><div class="sp-mini"><span>₿ BTC</span><b>${c.btc}%</b></div><div class="sp-mini"><span>Ξ ETH</span><b>${c.eth}%</b></div><div class="sp-mini"><span>🥇 ${T('Gold','黄金')}</span><b>${c.gold}%</b></div></div>`:''}<div class="surplus-plan-note-v3717">${c.reason}<br>${T('Current cash coverage:','当前现金可覆盖：')} ${c.runway?c.runway.toFixed(1)+' '+T('months of recent spending','个月近期平均支出'):'—'} · ${T('Investment weight:','投资占比：')} ${c.invPct.toFixed(1)}%</div>`;}
+  function render(){const root=$id('financialDecisionCenterV325');if(!root)return;const main=root.querySelector('.decision-main-v325');if(!main)return;let el=$id('surplusAllocationPlanV3717');if(!el){el=document.createElement('div');el.id='surplusAllocationPlanV3717';el.className='surplus-plan-v3717';main.parentNode.insertBefore(el,main.nextSibling);}const c=calc();const cap=c.capacity;const rows=[['💧 '+T('Cash reserve','现金储备'),c.cashP],['📈 '+T('Investing','投资'),c.investP]].filter(x=>x[2]>0.01);const card=(cls,label,pct,amt,meta)=>`<div class="surplus-plan-card-v3717 ${cls}"><div class="label">${label}</div><div class="value">${pct.toFixed(0)}%</div><div class="meta">${cap>0?money(amt)+' / '+T('month','月'):meta}</div></div>`;el.innerHTML=`<div class="sp-head"><div><h3>${T('Next Surplus Allocation','下一笔剩余资金分配建议')}</h3><div class="sp-sub">${T('Based on your current wealth rules, cash reserve and investment weight. This is advisory and never moves money automatically.','根据您当前的财富规则、现金储备和投资占比自动计算。仅提供建议，不会自动转移资金。')}</div></div><span class="sp-badge">${cap>0?T('Recent funding capacity','近期资金能力')+' · '+money(cap)+'/mo':T('No positive savings baseline yet','暂时没有正向储蓄基准')}</span></div><div class="surplus-plan-grid-v3717">${card('cash',T('Cash Reserve','现金储备'),c.cashP,cap*c.cashP/100,T('Build liquidity first','优先建立流动性'))}${card('invest',T('Investing','投资'),c.investP,cap*c.investP/100,T('Only after earlier priorities','在前面的优先级之后'))}</div><div class="surplus-bars-v3717">${rows.map(r=>`<div class="surplus-row-v3717"><b>${r[0]}</b><div class="surplus-track-v3717"><i style="width:${Math.min(100,r[2])}%"></i></div><strong>${r[2].toFixed(0)}%</strong></div>`).join('')}</div>${c.investP>0.01?`<div class="surplus-invest-breakdown-v3717"><b>${T('Suggested split inside the investment portion','投资部分的建议分配')}</b><div class="sp-mini"><span>₿ BTC</span><b>${c.btc}%</b></div><div class="sp-mini"><span>Ξ ETH</span><b>${c.eth}%</b></div><div class="sp-mini"><span>🥇 ${T('Gold','黄金')}</span><b>${c.gold}%</b></div></div>`:''}<div class="surplus-plan-note-v3717">${c.reason}<br>${T('Current cash coverage:','当前现金可覆盖：')} ${c.runway?c.runway.toFixed(1)+' '+T('months of recent spending','个月近期平均支出'):'—'} · ${T('Investment weight:','投资占比：')} ${c.invPct.toFixed(1)}%</div>`;}
   // Avoid observing the entire decision tree: rendering this card itself changes the tree and can cause a recursive render loop.
   const start=()=>render();
   document.addEventListener('DOMContentLoaded',start,{once:true});
@@ -8161,8 +7829,8 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
     try{
       const d=safeData(); const zh=(localStorage.getItem('mmhvault_language_v3363')||'en')==='zh';
       const T=(a,b)=>zh?b:a;
-      const reserve=d.runway<3?100:d.runway<6?50:20; const invest=d.runway<3?0:d.investPct>30?20:50; const goal=Math.max(0,100-reserve-invest);
-      root.innerHTML=`<div class="decision-center-v325"><div class="toolbar"><div><h2>${T('Financial Decision Center','财务决策中心')}</h2><div class="sub">${T('A clear summary of what your money should prioritize next.','根据您的现金、储蓄和投资情况，帮助判断下一步资金优先级。')}</div></div><span class="pill">${T('Advisory only','仅供参考')}</span></div><div class="decision-grid-v325"><div class="decision-card-v325"><div class="label">${T('Cash Coverage','现金覆盖')}</div><div class="value">${d.runway?d.runway.toFixed(1)+' '+T('mo','个月'):'—'}</div><div class="detail">${T('Based on recent average spending','基于近期平均支出')}</div></div><div class="decision-card-v325"><div class="label">${T('Savings Capacity','储蓄能力')}</div><div class="value decision-good-v325">${usd(d.capacity)}${T('/mo','/月')}</div><div class="detail">${T('This month’s Category Budget Control remaining after actual spending','近期完整月份平均值')}</div></div><div class="decision-card-v325"><div class="label">${T('Investment Weight','投资占比')}</div><div class="value decision-cyan-v325">${d.investPct.toFixed(1)}%</div><div class="detail">${T('Current investment share','当前投资资产占比')}</div></div><div class="decision-card-v325"><div class="label">${T('Current Priority','当前优先级')}</div><div class="value">${d.runway<3?T('Cash','现金'):d.investPct>30?T('Balance','平衡'):T('Grow','增长')}</div><div class="detail">${T('Calculated automatically','自动计算')}</div></div></div><div class="decision-main-v325"><div class="panel" style="margin:0"><div class="toolbar"><div><h3 style="margin:0">${T('Recommended Order','建议资金优先顺序')}</h3><div class="sub">${T('Review before moving new money.','在投入新资金前查看建议。')}</div></div></div><div class="decision-list-v325"><div class="decision-row-v325"><div><div class="title">1 · ${T('Cash reserve','现金储备')}</div><div class="sub">${T('Protect liquidity before increasing risk.','增加风险投资前，先保证现金流动性。')}</div></div><span class="decision-pill-v325">${reserve.toFixed(0)}%</span></div><div class="decision-row-v325"><div><div class="title">2 · ${T('Goals / flexible reserve','目标 / 灵活储备')}</div><div class="sub">${T('Use part of the surplus for important goals.','将部分剩余资金用于重要目标。')}</div></div><span class="decision-pill-v325">${goal.toFixed(0)}%</span></div><div class="decision-row-v325"><div><div class="title">3 · ${T('Investing','投资')}</div><div class="sub">${T('Only add risk when earlier priorities are protected.','只有当前面的优先事项得到保障后，再增加投资风险。')}</div></div><span class="decision-pill-v325">${invest.toFixed(0)}%</span></div></div></div></div><div id="surplusAllocationPlanV3717" class="surplus-plan-v3717"><div class="sp-head"><div><h3>${T('Next Surplus Allocation','下一笔剩余资金分配建议')}</h3><div class="sp-sub">${T('Based on your current data. This never moves money automatically.','根据您当前数据自动生成，仅提供建议，不会自动操作资金。')}</div></div><span class="sp-badge">${T('Monthly capacity','月度资金能力')} · ${usd(d.capacity)}${T('/mo','/月')}</span></div><div class="surplus-plan-grid-v3717"><div class="surplus-plan-card-v3717 cash"><div class="label">${T('Cash Reserve','现金储备')}</div><div class="value">${reserve.toFixed(0)}%</div><div class="meta">${usd(d.capacity*reserve/100)} / ${T('month','月')}</div></div><div class="surplus-plan-card-v3717 goal"><div class="label">${T('Goals','目标')}</div><div class="value">${goal.toFixed(0)}%</div><div class="meta">${usd(d.capacity*goal/100)} / ${T('month','月')}</div></div><div class="surplus-plan-card-v3717 invest"><div class="label">${T('Investing','投资')}</div><div class="value">${invest.toFixed(0)}%</div><div class="meta">${usd(d.capacity*invest/100)} / ${T('month','月')}</div></div></div></div></div>`;
+      const reserve=d.runway<3?100:d.runway<6?50:20; const invest=d.runway<3?0:d.investPct>30?20:50;
+      root.innerHTML=`<div class="decision-center-v325"><div class="toolbar"><div><h2>${T('Financial Decision Center','财务决策中心')}</h2><div class="sub">${T('A clear summary of what your money should prioritize next.','根据您的现金、储蓄和投资情况，帮助判断下一步资金优先级。')}</div></div><span class="pill">${T('Advisory only','仅供参考')}</span></div><div class="decision-grid-v325"><div class="decision-card-v325"><div class="label">${T('Cash Coverage','现金覆盖')}</div><div class="value">${d.runway?d.runway.toFixed(1)+' '+T('mo','个月'):'—'}</div><div class="detail">${T('Based on recent average spending','基于近期平均支出')}</div></div><div class="decision-card-v325"><div class="label">${T('Savings Capacity','储蓄能力')}</div><div class="value decision-good-v325">${usd(d.capacity)}${T('/mo','/月')}</div><div class="detail">${T('This month’s Category Budget Control remaining after actual spending','近期完整月份平均值')}</div></div><div class="decision-card-v325"><div class="label">${T('Investment Weight','投资占比')}</div><div class="value decision-cyan-v325">${d.investPct.toFixed(1)}%</div><div class="detail">${T('Current investment share','当前投资资产占比')}</div></div><div class="decision-card-v325"><div class="label">${T('Current Priority','当前优先级')}</div><div class="value">${d.runway<3?T('Cash','现金'):d.investPct>30?T('Balance','平衡'):T('Grow','增长')}</div><div class="detail">${T('Calculated automatically','自动计算')}</div></div></div><div class="decision-main-v325"><div class="panel" style="margin:0"><div class="toolbar"><div><h3 style="margin:0">${T('Recommended Order','建议资金优先顺序')}</h3><div class="sub">${T('Review before moving new money.','在投入新资金前查看建议。')}</div></div></div><div class="decision-list-v325"><div class="decision-row-v325"><div><div class="title">1 · ${T('Cash reserve','现金储备')}</div><div class="sub">${T('Protect liquidity before increasing risk.','增加风险投资前，先保证现金流动性。')}</div></div><span class="decision-pill-v325">${reserve.toFixed(0)}%</span></div><div class="decision-row-v325"><div><div class="title">3 · ${T('Investing','投资')}</div><div class="sub">${T('Only add risk when earlier priorities are protected.','只有当前面的优先事项得到保障后，再增加投资风险。')}</div></div><span class="decision-pill-v325">${invest.toFixed(0)}%</span></div></div></div></div><div id="surplusAllocationPlanV3717" class="surplus-plan-v3717"><div class="sp-head"><div><h3>${T('Next Surplus Allocation','下一笔剩余资金分配建议')}</h3><div class="sp-sub">${T('Based on your current data. This never moves money automatically.','根据您当前数据自动生成，仅提供建议，不会自动操作资金。')}</div></div><span class="sp-badge">${T('Monthly capacity','月度资金能力')} · ${usd(d.capacity)}${T('/mo','/月')}</span></div><div class="surplus-plan-grid-v3717"><div class="surplus-plan-card-v3717 cash"><div class="label">${T('Cash Reserve','现金储备')}</div><div class="value">${reserve.toFixed(0)}%</div><div class="meta">${usd(d.capacity*reserve/100)} / ${T('month','月')}</div></div><div class="surplus-plan-card-v3717 invest"><div class="label">${T('Investing','投资')}</div><div class="value">${invest.toFixed(0)}%</div><div class="meta">${usd(d.capacity*invest/100)} / ${T('month','月')}</div></div></div></div></div>`;
     }catch(err){root.innerHTML='<div class="panel"><h3>Decision Center</h3><div class="sub">Unable to calculate this view yet. Your existing data is safe.</div></div>';console.error(err);}
   }
   window.renderFinancialDecisionV325=renderSafe;
@@ -8490,32 +8158,7 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
   window.addEventListener('storage',e=>{if(e.key==='mmhvault_language_v3363')setTimeout(render,0);});
 })();
 </script>
-<script id="mmhvault-v380-wealth-planning-js">
-(function(){
-  function t(en,zh){return typeof T==='function'?T(en,zh):(typeof zh==='string'&&document.documentElement.lang==='zh-CN'?zh:en);}
-  const money=v=>{try{return (typeof fmt==='function'?fmt(v):Number(v||0).toLocaleString(undefined,{maximumFractionDigits:2}));}catch(e){return '0';}};
-  const currentNet=()=>Math.max(0,(typeof totalAssetMMK==='function'?totalAssetMMK():0)-(typeof loanOutMMK==='function'?loanOutMMK():0));
-  const monthlySavings=ym=>{let inc=0,exp=0;(window.transactions||[]).filter(x=>String(x.tx_date||'').slice(0,7)===ym).forEach(x=>{if(x.type==='Income')inc+=(Number(x.to_amount)||0)*(typeof toMMK==='function'?toMMK(x.to_account):1);if(x.type==='Expense'&&x.category!=='Investment'&&!((window.CATS?.Loans)||[]).includes(x.category)&&!(typeof isLinkedInvestmentTx==='function'&&isLinkedInvestmentTx(x)))exp+=(Number(x.from_amount)||0)*(typeof toMMK==='function'?toMMK(x.from_account):1)});return inc-exp;};
-  const lastMonths=n=>{const a=[];const d=new Date();d.setDate(1);for(let i=1;i<=n;i++){d.setMonth(d.getMonth()-i);a.push(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`)}return a;};
-  function renderWealthPlanningV380(){
-    const host=$('mmhV380Summary');if(!host)return;
-    const key=today().slice(0,7), hist=lastMonths(3), savings=hist.map(monthlySavings), positive=savings.filter(x=>x>0);
-    const capacity=positive.length?positive.reduce((a,b)=>a+b,0)/positive.length:Math.max(0,monthlySavings(key));
-    const net=currentNet();
-    const goals=typeof loadGoalsV371==='function'?loadGoalsV371():[];
-    const goalRows=goals.map(g=>{const cur=typeof goalCurrentV371==='function'?goalCurrentV371(g.type):0,target=Math.max(0,Number(g.target)||0),pct=target?Math.min(100,Math.max(0,cur/target*100)):0,remain=Math.max(0,target-cur);let eta='—';if(remain>0&&capacity>0)eta=`${Math.ceil(remain/capacity)} ${t('mo','个月')}`;return {name:g.type,cur,target,pct,remain,eta,date:g.date||''};});
-    const milestones=[10000,25000,50000,100000].map(v=>{const curUsd=(typeof mmkToUsd==='function'?mmkToUsd(net):net);const pct=Math.min(100,curUsd/v*100);return {v,pct,remain:Math.max(0,v-curUsd)}});
-    const scenarios=[['Conservative',.7],['Current Pace',1],['Accelerated',1.25]].map(([name,m])=>({name,months:[12,24,36].map(n=>Math.max(0,(typeof mmkToUsd==='function'?mmkToUsd(net):net)+capacity*m*n))}));
-    $('mmhV380Period').textContent=`${key} · ${t('Planning','规划')}`;$('mmhV380GoalCount').textContent=String(goals.length);
-    host.innerHTML=`<div class="mmh-v380-hero-grid"><div class="mmh-v380-card"><div class="k">${t('Current Net Worth','当前净资产')}</div><div class="v">MMK ${money(net)}</div><div class="s">${t('Current position','当前财富规模')}</div></div><div class="mmh-v380-card"><div class="k">${t('Monthly Savings Capacity','月度储蓄能力')}</div><div class="v">MMK ${money(capacity)}</div><div class="s">${t('Average positive savings from recent months','近期月份平均正储蓄')}</div></div><div class="mmh-v380-card"><div class="k">${t('Active Goals','当前目标')}</div><div class="v">${goals.length}</div><div class="s">${t('Tracked financial goals','正在追踪的财务目标')}</div></div><div class="mmh-v380-card"><div class="k">${t('Next Focus','下一优先事项')}</div><div class="v" style="font-size:18px">${goalRows[0]?goalRows[0].name:t('Build your first goal','建立您的第一个目标')}</div><div class="s">${goalRows[0]?`${t('Remaining','剩余')} MMK ${money(goalRows[0].remain)}`:t('Add a target in Analyze → Goals','前往分析 → 目标添加目标')}</div></div></div>`;
-    const g=$('mmhV380Goals');g.innerHTML=goalRows.length?goalRows.map(x=>`<div class="mmh-v380-row"><div class="mmh-v380-name">${esc(x.name)}</div><div class="mmh-v380-main"><div class="mmh-v380-bar"><span style="width:${x.pct}%"></span></div><div class="mmh-v380-meta"><span>${t('Current','当前')} MMK ${money(x.cur)} / MMK ${money(x.target)}</span><span>${x.pct.toFixed(1)}% · ${x.eta}</span></div></div><span class="mmh-v380-badge ${x.pct>=100?'mmh-v380-good':x.pct>=70?'mmh-v380-warn':'mmh-v380-bad'}">${x.pct>=100?t('Done','已完成'):x.pct>=70?t('On track','接近目标'):t('Needs funding','需要加速')}</span></div>`).join(''):`<div class="mmh-v380-empty">${t('No goals yet. Add goals from Analyze → Goals.','暂无目标。请前往分析 → 目标添加。')}</div>`;
-    $('mmhV380Milestones').innerHTML=milestones.map(x=>`<div class="mmh-v380-row"><div class="mmh-v380-name">$${money(x.v)}</div><div class="mmh-v380-main"><div class="mmh-v380-bar"><span style="width:${x.pct}%"></span></div><div class="mmh-v380-meta"><span>${t('Progress','进度')} ${x.pct.toFixed(1)}%</span><span>${x.remain>0?t('Remaining','剩余')+' $'+money(x.remain):t('Reached','已达成')}</span></div></div><span class="mmh-v380-badge ${x.pct>=100?'mmh-v380-good':x.pct>=60?'mmh-v380-warn':'mmh-v380-bad'}">${x.pct>=100?t('Reached','已达成'):t('Upcoming','待达成')}</span></div>`).join('');
-    $('mmhV380Forecast').innerHTML=`<div class="mmh-v380-scenarios">${scenarios.map(x=>`<div class="mmh-v380-scenario"><b>${t(x.name, x.name==='Conservative'?'保守':x.name==='Current Pace'?'当前速度':'加速')}</b>${[12,24,36].map((m,i)=>`<span class="big">$${money(x.months[i])}</span><div class="small">${m} ${t('months','个月')}</div>`).join('')}</div>`).join('')}</div>`;
-  }
-  window.renderWealthPlanningV380=renderWealthPlanningV380;
-  document.addEventListener('DOMContentLoaded',()=>setTimeout(renderWealthPlanningV380,250));
-})();
-</script>
+
 <style id="mmh-v391-reports-enhance-css">
 .mmh-v391-top{margin-top:16px;padding:18px;border:1px solid rgba(95,125,210,.34);border-radius:16px;background:linear-gradient(180deg,rgba(17,28,70,.72),rgba(8,14,34,.86));}
 .mmh-v391-top-head{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:12px}.mmh-v391-top-head b{font-size:18px}.mmh-v391-top-head span{font-size:12px;color:#8ea2c7}
@@ -9197,7 +8840,6 @@ html.mmhv-tab-hidden .mmh-glow-anim{animation-play-state:paused!important}
   const PAGE_RENDER_MAP={
     renderAnalyze:'analyze',
     renderInvest:'invest',
-    renderWealthPlanningV380:'wealth-planning',
     renderWealthPlanningV393:'wealth-planning',
     renderReportsV390:'reports',
     renderInsightsV340:'insights'
@@ -9236,7 +8878,7 @@ html.mmhv-tab-hidden .mmh-glow-anim{animation-play-state:paused!important}
     try{
       if(page==='analyze') window.renderAnalyze?.();
       else if(page==='invest') window.renderInvest?.();
-      else if(page==='wealth-planning') (window.renderWealthPlanningV393||window.renderWealthPlanningV380)?.();
+      else if(page==='wealth-planning') window.renderWealthPlanningV393?.();
       else if(page==='reports') window.renderReportsV390?.();
       else if(page==='insights') window.renderInsightsV340?.();
     }catch(e){console.warn('V3.42.43 visible-page refresh warning:',e);}
@@ -10119,30 +9761,17 @@ body.mmhvault-scroll-active #invest .invest-top>.panel{box-shadow:inset 0 1px 0 
     return inc-exp;
   };
   const lastMonths=n=>{const a=[],d=new Date();d.setDate(1);for(let i=1;i<=n;i++){d.setMonth(d.getMonth()-1);a.push(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`)}return a;};
-  const goalCurrentTHB=g=>{
-    try{
-      const usd=typeof goalCurrentV371==='function'?N(goalCurrentV371(g.type)):0;
-      return usd*(typeof rates?.usd_thb==='number'?rates.usd_thb:1);
-    }catch(e){return 0}
-  };
-  const goalTargetTHB=g=>N(g.target)*(typeof rates?.usd_thb==='number'?rates.usd_thb:1);
   let wealthBaseCacheV34413=null, wealthBaseCacheAtV34413=0;
   function buildWealthBase(){
     const now=Date.now();
     if(wealthBaseCacheV34413 && now-wealthBaseCacheAtV34413<500) return wealthBaseCacheV34413;
     const key=today().slice(0,7);
-    const goals=typeof loadGoalsV371==='function'?loadGoalsV371():[];
     const hist=lastMonths(3);
     const savings=hist.map(monthlySavingsTHB);
     const positive=savings.filter(x=>x>0);
     const capacity=positive.length?positive.reduce((a,b)=>a+b,0)/positive.length:Math.max(0,monthlySavingsTHB(key));
     const net=currentNetTHB();
-    const goalRows=goals.map(g=>{
-      const cur=goalCurrentTHB(g),target=goalTargetTHB(g),pct=target?Math.min(100,Math.max(0,cur/target*100)):0,remain=Math.max(0,target-cur);
-      const eta=remain>0&&capacity>0?`${Math.ceil(remain/capacity)} ${T('months','个月')}`:T('Not enough data','数据不足');
-      return {g,name:g.type,cur,target,pct,remain,eta};
-    });
-    wealthBaseCacheV34413={key,goals,capacity,net,goalRows};
+    wealthBaseCacheV34413={key,capacity,net};
     wealthBaseCacheAtV34413=now;
     return wealthBaseCacheV34413;
   }
@@ -10164,18 +9793,15 @@ body.mmhvault-scroll-active #invest .invest-top>.panel{box-shadow:inset 0 1px 0 
   function render(){
     const host=$('mmhV380Summary'); if(!host)return;
     const base=buildWealthBase();
-    const {goals,key,capacity,net,goalRows}=base;
+    const {key,capacity,net}=base;
     const milestones=[10000,25000,50000,100000].map(v=>{const target=v*(typeof rates?.usd_thb==='number'?rates.usd_thb:1),pct=target?Math.min(100,net/target*100):0;return{target,pct,remain:Math.max(0,target-net)}});
     const scenarios=[['Conservative',.7],['Current Pace',1],['Accelerated',1.25]].map(([name,m])=>({name,months:[12,24,36].map(mm=>Math.max(0,net+capacity*m*mm))}));
-    $('mmhV380Period').textContent=`${key} · ${T('Planning','规划')}`; $('mmhV380GoalCount').textContent=String(goals.length);
+    $('mmhV380Period').textContent=`${key} · ${T('Planning','规划')}`;
     host.innerHTML=`<div class="mmh-v380-hero-grid">
       <div class="mmh-v380-card"><div class="k">${T('Current Net Worth','当前净资产')}</div><div class="v">${moneyTHB(net)}</div><div class="s">${T('Current position','当前财富规模')}</div></div>
       <div class="mmh-v380-card"><div class="k">${T('Monthly Savings Capacity','月度储蓄能力')}</div><div class="v">${moneyTHB(capacity)}</div><div class="s">${T('Average positive savings from recent months','近期月份平均正储蓄')}</div></div>
-      <div class="mmh-v380-card"><div class="k">${T('Active Goals','当前目标')}</div><div class="v">${goals.length}</div><div class="s">${T('Tracked financial goals','正在追踪的财务目标')}</div></div>
-      <div class="mmh-v380-card"><div class="k">${T('Next Focus','下一优先事项')}</div><div class="v" style="font-size:18px">${goalRows[0]?esc(goalRows[0].name):T('Build your first goal','建立您的第一个目标')}</div><div class="s">${goalRows[0]?`${T('Remaining','剩余')} ${moneyTHB(goalRows[0].remain)}`:T('Add a target in Analyze → Goals','前往分析 → 目标添加目标')}</div></div>
+
     </div>`;
-    const g=$('mmhV380Goals');
-    g.innerHTML=goalRows.length?goalRows.map(x=>`<div class="mmh-v380-row"><div class="mmh-v380-name">${esc(x.name)}</div><div class="mmh-v380-main"><div class="mmh-v380-bar"><span style="width:${x.pct}%"></span></div><div class="mmh-v380-meta"><span>${T('Current','当前')} ${moneyTHB(x.cur)} / ${moneyTHB(x.target)}</span><span>${x.pct.toFixed(1)}% · ${x.eta}</span></div></div><span class="mmh-v380-badge ${x.pct>=100?'mmh-v380-good':x.pct>=70?'mmh-v380-warn':'mmh-v380-bad'}">${x.pct>=100?T('Done','已完成'):x.pct>=70?T('On track','接近目标'):T('Needs funding','需要加速')}</span></div>`).join(''):`<div class="mmh-v380-empty">${T('No goals yet. Add goals from Analyze → Goals.','暂无目标。请前往分析 → 目标添加。')}</div>`;
     $('mmhV380Milestones').innerHTML=milestones.map(x=>`<div class="mmh-v380-row"><div class="mmh-v380-name">${moneyTHB(x.target)}</div><div class="mmh-v380-main"><div class="mmh-v380-bar"><span style="width:${x.pct}%"></span></div><div class="mmh-v380-meta"><span>${T('Progress','进度')} ${x.pct.toFixed(1)}%</span><span>${x.remain>0?T('Remaining','剩余')+' '+moneyTHB(x.remain):T('Reached','已达成')}</span></div></div><span class="mmh-v380-badge ${x.pct>=100?'mmh-v380-good':x.pct>=60?'mmh-v380-warn':'mmh-v380-bad'}">${x.pct>=100?T('Reached','已达成'):T('Upcoming','待达成')}</span></div>`).join('');
     $('mmhV380Forecast').innerHTML=`<div class="mmh-v380-scenarios">${scenarios.map(x=>`<div class="mmh-v380-scenario"><div class="mmh-v380-scenario-head"><b>${T(x.name,x.name==='Conservative'?'保守':x.name==='Current Pace'?'当前速度':'加速')}</b><span>${x.name==='Conservative'?'70%':x.name==='Current Pace'?'100%':'125%'}</span></div><div class="mmh-v380-scenario-horizons">${[12,24,36].map((m,i)=>`<div class="mmh-v380-horizon"><div class="small">${m} ${T('months','个月')}</div><span class="big">${moneyTHB(x.months[i])}</span></div>`).join('')}</div><div class="mmh-v380-scenario-foot">${T('Savings-only projection','仅按储蓄能力预测')}</div></div>`).join('')}</div>`;
     cleanWealthPlanningNoise();
@@ -11393,53 +11019,8 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
 @media(max-width:520px){#analyze .overview-snapshot-grid-v371{grid-template-columns:1fr 1fr;gap:8px;}#analyze .overview-snapshot-card-v371,#analyze .cashflow-card-v371{padding:12px;}#analyze .overview-snapshot-card-v371 .value,#analyze .cashflow-card-v371 .value{font-size:18px;line-height:1.15;}}
 @media(prefers-reduced-motion:reduce){#analyze .overview-snapshot-card-v371,#analyze .cashflow-card-v371{transition:none!important;}}
 </style>
-<meta name="mmhvault-architecture" content="V3.44.6 · Phase1 dual optimization" />
-<meta name="mmhvault-goals-v34419" content="Goals 2.0 · native submit/edit wrappers · USD-based calculations" />
-<meta name="mmhvault-goals-v34418" content="Goals 2.0 · USD-based calculations + direct edit action" />
+<meta name="mmhvault-architecture" content="V3.44.20 · Goals feature removed and dependency cleanup" />
 
-<style id="mmhvault-v34412-goals-status-premium">
-/* MMHVAULT V3.44.12 — Goals status / progress clarity. */
-#analyze [data-panel="goals"] .goals-status-v311{display:inline-flex;align-items:center;gap:6px;border:1px solid rgba(130,170,220,.20);background:rgba(8,20,40,.62);box-shadow:inset 0 1px 0 rgba(255,255,255,.025);}
-#analyze [data-panel="goals"] .goals-status-v311:before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;box-shadow:0 0 10px currentColor;opacity:.9;}
-#analyze [data-panel="goals"] .goals-status-v311.ontrack{color:#73dfb0;border-color:rgba(115,223,176,.28);background:rgba(32,110,82,.16);}
-#analyze [data-panel="goals"] .goals-status-v311.soon{color:#f3cd74;border-color:rgba(243,205,116,.30);background:rgba(125,91,20,.16);}
-#analyze [data-panel="goals"] .goals-status-v311.behind{color:#ff8a9a;border-color:rgba(255,138,154,.28);background:rgba(125,28,48,.15);}
-#analyze [data-panel="goals"] .goals-status-v311.reached{color:#7fd5ff;border-color:rgba(127,213,255,.28);background:rgba(37,91,125,.16);}
-#analyze [data-panel="goals"] .goals-roadmap-bar-v311{height:8px;border-radius:999px;background:rgba(255,255,255,.065);overflow:hidden;box-shadow:inset 0 1px 2px rgba(0,0,0,.18);}
-#analyze [data-panel="goals"] .goals-roadmap-bar-v311>span{display:block;height:100%;min-width:0;border-radius:inherit;background:linear-gradient(90deg,rgba(76,199,255,.88),rgba(246,199,91,.88));box-shadow:0 0 16px rgba(76,199,255,.14);transition:width .35s ease;}
-#analyze [data-panel="goals"] .goals-roadmap-card-v311:has(.goals-status-v311.behind) .goals-roadmap-bar-v311>span{background:linear-gradient(90deg,rgba(255,114,137,.86),rgba(255,168,112,.88));}
-#analyze [data-panel="goals"] .goals-roadmap-card-v311:has(.goals-status-v311.reached) .goals-roadmap-bar-v311>span{background:linear-gradient(90deg,rgba(86,209,171,.88),rgba(76,199,255,.88));}
-#analyze [data-panel="goals"] .goals-roadmap-meta-v311>div{padding:8px 10px;border-radius:10px;background:rgba(255,255,255,.018);border:1px solid rgba(132,172,216,.10);}
-#analyze [data-panel="goals"] .goals-roadmap-meta-v311 b{font-variant-numeric:tabular-nums;letter-spacing:-.01em;}
-@media(max-width:700px){#analyze [data-panel="goals"] .goals-roadmap-meta-v311>div{padding:7px 9px;}#analyze [data-panel="goals"] .goals-roadmap-bar-v311{height:7px;}}
-@media(prefers-reduced-motion:reduce){#analyze [data-panel="goals"] .goals-roadmap-bar-v311>span{transition:none!important;}}
-</style>
-<style id="mmhvault-v34411-goals-premium">
-/* MMHVAULT V3.44.11 — Goals performance + responsive premium polish. */
-#analyze [data-panel="goals"] .goals-command-v311{overflow:hidden;}
-#analyze [data-panel="goals"] .goals-command-head-v311{gap:14px;align-items:flex-start;}
-#analyze [data-panel="goals"] .goals-command-title-v311{letter-spacing:-.035em;}
-#analyze [data-panel="goals"] .goals-kpi-v311,#analyze [data-panel="goals"] .goals-next-v311,#analyze [data-panel="goals"] .goals-roadmap-card-v311{position:relative;overflow:hidden;border-color:rgba(96,161,221,.18);background:linear-gradient(145deg,rgba(13,32,64,.76),rgba(6,15,33,.90));box-shadow:0 10px 24px rgba(0,0,0,.12),inset 0 1px 0 rgba(255,255,255,.03);}
-#analyze [data-panel="goals"] .goals-kpi-v311:before,#analyze [data-panel="goals"] .goals-roadmap-card-v311:before{content:"";position:absolute;left:0;right:58%;top:0;height:1px;background:linear-gradient(90deg,rgba(76,199,255,.72),rgba(246,199,91,.30),transparent);}
-#analyze [data-panel="goals"] .goals-roadmap-name-v311,#analyze [data-panel="goals"] .goals-next-name-v311{letter-spacing:-.015em;}
-#analyze [data-panel="goals"] .goals-roadmap-current-v311,#analyze [data-panel="goals"] .goals-roadmap-remain-v311 b,#analyze [data-panel="goals"] .goals-kpi-v311 .value{font-variant-numeric:tabular-nums;}
-@media(max-width:700px){
-  #analyze [data-panel="goals"] .goals-command-head-v311{flex-direction:column;}
-  #analyze [data-panel="goals"] .goals-command-badge-v311{width:100%;box-sizing:border-box;}
-  #analyze [data-panel="goals"] .goals-kpi-grid-v311{grid-template-columns:1fr 1fr;}
-  #analyze [data-panel="goals"] .goals-next-head-v311{flex-direction:column;align-items:stretch;gap:10px;}
-  #analyze [data-panel="goals"] .goals-next-amount-v311{align-self:flex-start;}
-  #analyze [data-panel="goals"] .goals-roadmap-values-v311{grid-template-columns:1fr 1fr;}
-  #analyze [data-panel="goals"] .goals-roadmap-meta-v311{grid-template-columns:1fr;gap:7px;}
-  #analyze [data-panel="goals"] .goals-roadmap-actions-v311{display:grid;grid-template-columns:1fr 1fr;}
-}
-@media(max-width:390px){
-  #analyze [data-panel="goals"] .goals-kpi-grid-v311{grid-template-columns:1fr;}
-  #analyze [data-panel="goals"] .goals-roadmap-values-v311{grid-template-columns:1fr;}
-  #analyze [data-panel="goals"] .goals-roadmap-actions-v311{grid-template-columns:1fr;}
-}
-@media(prefers-reduced-motion:reduce){
-  #analyze [data-panel="goals"] .goals-kpi-v311,#analyze [data-panel="goals"] .goals-next-v311,#analyze [data-panel="goals"] .goals-roadmap-card-v311{transition:none!important;}
-}
-</style>
+
+
 </html>
