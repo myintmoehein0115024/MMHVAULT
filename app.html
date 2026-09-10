@@ -3767,73 +3767,127 @@ function renderOverviewSnapshotV371(){
 
 function renderAnalyzeV37(){
   v37EnsurePeriodControls();
-  renderOverviewSnapshotV371();
-  const p=v37Period(),rows=v37Rows(),t=v37Totals(rows);
-  const hint=$("monthlyPeriodHint");if(hint)hint.textContent=v37Label(p)+" · ordinary analysis in THB";
+  const p=v37Period();
+  const allRows=Array.isArray(window.transactions)?window.transactions:[];
+  const rows=[];
+  const expenseByCategory=Object.create(null);
+  const personalCats=['Family Support','Special Transfer','Gifts','Donation'];
+  const personalByCategory=Object.create(null);
+  let inc=0,exp=0,debt=0,paid=0,out=0,repay=0;
+  const targetYear=String(p.year);
+  const targetMonth=p.month==='annual'?null:`${p.year}-${p.month}`;
+  const loans=new Set(window.CATS?.Loans||[]);
+  const isOrdinaryExpense=t=>t.type==='Expense'&&!loans.has(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t);
 
-  $("expenses").innerHTML=`<table><tr><th>Category</th><th>THB</th><th>% of Income</th></tr>`+
+  for(const t of allRows){
+    const key=String(t.tx_date||'').slice(0,7);
+    const year=key.slice(0,4);
+    if(year!==targetYear)continue;
+    if(targetMonth!==null && key!==targetMonth)continue;
+    rows.push(t);
+    if(t.type==='Income') inc+=n(t.to_amount)*toTHB(t.to_account);
+    if(isOrdinaryExpense(t)){
+      const value=n(t.from_amount)*toTHB(t.from_account);
+      exp+=value;
+      const cat=t.category||'Other';
+      expenseByCategory[cat]=(expenseByCategory[cat]||0)+value;
+      if(personalCats.includes(cat)) personalByCategory[cat]=(personalByCategory[cat]||0)+value;
+    }
+    if(t.category==='Debt')debt+=n(t.from_amount)*toMMK(t.from_account);
+    if(t.category==='Paid Debt'||t.category==='PaidDeb')paid+=n(t.to_amount)*toMMK(t.to_account);
+    if(t.category==='Loan Out')out+=n(t.from_amount)*toMMK(t.from_account);
+    if(t.category==='Loan Repayment')repay+=n(t.to_amount)*toMMK(t.to_account);
+  }
+  const t={inc,exp,save:inc-exp,er:inc?exp/inc*100:0,sr:inc?(inc-exp)/inc*100:0};
+
+  const el=$('overviewSnapshotV371'), periodEl=$('overviewSnapshotPeriodV371');
+  if(el&&periodEl){
+    periodEl.textContent=v37Label(p);
+    const status=t.save>0?'Positive':t.save===0?'Break-even':'Negative';
+    el.innerHTML=`
+      <div class="overview-snapshot-card-v371"><div class="label">Income</div><div class="value green">${thb(t.inc)}</div><div class="small">Selected period</div></div>
+      <div class="overview-snapshot-card-v371"><div class="label">Expenses</div><div class="value red">${thb(t.exp)}</div><div class="small">Ordinary expenses</div></div>
+      <div class="overview-snapshot-card-v371"><div class="label">Net Savings</div><div class="value ${t.save>0?'green':t.save<0?'red':'yellow'}">${thb(t.save)}</div><div class="small">${status} cash flow</div></div>
+      <div class="overview-snapshot-card-v371"><div class="label">Savings Rate</div><div class="value ${t.sr>=60?'green':t.sr>=40?'yellow':'red'}">${t.sr.toFixed(1)}%</div><div class="small">Target 60%</div></div>`;
+  }
+
+  const hint=$('monthlyPeriodHint');if(hint)hint.textContent=v37Label(p)+' · ordinary analysis in THB';
+
+  $('expenses').innerHTML=`<table><tr><th>Category</th><th>THB</th><th>% of Income</th></tr>`+
     CATS.Expense.map(c=>{
-      const v=rows.filter(x=>x.type==="Expense"&&x.category===c&&!isLinkedInvestmentTx(x)).reduce((s,x)=>s+n(x.from_amount)*toTHB(x.from_account),0);
-      return `<tr><td>${c}</td><td>${fmt(v)}</td><td>${t.inc?(v/t.inc*100).toFixed(2):"0.00"}%</td></tr>`;
-    }).join("")+`<tr><th>Total</th><th>${fmt(t.exp)}</th><th>${t.er.toFixed(2)}%</th></tr></table>`;
+      const v=expenseByCategory[c]||0;
+      return `<tr><td>${c}</td><td>${fmt(v)}</td><td>${t.inc?(v/t.inc*100).toFixed(2):'0.00'}%</td></tr>`;
+    }).join('')+`<tr><th>Total</th><th>${fmt(t.exp)}</th><th>${t.er.toFixed(2)}%</th></tr></table>`;
 
-  let debt=0,paid=0,out=0,repay=0;
-  rows.forEach(x=>{
-    if(x.category==="Debt")debt+=n(x.from_amount)*toMMK(x.from_account);
-    if(x.category==="Paid Debt"||x.category==="PaidDeb")paid+=n(x.to_amount)*toMMK(x.to_account);
-    if(x.category==="Loan Out")out+=n(x.from_amount)*toMMK(x.from_account);
-    if(x.category==="Loan Repayment")repay+=n(x.to_amount)*toMMK(x.to_account);
-  });
   const outstanding=Math.max(0,out-repay);
-  $("loans").innerHTML=`<table><tr><th>Metric</th><th>MMK</th></tr><tr><td>Debt</td><td>${fmt(debt)}</td></tr><tr><td>Paid Debt</td><td>${fmt(paid)}</td></tr><tr><td>Loan Out</td><td>${fmt(out)}</td></tr><tr><td>Loan Repayment</td><td>${fmt(repay)}</td></tr><tr><td><b>Still Outstanding</b></td><td class="${outstanding?'red':'green'}"><b>${fmt(outstanding)}</b></td></tr></table>`;
+  $('loans').innerHTML=`<table><tr><th>Metric</th><th>MMK</th></tr><tr><td>Debt</td><td>${fmt(debt)}</td></tr><tr><td>Paid Debt</td><td>${fmt(paid)}</td></tr><tr><td>Loan Out</td><td>${fmt(out)}</td></tr><tr><td>Loan Repayment</td><td>${fmt(repay)}</td></tr><tr><td><b>Still Outstanding</b></td><td class="${outstanding?'red':'green'}"><b>${fmt(outstanding)}</b></td></tr></table>`;
 
-  $("monthly").innerHTML=`<div class="monthly-strip"><div class="monthly-cell"><div class="label">Period</div><div class="val">${v37Label(p)}</div></div><div class="monthly-cell green"><div class="label">Income</div><div class="val">${thb(t.inc)}</div></div><div class="monthly-cell red"><div class="label">Expenses</div><div class="val">${thb(t.exp)}</div></div><div class="monthly-cell green"><div class="label">Net Savings</div><div class="val">${thb(t.save)}</div></div><div class="monthly-cell yellow"><div class="label">Saving Ratio</div><div class="val">${t.sr.toFixed(2)}%</div></div><div class="monthly-cell red"><div class="label">Expense Ratio</div><div class="val">${t.er.toFixed(2)}%</div></div></div>`;
+  $('monthly').innerHTML=`<div class="monthly-strip"><div class="monthly-cell"><div class="label">Period</div><div class="val">${v37Label(p)}</div></div><div class="monthly-cell green"><div class="label">Income</div><div class="val">${thb(t.inc)}</div></div><div class="monthly-cell red"><div class="label">Expenses</div><div class="val">${thb(t.exp)}</div></div><div class="monthly-cell green"><div class="label">Net Savings</div><div class="val">${thb(t.save)}</div></div><div class="monthly-cell yellow"><div class="label">Saving Ratio</div><div class="val">${t.sr.toFixed(2)}%</div></div><div class="monthly-cell red"><div class="label">Expense Ratio</div><div class="val">${t.er.toFixed(2)}%</div></div></div>`;
 
-  const compare=$("monthCompareV37");
+  const compare=$('monthCompareV37');
+  const totalsMap=new Map();
+  let previousMonthKey='';
+  if(p.month!=='annual'){const d=new Date(p.year,Number(p.month)-1,1);d.setMonth(d.getMonth()-1);previousMonthKey=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;}
+  for(const tx of allRows){
+    const key=String(tx.tx_date||'').slice(0,7);
+    if(key.slice(0,4)!==targetYear && key!==previousMonthKey)continue;
+    let z=totalsMap.get(key);if(!z)totalsMap.set(key,z={inc:0,exp:0});
+    if(tx.type==='Income')z.inc+=n(tx.to_amount)*toTHB(tx.to_account);
+    if(isOrdinaryExpense(tx))z.exp+=n(tx.from_amount)*toTHB(tx.from_account);
+  }
   if(compare){
-    if(p.month==="annual"){
-      const arr=Array.from({length:12},(_,i)=>{const ym=`${p.year}-${String(i+1).padStart(2,"0")}`,z=v37MonthTotals(ym);return{ym,...z};});
+    if(p.month==='annual'){
+      const arr=Array.from({length:12},(_,i)=>{const ym=`${p.year}-${String(i+1).padStart(2,'0')}`;const z=totalsMap.get(ym)||{inc:0,exp:0};return{ym,inc:z.inc,exp:z.exp,save:z.inc-z.exp};});
       const best=arr.reduce((a,b)=>b.save>a.save?b:a,arr[0]),worst=arr.reduce((a,b)=>b.exp>a.exp?b:a,arr[0]),avg=arr.reduce((s,x)=>s+x.exp,0)/12;
-      compare.innerHTML=`<div class="compare-card-v37"><div class="label">Best Savings Month</div><div class="value">${best?monthLabel(best.ym):"—"} · ${thb(best?.save||0)}</div></div><div class="compare-card-v37"><div class="label">Highest Expense Month</div><div class="value">${worst?monthLabel(worst.ym):"—"} · ${thb(worst?.exp||0)}</div></div><div class="compare-card-v37"><div class="label">Average Monthly Expense</div><div class="value">${thb(avg)}</div></div>`;
+      compare.innerHTML=`<div class="compare-card-v37"><div class="label">Best Savings Month</div><div class="value">${best?monthLabel(best.ym):'—'} · ${thb(best?.save||0)}</div></div><div class="compare-card-v37"><div class="label">Highest Expense Month</div><div class="value">${worst?monthLabel(worst.ym):'—'} · ${thb(worst?.exp||0)}</div></div><div class="compare-card-v37"><div class="label">Average Monthly Expense</div><div class="value">${thb(avg)}</div></div>`;
     }else{
-      const d=new Date(p.year,Number(p.month)-1,1);d.setMonth(d.getMonth()-1);const prev=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`,z=v37MonthTotals(prev);
-      const di=z.inc?((t.inc-z.inc)/z.inc*100):null,de=z.exp?((t.exp-z.exp)/z.exp*100):null,ds=t.save-z.save;
-      compare.innerHTML=`<div class="compare-card-v37"><div class="label">Income vs Previous</div><div class="value">${di===null?"—":(di>=0?"+":"")+di.toFixed(1)+"%"}</div></div><div class="compare-card-v37"><div class="label">Expense vs Previous</div><div class="value">${de===null?"—":(de>=0?"+":"")+de.toFixed(1)+"%"}</div></div><div class="compare-card-v37"><div class="label">Savings Change</div><div class="value">${thb(ds)}</div></div>`;
+      const prev=previousMonthKey;
+      const z=totalsMap.get(prev)||{inc:0,exp:0};
+      const di=z.inc?((t.inc-z.inc)/z.inc*100):null,de=z.exp?((t.exp-z.exp)/z.exp*100):null,ds=t.save-(z.inc-z.exp);
+      compare.innerHTML=`<div class="compare-card-v37"><div class="label">Income vs Previous</div><div class="value">${di===null?'—':(di>=0?'+':'')+di.toFixed(1)+'%'}</div></div><div class="compare-card-v37"><div class="label">Expense vs Previous</div><div class="value">${de===null?'—':(de>=0?'+':'')+de.toFixed(1)+'%'}</div></div><div class="compare-card-v37"><div class="label">Savings Change</div><div class="value">${thb(ds)}</div></div>`;
     }
   }
 
-  const rank=CATS.Expense.map(c=>[c,rows.filter(x=>x.type==="Expense"&&x.category===c&&!isLinkedInvestmentTx(x)).reduce((s,x)=>s+n(x.from_amount)*toTHB(x.from_account),0)]).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]);
-  $("expenseRanking").innerHTML=rank.length?rank.map((x,i)=>`<div class="rank-row"><b>${i+1}</b><span>${x[0]}</span><strong>${thb(x[1])}</strong></div>`).join(""):'<div class="empty">No expenses for this period.</div>';
-  renderPersonalExpenseAnalysisV371();
+  const rank=CATS.Expense.map(c=>[c,expenseByCategory[c]||0]).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]);
+  $('expenseRanking').innerHTML=rank.length?rank.map((x,i)=>`<div class="rank-row"><b>${i+1}</b><span>${x[0]}</span><strong>${thb(x[1])}</strong></div>`).join(''):'<div class="empty">No expenses for this period.</div>';
+  renderPersonalExpenseAnalysisV371({byCategory:personalByCategory,income:t.inc});
 
-  $("budgetProgress").innerHTML=`<div class="budget-edit-head-v37"><div>Category</div><div>Used</div><div>Planned</div><div>Usage</div></div>`+
+  $('budgetProgress').innerHTML=`<div class="budget-edit-head-v37"><div>Category</div><div>Used</div><div>Planned</div><div>Usage</div></div>`+
     CATS.Expense.map(c=>{
-      const used=rows.filter(x=>x.type==="Expense"&&x.category===c&&!isLinkedInvestmentTx(x)).reduce((s,x)=>s+n(x.from_amount)*toTHB(x.from_account),0);
+      const used=expenseByCategory[c]||0;
       const plan=v37Budget(c),pct=plan?used/plan*100:0;
-      return `<div class="budget-edit-row-v37"><div><b>${c}</b></div><div>${thb(used)}</div><div><input type="number" min="0" step="0.01" value="${plan||""}" onchange="v37SaveBudget('${c}',this.value)"></div><div class="${pct>100?'red':pct>80?'yellow':'green'}">${plan?pct.toFixed(0):"—"}%</div></div>`;
-    }).join("");
+      return `<div class="budget-edit-row-v37"><div><b>${c}</b></div><div>${thb(used)}</div><div><input type="number" min="0" step="0.01" value="${plan||''}" onchange="v37SaveBudget('${c}',this.value)"></div><div class="${pct>100?'red':pct>80?'yellow':'green'}">${plan?pct.toFixed(0):'—'}%</div></div>`;
+    }).join('');
 
-  renderCashFlowSummaryV371();
-  // Keep Monthly Expense Control synchronized with the currently selected Analyze period.
+  renderCashFlowSummaryV371({rows,t});
   renderDashboardExpenseControlV1();
-  const months=p.month==="annual"?Array.from({length:12},(_,i)=>`${p.year}-${String(i+1).padStart(2,"0")}`):[`${p.year}-${p.month}`];
-  const ar=months.map(m=>({m,...v37MonthTotals(m)})),maxE=Math.max(1,...ar.map(x=>x.exp)),maxI=Math.max(1,...ar.map(x=>x.inc));
-  $("expenseTrend").innerHTML=`<div class="spark">${ar.map(x=>`<span title="${monthLabel(x.m)} · ${thb(x.exp)}" style="height:${Math.max(4,x.exp/maxE*100)}%"></span>`).join("")}</div><div class="spark-labels">${ar.map(x=>`<span>${monthLabel(x.m).split(" ")[0]}</span>`).join("")}</div><div class="small" style="margin-top:6px">Expenses · THB</div>`;
-  $("incomeExpenseTrend").innerHTML=`<div class="spark">${ar.map(x=>`<span title="Income ${thb(x.inc)} · Expense ${thb(x.exp)}" style="height:${Math.max(4,x.inc/maxI*100)}%"></span>`).join("")}</div><div class="spark-labels">${ar.map(x=>`<span>${monthLabel(x.m).split(" ")[0]}</span>`).join("")}</div><div class="small" style="margin-top:6px">Income · THB</div>`;
+  const months=p.month==='annual'?Array.from({length:12},(_,i)=>`${p.year}-${String(i+1).padStart(2,'0')}`):[`${p.year}-${p.month}`];
+  const ar=months.map(m=>{const z=totalsMap?.get?.(m);return{m,inc:z?.inc||0,exp:z?.exp||0,save:(z?.inc||0)-(z?.exp||0)};});
+  const maxE=Math.max(1,...ar.map(x=>x.exp)),maxI=Math.max(1,...ar.map(x=>x.inc));
+  $('expenseTrend').innerHTML=`<div class="spark">${ar.map(x=>`<span title="${monthLabel(x.m)} · ${thb(x.exp)}" style="height:${Math.max(4,x.exp/maxE*100)}%"></span>`).join('')}</div><div class="spark-labels">${ar.map(x=>`<span>${monthLabel(x.m).split(' ')[0]}</span>`).join('')}</div><div class="small" style="margin-top:6px">Expenses · THB</div>`;
+  $('incomeExpenseTrend').innerHTML=`<div class="spark">${ar.map(x=>`<span title="Income ${thb(x.inc)} · Expense ${thb(x.exp)}" style="height:${Math.max(4,x.inc/maxI*100)}%"></span>`).join('')}</div><div class="spark-labels">${ar.map(x=>`<span>${monthLabel(x.m).split(' ')[0]}</span>`).join('')}</div><div class="small" style="margin-top:6px">Income · THB</div>`;
   const score=Math.max(0,Math.min(100,Math.round(45+Math.max(0,t.sr)*0.8-Math.max(0,t.er-70)*0.25)));
-  $("healthScore").innerHTML=`<div class="score ${score>=75?'good':score>=55?'warn':'bad'}">${score}</div><div class="small">Financial Health Score</div><div class="mini-stat">Saving Ratio <b>${t.sr.toFixed(1)}%</b></div><div class="mini-stat">Expense Ratio <b>${t.er.toFixed(1)}%</b></div>`;
+  $('healthScore').innerHTML=`<div class="score ${score>=75?'good':score>=55?'warn':'bad'}">${score}</div><div class="small">Financial Health Score</div><div class="mini-stat">Saving Ratio <b>${t.sr.toFixed(1)}%</b></div><div class="mini-stat">Expense Ratio <b>${t.er.toFixed(1)}%</b></div>`;
+
+  // Make the yearly month map available to downstream Analyze modules for this render cycle.
+  window.__mmhAnalyzeV37LastTotals={year:p.year,map:totalsMap};
 }
-function renderPersonalExpenseAnalysisV371(){
+function renderPersonalExpenseAnalysisV371(summary){
   const el=$('personalExpenseAnalysisV371');
   if(!el)return;
-  const rows=v37Rows();
-  const cats=['Family Support','Special Transfer','Gifts','Donation'];
-  const data=cats.map(cat=>({
-    cat,
-    value:rows.filter(t=>t.type==='Expense'&&t.category===cat).reduce((s,t)=>s+n(t.from_amount)*toTHB(t.from_account),0)
-  }));
+  let data;
+  let income;
+  if(summary&&summary.byCategory){
+    const cats=['Family Support','Special Transfer','Gifts','Donation'];
+    data=cats.map(cat=>({cat,value:Number(summary.byCategory[cat]||0)}));
+    income=Number(summary.income||0);
+  }else{
+    const rows=v37Rows();
+    const cats=['Family Support','Special Transfer','Gifts','Donation'];
+    data=cats.map(cat=>({cat,value:rows.filter(t=>t.type==='Expense'&&t.category===cat).reduce((s,t)=>s+n(t.from_amount)*toTHB(t.from_account),0)}));
+    income=v37Totals(rows).inc;
+  }
   const total=data.reduce((s,x)=>s+x.value,0);
-  const income=v37Totals(rows).inc;
   if(total<=0){el.innerHTML='<div class="empty">No personal expenses for this period.</div>';return;}
   const max=Math.max(1,...data.map(x=>x.value));
   el.innerHTML=`<div class="personal-expense-summary-v371">
@@ -3856,10 +3910,10 @@ function renderPersonalExpenseAnalysisV371(){
   </div>`;
 }
 
-function renderCashFlowSummaryV371(){
+function renderCashFlowSummaryV371(summary){
   const el=$("cashFlowSummary"), periodEl=$("cashFlowSummaryPeriod"), statusEl=$("cashFlowSummaryStatus");
   if(!el||!periodEl||!statusEl)return;
-  const p=v37Period(), rows=v37Rows(), t=v37Totals(rows);
+  const p=v37Period(), rows=summary?.rows||v37Rows(), t=summary?.t||v37Totals(rows);
   const net=t.save, sr=t.sr, er=t.er;
   const status=net>0?'Positive Cash Flow':net===0?'Break-even':'Negative Cash Flow';
   periodEl.textContent=`${v37Label(p)} · THB`;
@@ -11120,5 +11174,19 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
   #analyze .analyze-tab-v371{transition:none!important}
 }
 </style>
-<meta name="mmhvault-architecture" content="V3.44.5 · Phase1 dual optimization" />
+<style id="mmhvault-v3446-analyze-polish">
+/* MMHVAULT V3.44.6 — Analyze data-card hierarchy + dense-data polish. */
+#analyze .overview-snapshot-grid-v371{grid-template-columns:repeat(4,minmax(0,1fr));}
+#analyze .overview-snapshot-card-v371,#analyze .cashflow-card-v371{position:relative;overflow:hidden;border-color:rgba(96,161,221,.20);background:linear-gradient(145deg,rgba(13,32,64,.78),rgba(6,15,33,.90));box-shadow:0 10px 24px rgba(0,0,0,.12),inset 0 1px 0 rgba(255,255,255,.035);}
+#analyze .overview-snapshot-card-v371:before,#analyze .cashflow-card-v371:before{content:"";position:absolute;inset:0 auto auto 0;width:44%;height:1px;background:linear-gradient(90deg,rgba(76,199,255,.72),rgba(246,199,91,.38),transparent);opacity:.9;}
+#analyze .overview-snapshot-card-v371 .value,#analyze .cashflow-card-v371 .value{font-variant-numeric:tabular-nums;letter-spacing:-.025em;}
+#analyze .overview-snapshot-card-v371 .label,#analyze .cashflow-card-v371 .label{font-weight:850;letter-spacing:.025em;}
+#analyze .monthly-strip{border:1px solid rgba(96,161,221,.16);border-radius:16px;background:rgba(3,10,23,.30);overflow:hidden;}
+#analyze .monthly-cell{min-height:76px;padding:12px 14px;}
+#analyze #expenses table tr th,#analyze #expenses table tr td,#analyze #loans table tr th,#analyze #loans table tr td{font-variant-numeric:tabular-nums;}
+@media(max-width:900px){#analyze .overview-snapshot-grid-v371{grid-template-columns:repeat(2,minmax(0,1fr));}}
+@media(max-width:520px){#analyze .overview-snapshot-grid-v371{grid-template-columns:1fr 1fr;gap:8px;}#analyze .overview-snapshot-card-v371,#analyze .cashflow-card-v371{padding:12px;}#analyze .overview-snapshot-card-v371 .value,#analyze .cashflow-card-v371 .value{font-size:18px;line-height:1.15;}}
+@media(prefers-reduced-motion:reduce){#analyze .overview-snapshot-card-v371,#analyze .cashflow-card-v371{transition:none!important;}}
+</style>
+<meta name="mmhvault-architecture" content="V3.44.6 · Phase1 dual optimization" />
 </html>
