@@ -3355,7 +3355,15 @@ function bindTxFilters(){
   };
   ['txSearch','txFilterType','txFilterGroup','txFilterCategory','txFilterAccount'].forEach(id=>{
     const el=$(id);if(!el)return;
-    window.__mmhV34247Bind(el,el.tagName==='INPUT'?'input':'change',renderTransactionsV28);
+    window.__mmhV34247Bind(el,el.tagName==='INPUT'?'input':'change',()=>{
+      try{
+        const renderer=window.renderTransactions;
+        if(typeof renderer==='function') return renderer();
+        return renderTransactionsV28();
+      }catch(e){
+        console.warn('[MMHVAULT] transaction filter render failed',e);
+      }
+    });
   });
 }
 function clearTxFilters(){
