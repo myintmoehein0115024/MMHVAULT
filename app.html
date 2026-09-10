@@ -1321,6 +1321,10 @@ body.mmhvault-scroll-active .card{transition:none!important}
   outline: 2px solid currentColor;
   outline-offset: 3px;
 }
+<style id="mmhvault-v3438-mobile-polish">
+/* MMHVAULT V3.43.8 · Mobile interaction polish. Presentation only. */
+html{text-rendering:optimizeLegibility;}
+button,.btn,.bottom-nav button,.more-nav-menu button,[role="button"]{touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
 </style>
 </head>
 <!-- MMHVAULT V3.42.56 · Dashboard report relocation + Transaction receipt center + Invest Add precision -->
@@ -2053,7 +2057,11 @@ function startMarketPollingV322(){
 }
 startMarketPollingV322();
 document.addEventListener('visibilitychange',()=>{
-  if(document.visibilityState==='visible'){fetchCryptoPrices();render();}
+  if(document.visibilityState==='visible'){
+    const activeMarketPage=document.getElementById('dashboard')?.classList.contains('active') || document.getElementById('invest')?.classList.contains('active');
+    if(activeMarketPage)fetchCryptoPrices();
+    render();
+  }
 });
 ACC.forEach(a=>{const fa=$("fromAccount"),ta=$("toAccount");if(fa)fa.insertAdjacentHTML("beforeend",`<option>${a}</option>`);if(ta)ta.insertAdjacentHTML("beforeend",`<option>${a}</option>`);});
 $("txType").onchange=()=>{syncTransactionGroup();updateCategories();};$("txGroup").onchange=updateCategories;updateCategories();
