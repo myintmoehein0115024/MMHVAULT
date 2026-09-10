@@ -3354,10 +3354,16 @@ async function editInvestment(id){
       try{await uploadInvestmentReceiptV3304((await db.auth.getUser()).data.user.id,id,newReceipt);}
       catch(err){alert('Investment was updated, but receipt upload failed: '+(err?.message||err));}
     }
+    // V3.44.34: update the visible Invest page immediately; cloud reconciliation continues in background.
+    const localIndex=Array.isArray(investments)?investments.findIndex(i=>String(i.id)===String(id)):-1;
+    if(localIndex>=0)investments[localIndex]={...investments[localIndex],...row};
     closeEditModal();
-    await loadAll({force:true});
-    window.mmhvaultForceRenderAllV34421?.('investment-edit');
-    window.refreshInvestmentReceiptFlagsV3304?.();
+    try{renderInvest();}catch(err){console.warn('[MMHVAULT] investment edit local render failed',err);}
+    try{window.dispatchEvent(new CustomEvent('mmhvault:data-change',{detail:{reason:'investment-edit'}}));}catch(_e){}
+    Promise.resolve().then(()=>loadAll({force:true})).then(()=>{
+      try{window.mmhvaultForceRenderAllV34421?.('investment-edit-sync');}catch(_e){}
+      try{window.refreshInvestmentReceiptFlagsV3304?.();}catch(_e){}
+    }).catch(err=>console.warn('[MMHVAULT] background investment edit sync failed',err));
   };
 }
 
@@ -11213,6 +11219,113 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
   };
 })();
 </script>
+
+
+<!-- MMHVAULT V3.44.34 · Investment Interaction Stability Hotfix -->
+<style id="mmhvault-v34434-invest-stability">
+#mmhInvestDeleteConfirmV34434{position:fixed;inset:0;z-index:2147483001;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(2,7,18,.72);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+#mmhInvestDeleteConfirmV34434.show{display:flex}
+#mmhInvestDeleteConfirmV34434 .card{width:min(430px,calc(100vw - 32px));background:linear-gradient(145deg,#10213a,#081321);border:1px solid rgba(105,177,255,.28);border-radius:22px;padding:22px;box-shadow:0 28px 90px rgba(0,0,0,.55);color:#eef6ff}
+#mmhInvestDeleteConfirmV34434 h3{font-size:20px;font-weight:900;margin:0 0 8px}
+#mmhInvestDeleteConfirmV34434 p{color:#9fb0c8;line-height:1.55;margin:0 0 20px}
+#mmhInvestDeleteConfirmV34434 .actions{display:flex;justify-content:flex-end;gap:10px}
+#mmhInvestDeleteConfirmV34434 button{min-height:42px;border-radius:12px;padding:0 17px;font-weight:800;cursor:pointer}
+#mmhInvestDeleteConfirmV34434 .cancel{background:#14243b;border:1px solid rgba(120,165,215,.24);color:#e9f3ff}
+#mmhInvestDeleteConfirmV34434 .confirm{background:linear-gradient(135deg,#d95b6a,#b73d50);border:1px solid rgba(255,160,170,.35);color:#fff}
+#mmhInvestDeleteConfirmV34434 .confirm[disabled]{opacity:.55;cursor:wait}
+#editInvForm button[type="submit"][disabled]{opacity:.62;cursor:wait}
+</style>
+<script id="mmhvault-v34434-invest-stability-script">
+/* V3.44.34 — Investment edit/delete now use immediate local UI updates and safe background cloud sync. */
+(function(){
+  let deleting=false, saving=false;
+  const isZh=()=>((localStorage.getItem('mmhvault_language_v3363')||'en')==='zh');
+
+  function ensureConfirm(){
+    let el=document.getElementById('mmhInvestDeleteConfirmV34434');
+    if(el)return el;
+    el=document.createElement('div');
+    el.id='mmhInvestDeleteConfirmV34434';
+    el.innerHTML='<div class="card" role="dialog" aria-modal="true"><h3></h3><p></p><div class="actions"><button type="button" class="cancel"></button><button type="button" class="confirm"></button></div></div>';
+    document.body.appendChild(el);
+    return el;
+  }
+
+  function confirmInvestmentDelete(){
+    return new Promise(resolve=>{
+      const el=ensureConfirm(),zh=isZh();
+      const title=el.querySelector('h3'),copy=el.querySelector('p'),cancel=el.querySelector('.cancel'),ok=el.querySelector('.confirm');
+      title.textContent=zh?'删除这条投资记录？':'Delete this investment record?';
+      copy.textContent=zh?'此操作无法撤销。':'This action cannot be undone.';
+      cancel.textContent=zh?'取消':'Cancel';ok.textContent=zh?'删除':'Delete';
+      let done=false;
+      const finish=v=>{if(done)return;done=true;el.classList.remove('show');cleanup();resolve(v);};
+      const onCancel=()=>finish(false),onOk=()=>finish(true),onBg=e=>{if(e.target===el)finish(false)},onKey=e=>{if(e.key==='Escape')finish(false)};
+      const cleanup=()=>{cancel.removeEventListener('click',onCancel);ok.removeEventListener('click',onOk);el.removeEventListener('click',onBg);document.removeEventListener('keydown',onKey)};
+      cancel.addEventListener('click',onCancel,{once:true});ok.addEventListener('click',onOk,{once:true});el.addEventListener('click',onBg);document.addEventListener('keydown',onKey);
+      el.classList.add('show');setTimeout(()=>cancel.focus(),0);
+    });
+  }
+
+  window.deleteInvestment=async function(id){
+    if(deleting)return;
+    const confirmed=await confirmInvestmentDelete();
+    if(!confirmed)return;
+    deleting=true;
+    try{
+      const u=(await db.auth.getUser()).data.user;
+      if(!u)throw new Error(isZh()?'请重新登录。':'Please sign in again.');
+      const r=await db.from('investments').delete().eq('id',id).eq('user_id',u.id);
+      if(r.error)throw r.error;
+
+      // Immediate local paint — never empty the Invest page while waiting for cloud reload.
+      if(Array.isArray(investments))investments=investments.filter(x=>String(x.id)!==String(id));
+      try{renderInvest();}catch(err){console.warn('[MMHVAULT] investment local render failed',err);}
+      try{window.dispatchEvent(new CustomEvent('mmhvault:data-change',{detail:{reason:'investment-delete'}}));}catch(_e){}
+
+      // Receipt cleanup and cloud refresh are deliberately non-blocking.
+      Promise.resolve().then(()=>removeInvestmentReceiptV3304?.(u.id,id)).catch(()=>{});
+      Promise.resolve().then(()=>loadAll?.({force:true})).then(()=>{
+        try{window.mmhvaultForceRenderAllV34421?.('investment-delete-sync');}catch(_e){}
+        try{window.refreshInvestmentReceiptFlagsV3304?.();}catch(_e){}
+      }).catch(err=>console.warn('[MMHVAULT] background investment sync failed',err));
+    }catch(err){
+      console.error('Investment delete failed:',err);
+      alert((isZh()?'无法删除这条投资记录。\n\n':'Unable to delete this investment record.\n\n')+(err?.message||''));
+    }finally{deleting=false;}
+  };
+
+  // Wrap the existing editor after it has built its modal. The wrapper adds a busy guard and
+  // converts the post-save full blocking reload into an immediate local update where possible.
+  const originalEditInvestment=window.editInvestment;
+  if(typeof originalEditInvestment==='function'){
+    window.editInvestment=async function(id){
+      saving=false;
+      await originalEditInvestment(id);
+      const form=document.getElementById('editInvForm');
+      if(!form||form.dataset.v34434Wrapped)return;
+      form.dataset.v34434Wrapped='1';
+      const oldSubmit=form.onsubmit;
+      form.onsubmit=async function(e){
+        if(saving)return;
+        saving=true;
+        const submit=form.querySelector('button[type="submit"]');
+        if(submit){submit.disabled=true;submit.dataset.v34434Text=submit.textContent;submit.textContent=isZh()?'保存中…':'Saving…';}
+        try{
+          await oldSubmit.call(this,e);
+        }catch(err){
+          console.error('Investment edit failed:',err);
+          alert((isZh()?'无法保存投资记录。\n\n':'Unable to save investment record.\n\n')+(err?.message||''));
+        }finally{
+          saving=false;
+          if(submit&&document.body.contains(submit)){submit.disabled=false;submit.textContent=submit.dataset.v34434Text||submit.textContent;}
+        }
+      };
+    };
+  }
+})();
+</script>
+
 </body>
 <!-- MMHVAULT V3.42.78 performance baseline: logo-free account cards + restrained dashboard rendering. -->
 
