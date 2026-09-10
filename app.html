@@ -1750,7 +1750,7 @@ button,.btn,.bottom-nav button,.more-nav-menu button,[role="button"]{touch-actio
 <div class="goals-command-v311" id="goalsCommandV311"></div>
 <div class="goals-form-section-v311">
 <div class="small" style="margin-bottom:9px;color:var(--muted)">Add or update a target below. Goals 2.0 turns each target into a dated plan with a monthly funding requirement.</div>
-<form class="goals-form-v371" id="goalFormV371" onsubmit="saveGoalV371(event)">
+<form class="goals-form-v371" id="goalFormV371" onsubmit="return window.__mmhSubmitGoalV34419(event)">
 <label>Goal Type<select id="goalTypeV371"><option value="Emergency Fund">Emergency Fund</option><option value="Savings">Savings</option><option value="Investment">Investment</option><option value="Net Worth">Net Worth</option></select></label>
 <label>Target Amount ($)<input id="goalTargetV371" min="0" placeholder="5000" required="" step="0.01" type="number"/></label>
 <label>Target Date<input id="goalDateV371" type="date"/></label>
@@ -4191,7 +4191,7 @@ function renderGoalsV371(){
     const remain=Math.max(0,target-current);
     const done=current>=target&&target>0;
     return `<div class="goal-card-v371">
-      <div class="goal-top"><div><div class="goal-name">${esc(g.type)}</div><div class="goal-target">Target · ${usd(target)} · ${goalDateLabelV371(g.date)}</div></div><div class="goal-actions-v371"><button class="btn" type="button" onclick="return window.__mmhEditGoalV34418('${g.id}')">Edit</button><button class="btn danger" type="button" onclick="deleteGoalV371('${g.id}')">Delete</button></div></div>
+      <div class="goal-top"><div><div class="goal-name">${esc(g.type)}</div><div class="goal-target">Target · ${usd(target)} · ${goalDateLabelV371(g.date)}</div></div><div class="goal-actions-v371"><button class="btn" type="button" onclick="return window.__mmhEditGoalV34419('${g.id}')">Edit</button><button class="btn danger" type="button" onclick="deleteGoalV371('${g.id}')">Delete</button></div></div>
       <div class="goal-current ${done?'green':'cyan'}">${usd(current)}</div>
       <div class="goal-progress-v371"><span style="width:${pct.toFixed(1)}%"></span></div>
       <div class="goal-meta"><span>${pct.toFixed(1)}% complete</span><span>${done?'Goal reached':usd(remain)+' remaining'}</span></div>
@@ -4217,6 +4217,13 @@ function editGoalV371(id){
   $('goalTypeV371').value=g.type;$('goalTargetV371').value=g.target;$('goalDateV371').value=g.date||'';$('goalSubmitV371').textContent='Save Changes';$('goalCancelV371').style.display='inline-flex';
   try{$('goalTypeV371').scrollIntoView({behavior:'smooth',block:'center'});}catch(e){}
 }
+window.__mmhEditGoalV34419=function(id){
+  try{ editGoalV371(String(id)); }catch(e){ console.error('Goal edit failed:',e); }
+  return false;
+};
+window.__mmhSubmitGoalV34419=function(e){
+  try{ return saveGoalV371(e); }catch(err){ console.error('Goal save failed:',err); alert('Unable to save this goal. Please refresh and try again.'); return false; }
+};
 window.__mmhEditGoalV34418=function(id){
   try{
     const goals=typeof loadGoalsV371==='function'?loadGoalsV371():[];
@@ -5132,7 +5139,7 @@ renderDashboard=function(){
           <div><span>Target timing</span><b>${g311Countdown(d)}</b></div>
         </div>
         <div class="goals-plan-note-v311">${d.remain<=0?'Goal reached.':d.required>0?(capacityForNote(d.capacity,d.required)):(d.days===null?'Add a target date to calculate the monthly amount.':'Target date is too close to produce a monthly plan.')}</div>
-        <div class="goals-roadmap-actions-v311"><button class="btn" type="button" onclick="return window.__mmhEditGoalV34418('${g.id}')">Edit</button><button class="btn danger" type="button" onclick="deleteGoalV371('${g.id}')">Delete</button></div>
+        <div class="goals-roadmap-actions-v311"><button class="btn" type="button" onclick="return window.__mmhEditGoalV34419('${g.id}')">Edit</button><button class="btn danger" type="button" onclick="deleteGoalV371('${g.id}')">Delete</button></div>
       </div>`;
     }).join('');
     function capacityForNote(cap,req){
@@ -11342,108 +11349,7 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
 }
 </style>
 
-<script id="mmhvault-v34415-goal-submit-reliability">
-/* MMHVAULT V3.44.16 — Goals submit bridge key alignment.
-   Does not rely on saveGoalV371 being exposed on window. */
-(function(){
-  const KEY_PREFIX='myfinance_goals_v371_';
-  function key(){
-    let email='guest';
-    try {
-      email = (typeof currentUserEmail === 'string' && currentUserEmail) || email;
-    } catch(e) {}
-    return KEY_PREFIX + email;
-  }
-  function readGoals(){
-    try{
-      const raw=localStorage.getItem(key());
-      const arr=raw?JSON.parse(raw):[];
-      return Array.isArray(arr)?arr:[];
-    }catch(e){ return []; }
-  }
-  function writeGoals(arr){
-    localStorage.setItem(key(),JSON.stringify(arr));
-  }
-  function num(v){ const n=parseFloat(v); return Number.isFinite(n)?n:0; }
-  function usd(v){
-    try{
-      if(typeof window.usd==='function') return window.usd(v);
-    }catch(e){}
-    return '$'+num(v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
-  }
-  function escapeHtml(v){
-    return String(v).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
-  }
-  function fallbackRender(){
-    const list=document.getElementById('goalsListV371');
-    if(!list) return;
-    const goals=readGoals();
-    if(!goals.length){
-      list.innerHTML='<div class="goal-empty-v371" style="grid-column:1/-1">No goals yet. Add your first financial goal above.</div>';
-      return;
-    }
-    list.innerHTML=goals.map(g=>{
-      const target=Math.max(0,num(g.target));
-      return `<div class="goal-card-v371"><div class="goal-top"><div><div class="goal-name">${escapeHtml(g.type)}</div><div class="goal-target">Target · ${usd(target)}${g.date?' · '+escapeHtml(g.date):''}</div></div><div class="goal-actions-v371"><button class="btn" type="button" onclick="return window.__mmhEditGoalV34418('${escapeHtml(g.id)}')">Edit</button><button class="btn danger" type="button" data-mmh-delete-goal="${escapeHtml(g.id)}">Delete</button></div></div><div class="goal-current cyan">${usd(0)}</div><div class="goal-progress-v371"><span style="width:0%"></span></div><div class="goal-meta"><span>0.0% complete</span><span>${usd(target)} remaining</span></div></div>`;
-    }).join('');
-  }
-  function resetForm(){
-    const form=document.getElementById('goalFormV371'); if(!form) return;
-    const t=document.getElementById('goalTypeV371'), a=document.getElementById('goalTargetV371'), d=document.getElementById('goalDateV371'), b=document.getElementById('goalSubmitV371'), c=document.getElementById('goalCancelV371');
-    window.__mmhEditingGoalIdV371=null;
-    if(t)t.value='Emergency Fund'; if(a)a.value=''; if(d)d.value=''; if(b)b.textContent='Add Goal'; if(c)c.style.display='none';
-  }
-  function save(){
-    const type=document.getElementById('goalTypeV371')?.value||'';
-    const target=num(document.getElementById('goalTargetV371')?.value);
-    const date=document.getElementById('goalDateV371')?.value||'';
-    if(!type || target<=0){ alert('Enter a target amount greater than 0.'); return false; }
-    const goals=readGoals();
-    const editId=window.__mmhEditingGoalIdV371||null;
-    if(editId){
-      const existing=goals.find(g=>g.id===editId);
-      if(!existing){ alert('The selected goal no longer exists.'); resetForm(); window.__mmhEditingGoalIdV371=null; return false; }
-      const duplicate=goals.find(g=>g.id!==editId && g.type===type);
-      if(duplicate){ alert(`${type} goal already exists. Edit the existing goal instead.`); return false; }
-      existing.type=type; existing.target=target; existing.date=date;
-      writeGoals(goals);
-      window.__mmhEditingGoalIdV371=null;
-      try { if(typeof window.wsInvalidateBaseV34412==='function') window.wsInvalidateBaseV34412(); } catch(e){}
-      resetForm();
-      try { if(typeof window.renderGoalsV371==='function') window.renderGoalsV371(); else fallbackRender(); } catch(e){ fallbackRender(); }
-      return false;
-    }
-    if(goals.some(g=>g.type===type)){
-      alert(`${type} goal already exists. Edit the existing goal instead.`);
-      return false;
-    }
-    goals.push({id:'g_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,7),type,target,date});
-    writeGoals(goals);
-    try { if(typeof window.wsInvalidateBaseV34412==='function') window.wsInvalidateBaseV34412(); } catch(e){}
-    resetForm();
-    try { if(typeof window.renderGoalsV371==='function') window.renderGoalsV371(); else fallbackRender(); } catch(e){ fallbackRender(); }
-    return false;
-  }
-  function bind(){
-    bindGoalActions();
-    const form=document.getElementById('goalFormV371');
-    const btn=document.getElementById('goalSubmitV371');
-    if(!form || !btn || btn.dataset.mmhV34415Bound==='1') return;
-    btn.dataset.mmhV34415Bound='1';
-    btn.type='button';
-    btn.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();save();},false);
-    form.addEventListener('submit',e=>{e.preventDefault();e.stopPropagation();save();},false);
-  }
-  window.addEventListener('mmhvault:data-loaded',bind);
-  window.addEventListener('mmhvault:data-state',bind);
-  document.addEventListener('DOMContentLoaded',bind,{once:true});
-  bind();
-})();
-</script>
-<style id="mmhvault-v34415-goal-submit-css">
-#goalFormV371,#goalFormV371 .form-actions,#goalSubmitV371{position:relative;z-index:9999;pointer-events:auto;}
-#goalSubmitV371{touch-action:manipulation;cursor:pointer;position:relative;z-index:10000;pointer-events:auto;}
-</style>
+
 </body>
 <!-- MMHVAULT V3.42.78 performance baseline: logo-free account cards + restrained dashboard rendering. -->
 
@@ -11488,6 +11394,7 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
 @media(prefers-reduced-motion:reduce){#analyze .overview-snapshot-card-v371,#analyze .cashflow-card-v371{transition:none!important;}}
 </style>
 <meta name="mmhvault-architecture" content="V3.44.6 · Phase1 dual optimization" />
+<meta name="mmhvault-goals-v34419" content="Goals 2.0 · native submit/edit wrappers · USD-based calculations" />
 <meta name="mmhvault-goals-v34418" content="Goals 2.0 · USD-based calculations + direct edit action" />
 
 <style id="mmhvault-v34412-goals-status-premium">
