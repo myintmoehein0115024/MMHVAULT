@@ -1380,6 +1380,28 @@ button,.btn,.bottom-nav button,.more-nav-menu button,[role="button"]{touch-actio
   #dashboard .panel:after{transform:none!important;}
 }
 </style>
+
+<style id="mmhvault-v3448-analyze-polish">
+/* MMHVAULT V3.44.8 · Analyze Cash Flow + Expense Breakdown polish */
+#cashFlowSummary .cashflow-summary-grid-v371{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+#cashFlowSummary .cashflow-card-v371{position:relative;padding:16px 16px 15px;border:1px solid rgba(92,140,228,.22);border-radius:16px;background:linear-gradient(145deg,rgba(15,28,65,.82),rgba(7,14,34,.9));box-shadow:inset 0 1px 0 rgba(255,255,255,.035),0 10px 28px rgba(0,0,0,.14);overflow:hidden}
+#cashFlowSummary .cashflow-card-v371::before{content:"";position:absolute;left:14px;right:14px;top:0;height:1px;background:linear-gradient(90deg,rgba(84,211,255,.5),rgba(205,103,255,.26),transparent);opacity:.8}
+#cashFlowSummary .cashflow-card-v371 .label{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#8395bd}
+#cashFlowSummary .cashflow-card-v371 .value{margin-top:7px;font-size:clamp(20px,2vw,28px);font-weight:900;letter-spacing:-.02em;line-height:1.1;overflow-wrap:anywhere}
+#cashFlowSummary .cashflow-summary-note-v371{margin-top:11px;padding:10px 12px;border:1px solid rgba(100,132,196,.17);border-radius:12px;background:rgba(9,17,39,.45);color:#8294b7;font-size:11px;line-height:1.5}
+#expenses table{border-collapse:separate;border-spacing:0;width:100%;overflow:hidden;border:1px solid rgba(96,138,220,.18);border-radius:14px;background:rgba(6,13,31,.3)}
+#expenses th,#expenses td{padding:11px 12px;border-bottom:1px solid rgba(126,151,199,.12)}
+#expenses thead th{font-size:11px;letter-spacing:.07em;text-transform:uppercase;color:#8fa4ca;background:rgba(26,43,89,.34)}
+#expenses tr:last-child th,#expenses tr:last-child td{border-bottom:0}
+#expenses tbody tr:hover td{background:rgba(50,91,164,.08)}
+#expenseRanking{display:grid;gap:9px}
+#expenseRanking .rank-row{display:grid;grid-template-columns:30px minmax(0,1fr) auto;gap:10px;align-items:center;padding:11px 12px;border:1px solid rgba(83,122,194,.18);border-radius:13px;background:rgba(7,14,34,.42);transition:transform .14s ease,border-color .14s ease,background .14s ease}
+#expenseRanking .rank-row:hover{transform:translateY(-1px);border-color:rgba(93,170,255,.28);background:rgba(12,24,54,.62)}
+#expenseRanking .rank-row>b:first-child{width:28px;height:28px;display:grid;place-items:center;border-radius:9px;background:linear-gradient(135deg,rgba(58,210,255,.16),rgba(205,99,255,.2));border:1px solid rgba(98,145,225,.24)}
+@media(max-width:760px){#cashFlowSummary .cashflow-summary-grid-v371{grid-template-columns:repeat(2,minmax(0,1fr))}#cashFlowSummary .cashflow-card-v371 .value{font-size:21px}#expenses th,#expenses td{padding:9px 10px;font-size:12px}#expenseRanking .rank-row{grid-template-columns:28px minmax(0,1fr) auto;padding:10px}}
+@media(max-width:420px){#cashFlowSummary .cashflow-summary-grid-v371{grid-template-columns:1fr}#cashFlowSummary .cashflow-card-v371{padding:14px}#expenses table{font-size:11px}#expenses th,#expenses td{padding:8px 7px}}
+@media (prefers-reduced-motion: reduce){#expenseRanking .rank-row{transition:none}#expenseRanking .rank-row:hover{transform:none}}
+</style>
 </head>
 <!-- MMHVAULT V3.42.56 · Dashboard report relocation + Transaction receipt center + Invest Add precision -->
 <body>
@@ -3778,10 +3800,20 @@ function renderAnalyzeV37(){
   const targetMonth=p.month==='annual'?null:`${p.year}-${p.month}`;
   const loans=new Set(window.CATS?.Loans||[]);
   const isOrdinaryExpense=t=>t.type==='Expense'&&!loans.has(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t);
+  const totalsMap=new Map();
+  let previousMonthKey='';
+  if(p.month!=='annual'){const d=new Date(p.year,Number(p.month)-1,1);d.setMonth(d.getMonth()-1);previousMonthKey=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;}
+  const trackMonth=key=>p.month==='annual'?key.slice(0,4)===targetYear:(key.slice(0,4)===targetYear||key===previousMonthKey);
 
   for(const t of allRows){
     const key=String(t.tx_date||'').slice(0,7);
     const year=key.slice(0,4);
+    if(trackMonth(key)){
+      let z=totalsMap.get(key);
+      if(!z)totalsMap.set(key,z={inc:0,exp:0});
+      if(t.type==='Income') z.inc+=n(t.to_amount)*toTHB(t.to_account);
+      if(isOrdinaryExpense(t)) z.exp+=n(t.from_amount)*toTHB(t.from_account);
+    }
     if(year!==targetYear)continue;
     if(targetMonth!==null && key!==targetMonth)continue;
     rows.push(t);
@@ -3825,16 +3857,6 @@ function renderAnalyzeV37(){
   $('monthly').innerHTML=`<div class="monthly-strip"><div class="monthly-cell"><div class="label">Period</div><div class="val">${v37Label(p)}</div></div><div class="monthly-cell green"><div class="label">Income</div><div class="val">${thb(t.inc)}</div></div><div class="monthly-cell red"><div class="label">Expenses</div><div class="val">${thb(t.exp)}</div></div><div class="monthly-cell green"><div class="label">Net Savings</div><div class="val">${thb(t.save)}</div></div><div class="monthly-cell yellow"><div class="label">Saving Ratio</div><div class="val">${t.sr.toFixed(2)}%</div></div><div class="monthly-cell red"><div class="label">Expense Ratio</div><div class="val">${t.er.toFixed(2)}%</div></div></div>`;
 
   const compare=$('monthCompareV37');
-  const totalsMap=new Map();
-  let previousMonthKey='';
-  if(p.month!=='annual'){const d=new Date(p.year,Number(p.month)-1,1);d.setMonth(d.getMonth()-1);previousMonthKey=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;}
-  for(const tx of allRows){
-    const key=String(tx.tx_date||'').slice(0,7);
-    if(key.slice(0,4)!==targetYear && key!==previousMonthKey)continue;
-    let z=totalsMap.get(key);if(!z)totalsMap.set(key,z={inc:0,exp:0});
-    if(tx.type==='Income')z.inc+=n(tx.to_amount)*toTHB(tx.to_account);
-    if(isOrdinaryExpense(tx))z.exp+=n(tx.from_amount)*toTHB(tx.from_account);
-  }
   if(compare){
     if(p.month==='annual'){
       const arr=Array.from({length:12},(_,i)=>{const ym=`${p.year}-${String(i+1).padStart(2,'0')}`;const z=totalsMap.get(ym)||{inc:0,exp:0};return{ym,inc:z.inc,exp:z.exp,save:z.inc-z.exp};});
