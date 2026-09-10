@@ -1326,6 +1326,19 @@ body.mmhvault-scroll-active .card{transition:none!important}
 html{text-rendering:optimizeLegibility;}
 button,.btn,.bottom-nav button,.more-nav-menu button,[role="button"]{touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
 </style>
+
+<style id="mmhvault-v3439-mobile-compositing-polish">
+/* MMHVAULT V3.43.9 — mobile compositing + touch interaction polish. */
+@media (max-width: 900px){
+  .bottom-nav{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;}
+}
+@media (hover:none){
+  #dashboard .panel:hover,
+  .panel:hover,
+  .btn:hover{transform:none!important;}
+  #dashboard .panel:after{transform:none!important;}
+}
+</style>
 </head>
 <!-- MMHVAULT V3.42.56 · Dashboard report relocation + Transaction receipt center + Invest Add precision -->
 <body>
