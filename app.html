@@ -4206,7 +4206,7 @@ function saveGoalV371(e){
     if(existing){alert(`${type} goal already exists. Edit the existing goal instead.`);return false;}
     goals.push({id:'g_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,7),type,target,date});
   }
-  saveGoalsV371(goals);cancelGoalEditV371();renderGoalsV371();return false;
+  saveGoalsV371(goals);if(window.wsInvalidateBaseV34412)window.wsInvalidateBaseV34412();cancelGoalEditV371();renderGoalsV371();return false;
 }
 function editGoalV371(id){
   const g=loadGoalsV371().find(x=>x.id===id);if(!g)return;editingGoalIdV371=id;
@@ -4220,7 +4220,7 @@ function cancelGoalEditV371(){
 function deleteGoalV371(id){
   const g=loadGoalsV371().find(x=>x.id===id);if(!g)return;
   if(!confirm(`Delete ${g.type} goal?`))return;
-  saveGoalsV371(loadGoalsV371().filter(x=>x.id!==id));if(editingGoalIdV371===id)cancelGoalEditV371();renderGoalsV371();
+  saveGoalsV371(loadGoalsV371().filter(x=>x.id!==id));if(window.wsInvalidateBaseV34412)window.wsInvalidateBaseV34412();if(editingGoalIdV371===id)cancelGoalEditV371();renderGoalsV371();
 }
 
 /* ===================== V3.7.1 ANALYZE TABS ===================== */
@@ -5226,7 +5226,7 @@ renderDashboard=function(){
   function wsMoney(v){return typeof mmhMoney387==='function'?mmhMoney387(v):('$ '+fmt(v));}
   function wsMonths(){const saved=localStorage.getItem('myfinance_ws_months_v315');const x=Number(saved);return [12,24,36].includes(x)?x:24;}
   function wsMode(){return localStorage.getItem('myfinance_ws_mode_v315')||'balanced';}
-  function wsBase(){
+  function wsBaseRaw(){
     const cash=['Bath','TrueMoney','OKX','ByBit','MetaMask','KPay'].reduce((s,a)=>s+balance(a)*toUSD(a),0);
     const invest=investmentValueUSD();
     const net=Math.max(0,cash+invest);
@@ -5245,6 +5245,19 @@ renderDashboard=function(){
     const gap=goalRows.reduce((s,x)=>s+x.remain,0);
     return {cash,invest,net,avg,currentSave,currentMonthKey,goals:goalRows,gap};
   }
+  let wsBaseCacheV34412=null;
+  let wsBaseCacheAtV34412=0;
+  function wsBase(){
+    const now=Date.now();
+    // Short-lived cache only coalesces rapid consecutive Wealth Planning renders.
+    // A fresh render after the window expires always recomputes from source data.
+    if(wsBaseCacheV34412 && now-wsBaseCacheAtV34412<350) return wsBaseCacheV34412;
+    wsBaseCacheV34412=wsBaseRaw();
+    wsBaseCacheAtV34412=now;
+    return wsBaseCacheV34412;
+  }
+  function wsInvalidateBaseV34412(){wsBaseCacheV34412=null;wsBaseCacheAtV34412=0;}
+  window.wsInvalidateBaseV34412=wsInvalidateBaseV34412;
   function wsAssumption(mode,base){ if(mode==='conservative')return base.avg*.7; if(mode==='aggressive')return base.avg*1.25; return base.avg; }
   function wsDate(months){const d=new Date();d.setMonth(d.getMonth()+months);return d.toLocaleDateString(undefined,{year:'numeric',month:'short'});}
   function renderWealthPlanningV387(){
@@ -11298,6 +11311,23 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
 </style>
 <meta name="mmhvault-architecture" content="V3.44.6 · Phase1 dual optimization" />
 
+<style id="mmhvault-v34412-goals-status-premium">
+/* MMHVAULT V3.44.12 — Goals status / progress clarity. */
+#analyze [data-panel="goals"] .goals-status-v311{display:inline-flex;align-items:center;gap:6px;border:1px solid rgba(130,170,220,.20);background:rgba(8,20,40,.62);box-shadow:inset 0 1px 0 rgba(255,255,255,.025);}
+#analyze [data-panel="goals"] .goals-status-v311:before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;box-shadow:0 0 10px currentColor;opacity:.9;}
+#analyze [data-panel="goals"] .goals-status-v311.ontrack{color:#73dfb0;border-color:rgba(115,223,176,.28);background:rgba(32,110,82,.16);}
+#analyze [data-panel="goals"] .goals-status-v311.soon{color:#f3cd74;border-color:rgba(243,205,116,.30);background:rgba(125,91,20,.16);}
+#analyze [data-panel="goals"] .goals-status-v311.behind{color:#ff8a9a;border-color:rgba(255,138,154,.28);background:rgba(125,28,48,.15);}
+#analyze [data-panel="goals"] .goals-status-v311.reached{color:#7fd5ff;border-color:rgba(127,213,255,.28);background:rgba(37,91,125,.16);}
+#analyze [data-panel="goals"] .goals-roadmap-bar-v311{height:8px;border-radius:999px;background:rgba(255,255,255,.065);overflow:hidden;box-shadow:inset 0 1px 2px rgba(0,0,0,.18);}
+#analyze [data-panel="goals"] .goals-roadmap-bar-v311>span{display:block;height:100%;min-width:0;border-radius:inherit;background:linear-gradient(90deg,rgba(76,199,255,.88),rgba(246,199,91,.88));box-shadow:0 0 16px rgba(76,199,255,.14);transition:width .35s ease;}
+#analyze [data-panel="goals"] .goals-roadmap-card-v311:has(.goals-status-v311.behind) .goals-roadmap-bar-v311>span{background:linear-gradient(90deg,rgba(255,114,137,.86),rgba(255,168,112,.88));}
+#analyze [data-panel="goals"] .goals-roadmap-card-v311:has(.goals-status-v311.reached) .goals-roadmap-bar-v311>span{background:linear-gradient(90deg,rgba(86,209,171,.88),rgba(76,199,255,.88));}
+#analyze [data-panel="goals"] .goals-roadmap-meta-v311>div{padding:8px 10px;border-radius:10px;background:rgba(255,255,255,.018);border:1px solid rgba(132,172,216,.10);}
+#analyze [data-panel="goals"] .goals-roadmap-meta-v311 b{font-variant-numeric:tabular-nums;letter-spacing:-.01em;}
+@media(max-width:700px){#analyze [data-panel="goals"] .goals-roadmap-meta-v311>div{padding:7px 9px;}#analyze [data-panel="goals"] .goals-roadmap-bar-v311{height:7px;}}
+@media(prefers-reduced-motion:reduce){#analyze [data-panel="goals"] .goals-roadmap-bar-v311>span{transition:none!important;}}
+</style>
 <style id="mmhvault-v34411-goals-premium">
 /* MMHVAULT V3.44.11 — Goals performance + responsive premium polish. */
 #analyze [data-panel="goals"] .goals-command-v311{overflow:hidden;}
