@@ -9,10 +9,10 @@ window.mmHVaultShowLandingV327=()=>{};
   };
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
-/* V3.28.4: Landing is always the public entry page. Auth routing happens on login.html. */
+/* V4.0: Landing is always the public entry page. Auth routing happens on login.html. */
 ;
 
-/* V3.27.3 motion preserved */
+/* V4.0 motion preserved */
 
 (function(){
   function boot(){
@@ -52,7 +52,7 @@ window.mmHVaultShowLandingV327=()=>{};
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true}); else boot();
 })();
 
-/* V3.27.5 polish preserved */
+/* V4.0 polish preserved */
 
 (function(){
   function harden(){

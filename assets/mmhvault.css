@@ -19,26 +19,26 @@ table{width:100%;border-collapse:collapse;font-size:12px;min-width:0} .month-con
 @media(max-width:650px){input[type="date"]{width:100% !important;inline-size:100% !important;max-width:100% !important;min-width:0 !important;font-size:16px;padding:10px 12px;box-sizing:border-box;display:block;margin:0;flex:1 1 auto} input[type="date"]::-webkit-date-and-time-value{width:auto;min-width:0;max-width:100%;box-sizing:border-box} .analyze-panel{padding:12px}.analyze-panel .toolbar{gap:8px}.analyze-panel .toolbar h2{font-size:18px}.analyze-panel .pill{font-size:10px;padding:5px 7px}.analyze-table{overflow-x:hidden}.analyze-table table{font-size:11px}.analyze-table th,.analyze-table td{padding:8px 7px}.analyze-table th:nth-child(1),.analyze-table td:nth-child(1){width:40%}.analyze-table th:nth-child(2),.analyze-table td:nth-child(2){width:30%}.analyze-table th:nth-child(3),.analyze-table td:nth-child(3){width:30%}.invest-metrics{grid-template-columns:1fr 1fr}.invest-entry .formgrid{grid-template-columns:1fr}.invest-top{grid-template-columns:1fr}.invest-list-panel{padding:12px}.invest-list-panel .toolbar{gap:6px}html,body{width:100%;max-width:100%;overflow-x:hidden}.wrap,.page,.panel,.card,.grid{min-width:0;max-width:100%}header{height:auto;min-height:58px;padding:8px 10px;flex-wrap:wrap;gap:6px}.logo{font-size:17px}.nav{order:3;width:100%;margin:0;overflow-x:auto;white-space:nowrap}.nav button{padding:8px 10px}.wrap{width:100%;max-width:100%;padding:12px}.cards{grid-template-columns:1fr}.account-groups{grid-template-columns:1fr}.metrics{grid-template-columns:1fr 1fr}.price-grid{grid-template-columns:1fr 1fr}.holdings-grid{grid-template-columns:1fr 1fr}.gold-market{align-items:flex-start;flex-direction:column}.month-control{width:100%}.formgrid{grid-template-columns:1fr}.panel{padding:13px}.toolbar{align-items:flex-start;flex-wrap:wrap}.user{display:none}h1{font-size:24px}.amount{font-size:17px}.metric .value{font-size:20px}.scroll{width:100%;max-width:100%;overflow-x:auto}table{min-width:760px}}
 
 
-/* V3.7.1 Analyze section tabs */
+/* V4.0 Analyze section tabs */
 .analyze-tabs-v371{display:flex;gap:7px;align-items:center;margin-top:16px;padding:6px;background:#0b1030aa;border:1px solid var(--line);border-radius:13px;overflow-x:auto;white-space:nowrap;scrollbar-width:thin}
 .analyze-tab-v371{border:1px solid transparent;background:transparent;color:var(--muted);padding:9px 13px;border-radius:9px;font-weight:900;cursor:pointer;flex:0 0 auto}
 .analyze-tab-v371:hover{color:#fff;background:#171e4b}.analyze-tab-v371.active{color:#fff;background:#20275b;border-color:#38427f;box-shadow:0 5px 14px #0003}
 .analyze-tab-panel-v371{display:none}.analyze-tab-panel-v371.active{display:block}.networth-analyze-summary-v371{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.networth-analyze-card-v371{padding:14px;border:1px solid var(--line);border-radius:12px;background:#0b1030aa}.networth-analyze-card-v371 .label{font-size:11px;color:var(--muted)}.networth-analyze-card-v371 .value{font-size:22px;font-weight:900;margin-top:5px}
 @media(max-width:650px){.analyze-tabs-v371{margin-top:12px;padding:5px}.analyze-tab-v371{padding:8px 11px;font-size:12px}.networth-analyze-summary-v371{grid-template-columns:1fr 1fr}.networth-analyze-card-v371:last-child{grid-column:1/-1}}
 
-/* V3.7.1 mobile date field refinement */
+/* V4.0 mobile date field refinement */
 /* Keep date controls inside mobile cards on iOS Safari. */
 /* V2.9 visual refinements */
 .monthly-compact{padding:14px}.monthly-strip{display:grid;grid-template-columns:150px repeat(5,minmax(0,1fr));gap:8px;align-items:stretch;margin-top:8px}.monthly-cell{border:1px solid var(--line);border-radius:10px;padding:9px 10px;background:#0b1030aa}.monthly-cell .label{font-size:10px;color:var(--muted)}.monthly-cell .val{font-size:15px;font-weight:900;margin-top:3px}.monthly-cell.green .val{color:var(--green)}.monthly-cell.red .val{color:var(--red)}.monthly-cell.yellow .val{color:var(--yellow)}.monthly-compare{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}.mini-month{border:1px solid var(--line);border-radius:10px;padding:10px;background:#0b1030aa}.mini-month strong{display:block;margin-bottom:4px}.app-icon-preview{width:58px;height:58px;border-radius:14px;border:1px solid var(--line);padding:6px;background:#0b1030}.pwa-row{display:flex;align-items:center;gap:10px}
 @media(max-width:700px){.monthly-strip{grid-template-columns:1fr 1fr}.monthly-cell:first-child{grid-column:1/-1}.monthly-compare{grid-template-columns:1fr}.monthly-compact .toolbar{margin-bottom:4px}.monthly-compact .sub{font-size:11px}}
 
-/* V3.1 fixed bottom navigation */
+/* V4.0 fixed bottom navigation */
 .header-spacer{flex:1}
 .bottom-nav{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:1000;display:flex;gap:6px;padding:8px;background:rgba(10,14,42,.94);backdrop-filter:blur(14px);border:1px solid var(--line);border-radius:18px;box-shadow:0 12px 35px #0008;max-width:calc(100vw - 24px);overflow-x:auto;white-space:nowrap}
 .bottom-nav button{border:0;background:transparent;color:var(--muted);padding:9px 12px;border-radius:11px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:6px;flex:0 0 auto}.bottom-nav button.active,.bottom-nav button:hover{background:#20275b;color:#fff}.bottom-nav span{font-size:12px}
 body{padding-bottom:88px}
 @media(max-width:650px){.bottom-nav{left:8px;right:8px;transform:none;bottom:8px;max-width:none;justify-content:flex-start;border-radius:16px;padding:7px}.bottom-nav button{min-width:72px;padding:8px 7px;flex-direction:column;gap:2px}.bottom-nav button:first-letter{font-size:16px}.bottom-nav span{font-size:10px}.wrap{padding-bottom:105px}header{height:60px;padding:0 14px}}
-/* V3.7.1 — mobile bottom nav: fit all 6 destinations without horizontal scrolling */
+/* V4.0 — mobile bottom nav: fit all 6 destinations without horizontal scrolling */
 @media(max-width:650px){.bottom-nav{left:8px;right:8px;justify-content:stretch;overflow:hidden;padding:6px;gap:2px}.bottom-nav button{min-width:0;flex:1 1 0;padding:7px 2px;gap:2px}.bottom-nav button span{font-size:9px;white-space:nowrap}.bottom-nav button:first-letter{font-size:14px}.bottom-nav{box-sizing:border-box}.bottom-nav button{width:16.6667%}}
 
 .password-wrap{position:relative;display:flex;align-items:center}.password-wrap input{padding-right:72px}.password-toggle{position:absolute;right:8px;border:0;background:#20275b;color:var(--text);padding:6px 9px;border-radius:8px;font-weight:800;cursor:pointer}.link-btn{border:0;background:transparent;color:var(--cyan);font:inherit;font-size:12px;font-weight:800;cursor:pointer;padding:0}.login-divider{display:flex;align-items:center;gap:9px;color:var(--muted);font-size:11px;margin:18px 0 10px}.login-divider:before,.login-divider:after{content:"";height:1px;background:var(--line);flex:1}
@@ -51,7 +51,7 @@ body{padding-bottom:88px}
 .analyze-period-bar{align-items:flex-end}.analyze-period{width:190px}.budget-edit-grid{display:grid;grid-template-columns:1.2fr 1fr 1fr 90px;gap:8px;align-items:center}.budget-edit-grid>div{padding:8px;border-bottom:1px solid #30387988}.budget-edit-grid input{padding:7px 8px}.budget-head{color:var(--cyan);font-size:11px;border-bottom:1px solid var(--line)}
 @media(max-width:650px){.analyze-period-bar{align-items:stretch;flex-direction:column}.analyze-period{width:100%}.budget-edit-grid{grid-template-columns:1.1fr .9fr .9fr 62px;font-size:11px}.monthly-compact{padding:12px}}
 
-/* V3.6 mobile form controls */
+/* V4.0 mobile form controls */
 input,select,textarea{min-width:0;max-width:100%}
 input[type="date"]{display:block;width:100%;min-width:0;max-width:100%;box-sizing:border-box;font:inherit;line-height:1.2;min-height:42px;overflow:hidden} input[type="date"]::-webkit-date-and-time-value{min-width:0;text-align:left} input[type="date"]::-webkit-datetime-edit{min-width:0} input[type="date"]::-webkit-calendar-picker-indicator{margin-left:4px;flex:0 0 auto}
 @media(max-width:650px){
@@ -61,20 +61,20 @@ input[type="date"]{display:block;width:100%;min-width:0;max-width:100%;box-sizin
   .formgrid input[type="date"]{width:100% !important;max-width:100% !important;min-width:0 !important;margin:0;}
 }
 
-/* V3.7 additive UI layer */
+/* V4.0 additive UI layer */
 .period-controls-v37{display:flex;gap:8px}.period-controls-v37 label{width:145px}.period-controls-v37 select{margin-top:4px}
 .month-compare-v37{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}.compare-card-v37{padding:9px;border:1px solid var(--line);border-radius:10px;background:#0b1030aa}.compare-card-v37 .label{font-size:10px;color:var(--muted)}.compare-card-v37 .value{font-size:14px;font-weight:900;margin-top:3px}
 .budget-edit-head-v37,.budget-edit-row-v37{display:grid;grid-template-columns:1.2fr 1fr 1fr 78px;gap:8px;align-items:center}.budget-edit-head-v37{color:var(--cyan);font-size:11px;padding-bottom:7px;border-bottom:1px solid var(--line)}.budget-edit-row-v37{padding:8px 0;border-bottom:1px solid #30387988}.budget-edit-row-v37 input{padding:7px}
 .insight-grid-v37{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.insight-v37{padding:10px;border:1px solid var(--line);border-radius:11px;background:#0b1030aa}.insight-v37 b{display:block;margin-bottom:4px}.insight-v37 .small{line-height:1.45}
 @media(max-width:650px){.period-controls-v37{width:100%}.period-controls-v37 label{width:auto;flex:1}.analyze-period-bar{align-items:stretch;flex-direction:column}.month-compare-v37,.insight-grid-v37{grid-template-columns:1fr}.budget-edit-head-v37,.budget-edit-row-v37{grid-template-columns:1fr .9fr 90px 58px;font-size:11px}}
 
-/* V3.7.1 — Invest-only view switch. No navigation or setPage changes. */
+/* V4.0 — Invest-only view switch. No navigation or setPage changes. */
 .v371-head{align-items:flex-end}.v371-switch{display:flex;gap:6px}.v371-switch .active{background:linear-gradient(90deg,#0b9fbd,#c72dbd)}
 #invest.v371-gold .v371-crypto{display:none!important}
 #invest.v371-crypto .v371-gold{display:none!important}
 @media(max-width:650px){.v371-head{align-items:stretch;flex-direction:column}.v371-switch{width:100%}.v371-switch .btn{flex:1}}
 
-/* V3.7.1 Expense Control */
+/* V4.0 Expense Control */
 .expense-control-panel{margin-top:14px}.expense-control-summary{display:grid;grid-template-columns:1.2fr repeat(3,1fr);gap:10px}.expense-control-summary .stat{padding:11px 12px;border:1px solid var(--line);border-radius:11px;background:#0b1030aa}.expense-control-summary .label{font-size:10px;color:var(--muted)}.expense-control-summary .value{font-size:18px;font-weight:950;margin-top:4px}.expense-control-bar{height:9px;background:#080c27;border-radius:99px;overflow:hidden;margin-top:8px}.expense-control-bar span{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--cyan),var(--pink))}.expense-control-list{margin-top:12px}.expense-control-row{display:grid;grid-template-columns:120px 1fr 92px 74px;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid #30387988}.expense-control-row:last-child{border-bottom:0}.expense-control-row .cat{font-weight:800;font-size:12px}.expense-control-row .bar{height:8px;background:#080c27;border-radius:99px;overflow:hidden}.expense-control-row .bar span{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--cyan),var(--pink))}.expense-control-row .amount{font-size:11px;color:var(--muted);text-align:right}.expense-control-row .status{text-align:right;font-size:10px;font-weight:900}.expense-control-row .status.good{color:var(--green)}.expense-control-row .status.warn{color:var(--yellow)}.expense-control-row .status.bad{color:var(--red)}.expense-control-note{font-size:10px;color:var(--muted);margin-top:10px;line-height:1.45}.expense-control-empty{padding:12px;border:1px dashed var(--line);border-radius:10px;color:var(--muted);font-size:11px}
 @media(max-width:800px){.expense-control-summary{grid-template-columns:1fr 1fr}.expense-control-summary .wide{grid-column:1/-1}.expense-control-row{grid-template-columns:100px 1fr 86px 70px}}
 @media(max-width:650px){.expense-control-summary{grid-template-columns:1fr 1fr}.expense-control-row{grid-template-columns:88px 1fr 78px 62px;font-size:11px}.expense-control-row .amount{font-size:10px}}
@@ -87,7 +87,7 @@ input[type="date"]{display:block;width:100%;min-width:0;max-width:100%;box-sizin
 @media(max-width:1000px){.fin-health-score{grid-template-columns:1fr}.fin-health-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.fin-health-breakdown-v371{grid-column:auto;margin-top:0}}
 @media(max-width:650px){.fin-health-grid{grid-template-columns:1fr 1fr}.fin-health-card .value{font-size:18px}.fin-health-breakdown-v371{padding:12px}.fin-health-score-row-v371{grid-template-columns:1fr 64px;gap:8px}.fin-health-score-row-v371 .fin-health-score-bar-v371{grid-column:1/-1;grid-row:2}.fin-health-score-points-v371{grid-column:2;grid-row:1}.fin-health-score-name-v371{grid-column:1;grid-row:1}}
 
-/* V3.7.1 Net Worth trend styling */
+/* V4.0 Net Worth trend styling */
 .networth-trend-v371{grid-column:1/-1;margin-top:12px;padding:14px;border:1px solid var(--line);border-radius:12px;background:#0b1030aa}
 .networth-trend-v371 h3{margin:0 0 3px;font-size:15px}
 .nw-bars-v371{height:210px;display:flex;align-items:flex-end;gap:10px;padding:16px 4px 4px;overflow-x:auto}
@@ -103,7 +103,7 @@ input[type="date"]{display:block;width:100%;min-width:0;max-width:100%;box-sizin
 .cashflow-summary-note-v371{margin-top:10px;font-size:.82rem;opacity:.72}
 @media (max-width:720px){.cashflow-summary-grid-v371{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.cashflow-card-v371{padding:12px}.cashflow-card-v371 .value{font-size:1.05rem}}
 
-/* V3.7.1 Exchange Converter */
+/* V4.0 Exchange Converter */
 .exchange-converter-panel{margin-top:18px}
 .exchange-converter-grid{display:grid;grid-template-columns:1.2fr 1fr 1fr auto;gap:10px;align-items:end}
 .exchange-converter-grid label{min-width:0}
@@ -115,14 +115,14 @@ input[type="date"]{display:block;width:100%;min-width:0;max-width:100%;box-sizin
 @media(max-width:650px){.exchange-converter-grid{grid-template-columns:1fr}.exchange-converter-grid .wide{grid-column:auto}.exchange-converter-result .value{font-size:21px}}
 
 
-/* V3.7.1 Invest secondary tabs */
+/* V4.0 Invest secondary tabs */
 .invest-subtabs-v371{display:flex;gap:7px;margin:10px 0 14px;padding:5px;border:1px solid var(--line);border-radius:12px;background:#0b1030aa;overflow-x:auto;scrollbar-width:none}
 .invest-subtabs-v371::-webkit-scrollbar{display:none}
 .invest-subtab-v371{border:0;background:transparent;color:var(--muted);font:inherit;font-weight:850;padding:9px 15px;border-radius:9px;white-space:nowrap;cursor:pointer;flex:1;min-width:0}
 .invest-subtab-v371.active{background:#293470;color:#fff;box-shadow:0 4px 14px #0004}
 @media(max-width:650px){.invest-subtabs-v371{margin:8px 0 12px}.invest-subtab-v371{padding:9px 12px;font-size:12px}}
 
-/* V3.7.1 Dashboard KPI polish: visual-only, no data logic changes */
+/* V4.0 Dashboard KPI polish: visual-only, no data logic changes */
 .kpi-polish{letter-spacing:.01em}
 @media(min-width:1101px){#metrics.metrics{grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}}
 #metrics.metrics .metric{min-height:82px;display:flex;flex-direction:column;justify-content:center;gap:5px;padding:11px 13px;overflow:hidden}
@@ -131,7 +131,7 @@ input[type="date"]{display:block;width:100%;min-width:0;max-width:100%;box-sizin
 #metrics.metrics .metric .sub{font-size:10px;line-height:1.2;min-height:0}
 @media(max-width:650px){#metrics.metrics{grid-template-columns:1fr 1fr;gap:8px}#metrics.metrics .metric{min-height:74px;padding:9px 10px;gap:4px}#metrics.metrics .metric .value{font-size:18px}#metrics.metrics .metric .label{font-size:9px}#metrics.metrics .metric .sub{font-size:9px}}
 
-/* V3.7.1 Welcome Ceremony */
+/* V4.0 Welcome Ceremony */
 .welcome-screen{position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 35%,rgba(88,101,242,.16),transparent 38%),var(--bg);opacity:0;visibility:hidden;pointer-events:none;transition:opacity .35s ease,visibility .35s ease}
 .welcome-screen.show{opacity:1;visibility:visible;pointer-events:auto}
 .welcome-card{text-align:center;padding:32px 28px;max-width:420px;width:calc(100% - 40px)}
@@ -146,7 +146,7 @@ input[type="date"]{display:block;width:100%;min-width:0;max-width:100%;box-sizin
 @keyframes welcomeFade{to{opacity:1}}
 @media(max-width:600px){.welcome-logo{width:62px;height:62px;border-radius:18px}.welcome-title{font-size:30px}.welcome-card{padding:24px 20px}}
 
-/* V3.8.12 MMHVAULT logo + premium login refresh */
+/* V4.0 MMHVAULT logo + premium login refresh */
 .mmhvault-login-shell{position:relative;max-width:520px;margin:7vh auto 0;}
 .mmhvault-login-glow{position:absolute;inset:-40px -60px auto;height:310px;background:radial-gradient(circle at 50% 35%,rgba(242,190,72,.16),rgba(70,92,180,.08) 35%,transparent 70%);pointer-events:none;filter:blur(8px)}
 .mmhvault-login-panel{position:relative;overflow:hidden;padding:28px 28px 24px;border:1px solid rgba(240,203,108,.22);background:linear-gradient(145deg,rgba(20,28,63,.96),rgba(8,12,34,.98));box-shadow:0 26px 70px rgba(0,0,0,.34),0 0 0 1px rgba(255,255,255,.02) inset}
@@ -203,7 +203,7 @@ body.light header{background:#ffffffee}.light .card,.light .panel{background:lin
 
 
 
-/* V3.7.1 Analyze visual polish — layout only */
+/* V4.0 Analyze visual polish — layout only */
 #analyze .analyze-period-bar{margin-bottom:14px}
 #analyze .analyze-tabs-v371{position:sticky;top:8px;z-index:8;box-shadow:0 10px 26px #0002}
 #analyze .analyze-tab-panel-v371>.panel{margin-top:14px}
@@ -295,7 +295,7 @@ body.light header{background:#ffffffee}.light .card,.light .panel{background:lin
 
 
 
-/* V3.7.1 Account Overview polish */
+/* V4.0 Account Overview polish */
 .account-groups.account-overview-polished{grid-template-columns:repeat(3,minmax(0,1fr));}
 .account-overview-polished .account-group{padding:16px;background:linear-gradient(145deg,#151c4a,#0c1131);}
 .account-overview-polished .group-title{margin-bottom:12px;}
@@ -314,7 +314,7 @@ body.light header{background:#ffffffee}.light .card,.light .panel{background:lin
 
 
 
-/* V3.7.1 Dashboard Quick Actions Polish */
+/* V4.0 Dashboard Quick Actions Polish */
 .dashboard-quick-actions-v371{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:14px;padding:8px;border:1px solid var(--line);border-radius:14px;background:rgba(11,16,48,.42)}
 .dashboard-quick-actions-v371 .btn{min-height:38px}
 .dashboard-quick-actions-v371 .btn.primary{box-shadow:0 6px 14px rgba(0,0,0,.18)}
@@ -322,7 +322,7 @@ body.light header{background:#ffffffee}.light .card,.light .panel{background:lin
 
 
 
-/* V3.7.1 Global UI Polish: visual consistency only */
+/* V4.0 Global UI Polish: visual consistency only */
 :root{--ui-radius:16px;--ui-gap:14px;}
 .page h1{letter-spacing:-.02em;margin-bottom:6px;}
 .page>.sub{max-width:980px;line-height:1.45;}
@@ -342,7 +342,7 @@ body.light header{background:#ffffffee}.light .card,.light .panel{background:lin
 
 
 
-/* V3.7.1 Personal Expense Analysis */
+/* V4.0 Personal Expense Analysis */
 .personal-expense-summary-v371{display:grid;grid-template-columns:minmax(190px,230px) 1fr;gap:16px;align-items:stretch}
 .personal-expense-total-v371{padding:16px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.02)}
 .personal-expense-total-v371 .value{font-size:26px;font-weight:800;margin-top:6px}
@@ -403,7 +403,7 @@ body.light header{background:#ffffffee}.light .card,.light .panel{background:lin
 @media(max-width:650px){.account-center-head-v375{align-items:flex-start}.account-center-grid-v375{grid-template-columns:1fr 1fr}.account-center-card-v375{padding:12px}.account-center-avatar-v375{width:52px;height:52px;flex-basis:52px;border-radius:15px;font-size:17px}}
 @media(max-width:420px){.account-center-grid-v375{grid-template-columns:1fr}.account-center-info-v375:last-child{grid-column:auto}}
 
-/* V3.7.8 Getting Started */
+/* V4.0 Getting Started */
 .getting-started-backdrop{position:fixed;inset:0;z-index:12000;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(2,5,20,.78);backdrop-filter:blur(10px)}
 .getting-started-backdrop.open{display:flex}
 .getting-started-card{width:min(560px,100%);background:linear-gradient(145deg,#171d4b,#0c1030);border:1px solid #38427f;border-radius:20px;box-shadow:0 28px 90px #000a;overflow:hidden}
@@ -434,7 +434,7 @@ body.light header{background:#ffffffee}.light .card,.light .panel{background:lin
 @media(max-width:800px){.account-security-grid-v379{grid-template-columns:1fr}}
 @media(max-width:650px){.account-security-card-v379{padding:12px}.security-password-form-v379{grid-template-columns:1fr}.security-password-form-v379 .full{grid-column:auto}.security-actions-v379 .btn{width:100%}}
 
-/* ===================== V3.8.0 Data Center ===================== */
+/* ===================== V4.0 Data Center ===================== */
 .data-center-grid-v380{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:14px}
 .data-center-stat-v380{padding:14px;border:1px solid var(--line);border-radius:14px;background:rgba(11,16,48,.48);min-width:0}
 .data-center-stat-v380 .label{font-size:11px;color:var(--muted);font-weight:800}.data-center-stat-v380 .value{font-size:24px;font-weight:950;margin-top:5px;overflow-wrap:anywhere}.data-center-stat-v380 .meta{font-size:10px;color:var(--muted);margin-top:5px;line-height:1.35}
@@ -459,7 +459,7 @@ body.light header{background:#ffffffee}.light .card,.light .panel{background:lin
 @media(max-width:900px){.data-center-grid-v380{grid-template-columns:1fr 1fr}.data-center-safety-v380{grid-template-columns:1fr}}
 @media(max-width:650px){.data-center-grid-v380{grid-template-columns:1fr 1fr;gap:8px}.data-center-stat-v380{padding:11px}.data-center-stat-v380 .value{font-size:20px}.data-center-actions-v380{display:grid;grid-template-columns:1fr}.data-center-actions-v380 .btn{width:100%;min-width:0}}
 
-/* ===================== V3.8.1 Backup History ===================== */
+/* ===================== V4.0 Backup History ===================== */
 .backup-history-v381{margin-top:14px}
 .backup-history-head-v381{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
 .backup-history-list-v381{display:grid;gap:8px}
@@ -472,7 +472,7 @@ body.light header{background:#ffffffee}.light .card,.light .panel{background:lin
 
 
 
-/* V3.8.4 Production Readiness */
+/* V4.0 Production Readiness */
 .data-load-overlay-v384{position:fixed;inset:0;z-index:9998;display:none;align-items:center;justify-content:center;background:rgba(8,11,36,.45);backdrop-filter:blur(3px);padding:18px}
 .data-load-overlay-v384.show{display:flex}
 .data-load-card-v384{min-width:260px;max-width:420px;border:1px solid var(--line);border-radius:16px;background:var(--panel);padding:18px 20px;box-shadow:0 20px 60px #0008;text-align:center}
@@ -501,7 +501,7 @@ body.light .data-error-banner-v384{background:#fff1f4;color:#17213a}
 
 
 
-/* V3.8.8 Mobile Account Header Hotfix */
+/* V4.0 Mobile Account Header Hotfix */
 @media(max-width:650px){
   header#header{
     height:60px!important;
@@ -626,7 +626,7 @@ body.light .data-error-banner-v384{background:#fff1f4;color:#17213a}
 
 
 
-/* ===================== V3.8.12 Financial Milestones ===================== */
+/* ===================== V4.0 Financial Milestones ===================== */
 .wealth-milestones-v388{margin-top:14px}
 .milestone-top-v388{display:grid;grid-template-columns:1.15fr 1fr;gap:14px}
 .milestone-card-v388{border:1px solid var(--line);border-radius:14px;background:#0b1030aa;padding:14px;min-width:0}
@@ -667,7 +667,7 @@ body.light .data-error-banner-v384{background:#fff1f4;color:#17213a}
 
 
 
-/* V3.8.12 Premium MMHVAULT visual system — additive styling only */
+/* V4.0 Premium MMHVAULT visual system — additive styling only */
 :root{
   --bg:#050914;
   --panel:#0a1224;
@@ -865,7 +865,7 @@ body.auth-page-active header{display:none!important}.auth-page-active .bottom-na
 
 
 
-/* MMHVAULT V3.8.12 — Auth viewport-fit / responsive polish */
+/* MMHVAULT V4.0 — Auth viewport-fit / responsive polish */
 html,body{height:100%;}
 body.auth-page-active{height:100svh;min-height:100svh;overflow:hidden;background:#02060d;}
 body.auth-page-active .wrap{height:100%;min-height:0;padding:0;}
@@ -987,7 +987,7 @@ body.auth-page-active #login{height:100%;min-height:0;margin:0;}
 
 
 
-/* MMHVAULT V3.11.0 — full-screen desktop auth composition */
+/* MMHVAULT V4.0 — full-screen desktop auth composition */
 @media (min-width:700px){
   body.auth-page-active{background:#020812;overflow:hidden;}
   body.auth-page-active .wrap{width:100vw;max-width:none;height:100%;padding:0;}
@@ -1110,7 +1110,7 @@ body.auth-page-active #login{height:100%;min-height:0;margin:0;}
 
 
 
-/* MMHVAULT V3.11.0 — Premium Dashboard visual layer. No data logic changes. */
+/* MMHVAULT V4.0 — Premium Dashboard visual layer. No data logic changes. */
 @media(min-width:901px){
   body{background:
     radial-gradient(900px 420px at 78% -8%,rgba(34,76,160,.22),transparent 65%),
@@ -1165,7 +1165,7 @@ body.auth-page-active #login{height:100%;min-height:0;margin:0;}
 
 
 
-/* MMHVAULT V3.11.0 — Analyze Premium visual layer. Logic/data untouched. */
+/* MMHVAULT V4.0 — Analyze Premium visual layer. Logic/data untouched. */
 #analyze{position:relative}
 #analyze::before{content:"";position:absolute;inset:-30px -20px auto;height:360px;pointer-events:none;z-index:-1;background:radial-gradient(circle at 18% 12%,rgba(36,197,255,.10),transparent 34%),radial-gradient(circle at 82% 8%,rgba(255,193,70,.08),transparent 30%)}
 #analyze .analyze-period-bar{padding:4px 2px 14px;align-items:end}
@@ -1232,7 +1232,7 @@ body.auth-page-active #login{height:100%;min-height:0;margin:0;}
 
 
 
-/* MMHVAULT V3.11.0 — Goals 2.0 */
+/* MMHVAULT V4.0 — Goals 2.0 */
 .goals-command-v311{margin:4px 0 16px;padding:16px;border:1px solid rgba(255,201,74,.20);border-radius:18px;background:linear-gradient(145deg,rgba(18,27,62,.88),rgba(7,12,31,.92));box-shadow:0 14px 36px rgba(0,0,0,.18),inset 0 1px rgba(255,255,255,.035)}
 .goals-command-head-v311{display:flex;justify-content:space-between;align-items:flex-start;gap:16px}
 .goals-command-kicker-v311{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--yellow);font-weight:900}
@@ -1294,7 +1294,7 @@ body.auth-page-active #login{height:100%;min-height:0;margin:0;}
 
 
 
-/* V3.16.0 — remove duplicate summary surfaces without touching data logic. */
+/* V4.0 — remove duplicate summary surfaces without touching data logic. */
 /* Analyze Overview is the single home for Financial Intelligence; hide older summary cards that repeat the same Income/Savings metrics. */
 #analyze .overview-snapshot-panel-v371,
 #analyze .monthly-compact{display:none !important;}
@@ -1306,7 +1306,7 @@ body.auth-page-active #login{height:100%;min-height:0;margin:0;}
 
 
 
-/* MMHVAULT V3.17.1 — UX / data presentation audit.
+/* MMHVAULT V4.0 — UX / data presentation audit.
    Goal: one primary visual home for each repeated metric; preserve underlying data logic. */
 
 /* Dashboard: Hero + Account Overview are the primary wealth snapshot.
@@ -1338,7 +1338,7 @@ body.auth-page-active #login{height:100%;min-height:0;margin:0;}
 
 
 
-/* MMHVAULT V3.17.1 — desktop responsive fix for the single active market panel.
+/* MMHVAULT V4.0 — desktop responsive fix for the single active market panel.
    When Crypto or Gold is selected, the inactive market panel is hidden; let the active panel use the full row instead of leaving a 50% blank column. */
 @media (min-width: 901px){
   #invest.v371-crypto .invest-top,
@@ -1388,7 +1388,7 @@ body.auth-page-active #login{height:100%;min-height:0;margin:0;}
 
 
 
-/* MMHVAULT V3.21.0 — Mobile & Desktop UX layer. Visual/responsive only; data logic unchanged. */
+/* MMHVAULT V4.0 — Mobile & Desktop UX layer. Visual/responsive only; data logic unchanged. */
 html{scroll-behavior:smooth}
 *,*::before,*::after{box-sizing:border-box}
 img{max-width:100%;height:auto}
@@ -1507,7 +1507,7 @@ body.auth-page-active .mmhvault-landing-v327{display:none}.mmhvault-landing-v327
 }
 
 
-/* V3.27.2 Landing visual refinement: keep the original MMHVAULT logo + login visual language, add motion without changing content */
+/* V4.0 Landing visual refinement: keep the original MMHVAULT logo + login visual language, add motion without changing content */
 .landing-brand-mark-v327{background:transparent !important;box-shadow:none !important;border:0 !important;width:48px;height:48px;padding:0;overflow:hidden}
 .landing-brand-mark-v327 img{width:100%;height:100%;object-fit:contain;display:block;filter:drop-shadow(0 7px 18px #16e6ff18)}
 .landing-header-v327{background:rgba(8,11,36,.88);border-bottom-color:#303879cc}
@@ -1558,7 +1558,7 @@ body.auth-page-active .mmhvault-landing-v327{display:none}.mmhvault-landing-v327
 
 
 
-/* V3.27.5 — landing visual system tuned to the MMHVAULT login palette + deep blue/gold finance aesthetic */
+/* V4.0 — landing visual system tuned to the MMHVAULT login palette + deep blue/gold finance aesthetic */
 .mmhvault-landing-v327{
   background:
     linear-gradient(180deg,rgba(2,10,22,.42),rgba(3,12,26,.72)),
@@ -1667,7 +1667,7 @@ body.auth-page-active .mmhvault-landing-v327{display:none}.mmhvault-landing-v327
   .mmhvault-landing-v327{background-position:58% center !important}
 }
 
-/* V3.27.5 visual/performance tuning */
+/* V4.0 visual/performance tuning */
 .landing-hero-copy-v327 h1 strong{display:inline-block;white-space:nowrap;-webkit-text-fill-color:transparent;-webkit-background-clip:text;background-clip:text;position:relative}
 .landing-hero-v327,.landing-visual-v327{contain:layout paint}
 .landing-glow-v327{filter:none;mix-blend-mode:screen;opacity:.75}
@@ -1695,7 +1695,7 @@ body.auth-page-active .mmhvault-landing-v327{display:none}.mmhvault-landing-v327
 
 
 
-/* V3.27.5 landing polish: stable headline rendering + visible service cards */
+/* V4.0 landing polish: stable headline rendering + visible service cards */
 .landing-hero-copy-v327 h1 strong{
   display:inline;
   white-space:nowrap;
@@ -1750,7 +1750,7 @@ body.auth-page-active .mmhvault-landing-v327{display:none}.mmhvault-landing-v327
 
 
 
-/* V3.27.5: auth-gateway hardening + mobile anti-flicker/performance pass */
+/* V4.0: auth-gateway hardening + mobile anti-flicker/performance pass */
 .mmhvault-landing-v327.is-hidden-v327{display:none !important;visibility:hidden !important;pointer-events:none !important}
 .mmhvault-landing-v327:not(.is-hidden-v327){visibility:visible}
 @media(max-width:650px){
@@ -1790,7 +1790,7 @@ body.auth-page-active .mmhvault-landing-v327{display:none}.mmhvault-landing-v327
 @keyframes txFade371{from{opacity:.65;transform:translateY(2px)}to{opacity:1;transform:none}}
 @media(max-width:650px){.tx-tabs-v371{max-width:none;position:sticky;top:6px;z-index:8}.tx-tab-v371{padding:9px 10px;font-size:13px}.tx-tab-panel-v371 .panel{margin-bottom:0}.txHistoryPanel{} }
 
-/* V3.7.1 Net Worth History Polish */
+/* V4.0 Net Worth History Polish */
 .networth-history-v371{display:flex;flex-direction:column;gap:10px;}
 .nw-chart-wrap-v371{border:1px solid var(--line);border-radius:14px;background:rgba(5,10,38,.35);padding:10px 10px 6px;}
 .nw-chart-v371{display:block;width:100%;height:190px;}
@@ -1805,7 +1805,7 @@ body.auth-page-active .mmhvault-landing-v327{display:none}.mmhvault-landing-v327
 .nw-trend-note-v371{font-size:10px;color:var(--muted);}
 @media(max-width:650px){.nw-chart-v371{height:170px}.nw-trend-summary-v371{grid-template-columns:1fr 1fr}.nw-trend-stat-v371:last-child{grid-column:1/-1}}
 
-/* V3.7.1 Goals */
+/* V4.0 Goals */
 .goals-toolbar-v371{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
 .goals-grid-v371{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
 .goal-card-v371{padding:14px;border:1px solid var(--line);border-radius:14px;background:#0b1030aa}
@@ -1820,7 +1820,7 @@ body.auth-page-active .mmhvault-landing-v327{display:none}.mmhvault-landing-v327
 
 
 
-/* MMHVAULT V3.11.0 — Dashboard 2.0: visual + presentation layer. Existing data logic is reused. */
+/* MMHVAULT V4.0 — Dashboard 2.0: visual + presentation layer. Existing data logic is reused. */
 #dashboard .dashboard39-panel{margin-top:18px;border:1px solid rgba(255,201,74,.18);background:linear-gradient(145deg,rgba(13,21,50,.94),rgba(6,10,28,.98));box-shadow:0 18px 50px rgba(0,0,0,.22);overflow:hidden}
 #dashboard .dashboard39-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;padding:4px 2px 14px}
 #dashboard .dashboard39-head h2{font-size:20px;margin:0 0 4px}
@@ -1886,7 +1886,7 @@ body.auth-page-active .mmhvault-landing-v327{display:none}.mmhvault-landing-v327
 
 
 
-/* MMHVAULT V3.15.0 — Wealth Forecast & Scenario. Savings-only planning; no market prediction. */
+/* MMHVAULT V4.0 — Wealth Forecast & Scenario. Savings-only planning; no market prediction. */
 .wealth-scenarios-v315{margin-top:14px;padding:0;overflow:hidden;border-color:rgba(255,201,74,.18);background:linear-gradient(145deg,rgba(14,21,52,.94),rgba(6,11,29,.97));box-shadow:0 16px 40px rgba(0,0,0,.18)}
 .wealth-scenarios-v315 .ws-head{display:flex;justify-content:space-between;gap:18px;align-items:flex-end;padding:18px 18px 12px;border-bottom:1px solid rgba(255,255,255,.06)}
 .wealth-scenarios-v315 .ws-kicker{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#9db0db;font-weight:800}
@@ -1922,7 +1922,7 @@ body.auth-page-active .mmhvault-landing-v327{display:none}.mmhvault-landing-v327
 
 
 
-/* MMHVAULT V3.16.0 — Budget & Spending Intelligence. Consolidates budget surfaces. */
+/* MMHVAULT V4.0 — Budget & Spending Intelligence. Consolidates budget surfaces. */
 .budget-intelligence-v316{margin-top:14px;border-color:rgba(255,201,74,.18);background:linear-gradient(145deg,rgba(14,21,52,.94),rgba(6,11,29,.97));overflow:hidden}
 .budget-intelligence-v316 .bi-head{display:flex;justify-content:space-between;align-items:flex-end;gap:14px;padding:18px 18px 12px;border-bottom:1px solid rgba(255,255,255,.06)}
 .budget-intelligence-v316 .bi-kicker{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#9db0db;font-weight:800}
@@ -1949,7 +1949,7 @@ body.auth-page-active .mmhvault-landing-v327{display:none}.mmhvault-landing-v327
 
 
 
-/* MMHVAULT V3.21.0 — reliability polish. */
+/* MMHVAULT V4.0 — reliability polish. */
 .v319-audit-note{margin-top:10px;padding:9px 11px;border:1px solid rgba(255,255,255,.06);border-radius:10px;background:rgba(7,12,31,.3);color:var(--muted);font-size:9px;line-height:1.45}
 
 
@@ -1966,12 +1966,12 @@ body.auth-page-active .mmhvault-landing-v327{display:none}.mmhvault-landing-v327
 
 
 
-/* V3.22.0 Performance & Maintenance */
+/* V4.0 Performance & Maintenance */
 .v322-maintenance-note{margin-top:10px;padding:8px 10px;border:1px solid rgba(255,255,255,.06);border-radius:10px;color:var(--muted);font-size:9px;line-height:1.4;background:rgba(8,12,30,.22)}
 
 
 
-/* V3.23.0 Transaction Intelligence */
+/* V4.0 Transaction Intelligence */
 .tx-intel-v323{margin-top:12px}
 .tx-intel-grid-v323{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
 .tx-intel-card-v323{padding:12px;border:1px solid var(--border);border-radius:12px;background:rgba(255,255,255,.02)}
@@ -2026,7 +2026,7 @@ body.auth-page-active .mmhvault-landing-v327{display:none}.mmhvault-landing-v327
 
 .wealth-rule-grid-v326{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}.wealth-rule-card-v326{padding:14px;border:1px solid var(--line);border-radius:14px;background:rgba(11,16,48,.6)}.wealth-rule-card-v326 .small{margin-top:8px;line-height:1.45}.wealth-rule-input{display:flex;align-items:center;gap:8px;margin-top:10px}.wealth-rule-input input{width:100%;min-width:0;border:1px solid var(--line);border-radius:10px;background:var(--panel2);color:var(--text);padding:10px 11px;font-weight:800;font-size:15px}.wealth-rule-input span{color:var(--muted);font-size:12px;white-space:nowrap}.wealth-rule-actions-v326{display:flex;align-items:center;gap:10px;margin-top:14px;flex-wrap:wrap}.wealth-rule-live-v326{display:flex;justify-content:space-between;gap:16px;align-items:center;margin-top:16px;padding:13px 14px;border:1px solid #33407f;border-radius:13px;background:#0b1030aa}.wealth-rule-live-v326 .value{font-size:15px;font-weight:900}.settings-tab-v371#settingsTabRulesV326{min-width:120px}@media(max-width:900px){.wealth-rule-grid-v326{grid-template-columns:1fr 1fr}}@media(max-width:650px){.wealth-rule-grid-v326{grid-template-columns:1fr}.wealth-rule-live-v326{align-items:flex-start;flex-direction:column}.settings-tabs-v371{overflow:auto}.settings-tab-v371{white-space:nowrap}}
 
-/* V3.28.6 navigation/input safety */
+/* V4.0 navigation/input safety */
 .data-load-overlay-v384:not(.show){display:none!important;pointer-events:none!important;}
 .welcome-screen:not(.show){pointer-events:none!important;}
 #mmhvaultAppBootGuardV3282{pointer-events:none;}

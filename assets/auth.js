@@ -18,7 +18,7 @@ function setAuthMode(mode){
 }
 window.myFinanceSetAuthMode=setAuthMode;
 function showMsg(html){const el=$("authMsg");if(el)el.innerHTML=html;}
-/* V3.28.6: Login page stays visible even when a session already exists. */
+/* V4.0: Login page stays visible even when a session already exists. */
 async function auth(e){
   if(e)e.preventDefault();
   if(mmhvaultAuthMode==="signup") return createAccount();
