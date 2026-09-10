@@ -9855,7 +9855,7 @@ body.mmhvault-scroll-active #invest .invest-top>.panel{box-shadow:inset 0 1px 0 
     const rs=rows(), list=$('txList');
     if(!$('txResultCount')||!list)return;
     $('txResultCount').textContent=`${rs.length} of ${transactions.length} records`;
-    const ord=orderOf(rs), val=valueOf(rs);
+    const ord=rs.map(t=>String(t?.id??'')).join('\x1e'), val=valueOf(rs);
     const table=list.querySelector('table');
     const existingRows=table?[...table.querySelectorAll('tr[data-mmh-tx-id]')]:[];
     const existingOrd=existingRows.map(r=>r.dataset.mmhTxId).join('\\x1e');
