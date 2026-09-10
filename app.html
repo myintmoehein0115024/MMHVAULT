@@ -15,7 +15,7 @@
 <link rel="preconnect" href="https://unpkg.com" crossorigin>
 <link rel="dns-prefetch" href="https://vrypucmyrztxgiqhjspd.supabase.co">
 <link rel="preconnect" href="https://vrypucmyrztxgiqhjspd.supabase.co" crossorigin>
-<link href="assets/mmhvault.css" rel="stylesheet"/><meta content="V3.43.1 · Phase 1 performance polish" name="mmhvault-architecture"/>
+<link href="assets/mmhvault.css" rel="stylesheet"/><meta content="V3.43.5 · Phase 1 dual optimization" name="mmhvault-architecture"/>
 <style id="mmhvault-v32811-wealth-rules-location-css">
   .analyze-tabs-v371{overflow-x:auto;scrollbar-width:thin;}
   .analyze-tabs-v371 .analyze-tab-v371{flex:0 0 auto;min-width:110px;}
@@ -1480,7 +1480,18 @@ body.mmhvault-scroll-active .card{transition:none!important}
     if(input&&!input.__v34216){ input.__v34216=true; input.value=getBirthISO(); input.addEventListener('change',()=>{const v=input.value; if(/^\d{4}-\d{2}-\d{2}$/.test(v)){localStorage.setItem(KEY,v); render(); window.dispatchEvent(new CustomEvent('mmhvault-birthday-change'));}}); }
     render();
   };
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{bind();setInterval(()=>{if(document.visibilityState!=='hidden' && (document.getElementById('dashboard')?.classList.contains('active') || document.getElementById('settings')?.classList.contains('active')))tick();},1000)},{once:true}); else {bind();setInterval(()=>{if(document.visibilityState!=='hidden' && (document.getElementById('dashboard')?.classList.contains('active') || document.getElementById('settings')?.classList.contains('active')))tick();},1000);}
+  function startAgeTickerV3435(){
+    let timer=0;
+    const loop=()=>{
+      const active=document.visibilityState!=='hidden' && (document.getElementById('dashboard')?.classList.contains('active') || document.getElementById('settings')?.classList.contains('active'));
+      if(active)tick();
+      clearTimeout(timer);
+      timer=setTimeout(loop,active?1000:2500);
+    };
+    loop();
+    document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')loop();},{passive:true});
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{bind();startAgeTickerV3435();},{once:true}); else {bind();startAgeTickerV3435();}
   window.addEventListener('languagechange',render);
   window.addEventListener('mmhvault-birthday-change',render);
 })();
@@ -2010,10 +2021,12 @@ fetchCryptoPrices();fetchGoldPrice();
 let mmhvaultMarketPollV322=null;
 function startMarketPollingV322(){
   if(mmhvaultMarketPollV322)clearInterval(mmhvaultMarketPollV322);
-  mmhvaultMarketPollV322=setInterval(()=>{
-    if(document.visibilityState==='hidden')return;
-    fetchCryptoPrices();
-  },60000);
+  const poll=()=>{
+    const visible=document.visibilityState!=='hidden';
+    const active=document.getElementById('dashboard')?.classList.contains('active') || document.getElementById('invest')?.classList.contains('active');
+    if(visible && active)fetchCryptoPrices();
+  };
+  mmhvaultMarketPollV322=setInterval(poll,60000);
 }
 startMarketPollingV322();
 document.addEventListener('visibilitychange',()=>{
