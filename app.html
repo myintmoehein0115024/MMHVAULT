@@ -11249,3 +11249,101 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
 </style>
 
 </html>
+
+<!-- MMHVAULT V3.44.30 · Transaction Cascade Hotfix -->
+<script id="mmhvault-v34430-transaction-cascade-hotfix">
+(function(){
+  'use strict';
+  if(window.__mmhV34430TxCascadeHotfix)return;
+  window.__mmhV34430TxCascadeHotfix=true;
+
+  const $=id=>document.getElementById(id);
+  const OPTIONS={
+    Income:['Salary','Meal Allowance','Bonus','Other Income'],
+    Expense:['Dining','Snacks','Smoking','Transport','Wellness','Lifestyle','Other'],
+    Personal:['Family Support','Special Transfer','Gifts','Donation'],
+    LoanIncome:['Debt','Loan Repayment'],
+    LoanExpense:['PaidDeb','Loan Out'],
+    Transfer:['Transfer']
+  };
+  const GROUPS={Income:['Income','Loans'],Expense:['Expense','Personal','Loans'],Transfer:['Transfer']};
+
+  function replaceSelect(id,values,preferred){
+    const old=$(id);
+    if(!old)return null;
+    const current=preferred!==undefined?String(preferred):String(old.value||'');
+    const clone=old.cloneNode(false);
+    clone.id=id;
+    clone.name=old.name;
+    clone.className=old.className;
+    clone.disabled=old.disabled;
+    clone.required=old.required;
+    values.forEach(v=>{
+      const o=document.createElement('option');
+      o.value=v;o.textContent=v;
+      clone.appendChild(o);
+    });
+    clone.value=values.includes(current)?current:(values[0]||'');
+    old.replaceWith(clone);
+    return clone;
+  }
+
+  function categoriesFor(type,group){
+    if(type==='Transfer')return OPTIONS.Transfer;
+    if(group==='Loans')return type==='Income'?OPTIONS.LoanIncome:OPTIONS.LoanExpense;
+    return OPTIONS[group]||['Other'];
+  }
+
+  function applyLocks(){
+    try{window.updateAccountLocks?.();}catch(e){}
+  }
+
+  function bind(){
+    let type=$('txType'), group=$('txGroup'), category=$('txCategory');
+    if(!type||!group||!category)return;
+
+    // Clone Type/Transaction once to remove all legacy duplicate listeners and inline handlers.
+    type=replaceSelect('txType',['Income','Expense','Transfer'],type.value);
+    const groups=GROUPS[type.value]||GROUPS.Income;
+    group=replaceSelect('txGroup',groups,groups.includes(group.value)?group.value:groups[0]);
+    group.disabled=type.value==='Transfer';
+    const cats=categoriesFor(type.value,group.value);
+    category=replaceSelect('txCategory',cats,cats.includes(category.value)?category.value:cats[0]);
+
+    const refreshCategory=(preferred)=>{
+      const t=$('txType').value;
+      const g=$('txGroup').value;
+      const list=categoriesFor(t,g);
+      replaceSelect('txCategory',list,preferred);
+      applyLocks();
+    };
+
+    type.addEventListener('change',()=>{
+      const t=$('txType').value;
+      const currentGroup=$('txGroup')?.value||'';
+      const allowed=GROUPS[t]||GROUPS.Income;
+      const nextGroup=allowed.includes(currentGroup)?currentGroup:allowed[0];
+      const newGroup=replaceSelect('txGroup',allowed,nextGroup);
+      newGroup.disabled=t==='Transfer';
+      newGroup.addEventListener('change',()=>refreshCategory());
+      refreshCategory();
+    });
+    group.addEventListener('change',()=>refreshCategory());
+    applyLocks();
+  }
+
+  function stabilize(){
+    bind();
+  }
+
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',stabilize,{once:true});
+  else stabilize();
+
+  // Legacy language/data hooks can still attempt to rewrite the selects; run last and restore one source of truth.
+  ['mmhvault-language-change','mmhvault:data-loaded','mmhvault:cache-restored','mmhvault:sync-complete'].forEach(ev=>{
+    window.addEventListener(ev,()=>setTimeout(stabilize,0));
+  });
+
+  window.mmhvaultStabilizeTransactionCascadeV34430=stabilize;
+})();
+</script>
