@@ -11103,4 +11103,45 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
 
 
 
+
+<style id="mmhvault-v34424-polish">
+/* MMHVAULT V3.44.24 · Page transition + Premium UI consistency */
+.page{scroll-margin-top:18px;isolation:isolate;}
+.page .toolbar{gap:14px;}
+.page .toolbar>div:first-child{min-width:0;}
+.page h1,.page h2{letter-spacing:-.02em;text-wrap:balance;}
+.page .sub{line-height:1.55;}
+.panel,.card{border-color:rgba(110,180,255,.13);}
+.btn{min-height:38px;transition:transform .16s ease,box-shadow .16s ease,filter .16s ease,background-color .16s ease;}
+@media (hover:hover) and (pointer:fine){.btn:not(:disabled):hover{transform:translateY(-1px);filter:brightness(1.04);}}
+.page .toolbar .btn{flex-shrink:0;}
+.page-enter-v34424{animation:mmhPageEnterV34424 .22s ease both;}
+@keyframes mmhPageEnterV34424{from{opacity:.72;transform:translateY(4px)}to{opacity:1;transform:none}}
+@media(max-width:700px){
+  .page{border-radius:18px;}
+  .page .toolbar{align-items:flex-start;gap:10px;}
+  .page .toolbar h2{line-height:1.2;}
+  .page .toolbar .btn{max-width:100%;}
+  .panel,.card{border-radius:18px;}
+  .btn{min-height:40px;}
+}
+@media(prefers-reduced-motion:reduce){.page-enter-v34424{animation:none!important}.btn{transition:none!important}}
+</style>
+<script id="mmhvault-v34424-page-enter">
+(function(){
+  const apply=()=>{
+    const active=document.querySelector('.page.active');
+    if(!active)return;
+    active.classList.remove('page-enter-v34424');
+    void active.offsetWidth;
+    active.classList.add('page-enter-v34424');
+  };
+  document.addEventListener('click',function(e){
+    const b=e.target.closest('.bottom-nav button,[data-page],.more-nav-menu button');
+    if(!b)return;
+    requestAnimationFrame(apply);
+  },true);
+})();
+</script>
+
 </html>
