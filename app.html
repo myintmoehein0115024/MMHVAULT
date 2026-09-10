@@ -1453,6 +1453,32 @@ button,.btn,.bottom-nav button,.more-nav-menu button,[role="button"]{touch-actio
 .panel :is(.value,.kpi,.metric){font-variant-numeric:tabular-nums}
 @media(max-width:640px){.empty,.mmh-v380-empty,.mmh-v390-empty,.trend-empty{min-height:64px;padding:12px}.panel{border-radius:16px}}
 </style>
+
+<style id="mmh-v34426-polish">
+/* MMHVAULT V3.44.26 Phase 1: stable page switching + core financial data hierarchy */
+html{scrollbar-gutter:stable;}
+/* Keep page switches visually stable without changing navigation/data logic. */
+.page{min-width:0;}
+.page .panel,.page .card{min-width:0;}
+/* Core financial figures: consistent tabular digits and safer wrapping. */
+#dashboard :is(.value,.amount,.metric,.kpi),
+#transactions :is(.amount,.money,.value,.tx-amount),
+#invest :is(.value,.amount,.metric,.profit,.loss),
+#analyze :is(.value,.amount,.metric,.kpi){font-variant-numeric:tabular-nums lining-nums;font-feature-settings:"tnum" 1,"lnum" 1;min-width:0;}
+#dashboard :is(.value,.amount,.metric,.kpi),
+#invest :is(.value,.amount,.metric,.profit,.loss),
+#analyze :is(.value,.amount,.metric,.kpi){overflow-wrap:anywhere;}
+/* Labels stay quieter than values so cards scan faster. */
+#dashboard :is(.label,.metric-label,.kpi-label),
+#transactions :is(.label,.tx-label),
+#invest :is(.label,.metric-label),
+#analyze :is(.label,.metric-label,.kpi-label){letter-spacing:.025em;}
+/* Compact small-screen spacing while preserving existing layouts. */
+@media(max-width:640px){
+  .page .toolbar{row-gap:8px;}
+  #dashboard :is(.value,.amount),#invest :is(.value,.amount),#analyze :is(.value,.amount){letter-spacing:-.018em;}
+}
+</style>
 </head>
 <!-- MMHVAULT V3.42.56 · Dashboard report relocation + Transaction receipt center + Invest Add precision -->
 <body>
