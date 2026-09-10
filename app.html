@@ -325,6 +325,10 @@ h1,h2,h3,.title,.value,.kpi,.metric,.page-title,.nav-title{font-family:Manrope,"
 .sub,.meta,.small,label,th,td,.pill,.btn,.bottom-nav button,.more-nav-menu button{font-family:Manrope,"Noto Sans SC",Inter,-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif!important;}
 .value,.hero-networth .value{font-variant-numeric:tabular-nums lining-nums;letter-spacing:-.035em;}
 .btn,.bottom-nav button,.more-nav-menu button{font-weight:700;}
+.bottom-nav button{transition:transform .18s ease,opacity .18s ease,background-color .18s ease,box-shadow .18s ease;}
+.bottom-nav button[aria-current="page"]{position:relative;}
+.bottom-nav button[aria-current="page"]::after{content:"";position:absolute;left:50%;bottom:6px;transform:translateX(-50%);width:18px;height:2px;border-radius:999px;background:currentColor;opacity:.55;pointer-events:none;}
+@media(prefers-reduced-motion:reduce){.bottom-nav button{transition:none!important;}}
 .bottom-nav{background:linear-gradient(180deg,rgba(3,10,24,.90),rgba(2,7,18,.96))!important;backdrop-filter:blur(20px) saturate(130%);-webkit-backdrop-filter:blur(20px) saturate(130%);border-color:rgba(76,199,255,.23)!important;box-shadow:0 14px 58px rgba(0,0,0,.38),inset 0 1px 0 rgba(255,255,255,.035);}
 .mmhvault-header-brand,.header-profile,.mmhvault-sync-status-v337{text-shadow:0 1px 14px rgba(0,0,0,.28);}
 .mmhvault-brand-tagline,.mmhvault-sync-status-v337 .sync-label{font-weight:600;letter-spacing:.01em;}
@@ -2021,7 +2025,7 @@ function openLoginFromLandingV327(){
 window.mmHVaultOpenLoginV327=openLoginFromLandingV327;
 window.mmHVaultShowLandingV327=showLandingV327;
 
-function setPage(p){document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));$(p).classList.add("active");document.body.classList.toggle("auth-page-active",p==="login");document.querySelectorAll(".bottom-nav button").forEach(b=>b.classList.toggle("active",b.dataset.page===p));if(p!=="login")sessionStorage.setItem("myfinance_page",p);if(p==="settings"){const se=$("settingsEmail");if(se&&currentUserEmail)se.textContent=currentUserEmail;}render();}
+function setPage(p){document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));$(p).classList.add("active");document.body.classList.toggle("auth-page-active",p==="login");document.querySelectorAll(".bottom-nav button").forEach(b=>{const active=b.dataset.page===p;b.classList.toggle("active",active);if(active)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current");});if(p!=="login")sessionStorage.setItem("myfinance_page",p);if(p==="settings"){const se=$("settingsEmail");if(se&&currentUserEmail)se.textContent=currentUserEmail;}render();}
 function applyTheme(theme){document.body.classList.toggle('light',theme==='light');document.querySelectorAll('input[name="theme"]').forEach(r=>r.checked=r.value===theme);localStorage.setItem('myfinance_theme',theme);}
 function initTheme(){const t=localStorage.getItem('myfinance_theme')||'dark';applyTheme(t);document.querySelectorAll('input[name="theme"]').forEach(r=>r.addEventListener('change',()=>applyTheme(r.value)));}
 function editTheme(){initTheme();}
