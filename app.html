@@ -1498,6 +1498,24 @@ html{scrollbar-gutter:stable;}
   .value,.kpi,.metric{overflow-wrap:anywhere;word-break:normal;}
 }
 </style>
+
+<!-- MMHVAULT V3.44.28 Phase 1: safe UI consistency + layout stability -->
+<style id="mmhvault-v34428-ui-audit">
+/* V3.44.28: prevent cross-page width jumps and keep long financial content contained */
+html{scrollbar-gutter:stable;}
+.page,.page-content,.main-content,.app-content{min-width:0;}
+.card,.panel,.glass-card,.analyze-card,.dashboard-card,.invest-card,.transaction-card{min-width:0;}
+.card :is(.amount,.value,.metric-value,.stat-value,.money),
+.panel :is(.amount,.value,.metric-value,.stat-value,.money){font-variant-numeric:tabular-nums;min-width:0;}
+.page-header,.toolbar,.page-toolbar{gap:clamp(10px,1.2vw,16px);}
+.page-header > *,.toolbar > *,.page-toolbar > *{min-width:0;}
+.page-header :is(h1,h2,h3,.title),.toolbar :is(h1,h2,h3,.title){overflow-wrap:anywhere;}
+@media (max-width:640px){
+  .page-header,.toolbar,.page-toolbar{gap:10px;}
+  .card,.panel,.glass-card,.analyze-card,.dashboard-card,.invest-card,.transaction-card{overflow-wrap:anywhere;}
+}
+</style>
+
 </head>
 <!-- MMHVAULT V3.42.56 · Dashboard report relocation + Transaction receipt center + Invest Add precision -->
 <body>
