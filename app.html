@@ -1479,6 +1479,25 @@ html{scrollbar-gutter:stable;}
   #dashboard :is(.value,.amount),#invest :is(.value,.amount),#analyze :is(.value,.amount){letter-spacing:-.018em;}
 }
 </style>
+
+<!-- MMHVAULT V3.44.27 Phase 1: layout safety + interaction polish -->
+<style id="v34427-polish">
+/* Layout containment: prevent wide financial values and tables from causing page-level horizontal jumps. */
+.page,.panel,.card,.toolbar,.table-wrap,.history-wrap{min-width:0;}
+.page{overflow-x:clip;}
+.table-wrap,.history-wrap{overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;}
+/* Desktop-only micro-interactions stay off touch devices to avoid sticky hover states. */
+@media (hover:hover) and (pointer:fine){
+  .panel,.card{transition:border-color .18s ease,box-shadow .18s ease,transform .18s ease;}
+  .panel:hover,.card:hover{border-color:rgba(120,205,255,.20);}
+}
+/* Mobile density: preserve readable numbers without letting long values push controls out of view. */
+@media(max-width:700px){
+  .page{border-radius:18px;}
+  .toolbar{min-width:0;}
+  .value,.kpi,.metric{overflow-wrap:anywhere;word-break:normal;}
+}
+</style>
 </head>
 <!-- MMHVAULT V3.42.56 · Dashboard report relocation + Transaction receipt center + Invest Add precision -->
 <body>
