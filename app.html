@@ -11021,7 +11021,42 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
   window.addEventListener('mmhvault:data-loaded',()=>window.mmhvaultForceRenderAllV34421('cloud-data-loaded'));
   window.addEventListener('mmhvault:data-change',e=>window.mmhvaultForceRenderAllV34421(e?.detail?.reason||'data-change'));
 })();
-</script>\n</body>
+</script>\n
+<script id="mmhvault-v34423-refresh-scheduler">
+/* MMHVAULT V3.44.23 · Instant refresh finalization.
+   Coalesces rapid refresh requests and renders only the currently visible data surface. */
+(function(){
+  if(window.__mmhV34423RefreshSchedulerInstalled)return;
+  window.__mmhV34423RefreshSchedulerInstalled=true;
+  let queued=false, frame=0, latestReason='boot';
+  const safe=(fn)=>{try{if(typeof fn==='function')fn();}catch(err){console.warn('[MMHVAULT] scheduled render skipped',err);}};
+  const isActive=(id)=>{try{return !!document.getElementById(id)?.classList.contains('active');}catch(_){return false;}};
+  function renderVisible(){
+    queued=false; frame=0;
+    if(isActive('dashboard')) safe(window.renderDashboard);
+    if(isActive('transactions')) safe(window.renderTransactions);
+    if(isActive('analyze')) safe(window.renderAnalyze);
+    if(isActive('invest')) safe(window.renderInvest);
+    if(isActive('exchange')) safe(window.renderRates);
+    try{window.mmhvaultRequestRenderV332?.(latestReason);}catch(_){}
+    try{window.dispatchEvent(new CustomEvent('mmhvault:ui-refreshed',{detail:{reason:latestReason,at:Date.now()}}));}catch(_){}
+  }
+  window.mmhvaultForceRenderAllV34421=function(reason='data-change'){
+    latestReason=String(reason||'data-change');
+    if(queued)return;
+    queued=true;
+    const run=()=>renderVisible();
+    frame=typeof requestAnimationFrame==='function'?requestAnimationFrame(run):setTimeout(run,0);
+  };
+  // A tab/page change should immediately synchronize the newly visible surface.
+  window.addEventListener('mmhvault:page-changed',e=>window.mmhvaultForceRenderAllV34421(e?.detail?.page||'page-change'));
+  // If multiple cloud/realtime updates arrive together, the scheduler collapses them into one paint.
+  window.addEventListener('mmhvault:data-loaded',()=>window.mmhvaultForceRenderAllV34421('cloud-data-loaded'));
+  window.addEventListener('mmhvault:data-change',e=>window.mmhvaultForceRenderAllV34421(e?.detail?.reason||'data-change'));
+})();
+</script>
+
+</body>
 <!-- MMHVAULT V3.42.78 performance baseline: logo-free account cards + restrained dashboard rendering. -->
 
 <style id="mmhvault-v3445-analyze-premium-polish">
