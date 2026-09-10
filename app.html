@@ -4177,30 +4177,42 @@ function nwMonthEndKeyV371(offset){
 }
 function nwBalanceAtV371(account,ym){
   const cutoff=ym+'-31';
-  let v=0;
-  for(const t of (window.transactions||[])){
-    if(String(t.tx_date||'')>cutoff) continue;
-    if(isLinkedInvestmentTx(t)) continue;
-    if(t.to_account===account) v+=n(t.to_amount);
-    if(t.from_account===account) v-=n(t.from_amount);
+  let balanceValue=0, investedBefore=0;
+  const txRows=window.transactions||[];
+  for(let i=0;i<txRows.length;i++){
+    const t=txRows[i];
+    if(String(t.tx_date||'')>cutoff || isLinkedInvestmentTx(t)) continue;
+    if(t.to_account===account) balanceValue+=n(t.to_amount);
+    if(t.from_account===account) balanceValue-=n(t.from_amount);
   }
-  const investedBefore=(window.investments||[])
-    .filter(x=>String(x.inv_date||'')<=cutoff && (x.source_account || (x.asset==='Gold'?'KPay':'OKX'))===account)
-    .reduce((sum,x)=>sum+n(x.amount)+n(x.fee)+n(x.other_cost),0);
-  return v-investedBefore;
+  const invRows=window.investments||[];
+  for(let i=0;i<invRows.length;i++){
+    const x=invRows[i];
+    if(String(x.inv_date||'')>cutoff) continue;
+    const source=x.source_account || (x.asset==='Gold'?'KPay':'OKX');
+    if(source===account) investedBefore+=n(x.amount)+n(x.fee)+n(x.other_cost);
+  }
+  return balanceValue-investedBefore;
 }
 function nwEstimateAtV371(ym){
   const cashAccounts=['Bath','TrueMoney','OKX','ByBit','MetaMask','KPay'];
-  const cash=cashAccounts.reduce((sum,a)=>sum+nwBalanceAtV371(a,ym)*toUSD(a),0);
-  const invest=(window.investments||[])
-    .filter(x=>String(x.inv_date||'')<=ym+'-31')
-    .reduce((sum,x)=>{
-      const q=n(x.quantity);
-      if(!q) return sum;
-      const px=x.asset==='Crypto'?(livePrices[x.symbol]?.price||n(x.market_price)):(goldMarketState.pricePerKyattha||n(x.market_price));
-      const usdValue=x.asset==='Crypto'?q*px:(q*px/rates.usd_mmk);
-      return sum+usdValue;
-    },0);
+  let cash=0;
+  for(let i=0;i<cashAccounts.length;i++){
+    const account=cashAccounts[i];
+    cash+=nwBalanceAtV371(account,ym)*toUSD(account);
+  }
+  let invest=0;
+  const cutoff=ym+'-31';
+  const invRows=window.investments||[];
+  const usdRate=Math.max(1,n(rates?.usd_mmk));
+  for(let i=0;i<invRows.length;i++){
+    const x=invRows[i];
+    if(String(x.inv_date||'')>cutoff) continue;
+    const q=n(x.quantity);
+    if(!q) continue;
+    const px=x.asset==='Crypto'?(livePrices[x.symbol]?.price||n(x.market_price)):(goldMarketState.pricePerKyattha||n(x.market_price));
+    invest+=x.asset==='Crypto'?q*px:(q*px/usdRate);
+  }
   return {cash,invest,net:cash+invest};
 }
 function renderNetWorthAnalyzeV371(){
@@ -11145,6 +11157,30 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
 }
 </style>
 
+
+<style id="v3447-analyze-mobile-polish">
+/* MMHVAULT V3.44.7 · Analyze mobile polish */
+@media(max-width:700px){
+  #financialHealthV371 .fin-health-score-main{padding:16px;border-radius:16px}
+  #financialHealthV371 .fin-health-score-number{font-size:48px;line-height:1}
+  #financialHealthV371 .fin-health-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+  #financialHealthV371 .fin-health-card{min-width:0;padding:12px}
+  #financialHealthV371 .fin-health-card .value{font-size:20px;white-space:nowrap}
+  #financialHealthV371 .fin-health-card .detail{font-size:10px;line-height:1.4}
+  #financialHealthV371 .fin-health-breakdown-v371{padding:12px}
+  #netWorthAnalyzeSummaryV371{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+  #netWorthAnalyzeSummaryV371 .networth-analyze-card-v371{min-width:0;padding:12px}
+  #netWorthAnalyzeSummaryV371 .networth-analyze-card-v371 .value{font-size:19px;line-height:1.15;overflow-wrap:anywhere}
+  #netWorthAnalyzeSummaryV371 .networth-analyze-card-v371 .small{font-size:10px;line-height:1.4}
+  #netWorthAnalyzeSummaryV371 .networth-growth-grid-v371{grid-template-columns:1fr;gap:9px}
+  #netWorthAnalyzeSummaryV371 .networth-trend-v371{overflow:hidden}
+  #netWorthAnalyzeSummaryV371 .nw-bars-v371{gap:5px}
+  #netWorthAnalyzeSummaryV371 .nw-bar-value-v371{font-size:9px;max-width:58px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+}
+@media(max-width:390px){
+  #financialHealthV371 .fin-health-grid,#netWorthAnalyzeSummaryV371{grid-template-columns:1fr}
+}
+</style>
 </body>
 <!-- MMHVAULT V3.42.78 performance baseline: logo-free account cards + restrained dashboard rendering. -->
 
