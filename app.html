@@ -11303,13 +11303,15 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
 </style>
 
 <script id="mmhvault-v34415-goal-submit-reliability">
-/* MMHVAULT V3.44.15 — self-contained Goals submit bridge.
+/* MMHVAULT V3.44.16 — Goals submit bridge key alignment.
    Does not rely on saveGoalV371 being exposed on window. */
 (function(){
   const KEY_PREFIX='myfinance_goals_v371_';
   function key(){
     let email='guest';
-    try { email = (typeof window.currentUserEmail === 'string' && window.currentUserEmail) || email; } catch(e) {}
+    try {
+      email = (typeof currentUserEmail === 'string' && currentUserEmail) || email;
+    } catch(e) {}
     return KEY_PREFIX + email;
   }
   function readGoals(){
