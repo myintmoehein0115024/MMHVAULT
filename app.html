@@ -5026,14 +5026,14 @@ renderDashboard=function(){
       return months.length?months.reduce((a,b)=>a+b,0)/months.length:0;
     }catch(e){return 0;}
   }
-  function g311GoalData(g){
-    const current=Math.max(0,g311Num(goalCurrentV371(g.type)));
+  function g311GoalData(g,ctx){
+    const current=Math.max(0,g311Num(ctx&&ctx.currentByType?ctx.currentByType[g.type]:goalCurrentV371(g.type)));
     const target=Math.max(0,g311Num(g.target));
     const pct=target?Math.min(100,current/target*100):0;
     const remain=Math.max(0,target-current);
     const months=g311GoalMonths(g.date);
     const required=remain>0&&months!==null&&months>0?remain/months:0;
-    const capacity=g311MonthlyCapacity();
+    const capacity=ctx&&Number.isFinite(ctx.capacity)?ctx.capacity:g311MonthlyCapacity();
     const days=g311Days(g.date);
     const projectedMonths=remain>0&&capacity>0?remain/capacity:0;
     let projectedDate=null;
@@ -5064,7 +5064,10 @@ renderDashboard=function(){
     const host=$('goalsCommandV311'), list=$('goalsListV371'); if(!host||!list)return;
     const goals=typeof loadGoalsV371==='function'?loadGoalsV371():[];
     const capacity=g311MonthlyCapacity();
-    const data=goals.map(g=>({g,d:g311GoalData(g)}));
+    const currentByType={};
+    goals.forEach(g=>{if(!Object.prototype.hasOwnProperty.call(currentByType,g.type)){currentByType[g.type]=goalCurrentV371(g.type);}});
+    const goalCtx={capacity,currentByType};
+    const data=goals.map(g=>({g,d:g311GoalData(g,goalCtx)}));
     const active=data.filter(x=>x.d.remain>0);
     const onTrack=active.filter(x=>x.d.status.includes('On track')).length;
     const dueSoon=active.filter(x=>x.d.days!==null&&x.d.days>=0&&x.d.days<=90).length;
@@ -5116,10 +5119,8 @@ renderDashboard=function(){
       return `Your 3-month average savings capacity is ${g311Money(cap)}/mo. You need about ${g311Money(gap)}/mo more to stay on the target-date pace.`;
     }
   }
-  const _renderGoalsV311Base=typeof renderGoalsV371==='function'?renderGoalsV371:null;
-  if(_renderGoalsV311Base){
-    renderGoalsV371=function(){ _renderGoalsV311Base(); renderGoals311(); };
-  }
+  /* Goals 2.0 owns the roadmap render. Skip the legacy card render so each refresh builds the list once. */
+  renderGoalsV371=function(){ renderGoals311(); };
 })();
 </script>
 <script id="v313-security-data-center-js">
@@ -11296,4 +11297,33 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
 @media(prefers-reduced-motion:reduce){#analyze .overview-snapshot-card-v371,#analyze .cashflow-card-v371{transition:none!important;}}
 </style>
 <meta name="mmhvault-architecture" content="V3.44.6 · Phase1 dual optimization" />
+
+<style id="mmhvault-v34411-goals-premium">
+/* MMHVAULT V3.44.11 — Goals performance + responsive premium polish. */
+#analyze [data-panel="goals"] .goals-command-v311{overflow:hidden;}
+#analyze [data-panel="goals"] .goals-command-head-v311{gap:14px;align-items:flex-start;}
+#analyze [data-panel="goals"] .goals-command-title-v311{letter-spacing:-.035em;}
+#analyze [data-panel="goals"] .goals-kpi-v311,#analyze [data-panel="goals"] .goals-next-v311,#analyze [data-panel="goals"] .goals-roadmap-card-v311{position:relative;overflow:hidden;border-color:rgba(96,161,221,.18);background:linear-gradient(145deg,rgba(13,32,64,.76),rgba(6,15,33,.90));box-shadow:0 10px 24px rgba(0,0,0,.12),inset 0 1px 0 rgba(255,255,255,.03);}
+#analyze [data-panel="goals"] .goals-kpi-v311:before,#analyze [data-panel="goals"] .goals-roadmap-card-v311:before{content:"";position:absolute;left:0;right:58%;top:0;height:1px;background:linear-gradient(90deg,rgba(76,199,255,.72),rgba(246,199,91,.30),transparent);}
+#analyze [data-panel="goals"] .goals-roadmap-name-v311,#analyze [data-panel="goals"] .goals-next-name-v311{letter-spacing:-.015em;}
+#analyze [data-panel="goals"] .goals-roadmap-current-v311,#analyze [data-panel="goals"] .goals-roadmap-remain-v311 b,#analyze [data-panel="goals"] .goals-kpi-v311 .value{font-variant-numeric:tabular-nums;}
+@media(max-width:700px){
+  #analyze [data-panel="goals"] .goals-command-head-v311{flex-direction:column;}
+  #analyze [data-panel="goals"] .goals-command-badge-v311{width:100%;box-sizing:border-box;}
+  #analyze [data-panel="goals"] .goals-kpi-grid-v311{grid-template-columns:1fr 1fr;}
+  #analyze [data-panel="goals"] .goals-next-head-v311{flex-direction:column;align-items:stretch;gap:10px;}
+  #analyze [data-panel="goals"] .goals-next-amount-v311{align-self:flex-start;}
+  #analyze [data-panel="goals"] .goals-roadmap-values-v311{grid-template-columns:1fr 1fr;}
+  #analyze [data-panel="goals"] .goals-roadmap-meta-v311{grid-template-columns:1fr;gap:7px;}
+  #analyze [data-panel="goals"] .goals-roadmap-actions-v311{display:grid;grid-template-columns:1fr 1fr;}
+}
+@media(max-width:390px){
+  #analyze [data-panel="goals"] .goals-kpi-grid-v311{grid-template-columns:1fr;}
+  #analyze [data-panel="goals"] .goals-roadmap-values-v311{grid-template-columns:1fr;}
+  #analyze [data-panel="goals"] .goals-roadmap-actions-v311{grid-template-columns:1fr;}
+}
+@media(prefers-reduced-motion:reduce){
+  #analyze [data-panel="goals"] .goals-kpi-v311,#analyze [data-panel="goals"] .goals-next-v311,#analyze [data-panel="goals"] .goals-roadmap-card-v311{transition:none!important;}
+}
+</style>
 </html>
