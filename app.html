@@ -2950,6 +2950,8 @@ function editTx(id){
 
       closeEditModal();
       await loadAll({force:true});
+      // Transaction edits keep the same row id/order, so explicitly invalidate the keyed render cache.
+      window.mmhvaultInvalidateTransactionRenderV34241?.();
       window.mmhvaultForceRenderAllV34421?.('transaction-edit');
       window.mmHVaultRefreshReceiptFlagsV3302?.();
     }catch(err){
@@ -9616,7 +9618,7 @@ body.mmhvault-scroll-active #invest .invest-top>.panel{box-shadow:inset 0 1px 0 
   const rows=()=>{
     try{
       const fk=currentFilterKey(), source=Array.isArray(window.transactions)?window.transactions:transactions;
-      const sourceKey=Array.isArray(source)?`${source.length}:${source[source.length-1]?.id??''}:${source[source.length-1]?.tx_date??''}`:'0';
+      const sourceKey=Array.isArray(source)?source.map(t=>[t?.id,t?.tx_date,t?.type,t?.category,t?.from_account,t?.from_amount,t?.to_account,t?.to_amount,t?.note].join('\x1f')).join('\x1e'):'0';
       const key=fk+'\x1e'+sourceKey;
       if(lastRowsCache&&lastFilterCacheKey===key)return lastRowsCache;
       const rs=typeof v28FilteredTx==='function'?(v28FilteredTx()||[]):[];
