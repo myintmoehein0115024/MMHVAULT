@@ -2741,7 +2741,7 @@ if(receiptFile){
   catch(err){console.error(err);alert('Transaction was saved, but the receipt upload failed: '+(err?.message||err));}
 }
 // Keep the user's selections for rapid consecutive entries; only transaction-specific values are cleared.
-txType.value=selected.type;syncTransactionGroup();txGroup.value=selected.group;updateCategories();txCategory.value=[...txCategory.options].some(o=>o.value===selected.category)?selected.category:txCategory.value;fromAccount.value=selected.fromAccount;toAccount.value=selected.toAccount;fromAmount.value="";toAmount.value="";txNote.value="";if($("txReceipt"))$("txReceipt").value="";if(window.resetReceiptUploadUIV3300)window.resetReceiptUploadUIV3300();updateAccountLocks();await loadAll();window.mmHVaultRefreshReceiptFlagsV3302?.();
+txType.value=selected.type;syncTransactionGroup();txGroup.value=selected.group;updateCategories();txCategory.value=[...txCategory.options].some(o=>o.value===selected.category)?selected.category:txCategory.value;fromAccount.value=selected.fromAccount;toAccount.value=selected.toAccount;fromAmount.value="";toAmount.value="";txNote.value="";if($("txReceipt"))$("txReceipt").value="";if(window.resetReceiptUploadUIV3300)window.resetReceiptUploadUIV3300();updateAccountLocks();await loadAll({force:true});window.mmhvaultForceRenderAllV34421?.('transaction-add');window.mmHVaultRefreshReceiptFlagsV3302?.();
 }
 function renderTransactions(){
 if(!transactions.length){txList.innerHTML='<div class="empty">No transactions.</div>';return}
@@ -2769,7 +2769,8 @@ async function deleteTx(id){
 
     // Database row is deleted first; receipt cleanup is best-effort.
     try{await deleteTransactionReceiptV396(u.id,id);}catch(e){console.debug("Receipt cleanup skipped:",e);}
-    await loadAll();
+    await loadAll({force:true});
+    window.mmhvaultForceRenderAllV34421?.('transaction-mutation');
     if(typeof window.mmHVaultRefreshReceiptFlagsV3302==="function"){
       await window.mmHVaultRefreshReceiptFlagsV3302();
     }
@@ -2790,7 +2791,8 @@ async function deleteAllTx(){
       alert("Unable to delete transactions.\n\n"+(r.error.message||"Unknown error"));
       return;
     }
-    await loadAll();
+    await loadAll({force:true});
+    window.mmhvaultForceRenderAllV34421?.('transaction-mutation');
     if(typeof window.mmHVaultRefreshReceiptFlagsV3302==="function"){
       await window.mmHVaultRefreshReceiptFlagsV3302();
     }
@@ -2947,7 +2949,8 @@ function editTx(id){
       }
 
       closeEditModal();
-      await loadAll();
+      await loadAll({force:true});
+      window.mmhvaultForceRenderAllV34421?.('transaction-edit');
       window.mmHVaultRefreshReceiptFlagsV3302?.();
     }catch(err){
       console.error(err);
@@ -3275,7 +3278,10 @@ async function editInvestment(id){
       try{await uploadInvestmentReceiptV3304((await db.auth.getUser()).data.user.id,id,newReceipt);}
       catch(err){alert('Investment was updated, but receipt upload failed: '+(err?.message||err));}
     }
-    closeEditModal();await loadAll();window.refreshInvestmentReceiptFlagsV3304?.();
+    closeEditModal();
+    await loadAll({force:true});
+    window.mmhvaultForceRenderAllV34421?.('investment-edit');
+    window.refreshInvestmentReceiptFlagsV3304?.();
   };
 }
 
@@ -3285,7 +3291,8 @@ async function deleteInvestment(id){
   const r=await db.from("investments").delete().eq("id",id);
   if(r.error){alert(r.error.message);return;}
   if(u)await removeInvestmentReceiptV3304(u.id,id);
-  await loadAll();
+  await loadAll({force:true});
+  window.mmhvaultForceRenderAllV34421?.('investment-delete');
   window.refreshInvestmentReceiptFlagsV3304?.();
 }
 let selectedExcelRows=null;
@@ -3366,9 +3373,9 @@ async function handleExcelFile(file){
  try{const data=await file.arrayBuffer();const wb=XLSX.read(data,{type:'array',cellDates:false});const parsed=parseExcelWorkbook(wb);const txSet=new Set(transactions.map(txFp)),invSet=new Set(investments.map(invFp));const newTx=parsed.tx.filter(x=>!txSet.has(txFp(x))),newInv=parsed.inv.filter(x=>!invSet.has(invFp(x)));selectedExcelRows={newTx,newInv,fileName:file.name};preview.style.display='block';preview.innerHTML=`<b>${esc(file.name)}</b><br>Found <b>${parsed.tx.length}</b> real transaction rows and <b>${parsed.inv.length}</b> investment operations (<b>${parsed.meta.cryptoOps}</b> crypto + <b>${parsed.meta.goldOps}</b> gold).<br>New to your account: <b>${newTx.length}</b> transactions + <b>${newInv.length}</b> investments.<br><br><b>Calculated holdings preview</b><br>BTC ${parsed.meta.holdings.BTC.toFixed(10)} · ETH ${parsed.meta.holdings.ETH.toFixed(10)} · SOL ${parsed.meta.holdings.SOL.toFixed(10)} · BNB ${parsed.meta.holdings.BNB.toFixed(10)}<br>Gold ${parsed.meta.goldYwei.toFixed(2)} ရွေး = ${parsed.meta.goldKyattha.toFixed(8)} ကျပ်သား`;$('excelImportBtn').disabled=!(newTx.length||newInv.length);}catch(e){selectedExcelRows=null;$('excelImportBtn').disabled=true;preview.style.display='block';preview.innerHTML=`<span class="err">Excel read failed: ${esc(e.message)}</span>`;}}
 async function importSelectedExcel(){if(!selectedExcelRows)return;const u=(await db.auth.getUser()).data.user;if(!u)return;const {newTx,newInv,fileName}=selectedExcelRows;if(!confirm(`Import ${newTx.length} transactions and ${newInv.length} investments from ${fileName}?`))return; if(newTx.length){const r=await db.from('transactions').insert(newTx.map(x=>({user_id:u.id,tx_date:x.date,type:x.type,category:x.category,from_account:x.from_account,from_amount:x.from_amount,to_account:x.to_account,to_amount:x.to_amount,note:x.note})));if(r.error){alert('Transaction import failed: '+r.error.message);return;}}
  if(newInv.length){const r=await db.from('investments').insert(newInv.map(x=>({user_id:u.id,inv_date:x.date,asset:x.asset,symbol:x.symbol,amount:x.amount,fee:x.fee,other_cost:x.other_cost,buy_price:x.buy_price,market_price:x.market_price,quantity:x.quantity,note:x.note})));if(r.error){alert('Investment import failed: '+r.error.message);return;}}
- selectedExcelRows=null;$('excelFile').value='';clearExcelPreview();await loadAll();setPage('dashboard');alert('Excel import completed. Dashboard, Analyze and Invest are now linked to the imported Supabase data.');}
+ selectedExcelRows=null;$('excelFile').value='';clearExcelPreview();await loadAll({force:true});window.mmhvaultForceRenderAllV34421?.('excel-import');setPage('dashboard');alert('Excel import completed. Dashboard, Analyze and Invest are now linked to the imported Supabase data.');}
 function clearExcelPreview(){selectedExcelRows=null;const p=$('excelPreview');if(p){p.style.display='none';p.innerHTML='';}$('excelImportBtn').disabled=true;if($('excelFile'))$('excelFile').value='';const t=$('excelDropTitleV318');const s=$('excelDropSubV318');if(t)t.textContent='Choose a workbook';if(s)s.textContent='.XLSX, .XLS or .XLSM · select your finance workbook';}
-async function resetMyCloudData(){if(!confirm('This will delete your Transactions, Investments and Exchange Rates from Supabase. Continue?'))return;const u=(await db.auth.getUser()).data.user;if(!u)return;for(const table of ['transactions','investments','exchange_rates']){const r=await db.from(table).delete().eq('user_id',u.id);if(r.error){alert(`Reset failed on ${table}: ${r.error.message}`);return;}}await loadAll();alert('Your cloud data has been reset.');}
+async function resetMyCloudData(){if(!confirm('This will delete your Transactions, Investments and Exchange Rates from Supabase. Continue?'))return;const u=(await db.auth.getUser()).data.user;if(!u)return;for(const table of ['transactions','investments','exchange_rates']){const r=await db.from(table).delete().eq('user_id',u.id);if(r.error){alert(`Reset failed on ${table}: ${r.error.message}`);return;}}await loadAll({force:true});window.mmhvaultForceRenderAllV34421?.('cloud-reset');alert('Your cloud data has been reset.');}
 
 autoBindExcel=()=>{const f=$('excelFile');const zone=$('excelDropzoneV318');const title=$('excelDropTitleV318');const sub=$('excelDropSubV318');if(!f)return;f.addEventListener('change',e=>{const file=e.target.files?.[0];if(file){if(title)title.textContent=file.name;if(sub)sub.textContent=`${(file.size/1024/1024).toFixed(2)} MB · ready to preview`; }else{if(title)title.textContent='Choose a workbook';if(sub)sub.textContent='.XLSX, .XLS or .XLSM · select your finance workbook';}handleExcelFile(file);});if(zone){['dragenter','dragover'].forEach(ev=>zone.addEventListener(ev,e=>{e.preventDefault();zone.classList.add('dragover')}));['dragleave','drop'].forEach(ev=>zone.addEventListener(ev,e=>{e.preventDefault();zone.classList.remove('dragover')}));zone.addEventListener('drop',e=>{const file=e.dataTransfer?.files?.[0];if(!file)return;try{const dt=new DataTransfer();dt.items.add(file);f.files=dt.files;}catch(_e){}if(title)title.textContent=file.name;if(sub)sub.textContent=`${(file.size/1024/1024).toFixed(2)} MB · ready to preview`;handleExcelFile(file);});}};
 autoBindExcel();
@@ -10976,7 +10983,43 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
 </style>
 
 
-</body>
+
+<script id="mmhvault-v34421-instant-ui-refresh">
+/* MMHVAULT V3.44.21 · Instant post-save UI refresh coordinator.
+   Keeps Supabase authoritative, then refreshes every data surface without a browser reload. */
+(function(){
+  if(window.__mmhV34421InstantRefreshInstalled)return;
+  window.__mmhV34421InstantRefreshInstalled=true;
+  let frame=0,lastReason='boot';
+  const safe=(fn)=>{try{if(typeof fn==='function')fn();}catch(err){console.warn('[MMHVAULT] instant render skipped',err);}};
+  function renderAll(reason='data-change'){
+    lastReason=reason;
+    frame=0;
+    safe(window.renderDashboard);
+    safe(window.renderTransactions);
+    safe(window.renderAnalyze);
+    safe(window.renderInvest);
+    safe(window.renderRates);
+    safe(window.renderCryptoPrices);
+    try{window.mmhvaultRequestRenderV332?.(reason);}catch(_e){}
+    try{window.dispatchEvent(new CustomEvent('mmhvault:ui-refreshed',{detail:{reason,at:Date.now()}}));}catch(_e){}
+  }
+  window.mmhvaultForceRenderAllV34421=function(reason='data-change'){
+    lastReason=String(reason||'data-change');
+    if(frame)return;
+    const run=()=>renderAll(lastReason);
+    frame=typeof requestAnimationFrame==='function'?requestAnimationFrame(run):setTimeout(run,0);
+  };
+  window.mmhvaultRefreshAfterMutationV34421=async function(reason='mutation'){
+    const result=await window.loadAll?.({force:true});
+    window.mmhvaultForceRenderAllV34421(reason);
+    return result;
+  };
+  // Any authoritative cloud load (including Supabase realtime updates) refreshes all surfaces.
+  window.addEventListener('mmhvault:data-loaded',()=>window.mmhvaultForceRenderAllV34421('cloud-data-loaded'));
+  window.addEventListener('mmhvault:data-change',e=>window.mmhvaultForceRenderAllV34421(e?.detail?.reason||'data-change'));
+})();
+</script>\n</body>
 <!-- MMHVAULT V3.42.78 performance baseline: logo-free account cards + restrained dashboard rendering. -->
 
 <style id="mmhvault-v3445-analyze-premium-polish">
