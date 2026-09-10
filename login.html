@@ -1,1 +1,116 @@
-<!doctype html><html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="assets/site.css"><title>MMHVAULT · Login</title><body><header class="wrap nav"><a class="brand" href="index.html">◉ MMHVAULT<small>PERSONAL WEALTH INTELLIGENCE · VERSION 4.0</small></a><nav class="links"><a class="" href="index.html">Home</a><a class="" href="features.html">Features</a><a class="" href="security.html">Security</a><a class="" href="experience.html">Experience</a><a class="" href="about.html">About</a></nav><a class="btn" href="login.html">Login</a></header><main class="wrap" style="min-height:calc(100vh - 150px);display:grid;place-items:center"><section class="card" style="width:min(100%,500px)"><div class="tag" style="text-align:center">SECURE ACCESS · VERSION 4.0</div><h2>Welcome Back</h2><p>Log in to continue your journey</p><input class="input" placeholder="Email address"><input class="input" placeholder="Password" type="password"><a class="btn gold full" href="app.html">Sign in →</a><p style="margin:20px">— or continue with —</p><a class="btn google full" href="app.html"><span class="g">G</span> Continue with Google</a></section></main><footer class="wrap footer">© 2026 <b style="color:#f4c867">MMHVAULT</b> · Version 4.0 <span style="float:right">Private · Intelligent · Built Around You</span></footer></body></html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MMHVAULT — Secure Access</title>
+<style>
+:root{
+  --bg:#050d18; --panel:rgba(15,28,43,.88); --panel2:rgba(21,38,57,.82);
+  --line:rgba(126,169,205,.20); --text:#f4f6f8; --muted:#9ba8b7;
+  --gold:#e9bd5b; --gold2:#ffe5a5; --blue:#6e9dc9;
+}
+*{box-sizing:border-box} html,body{margin:0;min-height:100%;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text);background:var(--bg)}
+body{overflow-x:hidden}
+body:before{content:"";position:fixed;inset:0;background:
+radial-gradient(circle at 76% 16%,rgba(54,103,163,.22),transparent 30%),
+radial-gradient(circle at 50% 105%,rgba(224,158,45,.19),transparent 27%),
+linear-gradient(180deg,#06111e 0%,#050b14 100%);z-index:-3}
+body:after{content:"";position:fixed;inset:0;opacity:.42;z-index:-2;background-image:
+linear-gradient(rgba(70,120,165,.055) 1px,transparent 1px),
+linear-gradient(90deg,rgba(70,120,165,.055) 1px,transparent 1px);background-size:48px 48px;mask-image:linear-gradient(to bottom,black,transparent 85%)}
+.orbit{position:fixed;border:1px solid rgba(233,189,91,.16);border-radius:50%;width:780px;height:780px;right:-280px;top:-290px;z-index:-1;box-shadow:0 0 120px rgba(45,111,176,.10),inset 0 0 90px rgba(233,189,91,.04);animation:float 14s ease-in-out infinite}
+.orbit:after,.orbit:before{content:"";position:absolute;border-radius:50%;border:1px solid rgba(90,148,205,.12);inset:80px}.orbit:before{inset:160px}
+@keyframes float{50%{transform:translate(-22px,18px) rotate(8deg)}}
+.shell{width:min(1320px,calc(100% - 40px));margin:auto}
+header{height:108px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(126,169,205,.12)}
+.brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:inherit}
+.mark{width:34px;height:34px;border:1.5px solid var(--gold);border-radius:10px;display:grid;place-items:center;color:var(--gold);font-weight:900;box-shadow:0 0 22px rgba(233,189,91,.18)}
+.brand b{display:block;letter-spacing:.16em;font-size:18px;color:var(--gold2)}
+.brand small{display:block;color:#8d9bac;letter-spacing:.22em;font-size:9px;margin-top:4px}
+nav{display:flex;gap:34px}nav a{color:#b7c0cb;text-decoration:none;font-size:14px}nav a:hover{color:var(--gold2)}
+.toplogin{padding:13px 27px;border:1px solid rgba(233,189,91,.35);border-radius:16px;color:var(--gold2);text-decoration:none;font-weight:700}
+main{min-height:calc(100vh - 108px);display:grid;place-items:center;padding:56px 0 70px}
+.access{width:min(520px,100%);background:linear-gradient(145deg,rgba(23,39,57,.94),rgba(10,22,35,.91));border:1px solid var(--line);border-radius:28px;padding:38px 34px 30px;box-shadow:0 25px 70px rgba(0,0,0,.34),0 0 70px rgba(42,93,145,.08);position:relative;overflow:hidden}
+.access:before{content:"";position:absolute;width:280px;height:280px;border-radius:50%;background:radial-gradient(circle,rgba(233,189,91,.10),transparent 68%);top:-170px;right:-110px}
+.kicker{text-align:center;color:var(--gold);font-size:11px;letter-spacing:.38em;font-weight:800;margin-bottom:20px;position:relative}
+h1{text-align:center;font-size:32px;margin:0;color:var(--gold2);position:relative;letter-spacing:-.03em}
+.sub{text-align:center;color:var(--muted);margin:12px 0 28px;font-size:14px}
+.tabs{display:grid;grid-template-columns:1fr 1fr;background:rgba(3,12,22,.48);border:1px solid var(--line);border-radius:14px;padding:5px;margin-bottom:22px}
+.tab{border:0;background:transparent;color:#9eabb9;padding:13px;border-radius:10px;font-weight:750;font-size:14px;cursor:pointer;transition:.25s}
+.tab.active{background:linear-gradient(135deg,rgba(233,189,91,.17),rgba(233,189,91,.07));color:var(--gold2);box-shadow:inset 0 -2px 0 var(--gold)}
+.form{display:none}.form.active{display:block;animation:show .32s ease}@keyframes show{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+label{display:block;color:#aeb9c5;font-size:12px;font-weight:700;margin:15px 0 8px}
+.field{position:relative}.field input{width:100%;height:54px;border-radius:15px;border:1px solid rgba(99,148,188,.25);background:rgba(3,14,25,.64);color:#fff;padding:0 48px 0 17px;font:inherit;outline:none;transition:.25s}
+.field input:focus{border-color:rgba(233,189,91,.65);box-shadow:0 0 0 4px rgba(233,189,91,.07)}
+.eye{position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:0;color:var(--gold);cursor:pointer;font-size:13px}
+.row{display:flex;justify-content:space-between;align-items:center;margin:16px 0 18px;font-size:12px}.remember{display:flex;gap:9px;align-items:center;color:#aeb8c4}.remember input{accent-color:#dba93d;width:15px;height:15px}.forgot{color:var(--gold);text-decoration:none;font-weight:700}
+.primary{width:100%;height:55px;border:0;border-radius:16px;background:linear-gradient(105deg,#e7b84e,#ffe6aa,#e9bd5b);color:#18212a;font-weight:900;font-size:15px;cursor:pointer;box-shadow:0 8px 25px rgba(233,189,91,.18);transition:.25s}.primary:hover{transform:translateY(-2px);box-shadow:0 13px 32px rgba(233,189,91,.28)}
+.divider{display:flex;align-items:center;gap:12px;color:#7f8b98;font-size:12px;margin:21px 0}.divider:before,.divider:after{content:"";height:1px;background:rgba(130,159,187,.16);flex:1}
+.google{width:100%;height:54px;border-radius:15px;border:1px solid rgba(110,142,175,.27);background:rgba(25,37,50,.76);color:#e7edf4;font-weight:800;font-size:15px;display:flex;align-items:center;justify-content:center;gap:10px;cursor:pointer;transition:.25s}.google:hover{background:rgba(38,54,70,.92);transform:translateY(-1px)}
+.google svg{width:19px;height:19px}
+.switch{text-align:center;color:#8794a2;font-size:12px;margin:20px 0 0}.switch button{border:0;background:none;color:var(--gold);font-weight:800;cursor:pointer;padding:0 3px}
+.status{text-align:center;min-height:18px;color:#e9bd5b;font-size:12px;margin-top:12px}
+footer{border-top:1px solid rgba(126,169,205,.12);padding:22px 0 30px;color:#718091;font-size:11px;display:flex;justify-content:space-between}
+@media(max-width:760px){.shell{width:min(100% - 24px,620px)}header{height:82px}.brand small,nav{display:none}.toplogin{padding:10px 18px;border-radius:13px;font-size:13px}main{padding:28px 0 45px;align-items:start}.access{padding:30px 20px 25px;border-radius:24px}h1{font-size:28px}.kicker{letter-spacing:.25em;font-size:10px}.orbit{width:560px;height:560px;right:-330px;top:-160px}.field input{height:52px}footer{flex-direction:column;gap:8px}}
+</style>
+</head>
+<body>
+<div class="orbit"></div>
+<div class="shell">
+<header>
+<a class="brand" href="index.html"><span class="mark">M</span><span><b>MMHVAULT</b><small>PERSONAL WEALTH INTELLIGENCE · VERSION 4.0</small></span></a>
+<nav><a href="index.html">Home</a><a href="features.html">Features</a><a href="security.html">Security</a><a href="experience.html">Experience</a><a href="about.html">About</a></nav>
+<a class="toplogin" href="login.html">Login</a>
+</header>
+<main>
+<section class="access">
+<div class="kicker">SECURE ACCESS · VERSION 4.0</div>
+<h1 id="title">Welcome Back</h1>
+<p class="sub" id="subtitle">Log in to continue your journey</p>
+<div class="tabs">
+<button class="tab active" data-target="signin">🔒 Sign In</button>
+<button class="tab" data-target="signup">✦ Sign Up</button>
+</div>
+
+<form class="form active" id="signin">
+<label>Email</label><div class="field"><input type="email" placeholder="Email address" required></div>
+<label>Password</label><div class="field"><input type="password" placeholder="Password" required><button type="button" class="eye">Show</button></div>
+<div class="row"><label class="remember"><input type="checkbox" checked> Remember me</label><a href="#" class="forgot">Forgot password?</a></div>
+<button class="primary" type="submit">Sign In &nbsp; →</button>
+<div class="divider">or continue with</div>
+<button class="google" type="button"><svg viewBox="0 0 24 24"><path fill="#4285F4" d="M21.8 12.23c0-.7-.06-1.37-.18-2.02H12v3.82h5.5a4.7 4.7 0 0 1-2.04 3.08v2.54h3.3c1.93-1.78 3.04-4.4 3.04-7.42z"/><path fill="#34A853" d="M12 22c2.76 0 5.08-.91 6.77-2.35l-3.3-2.54c-.91.61-2.08.97-3.47.97-2.66 0-4.92-1.8-5.73-4.22H2.86v2.62A10.22 10.22 0 0 0 12 22z"/><path fill="#FBBC05" d="M6.27 13.86A6.15 6.15 0 0 1 5.95 12c0-.65.11-1.28.32-1.86V7.52H2.86A10.2 10.2 0 0 0 1.78 12c0 1.64.39 3.2 1.08 4.48l3.41-2.62z"/><path fill="#EA4335" d="M12 5.92c1.5 0 2.84.52 3.9 1.53l2.93-2.93C17.07 2.88 14.76 2 12 2a10.22 10.22 0 0 0-9.14 5.52l3.41 2.62C7.08 7.72 9.34 5.92 12 5.92z"/></svg>Continue with Google</button>
+<p class="switch">Don't have an account? <button type="button" data-switch="signup">Sign Up</button></p>
+</form>
+
+<form class="form" id="signup">
+<label>Full name</label><div class="field"><input type="text" placeholder="Your name" required></div>
+<label>Email</label><div class="field"><input type="email" placeholder="Email address" required></div>
+<label>Create password</label><div class="field"><input type="password" placeholder="Create a password" required><button type="button" class="eye">Show</button></div>
+<div class="row"><label class="remember"><input type="checkbox" required> I agree to the terms</label></div>
+<button class="primary" type="submit">Create Account &nbsp; →</button>
+<div class="divider">or continue with</div>
+<button class="google" type="button"><svg viewBox="0 0 24 24"><path fill="#4285F4" d="M21.8 12.23c0-.7-.06-1.37-.18-2.02H12v3.82h5.5a4.7 4.7 0 0 1-2.04 3.08v2.54h3.3c1.93-1.78 3.04-4.4 3.04-7.42z"/><path fill="#34A853" d="M12 22c2.76 0 5.08-.91 6.77-2.35l-3.3-2.54c-.91.61-2.08.97-3.47.97-2.66 0-4.92-1.8-5.73-4.22H2.86v2.62A10.22 10.22 0 0 0 12 22z"/><path fill="#FBBC05" d="M6.27 13.86A6.15 6.15 0 0 1 5.95 12c0-.65.11-1.28.32-1.86V7.52H2.86A10.2 10.2 0 0 0 1.78 12c0 1.64.39 3.2 1.08 4.48l3.41-2.62z"/><path fill="#EA4335" d="M12 5.92c1.5 0 2.84.52 3.9 1.53l2.93-2.93C17.07 2.88 14.76 2 12 2a10.22 10.22 0 0 0-9.14 5.52l3.41 2.62C7.08 7.72 9.34 5.92 12 5.92z"/></svg>Continue with Google</button>
+<p class="switch">Already have an account? <button type="button" data-switch="signin">Sign In</button></p>
+</form>
+<div class="status" id="status"></div>
+</section>
+</main>
+<footer><span>© 2026 <b style="color:var(--gold)">MMHVAULT</b> · Version 4.0</span><span>Private · Intelligent · Built Around You</span></footer>
+</div>
+<script>
+const tabs=[...document.querySelectorAll('.tab')], forms=[...document.querySelectorAll('.form')];
+function openForm(id){
+ tabs.forEach(t=>t.classList.toggle('active',t.dataset.target===id));
+ forms.forEach(f=>f.classList.toggle('active',f.id===id));
+ document.getElementById('title').textContent=id==='signin'?'Welcome Back':'Create Your Vault';
+ document.getElementById('subtitle').textContent=id==='signin'?'Log in to continue your journey':'Start your private wealth workspace';
+ document.getElementById('status').textContent='';
+}
+tabs.forEach(t=>t.onclick=()=>openForm(t.dataset.target));
+document.querySelectorAll('[data-switch]').forEach(b=>b.onclick=()=>openForm(b.dataset.switch));
+document.querySelectorAll('.eye').forEach(b=>b.onclick=()=>{const i=b.parentElement.querySelector('input');i.type=i.type==='password'?'text':'password';b.textContent=i.type==='password'?'Show':'Hide'});
+forms.forEach(f=>f.addEventListener('submit',e=>{e.preventDefault();document.getElementById('status').textContent='Demo interface ready — connect your authentication service next.'}));
+</script>
+</body>
+</html>
