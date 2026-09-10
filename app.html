@@ -1442,6 +1442,17 @@ button,.btn,.bottom-nav button,.more-nav-menu button,[role="button"]{touch-actio
 }
 @media (prefers-reduced-motion: reduce){.analyze-tab-panel-v371 .panel{scroll-behavior:auto;}}
 </style>
+<style id="mmh-v34425-polish">
+/* MMHVAULT V3.44.25 Phase 1: load polish + premium consistency */
+:root{--mmh-ui-line:rgba(120,156,220,.16);--mmh-ui-soft:rgba(10,22,52,.42)}
+.panel,.card,.mmh-v380-card,.mmh-v380-scenario{border-color:var(--mmh-ui-line)}
+.panel{transition:border-color .18s ease,box-shadow .18s ease,transform .18s ease}
+@media (hover:hover) and (pointer:fine){.panel:hover{border-color:rgba(122,170,255,.28)}}
+.empty,.mmh-v380-empty,.mmh-v390-empty,.trend-empty{box-sizing:border-box;min-height:76px;display:grid;place-items:center;text-align:center;padding:16px;border:1px dashed rgba(110,150,220,.18);border-radius:14px;background:var(--mmh-ui-soft);color:#8fa4c6}
+.page-title,.title,h1{max-width:100%;overflow-wrap:anywhere}
+.panel :is(.value,.kpi,.metric){font-variant-numeric:tabular-nums}
+@media(max-width:640px){.empty,.mmh-v380-empty,.mmh-v390-empty,.trend-empty{min-height:64px;padding:12px}.panel{border-radius:16px}}
+</style>
 </head>
 <!-- MMHVAULT V3.42.56 · Dashboard report relocation + Transaction receipt center + Invest Add precision -->
 <body>
