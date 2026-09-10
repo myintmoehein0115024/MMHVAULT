@@ -74,3 +74,4 @@ function bind(){
   db.auth.onAuthStateChange((event,session)=>{if(event!=="INITIAL_SESSION"&&session)location.replace(appUrl());});
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
+window.myFinanceLogin=auth;
