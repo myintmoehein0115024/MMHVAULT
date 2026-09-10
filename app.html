@@ -356,6 +356,27 @@ h1,h2,h3,.title,.value,.kpi,.metric,.page-title,.nav-title{font-family:Manrope,"
 .mmh-command-foot{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:15px;padding-top:13px;border-top:1px solid rgba(100,135,188,.15)}.mmh-status-chip{display:inline-flex;align-items:center;gap:8px;color:#c6d6ec;font-size:11px;font-weight:800}.mmh-status-chip span{width:8px;height:8px;border-radius:50%;background:#31e49a;box-shadow:0 0 12px rgba(49,228,154,.55)}.mmh-status-chip.warn span{background:#f2c55d;box-shadow:0 0 12px rgba(242,197,93,.45)}.mmh-status-chip.bad span{background:#ff7187;box-shadow:0 0 12px rgba(255,113,135,.45)}.mmh-mini-metrics{display:flex;gap:18px;flex-wrap:wrap;color:#7187ab;font-size:10px}.mmh-mini-metrics b{color:#dbe6f7;margin-left:4px}
 @keyframes mmhSpin34210{to{transform:rotate(360deg)}}@keyframes mmhPulse34210{50%{transform:scale(1.25);opacity:.65}}@keyframes mmhFloat34210{50%{transform:translateY(-2px)}}@keyframes mmhSweep34210{0%,55%{transform:translateX(-70%);opacity:0}70%{opacity:1}100%{transform:translateX(80%);opacity:0}}@media(max-width:900px){.mmh-command-main{grid-template-columns:1fr}.mmh-command-orbit{right:-150px;top:-120px;opacity:.7}}@media(max-width:620px){.mmh-command-v34210{padding:17px;border-radius:18px}.mmh-command-head{flex-direction:column}.mmh-command-stats{grid-template-columns:1fr}.mmh-command-foot{align-items:flex-start;flex-direction:column}.mmh-networth-value{font-size:32px}.mmh-command-head h2{font-size:21px}}
 </style>
+<style id="mmhvault-v3440-dashboard-polish">
+/* V3.44.0 — Dashboard premium micro-interaction layer. */
+@media (hover:hover) and (pointer:fine){
+  #dashboard .mmh-command-stat,#dashboard .mmh-networth-card{
+    transition:transform .22s ease,box-shadow .22s ease,border-color .22s ease;
+  }
+  #dashboard .mmh-command-stat:hover{
+    transform:translateY(-2px);
+    border-color:rgba(100,177,235,.30);
+    box-shadow:0 10px 28px rgba(0,0,0,.18);
+  }
+  #dashboard .mmh-networth-card:hover{
+    transform:translateY(-1px);
+    border-color:rgba(242,197,93,.40);
+    box-shadow:inset 0 0 30px rgba(242,197,93,.04),0 12px 34px rgba(0,0,0,.18);
+  }
+}
+@media (prefers-reduced-motion:reduce){
+  #dashboard .mmh-command-stat,#dashboard .mmh-networth-card{transition:none!important;transform:none!important}
+}
+</style>
 <style id="mmhvault-v34212-dashboard-command-visuals">
 /* MMHVAULT V3.42.74 — Dashboard Command Center visual system. Additive + dashboard scoped. */
 #dashboard{position:relative;isolation:isolate;overflow:visible}
@@ -2475,7 +2496,9 @@ function renderDashboard(){
   ].join('\u001f')).join('\u001e'));
   const priceSig=()=>['BTC','ETH','SOL','BNB'].map(k=>`${k}:${livePrices?.[k]?.price||0}`).join('|')+'|G:'+((goldMarketState?.pricePerKyattha)||0);
   const rateSig=()=>`${rates?.usd_mmk||0}|${rates?.usd_thb||0}`;
-  const baseSig=`${txSig()}|${invSig()}|${priceSig()}|${rateSig()}`;
+  const txSignature=txSig();
+  const invSignature=invSig();
+  const baseSig=`${txSignature}|${invSignature}|${priceSig()}|${rateSig()}`;
   window.__mmhDashV34242Cache=window.__mmhDashV34242Cache||{};
   const C=window.__mmhDashV34242Cache;
 
@@ -2538,7 +2561,7 @@ function renderDashboard(){
     $("dashInvest").innerHTML=`<div class="mini-invest"><div><span>Crypto Cost</span><b>$${fmt(crypto.reduce((s,x)=>s+n(x.amount)+n(x.fee)+n(x.other_cost),0))}</b></div><div><span>Gold Cost</span><b>MMK ${fmt(gold.reduce((s,x)=>s+n(x.amount)+n(x.fee)+n(x.other_cost),0))}</b></div></div><div class="holding-line">${holdings.map(h=>`<span><b>${h.sym}</b> ${h.q.toFixed(8)}</span>`).join("")}</div>`;
   }
 
-  const recentSig=`${txSig()}|recent`;
+  const recentSig=`${txSignature}|recent`;
   if(C.recentSig!==recentSig){
     C.recentSig=recentSig;
     $("dashTxCount").textContent=`${transactions.length} records`;
@@ -2547,7 +2570,7 @@ function renderDashboard(){
 
   const v372Sig=`${baseSig}|${month}|target`;
   if(C.v372Sig!==v372Sig){C.v372Sig=v372Sig;renderDashboardV372();}
-  const monthSummarySig=`${txSig()}|${month}`;
+  const monthSummarySig=`${txSignature}|${month}`;
   if(C.monthSummarySig!==monthSummarySig){C.monthSummarySig=monthSummarySig;renderDashboardMonth();}
 }
 function renderAnalyze(){
