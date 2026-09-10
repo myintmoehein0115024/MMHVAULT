@@ -1413,7 +1413,8 @@ button,.btn,.bottom-nav button,.more-nav-menu button,[role="button"]{touch-actio
 @media(max-width:760px){#expenseTrend .spark,#incomeExpenseTrend .spark{min-height:132px;gap:5px;padding:15px 8px 7px}#expenseTrend .spark>span,#incomeExpenseTrend .spark>span{border-radius:6px 6px 3px 3px}#expenseTrend .spark-labels,#incomeExpenseTrend .spark-labels{gap:5px;padding-left:8px;padding-right:8px;font-size:9px}}
 @media(max-width:420px){#expenseTrend .spark,#incomeExpenseTrend .spark{min-height:118px;padding-left:6px;padding-right:6px}#expenseTrend .spark-labels,#incomeExpenseTrend .spark-labels{font-size:8.5px}}
 @media (prefers-reduced-motion: reduce){#expenseTrend .spark>span,#incomeExpenseTrend .spark>span{transition:none}}
-</style>\n
+</style>
+
 <style id="mmhvault-v34410-analyze-responsive">
 /* MMHVAULT V3.44.10 · Analyze responsive finishing polish */
 .analyze-tab-panel-v371 .panel{min-width:0;}
@@ -11300,6 +11301,61 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
   #financialHealthV371 .fin-health-grid,#netWorthAnalyzeSummaryV371{grid-template-columns:1fr}
 }
 </style>
+
+<script id="mmhvault-v34414-goal-submit-reliability">
+/* MMHVAULT V3.44.14 · Goals submit reliability hotfix.
+   Keeps the existing goal data model and save logic. Provides a direct submit bridge
+   and a click-safe foreground layer so the Add Goal action remains reliable after
+   repeated Analyze / Goals re-renders. */
+(function(){
+  function bind(){
+    const form=document.getElementById('goalFormV371');
+    const btn=document.getElementById('goalSubmitV371');
+    if(!form || !btn || btn.dataset.mmhV34414Bound==='1') return;
+    btn.dataset.mmhV34414Bound='1';
+    btn.type='button';
+    btn.addEventListener('click',function(e){
+      e.preventDefault();
+      e.stopPropagation();
+      try{
+        const result=typeof window.saveGoalV371==='function' ? window.saveGoalV371(e) : false;
+        if(result && typeof result.then==='function'){ result.catch(err=>console.error('MMHVAULT goal save failed:',err)); }
+      }catch(err){
+        console.error('MMHVAULT goal submit failed:',err);
+      }
+      return false;
+    },false);
+    form.addEventListener('submit',function(e){
+      e.preventDefault();
+      e.stopPropagation();
+      try{
+        if(typeof window.saveGoalV371==='function') window.saveGoalV371(e);
+      }catch(err){
+        console.error('MMHVAULT goal form submit failed:',err);
+      }
+      return false;
+    },false);
+  }
+  function arm(){
+    requestAnimationFrame(()=>requestAnimationFrame(bind));
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',arm,{once:true});
+  else arm();
+  window.addEventListener('mmhvault:data-loaded',arm);
+  window.addEventListener('mmhvault:data-state',arm);
+  document.addEventListener('click',function(e){
+    const b=e.target?.closest?.('#goalSubmitV371');
+    if(!b || b.dataset.mmhV34414Bound==='1') return;
+    try{
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      if(typeof window.saveGoalV371==='function') window.saveGoalV371(e);
+    }catch(err){ console.error('MMHVAULT goal click bridge failed:',err); }
+  },true);
+})();
+</script>
+<style id="mmhvault-v34414-goal-submit-css">
+/* Keep the Goals form controls in the interactive foreground. */\n#goalFormV371,#goalFormV371 .form-actions,#goalSubmitV371{position:relative;z-index:20;pointer-events:auto;}\n#goalSubmitV371{touch-action:manipulation;cursor:pointer;}\n@media(prefers-reduced-motion:reduce){#goalSubmitV371{transition:none!important;}}\n</style>
 </body>
 <!-- MMHVAULT V3.42.78 performance baseline: logo-free account cards + restrained dashboard rendering. -->
 
