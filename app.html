@@ -1290,6 +1290,15 @@ body.mmhvault-scroll-active .card{transition:none!important}
 }
 </style>
 
+
+<style id="mmhvault-v3434-render-isolation">
+/* V3.43.4 — Phase 1: isolate off-screen secondary panels to reduce layout/paint work. */
+@media (min-width: 900px){
+  .mmh-render-isolate{
+    contain:layout paint style;
+  }
+}
+</style>
 </head>
 <!-- MMHVAULT V3.42.56 · Dashboard report relocation + Transaction receipt center + Invest Add precision -->
 <body>
@@ -2013,7 +2022,6 @@ document.addEventListener('visibilitychange',()=>{
 ACC.forEach(a=>{const fa=$("fromAccount"),ta=$("toAccount");if(fa)fa.insertAdjacentHTML("beforeend",`<option>${a}</option>`);if(ta)ta.insertAdjacentHTML("beforeend",`<option>${a}</option>`);});
 $("txType").onchange=()=>{syncTransactionGroup();updateCategories();};$("txGroup").onchange=updateCategories;updateCategories();
 if($("authForm"))$("authForm").onsubmit=auth;if($("txForm"))$("txForm").onsubmit=addTransaction;if($("invForm"))$("invForm").onsubmit=addInvestment;if($("month"))$("month").onchange=()=>{renderDashboard();renderAnalyze();};
-document.querySelectorAll(".bottom-nav button").forEach(b=>b.onclick=()=>setPage(b.dataset.page));
 document.addEventListener("click",e=>{const b=e.target.closest?.("#bottomNav [data-page]");if(!b)return;e.preventDefault();e.stopPropagation();setPage(b.dataset.page);},{capture:true});
 }
 let mmhvaultAuthMode="signin";
