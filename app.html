@@ -14089,3 +14089,190 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
   }
 }
 </style>
+
+<!-- =========================================================
+     MMHVAULT V4.3.0 · SIGNATURE ALLOCATION FRAME
+     Premium animated glass frame for the Asset Allocation ring.
+     Visual treatment only — chart data and calculations unchanged.
+========================================================= -->
+<style id="mmhvault-v4301-signature-allocation-frame">
+/* ============================================================
+   SIGNATURE PORTFOLIO FRAME
+============================================================ */
+#dashboard .dashboard-allocation-panel .allocation-donut-wrap{
+  position:relative!important;
+  display:grid!important;
+  place-items:center!important;
+  isolation:isolate!important;
+  overflow:hidden!important;
+  min-height:342px!important;
+  padding:28px!important;
+  box-sizing:border-box!important;
+  border-radius:28px!important;
+  border:1px solid rgba(117,177,236,.18)!important;
+  background:
+    radial-gradient(circle at 50% 45%,rgba(49,103,154,.13),transparent 36%),
+    radial-gradient(circle at 18% 12%,rgba(93,212,255,.055),transparent 25%),
+    linear-gradient(145deg,rgba(18,38,66,.76),rgba(7,18,38,.90) 56%,rgba(3,10,24,.94))!important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.10),
+    inset 0 0 48px rgba(56,157,237,.025),
+    0 18px 42px rgba(0,0,0,.20)!important;
+}
+
+/* Animated luxury perimeter — a slow travelling cyan/gold signal */
+#dashboard .dashboard-allocation-panel .allocation-donut-wrap::before{
+  content:""!important;
+  position:absolute!important;
+  inset:-2px!important;
+  z-index:-2!important;
+  padding:2px!important;
+  border-radius:30px!important;
+  background:
+    conic-gradient(
+      from 0deg,
+      transparent 0deg,
+      rgba(87,211,255,.04) 48deg,
+      rgba(118,223,255,.72) 88deg,
+      rgba(255,218,128,.52) 112deg,
+      rgba(99,195,255,.10) 145deg,
+      transparent 210deg,
+      transparent 360deg
+    )!important;
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;
+  mask-composite:exclude;
+  animation:mmhAllocationFrameOrbitV4301 10s linear infinite!important;
+  filter:drop-shadow(0 0 7px rgba(91,203,255,.13));
+}
+
+/* Internal moving glass light */
+#dashboard .dashboard-allocation-panel .allocation-donut-wrap::after{
+  content:""!important;
+  position:absolute!important;
+  width:54%!important;
+  height:140%!important;
+  left:-58%!important;
+  top:-22%!important;
+  z-index:-1!important;
+  pointer-events:none!important;
+  transform:rotate(20deg)!important;
+  background:linear-gradient(
+    90deg,
+    transparent,
+    rgba(143,221,255,.025),
+    rgba(255,255,255,.09),
+    rgba(143,221,255,.018),
+    transparent
+  )!important;
+  filter:blur(8px)!important;
+  animation:mmhAllocationGlassSweepV4301 8.5s ease-in-out infinite!important;
+}
+
+/* The chart becomes the visual jewel inside the frame */
+#dashboard .dashboard-allocation-panel .allocation-donut{
+  position:relative!important;
+  z-index:2!important;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.055),
+    0 0 0 10px rgba(70,147,217,.022),
+    0 0 34px rgba(44,184,239,.08),
+    0 20px 42px rgba(0,0,0,.28)!important;
+  animation:mmhAllocationRingBreathV4301 5.5s ease-in-out infinite!important;
+}
+
+/* Center gets a subtle glass depth instead of looking flat */
+#dashboard .dashboard-allocation-panel .allocation-donut-center{
+  background:
+    radial-gradient(circle at 50% 25%,rgba(255,255,255,.055),transparent 42%),
+    rgba(5,16,32,.72)!important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.07),
+    inset 0 -14px 30px rgba(0,0,0,.14)!important;
+}
+#dashboard .dashboard-allocation-panel .allocation-donut-center::before{
+  content:"PORTFOLIO";
+  display:block;
+  margin-bottom:7px;
+  color:rgba(126,207,239,.68);
+  font-size:8px;
+  font-weight:850;
+  letter-spacing:.18em;
+}
+#dashboard .dashboard-allocation-panel .allocation-donut-center strong{
+  text-shadow:
+    0 1px 0 rgba(255,255,255,.14),
+    0 0 22px rgba(103,207,255,.11)!important;
+}
+#dashboard .dashboard-allocation-panel .allocation-donut-center span{
+  opacity:.82;
+}
+
+/* Small premium status marker in the top-right of the frame */
+#dashboard .dashboard-allocation-panel .allocation-donut-wrap > .allocation-donut-wrap-marker-v4301{
+  display:none;
+}
+#dashboard .dashboard-allocation-panel .allocation-donut-wrap .allocation-donut{
+  transform:translateZ(0);
+}
+
+/* Animated corner atmosphere */
+@keyframes mmhAllocationFrameOrbitV4301{
+  from{transform:rotate(0deg)}
+  to{transform:rotate(360deg)}
+}
+@keyframes mmhAllocationGlassSweepV4301{
+  0%,18%{transform:translateX(0) rotate(20deg);opacity:0}
+  35%{opacity:.82}
+  62%{opacity:.38}
+  100%{transform:translateX(330%) rotate(20deg);opacity:0}
+}
+@keyframes mmhAllocationRingBreathV4301{
+  0%,100%{
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,.055),
+      0 0 0 10px rgba(70,147,217,.018),
+      0 0 28px rgba(44,184,239,.065),
+      0 20px 42px rgba(0,0,0,.28);
+  }
+  50%{
+    box-shadow:
+      0 0 0 1px rgba(255,255,255,.075),
+      0 0 0 13px rgba(70,147,217,.032),
+      0 0 42px rgba(44,184,239,.12),
+      0 20px 48px rgba(0,0,0,.30);
+  }
+}
+
+/* Hover adds a refined response, not a dramatic jump */
+@media(hover:hover){
+  #dashboard .dashboard-allocation-panel .allocation-donut-wrap:hover{
+    border-color:rgba(130,210,255,.28)!important;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.13),
+      inset 0 0 58px rgba(56,157,237,.04),
+      0 24px 54px rgba(0,0,0,.26),
+      0 0 32px rgba(71,183,255,.035)!important;
+  }
+}
+
+/* Mobile keeps the premium frame without excessive height */
+@media(max-width:760px){
+  #dashboard .dashboard-allocation-panel .allocation-donut-wrap{
+    min-height:300px!important;
+    padding:22px!important;
+    border-radius:24px!important;
+  }
+}
+
+/* Respect accessibility motion preferences */
+@media(prefers-reduced-motion:reduce){
+  #dashboard .dashboard-allocation-panel .allocation-donut-wrap::before,
+  #dashboard .dashboard-allocation-panel .allocation-donut-wrap::after,
+  #dashboard .dashboard-allocation-panel .allocation-donut{
+    animation:none!important;
+  }
+}
+</style>
