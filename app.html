@@ -13807,3 +13807,285 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
   }
 }
 </style>
+
+<!-- =========================================================
+     MMHVAULT V4.3.0 · LUXURY GLASS KPI + GOLDEN TRANSACTION FLOW
+     Recent Transactions + Net Worth KPI visual redesign only.
+========================================================= -->
+<style id="mmhvault-v4301-luxury-glass-kpi-golden-flow">
+/* ============================================================
+   1. UNIFIED LUXURY GLASS FOR NET WORTH + 4 MONTHLY KPIs
+============================================================ */
+#dashboard .mmh-networth-card,
+#dashboard .mmh-command-stat{
+  position:relative!important;
+  overflow:hidden!important;
+  isolation:isolate;
+  border:1px solid rgba(181,208,237,.16)!important;
+  background:
+    linear-gradient(135deg,
+      rgba(255,255,255,.075) 0%,
+      rgba(116,156,203,.050) 28%,
+      rgba(12,28,53,.54) 58%,
+      rgba(4,13,29,.72) 100%)!important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.12),
+    inset 1px 0 0 rgba(255,255,255,.025),
+    0 14px 34px rgba(0,0,0,.18),
+    0 0 0 1px rgba(93,157,220,.025)!important;
+  backdrop-filter:blur(18px) saturate(125%)!important;
+  -webkit-backdrop-filter:blur(18px) saturate(125%)!important;
+}
+
+/* Glass reflection */
+#dashboard .mmh-networth-card::before,
+#dashboard .mmh-command-stat::before{
+  content:""!important;
+  position:absolute!important;
+  pointer-events:none!important;
+  inset:0!important;
+  z-index:-1!important;
+  background:
+    linear-gradient(115deg,
+      rgba(255,255,255,.105) 0%,
+      rgba(255,255,255,.028) 17%,
+      transparent 38%,
+      transparent 66%,
+      rgba(116,207,255,.035) 100%)!important;
+}
+
+/* Remove old semantic color blocks: one premium glass language */
+#dashboard .mmh-command-stat.cyan,
+#dashboard .mmh-command-stat.red,
+#dashboard .mmh-command-stat.green,
+#dashboard .mmh-command-stat.gold{
+  background:
+    linear-gradient(135deg,
+      rgba(255,255,255,.075),
+      rgba(116,156,203,.050) 30%,
+      rgba(12,28,53,.54) 62%,
+      rgba(4,13,29,.72))!important;
+}
+
+/* Same top-edge highlight for all five cards */
+#dashboard .mmh-networth-card::after,
+#dashboard .mmh-command-stat::after{
+  left:14px!important;
+  right:14px!important;
+  top:0!important;
+  bottom:auto!important;
+  height:1px!important;
+  width:auto!important;
+  border-radius:999px!important;
+  opacity:.9!important;
+  background:linear-gradient(
+    90deg,
+    transparent,
+    rgba(238,248,255,.60),
+    rgba(117,211,255,.42),
+    transparent
+  )!important;
+}
+
+/* Net Worth typography */
+#dashboard .mmh-networth-label{
+  color:#93a8c2!important;
+  letter-spacing:.13em!important;
+  text-transform:uppercase;
+}
+#dashboard .mmh-networth-value{
+  color:#f3f8ff!important;
+  text-shadow:
+    0 1px 0 rgba(255,255,255,.12),
+    0 0 26px rgba(91,202,255,.10)!important;
+}
+#dashboard .mmh-networth-meta{
+  color:#7188a7!important;
+}
+
+/* KPI typography — same premium family, no colorful blocks */
+#dashboard .mmh-command-stat span{
+  color:#91a8c5!important;
+}
+#dashboard .mmh-command-stat b{
+  color:#edf5ff!important;
+  text-shadow:0 1px 0 rgba(255,255,255,.07);
+}
+#dashboard .mmh-command-stat em{
+  color:#7188a5!important;
+}
+
+/* Subtle hover only */
+@media(hover:hover){
+  #dashboard .mmh-networth-card:hover,
+  #dashboard .mmh-command-stat:hover{
+    transform:translateY(-2px)!important;
+    border-color:rgba(156,211,255,.27)!important;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.16),
+      0 19px 42px rgba(0,0,0,.22),
+      0 0 28px rgba(76,186,255,.045)!important;
+  }
+}
+
+/* ============================================================
+   2. RECENT TRANSACTIONS — LUXURY GOLDEN FLOW
+============================================================ */
+#dashboard .dashboard-recent-panel{
+  position:relative;
+  overflow:hidden;
+  background:
+    radial-gradient(circle at 86% 8%,rgba(245,194,84,.055),transparent 28%),
+    linear-gradient(145deg,rgba(11,25,48,.92),rgba(5,13,28,.96))!important;
+  border-color:rgba(190,158,92,.19)!important;
+}
+
+/* Premium gold header rail */
+#dashboard .dashboard-recent-panel::before{
+  background:linear-gradient(
+    90deg,
+    rgba(236,187,73,.78),
+    rgba(255,225,142,.46),
+    rgba(236,187,73,.12),
+    transparent
+  )!important;
+  opacity:.82!important;
+}
+
+/* Golden transaction section title */
+#dashboard .dashboard-recent-panel .toolbar h2{
+  color:#f3dfaa!important;
+  text-shadow:
+    0 0 18px rgba(241,192,79,.12),
+    0 1px 0 rgba(255,255,255,.08);
+}
+#dashboard .dashboard-recent-panel .toolbar h2::after{
+  content:"LIVE FLOW";
+  display:inline-flex;
+  align-items:center;
+  margin-left:9px;
+  padding:4px 7px;
+  border-radius:999px;
+  border:1px solid rgba(243,197,91,.18);
+  background:rgba(225,171,50,.06);
+  color:#dcb35a;
+  font-size:8px;
+  font-weight:850;
+  letter-spacing:.11em;
+  vertical-align:middle;
+  text-shadow:none;
+}
+
+/* Flow rows get a warm glass lane */
+#dashboard .dashboard-recent-panel .mmh-tx-flow-head-v4301,
+#dashboard .dashboard-recent-panel .mmh-tx-flow-row-v4301{
+  background:
+    linear-gradient(90deg,
+      rgba(247,199,93,.018),
+      rgba(255,255,255,.012) 46%,
+      rgba(247,199,93,.026))!important;
+}
+
+/* Gold divider glow */
+#dashboard .dashboard-recent-panel .mmh-tx-flow-row-v4301::after{
+  background:linear-gradient(
+    90deg,
+    transparent,
+    rgba(237,190,82,.20),
+    rgba(255,224,142,.10),
+    transparent
+  )!important;
+}
+
+/* Golden text treatment: readable, not overly yellow */
+#dashboard .dashboard-recent-panel .mmh-tx-flow-row-v4301{
+  color:#c9d5e3!important;
+}
+#dashboard .dashboard-recent-panel .mmh-tx-flow-row-v4301 > span{
+  text-shadow:0 0 0 transparent;
+}
+#dashboard .dashboard-recent-panel .mmh-tx-flow-row-v4301 > span:first-child{
+  color:#aebed1!important;
+}
+#dashboard .dashboard-recent-panel .mmh-tx-flow-row-v4301 > span:last-child{
+  color:#f4d98f!important;
+  font-weight:850!important;
+  text-shadow:
+    0 0 8px rgba(245,195,77,.13),
+    0 0 18px rgba(245,195,77,.055)!important;
+}
+
+/* Header uses a muted gold-metal tone */
+#dashboard .dashboard-recent-panel .mmh-tx-flow-head-v4301{
+  color:#c8ad72!important;
+  border:1px solid rgba(226,182,83,.07);
+}
+
+/* Moving golden light sweep over the scrolling transaction lane */
+@keyframes mmhGoldenFlowSweepV4301{
+  0%{transform:translateY(-120%);opacity:0}
+  8%{opacity:.18}
+  48%{opacity:.34}
+  92%{opacity:.12}
+  100%{transform:translateY(145%);opacity:0}
+}
+#dashboard .dashboard-recent-panel .mmh-tx-flow-list-v4301,
+#dashboard .dashboard-recent-panel .dashboard-tx-flow-v4301{
+  position:relative;
+  overflow:hidden;
+}
+#dashboard .dashboard-recent-panel .mmh-tx-flow-list-v4301::before,
+#dashboard .dashboard-recent-panel .dashboard-tx-flow-v4301::before{
+  content:"";
+  position:absolute;
+  left:0;
+  right:0;
+  top:-30%;
+  height:42%;
+  pointer-events:none;
+  z-index:3;
+  background:linear-gradient(
+    180deg,
+    transparent,
+    rgba(255,222,135,.025) 30%,
+    rgba(247,190,69,.10) 50%,
+    rgba(255,229,158,.035) 68%,
+    transparent
+  );
+  filter:blur(5px);
+  animation:mmhGoldenFlowSweepV4301 7.5s linear infinite;
+}
+
+/* Gold edge lights on amount text, with restrained shimmer */
+@keyframes mmhGoldTextGlowV4301{
+  0%,100%{
+    text-shadow:0 0 7px rgba(246,197,78,.09),0 0 17px rgba(246,197,78,.03);
+  }
+  50%{
+    text-shadow:0 0 10px rgba(255,218,120,.20),0 0 26px rgba(246,197,78,.08);
+  }
+}
+#dashboard .dashboard-recent-panel .mmh-tx-flow-row-v4301 > span:last-child{
+  animation:mmhGoldTextGlowV4301 3.8s ease-in-out infinite;
+}
+
+/* Hover gives each row a polished gold-glass response */
+@media(hover:hover){
+  #dashboard .dashboard-recent-panel .mmh-tx-flow-row-v4301:hover{
+    background:
+      linear-gradient(90deg,
+        rgba(246,193,75,.075),
+        rgba(255,255,255,.022) 48%,
+        rgba(246,193,75,.035))!important;
+  }
+}
+
+/* Respect reduced motion */
+@media(prefers-reduced-motion:reduce){
+  #dashboard .dashboard-recent-panel .mmh-tx-flow-list-v4301::before,
+  #dashboard .dashboard-recent-panel .dashboard-tx-flow-v4301::before,
+  #dashboard .dashboard-recent-panel .mmh-tx-flow-row-v4301 > span:last-child{
+    animation:none!important;
+  }
+}
+</style>
