@@ -15370,242 +15370,181 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
 </style>
 
 <!-- =========================================================
-     MMHVAULT V4.3.0 · MOBILE RECENT TRANSACTIONS REFINEMENT
-     Step 1: compact premium header hierarchy
-     Step 2: mobile-first transaction flow alignment
-     Visual/layout only — transaction data and scrolling logic unchanged.
+     MMHVAULT V4.3.0 · MOBILE FINANCIAL METRICS REFINEMENT
+     Step 1: unified premium metric glass
+     Step 2: stronger mobile typography + hierarchy
+     Visual/layout only — calculations and data unchanged.
 ========================================================= -->
-<style id="mmhvault-v4301-mobile-recent-transactions-refinement">
+<style id="mmhvault-v4301-mobile-financial-metrics-refinement">
 
 @media(max-width:650px){
 
-  /* ---------------------------------------------------------
-     1. PREMIUM MOBILE SECTION HEADER
-  --------------------------------------------------------- */
-  #dashboard .dashboard-recent-panel{
-    border-radius:24px!important;
-    margin-top:2px!important;
+  /* ==========================================================
+     FINANCIAL METRICS SECTION
+  ========================================================== */
+  #dashboard .financial-metrics,
+  #dashboard .dashboard-metrics,
+  #dashboard .metrics-grid{
+    gap:10px!important;
   }
 
-  #dashboard .dashboard-recent-panel .toolbar{
-    min-height:auto!important;
-    padding:18px 15px 14px!important;
-    gap:12px!important;
-    align-items:flex-start!important;
-  }
-
-  #dashboard .dashboard-recent-panel .toolbar > div:first-child{
-    min-width:0!important;
-    flex:1 1 auto!important;
-  }
-
-  #dashboard .dashboard-recent-panel .toolbar h2{
-    font-size:23px!important;
-    line-height:1.1!important;
-    letter-spacing:-.03em!important;
-    white-space:normal!important;
-  }
-
-  /* Keep LIVE FLOW elegant instead of consuming a full line */
-  #dashboard .dashboard-recent-panel .toolbar h2::after{
-    margin-left:7px!important;
-    padding:3px 6px!important;
-    font-size:7px!important;
-    letter-spacing:.09em!important;
-    vertical-align:3px!important;
-  }
-
-  #dashboard .dashboard-flow-subtitle-v4301{
-    margin-top:7px!important;
-    max-width:250px!important;
-    font-size:10px!important;
-    line-height:1.45!important;
-    color:#8295ad!important;
-  }
-
-  /* Total record indicator becomes a compact system-status pill */
-  #dashboard .dashboard-live-flow-badge-v4301{
-    flex:0 0 auto!important;
-    gap:6px!important;
-    padding:7px 9px!important;
-    font-size:8px!important;
-    letter-spacing:.08em!important;
-    border-color:rgba(95,188,230,.20)!important;
-    background:rgba(10,28,51,.72)!important;
-  }
-
-  #dashboard .dashboard-live-flow-badge-v4301::before{
-    width:6px!important;
-    height:6px!important;
-  }
-
-  /* ---------------------------------------------------------
-     2. MOBILE-FIRST TRANSACTION GRID
-  --------------------------------------------------------- */
-  #dashboard .dashboard-flow-host-v4301{
-    margin:0 10px 10px!important;
-    border-radius:18px!important;
-  }
-
-  #dashboard .mmh-tx-flow-head-v4301,
-  #dashboard .mmh-tx-flow-row-v4301{
-    grid-template-columns:1.02fr .82fr 1.10fr .92fr!important;
-    column-gap:7px!important;
-  }
-
-  #dashboard .mmh-tx-flow-head-v4301{
-    min-height:46px!important;
-    padding:0 12px!important;
-    font-size:8px!important;
-    letter-spacing:.045em!important;
-  }
-
-  #dashboard .mmh-tx-flow-viewport-v4301{
-    height:242px!important;
-  }
-
-  #dashboard .mmh-tx-flow-row-v4301{
-    min-height:48px!important;
-    padding:0 12px!important;
-    font-size:11px!important;
-    line-height:1!important;
-  }
-
-  #dashboard .mmh-tx-flow-row-v4301 > span{
-    min-width:0!important;
+  /* All metric cards share one premium glass language */
+  #dashboard .metric-card{
+    position:relative!important;
+    isolation:isolate!important;
     overflow:hidden!important;
-    text-overflow:ellipsis!important;
+    min-height:138px!important;
+    padding:17px 16px 15px!important;
+    border-radius:22px!important;
+    border:1px solid rgba(119,177,228,.17)!important;
+    background:
+      linear-gradient(145deg,
+        rgba(28,50,82,.78),
+        rgba(11,24,47,.88) 58%,
+        rgba(6,16,35,.94))!important;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.065),
+      inset 0 -1px 0 rgba(0,0,0,.10),
+      0 10px 24px rgba(0,0,0,.13)!important;
+    backdrop-filter:blur(16px) saturate(125%)!important;
+    -webkit-backdrop-filter:blur(16px) saturate(125%)!important;
+  }
+
+  /* Top glass reflection */
+  #dashboard .metric-card::before{
+    content:""!important;
+    position:absolute!important;
+    left:14px!important;
+    right:14px!important;
+    top:0!important;
+    height:1px!important;
+    border-radius:999px!important;
+    background:linear-gradient(
+      90deg,
+      transparent,
+      rgba(228,244,255,.48),
+      rgba(105,198,255,.22),
+      transparent
+    )!important;
+    pointer-events:none!important;
+  }
+
+  /* Quiet depth glow */
+  #dashboard .metric-card::after{
+    content:""!important;
+    position:absolute!important;
+    width:90px!important;
+    height:90px!important;
+    right:-38px!important;
+    bottom:-42px!important;
+    border-radius:50%!important;
+    background:radial-gradient(circle,rgba(76,177,255,.10),transparent 68%)!important;
+    pointer-events:none!important;
+  }
+
+  /* Metric label */
+  #dashboard .metric-card .metric-label,
+  #dashboard .metric-card .label{
+    position:relative!important;
+    z-index:1!important;
+    font-size:9px!important;
+    line-height:1.2!important;
+    letter-spacing:.13em!important;
+    font-weight:800!important;
+    color:#8199b5!important;
+    text-transform:uppercase!important;
+  }
+
+  /* Main financial number */
+  #dashboard .metric-card .metric-value,
+  #dashboard .metric-card .value{
+    position:relative!important;
+    z-index:1!important;
+    margin-top:12px!important;
+    font-size:clamp(23px,6.7vw,31px)!important;
+    line-height:1!important;
+    letter-spacing:-.045em!important;
+    font-weight:850!important;
+    color:#eef6ff!important;
+    font-variant-numeric:tabular-nums!important;
     white-space:nowrap!important;
   }
 
-  /* Financial data gets the strongest hierarchy */
-  #dashboard .mmh-tx-flow-row-v4301 .tx-type-v4301{
-    font-size:10px!important;
-    font-weight:800!important;
-  }
-
-  #dashboard .mmh-tx-flow-row-v4301 .tx-amount-v4301,
-  #dashboard .mmh-tx-flow-row-v4301 > span:last-child{
-    font-size:11px!important;
-    font-weight:850!important;
-    letter-spacing:-.01em!important;
-    font-variant-numeric:tabular-nums!important;
-  }
-
-  /* Header and values use exactly the same right edge */
-  #dashboard .mmh-tx-flow-head-v4301 > :last-child,
-  #dashboard .mmh-tx-flow-row-v4301 > :last-child{
-    justify-self:end!important;
-    text-align:right!important;
-  }
-
-  /* More elegant fade at the top/bottom of the autonomous flow */
-  #dashboard .mmh-tx-flow-viewport-v4301{
-    -webkit-mask-image:linear-gradient(to bottom,
-      transparent 0,
-      rgba(0,0,0,.82) 7%,
-      black 15%,
-      black 85%,
-      rgba(0,0,0,.82) 93%,
-      transparent 100%)!important;
-    mask-image:linear-gradient(to bottom,
-      transparent 0,
-      rgba(0,0,0,.82) 7%,
-      black 15%,
-      black 85%,
-      rgba(0,0,0,.82) 93%,
-      transparent 100%)!important;
-  }
-
-  /* ---------------------------------------------------------
-     3. MOBILE GOLDEN FLOW — REFINED, NOT TOO STRONG
-  --------------------------------------------------------- */
-  #dashboard .dashboard-recent-panel .mmh-tx-flow-row-v4301{
+  /* Supporting information */
+  #dashboard .metric-card .metric-sub,
+  #dashboard .metric-card .sub{
     position:relative!important;
+    z-index:1!important;
+    margin-top:11px!important;
+    font-size:9px!important;
+    line-height:1.35!important;
+    color:#6f87a2!important;
   }
 
-  #dashboard .dashboard-recent-panel .mmh-tx-flow-row-v4301::before{
-    content:""!important;
-    position:absolute!important;
-    left:0!important;
-    top:10px!important;
-    bottom:10px!important;
-    width:2px!important;
-    border-radius:999px!important;
+  /* Savings Rate gets a refined champagne signature */
+  #dashboard .metric-card:last-child{
+    border-color:rgba(207,177,108,.19)!important;
+    background:
+      linear-gradient(145deg,
+        rgba(64,52,29,.23),
+        rgba(25,31,45,.88) 52%,
+        rgba(8,17,34,.96))!important;
+  }
+
+  #dashboard .metric-card:last-child::before{
     background:linear-gradient(
-      180deg,
+      90deg,
       transparent,
-      rgba(245,197,82,.62),
+      rgba(247,214,139,.56),
+      rgba(247,214,139,.18),
       transparent
     )!important;
-    opacity:.45!important;
   }
 
-  /* Reduce motion intensity on phones */
-  #dashboard .dashboard-recent-panel .mmh-tx-flow-row-v4301 > span:last-child{
-    animation-duration:5.2s!important;
+  #dashboard .metric-card:last-child::after{
+    background:radial-gradient(circle,rgba(244,195,80,.11),transparent 68%)!important;
   }
 
-  /* Footer breathing room */
-  #dashboard .dashboard-recent-panel .dashboard-flow-host-v4301 + *{
-    margin-top:0!important;
+  /* Light touch feedback */
+  #dashboard .metric-card:active{
+    transform:scale(.992)!important;
   }
 }
 
 @media(max-width:390px){
 
-  #dashboard .dashboard-recent-panel .toolbar{
-    padding:16px 12px 13px!important;
+  #dashboard .financial-metrics,
+  #dashboard .dashboard-metrics,
+  #dashboard .metrics-grid{
+    gap:8px!important;
   }
 
-  #dashboard .dashboard-recent-panel .toolbar h2{
-    font-size:21px!important;
+  #dashboard .metric-card{
+    min-height:126px!important;
+    padding:15px 13px 13px!important;
+    border-radius:19px!important;
   }
 
-  #dashboard .dashboard-recent-panel .toolbar h2::after{
-    display:none!important;
+  #dashboard .metric-card .metric-label,
+  #dashboard .metric-card .label{
+    font-size:8px!important;
+    letter-spacing:.10em!important;
   }
 
-  #dashboard .dashboard-flow-subtitle-v4301{
-    max-width:205px!important;
-    font-size:9px!important;
+  #dashboard .metric-card .metric-value,
+  #dashboard .metric-card .value{
+    margin-top:10px!important;
+    font-size:clamp(20px,6.2vw,27px)!important;
   }
 
-  #dashboard .dashboard-live-flow-badge-v4301{
-    padding:6px 8px!important;
-    font-size:7px!important;
-  }
-
-  #dashboard .dashboard-flow-host-v4301{
-    margin:0 7px 8px!important;
-  }
-
-  #dashboard .mmh-tx-flow-head-v4301,
-  #dashboard .mmh-tx-flow-row-v4301{
-    grid-template-columns:1fr .76fr 1.03fr .95fr!important;
-    column-gap:5px!important;
-  }
-
-  #dashboard .mmh-tx-flow-head-v4301{
-    padding:0 9px!important;
-    font-size:7px!important;
-  }
-
-  #dashboard .mmh-tx-flow-row-v4301{
-    padding:0 9px!important;
-    font-size:10px!important;
-  }
-
-  #dashboard .mmh-tx-flow-row-v4301 .tx-type-v4301,
-  #dashboard .mmh-tx-flow-row-v4301 .tx-amount-v4301,
-  #dashboard .mmh-tx-flow-row-v4301 > span:last-child{
-    font-size:9.5px!important;
+  #dashboard .metric-card .metric-sub,
+  #dashboard .metric-card .sub{
+    margin-top:9px!important;
+    font-size:8px!important;
   }
 }
 
 @media(prefers-reduced-motion:reduce){
-  #dashboard .dashboard-recent-panel .mmh-tx-flow-row-v4301 > span:last-child{
-    animation:none!important;
-  }
+  #dashboard .metric-card{transition:none!important;}
 }
 </style>
