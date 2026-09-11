@@ -11402,6 +11402,53 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
   window.mmhvaultRefreshCashUsdEquivalentV401=apply;
 })();
 </script>
+
+<!-- MMHVAULT V4.0.3 · Cash USD Display Fix -->
+<style id="mmhvault-v403-cash-usd-css">
+#accounts .account-row .amount-block{display:flex;flex-direction:column;align-items:flex-end;justify-content:center;gap:3px;min-width:0}
+#accounts .account-row .usd-equiv{font-size:11px;font-weight:700;color:rgba(150,184,220,.78);line-height:1.15;white-space:nowrap;letter-spacing:.01em}
+@media(max-width:700px){#accounts .account-row .usd-equiv{font-size:10px}}
+</style>
+<script id="mmhvault-v403-cash-usd-js">
+(function(){
+  'use strict';
+  var timer;
+  function n(v){v=Number(v);return Number.isFinite(v)?v:0;}
+  function money(v){try{return '$ '+n(v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});}catch(e){return '$ 0.00';}}
+  function getBalance(name){try{return n(typeof balance==='function'?balance(name):0);}catch(e){return 0;}}
+  function getUsd(name){try{return n(typeof toUSD==='function'?toUSD(name):0);}catch(e){
+    try{var r=window.rates||{};if(name==='Bath'||name==='TrueMoney')return n(r.usd_thb)>0?1/n(r.usd_thb):0;if(name==='KPay')return n(r.usd_mmk)>0?1/n(r.usd_mmk):0;}catch(_e){}return 0;
+  }}
+  function apply(){
+    try{
+      var root=document.getElementById('accounts');if(!root)return;
+      root.querySelectorAll('.account-row').forEach(function(row){
+        var nameNode=row.querySelector('.left .name');if(!nameNode)return;
+        var raw=(nameNode.textContent||'').replace(/\s+/g,' ').trim();
+        var account=/\bBath\b/i.test(raw)?'Bath':(/TrueMoney/i.test(raw)?'TrueMoney':(/\bKPay\b/i.test(raw)?'KPay':null));
+        if(!account)return;
+        var amount=row.querySelector(':scope > .amount');
+        var block=row.querySelector(':scope > .amount-block');
+        if(!block && amount){
+          block=document.createElement('div');block.className='amount-block';
+          amount.parentNode.replaceChild(block,amount);block.appendChild(amount);
+        }
+        if(!block)return;
+        var label=block.querySelector('.usd-equiv');
+        if(!label){label=document.createElement('div');label.className='usd-equiv';block.appendChild(label);}
+        var rate=getUsd(account), value=getBalance(account)*rate;
+        label.textContent='≈ '+money(value);
+      });
+    }catch(e){console.warn('[MMHVAULT V4.0.3] Cash USD display:',e);}
+  }
+  function schedule(){clearTimeout(timer);timer=setTimeout(apply,80);}
+  function boot(){apply();var root=document.getElementById('accounts');if(root&&!root.__v403Observer){root.__v403Observer=true;new MutationObserver(schedule).observe(root,{childList:true,subtree:true});}}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+  ['mmhvault:data-loaded','mmhvault:sync-complete','mmhvault:cache-restored'].forEach(function(ev){window.addEventListener(ev,schedule);});
+  window.mmhvaultRefreshCashUsdV403=apply;
+})();
+</script>
+
 </body>
 <!-- MMHVAULT V4.0 performance baseline: logo-free account cards + restrained dashboard rendering. -->
 
@@ -11711,40 +11758,4 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
 })();
 </script>
 
-/* ===================== V4.0.2 CASH USD EQUIVALENT FINAL FIX ===================== */
-(function(){
-  const _renderDashboardCashUsdFinalV402 = renderDashboard;
-  renderDashboard = function(){
-    _renderDashboardCashUsdFinalV402();
-    const root = document.getElementById('accounts');
-    if(!root) return;
 
-    // Rebuild only the USD-equivalent labels so native balances remain untouched.
-    root.querySelectorAll('.usd-equiv').forEach(el=>el.remove());
-
-    const targets = new Set(['Bath','TrueMoney','KPay']);
-    root.querySelectorAll('.account-row').forEach(row=>{
-      const nameEl = row.querySelector('.left .name');
-      const name = (nameEl?.querySelector('span')?.textContent || nameEl?.childNodes?.[0]?.textContent || '').trim();
-      if(!targets.has(name)) return;
-
-      let amountEl = row.querySelector(':scope > .amount');
-      let block = row.querySelector(':scope > .amount-block');
-      if(block) amountEl = block.querySelector('.amount');
-      if(!amountEl) return;
-
-      if(!block){
-        block = document.createElement('div');
-        block.className = 'amount-block';
-        amountEl.parentNode.replaceChild(block, amountEl);
-        block.appendChild(amountEl);
-      }
-
-      const valueUSD = balance(name) * toUSD(name);
-      const sub = document.createElement('div');
-      sub.className = 'usd-equiv';
-      sub.textContent = `≈ ${usd(valueUSD)}`;
-      block.appendChild(sub);
-    });
-  };
-})();
