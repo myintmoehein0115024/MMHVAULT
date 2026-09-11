@@ -11763,3 +11763,91 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
 </script>
 
 
+
+<!-- MMHVAULT V4.0.5 · Final Cash Native + USD Equivalent Fix -->
+<style id="mmhvault-v405-final-cash-usd-css">
+#accounts .account-row .amount-block-final{display:flex!important;flex-direction:column!important;align-items:flex-end!important;justify-content:center!important;gap:4px!important;min-width:132px}
+#accounts .account-row .amount-block-final .native-amount-final{font-weight:850;line-height:1.15;white-space:nowrap}
+#accounts .account-row .amount-block-final .usd-equiv-final{font-size:11px!important;font-weight:700!important;color:rgba(150,184,220,.82)!important;line-height:1.1!important;white-space:nowrap!important}
+@media(max-width:700px){
+  #accounts .account-row .amount-block-final{min-width:100px}
+  #accounts .account-row .amount-block-final .usd-equiv-final{font-size:10px!important}
+}
+</style>
+<script id="mmhvault-v405-final-cash-usd-js">
+(function(){
+  'use strict';
+  var timer=null, observer=null, lastSig='';
+  function num(v){v=Number(v);return Number.isFinite(v)?v:0;}
+  function getBal(name){try{return num(typeof window.balance==='function'?window.balance(name):0);}catch(e){return 0;}}
+  function getRate(name){
+    try{
+      if(typeof window.toUSD==='function'){
+        var r=num(window.toUSD(name));
+        if(r>0)return r;
+      }
+    }catch(e){}
+    try{
+      var rates=window.rates||{};
+      if(name==='Bath'||name==='TrueMoney'){var thb=num(rates.usd_thb);return thb>0?1/thb:0;}
+      if(name==='KPay'){var mmk=num(rates.usd_mmk);return mmk>0?1/mmk:0;}
+    }catch(e){}
+    return 0;
+  }
+  function fmt(v){try{return num(v).toLocaleString(undefined,{maximumFractionDigits:2});}catch(e){return String(num(v));}}
+  function usd(v){try{return '$ '+num(v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});}catch(e){return '$ 0.00';}}
+  function nativeText(name){
+    var b=getBal(name);
+    if(name==='Bath'||name==='TrueMoney')return '฿ '+fmt(b);
+    return 'MMK '+fmt(b);
+  }
+  function accountName(row){
+    var t='';
+    try{t=(row.querySelector('.left .name')?.textContent||'').replace(/\s+/g,' ').trim();}catch(e){}
+    if(/\bBath\b/i.test(t))return 'Bath';
+    if(/TrueMoney/i.test(t))return 'TrueMoney';
+    if(/\bKPay\b/i.test(t))return 'KPay';
+    return null;
+  }
+  function apply(force){
+    try{
+      var root=document.getElementById('accounts');
+      if(!root)return;
+      var rows=Array.prototype.slice.call(root.querySelectorAll('.account-row'));
+      var targets=[];
+      rows.forEach(function(row){var a=accountName(row);if(a)targets.push([row,a]);});
+      if(targets.length<3)return;
+      var sig=targets.map(function(x){return x[1]+':'+getBal(x[1])+':'+getRate(x[1]);}).join('|');
+      var complete=targets.every(function(x){return !!x[0].querySelector('.usd-equiv-final');});
+      if(!force && sig===lastSig && complete)return;
+      targets.forEach(function(pair){
+        var row=pair[0], name=pair[1];
+        var old=row.querySelector(':scope > .amount-block');
+        var direct=row.querySelector(':scope > .amount');
+        var block=row.querySelector(':scope > .amount-block-final');
+        if(!block){
+          block=document.createElement('div');
+          block.className='amount-block-final';
+          if(old)old.replaceWith(block);
+          else if(direct)direct.replaceWith(block);
+          else row.appendChild(block);
+        }
+        block.innerHTML='<div class="native-amount-final">'+nativeText(name)+'</div><div class="usd-equiv-final">≈ '+usd(getBal(name)*getRate(name))+'</div>';
+      });
+      lastSig=sig;
+    }catch(e){console.warn('[MMHVAULT V4.0.5] Final cash USD patch:',e);}
+  }
+  function schedule(force){clearTimeout(timer);timer=setTimeout(function(){apply(!!force);},60);}
+  function boot(){
+    apply(true);
+    var root=document.getElementById('accounts');
+    if(root&&!observer){
+      observer=new MutationObserver(function(){schedule(false);});
+      observer.observe(root,{childList:true,subtree:true});
+    }
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+  ['mmhvault:data-loaded','mmhvault:sync-complete','mmhvault:cache-restored','mmhvault-language-change'].forEach(function(ev){window.addEventListener(ev,function(){schedule(true);});});
+  window.mmhvaultRefreshFinalCashUsdV405=function(){lastSig='';apply(true);};
+})();
+</script>
