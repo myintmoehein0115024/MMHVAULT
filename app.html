@@ -16039,3 +16039,75 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
   }
 }
 </style>
+
+<!-- =========================================================
+ MMHVAULT V4.3.0 · MOBILE NAV UNIFORM + HEADER PROXIMITY FIX
+========================================================= -->
+<style id="mmhvault-v4301-mobile-nav-uniform-header-proximity">
+@media(max-width:900px){
+  /* Keep brand and profile visually close instead of pushing the profile away */
+  #header{
+    justify-content:flex-start!important;
+    gap:8px!important;
+  }
+  #header .mmhvault-header-brand{
+    flex:0 1 auto!important;
+    width:auto!important;
+    max-width:calc(100% - 150px)!important;
+  }
+  #header .header-profile{
+    margin-left:0!important;
+    flex:0 0 auto!important;
+  }
+
+  /* Every navigation item always occupies the exact same physical box */
+  #bottomNav.bottom-nav{
+    display:grid!important;
+    grid-template-columns:repeat(4,minmax(0,1fr))!important;
+    align-items:stretch!important;
+    justify-items:stretch!important;
+  }
+  #bottomNav.bottom-nav > button,
+  #bottomNav.bottom-nav > button.active,
+  #bottomNav.bottom-nav > button[aria-current="page"]{
+    grid-column:auto!important;
+    grid-row:1!important;
+    width:100%!important;
+    min-width:0!important;
+    max-width:100%!important;
+    height:68px!important;
+    min-height:68px!important;
+    max-height:68px!important;
+    flex:none!important;
+    transform:none!important;
+    scale:1!important;
+  }
+  /* Remove any page-specific active sizing inherited from earlier styles */
+  #bottomNav.bottom-nav > button.active,
+  #bottomNav.bottom-nav > button[aria-current="page"]{
+    padding:5px 2px!important;
+    margin:0!important;
+  }
+}
+
+@media(max-width:430px){
+  #header{
+    justify-content:flex-start!important;
+    gap:6px!important;
+  }
+  #header .mmhvault-header-brand{
+    max-width:calc(100% - 132px)!important;
+  }
+  #header .header-profile{
+    padding-left:5px!important;
+    padding-right:8px!important;
+  }
+  #bottomNav.bottom-nav > button,
+  #bottomNav.bottom-nav > button.active,
+  #bottomNav.bottom-nav > button[aria-current="page"]{
+    height:68px!important;
+    min-height:68px!important;
+    max-height:68px!important;
+  }
+}
+</style>
