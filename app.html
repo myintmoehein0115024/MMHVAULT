@@ -12236,3 +12236,111 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
   }
 })();
 </script>
+
+<!-- MMHVAULT V4.3.0 · Dashboard Alignment Refinement -->
+<style id="mmhvault-v4301-dashboard-alignment-refinement">
+/* 1. Net Worth Mix — lock the value and label into a visually balanced center */
+#dashboard .dashboard-allocation-panel .allocation-donut-center{
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:center!important;
+  text-align:center!important;
+  padding:0 16px!important;
+}
+#dashboard .dashboard-allocation-panel .allocation-donut-center strong{
+  display:block!important;
+  width:100%!important;
+  margin:0!important;
+  transform:translateY(5px);
+  line-height:1.05!important;
+  text-align:center!important;
+}
+#dashboard .dashboard-allocation-panel .allocation-donut-center span{
+  display:block!important;
+  width:100%!important;
+  margin:10px 0 0!important;
+  transform:translateY(5px);
+  text-align:center!important;
+}
+
+/* 2. Recent Transactions — header and values use the exact same grid alignment */
+#dashboard .mmh-tx-flow-head-v4301 > span:nth-child(4),
+#dashboard .mmh-tx-flow-row-v4301 > span:nth-child(4){
+  justify-self:end!important;
+  width:100%!important;
+  text-align:right!important;
+}
+#dashboard .mmh-tx-flow-head-v4301 > span:nth-child(1),
+#dashboard .mmh-tx-flow-row-v4301 > span:nth-child(1),
+#dashboard .mmh-tx-flow-head-v4301 > span:nth-child(2),
+#dashboard .mmh-tx-flow-row-v4301 > span:nth-child(2),
+#dashboard .mmh-tx-flow-head-v4301 > span:nth-child(3),
+#dashboard .mmh-tx-flow-row-v4301 > span:nth-child(3){
+  justify-self:start!important;
+  text-align:left!important;
+}
+
+/* Keep Amount · USD visually locked to the money column on all widths */
+#dashboard .mmh-tx-flow-head-v4301{
+  grid-template-columns:1.05fr .8fr 1.25fr 1.2fr!important;
+}
+#dashboard .mmh-tx-flow-row-v4301{
+  grid-template-columns:1.05fr .8fr 1.25fr 1.2fr!important;
+}
+
+/* 3. Total transaction badge — show total data only, no “shown of” wording */
+#dashboard .dashboard-live-flow-badge-v4301{
+  min-width:112px;
+  justify-content:center;
+  letter-spacing:.08em;
+}
+</style>
+
+<script id="mmhvault-v4301-total-records-refinement">
+(function(){
+  function normalizeTotalBadge(){
+    const badge = document.getElementById("dashTxCount");
+    if(!badge) return;
+
+    const text = (badge.textContent || "").trim();
+    // Existing dashboard text: “5 shown of 69” → “69 TOTAL RECORDS”
+    const match = text.match(/(?:shown\s+of\s+)(\d+)/i) || text.match(/\bof\s+(\d+)/i);
+    if(match){
+      badge.textContent = match[1] + " TOTAL RECORDS";
+      badge.dataset.mmhTotalOnly = "1";
+      return;
+    }
+
+    // If the existing renderer already gives a numeric total, present it consistently.
+    if(!badge.dataset.mmhTotalOnly){
+      const number = text.match(/\d+/);
+      if(number && !/total records/i.test(text)){
+        badge.textContent = number[0] + " TOTAL RECORDS";
+        badge.dataset.mmhTotalOnly = "1";
+      }
+    }
+  }
+
+  function start(){
+    normalizeTotalBadge();
+    const badge = document.getElementById("dashTxCount");
+    if(badge && !badge.__mmhTotalObserver){
+      badge.__mmhTotalObserver = true;
+      new MutationObserver(() => {
+        // The original dashboard renderer may write “5 shown of 69” again.
+        requestAnimationFrame(normalizeTotalBadge);
+      }).observe(badge,{childList:true,characterData:true,subtree:true});
+    }
+
+    // Also check after dashboard re-renders.
+    setInterval(normalizeTotalBadge, 1200);
+  }
+
+  if(document.readyState === "loading"){
+    document.addEventListener("DOMContentLoaded", start, {once:true});
+  }else{
+    start();
+  }
+})();
+</script>
