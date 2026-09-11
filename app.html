@@ -13555,3 +13555,128 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
   }
 }
 </style>
+
+<!-- =========================================================
+     MMHVAULT V4.3.0 · COLOR SYSTEM & CONTRAST POLISH
+     Visual refinement only — no features, data, or logic changed.
+========================================================= -->
+<style id="mmhvault-v4301-color-contrast-system">
+/* ---------- Refined semantic color language ---------- */
+#dashboard{
+  --mmh-cyan:#74d9ff;
+  --mmh-cyan-soft:rgba(116,217,255,.12);
+  --mmh-green:#67e3a5;
+  --mmh-green-soft:rgba(103,227,165,.10);
+  --mmh-red:#ff8da4;
+  --mmh-red-soft:rgba(255,141,164,.09);
+  --mmh-gold:#f3cc76;
+  --mmh-gold-soft:rgba(243,204,118,.09);
+  --mmh-text:#eaf2ff;
+  --mmh-muted:#8098b8;
+}
+
+/* ---------- Improve contrast for important financial information ---------- */
+#dashboard .panel h1,
+#dashboard .panel h2,
+#dashboard .panel h3{
+  color:var(--mmh-text)!important;
+}
+#dashboard .panel .sub,
+#dashboard .panel small{
+  color:var(--mmh-muted)!important;
+}
+
+/* ---------- Positive / negative / neutral financial tones ---------- */
+#dashboard .green,
+#dashboard .positive,
+#dashboard .income,
+#dashboard .profit{
+  color:var(--mmh-green)!important;
+}
+#dashboard .red,
+#dashboard .negative,
+#dashboard .expense,
+#dashboard .loss{
+  color:var(--mmh-red)!important;
+}
+#dashboard .gold,
+#dashboard .warning{
+  color:var(--mmh-gold)!important;
+}
+
+/* ---------- Status surfaces ---------- */
+#dashboard .mmh-command-stat.green,
+#dashboard .mmh-status-chip.green{
+  background:linear-gradient(145deg,rgba(20,61,52,.44),rgba(8,29,31,.54))!important;
+}
+#dashboard .mmh-command-stat.red{
+  background:linear-gradient(145deg,rgba(68,32,48,.38),rgba(35,15,29,.52))!important;
+}
+#dashboard .mmh-command-stat.gold{
+  background:linear-gradient(145deg,rgba(66,53,28,.36),rgba(33,27,16,.52))!important;
+}
+#dashboard .mmh-command-stat.cyan{
+  background:linear-gradient(145deg,rgba(22,57,79,.44),rgba(8,26,43,.54))!important;
+}
+
+/* ---------- Badge and pill contrast ---------- */
+#dashboard .pill{
+  color:#aac2df!important;
+}
+#dashboard .mmh-live-badge,
+#dashboard .dashboard-live-flow-badge-v4301{
+  color:#aeeaff!important;
+}
+#dashboard .mmh-status-chip{
+  color:#b7cce3!important;
+}
+
+/* ---------- Action hierarchy ---------- */
+#dashboard .dashboard-quick-actions-v371 .btn.primary{
+  color:#071724!important;
+  text-shadow:0 1px 0 rgba(255,255,255,.18);
+}
+#dashboard .dashboard-quick-actions-v371 .btn:not(.primary){
+  color:#dce9f8!important;
+}
+
+/* ---------- Asset allocation: clearer semantic reading ---------- */
+#dashboard .dashboard-allocation-panel .allocation-donut-center strong{
+  color:#f0f6ff!important;
+}
+#dashboard .dashboard-allocation-panel .allocation-donut-center span{
+  color:#88a2c3!important;
+}
+#dashboard .dashboard-allocation-panel .allocation-card,
+#dashboard .dashboard-allocation-panel .asset-card{
+  border-color:rgba(114,167,228,.17)!important;
+}
+
+/* ---------- Transaction flow: strengthen amount readability ---------- */
+#dashboard .mmh-tx-flow-head-v4301{
+  color:#91a9c8!important;
+}
+#dashboard .mmh-tx-flow-row-v4301{
+  color:#c9d8ea!important;
+}
+#dashboard .mmh-tx-flow-row-v4301 > span:last-child{
+  color:#edf5ff!important;
+  font-weight:800!important;
+}
+
+/* ---------- Hover contrast remains subtle ---------- */
+@media(hover:hover){
+  #dashboard .dashboard-details > .panel:hover{
+    border-color:rgba(117,191,255,.30)!important;
+  }
+  #dashboard .dashboard-quick-actions-v371 .btn:not(.primary):hover{
+    color:#f3f8ff!important;
+  }
+}
+
+/* ---------- Accessibility: stronger visible focus ---------- */
+#dashboard :focus-visible{
+  outline:2px solid rgba(116,217,255,.82)!important;
+  outline-offset:3px!important;
+}
+</style>
