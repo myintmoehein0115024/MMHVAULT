@@ -4538,7 +4538,7 @@ function polishAccountOverviewV371(){
     wrap.appendChild(amountEl);
     const sub=document.createElement('div');
     sub.className='usd-equiv';
-    sub.textContent=`≈ ${usd(usdVal)}`;
+    sub.textContent=`USD ≈ ${usd(usdVal)}`;
     wrap.appendChild(sub);
   });
   root.querySelectorAll('.account-group').forEach(group=>{
@@ -4569,6 +4569,35 @@ function polishAccountOverviewV371(){
     polishAccountOverviewV371();
   };
 })();
+
+
+/* V4.0.2 Cash Account USD Equivalent Polish */
+#dashboard .dashboard-account-panel .account-row .amount-block{
+  margin-left:auto!important;
+  min-width:118px!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:flex-end!important;
+  justify-content:center!important;
+  gap:3px!important;
+  text-align:right!important;
+}
+#dashboard .dashboard-account-panel .account-row .amount-block .amount{
+  white-space:nowrap!important;
+  font-weight:800!important;
+}
+#dashboard .dashboard-account-panel .account-row .usd-equiv{
+  display:block!important;
+  font-size:11px!important;
+  line-height:1.15!important;
+  color:#8fa1bb!important;
+  font-weight:700!important;
+  white-space:nowrap!important;
+}
+@media(max-width:620px){
+  #dashboard .dashboard-account-panel .account-row .amount-block{min-width:96px!important;gap:2px!important}
+  #dashboard .dashboard-account-panel .account-row .usd-equiv{font-size:10px!important}
+}
 
 /* ===================== V4.0 ACCOUNT OVERVIEW SELECTIVE USD EQUIVALENT ===================== */
 function refineCashOnlyAccountOverviewV371(){
@@ -4605,7 +4634,7 @@ function refineCashOnlyAccountOverviewV371(){
     wrap.appendChild(amountEl);
     const sub=document.createElement('div');
     sub.className='usd-equiv';
-    sub.textContent=`≈ ${usd(usdVal)}`;
+    sub.textContent=`USD ≈ ${usd(usdVal)}`;
     wrap.appendChild(sub);
   });
 
