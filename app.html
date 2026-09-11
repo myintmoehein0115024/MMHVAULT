@@ -1686,7 +1686,7 @@ button,input,select,textarea{font:inherit}button{transition:transform .2s ease,b
 <div class="panel"><div class="toolbar"><h2>Income / Expense</h2><span class="pill" id="dashMonthLabel">Current Month</span></div><div id="dashFlow"></div></div>
 <div class="panel"><div class="toolbar"><h2>Investment Snapshot</h2><span class="pill">Current holdings</span></div><div id="dashInvest"></div></div>
 </div>
-<div class="panel dashboard-premium-panel dashboard-recent-panel"><div class="toolbar"><h2>Recent Transactions</h2><div class="actions" style="margin:0"><span class="pill" id="dashTxCount">0 shown</span><button class="btn" onclick="setPage('transactions');setTimeout(()=&gt;showTxTab('history'),0)" type="button">View All →</button></div></div><div class="scroll" id="dashRecent"></div></div>
+<div class="panel dashboard-premium-panel dashboard-recent-panel"><div class="toolbar"><div><h2>Recent Transactions</h2><div class="sub dashboard-flow-subtitle-v4301">Live transaction flow · automatically updated from your records</div></div><span class="dashboard-live-flow-badge-v4301" id="dashTxCount">LIVE FLOW</span></div><div class="scroll dashboard-flow-host-v4301" id="dashRecent"></div></div>
 </div>
 </section>
 <script id="mmhvault-v34216-age-js">
@@ -11747,3 +11747,492 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
 @media(max-width:520px){#dashboard .portfolio-health-main-v3716{grid-template-columns:1fr}#dashboard .portfolio-score-v3716{min-height:96px}#dashboard .portfolio-score-v3716 .num{font-size:38px}#dashboard button,#dashboard .btn{min-height:40px}}
 @media(hover:none){#dashboard .card:hover{transform:none}}
 </style>
+
+<!-- =========================================================
+     MMHVAULT V4.3.0 · DASHBOARD EXPERIENCE UPGRADE
+     1) Recent Transactions → automatic seamless transaction flow
+     2) Asset Allocation → professional wealth allocation presentation
+     No business/data logic changed.
+========================================================= -->
+<style id="mmhvault-v4301-dashboard-experience-upgrade">
+/* ---------- Recent Transactions · autonomous live flow ---------- */
+#dashboard .dashboard-recent-panel{
+  position:relative;
+  overflow:hidden;
+}
+#dashboard .dashboard-flow-subtitle-v4301{
+  margin-top:4px;
+  font-size:11px;
+}
+#dashboard .dashboard-live-flow-badge-v4301{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  padding:8px 11px;
+  border:1px solid rgba(74,198,255,.22);
+  border-radius:999px;
+  background:rgba(12,31,58,.62);
+  color:#9bc9ee;
+  font-size:10px;
+  font-weight:900;
+  letter-spacing:.11em;
+  white-space:nowrap;
+}
+#dashboard .dashboard-live-flow-badge-v4301::before{
+  content:"";
+  width:7px;
+  height:7px;
+  border-radius:50%;
+  background:#57e3a2;
+  box-shadow:0 0 0 3px rgba(87,227,162,.08),0 0 14px rgba(87,227,162,.45);
+  animation:mmhLivePulseV4301 2.1s ease-in-out infinite;
+}
+@keyframes mmhLivePulseV4301{
+  0%,100%{opacity:.75;transform:scale(.92)}
+  50%{opacity:1;transform:scale(1.08)}
+}
+#dashboard .dashboard-flow-host-v4301{
+  overflow:hidden!important;
+  max-width:100%;
+  border:1px solid rgba(88,143,220,.17);
+  border-radius:18px;
+  background:
+    linear-gradient(180deg,rgba(14,29,56,.62),rgba(6,15,31,.70));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.025);
+}
+#dashboard .dashboard-flow-host-v4301::-webkit-scrollbar{display:none}
+#dashboard .mmh-tx-flow-v4301{
+  width:100%;
+  min-width:0;
+}
+#dashboard .mmh-tx-flow-head-v4301,
+#dashboard .mmh-tx-flow-row-v4301{
+  display:grid;
+  grid-template-columns:1.05fr .8fr 1.25fr 1.2fr;
+  align-items:center;
+}
+#dashboard .mmh-tx-flow-head-v4301{
+  min-height:58px;
+  padding:0 18px;
+  border-bottom:1px solid rgba(245,199,91,.16);
+  color:#dfc47b;
+  background:linear-gradient(90deg,rgba(25,42,76,.74),rgba(11,24,49,.78));
+  font-size:11px;
+  font-weight:900;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+#dashboard .mmh-tx-flow-viewport-v4301{
+  position:relative;
+  height:278px;
+  overflow:hidden;
+  -webkit-mask-image:linear-gradient(to bottom,transparent 0,black 8%,black 92%,transparent 100%);
+  mask-image:linear-gradient(to bottom,transparent 0,black 8%,black 92%,transparent 100%);
+}
+#dashboard .mmh-tx-flow-track-v4301{
+  width:100%;
+  will-change:transform;
+  animation:mmhTransactionFlowV4301 var(--tx-flow-duration,24s) linear infinite;
+}
+#dashboard .mmh-tx-flow-set-v4301{
+  width:100%;
+}
+#dashboard .mmh-tx-flow-row-v4301{
+  min-height:54px;
+  padding:0 18px;
+  border-bottom:1px solid rgba(104,145,205,.15);
+  color:#c7d4e8;
+  font-size:13px;
+  background:rgba(4,12,27,.10);
+}
+#dashboard .mmh-tx-flow-row-v4301:nth-child(even){
+  background:rgba(255,255,255,.012);
+}
+#dashboard .mmh-tx-flow-row-v4301 > span{
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+#dashboard .mmh-tx-flow-row-v4301 .tx-type-v4301{
+  color:#d6e2f4;
+  font-weight:750;
+}
+#dashboard .mmh-tx-flow-row-v4301 .tx-amount-v4301{
+  justify-self:end;
+  font-weight:850;
+  font-variant-numeric:tabular-nums;
+  color:#f1f5fc;
+}
+#dashboard .mmh-tx-flow-row-v4301 .tx-amount-v4301.income{color:#62e4a8}
+#dashboard .mmh-tx-flow-row-v4301 .tx-amount-v4301.expense{color:#ffd28a}
+#dashboard .mmh-tx-flow-row-v4301 .tx-amount-v4301.transfer{color:#79cfff}
+@keyframes mmhTransactionFlowV4301{
+  from{transform:translateY(0)}
+  to{transform:translateY(-50%)}
+}
+#dashboard .dashboard-flow-host-v4301 .empty{
+  padding:34px 18px;
+  text-align:center;
+}
+@media(max-width:700px){
+  #dashboard .dashboard-recent-panel .toolbar{align-items:flex-start}
+  #dashboard .dashboard-live-flow-badge-v4301{padding:7px 9px;font-size:9px}
+  #dashboard .mmh-tx-flow-head-v4301,
+  #dashboard .mmh-tx-flow-row-v4301{
+    grid-template-columns:.95fr .9fr 1.2fr 1fr;
+  }
+  #dashboard .mmh-tx-flow-head-v4301{min-height:50px;padding:0 12px;font-size:9px}
+  #dashboard .mmh-tx-flow-row-v4301{min-height:50px;padding:0 12px;font-size:11px}
+  #dashboard .mmh-tx-flow-viewport-v4301{height:250px}
+}
+@media(max-width:480px){
+  #dashboard .dashboard-flow-subtitle-v4301{display:none}
+  #dashboard .mmh-tx-flow-head-v4301,
+  #dashboard .mmh-tx-flow-row-v4301{
+    grid-template-columns:.9fr 1.15fr 1.05fr;
+  }
+  #dashboard .mmh-tx-flow-head-v4301 span:nth-child(2),
+  #dashboard .mmh-tx-flow-row-v4301 span:nth-child(2){display:none}
+  #dashboard .mmh-tx-flow-head-v4301{font-size:8px}
+  #dashboard .mmh-tx-flow-row-v4301{font-size:10px}
+}
+@media(prefers-reduced-motion:reduce){
+  #dashboard .mmh-tx-flow-track-v4301,
+  #dashboard .dashboard-live-flow-badge-v4301::before{animation:none!important}
+}
+
+/* ---------- Asset Allocation · professional wealth management surface ---------- */
+#dashboard .dashboard-allocation-panel{
+  position:relative;
+  overflow:hidden;
+  border-color:rgba(91,151,233,.26)!important;
+  background:
+    radial-gradient(circle at 14% 24%,rgba(58,198,238,.08),transparent 28%),
+    radial-gradient(circle at 88% 82%,rgba(255,200,74,.055),transparent 24%),
+    linear-gradient(145deg,rgba(11,25,49,.90),rgba(5,13,29,.94))!important;
+}
+#dashboard .dashboard-allocation-panel::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:linear-gradient(90deg,rgba(56,198,238,.13),transparent 18%,transparent 82%,rgba(255,200,74,.10));
+  opacity:.65;
+}
+#dashboard .dashboard-allocation-panel > *{position:relative}
+#dashboard .dashboard-allocation-panel .toolbar{
+  padding-bottom:15px;
+  border-bottom:1px solid rgba(108,153,222,.14);
+}
+#dashboard .dashboard-allocation-panel .toolbar h2{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+#dashboard .dashboard-allocation-panel .toolbar h2::before{
+  content:"PORTFOLIO";
+  padding:5px 7px;
+  border-radius:7px;
+  background:rgba(66,199,255,.10);
+  border:1px solid rgba(66,199,255,.18);
+  color:#79d6ff;
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.14em;
+}
+#dashboard .dashboard-allocation-panel .allocation-polished{
+  grid-template-columns:minmax(290px,.9fr) minmax(0,1.65fr)!important;
+  gap:34px!important;
+  padding:28px 20px 18px!important;
+}
+#dashboard .dashboard-allocation-panel .allocation-donut-wrap{
+  position:relative;
+  min-height:300px!important;
+  display:grid!important;
+  place-items:center!important;
+  border-radius:22px;
+  border:1px solid rgba(90,152,225,.17);
+  background:
+    radial-gradient(circle at 50% 35%,rgba(73,199,255,.08),transparent 42%),
+    rgba(4,12,27,.34);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.025);
+}
+#dashboard .dashboard-allocation-panel .allocation-donut{
+  width:min(248px,78vw)!important;
+  height:min(248px,78vw)!important;
+  padding:13px!important;
+  border-radius:50%!important;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,.045),
+    0 18px 48px rgba(0,0,0,.24),
+    0 0 42px rgba(63,184,255,.08);
+}
+#dashboard .dashboard-allocation-panel .allocation-donut-center{
+  width:100%!important;
+  height:100%!important;
+  border-radius:50%!important;
+  background:
+    radial-gradient(circle at 35% 25%,rgba(34,64,105,.62),transparent 50%),
+    linear-gradient(145deg,#08172d,#040b18)!important;
+  border:1px solid rgba(255,255,255,.055);
+  box-shadow:inset 0 0 30px rgba(0,0,0,.24);
+}
+#dashboard .dashboard-allocation-panel .allocation-donut-center strong{
+  max-width:82%;
+  text-align:center;
+  font-size:clamp(21px,2.1vw,30px)!important;
+  font-weight:900!important;
+  letter-spacing:-.04em;
+  font-variant-numeric:tabular-nums;
+  color:#f4f7fc;
+}
+#dashboard .dashboard-allocation-panel .allocation-donut-center span{
+  margin-top:7px!important;
+  color:#8fa7c8!important;
+  font-size:10px!important;
+  font-weight:850;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+}
+#dashboard .dashboard-allocation-panel .allocation-list{
+  grid-template-columns:1fr!important;
+  gap:12px!important;
+}
+#dashboard .dashboard-allocation-panel .allocation-item{
+  position:relative;
+  padding:17px 18px!important;
+  border-radius:17px!important;
+  border:1px solid rgba(111,155,218,.15)!important;
+  background:linear-gradient(135deg,rgba(17,34,64,.74),rgba(7,16,34,.78))!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.025);
+  overflow:hidden;
+}
+#dashboard .dashboard-allocation-panel .allocation-item::after{
+  content:"";
+  position:absolute;
+  inset:0 auto 0 0;
+  width:3px;
+  border-radius:3px;
+  background:#38c6ee;
+  opacity:.9;
+}
+#dashboard .dashboard-allocation-panel .allocation-item:nth-child(2)::after{background:#d23cff}
+#dashboard .dashboard-allocation-panel .allocation-item:nth-child(3)::after{background:#ffc84a}
+#dashboard .dashboard-allocation-panel .allocation-item-top{
+  display:grid!important;
+  grid-template-columns:auto minmax(0,1fr) auto!important;
+  align-items:center!important;
+  gap:10px!important;
+}
+#dashboard .dashboard-allocation-panel .allocation-item-top b{
+  font-size:14px!important;
+  font-weight:900!important;
+  color:#edf4ff!important;
+}
+#dashboard .dashboard-allocation-panel .allocation-dot{
+  width:10px!important;
+  height:10px!important;
+  border-radius:50%;
+  box-shadow:0 0 0 4px rgba(56,198,238,.07),0 0 14px rgba(56,198,238,.28);
+}
+#dashboard .dashboard-allocation-panel .allocation-dot.crypto{
+  box-shadow:0 0 0 4px rgba(210,60,255,.07),0 0 14px rgba(210,60,255,.28);
+}
+#dashboard .dashboard-allocation-panel .allocation-dot.gold{
+  box-shadow:0 0 0 4px rgba(255,200,74,.07),0 0 14px rgba(255,200,74,.28);
+}
+#dashboard .dashboard-allocation-panel .allocation-pct{
+  padding:5px 8px;
+  border-radius:999px;
+  background:rgba(255,255,255,.035);
+  border:1px solid rgba(255,255,255,.06);
+  color:#dce8f8!important;
+  font-size:11px!important;
+  font-weight:900!important;
+  font-variant-numeric:tabular-nums;
+}
+#dashboard .dashboard-allocation-panel .allocation-track{
+  height:8px!important;
+  margin-top:13px!important;
+  border-radius:999px!important;
+  background:rgba(83,112,161,.20)!important;
+  overflow:hidden!important;
+}
+#dashboard .dashboard-allocation-panel .allocation-track span{
+  height:100%!important;
+  border-radius:999px!important;
+  background:linear-gradient(90deg,#38c6ee,#77dcff)!important;
+  box-shadow:0 0 16px rgba(56,198,238,.24);
+}
+#dashboard .dashboard-allocation-panel .allocation-item:nth-child(2) .allocation-track span{
+  background:linear-gradient(90deg,#a75cff,#d23cff)!important;
+  box-shadow:0 0 16px rgba(210,60,255,.20);
+}
+#dashboard .dashboard-allocation-panel .allocation-item:nth-child(3) .allocation-track span{
+  background:linear-gradient(90deg,#e8a72c,#ffc84a)!important;
+  box-shadow:0 0 16px rgba(255,200,74,.20);
+}
+#dashboard .dashboard-allocation-panel .allocation-value{
+  margin-top:10px!important;
+  color:#8fa5c3!important;
+  font-size:13px!important;
+  font-weight:800!important;
+  font-variant-numeric:tabular-nums;
+}
+#dashboard .dashboard-allocation-panel .allocation-note{
+  margin:0 20px!important;
+  padding:13px 0 18px!important;
+  border-top:1px solid rgba(111,151,210,.12);
+  color:#6f88aa!important;
+  text-align:left!important;
+  font-size:10px!important;
+  letter-spacing:.035em;
+}
+@media(max-width:900px){
+  #dashboard .dashboard-allocation-panel .allocation-polished{
+    grid-template-columns:1fr!important;
+    gap:18px!important;
+  }
+  #dashboard .dashboard-allocation-panel .allocation-donut-wrap{min-height:275px!important}
+}
+@media(max-width:620px){
+  #dashboard .dashboard-allocation-panel .allocation-polished{padding:16px 10px 10px!important}
+  #dashboard .dashboard-allocation-panel .allocation-donut-wrap{min-height:235px!important;border-radius:18px}
+  #dashboard .dashboard-allocation-panel .allocation-donut{width:205px!important;height:205px!important}
+  #dashboard .dashboard-allocation-panel .allocation-item{padding:14px 15px!important;border-radius:15px!important}
+  #dashboard .dashboard-allocation-panel .allocation-note{margin:0 10px!important;padding-bottom:14px!important}
+}
+</style>
+
+<script id="mmhvault-v4301-dashboard-experience-js">
+(function(){
+  const hostId = "dashRecent";
+
+  function escText(v){
+    return String(v == null ? "—" : v).replace(/\s+/g," ").trim() || "—";
+  }
+
+  function amountClass(type){
+    const t = String(type || "").toLowerCase();
+    if(t === "income") return "income";
+    if(t === "expense") return "expense";
+    return "transfer";
+  }
+
+  function buildFlow(){
+    const host = document.getElementById(hostId);
+    if(!host || host.dataset.mmhFlowBuilding === "1") return;
+
+    const table = host.querySelector("table.recent-one");
+    if(!table) return;
+
+    const headerCells = Array.from(table.querySelectorAll("th")).map(x => escText(x.textContent));
+    const sourceRows = Array.from(table.querySelectorAll("tbody tr, tr")).filter(row => row.querySelectorAll("td").length);
+
+    if(!sourceRows.length) return;
+
+    const rows = sourceRows.map(row => Array.from(row.querySelectorAll("td")).slice(0,4).map(td => escText(td.textContent)));
+    if(!rows.length) return;
+
+    host.dataset.mmhFlowBuilding = "1";
+
+    const makeSet = (hidden=false) => {
+      const set = document.createElement("div");
+      set.className = "mmh-tx-flow-set-v4301";
+      if(hidden) set.setAttribute("aria-hidden","true");
+
+      rows.forEach(cols => {
+        const row = document.createElement("div");
+        row.className = "mmh-tx-flow-row-v4301";
+        const type = cols[1] || "";
+        row.innerHTML = `
+          <span>${cols[0] || "—"}</span>
+          <span class="tx-type-v4301">${type || "—"}</span>
+          <span>${cols[2] || "—"}</span>
+          <span class="tx-amount-v4301 ${amountClass(type)}">${cols[3] || "—"}</span>`;
+        set.appendChild(row);
+      });
+      return set;
+    };
+
+    const shell = document.createElement("div");
+    shell.className = "mmh-tx-flow-v4301";
+
+    const head = document.createElement("div");
+    head.className = "mmh-tx-flow-head-v4301";
+    const fallback = ["Date","Type","Category","Amount · USD"];
+    (headerCells.length >= 4 ? headerCells.slice(0,4) : fallback).forEach(label => {
+      const span = document.createElement("span");
+      span.textContent = label;
+      head.appendChild(span);
+    });
+
+    const viewport = document.createElement("div");
+    viewport.className = "mmh-tx-flow-viewport-v4301";
+    const track = document.createElement("div");
+    track.className = "mmh-tx-flow-track-v4301";
+
+    // Duration scales with the amount of real data so the flow stays calm.
+    const duration = Math.max(18, Math.min(52, rows.length * 4.2));
+    track.style.setProperty("--tx-flow-duration", duration + "s");
+
+    track.appendChild(makeSet(false));
+    track.appendChild(makeSet(true));
+    viewport.appendChild(track);
+    shell.appendChild(head);
+    shell.appendChild(viewport);
+
+    host.innerHTML = "";
+    host.appendChild(shell);
+    host.dataset.mmhFlowReady = "1";
+    host.dataset.mmhFlowBuilding = "0";
+  }
+
+  function observeHost(){
+    const host = document.getElementById(hostId);
+    if(!host || host.dataset.mmhFlowObserver === "1") return;
+    host.dataset.mmhFlowObserver = "1";
+
+    const observer = new MutationObserver(() => {
+      // Dashboard renderers replace the host contents. Rebuild only when a fresh table appears.
+      if(!host.querySelector(".mmh-tx-flow-v4301") && host.querySelector("table.recent-one")){
+        requestAnimationFrame(buildFlow);
+      }
+    });
+    observer.observe(host,{childList:true,subtree:true});
+    buildFlow();
+  }
+
+  function start(){
+    observeHost();
+
+    // Keep the live flow compatible with every existing Dashboard renderer.
+    const currentRender = window.renderDashboard;
+    if(typeof currentRender === "function" && !currentRender.__mmhV4301Wrapped){
+      const wrapped = function(){
+        const result = currentRender.apply(this, arguments);
+        requestAnimationFrame(observeHost);
+        requestAnimationFrame(buildFlow);
+        return result;
+      };
+      wrapped.__mmhV4301Wrapped = true;
+      window.renderDashboard = wrapped;
+    }
+
+    // The page can switch/render asynchronously, so quietly ensure the flow is present.
+    const dashboard = document.getElementById("dashboard");
+    if(dashboard && !dashboard.__mmhV4301PageObserver){
+      dashboard.__mmhV4301PageObserver = true;
+      new MutationObserver(() => requestAnimationFrame(observeHost))
+        .observe(dashboard,{childList:true,subtree:true});
+    }
+  }
+
+  if(document.readyState === "loading"){
+    document.addEventListener("DOMContentLoaded", start, {once:true});
+  }else{
+    start();
+  }
+})();
+</script>
