@@ -15370,143 +15370,165 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
 </style>
 
 <!-- =========================================================
-     MMHVAULT V4.3.0 · MOBILE DASHBOARD SECTION RHYTHM
-     Step 1: premium section spacing + visual rhythm
-     Step 2: mobile card edge consistency + calmer hierarchy
-     Visual-only refinement — no data, logic, routes or features changed.
+     MMHVAULT V4.3.0 · MOBILE HEADER + BOTTOM NAV CONSISTENCY
+     Fix 1: Cloud Synced hidden on mobile
+     Fix 2: Bottom navigation rebuilt into equal visual cells
 ========================================================= -->
-<style id="mmhvault-v4301-mobile-dashboard-section-rhythm">
+<style id="mmhvault-v4301-mobile-header-nav-consistency">
 
 @media(max-width:650px){
 
-  /* ----------------------------------------------------------
-     1. GLOBAL MOBILE DASHBOARD RHYTHM
-  ---------------------------------------------------------- */
-  #dashboard{
-    --mmh-mobile-section-gap:16px;
+  /* ==========================================================
+     1. MOBILE HEADER — remove Cloud Synced
+  ========================================================== */
+  .cloud-sync,
+  .cloud-synced,
+  .sync-status,
+  .header-sync-status,
+  [class*="cloud-sync"],
+  [class*="cloud-synced"]{
+    display:none!important;
   }
 
-  #dashboard > *{
-    scroll-margin-top:18px!important;
+  /* Let brand + profile use the header space cleanly */
+  .topbar,
+  .app-header,
+  .main-header{
+    gap:10px!important;
   }
 
-  /* Main dashboard cards/panels share a consistent edge language */
-  #dashboard .dashboard-card,
-  #dashboard .dashboard-allocation-panel,
-  #dashboard .dashboard-recent-panel,
-  #dashboard .metric-card,
-  #dashboard .net-worth-card,
-  #dashboard .wealth-command-center,
-  #dashboard .command-center{
-    border-color:rgba(116,174,226,.15)!important;
+  /* ==========================================================
+     2. MOBILE BOTTOM NAV — ONE CONSISTENT SYSTEM
+  ========================================================== */
+  .bottom-nav,
+  .mobile-bottom-nav,
+  .app-bottom-nav,
+  nav.bottom-navigation{
+    display:grid!important;
+    grid-template-columns:repeat(4,minmax(0,1fr))!important;
+    align-items:stretch!important;
+    justify-content:stretch!important;
+    gap:5px!important;
+    padding:7px!important;
+    border-radius:28px!important;
   }
 
-  /* Calm separation between major dashboard blocks */
-  #dashboard .dashboard-card + .dashboard-card,
-  #dashboard .dashboard-allocation-panel,
-  #dashboard .dashboard-recent-panel{
-    margin-top:var(--mmh-mobile-section-gap)!important;
+  .bottom-nav > *,
+  .mobile-bottom-nav > *,
+  .app-bottom-nav > *,
+  nav.bottom-navigation > *{
+    min-width:0!important;
+    width:auto!important;
+    height:76px!important;
+    flex:none!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:5px!important;
+    padding:7px 3px!important;
+    border-radius:20px!important;
+    background:transparent!important;
+    border:1px solid transparent!important;
+    box-shadow:none!important;
+    transform:none!important;
   }
 
-  /* ----------------------------------------------------------
-     2. SECTION TITLE SYSTEM
-  ---------------------------------------------------------- */
-  #dashboard .toolbar{
-    position:relative!important;
+  /* All icons share exactly the same visual box */
+  .bottom-nav > * .nav-icon,
+  .mobile-bottom-nav > * .nav-icon,
+  .app-bottom-nav > * .nav-icon,
+  nav.bottom-navigation > * .nav-icon{
+    width:27px!important;
+    height:27px!important;
+    display:grid!important;
+    place-items:center!important;
+    font-size:24px!important;
+    line-height:1!important;
+    margin:0!important;
   }
 
-  #dashboard .toolbar::before{
-    content:""!important;
-    position:absolute!important;
-    left:16px!important;
-    top:0!important;
-    width:44px!important;
-    height:1px!important;
-    border-radius:999px!important;
-    background:linear-gradient(
-      90deg,
-      rgba(93,196,255,.0),
-      rgba(93,196,255,.55),
-      rgba(230,247,255,.08)
-    )!important;
-    opacity:.8!important;
+  .bottom-nav > * .nav-label,
+  .mobile-bottom-nav > * .nav-label,
+  .app-bottom-nav > * .nav-label,
+  nav.bottom-navigation > * .nav-label{
+    width:100%!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    white-space:nowrap!important;
+    text-align:center!important;
+    font-size:11px!important;
+    line-height:1.1!important;
+    letter-spacing:0!important;
+    margin:0!important;
   }
 
-  #dashboard .toolbar h2{
-    font-weight:800!important;
-    text-wrap:balance!important;
-  }
-
-  /* ----------------------------------------------------------
-     3. CONSISTENT CARD DEPTH
-  ---------------------------------------------------------- */
-  #dashboard .dashboard-card,
-  #dashboard .dashboard-allocation-panel,
-  #dashboard .dashboard-recent-panel{
+  /* Active item is premium, but no longer oversized */
+  .bottom-nav > *.active,
+  .bottom-nav > *.is-active,
+  .mobile-bottom-nav > *.active,
+  .mobile-bottom-nav > *.is-active,
+  .app-bottom-nav > *.active,
+  .app-bottom-nav > *.is-active,
+  nav.bottom-navigation > *.active,
+  nav.bottom-navigation > *.is-active{
+    background:
+      linear-gradient(145deg,rgba(40,66,103,.94),rgba(19,35,63,.96))!important;
+    border-color:rgba(109,183,239,.28)!important;
     box-shadow:
-      inset 0 1px 0 rgba(255,255,255,.045),
-      inset 0 -1px 0 rgba(0,0,0,.12),
-      0 12px 30px rgba(0,0,0,.13)!important;
+      inset 0 1px 0 rgba(255,255,255,.08),
+      0 5px 14px rgba(0,0,0,.18)!important;
   }
 
-  /* ----------------------------------------------------------
-     4. PREMIUM SECTION TRANSITION
-     Subtle divider glow between large dashboard areas.
-  ---------------------------------------------------------- */
-  #dashboard .dashboard-allocation-panel,
-  #dashboard .dashboard-recent-panel{
-    position:relative!important;
+  /* Keep the active indicator centered and consistent */
+  .bottom-nav > *.active::after,
+  .bottom-nav > *.is-active::after,
+  .mobile-bottom-nav > *.active::after,
+  .mobile-bottom-nav > *.is-active::after,
+  .app-bottom-nav > *.active::after,
+  .app-bottom-nav > *.is-active::after,
+  nav.bottom-navigation > *.active::after,
+  nav.bottom-navigation > *.is-active::after{
+    left:50%!important;
+    bottom:5px!important;
+    width:28px!important;
+    height:2px!important;
+    transform:translateX(-50%)!important;
+    border-radius:999px!important;
   }
 
-  #dashboard .dashboard-allocation-panel::after,
-  #dashboard .dashboard-recent-panel::after{
-    content:""!important;
-    position:absolute!important;
-    left:18px!important;
-    right:18px!important;
-    bottom:-8px!important;
-    height:1px!important;
-    background:linear-gradient(
-      90deg,
-      transparent,
-      rgba(80,169,229,.12),
-      rgba(255,255,255,.045),
-      rgba(80,169,229,.12),
-      transparent
-    )!important;
-    pointer-events:none!important;
-  }
-
-  /* ----------------------------------------------------------
-     5. MOBILE CONTENT BREATHING ROOM
-  ---------------------------------------------------------- */
-  #dashboard .dashboard-allocation-panel,
-  #dashboard .dashboard-recent-panel{
-    overflow:visible!important;
-  }
-
-  #dashboard .dashboard-allocation-panel > *,
-  #dashboard .dashboard-recent-panel > *{
-    position:relative!important;
-    z-index:1!important;
+  /* Prevent special Dashboard styling from breaking the grid */
+  .bottom-nav .active,
+  .mobile-bottom-nav .active,
+  .app-bottom-nav .active{
+    min-width:0!important;
+    flex-grow:0!important;
   }
 }
 
 @media(max-width:390px){
-
-  #dashboard{
-    --mmh-mobile-section-gap:13px;
+  .bottom-nav,
+  .mobile-bottom-nav,
+  .app-bottom-nav,
+  nav.bottom-navigation{
+    gap:3px!important;
+    padding:6px!important;
+    border-radius:24px!important;
   }
 
-  #dashboard .toolbar::before{
-    left:13px!important;
-    width:36px!important;
+  .bottom-nav > *,
+  .mobile-bottom-nav > *,
+  .app-bottom-nav > *,
+  nav.bottom-navigation > *{
+    height:70px!important;
+    border-radius:17px!important;
   }
 
-  #dashboard .dashboard-allocation-panel::after,
-  #dashboard .dashboard-recent-panel::after{
-    left:14px!important;
-    right:14px!important;
+  .bottom-nav > * .nav-label,
+  .mobile-bottom-nav > * .nav-label,
+  .app-bottom-nav > * .nav-label,
+  nav.bottom-navigation > * .nav-label{
+    font-size:10px!important;
   }
 }
 </style>
