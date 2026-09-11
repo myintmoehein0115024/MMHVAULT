@@ -15370,181 +15370,143 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
 </style>
 
 <!-- =========================================================
-     MMHVAULT V4.3.0 · MOBILE FINANCIAL METRICS REFINEMENT
-     Step 1: unified premium metric glass
-     Step 2: stronger mobile typography + hierarchy
-     Visual/layout only — calculations and data unchanged.
+     MMHVAULT V4.3.0 · MOBILE DASHBOARD SECTION RHYTHM
+     Step 1: premium section spacing + visual rhythm
+     Step 2: mobile card edge consistency + calmer hierarchy
+     Visual-only refinement — no data, logic, routes or features changed.
 ========================================================= -->
-<style id="mmhvault-v4301-mobile-financial-metrics-refinement">
+<style id="mmhvault-v4301-mobile-dashboard-section-rhythm">
 
 @media(max-width:650px){
 
-  /* ==========================================================
-     FINANCIAL METRICS SECTION
-  ========================================================== */
-  #dashboard .financial-metrics,
-  #dashboard .dashboard-metrics,
-  #dashboard .metrics-grid{
-    gap:10px!important;
+  /* ----------------------------------------------------------
+     1. GLOBAL MOBILE DASHBOARD RHYTHM
+  ---------------------------------------------------------- */
+  #dashboard{
+    --mmh-mobile-section-gap:16px;
   }
 
-  /* All metric cards share one premium glass language */
-  #dashboard .metric-card{
+  #dashboard > *{
+    scroll-margin-top:18px!important;
+  }
+
+  /* Main dashboard cards/panels share a consistent edge language */
+  #dashboard .dashboard-card,
+  #dashboard .dashboard-allocation-panel,
+  #dashboard .dashboard-recent-panel,
+  #dashboard .metric-card,
+  #dashboard .net-worth-card,
+  #dashboard .wealth-command-center,
+  #dashboard .command-center{
+    border-color:rgba(116,174,226,.15)!important;
+  }
+
+  /* Calm separation between major dashboard blocks */
+  #dashboard .dashboard-card + .dashboard-card,
+  #dashboard .dashboard-allocation-panel,
+  #dashboard .dashboard-recent-panel{
+    margin-top:var(--mmh-mobile-section-gap)!important;
+  }
+
+  /* ----------------------------------------------------------
+     2. SECTION TITLE SYSTEM
+  ---------------------------------------------------------- */
+  #dashboard .toolbar{
     position:relative!important;
-    isolation:isolate!important;
-    overflow:hidden!important;
-    min-height:138px!important;
-    padding:17px 16px 15px!important;
-    border-radius:22px!important;
-    border:1px solid rgba(119,177,228,.17)!important;
-    background:
-      linear-gradient(145deg,
-        rgba(28,50,82,.78),
-        rgba(11,24,47,.88) 58%,
-        rgba(6,16,35,.94))!important;
-    box-shadow:
-      inset 0 1px 0 rgba(255,255,255,.065),
-      inset 0 -1px 0 rgba(0,0,0,.10),
-      0 10px 24px rgba(0,0,0,.13)!important;
-    backdrop-filter:blur(16px) saturate(125%)!important;
-    -webkit-backdrop-filter:blur(16px) saturate(125%)!important;
   }
 
-  /* Top glass reflection */
-  #dashboard .metric-card::before{
+  #dashboard .toolbar::before{
     content:""!important;
     position:absolute!important;
-    left:14px!important;
-    right:14px!important;
+    left:16px!important;
     top:0!important;
+    width:44px!important;
     height:1px!important;
     border-radius:999px!important;
     background:linear-gradient(
       90deg,
-      transparent,
-      rgba(228,244,255,.48),
-      rgba(105,198,255,.22),
-      transparent
+      rgba(93,196,255,.0),
+      rgba(93,196,255,.55),
+      rgba(230,247,255,.08)
     )!important;
-    pointer-events:none!important;
+    opacity:.8!important;
   }
 
-  /* Quiet depth glow */
-  #dashboard .metric-card::after{
+  #dashboard .toolbar h2{
+    font-weight:800!important;
+    text-wrap:balance!important;
+  }
+
+  /* ----------------------------------------------------------
+     3. CONSISTENT CARD DEPTH
+  ---------------------------------------------------------- */
+  #dashboard .dashboard-card,
+  #dashboard .dashboard-allocation-panel,
+  #dashboard .dashboard-recent-panel{
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.045),
+      inset 0 -1px 0 rgba(0,0,0,.12),
+      0 12px 30px rgba(0,0,0,.13)!important;
+  }
+
+  /* ----------------------------------------------------------
+     4. PREMIUM SECTION TRANSITION
+     Subtle divider glow between large dashboard areas.
+  ---------------------------------------------------------- */
+  #dashboard .dashboard-allocation-panel,
+  #dashboard .dashboard-recent-panel{
+    position:relative!important;
+  }
+
+  #dashboard .dashboard-allocation-panel::after,
+  #dashboard .dashboard-recent-panel::after{
     content:""!important;
     position:absolute!important;
-    width:90px!important;
-    height:90px!important;
-    right:-38px!important;
-    bottom:-42px!important;
-    border-radius:50%!important;
-    background:radial-gradient(circle,rgba(76,177,255,.10),transparent 68%)!important;
-    pointer-events:none!important;
-  }
-
-  /* Metric label */
-  #dashboard .metric-card .metric-label,
-  #dashboard .metric-card .label{
-    position:relative!important;
-    z-index:1!important;
-    font-size:9px!important;
-    line-height:1.2!important;
-    letter-spacing:.13em!important;
-    font-weight:800!important;
-    color:#8199b5!important;
-    text-transform:uppercase!important;
-  }
-
-  /* Main financial number */
-  #dashboard .metric-card .metric-value,
-  #dashboard .metric-card .value{
-    position:relative!important;
-    z-index:1!important;
-    margin-top:12px!important;
-    font-size:clamp(23px,6.7vw,31px)!important;
-    line-height:1!important;
-    letter-spacing:-.045em!important;
-    font-weight:850!important;
-    color:#eef6ff!important;
-    font-variant-numeric:tabular-nums!important;
-    white-space:nowrap!important;
-  }
-
-  /* Supporting information */
-  #dashboard .metric-card .metric-sub,
-  #dashboard .metric-card .sub{
-    position:relative!important;
-    z-index:1!important;
-    margin-top:11px!important;
-    font-size:9px!important;
-    line-height:1.35!important;
-    color:#6f87a2!important;
-  }
-
-  /* Savings Rate gets a refined champagne signature */
-  #dashboard .metric-card:last-child{
-    border-color:rgba(207,177,108,.19)!important;
-    background:
-      linear-gradient(145deg,
-        rgba(64,52,29,.23),
-        rgba(25,31,45,.88) 52%,
-        rgba(8,17,34,.96))!important;
-  }
-
-  #dashboard .metric-card:last-child::before{
+    left:18px!important;
+    right:18px!important;
+    bottom:-8px!important;
+    height:1px!important;
     background:linear-gradient(
       90deg,
       transparent,
-      rgba(247,214,139,.56),
-      rgba(247,214,139,.18),
+      rgba(80,169,229,.12),
+      rgba(255,255,255,.045),
+      rgba(80,169,229,.12),
       transparent
     )!important;
+    pointer-events:none!important;
   }
 
-  #dashboard .metric-card:last-child::after{
-    background:radial-gradient(circle,rgba(244,195,80,.11),transparent 68%)!important;
+  /* ----------------------------------------------------------
+     5. MOBILE CONTENT BREATHING ROOM
+  ---------------------------------------------------------- */
+  #dashboard .dashboard-allocation-panel,
+  #dashboard .dashboard-recent-panel{
+    overflow:visible!important;
   }
 
-  /* Light touch feedback */
-  #dashboard .metric-card:active{
-    transform:scale(.992)!important;
+  #dashboard .dashboard-allocation-panel > *,
+  #dashboard .dashboard-recent-panel > *{
+    position:relative!important;
+    z-index:1!important;
   }
 }
 
 @media(max-width:390px){
 
-  #dashboard .financial-metrics,
-  #dashboard .dashboard-metrics,
-  #dashboard .metrics-grid{
-    gap:8px!important;
+  #dashboard{
+    --mmh-mobile-section-gap:13px;
   }
 
-  #dashboard .metric-card{
-    min-height:126px!important;
-    padding:15px 13px 13px!important;
-    border-radius:19px!important;
+  #dashboard .toolbar::before{
+    left:13px!important;
+    width:36px!important;
   }
 
-  #dashboard .metric-card .metric-label,
-  #dashboard .metric-card .label{
-    font-size:8px!important;
-    letter-spacing:.10em!important;
+  #dashboard .dashboard-allocation-panel::after,
+  #dashboard .dashboard-recent-panel::after{
+    left:14px!important;
+    right:14px!important;
   }
-
-  #dashboard .metric-card .metric-value,
-  #dashboard .metric-card .value{
-    margin-top:10px!important;
-    font-size:clamp(20px,6.2vw,27px)!important;
-  }
-
-  #dashboard .metric-card .metric-sub,
-  #dashboard .metric-card .sub{
-    margin-top:9px!important;
-    font-size:8px!important;
-  }
-}
-
-@media(prefers-reduced-motion:reduce){
-  #dashboard .metric-card{transition:none!important;}
 }
 </style>
