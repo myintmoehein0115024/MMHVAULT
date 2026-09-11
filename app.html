@@ -1517,45 +1517,6 @@ html{scrollbar-gutter:stable;}
 </style>
 
 <link rel="stylesheet" href="assets/mmhvault-v4.css?v=4.0">
-
-<style id="mmhvault-v401-receipt-center-polish">
-/* MMHVAULT V4.0.1 · Invest Receipt Attachment alignment polish.
-   Center the upload action and the supporting status row without changing upload logic. */
-#invest .invest-entry .receipt-upload-v3300{
-  display:flex!important;
-  flex-direction:column!important;
-  align-items:center!important;
-}
-#invest .invest-entry .receipt-upload-head-v3300{
-  width:100%!important;
-  box-sizing:border-box!important;
-}
-#invest .invest-entry .receipt-dropzone-v3300{
-  align-self:center!important;
-  margin-left:auto!important;
-  margin-right:auto!important;
-}
-#invest .invest-entry .receipt-upload-footer-v3300{
-  width:100%!important;
-  box-sizing:border-box!important;
-  display:flex!important;
-  justify-content:center!important;
-  align-items:center!important;
-  gap:18px!important;
-  text-align:center!important;
-}
-#invest .invest-entry .receipt-upload-footer-v3300 .receipt-secure-v3300,
-#invest .invest-entry .receipt-upload-footer-v3300 .receipt-file-state-v3300{
-  text-align:center!important;
-}
-@media(max-width:620px){
-  #invest .invest-entry .receipt-upload-footer-v3300{
-    flex-direction:column!important;
-    gap:6px!important;
-    align-items:center!important;
-  }
-}
-</style>
 </head>
 <!-- MMHVAULT V4.0 · Dashboard report relocation + Transaction receipt center + Invest Add precision -->
 <body>
@@ -4538,7 +4499,7 @@ function polishAccountOverviewV371(){
     wrap.appendChild(amountEl);
     const sub=document.createElement('div');
     sub.className='usd-equiv';
-    sub.textContent=`USD ≈ ${usd(usdVal)}`;
+    sub.textContent=`≈ ${usd(usdVal)}`;
     wrap.appendChild(sub);
   });
   root.querySelectorAll('.account-group').forEach(group=>{
@@ -4569,35 +4530,6 @@ function polishAccountOverviewV371(){
     polishAccountOverviewV371();
   };
 })();
-
-
-/* V4.0.2 Cash Account USD Equivalent Polish */
-#dashboard .dashboard-account-panel .account-row .amount-block{
-  margin-left:auto!important;
-  min-width:118px!important;
-  display:flex!important;
-  flex-direction:column!important;
-  align-items:flex-end!important;
-  justify-content:center!important;
-  gap:3px!important;
-  text-align:right!important;
-}
-#dashboard .dashboard-account-panel .account-row .amount-block .amount{
-  white-space:nowrap!important;
-  font-weight:800!important;
-}
-#dashboard .dashboard-account-panel .account-row .usd-equiv{
-  display:block!important;
-  font-size:11px!important;
-  line-height:1.15!important;
-  color:#8fa1bb!important;
-  font-weight:700!important;
-  white-space:nowrap!important;
-}
-@media(max-width:620px){
-  #dashboard .dashboard-account-panel .account-row .amount-block{min-width:96px!important;gap:2px!important}
-  #dashboard .dashboard-account-panel .account-row .usd-equiv{font-size:10px!important}
-}
 
 /* ===================== V4.0 ACCOUNT OVERVIEW SELECTIVE USD EQUIVALENT ===================== */
 function refineCashOnlyAccountOverviewV371(){
@@ -4634,7 +4566,7 @@ function refineCashOnlyAccountOverviewV371(){
     wrap.appendChild(amountEl);
     const sub=document.createElement('div');
     sub.className='usd-equiv';
-    sub.textContent=`USD ≈ ${usd(usdVal)}`;
+    sub.textContent=`≈ ${usd(usdVal)}`;
     wrap.appendChild(sub);
   });
 
@@ -9682,13 +9614,7 @@ body.mmhvault-scroll-active #invest .invest-top>.panel{box-shadow:inset 0 1px 0 
     if(window.__mmhV376Sig===sig)return;window.__mmhV376Sig=sig;
     const accounts=document.getElementById('accounts');
     if(accounts){
-      /* Native cash stays as the main value; USD is shown directly underneath. */
-      const thbUsdRate=N(rates?.usd_thb);
-      const mmkUsdRate=N(rates?.usd_mmk);
-      const bathUSD=thbUsdRate>0?N(balance('Bath'))/thbUsdRate:0;
-      const trueUSD=thbUsdRate>0?N(balance('TrueMoney'))/thbUsdRate:0;
-      const kpayUSD=mmkUsdRate>0?N(balance('KPay'))/mmkUsdRate:0;
-      accounts.innerHTML=`<div class="account-group"><div class="group-title"><strong><span>Cash</span></strong><span class="group-total">Native Currency</span></div><div class="account-list"><div class="account-row"><div class="left"><div class="name"><span>Bath</span><div class="small">THB</div></div></div><div class="amount-block"><div class="amount">฿ ${fmt(balance('Bath'))}</div><div class="usd-equiv">${usd(bathUSD)}</div></div></div><div class="account-row"><div class="left"><div class="name"><span>TrueMoney</span><div class="small">THB</div></div></div><div class="amount-block"><div class="amount">฿ ${fmt(balance('TrueMoney'))}</div><div class="usd-equiv">${usd(trueUSD)}</div></div></div><div class="account-row"><div class="left"><div class="name"><span>KPay</span><div class="small">MMK</div></div></div><div class="amount-block"><div class="amount">MMK ${fmt(balance('KPay'))}</div><div class="usd-equiv">${usd(kpayUSD)}</div></div></div></div></div><div class="account-group"><div class="group-title"><strong><span>USD</span></strong><span class="group-total">USD</span></div><div class="account-list"><div class="account-row"><div class="left"><div class="name"><span>OKX</span></div></div><div class="amount">${usd(balance('OKX'))}</div></div><div class="account-row"><div class="left"><div class="name"><span>ByBit</span></div></div><div class="amount">${usd(balance('ByBit'))}</div></div><div class="account-row"><div class="left"><div class="name"><span>MetaMask</span></div></div><div class="amount">${usd(balance('MetaMask'))}</div></div></div></div><div class="account-group investment-account"><div class="group-title"><strong><span>Investment</span></strong><span class="group-total">USD</span></div><div class="account-list"><div class="account-row"><div class="left"><div class="name"><span>Crypto Portfolio</span><div class="small">USD</div></div></div><div class="amount">${usd(cryptoUSD)}</div></div><div class="account-row"><div class="left"><div class="name"><span>Gold Portfolio</span><div class="small">Converted from MMK</div></div></div><div class="amount">${usd(gold.valueUSD)}</div></div></div></div>`;
+      accounts.innerHTML=`<div class="account-group"><div class="group-title"><strong><span>Cash</span></strong><span class="group-total">Native Currency</span></div><div class="account-list"><div class="account-row"><div class="left"><div class="name"><span>Bath</span><div class="small">THB</div></div></div><div class="amount">฿ ${fmt(balance('Bath'))}</div></div><div class="account-row"><div class="left"><div class="name"><span>TrueMoney</span><div class="small">THB</div></div></div><div class="amount">฿ ${fmt(balance('TrueMoney'))}</div></div><div class="account-row"><div class="left"><div class="name"><span>KPay</span><div class="small">MMK</div></div></div><div class="amount">MMK ${fmt(balance('KPay'))}</div></div></div></div><div class="account-group"><div class="group-title"><strong><span>USD</span></strong><span class="group-total">USD</span></div><div class="account-list"><div class="account-row"><div class="left"><div class="name"><span>OKX</span></div></div><div class="amount">${usd(balance('OKX'))}</div></div><div class="account-row"><div class="left"><div class="name"><span>ByBit</span></div></div><div class="amount">${usd(balance('ByBit'))}</div></div><div class="account-row"><div class="left"><div class="name"><span>MetaMask</span></div></div><div class="amount">${usd(balance('MetaMask'))}</div></div></div></div><div class="account-group investment-account"><div class="group-title"><strong><span>Investment</span></strong><span class="group-total">USD</span></div><div class="account-list"><div class="account-row"><div class="left"><div class="name"><span>Crypto Portfolio</span><div class="small">USD</div></div></div><div class="amount">${usd(cryptoUSD)}</div></div><div class="account-row"><div class="left"><div class="name"><span>Gold Portfolio</span><div class="small">Converted from MMK</div></div></div><div class="amount">${usd(gold.valueUSD)}</div></div></div></div>`;
     }
     const alloc=document.getElementById('assetAllocation');
     if(alloc){
@@ -11403,12 +11329,79 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
 
 <script src="assets/mmhvault-v4.js?v=4.0"></script>
 
-<style id="mmh-v403-usd-equivalent-fix">
-#dashboard .dashboard-account-panel .account-row .amount-block{margin-left:auto;min-width:118px;display:flex;flex-direction:column;align-items:flex-end;justify-content:center;gap:3px;text-align:right}
-#dashboard .dashboard-account-panel .account-row .amount-block .amount{white-space:nowrap;font-weight:800}
-#dashboard .dashboard-account-panel .account-row .usd-equiv{display:block;font-size:11px;line-height:1.15;color:#8fa1bb;font-weight:700;white-space:nowrap}
-@media(max-width:620px){#dashboard .dashboard-account-panel .account-row .amount-block{min-width:96px;gap:2px}#dashboard .dashboard-account-panel .account-row .usd-equiv{font-size:10px}}
+<!-- MMHVAULT V4.0.1 · Cash USD Equivalent Safe Patch -->
+<style id="mmhvault-v401-cash-usd-equivalent-css">
+#accounts .account-row .amount{display:flex;flex-direction:column;align-items:flex-end;justify-content:center;gap:3px;line-height:1.15;}
+#accounts .account-row .mmh-usd-equivalent{font-size:11px;font-weight:700;color:rgba(150,184,220,.72);white-space:nowrap;letter-spacing:.01em;}
+@media(max-width:700px){
+  #accounts .account-row .mmh-usd-equivalent{font-size:10px;}
+}
 </style>
+<script id="mmhvault-v401-cash-usd-equivalent-js">
+/* Safe presentation-only patch: adds USD reference under native THB/MMK amounts.
+   Does not replace renderDashboard, loadAll, or account markup. */
+(function(){
+  'use strict';
+  if(window.__mmhV401CashUsdEquivalentInstalled)return;
+  window.__mmhV401CashUsdEquivalentInstalled=true;
+
+  const N=v=>{const n=Number(v);return Number.isFinite(n)?n:0;};
+  const getRate=(key,fallback)=>{
+    try{
+      const r=window.rates||{};
+      const v=N(r[key]);
+      return v>0?v:fallback;
+    }catch(_){return fallback;}
+  };
+  const usdText=v=>{
+    try{return '$ '+N(v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});}
+    catch(_){return '$ 0.00';}
+  };
+  const balanceOf=name=>{
+    try{return typeof window.balance==='function'?N(window.balance(name)):0;}
+    catch(_){return 0;}
+  };
+
+  function apply(){
+    try{
+      const root=document.getElementById('accounts');
+      if(!root)return;
+      const usdThb=getRate('usd_thb',0);
+      const usdMmk=getRate('usd_mmk',0);
+      root.querySelectorAll('.account-row').forEach(row=>{
+        const name=(row.querySelector('.name')?.textContent||'').replace(/\s+/g,' ').trim();
+        let account=null, valueUSD=null;
+        if(/\bBath\b/i.test(name)){account='Bath'; valueUSD=usdThb>0?balanceOf(account)/usdThb:0;}
+        else if(/TrueMoney/i.test(name)){account='TrueMoney'; valueUSD=usdThb>0?balanceOf(account)/usdThb:0;}
+        else if(/\bKPay\b/i.test(name)){account='KPay'; valueUSD=usdMmk>0?balanceOf(account)/usdMmk:0;}
+        if(!account)return;
+        const amount=row.querySelector('.amount');
+        if(!amount)return;
+        let eq=amount.querySelector('.mmh-usd-equivalent');
+        if(!eq){eq=document.createElement('div');eq.className='mmh-usd-equivalent';amount.appendChild(eq);}
+        eq.textContent='≈ '+usdText(valueUSD);
+      });
+    }catch(err){console.warn('[MMHVAULT V4.0.1] cash USD equivalent patch skipped:',err);}
+  }
+
+  let timer=null;
+  const schedule=()=>{
+    clearTimeout(timer);
+    timer=setTimeout(apply,40);
+  };
+  function boot(){
+    schedule();
+    const root=document.getElementById('accounts');
+    if(root && !root.__mmhV401Observer){
+      root.__mmhV401Observer=true;
+      new MutationObserver(schedule).observe(root,{childList:true,subtree:true});
+    }
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+  ['mmhvault:data-loaded','mmhvault:sync-complete','mmhvault:cache-restored','mmhvault-language-change'].forEach(ev=>window.addEventListener(ev,schedule,{passive:true}));
+  window.mmhvaultRefreshCashUsdEquivalentV401=apply;
+})();
+</script>
 </body>
 <!-- MMHVAULT V4.0 performance baseline: logo-free account cards + restrained dashboard rendering. -->
 
