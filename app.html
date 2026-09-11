@@ -1517,6 +1517,45 @@ html{scrollbar-gutter:stable;}
 </style>
 
 <link rel="stylesheet" href="assets/mmhvault-v4.css?v=4.0">
+
+<style id="mmhvault-v401-receipt-center-polish">
+/* MMHVAULT V4.0.1 · Invest Receipt Attachment alignment polish.
+   Center the upload action and the supporting status row without changing upload logic. */
+#invest .invest-entry .receipt-upload-v3300{
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+}
+#invest .invest-entry .receipt-upload-head-v3300{
+  width:100%!important;
+  box-sizing:border-box!important;
+}
+#invest .invest-entry .receipt-dropzone-v3300{
+  align-self:center!important;
+  margin-left:auto!important;
+  margin-right:auto!important;
+}
+#invest .invest-entry .receipt-upload-footer-v3300{
+  width:100%!important;
+  box-sizing:border-box!important;
+  display:flex!important;
+  justify-content:center!important;
+  align-items:center!important;
+  gap:18px!important;
+  text-align:center!important;
+}
+#invest .invest-entry .receipt-upload-footer-v3300 .receipt-secure-v3300,
+#invest .invest-entry .receipt-upload-footer-v3300 .receipt-file-state-v3300{
+  text-align:center!important;
+}
+@media(max-width:620px){
+  #invest .invest-entry .receipt-upload-footer-v3300{
+    flex-direction:column!important;
+    gap:6px!important;
+    align-items:center!important;
+  }
+}
+</style>
 </head>
 <!-- MMHVAULT V4.0 · Dashboard report relocation + Transaction receipt center + Invest Add precision -->
 <body>
