@@ -13411,3 +13411,147 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
   }
 }
 </style>
+
+<!-- =========================================================
+     MMHVAULT V4.3.0 · VISUAL BALANCE & DEPTH POLISH
+     Next step — visual refinement only, no feature/data/logic changes.
+========================================================= -->
+<style id="mmhvault-v4301-visual-balance-depth">
+/* ---------- Dashboard canvas: improve visual depth without darkening content ---------- */
+#dashboard{
+  background:
+    radial-gradient(circle at 18% 0%,rgba(63,177,255,.035),transparent 24%),
+    radial-gradient(circle at 86% 28%,rgba(185,82,255,.022),transparent 26%)!important;
+}
+
+/* ---------- Premium depth scale for main surfaces ---------- */
+#dashboard .dashboard-details > .panel{
+  box-shadow:
+    0 1px 0 rgba(255,255,255,.018) inset,
+    0 10px 28px rgba(0,0,0,.10)!important;
+}
+@media(hover:hover){
+  #dashboard .dashboard-details > .panel:hover{
+    box-shadow:
+      0 1px 0 rgba(255,255,255,.03) inset,
+      0 20px 44px rgba(0,0,0,.16),
+      0 0 0 1px rgba(90,170,238,.025)!important;
+  }
+}
+
+/* ---------- Stronger visual anchors on major panels ---------- */
+#dashboard .wealth-snapshot-v386,
+#dashboard .dashboard-allocation-panel,
+#dashboard .dashboard-recent-panel{
+  isolation:isolate;
+}
+#dashboard .wealth-snapshot-v386::before,
+#dashboard .dashboard-allocation-panel::before,
+#dashboard .dashboard-recent-panel::before{
+  content:"";
+  position:absolute;
+  left:18px;
+  right:42%;
+  top:0;
+  height:1px;
+  border-radius:999px;
+  background:linear-gradient(90deg,rgba(74,203,255,.60),rgba(106,126,255,.20),transparent);
+  opacity:.55;
+  pointer-events:none;
+  z-index:2;
+}
+#dashboard .dashboard-allocation-panel::before{
+  background:linear-gradient(90deg,rgba(107,190,255,.52),rgba(211,90,255,.18),transparent);
+}
+#dashboard .dashboard-recent-panel::before{
+  background:linear-gradient(90deg,rgba(75,224,172,.48),rgba(67,191,255,.16),transparent);
+}
+
+/* ---------- Header actions: clearer balance between title and controls ---------- */
+#dashboard .panel .toolbar{
+  position:relative;
+}
+#dashboard .panel .toolbar > :last-child{
+  flex-shrink:0;
+}
+#dashboard .panel .toolbar h2{
+  text-wrap:balance;
+}
+#dashboard .panel .toolbar .sub{
+  max-width:72ch;
+}
+
+/* ---------- Allocation area: professional depth around chart and cards ---------- */
+#dashboard .dashboard-allocation-panel .allocation-donut-center{
+  text-shadow:0 8px 28px rgba(0,0,0,.22);
+}
+#dashboard .dashboard-allocation-panel .allocation-donut-center strong{
+  letter-spacing:-.038em!important;
+}
+#dashboard .dashboard-allocation-panel .allocation-card,
+#dashboard .dashboard-allocation-panel .asset-card{
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.025);
+}
+@media(hover:hover){
+  #dashboard .dashboard-allocation-panel .allocation-card:hover,
+  #dashboard .dashboard-allocation-panel .asset-card:hover{
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.035),
+      0 12px 28px rgba(0,0,0,.13)!important;
+  }
+}
+
+/* ---------- Transaction flow: create a calmer reading lane ---------- */
+#dashboard .dashboard-recent-panel .mmh-tx-flow-head-v4301{
+  background:rgba(7,19,39,.34);
+  border-radius:10px;
+}
+#dashboard .dashboard-recent-panel .mmh-tx-flow-row-v4301{
+  position:relative;
+}
+#dashboard .dashboard-recent-panel .mmh-tx-flow-row-v4301::after{
+  content:"";
+  position:absolute;
+  left:14px;
+  right:14px;
+  bottom:0;
+  height:1px;
+  background:linear-gradient(90deg,transparent,rgba(108,155,214,.10),transparent);
+  pointer-events:none;
+}
+#dashboard .dashboard-recent-panel .mmh-tx-flow-row-v4301:last-child::after{
+  display:none;
+}
+
+/* ---------- Quiet secondary text ---------- */
+#dashboard .panel .sub,
+#dashboard .panel small{
+  text-shadow:none;
+}
+#dashboard .panel .toolbar .sub{
+  opacity:.96;
+}
+
+/* ---------- Mobile: retain balance and avoid excessive effects ---------- */
+@media(max-width:760px){
+  #dashboard .wealth-snapshot-v386::before,
+  #dashboard .dashboard-allocation-panel::before,
+  #dashboard .dashboard-recent-panel::before{
+    left:14px;
+    right:28%;
+  }
+  #dashboard .panel .toolbar .sub{
+    max-width:none;
+  }
+  #dashboard .dashboard-recent-panel .mmh-tx-flow-head-v4301{
+    border-radius:8px;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  #dashboard .dashboard-details > .panel,
+  #dashboard .dashboard-allocation-panel .allocation-card,
+  #dashboard .dashboard-allocation-panel .asset-card{
+    transition:none!important;
+  }
+}
+</style>
