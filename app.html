@@ -14666,3 +14666,138 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
   }
 }
 </style>
+
+<!-- =========================================================
+     MMHVAULT V4.3.0 · BOTTOM NAVIGATION FIX
+     Correct selector targeting for the actual #bottomNav button structure.
+========================================================= -->
+<style id="mmhvault-v4301-bottom-nav-selector-fix">
+/* Actual navigation container is global: #bottomNav.bottom-nav */
+#bottomNav.bottom-nav{
+  position:fixed!important;
+  left:50%!important;
+  transform:translateX(-50%)!important;
+  isolation:isolate!important;
+  overflow:hidden!important;
+  border:1px solid rgba(123,187,238,.26)!important;
+  border-radius:24px!important;
+  background:
+    linear-gradient(145deg,
+      rgba(25,47,79,.92),
+      rgba(9,21,43,.95) 52%,
+      rgba(4,12,28,.97))!important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.12),
+    inset 0 0 28px rgba(75,170,245,.025),
+    0 18px 46px rgba(0,0,0,.34),
+    0 0 34px rgba(58,157,232,.055)!important;
+  backdrop-filter:blur(22px) saturate(135%)!important;
+  -webkit-backdrop-filter:blur(22px) saturate(135%)!important;
+}
+
+/* Premium top reflection */
+#bottomNav.bottom-nav::before{
+  content:""!important;
+  position:absolute!important;
+  left:20px!important;
+  right:20px!important;
+  top:0!important;
+  height:1px!important;
+  border-radius:999px!important;
+  background:linear-gradient(
+    90deg,
+    transparent,
+    rgba(241,249,255,.72),
+    rgba(105,206,255,.48),
+    rgba(241,249,255,.26),
+    transparent
+  )!important;
+  pointer-events:none!important;
+}
+
+/* Correctly target BUTTONS, not links */
+#bottomNav.bottom-nav button{
+  position:relative!important;
+  z-index:1!important;
+  border:1px solid transparent!important;
+  border-radius:16px!important;
+  color:#9eb2ca!important;
+  background:transparent!important;
+  text-shadow:none!important;
+  transition:
+    transform .24s ease,
+    color .24s ease,
+    background .24s ease,
+    border-color .24s ease,
+    box-shadow .24s ease!important;
+}
+
+/* Active Dashboard / current page */
+#bottomNav.bottom-nav button.active,
+#bottomNav.bottom-nav button[aria-current="page"]{
+  color:#eff7ff!important;
+  border-color:rgba(126,196,255,.22)!important;
+  background:
+    linear-gradient(135deg,
+      rgba(88,169,245,.18),
+      rgba(62,105,183,.12) 55%,
+      rgba(123,66,178,.08))!important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.09),
+    0 8px 20px rgba(0,0,0,.16),
+    0 0 18px rgba(79,184,255,.055)!important;
+}
+
+/* Cyan signature indicator */
+#bottomNav.bottom-nav button.active::after,
+#bottomNav.bottom-nav button[aria-current="page"]::after{
+  content:""!important;
+  position:absolute!important;
+  left:30%!important;
+  right:30%!important;
+  bottom:5px!important;
+  width:auto!important;
+  height:2px!important;
+  transform:none!important;
+  border-radius:999px!important;
+  opacity:1!important;
+  background:linear-gradient(
+    90deg,
+    rgba(81,198,255,.08),
+    rgba(152,220,255,.95),
+    rgba(81,198,255,.08)
+  )!important;
+  box-shadow:0 0 12px rgba(83,200,255,.28)!important;
+}
+
+/* Quiet hover response */
+@media(hover:hover){
+  #bottomNav.bottom-nav button:hover{
+    color:#e8f4ff!important;
+    transform:translateY(-2px)!important;
+    background:rgba(102,166,228,.055)!important;
+  }
+}
+
+/* More button gets a restrained champagne detail */
+#bottomNav.bottom-nav button:last-child{
+  color:#aeb8c6!important;
+}
+#bottomNav.bottom-nav button:last-child:hover{
+  color:#f0ddb0!important;
+}
+
+/* Mobile */
+@media(max-width:760px){
+  #bottomNav.bottom-nav{
+    border-radius:20px!important;
+  }
+  #bottomNav.bottom-nav button{
+    border-radius:13px!important;
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  #bottomNav.bottom-nav button{transition:none!important;}
+}
+</style>
