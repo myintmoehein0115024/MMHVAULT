@@ -13680,3 +13680,130 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
   outline-offset:3px!important;
 }
 </style>
+
+<!-- =========================================================
+     MMHVAULT V4.3.0 · FINANCIAL DATA DENSITY POLISH
+     Step forward — readability, scan speed and visual precision only.
+========================================================= -->
+<style id="mmhvault-v4301-financial-data-density">
+/* ---------- Compact, high-confidence data presentation ---------- */
+#dashboard .panel .toolbar{
+  align-items:flex-start!important;
+}
+#dashboard .panel .toolbar h2{
+  font-feature-settings:"kern" 1,"liga" 1;
+}
+#dashboard .panel .toolbar .sub{
+  font-size:.92em!important;
+}
+
+/* ---------- KPI / stat labels become easier to scan ---------- */
+#dashboard .mmh-command-stat span,
+#dashboard .kpi-label,
+#dashboard .wealth-card small,
+#dashboard .snapshot-card small,
+#dashboard .report-card small,
+#dashboard .monthly-card small{
+  text-transform:uppercase;
+  font-size:9px!important;
+  letter-spacing:.095em!important;
+  white-space:nowrap;
+}
+
+/* ---------- Numbers get a consistent compact rhythm ---------- */
+#dashboard .mmh-command-stat b,
+#dashboard .wealth-card b,
+#dashboard .snapshot-card b,
+#dashboard .report-card b,
+#dashboard .monthly-card b{
+  margin-top:5px!important;
+}
+#dashboard .mmh-command-stat em{
+  display:block;
+  margin-top:5px!important;
+  font-size:10px!important;
+}
+
+/* ---------- Account / asset list: cleaner row scanning ---------- */
+#dashboard .dashboard-account-panel .account-card{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  column-gap:18px;
+  align-items:center;
+}
+#dashboard .dashboard-account-panel .account-card .name,
+#dashboard .dashboard-account-panel .account-card .label{
+  max-width:100%;
+}
+#dashboard .dashboard-account-panel .account-card .value,
+#dashboard .dashboard-account-panel .account-card .amount{
+  text-align:right;
+  white-space:nowrap;
+}
+
+/* ---------- Allocation labels: stronger left/right rhythm ---------- */
+#dashboard .dashboard-allocation-panel .allocation-card,
+#dashboard .dashboard-allocation-panel .asset-card{
+  min-height:56px;
+}
+#dashboard .dashboard-allocation-panel .allocation-card b,
+#dashboard .dashboard-allocation-panel .asset-card b{
+  font-variant-numeric:tabular-nums lining-nums;
+}
+
+/* ---------- Recent transaction flow: optimized for fast scanning ---------- */
+#dashboard .mmh-tx-flow-head-v4301{
+  font-size:9px!important;
+  letter-spacing:.095em!important;
+  text-transform:uppercase;
+}
+#dashboard .mmh-tx-flow-row-v4301{
+  letter-spacing:0!important;
+}
+#dashboard .mmh-tx-flow-row-v4301 > span{
+  min-width:0;
+}
+#dashboard .mmh-tx-flow-row-v4301 > span:last-child{
+  text-align:right;
+  white-space:nowrap;
+  font-variant-numeric:tabular-nums lining-nums;
+}
+
+/* ---------- Mini metrics: information-dense but still premium ---------- */
+#dashboard .mmh-mini-metrics{
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:flex-end;
+}
+#dashboard .mmh-mini-metrics span{
+  line-height:1.15!important;
+}
+#dashboard .mmh-mini-metrics b{
+  white-space:nowrap;
+}
+
+/* ---------- Reduce visual noise in secondary separators ---------- */
+#dashboard .dashboard-details .panel hr,
+#dashboard .panel .divider{
+  opacity:.62;
+}
+
+/* ---------- Responsive: preserve scanability ---------- */
+@media(max-width:760px){
+  #dashboard .mmh-command-stat span,
+  #dashboard .kpi-label,
+  #dashboard .wealth-card small,
+  #dashboard .snapshot-card small,
+  #dashboard .report-card small,
+  #dashboard .monthly-card small{
+    font-size:8px!important;
+    letter-spacing:.075em!important;
+  }
+  #dashboard .dashboard-account-panel .account-card{
+    column-gap:12px;
+  }
+  #dashboard .mmh-mini-metrics{
+    justify-content:flex-start;
+  }
+}
+</style>
