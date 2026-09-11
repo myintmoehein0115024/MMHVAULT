@@ -11710,3 +11710,41 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
   window.mmhvaultRefreshTransactionBalanceGuardV34431=refresh;
 })();
 </script>
+
+/* ===================== V4.0.2 CASH USD EQUIVALENT FINAL FIX ===================== */
+(function(){
+  const _renderDashboardCashUsdFinalV402 = renderDashboard;
+  renderDashboard = function(){
+    _renderDashboardCashUsdFinalV402();
+    const root = document.getElementById('accounts');
+    if(!root) return;
+
+    // Rebuild only the USD-equivalent labels so native balances remain untouched.
+    root.querySelectorAll('.usd-equiv').forEach(el=>el.remove());
+
+    const targets = new Set(['Bath','TrueMoney','KPay']);
+    root.querySelectorAll('.account-row').forEach(row=>{
+      const nameEl = row.querySelector('.left .name');
+      const name = (nameEl?.querySelector('span')?.textContent || nameEl?.childNodes?.[0]?.textContent || '').trim();
+      if(!targets.has(name)) return;
+
+      let amountEl = row.querySelector(':scope > .amount');
+      let block = row.querySelector(':scope > .amount-block');
+      if(block) amountEl = block.querySelector('.amount');
+      if(!amountEl) return;
+
+      if(!block){
+        block = document.createElement('div');
+        block.className = 'amount-block';
+        amountEl.parentNode.replaceChild(block, amountEl);
+        block.appendChild(amountEl);
+      }
+
+      const valueUSD = balance(name) * toUSD(name);
+      const sub = document.createElement('div');
+      sub.className = 'usd-equiv';
+      sub.textContent = `≈ ${usd(valueUSD)}`;
+      block.appendChild(sub);
+    });
+  };
+})();
