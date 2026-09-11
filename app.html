@@ -15115,3 +15115,128 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
   }
 }
 </style>
+
+<!-- =========================================================
+     MMHVAULT V4.3.0 · MOBILE BOTTOM NAV HARD FIX
+     Fixes real button width + label collision on iPhone layouts.
+========================================================= -->
+<style id="mmhvault-v4301-mobile-bottom-nav-hard-fix">
+@media (max-width: 760px){
+
+  /* Force a true 4-column navigation layout */
+  #bottomNav.bottom-nav{
+    width:calc(100vw - 40px)!important;
+    max-width:430px!important;
+    min-width:0!important;
+    height:96px!important;
+    min-height:96px!important;
+    padding:9px!important;
+    display:grid!important;
+    grid-template-columns:repeat(4, minmax(0, 1fr))!important;
+    grid-auto-flow:column!important;
+    gap:6px!important;
+    align-items:stretch!important;
+    justify-content:stretch!important;
+    box-sizing:border-box!important;
+  }
+
+  /* Every navigation item is locked inside its own column */
+  #bottomNav.bottom-nav > button{
+    width:100%!important;
+    min-width:0!important;
+    max-width:100%!important;
+    height:78px!important;
+    min-height:78px!important;
+    margin:0!important;
+    padding:7px 1px 8px!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:5px!important;
+    overflow:hidden!important;
+    box-sizing:border-box!important;
+    font-size:25px!important;
+    line-height:1!important;
+    white-space:normal!important;
+  }
+
+  /* The label can NEVER escape into the next button */
+  #bottomNav.bottom-nav > button > span{
+    display:block!important;
+    width:100%!important;
+    max-width:100%!important;
+    min-width:0!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    white-space:nowrap!important;
+    text-align:center!important;
+    font-size:10.5px!important;
+    line-height:1.15!important;
+    letter-spacing:0!important;
+    box-sizing:border-box!important;
+  }
+
+  /* Transactions is the longest word: fit it cleanly */
+  #bottomNav.bottom-nav > button:nth-child(2) > span{
+    font-size:9px!important;
+    letter-spacing:-.025em!important;
+  }
+
+  /* Keep active state inside its own column */
+  #bottomNav.bottom-nav > button.active,
+  #bottomNav.bottom-nav > button[aria-current="page"]{
+    width:100%!important;
+    height:78px!important;
+    min-height:78px!important;
+    margin:0!important;
+    transform:none!important;
+    border-radius:17px!important;
+  }
+
+  /* Smaller, cleaner active indicator */
+  #bottomNav.bottom-nav > button.active::after,
+  #bottomNav.bottom-nav > button[aria-current="page"]::after{
+    left:36%!important;
+    right:36%!important;
+    bottom:6px!important;
+    height:2px!important;
+  }
+
+  /* Prevent old hover / desktop spacing from affecting touch screens */
+  #bottomNav.bottom-nav > button:hover{
+    transform:none!important;
+  }
+
+  /* More menu: keep clear above the navigation dock */
+  #moreNavMenu{
+    width:calc(100vw - 40px)!important;
+    max-width:760px!important;
+    left:50%!important;
+    transform:translateX(-50%)!important;
+    box-sizing:border-box!important;
+  }
+}
+
+@media (max-width: 390px){
+  #bottomNav.bottom-nav{
+    width:calc(100vw - 24px)!important;
+    gap:3px!important;
+    padding:7px!important;
+  }
+
+  #bottomNav.bottom-nav > button{
+    font-size:23px!important;
+    padding-left:0!important;
+    padding-right:0!important;
+  }
+
+  #bottomNav.bottom-nav > button > span{
+    font-size:10px!important;
+  }
+
+  #bottomNav.bottom-nav > button:nth-child(2) > span{
+    font-size:8.5px!important;
+  }
+}
+</style>
