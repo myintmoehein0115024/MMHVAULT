@@ -4546,7 +4546,11 @@ function refineCashOnlyAccountOverviewV371(){
 
   const usdRows=new Set(['Bath','TrueMoney','KPay','Gold Portfolio']);
   root.querySelectorAll('.account-row').forEach(row=>{
-    const name=row.querySelector('.left .name')?.textContent?.trim()||'';
+    // The account name also contains the currency label (THB/MMK), so read the
+    // dedicated <span> first. Falling back to text keeps this compatible with
+    // older account-row layouts.
+    const nameNode=row.querySelector('.left .name span');
+    const name=(nameNode?.textContent || row.querySelector('.left .name')?.childNodes?.[0]?.textContent || row.querySelector('.left .name')?.textContent || '').trim();
     if(!usdRows.has(name)) return;
     const amountEl=row.querySelector('.amount');
     if(!amountEl) return;
