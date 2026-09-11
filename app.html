@@ -13263,3 +13263,151 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
   }
 }
 </style>
+
+<!-- =========================================================
+     MMHVAULT V4.3.0 · TYPOGRAPHY & SPACING PRECISION POLISH
+     Visual refinement only — no features, calculations, or logic changed.
+========================================================= -->
+<style id="mmhvault-v4301-typography-spacing-precision">
+/* ---------- Professional reading rhythm ---------- */
+#dashboard{
+  letter-spacing:.002em;
+}
+#dashboard .panel .toolbar{
+  min-height:42px;
+}
+#dashboard .panel .toolbar h2{
+  line-height:1.12!important;
+  margin-bottom:0!important;
+}
+#dashboard .panel .toolbar .sub{
+  margin-top:5px!important;
+  line-height:1.45!important;
+}
+
+/* ---------- Label hierarchy ---------- */
+#dashboard .sub,
+#dashboard small,
+#dashboard .label,
+#dashboard .kpi-label,
+#dashboard .mmh-networth-label{
+  font-weight:650!important;
+}
+#dashboard .mmh-command-stat span,
+#dashboard .wealth-card small,
+#dashboard .snapshot-card small,
+#dashboard .report-card small,
+#dashboard .monthly-card small{
+  line-height:1.35!important;
+}
+
+/* ---------- Numeric baseline consistency ---------- */
+#dashboard .mmh-networth-value,
+#dashboard .mmh-command-stat b,
+#dashboard .wealth-card b,
+#dashboard .snapshot-card b,
+#dashboard .report-card b,
+#dashboard .monthly-card b,
+#dashboard .account-card .value,
+#dashboard .account-card .amount{
+  display:inline-block;
+  line-height:1.08!important;
+  font-variant-numeric:tabular-nums lining-nums;
+}
+
+/* ---------- Card internal spacing ---------- */
+#dashboard .wealth-card,
+#dashboard .snapshot-card,
+#dashboard .report-card,
+#dashboard .monthly-card{
+  padding-top:16px!important;
+  padding-bottom:16px!important;
+}
+#dashboard .wealth-card > * + *,
+#dashboard .snapshot-card > * + *,
+#dashboard .report-card > * + *,
+#dashboard .monthly-card > * + *{
+  margin-top:7px;
+}
+
+/* ---------- Command Center spacing precision ---------- */
+#dashboard .mmh-command-v34210 .mmh-command-head{
+  gap:14px!important;
+}
+#dashboard .mmh-command-v34210 .mmh-networth-card{
+  padding-top:18px!important;
+  padding-bottom:18px!important;
+}
+#dashboard .mmh-command-v34210 .mmh-networth-label{
+  margin-bottom:7px!important;
+}
+#dashboard .mmh-command-v34210 .mmh-networth-value{
+  margin-bottom:8px!important;
+}
+#dashboard .mmh-command-v34210 .mmh-command-stat{
+  padding-top:14px!important;
+  padding-bottom:13px!important;
+}
+
+/* ---------- Allocation and transaction text alignment ---------- */
+#dashboard .dashboard-allocation-panel .toolbar,
+#dashboard .dashboard-recent-panel .toolbar{
+  gap:12px!important;
+}
+#dashboard .dashboard-recent-panel .dashboard-flow-subtitle-v4301{
+  margin-top:4px!important;
+  line-height:1.4!important;
+}
+#dashboard .mmh-tx-flow-head-v4301{
+  padding-top:11px!important;
+  padding-bottom:10px!important;
+}
+#dashboard .mmh-tx-flow-row-v4301{
+  min-height:48px!important;
+  align-items:center!important;
+}
+#dashboard .mmh-tx-flow-head-v4301,
+#dashboard .mmh-tx-flow-row-v4301{
+  font-variant-numeric:tabular-nums lining-nums;
+}
+
+/* ---------- Account rows: cleaner vertical rhythm ---------- */
+#dashboard .dashboard-account-panel .account-card{
+  min-height:58px;
+}
+#dashboard .dashboard-account-panel .account-card .name,
+#dashboard .dashboard-account-panel .account-card .label{
+  line-height:1.22!important;
+}
+#dashboard .dashboard-account-panel .account-card small,
+#dashboard .dashboard-account-panel .account-card .sub{
+  margin-top:4px!important;
+  line-height:1.3!important;
+}
+
+/* ---------- Mobile typography: prevent crowding ---------- */
+@media(max-width:760px){
+  #dashboard .panel .toolbar{min-height:auto}
+  #dashboard .wealth-card,
+  #dashboard .snapshot-card,
+  #dashboard .report-card,
+  #dashboard .monthly-card{
+    padding-top:14px!important;
+    padding-bottom:14px!important;
+  }
+  #dashboard .mmh-command-v34210 .mmh-networth-card{
+    padding-top:16px!important;
+    padding-bottom:16px!important;
+  }
+  #dashboard .mmh-tx-flow-row-v4301{
+    min-height:46px!important;
+  }
+}
+
+/* Respect accessibility preferences */
+@media(prefers-reduced-motion:reduce){
+  #dashboard *{
+    scroll-behavior:auto!important;
+  }
+}
+</style>
