@@ -15735,3 +15735,307 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
   }
 }
 </style>
+
+<!-- =========================================================
+ MMHVAULT V4.3.0 · MOBILE HEADER + DOCK BALANCE REFINEMENT
+ Fixes the two areas highlighted in the latest screenshot:
+ 1) Header brand/profile balance
+ 2) Bottom dock compactness and equal visual rhythm
+========================================================= -->
+<style id="mmhvault-v4301-mobile-header-dock-balance-refinement">
+
+/* ==========================================================
+   MOBILE HEADER
+========================================================== */
+@media(max-width:900px){
+
+  #header{
+    display:flex!important;
+    align-items:center!important;
+    justify-content:space-between!important;
+    min-height:78px!important;
+    padding:10px 14px!important;
+    gap:10px!important;
+    box-sizing:border-box!important;
+  }
+
+  /* Brand is allowed to use the available space without being clipped */
+  #header .mmhvault-header-brand{
+    flex:1 1 0!important;
+    min-width:0!important;
+    overflow:hidden!important;
+  }
+
+  #header .mmhvault-header-brand .logo{
+    display:flex!important;
+    align-items:center!important;
+    min-width:0!important;
+    gap:8px!important;
+    white-space:nowrap!important;
+  }
+
+  #header .mmhvault-header-logo-img{
+    width:38px!important;
+    height:38px!important;
+    flex:0 0 38px!important;
+    border-radius:11px!important;
+  }
+
+  /* Keep the full MMHVAULT name readable */
+  #header .mmhvault-header-brand .logo > span:not(.version){
+    display:block!important;
+    min-width:0!important;
+    overflow:visible!important;
+    font-size:20px!important;
+    line-height:1!important;
+    letter-spacing:.015em!important;
+    white-space:nowrap!important;
+  }
+
+  /* Version is not important on mobile; remove it to free space */
+  #header .mmhvault-header-brand .version{
+    display:none!important;
+  }
+
+  #header .mmhvault-brand-tagline,
+  #header .header-spacer{
+    display:none!important;
+  }
+
+  /* Compact profile: no oversized empty glass area */
+  #header .header-profile{
+    flex:0 0 auto!important;
+    width:auto!important;
+    max-width:none!important;
+    min-width:0!important;
+    height:58px!important;
+    padding:6px 12px 6px 7px!important;
+    gap:9px!important;
+    border-radius:19px!important;
+    box-sizing:border-box!important;
+  }
+
+  #header .header-avatar{
+    width:44px!important;
+    height:44px!important;
+    min-width:44px!important;
+  }
+
+  #header .header-profile-copy{
+    min-width:0!important;
+    max-width:112px!important;
+  }
+
+  #header .header-profile-copy b{
+    display:block!important;
+    max-width:112px!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    white-space:nowrap!important;
+    font-size:17px!important;
+    line-height:1.1!important;
+  }
+
+  #header .header-profile-copy span{
+    display:none!important;
+  }
+
+  /* Cloud status stays completely removed on mobile */
+  #mmhvaultSyncStatusV337,
+  .mmhvault-sync-status-v337{
+    display:none!important;
+  }
+}
+
+/* Small iPhone widths */
+@media(max-width:430px){
+  #header{
+    min-height:72px!important;
+    padding:9px 10px!important;
+    gap:8px!important;
+  }
+
+  #header .mmhvault-header-logo-img{
+    width:34px!important;
+    height:34px!important;
+    flex-basis:34px!important;
+  }
+
+  #header .mmhvault-header-brand .logo{
+    gap:7px!important;
+  }
+
+  #header .mmhvault-header-brand .logo > span:not(.version){
+    font-size:18px!important;
+  }
+
+  #header .header-profile{
+    height:54px!important;
+    padding:5px 9px 5px 6px!important;
+    gap:7px!important;
+    border-radius:17px!important;
+  }
+
+  #header .header-avatar{
+    width:40px!important;
+    height:40px!important;
+    min-width:40px!important;
+  }
+
+  #header .header-profile-copy,
+  #header .header-profile-copy b{
+    max-width:98px!important;
+  }
+
+  #header .header-profile-copy b{
+    font-size:15px!important;
+  }
+}
+
+/* ==========================================================
+   MOBILE BOTTOM DOCK
+   Make it visually lighter and more compact than the previous
+   oversized active Dashboard card.
+========================================================== */
+@media(max-width:900px){
+
+  #bottomNav.bottom-nav{
+    position:fixed!important;
+    left:50%!important;
+    right:auto!important;
+    transform:translateX(-50%)!important;
+
+    width:calc(100vw - 24px)!important;
+    max-width:430px!important;
+    min-width:0!important;
+
+    height:78px!important;
+    min-height:78px!important;
+    max-height:78px!important;
+
+    padding:5px!important;
+    gap:3px!important;
+    box-sizing:border-box!important;
+
+    display:grid!important;
+    grid-template-columns:repeat(4,minmax(0,1fr))!important;
+    grid-template-rows:1fr!important;
+    align-items:stretch!important;
+    justify-items:stretch!important;
+
+    border-radius:22px!important;
+    overflow:hidden!important;
+  }
+
+  #bottomNav.bottom-nav > button,
+  #bottomNav.bottom-nav > button.active,
+  #bottomNav.bottom-nav > button[aria-current="page"]{
+    width:100%!important;
+    min-width:0!important;
+    max-width:100%!important;
+
+    height:68px!important;
+    min-height:68px!important;
+    max-height:68px!important;
+
+    margin:0!important;
+    padding:5px 2px!important;
+    box-sizing:border-box!important;
+
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:4px!important;
+
+    border-radius:16px!important;
+    transform:none!important;
+    overflow:hidden!important;
+    font-size:21px!important;
+    line-height:1!important;
+  }
+
+  /* Active item remains premium but no longer looks like a separate giant card */
+  #bottomNav.bottom-nav > button.active,
+  #bottomNav.bottom-nav > button[aria-current="page"]{
+    background:
+      linear-gradient(145deg,
+        rgba(74,132,198,.16),
+        rgba(35,65,108,.16))!important;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.07),
+      0 4px 12px rgba(0,0,0,.12)!important;
+    border-color:rgba(116,183,242,.16)!important;
+  }
+
+  /* Equal label baseline for all four items */
+  #bottomNav.bottom-nav > button > span{
+    display:block!important;
+    width:100%!important;
+    min-width:0!important;
+    max-width:100%!important;
+    margin:0!important;
+    padding:0!important;
+
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    white-space:nowrap!important;
+    text-align:center!important;
+
+    font-size:10px!important;
+    line-height:11px!important;
+    font-weight:650!important;
+    letter-spacing:0!important;
+    box-sizing:border-box!important;
+  }
+
+  #bottomNav.bottom-nav > button:nth-child(2) > span{
+    font-size:9px!important;
+    letter-spacing:-.02em!important;
+  }
+
+  /* Smaller centered indicator */
+  #bottomNav.bottom-nav > button.active::after,
+  #bottomNav.bottom-nav > button[aria-current="page"]::after{
+    left:50%!important;
+    right:auto!important;
+    bottom:4px!important;
+    width:20px!important;
+    height:2px!important;
+    transform:translateX(-50%)!important;
+  }
+
+  /* Keep page content clear of the fixed dock */
+  body{
+    padding-bottom:104px!important;
+  }
+
+  #moreNavMenu.more-nav-menu{
+    bottom:96px!important;
+  }
+}
+
+@media(max-width:390px){
+  #bottomNav.bottom-nav{
+    width:calc(100vw - 18px)!important;
+    height:76px!important;
+    min-height:76px!important;
+    max-height:76px!important;
+    border-radius:20px!important;
+  }
+
+  #bottomNav.bottom-nav > button,
+  #bottomNav.bottom-nav > button.active,
+  #bottomNav.bottom-nav > button[aria-current="page"]{
+    height:66px!important;
+    min-height:66px!important;
+    max-height:66px!important;
+    font-size:20px!important;
+    border-radius:15px!important;
+  }
+
+  #bottomNav.bottom-nav > button > span{
+    font-size:9.5px!important;
+  }
+}
+</style>
