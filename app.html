@@ -14276,3 +14276,168 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
   }
 }
 </style>
+
+<!-- =========================================================
+     MMHVAULT V4.3.0 · ALLOCATION CARDS SIGNATURE POLISH
+     Step 2 — premium glass asset rows + subtle live depth.
+     Visual only: no data, calculations, or interactions changed.
+========================================================= -->
+<style id="mmhvault-v4301-allocation-cards-signature">
+/* ============================================================
+   RIGHT-SIDE ASSET ALLOCATION CARDS
+============================================================ */
+#dashboard .dashboard-allocation-panel .allocation-card,
+#dashboard .dashboard-allocation-panel .asset-card{
+  position:relative!important;
+  overflow:hidden!important;
+  isolation:isolate!important;
+  border:1px solid rgba(119,171,224,.17)!important;
+  border-radius:20px!important;
+  background:
+    linear-gradient(135deg,
+      rgba(255,255,255,.048),
+      rgba(57,95,143,.045) 30%,
+      rgba(9,23,46,.68) 68%,
+      rgba(5,14,30,.84))!important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.07),
+    0 10px 24px rgba(0,0,0,.10)!important;
+  backdrop-filter:blur(14px) saturate(120%)!important;
+  -webkit-backdrop-filter:blur(14px) saturate(120%)!important;
+}
+
+/* Internal glass reflection */
+#dashboard .dashboard-allocation-panel .allocation-card::before,
+#dashboard .dashboard-allocation-panel .asset-card::before{
+  content:""!important;
+  position:absolute!important;
+  inset:0!important;
+  pointer-events:none!important;
+  z-index:-1!important;
+  background:
+    linear-gradient(112deg,
+      rgba(255,255,255,.07),
+      transparent 18%,
+      transparent 62%,
+      rgba(105,191,255,.022))!important;
+}
+
+/* Elegant left signal line — each existing asset color remains the identity */
+#dashboard .dashboard-allocation-panel .allocation-card::after,
+#dashboard .dashboard-allocation-panel .asset-card::after{
+  content:""!important;
+  position:absolute!important;
+  left:0!important;
+  top:17%!important;
+  bottom:17%!important;
+  width:2px!important;
+  border-radius:0 999px 999px 0!important;
+  background:linear-gradient(
+    180deg,
+    rgba(132,219,255,.16),
+    rgba(132,219,255,.80),
+    rgba(132,219,255,.14)
+  )!important;
+  box-shadow:0 0 12px rgba(90,207,255,.22)!important;
+}
+
+/* Preserve category personality using common color hooks */
+#dashboard .dashboard-allocation-panel .allocation-card.crypto::after,
+#dashboard .dashboard-allocation-panel .asset-card.crypto::after{
+  background:linear-gradient(180deg,rgba(204,90,255,.15),rgba(204,90,255,.82),rgba(204,90,255,.14))!important;
+  box-shadow:0 0 12px rgba(204,90,255,.22)!important;
+}
+#dashboard .dashboard-allocation-panel .allocation-card.gold::after,
+#dashboard .dashboard-allocation-panel .asset-card.gold::after{
+  background:linear-gradient(180deg,rgba(255,215,109,.15),rgba(246,196,71,.88),rgba(255,215,109,.14))!important;
+  box-shadow:0 0 12px rgba(246,196,71,.20)!important;
+}
+
+/* Typography hierarchy */
+#dashboard .dashboard-allocation-panel .allocation-card b,
+#dashboard .dashboard-allocation-panel .asset-card b{
+  color:#edf5ff!important;
+  letter-spacing:.005em!important;
+}
+#dashboard .dashboard-allocation-panel .allocation-card small,
+#dashboard .dashboard-allocation-panel .asset-card small{
+  color:#8ba2bf!important;
+}
+#dashboard .dashboard-allocation-panel .allocation-card .percent,
+#dashboard .dashboard-allocation-panel .asset-card .percent{
+  border:1px solid rgba(174,202,233,.12)!important;
+  background:rgba(255,255,255,.035)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.045)!important;
+}
+
+/* Progress tracks look more like financial terminal indicators */
+#dashboard .dashboard-allocation-panel .allocation-card .progress,
+#dashboard .dashboard-allocation-panel .asset-card .progress{
+  position:relative!important;
+  overflow:hidden!important;
+  background:linear-gradient(90deg,rgba(63,85,118,.48),rgba(41,58,85,.72))!important;
+  box-shadow:inset 0 1px 2px rgba(0,0,0,.28)!important;
+}
+#dashboard .dashboard-allocation-panel .allocation-card .progress > *,
+#dashboard .dashboard-allocation-panel .asset-card .progress > *{
+  position:relative;
+  box-shadow:
+    0 0 10px rgba(103,211,255,.16),
+    inset 0 1px 0 rgba(255,255,255,.20)!important;
+}
+#dashboard .dashboard-allocation-panel .allocation-card .progress > *::after,
+#dashboard .dashboard-allocation-panel .asset-card .progress > *::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.20),transparent);
+  opacity:.34;
+}
+
+/* Subtle premium response */
+@media(hover:hover){
+  #dashboard .dashboard-allocation-panel .allocation-card:hover,
+  #dashboard .dashboard-allocation-panel .asset-card:hover{
+    transform:translateX(3px)!important;
+    border-color:rgba(146,210,255,.28)!important;
+    box-shadow:
+      inset 0 1px 0 rgba(255,255,255,.10),
+      0 16px 34px rgba(0,0,0,.17),
+      0 0 24px rgba(67,178,255,.035)!important;
+  }
+}
+
+/* Footer note becomes a quieter professional baseline */
+#dashboard .dashboard-allocation-panel .allocation-footnote,
+#dashboard .dashboard-allocation-panel .footnote{
+  position:relative;
+  color:#7288a5!important;
+  letter-spacing:.025em;
+}
+#dashboard .dashboard-allocation-panel .allocation-footnote::before,
+#dashboard .dashboard-allocation-panel .footnote::before{
+  content:"";
+  position:absolute;
+  left:0;
+  right:0;
+  top:-10px;
+  height:1px;
+  background:linear-gradient(90deg,transparent,rgba(122,173,225,.12),transparent);
+}
+
+/* Responsive refinement */
+@media(max-width:760px){
+  #dashboard .dashboard-allocation-panel .allocation-card,
+  #dashboard .dashboard-allocation-panel .asset-card{
+    border-radius:16px!important;
+  }
+}
+
+/* Reduced motion */
+@media(prefers-reduced-motion:reduce){
+  #dashboard .dashboard-allocation-panel .allocation-card,
+  #dashboard .dashboard-allocation-panel .asset-card{
+    transition:none!important;
+  }
+}
+</style>
