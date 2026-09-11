@@ -15015,3 +15015,103 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
   }
 }
 </style>
+
+<!-- =========================================================
+     MMHVAULT V4.3.0 · MOBILE BOTTOM NAVIGATION SPACING FIX
+     Mobile-only layout refinement — removes crowding.
+========================================================= -->
+<style id="mmhvault-v4301-mobile-bottom-nav-spacing">
+@media(max-width:760px){
+
+  /* Give the dock more breathing room and a stable width */
+  #bottomNav.bottom-nav{
+    width:calc(100% - 42px)!important;
+    max-width:430px!important;
+    min-height:92px!important;
+    padding:10px 9px 12px!important;
+    border-radius:26px!important;
+    display:grid!important;
+    grid-template-columns:repeat(4,minmax(0,1fr))!important;
+    align-items:center!important;
+    justify-items:stretch!important;
+    gap:4px!important;
+    box-sizing:border-box!important;
+  }
+
+  /* Each item gets its own clear touch area */
+  #bottomNav.bottom-nav button{
+    min-width:0!important;
+    min-height:68px!important;
+    padding:8px 2px 7px!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:6px!important;
+    border-radius:18px!important;
+    box-sizing:border-box!important;
+    font-size:12px!important;
+    line-height:1.05!important;
+    letter-spacing:0!important;
+    white-space:nowrap!important;
+  }
+
+  /* Prevent icons and labels from visually colliding */
+  #bottomNav.bottom-nav button > span,
+  #bottomNav.bottom-nav button > div{
+    max-width:100%!important;
+  }
+
+  /* Icons slightly smaller, labels clearer */
+  #bottomNav.bottom-nav button .nav-icon,
+  #bottomNav.bottom-nav button .icon{
+    transform:scale(.92)!important;
+    margin:0!important;
+  }
+
+  /* Active item is premium but no longer oversized */
+  #bottomNav.bottom-nav button.active,
+  #bottomNav.bottom-nav button[aria-current="page"]{
+    min-height:68px!important;
+    transform:none!important;
+    border-radius:18px!important;
+  }
+
+  #bottomNav.bottom-nav button.active::after,
+  #bottomNav.bottom-nav button[aria-current="page"]::after{
+    left:34%!important;
+    right:34%!important;
+    bottom:5px!important;
+  }
+
+  /* Specifically keep long labels inside their own columns */
+  #bottomNav.bottom-nav button:nth-child(2){
+    font-size:11px!important;
+    letter-spacing:-.01em!important;
+  }
+
+  /* Avoid hover movement sticking on touch devices */
+  #bottomNav.bottom-nav button:hover{
+    transform:none!important;
+  }
+}
+
+/* Extra-small phones */
+@media(max-width:390px){
+  #bottomNav.bottom-nav{
+    width:calc(100% - 28px)!important;
+    gap:2px!important;
+    padding-left:6px!important;
+    padding-right:6px!important;
+  }
+
+  #bottomNav.bottom-nav button{
+    font-size:11px!important;
+    gap:5px!important;
+  }
+
+  #bottomNav.bottom-nav button:nth-child(2){
+    font-size:10px!important;
+  }
+}
+</style>
