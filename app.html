@@ -12658,3 +12658,159 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
   }
 }
 </style>
+
+<!-- =========================================================
+     MMHVAULT V4.3.0 · DASHBOARD DATA CLARITY POLISH
+     Step 2 — visual hierarchy and financial readability only.
+========================================================= -->
+<style id="mmhvault-v4301-dashboard-data-clarity">
+/* ---------- Wealth Snapshot: clearer financial hierarchy ---------- */
+#dashboard .wealth-snapshot-v386{
+  border-color:rgba(88,148,224,.22)!important;
+  background:
+    radial-gradient(circle at 88% 12%,rgba(63,191,255,.07),transparent 27%),
+    linear-gradient(145deg,rgba(12,27,52,.90),rgba(5,14,30,.95))!important;
+}
+#dashboard .wealth-snapshot-v386 .toolbar{
+  padding-bottom:14px!important;
+  border-bottom:1px solid rgba(99,148,216,.13);
+}
+#dashboard .wealth-snapshot-v386 .toolbar h2{
+  display:flex;
+  align-items:center;
+  gap:9px;
+}
+#dashboard .wealth-snapshot-v386 .toolbar h2::before{
+  content:"WEALTH";
+  padding:5px 7px;
+  border:1px solid rgba(84,202,255,.18);
+  border-radius:7px;
+  background:rgba(68,193,255,.08);
+  color:#79d5ff;
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.13em;
+}
+#dashboard .wealth-snapshot-v386 .wealth-grid,
+#dashboard .wealth-snapshot-v386 .snapshot-grid{
+  gap:12px!important;
+}
+#dashboard .wealth-snapshot-v386 .wealth-card,
+#dashboard .wealth-snapshot-v386 .snapshot-card{
+  position:relative;
+  overflow:hidden;
+  border-color:rgba(103,153,222,.15)!important;
+  background:linear-gradient(145deg,rgba(21,40,70,.68),rgba(7,17,35,.72))!important;
+}
+#dashboard .wealth-snapshot-v386 .wealth-card::before,
+#dashboard .wealth-snapshot-v386 .snapshot-card::before{
+  content:"";
+  position:absolute;
+  left:0;
+  top:14px;
+  bottom:14px;
+  width:2px;
+  border-radius:2px;
+  background:linear-gradient(180deg,rgba(69,204,255,.72),rgba(69,204,255,.08));
+}
+#dashboard .wealth-snapshot-v386 .wealth-card b,
+#dashboard .wealth-snapshot-v386 .wealth-card strong,
+#dashboard .wealth-snapshot-v386 .snapshot-card b,
+#dashboard .wealth-snapshot-v386 .snapshot-card strong{
+  font-variant-numeric:tabular-nums lining-nums;
+  font-weight:900!important;
+  letter-spacing:-.025em;
+}
+#dashboard .wealth-snapshot-v386 .wealth-card small,
+#dashboard .wealth-snapshot-v386 .snapshot-card small{
+  color:#7892b4!important;
+  font-size:10px!important;
+  letter-spacing:.035em;
+}
+
+/* ---------- Monthly report: transform into a compact executive briefing ---------- */
+#dashboard .mmh-monthly-report-v373{
+  border-color:rgba(97,148,220,.20)!important;
+  background:
+    radial-gradient(circle at 8% 0%,rgba(210,62,255,.045),transparent 28%),
+    linear-gradient(145deg,rgba(11,26,50,.90),rgba(5,13,29,.95))!important;
+}
+#dashboard .mmh-monthly-report-v373 .toolbar{
+  padding-bottom:14px!important;
+  border-bottom:1px solid rgba(103,149,214,.13);
+}
+#dashboard .mmh-monthly-report-v373 .toolbar h2{
+  display:flex;
+  align-items:center;
+  gap:9px;
+}
+#dashboard .mmh-monthly-report-v373 .toolbar h2::before{
+  content:"MONTH";
+  padding:5px 7px;
+  border:1px solid rgba(211,91,255,.16);
+  border-radius:7px;
+  background:rgba(211,91,255,.07);
+  color:#d894ff;
+  font-size:8px;
+  font-weight:900;
+  letter-spacing:.12em;
+}
+#dashboard .mmh-monthly-report-v373 .report-grid,
+#dashboard .mmh-monthly-report-v373 .monthly-grid{
+  gap:12px!important;
+}
+#dashboard .mmh-monthly-report-v373 .report-card,
+#dashboard .mmh-monthly-report-v373 .monthly-card{
+  position:relative;
+  border-radius:15px!important;
+  border-color:rgba(105,150,214,.14)!important;
+  background:rgba(13,28,54,.58)!important;
+}
+#dashboard .mmh-monthly-report-v373 .report-card b,
+#dashboard .mmh-monthly-report-v373 .monthly-card b,
+#dashboard .mmh-monthly-report-v373 .report-card strong,
+#dashboard .mmh-monthly-report-v373 .monthly-card strong{
+  font-variant-numeric:tabular-nums;
+  font-weight:900!important;
+}
+
+/* ---------- Insight / analysis surface: calmer and more readable ---------- */
+#dashboard .mmh-dashboard-v372{
+  border-color:rgba(92,148,220,.19)!important;
+  background:
+    radial-gradient(circle at 92% 10%,rgba(255,197,70,.045),transparent 25%),
+    linear-gradient(145deg,rgba(11,26,50,.90),rgba(5,13,29,.95))!important;
+}
+#dashboard .mmh-dashboard-v372 .toolbar{
+  padding-bottom:14px!important;
+  border-bottom:1px solid rgba(100,148,214,.12);
+}
+#dashboard .mmh-dashboard-v372 .toolbar h2{
+  letter-spacing:-.018em;
+}
+
+/* ---------- Subtle dashboard rhythm ---------- */
+#dashboard .dashboard-details > .panel{
+  scroll-margin-top:20px;
+}
+#dashboard .dashboard-details .sub{
+  line-height:1.55;
+}
+#dashboard .dashboard-details .pill{
+  font-variant-numeric:tabular-nums;
+}
+
+/* ---------- Responsive ---------- */
+@media(max-width:700px){
+  #dashboard .wealth-snapshot-v386 .toolbar,
+  #dashboard .mmh-monthly-report-v373 .toolbar,
+  #dashboard .mmh-dashboard-v372 .toolbar{
+    padding-bottom:11px!important;
+  }
+  #dashboard .wealth-snapshot-v386 .toolbar h2::before,
+  #dashboard .mmh-monthly-report-v373 .toolbar h2::before{
+    font-size:7px;
+    padding:4px 6px;
+  }
+}
+</style>
