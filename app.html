@@ -9621,7 +9621,7 @@ body.mmhvault-scroll-active #invest .invest-top>.panel{box-shadow:inset 0 1px 0 
     if(window.__mmhV376Sig===sig)return;window.__mmhV376Sig=sig;
     const accounts=document.getElementById('accounts');
     if(accounts){
-      accounts.innerHTML=`<div class="account-group"><div class="group-title"><strong><span>Cash</span></strong><span class="group-total">Native Currency</span></div><div class="account-list"><div class="account-row"><div class="left"><div class="name"><span>Bath</span><div class="small">THB</div></div></div><div class="amount">฿ ${fmt(balance('Bath'))}</div></div><div class="account-row"><div class="left"><div class="name"><span>TrueMoney</span><div class="small">THB</div></div></div><div class="amount">฿ ${fmt(balance('TrueMoney'))}</div></div><div class="account-row"><div class="left"><div class="name"><span>KPay</span><div class="small">MMK</div></div></div><div class="amount">MMK ${fmt(balance('KPay'))}</div></div></div></div><div class="account-group"><div class="group-title"><strong><span>USD</span></strong><span class="group-total">USD</span></div><div class="account-list"><div class="account-row"><div class="left"><div class="name"><span>OKX</span></div></div><div class="amount">${usd(balance('OKX'))}</div></div><div class="account-row"><div class="left"><div class="name"><span>ByBit</span></div></div><div class="amount">${usd(balance('ByBit'))}</div></div><div class="account-row"><div class="left"><div class="name"><span>MetaMask</span></div></div><div class="amount">${usd(balance('MetaMask'))}</div></div></div></div><div class="account-group investment-account"><div class="group-title"><strong><span>Investment</span></strong><span class="group-total">USD</span></div><div class="account-list"><div class="account-row"><div class="left"><div class="name"><span>Crypto Portfolio</span><div class="small">USD</div></div></div><div class="amount">${usd(cryptoUSD)}</div></div><div class="account-row"><div class="left"><div class="name"><span>Gold Portfolio</span><div class="small">Converted from MMK</div></div></div><div class="amount">${usd(gold.valueUSD)}</div></div></div></div>`;
+      accounts.innerHTML=`<div class="account-group"><div class="group-title"><strong><span>Cash</span></strong><span class="group-total">Native + USD</span></div><div class="account-list"><div class="account-row"><div class="left"><div class="name"><span>Bath</span><div class="small">THB</div></div></div><div class="amount amount-block-final"><div class="native-amount-final">฿ ${fmt(balance('Bath'))}</div><div class="usd-equiv-final">≈ ${usd((Number(rates?.usd_thb)||0)>0?balance('Bath')/(Number(rates.usd_thb)):0)}</div></div></div><div class="account-row"><div class="left"><div class="name"><span>TrueMoney</span><div class="small">THB</div></div></div><div class="amount amount-block-final"><div class="native-amount-final">฿ ${fmt(balance('TrueMoney'))}</div><div class="usd-equiv-final">≈ ${usd((Number(rates?.usd_thb)||0)>0?balance('TrueMoney')/(Number(rates.usd_thb)):0)}</div></div></div><div class="account-row"><div class="left"><div class="name"><span>KPay</span><div class="small">MMK</div></div></div><div class="amount amount-block-final"><div class="native-amount-final">MMK ${fmt(balance('KPay'))}</div><div class="usd-equiv-final">≈ ${usd((Number(rates?.usd_mmk)||0)>0?balance('KPay')/(Number(rates.usd_mmk)):0)}</div></div></div></div></div><div class="account-group"><div class="group-title"><strong><span>USD</span></strong><span class="group-total">USD</span></div><div class="account-list"><div class="account-row"><div class="left"><div class="name"><span>OKX</span></div></div><div class="amount">${usd(balance('OKX'))}</div></div><div class="account-row"><div class="left"><div class="name"><span>ByBit</span></div></div><div class="amount">${usd(balance('ByBit'))}</div></div><div class="account-row"><div class="left"><div class="name"><span>MetaMask</span></div></div><div class="amount">${usd(balance('MetaMask'))}</div></div></div></div><div class="account-group investment-account"><div class="group-title"><strong><span>Investment</span></strong><span class="group-total">USD</span></div><div class="account-list"><div class="account-row"><div class="left"><div class="name"><span>Crypto Portfolio</span><div class="small">USD</div></div></div><div class="amount">${usd(cryptoUSD)}</div></div><div class="account-row"><div class="left"><div class="name"><span>Gold Portfolio</span><div class="small">Converted from MMK</div></div></div><div class="amount">${usd(gold.valueUSD)}</div></div></div></div>`;
     }
     const alloc=document.getElementById('assetAllocation');
     if(alloc){
@@ -11854,3 +11854,33 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
   window.mmhvaultRefreshFinalCashUsdV405=function(){lastSig='';apply(true);};
 })();
 </script>
+
+
+<!-- MMHVAULT V4.0.6 · Authoritative Dashboard USD + Receipt Center Fix -->
+<style id="mmhvault-v406-authoritative-fix">
+/* Dashboard: the three native cash accounts always show their USD equivalent. */
+#dashboard #accounts .account-row .amount-block-final{
+  display:flex!important;flex-direction:column!important;align-items:flex-end!important;justify-content:center!important;gap:4px!important;min-width:140px!important;
+}
+#dashboard #accounts .account-row .amount-block-final .native-amount-final{
+  display:block!important;font-weight:850!important;line-height:1.2!important;white-space:nowrap!important;
+}
+#dashboard #accounts .account-row .amount-block-final .usd-equiv-final{
+  display:block!important;font-size:11px!important;font-weight:750!important;color:#8faed0!important;line-height:1.2!important;white-space:nowrap!important;
+}
+/* Receipt attachment chooser: exact horizontal centering on desktop and mobile. */
+#transactions #receiptUploadV3300{
+  width:min(100%,1040px)!important;max-width:1040px!important;margin:18px auto 6px!important;box-sizing:border-box!important;
+}
+#transactions #receiptUploadV3300 .receipt-dropzone-v3300{
+  display:flex!important;width:min(720px,calc(100% - 32px))!important;max-width:720px!important;box-sizing:border-box!important;
+  margin:14px auto!important;margin-left:auto!important;margin-right:auto!important;
+  align-self:center!important;justify-self:center!important;
+}
+@media(max-width:620px){
+  #dashboard #accounts .account-row .amount-block-final{min-width:96px!important;}
+  #dashboard #accounts .account-row .amount-block-final .usd-equiv-final{font-size:10px!important;}
+  #transactions #receiptUploadV3300{width:100%!important;max-width:100%!important;margin:14px auto 6px!important;}
+  #transactions #receiptUploadV3300 .receipt-dropzone-v3300{width:calc(100% - 24px)!important;max-width:540px!important;margin:12px auto!important;}
+}
+</style>
