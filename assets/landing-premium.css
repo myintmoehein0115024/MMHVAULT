@@ -106,3 +106,29 @@ body{letter-spacing:-.01em;text-rendering:optimizeLegibility;-webkit-font-smooth
 @media(max-width:900px){.links:hover a:not(:hover){opacity:1}.section{padding:74px 0}.page-hero h1{letter-spacing:-.06em}.showcase-copy{padding:38px}.btn{min-height:48px}}
 @media(max-width:560px){body{letter-spacing:0}.site-header{position:sticky;top:0;background:rgba(3,11,21,.78);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}.section{padding:62px 0}.section-head{margin-bottom:28px}.section-head p,.page-hero p{font-size:14px}.card h3{font-size:25px}.showcase{border-radius:22px}.mosaic .tile{border-radius:20px}.cta{border-radius:24px}.footer{padding-bottom:28px}}
 @media(hover:none){.card:hover,.mosaic .tile:hover{transform:none}.btn:hover{transform:none}.btn:before{display:none}}
+
+/* =========================================================
+   MMHVAULT V4.3.0 · NEXT VISUAL POLISH
+   Step 1: Visual consistency + luxury restraint
+   Step 2: Surface rhythm + mobile finishing
+   Presentation only — no feature or business-logic changes.
+========================================================= */
+:root{--surface-glow:rgba(101,199,255,.055);--gold-soft:rgba(242,201,105,.12)}
+.site-header{border-bottom-color:rgba(156,203,235,.08);box-shadow:0 10px 30px rgba(0,0,0,.08)}
+.links a{position:relative}
+.links a:after{content:"";position:absolute;left:50%;bottom:-7px;width:0;height:1px;background:linear-gradient(90deg,transparent,var(--gold),transparent);transition:width .32s ease,left .32s ease}
+.links a:hover:after{left:0;width:100%}
+.card,.metric,.quote,.showcase,.mosaic .tile{border-color:rgba(156,203,235,.105)}
+.card h3,.metric strong{font-variant-numeric:tabular-nums}
+.card p{line-height:1.72}
+.section-head{margin-bottom:42px}
+.section-head h2{letter-spacing:-.045em}
+.hero h1,.page-hero h1{text-shadow:0 10px 45px rgba(0,0,0,.18)}
+.showcase-copy h3{letter-spacing:-.04em}
+.metric{position:relative;overflow:hidden}
+.metric:before{content:"";position:absolute;left:12%;right:12%;top:0;height:1px;background:linear-gradient(90deg,transparent,rgba(242,201,105,.24),transparent);opacity:.8}
+.cta h2{letter-spacing:-.045em}
+.footer a{transition:color .25s ease,opacity .25s ease}
+.footer a:hover{color:#f3d38b}
+@media(max-width:900px){.section-head{margin-bottom:34px}.links a:after{display:none}}
+@media(max-width:560px){.section-head{margin-bottom:26px}.card p{line-height:1.65}.metric:before{left:18%;right:18%}}
