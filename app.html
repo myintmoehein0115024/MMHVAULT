@@ -12530,3 +12530,131 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
   }
 }
 </style>
+
+<!-- =========================================================
+     MMHVAULT V4.3.0 · ACCOUNT & SNAPSHOT PRECISION POLISH
+     Visual refinement only — no data or business logic changed.
+========================================================= -->
+<style id="mmhvault-v4301-account-snapshot-precision">
+/* ---------- Account / Asset rows: cleaner private-banking hierarchy ---------- */
+#dashboard .dashboard-account-panel .account-groups{
+  gap:14px!important;
+}
+#dashboard .dashboard-account-panel .account-groups > .account-group{
+  position:relative;
+  overflow:hidden;
+}
+#dashboard .dashboard-account-panel .account-groups > .account-group::before{
+  content:"";
+  position:absolute;
+  inset:0 auto 0 0;
+  width:2px;
+  background:linear-gradient(180deg,rgba(83,211,255,.78),rgba(83,211,255,.06));
+  opacity:.75;
+}
+#dashboard .dashboard-account-panel .account-card{
+  border-radius:14px!important;
+  border-color:rgba(99,149,219,.16)!important;
+  background:
+    linear-gradient(100deg,rgba(22,40,70,.64),rgba(8,18,38,.54))!important;
+}
+#dashboard .dashboard-account-panel .account-card:hover{
+  border-color:rgba(105,191,250,.30)!important;
+  box-shadow:0 10px 26px rgba(0,0,0,.14),inset 0 1px 0 rgba(255,255,255,.025)!important;
+}
+#dashboard .dashboard-account-panel .account-card .name,
+#dashboard .dashboard-account-panel .account-card .label{
+  font-weight:850!important;
+  letter-spacing:.005em;
+}
+#dashboard .dashboard-account-panel .account-card .value,
+#dashboard .dashboard-account-panel .account-card .amount{
+  font-weight:900!important;
+  letter-spacing:-.018em;
+  font-variant-numeric:tabular-nums;
+}
+#dashboard .dashboard-account-panel .account-card small,
+#dashboard .dashboard-account-panel .account-card .sub{
+  color:#7f98bb!important;
+  font-variant-numeric:tabular-nums;
+}
+
+/* ---------- Snapshot panels: subtle data-terminal polish ---------- */
+#dashboard .wealth-snapshot-v386,
+#dashboard .mmh-dashboard-v372,
+#dashboard .mmh-monthly-report-v373{
+  position:relative;
+  overflow:hidden;
+}
+#dashboard .wealth-snapshot-v386::after,
+#dashboard .mmh-dashboard-v372::after,
+#dashboard .mmh-monthly-report-v373::after{
+  content:"";
+  position:absolute;
+  top:0;
+  right:9%;
+  width:120px;
+  height:1px;
+  background:linear-gradient(90deg,transparent,rgba(90,206,255,.55),transparent);
+  opacity:.65;
+}
+#dashboard .wealth-snapshot-v386 .sub,
+#dashboard .mmh-dashboard-v372 .sub,
+#dashboard .mmh-monthly-report-v373 .sub{
+  letter-spacing:.012em;
+}
+
+/* ---------- KPI values: make important numbers feel deliberate ---------- */
+#dashboard .kpi-polish .kpi-value,
+#dashboard .kpi-polish .value,
+#dashboard .kpi-polish b{
+  font-variant-numeric:tabular-nums;
+}
+#dashboard .kpi-polish .kpi-value{
+  letter-spacing:-.03em!important;
+  font-weight:900!important;
+}
+#dashboard .kpi-polish .kpi-card{
+  position:relative;
+  overflow:hidden;
+}
+#dashboard .kpi-polish .kpi-card::after{
+  content:"";
+  position:absolute;
+  left:18px;
+  right:18px;
+  bottom:0;
+  height:1px;
+  background:linear-gradient(90deg,rgba(76,198,255,.42),transparent 70%);
+  opacity:.55;
+}
+
+/* ---------- Cleaner module separation ---------- */
+#dashboard .dashboard-details > * + *{
+  margin-top:0!important;
+}
+#dashboard .dashboard-account-panel .toolbar,
+#dashboard .wealth-snapshot-v386 .toolbar,
+#dashboard .mmh-dashboard-v372 .toolbar,
+#dashboard .mmh-monthly-report-v373 .toolbar{
+  align-items:center;
+}
+
+/* ---------- Mobile precision ---------- */
+@media(max-width:700px){
+  #dashboard .dashboard-account-panel .account-groups{gap:10px!important}
+  #dashboard .dashboard-account-panel .account-card{border-radius:12px!important}
+  #dashboard .wealth-snapshot-v386::after,
+  #dashboard .mmh-dashboard-v372::after,
+  #dashboard .mmh-monthly-report-v373::after{
+    right:6%;
+    width:80px;
+  }
+}
+@media(hover:none){
+  #dashboard .dashboard-account-panel .account-card:hover{
+    transform:none!important;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.025)!important;
+  }
+}
+</style>
