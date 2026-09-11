@@ -13116,3 +13116,150 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
   }
 }
 </style>
+
+<!-- =========================================================
+     MMHVAULT V4.3.0 · PREMIUM MICRO-INTERACTION POLISH
+     Visual interaction refinement only — no features or logic changed.
+========================================================= -->
+<style id="mmhvault-v4301-premium-micro-interactions">
+/* ---------- Global interaction curve for dashboard surfaces ---------- */
+#dashboard .panel,
+#dashboard .btn,
+#dashboard .pill,
+#dashboard .account-card,
+#dashboard .wealth-card,
+#dashboard .snapshot-card,
+#dashboard .report-card,
+#dashboard .monthly-card{
+  transition:
+    transform .20s cubic-bezier(.2,.75,.25,1),
+    border-color .20s ease,
+    background .20s ease,
+    box-shadow .20s ease,
+    filter .20s ease!important;
+}
+
+/* ---------- Quiet lift: tactile, but intentionally subtle ---------- */
+@media(hover:hover){
+  #dashboard .account-card:hover,
+  #dashboard .wealth-card:hover,
+  #dashboard .snapshot-card:hover,
+  #dashboard .report-card:hover,
+  #dashboard .monthly-card:hover{
+    transform:translateY(-2px)!important;
+    border-color:rgba(106,190,248,.30)!important;
+  }
+
+  #dashboard .pill:hover{
+    border-color:rgba(99,191,255,.28)!important;
+    background:rgba(15,37,68,.84)!important;
+  }
+}
+
+/* ---------- Primary action: refined press feedback ---------- */
+#dashboard .btn{
+  -webkit-tap-highlight-color:transparent;
+}
+#dashboard .btn:active{
+  transform:translateY(1px) scale(.985)!important;
+}
+#dashboard .dashboard-quick-actions-v371 .btn.primary{
+  position:relative;
+  isolation:isolate;
+}
+#dashboard .dashboard-quick-actions-v371 .btn.primary::after{
+  content:"";
+  position:absolute;
+  inset:-40%;
+  z-index:-1;
+  pointer-events:none;
+  background:radial-gradient(circle,rgba(132,223,255,.18),transparent 58%);
+  opacity:.55;
+  transition:opacity .25s ease,transform .35s ease;
+}
+@media(hover:hover){
+  #dashboard .dashboard-quick-actions-v371 .btn.primary:hover::after{
+    opacity:.9;
+    transform:scale(1.12);
+  }
+}
+
+/* ---------- Data cards: refined internal highlight ---------- */
+#dashboard .wealth-card,
+#dashboard .snapshot-card,
+#dashboard .report-card,
+#dashboard .monthly-card{
+  isolation:isolate;
+}
+#dashboard .wealth-card::after,
+#dashboard .snapshot-card::after,
+#dashboard .report-card::after,
+#dashboard .monthly-card::after{
+  content:"";
+  position:absolute;
+  left:12px;
+  right:12px;
+  top:0;
+  height:1px;
+  border-radius:999px;
+  background:linear-gradient(90deg,transparent,rgba(118,205,255,.24),transparent);
+  opacity:.55;
+  pointer-events:none;
+}
+@media(hover:hover){
+  #dashboard .wealth-card:hover::after,
+  #dashboard .snapshot-card:hover::after,
+  #dashboard .report-card:hover::after,
+  #dashboard .monthly-card:hover::after{
+    opacity:.95;
+  }
+}
+
+/* ---------- Financial numbers: crisp without visual jumping ---------- */
+#dashboard .mmh-networth-value,
+#dashboard .wealth-card b,
+#dashboard .snapshot-card b,
+#dashboard .report-card b,
+#dashboard .monthly-card b,
+#dashboard .mmh-command-stat b{
+  text-rendering:geometricPrecision;
+  font-variant-numeric:tabular-nums lining-nums;
+}
+
+/* ---------- Live indicators: controlled breathing ---------- */
+@keyframes mmhLiveBreathV4301{
+  0%,100%{filter:drop-shadow(0 0 0 rgba(70,220,255,0));opacity:.92}
+  50%{filter:drop-shadow(0 0 7px rgba(70,220,255,.36));opacity:1}
+}
+#dashboard .mmh-live-badge .dot,
+#dashboard .mmh-status-chip .dot,
+#dashboard .dashboard-live-flow-badge-v4301 .dot{
+  animation:mmhLiveBreathV4301 2.8s ease-in-out infinite;
+}
+@media(prefers-reduced-motion:reduce){
+  #dashboard .mmh-live-badge .dot,
+  #dashboard .mmh-status-chip .dot,
+  #dashboard .dashboard-live-flow-badge-v4301 .dot{
+    animation:none!important;
+  }
+}
+
+/* ---------- Smooth content loading appearance where supported ---------- */
+@keyframes mmhPanelSettleV4301{
+  from{opacity:.985;transform:translateY(3px)}
+  to{opacity:1;transform:translateY(0)}
+}
+#dashboard .dashboard-details > .panel{
+  animation:mmhPanelSettleV4301 .42s cubic-bezier(.2,.75,.25,1) both;
+}
+#dashboard .dashboard-details > .panel:nth-child(2){animation-delay:.035s}
+#dashboard .dashboard-details > .panel:nth-child(3){animation-delay:.07s}
+#dashboard .dashboard-details > .panel:nth-child(4){animation-delay:.105s}
+#dashboard .dashboard-details > .panel:nth-child(5){animation-delay:.14s}
+
+@media(prefers-reduced-motion:reduce){
+  #dashboard .dashboard-details > .panel{
+    animation:none!important;
+  }
+}
+</style>
