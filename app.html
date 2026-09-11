@@ -16232,3 +16232,158 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
   }
 }
 </style>
+
+
+<!-- =========================================================
+ MMHVAULT V4.3.0 · MOBILE TRUE GEOMETRY FIX
+ Final mobile-only correction for the two highlighted issues:
+ 1) Profile sits directly beside the brand
+ 2) All four bottom navigation items keep identical geometry
+========================================================= -->
+<style id="mmhvault-v4301-mobile-true-geometry-fix">
+@media (max-width:900px){
+  /* ---------- HEADER: brand + avatar/profile must stay adjacent ---------- */
+  #header{
+    display:flex!important;
+    align-items:center!important;
+    justify-content:flex-start!important;
+    gap:0!important;
+    padding:9px 10px!important;
+    min-height:72px!important;
+    box-sizing:border-box!important;
+    overflow:hidden!important;
+  }
+  #header .mmhvault-header-brand{
+    flex:0 0 clamp(168px,48vw,198px)!important;
+    width:clamp(168px,48vw,198px)!important;
+    min-width:0!important;
+    max-width:none!important;
+    margin:0!important;
+    padding:0!important;
+    overflow:hidden!important;
+  }
+  #header .mmhvault-header-brand .logo{
+    width:100%!important;
+    min-width:0!important;
+    overflow:hidden!important;
+  }
+  #header .mmhvault-header-brand .logo > span:not(.version){
+    min-width:0!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    white-space:nowrap!important;
+  }
+  #header .header-spacer,
+  #mmhvaultSyncStatusV337,
+  .mmhvault-sync-status-v337{display:none!important;}
+  #header .header-profile{
+    flex:0 1 auto!important;
+    width:auto!important;
+    min-width:0!important;
+    max-width:calc(100vw - clamp(168px,48vw,198px) - 20px)!important;
+    margin:0 0 0 -2px!important;
+    padding:5px 9px 5px 6px!important;
+    gap:7px!important;
+    height:54px!important;
+    box-sizing:border-box!important;
+    justify-content:flex-start!important;
+    overflow:hidden!important;
+  }
+  #header .header-avatar{
+    flex:0 0 40px!important;
+    width:40px!important;
+    height:40px!important;
+    min-width:40px!important;
+    margin:0!important;
+  }
+  #header .header-profile-copy{
+    flex:1 1 auto!important;
+    min-width:0!important;
+    max-width:120px!important;
+  }
+  #header .header-profile-copy b{
+    display:block!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    white-space:nowrap!important;
+    max-width:100%!important;
+  }
+
+  /* ---------- BOTTOM NAV: TRUE FOUR EQUAL CELLS ---------- */
+  #bottomNav.bottom-nav{
+    display:flex!important;
+    flex-direction:row!important;
+    align-items:stretch!important;
+    justify-content:stretch!important;
+    gap:0!important;
+    width:calc(100vw - 20px)!important;
+    max-width:none!important;
+    height:78px!important;
+    min-height:78px!important;
+    max-height:78px!important;
+    padding:5px!important;
+    box-sizing:border-box!important;
+    overflow:hidden!important;
+  }
+  #bottomNav.bottom-nav > button,
+  #bottomNav.bottom-nav > button.active,
+  #bottomNav.bottom-nav > button[aria-current="page"],
+  #bottomNav.bottom-nav > button[class*="active"]{
+    /* Geometry is locked: active state cannot change size */
+    flex:0 0 25%!important;
+    width:25%!important;
+    min-width:0!important;
+    max-width:25%!important;
+    height:68px!important;
+    min-height:68px!important;
+    max-height:68px!important;
+    margin:0!important;
+    padding:5px 1px!important;
+    box-sizing:border-box!important;
+    border-radius:16px!important;
+    transform:none!important;
+    translate:none!important;
+    scale:1!important;
+    zoom:1!important;
+    align-self:stretch!important;
+    position:relative!important;
+  }
+  /* Paint-only active state */
+  #bottomNav.bottom-nav > button.active,
+  #bottomNav.bottom-nav > button[aria-current="page"],
+  #bottomNav.bottom-nav > button[class*="active"]{
+    background:linear-gradient(145deg,rgba(74,132,198,.16),rgba(35,65,108,.16))!important;
+    border-color:rgba(116,183,242,.16)!important;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 4px 12px rgba(0,0,0,.12)!important;
+  }
+  #bottomNav.bottom-nav > button > span{
+    display:block!important;
+    width:100%!important;
+    min-width:0!important;
+    margin:0!important;
+    padding:0!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    white-space:nowrap!important;
+    text-align:center!important;
+  }
+}
+
+@media (max-width:430px){
+  #header .mmhvault-header-brand{
+    flex-basis:180px!important;
+    width:180px!important;
+  }
+  #header .header-profile{
+    max-width:calc(100vw - 200px)!important;
+  }
+}
+
+@media (max-width:380px){
+  #header .mmhvault-header-brand{
+    flex-basis:166px!important;
+    width:166px!important;
+  }
+  #header .header-profile-copy{max-width:100px!important;}
+}
+</style>
