@@ -8620,6 +8620,121 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
   setTimeout(sync,900);
 })();
 </script>
+
+<style id="mmhvault-mobile-analyze-swipe-v1">
+/* Mobile Analyze tabs: horizontal swipe rail with momentum + premium feedback. */
+@media (max-width:640px){
+  #analyze .analyze-tabs-merged-v1{
+    display:flex!important;
+    flex-wrap:nowrap!important;
+    align-items:stretch!important;
+    justify-content:flex-start!important;
+    gap:8px!important;
+    width:calc(100% + 2px)!important;
+    max-width:none!important;
+    margin:0 -1px!important;
+    padding:7px!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    overscroll-behavior-x:contain;
+    -webkit-overflow-scrolling:touch;
+    scroll-snap-type:x mandatory;
+    scrollbar-width:none;
+    touch-action:pan-x;
+    scroll-padding-inline:7px;
+    position:relative;
+    border-radius:18px;
+  }
+  #analyze .analyze-tabs-merged-v1::-webkit-scrollbar{display:none}
+  #analyze .analyze-tabs-merged-v1::before,
+  #analyze .analyze-tabs-merged-v1::after{
+    content:"";
+    position:absolute;
+    top:7px;bottom:7px;width:22px;z-index:3;pointer-events:none;
+    opacity:0;transition:opacity .25s ease;
+  }
+  #analyze .analyze-tabs-merged-v1::before{
+    left:7px;
+    background:linear-gradient(90deg,rgba(4,13,29,.95),transparent);
+  }
+  #analyze .analyze-tabs-merged-v1::after{
+    right:7px;
+    background:linear-gradient(270deg,rgba(4,13,29,.95),transparent);
+  }
+  #analyze .analyze-tabs-merged-v1.has-left-fade::before{opacity:.95}
+  #analyze .analyze-tabs-merged-v1.has-right-fade::after{opacity:.95}
+  #analyze .analyze-tabs-merged-v1 .analyze-tab-v371{
+    flex:0 0 auto!important;
+    width:auto!important;
+    min-width:max-content!important;
+    padding-inline:18px!important;
+    scroll-snap-align:center;
+    position:relative;
+    transition:transform .2s ease,filter .2s ease,background .25s ease,box-shadow .25s ease;
+  }
+  #analyze .analyze-tabs-merged-v1 .analyze-tab-v371:active{transform:scale(.97)}
+  #analyze .analyze-tabs-merged-v1 .analyze-tab-v371.active::after{
+    content:"";
+    position:absolute;left:18%;right:18%;bottom:4px;height:2px;border-radius:99px;
+    background:linear-gradient(90deg,transparent,rgba(88,206,255,.9),rgba(247,201,92,.85),transparent);
+    box-shadow:0 0 12px rgba(73,190,255,.35);
+  }
+  #analyze .analyze-tabs-merged-v1.is-dragging .analyze-tab-v371{transition:none!important}
+}
+@media (prefers-reduced-motion:reduce){
+  #analyze .analyze-tabs-merged-v1::before,#analyze .analyze-tabs-merged-v1::after{transition:none}
+  #analyze .analyze-tabs-merged-v1 .analyze-tab-v371{transition:none!important}
+}
+</style>
+
+<script id="mmhvault-mobile-analyze-swipe-v1-js">
+(function(){
+  const rail=document.querySelector('#analyze .analyze-tabs-merged-v1');
+  if(!rail || rail.dataset.mobileSwipeReady==='1') return;
+  rail.dataset.mobileSwipeReady='1';
+  const getTabs=()=>Array.from(rail.querySelectorAll('.analyze-tab-v371'));
+  const isMobile=()=>window.matchMedia('(max-width:640px)').matches;
+  const syncFades=()=>{
+    if(!isMobile()){rail.classList.remove('has-left-fade','has-right-fade');return;}
+    const max=Math.max(0,rail.scrollWidth-rail.clientWidth-1);
+    rail.classList.toggle('has-left-fade',rail.scrollLeft>3);
+    rail.classList.toggle('has-right-fade',rail.scrollLeft<max-3);
+  };
+  const centerActive=()=>{
+    if(!isMobile()) return;
+    const active=rail.querySelector('.analyze-tab-v371.active');
+    if(!active) return;
+    const target=active.offsetLeft-(rail.clientWidth-active.offsetWidth)/2;
+    rail.scrollTo({left:Math.max(0,target),behavior:window.matchMedia('(prefers-reduced-motion:reduce)').matches?'auto':'smooth'});
+    setTimeout(syncFades,260);
+  };
+  let down=false,startX=0,startScroll=0,moved=false;
+  rail.addEventListener('pointerdown',e=>{
+    if(!isMobile() || e.pointerType==='mouse') return;
+    down=true;moved=false;startX=e.clientX;startScroll=rail.scrollLeft;
+    rail.classList.add('is-dragging');
+  },{passive:true});
+  rail.addEventListener('pointermove',e=>{
+    if(!down) return;
+    const dx=e.clientX-startX;
+    if(Math.abs(dx)>6)moved=true;
+    if(moved) rail.scrollLeft=startScroll-dx;
+  },{passive:true});
+  const endDrag=()=>{if(!down)return;down=false;rail.classList.remove('is-dragging');syncFades();};
+  rail.addEventListener('pointerup',endDrag,{passive:true});
+  rail.addEventListener('pointercancel',endDrag,{passive:true});
+  rail.addEventListener('scroll',syncFades,{passive:true});
+  rail.addEventListener('click',e=>{
+    const btn=e.target.closest('.analyze-tab-v371');
+    if(btn && isMobile()) setTimeout(centerActive,20);
+  });
+  window.addEventListener('resize',()=>{syncFades();centerActive();},{passive:true});
+  const mo=new MutationObserver(()=>{syncFades();centerActive();});
+  mo.observe(rail,{subtree:true,attributes:true,attributeFilter:['class','aria-selected']});
+  setTimeout(()=>{syncFades();centerActive();},40);
+})();
+</script>
+
 <!-- MMHVAULT V4.3.0 · Financial Data Labels Stay English -->
 <style id="mmhvault-v3425-financial-label-style">
 /* Financial data labels intentionally remain English in all UI languages. */
