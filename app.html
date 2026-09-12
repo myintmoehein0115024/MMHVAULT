@@ -4283,12 +4283,13 @@ renderDashboard=function(){_renderDashboardV371Health();renderFinancialHealthV37
 
 /* ===================== V4.3.0 ANALYZE TABS ===================== */
 function setAnalyzeTabV371(tab){
-  const valid=['overview','health','cashflow','expenses','networth','decisions','wealthrules'];
+  const valid=['overview','health','cashflow','expenses','networth','decisions','insights','wealthrules'];
   if(!valid.includes(tab))tab='overview';
   document.querySelectorAll('.analyze-tab-v371').forEach(b=>{const on=b.dataset.tab===tab;b.classList.toggle('active',on);b.setAttribute('aria-selected',on?'true':'false');});
   document.querySelectorAll('.analyze-tab-panel-v371').forEach(p=>{const on=p.dataset.panel===tab;p.classList.toggle('active',on);p.setAttribute('aria-hidden',on?'false':'true');});
   localStorage.setItem('myfinance_analyze_tab',tab);
   if(tab==='health')renderFinancialHealthV371();
+   if(tab==='insights')window.renderInsightsV340?.();
   if(tab==='networth')renderNetWorthAnalyzeV371();
   
 }
@@ -11526,6 +11527,26 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
 </style>
 
 <script src="../assets/mmhvault-premium-motion.js"></script>
+
+<script id="mmhvault-analyze-insights-render-bridge-v2">
+(function(){
+  function bridge(){
+    const moved = document.querySelector('#analyze .analyze-tab-panel-v371[data-panel="insights"]');
+    if(!moved) return;
+    const ids=['mmhInsightsPeriodV340','mmhInsightsKpisV340','mmhInsightsSignalsV340','mmhInsightsSpendingV340','mmhInsightsSnapshotV340'];
+    ids.forEach(id=>{
+      const el=document.getElementById(id);
+      if(el && !el.closest('#analyze')){
+        const target=moved.querySelector('#'+id);
+        if(target && el!==target) target.replaceWith(el);
+      }
+    });
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(bridge,0),{once:true});
+  else setTimeout(bridge,0);
+})();
+</script>
+
 </body>
 <!-- MMHVAULT V4.3.0 performance baseline: logo-free account cards + restrained dashboard rendering. -->
 
