@@ -12354,6 +12354,46 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mark,{once:true});else mark();
 })();
 </script>
+
+<style id="mmhvault-wealth-planning-premium-v1">
+#wealth-planning{position:relative}
+#wealth-planning .mmh-v380-page-head{position:relative;overflow:hidden;display:flex;align-items:flex-end;justify-content:space-between;gap:18px;padding:24px 26px;margin-bottom:14px;border:1px solid rgba(91,146,255,.2);border-radius:24px;background:linear-gradient(135deg,rgba(9,24,55,.94),rgba(7,14,34,.78));box-shadow:0 18px 55px rgba(0,0,0,.22),inset 0 0 40px rgba(53,126,255,.06)}
+#wealth-planning .mmh-v380-page-head:before{content:"";position:absolute;inset:-30% -20% auto 30%;height:170%;background:radial-gradient(circle at 60% 45%,rgba(86,178,255,.18),transparent 60%),radial-gradient(circle at 82% 36%,rgba(196,114,255,.12),transparent 55%);filter:blur(18px);pointer-events:none;animation:mmhwpGlow 10s ease-in-out infinite alternate}
+#wealth-planning .mmh-v380-page-head>*{position:relative;z-index:1}
+#wealth-planning .mmh-v380-page-head h1{margin:0 0 7px;font-size:30px;letter-spacing:-.02em}
+#wealth-planning .mmh-v380-hero,#wealth-planning> .panel{position:relative;overflow:hidden;border-radius:22px;background:linear-gradient(145deg,rgba(9,23,52,.92),rgba(8,15,33,.84));border:1px solid rgba(84,140,245,.18);box-shadow:0 16px 44px rgba(0,0,0,.2),inset 0 0 34px rgba(61,129,255,.045);transition:transform .26s ease,border-color .26s ease,box-shadow .26s ease}
+#wealth-planning> .panel:hover{transform:translateY(-2px);border-color:rgba(103,176,255,.3);box-shadow:0 22px 52px rgba(0,0,0,.24),inset 0 0 36px rgba(61,129,255,.06)}
+#wealth-planning .toolbar{position:relative}
+#wealth-planning .toolbar:after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:1px;background:linear-gradient(90deg,rgba(84,196,255,.55),rgba(196,124,255,.18),transparent);opacity:.5}
+#wealth-planning #mmhV380Summary{min-height:160px;margin-bottom:14px}
+#wealth-planning #mmhV380Milestones,#wealth-planning #mmhV380Forecast,#wealth-planning #netWorthHistory{animation:mmhwpRise .55s ease both}
+#wealth-planning> .panel:nth-of-type(2){animation-delay:.08s}
+#wealth-planning> .panel:nth-of-type(3){animation-delay:.15s}
+#wealth-planning> .panel:nth-of-type(4){animation-delay:.22s}
+#wealth-planning .mmh-v380-summary-card,.mmh-v380-summary-card{transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease}
+#wealth-planning .mmh-v380-summary-card:hover,.mmh-v380-summary-card:hover{transform:translateY(-3px);border-color:rgba(104,190,255,.35)!important;box-shadow:0 14px 28px rgba(0,0,0,.16)}
+#wealth-planning .mmh-v380-milestone,.mmh-v380-milestone,#wealth-planning .mmh-v380-scenario,.mmh-v380-scenario{transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease}
+#wealth-planning .mmh-v380-milestone:hover,.mmh-v380-milestone:hover,#wealth-planning .mmh-v380-scenario:hover,.mmh-v380-scenario:hover{transform:translateY(-2px);border-color:rgba(105,173,255,.3)!important;box-shadow:0 12px 26px rgba(0,0,0,.18)}
+@keyframes mmhwpGlow{0%{transform:translate3d(-2%,0,0) scale(1)}100%{transform:translate3d(4%,2%,0) scale(1.05)}}
+@keyframes mmhwpRise{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:none}}
+@media(max-width:760px){
+  #wealth-planning .mmh-v380-page-head{padding:18px 16px;align-items:flex-start;flex-direction:column;border-radius:20px}
+  #wealth-planning .mmh-v380-page-head h1{font-size:25px}
+  #wealth-planning> .panel{border-radius:18px}
+  #wealth-planning> .panel:hover{transform:none;box-shadow:0 16px 40px rgba(0,0,0,.18)}
+  #wealth-planning .mmh-v380-page-head:before{animation-duration:14s}
+}
+@media(prefers-reduced-motion:reduce){#wealth-planning .mmh-v380-page-head:before{animation:none}#wealth-planning #mmhV380Milestones,#wealth-planning #mmhV380Forecast,#wealth-planning #netWorthHistory{animation:none}.mmh-v380-summary-card,.mmh-v380-milestone,.mmh-v380-scenario,#wealth-planning> .panel{transition:none!important}}
+</style>
+<script id="mmhvault-wealth-planning-premium-v1-js">
+(function(){
+  function bind(){
+    const page=document.getElementById('wealth-planning'); if(!page||page.dataset.wpPremium==='1')return; page.dataset.wpPremium='1';
+    page.addEventListener('click',function(e){const card=e.target.closest?.('.mmh-v380-summary-card,.mmh-v380-milestone,.mmh-v380-scenario'); if(!card)return; card.animate?.([{transform:'scale(1)'},{transform:'scale(.988)'},{transform:'scale(1)'}],{duration:220,easing:'cubic-bezier(.2,.8,.2,1)'});});
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true}); else bind();
+})();
+</script>
 </body>
 <!-- MMHVAULT V4.3.0 performance baseline: logo-free account cards + restrained dashboard rendering. -->
 
