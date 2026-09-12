@@ -1549,73 +1549,6 @@ button,input,select,textarea{font:inherit}button{transition:transform .2s ease,b
 @media(hover:none){button:hover{transform:none!important;filter:none!important}.card:hover,.panel:hover,.widget:hover,.stat-card:hover{border-color:inherit}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
 </style>
-
-<!-- =========================================================
-     MMHVAULT · FINAL MOBILE HEADER FIX
-     Mobile: hide cloud/profit and pin profile to the right edge.
-========================================================= -->
-<style id="mmhvault-final-mobile-header-fix-v2">
-/* Treat touch devices and compact layouts as mobile/tablet. */
-@media (max-width:1100px), (pointer:coarse){
-  #header .mmhvault-sync-status-v337,
-  #header [data-header-profit],
-  #header .header-profit,
-  #header .profit,
-  #header .profit-btn,
-  #header .profit-button{
-    display:none!important;
-  }
-}
-
-/* Pin the profile card to the real right edge of the header. */
-@media(max-width:900px){
-  #header{
-    position:relative!important;
-    display:flex!important;
-    align-items:center!important;
-    justify-content:flex-start!important;
-    padding-right:220px!important;
-  }
-
-  #header .header-spacer{display:none!important;}
-
-  #header .mmhvault-header-brand{
-    flex:1 1 auto!important;
-    min-width:0!important;
-    max-width:100%!important;
-  }
-
-  #header .header-profile{
-    position:absolute!important;
-    right:16px!important;
-    left:auto!important;
-    top:50%!important;
-    margin:0!important;
-    transform:translateY(-50%)!important;
-    z-index:5!important;
-    flex:0 0 auto!important;
-  }
-}
-
-@media(max-width:560px){
-  #header{
-    padding-left:12px!important;
-    padding-right:164px!important;
-  }
-  #header .header-profile{right:12px!important;}
-}
-
-@media(max-width:430px){
-  #header{padding-right:146px!important;}
-  #header .header-profile{right:10px!important;}
-}
-
-@media(max-width:360px){
-  #header{padding-right:130px!important;}
-  #header .header-profile{right:8px!important;}
-}
-</style>
-
 </head>
 <!-- MMHVAULT V4.3.0 · Dashboard report relocation + Transaction receipt center + Invest Add precision -->
 <body>
@@ -11465,6 +11398,40 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
   #invest .invest-entry .receipt-dropzone-v3300{width:calc(100% - 24px)!important;max-width:540px!important;margin:0 auto!important;}
 }
 </style>
+
+<!-- MMHVAULT · CLEAN MOBILE HEADER FIX
+     Minimal override based on the current preferred version.
+     Only: hide Cloud Synced on mobile + dock Profile to the right. -->
+<style id="mmhvault-clean-mobile-header-fix">
+@media (max-width: 900px){
+  /* Mobile: Cloud Synced is not needed */
+  #header .mmhvault-sync-status-v337,
+  #header #mmhvaultSyncStatusV337{
+    display:none !important;
+  }
+
+  /* Remove the spacer so the remaining header layout can use the full width */
+  #header .header-spacer{
+    display:none !important;
+  }
+
+  /* Keep brand on the left and let it occupy available space */
+  #header .mmhvault-header-brand{
+    flex:1 1 auto !important;
+    min-width:0 !important;
+  }
+
+  /* Profile stays at the far right without changing its visual design */
+  #header .header-profile{
+    margin-left:auto !important;
+    margin-right:0 !important;
+    flex:0 0 auto !important;
+    align-self:center !important;
+    transform:none !important;
+  }
+}
+</style>
+
 </body>
 <!-- MMHVAULT V4.3.0 performance baseline: logo-free account cards + restrained dashboard rendering. -->
 
