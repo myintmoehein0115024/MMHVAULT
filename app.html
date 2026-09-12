@@ -16017,3 +16017,55 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
   #financialHealthV371 .fin-health-grid{grid-template-columns:1fr}
 }
 </style>
+
+
+<style id="mmhvault-analyze-regions-refined-v3">
+/* MMHVAULT · Analyze merged-region refinement.
+   Keep all source data visible, but make each merged region feel like one focused workspace. */
+#analyze .analyze-tab-panel-v371.mmh-merged-visible-v2{padding-top:2px}
+#analyze .analyze-tab-panel-v371.mmh-merged-visible-v2>.panel{margin-top:10px}
+#analyze .analyze-tab-panel-v371.mmh-merged-visible-v2>.panel:first-child{margin-top:0}
+
+/* Overview + Insights: compact the second information layer so it reads as an extension of Overview. */
+#analyze .analyze-tab-panel-v371[data-panel="insights"] .mmh-insights-head-v340{margin:12px 4px 10px;align-items:center}
+#analyze .analyze-tab-panel-v371[data-panel="insights"] .mmh-insights-head-v340 h1{font-size:22px;line-height:1.15;margin:0}
+#analyze .analyze-tab-panel-v371[data-panel="insights"] .mmh-insights-head-v340 .sub{font-size:11px;margin-top:4px}
+#analyze .analyze-tab-panel-v371[data-panel="insights"] .mmh-insights-kpis-v340{grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:10px}
+#analyze .analyze-tab-panel-v371[data-panel="insights"] .mmh-insights-kpi-v340{padding:12px 14px;border-radius:13px}
+#analyze .analyze-tab-panel-v371[data-panel="insights"] .mmh-insights-kpi-v340 .value{font-size:21px}
+#analyze .analyze-tab-panel-v371[data-panel="insights"] .mmh-insights-grid-v340{gap:10px}
+#analyze .analyze-tab-panel-v371[data-panel="insights"] .mmh-insights-grid-v340 .panel{min-width:0}
+#analyze .analyze-tab-panel-v371[data-panel="insights"] #mmhInsightsSnapshotV340{padding-top:0}
+
+/* Health + Decisions: reduce whitespace and make the two source areas visually distinct without duplicating data. */
+#analyze .analyze-tab-panel-v371[data-panel="health"]>.panel,
+#analyze .analyze-tab-panel-v371[data-panel="decisions"]>.panel{margin-top:10px}
+#financialHealthV371 .fin-health-score-main{min-height:180px}
+#financialHealthV371 .fin-health-card{min-height:86px;padding:12px 14px}
+#financialDecisionCenterV325{padding-top:0}
+
+/* Cash Flow + Expenses: the pair is one workspace, so tighten each module while keeping all data. */
+#analyze .analyze-tab-panel-v371[data-panel="cashflow"] .cashflow-summary-v371{gap:8px}
+#analyze .analyze-tab-panel-v371[data-panel="cashflow"] .savings-trend-panel{margin-top:10px}
+#analyze .analyze-tab-panel-v371[data-panel="cashflow"] .analyze-extra{margin-top:10px!important;gap:10px}
+#analyze .analyze-tab-panel-v371[data-panel="cashflow"] .analyze-extra .panel{padding-top:10px}
+#analyze .analyze-tab-panel-v371[data-panel="expenses"] .remaining-funds-panel-v34226{margin-top:0}
+#analyze .analyze-tab-panel-v371[data-panel="expenses"] .remaining-funds-grid-v34226{gap:8px}
+#analyze .analyze-tab-panel-v371[data-panel="expenses"] .rf-stat-v34226{padding:12px 14px}
+#analyze .analyze-tab-panel-v371[data-panel="expenses"] .personal-expense-panel{margin-top:10px}
+#analyze .analyze-tab-panel-v371[data-panel="expenses"] .personal-expense-panel #personalExpenseAnalysisV371{min-height:0}
+
+/* Net Worth + Wealth Rules: compact single-purpose workspaces. */
+#analyze .analyze-tab-panel-v371[data-panel="networth"]>.panel,
+#analyze .analyze-tab-panel-v371[data-panel="wealthrules"]>.panel{margin-top:0}
+#analyze .analyze-tab-panel-v371[data-panel="networth"] .toolbar,
+#analyze .analyze-tab-panel-v371[data-panel="wealthrules"] .toolbar{margin-bottom:8px}
+
+@media(max-width:900px){
+  #analyze .analyze-tab-panel-v371[data-panel="insights"] .mmh-insights-kpis-v340{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:640px){
+  #analyze .analyze-tab-panel-v371[data-panel="insights"] .mmh-insights-kpis-v340{grid-template-columns:1fr 1fr}
+  #analyze .analyze-tab-panel-v371[data-panel="insights"] .mmh-insights-grid-v340{grid-template-columns:1fr}
+}
+</style>
