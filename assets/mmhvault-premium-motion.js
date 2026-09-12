@@ -87,3 +87,8 @@
 (function(){
   document.documentElement.dataset.mmhArtDirection = 'premium-v11-final';
 })();
+
+/* Premium visual pass 12 marker — entry experience only */
+(function(){
+  document.documentElement.dataset.mmhEntryPolish = 'premium-v12';
+})();

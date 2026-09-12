@@ -1783,3 +1783,121 @@ h1,h2{
     animation:none!important;
   }
 }
+
+
+/* =========================================================
+   MMHVAULT · PREMIUM VISUAL PASS 12
+   Focus: entry experience + modal polish
+   Visual-only. No feature/data/navigation changes.
+========================================================= */
+
+/* ---------- Welcome / loading screen: premium first impression ---------- */
+.welcome-screen{
+  backdrop-filter:blur(18px) saturate(120%);
+  -webkit-backdrop-filter:blur(18px) saturate(120%);
+}
+.welcome-card{
+  position:relative;
+  overflow:hidden;
+  background:
+    radial-gradient(circle at 82% 12%,rgba(76,199,255,.07),transparent 28%),
+    linear-gradient(145deg,rgba(10,25,50,.92),rgba(4,11,26,.97));
+  border-color:rgba(109,177,235,.22)!important;
+  box-shadow:
+    0 30px 100px rgba(0,0,0,.42),
+    0 0 42px rgba(74,189,255,.045),
+    inset 0 1px 0 rgba(255,255,255,.04);
+}
+.welcome-card::before{
+  content:"";
+  position:absolute;
+  width:220px;
+  height:220px;
+  right:-90px;
+  top:-90px;
+  border-radius:50%;
+  border:1px solid rgba(96,198,255,.10);
+  box-shadow:
+    0 0 0 24px rgba(96,198,255,.018),
+    0 0 0 48px rgba(245,196,81,.012);
+  animation:mmhWelcomeOrbit 15s ease-in-out infinite;
+  pointer-events:none;
+}
+@keyframes mmhWelcomeOrbit{
+  0%,100%{transform:translate3d(0,0,0) rotate(-2deg)}
+  50%{transform:translate3d(-7px,7px,0) rotate(2deg)}
+}
+.welcome-logo-img,.welcome-ready,.welcome-line{
+  filter:drop-shadow(0 0 18px rgba(78,191,255,.055));
+}
+
+/* ---------- Getting started dialog: polished onboarding surface ---------- */
+.getting-started-backdrop{
+  backdrop-filter:blur(14px) saturate(118%);
+  -webkit-backdrop-filter:blur(14px) saturate(118%);
+}
+.getting-started-card{
+  position:relative;
+  overflow:hidden;
+  background:
+    radial-gradient(circle at 90% 8%,rgba(72,193,255,.055),transparent 24%),
+    linear-gradient(145deg,rgba(10,23,47,.96),rgba(4,11,25,.98));
+  border-color:rgba(105,171,228,.20)!important;
+  box-shadow:
+    0 28px 90px rgba(0,0,0,.40),
+    inset 0 1px 0 rgba(255,255,255,.038);
+}
+.getting-started-card::after{
+  content:"";
+  position:absolute;
+  left:10%;
+  right:10%;
+  top:0;
+  height:1px;
+  background:linear-gradient(90deg,transparent,rgba(111,204,255,.25),rgba(245,196,81,.10),transparent);
+  pointer-events:none;
+}
+.gs-step{
+  transition:opacity .25s ease,transform .25s ease;
+}
+.gs-dot{
+  transition:background .22s ease,box-shadow .22s ease,transform .22s ease;
+}
+.gs-dot.active{
+  box-shadow:0 0 14px rgba(87,201,255,.13);
+  transform:scale(1.05);
+}
+
+/* ---------- Auth surfaces: quiet, premium, trustworthy ---------- */
+.auth-card,.login-card,.auth-panel{
+  background:
+    radial-gradient(circle at 88% 10%,rgba(73,192,255,.055),transparent 25%),
+    linear-gradient(145deg,rgba(10,23,46,.90),rgba(4,11,25,.96));
+  border-color:rgba(103,162,224,.18)!important;
+  box-shadow:
+    0 24px 80px rgba(0,0,0,.28),
+    inset 0 1px 0 rgba(255,255,255,.032);
+}
+.auth-card input,.login-card input,.auth-panel input{
+  background:rgba(4,11,25,.50);
+}
+
+/* ---------- Mobile entry experience stays compact ---------- */
+@media(max-width:700px){
+  .welcome-card,.getting-started-card,.auth-card,.login-card,.auth-panel{
+    box-shadow:
+      0 18px 58px rgba(0,0,0,.28),
+      inset 0 1px 0 rgba(255,255,255,.028);
+  }
+  .welcome-card::before{
+    width:160px;height:160px;right:-70px;top:-60px;
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  .welcome-card::before,
+  .gs-step,.gs-dot{
+    animation:none!important;
+    transition:none!important;
+  }
+}
