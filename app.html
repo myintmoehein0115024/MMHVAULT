@@ -1605,6 +1605,15 @@ button,input,select,textarea{font:inherit}button{transition:transform .2s ease,b
 #analyze .analyze-tab-panel-v371[data-panel="overview"] #financialIntelligenceV314{margin-bottom:0;}
 #analyze .analyze-tab-panel-v371[data-panel="overview"] #financialIntelligenceV314:before{content:"Overview Command Center";display:block;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#7892ba;margin-bottom:8px;}
 </style>
+
+<style id="mmhvault-analyze-cross-tab-dedup-v1">
+/* Final Analyze data reduction: Financial Health keeps only the indicators that are not already primary on other tabs. */
+#financialHealthV371 .fin-health-card:nth-child(2),
+#financialHealthV371 .fin-health-card:nth-child(3){display:none!important}
+#financialHealthV371 .fin-health-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
+@media(max-width:760px){#financialHealthV371 .fin-health-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:460px){#financialHealthV371 .fin-health-grid{grid-template-columns:1fr}}
+</style>
 </head>
 <!-- MMHVAULT V4.3.0 · Dashboard report relocation + Transaction receipt center + Invest Add precision -->
 <body>
