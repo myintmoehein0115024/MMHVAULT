@@ -1747,6 +1747,77 @@ button,input,select,textarea{font:inherit}button{transition:transform .2s ease,b
 @media(max-width:900px){#reports .mmh-v390-kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important;}}
 @media(max-width:560px){#reports .mmh-v390-kpis{grid-template-columns:1fr!important;gap:10px!important;}}
 </style>
+
+<style id="mmhvault-settings-premium-v430">
+/* MMHVAULT V4.3.0 · Settings Premium Console */
+#settings{position:relative}
+#settings>h1{letter-spacing:-.03em;text-shadow:0 0 26px rgba(80,180,255,.12)}
+.settings-tabs-v371{
+  display:flex!important;justify-content:center!important;align-items:center!important;gap:10px!important;
+  padding:8px!important;margin:18px auto 22px!important;max-width:760px!important;
+  border:1px solid rgba(93,145,231,.18)!important;border-radius:22px!important;
+  background:linear-gradient(135deg,rgba(5,15,34,.78),rgba(8,20,48,.52))!important;
+  box-shadow:0 16px 42px rgba(0,0,0,.18), inset 0 1px 0 rgba(255,255,255,.04)!important;
+}
+.settings-tab-v371{position:relative;min-height:46px!important;padding:0 20px!important;border-radius:15px!important;border:1px solid transparent!important;background:transparent!important;color:#9db3d6!important;font-weight:750!important;transition:transform .22s ease,background .22s ease,color .22s ease,box-shadow .22s ease!important;overflow:hidden!important}
+.settings-tab-v371::after{content:"";position:absolute;left:18%;right:18%;bottom:7px;height:2px;border-radius:999px;background:linear-gradient(90deg,transparent,#4dc6ff,#ffd36b,transparent);transform:scaleX(0);opacity:.0;transition:transform .3s ease,opacity .3s ease}
+.settings-tab-v371:hover{transform:translateY(-2px);color:#e8f1ff!important;background:rgba(35,64,112,.28)!important}
+.settings-tab-v371.active{color:#eff7ff!important;border-color:rgba(92,175,255,.25)!important;background:linear-gradient(135deg,rgba(31,77,127,.42),rgba(40,34,80,.34))!important;box-shadow:0 10px 28px rgba(0,0,0,.18),inset 0 1px 0 rgba(255,255,255,.05)!important}
+.settings-tab-v371.active::after{transform:scaleX(1);opacity:.95}
+.settings-panel-v371>.panel{position:relative;overflow:hidden;border-radius:22px!important;border-color:rgba(88,142,228,.20)!important;background:linear-gradient(145deg,rgba(11,25,58,.82),rgba(4,12,29,.82))!important;box-shadow:0 18px 55px rgba(0,0,0,.20),inset 0 1px 0 rgba(255,255,255,.03)!important}
+.settings-panel-v371>.panel::before{content:"";position:absolute;inset:-35% -10% auto auto;width:42%;height:70%;background:radial-gradient(circle,rgba(80,185,255,.08),transparent 68%);pointer-events:none}
+.settings-panel-v371>.panel:nth-child(1){animation:mmhSettingsPanelIn .55s cubic-bezier(.2,.75,.2,1) both}
+.account-center-v375{gap:18px!important}
+.account-center-card-v375,.account-security-card-v379,.mmh-birthday-settings-v34216,.data-center-stat-v380,.system-status-card-v313,.backup-history-v381,.excel-import-v318,.data-center-safety-card-v380{transition:transform .25s ease,border-color .25s ease,box-shadow .25s ease!important}
+.account-center-card-v375:hover,.account-security-card-v379:hover,.mmh-birthday-settings-v34216:hover,.data-center-stat-v380:hover,.system-status-card-v313:hover,.backup-history-v381:hover,.excel-import-v318:hover,.data-center-safety-card-v380:hover{transform:translateY(-3px);border-color:rgba(87,176,255,.32)!important;box-shadow:0 16px 32px rgba(0,0,0,.16),0 0 0 1px rgba(87,176,255,.05) inset!important}
+.account-center-status-v375{border-radius:16px!important;background:linear-gradient(135deg,rgba(35,120,102,.14),rgba(22,36,70,.18))!important}
+.account-center-dot-v375{box-shadow:0 0 0 4px rgba(57,230,161,.08),0 0 18px rgba(57,230,161,.52)!important;animation:mmhSettingsPulse 2.4s ease-in-out infinite}
+.account-center-copy-v375,.security-actions-v379 .btn,.data-center-actions-v380 .btn{transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease!important}
+.account-center-copy-v375:hover,.security-actions-v379 .btn:hover,.data-center-actions-v380 .btn:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(0,0,0,.18)}
+#settingsPanelAppearanceV371 .theme-options{gap:12px!important}
+#settingsPanelAppearanceV371 .theme-choice{min-height:78px!important;border-radius:18px!important;border-color:rgba(92,140,228,.18)!important;background:linear-gradient(145deg,rgba(15,31,65,.72),rgba(6,15,34,.72))!important;transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease!important}
+#settingsPanelAppearanceV371 .theme-choice:hover{transform:translateY(-3px);border-color:rgba(93,181,255,.34)!important;box-shadow:0 14px 28px rgba(0,0,0,.18)!important}
+#settingsPanelDataV371 .data-center-grid-v380{gap:12px!important}
+#settingsPanelDataV371 .data-center-stat-v380{min-height:120px!important;border-radius:18px!important;background:linear-gradient(145deg,rgba(15,31,65,.74),rgba(5,14,33,.78))!important}
+#settingsPanelDataV371 .data-center-stat-v380 .value{font-variant-numeric:tabular-nums;text-shadow:0 0 18px rgba(82,196,255,.12)}
+#settingsPanelDataV371 .data-center-danger-v380{border-color:rgba(255,113,133,.22)!important;background:linear-gradient(145deg,rgba(52,15,31,.26),rgba(8,12,25,.72))!important}
+@keyframes mmhSettingsPanelIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes mmhSettingsPulse{0%,100%{transform:scale(1);opacity:.85}50%{transform:scale(1.12);opacity:1}}
+@media(max-width:720px){
+  .settings-tabs-v371{justify-content:flex-start!important;overflow-x:auto!important;overflow-y:hidden!important;scroll-snap-type:x mandatory!important;scrollbar-width:none!important;-webkit-overflow-scrolling:touch!important;padding:7px!important}
+  .settings-tabs-v371::-webkit-scrollbar{display:none}
+  .settings-tab-v371{flex:0 0 auto!important;scroll-snap-align:center!important;padding:0 18px!important}
+  .settings-panel-v371>.panel{border-radius:19px!important}
+}
+@media(max-width:480px){
+  #settings>h1{font-size:30px!important}
+  .settings-tabs-v371{margin:14px auto 18px!important}
+  .settings-tab-v371{min-height:44px!important;font-size:13px!important;padding:0 15px!important}
+  .account-center-grid-v375{grid-template-columns:1fr!important}
+  .account-security-grid-v379{grid-template-columns:1fr!important}
+  #settingsPanelDataV371 .data-center-grid-v380{grid-template-columns:1fr 1fr!important}
+  #settingsPanelDataV371 .data-center-stat-v380{min-height:108px!important}
+}
+@media(prefers-reduced-motion:reduce){
+  .settings-tab-v371,.account-center-card-v375,.account-security-card-v379,.mmh-birthday-settings-v34216,.data-center-stat-v380,.system-status-card-v313,.backup-history-v381,.excel-import-v318,.data-center-safety-card-v380{transition:none!important}
+  .account-center-dot-v375{animation:none!important}
+  .settings-panel-v371>.panel{animation:none!important}
+}
+</style>
+<script id="mmhvault-settings-premium-motion-v430">
+(function(){
+  function boot(){
+    const host=document.getElementById('settings'); if(!host || host.dataset.premiumMotion==='1') return;
+    host.dataset.premiumMotion='1';
+    const tabs=[...host.querySelectorAll('.settings-tab-v371')];
+    tabs.forEach((tab)=>tab.addEventListener('click',()=>{
+      tab.animate([{transform:'scale(.985)'},{transform:'scale(1.015)'},{transform:'scale(1)'}],{duration:260,easing:'cubic-bezier(.2,.8,.2,1)'});
+      const scroller=tab.parentElement; if(scroller && scroller.scrollWidth>scroller.clientWidth) tab.scrollIntoView({behavior:'smooth',inline:'center',block:'nearest'});
+    },{passive:true}));
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+})();
+</script>
 </head>
 <!-- MMHVAULT V4.3.0 · Dashboard report relocation + Transaction receipt center + Invest Add precision -->
 <body>
