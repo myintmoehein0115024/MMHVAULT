@@ -1893,23 +1893,9 @@ button,input,select,textarea{font:inherit}button{transition:transform .2s ease,b
 <div class="wealth-rule-card-v326"><div class="label">Investment Weight Ceiling</div><div class="wealth-rule-input"><input id="wealthRuleInvestV326" inputmode="numeric" max="100" min="1" step="1" type="number"/><span>%</span></div><div class="small">Above this share of net worth, the decision layer asks you to review concentration.</div></div>
 </div>
 <div class="wealth-rule-actions-v326"><button class="btn primary" id="saveWealthRulesV326" type="button">Save Rules</button><button class="btn" id="resetWealthRulesV326" type="button">Reset Defaults</button><span aria-live="polite" class="small" id="wealthRulesStatusV326"></span></div>
-<div class="wealth-rule-live-v326"><div><div class="label">Rule flow</div><div class="value">Liquidity → Savings → Investment</div></div><div class="small">These <section class="page" id="insights" aria-hidden="true" style="display:none!important"></section>v></div>
+<div class="wealth-rule-live-v326"><div><div class="label">Rule flow</div><div class="value">Liquidity → Savings → Investment</div></div><div class="small">These rules remain local and do not change transactions automatically.</div>
 </section>
-<section class="page" id="insights">
-<div class="mmh-insights-head-v340">
-<div>
-<h1 data-i18n-en="Insights" data-i18n-zh="智能洞察">Insights</h1>
-<div class="sub" data-i18n-en="Actionable signals from your recent financial activity." data-i18n-zh="根据近期财务数据，自动找出最值得关注的变化。">Actionable signals from your recent financial activity.</div>
-</div>
-<span class="pill" id="mmhInsightsPeriodV340"></span>
-</div>
-<div class="mmh-insights-kpis-v340" id="mmhInsightsKpisV340"></div>
-<div class="mmh-insights-grid-v340">
-<div class="panel"><div class="toolbar"><div><h2 data-i18n-en="Priority Signals" data-i18n-zh="重点信号">Priority Signals</h2><div class="sub" data-i18n-en="What deserves your attention first." data-i18n-zh="优先处理最值得关注的问题。">What deserves your attention first.</div></div></div><div id="mmhInsightsSignalsV340"></div></div>
-<div class="panel"><div class="toolbar"><div><h2 data-i18n-en="Spending Watch" data-i18n-zh="支出观察">Spending Watch</h2><div class="sub" data-i18n-en="Current month compared with the recent 3-month average." data-i18n-zh="将本月支出与最近3个月平均水平比较。">Current month compared with the recent 3-month average.</div></div></div><div id="mmhInsightsSpendingV340"></div></div>
-</div>
-<div class="panel" style="margin-top:14px"><div class="toolbar"><div><h2 data-i18n-en="Financial Snapshot" data-i18n-zh="财务快照">Financial Snapshot</h2><div class="sub" data-i18n-en="A concise view of liquidity, savings and investment weight." data-i18n-zh="快速查看现金流动性、储蓄和投资占比。">A concise view of liquidity, savings and investment weight.</div></div></div><div id="mmhInsightsSnapshotV340"></div></div>
-</section>
+<div id="insights" aria-hidden="true" style="display:none!important"></div>
 <section class="page" id="exchange">
 <h1>Exchange Center</h1><div class="sub">Base Currency: MMK. Exchange settings do not change transaction amounts.</div>
 <div class="panel"><h2>Rates</h2><div class="formgrid">
@@ -4289,7 +4275,13 @@ function setAnalyzeTabV371(tab){
   document.querySelectorAll('.analyze-tab-panel-v371').forEach(p=>{const on=p.dataset.panel===tab;p.classList.toggle('active',on);p.setAttribute('aria-hidden',on?'false':'true');});
   localStorage.setItem('myfinance_analyze_tab',tab);
   if(tab==='health')renderFinancialHealthV371();
-   if(tab==='insights')window.renderInsightsV340?.();
+  if(tab==='insights'){
+    try{
+      const fn=window.renderInsightsV340;
+      const original=fn?.__mmhV34243Original;
+      (typeof original==='function'?original:fn)?.();
+    }catch(e){console.warn('Analyze Insights render bridge warning:',e);}
+  }
   if(tab==='networth')renderNetWorthAnalyzeV371();
   
 }
@@ -8429,7 +8421,7 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
   const more=document.getElementById('moreNavButton');
   const menu=document.getElementById('moreNavMenu');
   if(!nav||!more||!menu)return;
-  const morePages=new Set(['analyze','wealth-planning','reports','insights','exchange','settings']);
+  const morePages=new Set(['analyze','wealth-planning','reports','exchange','settings']);
   const setOpen=(open)=>{
     menu.classList.toggle('open',open);
     menu.setAttribute('aria-hidden',String(!open));
@@ -8987,7 +8979,7 @@ html.mmhv-tab-hidden .mmh-glow-anim{animation-play-state:paused!important}
     renderInvest:'invest',
     renderWealthPlanningV393:'wealth-planning',
     renderReportsV390:'reports',
-    renderInsightsV340:'insights'
+    renderInsightsV340:'analyze'
   };
   const wrapped={};
   const canRender=(pageId)=>document.visibilityState!=='hidden' && document.getElementById(pageId)?.classList.contains('active');
