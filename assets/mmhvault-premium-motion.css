@@ -1665,3 +1665,121 @@ a:not(.btn):focus-visible{
     animation:none!important;
   }
 }
+
+
+/* =========================================================
+   MMHVAULT · PREMIUM VISUAL PASS 11
+   Final art-direction pass
+   Focus: color temperature, glow restraint, shadow hierarchy,
+   desktop/mobile visual balance.
+   Visual-only. No feature/data/navigation changes.
+========================================================= */
+
+/* ---------- Cooler, more expensive glass ---------- */
+.panel,.card,.toolbar,.modal,
+.mmh-command-v34210,
+.mmh-dash372-card,
+.mmh-v380-card,
+.mmh-v380-scenario,
+.mmh-insights-kpi-v340,
+.portfolio-health-v3716,
+.portfolio-health-metric-v3716,
+.data-integrity-card-v339,
+.mmh-v390-insight{
+  box-shadow:
+    0 18px 52px rgba(0,0,0,.16),
+    0 1px 0 rgba(255,255,255,.026) inset,
+    0 -1px 0 rgba(52,129,207,.018) inset;
+}
+
+/* ---------- Gold is an accent, not a flood ---------- */
+.mmh-dash372-card:first-child,
+.mmh-v380-card,
+.mmh-v380-scenario{
+  --mmh-accent-gold-soft:rgba(245,196,81,.055);
+}
+.mmh-dash372-card:first-child::before,
+.mmh-v380-card::before,
+.mmh-v380-scenario::before{
+  background:
+    radial-gradient(circle at 92% 10%,rgba(245,196,81,.04),transparent 23%),
+    linear-gradient(115deg,transparent 0%,rgba(255,255,255,.018) 43%,rgba(255,255,255,.042) 50%,transparent 57%);
+}
+
+/* ---------- Cyan signature edge ---------- */
+#dashboard .mmh-command-v34210,
+#invest .portfolio-health-v3716,
+#transactions #txAddPanel > .panel,
+#transactions #txHistoryPanel > .panel{
+  box-shadow:
+    0 22px 68px rgba(0,0,0,.18),
+    0 0 0 1px rgba(81,180,255,.025),
+    inset 0 1px 0 rgba(255,255,255,.032);
+}
+
+/* ---------- Headings: less glow, more print-like authority ---------- */
+h1,h2,h3,.title,.page-title{
+  text-shadow:0 1px 18px rgba(0,0,0,.13);
+}
+h1,h2{
+  color:rgba(242,247,255,.98);
+}
+
+/* ---------- Quiet separators around major sections ---------- */
+.page > .panel + .panel,
+.page > .card + .card{
+  position:relative;
+}
+.page > .panel + .panel::before,
+.page > .card + .card::before{
+  opacity:.35;
+}
+
+/* ---------- Desktop gets more cinematic depth ---------- */
+@media(min-width:1101px){
+  body::after{
+    filter:blur(28px);
+  }
+  .panel,.card{
+    box-shadow:
+      0 22px 64px rgba(0,0,0,.17),
+      inset 0 1px 0 rgba(255,255,255,.028);
+  }
+}
+
+/* ---------- Tablet keeps things tighter ---------- */
+@media(max-width:900px){
+  body::after{filter:blur(22px)}
+  .panel,.card{
+    box-shadow:
+      0 16px 44px rgba(0,0,0,.15),
+      inset 0 1px 0 rgba(255,255,255,.026);
+  }
+}
+
+/* ---------- Mobile: premium, not crowded ---------- */
+@media(max-width:600px){
+  h1{line-height:1.07}
+  h2{line-height:1.12}
+  .panel,.card{
+    box-shadow:
+      0 12px 34px rgba(0,0,0,.13),
+      inset 0 1px 0 rgba(255,255,255,.025);
+  }
+  /* Keep micro-glows nearly invisible on small screens */
+  .mmh-command-v34210::after{
+    opacity:.62;
+  }
+  .site-header::after,#header::after{
+    opacity:.55;
+  }
+}
+
+/* ---------- Avoid accidental over-animation ---------- */
+@media(prefers-reduced-motion:reduce){
+  .site-header::after,#header::after,
+  body::after,.mmh-command-v34210::after,.mmh-command-v34210::before,
+  .btn.gold::after,.btn.primary::after{
+    animation:none!important;
+  }
+}

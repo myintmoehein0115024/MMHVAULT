@@ -82,3 +82,8 @@
 (function(){
   document.documentElement.dataset.mmhMicroPolish = 'premium-v10';
 })();
+
+/* Premium visual pass 11 marker — art direction finalization only */
+(function(){
+  document.documentElement.dataset.mmhArtDirection = 'premium-v11-final';
+})();
