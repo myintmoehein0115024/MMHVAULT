@@ -2107,6 +2107,56 @@ button,input,select,textarea{font:inherit}button{transition:transform .2s ease,b
 </div></div><div class="grid three" id="rateCards" style="margin-top:18px"></div>
 <div class="panel exchange-converter-panel"><div class="toolbar"><div><h2>Currency Converter</h2><div class="sub">Convert between USD, MMK, THB and CNY using your saved exchange rates.</div></div><span class="pill">Live from saved rates</span></div><div class="exchange-converter-grid"><label class="wide">Amount<input id="exchangeAmount" min="0" oninput="renderExchangeConverter()" step="0.01" type="number" value="1"/></label><label>From<select id="exchangeFrom" onchange="renderExchangeConverter()"><option>USD</option><option>MMK</option><option>THB</option><option>CNY</option></select></label><label>To<select id="exchangeTo" onchange="renderExchangeConverter()"><option>MMK</option><option>USD</option><option>THB</option><option>CNY</option></select></label><button class="btn primary" onclick="swapExchangeCurrencies()" type="button">⇄ Swap</button></div><div class="exchange-converter-result" id="exchangeConverterResult"></div></div>
 </section>
+<style id="mmhvault-exchange-premium-v450">
+/* MMHVAULT — Exchange Center Premium visual pass. Presentation only. */
+#exchange{position:relative;isolation:isolate}
+#exchange::before{content:"";position:absolute;inset:0 0 auto;height:260px;pointer-events:none;z-index:-1;background:radial-gradient(circle at 82% 18%,rgba(70,185,255,.16),transparent 46%),radial-gradient(circle at 20% 0%,rgba(120,100,255,.10),transparent 48%);filter:blur(10px);opacity:.8}
+#exchange>h1{font-size:clamp(30px,4vw,48px);letter-spacing:-.035em;margin-bottom:8px}
+#exchange>.sub{max-width:760px;color:#91a6c9;margin-bottom:22px}
+#exchange>.panel{position:relative;overflow:hidden;border:1px solid rgba(100,160,240,.20);background:linear-gradient(145deg,rgba(10,23,52,.88),rgba(4,12,28,.94));box-shadow:0 22px 70px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.03);transition:transform .28s ease,border-color .28s ease,box-shadow .28s ease}
+#exchange>.panel::before{content:"";position:absolute;left:-20%;right:-20%;top:0;height:2px;background:linear-gradient(90deg,transparent,rgba(88,210,255,.65),rgba(195,110,255,.55),transparent);opacity:.7;transform:translateX(-18%);animation:mmhExchangeSweep450 7s ease-in-out infinite}
+#exchange>.panel:hover{transform:translateY(-2px);border-color:rgba(110,192,255,.36);box-shadow:0 28px 84px rgba(0,0,0,.30),0 0 0 1px rgba(100,180,255,.06) inset}
+#exchange>.panel:first-of-type{padding:22px}
+#exchange>.panel:first-of-type h2,#exchange .exchange-converter-panel h2{font-size:18px;margin:0 0 14px}
+#exchange>.panel:first-of-type .formgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) auto;gap:14px;align-items:end}
+#exchange>.panel:first-of-type label{display:grid;gap:7px}
+#exchange input,#exchange select{min-height:48px;border-radius:14px;border:1px solid rgba(92,150,225,.24);background:rgba(10,24,51,.82);color:#eef6ff;padding:0 14px;box-shadow:inset 0 1px 0 rgba(255,255,255,.025);transition:border-color .2s ease,box-shadow .2s ease,transform .2s ease}
+#exchange input:focus,#exchange select:focus{outline:none;border-color:rgba(101,202,255,.72);box-shadow:0 0 0 3px rgba(71,181,255,.11),0 10px 30px rgba(40,120,220,.10);transform:translateY(-1px)}
+#exchange>.panel:first-of-type .btn{min-height:48px;border-radius:14px}
+#exchange #rateCards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:14px!important}
+#exchange #rateCards>*{position:relative;padding:16px;border-radius:16px!important;border:1px solid rgba(91,148,226,.18);background:linear-gradient(145deg,rgba(18,34,70,.75),rgba(6,14,32,.88));transition:transform .24s ease,border-color .24s ease,box-shadow .24s ease}
+#exchange #rateCards>*:hover{transform:translateY(-3px);border-color:rgba(110,200,255,.38);box-shadow:0 18px 40px rgba(0,0,0,.22)}
+#exchange .exchange-converter-panel{margin-top:16px;padding:22px}
+#exchange .exchange-converter-grid{display:grid;grid-template-columns:1.6fr .9fr .9fr auto;gap:14px;align-items:end}
+#exchange .exchange-converter-grid label{display:grid;gap:7px}
+#exchange .exchange-converter-grid .wide{min-width:0}
+#exchange .exchange-converter-grid .btn{min-height:48px;border-radius:14px}
+#exchange .exchange-converter-result{margin-top:16px;min-height:90px;padding:18px 20px;border-radius:18px;border:1px solid rgba(84,183,255,.18);background:linear-gradient(120deg,rgba(22,52,91,.55),rgba(20,25,61,.48));display:flex;align-items:center;justify-content:center;text-align:center;position:relative;overflow:hidden;animation:mmhExchangeResult450 .45s ease both}
+#exchange .exchange-converter-result::after{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 25%,rgba(115,220,255,.06) 50%,transparent 75%);transform:translateX(-100%);animation:mmhExchangeResultSweep450 5.5s ease-in-out infinite}
+@keyframes mmhExchangeSweep450{0%,100%{transform:translateX(-24%);opacity:.3}50%{transform:translateX(24%);opacity:.85}}
+@keyframes mmhExchangeResult450{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes mmhExchangeResultSweep450{0%,65%,100%{transform:translateX(-100%)}78%{transform:translateX(100%)}}
+@media(max-width:900px){
+  #exchange>.panel:first-of-type .formgrid{grid-template-columns:1fr 1fr}
+  #exchange>.panel:first-of-type .formgrid>div{grid-column:1/-1}
+  #exchange #rateCards{grid-template-columns:1fr}
+  #exchange .exchange-converter-grid{grid-template-columns:1fr 1fr}
+  #exchange .exchange-converter-grid .wide{grid-column:1/-1}
+  #exchange .exchange-converter-grid .btn{grid-column:1/-1}
+}
+@media(max-width:560px){
+  #exchange{padding-top:4px}
+  #exchange>h1{font-size:32px}
+  #exchange>.panel:first-of-type,.mmh-v390-page-head,#exchange .exchange-converter-panel{padding:16px}
+  #exchange>.panel:first-of-type .formgrid{grid-template-columns:1fr}
+  #exchange>.panel:first-of-type .formgrid>div{grid-column:auto}
+  #exchange .exchange-converter-grid{grid-template-columns:1fr}
+  #exchange .exchange-converter-grid .wide,#exchange .exchange-converter-grid .btn{grid-column:auto}
+  #exchange>.panel{border-radius:18px}
+}
+@media(prefers-reduced-motion:reduce){#exchange>.panel,#exchange #rateCards>*{transition:none!important}#exchange>.panel::before,#exchange .exchange-converter-result::after{animation:none!important}}
+</style>
+
 <section class="page" id="invest">
 <div class="toolbar v371-head"><div><h1>Investment Center</h1><div class="sub">Crypto is displayed in <b>USD</b>. Gold is displayed in <b>MMK</b>. Investment purchases deduct directly from the selected source account and are kept out of Transaction History.</div></div>
 <div class="v371-switch"><button class="btn active" id="v371CryptoBtn" type="button">₿ Crypto</button><button class="btn" id="v371GoldBtn" type="button">🥇 Gold</button></div></div>
