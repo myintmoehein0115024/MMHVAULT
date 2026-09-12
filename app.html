@@ -1592,6 +1592,19 @@ button,input,select,textarea{font:inherit}button{transition:transform .2s ease,b
 .personal-command-note-v1{margin-top:10px;color:#7187aa;font-size:10px;line-height:1.45}
 @media(max-width:760px){.personal-command-grid-v1{grid-template-columns:1fr}.personal-command-card-v1.primary .value{font-size:20px}}
 </style>
+<!-- MMHVAULT V4.3.0 · Overview data de-duplication -->
+<style id="mmhvault-overview-dedup-v1">
+/* Overview = one decision surface. Keep legacy DOM alive for compatibility, but remove duplicate presentations. */
+#analyze .analyze-tab-panel-v371[data-panel="overview"] .overview-snapshot-panel-v371,
+#analyze .analyze-tab-panel-v371[data-panel="overview"] > .analyze-panel:nth-of-type(3),
+#analyze .analyze-tab-panel-v371[data-panel="overview"] > .analyze-panel:nth-of-type(4),
+#analyze .analyze-tab-panel-v371[data-panel="overview"] > .analyze-panel:nth-of-type(5){display:none!important;}
+</style>
+
+<style id="mmhvault-overview-command-v1">
+#analyze .analyze-tab-panel-v371[data-panel="overview"] #financialIntelligenceV314{margin-bottom:0;}
+#analyze .analyze-tab-panel-v371[data-panel="overview"] #financialIntelligenceV314:before{content:"Overview Command Center";display:block;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#7892ba;margin-bottom:8px;}
+</style>
 </head>
 <!-- MMHVAULT V4.3.0 · Dashboard report relocation + Transaction receipt center + Invest Add precision -->
 <body>
