@@ -92,3 +92,27 @@
 (function(){
   document.documentElement.dataset.mmhEntryPolish = 'premium-v12';
 })();
+
+/* Premium visual pass 13: ambient pointer light, presentation-only */
+(function(){
+  if (window.matchMedia && !window.matchMedia('(hover:hover) and (pointer:fine) and (min-width:901px)').matches) return;
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  let raf = 0, x = 50, y = 18;
+  const apply = () => {
+    raf = 0;
+    document.documentElement.style.setProperty('--mmh-pointer-x', x + '%');
+    document.documentElement.style.setProperty('--mmh-pointer-y', y + '%');
+  };
+
+  window.addEventListener('pointermove', (e) => {
+    x = Math.max(4, Math.min(96, (e.clientX / Math.max(1, window.innerWidth)) * 100));
+    y = Math.max(3, Math.min(97, (e.clientY / Math.max(1, window.innerHeight)) * 100));
+    if (!raf) raf = requestAnimationFrame(apply);
+  }, {passive:true});
+
+  window.addEventListener('pointerleave', () => {
+    x = 50; y = 18;
+    if (!raf) raf = requestAnimationFrame(apply);
+  }, {passive:true});
+})();
