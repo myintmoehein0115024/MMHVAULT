@@ -1580,10 +1580,10 @@ button,input,select,textarea{font:inherit}button{transition:transform .2s ease,b
 <div aria-live="polite" class="mmhvault-sync-status-v337" id="mmhvaultSyncStatusV337" title="Cloud sync status"><span class="sync-dot"></span><span class="sync-label">Cloud Synced</span></div>
 </header>
 <div class="bottom-nav" id="bottomNav" style="display:none">
-<button data-page="dashboard">📊<span>Dashboard</span></button>
-<button data-page="transactions">💳<span>Transactions</span></button>
-<button data-page="invest">📈<span>Invest</span></button>
-<button aria-expanded="false" aria-haspopup="menu" class="more-nav-trigger" id="moreNavButton" type="button">☰<span>More</span></button>
+<button data-page="dashboard" type="button"><span class="nav-icon" aria-hidden="true">📊</span><span class="nav-label">Dashboard</span></button>
+<button data-page="transactions" type="button"><span class="nav-icon" aria-hidden="true">💳</span><span class="nav-label">Transactions</span></button>
+<button data-page="invest" type="button"><span class="nav-icon" aria-hidden="true">📈</span><span class="nav-label">Invest</span></button>
+<button aria-expanded="false" aria-haspopup="menu" class="more-nav-trigger" id="moreNavButton" type="button"><span class="nav-icon" aria-hidden="true">☰</span><span class="nav-label">More</span></button>
 </div>
 <div aria-hidden="true" class="more-nav-menu" id="moreNavMenu" role="menu">
 <button data-more-page="analyze" role="menuitem" type="button">📊<span>Analyze</span></button>
@@ -11396,6 +11396,125 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
 @media(max-width:760px){
   #invest .invest-entry .receipt-upload-v3300{width:100%!important;margin:16px auto 4px!important;}
   #invest .invest-entry .receipt-dropzone-v3300{width:calc(100% - 24px)!important;max-width:540px!important;margin:0 auto!important;}
+}
+</style>
+
+<!-- =========================================================
+ MMHVAULT V4.3.0 · MOBILE NAV ARCHITECTURE FIX
+ Root cause fixed: legacy patches styled raw emoji/text differently and
+ repeatedly overrode the second Transactions item. The nav now has explicit
+ icon/label elements and a single locked geometry rule.
+========================================================= -->
+<style id="mmhvault-v4302-mobile-nav-architecture-fix">
+@media(max-width:760px){
+  /* Header: keep profile directly beside the brand, with no Cloud Sync spacer */
+  #header{display:flex!important;align-items:center!important;justify-content:flex-start!important;gap:6px!important;overflow:hidden!important;}
+  #header .header-spacer,#header #mmhvaultSyncStatusV337,#header .mmhvault-sync-status-v337{display:none!important;}
+  #header .mmhvault-header-brand{flex:0 1 168px!important;width:168px!important;min-width:0!important;max-width:168px!important;margin:0!important;}
+  #header .header-profile{flex:0 1 auto!important;margin:0!important;min-width:0!important;justify-content:flex-start!important;}
+
+  /* One geometry system for all four items — active state can never resize a tab. */
+  #bottomNav.bottom-nav{
+    display:grid!important;
+    grid-template-columns:repeat(4,minmax(0,1fr))!important;
+    grid-template-rows:72px!important;
+    align-items:stretch!important;
+    justify-items:stretch!important;
+    gap:4px!important;
+    width:calc(100vw - 24px)!important;
+    max-width:430px!important;
+    height:82px!important;
+    min-height:82px!important;
+    max-height:82px!important;
+    padding:5px!important;
+    box-sizing:border-box!important;
+    overflow:hidden!important;
+  }
+  #bottomNav.bottom-nav > button,
+  #bottomNav.bottom-nav > button.active,
+  #bottomNav.bottom-nav > button[aria-current="page"],
+  #bottomNav.bottom-nav > button[class*="active"]{
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    justify-content:center!important;
+    grid-column:auto!important;
+    grid-row:1!important;
+    grid-area:auto!important;
+    width:100%!important;
+    min-width:0!important;
+    max-width:100%!important;
+    height:72px!important;
+    min-height:72px!important;
+    max-height:72px!important;
+    margin:0!important;
+    padding:7px 2px!important;
+    gap:5px!important;
+    box-sizing:border-box!important;
+    flex:none!important;
+    transform:none!important;
+    translate:none!important;
+    scale:1!important;
+    border-radius:18px!important;
+    overflow:hidden!important;
+  }
+  /* Explicit icon box removes emoji-width differences (especially 💳 Transactions). */
+  #bottomNav.bottom-nav > button > .nav-icon{
+    display:grid!important;
+    place-items:center!important;
+    width:28px!important;
+    min-width:28px!important;
+    max-width:28px!important;
+    height:28px!important;
+    min-height:28px!important;
+    max-height:28px!important;
+    margin:0!important;
+    padding:0!important;
+    font-size:22px!important;
+    line-height:28px!important;
+    white-space:nowrap!important;
+    overflow:visible!important;
+    text-align:center!important;
+  }
+  #bottomNav.bottom-nav > button > .nav-label{
+    display:block!important;
+    width:100%!important;
+    min-width:0!important;
+    max-width:100%!important;
+    margin:0!important;
+    padding:0!important;
+    font-size:11px!important;
+    line-height:14px!important;
+    font-weight:700!important;
+    letter-spacing:0!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    text-align:center!important;
+  }
+  /* Transactions gets the same geometry and icon box as the other three. */
+  #bottomNav.bottom-nav > button:nth-child(2),
+  #bottomNav.bottom-nav > button:nth-child(2).active{
+    width:100%!important;min-width:0!important;max-width:100%!important;
+    height:72px!important;min-height:72px!important;max-height:72px!important;
+    padding:7px 2px!important;margin:0!important;transform:none!important;
+  }
+  #bottomNav.bottom-nav > button:nth-child(2) > .nav-icon{font-size:22px!important;width:28px!important;height:28px!important;}
+  #bottomNav.bottom-nav > button:nth-child(2) > .nav-label{font-size:11px!important;letter-spacing:0!important;}
+
+  /* Active state is paint only, never geometry. */
+  #bottomNav.bottom-nav > button.active,
+  #bottomNav.bottom-nav > button[aria-current="page"],
+  #bottomNav.bottom-nav > button[class*="active"]{
+    background:linear-gradient(145deg,rgba(88,169,245,.16),rgba(62,105,183,.11) 58%,rgba(123,66,178,.06))!important;
+    border-color:rgba(126,196,255,.22)!important;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 4px 12px rgba(0,0,0,.10)!important;
+  }
+}
+@media(max-width:390px){
+  #bottomNav.bottom-nav{width:calc(100vw - 18px)!important;gap:2px!important;padding:4px!important;}
+  #bottomNav.bottom-nav > button,#bottomNav.bottom-nav > button.active{height:72px!important;min-height:72px!important;max-height:72px!important;}
+  #bottomNav.bottom-nav > button > .nav-label{font-size:10px!important;}
 }
 </style>
 </body>
