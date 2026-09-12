@@ -1369,3 +1369,164 @@ input,select,textarea{
     transition:none!important;
   }
 }
+
+
+/* =========================================================
+   MMHVAULT · PREMIUM VISUAL PASS 9
+   Focus: Settings / Data Center private control center
+   Visual-only. No feature/data/navigation changes.
+========================================================= */
+
+/* ---------- Calm control-center shell ---------- */
+#settings .panel,
+#settings .card,
+#settings .toolbar{
+  background:
+    linear-gradient(145deg,rgba(9,21,42,.76),rgba(4,11,26,.84));
+  border-color:rgba(99,151,221,.14);
+  box-shadow:
+    0 18px 54px rgba(0,0,0,.14),
+    inset 0 1px 0 rgba(255,255,255,.025);
+}
+
+#settings .page-title,
+#settings h1{
+  letter-spacing:-.042em;
+}
+#settings h2{
+  letter-spacing:-.025em;
+}
+#settings .sub,
+#settings .small{
+  color:rgba(157,179,211,.80);
+}
+
+/* ---------- Settings tabs become quiet command controls ---------- */
+#settings .settings-tabs-v371{
+  padding:6px;
+  gap:6px;
+  border:1px solid rgba(96,149,222,.14);
+  border-radius:16px;
+  background:rgba(4,11,26,.54);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.024);
+}
+#settings .settings-tabs-v371 button{
+  border-radius:12px!important;
+  transition:
+    background .22s ease,
+    border-color .22s ease,
+    box-shadow .22s ease,
+    transform .22s ease!important;
+}
+#settings .settings-tabs-v371 button.active{
+  background:linear-gradient(145deg,rgba(29,65,106,.50),rgba(13,28,55,.70))!important;
+  border-color:rgba(96,189,255,.20)!important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.04),
+    0 7px 18px rgba(0,0,0,.10)!important;
+}
+
+/* ---------- Data Center cards: secure vault feel ---------- */
+#settings .data-center-safety-v380,
+#settings .data-center-safety-card-v380{
+  background:linear-gradient(150deg,rgba(9,22,43,.68),rgba(4,11,25,.78));
+}
+#settings .data-center-safety-card-v380{
+  border-color:rgba(91,151,222,.12);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.022);
+  transition:border-color .25s ease,transform .25s ease,box-shadow .25s ease;
+}
+@media(hover:hover){
+  #settings .data-center-safety-card-v380:hover{
+    transform:translateY(-2px);
+    border-color:rgba(94,193,255,.24);
+    box-shadow:0 14px 32px rgba(0,0,0,.13),inset 0 1px 0 rgba(255,255,255,.03);
+  }
+}
+
+/* ---------- Cloud / backup information gets deliberate hierarchy ---------- */
+#settings [class*="backup"],
+#settings [class*="sync"],
+#settings [class*="cloud"]{
+  color:inherit;
+}
+#settings .mmhvault-sync-status-v337{
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.035);
+}
+
+/* ---------- Safety blocks feel separated from destructive controls ---------- */
+#settings .data-center-danger-v380{
+  border-color:rgba(255,113,133,.11);
+  background:
+    linear-gradient(150deg,rgba(38,14,25,.28),rgba(8,12,25,.76));
+}
+#settings .data-center-danger-v380 .toolbar{
+  background:transparent;
+  box-shadow:none;
+}
+#settings .data-center-danger-v380 .btn.danger{
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.025),
+    0 8px 24px rgba(0,0,0,.12);
+}
+
+/* ---------- Import / backup area: premium utility surface ---------- */
+#settings .excel-import-v318{
+  box-shadow:
+    0 22px 62px rgba(0,0,0,.17),
+    inset 0 1px 0 rgba(255,255,255,.028);
+}
+#settings .excel-dropzone-v318{
+  transition:
+    border-color .24s ease,
+    background .24s ease,
+    box-shadow .24s ease,
+    transform .24s ease!important;
+}
+@media(hover:hover){
+  #settings .excel-dropzone-v318:hover{
+    transform:translateY(-1px);
+    box-shadow:0 14px 34px rgba(0,0,0,.13);
+  }
+}
+
+/* ---------- Security / account controls ---------- */
+#settings input,
+#settings select,
+#settings textarea{
+  background:rgba(4,11,25,.55);
+}
+#settings label{
+  letter-spacing:.025em;
+}
+#settings .btn{
+  border-radius:11px;
+}
+
+/* ---------- Mobile: quiet, spacious, stable ---------- */
+@media(max-width:760px){
+  #settings .panel,
+  #settings .card{
+    border-radius:17px;
+  }
+  #settings .settings-tabs-v371{
+    border-radius:14px;
+  }
+}
+@media(max-width:520px){
+  #settings .data-center-safety-v380{
+    gap:10px;
+  }
+  #settings .excel-dropzone-v318{
+    min-height:108px;
+  }
+}
+
+/* ---------- Reduced motion ---------- */
+@media(prefers-reduced-motion:reduce){
+  #settings .settings-tabs-v371 button,
+  #settings .data-center-safety-card-v380,
+  #settings .excel-dropzone-v318{
+    transition:none!important;
+  }
+}

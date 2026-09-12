@@ -72,3 +72,8 @@
 (function(){
   document.documentElement.dataset.mmhAnalyticsSystem = 'premium-v8';
 })();
+
+/* Premium visual pass 9 marker — Settings / Data Center presentation only */
+(function(){
+  document.documentElement.dataset.mmhControlCenter = 'premium-v9';
+})();
