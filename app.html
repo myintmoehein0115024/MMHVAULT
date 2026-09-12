@@ -16655,3 +16655,171 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else setTimeout(boot,0);
 })();
 </script>
+
+
+<!-- MMHVAULT CASH FLOW & EXPENSES PREMIUM PASS -->
+<style id="mmhvault-cashflow-expenses-premium-v1">
+/* Clear hierarchy: Cash Flow = performance, Expenses = control. */
+#analyze .analyze-tab-panel-v371[data-panel="cashflow"]{
+  position:relative;
+}
+#analyze .analyze-tab-panel-v371[data-panel="cashflow"]>.panel{
+  position:relative;
+  overflow:hidden;
+  isolation:isolate;
+  border-color:rgba(93,166,255,.18)!important;
+  background:linear-gradient(145deg,rgba(7,18,42,.94),rgba(4,11,27,.91))!important;
+  box-shadow:0 18px 52px rgba(0,0,0,.24), inset 0 1px 0 rgba(255,255,255,.035)!important;
+  transition:transform .34s cubic-bezier(.2,.75,.2,1),box-shadow .34s ease,border-color .34s ease;
+}
+/* Cash Flow hero */
+#analyze .analyze-tab-panel-v371[data-panel="cashflow"]>.panel:first-child{
+  border-color:rgba(83,202,255,.30)!important;
+  background:
+    radial-gradient(circle at 85% 15%,rgba(55,182,255,.11),transparent 28%),
+    linear-gradient(145deg,rgba(8,23,53,.97),rgba(4,12,29,.94))!important;
+  box-shadow:0 26px 72px rgba(0,0,0,.32),0 0 70px rgba(43,160,255,.07),inset 0 1px 0 rgba(255,255,255,.045)!important;
+}
+#analyze .analyze-tab-panel-v371[data-panel="cashflow"]>.panel:first-child::after{
+  content:"CASH FLOW";
+  position:absolute;right:20px;top:16px;
+  font-size:9px;letter-spacing:.18em;font-weight:900;color:rgba(120,187,247,.44);
+  pointer-events:none;z-index:2;
+}
+/* Savings trend gets a secondary glass layer */
+#analyze .analyze-tab-panel-v371[data-panel="cashflow"]>.savings-trend-panel{
+  margin-top:18px!important;
+  border-color:rgba(125,145,255,.22)!important;
+}
+#analyze .analyze-tab-panel-v371[data-panel="cashflow"]>.savings-trend-panel::after{
+  content:"TREND";
+  position:absolute;right:20px;top:16px;
+  font-size:9px;letter-spacing:.18em;font-weight:900;color:rgba(160,170,255,.36);
+  pointer-events:none;
+}
+/* Cash flow internal metric cards */
+#analyze .cashflow-card-v371,
+#analyze .cashflow-command-stat{
+  position:relative;overflow:hidden;
+  transition:transform .26s ease,border-color .26s ease,box-shadow .26s ease,background .26s ease;
+}
+#analyze .cashflow-card-v371{
+  border:1px solid rgba(105,155,240,.12);
+  border-radius:16px;
+  background:linear-gradient(145deg,rgba(16,31,65,.72),rgba(8,18,41,.68));
+}
+#analyze .cashflow-card-v371:hover,
+#analyze .cashflow-command-stat:hover{
+  transform:translateY(-3px);
+  border-color:rgba(113,183,255,.30)!important;
+  box-shadow:0 14px 30px rgba(0,0,0,.18),0 0 28px rgba(75,157,255,.07);
+}
+#analyze .cashflow-card-v371::before,
+#analyze .cashflow-command-stat::before{
+  content:"";position:absolute;left:-20%;top:-45%;width:140%;height:80%;
+  background:radial-gradient(ellipse,rgba(111,196,255,.10),transparent 65%);
+  opacity:0;transition:opacity .28s ease;pointer-events:none;
+}
+#analyze .cashflow-card-v371:hover::before,
+#analyze .cashflow-command-stat:hover::before{opacity:1}
+/* Divider before Expenses */
+#analyze .analyze-tab-panel-v371[data-panel="expenses"]{
+  margin-top:26px!important;
+  padding-top:20px!important;
+  border-top:1px solid rgba(245,190,92,.12);
+  position:relative;
+}
+#analyze .analyze-tab-panel-v371[data-panel="expenses"]::before{
+  content:"EXPENSE CONTROL";
+  position:absolute;left:4px;top:0;
+  font-size:9px;letter-spacing:.18em;font-weight:900;color:rgba(241,190,97,.54);
+}
+#analyze .analyze-tab-panel-v371[data-panel="expenses"]>.panel{
+  position:relative;overflow:hidden;isolation:isolate;
+  border-color:rgba(231,177,84,.18)!important;
+  background:linear-gradient(145deg,rgba(18,25,52,.94),rgba(8,14,30,.91))!important;
+  box-shadow:0 18px 50px rgba(0,0,0,.25),inset 0 1px 0 rgba(255,255,255,.03)!important;
+  transition:transform .32s cubic-bezier(.2,.75,.2,1),box-shadow .32s ease,border-color .32s ease;
+}
+#analyze .analyze-tab-panel-v371[data-panel="expenses"]>.panel:hover{
+  transform:translateY(-3px);
+  border-color:rgba(244,193,95,.34)!important;
+  box-shadow:0 24px 62px rgba(0,0,0,.30),0 0 42px rgba(238,187,86,.07),inset 0 1px 0 rgba(255,255,255,.04)!important;
+}
+/* Expense command center feels like a control surface */
+#analyze .analyze-tab-panel-v371[data-panel="expenses"] .remaining-funds-panel-v34226{
+  border-color:rgba(75,184,255,.24)!important;
+  background:linear-gradient(145deg,rgba(9,26,54,.96),rgba(6,15,31,.93))!important;
+}
+#analyze .analyze-tab-panel-v371[data-panel="expenses"] .rf-stat-v34226,
+#analyze .analyze-tab-panel-v371[data-panel="expenses"] .expense-control-summary .stat{
+  transition:transform .26s ease,border-color .26s ease,box-shadow .26s ease;
+}
+#analyze .analyze-tab-panel-v371[data-panel="expenses"] .rf-stat-v34226:hover,
+#analyze .analyze-tab-panel-v371[data-panel="expenses"] .expense-control-summary .stat:hover{
+  transform:translateY(-3px);
+  box-shadow:0 12px 28px rgba(0,0,0,.16),0 0 26px rgba(70,166,255,.06);
+}
+/* Entry animation */
+#analyze .analyze-tab-panel-v371[data-panel="cashflow"].mmh-cfe-enter>.panel,
+#analyze .analyze-tab-panel-v371[data-panel="expenses"].mmh-cfe-enter>.panel{
+  opacity:.0;transform:translateY(12px);
+}
+#analyze .analyze-tab-panel-v371[data-panel="cashflow"]>.panel:nth-child(1),
+#analyze .analyze-tab-panel-v371[data-panel="cashflow"]>.panel:nth-child(2),
+#analyze .analyze-tab-panel-v371[data-panel="cashflow"]>.grid{
+  animation:mmhCfeRise .55s cubic-bezier(.2,.75,.2,1) both;
+}
+#analyze .analyze-tab-panel-v371[data-panel="cashflow"]>.panel:nth-child(2){animation-delay:.06s}
+#analyze .analyze-tab-panel-v371[data-panel="cashflow"]>.grid{animation-delay:.11s}
+#analyze .analyze-tab-panel-v371[data-panel="expenses"]>.panel{
+  animation:mmhCfeRise .55s cubic-bezier(.2,.75,.2,1) both;
+}
+#analyze .analyze-tab-panel-v371[data-panel="expenses"]>.panel:nth-child(2){animation-delay:.06s}
+@keyframes mmhCfeRise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+#analyze .analyze-tab-panel-v371[data-panel="cashflow"].mmh-cfe-pulse>.panel:first-child::before,
+#analyze .analyze-tab-panel-v371[data-panel="expenses"].mmh-cfe-pulse>.panel:first-child::before{
+  content:"";position:absolute;inset:0;pointer-events:none;z-index:0;
+  background:linear-gradient(105deg,transparent 24%,rgba(110,200,255,.10) 45%,rgba(244,193,95,.08) 52%,transparent 70%);
+  transform:translateX(-110%);animation:mmhCfeSweep .72s ease both;
+}
+@keyframes mmhCfeSweep{to{transform:translateX(110%)}}
+@media(max-width:760px){
+  #analyze .analyze-tab-panel-v371[data-panel="expenses"]{margin-top:20px!important;padding-top:17px!important}
+  #analyze .analyze-tab-panel-v371[data-panel="cashflow"]>.panel:first-child::after{right:14px;top:13px}
+  #analyze .analyze-tab-panel-v371[data-panel="expenses"]::before{left:2px}
+}
+@media(prefers-reduced-motion:reduce){
+  #analyze .analyze-tab-panel-v371[data-panel="cashflow"]>.panel,
+  #analyze .analyze-tab-panel-v371[data-panel="expenses"]>.panel,
+  #analyze .cashflow-card-v371,#analyze .cashflow-command-stat{animation:none!important;transition:none!important}
+}
+</style>
+<script id="mmhvault-cashflow-expenses-premium-v1-js">
+(function(){
+  const root=document.getElementById('analyze'); if(!root)return;
+  function flash(tab){
+    const p=root.querySelector('.analyze-tab-panel-v371[data-panel="'+tab+'"]'); if(!p)return;
+    p.classList.remove('mmh-cfe-pulse','mmh-cfe-enter');
+    void p.offsetWidth;
+    p.classList.add('mmh-cfe-pulse');
+    setTimeout(()=>p.classList.remove('mmh-cfe-pulse'),760);
+  }
+  function activate(tab){
+    if(tab==='cashflow'||tab==='expenses'){
+      const p=root.querySelector('.analyze-tab-panel-v371[data-panel="'+tab+'"]');
+      if(p){p.classList.remove('mmh-cfe-enter');void p.offsetWidth;p.classList.add('mmh-cfe-enter');setTimeout(()=>p.classList.remove('mmh-cfe-enter'),700);}
+      setTimeout(()=>flash(tab),20);
+    }
+  }
+  document.addEventListener('click',e=>{
+    const b=e.target.closest?.('#analyze .analyze-tab-v371[data-tab="cashflow"],#analyze .analyze-tab-v371[data-tab="expenses"]');
+    if(b)setTimeout(()=>activate(b.dataset.tab),30);
+    const card=e.target.closest?.('#analyze .cashflow-card-v371,#analyze .cashflow-command-stat,#analyze .rf-stat-v34226,#analyze .expense-control-summary .stat');
+    if(card){card.classList.remove('mmh-card-tap');void card.offsetWidth;card.classList.add('mmh-card-tap');setTimeout(()=>card.classList.remove('mmh-card-tap'),380);}
+  },true);
+  const style=document.createElement('style');
+  style.textContent='#analyze .mmh-card-tap{animation:mmhCardTap .38s ease both!important}@keyframes mmhCardTap{50%{transform:scale(.985);filter:brightness(1.08)}100%{transform:scale(1);filter:none}}';
+  document.head.appendChild(style);
+})();
+</script>
