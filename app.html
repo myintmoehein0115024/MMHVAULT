@@ -2060,6 +2060,21 @@ button,input,select,textarea{font:inherit}button{transition:transform .2s ease,b
 @media(max-width:760px){.wealth-rules-v326 .wealth-rule-grid-v326{grid-template-columns:1fr;}}
 .wealth-rules-v326 .wealth-rule-card-v326{min-width:0;}
 </style>
+<section class="page" id="reports">
+<div class="mmh-v390-page-head">
+<div><h1>Reports</h1><div class="sub" id="reportsSubtitle">Review your financial performance across monthly, 3-month, 6-month and annual views.</div></div>
+<div class="report-period-controls"><label>Year<select id="reportsYear"></select></label><label>Month<select id="reportsMonth"><option value="annual">Annual</option></select></label></div>
+</div>
+<div class="grid four mmh-v390-kpis" id="reportsKpis"></div>
+<div aria-label="Monthly financial report" class="panel mmh-monthly-report-v373 mmh-monthly-report-relocated-v34256" id="monthlyReportV373"></div>
+<div class="panel" style="margin-top:14px"><div class="toolbar"><div><h2 id="reportsMonthlyTitle">Monthly Overview</h2><div class="sub" id="reportsMonthlySub"></div></div><span class="pill" id="reportsStatus">—</span></div><div id="reportsMonthly"></div></div>
+<div class="grid two" style="margin-top:14px">
+<div class="panel"><div class="toolbar"><div><h2 id="reportsThreeTitle">3-Month Trend</h2><div class="sub" id="reportsThreeSub"></div></div></div><div id="reportsThree"></div></div>
+<div class="panel"><div class="toolbar"><div><h2 id="reportsSixTitle">6-Month Trend</h2><div class="sub" id="reportsSixSub"></div></div></div><div id="reportsSix"></div></div>
+</div>
+<div class="panel" style="margin-top:14px"><div class="toolbar"><div><h2 id="reportsAnnualTitle">Annual Summary</h2><div class="sub" id="reportsAnnualSub"></div></div></div><div id="reportsAnnual"></div></div>
+</section>
+
 <section class="page" id="exchange">
 <h1>Exchange Center</h1><div class="sub">Base Currency: MMK. Exchange settings do not change transaction amounts.</div>
 <div class="panel"><h2>Rates</h2><div class="formgrid">
@@ -17205,5 +17220,23 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
     if(e.target?.closest?.('[data-tab="networth"]'))setTimeout(pulse,30);
   });
   setTimeout(pulse,650);
+})();
+</script>
+
+<script id="mmhvault-reports-open-guard-fixed">
+(function(){
+  function renderReportsWhenVisible(){
+    try{
+      const r=document.getElementById('reports');
+      if(r && r.classList.contains('active') && typeof window.renderReportsV390==='function') window.renderReportsV390();
+    }catch(e){console.warn('Reports open guard:',e);}
+  }
+  window.addEventListener('mmhvault:page-visible',renderReportsWhenVisible);
+  document.addEventListener('click',e=>{
+    const b=e.target?.closest?.('[data-more-page="reports"]');
+    if(b) setTimeout(renderReportsWhenVisible,0);
+  },true);
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(renderReportsWhenVisible,200),{once:true});
+  else setTimeout(renderReportsWhenVisible,200);
 })();
 </script>
