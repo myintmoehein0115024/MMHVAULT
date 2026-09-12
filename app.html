@@ -1724,6 +1724,29 @@ button,input,select,textarea{font:inherit}button{transition:transform .2s ease,b
 }
 </style>
 
+
+<style id="mmhvault-v395-reports-kpi-layout">
+#reports .mmh-v390-kpis{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:14px!important;align-items:stretch!important;}
+#reports .mmh-v390-kpis .panel{width:auto!important;min-width:0!important;min-height:112px!important;padding:18px!important;}
+#reports .mmh-v390-kpis .panel .value{font-size:26px!important;font-weight:900!important;line-height:1.15!important;margin-top:8px;}
+#reports .mmh-v390-kpis .panel .small{margin-top:7px;}
+@media(max-width:900px){#reports .mmh-v390-kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important;}}
+@media(max-width:560px){#reports .mmh-v390-kpis{grid-template-columns:1fr!important;gap:10px!important;}#reports .mmh-v390-kpis .panel{min-height:96px!important;padding:14px!important;}}
+</style>
+
+<style id="mmhvault-v395-hide-legacy-monthly-report">
+#reports #monthlyReportV373{display:none!important;}
+</style>
+<style id="mmhvault-v395-disable-legacy-monthly-report-render">
+#monthlyReportV373{display:none!important;}
+</style>
+<style id="mmhvault-v395-reports-refined-layout">
+#reports .mmh-v390-kpis{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:14px!important;width:100%!important;align-items:stretch!important;}
+#reports .mmh-v390-kpis > .panel{width:auto!important;min-width:0!important;min-height:110px!important;}
+#reports .mmh-v390-kpis .value{font-size:25px!important;line-height:1.15!important;}
+@media(max-width:900px){#reports .mmh-v390-kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important;}}
+@media(max-width:560px){#reports .mmh-v390-kpis{grid-template-columns:1fr!important;gap:10px!important;}}
+</style>
 </head>
 <!-- MMHVAULT V4.3.0 · Dashboard report relocation + Transaction receipt center + Invest Add precision -->
 <body>
@@ -2066,7 +2089,6 @@ button,input,select,textarea{font:inherit}button{transition:transform .2s ease,b
 <div class="report-period-controls"><label>Year<select id="reportsYear"></select></label><label>Month<select id="reportsMonth"><option value="annual">Annual</option></select></label></div>
 </div>
 <div class="grid four mmh-v390-kpis" id="reportsKpis"></div>
-<div aria-label="Monthly financial report" class="panel mmh-monthly-report-v373 mmh-monthly-report-relocated-v34256" id="monthlyReportV373"></div>
 <div class="panel" style="margin-top:14px"><div class="toolbar"><div><h2 id="reportsMonthlyTitle">Monthly Overview</h2><div class="sub" id="reportsMonthlySub"></div></div><span class="pill" id="reportsStatus">—</span></div><div id="reportsMonthly"></div></div>
 <div class="grid two" style="margin-top:14px">
 <div class="panel"><div class="toolbar"><div><h2 id="reportsThreeTitle">3-Month Trend</h2><div class="sub" id="reportsThreeSub"></div></div></div><div id="reportsThree"></div></div>
@@ -8499,12 +8521,12 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
   const moneyTHB=v=>`฿ ${money(Math.max(0,n(v))*mmkToTHBRate())}`;
   const monthsBetween=(a,b)=>(new Date(b+'-01').getFullYear()-new Date(a+'-01').getFullYear())*12+(new Date(b+'-01').getMonth()-new Date(a+'-01').getMonth());
   function ymList(end,count){const d=new Date(end+'-01');const arr=[];for(let i=count-1;i>=0;i--){const x=new Date(d.getFullYear(),d.getMonth()-i,1);arr.push(x.toISOString().slice(0,7))}return arr}
-  function label(m){const [y,mo]=m.split('-'); return zh()?`${y}年${Number(mo)}月`:`${y}-${mo}`;}
+  function label(m){const [y,mo]=m.split('-'); const name=new Date(2000,Number(mo)-1,1).toLocaleString('en-US',{month:'long'}); return `${y} ${name}`;}
   function rowsFor(m){return (window.transactions||[]).filter(t=>String(t.tx_date||'').slice(0,7)===m)}
   function summarizeRows(rows,key){let inc=0,exp=0;const by={};rows.forEach(t=>{const c=t.category||'Other';const isInv=c==='Investment'||c==='Loan Out'||c==='Loan Repayment'||c==='Debt'||c==='PaidDeb'||t.transaction_group==='Loans'; if(t.type==='Income' && c!=='Loan Repayment') inc+=mmk(t.to_amount ?? t.amount ?? t.from_amount,t.to_account ?? t.from_account); if(t.type==='Expense' && !isInv){const v=mmk(t.from_amount,t.from_account);exp+=v;by[c]=(by[c]||0)+v}}); const save=inc-exp; const sr=inc?save/inc*100:0; const top=Object.entries(by).sort((a,b)=>b[1]-a[1]); return {m:key,inc,exp,save,sr,top,count:rows.length};}
   function calc(m){return summarizeRows(rowsFor(m),m)}
   function annualCalc(y){const yy=String(y);return summarizeRows((window.transactions||[]).filter(t=>String(t.tx_date||'').slice(0,4)===yy),yy+'-annual')}
-  function fillYears(){const y=$('reportsYear');if(!y)return;const set=new Set((window.transactions||[]).map(t=>String(t.tx_date||'').slice(0,4)).filter(Boolean));const now=new Date().getFullYear();set.add(String(now));const ys=[...set].sort().reverse();const old=y.value;if(!ys.length)ys.push(String(now));y.innerHTML=ys.map(v=>`<option value="${v}">${v}</option>`).join('');y.value=ys.includes(old)?old:ys[0];const m=$('reportsMonth');if(m){const oldm=m.value;m.innerHTML='<option value="annual">'+T('Annual','全年')+'</option>'+Array.from({length:12},(_,i)=>{const v=String(i+1).padStart(2,'0');return `<option value="${v}">${zh()?`${i+1}月`:v}</option>`}).join('');m.value=[...m.options].some(o=>o.value===oldm)?oldm:'annual'}}
+  function fillYears(){const y=$('reportsYear');if(!y)return;const set=new Set((window.transactions||[]).map(t=>String(t.tx_date||'').slice(0,4)).filter(Boolean));const now=new Date().getFullYear();set.add(String(now));const ys=[...set].sort().reverse();const old=y.value;if(!ys.length)ys.push(String(now));y.innerHTML=ys.map(v=>`<option value="${v}">${v}</option>`).join('');y.value=ys.includes(old)?old:ys[0];const m=$('reportsMonth');if(m){const oldm=m.value;m.innerHTML='<option value="annual">'+T('Annual','全年')+'</option>'+Array.from({length:12},(_,i)=>{const v=String(i+1).padStart(2,'0');const name=new Date(2000,i,1).toLocaleString('en-US',{month:'long'});return `<option value="${v}">${name}</option>`}).join('');m.value=[...m.options].some(o=>o.value===oldm)?oldm:'annual'}}
   function render(){const page=$('reports');if(!page||!page.classList.contains('active'))return;fillYears();const y=$('reportsYear')?.value||String(new Date().getFullYear());const mv=$('reportsMonth')?.value||'annual';const end=mv==='annual'?`${y}-12`:`${y}-${mv}`;const months6=ymList(end,6);const cur=mv==='annual'?annualCalc(y):calc(end);const prev=mv==='annual'?annualCalc(Number(y)-1):calc(ymList(end,2)[0]);const diff=(a,b)=>a-b;
     $('reportsSubtitle').textContent=T('Review your financial performance across monthly, 3-month, 6-month and annual views.','查看月度、3个月、6个月和年度财务表现。');
     const k=[['Income',cur.inc,T('Current selected month','当前选择月份')],['Expenses',cur.exp,T('Ordinary spending','日常支出')],['Net Savings',cur.save,T('Income minus expenses','收入减去支出')],['Savings Rate',cur.sr.toFixed(1)+'%',T('Monthly savings rate','月度储蓄率')]];
