@@ -16128,3 +16128,256 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
   #analyze .analyze-tab-panel-v371[data-panel="insights"] .mmh-insights-grid-v340{grid-template-columns:1fr}
 }
 </style>
+
+<!-- MMHVAULT · Overview Premium Interaction Pass -->
+<style id="mmhvault-overview-premium-v1">
+/* ---------- Overview stage ---------- */
+#analyze .analyze-tab-panel-v371[data-panel="overview"]{
+  --ov-glow: rgba(92,184,255,.28);
+  --ov-gold: rgba(244,197,93,.28);
+  position:relative;
+  padding-top:10px!important;
+}
+#analyze .analyze-tab-panel-v371[data-panel="overview"]::before{
+  content:"OVERVIEW · COMMAND DECK";
+  display:flex;
+  align-items:center;
+  width:max-content;
+  margin:0 4px 12px;
+  padding:7px 11px;
+  border:1px solid rgba(108,165,238,.18);
+  border-radius:999px;
+  background:linear-gradient(135deg,rgba(16,33,65,.70),rgba(9,18,39,.52));
+  color:#82a1ca;
+  font-size:9px;
+  font-weight:850;
+  letter-spacing:.14em;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.03),0 8px 28px rgba(0,0,0,.10);
+}
+
+/* Core block: strong separation + cinematic edge light */
+#analyze .analyze-tab-panel-v371[data-panel="overview"] #financialIntelligenceV314{
+  position:relative;
+  overflow:hidden!important;
+  margin-bottom:0!important;
+  border-color:rgba(86,150,240,.24)!important;
+  background:
+    linear-gradient(140deg,rgba(12,28,60,.94),rgba(7,16,36,.90) 58%,rgba(8,18,36,.96))!important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.045),
+    0 22px 58px rgba(0,0,0,.26),
+    0 0 80px rgba(65,149,255,.08)!important;
+  transition:transform .28s ease, box-shadow .28s ease, border-color .28s ease;
+}
+#analyze .analyze-tab-panel-v371[data-panel="overview"] #financialIntelligenceV314::before{
+  content:"";
+  position:absolute;
+  left:-15%;
+  top:-55%;
+  width:130%;
+  height:95%;
+  background:linear-gradient(100deg,transparent 12%,rgba(91,185,255,.00) 26%,rgba(91,185,255,.09) 42%,rgba(244,197,93,.09) 50%,rgba(102,203,255,.05) 58%,transparent 74%);
+  transform:translateX(-12%);
+  filter:blur(9px);
+  pointer-events:none;
+  opacity:.9;
+  animation:mmhOverviewCoreSweep 9s ease-in-out infinite alternate;
+}
+#analyze .analyze-tab-panel-v371[data-panel="overview"] #financialIntelligenceV314::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:linear-gradient(115deg,transparent 0 24%,rgba(116,189,255,.045) 39%,transparent 55%),radial-gradient(circle at 88% 10%,rgba(244,197,93,.07),transparent 25%);
+  mix-blend-mode:screen;
+}
+#analyze .analyze-tab-panel-v371[data-panel="overview"] #financialIntelligenceV314.mmh-ov-clicked{
+  transform:translateY(-3px) scale(1.002);
+  border-color:rgba(110,189,255,.38)!important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.06),
+    0 26px 72px rgba(0,0,0,.30),
+    0 0 110px rgba(73,175,255,.12)!important;
+}
+
+/* KPI cards: make each metric feel like a separate instrument */
+#analyze .analyze-tab-panel-v371[data-panel="overview"] #financialIntelligenceV314 .kpi,
+#analyze .analyze-tab-panel-v371[data-panel="overview"] #financialIntelligenceV314 .card,
+#analyze .analyze-tab-panel-v371[data-panel="overview"] #financialIntelligenceV314 .stat{
+  position:relative;
+  overflow:hidden;
+  border-radius:15px!important;
+  border-color:rgba(104,151,226,.16)!important;
+  background:linear-gradient(145deg,rgba(15,31,63,.70),rgba(8,18,39,.68))!important;
+  transition:transform .24s ease,border-color .24s ease,box-shadow .24s ease,background .24s ease;
+}
+#analyze .analyze-tab-panel-v371[data-panel="overview"] #financialIntelligenceV314 .kpi::after,
+#analyze .analyze-tab-panel-v371[data-panel="overview"] #financialIntelligenceV314 .card::after,
+#analyze .analyze-tab-panel-v371[data-panel="overview"] #financialIntelligenceV314 .stat::after{
+  content:"";
+  position:absolute;
+  left:-30%; top:0; width:28%; height:100%;
+  background:linear-gradient(100deg,transparent,rgba(125,214,255,.20),transparent);
+  transform:skewX(-18deg);
+  opacity:0;
+  pointer-events:none;
+}
+#analyze .analyze-tab-panel-v371[data-panel="overview"] #financialIntelligenceV314 .kpi:hover,
+#analyze .analyze-tab-panel-v371[data-panel="overview"] #financialIntelligenceV314 .card:hover,
+#analyze .analyze-tab-panel-v371[data-panel="overview"] #financialIntelligenceV314 .stat:hover{
+  transform:translateY(-3px);
+  border-color:rgba(106,187,255,.30)!important;
+  box-shadow:0 14px 28px rgba(0,0,0,.16),inset 0 1px 0 rgba(255,255,255,.04);
+  background:linear-gradient(145deg,rgba(18,39,78,.78),rgba(8,18,39,.76))!important;
+}
+#analyze .analyze-tab-panel-v371[data-panel="overview"] #financialIntelligenceV314 .kpi.mmh-ov-pulse::after,
+#analyze .analyze-tab-panel-v371[data-panel="overview"] #financialIntelligenceV314 .card.mmh-ov-pulse::after,
+#analyze .analyze-tab-panel-v371[data-panel="overview"] #financialIntelligenceV314 .stat.mmh-ov-pulse::after{
+  animation:mmhOverviewCardSweep .7s ease-out;
+}
+
+/* Insights section: make it clearly secondary, but premium */
+#analyze .analyze-tab-panel-v371[data-panel="insights"]{
+  margin-top:24px!important;
+  padding:18px 0 8px!important;
+  border-top:1px solid rgba(108,161,231,.22);
+  border-radius:24px 24px 0 0;
+  background:
+    linear-gradient(180deg,rgba(7,18,38,.50),rgba(7,15,31,.10) 64%,transparent),
+    radial-gradient(circle at 18% 12%,rgba(75,175,255,.08),transparent 28%),
+    radial-gradient(circle at 86% 14%,rgba(244,197,93,.05),transparent 24%);
+  box-shadow:inset 0 18px 38px rgba(5,12,28,.22);
+}
+#analyze .analyze-tab-panel-v371[data-panel="insights"]::after{
+  content:"";
+  display:block;
+  height:1px;
+  margin:22px 8px 0;
+  background:linear-gradient(90deg,transparent,rgba(102,177,250,.20) 22%,rgba(244,197,93,.16) 50%,rgba(102,177,250,.20) 78%,transparent);
+}
+#analyze .analyze-tab-panel-v371[data-panel="insights"]::before{
+  content:"SECOND LAYER · ACTIONABLE INTELLIGENCE";
+  display:inline-flex;
+  margin:0 4px 11px;
+  padding:7px 11px;
+  border:1px solid rgba(109,166,237,.17);
+  border-radius:999px;
+  background:rgba(10,23,48,.65);
+  color:#7390b8;
+  font-size:9px;
+  font-weight:850;
+  letter-spacing:.14em;
+}
+#analyze .analyze-tab-panel-v371[data-panel="insights"] .mmh-insights-head-v340{
+  position:relative;
+  margin:0 4px 12px!important;
+  padding:16px 17px!important;
+  border-radius:17px!important;
+  border:1px solid rgba(101,157,232,.18)!important;
+  background:linear-gradient(135deg,rgba(16,33,67,.72),rgba(7,17,37,.56))!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.03),0 12px 28px rgba(0,0,0,.12)!important;
+}
+#analyze .analyze-tab-panel-v371[data-panel="insights"] .mmh-insights-kpi-v340{
+  position:relative;
+  overflow:hidden;
+  transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease;
+}
+#analyze .analyze-tab-panel-v371[data-panel="insights"] .mmh-insights-kpi-v340:hover{
+  transform:translateY(-3px);
+  border-color:rgba(103,185,255,.32)!important;
+  box-shadow:0 12px 26px rgba(0,0,0,.14),inset 0 1px 0 rgba(255,255,255,.04);
+}
+#analyze .analyze-tab-panel-v371[data-panel="insights"] .panel{
+  position:relative;
+  overflow:hidden;
+  border-color:rgba(97,148,222,.15)!important;
+  background:linear-gradient(145deg,rgba(12,27,56,.74),rgba(7,16,35,.72))!important;
+  transition:transform .24s ease,border-color .24s ease,box-shadow .24s ease;
+}
+#analyze .analyze-tab-panel-v371[data-panel="insights"] .panel:hover{
+  transform:translateY(-2px);
+  border-color:rgba(102,174,250,.28)!important;
+  box-shadow:0 14px 30px rgba(0,0,0,.15),inset 0 1px 0 rgba(255,255,255,.035);
+}
+
+/* Section entrance: slight stagger when Overview becomes active */
+#analyze .analyze-tab-panel-v371[data-panel="overview"].mmh-ov-enter .financial-intelligence-v314,
+#analyze .analyze-tab-panel-v371[data-panel="overview"].mmh-ov-enter .analyze-panel,
+#analyze .analyze-tab-panel-v371[data-panel="overview"].mmh-ov-enter .mmh-insights-head-v340,
+#analyze .analyze-tab-panel-v371[data-panel="overview"].mmh-ov-enter .mmh-insights-kpi-v340,
+#analyze .analyze-tab-panel-v371[data-panel="overview"].mmh-ov-enter .mmh-insights-grid-v340>.panel,
+#analyze .analyze-tab-panel-v371[data-panel="overview"].mmh-ov-enter #mmhInsightsSnapshotV340{
+  animation:mmhOverviewRise .52s cubic-bezier(.2,.75,.25,1) both;
+}
+#analyze .analyze-tab-panel-v371[data-panel="overview"].mmh-ov-enter .mmh-insights-kpi-v340:nth-child(2){animation-delay:.04s}
+#analyze .analyze-tab-panel-v371[data-panel="overview"].mmh-ov-enter .mmh-insights-kpi-v340:nth-child(3){animation-delay:.08s}
+#analyze .analyze-tab-panel-v371[data-panel="overview"].mmh-ov-enter .mmh-insights-kpi-v340:nth-child(4){animation-delay:.12s}
+
+@keyframes mmhOverviewRise{from{opacity:0;transform:translateY(10px) scale(.99)}to{opacity:1;transform:none}}
+@keyframes mmhOverviewCoreSweep{0%{transform:translateX(-10%) translateY(0);opacity:.45}100%{transform:translateX(10%) translateY(9%);opacity:.95}}
+@keyframes mmhOverviewCardSweep{0%{opacity:0;left:-30%}18%{opacity:1}100%{opacity:0;left:118%}}
+
+@media(max-width:760px){
+  #analyze .analyze-tab-panel-v371[data-panel="overview"]{padding-top:8px!important}
+  #analyze .analyze-tab-panel-v371[data-panel="insights"]{margin-top:18px!important;padding-top:15px!important}
+  #analyze .analyze-tab-panel-v371[data-panel="insights"] .mmh-insights-head-v340{padding:13px 14px!important}
+}
+@media(prefers-reduced-motion:reduce){
+  #analyze .analyze-tab-panel-v371[data-panel="overview"] #financialIntelligenceV314::before{animation:none}
+  #analyze .analyze-tab-panel-v371[data-panel="overview"].mmh-ov-enter .financial-intelligence-v314,
+  #analyze .analyze-tab-panel-v371[data-panel="overview"].mmh-ov-enter .analyze-panel,
+  #analyze .analyze-tab-panel-v371[data-panel="overview"].mmh-ov-enter .mmh-insights-head-v340,
+  #analyze .analyze-tab-panel-v371[data-panel="overview"].mmh-ov-enter .mmh-insights-kpi-v340,
+  #analyze .analyze-tab-panel-v371[data-panel="overview"].mmh-ov-enter .mmh-insights-grid-v340>.panel,
+  #analyze .analyze-tab-panel-v371[data-panel="overview"].mmh-ov-enter #mmhInsightsSnapshotV340{animation:none}
+}
+</style>
+
+<script id="mmhvault-overview-premium-v1-js">
+(function(){
+  const root=()=>document.querySelector('#analyze .analyze-tab-panel-v371[data-panel="overview"]');
+  function markEnter(){
+    const panel=root(); if(!panel)return;
+    panel.classList.remove('mmh-ov-enter');
+    requestAnimationFrame(()=>{
+      panel.classList.add('mmh-ov-enter');
+      setTimeout(()=>panel.classList.remove('mmh-ov-enter'),900);
+    });
+  }
+  function setupClicks(){
+    const panel=root(); if(!panel)return;
+    const targets=panel.querySelectorAll('#financialIntelligenceV314 .kpi,#financialIntelligenceV314 .card,#financialIntelligenceV314 .stat');
+    targets.forEach(el=>{
+      if(el.dataset.mmhOvClickBound==='1')return;
+      el.dataset.mmhOvClickBound='1';
+      el.addEventListener('click',()=>{
+        el.classList.remove('mmh-ov-pulse');
+        requestAnimationFrame(()=>el.classList.add('mmh-ov-pulse'));
+        setTimeout(()=>el.classList.remove('mmh-ov-pulse'),760);
+      },{passive:true});
+    });
+    const core=panel.querySelector('#financialIntelligenceV314');
+    if(core&&!core.dataset.mmhOvCoreBound){
+      core.dataset.mmhOvCoreBound='1';
+      core.addEventListener('mousedown',()=>core.classList.add('mmh-ov-clicked'),{passive:true});
+      window.addEventListener('mouseup',()=>core.classList.remove('mmh-ov-clicked'),{passive:true});
+    }
+  }
+  function observe(){
+    setupClicks();
+    const panel=root(); if(!panel)return;
+    const obs=new MutationObserver(()=>setupClicks());
+    obs.observe(panel,{childList:true,subtree:true});
+  }
+  function bind(){
+    document.querySelectorAll('.analyze-tab-v371').forEach(btn=>{
+      if(btn.dataset.mmhOverviewPremiumBound==='1')return;
+      btn.dataset.mmhOverviewPremiumBound='1';
+      btn.addEventListener('click',()=>{if(btn.dataset.tab==='overview'){setTimeout(markEnter,30);setTimeout(setupClicks,80)}},{passive:true});
+    });
+    observe();
+    if(root()?.classList.contains('active'))setTimeout(markEnter,80);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
+})();
+</script>
