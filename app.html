@@ -15905,3 +15905,20 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
   }
 }
 </style>
+
+<style id="mmhvault-v3448-financial-health-reduction">
+/* MMHVAULT V4.3.0 · Financial Health data reduction.
+   Keep the score + actionable key indicators visible; hide the verbose point-by-point breakdown. */
+#financialHealthV371 .fin-health-breakdown-v371{display:none!important}
+#financialHealthV371 .fin-health-score{display:grid;grid-template-columns:minmax(240px,.78fr) minmax(0,1.22fr);gap:14px;align-items:stretch}
+#financialHealthV371 .fin-health-score-main{display:flex;flex-direction:column;justify-content:center;min-height:220px}
+#financialHealthV371 .fin-health-grid{grid-template-columns:repeat(2,minmax(0,1fr));align-content:stretch}
+#financialHealthV371 .fin-health-card{min-height:98px}
+@media(max-width:800px){
+  #financialHealthV371 .fin-health-score{grid-template-columns:1fr}
+  #financialHealthV371 .fin-health-score-main{min-height:190px}
+}
+@media(max-width:500px){
+  #financialHealthV371 .fin-health-grid{grid-template-columns:1fr}
+}
+</style>
