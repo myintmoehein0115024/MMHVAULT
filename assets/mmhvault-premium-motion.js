@@ -40,3 +40,15 @@
   markActivePage();
   window.addEventListener('hashchange', markActivePage, {passive:true});
 })();
+
+/* Premium visual pass 4: visual-only observer for major dashboard cards */
+(function(){
+  if (!('IntersectionObserver' in window)) return;
+  const targets = document.querySelectorAll('.mmh-command-v34210,.mmh-dash372-card');
+  const observer = new IntersectionObserver((entries)=>{
+    entries.forEach(entry=>{
+      entry.target.classList.toggle('mmh-in-view',entry.isIntersecting);
+    });
+  },{threshold:.18});
+  targets.forEach(el=>observer.observe(el));
+})();
