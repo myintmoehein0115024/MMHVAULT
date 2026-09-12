@@ -57,3 +57,8 @@
 (function(){
   document.documentElement.dataset.mmhTypographySystem = 'premium-v5';
 })();
+
+/* Premium visual pass 6 marker — dashboard composition only */
+(function(){
+  document.documentElement.dataset.mmhDashboardComposition = 'premium-v6';
+})();
