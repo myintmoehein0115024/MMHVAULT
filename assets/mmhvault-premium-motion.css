@@ -1165,3 +1165,207 @@ input,select,textarea{
     border-radius:18px;
   }
 }
+
+
+/* =========================================================
+   MMHVAULT · PREMIUM VISUAL PASS 8
+   Focus: Analyze + Insights + Reports analytics system
+   Visual-only. No feature/data/navigation changes.
+========================================================= */
+
+/* ---------- Shared analytics panel language ---------- */
+#analyze .panel,
+#analyze .card,
+#insights .panel,
+#insights .card,
+#reports .panel,
+#reports .card{
+  background:
+    linear-gradient(150deg,rgba(10,23,47,.76),rgba(5,12,28,.82));
+  border-color:rgba(98,150,221,.15);
+  box-shadow:
+    0 18px 54px rgba(0,0,0,.15),
+    inset 0 1px 0 rgba(255,255,255,.025);
+}
+
+/* Analytics headings become quieter and more editorial */
+#analyze h1,#insights h1,#reports h1{
+  letter-spacing:-.042em;
+}
+#analyze h2,#insights h2,#reports h2{
+  letter-spacing:-.026em;
+}
+#analyze .sub,#insights .sub,#reports .sub{
+  max-width:780px;
+  color:rgba(159,181,214,.82);
+}
+
+/* ---------- KPI strips ---------- */
+#analyze .mmh-insights-kpi-v340,
+#insights .mmh-insights-kpi-v340,
+#reports .mmh-v390-kpis .panel{
+  min-height:112px;
+  padding:17px 18px;
+}
+#analyze .mmh-insights-kpi-v340 .label,
+#insights .mmh-insights-kpi-v340 .label,
+#reports .mmh-v390-kpis .label{
+  color:rgba(143,166,201,.78);
+}
+#analyze .mmh-insights-kpi-v340 .value,
+#insights .mmh-insights-kpi-v340 .value,
+#reports .mmh-v390-kpis .value{
+  text-shadow:0 0 22px rgba(76,193,255,.035);
+}
+
+/* ---------- Tabs: one premium analytics control ---------- */
+#analyze .analyze-tabs-v371,
+#insights .analyze-tabs-v371,
+#reports .analyze-tabs-v371{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  padding:6px;
+  border:1px solid rgba(94,149,221,.15);
+  border-radius:16px;
+  background:rgba(4,12,28,.56);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.025);
+}
+#analyze .analyze-tab-v371,
+#insights .analyze-tab-v371,
+#reports .analyze-tab-v371{
+  transition:background .22s ease,border-color .22s ease,box-shadow .22s ease,transform .22s ease!important;
+}
+#analyze .analyze-tab-v371.active,
+#insights .analyze-tab-v371.active,
+#reports .analyze-tab-v371.active{
+  background:linear-gradient(145deg,rgba(29,68,112,.55),rgba(14,30,59,.72))!important;
+  border-color:rgba(96,190,255,.22)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 7px 18px rgba(0,0,0,.11)!important;
+}
+
+/* ---------- Insight rows ---------- */
+.mmh-insight-card-v340{
+  min-height:58px;
+  padding:14px 0;
+  border-bottom-color:rgba(111,150,212,.10);
+}
+.mmh-insight-icon-v340{
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.035),
+    0 4px 14px rgba(0,0,0,.08);
+}
+.mmh-insight-title-v340{
+  letter-spacing:-.01em;
+}
+.mmh-insight-desc-v340{
+  color:rgba(133,151,184,.88);
+}
+
+/* Insight badges are deliberately compact */
+.mmh-insight-badge-v340{
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
+}
+
+/* ---------- Charts / data visual containers ---------- */
+#analyze canvas,
+#analyze svg,
+#insights canvas,
+#insights svg,
+#reports canvas,
+#reports svg{
+  filter:drop-shadow(0 8px 22px rgba(0,0,0,.08));
+}
+#analyze .chart,
+#insights .chart,
+#reports .chart,
+#analyze .chart-wrap,
+#insights .chart-wrap,
+#reports .chart-wrap{
+  border-radius:16px;
+}
+
+/* ---------- Reports table becomes an executive report ---------- */
+#reports .mmh-v390-table{
+  border-collapse:separate;
+  border-spacing:0 5px;
+}
+#reports .mmh-v390-table thead th{
+  padding-top:12px;
+  padding-bottom:9px;
+  color:rgba(153,175,207,.76);
+}
+#reports .mmh-v390-table tbody td{
+  background:rgba(9,24,46,.60);
+  border-top:1px solid rgba(92,151,220,.065);
+  border-bottom:1px solid rgba(92,151,220,.065);
+}
+#reports .mmh-v390-table tbody tr{
+  transition:filter .18s ease,transform .18s ease;
+}
+@media(hover:hover){
+  #reports .mmh-v390-table tbody tr:hover{
+    filter:brightness(1.035);
+    transform:translateX(1px);
+  }
+}
+
+/* ---------- Progress and spending insights ---------- */
+#insights .mmh-progress-v340{
+  height:8px;
+  border:1px solid rgba(255,255,255,.04);
+  background:#08122b;
+}
+#insights .mmh-spend-row-v340{
+  padding:13px 0;
+  border-bottom:1px solid rgba(111,150,212,.09);
+}
+#insights .mmh-spend-row-v340:last-child{
+  border-bottom:0;
+}
+
+/* ---------- Analytics status / insight cards ---------- */
+.mmh-v390-insight{
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.025),
+    0 10px 30px rgba(0,0,0,.08);
+}
+#analyze .data-integrity-card-v339,
+#insights .data-integrity-card-v339,
+#reports .data-integrity-card-v339{
+  min-height:88px;
+}
+
+/* ---------- Mobile: keep analytics dense and readable ---------- */
+@media(max-width:760px){
+  #analyze .panel,#analyze .card,
+  #insights .panel,#insights .card,
+  #reports .panel,#reports .card{
+    border-radius:17px;
+  }
+  #analyze .analyze-tabs-v371,
+  #insights .analyze-tabs-v371,
+  #reports .analyze-tabs-v371{
+    border-radius:14px;
+  }
+  #reports .mmh-v390-table td{
+    font-size:12px;
+  }
+}
+@media(max-width:600px){
+  #analyze .mmh-insights-kpi-v340,
+  #insights .mmh-insights-kpi-v340,
+  #reports .mmh-v390-kpis .panel{
+    min-height:0;
+  }
+}
+
+/* ---------- Reduced motion ---------- */
+@media(prefers-reduced-motion:reduce){
+  #reports .mmh-v390-table tbody tr,
+  #analyze .analyze-tab-v371,
+  #insights .analyze-tab-v371,
+  #reports .analyze-tab-v371{
+    transition:none!important;
+  }
+}

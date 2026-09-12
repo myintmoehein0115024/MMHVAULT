@@ -67,3 +67,8 @@
 (function(){
   document.documentElement.dataset.mmhSecondaryPages = 'premium-v7';
 })();
+
+/* Premium visual pass 8 marker — analytics presentation only */
+(function(){
+  document.documentElement.dataset.mmhAnalyticsSystem = 'premium-v8';
+})();
