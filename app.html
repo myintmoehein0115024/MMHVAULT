@@ -1549,6 +1549,22 @@ button,input,select,textarea{font:inherit}button{transition:transform .2s ease,b
 @media(hover:none){button:hover{transform:none!important;filter:none!important}.card:hover,.panel:hover,.widget:hover,.stat-card:hover{border-color:inherit}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
 </style>
+<link rel="stylesheet" href="../assets/mmhvault-premium-motion.css">
+
+<style id="mmhvault-analyze-insights-merge-v1">
+/* Insights is now an Analyze tab. Keep its content visually integrated. */
+#analyze .analyze-tab-panel-v371[data-panel="insights"] > .mmh-insights-head-v340{
+  margin-bottom:16px;
+}
+#analyze .analyze-tab-panel-v371[data-panel="insights"] .mmh-insights-kpis-v340{
+  margin-bottom:14px;
+}
+#analyze .analyze-tab-panel-v371[data-panel="insights"] .panel{
+  margin-bottom:0;
+}
+#insights{display:none!important;}
+</style>
+
 </head>
 <!-- MMHVAULT V4.3.0 · Dashboard report relocation + Transaction receipt center + Invest Add precision -->
 <body>
@@ -1589,7 +1605,6 @@ button,input,select,textarea{font:inherit}button{transition:transform .2s ease,b
 <button data-more-page="analyze" role="menuitem" type="button">📊<span>Analyze</span></button>
 <button data-more-page="wealth-planning" role="menuitem" type="button">🎯<span>Wealth Planning</span></button>
 <button data-more-page="reports" role="menuitem" type="button">📑<span>Reports</span></button>
-<button data-more-page="insights" role="menuitem" type="button">🔔<span>Insights</span></button>
 <button data-more-page="exchange" role="menuitem" type="button">💱<span>Exchange</span></button>
 <button data-more-page="settings" role="menuitem" type="button">⚙️<span>Settings</span></button>
 </div>
@@ -1819,6 +1834,7 @@ button,input,select,textarea{font:inherit}button{transition:transform .2s ease,b
 <button aria-selected="false" class="analyze-tab-v371" data-tab="expenses" role="tab" type="button">Expenses</button>
 <button aria-selected="false" class="analyze-tab-v371" data-tab="networth" role="tab" type="button">Net Worth</button>
 <button aria-selected="false" class="analyze-tab-v371" data-tab="decisions" role="tab" type="button">Decisions</button>
+<button aria-selected="false" class="analyze-tab-v371" data-tab="insights" role="tab" type="button">Insights</button>
 <button aria-selected="false" class="analyze-tab-v371" data-tab="wealthrules" id="analyzeTabWealthRulesV32811" role="tab" type="button">Wealth Rules</button></div>
 <div class="analyze-tab-panel-v371 active" data-panel="overview" role="tabpanel">
 <div aria-label="Financial Intelligence Center" class="panel financial-intelligence-v314" id="financialIntelligenceV314"></div>
@@ -1849,7 +1865,25 @@ button,input,select,textarea{font:inherit}button{transition:transform .2s ease,b
 </div>
 <div aria-hidden="true" class="analyze-tab-panel-v371" data-panel="decisions" role="tabpanel">
 <div class="panel analyze-panel"><div id="financialDecisionCenterV325"></div></div>
-</div><div aria-hidden="true" class="analyze-tab-panel-v371" data-panel="wealthrules" id="analyzePanelWealthRulesV32811" role="tabpanel" style="display:none">
+</div>
+<div aria-hidden="true" class="analyze-tab-panel-v371" data-panel="insights" role="tabpanel">
+
+<div class="mmh-insights-head-v340">
+<div>
+<h1 data-i18n-en="Insights" data-i18n-zh="智能洞察">Insights</h1>
+<div class="sub" data-i18n-en="Actionable signals from your recent financial activity." data-i18n-zh="根据近期财务数据，自动找出最值得关注的变化。">Actionable signals from your recent financial activity.</div>
+</div>
+<span class="pill" id="mmhInsightsPeriodV340"></span>
+</div>
+<div class="mmh-insights-kpis-v340" id="mmhInsightsKpisV340"></div>
+<div class="mmh-insights-grid-v340">
+<div class="panel"><div class="toolbar"><div><h2 data-i18n-en="Priority Signals" data-i18n-zh="重点信号">Priority Signals</h2><div class="sub" data-i18n-en="What deserves your attention first." data-i18n-zh="优先处理最值得关注的问题。">What deserves your attention first.</div></div></div><div id="mmhInsightsSignalsV340"></div></div>
+<div class="panel"><div class="toolbar"><div><h2 data-i18n-en="Spending Watch" data-i18n-zh="支出观察">Spending Watch</h2><div class="sub" data-i18n-en="Current month compared with the recent 3-month average." data-i18n-zh="将本月支出与最近3个月平均水平比较。">Current month compared with the recent 3-month average.</div></div></div><div id="mmhInsightsSpendingV340"></div></div>
+</div>
+<div class="panel" style="margin-top:14px"><div class="toolbar"><div><h2 data-i18n-en="Financial Snapshot" data-i18n-zh="财务快照">Financial Snapshot</h2><div class="sub" data-i18n-en="A concise view of liquidity, savings and investment weight." data-i18n-zh="快速查看现金流动性、储蓄和投资占比。">A concise view of liquidity, savings and investment weight.</div></div></div><div id="mmhInsightsSnapshotV340"></div></div>
+
+</div>
+<div aria-hidden="true" class="analyze-tab-panel-v371" data-panel="wealthrules" id="analyzePanelWealthRulesV32811" role="tabpanel" style="display:none">
 <div class="panel wealth-rules-v326">
 <div class="toolbar"><div><h2>Personal Wealth Rules</h2><div class="small">Your decision rules live here. They guide recommendations without changing transactions or investments automatically.</div></div><span class="pill">Local preferences</span></div>
 <div class="wealth-rule-grid-v326">
@@ -1859,23 +1893,7 @@ button,input,select,textarea{font:inherit}button{transition:transform .2s ease,b
 <div class="wealth-rule-card-v326"><div class="label">Investment Weight Ceiling</div><div class="wealth-rule-input"><input id="wealthRuleInvestV326" inputmode="numeric" max="100" min="1" step="1" type="number"/><span>%</span></div><div class="small">Above this share of net worth, the decision layer asks you to review concentration.</div></div>
 </div>
 <div class="wealth-rule-actions-v326"><button class="btn primary" id="saveWealthRulesV326" type="button">Save Rules</button><button class="btn" id="resetWealthRulesV326" type="button">Reset Defaults</button><span aria-live="polite" class="small" id="wealthRulesStatusV326"></span></div>
-<div class="wealth-rule-live-v326"><div><div class="label">Rule flow</div><div class="value">Liquidity → Savings → Investment</div></div><div class="small">These thresholds are advisory. Changing them only changes how MMHVAULT evaluates your existing data.</div></div>
-</div>
-</div>
-</section>
-<section class="page" id="reports">
-<div class="mmh-v390-page-head">
-<div><h1>Reports</h1><div class="sub" id="reportsSubtitle">Review your financial performance across monthly, 3-month, 6-month and annual views.</div></div>
-<div class="report-period-controls"><label>Year<select id="reportsYear"></select></label><label>Month<select id="reportsMonth"><option value="annual">Annual</option></select></label></div>
-</div>
-<div class="grid four mmh-v390-kpis" id="reportsKpis"></div>
-<div aria-label="Monthly financial report" class="panel mmh-monthly-report-v373 mmh-monthly-report-relocated-v34256" id="monthlyReportV373"></div>
-<div class="panel" style="margin-top:14px"><div class="toolbar"><div><h2 id="reportsMonthlyTitle">Monthly Overview</h2><div class="sub" id="reportsMonthlySub"></div></div><span class="pill" id="reportsStatus">—</span></div><div id="reportsMonthly"></div></div>
-<div class="grid two" style="margin-top:14px">
-<div class="panel"><div class="toolbar"><div><h2 id="reportsThreeTitle">3-Month Trend</h2><div class="sub" id="reportsThreeSub"></div></div></div><div id="reportsThree"></div></div>
-<div class="panel"><div class="toolbar"><div><h2 id="reportsSixTitle">6-Month Trend</h2><div class="sub" id="reportsSixSub"></div></div></div><div id="reportsSix"></div></div>
-</div>
-<div class="panel" style="margin-top:14px"><div class="toolbar"><div><h2 id="reportsAnnualTitle">Annual Summary</h2><div class="sub" id="reportsAnnualSub"></div></div></div><div id="reportsAnnual"></div></div>
+<div class="wealth-rule-live-v326"><div><div class="label">Rule flow</div><div class="value">Liquidity → Savings → Investment</div></div><div class="small">These <section class="page" id="insights" aria-hidden="true" style="display:none!important"></section>v></div>
 </section>
 <section class="page" id="insights">
 <div class="mmh-insights-head-v340">
@@ -11507,6 +11525,7 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
 }
 </style>
 
+<script src="../assets/mmhvault-premium-motion.js"></script>
 </body>
 <!-- MMHVAULT V4.3.0 performance baseline: logo-free account cards + restrained dashboard rendering. -->
 
