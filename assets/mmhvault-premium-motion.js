@@ -77,3 +77,8 @@
 (function(){
   document.documentElement.dataset.mmhControlCenter = 'premium-v9';
 })();
+
+/* Premium visual pass 10 marker — final micro-detail layer */
+(function(){
+  document.documentElement.dataset.mmhMicroPolish = 'premium-v10';
+})();

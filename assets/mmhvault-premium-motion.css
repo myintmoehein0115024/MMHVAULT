@@ -1530,3 +1530,138 @@ input,select,textarea{
     transition:none!important;
   }
 }
+
+
+/* =========================================================
+   MMHVAULT · PREMIUM VISUAL PASS 10
+   Final micro-detail polish
+   Focus: loading, empty, status, icon, borders, consistency
+   Visual-only. No feature/data/navigation changes.
+========================================================= */
+
+/* ---------- Unified micro-surface language ---------- */
+.panel,.card,.toolbar,.modal,
+.mmh-dash372-card,.mmh-v380-card,.mmh-v380-scenario,
+.mmh-insights-kpi-v340,.portfolio-health-metric-v3716,
+.data-integrity-card-v339,.mmh-v390-insight{
+  border-color:rgba(108,158,219,.145);
+}
+
+/* Hairline highlights on all major surfaces */
+.panel,.card,.toolbar,.modal{
+  background-clip:padding-box;
+}
+
+/* ---------- Loading states: calm terminal pulse ---------- */
+.loading,.is-loading,[aria-busy="true"],
+[class*="loading"],[class*="skeleton"]{
+  position:relative;
+}
+.loading::after,.is-loading::after,[aria-busy="true"]::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:linear-gradient(90deg,transparent,rgba(112,195,255,.055),transparent);
+  transform:translateX(-120%);
+  animation:mmhLoadingSweep 1.9s ease-in-out infinite;
+}
+@keyframes mmhLoadingSweep{
+  0%{transform:translateX(-120%)}
+  100%{transform:translateX(120%)}
+}
+
+/* ---------- Empty states: polished, quiet, intentional ---------- */
+.empty,.empty-state,[class*="empty-state"],[class*="empty"]{
+  color:rgba(149,170,202,.82);
+}
+.empty,.empty-state{
+  border-radius:14px;
+}
+.empty::before,.empty-state::before{
+  opacity:.85;
+}
+
+/* ---------- Status badges ---------- */
+.status,.badge,.pill{
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+}
+
+/* Success / warning / danger remain semantically unchanged */
+.mmh-good-v340,.mmh-warn-v340,.mmh-alert-v340,
+.mmh-v380-good,.mmh-v380-warn,.mmh-v380-bad{
+  text-shadow:0 1px 10px rgba(0,0,0,.14);
+}
+
+/* ---------- Small icon polish ---------- */
+.mmh-insight-icon-v340,
+.receipt-upload-icon-v3300,
+.receipt-drop-icon-v3300,
+.receipt-manage-icon-v3309,
+.edit-receipt-plus-v3303,
+.excel-drop-icon-v318{
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.045),
+    0 7px 18px rgba(0,0,0,.09);
+}
+
+/* ---------- Dividers become softer ---------- */
+hr{
+  border:0;
+  border-top:1px solid rgba(105,151,208,.10);
+}
+
+/* ---------- Tables: consistent head/row rhythm ---------- */
+table thead th{
+  color:rgba(149,172,205,.78);
+}
+table tbody td{
+  border-bottom-color:rgba(108,151,211,.075);
+}
+table tbody tr:last-child td{
+  border-bottom-color:transparent;
+}
+
+/* ---------- Links: premium restrained interaction ---------- */
+a{
+  text-underline-offset:3px;
+}
+a:not(.btn):focus-visible{
+  text-decoration-color:rgba(99,201,255,.65);
+}
+@media(hover:hover){
+  a:not(.btn){
+    transition:color .18s ease,text-shadow .18s ease;
+  }
+  a:not(.btn):hover{
+    text-shadow:0 0 16px rgba(87,198,255,.07);
+  }
+}
+
+/* ---------- Tiny status dots ---------- */
+.sync-dot,.live-dot,.dot-live,
+.status-dot{
+  min-width:6px;
+  min-height:6px;
+}
+
+/* ---------- Selection ---------- */
+::selection{
+  color:#f4f8ff;
+  background:rgba(69,168,236,.18);
+}
+
+/* ---------- Mobile: keep everything lightweight ---------- */
+@media(max-width:700px){
+  .loading::after,.is-loading::after,[aria-busy="true"]::after{
+    animation-duration:2.6s;
+  }
+}
+
+/* ---------- Accessibility ---------- */
+@media(prefers-reduced-motion:reduce){
+  .loading::after,.is-loading::after,[aria-busy="true"]::after{
+    animation:none!important;
+  }
+}
