@@ -11604,6 +11604,77 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
   window.addEventListener('pageshow',bind);
 })();
 </script>
+
+<style id="mmhvault-v430-cashflow-command-center-css">
+/* MMHVAULT · Analyze Cash Flow consolidation: keep one high-value command center. */
+#analyze [data-panel="cashflow"] .savings-trend-panel,
+#analyze [data-panel="cashflow"] .analyze-extra{display:none!important}
+#cashFlowSummary .cashflow-command-v430{margin-top:12px;padding:12px 14px;border:1px solid rgba(92,140,228,.16);border-radius:14px;background:rgba(8,16,35,.42)}
+#cashFlowSummary .cashflow-command-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:9px}
+#cashFlowSummary .cashflow-command-title{font-size:12px;font-weight:850;letter-spacing:.03em}
+#cashFlowSummary .cashflow-command-sub{font-size:10px;color:#7f93b7;margin-top:2px}
+#cashFlowSummary .cashflow-command-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+#cashFlowSummary .cashflow-command-stat{padding:10px 11px;border-radius:11px;border:1px solid rgba(120,150,220,.10);background:rgba(255,255,255,.018)}
+#cashFlowSummary .cashflow-command-stat .label{font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:#7f93b7}
+#cashFlowSummary .cashflow-command-stat .value{margin-top:5px;font-size:15px;font-weight:850}
+#cashFlowSummary .cashflow-mini-bars{display:flex;align-items:flex-end;gap:5px;height:50px;margin-top:10px}
+#cashFlowSummary .cashflow-mini-bar{flex:1;min-width:0;border-radius:5px 5px 2px 2px;background:rgba(85,201,255,.38);height:var(--h);position:relative}
+#cashFlowSummary .cashflow-mini-bar.neg{background:rgba(255,113,133,.38)}
+#cashFlowSummary .cashflow-mini-labels{display:flex;gap:5px;margin-top:4px}
+#cashFlowSummary .cashflow-mini-labels span{flex:1;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:9px;color:#6f83a8}
+@media(max-width:640px){#cashFlowSummary .cashflow-command-row{grid-template-columns:1fr 1fr}#cashFlowSummary .cashflow-command-stat:last-child{grid-column:1/-1}}
+</style>
+<script id="mmhvault-v430-cashflow-command-center-js">
+(function(){
+  function renderCashFlowCommandCenter(summary){
+    const el=document.getElementById('cashFlowSummary');
+    if(!el||typeof v37Period!=='function'||typeof v37Label!=='function'||typeof v37Totals!=='function')return;
+    const p=v37Period();
+    const rows=summary?.rows|| (typeof v37Rows==='function'?v37Rows():[]);
+    const t=summary?.t||v37Totals(rows);
+    const months=typeof monthSeries==='function'?monthSeries():[];
+    const series=months.slice(-6).map(m=>{
+      const f=typeof fhMonthlyFlow==='function'?fhMonthlyFlow(m):{sr:0,save:0};
+      return {m,sr:Number(f.sr)||0,save:Number(f.save)||0};
+    });
+    const current=series[series.length-1]||{sr:Number(t.sr)||0,save:Number(t.save)||0};
+    const prev=series[series.length-2]||current;
+    const delta=(Number(current.sr)||0)-(Number(prev.sr)||0);
+    const avg=series.length?series.reduce((a,x)=>a+x.sr,0)/series.length:0;
+    const max=Math.max(1,...series.map(x=>Math.abs(x.sr)),60);
+    const bars=series.map(x=>{
+      const h=Math.max(8,Math.min(100,Math.abs(x.sr)/max*100));
+      return `<span class="cashflow-mini-bar ${x.sr<0?'neg':''}" style="--h:${h}%" title="${monthLabel(x.m)} · ${x.sr.toFixed(1)}%"></span>`;
+    }).join('');
+    const labels=series.map(x=>`<span>${monthLabel(x.m).split(' ')[0]}</span>`).join('');
+    const deltaText=`${delta>0?'+':''}${delta.toFixed(1)}% vs prior month`;
+    const status=t.save>0?'Positive':t.save===0?'Break-even':'Negative';
+    const targetGap=(Number(t.sr)||0)-60;
+    const gapText=`${targetGap>=0?'+':''}${targetGap.toFixed(1)} pts vs 60% target`;
+    el.innerHTML=`
+      <div class="cashflow-summary-grid-v371">
+        <div class="cashflow-card-v371"><div class="label">Income</div><div class="value green">${thb(t.inc)}</div></div>
+        <div class="cashflow-card-v371"><div class="label">Expenses</div><div class="value red">${thb(t.exp)}</div></div>
+        <div class="cashflow-card-v371"><div class="label">Net Cash Flow</div><div class="value ${t.save>0?'green':t.save<0?'red':'yellow'}">${thb(t.save)}</div></div>
+        <div class="cashflow-card-v371"><div class="label">Savings Rate</div><div class="value ${t.sr>=60?'green':t.sr>=40?'yellow':'red'}">${Number(t.sr).toFixed(1)}%</div></div>
+      </div>
+      <div class="cashflow-summary-note-v371">Expense Ratio <b>${Number(t.er).toFixed(1)}%</b> · ${status} cash flow · Loans, investments and linked investment transactions are excluded.</div>
+      <div class="cashflow-command-v430">
+        <div class="cashflow-command-head"><div><div class="cashflow-command-title">Cash Flow Trend</div><div class="cashflow-command-sub">6-month savings rate · current ${Number(current.sr).toFixed(1)}%</div></div><span class="pill ${delta>0?'green':delta<0?'red':''}">${deltaText}</span></div>
+        <div class="cashflow-command-row">
+          <div class="cashflow-command-stat"><div class="label">6M Avg Savings</div><div class="value">${avg.toFixed(1)}%</div></div>
+          <div class="cashflow-command-stat"><div class="label">Target Gap</div><div class="value ${targetGap>=0?'green':targetGap>=-20?'yellow':'red'}">${gapText}</div></div>
+          <div class="cashflow-command-stat"><div class="label">Selected Period</div><div class="value">${v37Label(p)}</div></div>
+        </div>
+        ${series.length?`<div class="cashflow-mini-bars" aria-label="6 month savings rate trend">${bars}</div><div class="cashflow-mini-labels">${labels}</div>`:''}
+      </div>`;
+  }
+  const original=window.renderCashFlowSummaryV371;
+  window.renderCashFlowSummaryV371=function(summary){
+    try{return renderCashFlowCommandCenter(summary);}catch(e){console.warn('Cash Flow Command Center fallback:',e);if(typeof original==='function')return original(summary);}
+  };
+})();
+</script>
 </body>
 <!-- MMHVAULT V4.3.0 performance baseline: logo-free account cards + restrained dashboard rendering. -->
 
