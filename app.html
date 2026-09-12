@@ -1928,7 +1928,7 @@ button,input,select,textarea{font:inherit}button{transition:transform .2s ease,b
 <div class="toolbar"><div><h2>Personal Wealth Rules</h2><div class="small">Your decision rules live here. They guide recommendations without changing transactions or investments automatically.</div></div><span class="pill">Local preferences</span></div>
 <div class="wealth-rule-grid-v326">
 <div class="wealth-rule-card-v326"><div class="label">Minimum Cash Reserve</div><div class="wealth-rule-input"><input id="wealthRuleReserveV326" inputmode="decimal" max="36" min="0.5" step="0.5" type="number"/><span>months</span></div><div class="small">Below this level, liquidity takes priority over new risk.</div></div>
-<div class="wealth-rule-card-v326"><div class="label">Comfortable Cash Reserve</div><div class="wealth-rule-input"><input id="wealthRuleComfortV326" inputmode="decimal" max="60" min="1" step="0.5" type="number"/><span>months</span></div><div class="small">A stronger reserve level used for the “comfortable” state.</div></div>
+<div class="wealth-rule-card-v326 wealth-rule-card-secondary-v1" aria-hidden="true" style="display:none!important"><div class="label">Comfortable Cash Reserve</div><div class="wealth-rule-input"><input id="wealthRuleComfortV326" inputmode="decimal" max="60" min="1" step="0.5" type="number"/><span>months</span></div><div class="small">A stronger reserve level used for the “comfortable” state.</div></div>
 <div class="wealth-rule-card-v326"><div class="label">Target Savings Rate</div><div class="wealth-rule-input"><input id="wealthRuleSavingsV326" inputmode="numeric" max="100" min="1" step="1" type="number"/><span>%</span></div><div class="small">Your repeatable monthly savings baseline before increasing investment pace.</div></div>
 <div class="wealth-rule-card-v326"><div class="label">Investment Weight Ceiling</div><div class="wealth-rule-input"><input id="wealthRuleInvestV326" inputmode="numeric" max="100" min="1" step="1" type="number"/><span>%</span></div><div class="small">Above this share of net worth, the decision layer asks you to review concentration.</div></div>
 </div>
@@ -1936,6 +1936,14 @@ button,input,select,textarea{font:inherit}button{transition:transform .2s ease,b
 <div class="wealth-rule-live-v326"><div><div class="label">Rule flow</div><div class="value">Liquidity → Savings → Investment</div></div><div class="small">These rules remain local and do not change transactions automatically.</div>
 </section>
 <div id="insights" aria-hidden="true" style="display:none!important"></div>
+
+<style id="mmhvault-v1-wealth-rules-reduction">
+/* Keep the rule page focused on the three inputs that directly drive day-to-day decisions.
+   The comfortable-reserve value stays hidden in the DOM so existing recommendation logic remains intact. */
+.wealth-rules-v326 .wealth-rule-grid-v326{grid-template-columns:repeat(3,minmax(0,1fr));}
+@media(max-width:760px){.wealth-rules-v326 .wealth-rule-grid-v326{grid-template-columns:1fr;}}
+.wealth-rules-v326 .wealth-rule-card-v326{min-width:0;}
+</style>
 <section class="page" id="exchange">
 <h1>Exchange Center</h1><div class="sub">Base Currency: MMK. Exchange settings do not change transaction amounts.</div>
 <div class="panel"><h2>Rates</h2><div class="formgrid">
@@ -8005,29 +8013,8 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
     try{
       const d=safeData(); const zh=(localStorage.getItem('mmhvault_language_v3363')||'en')==='zh';
       const T=(a,b)=>zh?b:a;
-      const priority = d.runway<3 ? 1 : (d.avgSave<=0 ? 2 : (d.investPct>30 ? 3 : 2));
-      const headline = priority===1 ? T('Protect liquidity first','优先保护现金流动性') : priority===2 ? T('Strengthen savings capacity','优先提高储蓄能力') : T('Review investment concentration','检查投资集中度');
-      const detail = priority===1
-        ? T('Cash coverage is below the 3-month minimum. Avoid increasing risk until liquidity improves.','现金覆盖低于 3 个月最低标准。在流动性改善前，先不要增加风险。')
-        : priority===2
-          ? T('Build a repeatable savings surplus before increasing your investment pace.','先建立稳定、可重复的储蓄结余，再提高投资节奏。')
-          : T('Investment weight is already elevated. Review concentration before adding new risk.','当前投资占比已经较高。增加新的风险敞口前，先检查集中度。');
-      const reserve = d.runway>=6 ? T('Healthy','充足') : d.runway>=3 ? T('Watch','关注') : T('Priority','优先');
-      const save = d.avgSave>0 ? usd(d.avgSave) + T('/mo','/月') : '—';
-      root.innerHTML=`<div class="decision-center-v325">
-        <div class="toolbar"><div><h2>${T('Financial Decision Center','财务决策中心')}</h2><div class="sub">${T('Only the most important actions for your current financial position.','只保留当前财务状态下最重要的行动。')}</div></div><span class="pill">${T('Advisory only','仅供参考')}</span></div>
-        <div class="decision-hero-v325"><div class="label" style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em">${T('Top Priority','最高优先级')}</div><div class="headline">${headline}</div><div class="copy">${detail}</div></div>
-        <div class="decision-grid-v325">
-          <div class="decision-card-v325"><div class="label">${T('Cash Coverage','现金覆盖')}</div><div class="value">${d.runway?d.runway.toFixed(1)+' '+T('mo','个月'):'—'}</div><div class="detail">${reserve} · ${T('recent average spending','近期平均支出')}</div></div>
-          <div class="decision-card-v325"><div class="label">${T('Savings Capacity','储蓄能力')}</div><div class="value decision-good-v325">${save}</div><div class="detail">${T('3 completed months baseline','最近 3 个完整月份基准')}</div></div>
-          <div class="decision-card-v325"><div class="label">${T('Investment Weight','投资占比')}</div><div class="value decision-cyan-v325">${d.investPct.toFixed(1)}%</div><div class="detail">${T('share of current net worth','当前净资产占比')}</div></div>
-        </div>
-        <div class="decision-main-v325"><div class="panel" style="margin:0"><div class="toolbar"><div><h3 style="margin:0">${T('Next 3 Actions','接下来 3 个行动')}</h3><div class="sub">${T('Use this order when deciding what to do with new surplus.','处理下一笔剩余资金时按这个顺序执行。')}</div></div></div><div class="decision-list-v325">
-          <div class="decision-row-v325"><div><div class="title">1 · ${T('Protect cash reserve','保护现金储备')}</div><div class="sub">${d.runway<3?T('Bring cash coverage back above the minimum before taking more risk.','先把现金覆盖恢复到最低标准以上，再增加风险。'):T('Keep your reserve intact while funding other goals.','在支持其他目标时保持现金储备完整。')}</div></div><span class="decision-pill-v325">${d.runway<3?T('Priority','优先'):T('Maintain','保持')}</span></div>
-          <div class="decision-row-v325"><div><div class="title">2 · ${T('Build the savings baseline','建立储蓄基线')}</div><div class="sub">${d.avgSave>0?T('Maintain a repeatable monthly surplus before increasing investment pace.','在提高投资节奏前，先保持稳定的月度结余。'):T('Reduce ordinary spending or increase income until monthly savings become positive.','先降低日常支出或增加收入，让月度储蓄重新转正。')}</div></div><span class="decision-pill-v325">${d.avgSave>0?T('Build','建立'):T('Fix','修复')}</span></div>
-          <div class="decision-row-v325"><div><div class="title">3 · ${T('Add risk deliberately','有计划地增加风险')}</div><div class="sub">${d.investPct>30?T('Review concentration before adding more investment exposure.','增加投资前先检查当前集中度。'):T('Only invest from genuine surplus after priorities 1–2 are protected.','只有前两项优先事项得到保障后，再使用真正的剩余资金投资。')}</div></div><span class="decision-pill-v325">${d.investPct>30?T('Review','检查'):T('Optional','可选')}</span></div>
-        </div></div></div>
-      </div>`;
+      const reserve=d.runway<3?100:d.runway<6?50:20; const invest=d.runway<3?0:d.investPct>30?20:50;
+      root.innerHTML=`<div class="decision-center-v325"><div class="toolbar"><div><h2>${T('Financial Decision Center','财务决策中心')}</h2><div class="sub">${T('A clear summary of what your money should prioritize next.','根据您的现金、储蓄和投资情况，帮助判断下一步资金优先级。')}</div></div><span class="pill">${T('Advisory only','仅供参考')}</span></div><div class="decision-grid-v325"><div class="decision-card-v325"><div class="label">${T('Cash Coverage','现金覆盖')}</div><div class="value">${d.runway?d.runway.toFixed(1)+' '+T('mo','个月'):'—'}</div><div class="detail">${T('Based on recent average spending','基于近期平均支出')}</div></div><div class="decision-card-v325"><div class="label">${T('Savings Capacity','储蓄能力')}</div><div class="value decision-good-v325">${usd(d.capacity)}${T('/mo','/月')}</div><div class="detail">${T('This month’s Category Budget Control remaining after actual spending','近期完整月份平均值')}</div></div><div class="decision-card-v325"><div class="label">${T('Investment Weight','投资占比')}</div><div class="value decision-cyan-v325">${d.investPct.toFixed(1)}%</div><div class="detail">${T('Current investment share','当前投资资产占比')}</div></div><div class="decision-card-v325"><div class="label">${T('Current Priority','当前优先级')}</div><div class="value">${d.runway<3?T('Cash','现金'):d.investPct>30?T('Balance','平衡'):T('Grow','增长')}</div><div class="detail">${T('Calculated automatically','自动计算')}</div></div></div><div class="decision-main-v325"><div class="panel" style="margin:0"><div class="toolbar"><div><h3 style="margin:0">${T('Recommended Order','建议资金优先顺序')}</h3><div class="sub">${T('Review before moving new money.','在投入新资金前查看建议。')}</div></div></div><div class="decision-list-v325"><div class="decision-row-v325"><div><div class="title">1 · ${T('Cash reserve','现金储备')}</div><div class="sub">${T('Protect liquidity before increasing risk.','增加风险投资前，先保证现金流动性。')}</div></div><span class="decision-pill-v325">${reserve.toFixed(0)}%</span></div><div class="decision-row-v325"><div><div class="title">3 · ${T('Investing','投资')}</div><div class="sub">${T('Only add risk when earlier priorities are protected.','只有当前面的优先事项得到保障后，再增加投资风险。')}</div></div><span class="decision-pill-v325">${invest.toFixed(0)}%</span></div></div></div></div><div id="surplusAllocationPlanV3717" class="surplus-plan-v3717"><div class="sp-head"><div><h3>${T('Next Surplus Allocation','下一笔剩余资金分配建议')}</h3><div class="sp-sub">${T('Based on your current data. This never moves money automatically.','根据您当前数据自动生成，仅提供建议，不会自动操作资金。')}</div></div><span class="sp-badge">${T('Monthly capacity','月度资金能力')} · ${usd(d.capacity)}${T('/mo','/月')}</span></div><div class="surplus-plan-grid-v3717"><div class="surplus-plan-card-v3717 cash"><div class="label">${T('Cash Reserve','现金储备')}</div><div class="value">${reserve.toFixed(0)}%</div><div class="meta">${usd(d.capacity*reserve/100)} / ${T('month','月')}</div></div><div class="surplus-plan-card-v3717 invest"><div class="label">${T('Investing','投资')}</div><div class="value">${invest.toFixed(0)}%</div><div class="meta">${usd(d.capacity*invest/100)} / ${T('month','月')}</div></div></div></div></div>`;
     }catch(err){root.innerHTML='<div class="panel"><h3>Decision Center</h3><div class="sub">Unable to calculate this view yet. Your existing data is safe.</div></div>';console.error(err);}
   }
   window.renderFinancialDecisionV325=renderSafe;
