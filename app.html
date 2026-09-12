@@ -11946,6 +11946,59 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
   setTimeout(()=>{const p=document.querySelector('#analyze .analyze-tab-panel-v371.active'); if(p&&(p.dataset.panel==='health'||p.dataset.panel==='decisions'))pulse(p.dataset.panel)},80);
 })();
 </script>
+
+<style id="mmhvault-health-premium-cards-v1">
+/* Health & Decisions · premium internal hierarchy */
+#financialHealthV371{position:relative}
+#financialHealthV371 .fin-health-score{display:grid;grid-template-columns:minmax(240px,.68fr) minmax(0,1.32fr);gap:18px;align-items:stretch}
+#financialHealthV371 .fin-health-score-main{position:relative;overflow:hidden;padding:22px 22px 20px;border:1px solid rgba(105,175,255,.20);border-radius:20px;background:linear-gradient(145deg,rgba(15,29,64,.92),rgba(7,16,38,.88));box-shadow:inset 0 1px 0 rgba(255,255,255,.035),0 18px 45px rgba(0,0,0,.20)}
+#financialHealthV371 .fin-health-score-main::before{content:"";position:absolute;inset:-35% -15% auto auto;width:75%;height:70%;pointer-events:none;background:radial-gradient(circle at center,rgba(83,197,255,.13),transparent 66%);filter:blur(14px);animation:mmhHealthGlow 8s ease-in-out infinite alternate}
+#financialHealthV371 .fin-health-score-main::after{content:"";position:absolute;left:-20%;top:0;width:38%;height:100%;pointer-events:none;background:linear-gradient(100deg,transparent,rgba(255,255,255,.055),transparent);transform:translateX(-180%);animation:mmhHealthSweep 6.5s ease-in-out infinite}
+#financialHealthV371 .fin-health-score-number{position:relative;z-index:1;font-size:68px;line-height:.95;font-weight:950;letter-spacing:-.055em;text-shadow:0 0 28px rgba(84,177,255,.18)}
+#financialHealthV371 .fin-health-score-label,#financialHealthV371 .fin-health-status,#financialHealthV371 .fin-health-progress,#financialHealthV371 .fin-health-note{position:relative;z-index:1}
+#financialHealthV371 .fin-health-score-label{margin-top:10px;font-size:12px;letter-spacing:.10em;text-transform:uppercase;color:#91a7ca}
+#financialHealthV371 .fin-health-status{display:inline-flex;margin-top:8px;padding:6px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.035);font-size:11px;font-weight:800}
+#financialHealthV371 .fin-health-progress{height:8px;margin-top:18px;border-radius:999px;overflow:hidden;background:rgba(4,11,28,.9);border:1px solid rgba(255,255,255,.06)}
+#financialHealthV371 .fin-health-progress span{display:block;height:100%;border-radius:inherit;transition:width .9s cubic-bezier(.2,.8,.2,1);box-shadow:0 0 16px rgba(77,190,255,.20)}
+#financialHealthV371 .fin-health-note{margin-top:12px;color:#7187aa;font-size:11px;line-height:1.55;max-width:46ch}
+#financialHealthV371 .fin-health-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+#financialHealthV371 .fin-health-card{position:relative;overflow:hidden;min-height:118px;padding:15px 16px;border:1px solid rgba(102,145,220,.14);border-radius:16px;background:linear-gradient(160deg,rgba(13,27,61,.84),rgba(7,15,34,.82));transition:transform .24s ease,border-color .24s ease,box-shadow .24s ease,background .24s ease}
+#financialHealthV371 .fin-health-card::before{content:"";position:absolute;inset:0 auto auto 0;width:100%;height:1px;background:linear-gradient(90deg,rgba(78,185,255,.0),rgba(96,192,255,.42),rgba(222,178,84,.24),rgba(78,185,255,0));opacity:.6}
+#financialHealthV371 .fin-health-card::after{content:"";position:absolute;right:-18%;bottom:-42%;width:70%;height:90%;background:radial-gradient(circle,rgba(95,166,255,.08),transparent 68%);pointer-events:none;transition:transform .35s ease}
+#financialHealthV371 .fin-health-card:hover{transform:translateY(-3px);border-color:rgba(105,180,255,.28);box-shadow:0 12px 28px rgba(0,0,0,.20)}
+#financialHealthV371 .fin-health-card:hover::after{transform:translate(-10%,-8%)}
+#financialHealthV371 .fin-health-card .label{font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#7389ad}
+#financialHealthV371 .fin-health-card .value{margin-top:7px;font-size:23px;font-weight:900;letter-spacing:-.025em}
+#financialHealthV371 .fin-health-card .detail{margin-top:7px;font-size:10.5px;line-height:1.45;color:#8296b8}
+#financialHealthV371 .fin-health-breakdown-v371{margin-top:16px;padding-top:14px;border-top:1px solid rgba(110,150,215,.10);opacity:.78;transition:opacity .25s ease}
+#financialHealthV371 .fin-health-breakdown-v371:hover{opacity:1}
+#financialHealthV371 .fin-health-breakdown-title-v371{display:flex;justify-content:space-between;align-items:center;gap:10px}
+#financialHealthV371 .fin-health-breakdown-v371 .label{font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:#7186a9}
+@keyframes mmhHealthGlow{from{transform:translate3d(-4%,0,0) scale(.96);opacity:.65}to{transform:translate3d(3%,4%,0) scale(1.06);opacity:1}}
+@keyframes mmhHealthSweep{0%,54%{transform:translateX(-180%);opacity:0}62%{opacity:.85}78%,100%{transform:translateX(520%);opacity:0}}
+@media(max-width:860px){#financialHealthV371 .fin-health-score{grid-template-columns:1fr}.#financialHealthV371 .fin-health-score-main{min-height:200px}}
+@media(max-width:560px){#financialHealthV371 .fin-health-grid{grid-template-columns:1fr}.#financialHealthV371 .fin-health-card{min-height:104px}.#financialHealthV371 .fin-health-score-number{font-size:58px}}
+@media(prefers-reduced-motion:reduce){#financialHealthV371 .fin-health-card,#financialHealthV371 .fin-health-breakdown-v371{transition:none}#financialHealthV371 .fin-health-score-main::before,#financialHealthV371 .fin-health-score-main::after{animation:none}}
+</style>
+
+<script id="mmhvault-health-premium-cards-v1-js">
+(function(){
+  if(window.__mmhHealthPremiumCardsV1)return;window.__mmhHealthPremiumCardsV1=true;
+  function pulse(){
+    const root=document.getElementById('financialHealthV371');if(!root)return;
+    root.classList.remove('mmh-health-reenter-v1');void root.offsetWidth;root.classList.add('mmh-health-reenter-v1');
+    const cards=root.querySelectorAll('.fin-health-card');
+    cards.forEach((c,i)=>{c.style.animationDelay=(i*45)+'ms';c.classList.remove('mmh-health-card-enter-v1');void c.offsetWidth;c.classList.add('mmh-health-card-enter-v1');});
+  }
+  const style=document.createElement('style');style.textContent='.mmh-health-reenter-v1{animation:mmhHealthPanelInV1 .48s cubic-bezier(.2,.75,.2,1)}.mmh-health-card-enter-v1{animation:mmhHealthCardInV1 .52s cubic-bezier(.2,.75,.2,1) both}@keyframes mmhHealthPanelInV1{from{opacity:.72;transform:translateY(6px)}to{opacity:1;transform:none}}@keyframes mmhHealthCardInV1{from{opacity:0;transform:translateY(9px) scale(.985)}to{opacity:1;transform:none}}';document.head.appendChild(style);
+  function bind(){
+    document.querySelectorAll('.analyze-tab-v371[data-tab="health"]').forEach(btn=>btn.addEventListener('click',()=>setTimeout(pulse,25)));
+    const root=document.getElementById('financialHealthV371');if(root&&root.closest('.analyze-tab-panel-v371')?.classList.contains('active'))setTimeout(pulse,80);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
+})();
+</script>
+
 </body>
 <!-- MMHVAULT V4.3.0 performance baseline: logo-free account cards + restrained dashboard rendering. -->
 
