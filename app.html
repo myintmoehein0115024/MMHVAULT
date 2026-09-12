@@ -12274,6 +12274,49 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
   #analyze .analyze-tabs-merged-v1 .analyze-tab-v371.active::after{animation:none!important}
 }
 </style>
+<script id="mmhvault-reports-premium-inline">(function(){
+  const id='mmhvault-reports-premium-v4301';
+  if(document.getElementById(id)) return;
+  const style=document.createElement('style'); style.id=id;
+  style.textContent=`
+#reports{position:relative;isolation:isolate}
+#reports::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:-1;background:radial-gradient(900px 420px at 50% 0%,rgba(77,170,255,.08),transparent 70%),radial-gradient(700px 360px at 85% 58%,rgba(210,108,255,.05),transparent 72%)}
+#reports .mmh-v390-page-head{padding:18px 20px 16px;border:1px solid rgba(94,139,226,.22);border-radius:20px;background:linear-gradient(145deg,rgba(12,24,58,.88),rgba(7,14,31,.78));box-shadow:0 20px 60px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.03);position:relative;overflow:hidden}
+#reports .mmh-v390-page-head::after{content:"";position:absolute;left:-25%;top:0;width:35%;height:100%;background:linear-gradient(90deg,transparent,rgba(112,204,255,.08),transparent);transform:skewX(-18deg);animation:mmhReportsSweep4301 8s ease-in-out infinite}
+#reports .mmh-v390-kpis{gap:14px}
+#reports .mmh-v390-kpis .panel{position:relative;overflow:hidden;min-height:118px;border-radius:18px;border-color:rgba(96,141,230,.22);background:linear-gradient(145deg,rgba(13,26,63,.86),rgba(6,13,31,.92));transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease}
+#reports .mmh-v390-kpis .panel::before{content:"";position:absolute;inset:0;background:linear-gradient(120deg,rgba(77,196,255,.06),transparent 40%,rgba(213,112,255,.05));opacity:.8;pointer-events:none}
+#reports .mmh-v390-kpis .panel:hover{transform:translateY(-3px);border-color:rgba(104,173,255,.42);box-shadow:0 16px 40px rgba(0,0,0,.22),0 0 28px rgba(76,177,255,.08)}
+#reports #monthlyReportV373,#reports .mmh-v390-page-head + .panel{border-radius:20px}
+#reports .panel{transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease}
+#reports .panel:hover{border-color:rgba(104,173,255,.28);box-shadow:0 14px 36px rgba(0,0,0,.18)}
+#reports .mmh-v390-table tr{transition:background .18s ease,transform .18s ease}
+#reports .mmh-v390-table tbody tr:hover{background:rgba(75,140,230,.055)}
+#reports .mmh-v391-top{border-color:rgba(95,145,236,.24);background:linear-gradient(145deg,rgba(15,28,68,.74),rgba(8,14,32,.82))}
+#reports .mmh-v391-item{transition:transform .2s ease,border-color .2s ease,background .2s ease}
+#reports .mmh-v391-item:hover{transform:translateX(3px);border-color:rgba(102,171,255,.34);background:rgba(12,23,54,.68)}
+#reports .mmh-v390-bar{padding-top:14px}
+#reports .mmh-v390-bar-item{transition:transform .18s ease}
+#reports .mmh-v390-bar-item:hover{transform:translateY(-4px)}
+#reports .mmh-v390-bar-fill{box-shadow:0 0 18px rgba(71,203,255,.10)}
+@keyframes mmhReportsSweep4301{0%,72%{transform:translateX(-30%) skewX(-18deg);opacity:0}78%{opacity:1}100%{transform:translateX(390%) skewX(-18deg);opacity:0}}
+@media(max-width:700px){
+ #reports .mmh-v390-page-head{padding:15px 14px;border-radius:18px}
+ #reports .report-period-controls{width:100%;gap:8px}
+ #reports .report-period-controls label{flex:1;min-width:0}
+ #reports .mmh-v390-kpis{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+ #reports .mmh-v390-kpis .panel{min-height:104px;padding:14px}
+ #reports .mmh-v391-item:hover{transform:none}
+ #reports .mmh-v390-table{font-size:11px}
+ #reports .mmh-v390-table th,#reports .mmh-v390-table td{padding:9px 7px}
+}
+@media(prefers-reduced-motion:reduce){#reports .mmh-v390-page-head::after{animation:none!important}#reports .mmh-v390-kpis .panel:hover,#reports .mmh-v391-item:hover,#reports .mmh-v390-bar-item:hover{transform:none!important}}
+`;
+  (document.head||document.documentElement).appendChild(style);
+  function mark(){const r=document.getElementById('reports'); if(!r)return; r.dataset.premium='1';}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mark,{once:true});else mark();
+})();
+</script>
 </body>
 <!-- MMHVAULT V4.3.0 performance baseline: logo-free account cards + restrained dashboard rendering. -->
 
