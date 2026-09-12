@@ -5690,7 +5690,7 @@ function bind(){
 })();</script>
 <script id="mmhvault-v32815-analyze-tabs-final-fix">
 (function(){
-  const validTabs=['overview','health','cashflow','expenses','networth','decisions','wealthrules'];
+  const validTabs=['overview','health','cashflow','expenses','networth','decisions','insights','wealthrules'];
   function activate(tab){
     if(!validTabs.includes(tab)) tab='overview';
     document.querySelectorAll('.analyze-tab-v371').forEach(function(b){
@@ -5711,6 +5711,7 @@ function bind(){
       if(tab==='networth' && typeof window.renderNetWorthAnalyzeV371==='function') window.renderNetWorthAnalyzeV371();
       
       if(tab==='decisions' && typeof window.renderFinancialDecisionV325==='function') window.renderFinancialDecisionV325();
+      if(tab==='insights' && typeof window.renderInsightsV340==='function') window.renderInsightsV340();
       if(tab==='wealthrules' && typeof window.mmhActivateWealthRulesV32814==='function') window.mmhActivateWealthRulesV32814();
     }catch(err){ console.warn('Analyze tab render warning:',err); }
     return false;
@@ -11539,6 +11540,33 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
 })();
 </script>
 
+
+<script id="mmhvault-v32816-analyze-insights-final-safety">
+(function(){
+  function activateInsights(){
+    const panel=document.querySelector('.analyze-tab-panel-v371[data-panel="insights"]');
+    const btn=document.querySelector('.analyze-tab-v371[data-tab="insights"]');
+    const root=document.getElementById('analyze');
+    if(!panel||!btn||!root)return;
+    document.querySelectorAll('.analyze-tab-v371').forEach(function(b){
+      const on=b===btn;b.classList.toggle('active',on);b.setAttribute('aria-selected',on?'true':'false');b.setAttribute('tabindex',on?'0':'-1');
+    });
+    document.querySelectorAll('.analyze-tab-panel-v371').forEach(function(p){
+      const on=p===panel;p.classList.toggle('active',on);p.setAttribute('aria-hidden',on?'false':'true');p.style.display=on?'block':'none';
+    });
+    try{localStorage.setItem('myfinance_analyze_tab','insights')}catch(e){}
+    try{window.renderInsightsV340?.()}catch(e){console.warn('Insights final safety render warning:',e)}
+  }
+  function bind(){
+    const btn=document.querySelector('.analyze-tab-v371[data-tab="insights"]');
+    if(!btn||btn.dataset.mmhInsightsFinalBound==='1')return;
+    btn.dataset.mmhInsightsFinalBound='1';
+    btn.addEventListener('click',function(e){e.preventDefault();e.stopImmediatePropagation();activateInsights()},true);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
+  window.addEventListener('pageshow',bind);
+})();
+</script>
 </body>
 <!-- MMHVAULT V4.3.0 performance baseline: logo-free account cards + restrained dashboard rendering. -->
 
