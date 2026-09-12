@@ -11688,7 +11688,17 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
   @media(max-width:900px){.analyze-tabs-merged-v1{gap:6px!important}.analyze-tabs-merged-v1 .analyze-tab-v371{min-width:118px!important}}
   @media(max-width:640px){.analyze-tabs-merged-v1{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important}.analyze-tabs-merged-v1 .analyze-tab-v371{width:100%!important;min-width:0!important}}
 </style>
-<script id="mmhvault-analyze-tabs-merged-v1-js">
+
+
+
+<style id="mmhvault-analyze-tabs-merged-datafix-v2">
+/* Unified Analyze tabs: each merged tab reveals ALL of its source data panels. */
+#analyze .analyze-tab-panel-v371.mmh-merged-visible-v2{display:block!important;visibility:visible!important;}
+#analyze .analyze-tab-panel-v371.mmh-merged-hidden-v2{display:none!important;visibility:hidden!important;}
+#analyze .analyze-tab-panel-v371.mmh-merged-visible-v2 + .analyze-tab-panel-v371{margin-top:0;}
+#analyze .analyze-tab-panel-v371[data-panel="insights"] .mmh-insights-head-v340{margin-top:0;}
+</style>
+<script id="mmhvault-analyze-tabs-merged-datafix-v2">
 (function(){
   const root=document.getElementById('analyze');
   if(!root)return;
@@ -11699,26 +11709,31 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
     networth:['networth'],
     wealthrules:['wealthrules']
   };
-  const labels=['overview','health','cashflow','networth','wealthrules'];
-  const panelSel='.analyze-tab-panel-v371';
-  function activate(tab){
+  const labels=Object.keys(groups);
+  const panels=()=>Array.from(root.querySelectorAll('.analyze-tab-panel-v371'));
+  function renderGroup(tab){
     if(!labels.includes(tab))tab='overview';
-    const visible=new Set(groups[tab]);
-    root.querySelectorAll('.analyze-tab-v371').forEach(function(b){
-      const on=b.dataset.tab===tab;
-      b.classList.toggle('active',on);
-      b.setAttribute('aria-selected',on?'true':'false');
-      b.setAttribute('tabindex',on?'0':'-1');
+    const allowed=new Set(groups[tab]);
+    root.querySelectorAll('.analyze-tab-v371').forEach(btn=>{
+      const on=btn.dataset.tab===tab;
+      btn.classList.toggle('active',on);
+      btn.setAttribute('aria-selected',on?'true':'false');
+      btn.setAttribute('tabindex',on?'0':'-1');
     });
-    root.querySelectorAll(panelSel).forEach(function(p){
-      const show=visible.has(p.dataset.panel);
-      p.classList.toggle('active',show && p.dataset.panel===tab);
-      p.setAttribute('aria-hidden',show?'false':'true');
-      p.style.display=show?'block':'none';
+    panels().forEach(panel=>{
+      const show=allowed.has(panel.dataset.panel);
+      panel.classList.toggle('mmh-merged-visible-v2',show);
+      panel.classList.toggle('mmh-merged-hidden-v2',!show);
+      panel.classList.toggle('active',show);
+      panel.setAttribute('aria-hidden',show?'false':'true');
     });
     try{localStorage.setItem('myfinance_analyze_tab',tab)}catch(e){}
+    // Trigger the existing renderers so each source panel fills with its original data.
     try{
-      if(tab==='health'){
+      if(tab==='overview'){
+        window.renderAnalyzeV37?.();
+        window.renderInsightsV340?.();
+      }else if(tab==='health'){
         window.renderFinancialHealthV371?.();
         window.renderFinancialDecisionV325?.();
       }else if(tab==='cashflow'){
@@ -11728,20 +11743,29 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
         window.renderNetWorthAnalyzeV371?.();
       }else if(tab==='wealthrules'){
         window.mmhActivateWealthRulesV32814?.();
-      }else if(tab==='overview'){
-        window.renderAnalyzeV37?.();
-        window.renderInsightsV340?.();
       }
-    }catch(e){console.warn('Merged Analyze tab render warning:',e)}
+    }catch(e){console.warn('Merged Analyze data render warning:',e)}
+  }
+  function activate(tab){
+    renderGroup(tab);
+    // Re-apply after legacy/final tab handlers get their turn.
+    [0,30,100,250].forEach(ms=>setTimeout(()=>renderGroup(tab),ms));
+    return false;
   }
   function bind(){
-    root.querySelectorAll('.analyze-tabs-merged-v1 .analyze-tab-v371').forEach(function(btn){
-      btn.onclick=function(e){e.preventDefault();e.stopPropagation();activate(btn.dataset.tab)};
-      btn.onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();activate(btn.dataset.tab)}};
+    const tabButtons=root.querySelectorAll('.analyze-tabs-merged-v1 .analyze-tab-v371');
+    tabButtons.forEach(btn=>{
+      if(btn.dataset.mmhMergedDataFix==='1')return;
+      btn.dataset.mmhMergedDataFix='1';
+      btn.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();activate(btn.dataset.tab)},true);
+      btn.addEventListener('keydown',e=>{
+        if(e.key==='Enter'||e.key===' '){e.preventDefault();e.stopPropagation();activate(btn.dataset.tab)}
+      },true);
     });
     const saved=localStorage.getItem('myfinance_analyze_tab')||'overview';
     activate(labels.includes(saved)?saved:'overview');
   }
+  window.mmhActivateMergedAnalyzeTabV2=activate;
   window.setAnalyzeTabV371=activate;
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
 })();
