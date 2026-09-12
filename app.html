@@ -1565,6 +1565,12 @@ button,input,select,textarea{font:inherit}button{transition:transform .2s ease,b
 #insights{display:none!important;}
 </style>
 
+
+<style id="mmhvault-v343-expenses-reduction">
+/* V4.3.0 data reduction: budget control now owns category ranking + budget progress;
+   the old duplicate panels remain in the DOM only for renderer compatibility. */
+.expense-ranking-legacy-v343,.budget-progress-legacy-v343{display:none!important}
+</style>
 </head>
 <!-- MMHVAULT V4.3.0 · Dashboard report relocation + Transaction receipt center + Invest Add precision -->
 <body>
@@ -1857,8 +1863,8 @@ button,input,select,textarea{font:inherit}button{transition:transform .2s ease,b
 <div aria-hidden="true" class="analyze-tab-panel-v371" data-panel="expenses" role="tabpanel">
 <div class="panel analyze-panel remaining-funds-panel-v34226" id="remainingFundsPanelV34226"><div class="toolbar"><div><h2>Remaining Funds After Expected Spending</h2><div class="sub">Current available funds minus estimated monthly spending · THB</div></div><span class="pill" id="remainingFundsStatusV34226">—</span></div><div class="remaining-funds-grid-v34226"><div class="rf-stat-v34226"><div class="label">Current Available Funds</div><div class="value" id="rfAvailableV34226">฿ 0.00</div><div class="small">Cash + stable accounts available to spend</div></div><div class="rf-stat-v34226"><div class="label">Estimated Monthly Spending</div><div class="value" id="rfSpendV34226">฿ 0.00</div><div class="small">This month’s Category Budget Control remaining after actual spending</div></div><div class="rf-stat-v34226 rf-main-v34226"><div class="label">Remaining After Expected Spending</div><div class="value" id="rfRemainingV34226">฿ 0.00</div><div class="small" id="rfRemainingMetaV34226">Estimated funds left after this month’s normal spending</div></div></div><div class="rf-bar-wrap-v34226"><div class="rf-bar-v34226"><span id="rfBarV34226"></span></div><div class="rf-bar-meta-v34226"><span id="rfCoverageV34226">—</span><span id="rfCoveragePctV34226">—</span></div></div></div><div class="panel analyze-panel expense-control-panel"><div class="toolbar"><div><h2>Monthly Expense Control</h2><div class="sub">Current month · Budget vs actual · THB</div></div><span class="pill" id="expenseControlStatus">—</span></div><div id="dashboardExpenseControl"></div></div>
 <div class="panel analyze-panel personal-expense-panel"><div class="toolbar"><div><h2>Personal Expense Analysis</h2><div class="sub">Family Support · Special Transfer · Gifts · Donation</div></div><span class="pill">Personal · THB</span></div><div id="personalExpenseAnalysisV371"></div></div>
-<div class="panel analyze-panel"><div class="toolbar"><h2>Expense Ranking</h2></div><div id="expenseRanking"></div></div>
-<div class="panel analyze-panel budget-panel"><div class="toolbar"><div><h2>Budget Progress</h2><div class="sub">Edit planned amount for each category · THB</div></div></div><div id="budgetProgress"></div></div>
+<div class="panel analyze-panel expense-ranking-legacy-v343" style="display:none"><div class="toolbar"><h2>Expense Ranking</h2></div><div id="expenseRanking"></div></div>
+<div class="panel analyze-panel budget-panel budget-progress-legacy-v343" style="display:none"><div class="toolbar"><div><h2>Budget Progress</h2><div class="sub">Edit planned amount for each category · THB</div></div></div><div id="budgetProgress"></div></div>
 </div>
 <div aria-hidden="true" class="analyze-tab-panel-v371" data-panel="networth" role="tabpanel">
 <div class="panel analyze-panel"><div class="toolbar"><div><h2>Net Worth</h2><span class="pill">Current snapshot</span></div></div><div class="networth-analyze-summary-v371" id="netWorthAnalyzeSummaryV371"></div></div>
