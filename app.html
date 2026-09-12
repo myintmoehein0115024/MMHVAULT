@@ -4386,14 +4386,17 @@ function renderNetWorthAnalyzeV371(){
   const range=Math.max(1,max-min);
   el.innerHTML=`
     <div class="networth-analyze-card-v371"><div class="label">Current Net Worth</div><div class="value cyan">${usd(net)}</div><div class="small">Cash + Investments · USD</div></div>
-    <div class="networth-analyze-card-v371"><div class="label">Change vs Last Month</div><div class="value ${change>=0?'green':'red'}">${change>=0?'+':''}${usd(change)}</div><div class="small">${growth===null?'No prior baseline':(growth>=0?'+':'')+growth.toFixed(1)+'%'} vs prior month</div></div>
+    <div class="networth-analyze-card-v371"><div class="label">Change vs Last Month</div><div class="value ${change>=0?'green':'red'}">${change>=0?'+':''}${usd(change)}</div><div class="small">${growth===null?'No prior baseline':(growth>=0?'+':'')+growth.toFixed(1)+'% vs prior month'}</div></div>
     <div class="networth-analyze-card-v371"><div class="label">Investments</div><div class="value pink">${usd(investUSD)}</div><div class="small">${net?((investUSD/net)*100).toFixed(1):'0.0'}% of current net worth</div></div>
+    <div class="networth-analyze-card-v371"><div class="label">Liquid Cash</div><div class="value green">${usd(cash)}</div><div class="small">${net?((cash/net)*100).toFixed(1):'0.0'}% of current net worth</div></div>
     <div class="networth-trend-v371">
-      <div class="toolbar"><div><h3>6-Month Net Worth Trend</h3><div class="small">Estimated using current market prices for historical holdings.</div></div><span class="pill">USD</span></div>
+      <div class="toolbar"><div><h3>6-Month Net Worth Trend</h3><div class="small">Estimated from recorded cash balances and current holdings.</div></div><span class="pill">USD</span></div>
       <div class="nw-bars-v371">${series.map(x=>{
         const h=Math.max(6,Math.min(100,((x.net-min)/range)*100));
         const cls=x.ym===prevKey?(x.net>=prev.net?'green':'red'):'hi';
         return `<div class="nw-bar-wrap-v371"><div class="nw-bar-value-v371">${usd(x.net)}</div><div class="nw-bar-v371 ${cls}" style="height:${h}%" title="${monthLabel(x.ym)} · ${usd(x.net)}"></div><div class="nw-bar-label-v371">${monthLabel(x.ym).split(' ')[0]}</div></div>`;
+      }).join('')}</div>
+    </div>`;
       }).join('')}</div>
     </div>`;
 }
