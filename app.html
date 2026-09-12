@@ -11830,6 +11830,102 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
 })();
 </script>
 
+<!-- MMHVAULT HEALTH & DECISIONS PREMIUM PASS -->
+<style id="mmhvault-health-decisions-premium-css">
+/* Premium pass — Health & Decisions only. Keeps data/logic untouched. */
+#analyze .analyze-tab-panel-v371[data-panel="health"],
+#analyze .analyze-tab-panel-v371[data-panel="decisions"]{position:relative}
+#analyze .analyze-tab-panel-v371[data-panel="health"] .analyze-panel,
+#analyze .analyze-tab-panel-v371[data-panel="decisions"] .analyze-panel{
+  position:relative; overflow:hidden; isolation:isolate;
+  border-color:rgba(106,166,255,.18)!important;
+  background:linear-gradient(145deg,rgba(8,18,44,.92),rgba(5,13,31,.88))!important;
+  box-shadow:0 18px 48px rgba(0,0,0,.24), inset 0 1px 0 rgba(255,255,255,.035)!important;
+  transition:transform .32s cubic-bezier(.2,.75,.2,1),box-shadow .32s ease,border-color .32s ease;
+}
+#analyze .analyze-tab-panel-v371[data-panel="health"] .analyze-panel::before,
+#analyze .analyze-tab-panel-v371[data-panel="decisions"] .analyze-panel::before{
+  content:"";position:absolute;inset:0 0 auto;height:2px;z-index:0;opacity:.85;
+  background:linear-gradient(90deg,transparent,rgba(95,190,255,.75),rgba(245,199,93,.78),transparent);
+  transform:translateX(-65%);transition:transform .85s ease;
+}
+#analyze .analyze-tab-panel-v371[data-panel="health"].mmh-panel-enter .analyze-panel,
+#analyze .analyze-tab-panel-v371[data-panel="decisions"].mmh-panel-enter .analyze-panel{transform:translateY(7px);}
+#analyze .analyze-tab-panel-v371[data-panel="health"] .analyze-panel:hover,
+#analyze .analyze-tab-panel-v371[data-panel="decisions"] .analyze-panel:hover{
+  transform:translateY(-3px);border-color:rgba(106,166,255,.33)!important;
+  box-shadow:0 24px 62px rgba(0,0,0,.30),0 0 44px rgba(70,145,255,.08),inset 0 1px 0 rgba(255,255,255,.045)!important;
+}
+#analyze .analyze-tab-panel-v371[data-panel="health"] .analyze-panel:hover::before,
+#analyze .analyze-tab-panel-v371[data-panel="decisions"] .analyze-panel:hover::before,
+#analyze .analyze-tab-panel-v371[data-panel="health"].mmh-panel-active .analyze-panel::before,
+#analyze .analyze-tab-panel-v371[data-panel="decisions"].mmh-panel-active .analyze-panel::before{transform:translateX(65%)}
+#financialHealthV371 .fin-health-score-main{
+  position:relative; padding:6px 0 14px; border-bottom:1px solid rgba(255,255,255,.055);
+}
+#financialHealthV371 .fin-health-score-number{
+  filter:drop-shadow(0 0 18px rgba(80,185,255,.16));
+  transition:transform .35s ease,filter .35s ease;
+}
+#financialHealthV371 .fin-health-score-main:hover .fin-health-score-number{transform:scale(1.035);filter:drop-shadow(0 0 24px rgba(80,185,255,.28))}
+#financialHealthV371 .fin-health-card{
+  transition:transform .24s ease,border-color .24s ease,background .24s ease;
+}
+#financialHealthV371 .fin-health-card:hover{transform:translateY(-2px);border-color:rgba(107,180,255,.24)!important;background:rgba(25,42,86,.42)!important}
+#financialDecisionCenterV325 .decision-center-v325{position:relative}
+#financialDecisionCenterV325 .decision-hero-v325{
+  position:relative;overflow:hidden;border:1px solid rgba(107,180,255,.16);border-radius:18px;
+  background:linear-gradient(135deg,rgba(21,35,75,.72),rgba(8,17,39,.82));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.035),0 14px 36px rgba(0,0,0,.18);
+}
+#financialDecisionCenterV325 .decision-hero-v325::after{
+  content:"";position:absolute;right:-18%;top:-80%;width:55%;height:220%;
+  background:linear-gradient(105deg,transparent 35%,rgba(113,196,255,.10) 48%,rgba(247,208,111,.10) 54%,transparent 66%);
+  filter:blur(5px);transform:rotate(9deg);pointer-events:none;opacity:.0;transition:opacity .35s ease,transform .65s ease;
+}
+#financialDecisionCenterV325 .decision-hero-v325:hover::after{opacity:1;transform:translateX(-18%) rotate(9deg)}
+#financialDecisionCenterV325 .decision-card-v325{
+  transition:transform .24s ease,box-shadow .24s ease,border-color .24s ease;
+}
+#financialDecisionCenterV325 .decision-card-v325:hover{transform:translateY(-3px);box-shadow:0 14px 34px rgba(0,0,0,.20);border-color:rgba(103,186,255,.26)!important}
+#financialDecisionCenterV325 .decision-row-v325{transition:background .2s ease,transform .2s ease,padding .2s ease}
+#financialDecisionCenterV325 .decision-row-v325:hover{background:rgba(96,155,255,.055);transform:translateX(3px)}
+@media(max-width:760px){
+  #analyze .analyze-tab-panel-v371[data-panel="health"] .analyze-panel,
+  #analyze .analyze-tab-panel-v371[data-panel="decisions"] .analyze-panel{box-shadow:0 14px 36px rgba(0,0,0,.22)}
+  #financialDecisionCenterV325 .decision-hero-v325::after{display:none}
+}
+@media(prefers-reduced-motion:reduce){
+  #analyze .analyze-tab-panel-v371[data-panel="health"] .analyze-panel,
+  #analyze .analyze-tab-panel-v371[data-panel="decisions"] .analyze-panel,
+  #financialHealthV371 .fin-health-card,
+  #financialDecisionCenterV325 .decision-card-v325,
+  #financialDecisionCenterV325 .decision-row-v325{transition:none}
+}
+</style>
+
+<script id="mmhvault-health-decisions-premium-js">
+(function(){
+  if(window.__mmhHealthDecisionsPremium)return; window.__mmhHealthDecisionsPremium=true;
+  const panelFor=t=>document.querySelector('#analyze .analyze-tab-panel-v371[data-panel="'+t+'"]');
+  function pulse(tab){
+    const p=panelFor(tab); if(!p)return;
+    p.classList.remove('mmh-panel-enter','mmh-panel-active'); void p.offsetWidth;
+    p.classList.add('mmh-panel-enter'); requestAnimationFrame(()=>p.classList.add('mmh-panel-active'));
+    setTimeout(()=>p.classList.remove('mmh-panel-enter'),420);
+  }
+  document.addEventListener('click',e=>{
+    const b=e.target.closest?.('#analyze .analyze-tab-v371'); if(!b)return;
+    const t=b.dataset.tab; if(t==='health'||t==='decisions') setTimeout(()=>pulse(t),30);
+  },{capture:true});
+  const original=window.setAnalyzeTabV371;
+  if(typeof original==='function'&&!original.__mmhHDPremium){
+    const wrapped=function(tab){const r=original.apply(this,arguments); if(tab==='health'||tab==='decisions')setTimeout(()=>pulse(tab),20); return r;};
+    wrapped.__mmhHDPremium=true; window.setAnalyzeTabV371=wrapped;
+  }
+  setTimeout(()=>{const p=document.querySelector('#analyze .analyze-tab-panel-v371.active'); if(p&&(p.dataset.panel==='health'||p.dataset.panel==='decisions'))pulse(p.dataset.panel)},80);
+})();
+</script>
 </body>
 <!-- MMHVAULT V4.3.0 performance baseline: logo-free account cards + restrained dashboard rendering. -->
 
