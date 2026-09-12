@@ -1605,6 +1605,65 @@ button,input,select,textarea{font:inherit}button{transition:transform .2s ease,b
 #analyze .analyze-tab-panel-v371[data-panel="overview"] #financialIntelligenceV314{margin-bottom:0;}
 #analyze .analyze-tab-panel-v371[data-panel="overview"] #financialIntelligenceV314:before{content:"Overview Command Center";display:block;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#7892ba;margin-bottom:8px;}
 </style>
+
+<style id="mmhvault-overview-insights-separation-v1">
+/* Overview: clearly separate the core snapshot from the secondary Insights layer. */
+#analyze .analyze-tab-panel-v371[data-panel="overview"]{
+  position:relative;
+}
+#analyze .analyze-tab-panel-v371[data-panel="overview"]::after{
+  content:"";display:block;height:1px;margin:24px 8px 0;
+  background:linear-gradient(90deg,transparent,rgba(110,180,255,.24) 18%,rgba(244,197,93,.24) 50%,rgba(110,180,255,.24) 82%,transparent);
+}
+#analyze .analyze-tab-panel-v371[data-panel="insights"]{
+  position:relative;
+  margin-top:20px!important;
+  padding:18px 0 4px!important;
+  border-top:1px solid rgba(104,152,225,.18);
+  background:linear-gradient(180deg,rgba(6,16,37,.34),rgba(6,13,29,0));
+  border-radius:20px 20px 0 0;
+}
+#analyze .analyze-tab-panel-v371[data-panel="insights"]::before{
+  content:"INSIGHTS · ACTIONABLE SIGNALS";
+  display:block;
+  margin:0 4px 12px;
+  padding:8px 12px;
+  width:max-content;
+  max-width:calc(100% - 8px);
+  border:1px solid rgba(94,160,242,.18);
+  border-radius:999px;
+  background:rgba(13,28,58,.72);
+  color:#7894bf;
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:.12em;
+}
+#analyze .analyze-tab-panel-v371[data-panel="insights"] .mmh-insights-head-v340{
+  margin:0 4px 14px!important;
+  padding:14px 16px;
+  border:1px solid rgba(101,155,232,.18);
+  border-radius:16px;
+  background:linear-gradient(135deg,rgba(16,31,67,.56),rgba(8,18,40,.42));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.025);
+}
+#analyze .analyze-tab-panel-v371[data-panel="insights"] .mmh-insights-head-v340 h1{
+  font-size:20px!important;line-height:1.15;margin:0!important;
+}
+#analyze .analyze-tab-panel-v371[data-panel="insights"] .mmh-insights-head-v340 .sub{
+  font-size:11px;margin-top:5px;
+}
+#analyze .analyze-tab-panel-v371[data-panel="insights"] .mmh-insights-kpis-v340{
+  margin:0 4px 12px!important;
+}
+#analyze .analyze-tab-panel-v371[data-panel="insights"] .mmh-insights-grid-v340,
+#analyze .analyze-tab-panel-v371[data-panel="insights"] > .panel{
+  margin-left:4px;margin-right:4px;
+}
+@media(max-width:620px){
+  #analyze .analyze-tab-panel-v371[data-panel="insights"]{margin-top:16px!important;padding-top:14px!important}
+  #analyze .analyze-tab-panel-v371[data-panel="insights"]::before{font-size:9px;padding:7px 10px}
+}
+</style>
 </head>
 <!-- MMHVAULT V4.3.0 · Dashboard report relocation + Transaction receipt center + Invest Add precision -->
 <body>
