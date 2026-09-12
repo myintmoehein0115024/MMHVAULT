@@ -1738,6 +1738,29 @@ button,input,select,textarea{font:inherit}button{transition:transform .2s ease,b
 }
 </style>
 
+
+<style id="mmhvault-v4311-mobile-header-failsafe">
+/* Mobile/tablet: Cloud Synced and Profit are hidden; Profile stays at far right */
+@media(max-width:900px){
+  #mmhvaultSyncStatusV337,
+  #header .mmhvault-sync-status-v337,
+  #header .mmhvault-profit-badge-v4310{
+    display:none!important;
+    visibility:hidden!important;
+  }
+  #header{
+    display:flex!important;
+    align-items:center!important;
+    width:100%!important;
+  }
+  #header .header-spacer{flex:1 1 auto!important;min-width:0!important;}
+  #headerProfile,#header .header-profile{margin-left:auto!important;margin-right:0!important;flex:0 0 auto!important;}
+}
+@media(max-width:560px){
+  #header .header-profile-copy span{display:none!important;}
+  #header .mmhvault-header-brand .version,#header .mmhvault-brand-tagline{display:none!important;}
+}
+</style>
 </head>
 <!-- MMHVAULT V4.3.0 · Dashboard report relocation + Transaction receipt center + Invest Add precision -->
 <body>
