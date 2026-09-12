@@ -1664,6 +1664,66 @@ button,input,select,textarea{font:inherit}button{transition:transform .2s ease,b
   #analyze .analyze-tab-panel-v371[data-panel="insights"]::before{font-size:9px;padding:7px 10px}
 }
 </style>
+<style id="mmhvault-analyze-mobile-premium-v1">
+/* Mobile Analyze: compact, centered tab deck + tighter period controls. */
+@media(max-width:640px){
+  #analyze .analyze-period-bar{padding:8px 0 14px;gap:9px}
+  #analyze .analyze-period-bar h1{font-size:30px;line-height:1.05;margin-bottom:4px}
+  #analyze .analyze-period-bar .sub{font-size:12px;line-height:1.35}
+  #analyze .period-controls-v37{gap:7px;padding:4px;border-radius:14px}
+  #analyze .period-controls-v37 label{font-size:9px}
+  #analyze .period-controls-v37 select{min-height:44px;font-size:14px;padding-left:12px;padding-right:28px;border-radius:11px}
+
+  #analyze .analyze-tabs-merged-v1{
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:7px!important;
+    padding:6px!important;
+    margin:10px 0 16px!important;
+    border-radius:17px!important;
+    align-items:stretch!important;
+  }
+  #analyze .analyze-tabs-merged-v1 .analyze-tab-v371{
+    min-width:0!important;
+    width:100%!important;
+    min-height:46px!important;
+    padding:9px 8px!important;
+    border-radius:12px!important;
+    font-size:13px!important;
+    line-height:1.15!important;
+    white-space:normal!important;
+    text-align:center!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+  }
+  #analyze .analyze-tabs-merged-v1 .analyze-tab-v371:last-child{
+    grid-column:1 / -1!important;
+    width:58%!important;
+    justify-self:center!important;
+  }
+  #analyze .analyze-tabs-merged-v1 .analyze-tab-v371.active{
+    box-shadow:0 7px 18px rgba(0,0,0,.20),inset 0 1px 0 rgba(255,255,255,.045)!important;
+  }
+
+  #analyze .analyze-tab-panel-v371[data-panel="overview"]::before{
+    margin-left:0!important;
+    margin-bottom:10px!important;
+    font-size:8px!important;
+    padding:6px 9px!important;
+  }
+  #analyze .analyze-panel{border-radius:15px!important}
+}
+@media(max-width:380px){
+  #analyze .analyze-tab-v371{font-size:12px!important;min-height:44px!important}
+  #analyze .analyze-tabs-merged-v1 .analyze-tab-v371:last-child{width:62%!important}
+  #analyze .period-controls-v37 select{min-height:42px;font-size:13px}
+}
+@media(prefers-reduced-motion:reduce){
+  #analyze .analyze-tab-v371{transition:none!important}
+}
+</style>
+
 </head>
 <!-- MMHVAULT V4.3.0 · Dashboard report relocation + Transaction receipt center + Invest Add precision -->
 <body>
