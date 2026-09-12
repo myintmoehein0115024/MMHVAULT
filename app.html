@@ -1580,10 +1580,10 @@ button,input,select,textarea{font:inherit}button{transition:transform .2s ease,b
 <div aria-live="polite" class="mmhvault-sync-status-v337" id="mmhvaultSyncStatusV337" title="Cloud sync status"><span class="sync-dot"></span><span class="sync-label">Cloud Synced</span></div>
 </header>
 <div class="bottom-nav" id="bottomNav" style="display:none">
-<button data-page="dashboard">📊<span>Dashboard</span></button>
-<button data-page="transactions">💳<span>Transactions</span></button>
-<button data-page="invest">📈<span>Invest</span></button>
-<button aria-expanded="false" aria-haspopup="menu" class="more-nav-trigger" id="moreNavButton" type="button">☰<span>More</span></button>
+<button data-page="dashboard"><i class="mmh-nav-icon" aria-hidden="true">📊</i><span>Dashboard</span></button>
+<button data-page="transactions"><i class="mmh-nav-icon" aria-hidden="true">💳</i><span>Transactions</span></button>
+<button data-page="invest"><i class="mmh-nav-icon" aria-hidden="true">📈</i><span>Invest</span></button>
+<button aria-expanded="false" aria-haspopup="menu" class="more-nav-trigger" id="moreNavButton" type="button"><i class="mmh-nav-icon" aria-hidden="true">☰</i><span>More</span></button>
 </div>
 <div aria-hidden="true" class="more-nav-menu" id="moreNavMenu" role="menu">
 <button data-more-page="analyze" role="menuitem" type="button">📊<span>Analyze</span></button>
@@ -11428,6 +11428,81 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
     flex:0 0 auto !important;
     align-self:center !important;
     transform:none !important;
+  }
+}
+</style>
+
+
+<!-- MMHVAULT · UNIFIED MOBILE BOTTOM NAV
+     Minimal visual correction on the approved version. -->
+<style id="mmhvault-unified-mobile-bottom-nav">
+@media (max-width: 760px){
+  #bottomNav.bottom-nav{
+    display:grid!important;
+    grid-template-columns:repeat(4,minmax(0,1fr))!important;
+    align-items:stretch!important;
+    gap:6px!important;
+    box-sizing:border-box!important;
+  }
+
+  /* All four tabs use exactly the same dimensions */
+  #bottomNav.bottom-nav > button,
+  #bottomNav.bottom-nav > button:nth-child(2),
+  #bottomNav.bottom-nav > button.active,
+  #bottomNav.bottom-nav > button[aria-current="page"]{
+    width:100%!important;
+    min-width:0!important;
+    max-width:100%!important;
+    height:78px!important;
+    min-height:78px!important;
+    margin:0!important;
+    padding:8px 3px!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    justify-content:center!important;
+    gap:6px!important;
+    border-radius:17px!important;
+    box-sizing:border-box!important;
+    transform:none!important;
+  }
+
+  /* Icons are normalized, including the smaller 💳 Transactions glyph */
+  #bottomNav.bottom-nav > button .mmh-nav-icon{
+    display:flex!important;
+    width:30px!important;
+    height:30px!important;
+    align-items:center!important;
+    justify-content:center!important;
+    flex:0 0 30px!important;
+    margin:0!important;
+    padding:0!important;
+    font-style:normal!important;
+    font-size:25px!important;
+    line-height:1!important;
+  }
+
+  /* Every label uses one consistent size and alignment */
+  #bottomNav.bottom-nav > button > span,
+  #bottomNav.bottom-nav > button:nth-child(2) > span{
+    display:block!important;
+    width:100%!important;
+    margin:0!important;
+    padding:0!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    white-space:nowrap!important;
+    text-align:center!important;
+    font-size:11px!important;
+    line-height:1.15!important;
+    letter-spacing:0!important;
+  }
+
+  #bottomNav.bottom-nav > button.active::after,
+  #bottomNav.bottom-nav > button[aria-current="page"]::after{
+    left:34%!important;
+    right:34%!important;
+    bottom:5px!important;
   }
 }
 </style>
