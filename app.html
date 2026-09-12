@@ -2236,6 +2236,246 @@ body.mmhvault-scroll-active #invest #v371CryptoMarket::before{
 }
 </style>
 
+
+<style id="mmh-invest-premium-v34400">
+/* v34400 — Crypto Portfolio + Portfolio Manager premium visual layer.
+   Scoped to #invest only. No data, API, navigation or calculation changes. */
+#invest #v371CryptoPortfolio{
+  position:relative!important;
+  isolation:isolate;
+  background:
+    radial-gradient(circle at 92% 0%,rgba(76,199,255,.075),transparent 25%),
+    linear-gradient(145deg,rgba(8,22,46,.96),rgba(3,9,21,.985))!important;
+  box-shadow:0 24px 62px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.045)!important;
+}
+#invest #v371CryptoPortfolio::before{
+  content:"";position:absolute;inset:0;pointer-events:none;z-index:0;
+  background:linear-gradient(115deg,transparent 18%,rgba(86,205,255,.035) 46%,rgba(145,125,255,.025) 54%,transparent 82%);
+  background-size:220% 100%;animation:mmhCryptoSurface34400 9s ease-in-out infinite;
+}
+#invest #v371CryptoPortfolio::after{
+  content:"";position:absolute;left:-12%;top:0;width:34%;height:1px;z-index:0;
+  background:linear-gradient(90deg,transparent,rgba(100,216,255,.9),transparent);
+  box-shadow:0 0 22px rgba(76,199,255,.25);animation:mmhCryptoScan34400 6.5s ease-in-out infinite;
+}
+#invest #v371CryptoPortfolio>*{position:relative;z-index:1}
+#invest #v371CryptoPortfolio>.toolbar{
+  min-height:66px!important;padding:15px 18px 14px!important;
+  border-bottom:1px solid rgba(96,169,226,.11)!important;
+  background:linear-gradient(90deg,rgba(76,199,255,.035),transparent 55%);
+}
+#invest #v371CryptoPortfolio>.toolbar:before{
+  width:38px!important;height:38px!important;flex-basis:38px!important;border-radius:12px!important;
+  font-size:18px!important;color:#c5f1ff!important;
+  background:linear-gradient(145deg,rgba(76,199,255,.15),rgba(76,199,255,.045))!important;
+  border-color:rgba(76,199,255,.30)!important;
+  box-shadow:0 0 26px rgba(76,199,255,.09),inset 0 1px 0 rgba(255,255,255,.07)!important;
+  animation:mmhCryptoIcon34400 4.8s ease-in-out infinite;
+}
+#invest #v371CryptoPortfolio>.toolbar h2{letter-spacing:-.025em!important;text-shadow:0 0 24px rgba(115,210,255,.08)}
+#invest #v371CryptoPortfolio>.toolbar .sub{color:#7894b9!important}
+#invest #v371CryptoPortfolio>.toolbar .pill{
+  border-color:rgba(76,199,255,.20)!important;background:rgba(76,199,255,.045)!important;color:#9fc9e8!important;
+}
+#invest #v371CryptoPortfolio #cryptoInvList{padding:14px 16px 18px!important}
+#invest #v371CryptoPortfolio .crypto-summary{gap:10px!important;padding:0 0 15px!important}
+#invest #v371CryptoPortfolio .crypto-summary-card{
+  min-height:122px!important;padding:18px 18px!important;
+  border-color:rgba(93,157,218,.18)!important;
+  background:linear-gradient(145deg,rgba(15,33,63,.82),rgba(4,12,27,.94))!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.035),0 14px 30px rgba(0,0,0,.16)!important;
+  transition:transform .28s cubic-bezier(.2,.75,.2,1),border-color .28s ease,box-shadow .28s ease,background .28s ease!important;
+}
+#invest #v371CryptoPortfolio .crypto-summary-card::after{
+  width:150px;height:150px;right:-72px;bottom:-82px;
+  background:radial-gradient(circle,rgba(var(--invest-accent),.12),transparent 68%);
+  transition:transform .45s ease,opacity .45s ease;
+}
+#invest #v371CryptoPortfolio .crypto-summary-card::before{height:2px;left:16px;right:16px;opacity:.95}
+#invest #v371CryptoPortfolio .crypto-summary-card:hover{
+  transform:translateY(-4px)!important;
+  border-color:rgba(108,190,249,.32)!important;
+  background:linear-gradient(145deg,rgba(18,40,75,.88),rgba(5,14,31,.96))!important;
+  box-shadow:0 20px 38px rgba(0,0,0,.21),0 0 24px rgba(76,199,255,.035),inset 0 1px 0 rgba(255,255,255,.05)!important;
+}
+#invest #v371CryptoPortfolio .crypto-summary-card:hover::after{transform:scale(1.22);opacity:1}
+#invest #v371CryptoPortfolio .crypto-summary-card .label{font-size:9px!important;letter-spacing:.14em!important;color:#91abc9!important}
+#invest #v371CryptoPortfolio .crypto-summary-card .value{
+  font-size:25px!important;line-height:1.05!important;margin-top:11px!important;
+  font-variant-numeric:tabular-nums;letter-spacing:-.035em!important;
+}
+#invest #v371CryptoPortfolio .crypto-summary-card:nth-child(2) .value.green,
+#invest #v371CryptoPortfolio .crypto-summary-card:nth-child(3) .value.green{
+  text-shadow:0 0 26px rgba(57,230,161,.12)!important;
+}
+#invest #v371CryptoPortfolio .crypto-summary-card .meta{color:#7189ab!important}
+#invest #v371CryptoPortfolio .crypto-table-wrap{
+  border-color:rgba(92,155,216,.16)!important;border-radius:18px!important;padding:4px!important;
+  background:linear-gradient(145deg,rgba(5,14,29,.62),rgba(2,8,18,.78))!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.025),0 12px 28px rgba(0,0,0,.13)!important;
+}
+#invest #v371CryptoPortfolio .crypto-table-wrap table{border-collapse:separate!important;border-spacing:0!important}
+#invest #v371CryptoPortfolio .crypto-table-wrap th{
+  position:sticky;top:0;z-index:2;padding:12px 10px!important;
+  background:rgba(5,14,29,.94)!important;color:#7f9bbc!important;
+  border-bottom:1px solid rgba(76,199,255,.16)!important;backdrop-filter:blur(12px);
+}
+#invest #v371CryptoPortfolio .crypto-table-wrap td{
+  padding:13px 10px!important;border-bottom:1px solid rgba(95,151,207,.065)!important;
+  color:#d2e0f2;transition:background .18s ease,border-color .18s ease,transform .18s ease;
+}
+#invest #v371CryptoPortfolio .crypto-table-wrap tbody tr:hover td,
+#invest #v371CryptoPortfolio .crypto-table-wrap tr:hover td{
+  background:rgba(76,199,255,.035)!important;border-bottom-color:rgba(76,199,255,.11)!important;
+}
+#invest #v371CryptoPortfolio .crypto-table-wrap td:nth-child(3) b{
+  display:inline-flex;align-items:center;justify-content:center;min-width:46px;padding:5px 8px;
+  border-radius:9px;border:1px solid rgba(76,199,255,.17);background:rgba(76,199,255,.055);
+  color:#bdeaff;box-shadow:inset 0 1px 0 rgba(255,255,255,.035);
+}
+#invest #v371CryptoPortfolio .crypto-table-wrap td:nth-child(9){font-weight:900;color:#e9f5ff}
+#invest #v371CryptoPortfolio .icon-actions .btn{
+  border-color:rgba(91,153,215,.14)!important;background:rgba(255,255,255,.018)!important;
+  transition:transform .18s ease,border-color .18s ease,background .18s ease!important;
+}
+#invest #v371CryptoPortfolio .icon-actions .btn:hover{transform:translateY(-1px);border-color:rgba(76,199,255,.28)!important;background:rgba(76,199,255,.055)!important}
+
+/* Portfolio Manager — deeper command-center hierarchy, still data-identical. */
+#invest #portfolioManagerV310{
+  isolation:isolate;
+  background:
+    radial-gradient(circle at 88% 8%,rgba(76,199,255,.07),transparent 23%),
+    radial-gradient(circle at 8% 90%,rgba(142,125,255,.045),transparent 24%),
+    linear-gradient(145deg,rgba(7,19,40,.96),rgba(3,9,21,.985))!important;
+  border-color:rgba(103,167,225,.22)!important;
+  box-shadow:0 26px 68px rgba(0,0,0,.25),0 0 40px rgba(76,199,255,.035),inset 0 1px 0 rgba(255,255,255,.045)!important;
+}
+#invest #portfolioManagerV310::before{
+  width:380px;height:380px;right:-145px;top:-160px;
+  border-color:rgba(76,199,255,.10)!important;
+  box-shadow:0 0 0 36px rgba(76,199,255,.018),0 0 100px rgba(76,199,255,.055)!important;
+  animation:mmhManagerOrb34400 12s ease-in-out infinite alternate!important;
+}
+#invest #portfolioManagerV310::after{height:2px!important;opacity:.9;animation:mmhManagerRail34400 7s ease-in-out infinite!important}
+#invest #portfolioManagerV310>.toolbar{
+  min-height:70px!important;padding:16px 18px 15px!important;
+  border-bottom:1px solid rgba(101,162,218,.10)!important;
+  background:linear-gradient(90deg,rgba(76,199,255,.028),transparent 60%);
+}
+#invest #portfolioManagerV310>.toolbar h2{font-size:22px!important;letter-spacing:-.025em!important}
+#invest #portfolioManagerV310>.toolbar .pill{box-shadow:0 0 18px rgba(76,199,255,.045)!important}
+#invest #portfolioManagerSummaryV310{
+  display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px!important;
+  padding:14px 16px 10px!important;
+}
+#invest #portfolioManagerV310 .portfolio-kpi-v310{
+  position:relative!important;overflow:hidden!important;min-height:108px;padding:16px 15px!important;
+  border:1px solid rgba(91,155,215,.15)!important;border-radius:16px!important;
+  background:linear-gradient(145deg,rgba(13,30,57,.76),rgba(4,12,27,.90))!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.03),0 10px 24px rgba(0,0,0,.12)!important;
+  transition:transform .26s ease,border-color .26s ease,box-shadow .26s ease!important;
+}
+#invest #portfolioManagerV310 .portfolio-kpi-v310::before{
+  content:"";position:absolute;left:13px;right:13px;top:0;height:2px;border-radius:99px;
+  background:linear-gradient(90deg,rgba(76,199,255,.78),rgba(76,199,255,0));opacity:.82;
+}
+#invest #portfolioManagerV310 .portfolio-kpi-v310::after{
+  content:"";position:absolute;width:100px;height:100px;right:-55px;bottom:-55px;border-radius:50%;
+  background:radial-gradient(circle,rgba(76,199,255,.09),transparent 68%);pointer-events:none;
+}
+#invest #portfolioManagerV310 .portfolio-kpi-v310:hover{transform:translateY(-3px);border-color:rgba(100,179,239,.28)!important;box-shadow:0 16px 32px rgba(0,0,0,.17),inset 0 1px 0 rgba(255,255,255,.04)!important}
+#invest #portfolioManagerV310 .portfolio-kpi-v310 .label{font-size:9px!important;letter-spacing:.13em!important;text-transform:uppercase;color:#839dbd!important;font-weight:900!important}
+#invest #portfolioManagerV310 .portfolio-kpi-v310 .value{margin-top:9px!important;font-size:21px!important;font-weight:950!important;letter-spacing:-.03em!important;line-height:1.05!important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
+#invest #portfolioManagerV310 .portfolio-kpi-v310 .meta{margin-top:7px!important;color:#6e86a8!important;font-size:9px!important;line-height:1.35!important}
+#invest #portfolioManagerV310 .portfolio-grid-v310{gap:10px!important;padding:2px 16px 0!important}
+#invest #portfolioManagerV310 .portfolio-panel-v310{
+  position:relative;overflow:hidden;border-radius:18px!important;
+  background:linear-gradient(145deg,rgba(11,26,51,.64),rgba(4,11,25,.78))!important;
+  border-color:rgba(92,153,213,.15)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.028),0 10px 26px rgba(0,0,0,.12)!important;
+}
+#invest #portfolioManagerV310 .portfolio-panel-v310::after{
+  content:"";position:absolute;inset:auto -15% -45% auto;width:180px;height:120px;border-radius:50%;
+  background:radial-gradient(circle,rgba(76,199,255,.055),transparent 70%);pointer-events:none;
+}
+#invest #portfolioManagerV310 .mini-head-v310{padding:13px 15px 11px!important;border-bottom-color:rgba(96,154,211,.10)!important}
+#invest #portfolioManagerV310 .mini-head-v310 b{font-size:12px!important;letter-spacing:.01em}
+#invest #portfolioManagerV310 .mini-head-v310 span{color:#7088a9!important}
+#invest #portfolioManagerV310 .portfolio-mix-row-v310,
+#invest #portfolioManagerV310 .signal-row-v310,
+#invest #portfolioManagerV310 .portfolio-leader-v310{transition:background .18s ease,transform .18s ease}
+#invest #portfolioManagerV310 .portfolio-mix-row-v310:hover,
+#invest #portfolioManagerV310 .signal-row-v310:hover,
+#invest #portfolioManagerV310 .portfolio-leader-v310:hover{background:rgba(76,199,255,.028);transform:translateX(2px)}
+#invest #portfolioManagerV310 .portfolio-mix-bar-v310{overflow:hidden!important;background:rgba(255,255,255,.045)!important;box-shadow:inset 0 1px 2px rgba(0,0,0,.18)!important}
+#invest #portfolioManagerV310 .portfolio-mix-bar-v310 span{
+  position:relative;display:block;background:linear-gradient(90deg,#3bbff6,#77ddff)!important;
+  box-shadow:0 0 14px rgba(76,199,255,.18);overflow:hidden;
+}
+#invest #portfolioManagerV310 .portfolio-mix-bar-v310 span::after{
+  content:"";position:absolute;inset:0;width:35%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.24),transparent);
+  animation:mmhBarSweep34400 4.5s ease-in-out infinite;
+}
+#invest #portfolioManagerV310 .portfolio-health-v3716{
+  margin:10px 16px 0!important;border-radius:18px!important;
+  background:linear-gradient(145deg,rgba(12,28,53,.78),rgba(4,11,25,.88))!important;
+  border-color:rgba(94,157,220,.17)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.03),0 12px 28px rgba(0,0,0,.13)!important;
+}
+#invest #portfolioManagerV310 .portfolio-health-title-v3716{letter-spacing:-.01em}
+#invest #portfolioManagerV310 .portfolio-score-v3716{filter:drop-shadow(0 0 16px rgba(76,199,255,.08))}
+#invest #portfolioManagerV310 .portfolio-holdings-v310,
+#invest #portfolioManagerV310 .portfolio-activity-v310{margin:10px 16px 0!important}
+#invest #portfolioManagerV310 .portfolio-leader-v310{border-color:rgba(94,153,210,.08)!important}
+#invest #portfolioManagerV310 .leader-rank-v310{
+  border-color:rgba(76,199,255,.16)!important;background:rgba(76,199,255,.045)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.035);
+}
+#invest #portfolioManagerV310 .leader-value-v310 b{font-variant-numeric:tabular-nums}
+#invest #portfolioManagerV310 .activity-bar-wrap-v310{background:rgba(255,255,255,.035)!important;border-color:rgba(91,150,208,.07)!important}
+#invest #portfolioManagerV310 .activity-bar-v310{
+  position:relative;background:linear-gradient(180deg,#70d8ff,#328cc7)!important;
+  box-shadow:0 0 16px rgba(76,199,255,.13);overflow:hidden;
+}
+#invest #portfolioManagerV310 .activity-bar-v310::after{
+  content:"";position:absolute;left:0;right:0;top:-20%;height:35%;background:rgba(255,255,255,.20);
+  animation:mmhActivityGlow34400 3.8s ease-in-out infinite;
+}
+@keyframes mmhCryptoSurface34400{0%,100%{background-position:0% 0}50%{background-position:100% 0}}
+@keyframes mmhCryptoScan34400{0%,64%{left:-15%;opacity:0}72%{opacity:.9}94%,100%{left:112%;opacity:0}}
+@keyframes mmhCryptoIcon34400{0%,100%{transform:translateY(0);box-shadow:0 0 26px rgba(76,199,255,.08),inset 0 1px 0 rgba(255,255,255,.07)}50%{transform:translateY(-1px);box-shadow:0 0 32px rgba(76,199,255,.14),inset 0 1px 0 rgba(255,255,255,.08)}}
+@keyframes mmhManagerOrb34400{from{transform:translate3d(0,0,0) rotate(0deg)}to{transform:translate3d(-18px,14px,0) rotate(7deg)}}
+@keyframes mmhManagerRail34400{0%,55%{transform:translateX(-8%);opacity:.25}72%{transform:translateX(35%);opacity:.9}100%{transform:translateX(112%);opacity:.08}}
+@keyframes mmhBarSweep34400{0%,62%{transform:translateX(-140%);opacity:0}72%{opacity:1}92%,100%{transform:translateX(310%);opacity:0}}
+@keyframes mmhActivityGlow34400{0%,100%{transform:translateY(130%);opacity:0}45%{opacity:.8}70%{transform:translateY(-280%);opacity:0}}
+@media(max-width:1000px){
+  #invest #portfolioManagerSummaryV310{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+}
+@media(max-width:700px){
+  #invest #portfolioManagerSummaryV310{grid-template-columns:repeat(2,minmax(0,1fr))!important;padding:10px 12px 8px!important}
+  #invest #portfolioManagerV310 .portfolio-kpi-v310{min-height:96px;padding:14px!important}
+  #invest #portfolioManagerV310 .portfolio-grid-v310{padding-left:12px!important;padding-right:12px!important}
+  #invest #portfolioManagerV310 .portfolio-health-v3716,
+  #invest #portfolioManagerV310 .portfolio-holdings-v310,
+  #invest #portfolioManagerV310 .portfolio-activity-v310{margin-left:12px!important;margin-right:12px!important}
+  #invest #v371CryptoPortfolio .crypto-summary-card{min-height:108px!important;padding:14px!important}
+  #invest #v371CryptoPortfolio .crypto-summary-card .value{font-size:20px!important}
+}
+@media(max-width:520px){
+  #invest #portfolioManagerSummaryV310{grid-template-columns:1fr 1fr!important;gap:7px!important}
+  #invest #portfolioManagerV310>.toolbar{padding:14px 13px!important}
+  #invest #portfolioManagerV310>.toolbar h2{font-size:19px!important}
+  #invest #portfolioManagerV310 .portfolio-kpi-v310 .value{font-size:18px!important}
+  #invest #v371CryptoPortfolio>.toolbar{padding:13px!important}
+  #invest #v371CryptoPortfolio #cryptoInvList{padding:11px 12px 14px!important}
+}
+@media(prefers-reduced-motion:reduce){
+  #invest #v371CryptoPortfolio::before,#invest #v371CryptoPortfolio::after,#invest #v371CryptoPortfolio>.toolbar:before,
+  #invest #portfolioManagerV310::before,#invest #portfolioManagerV310::after,
+  #invest #portfolioManagerV310 .portfolio-mix-bar-v310 span::after,#invest #portfolioManagerV310 .activity-bar-v310::after{animation:none!important}
+  #invest #v371CryptoPortfolio .crypto-summary-card:hover,#invest #portfolioManagerV310 .portfolio-kpi-v310:hover{transform:none!important}
+}
+</style>
 </head>
 <!-- MMHVAULT V4.3.0 · Dashboard report relocation + Transaction receipt center + Invest Add precision -->
 <body>
