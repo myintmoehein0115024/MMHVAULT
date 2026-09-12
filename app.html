@@ -17423,3 +17423,81 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
   else setTimeout(renderReportsWhenVisible,200);
 })();
 </script>
+
+<!-- =========================================================
+     MMHVAULT V4.3.0 · MORE COMMAND MENU FLOW MOTION
+     Premium staggered stream entrance for the More palette.
+========================================================= -->
+<style id="mmhvault-v4302-more-flow-motion">
+/* Desktop + tablet: a fluid stagger from the center with alternating rise. */
+#moreNavMenu.more-nav-menu > button{
+  --flow-x:0px;
+  --flow-y:14px;
+  --flow-r:0deg;
+  opacity:1;
+  transform:translate3d(0,0,0) scale(1) rotate(0deg);
+  will-change:transform,opacity,filter;
+}
+#moreNavMenu.more-nav-menu.open > button{
+  animation:mmhvaultMoreFlowIn4302 .56s cubic-bezier(.2,.78,.22,1) both;
+}
+#moreNavMenu.more-nav-menu.open > button:nth-of-type(1){--flow-x:-18px;--flow-y:18px;--flow-r:-1.3deg;animation-delay:.035s}
+#moreNavMenu.more-nav-menu.open > button:nth-of-type(2){--flow-x:18px;--flow-y:22px;--flow-r:1.3deg;animation-delay:.085s}
+#moreNavMenu.more-nav-menu.open > button:nth-of-type(3){--flow-x:-22px;--flow-y:26px;--flow-r:-1deg;animation-delay:.14s}
+#moreNavMenu.more-nav-menu.open > button:nth-of-type(4){--flow-x:22px;--flow-y:30px;--flow-r:1deg;animation-delay:.195s}
+#moreNavMenu.more-nav-menu.open > button:nth-of-type(5){--flow-x:-16px;--flow-y:34px;--flow-r:-.7deg;animation-delay:.25s}
+
+@keyframes mmhvaultMoreFlowIn4302{
+  0%{opacity:0;transform:translate3d(var(--flow-x),var(--flow-y),0) scale(.94) rotate(var(--flow-r));filter:blur(5px);}
+  58%{opacity:1;transform:translate3d(0,-3px,0) scale(1.015) rotate(0deg);filter:blur(0);}
+  100%{opacity:1;transform:translate3d(0,0,0) scale(1) rotate(0deg);filter:blur(0);}
+}
+
+/* A soft liquid sweep across the whole menu when it opens. */
+#moreNavMenu.more-nav-menu::before{
+  position:relative;
+  overflow:hidden;
+}
+#moreNavMenu.more-nav-menu.open::before{
+  animation:mmhvaultMoreFlowLabel4302 .72s ease both;
+}
+#moreNavMenu.more-nav-menu::after{
+  position:relative;
+}
+#moreNavMenu.more-nav-menu.open::after{
+  animation:mmhvaultMoreFlowFooter4302 .72s .20s ease both;
+}
+
+@keyframes mmhvaultMoreFlowLabel4302{
+  0%{opacity:0;transform:translateY(8px);letter-spacing:.28em;}
+  100%{opacity:.72;transform:translateY(0);letter-spacing:.22em;}
+}
+@keyframes mmhvaultMoreFlowFooter4302{
+  0%{opacity:0;transform:translateY(6px);}
+  100%{opacity:1;transform:translateY(0);}
+}
+
+/* Touch feedback: quick ripple-like lift without changing routes. */
+#moreNavMenu.more-nav-menu > button:active{
+  transform:translateY(-1px) scale(.975)!important;
+  transition:transform .08s ease!important;
+}
+
+@media(max-width:760px){
+  /* Tighter flow on phones so the palette feels fast rather than bulky. */
+  #moreNavMenu.more-nav-menu.open > button:nth-of-type(1){--flow-x:-10px;--flow-y:14px}
+  #moreNavMenu.more-nav-menu.open > button:nth-of-type(2){--flow-x:10px;--flow-y:17px}
+  #moreNavMenu.more-nav-menu.open > button:nth-of-type(3){--flow-x:-12px;--flow-y:20px}
+  #moreNavMenu.more-nav-menu.open > button:nth-of-type(4){--flow-x:12px;--flow-y:23px}
+  #moreNavMenu.more-nav-menu.open > button:nth-of-type(5){--flow-x:-8px;--flow-y:26px}
+  #moreNavMenu.more-nav-menu.open > button{
+    animation-duration:.48s;
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  #moreNavMenu.more-nav-menu.open > button,
+  #moreNavMenu.more-nav-menu.open::before,
+  #moreNavMenu.more-nav-menu.open::after{animation:none!important;}
+}
+</style>
