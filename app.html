@@ -1550,217 +1550,72 @@ button,input,select,textarea{font:inherit}button{transition:transform .2s ease,b
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
 </style>
 
-
-<!-- MMHVAULT V4.3.0 · HEADER + NAV CONSISTENCY POLISH -->
-<style id="mmhvault-v4310-header-profit-nav-polish">
-/* Header: keep the brand on the left and move Profit into the far-right command area */
-#header{
-  display:flex!important;
-  align-items:center!important;
-  gap:12px!important;
-}
-#header .header-spacer{flex:1 1 auto!important;min-width:12px!important;}
-#header .mmhvault-profit-badge-v4310{
-  order:10!important;
-  margin-left:2px!important;
-  flex:0 0 auto!important;
-  display:inline-flex!important;
-  align-items:center!important;
-  justify-content:center!important;
-  gap:7px!important;
-  min-height:38px!important;
-  padding:0 14px!important;
-  border:1px solid rgba(245,196,81,.24)!important;
-  border-radius:999px!important;
-  color:#f4d487!important;
-  background:linear-gradient(135deg,rgba(245,196,81,.13),rgba(118,79,23,.06))!important;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 8px 20px rgba(0,0,0,.12)!important;
-  font-size:12px!important;
-  font-weight:800!important;
-  letter-spacing:.04em!important;
-  text-transform:uppercase!important;
-}
-#header .mmhvault-profit-badge-v4310 .profit-icon{
-  width:18px!important;
-  height:18px!important;
-  display:grid!important;
-  place-items:center!important;
-  border-radius:50%!important;
-  background:rgba(245,196,81,.16)!important;
-  color:#ffe5a0!important;
-  font-size:13px!important;
-  line-height:1!important;
-}
-
-/* Keep Cloud Synced on desktop, but remove it completely on phones */
-@media(max-width:760px){
-  #header .mmhvault-sync-status-v337{display:none!important;}
-  #header{
-    gap:8px!important;
-  }
-  #header .mmhvault-profit-badge-v4310{
-    min-height:34px!important;
-    padding:0 11px!important;
-    gap:5px!important;
-    font-size:10px!important;
-  }
-  #header .mmhvault-profit-badge-v4310 .profit-icon{
-    width:16px!important;
-    height:16px!important;
-    font-size:11px!important;
-  }
-}
-
-/* Bottom navigation: every item uses the exact same icon container and text rhythm */
-#bottomNav.bottom-nav button{
-  display:flex!important;
-  flex-direction:column!important;
-  align-items:center!important;
-  justify-content:center!important;
-  gap:7px!important;
-}
-#bottomNav.bottom-nav button .nav-icon{
-  width:30px!important;
-  height:30px!important;
-  flex:0 0 30px!important;
-  display:grid!important;
-  place-items:center!important;
-  border-radius:10px!important;
-  font-size:21px!important;
-  line-height:1!important;
-  font-family:system-ui,sans-serif!important;
-  overflow:hidden!important;
-}
-#bottomNav.bottom-nav button > span:last-child{
-  display:block!important;
-  min-height:14px!important;
-  line-height:14px!important;
-  text-align:center!important;
-}
-#bottomNav.bottom-nav button:nth-child(2){
-  font-size:12px!important;
-  letter-spacing:0!important;
-}
-
-/* Make the Transactions item visually identical in weight and touch area to the others */
-#bottomNav.bottom-nav button:nth-child(2) .nav-icon{
-  font-size:20px!important;
-}
-@media(max-width:760px){
-  #bottomNav.bottom-nav{
-    width:calc(100% - 36px)!important;
-    max-width:450px!important;
-    grid-template-columns:repeat(4,minmax(0,1fr))!important;
-    gap:6px!important;
-  }
-  #bottomNav.bottom-nav button{
-    min-height:68px!important;
-    padding:8px 4px!important;
-    gap:6px!important;
-  }
-  #bottomNav.bottom-nav button .nav-icon{
-    width:30px!important;
-    height:30px!important;
-    flex-basis:30px!important;
-    font-size:20px!important;
-  }
-  #bottomNav.bottom-nav button > span:last-child{
-    font-size:11px!important;
-    min-height:13px!important;
-    line-height:13px!important;
-    white-space:nowrap!important;
-  }
-  /* Do not shrink Transactions separately anymore */
-  #bottomNav.bottom-nav button:nth-child(2){
-    font-size:inherit!important;
-    letter-spacing:0!important;
-  }
-}
-</style>
-
-
-<!-- MMHVAULT V4.3.0 · MOBILE HEADER FINAL ALIGNMENT -->
-<style id="mmhvault-v4311-mobile-header-final">
-/* Desktop: keep the existing Cloud Synced + Profit command area. */
-@media(max-width:760px){
-  /* Mobile: remove Cloud Synced and Profit completely. */
+<!-- =========================================================
+     MMHVAULT · FINAL MOBILE HEADER FIX
+     Mobile: hide cloud/profit and pin profile to the right edge.
+========================================================= -->
+<style id="mmhvault-final-mobile-header-fix-v2">
+/* Treat touch devices and compact layouts as mobile/tablet. */
+@media (max-width:1100px), (pointer:coarse){
   #header .mmhvault-sync-status-v337,
-  #header .mmhvault-profit-badge-v4310{
+  #header [data-header-profit],
+  #header .header-profit,
+  #header .profit,
+  #header .profit-btn,
+  #header .profit-button{
     display:none!important;
   }
+}
 
-  /* Keep the profile naturally pinned to the far right. */
+/* Pin the profile card to the real right edge of the header. */
+@media(max-width:900px){
   #header{
+    position:relative!important;
     display:flex!important;
     align-items:center!important;
-    gap:0!important;
-    padding-right:10px!important;
+    justify-content:flex-start!important;
+    padding-right:220px!important;
   }
-  #header .header-spacer{
-    display:block!important;
+
+  #header .header-spacer{display:none!important;}
+
+  #header .mmhvault-header-brand{
     flex:1 1 auto!important;
     min-width:0!important;
+    max-width:100%!important;
   }
+
   #header .header-profile{
-    margin-left:auto!important;
-    margin-right:0!important;
+    position:absolute!important;
+    right:16px!important;
+    left:auto!important;
+    top:50%!important;
+    margin:0!important;
+    transform:translateY(-50%)!important;
+    z-index:5!important;
     flex:0 0 auto!important;
-    max-width:calc(100vw - 170px)!important;
-  }
-
-  /* Let the brand use only the space it needs, without pushing the profile inward. */
-  #header .mmhvault-header-brand{
-    flex:0 1 auto!important;
-    min-width:0!important;
-    overflow:hidden!important;
-  }
-  #header .mmhvault-header-brand .logo{
-    min-width:0!important;
-  }
-  #header .mmhvault-brand-tagline,
-  #header .version{
-    display:none!important;
-  }
-  #header .header-profile-copy{
-    min-width:0!important;
-  }
-  #header #headerDisplayEmail{
-    display:none!important;
   }
 }
 
-/* Extra-small phones: preserve the right-edge profile and prevent header crowding. */
-@media(max-width:480px){
-  #header{padding-left:10px!important;padding-right:8px!important;}
-  #header .mmhvault-header-brand .logo > span:not(.version){font-size:0!important;}
-  #header .mmhvault-header-logo-img{margin-right:0!important;}
-  #header .header-profile{max-width:calc(100vw - 78px)!important;}
-}
-</style>
-
-
-<style id="mmhvault-v4311-mobile-header-failsafe">
-/* Mobile/tablet: Cloud Synced and Profit are hidden; Profile stays at far right */
-@media(max-width:900px){
-  #mmhvaultSyncStatusV337,
-  #header .mmhvault-sync-status-v337,
-  #header .mmhvault-profit-badge-v4310{
-    display:none!important;
-    visibility:hidden!important;
-  }
-  #header{
-    display:flex!important;
-    align-items:center!important;
-    width:100%!important;
-  }
-  #header .header-spacer{flex:1 1 auto!important;min-width:0!important;}
-  #headerProfile,#header .header-profile{margin-left:auto!important;margin-right:0!important;flex:0 0 auto!important;}
-}
 @media(max-width:560px){
-  #header .header-profile-copy span{display:none!important;}
-  #header .mmhvault-header-brand .version,#header .mmhvault-brand-tagline{display:none!important;}
+  #header{
+    padding-left:12px!important;
+    padding-right:164px!important;
+  }
+  #header .header-profile{right:12px!important;}
+}
+
+@media(max-width:430px){
+  #header{padding-right:146px!important;}
+  #header .header-profile{right:10px!important;}
+}
+
+@media(max-width:360px){
+  #header{padding-right:130px!important;}
+  #header .header-profile{right:8px!important;}
 }
 </style>
+
 </head>
 <!-- MMHVAULT V4.3.0 · Dashboard report relocation + Transaction receipt center + Invest Add precision -->
 <body>
@@ -1790,13 +1645,12 @@ button,input,select,textarea{font:inherit}button{transition:transform .2s ease,b
 <div class="header-profile-copy"><b id="headerDisplayName">MMHVAULT User</b><span id="headerDisplayEmail">Personal Finance &amp; Wealth Management</span></div>
 </div>
 <div aria-live="polite" class="mmhvault-sync-status-v337" id="mmhvaultSyncStatusV337" title="Cloud sync status"><span class="sync-dot"></span><span class="sync-label">Cloud Synced</span></div>
-<div class="mmhvault-profit-badge-v4310" title="Profit center"><span class="profit-icon">↗</span><span>Profit</span></div>
 </header>
 <div class="bottom-nav" id="bottomNav" style="display:none">
-<button data-page="dashboard"><span class="nav-icon" aria-hidden="true">📊</span><span>Dashboard</span></button>
-<button data-page="transactions"><span class="nav-icon" aria-hidden="true">💳</span><span>Transactions</span></button>
-<button data-page="invest"><span class="nav-icon" aria-hidden="true">📈</span><span>Invest</span></button>
-<button aria-expanded="false" aria-haspopup="menu" class="more-nav-trigger" id="moreNavButton" type="button"><span class="nav-icon" aria-hidden="true">☰</span><span>More</span></button>
+<button data-page="dashboard">📊<span>Dashboard</span></button>
+<button data-page="transactions">💳<span>Transactions</span></button>
+<button data-page="invest">📈<span>Invest</span></button>
+<button aria-expanded="false" aria-haspopup="menu" class="more-nav-trigger" id="moreNavButton" type="button">☰<span>More</span></button>
 </div>
 <div aria-hidden="true" class="more-nav-menu" id="moreNavMenu" role="menu">
 <button data-more-page="analyze" role="menuitem" type="button">📊<span>Analyze</span></button>
