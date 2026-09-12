@@ -1605,15 +1605,6 @@ button,input,select,textarea{font:inherit}button{transition:transform .2s ease,b
 #analyze .analyze-tab-panel-v371[data-panel="overview"] #financialIntelligenceV314{margin-bottom:0;}
 #analyze .analyze-tab-panel-v371[data-panel="overview"] #financialIntelligenceV314:before{content:"Overview Command Center";display:block;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:#7892ba;margin-bottom:8px;}
 </style>
-
-<style id="mmhvault-analyze-cross-tab-dedup-v1">
-/* Final Analyze data reduction: Financial Health keeps only the indicators that are not already primary on other tabs. */
-#financialHealthV371 .fin-health-card:nth-child(2),
-#financialHealthV371 .fin-health-card:nth-child(3){display:none!important}
-#financialHealthV371 .fin-health-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
-@media(max-width:760px){#financialHealthV371 .fin-health-grid{grid-template-columns:1fr 1fr}}
-@media(max-width:460px){#financialHealthV371 .fin-health-grid{grid-template-columns:1fr}}
-</style>
 </head>
 <!-- MMHVAULT V4.3.0 · Dashboard report relocation + Transaction receipt center + Invest Add precision -->
 <body>
@@ -1876,14 +1867,11 @@ button,input,select,textarea{font:inherit}button{transition:transform .2s ease,b
 <label>Month<select id="analyzeMonth"><option value="annual">Annual</option></select></label>
 </div></div>
 <input id="month" type="hidden" value=""/>
-<div aria-label="Analysis sections" class="analyze-tabs-v371" role="tablist">
+<div aria-label="Analysis sections" class="analyze-tabs-v371 analyze-tabs-merged-v1" role="tablist">
 <button aria-selected="true" class="analyze-tab-v371 active" data-tab="overview" role="tab" type="button">Overview</button>
-<button aria-selected="false" class="analyze-tab-v371" data-tab="health" role="tab" type="button">Financial Health</button>
-<button aria-selected="false" class="analyze-tab-v371" data-tab="cashflow" role="tab" type="button">Cash Flow</button>
-<button aria-selected="false" class="analyze-tab-v371" data-tab="expenses" role="tab" type="button">Expenses</button>
+<button aria-selected="false" class="analyze-tab-v371" data-tab="health" role="tab" type="button">Health &amp; Decisions</button>
+<button aria-selected="false" class="analyze-tab-v371" data-tab="cashflow" role="tab" type="button">Cash Flow &amp; Expenses</button>
 <button aria-selected="false" class="analyze-tab-v371" data-tab="networth" role="tab" type="button">Net Worth</button>
-<button aria-selected="false" class="analyze-tab-v371" data-tab="decisions" role="tab" type="button">Decisions</button>
-<button aria-selected="false" class="analyze-tab-v371" data-tab="insights" role="tab" type="button">Insights</button>
 <button aria-selected="false" class="analyze-tab-v371" data-tab="wealthrules" id="analyzeTabWealthRulesV32811" role="tab" type="button">Wealth Rules</button></div>
 <div class="analyze-tab-panel-v371 active" data-panel="overview" role="tabpanel">
 <div aria-label="Financial Intelligence Center" class="panel financial-intelligence-v314" id="financialIntelligenceV314"></div>
@@ -11693,6 +11681,72 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
   };
 })();
 </script>
+
+<style id="mmhvault-analyze-tabs-merged-v1">
+  .analyze-tabs-merged-v1{display:flex!important;justify-content:center!important;align-items:center!important;gap:8px!important;flex-wrap:wrap!important;margin-left:auto!important;margin-right:auto!important;width:100%!important;max-width:1120px!important}
+  .analyze-tabs-merged-v1 .analyze-tab-v371{flex:0 0 auto!important;min-width:138px!important;text-align:center!important;justify-content:center!important}
+  @media(max-width:900px){.analyze-tabs-merged-v1{gap:6px!important}.analyze-tabs-merged-v1 .analyze-tab-v371{min-width:118px!important}}
+  @media(max-width:640px){.analyze-tabs-merged-v1{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important}.analyze-tabs-merged-v1 .analyze-tab-v371{width:100%!important;min-width:0!important}}
+</style>
+<script id="mmhvault-analyze-tabs-merged-v1-js">
+(function(){
+  const root=document.getElementById('analyze');
+  if(!root)return;
+  const groups={
+    overview:['overview','insights'],
+    health:['health','decisions'],
+    cashflow:['cashflow','expenses'],
+    networth:['networth'],
+    wealthrules:['wealthrules']
+  };
+  const labels=['overview','health','cashflow','networth','wealthrules'];
+  const panelSel='.analyze-tab-panel-v371';
+  function activate(tab){
+    if(!labels.includes(tab))tab='overview';
+    const visible=new Set(groups[tab]);
+    root.querySelectorAll('.analyze-tab-v371').forEach(function(b){
+      const on=b.dataset.tab===tab;
+      b.classList.toggle('active',on);
+      b.setAttribute('aria-selected',on?'true':'false');
+      b.setAttribute('tabindex',on?'0':'-1');
+    });
+    root.querySelectorAll(panelSel).forEach(function(p){
+      const show=visible.has(p.dataset.panel);
+      p.classList.toggle('active',show && p.dataset.panel===tab);
+      p.setAttribute('aria-hidden',show?'false':'true');
+      p.style.display=show?'block':'none';
+    });
+    try{localStorage.setItem('myfinance_analyze_tab',tab)}catch(e){}
+    try{
+      if(tab==='health'){
+        window.renderFinancialHealthV371?.();
+        window.renderFinancialDecisionV325?.();
+      }else if(tab==='cashflow'){
+        window.scheduleRenderV3441?.();
+        window.renderAnalyzeV37?.();
+      }else if(tab==='networth'){
+        window.renderNetWorthAnalyzeV371?.();
+      }else if(tab==='wealthrules'){
+        window.mmhActivateWealthRulesV32814?.();
+      }else if(tab==='overview'){
+        window.renderAnalyzeV37?.();
+        window.renderInsightsV340?.();
+      }
+    }catch(e){console.warn('Merged Analyze tab render warning:',e)}
+  }
+  function bind(){
+    root.querySelectorAll('.analyze-tabs-merged-v1 .analyze-tab-v371').forEach(function(btn){
+      btn.onclick=function(e){e.preventDefault();e.stopPropagation();activate(btn.dataset.tab)};
+      btn.onkeydown=function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();activate(btn.dataset.tab)}};
+    });
+    const saved=localStorage.getItem('myfinance_analyze_tab')||'overview';
+    activate(labels.includes(saved)?saved:'overview');
+  }
+  window.setAnalyzeTabV371=activate;
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
+})();
+</script>
+
 </body>
 <!-- MMHVAULT V4.3.0 performance baseline: logo-free account cards + restrained dashboard rendering. -->
 
