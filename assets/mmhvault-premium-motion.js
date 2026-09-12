@@ -62,3 +62,8 @@
 (function(){
   document.documentElement.dataset.mmhDashboardComposition = 'premium-v6';
 })();
+
+/* Premium visual pass 7 marker — Transactions + Invest presentation only */
+(function(){
+  document.documentElement.dataset.mmhSecondaryPages = 'premium-v7';
+})();
