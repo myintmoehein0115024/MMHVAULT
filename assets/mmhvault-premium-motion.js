@@ -52,3 +52,8 @@
   },{threshold:.18});
   targets.forEach(el=>observer.observe(el));
 })();
+
+/* Premium visual pass 5 marker — presentation only */
+(function(){
+  document.documentElement.dataset.mmhTypographySystem = 'premium-v5';
+})();

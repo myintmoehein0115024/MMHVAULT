@@ -646,3 +646,186 @@ input:focus,select:focus,textarea:focus{
     animation:none!important;
   }
 }
+
+
+/* =========================================================
+   MMHVAULT · PREMIUM VISUAL PASS 5
+   Focus: typography + spacing system consistency
+   Visual-only. No feature/data/navigation changes.
+========================================================= */
+
+:root{
+  --mmh-space-1:6px;
+  --mmh-space-2:10px;
+  --mmh-space-3:14px;
+  --mmh-space-4:18px;
+  --mmh-space-5:24px;
+  --mmh-space-6:30px;
+  --mmh-radius-sm:10px;
+  --mmh-radius-md:14px;
+  --mmh-radius-lg:18px;
+}
+
+/* ---------- Global type rhythm ---------- */
+body{
+  font-kerning:normal;
+  text-rendering:optimizeLegibility;
+}
+h1{
+  line-height:1.04;
+  letter-spacing:-.045em;
+}
+h2{
+  line-height:1.10;
+  letter-spacing:-.028em;
+}
+h3{
+  line-height:1.18;
+  letter-spacing:-.018em;
+}
+.sub,.meta,.small,label{
+  line-height:1.45;
+}
+.value,.kpi,.metric,.metric-value,.stat-value,.money{
+  line-height:1.05;
+}
+
+/* Keep uppercase financial labels deliberate, not noisy */
+.mmh-dash372-card span,
+.mmh-insights-kpi-v340 .label,
+.mmh-v380-card .k,
+.portfolio-health-metric-v3716 .label,
+.mmh-v390-table th{
+  letter-spacing:.085em;
+  font-weight:800;
+}
+
+/* ---------- Standardize common section spacing ---------- */
+.mmh-dashboard-v372,
+.mmh-v380-page-head,
+.mmh-v390-page-head,
+.mmh-insights-head-v340{
+  margin-bottom:18px;
+}
+
+.mmh-dash372-head,
+.mmh-dash372-compare-head{
+  gap:14px;
+}
+
+/* ---------- Dashboard cards: balanced vertical rhythm ---------- */
+.mmh-dash372-card{
+  padding:18px;
+  min-height:116px;
+}
+.mmh-dash372-card b{
+  margin-top:11px;
+  line-height:1.08;
+}
+.mmh-dash372-card small{
+  margin-top:7px;
+  line-height:1.4;
+}
+
+/* ---------- Insights / health cards ---------- */
+.mmh-insights-kpi-v340{
+  padding:18px;
+}
+.mmh-insights-kpi-v340 .value{
+  margin-top:8px;
+}
+.mmh-insights-kpi-v340 .meta{
+  margin-top:6px;
+}
+
+.portfolio-health-v3716{
+  padding:18px;
+}
+.portfolio-health-head-v3716{
+  margin-bottom:16px;
+}
+.portfolio-health-metric-v3716{
+  padding:13px;
+}
+.portfolio-health-metric-v3716 .value{
+  margin-top:7px;
+}
+
+/* ---------- Wealth planning / scenarios ---------- */
+.mmh-v380-hero{
+  padding:24px;
+}
+.mmh-v380-card,
+.mmh-v380-scenario{
+  padding:18px;
+}
+.mmh-v380-card .v,
+.mmh-v380-scenario .big{
+  line-height:1.06;
+}
+
+/* ---------- Transaction table readability ---------- */
+.mmh-v390-table th,
+.mmh-v390-table td{
+  padding:12px 11px;
+  line-height:1.35;
+}
+.mmh-v390-table th{
+  font-size:11px;
+}
+.mmh-v390-table td{
+  font-size:13px;
+}
+
+/* ---------- Buttons / inputs: consistent vertical center ---------- */
+.btn{
+  min-height:40px;
+  line-height:1;
+}
+input,select,textarea{
+  line-height:1.25;
+}
+
+/* ---------- Preserve the approved mobile geometry ---------- */
+@media(max-width:900px){
+  h1{letter-spacing:-.036em}
+  h2{letter-spacing:-.022em}
+  .mmh-dash372-card{padding:16px}
+  .mmh-insights-kpi-v340{padding:16px}
+  .portfolio-health-v3716{padding:16px}
+  .mmh-v380-hero{padding:20px}
+  .mmh-v380-card,.mmh-v380-scenario{padding:16px}
+}
+@media(max-width:600px){
+  .mmh-dashboard-v372,
+  .mmh-v380-page-head,
+  .mmh-v390-page-head,
+  .mmh-insights-head-v340{
+    margin-bottom:14px;
+  }
+
+  .mmh-dash372-card b{
+    font-size:20px;
+  }
+
+  .mmh-insights-kpi-v340 .value{
+    font-size:22px;
+  }
+
+  .mmh-v380-card .v,
+  .mmh-v380-scenario .big{
+    font-size:22px;
+  }
+}
+
+/* ---------- Avoid visual compression on narrow phones ---------- */
+@media(max-width:390px){
+  body{letter-spacing:0}
+  h1{line-height:1.07}
+  h2{line-height:1.12}
+  .mmh-dash372-card span,
+  .mmh-insights-kpi-v340 .label,
+  .mmh-v380-card .k{
+    letter-spacing:.065em;
+  }
+}
