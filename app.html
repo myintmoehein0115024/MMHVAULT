@@ -12040,6 +12040,50 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
   window.MM_HVAULT_WEALTHRULES_PREMIUM={version:'2026.09.12'};
 })();
 </script>
+
+<style id="mmhvault-analyze-final-motion-css">
+/* MMHVAULT Premium — unified Analyze tab motion layer */
+.analyze-tabs-v371{position:relative;isolation:isolate}
+.analyze-tabs-v371::before{content:"";position:absolute;inset:3px 12% auto;height:1px;background:linear-gradient(90deg,transparent,rgba(91,200,255,.38),rgba(246,199,92,.34),transparent);opacity:.7;pointer-events:none}
+.analyze-tab-v371{position:relative;overflow:hidden;transition:transform .24s ease,background .24s ease,border-color .24s ease,box-shadow .24s ease,color .24s ease}
+.analyze-tab-v371::after{content:"";position:absolute;left:-40%;top:0;width:55%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.14),transparent);transform:translateX(-120%);pointer-events:none}
+.analyze-tab-v371:hover{transform:translateY(-1px)}
+.analyze-tab-v371.active{box-shadow:0 8px 22px rgba(0,0,0,.18),inset 0 1px 0 rgba(255,255,255,.05)}
+.analyze-tab-v371.mmh-tab-pulse::after{animation:mmhAnalyzeTabSweep .56s ease-out}
+.analyze-tab-panel-v371{position:relative;animation-duration:.42s;animation-timing-function:cubic-bezier(.2,.8,.2,1)}
+.analyze-tab-panel-v371.mmh-panel-enter{animation-name:mmhAnalyzePanelEnter}
+@keyframes mmhAnalyzePanelEnter{from{opacity:.28;transform:translateY(10px) scale(.996);filter:blur(1px)}to{opacity:1;transform:none;filter:none}}
+@keyframes mmhAnalyzeTabSweep{0%{transform:translateX(-120%)}100%{transform:translateX(240%)}}
+@media(prefers-reduced-motion:reduce){.analyze-tab-v371,.analyze-tab-v371:hover{transition:none;transform:none}.analyze-tab-v371.mmh-tab-pulse::after{animation:none}.analyze-tab-panel-v371.mmh-panel-enter{animation:none}}
+</style>
+
+
+<script id="mmhvault-analyze-final-motion-js">
+(function(){
+  if(window.__mmhAnalyzeFinalMotion)return;
+  window.__mmhAnalyzeFinalMotion=true;
+  function pulse(tab){
+    document.querySelectorAll('.analyze-tab-v371').forEach(b=>b.classList.remove('mmh-tab-pulse'));
+    tab.classList.add('mmh-tab-pulse');
+    setTimeout(()=>tab.classList.remove('mmh-tab-pulse'),650);
+  }
+  function animateActive(){
+    const active=document.querySelector('.analyze-tab-panel-v371.active');
+    if(!active)return;
+    document.querySelectorAll('.analyze-tab-panel-v371').forEach(p=>p.classList.remove('mmh-panel-enter'));
+    requestAnimationFrame(()=>active.classList.add('mmh-panel-enter'));
+  }
+  function bind(){
+    document.querySelectorAll('.analyze-tab-v371').forEach(btn=>{
+      btn.addEventListener('click',()=>{pulse(btn);setTimeout(animateActive,20)},{passive:true});
+    });
+    animateActive();
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
+  window.addEventListener('mmhvault:page-visible',()=>setTimeout(animateActive,30),{passive:true});
+})();
+</script>
+
 </body>
 <!-- MMHVAULT V4.3.0 performance baseline: logo-free account cards + restrained dashboard rendering. -->
 
