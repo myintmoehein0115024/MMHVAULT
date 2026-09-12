@@ -24,3 +24,19 @@
   syncScrollState();
   window.addEventListener('scroll', syncScrollState, {passive:true});
 })();
+
+/* Premium visual pass 3: subtle active-page pulse, presentation only */
+(function(){
+  const markActivePage = () => {
+    const pageIds = ['dashboard','transactions','invest','analyze','exchange','settings'];
+    const active = pageIds.find(id => {
+      const el = document.getElementById(id);
+      if (!el) return false;
+      const cs = getComputedStyle(el);
+      return cs.display !== 'none' && cs.visibility !== 'hidden';
+    });
+    if (active) document.documentElement.dataset.mmhActivePage = active;
+  };
+  markActivePage();
+  window.addEventListener('hashchange', markActivePage, {passive:true});
+})();

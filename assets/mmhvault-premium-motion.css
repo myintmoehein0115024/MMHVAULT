@@ -327,3 +327,170 @@ h1::selection,h2::selection,h3::selection{background:rgba(73,194,255,.22)}
     animation:none!important;
   }
 }
+
+
+/* =========================================================
+   MMHVAULT · PREMIUM VISUAL PASS 3
+   Focus: financial hierarchy + micro-interactions
+   Visual-only. No feature, data, or navigation changes.
+========================================================= */
+
+/* ---------- Financial numbers: stronger terminal hierarchy ---------- */
+.value,.kpi,.metric,.metric-value,.stat-value,.money,
+.mmh-dash372-card b,
+.portfolio-score-v3716 .num,
+.mmh-v380-card .v,
+.mmh-v380-scenario .big,
+.mmh-v390-kpis .panel strong{
+  font-variant-numeric:tabular-nums;
+  text-rendering:optimizeLegibility;
+}
+
+.hero-networth .value,
+#dashboard .value,
+#dashboard .kpi,
+#dashboard .metric,
+.mmh-command-v34210 .value{
+  text-shadow:0 0 24px rgba(72,196,255,.055);
+}
+
+/* Tiny gold/cyan accent for primary financial figures */
+#dashboard .mmh-dash372-card:first-child b,
+#dashboard .mmh-v380-card .v,
+.portfolio-score-v3716 .num{
+  text-shadow:0 0 26px rgba(93,202,255,.065);
+}
+
+/* ---------- KPI / stat card depth ---------- */
+.mmh-dash372-card,
+.data-integrity-card-v339,
+.mmh-insights-kpi-v340,
+.portfolio-health-metric-v3716,
+.mmh-v380-card,
+.mmh-v380-scenario{
+  background-image:
+    linear-gradient(145deg,rgba(255,255,255,.025),transparent 42%),
+    linear-gradient(160deg,rgba(8,20,43,.58),rgba(5,12,28,.76));
+}
+
+/* A quiet top-edge highlight makes cards feel machined */
+.mmh-dash372-card::after,
+.data-integrity-card-v339::after,
+.mmh-insights-kpi-v340::after,
+.portfolio-health-metric-v3716::after,
+.mmh-v380-card::after,
+.mmh-v380-scenario::after{
+  content:"";
+  position:absolute;
+  left:12%;
+  right:12%;
+  top:0;
+  height:1px;
+  pointer-events:none;
+  background:linear-gradient(90deg,transparent,rgba(116,199,255,.18),transparent);
+  opacity:.65;
+}
+
+/* ---------- Progress bars: liquid terminal motion ---------- */
+.mmh-progress-v340,
+.mmh-v380-bar,
+[class*="progress"]{
+  position:relative;
+  overflow:hidden;
+}
+.mmh-progress-v340 span,
+.mmh-v380-bar>span{
+  position:relative;
+  overflow:hidden;
+}
+.mmh-progress-v340 span::after,
+.mmh-v380-bar>span::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  width:34%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.13),transparent);
+  transform:translateX(-140%);
+  animation:mmhProgressShimmer 6.5s ease-in-out infinite;
+}
+@keyframes mmhProgressShimmer{
+  0%,68%,100%{transform:translateX(-140%);opacity:0}
+  74%{opacity:.7}
+  90%{transform:translateX(340%);opacity:0}
+}
+
+/* ---------- Inputs: premium focus state without resizing ---------- */
+input,select,textarea{
+  transition:
+    border-color .22s ease,
+    box-shadow .22s ease,
+    background-color .22s ease;
+}
+input:focus,select:focus,textarea:focus{
+  border-color:rgba(83,197,255,.42)!important;
+  box-shadow:
+    0 0 0 3px rgba(83,197,255,.065),
+    0 10px 28px rgba(0,0,0,.10)!important;
+}
+
+/* ---------- Pills / badges get more depth ---------- */
+.pill,
+.badge,
+.mmh-v380-badge,
+.portfolio-health-badge-v3716,
+.mmh-insight-badge-v340{
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.045);
+}
+
+/* ---------- Section separators ---------- */
+.mmh-dash372-compare{
+  position:relative;
+}
+.mmh-dash372-compare::before{
+  content:"";
+  position:absolute;
+  left:4%;
+  right:4%;
+  top:0;
+  height:1px;
+  background:linear-gradient(90deg,transparent,rgba(104,175,255,.16),rgba(245,196,81,.09),transparent);
+  opacity:.75;
+}
+
+/* ---------- More restrained page-switch feedback ---------- */
+#dashboard,#transactions,#invest,#analyze,#exchange,#settings{
+  transition:opacity .22s ease,transform .22s ease;
+}
+
+/* ---------- Scrollbar refinements for premium feel ---------- */
+*{
+  scrollbar-width:thin;
+  scrollbar-color:rgba(91,145,207,.25) transparent;
+}
+*::-webkit-scrollbar{width:8px;height:8px}
+*::-webkit-scrollbar-track{background:transparent}
+*::-webkit-scrollbar-thumb{
+  background:linear-gradient(180deg,rgba(82,181,245,.25),rgba(246,198,91,.18));
+  border-radius:999px;
+  border:2px solid transparent;
+  background-clip:padding-box;
+}
+
+/* ---------- Mobile: preserve the stable geometry ---------- */
+@media(max-width:900px){
+  input:focus,select:focus,textarea:focus{
+    box-shadow:0 0 0 3px rgba(83,197,255,.055)!important;
+  }
+  .mmh-progress-v340 span::after,
+  .mmh-v380-bar>span::after{
+    animation-duration:9s;
+  }
+}
+
+/* ---------- Reduced motion ---------- */
+@media(prefers-reduced-motion:reduce){
+  .mmh-progress-v340 span::after,
+  .mmh-v380-bar>span::after{
+    animation:none!important;
+  }
+}
