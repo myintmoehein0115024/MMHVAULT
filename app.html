@@ -1581,6 +1581,17 @@ button,input,select,textarea{font:inherit}button{transition:transform .2s ease,b
 .expense-control-embedded-v1 > #dashboardExpenseControl{padding-bottom:2px}
 @media(max-width:720px){.expense-command-divider-v1{margin:15px 0 0}.expense-control-embedded-v1{margin-top:12px!important}}
 </style>
+
+<style id="mmhvault-v1-personal-command-css">
+.personal-command-grid-v1{display:grid;grid-template-columns:1.15fr .9fr .9fr;gap:10px}
+.personal-command-card-v1{min-width:0;padding:13px 14px;border:1px solid rgba(120,150,220,.12);border-radius:14px;background:rgba(255,255,255,.018)}
+.personal-command-card-v1.primary{background:linear-gradient(135deg,rgba(24,37,87,.52),rgba(10,17,45,.64));border-color:rgba(96,145,255,.18)}
+.personal-command-card-v1 .label{font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:#7f94bc}
+.personal-command-card-v1 .value{margin-top:5px;font-size:18px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.personal-command-card-v1 .small{margin-top:5px;line-height:1.4}
+.personal-command-note-v1{margin-top:10px;color:#7187aa;font-size:10px;line-height:1.45}
+@media(max-width:760px){.personal-command-grid-v1{grid-template-columns:1fr}.personal-command-card-v1.primary .value{font-size:20px}}
+</style>
 </head>
 <!-- MMHVAULT V4.3.0 · Dashboard report relocation + Transaction receipt center + Invest Add precision -->
 <body>
@@ -1872,7 +1883,7 @@ button,input,select,textarea{font:inherit}button{transition:transform .2s ease,b
 </div>
 <div aria-hidden="true" class="analyze-tab-panel-v371" data-panel="expenses" role="tabpanel">
 <div class="panel analyze-panel remaining-funds-panel-v34226" id="remainingFundsPanelV34226"><div class="toolbar"><div><h2>Remaining Funds After Expected Spending</h2><div class="sub">Current available funds minus estimated monthly spending · THB</div></div><span class="pill" id="remainingFundsStatusV34226">—</span></div><div class="remaining-funds-grid-v34226"><div class="rf-stat-v34226"><div class="label">Current Available Funds</div><div class="value" id="rfAvailableV34226">฿ 0.00</div><div class="small">Cash + stable accounts available to spend</div></div><div class="rf-stat-v34226"><div class="label">Estimated Monthly Spending</div><div class="value" id="rfSpendV34226">฿ 0.00</div><div class="small">This month’s Category Budget Control remaining after actual spending</div></div><div class="rf-stat-v34226 rf-main-v34226"><div class="label">Remaining After Expected Spending</div><div class="value" id="rfRemainingV34226">฿ 0.00</div><div class="small" id="rfRemainingMetaV34226">Estimated funds left after this month’s normal spending</div></div></div><div class="rf-bar-wrap-v34226"><div class="rf-bar-v34226"><span id="rfBarV34226"></span></div><div class="rf-bar-meta-v34226"><span id="rfCoverageV34226">—</span><span id="rfCoveragePctV34226">—</span></div></div><div class="expense-command-divider-v1"></div><div class="panel analyze-panel expense-control-panel expense-control-embedded-v1"><div class="toolbar"><div><h2>Budget &amp; Spending Control</h2><div class="sub">Current month · Budget vs actual · THB</div></div><span class="pill" id="expenseControlStatus">—</span></div><div id="dashboardExpenseControl"></div></div>
-</div><div class="panel analyze-panel personal-expense-panel"><div class="toolbar"><div><h2>Personal Expense Analysis</h2><div class="sub">Family Support · Special Transfer · Gifts · Donation</div></div><span class="pill">Personal · THB</span></div><div id="personalExpenseAnalysisV371"></div></div>
+</div><div class="panel analyze-panel personal-expense-panel"><div class="toolbar"><div><h2>Personal &amp; Family Spending</h2><div class="sub">Essential personal transfers summarized · THB</div></div><span class="pill">Personal</span></div><div id="personalExpenseAnalysisV371"></div></div>
 <div class="panel analyze-panel expense-ranking-legacy-v343" style="display:none"><div class="toolbar"><h2>Expense Ranking</h2></div><div id="expenseRanking"></div></div>
 <div class="panel analyze-panel budget-panel budget-progress-legacy-v343" style="display:none"><div class="toolbar"><div><h2>Budget Progress</h2><div class="sub">Edit planned amount for each category · THB</div></div></div><div id="budgetProgress"></div></div>
 </div>
@@ -4067,36 +4078,33 @@ function renderPersonalExpenseAnalysisV371(summary){
   let data;
   let income;
   if(summary&&summary.byCategory){
-    const cats=['Family Support','Special Transfer','Gifts','Donation'];
-    data=cats.map(cat=>({cat,value:Number(summary.byCategory[cat]||0)}));
+    data={
+      family:Number(summary.byCategory['Family Support']||0),
+      special:Number(summary.byCategory['Special Transfer']||0),
+      gifts:Number(summary.byCategory['Gifts']||0),
+      donation:Number(summary.byCategory['Donation']||0)
+    };
     income=Number(summary.income||0);
   }else{
     const rows=v37Rows();
     const cats=['Family Support','Special Transfer','Gifts','Donation'];
-    data=cats.map(cat=>({cat,value:rows.filter(t=>t.type==='Expense'&&t.category===cat).reduce((s,t)=>s+n(t.from_amount)*toTHB(t.from_account),0)}));
+    const amounts=Object.fromEntries(cats.map(cat=>[cat,rows.filter(t=>t.type==='Expense'&&t.category===cat).reduce((s,t)=>s+n(t.from_amount)*toTHB(t.from_account),0)]));
+    data={family:amounts['Family Support']||0,special:amounts['Special Transfer']||0,gifts:amounts['Gifts']||0,donation:amounts['Donation']||0};
     income=v37Totals(rows).inc;
   }
-  const total=data.reduce((s,x)=>s+x.value,0);
-  if(total<=0){el.innerHTML='<div class="empty">No personal expenses for this period.</div>';return;}
-  const max=Math.max(1,...data.map(x=>x.value));
-  el.innerHTML=`<div class="personal-expense-summary-v371">
-    <div class="personal-expense-total-v371">
-      <div class="label">Total Personal Spending</div>
-      <div class="value red">${thb(total)}</div>
-      <div class="small">${income?(total/income*100).toFixed(1):'0.0'}% of income</div>
+  const total=data.family+data.special+data.gifts+data.donation;
+  if(total<=0){el.innerHTML='<div class="empty">No personal or family spending for this period.</div>';return;}
+  const familyPct=income?data.family/income*100:0;
+  const other=data.special+data.gifts+data.donation;
+  const otherPct=income?other/income*100:0;
+  const personalPct=income?total/income*100:0;
+  el.innerHTML=`
+    <div class="personal-command-grid-v1">
+      <div class="personal-command-card-v1 primary"><div class="label">Total Personal &amp; Family</div><div class="value red">${thb(total)}</div><div class="small">${personalPct.toFixed(1)}% of income</div></div>
+      <div class="personal-command-card-v1"><div class="label">Family Support</div><div class="value">${thb(data.family)}</div><div class="small">${familyPct.toFixed(1)}% of income</div></div>
+      <div class="personal-command-card-v1"><div class="label">Other Personal</div><div class="value">${thb(other)}</div><div class="small">Special Transfer + Gifts + Donation · ${otherPct.toFixed(1)}% of income</div></div>
     </div>
-    <div class="personal-expense-grid-v371">
-      ${data.map(x=>{
-        const personalPct=total?x.value/total*100:0;
-        const incomePct=income?x.value/income*100:0;
-        return `<div class="personal-expense-row-v371">
-          <div class="personal-expense-head-v371"><b>${x.cat}</b><span>${thb(x.value)}</span></div>
-          <div class="personal-expense-bar-v371"><span style="width:${Math.min(100,x.value/max*100)}%"></span></div>
-          <div class="small">${personalPct.toFixed(1)}% of personal spending · ${incomePct.toFixed(1)}% of income</div>
-        </div>`;
-      }).join('')}
-    </div>
-  </div>`;
+    <div class="personal-command-note-v1">Detailed category records remain available in Transactions. Analyze only keeps the high-value personal/family summary here.</div>`;
 }
 
 function renderCashFlowSummaryV371(summary){
