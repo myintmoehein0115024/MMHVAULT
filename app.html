@@ -1678,6 +1678,66 @@ button,input,select,textarea{font:inherit}button{transition:transform .2s ease,b
 }
 </style>
 
+
+<!-- MMHVAULT V4.3.0 · MOBILE HEADER FINAL ALIGNMENT -->
+<style id="mmhvault-v4311-mobile-header-final">
+/* Desktop: keep the existing Cloud Synced + Profit command area. */
+@media(max-width:760px){
+  /* Mobile: remove Cloud Synced and Profit completely. */
+  #header .mmhvault-sync-status-v337,
+  #header .mmhvault-profit-badge-v4310{
+    display:none!important;
+  }
+
+  /* Keep the profile naturally pinned to the far right. */
+  #header{
+    display:flex!important;
+    align-items:center!important;
+    gap:0!important;
+    padding-right:10px!important;
+  }
+  #header .header-spacer{
+    display:block!important;
+    flex:1 1 auto!important;
+    min-width:0!important;
+  }
+  #header .header-profile{
+    margin-left:auto!important;
+    margin-right:0!important;
+    flex:0 0 auto!important;
+    max-width:calc(100vw - 170px)!important;
+  }
+
+  /* Let the brand use only the space it needs, without pushing the profile inward. */
+  #header .mmhvault-header-brand{
+    flex:0 1 auto!important;
+    min-width:0!important;
+    overflow:hidden!important;
+  }
+  #header .mmhvault-header-brand .logo{
+    min-width:0!important;
+  }
+  #header .mmhvault-brand-tagline,
+  #header .version{
+    display:none!important;
+  }
+  #header .header-profile-copy{
+    min-width:0!important;
+  }
+  #header #headerDisplayEmail{
+    display:none!important;
+  }
+}
+
+/* Extra-small phones: preserve the right-edge profile and prevent header crowding. */
+@media(max-width:480px){
+  #header{padding-left:10px!important;padding-right:8px!important;}
+  #header .mmhvault-header-brand .logo > span:not(.version){font-size:0!important;}
+  #header .mmhvault-header-logo-img{margin-right:0!important;}
+  #header .header-profile{max-width:calc(100vw - 78px)!important;}
+}
+</style>
+
 </head>
 <!-- MMHVAULT V4.3.0 · Dashboard report relocation + Transaction receipt center + Invest Add precision -->
 <body>
