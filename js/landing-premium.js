@@ -9,6 +9,10 @@ document.addEventListener("DOMContentLoaded",()=>{
       header.classList.toggle("menu-open");
       menu.setAttribute("aria-expanded",header.classList.contains("menu-open"));
     };
+    header.querySelectorAll(".links a").forEach(link=>link.addEventListener("click",()=>{
+      header.classList.remove("menu-open");
+      menu.setAttribute("aria-expanded","false");
+    }));
   }
 
   const updateHeader=()=>{
