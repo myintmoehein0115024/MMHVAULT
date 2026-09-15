@@ -303,3 +303,12 @@ html.lang-zh .mosaic .tile .overlay b{line-height:1.25}
   html.lang-zh .showcase-copy h3,
   html.lang-zh .quote h3{font-size:30px}
 }
+
+/* MMHVAULT Landing v4.5.2 — language control polish */
+.mmh-lang-switcher{flex:0 0 auto;isolation:isolate}
+.mmh-lang-switcher button{min-width:34px;text-align:center}
+.mmh-lang-switcher button[data-lang="zh"]{font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;letter-spacing:0}
+html.lang-zh .site-header .brand small{font-family:Manrope,Inter,"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif}
+html.lang-zh .footer{font-family:Manrope,Inter,"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif}
+@media(max-width:900px){.mmh-lang-switcher{order:0;margin-left:0}.site-header.menu-open .mmh-lang-switcher{margin-top:10px}}
+@media(max-width:560px){.mmh-lang-switcher{gap:2px;padding:2px}.mmh-lang-switcher button{min-width:32px;padding:7px 7px}.mmh-lang-switcher button.active{box-shadow:0 4px 14px rgba(198,146,45,.16)}}
