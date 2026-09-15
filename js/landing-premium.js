@@ -27,7 +27,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   }
 });
 
-/* v4.5.9 — Landing language switcher: match the Login pill exactly. Login page itself is intentionally untouched. */
+/* v4.6.2 — Landing language switcher: match the Login pill exactly. Login page itself is intentionally untouched. */
 (()=>{
   const translations={
     'Home':'首页','Features':'功能','Security':'安全','Experience':'体验','About':'关于','Login':'登录',
