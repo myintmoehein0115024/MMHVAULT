@@ -225,3 +225,13 @@ img{max-width:100%;height:auto}
 @media (hover:none){
   .site-header.is-scrolled{box-shadow:0 10px 28px rgba(0,0,0,.16)}
 }
+
+/* MMHVAULT Landing v4.5.0 — bilingual language switcher */
+.mmh-lang-switcher{position:relative;display:inline-flex;align-items:center;gap:3px;margin-left:8px;padding:3px;border:1px solid rgba(212,169,77,.22);border-radius:999px;background:rgba(7,15,28,.56);box-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 8px 24px rgba(0,0,0,.12);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);z-index:20}
+.mmh-lang-switcher button{appearance:none;border:0;background:transparent;color:rgba(226,232,240,.66);font:700 10px/1 Manrope,Inter,-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans SC","PingFang SC",Arial,sans-serif;letter-spacing:.06em;padding:7px 9px;border-radius:999px;cursor:pointer;transition:background .2s ease,color .2s ease,box-shadow .2s ease,transform .2s ease}
+.mmh-lang-switcher button:hover{color:#fff;transform:translateY(-1px)}
+.mmh-lang-switcher button.active{color:#111827;background:linear-gradient(135deg,#f4d37c,#c6922d);box-shadow:0 5px 16px rgba(198,146,45,.18)}
+.mmh-lang-switcher button:focus-visible{outline:2px solid rgba(244,211,124,.72);outline-offset:2px}
+html.lang-zh .site-header .brand small{letter-spacing:.08em}
+@media(max-width:900px){.mmh-lang-switcher{margin:10px 0 2px 0;align-self:flex-start}.site-header.menu-open .mmh-lang-switcher{display:inline-flex}}
+@media(max-width:520px){.mmh-lang-switcher button{font-size:9px;padding:7px 8px}}
