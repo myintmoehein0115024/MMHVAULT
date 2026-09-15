@@ -243,7 +243,7 @@ body{background-image:radial-gradient(circle at 50% -10%,rgba(255,255,255,.025),
 .card p,.showcase-copy p,.quote p,.section-head p{letter-spacing:.005em}
 .showcase-copy{display:flex;flex-direction:column;justify-content:center}
 .showcase-media{isolation:isolate}
-.showcase-media:before{content:"LIVE SYSTEM VIEW";position:absolute;left:24px;top:22px;z-index:4;padding:7px 10px;border:1px solid rgba(156,203,235,.14);border-radius:999px;background:rgba(3,11,21,.48);backdrop-filter:blur(10px);font-family:'DM Mono',monospace;font-size:7px;letter-spacing:.18em;color:rgba(237,242,247,.55)}
+.showcase-media:before{content:"MMHVAULT EXPERIENCE";position:absolute;right:22px;top:20px;z-index:4;padding:8px 11px;border:1px solid rgba(156,203,235,.16);border-radius:999px;background:rgba(3,11,21,.62);backdrop-filter:blur(12px);font-family:'DM Mono',monospace;font-size:7px;line-height:1;letter-spacing:.16em;color:rgba(237,242,247,.68);box-shadow:0 8px 24px rgba(0,0,0,.16)}
 .cta .gold{box-shadow:0 16px 42px rgba(232,184,78,.16),inset 0 1px 0 rgba(255,255,255,.45)}
 .footer{background:linear-gradient(180deg,transparent,rgba(6,18,30,.18))}
 @media(max-width:900px){.site-header.is-scrolled{height:70px}.site-header.is-scrolled .brand img{width:38px;height:38px}.showcase-media:before{left:16px;top:16px}}
