@@ -239,3 +239,166 @@ img{max-width:100%;height:auto}
 @media(max-width:1100px){.site-header{grid-template-columns:minmax(250px,1fr) auto minmax(220px,1fr);column-gap:18px}.site-header .links{min-width:500px;gap:24px}.site-header .header-tools{min-width:220px;gap:12px}}
 @media(max-width:900px){.site-header{display:flex;justify-content:space-between;gap:12px}.site-header .brand{justify-self:auto}.site-header .links{min-width:0}.site-header .header-tools{margin-left:auto;min-width:0;display:flex;gap:10px}.site-header .header-login{display:none}.landing-lang{height:38px}.landing-lang button{height:32px;min-width:39px}.menu-toggle{flex:0 0 auto}}
 @media(max-width:560px){.site-header .header-tools{gap:8px}.landing-lang{height:36px}.landing-lang button{height:30px;padding:0 10px;font-size:11px}.menu-toggle{width:46px;height:46px}}
+
+/* MMHVAULT Landing v4.6.1 — Header locked to the current Login format.
+   Landing only. Login page is intentionally untouched. */
+.site-header{
+  height:104px;
+  display:grid;
+  grid-template-columns:minmax(300px,1fr) auto minmax(260px,1fr);
+  column-gap:28px;
+  align-items:center;
+  justify-content:initial;
+}
+.site-header .brand{justify-self:start;min-width:max-content}
+.site-header .brand img{width:48px;height:48px}
+.site-header .brand strong{font-size:18px;letter-spacing:.14em}
+.site-header .brand small{font-size:9px;letter-spacing:.22em;margin-top:5px}
+.site-header .links{
+  justify-self:center;
+  display:flex;
+  align-items:center;
+  gap:34px;
+  min-width:540px;
+  justify-content:space-between;
+  flex-shrink:0;
+}
+.site-header .links a{
+  color:#bac3cd;
+  font-size:14px;
+  white-space:nowrap;
+  padding:12px 0;
+}
+.site-header .header-tools{
+  justify-self:end;
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:18px;
+  min-width:260px;
+}
+.site-header .landing-lang{
+  height:36px;
+  display:inline-flex;
+  align-items:center;
+  gap:3px;
+  padding:3px;
+  border:1px solid rgba(212,169,77,.22);
+  border-radius:999px;
+  background:rgba(7,15,28,.56);
+  box-shadow:none;
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+  flex:0 0 auto;
+}
+.site-header .landing-lang button{
+  appearance:none;
+  height:30px;
+  min-width:38px;
+  padding:7px 9px;
+  border:0;
+  border-radius:999px;
+  background:transparent;
+  color:rgba(226,232,240,.66);
+  font:700 10px/1 Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  letter-spacing:.02em;
+  white-space:nowrap;
+  cursor:pointer;
+  transition:background .2s ease,color .2s ease,box-shadow .2s ease,transform .2s ease;
+}
+.site-header .landing-lang button:hover{color:#fff;transform:translateY(-1px)}
+.site-header .landing-lang button.is-active{
+  color:#111827;
+  background:linear-gradient(135deg,#f4d37c,#c6922d);
+  box-shadow:none;
+}
+.site-header .header-login{
+  min-width:78px;
+  padding:13px 27px;
+  border:1px solid rgba(242,201,104,.35);
+  border-radius:16px;
+  color:#ffe7ad;
+  background:transparent;
+  white-space:nowrap;
+  font-weight:800;
+  box-shadow:inset 0 0 18px rgba(242,201,104,.03);
+}
+.site-header .header-login:hover{transform:none;border-color:rgba(242,201,104,.65)}
+.site-header .menu-toggle{display:none}
+
+@media(max-width:1100px){
+  .site-header{grid-template-columns:minmax(250px,1fr) auto minmax(220px,1fr);column-gap:18px}
+  .site-header .links{min-width:500px;gap:24px}
+  .site-header .header-tools{min-width:220px;gap:12px}
+}
+@media(max-width:900px){
+  .site-header{
+    height:82px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px;
+  }
+  .site-header .brand{order:1;flex:0 0 auto}
+  .site-header .brand img{width:40px;height:40px}
+  .site-header .brand strong{font-size:16px}
+  .site-header .brand small{font-size:7px;letter-spacing:.18em}
+  .site-header .links{order:5;min-width:0}
+  .site-header .header-tools{
+    order:2;
+    margin-left:auto;
+    min-width:0;
+    display:flex;
+    gap:10px;
+  }
+  .site-header .landing-lang{order:2;height:38px}
+  .site-header .landing-lang button{height:32px;min-width:39px}
+  .site-header .menu-toggle{
+    order:3;
+    display:flex;
+    flex:0 0 auto;
+    width:58px;
+    height:58px;
+    border:1px solid rgba(242,201,104,.35);
+    border-radius:18px;
+    background:rgba(7,18,31,.72);
+    align-items:center;
+    justify-content:center;
+    flex-direction:column;
+    gap:6px;
+    cursor:pointer;
+  }
+  .site-header .menu-toggle span{display:block;width:24px;height:3px;border-radius:3px;background:#ffe7ad}
+  .site-header .header-login{display:none}
+  .site-header .links{
+    display:flex;
+    position:absolute;
+    left:0;right:0;top:calc(100% + 10px);
+    flex-direction:column;
+    gap:0;
+    padding:10px;
+    min-width:0;
+    background:rgba(6,17,29,.97);
+    border:1px solid rgba(212,169,77,.18);
+    border-radius:18px;
+    opacity:0;
+    visibility:hidden;
+    transform:translateY(-8px);
+    pointer-events:none;
+    transition:.25s ease;
+    z-index:50;
+  }
+  .site-header.menu-open .links{opacity:1;visibility:visible;transform:none;pointer-events:auto}
+  .site-header .links a{padding:13px 14px;border-bottom:1px solid rgba(255,255,255,.06)}
+}
+@media(max-width:520px){
+  .site-header{height:74px}
+  .site-header .brand{gap:9px}
+  .site-header .brand img{width:38px;height:38px}
+  .site-header .brand strong{font-size:15px}
+  .site-header .brand small{display:none}
+  .site-header .header-tools{gap:8px}
+  .site-header .landing-lang{height:36px}
+  .site-header .landing-lang button{height:30px;min-width:34px;padding:7px 7px;font-size:10px}
+  .site-header .menu-toggle{width:54px;height:54px;border-radius:17px}
+}
