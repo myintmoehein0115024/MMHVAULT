@@ -1,45 +1,41 @@
 document.addEventListener("DOMContentLoaded",()=>{
   const header=document.querySelector(".site-header");
   const menu=document.querySelector(".menu-toggle");
+  const heroArt=document.querySelector(".hero-art");
+  const reduceMotion=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   if(menu&&header){
-    menu.addEventListener("click",()=>{
-      const open=header.classList.toggle("menu-open");
-      menu.setAttribute("aria-expanded",String(open));
-    });
-
-    header.querySelectorAll(".links a").forEach(link=>link.addEventListener("click",()=>{
-      header.classList.remove("menu-open");
-      menu.setAttribute("aria-expanded","false");
-    }));
+    menu.onclick=()=>{
+      header.classList.toggle("menu-open");
+      menu.setAttribute("aria-expanded",header.classList.contains("menu-open"));
+    };
   }
 
   const updateHeader=()=>{
-    const scrolled=window.scrollY>24;
-    header?.classList.toggle("header-scrolled",scrolled);
-    document.body.classList.toggle("landing-scrolled",scrolled);
+    if(header) header.classList.toggle("is-scrolled",window.scrollY>18);
   };
   updateHeader();
   window.addEventListener("scroll",updateHeader,{passive:true});
 
-  const io=new IntersectionObserver(entries=>entries.forEach(entry=>{
-    if(entry.isIntersecting){
-      entry.target.classList.add("visible");
-      io.unobserve(entry.target);
-    }
-  }),{threshold:.12,rootMargin:"0px 0px -4% 0px"});
-  document.querySelectorAll(".reveal").forEach((el,index)=>{
-    if(!el.style.transitionDelay && index<8) el.style.transitionDelay=`${Math.min(index*45,280)}ms`;
-    io.observe(el);
-  });
-
-  let raf=0;
-  window.addEventListener("pointermove",event=>{
-    if(raf)return;
-    raf=requestAnimationFrame(()=>{
-      document.body.style.setProperty("--mx",`${(event.clientX/window.innerWidth)*100}%`);
-      document.body.style.setProperty("--my",`${(event.clientY/window.innerHeight)*100}%`);
-      raf=0;
+  if(heroArt&&!reduceMotion&&window.matchMedia("(hover: hover)").matches){
+    heroArt.addEventListener("pointermove",e=>{
+      const r=heroArt.getBoundingClientRect();
+      const x=(e.clientX-r.left)/r.width-.5;
+      const y=(e.clientY-r.top)/r.height-.5;
+      heroArt.style.setProperty("--mx",`${x*3.2}deg`);
+      heroArt.style.setProperty("--my",`${-y*2.2}deg`);
     });
-  },{passive:true});
+    heroArt.addEventListener("pointerleave",()=>{
+      heroArt.style.setProperty("--mx","0deg");
+      heroArt.style.setProperty("--my","0deg");
+    });
+  }
+
+  const io=new IntersectionObserver(es=>es.forEach(e=>{
+    if(e.isIntersecting){
+      e.target.classList.add("visible");
+      io.unobserve(e.target);
+    }
+  }),{threshold:.12});
+  document.querySelectorAll(".reveal").forEach(x=>io.observe(x));
 });
