@@ -312,3 +312,16 @@ html.lang-zh .site-header .brand small{font-family:Manrope,Inter,"Noto Sans SC",
 html.lang-zh .footer{font-family:Manrope,Inter,"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif}
 @media(max-width:900px){.mmh-lang-switcher{order:0;margin-left:0}.site-header.menu-open .mmh-lang-switcher{margin-top:10px}}
 @media(max-width:560px){.mmh-lang-switcher{gap:2px;padding:2px}.mmh-lang-switcher button{min-width:32px;padding:7px 7px}.mmh-lang-switcher button.active{box-shadow:0 4px 14px rgba(198,146,45,.16)}}
+
+/* v4.5.6 — exact mobile header order: language left, menu far right. */
+@media(max-width:900px){
+  .site-header .brand{order:1}
+  .site-header .links{order:5}
+  .site-header .mmh-lang-switcher{order:2;margin-left:auto;margin-right:8px}
+  .site-header .menu-toggle{order:3;flex:0 0 auto}
+  .site-header .header-login{order:4;display:none}
+}
+@media(max-width:560px){
+  .site-header .mmh-lang-switcher{margin-right:7px}
+  .site-header .menu-toggle{width:54px;height:54px;border-radius:17px}
+}
