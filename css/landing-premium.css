@@ -133,292 +133,95 @@ body{letter-spacing:-.01em;text-rendering:optimizeLegibility;-webkit-font-smooth
 @media(max-width:900px){.section-head{margin-bottom:34px}.links a:after{display:none}}
 @media(max-width:560px){.section-head{margin-bottom:26px}.card p{line-height:1.65}.metric:before{left:18%;right:18%}}
 
-/* =========================================================
-   MMHVAULT V4.3.1 · HERO + SHOWCASE DEPTH
-   Presentation only — no feature or business-logic changes.
-========================================================= */
-.site-header{transition:height .35s ease,background .35s ease,border-color .35s ease,box-shadow .35s ease}
-.site-header.is-scrolled{height:78px;background:rgba(3,11,21,.68);border-bottom-color:rgba(156,203,235,.14);box-shadow:0 14px 45px rgba(0,0,0,.18);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px)}
-.site-header.is-scrolled .brand img{width:42px;height:42px}
-.site-header.is-scrolled .brand strong{font-size:18px}
-.hero{position:relative}
-.hero:after{content:"";position:absolute;right:-8%;top:14%;width:42%;height:70%;background:radial-gradient(circle,rgba(101,199,255,.07),transparent 66%);filter:blur(24px);pointer-events:none;z-index:-1}
-.hero-art{--mx:0px;--my:0px;perspective:1400px}
-.hero-art img{transform:perspective(1400px) rotateY(calc(-5deg + var(--mx))) rotateX(calc(2deg + var(--my))) translate3d(0,0,0);transition:filter .45s ease,box-shadow .45s ease}
-.hero-art:hover img{filter:saturate(1.035) brightness(1.025);box-shadow:0 55px 120px rgba(0,0,0,.66),0 0 42px rgba(101,199,255,.055),0 0 0 1px rgba(255,255,255,.035)}
-.hero-art:before{transition:opacity .45s ease,transform .8s ease}
-.hero-art:hover:before{opacity:.92;transform:scale(1.018)}
-.signal-row{position:relative}
-.signal-row:after{content:"";position:absolute;left:0;top:-1px;width:28%;height:1px;background:linear-gradient(90deg,var(--gold),transparent);opacity:.6}
-.showcase-copy{display:flex;flex-direction:column;align-items:flex-start;justify-content:center}
-.showcase-copy .btn{margin-top:12px}
-.showcase-media{isolation:isolate}
-.showcase-media:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 50%,rgba(101,199,255,.10),transparent 54%);opacity:.7;pointer-events:none;z-index:1;transition:opacity .5s ease}
-.showcase:hover .showcase-media:before{opacity:1}
-.showcase-media img{position:relative;z-index:0}
-.cta .btn{box-shadow:0 16px 42px rgba(232,184,78,.20)}
-@media(max-width:900px){.site-header.is-scrolled{height:70px}.site-header.is-scrolled .brand img{width:38px;height:38px}.site-header.is-scrolled .brand strong{font-size:15px}.hero:after{right:-25%;width:70%;height:55%}.hero-art img{transform:none}.hero-art:hover img{box-shadow:0 35px 75px rgba(0,0,0,.55)}}
-@media(max-width:560px){.site-header.is-scrolled{height:68px}.hero:after{right:-40%;top:8%;width:100%;height:45%}.signal-row:after{width:42%}.showcase-copy .btn{margin-top:8px}}
-@media(hover:none){.hero-art:hover img{filter:none;box-shadow:0 35px 75px rgba(0,0,0,.55)}.showcase:hover .showcase-media:before{opacity:.7}}
-@media(prefers-reduced-motion:reduce){.site-header,.hero-art img,.hero-art:before,.showcase-media:before{transition:none!important}.hero-art img{transform:none!important}}
+/* v4.4.0 Global Landing Polish */
+:root{--mm-radius:28px;--mm-gold:#d7b35b}
+.hero-card,.feature-card,.security-card,.showcase-card{border-radius:var(--mm-radius);backdrop-filter:blur(18px);transition:transform .35s ease,box-shadow .35s ease,border-color .35s ease}
+.hero-card:hover,.feature-card:hover,.security-card:hover,.showcase-card:hover{transform:translateY(-6px);box-shadow:0 22px 60px rgba(0,0,0,.35)}
+.hero-image img,.showcase-card img{border-radius:22px;transition:transform .6s ease,filter .6s ease}
+.hero-image:hover img,.showcase-card:hover img{transform:scale(1.025);filter:saturate(1.06) contrast(1.03)}
+.section-title::after{content:"";display:block;width:72px;height:2px;margin-top:12px;background:linear-gradient(90deg,var(--mm-gold),transparent)}
+@media (max-width:768px){.hero-card,.feature-card,.security-card,.showcase-card{border-radius:22px}.hero-image:hover img,.showcase-card:hover img{transform:none}}
 
 /* =========================================================
-   MMHVAULT V4.3.3 · FINANCIAL INTELLIGENCE SECTIONS
-   Presentation only — no feature or business-logic changes.
+   MMHVAULT V4.4.1 · RESPONSIVE QA + FINISHING
+   Global Landing pages only. No feature/business-logic changes.
 ========================================================= */
-.section{position:relative}
-.section:before{content:"";position:absolute;left:50%;top:10px;width:1px;height:70px;background:linear-gradient(180deg,rgba(101,199,255,.0),rgba(101,199,255,.22),rgba(101,199,255,0));transform:translateX(-50%);pointer-events:none;opacity:.65}
-.section-head{position:relative;padding-left:22px}
-.section-head:after{content:"";position:absolute;left:0;top:5px;width:2px;height:74px;border-radius:4px;background:linear-gradient(180deg,var(--gold),rgba(101,199,255,.35),transparent)}
-.cards{counter-reset:wealth-card;align-items:stretch}
-.card{min-height:292px;padding:32px 30px 30px;display:flex;flex-direction:column;justify-content:flex-start;background:linear-gradient(155deg,rgba(15,36,55,.94),rgba(5,16,28,.96));transition:transform .5s cubic-bezier(.2,.8,.2,1),border-color .35s ease,box-shadow .5s ease,background .45s ease}
-.card:before{content:"";position:absolute;left:0;top:0;width:100%;height:1px;background:linear-gradient(90deg,transparent,rgba(101,199,255,.28),transparent);opacity:.8}
-.card .num{display:flex;align-items:center;gap:10px}
-.card .num:after{content:"";display:block;width:34px;height:1px;background:linear-gradient(90deg,var(--gold),transparent);opacity:.65}
-.card h3{max-width:12ch;margin-top:25px;letter-spacing:-.045em}
-.card p{max-width:34ch;margin-top:auto;padding-top:24px}
-.card:nth-child(2){transform:translateY(14px)}
-.card:nth-child(2):after{background:radial-gradient(circle,rgba(101,199,255,.13),transparent 65%)}
-.card:nth-child(3){transform:translateY(28px)}
-.card:hover{transform:translateY(-6px)}
-.card:nth-child(2):hover,.card:nth-child(3):hover{transform:translateY(4px)}
-.showcase{position:relative;min-height:520px;box-shadow:0 32px 90px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.035)}
-.showcase:before{content:"MMHVAULT";position:absolute;right:28px;top:20px;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.28em;color:rgba(242,201,105,.30);z-index:3;pointer-events:none}
-.showcase-copy{padding:64px;position:relative}
-.showcase-copy:before{content:"01";position:absolute;left:64px;top:28px;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.2em;color:rgba(101,199,255,.36)}
-.showcase-copy h3{max-width:9ch}
-.showcase-copy p{max-width:42ch}
-.showcase-media{min-height:520px}
-.showcase-media:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(5,16,28,.12),transparent 25%,transparent 75%,rgba(5,16,28,.20)),linear-gradient(0deg,rgba(3,10,17,.22),transparent 30%);pointer-events:none;z-index:2}
-.showcase-media img{transition:transform 1.2s cubic-bezier(.2,.8,.2,1),filter .7s ease}
-.showcase:hover .showcase-media img{transform:scale(1.045)}
-.cta{position:relative;overflow:hidden}
-.cta:after{content:"";position:absolute;inset:auto 18% -85px;height:170px;border:1px solid rgba(242,201,105,.10);border-radius:50%;pointer-events:none}
-@media(max-width:900px){.section:before{display:none}.section-head{padding-left:16px}.section-head:after{height:60px}.card{min-height:250px}.card:nth-child(2),.card:nth-child(3){transform:none}.card:nth-child(2):hover,.card:nth-child(3):hover{transform:translateY(-6px)}.showcase{min-height:0}.showcase-copy{padding:46px 38px}.showcase-copy:before{left:38px}.showcase-media{min-height:400px}}
-@media(max-width:560px){.section-head{padding-left:13px}.section-head:after{height:52px}.card{min-height:230px;padding:27px 24px}.card h3{max-width:none}.card p{padding-top:18px}.showcase-copy{padding:38px 25px}.showcase-copy:before{left:25px}.showcase-media{min-height:300px}.showcase:before{right:18px}.cta:after{inset:auto 8% -80px}}
-@media(hover:none){.showcase:hover .showcase-media img{transform:none}.card:hover,.card:nth-child(2):hover,.card:nth-child(3):hover{transform:none}}
-@media(prefers-reduced-motion:reduce){.card,.showcase-media img{transition:none!important}.card:nth-child(2),.card:nth-child(3){transform:none!important}}
+:root{--content-gutter:24px;--section-space:96px}
+body{min-width:320px}
+img{max-width:100%;height:auto}
+.site-header{padding-inline:0;transition:height .3s ease,background .3s ease,box-shadow .3s ease,border-color .3s ease}
+.site-header.is-scrolled{height:78px;background:rgba(3,11,21,.72);box-shadow:0 14px 40px rgba(0,0,0,.18);border-bottom-color:rgba(156,203,235,.12)}
+.hero,.section,.page-hero,.cta{scroll-margin-top:92px}
+.hero{min-height:min(760px,calc(100svh - 96px))}
+.hero-art{width:100%;min-width:0}
+.hero-art img{max-height:620px;object-fit:cover}
+.section-head h2,.showcase-copy h3,.quote h3,.cta h2{overflow-wrap:break-word}
+.showcase-media{min-width:0}
+.showcase-media img{min-height:100%;object-fit:cover}
+.mosaic .tile{min-width:0}
+.mosaic .tile img{min-height:320px}
+.footer{align-items:center}
+.footer a{white-space:nowrap}
 
-/* =========================================================
-   MMHVAULT V4.3.4 · CTA + FOOTER CLOSING POLISH
-   Presentation only — no feature or business-logic changes.
-========================================================= */
-.cta{isolation:isolate;padding-top:88px;padding-bottom:88px;border-color:rgba(242,201,105,.12);background:linear-gradient(145deg,rgba(10,27,42,.94),rgba(4,13,23,.98));box-shadow:0 35px 100px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.035)}
-.cta:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 0%,rgba(242,201,105,.10),transparent 42%),radial-gradient(circle at 12% 90%,rgba(101,199,255,.055),transparent 34%);pointer-events:none;z-index:-1}
-.cta .eyebrow,.cta h2,.cta p,.cta .btn{position:relative;z-index:1}
-.cta h2{max-width:760px;margin-left:auto;margin-right:auto}
-.cta p{max-width:520px;margin-left:auto;margin-right:auto}
-.cta .btn{margin-top:8px;min-width:190px}
-.cta .btn:after{content:"";position:absolute;inset:-1px;border-radius:inherit;border:1px solid rgba(255,255,255,.14);opacity:0;transform:scale(.96);transition:opacity .35s ease,transform .35s ease;pointer-events:none}
-.cta .btn:hover:after{opacity:1;transform:scale(1)}
-.cta:after{inset:auto 24% -92px;height:185px;border-color:rgba(242,201,105,.13);box-shadow:0 -18px 55px rgba(242,201,105,.035)}
-.footer{position:relative;margin-top:54px;padding-top:24px;padding-bottom:34px;border-top:1px solid rgba(156,203,235,.10);display:flex;align-items:center;justify-content:space-between;gap:24px;color:rgba(213,229,241,.54);font-size:11px;letter-spacing:.03em}
-.footer:before{content:"MMHVAULT";position:absolute;left:50%;top:-7px;transform:translateX(-50%);padding:0 12px;background:var(--bg,#020a12);font-family:'DM Mono',monospace;font-size:8px;letter-spacing:.28em;color:rgba(242,201,105,.30)}
-.footer span:last-child{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:rgba(156,203,235,.42)}
-.footer span{line-height:1.6}
-@media(max-width:900px){.cta{padding-top:70px;padding-bottom:70px}.footer{margin-top:42px;padding-bottom:28px;flex-direction:column;align-items:flex-start;gap:8px}.footer:before{left:0;transform:none;padding-left:0;padding-right:10px}.footer span:last-child{font-size:8px}}
-@media(max-width:560px){.cta{padding:56px 22px 62px}.cta .btn{width:100%;min-width:0}.cta:after{inset:auto 8% -78px;height:155px}.footer{margin-top:32px;padding-top:20px;font-size:10px}.footer span:last-child{font-size:7.5px;letter-spacing:.10em}}
-@media(prefers-reduced-motion:reduce){.cta .btn:after{transition:none!important}}
-.cta:before{background:radial-gradient(circle at var(--cta-glow-x,50%) var(--cta-glow-y,35%),rgba(242,201,105,.105),transparent 42%),radial-gradient(circle at 12% 90%,rgba(101,199,255,.055),transparent 34%);transition:background-position .35s ease}
-
-/* =========================================================
-   MMHVAULT V4.3.5 · SYSTEM-WIDE FINAL POLISH
-   Presentation only — no feature or business-logic changes.
-========================================================= */
-:root{--premium-radius:26px;--premium-line:rgba(156,203,235,.12)}
-body{background-image:radial-gradient(circle at 50% -10%,rgba(255,255,255,.025),transparent 28%)}
-.site-header{transition:height .35s ease,background .35s ease,border-color .35s ease,backdrop-filter .35s ease}
-.site-header.is-scrolled{height:76px;background:rgba(3,11,21,.72);backdrop-filter:blur(18px);border-bottom-color:rgba(156,203,235,.13)}
-.site-header.is-scrolled .brand img{width:42px;height:42px}
-.site-header.is-scrolled .brand strong{font-size:18px}
-.hero{position:relative}
-.hero:after{content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:linear-gradient(90deg,transparent,rgba(156,203,235,.12),transparent);pointer-events:none}
-.eyebrow{display:inline-flex;align-items:center;gap:10px}
-.eyebrow:before{content:"";width:24px;height:1px;background:linear-gradient(90deg,transparent,var(--gold));opacity:.75}
-.actions .btn{position:relative;overflow:hidden}
-.actions .btn:before{content:"";position:absolute;top:0;bottom:0;left:-65%;width:35%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.42),transparent);transform:skewX(-18deg);transition:left .7s ease;pointer-events:none}
-.actions .btn:hover:before{left:130%}
-.card,.showcase,.quote,.metric,.mosaic .tile{box-shadow:inset 0 1px 0 rgba(255,255,255,.025)}
-.card h3,.showcase-copy h3,.quote h3,.section-head h2,.cta h2{font-weight:700}
-.card p,.showcase-copy p,.quote p,.section-head p{letter-spacing:.005em}
-.showcase-copy{display:flex;flex-direction:column;justify-content:center}
-.showcase-media{isolation:isolate}
-.cta .gold{box-shadow:0 16px 42px rgba(232,184,78,.16),inset 0 1px 0 rgba(255,255,255,.45)}
-.footer{background:linear-gradient(180deg,transparent,rgba(6,18,30,.18))}
-@media(max-width:900px){.site-header.is-scrolled{height:70px}.site-header.is-scrolled .brand img{width:38px;height:38px}}
-@media(max-width:560px){.site-header.is-scrolled{height:68px}.site-header.is-scrolled .brand strong{font-size:15px}.hero:after{bottom:-6px}.eyebrow:before{width:16px}}
-@media(prefers-reduced-motion:reduce){.site-header,.actions .btn:before{transition:none!important}.actions .btn:before{display:none}}
-
-
-/* =========================================================
-   MMHVAULT V4.3.6 · FINAL QA + INTERACTION STABILITY
-   Presentation / accessibility polish only.
-========================================================= */
-:focus-visible{outline:2px solid rgba(242,201,105,.82);outline-offset:4px;border-radius:8px}
-.menu-toggle:focus-visible{outline-offset:3px}
-.hero-art img{transform:perspective(1400px) rotateY(calc(-5deg + var(--mx,0deg))) rotateX(calc(2deg + var(--my,0deg)));will-change:transform}
-.showcase-media:after{background:radial-gradient(circle at var(--media-glow-x,50%) var(--media-glow-y,50%),rgba(242,201,105,.075),transparent 34%),linear-gradient(90deg,rgba(5,16,28,.12),transparent 25%,transparent 75%,rgba(5,16,28,.20)),linear-gradient(0deg,rgba(3,10,17,.22),transparent 30%);transition:background-position .25s ease}
-@media(max-width:900px){.hero-art img{transform:none}.showcase-media:after{background:linear-gradient(90deg,rgba(5,16,28,.12),transparent 25%,transparent 75%,rgba(5,16,28,.20)),linear-gradient(0deg,rgba(3,10,17,.22),transparent 30%)}}
-@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.hero-art img{will-change:auto}.showcase-media:after{transition:none!important}}
-
-/* MMHVAULT V4.3.8 · Remove showcase badge
-   Keep the original showcase image unchanged. */
-.showcase-media:before{
-  content:none !important;
-  display:none !important;
+@media (max-width:1100px){
+  .wrap{width:min(var(--max),calc(100% - 40px))}
+  .links{gap:22px}
+  .hero{gap:32px}
+  .hero h1{font-size:clamp(52px,7.2vw,82px)}
+  .hero-art:before{width:470px;height:470px}
+  .hero-art:after{width:350px;height:350px}
+  .showcase-copy{padding:46px}
 }
 
-/* =========================================================
-   MMHVAULT v4.4.0 · GLOBAL LANDING DESIGN SYSTEM
-   All five landing pages — visual refinement only.
-   No new UI features / no image replacement.
-========================================================= */
-:root{
-  --mm-surface:rgba(8,22,36,.78);
-  --mm-surface-strong:rgba(8,20,33,.92);
-  --mm-border:rgba(130,194,236,.16);
-  --mm-border-hover:rgba(242,201,105,.32);
-  --mm-shadow:0 24px 70px rgba(0,0,0,.24);
-  --mm-ease:cubic-bezier(.2,.75,.2,1);
+@media (max-width:900px){
+  .site-header{height:76px}
+  .site-header.is-scrolled{height:70px}
+  .hero{min-height:auto;align-items:start}
+  .hero-art{margin-top:12px}
+  .hero-art img{width:min(100%,720px);max-height:none}
+  .showcase{margin-top:20px}
+  .showcase-copy{padding:38px}
+  .showcase-media{min-height:360px}
+  .mosaic .tile img{min-height:300px}
 }
-body{min-height:100vh;background-color:#030b15}
-main{position:relative}
-.site-header{
-  position:sticky;top:0;height:88px;
-  background:linear-gradient(180deg,rgba(3,11,21,.82),rgba(3,11,21,.48));
-  border-bottom:1px solid rgba(156,203,235,.08);
-  transition:height .3s var(--mm-ease),background .3s ease,border-color .3s ease,box-shadow .3s ease;
-}
-.site-header.is-scrolled{
-  height:72px;
-  background:rgba(3,11,21,.82);
-  border-bottom-color:rgba(156,203,235,.14);
-  box-shadow:0 16px 45px rgba(0,0,0,.22);
-}
-.brand img{transition:transform .35s var(--mm-ease),filter .35s ease}
-.brand:hover img{transform:translateY(-1px) rotate(-2deg);filter:drop-shadow(0 0 22px rgba(242,201,105,.34))}
-.links{align-items:center}
-.links a{transition:color .28s ease,opacity .28s ease,transform .28s var(--mm-ease)}
-.links a:hover{transform:translateY(-1px)}
-.header-login{min-width:92px;padding:11px 17px}
 
-.hero{padding-top:72px;padding-bottom:78px}
-.hero> .reveal:first-child{position:relative;z-index:2}
-.hero h1{max-width:760px;text-wrap:balance}
-.hero .lead{max-width:650px}
-.actions .btn{min-height:50px}
-.signal-row{position:relative}
-.signal-row:before{content:"";position:absolute;left:0;top:-1px;width:18%;height:1px;background:linear-gradient(90deg,var(--gold),transparent);opacity:.7}
-.signal-row div{transition:transform .32s var(--mm-ease),color .32s ease}
-.signal-row div:hover{transform:translateY(-4px)}
-
-.hero-art{isolation:isolate}
-.hero-art:before,.hero-art:after{pointer-events:none}
-.hero-art img{transition:transform .75s var(--mm-ease),filter .75s ease,box-shadow .75s ease}
-.hero-art:hover img{filter:saturate(1.02) contrast(1.025);box-shadow:0 60px 125px rgba(0,0,0,.66),0 0 0 1px rgba(255,255,255,.035)}
-
-.page-hero{padding-top:100px;padding-bottom:54px}
-.page-hero .eyebrow{display:inline-flex;align-items:center;gap:12px}
-.page-hero .eyebrow:before,.page-hero .eyebrow:after{content:"";width:28px;height:1px;background:linear-gradient(90deg,transparent,var(--gold));opacity:.5}
-.page-hero .eyebrow:after{transform:scaleX(-1)}
-.page-hero h1{max-width:980px;text-wrap:balance}
-
-.section{position:relative}
-.section-head h2,.page-hero h1,.showcase-copy h3,.quote h3,.cta h2{ text-wrap:balance }
-.section-head p,.page-hero p{max-width:760px}
-.section-head{margin-bottom:46px}
-.section-head:before{width:120px}
-
-.card,.quote,.showcase,.mosaic .tile,.metric{
-  position:relative;
-  border:1px solid var(--mm-border);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.035),var(--mm-shadow);
-}
-.card{min-height:278px;overflow:hidden}
-.card:after{transition:transform .45s var(--mm-ease),opacity .45s ease}
-.card:hover:after{transform:scale(1.15);opacity:.9}
-.card h3{max-width:18ch}
-.cards .card:nth-child(2){transform:translateY(10px)}
-.cards .card:nth-child(2):hover{transform:translateY(2px)}
-.cards .card:nth-child(3){transform:translateY(20px)}
-.cards .card:nth-child(3):hover{transform:translateY(12px)}
-
-.mosaic{align-items:stretch}
-.mosaic .tile{min-height:360px}
-.mosaic .tile:first-child{min-height:420px}
-.tile .overlay{padding:34px}
-.tile .overlay:before{content:"";display:block;width:42px;height:1px;margin-bottom:14px;background:var(--gold);opacity:.7}
-.tile .overlay b{letter-spacing:-.025em}
-
-.split{align-items:stretch}
-.split>.showcase-media{min-height:520px}
-.quote{display:flex;flex-direction:column;justify-content:center}
-.metrics{margin-top:auto;padding-top:24px}
-.metric{min-height:100px}
-.metric b{font-family:'DM Mono',monospace;font-size:18px;letter-spacing:.06em}
-
-.showcase{min-height:460px}
-.showcase-copy{display:flex;flex-direction:column;justify-content:center}
-.showcase-copy .btn{align-self:flex-start;margin-top:16px}
-.showcase-media{min-height:460px}
-.showcase-media img{transition:transform 1s var(--mm-ease),filter 1s ease}
-.showcase:hover .showcase-media img{transform:scale(1.045)}
-
-.cta{margin-top:110px;margin-bottom:42px;min-height:330px;display:flex;flex-direction:column;align-items:center;justify-content:center}
-.cta .btn{margin-top:14px;min-width:190px}
-.cta:after{content:"";position:absolute;inset:12px;border:1px solid rgba(255,255,255,.025);border-radius:24px;pointer-events:none}
-
-.footer{min-height:74px;align-items:center;gap:20px}
-.footer span:last-child{font-family:'DM Mono',monospace;letter-spacing:.16em;text-transform:uppercase;font-size:9px}
-
-.reveal{transition-delay:var(--reveal-delay,0ms)}
-.reveal.visible{will-change:transform,opacity}
-
-@media(max-width:1100px){
-  .hero{grid-template-columns:1fr 1fr;gap:30px}
-  .hero h1{font-size:clamp(50px,6vw,76px)}
-  .cards .card:nth-child(2){transform:none}.cards .card:nth-child(3){transform:none}
-  .cards .card:nth-child(2):hover,.cards .card:nth-child(3):hover{transform:translateY(-8px)}
-}
-@media(max-width:900px){
-  .site-header,.site-header.is-scrolled{height:76px}
-  .hero{grid-template-columns:1fr;padding-top:50px}
-  .hero-art{min-height:430px}
-  .page-hero{padding-top:68px}
-  .page-hero .eyebrow:before,.page-hero .eyebrow:after{display:none}
-  .mosaic .tile,.mosaic .tile:first-child{min-height:340px}
-  .split>.showcase-media{min-height:380px}
-  .showcase,.showcase-media{min-height:380px}
-  .cta{margin-top:78px}
-}
-@media(max-width:560px){
-  .hero{padding-top:38px;padding-bottom:45px}
-  .hero h1{font-size:clamp(44px,13.5vw,60px)}
-  .hero-art{min-height:285px}
-  .page-hero{padding-top:52px;padding-bottom:26px}
-  .page-hero h1{font-size:clamp(42px,12.5vw,54px)}
-  .section-head{margin-bottom:30px}
-  .card{min-height:0;padding:24px}
-  .cards .card:nth-child(2),.cards .card:nth-child(3){transform:none}
-  .mosaic .tile,.mosaic .tile:first-child{min-height:270px}
-  .tile .overlay{padding:24px}
-  .split>.showcase-media,.showcase,.showcase-media{min-height:290px}
-  .showcase-copy{padding:28px 22px}
-  .showcase-copy .btn{align-self:stretch}
+@media (max-width:560px){
+  :root{--content-gutter:12px;--section-space:62px}
+  .wrap{width:calc(100% - 24px)}
+  .site-header{padding-inline:0}
+  .brand{gap:9px}
+  .brand img{flex:0 0 auto}
+  .links{max-height:calc(100svh - 92px);overflow:auto;overscroll-behavior:contain}
+  .hero{padding-top:38px}
+  .hero h1{line-height:.98;letter-spacing:-.06em}
+  .hero-art{margin-top:8px;min-height:0;padding:12px 0 6px}
+  .hero-art:before,.hero-art:after{display:none}
+  .hero-art img{width:100%;border-radius:20px;transform:none!important;animation:none!important}
+  .signal-row{margin-top:30px}
+  .section{padding:var(--section-space) 0}
+  .section-head h2{line-height:1.06}
+  .showcase-copy{padding:30px 22px}
+  .showcase-media{min-height:260px}
+  .showcase-media img{min-height:260px}
+  .mosaic{gap:12px}
+  .mosaic .tile{min-height:260px}
+  .mosaic .tile img{min-height:260px}
+  .tile .overlay{padding:22px 18px}
+  .tile .overlay b{font-size:19px}
   .quote{padding:28px 22px}
-  .cta{min-height:300px;margin-top:60px;padding:44px 18px}
-  .cta:after{inset:8px;border-radius:18px}
-  .footer{align-items:flex-start;padding-top:20px;gap:8px}
-  .footer span{max-width:100%}
-  .footer span:last-child{font-size:8px;letter-spacing:.1em}
-}
-@media(hover:none){
-  .brand:hover img{transform:none}
-  .links a:hover{transform:none}
-  .hero-art:hover img,.showcase:hover .showcase-media img{filter:none}
+  .metric{padding:18px}
+  .cta{padding:44px 18px;margin-top:48px}
+  .footer{align-items:flex-start;flex-direction:column;gap:10px}
+  .footer a{white-space:normal}
 }
 
-/* v4.4.0 subtle pointer response — image remains unchanged */
-@media (hover:hover) and (min-width:901px){
-  .hero-art img{transform:perspective(1400px) rotateY(calc(-5deg + (var(--mx,0) * 3deg))) rotateX(calc(2deg - (var(--my,0) * 2deg))) translate3d(calc(var(--mx,0) * 5px),calc(var(--my,0) * -5px),0)}
+@media (max-width:360px){
+  .hero h1{font-size:43px}
+  .page-hero h1{font-size:43px}
+  .showcase-copy h3,.quote h3{font-size:31px}
+  .btn{padding-inline:18px}
+}
+
+@media (hover:none){
+  .site-header.is-scrolled{box-shadow:0 10px 28px rgba(0,0,0,.16)}
 }
