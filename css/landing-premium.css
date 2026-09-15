@@ -235,3 +235,71 @@ img{max-width:100%;height:auto}
 html.lang-zh .site-header .brand small{letter-spacing:.08em}
 @media(max-width:900px){.mmh-lang-switcher{margin:10px 0 2px 0;align-self:flex-start}.site-header.menu-open .mmh-lang-switcher{display:inline-flex}}
 @media(max-width:520px){.mmh-lang-switcher button{font-size:9px;padding:7px 8px}}
+
+/* MMHVAULT Landing v4.5.1 — 中文排版优化 */
+html.lang-zh body,
+html.lang-zh button,
+html.lang-zh input,
+html.lang-zh textarea,
+html.lang-zh select{
+  font-family:Manrope,Inter,-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans SC","PingFang SC","Microsoft YaHei",Arial,sans-serif;
+}
+html.lang-zh .hero h1,
+html.lang-zh .page-hero h1,
+html.lang-zh .section-head h2,
+html.lang-zh .showcase-copy h3,
+html.lang-zh .quote h3,
+html.lang-zh .cta h2{
+  letter-spacing:-.035em;
+  line-height:1.14;
+  overflow-wrap:anywhere;
+  word-break:break-word;
+}
+html.lang-zh .hero p,
+html.lang-zh .page-hero p,
+html.lang-zh .section-head p,
+html.lang-zh .showcase-copy p,
+html.lang-zh .quote p,
+html.lang-zh .cta p{
+  line-height:1.82;
+  letter-spacing:.005em;
+}
+html.lang-zh .eyebrow,
+html.lang-zh .kicker,
+html.lang-zh .label,
+html.lang-zh .section-label{
+  letter-spacing:.08em;
+}
+html.lang-zh .btn{letter-spacing:.01em}
+html.lang-zh .feature-card,
+html.lang-zh .security-card,
+html.lang-zh .showcase-card,
+html.lang-zh .metric,
+html.lang-zh .quote,
+html.lang-zh .cta{overflow:hidden}
+html.lang-zh .mosaic .tile .overlay b{line-height:1.25}
+
+@media (max-width:900px){
+  html.lang-zh .hero h1,
+  html.lang-zh .page-hero h1{line-height:1.12}
+  html.lang-zh .showcase-copy h3,
+  html.lang-zh .quote h3,
+  html.lang-zh .cta h2{line-height:1.16}
+}
+@media (max-width:560px){
+  html.lang-zh .hero h1,
+  html.lang-zh .page-hero h1{letter-spacing:-.025em;line-height:1.14}
+  html.lang-zh .section-head h2{line-height:1.16}
+  html.lang-zh .hero p,
+  html.lang-zh .page-hero p,
+  html.lang-zh .section-head p,
+  html.lang-zh .showcase-copy p,
+  html.lang-zh .quote p,
+  html.lang-zh .cta p{line-height:1.75}
+}
+@media (max-width:360px){
+  html.lang-zh .hero h1,
+  html.lang-zh .page-hero h1{font-size:42px}
+  html.lang-zh .showcase-copy h3,
+  html.lang-zh .quote h3{font-size:30px}
+}

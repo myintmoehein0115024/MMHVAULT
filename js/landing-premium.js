@@ -69,7 +69,7 @@ document.addEventListener('DOMContentLoaded',()=>{
     var w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
     var nodes=[];while(w.nextNode())nodes.push(w.currentNode);
     nodes.forEach(function(n){
-      var p=n.parentElement;if(!p||['SCRIPT','STYLE','NOSCRIPT'].indexOf(p.tagName)>=0)return;translateText(n,toZh);
+      var p=n.parentElement;if(!p||['SCRIPT','STYLE','NOSCRIPT'].indexOf(p.tagName)>=0||p.closest('.mmh-lang-switcher'))return;translateText(n,toZh);
     });
   }
   function apply(){
