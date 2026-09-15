@@ -198,3 +198,25 @@ body{letter-spacing:-.01em;text-rendering:optimizeLegibility;-webkit-font-smooth
 @media(max-width:560px){.section-head{padding-left:13px}.section-head:after{height:52px}.card{min-height:230px;padding:27px 24px}.card h3{max-width:none}.card p{padding-top:18px}.showcase-copy{padding:38px 25px}.showcase-copy:before{left:25px}.showcase-media{min-height:300px}.showcase:before{right:18px}.cta:after{inset:auto 8% -80px}}
 @media(hover:none){.showcase:hover .showcase-media img{transform:none}.card:hover,.card:nth-child(2):hover,.card:nth-child(3):hover{transform:none}}
 @media(prefers-reduced-motion:reduce){.card,.showcase-media img{transition:none!important}.card:nth-child(2),.card:nth-child(3){transform:none!important}}
+
+/* =========================================================
+   MMHVAULT V4.3.4 · CTA + FOOTER CLOSING POLISH
+   Presentation only — no feature or business-logic changes.
+========================================================= */
+.cta{isolation:isolate;padding-top:88px;padding-bottom:88px;border-color:rgba(242,201,105,.12);background:linear-gradient(145deg,rgba(10,27,42,.94),rgba(4,13,23,.98));box-shadow:0 35px 100px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.035)}
+.cta:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 0%,rgba(242,201,105,.10),transparent 42%),radial-gradient(circle at 12% 90%,rgba(101,199,255,.055),transparent 34%);pointer-events:none;z-index:-1}
+.cta .eyebrow,.cta h2,.cta p,.cta .btn{position:relative;z-index:1}
+.cta h2{max-width:760px;margin-left:auto;margin-right:auto}
+.cta p{max-width:520px;margin-left:auto;margin-right:auto}
+.cta .btn{margin-top:8px;min-width:190px}
+.cta .btn:after{content:"";position:absolute;inset:-1px;border-radius:inherit;border:1px solid rgba(255,255,255,.14);opacity:0;transform:scale(.96);transition:opacity .35s ease,transform .35s ease;pointer-events:none}
+.cta .btn:hover:after{opacity:1;transform:scale(1)}
+.cta:after{inset:auto 24% -92px;height:185px;border-color:rgba(242,201,105,.13);box-shadow:0 -18px 55px rgba(242,201,105,.035)}
+.footer{position:relative;margin-top:54px;padding-top:24px;padding-bottom:34px;border-top:1px solid rgba(156,203,235,.10);display:flex;align-items:center;justify-content:space-between;gap:24px;color:rgba(213,229,241,.54);font-size:11px;letter-spacing:.03em}
+.footer:before{content:"MMHVAULT";position:absolute;left:50%;top:-7px;transform:translateX(-50%);padding:0 12px;background:var(--bg,#020a12);font-family:'DM Mono',monospace;font-size:8px;letter-spacing:.28em;color:rgba(242,201,105,.30)}
+.footer span:last-child{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:rgba(156,203,235,.42)}
+.footer span{line-height:1.6}
+@media(max-width:900px){.cta{padding-top:70px;padding-bottom:70px}.footer{margin-top:42px;padding-bottom:28px;flex-direction:column;align-items:flex-start;gap:8px}.footer:before{left:0;transform:none;padding-left:0;padding-right:10px}.footer span:last-child{font-size:8px}}
+@media(max-width:560px){.cta{padding:56px 22px 62px}.cta .btn{width:100%;min-width:0}.cta:after{inset:auto 8% -78px;height:155px}.footer{margin-top:32px;padding-top:20px;font-size:10px}.footer span:last-child{font-size:7.5px;letter-spacing:.10em}}
+@media(prefers-reduced-motion:reduce){.cta .btn:after{transition:none!important}}
+.cta:before{background:radial-gradient(circle at var(--cta-glow-x,50%) var(--cta-glow-y,35%),rgba(242,201,105,.105),transparent 42%),radial-gradient(circle at 12% 90%,rgba(101,199,255,.055),transparent 34%);transition:background-position .35s ease}
