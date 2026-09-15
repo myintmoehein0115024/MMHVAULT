@@ -353,3 +353,58 @@ html.lang-zh .footer{font-family:Manrope,Inter,"Noto Sans SC","PingFang SC","Mic
 @media (max-width:900px){
   .site-header .links{min-width:0;width:auto}
 }
+
+/* MMHVAULT v4.5.8 — LOCK LANDING DESKTOP TYPOGRAPHY + NAV RHYTHM
+   English and Chinese use the same visual scale and the same navigation slots.
+   Login is intentionally untouched in this patch. */
+@media (min-width:901px){
+  .site-header .links{
+    width:420px;
+    min-width:420px;
+    flex:0 0 420px;
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    align-items:center;
+    justify-items:center;
+    gap:0;
+  }
+  .site-header .links a{
+    width:100%;
+    min-width:0;
+    text-align:center;
+    white-space:nowrap;
+    font-size:14px;
+    line-height:1.2;
+    transform:none!important;
+  }
+  html.lang-zh .site-header .links,
+  html.lang-zh .site-header .links a{
+    font-size:14px;
+  }
+  html.lang-zh .hero h1,
+  html.lang-zh .page-hero h1,
+  html.lang-zh .section-head h2,
+  html.lang-zh .showcase-copy h3,
+  html.lang-zh .quote h3,
+  html.lang-zh .cta h2{
+    font-size:inherit;
+    transform:none!important;
+  }
+}
+
+/* Keep Chinese Landing typography at the same scale as English on smaller screens. */
+@media (max-width:900px){
+  html.lang-zh .hero h1{font-size:clamp(45px,14vw,61px)}
+  html.lang-zh .page-hero h1{font-size:48px}
+  html.lang-zh .section-head h2{font-size:34px}
+  html.lang-zh .showcase-copy h3,
+  html.lang-zh .quote h3{font-size:34px}
+  html.lang-zh .cta h2{font-size:42px}
+  html.lang-zh .site-header .links a{font-size:14px;white-space:nowrap}
+}
+@media (max-width:360px){
+  html.lang-zh .hero h1{font-size:43px}
+  html.lang-zh .page-hero h1{font-size:43px}
+  html.lang-zh .showcase-copy h3,
+  html.lang-zh .quote h3{font-size:31px}
+}
