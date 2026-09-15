@@ -118,15 +118,15 @@ footer{border-top:1px solid rgba(126,169,205,.12);padding:21px 0 28px;color:#718
 <div id="status" class="status"></div></section></main>
 <footer><span>© 2026 <b style="color:var(--gold)">MMHVAULT</b> · Version 4.0</span><span>Private · Intelligent · Built Around You</span></footer>
 </div>
-<script src="js/landing-premium.js?v=4.6.4"></script>
+<script src="js/landing-premium.js?v=4.6.5"></script>
 <script>
-/* v4.6.4 — Login bilingual QA. Layout and authentication behavior are untouched. */
+/* v4.6.5 — Login bilingual completeness audit. Layout and authentication behavior are untouched. */
 (function(){
   const T={
     'Home':'首页','Features':'功能','Security':'安全','Experience':'体验','About':'关于','Login':'登录',
     'PERSONAL WEALTH INTELLIGENCE · VERSION 4.3.0':'个人财富智能 · 版本 4.3.0',
     'SECURE ACCESS · VERSION 4.0':'安全访问 · 版本 4.0','Welcome Back':'欢迎回来','Access your private MMHVAULT workspace':'进入你的私密 MMHVAULT 工作空间','Create Your Vault':'创建你的 Vault','Start your private wealth workspace':'开始你的私人财富工作空间',
-    "🔒 Sign In":'🔒 登录','✦ Sign Up':'✦ 注册','Email':'邮箱','Email address':'邮箱地址','Password':'密码','Show':'显示','Hide':'隐藏','Remember me':'记住我','Forgot password?':'忘记密码？','or continue with':'或使用以下方式继续','Continue with Google':'使用 Google 继续',"Don\'t have an account?":'还没有账户？','Sign Up':'注册','Full name':'姓名','Your name':'你的姓名','Create password':'创建密码','Create a password':'创建密码','I agree to the terms':'我同意相关条款','Create Account':'创建账户','Already have an account?':'已经有账户？','Private · Intelligent · Built Around You':'私密 · 智能 · 围绕你而建',
+    "🔒 Sign In":'🔒 登录','✦ Sign Up':'✦ 注册','Email':'邮箱','Email address':'邮箱地址','Password':'密码','Show':'显示','Hide':'隐藏','Remember me':'记住我','Forgot password?':'忘记密码？','or continue with':'或使用以下方式继续','Continue with Google':'使用 Google 继续',"Don\'t have an account?":'还没有账户？','Sign Up':'注册','Full name':'姓名','Your name':'你的姓名','Create password':'创建密码','Create a password':'创建密码','I agree to the terms':'我同意相关条款','Create Account':'创建账户','Already have an account?':'已经有账户？','Private · Intelligent · Built Around You':'私密 · 智能 · 围绕你而建','© 2026 MMHVAULT · Version 4.0':'© 2026 MMHVAULT · 版本 4.0','· Version 4.0':'· 版本 4.0','Version 4.0':'版本 4.0','Private · Intelligent · Built Around You':'私密 · 智能 · 围绕你而建','MMHVAULT logo':'MMHVAULT 标志','Home':'首页','Menu':'菜单',
     'Signing in…':'正在登录…','Authentication service is unavailable.':'身份验证服务暂不可用。','Authentication service is unavailable. Please refresh.':'身份验证服务暂不可用，请刷新页面。','Incorrect email or password.':'邮箱或密码错误。','Opening Google sign-in…':'正在打开 Google 登录…','Unable to sign in with Google.':'无法使用 Google 登录。','Creating your account…':'正在创建账户…','Please agree to the terms.':'请同意相关条款。','Account created. Please check your email to confirm your account.':'账户已创建，请检查邮箱完成确认。','Enter your email first, then try again.':'请先输入邮箱，然后重试。','Sending reset email…':'正在发送密码重置邮件…','Password reset email sent. Please check your inbox.':'密码重置邮件已发送，请检查收件箱。'
   };
   const buttons=[...document.querySelectorAll('.mmh-lang-switcher button[data-lang]')];
@@ -135,16 +135,53 @@ footer{border-top:1px solid rgba(126,169,205,.12);padding:21px 0 28px;color:#718
   while(n=walker.nextNode()){if(n.parentElement.closest('.mmh-lang-switcher,script,style'))continue;const raw=n.nodeValue,key=raw.trim();if(key)nodes.push({node:n,key,lead:(raw.match(/^\s*/)||[''])[0],trail:(raw.match(/\s*$/)||[''])[0]});}
   const placeholders=[];document.querySelectorAll('input[placeholder]').forEach(i=>placeholders.push({el:i,key:i.getAttribute('placeholder')}));
   const attrs=[];document.querySelectorAll('[aria-label],[alt]').forEach(el=>{for(const a of ['aria-label','alt']){const v=el.getAttribute(a);if(v&&T[v])attrs.push({el,a,key:v});}});
+  let currentLang='en';
   function text(key,zh){return zh?(T[key]||key):key}
-  function setLang(lang,save=true){const zh=lang==='zh';nodes.forEach(o=>o.node.nodeValue=o.lead+text(o.key,zh)+o.trail);placeholders.forEach(o=>o.el.setAttribute('placeholder',text(o.key,zh)));attrs.forEach(o=>o.el.setAttribute(o.a,text(o.key,zh)));
-    // Dynamic auth labels use explicit selectors so NBSP/arrow formatting cannot escape translation.
-    document.querySelector('.primary[type="submit"]')?.replaceChildren(document.createTextNode(zh?(document.getElementById('signup').classList.contains('active')?'创建账户':'登录'):(document.getElementById('signup').classList.contains('active')?'Create Account':'Sign In')),document.createTextNode('  →'));
-    document.querySelectorAll('.eye').forEach(b=>b.textContent=zh?'显示':'Show');
-    document.documentElement.lang=zh?'zh-CN':'en';document.title=zh?'MMHVAULT · 登录':'MMHVAULT · Login';
-    buttons.forEach(b=>{const active=b.dataset.lang===lang;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active));});if(save)localStorage.setItem('mmhvault-language',lang);
+  function getTranslatedError(message){
+    if(!message)return '';
+    const direct=T[message]; if(direct)return currentLang==='zh'?direct:message;
+    const map={
+      'Invalid login credentials':'邮箱或密码错误。',
+      'Email not confirmed':'邮箱尚未完成验证。',
+      'User already registered':'该邮箱已经注册。',
+      'Password should be at least 6 characters.':'密码至少需要 6 个字符。',
+      'Unable to validate email address: invalid format':'邮箱格式无效。',
+      'Email rate limit exceeded':'邮件发送频率已达到限制，请稍后再试。',
+      'For security purposes, you can only request this once every 60 seconds.':'出于安全原因，每 60 秒只能请求一次。',
+      'Email address is invalid':'邮箱地址无效。',
+      'Password is too weak':'密码强度不足。'
+    };
+    return currentLang==='zh'?(map[message]||message):message;
   }
+  function setPrimaryLabels(){
+    const zh=currentLang==='zh';
+    const signin=document.querySelector('#signin .primary');
+    const signup=document.querySelector('#signup .primary');
+    if(signin)signin.textContent=(zh?'登录':'Sign In')+'  →';
+    if(signup)signup.textContent=(zh?'创建账户':'Create Account')+'  →';
+    document.querySelectorAll('.eye').forEach(b=>{
+      const input=b.parentElement.querySelector('input');
+      const visible=input&&input.type==='text';
+      b.textContent=zh?(visible?'隐藏':'显示'):(visible?'Hide':'Show');
+    });
+  }
+  function setLang(lang,save=true){
+    currentLang=lang==='zh'?'zh':'en';
+    const zh=currentLang==='zh';
+    nodes.forEach(o=>o.node.nodeValue=o.lead+text(o.key,zh)+o.trail);
+    placeholders.forEach(o=>o.el.setAttribute('placeholder',text(o.key,zh)));
+    attrs.forEach(o=>o.el.setAttribute(o.a,text(o.key,zh)));
+    setPrimaryLabels();
+    document.documentElement.lang=zh?'zh-CN':'en';
+    document.title=zh?'MMHVAULT · 登录':'MMHVAULT · Login';
+    buttons.forEach(b=>{const active=b.dataset.lang===currentLang;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active));});
+    if(save)localStorage.setItem('mmhvault-language',currentLang);
+  }
+  window.getMMHVAULTLanguage=()=>currentLang;
+  window.translateMMHVAULTMessage=getTranslatedError;
   window.applyMMHVAULTLanguage=function(){const saved=localStorage.getItem('mmhvault-language');setLang(saved==='zh'||saved==='en'?saved:'en',false)};
-  buttons.forEach(b=>b.addEventListener('click',()=>setLang(b.dataset.lang,true)));window.applyMMHVAULTLanguage();
+  buttons.forEach(b=>b.addEventListener('click',()=>setLang(b.dataset.lang,true)));
+  window.applyMMHVAULTLanguage();
 })();
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -153,9 +190,9 @@ const SUPABASE_URL='https://vrypucmyrztxgiqhjspd.supabase.co';
 const SUPABASE_KEY='sb_publishable_H38v4XbO0ARnSJToD42wGg_27-SZ3Ao';
 const db=window.supabase?supabase.createClient(SUPABASE_URL,SUPABASE_KEY):null;
 const statusEl=document.getElementById('status'); const tabs=[...document.querySelectorAll('.tab')], forms=[...document.querySelectorAll('.form')];
-function msg(text,type=''){statusEl.textContent=text;statusEl.className='status '+type}
+function msg(text,type=''){statusEl.textContent=window.translateMMHVAULTMessage?window.translateMMHVAULTMessage(text):text;statusEl.className='status '+type}
 function openForm(id){tabs.forEach(t=>t.classList.toggle('active',t.dataset.target===id));forms.forEach(f=>f.classList.toggle('active',f.id===id));document.getElementById('title').textContent=id==='signin'?'Welcome Back':'Create Your Vault';document.getElementById('subtitle').textContent=id==='signin'?'Access your private MMHVAULT workspace':'Start your private wealth workspace';msg('');if(window.applyMMHVAULTLanguage)window.applyMMHVAULTLanguage()}
-tabs.forEach(t=>t.onclick=()=>openForm(t.dataset.target));document.querySelectorAll('[data-switch]').forEach(b=>b.onclick=()=>openForm(b.dataset.switch));document.querySelectorAll('.eye').forEach(b=>b.onclick=()=>{const i=b.parentElement.querySelector('input');const show=i.type==='password';i.type=show?'text':'password';b.textContent=show?'Hide':'Show'});
+tabs.forEach(t=>t.onclick=()=>openForm(t.dataset.target));document.querySelectorAll('[data-switch]').forEach(b=>b.onclick=()=>openForm(b.dataset.switch));document.querySelectorAll('.eye').forEach(b=>b.onclick=()=>{const i=b.parentElement.querySelector('input');const show=i.type==='password';i.type=show?'text':'password';const zh=window.getMMHVAULTLanguage&&window.getMMHVAULTLanguage()==='zh';b.textContent=zh?(show?'隐藏':'显示'):(show?'Hide':'Show')});
 function appUrl(){return new URL('app.html',location.href).toString()}
 async function googleLogin(btn){if(!db){msg('Authentication service is unavailable. Please refresh.','err');return}btn.disabled=true;msg('Opening Google sign-in…');try{const {error}=await db.auth.signInWithOAuth({provider:'google',options:{redirectTo:new URL('login.html',location.href).toString()}});if(error)throw error}catch(e){console.error(e);msg(e.message||'Unable to sign in with Google.','err');btn.disabled=false}}
 ['googleSignIn','googleSignUp'].forEach(id=>document.getElementById(id).onclick=()=>googleLogin(document.getElementById(id)));
