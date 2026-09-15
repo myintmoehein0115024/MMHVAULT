@@ -106,6 +106,7 @@ footer{border-top:1px solid rgba(126,169,205,.12);padding:21px 0 28px;color:#718
 <header class="wrap site-header">
 <a class="brand" href="index.html" aria-label="Home"><img src="images/mmhvault-logo-transparent.png" alt="MMHVAULT logo"><span><strong>MMHVAULT</strong><small>PERSONAL WEALTH INTELLIGENCE · VERSION 4.3.0</small></span></a>
 <nav class="links"><a href="index.html">Home</a><a href="features.html">Features</a><a href="security.html">Security</a><a href="experience.html">Experience</a><a href="about.html">About</a></nav>
+<div class="mmh-lang-switcher" role="group" aria-label="Language"><button type="button" data-lang="en" aria-pressed="true">EN</button><button type="button" data-lang="zh" aria-pressed="false">中文</button></div>
 <button class="menu-toggle" type="button" aria-label="Menu" aria-expanded="false"><span></span><span></span><span></span></button>
 <a class="btn ghost header-login" href="login.html">Login</a>
 </header>
@@ -118,6 +119,45 @@ footer{border-top:1px solid rgba(126,169,205,.12);padding:21px 0 28px;color:#718
 <footer><span>© 2026 <b style="color:var(--gold)">MMHVAULT</b> · Version 4.0</span><span>Private · Intelligent · Built Around You</span></footer>
 </div>
 <script src="js/landing-premium.js?v=4.5.7"></script>
+<script>
+/* v4.6.3 — Restore Login language switcher only. No other Login layout/content changes. */
+(function(){
+  const translations={
+    'Home':'首页','Features':'功能','Security':'安全','Experience':'体验','About':'关于','Login':'登录',
+    'SECURE ACCESS · VERSION 4.0':'安全访问 · 版本 4.0','Welcome Back':'欢迎回来','Access your private MMHVAULT workspace':'进入你的私密 MMHVAULT 工作空间','Create Your Vault':'创建你的 Vault','Start your private wealth workspace':'开始你的私人财富工作空间',
+    '🔒 Sign In':'🔒 登录','✦ Sign Up':'✦ 注册','Email':'邮箱','Email address':'邮箱地址','Password':'密码','Show':'显示','Hide':'隐藏','Remember me':'记住我','Forgot password?':'忘记密码？','Sign In &nbsp; →':'登录 &nbsp; →','or continue with':'或使用以下方式继续','Continue with Google':'使用 Google 继续',
+    "Don't have an account? ":'还没有账户？ ','Sign Up':'注册','Full name':'姓名','Your name':'你的姓名','Create password':'创建密码','Create a password':'创建密码','I agree to the terms':'我同意相关条款','Create Account &nbsp; →':'创建账户 &nbsp; →',
+    'Already have an account? ':'已经有账户？ ','Private · Intelligent · Built Around You':'私密 · 智能 · 围绕你而建',
+    'Signing in…':'正在登录…','Authentication service is unavailable.':'身份验证服务暂不可用。','Authentication service is unavailable. Please refresh.':'身份验证服务暂不可用，请刷新页面。','Incorrect email or password.':'邮箱或密码错误。','Opening Google sign-in…':'正在打开 Google 登录…','Unable to sign in with Google.':'无法使用 Google 登录。','Creating your account…':'正在创建账户…','Please agree to the terms.':'请同意相关条款。','Account created. Please check your email to confirm your account.':'账户已创建，请检查邮箱完成确认。','Enter your email first, then try again.':'请先输入邮箱，然后重试。','Sending reset email…':'正在发送密码重置邮件…','Password reset email sent. Please check your inbox.':'密码重置邮件已发送，请检查收件箱。'
+  };
+  const buttons=[...document.querySelectorAll('.mmh-lang-switcher button[data-lang]')];
+  const nodes=[];
+  const walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
+  let n;
+  while(n=walker.nextNode()){
+    if(n.parentElement.closest('.mmh-lang-switcher,script,style')) continue;
+    const raw=n.nodeValue,key=raw.trim();
+    if(key) nodes.push({node:n,key,leading:(raw.match(/^\s*/)||[''])[0],trailing:(raw.match(/\s*$/)||[''])[0]});
+  }
+  const placeholders=[];
+  document.querySelectorAll('input[placeholder]').forEach(input=>placeholders.push({input,key:input.getAttribute('placeholder')}));
+  function setLang(lang,save=true){
+    const zh=lang==='zh';
+    nodes.forEach(o=>o.node.nodeValue=o.leading+(zh?(translations[o.key]||o.key):o.key)+o.trailing);
+    placeholders.forEach(o=>o.input.setAttribute('placeholder',zh?(translations[o.key]||o.key):o.key));
+    document.documentElement.lang=zh?'zh-CN':'en';
+    document.title=zh?'MMHVAULT · 登录':'MMHVAULT · Login';
+    buttons.forEach(b=>{const active=b.dataset.lang===lang;b.classList.toggle('active',active);b.setAttribute('aria-pressed',String(active));});
+    if(save)localStorage.setItem('mmhvault-language',lang);
+  }
+  window.applyMMHVAULTLanguage=function(){
+    const saved=localStorage.getItem('mmhvault-language');
+    setLang(saved==='zh'||saved==='en'?saved:'en',false);
+  };
+  buttons.forEach(b=>b.addEventListener('click',()=>setLang(b.dataset.lang,true)));
+  window.applyMMHVAULTLanguage();
+})();
+</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 const SUPABASE_URL='https://vrypucmyrztxgiqhjspd.supabase.co';
