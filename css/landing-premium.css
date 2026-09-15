@@ -161,3 +161,40 @@ body{letter-spacing:-.01em;text-rendering:optimizeLegibility;-webkit-font-smooth
 @media(max-width:560px){.site-header.is-scrolled{height:68px}.hero:after{right:-40%;top:8%;width:100%;height:45%}.signal-row:after{width:42%}.showcase-copy .btn{margin-top:8px}}
 @media(hover:none){.hero-art:hover img{filter:none;box-shadow:0 35px 75px rgba(0,0,0,.55)}.showcase:hover .showcase-media:before{opacity:.7}}
 @media(prefers-reduced-motion:reduce){.site-header,.hero-art img,.hero-art:before,.showcase-media:before{transition:none!important}.hero-art img{transform:none!important}}
+
+/* =========================================================
+   MMHVAULT V4.3.3 · FINANCIAL INTELLIGENCE SECTIONS
+   Presentation only — no feature or business-logic changes.
+========================================================= */
+.section{position:relative}
+.section:before{content:"";position:absolute;left:50%;top:10px;width:1px;height:70px;background:linear-gradient(180deg,rgba(101,199,255,.0),rgba(101,199,255,.22),rgba(101,199,255,0));transform:translateX(-50%);pointer-events:none;opacity:.65}
+.section-head{position:relative;padding-left:22px}
+.section-head:after{content:"";position:absolute;left:0;top:5px;width:2px;height:74px;border-radius:4px;background:linear-gradient(180deg,var(--gold),rgba(101,199,255,.35),transparent)}
+.cards{counter-reset:wealth-card;align-items:stretch}
+.card{min-height:292px;padding:32px 30px 30px;display:flex;flex-direction:column;justify-content:flex-start;background:linear-gradient(155deg,rgba(15,36,55,.94),rgba(5,16,28,.96));transition:transform .5s cubic-bezier(.2,.8,.2,1),border-color .35s ease,box-shadow .5s ease,background .45s ease}
+.card:before{content:"";position:absolute;left:0;top:0;width:100%;height:1px;background:linear-gradient(90deg,transparent,rgba(101,199,255,.28),transparent);opacity:.8}
+.card .num{display:flex;align-items:center;gap:10px}
+.card .num:after{content:"";display:block;width:34px;height:1px;background:linear-gradient(90deg,var(--gold),transparent);opacity:.65}
+.card h3{max-width:12ch;margin-top:25px;letter-spacing:-.045em}
+.card p{max-width:34ch;margin-top:auto;padding-top:24px}
+.card:nth-child(2){transform:translateY(14px)}
+.card:nth-child(2):after{background:radial-gradient(circle,rgba(101,199,255,.13),transparent 65%)}
+.card:nth-child(3){transform:translateY(28px)}
+.card:hover{transform:translateY(-6px)}
+.card:nth-child(2):hover,.card:nth-child(3):hover{transform:translateY(4px)}
+.showcase{position:relative;min-height:520px;box-shadow:0 32px 90px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.035)}
+.showcase:before{content:"MMHVAULT";position:absolute;right:28px;top:20px;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.28em;color:rgba(242,201,105,.30);z-index:3;pointer-events:none}
+.showcase-copy{padding:64px;position:relative}
+.showcase-copy:before{content:"01";position:absolute;left:64px;top:28px;font-family:'DM Mono',monospace;font-size:9px;letter-spacing:.2em;color:rgba(101,199,255,.36)}
+.showcase-copy h3{max-width:9ch}
+.showcase-copy p{max-width:42ch}
+.showcase-media{min-height:520px}
+.showcase-media:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(5,16,28,.12),transparent 25%,transparent 75%,rgba(5,16,28,.20)),linear-gradient(0deg,rgba(3,10,17,.22),transparent 30%);pointer-events:none;z-index:2}
+.showcase-media img{transition:transform 1.2s cubic-bezier(.2,.8,.2,1),filter .7s ease}
+.showcase:hover .showcase-media img{transform:scale(1.045)}
+.cta{position:relative;overflow:hidden}
+.cta:after{content:"";position:absolute;inset:auto 18% -85px;height:170px;border:1px solid rgba(242,201,105,.10);border-radius:50%;pointer-events:none}
+@media(max-width:900px){.section:before{display:none}.section-head{padding-left:16px}.section-head:after{height:60px}.card{min-height:250px}.card:nth-child(2),.card:nth-child(3){transform:none}.card:nth-child(2):hover,.card:nth-child(3):hover{transform:translateY(-6px)}.showcase{min-height:0}.showcase-copy{padding:46px 38px}.showcase-copy:before{left:38px}.showcase-media{min-height:400px}}
+@media(max-width:560px){.section-head{padding-left:13px}.section-head:after{height:52px}.card{min-height:230px;padding:27px 24px}.card h3{max-width:none}.card p{padding-top:18px}.showcase-copy{padding:38px 25px}.showcase-copy:before{left:25px}.showcase-media{min-height:300px}.showcase:before{right:18px}.cta:after{inset:auto 8% -80px}}
+@media(hover:none){.showcase:hover .showcase-media img{transform:none}.card:hover,.card:nth-child(2):hover,.card:nth-child(3):hover{transform:none}}
+@media(prefers-reduced-motion:reduce){.card,.showcase-media img{transition:none!important}.card:nth-child(2),.card:nth-child(3){transform:none!important}}

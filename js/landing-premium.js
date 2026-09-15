@@ -39,3 +39,23 @@ document.addEventListener("DOMContentLoaded",()=>{
   }),{threshold:.12});
   document.querySelectorAll(".reveal").forEach(x=>io.observe(x));
 });
+
+/* MMHVAULT V4.3.3 · section micro-interactions */
+document.addEventListener("DOMContentLoaded",()=>{
+  const reduceMotion=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if(reduceMotion || !window.matchMedia("(hover: hover)").matches) return;
+
+  document.querySelectorAll(".card").forEach(card=>{
+    card.addEventListener("pointermove",e=>{
+      const r=card.getBoundingClientRect();
+      const x=(e.clientX-r.left)/r.width-.5;
+      const y=(e.clientY-r.top)/r.height-.5;
+      card.style.setProperty("--card-x",`${x*2.2}deg`);
+      card.style.setProperty("--card-y",`${-y*1.7}deg`);
+      card.style.transform=`translateY(${card.matches(":nth-child(3)")?28:card.matches(":nth-child(2)")?14:0}px) perspective(900px) rotateY(${x*2.2}deg) rotateX(${-y*1.7}deg)`;
+    });
+    card.addEventListener("pointerleave",()=>{
+      card.style.transform="";
+    });
+  });
+});
