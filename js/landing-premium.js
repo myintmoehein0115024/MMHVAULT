@@ -78,3 +78,23 @@ document.addEventListener("DOMContentLoaded",()=>{
     cta.style.removeProperty("--cta-glow-y");
   });
 });
+
+/* MMHVAULT V4.3.5 · final polish micro-interactions */
+document.addEventListener("DOMContentLoaded",()=>{
+  const reduceMotion=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if(reduceMotion || !window.matchMedia("(hover: hover)").matches) return;
+
+  document.querySelectorAll(".showcase-media").forEach(media=>{
+    media.addEventListener("pointermove",e=>{
+      const r=media.getBoundingClientRect();
+      const x=(e.clientX-r.left)/r.width-.5;
+      const y=(e.clientY-r.top)/r.height-.5;
+      media.style.setProperty("--media-glow-x",`${50+x*18}%`);
+      media.style.setProperty("--media-glow-y",`${50+y*18}%`);
+    });
+    media.addEventListener("pointerleave",()=>{
+      media.style.removeProperty("--media-glow-x");
+      media.style.removeProperty("--media-glow-y");
+    });
+  });
+});
