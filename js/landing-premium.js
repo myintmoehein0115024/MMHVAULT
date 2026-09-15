@@ -216,3 +216,52 @@ document.addEventListener('DOMContentLoaded',()=>{
   window.addEventListener('mmhvault-language-changed',applyLoginLanguage);
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',applyLoginLanguage);else applyLoginLanguage();
 })();
+
+/* MMHVAULT v4.5.7 — exact header parity + robust Login bilingual UI. */
+(function(){
+  function zh(){return localStorage.getItem('mmhvault-landing-lang')==='zh'}
+  function setText(el,en,cn){if(!el)return;el.textContent=zh()?cn:en}
+  function applyLoginUI(){
+    if(!location.pathname.endsWith('/login.html'))return;
+    document.documentElement.lang=zh()?'zh-CN':'en';
+    const q=s=>document.querySelector(s), qa=s=>[...document.querySelectorAll(s)];
+    setText(q('.shell>header .header-login, .shell>header .toplogin'),'Login','登录');
+    qa('.shell>header nav a')[0]&&setText(qa('.shell>header nav a')[0],'Home','首页');
+    qa('.shell>header nav a')[1]&&setText(qa('.shell>header nav a')[1],'Features','功能');
+    qa('.shell>header nav a')[2]&&setText(qa('.shell>header nav a')[2],'Security','安全');
+    qa('.shell>header nav a')[3]&&setText(qa('.shell>header nav a')[3],'Experience','体验');
+    qa('.shell>header nav a')[4]&&setText(qa('.shell>header nav a')[4],'About','关于');
+    const signup=q('#signup'),signin=q('#signin');
+    setText(q('.kicker'),'SECURE ACCESS · VERSION 4.0','安全访问 · VERSION 4.0');
+    const title=q('#title'),sub=q('#subtitle');
+    if(signup&&signup.classList.contains('active')){setText(title,'Create Your Vault','创建你的 Vault');setText(sub,'Start your private wealth workspace','开始你的私人财富工作空间')}
+    else {setText(title,'Welcome Back','欢迎回来');setText(sub,'Access your private MMHVAULT workspace','进入你的私密 MMHVAULT 工作空间')}
+    const tabs=qa('.tab'); if(tabs[0])setText(tabs[0],'🔒 Sign In','🔒 登录'); if(tabs[1])setText(tabs[1],'✦ Sign Up','✦ 注册');
+    if(signin){
+      const labels=qa('#signin label'); if(labels[0])setText(labels[0],'Email','邮箱'); if(labels[1])setText(labels[1],'Password','密码');
+      const inputs=qa('#signin input'); if(inputs[0])inputs[0].placeholder=zh()?'邮箱地址':'Email address'; if(inputs[1])inputs[1].placeholder=zh()?'密码':'Password';
+      const eye=q('#signin .eye');setText(eye,'Show','显示');
+      const remember=q('#signin .remember'); if(remember){const cb=remember.querySelector('input');remember.textContent='';if(cb)remember.appendChild(cb);remember.appendChild(document.createTextNode(zh()?' 记住我':' Remember me'))}
+      setText(q('#forgotBtn'),'Forgot password?','忘记密码？');setText(q('#signin .primary'),'Sign In  →','登录  →');setText(q('#signin .divider'),'or continue with','或使用以下方式继续');setText(q('#googleSignIn'),'Continue with Google','使用 Google 继续');
+      const sw=q('#signin .switch');if(sw){sw.textContent='';sw.append(document.createTextNode(zh()?'还没有账户？ ':'Don\'t have an account? '));const btn=sw.querySelector('button')||document.createElement('button');btn.type='button';btn.dataset.switch='signup';btn.textContent=zh()?'注册':'Sign Up';sw.append(btn)}
+    }
+    if(signup){
+      const labels=qa('#signup label'); if(labels[0])setText(labels[0],'Full name','姓名'); if(labels[1])setText(labels[1],'Email','邮箱'); if(labels[2])setText(labels[2],'Create password','创建密码');
+      const inputs=qa('#signup input'); if(inputs[0])inputs[0].placeholder=zh()?'你的姓名':'Your name'; if(inputs[1])inputs[1].placeholder=zh()?'邮箱地址':'Email address'; if(inputs[2])inputs[2].placeholder=zh()?'创建密码':'Create a password';
+      const eye=q('#signup .eye');setText(eye,'Show','显示');
+      const terms=q('#terms')?.parentElement;if(terms){const cb=terms.querySelector('input');terms.textContent='';if(cb)terms.appendChild(cb);terms.appendChild(document.createTextNode(zh()?' 我同意相关条款':' I agree to the terms'))}
+      setText(q('#signup .primary'),'Create Account  →','创建账户  →');setText(q('#signup .divider'),'or continue with','或使用以下方式继续');setText(q('#googleSignUp'),'Continue with Google','使用 Google 继续');
+      const sw=q('#signup .switch');if(sw){sw.textContent='';sw.append(document.createTextNode(zh()?'已经有账户？ ':'Already have an account? '));const btn=sw.querySelector('button')||document.createElement('button');btn.type='button';btn.dataset.switch='signin';btn.textContent=zh()?'登录':'Sign In';sw.append(btn)}
+    }
+    setText(q('footer span:last-child'),'Private · Intelligent · Built Around You','私密 · 智能 · 为你而生');
+    const menu=q('.menu-toggle');if(menu)menu.setAttribute('aria-label',zh()?'菜单':'Menu');
+    document.title=zh()?'MMHVAULT — 安全访问 · VERSION 4.0':'MMHVAULT — Secure Access · Version 4.0';
+  }
+  window.addEventListener('mmhvault-language-changed',applyLoginUI);
+  document.addEventListener('DOMContentLoaded',()=>{
+    if(!location.pathname.endsWith('/login.html'))return;
+    document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>setTimeout(applyLoginUI,0)));
+    document.querySelectorAll('[data-switch]').forEach(b=>b.addEventListener('click',()=>setTimeout(applyLoginUI,0)));
+    applyLoginUI();
+  });
+})();

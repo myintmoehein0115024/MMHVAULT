@@ -325,3 +325,31 @@ html.lang-zh .footer{font-family:Manrope,Inter,"Noto Sans SC","PingFang SC","Mic
   .site-header .mmh-lang-switcher{margin-right:7px}
   .site-header .menu-toggle{width:54px;height:54px;border-radius:17px}
 }
+
+/* MMHVAULT v4.5.7 — fixed desktop header rhythm + exact Login parity */
+@media (min-width:901px){
+  .site-header .links{flex:0 0 420px;width:420px;justify-content:space-between;gap:0}
+  .site-header .mmh-lang-switcher{flex:0 0 auto}
+  .site-header .header-login{flex:0 0 auto;margin-left:18px}
+}
+@media (max-width:900px){
+  .site-header .links{width:auto;flex:initial}
+}
+
+/* Login uses the same desktop header proportions as Landing. */
+.shell>header{position:relative}
+.shell>header nav{flex:0 0 420px;width:420px;justify-content:space-between;gap:0;margin-left:auto}
+.shell>header .toplogin{flex:0 0 auto;margin-left:18px}
+.shell>header .mmh-lang-switcher{flex:0 0 auto;margin-left:10px}
+@media(max-width:900px){
+  .shell>header nav{width:auto;flex:initial}
+}
+
+/* MMHVAULT v4.5.7 — lock navigation rhythm across EN / 中文 and Login */
+@media (min-width:901px){
+  .site-header .links{flex:0 0 420px;width:420px;min-width:420px;display:flex;justify-content:space-between;gap:0}
+  .site-header .links a{white-space:nowrap}
+}
+@media (max-width:900px){
+  .site-header .links{min-width:0;width:auto}
+}
