@@ -261,3 +261,10 @@ body{background-image:radial-gradient(circle at 50% -10%,rgba(255,255,255,.025),
 .showcase-media:after{background:radial-gradient(circle at var(--media-glow-x,50%) var(--media-glow-y,50%),rgba(242,201,105,.075),transparent 34%),linear-gradient(90deg,rgba(5,16,28,.12),transparent 25%,transparent 75%,rgba(5,16,28,.20)),linear-gradient(0deg,rgba(3,10,17,.22),transparent 30%);transition:background-position .25s ease}
 @media(max-width:900px){.hero-art img{transform:none}.showcase-media:after{background:linear-gradient(90deg,rgba(5,16,28,.12),transparent 25%,transparent 75%,rgba(5,16,28,.20)),linear-gradient(0deg,rgba(3,10,17,.22),transparent 30%)}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.hero-art img{will-change:auto}.showcase-media:after{transition:none!important}}
+
+/* MMHVAULT V4.3.8 · Remove showcase badge
+   Keep the original showcase image unchanged. */
+.showcase-media:before{
+  content:none !important;
+  display:none !important;
+}
