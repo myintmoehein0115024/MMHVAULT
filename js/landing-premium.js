@@ -94,55 +94,125 @@ document.addEventListener('DOMContentLoaded',()=>{
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
 
-/* v4.5.4 language control placement + Login mobile navigation */
+/* v4.5.5 — Landing + Login bilingual polish, responsive header, reliable mobile navigation. */
 (function(){
   const style=document.createElement('style');
-  style.id='mmh-lang-placement-v454';
+  style.id='mmh-v455-style';
   style.textContent=`
-    .shell>header .mmh-lang-switcher{order:3;margin-left:18px;margin-right:0;flex:0 0 auto}
-    .shell>header .toplogin{order:2;margin-left:auto}
+    /* Login desktop: keep navigation centered and actions grouped at the far right. */
+    .shell>header{display:flex;align-items:center;gap:0}
+    .shell>header nav{margin-left:auto}
+    .shell>header .toplogin{order:2;margin-left:28px;flex:0 0 auto}
+    .shell>header .mmh-lang-switcher{order:3;margin-left:10px;margin-right:0;flex:0 0 auto}
+    .shell>header .menu-toggle{order:4;flex:0 0 auto}
     @media(max-width:900px){
-      .site-header{display:flex;align-items:center}
-      .site-header .brand{order:1}
-      .site-header .mmh-lang-switcher{order:2;margin-left:auto;margin-right:8px}
-      .site-header .menu-toggle{order:3;flex:0 0 auto}
-      .site-header .header-login{order:4}
-      .site-header .links{order:5}
-      .shell>header{display:flex;align-items:center}
-      .shell>header .brand{order:1}
-      .shell>header .mmh-lang-switcher{order:2;margin-left:auto;margin-right:8px}
-      .shell>header .menu-toggle{order:3;flex:0 0 auto}
-      .shell>header .toplogin{order:4;margin-left:0}
+      .shell>header{position:relative}
+      .shell>header .brand{order:1;flex:0 0 auto}
       .shell>header nav{order:5}
-    }
-    @media(max-width:560px){
-      .site-header .mmh-lang-switcher,.shell>header .mmh-lang-switcher{margin-right:7px}
-      .mmh-lang-switcher button{min-width:34px}
+      .shell>header .mmh-lang-switcher{order:2;margin-left:auto;margin-right:8px}
+      .shell>header .menu-toggle{order:3;display:inline-flex;flex:0 0 auto}
+      .shell>header .toplogin{order:4;display:none}
+      .shell>header nav{display:none}
+      .shell>header.menu-open nav{display:flex;position:absolute;top:calc(100% + 10px);right:0;left:0;z-index:50;flex-direction:column;gap:0;padding:10px;border:1px solid rgba(212,169,77,.18);border-radius:18px;background:rgba(6,17,29,.97);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+      .shell>header.menu-open nav a{padding:13px 14px}
     }
     @media(max-width:520px){
-      .shell>header .menu-toggle{display:inline-flex}
-      .shell>header .toplogin{display:none}
-      .shell>header nav{display:none}
-      .shell>header.menu-open nav{display:flex;position:absolute;top:calc(100% + 10px);right:0;left:0;flex-direction:column;gap:0;padding:10px;border:1px solid rgba(212,169,77,.18);border-radius:18px;background:rgba(6,17,29,.96);backdrop-filter:blur(18px);z-index:30}
-      .shell>header.menu-open nav a{padding:13px 14px}
-    }`;
+      .shell>header .mmh-lang-switcher{margin-right:7px}
+      .shell>header .mmh-lang-switcher button{min-width:34px;padding:7px 7px}
+      .shell>header .menu-toggle{width:54px;height:54px;border-radius:17px}
+    }
+    /* Keep the language control outside the mobile menu and visually grouped with the hamburger. */
+    .site-header .mmh-lang-switcher{flex:0 0 auto}
+  `;
   document.head.appendChild(style);
 
-  document.addEventListener('DOMContentLoaded',()=>{
+  function closeMenu(header,btn){
+    header.classList.remove('menu-open');
+    if(btn)btn.setAttribute('aria-expanded','false');
+  }
+  function bindLoginMenu(){
     const header=document.querySelector('.shell>header');
-    if(!header || header.querySelector('.menu-toggle')) return;
-    const btn=document.createElement('button');
-    btn.className='menu-toggle';
-    btn.type='button';
-    btn.setAttribute('aria-label','Menu');
-    btn.setAttribute('aria-expanded','false');
-    btn.innerHTML='<span></span><span></span><span></span>';
-    header.appendChild(btn);
+    if(!header)return;
+    let btn=header.querySelector('.menu-toggle');
+    if(!btn){
+      btn=document.createElement('button');
+      btn.className='menu-toggle';
+      btn.type='button';
+      btn.setAttribute('aria-label','Menu');
+      btn.setAttribute('aria-expanded','false');
+      btn.innerHTML='<span></span><span></span><span></span>';
+      header.appendChild(btn);
+    }
+    if(btn.__mmhBound)return;
+    btn.__mmhBound=true;
     btn.addEventListener('click',()=>{
       const open=header.classList.toggle('menu-open');
       btn.setAttribute('aria-expanded',open?'true':'false');
     });
     const nav=header.querySelector('nav');
-    if(nav) nav.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>{header.classList.remove('menu-open');btn.setAttribute('aria-expanded','false')}));
-  });
+    if(nav){
+      nav.querySelectorAll('a').forEach(a=>a.addEventListener('click',()=>closeMenu(header,btn)));
+    }
+    document.addEventListener('click',e=>{
+      if(header.classList.contains('menu-open')&&!header.contains(e.target))closeMenu(header,btn);
+    });
+    document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMenu(header,btn)});
+  }
+  function init(){
+    if(location.pathname.endsWith('/login.html'))bindLoginMenu();
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+})();
+
+/* v4.5.5 — exact Login translations that are intentionally mapped separately from page prose. */
+(function(){
+  const loginMap={
+    'Sign In':'登录','Sign Up':'注册','🔒 Sign In':'🔒 登录','✦ Sign Up':'✦ 注册',
+    'Email':'邮箱','Email address':'邮箱地址','Password':'密码','Full name':'姓名','Your name':'你的姓名',
+    'Create password':'创建密码','Create a password':'创建密码','Remember me':'记住我','Forgot password?':'忘记密码?',
+    'Show':'显示','Hide':'隐藏','or continue with':'或使用以下方式继续','Continue with Google':'使用 Google 继续',
+    "Don't have an account?":"还没有账户？",'Already have an account?':'已经有账户？',
+    'Create Account':'创建账户','Home':'首页','Features':'功能','Security':'安全','Experience':'体验','About':'关于','Login':'登录',
+    'Private · Intelligent · Built Around You':'私密 · 智能 · 为你而生',
+    'PERSONAL WEALTH INTELLIGENCE · VERSION 4.0':'个人财富智能 · VERSION 4.0',
+    'SECURE ACCESS · VERSION 4.0':'安全访问 · VERSION 4.0',
+    'Welcome Back':'欢迎回来','Create Your Vault':'创建你的 Vault',
+    'Access your private MMHVAULT workspace':'进入你的私密 MMHVAULT 工作空间',
+    'Start your private wealth workspace':'开始你的私人财富工作空间',
+    'I agree to the terms':'我同意相关条款',
+    'Sign In  →':'登录  →','Sign In →':'登录 →','Create Account  →':'创建账户  →','Create Account →':'创建账户 →',
+    'or continue with':'或使用以下方式继续','Menu':'菜单'
+  };
+  function translateNode(node,zh){
+    if(!node||!node.nodeValue)return;
+    const raw=node.nodeValue,trim=raw.replace(/\s+/g,' ').trim();
+    if(!trim)return;
+    node.__mmhLoginOriginal=node.__mmhLoginOriginal??raw;
+    if(zh){
+      const v=loginMap[trim];
+      if(v)node.nodeValue=raw.replace(trim,v);
+    }else if(node.__mmhLoginOriginal!==undefined){
+      node.nodeValue=node.__mmhLoginOriginal;
+    }
+  }
+  function applyLoginLanguage(){
+    if(!location.pathname.endsWith('/login.html'))return;
+    const zh=localStorage.getItem('mmhvault-landing-lang')==='zh';
+    document.documentElement.lang=zh?'zh-CN':'en';
+    const walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
+    const nodes=[];while(walker.nextNode())nodes.push(walker.currentNode);
+    nodes.forEach(n=>{const p=n.parentElement;if(!p||['SCRIPT','STYLE','NOSCRIPT'].includes(p.tagName)||p.closest('.mmh-lang-switcher'))return;translateNode(n,zh)});
+    document.querySelectorAll('input[placeholder],button[aria-label],a[aria-label],img[alt]').forEach(el=>{
+      const attr=el.hasAttribute('placeholder')?'placeholder':el.hasAttribute('aria-label')?'aria-label':'alt';
+      if(!attr||el.closest('.mmh-lang-switcher'))return;
+      const key='__mmhLoginAttr_'+attr;
+      if(el[key]===undefined)el[key]=el.getAttribute(attr);
+      const orig=el[key];el.setAttribute(attr,zh?(loginMap[orig]||orig):orig);
+    });
+    const titleOrig=document.title;
+    if(!document.__mmhLoginTitle)document.__mmhLoginTitle=titleOrig;
+    document.title=zh?'MMHVAULT — 安全访问 · VERSION 4.0':document.__mmhLoginTitle;
+  }
+  window.addEventListener('mmhvault-language-changed',applyLoginLanguage);
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',applyLoginLanguage);else applyLoginLanguage();
 })();
