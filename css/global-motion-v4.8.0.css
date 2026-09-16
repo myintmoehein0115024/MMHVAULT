@@ -1,0 +1,32 @@
+/* MMHVAULT v4.8.0 — Global Motion System
+   Ambient motion only. Header, layout, Signature geometry and content remain untouched. */
+:root{--mmh-motion-ease:cubic-bezier(.22,.61,.36,1)}
+.future-page{position:relative;isolation:isolate;overflow:clip}
+.future-page::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;background:
+ linear-gradient(115deg,transparent 0%,rgba(242,201,105,.035) 42%,transparent 54%),
+ linear-gradient(180deg,rgba(30,130,210,.045),transparent 32%,rgba(242,201,105,.025) 86%);
+ background-size:180% 100%,100% 140%;animation:mmhAmbientSweep 18s var(--mmh-motion-ease) infinite alternate}
+.future-page::after{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;opacity:.38;background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);background-size:72px 72px;mask-image:linear-gradient(to bottom,transparent,black 12%,black 84%,transparent);animation:mmhGridDrift 28s linear infinite}
+.future-page > *{position:relative}
+.future-page .future-card,
+.future-page .command-card,
+.future-page .feature-card,
+.future-page .trust-card,
+.future-page .experience-card,
+.future-page .principle-card,
+.future-page .timeline-item{transition:transform .7s var(--mmh-motion-ease),border-color .7s ease,box-shadow .7s ease,opacity .8s var(--mmh-motion-ease)}
+.future-page .future-card:hover,
+.future-page .command-card:hover,
+.future-page .feature-card:hover,
+.future-page .trust-card:hover,
+.future-page .experience-card:hover,
+.future-page .principle-card:hover,
+.future-page .timeline-item:hover{transform:translateY(-4px);box-shadow:0 16px 50px rgba(0,0,0,.16),0 0 34px rgba(242,201,105,.035)}
+.mmh-reveal{opacity:0;transform:translateY(22px);transition:opacity .9s var(--mmh-motion-ease),transform .9s var(--mmh-motion-ease)}
+.mmh-reveal.is-visible{opacity:1;transform:none}
+.mmh-reveal[data-delay="1"]{transition-delay:.08s}.mmh-reveal[data-delay="2"]{transition-delay:.16s}.mmh-reveal[data-delay="3"]{transition-delay:.24s}.mmh-reveal[data-delay="4"]{transition-delay:.32s}
+.mmh-parallax{will-change:transform;transition:transform .45s ease-out}
+@keyframes mmhAmbientSweep{0%{background-position:0% 0,50% 0}100%{background-position:100% 100%,50% 100%}}
+@keyframes mmhGridDrift{from{background-position:0 0,0 0}to{background-position:72px 72px,-72px 72px}}
+@media (max-width:900px){.future-page::after{background-size:54px 54px}.future-page::before{animation-duration:24s}.future-page .future-card:hover,.future-page .command-card:hover,.future-page .feature-card:hover,.future-page .trust-card:hover,.future-page .experience-card:hover,.future-page .principle-card:hover,.future-page .timeline-item:hover{transform:none;box-shadow:none}}
+@media (prefers-reduced-motion:reduce){.future-page::before,.future-page::after{animation:none!important}.mmh-reveal{opacity:1!important;transform:none!important;transition:none!important}.mmh-parallax{transform:none!important;transition:none!important}.future-page .future-card:hover,.future-page .command-card:hover,.future-page .feature-card:hover,.future-page .trust-card:hover,.future-page .experience-card:hover,.future-page .principle-card:hover,.future-page .timeline-item:hover{transform:none!important;transition:none!important}}

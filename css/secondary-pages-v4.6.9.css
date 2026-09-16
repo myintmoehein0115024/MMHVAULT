@@ -1,0 +1,101 @@
+
+/* MMHVAULT v4.6.9 — Secondary Landing Pages Visual Polish
+   Scope: features / security / experience / about only.
+   Header + language system intentionally excluded.
+*/
+.page-secondary-polish .page-hero{
+  max-width: 980px;
+  margin-left:auto;
+  margin-right:auto;
+}
+.page-secondary-polish .page-hero .eyebrow{
+  opacity:.9;
+}
+.page-secondary-polish .section{
+  padding-top:72px;
+}
+.page-secondary-polish .mosaic{
+  gap:20px;
+}
+.page-secondary-polish .mosaic .tile{
+  min-height:360px;
+  box-shadow:0 24px 70px rgba(0,0,0,.18);
+}
+.page-secondary-polish .tile .overlay{
+  padding:34px 30px 28px;
+}
+.page-secondary-polish .cards{
+  gap:18px;
+}
+.page-secondary-polish .card{
+  min-height:280px;
+  box-shadow:0 18px 55px rgba(0,0,0,.14);
+}
+.page-secondary-polish .card h3{
+  max-width:15ch;
+}
+.page-secondary-polish .showcase{
+  margin-top:28px;
+  box-shadow:0 24px 75px rgba(0,0,0,.20);
+}
+.page-secondary-polish .showcase-copy{
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+.page-secondary-polish .showcase-media{
+  min-height:470px;
+}
+.page-secondary-polish .split{
+  gap:26px;
+}
+.page-secondary-polish .quote{
+  box-shadow:0 20px 65px rgba(0,0,0,.18);
+}
+.page-secondary-polish .metrics{
+  gap:14px;
+}
+.page-secondary-polish .metric{
+  transition:transform .28s ease,border-color .28s ease;
+}
+.page-secondary-polish .metric:hover{
+  transform:translateY(-3px);
+  border-color:rgba(242,201,105,.30);
+}
+.page-secondary-polish .cta{
+  box-shadow:0 25px 80px rgba(0,0,0,.20);
+}
+@media(max-width:900px){
+  .page-secondary-polish .page-hero{
+    max-width:none;
+  }
+  .page-secondary-polish .section{
+    padding-top:48px;
+  }
+  .page-secondary-polish .mosaic .tile{
+    min-height:310px;
+  }
+  .page-secondary-polish .showcase-media{
+    min-height:330px;
+  }
+}
+@media(max-width:560px){
+  .page-secondary-polish .section{
+    padding-top:38px;
+  }
+  .page-secondary-polish .mosaic .tile{
+    min-height:260px;
+  }
+  .page-secondary-polish .tile .overlay{
+    padding:26px 22px 22px;
+  }
+  .page-secondary-polish .card{
+    min-height:0;
+  }
+  .page-secondary-polish .showcase{
+    margin-top:20px;
+  }
+  .page-secondary-polish .showcase-media{
+    min-height:270px;
+  }
+}

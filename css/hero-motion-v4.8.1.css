@@ -1,0 +1,24 @@
+/* MMHVAULT v4.8.1 — Hero Motion
+   Motion is decorative only. Header and page geometry remain unchanged. */
+:root{--mmh-hero-ease:cubic-bezier(.16,1,.3,1)}
+.future-hero{isolation:isolate}
+.future-hero::before{content:"";position:absolute;inset:8% 3% 10%;pointer-events:none;z-index:-1;background:radial-gradient(circle at 78% 44%,rgba(242,201,105,.065),transparent 25%),radial-gradient(circle at 30% 58%,rgba(41,134,210,.045),transparent 34%);opacity:.75;animation:mmhHeroAtmosphere 12s ease-in-out infinite alternate}
+.future-hero-inner > *{opacity:0;transform:translateY(16px);animation:mmhHeroEnter .9s var(--mmh-hero-ease) forwards}
+.future-hero-inner .future-kicker{animation-delay:.08s}
+.future-hero-inner h1{animation-delay:.18s}
+.future-hero-inner p{animation-delay:.30s}
+.future-hero-inner .future-hero-actions{animation-delay:.42s}
+.future-hero-inner .future-stat-rail{animation-delay:.54s}
+.future-hero .future-orbit{opacity:0;transform:scale(.94);animation:mmhHeroOrbitIn 1.2s var(--mmh-hero-ease) .24s forwards,mmhHeroOrbitFloat 7s ease-in-out 1.5s infinite alternate}
+.future-hero .future-orbit .node{animation:mmhHeroNode 3.8s ease-in-out infinite}
+.future-hero .future-orbit .n2{animation-delay:-1.2s}.future-hero .future-orbit .n3{animation-delay:-2.4s}
+.future-hero .btn{transition:transform .45s var(--mmh-hero-ease),box-shadow .45s ease,background-color .45s ease}
+.future-hero .btn:hover{transform:translateY(-3px)}
+.future-hero .btn.gold:hover{box-shadow:0 12px 34px rgba(242,201,105,.16),0 0 22px rgba(242,201,105,.08)}
+@keyframes mmhHeroEnter{to{opacity:1;transform:none}}
+@keyframes mmhHeroOrbitIn{to{opacity:1;transform:scale(1)}}
+@keyframes mmhHeroOrbitFloat{from{translate:0 0}to{translate:0 -7px}}
+@keyframes mmhHeroAtmosphere{from{transform:translate3d(-1%,0,0) scale(1)}to{transform:translate3d(1%,1%,0) scale(1.035)}}
+@keyframes mmhHeroNode{0%,100%{opacity:.55;transform:scale(.9)}50%{opacity:1;transform:scale(1.08)}}
+@media(max-width:900px){.future-hero::before{inset:5% 0}.future-hero .future-orbit{animation-name:mmhHeroOrbitIn}.future-hero .btn:hover{transform:none}}
+@media(prefers-reduced-motion:reduce){.future-hero::before,.future-hero-inner > *, .future-hero .future-orbit,.future-hero .future-orbit .node{animation:none!important}.future-hero-inner > *,.future-hero .future-orbit{opacity:1!important;transform:none!important}.future-hero .future-orbit .node{opacity:.8!important}}

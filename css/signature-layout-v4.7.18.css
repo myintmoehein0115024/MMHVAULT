@@ -1,0 +1,68 @@
+@import url("signature-layout-v4.7.17.css?v=4.7.17");
+/* MMHVAULT v4.7.18 — Final visual calibration
+   Deliberately additive: keeps the stable Signature SVG/layout from v4.7.17 intact. */
+
+:root{--mmh-gold:#f2c969;--mmh-ink:#edf3fb;--mmh-muted:rgba(171,188,208,.72);--mmh-line:rgba(105,174,242,.14);}
+
+/* Global rhythm: tighter, quieter, more intentional. */
+.future-page{scroll-behavior:smooth;}
+.future-page .future-section{scroll-margin-top:88px;}
+.future-page .future-section-head{margin-bottom:clamp(26px,3.2vw,42px)!important;}
+.future-page .future-label{letter-spacing:.24em!important;}
+.future-page .future-section p{line-height:1.72!important;}
+
+/* Keep the visual hierarchy crisp without increasing density. */
+.future-page h1,.future-page h2,.future-page h3{letter-spacing:-.035em;}
+.future-page .future-section-head h2{max-width:760px;}
+.future-page .future-command-copy,.future-page .future-footer-cta{position:relative;}
+
+/* A restrained page-specific ambient glow, never a hard overlay. */
+.future-home .future-hero:after,
+.future-features .future-hero:after,
+.future-security .future-hero:after,
+.future-experience .future-hero:after,
+.future-about .future-hero:after{
+  content:"";position:absolute;pointer-events:none;inset:10% 4% auto auto;width:min(42vw,560px);height:min(42vw,560px);border-radius:50%;
+  background:radial-gradient(circle,rgba(242,201,105,.055),transparent 67%);filter:blur(8px);opacity:.9;
+}
+.future-features .future-hero:after{background:radial-gradient(circle,rgba(105,174,242,.065),transparent 67%);}
+.future-security .future-hero:after{background:radial-gradient(circle,rgba(242,201,105,.045),transparent 67%);}
+.future-experience .future-hero:after{background:radial-gradient(circle,rgba(105,174,242,.05),transparent 67%);}
+.future-about .future-hero:after{background:radial-gradient(circle,rgba(242,201,105,.035),transparent 67%);}
+
+/* Cards: stronger edge definition, softer hover, no exaggerated lift. */
+.future-page .future-cell,
+.future-page .future-command,
+.future-page .vault-third,
+.future-page .future-matrix>article{
+  transition:border-color .35s ease,background-color .35s ease,transform .35s ease,box-shadow .35s ease!important;
+}
+.future-page .future-cell:hover,
+.future-page .future-matrix>article:hover{
+  border-color:rgba(242,201,105,.22)!important;
+  background-color:rgba(7,19,32,.58)!important;
+  box-shadow:0 18px 50px rgba(0,0,0,.16),inset 0 1px 0 rgba(255,255,255,.025)!important;
+}
+
+/* Signature remains structurally untouched; only tune its visual breathing. */
+.signature-section .signature-shell{box-shadow:inset 0 1px 0 rgba(255,255,255,.018),inset 0 -1px 0 rgba(242,201,105,.025)!important;}
+.signature-section .signature-copy p{color:rgba(171,188,208,.68)!important;}
+.signature-section .signature-meta,.signature-section .signature-index{opacity:.82;}
+.signature-section .signature-mark{filter:drop-shadow(0 10px 28px rgba(0,0,0,.18));}
+
+/* Footer transition: make the ending feel attached to the page, not dropped below it. */
+.future-page + .footer,
+.future-page~.footer{position:relative;}
+.future-page + .footer:before,
+.future-page~.footer:before{content:"";position:absolute;left:4%;right:4%;top:0;height:1px;background:linear-gradient(90deg,transparent,rgba(105,174,242,.12),rgba(242,201,105,.16),transparent);}
+
+@media (max-width:760px){
+  .future-page .future-section-head{margin-bottom:24px!important;}
+  .future-page .future-section p{line-height:1.66!important;}
+  .future-home .future-hero:after,.future-features .future-hero:after,.future-security .future-hero:after,.future-experience .future-hero:after,.future-about .future-hero:after{width:72vw;height:72vw;inset:5% -20% auto auto;opacity:.55;}
+  .signature-section .signature-mark{filter:none;}
+}
+@media(prefers-reduced-motion:reduce){
+  .future-page{scroll-behavior:auto;}
+  .future-page .future-cell,.future-page .future-command,.future-page .vault-third,.future-page .future-matrix>article{transition:none!important;}
+}

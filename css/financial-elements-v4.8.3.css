@@ -1,0 +1,21 @@
+/* MMHVAULT v4.8.3 — Interactive Financial Elements */
+.future-stat, .future-cell, .future-command, .signal-board, .signature-shell { --fx: 0px; --fy: 0px; }
+.future-stat, .future-cell { transition: transform .5s ease, border-color .5s ease, box-shadow .5s ease; }
+.future-stat.is-live { transform: translate3d(var(--fx),var(--fy),0); }
+.future-stat.is-live b::after { content:''; display:inline-block; width:5px; height:5px; margin-left:8px; vertical-align:middle; border-radius:50%; background:currentColor; box-shadow:0 0 10px currentColor; animation: fxPulse 1.8s ease-in-out infinite; }
+.future-cell.is-live { transform: translateY(-4px); }
+.future-cell.is-live .index { opacity:1; }
+.future-command-media img { transform:scale(1.01); transition: transform 1.2s cubic-bezier(.2,.7,.2,1), filter 1.2s ease; }
+.future-command.is-live .future-command-media img { transform:scale(1.035); }
+.signal-board.is-live .signal-point { animation: fxPoint 2.8s ease-in-out infinite; }
+.signal-board.is-live .signal-point.p2 { animation-delay:.35s; }
+.signal-board.is-live .signal-point.p3 { animation-delay:.7s; }
+.signal-board.is-live .signal-point.p4 { animation-delay:1.05s; }
+.signal-board.is-live .main-line { stroke-dasharray: 14 10; animation: fxFlow 7s linear infinite; }
+.future-label::after { content:''; display:inline-block; width:18px; height:1px; margin-left:10px; vertical-align:middle; background:currentColor; opacity:.35; transform-origin:left center; transition:transform .6s ease; }
+.future-section.is-live .future-label::after { transform:scaleX(2.4); }
+@keyframes fxPulse { 0%,100%{opacity:.35;transform:scale(.8)} 50%{opacity:1;transform:scale(1.25)} }
+@keyframes fxPoint { 0%,100%{opacity:.45;transform:scale(.8)} 50%{opacity:1;transform:scale(1.35)} }
+@keyframes fxFlow { to { stroke-dashoffset:-240; } }
+@media (max-width:700px){ .future-cell.is-live{transform:none}.future-command.is-live .future-command-media img{transform:none}.future-stat.is-live{transform:none} }
+@media (prefers-reduced-motion:reduce){ .future-stat,.future-cell,.future-command-media img,.future-label::after{transition:none!important}.signal-board.is-live .signal-point,.signal-board.is-live .main-line,.future-stat.is-live b::after{animation:none!important}.future-command.is-live .future-command-media img{transform:none} }

@@ -1,0 +1,160 @@
+/* MMHVAULT v4.7.21 — Signature Motion Layer
+   Motion only. Geometry, containment and positioning remain untouched. */
+.signature-section .signature-svg .ring{
+  transform-box:fill-box;
+  transform-origin:center;
+  animation:mmhRingBreath 7s ease-in-out infinite;
+}
+.signature-section .signature-svg .r2{animation-delay:-2.2s;}
+.signature-section .signature-svg .r3{animation-delay:-4.4s;}
+.signature-section .signature-svg .nodes circle,
+.signature-section .signature-svg > .nodes circle,
+.signature-section .signature-svg .nodes{
+  animation:mmhNodePulse 3.8s ease-in-out infinite;
+}
+.signature-section .signature-svg .core-dot,
+.signature-section .signature-svg .lock-dot{
+  animation:mmhCorePulse 3.2s ease-in-out infinite;
+  transform-box:fill-box;
+  transform-origin:center;
+}
+.signature-section .signature-svg .core-label{
+  animation:mmhLabelGlow 4.8s ease-in-out infinite;
+}
+
+/* Home / Signal */
+.signature-section .signature-svg .signal-line{
+  stroke-dasharray:14 520;
+  animation:mmhSignalTravel 5.5s linear infinite;
+}
+.signature-section .signature-svg .signature-svg-long .horizon,
+.signature-section .signature-svg .horizon{
+  stroke-dasharray:8 360;
+  animation:mmhHorizonTravel 8s linear infinite;
+}
+
+/* Features / Architecture */
+.signature-section .signature-svg .diamond{
+  transform-box:fill-box;
+  transform-origin:center;
+  animation:mmhDiamondBreath 8s ease-in-out infinite;
+}
+.signature-section .signature-svg .d2{animation-delay:-4s;}
+.signature-section .signature-svg .connect{
+  stroke-dasharray:10 28;
+  animation:mmhConnectFlow 4.8s linear infinite;
+}
+
+/* Security / Trust */
+.signature-section .signature-svg .shield{
+  animation:mmhShieldBreath 6.5s ease-in-out infinite;
+}
+.signature-section .signature-svg .shield-inner{animation:mmhShieldInner 5s ease-in-out infinite;}
+.signature-section .signature-svg .lock-line{animation:mmhLockBlink 4.5s ease-in-out infinite;}
+
+/* Experience / Loop */
+.signature-section .signature-svg .loop-a,
+.signature-section .signature-svg .loop-b,
+.signature-section .signature-svg .loop-c,
+.signature-section .signature-svg .loop-d{
+  stroke-dasharray:22 340;
+  animation:mmhLoopTravel 6s linear infinite;
+}
+.signature-section .signature-svg .loop-b{animation-delay:-1.5s;}
+.signature-section .signature-svg .loop-c{animation-delay:-3s;}
+.signature-section .signature-svg .loop-d{animation-delay:-4.5s;}
+.signature-section .signature-svg .arrow{
+  animation:mmhArrowPulse 3s ease-in-out infinite;
+}
+
+/* About / Long View */
+.signature-section .signature-svg.signature-svg-long .r1{animation-duration:9s;}
+.signature-section .signature-svg.signature-svg-long .r2{animation-duration:7s;}
+.signature-section .signature-svg.signature-svg-long .r3{animation-duration:5.5s;}
+.signature-section .signature-svg.signature-svg-long .horizon{animation-duration:9s;}
+
+@keyframes mmhRingBreath{
+  0%,100%{opacity:.72;transform:scale(1);}
+  50%{opacity:1;transform:scale(1.012);}
+}
+@keyframes mmhNodePulse{
+  0%,100%{opacity:.62;}
+  50%{opacity:1;}
+}
+@keyframes mmhCorePulse{
+  0%,100%{opacity:.68;transform:scale(1);}
+  50%{opacity:1;transform:scale(1.08);}
+}
+@keyframes mmhLabelGlow{
+  0%,100%{opacity:.82;}
+  50%{opacity:1;}
+}
+@keyframes mmhSignalTravel{
+  0%{stroke-dashoffset:540;opacity:.42;}
+  45%{opacity:.9;}
+  100%{stroke-dashoffset:0;opacity:.42;}
+}
+@keyframes mmhHorizonTravel{
+  0%{stroke-dashoffset:370;opacity:.25;}
+  50%{opacity:.62;}
+  100%{stroke-dashoffset:0;opacity:.25;}
+}
+@keyframes mmhDiamondBreath{
+  0%,100%{opacity:.72;}
+  50%{opacity:1;}
+}
+@keyframes mmhConnectFlow{
+  0%{stroke-dashoffset:38;opacity:.38;}
+  50%{opacity:.9;}
+  100%{stroke-dashoffset:0;opacity:.38;}
+}
+@keyframes mmhShieldBreath{
+  0%,100%{opacity:.72;}
+  50%{opacity:1;}
+}
+@keyframes mmhShieldInner{
+  0%,100%{opacity:.52;}
+  50%{opacity:.9;}
+}
+@keyframes mmhLockBlink{
+  0%,100%{opacity:.48;}
+  45%,55%{opacity:1;}
+}
+@keyframes mmhLoopTravel{
+  0%{stroke-dashoffset:362;opacity:.34;}
+  45%{opacity:.9;}
+  100%{stroke-dashoffset:0;opacity:.34;}
+}
+@keyframes mmhArrowPulse{
+  0%,100%{opacity:.48;}
+  50%{opacity:1;}
+}
+
+@media(max-width:760px){
+  .signature-section .signature-svg .ring{animation-duration:8s;}
+  .signature-section .signature-svg .signal-line{animation-duration:6.5s;}
+  .signature-section .signature-svg .loop-a,
+  .signature-section .signature-svg .loop-b,
+  .signature-section .signature-svg .loop-c,
+  .signature-section .signature-svg .loop-d{animation-duration:7s;}
+}
+@media(prefers-reduced-motion:reduce){
+  .signature-section .signature-svg .ring,
+  .signature-section .signature-svg .nodes circle,
+  .signature-section .signature-svg .nodes,
+  .signature-section .signature-svg .core-dot,
+  .signature-section .signature-svg .lock-dot,
+  .signature-section .signature-svg .core-label,
+  .signature-section .signature-svg .signal-line,
+  .signature-section .signature-svg .horizon,
+  .signature-section .signature-svg .diamond,
+  .signature-section .signature-svg .connect,
+  .signature-section .signature-svg .shield,
+  .signature-section .signature-svg .shield-inner,
+  .signature-section .signature-svg .lock-line,
+  .signature-section .signature-svg .loop-a,
+  .signature-section .signature-svg .loop-b,
+  .signature-section .signature-svg .loop-c,
+  .signature-section .signature-svg .loop-d,
+  .signature-section .signature-svg .arrow{animation:none!important;}
+}

@@ -1,0 +1,88 @@
+/* MMHVAULT v4.7.15 — Signature spacing & composition polish
+   Keeps the stable right-aligned SVG system, but removes excess vertical air
+   and gives copy/visual/index a tighter editorial rhythm. */
+.signature-section .signature-shell{
+  box-sizing:border-box!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) minmax(360px,43%)!important;
+  grid-template-rows:32px minmax(0,1fr) 28px!important;
+  grid-template-areas:"meta meta" "copy mark" "index index"!important;
+  align-items:center!important;
+  column-gap:clamp(34px,5vw,82px)!important;
+  min-height:500px!important;
+  height:500px!important;
+  padding:28px 36px 24px!important;
+  overflow:hidden!important;
+}
+.signature-section .signature-meta{grid-area:meta!important;align-self:start!important;width:100%!important;}
+.signature-section .signature-copy{grid-area:copy!important;align-self:center!important;justify-self:start!important;max-width:570px!important;width:100%!important;margin:0!important;}
+.signature-section .signature-copy h2{margin-top:12px!important;margin-bottom:16px!important;max-width:560px!important;}
+.signature-section .signature-copy p{max-width:540px!important;margin-bottom:0!important;}
+.signature-section .signature-mark{
+  grid-area:mark!important;
+  justify-self:end!important;
+  align-self:center!important;
+  width:min(100%,410px)!important;
+  height:auto!important;
+  aspect-ratio:1/1!important;
+  max-width:410px!important;
+  max-height:410px!important;
+  margin:0!important;
+  transform:none!important;
+}
+.signature-section .signature-index{grid-area:index!important;align-self:end!important;margin:0!important;}
+.signature-section .signature-svg{max-width:100%!important;max-height:100%!important;}
+
+@media (min-width:1180px){
+ .signature-section .signature-shell{
+   grid-template-columns:minmax(0,1fr) minmax(420px,43%)!important;
+   column-gap:clamp(54px,6vw,96px)!important;
+   min-height:520px!important;height:520px!important;
+   padding:30px 42px 26px!important;
+ }
+ .signature-section .signature-mark{width:min(100%,430px)!important;max-width:430px!important;max-height:430px!important;}
+}
+
+@media (min-width:761px) and (max-width:1179px){
+ .signature-section .signature-shell{
+   grid-template-columns:minmax(0,1fr) minmax(320px,40%)!important;
+   column-gap:32px!important;
+   min-height:480px!important;height:480px!important;
+   padding:26px 30px 22px!important;
+ }
+ .signature-section .signature-mark{width:min(100%,350px)!important;max-width:350px!important;max-height:350px!important;}
+ .signature-section .signature-copy{max-width:500px!important;}
+ .signature-section .signature-copy h2{max-width:470px!important;}
+}
+
+@media (max-width:760px){
+ .signature-section .signature-shell{
+   display:grid!important;
+   grid-template-columns:1fr!important;
+   grid-template-rows:auto auto auto auto!important;
+   grid-template-areas:"meta" "copy" "mark" "index"!important;
+   width:100%!important;
+   height:auto!important;
+   min-height:0!important;
+   padding:26px 22px 28px!important;
+   row-gap:20px!important;
+   overflow:hidden!important;
+ }
+ .signature-section .signature-copy{max-width:100%!important;justify-self:stretch!important;}
+ .signature-section .signature-copy h2{max-width:100%!important;margin-top:10px!important;margin-bottom:12px!important;}
+ .signature-section .signature-copy p{max-width:100%!important;}
+ .signature-section .signature-mark{
+   justify-self:center!important;
+   align-self:center!important;
+   width:min(72vw,310px)!important;
+   height:min(72vw,310px)!important;
+   max-width:310px!important;
+   max-height:310px!important;
+ }
+}
+@media (max-width:420px){
+ .signature-section .signature-shell{padding:22px 18px 24px!important;row-gap:16px!important;}
+ .signature-section .signature-mark{width:min(68vw,270px)!important;height:min(68vw,270px)!important;max-width:270px!important;max-height:270px!important;}
+}
+
+@media(prefers-reduced-motion:reduce){.signature-section .signature-mark,.signature-section .signature-svg{transition:none!important;animation:none!important;}}

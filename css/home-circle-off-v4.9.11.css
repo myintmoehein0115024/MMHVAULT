@@ -1,0 +1,21 @@
+/* MMHVAULT v4.9.11 — Home ambient circle removal only.
+   Keeps Signature visuals intact. */
+html body main.future-page.future-home:after,
+body main.future-page.future-home:before,
+main.future-home .future-hero:after,
+main.future-home .future-hero:before,
+main.future-home .future-hero-inner:after,
+main.future-home .future-hero-inner:before {
+  content:none !important;
+  display:none !important;
+  background:none !important;
+  box-shadow:none !important;
+  opacity:0 !important;
+  filter:none !important;
+}
+
+/* The Home hero must not inherit the fixed gold ambient disk from earlier
+   landing polish layers. Signature remains untouched. */
+main.future-home {
+  --home-ambient-circle: transparent !important;
+}

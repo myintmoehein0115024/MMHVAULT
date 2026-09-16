@@ -1,0 +1,48 @@
+/* MMHVAULT v4.8.7 — Hero Refinement
+   Borderless cinematic composition + softer premium contrast.
+   Keeps existing layout and Signature geometry intact. */
+.future-page .future-hero{
+  border:0!important;
+  border-radius:0!important;
+  background:
+    radial-gradient(circle at 76% 46%,rgba(52,137,218,.075),transparent 34%),
+    radial-gradient(circle at 8% 56%,rgba(242,201,105,.045),transparent 24%),
+    linear-gradient(125deg,rgba(2,11,21,.72),rgba(3,17,31,.58))!important;
+  box-shadow:none!important;
+}
+.future-page .future-hero::before{opacity:.48!important}
+.future-page .future-hero-inner{
+  position:relative!important;
+  z-index:4!important;
+}
+.future-page .future-hero-inner h1{
+  text-shadow:0 8px 34px rgba(0,0,0,.22)!important;
+}
+.future-page .future-hero-inner p{
+  color:rgba(178,194,211,.72)!important;
+}
+.future-page .future-kicker{
+  color:rgba(242,201,105,.92)!important;
+}
+.future-page .future-kicker::before{
+  background:linear-gradient(90deg,rgba(242,201,105,.72),transparent)!important;
+}
+.future-page .future-hero .future-orbit{
+  box-shadow:0 0 64px rgba(45,133,218,.07),0 0 28px rgba(242,201,105,.035)!important;
+}
+.future-page .future-hero .future-orbit::before{
+  border-color:rgba(105,184,255,.095)!important;
+  box-shadow:0 0 38px rgba(62,146,222,.045)!important;
+}
+.future-page .future-hero .future-orbit::after{
+  border-color:rgba(242,201,105,.075)!important;
+}
+.future-page .future-stat-rail{
+  border-top-color:rgba(105,184,255,.10)!important;
+}
+.future-page .future-stat{
+  border-right-color:rgba(105,184,255,.075)!important;
+}
+@media(max-width:860px){
+  .future-page .future-hero{border:0!important;border-radius:0!important}
+}

@@ -1,0 +1,192 @@
+/* MMHVAULT v4.7.16 — Signature stable + spacing polish
+   Consolidated layout + explicit SVG paint rules.
+   The SVG is a self-contained visual object: no browser-default black fills. */
+.signature-section .signature-shell{
+  box-sizing:border-box!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) minmax(360px,43%)!important;
+  grid-template-rows:32px minmax(0,1fr) 28px!important;
+  grid-template-areas:"meta meta" "copy mark" "index index"!important;
+  align-items:center!important;
+  column-gap:clamp(34px,5vw,82px)!important;
+  min-height:500px!important;
+  height:500px!important;
+  padding:28px 36px 24px!important;
+  overflow:hidden!important;
+}
+.signature-section .signature-meta{grid-area:meta!important;align-self:start!important;width:100%!important;}
+.signature-section .signature-copy{grid-area:copy!important;align-self:center!important;justify-self:start!important;max-width:570px!important;width:100%!important;margin:0!important;}
+.signature-section .signature-copy h2{margin-top:12px!important;margin-bottom:16px!important;max-width:560px!important;}
+.signature-section .signature-copy p{max-width:540px!important;margin-bottom:0!important;}
+.signature-section .signature-mark{
+  grid-area:mark!important;
+  position:relative!important;
+  inset:auto!important;
+  justify-self:end!important;
+  align-self:center!important;
+  display:grid!important;
+  place-items:center!important;
+  width:min(100%,410px)!important;
+  height:auto!important;
+  aspect-ratio:1/1!important;
+  max-width:410px!important;
+  max-height:410px!important;
+  min-width:0!important;
+  min-height:0!important;
+  margin:0!important;
+  padding:0!important;
+  transform:none!important;
+  overflow:hidden!important;
+  contain:paint!important;
+  isolation:isolate!important;
+  background:transparent!important;
+}
+.signature-section .signature-index{grid-area:index!important;align-self:end!important;margin:0!important;}
+.signature-section .signature-svg{
+  display:block!important;
+  width:100%!important;
+  height:100%!important;
+  max-width:100%!important;
+  max-height:100%!important;
+  overflow:hidden!important;
+  background:transparent!important;
+  transform:none!important;
+  animation:none!important;
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+/* Explicit SVG paint: prevent default black fills. */
+.signature-section .signature-svg .ring{fill:none!important;stroke:rgba(242,201,105,.22)!important;stroke-width:1.2!important;}
+.signature-section .signature-svg .r2{stroke:rgba(105,174,242,.14)!important;stroke-dasharray:3 8!important;}
+.signature-section .signature-svg .r3{stroke:rgba(242,201,105,.18)!important;}
+.signature-section .signature-svg .nodes{fill:#f2c969!important;stroke:none!important;}
+.signature-section .signature-svg .core-dot{fill:rgba(242,201,105,.12)!important;stroke:rgba(242,201,105,.42)!important;stroke-width:1.5!important;}
+.signature-section .signature-svg .core-label text{fill:#edf3fb!important;font-size:27px!important;font-weight:500!important;letter-spacing:4px!important;text-anchor:middle!important;stroke:none!important;}
+.signature-section .signature-svg .core-label .sub{fill:rgba(242,201,105,.78)!important;font-size:8px!important;font-weight:500!important;letter-spacing:2px!important;}
+.signature-section .signature-svg .signal-line{fill:none!important;stroke:rgba(242,201,105,.62)!important;stroke-width:2!important;}
+.signature-section .signature-svg .diamond{fill:rgba(4,13,23,.16)!important;stroke:rgba(242,201,105,.30)!important;stroke-width:1.2!important;transform:rotate(45deg);transform-origin:260px 260px;}
+.signature-section .signature-svg .d2{fill:rgba(4,13,23,.10)!important;stroke:rgba(105,174,242,.24)!important;}
+.signature-section .signature-svg .connect{fill:none!important;stroke:rgba(242,201,105,.30)!important;stroke-width:1!important;}
+.signature-section .signature-svg .shield{fill:rgba(4,13,23,.22)!important;stroke:rgba(242,201,105,.36)!important;stroke-width:1.4!important;}
+.signature-section .signature-svg .shield-inner{fill:none!important;stroke:rgba(105,174,242,.25)!important;stroke-width:1!important;}
+.signature-section .signature-svg .lock-line{fill:none!important;stroke:rgba(242,201,105,.48)!important;stroke-width:2!important;}
+.signature-section .signature-svg .lock-dot{fill:rgba(242,201,105,.12)!important;stroke:rgba(242,201,105,.45)!important;stroke-width:1.5!important;}
+.signature-section .signature-svg .loop-a,.signature-section .signature-svg .loop-b,.signature-section .signature-svg .loop-c,.signature-section .signature-svg .loop-d{fill:none!important;stroke:rgba(242,201,105,.38)!important;stroke-width:2!important;}
+.signature-section .signature-svg .arrow{fill:none!important;stroke:rgba(242,201,105,.58)!important;stroke-width:1.5!important;}
+.signature-section .signature-svg .horizon{fill:none!important;stroke:rgba(242,201,105,.40)!important;stroke-width:1.5!important;}
+.signature-section .signature-svg *{vector-effect:non-scaling-stroke;}
+.signature-section .signature-svg .core-label *{vector-effect:none;}
+.signature-section .signature-mark:before,.signature-section .signature-mark:after{content:none!important;display:none!important;}
+
+@media (min-width:1180px){
+ .signature-section .signature-shell{
+   grid-template-columns:minmax(0,1fr) minmax(420px,43%)!important;
+   column-gap:clamp(54px,6vw,96px)!important;
+   min-height:520px!important;height:520px!important;
+   padding:30px 42px 26px!important;
+ }
+ .signature-section .signature-mark{width:min(100%,430px)!important;max-width:430px!important;max-height:430px!important;}
+}
+@media (min-width:761px) and (max-width:1179px){
+ .signature-section .signature-shell{
+   grid-template-columns:minmax(0,1fr) minmax(320px,40%)!important;
+   column-gap:32px!important;
+   min-height:480px!important;height:480px!important;
+   padding:26px 30px 22px!important;
+ }
+ .signature-section .signature-mark{width:min(100%,350px)!important;max-width:350px!important;max-height:350px!important;}
+ .signature-section .signature-copy{max-width:500px!important;}
+ .signature-section .signature-copy h2{max-width:470px!important;}
+}
+@media (max-width:760px){
+ .signature-section .signature-shell{
+   display:grid!important;
+   grid-template-columns:1fr!important;
+   grid-template-rows:auto auto auto auto!important;
+   grid-template-areas:"meta" "copy" "mark" "index"!important;
+   width:100%!important;height:auto!important;min-height:0!important;
+   padding:26px 22px 28px!important;row-gap:20px!important;overflow:hidden!important;
+ }
+ .signature-section .signature-copy{max-width:100%!important;justify-self:stretch!important;}
+ .signature-section .signature-copy h2{max-width:100%!important;margin-top:10px!important;margin-bottom:12px!important;}
+ .signature-section .signature-copy p{max-width:100%!important;}
+ .signature-section .signature-mark{
+   justify-self:center!important;align-self:center!important;
+   width:min(72vw,310px)!important;height:min(72vw,310px)!important;
+   max-width:310px!important;max-height:310px!important;
+ }
+}
+@media (max-width:420px){
+ .signature-section .signature-shell{padding:22px 18px 24px!important;row-gap:16px!important;}
+ .signature-section .signature-mark{width:min(68vw,270px)!important;height:min(68vw,270px)!important;max-width:270px!important;max-height:270px!important;}
+ .signature-section .signature-svg .core-label text{font-size:23px!important;letter-spacing:3px!important;}
+ .signature-section .signature-svg .core-label .sub{font-size:7px!important;letter-spacing:1.6px!important;}
+}
+@media(prefers-reduced-motion:reduce){.signature-section .signature-mark,.signature-section .signature-svg,.signature-section .signature-svg *{transition:none!important;animation:none!important;}}
+
+/* MMHVAULT v4.7.17 — Premium composition finish
+   Compact the signature stage without changing its stable SVG structure. */
+.signature-section .signature-shell{
+  min-height:430px!important;
+  height:430px!important;
+  grid-template-rows:26px minmax(0,1fr) 24px!important;
+  padding:22px 38px 20px!important;
+  column-gap:clamp(42px,5.5vw,84px)!important;
+}
+.signature-section .signature-copy{align-self:center!important;}
+.signature-section .signature-copy h2{margin-top:8px!important;margin-bottom:14px!important;}
+.signature-section .signature-mark{
+  width:min(100%,360px)!important;
+  max-width:360px!important;
+  max-height:360px!important;
+}
+.signature-section .signature-index{padding-top:2px!important;}
+
+/* Give the signature stage a quieter visual edge and controlled depth. */
+.signature-section .signature-shell:after{
+  content:""!important;
+  position:absolute!important;
+  inset:auto 7% 0!important;
+  height:1px!important;
+  background:linear-gradient(90deg,transparent,rgba(242,201,105,.18),rgba(105,174,242,.12),transparent)!important;
+  pointer-events:none!important;
+}
+
+@media (min-width:1180px){
+ .signature-section .signature-shell{
+   min-height:450px!important;height:450px!important;
+   padding:24px 42px 20px!important;
+   grid-template-rows:26px minmax(0,1fr) 24px!important;
+ }
+ .signature-section .signature-mark{
+   width:min(100%,380px)!important;
+   max-width:380px!important;max-height:380px!important;
+ }
+}
+@media (min-width:761px) and (max-width:1179px){
+ .signature-section .signature-shell{
+   min-height:420px!important;height:420px!important;
+   padding:22px 28px 18px!important;
+   grid-template-rows:24px minmax(0,1fr) 22px!important;
+   column-gap:28px!important;
+ }
+ .signature-section .signature-mark{
+   width:min(100%,330px)!important;
+   max-width:330px!important;max-height:330px!important;
+ }
+}
+@media (max-width:760px){
+ .signature-section .signature-shell{
+   height:auto!important;min-height:0!important;
+   padding:24px 22px 24px!important;
+   row-gap:18px!important;
+ }
+ .signature-section .signature-mark{
+   width:min(66vw,290px)!important;
+   height:min(66vw,290px)!important;
+   max-width:290px!important;max-height:290px!important;
+ }
+}
+@media (max-width:420px){
+ .signature-section .signature-shell{padding:20px 18px 22px!important;row-gap:14px!important;}
+ .signature-section .signature-mark{width:min(62vw,250px)!important;height:min(62vw,250px)!important;max-width:250px!important;max-height:250px!important;}
+}

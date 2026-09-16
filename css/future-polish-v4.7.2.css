@@ -1,0 +1,339 @@
+
+/* MMHVAULT v4.7.1 — Future Finance Motion & Data Polish
+   Body-only enhancement. Shared Header / language controls are intentionally untouched.
+*/
+.future-page{overflow:clip}
+.future-page .future-hero-inner,
+.future-page .future-section-head,
+.future-page .future-command,
+.future-page .future-cell,
+.future-page .future-step,
+.future-page .future-story,
+.future-page .future-principle,
+.future-page .future-trust-panel,
+.future-page .future-footer-cta{
+  will-change:transform;
+}
+.future-page .future-hero-inner{
+  animation:mv-enter .9s cubic-bezier(.2,.7,.2,1) both;
+}
+.future-page .future-kicker{
+  animation:mv-fade .7s .08s both;
+}
+.future-page .future-stat{
+  position:relative;
+  overflow:hidden;
+}
+.future-page .future-stat:after{
+  content:"";
+  position:absolute;
+  left:0;right:0;bottom:0;height:1px;
+  transform:scaleX(0);transform-origin:left;
+  background:linear-gradient(90deg,transparent,#f2c969,transparent);
+  transition:transform .55s ease;
+}
+.future-page .future-stat:hover:after{transform:scaleX(1)}
+
+.future-page .future-cell,
+.future-page .future-principle,
+.future-page .future-trust-item{
+  position:relative;
+}
+.future-page .future-cell:after,
+.future-page .future-principle:after{
+  content:"";
+  position:absolute;inset:0;pointer-events:none;opacity:0;
+  background:radial-gradient(320px circle at calc(var(--mx, .5)*100%) calc(var(--my, .5)*100%),rgba(242,201,105,.11),transparent 52%);
+  transition:opacity .25s ease;
+}
+.future-page .future-cell:hover:after,
+.future-page .future-principle:hover:after{opacity:1}
+
+.future-page .future-command-copy,
+.future-page .future-story-copy{
+  position:relative;
+}
+.future-page .future-command-copy:before,
+.future-page .future-story-copy:before{
+  content:"";
+  position:absolute;left:0;top:0;width:42px;height:1px;
+  background:linear-gradient(90deg,#f2c969,transparent);
+  opacity:.75;
+}
+
+.future-page .future-command-media:before,
+.future-page .future-story-media:before{
+  content:"";
+  position:absolute;z-index:3;left:18px;top:18px;
+  width:7px;height:7px;border-radius:50%;
+  background:#f2c969;box-shadow:0 0 16px rgba(242,201,105,.8);
+}
+.future-page .future-command-media:after,
+.future-page .future-story-media:after{
+  content:"SYSTEM / LIVE CONTEXT";
+  position:absolute;z-index:4;right:18px;top:15px;
+  padding:7px 9px;border:1px solid rgba(242,201,105,.2);
+  border-radius:999px;background:rgba(3,11,20,.62);
+  color:rgba(242,201,105,.78);
+  font:500 8px/1 'DM Mono',monospace;letter-spacing:.16em;
+  backdrop-filter:blur(8px);
+}
+.future-page .future-story-media:after{content:"FINANCIAL EXPERIENCE"}
+
+.future-page .future-orbit{opacity:.95}
+.future-page .future-orbit .node{animation:mv-pulse 2.8s ease-in-out infinite}
+.future-page .future-orbit .n2{animation-delay:.7s}
+.future-page .future-orbit .n3{animation-delay:1.4s}
+
+.future-page .future-footer-cta{
+  isolation:isolate;
+}
+.future-page .future-footer-cta:before{
+  content:"";
+  position:absolute;inset:-2px;z-index:-1;
+  background:linear-gradient(105deg,transparent 15%,rgba(242,201,105,.12) 48%,transparent 78%);
+  transform:translateX(-110%);
+  animation:mv-sweep 7s ease-in-out infinite;
+}
+
+.future-page .future-chip{
+  box-shadow:0 0 30px rgba(242,201,105,.04);
+}
+.future-page .future-step .dot{
+  transition:transform .35s ease,box-shadow .35s ease;
+}
+.future-page .future-step:hover .dot{
+  transform:translateY(-3px) scale(1.04);
+  box-shadow:0 0 34px rgba(242,201,105,.16);
+}
+
+@keyframes mv-enter{
+  from{opacity:0;transform:translateY(18px)}
+  to{opacity:1;transform:none}
+}
+@keyframes mv-fade{
+  from{opacity:0;transform:translateX(-12px)}
+  to{opacity:1;transform:none}
+}
+@keyframes mv-pulse{
+  0%,100%{transform:scale(.8);opacity:.55}
+  50%{transform:scale(1.15);opacity:1}
+}
+@keyframes mv-sweep{
+  0%,35%{transform:translateX(-110%)}
+  65%,100%{transform:translateX(110%)}
+}
+@media(prefers-reduced-motion:reduce){
+  .future-page .future-hero-inner,
+  .future-page .future-kicker,
+  .future-page .future-orbit .node,
+  .future-page .future-footer-cta:before{animation:none}
+}
+
+/* =========================================================
+   MMHVAULT v4.7.2 — DISTINCT PAGE HEROES + CLEAN MEDIA
+   - Remove all media overlay ornaments that can read as blur / live-view layers.
+   - Security visual becomes a wide, centered image.
+   - Each landing page gets its own visual language at the top.
+   Shared Header / language controls remain untouched.
+========================================================= */
+
+/* 01 — CLEAN MEDIA: keep the source artwork visible, without overlay badges/dots. */
+.future-page .future-command-media:before,
+.future-page .future-command-media:after,
+.future-page .future-story-media:before,
+.future-page .future-story-media:after{
+  content:none!important;
+  display:none!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+}
+.future-page .future-command-media img,
+.future-page .future-story-media img{
+  filter:none;
+}
+
+/* 02 — SECURITY: wide cinematic image, centered and stretched across the content width. */
+.future-security .future-security-grid{
+  grid-template-columns:1fr;
+  gap:22px;
+}
+.future-security .future-shield{
+  width:100%;
+  min-height:0;
+  height:clamp(430px,42vw,620px);
+  border-radius:30px;
+  display:block;
+  background:#04101d;
+}
+.future-security .future-shield:before{
+  width:100%;
+  height:100%;
+  inset:0;
+  clip-path:none;
+  border:0;
+  border-radius:inherit;
+  box-shadow:none;
+  background:linear-gradient(90deg,rgba(3,11,20,.16),transparent 32%,transparent 68%,rgba(3,11,20,.16));
+  pointer-events:none;
+  z-index:3;
+}
+.future-security .future-shield img{
+  position:relative;
+  z-index:2;
+  width:100%;
+  max-width:none;
+  height:100%;
+  object-fit:cover;
+  object-position:center;
+  border:0;
+  border-radius:inherit;
+  opacity:1;
+  display:block;
+  box-shadow:none;
+}
+
+/* 03 — FEATURES: architecture frame instead of the generic round orbit. */
+.future-features .future-orbit{
+  width:min(48vw,620px);
+  aspect-ratio:1.18;
+  border-radius:28px;
+  border:1px solid rgba(101,199,255,.16);
+  box-shadow:0 0 90px rgba(43,127,190,.10),inset 0 0 80px rgba(101,199,255,.035);
+  background:
+    linear-gradient(rgba(101,199,255,.045) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(101,199,255,.045) 1px,transparent 1px),
+    linear-gradient(145deg,rgba(8,23,38,.20),rgba(3,11,20,.08));
+  background-size:42px 42px,42px 42px,auto;
+  transform:translateY(-50%) perspective(900px) rotateY(-7deg) rotateX(3deg);
+}
+.future-features .future-orbit:before{
+  inset:12%;
+  border-radius:20px;
+  border:1px solid rgba(242,201,105,.18);
+}
+.future-features .future-orbit:after{
+  inset:27%;
+  border-radius:12px;
+  border-style:solid;
+  border-color:rgba(101,199,255,.22);
+  animation:future-feature-pulse 4.5s ease-in-out infinite;
+}
+.future-features .future-orbit .n1{left:10%;top:18%}
+.future-features .future-orbit .n2{right:10%;top:67%}
+.future-features .future-orbit .n3{left:46%;bottom:8%}
+
+/* 04 — SECURITY: shield / trust geometry. */
+.future-security .future-orbit{
+  width:min(40vw,500px);
+  border:none;
+  box-shadow:none;
+  background:none;
+}
+.future-security .future-orbit:before{
+  inset:12%;
+  border-radius:0;
+  border:1px solid rgba(242,201,105,.28);
+  clip-path:polygon(50% 0,88% 14%,84% 66%,50% 100%,16% 66%,12% 14%);
+  box-shadow:0 0 70px rgba(242,201,105,.08);
+}
+.future-security .future-orbit:after{
+  inset:28%;
+  border-radius:0;
+  border:1px solid rgba(101,199,255,.16);
+  clip-path:polygon(50% 0,88% 14%,84% 66%,50% 100%,16% 66%,12% 14%);
+  animation:future-security-breathe 4s ease-in-out infinite;
+}
+.future-security .future-orbit .n1{left:23%;top:24%}
+.future-security .future-orbit .n2{right:22%;top:46%}
+.future-security .future-orbit .n3{left:47%;bottom:14%}
+
+/* 05 — EXPERIENCE: the top visual becomes an actual operating loop. */
+.future-experience .future-orbit{
+  width:min(48vw,600px);
+  border-color:rgba(242,201,105,.16);
+  box-shadow:0 0 110px rgba(242,201,105,.07),inset 0 0 100px rgba(101,199,255,.045);
+}
+.future-experience .future-orbit:before{
+  inset:15%;
+  border-color:rgba(101,199,255,.18);
+}
+.future-experience .future-orbit:after{
+  inset:33%;
+  border-style:solid;
+  border-color:rgba(242,201,105,.20);
+  animation:future-experience-loop 12s linear infinite;
+}
+.future-experience .future-orbit .n1{left:18%;top:43%}
+.future-experience .future-orbit .n2{right:18%;top:43%}
+.future-experience .future-orbit .n3{left:47%;bottom:12%}
+.future-experience .future-orbit:global{
+  --loop-mark:1;
+}
+
+/* 06 — ABOUT: a quieter horizon / philosophy treatment. */
+.future-about .future-orbit{
+  width:min(52vw,650px);
+  aspect-ratio:1.42;
+  border-radius:24px;
+  border:1px solid rgba(242,201,105,.15);
+  box-shadow:0 0 110px rgba(101,199,255,.07),inset 0 -80px 100px rgba(242,201,105,.045);
+  background:
+    linear-gradient(180deg,transparent 0 56%,rgba(242,201,105,.035) 56.2%,transparent 56.5%),
+    linear-gradient(90deg,transparent 0 49.8%,rgba(101,199,255,.08) 50%,transparent 50.2%);
+  transform:translateY(-50%);
+}
+.future-about .future-orbit:before{
+  inset:13%;
+  border-radius:18px;
+  border-color:rgba(101,199,255,.12);
+}
+.future-about .future-orbit:after{
+  inset:23%;
+  border-radius:50%;
+  border-style:solid;
+  border-color:rgba(242,201,105,.14);
+  animation:future-about-breathe 5s ease-in-out infinite;
+}
+.future-about .future-orbit .n1{left:17%;top:20%}
+.future-about .future-orbit .n2{right:15%;top:54%}
+.future-about .future-orbit .n3{left:49%;bottom:11%}
+
+@keyframes future-feature-pulse{
+  0%,100%{transform:scale(.94);opacity:.55}
+  50%{transform:scale(1.04);opacity:1}
+}
+@keyframes future-security-breathe{
+  0%,100%{transform:scale(.94);opacity:.45}
+  50%{transform:scale(1.02);opacity:1}
+}
+@keyframes future-experience-loop{to{transform:rotate(360deg)}}
+@keyframes future-about-breathe{
+  0%,100%{transform:scale(.96);opacity:.42}
+  50%{transform:scale(1.03);opacity:.9}
+}
+
+@media(max-width:900px){
+  .future-features .future-orbit,
+  .future-experience .future-orbit,
+  .future-about .future-orbit,
+  .future-security .future-orbit{
+    width:min(78vw,500px);
+    transform:none;
+    margin:30px auto 0;
+  }
+  .future-security .future-shield{height:clamp(320px,58vw,480px)}
+}
+@media(max-width:560px){
+  .future-features .future-orbit,
+  .future-experience .future-orbit,
+  .future-about .future-orbit,
+  .future-security .future-orbit{width:86vw;max-width:430px}
+  .future-security .future-shield{height:300px;border-radius:22px}
+}
+@media(prefers-reduced-motion:reduce){
+  .future-features .future-orbit:after,
+  .future-security .future-orbit:after,
+  .future-experience .future-orbit:after,
+  .future-about .future-orbit:after{animation:none}
+}

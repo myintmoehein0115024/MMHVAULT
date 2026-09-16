@@ -1,0 +1,226 @@
+
+/* MMHVAULT v4.7.11 — stable signature visuals
+   Inline SVG isolates the visual from legacy transforms and guarantees
+   a complete, centered composition at every viewport size. */
+.signature-section .signature-mark{
+  position:relative!important;
+  display:grid!important;
+  place-items:center!important;
+  width:min(100%,460px)!important;
+  height:auto!important;
+  aspect-ratio:1/1!important;
+  max-width:460px!important;
+  max-height:460px!important;
+  min-width:0!important;
+  min-height:0!important;
+  margin:0 auto!important;
+  overflow:hidden!important;
+  transform:none!important;
+  contain:paint!important;
+  isolation:isolate!important;
+}
+.signature-section .signature-mark .signature-svg{
+  display:block!important;
+  width:100%!important;
+  height:100%!important;
+  overflow:visible!important;
+  transform:none!important;
+  animation:none!important;
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+.signature-section .signature-mark .signature-svg *{transform-box:fill-box;transform-origin:center;}
+.signature-section .signature-svg .ring{fill:none;stroke:rgba(242,201,105,.22);stroke-width:1.2}
+.signature-section .signature-svg .r2{stroke:rgba(105,174,242,.14);stroke-dasharray:3 8}
+.signature-section .signature-svg .r3{stroke:rgba(242,201,105,.18)}
+.signature-section .signature-svg .nodes{fill:#f2c969}
+.signature-section .signature-svg .core-dot{fill:rgba(242,201,105,.12);stroke:rgba(242,201,105,.42);stroke-width:1.5}
+.signature-section .signature-svg .core-label text{fill:#edf3fb;font-size:27px;font-weight:500;letter-spacing:4px;text-anchor:middle}
+.signature-section .signature-svg .core-label .sub{fill:rgba(242,201,105,.78);font-size:8px;font-weight:500;letter-spacing:2px}
+.signature-section .signature-svg .signal-line{fill:none;stroke:rgba(242,201,105,.62);stroke-width:2}
+.signature-section .signature-svg .diamond{fill:rgba(4,13,23,.25);stroke:rgba(242,201,105,.30);stroke-width:1.2;transform:rotate(45deg);transform-origin:260px 260px}
+.signature-section .signature-svg .d2{stroke:rgba(105,174,242,.24)}
+.signature-section .signature-svg .connect{fill:none;stroke:rgba(242,201,105,.30);stroke-width:1}
+.signature-section .signature-svg .shield{fill:rgba(4,13,23,.36);stroke:rgba(242,201,105,.36);stroke-width:1.4}
+.signature-section .signature-svg .shield-inner{fill:none;stroke:rgba(105,174,242,.25);stroke-width:1}
+.signature-section .signature-svg .lock-line{fill:none;stroke:rgba(242,201,105,.48);stroke-width:2}
+.signature-section .signature-svg .lock-dot{fill:rgba(242,201,105,.12);stroke:rgba(242,201,105,.45);stroke-width:1.5}
+.signature-section .signature-svg .loop-a,.signature-section .signature-svg .loop-b,.signature-section .signature-svg .loop-c,.signature-section .signature-svg .loop-d{fill:none;stroke:rgba(242,201,105,.38);stroke-width:2}
+.signature-section .signature-svg .arrow{fill:none;stroke:rgba(242,201,105,.58);stroke-width:1.5}
+.signature-section .signature-svg .horizon{fill:none;stroke:rgba(242,201,105,.40);stroke-width:1.5}
+.future-page.signature-features .signature-mark{max-width:460px!important}
+.future-page.signature-security .signature-mark{max-width:460px!important}
+.future-page.signature-experience .signature-mark{max-width:460px!important}
+.future-page.signature-about .signature-mark{max-width:460px!important}
+@media (max-width:1100px){
+ .signature-section .signature-mark{max-width:410px!important}
+}
+@media (max-width:900px){
+ .signature-section .signature-mark{width:min(78vw,390px)!important;max-width:390px!important;margin:2px auto 0!important}
+}
+@media (max-width:600px){
+ .signature-section .signature-mark{width:min(78vw,320px)!important;max-width:320px!important}
+ .signature-section .signature-svg .core-label text{font-size:23px}
+ .signature-section .signature-svg .core-label .sub{font-size:7px;letter-spacing:1.6px}
+}
+@media (max-width:380px){
+ .signature-section .signature-mark{width:min(76vw,285px)!important;max-width:285px!important}
+ .signature-section .signature-svg .core-label text{font-size:20px}
+ .signature-section .signature-svg .core-label .sub{font-size:6.5px}
+}
+@media(prefers-reduced-motion:reduce){.signature-section .signature-svg *{animation:none!important;transition:none!important}}
+
+/* v4.7.12 hardening: SVG is the complete visual object. */
+.signature-section .signature-mark .signature-svg{overflow:hidden!important;display:block!important;background:transparent!important}
+.signature-section .signature-mark .signature-svg circle,
+.signature-section .signature-mark .signature-svg rect,
+.signature-section .signature-mark .signature-svg path,
+.signature-section .signature-mark .signature-svg text{vector-effect:non-scaling-stroke}
+.signature-section .signature-mark .signature-svg .diamond{fill:rgba(4,13,23,.18)!important}
+.signature-section .signature-mark .signature-svg .core-label text{paint-order:stroke fill;stroke:transparent!important}
+.signature-section .signature-mark:before,
+.signature-section .signature-mark:after{content:none!important;display:none!important}
+@media(max-width:760px){
+  .signature-section .signature-shell{min-height:clamp(520px,118vw,620px)!important}
+  .signature-section .signature-mark{position:relative!important;inset:auto!important;width:min(72vw,340px)!important;height:min(72vw,340px)!important;max-width:340px!important;margin:12px auto 58px!important;transform:none!important}
+}
+@media(max-width:420px){
+  .signature-section .signature-shell{min-height:clamp(500px,128vw,560px)!important}
+  .signature-section .signature-mark{width:min(68vw,290px)!important;height:min(68vw,290px)!important;max-width:290px!important;margin-bottom:52px!important}
+}
+
+/* v4.7.13 — desktop signature alignment: keep the visual on the far side
+   and reserve a clear text column. Mobile remains normal document flow. */
+@media (min-width:761px){
+  .signature-section .signature-shell{
+    position:relative!important;
+    min-height:560px!important;
+    overflow:hidden!important;
+  }
+  .signature-section .signature-copy{
+    width:min(48%,620px)!important;
+    max-width:620px!important;
+    position:relative!important;
+    z-index:2!important;
+  }
+  .signature-section .signature-mark{
+    position:absolute!important;
+    right:4.5%!important;
+    left:auto!important;
+    top:50%!important;
+    margin:0!important;
+    width:min(38vw,430px)!important;
+    height:min(38vw,430px)!important;
+    max-width:430px!important;
+    max-height:430px!important;
+    transform:translateY(-50%)!important;
+    z-index:1!important;
+  }
+}
+@media (min-width:1200px){
+  .signature-section .signature-mark{right:5.5%!important; width:min(36vw,440px)!important; height:min(36vw,440px)!important;}
+}
+@media (min-width:761px) and (max-width:980px){
+  .signature-section .signature-mark{right:3%!important;width:min(35vw,360px)!important;height:min(35vw,360px)!important;}
+  .signature-section .signature-copy{width:min(50%,500px)!important;}
+}
+
+
+/* MMHVAULT v4.7.14 — deterministic signature layout
+   The signature is a real two-column grid item on desktop. This avoids
+   absolute-position overlap and keeps the visual on the far right. */
+.signature-section .signature-shell{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) minmax(380px,44%)!important;
+  grid-template-rows:auto minmax(430px,1fr) auto!important;
+  grid-template-areas:"meta meta" "copy mark" "index index"!important;
+  align-items:center!important;
+  column-gap:clamp(28px,5vw,92px)!important;
+  min-height:620px!important;
+  overflow:hidden!important;
+  position:relative!important;
+}
+.signature-section .signature-meta{grid-area:meta!important;position:relative!important;z-index:3!important;}
+.signature-section .signature-copy{
+  grid-area:copy!important;
+  width:auto!important;
+  max-width:650px!important;
+  position:relative!important;
+  z-index:3!important;
+  align-self:center!important;
+}
+.signature-section .signature-mark{
+  grid-area:mark!important;
+  position:relative!important;
+  inset:auto!important;
+  justify-self:end!important;
+  align-self:center!important;
+  width:min(100%,470px)!important;
+  height:auto!important;
+  aspect-ratio:1/1!important;
+  max-width:470px!important;
+  max-height:470px!important;
+  margin:0!important;
+  transform:none!important;
+  z-index:2!important;
+  overflow:hidden!important;
+}
+.signature-section .signature-index{
+  grid-area:index!important;
+  position:relative!important;
+  z-index:3!important;
+  align-self:end!important;
+}
+
+@media (min-width:1180px){
+  .signature-section .signature-shell{
+    grid-template-columns:minmax(0,1fr) minmax(430px,46%)!important;
+    column-gap:clamp(50px,6vw,110px)!important;
+    min-height:640px!important;
+  }
+  .signature-section .signature-mark{width:min(100%,500px)!important;max-width:500px!important;}
+}
+
+@media (min-width:761px) and (max-width:1179px){
+  .signature-section .signature-shell{
+    grid-template-columns:minmax(0,1fr) minmax(320px,42%)!important;
+    column-gap:36px!important;
+    min-height:570px!important;
+  }
+  .signature-section .signature-mark{width:min(100%,390px)!important;max-width:390px!important;}
+  .signature-section .signature-copy{max-width:560px!important;}
+}
+
+@media (max-width:760px){
+  .signature-section .signature-shell{
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    grid-template-rows:auto auto auto auto!important;
+    grid-template-areas:"meta" "copy" "mark" "index"!important;
+    min-height:0!important;
+    row-gap:26px!important;
+    padding-bottom:28px!important;
+    overflow:hidden!important;
+  }
+  .signature-section .signature-copy{max-width:100%!important;}
+  .signature-section .signature-mark{
+    position:relative!important;
+    inset:auto!important;
+    justify-self:center!important;
+    width:min(78vw,340px)!important;
+    height:min(78vw,340px)!important;
+    max-width:340px!important;
+    max-height:340px!important;
+    margin:0!important;
+    transform:none!important;
+  }
+  .signature-section .signature-index{align-self:start!important;}
+}
+@media (max-width:420px){
+  .signature-section .signature-shell{row-gap:20px!important;}
+  .signature-section .signature-mark{
+    width:min(72vw,290px)!important;
+    height:min(72vw,290px)!important;
+    max-width:290px!important;
+    max-height:290px!important;
+  }
+}

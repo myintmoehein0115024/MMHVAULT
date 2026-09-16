@@ -1,0 +1,78 @@
+/* ================================================================
+   MMHVAULT v4.7.7 · PREMIUM FINISH
+   Precision fixes + final visual polish.
+   Header / language / Login intentionally untouched.
+================================================================ */
+
+/* FEATURES — remove the unintended empty fourth slot. */
+.future-features .future-section:nth-of-type(2) .future-cell:nth-child(n+4){grid-column:span 4}
+
+/* FEATURES — keep the CORE label on one clean plane. */
+.signature-features .signature-core{
+  transform:translate(-50%,-50%);
+  border-radius:18px;
+  background:radial-gradient(circle,rgba(242,201,105,.11),rgba(4,13,23,.96) 68%);
+  isolation:isolate;
+}
+.signature-features .signature-core:before{
+  content:"";
+  position:absolute;
+  inset:-24px;
+  border:1px solid rgba(242,201,105,.24);
+  border-radius:18px;
+  transform:rotate(45deg);
+  box-shadow:0 0 35px rgba(242,201,105,.055);
+  z-index:-1;
+}
+.signature-features .signature-core > div{
+  transform:none;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:5px;
+  position:relative;
+  z-index:2;
+}
+.signature-features .signature-core strong,
+.signature-features .signature-core small{transform:none;display:block}
+.signature-features .signature-core strong{font-size:24px;letter-spacing:.14em;line-height:1}
+.signature-features .signature-core small{margin-top:0}
+.signature-features .halo{transform:none}
+
+/* Premium spacing rhythm: clearer separation without adding bulk. */
+.future-page .future-section + .future-section{margin-top:clamp(52px,7vw,96px)}
+.future-page .signature-section{margin-top:clamp(64px,8vw,110px)}
+
+/* A restrained section edge gives the long page a deliberate rhythm. */
+.future-page .future-section:not(.vault-third):not(.signature-section){position:relative}
+.future-page .future-section:not(.vault-third):not(.signature-section):after{
+  content:"";
+  position:absolute;
+  left:4%;right:4%;bottom:-28px;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(242,201,105,.09),rgba(80,153,220,.08),transparent);
+  pointer-events:none;
+}
+
+/* Signature panels get a quieter premium depth on hover. */
+.signature-shell{transition:transform .65s cubic-bezier(.2,.7,.2,1),box-shadow .65s ease,border-color .5s ease}
+.signature-shell:hover{border-color:rgba(242,201,105,.13);box-shadow:0 30px 90px rgba(0,0,0,.24),0 0 70px rgba(242,201,105,.035)}
+
+/* Keep the architecture mark balanced after the core correction. */
+.signature-features .signature-mark{display:block}
+.signature-features .signature-orbit{animation-duration:32s}
+
+/* Mobile: retain the three-card second row without introducing another gap. */
+@media (max-width:980px){
+  .future-features .future-section:nth-of-type(2) .future-cell:nth-child(n+4){grid-column:span 6}
+}
+@media (max-width:760px){
+  .future-features .future-section:nth-of-type(2) .future-cell:nth-child(n+4){grid-column:span 12}
+  .future-page .future-section + .future-section{margin-top:58px}
+  .future-page .signature-section{margin-top:62px}
+  .future-page .future-section:not(.vault-third):not(.signature-section):after{left:0;right:0;bottom:-22px}
+  .signature-features .signature-core:before{inset:-19px}
+}
+@media(prefers-reduced-motion:reduce){
+  .signature-shell{transition:none!important}
+}

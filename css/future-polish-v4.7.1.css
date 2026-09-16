@@ -1,0 +1,131 @@
+
+/* MMHVAULT v4.7.1 — Future Finance Motion & Data Polish
+   Body-only enhancement. Shared Header / language controls are intentionally untouched.
+*/
+.future-page{overflow:clip}
+.future-page .future-hero-inner,
+.future-page .future-section-head,
+.future-page .future-command,
+.future-page .future-cell,
+.future-page .future-step,
+.future-page .future-story,
+.future-page .future-principle,
+.future-page .future-trust-panel,
+.future-page .future-footer-cta{
+  will-change:transform;
+}
+.future-page .future-hero-inner{
+  animation:mv-enter .9s cubic-bezier(.2,.7,.2,1) both;
+}
+.future-page .future-kicker{
+  animation:mv-fade .7s .08s both;
+}
+.future-page .future-stat{
+  position:relative;
+  overflow:hidden;
+}
+.future-page .future-stat:after{
+  content:"";
+  position:absolute;
+  left:0;right:0;bottom:0;height:1px;
+  transform:scaleX(0);transform-origin:left;
+  background:linear-gradient(90deg,transparent,#f2c969,transparent);
+  transition:transform .55s ease;
+}
+.future-page .future-stat:hover:after{transform:scaleX(1)}
+
+.future-page .future-cell,
+.future-page .future-principle,
+.future-page .future-trust-item{
+  position:relative;
+}
+.future-page .future-cell:after,
+.future-page .future-principle:after{
+  content:"";
+  position:absolute;inset:0;pointer-events:none;opacity:0;
+  background:radial-gradient(320px circle at calc(var(--mx, .5)*100%) calc(var(--my, .5)*100%),rgba(242,201,105,.11),transparent 52%);
+  transition:opacity .25s ease;
+}
+.future-page .future-cell:hover:after,
+.future-page .future-principle:hover:after{opacity:1}
+
+.future-page .future-command-copy,
+.future-page .future-story-copy{
+  position:relative;
+}
+.future-page .future-command-copy:before,
+.future-page .future-story-copy:before{
+  content:"";
+  position:absolute;left:0;top:0;width:42px;height:1px;
+  background:linear-gradient(90deg,#f2c969,transparent);
+  opacity:.75;
+}
+
+.future-page .future-command-media:before,
+.future-page .future-story-media:before{
+  content:"";
+  position:absolute;z-index:3;left:18px;top:18px;
+  width:7px;height:7px;border-radius:50%;
+  background:#f2c969;box-shadow:0 0 16px rgba(242,201,105,.8);
+}
+.future-page .future-command-media:after,
+.future-page .future-story-media:after{
+  content:"SYSTEM / LIVE CONTEXT";
+  position:absolute;z-index:4;right:18px;top:15px;
+  padding:7px 9px;border:1px solid rgba(242,201,105,.2);
+  border-radius:999px;background:rgba(3,11,20,.62);
+  color:rgba(242,201,105,.78);
+  font:500 8px/1 'DM Mono',monospace;letter-spacing:.16em;
+  backdrop-filter:blur(8px);
+}
+.future-page .future-story-media:after{content:"FINANCIAL EXPERIENCE"}
+
+.future-page .future-orbit{opacity:.95}
+.future-page .future-orbit .node{animation:mv-pulse 2.8s ease-in-out infinite}
+.future-page .future-orbit .n2{animation-delay:.7s}
+.future-page .future-orbit .n3{animation-delay:1.4s}
+
+.future-page .future-footer-cta{
+  isolation:isolate;
+}
+.future-page .future-footer-cta:before{
+  content:"";
+  position:absolute;inset:-2px;z-index:-1;
+  background:linear-gradient(105deg,transparent 15%,rgba(242,201,105,.12) 48%,transparent 78%);
+  transform:translateX(-110%);
+  animation:mv-sweep 7s ease-in-out infinite;
+}
+
+.future-page .future-chip{
+  box-shadow:0 0 30px rgba(242,201,105,.04);
+}
+.future-page .future-step .dot{
+  transition:transform .35s ease,box-shadow .35s ease;
+}
+.future-page .future-step:hover .dot{
+  transform:translateY(-3px) scale(1.04);
+  box-shadow:0 0 34px rgba(242,201,105,.16);
+}
+
+@keyframes mv-enter{
+  from{opacity:0;transform:translateY(18px)}
+  to{opacity:1;transform:none}
+}
+@keyframes mv-fade{
+  from{opacity:0;transform:translateX(-12px)}
+  to{opacity:1;transform:none}
+}
+@keyframes mv-pulse{
+  0%,100%{transform:scale(.8);opacity:.55}
+  50%{transform:scale(1.15);opacity:1}
+}
+@keyframes mv-sweep{
+  0%,35%{transform:translateX(-110%)}
+  65%,100%{transform:translateX(110%)}
+}
+@media(prefers-reduced-motion:reduce){
+  .future-page .future-hero-inner,
+  .future-page .future-kicker,
+  .future-page .future-orbit .node,
+  .future-page .future-footer-cta:before{animation:none}
+}

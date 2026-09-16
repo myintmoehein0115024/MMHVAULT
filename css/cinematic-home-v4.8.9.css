@@ -1,0 +1,128 @@
+/* MMHVAULT v4.8.9 — Home cinematic globe connection
+   Only affects the Home hero visual. Header / Login / other pages stay untouched. */
+.future-home .future-hero{
+  grid-template-columns:minmax(430px, .92fr) minmax(420px,1.08fr)!important;
+  gap:clamp(24px,4vw,72px)!important;
+}
+
+.future-home .future-hero-inner{
+  position:relative!important;
+  z-index:8!important;
+}
+
+.future-home .future-hero .future-orbit{
+  position:relative!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  justify-self:end!important;
+  align-self:center!important;
+  width:min(48vw,690px)!important;
+  height:min(48vw,690px)!important;
+  min-width:420px!important;
+  min-height:420px!important;
+  max-width:690px!important;
+  max-height:690px!important;
+  margin:0!important;
+  overflow:hidden!important;
+  background:none!important;
+  border:0!important;
+  border-radius:0!important;
+  box-shadow:none!important;
+  filter:none!important;
+  animation:none!important;
+  z-index:3!important;
+  isolation:isolate!important;
+}
+
+/* The globe is now a real image element so it cannot disappear behind old orbit rules. */
+.future-home .future-hero .future-orbit::before,
+.future-home .future-hero .future-orbit::after{
+  content:""!important;
+  position:absolute!important;
+  inset:auto!important;
+  width:0!important;
+  height:0!important;
+  border:0!important;
+  box-shadow:none!important;
+  background:none!important;
+  animation:none!important;
+}
+
+.future-home .future-hero .future-orbit .mmh-hero-globe{
+  display:block!important;
+  width:100%!important;
+  height:100%!important;
+  max-width:none!important;
+  max-height:none!important;
+  object-fit:contain!important;
+  object-position:center!important;
+  opacity:.96!important;
+  filter:saturate(.92) contrast(1.04) brightness(.94)!important;
+  transform:translate3d(0,0,0) scale(.98)!important;
+  transform-origin:center!important;
+  animation:mmh-home-globe-float-489 11s ease-in-out infinite!important;
+  mix-blend-mode:screen!important;
+  pointer-events:none!important;
+}
+
+/* A very soft atmospheric halo ties the globe into the page background. */
+.future-home .future-hero .future-orbit .mmh-globe-halo{
+  position:absolute!important;
+  width:62%!important;
+  aspect-ratio:1!important;
+  left:50%!important;
+  top:50%!important;
+  transform:translate(-50%,-48%)!important;
+  border-radius:50%!important;
+  background:radial-gradient(circle,rgba(68,147,218,.10),rgba(68,147,218,.035) 38%,transparent 70%)!important;
+  filter:blur(18px)!important;
+  z-index:-1!important;
+  pointer-events:none!important;
+}
+
+.future-home .future-hero .future-orbit .node{z-index:4!important}
+
+@keyframes mmh-home-globe-float-489{
+  0%,100%{transform:translate3d(0,5px,0) scale(.98)}
+  50%{transform:translate3d(0,-7px,0) scale(1)}
+}
+
+@media(max-width:1100px){
+  .future-home .future-hero{
+    grid-template-columns:minmax(380px,1fr) minmax(360px,.9fr)!important;
+    gap:24px!important;
+  }
+  .future-home .future-hero .future-orbit{
+    width:min(47vw,560px)!important;
+    height:min(47vw,560px)!important;
+    min-width:360px!important;
+    min-height:360px!important;
+  }
+}
+
+@media(max-width:860px){
+  .future-home .future-hero{
+    grid-template-columns:1fr!important;
+    gap:10px!important;
+  }
+  .future-home .future-hero .future-orbit{
+    justify-self:center!important;
+    width:min(88vw,500px)!important;
+    height:min(88vw,500px)!important;
+    min-width:0!important;
+    min-height:0!important;
+    margin:4px auto 0!important;
+  }
+}
+
+@media(max-width:560px){
+  .future-home .future-hero .future-orbit{
+    width:min(94vw,390px)!important;
+    height:min(94vw,390px)!important;
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  .future-home .future-hero .future-orbit .mmh-hero-globe{animation:none!important}
+}

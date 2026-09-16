@@ -1,0 +1,21 @@
+/* MMHVAULT v4.8.2 — page-specific motion layer */
+.future-page > .future-section,
+.future-page > section { --pmx:0px; --pmy:0px; }
+.future-home .future-hero::after{animation:pm-breathe 7s ease-in-out infinite}
+.future-home .future-hero .orbit-node{animation:pm-node 3.8s ease-in-out infinite}
+.future-features .feature-card{transition:transform .45s cubic-bezier(.2,.7,.2,1),border-color .45s ease,box-shadow .45s ease}
+.future-features .feature-card:hover{transform:translateY(-6px)}
+.future-security .trust-panel,.future-security .security-media{transition:transform .6s cubic-bezier(.2,.7,.2,1)}
+.future-security .trust-panel:hover{transform:translateX(4px)}
+.future-security .security-media:hover{transform:translateY(-4px)}
+.future-experience .loop-card{transition:transform .5s cubic-bezier(.2,.7,.2,1)}
+.future-experience .loop-card:hover{transform:translateY(-5px)}
+.future-about .timeline-item{transition:transform .55s cubic-bezier(.2,.7,.2,1),opacity .55s ease}
+.future-about .timeline-item:hover{transform:translateX(6px)}
+@keyframes pm-breathe{0%,100%{opacity:.55;transform:scale(1)}50%{opacity:.8;transform:scale(1.025)}}
+@keyframes pm-node{0%,100%{transform:translateY(0);opacity:.65}50%{transform:translateY(-4px);opacity:1}}
+@media (max-width:900px){.future-features .feature-card:hover,.future-security .trust-panel:hover,.future-security .security-media:hover,.future-experience .loop-card:hover,.future-about .timeline-item:hover{transform:none}}
+@media (prefers-reduced-motion:reduce){.future-home .future-hero::after,.future-home .future-hero .orbit-node{animation:none}.future-features .feature-card,.future-security .trust-panel,.future-security .security-media,.future-experience .loop-card,.future-about .timeline-item{transition:none}}
+.future-page .motion-in{animation:pm-in .7s cubic-bezier(.2,.7,.2,1) both;animation-delay:var(--motion-delay,0ms)}
+@keyframes pm-in{from{opacity:.15;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@media (prefers-reduced-motion:reduce){.future-page .motion-in{animation:none}}

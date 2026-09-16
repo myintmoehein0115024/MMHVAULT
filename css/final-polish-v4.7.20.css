@@ -1,0 +1,109 @@
+/* MMHVAULT v4.7.20 — Final visual polish layer
+   Composition only. Signature geometry remains untouched. */
+.future-page{
+  --mmh-content-measure:1180px;
+}
+.future-page .future-section,
+.future-page .future-command,
+.future-page .future-matrix,
+.future-page .signal-board,
+.future-page .future-story,
+.future-page .future-principles,
+.future-page .about-rail{
+  position:relative;
+}
+
+/* More deliberate section rhythm without changing the locked header. */
+.future-page > .future-section + .future-section{margin-top:clamp(72px,8vw,128px)!important;}
+.future-page .future-section-head,
+.future-page .signal-head,
+.future-page .about-timeline-head{margin-bottom:clamp(28px,3.2vw,48px)!important;}
+
+/* Editorial line above major sections. */
+.future-page > .future-section:before{
+  content:"";
+  position:absolute;
+  left:0; right:0; top:-18px;
+  height:1px;
+  background:linear-gradient(90deg,rgba(242,201,105,.18),rgba(105,174,242,.08),transparent 72%);
+  opacity:.7;
+  pointer-events:none;
+}
+
+/* Card hierarchy: cleaner edges, restrained depth. */
+.future-page .future-card,
+.future-page .feature-card,
+.future-page .principle-card,
+.future-page .timeline-item{
+  transition:transform .45s cubic-bezier(.2,.7,.2,1),border-color .45s ease,box-shadow .45s ease,background .45s ease!important;
+}
+.future-page .future-card:hover,
+.future-page .feature-card:hover,
+.future-page .principle-card:hover,
+.future-page .timeline-item:hover{
+  transform:translateY(-3px)!important;
+  box-shadow:0 18px 46px rgba(0,0,0,.14),inset 0 1px 0 rgba(255,255,255,.025)!important;
+}
+
+/* Keep body copy readable and visually quieter than headings. */
+.future-page p{letter-spacing:-.01em;}
+.future-page h1,.future-page h2,.future-page h3{letter-spacing:-.035em;}
+.future-page .eyebrow,.future-page .kicker,.future-page .section-label{letter-spacing:.24em;}
+
+/* Page-specific ambient accents — deliberately subtle. */
+.future-home:after,
+.future-features:after,
+.future-security:after,
+.future-experience:after,
+.future-about:after{
+  content:"";
+  position:fixed;
+  width:38vw;height:38vw;
+  max-width:620px;max-height:620px;
+  border-radius:50%;
+  pointer-events:none;
+  z-index:-1;
+  opacity:.035;
+  filter:blur(30px);
+}
+.future-home:after{right:-12vw;top:22vh;background:rgba(242,201,105,.7);}
+.future-features:after{right:-10vw;top:35vh;background:rgba(105,174,242,.65);}
+.future-security:after{left:-12vw;top:38vh;background:rgba(242,201,105,.55);}
+.future-experience:after{right:-10vw;top:55vh;background:rgba(105,174,242,.55);}
+.future-about:after{left:-10vw;top:48vh;background:rgba(242,201,105,.45);}
+
+/* Signature remains structurally locked; only give it a calmer visual arrival. */
+.signature-section{isolation:isolate;}
+.signature-section .signature-shell{position:relative;z-index:0;}
+.signature-section .signature-shell:after{
+  content:"";
+  position:absolute;inset:1px;border-radius:inherit;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.012);
+  pointer-events:none;
+}
+
+/* Calm footer landing. */
+.future-page + .footer{padding-top:clamp(22px,3vw,38px)!important;}
+
+@media(max-width:900px){
+  .future-page > .future-section + .future-section{margin-top:70px!important;}
+  .future-page > .future-section:before{top:-14px;}
+  .future-page:after{width:52vw;height:52vw;opacity:.025;filter:blur(26px);}
+}
+@media(max-width:760px){
+  .future-page > .future-section + .future-section{margin-top:54px!important;}
+  .future-page .future-section-head,
+  .future-page .signal-head,
+  .future-page .about-timeline-head{margin-bottom:24px!important;}
+  .future-page > .future-section:before{top:-11px;}
+  .future-page .future-card:hover,
+  .future-page .feature-card:hover,
+  .future-page .principle-card:hover,
+  .future-page .timeline-item:hover{transform:none!important;box-shadow:none!important;}
+}
+@media(prefers-reduced-motion:reduce){
+  .future-page .future-card,
+  .future-page .feature-card,
+  .future-page .principle-card,
+  .future-page .timeline-item{transition:none!important;}
+}

@@ -1,0 +1,196 @@
+/* MMHVAULT v4.8.6 — Hero Composition
+   Cinematic + Modular landing system. Header/Login/Signature DOM remain untouched. */
+:root{
+  --mmh-gold:#f2c969;
+  --mmh-cream:#f6efdd;
+  --mmh-ink:#020b15;
+  --mmh-blue:#69baff;
+}
+
+/* ===== Shared hero frame ===== */
+.future-page .future-hero{
+  min-height:clamp(650px,calc(100vh - 92px),900px)!important;
+  height:auto!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,1.02fr) minmax(420px,.98fr)!important;
+  align-items:center!important;
+  gap:clamp(28px,4vw,72px)!important;
+  padding:clamp(42px,5vw,76px) clamp(34px,5vw,78px)!important;
+  overflow:hidden!important;
+  isolation:isolate!important;
+  border:1px solid rgba(105,184,255,.16)!important;
+  border-radius:28px!important;
+  background:
+    radial-gradient(circle at 78% 45%,rgba(52,137,218,.15),transparent 33%),
+    radial-gradient(circle at 11% 60%,rgba(242,201,105,.12),transparent 25%),
+    linear-gradient(125deg,rgba(2,11,21,.98),rgba(3,17,31,.90))!important;
+}
+.future-page .future-hero::before{
+  background-size:52px 52px!important;
+  opacity:.78!important;
+}
+.future-page .future-hero::after{display:none!important}
+.future-page .future-hero-inner{
+  max-width:780px!important;
+  padding:0!important;
+  align-self:center!important;
+  z-index:4!important;
+}
+.future-page .future-hero-inner h1{
+  max-width:820px!important;
+  font-size:clamp(3.25rem,5.85vw,6.6rem)!important;
+  line-height:.93!important;
+  letter-spacing:-.062em!important;
+  margin:20px 0 24px!important;
+  text-wrap:balance!important;
+}
+.future-page .future-hero-inner p{
+  max-width:680px!important;
+  font-size:clamp(1rem,1.18vw,1.18rem)!important;
+  line-height:1.72!important;
+  margin:0!important;
+}
+.future-page .future-kicker{
+  display:flex!important;
+  align-items:center!important;
+  gap:14px!important;
+  letter-spacing:.30em!important;
+  color:var(--mmh-gold)!important;
+}
+.future-page .future-kicker::before{
+  content:"";width:54px;height:1px;background:linear-gradient(90deg,var(--mmh-gold),transparent);display:block;flex:0 0 auto;
+}
+.future-page .future-hero-actions{margin-top:30px!important}
+.future-page .future-stat-rail{
+  max-width:720px!important;
+  margin-top:30px!important;
+  padding:18px 0 0!important;
+  display:grid!important;
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  gap:0!important;
+  border-top:1px solid rgba(105,184,255,.16)!important;
+}
+.future-page .future-stat{
+  min-width:0!important;padding:0 18px!important;border-right:1px solid rgba(105,184,255,.12)!important;
+}
+.future-page .future-stat:first-child{padding-left:0!important}
+.future-page .future-stat:last-child{border-right:0!important}
+.future-page .future-stat b{display:block!important;font-size:.73rem!important;letter-spacing:.22em!important;color:var(--mmh-cream)!important}
+.future-page .future-stat span{display:block!important;margin-top:7px!important;font-size:.76rem!important;color:rgba(178,194,211,.70)!important}
+
+/* ===== Right visual: globe/cinematic instrument ===== */
+.future-page .future-hero .future-orbit{
+  position:relative!important;
+  justify-self:end!important;
+  align-self:center!important;
+  width:min(43vw,600px)!important;
+  height:min(43vw,600px)!important;
+  min-width:390px!important;
+  min-height:390px!important;
+  max-width:600px!important;
+  max-height:600px!important;
+  border:0!important;
+  border-radius:50%!important;
+  background-image:url('../images/mmhvault-hero-globe-v4.8.6.png'),radial-gradient(circle at 50% 48%,rgba(20,65,103,.34),transparent 59%)!important;
+  background-size:cover,100% 100%!important;
+  background-position:center!important;
+  background-repeat:no-repeat!important;
+  box-shadow:0 0 90px rgba(45,133,218,.12),0 0 38px rgba(242,201,105,.06)!important;
+  animation:mmh-hero-float-486 9s ease-in-out infinite!important;
+  filter:saturate(.92) contrast(1.02)!important;
+}
+.future-page .future-hero .future-orbit::before{
+  content:""!important;position:absolute!important;inset:-5%!important;border:1px solid rgba(105,184,255,.15)!important;border-radius:50%!important;box-shadow:0 0 50px rgba(62,146,222,.08)!important;animation:mmh-hero-ring-486 18s linear infinite!important;
+}
+.future-page .future-hero .future-orbit::after{
+  content:""!important;position:absolute!important;inset:-12%!important;border:1px solid rgba(242,201,105,.12)!important;border-radius:50%!important;transform:rotate(16deg) scaleY(.42)!important;animation:mmh-hero-ring-486-rev 24s linear infinite!important;
+}
+.future-page .future-hero .future-orbit .node{
+  width:8px!important;height:8px!important;background:var(--mmh-gold)!important;border-radius:50%!important;box-shadow:0 0 14px rgba(242,201,105,.85)!important;z-index:3!important;
+}
+.future-page .future-hero .future-orbit .n1{left:8%!important;top:53%!important}
+.future-page .future-hero .future-orbit .n2{right:12%!important;top:36%!important}
+.future-page .future-hero .future-orbit .n3{right:26%!important;bottom:9%!important}
+
+/* small HUD labels on visual */
+.future-page .future-hero .future-orbit{--hud-left:"GLOBAL VISION";--hud-right:"LOCAL IMPACT"}
+.future-page .future-hero .future-orbit .node.n1::after{
+  content:"GLOBAL VISION";position:absolute;left:18px;top:-10px;white-space:nowrap;font-size:9px;letter-spacing:.25em;color:rgba(246,239,221,.76);font-style:normal
+}
+.future-page .future-hero .future-orbit .node.n2::after{
+  content:"LOCAL IMPACT";position:absolute;left:18px;top:-10px;white-space:nowrap;font-size:9px;letter-spacing:.25em;color:rgba(246,239,221,.76);font-style:normal
+}
+
+/* ===== Page-specific visual language ===== */
+.future-features .future-hero .future-orbit{
+  background-image:radial-gradient(circle at center,rgba(11,40,66,.34),rgba(2,12,22,.12) 58%,transparent 70%)!important;
+  box-shadow:none!important;
+}
+.future-features .future-hero .future-orbit::before{inset:8%!important;border-color:rgba(242,201,105,.22)!important}
+.future-features .future-hero .future-orbit::after{inset:20%!important;border-color:rgba(105,184,255,.17)!important;transform:rotate(45deg)!important;border-radius:24%!important}
+.future-features .future-hero .future-orbit .node.n1::after{content:"CORE"}
+.future-features .future-hero .future-orbit .node.n2::after{content:"FLOW"}
+.future-features .future-hero .future-orbit .node.n3::after{content:"CAPITAL"}
+
+.future-security .future-hero .future-orbit{
+  background-image:radial-gradient(circle,rgba(8,31,50,.18),transparent 60%)!important;box-shadow:none!important;
+}
+.future-security .future-hero .future-orbit::before{inset:7%!important;border-radius:50% 50% 44% 44%!important;border-width:2px!important;border-color:rgba(242,201,105,.22)!important}
+.future-security .future-hero .future-orbit::after{inset:18%!important;border-radius:50% 50% 42% 42%!important;border-color:rgba(105,184,255,.18)!important;transform:none!important}
+.future-security .future-hero .future-orbit .node.n1::after{content:"BOUNDARY"}
+.future-security .future-hero .future-orbit .node.n2::after{content:"CONTROL"}
+.future-security .future-hero .future-orbit .node.n3::after{content:"PRIVATE"}
+
+.future-experience .future-hero .future-orbit{background-image:radial-gradient(circle,rgba(12,45,69,.28),transparent 64%)!important;box-shadow:none!important}
+.future-experience .future-hero .future-orbit::before{inset:9%!important;border-style:dashed!important;border-color:rgba(105,184,255,.18)!important}
+.future-experience .future-hero .future-orbit::after{inset:25%!important;border-color:rgba(242,201,105,.19)!important;transform:rotate(90deg) scaleY(.5)!important}
+.future-experience .future-hero .future-orbit .node.n1::after{content:"LOOP"}
+.future-experience .future-hero .future-orbit .node.n2::after{content:"RHYTHM"}
+.future-experience .future-hero .future-orbit .node.n3::after{content:"NEXT"}
+
+.future-about .future-hero .future-orbit{background-image:radial-gradient(circle at 50% 70%,rgba(242,201,105,.09),transparent 50%)!important;box-shadow:none!important}
+.future-about .future-hero .future-orbit::before{inset:5% 8% 28%!important;border-color:rgba(242,201,105,.18)!important;border-radius:50% 50% 0 0!important}
+.future-about .future-hero .future-orbit::after{inset:16% 19% 38%!important;border-color:rgba(105,184,255,.13)!important;border-radius:50% 50% 0 0!important;transform:none!important}
+.future-about .future-hero .future-orbit .node.n1::after{content:"BEGIN"}
+.future-about .future-hero .future-orbit .node.n2::after{content:"BUILD"}
+.future-about .future-hero .future-orbit .node.n3::after{content:"EVOLVE"}
+
+/* ===== Premium modular rhythm ===== */
+.future-page .future-section{scroll-margin-top:90px}
+.future-page .future-section-head{align-items:end!important}
+.future-page .future-section-head h2{max-width:880px!important}
+.future-page .future-matrix>article,.future-page .future-principles>article{
+  backdrop-filter:blur(12px)!important;
+}
+
+@keyframes mmh-hero-float-486{0%,100%{transform:translate3d(0,0,0)}50%{transform:translate3d(0,-9px,0)}}
+@keyframes mmh-hero-ring-486{to{transform:rotate(360deg)}}
+@keyframes mmh-hero-ring-486-rev{to{transform:rotate(-344deg) scaleY(.42)}}
+
+@media(max-width:1100px){
+  .future-page .future-hero{grid-template-columns:minmax(0,1fr) minmax(330px,.78fr)!important;gap:28px!important;padding-left:38px!important;padding-right:38px!important}
+  .future-page .future-hero .future-orbit{width:min(39vw,470px)!important;height:min(39vw,470px)!important;min-width:320px!important;min-height:320px!important}
+}
+@media(max-width:860px){
+  .future-page .future-hero{grid-template-columns:1fr!important;min-height:auto!important;padding:52px 30px 38px!important}
+  .future-page .future-hero-inner{order:1!important}
+  .future-page .future-hero .future-orbit{order:2!important;justify-self:center!important;width:min(72vw,430px)!important;height:min(72vw,430px)!important;min-width:280px!important;min-height:280px!important;margin:12px auto 10px!important}
+  .future-page .future-stat-rail{max-width:none!important}
+}
+@media(max-width:560px){
+  .future-page .future-hero{border-radius:22px!important;padding:38px 20px 28px!important}
+  .future-page .future-kicker{letter-spacing:.18em!important;font-size:.68rem!important}
+  .future-page .future-kicker::before{width:30px!important}
+  .future-page .future-hero-inner h1{font-size:clamp(2.8rem,12vw,4.15rem)!important;line-height:.96!important;margin:15px 0 20px!important}
+  .future-page .future-hero-inner p{font-size:.96rem!important;line-height:1.68!important}
+  .future-page .future-hero-actions{flex-wrap:wrap!important}
+  .future-page .future-stat-rail{grid-template-columns:repeat(2,minmax(0,1fr))!important;row-gap:18px!important}
+  .future-page .future-stat{padding:0 12px!important}
+  .future-page .future-stat:nth-child(2){border-right:0!important}
+  .future-page .future-stat:nth-child(3){padding-left:0!important}
+  .future-page .future-hero .future-orbit{width:min(84vw,350px)!important;height:min(84vw,350px)!important;min-width:250px!important;min-height:250px!important}
+  .future-page .future-hero .future-orbit .node::after{display:none!important}
+}
+@media(prefers-reduced-motion:reduce){
+  .future-page .future-hero .future-orbit,.future-page .future-hero .future-orbit::before,.future-page .future-hero .future-orbit::after{animation:none!important}
+}

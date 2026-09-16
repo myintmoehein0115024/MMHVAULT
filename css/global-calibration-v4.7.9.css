@@ -1,0 +1,391 @@
+/* ================================================================
+   MMHVAULT v4.7.8 · GLOBAL VISUAL CALIBRATION
+   Final proportion pass. Header / language / Login intentionally untouched.
+================================================================ */
+
+/* --- Global rhythm: make the landing feel like one designed system. --- */
+.future-page{padding-bottom:clamp(8px,2vw,24px)}
+.future-page .future-hero{margin-bottom:clamp(72px,9vw,126px)}
+.future-page .future-section{scroll-margin-top:110px}
+.future-page .future-section + .future-section{margin-top:clamp(68px,8vw,118px)}
+
+.future-page .future-section-head,
+.future-page .network-head,
+.future-page .signal-head,
+.future-page .security-layer-head,
+.future-page .loop-head,
+.future-page .about-timeline-head{
+  column-gap:clamp(34px,6vw,110px);
+  align-items:end;
+}
+
+.future-page h1,
+.future-page h2,
+.future-page h3,
+.future-page p{max-width:none}
+
+/* Better title measure: large headlines breathe without becoming too wide. */
+.future-page .future-hero-inner h1{max-width:10.5ch}
+.future-page .future-section-head h2,
+.future-page .network-head h2,
+.future-page .signal-head h2,
+.future-page .security-layer-head h2,
+.future-page .loop-head h2,
+.future-page .about-timeline-head h2{max-width:12ch}
+
+/* --- Content cards: consistent vertical gravity and less template-like density. --- */
+.future-page .future-cell{
+  min-height:clamp(230px,18vw,300px);
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-end;
+}
+.future-page .future-cell .index{margin-bottom:auto}
+.future-page .future-cell h3{margin-top:34px}
+.future-page .future-cell p{max-width:31ch}
+
+/* --- Media calibration: images feel intentional instead of squeezed. --- */
+.future-page .future-command-media{min-height:clamp(320px,34vw,540px)}
+.future-page .future-command-media img{height:100%;min-height:inherit;object-fit:cover}
+.future-page .future-security-grid .future-command-media{min-height:clamp(360px,39vw,620px)}
+
+/* --- Signature: preserve breathing room around the hero visual. --- */
+.future-page .signature-shell{min-height:clamp(520px,43vw,700px)}
+.future-page .signature-copy{max-width:580px}
+.future-page .signature-copy h2{max-width:10ch}
+.future-page .signature-copy p{max-width:50ch}
+.future-page .signature-mark{transform:translateZ(0)}
+
+/* --- Page identities: subtle differences, not five unrelated themes. --- */
+.future-home .future-hero{background-image:linear-gradient(90deg,rgba(242,201,105,.025),transparent 42%)}
+.future-features .future-hero{background-image:linear-gradient(135deg,rgba(70,145,215,.035),transparent 58%)}
+.future-security .future-hero{background-image:linear-gradient(90deg,transparent 38%,rgba(242,201,105,.025))}
+.future-experience .future-hero{background-image:linear-gradient(135deg,transparent 42%,rgba(70,145,215,.028))}
+.future-about .future-hero{background-image:linear-gradient(90deg,rgba(242,201,105,.018),transparent 55%)}
+
+/* Security gets a slightly calmer, wider image stage. */
+.future-security .future-command{grid-template-columns:minmax(0,1.12fr) minmax(0,.88fr)}
+.future-security .future-command-media{order:1}
+.future-security .future-command-copy{order:2}
+
+/* Experience loop is the visual pause: slightly more vertical air. */
+.future-experience .vault-third{padding-top:clamp(30px,4vw,58px);padding-bottom:clamp(30px,4vw,58px)}
+
+/* About timeline: editorial spacing rather than card density. */
+.future-about .about-rail{min-height:clamp(340px,31vw,500px)}
+.future-about .future-principles .big{min-height:180px}
+
+/* --- Footer: quiet, deliberate landing-page finish. --- */
+.footer{margin-top:clamp(76px,9vw,128px);padding-top:26px!important;padding-bottom:28px!important;opacity:.9}
+.footer:before{opacity:.7}
+.footer span:last-child{letter-spacing:.02em}
+
+/* --- Desktop width calibration --- */
+@media (min-width:1200px){
+  .future-page .future-section,
+  .future-page .future-hero{max-width:1370px}
+  .future-page .future-section-head p,
+  .future-page .network-head>p,
+  .future-page .signal-head>p,
+  .future-page .security-layer-head>p,
+  .future-page .loop-head>p,
+  .future-page .about-timeline-head>p{max-width:440px}
+}
+
+/* --- Tablet / mobile --- */
+@media (max-width:900px){
+  .future-page .future-hero{margin-bottom:72px}
+  .future-page .future-section + .future-section{margin-top:72px}
+  .future-page .future-section-head,
+  .future-page .network-head,
+  .future-page .signal-head,
+  .future-page .security-layer-head,
+  .future-page .loop-head,
+  .future-page .about-timeline-head{grid-template-columns:1fr;row-gap:20px}
+  .future-page .future-cell{min-height:230px}
+  .future-security .future-command{grid-template-columns:1fr}
+  .future-security .future-command-media{order:1}
+  .future-security .future-command-copy{order:2}
+  .future-page .signature-shell{min-height:560px}
+}
+
+@media (max-width:600px){
+  .future-page .future-hero{margin-bottom:58px}
+  .future-page .future-section + .future-section{margin-top:58px}
+  .future-page .future-cell{min-height:205px}
+  .future-page .future-cell h3{margin-top:24px}
+  .future-page .future-command-media,
+  .future-page .future-security-grid .future-command-media{min-height:280px}
+  .future-page .signature-shell{min-height:500px}
+  .future-page .signature-copy h2{max-width:12ch}
+  .footer{margin-top:64px}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .future-page *{scroll-behavior:auto!important}
+}
+
+/* ================================================================
+   v4.7.9 · SIGNATURE VISUAL CONTAINMENT + FINAL POLISH
+   Keep every signature visual centered, fully visible and isolated
+   from the copy on every viewport. Header / language / Login untouched.
+================================================================ */
+
+/* The signature stage is a real two-column composition, not an
+   absolutely-positioned decoration. This prevents the visual from
+   escaping the panel on shorter or narrower screens. */
+.future-page .signature-shell{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) minmax(360px,.92fr);
+  grid-template-rows:auto 1fr;
+  align-items:center;
+  gap:clamp(28px,5vw,84px);
+  overflow:hidden!important;
+  min-height:clamp(500px,42vw,660px)!important;
+  padding:clamp(42px,5vw,76px)!important;
+}
+.future-page .signature-meta{
+  grid-column:1/-1;
+  width:100%;
+}
+.future-page .signature-copy{
+  grid-column:1;
+  grid-row:2;
+  align-self:center;
+  min-width:0;
+  z-index:3;
+}
+.future-page .signature-mark{
+  grid-column:2;
+  grid-row:2;
+  justify-self:center;
+  align-self:center;
+  position:relative!important;
+  width:min(100%,clamp(320px,34vw,500px))!important;
+  height:auto!important;
+  aspect-ratio:1/1;
+  max-width:500px;
+  max-height:500px;
+  min-width:0;
+  min-height:0;
+  margin:0 auto!important;
+  transform:translateZ(0)!important;
+  overflow:hidden;
+  contain:layout paint;
+}
+.future-page .signature-mark .halo,
+.future-page .signature-mark .signature-orbit,
+.future-page .signature-mark .signature-core{
+  position:absolute;
+  inset:0;
+}
+.future-page .signature-mark .signature-core{
+  display:grid;
+  place-items:center;
+}
+.future-page .signature-mark .signature-core>div{
+  position:relative;
+  z-index:4;
+  text-align:center;
+}
+
+/* Keep the visual centered even when a viewport is short. */
+@media (max-width:1100px){
+  .future-page .signature-shell{
+    grid-template-columns:minmax(0,1fr) minmax(300px,.82fr);
+    gap:34px;
+    padding:42px!important;
+  }
+  .future-page .signature-mark{width:min(100%,390px)!important;max-width:390px;max-height:390px}
+}
+
+/* Tablet: stack cleanly instead of allowing the mark to overlap the copy. */
+@media (max-width:900px){
+  .future-page .signature-shell{
+    grid-template-columns:1fr;
+    grid-template-rows:auto auto auto;
+    gap:30px;
+    min-height:0!important;
+    padding:38px 28px 42px!important;
+  }
+  .future-page .signature-meta{grid-column:1;grid-row:1}
+  .future-page .signature-copy{
+    grid-column:1;
+    grid-row:2;
+    width:100%;
+    text-align:left;
+  }
+  .future-page .signature-mark{
+    grid-column:1;
+    grid-row:3;
+    width:min(78vw,430px)!important;
+    max-width:430px;
+    max-height:430px;
+    margin:4px auto 0!important;
+  }
+}
+
+/* Phones: preserve the complete visual inside the panel. */
+@media (max-width:600px){
+  .future-page .signature-shell{
+    gap:24px;
+    padding:30px 20px 34px!important;
+    border-radius:22px;
+  }
+  .future-page .signature-copy h2{max-width:14ch}
+  .future-page .signature-copy p{max-width:42ch}
+  .future-page .signature-mark{
+    width:min(82vw,330px)!important;
+    max-width:330px;
+    max-height:330px;
+    margin:0 auto!important;
+  }
+}
+
+@media (max-width:380px){
+  .future-page .signature-shell{padding-left:16px!important;padding-right:16px!important}
+  .future-page .signature-mark{width:min(84vw,285px)!important;max-width:285px;max-height:285px}
+}
+
+/* Premium finish: keep the signature panel visually quiet and avoid
+   accidental clipping from transforms outside its own stage. */
+.future-page .signature-section{overflow:visible}
+.future-page .signature-shell:focus-within{outline:1px solid rgba(242,201,105,.12);outline-offset:3px}
+
+@media(prefers-reduced-motion:reduce){
+  .future-page .signature-mark *{animation:none!important;transition:none!important}
+}
+
+/* ================================================================
+   v4.7.10 · SIGNATURE CORE ALIGNMENT + FINAL POLISH
+   Fix inherited absolute sizing so every signature mark stays
+   centered, complete and readable at every viewport size.
+================================================================ */
+.future-page .signature-mark{
+  overflow:visible!important;
+  isolation:isolate;
+}
+.future-page .signature-mark .halo{
+  position:absolute!important;
+  inset:10%!important;
+  width:auto!important;
+  height:auto!important;
+  border-radius:50%;
+  pointer-events:none;
+}
+.future-page .signature-mark .signature-orbit{
+  position:absolute!important;
+  inset:0!important;
+  width:auto!important;
+  height:auto!important;
+  pointer-events:none;
+}
+.future-page .signature-mark .signature-core{
+  position:absolute!important;
+  left:50%!important;
+  top:50%!important;
+  right:auto!important;
+  bottom:auto!important;
+  inset:auto!important;
+  width:150px!important;
+  height:150px!important;
+  transform:translate(-50%,-50%)!important;
+  display:grid!important;
+  place-items:center!important;
+  overflow:visible!important;
+  z-index:5!important;
+}
+.future-page .signature-mark .signature-core>div{
+  position:relative!important;
+  inset:auto!important;
+  width:100%!important;
+  max-width:100%!important;
+  height:auto!important;
+  margin:0!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:center!important;
+  text-align:center!important;
+  transform:none!important;
+  white-space:normal!important;
+}
+.future-page .signature-mark .signature-core strong{
+  display:block!important;
+  width:auto!important;
+  margin:0!important;
+  line-height:1!important;
+  transform:none!important;
+  white-space:nowrap!important;
+}
+.future-page .signature-mark .signature-core small{
+  display:block!important;
+  width:100%!important;
+  margin:8px 0 0!important;
+  line-height:1.25!important;
+  transform:none!important;
+  white-space:normal!important;
+}
+
+/* Features: keep the square CORE treatment, but rotate only the
+   decorative frame — never the readable label. */
+.future-page.signature-features .signature-mark .signature-core{
+  width:156px!important;
+  height:156px!important;
+  border-radius:18px!important;
+  transform:translate(-50%,-50%)!important;
+}
+.future-page.signature-features .signature-mark .signature-core>div,
+.future-page.signature-features .signature-mark .signature-core strong,
+.future-page.signature-features .signature-mark .signature-core small{
+  transform:none!important;
+}
+
+/* Security / Experience / About use a quieter central core. */
+.future-page.signature-security .signature-mark .signature-core{
+  width:132px!important;
+  height:132px!important;
+}
+.future-page.signature-experience .signature-mark .signature-core{
+  width:150px!important;
+  height:150px!important;
+}
+.future-page.signature-about .signature-mark .signature-core{
+  width:150px!important;
+  height:150px!important;
+}
+
+/* Keep the visual slightly smaller than its column so its full
+   silhouette always has breathing room. */
+@media (min-width:901px){
+  .future-page .signature-mark{width:min(100%,430px)!important;max-width:430px!important}
+}
+@media (max-width:900px){
+  .future-page .signature-mark{width:min(78vw,390px)!important;max-width:390px!important}
+}
+@media (max-width:600px){
+  .future-page .signature-mark{width:min(78vw,300px)!important;max-width:300px!important}
+  .future-page .signature-mark .signature-core{width:118px!important;height:118px!important}
+  .future-page.signature-features .signature-mark .signature-core{width:124px!important;height:124px!important}
+  .future-page.signature-security .signature-mark .signature-core{width:106px!important;height:106px!important}
+  .future-page.signature-experience .signature-mark .signature-core{width:118px!important;height:118px!important}
+  .future-page.signature-about .signature-mark .signature-core{width:118px!important;height:118px!important}
+  .future-page .signature-mark .signature-core small{font-size:7px!important;letter-spacing:.14em!important}
+}
+@media (max-width:380px){
+  .future-page .signature-mark{width:min(76vw,270px)!important;max-width:270px!important}
+  .future-page .signature-mark .signature-core{width:106px!important;height:106px!important}
+  .future-page .signature-mark .signature-core strong{font-size:19px!important}
+}
+
+/* v4.7.10 finish: slightly quieter panel edge and cleaner visual
+   separation from the following section/footer. */
+.future-page .signature-shell{isolation:isolate}
+.future-page .signature-shell:after{
+  content:"";
+  position:absolute;
+  left:8%;right:8%;bottom:0;
+  height:1px;
+  background:linear-gradient(90deg,transparent,rgba(242,201,105,.12),transparent);
+  pointer-events:none;
+}

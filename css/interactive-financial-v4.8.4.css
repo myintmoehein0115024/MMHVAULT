@@ -1,0 +1,31 @@
+/* MMHVAULT v4.8.4 — Interactive Financial Elements */
+:root{--if-gold:#f2c969;--if-blue:#78a8ff;--if-line:rgba(242,201,105,.16)}
+.future-cell,.future-step,.future-trust-item,.future-principle,.future-stat,.future-command-media,.signal-board,.future-timeline,.future-footer-cta{position:relative;overflow:hidden;will-change:transform}
+.future-cell::after,.future-step::after,.future-trust-item::after,.future-principle::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(115deg,transparent 20%,rgba(242,201,105,.08) 45%,transparent 62%);transform:translateX(-120%);transition:transform .8s ease}
+.future-cell.is-active::after,.future-step.is-active::after,.future-trust-item.is-active::after,.future-principle.is-active::after{transform:translateX(120%)}
+.future-cell,.future-step,.future-trust-item,.future-principle{transition:transform .45s cubic-bezier(.2,.8,.2,1),border-color .45s ease,box-shadow .45s ease}
+.future-cell:hover,.future-step:hover,.future-trust-item:hover,.future-principle:hover{transform:translateY(-5px);box-shadow:0 18px 50px rgba(0,0,0,.22),0 0 28px rgba(120,168,255,.05)}
+.future-cell .index,.future-step .index{transition:color .4s ease,text-shadow .4s ease}
+.future-cell:hover .index,.future-step:hover .index{color:var(--if-gold);text-shadow:0 0 16px rgba(242,201,105,.3)}
+.future-stat::before{content:"";position:absolute;left:0;top:0;width:32%;height:1px;background:linear-gradient(90deg,var(--if-gold),transparent);transform:scaleX(.25);transform-origin:left;transition:transform .6s ease}
+.future-stat.is-active::before{transform:scaleX(1)}
+.signal-chart{--flow:0;position:relative}
+.signal-chart .main-line{stroke-dasharray:1200;stroke-dashoffset:1200;transition:stroke-dashoffset 2.4s cubic-bezier(.2,.7,.2,1)}
+.signal-chart.is-live .main-line{stroke-dashoffset:var(--flow)}
+.signal-chart .ghost-line{opacity:.35;stroke-dasharray:900;stroke-dashoffset:900}
+.signal-chart.is-live .ghost-line{animation:ifGhost 5s linear infinite}
+.signal-point{transition:transform .4s ease,opacity .4s ease;transform-box:fill-box;transform-origin:center}
+.signal-chart.is-live .p1{animation:ifPulse 2.4s ease-in-out infinite}
+.signal-chart.is-live .p2{animation:ifPulse 2.4s .45s ease-in-out infinite}
+.signal-chart.is-live .p3{animation:ifPulse 2.4s .9s ease-in-out infinite}
+.signal-chart.is-live .p4{animation:ifPulse 2.4s 1.35s ease-in-out infinite}
+.network-node,.node,.core-dot,.lock-dot{transition:filter .4s ease,transform .4s ease}
+.network-map.is-live .network-node,.network-map.is-live .node{animation:ifNode 3.6s ease-in-out infinite}
+.network-map.is-live .n2{animation-delay:.5s}.network-map.is-live .n3{animation-delay:1s}.network-map.is-live .n-assets{animation-delay:1.4s}.network-map.is-live .n-invest{animation-delay:1.9s}
+.future-security-grid .future-trust-item.is-active{border-color:rgba(242,201,105,.28)}
+.future-timeline .future-step.is-active{border-color:rgba(120,168,255,.25)}
+@keyframes ifPulse{0%,100%{transform:scale(1);opacity:.55}50%{transform:scale(1.45);opacity:1}}
+@keyframes ifGhost{to{stroke-dashoffset:0}}
+@keyframes ifNode{0%,100%{transform:scale(1);filter:brightness(1)}50%{transform:scale(1.08);filter:brightness(1.35)}}
+@media (max-width:800px){.future-cell:hover,.future-step:hover,.future-trust-item:hover,.future-principle:hover{transform:none;box-shadow:none}.future-cell::after,.future-step::after,.future-trust-item::after,.future-principle::after{display:none}}
+@media (prefers-reduced-motion:reduce){.future-cell,.future-step,.future-trust-item,.future-principle{transition:none}.signal-chart .main-line{stroke-dashoffset:0!important}.signal-chart .ghost-line{animation:none!important;stroke-dashoffset:0}.signal-point,.network-node,.node{animation:none!important}}
