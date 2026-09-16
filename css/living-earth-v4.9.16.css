@@ -1,0 +1,87 @@
+/* MMHVAULT v4.9.16 — isolated local-safe living Earth for Home only. */
+.future-home .future-hero{overflow:visible!important;}
+.future-home .future-hero .mmh-home-earth-v4-9-16{
+  position:relative!important;
+  grid-column:2!important;
+  grid-row:1!important;
+  justify-self:end!important;
+  align-self:center!important;
+  width:clamp(420px,42vw,650px)!important;
+  height:clamp(420px,42vw,650px)!important;
+  min-width:420px!important;
+  min-height:420px!important;
+  margin:0!important;
+  display:block!important;
+  z-index:8!important;
+  pointer-events:auto!important;
+  opacity:1!important;
+  visibility:visible!important;
+}
+/* Neutralize all inherited .future-orbit visuals without touching Signature. */
+.future-home .future-hero .future-orbit{background:none!important;border:0!important;box-shadow:none!important;}
+.future-home .future-hero .future-orbit::before,.future-home .future-hero .future-orbit::after{display:none!important;}
+
+.mmh-home-earth-v4-9-16 .mmh-home-earth-halo{
+  position:absolute!important; inset:5%!important; border-radius:50%!important;
+  background:radial-gradient(circle,rgba(58,152,240,.18) 0 42%,rgba(26,84,140,.10) 54%,transparent 72%)!important;
+  filter:blur(28px)!important; opacity:.95!important;
+}
+.mmh-home-earth-v4-9-16 .mmh-home-earth-sphere{
+  position:absolute!important; left:50%!important; top:50%!important;
+  width:82%!important; height:82%!important; transform:translate(-50%,-50%)!important;
+  border-radius:50%!important; overflow:hidden!important;
+  background:#020b14!important;
+  border:1px solid rgba(97,196,255,.34)!important;
+  box-shadow:0 0 30px rgba(49,153,244,.26),0 0 90px rgba(16,89,157,.17),inset -42px -30px 55px rgba(0,0,0,.75),inset 18px 8px 38px rgba(107,214,255,.14)!important;
+  z-index:2!important;
+}
+.mmh-home-earth-v4-9-16 .mmh-home-earth-map{
+  position:absolute!important; inset:-2% -2% -2% -2%!important;
+  width:204%!important; height:104%!important;
+  background-image:url('../images/mmhvault-earth-v4.9.16.jpg')!important;
+  background-repeat:repeat-x!important;
+  background-size:50% 100%!important;
+  background-position:0 50%!important;
+  filter:brightness(1.14) saturate(1.15) contrast(1.05)!important;
+  animation:mmhEarthSpin916 28s linear infinite!important;
+  will-change:background-position!important;
+  z-index:1!important;
+}
+@keyframes mmhEarthSpin916{0%{background-position:0 50%}100%{background-position:100% 50%}}
+.mmh-home-earth-v4-9-16 .mmh-home-earth-shade{
+  position:absolute!important; inset:0!important; border-radius:50%!important;
+  background:radial-gradient(circle at 33% 30%,transparent 0 36%,rgba(0,8,18,.12) 52%,rgba(0,4,10,.48) 72%,rgba(0,1,4,.90) 100%),linear-gradient(90deg,rgba(0,0,0,.42),transparent 24%,transparent 68%,rgba(0,0,0,.72))!important;
+  z-index:3!important; pointer-events:none!important;
+}
+.mmh-home-earth-v4-9-16 .mmh-home-earth-clouds{
+  position:absolute!important; inset:-4%!important; border-radius:50%!important;
+  background:repeating-linear-gradient(155deg,rgba(125,205,255,.065) 0 2px,transparent 2px 18px)!important;
+  mix-blend-mode:screen!important; opacity:.35!important;
+  transform:rotate(-8deg)!important;
+  animation:mmhEarthClouds916 16s linear infinite!important;
+  z-index:4!important;
+}
+@keyframes mmhEarthClouds916{to{transform:rotate(352deg)}}
+.mmh-home-earth-v4-9-16 .mmh-home-earth-highlight{
+  position:absolute!important; inset:0!important; border-radius:50%!important;
+  background:radial-gradient(circle at 31% 24%,rgba(151,224,255,.25),transparent 16%),linear-gradient(118deg,transparent 35%,rgba(255,255,255,.055) 48%,transparent 60%)!important;
+  mix-blend-mode:screen!important; z-index:5!important; pointer-events:none!important;
+}
+.mmh-home-earth-v4-9-16 .mmh-home-earth-atmosphere{
+  position:absolute!important; inset:9%!important; border-radius:50%!important;
+  box-shadow:0 0 0 1px rgba(103,199,255,.62),0 0 20px rgba(76,180,255,.34),0 0 55px rgba(43,123,207,.18)!important;
+  z-index:6!important; pointer-events:none!important;
+}
+.mmh-home-earth-v4-9-16 .mmh-home-earth-orbit{
+  position:absolute!important; left:50%!important; top:50%!important;
+  width:100%!important; height:28%!important; transform:translate(-50%,-50%) rotate(-16deg)!important;
+  border:1px solid rgba(245,203,108,.36)!important; border-radius:50%!important; z-index:7!important;
+  animation:mmhEarthOrbit916 12s linear infinite!important;
+}
+.mmh-home-earth-v4-9-16 .mmh-home-earth-orbit::after{content:""!important;position:absolute!important;width:7px!important;height:7px!important;border-radius:50%!important;background:#f6cd73!important;right:9%!important;top:-4px!important;box-shadow:0 0 14px rgba(246,205,115,.95)!important}
+.mmh-home-earth-v4-9-16 .orbit-2{width:112%!important;height:34%!important;transform:translate(-50%,-50%) rotate(28deg)!important;border-color:rgba(86,185,255,.24)!important;animation-direction:reverse!important;animation-duration:18s!important}
+.mmh-home-earth-v4-9-16 .orbit-2::after{right:auto!important;left:9%!important;top:92%!important;background:#59c0ff!important;box-shadow:0 0 14px rgba(89,192,255,.9)!important}
+@keyframes mmhEarthOrbit916{to{transform:translate(-50%,-50%) rotate(344deg)}}
+@media(max-width:1100px){.future-home .future-hero .mmh-home-earth-v4-9-16{width:clamp(360px,46vw,560px)!important;height:clamp(360px,46vw,560px)!important;min-width:360px!important;min-height:360px!important}}
+@media(max-width:860px){.future-home .future-hero{grid-template-columns:1fr!important}.future-home .future-hero .mmh-home-earth-v4-9-16{grid-column:1!important;grid-row:2!important;justify-self:center!important;width:min(86vw,500px)!important;height:min(86vw,500px)!important;min-width:300px!important;min-height:300px!important;margin:10px auto 28px!important}}
+@media(prefers-reduced-motion:reduce){.mmh-home-earth-v4-9-16 .mmh-home-earth-map,.mmh-home-earth-v4-9-16 .mmh-home-earth-clouds,.mmh-home-earth-v4-9-16 .mmh-home-earth-orbit{animation:none!important}}
