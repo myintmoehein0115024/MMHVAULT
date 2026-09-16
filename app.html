@@ -6530,11 +6530,16 @@ function loanOutMMK(){return transactions.filter(t=>t.category==="Loan Out").red
 function loanPaidMMK(){return transactions.filter(t=>t.category==="Loan Repayment").reduce((s,t)=>s+n(t.to_amount)*toMMK(t.to_account),0);}
 function investedCost(){return investments.reduce((s,x)=>{const rate=x.asset==="Crypto"?rates.usd_mmk:1;return s+(n(x.amount)+n(x.fee)+n(x.other_cost))*rate;},0);}
 function goldHoldingQty(x){
- const amount=n(x?.amount), buy=n(x?.buy_price), stored=n(x?.quantity);
- if(x?.asset!=='Gold') return stored;
- // Gold records are valued from the purchase amount and purchase-day price.
- // This keeps Dashboard/Invest/Allocation aligned even when legacy quantity is stale.
- return amount>0 && buy>0 ? amount/buy : stored;
+  // GOLD quantity is stored as KYA TTHA (ကျပ်သား). Never derive it from MMK amount / price.
+  // One ကျပ်သား = 16 ပဲ = 128 ရွေး. Explicit weight fields take priority;
+  // signed quantity is used so SELL records reduce the holding.
+  if(x?.asset!=='Gold') return n(x?.quantity);
+  const side=String(x?.side||x?.trade_type||'').toUpperCase();
+  let q=Number(x?.weight_kyattha);
+  if(!Number.isFinite(q)||q===0) q=Number(x?.quantity);
+  if(!Number.isFinite(q)) q=0;
+  if(side==='SELL' && q>0) q=-q;
+  return q;
 }
 function goldCurrentMMK(x){
  const price=goldMarketState?.pricePerKyattha||n(x?.market_price);
@@ -7054,7 +7059,27 @@ if(gold && goldMarketState.pricePerKyattha)invBuy.value=goldMarketState.pricePer
 invHint.textContent=crypto?"Crypto is USD. Quantity = Invested USD ÷ purchase-day market price. Current P/L = Quantity × current market price − total invested cost.":"Gold is MMK. Weight = Invested MMK ÷ purchase-day gold price. 1 ကျပ်သား = 16 ပဲ = 128 ရွေး. Investment purchase will deduct directly from KPay.";
 updateInvestCalc();
 }
-function updateInvestCalc(){const a=invAsset.value,amount=n(invAmount.value),buy=n(invBuy.value);if(!buy){invQty.value="";invGoldWeight.value="";return}const q=amount/buy;if(a==="Crypto")invQty.value=q.toFixed(10);else if(a==="Gold")invGoldWeight.value=`${Math.floor(q)} ကျပ်သား · ${((q-Math.floor(q))*16).toFixed(6)} ပဲ · ${((((q-Math.floor(q))*16)%1)*8).toFixed(4)} ရွေး`;}
+function updateInvestCalc(){
+  const a=invAsset.value,amount=n(invAmount.value),buy=n(invBuy.value);
+  if(a==="Crypto"){
+    if(!buy){invQty.value="";invGoldWeight.value="";return;}
+    const q=amount/buy;
+    invQty.value=q.toFixed(10);
+    invGoldWeight.value="";
+    return;
+  }
+  if(a==="Gold"){
+    invQty.value="";
+    // Gold quantity is an explicit weight, not amount / price.
+    const q=Number(invQty.dataset.goldWeightKyattha||0);
+    if(q>0){
+      const y=q*128, ky=Math.floor(q), pe=Math.floor((q-ky)*16), re=Math.round((y-Math.floor(y))*100)/100;
+      invGoldWeight.value=`${ky} ကျပ်သား · ${pe} ပဲ · ${re.toFixed(2)} ရွေး`;
+    }else invGoldWeight.value="";
+    return;
+  }
+  invQty.value="";invGoldWeight.value="";
+}
 function clearInvestForm(){invForm.reset();invDate.value=today();invAsset.value="Crypto";updateInvestFields();}
 async function addInvestment(e){
 e.preventDefault();const u=(await db.auth.getUser()).data.user;if(!u)return;
@@ -16490,6 +16515,23 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
 }
 </style>
 
+<script id="mmhvault-v439-gold-unit-fix">
+/* MMHVAULT v4.3.9 — Gold unit integrity
+   Gold quantity is ALWAYS KYA TTHA (ကျပ်သား); MMK is currency only.
+   Explicit weight fields / quantity are authoritative. SELL is negative. */
+(function(){
+  const original=window.renderGoldTable;
+  if(typeof original!=="function") return;
+  // The main render path uses the corrected lexical goldHoldingQty above.
+  // Keep a diagnostic helper available without changing stored cloud data.
+  window.mmhvaultGoldUnitV439={
+    kyatthaToYway:function(q){return Number(q||0)*128;},
+    ywayToKyattha:function(y){return Number(y||0)/128;},
+    paeToKyattha:function(p){return Number(p||0)/16;},
+    version:"4.3.9"
+  };
+})();
+</script>
 </body>
 <!-- MMHVAULT V4.3.0 performance baseline: logo-free account cards + restrained dashboard rendering. -->
 
