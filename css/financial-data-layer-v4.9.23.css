@@ -1,0 +1,17 @@
+/* MMHVAULT v4.9.23 — restrained financial data atmosphere */
+.mmh-home-earth-v4-9-17{isolation:isolate}
+.earth-data-layer{position:absolute;inset:0;pointer-events:none;z-index:7;font-family:inherit}
+.earth-data-chip,.earth-data-panel{position:absolute;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);background:linear-gradient(180deg,rgba(7,19,32,.58),rgba(5,12,22,.34));border:1px solid rgba(115,183,235,.16);box-shadow:0 12px 30px rgba(0,0,0,.16);opacity:0;transform:translateY(8px);animation:data-in .9s ease forwards}
+.earth-data-chip{top:10%;right:4%;display:flex;align-items:center;gap:9px;padding:8px 11px;border-radius:999px;color:rgba(229,241,251,.82);font-size:9px;letter-spacing:.18em;text-transform:uppercase}
+.earth-data-chip b{font-weight:650;color:#eef5fb}.earth-data-chip em{font-style:normal;color:#f2c969;font-size:8px;letter-spacing:.14em}
+.data-dot{width:6px;height:6px;border-radius:50%;background:#63caff;box-shadow:0 0 14px rgba(99,202,255,.9);animation:data-pulse 1.8s ease-in-out infinite}
+.earth-data-panel{width:142px;padding:11px 12px;border-radius:12px;color:rgba(223,235,245,.78)}
+.panel-left{left:-1%;top:32%;animation-delay:.12s}.panel-right{right:-1%;bottom:22%;animation-delay:.24s}
+.panel-kicker{font-size:8px;letter-spacing:.18em;text-transform:uppercase;color:rgba(242,201,105,.72);margin-bottom:6px}.panel-value{font-size:14px;letter-spacing:.08em;color:#edf3f8;font-weight:630}.panel-value span{color:rgba(242,201,105,.5);padding:0 3px}.panel-meta{display:flex;align-items:center;gap:6px;margin-top:8px;font-size:8px;letter-spacing:.12em;text-transform:uppercase}.panel-meta small{font-size:8px;color:rgba(205,220,232,.48);margin-right:auto}.panel-meta strong{font-size:8px;color:#71caff;letter-spacing:.14em;font-weight:650}.pulse-line{display:block;width:28px;height:7px;border-top:1px solid rgba(99,202,255,.5);border-radius:50%;transform:skewX(-22deg);position:relative}.pulse-line:after{content:"";position:absolute;left:7px;top:-4px;width:8px;height:8px;border-top:1px solid #63caff;transform:rotate(32deg)}
+.earth-data-scan{position:absolute;height:1px;background:linear-gradient(90deg,transparent,rgba(99,202,255,.5),transparent);opacity:.32;filter:drop-shadow(0 0 7px rgba(99,202,255,.2));animation:scan-move 5.5s linear infinite}.scan-a{left:3%;right:1%;top:23%}.scan-b{left:0;right:4%;bottom:15%;animation-delay:2.6s}
+@keyframes data-in{to{opacity:1;transform:translateY(0)}}
+@keyframes data-pulse{0%,100%{opacity:.55;transform:scale(.85)}50%{opacity:1;transform:scale(1.1)}}
+@keyframes scan-move{0%{transform:translateX(-7%);opacity:.08}50%{opacity:.35}100%{transform:translateX(7%);opacity:.08}}
+@media (max-width:980px){.earth-data-panel{width:126px}.panel-left{left:2%;top:23%}.panel-right{right:2%;bottom:18%}.earth-data-chip{right:5%;top:7%}}
+@media (max-width:760px){.earth-data-layer{display:none}}
+@media (prefers-reduced-motion:reduce){.earth-data-chip,.earth-data-panel{animation:none;opacity:1;transform:none}.data-dot,.earth-data-scan{animation:none}}
