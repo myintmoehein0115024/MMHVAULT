@@ -5846,7 +5846,7 @@ body.mmhvault-scroll-active #invest #v371CryptoMarket::before{
 <div class="portfolio-panel-v310 portfolio-activity-v310"><div class="mini-head-v310"><div><b>Investment Activity</b><span>Net investment cost recorded by month</span></div><span class="pill">Record history</span></div><div class="portfolio-activity-chart-v310" id="portfolioActivityV310"></div></div>
 </div>
 <div class="panel invest-holdings v371-crypto" id="v371CurrentHoldings"><div class="toolbar"><div><h2>Current Holdings</h2><div class="sub">Live market value and the quantity you currently hold.</div></div><span class="pill">Crypto · USD</span></div><div class="price-grid holdings-grid" id="currentHoldings"></div></div><div class="panel invest-holdings v371-crypto" id="v371Allocation"><div class="toolbar"><div><h2>Portfolio Allocation</h2><div class="sub">Current weight vs target weight.</div></div><span class="pill">Crypto Target</span></div><div id="allocation"></div></div>
-<div class="panel invest-entry"><div class="toolbar"><div><h2>Add Investment</h2><div class="sub">Record Crypto in USD or Gold in MMK. The source account is deducted automatically.</div></div><span class="pill">Crypto / Gold</span></div><form id="invForm"><div class="formgrid">
+<div class="panel invest-entry"><div class="toolbar"><div><h2>Add Investment</h2><div class="sub">Record Crypto in USD or Gold in MMK. Buy adds to holdings; Sell reduces holdings and credits the source account.</div></div><span class="pill">Crypto / Gold</span></div><form id="invForm"><div class="formgrid">
 <label>Date<input id="invDate" required="" type="date"/></label>
 <label>Trade Type<select id="invSideV336"><option value="BUY">Buy</option><option value="SELL">Sell</option></select></label>
 <label>Asset<select id="invAsset"><option>Crypto</option><option>Gold</option></select></label>
@@ -7315,87 +7315,40 @@ function renderCryptoTable(rows){
 }
 function renderGoldTable(rows){
   if(!rows.length)return '<div class="empty gold-empty-note">No gold investments.</div>';
-  const price=goldMarketState.pricePerKyattha||n(rows[0]?.market_price);
-  let totalCost=0,totalValue=0,totalWeight=0;
-  rows.forEach(x=>{const q=goldHoldingQty(x),cost=n(x.amount)+n(x.fee)+n(x.other_cost),val=q*price;totalCost+=cost;totalValue+=val;totalWeight+=q;});
-  const totalPL=totalValue-totalCost,totalROI=totalCost?totalPL/totalCost*100:0;
-  const tKy=Math.floor(totalWeight),tPe=Math.floor((totalWeight-tKy)*16),tRe=((((totalWeight-tKy)*16)-tPe)*8);
-  const summary=`<div class="gold-summary">
-    <div class="gold-summary-card"><div class="label">Total Invested</div><div class="value">MMK ${fmt(totalCost)}</div><div class="meta">Across ${rows.length} record${rows.length===1?'':'s'}</div></div>
+  const price=goldMarketState.pricePerKyattha||n(rows.find(x=>n(x.market_price)>0)?.market_price);
+  let netCost=0,totalValue=0,totalWeight=0,totalBuys=0,totalSells=0;
+  rows.forEach(x=>{
+    const q=goldHoldingQty(x), cost=n(x.amount)+n(x.fee)+n(x.other_cost);
+    const side=q<0?'SELL':'BUY';
+    if(side==='BUY'){totalBuys++;netCost+=cost;}else{totalSells++;netCost+=cost;}
+    totalWeight+=q;
+  });
+  // Current value is based on the net weight currently held. Net invested is the cumulative cash flow.
+  totalValue=Math.max(0,totalWeight)*price;
+  const totalPL=totalValue-netCost;
+  const totalROI=netCost?totalPL/netCost*100:0;
+  const avgBuy=totalWeight>0?rows.filter(x=>goldHoldingQty(x)>0).reduce((s,x)=>s+(n(x.amount)+n(x.fee)+n(x.other_cost)),0)/rows.filter(x=>goldHoldingQty(x)>0).reduce((s,x)=>s+goldHoldingQty(x),0):0;
+  const ky=Math.floor(Math.max(0,totalWeight)), pe=Math.floor((Math.max(0,totalWeight)-ky)*16), re=((((Math.max(0,totalWeight)-ky)*16)-pe)*8);
+  const summary=`<div class="gold-summary gold-summary-v438">
+    <div class="gold-summary-card"><div class="label">Net Invested</div><div class="value">MMK ${fmt(netCost)}</div><div class="meta">${totalBuys} BUY · ${totalSells} SELL</div></div>
     <div class="gold-summary-card"><div class="label">Current Value</div><div class="value green">MMK ${fmt(totalValue)}</div><div class="meta">Market ${fmt(price)} / ကျပ်သား</div></div>
-    <div class="gold-summary-card"><div class="label">Total P/L</div><div class="value ${totalPL>=0?'green':'red'}">MMK ${fmt(totalPL)}</div><div class="meta">${totalPL>=0?'+':''}${totalROI.toFixed(2)}% ROI</div></div>
-    <div class="gold-summary-card"><div class="label">Total Weight</div><div class="value">${tKy} ကျပ်</div><div class="meta">${tPe} ပဲ ${tRe.toFixed(2)} ရွေး</div></div>
+    <div class="gold-summary-card"><div class="label">Unrealized P/L</div><div class="value ${totalPL>=0?'green':'red'}">MMK ${fmt(totalPL)}</div><div class="meta">${totalPL>=0?'+':''}${totalROI.toFixed(2)}% vs net invested</div></div>
+    <div class="gold-summary-card"><div class="label">Current Holding</div><div class="value">${ky} ကျပ်</div><div class="meta">${pe} ပဲ ${re.toFixed(2)} ရွေး · ${Math.max(0,totalWeight).toFixed(8)} ကျပ်သား</div></div>
   </div>`;
-  const leaderRows=[...rows].map(x=>{
-    const q=goldHoldingQty(x),cur=(goldMarketState.pricePerKyattha||n(x.market_price)),cost=n(x.amount)+n(x.fee)+n(x.other_cost),val=q*cur,p=val-cost,roi=cost?p/cost*100:0;
-    const ky=Math.floor(q),pe=Math.floor((q-ky)*16),re=((((q-ky)*16)-pe)*8);
-    return {x,q,cur,cost,val,p,roi,weight:`${ky} ကျပ် ${pe} ပဲ ${re.toFixed(2)} ရွေး`};
-  }).sort((a,b)=>b.val-a.val).slice(0,3);
-  const avgBuy=totalWeight>0?totalCost/totalWeight:0;
-  const marketVsBuy=avgBuy>0?(price-avgBuy)/avgBuy*100:0;
-  const progressRaw=avgBuy>0?Math.max(8,Math.min(92,50+marketVsBuy*2)):50;
-  const perfClass=totalPL>=0?'green':'red';
-  const performance=`<div class="gold-performance-v34650" style="--gold-progress:${progressRaw}%">
-    <div class="gold-performance-head-v34650">
-      <div>
-        <div class="gold-performance-kicker-v34650">GOLD PERFORMANCE</div>
-        <div class="gold-performance-title-v34650">Purchase cost → current market</div>
-      </div>
-      <div class="gold-performance-result-v34650">
-        <div class="value ${perfClass}">${totalPL>=0?'+':'−'}MMK ${fmt(Math.abs(totalPL))}</div>
-        <div class="label">${totalROI>=0?'+':''}${totalROI.toFixed(2)}% total ROI</div>
-      </div>
-    </div>
-    <div class="gold-performance-track-v34650">
-      <div class="gold-performance-line-v34650"></div>
-      <div class="gold-performance-fill-v34650"></div>
-      <div class="gold-performance-marker-v34650" style="left:8%"></div>
-      <div class="gold-performance-marker-label-v34650" style="left:8%">AVG BUY</div>
-      <div class="gold-performance-marker-price-v34650" style="left:8%">MMK ${fmt(avgBuy)}</div>
-      <div class="gold-performance-marker-v34650 current" style="left:${progressRaw}%"></div>
-      <div class="gold-performance-marker-label-v34650" style="left:${progressRaw}%">MARKET</div>
-      <div class="gold-performance-marker-price-v34650" style="left:${progressRaw}%">MMK ${fmt(price)}</div>
-    </div>
-    <div class="gold-performance-foot-v34650">
-      <div class="gold-performance-stat-v34650"><span>Avg Buy / ကျပ်သား</span><b class="gold">MMK ${fmt(avgBuy)}</b></div>
-      <div class="gold-performance-stat-v34650"><span>Market / ကျပ်သား</span><b class="gold">MMK ${fmt(price)}</b></div>
-      <div class="gold-performance-stat-v34650"><span>Market Delta</span><b class="${marketVsBuy>=0?'green':'red'}">${marketVsBuy>=0?'+':''}${marketVsBuy.toFixed(2)}%</b></div>
-    </div>
+  const performance=`<div class="gold-performance-v438">
+    <div class="gold-performance-v438-head"><div><div class="gold-performance-kicker-v34650">GOLD PERFORMANCE</div><div class="gold-performance-title-v34650">Average purchase cost → current market</div></div><div class="gold-performance-result-v34650"><div class="value ${totalPL>=0?'green':'red'}">${totalPL>=0?'+':'−'}MMK ${fmt(Math.abs(totalPL))}</div><div class="label">${totalROI>=0?'+':''}${totalROI.toFixed(2)}%</div></div></div>
+    <div class="gold-performance-v438-grid"><div><span>Avg Buy / ကျပ်သား</span><b>MMK ${fmt(avgBuy)}</b></div><div><span>Market / ကျပ်သား</span><b>MMK ${fmt(price)}</b></div><div><span>Market Delta</span><b class="${price>=avgBuy?'green':'red'}">${avgBuy?((price-avgBuy)/avgBuy*100).toFixed(2):'0.00'}%</b></div><div><span>Current Weight</span><b>${Math.max(0,totalWeight).toFixed(8)} ကျပ်သား</b></div></div>
   </div>`;
-  const leaders=`<div class="gold-leaders-v34630">${leaderRows.length?leaderRows.map((r,i)=>`
-    <div class="gold-leader-v34630">
-      <div class="gold-leader-rank-v34630">◈ POSITION ${i+1}</div>
-      <div class="gold-leader-source-v34630">${esc(r.x.source_account||'KPay')}</div>
-      <div class="gold-leader-weight-v34630">${r.weight}</div>
-      <div class="gold-leader-bottom-v34630">
-        <div class="gold-leader-value-v34630">MMK ${fmt(r.val)}</div>
-        <div class="gold-leader-roi-v34630 ${r.roi>=0?'green':'red'}">${r.roi>=0?'+':''}${r.roi.toFixed(2)}%</div>
-      </div>
-    </div>`).join(''):`<div class="gold-leader-empty-v34630">No active gold positions.</div>`}</div>`;
-  const historyCaption=`<div class="gold-history-caption-v34660">
-    <div>
-      <div class="title">Gold History</div>
-      <div class="hint">Recorded purchases, current position and performance</div>
-    </div>
-    <div class="count">${rows.length} ${rows.length===1?'record':'records'}</div>
-  </div>`;
-  const table=`<div class="gold-table-wrap"><table><tr><th>Date</th><th>Source</th><th>Invested</th><th>Buy Price</th><th>Weight</th><th>Current Price</th><th>Current Value</th><th>P/L</th><th>ROI</th><th></th></tr>${rows.map(x=>{
-    const q=goldHoldingQty(x),cur=(goldMarketState.pricePerKyattha||n(x.market_price)),cost=n(x.amount)+n(x.fee)+n(x.other_cost),val=q*cur,p=val-cost,roi=cost?p/cost*100:0;
-    const ky=Math.floor(q),pe=Math.floor((q-ky)*16),re=((((q-ky)*16)-pe)*8);
-    return`<tr><td>${esc(x.inv_date)}</td><td>${esc(x.source_account||"KPay")}</td><td>MMK ${fmt(x.amount)}</td><td>${fmt(x.buy_price)}</td><td><div class="gold-weight-main">${ky} ကျပ် ${pe} ပဲ</div><div class="gold-weight-sub">${re.toFixed(2)} ရွေး</div></td><td>${fmt(cur)}</td><td>MMK ${fmt(val)}</td><td class="${p>=0?"green":"red"}">MMK ${fmt(p)}</td><td>${roi.toFixed(2)}%</td><td class="icon-actions">${window.mmHVaultHasInvestmentReceiptV3304?.(x.id)?`<button class="btn" onclick="openInvestmentReceiptV3304(${x.id})">👁 View</button>`:""}<button class="btn" onclick="editInvestment(${x.id})">Edit</button><button class="btn danger" onclick="deleteInvestment(${x.id})">×</button></td></tr>`}).join('')}</table></div>`;
-  const cards=`<div class="gold-mobile-list">${rows.map(x=>{
-    const q=goldHoldingQty(x),cur=(goldMarketState.pricePerKyattha||n(x.market_price)),cost=n(x.amount)+n(x.fee)+n(x.other_cost),val=q*cur,p=val-cost,roi=cost?p/cost*100:0;
-    const ky=Math.floor(q),pe=Math.floor((q-ky)*16),re=((((q-ky)*16)-pe)*8);
-    return`<div class="gold-mobile-card"><div class="gold-mobile-top"><div><div class="gold-mobile-date">${esc(x.inv_date)}</div><div class="gold-mobile-source">${esc(x.source_account||'KPay')}</div></div><div class="gold-mobile-roi ${roi>=0?'green':'red'}">${roi.toFixed(2)}%</div></div><div class="gold-mobile-grid">
-      <div class="gold-mobile-item"><div class="label">Invested</div><div class="value">MMK ${fmt(cost)}</div></div>
-      <div class="gold-mobile-item"><div class="label">Current Value</div><div class="value">MMK ${fmt(val)}</div></div>
-      <div class="gold-mobile-item"><div class="label">Buy Price</div><div class="value">${fmt(x.buy_price)} / ကျပ်သား</div></div>
-      <div class="gold-mobile-item"><div class="label">Current Price</div><div class="value">${fmt(cur)} / ကျပ်သား</div></div>
-      <div class="gold-mobile-item"><div class="label">Weight</div><div class="value">${ky} ကျပ် ${pe} ပဲ ${re.toFixed(2)} ရွေး</div></div>
-      <div class="gold-mobile-item"><div class="label">P/L</div><div class="value ${p>=0?'green':'red'}">MMK ${fmt(p)}</div></div>
-    </div><div class="gold-mobile-actions">${window.mmHVaultHasInvestmentReceiptV3304?.(x.id)?`<button class="btn" onclick="openInvestmentReceiptV3304(${x.id})">👁 View</button>`:""}<button class="btn" onclick="editInvestment(${x.id})">Edit</button><button class="btn danger" onclick="deleteInvestment(${x.id})">Delete</button></div></div>`;
+  const table=`<div class="gold-table-wrap"><table><tr><th>Date</th><th>Side</th><th>Source</th><th>Amount</th><th>Price</th><th>Weight</th><th>Current Value</th><th>P/L</th><th>ROI</th><th></th></tr>${[...rows].sort((a,b)=>String(b.inv_date).localeCompare(String(a.inv_date))).map(x=>{
+    const q=goldHoldingQty(x),side=q<0?'SELL':'BUY',cur=price,cost=n(x.amount)+n(x.fee)+n(x.other_cost),val=Math.max(0,q)*cur,p=q<0?0:val-cost,roi=cost?Math.abs(p)/Math.abs(cost)*100:0;
+    const aq=Math.abs(q), ky=Math.floor(aq), pe=Math.floor((aq-ky)*16), re=((((aq-ky)*16)-pe)*8);
+    return `<tr><td>${esc(x.inv_date)}</td><td class="${side==='BUY'?'green':'red'}"><b>${side}</b></td><td>${esc(x.source_account||'KPay')}</td><td>MMK ${fmt(Math.abs(n(x.amount)))}</td><td>MMK ${fmt(x.buy_price)} / ကျပ်သား</td><td><div class="gold-weight-main">${ky} ကျပ် ${pe} ပဲ</div><div class="gold-weight-sub">${re.toFixed(2)} ရွေး</div></td><td>MMK ${fmt(val)}</td><td class="${p>=0?'green':'red'}">${side==='SELL'?'—':'MMK '+fmt(p)}</td><td>${side==='SELL'?'—':roi.toFixed(2)+'%'}</td><td class="icon-actions">${window.mmHVaultHasInvestmentReceiptV3304?.(x.id)?`<button class="btn" onclick="openInvestmentReceiptV3304(${x.id})">👁 View</button>`:''}<button class="btn" onclick="editInvestment(${x.id})">Edit</button><button class="btn danger" onclick="deleteInvestment(${x.id})">×</button></td></tr>`;
+  }).join('')}</table></div>`;
+  const cards=`<div class="gold-mobile-list">${[...rows].sort((a,b)=>String(b.inv_date).localeCompare(String(a.inv_date))).map(x=>{
+    const q=goldHoldingQty(x),side=q<0?'SELL':'BUY',cost=n(x.amount)+n(x.fee)+n(x.other_cost),val=Math.max(0,q)*price,p=side==='SELL'?0:val-cost,roi=cost?Math.abs(p)/Math.abs(cost)*100:0,aq=Math.abs(q),ky=Math.floor(aq),pe=Math.floor((aq-ky)*16),re=((((aq-ky)*16)-pe)*8);
+    return `<div class="gold-mobile-card gold-mobile-card-v438"><div class="gold-mobile-top"><div><div class="gold-mobile-date">${esc(x.inv_date)}</div><div class="gold-mobile-source"><span class="${side==='BUY'?'green':'red'}">${side}</span> · ${esc(x.source_account||'KPay')}</div></div><div class="gold-mobile-roi ${side==='SELL'?'':' '+(roi>=0?'green':'red')}" >${side==='SELL'?'SOLD':roi.toFixed(2)+'%'}</div></div><div class="gold-mobile-grid"><div class="gold-mobile-item"><div class="label">Trade Amount</div><div class="value">MMK ${fmt(Math.abs(n(x.amount)))}</div></div><div class="gold-mobile-item"><div class="label">Weight</div><div class="value">${ky} ကျပ် ${pe} ပဲ ${re.toFixed(2)} ရွေး</div></div><div class="gold-mobile-item"><div class="label">Price</div><div class="value">MMK ${fmt(x.buy_price)} / ကျပ်သား</div></div><div class="gold-mobile-item"><div class="label">Current Value</div><div class="value">${side==='SELL'?'—':'MMK '+fmt(val)}</div></div><div class="gold-mobile-item"><div class="label">P/L</div><div class="value ${p>=0?'green':'red'}">${side==='SELL'?'—':'MMK '+fmt(p)}</div></div><div class="gold-mobile-item"><div class="label">Note</div><div class="value">${esc(x.note||'Gold investment')}</div></div></div><div class="gold-mobile-actions">${window.mmHVaultHasInvestmentReceiptV3304?.(x.id)?`<button class="btn" onclick="event.stopPropagation();openInvestmentReceiptV3304(${x.id})">👁 View</button>`:''}<button class="btn" onclick="event.stopPropagation();editInvestment(${x.id})">Edit</button><button class="btn danger" onclick="event.stopPropagation();deleteInvestment(${x.id})">Delete</button></div></div>`;
   }).join('')}</div>`;
-  return summary+performance+leaders+historyCaption+table+cards;
+  return summary+performance+`<div class="gold-history-caption-v34660"><div><div class="title">Gold History</div><div class="hint">BUY adds weight · SELL reduces weight · all records remain in history</div></div><div class="count">${totalBuys} BUY · ${totalSells} SELL</div></div>`+table+cards;
 }
 
 async function editInvestment(id){
@@ -11309,7 +11262,7 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
   function refreshTradeFormV336(){
     const side=$('invSideV336'),asset=$('invAsset'),symbol=$('invSymbol'); if(!side||!asset||!symbol)return;
     ensureSellWarning();
-    const sell=side.value==='SELL'&&asset.value==='Crypto';
+    const sell=side.value==='SELL';
     const buyLabel=[...document.querySelectorAll('#invForm label')].find(l=>l.querySelector('#invAmount'));
     const priceLabel=[...document.querySelectorAll('#invForm label')].find(l=>l.querySelector('#invBuy'));
     const btn=$('invSubmitV336')||$('invForm')?.querySelector('button[type="submit"]');
@@ -11318,7 +11271,7 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
     if(btn)btn.textContent=sell?'Sell & Record':'Buy & Record';
     const warn=$('invSellWarningV336');
     if(warn){const q=holdingsFor(symbol.value);warn.style.display=sell?'block':'none';warn.textContent=sell?`Current ${sym(symbol.value)||'asset'} holding: ${fmt(q)} ${sym(symbol.value)||''}. You cannot sell more than you hold.`:'';}
-    if(sell&&asset.value!=='Crypto'){side.value='BUY';}
+
   }
   function bindFormV336(){
     const form=$('invForm');if(!form||form.dataset.v336Bound==='1')return;
@@ -11326,44 +11279,37 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
     const side=$('invSideV336'),asset=$('invAsset'),symbol=$('invSymbol'),amount=$('invAmount'),buy=$('invBuy'),market=$('invMarket'),qty=$('invQty');
     [side,asset,symbol].forEach(el=>el?.addEventListener('change',()=>{refreshTradeFormV336();updateInvestFields();}));
     symbol?.addEventListener('input',()=>{refreshTradeFormV336();updateInvestFields();});
-    side?.addEventListener('change',()=>{ if(side.value==='SELL' && asset.value==='Gold') side.value='BUY'; refreshTradeFormV336(); updateInvestFields(); });
     window.mmHVaultRefreshTradeFormV336=refreshTradeFormV336;
     // Replace the original form submit with a no-schema-change buy/sell ledger writer.
     form.onsubmit=async function(e){
       e.preventDefault();
       const u=(await db.auth.getUser()).data.user;if(!u)return;
       const tradeSide=(side?.value==='SELL'?'SELL':'BUY'), tradeAsset=asset.value, s=sym(symbol.value);
-      if(tradeAsset!=='Crypto'){
-        // Preserve existing Gold behavior through the original implementation, temporarily.
-        alert('Gold investment entries remain in Buy mode in V4.3.0.');
-        return;
-      }
       const source=$('invSource').value, cashAmount=N(amount.value), fee=Math.max(0,N($('invFee').value)), other=Math.max(0,N($('invOther').value));
-      const price=N(buy.value), mkt=N(market.value)||window.livePrices?.[s]?.price||price;
-      if(!s){alert('Please enter a crypto symbol.');return;}
+      const price=N(buy.value), mkt=tradeAsset==='Gold'?(goldMarketState.pricePerKyattha||price):(N(market.value)||window.livePrices?.[s]?.price||price);
+      if(tradeAsset==='Crypto' && !s){alert('Please enter a crypto symbol.');return;}
       if(!(cashAmount>0)||!(price>0)){alert('Please enter a valid amount and trade price.');return;}
       const q=cashAmount/price;
       if(tradeSide==='SELL'){
-        const held=holdingsFor(s);
-        if(q>held+1e-10){alert(`Cannot sell ${fmt(q)} ${s}. Current holding is only ${fmt(held)} ${s}.`);return;}
+        const held=tradeAsset==='Gold'
+          ? investments.filter(x=>x.asset==='Gold').reduce((sum,x)=>sum+goldHoldingQty(x),0)
+          : holdingsFor(s);
+        if(q>held+1e-10){alert(`Cannot sell ${fmt(q)} ${tradeAsset==='Gold'?'ကျပ်သား':s}. Current holding is only ${fmt(held)} ${tradeAsset==='Gold'?'ကျပ်သား':s}.`);return;}
       }
       const signedCash=tradeSide==='SELL'?-cashAmount:cashAmount;
-      const signedQuantity=tradeSide==='SELL'?-q:q;
-      const row={user_id:u.id,inv_date:$('invDate').value,asset:'Crypto',symbol:s,source_account:source,amount:signedCash,fee,other_cost:other,buy_price:price,market_price:mkt,quantity:signedQuantity,note:$('invNote').value||null};
+      const signedQty=tradeSide==='SELL'?-q:q;
+      const row={user_id:u.id,inv_date:$('invDate').value,asset:tradeAsset,symbol:tradeAsset==='Crypto'?s:'Gold',source_account:source,amount:signedCash,fee,other_cost:other,buy_price:price,market_price:mkt,quantity:signedQty,note:$('invNote').value||null};
       const r=await db.from('investments').insert(row).select('id').single();
       if(r.error){alert(r.error.message);return;}
-      const file=$('invReceipt')?.files?.[0]||null;
-      if(file){try{await uploadInvestmentReceiptV3304(u.id,r.data.id,file);}catch(err){alert('Investment was saved, but the receipt upload failed: '+(err?.message||err));}}
-      if(typeof window.mmHVaultNotifyDataChangeV332==='function')window.mmHVaultNotifyDataChangeV332('investment-'+tradeSide.toLowerCase());
-      await loadAll();
       clearInvestForm(); if($('invSideV336'))$('invSideV336').value='BUY'; refreshTradeFormV336();
-      window.refreshInvestmentReceiptFlagsV3304?.();
+      await loadAll();
+      return;
     };
     refreshTradeFormV336();
   }
   function boot(){
     bindFormV336();
-    const asset=$('invAsset');asset?.addEventListener('change',()=>{if($('invSideV336')?.value==='SELL'){$('invSideV336').value='BUY';refreshTradeFormV336();}});
+    const asset=$('invAsset');
     // re-render on price updates and existing app refreshes
     const oldFetch=window.fetchCryptoPrices;
     if(typeof oldFetch==='function'&&!oldFetch.__v336){
@@ -11418,7 +11364,7 @@ let lang=localStorage.getItem('mmhvault_language_v3363')||'en';
 
 // Comprehensive Chinese language pack v4.3.0 · full Analyze/Dashboard coverage
 Object.assign(zh,{
-'MMHVAULT · Personal Finance & Wealth Management':'MMHVAULT · 个人财务与财富管理','Loading your private finance workspace…':'正在加载您的私人财务空间…','Loading your finance data…':'正在加载您的财务数据…','Syncing your private cloud records.':'正在同步您的私人云端数据。','Unable to load cloud data.':'无法加载云端数据。','Retry':'重试','Personal Finance & Wealth Management':'个人财务与财富管理','MMHVAULT User':'MMHVAULT 用户','Your MMHVAULT dashboard is getting ready.':'您的 MMHVAULT 仪表盘正在准备中。','Loading your latest financial data…':'正在加载最新财务数据…','Welcome to MMHVAULT':'欢迎使用 MMHVAULT','Let’s get your personal wealth workspace ready.':'让我们准备好您的个人财富管理空间。','Skip':'跳过','1. Your account is ready':'1. 您的账户已准备就绪','Your Customer ID is created automatically and your account stays connected to your own cloud data.':'您的客户 ID 会自动创建，账户将持续连接到您自己的云端数据。','Secure sign-in with Google or Email / Password':'使用 Google 或邮箱 / 密码安全登录','Personal Customer ID such as MF0001':'个人客户 ID，例如 MF0001','Your finance records remain separated by account':'您的财务记录按账户独立保存','2. Add your first transaction':'2. 添加您的第一笔交易','Income — salary, bonus or other income':'收入 — 工资、奖金或其他收入','Expense — dining, transport, lifestyle and more':'支出 — 餐饮、交通、生活等','Analyze updates automatically':'分析数据自动更新','3. You’re ready to go':'3. 一切准备就绪','Track Crypto & Gold investments':'追踪加密货币与黄金投资','Manage your exchange rates':'管理您的汇率','Account, Appearance and Data & Backup':'账户、外观和数据与备份','This introduction appears once on each device. You can skip it at any time.':'此介绍每台设备仅显示一次，您可以随时跳过。','Back':'返回','Next':'下一步','Display Currency:':'显示货币：','Day-to-day cash accounts · native currency + USD equivalent':'日常现金账户 · 原币种 + USD 等值','Income / Expense':'收入 / 支出','Current Month':'本月','Investment Snapshot':'投资概览','Current holdings':'当前持仓','Recent Transactions':'最近交易','0 shown':'显示 0 条','View All →':'查看全部 →','▤ History':'▤ 历史记录','◈ Intelligence':'◈ 智能分析','Date':'日期','Type':'类型','Transfer':'转账','Transaction':'交易','Personal':'个人','Loans':'借贷','Category':'分类','From Account':'转出账户','Account From Amount':'转出账户金额','To Account':'转入账户','Account To Amount':'转入账户金额','Note':'备注','Receipt attachment':'收据附件','Optional · add proof, invoice or payment screenshot':'可选 · 添加凭证、发票或付款截图','Optional':'可选','Choose a receipt':'选择收据','PNG, JPG, WEBP or PDF · up to 10 MB':'PNG、JPG、WEBP 或 PDF · 最大 10 MB','🔒 Stored privately in your secure cloud storage':'🔒 私密存储在您的安全云端空间','No file selected':'未选择文件','Clear':'清除','0 records':'0 条记录','Clear All':'清除全部','Search':'搜索','All':'全部','↺ Clear Filters':'↺ 清除筛选','Export CSV':'导出 CSV','Transaction Intelligence':'交易智能分析','Audit · Informational':'审计 · 信息参考','Year':'年份','Month':'月份','Annual':'年度','Overview':'概览','Financial Health':'财务健康','Cash Flow':'现金流','Expenses':'支出','Net Worth':'净资产','Decisions':'决策','Wealth Rules':'财富规则','Period Overview':'周期概览','Quick summary for your selected analysis period.':'您所选分析周期的快速摘要。','All period-based Analyze modules use the same transaction dataset and selected Year / Month.':'所有周期分析模块均使用相同的交易数据及所选年份 / 月份。','Expense Details':'支出详情','Loans excluded':'不包含借贷','Outstanding':'未偿还','Monthly Overview':'月度概览','Selected period':'所选周期','Health score based on your selected analysis period.':'健康评分基于您选择的分析周期。','Cash Flow Summary':'现金流摘要','Selected period · THB':'所选周期 · THB','Last 6 months · target 60%':'最近 6 个月 · 目标 60%','Expense Trend':'支出趋势','Income vs Expense':'收入与支出','Personal Expense Analysis':'个人支出分析','Family Support · Special Transfer · Gifts · Donation':'家庭支持 · 特别转账 · 礼物 · 捐赠','Personal · THB':'个人 · THB','Expense Ranking':'支出排行','Budget Progress':'预算进度','Edit planned amount for each category · THB':'编辑每个分类的计划金额 · THB','Current snapshot':'当前快照','Auto-updated':'自动更新','Emergency Fund':'紧急备用金','Savings':'储蓄','Investment':'投资','Local preferences':'本地偏好设置','Minimum Cash Reserve':'最低现金储备','months':'个月','Below this level, liquidity takes priority over new risk.':'低于此水平时，流动性优先于新的风险投资。','Comfortable Cash Reserve':'舒适现金储备','A stronger reserve level used for the “comfortable” state.':'用于“舒适”状态的更高储备水平。','Target Savings Rate':'目标储蓄率','Your repeatable monthly savings baseline before increasing investment pace.':'提高投资节奏前可持续执行的月度储蓄基准。','Investment Weight Ceiling':'投资比例上限','Above this share of net worth, the decision layer asks you to review concentration.':'超过该净资产比例时，决策系统会提示您检查集中度。','Save Rules':'保存规则','Reset Defaults':'恢复默认','Rule flow':'规则流程','Rates':'汇率','USD → MMK (manual)':'USD → MMK（手动）','USD → THB':'USD → THB','USD → CNY':'USD → CNY','Currency Converter':'货币转换器','Convert between USD, MMK, THB and CNY using your saved exchange rates.':'使用已保存的汇率在 USD、MMK、THB 和 CNY 之间转换。','Live from saved rates':'使用已保存汇率','Amount':'金额','From':'从','To':'到','⇄ Swap':'⇄ 交换','Investment Center':'投资中心','Crypto is displayed in':'加密货币显示单位为','Gold is displayed in':'黄金显示单位为','₿ Crypto':'₿ 加密货币','🥇 Gold':'🥇 黄金','Portfolio':'投资组合','Crypto Market':'加密货币市场','Live feed':'实时数据','Gold Market':'黄金市场','Manual · MMK / ကျပ်သား':'手动 · MMK / 缅甸甲','Current Gold Price · MMK / ကျပ်သား':'当前黄金价格 · MMK / 缅甸甲','Enter your current market price below.':'请在下方输入当前市场价格。','Open Google':'打开 Google','Gold Market Price / ကျပ်သား':'黄金市场价格 / 缅甸甲','Save Price':'保存价格','Portfolio Manager':'投资组合管理','A combined view of your Crypto + Gold portfolio, converted to USD for comparison.':'加密货币 + 黄金投资组合综合视图，并统一换算为 USD 方便比较。','Live valuation':'实时估值','Asset Mix':'资产构成','Current portfolio value':'当前投资组合价值','Crypto · Gold':'加密货币 · 黄金','Portfolio Signals':'投资组合信号','Simple risk and performance indicators':'简单的风险与表现指标','Current Position Leaders':'当前主要持仓','Largest positions by current value':'按当前价值排名的最大持仓','Top holdings':'主要持仓','Investment Activity':'投资活动','Net investment cost recorded by month':'按月记录的净投资成本','Record history':'记录历史','Current Holdings':'当前持仓','Live market value and the quantity you currently hold.':'实时市场价值及您当前持有的数量。','Crypto · USD':'加密货币 · USD','Portfolio Allocation':'投资组合配置','Current weight vs target weight.':'当前比例与目标比例。','Crypto Target':'加密货币目标','Record Crypto in USD or Gold in MMK. The source account is deducted automatically.':'加密货币以 USD 记录，黄金以 MMK 记录。来源账户将自动扣除。','Crypto / Gold':'加密货币 / 黄金','Trade Type':'交易类型','Buy':'买入','Sell':'卖出','Asset':'资产','Symbol':'代码','Source Account':'来源账户','Invested Amount':'投资金额','Fee':'手续费','Other Cost':'其他成本','Purchase-day Market Price':'购买日市场价格','Current Market Price':'当前市场价格','Quantity (Auto)':'数量（自动）','Gold Weight (Auto)':'黄金重量（自动）','Buy & Record':'买入并记录','Crypto Portfolio':'加密货币投资组合','All crypto values and P/L are shown in USD.':'所有加密货币价值及盈亏均以 USD 显示。','Profit / Loss · ROI':'盈亏 · ROI','Gold Portfolio':'黄金投资组合','Gold cost, value and P/L are shown in MMK.':'黄金成本、价值及盈亏均以 MMK 显示。','Account Center':'账户中心','Manage your MMHVAULT identity and sign-in status.':'管理您的 MMHVAULT 身份与登录状态。','Logout':'退出登录','Email / Password':'邮箱 / 密码','Customer ID':'客户 ID','Copy':'复制','Login method':'登录方式','Member since':'注册时间','Account status':'账户状态','Active':'正常','Account is active':'账户正常','Your cloud finance data is linked to this account.':'您的云端财务数据已关联此账户。','Not connected':'未连接','Session':'会话','Signed in':'已登录','Security':'安全','Manage your sign-in security without changing your Google / Email account connection.':'管理登录安全设置，无需更改 Google / 邮箱账户连接。','Security status':'安全状态','A quick view of the current authentication state for this account.':'快速查看此账户当前认证状态。','Authentication':'身份验证','Email verification':'邮箱验证','Google connection':'Google 连接','Last sign-in':'最后登录','Sign out other devices':'退出其他设备','Sign out all devices':'退出所有设备','Password':'密码','Change the password for your Email / Password account.':'更改您的邮箱 / 密码账户密码。','Current Password':'当前密码','New Password':'新密码','Confirm New Password':'确认新密码','For Google-only accounts, password management stays with Google and this form is not shown.':'仅使用 Google 登录的账户，密码由 Google 管理，因此不会显示此表单。','PWA icon · 192×192 / 512×512':'PWA 图标 · 192×192 / 512×512','RLS Protected':'RLS 保护','Preview Only':'仅预览','New Transactions':'新增交易','New Investments':'新增投资','Duplicates':'重复项','Review & Restore':'检查并恢复','Security & Data Status':'安全与数据状态','A quick operational check for your MMHVAULT account, cloud data and local backup state.':'快速检查您的 MMHVAULT 账户、云端数据和本地备份状态。','Checking…':'检查中…','Cloud connection':'云端连接','Signed-in account status':'登录账户状态','Account security':'账户安全','Authentication status':'认证状态','Backup state':'备份状态','Local backup history':'本地备份历史','Data footprint':'数据占用','Transactions + investments + rates':'交易 + 投资 + 汇率','Refresh Status':'刷新状态','Create Backup Now':'立即创建备份','Backup History':'备份历史','Recent backup points saved on this device for this account.':'此设备上为该账户保存的最近备份点。','Clear History':'清除历史','📊 Workbook import':'📊 工作簿导入','Excel Import':'Excel 导入','SAFE MERGE':'安全合并','Choose a workbook':'选择工作簿','.XLSX, .XLS or .XLSM · select your finance workbook':'.XLSX、.XLS 或 .XLSM · 选择您的财务工作簿','💡 Existing cloud records are preserved. Only new rows are imported.':'💡 保留现有云端记录，仅导入新增数据。','Import to My Account':'导入到我的账户','Data Safety':'数据安全','🔒 Private by account':'🔒 按账户私密保存','☁️ Cloud sync':'☁️ 云端同步','Danger Zone':'危险区域','Delete only your own Transactions, Investments and Exchange Rates.':'仅删除您自己的交易、投资和汇率数据。','Reset My Cloud Data':'重置我的云端数据','This action cannot be undone from MMHVAULT. Export a backup first.':'此操作无法在 MMHVAULT 中撤销，请先导出备份。','Close':'关闭','You are offline. Cloud changes will not be submitted.':'您当前离线，云端更改不会提交。','📎 Receipt Preview':'📎 收据预览','Reset':'重置','✕ Close':'✕ 关闭','Loading receipt…':'正在加载收据…',
+'MMHVAULT · Personal Finance & Wealth Management':'MMHVAULT · 个人财务与财富管理','Loading your private finance workspace…':'正在加载您的私人财务空间…','Loading your finance data…':'正在加载您的财务数据…','Syncing your private cloud records.':'正在同步您的私人云端数据。','Unable to load cloud data.':'无法加载云端数据。','Retry':'重试','Personal Finance & Wealth Management':'个人财务与财富管理','MMHVAULT User':'MMHVAULT 用户','Your MMHVAULT dashboard is getting ready.':'您的 MMHVAULT 仪表盘正在准备中。','Loading your latest financial data…':'正在加载最新财务数据…','Welcome to MMHVAULT':'欢迎使用 MMHVAULT','Let’s get your personal wealth workspace ready.':'让我们准备好您的个人财富管理空间。','Skip':'跳过','1. Your account is ready':'1. 您的账户已准备就绪','Your Customer ID is created automatically and your account stays connected to your own cloud data.':'您的客户 ID 会自动创建，账户将持续连接到您自己的云端数据。','Secure sign-in with Google or Email / Password':'使用 Google 或邮箱 / 密码安全登录','Personal Customer ID such as MF0001':'个人客户 ID，例如 MF0001','Your finance records remain separated by account':'您的财务记录按账户独立保存','2. Add your first transaction':'2. 添加您的第一笔交易','Income — salary, bonus or other income':'收入 — 工资、奖金或其他收入','Expense — dining, transport, lifestyle and more':'支出 — 餐饮、交通、生活等','Analyze updates automatically':'分析数据自动更新','3. You’re ready to go':'3. 一切准备就绪','Track Crypto & Gold investments':'追踪加密货币与黄金投资','Manage your exchange rates':'管理您的汇率','Account, Appearance and Data & Backup':'账户、外观和数据与备份','This introduction appears once on each device. You can skip it at any time.':'此介绍每台设备仅显示一次，您可以随时跳过。','Back':'返回','Next':'下一步','Display Currency:':'显示货币：','Day-to-day cash accounts · native currency + USD equivalent':'日常现金账户 · 原币种 + USD 等值','Income / Expense':'收入 / 支出','Current Month':'本月','Investment Snapshot':'投资概览','Current holdings':'当前持仓','Recent Transactions':'最近交易','0 shown':'显示 0 条','View All →':'查看全部 →','▤ History':'▤ 历史记录','◈ Intelligence':'◈ 智能分析','Date':'日期','Type':'类型','Transfer':'转账','Transaction':'交易','Personal':'个人','Loans':'借贷','Category':'分类','From Account':'转出账户','Account From Amount':'转出账户金额','To Account':'转入账户','Account To Amount':'转入账户金额','Note':'备注','Receipt attachment':'收据附件','Optional · add proof, invoice or payment screenshot':'可选 · 添加凭证、发票或付款截图','Optional':'可选','Choose a receipt':'选择收据','PNG, JPG, WEBP or PDF · up to 10 MB':'PNG、JPG、WEBP 或 PDF · 最大 10 MB','🔒 Stored privately in your secure cloud storage':'🔒 私密存储在您的安全云端空间','No file selected':'未选择文件','Clear':'清除','0 records':'0 条记录','Clear All':'清除全部','Search':'搜索','All':'全部','↺ Clear Filters':'↺ 清除筛选','Export CSV':'导出 CSV','Transaction Intelligence':'交易智能分析','Audit · Informational':'审计 · 信息参考','Year':'年份','Month':'月份','Annual':'年度','Overview':'概览','Financial Health':'财务健康','Cash Flow':'现金流','Expenses':'支出','Net Worth':'净资产','Decisions':'决策','Wealth Rules':'财富规则','Period Overview':'周期概览','Quick summary for your selected analysis period.':'您所选分析周期的快速摘要。','All period-based Analyze modules use the same transaction dataset and selected Year / Month.':'所有周期分析模块均使用相同的交易数据及所选年份 / 月份。','Expense Details':'支出详情','Loans excluded':'不包含借贷','Outstanding':'未偿还','Monthly Overview':'月度概览','Selected period':'所选周期','Health score based on your selected analysis period.':'健康评分基于您选择的分析周期。','Cash Flow Summary':'现金流摘要','Selected period · THB':'所选周期 · THB','Last 6 months · target 60%':'最近 6 个月 · 目标 60%','Expense Trend':'支出趋势','Income vs Expense':'收入与支出','Personal Expense Analysis':'个人支出分析','Family Support · Special Transfer · Gifts · Donation':'家庭支持 · 特别转账 · 礼物 · 捐赠','Personal · THB':'个人 · THB','Expense Ranking':'支出排行','Budget Progress':'预算进度','Edit planned amount for each category · THB':'编辑每个分类的计划金额 · THB','Current snapshot':'当前快照','Auto-updated':'自动更新','Emergency Fund':'紧急备用金','Savings':'储蓄','Investment':'投资','Local preferences':'本地偏好设置','Minimum Cash Reserve':'最低现金储备','months':'个月','Below this level, liquidity takes priority over new risk.':'低于此水平时，流动性优先于新的风险投资。','Comfortable Cash Reserve':'舒适现金储备','A stronger reserve level used for the “comfortable” state.':'用于“舒适”状态的更高储备水平。','Target Savings Rate':'目标储蓄率','Your repeatable monthly savings baseline before increasing investment pace.':'提高投资节奏前可持续执行的月度储蓄基准。','Investment Weight Ceiling':'投资比例上限','Above this share of net worth, the decision layer asks you to review concentration.':'超过该净资产比例时，决策系统会提示您检查集中度。','Save Rules':'保存规则','Reset Defaults':'恢复默认','Rule flow':'规则流程','Rates':'汇率','USD → MMK (manual)':'USD → MMK（手动）','USD → THB':'USD → THB','USD → CNY':'USD → CNY','Currency Converter':'货币转换器','Convert between USD, MMK, THB and CNY using your saved exchange rates.':'使用已保存的汇率在 USD、MMK、THB 和 CNY 之间转换。','Live from saved rates':'使用已保存汇率','Amount':'金额','From':'从','To':'到','⇄ Swap':'⇄ 交换','Investment Center':'投资中心','Crypto is displayed in':'加密货币显示单位为','Gold is displayed in':'黄金显示单位为','₿ Crypto':'₿ 加密货币','🥇 Gold':'🥇 黄金','Portfolio':'投资组合','Crypto Market':'加密货币市场','Live feed':'实时数据','Gold Market':'黄金市场','Manual · MMK / ကျပ်သား':'手动 · MMK / 缅甸甲','Current Gold Price · MMK / ကျပ်သား':'当前黄金价格 · MMK / 缅甸甲','Enter your current market price below.':'请在下方输入当前市场价格。','Open Google':'打开 Google','Gold Market Price / ကျပ်သား':'黄金市场价格 / 缅甸甲','Save Price':'保存价格','Portfolio Manager':'投资组合管理','A combined view of your Crypto + Gold portfolio, converted to USD for comparison.':'加密货币 + 黄金投资组合综合视图，并统一换算为 USD 方便比较。','Live valuation':'实时估值','Asset Mix':'资产构成','Current portfolio value':'当前投资组合价值','Crypto · Gold':'加密货币 · 黄金','Portfolio Signals':'投资组合信号','Simple risk and performance indicators':'简单的风险与表现指标','Current Position Leaders':'当前主要持仓','Largest positions by current value':'按当前价值排名的最大持仓','Top holdings':'主要持仓','Investment Activity':'投资活动','Net investment cost recorded by month':'按月记录的净投资成本','Record history':'记录历史','Current Holdings':'当前持仓','Live market value and the quantity you currently hold.':'实时市场价值及您当前持有的数量。','Crypto · USD':'加密货币 · USD','Portfolio Allocation':'投资组合配置','Current weight vs target weight.':'当前比例与目标比例。','Crypto Target':'加密货币目标','Record Crypto in USD or Gold in MMK. Buy adds to holdings; Sell reduces holdings and credits the source account.':'加密货币以 USD 记录，黄金以 MMK 记录。来源账户将自动扣除。','Crypto / Gold':'加密货币 / 黄金','Trade Type':'交易类型','Buy':'买入','Sell':'卖出','Asset':'资产','Symbol':'代码','Source Account':'来源账户','Invested Amount':'投资金额','Fee':'手续费','Other Cost':'其他成本','Purchase-day Market Price':'购买日市场价格','Current Market Price':'当前市场价格','Quantity (Auto)':'数量（自动）','Gold Weight (Auto)':'黄金重量（自动）','Buy & Record':'买入并记录','Crypto Portfolio':'加密货币投资组合','All crypto values and P/L are shown in USD.':'所有加密货币价值及盈亏均以 USD 显示。','Profit / Loss · ROI':'盈亏 · ROI','Gold Portfolio':'黄金投资组合','Gold cost, value and P/L are shown in MMK.':'黄金成本、价值及盈亏均以 MMK 显示。','Account Center':'账户中心','Manage your MMHVAULT identity and sign-in status.':'管理您的 MMHVAULT 身份与登录状态。','Logout':'退出登录','Email / Password':'邮箱 / 密码','Customer ID':'客户 ID','Copy':'复制','Login method':'登录方式','Member since':'注册时间','Account status':'账户状态','Active':'正常','Account is active':'账户正常','Your cloud finance data is linked to this account.':'您的云端财务数据已关联此账户。','Not connected':'未连接','Session':'会话','Signed in':'已登录','Security':'安全','Manage your sign-in security without changing your Google / Email account connection.':'管理登录安全设置，无需更改 Google / 邮箱账户连接。','Security status':'安全状态','A quick view of the current authentication state for this account.':'快速查看此账户当前认证状态。','Authentication':'身份验证','Email verification':'邮箱验证','Google connection':'Google 连接','Last sign-in':'最后登录','Sign out other devices':'退出其他设备','Sign out all devices':'退出所有设备','Password':'密码','Change the password for your Email / Password account.':'更改您的邮箱 / 密码账户密码。','Current Password':'当前密码','New Password':'新密码','Confirm New Password':'确认新密码','For Google-only accounts, password management stays with Google and this form is not shown.':'仅使用 Google 登录的账户，密码由 Google 管理，因此不会显示此表单。','PWA icon · 192×192 / 512×512':'PWA 图标 · 192×192 / 512×512','RLS Protected':'RLS 保护','Preview Only':'仅预览','New Transactions':'新增交易','New Investments':'新增投资','Duplicates':'重复项','Review & Restore':'检查并恢复','Security & Data Status':'安全与数据状态','A quick operational check for your MMHVAULT account, cloud data and local backup state.':'快速检查您的 MMHVAULT 账户、云端数据和本地备份状态。','Checking…':'检查中…','Cloud connection':'云端连接','Signed-in account status':'登录账户状态','Account security':'账户安全','Authentication status':'认证状态','Backup state':'备份状态','Local backup history':'本地备份历史','Data footprint':'数据占用','Transactions + investments + rates':'交易 + 投资 + 汇率','Refresh Status':'刷新状态','Create Backup Now':'立即创建备份','Backup History':'备份历史','Recent backup points saved on this device for this account.':'此设备上为该账户保存的最近备份点。','Clear History':'清除历史','📊 Workbook import':'📊 工作簿导入','Excel Import':'Excel 导入','SAFE MERGE':'安全合并','Choose a workbook':'选择工作簿','.XLSX, .XLS or .XLSM · select your finance workbook':'.XLSX、.XLS 或 .XLSM · 选择您的财务工作簿','💡 Existing cloud records are preserved. Only new rows are imported.':'💡 保留现有云端记录，仅导入新增数据。','Import to My Account':'导入到我的账户','Data Safety':'数据安全','🔒 Private by account':'🔒 按账户私密保存','☁️ Cloud sync':'☁️ 云端同步','Danger Zone':'危险区域','Delete only your own Transactions, Investments and Exchange Rates.':'仅删除您自己的交易、投资和汇率数据。','Reset My Cloud Data':'重置我的云端数据','This action cannot be undone from MMHVAULT. Export a backup first.':'此操作无法在 MMHVAULT 中撤销，请先导出备份。','Close':'关闭','You are offline. Cloud changes will not be submitted.':'您当前离线，云端更改不会提交。','📎 Receipt Preview':'📎 收据预览','Reset':'重置','✕ Close':'✕ 关闭','Loading receipt…':'正在加载收据…',
 // v4.3.0 — complete Dashboard / Analyze language coverage
 'Wealth Forecast & Scenarios':'财富预测与情景方案',
 'Project future net worth using your recent savings pace. Market returns are intentionally excluded.':'根据您近期的储蓄速度预测未来净资产，不包含市场投资回报。',
@@ -21529,4 +21475,17 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
   #moreNavMenu.more-nav-menu.open::before,
   #moreNavMenu.more-nav-menu.open::after{animation:none!important;}
 }
+</style>
+
+<style id="mmhvault-v438-gold-invest-polish">
+#invest .gold-summary-v438{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+#invest .gold-performance-v438{margin:0 16px 16px;padding:16px;border:1px solid rgba(246,199,91,.14);border-radius:18px;background:linear-gradient(145deg,rgba(43,32,14,.30),rgba(6,15,29,.44));box-shadow:inset 0 1px 0 rgba(255,255,255,.025)}
+#invest .gold-performance-v438-head{display:flex;justify-content:space-between;gap:14px;align-items:flex-start}
+#invest .gold-performance-v438-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:14px}
+#invest .gold-performance-v438-grid>div{padding:12px;border-radius:13px;background:rgba(8,18,34,.58);border:1px solid rgba(98,150,214,.11)}
+#invest .gold-performance-v438-grid span{display:block;font-size:9px;text-transform:uppercase;letter-spacing:.09em;color:#8499b8;font-weight:850}
+#invest .gold-performance-v438-grid b{display:block;margin-top:6px;font-size:14px;color:#f2d071}
+#invest .gold-mobile-card-v438 .gold-mobile-source{font-weight:800}
+@media(max-width:900px){#invest .gold-summary-v438{grid-template-columns:repeat(2,minmax(0,1fr))!important}#invest .gold-performance-v438-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:620px){#invest .gold-performance-v438{margin:0 10px 12px;padding:13px}#invest .gold-performance-v438-head{display:block}#invest .gold-performance-v438-grid{gap:8px}#invest .gold-performance-v438-grid>div{padding:10px}#invest .gold-performance-v438-grid b{font-size:12px}}
 </style>
