@@ -5983,7 +5983,7 @@ body.mmhvault-scroll-active #invest #v371CryptoMarket::before{
 </div>
 <div class="data-center-actions-v380">
 <button class="btn primary" onclick="exportMyFinanceBackupV380()" type="button">Export Backup</button>
-<label class="btn" style="display:inline-flex;align-items:center;justify-content:center;cursor:pointer">📥 Select Backup / Import JSON<input accept=".json,application/json" id="backupFile" onchange="previewMyFinanceBackupV383(this.files[0])" style="display:none" type="file"/></label>
+<button class="btn" id="selectBackupBtnV431" type="button" style="display:inline-flex;align-items:center;justify-content:center;cursor:pointer">📥 Select Backup / Import JSON</button><input accept=".json,application/json,text/json" id="backupFile" type="file" style="position:fixed;left:-9999px;top:-9999px;width:1px;height:1px;opacity:0;pointer-events:none" aria-label="Select MMHVAULT JSON backup" />
 <button class="btn" onclick="downloadTransactionsCSVV380()" type="button">Export Transactions CSV</button>
 </div>
 <div id="backupStatus" class="data-center-status-v380" aria-live="polite"></div>
@@ -8876,6 +8876,27 @@ async function importMyFinanceBackupV380(file){
 }
 
 let restorePreviewV383=null;
+/* V4.3.1: iOS-safe backup file picker. Do not rely on a hidden input inside a label. */
+function wireBackupFilePickerV431(){
+  const btn=document.getElementById('selectBackupBtnV431');
+  const input=document.getElementById('backupFile');
+  if(!btn||!input||btn.dataset.wired==='1') return;
+  btn.dataset.wired='1';
+  btn.addEventListener('click',function(ev){
+    ev.preventDefault();
+    ev.stopPropagation();
+    try{ input.value=''; }catch(_e){}
+    try{ input.click(); }catch(e){ console.error('MMHVAULT file picker failed',e); setRestoreStatusV383('File picker could not open. Please tap Select Backup again.','err'); }
+  },true);
+  input.addEventListener('change',function(){
+    const file=input.files&&input.files[0];
+    if(!file){setRestoreStatusV383('No backup file selected.','');return;}
+    previewMyFinanceBackupV383(file);
+  },true);
+}
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',wireBackupFilePickerV431,{once:true});
+else wireBackupFilePickerV431();
+
 function setRestoreStatusV383(text,kind=''){
   const el=$('backupStatus');
   if(el){el.className='data-center-status-v380 '+(kind||'');el.textContent=text||'';el.style.display=text?'block':'none';}
