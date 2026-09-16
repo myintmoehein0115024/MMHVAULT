@@ -6085,7 +6085,7 @@ if(!window.supabase){
 }
 </script>
 <script id="mmhvault-v435-native-import-boot">
-/* V4.3.6: standalone iOS file-input bridge. Must not depend on the main app script booting first. */
+/* V4.3.7: standalone iOS file-input bridge. Must not depend on the main app script booting first. */
 window.mmhvaultHandleBackupFileV436=function(file,input){
   try{
     var status=document.getElementById('backupStatus');
@@ -8975,31 +8975,92 @@ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded'
 else wireBackupFilePickerV434();
 
 function previewMyFinanceBackupDataV434(file,data){
-  const box=$('restorePreviewV383');
+  const box=document.getElementById('restorePreviewV383');
   try{
-    if(!Array.isArray(data.investments)) throw new Error('No investments array found.');
-    const normalizedInv=data.investments.map(normalizeInvestmentImportV383);
-    const validation=normalizedInv.map(validateInvestmentImportV383).find(Boolean);
-    if(validation) throw new Error(validation);
-    const txExisting=new Set((Array.isArray(transactions)?transactions:[]).map(txFp));
-    const invExisting=new Set((Array.isArray(investments)?investments:[]).map(invFp));
-    const ntx=data.transactions.filter(x=>!txExisting.has(txFp(x)));
-    const ninv=normalizedInv.filter(x=>!invExisting.has(invFp(x)));
-    const duplicates=(data.transactions.length-ntx.length)+(normalizedInv.length-ninv.length);
-    const hasRates=!!data.rates && [data.rates.usd_mmk,data.rates.usd_thb,data.rates.usd_cny].some(v=>Number(v)>0);
-    restorePreviewV383={file,data,u:null,ntx,ninv,duplicates,hasRates,needsAuth:true};
-    const set=(id,v)=>{const el=$(id);if(el)el.textContent=v;};
-    set('restoreFileNameV383',file.name||'MMHVAULT backup.json');
-    set('restoreFileMetaV383',`Backup date: ${formatBackupDateV383(data.exported_at)} · Format: ${data.version||'Trade Import / JSON'}`);
-    set('restoreNewTxV383',String(ntx.length));set('restoreNewInvV383',String(ninv.length));set('restoreDuplicateV383',String(duplicates));set('restoreRatesV383',hasRates?'Included':'Not included');
-    const conflict=$('restoreConflictV383');
-    if(conflict){const buys=ninv.filter(x=>N(x.quantity)>0).length,sells=ninv.filter(x=>N(x.quantity)<0).length;conflict.textContent=`Ready: ${buys} BUY + ${sells} SELL investment records. ${duplicates} existing records will be skipped. Existing cloud records will not be overwritten.`;}
-    const confirmBtn=$('restoreConfirmV383');if(confirmBtn)confirmBtn.disabled=(ntx.length===0&&ninv.length===0&&!hasRates);
-    if(box){box.classList.add('show');setTimeout(()=>{try{box.scrollIntoView({behavior:'smooth',block:'center'});}catch(_e){}},80);}
-    mmhShowImportMessageV434(`✓ JSON loaded successfully · ${data.investments.length} investment records found. Please review below.`,'ok');
-  }catch(e){console.error('MMHVAULT preview error',e);restorePreviewV383=null;if(box)box.classList.remove('show');mmhShowImportMessageV434('Import preview failed: '+(e?.message||e),'err');}
-}
+    /* V4.3.7: keep the preview renderer completely self-contained. Do not
+       reference lexical helpers such as N/n from another <script> block. */
+    const num=v=>{const x=Number(v);return Number.isFinite(x)?x:0;};
+    const arrTx=Array.isArray(data?.transactions)?data.transactions:[];
+    const arrInv=Array.isArray(data?.investments)?data.investments:[];
+    if(!Array.isArray(data?.investments)) throw new Error('No investments array found.');
 
+    const normalizeInv=x=>{
+      const side=String(x?.side||x?.trade_type||'').toUpperCase();
+      let amount=num(x?.amount ?? x?.invested_amount ?? x?.order_amount ?? x?.order_value);
+      let quantity=num(x?.quantity ?? x?.filled_quantity ?? x?.filled);
+      const price=num(x?.buy_price ?? x?.fill_price ?? x?.price ?? x?.trade_price);
+      if(side==='SELL'){amount=-Math.abs(amount);quantity=-Math.abs(quantity);}
+      else {amount=Math.abs(amount);quantity=Math.abs(quantity);}
+      return {
+        inv_date:x?.inv_date||x?.date||x?.created_at?.slice?.(0,10),
+        asset:x?.asset||'Crypto',
+        symbol:String(x?.symbol||x?.coin||'').toUpperCase(),
+        source_account:x?.source_account||x?.source||'OKX',
+        amount,
+        fee:Math.abs(num(x?.fee_usd ?? x?.fee ?? 0)),
+        other_cost:Math.abs(num(x?.other_cost ?? 0)),
+        buy_price:price,
+        market_price:num(x?.market_price)||price,
+        quantity,
+        note:x?.note||null
+      };
+    };
+    const validateInv=(x,i)=>{
+      if(!x.inv_date)return `Investment #${i+1}: missing date.`;
+      if(x.asset==='Crypto'&&!x.symbol)return `Investment #${i+1}: missing crypto symbol.`;
+      if(num(x.amount)===0||num(x.buy_price)<=0||num(x.quantity)===0)return `Investment #${i+1}: amount, price or quantity is invalid.`;
+      return '';
+    };
+    const txFpLocal=x=>[
+      x?.date||x?.tx_date,x?.type,x?.category||'',x?.from_account||'',num(x?.from_amount),
+      x?.to_account||'',num(x?.to_amount),x?.note||''
+    ].join('|');
+    const invFpLocal=x=>[
+      x?.date||x?.inv_date,x?.asset,x?.symbol||'',num(x?.amount),num(x?.fee),
+      num(x?.other_cost),num(x?.buy_price),num(x?.quantity)
+    ].join('|');
+
+    const normalizedInv=arrInv.map(normalizeInv);
+    const validation=normalizedInv.map(validateInv).find(Boolean);
+    if(validation)throw new Error(validation);
+
+    const currentTx=Array.isArray(window.transactions)?window.transactions:[];
+    const currentInv=Array.isArray(window.investments)?window.investments:[];
+    const txExisting=new Set(currentTx.map(txFpLocal));
+    const invExisting=new Set(currentInv.map(invFpLocal));
+    const ntx=arrTx.filter(x=>!txExisting.has(txFpLocal(x)));
+    const ninv=normalizedInv.filter(x=>!invExisting.has(invFpLocal(x)));
+    const duplicates=(arrTx.length-ntx.length)+(normalizedInv.length-ninv.length);
+    const hasRates=!!data.rates && [data.rates.usd_mmk,data.rates.usd_thb,data.rates.usd_cny].some(v=>num(v)>0);
+
+    restorePreviewV383={file,data,u:null,ntx,ninv,duplicates,hasRates,needsAuth:true};
+    const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
+    set('restoreFileNameV383',file?.name||'MMHVAULT backup.json');
+    set('restoreFileMetaV383',`Backup date: ${formatBackupDateV383(data.exported_at)} · Format: ${data.version||'Trade Import / JSON'}`);
+    set('restoreNewTxV383',String(ntx.length));
+    set('restoreNewInvV383',String(ninv.length));
+    set('restoreDuplicateV383',String(duplicates));
+    set('restoreRatesV383',hasRates?'Included':'Not included');
+    const conflict=document.getElementById('restoreConflictV383');
+    if(conflict){
+      const buys=ninv.filter(x=>num(x.quantity)>0).length;
+      const sells=ninv.filter(x=>num(x.quantity)<0).length;
+      conflict.textContent=`Ready: ${buys} BUY + ${sells} SELL investment records. ${duplicates} existing records will be skipped. Existing cloud records will not be overwritten.`;
+    }
+    const confirmBtn=document.getElementById('restoreConfirmV383');
+    if(confirmBtn)confirmBtn.disabled=(ntx.length===0&&ninv.length===0&&!hasRates);
+    if(box){
+      box.classList.add('show');
+      try{setTimeout(()=>box.scrollIntoView({behavior:'smooth',block:'center'}),80);}catch(_e){}
+    }
+    mmhShowImportMessageV434(`✓ JSON loaded successfully · ${arrInv.length} investment records found. Please review below.`,'ok');
+  }catch(e){
+    console.error('MMHVAULT preview error',e);
+    restorePreviewV383=null;
+    if(box)box.classList.remove('show');
+    mmhShowImportMessageV434('Import preview failed: '+(e?.message||e),'err');
+  }
+}
 window.previewMyFinanceBackupDataV434=previewMyFinanceBackupDataV434;
 
 function setRestoreStatusV383(text,kind=''){
