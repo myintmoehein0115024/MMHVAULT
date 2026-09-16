@@ -5410,7 +5410,7 @@ body.mmhvault-scroll-active #invest #v371CryptoMarket::before{
 }
 </style>
 
-</head>
+<style id="mmhvault-v434-import-css">#backupStatus{min-height:20px;margin-top:10px;text-align:center;font-weight:700}#backupStatus.ok{color:#8ff0b1}#backupStatus.err{color:#ff9a9a}.mmh-native-file-picker-v433{touch-action:manipulation;-webkit-tap-highlight-color:transparent}</style></head>
 <!-- MMHVAULT V4.3.0 · Dashboard report relocation + Transaction receipt center + Invest Add precision -->
 <body>
 <div id="mmhvaultAppBootGuardV3282" style="position:fixed;inset:0;z-index:30000;display:none;align-items:center;justify-content:center;background:#050a18;color:#dce8ff;font-family:Arial,sans-serif;padding:24px;text-align:center;">
@@ -5983,7 +5983,7 @@ body.mmhvault-scroll-active #invest #v371CryptoMarket::before{
 </div>
 <div class="data-center-actions-v380">
 <button class="btn primary" onclick="exportMyFinanceBackupV380()" type="button">Export Backup</button>
-<label class="btn mmh-native-file-picker-v433" id="selectBackupBtnV433" style="display:inline-flex;align-items:center;justify-content:center;cursor:pointer;position:relative;overflow:hidden">📥 Select Backup / Import JSON<input accept=".json,application/json,text/json" id="backupFile" type="file" aria-label="Select MMHVAULT JSON backup" style="position:absolute;inset:0;width:100%;height:100%;opacity:0.01;cursor:pointer;margin:0;padding:0;border:0" onchange="window.mmhvaultHandleBackupFileV433 && window.mmhvaultHandleBackupFileV433(this.files && this.files[0])" /></label>
+<label class="btn mmh-native-file-picker-v433" id="selectBackupBtnV433" style="display:inline-flex;align-items:center;justify-content:center;cursor:pointer;position:relative;overflow:hidden">📥 Select Backup / Import JSON<input accept=".json,application/json,text/json" id="backupFile" type="file" aria-label="Select MMHVAULT JSON backup" style="position:absolute;inset:0;width:100%;height:100%;opacity:0.01;cursor:pointer;margin:0;padding:0;border:0" onchange="window.mmhvaultHandleBackupFileV434 && window.mmhvaultHandleBackupFileV434(this.files && this.files[0], this)" /></label>
 <button class="btn" onclick="downloadTransactionsCSVV380()" type="button">Export Transactions CSV</button>
 </div>
 <div id="backupStatus" class="data-center-status-v380" aria-live="polite"></div><div id="backupPickerHelpV432" class="small" style="margin-top:8px;display:none" aria-live="polite">Tap “Select Backup / Import JSON” to open the iPhone Files picker.</div>
@@ -8876,32 +8876,80 @@ async function importMyFinanceBackupV380(file){
 }
 
 let restorePreviewV383=null;
-/* V4.3.3: robust iOS import. The native file input owns the picker; inline onchange + FileReader avoid relying on programmatic input.click() or File.text(). */
-window.mmhvaultHandleBackupFileV433=function(file){
-  if(!file){setRestoreStatusV383('No backup file selected.','');return;}
-  const box=$('restorePreviewV383');
-  if(box)box.classList.remove('show');
-  setRestoreStatusV383(`Reading ${file.name||'JSON backup'}…`);
-  try{
-    const reader=new FileReader();
-    reader.onload=function(){
-      try{
-        const raw=String(reader.result||'');
-        const data=JSON.parse(raw);
-        if(!data || !Array.isArray(data.transactions) || !Array.isArray(data.investments)) throw new Error('Invalid MMHVAULT JSON. The file must contain transactions and investments arrays.');
-        previewMyFinanceBackupDataV433(file,data);
-      }catch(e){console.error(e);restorePreviewV383=null;setRestoreStatusV383('Import preview failed: '+(e?.message||e),'err');}
-    };
-    reader.onerror=function(){setRestoreStatusV383('Import preview failed: Unable to read the selected file.','err');};
-    reader.readAsText(file);
-  }catch(e){console.error(e);setRestoreStatusV383('Import preview failed: '+(e?.message||e),'err');}
-};
-function wireBackupFilePickerV433(){
-  const input=document.getElementById('backupFile');
-  if(input) input.dataset.wired='1';
+/* V4.3.4: iOS JSON import hardening. Parse locally first; auth/cloud is only needed on final restore. */
+function mmhShowImportMessageV434(text,kind){
+  const el=$('backupStatus');
+  if(el){el.className='data-center-status-v380 '+(kind||'');el.textContent=text||'';el.style.display=text?'block':'none';}
 }
-if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',wireBackupFilePickerV433,{once:true});
-else wireBackupFilePickerV433();
+function mmhParseBackupV434(file){
+  if(!file){mmhShowImportMessageV434('No backup file selected.','');return;}
+  const input=$('backupFile');
+  const label=$('selectBackupBtnV433');
+  if(label) label.dataset.filename=file.name||'';
+  mmhShowImportMessageV434(`📄 Selected: ${file.name||'JSON backup'} · ${(file.size/1024).toFixed(1)} KB · Reading…`,'');
+  const box=$('restorePreviewV383'); if(box)box.classList.remove('show');
+  const reader=new FileReader();
+  reader.onload=function(ev){
+    try{
+      const raw=String(ev?.target?.result??'');
+      if(!raw.trim()) throw new Error('The selected file is empty.');
+      const data=JSON.parse(raw);
+      if(!data || !Array.isArray(data.transactions) || !Array.isArray(data.investments)) throw new Error('Invalid MMHVAULT JSON: transactions and investments arrays are required.');
+      mmhShowImportMessageV434(`✓ File read successfully · ${data.transactions.length} transactions · ${data.investments.length} investments · Preparing preview…`,'ok');
+      previewMyFinanceBackupDataV434(file,data);
+    }catch(e){
+      console.error('MMHVAULT JSON parse error',e);
+      restorePreviewV383=null;
+      mmhShowImportMessageV434('Import failed: '+(e?.message||e),'err');
+    }
+  };
+  reader.onerror=function(){console.error('MMHVAULT FileReader error',reader.error);mmhShowImportMessageV434('Import failed: iPhone could not read this file. Please select the JSON file again.','err');};
+  try{reader.readAsText(file,'utf-8');}catch(e){console.error(e);mmhShowImportMessageV434('Import failed: '+(e?.message||e),'err');}
+}
+window.mmhvaultHandleBackupFileV434=function(file,input){
+  mmhParseBackupV434(file);
+  if(input){try{input.dataset.lastSelected=String(Date.now());}catch(_e){}}
+};
+function wireBackupFilePickerV434(){
+  const input=document.getElementById('backupFile');
+  if(!input || input.dataset.wiredV434==='1') return;
+  input.dataset.wiredV434='1';
+  const handler=function(ev){
+    const file=ev?.target?.files?.[0];
+    if(file) mmhParseBackupV434(file);
+  };
+  input.addEventListener('change',handler,false);
+  input.onchange=handler;
+  input.addEventListener('click',function(){try{input.value='';}catch(_e){}},false);
+}
+if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',wireBackupFilePickerV434,{once:true});
+else wireBackupFilePickerV434();
+
+function previewMyFinanceBackupDataV434(file,data){
+  const box=$('restorePreviewV383');
+  try{
+    if(!Array.isArray(data.investments)) throw new Error('No investments array found.');
+    const normalizedInv=data.investments.map(normalizeInvestmentImportV383);
+    const validation=normalizedInv.map(validateInvestmentImportV383).find(Boolean);
+    if(validation) throw new Error(validation);
+    const txExisting=new Set((Array.isArray(transactions)?transactions:[]).map(txFp));
+    const invExisting=new Set((Array.isArray(investments)?investments:[]).map(invFp));
+    const ntx=data.transactions.filter(x=>!txExisting.has(txFp(x)));
+    const ninv=normalizedInv.filter(x=>!invExisting.has(invFp(x)));
+    const duplicates=(data.transactions.length-ntx.length)+(normalizedInv.length-ninv.length);
+    const hasRates=!!data.rates && [data.rates.usd_mmk,data.rates.usd_thb,data.rates.usd_cny].some(v=>Number(v)>0);
+    restorePreviewV383={file,data,u:null,ntx,ninv,duplicates,hasRates,needsAuth:true};
+    const set=(id,v)=>{const el=$(id);if(el)el.textContent=v;};
+    set('restoreFileNameV383',file.name||'MMHVAULT backup.json');
+    set('restoreFileMetaV383',`Backup date: ${formatBackupDateV383(data.exported_at)} · Format: ${data.version||'Trade Import / JSON'}`);
+    set('restoreNewTxV383',String(ntx.length));set('restoreNewInvV383',String(ninv.length));set('restoreDuplicateV383',String(duplicates));set('restoreRatesV383',hasRates?'Included':'Not included');
+    const conflict=$('restoreConflictV383');
+    if(conflict){const buys=ninv.filter(x=>N(x.quantity)>0).length,sells=ninv.filter(x=>N(x.quantity)<0).length;conflict.textContent=`Ready: ${buys} BUY + ${sells} SELL investment records. ${duplicates} existing records will be skipped. Existing cloud records will not be overwritten.`;}
+    const confirmBtn=$('restoreConfirmV383');if(confirmBtn)confirmBtn.disabled=(ntx.length===0&&ninv.length===0&&!hasRates);
+    if(box){box.classList.add('show');setTimeout(()=>{try{box.scrollIntoView({behavior:'smooth',block:'center'});}catch(_e){}},80);}
+    mmhShowImportMessageV434(`✓ JSON loaded successfully · ${data.investments.length} investment records found. Please review below.`,'ok');
+  }catch(e){console.error('MMHVAULT preview error',e);restorePreviewV383=null;if(box)box.classList.remove('show');mmhShowImportMessageV434('Import preview failed: '+(e?.message||e),'err');}
+}
 
 function setRestoreStatusV383(text,kind=''){
   const el=$('backupStatus');
@@ -9004,7 +9052,11 @@ async function previewMyFinanceBackupV383(file){
 function cancelRestorePreviewV383(){restorePreviewV383=null;const box=$('restorePreviewV383');if(box)box.classList.remove('show');const input=$('backupFile');if(input)input.value='';setRestoreStatusV383('Import cancelled.');}
 async function confirmRestorePreviewV383(){
   if(!restorePreviewV383)return;
-  const {data,u,ntx,ninv,hasRates,duplicates}=restorePreviewV383;
+  const {data,ntx,ninv,hasRates,duplicates}=restorePreviewV383;
+  let u=null;
+  try{u=(await db.auth.getUser()).data.user;}catch(e){setRestoreStatusV383('Restore failed: authentication is not ready. Please sign in again.','err');return;}
+  if(!u){setRestoreStatusV383('Restore failed: not signed in to MMHVAULT.','err');return;}
+  restorePreviewV383.u=u;
   const rateText=hasRates?' and saved exchange rates':'';
   if(!confirm(`Restore ${ntx.length} new transactions and ${ninv.length} new investments${rateText}? Existing records will be kept.`))return;
   const btn=$('restoreConfirmV383');if(btn)btn.disabled=true;
