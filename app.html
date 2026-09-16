@@ -5983,9 +5983,10 @@ body.mmhvault-scroll-active #invest #v371CryptoMarket::before{
 </div>
 <div class="data-center-actions-v380">
 <button class="btn primary" onclick="exportMyFinanceBackupV380()" type="button">Export Backup</button>
-<label class="btn" style="display:inline-flex;align-items:center;justify-content:center;cursor:pointer">Select Backup<input accept=".json" id="backupFile" onchange="previewMyFinanceBackupV383(this.files[0])" style="display:none" type="file"/></label>
+<label class="btn" style="display:inline-flex;align-items:center;justify-content:center;cursor:pointer">📥 Select Backup / Import JSON<input accept=".json,application/json" id="backupFile" onchange="previewMyFinanceBackupV383(this.files[0])" style="display:none" type="file"/></label>
 <button class="btn" onclick="downloadTransactionsCSVV380()" type="button">Export Transactions CSV</button>
 </div>
+<div id="backupStatus" class="data-center-status-v380" aria-live="polite"></div>
 <div class="restore-center-v383" id="restoreCenterV383">
 <div class="restore-preview-v383" id="restorePreviewV383">
 <div class="restore-preview-head-v383">
@@ -8875,56 +8876,95 @@ async function importMyFinanceBackupV380(file){
 }
 
 let restorePreviewV383=null;
-function setRestoreStatusV383(text,kind=''){setBackupStatusV380(text,kind);}
+function setRestoreStatusV383(text,kind=''){
+  const el=$('backupStatus');
+  if(el){el.className='data-center-status-v380 '+(kind||'');el.textContent=text||'';el.style.display=text?'block':'none';}
+}
 function formatBackupDateV383(value){const d=new Date(value);return Number.isNaN(d.getTime())?'Unknown date':d.toLocaleString(undefined,{year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});}
 function backupRecordHasUserIdV383(record,u){return !record?.user_id || record.user_id===u.id;}
+function normalizeInvestmentImportV383(x){
+  const side=String(x?.side||x?.trade_type||'').toUpperCase();
+  let amount=N(x?.amount ?? x?.invested_amount ?? x?.order_amount ?? x?.order_value);
+  let quantity=N(x?.quantity ?? x?.filled_quantity ?? x?.filled);
+  const price=N(x?.buy_price ?? x?.fill_price ?? x?.price ?? x?.trade_price);
+  if(side==='SELL'){amount=-Math.abs(amount);quantity=-Math.abs(quantity);}
+  else {amount=Math.abs(amount);quantity=Math.abs(quantity);}
+  const fee=N(x?.fee_usd ?? x?.fee ?? 0);
+  const other=N(x?.other_cost ?? 0);
+  return {
+    inv_date:x?.inv_date||x?.date||x?.created_at?.slice?.(0,10),
+    asset:x?.asset||'Crypto',symbol:String(x?.symbol||x?.coin||'').toUpperCase(),
+    source_account:x?.source_account||x?.source||'OKX',amount,fee:Math.abs(fee),other_cost:Math.abs(other),
+    buy_price:price,market_price:N(x?.market_price)||price,quantity,
+    note:x?.note||null
+  };
+}
+function validateInvestmentImportV383(x,i){
+  if(!x.inv_date) return `Investment #${i+1}: missing date.`;
+  if(x.asset==='Crypto' && !x.symbol) return `Investment #${i+1}: missing crypto symbol.`;
+  if(!(N(x.amount)!==0) || !(N(x.buy_price)>0) || !(N(x.quantity)!==0)) return `Investment #${i+1}: amount, price or quantity is invalid.`;
+  return '';
+}
 async function previewMyFinanceBackupV383(file){
   const box=$('restorePreviewV383');
-  if(!file){restorePreviewV383=null;if(box)box.classList.remove('show');return;}
+  if(!file){restorePreviewV383=null;if(box)box.classList.remove('show');setRestoreStatusV383('');return;}
   if(box)box.classList.remove('show');
+  setRestoreStatusV383(`Reading ${file.name||'JSON backup'}…`);
   try{
     const u=(await db.auth.getUser()).data.user;if(!u)throw new Error('Not signed in to MMHVAULT.');
     const data=JSON.parse(await file.text());
-    if(!data || !Array.isArray(data.transactions) || !Array.isArray(data.investments)) throw new Error('Invalid MMHVAULT backup file.');
+    if(!data || !Array.isArray(data.transactions) || !Array.isArray(data.investments)) throw new Error('Invalid MMHVAULT JSON. The file must contain transactions and investments arrays.');
     const incompatibleTx=data.transactions.filter(x=>!backupRecordHasUserIdV383(x,u)).length;
     const incompatibleInv=data.investments.filter(x=>!backupRecordHasUserIdV383(x,u)).length;
     if(incompatibleTx||incompatibleInv) throw new Error('This backup contains records from another account and cannot be restored here.');
+    const normalizedInv=data.investments.map(normalizeInvestmentImportV383);
+    const validation=normalizedInv.map(validateInvestmentImportV383).find(Boolean);if(validation)throw new Error(validation);
     const txExisting=new Set(transactions.map(txFp));
     const invExisting=new Set(investments.map(invFp));
     const ntx=data.transactions.filter(x=>!txExisting.has(txFp(x)));
-    const ninv=data.investments.filter(x=>!invExisting.has(invFp(x)));
-    const duplicates=(data.transactions.length-ntx.length)+(data.investments.length-ninv.length);
+    const ninv=normalizedInv.filter(x=>!invExisting.has(invFp(x)));
+    const duplicates=(data.transactions.length-ntx.length)+(normalizedInv.length-ninv.length);
     const hasRates=!!data.rates && [data.rates.usd_mmk,data.rates.usd_thb,data.rates.usd_cny].some(v=>Number(v)>0);
     restorePreviewV383={file,data,u,ntx,ninv,duplicates,hasRates};
     const set=(id,v)=>{const el=$(id);if(el)el.textContent=v;};
     set('restoreFileNameV383',file.name||'MMHVAULT backup.json');
-    set('restoreFileMetaV383',`Backup date: ${formatBackupDateV383(data.exported_at)} · Format: ${data.version||'Unknown'}`);
+    set('restoreFileMetaV383',`Backup date: ${formatBackupDateV383(data.exported_at)} · Format: ${data.version||'Trade Import / JSON'}`);
     set('restoreNewTxV383',String(ntx.length));set('restoreNewInvV383',String(ninv.length));set('restoreDuplicateV383',String(duplicates));set('restoreRatesV383',hasRates?'Included':'Not included');
     const conflict=$('restoreConflictV383');
     if(conflict){
-      conflict.textContent=duplicates?`${duplicates} existing records will be skipped. No existing transaction or investment will be overwritten.`:'No duplicate transactions or investments detected.';
+      const buys=ninv.filter(x=>N(x.quantity)>0).length,sells=ninv.filter(x=>N(x.quantity)<0).length;
+      conflict.textContent=`Ready: ${buys} BUY + ${sells} SELL investment records. ${duplicates} existing records will be skipped. Existing cloud records will not be overwritten.`;
     }
     const confirmBtn=$('restoreConfirmV383');if(confirmBtn)confirmBtn.disabled=(ntx.length===0&&ninv.length===0&&!hasRates);
     if(box)box.classList.add('show');
-    setRestoreStatusV383('Backup loaded. Review the preview before restoring.');
-  }catch(e){console.error(e);restorePreviewV383=null;setRestoreStatusV383('Backup preview failed: '+(e?.message||e),'err');}
+    setRestoreStatusV383('✓ JSON loaded successfully. Review the numbers above, then tap “Review & Restore”.','ok');
+  }catch(e){console.error(e);restorePreviewV383=null;setRestoreStatusV383('Import preview failed: '+(e?.message||e),'err');}
 }
-function cancelRestorePreviewV383(){restorePreviewV383=null;const box=$('restorePreviewV383');if(box)box.classList.remove('show');const input=$('backupFile');if(input)input.value='';setRestoreStatusV383('Restore cancelled.');}
+function cancelRestorePreviewV383(){restorePreviewV383=null;const box=$('restorePreviewV383');if(box)box.classList.remove('show');const input=$('backupFile');if(input)input.value='';setRestoreStatusV383('Import cancelled.');}
 async function confirmRestorePreviewV383(){
   if(!restorePreviewV383)return;
   const {data,u,ntx,ninv,hasRates,duplicates}=restorePreviewV383;
-  const total=ntx.length+ninv.length;
   const rateText=hasRates?' and saved exchange rates':'';
   if(!confirm(`Restore ${ntx.length} new transactions and ${ninv.length} new investments${rateText}? Existing records will be kept.`))return;
   const btn=$('restoreConfirmV383');if(btn)btn.disabled=true;
-  setRestoreStatusV383('Restoring selected backup…');
+  setRestoreStatusV383('Restoring selected data to your private cloud…');
   try{
-    if(ntx.length){const payload=ntx.map(x=>{const {created_at,user_id,...rest}=x;return {...rest,user_id:u.id,tx_date:x.tx_date||x.date};});const r=await db.from('transactions').insert(payload);if(r.error)throw r.error;}
-    if(ninv.length){const payload=ninv.map(x=>{const {created_at,user_id,...rest}=x;return {...rest,user_id:u.id,inv_date:x.inv_date||x.date};});const r=await db.from('investments').insert(payload);if(r.error)throw r.error;}
-    if(hasRates){const safe={usd_mmk:n(data.rates.usd_mmk),usd_thb:n(data.rates.usd_thb),usd_cny:n(data.rates.usd_cny),user_id:u.id};const r=await db.from('exchange_rates').upsert(safe);if(r.error)throw r.error;}
-    await loadAll();refreshDataCenterV380();
-    setRestoreStatusV383(`Restore complete: ${ntx.length} transactions + ${ninv.length} investments added${hasRates?', exchange rates applied':''}. ${duplicates} existing records skipped.`,'ok');
+    if(ntx.length){
+      const payload=ntx.map(x=>{const {created_at,user_id,...rest}=x;return {...rest,user_id:u.id,tx_date:x.tx_date||x.date};});
+      const r=await db.from('transactions').insert(payload);if(r.error)throw new Error('Transactions import failed: '+r.error.message);
+    }
+    if(ninv.length){
+      const payload=ninv.map(x=>{const {created_at,user_id,date,...rest}=x;return {...rest,user_id:u.id,inv_date:x.inv_date||date};});
+      const chunkSize=50;
+      for(let i=0;i<payload.length;i+=chunkSize){const r=await db.from('investments').insert(payload.slice(i,i+chunkSize));if(r.error)throw new Error('Investments import failed: '+r.error.message);}
+    }
+    if(hasRates){const safe={usd_mmk:n(data.rates.usd_mmk),usd_thb:n(data.rates.usd_thb),usd_cny:n(data.rates.usd_cny),user_id:u.id};const r=await db.from('exchange_rates').upsert(safe);if(r.error)throw new Error('Exchange rates import failed: '+r.error.message);}
+    const loaded=await loadAll({force:true});
+    if(loaded && loaded.ok===false && loaded.errors?.length) throw new Error('Records were submitted, but cloud refresh failed: '+loaded.errors.join(' '));
+    refreshDataCenterV380();
+    setRestoreStatusV383(`✓ Restore complete: ${ntx.length} transactions + ${ninv.length} investments added. ${duplicates} duplicates skipped.`,'ok');
     restorePreviewV383=null;const box=$('restorePreviewV383');if(box)box.classList.remove('show');const input=$('backupFile');if(input)input.value='';
+    window.mmhvaultForceRenderAllV34421?.('json-restore');
   }catch(e){console.error(e);setRestoreStatusV383('Restore failed: '+(e?.message||e),'err');if(btn)btn.disabled=false;}
 }
 
