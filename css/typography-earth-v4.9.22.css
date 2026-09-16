@@ -1,0 +1,20 @@
+/* MMHVAULT v4.9.22 — relaxed typography + clean Earth silhouette.
+   Home only. Header/Login and Earth motion logic stay untouched. */
+.future-home .future-hero .future-hero-inner{width:620px!important;max-width:620px!important;padding-right:0!important}
+.future-home .future-hero-inner h1{width:620px!important;max-width:620px!important;font-size:clamp(4.05rem,4.7vw,5.2rem)!important;line-height:.98!important;letter-spacing:-.052em!important;font-weight:620!important;margin:0 0 28px!important;text-wrap:initial!important}
+.future-home .future-hero-inner h1 .accent{font-weight:620!important;letter-spacing:-.052em!important}
+.future-home .future-hero-inner>p{width:575px!important;max-width:575px!important;font-size:1.03rem!important;line-height:1.74!important;letter-spacing:-.004em!important}
+.future-home .future-hero-actions{margin-top:30px!important;gap:15px!important;flex-wrap:nowrap!important}
+.future-home .future-hero-actions .btn{min-height:56px!important;padding-inline:26px!important;font-size:.95rem!important}
+.future-home .future-stat-rail{margin-top:34px!important}
+.future-home .mmh-home-earth-v4-9-17 .earth-rim{display:none!important;box-shadow:none!important}
+.future-home .mmh-home-earth-v4-9-17 .earth-stage{filter:drop-shadow(0 0 15px rgba(77,185,255,.23)) drop-shadow(0 0 46px rgba(32,108,184,.15))!important}
+.future-home .mmh-home-earth-v4-9-17 .earth-orbit{width:94%!important;height:28%!important}
+.future-home .mmh-home-earth-v4-9-17 .earth-orbit.two{width:102%!important;height:34%!important}
+.future-home .future-stat{padding:17px 18px 16px!important}
+.future-home .future-stat b{font-size:.65rem!important;letter-spacing:.22em!important}
+.future-home .future-stat span{margin-top:9px!important;font-size:.76rem!important;line-height:1.42!important}
+@media (max-width:1180px){.future-home .future-hero .future-hero-inner{width:560px!important;max-width:560px!important}.future-home .future-hero-inner h1{width:560px!important;max-width:560px!important;font-size:clamp(3.65rem,5vw,4.7rem)!important}.future-home .future-hero-inner>p{width:525px!important;max-width:525px!important}}
+@media (max-width:980px){.future-home .future-hero .future-hero-inner{width:520px!important;max-width:520px!important}.future-home .future-hero-inner h1{width:520px!important;max-width:520px!important;font-size:clamp(3.35rem,5.35vw,4.2rem)!important}.future-home .future-hero-inner>p{width:500px!important;max-width:500px!important;font-size:1rem!important}}
+@media (max-width:900px){.future-home .future-hero .future-hero-inner{width:100%!important;max-width:760px!important}.future-home .future-hero-inner h1{width:auto!important;max-width:100%!important;font-size:clamp(3rem,10.2vw,4.1rem)!important;line-height:.99!important}.future-home .future-hero-inner>p{width:auto!important;max-width:42rem!important;font-size:1rem!important}}
+@media (max-width:600px){.future-home .future-hero-inner h1{font-size:clamp(2.75rem,12.4vw,3.8rem)!important}}
