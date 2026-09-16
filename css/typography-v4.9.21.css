@@ -1,0 +1,112 @@
+/* MMHVAULT v4.9.21 — spacious desktop typography pass.
+   Keeps the living Earth untouched. Header/Login remain untouched. */
+.future-home .future-hero .future-hero-inner{
+  width:min(68%,760px)!important;
+  max-width:760px!important;
+  padding-right:20px!important;
+}
+
+.future-home .future-kicker{
+  margin-bottom:24px!important;
+  font-size:clamp(.64rem,.55vw,.76rem)!important;
+  letter-spacing:.28em!important;
+}
+
+.future-home .future-hero-inner h1{
+  font-size:clamp(3.75rem,4.8vw,5.2rem)!important;
+  line-height:.98!important;
+  letter-spacing:-.048em!important;
+  font-weight:630!important;
+  max-width:720px!important;
+  margin:0 0 27px!important;
+}
+
+.future-home .future-hero-inner h1 .accent{
+  font-weight:630!important;
+  letter-spacing:-.05em!important;
+}
+
+.future-home .future-hero-inner > p{
+  max-width:580px!important;
+  font-size:clamp(1rem,1.05vw,1.12rem)!important;
+  line-height:1.72!important;
+  letter-spacing:-.006em!important;
+}
+
+.future-home .future-hero-actions{
+  margin-top:31px!important;
+  gap:14px!important;
+  flex-wrap:nowrap!important;
+  align-items:center!important;
+}
+
+.future-home .future-hero-actions .btn{
+  min-height:56px!important;
+  padding-inline:27px!important;
+  font-size:.96rem!important;
+  white-space:nowrap!important;
+}
+
+.future-home .future-stat-rail{
+  margin-top:35px!important;
+}
+
+.future-home .future-stat{
+  padding:16px 17px 15px!important;
+}
+
+@media (max-width:1180px){
+  .future-home .future-hero .future-hero-inner{
+    width:min(61%,690px)!important;
+    max-width:690px!important;
+    padding-right:10px!important;
+  }
+  .future-home .future-hero-inner h1{
+    font-size:clamp(3.45rem,5vw,4.65rem)!important;
+  }
+  .future-home .future-hero-inner > p{
+    max-width:520px!important;
+  }
+}
+
+@media (max-width:980px){
+  .future-home .future-hero .future-hero-inner{
+    width:min(58%,620px)!important;
+  }
+  .future-home .future-hero-inner h1{
+    font-size:clamp(3.15rem,5.2vw,4.2rem)!important;
+  }
+  .future-home .future-hero-actions .btn{
+    padding-inline:22px!important;
+  }
+}
+
+@media (max-width:900px){
+  .future-home .future-hero .future-hero-inner{
+    width:100%!important;
+    max-width:760px!important;
+    padding-right:0!important;
+  }
+  .future-home .future-hero-inner h1{
+    font-size:clamp(3rem,10vw,4.15rem)!important;
+    line-height:.99!important;
+    margin-bottom:21px!important;
+  }
+  .future-home .future-hero-inner > p{
+    max-width:42rem!important;
+    font-size:1rem!important;
+  }
+  .future-home .future-hero-actions{
+    flex-wrap:wrap!important;
+  }
+}
+
+@media (max-width:600px){
+  .future-home .future-hero-inner h1{
+    font-size:clamp(2.7rem,12vw,3.7rem)!important;
+  }
+  .future-home .future-hero-actions .btn{
+    width:100%!important;
+    justify-content:center!important;
+  }
+}
