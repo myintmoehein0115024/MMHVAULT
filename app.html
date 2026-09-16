@@ -5411,7 +5411,7 @@ body.mmhvault-scroll-active #invest #v371CryptoMarket::before{
 </style>
 
 <style id="mmhvault-v434-import-css">#backupStatus{min-height:20px;margin-top:10px;text-align:center;font-weight:700}#backupStatus.ok{color:#8ff0b1}#backupStatus.err{color:#ff9a9a}.mmh-native-file-picker-v433{touch-action:manipulation;-webkit-tap-highlight-color:transparent}</style></head>
-<!-- MMHVAULT V4.3.0 · Dashboard report relocation + Transaction receipt center + Invest Add precision -->
+<!-- MMHVAULT V4.3.5 · iOS JSON import bridge + V4.3.0 Dashboard report relocation + Transaction receipt center + Invest Add precision -->
 <body>
 <div id="mmhvaultAppBootGuardV3282" style="position:fixed;inset:0;z-index:30000;display:none;align-items:center;justify-content:center;background:#050a18;color:#dce8ff;font-family:Arial,sans-serif;padding:24px;text-align:center;">
 <div style="max-width:420px;border:1px solid rgba(78,164,255,.25);border-radius:18px;padding:24px 22px;background:rgba(10,20,42,.92);box-shadow:0 18px 60px rgba(0,0,0,.4);">
@@ -5983,7 +5983,7 @@ body.mmhvault-scroll-active #invest #v371CryptoMarket::before{
 </div>
 <div class="data-center-actions-v380">
 <button class="btn primary" onclick="exportMyFinanceBackupV380()" type="button">Export Backup</button>
-<label class="btn mmh-native-file-picker-v433" id="selectBackupBtnV433" style="display:inline-flex;align-items:center;justify-content:center;cursor:pointer;position:relative;overflow:hidden">📥 Select Backup / Import JSON<input accept=".json,application/json,text/json" id="backupFile" type="file" aria-label="Select MMHVAULT JSON backup" style="position:absolute;inset:0;width:100%;height:100%;opacity:0.01;cursor:pointer;margin:0;padding:0;border:0" onchange="window.mmhvaultHandleBackupFileV434 && window.mmhvaultHandleBackupFileV434(this.files && this.files[0], this)" /></label>
+<label class="btn mmh-native-file-picker-v433" id="selectBackupBtnV433" style="display:inline-flex;align-items:center;justify-content:center;cursor:pointer;position:relative;overflow:hidden">📥 Select Backup / Import JSON<input accept=".json,application/json,text/json" id="backupFile" type="file" aria-label="Select MMHVAULT JSON backup" style="position:absolute;inset:0;width:100%;height:100%;opacity:0.01;cursor:pointer;margin:0;padding:0;border:0" onchange="window.mmhvaultHandleBackupFileV435 && window.mmhvaultHandleBackupFileV435(this.files && this.files[0], this)" /></label>
 <button class="btn" onclick="downloadTransactionsCSVV380()" type="button">Export Transactions CSV</button>
 </div>
 <div id="backupStatus" class="data-center-status-v380" aria-live="polite"></div><div id="backupPickerHelpV432" class="small" style="margin-top:8px;display:none" aria-live="polite">Tap “Select Backup / Import JSON” to open the iPhone Files picker.</div>
@@ -6083,6 +6083,58 @@ body.mmhvault-scroll-active #invest #v371CryptoMarket::before{
 if(!window.supabase){
   document.write('<script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.min.js"><\/script>');
 }
+</script>
+<script id="mmhvault-v435-native-import-boot">
+/* V4.3.5: standalone iOS file-input bridge. Must not depend on the main app script booting first. */
+window.mmhvaultHandleBackupFileV435=function(file,input){
+  try{
+    var status=document.getElementById('backupStatus');
+    if(status){status.style.display='block';status.className='data-center-status-v380';status.textContent=file?'📄 Selected: '+(file.name||'JSON backup')+' · Reading…':'No backup file selected.';}
+    if(!file)return;
+    var reader=new FileReader();
+    reader.onload=function(ev){
+      try{
+        var raw=String(ev && ev.target ? ev.target.result : '');
+        if(!raw.trim())throw new Error('The selected file is empty.');
+        var data=JSON.parse(raw);
+        if(!data || !Array.isArray(data.transactions) || !Array.isArray(data.investments)) throw new Error('Invalid MMHVAULT JSON file.');
+        if(status){status.style.display='block';status.className='data-center-status-v380 ok';status.textContent='✓ JSON loaded · '+data.investments.length+' investment records found. Preparing preview…';}
+        /* Give the main app a moment to finish booting, then hand the parsed object to its preview renderer. */
+        var tries=0;
+        var handoff=function(){
+          tries++;
+          try{
+            if(typeof window.previewMyFinanceBackupDataV434==='function'){
+              window.previewMyFinanceBackupDataV434(file,data); return;
+            }
+            if(typeof window.previewMyFinanceBackupDataV433==='function'){
+              window.previewMyFinanceBackupDataV433(file,data); return;
+            }
+          }catch(e){
+            console.error('MMHVAULT v4.3.5 preview handoff error',e);
+            if(status){status.className='data-center-status-v380 err';status.textContent='Import preview failed: '+(e.message||e);}
+            return;
+          }
+          if(tries<30)setTimeout(handoff,150);
+          else if(status){status.className='data-center-status-v380 err';status.textContent='JSON loaded, but the MMHVAULT preview module did not start. Please reload the page once and try again.';}
+        };
+        handoff();
+      }catch(e){
+        console.error('MMHVAULT v4.3.5 JSON parse error',e);
+        if(status){status.style.display='block';status.className='data-center-status-v380 err';status.textContent='Import failed: '+(e.message||e);}
+      }
+    };
+    reader.onerror=function(){
+      console.error('MMHVAULT v4.3.5 FileReader error',reader.error);
+      if(status){status.style.display='block';status.className='data-center-status-v380 err';status.textContent='Import failed: iPhone could not read this file.';}
+    };
+    reader.readAsText(file,'utf-8');
+  }catch(e){
+    console.error('MMHVAULT v4.3.5 handler error',e);
+    var status2=document.getElementById('backupStatus');
+    if(status2){status2.style.display='block';status2.className='data-center-status-v380 err';status2.textContent='Import failed: '+(e.message||e);}
+  }
+};
 </script>
 <script>
 const SUPABASE_URL="https://vrypucmyrztxgiqhjspd.supabase.co";
