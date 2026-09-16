@@ -1,0 +1,94 @@
+/* MMHVAULT v4.9.25 — large-screen full-width layout. */
+@media (min-width: 1440px){
+  :root{--max:none!important;}
+
+  /* Remove the large-screen side gutters created by the shared .wrap. */
+  body.future-home-page .wrap,
+  .future-home-page .wrap,
+  .future-home .wrap,
+  .future-page .wrap{
+    width:100%!important;
+    max-width:none!important;
+    margin-left:0!important;
+    margin-right:0!important;
+  }
+
+  /* Keep the page background edge-to-edge while preserving a refined inner inset. */
+  .future-home .site-header{
+    width:100%!important;
+    max-width:none!important;
+    padding-left:42px!important;
+    padding-right:42px!important;
+  }
+
+  .future-home .future-hero{
+    width:100%!important;
+    max-width:none!important;
+    padding-left:7.2vw!important;
+    padding-right:4vw!important;
+  }
+
+  /* Give the copy more breathing room on wide displays. */
+  .future-home .future-hero .future-hero-inner{
+    width:min(46vw,780px)!important;
+    max-width:780px!important;
+  }
+
+  .future-home .future-hero-inner h1{
+    width:min(46vw,760px)!important;
+    max-width:760px!important;
+  }
+
+  .future-home .future-hero-inner>p{
+    width:min(41vw,670px)!important;
+    max-width:670px!important;
+  }
+
+  /* Let the living Earth use the newly available right-side space. */
+  .future-home .future-hero .mmh-home-earth-v4-9-17{
+    right:3vw!important;
+    width:clamp(560px,42vw,760px)!important;
+    height:clamp(560px,42vw,760px)!important;
+    min-width:560px!important;
+    min-height:560px!important;
+  }
+
+  /* Keep the lower Home sections full-width, but retain a comfortable internal rhythm. */
+  .future-home .future-section{
+    width:100%!important;
+    max-width:none!important;
+    padding-left:7.2vw!important;
+    padding-right:7.2vw!important;
+  }
+
+  .future-home .footer{
+    width:100%!important;
+    max-width:none!important;
+    padding-left:7.2vw!important;
+    padding-right:7.2vw!important;
+  }
+}
+
+@media (min-width: 1800px){
+  .future-home .site-header{
+    padding-left:52px!important;
+    padding-right:52px!important;
+  }
+
+  .future-home .future-hero{
+    padding-left:8vw!important;
+    padding-right:4vw!important;
+  }
+
+  .future-home .future-section,
+  .future-home .footer{
+    padding-left:8vw!important;
+    padding-right:8vw!important;
+  }
+
+  .future-home .future-hero .mmh-home-earth-v4-9-17{
+    right:3.5vw!important;
+    width:clamp(620px,40vw,820px)!important;
+    height:clamp(620px,40vw,820px)!important;
+  }
+}
