@@ -1,0 +1,234 @@
+/* MMHVAULT v4.9.20 — typography system / Home content only.
+   Header typography is intentionally untouched. */
+.future-home{
+  --type-display: Inter, "SF Pro Display", "Helvetica Neue", -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+  --type-body: Inter, "SF Pro Text", "Helvetica Neue", -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+  --type-mono: "SFMono-Regular", "Cascadia Mono", "Roboto Mono", "DM Mono", ui-monospace, monospace;
+}
+
+.future-home .future-hero-inner,
+.future-home .future-section,
+.future-home .future-footer-cta,
+.future-home .signature-shell{
+  font-family:var(--type-body);
+  text-rendering:optimizeLegibility;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+}
+
+/* --- Hero hierarchy --- */
+.future-home .future-kicker{
+  font-family:var(--type-mono)!important;
+  font-size:clamp(.66rem,.58vw,.78rem)!important;
+  line-height:1.15!important;
+  font-weight:600!important;
+  letter-spacing:.30em!important;
+  white-space:nowrap;
+  margin-bottom:19px!important;
+}
+
+.future-home .future-hero-inner h1{
+  font-family:var(--type-display)!important;
+  font-size:clamp(4rem,5.25vw,5.65rem)!important;
+  line-height:.93!important;
+  font-weight:650!important;
+  letter-spacing:-.055em!important;
+  max-width:760px!important;
+  margin:0 0 25px!important;
+  text-wrap:balance;
+}
+
+.future-home .future-hero-inner h1 .accent{
+  font-weight:650!important;
+  letter-spacing:-.057em!important;
+}
+
+.future-home .future-hero-inner > p{
+  max-width:610px!important;
+  margin:0!important;
+  font-family:var(--type-body)!important;
+  font-size:clamp(1rem,1.15vw,1.18rem)!important;
+  line-height:1.68!important;
+  font-weight:400!important;
+  letter-spacing:-.012em!important;
+  color:rgba(184,197,209,.78)!important;
+  text-wrap:pretty;
+}
+
+.future-home .future-hero-actions{
+  margin-top:30px!important;
+  gap:14px!important;
+}
+
+.future-home .future-hero-actions .btn{
+  font-family:var(--type-body)!important;
+  font-size:.96rem!important;
+  line-height:1!important;
+  font-weight:600!important;
+  letter-spacing:-.015em!important;
+  min-height:56px;
+}
+
+/* --- Hero stat rail --- */
+.future-home .future-stat-rail{gap:0!important;}
+.future-home .future-stat{
+  min-width:0;
+  padding:17px 18px 15px!important;
+}
+.future-home .future-stat b{
+  font-family:var(--type-mono)!important;
+  font-size:.66rem!important;
+  line-height:1.1!important;
+  font-weight:600!important;
+  letter-spacing:.21em!important;
+}
+.future-home .future-stat span{
+  margin-top:8px!important;
+  font-family:var(--type-body)!important;
+  font-size:.75rem!important;
+  line-height:1.35!important;
+  font-weight:400!important;
+  letter-spacing:-.005em!important;
+  color:rgba(153,169,184,.72)!important;
+}
+
+/* --- Section typography --- */
+.future-home .future-label{
+  font-family:var(--type-mono)!important;
+  font-size:.65rem!important;
+  line-height:1.15!important;
+  font-weight:600!important;
+  letter-spacing:.25em!important;
+}
+
+.future-home .future-section-head h2,
+.future-home .future-footer-cta h2{
+  font-family:var(--type-display)!important;
+  font-weight:620!important;
+  letter-spacing:-.052em!important;
+  text-wrap:balance;
+}
+
+.future-home .future-section-head h2{
+  font-size:clamp(2.65rem,4.65vw,4.55rem)!important;
+  line-height:.98!important;
+}
+
+.future-home .future-section-head > p,
+.future-home .future-footer-cta > p{
+  font-family:var(--type-body)!important;
+  font-size:.98rem!important;
+  line-height:1.72!important;
+  letter-spacing:-.008em!important;
+}
+
+.future-home .future-command-copy h3,
+.future-home .future-cell h3,
+.future-home .signal-head h2,
+.future-home .signature-copy h2{
+  font-family:var(--type-display)!important;
+  font-weight:610!important;
+  letter-spacing:-.045em!important;
+  text-wrap:balance;
+}
+
+.future-home .future-command-copy h3{
+  font-size:clamp(2rem,3.3vw,3.35rem)!important;
+  line-height:1.02!important;
+}
+.future-home .future-command-copy p,
+.future-home .future-cell p,
+.future-home .signal-head > p,
+.future-home .signal-bottom span{
+  font-family:var(--type-body)!important;
+  font-weight:400!important;
+  letter-spacing:-.006em!important;
+}
+
+.future-home .future-command-copy p{
+  font-size:1rem!important;
+  line-height:1.78!important;
+}
+.future-home .future-cell h3{
+  font-size:1.32rem!important;
+  line-height:1.15!important;
+}
+.future-home .future-cell p{
+  font-size:.87rem!important;
+  line-height:1.65!important;
+}
+
+.future-home .signal-head h2,
+.future-home .signature-copy h2{
+  font-size:clamp(2.5rem,4.25vw,4.15rem)!important;
+  line-height:.98!important;
+}
+.future-home .signal-head > p,
+.future-home .signature-copy p{
+  font-size:.98rem!important;
+  line-height:1.72!important;
+  color:rgba(151,168,184,.74)!important;
+}
+
+.future-home .signature-meta,
+.future-home .signature-index,
+.future-home .signal-meta,
+.future-home .signal-axis{
+  font-family:var(--type-mono)!important;
+  font-variant-numeric:tabular-nums;
+}
+
+/* --- Responsive typography --- */
+@media (max-width:1180px){
+  .future-home .future-hero-inner h1{font-size:clamp(3.6rem,6.2vw,5rem)!important;}
+}
+
+@media (max-width:900px){
+  .future-home .future-kicker{
+    font-size:.64rem!important;
+    letter-spacing:.19em!important;
+    white-space:normal;
+  }
+  .future-home .future-hero-inner h1{
+    font-size:clamp(3rem,10.8vw,4.15rem)!important;
+    line-height:.95!important;
+    letter-spacing:-.052em!important;
+    margin-bottom:20px!important;
+  }
+  .future-home .future-hero-inner > p{
+    max-width:42rem!important;
+    font-size:1rem!important;
+    line-height:1.7!important;
+  }
+  .future-home .future-hero-actions .btn{
+    font-size:.92rem!important;
+    min-height:52px;
+  }
+  .future-home .future-section-head h2,
+  .future-home .signal-head h2,
+  .future-home .signature-copy h2{
+    font-size:clamp(2.35rem,8vw,3.7rem)!important;
+  }
+}
+
+@media (max-width:600px){
+  .future-home .future-hero-inner h1{
+    font-size:clamp(2.75rem,12.6vw,4rem)!important;
+  }
+  .future-home .future-hero-inner > p{
+    font-size:.96rem!important;
+    line-height:1.68!important;
+  }
+  .future-home .future-stat b{font-size:.62rem!important;letter-spacing:.17em!important;}
+  .future-home .future-stat span{font-size:.7rem!important;}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .future-home .future-hero-inner h1,
+  .future-home .future-section-head h2,
+  .future-home .future-command-copy h3,
+  .future-home .signal-head h2,
+  .future-home .signature-copy h2{
+    text-wrap:initial;
+  }
+}
