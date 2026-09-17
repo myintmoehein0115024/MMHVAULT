@@ -21970,3 +21970,65 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
   else setTimeout(rerender,120);
 })();
 </script>
+
+
+<!-- MMHVAULT V4.3.0 FINAL NET-WORTH CONSISTENCY PATCH
+     Dashboard headline cards must use the same canonical cash/investment values
+     already shown by Account Overview. No transaction/investment records are changed. -->
+<script id="mmhvault-final-networth-consistency-patch">
+(function(){
+  'use strict';
+  if(window.__mmhFinalNetWorthPatch)return;
+  window.__mmhFinalNetWorthPatch=true;
+
+  const N=v=>{const x=Number(v);return Number.isFinite(x)?x:0;};
+  function cashUSD(){
+    const accounts=['Bath','TrueMoney','OKX','ByBit','MetaMask','KPay'];
+    return accounts.reduce((s,a)=>s+N(window.balance?.(a))*N(window.toUSD?.(a)),0);
+  }
+  function investmentUSD(){
+    try{
+      if(typeof window.investmentValueUSD==='function'){
+        const v=N(window.investmentValueUSD());
+        if(v>=0)return v;
+      }
+    }catch(_e){}
+    try{
+      if(typeof window.mmhvaultInvestmentValueUSD==='function')return Math.max(0,N(window.mmhvaultInvestmentValueUSD()));
+    }catch(_e){}
+    return 0;
+  }
+  function renderCanonicalHeadline(){
+    const host=document.getElementById('dashboardHero');
+    if(!host)return;
+    const cards=host.querySelectorAll('.card');
+    if(cards.length<3)return;
+    const cash=cashUSD();
+    const invest=investmentUSD();
+    const net=cash+invest;
+    const money=v=>typeof window.usd==='function'?window.usd(v):'$ '+v.toFixed(2);
+    const big=cards[0].querySelector('.big');
+    if(big)big.textContent=money(net);
+    const small0=cards[0].querySelector('.small');
+    if(small0)small0.textContent='Cash + Investments · USD';
+    const cashBig=cards[1].querySelector('.big');
+    if(cashBig)cashBig.textContent=money(cash);
+    const investBig=cards[2].querySelector('.big');
+    if(investBig)investBig.textContent=money(invest);
+  }
+  let timer=0;
+  function schedule(){
+    clearTimeout(timer);
+    timer=setTimeout(()=>{try{renderCanonicalHeadline();}catch(e){console.warn('MMHVAULT net-worth consistency:',e);}},40);
+  }
+  const events=['mmhvault:data-loaded','mmhvault:sync-complete','mmhvault:market-updated'];
+  events.forEach(ev=>window.addEventListener(ev,schedule));
+  const dash=document.getElementById('dashboard');
+  if(dash && window.MutationObserver){
+    const ob=new MutationObserver(schedule);
+    ob.observe(dash,{childList:true,subtree:true});
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(schedule,150),{once:true});
+  else setTimeout(schedule,150);
+})();
+</script>
