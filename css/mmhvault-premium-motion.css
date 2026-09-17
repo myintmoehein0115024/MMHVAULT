@@ -1940,3 +1940,49 @@ h1,h2{
 @media(prefers-reduced-motion:reduce){
   body::after{transition:none!important;}
 }
+/* MMHVAULT v5.0 — Living Financial Earth cinematic layer. Home only. */
+.future-home .mmh-home-earth-v4-9-17{
+  --earth-px:0px; --earth-py:0px;
+  perspective:1200px;
+  transform:translate3d(var(--earth-px),var(--earth-py),0) translateY(-50%)!important;
+  transition:transform .22s ease-out;
+}
+.future-home .mmh-home-earth-v4-9-17 .earth-stage{
+  transform:translate3d(calc(var(--earth-px) * -.32),calc(var(--earth-py) * -.32),0) rotateX(var(--earth-tilt-y,0deg)) rotateY(var(--earth-tilt-x,0deg));
+  transition:transform .18s ease-out;
+}
+.future-home .mmh-home-earth-v4-9-17 .earth-halo{animation:earthHaloPulse500 7s ease-in-out infinite;}
+.future-home .mmh-home-earth-v4-9-17 .earth-rim{animation:earthRimBreath500 5.5s ease-in-out infinite;}
+.future-home .mmh-home-earth-v4-9-17 .earth-orbit{transform-style:preserve-3d;filter:drop-shadow(0 0 5px rgba(91,192,255,.12));}
+.future-home .mmh-home-earth-v4-9-17 .earth-orbit.one{margin-top:calc(var(--earth-py) * -.18);}
+.future-home .mmh-home-earth-v4-9-17 .earth-orbit.two{margin-left:calc(var(--earth-px) * -.16);}
+.future-home .mmh-home-earth-v4-9-17 .financial-depth-layer{
+  position:absolute;inset:-2%;z-index:5;pointer-events:none;overflow:visible;
+  transform:translate3d(calc(var(--earth-px) * -.55),calc(var(--earth-py) * -.55),0);
+  transition:transform .18s ease-out;
+}
+.future-home .mmh-home-earth-v4-9-17 .financial-depth-layer canvas{width:100%;height:100%;display:block;overflow:visible;}
+.future-home .mmh-home-earth-v4-9-17 .financial-scan{
+  position:absolute;left:50%;top:50%;width:54%;height:54%;border-radius:50%;
+  transform:translate(-50%,-50%) rotate(-18deg);z-index:5;pointer-events:none;
+  border:1px solid transparent;opacity:.0;
+}
+.future-home .mmh-home-earth-v4-9-17 .financial-scan::before{
+  content:"";position:absolute;left:50%;top:0;width:1px;height:100%;
+  background:linear-gradient(to bottom,transparent,rgba(99,211,255,.0) 25%,rgba(99,211,255,.42) 50%,transparent 78%);
+  box-shadow:0 0 18px rgba(83,193,255,.34);
+  transform-origin:50% 50%;animation:scanBeam500 8s linear infinite;
+}
+.future-home .mmh-home-earth-v4-9-17 .signal-status{animation:signalLive500 2.6s ease-in-out infinite;}
+.future-home .mmh-home-earth-v4-9-17 .scan-strip{transform:translate3d(0,0,0);}
+@keyframes earthHaloPulse500{0%,100%{opacity:.72;transform:scale(.98)}50%{opacity:1;transform:scale(1.025)}}
+@keyframes earthRimBreath500{0%,100%{opacity:.72}50%{opacity:1}}
+@keyframes signalLive500{0%,100%{opacity:.55}50%{opacity:1}}
+@keyframes scanBeam500{0%{transform:rotate(0deg) scaleY(.55);opacity:0}12%{opacity:1}48%{opacity:.8}72%{opacity:.1}100%{transform:rotate(360deg) scaleY(.55);opacity:0}}
+@media(max-width:900px){
+  .future-home .mmh-home-earth-v4-9-17{transform:translate3d(var(--earth-px),var(--earth-py),0)!important;}
+}
+@media(prefers-reduced-motion:reduce){
+  .future-home .mmh-home-earth-v4-9-17 .earth-halo,.future-home .mmh-home-earth-v4-9-17 .earth-rim,.future-home .mmh-home-earth-v4-9-17 .signal-status,.future-home .mmh-home-earth-v4-9-17 .financial-scan::before{animation:none!important;}
+  .future-home .mmh-home-earth-v4-9-17,.future-home .mmh-home-earth-v4-9-17 .earth-stage,.future-home .mmh-home-earth-v4-9-17 .financial-depth-layer{transition:none!important;}
+}
