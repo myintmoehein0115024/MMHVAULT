@@ -6581,7 +6581,7 @@ function totalAssetMMK(){
   const cashMMK=ACC.reduce((s,a)=>s+balance(a)*toMMK(a),0);
   return cashMMK+investmentValue();
 }
-function expenseMMK(){return transactions.filter(t=>t.type==="Expense"&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=="Investment"&&!isLinkedInvestmentTx(t)).reduce((s,t)=>s+n(t.from_amount)*toMMK(t.from_account),0);}
+function expenseMMK(){return transactions.filter(t=>t.type==="Expense"&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=="Investment"&&!isLinkedInvestmentTx(t)&&!window.mmhIsBalanceAdjustmentV5?.(t)).reduce((s,t)=>s+n(t.from_amount)*toMMK(t.from_account),0);}
 function incomeMMK(){return transactions.filter(t=>t.type==="Income").reduce((s,t)=>s+n(t.to_amount)*toMMK(t.to_account),0);}
 function loanOutMMK(){return transactions.filter(t=>t.category==="Loan Out").reduce((s,t)=>s+n(t.from_amount)*toMMK(t.from_account),0);}
 function loanPaidMMK(){return transactions.filter(t=>t.category==="Loan Repayment").reduce((s,t)=>s+n(t.to_amount)*toMMK(t.to_account),0);}
@@ -7073,7 +7073,7 @@ function editTx(id){
     };
 
     try{
-      const r=await db.from('transactions').update(row).eq('id',id);
+      const r=await window.mmhV5TryUpdate('transactions',id,row);
       if(r.error)throw r.error;
 
       if(receiptFile){
@@ -7514,8 +7514,8 @@ async function editInvestment(id){
     const amount=n($("eiAmount").value),buy=n($("eiBuy").value),newReceipt=picker?.files?.[0]||null;
     if(newReceipt&&newReceipt.size>10*1024*1024){alert('Receipt file is too large. Maximum size is 10 MB.');return;}
     const row={inv_date:$("eiDate").value,source_account:$("eiSource").value,amount,fee:n($("eiFee").value),other_cost:n($("eiOther").value),buy_price:buy,market_price:n($("eiMarket").value),quantity:n($("eiQty").value)||(buy?amount/buy:0),note:$("eiNote").value||null};
-    const r=await db.from('investments').update(row).eq('id',id);
-    if(r.error){alert(r.error.message);return;}
+    const r=await window.mmhV5TryUpdate('investments',id,row);
+    if(r.error){ window.mmhHandleSaveErrorV5?.(r.error,'Investment edit'); return; }
     if(newReceipt){
       try{await uploadInvestmentReceiptV3304((await db.auth.getUser()).data.user.id,id,newReceipt);}
       catch(err){alert('Investment was updated, but receipt upload failed: '+(err?.message||err));}
@@ -7694,7 +7694,7 @@ function renderDashboardV29(){
   const investRaw=investmentValue();
   const invest=investRaw/(Number(rates?.usd_mmk)||1);
   const net=cash+invest;
-  const expense=transactions.filter(t=>t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t)).reduce((s,t)=>s+n(t.from_amount)*toUSD(t.from_account),0);
+  const expense=transactions.filter(t=>t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t)&&!window.mmhIsBalanceAdjustmentV5?.(t)).reduce((s,t)=>s+n(t.from_amount)*toUSD(t.from_account),0);
   const inc=transactions.filter(t=>t.type==='Income').reduce((s,t)=>s+n(t.to_amount)*toUSD(t.to_account),0);
   const save=inc-expense, saveRatio=inc?save/inc*100:0;
   const loan=Math.max(0,loanOutMMK()-loanPaidMMK())/rates.usd_mmk;
@@ -7703,7 +7703,7 @@ function renderDashboardV29(){
   $('metrics').innerHTML=[['Income',inc,'green'],['Expense',expense,'red'],['Available Balance',Math.max(0,cash-loan),'cyan'],['Total Invest',invest,'pink'],['Net Change',save-loan,'yellow']].map(x=>`<div class="card metric"><div class="name">${x[0]} · USD</div><div class="value ${x[2]}">${usd(x[1])}</div></div>`).join('');
   const cryptoV=investmentValue(); const goldMMK=investments.filter(x=>x.asset==='Gold').reduce((s,x)=>s+goldHoldingQty(x)*(goldMarketState.pricePerKyattha||n(x.market_price)),0)/rates.usd_mmk; const cashV=cash; const total=cryptoV+goldMMK+cashV||1;
   $('assetAllocation').innerHTML=[['Cash',cashV],['Crypto',cryptoV],['Gold',goldMMK]].map(([k,v])=>`<div class="alloc-row"><b>${k}</b><div class="alloc-bar"><span style="width:${Math.min(100,v/total*100)}%"></span></div><span>${(v/total*100).toFixed(1)}%</span><span>${usd(v)}</span></div>`).join('');
-  const vals=monthSeries().map(m=>{let i=0,e=0;transactions.filter(t=>t.tx_date.startsWith(m)).forEach(t=>{if(t.type==='Income')i+=n(t.to_amount)*toUSD(t.to_account);if(t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t))e+=n(t.from_amount)*toUSD(t.from_account);});return{m,i,e};}); const max=Math.max(1,...vals.map(x=>Math.max(x.i,x.e))); $('netWorthHistory').innerHTML=`<div class="spark">${vals.map(x=>`<span title="${monthLabel(x.m)} · Income ${usd(x.i)} / Expense ${usd(x.e)}" style="height:${Math.max(4,x.i/max*100)}%"></span>`).join('')}</div><div class="spark-labels">${vals.map(x=>`<span>${monthLabel(x.m).split(' ')[0]}</span>`).join('')}</div><div class="small" style="margin-top:6px">Monthly income bars · USD</div>`;
+  const vals=monthSeries().map(m=>{let i=0,e=0;transactions.filter(t=>t.tx_date.startsWith(m)).forEach(t=>{if(t.type==='Income')i+=n(t.to_amount)*toUSD(t.to_account);if(t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t)&&!window.mmhIsBalanceAdjustmentV5?.(t))e+=n(t.from_amount)*toUSD(t.from_account);});return{m,i,e};}); const max=Math.max(1,...vals.map(x=>Math.max(x.i,x.e))); $('netWorthHistory').innerHTML=`<div class="spark">${vals.map(x=>`<span title="${monthLabel(x.m)} · Income ${usd(x.i)} / Expense ${usd(x.e)}" style="height:${Math.max(4,x.i/max*100)}%"></span>`).join('')}</div><div class="spark-labels">${vals.map(x=>`<span>${monthLabel(x.m).split(' ')[0]}</span>`).join('')}</div><div class="small" style="margin-top:6px">Monthly income bars · USD</div>`;
   const m=today().slice(0,7); $('dashMonthLabel').textContent=monthLabel(m); $('dashFlow').innerHTML=`<div class="flow-grid"><div><span>Income</span><b class="green">${usd(inc)}</b></div><div><span>Expenses</span><b class="red">${usd(expense)}</b></div><div><span>Saved</span><b>${usd(save)}</b></div><div><span>Saving Ratio</span><b>${saveRatio.toFixed(1)}%</b></div></div>`;
   const holds=['BTC','ETH','SOL','BNB'].map(s=>{const q=investments.filter(x=>x.asset==='Crypto'&&x.symbol===s).reduce((a,x)=>a+n(x.quantity),0);return{s,q};}); $('dashInvest').innerHTML=holds.map(x=>`<div class="mini-stat"><b>${x.s}</b><span>${x.q.toFixed(10)} held</span></div>`).join('');
   const recentAll=transactions.filter(t=>!isLinkedInvestmentTx(t)); const recent=recentAll.slice(0,5); $('dashTxCount').textContent=`${recent.length} shown of ${recentAll.length}`; $('dashRecent').innerHTML=recent.length?`<table class="recent-one"><tr><th>Date</th><th>Type</th><th>Category</th><th>Amount · USD</th></tr>${recent.map(t=>`<tr><td>${t.tx_date}</td><td>${t.type}</td><td>${esc(t.category)}</td><td>${t.type==='Income'?usd(n(t.to_amount)*toUSD(t.to_account)):usd(n(t.from_amount)*toUSD(t.from_account))}</td></tr>`).join('')}</table>`:'<div class="empty">No recent transactions.</div>';
@@ -7714,7 +7714,7 @@ function monthSeries(){const ms=[];const d=new Date();for(let i=5;i>=0;i--){cons
 function monthTotals(m){let inc=0,expv=0;transactions.filter(t=>t.tx_date.startsWith(m)).forEach(t=>{if(t.type==='Income')inc+=n(t.to_amount)*toMMK(t.to_account);if(t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment')expv+=n(t.from_amount)*toMMK(t.from_account);});return{inc,exp:expv,save:inc-expv};}
 function toTHB(a){const cur=currency(a); if(cur==='THB')return 1; if(cur==='USD')return rates.usd_thb; return rates.usd_thb/rates.usd_mmk;}
 function thb(v){return '฿ '+fmt(v);}
-function analyzeTotals(m){let inc=0,expv=0;transactions.filter(t=>t.tx_date.startsWith(m)).forEach(t=>{if(t.type==='Income')inc+=n(t.to_amount)*toTHB(t.to_account);if(t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t))expv+=n(t.from_amount)*toTHB(t.from_account);});return{inc,exp:expv,save:inc-expv};}
+function analyzeTotals(m){let inc=0,expv=0;transactions.filter(t=>t.tx_date.startsWith(m)).forEach(t=>{if(t.type==='Income')inc+=n(t.to_amount)*toTHB(t.to_account);if(t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t)&&!window.mmhIsBalanceAdjustmentV5?.(t))expv+=n(t.from_amount)*toTHB(t.from_account);});return{inc,exp:expv,save:inc-expv};}
 function renderAnalyzeV29(){
   const m=$('month').value||today().slice(0,7); const cur=analyzeTotals(m); const ratio=cur.inc?cur.exp/cur.inc*100:0; const sratio=cur.inc?cur.save/cur.inc*100:0;
   $('expenses').innerHTML=`<table><tr><th>Category</th><th>THB</th><th>% of Income</th></tr>${CATS.Expense.map(c=>{const v=transactions.filter(t=>t.type==='Expense'&&t.category===c&&!isLinkedInvestmentTx(t)).reduce((s,t)=>s+n(t.from_amount)*toTHB(t.from_account),0);return`<tr><td>${c}</td><td>${fmt(v)}</td><td>${cur.inc?(v/cur.inc*100).toFixed(2):'0.00'}%</td></tr>`}).join('')}<tr><td><b>Total</b></td><td><b>${fmt(cur.exp)}</b></td><td><b>${ratio.toFixed(2)}%</b></td></tr></table>`;
@@ -7797,7 +7797,7 @@ function renderDashboardV30(){
   const netWorth=cash+investmentsUSD;
   const monthlyMonth=today().slice(0,7);
   const income=transactions.filter(t=>t.tx_date.startsWith(monthlyMonth)&&t.type==='Income').reduce((sum,t)=>sum+n(t.to_amount)*toUSD(t.to_account),0);
-  const expense=transactions.filter(t=>t.tx_date.startsWith(monthlyMonth)&&t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t)).reduce((sum,t)=>sum+n(t.from_amount)*toUSD(t.from_account),0);
+  const expense=transactions.filter(t=>t.tx_date.startsWith(monthlyMonth)&&t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t)&&!window.mmhIsBalanceAdjustmentV5?.(t)).reduce((sum,t)=>sum+n(t.from_amount)*toUSD(t.from_account),0);
   const saving=income-expense, savingRatio=income?saving/income*100:0;
   const outstanding=Math.max(0,loanOutMMK()-loanPaidMMK())/rates.usd_mmk;
 
@@ -8027,7 +8027,7 @@ function v37Totals(rows){
   let inc=0,exp=0;
   for(const t of rows){
     if(t.type==="Income")inc+=n(t.to_amount)*toTHB(t.to_account);
-    if(t.type==="Expense"&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=="Investment"&&!isLinkedInvestmentTx(t))exp+=n(t.from_amount)*toTHB(t.from_account);
+    if(t.type==="Expense"&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=="Investment"&&!isLinkedInvestmentTx(t)&&!window.mmhIsBalanceAdjustmentV5?.(t))exp+=n(t.from_amount)*toTHB(t.from_account);
   }
   return {inc,exp,save:inc-exp,er:inc?exp/inc*100:0,sr:inc?(inc-exp)/inc*100:0};
 }
@@ -8079,7 +8079,7 @@ function renderAnalyzeV37(){
   const targetYear=String(p.year);
   const targetMonth=p.month==='annual'?null:`${p.year}-${p.month}`;
   const loans=new Set(window.CATS?.Loans||[]);
-  const isOrdinaryExpense=t=>t.type==='Expense'&&!loans.has(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t);
+  const isOrdinaryExpense=t=>t.type==='Expense'&&!loans.has(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t)&&!window.mmhIsBalanceAdjustmentV5?.(t);
   const totalsMap=new Map();
   let previousMonthKey='';
   if(p.month!=='annual'){const d=new Date(p.year,Number(p.month)-1,1);d.setMonth(d.getMonth()-1);previousMonthKey=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;}
@@ -8321,7 +8321,7 @@ function renderDashboardInsightsV37(){
 function fhNumber(v){return Number.isFinite(Number(v))?Number(v):0;}
 function fhMonthKeyFromOffset(offset){const d=new Date();d.setDate(1);d.setMonth(d.getMonth()+offset);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;}
 function fhMonthRows(key){return (window.transactions||[]).filter(t=>String(t.tx_date||'').slice(0,7)===key);}
-function fhMonthlyFlow(key){let inc=0,exp=0;for(const t of fhMonthRows(key)){if(t.type==='Income')inc+=fhNumber(t.to_amount)*toUSD(t.to_account);if(t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t))exp+=fhNumber(t.from_amount)*toUSD(t.from_account);}return{inc,exp,save:inc-exp,sr:inc?((inc-exp)/inc*100):0,er:inc?(exp/inc*100):0};}
+function fhMonthlyFlow(key){let inc=0,exp=0;for(const t of fhMonthRows(key)){if(t.type==='Income')inc+=fhNumber(t.to_amount)*toUSD(t.to_account);if(t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t)&&!window.mmhIsBalanceAdjustmentV5?.(t))exp+=fhNumber(t.from_amount)*toUSD(t.from_account);}return{inc,exp,save:inc-exp,sr:inc?((inc-exp)/inc*100):0,er:inc?(exp/inc*100):0};}
 function fhThreeMonthAverage(){const ms=[fhMonthKeyFromOffset(-3),fhMonthKeyFromOffset(-2),fhMonthKeyFromOffset(-1)];const rows=ms.map(fhMonthlyFlow);const inc=rows.reduce((s,x)=>s+x.inc,0),exp=rows.reduce((s,x)=>s+x.exp,0),save=inc-exp;return{months:ms,inc,exp,save,sr:inc?save/inc*100:0,er:inc?exp/inc*100:0,avgExpense:exp/3,avgIncome:inc/3,rows};}
 function fhEssentialExpense3M(){
   const essential=new Set(['Dining','Transport','Wellness','Lifestyle','Other','Family Support']);
@@ -9416,7 +9416,7 @@ renderDashboard=function(){
   const num=v=>{const x=Number(v);return Number.isFinite(x)?x:0};
   const money=v=>typeof usd==='function'?usd(v):('$ '+fmt(v));
   const keyFromOffset=o=>{const d=new Date();d.setDate(1);d.setMonth(d.getMonth()+o);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')};
-  const flow=key=>{let inc=0,exp=0;for(const t of(window.transactions||[])){if(String(t.tx_date||'').slice(0,7)!==key)continue;if(t.type==='Income')inc+=num(t.to_amount)*toUSD(t.to_account);if(t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t))exp+=num(t.from_amount)*toUSD(t.from_account)}return{inc,exp,save:inc-exp,sr:inc?((inc-exp)/inc*100):0}};
+  const flow=key=>{let inc=0,exp=0;for(const t of(window.transactions||[])){if(String(t.tx_date||'').slice(0,7)!==key)continue;if(t.type==='Income')inc+=num(t.to_amount)*toUSD(t.to_account);if(t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t)&&!window.mmhIsBalanceAdjustmentV5?.(t))exp+=num(t.from_amount)*toUSD(t.from_account)}return{inc,exp,save:inc-exp,sr:inc?((inc-exp)/inc*100):0}};
   const pct=(a,b)=>b===0?null:(a-b)/Math.abs(b)*100;
   function render(){
     const el=$('financialIntelligenceV314');if(!el)return;
@@ -9453,12 +9453,12 @@ renderDashboard=function(){
     const completed=[];const d=new Date();d.setDate(1);d.setMonth(d.getMonth()-6);
     for(let i=0;i<6;i++){
       const key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;let inc=0,exp=0;
-      (window.transactions||[]).forEach(t=>{if(String(t.tx_date||'').slice(0,7)!==key)return;if(t.type==='Income')inc+=wsNum(t.to_amount)*toUSD(t.to_account);if(t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t))exp+=wsNum(t.from_amount)*toUSD(t.from_account);});
+      (window.transactions||[]).forEach(t=>{if(String(t.tx_date||'').slice(0,7)!==key)return;if(t.type==='Income')inc+=wsNum(t.to_amount)*toUSD(t.to_account);if(t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t)&&!window.mmhIsBalanceAdjustmentV5?.(t))exp+=wsNum(t.from_amount)*toUSD(t.from_account);});
       completed.push({inc,exp,save:inc-exp});d.setMonth(d.getMonth()+1);
     }
     const avg=completed.length?completed.reduce((s,x)=>s+x.save,0)/completed.length:0;
     const currentMonthKey=today().slice(0,7);let curInc=0,curExp=0;
-    (window.transactions||[]).forEach(t=>{if(String(t.tx_date||'').slice(0,7)!==currentMonthKey)return;if(t.type==='Income')curInc+=wsNum(t.to_amount)*toUSD(t.to_account);if(t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t))curExp+=wsNum(t.from_amount)*toUSD(t.from_account);});
+    (window.transactions||[]).forEach(t=>{if(String(t.tx_date||'').slice(0,7)!==currentMonthKey)return;if(t.type==='Income')curInc+=wsNum(t.to_amount)*toUSD(t.to_account);if(t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t)&&!window.mmhIsBalanceAdjustmentV5?.(t))curExp+=wsNum(t.from_amount)*toUSD(t.from_account);});
     const currentSave=curInc-curExp;
     return {cash,invest,net,avg,currentSave,currentMonthKey};
   }
@@ -9805,7 +9805,7 @@ function bind(){
     const r=(window.transactions||[]).filter(t=>String(t.tx_date||'').slice(0,7)===ym); let inc=0,exp=0;
     for(const t of r){
       if(t.type==='Income') inc+=numD(t.to_amount)*toUSD(t.to_account);
-      if(t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t)) exp+=numD(t.from_amount)*toUSD(t.from_account);
+      if(t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t)&&!window.mmhIsBalanceAdjustmentV5?.(t)) exp+=numD(t.from_amount)*toUSD(t.from_account);
     }
     return {ym,inc,exp,save:inc-exp,sr:inc?(inc-exp)/inc*100:0};
   }
@@ -12224,7 +12224,7 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
   const T=(en,cn)=>zh()?cn:en;
   const rules=()=>{let r={reserveMin:3,reserveComfort:6,savingsTarget:60,investmentCeiling:30};try{const x=JSON.parse(localStorage.getItem('mmhvault_wealth_rules_v326')||'null');if(x)r={...r,...x};}catch(e){}return r;};
   function ymOffset(i){const d=new Date();d.setDate(1);d.setMonth(d.getMonth()+i);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;}
-  function monthFlow(ym){let inc=0,exp=0;(window.transactions||[]).filter(t=>String(t.tx_date||'').slice(0,7)===ym).forEach(t=>{if(t.type==='Income')inc+=num(t.to_amount)*toUSD(t.to_account);if(t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t))exp+=num(t.from_amount)*toUSD(t.from_account);});return{inc,exp,save:inc-exp};}
+  function monthFlow(ym){let inc=0,exp=0;(window.transactions||[]).filter(t=>String(t.tx_date||'').slice(0,7)===ym).forEach(t=>{if(t.type==='Income')inc+=num(t.to_amount)*toUSD(t.to_account);if(t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t)&&!window.mmhIsBalanceAdjustmentV5?.(t))exp+=num(t.from_amount)*toUSD(t.from_account);});return{inc,exp,save:inc-exp};}
   function calc(){
     const rr=rules(); const hist=[-3,-2,-1].map(ymOffset).map(monthFlow).filter(x=>x.inc>0); const avgExp=hist.length?hist.reduce((s,x)=>s+x.exp,0)/hist.length:0; const positive=hist.map(x=>Math.max(0,x.save)).filter(x=>x>0); const current=monthFlow(ymOffset(0)); const capacity=positive.length?positive.reduce((s,x)=>s+x,0)/positive.length:Math.max(0,current.save);
     const accounts=['Bath','TrueMoney','OKX','ByBit','MetaMask','KPay'];const cash=accounts.reduce((s,a)=>s+Math.max(0,balance(a))*toUSD(a),0);const runway=avgExp?cash/avgExp:0;const inv=Math.max(0,investmentValue());const net=cash+inv;const invPct=net?inv/net*100:0;
@@ -13051,7 +13051,7 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
   const money=v=>{try{return '$ '+fmt(N(v));}catch(_){return '$ '+N(v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});}};
   function monthKey(d){return String(d||'').slice(0,7)}
   function prevMonthKey(key){const [y,m]=key.split('-').map(Number);const d=new Date(y,m-2,1);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;}
-  function totals(key){let inc=0,exp=0;(window.transactions||[]).forEach(t=>{if(monthKey(t.tx_date)!==key)return;if(t.type==='Income')inc+=N(t.to_amount)*N(toUSD(t.to_account));if(t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t))exp+=N(t.from_amount)*N(toUSD(t.from_account));});const save=inc-exp;return{inc,exp,save,rate:inc?save/inc*100:0};}
+  function totals(key){let inc=0,exp=0;(window.transactions||[]).forEach(t=>{if(monthKey(t.tx_date)!==key)return;if(t.type==='Income')inc+=N(t.to_amount)*N(toUSD(t.to_account));if(t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t)&&!window.mmhIsBalanceAdjustmentV5?.(t))exp+=N(t.from_amount)*N(toUSD(t.from_account));});const save=inc-exp;return{inc,exp,save,rate:inc?save/inc*100:0};}
   function data(){
     const key=today().slice(0,7),prev=prevMonthKey(key),cur=totals(key),old=totals(prev);
     const cash=['Bath','TrueMoney','OKX','ByBit','MetaMask','KPay'].reduce((s,a)=>s+Math.max(0,N(balance(a))*N(toUSD(a))),0);
@@ -16033,7 +16033,7 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
 #analyze .analyze-tab-panel-v371.mmh-merged-visible-v2 + .analyze-tab-panel-v371{margin-top:0;}
 #analyze .analyze-tab-panel-v371[data-panel="insights"] .mmh-insights-head-v340{margin-top:0;}
 </style>
-<script id="mmhvault-analyze-tabs-merged-datafix-v2">
+<script id="mmhvault-analyze-tabs-merged-datafix-v2b">
 (function(){
   const root=document.getElementById('analyze');
   if(!root)return;
@@ -16756,6 +16756,190 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
 })();
 </script>
 
+<script id="mmhvault-v5-core-repair">
+/* MMHVAULT V5 — Safe Finance Core Repair + Premium Notifications
+   Additive patch. Does not modify stored transactions/investments.
+*/
+(function(){
+  'use strict';
+  const STYLE_ID='mmhvault-v5-core-style';
+  const style=document.createElement('style');
+  style.id=STYLE_ID;
+  style.textContent=`
+  #mmhToastStackV5{position:fixed;right:22px;bottom:22px;z-index:2147483000;display:flex;flex-direction:column;gap:12px;width:min(420px,calc(100vw - 28px));pointer-events:none;font-family:inherit}
+  .mmh-toast-v5{pointer-events:auto;position:relative;overflow:hidden;border:1px solid rgba(120,170,220,.22);border-radius:18px;background:linear-gradient(145deg,rgba(12,25,45,.97),rgba(5,12,25,.98));box-shadow:0 22px 55px rgba(0,0,0,.38),inset 0 1px 0 rgba(255,255,255,.05);color:#edf6ff;padding:15px 16px;transform:translateY(12px);opacity:0;animation:mmhToastInV5 .24s ease forwards}
+  .mmh-toast-v5::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:#56d8ff;box-shadow:0 0 18px rgba(86,216,255,.45)}
+  .mmh-toast-v5.success::before{background:#31e49a}.mmh-toast-v5.warn::before{background:#f4c95d}.mmh-toast-v5.error::before{background:#ff7187}
+  .mmh-toast-head-v5{display:flex;align-items:center;gap:9px}.mmh-toast-icon-v5{width:27px;height:27px;border-radius:9px;display:grid;place-items:center;background:rgba(86,216,255,.10);font-size:14px}.mmh-toast-v5.success .mmh-toast-icon-v5{background:rgba(49,228,154,.10)}.mmh-toast-v5.warn .mmh-toast-icon-v5{background:rgba(244,201,93,.10)}.mmh-toast-v5.error .mmh-toast-icon-v5{background:rgba(255,113,135,.10)}
+  .mmh-toast-title-v5{font-size:13px;font-weight:900;letter-spacing:.01em}.mmh-toast-close-v5{margin-left:auto;border:0;background:transparent;color:#8fa8c7;font-size:18px;cursor:pointer;padding:2px 4px}.mmh-toast-msg-v5{margin:8px 0 0 36px;color:#a9bad2;font-size:12px;line-height:1.55;white-space:pre-wrap}.mmh-toast-detail-v5{margin:9px 0 0 36px;padding:9px 10px;border-radius:11px;background:rgba(255,255,255,.035);color:#8197b5;font:11px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;max-height:92px;overflow:auto;white-space:pre-wrap}.mmh-toast-actions-v5{display:flex;gap:8px;margin:10px 0 0 36px}.mmh-toast-action-v5{border:1px solid rgba(100,170,230,.22);background:rgba(74,145,210,.10);color:#d9ecff;border-radius:10px;padding:7px 10px;font-size:11px;font-weight:800;cursor:pointer}.mmh-toast-action-v5:hover{background:rgba(74,145,210,.18)}
+  .mmh-integrity-banner-v5{display:flex;align-items:flex-start;gap:10px;margin:10px 0;padding:11px 13px;border:1px solid rgba(244,201,93,.18);border-radius:13px;background:rgba(244,201,93,.055);color:#aebdd2;font-size:11px;line-height:1.5}.mmh-integrity-banner-v5 strong{color:#f4d783}.mmh-integrity-dot-v5{width:8px;height:8px;border-radius:50%;margin-top:4px;background:#f4c95d;box-shadow:0 0 12px rgba(244,201,93,.5);flex:0 0 auto}
+  @keyframes mmhToastInV5{to{transform:none;opacity:1}}@media(max-width:620px){#mmhToastStackV5{right:12px;bottom:12px;width:calc(100vw - 24px)}}
+  `;
+  document.head.appendChild(style);
+  const stack=document.createElement('div');stack.id='mmhToastStackV5';document.body.appendChild(stack);
+
+  function notify(message,opts={}){
+    const type=opts.type||'info'; const title=opts.title||({success:'Saved',warn:'Notice',error:'Action failed',info:'MMHVAULT'}[type]||'MMHVAULT');
+    const icon={success:'✓',warn:'!',error:'×',info:'i'}[type]||'i';
+    const el=document.createElement('div');el.className='mmh-toast-v5 '+type;
+    const head=document.createElement('div');head.className='mmh-toast-head-v5';
+    const ico=document.createElement('div');ico.className='mmh-toast-icon-v5';ico.textContent=icon;
+    const ttl=document.createElement('div');ttl.className='mmh-toast-title-v5';ttl.textContent=title;
+    const close=document.createElement('button');close.className='mmh-toast-close-v5';close.type='button';close.textContent='×';
+    head.append(ico,ttl,close);
+    const msg=document.createElement('div');msg.className='mmh-toast-msg-v5';msg.textContent=String(message??'');
+    el.append(head,msg);
+    if(opts.detail){const d=document.createElement('div');d.className='mmh-toast-detail-v5';d.textContent=String(opts.detail);el.append(d)}
+    if(opts.action){const actions=document.createElement('div');actions.className='mmh-toast-actions-v5';const b=document.createElement('button');b.className='mmh-toast-action-v5';b.type='button';b.textContent=opts.action.label||'Open';b.onclick=()=>{try{opts.action.onClick?.()}finally{el.remove()}};actions.appendChild(b);el.appendChild(actions)}
+    close.onclick=()=>el.remove(); stack.appendChild(el);
+    const duration=Number(opts.duration??(type==='error'?9000:4500)); if(duration>0)setTimeout(()=>el.remove(),duration);
+    return el;
+  }
+  window.mmhNotifyV5=notify;
+
+  function isSchemaUpdatedAtError(err){
+    const m=String(err?.message||err||'');
+    return /record\s+"?new"?\s+has no field\s+"updated_at"/i.test(m)||/updated_at/i.test(m)&&/has no field/i.test(m);
+  }
+  window.mmhHandleSaveErrorV5=function(err,context){
+    if(isSchemaUpdatedAtError(err)){
+      notify('Cloud database trigger needs the updated_at field. Your record was not changed. Run the one-time V5 database migration, then save again.',{
+        type:'error',title:`${context||'Edit'} · Cloud schema`,detail:String(err?.message||err),duration:12000,
+        action:{label:'View repair steps',onClick:()=>notify('Run MMHVAULT-V5-SUPABASE-MIGRATION.sql in Supabase SQL Editor once. Do not import or rewrite your financial JSON.',{type:'info',title:'One-time repair',duration:9000})}
+      });
+      return true;
+    }
+    notify(String(err?.message||err||'Unable to save changes.'),{type:'error',title:`${context||'Edit'} · Not saved`,detail:String(err?.message||err||'Unknown error')});
+    return false;
+  };
+
+  // Replace browser alert() with the in-app premium notification layer.
+  const nativeAlert=window.alert;
+  window.__mmhNativeAlertV5=nativeAlert;
+  window.alert=function(message){
+    const text=String(message??'');
+    const special=isSchemaUpdatedAtError(text);
+    notify(special?'Cloud database trigger needs the updated_at field. Your data was not changed.':text,{
+      type:'error',title:special?'Cloud schema repair required':'MMHVAULT',detail:special?text:undefined,duration:special?12000:7000,
+      action:special?{label:'View repair steps',onClick:()=>notify('Run MMHVAULT-V5-SUPABASE-MIGRATION.sql once in Supabase SQL Editor.',{type:'info',title:'One-time repair',duration:8000})}:undefined
+    });
+  };
+
+  function isBalanceAdjustment(t){
+    if(!t)return false;
+    if(String(t.category||'').trim().toLowerCase()==='balance adjustment')return true;
+    // The existing reconciliation row is intentionally preserved as raw data;
+    // this semantic classification keeps it out of spending statistics.
+    return String(t.note||'').trim()==='丢失数据';
+  }
+  window.mmhIsBalanceAdjustmentV5=isBalanceAdjustment;
+
+  // Canonical expense filter: reconciliation adjustments affect balances/net worth,
+  // but are not consumer spending.
+  window.mmhIsOrdinaryExpenseV5=function(t){
+    return t?.type==='Expense' && !(window.CATS?.Loans||[]).includes(t.category) && t.category!=='Investment' && !(typeof window.isLinkedInvestmentTx==='function'&&window.isLinkedInvestmentTx(t)) && !isBalanceAdjustment(t);
+  };
+
+  // Live valuation authority. Every top-level wealth number should use the same snapshot.
+  window.mmhGetCanonicalWealthV5=function(){
+    try{
+      const cash=Math.max(0,Number(window.mmhvaultCashUSD?.()||0));
+      const invest=Math.max(0,Number(window.mmhvaultInvestmentValueUSD?.()||0));
+      const net=cash+invest;
+      return {cash,invest,net,weight:net?invest/net*100:0,live:true,at:new Date().toISOString()};
+    }catch(e){return {cash:0,invest:0,net:0,weight:0,live:false,error:e};}
+  };
+
+  function syncWealth(){
+    const dash=document.getElementById('dashboard');if(!dash?.classList.contains('active'))return;
+    const d=window.mmhGetCanonicalWealthV5();if(!d.live)return;
+    const money=v=>'$ '+Number(v||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+    const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+    // Premium command center + legacy hero are synchronized from one valuation authority.
+    set('mmhCommandNetWorthV34210',money(d.net));set('mmhCommandCashV34210',money(d.cash));set('mmhCommandInvestV34210',money(d.invest));set('mmhCommandWeightV34210',d.weight.toFixed(1)+'%');
+    set('mmhRibbonNetV34212',money(d.net));
+    const hero=document.getElementById('dashboardHero');
+    if(hero){
+      const card=hero.querySelector('.card'); if(card){const big=card.querySelector('.big');if(big)big.textContent=money(d.net);const small=card.querySelector('.small');if(small)small.textContent='Live Cash + Investments · USD';}
+      const cards=hero.querySelectorAll('.card'); if(cards[1]){const b=cards[1].querySelector('.big');if(b)b.textContent=money(d.cash)} if(cards[2]){const b=cards[2].querySelector('.big');if(b)b.textContent=money(d.invest)}
+    }
+    window.__mmhFinalNetWorthAuthoritySnapshot=d;
+  }
+  window.mmhSyncCanonicalWealthV5=syncWealth;
+  ['mmhvault:data-loaded','mmhvault:sync-complete','mmhvault:cache-restored','mmhvault:market-updated','mmhvault:dashboard-rendered'].forEach(ev=>window.addEventListener(ev,()=>setTimeout(syncWealth,80),{passive:true}));
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>[150,500,1200,2500].forEach(ms=>setTimeout(syncWealth,ms)),{once:true});else [150,500,1200,2500].forEach(ms=>setTimeout(syncWealth,ms));
+
+  // Lightweight data-health signal: stale rates and reconciliation adjustment are surfaced without altering raw data.
+  function healthCheck(){
+    try{
+      const r=window.rates||{};const updated=r.updated_at?new Date(r.updated_at):null;const age=updated&&!isNaN(updated)?(Date.now()-updated.getTime())/86400000:null;
+      const adj=(window.transactions||[]).filter(isBalanceAdjustment);
+      const dash=document.getElementById('dashboard');if(!dash?.classList.contains('active'))return;
+      let host=document.getElementById('mmhV5IntegrityBanner');
+      if(!host){host=document.createElement('div');host.id='mmhV5IntegrityBanner';const anchor=document.querySelector('#dashboard .mmh-command-v34210');if(anchor)anchor.parentNode.insertBefore(host,anchor.nextSibling);else return;}
+      const notes=[];if(adj.length)notes.push(`1 balance reconciliation record is excluded from spending totals.`);if(age!==null&&age>3)notes.push(`Exchange rates are ${Math.floor(age)} days old.`);
+      host.className='mmh-integrity-banner-v5';host.innerHTML=notes.length?`<span class="mmh-integrity-dot-v5"></span><div><strong>Financial data health</strong><br>${notes.join(' ')}</div>`:'';host.style.display=notes.length?'flex':'none';
+    }catch(_e){}
+  }
+  ['mmhvault:data-loaded','mmhvault:sync-complete','mmhvault:cache-restored','mmhvault:market-updated'].forEach(ev=>window.addEventListener(ev,()=>setTimeout(healthCheck,100),{passive:true}));
+  setTimeout(healthCheck,800);
+
+  // Expose a safe retry helper for edit handlers. It first retries with updated_at,
+  // but only when the DB explicitly accepts that column; otherwise it reports the schema issue.
+  window.mmhV5TryUpdate=function(table,id,row){
+    return (async()=>{
+      let r=await db.from(table).update(row).eq('id',id);
+      if(!r.error)return r;
+      if(isSchemaUpdatedAtError(r.error)){
+        const retryRow={...row,updated_at:new Date().toISOString()};
+        const rr=await db.from(table).update(retryRow).eq('id',id);
+        if(!rr.error)return rr;
+        return rr;
+      }
+      return r;
+    })();
+  };
+
+  // Improve existing edit save handlers without changing their data model.
+  window.addEventListener('mmhvault:data-change',()=>setTimeout(syncWealth,80),{passive:true});
+
+
+  // CoinGecko resilience: 60s cache + stale fallback to reduce rate-limit bursts.
+  if(typeof window.fetchCryptoPrices==='function' && !window.fetchCryptoPrices.__mmhV5Cached){
+    const rawCryptoFetch=window.fetchCryptoPrices;
+    const cacheKey='mmhvault_v5_crypto_prices';
+    const cacheTTL=60000;
+    const cachedCryptoFetch=async function(){
+      const now=Date.now();
+      let cached=null;
+      try{cached=JSON.parse(localStorage.getItem(cacheKey)||'null')}catch(_e){}
+      if(cached?.data && now-Number(cached.at||0)<cacheTTL){
+        try{window.livePrices=cached.data;window.realtimeReady=true;window.dispatchEvent(new CustomEvent('mmhvault:market-updated'));return cached.data;}catch(_e){}
+      }
+      try{
+        const result=await rawCryptoFetch();
+        try{localStorage.setItem(cacheKey,JSON.stringify({at:Date.now(),data:window.livePrices||result||{}}));}catch(_e){}
+        return result;
+      }catch(err){
+        if(cached?.data){window.livePrices=cached.data;window.realtimeReady=true;window.mmhNotifyV5?.('Live market feed is temporarily unavailable. MMHVAULT is using the last cached prices so your dashboard remains usable.',{type:'warn',title:'Market feed · cached',duration:6500});return cached.data;}
+        throw err;
+      }
+    };
+    cachedCryptoFetch.__mmhV5Cached=true;
+    window.fetchCryptoPrices=cachedCryptoFetch;
+    try{fetchCryptoPrices=cachedCryptoFetch;}catch(_e){}
+  }
+
+  // Rebind the shared expense calculator so every consumer using expenseMMK() gets the same adjustment rule.
+  if(typeof window.expenseMMK==='function'){
+    const _rawExpenseMMKV5=window.expenseMMK;
+    window.expenseMMK=function(){
+      return (window.transactions||[]).filter(t=>window.mmhIsOrdinaryExpenseV5?.(t)).reduce((s,t)=>s+Number(t.from_amount||0)*(typeof window.toMMK==='function'?window.toMMK(t.from_account):1),0);
+    };
+  }
+})();
+
+</script>
 </body>
 <!-- MMHVAULT V4.3.0 performance baseline: logo-free account cards + restrained dashboard rendering. -->
 
