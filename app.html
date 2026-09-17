@@ -16532,6 +16532,119 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
   };
 })();
 </script>
+
+<!-- MMHVAULT · Premium cloud reset confirmation -->
+<style id="mmhvault-v49-premium-reset">
+#mmhResetConfirmV49{position:fixed;inset:0;z-index:2147483647;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(2,7,18,.78);backdrop-filter:blur(12px) saturate(118%);-webkit-backdrop-filter:blur(12px) saturate(118%)}
+#mmhResetConfirmV49.show{display:flex;animation:mmhResetFadeInV49 .18s ease-out}
+#mmhResetConfirmV49 .mmh-reset-card{position:relative;width:min(520px,calc(100vw - 32px));border:1px solid rgba(105,177,255,.18);border-radius:24px;background:linear-gradient(155deg,rgba(17,31,52,.98),rgba(6,14,27,.985) 62%,rgba(10,18,31,.99));box-shadow:0 30px 100px rgba(0,0,0,.62),0 0 0 1px rgba(255,255,255,.025) inset;overflow:hidden;color:#eef6ff}
+#mmhResetConfirmV49 .mmh-reset-card:before{content:"";position:absolute;inset:-30% -10% auto auto;width:240px;height:240px;background:radial-gradient(circle,rgba(255,194,72,.13),transparent 68%);pointer-events:none}
+#mmhResetConfirmV49 .mmh-reset-card:after{content:"";position:absolute;left:0;right:0;top:0;height:1px;background:linear-gradient(90deg,transparent,rgba(255,194,72,.72),rgba(87,181,255,.52),transparent);opacity:.85}
+#mmhResetConfirmV49 .mmh-reset-head{display:flex;gap:14px;align-items:flex-start;padding:24px 24px 14px}
+#mmhResetConfirmV49 .mmh-reset-icon{width:42px;height:42px;flex:0 0 42px;border-radius:14px;display:grid;place-items:center;background:linear-gradient(145deg,rgba(219,91,106,.2),rgba(255,194,72,.11));border:1px solid rgba(255,176,96,.28);box-shadow:0 10px 26px rgba(0,0,0,.24);color:#ffd27c;font-size:18px;font-weight:900}
+#mmhResetConfirmV49 .mmh-reset-eyebrow{margin:0 0 5px;font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:#ffc965;font-weight:800}
+#mmhResetConfirmV49 .mmh-reset-title{margin:0;font-size:21px;line-height:1.22;font-weight:850;letter-spacing:-.01em}
+#mmhResetConfirmV49 .mmh-reset-copy{padding:0 24px;color:#9fb0c8;font-size:14px;line-height:1.65}
+#mmhResetConfirmV49 .mmh-reset-copy p{margin:0 0 14px}
+#mmhResetConfirmV49 .mmh-reset-scope{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 4px}
+#mmhResetConfirmV49 .mmh-reset-chip{display:inline-flex;align-items:center;min-height:30px;padding:0 10px;border-radius:999px;border:1px solid rgba(113,174,236,.16);background:rgba(10,23,40,.76);color:#d5e4f4;font-size:11px;letter-spacing:.02em}
+#mmhResetConfirmV49 .mmh-reset-form{padding:18px 24px 0}
+#mmhResetConfirmV49 .mmh-reset-label{display:block;margin:0 0 8px;color:#d7e6f6;font-size:12px;font-weight:750;letter-spacing:.02em}
+#mmhResetConfirmV49 .mmh-reset-label span{color:#7f91a7;font-weight:500}
+#mmhResetConfirmV49 .mmh-reset-input{width:100%;height:48px;box-sizing:border-box;border-radius:13px;border:1px solid rgba(117,167,220,.2);background:rgba(4,11,22,.74);color:#f5f8fd;padding:0 14px;font-size:15px;font-weight:750;letter-spacing:.12em;outline:none;box-shadow:0 12px 28px rgba(0,0,0,.18) inset,0 0 0 1px rgba(255,255,255,.015)}
+#mmhResetConfirmV49 .mmh-reset-input:focus{border-color:rgba(91,180,255,.7);box-shadow:0 0 0 3px rgba(91,180,255,.11),0 12px 28px rgba(0,0,0,.18) inset}
+#mmhResetConfirmV49 .mmh-reset-input.valid{border-color:rgba(79,212,154,.42);box-shadow:0 0 0 3px rgba(79,212,154,.08)}
+#mmhResetConfirmV49 .mmh-reset-input.invalid{border-color:rgba(219,91,106,.42)}
+#mmhResetConfirmV49 .mmh-reset-note{margin-top:8px;color:#75879d;font-size:11px;line-height:1.5}
+#mmhResetConfirmV49 .mmh-reset-actions{display:flex;justify-content:flex-end;gap:10px;padding:20px 24px 24px}
+#mmhResetConfirmV49 .mmh-reset-btn{min-height:42px;border-radius:12px;padding:0 16px;border:1px solid rgba(113,174,236,.2);font-weight:800;font-size:13px;cursor:pointer;transition:transform .16s ease,opacity .16s ease,border-color .16s ease,box-shadow .16s ease}
+#mmhResetConfirmV49 .mmh-reset-btn:hover{transform:translateY(-1px)}
+#mmhResetConfirmV49 .mmh-reset-cancel{background:rgba(20,36,59,.92);color:#eaf3fd}
+#mmhResetConfirmV49 .mmh-reset-danger{background:linear-gradient(135deg,#d75f70,#b63b4e);border-color:rgba(255,171,182,.32);color:#fff;box-shadow:0 10px 26px rgba(183,61,80,.2)}
+#mmhResetConfirmV49 .mmh-reset-danger:disabled{opacity:.42;cursor:not-allowed;transform:none;box-shadow:none}
+@keyframes mmhResetFadeInV49{from{opacity:0}to{opacity:1}}
+@media(max-width:600px){
+  #mmhResetConfirmV49{padding:10px}
+  #mmhResetConfirmV49 .mmh-reset-card{width:100%;border-radius:20px}
+  #mmhResetConfirmV49 .mmh-reset-head{padding:20px 18px 12px}
+  #mmhResetConfirmV49 .mmh-reset-copy,#mmhResetConfirmV49 .mmh-reset-form{padding-left:18px;padding-right:18px}
+  #mmhResetConfirmV49 .mmh-reset-actions{padding:18px}
+  #mmhResetConfirmV49 .mmh-reset-btn{min-height:44px;flex:1}
+}
+@media(prefers-reduced-motion:reduce){#mmhResetConfirmV49.show{animation:none}#mmhResetConfirmV49 .mmh-reset-btn{transition:none}}
+</style>
+<script id="mmhvault-v49-premium-reset-script">
+(function(){
+  'use strict';
+  const rootId='mmhResetConfirmV49';
+  const langKey='mmhvault_language_v3363';
+  const isZh=()=>((localStorage.getItem(langKey)||'en')==='zh');
+  const esc=(v)=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  function ensureResetModal(){
+    let el=document.getElementById(rootId);
+    if(el)return el;
+    el=document.createElement('div');
+    el.id=rootId;
+    el.setAttribute('aria-hidden','true');
+    el.innerHTML='<div class="mmh-reset-card" role="dialog" aria-modal="true" aria-labelledby="mmhResetTitleV49">'+
+      '<div class="mmh-reset-head"><div class="mmh-reset-icon">!</div><div><div class="mmh-reset-eyebrow" id="mmhResetEyebrowV49"></div><h3 class="mmh-reset-title" id="mmhResetTitleV49"></h3></div></div>'+
+      '<div class="mmh-reset-copy"><p id="mmhResetCopyV49"></p><div class="mmh-reset-scope"><span class="mmh-reset-chip" id="mmhResetChip1V49"></span><span class="mmh-reset-chip" id="mmhResetChip2V49"></span><span class="mmh-reset-chip" id="mmhResetChip3V49"></span></div></div>'+
+      '<div class="mmh-reset-form"><label class="mmh-reset-label" for="mmhResetInputV49" id="mmhResetLabelV49"></label><input class="mmh-reset-input" id="mmhResetInputV49" type="text" inputmode="text" autocapitalize="characters" autocomplete="off" spellcheck="false" aria-describedby="mmhResetNoteV49"><div class="mmh-reset-note" id="mmhResetNoteV49"></div></div>'+
+      '<div class="mmh-reset-actions"><button class="mmh-reset-btn mmh-reset-cancel" type="button" id="mmhResetCancelV49"></button><button class="mmh-reset-btn mmh-reset-danger" type="button" id="mmhResetConfirmBtnV49" disabled></button></div>'+
+      '</div>';
+    document.body.appendChild(el);
+    return el;
+  }
+  function openResetConfirm(){
+    const el=ensureResetModal(),zh=isZh();
+    const input=el.querySelector('#mmhResetInputV49'),ok=el.querySelector('#mmhResetConfirmBtnV49'),cancel=el.querySelector('#mmhResetCancelV49');
+    el.querySelector('#mmhResetEyebrowV49').textContent=zh?'危险操作 · 云端数据':'Danger Zone · Cloud Data';
+    el.querySelector('#mmhResetTitleV49').textContent=zh?'确定要重置云端数据吗？':'Reset your cloud data?';
+    el.querySelector('#mmhResetCopyV49').textContent=zh?'此操作会永久删除您当前账户中的以下数据，MMHVAULT 内无法撤销。':'This permanently deletes the following data from your current account. MMHVAULT cannot undo this action.';
+    el.querySelector('#mmhResetChip1V49').textContent=zh?'交易记录':'Transactions';
+    el.querySelector('#mmhResetChip2V49').textContent=zh?'投资记录':'Investments';
+    el.querySelector('#mmhResetChip3V49').textContent=zh?'汇率数据':'Exchange Rates';
+    el.querySelector('#mmhResetLabelV49').innerHTML=zh?'确认文本 <span>· 输入 RESET 继续</span>':'Confirmation <span>· type RESET to continue</span>';
+    el.querySelector('#mmhResetNoteV49').textContent=zh?'建议先创建备份。只有完全输入 RESET 后，重置按钮才会启用。':'Create a backup first. Reset becomes available only after you type RESET exactly.';
+    cancel.textContent=zh?'取消':'Cancel';
+    ok.textContent=zh?'重置数据':'Reset Data';
+    input.value='';input.classList.remove('valid','invalid');ok.disabled=true;
+    let done=false;
+    const finish=(result)=>{if(done)return;done=true;el.classList.remove('show');el.setAttribute('aria-hidden','true');cleanup();resolvePromise(result);};
+    let resolvePromise=()=>{};
+    const cleanup=()=>{input.removeEventListener('input',onInput);cancel.removeEventListener('click',onCancel);ok.removeEventListener('click',onOk);el.removeEventListener('click',onBg);document.removeEventListener('keydown',onKey);};
+    const onInput=()=>{const valid=input.value==='RESET';ok.disabled=!valid;input.classList.toggle('valid',valid);input.classList.toggle('invalid',input.value.length>0&&!valid);};
+    const onCancel=()=>finish(false),onOk=()=>finish(true),onBg=(e)=>{if(e.target===el)finish(false)},onKey=(e)=>{if(e.key==='Escape')finish(false);if(e.key==='Enter'&&!ok.disabled)finish(true)};
+    return new Promise(resolve=>{
+      resolvePromise=resolve;
+      input.addEventListener('input',onInput);
+      cancel.addEventListener('click',onCancel);
+      ok.addEventListener('click',onOk);
+      el.addEventListener('click',onBg);
+      document.addEventListener('keydown',onKey);
+      el.classList.add('show');el.setAttribute('aria-hidden','false');
+      setTimeout(()=>input.focus(),30);
+    });
+  }
+  window.resetMyCloudDataV380=async function(){
+    const confirmed=await openResetConfirm();
+    if(!confirmed)return;
+    try{
+      const u=(await db.auth.getUser()).data.user;
+      if(!u){setBackupStatusV380(isZh()?'请重新登录。':'Please sign in again.','err');return;}
+      for(const table of ['transactions','investments','exchange_rates']){
+        const r=await db.from(table).delete().eq('user_id',u.id);
+        if(r.error){setBackupStatusV380((isZh()?'重置失败：':'Reset failed: ')+r.error.message,'err');return;}
+      }
+      await loadAll();
+      setBackupStatusV380(isZh()?'云端数据已重置。':'Your cloud data has been reset.','ok');
+      refreshDataCenterV380();
+    }catch(err){
+      setBackupStatusV380((isZh()?'重置失败：':'Reset failed: ')+(err?.message||''),'err');
+    }
+  };
+})();
+</script>
 </body>
 <!-- MMHVAULT V4.3.0 performance baseline: logo-free account cards + restrained dashboard rendering. -->
 
