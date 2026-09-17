@@ -21818,3 +21818,123 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
   setTimeout(()=>{try{window.renderInvest?.();}catch(_e){}},250);
 })();
 </script>
+
+<!-- MMHVAULT V4.3.76 · FINAL UNIFIED INVESTMENT VALUATION FIX
+     Single source of truth: Crypto current value + Gold current holding value.
+     Gold quantity is always derived from the ledger's signed weight/quantity;
+     never from MMK amount ÷ buy price. This keeps Dashboard, Account Overview,
+     Net Worth, Asset Allocation and Analyze on the same valuation. -->
+<script id="mmhvault-v4376-final-unified-investment-fix">
+(function(){
+  'use strict';
+  if(window.__mmhV4376UnifiedInvestmentFix)return;
+  window.__mmhV4376UnifiedInvestmentFix=true;
+
+  const N=v=>{const x=Number(v);return Number.isFinite(x)?x:0;};
+  const invRows=()=>Array.isArray(window.investments)?window.investments:[];
+  const cryptoRows=()=>invRows().filter(x=>x&&x.asset==='Crypto');
+  const goldRows=()=>invRows().filter(x=>x&&x.asset==='Gold');
+
+  // Canonical Gold ledger quantity: explicit signed quantity/weight only.
+  // SELL rows reduce the holding; never infer weight from currency amount / price.
+  function canonicalGoldWeight(x){
+    if(!x||x.asset!=='Gold')return 0;
+    if(typeof window.goldHoldingQty==='function'){
+      const q=N(window.goldHoldingQty(x));
+      if(q!==0)return q;
+    }
+    let q=N(x.weight_kyattha);
+    if(q===0)q=N(x.quantity);
+    const side=String(x.side||x.trade_type||'').toUpperCase();
+    if(side==='SELL'&&q>0)q=-q;
+    return q;
+  }
+
+  function currentGoldPrice(){
+    const state=N(window.goldMarketState?.pricePerKyattha);
+    if(state>0)return state;
+    const rows=goldRows().slice().sort((a,b)=>String(b?.inv_date||'').localeCompare(String(a?.inv_date||'')));
+    const recorded=rows.map(x=>N(x.market_price)).find(v=>v>0);
+    if(recorded>0)return recorded;
+    return N(rows[0]?.buy_price);
+  }
+
+  function canonicalGoldMMK(){
+    const weight=goldRows().reduce((s,x)=>s+canonicalGoldWeight(x),0);
+    const price=currentGoldPrice();
+    return Math.max(0,weight)*Math.max(0,price);
+  }
+
+  function canonicalCryptoUSD(){
+    return cryptoRows().reduce((s,x)=>{
+      const q=N(x.quantity);
+      const p=N(window.livePrices?.[x.symbol]?.price)||N(x.market_price);
+      return s+q*p;
+    },0);
+  }
+
+  function canonicalInvestmentMMK(){
+    const fx=N(window.rates?.usd_mmk);
+    return canonicalCryptoUSD()*Math.max(0,fx)+canonicalGoldMMK();
+  }
+
+  function canonicalInvestmentUSD(){
+    const fx=N(window.rates?.usd_mmk);
+    if(fx<=0)return 0;
+    return canonicalInvestmentMMK()/fx;
+  }
+
+  // Replace the legacy V3.76 authority that incorrectly used amount / buy_price.
+  window.mmhGoldAuthorityV376=function(){
+    const rows=goldRows();
+    const weight=rows.reduce((s,x)=>s+canonicalGoldWeight(x),0);
+    const price=currentGoldPrice();
+    const valueMMK=Math.max(0,weight)*Math.max(0,price);
+    const fx=N(window.rates?.usd_mmk);
+    const costMMK=rows.reduce((s,x)=>s+N(x.amount)+N(x.fee)+N(x.other_cost),0);
+    return {
+      rows:rows.length,
+      weight,
+      costMMK,
+      priceMMK:price,
+      valueMMK,
+      valueUSD:fx>0?valueMMK/fx:0
+    };
+  };
+
+  window.mmhInvestmentValueV376=function(){return canonicalInvestmentMMK();};
+  window.investmentValue=function(){return canonicalInvestmentMMK();};
+  window.mmhvaultInvestmentValueUSD=function(){return canonicalInvestmentUSD();};
+  window.investmentValueUSD=function(){return canonicalInvestmentUSD();};
+
+  // Keep the Account Overview / allocation refresh on the same canonical numbers.
+  const refreshLegacy=window.mmhRefreshGoldBlocksV376;
+  window.mmhRefreshGoldBlocksV376=function(){
+    try{
+      if(typeof refreshLegacy==='function')refreshLegacy.apply(this,arguments);
+    }catch(e){console.warn('MMHVAULT unified investment refresh:',e);}
+  };
+
+  // Invalidate dashboard memoized calculations so the corrected valuation is used now.
+  try{
+    if(window.__mmhDashV34242Cache){
+      delete window.__mmhDashV34242Cache.baseSig;
+      delete window.__mmhDashV34242Cache.accountSig;
+      delete window.__mmhDashV34242Cache.metricSig;
+      delete window.__mmhDashV34242Cache.v372Sig;
+    }
+    window.__mmhV376Sig='';
+    window.__mmhV30DataSig='';
+  }catch(_e){}
+
+  // Re-render once data is already present, and again after cloud/market refreshes.
+  function rerender(){
+    try{ if(typeof window.renderDashboard==='function')window.renderDashboard(); }catch(_e){}
+    try{ if(typeof window.renderAnalyze==='function' && document.getElementById('analyze')?.classList.contains('active'))window.renderAnalyze(); }catch(_e){}
+    try{ if(typeof window.mmhRefreshGoldBlocksV376==='function')window.mmhRefreshGoldBlocksV376(); }catch(_e){}
+  }
+  ['mmhvault:data-loaded','mmhvault:sync-complete','mmhvault:market-updated'].forEach(ev=>window.addEventListener(ev,()=>setTimeout(rerender,80)));
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(rerender,120),{once:true});
+  else setTimeout(rerender,120);
+})();
+</script>
