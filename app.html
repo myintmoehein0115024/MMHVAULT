@@ -6405,6 +6405,7 @@ async function loadAll(opts={}){
       const hardErrors=[];
       const optionalErrors=[];
       if(a.error){console.error("Transactions load failed",a.error);hardErrors.push("Transactions: "+a.error.message);}else transactions=a.data||[];
+       window.__mmhLoanLedgerV8=Array.isArray(a.data)?a.data.slice():[];
       if(b.error){console.error("Investments load failed",b.error);hardErrors.push("Investments: "+b.error.message);}else investments=b.data||[];
       if(r.error){console.warn("Exchange rates load skipped",r.error);optionalErrors.push("Exchange Rates: "+r.error.message);}else if(r.data)rates=r.data;
       try{loadRateInputs();}catch(e){console.warn("Rate input render skipped",e);}
@@ -6420,7 +6421,7 @@ async function loadAll(opts={}){
     }catch(err){
       console.error("loadAll failed",err);
       let restored=false;
-      try{if(!hadExisting&&typeof window.mmhvaultRestoreCacheV336==='function'){restored=window.mmhvaultRestoreCacheV336();if(restored){try{transactions=window.transactions||transactions;investments=window.investments||investments;rates=Object.assign({},rates||{},window.rates||{});}catch(_e){}try{render();}catch(_e){}}}}catch(_e){}
+      try{if(!hadExisting&&typeof window.mmhvaultRestoreCacheV336==='function'){restored=window.mmhvaultRestoreCacheV336();if(restored){try{transactions=window.transactions||transactions;investments=window.investments||investments;rates=Object.assign({},rates||{},window.rates||{});window.__mmhLoanLedgerV8=Array.isArray(transactions)?transactions.slice():[];}catch(_e){}try{render();}catch(_e){}}}}catch(_e){}
       const msg=restored?"Cloud is temporarily unavailable. Showing your last saved data. Reconnect to refresh.":(hadExisting?"Cloud refresh failed. Your last loaded data is still shown. Please check your connection and retry.":"Unable to load cloud data. Please check your connection and retry.");
       setDataErrorV384(msg);
       try{window.dispatchEvent(new CustomEvent("mmhvault:data-loaded",{detail:{ok:false,restored,at:Date.now()}}));}catch(_e){}
@@ -6506,35 +6507,24 @@ function totalAssetMMK(){
 }
 function expenseMMK(){return transactions.filter(t=>t.type==="Expense"&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=="Investment"&&!isLinkedInvestmentTx(t)).reduce((s,t)=>s+n(t.from_amount)*toMMK(t.from_account),0);}
 function incomeMMK(){return transactions.filter(t=>t.type==="Income").reduce((s,t)=>s+n(t.to_amount)*toMMK(t.to_account),0);}
-/* V7.3 — Canonical Loan Ledger.  Loan labels are matched defensively
-   (trim/case-insensitive) so harmless whitespace/case differences cannot make a
-   repayment disappear from Loan Receivable. Each transaction is counted once. */
-/* V7.3 — Canonical Loan Ledger. Uses the live transaction mirrors, de-duplicates by id,
-   and never infers loan state from cash balance or investment data. */
-function loanCategory(t){return String(t?.category||'').trim().toLowerCase().replace(/\s+/g,' ');}
-function loanRowsCanonical(){
-  const seen=new Set(), rows=[];
-  const sources=[];
-  if(Array.isArray(transactions))sources.push(transactions);
-  if(Array.isArray(window.transactions))sources.push(window.transactions);
-  for(const list of sources){
-    for(const t of list){
-      const id=String(t?.id??'');
-      const key=id ? 'id:'+id : ['tx_date', 'type', 'category', 'from_account', 'from_amount', 'to_account', 'to_amount', 'note'].map(k=>String(t?.[k]??'')).join('|');
-      if(seen.has(key))continue;
-      seen.add(key);
-      const c=loanCategory(t);
-      if(c==='loan out'||c==='loan repayment')rows.push(t);
-    }
+/* V8 — Single-source Loan Ledger. The authoritative cloud transaction result is copied into
+   __mmhLoanLedgerV8 during loadAll; no stale mirror is merged with a live mirror. */
+function loanCategoryV8(t){return String(t?.category??"").trim().toLowerCase().replace(/\s+/g," ");}
+function loanRowsV8(){
+  const rows=Array.isArray(window.__mmhLoanLedgerV8)?window.__mmhLoanLedgerV8:(Array.isArray(transactions)?transactions:[]);
+  const seen=new Set(),out=[];
+  for(const t of rows){
+    const id=String(t?.id??"");
+    const key=id?`id:${id}`:JSON.stringify([t?.tx_date,t?.type,t?.category,t?.from_account,t?.from_amount,t?.to_account,t?.to_amount,t?.note]);
+    if(seen.has(key))continue;
+    seen.add(key);
+    const c=loanCategoryV8(t);
+    if(c==="loan out"||c==="loan repayment")out.push(t);
   }
-  return rows;
+  return out;
 }
-function loanOutMMK(){
-  return loanRowsCanonical().reduce((sum,t)=>loanCategory(t)==='loan out' ? sum + Math.abs(n(t?.from_amount))*toMMK(t?.from_account) : sum,0);
-}
-function loanPaidMMK(){
-  return loanRowsCanonical().reduce((sum,t)=>loanCategory(t)==='loan repayment' ? sum + Math.abs(n(t?.to_amount))*toMMK(t?.to_account) : sum,0);
-}
+function loanOutMMK(){return loanRowsV8().reduce((sum,t)=>loanCategoryV8(t)==="loan out"?sum+Math.abs(n(t?.from_amount))*toMMK(t?.from_account):sum,0);}
+function loanPaidMMK(){return loanRowsV8().reduce((sum,t)=>loanCategoryV8(t)==="loan repayment"?sum+Math.abs(n(t?.to_amount))*toMMK(t?.to_account):sum,0);}
 function loanOutstandingMMK(){return Math.max(0,loanOutMMK()-loanPaidMMK());}
 function investedCost(){return investments.reduce((s,x)=>{const rate=x.asset==="Crypto"?rates.usd_mmk:1;return s+(n(x.amount)+n(x.fee)+n(x.other_cost))*rate;},0);}
 function goldHoldingQty(x){
@@ -6654,7 +6644,7 @@ function renderDashboard(){
   const C=window.__mmhDashV34242Cache;
 
   const calcBase=()=>{
-    const A=totalAssetMMK(),E=expenseMMK(),I=investmentValue(),L=loanOutstandingMMK();
+    const A=totalAssetMMK(),E=expenseMMK(),I=investmentValue(),L=Math.max(0,loanOutMMK()-loanPaidMMK());
     return {A,E,I,L,available:A-I-L};
   };
   if(C.baseSig!==baseSig){
@@ -6730,7 +6720,7 @@ transactions.filter(t=>t.type==="Income").forEach(t=>i+=n(t.to_amount)*toMMK(t.t
 expenses.innerHTML="<table><tr><th>Category</th><th>MMK</th><th>vs Income</th></tr>"+CATS.Expense.map(c=>{const v=transactions.filter(t=>t.type==="Expense"&&t.category===c).reduce((s,t)=>s+n(t.from_amount)*toMMK(t.from_account),0);const p=i?v/i*100:0;return`<tr><td>${c}</td><td>${fmt(v)}</td><td>${p.toFixed(2)}%</td></tr>`}).join("")+`<tr><th>Total</th><th>${fmt(expenseMMK())}</th><th>${i?(expenseMMK()/i*100).toFixed(2):"0.00"}%</th></tr></table>`;
 const debtMMK=transactions.filter(t=>t.category==="Debt").reduce((s,t)=>s+n(t.from_amount)*toMMK(t.from_account),0);
 const paidDebtMMK=transactions.filter(t=>t.category==="Paid Debt"||t.category==="PaidDeb").reduce((s,t)=>s+n(t.to_amount)*toMMK(t.to_account),0);
-const lo=loanOutstandingMMK();
+const lo=Math.max(0,loanOutMMK()-loanPaidMMK());
 loans.innerHTML=`<table><tr><th>Metric</th><th>MMK</th></tr>
 <tr><td>Debt</td><td>${fmt(debtMMK)}</td></tr>
 <tr><td>Paid Debt</td><td>${fmt(paidDebtMMK)}</td></tr>
@@ -7648,7 +7638,7 @@ function renderDashboardV29(){
   const expense=transactions.filter(t=>t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t)).reduce((s,t)=>s+n(t.from_amount)*toUSD(t.from_account),0);
   const inc=transactions.filter(t=>t.type==='Income').reduce((s,t)=>s+n(t.to_amount)*toUSD(t.to_account),0);
   const save=inc-expense, saveRatio=inc?save/inc*100:0;
-  const loan=loanOutstandingMMK()/rates.usd_mmk;
+  const loan=Math.max(0,loanOutMMK()-loanPaidMMK())/rates.usd_mmk;
   $('dashboardHero').innerHTML=`<div class="card"><div class="name">NET WORTH</div><div class="big cyan">${usd(net)}</div><div class="small">Cash + Investments</div></div><div class="card"><div class="name">CASH ASSETS</div><div class="big">${usd(cash)}</div></div><div class="card"><div class="name">INVESTMENTS</div><div class="big pink">${usd(invest)}</div></div><div class="card"><div class="name">SAVING RATIO</div><div class="big ${saveRatio>=40?'green':saveRatio>=20?'yellow':'red'}">${saveRatio.toFixed(1)}%</div><div class="small">Outstanding loans: ${usd(loan)}</div></div>`;
   $('accounts').innerHTML=`<div class="account-group"><div class="group-title"><strong>💵 Cash</strong><span class="group-total">Native + USD</span></div><div class="account-list">${['Bath','TrueMoney','KPay'].map(a=>{const native=balance(a);const c=currency(a);const nativeText=c==='THB'?'฿ '+fmt(native):'MMK '+fmt(native);const usdValue=native*toUSD(a);return `<div class="account-row"><div class="left"><div class="name">${a} <span class="small">${c}</span></div></div><div class="amount"><div>${nativeText}</div><div class="small">≈ ${usd(usdValue)}</div></div></div>`;}).join('')}</div></div><div class="account-group"><div class="group-title"><strong>💵 USD</strong><span class="group-total">USD</span></div><div class="account-list">${['OKX','ByBit','MetaMask'].map(a=>`<div class="account-row"><div class="left"><div class="name">${a}</div></div><div class="amount">${usd(balance(a)*toUSD(a))}</div></div>`).join('')}</div></div><div class="account-group investment-account"><div class="group-title"><strong>🥇 Investment</strong><span class="group-total">USD</span></div><div class="account-list"><div class="account-row"><div class="left"><div class="name">Crypto Portfolio</div></div><div class="amount">${usd(investments.filter(x=>x.asset==='Crypto').reduce((s,x)=>{const p=livePrices[x.symbol]?.price||0;return s+n(x.quantity)*p;},0))}</div></div><div class="account-row"><div class="left"><div class="name">Gold Portfolio</div></div><div class="amount">${usd((investments.filter(x=>x.asset==='Gold').reduce((s,x)=>s+(goldHoldingQty(x)*(goldMarketState.pricePerKyattha||n(x.market_price))),0))/rates.usd_mmk)}</div></div></div></div>`;
   $('metrics').innerHTML=[['Income',inc,'green'],['Expense',expense,'red'],['Available Balance',Math.max(0,cash-loan),'cyan'],['Total Invest',invest,'pink'],['Net Change',save-loan,'yellow']].map(x=>`<div class="card metric"><div class="name">${x[0]} · USD</div><div class="value ${x[2]}">${usd(x[1])}</div></div>`).join('');
@@ -7742,7 +7732,7 @@ function mmhvaultInvestmentValueUSD(){
 }
 function investmentCostUSD(){return mmhvaultInvestmentCostUSD();}
 function investmentValueUSD(){return mmhvaultInvestmentValueUSD();}
-function mmhvaultLoanReceivableUSD(){const fx=n(rates?.usd_mmk)||0;return fx>0?loanOutstandingMMK()/fx:0;}
+function mmhvaultLoanReceivableUSD(){const fx=n(rates?.usd_mmk)||0;return fx>0?Math.max(0,n(loanOutMMK())-n(loanPaidMMK()))/fx:0;}
 function mmhvaultNetWorthUSD(){return Math.max(0,mmhvaultCashUSD()+mmhvaultInvestmentValueUSD()+mmhvaultLoanReceivableUSD());}
 function renderDashboardV30(){
   const cashAccounts=['Bath','TrueMoney','OKX','ByBit','MetaMask','KPay'];
@@ -7750,7 +7740,7 @@ function renderDashboardV30(){
   // This explicitly includes THB (Bath/TrueMoney) and MMK (KPay) via the exchange center.
   const cash=cashAccounts.reduce((sum,a)=>sum+balance(a)*toUSD(a),0);
   const investmentsUSD=investmentValueUSD();
-  const outstanding=loanOutstandingMMK()/(Number(rates?.usd_mmk)||1);
+  const outstanding=Math.max(0,loanOutMMK()-loanPaidMMK())/(Number(rates?.usd_mmk)||1);
   const netWorth=cash+investmentsUSD+outstanding;
   const monthlyMonth=today().slice(0,7);
   const income=transactions.filter(t=>t.tx_date.startsWith(monthlyMonth)&&t.type==='Income').reduce((sum,t)=>sum+n(t.to_amount)*toUSD(t.to_account),0);
@@ -16650,13 +16640,12 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
       set('mmhCommandInvestV34210',money(d.invest));
       set('mmhCommandWeightV34210',w.toFixed(1)+'%');
       set('mmhRibbonNetV34212',money(d.net));
-      const allLoanChips=[...dash.querySelectorAll('.mmh-loan-receivable-clean'),...dash.querySelectorAll('span')].filter(el=>String(el.textContent||'').toLowerCase().includes('loan receivable'));
-      const unique=[]; for(const el of allLoanChips){if(!unique.includes(el))unique.push(el);} unique.forEach((el,i)=>{if(i>0)el.remove();});
-      let chip=unique[0]||dash.querySelector('.mmh-loan-receivable-clean');
+      const old=dash.querySelectorAll('.mmh-loan-receivable-clean'); old.forEach((el,i)=>{if(i>0)el.remove();});
+      let chip=dash.querySelector('.mmh-loan-receivable-clean');
       const weightEl=document.getElementById('mmhCommandWeightV34210');
       const parent=weightEl?.parentElement?.parentElement||weightEl?.parentElement;
       if(!chip&&parent){chip=document.createElement('span');chip.className='mmh-loan-receivable-clean';chip.style.cssText='display:inline-flex;align-items:center;gap:7px;margin:10px 8px 0 0;padding:8px 12px;border:1px solid rgba(70,150,255,.35);border-radius:12px;background:rgba(8,22,46,.72);color:#bcd2ef;font-size:13px;';parent.appendChild(chip);}
-      if(chip)chip.textContent='Loan Receivable  '+money((loanOutstandingMMK()/(Number(rates?.usd_mmk)||1)));
+      if(chip)chip.textContent='Loan Receivable  '+money(d.loan);
       window.__mmhFinalNetWorthAuthoritySnapshot=d;
     }catch(e){console.warn('MMHVAULT final net worth sync skipped',e);}
   }
