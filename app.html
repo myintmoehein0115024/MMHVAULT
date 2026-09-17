@@ -17222,6 +17222,177 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
 }
 </style>
 
+
+<!-- MMHVAULT V6.3 — FINAL HOLDINGS-BASED WEALTH AUTHORITY
+     One source for Dashboard wealth KPIs. Investment value is CURRENT HOLDINGS
+     (net quantity by symbol × live price) + current Gold holding value.
+     Cash uses the existing canonical account balance() exactly once.
+     Loan receivable is Loan Out − Loan Repayment. No raw records are changed. -->
+<script id="mmhvault-v63-final-holdings-wealth-authority">
+(function(){
+  'use strict';
+  if(window.__MMHVAULT_V63_FINAL_WEALTH__) return;
+  window.__MMHVAULT_V63_FINAL_WEALTH__=true;
+
+  const N=v=>{const n=Number(typeof v==='string'?v.replace(/,/g,'').trim():v);return Number.isFinite(n)?n:0;};
+  const txs=()=>Array.isArray(window.transactions)?window.transactions:[];
+  const invs=()=>Array.isArray(window.investments)?window.investments:[];
+  const mmk=()=>{const r=N(window.rates?.usd_mmk);return r>0?r:4250;};
+  const thb=()=>{const r=N(window.rates?.usd_thb);return r>0?r:31;};
+  const norm=v=>String(v??'').trim().toLowerCase();
+  const accountCurrency=a=>{
+    const x=norm(a);
+    if(x==='bath'||x==='truemoney')return 'THB';
+    if(x==='kpay')return 'MMK';
+    return 'USD';
+  };
+  const nativeToUSD=(account,amount)=>{
+    const x=N(amount), c=accountCurrency(account);
+    if(c==='USD')return x;
+    if(c==='THB')return x/thb();
+    return x/mmk();
+  };
+
+  function cashUSD(){
+    const accounts=['Bath','TrueMoney','OKX','ByBit','MetaMask','KPay'];
+    // Existing balance() is the canonical ledger and already applies each
+    // investment cash-flow once. Do not subtract investments again here.
+    if(typeof window.balance==='function'){
+      return accounts.reduce((sum,a)=>{
+        try{return sum+nativeToUSD(a,window.balance(a));}catch(_e){return sum;}
+      },0);
+    }
+    return 0;
+  }
+
+  function livePrice(symbol,fallback){
+    const k=String(symbol||'').trim().toUpperCase();
+    const lp=window.livePrices||{};
+    const v=lp[k]??lp[k.toLowerCase()]??lp[String(symbol||'').trim()];
+    const p=N(v?.price??v?.usd??v);
+    return p>0?p:N(fallback);
+  }
+
+  function cryptoUSD(){
+    // IMPORTANT: value NET HOLDINGS, not sum of historical BUY rows.
+    // Aggregate quantities first so SELL rows permanently reduce holdings.
+    const qty=new Map();
+    for(const x of invs()){
+      if(norm(x.asset)!=='crypto')continue;
+      const symbol=String(x.symbol||'').trim().toUpperCase();
+      if(!symbol)continue;
+      qty.set(symbol,(qty.get(symbol)||0)+N(x.quantity));
+    }
+    let total=0;
+    for(const [symbol,q] of qty){
+      if(q<=0)continue;
+      const rows=invs().filter(x=>norm(x.asset)==='crypto'&&String(x.symbol||'').trim().toUpperCase()===symbol);
+      const fallback=rows.map(x=>N(x.market_price)).find(v=>v>0)||rows.map(x=>N(x.buy_price)).find(v=>v>0)||0;
+      total+=q*livePrice(symbol,fallback);
+    }
+    return Math.max(0,total);
+  }
+
+  function goldQuantity(){
+    let q=0;
+    for(const x of invs()){
+      if(norm(x.asset)!=='gold')continue;
+      let w=N(x.weight_kyattha);
+      if(!w)w=N(x.quantity);
+      const side=String(x.side||x.trade_type||'').trim().toUpperCase();
+      if(side==='SELL' && w>0)w=-w;
+      // Existing Gold rows use signed quantity; a negative quantity is kept.
+      q+=w;
+    }
+    return Math.max(0,q);
+  }
+
+  function goldPriceMMK(){
+    const p=N(window.goldMarketState?.pricePerKyattha);
+    if(p>0)return p;
+    const rows=invs().filter(x=>norm(x.asset)==='gold').slice().sort((a,b)=>String(b.inv_date||'').localeCompare(String(a.inv_date||'')));
+    return rows.map(x=>N(x.market_price)).find(v=>v>0)||rows.map(x=>N(x.buy_price)).find(v=>v>0)||0;
+  }
+
+  function goldUSD(){return goldQuantity()*goldPriceMMK()/mmk();}
+  function investmentUSD(){return Math.max(0,cryptoUSD()+goldUSD());}
+
+  function loanMMK(){
+    const out=txs().filter(t=>norm(t.category)==='loan out').reduce((s,t)=>s+Math.abs(N(t.from_amount)),0);
+    const paid=txs().filter(t=>norm(t.category)==='loan repayment').reduce((s,t)=>s+Math.abs(N(t.to_amount)),0);
+    return Math.max(0,out-paid);
+  }
+  function snapshot(){
+    const cash=cashUSD();
+    const crypto=cryptoUSD();
+    const gold=goldUSD();
+    const invest=crypto+gold;
+    const loanMMKValue=loanMMK();
+    const loan=loanMMKValue/mmk();
+    const net=cash+invest+loan;
+    return {cash,crypto,gold,invest,loanMMK:loanMMKValue,loan,net,investmentWeight:net?invest/net*100:0,loanWeight:net?loan/net*100:0};
+  }
+
+  const money=v=>'$ '+N(v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+  const setText=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=money(v);};
+
+  function removeDuplicateLoanChips(){
+    const seen=[];
+    document.querySelectorAll('.mmh-v51-loan-chip,.mmh-v52-loan-chip,.mmh-v53-loan-chip,.mmh-v6-loan-chip,.mmh-v62-loan-chip,#mmhV51LoanChip,#mmhV52LoanChip,#mmhV53LoanChip,#mmhV6LoanChip,#mmhV62LoanChip').forEach(e=>e.remove());
+    document.querySelectorAll('#dashboard .mmh-v63-loan-chip').forEach((e,i)=>{if(i>0)e.remove();});
+  }
+
+  function ensureLoanChip(d){
+    const anchor=document.querySelector('#dashboard .mmh-command-v34210');
+    if(!anchor)return;
+    let host=document.getElementById('mmhV63LoanChip');
+    if(!host){
+      host=document.createElement('span');host.id='mmhV63LoanChip';host.className='mmh-v63-loan-chip';
+      host.innerHTML='<span>Loan Receivable</span><b></b>';
+      const bar=anchor.querySelector('.mmh-command-bottom,.command-bottom,.mmh-command-meta,.meta-row')||anchor.lastElementChild||anchor;
+      bar.appendChild(host);
+    }
+    host.querySelector('b').textContent=money(d.loan);
+    host.style.display=d.loan>0.004?'inline-flex':'none';
+  }
+
+  function sync(){
+    try{
+      const d=snapshot();
+      setText('mmhCommandNetWorthV34210',d.net);
+      setText('mmhRibbonNetV34212',d.net);
+      setText('mmhCommandCashV34210',d.cash);
+      setText('mmhCommandInvestV34210',d.invest);
+      const w=document.getElementById('mmhCommandWeightV34210');if(w)w.textContent=d.investmentWeight.toFixed(1)+'%';
+      const hero=document.getElementById('dashboardHero');
+      if(hero){
+        const cards=hero.querySelectorAll('.card');
+        if(cards[0]){const b=cards[0].querySelector('.big');if(b)b.textContent=money(d.net);const sm=cards[0].querySelector('.small');if(sm)sm.textContent='Cash + Crypto + Gold + Loan Receivable · USD';}
+        if(cards[1]){const b=cards[1].querySelector('.big');if(b)b.textContent=money(d.cash);}
+        if(cards[2]){const b=cards[2].querySelector('.big');if(b)b.textContent=money(d.invest);}
+      }
+      removeDuplicateLoanChips();ensureLoanChip(d);
+      window.netWorth=d.net;
+      window.mmhvaultNetWorthUSD=()=>snapshot().net;
+      window.mmhvaultInvestmentValueUSD=()=>snapshot().invest;
+      window.investmentValueUSD=()=>snapshot().invest;
+      window.mmhLoanReceivableMMK=()=>snapshot().loanMMK;
+      window.mmhLoanReceivableUSD=()=>snapshot().loan;
+      window.mmhGetTotalOwnedWealth=snapshot;
+      window.__mmhV63WealthSnapshot=d;
+    }catch(e){console.warn('[MMHVAULT V6.3] wealth sync failed',e);}
+  }
+
+  const css=document.createElement('style');
+  css.textContent='.mmh-v63-loan-chip{display:inline-flex;align-items:center;gap:7px;margin-left:8px;margin-top:6px;padding:7px 11px;border:1px solid rgba(82,157,255,.32);border-radius:11px;background:rgba(10,25,52,.72);color:#a9bddb;font-size:11px;white-space:nowrap;font-weight:800}.mmh-v63-loan-chip b{color:#eaf6ff;font-weight:900}@media(max-width:720px){.mmh-v63-loan-chip{margin-left:0}}';
+  document.head.appendChild(css);
+
+  ['mmhvault:data-loaded','mmhvault:sync-complete','mmhvault:cache-restored','mmhvault:market-updated','mmhvault:data-change','mmhvault:dashboard-rendered'].forEach(ev=>window.addEventListener(ev,()=>setTimeout(sync,80),{passive:true}));
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(sync,400),{once:true});else setTimeout(sync,400);
+  setInterval(()=>{if(!document.hidden)sync();},3000);
+})();
+</script>
+
 </html>
 
 <!-- MMHVAULT V4.3.0 · Transaction Cascade Hotfix -->
@@ -22367,95 +22538,115 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
 <!-- MMHVAULT V4.3.0 FINAL NET-WORTH CONSISTENCY PATCH
      Dashboard headline cards must use the same canonical cash/investment values
      already shown by Account Overview. No transaction/investment records are changed. -->
-<script id="mmhvault-v61-final-wealth-authority">
+<script id="mmhvault-v62-single-wealth-authority">
 (function(){
-'use strict';
-if(window.__MMHVAULT_V61_FINAL_WEALTH__)return;
-window.__MMHVAULT_V61_FINAL_WEALTH__=true;
-const N=v=>{if(typeof v==='string')v=v.replace(/,/g,'').trim();const n=Number(v);return Number.isFinite(n)?n:0;};
-const norm=v=>String(v||'').trim().toLowerCase().replace(/[\s_.-]+/g,'').replace(/saw/g,'zaw');
-const txs=()=>Array.isArray(window.transactions)?window.transactions:[];
-const invs=()=>Array.isArray(window.investments)?window.investments:[];
-const rates=()=>window.rates||{};
-const mmk=()=>Math.max(0,N(rates().usd_mmk)||4250);
-const thb=()=>Math.max(0,N(rates().usd_thb)||31);
-function usd(account,amount){const a=String(account||'').trim().toLowerCase(),x=N(amount);if(!x)return 0;if(a==='kpay')return x/mmk();if(a==='bath'||a==='truemoney')return x/thb();return x;}
-function rawCash(){
- const m=new Map();
- for(const t of txs()){
-  const fa=String(t.from_account||'').trim(),ta=String(t.to_account||'').trim();
-  if(fa)m.set(fa,(m.get(fa)||0)-N(t.from_amount));
-  if(ta)m.set(ta,(m.get(ta)||0)+N(t.to_amount));
- }
- return m;
-}
-function investmentCash(){
- const m=new Map();
- for(const x of invs()){
-  const a=String(x.source_account||x.sourceAccount||'').trim(); if(!a)continue;
-  const amount=N(x.amount), fee=Math.abs(N(x.fee)), other=Math.abs(N(x.other_cost));
-  // Positive amount = BUY cash out; negative amount = SELL cash in. Fees/costs always reduce cash.
-  const effect=amount>0 ? -(amount+fee+other) : (-amount-fee-other);
-  m.set(a,(m.get(a)||0)+effect);
- }
- return m;
-}
-function cashUSD(){
- const r=rawCash(),i=investmentCash();
- const accounts=['Bath','TrueMoney','OKX','ByBit','MetaMask','KPay'];
- return accounts.reduce((sum,a)=>sum+usd(a,(r.get(a)||0)+(i.get(a)||0)),0);
-}
-function cryptoUSD(){
- const lp=window.livePrices||{};
- return invs().filter(x=>String(x.asset||'').trim().toLowerCase()==='crypto').reduce((sum,x)=>{
-  const q=N(x.quantity); if(!q)return sum;
-  const k=String(x.symbol||'').trim().toUpperCase();
-  const z=lp[k]??lp[k.toLowerCase()]??lp[x.symbol];
-  const price=N(z?.price??z?.usd??z)||N(x.market_price);
-  return sum+q*price;
- },0);
-}
-function goldQty(x){
- let q=N(x.weight_kyattha);if(!q)q=N(x.quantity);
- const side=String(x.side||x.trade_type||x.type||'').trim().toUpperCase();
- if(side==='SELL'&&q>0)q=-q;return q;
-}
-function goldUSD(){
- const rows=invs().filter(x=>String(x.asset||'').trim().toLowerCase()==='gold');
- let q=rows.reduce((s,x)=>s+goldQty(x),0);if(q<=0)return 0;
- let p=N(window.goldMarketState?.pricePerKyattha)||N(window.goldMarketState?.marketPricePerKyattha);
- if(p<=0){const ordered=rows.slice().sort((a,b)=>String(b.inv_date||b.date||'').localeCompare(String(a.inv_date||a.date||'')));p=N(ordered.find(x=>N(x.market_price)>0)?.market_price)||N(ordered.find(x=>N(x.buy_price)>0)?.buy_price);}
- return p>0?q*p/mmk():0;
-}
-function loanMMK(){
- const out=new Map(),rep=[];
- for(const t of txs()){
-  const c=String(t.category||t.transaction||'').trim().toLowerCase();
-  if(c==='loan out'){const k=norm(t.borrower||t.note||'__unassigned__');out.set(k,(out.get(k)||0)+Math.max(0,N(t.from_amount)));}
-  else if(c==='loan repayment'){rep.push({k:norm(t.borrower||t.note||'__unassigned__'),v:Math.max(0,N(t.to_amount||t.from_amount))});}
- }
- let unmatched=0;
- for(const r of rep){if(r.k==='__unassigned__'||!out.has(r.k))unmatched+=r.v;else out.set(r.k,Math.max(0,(out.get(r.k)||0)-r.v));}
- if(unmatched>0)for(const [k,v] of out){if(unmatched<=0)break;const use=Math.min(v,unmatched);out.set(k,v-use);unmatched-=use;}
- return [...out.values()].reduce((s,v)=>s+Math.max(0,v),0);
-}
-function snapshot(){const cash=cashUSD(),crypto=cryptoUSD(),gold=goldUSD(),invest=Math.max(0,crypto+gold),loanMMK=loanMMK(),loan=loanMMK/mmk(),net=Math.max(0,cash+invest+loan);return{cash,crypto,gold,invest,loanMMK,loan,net,investmentWeight:net?invest/net*100:0,loanWeight:net?loan/net*100:0};}
-const money=v=>'$ '+N(v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
-function removeLoanDup(){document.querySelectorAll('.mmh-v51-loan-chip,.mmh-v52-loan-chip,.mmh-v53-loan-chip,#mmhV51LoanChip,#mmhV52LoanChip,#mmhV53LoanChip').forEach(e=>e.remove());const root=document.getElementById('dashboard');if(root){const chips=root.querySelectorAll('.mmh-v6-loan-chip');chips.forEach((e,i)=>{if(i>0)e.remove();});}}
-function sync(){try{const d=snapshot();
- ['mmhCommandNetWorthV34210','mmhRibbonNetV34212'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=money(d.net);});
- const c=document.getElementById('mmhCommandCashV34210');if(c)c.textContent=money(d.cash);
- const inv=document.getElementById('mmhCommandInvestV34210');if(inv)inv.textContent=money(d.invest);
- const w=document.getElementById('mmhCommandWeightV34210');if(w)w.textContent=d.investmentWeight.toFixed(1)+'%';
- const hero=document.getElementById('dashboardHero');if(hero){const cards=hero.querySelectorAll('.card');if(cards[0]){const b=cards[0].querySelector('.big');if(b)b.textContent=money(d.net);const sm=cards[0].querySelector('.small');if(sm)sm.textContent='Cash + Crypto + Gold + Loan Receivable · USD';}}
- removeLoanDup();
- const anchor=document.querySelector('#dashboard .mmh-command-v34210');
- if(anchor){let host=document.getElementById('mmhV6LoanChip');if(!host){host=document.createElement('span');host.id='mmhV6LoanChip';host.className='mmh-v6-loan-chip';host.innerHTML='<span>Loan Receivable</span><b></b>';const bar=anchor.querySelector('.mmh-command-bottom,.command-bottom,.mmh-command-meta,.meta-row')||anchor.lastElementChild||anchor;bar.appendChild(host);}host.querySelector('b').textContent=money(d.loan);host.style.display=d.loan>0.004?'inline-flex':'none';}
- window.netWorth=d.net;window.mmhvaultNetWorthUSD=()=>snapshot().net;window.mmhvaultInvestmentValueUSD=()=>snapshot().invest;window.investmentValueUSD=()=>snapshot().invest;window.mmhLoanReceivableMMK=()=>snapshot().loanMMK;window.mmhLoanReceivableUSD=()=>snapshot().loan;window.mmhGetTotalOwnedWealth=snapshot;window.__mmhV61WealthSnapshot=d;
- }catch(e){console.warn('[MMHVAULT V6.1] wealth sync failed',e);}}
-const style=document.createElement('style');style.textContent='.mmh-v6-loan-chip{display:inline-flex;align-items:center;gap:7px;margin-left:8px;margin-top:6px;padding:7px 11px;border:1px solid rgba(82,157,255,.32);border-radius:11px;background:rgba(10,25,52,.72);color:#a9bddb;font-size:11px;white-space:nowrap;font-weight:800}.mmh-v6-loan-chip b{color:#eaf6ff;font-weight:900}@media(max-width:720px){.mmh-v6-loan-chip{margin-left:0}}';document.head.appendChild(style);
-['mmhvault:data-loaded','mmhvault:sync-complete','mmhvault:cache-restored','mmhvault:market-updated','mmhvault:data-change','mmhvault:dashboard-rendered'].forEach(ev=>window.addEventListener(ev,()=>setTimeout(sync,80)));
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(sync,600),{once:true});else setTimeout(sync,600);setInterval(()=>{if(!document.hidden)sync();},3000);
+  'use strict';
+  if(window.__MMHVAULT_V62_SINGLE_WEALTH__) return;
+  window.__MMHVAULT_V62_SINGLE_WEALTH__=true;
+  const N=v=>{const x=typeof v==='string'?Number(v.replace(/,/g,'').trim()):Number(v);return Number.isFinite(x)?x:0;};
+  const mmk=()=>Math.max(0,N(window.rates?.usd_mmk)||4250);
+  const money=v=>'$ '+N(v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+  const accountNames=['Bath','TrueMoney','OKX','ByBit','MetaMask','KPay'];
+
+  // IMPORTANT: use MMHVAULT's existing canonical Account Ledger.
+  // balance(account) already excludes linked investment transactions and
+  // subtracts Investment BUY cash-out / adds SELL cash-in exactly once.
+  function cashUSD(){
+    if(typeof window.balance==='function' && typeof window.toUSD==='function'){
+      return accountNames.reduce((sum,a)=>sum+N(window.balance(a))*N(window.toUSD(a)),0);
+    }
+    // Safe fallback for older builds: reproduce the same canonical rule.
+    const txs=Array.isArray(window.transactions)?window.transactions:[];
+    const invs=Array.isArray(window.investments)?window.investments:[];
+    const norm=a=>String(a||'').trim().toLowerCase();
+    const linked=t=>t?.category==='Investment' && String(t?.note||'').trim().toLowerCase().startsWith('investment:');
+    const invSource=x=>String(x?.source_account||((x?.asset==='Gold')?'KPay':'OKX')).trim();
+    const flow=x=>{const amount=Math.abs(N(x?.amount)),costs=Math.abs(N(x?.fee))+Math.abs(N(x?.other_cost));const side=String(x?.side||x?.trade_type||'').trim().toUpperCase()||(N(x?.quantity)<0?'SELL':'BUY');return side==='SELL'?-(amount-costs):(amount+costs);};
+    const unit=a=>{const c=typeof window.currency==='function'?window.currency(a):'';if(c==='USD')return 1;if(c==='THB')return 1/(N(window.rates?.usd_thb)||31);return 1/mmk();};
+    return accountNames.reduce((sum,a)=>{
+      let b=0;
+      for(const t of txs){if(linked(t))continue;if(norm(t?.to_account)===norm(a))b+=N(t?.to_amount);if(norm(t?.from_account)===norm(a))b-=N(t?.from_amount);}
+      for(const x of invs)if(norm(invSource(x))===norm(a))b-=flow(x);
+      return sum+b*unit(a);
+    },0);
+  }
+
+  // Canonical investment valuation already used by the main app:
+  // live Crypto + Gold, returned in MMK by mmhInvestmentValueV376.
+  function investmentUSD(){
+    if(typeof window.mmhInvestmentValueV376==='function') return Math.max(0,N(window.mmhInvestmentValueV376())/mmk());
+    if(typeof window.investmentValue==='function') return Math.max(0,N(window.investmentValue())/mmk());
+    return 0;
+  }
+
+  // Total outstanding loan is a receivable asset, not an expense.
+  // All current loan records are MMK, so the exact total outstanding is
+  // Loan Out minus Loan Repayment. Do not match by note/name here: names
+  // can contain spelling variations, while the financial ledger is exact.
+  function loanMMK(){
+    const out=typeof window.loanOutMMK==='function'
+      ?N(window.loanOutMMK())
+      :(Array.isArray(window.transactions)?window.transactions:[]).filter(t=>t?.category==='Loan Out').reduce((s,t)=>s+N(t?.from_amount),0);
+    const paid=typeof window.loanPaidMMK==='function'
+      ?N(window.loanPaidMMK())
+      :(Array.isArray(window.transactions)?window.transactions:[]).filter(t=>t?.category==='Loan Repayment').reduce((s,t)=>s+N(t?.to_amount),0);
+    return Math.max(0,out-paid);
+  }
+
+  function snapshot(){
+    const cash=cashUSD(),invest=investmentUSD(),loanMMKValue=loanMMK(),loan=loanMMKValue/mmk();
+    const net=Math.max(0,cash+invest+loan);
+    return {cash,invest,loanMMK:loanMMKValue,loan,net,investmentWeight:net?invest/net*100:0,loanWeight:net?loan/net*100:0};
+  }
+
+  function removeLegacyLoanChips(){
+    document.querySelectorAll('.mmh-v51-loan-chip,.mmh-v52-loan-chip,.mmh-v53-loan-chip,.mmh-v6-loan-chip,#mmhV51LoanChip,#mmhV52LoanChip,#mmhV53LoanChip,#mmhV6LoanChip').forEach(e=>e.remove());
+  }
+
+  function setText(id,v){const e=document.getElementById(id);if(e)e.textContent=money(v);}
+  function sync(){
+    try{
+      const d=snapshot();
+      setText('mmhCommandNetWorthV34210',d.net);
+      setText('mmhRibbonNetV34212',d.net);
+      setText('mmhCommandCashV34210',d.cash);
+      setText('mmhCommandInvestV34210',d.invest);
+      const w=document.getElementById('mmhCommandWeightV34210');if(w)w.textContent=d.investmentWeight.toFixed(1)+'%';
+      const hero=document.getElementById('dashboardHero');
+      if(hero){
+        const cards=hero.querySelectorAll('.card');
+        if(cards[0]){const b=cards[0].querySelector('.big');if(b)b.textContent=money(d.net);const sm=cards[0].querySelector('.small');if(sm)sm.textContent='Cash + Crypto + Gold + Loan Receivable · USD';}
+      }
+      removeLegacyLoanChips();
+      const anchor=document.querySelector('#dashboard .mmh-command-v34210');
+      if(anchor){
+        let host=document.getElementById('mmhV62LoanChip');
+        if(!host){
+          host=document.createElement('span');host.id='mmhV62LoanChip';host.className='mmh-v62-loan-chip';
+          host.innerHTML='<span>Loan Receivable</span><b></b>';
+          const bar=anchor.querySelector('.mmh-command-bottom,.command-bottom,.mmh-command-meta,.meta-row')||anchor.lastElementChild||anchor;
+          bar.appendChild(host);
+        }
+        const b=host.querySelector('b');if(b)b.textContent=money(d.loan);
+        host.style.display=d.loan>0.004?'inline-flex':'none';
+      }
+      window.netWorth=d.net;
+      window.mmhvaultNetWorthUSD=()=>snapshot().net;
+      window.mmhvaultInvestmentValueUSD=()=>snapshot().invest;
+      window.investmentValueUSD=()=>snapshot().invest;
+      window.mmhLoanReceivableMMK=()=>snapshot().loanMMK;
+      window.mmhLoanReceivableUSD=()=>snapshot().loan;
+      window.mmhGetTotalOwnedWealth=snapshot;
+      window.__mmhV62WealthSnapshot=d;
+    }catch(e){console.warn('[MMHVAULT V6.2] wealth sync failed',e);}
+  }
+
+  const style=document.createElement('style');
+  style.textContent='.mmh-v62-loan-chip{display:inline-flex;align-items:center;gap:7px;margin-left:8px;margin-top:6px;padding:7px 11px;border:1px solid rgba(82,157,255,.32);border-radius:11px;background:rgba(10,25,52,.72);color:#a9bddb;font-size:11px;white-space:nowrap;font-weight:800}.mmh-v62-loan-chip b{color:#eaf6ff;font-weight:900}@media(max-width:720px){.mmh-v62-loan-chip{margin-left:0}}';
+  document.head.appendChild(style);
+  ['mmhvault:data-loaded','mmhvault:sync-complete','mmhvault:cache-restored','mmhvault:market-updated','mmhvault:data-change','mmhvault:dashboard-rendered'].forEach(ev=>window.addEventListener(ev,()=>setTimeout(sync,120)));
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(sync,700),{once:true}); else setTimeout(sync,700);
+  setInterval(()=>{if(!document.hidden)sync();},3000);
 })();
 </script>
 
