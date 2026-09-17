@@ -6506,27 +6506,36 @@ function totalAssetMMK(){
 }
 function expenseMMK(){return transactions.filter(t=>t.type==="Expense"&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=="Investment"&&!isLinkedInvestmentTx(t)).reduce((s,t)=>s+n(t.from_amount)*toMMK(t.from_account),0);}
 function incomeMMK(){return transactions.filter(t=>t.type==="Income").reduce((s,t)=>s+n(t.to_amount)*toMMK(t.to_account),0);}
-/* V7.2 — Single normalized loan ledger.  Loan labels are matched defensively
+/* V7.3 — Canonical Loan Ledger.  Loan labels are matched defensively
    (trim/case-insensitive) so harmless whitespace/case differences cannot make a
    repayment disappear from Loan Receivable. Each transaction is counted once. */
-function loanCategory(t){return String(t?.category||'').trim().toLowerCase();}
+/* V7.3 — Canonical Loan Ledger. Uses the live transaction mirrors, de-duplicates by id,
+   and never infers loan state from cash balance or investment data. */
+function loanCategory(t){return String(t?.category||'').trim().toLowerCase().replace(/\s+/g,' ');}
+function loanRowsCanonical(){
+  const seen=new Set(), rows=[];
+  const sources=[];
+  if(Array.isArray(transactions))sources.push(transactions);
+  if(Array.isArray(window.transactions))sources.push(window.transactions);
+  for(const list of sources){
+    for(const t of list){
+      const id=String(t?.id??'');
+      const key=id ? 'id:'+id : ['tx_date', 'type', 'category', 'from_account', 'from_amount', 'to_account', 'to_amount', 'note'].map(k=>String(t?.[k]??'')).join('|');
+      if(seen.has(key))continue;
+      seen.add(key);
+      const c=loanCategory(t);
+      if(c==='loan out'||c==='loan repayment')rows.push(t);
+    }
+  }
+  return rows;
+}
 function loanOutMMK(){
-  return transactions.reduce((sum,t)=>{
-    if(loanCategory(t)!=='loan out') return sum;
-    const amount=Math.abs(n(t?.from_amount));
-    return sum + amount * toMMK(t?.from_account);
-  },0);
+  return loanRowsCanonical().reduce((sum,t)=>loanCategory(t)==='loan out' ? sum + Math.abs(n(t?.from_amount))*toMMK(t?.from_account) : sum,0);
 }
 function loanPaidMMK(){
-  return transactions.reduce((sum,t)=>{
-    if(loanCategory(t)!=='loan repayment') return sum;
-    const amount=Math.abs(n(t?.to_amount));
-    return sum + amount * toMMK(t?.to_account);
-  },0);
+  return loanRowsCanonical().reduce((sum,t)=>loanCategory(t)==='loan repayment' ? sum + Math.abs(n(t?.to_amount))*toMMK(t?.to_account) : sum,0);
 }
-function loanOutstandingMMK(){
-  return Math.max(0, loanOutMMK()-loanPaidMMK());
-}
+function loanOutstandingMMK(){return Math.max(0,loanOutMMK()-loanPaidMMK());}
 function investedCost(){return investments.reduce((s,x)=>{const rate=x.asset==="Crypto"?rates.usd_mmk:1;return s+(n(x.amount)+n(x.fee)+n(x.other_cost))*rate;},0);}
 function goldHoldingQty(x){
   // GOLD quantity is stored as KYA TTHA (ကျပ်သား). Never derive it from MMK amount / price.
@@ -16641,12 +16650,13 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
       set('mmhCommandInvestV34210',money(d.invest));
       set('mmhCommandWeightV34210',w.toFixed(1)+'%');
       set('mmhRibbonNetV34212',money(d.net));
-      const old=dash.querySelectorAll('.mmh-loan-receivable-clean'); old.forEach((el,i)=>{if(i>0)el.remove();});
-      let chip=dash.querySelector('.mmh-loan-receivable-clean');
+      const allLoanChips=[...dash.querySelectorAll('.mmh-loan-receivable-clean'),...dash.querySelectorAll('span')].filter(el=>String(el.textContent||'').toLowerCase().includes('loan receivable'));
+      const unique=[]; for(const el of allLoanChips){if(!unique.includes(el))unique.push(el);} unique.forEach((el,i)=>{if(i>0)el.remove();});
+      let chip=unique[0]||dash.querySelector('.mmh-loan-receivable-clean');
       const weightEl=document.getElementById('mmhCommandWeightV34210');
       const parent=weightEl?.parentElement?.parentElement||weightEl?.parentElement;
       if(!chip&&parent){chip=document.createElement('span');chip.className='mmh-loan-receivable-clean';chip.style.cssText='display:inline-flex;align-items:center;gap:7px;margin:10px 8px 0 0;padding:8px 12px;border:1px solid rgba(70,150,255,.35);border-radius:12px;background:rgba(8,22,46,.72);color:#bcd2ef;font-size:13px;';parent.appendChild(chip);}
-      if(chip)chip.textContent='Loan Receivable  '+money(d.loan);
+      if(chip)chip.textContent='Loan Receivable  '+money((loanOutstandingMMK()/(Number(rates?.usd_mmk)||1)));
       window.__mmhFinalNetWorthAuthoritySnapshot=d;
     }catch(e){console.warn('MMHVAULT final net worth sync skipped',e);}
   }
