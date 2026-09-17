@@ -5410,7 +5410,32 @@ body.mmhvault-scroll-active #invest #v371CryptoMarket::before{
 }
 </style>
 
-<style id="mmhvault-v434-import-css">#backupStatus{min-height:20px;margin-top:10px;text-align:center;font-weight:700}#backupStatus.ok{color:#8ff0b1}#backupStatus.err{color:#ff9a9a}.mmh-native-file-picker-v433{touch-action:manipulation;-webkit-tap-highlight-color:transparent}</style></head>
+<style id="mmhvault-v434-import-css">#backupStatus{min-height:20px;margin-top:10px;text-align:center;font-weight:700}#backupStatus.ok{color:#8ff0b1}#backupStatus.err{color:#ff9a9a}.mmh-native-file-picker-v433{touch-action:manipulation;-webkit-tap-highlight-color:transparent}</style><style id="mmhvault-v445-background-fix">
+/* V4.4.5 · App background recovery
+   Keep the cinematic background visible on desktop + mobile even when later
+   visual/performance layers override body backgrounds or pseudo-element stacking. */
+html{background:#020814!important;}
+body{
+  background-color:#020814!important;
+  background-image:
+    linear-gradient(rgba(2,8,20,.42),rgba(2,8,20,.58)),
+    url("images/mmhvault-bg-v342.webp") !important;
+  background-size:cover!important;
+  background-position:center top!important;
+  background-repeat:no-repeat!important;
+  background-attachment:fixed!important;
+}
+@media(max-width:900px){
+  body{
+    background-image:
+      linear-gradient(rgba(2,8,20,.58),rgba(2,8,20,.72)),
+      url("images/mmhvault-bg-v342.webp") !important;
+    background-attachment:scroll!important;
+    background-position:center top!important;
+  }
+}
+</style>
+</head>
 <!-- MMHVAULT V4.3.6 · iOS JSON import bridge + V4.3.0 Dashboard report relocation + Transaction receipt center + Invest Add precision -->
 <body>
 <div id="mmhvaultAppBootGuardV3282" style="position:fixed;inset:0;z-index:30000;display:none;align-items:center;justify-content:center;background:#050a18;color:#dce8ff;font-family:Arial,sans-serif;padding:24px;text-align:center;">
@@ -7562,7 +7587,11 @@ function invFp(x){return [x.date||x.inv_date,x.asset,x.symbol||'',n(x.amount),n(
 async function handleExcelFile(file){
  const preview=$('excelPreview');if(!file){selectedExcelRows=null;$('excelImportBtn').disabled=true;preview.style.display='none';return;}
  try{const data=await file.arrayBuffer();const wb=XLSX.read(data,{type:'array',cellDates:false});const parsed=parseExcelWorkbook(wb);const txSet=new Set(transactions.map(txFp)),invSet=new Set(investments.map(invFp));const newTx=parsed.tx.filter(x=>!txSet.has(txFp(x))),newInv=parsed.inv.filter(x=>!invSet.has(invFp(x)));selectedExcelRows={newTx,newInv,fileName:file.name};preview.style.display='block';preview.innerHTML=`<b>${esc(file.name)}</b><br>Found <b>${parsed.tx.length}</b> real transaction rows and <b>${parsed.inv.length}</b> investment operations (<b>${parsed.meta.cryptoOps}</b> crypto + <b>${parsed.meta.goldOps}</b> gold).<br>New to your account: <b>${newTx.length}</b> transactions + <b>${newInv.length}</b> investments.<br><br><b>Calculated holdings preview</b><br>BTC ${parsed.meta.holdings.BTC.toFixed(10)} · ETH ${parsed.meta.holdings.ETH.toFixed(10)} · SOL ${parsed.meta.holdings.SOL.toFixed(10)} · BNB ${parsed.meta.holdings.BNB.toFixed(10)}<br>Gold ${parsed.meta.goldYwei.toFixed(2)} ရွေး = ${parsed.meta.goldKyattha.toFixed(8)} ကျပ်သား`;$('excelImportBtn').disabled=!(newTx.length||newInv.length);}catch(e){selectedExcelRows=null;$('excelImportBtn').disabled=true;preview.style.display='block';preview.innerHTML=`<span class="err">Excel read failed: ${esc(e.message)}</span>`;}}
-async function importSelectedExcel(){if(!selectedExcelRows)return;const u=(await db.auth.getUser()).data.user;if(!u)return;const {newTx,newInv,fileName}=selectedExcelRows;if(!confirm(`Import ${newTx.length} transactions and ${newInv.length} investments from ${fileName}?`))return; if(newTx.length){const r=await db.from('transactions').insert(newTx.map(x=>({user_id:u.id,tx_date:x.date,type:x.type,category:x.category,from_account:x.from_account,from_amount:x.from_amount,to_account:x.to_account,to_amount:x.to_amount,note:x.note})));if(r.error){alert('Transaction import failed: '+r.error.message);return;}}
+async function importSelectedExcel(){if(!selectedExcelRows)return;const u=(await db.auth.getUser()).data.user;if(!u)return;const {newTx,newInv,fileName}=selectedExcelRows;
+ const canStore=typeof window.MMHV4?.confirm==='function'
+   ? await window.MMHV4.confirm({title:'Review & Store Import',message:`Import ${newTx.length} transactions and ${newInv.length} investments from ${fileName}? Existing cloud records will be preserved.`,confirmText:'Review & Store',cancelText:'Cancel'})
+   : confirm(`Import ${newTx.length} transactions and ${newInv.length} investments from ${fileName}?`);
+ if(!canStore)return; if(newTx.length){const r=await db.from('transactions').insert(newTx.map(x=>({user_id:u.id,tx_date:x.date,type:x.type,category:x.category,from_account:x.from_account,from_amount:x.from_amount,to_account:x.to_account,to_amount:x.to_amount,note:x.note})));if(r.error){alert('Transaction import failed: '+r.error.message);return;}}
  if(newInv.length){const r=await db.from('investments').insert(newInv.map(x=>({user_id:u.id,inv_date:x.date,asset:x.asset,symbol:x.symbol,amount:x.amount,fee:x.fee,other_cost:x.other_cost,buy_price:x.buy_price,market_price:x.market_price,quantity:x.quantity,note:x.note})));if(r.error){alert('Investment import failed: '+r.error.message);return;}}
  selectedExcelRows=null;$('excelFile').value='';clearExcelPreview();await loadAll({force:true});window.mmhvaultForceRenderAllV34421?.('excel-import');setPage('dashboard');alert('Excel import completed. Dashboard, Analyze and Invest are now linked to the imported Supabase data.');}
 function clearExcelPreview(){selectedExcelRows=null;const p=$('excelPreview');if(p){p.style.display='none';p.innerHTML='';}$('excelImportBtn').disabled=true;if($('excelFile'))$('excelFile').value='';const t=$('excelDropTitleV318');const s=$('excelDropSubV318');if(t)t.textContent='Choose a workbook';if(s)s.textContent='.XLSX, .XLS or .XLSM · select your finance workbook';}
@@ -9114,7 +9143,10 @@ async function confirmRestorePreviewV383(){
   if(!u){setRestoreStatusV383('Restore failed: not signed in to MMHVAULT.','err');return;}
   restorePreviewV383.u=u;
   const rateText=hasRates?' and saved exchange rates':'';
-  if(!confirm(`Restore ${ntx.length} new transactions and ${ninv.length} new investments${rateText}? Existing records will be kept.`))return;
+  const canRestore=typeof window.MMHV4?.confirm==='function'
+    ? await window.MMHV4.confirm({title:'Review & Store Restore',message:`Restore ${ntx.length} new transactions and ${ninv.length} new investments${rateText}? Existing records will be kept and existing cloud records will not be overwritten.`,confirmText:'Review & Store',cancelText:'Cancel'})
+    : confirm(`Restore ${ntx.length} new transactions and ${ninv.length} new investments${rateText}? Existing records will be kept.`);
+  if(!canRestore)return;
   const btn=$('restoreConfirmV383');if(btn)btn.disabled=true;
   setRestoreStatusV383('Restoring selected data to your private cloud…');
   try{
@@ -9175,9 +9207,12 @@ function recordBackupHistoryV381(meta){
 function removeBackupHistoryV381(index){
   const list=readBackupHistoryV381();if(index<0||index>=list.length)return;list.splice(index,1);writeBackupHistoryV381(list);renderBackupHistoryV381();
 }
-function clearBackupHistoryV381(){
+async function clearBackupHistoryV381(){
   const list=readBackupHistoryV381();if(!list.length)return;
-  if(!confirm('Clear backup history saved on this device for this account? This does not delete any cloud data or backup files.'))return;
+  const canClear=typeof window.MMHV4?.confirm==='function'
+    ? await window.MMHV4.confirm({title:'Clear Backup History',message:'Clear all backup history saved on this device for this account? This will not delete cloud data or backup files.',confirmText:'Clear History',cancelText:'Cancel',danger:true})
+    : confirm('Clear backup history saved on this device for this account? This does not delete any cloud data or backup files.');
+  if(!canClear)return;
   localStorage.removeItem(backupHistoryKeyV381());renderBackupHistoryV381();
 }
 async function resetMyCloudDataV380(){
