@@ -22260,3 +22260,123 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
   else setTimeout(schedule,150);
 })();
 </script>
+
+
+<!-- MMHVAULT V5.1 — TOTAL OWNED WEALTH AUTHORITY
+     Net Worth = Cash + current investment value (Crypto + Gold) + outstanding loan receivable.
+     Loan Out is an asset/receivable, not an expense, and Loan Repayment reduces that receivable.
+     Raw transaction/investment records are not modified. -->
+<script id="mmhvault-v51-total-owned-wealth-authority">
+(function(){
+  'use strict';
+  if(window.__mmhV51TotalOwnedWealth)return;
+  window.__mmhV51TotalOwnedWealth=true;
+  const N=v=>{const x=Number(v);return Number.isFinite(x)?x:0;};
+  const money=v=>{try{return '$ '+(typeof window.fmt==='function'?window.fmt(N(v)):N(v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}));}catch(_){return '$ '+N(v).toFixed(2);}};
+
+  function cashUSD(){
+    const accounts=['Bath','TrueMoney','OKX','ByBit','MetaMask','KPay'];
+    return Math.max(0,accounts.reduce((s,a)=>{
+      try{return s+N(window.balance?.(a))*N(window.toUSD?.(a));}catch(_){return s;}
+    },0));
+  }
+
+  function investmentUSD(){
+    try{
+      const v=N(window.mmhvaultInvestmentValueUSD?.());
+      if(v>=0)return v;
+    }catch(_){ }
+    try{
+      const v=N(window.investmentValueUSD?.());
+      if(v>=0)return v;
+    }catch(_){ }
+    return 0;
+  }
+
+  function loanReceivableMMK(){
+    try{
+      const out=N(window.loanOutMMK?.());
+      const rep=N(window.loanPaidMMK?.());
+      return Math.max(0,out-rep);
+    }catch(_){return 0;}
+  }
+
+  function loanReceivableUSD(){
+    const fx=N(window.rates?.usd_mmk);
+    return fx>0?loanReceivableMMK()/fx:0;
+  }
+
+  function snapshot(){
+    const cash=cashUSD();
+    const invest=investmentUSD();
+    const loan=loanReceivableUSD();
+    const net=Math.max(0,cash+invest+loan);
+    return {cash,invest,loan,net,weight:net?invest/net*100:0,loanWeight:net?loan/net*100:0,live:true,at:new Date().toISOString()};
+  }
+
+  window.mmhGetTotalOwnedWealthV51=snapshot;
+  window.mmhLoanReceivableUSDV51=loanReceivableUSD;
+  window.mmhLoanReceivableMMKV51=loanReceivableMMK;
+  window.mmhvaultNetWorthUSD=function(){return snapshot().net;};
+  window.mmhGetCanonicalWealthV5=function(){return snapshot();};
+
+  function set(id,v){const e=document.getElementById(id);if(e)e.textContent=v;}
+  function addLoanChip(d){
+    const anchor=document.querySelector('#dashboard .mmh-command-v34210');
+    if(!anchor)return;
+    let host=document.getElementById('mmhV51LoanChip');
+    if(!host){
+      const bar=anchor.querySelector('.mmh-command-bottom,.command-bottom,.mmh-command-meta,.meta-row')||anchor.lastElementChild;
+      host=document.createElement('span');host.id='mmhV51LoanChip';host.className='mmh-v51-loan-chip';
+      host.innerHTML='<span>Loan Receivable</span><b></b>';
+      (bar||anchor).appendChild(host);
+    }
+    const b=host.querySelector('b');if(b)b.textContent=money(d.loan);
+    host.style.display=d.loan>0.004?'inline-flex':'none';
+  }
+
+  function sync(){
+    const dash=document.getElementById('dashboard');
+    if(!dash?.classList.contains('active'))return;
+    try{
+      const d=snapshot();
+      set('mmhCommandNetWorthV34210',money(d.net));
+      set('mmhCommandCashV34210',money(d.cash));
+      set('mmhCommandInvestV34210',money(d.invest));
+      set('mmhCommandWeightV34210',d.weight.toFixed(1)+'%');
+      set('mmhRibbonNetV34212',money(d.net));
+      set('mmhCommandNetWorthChangeV34210',d.loan>0.004?'Live total assets · includes loan receivable':'Live total assets');
+      addLoanChip(d);
+
+      const hero=document.getElementById('dashboardHero');
+      if(hero){
+        const cards=hero.querySelectorAll('.card');
+        if(cards[0]){
+          const b=cards[0].querySelector('.big');if(b)b.textContent=money(d.net);
+          const sm=cards[0].querySelector('.small');if(sm)sm.textContent='Cash + Investments + Loan Receivable · USD';
+        }
+        if(cards[1]){const b=cards[1].querySelector('.big');if(b)b.textContent=money(d.cash);}
+        if(cards[2]){const b=cards[2].querySelector('.big');if(b)b.textContent=money(d.invest);}
+      }
+      window.netWorth=d.net;
+      window.__mmhFinalNetWorthAuthoritySnapshot=d;
+      window.__mmhV51OwnedWealthSnapshot=d;
+    }catch(e){console.warn('[MMHVAULT V5.1] total owned wealth sync skipped',e);}
+  }
+
+  const css=document.createElement('style');
+  css.textContent='.mmh-v51-loan-chip{display:inline-flex;align-items:center;gap:7px;margin-left:8px;padding:7px 10px;border:1px solid rgba(90,196,255,.18);border-radius:10px;background:rgba(8,23,48,.62);color:#9db5d9;font-size:11px;white-space:nowrap}.mmh-v51-loan-chip b{color:#eaf6ff;font-weight:900}@media(max-width:720px){.mmh-v51-loan-chip{margin-left:0;margin-top:6px}}';
+  document.head.appendChild(css);
+
+  let timer=0;
+  function schedule(delay=80){clearTimeout(timer);timer=setTimeout(sync,delay);}
+  ['mmhvault:data-loaded','mmhvault:sync-complete','mmhvault:cache-restored','mmhvault:market-updated','mmhvault:data-change','mmhvault:dashboard-rendered'].forEach(ev=>window.addEventListener(ev,()=>schedule(100),{passive:true}));
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)schedule(80)});
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>[150,600,1500,3000].forEach(x=>schedule(x)),{once:true});
+  else [150,600,1500,3000].forEach(x=>setTimeout(sync,x));
+
+  // Small, bounded refresh while Dashboard is visible. This does not fetch market data;
+  // it only re-applies the latest already-available valuation to the UI.
+  setInterval(()=>{if(!document.hidden&&document.getElementById('dashboard')?.classList.contains('active'))sync();},5000);
+})();
+</script>
