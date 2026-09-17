@@ -63,33 +63,6 @@
 .future-home.mmh-idle .mmh-financial-flow-field{opacity:.56}
 .future-home.mmh-idle .mmh-space-point:nth-child(n+4){opacity:.22}
 
-/* MMHVAULT v5.6 — cinematic landing intro. Overlay-only: existing data DOM is untouched. */
-.future-home.mmh-cinematic-intro{position:relative}
-.future-home .mmh-cinematic-intro{position:absolute;inset:0;z-index:9999;pointer-events:none;overflow:hidden;background:#02070d;opacity:1;visibility:visible;transition:opacity .72s cubic-bezier(.2,.75,.25,1),visibility 0s linear .72s}
-.future-home .mmh-cinematic-intro::before{content:"";position:absolute;left:50%;top:50%;width:34vmax;height:34vmax;transform:translate(-50%,-50%) scale(.72);border-radius:50%;background:radial-gradient(circle,rgba(92,205,255,.15) 0%,rgba(57,156,214,.07) 24%,rgba(243,206,114,.025) 42%,transparent 70%);filter:blur(2px);opacity:0;animation:mmhCineCore56 1.35s cubic-bezier(.16,.8,.22,1) .08s forwards}
-.future-home .mmh-cinematic-intro::after{content:"";position:absolute;left:-12%;right:-12%;top:50%;height:1px;transform:scaleX(0);transform-origin:center;background:linear-gradient(90deg,transparent,rgba(93,214,255,.12) 24%,rgba(93,214,255,.78) 50%,rgba(243,206,114,.22) 67%,transparent);box-shadow:0 0 16px rgba(94,211,255,.34);animation:mmhCineScan56 1.05s cubic-bezier(.2,.8,.2,1) .48s forwards}
-.future-home .mmh-cinematic-intro__grid{position:absolute;inset:-20%;opacity:0;background-image:linear-gradient(rgba(91,207,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(91,207,255,.035) 1px,transparent 1px);background-size:52px 52px;transform:perspective(900px) rotateX(64deg) translateY(10%);animation:mmhCineGrid56 1.35s ease-out .1s forwards}
-.future-home .mmh-cinematic-intro__ring{position:absolute;left:50%;top:50%;width:min(58vw,720px);aspect-ratio:1;border:1px solid rgba(91,211,255,.16);border-radius:50%;transform:translate(-50%,-50%) scale(.72) rotate(-18deg);box-shadow:0 0 45px rgba(75,190,255,.06) inset;opacity:0;animation:mmhCineRing56 1.5s cubic-bezier(.15,.75,.25,1) .12s forwards}
-.future-home .mmh-cinematic-intro__ring::before,.future-home .mmh-cinematic-intro__ring::after{content:"";position:absolute;inset:8%;border:1px solid rgba(243,206,114,.08);border-radius:50%}
-.future-home .mmh-cinematic-intro__ring::after{inset:-7%;border-color:rgba(91,211,255,.06);transform:rotate(33deg)}
-.future-home .mmh-cinematic-intro__label{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) translateY(8px);font:600 9px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.38em;text-transform:uppercase;color:rgba(224,238,248,.66);white-space:nowrap;opacity:0;animation:mmhCineLabel56 .8s ease-out .7s forwards}
-.future-home .mmh-cinematic-intro__label b{color:#f3ce72;font-weight:650}
-.future-home .mmh-cinematic-intro__ticks{position:absolute;inset:0;opacity:0;animation:mmhCineTicks56 .9s ease-out .34s forwards}
-.future-home .mmh-cinematic-intro__ticks i{position:absolute;width:2px;height:22px;border-radius:999px;background:linear-gradient(180deg,rgba(103,216,255,.0),rgba(103,216,255,.8),rgba(243,206,114,.0));transform-origin:center}
-.future-home .mmh-cinematic-intro__ticks i:nth-child(1){left:18%;top:48%;transform:rotate(90deg)}
-.future-home .mmh-cinematic-intro__ticks i:nth-child(2){left:82%;top:48%;transform:rotate(90deg)}
-.future-home .mmh-cinematic-intro__ticks i:nth-child(3){left:50%;top:18%}
-.future-home .mmh-cinematic-intro__ticks i:nth-child(4){left:50%;top:82%}
-.future-home.mmh-cinematic-done .mmh-cinematic-intro{opacity:0;visibility:hidden}
-@keyframes mmhCineCore56{0%{opacity:0;transform:translate(-50%,-50%) scale(.72)}35%{opacity:.92}100%{opacity:.58;transform:translate(-50%,-50%) scale(1.12)}}
-@keyframes mmhCineScan56{0%{transform:scaleX(0);opacity:0}20%{opacity:.95}100%{transform:scaleX(1);opacity:0}}
-@keyframes mmhCineGrid56{0%{opacity:0;transform:perspective(900px) rotateX(64deg) translateY(18%)}45%{opacity:.65}100%{opacity:0;transform:perspective(900px) rotateX(64deg) translateY(-5%)}}
-@keyframes mmhCineRing56{0%{opacity:0;transform:translate(-50%,-50%) scale(.72) rotate(-18deg)}42%{opacity:.72}100%{opacity:.3;transform:translate(-50%,-50%) scale(1) rotate(12deg)}}
-@keyframes mmhCineLabel56{0%{opacity:0;transform:translate(-50%,-50%) translateY(8px);letter-spacing:.48em}100%{opacity:.76;transform:translate(-50%,-50%) translateY(0);letter-spacing:.38em}}
-@keyframes mmhCineTicks56{0%{opacity:0;transform:scale(.8)}100%{opacity:.8;transform:scale(1)}}
-@media(max-width:700px){.future-home .mmh-cinematic-intro__grid{background-size:38px 38px}.future-home .mmh-cinematic-intro__ring{width:78vw}.future-home .mmh-cinematic-intro__label{font-size:8px;letter-spacing:.24em}}
-@media(prefers-reduced-motion:reduce){.future-home .mmh-cinematic-intro{transition:none}.future-home .mmh-cinematic-intro::before,.future-home .mmh-cinematic-intro::after,.future-home .mmh-cinematic-intro__grid,.future-home .mmh-cinematic-intro__ring,.future-home .mmh-cinematic-intro__label,.future-home .mmh-cinematic-intro__ticks{animation:none!important}.future-home .mmh-cinematic-intro{opacity:0;visibility:hidden}}
-
 /* MMHVAULT v5.7 — micro interaction system. Interaction-only layer; no data/DOM content changes. */
 .future-home .future-hero-actions .btn,
 .future-home .future-stat,
