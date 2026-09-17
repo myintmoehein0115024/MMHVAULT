@@ -6542,9 +6542,34 @@ function subscribeRealtime(){
 
 function currency(a){if(["OKX","ByBit","MetaMask"].includes(a))return"USD";if(["Bath","TrueMoney"].includes(a))return"THB";return"MMK";}
 function toMMK(a){if(!a)return 1;if(currency(a)==="USD")return rates.usd_mmk;if(currency(a)==="THB")return rates.usd_mmk/rates.usd_thb;return 1;}
-function isLinkedInvestmentTx(t){return t?.category==="Investment" && String(t?.note||"").startsWith("Investment:");}
-function investmentCashOut(a){return investments.filter(x=>(x.source_account|| (x.asset==="Gold"?"KPay":"OKX"))===a).reduce((s,x)=>s+n(x.amount)+n(x.fee)+n(x.other_cost),0);}
-function balance(a){return transactions.reduce((s,t)=>{if(isLinkedInvestmentTx(t))return s;return s+(t.to_account===a?n(t.to_amount):0)-(t.from_account===a?n(t.from_amount):0);},0)-investmentCashOut(a);}
+function normalizeAccountName(v){
+  const s=String(v??"").trim();
+  if(!s)return null;
+  const key=s.toLowerCase().replace(/\\s+/g,"");
+  const map={kpay:"KPay",metamask:"MetaMask",okx:"OKX",usdt:"OKX",bybit:"ByBit",bath:"Bath",truemoney:"TrueMoney"};
+  return map[key]||s;
+}
+function isLinkedInvestmentTx(t){
+  return t?.category==="Investment" && String(t?.note||"").startsWith("Investment:");
+}
+function investmentSource(x){
+  return normalizeAccountName(x?.source_account || (x?.asset==="Gold"?"KPay":"OKX"));
+}
+function investmentCashOut(a){
+  const account=normalizeAccountName(a);
+  return investments.filter(x=>investmentSource(x)===account)
+    .reduce((s,x)=>s+n(x.amount)+n(x.fee)+n(x.other_cost),0);
+}
+function balance(a){
+  const account=normalizeAccountName(a);
+  const txNet=transactions.reduce((s,t)=>{
+    if(isLinkedInvestmentTx(t))return s;
+    const to=normalizeAccountName(t?.to_account);
+    const from=normalizeAccountName(t?.from_account);
+    return s+(to===account?n(t.to_amount):0)-(from===account?n(t.from_amount):0);
+  },0);
+  return txNet-investmentCashOut(account);
+}
 function totalAssetMMK(){
  const cashMMK=ACC.reduce((s,a)=>s+balance(a)*toMMK(a),0);
  return cashMMK+investmentValue();
