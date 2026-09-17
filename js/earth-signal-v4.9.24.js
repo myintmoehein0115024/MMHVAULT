@@ -78,3 +78,71 @@
   window.addEventListener('pagehide',()=>cancelAnimationFrame(raf),{once:true});
   raf=requestAnimationFrame(loop);
 })();
+
+/* MMHVAULT v5.3 — scroll-driven 3D transformation layer. */
+(() => {
+  const home = document.querySelector('.future-home');
+  const root = home?.querySelector('.earth-signal-layer');
+  if (!home || !root || root.dataset.mmhScrollInstalled) return;
+  root.dataset.mmhScrollInstalled = '1';
+  const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  const mobile = window.matchMedia?.('(max-width: 700px)').matches;
+  if (reduced || mobile) return;
+
+  const depth = document.createElement('div');
+  depth.className = 'mmh-scroll-depth-fade';
+  depth.setAttribute('aria-hidden', 'true');
+  root.prepend(depth);
+
+  let target = 0, current = 0, raf = 0;
+  let visible = true;
+
+  const clamp = (n, a, b) => Math.min(b, Math.max(a, n));
+  const smoothstep = n => n * n * (3 - 2 * n);
+
+  function measure(){
+    const rect = home.getBoundingClientRect();
+    const h = Math.max(1, rect.height);
+    // The first ~78% of the hero is the active transformation zone.
+    target = clamp((-rect.top) / Math.max(1, h * .78), 0, 1);
+  }
+
+  function render(){
+    current += (target - current) * .075;
+    const p = smoothstep(current);
+    const y = -p * 34;
+    const scale = 1 - p * .14;
+    const rotate = p * -3.2;
+    const rx = p * 1.7;
+    const ry = p * -2.6;
+    const fade = 1 - p * .08;
+    root.style.setProperty('--mmh-scroll-progress', p.toFixed(4));
+    root.style.setProperty('--mmh-scroll-y', y.toFixed(2) + 'px');
+    root.style.setProperty('--mmh-scroll-scale', scale.toFixed(4));
+    root.style.setProperty('--mmh-scroll-rotate', rotate.toFixed(2) + 'deg');
+    root.style.setProperty('--mmh-scroll-rx', rx.toFixed(2) + 'deg');
+    root.style.setProperty('--mmh-scroll-ry', ry.toFixed(2) + 'deg');
+    root.style.opacity = fade.toFixed(3);
+    if (visible && (Math.abs(target-current) > .0005 || current > .0005)) raf = requestAnimationFrame(render);
+    else raf = 0;
+  }
+
+  function update(){
+    measure();
+    if (!raf && visible) raf = requestAnimationFrame(render);
+  }
+
+  const io = new IntersectionObserver(entries => {
+    visible = !!entries[0]?.isIntersecting;
+    if (visible) update(); else { cancelAnimationFrame(raf); raf = 0; }
+  }, {threshold:[0,.02,.15,.5,1]});
+  io.observe(home);
+  window.addEventListener('scroll', update, {passive:true});
+  window.addEventListener('resize', update, {passive:true});
+  document.addEventListener('visibilitychange', () => {
+    visible = !document.hidden;
+    if (visible) update(); else { cancelAnimationFrame(raf); raf = 0; }
+  }, {passive:true});
+  window.addEventListener('pagehide', () => { cancelAnimationFrame(raf); io.disconnect(); }, {once:true});
+  update();
+})();

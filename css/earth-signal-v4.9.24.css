@@ -14,3 +14,10 @@
 @media(max-width:900px){.future-home .earth-signal-layer{opacity:.9}.future-home .signal-digital{left:3%;top:33%}.future-home .signal-reserve{right:1%;bottom:18%}.future-home .signal-flow{right:3%;top:7%}.future-home .scan-strip{bottom:5%}.future-home .mmh-financial-flow-field{opacity:.48}.future-home .mmh-spatial-scan{width:86%;height:86%}}
 @media(max-width:700px){.future-home .earth-signal-layer{display:none}}
 @media(prefers-reduced-motion:reduce){.future-home .signal-track span,.future-home .signal-mini span::after,.future-home .scan-bars i,.future-home .mmh-flow-nodes .node .ring,.future-home .mmh-space-point{animation:none!important}.future-home .mmh-financial-flow-field,.future-home .mmh-earth-spatial-layer{transform:none!important;transition:none!important}.future-home .mmh-spatial-scan{display:none}}
+
+/* MMHVAULT v5.3 — scroll-driven 3D transformation. */
+.future-home .earth-signal-layer{--mmh-scroll-progress:0;--mmh-scroll-y:0px;--mmh-scroll-scale:1;--mmh-scroll-rotate:0deg;transform:translate3d(var(--mmh-flow-x,0),calc(var(--mmh-flow-y,0) + var(--mmh-scroll-y)),0) rotateX(var(--mmh-scroll-rx,0deg)) rotateY(var(--mmh-scroll-ry,0deg)) rotateZ(var(--mmh-scroll-rotate)) scale(var(--mmh-scroll-scale));transform-origin:50% 48%;will-change:transform,opacity}
+.future-home .earth-signal-layer::after{content:"";position:absolute;inset:8% 10%;border:1px solid rgba(105,215,255,.0);border-radius:50%;opacity:calc(var(--mmh-scroll-progress) * .22);transform:scale(calc(1 + var(--mmh-scroll-progress) * .18));box-shadow:0 0 80px rgba(75,186,255,.12);pointer-events:none}
+.future-home .mmh-scroll-depth-fade{position:absolute;inset:-20%;z-index:1;pointer-events:none;background:radial-gradient(circle at 50% 50%,rgba(74,190,255,.12),transparent 38%);opacity:calc(var(--mmh-scroll-progress) * .32);transform:scale(calc(1 + var(--mmh-scroll-progress) * .5));filter:blur(10px)}
+@media(max-width:700px){.future-home .earth-signal-layer{transform:none!important}}
+@media(prefers-reduced-motion:reduce){.future-home .earth-signal-layer{transform:none!important}.future-home .earth-signal-layer::after,.future-home .mmh-scroll-depth-fade{display:none}}
