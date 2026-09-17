@@ -22380,3 +22380,137 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
   setInterval(()=>{if(!document.hidden&&document.getElementById('dashboard')?.classList.contains('active'))sync();},5000);
 })();
 </script>
+
+<!-- MMHVAULT V5.2 — FINAL WEALTH RECONCILIATION AUTHORITY -->
+<script id="mmhvault-v52-final-wealth-reconciliation">
+(function(){
+  'use strict';
+  if(window.__mmhV52FinalWealthReconciliation)return;
+  window.__mmhV52FinalWealthReconciliation=true;
+  const N=v=>{if(typeof v==='string')v=v.replace(/,/g,'').trim();const x=Number(v);return Number.isFinite(x)?x:0;};
+  const txs=()=>Array.isArray(window.transactions)?window.transactions.filter(Boolean):[];
+  const invs=()=>Array.isArray(window.investments)?window.investments.filter(Boolean):[];
+  const fx=()=>Math.max(0,N(window.rates?.usd_mmk)||4250);
+  const norm=s=>String(s||'').toLowerCase().replace(/[\s_\-\.]+/g,'').replace(/saw/g,'zaw');
+
+  function cashUSD(){
+    const accounts=['Bath','TrueMoney','OKX','ByBit','MetaMask','KPay'];
+    return accounts.reduce((s,a)=>{try{return s+N(window.balance?.(a))*N(window.toUSD?.(a));}catch(_){return s;}},0);
+  }
+
+  function cryptoUSD(){
+    return invs().filter(x=>String(x.asset||'')==='Crypto').reduce((s,x)=>{
+      const q=N(x.quantity), p=N(window.livePrices?.[String(x.symbol||'').toUpperCase()]?.price)||N(x.market_price);
+      return s+q*p;
+    },0);
+  }
+
+  function goldUSD(){
+    const rows=invs().filter(x=>String(x.asset||'')==='Gold');
+    let qty=0;
+    for(const x of rows){
+      let q=N(x.weight_kyattha);
+      if(!q)q=N(x.quantity);
+      const side=String(x.side||x.trade_type||'').toUpperCase();
+      if(side==='SELL'&&q>0)q=-q;
+      qty+=q;
+    }
+    let price=N(window.goldMarketState?.pricePerKyattha);
+    if(price<=0){
+      const ordered=rows.slice().sort((a,b)=>String(b.inv_date||b.date||'').localeCompare(String(a.inv_date||a.date||'')));
+      price=N(ordered.find(x=>N(x.market_price)>0)?.market_price)||N(ordered.find(x=>N(x.buy_price)>0)?.buy_price);
+    }
+    return Math.max(0,qty)*Math.max(0,price)/fx();
+  }
+
+  // Loan ledger: repayments are matched to the original borrower. A common
+  // romanization typo "Saw" vs "Zaw" is normalized, so Tun Saw Htet and
+  // Tun Zaw Htet are treated as the same borrower without editing raw data.
+  function loanReceivableMMK(){
+    const outs=new Map();
+    const reps=[];
+    for(const t of txs()){
+      const c=String(t.category||'').trim();
+      if(c==='Loan Out'){
+        const key=norm(t.note||t.borrower||t.to_account||'unknown');
+        const amt=N(t.from_amount)*N(typeof window.toMMK==='function'?window.toMMK(t.from_account):1);
+        outs.set(key,(outs.get(key)||0)+Math.max(0,amt));
+      }else if(c==='Loan Repayment'){
+        const key=norm(t.note||t.borrower||'unknown');
+        const amt=N(t.to_amount)*N(typeof window.toMMK==='function'?window.toMMK(t.to_account):1);
+        reps.push({key,amt:Math.max(0,amt)});
+      }
+    }
+    // First match exact borrower; if a repayment note is the known Saw/Zaw
+    // spelling variant, norm() makes it exact. Unnamed repayments are applied
+    // only against the remaining loan pool, never creating a negative receivable.
+    let unnamed=0;
+    for(const r of reps){
+      if(r.key==='unknown') unnamed+=r.amt;
+      else if(outs.has(r.key)) outs.set(r.key,Math.max(0,(outs.get(r.key)||0)-r.amt));
+      else unnamed+=r.amt;
+    }
+    if(unnamed>0){
+      for(const [k,v] of outs){
+        if(unnamed<=0)break;
+        const use=Math.min(v,unnamed); outs.set(k,v-use); unnamed-=use;
+      }
+    }
+    let total=0; for(const v of outs.values())total+=Math.max(0,v);
+    return total;
+  }
+
+  function snapshot(){
+    const cash=cashUSD();
+    const crypto=cryptoUSD();
+    const gold=goldUSD();
+    const invest=crypto+gold;
+    const loan=loanReceivableMMK()/fx();
+    const net=Math.max(0,cash+invest+loan);
+    return {cash,crypto,gold,invest,loan,net,investmentWeight:net?invest/net*100:0,loanWeight:net?loan/net*100:0,live:true,at:new Date().toISOString()};
+  }
+
+  window.mmhGetTotalOwnedWealthV52=snapshot;
+  window.mmhLoanReceivableMMKV52=loanReceivableMMK;
+  window.mmhLoanReceivableUSDV52=()=>loanReceivableMMK()/fx();
+  window.mmhvaultNetWorthUSD=()=>snapshot().net;
+  window.mmhGetCanonicalWealthV5=()=>snapshot();
+  window.mmhvaultInvestmentValueUSD=()=>snapshot().invest;
+  window.investmentValueUSD=()=>snapshot().invest;
+  window.investmentValue=()=>snapshot().invest*fx();
+
+  function money(v){try{return '$ '+(typeof window.fmt==='function'?window.fmt(N(v)):N(v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}));}catch(_){return '$ '+N(v).toFixed(2);}}
+  function set(id,v){const e=document.getElementById(id);if(e)e.textContent=v;}
+
+  function sync(){
+    const d=snapshot();
+    set('mmhCommandNetWorthV34210',money(d.net));
+    set('mmhCommandCashV34210',money(d.cash));
+    set('mmhCommandInvestV34210',money(d.invest));
+    set('mmhCommandWeightV34210',d.investmentWeight.toFixed(1)+'%');
+    set('mmhRibbonNetV34212',money(d.net));
+    set('mmhCommandNetWorthChangeV34210','Live total assets · includes Crypto + Gold + Loan Receivable');
+    const hero=document.getElementById('dashboardHero');
+    if(hero){
+      const cards=hero.querySelectorAll('.card');
+      if(cards[0]){const b=cards[0].querySelector('.big');if(b)b.textContent=money(d.net);const sm=cards[0].querySelector('.small');if(sm)sm.textContent='Cash + Crypto + Gold + Loan Receivable · USD';}
+      if(cards[1]){const b=cards[1].querySelector('.big');if(b)b.textContent=money(d.cash);}
+      if(cards[2]){const b=cards[2].querySelector('.big');if(b)b.textContent=money(d.invest);}
+    }
+    const anchor=document.querySelector('#dashboard .mmh-command-v34210');
+    if(anchor){
+      let host=document.getElementById('mmhV52LoanChip');
+      if(!host){host=document.createElement('span');host.id='mmhV52LoanChip';host.className='mmh-v52-loan-chip';host.innerHTML='<span>Loan Receivable</span><b></b>'; (anchor.lastElementChild||anchor).appendChild(host);}
+      const b=host.querySelector('b');if(b)b.textContent=money(d.loan);host.style.display=d.loan>0.004?'inline-flex':'none';
+    }
+    window.netWorth=d.net;
+    window.__mmhV52OwnedWealthSnapshot=d;
+  }
+  const style=document.createElement('style');
+  style.textContent='.mmh-v52-loan-chip{display:inline-flex;align-items:center;gap:7px;margin-left:8px;padding:7px 10px;border:1px solid rgba(90,196,255,.18);border-radius:10px;background:rgba(8,23,48,.62);color:#9db5d9;font-size:11px;white-space:nowrap}.mmh-v52-loan-chip b{color:#eaf6ff;font-weight:900}@media(max-width:720px){.mmh-v52-loan-chip{margin-left:0;margin-top:6px}}';
+  document.head.appendChild(style);
+  ['mmhvault:data-loaded','mmhvault:sync-complete','mmhvault:cache-restored','mmhvault:market-updated','mmhvault:data-change','mmhvault:dashboard-rendered'].forEach(ev=>window.addEventListener(ev,()=>setTimeout(sync,80)));
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>[250,800,1800,3500].forEach(ms=>setTimeout(sync,ms)),{once:true}); else [250,800,1800,3500].forEach(ms=>setTimeout(sync,ms));
+  setInterval(()=>{if(!document.hidden)sync();},5000);
+})();
+</script>
