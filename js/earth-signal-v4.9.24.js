@@ -1,3 +1,4 @@
+// MMHVAULT v5.5.1 — visual data integrity fix. v5.4 HUD injection removed; existing HTML signal data remains the single source of truth.
 // MMHVAULT v5.2 — living financial signal + global flow + spatial Earth interaction.
 (() => {
   const root = document.querySelector('.future-home .earth-signal-layer');
@@ -145,113 +146,6 @@
   }, {passive:true});
   window.addEventListener('pagehide', () => { cancelAnimationFrame(raf); io.disconnect(); }, {once:true});
   update();
-})();
-
-/* MMHVAULT v5.4 — interactive financial HUD. */
-(() => {
-  const home = document.querySelector('.future-home');
-  const root = home?.querySelector('.earth-signal-layer');
-  const earth = home?.querySelector('.mmh-home-earth-v4-9-17');
-  if (!home || !root || !earth || root.dataset.mmhHudInstalled) return;
-  root.dataset.mmhHudInstalled = '1';
-  const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-  const mobile = window.matchMedia?.('(max-width: 700px)').matches;
-  if (mobile) return;
-
-  const hud = document.createElement('div');
-  hud.className = 'mmh-financial-hud';
-  hud.setAttribute('aria-hidden', 'true');
-  hud.innerHTML = `
-    <div class="mmh-hud-grid"></div>
-    <div class="mmh-hud-card" data-side="top" data-focus="flow">
-      <div class="mmh-hud-kicker">Global Flow</div>
-      <div class="mmh-hud-value"><span data-hud-value="flow">68.4</span><small>INDEX</small></div>
-      <div class="mmh-hud-sub">CAPITAL MOVEMENT · LIVE</div>
-      <div class="mmh-hud-spark"><i style="--h:42%"></i><i style="--h:68%"></i><i style="--h:51%"></i><i style="--h:82%"></i><i style="--h:62%"></i><i style="--h:94%"></i><i style="--h:72%"></i><i style="--h:88%"></i></div>
-    </div>
-    <div class="mmh-hud-card" data-side="left" data-focus="digital">
-      <div class="mmh-hud-kicker">Digital Assets</div>
-      <div class="mmh-hud-value"><span data-hud-value="digital">+4.8</span><small>%</small></div>
-      <div class="mmh-hud-sub">BTC · ETH · LIQUIDITY</div>
-    </div>
-    <div class="mmh-hud-card" data-side="right" data-focus="reserve">
-      <div class="mmh-hud-kicker gold">Reserve</div>
-      <div class="mmh-hud-value"><span data-hud-value="reserve">1.9</span><small>%</small></div>
-      <div class="mmh-hud-sub">STABILITY · LIQUID BUFFER</div>
-    </div>
-    <div class="mmh-hud-status"><span class="pulse"></span><b>SYSTEM PULSE</b><span>GLOBAL SIGNAL NETWORK</span></div>
-    <div class="mmh-hud-coords">LAT 16.84° · LONG 96.17° · SIGNAL 05:42:18</div>
-    <i class="mmh-hud-crosshair" style="left:50%;top:50%"></i>
-  `;
-  root.appendChild(hud);
-
-  const cards = [...hud.querySelectorAll('.mmh-hud-card')];
-  const crosshair = hud.querySelector('.mmh-hud-crosshair');
-  const values = {
-    flow: hud.querySelector('[data-hud-value="flow"]'),
-    digital: hud.querySelector('[data-hud-value="digital"]'),
-    reserve: hud.querySelector('[data-hud-value="reserve"]')
-  };
-  const pointer = {x:0,y:0,tx:0,ty:0};
-  let raf=0, active=true, start=performance.now();
-
-  function move(e){
-    const r=earth.getBoundingClientRect();
-    pointer.tx=((e.clientX-r.left)/Math.max(1,r.width)-.5)*2;
-    pointer.ty=((e.clientY-r.top)/Math.max(1,r.height)-.5)*2;
-  }
-  earth.addEventListener('pointermove',move,{passive:true});
-  earth.addEventListener('pointerleave',()=>{pointer.tx=0;pointer.ty=0;},{passive:true});
-
-  function render(now){
-    if(!active) return;
-    const t=(now-start)/1000;
-    pointer.x += (pointer.tx-pointer.x)*.07;
-    pointer.y += (pointer.ty-pointer.y)*.07;
-    if(!reduced){
-      const px=pointer.x, py=pointer.y;
-      hud.style.setProperty('--hud-parallax-x',(px*5).toFixed(2)+'px');
-      hud.style.setProperty('--hud-parallax-y',(py*4).toFixed(2)+'px');
-      cards.forEach((card,i)=>{
-        const depth=[1,.72,.88][i] || .8;
-        card.style.setProperty('--hud-x',(px*10*depth).toFixed(2)+'px');
-        card.style.setProperty('--hud-y',(py*7*depth).toFixed(2)+'px');
-        card.style.setProperty('--hud-rx',(-py*1.4*depth).toFixed(2)+'deg');
-        card.style.setProperty('--hud-ry',(px*2*depth).toFixed(2)+'deg');
-      });
-      crosshair.style.transform=`translate(-50%,-50%) translate3d(${px*18}px,${py*14}px,0)`;
-      if(values.flow) values.flow.textContent=(68.4+Math.sin(t*.43)*1.7+Math.sin(t*.13)*.45).toFixed(1);
-      if(values.digital) values.digital.textContent='+'+(4.8+Math.sin(t*.72+.6)*.9).toFixed(1);
-      if(values.reserve) values.reserve.textContent=(1.9+Math.cos(t*.51+1.1)*.45).toFixed(1);
-    }
-    raf=requestAnimationFrame(render);
-  }
-
-  // A subtle focus state follows the nearest HUD module without requiring clicks.
-  function focusFromPointer(){
-    if(reduced) return;
-    const ax=Math.abs(pointer.x), ay=Math.abs(pointer.y);
-    cards.forEach(c=>c.classList.remove('is-focus'));
-    if(ax<.28 && ay<.42) cards[0]?.classList.add('is-focus');
-    else if(pointer.x<-.12) cards[1]?.classList.add('is-focus');
-    else if(pointer.x>.12) cards[2]?.classList.add('is-focus');
-  }
-  const focusLoop=()=>{focusFromPointer();if(active) setTimeout(focusLoop,180)};
-  focusLoop();
-
-  const io=new IntersectionObserver(entries=>{
-    active=!!entries[0]?.isIntersecting && !document.hidden;
-    if(active && !raf) raf=requestAnimationFrame(render);
-    if(!active && raf){cancelAnimationFrame(raf);raf=0;}
-  },{threshold:[0,.08,.35,1]});
-  io.observe(home);
-  document.addEventListener('visibilitychange',()=>{
-    active=!document.hidden;
-    if(active && !raf) raf=requestAnimationFrame(render);
-    if(!active && raf){cancelAnimationFrame(raf);raf=0;}
-  },{passive:true});
-  window.addEventListener('pagehide',()=>{active=false;cancelAnimationFrame(raf);io.disconnect();},{once:true});
-  raf=requestAnimationFrame(render);
 })();
 
 /* MMHVAULT v5.5 — adaptive performance governor. Keeps the visual system intact while
