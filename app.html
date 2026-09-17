@@ -15,7 +15,7 @@
 <link rel="preconnect" href="https://unpkg.com" crossorigin>
 <link rel="dns-prefetch" href="https://vrypucmyrztxgiqhjspd.supabase.co">
 <link rel="preconnect" href="https://vrypucmyrztxgiqhjspd.supabase.co" crossorigin>
-<link href="css/mmhvault.css" rel="stylesheet"/><meta content="V4.3.0 · Unified Experience Foundation" name="mmhvault-architecture"/>
+<link href="css/mmhvault.css" rel="stylesheet"/><meta content="V4.4.4 · Current-Version Ledger & Import Upgrade" name="mmhvault-architecture"/>
 <style id="mmhvault-v32811-wealth-rules-location-css">
   .analyze-tabs-v371{overflow-x:auto;scrollbar-width:thin;}
   .analyze-tabs-v371 .analyze-tab-v371{flex:0 0 auto;min-width:110px;}
@@ -21644,3 +21644,142 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
 @media(max-width:900px){#invest .gold-summary-v438{grid-template-columns:repeat(2,minmax(0,1fr))!important}#invest .gold-performance-v438-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:620px){#invest .gold-performance-v438{margin:0 10px 12px;padding:13px}#invest .gold-performance-v438-head{display:block}#invest .gold-performance-v438-grid{gap:8px}#invest .gold-performance-v438-grid>div{padding:10px}#invest .gold-performance-v438-grid b{font-size:12px}}
 </style>
+
+
+<!-- MMHVAULT V4.4.4 · Current-version investment ledger + import hardening.
+     Built directly on the user-uploaded 2026-09-17 app.html. Existing UI/data model preserved. -->
+<style id="mmhvault-v444-current-ledger-css">
+#invest .gold-summary-v444{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:0 16px 14px}
+#invest .gold-summary-v444 .gold-summary-card{min-width:0;position:relative;overflow:hidden;padding:16px 17px;border:1px solid rgba(246,199,91,.16);border-radius:17px;background:linear-gradient(145deg,rgba(28,24,14,.72),rgba(6,15,29,.92));box-shadow:inset 0 1px 0 rgba(255,255,255,.03),0 12px 28px rgba(0,0,0,.13)}
+#invest .gold-summary-v444 .gold-summary-card:before{content:"";position:absolute;left:14px;right:14px;top:0;height:2px;border-radius:999px;background:linear-gradient(90deg,rgba(246,199,91,.92),rgba(246,199,91,0))}
+#invest .gold-summary-v444 .label{font-size:9px;letter-spacing:.10em;text-transform:uppercase;color:#8e9fbd;font-weight:900}
+#invest .gold-summary-v444 .value{margin-top:9px;font-size:21px;line-height:1.12;font-weight:950;color:#f3d477;overflow-wrap:anywhere}
+#invest .gold-summary-v444 .meta{margin-top:7px;font-size:10px;color:#7186aa;line-height:1.35}
+#invest .gold-performance-v444{margin:0 16px 16px;padding:16px;border:1px solid rgba(246,199,91,.14);border-radius:18px;background:linear-gradient(145deg,rgba(43,32,14,.28),rgba(6,15,29,.44));box-shadow:inset 0 1px 0 rgba(255,255,255,.025)}
+#invest .gold-performance-v444-head{display:flex;justify-content:space-between;gap:14px;align-items:flex-start}
+#invest .gold-performance-v444-title{font-size:16px;font-weight:900;color:#edf4ff}
+#invest .gold-performance-v444-kicker{font-size:9px;letter-spacing:.12em;color:#d7b65d;font-weight:900;margin-bottom:5px}
+#invest .gold-performance-v444-result{text-align:right}.gold-performance-v444-result .value{font-size:22px;font-weight:950}.gold-performance-v444-result .label{margin-top:3px;font-size:10px;color:#8296b8}
+#invest .gold-performance-v444-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin-top:14px}
+#invest .gold-performance-v444-grid>div{min-width:0;padding:11px 12px;border-radius:13px;background:rgba(8,18,34,.58);border:1px solid rgba(98,150,214,.11)}
+#invest .gold-performance-v444-grid span{display:block;font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:#8499b8;font-weight:850}
+#invest .gold-performance-v444-grid b{display:block;margin-top:6px;font-size:13px;color:#f2d071;overflow-wrap:anywhere}
+#invest .gold-ledger-note-v444{margin:0 16px 10px;padding:9px 12px;border-radius:11px;border:1px solid rgba(246,199,91,.10);background:rgba(246,199,91,.035);font-size:10px;color:#8396b5;line-height:1.45}
+#invest .gold-table-wrap table td:nth-child(8),#invest .gold-table-wrap table td:nth-child(9){white-space:nowrap}
+@media(max-width:900px){#invest .gold-summary-v444{grid-template-columns:repeat(2,minmax(0,1fr));margin-left:10px;margin-right:10px}#invest .gold-performance-v444{margin-left:10px;margin-right:10px}#invest .gold-performance-v444-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:620px){#invest .gold-summary-v444{gap:8px;margin-bottom:10px}#invest .gold-summary-v444 .gold-summary-card{padding:12px 11px;border-radius:14px}#invest .gold-summary-v444 .value{font-size:17px}#invest .gold-summary-v444 .meta{font-size:9px}#invest .gold-performance-v444{padding:13px;margin-bottom:12px}#invest .gold-performance-v444-head{display:block}.gold-performance-v444-result{text-align:left;margin-top:9px}.gold-performance-v444-result .value{font-size:19px}#invest .gold-performance-v444-grid{gap:7px}#invest .gold-performance-v444-grid>div{padding:9px}#invest .gold-performance-v444-grid b{font-size:11px}#invest .gold-ledger-note-v444{margin-left:10px;margin-right:10px}}
+</style>
+<script id="mmhvault-v444-current-ledger-js">
+(function(){
+  if(window.__mmhV444Installed)return; window.__mmhV444Installed=true;
+  const num=v=>{if(typeof v==='string')v=v.replace(/,/g,'').trim();const n=Number(v);return Number.isFinite(n)?n:0;};
+  const sym=v=>String(v||'').trim().toUpperCase();
+  const esc4=v=>typeof esc==='function'?esc(v):String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  const allInv=()=>Array.isArray(window.investments)?window.investments.filter(Boolean):[];
+  const cryptoRows=()=>allInv().filter(x=>String(x.asset||'')==='Crypto');
+  const goldRows=()=>allInv().filter(x=>String(x.asset||'')==='Gold');
+  const signedQty=x=>num(x.quantity);
+  function goldQty(x){
+    if(typeof goldHoldingQty==='function')return num(goldHoldingQty(x));
+    let q=num(x.weight_kyattha??x.gold_weight_kyattha??x.quantity);
+    const side=String(x.side||x.trade_type||'').toUpperCase();
+    return side==='SELL'&&q>0?-q:q;
+  }
+  function orderedGold(){return goldRows().slice().sort((a,b)=>String(a.inv_date||a.date||'').localeCompare(String(b.inv_date||b.date||''))||num(a.id)-num(b.id));}
+  function goldLedger(){
+    let qty=0,basis=0,realized=0,buyCash=0,sellProceeds=0,buyQty=0,sellQty=0;
+    for(const x of orderedGold()){
+      const q=goldQty(x), fee=Math.abs(num(x.fee)), other=Math.abs(num(x.other_cost)), amount=Math.abs(num(x.amount));
+      if(q>=0){const cost=amount+fee+other;qty+=q;basis+=cost;buyCash+=cost;buyQty+=q;}
+      else{const sq=Math.abs(q),avg=qty>0?basis/qty:0,proceeds=Math.max(0,amount-fee-other);realized+=proceeds-sq*avg;qty=Math.max(0,qty-sq);basis=Math.max(0,basis-sq*avg);sellProceeds+=proceeds;sellQty+=sq;}
+    }
+    return {qty,basis,realized,buyCash,sellProceeds,netCashInvested:buyCash-sellProceeds,buyQty,sellQty,unrealized:0,totalPnl:0,avgCost:qty>0?basis/qty:0};
+  }
+  function currentGoldPrice(){
+    const p=num(window.goldMarketState?.pricePerKyattha);
+    if(p>0)return p;
+    const r=orderedGold().slice().reverse().find(x=>num(x.market_price)>0);
+    return r?num(r.market_price):0;
+  }
+  function rowGoldRealizedMap(){
+    const map=new Map(); let qty=0,basis=0;
+    for(const x of orderedGold()){
+      const q=goldQty(x), fee=Math.abs(num(x.fee)), other=Math.abs(num(x.other_cost)), amount=Math.abs(num(x.amount));
+      let rp=null;
+      if(q<0){const sq=Math.abs(q),avg=qty>0?basis/qty:0;rp=Math.max(0,amount-fee-other)-sq*avg;qty=Math.max(0,qty-sq);basis=Math.max(0,basis-sq*avg);}
+      else{const cost=amount+fee+other;qty+=q;basis+=cost;}
+      map.set(x.id!=null?String(x.id):x,rp);
+    }
+    return map;
+  }
+  function splitWeight(q){
+    const aq=Math.max(0,q),ky=Math.floor(aq+1e-12), peFloat=(aq-ky)*16, pe=Math.floor(peFloat+1e-12), re=Math.max(0,(peFloat-pe)*8);
+    return {ky,pe,re};
+  }
+  function renderGoldV444(rows){
+    rows=Array.isArray(rows)?rows:goldRows(); if(!rows.length)return '<div class="empty gold-empty-note">No gold investments.</div>';
+    const price=currentGoldPrice(), led=goldLedger(); const value=Math.max(0,led.qty)*price; const unreal=value-led.basis; const totalPnl=unreal+led.realized; const roi=led.buyCash?totalPnl/led.buyCash*100:0;
+    const w=splitWeight(led.qty), map=rowGoldRealizedMap();
+    const summary=`<div class="gold-summary-v444"><div class="gold-summary-card"><div class="label">Net Cash Invested</div><div class="value">MMK ${fmt(led.netCashInvested)}</div><div class="meta">BUY cost − SELL proceeds · ${rows.filter(x=>goldQty(x)>0).length} BUY · ${rows.filter(x=>goldQty(x)<0).length} SELL</div></div><div class="gold-summary-card"><div class="label">Current Value</div><div class="value green">MMK ${fmt(value)}</div><div class="meta">Market MMK ${fmt(price)} / ကျပ်သား</div></div><div class="gold-summary-card"><div class="label">Total P/L</div><div class="value ${totalPnl>=0?'green':'red'}">${totalPnl>=0?'+':'−'}MMK ${fmt(Math.abs(totalPnl))}</div><div class="meta">Realized + Unrealized · ROI ${roi>=0?'+':''}${roi.toFixed(2)}%</div></div><div class="gold-summary-card"><div class="label">Current Holding</div><div class="value">${w.ky} ကျပ် ${w.pe} ပဲ</div><div class="meta">${w.re.toFixed(2)} ရွေး · ${led.qty.toFixed(8)} ကျပ်သား</div></div></div>`;
+    const performance=`<div class="gold-performance-v444"><div class="gold-performance-v444-head"><div><div class="gold-performance-v444-kicker">GOLD LEDGER</div><div class="gold-performance-v444-title">Remaining cost basis → current market</div></div><div class="gold-performance-v444-result"><div class="value ${totalPnl>=0?'green':'red'}">${totalPnl>=0?'+':'−'}MMK ${fmt(Math.abs(totalPnl))}</div><div class="label">Total P/L · ${roi>=0?'+':''}${roi.toFixed(2)}%</div></div></div><div class="gold-performance-v444-grid"><div><span>Avg Cost / ကျပ်သား</span><b>MMK ${fmt(led.avgCost)}</b></div><div><span>Market / ကျပ်သား</span><b>MMK ${fmt(price)}</b></div><div><span>Realized P/L</span><b class="${led.realized>=0?'green':'red'}">MMK ${led.realized>=0?'+':''}${fmt(led.realized)}</b></div><div><span>Unrealized P/L</span><b class="${unreal>=0?'green':'red'}">MMK ${unreal>=0?'+':''}${fmt(unreal)}</b></div></div></div>`;
+    const note=`<div class="gold-ledger-note-v444">BUY increases gold weight and cost basis. SELL reduces the remaining weight and basis, while the sale proceeds and realized P/L stay in the historical ledger. Gold is calculated in MMK; USD conversion is only used outside the Gold ledger for portfolio comparison.</div>`;
+    const ordered=rows.slice().sort((a,b)=>String(b.inv_date||'').localeCompare(String(a.inv_date||''))||num(b.id)-num(a.id));
+    const table=`<div class="gold-table-wrap"><table><tr><th>Date</th><th>Side</th><th>Source</th><th>Amount</th><th>Price</th><th>Weight</th><th>Current Value</th><th>P/L</th><th>ROI</th><th></th></tr>${ordered.map(x=>{const q=goldQty(x),side=q<0?'SELL':'BUY',cost=Math.abs(num(x.amount))+Math.abs(num(x.fee))+Math.abs(num(x.other_cost)),aq=Math.abs(q),sw=splitWeight(aq);let p=0,rt='—';if(side==='SELL'){p=num(map.get(x.id!=null?String(x.id):x));rt=cost?((p/cost)*100).toFixed(2)+'%':'—';}else{const val=aq*price;p=val-cost;rt=cost?((p/cost)*100).toFixed(2)+'%':'—';}return `<tr><td>${esc4(x.inv_date)}</td><td class="${side==='BUY'?'green':'red'}"><b>${side}</b></td><td>${esc4(x.source_account||'KPay')}</td><td>MMK ${fmt(Math.abs(num(x.amount)))}</td><td>MMK ${fmt(x.buy_price)} / ကျပ်သား</td><td><div class="gold-weight-main">${sw.ky} ကျပ် ${sw.pe} ပဲ</div><div class="gold-weight-sub">${sw.re.toFixed(2)} ရွေး</div></td><td>${side==='SELL'?'—':'MMK '+fmt(aq*price)}</td><td class="${p>=0?'green':'red'}">${p>=0?'+':''}MMK ${fmt(p)}</td><td>${rt}</td><td class="icon-actions">${window.mmHVaultHasInvestmentReceiptV3304?.(x.id)?`<button class="btn" onclick="openInvestmentReceiptV3304(${x.id})">👁 View</button>`:''}<button class="btn" onclick="editInvestment(${x.id})">Edit</button><button class="btn danger" onclick="deleteInvestment(${x.id})">×</button></td></tr>`;}).join('')}</table></div>`;
+    const cards=`<div class="gold-mobile-list">${ordered.map(x=>{const q=goldQty(x),side=q<0?'SELL':'BUY',cost=Math.abs(num(x.amount))+Math.abs(num(x.fee))+Math.abs(num(x.other_cost)),aq=Math.abs(q),sw=splitWeight(aq);let p=0,rt='—',cv='—';if(side==='SELL'){p=num(map.get(x.id!=null?String(x.id):x));rt=cost?((p/cost)*100).toFixed(2)+'%':'—';}else{cv='MMK '+fmt(aq*price);p=aq*price-cost;rt=cost?((p/cost)*100).toFixed(2)+'%':'—';}return `<div class="gold-mobile-card gold-mobile-card-v438"><div class="gold-mobile-top"><div><div class="gold-mobile-date">${esc4(x.inv_date)}</div><div class="gold-mobile-source"><span class="${side==='BUY'?'green':'red'}">${side}</span> · ${esc4(x.source_account||'KPay')}</div></div><div class="gold-mobile-roi ${p>=0?'green':'red'}">${rt}</div></div><div class="gold-mobile-grid"><div class="gold-mobile-item"><div class="label">Trade Amount</div><div class="value">MMK ${fmt(Math.abs(num(x.amount)))}</div></div><div class="gold-mobile-item"><div class="label">Weight</div><div class="value">${sw.ky} ကျပ် ${sw.pe} ပဲ ${sw.re.toFixed(2)} ရွေး</div></div><div class="gold-mobile-item"><div class="label">Price</div><div class="value">MMK ${fmt(x.buy_price)} / ကျပ်သား</div></div><div class="gold-mobile-item"><div class="label">Current Value</div><div class="value">${cv}</div></div><div class="gold-mobile-item"><div class="label">P/L</div><div class="value ${p>=0?'green':'red'}">MMK ${p>=0?'+':''}${fmt(p)}</div></div><div class="gold-mobile-item"><div class="label">Note</div><div class="value">${esc4(x.note||'Gold investment')}</div></div></div><div class="gold-mobile-actions">${window.mmHVaultHasInvestmentReceiptV3304?.(x.id)?`<button class="btn" onclick="event.stopPropagation();openInvestmentReceiptV3304(${x.id})">👁 View</button>`:''}<button class="btn" onclick="event.stopPropagation();editInvestment(${x.id})">Edit</button><button class="btn danger" onclick="event.stopPropagation();deleteInvestment(${x.id})">Delete</button></div></div>`;}).join('')}</div>`;
+    return summary+performance+note+`<div class="gold-history-caption-v34660"><div><div class="title">Gold History</div><div class="hint">BUY adds weight · SELL reduces weight · all records remain in history</div></div><div class="count">${rows.filter(x=>goldQty(x)>0).length} BUY · ${rows.filter(x=>goldQty(x)<0).length} SELL</div></div>`+table+cards;
+  }
+  function normalizeImportV444(x){
+    const asset=String(x?.asset||'Crypto');
+    const explicit=String(x?.side||x?.trade_type||x?.type||'').toUpperCase();
+    let amount=num(x?.amount ?? x?.invested_amount ?? x?.order_amount ?? x?.order_value ?? x?.sale_proceeds);
+    let quantity=num(x?.quantity ?? x?.filled_quantity ?? x?.filled ?? x?.weight_kyattha ?? x?.gold_weight_kyattha);
+    const price=num(x?.buy_price ?? x?.fill_price ?? x?.price ?? x?.trade_price ?? x?.sale_price);
+    const inferredSell=explicit==='SELL'||(explicit===''&&(amount<0||quantity<0));
+    const side=inferredSell?'SELL':'BUY';
+    if(side==='SELL'){amount=-Math.abs(amount);quantity=-Math.abs(quantity);}else{amount=Math.abs(amount);quantity=Math.abs(quantity);}
+    return {inv_date:x?.inv_date||x?.date||x?.created_at?.slice?.(0,10),asset,symbol:asset==='Gold'?'Gold':sym(x?.symbol||x?.coin),source_account:x?.source_account||x?.source||(asset==='Gold'?'KPay':'OKX'),amount,fee:Math.abs(num(x?.fee_usd??x?.fee??0)),other_cost:Math.abs(num(x?.other_cost??0)),buy_price:price,market_price:num(x?.market_price)||price,quantity,note:x?.note||null};
+  }
+  function validImportV444(x,i){if(!x.inv_date)return `Investment #${i+1}: missing date.`;if(x.asset==='Crypto'&&!x.symbol)return `Investment #${i+1}: missing crypto symbol.`;if(!(num(x.amount)!==0)||!(num(x.buy_price)>0)||!(num(x.quantity)!==0))return `Investment #${i+1}: amount, price or quantity is invalid.`;return '';}
+  const oldPreview=window.previewMyFinanceBackupDataV434;
+  window.previewMyFinanceBackupDataV444=async function(file,data){
+    try{
+      const arrTx=Array.isArray(data?.transactions)?data.transactions:[], arrInv=Array.isArray(data?.investments)?data.investments:[];
+      const normalized=arrInv.map(normalizeImportV444), err=normalized.map(validImportV444).find(Boolean); if(err)throw new Error(err);
+      const fpTx=x=>[x?.date||x?.tx_date,x?.type,x?.category||'',x?.from_account||'',num(x?.from_amount),x?.to_account||'',num(x?.to_amount),x?.note||''].join('|');
+      const fpInv=x=>[x?.inv_date||x?.date,x?.asset,x?.symbol||'',num(x?.amount),num(x?.fee),num(x?.other_cost),num(x?.buy_price),num(x?.quantity)].join('|');
+      const txExisting=new Set((window.transactions||[]).map(fpTx)), invExisting=new Set((window.investments||[]).map(fpInv));
+      const ntx=arrTx.filter(x=>!txExisting.has(fpTx(x))), ninv=normalized.filter(x=>!invExisting.has(fpInv(x))), dup=arrTx.length-ntx.length+normalized.length-ninv.length;
+      const buys=ninv.filter(x=>x.asset==='Crypto'&&x.quantity>0).length,sells=ninv.filter(x=>x.asset==='Crypto'&&x.quantity<0).length,gBuys=ninv.filter(x=>x.asset==='Gold'&&x.quantity>0).length,gSells=ninv.filter(x=>x.asset==='Gold'&&x.quantity<0).length;
+      const hasRates=!!data?.rates&&[data.rates.usd_mmk,data.rates.usd_thb,data.rates.usd_cny].some(v=>num(v)>0);
+      window.restorePreviewV383={file,data,u:null,ntx,ninv,duplicates:dup,hasRates,needsAuth:true};
+      const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=String(v);};
+      set('restoreFileNameV383',file?.name||'MMHVAULT backup.json');set('restoreFileMetaV383',`Backup date: ${typeof formatBackupDateV383==='function'?formatBackupDateV383(data?.exported_at):'Unknown'} · Format: ${data?.version||'Trade Import / JSON'}`);set('restoreNewTxV383',ntx.length);set('restoreNewInvV383',ninv.length);set('restoreDuplicateV383',dup);set('restoreRatesV383',hasRates?'Included':'Not included');
+      const c=document.getElementById('restoreConflictV383');if(c)c.textContent=`Ready: ${buys} Crypto BUY + ${sells} Crypto SELL + ${gBuys} Gold BUY + ${gSells} Gold SELL. ${dup} existing records will be skipped. Existing cloud records will not be overwritten.`;
+      const b=document.getElementById('restoreConfirmV383');if(b)b.disabled=(ntx.length===0&&ninv.length===0&&!hasRates);
+      document.getElementById('restorePreviewV383')?.classList.add('show');
+      if(typeof setRestoreStatusV383==='function')setRestoreStatusV383(`✓ JSON loaded · ${arrInv.length} investment records found. BUY/SELL signs have been normalized for the ledger.`,'ok');
+    }catch(e){console.error(e);window.restorePreviewV383=null;document.getElementById('restorePreviewV383')?.classList.remove('show');if(typeof setRestoreStatusV383==='function')setRestoreStatusV383('Import preview failed: '+(e?.message||e),'err');}
+  };
+  // Replace the native-file handler target used by the current button. No hidden/offscreen picker changes.
+  window.mmhvaultHandleBackupFileV436=function(file,input){
+    if(!file){if(typeof setRestoreStatusV383==='function')setRestoreStatusV383('No backup file selected.');return;}
+    const status=document.getElementById('backupStatus'); if(status){status.style.display='block';status.className='data-center-status-v380';status.textContent='📄 Selected: '+(file.name||'JSON backup')+' · Reading…';}
+    const reader=new FileReader(); reader.onload=e=>{try{const data=JSON.parse(String(e?.target?.result||''));if(!data||!Array.isArray(data.transactions)||!Array.isArray(data.investments))throw new Error('Invalid MMHVAULT JSON file.');window.previewMyFinanceBackupDataV444(file,data);}catch(err){if(status){status.className='data-center-status-v380 err';status.textContent='Import failed: '+(err?.message||err);}}}; reader.onerror=()=>{if(status){status.className='data-center-status-v380 err';status.textContent='Import failed: iPhone could not read this file.';}}; reader.readAsText(file,'utf-8');
+  };
+  const oldRenderGold=window.renderGoldTable;
+  window.renderGoldTable=renderGoldV444;
+  // Re-render Invest using the current app's own function, but replace only Gold HTML after it runs.
+  const baseRenderInvest=window.renderInvest;
+  window.renderInvest=function(){
+    const r=typeof baseRenderInvest==='function'?baseRenderInvest.apply(this,arguments):undefined;
+    try{const host=document.getElementById('goldInvList');if(host)host.innerHTML=renderGoldV444(goldRows());}catch(e){console.warn('MMHVAULT v4.4.4 Gold render:',e);}
+    return r;
+  };
+  window.mmHVaultGoldLedgerV444=goldLedger;
+  window.mmHVaultNormalizeImportV444=normalizeImportV444;
+  // Fix the duplicated inline onchange attributes on the current input and ensure one clean handler.
+  function bindInput(){const input=document.getElementById('backupFile');if(!input||input.dataset.v444Bound==='1')return;input.dataset.v444Bound='1';input.removeAttribute('onchange');input.addEventListener('change',function(){const f=input.files?.[0];window.mmhvaultHandleBackupFileV436(f,input);});}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bindInput,{once:true});else bindInput();
+  setTimeout(()=>{try{window.renderInvest?.();}catch(_e){}},250);
+})();
+</script>
