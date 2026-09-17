@@ -1,0 +1,212 @@
+/* MMHVAULT FEATURES v7.4 — planetary motion + calm module labels
+   Owns only the Features hero visual layer. No data content is changed. */
+
+.future-features .future-hero{
+  position:relative!important;
+  overflow:hidden!important;
+  isolation:isolate!important;
+  min-height:clamp(720px,calc(100svh - 96px),860px)!important;
+  height:clamp(720px,calc(100svh - 96px),860px)!important;
+  padding:34px 0 30px!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,41%) minmax(0,59%)!important;
+  align-items:center!important;
+}
+.future-features .future-hero::before{
+  content:"";position:absolute;inset:0;z-index:-3;pointer-events:none;
+  background:
+    radial-gradient(circle at 78% 47%,rgba(24,125,196,.13),transparent 26%),
+    radial-gradient(circle at 86% 15%,rgba(242,201,105,.045),transparent 19%),
+    linear-gradient(90deg,rgba(0,7,14,.02),rgba(0,7,14,.05) 58%,rgba(0,7,14,.10) 100%);
+}
+.future-features .future-hero::after{
+  content:"";position:absolute;inset:0;z-index:-2;pointer-events:none;
+  background-image:
+    linear-gradient(rgba(90,181,226,.018) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(90,181,226,.018) 1px,transparent 1px);
+  background-size:44px 44px;
+  mask-image:linear-gradient(90deg,#000 0 54%,rgba(0,0,0,.64) 82%,transparent 100%);
+}
+.future-features .future-hero-inner{
+  width:min(100%,600px)!important;max-width:600px!important;padding-right:30px!important;
+  position:relative!important;z-index:100!important;align-self:center!important;
+}
+.future-features .future-hero h1{
+  font-size:clamp(58px,5.05vw,82px)!important;max-width:570px!important;
+  margin:24px 0 25px!important;line-height:.94!important;letter-spacing:-.065em!important;
+  text-wrap:balance!important;
+}
+.future-features .future-hero h1 .accent{color:#f3ca69!important;}
+.future-features .future-hero p{
+  max-width:530px!important;font-size:16px!important;line-height:1.68!important;
+  color:#93a7b8!important;margin:0!important;
+}
+.future-features .feature65-actions{margin-top:30px!important;}
+.future-features .feature65-stat-rail{
+  max-width:600px!important;display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  margin-top:42px!important;border-top:1px solid rgba(75,143,178,.25)!important;
+  border-bottom:1px solid rgba(75,143,178,.18)!important;
+}
+.future-features .feature65-stat-rail>div{
+  padding:14px 10px 15px 0!important;min-width:0!important;
+  border-right:1px solid rgba(75,143,178,.16)!important;
+}
+.future-features .feature65-stat-rail>div:last-child{border-right:0!important;}
+.future-features .feature65-stat-rail b{
+  display:block;color:#edf4f7!important;font:700 10px/1.2 ui-monospace,monospace!important;letter-spacing:.18em!important;
+}
+.future-features .feature65-stat-rail span{display:block;margin-top:8px!important;color:#718496!important;font-size:10px!important;line-height:1.3!important;}
+.future-features .future-orbit{display:none!important;}
+
+/* One contained planetary stage. */
+.future-features .feature-architecture-v65{
+  position:absolute!important;left:40.2%!important;right:.8%!important;top:50.5%!important;
+  width:auto!important;height:min(78vh,735px)!important;transform:translateY(-50%)!important;
+  perspective:2200px!important;transform-style:preserve-3d!important;overflow:visible!important;
+  z-index:20!important;pointer-events:none!important;
+}
+.future-features .feature-architecture-v65::before{
+  content:"";position:absolute;left:14%;right:7%;top:12%;bottom:9%;border-radius:50%;
+  pointer-events:none;z-index:-4;
+  background:radial-gradient(circle at 55% 50%,rgba(37,147,220,.12),transparent 36%);
+  filter:blur(24px);
+}
+.arch65-grid,.arch65-halo,.arch65-signal,.arch65-flow-dot,.arch65-caption{display:none!important;}
+
+/* Earth: 2D canvas sphere is intentionally used as the reliable renderer across WebGL1/WebGL2/mobile. */
+.arch65-earth{
+  position:absolute!important;left:54%!important;top:52%!important;width:43.5%!important;aspect-ratio:1;
+  border-radius:50%;overflow:hidden;background:#061321 url('../images/mmhvault-earth-v4.9.16.jpg') center/cover no-repeat!important;
+  transform:translate(-50%,-50%) translateZ(54px)!important;z-index:24!important;isolation:isolate;
+  box-shadow:
+    0 0 0 1px rgba(100,220,255,.20),
+    0 0 36px rgba(51,168,231,.34),
+    0 0 94px rgba(34,119,195,.16)!important;
+}
+#feature-earth-canvas{
+  position:absolute!important;inset:0!important;width:100%!important;height:100%!important;display:block!important;
+  z-index:2!important;opacity:1!important;background:transparent!important;
+}
+.arch65-earth::before{
+  content:"";position:absolute;inset:-5%;border-radius:50%;pointer-events:none;z-index:0;
+  background:radial-gradient(circle at 45% 40%,rgba(74,180,238,.08),transparent 56%);
+}
+.arch65-earth::after{
+  content:"";position:absolute;inset:0;border-radius:50%;pointer-events:none;z-index:5;
+  background:
+    radial-gradient(circle at 27% 23%,rgba(255,255,255,.055),transparent 17%),
+    linear-gradient(126deg,transparent 36%,rgba(0,4,9,.08) 58%,rgba(0,0,0,.28) 100%);
+}
+.earth-shade{display:none!important;}
+.earth-rim{
+  position:absolute;inset:-1px;border-radius:50%;border:1px solid rgba(121,230,255,.84);
+  box-shadow:inset 0 0 22px rgba(89,206,255,.22),0 0 28px rgba(82,201,255,.34);
+  pointer-events:none;z-index:7;
+}
+.earth-glow{
+  position:absolute;inset:-9%;border-radius:50%;pointer-events:none;z-index:0;
+  background:radial-gradient(circle,rgba(55,164,220,.15) 0 39%,rgba(55,164,220,.04) 53%,transparent 74%);
+  filter:blur(4px);animation:f74-earth-breathe 6.8s ease-in-out infinite;
+}
+
+/* Orbits: the JS owns the rotation, so the path and the satellites are guaranteed to move together. */
+.arch65-orbit{
+  position:absolute!important;left:54%!important;top:52%!important;border-radius:50%!important;
+  transform-style:preserve-3d!important;transform-origin:50% 50%!important;
+  pointer-events:none!important;z-index:12!important;overflow:visible!important;will-change:transform!important;
+}
+.arch65-orbit.o-a{
+  width:72%!important;height:30%!important;border:1px solid rgba(103,221,255,.80)!important;
+  box-shadow:0 0 10px rgba(95,215,255,.12)!important;
+}
+.arch65-orbit.o-b{
+  width:77%!important;height:33%!important;border:1px solid rgba(247,210,114,.78)!important;
+  box-shadow:0 0 10px rgba(242,201,105,.12)!important;
+}
+.arch65-orbit.o-c{
+  width:42%!important;height:67%!important;border:1px solid rgba(106,222,255,.38)!important;
+  box-shadow:0 0 8px rgba(95,215,255,.07)!important;
+}
+.arch65-orbit::after{
+  content:"";position:absolute;inset:-1px;border-radius:50%;border:2px solid transparent;
+  border-top-color:rgba(160,239,255,.70);border-right-color:rgba(160,239,255,.03);
+  opacity:.92;pointer-events:none;transform:rotate(0deg);
+}
+.arch65-orbit.o-b::after{
+  border-top-color:rgba(255,226,140,.68);border-right-color:rgba(255,226,140,.03);
+}
+.arch65-orbit.o-c::after{
+  border-top-color:rgba(160,239,255,.44);border-right-color:rgba(160,239,255,.02);
+}
+
+/* Satellite = small orbital beacons, not decorative blobs. */
+.arch65-satellite{
+  position:absolute!important;width:6px!important;height:6px!important;margin:-3px 0 0 -3px!important;
+  border-radius:50%!important;pointer-events:none!important;z-index:19!important;
+  will-change:left,top,transform!important;
+}
+.arch65-sat-cyan{background:#67ddff!important;box-shadow:0 0 11px rgba(103,221,255,.95),0 0 20px rgba(103,221,255,.16)!important;}
+.arch65-sat-gold{background:#f4cf76!important;box-shadow:0 0 11px rgba(242,201,105,.92),0 0 20px rgba(242,201,105,.16)!important;}
+.arch65-satellite::after{
+  content:"";position:absolute;inset:-4px;border-radius:50%;border:1px solid currentColor;
+  opacity:.30;animation:f74-sat-pulse 2.8s ease-out infinite;
+}
+
+/* Module callouts: no heavy cards, just clean orbital labels integrated into the system. */
+.arch65-card{
+  position:absolute!important;width:166px!important;min-height:0!important;box-sizing:border-box!important;
+  padding:7px 10px 8px 33px!important;border:0!important;border-left:1px solid rgba(97,214,255,.66)!important;
+  border-radius:0!important;background:linear-gradient(90deg,rgba(4,22,37,.56),rgba(4,22,37,.04))!important;
+  box-shadow:none!important;backdrop-filter:blur(2px)!important;z-index:60!important;pointer-events:auto!important;
+  transition:transform .18s ease,border-color .18s ease,opacity .18s ease!important;
+}
+.arch65-card:hover{
+  transform:translate3d(0,-1px,2px)!important;border-left-color:rgba(119,227,255,.96)!important;
+  opacity:.99!important;
+}
+.arch65-card strong{display:block;color:#edf6fb!important;font:800 9px/1.15 ui-sans-serif,system-ui!important;letter-spacing:.12em!important;white-space:nowrap!important;}
+.arch65-card span{display:block;margin-top:5px!important;color:#93aebe!important;font:500 8.5px/1.3 ui-sans-serif,system-ui!important;}
+.arch65-card b{position:absolute!important;left:9px!important;top:8px!important;color:#5fd8ff!important;font:800 8px/1 ui-monospace,monospace!important;letter-spacing:.04em!important;}
+.arch65-card em{position:absolute!important;left:8px!important;bottom:7px!important;color:#66cfff!important;font:700 16px/1 ui-sans-serif!important;font-style:normal!important;text-shadow:0 0 10px rgba(95,215,255,.42)!important;}
+.arch65-card::after{
+  content:"";position:absolute;left:-12px;top:50%;width:12px;height:1px;
+  background:linear-gradient(90deg,rgba(97,214,255,.05),rgba(97,214,255,.72));
+  box-shadow:0 0 8px rgba(95,215,255,.22);opacity:.60;
+}
+.c1{left:17%!important;top:10%!important;}
+.c2{right:7%!important;top:13%!important;}
+.c3{right:2%!important;top:42%!important;}
+.c4{right:8%!important;bottom:8%!important;}
+.c5{left:18%!important;bottom:8%!important;}
+.c6{left:2%!important;top:42%!important;}
+
+@keyframes f74-earth-breathe{0%,100%{opacity:.42;transform:scale(.992)}50%{opacity:.76;transform:scale(1.018)}}
+@keyframes f74-sat-pulse{0%{transform:scale(.45);opacity:.50}100%{transform:scale(1.85);opacity:0}}
+
+@media(max-width:1120px) and (min-width:901px){
+  .future-features .future-hero{grid-template-columns:42% 58%!important;}
+  .future-features .feature-architecture-v65{left:40.5%!important;right:.3%!important;height:min(74vh,700px)!important;}
+  .arch65-earth,.arch65-orbit{left:54%!important;}
+  .arch65-card{width:154px!important;}
+  .c2{right:1.4%!important}.c3{right:.8%!important}.c4{right:5%!important}
+}
+@media(max-width:900px){
+  .future-features .future-hero{display:block!important;height:auto!important;min-height:0!important;overflow:hidden!important;padding-bottom:30px!important;}
+  .future-features .future-hero-inner{max-width:720px!important;margin:0 auto!important;padding:0 20px!important;}
+  .future-features .future-hero h1{font-size:clamp(48px,10.5vw,72px)!important;}
+  .future-features .feature-architecture-v65{position:relative!important;left:auto!important;right:auto!important;top:auto!important;transform:none!important;width:min(96vw,760px)!important;height:min(100vw,680px)!important;margin:34px auto 0!important;}
+  .arch65-earth,.arch65-orbit{left:50%!important;top:52%!important;}
+  .arch65-card{width:150px!important;}
+}
+@media(max-width:560px){
+  .future-features .feature-architecture-v65{width:100vw!important;height:112vw!important;max-height:620px!important;}
+  .arch65-earth{width:44%!important;}
+  .arch65-orbit.o-a{width:63%!important;height:29%!important}.arch65-orbit.o-b{width:68%!important;height:31%!important}.arch65-orbit.o-c{width:39%!important;height:59%!important;}
+  .arch65-card{width:128px!important;padding:7px 7px 7px 28px!important;}
+  .arch65-card strong{font-size:7px!important}.arch65-card span{font-size:6.8px!important}.arch65-card b{left:7px!important;top:8px!important;font-size:7px!important}.arch65-card em{left:7px!important;bottom:6px!important;font-size:14px!important;}
+  .c1{left:1%!important;top:1%!important}.c2{right:0!important;top:3%!important}.c3{right:0!important;top:43%!important}.c4{right:2%!important;bottom:1%!important}.c5{left:2%!important;bottom:1%!important}.c6{left:0!important;top:43%!important;}
+}
+@media(prefers-reduced-motion:reduce){
+  .earth-glow,.arch65-satellite::after{animation:none!important;}
+  .arch65-card{transition:none!important;}
+}
