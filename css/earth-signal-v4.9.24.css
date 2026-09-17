@@ -89,3 +89,46 @@
 @keyframes mmhCineTicks56{0%{opacity:0;transform:scale(.8)}100%{opacity:.8;transform:scale(1)}}
 @media(max-width:700px){.future-home .mmh-cinematic-intro__grid{background-size:38px 38px}.future-home .mmh-cinematic-intro__ring{width:78vw}.future-home .mmh-cinematic-intro__label{font-size:8px;letter-spacing:.24em}}
 @media(prefers-reduced-motion:reduce){.future-home .mmh-cinematic-intro{transition:none}.future-home .mmh-cinematic-intro::before,.future-home .mmh-cinematic-intro::after,.future-home .mmh-cinematic-intro__grid,.future-home .mmh-cinematic-intro__ring,.future-home .mmh-cinematic-intro__label,.future-home .mmh-cinematic-intro__ticks{animation:none!important}.future-home .mmh-cinematic-intro{opacity:0;visibility:hidden}}
+
+/* MMHVAULT v5.7 — micro interaction system. Interaction-only layer; no data/DOM content changes. */
+.future-home .future-hero-actions .btn,
+.future-home .future-stat,
+.future-home .future-cell,
+.future-home .future-command-media{--mmh-mx:0px;--mmh-my:0px;--mmh-rx:0deg;--mmh-ry:0deg;--mmh-lift:0px;position:relative;transform:translate3d(var(--mmh-mx),calc(var(--mmh-my) + var(--mmh-lift)),0) rotateX(var(--mmh-rx)) rotateY(var(--mmh-ry));transform-style:preserve-3d;will-change:transform}
+.future-home .future-hero-actions .btn{overflow:hidden;isolation:isolate;transition:transform .24s cubic-bezier(.2,.8,.2,1),box-shadow .24s ease,border-color .24s ease,background .24s ease}
+.future-home .future-hero-actions .btn::before{content:"";position:absolute;inset:-30%;z-index:-1;background:radial-gradient(circle at var(--mmh-glow-x,50%) var(--mmh-glow-y,50%),rgba(255,255,255,.18),transparent 24%);opacity:0;transition:opacity .24s ease;pointer-events:none}
+.future-home .future-hero-actions .btn:hover::before,.future-home .future-hero-actions .btn:focus-visible::before{opacity:1}
+.future-home .future-hero-actions .btn.gold:hover{box-shadow:0 14px 40px rgba(242,201,105,.20),0 0 0 1px rgba(255,255,255,.10) inset}
+.future-home .future-hero-actions .btn.ghost:hover{box-shadow:0 14px 40px rgba(67,177,255,.12),0 0 0 1px rgba(104,201,255,.08) inset}
+.future-home .future-hero-actions .btn .mmh-ripple{position:absolute;width:12px;height:12px;border-radius:50%;left:var(--mmh-ripple-x);top:var(--mmh-ripple-y);transform:translate(-50%,-50%) scale(0);background:rgba(255,255,255,.30);box-shadow:0 0 24px rgba(104,214,255,.22);pointer-events:none;animation:mmhRipple57 .62s cubic-bezier(.15,.7,.25,1) forwards}
+@keyframes mmhRipple57{0%{transform:translate(-50%,-50%) scale(0);opacity:.8}100%{transform:translate(-50%,-50%) scale(20);opacity:0}}
+.future-home .future-stat{transition:transform .32s cubic-bezier(.2,.8,.2,1),border-color .24s ease,background .24s ease;transform-origin:center}
+.future-home .future-stat:hover{--mmh-lift:-3px;background:rgba(255,255,255,.018)}
+.future-home .future-cell{transition:transform .34s cubic-bezier(.18,.78,.22,1),border-color .24s ease,box-shadow .28s ease,background .28s ease;transform-origin:center}
+.future-home .future-cell::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;background:radial-gradient(circle at var(--mmh-glow-x,50%) var(--mmh-glow-y,50%),rgba(92,207,255,.10),transparent 36%);opacity:0;transition:opacity .28s ease}
+.future-home .future-cell:hover::after{opacity:1}
+.future-home .future-cell:hover{--mmh-lift:-4px;border-color:rgba(92,207,255,.22);box-shadow:0 18px 50px rgba(0,0,0,.16),0 0 34px rgba(71,177,255,.07)}
+.future-home .future-command-media{transition:transform .42s cubic-bezier(.18,.78,.22,1),box-shadow .35s ease;overflow:hidden}
+.future-home .future-command-media::after{transition:opacity .35s ease,transform .6s ease!important}
+.future-home .future-command-media:hover{--mmh-lift:-4px;box-shadow:0 24px 70px rgba(0,0,0,.24),0 0 42px rgba(72,174,255,.08)}
+.future-home .future-command-media img{transition:transform .8s cubic-bezier(.16,.72,.2,1),filter .45s ease}
+.future-home .future-command-media:hover img{transform:scale(1.025);filter:saturate(1.04) brightness(1.03)}
+.future-home .future-section-head h2,.future-home .future-command-copy h3,.future-home .future-cell h3{transition:color .24s ease,text-shadow .3s ease}
+.future-home .future-cell:hover h3{color:#f3ce72;text-shadow:0 0 22px rgba(243,206,114,.10)}
+.future-home .future-label,.future-home .future-chip{transition:letter-spacing .28s ease,text-shadow .28s ease}
+.future-home .future-section-head:hover .future-label{letter-spacing:.25em;text-shadow:0 0 18px rgba(243,206,114,.10)}
+.future-home .future-hero-actions .btn:focus-visible,.future-home .future-cell:focus-visible{outline:1px solid rgba(243,206,114,.72);outline-offset:4px}
+body:has(main.future-home) .site-header .links a{position:relative;transition:color .22s ease,transform .22s ease}
+body:has(main.future-home) .site-header .links a::after{content:"";position:absolute;left:50%;right:50%;bottom:-9px;height:1px;background:linear-gradient(90deg,transparent,#f3ce72,transparent);box-shadow:0 0 12px rgba(243,206,114,.26);opacity:0;transition:left .22s ease,right .22s ease,opacity .22s ease}
+body:has(main.future-home) .site-header .links a:hover{color:#f3ce72;transform:translateY(-1px)}
+body:has(main.future-home) .site-header .links a:hover::after,body:has(main.future-home) .site-header .links a.active::after{left:22%;right:22%;opacity:.82}
+body:has(main.future-home) .landing-lang button{transition:transform .2s ease,box-shadow .22s ease,background .22s ease}
+body:has(main.future-home) .landing-lang button:hover{transform:translateY(-1px)}
+@media(max-width:700px){
+  .future-home .future-hero-actions .btn,.future-home .future-stat,.future-home .future-cell,.future-home .future-command-media{transform:none!important;will-change:auto}
+  .future-home .future-command-media:hover img{transform:none}
+}
+@media(prefers-reduced-motion:reduce){
+  .future-home .future-hero-actions .btn,.future-home .future-stat,.future-home .future-cell,.future-home .future-command-media,.future-home .future-command-media img,body:has(main.future-home) .site-header .links a{transition:none!important;transform:none!important}
+  .future-home .future-hero-actions .btn .mmh-ripple{animation:none!important;display:none}
+}

@@ -236,3 +236,66 @@
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, {once:true});
   else boot();
 })();
+
+/* MMHVAULT v5.7 — micro interaction controller. Presentation-only; no data writes. */
+(() => {
+  const home = document.querySelector('.future-home');
+  if (!home || home.dataset.mmhMicroInstalled) return;
+  home.dataset.mmhMicroInstalled = '1';
+  const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  const coarse = window.matchMedia?.('(pointer: coarse)').matches;
+  if (reduced) return;
+
+  const clamp = (n,a,b) => Math.min(b,Math.max(a,n));
+  const bindTilt = (el, strength=7) => {
+    if (!el || coarse) return;
+    let raf=0, tx=0, ty=0, x=0, y=0;
+    const move = e => {
+      const r=el.getBoundingClientRect();
+      const nx=clamp((e.clientX-r.left)/Math.max(1,r.width),0,1);
+      const ny=clamp((e.clientY-r.top)/Math.max(1,r.height),0,1);
+      tx=(nx-.5)*2; ty=(ny-.5)*2;
+      el.style.setProperty('--mmh-glow-x',(nx*100).toFixed(1)+'%');
+      el.style.setProperty('--mmh-glow-y',(ny*100).toFixed(1)+'%');
+      if (!raf) raf=requestAnimationFrame(render);
+    };
+    const leave=()=>{tx=ty=0; if(!raf) raf=requestAnimationFrame(render);};
+    const render=()=>{
+      raf=0; x+=(tx-x)*.16; y+=(ty-y)*.16;
+      el.style.setProperty('--mmh-rx',(-y*strength*.38).toFixed(2)+'deg');
+      el.style.setProperty('--mmh-ry',(x*strength*.55).toFixed(2)+'deg');
+      el.style.setProperty('--mmh-mx',(x*strength*.42).toFixed(2)+'px');
+      el.style.setProperty('--mmh-my',(y*strength*.34).toFixed(2)+'px');
+      if(Math.abs(x-tx)>.004 || Math.abs(y-ty)>.004) raf=requestAnimationFrame(render);
+    };
+    el.addEventListener('pointermove',move,{passive:true});
+    el.addEventListener('pointerleave',leave,{passive:true});
+  };
+
+  home.querySelectorAll('.future-hero-actions .btn').forEach(btn=>{
+    bindTilt(btn,5.5);
+    btn.addEventListener('pointerdown',e=>{
+      const r=btn.getBoundingClientRect();
+      btn.style.setProperty('--mmh-ripple-x',(e.clientX-r.left)+'px');
+      btn.style.setProperty('--mmh-ripple-y',(e.clientY-r.top)+'px');
+      const old=btn.querySelector('.mmh-ripple');
+      old?.remove();
+      const ripple=document.createElement('span');
+      ripple.className='mmh-ripple';
+      ripple.setAttribute('aria-hidden','true');
+      btn.appendChild(ripple);
+      window.setTimeout(()=>ripple.remove(),700);
+    },{passive:true});
+  });
+
+  home.querySelectorAll('.future-stat').forEach(el=>bindTilt(el,3.5));
+  home.querySelectorAll('.future-cell').forEach(el=>bindTilt(el,4.5));
+  home.querySelectorAll('.future-command-media').forEach(el=>bindTilt(el,3.5));
+
+  // Keep the header's active navigation visually alive without changing routing.
+  const links=[...document.querySelectorAll('.site-header .links a')];
+  links.forEach(link=>{
+    link.addEventListener('pointerenter',()=>link.style.setProperty('--mmh-nav-glow','1'),{passive:true});
+    link.addEventListener('pointerleave',()=>link.style.removeProperty('--mmh-nav-glow'),{passive:true});
+  });
+})();
