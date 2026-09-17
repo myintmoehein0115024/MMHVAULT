@@ -132,3 +132,152 @@ body:has(main.future-home) .landing-lang button:hover{transform:translateY(-1px)
   .future-home .future-hero-actions .btn,.future-home .future-stat,.future-home .future-cell,.future-home .future-command-media,.future-home .future-command-media img,body:has(main.future-home) .site-header .links a{transition:none!important;transform:none!important}
   .future-home .future-hero-actions .btn .mmh-ripple{animation:none!important;display:none}
 }
+
+/* MMHVAULT v5.8 — Hero visual composition. Rebalances the existing Earth + signal layer without changing data DOM. */
+@media (min-width:1181px){
+  .future-home .future-hero{
+    grid-template-columns:minmax(0,1.08fr) minmax(480px,.92fr)!important;
+    gap:clamp(20px,2.5vw,48px)!important;
+  }
+  .future-home .future-hero .future-hero-inner{
+    width:min(48vw,760px)!important;
+    max-width:760px!important;
+    padding-right:1.5vw!important;
+  }
+  .future-home .future-hero-inner h1{
+    max-width:700px!important;
+  }
+  .future-home .future-hero-inner>p{
+    max-width:640px!important;
+  }
+  .future-home .future-hero .mmh-home-earth-v4-9-17{
+    right:1.2vw!important;
+    top:54%!important;
+    width:clamp(500px,39vw,680px)!important;
+    height:clamp(500px,39vw,680px)!important;
+    min-width:500px!important;
+    min-height:500px!important;
+  }
+  /* Give the Earth its own visual stage so text never competes with the globe. */
+  .future-home .future-hero .mmh-home-earth-v4-9-17::before{
+    content:"";
+    position:absolute;
+    inset:5%;
+    border-radius:50%;
+    pointer-events:none;
+    background:radial-gradient(circle,rgba(86,190,255,.045),transparent 61%);
+    box-shadow:0 0 90px rgba(44,147,228,.045);
+    z-index:-1;
+  }
+  /* Existing data blocks become external callouts instead of sitting on top of the Earth. */
+  .future-home .earth-signal-layer{inset:0!important;overflow:visible!important;}
+  .future-home .earth-signal.signal-flow{
+    top:8%!important;
+    right:-7%!important;
+    transform:translate3d(0,0,0)!important;
+  }
+  .future-home .earth-signal.signal-digital{
+    left:-7%!important;
+    top:47%!important;
+    transform:translate3d(0,0,0)!important;
+  }
+  .future-home .earth-signal.signal-reserve{
+    right:-7%!important;
+    bottom:14%!important;
+    transform:translate3d(0,0,0)!important;
+  }
+  .future-home .earth-signal.signal-flow::after,
+  .future-home .earth-signal.signal-reserve::after,
+  .future-home .earth-signal.signal-digital::after{
+    content:"";
+    position:absolute;
+    top:50%;
+    height:1px;
+    width:clamp(42px,4.5vw,78px);
+    background:linear-gradient(90deg,rgba(103,215,255,0),rgba(103,215,255,.42));
+    opacity:.55;
+    pointer-events:none;
+  }
+  .future-home .earth-signal.signal-flow::after,
+  .future-home .earth-signal.signal-reserve::after{right:100%;}
+  .future-home .earth-signal.signal-digital::after{
+    left:100%;
+    background:linear-gradient(90deg,rgba(103,215,255,.42),rgba(103,215,255,0));
+  }
+  .future-home .earth-signal.signal-flow::before,
+  .future-home .earth-signal.signal-reserve::before,
+  .future-home .earth-signal.signal-digital::before{
+    content:"";
+    position:absolute;
+    width:4px;height:4px;
+    top:calc(50% - 2px);
+    border-radius:50%;
+    background:#67d7ff;
+    box-shadow:0 0 10px rgba(103,215,255,.72);
+    pointer-events:none;
+  }
+  .future-home .earth-signal.signal-flow::before,
+  .future-home .earth-signal.signal-reserve::before{right:calc(100% + clamp(42px,4.5vw,78px) - 2px);}
+  .future-home .earth-signal.signal-digital::before{left:calc(100% + clamp(42px,4.5vw,78px) - 2px);}
+  /* The lower pulse is a baseline, not another floating card. */
+  .future-home .earth-signal.scan-strip{
+    left:10%!important;
+    right:10%!important;
+    bottom:3%!important;
+    opacity:.72;
+  }
+}
+
+@media (min-width:1440px){
+  .future-home .future-hero .mmh-home-earth-v4-9-17{
+    right:1.8vw!important;
+    top:55%!important;
+    width:clamp(540px,38vw,700px)!important;
+    height:clamp(540px,38vw,700px)!important;
+  }
+  .future-home .earth-signal.signal-flow{right:-4%!important;top:7%!important}
+  .future-home .earth-signal.signal-digital{left:-4%!important;top:48%!important}
+  .future-home .earth-signal.signal-reserve{right:-4%!important;bottom:13%!important}
+}
+
+@media (min-width:1800px){
+  .future-home .future-hero .mmh-home-earth-v4-9-17{
+    right:2.2vw!important;
+    width:clamp(600px,37vw,780px)!important;
+    height:clamp(600px,37vw,780px)!important;
+  }
+  .future-home .earth-signal.signal-flow{right:-2%!important}
+  .future-home .earth-signal.signal-digital{left:-2%!important}
+  .future-home .earth-signal.signal-reserve{right:-2%!important}
+}
+
+@media (max-width:1180px){
+  .future-home .earth-signal.signal-flow{right:-2%!important}
+  .future-home .earth-signal.signal-digital{left:-2%!important}
+  .future-home .earth-signal.signal-reserve{right:-2%!important}
+}
+
+@media (max-width:900px){
+  .future-home .earth-signal.signal-flow,
+  .future-home .earth-signal.signal-digital,
+  .future-home .earth-signal.signal-reserve{transform:none!important}
+  .future-home .earth-signal.signal-flow{right:1%!important}
+  .future-home .earth-signal.signal-digital{left:1%!important}
+  .future-home .earth-signal.signal-reserve{right:1%!important}
+  .future-home .earth-signal.signal-flow::before,
+  .future-home .earth-signal.signal-flow::after,
+  .future-home .earth-signal.signal-digital::before,
+  .future-home .earth-signal.signal-digital::after,
+  .future-home .earth-signal.signal-reserve::before,
+  .future-home .earth-signal.signal-reserve::after{display:none}
+}
+
+@media (max-width:700px){
+  .future-home .earth-signal.signal-flow{top:6%!important;right:2%!important}
+  .future-home .earth-signal.signal-digital{left:2%!important;top:34%!important}
+  .future-home .earth-signal.signal-reserve{right:2%!important;bottom:14%!important}
+}
+
+@media (prefers-reduced-motion:reduce){
+  .future-home .future-hero .mmh-home-earth-v4-9-17::before{box-shadow:none}
+}
