@@ -22,3 +22,14 @@
     targets.forEach(el=>io.observe(el));
   }
 })();
+
+/* v6.3 hero-stage pointer depth: same spatial logic as Home, presentation only. */
+(()=>{
+  const page=document.querySelector('.future-page'); const visual=page?.querySelector('.mmh-page-visual');
+  if(!page||!visual||window.matchMedia?.('(prefers-reduced-motion: reduce)').matches||window.matchMedia?.('(pointer: coarse)').matches)return;
+  let tx=0,ty=0,x=0,y=0,raf=0;
+  const clamp=(n,a,b)=>Math.min(b,Math.max(a,n));
+  const draw=()=>{raf=0;x+=(tx-x)*.09;y+=(ty-y)*.09;page.style.setProperty('--mmh-page-vx',(x*10).toFixed(2)+'px');page.style.setProperty('--mmh-page-vy',(y*7).toFixed(2)+'px');page.style.setProperty('--mmh-page-rx',(y*-2.2).toFixed(2)+'deg');page.style.setProperty('--mmh-page-ry',(x*2.8).toFixed(2)+'deg');if(Math.abs(x-tx)>.002||Math.abs(y-ty)>.002)raf=requestAnimationFrame(draw)};
+  visual.addEventListener('pointermove',e=>{const r=visual.getBoundingClientRect();tx=clamp((e.clientX-r.left)/Math.max(1,r.width)*2-1,-1,1);ty=clamp((e.clientY-r.top)/Math.max(1,r.height)*2-1,-1,1);if(!raf)raf=requestAnimationFrame(draw)},{passive:true});
+  visual.addEventListener('pointerleave',()=>{tx=ty=0;if(!raf)raf=requestAnimationFrame(draw)},{passive:true});
+})();
