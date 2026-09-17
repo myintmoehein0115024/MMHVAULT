@@ -104,10 +104,14 @@ footer{border-top:1px solid rgba(126,169,205,.12);padding:21px 0 28px;color:#718
 /* MMHVAULT v4.9.27 — Login full-screen composition.
    Header controls/layout are intentionally preserved. */
 @media (min-width: 821px){
-  /* Let the page canvas reach the viewport edges without moving the locked header. */
+  /* v4.9.28 — true Landing-style full-screen login canvas.
+     The header controls remain locked; only the page composition is expanded. */
+  html,body{width:100%;min-height:100%;}
+  body{overflow-x:hidden;overflow-y:auto;}
   .shell{
     width:100%;
     max-width:none;
+    min-height:100svh;
   }
   .shell>header{
     width:min(1360px,calc(100% - 44px));
@@ -117,16 +121,26 @@ footer{border-top:1px solid rgba(126,169,205,.12);padding:21px 0 28px;color:#718
   }
   main{
     width:100%;
-    min-height:calc(100vh - 104px);
-    padding:34px 44px 38px;
+    flex:1 0 auto;
+    min-height:calc(100svh - 104px);
+    padding:24px 44px 28px;
+    display:grid;
+    place-items:center;
   }
   .access{
-    width:min(540px,42vw);
-    min-width:500px;
-    max-height:calc(100vh - 205px);
-    overflow-y:auto;
-    scrollbar-width:thin;
+    width:min(560px,44vw);
+    min-width:0;
+    max-height:none;
+    overflow:hidden;
+    padding:30px 30px 24px;
   }
+  .field input{height:52px;}
+  .primary,.google{height:52px;}
+  .sub{margin-top:9px;margin-bottom:22px;}
+  .tabs{margin-bottom:18px;}
+  .row{margin:13px 0 16px;}
+  .divider{margin:17px 0;}
+  .switch{margin-top:15px;}
   .shell>footer{
     width:min(1360px,calc(100% - 44px));
     margin-left:auto;
@@ -136,29 +150,24 @@ footer{border-top:1px solid rgba(126,169,205,.12);padding:21px 0 28px;color:#718
 }
 
 @media (min-width: 1440px){
-  main{
-    padding-left:5vw;
-    padding-right:5vw;
-  }
+  main{padding-left:5vw;padding-right:5vw;}
 }
 
 @media (min-width: 1800px){
-  main{
-    padding-left:7vw;
-    padding-right:7vw;
-  }
+  main{padding-left:7vw;padding-right:7vw;}
 }
 
-@media (max-height: 780px) and (min-width: 821px){
-  main{padding-top:22px;padding-bottom:24px}
-  .access{
-    padding-top:30px;
-    padding-bottom:24px;
-    max-height:calc(100vh - 160px);
-  }
-  .kicker{margin-bottom:12px}
-  .sub{margin-top:8px;margin-bottom:18px}
-  .tabs{margin-bottom:15px}
+@media (max-height: 820px) and (min-width: 821px){
+  main{padding-top:16px;padding-bottom:18px;}
+  .access{padding-top:24px;padding-bottom:20px;}
+  .kicker{margin-bottom:10px;}
+  h1{font-size:31px;}
+  .sub{margin-bottom:15px;}
+  .tabs{margin-bottom:13px;}
+  label{margin-top:10px;margin-bottom:6px;}
+  .row{margin:10px 0 13px;}
+  .divider{margin:13px 0;}
+  .switch{margin-top:11px;}
 }
 </style>
 </head>
