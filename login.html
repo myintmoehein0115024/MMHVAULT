@@ -98,59 +98,29 @@ footer{border-top:1px solid rgba(126,169,205,.12);padding:21px 0 28px;color:#718
   .shell > .site-header .mmh-lang-switcher button{min-width:32px;padding:7px 7px}
   .shell > .site-header .menu-toggle{width:54px;height:54px;border-radius:17px}
 }
-</style>
 
-<style id="mmhvault-login-true-fullscreen-v4.9.30">
-/* v4.9.30 — TRUE EDGE-TO-EDGE LOGIN CANVAS.
-   Do not alter header controls; unlock only the outer page geometry. */
-html, body {
-  width:100% !important;
-  min-width:100% !important;
-  max-width:none !important;
-  margin:0 !important;
-  padding:0 !important;
+/* v4.9.31 — Fullscreen canvas + restored compact auth card.
+   The page canvas/background is full-bleed like Landing Home, while the
+   authentication panel keeps the original compact proportions. Header controls
+   and authentication markup/functionality remain unchanged. */
+html,body{width:100%;min-width:0}
+body{min-height:100vh}
+.bg,.gridfx{position:fixed;inset:0;width:100vw;height:100vh}
+.shell{width:100%;max-width:none;min-height:100vh;margin:0;}
+main{width:100%;min-height:calc(100vh - 104px);padding:46px 24px 50px;display:grid;place-items:center;}
+.access{width:min(540px,calc(100vw - 48px));max-width:540px;padding:38px 34px 30px;border-radius:30px;}
+/* Keep the header's existing inner composition untouched; only its canvas is full-bleed. */
+.shell>.site-header{width:min(1240px,calc(100% - 48px));margin:0 auto;}
+footer{width:min(1240px,calc(100% - 48px));margin:0 auto;}
+@media(max-width:900px){
+  main{min-height:calc(100vh - 76px);padding:32px 16px 42px;}
+  .access{width:min(540px,calc(100vw - 32px));}
 }
-body { overflow-x:hidden !important; }
-.shell {
-  width:100% !important;
-  max-width:none !important;
-  min-width:100% !important;
-  margin:0 !important;
-  padding:0 !important;
+@media(max-width:560px){
+  main{min-height:calc(100vh - 74px);padding:22px 10px 30px;}
+  .access{width:calc(100vw - 20px);max-width:540px;padding:26px 16px 22px;border-radius:22px;}
 }
-.shell > .site-header,
-.shell > header.site-header,
-header.site-header.wrap {
-  width:100% !important;
-  max-width:none !important;
-  min-width:100% !important;
-  margin-left:0 !important;
-  margin-right:0 !important;
-  box-sizing:border-box !important;
-}
-.shell > main,
-.shell > main > section {
-  width:100% !important;
-  max-width:none !important;
-  box-sizing:border-box !important;
-}
-.shell > footer {
-  width:100% !important;
-  max-width:none !important;
-  margin-left:0 !important;
-  margin-right:0 !important;
-  box-sizing:border-box !important;
-}
-@media (min-width:821px){
-  .shell > .site-header { padding-left:42px !important; padding-right:42px !important; }
-  .shell > main { padding-left:5vw !important; padding-right:5vw !important; }
-  .shell > footer { padding-left:42px !important; padding-right:42px !important; }
-}
-@media (max-width:820px){
-  .shell > .site-header { width:100% !important; min-width:0 !important; padding-left:12px !important; padding-right:12px !important; }
-  .shell > main { width:100% !important; padding-left:0 !important; padding-right:0 !important; }
-  .shell > footer { width:100% !important; min-width:0 !important; padding-left:12px !important; padding-right:12px !important; }
-}
+
 </style>
 </head>
 <body>
