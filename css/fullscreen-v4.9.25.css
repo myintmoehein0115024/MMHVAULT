@@ -3,14 +3,36 @@
   :root{--max:none!important;}
 
   /* Remove the large-screen side gutters created by the shared .wrap. */
-  body.future-home-page .wrap,
-  .future-home-page .wrap,
-  .future-home .wrap,
-  .future-page .wrap{
+  body.future-home-page main.future-page .wrap,
+  .future-home-page main.future-page .wrap,
+  main.future-page .wrap{
     width:100%!important;
     max-width:none!important;
     margin-left:0!important;
     margin-right:0!important;
+  }
+
+  /* All Landing pages: full-bleed canvas, while the locked header keeps its exact geometry. */
+  main.future-page > .wrap{
+    width:100%!important;
+    max-width:none!important;
+    margin-left:0!important;
+    margin-right:0!important;
+    padding-left:7.2vw!important;
+    padding-right:7.2vw!important;
+  }
+
+  main.future-page > .future-hero{
+    min-height:calc(100vh - 104px)!important;
+  }
+
+  .footer.wrap{
+    width:100%!important;
+    max-width:none!important;
+    margin-left:0!important;
+    margin-right:0!important;
+    padding-left:7.2vw!important;
+    padding-right:7.2vw!important;
   }
 
   /* Keep the page background edge-to-edge while preserving a refined inner inset. */
@@ -70,6 +92,14 @@
 }
 
 @media (min-width: 1800px){
+  main.future-page > .wrap{
+    padding-left:8vw!important;
+    padding-right:8vw!important;
+  }
+  .footer.wrap{
+    padding-left:8vw!important;
+    padding-right:8vw!important;
+  }
   .future-home .site-header{
     padding-left:52px!important;
     padding-right:52px!important;
@@ -90,5 +120,25 @@
     right:3.5vw!important;
     width:clamp(620px,40vw,820px)!important;
     height:clamp(620px,40vw,820px)!important;
+  }
+}
+
+
+/* v4.9.26 — Landing full-screen continuation. Header remains locked. */
+@media (max-width:899px){
+  main.future-page > .wrap,
+  .footer.wrap{
+    width:calc(100% - 32px)!important;
+    max-width:none!important;
+    margin-left:auto!important;
+    margin-right:auto!important;
+    padding-left:0!important;
+    padding-right:0!important;
+  }
+}
+@media (max-width:560px){
+  main.future-page > .wrap,
+  .footer.wrap{
+    width:calc(100% - 24px)!important;
   }
 }
