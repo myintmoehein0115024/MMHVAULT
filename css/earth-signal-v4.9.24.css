@@ -1,5 +1,5 @@
-/* MMHVAULT v4.9.24 — colored financial signal layer. Home only. */
-.future-home .earth-signal-layer{position:absolute;inset:0;z-index:9;pointer-events:none;isolation:isolate;font-family:inherit;transition:transform .12s linear}
+/* MMHVAULT v4.9.24 — colored financial signal layer + global flow field. Home only. */
+.future-home .earth-signal-layer{position:absolute;inset:0;z-index:9;pointer-events:none;isolation:isolate;font-family:inherit;transition:transform .12s linear;transform:translate3d(0,0,0)}
 .future-home .earth-signal{position:absolute;color:rgba(231,240,248,.82);letter-spacing:.12em;text-transform:uppercase;mix-blend-mode:screen}
 .future-home .signal-top{display:flex;align-items:center;gap:7px;white-space:nowrap}
 .future-home .signal-label{font-size:8px;letter-spacing:.18em;color:rgba(215,230,241,.68)}
@@ -13,8 +13,27 @@
 .future-home .signal-track{margin-top:8px;width:122px;height:2px;background:rgba(89,170,215,.14);overflow:hidden;border-radius:999px}.future-home .signal-track span{display:block;width:62%;height:100%;background:linear-gradient(90deg,rgba(73,186,255,.12),#67d7ff,rgba(244,207,116,.78));box-shadow:0 0 10px rgba(102,211,255,.55);transform-origin:left center;animation:signalTrack924 3.2s ease-in-out infinite alternate}
 .future-home .signal-assets{margin-top:6px;font-size:12px;letter-spacing:.12em;font-weight:600}.future-home .signal-mini{display:flex;align-items:center;gap:8px;margin-top:8px}.future-home .signal-mini span{width:40px;height:10px;border-bottom:1px solid rgba(91,203,255,.48);position:relative;display:block;transform:skewX(-24deg)}.future-home .signal-mini span::after{content:"";position:absolute;width:7px;height:7px;border-radius:50%;right:4px;bottom:-4px;background:#67d7ff;box-shadow:0 0 9px rgba(103,215,255,.9);animation:signalPulse924 1.6s ease-in-out infinite}.future-home .signal-mini b{font-size:8px;letter-spacing:.12em;font-weight:650}.future-home .signal-digital b{color:#7cd9ff}.future-home .signal-reserve b{color:#f3ce72}
 .future-home .signal-flow{top:12%;right:1%}.future-home .signal-digital{left:8%;top:43%}.future-home .signal-reserve{right:-1%;bottom:24%}.future-home .scan-strip{left:8%;right:7%;bottom:7%;height:18px;display:flex;align-items:center;gap:11px;color:rgba(209,225,238,.43)}.future-home .scan-caption{font-size:7px;letter-spacing:.18em}.future-home .scan-bars{height:14px;display:flex;align-items:flex-end;gap:3px;opacity:.75}.future-home .scan-bars i{display:block;width:2px;background:linear-gradient(180deg,#73dcff,#f0c86e);border-radius:999px;transform-origin:bottom;animation:scanBar924 1.8s ease-in-out infinite}.future-home .scan-bars i:nth-child(1){height:5px}.future-home .scan-bars i:nth-child(2){height:9px;animation-delay:.12s}.future-home .scan-bars i:nth-child(3){height:13px;animation-delay:.22s}.future-home .scan-bars i:nth-child(4){height:7px;animation-delay:.31s}.future-home .scan-bars i:nth-child(5){height:11px;animation-delay:.42s}.future-home .scan-bars i:nth-child(6){height:6px;animation-delay:.52s}
-@keyframes signalTrack924{from{transform:scaleX(.72)}to{transform:scaleX(1)}}@keyframes signalPulse924{0%,100%{opacity:.4;transform:scale(.72)}50%{opacity:1;transform:scale(1.06)}}@keyframes scanBar924{0%,100%{opacity:.35;transform:scaleY(.72)}50%{opacity:1;transform:scaleY(1.06)}}
-@media(max-width:1180px){.future-home .signal-flow{right:0;top:10%}.future-home .signal-digital{left:5%;top:44%}.future-home .signal-reserve{right:-1%;bottom:22%}.future-home .scan-strip{left:7%;right:6%}}
-@media(max-width:900px){.future-home .earth-signal-layer{opacity:.9}.future-home .signal-digital{left:3%;top:33%}.future-home .signal-reserve{right:1%;bottom:18%}.future-home .signal-flow{right:3%;top:7%}.future-home .scan-strip{bottom:5%}}
+
+/* v4.9.24 — Global capital-flow arcs. Decorative only; no data semantics. */
+.future-home .mmh-financial-flow-field{position:absolute;inset:-8%;z-index:2;pointer-events:none;overflow:visible;transform:translate3d(var(--mmh-flow-x,0),var(--mmh-flow-y,0),0);transition:transform .18s ease-out;opacity:.72;filter:saturate(.9)}
+.future-home .mmh-financial-flow-svg{width:100%;height:100%;display:block;overflow:visible}
+.future-home .mmh-flow-arcs path{fill:none;stroke-width:1.15;stroke-linecap:round;stroke-dasharray:7 18;opacity:.32}
+.future-home .mmh-flow-arcs path.cyan{stroke:url(#mmhFlowCyan924)}
+.future-home .mmh-flow-arcs path.blue{stroke:url(#mmhFlowCyan924);opacity:.23}
+.future-home .mmh-flow-arcs path.gold{stroke:url(#mmhFlowGold924);opacity:.28}
+.future-home .mmh-flow-arcs path.soft{opacity:.16}
+.future-home .mmh-flow-nodes .node{transform-box:fill-box;transform-origin:center;opacity:var(--node-pulse,.8)}
+.future-home .mmh-flow-nodes .node>circle:first-child{r:3;filter:drop-shadow(0 0 5px currentColor)}
+.future-home .mmh-flow-nodes .node .ring{fill:none;stroke:currentColor;stroke-width:1;opacity:.24;animation:mmhFlowRing924 2.6s ease-out infinite}
+.future-home .mmh-flow-nodes .node.cyan{color:#67d9ff}.future-home .mmh-flow-nodes .node.blue{color:#48aaff}.future-home .mmh-flow-nodes .node.gold{color:#f3ce72}
+.future-home .mmh-flow-nodes .node:nth-child(2) .ring{animation-delay:.45s}.future-home .mmh-flow-nodes .node:nth-child(3) .ring{animation-delay:.9s}.future-home .mmh-flow-nodes .node:nth-child(4) .ring{animation-delay:1.35s}
+
+@keyframes signalTrack924{from{transform:scaleX(.72)}to{transform:scaleX(1)}}
+@keyframes signalPulse924{0%,100%{opacity:.4;transform:scale(.72)}50%{opacity:1;transform:scale(1.06)}}
+@keyframes scanBar924{0%,100%{opacity:.35;transform:scaleY(.72)}50%{opacity:1;transform:scaleY(1.06)}}
+@keyframes mmhFlowRing924{0%{transform:scale(.55);opacity:.55}75%{transform:scale(1.45);opacity:0}100%{transform:scale(1.45);opacity:0}}
+
+@media(max-width:1180px){.future-home .signal-flow{right:0;top:10%}.future-home .signal-digital{left:5%;top:44%}.future-home .signal-reserve{right:-1%;bottom:22%}.future-home .scan-strip{left:7%;right:6%}.future-home .mmh-financial-flow-field{opacity:.58}}
+@media(max-width:900px){.future-home .earth-signal-layer{opacity:.9}.future-home .signal-digital{left:3%;top:33%}.future-home .signal-reserve{right:1%;bottom:18%}.future-home .signal-flow{right:3%;top:7%}.future-home .scan-strip{bottom:5%}.future-home .mmh-financial-flow-field{inset:-4%;opacity:.48}}
 @media(max-width:700px){.future-home .earth-signal-layer{display:none}}
-@media(prefers-reduced-motion:reduce){.future-home .signal-track span,.future-home .signal-mini span::after,.future-home .scan-bars i{animation:none!important}}
+@media(prefers-reduced-motion:reduce){.future-home .signal-track span,.future-home .signal-mini span::after,.future-home .scan-bars i,.future-home .mmh-flow-nodes .node .ring{animation:none!important}.future-home .mmh-financial-flow-field{transform:none!important;transition:none!important}}
