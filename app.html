@@ -21644,3 +21644,229 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
 @media(max-width:900px){#invest .gold-summary-v438{grid-template-columns:repeat(2,minmax(0,1fr))!important}#invest .gold-performance-v438-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:620px){#invest .gold-performance-v438{margin:0 10px 12px;padding:13px}#invest .gold-performance-v438-head{display:block}#invest .gold-performance-v438-grid{gap:8px}#invest .gold-performance-v438-grid>div{padding:10px}#invest .gold-performance-v438-grid b{font-size:12px}}
 </style>
+
+<style id="mmhvault-v440-investment-integrity-css">
+/* v4.4.0 — Investment data integrity layer. Visuals only extend the existing Invest UI. */
+.mmh-integrity-v440{margin-top:12px;padding:12px 14px;border:1px solid rgba(99,164,229,.13);border-radius:15px;background:linear-gradient(145deg,rgba(11,25,48,.72),rgba(4,11,24,.86));color:#7f96b5;font-size:10px;line-height:1.5}
+.mmh-integrity-v440 .head{display:flex;justify-content:space-between;gap:10px;align-items:center}
+.mmh-integrity-v440 .title{font-size:9px;font-weight:900;letter-spacing:.13em;text-transform:uppercase;color:#9eb4d0}
+.mmh-integrity-v440 .badge{font-size:8px;font-weight:900;padding:4px 7px;border-radius:999px;border:1px solid rgba(57,230,161,.18);color:#55dfa9;background:rgba(57,230,161,.045)}
+.mmh-integrity-v440 .grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin-top:9px}
+.mmh-integrity-v440 .item{padding:8px 9px;border-radius:10px;background:rgba(255,255,255,.018);border:1px solid rgba(100,155,215,.07)}
+.mmh-integrity-v440 .item b{display:block;color:#dce8f7;font-size:10px}
+.mmh-integrity-v440 .item span{display:block;margin-top:2px;color:#647d9f;font-size:8px}
+@media(max-width:650px){.mmh-integrity-v440 .grid{grid-template-columns:1fr 1fr}.mmh-integrity-v440{font-size:9px}}
+</style>
+<script id="mmhvault-v440-investment-integrity-js">
+/* ===================== MMHVAULT V4.4.0 INVESTMENT INTEGRITY ===================== */
+(function(){
+  const N=v=>{const x=Number(v);return Number.isFinite(x)?x:0};
+  const sym=v=>String(v||'').trim().toUpperCase();
+  const safeArr=()=>Array.isArray(window.investments)?window.investments:[];
+  const metaOf=x=>{
+    try{
+      const raw=String(x?.note||'');
+      const m=raw.match(/^MMH_META:(\{.*?\})(?:\n|$)/s);
+      return m?JSON.parse(m[1]):{};
+    }catch(_e){return {}}
+  };
+  const sideOf=x=>String(x?.side||x?.trade_type||'').toUpperCase()||((N(x?.quantity)<0)?'SELL':'BUY');
+  const feeAssetOf=x=>sym(metaOf(x).fee_asset||x?.fee_asset||'');
+  const quoteOf=x=>sym(metaOf(x).quote_currency||x?.quote_currency||'USDT');
+  const orderIdOf=x=>String(metaOf(x).order_id||x?.order_id||'').trim();
+  const feeQtyOf=x=>Math.abs(N(metaOf(x).fee_quantity||x?.fee_quantity));
+  const filledQtyOf=x=>Math.abs(N(metaOf(x).filled_quantity||x?.filled_quantity));
+  const feeIsAssetOf=x=>{
+    const fa=feeAssetOf(x); const s=sym(x?.symbol);
+    return !!fa && !!s && fa===s;
+  };
+  const cashFeeOf=x=>{
+    const fee=Math.abs(N(x?.fee)); if(!fee)return 0;
+    const fa=feeAssetOf(x); const q=quoteOf(x);
+    if(!fa)return fee; // legacy records: preserve existing behaviour
+    return (fa===q || (q==='USDT'&&fa==='USD') || (q==='USD'&&fa==='USDT'))?fee:0;
+  };
+  function cryptoRows(){return safeArr().filter(x=>x?.asset==='Crypto');}
+  function rowsBySymbol(s){return cryptoRows().filter(x=>sym(x.symbol)===sym(s)).slice().sort((a,b)=>String(a.inv_date||'').localeCompare(String(b.inv_date||''))||N(a.id)-N(b.id));}
+  function effectiveCryptoQty(x){
+    const q=Math.abs(N(x?.quantity));
+    if(!feeIsAssetOf(x)) return q;
+    const fq=feeQtyOf(x);
+    if(!fq) return q;
+    const filled=filledQtyOf(x);
+    // Only apply the fee subtraction when the import explicitly tells us the filled amount.
+    if(filled>0) return Math.max(0,filled-fq);
+    return q;
+  }
+  function ledger(s){
+    let qty=0,basis=0,realized=0,bought=0,sold=0,buyQty=0,sellQty=0;
+    for(const x of rowsBySymbol(s)){
+      const side=sideOf(x), q=effectiveCryptoQty(x), amt=Math.abs(N(x.amount)), fee=Math.abs(N(x.fee)), other=Math.abs(N(x.other_cost));
+      if(side==='SELL'){
+        const avg=qty>0?basis/qty:0;
+        const reduce=Math.min(q,qty);
+        const proceeds=amt-cashFeeOf(x)-other;
+        realized += proceeds-reduce*avg;
+        qty=Math.max(0,qty-reduce);
+        basis=Math.max(0,basis-reduce*avg);
+        sold+=amt; sellQty+=reduce;
+      }else{
+        const cost=amt+cashFeeOf(x)+other;
+        qty+=q; basis+=cost; bought+=amt; buyQty+=q;
+      }
+    }
+    return {symbol:sym(s),qty,basis,realized,bought,sold,buyQty,sellQty,avgCost:qty>0?basis/qty:0};
+  }
+  const allSymbols=()=>[...new Set(cryptoRows().map(x=>sym(x.symbol)).filter(Boolean))].sort();
+  const positions=()=>allSymbols().map(ledger).filter(x=>x.qty>1e-12);
+  const currentPrice=s=>{
+    const p=window.livePrices?.[sym(s)]?.price;
+    if(N(p)>0)return N(p);
+    const r=rowsBySymbol(s).slice(-1)[0]; return r?N(r.market_price):0;
+  };
+  const totalCryptoValue=()=>positions().reduce((a,p)=>a+p.qty*currentPrice(p.symbol),0);
+  const totalCryptoBasis=()=>positions().reduce((a,p)=>a+p.basis,0);
+  const totalCryptoRealized=()=>allSymbols().reduce((a,s)=>a+ledger(s).realized,0);
+  window.mmHVaultCryptoLedgerV440=ledger;
+  window.mmHVaultCryptoFeeAssetV440=feeAssetOf;
+
+  function goldRows(){return safeArr().filter(x=>x?.asset==='Gold');}
+  function goldQty(x){
+    const side=sideOf(x);
+    let q=N(x?.weight_kyattha);
+    if(!q)q=N(x?.quantity);
+    q=Math.abs(q);
+    return side==='SELL'?-q:q;
+  }
+  function goldLedger(){
+    let qty=0,basis=0,realized=0,boughtCost=0,soldProceeds=0,buyWeight=0,sellWeight=0;
+    const rows=goldRows().slice().sort((a,b)=>String(a.inv_date||'').localeCompare(String(b.inv_date||''))||N(a.id)-N(b.id));
+    for(const x of rows){
+      const q=goldQty(x),amt=Math.abs(N(x.amount)),fee=Math.abs(N(x.fee)),other=Math.abs(N(x.other_cost));
+      if(q<0){
+        const sq=Math.min(Math.abs(q),qty),avg=qty>0?basis/qty:0;
+        const proceeds=amt-fee-other;
+        realized+=proceeds-sq*avg;
+        qty=Math.max(0,qty-sq); basis=Math.max(0,basis-sq*avg); soldProceeds+=proceeds; sellWeight+=sq;
+      }else{
+        const cost=amt+fee+other; qty+=q; basis+=cost; boughtCost+=cost; buyWeight+=q;
+      }
+    }
+    return {qty,basis,realized,boughtCost,soldProceeds,buyWeight,sellWeight,avgCost:qty>0?basis/qty:0};
+  }
+  window.mmHVaultGoldLedgerV440=goldLedger;
+
+  function integrityBox(type){
+    if(type==='Crypto'){
+      const rs=cryptoRows(), buys=rs.filter(x=>sideOf(x)!=='SELL').length, sells=rs.filter(x=>sideOf(x)==='SELL').length;
+      const withOrder=rs.filter(x=>orderIdOf(x)).length, feeAsset=rs.filter(x=>feeAssetOf(x)).length;
+      return '<div class="mmh-integrity-v440"><div class="head"><div class="title">Investment data integrity</div><div class="badge">Ledger active</div></div><div class="grid"><div class="item"><b>'+buys+' BUY · '+sells+' SELL</b><span>Trade direction</span></div><div class="item"><b>'+withOrder+'/'+rs.length+'</b><span>Order IDs captured</span></div><div class="item"><b>'+feeAsset+'/'+rs.length+'</b><span>Fee asset captured</span></div></div></div>';
+    }
+    const rs=goldRows(),g=goldLedger();
+    return '<div class="mmh-integrity-v440"><div class="head"><div class="title">Gold data integrity</div><div class="badge">Weight authority</div></div><div class="grid"><div class="item"><b>'+g.qty.toFixed(8)+' ကျပ်သား</b><span>Net holding</span></div><div class="item"><b>'+g.buyWeight.toFixed(2)+' ရွေး</b><span>Total bought weight</span></div><div class="item"><b>'+g.sellWeight.toFixed(2)+' ရွေး</b><span>Total sold weight</span></div></div></div>';
+  }
+
+  function renderCrypto(){
+    const host=document.getElementById('cryptoInvList'); if(!host)return;
+    const rows=cryptoRows(); if(!rows.length){host.innerHTML='<div class="empty">No crypto investment history.</div>';return;}
+    const pos=positions(), map=new Map(pos.map(p=>[p.symbol,p])), totalValue=totalCryptoValue(), totalBasis=totalCryptoBasis(), unrealized=totalValue-totalBasis, realized=totalCryptoRealized();
+    const summary='<div class="crypto-summary"><div class="crypto-summary-card"><div class="label">Current Value</div><div class="value green">$'+fmt(totalValue)+'</div><div class="meta">'+pos.length+' active asset'+(pos.length===1?'':'s')+'</div></div><div class="crypto-summary-card"><div class="label">Cost Basis</div><div class="value">$'+fmt(totalBasis)+'</div><div class="meta">Remaining holdings</div></div><div class="crypto-summary-card"><div class="label">Unrealized P/L</div><div class="value '+(unrealized>=0?'green':'red')+'">'+(unrealized>=0?'+':'−')+'$'+fmt(Math.abs(unrealized))+'</div><div class="meta">Current value vs basis</div></div><div class="crypto-summary-card"><div class="label">Realized P/L</div><div class="value '+(realized>=0?'green':'red')+'">'+(realized>=0?'+':'−')+'$'+fmt(Math.abs(realized))+'</div><div class="meta">Completed sell trades</div></div></div>';
+    const sorted=rows.slice().sort((a,b)=>String(b.inv_date||'').localeCompare(String(a.inv_date||''))||N(b.id)-N(a.id));
+    const table='<div class="crypto-table-wrap"><table><tr><th>Date</th><th>Side</th><th>Symbol</th><th>Account</th><th>Amount</th><th>Trade Price</th><th>Filled</th><th>Net Qty</th><th>Fee</th><th>Current Position</th><th>P/L</th><th></th></tr>'+sorted.map(x=>{
+      const side=sideOf(x), s=sym(x.symbol), q=effectiveCryptoQty(x), signed=side==='SELL'?-q:q, cur=currentPrice(s), p=map.get(s), trade=Math.abs(N(x.amount));
+      let pl='—';
+      if(side==='SELL'){
+        let beforeQty=0,beforeBasis=0;
+        for(const r of rowsBySymbol(s)){
+          if(N(r.id)===N(x.id))break;
+          const rs=sideOf(r),rq=effectiveCryptoQty(r),ra=Math.abs(N(r.amount));
+          if(rs==='SELL'){const red=Math.min(rq,beforeQty),avg=beforeQty>0?beforeBasis/beforeQty:0;beforeQty=Math.max(0,beforeQty-red);beforeBasis=Math.max(0,beforeBasis-red*avg);}
+          else{beforeQty+=rq;beforeBasis+=ra+cashFeeOf(r)+Math.abs(N(r.other_cost));}
+        }
+        const avg=beforeQty>0?beforeBasis/beforeQty:0, rp=trade-cashFeeOf(x)-Math.abs(N(x.other_cost))-q*avg;
+        pl='<span class="'+(rp>=0?'green':'red')+'">'+(rp>=0?'+':'−')+'$'+fmt(Math.abs(rp))+'</span>';
+      }
+      const fa=feeAssetOf(x), feeTxt=Math.abs(N(x.fee))?(fmt(Math.abs(N(x.fee)))+(fa?' '+esc(fa):'')):'—';
+      return '<tr><td>'+esc(x.inv_date)+'</td><td class="'+(side==='BUY'?'green':'red')+'"><b>'+side+'</b></td><td><b>'+esc(s)+'</b></td><td>'+esc(x.source_account||'OKX')+'</td><td>$'+fmt(trade)+'</td><td>$'+fmt(x.buy_price)+'</td><td>'+fmt(filledQtyOf(x)||Math.abs(N(x.quantity)))+'</td><td>'+fmt(q)+'</td><td>'+feeTxt+'</td><td>'+(p?fmt(p.qty)+' '+esc(s):'0 '+esc(s))+'</td><td>'+pl+'</td><td class="icon-actions">'+(window.mmHVaultHasInvestmentReceiptV3304?.(x.id)?'<button class="btn" onclick="openInvestmentReceiptV3304('+x.id+')">👁 View</button>':'')+'<button class="btn" onclick="editInvestment('+x.id+')">Edit</button><button class="btn danger" onclick="deleteInvestment('+x.id+')">×</button></td></tr>';
+    }).join('')+'</table></div>';
+    const cards='<div class="crypto-mobile-list">'+sorted.map(x=>{const side=sideOf(x),s=sym(x.symbol),q=effectiveCryptoQty(x),cur=currentPrice(s),p=map.get(s),trade=Math.abs(N(x.amount)),fa=feeAssetOf(x),feeTxt=Math.abs(N(x.fee))?(fmt(Math.abs(N(x.fee)))+(fa?' '+fa:'')):'—';return '<div class="crypto-mobile-card"><div class="crypto-mobile-top"><div class="crypto-mobile-main"><div class="crypto-mobile-date">'+esc(x.inv_date)+'</div><div class="crypto-mobile-title"><span class="'+(side==='BUY'?'green':'red')+'">'+side+'</span> · '+esc(s)+'</div><div class="crypto-mobile-sub">'+esc(x.source_account||'OKX')+' · $'+fmt(x.buy_price)+'</div></div><div class="crypto-mobile-value"><div>$'+fmt(trade)+'</div><div>'+(p?fmt(p.qty)+' '+esc(s):'0 '+esc(s))+'</div></div></div><div class="crypto-mobile-grid"><div><span>Trade Amount</span><b>$'+fmt(trade)+'</b></div><div><span>Filled</span><b>'+fmt(filledQtyOf(x)||Math.abs(N(x.quantity)))+' '+esc(s)+'</b></div><div><span>Net Qty</span><b>'+fmt(q)+' '+esc(s)+'</b></div><div><span>Fee</span><b>'+feeTxt+'</b></div><div><span>Current Price</span><b>$'+fmt(cur)+'</b></div><div><span>Position</span><b>'+(p?fmt(p.qty):'0')+' '+esc(s)+'</b></div></div><div class="crypto-mobile-actions">'+(window.mmHVaultHasInvestmentReceiptV3304?.(x.id)?'<button class="btn" onclick="event.stopPropagation();openInvestmentReceiptV3304('+x.id+')">👁 View</button>':'')+'<button class="btn" onclick="event.stopPropagation();editInvestment('+x.id+')">Edit</button><button class="btn danger" onclick="event.stopPropagation();deleteInvestment('+x.id+')">Delete</button></div></div>';}).join('')+'</div>';
+    host.innerHTML=summary+table+cards+integrityBox('Crypto');
+  }
+
+  function renderGold(){
+    const host=document.getElementById('goldInvList'); if(!host)return;
+    const rows=goldRows(); if(!rows.length){host.innerHTML='<div class="empty">No gold investments.</div>';return;}
+    const g=goldLedger(), price=N(window.goldMarketState?.pricePerKyattha)||N(rows.find(x=>N(x.market_price)>0)?.market_price), value=g.qty*price, unrealized=value-g.basis, roi=g.basis?unrealized/g.basis*100:0;
+    const toParts=q=>{const aq=Math.max(0,q),ky=Math.floor(aq),pe=Math.floor((aq-ky)*16+1e-9),re=((((aq-ky)*16)-pe)*8);return {ky,pe,re};};
+    const pp=toParts(g.qty), avg=g.qty>0?g.avgCost:0, buys=rows.filter(x=>sideOf(x)!=='SELL').length,sells=rows.filter(x=>sideOf(x)==='SELL').length;
+    const summary='<div class="gold-summary gold-summary-v438"><div class="gold-summary-card"><div class="label">Net Invested</div><div class="value">MMK '+fmt(g.basis)+'</div><div class="meta">'+buys+' BUY · '+sells+' SELL</div></div><div class="gold-summary-card"><div class="label">Current Value</div><div class="value green">MMK '+fmt(value)+'</div><div class="meta">Market '+fmt(price)+' / ကျပ်သား</div></div><div class="gold-summary-card"><div class="label">Unrealized P/L</div><div class="value '+(unrealized>=0?'green':'red')+'">MMK '+fmt(unrealized)+'</div><div class="meta">'+(unrealized>=0?'+':'')+roi.toFixed(2)+'% vs remaining cost basis</div></div><div class="gold-summary-card"><div class="label">Current Holding</div><div class="value">'+pp.ky+' ကျပ်</div><div class="meta">'+pp.pe+' ပဲ '+pp.re.toFixed(2)+' ရွေး · '+g.qty.toFixed(8)+' ကျပ်သား</div></div></div>';
+    const performance='<div class="gold-performance-v438"><div class="gold-performance-v438-head"><div><div class="gold-performance-kicker-v34650">GOLD PERFORMANCE</div><div class="gold-performance-title-v34650">Average purchase cost → current market</div></div><div class="gold-performance-result-v34650"><div class="value '+(unrealized>=0?'green':'red')+'">'+(unrealized>=0?'+':'−')+'MMK '+fmt(Math.abs(unrealized))+'</div><div class="label">'+(roi>=0?'+':'')+roi.toFixed(2)+'%</div></div></div><div class="gold-performance-v438-grid"><div><span>Avg Buy / ကျပ်သား</span><b>MMK '+fmt(avg)+'</b></div><div><span>Market / ကျပ်သား</span><b>MMK '+fmt(price)+'</b></div><div><span>Market Delta</span><b class="'+(price>=avg?'green':'red')+'">'+(avg?((price-avg)/avg*100).toFixed(2):'0.00')+'%</b></div><div><span>Current Weight</span><b>'+g.qty.toFixed(8)+' ကျပ်သား</b></div></div></div>';
+    const sorted=rows.slice().sort((a,b)=>String(b.inv_date||'').localeCompare(String(a.inv_date||''))||N(b.id)-N(a.id));
+    const table='<div class="gold-table-wrap"><table><tr><th>Date</th><th>Side</th><th>Source</th><th>Gold Value</th><th>Fee</th><th>Price</th><th>Weight</th><th>Current Value</th><th>P/L</th><th></th></tr>'+sorted.map(x=>{const side=sideOf(x),q=Math.abs(goldQty(x)),pval=q*price,parts=toParts(q),cost=N(x.amount)+N(x.fee)+N(x.other_cost),pl=side==='SELL'?0:pval-cost;return '<tr><td>'+esc(x.inv_date)+'</td><td class="'+(side==='BUY'?'green':'red')+'"><b>'+side+'</b></td><td>'+esc(x.source_account||'KPay')+'</td><td>MMK '+fmt(Math.abs(N(x.amount)))+'</td><td>MMK '+fmt(Math.abs(N(x.fee)))+'</td><td>MMK '+fmt(x.buy_price)+' / ကျပ်သား</td><td><div class="gold-weight-main">'+parts.ky+' ကျပ် '+parts.pe+' ပဲ</div><div class="gold-weight-sub">'+parts.re.toFixed(2)+' ရွေး</div></td><td>MMK '+fmt(side==='SELL'?0:pval)+'</td><td class="'+(pl>=0?'green':'red')+'">'+(side==='SELL'?'—':'MMK '+fmt(pl))+'</td><td class="icon-actions">'+(window.mmHVaultHasInvestmentReceiptV3304?.(x.id)?'<button class="btn" onclick="openInvestmentReceiptV3304('+x.id+')">👁 View</button>':'')+'<button class="btn" onclick="editInvestment('+x.id+')">Edit</button><button class="btn danger" onclick="deleteInvestment('+x.id+')">×</button></td></tr>';}).join('')+'</table></div>';
+    const cards='<div class="gold-mobile-list">'+sorted.map(x=>{const side=sideOf(x),q=Math.abs(goldQty(x)),parts=toParts(q),cost=N(x.amount)+N(x.fee)+N(x.other_cost),val=side==='SELL'?0:q*price,pl=side==='SELL'?0:val-cost;return '<div class="gold-mobile-card gold-mobile-card-v438"><div class="gold-mobile-top"><div><div class="gold-mobile-date">'+esc(x.inv_date)+'</div><div class="gold-mobile-source"><span class="'+(side==='BUY'?'green':'red')+'">'+side+'</span> · '+esc(x.source_account||'KPay')+'</div></div><div class="gold-mobile-roi '+(side==='SELL'?'':' '+(pl>=0?'green':'red'))+'">'+(side==='SELL'?'SOLD':(cost?(pl/cost*100).toFixed(2):'0.00')+'%')+'</div></div><div class="gold-mobile-grid"><div class="gold-mobile-item"><div class="label">Gold Value</div><div class="value">MMK '+fmt(Math.abs(N(x.amount)))+'</div></div><div class="gold-mobile-item"><div class="label">Weight</div><div class="value">'+parts.ky+' ကျပ် '+parts.pe+' ပဲ '+parts.re.toFixed(2)+' ရွေး</div></div><div class="gold-mobile-item"><div class="label">Price</div><div class="value">MMK '+fmt(x.buy_price)+' / ကျပ်သား</div></div><div class="gold-mobile-item"><div class="label">Fee</div><div class="value">MMK '+fmt(Math.abs(N(x.fee)))+'</div></div><div class="gold-mobile-item"><div class="label">Current Value</div><div class="value">'+(side==='SELL'?'—':'MMK '+fmt(val))+'</div></div><div class="gold-mobile-item"><div class="label">P/L</div><div class="value '+(pl>=0?'green':'red')+'">'+(side==='SELL'?'—':'MMK '+fmt(pl))+'</div></div></div><div class="gold-mobile-actions">'+(window.mmHVaultHasInvestmentReceiptV3304?.(x.id)?'<button class="btn" onclick="event.stopPropagation();openInvestmentReceiptV3304('+x.id+')">👁 View</button>':'')+'<button class="btn" onclick="event.stopPropagation();editInvestment('+x.id+')">Edit</button><button class="btn danger" onclick="event.stopPropagation();deleteInvestment('+x.id+')">Delete</button></div></div>';}).join('')+'</div>';
+    host.innerHTML=summary+performance+'<div class="gold-history-caption-v34660"><div><div class="title">Gold History</div><div class="hint">Weight is authoritative · BUY adds · SELL reduces · all records remain in history</div></div><div class="count">'+buys+' BUY · '+sells+' SELL</div></div>'+table+cards+integrityBox('Gold');
+  }
+
+  function renderInvest440(){
+    const crypto=cryptoRows(), gold=goldRows(), cpos=positions(), cValue=totalCryptoValue(), cBasis=totalCryptoBasis(), cReal=totalCryptoRealized(), cUnreal=cValue-cBasis;
+    const g=goldLedger(), gValue=g.qty*(N(window.goldMarketState?.pricePerKyattha)||N(gold.find(x=>N(x.market_price)>0)?.market_price)), gBasis=g.basis, gUnreal=gValue-gBasis;
+    if(typeof window.renderPortfolioManagerV310==='function')window.renderPortfolioManagerV310(cBasis,cValue,gBasis,gValue);
+    const activeView=(localStorage.getItem('myFinance_invest_view_v371')||localStorage.getItem('myfinance_invest_view_v371')||'Crypto')==='Gold'?'Gold':'Crypto';
+    if(typeof window.renderInvestMetricsV371==='function')window.renderInvestMetricsV371(activeView,cBasis,cValue,cUnreal,cBasis?cUnreal/cBasis*100:0,gBasis,gValue,gUnreal,gBasis?gUnreal/gBasis*100:0);
+    renderCrypto(); renderGold();
+    try{if(typeof window.renderCurrentHoldings==='function'&&window.renderCurrentHoldings!==renderCrypto)window.renderCurrentHoldings(crypto);}catch(_e){}
+    try{if(typeof window.renderCryptoPrices==='function')window.renderCryptoPrices();}catch(_e){}
+  }
+  window.renderInvest=renderInvest440;
+  try{globalThis.renderInvest=renderInvest440;}catch(_e){}
+
+  // Make the cash-balance calculation fee-asset aware. Crypto fees charged in BTC/ETH/etc.
+  // are not additional USD cash outflows; quote-currency fees still are.
+  if(typeof window.investmentCashOut==='function'){
+    const original=window.investmentCashOut;
+    if(!original.__v440){
+      const wrapped=function(account){return safeArr().filter(x=>(x.source_account||(x.asset==='Gold'?'KPay':'OKX'))===account).reduce((sum,x)=>{
+        const amt=N(x.amount), feeCash=x.asset==='Crypto'?cashFeeOf(x):Math.abs(N(x.fee));
+        return sum+amt+feeCash+Math.abs(N(x.other_cost));
+      },0);}; wrapped.__v440=true; wrapped.__original=original; window.investmentCashOut=wrapped; try{globalThis.investmentCashOut=wrapped;}catch(_e){}
+    }
+  }
+
+  // Upgrade import normalization so future screenshot-generated JSON can carry fee asset,
+  // filled quantity, and order ID without requiring new Supabase columns.
+  const buildMetaNote=(x)=>{
+    const existing=String(x?.note||'');
+    const meta={};
+    ['order_id','fee_asset','fee_quantity','filled_quantity','quote_currency','exchange'].forEach(k=>{if(x?.[k]!==undefined&&x?.[k]!==null&&String(x[k])!=='')meta[k]=x[k];});
+    if(!Object.keys(meta).length)return existing||null;
+    const clean=existing.replace(/^MMH_META:\{.*?\}(?:\n|$)/s,'');
+    return 'MMH_META:'+JSON.stringify(meta)+(clean?'\n'+clean:'');
+  };
+  window.mmhVaultBuildMetaNoteV440=buildMetaNote;
+
+  // Ensure manual BUY/SELL form stores explicit side metadata while keeping the existing DB schema.
+  try{
+    const form=document.getElementById('invForm');
+    if(form&&!form.dataset.v440Meta){
+      form.dataset.v440Meta='1';
+      const old=form.onsubmit;
+      if(old){
+        // Existing v336 handler remains authoritative for validation/write. Metadata is added by
+        // intercepting the form submit before it runs, then restored immediately after collection.
+        form.addEventListener('submit',function(){
+          const note=document.getElementById('invNote'); if(!note)return;
+          const asset=document.getElementById('invAsset')?.value;
+          const side=document.getElementById('invSideV336')?.value||'BUY';
+          if(asset==='Crypto'){
+            const fa=document.getElementById('invFeeAssetV440')?.value||'';
+            if(fa){note.value=buildMetaNote({fee_asset:fa,quote_currency:'USDT',exchange:document.getElementById('invSource')?.value||'OKX',side});}
+          }
+        },true);
+      }
+    }
+  }catch(_e){}
+
+  function boot440(){try{renderInvest440();}catch(e){console.warn('MMHVAULT v4.4.0 render warning',e);}}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot440,10),{once:true});else setTimeout(boot440,10);
+})();
+</script>
