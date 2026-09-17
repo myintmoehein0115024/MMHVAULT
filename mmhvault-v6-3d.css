@@ -1,0 +1,105 @@
+/* MMHVAULT v6.0 — Premium 3D page system.
+   Presentation-only: no finance data writes, no DOM data replacement. */
+:root{--mmh-gold:#f3ce72;--mmh-cyan:#67d9ff;--mmh-blue:#4aaeff;--mmh-ink:#030b13;--mmh-panel:rgba(5,18,31,.62)}
+.future-page{--mmh-page-rx:0deg;--mmh-page-ry:0deg;--mmh-page-x:0px;--mmh-page-y:0px;position:relative;isolation:isolate;overflow:hidden}
+.future-page::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-2;background:radial-gradient(circle at 72% 18%,rgba(45,137,207,.055),transparent 34%),radial-gradient(circle at 18% 78%,rgba(243,206,114,.025),transparent 28%)}
+.future-page::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:-1;opacity:.32;background-image:linear-gradient(rgba(110,183,226,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(110,183,226,.025) 1px,transparent 1px);background-size:72px 72px;mask-image:linear-gradient(to bottom,rgba(0,0,0,.75),transparent 85%)}
+.future-page .future-hero,.future-page .future-section{position:relative}
+.future-page .future-hero-inner,.future-page .future-section>*{position:relative}
+
+/* HOME — safe callout composition */
+.future-home .earth-signal-layer{z-index:40!important;overflow:visible!important;mix-blend-mode:normal!important}
+.future-home .earth-signal{z-index:41!important;box-sizing:border-box;min-width:136px;max-width:166px;padding:7px 9px 8px!important;border:1px solid rgba(109,197,235,.14);border-radius:8px;background:linear-gradient(135deg,rgba(2,13,24,.80),rgba(4,17,29,.48));box-shadow:0 10px 28px rgba(0,0,0,.20),inset 0 1px 0 rgba(255,255,255,.035);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);text-shadow:0 1px 12px rgba(0,0,0,.65);white-space:nowrap}
+.future-home .signal-flow{right:8%!important;top:7%!important}
+.future-home .signal-digital{left:10%!important;top:44%!important}
+.future-home .signal-reserve{right:8%!important;bottom:16%!important}
+.future-home .signal-top{min-width:0}
+.future-home .signal-label{overflow:hidden;text-overflow:ellipsis;max-width:116px}
+.future-home .signal-assets{white-space:nowrap}
+.future-home .signal-track{width:88px!important;max-width:88px!important}
+.future-home .signal-mini{max-width:118px}
+.future-home .scan-strip{z-index:39!important;left:16%!important;right:16%!important;bottom:4%!important;max-width:none!important;border:0!important;background:none!important;box-shadow:none!important;backdrop-filter:none!important;padding:0!important}
+.future-home .earth-signal::before{z-index:0}
+.future-home .earth-signal::after{z-index:0}
+.future-home .earth-signal>*{position:relative;z-index:1}
+.future-home .earth-signal.signal-digital::after,.future-home .earth-signal.signal-flow::after,.future-home .earth-signal.signal-reserve::after{opacity:.28!important;width:28px!important}
+.future-home .earth-signal.signal-digital::before,.future-home .earth-signal.signal-flow::before,.future-home .earth-signal.signal-reserve::before{opacity:.75}
+.future-home .future-hero{perspective:1400px}
+.future-home .future-hero-inner{transform:translate3d(var(--mmh-home-copy-x),var(--mmh-home-copy-y),0);transition:transform .18s ease-out}
+.future-home .mmh-home-earth-v4-9-17{transform:translate3d(var(--mmh-home-earth-x),var(--mmh-home-earth-y),0) rotateX(var(--mmh-home-earth-rx)) rotateY(var(--mmh-home-earth-ry));transform-style:preserve-3d;will-change:transform}
+.future-home .future-stat-rail{position:relative;z-index:12}
+.future-home .future-stat{background:linear-gradient(180deg,rgba(5,18,30,.22),rgba(5,18,30,.06))}
+.future-home .future-command-media,.future-home .future-cell,.future-home .future-stat{transform:translate3d(0,var(--mmh-lift,0),0) rotateX(var(--mmh-rx,0deg)) rotateY(var(--mmh-ry,0deg));transform-style:preserve-3d;will-change:transform}
+
+/* Shared 3D page hero */
+.future-page:not(.future-home) .future-hero{perspective:1300px}
+.future-page:not(.future-home) .future-hero-inner{transform:translate3d(var(--mmh-page-x),var(--mmh-page-y),0) rotateX(var(--mmh-page-rx)) rotateY(var(--mmh-page-ry));transform-style:preserve-3d;transition:transform .22s cubic-bezier(.2,.75,.25,1)}
+.future-page:not(.future-home) .future-orbit{transform:translate3d(calc(var(--mmh-page-x) * -1),calc(var(--mmh-page-y) * -1),0) rotateX(calc(var(--mmh-page-rx) * -1)) rotateY(calc(var(--mmh-page-ry) * -1));transform-style:preserve-3d;will-change:transform}
+.future-page:not(.future-home) .future-orbit::before{box-shadow:0 0 90px rgba(73,180,255,.08),inset 0 0 60px rgba(243,206,114,.025)}
+.future-page:not(.future-home) .future-orbit .node{box-shadow:0 0 16px currentColor,0 0 40px rgba(75,174,255,.16);animation:mmhNodeBreathe 2.8s ease-in-out infinite}
+.future-page:not(.future-home) .future-orbit .n2{animation-delay:.8s}.future-page:not(.future-home) .future-orbit .n3{animation-delay:1.5s}
+@keyframes mmhNodeBreathe{0%,100%{transform:scale(.78);opacity:.52}50%{transform:scale(1.18);opacity:1}}
+
+/* FEATURES — architecture / network energy */
+.future-features .future-matrix{perspective:1100px}
+.future-features .future-cell{position:relative;overflow:hidden;transform-style:preserve-3d;transition:transform .42s cubic-bezier(.2,.8,.2,1),border-color .3s ease,box-shadow .3s ease}
+.future-features .future-cell::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at var(--mmh-glow-x,50%) var(--mmh-glow-y,50%),rgba(102,213,255,.12),transparent 38%);opacity:0;transition:opacity .3s ease;pointer-events:none}
+.future-features .future-cell:hover::before{opacity:1}
+.future-features .future-cell:hover{transform:translate3d(0,-7px,18px) rotateX(1.5deg) rotateY(var(--mmh-card-ry,0deg));border-color:rgba(103,217,255,.24);box-shadow:0 22px 60px rgba(0,0,0,.24),0 0 35px rgba(75,177,255,.08)}
+.future-features .network-map{transform:perspective(1200px) rotateX(var(--mmh-net-rx,0deg)) rotateY(var(--mmh-net-ry,0deg));transform-style:preserve-3d;transition:transform .25s ease-out}
+.future-features .network-core{box-shadow:0 0 0 1px rgba(243,206,114,.12),0 0 80px rgba(69,182,255,.12),inset 0 0 45px rgba(243,206,114,.035)}
+.future-features .network-lines i{animation:mmhNetworkFlow 4.5s linear infinite}
+.future-features .network-lines .l2{animation-delay:-1.1s}.future-features .network-lines .l3{animation-delay:-2.2s}.future-features .network-lines .l4{animation-delay:-3.3s}.future-features .network-lines .l5{animation-delay:-.7s}.future-features .network-lines .l6{animation-delay:-2.8s}
+@keyframes mmhNetworkFlow{0%,100%{opacity:.18;filter:drop-shadow(0 0 0 transparent)}50%{opacity:.8;filter:drop-shadow(0 0 7px rgba(103,217,255,.5))}}
+
+/* SECURITY — shield field / encrypted perimeter */
+.future-security .future-shield,.future-security .security-core{transform-style:preserve-3d}
+.future-security .future-shield{filter:drop-shadow(0 0 35px rgba(86,192,255,.18));animation:mmhShieldBreath 4.2s ease-in-out infinite}
+@keyframes mmhShieldBreath{0%,100%{transform:translateZ(0) scale(.985)}50%{transform:translateZ(12px) scale(1.025)}}
+.future-security .future-shield::after{content:"";position:absolute;inset:-18%;border:1px solid rgba(103,217,255,.16);border-radius:50%;box-shadow:0 0 45px rgba(74,174,255,.08);animation:mmhSecurityScan 5.5s linear infinite}
+@keyframes mmhSecurityScan{to{transform:rotate(360deg)}}
+.future-security .future-trust-panel,.future-security .future-trust-item{transition:transform .35s ease,border-color .3s ease,box-shadow .3s ease}
+.future-security .future-trust-item:hover{transform:translate3d(0,-5px,12px);border-color:rgba(103,217,255,.24);box-shadow:0 20px 55px rgba(0,0,0,.2)}
+
+/* EXPERIENCE — operating loop */
+.future-experience .loop-system{transform:perspective(1200px) rotateX(var(--mmh-loop-rx,0deg)) rotateY(var(--mmh-loop-ry,0deg));transform-style:preserve-3d;transition:transform .25s ease-out}
+.future-experience .loop-ring{box-shadow:0 0 40px rgba(70,177,255,.08),inset 0 0 35px rgba(243,206,114,.03)}
+.future-experience .loop-arrow{animation:mmhLoopPulse 3.6s ease-in-out infinite}
+.future-experience .loop-arrow.a2{animation-delay:.9s}.future-experience .loop-arrow.a3{animation-delay:1.8s}.future-experience .loop-arrow.a4{animation-delay:2.7s}
+@keyframes mmhLoopPulse{0%,100%{opacity:.48;transform:scale(.9)}50%{opacity:1;transform:scale(1.06);text-shadow:0 0 18px rgba(103,217,255,.38)}}
+.future-experience .future-step{transition:transform .35s ease,border-color .3s ease}
+.future-experience .future-step:hover{transform:translate3d(0,-5px,15px);border-color:rgba(103,217,255,.22)}
+
+/* ABOUT — timeline constellation */
+.future-about .future-story-media{transform-style:preserve-3d;transition:transform .55s cubic-bezier(.2,.8,.2,1),box-shadow .4s ease}
+.future-about .future-story-media:hover{transform:perspective(1000px) rotateY(-2deg) translateZ(10px);box-shadow:0 28px 80px rgba(0,0,0,.25),0 0 42px rgba(71,175,255,.08)}
+.future-about .future-principle{position:relative;overflow:hidden;transform-style:preserve-3d;transition:transform .4s ease,border-color .3s ease,box-shadow .3s ease}
+.future-about .future-principle:hover{transform:translate3d(0,-6px,14px) rotateX(1deg);border-color:rgba(243,206,114,.24);box-shadow:0 22px 60px rgba(0,0,0,.2)}
+.future-about .about-rail{transform:perspective(1200px) rotateX(var(--mmh-about-rx,0deg)) rotateY(var(--mmh-about-ry,0deg));transform-style:preserve-3d;transition:transform .25s ease-out}
+.future-about .about-rail .rail-line{background:linear-gradient(90deg,transparent,rgba(103,217,255,.22),rgba(243,206,114,.4),transparent);box-shadow:0 0 18px rgba(103,217,255,.08)}
+.future-about .about-rail article{transition:transform .35s ease,border-color .3s ease}
+.future-about .about-rail article:hover{transform:translate3d(0,-7px,12px);border-color:rgba(103,217,255,.22)}
+
+/* Shared scroll reveal polish */
+.future-page .future-section,.future-page .future-footer-cta,.future-page .signature-shell{--mmh-reveal:0;transform:translate3d(0,calc((1 - var(--mmh-reveal)) * 14px),0);opacity:calc(.78 + var(--mmh-reveal) * .22);transition:transform .75s cubic-bezier(.2,.75,.2,1),opacity .75s ease}
+.future-page .future-section.mmh-visible,.future-page .future-footer-cta.mmh-visible,.future-page .signature-shell.mmh-visible{--mmh-reveal:1}
+
+@media(max-width:1180px){
+  .future-home .signal-flow{right:5%!important}.future-home .signal-digital{left:7%!important}.future-home .signal-reserve{right:5%!important}
+}
+@media(max-width:900px){
+  .future-home .earth-signal{min-width:118px;max-width:142px;padding:6px 7px!important}
+  .future-home .signal-flow{right:3%!important}.future-home .signal-digital{left:3%!important;top:38%!important}.future-home .signal-reserve{right:3%!important;bottom:14%!important}
+  .future-page .future-section{transform:translate3d(0,0,0)!important;opacity:1!important}
+}
+@media(max-width:700px){
+  .future-page::after{background-size:52px 52px;opacity:.22}
+  .future-home .earth-signal-layer{display:none!important}
+  .future-home .future-hero-inner{transform:none!important}
+  .future-page:not(.future-home) .future-hero-inner,.future-page:not(.future-home) .future-orbit{transform:none!important}
+  .future-features .network-map,.future-experience .loop-system,.future-about .about-rail{transform:none!important}
+}
+@media(prefers-reduced-motion:reduce){
+  .future-page *,.future-page *::before,.future-page *::after{animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;scroll-behavior:auto!important}
+  .future-page .future-section,.future-page .future-footer-cta,.future-page .signature-shell{transform:none!important;opacity:1!important}
+}
