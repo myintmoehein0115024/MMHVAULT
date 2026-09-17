@@ -16712,6 +16712,50 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
   };
 })();
 </script>
+<script id="mmhvault-v430-final-networth-authority-fix">
+/* V4.3.0 FINAL — Wealth Command Center must use the same live values as Account Overview. */
+(function(){
+  if(window.__mmhFinalNetWorthAuthorityFix)return;
+  window.__mmhFinalNetWorthAuthorityFix=true;
+  const N=v=>{const x=Number(v);return Number.isFinite(x)?x:0};
+  const money=v=>{try{return '$ '+fmt(N(v));}catch(_){return '$ '+N(v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});}};
+  function liveValues(){
+    const cash=['Bath','TrueMoney','OKX','ByBit','MetaMask','KPay'].reduce((s,a)=>s+N(balance(a))*N(toUSD(a)),0);
+    const inv=Array.isArray(window.investments)?window.investments:(Array.isArray(investments)?investments:[]);
+    const crypto=inv.filter(x=>x&&x.asset==='Crypto').reduce((s,x)=>{
+      const q=N(x.quantity), p=N(window.livePrices?.[x.symbol]?.price)||N(x.market_price);
+      return s+(q>0&&p>0?q*p:0);
+    },0);
+    const goldMMK=inv.filter(x=>x&&x.asset==='Gold').reduce((s,x)=>{
+      const q=N(typeof goldHoldingQty==='function'?goldHoldingQty(x):x.quantity);
+      const p=N(window.goldMarketState?.pricePerKyattha)||N(x.market_price);
+      return s+(q>0&&p>0?q*p:0);
+    },0);
+    const gold=goldMMK/(N(window.rates?.usd_mmk)||1);
+    const invest=crypto+gold;
+    return {cash,crypto,gold,invest,net:cash+invest};
+  }
+  function sync(){
+    const dash=document.getElementById('dashboard');
+    if(!dash?.classList.contains('active'))return;
+    try{
+      const d=liveValues(), w=d.net?d.invest/d.net*100:0;
+      const set=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+      set('mmhCommandNetWorthV34210',money(d.net));
+      set('mmhCommandCashV34210',money(d.cash));
+      set('mmhCommandInvestV34210',money(d.invest));
+      set('mmhCommandWeightV34210',w.toFixed(1)+'%');
+      set('mmhRibbonNetV34212',money(d.net));
+      window.__mmhFinalNetWorthAuthoritySnapshot=d;
+    }catch(e){console.warn('MMHVAULT final net worth sync skipped',e);}
+  }
+  ['mmhvault:data-loaded','mmhvault:sync-complete','mmhvault:cache-restored','mmhvault:market-updated','mmhvault:dashboard-rendered'].forEach(ev=>window.addEventListener(ev,()=>setTimeout(sync,60),{passive:true}));
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{[120,500,1200,2500].forEach(ms=>setTimeout(sync,ms));},{once:true});
+  else [120,500,1200,2500].forEach(ms=>setTimeout(sync,ms));
+  window.mmhSyncFinalNetWorth=sync;
+})();
+</script>
+
 </body>
 <!-- MMHVAULT V4.3.0 performance baseline: logo-free account cards + restrained dashboard rendering. -->
 
