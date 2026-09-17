@@ -99,6 +99,68 @@ footer{border-top:1px solid rgba(126,169,205,.12);padding:21px 0 28px;color:#718
   .shell > .site-header .menu-toggle{width:54px;height:54px;border-radius:17px}
 }
 </style>
+
+<style id="mmhvault-login-fullscreen-v4.9.27">
+/* MMHVAULT v4.9.27 — Login full-screen composition.
+   Header controls/layout are intentionally preserved. */
+@media (min-width: 821px){
+  /* Let the page canvas reach the viewport edges without moving the locked header. */
+  .shell{
+    width:100%;
+    max-width:none;
+  }
+  .shell>header{
+    width:min(1360px,calc(100% - 44px));
+    margin-left:auto;
+    margin-right:auto;
+    flex:0 0 auto;
+  }
+  main{
+    width:100%;
+    min-height:calc(100vh - 104px);
+    padding:34px 44px 38px;
+  }
+  .access{
+    width:min(540px,42vw);
+    min-width:500px;
+    max-height:calc(100vh - 205px);
+    overflow-y:auto;
+    scrollbar-width:thin;
+  }
+  .shell>footer{
+    width:min(1360px,calc(100% - 44px));
+    margin-left:auto;
+    margin-right:auto;
+    flex:0 0 auto;
+  }
+}
+
+@media (min-width: 1440px){
+  main{
+    padding-left:5vw;
+    padding-right:5vw;
+  }
+}
+
+@media (min-width: 1800px){
+  main{
+    padding-left:7vw;
+    padding-right:7vw;
+  }
+}
+
+@media (max-height: 780px) and (min-width: 821px){
+  main{padding-top:22px;padding-bottom:24px}
+  .access{
+    padding-top:30px;
+    padding-bottom:24px;
+    max-height:calc(100vh - 160px);
+  }
+  .kicker{margin-bottom:12px}
+  .sub{margin-top:8px;margin-bottom:18px}
+  .tabs{margin-bottom:15px}
+}
+</style>
 </head>
 <body>
 <div class="bg"></div><div class="gridfx"></div><div class="glow"></div><div class="glow two"></div>
