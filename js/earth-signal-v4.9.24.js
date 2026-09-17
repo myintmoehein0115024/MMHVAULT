@@ -1,6 +1,11 @@
 // MMHVAULT v5.5.1 — visual data integrity fix. v5.4 HUD injection removed; existing HTML signal data remains the single source of truth.
 // MMHVAULT v5.2 — living financial signal + global flow + spatial Earth interaction.
 (() => {
+  // v5.8.1 hard-stop for any cached/legacy cinematic intro.
+  document.querySelectorAll('.mmh-cinematic-intro').forEach(el => el.remove());
+  const landing = document.querySelector('.future-home');
+  landing?.classList.remove('mmh-cinematic-intro','mmh-cinematic-done');
+
   const root = document.querySelector('.future-home .earth-signal-layer');
   const earth = document.querySelector('.future-home .mmh-home-earth-v4-9-17');
   if (!root || !earth || root.dataset.mmhFlowInstalled) return;
