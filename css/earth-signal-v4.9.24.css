@@ -254,3 +254,60 @@ body:has(main.future-home) .landing-lang button:hover{transform:translateY(-1px)
 @media (prefers-reduced-motion:reduce){
   .future-home .future-hero .mmh-home-earth-v4-9-17::before{box-shadow:none}
 }
+
+/* MMHVAULT v5.9 — Safe signal composition.
+   Keeps existing data intact while creating a clear non-overlap corridor between
+   the hero copy and the Earth. Desktop callouts stay inside the visual stage. */
+@media (min-width:1181px){
+  .future-home .earth-signal.signal-digital{
+    left:5%!important;
+    top:47%!important;
+  }
+  .future-home .earth-signal.signal-reserve{
+    right:3%!important;
+    bottom:14%!important;
+  }
+  .future-home .earth-signal.signal-flow{
+    right:3%!important;
+    top:7%!important;
+  }
+  /* Keep connector strokes inside the Earth stage instead of reaching into copy. */
+  .future-home .earth-signal.signal-digital::after{
+    left:100%;
+    width:clamp(28px,3vw,52px);
+  }
+  .future-home .earth-signal.signal-flow::after,
+  .future-home .earth-signal.signal-reserve::after{
+    width:clamp(28px,3vw,52px);
+  }
+  .future-home .earth-signal.signal-digital::before{
+    left:calc(100% + clamp(28px,3vw,52px) - 2px);
+  }
+  .future-home .earth-signal.signal-flow::before,
+  .future-home .earth-signal.signal-reserve::before{
+    right:calc(100% + clamp(28px,3vw,52px) - 2px);
+  }
+  /* Subtle backing plate improves legibility over the globe without becoming a card. */
+  .future-home .earth-signal.signal-flow,
+  .future-home .earth-signal.signal-digital,
+  .future-home .earth-signal.signal-reserve{
+    padding:6px 8px 7px;
+    border:1px solid rgba(115,190,225,.10);
+    background:linear-gradient(90deg,rgba(3,14,25,.06),rgba(3,14,25,.34));
+    border-radius:6px;
+    backdrop-filter:blur(3px);
+    -webkit-backdrop-filter:blur(3px);
+  }
+}
+
+@media (min-width:1440px){
+  .future-home .earth-signal.signal-digital{left:7%!important;top:48%!important}
+  .future-home .earth-signal.signal-reserve{right:4%!important;bottom:13%!important}
+  .future-home .earth-signal.signal-flow{right:4%!important;top:7%!important}
+}
+
+@media (min-width:1800px){
+  .future-home .earth-signal.signal-digital{left:8%!important}
+  .future-home .earth-signal.signal-reserve{right:5%!important}
+  .future-home .earth-signal.signal-flow{right:5%!important}
+}
