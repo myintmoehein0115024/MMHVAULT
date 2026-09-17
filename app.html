@@ -2036,7 +2036,7 @@ html{scrollbar-gutter:stable;}
 </div>
 <div class="data-center-actions-v380">
 <button class="btn primary" onclick="exportMyFinanceBackupV380()" type="button">Export Backup</button>
-<label class="btn" style="display:inline-flex;align-items:center;justify-content:center;cursor:pointer">Select Backup<input accept=".json" id="backupFile" onchange="previewMyFinanceBackupV383(this.files[0])" style="display:none" type="file"/></label>
+<label class="btn mmh-native-file-picker-v443" style="display:inline-flex;align-items:center;justify-content:center;cursor:pointer;position:relative;overflow:hidden;min-height:48px">📥 Select Backup / Import JSON<input accept=".json,application/json,text/json" id="backupFile" onchange="previewMyFinanceBackupV443(this.files[0])" aria-label="Select MMHVAULT JSON backup" style="position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;margin:0;padding:0;border:0" type="file"/></label>
 <button class="btn" onclick="downloadTransactionsCSVV380()" type="button">Export Transactions CSV</button>
 </div>
 <div class="restore-center-v383" id="restoreCenterV383">
@@ -11640,6 +11640,92 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
 })();
 </script>
 
+
+<script id="mmhvault-v443-stable-import-ledger">
+/* MMHVAULT V4.4.3 · Stable Import + Unified Investment Ledger
+   Built on the recovered v4.4.2 page. No database schema changes. */
+(function(){
+  const num=v=>{const x=Number(v);return Number.isFinite(x)?x:0;};
+  const sideOf=x=>String(x?.side||x?.trade_type||x?.tradeType||x?.type||'BUY').toUpperCase()==='SELL'?'SELL':'BUY';
+  const normalizeInvestment=x=>{
+    const asset=String(x?.asset||'Crypto');
+    const side=sideOf(x);
+    const symbol=asset==='Gold'?'GOLD':String(x?.symbol||'').toUpperCase();
+    const amountRaw=Math.abs(num(x?.amount??x?.trade_amount??x?.order_amount));
+    const qtyRaw=Math.abs(num(x?.quantity??x?.filled_quantity??x?.filled));
+    const feeRaw=Math.abs(num(x?.fee??x?.fee_amount));
+    const otherRaw=Math.abs(num(x?.other_cost??x?.otherCost));
+    const buyPrice=num(x?.buy_price??x?.fill_price??x?.price);
+    const marketPrice=num(x?.market_price??x?.current_price??buyPrice);
+    const qty=side==='SELL'?-qtyRaw:qtyRaw;
+    const amount=side==='SELL'?-amountRaw:amountRaw;
+    return {
+      inv_date:String(x?.inv_date??x?.date??'').slice(0,10),
+      asset,symbol,source_account:x?.source_account||x?.source||x?.exchange||(asset==='Gold'?'KPay':'OKX'),
+      amount,fee:feeRaw,other_cost:otherRaw,buy_price:buyPrice,market_price:marketPrice,quantity:qty,
+      note:String(x?.note||'')+(x?.fee_asset?` · Fee Asset: ${x.fee_asset}`:'')+(x?.order_id?` · Order ID: ${x.order_id}`:'')
+    };
+  };
+  const txNorm=x=>({tx_date:String(x?.tx_date??x?.date??'').slice(0,10),type:x?.type||'Transfer',category:x?.category||'',from_account:x?.from_account||'',from_amount:num(x?.from_amount),to_account:x?.to_account||'',to_amount:num(x?.to_amount),note:x?.note||''});
+  const fpTx=x=>[x.tx_date||x.date,x.type,x.category||'',x.from_account||'',num(x.from_amount),x.to_account||'',num(x.to_amount),x.note||''].join('|');
+  const fpInv=x=>[x.inv_date||x.date,x.asset,String(x.symbol||'').toUpperCase(),num(x.amount),num(x.fee),num(x.other_cost),num(x.buy_price),num(x.quantity)].join('|');
+  window.previewMyFinanceBackupV443=async function(file){
+    const box=window.$?.('restorePreviewV383');
+    try{
+      if(!file){window.setBackupStatusV380?.('No backup file selected.','');return;}
+      const u=(await db.auth.getUser()).data.user;if(!u)throw new Error('Not signed in to MMHVAULT.');
+      const raw=JSON.parse(await file.text());
+      if(!raw||!Array.isArray(raw.transactions)||!Array.isArray(raw.investments))throw new Error('Invalid MMHVAULT JSON: transactions and investments arrays are required.');
+      const ntxAll=raw.transactions.map(txNorm), invAll=raw.investments.map(normalizeInvestment);
+      const txExisting=new Set((window.transactions||[]).map(fpTx)), invExisting=new Set((window.investments||[]).map(fpInv));
+      const ntx=ntxAll.filter(x=>!txExisting.has(fpTx(x))), ninv=invAll.filter(x=>!invExisting.has(fpInv(x)));
+      const invalid=ninv.map((x,i)=>({x,i})).filter(o=>!o.x.inv_date||!o.x.asset||o.x.asset==='Crypto'&&(!o.x.symbol||!o.x.buy_price||!o.x.quantity)||o.x.asset==='Gold'&&(!o.x.buy_price||!o.x.quantity));
+      if(invalid.length)throw new Error(`Investment #${invalid[0].i+1}: amount, price or quantity is invalid after normalization.`);
+      const duplicates=(ntxAll.length-ntx.length)+(invAll.length-ninv.length);
+      const hasRates=!!raw.rates&&[raw.rates.usd_mmk,raw.rates.usd_thb,raw.rates.usd_cny].some(v=>num(v)>0);
+      window.__mmhvaultStableRestore={file,raw,u,ntx,ninv,duplicates,hasRates};
+      const set=(id,v)=>{const el=window.$?.(id);if(el)el.textContent=v;};
+      set('restoreFileNameV383',file.name||'MMHVAULT backup.json');
+      set('restoreFileMetaV383',`Backup date: ${raw.exported_at||'Unknown'} · Format: ${raw.version||'MMHVAULT'}`);
+      set('restoreNewTxV383',String(ntx.length));set('restoreNewInvV383',String(ninv.length));set('restoreDuplicateV383',String(duplicates));set('restoreRatesV383',hasRates?'Included':'Not included');
+      const conflict=window.$?.('restoreConflictV383');if(conflict)conflict.textContent=duplicates?`${duplicates} existing records will be skipped. New BUY/SELL records will be added without overwriting existing cloud data.`:'No duplicate records detected.';
+      const btn=window.$?.('restoreConfirmV383');if(btn)btn.disabled=!(ntx.length||ninv.length||hasRates);
+      if(box)box.classList.add('show');
+      window.setBackupStatusV380?.(`JSON loaded: ${ninv.length} new investments + ${ntx.length} new transactions ready to import.`,'ok');
+    }catch(e){console.error(e);window.__mmhvaultStableRestore=null;window.setBackupStatusV380?.('Import preview failed: '+(e?.message||e),'err');if(box)box.classList.remove('show');}
+  };
+  window.confirmRestorePreviewV443=async function(){
+    const st=window.__mmhvaultStableRestore;if(!st)return;
+    const {raw,u,ntx,ninv,duplicates,hasRates}=st;
+    if(!confirm(`Import ${ninv.length} investments and ${ntx.length} transactions? Existing records will be kept.`))return;
+    const btn=window.$?.('restoreConfirmV383');if(btn)btn.disabled=true;
+    try{
+      if(ntx.length){const r=await db.from('transactions').insert(ntx.map(x=>({...x,user_id:u.id})));if(r.error)throw r.error;}
+      if(ninv.length){const r=await db.from('investments').insert(ninv.map(x=>({...x,user_id:u.id})));if(r.error)throw r.error;}
+      if(hasRates){const r=await db.from('exchange_rates').upsert({usd_mmk:num(raw.rates.usd_mmk),usd_thb:num(raw.rates.usd_thb),usd_cny:num(raw.rates.usd_cny),user_id:u.id});if(r.error)throw r.error;}
+      await loadAll();refreshDataCenterV380?.();
+      window.setBackupStatusV380?.(`Import complete: ${ninv.length} investments + ${ntx.length} transactions added. ${duplicates} duplicates skipped.`,'ok');
+      window.__mmhvaultStableRestore=null;if(window.$?.('restorePreviewV383'))window.$('restorePreviewV383').classList.remove('show');
+      const input=window.$?.('backupFile');if(input)input.value='';
+    }catch(e){console.error(e);window.setBackupStatusV380?.('Import failed: '+(e?.message||e),'err');if(btn)btn.disabled=false;}
+  };
+  // Make the existing preview button's inline handler use the stable implementation.
+  window.previewMyFinanceBackupV383=window.previewMyFinanceBackupV443;
+  window.confirmRestorePreviewV383=window.confirmRestorePreviewV443;
+
+  // Unified Gold ledger: BUY adds weight/cost, SELL removes weight/cost basis.
+  window.mmhvGoldLedgerV443=function(){
+    const rows=(window.investments||[]).filter(x=>x&&x.asset==='Gold').slice().sort((a,b)=>String(a.inv_date||'').localeCompare(String(b.inv_date||''))||num(a.id)-num(b.id));
+    let qty=0,basis=0,realized=0,bought=0,sold=0;
+    for(const x of rows){
+      const side=sideOf(x), q=Math.abs(num(x.quantity||0)), amount=Math.abs(num(x.amount||0)), fee=Math.abs(num(x.fee||0)), other=Math.abs(num(x.other_cost||0));
+      if(side==='SELL'||num(x.quantity)<0){const avg=qty>0?basis/qty:0;realized+=amount-fee-other-q*avg;qty=Math.max(0,qty-q);basis=Math.max(0,basis-q*avg);sold+=q;}
+      else{qty+=q;basis+=amount+fee+other;bought+=q;}
+    }
+    return {qty,basis,realized,bought,sold,avgCost:qty?basis/qty:0};
+  };
+})();
+</script>
 </body>
 <!-- MMHVAULT V4.0 performance baseline: logo-free account cards + restrained dashboard rendering. -->
 
