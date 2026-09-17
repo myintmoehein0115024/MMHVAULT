@@ -1,0 +1,124 @@
+/* MMHVAULT v6.1 — Home visual composition
+   Safe overlay for the existing Home DOM. No financial data is duplicated or moved in JS. */
+.future-home .future-hero{
+  grid-template-columns:minmax(0,44%) minmax(0,56%)!important;
+  gap:0!important;
+  min-height:clamp(720px,calc(100vh - 92px),900px)!important;
+  overflow:visible!important;
+  isolation:isolate!important;
+}
+.future-home .future-hero-inner{
+  width:100%!important;
+  max-width:700px!important;
+  padding-right:clamp(20px,2vw,42px)!important;
+  position:relative!important;
+  z-index:30!important;
+}
+.future-home .future-hero-inner h1{max-width:680px!important;}
+.future-home .future-hero-inner>p{max-width:650px!important;}
+
+/* The Earth owns a dedicated visual stage instead of living against the viewport edge. */
+.future-home .future-hero .mmh-home-earth-v4-9-17{
+  position:absolute!important;
+  left:auto!important;
+  right:3.5%!important;
+  top:48%!important;
+  transform:translateY(-50%)!important;
+  width:clamp(560px,48vw,760px)!important;
+  height:clamp(560px,48vw,760px)!important;
+  min-width:560px!important;
+  min-height:560px!important;
+  margin:0!important;
+  z-index:12!important;
+  overflow:visible!important;
+  contain:layout!important;
+}
+.future-home .future-hero .mmh-home-earth-v4-9-17 .earth-stage{inset:9%!important;z-index:4!important;}
+.future-home .future-hero .mmh-home-earth-v4-9-17 .earth-halo{inset:-3%!important;z-index:1!important;}
+.future-home .future-hero .mmh-home-earth-v4-9-17 .earth-signal-layer{
+  position:absolute!important;
+  inset:0!important;
+  z-index:20!important;
+  overflow:visible!important;
+  pointer-events:none!important;
+}
+
+/* Data cards sit beside the globe, not on top of it. */
+.future-home .earth-signal{
+  padding:11px 13px 12px!important;
+  min-width:128px!important;
+  max-width:170px!important;
+  border:1px solid rgba(105,184,255,.15)!important;
+  border-radius:12px!important;
+  background:linear-gradient(135deg,rgba(4,18,31,.72),rgba(3,13,24,.30))!important;
+  box-shadow:0 12px 35px rgba(0,0,0,.18),inset 0 1px 0 rgba(255,255,255,.035)!important;
+  backdrop-filter:blur(8px)!important;
+  -webkit-backdrop-filter:blur(8px)!important;
+  mix-blend-mode:normal!important;
+  text-shadow:0 1px 12px rgba(0,0,0,.55)!important;
+}
+.future-home .signal-flow{top:7%!important;right:5%!important;}
+.future-home .signal-digital{left:0!important;top:43%!important;}
+.future-home .signal-reserve{right:2%!important;bottom:13%!important;}
+.future-home .signal-flow .signal-value{font-size:1em!important;}
+.future-home .signal-digital .signal-assets,.future-home .signal-reserve .signal-assets{white-space:nowrap!important;}
+.future-home .signal-track{width:100%!important;}
+
+/* Fine connection accents reinforce the generated composition without covering copy. */
+.future-home .signal-digital::after,
+.future-home .signal-reserve::after,
+.future-home .signal-flow::after{
+  content:""!important;
+  position:absolute!important;
+  height:1px!important;
+  width:42px!important;
+  top:50%!important;
+  background:linear-gradient(90deg,rgba(98,214,255,.55),transparent)!important;
+  opacity:.65!important;
+}
+.future-home .signal-digital::after{right:100%!important;transform:translateX(-2px)!important;}
+.future-home .signal-flow::after{left:-42px!important;background:linear-gradient(90deg,transparent,rgba(98,214,255,.55))!important;}
+.future-home .signal-reserve::after{left:-42px!important;background:linear-gradient(90deg,transparent,rgba(243,206,114,.55))!important;}
+
+/* Keep the lower four-step rail in its own layer. */
+.future-home .future-stat-rail{position:relative!important;z-index:31!important;}
+.future-home .future-hero-actions{position:relative!important;z-index:31!important;}
+
+@media (max-width:1280px){
+  .future-home .future-hero{grid-template-columns:minmax(0,46%) minmax(0,54%)!important;}
+  .future-home .future-hero .mmh-home-earth-v4-9-17{
+    right:2%!important;
+    width:clamp(520px,49vw,700px)!important;
+    height:clamp(520px,49vw,700px)!important;
+    min-width:520px!important;min-height:520px!important;
+  }
+  .future-home .signal-digital{left:-1%!important;}
+  .future-home .signal-flow{right:3%!important;}
+}
+@media (max-width:1020px){
+  .future-home .future-hero{grid-template-columns:minmax(0,48%) minmax(0,52%)!important;}
+  .future-home .future-hero .mmh-home-earth-v4-9-17{
+    right:0!important;
+    width:clamp(480px,51vw,620px)!important;
+    height:clamp(480px,51vw,620px)!important;
+    min-width:480px!important;min-height:480px!important;
+  }
+  .future-home .signal-digital{left:-2%!important;top:44%!important;}
+  .future-home .signal-reserve{right:0!important;bottom:14%!important;}
+}
+@media (max-width:860px){
+  .future-home .future-hero{grid-template-columns:1fr!important;min-height:auto!important;}
+  .future-home .future-hero-inner{padding-right:0!important;}
+  .future-home .future-hero .mmh-home-earth-v4-9-17{
+    position:relative!important;
+    left:auto!important;right:auto!important;top:auto!important;
+    transform:none!important;
+    width:min(88vw,520px)!important;height:min(88vw,520px)!important;
+    min-width:300px!important;min-height:300px!important;
+    margin:18px auto 20px!important;
+  }
+  .future-home .earth-signal{display:none!important;}
+}
+@media (prefers-reduced-motion:reduce){
+  .future-home .earth-signal{backdrop-filter:none!important;-webkit-backdrop-filter:none!important;}
+}
