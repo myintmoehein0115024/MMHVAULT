@@ -21,3 +21,47 @@
 .future-home .mmh-scroll-depth-fade{position:absolute;inset:-20%;z-index:1;pointer-events:none;background:radial-gradient(circle at 50% 50%,rgba(74,190,255,.12),transparent 38%);opacity:calc(var(--mmh-scroll-progress) * .32);transform:scale(calc(1 + var(--mmh-scroll-progress) * .5));filter:blur(10px)}
 @media(max-width:700px){.future-home .earth-signal-layer{transform:none!important}}
 @media(prefers-reduced-motion:reduce){.future-home .earth-signal-layer{transform:none!important}.future-home .earth-signal-layer::after,.future-home .mmh-scroll-depth-fade{display:none}}
+
+/* MMHVAULT v5.5 — performance governor + lightweight mobile presentation. */
+.future-home .earth-signal-layer{contain:layout paint;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.future-home .mmh-financial-flow-field,.future-home .mmh-earth-spatial-layer,.future-home .mmh-financial-hud{will-change:transform,opacity}
+.future-home .mmh-financial-flow-svg{contain:paint}
+.future-home .mmh-flow-arcs path{vector-effect:non-scaling-stroke}
+.future-home .mmh-hud-card,.future-home .mmh-spatial-scan,.future-home .mmh-space-point,.future-home .mmh-flow-nodes .node{backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.future-home.mmh-perf-low .mmh-financial-flow-field{opacity:.38;filter:none}
+.future-home.mmh-perf-low .mmh-earth-spatial-layer{opacity:.62}
+.future-home.mmh-perf-low .mmh-spatial-scan{display:none}
+.future-home.mmh-perf-low .mmh-space-point:nth-child(n+4){display:none}
+.future-home.mmh-perf-low .mmh-hud-grid{opacity:.35}
+.future-home.mmh-perf-low .mmh-flow-arcs path{stroke-width:1;filter:none}
+.future-home.mmh-perf-low .mmh-flow-nodes .node .ring{animation-duration:3.8s}
+.future-home.mmh-perf-low .mmh-space-point{animation-duration:3.8s}
+.future-home.mmh-perf-saver .mmh-financial-flow-field{opacity:.25}
+.future-home.mmh-perf-saver .mmh-earth-spatial-layer{display:none}
+.future-home.mmh-perf-saver .mmh-hud-grid{display:none}
+.future-home.mmh-perf-saver .mmh-hud-card{box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none}
+
+/* A deliberately lighter mobile layer: keep the depth cue, remove expensive overlays. */
+@media(max-width:700px){
+  .future-home .earth-signal-layer{display:block;inset:0;opacity:.78;transform:none!important;contain:paint}
+  .future-home .mmh-financial-flow-field,.future-home .mmh-earth-spatial-layer,.future-home .mmh-financial-hud{display:none!important}
+  .future-home .signal-flow{top:8%;right:4%;transform:scale(.82);transform-origin:top right}
+  .future-home .signal-digital{left:4%;top:38%;transform:scale(.78);transform-origin:top left}
+  .future-home .signal-reserve{right:4%;bottom:17%;transform:scale(.78);transform-origin:bottom right}
+  .future-home .scan-strip{left:7%;right:7%;bottom:5%;opacity:.7;transform:scale(.86);transform-origin:center bottom}
+  .future-home .earth-signal-layer::after{display:none}
+}
+@media(max-width:430px){
+  .future-home .earth-signal-layer{opacity:.66}
+  .future-home .signal-flow{top:6%;right:2%;transform:scale(.68)}
+  .future-home .signal-digital{left:2%;top:34%;transform:scale(.66)}
+  .future-home .signal-reserve{right:2%;bottom:14%;transform:scale(.66)}
+  .future-home .scan-strip{transform:scale(.72)}
+}
+
+@media(prefers-reduced-motion:reduce){
+  .future-home .mmh-financial-flow-field,.future-home .mmh-earth-spatial-layer,.future-home .mmh-financial-hud{will-change:auto}
+}
+.future-home.mmh-offscreen .mmh-financial-flow-field,.future-home.mmh-offscreen .mmh-earth-spatial-layer,.future-home.mmh-offscreen .mmh-financial-hud{visibility:hidden}
+.future-home.mmh-idle .mmh-financial-flow-field{opacity:.56}
+.future-home.mmh-idle .mmh-space-point:nth-child(n+4){opacity:.22}

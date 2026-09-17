@@ -253,3 +253,55 @@
   window.addEventListener('pagehide',()=>{active=false;cancelAnimationFrame(raf);io.disconnect();},{once:true});
   raf=requestAnimationFrame(render);
 })();
+
+/* MMHVAULT v5.5 — adaptive performance governor. Keeps the visual system intact while
+   reducing expensive layers on constrained devices and pausing work outside the viewport. */
+(() => {
+  const home = document.querySelector('.future-home');
+  const root = home?.querySelector('.earth-signal-layer');
+  if (!home || !root || root.dataset.mmhPerfInstalled) return;
+  root.dataset.mmhPerfInstalled = '1';
+
+  const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  const mobile = window.matchMedia?.('(max-width: 700px)').matches;
+  const coarse = window.matchMedia?.('(pointer: coarse)').matches;
+  const cores = navigator.hardwareConcurrency || 4;
+  const memory = navigator.deviceMemory || 4;
+  const lowPower = cores <= 4 || memory <= 4;
+
+  if (lowPower) home.classList.add('mmh-perf-low');
+  if ((cores <= 2 || memory <= 2) && !reduced) home.classList.add('mmh-perf-saver');
+
+  // On touch devices there is no pointer-parallax benefit, so avoid keeping the
+  // heavy desktop layers alive. CSS supplies the dedicated mobile presentation.
+  if (mobile || coarse) return;
+
+  let visible = true;
+  let idleTimer = 0;
+  let lastInput = performance.now();
+  const markInput = () => {
+    lastInput = performance.now();
+    home.classList.remove('mmh-idle');
+    clearTimeout(idleTimer);
+    idleTimer = setTimeout(() => home.classList.add('mmh-idle'), 1800);
+  };
+  window.addEventListener('pointermove', markInput, {passive:true});
+  window.addEventListener('wheel', markInput, {passive:true});
+  window.addEventListener('scroll', markInput, {passive:true});
+
+  const io = new IntersectionObserver(entries => {
+    visible = !!entries[0]?.isIntersecting && !document.hidden;
+    home.classList.toggle('mmh-offscreen', !visible);
+  }, {rootMargin:'120px 0px', threshold:0});
+  io.observe(home);
+
+  document.addEventListener('visibilitychange', () => {
+    visible = !document.hidden;
+    home.classList.toggle('mmh-offscreen', !visible);
+  }, {passive:true});
+
+  window.addEventListener('pagehide', () => {
+    clearTimeout(idleTimer);
+    io.disconnect();
+  }, {once:true});
+})();
