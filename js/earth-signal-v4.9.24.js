@@ -199,3 +199,40 @@
     io.disconnect();
   }, {once:true});
 })();
+
+/* MMHVAULT v5.6 — cinematic landing intro. Adds a self-contained overlay only. */
+(() => {
+  const boot = () => {
+    const home = document.querySelector('.future-home');
+    if (!home || home.dataset.mmhCinematicInstalled) return;
+    home.dataset.mmhCinematicInstalled = '1';
+    const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    if (reduced) return;
+
+    const intro = document.createElement('div');
+    intro.className = 'mmh-cinematic-intro';
+    intro.setAttribute('aria-hidden', 'true');
+    intro.innerHTML = `
+      <div class="mmh-cinematic-intro__grid"></div>
+      <div class="mmh-cinematic-intro__ring"></div>
+      <div class="mmh-cinematic-intro__ticks"><i></i><i></i><i></i><i></i></div>
+      <div class="mmh-cinematic-intro__label"><b>MMHVAULT</b>&nbsp;&nbsp; INITIALIZING · FINANCIAL INTELLIGENCE</div>`;
+    home.prepend(intro);
+    home.classList.add('mmh-cinematic-intro');
+
+    // Keep the opening short and non-blocking. A hard fallback guarantees the
+    // overlay can never remain above the interface if an animation is delayed.
+    const finish = () => {
+      if (home.classList.contains('mmh-cinematic-done')) return;
+      home.classList.add('mmh-cinematic-done');
+      window.setTimeout(() => intro.remove(), 800);
+    };
+    window.setTimeout(finish, 1780);
+    intro.addEventListener('transitionend', (e) => {
+      if (e.propertyName === 'opacity') intro.remove();
+    }, {passive:true});
+  };
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, {once:true});
+  else boot();
+})();
