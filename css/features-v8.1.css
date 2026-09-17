@@ -1,0 +1,58 @@
+/* MMHVAULT FEATURES v8.1 — planetary system rebuild */
+.future-features .feature-architecture-v65{
+  position:absolute!important;left:40%!important;right:1%!important;top:52%!important;
+  width:auto!important;height:min(76vh,720px)!important;transform:translateY(-50%)!important;
+  overflow:visible!important;pointer-events:none!important;z-index:35!important;isolation:isolate!important;
+}
+.future-features .feature-architecture-v65 > *:not(.f81-scene){display:none!important}
+.f81-scene{position:absolute;inset:0;pointer-events:none;overflow:visible;transform-style:preserve-3d}
+.f81-vignette{position:absolute;inset:2% 0;background:radial-gradient(circle at 60% 52%,rgba(57,168,222,.10),transparent 28%),radial-gradient(circle at 88% 54%,rgba(244,201,105,.035),transparent 26%);filter:blur(10px)}
+.f81-earth{position:absolute;left:61%;top:52%;width:43%;aspect-ratio:1;transform:translate(-50%,-50%);z-index:30;border-radius:50%;overflow:visible;filter:drop-shadow(0 0 26px rgba(41,175,233,.22))}
+.f81-earth canvas{position:absolute;inset:0;width:100%;height:100%;display:block;border-radius:50%}
+.f81-earth::before{content:"";position:absolute;inset:-1.5%;border-radius:50%;box-shadow:0 0 0 1px rgba(112,226,255,.72),0 0 26px rgba(70,202,255,.26),inset 0 0 24px rgba(78,207,255,.10);pointer-events:none}
+.f81-earth::after{content:"";position:absolute;inset:-7%;border-radius:50%;background:radial-gradient(circle,rgba(71,193,240,.14) 0 44%,rgba(71,193,240,.05) 55%,transparent 72%);filter:blur(6px);z-index:-1;animation:f81-breathe 5.8s ease-in-out infinite}
+.f81-orbits{position:absolute;left:61%;top:52%;width:67%;height:70%;transform:translate(-50%,-50%);z-index:18;overflow:visible}
+.f81-orbits svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.f81-orbit ellipse{fill:none;vector-effect:non-scaling-stroke}
+.f81-o-back{stroke:rgba(103,218,255,.24);stroke-width:1}
+.f81-o-cyan{stroke:rgba(102,220,255,.72);stroke-width:1.25;filter:drop-shadow(0 0 4px rgba(67,190,241,.22))}
+.f81-o-gold{stroke:rgba(243,207,111,.70);stroke-width:1.20;filter:drop-shadow(0 0 4px rgba(243,207,111,.18))}
+.f81-satellite{filter:drop-shadow(0 0 6px currentColor);}
+.f81-sat-c{fill:#67ddff;color:#67ddff}.f81-sat-g{fill:#f2c969;color:#f2c969}
+.f81-sat-ring{fill:none;stroke:currentColor;stroke-width:1;stroke-opacity:.30}
+.f81-tag{position:absolute;z-index:55;pointer-events:auto;display:grid;grid-template-columns:26px 1fr;column-gap:9px;min-width:150px;max-width:195px;padding:8px 0 8px 0;color:#b8cbd6;transition:transform .22s ease,opacity .22s ease}
+.f81-tag .num{grid-row:1/3;align-self:start;width:20px;height:20px;border:1px solid rgba(101,220,255,.44);border-radius:50%;display:grid;place-items:center;color:#64d8ff;font:800 8px/1 ui-monospace,monospace;box-shadow:0 0 10px rgba(75,196,238,.12)}
+.f81-tag strong{display:block;color:#edf7fb;font:800 9px/1.2 ui-sans-serif,system-ui;letter-spacing:.14em}
+.f81-tag span{display:block;margin-top:5px;color:#8fa3b2;font:500 9px/1.35 ui-sans-serif,system-ui}
+.f81-tag::before{content:"";position:absolute;height:1px;width:34px;background:linear-gradient(90deg,rgba(102,220,255,.70),transparent);top:18px;filter:drop-shadow(0 0 5px rgba(102,220,255,.25))}
+.f81-tag.gold .num{border-color:rgba(244,204,107,.58);color:#f2c969}
+.f81-tag.gold::before{background:linear-gradient(90deg,rgba(243,207,111,.72),transparent)}
+.f81-t1{left:27%;top:5%}.f81-t2{right:0;top:8%}.f81-t3{right:1%;top:40%}.f81-t4{right:9%;bottom:6%}.f81-t5{left:28%;bottom:4%}.f81-t6{left:3%;top:41%}
+.f81-t1::before,.f81-t2::before{left:40px;transform:rotate(90deg);transform-origin:left center}
+.f81-t3::before,.f81-t4::before{left:-34px;transform:rotate(180deg);transform-origin:right center}
+.f81-t5::before,.f81-t6::before{right:-34px;transform:rotate(0deg);transform-origin:left center}
+.f81-label{position:absolute;z-index:10;color:rgba(135,157,172,.46);font:700 8px/1.55 ui-monospace,monospace;letter-spacing:.28em;white-space:nowrap}
+.f81-l1{left:18%;top:29%}.f81-l2{right:0;top:30%}.f81-l3{left:21%;bottom:15%}.f81-l4{right:2%;bottom:18%}
+.f81-scan{position:absolute;left:61%;top:52%;width:44%;height:44%;transform:translate(-50%,-50%);border-radius:50%;z-index:26;mix-blend-mode:screen;pointer-events:none}
+.f81-scan::before{content:"";position:absolute;inset:-1%;border-radius:50%;background:conic-gradient(from 0deg,transparent 0 76%,rgba(97,221,255,.26) 79%,rgba(97,221,255,.05) 81%,transparent 84%);animation:f81-scan 9s linear infinite}
+@keyframes f81-breathe{0%,100%{opacity:.65;transform:scale(.992)}50%{opacity:1;transform:scale(1.012)}}
+@keyframes f81-scan{to{transform:rotate(360deg)}}
+@media(max-width:1250px){
+ .future-features .feature-architecture-v65{left:38.5%!important;right:0!important}
+ .f81-earth,.f81-orbits,.f81-scan{left:61%}
+ .f81-tag{min-width:138px;max-width:176px}.f81-tag strong{font-size:8px}.f81-tag span{font-size:8px}.f81-t1{left:26%}.f81-t6{left:1%}
+}
+@media(max-width:980px){
+ .future-features .feature-architecture-v65{position:relative!important;left:auto!important;right:auto!important;top:auto!important;transform:none!important;width:100%!important;height:610px!important;margin-top:16px!important}
+ .f81-earth,.f81-orbits,.f81-scan{left:50%;top:52%}
+ .f81-tag{min-width:145px;max-width:185px}.f81-t1{left:17%}.f81-t2{right:3%}.f81-t3{right:2%}.f81-t4{right:8%}.f81-t5{left:17%}.f81-t6{left:2%}
+}
+@media(max-width:680px){
+ .future-features .feature-architecture-v65{height:540px!important;margin-top:2px!important}
+ .f81-earth{width:46%}.f81-orbits{width:92%;height:82%}.f81-tag{min-width:108px;max-width:120px;grid-template-columns:20px 1fr;column-gap:6px;padding:5px 0}
+ .f81-tag .num{width:16px;height:16px;font-size:7px}.f81-tag strong{font-size:7px;letter-spacing:.11em}.f81-tag span{font-size:6.6px;margin-top:3px}.f81-tag::before{width:22px;top:13px}
+ .f81-t1{left:8%;top:6%}.f81-t2{right:0;top:8%}.f81-t3{right:0;top:42%}.f81-t4{right:3%;bottom:2%}.f81-t5{left:8%;bottom:2%}.f81-t6{left:0;top:42%}
+ .f81-t1::before,.f81-t2::before{left:30px}.f81-t3::before,.f81-t4::before{left:-24px}.f81-t5::before,.f81-t6::before{right:-24px}
+ .f81-label{font-size:6.5px;letter-spacing:.19em}.f81-l1{left:9%;top:30%}.f81-l2{right:0;top:31%}.f81-l3{left:11%;bottom:16%}.f81-l4{right:0;bottom:18%}
+}
+@media(prefers-reduced-motion:reduce){.f81-earth::after,.f81-scan::before{animation:none!important}.f81-tag{transition:none}}
