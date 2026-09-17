@@ -22514,3 +22514,29 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
   setInterval(()=>{if(!document.hidden)sync();},5000);
 })();
 </script>
+
+<!-- MMHVAULT V5.3 — FINAL WEALTH AUTHORITY -->
+<script id="mmhvault-v53-final-wealth-authority">
+(function(){
+'use strict';
+if(window.__mmhV53FinalWealthAuthority)return; window.__mmhV53FinalWealthAuthority=true;
+const N=v=>{const x=Number(v);return Number.isFinite(x)?x:0;};
+const txs=()=>Array.isArray(window.transactions)?window.transactions.filter(Boolean):[];
+const invs=()=>Array.isArray(window.investments)?window.investments.filter(Boolean):[];
+const norm=v=>String(v||'').trim().toLowerCase().replace(/\s+/g,' ').replace(/saw/g,'zaw');
+const fx=()=>Math.max(0,N(window.rates?.usd_mmk)||4250);
+function loanMMK(){const o={},r={}; for(const t of txs()){const c=String(t?.category||'').trim(); if(c==='Loan Out'){const k=norm(t.note||'__unassigned__');o[k]=(o[k]||0)+Math.max(0,N(t.from_amount));} else if(c==='Loan Repayment'){const k=norm(t.note||'__unassigned__');r[k]=(r[k]||0)+Math.max(0,N(t.to_amount));}} let z=0; for(const k of new Set([...Object.keys(o),...Object.keys(r)]))z+=Math.max(0,(o[k]||0)-(r[k]||0)); return z;}
+function goldQ(x){if(!x||x.asset!=='Gold')return 0; try{if(typeof window.goldHoldingQty==='function'){const q=N(window.goldHoldingQty(x));if(q!==0)return q;}}catch(_){} let q=N(x.weight_kyattha)||N(x.quantity); if(String(x.side||x.trade_type||'').toUpperCase()==='SELL'&&q>0)q=-q; return q;}
+function goldUSD(){const rows=invs().filter(x=>x.asset==='Gold');const q=rows.reduce((s,x)=>s+goldQ(x),0);let p=N(window.goldMarketState?.pricePerKyattha);if(p<=0)p=rows.map(x=>N(x.market_price)).find(v=>v>0)||N(rows[0]?.buy_price);const r=fx();return q>0&&p>0&&r>0?q*p/r:0;}
+function cryptoUSD(){return invs().filter(x=>x.asset==='Crypto').reduce((s,x)=>{const q=N(x.quantity),p=N(window.livePrices?.[x.symbol]?.price)||N(x.market_price);return s+(q>0&&p>0?q*p:0);},0);}
+function investUSD(){return Math.max(0,cryptoUSD()+goldUSD());}
+function cashUSD(){return Math.max(0,['Bath','TrueMoney','OKX','ByBit','MetaMask','KPay'].reduce((s,a)=>{try{return s+N(window.balance?.(a))*N(window.toUSD?.(a));}catch(_){return s;}},0));}
+function snapshot(){const cash=cashUSD(),invest=investUSD(),loan=loanMMK()/fx(),net=cash+invest+loan;return {cash,invest,crypto:cryptoUSD(),gold:goldUSD(),loan,loanMMK:loanMMK(),net,investmentWeight:net?invest/net*100:0,loanWeight:net?loan/net*100:0,live:true};}
+window.mmhGetCanonicalWealthV5=snapshot; window.mmhGetTotalOwnedWealthV51=snapshot; window.mmhvaultNetWorthUSD=()=>snapshot().net; window.mmhLoanReceivableMMKV51=loanMMK; window.mmhLoanReceivableUSDV51=()=>loanMMK()/fx(); window.mmhvaultInvestmentValueUSD=investUSD; window.investmentValueUSD=investUSD;
+const money=v=>'$ '+N(v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+function set(id,v){const e=document.getElementById(id);if(e)e.textContent=v;}
+function sync(){const dsh=document.getElementById('dashboard');if(!dsh?.classList.contains('active'))return;const d=snapshot();set('mmhCommandNetWorthV34210',money(d.net));set('mmhCommandCashV34210',money(d.cash));set('mmhCommandInvestV34210',money(d.invest));set('mmhCommandWeightV34210',d.investmentWeight.toFixed(1)+'%');set('mmhCommandNetWorthChangeV34210','Live total assets · Crypto + Gold + Loan Receivable');let host=document.getElementById('mmhV53LoanChip');const anchor=document.querySelector('#dashboard .mmh-command-v34210');if(anchor&&!host){const bar=anchor.querySelector('.mmh-command-bottom,.command-bottom,.mmh-command-meta,.meta-row')||anchor.lastElementChild||anchor;host=document.createElement('span');host.id='mmhV53LoanChip';host.innerHTML='<span>Loan Receivable</span><b></b>';bar.appendChild(host);}if(host){host.style.cssText='display:inline-flex;align-items:center;gap:7px;padding:8px 12px;margin-left:8px;border:1px solid rgba(82,157,255,.32);border-radius:12px;background:rgba(10,25,52,.72);color:#a9bddb;font-size:11px;font-weight:800;';host.querySelector('b').textContent=money(d.loan);}
+const hero=document.getElementById('dashboardHero');if(hero){const cards=hero.querySelectorAll('.card');if(cards[0]){const b=cards[0].querySelector('.big');if(b)b.textContent=money(d.net);const sm=cards[0].querySelector('.small');if(sm)sm.textContent='Cash + Crypto + Gold + Loan Receivable · USD';}if(cards[1]){const b=cards[1].querySelector('.big');if(b)b.textContent=money(d.cash);}if(cards[2]){const b=cards[2].querySelector('.big');if(b)b.textContent=money(d.invest);}} window.netWorth=d.net;window.__mmhV53WealthSnapshot=d;}
+let tm=0;function schedule(){clearTimeout(tm);tm=setTimeout(()=>{try{sync();}catch(e){}},80);}['mmhvault:data-loaded','mmhvault:sync-complete','mmhvault:cache-restored','mmhvault:market-updated'].forEach(ev=>window.addEventListener(ev,schedule,{passive:true}));if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(sync,300),{once:true});else setTimeout(sync,300);
+})();
+</script>
