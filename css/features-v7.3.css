@@ -1,0 +1,157 @@
+/* MMHVAULT FEATURES v7.3 — Planetary hero reconstruction */
+/* Loaded last on purpose: this file owns ONLY the Features Hero visual layer. */
+
+.future-features .future-hero{
+  position:relative!important; overflow:hidden!important; isolation:isolate!important;
+  min-height:clamp(720px,calc(100svh - 96px),860px)!important;
+  height:clamp(720px,calc(100svh - 96px),860px)!important;
+  padding:34px 0 30px!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,41%) minmax(0,59%)!important;
+  align-items:center!important;
+}
+.future-features .future-hero::before{content:"";position:absolute;inset:0;z-index:-3;pointer-events:none;
+  background:radial-gradient(circle at 78% 48%,rgba(25,129,198,.13),transparent 26%),
+             radial-gradient(circle at 87% 14%,rgba(242,201,105,.045),transparent 18%),
+             linear-gradient(90deg,rgba(0,7,14,.02),rgba(0,7,14,.05) 58%,rgba(0,7,14,.10) 100%);
+}
+.future-features .future-hero::after{content:"";position:absolute;inset:0;z-index:-2;pointer-events:none;
+  background-image:linear-gradient(rgba(90,181,226,.020) 1px,transparent 1px),linear-gradient(90deg,rgba(90,181,226,.020) 1px,transparent 1px);
+  background-size:44px 44px; mask-image:linear-gradient(90deg,#000 0 54%,rgba(0,0,0,.65) 82%,transparent 100%);
+}
+.future-features .future-hero-inner{width:min(100%,600px)!important;max-width:600px!important;padding-right:30px!important;position:relative!important;z-index:100!important;align-self:center!important;}
+.future-features .future-hero h1{font-size:clamp(58px,5.05vw,82px)!important;max-width:570px!important;margin:24px 0 25px!important;line-height:.94!important;letter-spacing:-.065em!important;text-wrap:balance!important;}
+.future-features .future-hero h1 .accent{color:#f3ca69!important;}
+.future-features .future-hero p{max-width:530px!important;font-size:16px!important;line-height:1.68!important;color:#93a7b8!important;margin:0!important;}
+.future-features .feature65-actions{margin-top:30px!important;}
+.future-features .feature65-stat-rail{max-width:600px!important;display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;margin-top:42px!important;border-top:1px solid rgba(75,143,178,.25)!important;border-bottom:1px solid rgba(75,143,178,.18)!important;}
+.future-features .feature65-stat-rail>div{padding:14px 10px 15px 0!important;min-width:0!important;border-right:1px solid rgba(75,143,178,.16)!important;}
+.future-features .feature65-stat-rail>div:last-child{border-right:0!important;}
+.future-features .feature65-stat-rail b{display:block;color:#edf4f7!important;font:700 10px/1.2 ui-monospace,monospace!important;letter-spacing:.18em!important;}
+.future-features .feature65-stat-rail span{display:block;margin-top:8px!important;color:#718496!important;font-size:10px!important;line-height:1.3!important;}
+.future-features .future-orbit{display:none!important;}
+
+/* The architecture stage is a single planetary composition, not a second panel system. */
+.future-features .feature-architecture-v65{
+  position:absolute!important; left:40%!important; right:.8%!important; top:50.5%!important;
+  width:auto!important; height:min(78vh,735px)!important; transform:translateY(-50%)!important;
+  perspective:2200px!important; transform-style:preserve-3d!important; overflow:visible!important;
+  z-index:20!important; pointer-events:none!important;
+}
+.future-features .feature-architecture-v65::before{content:"";position:absolute;left:12%;right:5%;top:8%;bottom:7%;
+  border-radius:50%;pointer-events:none;z-index:-4;
+  background:radial-gradient(circle at 55% 50%,rgba(31,145,219,.12),transparent 33%),
+             radial-gradient(circle at 58% 48%,rgba(242,201,105,.045),transparent 58%);
+  filter:blur(24px);}
+.arch65-grid,.arch65-halo,.arch65-signal,.arch65-flow-dot,.arch65-caption{display:none!important;}
+
+/* Planet */
+.arch65-earth{
+  position:absolute!important; left:54%!important; top:52%!important; width:43.5%!important; aspect-ratio:1;
+  border-radius:50%; overflow:hidden; background:#061321 url('../images/mmhvault-earth-v4.9.16.jpg') center/cover no-repeat;
+  transform:translate(-50%,-50%) translateZ(60px)!important; z-index:24!important; isolation:isolate;
+  box-shadow:0 0 0 1px rgba(100,220,255,.22),0 0 34px rgba(51,168,231,.35),0 0 92px rgba(34,119,195,.16)!important;
+}
+#feature-earth-canvas{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;display:block;z-index:2!important;opacity:0;transition:opacity .25s ease;}
+.arch65-earth.webgl-ready #feature-earth-canvas{opacity:1;}
+.arch65-earth::before{content:"";position:absolute;inset:-4%;border-radius:50%;pointer-events:none;z-index:0;
+  background:radial-gradient(circle at 45% 40%,rgba(68,175,235,.08),transparent 54%);
+}
+.arch65-earth::after{content:"";position:absolute;inset:0;border-radius:50%;pointer-events:none;z-index:5;
+  background:radial-gradient(circle at 27% 23%,rgba(255,255,255,.05),transparent 17%),linear-gradient(124deg,transparent 36%,rgba(0,4,9,.10) 58%,rgba(0,0,0,.48) 100%);
+}
+.earth-shade{position:absolute;inset:0;border-radius:50%;pointer-events:none;z-index:6;
+  background:linear-gradient(124deg,rgba(0,0,0,0) 38%,rgba(0,2,7,.12) 60%,rgba(0,0,0,.54) 100%);
+}
+.earth-rim{position:absolute;inset:-1px;border-radius:50%;border:1px solid rgba(117,227,255,.78);box-shadow:inset 0 0 22px rgba(89,206,255,.22),0 0 26px rgba(82,201,255,.32);pointer-events:none;z-index:7;}
+.earth-glow{position:absolute;inset:-9%;border-radius:50%;pointer-events:none;z-index:0;
+  background:radial-gradient(circle,rgba(55,164,220,.16) 0 40%,rgba(55,164,220,.045) 53%,transparent 74%);
+  filter:blur(3px);animation:f73-breathe 6.4s ease-in-out infinite;
+}
+
+/* Orbital planes: clean, shared center, very subtle motion. */
+.arch65-orbit{
+  position:absolute!important; left:54%!important; top:52%!important; border-radius:50%;
+  transform-style:preserve-3d; pointer-events:none; z-index:13!important; overflow:visible!important;
+  will-change:transform; transform-origin:50% 50%;
+}
+.arch65-orbit.o-a{width:74%!important;height:30.5%!important;border:1px solid rgba(101,221,255,.82)!important;
+  box-shadow:0 0 9px rgba(95,215,255,.14);animation:f73-orbit-a 22s linear infinite;}
+.arch65-orbit.o-b{width:80%!important;height:33%!important;border:1px solid rgba(248,210,114,.78)!important;
+  box-shadow:0 0 10px rgba(242,201,105,.13);animation:f73-orbit-b 28s linear infinite reverse;}
+.arch65-orbit.o-c{width:43%!important;height:69%!important;border:1px solid rgba(106,222,255,.40)!important;
+  box-shadow:0 0 8px rgba(95,215,255,.08);animation:f73-orbit-c 34s linear infinite;}
+.arch65-orbit::after{content:"";position:absolute;inset:-2px;border-radius:50%;border:2px solid transparent;
+  border-top-color:rgba(156,236,255,.76);border-right-color:rgba(156,236,255,.05);
+  filter:drop-shadow(0 0 7px rgba(102,220,255,.25));
+  animation:f73-glint 4.8s linear infinite;pointer-events:none;}
+.arch65-orbit.o-b::after{border-top-color:rgba(255,226,140,.72);border-right-color:rgba(255,226,140,.05);animation-duration:6.3s;animation-direction:reverse;}
+.arch65-orbit.o-c::after{border-top-color:rgba(156,236,255,.48);border-right-color:rgba(156,236,255,.04);animation-duration:8.5s;}
+
+/* Satellite points are attached to the orbit, so the motion reads as a planetary system. */
+.arch65-satellite{position:absolute!important;width:7px!important;height:7px!important;margin:-3.5px 0 0 -3.5px!important;
+  border-radius:50%;pointer-events:none;z-index:19;will-change:left,top,transform;}
+.arch65-sat-cyan{background:#67ddff;color:#67ddff;box-shadow:0 0 12px rgba(102,220,255,.95),0 0 25px rgba(102,220,255,.18);}
+.arch65-sat-gold{background:#f4cf76;color:#f4cf76;box-shadow:0 0 12px rgba(242,201,105,.92),0 0 25px rgba(242,201,105,.18);}
+.arch65-satellite::after{content:"";position:absolute;inset:-5px;border:1px solid currentColor;border-radius:50%;opacity:.3;animation:f73-sat-pulse 2.5s ease-out infinite;}
+
+/* Foreground orbit halves create a genuine front/back spatial read. */
+.arch73-front-orbit{position:absolute;left:54%;top:52%;border-radius:50%;pointer-events:none;z-index:29;transform-origin:50% 50%;
+  border:1px solid transparent;box-sizing:border-box;mix-blend-mode:screen;}
+.arch73-front-orbit.a{width:74%;height:30.5%;border-bottom-color:rgba(119,230,255,.86);clip-path:inset(50% -10% -10% -10%);animation:f73-orbit-a 22s linear infinite;}
+.arch73-front-orbit.b{width:80%;height:33%;border-bottom-color:rgba(255,224,133,.82);clip-path:inset(50% -10% -10% -10%);animation:f73-orbit-b 28s linear infinite reverse;}
+.arch73-front-orbit.c{width:43%;height:69%;border-right-color:rgba(119,230,255,.46);clip-path:inset(-10% -10% -10% 50%);animation:f73-orbit-c 34s linear infinite;}
+
+/* Six cards: protected lanes around the planet. */
+.arch65-card{position:absolute!important;width:clamp(176px,19.3%,212px)!important;min-height:92px!important;box-sizing:border-box;
+  padding:14px 14px 12px 42px!important;border:1px solid rgba(94,206,255,.38);border-radius:12px;
+  background:linear-gradient(145deg,rgba(7,29,48,.94),rgba(2,12,22,.91));
+  box-shadow:0 14px 42px rgba(0,0,0,.25),inset 0 0 24px rgba(95,215,255,.03);
+  backdrop-filter:blur(12px);z-index:55!important;pointer-events:auto;
+  transition:transform .2s cubic-bezier(.2,.75,.25,1),border-color .2s ease,box-shadow .2s ease,background .2s ease;
+}
+.arch65-card:hover{transform:translate3d(0,-2px,7px) rotateX(var(--card-rx,0deg)) rotateY(var(--card-ry,0deg))!important;
+  border-color:rgba(95,215,255,.56);box-shadow:0 18px 46px rgba(0,0,0,.28),0 0 22px rgba(95,215,255,.08);}
+.arch65-card strong{display:block;color:#eef6fb;font:800 10px/1.2 ui-sans-serif,system-ui;letter-spacing:.09em;white-space:nowrap;}
+.arch65-card span{display:block;margin-top:8px;color:#aec0ce;font:500 9.5px/1.36 ui-sans-serif,system-ui;}
+.arch65-card b{position:absolute;left:13px;top:14px;color:#5fd8ff;font:800 10px/1 ui-monospace,monospace;}
+.arch65-card em{position:absolute;left:12px;bottom:10px;color:#66cfff;font:700 20px/1 ui-sans-serif;font-style:normal;text-shadow:0 0 14px rgba(95,215,255,.52);}
+.arch65-card::after{content:"";position:absolute;left:0;top:20%;bottom:20%;width:2px;background:linear-gradient(180deg,transparent,#5fd8ff,transparent);opacity:.42;box-shadow:0 0 10px rgba(95,215,255,.30);}
+.c1{left:18%!important;top:2%!important;}.c2{right:4%!important;top:5%!important;}.c3{right:1.5%!important;top:40%!important;}.c4{right:8%!important;bottom:3%!important;}.c5{left:18%!important;bottom:3%!important;}.c6{left:1%!important;top:40%!important;}
+
+@keyframes f73-orbit-a{from{transform:translate(-50%,-50%) rotateX(68deg) rotateY(-14deg) rotateZ(-12deg)}to{transform:translate(-50%,-50%) rotateX(68deg) rotateY(-14deg) rotateZ(348deg)}}
+@keyframes f73-orbit-b{from{transform:translate(-50%,-50%) rotateX(65deg) rotateY(17deg) rotateZ(21deg)}to{transform:translate(-50%,-50%) rotateX(65deg) rotateY(17deg) rotateZ(-339deg)}}
+@keyframes f73-orbit-c{from{transform:translate(-50%,-50%) rotateX(13deg) rotateY(70deg) rotateZ(-13deg)}to{transform:translate(-50%,-50%) rotateX(13deg) rotateY(70deg) rotateZ(347deg)}}
+@keyframes f73-glint{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+@keyframes f73-breathe{0%,100%{opacity:.45;transform:scale(.993)}50%{opacity:.82;transform:scale(1.018)}}
+@keyframes f73-sat-pulse{0%{transform:scale(.5);opacity:.48}100%{transform:scale(1.9);opacity:0}}
+
+@media(max-width:1120px) and (min-width:901px){
+  .future-features .future-hero{grid-template-columns:42% 58%!important;}
+  .future-features .feature-architecture-v65{left:40.5%!important;right:.4%!important;height:min(74vh,700px)!important;}
+  .arch65-earth,.arch65-orbit,.arch73-front-orbit{left:54%!important;}
+  .arch65-card{width:clamp(160px,19%,198px)!important;}
+  .c2{right:1.2%!important}.c3{right:1%!important}.c4{right:5%!important}
+}
+@media(max-width:900px){
+  .future-features .future-hero{display:block!important;height:auto!important;min-height:0!important;overflow:hidden!important;padding-bottom:30px!important;}
+  .future-features .future-hero-inner{max-width:720px!important;margin:0 auto!important;padding:0 20px!important;}
+  .future-features .future-hero h1{font-size:clamp(48px,10.5vw,72px)!important;}
+  .future-features .feature-architecture-v65{position:relative!important;left:auto!important;right:auto!important;top:auto!important;transform:none!important;width:min(96vw,760px)!important;height:min(100vw,680px)!important;margin:34px auto 0!important;}
+  .arch65-earth,.arch65-orbit,.arch73-front-orbit{left:50%!important;top:52%!important;}
+}
+@media(max-width:560px){
+  .future-features .feature-architecture-v65{width:100vw!important;height:112vw!important;max-height:620px!important;}
+  .arch65-earth{width:45%!important;}
+  .arch65-orbit.o-a,.arch73-front-orbit.a{width:62%!important;height:29%!important;}
+  .arch65-orbit.o-b,.arch73-front-orbit.b{width:67%!important;height:31%!important;}
+  .arch65-orbit.o-c,.arch73-front-orbit.c{width:38%!important;height:60%!important;}
+  .arch65-card{width:128px!important;min-height:70px!important;padding:10px 8px 8px 31px!important;}
+  .arch65-card strong{font-size:7px!important}.arch65-card span{font-size:7px!important;line-height:1.28!important}.arch65-card b{left:9px!important;top:10px!important;font-size:8px!important}.arch65-card em{left:8px!important;bottom:8px!important;font-size:15px!important;}
+  .c1{left:1%!important;top:1%!important}.c2{right:0!important;top:2%!important}.c3{right:0!important;top:42%!important}.c4{right:2%!important;bottom:1%!important}.c5{left:2%!important;bottom:1%!important}.c6{left:0!important;top:42%!important}
+}
+@media(prefers-reduced-motion:reduce){
+  .arch65-orbit,.arch73-front-orbit,.earth-glow,.arch65-orbit::after,.arch65-satellite::after{animation:none!important;}
+  #feature-earth-canvas{display:none!important;}.arch65-earth{background-image:url('../images/mmhvault-earth-v4.9.16.jpg')!important;}
+  .arch65-card{transition:none!important;}
+}
