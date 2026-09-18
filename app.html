@@ -16826,6 +16826,101 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
   *{scroll-behavior:auto!important;}
 }
 </style>
+
+<style id="mmhvault-v441-desktop-edit-scroll">
+/* V4.4.1 · Desktop Edit Modal Scroll Fix
+   Desktop only: keep the modal itself fixed while its content gets a real
+   mouse-wheel/trackpad scroll area. Mobile behavior is intentionally untouched. */
+@media (min-width:651px){
+  #editModal.open{
+    position:fixed !important;
+    inset:0 !important;
+    width:100vw !important;
+    height:100vh !important;
+    box-sizing:border-box !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    overflow:hidden !important;
+    overscroll-behavior:contain !important;
+  }
+
+  #editModal.open > .modal{
+    width:min(960px,calc(100vw - 48px)) !important;
+    max-width:min(960px,calc(100vw - 48px)) !important;
+    height:auto !important;
+    max-height:calc(100vh - 48px) !important;
+    min-height:0 !important;
+    margin:0 !important;
+    box-sizing:border-box !important;
+    display:flex !important;
+    flex-direction:column !important;
+    overflow:hidden !important;
+  }
+
+  #editModal.open > .modal > .toolbar{
+    flex:0 0 auto !important;
+    position:sticky !important;
+    top:0 !important;
+    z-index:20 !important;
+  }
+
+  #editModal.open #editModalBody{
+    flex:1 1 auto !important;
+    min-height:0 !important;
+    max-height:none !important;
+    height:auto !important;
+    overflow-y:auto !important;
+    overflow-x:hidden !important;
+    overscroll-behavior:contain !important;
+    -webkit-overflow-scrolling:auto !important;
+    scrollbar-gutter:stable !important;
+    touch-action:auto !important;
+    cursor:auto !important;
+  }
+
+  #editModal.open #editModalBody form{
+    min-height:0 !important;
+    height:auto !important;
+    display:block !important;
+  }
+
+  #editModal.open #editModalBody .formgrid{
+    min-height:0 !important;
+  }
+
+  #editModal.open #editModalBody .receipt-upload-v3300{
+    flex:none !important;
+  }
+
+  #editModal.open #editModalBody .actions{
+    position:sticky !important;
+    bottom:0 !important;
+    z-index:15 !important;
+  }
+
+  /* Make the desktop scrollbar visible enough to discover, without changing
+     the visual design of the modal itself. */
+  #editModal.open #editModalBody::-webkit-scrollbar{
+    width:10px !important;
+  }
+  #editModal.open #editModalBody::-webkit-scrollbar-thumb{
+    background:rgba(115,158,211,.42) !important;
+    border-radius:10px !important;
+    border:2px solid transparent !important;
+    background-clip:padding-box !important;
+  }
+  #editModal.open #editModalBody::-webkit-scrollbar-track{
+    background:rgba(4,12,27,.22) !important;
+    border-radius:10px !important;
+  }
+  #editModal.open #editModalBody{
+    scrollbar-width:auto !important;
+    scrollbar-color:rgba(115,158,211,.42) rgba(4,12,27,.22) !important;
+  }
+}
+</style>
+
 </html>
 <!-- MMHVAULT V4.3.0 · Transaction Cascade Hotfix -->
 <script id="mmhvault-v34430-transaction-cascade-hotfix">
