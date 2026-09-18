@@ -16921,6 +16921,37 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
 }
 </style>
 
+
+<style id="mmhvault-v442-desktop-edit-actions-flow">
+/* V4.4.2 · Desktop Edit actions follow the form flow.
+   Cancel / Save Changes must scroll together with the editor content.
+   Mobile behavior remains unchanged. */
+@media (min-width:651px){
+  #editModal.open #editModalBody .actions,
+  #editModal.open #editTxForm > .actions,
+  #editModal.open #editInvForm > .actions{
+    position:static !important;
+    bottom:auto !important;
+    top:auto !important;
+    z-index:auto !important;
+    flex:0 0 auto !important;
+    width:auto !important;
+    margin:12px 0 0 !important;
+    padding:12px 0 4px !important;
+    background:transparent !important;
+    border-top:0 !important;
+    backdrop-filter:none !important;
+    -webkit-backdrop-filter:none !important;
+  }
+
+  #editModal.open #editModalBody .actions .btn,
+  #editModal.open #editTxForm > .actions .btn,
+  #editModal.open #editInvForm > .actions .btn{
+    flex:0 0 auto !important;
+  }
+}
+</style>
+
 </html>
 <!-- MMHVAULT V4.3.0 · Transaction Cascade Hotfix -->
 <script id="mmhvault-v34430-transaction-cascade-hotfix">
