@@ -5604,7 +5604,7 @@ body{
 <div class="tx-tab-panel-v371" id="txAddPanel"><div class="panel"><h2>Add Transaction</h2><form id="txForm"><div class="formgrid">
 <label>Date<input id="txDate" required="" type="date"/></label>
 <label>Type<select id="txType"><option>Income</option><option>Expense</option><option>Transfer</option></select></label>
-<label>Transaction<select id="txGroup"><option>Income</option><option>Expense</option><option>Personal</option><option>Loans</option></select></label>
+<label>Transaction<select id="txGroup"><option>Income</option><option>Expense</option><option>Personal</option><option>Loans</option><option>Adjustment</option></select></label><span class="mmh-adjustment-help" id="txAdjustmentHelp">Adjustment records affect account balances but are excluded from spending/consumption statistics.</span>
 <label>Category<select id="txCategory"></select></label>
 <label>From Account<select id="fromAccount"></select></label>
 <label>Account From Amount<input id="fromAmount" min="0" step="0.000001" type="number"/></label>
@@ -5638,7 +5638,7 @@ body{
 <div class="filter-grid" style="display:grid;grid-template-columns:2fr repeat(4,1fr);gap:10px;margin-bottom:12px">
 <label>Search<input id="txSearch" placeholder="Salary / OKX / Dining / note"/></label>
 <label>Type<select id="txFilterType"><option value="">All</option><option>Income</option><option>Expense</option><option>Transfer</option></select></label>
-<label>Transaction<select id="txFilterGroup"><option value="">All</option><option>Income</option><option>Expense</option><option>Personal</option><option>Loans</option><option>Transfer</option></select></label>
+<label>Transaction<select id="txFilterGroup"><option value="">All</option><option>Income</option><option>Expense</option><option>Personal</option><option>Loans</option><option>Adjustment</option><option>Transfer</option></select></label>
 <label>Category<select id="txFilterCategory"><option value="">All</option></select></label>
 <label>Account<select id="txFilterAccount"><option value="">All</option></select></label>
 </div><div class="actions" style="margin-top:0;justify-content:flex-end;gap:8px"><button class="btn" onclick="clearTxFilters()" type="button">↺ Clear Filters</button><button class="btn" onclick="exportTransactionsCSV()" type="button">Export CSV</button></div>
@@ -6157,10 +6157,17 @@ mmhvaultAuthBootTimerV3285=setTimeout(()=>{
   if(g)g.innerHTML='<div style="max-width:480px;border:1px solid rgba(255,193,7,.28);border-radius:18px;padding:24px 22px;background:rgba(25,24,12,.96);font-family:Arial,sans-serif;text-align:center;"><div style="font-size:18px;font-weight:800;color:#fff;">MMHVAULT is still connecting…</div><div style="margin-top:8px;color:#d8cfa1;font-size:13px;line-height:1.5;">Supabase Auth has not finished initializing. Please refresh once. Your cloud data is not being changed.</div><button type="button" style="margin-top:16px;padding:10px 16px;border-radius:10px;border:1px solid rgba(90,190,255,.35);background:#102a49;color:#fff;font-weight:700;cursor:pointer;" onclick="location.reload()">Refresh</button></div>';
 },10000);
 const ACC=["Bath","TrueMoney","OKX","ByBit","MetaMask","KPay"];
-const CATS={Expense:["Dining","Snacks","Smoking","Transport","Wellness","Lifestyle","Other"],Income:["Salary","Meal Allowance","Bonus","Other Income"],Personal:["Family Support","Special Transfer","Gifts","Donation"],LoanIncome:["Debt","Loan Repayment"],LoanExpense:["PaidDeb","Loan Out"],Transfer:["Transfer"]};
+const CATS={Expense:["Dining","Snacks","Smoking","Transport","Wellness","Lifestyle","Other"],Income:["Salary","Meal Allowance","Bonus","Other Income"],Personal:["Family Support","Special Transfer","Gifts","Donation"],Adjustment:["Data Adjustment"],LoanIncome:["Debt","Loan Repayment"],LoanExpense:["PaidDeb","Loan Out"],Transfer:["Transfer"]};
 let transactions=[], investments=[], rates={usd_mmk:4400,usd_thb:31.5,usd_cny:7.18}, realtimeReady=false, currentUserEmail="", currentSessionUser=null, currentCustomerId="";
 const $=id=>document.getElementById(id), n=v=>Number(v||0), fmt=v=>n(v).toLocaleString(undefined,{maximumFractionDigits:2}), esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
 const today=()=>new Date().toISOString().slice(0,10);
+const isAdjustmentTx=t=>{
+  if(!t)return false;
+  const cat=String(t.category||'').trim().toLowerCase();
+  const note=String(t.note||'').trim().toLowerCase();
+  return cat==='adjustment'||cat==='data adjustment'||cat==='调整数据'||cat==='数据调整'||note.includes('纠正数据')||note.includes('数据纠正')||note.includes('data adjustment');
+};
+
 function showLandingV327(){
   const landing=$("mmhvaultLandingV327");
   if(landing){landing.classList.remove("is-hidden-v327");landing.setAttribute("aria-hidden","false");}
@@ -6394,7 +6401,7 @@ window.myFinanceCloseGettingStarted=()=>closeGettingStarted(true);window.myFinan
 async function signOut(){await db.auth.signOut();}
 function syncTransactionGroup(){
 const type=$("txType").value, g=$("txGroup");
-const groups=type==="Income"?["Income","Loans"]:type==="Expense"?["Expense","Personal","Loans"]:["Transfer"];
+const groups=type==="Income"?["Income","Loans","Adjustment"]:type==="Expense"?["Expense","Personal","Loans","Adjustment"]:["Transfer"];
 const current=g.value;
 g.innerHTML=groups.map(x=>`<option>${x}</option>`).join("");
 g.value=groups.includes(current)?current:groups[0];
@@ -6619,7 +6626,7 @@ function renderDashboardV372(){
       let inc=0,exp=0;
       rows.forEach(t=>{
         if(t.type==='Income')inc+=n(t.to_amount)*toMMK(t.to_account);
-        if(t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment')exp+=n(t.from_amount)*toMMK(t.from_account);
+        if(t.type==='Expense'&&!isAdjustmentTx(t)&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment')exp+=n(t.from_amount)*toMMK(t.from_account);
       });
       const save=inc-exp;
       return {inc,exp,save,rate:inc?save/inc*100:0};
@@ -6864,8 +6871,8 @@ txList.innerHTML=`<table><tr><th>Date</th><th>Type</th><th>Category</th><th>From
 }
 function closeEditModal(){$('editModal').classList.remove('open');$('editModalBody').innerHTML='';}
 function openEditModal(title,body){$('editModalTitle').textContent=title;$('editModalBody').innerHTML=body;$('editModal').classList.add('open');}
-function txCategoryOptions(type,group){if(type==='Transfer')return ['Transfer'];if(group==='Income')return ['Salary','Meal Allowance','Bonus','Other Income'];if(group==='Expense')return ['Dining','Snacks','Smoking','Transport','Wellness','Lifestyle','Other'];if(group==='Personal')return ['Family Support','Special Transfer','Gifts','Donation'];if(group==='Loans')return type==='Income'?['Debt','Loan Repayment']:['PaidDeb','Loan Out'];return ['Other'];}
-function inferTxGroup(t){if(t.type==='Transfer')return 'Transfer';if(t.type==='Income')return CATS.LoanIncome.includes(t.category)?'Loans':'Income';if(t.type==='Expense'){if(CATS.Expense.includes(t.category))return 'Expense';if(CATS.Personal.includes(t.category))return 'Personal';if(CATS.LoanExpense.includes(t.category))return 'Loans';}return t.type;}
+function txCategoryOptions(type,group){if(type==='Transfer')return ['Transfer'];if(group==='Adjustment')return ['Data Adjustment'];if(group==='Income')return ['Salary','Meal Allowance','Bonus','Other Income'];if(group==='Expense')return ['Dining','Snacks','Smoking','Transport','Wellness','Lifestyle','Other'];if(group==='Personal')return ['Family Support','Special Transfer','Gifts','Donation'];if(group==='Loans')return type==='Income'?['Debt','Loan Repayment']:['PaidDeb','Loan Out'];return ['Other'];}
+function inferTxGroup(t){if(isAdjustmentTx(t))return 'Adjustment';if(t.type==='Transfer')return 'Transfer';if(t.type==='Income')return CATS.LoanIncome.includes(t.category)?'Loans':'Income';if(t.type==='Expense'){if(CATS.Expense.includes(t.category))return 'Expense';if(CATS.Personal.includes(t.category))return 'Personal';if(CATS.LoanExpense.includes(t.category))return 'Loans';}return t.type;}
 
 
 /* V4.3.0 · Transaction delete repair */
@@ -6967,7 +6974,7 @@ function editTx(id){
 
   const sync=()=>{
     const type=$('eType').value;
-    const groups=type==='Income'?['Income','Loans']:type==='Expense'?['Expense','Personal','Loans']:['Transfer'];
+    const groups=type==='Income'?['Income','Loans','Adjustment']:type==='Expense'?['Expense','Personal','Loans','Adjustment']:['Transfer'];
     const currentGroup=$('eGroup').value;
     const nextGroup=groups.includes(currentGroup)?currentGroup:(groups.includes(group)?group:groups[0]);
     $('eGroup').innerHTML=groups.map(x=>`<option value="${x}">${x}</option>`).join('');
@@ -7662,7 +7669,7 @@ autoBindExcel();
 const V28_TARGETS={BTC:45,ETH:25,SOL:12,BNB:10,USDT:8}; CATS.Loans=[...CATS.LoanIncome,...CATS.LoanExpense];
 const V28_BUDGETS={Dining:10000,Snacks:3000,Smoking:2500,Transport:2000,Wellness:8000,Lifestyle:2000,Other:1000};
 function v28PageList(){return ['dashboard','analyze','transactions','invest','exchange','settings'];}
-function transactionGroupFor(t){if(t.type==='Transfer')return 'Transfer';if(t.type==='Income')return ['Debt','Loan Repayment'].includes(t.category)?'Loans':'Income';if(t.type==='Expense')return ['PaidDeb','Loan Out'].includes(t.category)?'Loans':['Family Support','Special Transfer','Gifts','Donation'].includes(t.category)?'Personal':'Expense';return '';}
+function transactionGroupFor(t){if(isAdjustmentTx(t))return 'Adjustment';if(t.type==='Transfer')return 'Transfer';if(t.type==='Income')return ['Debt','Loan Repayment'].includes(t.category)?'Loans':'Income';if(t.type==='Expense')return ['PaidDeb','Loan Out'].includes(t.category)?'Loans':['Family Support','Special Transfer','Gifts','Donation'].includes(t.category)?'Personal':'Expense';return '';}
 function fmtPct(x){return Number(x||0).toFixed(1)+'%';}
 function monthLabel(m){const d=new Date((m||today().slice(0,7))+'-01T00:00:00');return d.toLocaleDateString(undefined,{month:'short',year:'numeric'});}
 function v28FilteredTx(){const s=($('txSearch')?.value||'').toLowerCase();const ty=$('txFilterType')?.value||'';const gr=$('txFilterGroup')?.value||'';const ca=$('txFilterCategory')?.value||'';const ac=$('txFilterAccount')?.value||'';return transactions.filter(t=>{const hay=[t.tx_date,t.type,transactionGroupFor(t),t.category,t.from_account,t.to_account,t.note].join(' ').toLowerCase();return(!s||hay.includes(s))&&(!ty||t.type===ty)&&(!gr||transactionGroupFor(t)===gr)&&(!ca||t.category===ca)&&(!ac||t.from_account===ac||t.to_account===ac);});}
@@ -7720,7 +7727,7 @@ function renderDashboardV29(){
   const investRaw=investmentValue();
   const invest=investRaw/(Number(rates?.usd_mmk)||1);
   const net=cash+invest;
-  const expense=transactions.filter(t=>t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t)).reduce((s,t)=>s+n(t.from_amount)*toUSD(t.from_account),0);
+  const expense=transactions.filter(t=>t.type==='Expense'&&!isAdjustmentTx(t)&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t)).reduce((s,t)=>s+n(t.from_amount)*toUSD(t.from_account),0);
   const inc=transactions.filter(t=>t.type==='Income').reduce((s,t)=>s+n(t.to_amount)*toUSD(t.to_account),0);
   const save=inc-expense, saveRatio=inc?save/inc*100:0;
   const loan=Math.max(0,loanOutMMK()-loanPaidMMK())/rates.usd_mmk;
@@ -7729,7 +7736,7 @@ function renderDashboardV29(){
   $('metrics').innerHTML=[['Income',inc,'green'],['Expense',expense,'red'],['Available Balance',Math.max(0,cash-loan),'cyan'],['Total Invest',invest,'pink'],['Net Change',save-loan,'yellow']].map(x=>`<div class="card metric"><div class="name">${x[0]} · USD</div><div class="value ${x[2]}">${usd(x[1])}</div></div>`).join('');
   const cryptoV=investmentValue(); const goldMMK=investments.filter(x=>x.asset==='Gold').reduce((s,x)=>s+goldHoldingQty(x)*(goldMarketState.pricePerKyattha||n(x.market_price)),0)/rates.usd_mmk; const cashV=cash; const total=cryptoV+goldMMK+cashV||1;
   $('assetAllocation').innerHTML=[['Cash',cashV],['Crypto',cryptoV],['Gold',goldMMK]].map(([k,v])=>`<div class="alloc-row"><b>${k}</b><div class="alloc-bar"><span style="width:${Math.min(100,v/total*100)}%"></span></div><span>${(v/total*100).toFixed(1)}%</span><span>${usd(v)}</span></div>`).join('');
-  const vals=monthSeries().map(m=>{let i=0,e=0;transactions.filter(t=>t.tx_date.startsWith(m)).forEach(t=>{if(t.type==='Income')i+=n(t.to_amount)*toUSD(t.to_account);if(t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t))e+=n(t.from_amount)*toUSD(t.from_account);});return{m,i,e};}); const max=Math.max(1,...vals.map(x=>Math.max(x.i,x.e))); $('netWorthHistory').innerHTML=`<div class="spark">${vals.map(x=>`<span title="${monthLabel(x.m)} · Income ${usd(x.i)} / Expense ${usd(x.e)}" style="height:${Math.max(4,x.i/max*100)}%"></span>`).join('')}</div><div class="spark-labels">${vals.map(x=>`<span>${monthLabel(x.m).split(' ')[0]}</span>`).join('')}</div><div class="small" style="margin-top:6px">Monthly income bars · USD</div>`;
+  const vals=monthSeries().map(m=>{let i=0,e=0;transactions.filter(t=>t.tx_date.startsWith(m)).forEach(t=>{if(t.type==='Income')i+=n(t.to_amount)*toUSD(t.to_account);if(t.type==='Expense'&&!isAdjustmentTx(t)&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t))e+=n(t.from_amount)*toUSD(t.from_account);});return{m,i,e};}); const max=Math.max(1,...vals.map(x=>Math.max(x.i,x.e))); $('netWorthHistory').innerHTML=`<div class="spark">${vals.map(x=>`<span title="${monthLabel(x.m)} · Income ${usd(x.i)} / Expense ${usd(x.e)}" style="height:${Math.max(4,x.i/max*100)}%"></span>`).join('')}</div><div class="spark-labels">${vals.map(x=>`<span>${monthLabel(x.m).split(' ')[0]}</span>`).join('')}</div><div class="small" style="margin-top:6px">Monthly income bars · USD</div>`;
   const m=today().slice(0,7); $('dashMonthLabel').textContent=monthLabel(m); $('dashFlow').innerHTML=`<div class="flow-grid"><div><span>Income</span><b class="green">${usd(inc)}</b></div><div><span>Expenses</span><b class="red">${usd(expense)}</b></div><div><span>Saved</span><b>${usd(save)}</b></div><div><span>Saving Ratio</span><b>${saveRatio.toFixed(1)}%</b></div></div>`;
   const holds=['BTC','ETH','SOL','BNB'].map(s=>{const q=investments.filter(x=>x.asset==='Crypto'&&x.symbol===s).reduce((a,x)=>a+n(x.quantity),0);return{s,q};}); $('dashInvest').innerHTML=holds.map(x=>`<div class="mini-stat"><b>${x.s}</b><span>${x.q.toFixed(10)} held</span></div>`).join('');
   const recentAll=transactions.filter(t=>!isLinkedInvestmentTx(t)); const recent=recentAll.slice(0,5); $('dashTxCount').textContent=`${recent.length} shown of ${recentAll.length}`; $('dashRecent').innerHTML=recent.length?`<table class="recent-one"><tr><th>Date</th><th>Type</th><th>Category</th><th>Amount · USD</th></tr>${recent.map(t=>`<tr><td>${t.tx_date}</td><td>${t.type}</td><td>${esc(t.category)}</td><td>${t.type==='Income'?usd(n(t.to_amount)*toUSD(t.to_account)):usd(n(t.from_amount)*toUSD(t.from_account))}</td></tr>`).join('')}</table>`:'<div class="empty">No recent transactions.</div>';
@@ -7737,13 +7744,13 @@ function renderDashboardV29(){
 renderDashboard=renderDashboardV29;
 const _renderAnalyzeV27=renderAnalyze;
 function monthSeries(){const ms=[];const d=new Date();for(let i=5;i>=0;i--){const x=new Date(d.getFullYear(),d.getMonth()-i,1);ms.push(`${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}`);}return ms;}
-function monthTotals(m){let inc=0,expv=0;transactions.filter(t=>t.tx_date.startsWith(m)).forEach(t=>{if(t.type==='Income')inc+=n(t.to_amount)*toMMK(t.to_account);if(t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment')expv+=n(t.from_amount)*toMMK(t.from_account);});return{inc,exp:expv,save:inc-expv};}
+function monthTotals(m){let inc=0,expv=0;transactions.filter(t=>t.tx_date.startsWith(m)).forEach(t=>{if(t.type==='Income')inc+=n(t.to_amount)*toMMK(t.to_account);if(t.type==='Expense'&&!isAdjustmentTx(t)&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment')expv+=n(t.from_amount)*toMMK(t.from_account);});return{inc,exp:expv,save:inc-expv};}
 function toTHB(a){const cur=currency(a); if(cur==='THB')return 1; if(cur==='USD')return rates.usd_thb; return rates.usd_thb/rates.usd_mmk;}
 function thb(v){return '฿ '+fmt(v);}
-function analyzeTotals(m){let inc=0,expv=0;transactions.filter(t=>t.tx_date.startsWith(m)).forEach(t=>{if(t.type==='Income')inc+=n(t.to_amount)*toTHB(t.to_account);if(t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t))expv+=n(t.from_amount)*toTHB(t.from_account);});return{inc,exp:expv,save:inc-expv};}
+function analyzeTotals(m){let inc=0,expv=0;transactions.filter(t=>t.tx_date.startsWith(m)).forEach(t=>{if(t.type==='Income')inc+=n(t.to_amount)*toTHB(t.to_account);if(t.type==='Expense'&&!isAdjustmentTx(t)&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t))expv+=n(t.from_amount)*toTHB(t.from_account);});return{inc,exp:expv,save:inc-expv};}
 function renderAnalyzeV29(){
   const m=$('month').value||today().slice(0,7); const cur=analyzeTotals(m); const ratio=cur.inc?cur.exp/cur.inc*100:0; const sratio=cur.inc?cur.save/cur.inc*100:0;
-  $('expenses').innerHTML=`<table><tr><th>Category</th><th>THB</th><th>% of Income</th></tr>${CATS.Expense.map(c=>{const v=transactions.filter(t=>t.type==='Expense'&&t.category===c&&!isLinkedInvestmentTx(t)).reduce((s,t)=>s+n(t.from_amount)*toTHB(t.from_account),0);return`<tr><td>${c}</td><td>${fmt(v)}</td><td>${cur.inc?(v/cur.inc*100).toFixed(2):'0.00'}%</td></tr>`}).join('')}<tr><td><b>Total</b></td><td><b>${fmt(cur.exp)}</b></td><td><b>${ratio.toFixed(2)}%</b></td></tr></table>`;
+  $('expenses').innerHTML=`<table><tr><th>Category</th><th>THB</th><th>% of Income</th></tr>${CATS.Expense.map(c=>{const v=transactions.filter(t=>t.type==='Expense'&&!isAdjustmentTx(t)&&t.category===c&&!isLinkedInvestmentTx(t)).reduce((s,t)=>s+n(t.from_amount)*toTHB(t.from_account),0);return`<tr><td>${c}</td><td>${fmt(v)}</td><td>${cur.inc?(v/cur.inc*100).toFixed(2):'0.00'}%</td></tr>`}).join('')}<tr><td><b>Total</b></td><td><b>${fmt(cur.exp)}</b></td><td><b>${ratio.toFixed(2)}%</b></td></tr></table>`;
   const debt=transactions.filter(t=>t.category==='Debt').reduce((s,t)=>s+n(t.from_amount)*toMMK(t.from_account),0); const paidDebt=transactions.filter(t=>t.category==='Paid Debt'||t.category==='PaidDeb').reduce((s,t)=>s+n(t.to_amount)*toMMK(t.to_account),0); const out=transactions.filter(t=>t.category==='Loan Out').reduce((s,t)=>s+n(t.from_amount)*toMMK(t.from_account),0); const repay=transactions.filter(t=>t.category==='Loan Repayment').reduce((s,t)=>s+n(t.to_amount)*toMMK(t.to_account),0); const outstanding=Math.max(0,out-repay);
   $('loans').innerHTML=`<table><tr><th>Metric</th><th>MMK</th></tr><tr><td>Debt</td><td>${fmt(debt)}</td></tr><tr><td>Paid Debt</td><td>${fmt(paidDebt)}</td></tr><tr><td>Loan Out</td><td>${fmt(out)}</td></tr><tr><td>Loan Repayment</td><td>${fmt(repay)}</td></tr><tr><td><b>Still Outstanding</b></td><td class="${outstanding?'red':'green'}"><b>${fmt(outstanding)}</b></td></tr></table>`;
   const prev=new Date(m+'-01T00:00:00');prev.setMonth(prev.getMonth()-1);const pm=`${prev.getFullYear()}-${String(prev.getMonth()+1).padStart(2,'0')}`;const p=analyzeTotals(pm);
@@ -7751,8 +7758,8 @@ function renderAnalyzeV29(){
   const months=monthSeries(), totals=months.map(analyzeTotals), maxE=Math.max(1,...totals.map(x=>x.exp)); $('expenseTrend').innerHTML=`<div class="spark">${totals.map(x=>`<span title="${thb(x.exp)}" style="height:${Math.max(4,x.exp/maxE*100)}%"></span>`).join('')}</div><div class="spark-labels">${months.map(monthLabel).map(x=>`<span>${x.split(' ')[0]}</span>`).join('')}</div><div class="small" style="margin-top:6px">Monthly expenses · THB</div>`;
   const maxIE=Math.max(1,...totals.flatMap(x=>[x.inc,x.exp])); $('incomeExpenseTrend').innerHTML=`<div class="spark">${totals.map(x=>`<span title="Income ${thb(x.inc)}" style="height:${Math.max(4,x.inc/maxIE*100)}%"></span>`).join('')}</div><div class="spark-labels">${months.map(monthLabel).map(x=>`<span>${x.split(' ')[0]}</span>`).join('')}</div><div class="small" style="margin-top:6px">Income · THB</div>`;
   const health=Math.max(0,Math.min(100,Math.round(45+Math.max(0,sratio)*0.8-Math.max(0,ratio-70)*0.25-(outstanding/(cur.inc||1))*5))); const cls=health>=75?'good':health>=55?'warn':'bad'; $('healthScore').innerHTML=`<div class="score ${cls}">${health}</div><div class="small">Financial Health Score</div><div class="mini-stat">Saving Ratio <b>${sratio.toFixed(1)}%</b></div><div class="mini-stat">Expense Ratio <b>${ratio.toFixed(1)}%</b></div>`;
-  const ranking=CATS.Expense.map(c=>{const v=transactions.filter(t=>t.type==='Expense'&&t.category===c&&!isLinkedInvestmentTx(t)).reduce((s,t)=>s+n(t.from_amount)*toTHB(t.from_account),0);return[c,v]}).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]); $('expenseRanking').innerHTML=ranking.length?ranking.map((x,i)=>`<div class="rank-row"><b>${i+1}</b><span>${x[0]}</span><strong>${thb(x[1])}</strong></div>`).join(''):'<div class="empty">No expenses yet.</div>';
-  $('budgetProgress').innerHTML=CATS.Expense.map(c=>{const spent=transactions.filter(t=>t.type==='Expense'&&t.category===c&&!isLinkedInvestmentTx(t)).reduce((s,t)=>s+n(t.from_amount)*toTHB(t.from_account),0);const b=V28_BUDGETS[c]||0;const pct=b?spent/b*100:0;return`<div class="budget-row2"><span>${c} <span class="small">${thb(spent)} / ${thb(b)}</span></span><b class="${pct>100?'red':pct>80?'yellow':'green'}">${pct.toFixed(0)}%</b></div>`}).join('');
+  const ranking=CATS.Expense.map(c=>{const v=transactions.filter(t=>t.type==='Expense'&&!isAdjustmentTx(t)&&t.category===c&&!isLinkedInvestmentTx(t)).reduce((s,t)=>s+n(t.from_amount)*toTHB(t.from_account),0);return[c,v]}).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]); $('expenseRanking').innerHTML=ranking.length?ranking.map((x,i)=>`<div class="rank-row"><b>${i+1}</b><span>${x[0]}</span><strong>${thb(x[1])}</strong></div>`).join(''):'<div class="empty">No expenses yet.</div>';
+  $('budgetProgress').innerHTML=CATS.Expense.map(c=>{const spent=transactions.filter(t=>t.type==='Expense'&&!isAdjustmentTx(t)&&t.category===c&&!isLinkedInvestmentTx(t)).reduce((s,t)=>s+n(t.from_amount)*toTHB(t.from_account),0);const b=V28_BUDGETS[c]||0;const pct=b?spent/b*100:0;return`<div class="budget-row2"><span>${c} <span class="small">${thb(spent)} / ${thb(b)}</span></span><b class="${pct>100?'red':pct>80?'yellow':'green'}">${pct.toFixed(0)}%</b></div>`}).join('');
 }
 renderAnalyze=renderAnalyzeV29;
 const _renderInvestV27=renderInvest;
@@ -7829,7 +7836,7 @@ function renderDashboardV30(){
   const netWorth=cash+investmentsUSD+outstanding;
   const monthlyMonth=today().slice(0,7);
   const income=transactions.filter(t=>t.tx_date.startsWith(monthlyMonth)&&t.type==='Income').reduce((sum,t)=>sum+n(t.to_amount)*toUSD(t.to_account),0);
-  const expense=transactions.filter(t=>t.tx_date.startsWith(monthlyMonth)&&t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t)).reduce((sum,t)=>sum+n(t.from_amount)*toUSD(t.from_account),0);
+  const expense=transactions.filter(t=>t.tx_date.startsWith(monthlyMonth)&&t.type==='Expense'&&!isAdjustmentTx(t)&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t)).reduce((sum,t)=>sum+n(t.from_amount)*toUSD(t.from_account),0);
   const saving=income-expense, savingRatio=income?saving/income*100:0;
 
   $('dashboardHero').innerHTML=`
@@ -8287,7 +8294,7 @@ function renderDashboardExpenseControlV1(){
   const label=(typeof v37Label==='function')?v37Label(period):(period.year+'');
   const rowsForPeriod=(typeof v37Rows==='function')?v37Rows():transactions.filter(t=>t.tx_date?.startsWith(today().slice(0,7)));
   const rows=CATS.Expense.map(cat=>{
-    const spent=rowsForPeriod.filter(t=>t.type==='Expense'&&t.category===cat&&!isLinkedInvestmentTx(t)&&!(window.CATS?.Loans||[]).includes(t.category)&&!window.isCorrectionTransactionV3900(t)&&!window.isCorrectionTransactionV3900(t)).reduce((sum,t)=>sum+n(t.from_amount)*toTHB(t.from_account),0);
+    const spent=rowsForPeriod.filter(t=>t.type==='Expense'&&!isAdjustmentTx(t)&&t.category===cat&&!isLinkedInvestmentTx(t)&&!(window.CATS?.Loans||[]).includes(t.category)).reduce((sum,t)=>sum+n(t.from_amount)*toTHB(t.from_account),0);
     const budget=v37Budget(cat);
     const pct=budget>0?(spent/budget*100):0;
     return{cat,spent,budget,pct};
@@ -8352,7 +8359,7 @@ function renderDashboardInsightsV37(){
 function fhNumber(v){return Number.isFinite(Number(v))?Number(v):0;}
 function fhMonthKeyFromOffset(offset){const d=new Date();d.setDate(1);d.setMonth(d.getMonth()+offset);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;}
 function fhMonthRows(key){return (window.transactions||[]).filter(t=>String(t.tx_date||'').slice(0,7)===key);}
-function fhMonthlyFlow(key){let inc=0,exp=0;for(const t of fhMonthRows(key)){if(t.type==='Income')inc+=fhNumber(t.to_amount)*toUSD(t.to_account);if(t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t))exp+=fhNumber(t.from_amount)*toUSD(t.from_account);}return{inc,exp,save:inc-exp,sr:inc?((inc-exp)/inc*100):0,er:inc?(exp/inc*100):0};}
+function fhMonthlyFlow(key){let inc=0,exp=0;for(const t of fhMonthRows(key)){if(t.type==='Income')inc+=fhNumber(t.to_amount)*toUSD(t.to_account);if(t.type==='Expense'&&!isAdjustmentTx(t)&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t))exp+=fhNumber(t.from_amount)*toUSD(t.from_account);}return{inc,exp,save:inc-exp,sr:inc?((inc-exp)/inc*100):0,er:inc?(exp/inc*100):0};}
 function fhThreeMonthAverage(){const ms=[fhMonthKeyFromOffset(-3),fhMonthKeyFromOffset(-2),fhMonthKeyFromOffset(-1)];const rows=ms.map(fhMonthlyFlow);const inc=rows.reduce((s,x)=>s+x.inc,0),exp=rows.reduce((s,x)=>s+x.exp,0),save=inc-exp;return{months:ms,inc,exp,save,sr:inc?save/inc*100:0,er:inc?exp/inc*100:0,avgExpense:exp/3,avgIncome:inc/3,rows};}
 function fhEssentialExpense3M(){
   const essential=new Set(['Dining','Transport','Wellness','Lifestyle','Other','Family Support']);
@@ -9443,7 +9450,7 @@ renderDashboard=function(){
   const num=v=>{const x=Number(v);return Number.isFinite(x)?x:0};
   const money=v=>typeof usd==='function'?usd(v):('$ '+fmt(v));
   const keyFromOffset=o=>{const d=new Date();d.setDate(1);d.setMonth(d.getMonth()+o);return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')};
-  const flow=key=>{let inc=0,exp=0;for(const t of(window.transactions||[])){if(String(t.tx_date||'').slice(0,7)!==key)continue;if(t.type==='Income')inc+=num(t.to_amount)*toUSD(t.to_account);if(t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t))exp+=num(t.from_amount)*toUSD(t.from_account)}return{inc,exp,save:inc-exp,sr:inc?((inc-exp)/inc*100):0}};
+  const flow=key=>{let inc=0,exp=0;for(const t of(window.transactions||[])){if(String(t.tx_date||'').slice(0,7)!==key)continue;if(t.type==='Income')inc+=num(t.to_amount)*toUSD(t.to_account);if(t.type==='Expense'&&!isAdjustmentTx(t)&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t))exp+=num(t.from_amount)*toUSD(t.from_account)}return{inc,exp,save:inc-exp,sr:inc?((inc-exp)/inc*100):0}};
   const pct=(a,b)=>b===0?null:(a-b)/Math.abs(b)*100;
   function render(){
     const el=$('financialIntelligenceV314');if(!el)return;
@@ -9480,12 +9487,12 @@ renderDashboard=function(){
     const completed=[];const d=new Date();d.setDate(1);d.setMonth(d.getMonth()-6);
     for(let i=0;i<6;i++){
       const key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;let inc=0,exp=0;
-      (window.transactions||[]).forEach(t=>{if(String(t.tx_date||'').slice(0,7)!==key)return;if(t.type==='Income')inc+=wsNum(t.to_amount)*toUSD(t.to_account);if(t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t))exp+=wsNum(t.from_amount)*toUSD(t.from_account);});
+      (window.transactions||[]).forEach(t=>{if(String(t.tx_date||'').slice(0,7)!==key)return;if(t.type==='Income')inc+=wsNum(t.to_amount)*toUSD(t.to_account);if(t.type==='Expense'&&!isAdjustmentTx(t)&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t))exp+=wsNum(t.from_amount)*toUSD(t.from_account);});
       completed.push({inc,exp,save:inc-exp});d.setMonth(d.getMonth()+1);
     }
     const avg=completed.length?completed.reduce((s,x)=>s+x.save,0)/completed.length:0;
     const currentMonthKey=today().slice(0,7);let curInc=0,curExp=0;
-    (window.transactions||[]).forEach(t=>{if(String(t.tx_date||'').slice(0,7)!==currentMonthKey)return;if(t.type==='Income')curInc+=wsNum(t.to_amount)*toUSD(t.to_account);if(t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t))curExp+=wsNum(t.from_amount)*toUSD(t.from_account);});
+    (window.transactions||[]).forEach(t=>{if(String(t.tx_date||'').slice(0,7)!==currentMonthKey)return;if(t.type==='Income')curInc+=wsNum(t.to_amount)*toUSD(t.to_account);if(t.type==='Expense'&&!isAdjustmentTx(t)&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t))curExp+=wsNum(t.from_amount)*toUSD(t.from_account);});
     const currentSave=curInc-curExp;
     return {cash,invest,net,avg,currentSave,currentMonthKey};
   }
@@ -9571,7 +9578,7 @@ renderDashboard=function(){
     const {p,year,monthKey,rows}=periodData();
     const cats=Array.isArray(CATS.Expense)?CATS.Expense:[];
     const data=cats.map(cat=>{
-      const spent=rows.filter(t=>t.type==='Expense'&&t.category===cat&&!(window.CATS?.Loans||[]).includes(t.category)&&!isLinkedInvestmentTx(t)&&!window.isCorrectionTransactionV3900(t)).reduce((s,t)=>s+n(t.from_amount)*toTHB(t.from_account),0);
+      const spent=rows.filter(t=>t.type==='Expense'&&!isAdjustmentTx(t)&&t.category===cat&&!(window.CATS?.Loans||[]).includes(t.category)&&!isLinkedInvestmentTx(t)).reduce((s,t)=>s+n(t.from_amount)*toTHB(t.from_account),0);
       const budget=typeof v37Budget==='function'?v37Budget(cat):0; const pct=budget>0?spent/budget*100:0; return {cat,spent,budget,pct};
     });
     const totalSpent=data.reduce((s,x)=>s+x.spent,0), totalBudget=data.reduce((s,x)=>s+x.budget,0), totalPct=totalBudget?totalSpent/totalBudget*100:0;
@@ -9803,7 +9810,7 @@ function bind(){
     const r=(window.transactions||[]).filter(t=>String(t.tx_date||'').slice(0,7)===ym); let inc=0,exp=0;
     for(const t of r){
       if(t.type==='Income') inc+=numD(t.to_amount)*toUSD(t.to_account);
-      if(t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t)) exp+=numD(t.from_amount)*toUSD(t.from_account);
+      if(t.type==='Expense'&&!isAdjustmentTx(t)&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t)) exp+=numD(t.from_amount)*toUSD(t.from_account);
     }
     return {ym,inc,exp,save:inc-exp,sr:inc?(inc-exp)/inc*100:0};
   }
@@ -10841,7 +10848,7 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
     const legacy=$('budgetProgress')?.closest('.budget-panel'); if(legacy)legacy.style.display='none';
     const p=period(),rows=rowsFor(p),cats=Array.isArray(CATS?.Expense)?CATS.Expense:[];
     const data=cats.map(cat=>{
-      const spent=rows.filter(t=>t.type==='Expense'&&t.category===cat&&!isLinkedInvestmentTx(t)&&!(Array.isArray(CATS?.Loans)&&CATS.Loans.includes(t.category)))
+      const spent=rows.filter(t=>t.type==='Expense'&&!isAdjustmentTx(t)&&t.category===cat&&!isLinkedInvestmentTx(t)&&!(Array.isArray(CATS?.Loans)&&CATS.Loans.includes(t.category)))
         .reduce((s,t)=>s+num(t.from_amount)*toTHB(t.from_account),0);
       const plan=budget(cat),pct=plan>0?spent/plan*100:0;
       return {cat,spent,plan,pct};
@@ -11449,7 +11456,7 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
 <script id="mmhvault-i18n-v3363">
 (function(){
 const zh={
-'Dashboard':'仪表盘','Analyze':'分析','Transactions':'交易记录','Invest':'投资','Exchange':'汇率','Settings':'设置','Welcome back':'欢迎回来','Financial Dashboard':'财务仪表盘','Account Overview':'账户概览','Asset Allocation':'资产配置','Net Worth History':'净资产历史','Add Transaction':'添加交易','Add Investment':'添加投资','Open Analyze':'打开分析','Exchange Center':'汇率中心','Base Currency: MMK. Exchange settings do not change transaction amounts.':'基础货币：MMK。汇率设置不会改变交易金额。','Manage your account, appearance and data tools.':'管理您的账户、外观和数据工具。','Account':'账户','Appearance':'外观','Data & Backup':'数据与备份','App Icon':'应用图标','Used when you add MMHVAULT to your phone home screen.':'当您将 MMHVAULT 添加到手机主屏幕时使用。','Language':'语言','Choose the language used across MMHVAULT on this device.':'选择此设备上 MMHVAULT 使用的语言。','Choose the theme for this device. Your financial data remains securely synced with Supabase.':'选择此设备的主题。您的财务数据仍会安全同步。','Black / Dark':'黑色 / 深色','Original MMHVAULT theme':'原始 MMHVAULT 主题','White / Light':'白色 / 浅色','Clean light theme':'简洁浅色主题','Data Center':'数据中心','Your private finance data, backup status and cloud tools.':'您的私人财务数据、备份状态和云端工具。','Transactions':'交易记录','Investments':'投资','Exchange Rates':'汇率','Last Backup':'上次备份','Cloud records for this account':'此账户的云端记录','Crypto + Gold records':'加密货币 + 黄金记录','Personal account rates':'个人账户汇率','Never':'从未','Create a local copy before major changes.':'重大更改前创建本地副本。','Export Backup':'导出备份','Select Backup':'选择备份','Export Transactions CSV':'导出交易 CSV','Backup preview':'备份预览','Update Password':'更新密码','Cash & Investment Accounts':'现金与投资账户','Net Worth Mix':'净资产构成','Last 6 Months':'最近 6 个月','Detailed analysis separated from the main Dashboard.':'与主仪表盘分开的详细分析。','Savings Rate Trend':'储蓄率趋势','Monthly Expense Control':'每月支出控制','Current month · Budget vs actual · THB':'本月 · 预算与实际 · THB','NET WORTH':'净资产','CASH ASSETS':'现金资产','INVESTMENTS':'投资资产','SAVING RATIO':'储蓄率','Cash + Investments':'现金 + 投资','Cloud Synced':'云端已同步','Personal Finance & Wealth Management':'个人财务与财富管理','Customer':'客户','Income':'收入','Expense':'支出','Cancel':'取消','Save':'保存','Delete':'删除','Edit':'编辑','Loading...':'加载中...'};
+'Dashboard':'仪表盘','Analyze':'分析','Transactions':'交易记录','Invest':'投资','Exchange':'汇率','Settings':'设置','Welcome back':'欢迎回来','Financial Dashboard':'财务仪表盘','Account Overview':'账户概览','Asset Allocation':'资产配置','Net Worth History':'净资产历史','Add Transaction':'添加交易','Add Investment':'添加投资','Adjustment':'调整数据','Data Adjustment':'数据调整','Adjustment records affect account balances but are excluded from spending/consumption statistics.':'调整数据会影响账户余额，但不会计入消费/支出统计。','Open Analyze':'打开分析','Exchange Center':'汇率中心','Base Currency: MMK. Exchange settings do not change transaction amounts.':'基础货币：MMK。汇率设置不会改变交易金额。','Manage your account, appearance and data tools.':'管理您的账户、外观和数据工具。','Account':'账户','Appearance':'外观','Data & Backup':'数据与备份','App Icon':'应用图标','Used when you add MMHVAULT to your phone home screen.':'当您将 MMHVAULT 添加到手机主屏幕时使用。','Language':'语言','Choose the language used across MMHVAULT on this device.':'选择此设备上 MMHVAULT 使用的语言。','Choose the theme for this device. Your financial data remains securely synced with Supabase.':'选择此设备的主题。您的财务数据仍会安全同步。','Black / Dark':'黑色 / 深色','Original MMHVAULT theme':'原始 MMHVAULT 主题','White / Light':'白色 / 浅色','Clean light theme':'简洁浅色主题','Data Center':'数据中心','Your private finance data, backup status and cloud tools.':'您的私人财务数据、备份状态和云端工具。','Transactions':'交易记录','Investments':'投资','Exchange Rates':'汇率','Last Backup':'上次备份','Cloud records for this account':'此账户的云端记录','Crypto + Gold records':'加密货币 + 黄金记录','Personal account rates':'个人账户汇率','Never':'从未','Create a local copy before major changes.':'重大更改前创建本地副本。','Export Backup':'导出备份','Select Backup':'选择备份','Export Transactions CSV':'导出交易 CSV','Backup preview':'备份预览','Update Password':'更新密码','Cash & Investment Accounts':'现金与投资账户','Net Worth Mix':'净资产构成','Last 6 Months':'最近 6 个月','Detailed analysis separated from the main Dashboard.':'与主仪表盘分开的详细分析。','Savings Rate Trend':'储蓄率趋势','Monthly Expense Control':'每月支出控制','Current month · Budget vs actual · THB':'本月 · 预算与实际 · THB','NET WORTH':'净资产','CASH ASSETS':'现金资产','INVESTMENTS':'投资资产','SAVING RATIO':'储蓄率','Cash + Investments':'现金 + 投资','Cloud Synced':'云端已同步','Personal Finance & Wealth Management':'个人财务与财富管理','Customer':'客户','Income':'收入','Expense':'支出','Cancel':'取消','Save':'保存','Delete':'删除','Edit':'编辑','Loading...':'加载中...'};
 let lang=localStorage.getItem('mmhvault_language_v3363')||'en';
 
 // Comprehensive Chinese language pack v4.3.0 · full Analyze/Dashboard coverage
@@ -11892,7 +11899,7 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
     const rows=getTx();
     rows.filter(x=>String(x.tx_date||'').slice(0,7)===key).forEach(t=>{
       if(t.type==='Income'&&t.category!=='Loan Repayment') income+=toUsdSafe(t.to_amount,t.to_account);
-      if(t.type==='Expense'&&!loanCats().includes(t.category)&&t.category!=='Investment'&&!(typeof isLinkedInvestmentTx==='function'&&isLinkedInvestmentTx(t))) expense+=toUsdSafe(t.from_amount,t.from_account);
+      if(t.type==='Expense'&&!isAdjustmentTx(t)&&!loanCats().includes(t.category)&&t.category!=='Investment'&&!(typeof isLinkedInvestmentTx==='function'&&isLinkedInvestmentTx(t))) expense+=toUsdSafe(t.from_amount,t.from_account);
     });
     return {income,expense,save:income-expense,rate:income?((income-expense)/income*100):0};
   }
@@ -11900,7 +11907,7 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
     const rows=getTx();
     let inc=0,exp=0,active=0;const now=new Date();
     for(let i=1;i<=3;i++){const d=new Date(now.getFullYear(),now.getMonth()-i,1);const key=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');let mi=0,me=0;
-      rows.filter(x=>String(x.tx_date||'').slice(0,7)===key).forEach(t=>{if(t.type==='Income'&&t.category!=='Loan Repayment')mi+=toUsdSafe(t.to_amount,t.to_account);if(t.type==='Expense'&&!loanCats().includes(t.category)&&t.category!=='Investment'&&!(typeof isLinkedInvestmentTx==='function'&&isLinkedInvestmentTx(t)))me+=toUsdSafe(t.from_amount,t.from_account)});
+      rows.filter(x=>String(x.tx_date||'').slice(0,7)===key).forEach(t=>{if(t.type==='Income'&&t.category!=='Loan Repayment')mi+=toUsdSafe(t.to_amount,t.to_account);if(t.type==='Expense'&&!isAdjustmentTx(t)&&!loanCats().includes(t.category)&&t.category!=='Investment'&&!(typeof isLinkedInvestmentTx==='function'&&isLinkedInvestmentTx(t)))me+=toUsdSafe(t.from_amount,t.from_account)});
       if(mi||me)active++;inc+=mi;exp+=me;
     }
     return {income:inc,expense:exp,save:inc-expense,rate:inc?((inc-exp)/inc*100):0,avgExpense:active?exp/active:0,active};
@@ -12222,7 +12229,7 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
   const T=(en,cn)=>zh()?cn:en;
   const rules=()=>{let r={reserveMin:3,reserveComfort:6,savingsTarget:60,investmentCeiling:30};try{const x=JSON.parse(localStorage.getItem('mmhvault_wealth_rules_v326')||'null');if(x)r={...r,...x};}catch(e){}return r;};
   function ymOffset(i){const d=new Date();d.setDate(1);d.setMonth(d.getMonth()+i);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;}
-  function monthFlow(ym){let inc=0,exp=0;(window.transactions||[]).filter(t=>String(t.tx_date||'').slice(0,7)===ym).forEach(t=>{if(t.type==='Income')inc+=num(t.to_amount)*toUSD(t.to_account);if(t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t))exp+=num(t.from_amount)*toUSD(t.from_account);});return{inc,exp,save:inc-exp};}
+  function monthFlow(ym){let inc=0,exp=0;(window.transactions||[]).filter(t=>String(t.tx_date||'').slice(0,7)===ym).forEach(t=>{if(t.type==='Income')inc+=num(t.to_amount)*toUSD(t.to_account);if(t.type==='Expense'&&!isAdjustmentTx(t)&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t))exp+=num(t.from_amount)*toUSD(t.from_account);});return{inc,exp,save:inc-exp};}
   function calc(){
     const rr=rules(); const hist=[-3,-2,-1].map(ymOffset).map(monthFlow).filter(x=>x.inc>0); const avgExp=hist.length?hist.reduce((s,x)=>s+x.exp,0)/hist.length:0; const positive=hist.map(x=>Math.max(0,x.save)).filter(x=>x>0); const current=monthFlow(ymOffset(0)); const capacity=positive.length?positive.reduce((s,x)=>s+x,0)/positive.length:Math.max(0,current.save);
     const accounts=['Bath','TrueMoney','OKX','ByBit','MetaMask','KPay'];const cash=accounts.reduce((s,a)=>s+Math.max(0,balance(a))*toUSD(a),0);const runway=avgExp?cash/avgExp:0;const inv=Math.max(0,investmentValue());const net=cash+inv;const invPct=net?inv/net*100:0;
@@ -12526,7 +12533,7 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
     for(const t of monthTx(key)){
       count++;
       if(t.type==='Income') inc+=toMMKSafe(t.to_amount,t.to_account);
-      if(t.type==='Expense' && !(window.CATS?.Loans||[]).includes(t.category) && t.category!=='Investment'){
+      if(t.type==='Expense'&&!isAdjustmentTx(t) && !(window.CATS?.Loans||[]).includes(t.category) && t.category!=='Investment'){
         const a=toMMKSafe(t.from_amount,t.from_account); exp+=a; cats[t.category]=(cats[t.category]||0)+a;
       }
     }
@@ -12939,7 +12946,7 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
     let inc=0,exp=0;
     (transactions||[]).filter(t=>monthKey(t.tx_date)===key).forEach(t=>{
       if(t.type==='Income') inc+=N(t.to_amount)*toUSD(t.to_account);
-      if(t.type==='Expense' && !(window.CATS?.Loans||[]).includes(t.category) && t.category!=='Investment' && !isLinkedInvestmentTx(t)) exp+=N(t.from_amount)*toUSD(t.from_account);
+      if(t.type==='Expense'&&!isAdjustmentTx(t) && !(window.CATS?.Loans||[]).includes(t.category) && t.category!=='Investment' && !isLinkedInvestmentTx(t)) exp+=N(t.from_amount)*toUSD(t.from_account);
     });
     const save=inc-exp; return {inc,exp,save,rate:inc?(save/inc*100):0};
   }
@@ -13046,7 +13053,7 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
   const money=v=>{try{return '$ '+fmt(N(v));}catch(_){return '$ '+N(v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});}};
   function monthKey(d){return String(d||'').slice(0,7)}
   function prevMonthKey(key){const [y,m]=key.split('-').map(Number);const d=new Date(y,m-2,1);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;}
-  function totals(key){let inc=0,exp=0;(window.transactions||[]).forEach(t=>{if(monthKey(t.tx_date)!==key)return;if(t.type==='Income')inc+=N(t.to_amount)*N(toUSD(t.to_account));if(t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t))exp+=N(t.from_amount)*N(toUSD(t.from_account));});const save=inc-exp;return{inc,exp,save,rate:inc?save/inc*100:0};}
+  function totals(key){let inc=0,exp=0;(window.transactions||[]).forEach(t=>{if(monthKey(t.tx_date)!==key)return;if(t.type==='Income')inc+=N(t.to_amount)*N(toUSD(t.to_account));if(t.type==='Expense'&&!isAdjustmentTx(t)&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t))exp+=N(t.from_amount)*N(toUSD(t.from_account));});const save=inc-exp;return{inc,exp,save,rate:inc?save/inc*100:0};}
   function data(){
     const key=today().slice(0,7),prev=prevMonthKey(key),cur=totals(key),old=totals(prev);
     const cash=['Bath','TrueMoney','OKX','ByBit','MetaMask','KPay'].reduce((s,a)=>s+Math.max(0,N(balance(a))*N(toUSD(a))),0);
@@ -15106,7 +15113,7 @@ body.mmhvault-scroll-active #invest .invest-top>.panel{box-shadow:inset 0 1px 0 
     const ft=$('txFilterType'), fg=$('txFilterGroup');
     const t=norm(type?.value,typeMap)||'Income';
     setSelect(type,['Income','Expense','Transfer'],v=>norm(v,typeMap));
-    const gKeys=t==='Income'?['Income','Loans']:t==='Expense'?['Expense','Personal','Loans']:['Transfer'];
+    const gKeys=t==='Income'?['Income','Loans','Adjustment']:t==='Expense'?['Expense','Personal','Loans','Adjustment']:['Transfer'];
     setSelect(group,gKeys,v=>norm(v,groupMap));
     if(group)group.disabled=t==='Transfer';
     if(cat){
@@ -16725,7 +16732,7 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
     LoanExpense:['PaidDeb','Loan Out'],
     Transfer:['Transfer']
   };
-  const GROUPS={Income:['Income','Loans'],Expense:['Expense','Personal','Loans'],Transfer:['Transfer']};
+  const GROUPS={Income:['Income','Loans','Adjustment'],Expense:['Expense','Personal','Loans','Adjustment'],Transfer:['Transfer']};
 
   function replaceSelect(id,values,preferred){
     const old=$(id);
@@ -21694,23 +21701,6 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
      Dashboard headline cards must use the same canonical cash/investment values
      already shown by Account Overview. No transaction/investment records are changed. -->
 
-<script id="mmhvault-v3900-correction-expense-filter">
-(function(){
-  'use strict';
-  // A correction record is still a real Transaction and remains visible/editable
-  // in Transactions. It is simply not treated as consumer spending by analysis
-  // and budget-control views.
-  window.isCorrectionTransactionV3900 = function(t){
-    const note=String(t?.note||'').trim().toLowerCase();
-    return note.includes('纠正数据') ||
-           note.includes('data correction') ||
-           note.includes('correction data') ||
-           note === 'correction' ||
-           note.startsWith('correction ·');
-  };
-})();
-</script>
-
 </body>
 <!-- MMHVAULT V4.3.0 performance baseline: logo-free account cards + restrained dashboard rendering. -->
 <style id="mmhvault-v3445-analyze-premium-polish">
@@ -21948,4 +21938,9 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
 </style>
 
 
+
+<style id="mmhvault-v10-adjustment-ui-css">
+#transactions #txAdjustmentHelp{display:block;grid-column:1/-1;margin-top:-6px;padding:10px 12px;border-radius:12px;border:1px solid rgba(92,170,230,.14);background:rgba(7,24,45,.5);color:rgba(176,201,229,.66);font-size:11px;line-height:1.45;}
+@media(max-width:950px){#transactions #txAdjustmentHelp{grid-column:auto;}}
+</style>
 </html>
