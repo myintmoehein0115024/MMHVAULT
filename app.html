@@ -16565,7 +16565,8 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
     Personal:['Family Support','Special Transfer','Gifts','Donation'],
     LoanIncome:['Debt','Loan Repayment'],
     LoanExpense:['PaidDeb','Loan Out'],
-    Transfer:['Transfer']
+    Transfer:['Transfer'],
+    Adjustment:['Data Adjustment']
   };
   const GROUPS={Income:['Income','Loans','Adjustment'],Expense:['Expense','Personal','Loans','Adjustment'],Transfer:['Transfer']};
 
@@ -16592,6 +16593,7 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
   function categoriesFor(type,group){
     if(type==='Transfer')return OPTIONS.Transfer;
     if(group==='Loans')return type==='Income'?OPTIONS.LoanIncome:OPTIONS.LoanExpense;
+    if(group==='Adjustment')return OPTIONS.Adjustment;
     return OPTIONS[group]||['Other'];
   }
 
@@ -16611,11 +16613,19 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
     const cats=categoriesFor(type.value,group.value);
     category=replaceSelect('txCategory',cats,cats.includes(category.value)?category.value:cats[0]);
 
+    const syncAdjustmentHelp=()=>{
+      const help=$('txAdjustmentHelp');
+      if(!help)return;
+      const show=$('txGroup')?.value==='Adjustment';
+      help.style.display=show?'block':'none';
+      help.setAttribute('aria-hidden',String(!show));
+    };
     const refreshCategory=(preferred)=>{
       const t=$('txType').value;
       const g=$('txGroup').value;
       const list=categoriesFor(t,g);
       replaceSelect('txCategory',list,preferred);
+      syncAdjustmentHelp();
       applyLocks();
     };
 
