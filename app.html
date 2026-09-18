@@ -7668,7 +7668,6 @@ autoBindExcel();
 /* ===================== V2.8 functional upgrades ===================== */
 const V28_TARGETS={BTC:45,ETH:25,SOL:12,BNB:10,USDT:8}; CATS.Loans=[...CATS.LoanIncome,...CATS.LoanExpense];
 const V28_BUDGETS={Dining:10000,Snacks:3000,Smoking:2500,Transport:2000,Wellness:8000,Lifestyle:2000,Other:1000};
-function v28PageList(){return ['dashboard','analyze','transactions','invest','exchange','settings'];}
 function transactionGroupFor(t){if(isAdjustmentTx(t))return 'Adjustment';if(t.type==='Transfer')return 'Transfer';if(t.type==='Income')return ['Debt','Loan Repayment'].includes(t.category)?'Loans':'Income';if(t.type==='Expense')return ['PaidDeb','Loan Out'].includes(t.category)?'Loans':['Family Support','Special Transfer','Gifts','Donation'].includes(t.category)?'Personal':'Expense';return '';}
 function fmtPct(x){return Number(x||0).toFixed(1)+'%';}
 function monthLabel(m){const d=new Date((m||today().slice(0,7))+'-01T00:00:00');return d.toLocaleDateString(undefined,{month:'short',year:'numeric'});}
@@ -7790,11 +7789,6 @@ function mmhvaultPeriodTotalsUSD(monthKey){
   let income=0,expense=0;
   rows.forEach(t=>{income+=mmhvaultTxIncomeUSD(t);expense+=mmhvaultTxExpenseUSD(t);});
   return {income,expense,saved:income-expense};
-}
-function mmhvaultCompletedMonths(count=6){
-  const months=[]; const d=new Date(); d.setDate(1); d.setMonth(d.getMonth()-1);
-  for(let i=0;i<count;i++){const key=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;months.push({key,...mmhvaultPeriodTotalsUSD(key)});d.setMonth(d.getMonth()-1);}
-  return months.reverse();
 }
 function mmhvaultCashUSD(){return ['Bath','TrueMoney','OKX','ByBit','MetaMask','KPay'].reduce((sum,a)=>sum+balance(a)*mmhvaultAmountUSD(a,1),0);}
 function mmhvaultInvestmentCostUSD(){
@@ -8090,19 +8084,6 @@ function v37ConsistencyCheck(){
   const selectedYearRows=(window.transactions||[]).filter(x=>String(x.tx_date||'').slice(0,4)===String(p.year));
   const annualMatches=p.month==='annual' && rows.length===selectedYearRows.length;
   return {period:v37Label(p),rows:rows.length,incomeTHB:t.inc,expenseTHB:t.exp,netSavingsTHB:t.save,savingsRate:t.sr,annualPeriodMatchesYearFilter:annualMatches};
-}
-
-function renderOverviewSnapshotV371(){
-  const el=$("overviewSnapshotV371"), periodEl=$("overviewSnapshotPeriodV371");
-  if(!el||!periodEl)return;
-  const p=v37Period(), rows=v37Rows(), t=v37Totals(rows);
-  periodEl.textContent=v37Label(p);
-  const status=t.save>0?'Positive':t.save===0?'Break-even':'Negative';
-  el.innerHTML=`
-    <div class="overview-snapshot-card-v371"><div class="label">Income</div><div class="value green">${thb(t.inc)}</div><div class="small">Selected period</div></div>
-    <div class="overview-snapshot-card-v371"><div class="label">Expenses</div><div class="value red">${thb(t.exp)}</div><div class="small">Ordinary expenses</div></div>
-    <div class="overview-snapshot-card-v371"><div class="label">Net Savings</div><div class="value ${t.save>0?'green':t.save<0?'red':'yellow'}">${thb(t.save)}</div><div class="small">${status} cash flow</div></div>
-    <div class="overview-snapshot-card-v371"><div class="label">Savings Rate</div><div class="value ${t.sr>=60?'green':t.sr>=40?'yellow':'red'}">${t.sr.toFixed(1)}%</div><div class="small">Target 60%</div></div>`;
 }
 
 function renderAnalyzeV37(){
@@ -9309,60 +9290,6 @@ renderDashboard=function(){
 </script>
 <script id="mmhvault-v388-milestones-js">
 /* ===================== V4.3.0 Financial Milestones ===================== */
-function renderWealthMilestonesV388(){
-  const el=$('wealthMilestonesV388'); if(!el)return;
-  try{
-    const cashAccounts=['Bath','TrueMoney','OKX','ByBit','MetaMask','KPay'];
-    const cash=cashAccounts.reduce((sum,a)=>sum+balance(a)*toUSD(a),0);
-    const investmentsUSD=investmentValueUSD();
-    const netWorth=Math.max(0,cash+investmentsUSD);
-    const baseMilestones=[10000,25000,50000,100000];
-    const reached=baseMilestones.filter(x=>netWorth>=x).length;
-    let next=baseMilestones.find(x=>netWorth<x);
-    if(!next){
-      const ladder=[250000,500000,1000000,2000000,5000000,10000000];
-      next=ladder.find(x=>netWorth<x)||Math.ceil((netWorth*1.5)/10000)*10000;
-    }
-    const previous=[...baseMilestones].filter(x=>x<=netWorth).slice(-1)[0]||0;
-    const segmentStart=previous;
-    const pct=next>segmentStart?Math.min(100,Math.max(0,(netWorth-segmentStart)/(next-segmentStart)*100)):100;
-    const remaining=Math.max(0,next-netWorth);
-    const displayMilestones=[...baseMilestones];
-    if(next>100000 && !displayMilestones.includes(next)) displayMilestones.push(next);
-    const itemHtml=displayMilestones.map(m=>{
-      const done=netWorth>=m;
-      const isNext=!done&&m===next;
-      const p=Math.min(100,Math.max(0,netWorth/m*100));
-      const d=Math.max(0,m-netWorth);
-      return `<div class="milestone-item-v388 ${done?'reached ':''}${isNext?'next':''}">
-        <div class="head"><div class="title">${usd(m)}</div><div class="status">${done?'REACHED':isNext?'NEXT':'UPCOMING'}</div></div>
-        <div class="amount">${usd(netWorth)}</div>
-        <div class="distance">${done?'Milestone unlocked':usd(d)+' remaining'}</div>
-        <div class="bar"><span style="width:${p.toFixed(1)}%"></span></div>
-      </div>`;
-    }).join('');
-    const reachedText=baseMilestones.filter(x=>netWorth>=x).map(x=>usd(x)).join(' · ')||'None yet';
-    el.innerHTML=`
-      <div class="toolbar" style="margin-bottom:10px"><div><h2 style="margin-bottom:3px">Financial Milestones</h2><div class="sub">Track your progress toward major net worth milestones as your MMHVAULT assets grow.</div></div><span class="pill">Net worth milestones</span></div>
-      <div class="milestone-top-v388">
-        <div class="milestone-card-v388">
-          <div class="label">NEXT MILESTONE</div>
-          <div class="milestone-next-value-v388">${usd(next)}</div>
-          <div class="milestone-next-meta-v388">Current net worth ${usd(netWorth)} · ${usd(remaining)} remaining</div>
-          <div class="milestone-progress-v388"><span style="width:${pct.toFixed(1)}%"></span></div>
-          <div class="milestone-next-meta-v388">Progress toward next milestone: ${pct.toFixed(1)}%</div>
-        </div>
-        <div class="milestone-card-v388">
-          <div class="label">MILESTONE STATUS</div>
-          <div class="milestone-next-value-v388">${reached} / ${baseMilestones.length}</div>
-          <div class="milestone-next-meta-v388">Major milestones reached: ${reachedText}</div>
-          <div class="milestone-note-v388">Milestones are based on current net worth in USD. They are personal progress markers, not investment return forecasts.</div>
-        </div>
-      </div>
-      <div class="milestone-roadmap-v388">${itemHtml}</div>
-      <div class="milestone-note-v388">MMHVAULT updates milestone progress automatically as your cash and investment values change.</div>`;
-  }catch(err){console.warn('Financial Milestones V4.3.0:',err);}
-}
 const _renderDashboardV388Base=renderDashboard;
 renderDashboard=function(){
   _renderDashboardV388Base();
@@ -13329,22 +13256,14 @@ html.mmhv-tab-hidden .mmh-glow-anim{animation-play-state:paused!important}
   wrapped.__mmhV34240Base=source;
   window.renderTransactionsV28=wrapped;
   window.renderTransactions=wrapped;
-  window.mmhvaultInvalidateTransactionRenderV34240=function(){lastSignature=null;};
-  window.mmhvaultScheduleTransactionRenderV34240=function(){
-    if(renderQueued)return;
-    renderQueued=true;
-    const cb=()=>{renderQueued=false;try{window.renderTransactionsV28();}catch(_){}};
-    if(window.requestAnimationFrame)requestAnimationFrame(cb);else setTimeout(cb,0);
-  };
-  window.MM_HVAULT_PERFORMANCE_V34240={version:'3.42.41',transactionRenderGate:true,signatureBasedSkip:true,noNewPolling:true};
+      window.MM_HVAULT_PERFORMANCE_V34240={version:'3.42.41',transactionRenderGate:true,signatureBasedSkip:true,noNewPolling:true};
 })();
 </script>
 <script id="mmhvault-v34242-dashboard-partial-dom">
 (function(){
   if(window.__mmhV34242DashboardPartialGate)return;
   window.__mmhV34242DashboardPartialGate=true;
-  window.mmhvaultInvalidateDashboardV34242=function(){if(window.__mmhDashV34242Cache)window.__mmhDashV34242Cache={};};
-  window.MM_HVAULT_PERFORMANCE_V34242={version:'3.42.42',dashboardPartialDOM:true,sectionMemoization:true,noNewPolling:true};
+    window.MM_HVAULT_PERFORMANCE_V34242={version:'3.42.42',dashboardPartialDOM:true,sectionMemoization:true,noNewPolling:true};
 })();
 </script>
 <!-- MMHVAULT V4.3.0 · Hidden Page Render Suspension -->
@@ -13420,13 +13339,7 @@ html.mmhv-tab-hidden .mmh-glow-anim{animation-play-state:paused!important}
     const id=typeof requestAnimationFrame==='function'?requestAnimationFrame(run):setTimeout(run,0);
     pending.set(key,id);
   };
-  window.mmhvaultCancelFrameV34244=function(key){
-    key=String(key||'default');
-    const id=pending.get(key); if(id==null)return;
-    try{if(typeof cancelAnimationFrame==='function')cancelAnimationFrame(id);else clearTimeout(id);}catch(_e){}
-    pending.delete(key);
-  };
-  window.MM_HVAULT_PERFORMANCE_V34244={version:'3.42.44',animationFrameGovernor:true,keyedFrameDedup:true,noGlobalRafOverride:true};
+    window.MM_HVAULT_PERFORMANCE_V34244={version:'3.42.44',animationFrameGovernor:true,keyedFrameDedup:true,noGlobalRafOverride:true};
 })();
 </script>
 <style id="mmhvault-v34245-css-paint-budget">
@@ -14247,8 +14160,7 @@ body.mmhvault-scroll-active #invest .invest-top>.panel{box-shadow:inset 0 1px 0 
   window.renderTransactions=function(){renderPartial();};
   window.renderTransactionsV28=window.renderTransactions;
   window.mmhvaultInvalidateTransactionRenderV34241=function(){lastOrderKey=null;lastRowsKey=null;};
-  window.mmhvaultScheduleTransactionRenderV34241=function(){if(queued)return;queued=true;const cb=()=>{queued=false;try{renderPartial();}catch(e){console.warn('[MMHVAULT] tx partial render',e);}};requestAnimationFrame?requestAnimationFrame(cb):setTimeout(cb,0);};
-  window.MM_HVAULT_PERFORMANCE_V34241={version:'3.42.41',partialTransactionDOM:true,keyedMobileCards:true,desktopRowPatch:true};
+    window.MM_HVAULT_PERFORMANCE_V34241={version:'3.42.41',partialTransactionDOM:true,keyedMobileCards:true,desktopRowPatch:true};
 })();
 </script>\n
 <script id="mmhvault-v393-wealth-planning-thb-fix">
@@ -15232,10 +15144,7 @@ body.mmhvault-scroll-active #invest .invest-top>.panel{box-shadow:inset 0 1px 0 
   }
 
   // Expose a tiny invalidation API for future modules; no polling is created here.
-  window.mmhvaultInvalidateRenderV34236=function(page){
-    if(page==='all'||!page)markAll(); else mark(page);
-  };
-  window.MM_HVAULT_PERFORMANCE_V34236={version:'3.42.36',renderDiffGate:true,noNewPolling:true,heavyDOMUpdateGate:'3.42.37'};
+    window.MM_HVAULT_PERFORMANCE_V34236={version:'3.42.36',renderDiffGate:true,noNewPolling:true,heavyDOMUpdateGate:'3.42.37'};
 })();
 </script>
 <style id="mmhvault-v34250-invest-visual-rebalance">
@@ -15519,12 +15428,7 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
     const run=()=>renderAll(lastReason);
     frame=typeof requestAnimationFrame==='function'?requestAnimationFrame(run):setTimeout(run,0);
   };
-  window.mmhvaultRefreshAfterMutationV34421=async function(reason='mutation'){
-    const result=await window.loadAll?.({force:true});
-    window.mmhvaultForceRenderAllV34421(reason);
-    return result;
-  };
-  // Any authoritative cloud load (including Supabase realtime updates) refreshes all surfaces.
+    // Any authoritative cloud load (including Supabase realtime updates) refreshes all surfaces.
   window.addEventListener('mmhvault:data-loaded',()=>window.mmhvaultForceRenderAllV34421('cloud-data-loaded'));
   window.addEventListener('mmhvault:data-change',e=>window.mmhvaultForceRenderAllV34421(e?.detail?.reason||'data-change'));
 })();
