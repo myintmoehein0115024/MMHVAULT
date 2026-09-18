@@ -5378,6 +5378,21 @@ body{
 #analyze .loan-records-cashflow-v3 table{min-width:620px}
 </style>
 
+
+<style id="mmhvault-edit-controls-v441">
+/* V4.4.1 · Edit controls: Transaction selectors and investment BUY/SELL selector. */
+#editTxForm select,
+#editInvForm select{
+  pointer-events:auto!important;
+  cursor:pointer!important;
+  position:relative;
+  z-index:2;
+}
+#editTxForm select:disabled,
+#editInvForm select:disabled{cursor:not-allowed!important;}
+#editInvForm #eiSide{font-weight:900;letter-spacing:.04em;}
+</style>
+
 </head>
 <!-- MMHVAULT V4.3.6 · iOS JSON import bridge + V4.3.0 Dashboard report relocation + Transaction receipt center + Invest Add precision -->
 <body>
@@ -6956,20 +6971,36 @@ function editTx(id){
   const sync=()=>{
     const type=$('eType').value;
     const groups=type==='Income'?['Income','Loans']:type==='Expense'?['Expense','Personal','Loans']:['Transfer'];
-    $('eGroup').innerHTML=groups.map(x=>`<option>${x}</option>`).join('');
-    $('eGroup').value=groups.includes($('eGroup').value)?$('eGroup').value:group;
+    const currentGroup=$('eGroup').value;
+    const nextGroup=groups.includes(currentGroup)?currentGroup:(groups.includes(group)?group:groups[0]);
+    $('eGroup').innerHTML=groups.map(x=>`<option value="${x}">${x}</option>`).join('');
+    $('eGroup').value=nextGroup;
+
     const g=$('eGroup').value;
-    $('eCat').innerHTML=txCategoryOptions(type,g).map(x=>`<option>${x}</option>`).join('');
-    $('eCat').value=txCategoryOptions(type,g).includes(t.category)?t.category:$('eCat').options[0]?.value||'';
-    $('eFrom').disabled=type==='Income';
-    $('eFromAmt').disabled=type==='Income';
-    $('eTo').disabled=type==='Expense';
-    $('eToAmt').disabled=type==='Expense';
+    const cats=txCategoryOptions(type,g);
+    $('eCat').innerHTML=cats.map(x=>`<option value="${x}">${x}</option>`).join('');
+    $('eCat').value=cats.includes(t.category)?t.category:(cats[0]||'');
+
+    const isIncome=type==='Income', isExpense=type==='Expense';
+    $('eFrom').disabled=isIncome;
+    $('eFromAmt').disabled=isIncome;
+    $('eTo').disabled=isExpense;
+    $('eToAmt').disabled=isExpense;
   };
 
+  // Keep the editor controls native/selectable. Type changes rebuild the valid
+  // Transaction groups; changing Transaction rebuilds Category.
+  ['eType','eGroup','eCat','eFrom','eTo'].forEach(id=>{
+    const el=$(id);
+    if(el){
+      el.disabled=false;
+      el.removeAttribute('readonly');
+      el.style.pointerEvents='auto';
+    }
+  });
   sync();
-  $('eType').onchange=sync;
-  $('eGroup').onchange=sync;
+  $('eType').addEventListener('change',sync);
+  $('eGroup').addEventListener('change',sync);
 
   const receiptManageTxV3309=$('editReceiptManageV3309');
   const renderTransactionReceiptManageV3309=async()=>{
@@ -7405,15 +7436,16 @@ async function editInvestment(id){
   openEditModal("Edit Investment",`<form id="editInvForm">
     <div class="formgrid">
       <label>Date<input id="eiDate" type="date" value="${esc(x.inv_date)}" required></label>
+      <label>Trade Side<select id="eiSide"><option value="BUY">BUY</option><option value="SELL">SELL</option></select></label>
       <label>Asset<input id="eiAsset" value="${esc(x.asset)}" readonly></label>
       <label>Symbol<input id="eiSymbol" value="${esc(x.symbol)}" readonly></label>
       <label>Source Account<select id="eiSource"></select></label>
-      <label>Invested Amount<input id="eiAmount" type="number" step="0.000001" value="${n(x.amount)}" required></label>
-      <label>Fee<input id="eiFee" type="number" step="0.000001" value="${n(x.fee)}"></label>
-      <label>Other Cost<input id="eiOther" type="number" step="0.000001" value="${n(x.other_cost)}"></label>
-      <label>Purchase-day Market Price<input id="eiBuy" type="number" step="0.000001" value="${n(x.buy_price)}" required></label>
+      <label>Trade Amount<input id="eiAmount" type="number" step="0.000001" value="${Math.abs(n(x.amount))}" required></label>
+      <label>Fee<input id="eiFee" type="number" step="0.000001" value="${Math.abs(n(x.fee))}"></label>
+      <label>Other Cost<input id="eiOther" type="number" step="0.000001" value="${Math.abs(n(x.other_cost))}"></label>
+      <label>Trade Price<input id="eiBuy" type="number" step="0.000001" value="${Math.abs(n(x.buy_price))}" required></label>
       <label>Current Market Price<input id="eiMarket" type="number" step="0.000001" value="${n(x.market_price)}"></label>
-      <label>Quantity<input id="eiQty" type="number" step="0.0000000001" value="${n(x.quantity)}"></label>
+      <label>Quantity<input id="eiQty" type="number" step="0.0000000001" value="${Math.abs(n(x.quantity))}"></label>
       <label class="full">Note<input id="eiNote" value="${esc(x.note||"")}"></label>
     </div>
     <div class="receipt-upload-v3300 edit-receipt-box-v3303">
@@ -7439,6 +7471,7 @@ async function editInvestment(id){
       </div>
       <div id="editInvestmentReceiptManageV3309" class="receipt-manage-wrap-v3309"></div>
     </div>
+    <div class="small" style="margin-top:10px;color:#8fa3c8">BUY adds to the holding. SELL reduces the holding. Existing records remain in history.</div>
     <div class="actions">
       <button class="btn" type="button" onclick="closeEditModal()">Cancel</button>
       <button class="btn primary">Save Changes</button>
@@ -7465,6 +7498,21 @@ async function editInvestment(id){
   };
   await renderInvestmentReceiptManageV3309();
   eiSource.innerHTML=(x.asset==="Gold"?["KPay"]:["OKX","ByBit"]).map(a=>`<option ${a===defaultSource?"selected":""}>${a}</option>`).join("");
+
+  const eiSide=$("eiSide"), eiAmountLabel=eiSide?.closest('label')?.previousElementSibling;
+  if(eiSide){
+    eiSide.value=n(x.quantity)<0?'SELL':'BUY';
+    const refreshInvestmentEditSide=()=>{
+      const sell=eiSide.value==='SELL';
+      const amountLabel=document.querySelector('#editInvForm #eiAmount')?.closest('label');
+      const priceLabel=document.querySelector('#editInvForm #eiBuy')?.closest('label');
+      if(amountLabel) amountLabel.firstChild.textContent=sell?'Sale Amount':'Trade Amount';
+      if(priceLabel) priceLabel.firstChild.textContent=sell?'Sale Price':'Trade Price';
+    };
+    eiSide.addEventListener('change',refreshInvestmentEditSide);
+    refreshInvestmentEditSide();
+  }
+
   const picker=$("editInvestmentReceiptFile"),status=$("editInvestmentReceiptStatusV3304");
   picker?.addEventListener("change",()=>{
     const file=picker.files?.[0];
@@ -7477,9 +7525,24 @@ async function editInvestment(id){
   });
   $("editInvForm").onsubmit=async e=>{
     e.preventDefault();
-    const amount=n($("eiAmount").value),buy=n($("eiBuy").value),newReceipt=picker?.files?.[0]||null;
+    const side=$("eiSide")?.value==='SELL'?'SELL':'BUY';
+    const amount=Math.abs(n($("eiAmount").value)),buy=Math.abs(n($("eiBuy").value)),inputQty=Math.abs(n($("eiQty").value));
+    const newReceipt=picker?.files?.[0]||null;
     if(newReceipt&&newReceipt.size>10*1024*1024){alert('Receipt file is too large. Maximum size is 10 MB.');return;}
-    const row={inv_date:$("eiDate").value,source_account:$("eiSource").value,amount,fee:n($("eiFee").value),other_cost:n($("eiOther").value),buy_price:buy,market_price:n($("eiMarket").value),quantity:n($("eiQty").value)||(buy?amount/buy:0),note:$("eiNote").value||null};
+    if(!(amount>0)||!(buy>0)){alert('Trade amount and trade price must be greater than 0.');return;}
+    const qty=inputQty||(buy?amount/buy:0);
+    if(!(qty>0)){alert('Quantity must be greater than 0.');return;}
+    const sign=side==='SELL'?-1:1;
+    if(side==='SELL'){
+      const held=x.asset==='Gold'
+        ? investments.filter(i=>i.asset==='Gold' && String(i.id)!==String(id)).reduce((sum,i)=>sum+goldHoldingQty(i),0)
+        : investments.filter(i=>i.asset==='Crypto' && String(i.symbol).toUpperCase()===String(x.symbol).toUpperCase() && String(i.id)!==String(id)).reduce((sum,i)=>sum+n(i.quantity),0);
+      if(qty>held+1e-10){
+        alert(`Cannot sell ${fmt(qty)} ${x.asset==='Gold'?'ကျပ်သား':x.symbol}. Current editable holding is only ${fmt(Math.max(0,held))}.`);
+        return;
+      }
+    }
+    const row={inv_date:$("eiDate").value,source_account:$("eiSource").value,amount:sign*amount,fee:Math.abs(n($("eiFee").value)),other_cost:Math.abs(n($("eiOther").value)),buy_price:buy,market_price:Math.abs(n($("eiMarket").value)),quantity:sign*qty,note:$("eiNote").value||null};
     const r=await db.from('investments').update(row).eq('id',id);
     if(r.error){alert(r.error.message);return;}
     if(newReceipt){
