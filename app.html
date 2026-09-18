@@ -5389,6 +5389,7 @@ body{
 #editInvForm #eiSide{font-weight:900;letter-spacing:.04em;}
 </style>
 
+<!-- MMHVAULT V17 · Net Worth no-flicker cleanup: removed render-triggered entry animation only. -->
 </head>
 <!-- MMHVAULT V4.3.6 · iOS JSON import bridge + V4.3.0 Dashboard report relocation + Transaction receipt center + Invest Add precision -->
 <body>
@@ -21267,41 +21268,9 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
 .nw-bar-wrap-v371:hover .nw-bar-v371{filter:brightness(1.16)}
 .nw-bar-value-v371{opacity:.7;transform:translateY(-2px);transition:opacity .22s ease,transform .22s ease}
 .nw-bar-wrap-v371:hover .nw-bar-value-v371{opacity:1;transform:translateY(-5px)}
-@keyframes mmhNetWorthRise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
-@keyframes mmhNetWorthSweep{0%{transform:translateX(-120%);opacity:0}20%{opacity:.8}100%{transform:translateX(120%);opacity:0}}
-#netWorthAnalyzeSummaryV371.mmh-networth-enter .networth-analyze-card-v371,#netWorthAnalyzeSummaryV371.mmh-networth-enter .networth-growth-v371,#netWorthAnalyzeSummaryV371.mmh-networth-enter .networth-trend-v371{animation:mmhNetWorthRise .55s cubic-bezier(.22,.8,.24,1) both}
-#netWorthAnalyzeSummaryV371.mmh-networth-enter .networth-analyze-card-v371:nth-child(2){animation-delay:.05s}
-#netWorthAnalyzeSummaryV371.mmh-networth-enter .networth-analyze-card-v371:nth-child(3){animation-delay:.1s}
-#netWorthAnalyzeSummaryV371.mmh-networth-enter .networth-analyze-card-v371:nth-child(4){animation-delay:.15s}
-#netWorthAnalyzeSummaryV371.mmh-networth-enter .networth-growth-v371{animation-delay:.22s}
-#netWorthAnalyzeSummaryV371.mmh-networth-enter .networth-trend-v371{animation-delay:.3s;position:relative}
-#netWorthAnalyzeSummaryV371.mmh-networth-enter .networth-trend-v371::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(100deg,transparent 28%,rgba(130,220,255,.13) 45%,rgba(244,201,99,.09) 53%,transparent 70%);transform:translateX(-120%);animation:mmhNetWorthSweep 1.15s ease .35s both}
 @media(max-width:900px){#netWorthAnalyzeSummaryV371 .networth-analyze-card-v371:first-child{grid-column:span 2}}
 @media(max-width:560px){#netWorthAnalyzeSummaryV371 .networth-analyze-card-v371:first-child{grid-column:span 1}#netWorthAnalyzeSummaryV371 .networth-analyze-card-v371:first-child .value{font-size:29px}.networth-growth-v371{padding:15px}.networth-growth-grid-v371{gap:9px}}
-@media(prefers-reduced-motion:reduce){#netWorthAnalyzeSummaryV371 .networth-analyze-card-v371,.networth-growth-item-v371,.nw-bar-wrap-v371{transition:none!important}#netWorthAnalyzeSummaryV371.mmh-networth-enter .networth-analyze-card-v371,#netWorthAnalyzeSummaryV371.mmh-networth-enter .networth-growth-v371,#netWorthAnalyzeSummaryV371.mmh-networth-enter .networth-trend-v371{animation:none!important}#netWorthAnalyzeSummaryV371.mmh-networth-enter .networth-trend-v371::after{animation:none!important}}
 </style>
-<script id="mmhvault-networth-premium-pass-js">
-(function(){
-  const el=document.getElementById('netWorthAnalyzeSummaryV371');
-  if(!el)return;
-  function pulse(){
-    el.classList.remove('mmh-networth-enter');
-    void el.offsetWidth;
-    el.classList.add('mmh-networth-enter');
-    setTimeout(()=>el.classList.remove('mmh-networth-enter'),1100);
-  }
-  const old=window.renderNetWorthAnalyzeV371;
-  window.renderNetWorthAnalyzeV371=function(){
-    const r=typeof old==='function'?old.apply(this,arguments):undefined;
-    setTimeout(pulse,20);
-    return r;
-  };
-  document.addEventListener('click',e=>{
-    if(e.target?.closest?.('[data-tab="networth"]'))setTimeout(pulse,30);
-  });
-  setTimeout(pulse,650);
-})();
-</script>
 <script id="mmhvault-reports-open-guard-fixed">
 (function(){
   function renderReportsWhenVisible(){
