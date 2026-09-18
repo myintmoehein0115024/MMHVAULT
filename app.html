@@ -8476,15 +8476,9 @@ function renderNetWorthAnalyzeV371(){
       }).join('')}</div>
     </div>`;
 }
-(function(){
-  const tabs=document.querySelectorAll('.analyze-tab-v371');if(!tabs.length)return;
-  tabs.forEach(b=>b.addEventListener('click',()=>setAnalyzeTabV371(b.dataset.tab)));
-  setAnalyzeTabV371(localStorage.getItem('myfinance_analyze_tab')||'overview');
-})();
-
 renderAnalyze=renderAnalyzeV37;
 const _renderAnalyzeV371Base=renderAnalyzeV37;
-renderAnalyzeV37=function(){_renderAnalyzeV371Base();renderFinancialHealthV371();const activeTab=document.querySelector('.analyze-tab-v371.active')?.dataset.tab||localStorage.getItem('myfinance_analyze_tab')||'overview';if(activeTab==='networth')renderNetWorthAnalyzeV371();};
+renderAnalyzeV37=function(){_renderAnalyzeV371Base();const activeTab=document.querySelector('.analyze-tab-v371.active')?.dataset.tab||localStorage.getItem('myfinance_analyze_tab')||'overview';if(activeTab==='health')renderFinancialHealthV371();if(activeTab==='networth')renderNetWorthAnalyzeV371();};
 
 render=function(){
   if($("dashboard")?.classList.contains("active"))renderDashboard();
