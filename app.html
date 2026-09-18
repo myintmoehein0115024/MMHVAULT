@@ -21616,6 +21616,65 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
      Dashboard headline cards must use the same canonical cash/investment values
      already shown by Account Overview. No transaction/investment records are changed. -->
 
+
+<!-- MMHVAULT V4.4.5 · Investment source-balance guard: BUY cannot exceed available cash. -->
+<style id="mmhvault-v445-invest-balance-guard">
+#invForm .mmhvault-invest-balance-guard{display:none;margin:2px 0 12px;padding:9px 12px;border:1px solid rgba(255,115,115,.28);border-radius:10px;background:rgba(120,20,30,.10);color:rgba(255,190,190,.92);font-size:12px;line-height:1.45}
+#invForm .mmhvault-invest-balance-guard.show{display:block}
+#invForm .mmhvault-invest-balance-guard.ok{display:block;border-color:rgba(90,220,170,.20);background:rgba(40,160,110,.07);color:rgba(170,235,210,.82)}
+#invForm button.balance-blocked{opacity:.55!important;cursor:not-allowed!important;filter:saturate(.65)}
+</style>
+<script id="mmhvault-v445-invest-balance-guard-js">
+(function(){
+  function N(x){const v=Number(x);return Number.isFinite(v)?v:0;}
+  function el(id){return document.getElementById(id);}
+  function text(en,zh){return ((localStorage.getItem('mmhvault_language_v3363')||'en')==='zh')?zh:en;}
+  function money(v,account){const a=String(account||'');return ['OKX','ByBit','MetaMask'].includes(a)?'$'+N(v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}):a==='Bath'?'฿'+N(v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}):'MMK '+N(v).toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:2});}
+  function ensure(){
+    const form=el('invForm');if(!form)return null;
+    let box=form.querySelector('.mmhvault-invest-balance-guard');
+    if(!box){box=document.createElement('div');box.className='mmhvault-invest-balance-guard';const actions=form.querySelector('.actions');if(actions)actions.before(box);else form.appendChild(box);}
+    return box;
+  }
+  function check(){
+    const form=el('invForm');if(!form)return {blocked:false};
+    const side=el('invSideV336')?.value==='SELL'?'SELL':'BUY';
+    const source=el('invSource')?.value||'';
+    const amount=N(el('invAmount')?.value),fee=N(el('invFee')?.value),other=N(el('invOther')?.value);
+    const required=amount+fee+other;
+    if(side!=='BUY'||!source||required<=0)return {blocked:false,side,source,required,available:0};
+    const available=typeof window.balance==='function'?N(window.balance(source)):0;
+    return {blocked:required>available+1e-9,side,source,required,available};
+  }
+  function refresh(){
+    const form=el('invForm');if(!form)return;
+    const state=check(),box=ensure(),submit=form.querySelector('button[type="submit"]');
+    if(state.blocked){
+      const title=text('Insufficient account balance','账户余额不足');
+      if(submit){submit.disabled=true;submit.classList.add('balance-blocked');submit.title=title;}
+      if(box){box.classList.add('show');box.classList.remove('ok');box.textContent='⚠️ '+title+' · '+state.source+' · '+text('Available','可用余额')+': '+money(state.available,state.source)+' · '+text('Required','需要')+': '+money(state.required,state.source);}
+    }else{
+      if(submit&&!submit.classList.contains('v321-submit-busy')){submit.disabled=false;submit.classList.remove('balance-blocked');submit.removeAttribute('title');}
+      if(box){box.classList.remove('show','ok');box.textContent='';}
+    }
+    return state;
+  }
+  function bind(){
+    const form=el('invForm');if(!form||form.dataset.investBalanceGuardV445==='1')return;
+    form.dataset.investBalanceGuardV445='1';
+    ['invSideV336','invAsset','invSource','invAmount','invFee','invOther'].forEach(id=>{const x=el(id);if(!x)return;x.addEventListener('change',refresh);x.addEventListener('input',refresh);});
+    const original=form.onsubmit;
+    form.onsubmit=async function(e){
+      const state=refresh();
+      if(state?.blocked){e?.preventDefault?.();return false;}
+      return original?await original.call(this,e):false;
+    };
+    refresh();
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
+  window.mmHVaultRefreshInvestmentBalanceV445=refresh;
+})();
+</script>
 </body>
 <!-- MMHVAULT V4.3.0 performance baseline: logo-free account cards + restrained dashboard rendering. -->
 <style id="mmhvault-v3445-analyze-premium-polish">
