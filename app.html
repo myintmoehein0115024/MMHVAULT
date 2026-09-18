@@ -8484,7 +8484,7 @@ function renderNetWorthAnalyzeV371(){
 
 renderAnalyze=renderAnalyzeV37;
 const _renderAnalyzeV371Base=renderAnalyzeV37;
-renderAnalyzeV37=function(){_renderAnalyzeV371Base();renderFinancialHealthV371();renderNetWorthAnalyzeV371();};
+renderAnalyzeV37=function(){_renderAnalyzeV371Base();renderFinancialHealthV371();const activeTab=document.querySelector('.analyze-tab-v371.active')?.dataset.tab||localStorage.getItem('myfinance_analyze_tab')||'overview';if(activeTab==='networth')renderNetWorthAnalyzeV371();};
 
 render=function(){
   if($("dashboard")?.classList.contains("active"))renderDashboard();
