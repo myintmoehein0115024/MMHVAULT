@@ -5808,7 +5808,7 @@ body{
 </style>
 <section class="page" id="invest">
 <div class="toolbar v371-head"><div><h1>Investment Center</h1><div class="sub">Crypto is displayed in <b>USD</b>. Gold is displayed in <b>MMK</b>. Investment purchases deduct directly from the selected source account and are kept out of Transaction History.</div></div>
-<div class="v371-switch"><button class="btn active" id="v371CryptoBtn" type="button">₿ Crypto</button><button class="btn" id="v371GoldBtn" type="button">🥇 Gold</button><button class="btn danger" type="button" onclick="deleteAllInvestments()">Clear All Records</button></div></div>
+<div class="v371-switch"><button class="btn active" id="v371CryptoBtn" type="button">₿ Crypto</button><button class="btn" id="v371GoldBtn" type="button">🥇 Gold</button><button class="btn danger" type="button" onclick="deleteAllInvestments('Crypto')">Clear Crypto</button><button class="btn danger" type="button" onclick="deleteAllInvestments('Gold')">Clear Gold</button></div></div>
 <div aria-label="Investment sections" class="invest-subtabs-v371" role="tablist">
 <button aria-selected="true" class="invest-subtab-v371 active" id="investSubOverviewV371" role="tab" type="button">Overview</button>
 <button aria-selected="false" class="invest-subtab-v371" id="investSubPortfolioV371" role="tab" type="button">Portfolio</button>
@@ -6924,33 +6924,40 @@ async function deleteAllTx(){
   }
 }
 
-async function deleteAllInvestments(){
+async function deleteAllInvestments(assetKind){
   try{
     const u=(await db.auth.getUser()).data.user;
     if(!u){alert("Please sign in again.");return;}
-    const count=Array.isArray(investments)?investments.length:0;
+    const wanted=String(assetKind||'').trim().toLowerCase();
+    if(wanted!=='crypto' && wanted!=='gold')return;
+    const matches=(Array.isArray(investments)?investments:[]).filter(x=>String(x?.asset||'').trim().toLowerCase()===wanted);
+    const count=matches.length;
     if(!count)return;
+    const label=wanted==='gold'?'Gold':'Crypto';
     const confirmed=await window.MMHVAULTBulkDeleteConfirmV1?.({
       kind:'investments',
       count,
-      title:'Delete all investment records?',
-      message:`This will permanently delete all ${count} investment records from your account. Associated receipt files will also be removed when possible. This cannot be undone.`,
-      confirmText:'Delete All Investments'
+      assetKind:label,
+      title:`Delete all ${label} investment records?`,
+      message:`This will permanently delete all ${count} ${label} investment records from your account. Associated receipt files will also be removed when possible. This cannot be undone.`,
+      confirmText:`Delete All ${label}`
     });
     if(!confirmed)return;
-    const r=await db.from('investments').delete().eq('user_id',u.id);
+    const ids=matches.map(x=>x?.id).filter(id=>id!=null);
+    if(!ids.length)return;
+    const r=await db.from('investments').delete().eq('user_id',u.id).in('id',ids);
     if(r.error){
-      console.error('Clear investments failed:',r.error);
-      alert('Unable to delete investments.\n\n'+(r.error.message||'Unknown error'));
+      console.error(`Clear ${label} investments failed:`,r.error);
+      alert(`Unable to delete ${label} investments.\n\n`+(r.error.message||'Unknown error'));
       return;
     }
-    if(Array.isArray(investments))investments=[];
-    try{renderInvest();}catch(err){console.warn('[MMHVAULT] investment clear local render failed',err);}
-    try{window.dispatchEvent(new CustomEvent('mmhvault:data-change',{detail:{reason:'investment-clear'}}));}catch(_e){}
+    if(Array.isArray(investments))investments=investments.filter(x=>!ids.some(id=>String(x?.id)===String(id)));
+    try{renderInvest();}catch(err){console.warn(`[MMHVAULT] ${label} investment clear local render failed`,err);}
+    try{window.dispatchEvent(new CustomEvent('mmhvault:data-change',{detail:{reason:`investment-${wanted}-clear`}}));}catch(_e){}
     Promise.resolve().then(()=>loadAll?.({force:true})).then(()=>{
-      try{window.mmhvaultForceRenderAllV34421?.('investment-clear-sync');}catch(_e){}
+      try{window.mmhvaultForceRenderAllV34421?.(`investment-${wanted}-clear-sync`);}catch(_e){}
       try{window.refreshInvestmentReceiptFlagsV3304?.();}catch(_e){}
-    }).catch(err=>console.warn('[MMHVAULT] background investment clear sync failed',err));
+    }).catch(err=>console.warn(`[MMHVAULT] background ${label} investment clear sync failed`,err));
   }catch(e){
     console.error('Clear investments exception:',e);
     alert('Unable to delete investments. Please try again.');
@@ -15474,11 +15481,12 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
       const el=ensure(),zh=isZh();
       const title=el.querySelector('h3'),copy=el.querySelector('p'),warning=el.querySelector('.warning-copy'),cancel=el.querySelector('.cancel'),ok=el.querySelector('.confirm');
       const count=Number(opts.count)||0;
+      const assetLabel=opts.assetKind==='Gold'?(zh?'黄金':'Gold'):(zh?'加密货币':'Crypto');
       const kind=opts.kind==='investments'?(zh?'投资':'investment'):(zh?'交易':'transaction');
-      title.textContent=zh?(opts.kind==='investments'?'删除全部投资记录？':'删除全部交易记录？'):(opts.title||'Delete all records?');
-      copy.textContent=zh?(opts.kind==='investments'?`将永久删除您的全部 ${count} 条投资记录。相关收据文件也会在可能的情况下删除。`:`将永久删除您的全部 ${count} 条交易记录。相关收据文件也会在可能的情况下删除。`):(opts.message||'This action cannot be undone.');
+      title.textContent=zh?(opts.kind==='investments'?`删除全部${assetLabel}投资记录？`:'删除全部交易记录？'):(opts.title||'Delete all records?');
+      copy.textContent=zh?(opts.kind==='investments'?`将永久删除您的全部 ${count} 条${assetLabel}投资记录。相关收据文件也会在可能的情况下删除。`:`将永久删除您的全部 ${count} 条交易记录。相关收据文件也会在可能的情况下删除。`):(opts.message||'This action cannot be undone.');
       warning.textContent=zh?'这是永久删除操作，删除后无法恢复。请确认您已经完成备份。':'This is a permanent deletion. It cannot be undone. Make sure you have a backup before continuing.';
-      cancel.textContent=zh?'取消':'Cancel';ok.textContent=zh?(opts.kind==='investments'?'删除全部投资':'删除全部交易'):(opts.confirmText||'Delete All');
+      cancel.textContent=zh?'取消':'Cancel';ok.textContent=zh?(opts.kind==='investments'?`删除全部${assetLabel}`:'删除全部交易'):(opts.confirmText||'Delete All');
       let done=false;
       const finish=v=>{if(done)return;done=true;el.classList.remove('show');el.setAttribute('aria-hidden','true');cleanup();resolve(v)};
       const onCancel=()=>finish(false),onOk=()=>finish(true),onBg=e=>{if(e.target===el)finish(false)},onKey=e=>{if(e.key==='Escape')finish(false)};
