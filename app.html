@@ -6412,6 +6412,12 @@ if(type==="Transfer"){
   const list=group==="Loans"?(type==="Income"?CATS.LoanIncome:CATS.LoanExpense):(CATS[group]||[]);
   $("txCategory").innerHTML=list.map(x=>`<option>${x}</option>`).join("");
 }
+const help=$("txAdjustmentHelp");
+if(help){
+  const show=group==="Adjustment";
+  help.style.display=show?"block":"none";
+  help.setAttribute("aria-hidden",String(!show));
+}
 updateAccountLocks();
 }
 function updateAccountLocks(){
@@ -12609,46 +12615,58 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
 })();
 </script>\n
-<script id="mmhvault-v341-compact-nav-js">
+<script id="mmhvault-v34432-more-menu-repair">
 (function(){
   const nav=document.getElementById('bottomNav');
   const more=document.getElementById('moreNavButton');
   const menu=document.getElementById('moreNavMenu');
   if(!nav||!more||!menu)return;
   const morePages=new Set(['analyze','wealth-planning','reports','exchange','settings']);
-  const setOpen=(open)=>{
-    menu.classList.toggle('open',open);
-    menu.setAttribute('aria-hidden',String(!open));
-    more.setAttribute('aria-expanded',String(open));
-    more.classList.toggle('active',open || morePages.has(document.querySelector('.page.active')?.id));
-  };
-  more.addEventListener('click',(e)=>{e.preventDefault();e.stopPropagation();setOpen(!menu.classList.contains('open'));});
-  menu.querySelectorAll('[data-more-page]').forEach(btn=>{
-    btn.addEventListener('click',(e)=>{
-      e.preventDefault();
-      const p=btn.dataset.morePage;
-      if(typeof window.setPage==='function')window.setPage(p);
-      setOpen(false);
-      sync();
-    });
-  });
-  document.addEventListener('click',(e)=>{if(!menu.contains(e.target)&&!more.contains(e.target))setOpen(false);});
-  document.addEventListener('keydown',(e)=>{if(e.key==='Escape')setOpen(false);});
+  function close(){
+    menu.classList.remove('open');
+    menu.setAttribute('aria-hidden','true');
+    more.setAttribute('aria-expanded','false');
+    more.classList.remove('active');
+  }
   function sync(){
     const page=document.querySelector('.page.active')?.id||'';
     nav.querySelectorAll('button[data-page]').forEach(b=>b.classList.toggle('active',b.dataset.page===page));
-    menu.querySelectorAll('[data-more-page]').forEach(b=>b.classList.toggle('active',b.dataset.morePage===page));
-    more.classList.toggle('active',morePages.has(page));
+    menu.querySelectorAll('button[data-more-page]').forEach(b=>b.classList.toggle('active',b.dataset.morePage===page));
+    if(!menu.classList.contains('open')) more.classList.toggle('active',morePages.has(page));
   }
+  more.addEventListener('click',function(e){
+    e.preventDefault();
+    e.stopPropagation();
+    const open=!menu.classList.contains('open');
+    if(open){
+      menu.classList.add('open');
+      menu.setAttribute('aria-hidden','false');
+      more.setAttribute('aria-expanded','true');
+      more.classList.add('active');
+    }else close();
+  });
+  menu.querySelectorAll('button[data-more-page]').forEach(btn=>{
+    btn.addEventListener('click',function(e){
+      e.preventDefault();
+      e.stopPropagation();
+      const page=btn.dataset.morePage;
+      close();
+      if(typeof window.setPage==='function')window.setPage(page);
+      setTimeout(sync,0);
+    });
+  });
+  document.addEventListener('click',function(e){
+    if(!menu.contains(e.target)&&!more.contains(e.target))close();
+  });
   const oldSetPage=window.setPage;
-  if(typeof oldSetPage==='function'&&!oldSetPage.__v341compact){
-    const wrapped=function(){const r=oldSetPage.apply(this,arguments);setTimeout(sync,0);return r;};
-    wrapped.__v341compact=true;window.setPage=wrapped;
-    nav.querySelectorAll('button[data-page]').forEach(b=>b.onclick=()=>window.setPage(b.dataset.page));
+  if(typeof oldSetPage==='function'&&!oldSetPage.__v34432more){
+    const wrapped=function(){const r=oldSetPage.apply(this,arguments);close();setTimeout(sync,0);return r;};
+    wrapped.__v34432more=true;
+    window.setPage=wrapped;
   }
+  const observer=new MutationObserver(sync);
+  document.querySelectorAll('.page').forEach(p=>observer.observe(p,{attributes:true,attributeFilter:['class']}));
   sync();
-  setTimeout(sync,250);
-  setTimeout(sync,900);
 })();
 </script>
 <style id="mmhvault-mobile-analyze-swipe-v1">
@@ -20233,53 +20251,6 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
      Premium compact command palette for mobile.
      Visual/layout only — no menu actions or routes changed.
 ========================================================= -->
-<style id="mmhvault-v34430-adjustment-help-polish">
-/* Adjustment guidance stays out of the way unless Adjustment is actually selected. */
-#txAdjustmentHelp{
-  display:none!important;
-  margin:5px 0 0!important;
-  padding:7px 10px!important;
-  min-height:0!important;
-  box-sizing:border-box!important;
-  border:1px solid rgba(104,156,214,.16)!important;
-  border-radius:10px!important;
-  background:rgba(10,25,49,.46)!important;
-  color:#7187a8!important;
-  font-size:11px!important;
-  line-height:1.45!important;
-  letter-spacing:.005em!important;
-}
-#txGroup:has(option[value="Adjustment"]:checked) + #txAdjustmentHelp{display:block!important;}
-@media(max-width:700px){
-  #txAdjustmentHelp{font-size:10px!important;padding:6px 9px!important;margin-top:4px!important;}
-}
-</style>
-<script id="mmhvault-v4302-more-auto-close">
-(function(){
-  const menu=document.getElementById('moreNavMenu');
-  const more=document.getElementById('moreNavButton');
-  if(!menu||!more)return;
-  function close(){
-    menu.classList.remove('open');
-    menu.setAttribute('aria-hidden','true');
-    more.setAttribute('aria-expanded','false');
-    more.classList.remove('active');
-  }
-  // Close immediately when navigation is chosen, before the route/render chain runs.
-  document.addEventListener('click',function(e){
-    const b=e.target.closest('#bottomNav button[data-page], #moreNavMenu button[data-more-page]');
-    if(b) close();
-  },true);
-  // Also close when another page becomes active through programmatic navigation.
-  const pages=document.querySelectorAll('.page');
-  if(pages.length){
-    const observer=new MutationObserver(function(){
-      if(document.querySelector('.page.active')) close();
-    });
-    pages.forEach(p=>observer.observe(p,{attributes:true,attributeFilter:['class']}));
-  }
-})();
-</script>
 <style id="mmhvault-v4301-mobile-more-menu-compact">
 @media(max-width:760px){
 
@@ -21776,4 +21747,9 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
 </style>
 
 <!-- MMHVAULT V13 maintenance note: lifecycle override chains are intentionally retained until call-order tracing proves an earlier definition is unreachable. -->
+
+<style id="mmhvault-v34432-adjustment-help-repair">
+#transactions #txAdjustmentHelp{display:none;grid-column:1/-1;margin:5px 0 0;padding:7px 10px;border-radius:10px;border:1px solid rgba(92,170,230,.16);background:rgba(7,24,45,.5);color:rgba(176,201,229,.66);font-size:10.5px;line-height:1.4;box-sizing:border-box;}
+@media(max-width:950px){#transactions #txAdjustmentHelp{grid-column:1/-1;}}
+</style>
 </html>
