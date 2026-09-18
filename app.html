@@ -8287,7 +8287,7 @@ function renderDashboardExpenseControlV1(){
   const label=(typeof v37Label==='function')?v37Label(period):(period.year+'');
   const rowsForPeriod=(typeof v37Rows==='function')?v37Rows():transactions.filter(t=>t.tx_date?.startsWith(today().slice(0,7)));
   const rows=CATS.Expense.map(cat=>{
-    const spent=rowsForPeriod.filter(t=>t.type==='Expense'&&t.category===cat&&!isLinkedInvestmentTx(t)&&!(window.CATS?.Loans||[]).includes(t.category)).reduce((sum,t)=>sum+n(t.from_amount)*toTHB(t.from_account),0);
+    const spent=rowsForPeriod.filter(t=>t.type==='Expense'&&t.category===cat&&!isLinkedInvestmentTx(t)&&!(window.CATS?.Loans||[]).includes(t.category)&&!window.isCorrectionTransactionV3900(t)&&!window.isCorrectionTransactionV3900(t)).reduce((sum,t)=>sum+n(t.from_amount)*toTHB(t.from_account),0);
     const budget=v37Budget(cat);
     const pct=budget>0?(spent/budget*100):0;
     return{cat,spent,budget,pct};
@@ -9571,7 +9571,7 @@ renderDashboard=function(){
     const {p,year,monthKey,rows}=periodData();
     const cats=Array.isArray(CATS.Expense)?CATS.Expense:[];
     const data=cats.map(cat=>{
-      const spent=rows.filter(t=>t.type==='Expense'&&t.category===cat&&!(window.CATS?.Loans||[]).includes(t.category)&&!isLinkedInvestmentTx(t)).reduce((s,t)=>s+n(t.from_amount)*toTHB(t.from_account),0);
+      const spent=rows.filter(t=>t.type==='Expense'&&t.category===cat&&!(window.CATS?.Loans||[]).includes(t.category)&&!isLinkedInvestmentTx(t)&&!window.isCorrectionTransactionV3900(t)).reduce((s,t)=>s+n(t.from_amount)*toTHB(t.from_account),0);
       const budget=typeof v37Budget==='function'?v37Budget(cat):0; const pct=budget>0?spent/budget*100:0; return {cat,spent,budget,pct};
     });
     const totalSpent=data.reduce((s,x)=>s+x.spent,0), totalBudget=data.reduce((s,x)=>s+x.budget,0), totalPct=totalBudget?totalSpent/totalBudget*100:0;
@@ -21693,6 +21693,23 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
 <!-- MMHVAULT V4.3.0 FINAL NET-WORTH CONSISTENCY PATCH
      Dashboard headline cards must use the same canonical cash/investment values
      already shown by Account Overview. No transaction/investment records are changed. -->
+
+<script id="mmhvault-v3900-correction-expense-filter">
+(function(){
+  'use strict';
+  // A correction record is still a real Transaction and remains visible/editable
+  // in Transactions. It is simply not treated as consumer spending by analysis
+  // and budget-control views.
+  window.isCorrectionTransactionV3900 = function(t){
+    const note=String(t?.note||'').trim().toLowerCase();
+    return note.includes('纠正数据') ||
+           note.includes('data correction') ||
+           note.includes('correction data') ||
+           note === 'correction' ||
+           note.startsWith('correction ·');
+  };
+})();
+</script>
 
 </body>
 <!-- MMHVAULT V4.3.0 performance baseline: logo-free account cards + restrained dashboard rendering. -->
