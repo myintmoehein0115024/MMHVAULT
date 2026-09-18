@@ -5360,8 +5360,7 @@ body{
   }
 }
 </style>
-<style id="mmhvault-clean-toast-style">#mmhvaultCleanToast{position:fixed;right:18px;bottom:22px;z-index:2147483000;display:flex;flex-direction:column;gap:10px;max-width:min(430px,calc(100vw - 36px));pointer-events:none}.mmh-clean-toast{pointer-events:auto;display:grid;grid-template-columns:30px 1fr auto;gap:10px;align-items:start;padding:13px 14px;border:1px solid rgba(90,160,255,.28);border-radius:16px;background:rgba(7,18,36,.95);box-shadow:0 18px 50px rgba(0,0,0,.38);backdrop-filter:blur(18px);color:#eaf4ff;font:500 13px/1.45 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;animation:mmhToastIn .22s ease}.mmh-clean-toast.error{border-color:rgba(255,96,120,.45)}.mmh-clean-toast .icon{width:30px;height:30px;border-radius:10px;display:grid;place-items:center;background:rgba(255,80,105,.14);color:#ff9eac;font-weight:900}.mmh-clean-toast .close{border:0;background:transparent;color:#9db1cb;font-size:17px;cursor:pointer}.mmh-clean-toast .title{font-weight:800;margin-bottom:2px}.mmh-clean-toast .detail{color:#aebfd5;white-space:pre-wrap}.mmh-clean-toast .bar{height:2px;margin-top:9px;border-radius:2px;background:rgba(255,255,255,.08);overflow:hidden}.mmh-clean-toast .bar span{display:block;height:100%;background:#ff7187;animation:mmhToastBar 5s linear forwards}@keyframes mmhToastIn{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:none}}@keyframes mmhToastBar{from{width:100%}to{width:0}}</style><style id="mmhvault-clean-legacy-suppression">.mmh-loan-receivable-v5,.mmh-loan-receivable-v51,.mmh-loan-receivable-v52,.mmh-loan-receivable-v53,.mmh-loan-receivable-v6,.mmh-loan-receivable-v61,.mmh-loan-receivable-v62,.mmh-loan-receivable-v63{display:none!important}</style>
-<style id="mmhvault-loan-records-cashflow-v3">
+<style id="mmhvault-clean-toast-style">#mmhvaultCleanToast{position:fixed;right:18px;bottom:22px;z-index:2147483000;display:flex;flex-direction:column;gap:10px;max-width:min(430px,calc(100vw - 36px));pointer-events:none}.mmh-clean-toast{pointer-events:auto;display:grid;grid-template-columns:30px 1fr auto;gap:10px;align-items:start;padding:13px 14px;border:1px solid rgba(90,160,255,.28);border-radius:16px;background:rgba(7,18,36,.95);box-shadow:0 18px 50px rgba(0,0,0,.38);backdrop-filter:blur(18px);color:#eaf4ff;font:500 13px/1.45 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;animation:mmhToastIn .22s ease}.mmh-clean-toast.error{border-color:rgba(255,96,120,.45)}.mmh-clean-toast .icon{width:30px;height:30px;border-radius:10px;display:grid;place-items:center;background:rgba(255,80,105,.14);color:#ff9eac;font-weight:900}.mmh-clean-toast .close{border:0;background:transparent;color:#9db1cb;font-size:17px;cursor:pointer}.mmh-clean-toast .title{font-weight:800;margin-bottom:2px}.mmh-clean-toast .detail{color:#aebfd5;white-space:pre-wrap}.mmh-clean-toast .bar{height:2px;margin-top:9px;border-radius:2px;background:rgba(255,255,255,.08);overflow:hidden}.mmh-clean-toast .bar span{display:block;height:100%;background:#ff7187;animation:mmhToastBar 5s linear forwards}@keyframes mmhToastIn{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:none}}@keyframes mmhToastBar{from{width:100%}to{width:0}}</style><style id="mmhvault-loan-records-cashflow-v3">
 /* V4.4.0 · Loan Records are view-only inside Analyze/Cash Flow.
    Data entry remains exclusively in Transactions. */
 #analyze .loan-records-cashflow-v3{
@@ -5514,6 +5513,7 @@ body{
 <span>Cash <b id="mmhCommandCashV34210">$ 0</b></span>
 <span>Investments <b id="mmhCommandInvestV34210">$ 0</b></span>
 <span>Investment Weight <b id="mmhCommandWeightV34210">0.0%</b></span>
+<span>Loan Receivable <b id="mmhCommandLoanV34210">$ 0</b></span>
 </div>
 </div>
 </section>
@@ -16691,13 +16691,8 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
       set('mmhCommandCashV34210',money(d.cash));
       set('mmhCommandInvestV34210',money(d.invest));
       set('mmhCommandWeightV34210',w.toFixed(1)+'%');
+      set('mmhCommandLoanV34210',money(d.loan));
       set('mmhRibbonNetV34212',money(d.net));
-      const old=dash.querySelectorAll('.mmh-loan-receivable-clean'); old.forEach((el,i)=>{if(i>0)el.remove();});
-      let chip=dash.querySelector('.mmh-loan-receivable-clean');
-      const weightEl=document.getElementById('mmhCommandWeightV34210');
-      const parent=weightEl?.parentElement?.parentElement||weightEl?.parentElement;
-      if(!chip&&parent){chip=document.createElement('span');chip.className='mmh-loan-receivable-clean';chip.style.cssText='display:inline-flex;align-items:center;gap:7px;margin:10px 8px 0 0;padding:8px 12px;border:1px solid rgba(70,150,255,.35);border-radius:12px;background:rgba(8,22,46,.72);color:#bcd2ef;font-size:13px;';parent.appendChild(chip);}
-      if(chip)chip.textContent='Loan Receivable  '+money(d.loan);
       window.__mmhFinalNetWorthAuthoritySnapshot=d;
     }catch(e){console.warn('MMHVAULT final net worth sync skipped',e);}
   }
