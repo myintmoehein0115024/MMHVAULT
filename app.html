@@ -20233,6 +20233,53 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
      Premium compact command palette for mobile.
      Visual/layout only — no menu actions or routes changed.
 ========================================================= -->
+<style id="mmhvault-v34430-adjustment-help-polish">
+/* Adjustment guidance stays out of the way unless Adjustment is actually selected. */
+#txAdjustmentHelp{
+  display:none!important;
+  margin:5px 0 0!important;
+  padding:7px 10px!important;
+  min-height:0!important;
+  box-sizing:border-box!important;
+  border:1px solid rgba(104,156,214,.16)!important;
+  border-radius:10px!important;
+  background:rgba(10,25,49,.46)!important;
+  color:#7187a8!important;
+  font-size:11px!important;
+  line-height:1.45!important;
+  letter-spacing:.005em!important;
+}
+#txGroup:has(option[value="Adjustment"]:checked) + #txAdjustmentHelp{display:block!important;}
+@media(max-width:700px){
+  #txAdjustmentHelp{font-size:10px!important;padding:6px 9px!important;margin-top:4px!important;}
+}
+</style>
+<script id="mmhvault-v4302-more-auto-close">
+(function(){
+  const menu=document.getElementById('moreNavMenu');
+  const more=document.getElementById('moreNavButton');
+  if(!menu||!more)return;
+  function close(){
+    menu.classList.remove('open');
+    menu.setAttribute('aria-hidden','true');
+    more.setAttribute('aria-expanded','false');
+    more.classList.remove('active');
+  }
+  // Close immediately when navigation is chosen, before the route/render chain runs.
+  document.addEventListener('click',function(e){
+    const b=e.target.closest('#bottomNav button[data-page], #moreNavMenu button[data-more-page]');
+    if(b) close();
+  },true);
+  // Also close when another page becomes active through programmatic navigation.
+  const pages=document.querySelectorAll('.page');
+  if(pages.length){
+    const observer=new MutationObserver(function(){
+      if(document.querySelector('.page.active')) close();
+    });
+    pages.forEach(p=>observer.observe(p,{attributes:true,attributeFilter:['class']}));
+  }
+})();
+</script>
 <style id="mmhvault-v4301-mobile-more-menu-compact">
 @media(max-width:760px){
 
