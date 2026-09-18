@@ -5390,6 +5390,13 @@ body{
 </style>
 
 <!-- MMHVAULT V17 · Net Worth no-flicker cleanup: removed render-triggered entry animation only. -->
+
+<style id="mmhvault-v28-invest-clear-placement">
+/* V28 — Keep asset deletion local to its corresponding portfolio record section. */
+#invest .toolbar-actions-v28{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex:0 0 auto;}
+#invest .btn-clear-invest-v28{min-height:34px!important;padding:7px 11px!important;border-radius:10px!important;font-size:12px!important;font-weight:800!important;line-height:1!important;white-space:nowrap;}
+@media(max-width:620px){#invest .toolbar-actions-v28{gap:6px;}#invest .toolbar-actions-v28 .pill{display:none;}#invest .btn-clear-invest-v28{min-height:32px!important;padding:6px 10px!important;font-size:11px!important;}}
+</style>
 </head>
 <!-- MMHVAULT V4.3.6 · iOS JSON import bridge + V4.3.0 Dashboard report relocation + Transaction receipt center + Invest Add precision -->
 <body>
@@ -5808,7 +5815,7 @@ body{
 </style>
 <section class="page" id="invest">
 <div class="toolbar v371-head"><div><h1>Investment Center</h1><div class="sub">Crypto is displayed in <b>USD</b>. Gold is displayed in <b>MMK</b>. Investment purchases deduct directly from the selected source account and are kept out of Transaction History.</div></div>
-<div class="v371-switch"><button class="btn active" id="v371CryptoBtn" type="button">₿ Crypto</button><button class="btn" id="v371GoldBtn" type="button">🥇 Gold</button><button class="btn danger" type="button" onclick="deleteAllInvestments('Crypto')">Clear Crypto</button><button class="btn danger" type="button" onclick="deleteAllInvestments('Gold')">Clear Gold</button></div></div>
+<div class="v371-switch"><button class="btn active" id="v371CryptoBtn" type="button">₿ Crypto</button><button class="btn" id="v371GoldBtn" type="button">🥇 Gold</button></div></div>
 <div aria-label="Investment sections" class="invest-subtabs-v371" role="tablist">
 <button aria-selected="true" class="invest-subtab-v371 active" id="investSubOverviewV371" role="tab" type="button">Overview</button>
 <button aria-selected="false" class="invest-subtab-v371" id="investSubPortfolioV371" role="tab" type="button">Portfolio</button>
@@ -5869,8 +5876,8 @@ body{
 </div>
 </div>
 </div><div class="notice small" id="invHint"></div><div class="actions"><button class="btn" onclick="clearInvestForm()" type="button">Clear</button><button class="btn primary">Buy &amp; Record</button></div></form></div>
-<div class="panel invest-list-panel v371-crypto" id="v371CryptoPortfolio"><div class="toolbar"><div><h2>Crypto Portfolio</h2><div class="sub">All crypto values and P/L are shown in USD.</div></div><span class="pill">Profit / Loss · ROI</span></div><div class="scroll" id="cryptoInvList"></div></div>
-<div class="panel invest-list-panel v371-gold gold-portfolio-shell" id="v371GoldPortfolio"><div class="toolbar"><div><h2>Gold Portfolio</h2><div class="sub">Gold cost, value and P/L are shown in MMK.</div></div><span class="pill">1 ကျပ်သား = 16 ပဲ = 128 ရွေး</span></div><div class="scroll" id="goldInvList"></div></div>
+<div class="panel invest-list-panel v371-crypto" id="v371CryptoPortfolio"><div class="toolbar"><div><h2>Crypto Portfolio</h2><div class="sub">All crypto values and P/L are shown in USD.</div></div><div class="toolbar-actions-v28"><span class="pill">Profit / Loss · ROI</span><button class="btn danger btn-clear-invest-v28" type="button" onclick="deleteAllInvestments('Crypto')">Clear</button></div></div><div class="scroll" id="cryptoInvList"></div></div>
+<div class="panel invest-list-panel v371-gold gold-portfolio-shell" id="v371GoldPortfolio"><div class="toolbar"><div><h2>Gold Portfolio</h2><div class="sub">Gold cost, value and P/L are shown in MMK.</div></div><div class="toolbar-actions-v28"><span class="pill">1 ကျပ်သား = 16 ပဲ = 128 ရွေး</span><button class="btn danger btn-clear-invest-v28" type="button" onclick="deleteAllInvestments('Gold')">Clear</button></div></div><div class="scroll" id="goldInvList"></div></div>
 </section>
 <!-- V4.3.0 Settings Separation Hotfix -->
 <section class="page" id="settings">
