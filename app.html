@@ -5363,7 +5363,22 @@ body{
   }
 }
 </style>
-<style id="mmhvault-clean-toast-style">#mmhvaultCleanToast{position:fixed;right:18px;bottom:22px;z-index:2147483000;display:flex;flex-direction:column;gap:10px;max-width:min(430px,calc(100vw - 36px));pointer-events:none}.mmh-clean-toast{pointer-events:auto;display:grid;grid-template-columns:30px 1fr auto;gap:10px;align-items:start;padding:13px 14px;border:1px solid rgba(90,160,255,.28);border-radius:16px;background:rgba(7,18,36,.95);box-shadow:0 18px 50px rgba(0,0,0,.38);backdrop-filter:blur(18px);color:#eaf4ff;font:500 13px/1.45 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;animation:mmhToastIn .22s ease}.mmh-clean-toast.error{border-color:rgba(255,96,120,.45)}.mmh-clean-toast .icon{width:30px;height:30px;border-radius:10px;display:grid;place-items:center;background:rgba(255,80,105,.14);color:#ff9eac;font-weight:900}.mmh-clean-toast .close{border:0;background:transparent;color:#9db1cb;font-size:17px;cursor:pointer}.mmh-clean-toast .title{font-weight:800;margin-bottom:2px}.mmh-clean-toast .detail{color:#aebfd5;white-space:pre-wrap}.mmh-clean-toast .bar{height:2px;margin-top:9px;border-radius:2px;background:rgba(255,255,255,.08);overflow:hidden}.mmh-clean-toast .bar span{display:block;height:100%;background:#ff7187;animation:mmhToastBar 5s linear forwards}@keyframes mmhToastIn{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:none}}@keyframes mmhToastBar{from{width:100%}to{width:0}}</style><style id="mmhvault-clean-legacy-suppression">.mmh-loan-receivable-v5,.mmh-loan-receivable-v51,.mmh-loan-receivable-v52,.mmh-loan-receivable-v53,.mmh-loan-receivable-v6,.mmh-loan-receivable-v61,.mmh-loan-receivable-v62,.mmh-loan-receivable-v63{display:none!important}</style></head>
+<style id="mmhvault-clean-toast-style">#mmhvaultCleanToast{position:fixed;right:18px;bottom:22px;z-index:2147483000;display:flex;flex-direction:column;gap:10px;max-width:min(430px,calc(100vw - 36px));pointer-events:none}.mmh-clean-toast{pointer-events:auto;display:grid;grid-template-columns:30px 1fr auto;gap:10px;align-items:start;padding:13px 14px;border:1px solid rgba(90,160,255,.28);border-radius:16px;background:rgba(7,18,36,.95);box-shadow:0 18px 50px rgba(0,0,0,.38);backdrop-filter:blur(18px);color:#eaf4ff;font:500 13px/1.45 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;animation:mmhToastIn .22s ease}.mmh-clean-toast.error{border-color:rgba(255,96,120,.45)}.mmh-clean-toast .icon{width:30px;height:30px;border-radius:10px;display:grid;place-items:center;background:rgba(255,80,105,.14);color:#ff9eac;font-weight:900}.mmh-clean-toast .close{border:0;background:transparent;color:#9db1cb;font-size:17px;cursor:pointer}.mmh-clean-toast .title{font-weight:800;margin-bottom:2px}.mmh-clean-toast .detail{color:#aebfd5;white-space:pre-wrap}.mmh-clean-toast .bar{height:2px;margin-top:9px;border-radius:2px;background:rgba(255,255,255,.08);overflow:hidden}.mmh-clean-toast .bar span{display:block;height:100%;background:#ff7187;animation:mmhToastBar 5s linear forwards}@keyframes mmhToastIn{from{opacity:0;transform:translateY(12px) scale(.98)}to{opacity:1;transform:none}}@keyframes mmhToastBar{from{width:100%}to{width:0}}</style><style id="mmhvault-clean-legacy-suppression">.mmh-loan-receivable-v5,.mmh-loan-receivable-v51,.mmh-loan-receivable-v52,.mmh-loan-receivable-v53,.mmh-loan-receivable-v6,.mmh-loan-receivable-v61,.mmh-loan-receivable-v62,.mmh-loan-receivable-v63{display:none!important}</style>
+<style id="mmhvault-loan-records-cashflow-v3">
+/* V4.4.0 · Loan Records are view-only inside Analyze/Cash Flow.
+   Data entry remains exclusively in Transactions. */
+#analyze .loan-records-cashflow-v3{
+  margin-top:14px;
+  border-color:rgba(246,199,91,.18);
+  background:linear-gradient(145deg,rgba(10,23,48,.86),rgba(5,13,30,.90));
+}
+#analyze .loan-records-cashflow-v3 .toolbar{align-items:flex-start}
+#analyze .loan-records-cashflow-v3 .toolbar .sub{max-width:760px;line-height:1.45}
+#analyze .loan-records-cashflow-v3 .analyze-table{overflow:auto}
+#analyze .loan-records-cashflow-v3 table{min-width:620px}
+</style>
+
+</head>
 <!-- MMHVAULT V4.3.6 · iOS JSON import bridge + V4.3.0 Dashboard report relocation + Transaction receipt center + Invest Add precision -->
 <body>
 <div id="mmhvaultAppBootGuardV3282" style="position:fixed;inset:0;z-index:30000;display:none;align-items:center;justify-content:center;background:#050a18;color:#dce8ff;font-family:Arial,sans-serif;padding:24px;text-align:center;">
@@ -5635,7 +5650,7 @@ body{
 <div aria-label="Financial Intelligence Center" class="panel financial-intelligence-v314" id="financialIntelligenceV314"></div>
 <div class="panel analyze-panel overview-snapshot-panel-v371"><div class="toolbar"><div><h2>Period Overview</h2><div class="sub">Quick summary for your selected analysis period.</div><div class="small" style="margin-top:4px">All period-based Analyze modules use the same transaction dataset and selected Year / Month.</div></div><span class="pill" id="overviewSnapshotPeriodV371">—</span></div><div class="overview-snapshot-grid-v371" id="overviewSnapshotV371"></div></div>
 <div class="panel analyze-panel"><div class="toolbar"><h2>Expense Details</h2><span class="pill">Loans excluded</span></div><div class="analyze-table" id="expenses"></div></div>
-<div class="panel analyze-panel"><div class="toolbar"><h2>Loans</h2><span class="pill">Outstanding</span></div><div class="analyze-table" id="loans"></div></div>
+
 <div class="panel analyze-panel monthly-compact"><div class="toolbar"><div><h2>Monthly Overview</h2><div class="sub" id="monthlyPeriodHint">Selected period</div></div></div><div class="analyze-table" id="monthly"></div><div class="month-compare-v37" id="monthCompareV37"></div></div>
 </div>
 <div aria-hidden="true" class="analyze-tab-panel-v371" data-panel="health" role="tabpanel">
@@ -5644,6 +5659,16 @@ body{
 <div aria-hidden="true" class="analyze-tab-panel-v371" data-panel="cashflow" role="tabpanel">
 <div class="panel analyze-panel"><div class="toolbar"><div><h2>Cash Flow Summary</h2><div class="sub" id="cashFlowSummaryPeriod">Selected period · THB</div></div><span class="pill" id="cashFlowSummaryStatus">—</span></div><div class="cashflow-summary-v371" id="cashFlowSummary"></div></div>
 <div class="panel analyze-panel savings-trend-panel"><div class="toolbar"><div><h2>Savings Rate Trend</h2><div class="sub">Last 6 months · target 60%</div></div><span class="pill" id="savingsTrendChange">—</span></div><div class="savings-trend-wrap" id="dashboardSavingsTrend"></div></div>
+<div class="panel analyze-panel loan-records-cashflow-v3">
+<div class="toolbar">
+  <div>
+    <h2>Loan Records</h2>
+    <div class="sub">View-only loan activity from Transactions. Add, edit, or delete Loan records in Transactions.</div>
+  </div>
+  <span class="pill">View Only</span>
+</div>
+<div class="analyze-table" id="loans"></div>
+</div>
 <div class="grid two analyze-extra" style="margin-top:14px">
 <div class="panel analyze-panel"><div class="toolbar"><h2>Expense Trend</h2></div><div id="expenseTrend"></div></div>
 <div class="panel analyze-panel"><div class="toolbar"><h2>Income vs Expense</h2></div><div id="incomeExpenseTrend"></div></div>
@@ -16628,130 +16653,6 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
   window.mmhvaultNotify=show;
   window.alert=show;
 })();</script>
-<!-- MMHVAULT V4.4.0 · LOAN ANALYZE RESTORE
-     Restores a dedicated Loans tab inside Analyze while keeping the existing
-     Overview loan summary. Uses the canonical loan ledger already present in
-     the app; no transaction data is changed. -->
-<style id="mmhvault-loan-analyze-v440">
-#loansAnalyzePanelV1{display:none}
-#loansAnalyzePanelV1.active{display:block}
-.loan-analyze-head-v1{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
-.loan-kpi-grid-v1{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
-.loan-kpi-v1{padding:16px;border:1px solid rgba(255,255,255,.09);border-radius:14px;background:rgba(255,255,255,.025)}
-.loan-kpi-v1 .label{font-size:12px;color:var(--muted,#8fa1bd);margin-bottom:7px}
-.loan-kpi-v1 .value{font-size:21px;font-weight:800;letter-spacing:-.02em}
-.loan-kpi-v1 .value.red{color:#ff7187}.loan-kpi-v1 .value.green{color:#62d99c}
-.loan-ledger-wrap-v1{overflow:auto}
-.loan-ledger-wrap-v1 table{width:100%;min-width:700px;border-collapse:collapse}
-.loan-ledger-wrap-v1 th,.loan-ledger-wrap-v1 td{padding:11px 10px;border-bottom:1px solid rgba(255,255,255,.07);text-align:left}
-.loan-ledger-wrap-v1 th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted,#8fa1bd)}
-.loan-empty-v1{padding:26px;text-align:center;color:var(--muted,#8fa1bd)}
-.loan-type-v1{font-weight:700}
-.loan-type-out-v1{color:#ffb86b}.loan-type-repay-v1{color:#62d99c}.loan-type-debt-v1{color:#ff9faf}
-@media(max-width:800px){.loan-kpi-grid-v1{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:520px){.loan-kpi-grid-v1{grid-template-columns:1fr 1fr}.loan-kpi-v1{padding:12px}.loan-kpi-v1 .value{font-size:17px}}
-</style>
-<script id="mmhvault-loan-analyze-v440-js">
-(function(){
-  'use strict';
-  function esc(v){
-    return String(v??'').replace(/[&<>"']/g,function(c){return({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c];});
-  }
-  function money(v){
-    try{return Number(v||0).toLocaleString(undefined,{maximumFractionDigits:2});}
-    catch(_e){return String(v||0);}
-  }
-  function loanRows(){
-    if(typeof loanRowsV8==='function') return loanRowsV8();
-    const rows=Array.isArray(window.transactions)?window.transactions:[];
-    return rows.filter(function(t){
-      const c=String(t?.category||'').trim().toLowerCase();
-      return ['loan out','loan repayment','debt','paid debt','paiddebt'].includes(c);
-    });
-  }
-  function render(){
-    const host=document.getElementById('loanAnalyzeBodyV1');
-    if(!host)return;
-    const rows=loanRows();
-    let out=0,repay=0,debt=0,paidDebt=0;
-    rows.forEach(function(t){
-      const c=String(t?.category||'').trim().toLowerCase();
-      if(c==='loan out')out+=Math.abs(Number(t?.from_amount||0))* (typeof toMMK==='function'?toMMK(t?.from_account):1);
-      else if(c==='loan repayment')repay+=Math.abs(Number(t?.to_amount||0))* (typeof toMMK==='function'?toMMK(t?.to_account):1);
-      else if(c==='debt')debt+=Math.abs(Number(t?.from_amount||0))* (typeof toMMK==='function'?toMMK(t?.from_account):1);
-      else if(c==='paid debt'||c==='paiddebt')paidDebt+=Math.abs(Number(t?.to_amount||0))* (typeof toMMK==='function'?toMMK(t?.to_account):1);
-    });
-    const receivable=Math.max(0,out-repay);
-    const payable=Math.max(0,debt-paidDebt);
-    const outstanding=receivable+payable;
-    const body=rows.slice().sort(function(a,b){return String(b?.tx_date||'').localeCompare(String(a?.tx_date||''));}).map(function(t){
-      const c=String(t?.category||'').trim().toLowerCase();
-      const isOut=c==='loan out', isRepay=c==='loan repayment';
-      const cls=isOut?'loan-type-out-v1':isRepay?'loan-type-repay-v1':'loan-type-debt-v1';
-      const account=isOut?t?.from_account:t?.to_account;
-      const amount=isOut?Number(t?.from_amount||0):Number(t?.to_amount||0);
-      const mmk=amount*(typeof toMMK==='function'?toMMK(account):1);
-      const note=t?.note||'—';
-      return '<tr><td>'+esc(t?.tx_date||'—')+'</td><td class="loan-type-v1 '+cls+'">'+esc(t?.category||'Loan')+'</td><td>'+esc(account||'—')+'</td><td>'+money(amount)+'</td><td>'+money(mmk)+'</td><td>'+esc(note)+'</td></tr>';
-    }).join('');
-    host.innerHTML=
-      '<div class="loan-kpi-grid-v1">'+
-      '<div class="loan-kpi-v1"><div class="label">Loan Out</div><div class="value">'+money(out)+' MMK</div></div>'+
-      '<div class="loan-kpi-v1"><div class="label">Loan Repayment</div><div class="value green">'+money(repay)+' MMK</div></div>'+
-      '<div class="loan-kpi-v1"><div class="label">Debt / Paid Debt</div><div class="value">'+money(payable)+' MMK</div></div>'+
-      '<div class="loan-kpi-v1"><div class="label">Total Outstanding</div><div class="value '+(outstanding>0?'red':'green')+'">'+money(outstanding)+' MMK</div></div>'+
-      '</div>'+
-      '<div class="panel analyze-panel" style="margin-top:14px">'+
-      '<div class="toolbar"><div><h2>Loan Ledger</h2><div class="sub">All loan-related transactions from the current dataset.</div></div><span class="pill">'+rows.length+' records</span></div>'+
-      '<div class="loan-ledger-wrap-v1">'+(body?'<table><thead><tr><th>Date</th><th>Category</th><th>Account</th><th>Amount</th><th>MMK</th><th>Note</th></tr></thead><tbody>'+body+'</tbody></table>':'<div class="loan-empty-v1">No loan records yet. Add a Loans transaction from Transactions.</div>')+'</div>'+
-      '</div>';
-  }
-  function open(){
-    document.querySelectorAll('#analyze .analyze-tab-v371').forEach(function(b){
-      const on=b.dataset.tab==='loans'; b.classList.toggle('active',on); b.setAttribute('aria-selected',on?'true':'false');
-    });
-    document.querySelectorAll('#analyze .analyze-tab-panel-v371').forEach(function(p){
-      const on=p.dataset.panel==='loans'; p.classList.toggle('active',on); p.setAttribute('aria-hidden',on?'false':'true');
-    });
-    const panel=document.getElementById('loansAnalyzePanelV1');
-    if(panel)panel.classList.add('active');
-    try{localStorage.setItem('myfinance_analyze_tab','loans');}catch(_e){}
-    render();
-  }
-  function ensure(){
-    const analyze=document.getElementById('analyze');
-    const tabs=analyze?.querySelector('.analyze-tabs-v371');
-    if(!analyze||!tabs)return false;
-    if(!tabs.querySelector('[data-tab="loans"]')){
-      const b=document.createElement('button');
-      b.type='button'; b.className='analyze-tab-v371'; b.dataset.tab='loans';
-      b.setAttribute('role','tab'); b.setAttribute('aria-selected','false');
-      b.textContent='Loans';
-      b.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();open();});
-      tabs.appendChild(b);
-    }
-    if(!document.getElementById('loansAnalyzePanelV1')){
-      const p=document.createElement('div');
-      p.id='loansAnalyzePanelV1'; p.className='analyze-tab-panel-v371';
-      p.dataset.panel='loans'; p.setAttribute('role','tabpanel'); p.setAttribute('aria-hidden','true');
-      p.innerHTML='<div class="panel analyze-panel"><div class="loan-analyze-head-v1"><div><h2>Loans</h2><div class="sub">Track money you lent, repayments, debt and the amount still outstanding.</div></div><span class="pill">Loan Center</span></div><div id="loanAnalyzeBodyV1" style="margin-top:14px"></div></div>';
-      analyze.appendChild(p);
-    }
-    render();
-    return true;
-  }
-  window.mmhOpenLoanAnalyzeV1=open;
-  window.mmhRenderLoanAnalyzeV1=render;
-  const boot=function(){ensure();setTimeout(ensure,500);setTimeout(ensure,1500);};
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
-  const oldRender=window.render;
-  if(typeof oldRender==='function'&&!oldRender.__mmhLoanV440){
-    const wrapped=function(){const r=oldRender.apply(this,arguments);try{if(document.getElementById('loansAnalyzePanelV1')?.classList.contains('active'))render();}catch(_e){}return r;};
-    wrapped.__mmhLoanV440=true; window.render=wrapped;
-  }
-})();
-</script>
-
 </body>
 <!-- MMHVAULT V4.3.0 performance baseline: logo-free account cards + restrained dashboard rendering. -->
 <style id="mmhvault-v3445-analyze-premium-polish">
