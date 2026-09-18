@@ -6877,7 +6877,7 @@ async function deleteTx(id){
   try{
     const u=(await db.auth.getUser()).data.user;
     if(!u){alert("Please sign in again.");return;}
-    if(!confirm("Delete this transaction?"))return;
+    if(!(await window.MMHV4.confirm({title:'Delete this transaction?',message:'This transaction will be permanently removed from your account.',confirmText:'Delete',cancelText:'Cancel',danger:true})))return;
 
     const r=await db.from("transactions").delete().eq("id",id).eq("user_id",u.id);
     if(r.error){
@@ -7064,7 +7064,7 @@ function editTx(id){
       : `<div class="receipt-manage-empty-v3309">No receipt attached · choose one below to add it.</div>`;
     $('editTransactionViewReceiptV3309')?.addEventListener('click',()=>window.mmHVaultOpenManagedReceiptV3309(id,'transaction'));
     $('removeTransactionReceiptV3309')?.addEventListener('click',async()=>{
-      if(!confirm('Remove this receipt?'))return;
+      if(!(await window.MMHV4.confirm({title:'Remove this receipt?',message:'This receipt will be permanently removed.',confirmText:'Remove',cancelText:'Cancel',danger:true})))return;
       try{
         await window.mmHVaultRemoveExistingReceiptV3309(u.id,id,'transaction');
         await renderTransactionReceiptManageV3309();
@@ -7538,7 +7538,7 @@ async function editInvestment(id){
       : `<div class="receipt-manage-empty-v3309">No receipt attached · choose one below to add it.</div>`;
     $('editInvestmentViewReceiptV3309')?.addEventListener('click',()=>window.mmHVaultOpenManagedReceiptV3309(id,'investment'));
     $('removeInvestmentReceiptV3309')?.addEventListener('click',async()=>{
-      if(!confirm('Remove this receipt?'))return;
+      if(!(await window.MMHV4.confirm({title:'Remove this receipt?',message:'This receipt will be permanently removed.',confirmText:'Remove',cancelText:'Cancel',danger:true})))return;
       try{await window.mmHVaultRemoveExistingReceiptV3309(u.id,id,'investment');await renderInvestmentReceiptManageV3309();await window.refreshInvestmentReceiptFlagsV3304?.();}catch(e){alert(e?.message||'Unable to remove receipt.');}
     });
     $('replaceInvestmentReceiptV3309')?.addEventListener('change',async ev=>{
@@ -7613,7 +7613,7 @@ async function editInvestment(id){
 }
 
 async function deleteInvestment(id){
-  if(!confirm("Delete this investment record?"))return;
+  if(!(await window.MMHV4.confirm({title:'Delete this investment record?',message:'This investment record will be permanently removed.',confirmText:'Delete',cancelText:'Cancel',danger:true})))return;
   const u=(await db.auth.getUser()).data.user;
   const r=await db.from("investments").delete().eq("id",id);
   if(r.error){alert(r.error.message);return;}
@@ -7701,12 +7701,12 @@ async function handleExcelFile(file){
 async function importSelectedExcel(){if(!selectedExcelRows)return;const u=(await db.auth.getUser()).data.user;if(!u)return;const {newTx,newInv,fileName}=selectedExcelRows;
  const canStore=typeof window.MMHV4?.confirm==='function'
    ? await window.MMHV4.confirm({title:'Review & Store Import',message:`Import ${newTx.length} transactions and ${newInv.length} investments from ${fileName}? Existing cloud records will be preserved.`,confirmText:'Review & Store',cancelText:'Cancel'})
-   : confirm(`Import ${newTx.length} transactions and ${newInv.length} investments from ${fileName}?`);
+   : await window.MMHV4.confirm({title:'Review & Store Import',message:`Import ${newTx.length} transactions and ${newInv.length} investments from ${fileName}? Existing cloud records will be preserved.`,confirmText:'Review & Store',cancelText:'Cancel'});
  if(!canStore)return; if(newTx.length){const r=await db.from('transactions').insert(newTx.map(x=>({user_id:u.id,tx_date:x.date,type:x.type,category:x.category,from_account:x.from_account,from_amount:x.from_amount,to_account:x.to_account,to_amount:x.to_amount,note:x.note})));if(r.error){alert('Transaction import failed: '+r.error.message);return;}}
  if(newInv.length){const r=await db.from('investments').insert(newInv.map(x=>({user_id:u.id,inv_date:x.date,asset:x.asset,symbol:x.symbol,amount:x.amount,fee:x.fee,other_cost:x.other_cost,buy_price:x.buy_price,market_price:x.market_price,quantity:x.quantity,note:x.note})));if(r.error){alert('Investment import failed: '+r.error.message);return;}}
  selectedExcelRows=null;$('excelFile').value='';clearExcelPreview();await loadAll({force:true});window.mmhvaultForceRenderAllV34421?.('excel-import');setPage('dashboard');alert('Excel import completed. Dashboard, Analyze and Invest are now linked to the imported Supabase data.');}
 function clearExcelPreview(){selectedExcelRows=null;const p=$('excelPreview');if(p){p.style.display='none';p.innerHTML='';}$('excelImportBtn').disabled=true;if($('excelFile'))$('excelFile').value='';const t=$('excelDropTitleV318');const s=$('excelDropSubV318');if(t)t.textContent='Choose a workbook';if(s)s.textContent='.XLSX, .XLS or .XLSM · select your finance workbook';}
-async function resetMyCloudData(){if(!confirm('This will delete your Transactions, Investments and Exchange Rates from Supabase. Continue?'))return;const u=(await db.auth.getUser()).data.user;if(!u)return;for(const table of ['transactions','investments','exchange_rates']){const r=await db.from(table).delete().eq('user_id',u.id);if(r.error){alert(`Reset failed on ${table}: ${r.error.message}`);return;}}await loadAll({force:true});window.mmhvaultForceRenderAllV34421?.('cloud-reset');alert('Your cloud data has been reset.');}
+async function resetMyCloudData(){if(!(await window.MMHV4.confirm({title:'Reset cloud data?',message:'This will delete your Transactions, Investments and Exchange Rates from Supabase. This cannot be undone.',confirmText:'Reset Data',cancelText:'Cancel',danger:true})))return;const u=(await db.auth.getUser()).data.user;if(!u)return;for(const table of ['transactions','investments','exchange_rates']){const r=await db.from(table).delete().eq('user_id',u.id);if(r.error){alert(`Reset failed on ${table}: ${r.error.message}`);return;}}await loadAll({force:true});window.mmhvaultForceRenderAllV34421?.('cloud-reset');alert('Your cloud data has been reset.');}
 
 autoBindExcel=()=>{const f=$('excelFile');const zone=$('excelDropzoneV318');const title=$('excelDropTitleV318');const sub=$('excelDropSubV318');if(!f)return;f.addEventListener('change',e=>{const file=e.target.files?.[0];if(file){if(title)title.textContent=file.name;if(sub)sub.textContent=`${(file.size/1024/1024).toFixed(2)} MB · ready to preview`; }else{if(title)title.textContent='Choose a workbook';if(sub)sub.textContent='.XLSX, .XLS or .XLSM · select your finance workbook';}handleExcelFile(file);});if(zone){['dragenter','dragover'].forEach(ev=>zone.addEventListener(ev,e=>{e.preventDefault();zone.classList.add('dragover')}));['dragleave','drop'].forEach(ev=>zone.addEventListener(ev,e=>{e.preventDefault();zone.classList.remove('dragover')}));zone.addEventListener('drop',e=>{const file=e.dataTransfer?.files?.[0];if(!file)return;try{const dt=new DataTransfer();dt.items.add(file);f.files=dt.files;}catch(_e){}if(title)title.textContent=file.name;if(sub)sub.textContent=`${(file.size/1024/1024).toFixed(2)} MB · ready to preview`;handleExcelFile(file);});}};
 autoBindExcel();
@@ -7810,7 +7810,7 @@ const _renderInvestV27=renderInvest;
 function avgBuy(sym){const rows=investments.filter(x=>x.asset==='Crypto'&&x.symbol===sym);let q=0,c=0;rows.forEach(x=>{const qq=n(x.quantity);q+=qq;c+=n(x.amount)+n(x.fee)+n(x.other_cost);});return q>0?c/q:0;}
 function renderInvestV28(){_renderInvestV27();const syms=['BTC','ETH','SOL','BNB'];const cur=syms.map(s=>{const q=investments.filter(x=>x.asset==='Crypto'&&x.symbol===s).reduce((a,x)=>a+n(x.quantity),0);const p=livePrices[s]?.price||0;const v=q*p;return{s,q,p,v,avg:avgBuy(s)}});const totalV=cur.reduce((s,x)=>s+x.v,0);$('allocation').innerHTML=`<div class="invest-target-grid">${cur.map(x=>{const w=totalV?x.v/totalV*100:0;const target=V28_TARGETS[x.s]||0;return`<div class="target-card"><b>${x.s}</b><div class="small">Current ${w.toFixed(1)}% · Target ${target}%</div><div class="alloc-bar" style="margin-top:8px"><span style="width:${Math.min(100,w)}%"></span></div><div class="small" style="margin-top:6px">Avg Buy $${fmt(x.avg)}</div></div>`}).join('')}</div><div class="small" style="margin-top:10px">Targets are editable in code for now; current holdings are calculated from your investment records.</div>`;}
 async function exportMyFinanceBackup(){const out={version:'V2.9',exported_at:new Date().toISOString(),transactions,investments,rates};const blob=new Blob([JSON.stringify(out,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`MMHVAULT_Backup_${today()}.json`;a.click();URL.revokeObjectURL(a.href);$('backupStatus').textContent='Backup exported successfully.';}
-async function importMyFinanceBackup(file){if(!file)return;try{const data=JSON.parse(await file.text());if(!Array.isArray(data.transactions)||!Array.isArray(data.investments))throw new Error('Invalid MMHVAULT backup file.');const u=(await db.auth.getUser()).data.user;if(!u)throw new Error('Not signed in to MMHVAULT.');if(!confirm(`Restore ${data.transactions.length} transactions and ${data.investments.length} investments into your MMHVAULT account?`))return;const txExisting=new Set(transactions.map(txFp));const invExisting=new Set(investments.map(invFp));const ntx=data.transactions.filter(x=>!txExisting.has(txFp(x))).map(x=>({...x,user_id:u.id,tx_date:x.tx_date||x.date,created_at:undefined}));const ninv=data.investments.filter(x=>!invExisting.has(invFp(x))).map(x=>({...x,user_id:u.id,inv_date:x.inv_date||x.date,created_at:undefined}));if(ntx.length){const r=await db.from('transactions').insert(ntx.map(x=>{const {created_at,...rest}=x;return rest;}));if(r.error)throw r.error;}if(ninv.length){const r=await db.from('investments').insert(ninv.map(x=>{const {created_at,...rest}=x;return rest;}));if(r.error)throw r.error;}if(data.rates){await db.from('exchange_rates').upsert({...data.rates,user_id:u.id});}await loadAll();$('backupStatus').textContent=`Restore complete: ${ntx.length} transactions + ${ninv.length} investments added.`;}catch(e){$('backupStatus').textContent='Restore failed: '+e.message;}}
+async function importMyFinanceBackup(file){if(!file)return;try{const data=JSON.parse(await file.text());if(!Array.isArray(data.transactions)||!Array.isArray(data.investments))throw new Error('Invalid MMHVAULT backup file.');const u=(await db.auth.getUser()).data.user;if(!u)throw new Error('Not signed in to MMHVAULT.');if(!(await window.MMHV4.confirm({title:'Restore backup?',message:`Restore ${data.transactions.length} transactions and ${data.investments.length} investments into your MMHVAULT account?`,confirmText:'Restore',cancelText:'Cancel'})))return;const txExisting=new Set(transactions.map(txFp));const invExisting=new Set(investments.map(invFp));const ntx=data.transactions.filter(x=>!txExisting.has(txFp(x))).map(x=>({...x,user_id:u.id,tx_date:x.tx_date||x.date,created_at:undefined}));const ninv=data.investments.filter(x=>!invExisting.has(invFp(x))).map(x=>({...x,user_id:u.id,inv_date:x.inv_date||x.date,created_at:undefined}));if(ntx.length){const r=await db.from('transactions').insert(ntx.map(x=>{const {created_at,...rest}=x;return rest;}));if(r.error)throw r.error;}if(ninv.length){const r=await db.from('investments').insert(ninv.map(x=>{const {created_at,...rest}=x;return rest;}));if(r.error)throw r.error;}if(data.rates){await db.from('exchange_rates').upsert({...data.rates,user_id:u.id});}await loadAll();$('backupStatus').textContent=`Restore complete: ${ntx.length} transactions + ${ninv.length} investments added.`;}catch(e){$('backupStatus').textContent='Restore failed: '+e.message;}}
 // Patch existing UI events without changing core cloud model.
 const _initV27=init;
 function initV28(){_initV27();bindTxFilters();}
@@ -8942,7 +8942,7 @@ async function signOutOtherSessionsV379(){
   }
 }
 async function signOutAllSessionsV379(){
-  if(!confirm('Sign out from all devices? You will also be signed out on this device.'))return;
+  if(!(await window.MMHV4.confirm({title:'Sign out all devices?',message:'You will also be signed out on this device.',confirmText:'Sign out all',cancelText:'Cancel',danger:true})))return;
   try{
     const r=await db.auth.signOut();
     if(r?.error)throw r.error;
@@ -8995,7 +8995,7 @@ async function importMyFinanceBackupV380(file){
     const invExisting=new Set(investments.map(invFp));
     const ntx=data.transactions.filter(x=>!txExisting.has(txFp(x))).map(x=>{const {created_at,...rest}=x;return {...rest,user_id:u.id,tx_date:x.tx_date||x.date};});
     const ninv=data.investments.filter(x=>!invExisting.has(invFp(x))).map(x=>{const {created_at,...rest}=x;return {...rest,user_id:u.id,inv_date:x.inv_date||x.date};});
-    if(!confirm(`Restore ${ntx.length} new transactions and ${ninv.length} new investments?`))return;
+    if(!(await window.MMHV4.confirm({title:'Restore backup?',message:`Restore ${ntx.length} new transactions and ${ninv.length} new investments?`,confirmText:'Restore',cancelText:'Cancel'})))return;
     if(ntx.length){const r=await db.from('transactions').insert(ntx);if(r.error)throw r.error;}
     if(ninv.length){const r=await db.from('investments').insert(ninv);if(r.error)throw r.error;}
     if(data.rates){const safe={usd_mmk:n(data.rates.usd_mmk),usd_thb:n(data.rates.usd_thb),usd_cny:n(data.rates.usd_cny),user_id:u.id};const r=await db.from('exchange_rates').upsert(safe);if(r.error)throw r.error;}
@@ -9217,7 +9217,7 @@ async function confirmRestorePreviewV383(){
   const rateText=hasRates?' and saved exchange rates':'';
   const canRestore=typeof window.MMHV4?.confirm==='function'
     ? await window.MMHV4.confirm({title:'Review & Store Restore',message:`Restore ${ntx.length} new transactions and ${ninv.length} new investments${rateText}? Existing records will be kept and existing cloud records will not be overwritten.`,confirmText:'Review & Store',cancelText:'Cancel'})
-    : confirm(`Restore ${ntx.length} new transactions and ${ninv.length} new investments${rateText}? Existing records will be kept.`);
+    : await window.MMHV4.confirm({title:'Review & Store Restore',message:`Restore ${ntx.length} new transactions and ${ninv.length} new investments${rateText}? Existing records will be kept.`,confirmText:'Review & Store',cancelText:'Cancel'});
   if(!canRestore)return;
   const btn=$('restoreConfirmV383');if(btn)btn.disabled=true;
   setRestoreStatusV383('Restoring selected data to your private cloud…');
@@ -9283,12 +9283,12 @@ async function clearBackupHistoryV381(){
   const list=readBackupHistoryV381();if(!list.length)return;
   const canClear=typeof window.MMHV4?.confirm==='function'
     ? await window.MMHV4.confirm({title:'Clear Backup History',message:'Clear all backup history saved on this device for this account? This will not delete cloud data or backup files.',confirmText:'Clear History',cancelText:'Cancel',danger:true})
-    : confirm('Clear backup history saved on this device for this account? This does not delete any cloud data or backup files.');
+    : await window.MMHV4.confirm({title:'Clear Backup History',message:'Clear all backup history saved on this device for this account? This will not delete cloud data or backup files.',confirmText:'Clear History',cancelText:'Cancel',danger:true});
   if(!canClear)return;
   localStorage.removeItem(backupHistoryKeyV381());renderBackupHistoryV381();
 }
 async function resetMyCloudDataV380(){
-  const typed=prompt('This will permanently delete your Transactions, Investments and Exchange Rates. Type RESET to continue.');
+  const typed=await window.MMHV4.prompt({title:'Reset cloud data?',message:'This will permanently delete your Transactions, Investments and Exchange Rates. Type RESET to continue.',confirmText:'Continue',cancelText:'Cancel',danger:true,placeholder:'Type RESET'});
   if(typed!=='RESET')return;
   const u=(await db.auth.getUser()).data.user;if(!u){setBackupStatusV380('Please sign in again.','err');return;}
   for(const table of ['transactions','investments','exchange_rates']){
@@ -21673,6 +21673,75 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
   window.mmHVaultRefreshInvestmentBalanceV445=refresh;
+})();
+</script>
+
+<!-- MMHVAULT V4.3.0 · Premium dialog layer: eliminate browser-native prompts -->
+<style id="mmhvault-v50-premium-dialogs">
+#mmhPremiumDialogV50{position:fixed;inset:0;z-index:2147483647;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(2,7,18,.78);backdrop-filter:blur(13px) saturate(120%);-webkit-backdrop-filter:blur(13px) saturate(120%)}
+#mmhPremiumDialogV50.show{display:flex;animation:mmhPremiumDialogInV50 .16s ease-out}
+#mmhPremiumDialogV50 .card{position:relative;width:min(500px,calc(100vw - 28px));border:1px solid rgba(105,177,255,.22);border-radius:24px;background:linear-gradient(155deg,rgba(17,31,52,.99),rgba(6,14,27,.995));box-shadow:0 30px 100px rgba(0,0,0,.62),0 0 0 1px rgba(255,255,255,.025) inset;overflow:hidden;color:#eef6ff}
+#mmhPremiumDialogV50 .card:before{content:"";position:absolute;inset:-35% -15% auto auto;width:250px;height:250px;background:radial-gradient(circle,rgba(77,178,255,.13),transparent 68%);pointer-events:none}
+#mmhPremiumDialogV50 .card.danger:before{background:radial-gradient(circle,rgba(238,94,116,.14),transparent 68%)}
+#mmhPremiumDialogV50 .head{display:flex;gap:13px;align-items:flex-start;padding:22px 22px 12px}
+#mmhPremiumDialogV50 .icon{width:42px;height:42px;flex:0 0 42px;border-radius:14px;display:grid;place-items:center;background:linear-gradient(145deg,rgba(77,178,255,.15),rgba(137,111,255,.11));border:1px solid rgba(105,177,255,.22);color:#9bd9ff;font-size:18px;font-weight:900}
+#mmhPremiumDialogV50 .danger .icon{background:linear-gradient(145deg,rgba(219,91,106,.2),rgba(255,194,72,.1));border-color:rgba(255,176,96,.25);color:#ffd27c}
+#mmhPremiumDialogV50 .eyebrow{margin:0 0 5px;font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:#8ca8cb;font-weight:850}
+#mmhPremiumDialogV50 .title{margin:0;font-size:20px;line-height:1.25;font-weight:900;letter-spacing:-.01em}
+#mmhPremiumDialogV50 .message{padding:0 22px 4px;color:#a5b5ca;font-size:13px;line-height:1.62;white-space:pre-line}
+#mmhPremiumDialogV50 .input-wrap{padding:14px 22px 0}
+#mmhPremiumDialogV50 .input{width:100%;height:48px;box-sizing:border-box;border-radius:13px;border:1px solid rgba(117,167,220,.22);background:rgba(4,11,22,.78);color:#f5f8fd;padding:0 14px;font-size:14px;font-weight:750;outline:none}
+#mmhPremiumDialogV50 .input:focus{border-color:rgba(91,180,255,.72);box-shadow:0 0 0 3px rgba(91,180,255,.11)}
+#mmhPremiumDialogV50 .actions{display:flex;justify-content:flex-end;gap:9px;padding:20px 22px 22px}
+#mmhPremiumDialogV50 button{min-height:42px;border-radius:12px;padding:0 16px;border:1px solid rgba(113,174,236,.2);font-weight:800;font-size:12px;cursor:pointer;transition:transform .16s ease,opacity .16s ease,box-shadow .16s ease}
+#mmhPremiumDialogV50 button:hover{transform:translateY(-1px)}
+#mmhPremiumDialogV50 .cancel{background:rgba(20,36,59,.94);color:#eaf3fd}
+#mmhPremiumDialogV50 .confirm{background:linear-gradient(135deg,#2875b9,#5151b8);border-color:rgba(140,203,255,.3);color:#fff;box-shadow:0 10px 25px rgba(44,116,190,.18)}
+#mmhPremiumDialogV50 .danger .confirm{background:linear-gradient(135deg,#d75f70,#b63b4e);border-color:rgba(255,171,182,.32);box-shadow:0 10px 26px rgba(183,61,80,.2)}
+@keyframes mmhPremiumDialogInV50{from{opacity:0;transform:scale(.985)}to{opacity:1;transform:scale(1)}}
+@media(max-width:600px){#mmhPremiumDialogV50{padding:10px}#mmhPremiumDialogV50 .card{width:100%;border-radius:20px}#mmhPremiumDialogV50 .head{padding:19px 18px 11px}#mmhPremiumDialogV50 .message,#mmhPremiumDialogV50 .input-wrap{padding-left:18px;padding-right:18px}#mmhPremiumDialogV50 .actions{padding:17px 18px 18px}#mmhPremiumDialogV50 button{flex:1;min-height:44px}}
+@media(prefers-reduced-motion:reduce){#mmhPremiumDialogV50.show{animation:none}#mmhPremiumDialogV50 button{transition:none}}
+</style>
+<script id="mmhvault-v50-premium-dialogs-script">
+(function(){
+  'use strict';
+  if(window.__mmhV50PremiumDialogsInstalled)return;
+  window.__mmhV50PremiumDialogsInstalled=true;
+  const langKey='mmhvault_language_v3363';
+  const isZh=()=>((localStorage.getItem(langKey)||'en')==='zh');
+  function ensure(){
+    let el=document.getElementById('mmhPremiumDialogV50');
+    if(el)return el;
+    el=document.createElement('div');el.id='mmhPremiumDialogV50';el.setAttribute('aria-hidden','true');
+    el.innerHTML='<div class="card" role="dialog" aria-modal="true" aria-labelledby="mmhPremiumTitleV50">'+
+      '<div class="head"><div class="icon">!</div><div><div class="eyebrow" id="mmhPremiumEyebrowV50"></div><h3 class="title" id="mmhPremiumTitleV50"></h3></div></div>'+
+      '<div class="message" id="mmhPremiumMessageV50"></div><div class="input-wrap" id="mmhPremiumInputWrapV50" style="display:none"><input class="input" id="mmhPremiumInputV50" type="text" autocomplete="off" spellcheck="false"></div>'+
+      '<div class="actions"><button type="button" class="cancel" id="mmhPremiumCancelV50"></button><button type="button" class="confirm" id="mmhPremiumConfirmV50"></button></div></div>';
+    document.body.appendChild(el);return el;
+  }
+  function open(opts={}){
+    const el=ensure(),card=el.querySelector('.card'),title=el.querySelector('#mmhPremiumTitleV50'),eyebrow=el.querySelector('#mmhPremiumEyebrowV50'),message=el.querySelector('#mmhPremiumMessageV50'),wrap=el.querySelector('#mmhPremiumInputWrapV50'),input=el.querySelector('#mmhPremiumInputV50'),cancel=el.querySelector('#mmhPremiumCancelV50'),ok=el.querySelector('#mmhPremiumConfirmV50');
+    const zh=isZh(),isPrompt=opts.kind==='prompt',danger=!!opts.danger;
+    card.classList.toggle('danger',danger);
+    eyebrow.textContent=opts.eyebrow||(danger?(zh?'危险操作':'Important action'):(zh?'MMHVAULT':'MMHVAULT'));
+    title.textContent=opts.title||'';message.textContent=opts.message||'';
+    wrap.style.display=isPrompt?'block':'none';input.value='';input.placeholder=opts.placeholder||'';
+    cancel.textContent=opts.cancelText||(zh?'取消':'Cancel');ok.textContent=opts.confirmText||(zh?'确定':'Confirm');
+    el.classList.add('show');el.setAttribute('aria-hidden','false');
+    return new Promise(resolve=>{
+      let done=false;
+      const finish=v=>{if(done)return;done=true;el.classList.remove('show');el.setAttribute('aria-hidden','true');cleanup();resolve(v)};
+      const onCancel=()=>finish(isPrompt?null:false),onOk=()=>finish(isPrompt?input.value:true),onBg=e=>{if(e.target===el)finish(isPrompt?null:false)},onKey=e=>{if(e.key==='Escape')finish(isPrompt?null:false);if(e.key==='Enter'){if(isPrompt&&document.activeElement!==input)return;finish(isPrompt?input.value:true)}};
+      const cleanup=()=>{cancel.removeEventListener('click',onCancel);ok.removeEventListener('click',onOk);el.removeEventListener('click',onBg);document.removeEventListener('keydown',onKey)};
+      cancel.addEventListener('click',onCancel);ok.addEventListener('click',onOk);el.addEventListener('click',onBg);document.addEventListener('keydown',onKey);
+      setTimeout(()=>{(isPrompt?input:cancel).focus()},30);
+    });
+  }
+  window.MMHV4=window.MMHV4||{};
+  window.MMHV4.confirm=opts=>open({...opts,kind:'confirm'});
+  window.MMHV4.prompt=opts=>open({...opts,kind:'prompt'});
+  window.MMHV4.alert=message=>open({title:isZh()?'提示':'Notice',message:String(message??''),confirmText:isZh()?'知道了':'OK'}).then(()=>undefined);
+  window.alert=function(message){window.MMHV4.alert(message);};
 })();
 </script>
 </body>
