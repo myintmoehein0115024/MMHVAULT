@@ -20,7 +20,7 @@
   .analyze-tabs-v371{overflow-x:auto;scrollbar-width:thin;}
   .analyze-tabs-v371 .analyze-tab-v371{flex:0 0 auto;min-width:110px;}
   @media (max-width:720px){.analyze-tabs-v371 .analyze-tab-v371{min-width:96px}.settings-tabs-v371{grid-template-columns:repeat(3,minmax(0,1fr)) !important;}}
-  
+
 
 /* MMHVAULT V4.3.0 · Modern receipt attachment */
 .receipt-upload-v3300{grid-column:1/-1;border:1px solid rgba(83,143,255,.22);border-radius:16px;padding:12px 14px;background:linear-gradient(135deg,rgba(20,31,58,.78),rgba(10,18,36,.92));box-shadow:inset 0 1px 0 rgba(255,255,255,.03),0 7px 20px rgba(0,0,0,.13)}
@@ -8449,7 +8449,7 @@ function setAnalyzeTabV371(tab){
     }catch(e){console.warn('Analyze Insights render bridge warning:',e);}
   }
   if(tab==='networth')renderNetWorthAnalyzeV371();
-  
+
 }
 function nwMonthEndKeyV371(offset){
   const d=new Date();
@@ -10032,7 +10032,7 @@ function bind(){
     try{
       if(tab==='health' && typeof window.renderFinancialHealthV371==='function') window.renderFinancialHealthV371();
       if(tab==='networth' && typeof window.renderNetWorthAnalyzeV371==='function') window.renderNetWorthAnalyzeV371();
-      
+
       if(tab==='decisions' && typeof window.renderFinancialDecisionV325==='function') window.renderFinancialDecisionV325();
       if(tab==='insights' && typeof window.renderInsightsV340==='function') window.renderInsightsV340();
       if(tab==='wealthrules' && typeof window.mmhActivateWealthRulesV32814==='function') window.mmhActivateWealthRulesV32814();
@@ -11834,7 +11834,7 @@ function translateDynamicText(base){
     [/^(.+) of combined budget · (.+)$/,'占总预算 $1 · $2'],
     [/^(\d+)-Month Projection$/,'$1个月预测'],
     [/^(Conservative|Current Pace|Accelerated) scenario · (\$[\d,.]+) \/ mo$/,(m,mode,money)=>`${mode==='Conservative'?'保守':mode==='Current Pace'?'当前速度':'加速'}情景 · ${money}/月`],
-    
+
     [/^Selected scenario · (\$[\d,.]+) \/ mo$/,'所选情景 · $1/月'],
     [/^(\d+) mo$/,'$1个月'],
     [/^(\$[\d,.]+) remaining · (\d+)% complete$/,'剩余 $1 · 已完成 $2%'],
@@ -21935,9 +21935,10 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
 </style>
 
 
-
 <style id="mmhvault-v10-adjustment-ui-css">
 #transactions #txAdjustmentHelp{display:block;grid-column:1/-1;margin-top:-6px;padding:10px 12px;border-radius:12px;border:1px solid rgba(92,170,230,.14);background:rgba(7,24,45,.5);color:rgba(176,201,229,.66);font-size:11px;line-height:1.45;}
 @media(max-width:950px){#transactions #txAdjustmentHelp{grid-column:auto;}}
 </style>
+
+<!-- MMHVAULT V13 maintenance note: lifecycle override chains are intentionally retained until call-order tracing proves an earlier definition is unreachable. -->
 </html>
