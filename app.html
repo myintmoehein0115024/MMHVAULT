@@ -16010,10 +16010,8 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
     p.classList.add('mmh-panel-enter'); requestAnimationFrame(()=>p.classList.add('mmh-panel-active'));
     setTimeout(()=>p.classList.remove('mmh-panel-enter'),420);
   }
-  document.addEventListener('click',e=>{
-    const b=e.target.closest?.('#analyze .analyze-tab-v371'); if(!b)return;
-    const t=b.dataset.tab; if(t==='health'||t==='decisions') setTimeout(()=>pulse(t),30);
-  },{capture:true});
+  /* Tab activation is already covered by the setAnalyzeTabV371 wrapper below.
+     Avoid a second click listener that would pulse the same panel twice. */
   const original=window.setAnalyzeTabV371;
   if(typeof original==='function'&&!original.__mmhHDPremium){
     const wrapped=function(tab){const r=original.apply(this,arguments); if(tab==='health'||tab==='decisions')setTimeout(()=>pulse(tab),20); return r;};
