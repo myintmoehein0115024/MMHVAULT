@@ -6195,12 +6195,6 @@ window.mmHVaultShowLandingV327=showLandingV327;
 function setPage(p){document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));$(p).classList.add("active");document.body.classList.toggle("auth-page-active",p==="login");document.querySelectorAll(".bottom-nav button").forEach(b=>{const active=b.dataset.page===p;b.classList.toggle("active",active);if(active)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current");});if(p!=="login")sessionStorage.setItem("myfinance_page",p);if(p==="settings"){const se=$("settingsEmail");if(se&&currentUserEmail)se.textContent=currentUserEmail;}scheduleRenderV3441();}
 function applyTheme(theme){document.body.classList.toggle('light',theme==='light');document.querySelectorAll('input[name="theme"]').forEach(r=>r.checked=r.value===theme);localStorage.setItem('myfinance_theme',theme);}
 function initTheme(){const t=localStorage.getItem('myfinance_theme')||'dark';applyTheme(t);document.querySelectorAll('input[name="theme"]').forEach(r=>r.addEventListener('change',()=>applyTheme(r.value)));}
-function editTheme(){initTheme();}
-function showAppBootErrorV328(message){
-  const el=document.getElementById("dataErrorBannerV384"); const msg=document.getElementById("dataErrorMsgV384");
-  if(msg)msg.textContent=message||"MMHVAULT could not start.";
-  if(el)el.style.display="flex";
-}
 function init(){
 initTheme();
 // V4.3.0: keep the public gateway hidden until the auth bootstrap has a definitive result.
@@ -6539,12 +6533,6 @@ function balance(a){
   },0);
   return txNet-investmentCashOut(account);
 }
-function mmhvaultAccountLedger(a){
-  const account=normalizeAccountName(a);
-  const txNet=transactions.reduce((s,t)=>{if(isLinkedInvestmentTx(t))return s;return s+(normalizeAccountName(t?.to_account)===account?n(t?.to_amount):0)-(normalizeAccountName(t?.from_account)===account?n(t?.from_amount):0);},0);
-  const inv=investments.filter(x=>investmentSource(x)===account).reduce((s,x)=>s+investmentCashFlow(x),0);
-  return {account,transactionNet:txNet,investmentCashOut:inv,balance:txNet-inv};
-}
 function totalAssetMMK(){
   const cashMMK=ACC.reduce((s,a)=>s+balance(a)*toMMK(a),0);
   return cashMMK+investmentValue();
@@ -6569,7 +6557,6 @@ function loanRowsV8(){
 }
 function loanOutMMK(){return loanRowsV8().reduce((sum,t)=>loanCategoryV8(t)==="loan out"?sum+Math.abs(n(t?.from_amount))*toMMK(t?.from_account):sum,0);}
 function loanPaidMMK(){return loanRowsV8().reduce((sum,t)=>loanCategoryV8(t)==="loan repayment"?sum+Math.abs(n(t?.to_amount))*toMMK(t?.to_account):sum,0);}
-function loanOutstandingMMK(){return Math.max(0,loanOutMMK()-loanPaidMMK());}
 function investedCost(){return investments.reduce((s,x)=>{const rate=x.asset==="Crypto"?rates.usd_mmk:1;return s+(n(x.amount)+n(x.fee)+n(x.other_cost))*rate;},0);}
 function goldHoldingQty(x){
   // GOLD quantity is stored as KYA TTHA (ကျပ်သား). Never derive it from MMK amount / price.
@@ -6582,10 +6569,6 @@ function goldHoldingQty(x){
   if(!Number.isFinite(q)) q=0;
   if(side==='SELL' && q>0) q=-q;
   return q;
-}
-function goldCurrentMMK(x){
- const price=goldMarketState?.pricePerKyattha||n(x?.market_price);
- return goldHoldingQty(x)*price;
 }
 function investmentValue(){return investments.reduce((s,x)=>{
  const q=x.asset==="Gold"?goldHoldingQty(x):n(x.quantity);
@@ -7107,7 +7090,6 @@ function saveManualGoldPrice(){const v=Number(manualGoldPrice.value||0);if(v<=0)
 function loadManualGoldPrice(){const v=Number(localStorage.getItem('myfinance_manual_gold_mmk')||0);if(v>0){manualGoldPrice.value=v;if(!goldMarketState.pricePerKyattha){goldMarketState.pricePerKyattha=v;goldMarketState.source='Manual';goldMarket.textContent='MMK '+fmt(v);goldMarketMeta.textContent='Manual price';}}}
 
 let livePrices={BTC:null,ETH:null,SOL:null,BNB:null,XRP:null,DOGE:null,ADA:null,TRX:null};
-function cryptoSourceOptions(){invSource.innerHTML=["OKX","ByBit"].map(x=>`<option>${x}</option>`).join("");}
 function updateInvestFields(){
 const a=invAsset.value, crypto=a==="Crypto", gold=a==="Gold";
 invSymbol.disabled=!crypto;invSource.innerHTML=(crypto?["OKX","ByBit"]:["KPay"]).map(x=>`<option>${x}</option>`).join("");
@@ -7669,7 +7651,6 @@ autoBindExcel();
 const V28_TARGETS={BTC:45,ETH:25,SOL:12,BNB:10,USDT:8}; CATS.Loans=[...CATS.LoanIncome,...CATS.LoanExpense];
 const V28_BUDGETS={Dining:10000,Snacks:3000,Smoking:2500,Transport:2000,Wellness:8000,Lifestyle:2000,Other:1000};
 function transactionGroupFor(t){if(isAdjustmentTx(t))return 'Adjustment';if(t.type==='Transfer')return 'Transfer';if(t.type==='Income')return ['Debt','Loan Repayment'].includes(t.category)?'Loans':'Income';if(t.type==='Expense')return ['PaidDeb','Loan Out'].includes(t.category)?'Loans':['Family Support','Special Transfer','Gifts','Donation'].includes(t.category)?'Personal':'Expense';return '';}
-function fmtPct(x){return Number(x||0).toFixed(1)+'%';}
 function monthLabel(m){const d=new Date((m||today().slice(0,7))+'-01T00:00:00');return d.toLocaleDateString(undefined,{month:'short',year:'numeric'});}
 function v28FilteredTx(){const s=($('txSearch')?.value||'').toLowerCase();const ty=$('txFilterType')?.value||'';const gr=$('txFilterGroup')?.value||'';const ca=$('txFilterCategory')?.value||'';const ac=$('txFilterAccount')?.value||'';return transactions.filter(t=>{const hay=[t.tx_date,t.type,transactionGroupFor(t),t.category,t.from_account,t.to_account,t.note].join(' ').toLowerCase();return(!s||hay.includes(s))&&(!ty||t.type===ty)&&(!gr||transactionGroupFor(t)===gr)&&(!ca||t.category===ca)&&(!ac||t.from_account===ac||t.to_account===ac);});}
 function refreshTxFilters(){const cv=$('txFilterCategory')?.value||'',av=$('txFilterAccount')?.value||'';const cats=[...new Set(transactions.map(t=>t.category).filter(Boolean))].sort();$('txFilterCategory').innerHTML='<option value="">All</option>'+cats.map(x=>`<option>${esc(x)}</option>`).join('');$('txFilterCategory').value=cats.includes(cv)?cv:'';$('txFilterAccount').innerHTML='<option value="">All</option>'+ACC.map(x=>`<option>${x}</option>`).join('');$('txFilterAccount').value=ACC.includes(av)?av:'';}
@@ -7784,12 +7765,6 @@ function mmhvaultTxExpenseUSD(t){
   if(t?.type!=='Expense'||CATS.Loans.includes(t.category)||t.category==='Investment'||isLinkedInvestmentTx(t))return 0;
   return mmhvaultAmountUSD(t.from_account,t.from_amount);
 }
-function mmhvaultPeriodTotalsUSD(monthKey){
-  const rows=(window.transactions||[]).filter(t=>!monthKey||String(t.tx_date||'').slice(0,7)===monthKey);
-  let income=0,expense=0;
-  rows.forEach(t=>{income+=mmhvaultTxIncomeUSD(t);expense+=mmhvaultTxExpenseUSD(t);});
-  return {income,expense,saved:income-expense};
-}
 function mmhvaultCashUSD(){return ['Bath','TrueMoney','OKX','ByBit','MetaMask','KPay'].reduce((sum,a)=>sum+balance(a)*mmhvaultAmountUSD(a,1),0);}
 function mmhvaultInvestmentCostUSD(){
   return (window.investments||[]).reduce((sum,x)=>{
@@ -7819,7 +7794,6 @@ function mmhvaultInvestmentValueUSD(){
 function investmentCostUSD(){return mmhvaultInvestmentCostUSD();}
 function investmentValueUSD(){return mmhvaultInvestmentValueUSD();}
 function mmhvaultLoanReceivableUSD(){const fx=n(rates?.usd_mmk)||0;return fx>0?Math.max(0,n(loanOutMMK())-n(loanPaidMMK()))/fx:0;}
-function mmhvaultNetWorthUSD(){return Math.max(0,mmhvaultCashUSD()+mmhvaultInvestmentValueUSD()+mmhvaultLoanReceivableUSD());}
 function renderDashboardV30(){
   const cashAccounts=['Bath','TrueMoney','OKX','ByBit','MetaMask','KPay'];
   // Available Balance = all six cash-account balances converted to USD, less outstanding loans.
@@ -8079,13 +8053,6 @@ function v37SaveBudget(cat,val){
 function v37Label(p){
   return p.month==="annual"?`${p.year} Annual`:new Date(p.year,Number(p.month)-1,1).toLocaleDateString(undefined,{month:"long",year:"numeric"});
 }
-function v37ConsistencyCheck(){
-  const p=v37Period(), rows=v37Rows(), t=v37Totals(rows);
-  const selectedYearRows=(window.transactions||[]).filter(x=>String(x.tx_date||'').slice(0,4)===String(p.year));
-  const annualMatches=p.month==='annual' && rows.length===selectedYearRows.length;
-  return {period:v37Label(p),rows:rows.length,incomeTHB:t.inc,expenseTHB:t.exp,netSavingsTHB:t.save,savingsRate:t.sr,annualPeriodMatchesYearFilter:annualMatches};
-}
-
 function renderAnalyzeV37(){
   v37EnsurePeriodControls();
   const p=v37Period();
@@ -9277,10 +9244,6 @@ render=function(){_renderV380Old();refreshDataCenterV380();};
 </script>
 <script id="mmhvault-v387-wealth-planning-js">
 /* ===================== V4.3.0 Wealth Planning ===================== */
-function mmhMonthsBetween387(fromDate,toDate){
-  const a=new Date(fromDate.getFullYear(),fromDate.getMonth(),1), b=new Date(toDate.getFullYear(),toDate.getMonth(),1);
-  return Math.max(0,(b.getFullYear()-a.getFullYear())*12+(b.getMonth()-a.getMonth()));
-}
 function mmhMoney387(v){return usd(Math.max(0,n(v)||0));}
 
 const _renderDashboardV387Base=renderDashboard;
@@ -12869,10 +12832,7 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
   }
   function change(a,b){ if(!b)return null; return ((a-b)/Math.abs(b))*100; }
   function pct(v){return `${v>=0?'+':''}${v.toFixed(1)}%`;}
-  function netWorthUSD(){
-    try{const mmk=Math.max(0,N(totalAssetMMK())-N(loanOutMMK())+N(loanPaidMMK())); return mmk/rates.usd_mmk;}catch(e){return 0;}
-  }
-  function render(){
+function render(){
     const host=$('dashboardCommandCenterV34210'); if(!host)return;
     try{
       const now=new Date(), key=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`, prev=prevMonthKey(key), cur=monthTotals(key), old=monthTotals(prev);
