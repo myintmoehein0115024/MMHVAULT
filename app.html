@@ -21992,4 +21992,94 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
 #transactions #txAdjustmentHelp{display:none;grid-column:1/-1;margin:5px 0 0;padding:7px 10px;border-radius:10px;border:1px solid rgba(92,170,230,.16);background:rgba(7,24,45,.5);color:rgba(176,201,229,.66);font-size:10.5px;line-height:1.4;box-sizing:border-box;}
 @media(max-width:950px){#transactions #txAdjustmentHelp{grid-column:1/-1;}}
 </style>
+
+<style id="mmhvault-v444-cashflow-ratio-fix-css">
+/* V4.4.4 · Cash Flow actual-consumption ratios */
+#analyze [data-panel="cashflow"] .remaining-funds-panel-v34226{display:none!important}
+#cashFlowSummary .cashflow-ratio-note-v444{margin-top:11px;padding:10px 12px;border:1px solid rgba(100,132,196,.17);border-radius:12px;background:rgba(9,17,39,.45);color:#8294b7;font-size:11px;line-height:1.5}
+#cashFlowSummary .cashflow-ratio-grid-v444{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-top:11px}
+#cashFlowSummary .cashflow-ratio-stat-v444{padding:11px 12px;border-radius:12px;border:1px solid rgba(120,150,220,.11);background:rgba(255,255,255,.018)}
+#cashFlowSummary .cashflow-ratio-stat-v444 .label{font-size:9px;text-transform:uppercase;letter-spacing:.07em;color:#7f93b7}
+#cashFlowSummary .cashflow-ratio-stat-v444 .value{margin-top:5px;font-size:16px;font-weight:900}
+#cashFlowSummary .cashflow-ratio-stat-v444 .meta{margin-top:4px;font-size:10px;color:#7187aa;line-height:1.4}
+@media(max-width:760px){#cashFlowSummary .cashflow-ratio-grid-v444{grid-template-columns:1fr 1fr}}
+@media(max-width:420px){#cashFlowSummary .cashflow-ratio-grid-v444{grid-template-columns:1fr}}
+</style>
+<script id="mmhvault-v444-cashflow-ratio-fix-js">
+(function(){
+  if(window.__mmhV444CashFlowRatioFix)return;
+  window.__mmhV444CashFlowRatioFix=true;
+  const N=v=>{const x=Number(v);return Number.isFinite(x)?x:0};
+  const T=(en,cn)=>localStorage.getItem('mmhvault_language_v3363')==='zh'?cn:en;
+  const money=v=>{try{return typeof thb==='function'?thb(N(v)):'฿ '+N(v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}catch(_){return '฿ '+N(v).toFixed(2)}};
+  const personalCats=new Set(['Family Support','Special Transfer','Gifts','Donation']);
+  const loanCats=()=>{try{return new Set([...(window.CATS?.Loans||[]),...(window.CATS?.LoanExpense||[])])}catch(_){return new Set()}};
+  const isAdjustment=t=>typeof isAdjustmentTx==='function'&&isAdjustmentTx(t);
+  const isLinked=t=>typeof isLinkedInvestmentTx==='function'&&isLinkedInvestmentTx(t);
+  function rows(){
+    if(typeof v37Rows==='function')return v37Rows();
+    const y=String(document.getElementById('analyzeYear')?.value||new Date().getFullYear());
+    const m=document.getElementById('analyzeMonth')?.value||'annual';
+    return (window.transactions||[]).filter(t=>String(t.tx_date||'').slice(0,4)===y&&(m==='annual'||String(t.tx_date||'').slice(0,7)===y+'-'+m));
+  }
+  function calc(rs){
+    let income=0,ordinary=0,personal=0;
+    const loans=loanCats();
+    for(const t of rs){
+      if(t?.type==='Income' && String(t.category||'').trim().toLowerCase()!=='loan repayment') income+=N(t.to_amount)*(typeof toTHB==='function'?N(toTHB(t.to_account)):0);
+      if(t?.type!=='Expense'||isAdjustment(t)||isLinked(t)||t.category==='Investment'||loans.has(t.category))continue;
+      const v=N(t.from_amount)*(typeof toTHB==='function'?N(toTHB(t.from_account)):0);
+      if(personalCats.has(t.category))personal+=v; else ordinary+=v;
+    }
+    const total=ordinary+personal;
+    const remaining=Math.max(0,income-total);
+    return {income,ordinary,personal,total,remaining,ordinaryPct:income?ordinary/income*100:0,personalPct:income?personal/income*100:0,totalPct:income?total/income*100:0,remainingPct:income?remaining/income*100:0};
+  }
+  function render(summary){
+    const el=document.getElementById('cashFlowSummary');
+    if(!el)return;
+    const rs=rows(), c=calc(rs);
+    const p=typeof v37Period==='function'?v37Period():{year:new Date().getFullYear(),month:'annual'};
+    const period=typeof v37Label==='function'?v37Label(p):(p.month==='annual'?p.year+' Annual':p.year+'-'+p.month);
+    const months=typeof monthSeries==='function'?monthSeries():[];
+    const series=months.slice(-6).map(m=>{const r=(window.transactions||[]).filter(t=>String(t.tx_date||'').slice(0,7)===m);const x=calc(r);return{m,sr:x.remainingPct,save:x.remaining};});
+    const current=series[series.length-1]||{sr:c.remainingPct,save:c.remaining};
+    const prev=series[series.length-2]||current;
+    const delta=current.sr-prev.sr;
+    const avg=series.length?series.reduce((a,x)=>a+x.sr,0)/series.length:0;
+    const max=Math.max(1,...series.map(x=>Math.abs(x.sr)),100);
+    const bars=series.map(x=>`<span class="cashflow-mini-bar ${x.sr<0?'neg':''}" style="--h:${Math.max(8,Math.min(100,Math.abs(x.sr)/max*100))}%" title="${monthLabel(x.m)} · ${x.sr.toFixed(1)}% ${T('remaining funds','剩余资金')}"></span>`).join('');
+    const labels=series.map(x=>`<span>${monthLabel(x.m).split(' ')[0]}</span>`).join('');
+    el.innerHTML=`
+      <div class="cashflow-summary-grid-v371">
+        <div class="cashflow-card-v371"><div class="label">${T('Income','收入')}</div><div class="value green">${money(c.income)}</div><div class="small">${T('Selected period','所选期间')}</div></div>
+        <div class="cashflow-card-v371"><div class="label">${T('Actual Spending Ratio','实际消费比例')}</div><div class="value ${c.ordinaryPct>60?'red':c.ordinaryPct>40?'yellow':'green'}">${c.ordinaryPct.toFixed(1)}%</div><div class="small">${money(c.ordinary)} · ${T('ordinary spending only','仅日常消费')}</div></div>
+        <div class="cashflow-card-v371"><div class="label">${T('Personal Ratio','Personal 比例')}</div><div class="value ${c.personalPct>30?'red':c.personalPct>20?'yellow':'green'}">${c.personalPct.toFixed(1)}%</div><div class="small">${money(c.personal)} · ${T('Personal spending','Personal 支出')}</div></div>
+        <div class="cashflow-card-v371"><div class="label">${T('Remaining Funds Ratio','剩余资金比例')}</div><div class="value ${c.remainingPct>=50?'green':c.remainingPct>=30?'yellow':'red'}">${c.remainingPct.toFixed(1)}%</div><div class="small">${money(c.remaining)} · ${T('after actual spending','扣除实际消费后')}</div></div>
+      </div>
+      <div class="cashflow-ratio-note-v444">${T('Total actual consumption','实际总消费')} <b>${c.totalPct.toFixed(1)}%</b> · ${money(c.total)} · ${T('Actual spending + Personal. Estimated budget / expected spending is not included. Adjustments, loans and investment-linked cash flow are excluded.','实际日常消费 + Personal。这里不包含预计预算 / 预计消费；调整项、借贷和投资关联现金流不计入消费统计。')}</div>
+      <div class="cashflow-ratio-grid-v444">
+        <div class="cashflow-ratio-stat-v444"><div class="label">${T('Actual spending','实际消费')}</div><div class="value">${money(c.ordinary)}</div><div class="meta">${c.ordinaryPct.toFixed(1)}% ${T('of income','占收入')}</div></div>
+        <div class="cashflow-ratio-stat-v444"><div class="label">${T('Personal','Personal')}</div><div class="value">${money(c.personal)}</div><div class="meta">${c.personalPct.toFixed(1)}% ${T('of income','占收入')}</div></div>
+        <div class="cashflow-ratio-stat-v444"><div class="label">${T('Remaining','剩余资金')}</div><div class="value green">${money(c.remaining)}</div><div class="meta">${c.remainingPct.toFixed(1)}% ${T('of income','占收入')}</div></div>
+      </div>
+      <div class="cashflow-command-v430">
+        <div class="cashflow-command-head"><div><div class="cashflow-command-title">${T('Remaining Funds Trend','剩余资金趋势')}</div><div class="cashflow-command-sub">${T('6-month remaining-funds ratio · current','近6个月剩余资金比例 · 当前')} ${c.remainingPct.toFixed(1)}%</div></div><span class="pill ${delta>0?'green':delta<0?'red':''}">${delta>0?'+':''}${delta.toFixed(1)}% ${T('vs prior month','相比上月')}</span></div>
+        <div class="cashflow-command-row">
+          <div class="cashflow-command-stat"><div class="label">${T('6M Avg Remaining','近6个月平均剩余')}</div><div class="value">${avg.toFixed(1)}%</div></div>
+          <div class="cashflow-command-stat"><div class="label">${T('Total Consumption','实际总消费')}</div><div class="value">${c.totalPct.toFixed(1)}%</div></div>
+          <div class="cashflow-command-stat"><div class="label">${T('Selected Period','所选期间')}</div><div class="value">${period}</div></div>
+        </div>
+        ${series.length?`<div class="cashflow-mini-bars" aria-label="6 month remaining funds trend">${bars}</div><div class="cashflow-mini-labels">${labels}</div>`:''}
+      </div>`;
+  }
+  const old=window.renderCashFlowSummaryV371;
+  window.renderCashFlowSummaryV371=function(summary){try{return render(summary)}catch(e){console.warn('V4.4.4 Cash Flow ratio fix:',e);if(typeof old==='function')return old(summary)}};
+  const rerender=()=>setTimeout(()=>{try{window.renderCashFlowSummaryV371({})}catch(_){ }},0);
+  ['mmhvault:data-loaded','mmhvault:cache-restored','mmhvault:sync-complete'].forEach(ev=>window.addEventListener(ev,rerender,{passive:true}));
+  window.addEventListener('mmhvault-language-change',rerender);
+  document.addEventListener('change',e=>{if(e.target?.id==='analyzeYear'||e.target?.id==='analyzeMonth')rerender()},{passive:true});
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(rerender,400),{once:true});else setTimeout(rerender,400);
+})();
+</script>
 </html>
