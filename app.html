@@ -7842,8 +7842,9 @@ function renderDashboardV30(){
   const investmentsUSD=investmentValueUSD();
   const netWorth=cash+investmentsUSD;
   const monthlyMonth=today().slice(0,7);
-  const income=transactions.filter(t=>t.tx_date.startsWith(monthlyMonth)&&t.type==='Income').reduce((sum,t)=>sum+n(t.to_amount)*toUSD(t.to_account),0);
-  const expense=transactions.filter(t=>t.tx_date.startsWith(monthlyMonth)&&t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t)&&!window.mmhIsBalanceAdjustmentV5?.(t)).reduce((sum,t)=>sum+n(t.from_amount)*toUSD(t.from_account),0);
+  const monthlyTotals=mmhvaultPeriodTotalsUSD(monthlyMonth);
+  const income=monthlyTotals.income;
+  const expense=monthlyTotals.expense;
   const saving=income-expense, savingRatio=income?saving/income*100:0;
   const outstanding=Math.max(0,loanOutMMK()-loanPaidMMK())/rates.usd_mmk;
 
@@ -17031,10 +17032,22 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
     return N(fallback);
   }
   function cryptoUSD(){
-    return invs().filter(x=>String(x.asset||'').trim().toLowerCase()==='crypto').reduce((s,x)=>{
-      const q=N(x.quantity); if(q<=0)return s;
-      return s+q*livePrice(x.symbol,x.market_price);
-    },0);
+    // Aggregate signed quantities per coin first. A sell is a negative quantity
+    // and must reduce the remaining holding; valuing every positive buy row
+    // independently double-counts coins that were already sold.
+    const holdings=new Map();
+    for(const x of invs().filter(x=>String(x.asset||'').trim().toLowerCase()==='crypto')){
+      const symbol=String(x.symbol||'').trim().toUpperCase();
+      if(!symbol)continue;
+      holdings.set(symbol,(holdings.get(symbol)||0)+N(x.quantity));
+    }
+    let total=0;
+    for(const [symbol,q] of holdings){
+      if(q<=0)continue;
+      const fallback=invs().find(x=>String(x.symbol||'').trim().toUpperCase()===symbol)?.market_price;
+      total+=q*livePrice(symbol,fallback);
+    }
+    return total;
   }
   function goldQty(x){
     let q=N(x.weight_kyattha);
