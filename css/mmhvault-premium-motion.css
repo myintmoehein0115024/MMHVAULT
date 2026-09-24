@@ -1,0 +1,1988 @@
+
+/* MMHVAULT · Premium Visual Motion Layer
+   Visual-only enhancement: no new features or layout restructuring. */
+
+:root{
+  --premium-cyan: rgba(91,211,255,.34);
+  --premium-gold: rgba(245,196,81,.26);
+  --premium-glass: rgba(255,255,255,.035);
+}
+
+html{scroll-behavior:smooth}
+body{
+  position:relative;
+  isolation:isolate;
+}
+body::after{
+  content:"";
+  position:fixed;
+  inset:-25%;
+  z-index:-2;
+  pointer-events:none;
+  background:
+    radial-gradient(circle at 12% 20%,rgba(76,180,255,.055),transparent 22%),
+    radial-gradient(circle at 84% 18%,rgba(245,196,81,.045),transparent 20%),
+    radial-gradient(circle at 52% 88%,rgba(87,111,255,.04),transparent 24%);
+  filter:blur(18px);
+  animation:mmhAmbientDrift 18s ease-in-out infinite alternate;
+}
+@keyframes mmhAmbientDrift{
+  0%{transform:translate3d(-1%,0,0) scale(1)}
+  100%{transform:translate3d(1.5%,-1%,0) scale(1.04)}
+}
+
+.site-header,
+header#header{
+  transition:background .35s ease,box-shadow .35s ease,border-color .35s ease;
+}
+body.mmh-scrolled .site-header,
+body.mmh-scrolled header#header{
+  box-shadow:0 14px 50px rgba(0,0,0,.24),0 1px 0 rgba(255,255,255,.035) inset;
+}
+
+.card,.panel,.modal,.toolbar,
+.feature-card,.feature,.security-card,.experience-card,.about-card,
+.mmh-command-v34210,.mmh-dash372-card{
+  position:relative;
+  overflow:hidden;
+}
+.card::before,.panel::before,.feature-card::before,.feature::before,
+.security-card::before,.experience-card::before,.about-card::before,
+.mmh-command-v34210::before,.mmh-dash372-card::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  opacity:.65;
+  background:linear-gradient(115deg,transparent 0%,rgba(255,255,255,.025) 42%,rgba(255,255,255,.07) 50%,rgba(255,255,255,.02) 58%,transparent 100%);
+  transform:translateX(-130%);
+}
+@media (hover:hover){
+  .card:hover::before,.panel:hover::before,.feature-card:hover::before,
+  .feature:hover::before,.security-card:hover::before,.experience-card:hover::before,
+  .about-card:hover::before,.mmh-command-v34210:hover::before,.mmh-dash372-card:hover::before{
+    animation:mmhSheen 1.25s ease;
+  }
+  .card,.panel,.feature-card,.feature,.security-card,.experience-card,.about-card,.mmh-dash372-card{
+    transition:transform .28s ease,border-color .28s ease,box-shadow .28s ease;
+  }
+  .card:hover,.panel:hover,.feature-card:hover,.feature:hover,.security-card:hover,
+  .experience-card:hover,.about-card:hover,.mmh-dash372-card:hover{
+    transform:translateY(-2px);
+    border-color:rgba(100,190,255,.32);
+    box-shadow:0 22px 60px rgba(0,0,0,.24),0 0 0 1px rgba(245,196,81,.035) inset;
+  }
+}
+@keyframes mmhSheen{to{transform:translateX(130%)}}
+
+.btn,.button,button.primary,.primary{
+  transition:transform .22s ease,box-shadow .25s ease,filter .25s ease;
+}
+@media (hover:hover){
+  .btn:hover,.button:hover,button.primary:hover,.primary:hover{
+    transform:translateY(-1px);
+    filter:brightness(1.06);
+    box-shadow:0 12px 34px rgba(0,0,0,.22),0 0 24px rgba(92,201,255,.08);
+  }
+}
+
+.sync-dot,
+.live-dot,.status-dot,.dot-live{
+  animation:mmhPulse 2.2s ease-in-out infinite;
+}
+@keyframes mmhPulse{
+  0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(81,219,175,.25)}
+  50%{transform:scale(1.12);box-shadow:0 0 0 8px rgba(81,219,175,0)}
+}
+
+.header-avatar{
+  box-shadow:0 0 0 1px rgba(255,255,255,.06),0 0 28px rgba(88,185,255,.13);
+}
+.header-profile{
+  transition:box-shadow .28s ease,border-color .28s ease;
+}
+@media (hover:hover){
+  .header-profile:hover{
+    border-color:rgba(107,204,255,.38)!important;
+    box-shadow:0 12px 36px rgba(0,0,0,.22),0 0 22px rgba(92,201,255,.08);
+  }
+}
+
+.hero-art img{
+  animation:mmhHeroFloat 7s ease-in-out infinite;
+  filter:drop-shadow(0 30px 70px rgba(0,0,0,.25));
+}
+@keyframes mmhHeroFloat{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-8px)}
+}
+
+.reveal,.mmh-visual-reveal{
+  animation:mmhReveal .75s cubic-bezier(.2,.75,.25,1) both;
+}
+@keyframes mmhReveal{
+  from{opacity:0;transform:translateY(10px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+#bottomNav.bottom-nav{
+  box-shadow:0 18px 60px rgba(0,0,0,.36),0 0 0 1px rgba(255,255,255,.025) inset,0 -1px 0 rgba(90,203,255,.05) inset;
+}
+#bottomNav.bottom-nav > button{
+  transition:background .25s ease,box-shadow .25s ease,filter .25s ease;
+}
+@media (hover:hover){
+  #bottomNav.bottom-nav > button:hover{filter:brightness(1.08)}
+}
+
+h1,h2,h3,.title,.page-title{
+  text-shadow:0 1px 18px rgba(0,0,0,.18);
+}
+
+@media(max-width:900px){
+  body::after{animation-duration:24s}
+  .hero-art img{animation:none}
+  .card::before,.panel::before,.feature-card::before,.feature::before,
+  .security-card::before,.experience-card::before,.about-card::before,
+  .mmh-command-v34210::before,.mmh-dash372-card::before{display:none}
+}
+
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{
+    animation-duration:.01ms!important;
+    animation-iteration-count:1!important;
+    scroll-behavior:auto!important;
+    transition-duration:.01ms!important;
+  }
+}
+
+
+/* =========================================================
+   MMHVAULT · PREMIUM VISUAL PASS 2
+   Atmosphere + depth + restrained motion
+   No feature/data/layout changes.
+========================================================= */
+
+:root{
+  --mmh-v2-blue:rgba(73,194,255,.16);
+  --mmh-v2-gold:rgba(246,199,91,.13);
+  --mmh-v2-white:rgba(255,255,255,.055);
+}
+
+/* Deep-space atmosphere */
+body::after{
+  background:
+    radial-gradient(42rem 24rem at 8% 6%,rgba(66,170,255,.07),transparent 62%),
+    radial-gradient(38rem 22rem at 92% 12%,rgba(245,197,91,.055),transparent 62%),
+    radial-gradient(34rem 20rem at 60% 92%,rgba(110,111,255,.045),transparent 64%),
+    radial-gradient(22rem 16rem at 42% 40%,rgba(70,199,255,.022),transparent 70%);
+  filter:blur(24px);
+  animation:mmhPremiumSpace 24s ease-in-out infinite alternate;
+}
+@keyframes mmhPremiumSpace{
+  0%{transform:translate3d(-1.2%,-.6%,0) scale(1)}
+  50%{transform:translate3d(.8%,.5%,0) scale(1.025)}
+  100%{transform:translate3d(1.4%,-.8%,0) scale(1.045)}
+}
+
+/* Very subtle technical grid; stays behind content */
+body::before{
+  background-image:
+    linear-gradient(rgba(132,176,235,.018) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(132,176,235,.018) 1px,transparent 1px);
+  background-size:44px 44px;
+  mask-image:linear-gradient(to bottom,rgba(0,0,0,.18),transparent 72%);
+  -webkit-mask-image:linear-gradient(to bottom,rgba(0,0,0,.18),transparent 72%);
+}
+
+/* Premium glass edge highlight */
+.card,.panel,.toolbar,.modal,.mmh-command-v34210,.mmh-dash372-card{
+  box-shadow:
+    0 18px 55px rgba(0,0,0,.16),
+    inset 0 1px 0 rgba(255,255,255,.028),
+    inset 0 -1px 0 rgba(65,170,255,.025);
+}
+.card::after,.panel::after,.toolbar::after,.modal::after,
+.mmh-command-v34210::after,.mmh-dash372-card::after{
+  content:"";
+  position:absolute;
+  inset:1px;
+  border-radius:inherit;
+  pointer-events:none;
+  border:1px solid rgba(112,180,255,.035);
+  opacity:.85;
+}
+
+/* Slow atmospheric glow behind prominent cards */
+.mmh-command-v34210::before,
+#dashboard .mmh-dash372-card:first-child::before{
+  background:
+    radial-gradient(circle at 82% 22%,rgba(70,199,255,.10),transparent 27%),
+    linear-gradient(115deg,transparent 0%,rgba(255,255,255,.025) 42%,rgba(255,255,255,.06) 50%,rgba(255,255,255,.02) 58%,transparent 100%);
+}
+.mmh-command-v34210{
+  box-shadow:
+    0 26px 80px rgba(0,0,0,.23),
+    0 0 50px rgba(70,199,255,.035),
+    inset 0 1px 0 rgba(255,255,255,.035);
+}
+
+/* Elegant section/title underline */
+.page-title,.title,h1,h2{
+  position:relative;
+}
+h1::selection,h2::selection,h3::selection{background:rgba(73,194,255,.22)}
+
+/* Premium focus ring */
+:focus-visible{
+  outline:2px solid rgba(92,202,255,.48);
+  outline-offset:3px;
+  border-radius:10px;
+}
+
+/* Header: tiny luminous sweep, not a structural change */
+.site-header::after,
+#header::after{
+  content:"";
+  position:absolute;
+  left:-20%;
+  right:-20%;
+  bottom:0;
+  height:1px;
+  pointer-events:none;
+  background:linear-gradient(90deg,transparent,rgba(87,205,255,.0) 18%,rgba(87,205,255,.34) 50%,rgba(246,199,91,.0) 82%,transparent);
+  opacity:.8;
+  animation:mmhHeaderLine 9s ease-in-out infinite;
+}
+@keyframes mmhHeaderLine{
+  0%,100%{transform:translateX(-8%);opacity:.42}
+  50%{transform:translateX(8%);opacity:.82}
+}
+
+/* Active bottom nav: restrained glow, same geometry */
+#bottomNav.bottom-nav > button.active,
+#bottomNav.bottom-nav > button[aria-current="page"]{
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.045),
+    inset 0 -1px 0 rgba(73,194,255,.04),
+    0 8px 22px rgba(0,0,0,.12);
+}
+#bottomNav.bottom-nav > button.active .mmh-nav-icon,
+#bottomNav.bottom-nav > button[aria-current="page"] .mmh-nav-icon{
+  filter:drop-shadow(0 0 9px rgba(78,203,255,.14));
+}
+
+/* Gentle shimmer on primary CTA surfaces */
+.btn.gold,.btn.primary{
+  position:relative;
+  overflow:hidden;
+}
+.btn.gold::after,.btn.primary::after{
+  content:"";
+  position:absolute;
+  top:-30%;
+  bottom:-30%;
+  left:-35%;
+  width:28%;
+  pointer-events:none;
+  transform:skewX(-18deg);
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.11),transparent);
+  animation:mmhButtonShimmer 8s ease-in-out infinite;
+}
+@keyframes mmhButtonShimmer{
+  0%,72%,100%{transform:translateX(0) skewX(-18deg);opacity:0}
+  78%{opacity:.9}
+  88%{transform:translateX(520%) skewX(-18deg);opacity:0}
+}
+
+/* Quiet live indicator */
+.live-dot,.sync-dot,.dot-live{
+  filter:drop-shadow(0 0 6px rgba(66,230,177,.24));
+}
+
+/* Desktop scroll reveal. Mobile stays stable. */
+@media (min-width:901px){
+  .card,.panel,.feature-card,.feature,.security-card,.experience-card,.about-card{
+    animation:mmhFloatIn .62s cubic-bezier(.2,.72,.24,1) both;
+  }
+  @keyframes mmhFloatIn{
+    from{opacity:.0;transform:translateY(8px)}
+    to{opacity:1;transform:none}
+  }
+}
+
+/* Keep motion restrained on phones */
+@media(max-width:900px){
+  body::after{animation-duration:30s}
+  body::before{background-image:none}
+  .site-header::after,#header::after{animation-duration:12s}
+  .btn.gold::after,.btn.primary::after{animation-duration:11s}
+}
+
+/* Accessibility / low-power mode */
+@media(prefers-reduced-motion:reduce), (update:none){
+  body::after,.site-header::after,#header::after,
+  .btn.gold::after,.btn.primary::after,
+  .card,.panel,.feature-card,.feature,.security-card,.experience-card,.about-card{
+    animation:none!important;
+  }
+}
+
+
+/* =========================================================
+   MMHVAULT · PREMIUM VISUAL PASS 3
+   Focus: financial hierarchy + micro-interactions
+   Visual-only. No feature, data, or navigation changes.
+========================================================= */
+
+/* ---------- Financial numbers: stronger terminal hierarchy ---------- */
+.value,.kpi,.metric,.metric-value,.stat-value,.money,
+.mmh-dash372-card b,
+.portfolio-score-v3716 .num,
+.mmh-v380-card .v,
+.mmh-v380-scenario .big,
+.mmh-v390-kpis .panel strong{
+  font-variant-numeric:tabular-nums;
+  text-rendering:optimizeLegibility;
+}
+
+.hero-networth .value,
+#dashboard .value,
+#dashboard .kpi,
+#dashboard .metric,
+.mmh-command-v34210 .value{
+  text-shadow:0 0 24px rgba(72,196,255,.055);
+}
+
+/* Tiny gold/cyan accent for primary financial figures */
+#dashboard .mmh-dash372-card:first-child b,
+#dashboard .mmh-v380-card .v,
+.portfolio-score-v3716 .num{
+  text-shadow:0 0 26px rgba(93,202,255,.065);
+}
+
+/* ---------- KPI / stat card depth ---------- */
+.mmh-dash372-card,
+.data-integrity-card-v339,
+.mmh-insights-kpi-v340,
+.portfolio-health-metric-v3716,
+.mmh-v380-card,
+.mmh-v380-scenario{
+  background-image:
+    linear-gradient(145deg,rgba(255,255,255,.025),transparent 42%),
+    linear-gradient(160deg,rgba(8,20,43,.58),rgba(5,12,28,.76));
+}
+
+/* A quiet top-edge highlight makes cards feel machined */
+.mmh-dash372-card::after,
+.data-integrity-card-v339::after,
+.mmh-insights-kpi-v340::after,
+.portfolio-health-metric-v3716::after,
+.mmh-v380-card::after,
+.mmh-v380-scenario::after{
+  content:"";
+  position:absolute;
+  left:12%;
+  right:12%;
+  top:0;
+  height:1px;
+  pointer-events:none;
+  background:linear-gradient(90deg,transparent,rgba(116,199,255,.18),transparent);
+  opacity:.65;
+}
+
+/* ---------- Progress bars: liquid terminal motion ---------- */
+.mmh-progress-v340,
+.mmh-v380-bar,
+[class*="progress"]{
+  position:relative;
+  overflow:hidden;
+}
+.mmh-progress-v340 span,
+.mmh-v380-bar>span{
+  position:relative;
+  overflow:hidden;
+}
+.mmh-progress-v340 span::after,
+.mmh-v380-bar>span::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  width:34%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.13),transparent);
+  transform:translateX(-140%);
+  animation:mmhProgressShimmer 6.5s ease-in-out infinite;
+}
+@keyframes mmhProgressShimmer{
+  0%,68%,100%{transform:translateX(-140%);opacity:0}
+  74%{opacity:.7}
+  90%{transform:translateX(340%);opacity:0}
+}
+
+/* ---------- Inputs: premium focus state without resizing ---------- */
+input,select,textarea{
+  transition:
+    border-color .22s ease,
+    box-shadow .22s ease,
+    background-color .22s ease;
+}
+input:focus,select:focus,textarea:focus{
+  border-color:rgba(83,197,255,.42)!important;
+  box-shadow:
+    0 0 0 3px rgba(83,197,255,.065),
+    0 10px 28px rgba(0,0,0,.10)!important;
+}
+
+/* ---------- Pills / badges get more depth ---------- */
+.pill,
+.badge,
+.mmh-v380-badge,
+.portfolio-health-badge-v3716,
+.mmh-insight-badge-v340{
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.045);
+}
+
+/* ---------- Section separators ---------- */
+.mmh-dash372-compare{
+  position:relative;
+}
+.mmh-dash372-compare::before{
+  content:"";
+  position:absolute;
+  left:4%;
+  right:4%;
+  top:0;
+  height:1px;
+  background:linear-gradient(90deg,transparent,rgba(104,175,255,.16),rgba(245,196,81,.09),transparent);
+  opacity:.75;
+}
+
+/* ---------- More restrained page-switch feedback ---------- */
+#dashboard,#transactions,#invest,#analyze,#exchange,#settings{
+  transition:opacity .22s ease,transform .22s ease;
+}
+
+/* ---------- Scrollbar refinements for premium feel ---------- */
+*{
+  scrollbar-width:thin;
+  scrollbar-color:rgba(91,145,207,.25) transparent;
+}
+*::-webkit-scrollbar{width:8px;height:8px}
+*::-webkit-scrollbar-track{background:transparent}
+*::-webkit-scrollbar-thumb{
+  background:linear-gradient(180deg,rgba(82,181,245,.25),rgba(246,198,91,.18));
+  border-radius:999px;
+  border:2px solid transparent;
+  background-clip:padding-box;
+}
+
+/* ---------- Mobile: preserve the stable geometry ---------- */
+@media(max-width:900px){
+  input:focus,select:focus,textarea:focus{
+    box-shadow:0 0 0 3px rgba(83,197,255,.055)!important;
+  }
+  .mmh-progress-v340 span::after,
+  .mmh-v380-bar>span::after{
+    animation-duration:9s;
+  }
+}
+
+/* ---------- Reduced motion ---------- */
+@media(prefers-reduced-motion:reduce){
+  .mmh-progress-v340 span::after,
+  .mmh-v380-bar>span::after{
+    animation:none!important;
+  }
+}
+
+
+/* =========================================================
+   MMHVAULT · PREMIUM VISUAL PASS 4
+   Focus: Wealth Command Center motion + chart atmosphere
+   Visual-only. No data/feature/navigation changes.
+========================================================= */
+
+/* ---------- Wealth Command Center: living glass ---------- */
+.mmh-command-v34210{
+  isolation:isolate;
+  background:
+    radial-gradient(circle at 86% 18%,rgba(72,190,255,.055),transparent 25%),
+    radial-gradient(circle at 72% 86%,rgba(246,199,91,.035),transparent 24%);
+}
+.mmh-command-v34210::after{
+  content:"";
+  position:absolute;
+  inset:8% 7%;
+  border-radius:inherit;
+  pointer-events:none;
+  z-index:-1;
+  background:
+    radial-gradient(circle at 72% 42%,rgba(77,184,255,.055),transparent 18%),
+    radial-gradient(circle at 30% 72%,rgba(102,117,255,.035),transparent 20%);
+  filter:blur(18px);
+  animation:mmhWealthGlow 10s ease-in-out infinite alternate;
+}
+@keyframes mmhWealthGlow{
+  0%{transform:translate3d(-1%,0,0) scale(.99);opacity:.55}
+  100%{transform:translate3d(1%,1%,0) scale(1.025);opacity:.9}
+}
+
+/* Quiet orbital accent */
+.mmh-command-v34210::before{
+  content:"";
+  position:absolute;
+  width:240px;
+  height:240px;
+  right:-90px;
+  top:-82px;
+  border-radius:50%;
+  pointer-events:none;
+  border:1px solid rgba(92,194,255,.075);
+  box-shadow:
+    0 0 0 26px rgba(92,194,255,.018),
+    0 0 0 52px rgba(245,196,81,.012);
+  animation:mmhOrbitalDrift 16s ease-in-out infinite;
+  transform-origin:center;
+}
+@keyframes mmhOrbitalDrift{
+  0%,100%{transform:translate3d(0,0,0) rotate(-3deg)}
+  50%{transform:translate3d(-8px,8px,0) rotate(3deg)}
+}
+
+/* ---------- Net Worth chart / visual line ---------- */
+#dashboard svg,
+#dashboard canvas{
+  filter:drop-shadow(0 0 10px rgba(74,201,255,.045));
+}
+#dashboard .mmh-command-v34210 svg path,
+#dashboard .mmh-command-v34210 canvas{
+  transition:filter .3s ease;
+}
+
+/* ---------- Live state gets a premium heartbeat ---------- */
+#dashboard .sync-dot,
+#dashboard .live-dot,
+#dashboard .dot-live{
+  animation:mmhLiveHeartbeat 2.8s cubic-bezier(.45,0,.3,1) infinite;
+}
+@keyframes mmhLiveHeartbeat{
+  0%,100%{transform:scale(1);opacity:.88}
+  18%{transform:scale(1.16);opacity:1}
+  32%{transform:scale(1);opacity:.9}
+  48%{transform:scale(1.08);opacity:1}
+}
+
+/* ---------- Wealth metric emphasis ---------- */
+#dashboard .mmh-command-v34210 .value,
+#dashboard .mmh-command-v34210 .kpi,
+#dashboard .mmh-command-v34210 .metric{
+  letter-spacing:-.035em;
+}
+
+/* ---------- Slow highlight sweep across major financial card ---------- */
+#dashboard .mmh-command-v34210 .hero-networth,
+#dashboard .mmh-command-v34210 #wealthSnapshotV386,
+#dashboard .mmh-command-v34210 #dashboardCoreV372{
+  position:relative;
+}
+#dashboard .mmh-command-v34210 .hero-networth::after,
+#dashboard .mmh-command-v34210 #wealthSnapshotV386::after,
+#dashboard .mmh-command-v34210 #dashboardCoreV372::after{
+  content:"";
+  position:absolute;
+  top:-20%;
+  bottom:-20%;
+  left:-30%;
+  width:18%;
+  pointer-events:none;
+  transform:skewX(-18deg);
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.045),transparent);
+  animation:mmhWealthSweep 11s ease-in-out infinite;
+}
+@keyframes mmhWealthSweep{
+  0%,72%,100%{transform:translateX(0) skewX(-18deg);opacity:0}
+  78%{opacity:.7}
+  91%{transform:translateX(720%) skewX(-18deg);opacity:0}
+}
+
+/* ---------- Investment cards: market-terminal glow ---------- */
+#invest .mmh-v380-card,
+#invest .mmh-v380-scenario,
+#invest .portfolio-health-metric-v3716{
+  position:relative;
+}
+#invest .mmh-v380-card::before,
+#invest .mmh-v380-scenario::before,
+#invest .portfolio-health-metric-v3716::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:radial-gradient(circle at 90% 10%,rgba(86,199,255,.055),transparent 25%);
+  opacity:.8;
+}
+
+/* ---------- Mobile: keep motion refined and lightweight ---------- */
+@media(max-width:900px){
+  .mmh-command-v34210::after{animation-duration:15s}
+  .mmh-command-v34210::before{animation-duration:22s}
+  #dashboard .mmh-command-v34210 .hero-networth::after,
+  #dashboard .mmh-command-v34210 #wealthSnapshotV386::after,
+  #dashboard .mmh-command-v34210 #dashboardCoreV372::after{animation-duration:15s}
+}
+@media(max-width:560px){
+  .mmh-command-v34210::before{
+    width:180px;height:180px;right:-72px;top:-58px;
+  }
+}
+
+/* ---------- Reduced motion ---------- */
+@media(prefers-reduced-motion:reduce){
+  .mmh-command-v34210::after,
+  .mmh-command-v34210::before,
+  #dashboard .mmh-command-v34210 .hero-networth::after,
+  #dashboard .mmh-command-v34210 #wealthSnapshotV386::after,
+  #dashboard .mmh-command-v34210 #dashboardCoreV372::after{
+    animation:none!important;
+  }
+}
+
+
+/* =========================================================
+   MMHVAULT · PREMIUM VISUAL PASS 5
+   Focus: typography + spacing system consistency
+   Visual-only. No feature/data/navigation changes.
+========================================================= */
+
+:root{
+  --mmh-space-1:6px;
+  --mmh-space-2:10px;
+  --mmh-space-3:14px;
+  --mmh-space-4:18px;
+  --mmh-space-5:24px;
+  --mmh-space-6:30px;
+  --mmh-radius-sm:10px;
+  --mmh-radius-md:14px;
+  --mmh-radius-lg:18px;
+}
+
+/* ---------- Global type rhythm ---------- */
+body{
+  font-kerning:normal;
+  text-rendering:optimizeLegibility;
+}
+h1{
+  line-height:1.04;
+  letter-spacing:-.045em;
+}
+h2{
+  line-height:1.10;
+  letter-spacing:-.028em;
+}
+h3{
+  line-height:1.18;
+  letter-spacing:-.018em;
+}
+.sub,.meta,.small,label{
+  line-height:1.45;
+}
+.value,.kpi,.metric,.metric-value,.stat-value,.money{
+  line-height:1.05;
+}
+
+/* Keep uppercase financial labels deliberate, not noisy */
+.mmh-dash372-card span,
+.mmh-insights-kpi-v340 .label,
+.mmh-v380-card .k,
+.portfolio-health-metric-v3716 .label,
+.mmh-v390-table th{
+  letter-spacing:.085em;
+  font-weight:800;
+}
+
+/* ---------- Standardize common section spacing ---------- */
+.mmh-dashboard-v372,
+.mmh-v380-page-head,
+.mmh-v390-page-head,
+.mmh-insights-head-v340{
+  margin-bottom:18px;
+}
+
+.mmh-dash372-head,
+.mmh-dash372-compare-head{
+  gap:14px;
+}
+
+/* ---------- Dashboard cards: balanced vertical rhythm ---------- */
+.mmh-dash372-card{
+  padding:18px;
+  min-height:116px;
+}
+.mmh-dash372-card b{
+  margin-top:11px;
+  line-height:1.08;
+}
+.mmh-dash372-card small{
+  margin-top:7px;
+  line-height:1.4;
+}
+
+/* ---------- Insights / health cards ---------- */
+.mmh-insights-kpi-v340{
+  padding:18px;
+}
+.mmh-insights-kpi-v340 .value{
+  margin-top:8px;
+}
+.mmh-insights-kpi-v340 .meta{
+  margin-top:6px;
+}
+
+.portfolio-health-v3716{
+  padding:18px;
+}
+.portfolio-health-head-v3716{
+  margin-bottom:16px;
+}
+.portfolio-health-metric-v3716{
+  padding:13px;
+}
+.portfolio-health-metric-v3716 .value{
+  margin-top:7px;
+}
+
+/* ---------- Wealth planning / scenarios ---------- */
+.mmh-v380-hero{
+  padding:24px;
+}
+.mmh-v380-card,
+.mmh-v380-scenario{
+  padding:18px;
+}
+.mmh-v380-card .v,
+.mmh-v380-scenario .big{
+  line-height:1.06;
+}
+
+/* ---------- Transaction table readability ---------- */
+.mmh-v390-table th,
+.mmh-v390-table td{
+  padding:12px 11px;
+  line-height:1.35;
+}
+.mmh-v390-table th{
+  font-size:11px;
+}
+.mmh-v390-table td{
+  font-size:13px;
+}
+
+/* ---------- Buttons / inputs: consistent vertical center ---------- */
+.btn{
+  min-height:40px;
+  line-height:1;
+}
+input,select,textarea{
+  line-height:1.25;
+}
+
+/* ---------- Preserve the approved mobile geometry ---------- */
+@media(max-width:900px){
+  h1{letter-spacing:-.036em}
+  h2{letter-spacing:-.022em}
+  .mmh-dash372-card{padding:16px}
+  .mmh-insights-kpi-v340{padding:16px}
+  .portfolio-health-v3716{padding:16px}
+  .mmh-v380-hero{padding:20px}
+  .mmh-v380-card,.mmh-v380-scenario{padding:16px}
+}
+@media(max-width:600px){
+  .mmh-dashboard-v372,
+  .mmh-v380-page-head,
+  .mmh-v390-page-head,
+  .mmh-insights-head-v340{
+    margin-bottom:14px;
+  }
+
+  .mmh-dash372-card b{
+    font-size:20px;
+  }
+
+  .mmh-insights-kpi-v340 .value{
+    font-size:22px;
+  }
+
+  .mmh-v380-card .v,
+  .mmh-v380-scenario .big{
+    font-size:22px;
+  }
+}
+
+/* ---------- Avoid visual compression on narrow phones ---------- */
+@media(max-width:390px){
+  body{letter-spacing:0}
+  h1{line-height:1.07}
+  h2{line-height:1.12}
+  .mmh-dash372-card span,
+  .mmh-insights-kpi-v340 .label,
+  .mmh-v380-card .k{
+    letter-spacing:.065em;
+  }
+}
+
+
+/* =========================================================
+   MMHVAULT · PREMIUM VISUAL PASS 6
+   Focus: Dashboard hero composition + first-screen hierarchy
+   Visual-only. No feature/data/navigation changes.
+========================================================= */
+
+/* ---------- Establish a clearer first-screen visual hierarchy ---------- */
+#dashboard .mmh-dashboard-v372{
+  position:relative;
+}
+#dashboard .mmh-dash372-head{
+  position:relative;
+  z-index:2;
+  margin-bottom:20px;
+}
+
+/* Hero section gets a quiet stage instead of looking like another card */
+#dashboard .mmh-command-v34210{
+  margin-top:10px;
+  margin-bottom:20px;
+  min-height:220px;
+  border-radius:22px;
+  background:
+    radial-gradient(circle at 86% 28%,rgba(70,199,255,.075),transparent 25%),
+    radial-gradient(circle at 18% 82%,rgba(245,196,81,.035),transparent 22%),
+    linear-gradient(145deg,rgba(12,27,52,.96),rgba(5,13,29,.94));
+}
+
+/* Add a soft horizon line to make the hero feel more dimensional */
+#dashboard .mmh-command-v34210 > .mmh-dashboard-v372,
+#dashboard .mmh-command-v34210 > .mmh-dash372-grid{
+  position:relative;
+  z-index:1;
+}
+
+#dashboard .mmh-command-v34210::marker{display:none}
+#dashboard .mmh-command-v34210::selection{background:rgba(87,203,255,.16)}
+
+/* Primary financial number should be the visual anchor */
+#dashboard .mmh-command-v34210 .value{
+  font-size:clamp(30px,3vw,46px);
+  font-weight:900;
+}
+#dashboard .mmh-command-v34210 .label,
+#dashboard .mmh-command-v34210 .k{
+  color:rgba(173,192,219,.82);
+}
+
+/* ---------- KPI row: create an intentional 1-2-1 rhythm ---------- */
+#dashboard .mmh-dash372-grid{
+  gap:14px;
+}
+#dashboard .mmh-dash372-card{
+  min-height:124px;
+  padding:19px;
+}
+#dashboard .mmh-dash372-card:first-child{
+  background:
+    radial-gradient(circle at 92% 12%,rgba(72,194,255,.06),transparent 23%),
+    linear-gradient(160deg,rgba(13,28,55,.72),rgba(6,13,29,.84));
+  border-color:rgba(100,184,255,.20);
+}
+#dashboard .mmh-dash372-card:nth-child(2),
+#dashboard .mmh-dash372-card:nth-child(3){
+  background:
+    linear-gradient(150deg,rgba(255,255,255,.025),rgba(255,255,255,.005)),
+    rgba(7,16,35,.68);
+}
+
+/* ---------- Comparison band becomes a deliberate secondary layer ---------- */
+#dashboard .mmh-dash372-compare{
+  margin-top:18px;
+  padding-top:18px;
+}
+#dashboard .mmh-dash372-rows{
+  gap:11px;
+}
+#dashboard .mmh-dash372-rows > div{
+  min-height:82px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+#dashboard .mmh-dash372-status{
+  margin-top:16px;
+}
+
+/* ---------- Headline/subtitle spacing ---------- */
+#dashboard .page-title,
+#dashboard h1{
+  max-width:860px;
+}
+#dashboard .sub{
+  max-width:760px;
+}
+
+/* ---------- On desktop, use a little more breathing room ---------- */
+@media(min-width:1101px){
+  #dashboard .mmh-command-v34210{
+    padding:28px;
+  }
+  #dashboard .mmh-dash372-grid{
+    gap:15px;
+  }
+}
+
+/* ---------- Tablet ---------- */
+@media(max-width:900px){
+  #dashboard .mmh-command-v34210{
+    min-height:0;
+    margin-bottom:16px;
+    border-radius:20px;
+  }
+  #dashboard .mmh-dash372-card{
+    min-height:112px;
+  }
+}
+
+/* ---------- Mobile: preserve the approved stable layout ---------- */
+@media(max-width:600px){
+  #dashboard .mmh-dash372-head{
+    margin-bottom:13px;
+  }
+  #dashboard .mmh-command-v34210{
+    margin-top:6px;
+    margin-bottom:14px;
+    border-radius:18px;
+  }
+  #dashboard .mmh-dash372-grid{
+    gap:9px;
+  }
+  #dashboard .mmh-dash372-card{
+    min-height:0;
+    padding:15px 14px;
+  }
+  #dashboard .mmh-dash372-rows{
+    gap:8px;
+  }
+  #dashboard .mmh-dash372-rows > div{
+    min-height:74px;
+  }
+}
+
+/* ---------- Reduced motion ---------- */
+@media(prefers-reduced-motion:reduce){
+  #dashboard .mmh-command-v34210,
+  #dashboard .mmh-dash372-card{
+    transition:none!important;
+  }
+}
+
+
+/* =========================================================
+   MMHVAULT · PREMIUM VISUAL PASS 7
+   Focus: Transactions + Invest secondary-page premium polish
+   Visual-only. No feature/data/navigation changes.
+========================================================= */
+
+/* ---------- Transactions: financial-ledger terminal ---------- */
+#transactions .tx-tabs-v371{
+  position:relative;
+  padding:7px;
+  border:1px solid rgba(101,159,231,.16);
+  background:
+    linear-gradient(145deg,rgba(10,23,46,.72),rgba(4,11,26,.78));
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.028),
+    0 14px 40px rgba(0,0,0,.10);
+}
+#transactions .tx-tab-v371{
+  min-height:48px;
+  border-radius:13px!important;
+  transition:
+    background .24s ease,
+    border-color .24s ease,
+    box-shadow .24s ease,
+    transform .24s ease!important;
+}
+#transactions .tx-tab-v371.active{
+  background:
+    linear-gradient(145deg,rgba(29,67,110,.62),rgba(16,30,60,.76))!important;
+  border-color:rgba(99,193,255,.24)!important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.045),
+    0 8px 22px rgba(0,0,0,.12)!important;
+}
+
+#transactions #txAddPanel > .panel,
+#transactions #txHistoryPanel > .panel{
+  background:
+    linear-gradient(150deg,rgba(9,20,41,.78),rgba(5,12,28,.82));
+  box-shadow:
+    0 20px 58px rgba(0,0,0,.16),
+    inset 0 1px 0 rgba(255,255,255,.028);
+}
+
+#transactions #txForm input,
+#transactions #txForm select,
+#transactions #txForm textarea,
+#transactions #txHistoryPanel input,
+#transactions #txHistoryPanel select{
+  background:rgba(4,11,26,.54);
+  border-color:rgba(95,145,215,.15);
+}
+#transactions #txForm label,
+#transactions #txHistoryPanel label{
+  letter-spacing:.035em;
+}
+
+#transactions #txList{
+  border-radius:15px;
+}
+#transactions #txList table{
+  border-collapse:separate;
+  border-spacing:0 5px;
+}
+#transactions #txList thead th{
+  padding-top:12px;
+  padding-bottom:9px;
+  letter-spacing:.08em;
+  color:rgba(161,183,215,.78);
+}
+#transactions #txList tbody tr{
+  transition:transform .18s ease,filter .18s ease;
+}
+@media(hover:hover){
+  #transactions #txList tbody tr:hover{
+    transform:translateX(2px);
+    filter:brightness(1.035);
+  }
+}
+#transactions #txList tbody td{
+  background:rgba(10,27,50,.68);
+  border-top:1px solid rgba(83,151,220,.08);
+  border-bottom:1px solid rgba(83,151,220,.08);
+}
+#transactions #txList tbody td:first-child{
+  border-left:1px solid rgba(83,151,220,.10);
+}
+#transactions #txList tbody td:last-child{
+  border-right:1px solid rgba(83,151,220,.10);
+}
+
+/* ---------- Invest: private wealth terminal ---------- */
+#invest .mmh-v380-hero,
+#invest .portfolio-health-v3716{
+  background:
+    radial-gradient(circle at 88% 12%,rgba(68,192,255,.055),transparent 26%),
+    linear-gradient(145deg,rgba(9,21,43,.84),rgba(4,11,26,.88));
+  box-shadow:
+    0 22px 66px rgba(0,0,0,.18),
+    inset 0 1px 0 rgba(255,255,255,.03);
+}
+#invest .mmh-v380-row{
+  padding:14px 0;
+  border-bottom-color:rgba(109,151,213,.10);
+}
+#invest .mmh-v380-name{
+  letter-spacing:-.01em;
+}
+#invest .mmh-v380-bar{
+  height:7px;
+  background:rgba(60,86,140,.16);
+  box-shadow:inset 0 1px 2px rgba(0,0,0,.18);
+}
+#invest .mmh-v380-bar>span{
+  box-shadow:0 0 12px rgba(72,201,255,.07);
+}
+#invest .mmh-v380-meta{
+  letter-spacing:.01em;
+}
+
+#invest .portfolio-health-metric-v3716{
+  min-height:84px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+#invest .portfolio-health-reco-v3716{
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.025),
+    0 8px 24px rgba(0,0,0,.08);
+}
+
+/* Investment scenario cards: stronger distinction without new color theme */
+#invest .mmh-v380-scenario{
+  background:
+    linear-gradient(150deg,rgba(13,26,52,.70),rgba(6,13,29,.82));
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.025),
+    0 16px 44px rgba(0,0,0,.12);
+}
+#invest .mmh-v380-scenario .big{
+  text-shadow:0 0 22px rgba(78,193,255,.045);
+}
+
+/* ---------- Shared micro details ---------- */
+#transactions .sub,#invest .sub{
+  color:rgba(160,180,211,.82);
+}
+#transactions h1,#invest h1{
+  text-shadow:0 2px 24px rgba(0,0,0,.16);
+}
+
+/* ---------- Mobile: preserve stable geometry ---------- */
+@media(max-width:760px){
+  #transactions .tx-tabs-v371{
+    padding:6px;
+    border-radius:17px;
+  }
+  #transactions .tx-tab-v371{
+    min-height:48px!important;
+  }
+  #transactions #txList table{
+    min-width:880px;
+  }
+  #invest .mmh-v380-row{
+    gap:10px;
+  }
+  #invest .mmh-v380-bar{
+    height:7px;
+  }
+}
+
+@media(max-width:520px){
+  #transactions #txAddPanel > .panel,
+  #transactions #txHistoryPanel > .panel{
+    border-radius:18px;
+  }
+  #invest .mmh-v380-hero,
+  #invest .portfolio-health-v3716{
+    border-radius:18px;
+  }
+}
+
+
+/* =========================================================
+   MMHVAULT · PREMIUM VISUAL PASS 8
+   Focus: Analyze + Insights + Reports analytics system
+   Visual-only. No feature/data/navigation changes.
+========================================================= */
+
+/* ---------- Shared analytics panel language ---------- */
+#analyze .panel,
+#analyze .card,
+#insights .panel,
+#insights .card,
+#reports .panel,
+#reports .card{
+  background:
+    linear-gradient(150deg,rgba(10,23,47,.76),rgba(5,12,28,.82));
+  border-color:rgba(98,150,221,.15);
+  box-shadow:
+    0 18px 54px rgba(0,0,0,.15),
+    inset 0 1px 0 rgba(255,255,255,.025);
+}
+
+/* Analytics headings become quieter and more editorial */
+#analyze h1,#insights h1,#reports h1{
+  letter-spacing:-.042em;
+}
+#analyze h2,#insights h2,#reports h2{
+  letter-spacing:-.026em;
+}
+#analyze .sub,#insights .sub,#reports .sub{
+  max-width:780px;
+  color:rgba(159,181,214,.82);
+}
+
+/* ---------- KPI strips ---------- */
+#analyze .mmh-insights-kpi-v340,
+#insights .mmh-insights-kpi-v340,
+#reports .mmh-v390-kpis .panel{
+  min-height:112px;
+  padding:17px 18px;
+}
+#analyze .mmh-insights-kpi-v340 .label,
+#insights .mmh-insights-kpi-v340 .label,
+#reports .mmh-v390-kpis .label{
+  color:rgba(143,166,201,.78);
+}
+#analyze .mmh-insights-kpi-v340 .value,
+#insights .mmh-insights-kpi-v340 .value,
+#reports .mmh-v390-kpis .value{
+  text-shadow:0 0 22px rgba(76,193,255,.035);
+}
+
+/* ---------- Tabs: one premium analytics control ---------- */
+#analyze .analyze-tabs-v371,
+#insights .analyze-tabs-v371,
+#reports .analyze-tabs-v371{
+  display:flex;
+  align-items:center;
+  gap:6px;
+  padding:6px;
+  border:1px solid rgba(94,149,221,.15);
+  border-radius:16px;
+  background:rgba(4,12,28,.56);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.025);
+}
+#analyze .analyze-tab-v371,
+#insights .analyze-tab-v371,
+#reports .analyze-tab-v371{
+  transition:background .22s ease,border-color .22s ease,box-shadow .22s ease,transform .22s ease!important;
+}
+#analyze .analyze-tab-v371.active,
+#insights .analyze-tab-v371.active,
+#reports .analyze-tab-v371.active{
+  background:linear-gradient(145deg,rgba(29,68,112,.55),rgba(14,30,59,.72))!important;
+  border-color:rgba(96,190,255,.22)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 7px 18px rgba(0,0,0,.11)!important;
+}
+
+/* ---------- Insight rows ---------- */
+.mmh-insight-card-v340{
+  min-height:58px;
+  padding:14px 0;
+  border-bottom-color:rgba(111,150,212,.10);
+}
+.mmh-insight-icon-v340{
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.035),
+    0 4px 14px rgba(0,0,0,.08);
+}
+.mmh-insight-title-v340{
+  letter-spacing:-.01em;
+}
+.mmh-insight-desc-v340{
+  color:rgba(133,151,184,.88);
+}
+
+/* Insight badges are deliberately compact */
+.mmh-insight-badge-v340{
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.04);
+}
+
+/* ---------- Charts / data visual containers ---------- */
+#analyze canvas,
+#analyze svg,
+#insights canvas,
+#insights svg,
+#reports canvas,
+#reports svg{
+  filter:drop-shadow(0 8px 22px rgba(0,0,0,.08));
+}
+#analyze .chart,
+#insights .chart,
+#reports .chart,
+#analyze .chart-wrap,
+#insights .chart-wrap,
+#reports .chart-wrap{
+  border-radius:16px;
+}
+
+/* ---------- Reports table becomes an executive report ---------- */
+#reports .mmh-v390-table{
+  border-collapse:separate;
+  border-spacing:0 5px;
+}
+#reports .mmh-v390-table thead th{
+  padding-top:12px;
+  padding-bottom:9px;
+  color:rgba(153,175,207,.76);
+}
+#reports .mmh-v390-table tbody td{
+  background:rgba(9,24,46,.60);
+  border-top:1px solid rgba(92,151,220,.065);
+  border-bottom:1px solid rgba(92,151,220,.065);
+}
+#reports .mmh-v390-table tbody tr{
+  transition:filter .18s ease,transform .18s ease;
+}
+@media(hover:hover){
+  #reports .mmh-v390-table tbody tr:hover{
+    filter:brightness(1.035);
+    transform:translateX(1px);
+  }
+}
+
+/* ---------- Progress and spending insights ---------- */
+#insights .mmh-progress-v340{
+  height:8px;
+  border:1px solid rgba(255,255,255,.04);
+  background:#08122b;
+}
+#insights .mmh-spend-row-v340{
+  padding:13px 0;
+  border-bottom:1px solid rgba(111,150,212,.09);
+}
+#insights .mmh-spend-row-v340:last-child{
+  border-bottom:0;
+}
+
+/* ---------- Analytics status / insight cards ---------- */
+.mmh-v390-insight{
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.025),
+    0 10px 30px rgba(0,0,0,.08);
+}
+#analyze .data-integrity-card-v339,
+#insights .data-integrity-card-v339,
+#reports .data-integrity-card-v339{
+  min-height:88px;
+}
+
+/* ---------- Mobile: keep analytics dense and readable ---------- */
+@media(max-width:760px){
+  #analyze .panel,#analyze .card,
+  #insights .panel,#insights .card,
+  #reports .panel,#reports .card{
+    border-radius:17px;
+  }
+  #analyze .analyze-tabs-v371,
+  #insights .analyze-tabs-v371,
+  #reports .analyze-tabs-v371{
+    border-radius:14px;
+  }
+  #reports .mmh-v390-table td{
+    font-size:12px;
+  }
+}
+@media(max-width:600px){
+  #analyze .mmh-insights-kpi-v340,
+  #insights .mmh-insights-kpi-v340,
+  #reports .mmh-v390-kpis .panel{
+    min-height:0;
+  }
+}
+
+/* ---------- Reduced motion ---------- */
+@media(prefers-reduced-motion:reduce){
+  #reports .mmh-v390-table tbody tr,
+  #analyze .analyze-tab-v371,
+  #insights .analyze-tab-v371,
+  #reports .analyze-tab-v371{
+    transition:none!important;
+  }
+}
+
+
+/* =========================================================
+   MMHVAULT · PREMIUM VISUAL PASS 9
+   Focus: Settings / Data Center private control center
+   Visual-only. No feature/data/navigation changes.
+========================================================= */
+
+/* ---------- Calm control-center shell ---------- */
+#settings .panel,
+#settings .card,
+#settings .toolbar{
+  background:
+    linear-gradient(145deg,rgba(9,21,42,.76),rgba(4,11,26,.84));
+  border-color:rgba(99,151,221,.14);
+  box-shadow:
+    0 18px 54px rgba(0,0,0,.14),
+    inset 0 1px 0 rgba(255,255,255,.025);
+}
+
+#settings .page-title,
+#settings h1{
+  letter-spacing:-.042em;
+}
+#settings h2{
+  letter-spacing:-.025em;
+}
+#settings .sub,
+#settings .small{
+  color:rgba(157,179,211,.80);
+}
+
+/* ---------- Settings tabs become quiet command controls ---------- */
+#settings .settings-tabs-v371{
+  padding:6px;
+  gap:6px;
+  border:1px solid rgba(96,149,222,.14);
+  border-radius:16px;
+  background:rgba(4,11,26,.54);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.024);
+}
+#settings .settings-tabs-v371 button{
+  border-radius:12px!important;
+  transition:
+    background .22s ease,
+    border-color .22s ease,
+    box-shadow .22s ease,
+    transform .22s ease!important;
+}
+#settings .settings-tabs-v371 button.active{
+  background:linear-gradient(145deg,rgba(29,65,106,.50),rgba(13,28,55,.70))!important;
+  border-color:rgba(96,189,255,.20)!important;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.04),
+    0 7px 18px rgba(0,0,0,.10)!important;
+}
+
+/* ---------- Data Center cards: secure vault feel ---------- */
+#settings .data-center-safety-v380,
+#settings .data-center-safety-card-v380{
+  background:linear-gradient(150deg,rgba(9,22,43,.68),rgba(4,11,25,.78));
+}
+#settings .data-center-safety-card-v380{
+  border-color:rgba(91,151,222,.12);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.022);
+  transition:border-color .25s ease,transform .25s ease,box-shadow .25s ease;
+}
+@media(hover:hover){
+  #settings .data-center-safety-card-v380:hover{
+    transform:translateY(-2px);
+    border-color:rgba(94,193,255,.24);
+    box-shadow:0 14px 32px rgba(0,0,0,.13),inset 0 1px 0 rgba(255,255,255,.03);
+  }
+}
+
+/* ---------- Cloud / backup information gets deliberate hierarchy ---------- */
+#settings [class*="backup"],
+#settings [class*="sync"],
+#settings [class*="cloud"]{
+  color:inherit;
+}
+#settings .mmhvault-sync-status-v337{
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.035);
+}
+
+/* ---------- Safety blocks feel separated from destructive controls ---------- */
+#settings .data-center-danger-v380{
+  border-color:rgba(255,113,133,.11);
+  background:
+    linear-gradient(150deg,rgba(38,14,25,.28),rgba(8,12,25,.76));
+}
+#settings .data-center-danger-v380 .toolbar{
+  background:transparent;
+  box-shadow:none;
+}
+#settings .data-center-danger-v380 .btn.danger{
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.025),
+    0 8px 24px rgba(0,0,0,.12);
+}
+
+/* ---------- Import / backup area: premium utility surface ---------- */
+#settings .excel-import-v318{
+  box-shadow:
+    0 22px 62px rgba(0,0,0,.17),
+    inset 0 1px 0 rgba(255,255,255,.028);
+}
+#settings .excel-dropzone-v318{
+  transition:
+    border-color .24s ease,
+    background .24s ease,
+    box-shadow .24s ease,
+    transform .24s ease!important;
+}
+@media(hover:hover){
+  #settings .excel-dropzone-v318:hover{
+    transform:translateY(-1px);
+    box-shadow:0 14px 34px rgba(0,0,0,.13);
+  }
+}
+
+/* ---------- Security / account controls ---------- */
+#settings input,
+#settings select,
+#settings textarea{
+  background:rgba(4,11,25,.55);
+}
+#settings label{
+  letter-spacing:.025em;
+}
+#settings .btn{
+  border-radius:11px;
+}
+
+/* ---------- Mobile: quiet, spacious, stable ---------- */
+@media(max-width:760px){
+  #settings .panel,
+  #settings .card{
+    border-radius:17px;
+  }
+  #settings .settings-tabs-v371{
+    border-radius:14px;
+  }
+}
+@media(max-width:520px){
+  #settings .data-center-safety-v380{
+    gap:10px;
+  }
+  #settings .excel-dropzone-v318{
+    min-height:108px;
+  }
+}
+
+/* ---------- Reduced motion ---------- */
+@media(prefers-reduced-motion:reduce){
+  #settings .settings-tabs-v371 button,
+  #settings .data-center-safety-card-v380,
+  #settings .excel-dropzone-v318{
+    transition:none!important;
+  }
+}
+
+
+/* =========================================================
+   MMHVAULT · PREMIUM VISUAL PASS 10
+   Final micro-detail polish
+   Focus: loading, empty, status, icon, borders, consistency
+   Visual-only. No feature/data/navigation changes.
+========================================================= */
+
+/* ---------- Unified micro-surface language ---------- */
+.panel,.card,.toolbar,.modal,
+.mmh-dash372-card,.mmh-v380-card,.mmh-v380-scenario,
+.mmh-insights-kpi-v340,.portfolio-health-metric-v3716,
+.data-integrity-card-v339,.mmh-v390-insight{
+  border-color:rgba(108,158,219,.145);
+}
+
+/* Hairline highlights on all major surfaces */
+.panel,.card,.toolbar,.modal{
+  background-clip:padding-box;
+}
+
+/* ---------- Loading states: calm terminal pulse ---------- */
+.loading,.is-loading,[aria-busy="true"],
+[class*="loading"],[class*="skeleton"]{
+  position:relative;
+}
+.loading::after,.is-loading::after,[aria-busy="true"]::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:linear-gradient(90deg,transparent,rgba(112,195,255,.055),transparent);
+  transform:translateX(-120%);
+  animation:mmhLoadingSweep 1.9s ease-in-out infinite;
+}
+@keyframes mmhLoadingSweep{
+  0%{transform:translateX(-120%)}
+  100%{transform:translateX(120%)}
+}
+
+/* ---------- Empty states: polished, quiet, intentional ---------- */
+.empty,.empty-state,[class*="empty-state"],[class*="empty"]{
+  color:rgba(149,170,202,.82);
+}
+.empty,.empty-state{
+  border-radius:14px;
+}
+.empty::before,.empty-state::before{
+  opacity:.85;
+}
+
+/* ---------- Status badges ---------- */
+.status,.badge,.pill{
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+}
+
+/* Success / warning / danger remain semantically unchanged */
+.mmh-good-v340,.mmh-warn-v340,.mmh-alert-v340,
+.mmh-v380-good,.mmh-v380-warn,.mmh-v380-bad{
+  text-shadow:0 1px 10px rgba(0,0,0,.14);
+}
+
+/* ---------- Small icon polish ---------- */
+.mmh-insight-icon-v340,
+.receipt-upload-icon-v3300,
+.receipt-drop-icon-v3300,
+.receipt-manage-icon-v3309,
+.edit-receipt-plus-v3303,
+.excel-drop-icon-v318{
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.045),
+    0 7px 18px rgba(0,0,0,.09);
+}
+
+/* ---------- Dividers become softer ---------- */
+hr{
+  border:0;
+  border-top:1px solid rgba(105,151,208,.10);
+}
+
+/* ---------- Tables: consistent head/row rhythm ---------- */
+table thead th{
+  color:rgba(149,172,205,.78);
+}
+table tbody td{
+  border-bottom-color:rgba(108,151,211,.075);
+}
+table tbody tr:last-child td{
+  border-bottom-color:transparent;
+}
+
+/* ---------- Links: premium restrained interaction ---------- */
+a{
+  text-underline-offset:3px;
+}
+a:not(.btn):focus-visible{
+  text-decoration-color:rgba(99,201,255,.65);
+}
+@media(hover:hover){
+  a:not(.btn){
+    transition:color .18s ease,text-shadow .18s ease;
+  }
+  a:not(.btn):hover{
+    text-shadow:0 0 16px rgba(87,198,255,.07);
+  }
+}
+
+/* ---------- Tiny status dots ---------- */
+.sync-dot,.live-dot,.dot-live,
+.status-dot{
+  min-width:6px;
+  min-height:6px;
+}
+
+/* ---------- Selection ---------- */
+::selection{
+  color:#f4f8ff;
+  background:rgba(69,168,236,.18);
+}
+
+/* ---------- Mobile: keep everything lightweight ---------- */
+@media(max-width:700px){
+  .loading::after,.is-loading::after,[aria-busy="true"]::after{
+    animation-duration:2.6s;
+  }
+}
+
+/* ---------- Accessibility ---------- */
+@media(prefers-reduced-motion:reduce){
+  .loading::after,.is-loading::after,[aria-busy="true"]::after{
+    animation:none!important;
+  }
+}
+
+
+/* =========================================================
+   MMHVAULT · PREMIUM VISUAL PASS 11
+   Final art-direction pass
+   Focus: color temperature, glow restraint, shadow hierarchy,
+   desktop/mobile visual balance.
+   Visual-only. No feature/data/navigation changes.
+========================================================= */
+
+/* ---------- Cooler, more expensive glass ---------- */
+.panel,.card,.toolbar,.modal,
+.mmh-command-v34210,
+.mmh-dash372-card,
+.mmh-v380-card,
+.mmh-v380-scenario,
+.mmh-insights-kpi-v340,
+.portfolio-health-v3716,
+.portfolio-health-metric-v3716,
+.data-integrity-card-v339,
+.mmh-v390-insight{
+  box-shadow:
+    0 18px 52px rgba(0,0,0,.16),
+    0 1px 0 rgba(255,255,255,.026) inset,
+    0 -1px 0 rgba(52,129,207,.018) inset;
+}
+
+/* ---------- Gold is an accent, not a flood ---------- */
+.mmh-dash372-card:first-child,
+.mmh-v380-card,
+.mmh-v380-scenario{
+  --mmh-accent-gold-soft:rgba(245,196,81,.055);
+}
+.mmh-dash372-card:first-child::before,
+.mmh-v380-card::before,
+.mmh-v380-scenario::before{
+  background:
+    radial-gradient(circle at 92% 10%,rgba(245,196,81,.04),transparent 23%),
+    linear-gradient(115deg,transparent 0%,rgba(255,255,255,.018) 43%,rgba(255,255,255,.042) 50%,transparent 57%);
+}
+
+/* ---------- Cyan signature edge ---------- */
+#dashboard .mmh-command-v34210,
+#invest .portfolio-health-v3716,
+#transactions #txAddPanel > .panel,
+#transactions #txHistoryPanel > .panel{
+  box-shadow:
+    0 22px 68px rgba(0,0,0,.18),
+    0 0 0 1px rgba(81,180,255,.025),
+    inset 0 1px 0 rgba(255,255,255,.032);
+}
+
+/* ---------- Headings: less glow, more print-like authority ---------- */
+h1,h2,h3,.title,.page-title{
+  text-shadow:0 1px 18px rgba(0,0,0,.13);
+}
+h1,h2{
+  color:rgba(242,247,255,.98);
+}
+
+/* ---------- Quiet separators around major sections ---------- */
+.page > .panel + .panel,
+.page > .card + .card{
+  position:relative;
+}
+.page > .panel + .panel::before,
+.page > .card + .card::before{
+  opacity:.35;
+}
+
+/* ---------- Desktop gets more cinematic depth ---------- */
+@media(min-width:1101px){
+  body::after{
+    filter:blur(28px);
+  }
+  .panel,.card{
+    box-shadow:
+      0 22px 64px rgba(0,0,0,.17),
+      inset 0 1px 0 rgba(255,255,255,.028);
+  }
+}
+
+/* ---------- Tablet keeps things tighter ---------- */
+@media(max-width:900px){
+  body::after{filter:blur(22px)}
+  .panel,.card{
+    box-shadow:
+      0 16px 44px rgba(0,0,0,.15),
+      inset 0 1px 0 rgba(255,255,255,.026);
+  }
+}
+
+/* ---------- Mobile: premium, not crowded ---------- */
+@media(max-width:600px){
+  h1{line-height:1.07}
+  h2{line-height:1.12}
+  .panel,.card{
+    box-shadow:
+      0 12px 34px rgba(0,0,0,.13),
+      inset 0 1px 0 rgba(255,255,255,.025);
+  }
+  /* Keep micro-glows nearly invisible on small screens */
+  .mmh-command-v34210::after{
+    opacity:.62;
+  }
+  .site-header::after,#header::after{
+    opacity:.55;
+  }
+}
+
+/* ---------- Avoid accidental over-animation ---------- */
+@media(prefers-reduced-motion:reduce){
+  .site-header::after,#header::after,
+  body::after,.mmh-command-v34210::after,.mmh-command-v34210::before,
+  .btn.gold::after,.btn.primary::after{
+    animation:none!important;
+  }
+}
+
+
+/* =========================================================
+   MMHVAULT · PREMIUM VISUAL PASS 12
+   Focus: entry experience + modal polish
+   Visual-only. No feature/data/navigation changes.
+========================================================= */
+
+/* ---------- Welcome / loading screen: premium first impression ---------- */
+.welcome-screen{
+  backdrop-filter:blur(18px) saturate(120%);
+  -webkit-backdrop-filter:blur(18px) saturate(120%);
+}
+.welcome-card{
+  position:relative;
+  overflow:hidden;
+  background:
+    radial-gradient(circle at 82% 12%,rgba(76,199,255,.07),transparent 28%),
+    linear-gradient(145deg,rgba(10,25,50,.92),rgba(4,11,26,.97));
+  border-color:rgba(109,177,235,.22)!important;
+  box-shadow:
+    0 30px 100px rgba(0,0,0,.42),
+    0 0 42px rgba(74,189,255,.045),
+    inset 0 1px 0 rgba(255,255,255,.04);
+}
+.welcome-card::before{
+  content:"";
+  position:absolute;
+  width:220px;
+  height:220px;
+  right:-90px;
+  top:-90px;
+  border-radius:50%;
+  border:1px solid rgba(96,198,255,.10);
+  box-shadow:
+    0 0 0 24px rgba(96,198,255,.018),
+    0 0 0 48px rgba(245,196,81,.012);
+  animation:mmhWelcomeOrbit 15s ease-in-out infinite;
+  pointer-events:none;
+}
+@keyframes mmhWelcomeOrbit{
+  0%,100%{transform:translate3d(0,0,0) rotate(-2deg)}
+  50%{transform:translate3d(-7px,7px,0) rotate(2deg)}
+}
+.welcome-logo-img,.welcome-ready,.welcome-line{
+  filter:drop-shadow(0 0 18px rgba(78,191,255,.055));
+}
+
+/* ---------- Getting started dialog: polished onboarding surface ---------- */
+.getting-started-backdrop{
+  backdrop-filter:blur(14px) saturate(118%);
+  -webkit-backdrop-filter:blur(14px) saturate(118%);
+}
+.getting-started-card{
+  position:relative;
+  overflow:hidden;
+  background:
+    radial-gradient(circle at 90% 8%,rgba(72,193,255,.055),transparent 24%),
+    linear-gradient(145deg,rgba(10,23,47,.96),rgba(4,11,25,.98));
+  border-color:rgba(105,171,228,.20)!important;
+  box-shadow:
+    0 28px 90px rgba(0,0,0,.40),
+    inset 0 1px 0 rgba(255,255,255,.038);
+}
+.getting-started-card::after{
+  content:"";
+  position:absolute;
+  left:10%;
+  right:10%;
+  top:0;
+  height:1px;
+  background:linear-gradient(90deg,transparent,rgba(111,204,255,.25),rgba(245,196,81,.10),transparent);
+  pointer-events:none;
+}
+.gs-step{
+  transition:opacity .25s ease,transform .25s ease;
+}
+.gs-dot{
+  transition:background .22s ease,box-shadow .22s ease,transform .22s ease;
+}
+.gs-dot.active{
+  box-shadow:0 0 14px rgba(87,201,255,.13);
+  transform:scale(1.05);
+}
+
+/* ---------- Auth surfaces: quiet, premium, trustworthy ---------- */
+.auth-card,.login-card,.auth-panel{
+  background:
+    radial-gradient(circle at 88% 10%,rgba(73,192,255,.055),transparent 25%),
+    linear-gradient(145deg,rgba(10,23,46,.90),rgba(4,11,25,.96));
+  border-color:rgba(103,162,224,.18)!important;
+  box-shadow:
+    0 24px 80px rgba(0,0,0,.28),
+    inset 0 1px 0 rgba(255,255,255,.032);
+}
+.auth-card input,.login-card input,.auth-panel input{
+  background:rgba(4,11,25,.50);
+}
+
+/* ---------- Mobile entry experience stays compact ---------- */
+@media(max-width:700px){
+  .welcome-card,.getting-started-card,.auth-card,.login-card,.auth-panel{
+    box-shadow:
+      0 18px 58px rgba(0,0,0,.28),
+      inset 0 1px 0 rgba(255,255,255,.028);
+  }
+  .welcome-card::before{
+    width:160px;height:160px;right:-70px;top:-60px;
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  .welcome-card::before,
+  .gs-step,.gs-dot{
+    animation:none!important;
+    transition:none!important;
+  }
+}
+
+
+/* =========================================================
+   MMHVAULT · PREMIUM VISUAL PASS 13
+   Focus: intelligent ambient spotlight
+   Desktop-only micro-interaction. No feature/data/navigation changes.
+========================================================= */
+
+@media (hover:hover) and (pointer:fine) and (min-width:901px){
+  body::after{
+    background:
+      radial-gradient(
+        260px 260px at var(--mmh-pointer-x,50%) var(--mmh-pointer-y,18%),
+        rgba(83,195,255,.075),
+        transparent 68%
+      ),
+      radial-gradient(40rem 24rem at 8% 6%,rgba(66,170,255,.045),transparent 62%),
+      radial-gradient(38rem 22rem at 92% 12%,rgba(245,197,91,.038),transparent 62%),
+      radial-gradient(34rem 20rem at 60% 92%,rgba(110,111,255,.032),transparent 64%);
+    transition:background .22s ease-out;
+  }
+
+  .mmh-command-v34210,
+  .mmh-dash372-card,
+  .mmh-v380-card,
+  .mmh-v380-scenario,
+  .portfolio-health-v3716{
+    --mmh-local-glow:0;
+  }
+
+  /* The pointer light only changes atmosphere; card geometry remains untouched. */
+  .mmh-command-v34210::after{
+    opacity:calc(.72 + (var(--mmh-local-glow,0) * .18));
+  }
+}
+
+@media(prefers-reduced-motion:reduce){
+  body::after{transition:none!important;}
+}
+/* MMHVAULT v5.0 — Living Financial Earth cinematic layer. Home only. */
+.future-home .mmh-home-earth-v4-9-17{
+  --earth-px:0px; --earth-py:0px;
+  perspective:1200px;
+  transform:translate3d(var(--earth-px),var(--earth-py),0) translateY(-50%)!important;
+  transition:transform .22s ease-out;
+}
+.future-home .mmh-home-earth-v4-9-17 .earth-stage{
+  transform:translate3d(calc(var(--earth-px) * -.32),calc(var(--earth-py) * -.32),0) rotateX(var(--earth-tilt-y,0deg)) rotateY(var(--earth-tilt-x,0deg));
+  transition:transform .18s ease-out;
+}
+.future-home .mmh-home-earth-v4-9-17 .earth-halo{animation:earthHaloPulse500 7s ease-in-out infinite;}
+.future-home .mmh-home-earth-v4-9-17 .earth-rim{animation:earthRimBreath500 5.5s ease-in-out infinite;}
+.future-home .mmh-home-earth-v4-9-17 .earth-orbit{transform-style:preserve-3d;filter:drop-shadow(0 0 5px rgba(91,192,255,.12));}
+.future-home .mmh-home-earth-v4-9-17 .earth-orbit.one{margin-top:calc(var(--earth-py) * -.18);}
+.future-home .mmh-home-earth-v4-9-17 .earth-orbit.two{margin-left:calc(var(--earth-px) * -.16);}
+.future-home .mmh-home-earth-v4-9-17 .financial-depth-layer{
+  position:absolute;inset:-2%;z-index:5;pointer-events:none;overflow:visible;
+  transform:translate3d(calc(var(--earth-px) * -.55),calc(var(--earth-py) * -.55),0);
+  transition:transform .18s ease-out;
+}
+.future-home .mmh-home-earth-v4-9-17 .financial-depth-layer canvas{width:100%;height:100%;display:block;overflow:visible;}
+.future-home .mmh-home-earth-v4-9-17 .financial-scan{
+  position:absolute;left:50%;top:50%;width:54%;height:54%;border-radius:50%;
+  transform:translate(-50%,-50%) rotate(-18deg);z-index:5;pointer-events:none;
+  border:1px solid transparent;opacity:.0;
+}
+.future-home .mmh-home-earth-v4-9-17 .financial-scan::before{
+  content:"";position:absolute;left:50%;top:0;width:1px;height:100%;
+  background:linear-gradient(to bottom,transparent,rgba(99,211,255,.0) 25%,rgba(99,211,255,.42) 50%,transparent 78%);
+  box-shadow:0 0 18px rgba(83,193,255,.34);
+  transform-origin:50% 50%;animation:scanBeam500 8s linear infinite;
+}
+.future-home .mmh-home-earth-v4-9-17 .signal-status{animation:signalLive500 2.6s ease-in-out infinite;}
+.future-home .mmh-home-earth-v4-9-17 .scan-strip{transform:translate3d(0,0,0);}
+@keyframes earthHaloPulse500{0%,100%{opacity:.72;transform:scale(.98)}50%{opacity:1;transform:scale(1.025)}}
+@keyframes earthRimBreath500{0%,100%{opacity:.72}50%{opacity:1}}
+@keyframes signalLive500{0%,100%{opacity:.55}50%{opacity:1}}
+@keyframes scanBeam500{0%{transform:rotate(0deg) scaleY(.55);opacity:0}12%{opacity:1}48%{opacity:.8}72%{opacity:.1}100%{transform:rotate(360deg) scaleY(.55);opacity:0}}
+@media(max-width:900px){
+  .future-home .mmh-home-earth-v4-9-17{transform:translate3d(var(--earth-px),var(--earth-py),0)!important;}
+}
+@media(prefers-reduced-motion:reduce){
+  .future-home .mmh-home-earth-v4-9-17 .earth-halo,.future-home .mmh-home-earth-v4-9-17 .earth-rim,.future-home .mmh-home-earth-v4-9-17 .signal-status,.future-home .mmh-home-earth-v4-9-17 .financial-scan::before{animation:none!important;}
+  .future-home .mmh-home-earth-v4-9-17,.future-home .mmh-home-earth-v4-9-17 .earth-stage,.future-home .mmh-home-earth-v4-9-17 .financial-depth-layer{transition:none!important;}
+}
