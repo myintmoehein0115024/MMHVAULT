@@ -5458,7 +5458,7 @@ body{
 <button aria-selected="false" class="invest-subtab-v371" id="investSubPortfolioV371" role="tab" type="button">Portfolio</button>
 <button aria-selected="false" class="invest-subtab-v371" id="investSubAddV371" role="tab" type="button">Add Investment</button>
 </div>
-<div class="grid two invest-top"><div class="panel v371-crypto" id="v371CryptoMarket"><div class="toolbar"><h2>Crypto Market</h2><span class="pill" id="marketStatus">Live feed</span></div><div class="price-grid" id="cryptoPrices"></div><div class="small" style="margin-top:10px">Market reference refreshes automatically. Uses CoinGecko when configured, with a free Binance public feed as fallback.</div></div>
+<div class="grid two invest-top"><div class="panel v371-crypto" id="v371CryptoMarket"><div class="toolbar"><h2>Crypto Market</h2><span class="pill" id="marketStatus">Live feed</span></div><div class="price-grid" id="cryptoPrices"></div><div class="small" style="margin-top:10px">Market reference refreshes automatically. Uses the free CoinLore public feed, with Binance public data as fallback.</div></div>
 <div class="panel v371-gold" id="v371GoldMarket"><div class="toolbar"><h2>Gold Market</h2><span class="pill">Manual · MMK / ကျပ်သား</span></div><div class="gold-market"><div><span class="name">Current Gold Price · MMK / ကျပ်သား</span><div class="big-price" id="goldMarket">—</div><div class="small" id="goldMarketMeta" style="margin-top:5px">Enter your current market price below.</div></div><button class="btn" onclick="openGoldSearch()">Open Google</button></div><div class="manual-gold"><label>Gold Market Price / ကျပ်သား<input id="manualGoldPrice" min="0" placeholder="e.g. 10,000,000" step="0.01" type="number"/></label><button class="btn primary" onclick="saveManualGoldPrice()" type="button">Save Price</button></div><div class="notice small" style="margin-top:12px">Gold market is intentionally manual for reliability. MMHVAULT stores the last price on this device and uses it for Gold P/L and ROI. <a href="https://goldprice.org/gold-price-myanmar.html" rel="noopener" target="_blank">GoldPrice.org Myanmar</a></div></div></div>
 <div class="grid invest-metrics" id="investMetrics"></div>
 <div class="panel portfolio-manager-v310" data-invest-visible-v310="1" id="portfolioManagerV310">
@@ -6790,7 +6790,14 @@ async function fetchGoldPrice(){const saved=Number(localStorage.getItem("myfinan
 function saveManualGoldPrice(){const v=Number(manualGoldPrice.value||0);if(v<=0){alert('Enter a valid gold price per ကျပ်သား.');return;}localStorage.setItem('myfinance_manual_gold_mmk',String(v));goldMarketState={pricePerOzMMK:0,pricePerKyattha:v,updatedAt:new Date().toISOString(),source:'Manual'};goldMarket.textContent='MMK '+fmt(v);goldMarketMeta.textContent='Manual price · '+new Date().toLocaleString();if(invAsset.value==='Gold')updateInvestCalc();renderInvest();try{window.dispatchEvent(new CustomEvent('mmhvault:market-updated'));}catch(_e){} }
 function loadManualGoldPrice(){const v=Number(localStorage.getItem('myfinance_manual_gold_mmk')||0);if(v>0){manualGoldPrice.value=v;if(!goldMarketState.pricePerKyattha){goldMarketState.pricePerKyattha=v;goldMarketState.source='Manual';goldMarket.textContent='MMK '+fmt(v);goldMarketMeta.textContent='Manual price';}}}
 
-let livePrices={BTC:null,ETH:null,SOL:null,BNB:null,XRP:null,DOGE:null,ADA:null,TRX:null};
+let livePrices=(()=>{
+  const empty={BTC:null,ETH:null,SOL:null,BNB:null,XRP:null,DOGE:null,ADA:null,TRX:null};
+  try{
+    const cached=JSON.parse(localStorage.getItem("mmhvault_crypto_prices_v2")||"null");
+    if(cached&&cached.prices&&typeof cached.prices==="object") return Object.assign(empty,cached.prices);
+  }catch(_e){}
+  return empty;
+})();
 function updateInvestFields(){
 const a=invAsset.value, crypto=a==="Crypto", gold=a==="Gold";
 invSymbol.disabled=!crypto;invSource.innerHTML=(crypto?["OKX","ByBit"]:["KPay"]).map(x=>`<option>${x}</option>`).join("");
@@ -6855,57 +6862,76 @@ async function fetchCryptoPrices(force=false){
   if(cryptoFetchInFlight)return cryptoFetchInFlight;
   if(!force&&cryptoLastFetchAt&&now-cryptoLastFetchAt<CRYPTO_REFRESH_MS){renderCryptoPrices();return livePrices;}
   cryptoFetchInFlight=(async()=>{
-    const ids="bitcoin,ethereum,solana,binancecoin,ripple,dogecoin,cardano,tron";
-    const binanceSymbols=["BTCUSDT","ETHUSDT","SOLUSDT","BNBUSDT","XRPUSDT","DOGEUSDT","ADAUSDT","TRXUSDT"];
+    const symbols=["BTC","ETH","SOL","BNB","XRP","DOGE","ADA","TRX"];
     const applyPrices=(map,status)=>{
       const next=Object.assign({},livePrices);
-      Object.entries(map).forEach(([k,v])=>{if(v&&Number.isFinite(Number(v.price)))next[k]={price:Number(v.price),change:Number(v.change||0)}});
+      Object.entries(map).forEach(([k,v])=>{
+        const price=Number(v?.price), change=Number(v?.change||0);
+        if(Number.isFinite(price)) next[k]={price,change:Number.isFinite(change)?change:0};
+      });
       livePrices=next;
       cryptoLastFetchAt=Date.now();
-      marketStatus.textContent=status;
+      try{localStorage.setItem("mmhvault_crypto_prices_v2",JSON.stringify({savedAt:cryptoLastFetchAt,prices:livePrices}));}catch(_e){}
+      if(marketStatus)marketStatus.textContent=status;
       renderCryptoPrices();
       if(invAsset.value==="Crypto")updateInvestFields();
       if(document.getElementById("dashboard")?.classList.contains("active"))renderDashboard();
       if(document.getElementById("invest")?.classList.contains("active"))renderInvest();
-      try{window.dispatchEvent(new CustomEvent('mmhvault:market-updated'));}catch(_e){}
+      try{window.dispatchEvent(new CustomEvent("mmhvault:market-updated"));}catch(_e){}
       return livePrices;
     };
-    try{
+    const fetchJson=async(url,timeoutMs=5500)=>{
       const controller=new AbortController();
-      const timer=setTimeout(()=>controller.abort(),9000);
-      const cgKey=String(localStorage.getItem('mmhvault_coingecko_demo_key_v1')||'').trim();
-      const headers=cgKey?{'x-cg-demo-api-key':cgKey}:{};
-      const r=await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true`,{cache:"no-store",headers,signal:controller.signal});
-      clearTimeout(timer);
-      if(!r.ok)throw new Error("CoinGecko HTTP "+r.status);
-      const d=await r.json();
-      const map={BTC:d.bitcoin,ETH:d.ethereum,SOL:d.solana,BNB:d.binancecoin,XRP:d.ripple,DOGE:d.dogecoin,ADA:d.cardano,TRX:d.tron};
-      return applyPrices(Object.fromEntries(Object.entries(map).map(([k,v])=>[k,v&&{price:Number(v.usd),change:Number(v.usd_24h_change||0)}])),"Live · CoinGecko");
-    }catch(cgError){
+      const timer=setTimeout(()=>controller.abort(),timeoutMs);
       try{
-        const controller=new AbortController();
-        const timer=setTimeout(()=>controller.abort(),9000);
-        const url='https://data-api.binance.vision/api/v3/ticker/24hr?'+new URLSearchParams({symbols:JSON.stringify(binanceSymbols)}).toString();
-        const r=await fetch(url,{cache:"no-store",signal:controller.signal});
-        clearTimeout(timer);
-        if(!r.ok)throw new Error("Binance HTTP "+r.status);
-        const rows=await r.json();
-        const symbolToKey={BTCUSDT:'BTC',ETHUSDT:'ETH',SOLUSDT:'SOL',BNBUSDT:'BNB',XRPUSDT:'XRP',DOGEUSDT:'DOGE',ADAUSDT:'ADA',TRXUSDT:'TRX'};
-        const map={};
-        for(const row of Array.isArray(rows)?rows:[]){const key=symbolToKey[row?.symbol];if(key)map[key]={price:Number(row.lastPrice),change:Number(row.priceChangePercent||0)};}
-        if(!Object.values(map).some(v=>Number.isFinite(v?.price)))throw new Error('No Binance prices returned');
-        return applyPrices(map,"Live · Binance public feed");
-      }catch(binanceError){
-        marketStatus.textContent="Feed unavailable · using last prices";
-        renderCryptoPrices();
-        console.warn('[MMHVAULT] Crypto market feeds unavailable',{coingecko:cgError?.message,binance:binanceError?.message});
-        return livePrices;
+        const r=await fetch(url,{cache:"no-store",credentials:"omit",signal:controller.signal});
+        if(!r.ok)throw new Error("HTTP "+r.status);
+        return await r.json();
+      }finally{clearTimeout(timer);}
+    };
+
+    let coinLoreErrorMessage="";
+    // Primary: CoinLore public API — no key required and one request covers the tracked coins.
+    try{
+      if(marketStatus)marketStatus.textContent="Loading market…";
+      const d=await fetchJson("https://api.coinlore.net/api/tickers/?start=0&limit=100");
+      const wanted=new Set(symbols);
+      const map={};
+      for(const row of Array.isArray(d?.data)?d.data:[]){
+        const key=String(row?.symbol||"").toUpperCase();
+        if(wanted.has(key)) map[key]={price:Number(row.price_usd),change:Number(row.percent_change_24h||0)};
       }
+      if(!symbols.some(k=>Number.isFinite(map[k]?.price)))throw new Error("CoinLore returned no tracked prices");
+      return applyPrices(map,"Live · CoinLore");
+    }catch(coinLoreError){
+      coinLoreErrorMessage=coinLoreError?.message||String(coinLoreError);
+      console.warn("[MMHVAULT] CoinLore market feed unavailable",coinLoreErrorMessage);
+    }
+
+    // Secondary: Binance public market-data endpoint.
+    try{
+      const binanceSymbols=["BTCUSDT","ETHUSDT","SOLUSDT","BNBUSDT","XRPUSDT","DOGEUSDT","ADAUSDT","TRXUSDT"];
+      const url="https://data-api.binance.vision/api/v3/ticker/24hr?"+new URLSearchParams({symbols:JSON.stringify(binanceSymbols)}).toString();
+      const rows=await fetchJson(url);
+      const symbolToKey={BTCUSDT:"BTC",ETHUSDT:"ETH",SOLUSDT:"SOL",BNBUSDT:"BNB",XRPUSDT:"XRP",DOGEUSDT:"DOGE",ADAUSDT:"ADA",TRXUSDT:"TRX"};
+      const map={};
+      for(const row of Array.isArray(rows)?rows:[]){
+        const key=symbolToKey[row?.symbol];
+        if(key)map[key]={price:Number(row.lastPrice),change:Number(row.priceChangePercent||0)};
+      }
+      if(!symbols.some(k=>Number.isFinite(map[k]?.price)))throw new Error("Binance returned no tracked prices");
+      return applyPrices(map,"Live · Binance");
+    }catch(binanceError){
+      const hasCache=symbols.some(k=>Number.isFinite(livePrices[k]?.price));
+      if(marketStatus)marketStatus.textContent=hasCache?"Cached prices":"Feed unavailable";
+      renderCryptoPrices();
+      console.warn("[MMHVAULT] Crypto market feeds unavailable",{coinLore:coinLoreErrorMessage,binance:binanceError?.message});
+      return livePrices;
     }finally{cryptoFetchInFlight=null;}
   })();
   return cryptoFetchInFlight;
 }
-function renderCryptoPrices(){const symbols=["BTC","ETH","SOL","BNB","XRP","DOGE","ADA","TRX"];cryptoPrices.innerHTML=symbols.map(s=>{const p=livePrices[s];return`<div class="price-card"><div class="symbol">${s}</div><div class="price">${p&&Number.isFinite(p.price)?"$"+fmt(p.price):"Unavailable"}</div><div class="change ${p&&p.change>=0?"green":"red"}">${p&&Number.isFinite(p.change)?(p.change>=0?"+":"")+p.change.toFixed(2)+"% 24h":"Market feed unavailable"}</div></div>`}).join("");}
+function renderCryptoPrices(){const symbols=["BTC","ETH","SOL","BNB","XRP","DOGE","ADA","TRX"];cryptoPrices.innerHTML=symbols.map(s=>{const p=livePrices[s];return`<div class="price-card"><div class="symbol">${s}</div><div class="price">${p&&Number.isFinite(p.price)?"$"+fmt(p.price):"Loading…"}</div><div class="change ${p&&p.change>=0?"green":"red"}">${p&&Number.isFinite(p.change)?(p.change>=0?"+":"")+p.change.toFixed(2)+"% 24h":(marketStatus?.textContent?.startsWith("Cached")?"Cached market data":"Waiting for market data")}</div></div>`}).join("");}
 function openGoldSearch(){window.open("https://www.google.com/search?q=Myanmar+gold+price+MMK+per+kyattha","_blank","noopener")}
 function renderPortfolioHealthV3716({totalROI,concentration,positionsCount,cryptoW,goldW,top}){
   const el=$("portfolioHealthV3716"); if(!el)return;
@@ -10752,7 +10778,7 @@ Object.assign(zh,{
 'Crypto Value':'加密货币价值',
 'Crypto P/L':'加密货币盈亏',
 'Crypto ROI':'加密货币投资回报率',
-'Market reference refreshes automatically. Uses CoinGecko when configured, with a free Binance public feed as fallback.':'市场参考价格会自动刷新。CoinGlass API 需要 API 密钥；未配置 CoinGlass 密钥时，系统会使用下方的免费公开数据源。',
+'Market reference refreshes automatically. Uses the free CoinLore public feed, with Binance public data as fallback.':'市场参考价格会自动刷新。使用免费的 CoinLore 公开数据源，并以 Binance 公开数据作为备用。',
 'Live valuation':'实时估值',
 'USD/MMK':'美元/缅元',
 'Portfolio Value':'投资组合价值',
