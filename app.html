@@ -21801,6 +21801,59 @@ body::before{
   }
 }
 </style>
+
+<style id="mmhvault-bg-full-scroll-v20260926">
+/* BACKGROUND ONLY — keep all financial data, layout and functionality unchanged. */
+html{
+  background:#04102a!important;
+  min-height:100%;
+}
+body{
+  background:transparent!important;
+  background-color:transparent!important;
+  position:relative!important;
+  isolation:isolate!important;
+  min-height:100vh!important;
+}
+/* Fixed cinematic layer: stays behind every section even when transaction history grows. */
+body::before{
+  content:""!important;
+  position:fixed!important;
+  inset:0!important;
+  z-index:-1!important;
+  pointer-events:none!important;
+  background-image:
+    linear-gradient(rgba(2,8,20,.18),rgba(2,8,20,.28)),
+    url("images/mmhvault-bg-v342.webp")!important;
+  background-size:cover!important;
+  background-position:center top!important;
+  background-repeat:no-repeat!important;
+  background-attachment:fixed!important;
+}
+/* The page shells must not paint a solid layer over the fixed background. */
+.wrap,
+.page,
+#dashboard,
+#transactions,
+#invest,
+#analyze,
+#exchange,
+#settings{
+  background:transparent!important;
+  background-color:transparent!important;
+}
+/* Keep section decoration, cards and data panels exactly as they are. */
+@media(max-width:900px){
+  body::before{
+    background-image:
+      linear-gradient(rgba(2,8,20,.22),rgba(2,8,20,.34)),
+      url("images/mmhvault-bg-v342.webp")!important;
+    background-attachment:fixed!important;
+    background-position:center top!important;
+    background-size:cover!important;
+  }
+}
+</style>
 </body>
 <!-- MMHVAULT V4.3.0 performance baseline: logo-free account cards + restrained dashboard rendering. -->
 <style id="mmhvault-v3445-analyze-premium-polish">
