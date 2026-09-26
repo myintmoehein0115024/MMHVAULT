@@ -6657,6 +6657,18 @@ async function mmhVaultToggleAccountV445(id){
   }
 }
 
+function mmhVaultBindCategoryDialogButtonsV449(){
+  setTimeout(()=>{
+    const host=$('mmhVaultDialogActionsV449');
+    if(!host)return;
+    const buttons=[...host.querySelectorAll('button')];
+    const cancel=buttons.find(b=>String(b.textContent||'').trim()==='Cancel');
+    if(cancel){
+      cancel.onclick=(e)=>{e.preventDefault();e.stopPropagation();mmhVaultCloseDialogV449(false);};
+    }
+  },0);
+}
+
 function mmhVaultEditCategoryV449(group,name){
   const currentGroup=String(group||'');
   const currentName=String(name||'');
@@ -6706,6 +6718,7 @@ function mmhVaultEditCategoryV449(group,name){
       }}
     ]
   });
+  mmhVaultBindCategoryDialogButtonsV449();
 }
 window.mmhVaultEditCategoryV449=mmhVaultEditCategoryV449;
 
@@ -6744,6 +6757,7 @@ function mmhVaultDeleteCategoryV445(group,name){
       }}
     ]
   });
+  mmhVaultBindCategoryDialogButtonsV449();
 }
 function mmhVaultArchiveCategoryV445(group,name){
   if(!CATS[group]?.includes(name))return;
@@ -6762,6 +6776,7 @@ function mmhVaultArchiveCategoryV445(group,name){
       }}
     ]
   });
+  mmhVaultBindCategoryDialogButtonsV449();
 }
 function mmhVaultRestoreCategoryV445(group,name){
   if((MMHVAULT_CONFIG.categories[group]||[]).includes(name))return;
