@@ -5486,6 +5486,22 @@ body.mmhvault-scroll-active #invest #v371CryptoMarket::before{
 .mmh-manager-actions-v445 .btn.danger{color:#ff9eac;border-color:rgba(255,110,132,.24);background:rgba(75,18,30,.28)}
 .mmh-manager-actions-v445 .btn.danger:hover{border-color:rgba(255,110,132,.42);background:rgba(96,22,38,.42)}
 </style>
+
+<style id="mmhvault-v449-custom-dialogs">
+#mmhVaultDialogV449{position:fixed;inset:0;z-index:99999;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(2,7,18,.72);backdrop-filter:blur(9px)}
+#mmhVaultDialogV449.show{display:flex}
+.mmh-v449-dialog{width:min(520px,calc(100vw - 28px));border:1px solid rgba(105,166,245,.28);border-radius:20px;background:linear-gradient(145deg,rgba(12,28,55,.98),rgba(5,13,29,.99));box-shadow:0 28px 90px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.04);overflow:hidden}
+.mmh-v449-dialog-head{padding:18px 20px 10px}.mmh-v449-dialog-head h3{margin:0;color:#f1f6ff;font-size:18px}.mmh-v449-dialog-head p{margin:6px 0 0;color:#91a6c7;font-size:12px;line-height:1.55}
+.mmh-v449-dialog-body{padding:12px 20px 18px}
+.mmh-v449-field{display:grid;gap:7px;margin-bottom:11px}.mmh-v449-field label{font-size:11px;color:#91a6c7;font-weight:800}.mmh-v449-field input,.mmh-v449-field select{width:100%;min-height:44px;border-radius:12px;border:1px solid rgba(92,151,222,.25);background:#07162d;color:#eef5ff;padding:0 12px;font:inherit}
+.mmh-v449-dialog-actions{display:flex;justify-content:flex-end;gap:8px;padding:13px 20px;border-top:1px solid rgba(93,157,225,.13)}
+.mmh-v449-dialog-actions button{min-height:40px;border-radius:11px;padding:0 15px;border:1px solid rgba(255,255,255,.12);background:#12233f;color:#dfeaff;font:inherit;font-weight:800;cursor:pointer}
+.mmh-v449-dialog-actions .primary{border-color:rgba(87,181,255,.35);background:linear-gradient(135deg,#1d6bb1,#26518e);color:#fff}
+.mmh-v449-dialog-actions .danger{border-color:rgba(255,102,133,.30);background:rgba(89,22,40,.55);color:#ffb0bd}
+.mmh-v449-dialog-note{padding:10px 12px;border-radius:11px;background:rgba(65,108,171,.10);border:1px solid rgba(91,151,222,.13);color:#8fa7ca;font-size:11px;line-height:1.5}
+@media(max-width:620px){#mmhVaultDialogV449{padding:10px}.mmh-v449-dialog{border-radius:17px}.mmh-v449-dialog-head{padding:16px 16px 9px}.mmh-v449-dialog-body{padding:10px 16px 15px}.mmh-v449-dialog-actions{padding:11px 16px}.mmh-v449-dialog-actions button{flex:1}}
+</style>
+
 </head>
 <!-- MMHVAULT V4.3.6 · iOS JSON import bridge + V4.3.0 Dashboard report relocation + Transaction receipt center + Invest Add precision -->
 <body>
@@ -6327,7 +6343,7 @@ mmhvaultAuthBootTimerV3285=setTimeout(()=>{
   const g=document.getElementById('mmhvaultAppBootGuardV3282');
   if(g)g.innerHTML='<div style="max-width:480px;border:1px solid rgba(255,193,7,.28);border-radius:18px;padding:24px 22px;background:rgba(25,24,12,.96);font-family:Arial,sans-serif;text-align:center;"><div style="font-size:18px;font-weight:800;color:#fff;">MMHVAULT is still connecting…</div><div style="margin-top:8px;color:#d8cfa1;font-size:13px;line-height:1.5;">Supabase Auth has not finished initializing. Please refresh once. Your cloud data is not being changed.</div><button type="button" style="margin-top:16px;padding:10px 16px;border-radius:10px;border:1px solid rgba(90,190,255,.35);background:#102a49;color:#fff;font-weight:700;cursor:pointer;" onclick="location.reload()">Refresh</button></div>';
 },10000);
-/* MMHVAULT V4.4.5 · Dynamic Account + Category Manager
+/* MMHVAULT V4.4.9 · Account Edit + Dashboard Sync + Custom Dialogs
    Accounts/categories are configuration, not hard-coded UI. Existing transactions keep
    their original text values so historical data is never rewritten by this manager.
 */
@@ -6414,7 +6430,7 @@ function mmhVaultRenderManager(){
   host.querySelector('[data-manager-account-list]')?.replaceChildren(...accounts.map(a=>{
     const row=document.createElement('div'); row.className='mmh-manager-row-v445';
     const canDelete=!a.builtin&&!mmhVaultHasAccountHistory(a.name);
-    row.innerHTML=`<div class="mmh-manager-main-v445"><b>${esc(a.name)}</b><span>${esc(a.currency)} · ${esc(mmhVaultAccountTypeLabel(a.type))}${a.active?'':' · Archived'}</span></div><div class="mmh-manager-actions-v445"><button class="btn" type="button" onclick="mmhVaultToggleAccountV445('${esc(a.id)}')">${a.active?'Archive':'Restore'}</button>${canDelete?`<button class="btn danger" type="button" onclick="mmhVaultDeleteAccountV445('${esc(a.id)}')">Delete</button>`:''}</div>`;return row;
+    row.innerHTML=`<div class="mmh-manager-main-v445"><b>${esc(a.name)}</b><span>${esc(a.currency)} · ${esc(mmhVaultAccountTypeLabel(a.type))}${a.active?'':' · Archived'}</span></div><div class="mmh-manager-actions-v445"><button class="btn" type="button" onclick="mmhVaultEditAccountV449('${esc(a.id)}')">Edit</button><button class="btn" type="button" onclick="mmhVaultToggleAccountV445('${esc(a.id)}')">${a.active?'Archive':'Restore'}</button>${canDelete?`<button class="btn danger" type="button" onclick="mmhVaultDeleteAccountV445('${esc(a.id)}')">Delete</button>`:''}</div>`;return row;
   }));
   host.querySelector('[data-manager-category-list]')?.replaceChildren(...groups.flatMap(g=>CATS[g].map(name=>{const row=document.createElement('div');row.className='mmh-manager-row-v445';const canDelete=!mmhVaultIsBuiltinCategory(g,name)&&!mmhVaultHasCategoryHistory(name);row.innerHTML=`<div class="mmh-manager-main-v445"><b>${esc(name)}</b><span>${esc(mmhVaultCategoryGroupLabel(g))}</span></div><div class="mmh-manager-actions-v445"><button class="btn" type="button" onclick="mmhVaultArchiveCategoryV445('${esc(g)}','${esc(name)}')">Archive</button>${canDelete?`<button class="btn danger" type="button" onclick="mmhVaultDeleteCategoryV445('${esc(g)}','${esc(name)}')">Delete</button>`:''}</div>`;return row;})));
   const archivedCats=[]; for(const g of groups){(MMHVAULT_CONFIG.archivedCategories[g]||[]).forEach(x=>archivedCats.push({g,name:x}));}
@@ -6422,26 +6438,148 @@ function mmhVaultRenderManager(){
   if(arch)arch.innerHTML=archivedCats.length?archivedCats.map(x=>{const canDelete=!mmhVaultIsBuiltinCategory(x.g,x.name)&&!mmhVaultHasCategoryHistory(x.name);return `<div class="mmh-manager-row-v445"><div class="mmh-manager-main-v445"><b>${esc(x.name)}</b><span>${esc(mmhVaultCategoryGroupLabel(x.g))} · Archived${mmhVaultHasCategoryHistory(x.name)?' · history linked':''}</span></div><div class="mmh-manager-actions-v445"><button class="btn" type="button" onclick="mmhVaultRestoreCategoryV445('${esc(x.g)}','${esc(x.name)}')">Restore</button>${canDelete?`<button class="btn danger" type="button" onclick="mmhVaultDeleteCategoryV445('${esc(x.g)}','${esc(x.name)}')">Delete</button>`:''}</div></div>`}).join(''):'<div class="small">No archived categories.</div>';
   const archivedAccounts=allAccounts.filter(a=>a.active===false);
   const aa=host.querySelector('[data-manager-archived-accounts]');
-  if(aa)aa.innerHTML=archivedAccounts.length?archivedAccounts.map(a=>{const canDelete=!a.builtin&&!mmhVaultHasAccountHistory(a.name);return `<div class="mmh-manager-row-v445"><div class="mmh-manager-main-v445"><b>${esc(a.name)}</b><span>${esc(a.currency)} · ${esc(mmhVaultAccountTypeLabel(a.type))} · Archived${mmhVaultHasAccountHistory(a.name)?' · history linked':''}</span></div><div class="mmh-manager-actions-v445"><button class="btn" type="button" onclick="mmhVaultToggleAccountV445('${esc(a.id)}')">Restore</button>${canDelete?`<button class="btn danger" type="button" onclick="mmhVaultDeleteAccountV445('${esc(a.id)}')">Delete</button>`:''}</div></div>`}).join(''):'<div class="small">No archived accounts.</div>';
+  if(aa)aa.innerHTML=archivedAccounts.length?archivedAccounts.map(a=>{const canDelete=!a.builtin&&!mmhVaultHasAccountHistory(a.name);return `<div class="mmh-manager-row-v445"><div class="mmh-manager-main-v445"><b>${esc(a.name)}</b><span>${esc(a.currency)} · ${esc(mmhVaultAccountTypeLabel(a.type))} · Archived${mmhVaultHasAccountHistory(a.name)?' · history linked':''}</span></div><div class="mmh-manager-actions-v445"><button class="btn" type="button" onclick="mmhVaultEditAccountV449('${esc(a.id)}')">Edit</button><button class="btn" type="button" onclick="mmhVaultToggleAccountV445('${esc(a.id)}')">Restore</button>${canDelete?`<button class="btn danger" type="button" onclick="mmhVaultDeleteAccountV445('${esc(a.id)}')">Delete</button>`:''}</div></div>`}).join(''):'<div class="small">No archived accounts.</div>';
 }
+
+function mmhVaultCloseDialogV449(result=false){
+  const m=$('mmhVaultDialogV449'); if(!m)return;
+  m.classList.remove('show');m.setAttribute('aria-hidden','true');
+  const resolver=m._resolver; m._resolver=null; if(resolver)resolver(result);
+}
+function mmhVaultOpenDialogV449({title,message='',body='',actions=[]}={}){
+  const m=$('mmhVaultDialogV449'); if(!m)return Promise.resolve(false);
+  $('mmhVaultDialogTitleV449').textContent=title||'MMHVAULT';
+  $('mmhVaultDialogMessageV449').textContent=message||'';
+  $('mmhVaultDialogBodyV449').innerHTML=body||'';
+  const a=$('mmhVaultDialogActionsV449');a.innerHTML='';
+  actions.forEach(x=>{const b=document.createElement('button');b.type='button';b.textContent=x.label||'OK';if(x.className)b.className=x.className;b.onclick=()=>{const r=x.onClick?x.onClick():true;if(r!==false)mmhVaultCloseDialogV449(r);};a.appendChild(b);});
+  m.classList.add('show');m.setAttribute('aria-hidden','false');
+  return new Promise(resolve=>{m._resolver=resolve;});
+}
+window.mmhVaultCloseDialogV449=()=>mmhVaultCloseDialogV449(false);
+
+function mmhVaultEditAccountV449(id){
+  const a=MMHVAULT_CONFIG.accounts.find(x=>x.id===id); if(!a)return;
+  const hasHistory=mmhVaultHasAccountHistory(a.name);
+  const body=`<div class="mmh-v449-field"><label>Account name</label><input id="mmhEditAccountNameV449" maxlength="40" value="${esc(a.name)}"></div>
+  <div class="mmh-v449-field"><label>Currency ${hasHistory?'· locked because this account has historical records':''}</label><select id="mmhEditAccountCurrencyV449" ${hasHistory?'disabled':''}><option value="MMK">MMK</option><option value="THB">THB</option><option value="USD">USD</option></select></div>
+  <div class="mmh-v449-field"><label>Account type</label><select id="mmhEditAccountTypeV449"><option value="cash">Cash</option><option value="wallet">Wallet</option><option value="bank">Bank</option><option value="credit">Credit Card</option><option value="crypto">Crypto</option><option value="investment">Investment</option><option value="other">Other</option></select></div>
+  ${hasHistory?'<div class="mmh-v449-dialog-note">Renaming this account will also update its linked transaction/investment account name so your existing balances and history stay connected.</div>':''}`;
+  mmhVaultOpenDialogV449({
+    title:'Edit Account',
+    message:`Update ${a.name}`,
+    body,
+    actions:[
+      {label:'Cancel',onClick:()=>false},
+      {label:'Save Changes',className:'primary',onClick:async()=>{
+        const newName=String($('mmhEditAccountNameV449')?.value||'').trim();
+        const newCurrency=$('mmhEditAccountCurrencyV449')?.value||a.currency;
+        const newType=$('mmhEditAccountTypeV449')?.value||a.type;
+        if(!newName){$('mmhEditAccountNameV449')?.focus();return false;}
+        const duplicate=MMHVAULT_CONFIG.accounts.some(x=>x.id!==a.id&&x.name.toLowerCase()===newName.toLowerCase());
+        if(duplicate){$('mmhEditAccountNameV449')?.focus();$('mmhEditAccountNameV449').setCustomValidity('This account name already exists.');return false;}
+        const oldName=a.name, nameChanged=oldName!==newName;
+        try{
+          const u=(await db.auth.getUser()).data.user;
+          if(nameChanged&&u){
+            const r1=await db.from('transactions').update({from_account:newName}).eq('user_id',u.id).eq('from_account',oldName);
+            if(r1.error)throw r1.error;
+            const r2=await db.from('transactions').update({to_account:newName}).eq('user_id',u.id).eq('to_account',oldName);
+            if(r2.error)throw r2.error;
+            const r3=await db.from('investments').update({source_account:newName}).eq('user_id',u.id).eq('source_account',oldName);
+            if(r3.error)throw r3.error;
+            (transactions||[]).forEach(t=>{if(t.from_account===oldName)t.from_account=newName;if(t.to_account===oldName)t.to_account=newName;});
+            (investments||[]).forEach(x=>{if(x.source_account===oldName)x.source_account=newName;});
+          }
+          a.name=newName;a.currency=newCurrency;a.type=newType;
+          mmhVaultPersistConfig();mmhVaultRebuildConfigArrays();
+          mmhVaultRefreshAccountSelectors();mmhVaultRefreshTransactionConfigV445();mmhVaultRenderManager();
+          mmhVaultRefreshDashboardAccountOverviewV449();
+          try{render?.()}catch(_){}
+          return true;
+        }catch(err){
+          console.error('Account edit failed:',err);
+          mmhVaultOpenDialogV449({title:'Could not save',message:'The account was not changed.',body:`<div class="mmh-v449-dialog-note">${esc(err?.message||'Please try again.')}</div>`,actions:[{label:'Close',className:'primary'}]});
+          return false;
+        }
+      }}
+    ]
+  });
+  setTimeout(()=>{const c=$('mmhEditAccountCurrencyV449');if(c)c.value=a.currency;const t=$('mmhEditAccountTypeV449');if(t)t.value=a.type;},0);
+}
+
+function mmhVaultCustomMessageV449(title,message){
+  return mmhVaultOpenDialogV449({title,message,body:'',actions:[{label:'OK',className:'primary'}]});
+}
+
 function mmhVaultAddAccountV445(){
   const name=String($('mmhNewAccountNameV445')?.value||'').trim(); const currency=$('mmhNewAccountCurrencyV445')?.value||'MMK'; const type=$('mmhNewAccountTypeV445')?.value||'other';
-  if(!name){alert('Enter an account name.');return;} if(MMHVAULT_CONFIG.accounts.some(a=>a.name.toLowerCase()===name.toLowerCase())){alert('This account already exists.');return;}
+  if(!name){mmhVaultCustomMessageV449('Add Account','Please enter an account name.');return;}
+  if(MMHVAULT_CONFIG.accounts.some(a=>a.name.toLowerCase()===name.toLowerCase())){mmhVaultCustomMessageV449('Account already exists',`${name} is already in your account list.`);return;}
   MMHVAULT_CONFIG.accounts.push({id:'acc_'+Date.now().toString(36),name,currency,type,active:true,builtin:false}); mmhVaultPersistConfig();mmhVaultRebuildConfigArrays();
-  if($('mmhNewAccountNameV445'))$('mmhNewAccountNameV445').value=''; mmhVaultRefreshAccountSelectors();mmhVaultRefreshTransactionConfigV445();mmhVaultRenderManager();render();
+  if($('mmhNewAccountNameV445'))$('mmhNewAccountNameV445').value='';
+  mmhVaultRefreshAccountSelectors();mmhVaultRefreshTransactionConfigV445();mmhVaultRenderManager();
+  mmhVaultRefreshDashboardAccountOverviewV449();
+  try{render?.()}catch(_){}
 }
-function mmhVaultDeleteAccountV445(id){const a=MMHVAULT_CONFIG.accounts.find(x=>x.id===id);if(!a||a.builtin)return;if(mmhVaultHasAccountHistory(a.name)){alert(`Cannot permanently delete ${a.name} because existing records use it. Archive it instead.`);return;}if(!confirm(`Delete ${a.name} permanently? This cannot be undone.`))return;MMHVAULT_CONFIG.accounts=MMHVAULT_CONFIG.accounts.filter(x=>x.id!==id);mmhVaultPersistConfig();mmhVaultRebuildConfigArrays();mmhVaultRefreshAccountSelectors();mmhVaultRefreshTransactionConfigV445();mmhVaultRenderManager();render();}
-function mmhVaultToggleAccountV445(id){const a=MMHVAULT_CONFIG.accounts.find(x=>x.id===id);if(!a)return;if(a.active&&mmhVaultHasAccountHistory(a.name)){if(!confirm(`Archive ${a.name}? Existing transaction history will remain unchanged.`))return;}else if(a.active&&!confirm(`Archive ${a.name}? It will disappear from new transaction selectors, but history will remain.`))return;a.active=!a.active;mmhVaultPersistConfig();mmhVaultRebuildConfigArrays();mmhVaultRefreshAccountSelectors();mmhVaultRenderManager();render();}
+async function mmhVaultDeleteAccountV445(id){
+  const a=MMHVAULT_CONFIG.accounts.find(x=>x.id===id);if(!a)return;
+  if(mmhVaultHasAccountHistory(a.name)){mmhVaultCustomMessageV449('Account has history',`${a.name} has existing transactions or investment records, so it cannot be permanently deleted. Use Archive instead to keep the history safe.`);return;}
+  mmhVaultOpenDialogV449({title:'Delete Account',message:`Delete ${a.name} permanently?`,body:'<div class="mmh-v449-dialog-note">This account has no linked history. Permanent deletion cannot be undone.</div>',actions:[
+    {label:'Cancel',onClick:()=>false},{label:'Delete Permanently',className:'danger',onClick:()=>{
+      MMHVAULT_CONFIG.accounts=MMHVAULT_CONFIG.accounts.filter(x=>x.id!==id);mmhVaultPersistConfig();mmhVaultRebuildConfigArrays();mmhVaultRefreshAccountSelectors();mmhVaultRefreshTransactionConfigV445();mmhVaultRenderManager();mmhVaultRefreshDashboardAccountOverviewV449();try{render?.()}catch(_){};return true;
+    }}
+  ]});
+}
+async function mmhVaultToggleAccountV445(id){
+  const a=MMHVAULT_CONFIG.accounts.find(x=>x.id===id);if(!a)return;
+  const active=a.active;
+  if(active){
+    mmhVaultOpenDialogV449({title:'Archive Account',message:`Archive ${a.name}?`,body:'<div class="mmh-v449-dialog-note">It will disappear from new transaction selectors, while existing history remains unchanged.</div>',actions:[
+      {label:'Cancel',onClick:()=>false},{label:'Archive',className:'primary',onClick:()=>{
+        a.active=false;mmhVaultPersistConfig();mmhVaultRebuildConfigArrays();mmhVaultRefreshAccountSelectors();mmhVaultRenderManager();mmhVaultRefreshDashboardAccountOverviewV449();try{render?.()}catch(_){};return true;
+      }}
+    ]});
+  }else{
+    a.active=true;mmhVaultPersistConfig();mmhVaultRebuildConfigArrays();mmhVaultRefreshAccountSelectors();mmhVaultRenderManager();mmhVaultRefreshDashboardAccountOverviewV449();try{render?.()}catch(_){};return;
+  }
+}
 function mmhVaultAddCategoryV445(){
   const name=String($('mmhNewCategoryNameV445')?.value||'').trim(); const group=$('mmhNewCategoryGroupV445')?.value||'Expense';
-  if(!name){alert('Enter a category name.');return;} if(group==='Transfer'){alert('Transfer is system-managed.');return;} if((MMHVAULT_CONFIG.categories[group]||[]).some(x=>x.toLowerCase()===name.toLowerCase())){alert('This category already exists in this group.');return;}
+  if(!name){mmhVaultCustomMessageV449('Add Category','Please enter a category name.');return;}
+  if(group==='Transfer'){mmhVaultCustomMessageV449('System Category','Transfer is system-managed.');return;}
+  if((MMHVAULT_CONFIG.categories[group]||[]).some(x=>x.toLowerCase()===name.toLowerCase())){mmhVaultCustomMessageV449('Category already exists',`${name} is already in this group.`);return;}
   (MMHVAULT_CONFIG.categories[group]||(MMHVAULT_CONFIG.categories[group]=[])).push(name);mmhVaultPersistConfig();mmhVaultRebuildConfigArrays();
-  if($('mmhNewCategoryNameV445'))$('mmhNewCategoryNameV445').value='';updateCategories();mmhVaultRefreshTransactionConfigV445();mmhVaultRenderManager();render();
+  if($('mmhNewCategoryNameV445'))$('mmhNewCategoryNameV445').value='';updateCategories();mmhVaultRefreshTransactionConfigV445();mmhVaultRenderManager();try{render?.()}catch(_){}
 }
-function mmhVaultDeleteCategoryV445(group,name){if(mmhVaultIsBuiltinCategory(group,name))return;if(mmhVaultHasCategoryHistory(name)){alert(`Cannot permanently delete ${name} because existing records use it. Archive it instead.`);return;}if(!confirm(`Delete ${name} permanently? This cannot be undone.`))return;MMHVAULT_CONFIG.categories[group]=(MMHVAULT_CONFIG.categories[group]||[]).filter(x=>x!==name);MMHVAULT_CONFIG.archivedCategories[group]=(MMHVAULT_CONFIG.archivedCategories[group]||[]).filter(x=>x!==name);mmhVaultPersistConfig();mmhVaultRebuildConfigArrays();updateCategories();mmhVaultRefreshTransactionConfigV445();mmhVaultRenderManager();render();}
-function mmhVaultArchiveCategoryV445(group,name){if(!CATS[group]?.includes(name))return;if(mmhVaultHasCategoryHistory(name)&&!confirm(`Archive ${name}? Existing transaction history will remain unchanged.`))return;MMHVAULT_CONFIG.categories[group]=MMHVAULT_CONFIG.categories[group].filter(x=>x!==name);(MMHVAULT_CONFIG.archivedCategories[group]||(MMHVAULT_CONFIG.archivedCategories[group]=[])).push(name);mmhVaultPersistConfig();mmhVaultRebuildConfigArrays();updateCategories();mmhVaultRenderManager();render();}
-function mmhVaultRestoreCategoryV445(group,name){if((MMHVAULT_CONFIG.categories[group]||[]).includes(name))return;MMHVAULT_CONFIG.archivedCategories[group]=(MMHVAULT_CONFIG.archivedCategories[group]||[]).filter(x=>x!==name);MMHVAULT_CONFIG.categories[group].push(name);mmhVaultPersistConfig();mmhVaultRebuildConfigArrays();updateCategories();mmhVaultRefreshTransactionConfigV445();mmhVaultRenderManager();render();}
-window.mmhVaultAddAccountV445=mmhVaultAddAccountV445;window.mmhVaultDeleteAccountV445=mmhVaultDeleteAccountV445;window.mmhVaultToggleAccountV445=mmhVaultToggleAccountV445;window.mmhVaultAddCategoryV445=mmhVaultAddCategoryV445;window.mmhVaultDeleteCategoryV445=mmhVaultDeleteCategoryV445;window.mmhVaultArchiveCategoryV445=mmhVaultArchiveCategoryV445;window.mmhVaultRestoreCategoryV445=mmhVaultRestoreCategoryV445;window.mmhVaultRenderManager=mmhVaultRenderManager;
+function mmhVaultDeleteCategoryV445(group,name){
+  if(mmhVaultIsBuiltinCategory(group,name))return;
+  if(mmhVaultHasCategoryHistory(name)){mmhVaultCustomMessageV449('Category has history',`${name} has existing records, so it cannot be permanently deleted. Use Archive instead.`);return;}
+  mmhVaultOpenDialogV449({title:'Delete Category',message:`Delete ${name} permanently?`,body:'<div class="mmh-v449-dialog-note">This category has no linked history. Permanent deletion cannot be undone.</div>',actions:[
+    {label:'Cancel',onClick:()=>false},{label:'Delete Permanently',className:'danger',onClick:()=>{
+      MMHVAULT_CONFIG.categories[group]=(MMHVAULT_CONFIG.categories[group]||[]).filter(x=>x!==name);MMHVAULT_CONFIG.archivedCategories[group]=(MMHVAULT_CONFIG.archivedCategories[group]||[]).filter(x=>x!==name);mmhVaultPersistConfig();mmhVaultRebuildConfigArrays();updateCategories();mmhVaultRefreshTransactionConfigV445();mmhVaultRenderManager();try{render?.()}catch(_){};return true;
+    }}
+  ]});
+}
+function mmhVaultArchiveCategoryV445(group,name){
+  if(!CATS[group]?.includes(name))return;
+  mmhVaultOpenDialogV449({title:'Archive Category',message:`Archive ${name}?`,body:'<div class="mmh-v449-dialog-note">It will disappear from new transaction selectors while historical records remain unchanged.</div>',actions:[
+    {label:'Cancel',onClick:()=>false},{label:'Archive',className:'primary',onClick:()=>{
+      MMHVAULT_CONFIG.categories[group]=MMHVAULT_CONFIG.categories[group].filter(x=>x!==name);(MMHVAULT_CONFIG.archivedCategories[group]||(MMHVAULT_CONFIG.archivedCategories[group]=[])).push(name);mmhVaultPersistConfig();mmhVaultRebuildConfigArrays();updateCategories();mmhVaultRefreshTransactionConfigV445();mmhVaultRenderManager();try{render?.()}catch(_){};return true;
+    }}
+  ]});
+}
+function mmhVaultRestoreCategoryV445(group,name){if((MMHVAULT_CONFIG.categories[group]||[]).includes(name))return;MMHVAULT_CONFIG.archivedCategories[group]=(MMHVAULT_CONFIG.archivedCategories[group]||[]).filter(x=>x!==name);MMHVAULT_CONFIG.categories[group].push(name);mmhVaultPersistConfig();mmhVaultRebuildConfigArrays();updateCategories();mmhVaultRefreshTransactionConfigV445();mmhVaultRenderManager();try{render?.()}catch(_){}}
+window.mmhVaultAddAccountV445=mmhVaultAddAccountV445;window.mmhVaultDeleteAccountV445=mmhVaultDeleteAccountV445;window.mmhVaultToggleAccountV445=mmhVaultToggleAccountV445;window.mmhVaultEditAccountV449=mmhVaultEditAccountV449;window.mmhVaultAddCategoryV445=mmhVaultAddCategoryV445;window.mmhVaultDeleteCategoryV445=mmhVaultDeleteCategoryV445;window.mmhVaultArchiveCategoryV445=mmhVaultArchiveCategoryV445;window.mmhVaultRestoreCategoryV445=mmhVaultRestoreCategoryV445;window.mmhVaultRenderManager=mmhVaultRenderManager;
+
+
+/* V4.4.9 — Dynamic account dashboard sync */
+function mmhVaultRefreshDashboardAccountOverviewV449(){
+  try{
+    if(typeof renderDashboard==='function')renderDashboard();
+    else if(typeof renderDashboardV29==='function')renderDashboardV29();
+  }catch(e){console.warn('[MMHVAULT] dashboard account refresh failed',e);}
+}
 
 let transactions=[], investments=[], rates={usd_mmk:4400,usd_thb:31.5,usd_cny:7.18}, realtimeReady=false, currentUserEmail="", currentSessionUser=null, currentCustomerId="";
 const $=id=>document.getElementById(id), n=v=>Number(v||0), fmt=v=>n(v).toLocaleString(undefined,{maximumFractionDigits:2}), esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
@@ -16939,6 +17077,15 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
   };
 })();
 </script>
+
+<div id="mmhVaultDialogV449" aria-hidden="true">
+  <div class="mmh-v449-dialog" role="dialog" aria-modal="true" aria-labelledby="mmhVaultDialogTitleV449">
+    <div class="mmh-v449-dialog-head"><h3 id="mmhVaultDialogTitleV449">MMHVAULT</h3><p id="mmhVaultDialogMessageV449"></p></div>
+    <div class="mmh-v449-dialog-body" id="mmhVaultDialogBodyV449"></div>
+    <div class="mmh-v449-dialog-actions" id="mmhVaultDialogActionsV449"></div>
+  </div>
+</div>
+
 </body>
 <!-- MMHVAULT V4.3.0 performance baseline: logo-free account cards + restrained dashboard rendering. -->
 
