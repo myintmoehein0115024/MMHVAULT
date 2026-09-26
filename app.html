@@ -22281,4 +22281,25 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
   #invest #v371CryptoPortfolio .crypto-mobile-value{min-width:118px!important;}
 }
 </style>
+
+<style id="mmhvault-mobile-pnl-final">
+/* Mobile / tablet P/L visibility only — no data or JS changes. */
+@media (max-width: 900px){
+  #invest #v371CryptoPortfolio .crypto-mobile-card .crypto-mobile-value{min-width:132px!important;display:flex!important;flex-direction:column!important;align-items:flex-end!important;justify-content:center!important;gap:2px!important;}
+  #invest #v371CryptoPortfolio .crypto-mobile-card .crypto-mobile-value .crypto-mobile-pnl{display:block!important;visibility:visible!important;opacity:1!important;margin-top:5px!important;font-size:14px!important;line-height:1.2!important;font-weight:950!important;letter-spacing:0!important;}
+  #invest #v371CryptoPortfolio .crypto-mobile-card .crypto-mobile-value .crypto-mobile-pnl::before{content:"P/L  ";font-size:9px!important;letter-spacing:.12em!important;font-weight:850!important;color:#8ea5c7!important;vertical-align:middle!important;}
+  #invest #v371CryptoPortfolio .crypto-mobile-card .crypto-mobile-grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;}
+  #invest #v371CryptoPortfolio .crypto-mobile-card .crypto-mobile-grid>div:nth-child(5),
+  #invest #v371CryptoPortfolio .crypto-mobile-card .crypto-mobile-grid>div:nth-child(6){display:block!important;visibility:visible!important;}
+}
+@media (min-width:521px) and (max-width:900px){
+  #invest #v371CryptoPortfolio .crypto-mobile-list{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px!important;}
+  #invest #v371CryptoPortfolio .crypto-mobile-card .crypto-mobile-value{min-width:128px!important;}
+}
+@media (max-width:520px){
+  #invest #v371CryptoPortfolio .crypto-mobile-card .crypto-mobile-top{gap:10px!important;}
+  #invest #v371CryptoPortfolio .crypto-mobile-card .crypto-mobile-value{min-width:128px!important;}
+  #invest #v371CryptoPortfolio .crypto-mobile-card .crypto-mobile-value .crypto-mobile-pnl{font-size:13px!important;}
+}
+</style>
 </html>
