@@ -6466,8 +6466,8 @@ function mmhVaultRefreshCategoryUIV449(preferredGroup='', preferredName=''){
     mmhVaultSyncTransactionCategoriesV450();
     const txType=$('txType'),txGroup=$('txGroup'),txCategory=$('txCategory');
     if(preferredGroup&&txType&&txGroup&&txCategory){
-      const effectiveGroup=(preferredGroup==='LoanIncome'||preferredGroup==='LoanExpense')?'Loans':preferredGroup;
-      const effectiveType=preferredGroup==='LoanIncome'?'Income':preferredGroup==='LoanExpense'?'Expense':preferredGroup;
+      const effectiveGroup=(preferredGroup==='LoanIncome'||preferredGroup==='LoanExpense')?'Loans':preferredGroup==='Personal'?'Personal':preferredGroup;
+      const effectiveType=(preferredGroup==='LoanIncome'||preferredGroup==='Personal' || preferredGroup==='LoanExpense')?(preferredGroup==='LoanIncome'?'Income':'Expense'):preferredGroup;
       if(txType.value===effectiveType&&txGroup.value===effectiveGroup&&[...txCategory.options].some(o=>o.value===preferredName)){
         txCategory.value=preferredName;
       }
@@ -6746,7 +6746,7 @@ function openLoginFromLandingV327(){
 window.mmHVaultOpenLoginV327=openLoginFromLandingV327;
 window.mmHVaultShowLandingV327=showLandingV327;
 
-function setPage(p){document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));$(p).classList.add("active");document.body.classList.toggle("auth-page-active",p==="login");document.querySelectorAll(".bottom-nav button").forEach(b=>{const active=b.dataset.page===p;b.classList.toggle("active",active);if(active)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current");});if(p!=="login")sessionStorage.setItem("myfinance_page",p);if(p==="settings"){const se=$("settingsEmail");if(se&&currentUserEmail)se.textContent=currentUserEmail;setTimeout(()=>mmhVaultRenderManager(),0);}if(p==="dashboard"){setTimeout(()=>{try{renderDashboard();}catch(e){console.warn("[MMHVAULT] dashboard account overview refresh failed",e);}},0);}scheduleRenderV3441();}
+function setPage(p){document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));$(p).classList.add("active");document.body.classList.toggle("auth-page-active",p==="login");document.querySelectorAll(".bottom-nav button").forEach(b=>{const active=b.dataset.page===p;b.classList.toggle("active",active);if(active)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current");});if(p!=="login")sessionStorage.setItem("myfinance_page",p);if(p==="settings"){const se=$("settingsEmail");if(se&&currentUserEmail)se.textContent=currentUserEmail;setTimeout(()=>mmhVaultRenderManager(),0);}if(p==="transactions"){setTimeout(()=>{try{mmhVaultSyncTransactionCategoriesV450();}catch(e){console.warn("[MMHVAULT] transaction category refresh failed",e);}},0);}if(p==="dashboard"){setTimeout(()=>{try{renderDashboard();}catch(e){console.warn("[MMHVAULT] dashboard account overview refresh failed",e);}},0);}scheduleRenderV3441();}
 function applyTheme(theme){document.body.classList.toggle('light',theme==='light');document.querySelectorAll('input[name="theme"]').forEach(r=>r.checked=r.value===theme);localStorage.setItem('myfinance_theme',theme);}
 function initTheme(){const t=localStorage.getItem('myfinance_theme')||'dark';applyTheme(t);document.querySelectorAll('input[name="theme"]').forEach(r=>r.addEventListener('change',()=>applyTheme(r.value)));}
 function editTheme(){initTheme();}
@@ -6962,6 +6962,23 @@ g.innerHTML=groups.map(x=>`<option>${x}</option>`).join("");
 g.value=groups.includes(current)?current:groups[0];
 g.disabled=type==="Transfer";
 }
+function mmhVaultTransactionCategoryListV451(type,group){
+  const live=MMHVAULT_CONFIG?.categories||{};
+  if(type==='Income' && group==='Loans') return live.LoanIncome||CATS.LoanIncome||[];
+  if(type==='Expense' && group==='Loans') return live.LoanExpense||CATS.LoanExpense||[];
+  if(type==='Expense' && group==='Personal') return live.Personal||CATS.Personal||[];
+  if(type==='Income' && group==='Income') return live.Income||CATS.Income||[];
+  if(type==='Expense' && group==='Expense') return live.Expense||CATS.Expense||[];
+  return live[group]||CATS[group]||[];
+}
+function syncTransactionGroup(){
+const type=$("txType").value, g=$("txGroup");
+const groups=type==="Income"?["Income","Loans"]:type==="Expense"?["Expense","Personal","Loans"]:["Transfer"];
+const current=g.value;
+g.innerHTML=groups.map(x=>`<option>${x}</option>`).join("");
+g.value=groups.includes(current)?current:groups[0];
+g.disabled=type==="Transfer";
+}
 function updateCategories(){
 const type=$("txType").value, group=$("txGroup").value, category=$("txCategory");
 if(!category)return;
@@ -6970,13 +6987,7 @@ if(type==="Transfer"){
   $("txGroup").disabled=true;
 }else{
   $("txGroup").disabled=false;
-  // Read the live dynamic configuration first. This is the single source of truth
-  // for Category Manager -> Transactions, so newly added categories are available
-  // immediately without a full page reload.
-  const live=MMHVAULT_CONFIG?.categories||{};
-  const list=group==="Loans"
-    ? (type==="Income" ? (live.LoanIncome||CATS.LoanIncome||[]) : (live.LoanExpense||CATS.LoanExpense||[]))
-    : (live[group]||CATS[group]||[]);
+  const list=mmhVaultTransactionCategoryListV451(type,group);
   const previous=category.value;
   category.innerHTML=list.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join("");
   if([...category.options].some(o=>o.value===previous))category.value=previous;
