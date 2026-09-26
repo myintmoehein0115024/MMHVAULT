@@ -6644,7 +6644,7 @@ function openLoginFromLandingV327(){
 window.mmHVaultOpenLoginV327=openLoginFromLandingV327;
 window.mmHVaultShowLandingV327=showLandingV327;
 
-function setPage(p){document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));$(p).classList.add("active");document.body.classList.toggle("auth-page-active",p==="login");document.querySelectorAll(".bottom-nav button").forEach(b=>{const active=b.dataset.page===p;b.classList.toggle("active",active);if(active)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current");});if(p!=="login")sessionStorage.setItem("myfinance_page",p);if(p==="settings"){const se=$("settingsEmail");if(se&&currentUserEmail)se.textContent=currentUserEmail;setTimeout(()=>mmhVaultRenderManager(),0);}scheduleRenderV3441();}
+function setPage(p){document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));$(p).classList.add("active");document.body.classList.toggle("auth-page-active",p==="login");document.querySelectorAll(".bottom-nav button").forEach(b=>{const active=b.dataset.page===p;b.classList.toggle("active",active);if(active)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current");});if(p!=="login")sessionStorage.setItem("myfinance_page",p);if(p==="settings"){const se=$("settingsEmail");if(se&&currentUserEmail)se.textContent=currentUserEmail;setTimeout(()=>mmhVaultRenderManager(),0);}if(p==="dashboard"){setTimeout(()=>{try{renderDashboard();}catch(e){console.warn("[MMHVAULT] dashboard account overview refresh failed",e);}},0);}scheduleRenderV3441();}
 function applyTheme(theme){document.body.classList.toggle('light',theme==='light');document.querySelectorAll('input[name="theme"]').forEach(r=>r.checked=r.value===theme);localStorage.setItem('myfinance_theme',theme);}
 function initTheme(){const t=localStorage.getItem('myfinance_theme')||'dark';applyTheme(t);document.querySelectorAll('input[name="theme"]').forEach(r=>r.addEventListener('change',()=>applyTheme(r.value)));}
 function editTheme(){initTheme();}
@@ -7110,14 +7110,14 @@ function renderDashboard(){
   }
   const {A,E,I,L,available}=C.base;
 
-  /* V4.4.11 — Dashboard Account Overview is now driven by Settings > Accounts.
+  /* V4.4.12 — Dashboard Account Overview refreshes directly from Settings > Accounts.
      The previous renderer had the original six accounts hard-coded, so newly-added
      accounts could exist in Settings/Transactions but never appear on Dashboard. */
   const accountConfigSig=hash((MMHVAULT_CONFIG?.accounts||[]).map(a=>[
     a?.id,a?.name,a?.currency,a?.type,a?.active
   ].join('\u001f')).join('\u001e'));
   const accountSig=`${baseSig}|accounts|${accountConfigSig}`;
-  if(C.accountSig!==accountSig){
+  if(true){
     C.accountSig=accountSig;
     const activeAccounts=(MMHVAULT_CONFIG?.accounts||[]).filter(a=>a&&a.name&&a.active!==false);
     const cashTypes=new Set(['cash','wallet','bank','credit','other']);
