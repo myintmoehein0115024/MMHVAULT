@@ -6673,7 +6673,7 @@ function mmhVaultEditCategoryV449(group,name){
     message:`Rename ${currentName}`,
     body,
     actions:[
-      {label:'Cancel',onClick:()=>false},
+      {label:'Cancel',onClick:()=>{ mmhVaultCloseDialogV449(false); return false; }},
       {label:'Save Changes',className:'primary',onClick:()=>{
         const input=$('mmhEditCategoryNameV449');
         const newName=String(input?.value||'').trim();
@@ -6701,7 +6701,7 @@ function mmhVaultEditCategoryV449(group,name){
         list[idx]=newName;
         mmhVaultPersistConfig();
         mmhVaultRefreshCategoryUIV449(currentGroup,newName);
-        mmhVaultForceHideDialogV449();
+        mmhVaultCloseDialogV449(false);
         return false;
       }}
     ]
@@ -6738,8 +6738,8 @@ function mmhVaultDeleteCategoryV445(group,name){
         MMHVAULT_CONFIG.categories[group]=(MMHVAULT_CONFIG.categories[group]||[]).filter(x=>x!==name);
         MMHVAULT_CONFIG.archivedCategories[group]=(MMHVAULT_CONFIG.archivedCategories[group]||[]).filter(x=>x!==name);
         mmhVaultPersistConfig();
+        mmhVaultCloseDialogV449(false);
         mmhVaultRefreshCategoryUIV449(group,'');
-        mmhVaultForceHideDialogV449();
         return false;
       }}
     ]
@@ -6751,7 +6751,7 @@ function mmhVaultArchiveCategoryV445(group,name){
     title:'Archive Category',message:`Archive ${name}?`,
     body:'<div class="mmh-v449-dialog-note">It will disappear from new transaction selectors while historical records remain unchanged.</div>',
     actions:[
-      {label:'Cancel',onClick:()=>false},
+      {label:'Cancel',onClick:()=>{ mmhVaultCloseDialogV449(false); return false; }},
       {label:'Archive',className:'primary',onClick:()=>{
         MMHVAULT_CONFIG.categories[group]=MMHVAULT_CONFIG.categories[group].filter(x=>x!==name);
         (MMHVAULT_CONFIG.archivedCategories[group]||(MMHVAULT_CONFIG.archivedCategories[group]=[])).push(name);
