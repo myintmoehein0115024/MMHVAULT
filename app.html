@@ -7110,7 +7110,7 @@ function renderDashboard(){
   }
   const {A,E,I,L,available}=C.base;
 
-  /* V4.4.12 — Dashboard Account Overview refreshes directly from Settings > Accounts.
+  /* V4.4.13 — Dashboard Account Overview reads the final live Settings account registry.
      The previous renderer had the original six accounts hard-coded, so newly-added
      accounts could exist in Settings/Transactions but never appear on Dashboard. */
   const accountConfigSig=hash((MMHVAULT_CONFIG?.accounts||[]).map(a=>[
@@ -14487,14 +14487,71 @@ body.mmhvault-scroll-active #invest .invest-top>.panel{box-shadow:inset 0 1px 0 
     const cashUSD=ACC.reduce((s,a)=>s+N(balance(a))*((()=>{const c=currency(a);if(c==='USD')return 1;if(c==='THB')return 1/(N(rates?.usd_thb)||1);return 1/(N(rates?.usd_mmk)||1);})()),0);
     const mix=[['Cash',cashUSD],['Crypto',cryptoUSD],['Gold',gold.valueUSD]];const total=mix.reduce((s,x)=>s+x[1],0)||1;
     const cPct=mix[0][1]/total*100, crPct=mix[1][1]/total*100, gPct=mix[2][1]/total*100;
-    const sig=[cashUSD,cryptoUSD,gold.valueUSD,gold.weight,gold.priceMMK,N(rates?.usd_mmk),...['Bath','TrueMoney','KPay','OKX','ByBit','MetaMask'].map(a=>balance(a))].map(v=>N(v).toFixed(6)).join('|');
+    /* V4.4.13 — ONLY Account Overview: read the live Settings account registry.
+       This is intentionally inside the final dashboard refresh hook because that
+       hook is the last renderer that was overwriting the Account Overview DOM. */
+    const configuredAccounts=Array.isArray(window.MMHVAULT_CONFIG?.accounts)
+      ? window.MMHVAULT_CONFIG.accounts.filter(a=>a&&a.name&&a.active!==false)
+      : [];
+    const accountConfigSig=configuredAccounts.map(a=>[
+      a.id,a.name,a.currency,a.type,a.active
+    ].join(':')).join('|');
+    const accountBalanceSig=configuredAccounts.map(a=>`${a.name}:${N(balance(a.name)).toFixed(8)}`).join('|');
+    const sig=[cashUSD,cryptoUSD,gold.valueUSD,gold.weight,gold.priceMMK,N(rates?.usd_mmk),accountConfigSig,accountBalanceSig].map(v=>String(v)).join('|');
     if(window.__mmhV376Sig===sig)return;window.__mmhV376Sig=sig;
+
     const accounts=document.getElementById('accounts');
     if(accounts){
-      const cashUsdThb=N(rates?.usd_thb)>0?N(rates.usd_thb):0;
-      const cashUsdMmk=N(rates?.usd_mmk)>0?N(rates.usd_mmk):0;
-      const cashAmount=(name,native,fx)=>`<div class="amount cash-amount-v406"><div class="cash-native-v406">${native}</div><div class="cash-usd-v406">≈ ${usd(N(balance(name))/(fx||1))}</div></div>`;
-      accounts.innerHTML=`<div class="account-group"><div class="group-title"><strong><span>Cash</span></strong><span class="group-total">Native + USD</span></div><div class="account-list"><div class="account-row"><div class="left"><div class="name"><span>Bath</span><div class="small">THB</div></div></div>${cashAmount('Bath','฿ '+fmt(balance('Bath')),cashUsdThb)}</div><div class="account-row"><div class="left"><div class="name"><span>TrueMoney</span><div class="small">THB</div></div></div>${cashAmount('TrueMoney','฿ '+fmt(balance('TrueMoney')),cashUsdThb)}</div><div class="account-row"><div class="left"><div class="name"><span>KPay</span><div class="small">MMK</div></div></div>${cashAmount('KPay','MMK '+fmt(balance('KPay')),cashUsdMmk)}</div></div></div><div class="account-group"><div class="group-title"><strong><span>USD</span></strong><span class="group-total">USD</span></div><div class="account-list"><div class="account-row"><div class="left"><div class="name"><span>OKX</span></div></div><div class="amount">${usd(balance('OKX'))}</div></div><div class="account-row"><div class="left"><div class="name"><span>ByBit</span></div></div><div class="amount">${usd(balance('ByBit'))}</div></div><div class="account-row"><div class="left"><div class="name"><span>MetaMask</span></div></div><div class="amount">${usd(balance('MetaMask'))}</div></div></div></div><div class="account-group investment-account"><div class="group-title"><strong><span>Investment</span></strong><span class="group-total">USD</span></div><div class="account-list"><div class="account-row"><div class="left"><div class="name"><span>Crypto Portfolio</span><div class="small">USD</div></div></div><div class="amount">${usd(cryptoUSD)}</div></div><div class="account-row"><div class="left"><div class="name"><span>Gold Portfolio</span><div class="small">Converted from MMK</div></div></div><div class="amount">${usd(gold.valueUSD)}</div></div></div></div>`;
+      const cashTypes=new Set(['cash','wallet','bank','credit','other']);
+      const usdTypes=new Set(['crypto']);
+      const investmentTypes=new Set(['investment']);
+
+      const groups=[
+        {title:'Cash',items:configuredAccounts.filter(a=>cashTypes.has(String(a.type||'other').toLowerCase()))},
+        {title:'USD',items:configuredAccounts.filter(a=>usdTypes.has(String(a.type||'').toLowerCase()))},
+        {title:'Investment',items:configuredAccounts.filter(a=>investmentTypes.has(String(a.type||'').toLowerCase()))}
+      ];
+
+      const escAccount=(v)=>{
+        if(typeof esc==='function')return esc(v);
+        return String(v).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+      };
+      const accountRow=(a)=>{
+        const name=a.name;
+        const cur=String(a.currency||currency(name)||'MMK').toUpperCase();
+        const bal=N(balance(name));
+        const type=String(a.type||'').toLowerCase();
+        const native=type==='crypto'||cur==='USD'
+          ? usd(bal)
+          : `${cur==='THB'?'฿ ':cur+' '}${fmt(bal)}`;
+        const usdEq=(type==='crypto'||cur==='USD')
+          ? usd(bal)
+          : `≈ ${usd(bal*((cur==='THB')?1/(N(rates?.usd_thb)||1):1/(N(rates?.usd_mmk)||1)))}`;
+        return `<div class="account-row"><div class="left"><div class="name"><span>${escAccount(name)}</span><div class="small">${escAccount(cur)}</div></div></div><div class="amount"><div>${native}</div><div class="small">${usdEq}</div></div></div>`;
+      };
+
+      const groupHtml=(title,items,icon)=>{
+        if(!items.length && title!=='Investment')return '';
+        const visible=items.slice(0,3);
+        const hidden=items.slice(3);
+        const overflowId=`mmh-account-overflow-v413-${title.toLowerCase()}`;
+        let html=`<div class="account-group"><div class="group-title"><strong><span>${icon}</span> ${title}</strong><span class="group-total">${title==='Cash'?'Native + USD':'USD'}</span></div><div class="account-list">`;
+        html+=visible.map(accountRow).join('');
+        if(hidden.length){
+          html+=`<button type="button" class="dashboard-account-overflow-btn" onclick="toggleDashboardAccountOverflowV411('${overflowId}',this)" aria-expanded="false">Other · ${hidden.length} more</button>`;
+          html+=`<div class="dashboard-account-overflow" id="${overflowId}">${hidden.map(accountRow).join('')}</div>`;
+        }
+        html+='</div></div>';
+        return html;
+      };
+
+      let html=groupHtml('Cash',groups[0].items,'💵')+groupHtml('USD',groups[1].items,'💵');
+
+      const cryptoPortfolio=usd(cryptoUSD);
+      const goldPortfolio=usd(gold.valueUSD);
+      html+=`<div class="account-group investment-account"><div class="group-title"><strong>🥇 Investment</strong><span class="group-total">USD</span></div><div class="account-list"><div class="account-row"><div class="left"><div class="name"><span>Crypto Portfolio</span><div class="small">USD</div></div></div><div class="amount">${cryptoPortfolio}</div></div><div class="account-row"><div class="left"><div class="name"><span>Gold Portfolio</span><div class="small">Converted from MMK</div></div></div><div class="amount">${goldPortfolio}</div></div></div></div>`;
+
+      accounts.innerHTML=html;
     }
     const alloc=document.getElementById('assetAllocation');
     if(alloc){
