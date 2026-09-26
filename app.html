@@ -21993,3 +21993,42 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
 @media(max-width:950px){#transactions #txAdjustmentHelp{grid-column:1/-1;}}
 </style>
 </html>
+<style id="mmhvault-fixed-fullpage-background-v500">
+/* MMHVAULT V5.0 — Background-only visual fix. No data/UI/layout logic changes. */
+html{min-height:100%;background:#020814!important;}
+body{
+  position:relative!important;
+  min-height:100vh!important;
+  background:#020814!important;
+  isolation:isolate;
+}
+body::before{
+  content:""!important;
+  position:fixed!important;
+  inset:0!important;
+  width:100vw!important;
+  height:100vh!important;
+  pointer-events:none!important;
+  z-index:-1!important;
+  background:
+    linear-gradient(rgba(2,8,20,.50),rgba(2,8,20,.68)),
+    url("images/mmhvault-bg-v342.webp") center center / cover no-repeat!important;
+  background-attachment:fixed!important;
+}
+body::after{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  z-index:-1;
+  background:
+    radial-gradient(circle at 72% 12%,rgba(70,199,255,.055),transparent 28%),
+    radial-gradient(circle at 22% 72%,rgba(245,196,81,.035),transparent 25%),
+    linear-gradient(180deg,rgba(1,7,18,.02),rgba(1,7,18,.18));
+}
+.wrap{background:transparent!important;}
+.page{background:transparent!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;}
+@media(max-width:900px){
+  body::before{background-attachment:fixed!important;background-position:center center!important;}
+}
+</style>
