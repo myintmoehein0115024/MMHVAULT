@@ -15,7 +15,7 @@
 <link rel="preconnect" href="https://unpkg.com" crossorigin>
 <link rel="dns-prefetch" href="https://vrypucmyrztxgiqhjspd.supabase.co">
 <link rel="preconnect" href="https://vrypucmyrztxgiqhjspd.supabase.co" crossorigin>
-<link href="css/mmhvault.css" rel="stylesheet"/><meta content="V4.4.4 · Current-Version Ledger & Import Upgrade" name="mmhvault-architecture"/>
+<link href="css/mmhvault.css" rel="stylesheet"/><meta content="V4.4.6 · Accounts & Categories Settings Page" name="mmhvault-architecture"/>
 <style id="mmhvault-v32811-wealth-rules-location-css">
   .analyze-tabs-v371{overflow-x:auto;scrollbar-width:thin;}
   .analyze-tabs-v371 .analyze-tab-v371{flex:0 0 auto;min-width:110px;}
@@ -5413,7 +5413,74 @@ body.mmhvault-scroll-active #invest #v371CryptoMarket::before{
 <style id="mmhvault-v434-import-css">#backupStatus{min-height:20px;margin-top:10px;text-align:center;font-weight:700}#backupStatus.ok{color:#8ff0b1}#backupStatus.err{color:#ff9a9a}.mmh-native-file-picker-v433{touch-action:manipulation;-webkit-tap-highlight-color:transparent}</style><style id="mmhvault-v445-account-category-manager-css">
 .mmh-data-manager-v445{margin-top:14px;background:linear-gradient(145deg,rgba(9,24,47,.94),rgba(4,12,27,.96));border:1px solid rgba(91,157,231,.22);box-shadow:0 16px 46px rgba(0,0,0,.18)}
 .mmh-manager-grid-v445{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.mmh-manager-card-v445{padding:16px;border:1px solid rgba(86,146,218,.16);border-radius:18px;background:rgba(5,14,30,.38);min-width:0}.mmh-manager-head-v445{display:flex;justify-content:space-between;gap:10px;margin-bottom:12px}.mmh-manager-head-v445 h3{margin:0;color:#eef5ff;font-size:15px}.mmh-manager-head-v445 span{display:block;margin-top:4px;color:#7f96b8;font-size:10px;line-height:1.4}.mmh-manager-form-v445{display:grid;grid-template-columns:1.5fr .7fr .9fr auto;gap:8px;margin-bottom:12px}.mmh-manager-form-v445 input,.mmh-manager-form-v445 select{min-width:0;min-height:40px;border-radius:11px;border:1px solid rgba(90,150,220,.22);background:rgba(5,16,33,.9);color:#eef6ff;padding:0 10px}.mmh-manager-form-v445 .btn{min-height:40px;white-space:nowrap}.mmh-manager-list-v445{display:grid;gap:7px}.mmh-manager-row-v445{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 11px;border:1px solid rgba(80,143,215,.12);border-radius:12px;background:rgba(10,24,45,.55)}.mmh-manager-main-v445{min-width:0}.mmh-manager-main-v445 b{display:block;color:#dfeaff;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.mmh-manager-main-v445 span{display:block;margin-top:3px;color:#748bae;font-size:9px}.mmh-manager-actions-v445{flex:0 0 auto}.mmh-manager-actions-v445 .btn{padding:6px 9px;font-size:10px;min-height:30px}.mmh-manager-archive-v445{margin-top:10px}.mmh-manager-archive-v445 summary{cursor:pointer;color:#8ea6c8;font-size:10px;font-weight:800;padding:6px 0}.mmh-manager-archive-v445>div{display:grid;gap:7px;margin-top:6px}.mmh-manager-note-v445{margin-top:12px;padding:10px 12px;border-radius:11px;background:rgba(38,82,136,.10);border:1px solid rgba(91,157,231,.12);color:#8198b9;font-size:10px;line-height:1.5}@media(max-width:900px){.mmh-manager-grid-v445{grid-template-columns:1fr}.mmh-manager-form-v445{grid-template-columns:1fr 1fr}.mmh-manager-form-v445 input{grid-column:1/-1}.mmh-manager-form-v445 .btn{grid-column:1/-1}}@media(max-width:560px){.mmh-manager-card-v445{padding:13px}.mmh-manager-form-v445{grid-template-columns:1fr}.mmh-manager-form-v445 input,.mmh-manager-form-v445 .btn{grid-column:auto}.mmh-manager-row-v445{align-items:flex-start}.mmh-manager-actions-v445 .btn{padding:6px 8px}}
-</style></head>
+</style>
+<style id="mmhvault-v446-accounts-categories-settings">
+/* V4.4.6 — Accounts & Categories gets its own Settings page with two sub-sections. */
+#settingsPanelAccountsCategoriesV445 > .mmh-data-manager-v445{
+  border-radius:24px!important;
+  padding:22px!important;
+  background:linear-gradient(145deg,rgba(10,25,57,.84),rgba(4,12,29,.88))!important;
+  border:1px solid rgba(88,142,228,.22)!important;
+  box-shadow:0 18px 55px rgba(0,0,0,.20),inset 0 1px 0 rgba(255,255,255,.03)!important;
+}
+.mmh-manager-subtabs-v445{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:8px;
+  margin:18px 0 16px;
+  padding:6px;
+  border:1px solid rgba(88,142,228,.16);
+  border-radius:17px;
+  background:rgba(4,12,28,.52);
+}
+.mmh-manager-subtab-v445{
+  min-height:46px;
+  border:1px solid transparent;
+  border-radius:12px;
+  background:transparent;
+  color:#8fa7ca;
+  font:inherit;
+  font-weight:800;
+  cursor:pointer;
+  transition:.2s ease;
+}
+.mmh-manager-subtab-v445:hover{background:rgba(44,81,137,.20);color:#edf5ff}
+.mmh-manager-subtab-v445.active{
+  color:#f4f8ff;
+  border-color:rgba(94,180,255,.24);
+  background:linear-gradient(135deg,rgba(31,77,127,.42),rgba(40,34,80,.34));
+  box-shadow:0 8px 22px rgba(0,0,0,.16),inset 0 1px 0 rgba(255,255,255,.04);
+}
+.mmh-manager-subtab-v445 span:first-child{margin-right:7px}
+.mmh-manager-subpanel-v445{display:none}
+.mmh-manager-subpanel-v445.active{display:block;animation:mmhSettingsPanelIn .28s ease both}
+.mmh-manager-subpanel-v445 .mmh-manager-card-v445{
+  padding:18px!important;
+  border-radius:19px!important;
+  background:linear-gradient(145deg,rgba(8,20,43,.72),rgba(4,13,29,.66))!important;
+  border:1px solid rgba(86,146,218,.18)!important;
+}
+.mmh-manager-subpanel-v445 .mmh-manager-form-v445{
+  grid-template-columns:minmax(0,1.6fr) minmax(100px,.65fr) minmax(130px,.85fr) auto;
+}
+#mmhManagerCategoriesPanelV445 .mmh-manager-form-v445{
+  grid-template-columns:minmax(0,1.7fr) minmax(140px,.8fr) 1px auto;
+}
+#mmhManagerCategoriesPanelV445 .mmh-manager-form-v445 > span{display:block}
+#settingsPanelAccountsCategoriesV445 .mmh-manager-note-v445{
+  margin-top:16px!important;
+  font-size:11px!important;
+}
+@media(max-width:720px){
+  #settingsPanelAccountsCategoriesV445 > .mmh-data-manager-v445{padding:16px!important;border-radius:20px!important}
+  .mmh-manager-subpanel-v445 .mmh-manager-form-v445,
+  #mmhManagerCategoriesPanelV445 .mmh-manager-form-v445{grid-template-columns:1fr!important}
+  #mmhManagerCategoriesPanelV445 .mmh-manager-form-v445 > span{display:none}
+  .mmh-manager-subtab-v445{min-height:44px}
+}
+</style>
+
+</head>
 <!-- MMHVAULT V4.3.6 · iOS JSON import bridge + V4.3.0 Dashboard report relocation + Transaction receipt center + Invest Add precision -->
 <body>
 <div id="mmhvaultAppBootGuardV3282" style="position:fixed;inset:0;z-index:30000;display:none;align-items:center;justify-content:center;background:#050a18;color:#dce8ff;font-family:Arial,sans-serif;padding:24px;text-align:center;">
@@ -5894,6 +5961,7 @@ body.mmhvault-scroll-active #invest #v371CryptoMarket::before{
 <h1>Settings</h1><div class="sub">Manage your account, appearance and data tools.</div>
 <div aria-label="Settings sections" class="settings-tabs-v371" role="tablist">
 <button aria-selected="true" class="settings-tab-v371 active" id="settingsTabAccountV371" role="tab" type="button">Account</button>
+<button aria-selected="false" class="settings-tab-v371" id="settingsTabAccountsCategoriesV445" role="tab" type="button" data-i18n-en="Accounts &amp; Categories" data-i18n-zh="账户与分类">Accounts &amp; Categories</button>
 <button aria-selected="false" class="settings-tab-v371" id="settingsTabAppearanceV371" role="tab" type="button">Appearance</button>
 <button aria-selected="false" class="settings-tab-v371" id="settingsTabDataV371" role="tab" type="button">Data &amp; Backup</button>
 </div>
@@ -5969,17 +6037,86 @@ body.mmhvault-scroll-active #invest #v371CryptoMarket::before{
 <div class="mmh-birthday-preview-v34216"><div><span class="k" data-i18n-en="Current Age" data-i18n-zh="当前年龄">Current Age</span><b id="mmhSettingsAgeValueV34215">—</b></div><div><span class="k" data-i18n-en="Next Birthday" data-i18n-zh="下次生日">Next Birthday</span><b id="mmhSettingsBirthdayValueV34215">—</b></div><div class="mmh-birthday-countdown-v34216"><span class="k" data-i18n-en="Countdown" data-i18n-zh="倒计时">Countdown</span><b id="mmhSettingsBirthdayCountdownV34215">—</b></div></div>
 </div>
 </div>
-<div class="panel mmh-data-manager-v445" id="mmhDataManagerV445">
-<div class="toolbar"><div><h2>Accounts &amp; Categories</h2><div class="small">Add or archive accounts and transaction categories without editing the code.</div></div><span class="pill">Configurable</span></div>
-<div class="mmh-manager-grid-v445">
-<section class="mmh-manager-card-v445"><div class="mmh-manager-head-v445"><div><h3>Accounts</h3><span>New accounts appear in transaction selectors immediately.</span></div></div>
-<div class="mmh-manager-form-v445"><input id="mmhNewAccountNameV445" placeholder="Account name · e.g. Binance" maxlength="40"/><select id="mmhNewAccountCurrencyV445"><option value="MMK">MMK</option><option value="THB">THB</option><option value="USD">USD</option></select><select id="mmhNewAccountTypeV445"><option value="cash">Cash</option><option value="wallet">Wallet</option><option value="bank">Bank</option><option value="credit">Credit Card</option><option value="crypto">Crypto</option><option value="investment">Investment</option><option value="other">Other</option></select><button class="btn primary" type="button" onclick="mmhVaultAddAccountV445()">＋ Add Account</button></div>
-<div class="mmh-manager-list-v445" data-manager-account-list></div><details class="mmh-manager-archive-v445"><summary>Archived Accounts</summary><div data-manager-archived-accounts></div></details></section>
-<section class="mmh-manager-card-v445"><div class="mmh-manager-head-v445"><div><h3>Transaction Categories</h3><span>Archive old categories instead of breaking historical records.</span></div></div>
-<div class="mmh-manager-form-v445"><input id="mmhNewCategoryNameV445" placeholder="Category name · e.g. Coffee" maxlength="40"/><select id="mmhNewCategoryGroupV445"><option value="Expense">Expense</option><option value="Income">Income</option><option value="Personal">Personal</option><option value="LoanIncome">Loan Income</option><option value="LoanExpense">Loan Expense</option></select><button class="btn primary" type="button" onclick="mmhVaultAddCategoryV445()">＋ Add Category</button></div>
-<div class="mmh-manager-list-v445" data-manager-category-list></div><details class="mmh-manager-archive-v445"><summary>Archived Categories</summary><div data-manager-archived-categories></div></details></section>
-</div><div class="mmh-manager-note-v445">History is preserved. “Archive” removes an item from new-entry selectors while keeping existing transactions and investment records intact.</div></div>
 </div>
+</div>
+
+<div class="settings-panel-v371" id="settingsPanelAccountsCategoriesV445" role="tabpanel" style="display:none">
+  <div class="panel mmh-data-manager-v445" id="mmhDataManagerV445">
+    <div class="toolbar">
+      <div>
+        <h2 data-i18n-en="Accounts &amp; Categories" data-i18n-zh="账户与分类">Accounts &amp; Categories</h2>
+        <div class="small" data-i18n-en="Manage accounts and transaction categories in separate sections." data-i18n-zh="分别管理账户和交易分类。">Manage accounts and transaction categories in separate sections.</div>
+      </div>
+      <span class="pill" data-i18n-en="Configurable" data-i18n-zh="可配置">Configurable</span>
+    </div>
+
+    <div class="mmh-manager-subtabs-v445" role="tablist" aria-label="Accounts and Categories">
+      <button class="mmh-manager-subtab-v445 active" id="mmhManagerTabAccountsV445" type="button" role="tab" aria-selected="true" onclick="setAccountsCategoriesTabV445('accounts')">
+        <span>💳</span><span data-i18n-en="Accounts" data-i18n-zh="账户">Accounts</span>
+      </button>
+      <button class="mmh-manager-subtab-v445" id="mmhManagerTabCategoriesV445" type="button" role="tab" aria-selected="false" onclick="setAccountsCategoriesTabV445('categories')">
+        <span>🏷️</span><span data-i18n-en="Categories" data-i18n-zh="分类">Categories</span>
+      </button>
+    </div>
+
+    <div class="mmh-manager-subpanel-v445 active" id="mmhManagerAccountsPanelV445" role="tabpanel">
+      <section class="mmh-manager-card-v445">
+        <div class="mmh-manager-head-v445">
+          <div>
+            <h3 data-i18n-en="Accounts" data-i18n-zh="账户">Accounts</h3>
+            <span data-i18n-en="New accounts appear in transaction selectors immediately." data-i18n-zh="新增账户会立即出现在交易选择器中。">New accounts appear in transaction selectors immediately.</span>
+          </div>
+        </div>
+        <div class="mmh-manager-form-v445">
+          <input id="mmhNewAccountNameV445" placeholder="Account name · e.g. Binance" maxlength="40"/>
+          <select id="mmhNewAccountCurrencyV445">
+            <option value="MMK">MMK</option><option value="THB">THB</option><option value="USD">USD</option>
+          </select>
+          <select id="mmhNewAccountTypeV445">
+            <option value="cash">Cash</option><option value="wallet">Wallet</option><option value="bank">Bank</option>
+            <option value="credit">Credit Card</option><option value="crypto">Crypto</option><option value="investment">Investment</option><option value="other">Other</option>
+          </select>
+          <button class="btn primary" type="button" onclick="mmhVaultAddAccountV445()">＋ Add Account</button>
+        </div>
+        <div class="mmh-manager-list-v445" data-manager-account-list></div>
+        <details class="mmh-manager-archive-v445">
+          <summary>Archived Accounts</summary>
+          <div data-manager-archived-accounts></div>
+        </details>
+      </section>
+    </div>
+
+    <div class="mmh-manager-subpanel-v445" id="mmhManagerCategoriesPanelV445" role="tabpanel" style="display:none">
+      <section class="mmh-manager-card-v445">
+        <div class="mmh-manager-head-v445">
+          <div>
+            <h3 data-i18n-en="Transaction Categories" data-i18n-zh="交易分类">Transaction Categories</h3>
+            <span data-i18n-en="Archive old categories instead of breaking historical records." data-i18n-zh="旧分类使用归档，不会破坏历史交易记录。">Archive old categories instead of breaking historical records.</span>
+          </div>
+        </div>
+        <div class="mmh-manager-form-v445">
+          <input id="mmhNewCategoryNameV445" placeholder="Category name · e.g. Coffee" maxlength="40"/>
+          <select id="mmhNewCategoryGroupV445">
+            <option value="Expense">Expense</option><option value="Income">Income</option>
+            <option value="Personal">Personal</option><option value="LoanIncome">Loan Income</option><option value="LoanExpense">Loan Expense</option>
+          </select>
+          <span></span>
+          <button class="btn primary" type="button" onclick="mmhVaultAddCategoryV445()">＋ Add Category</button>
+        </div>
+        <div class="mmh-manager-list-v445" data-manager-category-list></div>
+        <details class="mmh-manager-archive-v445">
+          <summary>Archived Categories</summary>
+          <div data-manager-archived-categories></div>
+        </details>
+      </section>
+    </div>
+
+    <div class="mmh-manager-note-v445" data-i18n-en="History is preserved. Archive removes an item from new-entry selectors while keeping existing transactions and investment records intact." data-i18n-zh="历史记录会保留。归档只会从新增选择器中隐藏项目，不会改变已有交易和投资记录。">
+      History is preserved. Archive removes an item from new-entry selectors while keeping existing transactions and investment records intact.
+    </div>
+  </div>
+</div>
+
 <div class="settings-panel-v371" id="settingsPanelAppearanceV371" role="tabpanel" style="display:none">
 <div class="panel"><div class="toolbar"><div><h2>App Icon</h2><div class="sub">Used when you add MMHVAULT to your phone home screen.</div></div></div><div class="pwa-row"><img alt="MMHVAULT icon" class="app-icon-preview v381-logo" decoding="async" src="images/icon-192.png"/><div><b>MMHVAULT</b><div class="small">PWA icon · 192×192 / 512×512</div></div></div></div>
 <div class="panel"><h2>Language</h2><div class="sub" style="margin-bottom:12px">Choose the language used across MMHVAULT on this device.</div><div class="language-options-v3363"><button class="language-choice-v3363" data-lang="en" type="button">🇬🇧 English</button><button class="language-choice-v3363" data-lang="zh" type="button">🇨🇳 中文</button></div></div>
@@ -6252,7 +6389,8 @@ function mmhVaultCategoryGroupLabel(g){return ({Expense:'Expense',Income:'Income
 function mmhVaultAccountTypeLabel(t){return ({cash:'Cash',wallet:'Wallet',bank:'Bank',credit:'Credit Card',crypto:'Crypto',investment:'Investment',other:'Other'}[t]||'Other');}
 function mmhVaultRenderManager(){
   const host=$('mmhDataManagerV445'); if(!host)return;
-  const accounts=MMHVAULT_CONFIG.accounts.filter(a=>a.active!==false);
+  const allAccounts=MMHVAULT_CONFIG.accounts;
+  const accounts=allAccounts.filter(a=>a.active!==false);
   const groups=['Expense','Income','Personal','LoanIncome','LoanExpense'];
   host.querySelector('[data-manager-account-list]')?.replaceChildren(...accounts.map(a=>{
     const row=document.createElement('div'); row.className='mmh-manager-row-v445';
@@ -6262,7 +6400,7 @@ function mmhVaultRenderManager(){
   const archivedCats=[]; for(const g of groups){(MMHVAULT_CONFIG.archivedCategories[g]||[]).forEach(x=>archivedCats.push({g,name:x}));}
   const arch=host.querySelector('[data-manager-archived-categories]');
   if(arch)arch.innerHTML=archivedCats.length?archivedCats.map(x=>`<div class="mmh-manager-row-v445"><div class="mmh-manager-main-v445"><b>${esc(x.name)}</b><span>${esc(mmhVaultCategoryGroupLabel(x.g))} · Archived</span></div><div class="mmh-manager-actions-v445"><button class="btn" type="button" onclick="mmhVaultRestoreCategoryV445('${esc(x.g)}','${esc(x.name)}')">Restore</button></div></div>`).join(''):'<div class="small">No archived categories.</div>';
-  const archivedAccounts=accounts.filter(a=>!a.active);
+  const archivedAccounts=allAccounts.filter(a=>a.active===false);
   const aa=host.querySelector('[data-manager-archived-accounts]');
   if(aa)aa.innerHTML=archivedAccounts.length?archivedAccounts.map(a=>`<div class="mmh-manager-row-v445"><div class="mmh-manager-main-v445"><b>${esc(a.name)}</b><span>${esc(a.currency)} · ${esc(mmhVaultAccountTypeLabel(a.type))} · Archived${mmhVaultHasAccountHistory(a.name)?' · history linked':''}</span></div><div class="mmh-manager-actions-v445"><button class="btn" type="button" onclick="mmhVaultToggleAccountV445('${esc(a.id)}')">Restore</button></div></div>`).join(''):'<div class="small">No archived accounts.</div>';
 }
@@ -8686,7 +8824,7 @@ renderTransactions=renderTransactionsV28;
 
 /* ===================== V4.3.0 Settings tabs ===================== */
 function setSettingsTabV371(tab){
-  const map={account:['settingsTabAccountV371','settingsPanelAccountV371'],appearance:['settingsTabAppearanceV371','settingsPanelAppearanceV371'],data:['settingsTabDataV371','settingsPanelDataV371']};
+  const map={account:['settingsTabAccountV371','settingsPanelAccountV371'],accountsCategories:['settingsTabAccountsCategoriesV445','settingsPanelAccountsCategoriesV445'],appearance:['settingsTabAppearanceV371','settingsPanelAppearanceV371'],data:['settingsTabDataV371','settingsPanelDataV371']};
   const cfg=map[tab]||map.account;
   Object.keys(map).forEach(k=>{
     const [btnId,panelId]=map[k];
@@ -8699,10 +8837,28 @@ function setSettingsTabV371(tab){
 
 setTimeout(()=>{
   $('settingsTabAccountV371')?.addEventListener('click',()=>setSettingsTabV371('account'));
+  $('settingsTabAccountsCategoriesV445')?.addEventListener('click',()=>setSettingsTabV371('accountsCategories'));
   $('settingsTabAppearanceV371')?.addEventListener('click',()=>setSettingsTabV371('appearance'));
   $('settingsTabDataV371')?.addEventListener('click',()=>setSettingsTabV371('data'));
   setSettingsTabV371(localStorage.getItem('myfinance_settings_tab_v371')||'account');
 },0);
+
+
+/* V4.4.6 — Accounts & Categories sub-sections */
+function setAccountsCategoriesTabV445(tab){
+  const isCategories=tab==='categories';
+  const accountsPanel=$('mmhManagerAccountsPanelV445');
+  const categoriesPanel=$('mmhManagerCategoriesPanelV445');
+  const accountsBtn=$('mmhManagerTabAccountsV445');
+  const categoriesBtn=$('mmhManagerTabCategoriesV445');
+  if(accountsPanel)accountsPanel.classList.toggle('active',!isCategories);
+  if(categoriesPanel){categoriesPanel.classList.toggle('active',isCategories);categoriesPanel.style.display=isCategories?'block':'none';}
+  if(accountsPanel)accountsPanel.style.display=isCategories?'none':'block';
+  if(accountsBtn){accountsBtn.classList.toggle('active',!isCategories);accountsBtn.setAttribute('aria-selected',isCategories?'false':'true');}
+  if(categoriesBtn){categoriesBtn.classList.toggle('active',isCategories);categoriesBtn.setAttribute('aria-selected',isCategories?'true':'false');}
+  localStorage.setItem('mmhvault_accounts_categories_tab_v445',tab);
+}
+setTimeout(()=>setAccountsCategoriesTabV445(localStorage.getItem('mmhvault_accounts_categories_tab_v445')||'accounts'),0);
 
 /* ===================== V4.3.0 ACCOUNT OVERVIEW POLISH ===================== */
 function polishAccountOverviewV371(){
