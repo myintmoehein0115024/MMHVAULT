@@ -5537,6 +5537,12 @@ body.mmhvault-scroll-active #invest #v371CryptoMarket::before{
 }
 </style>
 
+
+<style id="mmhvault-v423-category-edit">
+/* V4.4.23 — Category edit action */
+.mmh-manager-actions-v445 .btn{white-space:nowrap}
+</style>
+
 </head>
 <!-- MMHVAULT V4.3.6 · iOS JSON import bridge + V4.3.0 Dashboard report relocation + Transaction receipt center + Invest Add precision -->
 <body>
@@ -6486,10 +6492,10 @@ function mmhVaultRenderManager(){
     const canDelete=!a.builtin&&!mmhVaultHasAccountHistory(a.name);
     row.innerHTML=`<div class="mmh-manager-main-v445"><b>${esc(a.name)}</b><span>${esc(a.currency)} · ${esc(mmhVaultAccountTypeLabel(a.type))}${a.active?'':' · Archived'}</span></div><div class="mmh-manager-actions-v445"><button class="btn" type="button" onclick="mmhVaultEditAccountV449('${esc(a.id)}')">Edit</button><button class="btn" type="button" onclick="mmhVaultToggleAccountV445('${esc(a.id)}')">${a.active?'Archive':'Restore'}</button>${canDelete?`<button class="btn danger" type="button" onclick="mmhVaultDeleteAccountV445('${esc(a.id)}')">Delete</button>`:''}</div>`;return row;
   }));
-  host.querySelector('[data-manager-category-list]')?.replaceChildren(...groups.flatMap(g=>CATS[g].map(name=>{const row=document.createElement('div');row.className='mmh-manager-row-v445';const canDelete=!mmhVaultIsBuiltinCategory(g,name)&&!mmhVaultHasCategoryHistory(name);row.innerHTML=`<div class="mmh-manager-main-v445"><b>${esc(name)}</b><span>${esc(mmhVaultCategoryGroupLabel(g))}</span></div><div class="mmh-manager-actions-v445"><button class="btn" type="button" onclick="mmhVaultArchiveCategoryV445('${esc(g)}','${esc(name)}')">Archive</button>${canDelete?`<button class="btn danger" type="button" onclick="mmhVaultDeleteCategoryV445('${esc(g)}','${esc(name)}')">Delete</button>`:''}</div>`;return row;})));
+  host.querySelector('[data-manager-category-list]')?.replaceChildren(...groups.flatMap(g=>CATS[g].map(name=>{const row=document.createElement('div');row.className='mmh-manager-row-v445';const canDelete=!mmhVaultIsBuiltinCategory(g,name)&&!mmhVaultHasCategoryHistory(name);row.innerHTML=`<div class="mmh-manager-main-v445"><b>${esc(name)}</b><span>${esc(mmhVaultCategoryGroupLabel(g))}</span></div><div class="mmh-manager-actions-v445"><button class="btn" type="button" onclick="mmhVaultEditCategoryV449('${esc(g)">Edit</button><button class="btn" type="button" onclick="mmhVaultArchiveCategoryV445('${esc(g)}','${esc(name)}')">Archive</button>${canDelete?`<button class="btn danger" type="button" onclick="mmhVaultDeleteCategoryV445('${esc(g)}','${esc(name)}')">Delete</button>`:''}</div>`;return row;})));
   const archivedCats=[]; for(const g of groups){(MMHVAULT_CONFIG.archivedCategories[g]||[]).forEach(x=>archivedCats.push({g,name:x}));}
   const arch=host.querySelector('[data-manager-archived-categories]');
-  if(arch)arch.innerHTML=archivedCats.length?archivedCats.map(x=>{const canDelete=!mmhVaultIsBuiltinCategory(x.g,x.name)&&!mmhVaultHasCategoryHistory(x.name);return `<div class="mmh-manager-row-v445"><div class="mmh-manager-main-v445"><b>${esc(x.name)}</b><span>${esc(mmhVaultCategoryGroupLabel(x.g))} · Archived${mmhVaultHasCategoryHistory(x.name)?' · history linked':''}</span></div><div class="mmh-manager-actions-v445"><button class="btn" type="button" onclick="mmhVaultRestoreCategoryV445('${esc(x.g)}','${esc(x.name)}')">Restore</button>${canDelete?`<button class="btn danger" type="button" onclick="mmhVaultDeleteCategoryV445('${esc(x.g)}','${esc(x.name)}')">Delete</button>`:''}</div></div>`}).join(''):'<div class="small">No archived categories.</div>';
+  if(arch)arch.innerHTML=archivedCats.length?archivedCats.map(x=>{const canDelete=!mmhVaultIsBuiltinCategory(x.g,x.name)&&!mmhVaultHasCategoryHistory(x.name);return `<div class="mmh-manager-row-v445"><div class="mmh-manager-main-v445"><b>${esc(x.name)}</b><span>${esc(mmhVaultCategoryGroupLabel(x.g))} · Archived${mmhVaultHasCategoryHistory(x.name)?' · history linked':''}</span></div><div class="mmh-manager-actions-v445"><button class="btn" type="button" onclick="mmhVaultEditCategoryV449('${esc(x.g)">Edit</button><button class="btn" type="button" onclick="mmhVaultRestoreCategoryV445('${esc(x.g)}','${esc(x.name)}')">Restore</button>${canDelete?`<button class="btn danger" type="button" onclick="mmhVaultDeleteCategoryV445('${esc(x.g)}','${esc(x.name)}')">Delete</button>`:''}</div></div>`}).join(''):'<div class="small">No archived categories.</div>';
   const archivedAccounts=allAccounts.filter(a=>a.active===false);
   const aa=host.querySelector('[data-manager-archived-accounts]');
   if(aa)aa.innerHTML=archivedAccounts.length?archivedAccounts.map(a=>{const canDelete=!a.builtin&&!mmhVaultHasAccountHistory(a.name);return `<div class="mmh-manager-row-v445"><div class="mmh-manager-main-v445"><b>${esc(a.name)}</b><span>${esc(a.currency)} · ${esc(mmhVaultAccountTypeLabel(a.type))} · Archived${mmhVaultHasAccountHistory(a.name)?' · history linked':''}</span></div><div class="mmh-manager-actions-v445"><button class="btn" type="button" onclick="mmhVaultEditAccountV449('${esc(a.id)}')">Edit</button><button class="btn" type="button" onclick="mmhVaultToggleAccountV445('${esc(a.id)}')">Restore</button>${canDelete?`<button class="btn danger" type="button" onclick="mmhVaultDeleteAccountV445('${esc(a.id)}')">Delete</button>`:''}</div></div>`}).join(''):'<div class="small">No archived accounts.</div>';
@@ -6648,6 +6654,59 @@ async function mmhVaultToggleAccountV445(id){
     a.active=true;mmhVaultPersistConfig();mmhVaultRebuildConfigArrays();mmhVaultRefreshAccountSelectors();mmhVaultRenderManager();mmhVaultRefreshDashboardAccountOverviewV449();try{render?.()}catch(_){};return;
   }
 }
+
+function mmhVaultEditCategoryV449(group,name){
+  const currentGroup=String(group||'');
+  const currentName=String(name||'');
+  if(!currentName)return;
+
+  const body=`<div class="mmh-v449-field">
+      <label>Category name</label>
+      <input id="mmhEditCategoryNameV449" maxlength="40" value="${esc(currentName)}">
+    </div>
+    <div class="mmh-v449-dialog-note">Category type/group stays unchanged so the existing Transaction link remains intact.</div>`;
+
+  mmhVaultOpenDialogV449({
+    title:'Edit Category',
+    message:`Rename ${currentName}`,
+    body,
+    actions:[
+      {label:'Cancel',onClick:()=>false},
+      {label:'Save Changes',className:'primary',onClick:()=>{
+        const input=$('mmhEditCategoryNameV449');
+        const newName=String(input?.value||'').trim();
+        if(!newName){
+          if(input)input.focus();
+          return false;
+        }
+
+        const list=MMHVAULT_CONFIG.categories[currentGroup]||[];
+        const archived=MMHVAULT_CONFIG.archivedCategories[currentGroup]||[];
+        const duplicate=[...list,...archived].some(x=>String(x).toLowerCase()===newName.toLowerCase() && x!==currentName);
+        if(duplicate){
+          mmhVaultCustomMessageV449('Category already exists',`${newName} is already used in this group.`);
+          return false;
+        }
+
+        const idx=list.indexOf(currentName);
+        if(idx<0){
+          mmhVaultCustomMessageV449('Category not found','This category is no longer active. Please refresh the category list.');
+          return false;
+        }
+
+        /* Preserve the working Category → Transaction mapping:
+           rename the config value, then refresh the existing selector logic. */
+        list[idx]=newName;
+        mmhVaultPersistConfig();
+        mmhVaultRefreshCategoryUIV449(currentGroup,newName);
+        mmhVaultForceHideDialogV449();
+        return false;
+      }}
+    ]
+  });
+}
+window.mmhVaultEditCategoryV449=mmhVaultEditCategoryV449;
+
 function mmhVaultAddCategoryV445(){
   const name=String($('mmhNewCategoryNameV445')?.value||'').trim();
   const group=$('mmhNewCategoryGroupV445')?.value||'Expense';
