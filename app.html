@@ -5502,6 +5502,41 @@ body.mmhvault-scroll-active #invest #v371CryptoMarket::before{
 @media(max-width:620px){#mmhVaultDialogV449{padding:10px}.mmh-v449-dialog{border-radius:17px}.mmh-v449-dialog-head{padding:16px 16px 9px}.mmh-v449-dialog-body{padding:10px 16px 15px}.mmh-v449-dialog-actions{padding:11px 16px}.mmh-v449-dialog-actions button{flex:1}}
 </style>
 
+
+<style id="mmhvault-v411-dashboard-account-overflow">
+/* V4.4.11 — Dashboard Account Overview: show 3 accounts, reveal the rest via Other. */
+#accounts .dashboard-account-overflow-btn{
+  width:100%;
+  margin-top:8px;
+  min-height:38px;
+  border:1px solid rgba(91,157,225,.22);
+  border-radius:11px;
+  background:rgba(20,48,83,.42);
+  color:#a9c3e7;
+  font:inherit;
+  font-size:12px;
+  font-weight:800;
+  cursor:pointer;
+  transition:.2s ease;
+}
+#accounts .dashboard-account-overflow-btn:hover{
+  color:#f0f6ff;
+  border-color:rgba(91,178,255,.38);
+  background:rgba(35,75,123,.48);
+}
+#accounts .dashboard-account-overflow{
+  display:none;
+}
+#accounts .dashboard-account-overflow.open{
+  display:block;
+  animation:mmhDashAccountOverflowInV411 .22s ease both;
+}
+@keyframes mmhDashAccountOverflowInV411{
+  from{opacity:0;transform:translateY(-4px)}
+  to{opacity:1;transform:translateY(0)}
+}
+</style>
+
 </head>
 <!-- MMHVAULT V4.3.6 · iOS JSON import bridge + V4.3.0 Dashboard report relocation + Transaction receipt center + Invest Add precision -->
 <body>
@@ -7033,6 +7068,17 @@ function renderDashboardV372(){
   }
 }
 
+
+function toggleDashboardAccountOverflowV411(id,button){
+  const panel=document.getElementById(id);
+  if(!panel||!button)return;
+  const open=panel.classList.toggle('open');
+  button.setAttribute('aria-expanded',open?'true':'false');
+  const count=panel.querySelectorAll('.account-row').length;
+  button.textContent=open?'Show Less':`Other · ${count} more`;
+}
+window.toggleDashboardAccountOverflowV411=toggleDashboardAccountOverflowV411;
+
 function renderDashboard(){
   if(!document.getElementById("dashboard")?.classList.contains("active")) return;
   /* MMHVAULT V4.3.0 — Dashboard Partial DOM + lightweight memoization.
@@ -7064,7 +7110,7 @@ function renderDashboard(){
   }
   const {A,E,I,L,available}=C.base;
 
-  /* V4.4.10 — Dashboard Account Overview is now driven by Settings > Accounts.
+  /* V4.4.11 — Dashboard Account Overview is now driven by Settings > Accounts.
      The previous renderer had the original six accounts hard-coded, so newly-added
      accounts could exist in Settings/Transactions but never appear on Dashboard. */
   const accountConfigSig=hash((MMHVAULT_CONFIG?.accounts||[]).map(a=>[
@@ -7084,15 +7130,9 @@ function renderDashboard(){
     ].filter(g=>g.accounts.length||g.title==='Investment');
     const logo73=()=>'';
     const goldMMK73=(typeof goldHoldingQty==='function'?investments.filter(x=>x.asset==='Gold').reduce((s,x)=>s+goldHoldingQty(x)*(goldMarketState.pricePerKyattha||n(x.market_price)),0):0);
-    $("accounts").innerHTML=groups.map(g=>{
-      if(g.title==='Investment'){
-        const gold=investments.filter(x=>x.asset==='Gold');
-        const goldValue=goldMMK73;
-        return `<div class="account-group investment-account"><div class="group-title"><strong>${logo73('Investment','gold')}<span>Investment</span></strong><span class="group-total">USD</span></div><div class="account-list"><div class="account-row"><div class="left"><div class="name">${logo73('CryptoPortfolio','crypto')}<span>Crypto Portfolio</span><div class="small">USD</div></div></div><div class="amount">${usd(investments.filter(x=>x.asset==='Crypto').reduce((sum,x)=>sum+n(x.quantity)*(livePrices[x.symbol]?.price||n(x.market_price)),0))}</div></div><div class="account-row"><div class="left"><div class="name">${logo73('GoldPortfolio','gold')}<span>Gold Portfolio</span><div class="small">Converted from MMK</div></div></div><div class="amount">${usd(goldValue/(rates.usd_mmk||1))}</div></div></div></div>`;
-      }
-      const total=g.accounts.reduce((sum,a)=>sum+balance(a.name)*toMMK(a.name),0);
-      const groupCurrency=g.title==='USD'?'USD':g.title==='Investment'?'USD':'Native Currency';
-      return `<div class="account-group"><div class="group-title"><strong>${logo73(g.icon)}<span>${g.title}</span></strong><span class="group-total">${groupCurrency}</span></div><div class="account-list">${g.accounts.map(a=>{
+    function dashboardAccountRowsV411(group){
+      const accounts=group.accounts;
+      const renderRow=(a)=>{
         const name=a.name;
         const iconName=name;
         const bal=balance(name);
@@ -7105,9 +7145,33 @@ function renderDashboard(){
         }else{
           amountText=`${cur} ${fmt(bal)}`;
         }
-        return `<div class="account-row"><div class="left"><div class="name">${logo73(iconName)}<span>${name}</span><div class="small">${cur}</div></div></div><div class="amount">${amountText}</div></div>`;
-      }).join('')}</div></div>`;
+        return `<div class="account-row"><div class="left"><div class="name">${logo73(iconName)}<span>${esc(name)}</span><div class="small">${esc(cur)}</div></div></div><div class="amount">${amountText}</div></div>`;
+      };
+      const visible=accounts.slice(0,3);
+      const hidden=accounts.slice(3);
+      const rows=visible.map(renderRow).join('');
+      if(!hidden.length)return rows;
+      const overflowId=`dashboard-account-overflow-${String(g.title).toLowerCase()}`;
+      return `${rows}
+        <button type="button" class="dashboard-account-overflow-btn" onclick="toggleDashboardAccountOverflowV411('${overflowId}',this)" aria-expanded="false">
+          Other · ${hidden.length} more
+        </button>
+        <div class="dashboard-account-overflow" id="${overflowId}">
+          ${hidden.map(renderRow).join('')}
+        </div>`;
+    }
+
+    $("accounts").innerHTML=groups.map(g=>{
+      if(g.title==='Investment'){
+        const gold=investments.filter(x=>x.asset==='Gold');
+        const goldValue=goldMMK73;
+        return `<div class="account-group investment-account"><div class="group-title"><strong>${logo73('Investment','gold')}<span>Investment</span></strong><span class="group-total">USD</span></div><div class="account-list"><div class="account-row"><div class="left"><div class="name">${logo73('CryptoPortfolio','crypto')}<span>Crypto Portfolio</span><div class="small">USD</div></div></div><div class="amount">${usd(investments.filter(x=>x.asset==='Crypto').reduce((sum,x)=>sum+n(x.quantity)*(livePrices[x.symbol]?.price||n(x.market_price)),0))}</div></div><div class="account-row"><div class="left"><div class="name">${logo73('GoldPortfolio','gold')}<span>Gold Portfolio</span><div class="small">Converted from MMK</div></div></div><div class="amount">${usd(goldValue/(rates.usd_mmk||1))}</div></div></div></div>`;
+      }
+      const total=g.accounts.reduce((sum,a)=>sum+balance(a.name)*toMMK(a.name),0);
+      const groupCurrency=g.title==='USD'?'USD':'Native Currency';
+      return `<div class="account-group"><div class="group-title"><strong>${logo73(g.icon)}<span>${g.title}</span></strong><span class="group-total">${groupCurrency}</span></div><div class="account-list">${dashboardAccountRowsV411(g)}</div></div>`;
     }).join("");
+
   }
 
   const metricSig=`${baseSig}|metrics`;
