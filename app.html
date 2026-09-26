@@ -17544,6 +17544,35 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
 }
 </style>
 
+
+<!-- MMHVAULT V4.4.30 · Dialog action close reliability patch -->
+<script id="mmhvault-v4430-dialog-action-close">
+(function(){
+  function hardHide(){
+    const m=document.getElementById('mmhVaultDialogV449');
+    if(!m)return;
+    m.classList.remove('show');
+    m.setAttribute('aria-hidden','true');
+    m.style.setProperty('display','none','important');
+  }
+  document.addEventListener('click',function(e){
+    const b=e.target && e.target.closest ? e.target.closest('#mmhVaultDialogActionsV449 button') : null;
+    if(!b)return;
+    const title=(document.getElementById('mmhVaultDialogTitleV449')?.textContent||'').trim();
+    const label=(b.textContent||'').trim();
+    const accountCancel=title==='Edit Account' && label==='Cancel';
+    const categoryAction=(
+      (title==='Edit Category' && (label==='Cancel'||label==='Save Changes')) ||
+      (title==='Delete Category' && (label==='Cancel'||label==='Delete Permanently')) ||
+      (title==='Archive Category' && (label==='Cancel'||label==='Archive'))
+    );
+    if(!accountCancel && !categoryAction)return;
+    setTimeout(hardHide,0);
+    setTimeout(hardHide,40);
+  },true);
+})();
+</script>
+
 </html>
 
 <!-- MMHVAULT V4.3.0 · Transaction Cascade Hotfix -->
