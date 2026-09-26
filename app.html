@@ -6733,7 +6733,7 @@ function mmhVaultDeleteCategoryV445(group,name){
     title:'Delete Category',message:`Delete ${name} permanently?`,
     body:'<div class="mmh-v449-dialog-note">This category has no linked history. Permanent deletion cannot be undone.</div>',
     actions:[
-      {label:'Cancel',onClick:()=>{ mmhVaultForceHideDialogV449(); return false; }},
+      {label:'Cancel',onClick:()=>{ mmhVaultCloseDialogV449(false); return false; }},
       {label:'Delete Permanently',className:'danger',onClick:()=>{
         MMHVAULT_CONFIG.categories[group]=(MMHVAULT_CONFIG.categories[group]||[]).filter(x=>x!==name);
         MMHVAULT_CONFIG.archivedCategories[group]=(MMHVAULT_CONFIG.archivedCategories[group]||[]).filter(x=>x!==name);
