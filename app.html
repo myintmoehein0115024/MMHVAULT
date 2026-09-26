@@ -6494,6 +6494,8 @@ function mmhVaultOpenDialogV449({title,message='',body='',actions=[]}={}){
     b.textContent=x.label||'OK';
     if(x.className)b.className=x.className;
     b.onclick=async()=>{
+      if(b.dataset.busy==='1')return;
+      b.dataset.busy='1';
       try{
         const r=x.onClick?x.onClick():true;
         if(r&&typeof r.then==='function'){
@@ -6504,6 +6506,10 @@ function mmhVaultOpenDialogV449({title,message='',body='',actions=[]}={}){
         }
       }catch(err){
         console.error('[MMHVAULT] dialog action failed',err);
+      }finally{
+        if(document.getElementById('mmhVaultDialogV449')?.classList.contains('show') && b.isConnected){
+          b.dataset.busy='0';
+        }
       }
     };
     a.appendChild(b);
@@ -6551,7 +6557,9 @@ function mmhVaultEditAccountV449(id){
           mmhVaultRefreshAccountSelectors();mmhVaultRefreshTransactionConfigV445();mmhVaultRenderManager();
           mmhVaultRefreshDashboardAccountOverviewV449();
           try{render?.()}catch(_){}
-          return true;
+          /* Explicit close after a confirmed successful save. */
+          mmhVaultCloseDialogV449(true);
+          return false;
         }catch(err){
           console.error('Account edit failed:',err);
           mmhVaultOpenDialogV449({title:'Could not save',message:'The account was not changed.',body:`<div class="mmh-v449-dialog-note">${esc(err?.message||'Please try again.')}</div>`,actions:[{label:'Close',className:'primary'}]});
@@ -7129,7 +7137,7 @@ function renderDashboard(){
   }
   const {A,E,I,L,available}=C.base;
 
-  /* V4.4.15 — Account edit dialog waits for async save before closing.
+  /* V4.4.16 — Account edit explicitly closes after successful save.
      The previous renderer had the original six accounts hard-coded, so newly-added
      accounts could exist in Settings/Transactions but never appear on Dashboard. */
   const accountConfigSig=hash((MMHVAULT_CONFIG?.accounts||[]).map(a=>[
