@@ -6488,7 +6488,26 @@ function mmhVaultOpenDialogV449({title,message='',body='',actions=[]}={}){
   $('mmhVaultDialogMessageV449').textContent=message||'';
   $('mmhVaultDialogBodyV449').innerHTML=body||'';
   const a=$('mmhVaultDialogActionsV449');a.innerHTML='';
-  actions.forEach(x=>{const b=document.createElement('button');b.type='button';b.textContent=x.label||'OK';if(x.className)b.className=x.className;b.onclick=()=>{const r=x.onClick?x.onClick():true;if(r!==false)mmhVaultCloseDialogV449(r);};a.appendChild(b);});
+  actions.forEach(x=>{
+    const b=document.createElement('button');
+    b.type='button';
+    b.textContent=x.label||'OK';
+    if(x.className)b.className=x.className;
+    b.onclick=async()=>{
+      try{
+        const r=x.onClick?x.onClick():true;
+        if(r&&typeof r.then==='function'){
+          const resolved=await r;
+          if(resolved!==false)mmhVaultCloseDialogV449(resolved);
+        }else if(r!==false){
+          mmhVaultCloseDialogV449(r);
+        }
+      }catch(err){
+        console.error('[MMHVAULT] dialog action failed',err);
+      }
+    };
+    a.appendChild(b);
+  });
   m.classList.add('show');m.setAttribute('aria-hidden','false');
   return new Promise(resolve=>{m._resolver=resolve;});
 }
@@ -7110,7 +7129,7 @@ function renderDashboard(){
   }
   const {A,E,I,L,available}=C.base;
 
-  /* V4.4.14 — Dashboard Account Overview reads the actual MMHVAULT_CONFIG registry.
+  /* V4.4.15 — Account edit dialog waits for async save before closing.
      The previous renderer had the original six accounts hard-coded, so newly-added
      accounts could exist in Settings/Transactions but never appear on Dashboard. */
   const accountConfigSig=hash((MMHVAULT_CONFIG?.accounts||[]).map(a=>[
