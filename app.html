@@ -5480,6 +5480,12 @@ body.mmhvault-scroll-active #invest #v371CryptoMarket::before{
 }
 </style>
 
+
+<style id="mmhvault-v448-manager-delete-style">
+.mmh-manager-actions-v445{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
+.mmh-manager-actions-v445 .btn.danger{color:#ff9eac;border-color:rgba(255,110,132,.24);background:rgba(75,18,30,.28)}
+.mmh-manager-actions-v445 .btn.danger:hover{border-color:rgba(255,110,132,.42);background:rgba(96,22,38,.42)}
+</style>
 </head>
 <!-- MMHVAULT V4.3.6 · iOS JSON import bridge + V4.3.0 Dashboard report relocation + Transaction receipt center + Invest Add precision -->
 <body>
@@ -6386,6 +6392,19 @@ function mmhVaultRefreshAccountSelectors(){
 function mmhVaultHasAccountHistory(name){return (transactions||[]).some(t=>t?.from_account===name||t?.to_account===name)||(investments||[]).some(x=>x?.source_account===name);}
 function mmhVaultHasCategoryHistory(name){return (transactions||[]).some(t=>t?.category===name)||(investments||[]).some(x=>x?.category===name);}
 function mmhVaultCategoryGroupLabel(g){return ({Expense:'Expense',Income:'Income',Personal:'Personal',LoanIncome:'Loan Income',LoanExpense:'Loan Expense'}[g]||g);}
+const MMHVAULT_DEFAULT_CATEGORY_SETS=MMHVAULT_DEFAULT_CATEGORIES;
+function mmhVaultIsBuiltinCategory(group,name){return (MMHVAULT_DEFAULT_CATEGORY_SETS[group]||[]).includes(name);}
+function mmhVaultRefreshTransactionConfigV445(){
+  try{
+    const typeEl=$('txType'), groupEl=$('txGroup'), categoryEl=$('txCategory');
+    if(!typeEl||!groupEl||!categoryEl)return;
+    const type=typeEl.value, oldGroup=groupEl.value, oldCategory=categoryEl.value;
+    syncTransactionGroup();
+    groupEl.value=[...groupEl.options].some(o=>o.value===oldGroup)?oldGroup:groupEl.value;
+    updateCategories();
+    if([...categoryEl.options].some(o=>o.value===oldCategory))categoryEl.value=oldCategory;
+  }catch(e){console.warn('Transaction selector refresh failed',e);}
+}
 function mmhVaultAccountTypeLabel(t){return ({cash:'Cash',wallet:'Wallet',bank:'Bank',credit:'Credit Card',crypto:'Crypto',investment:'Investment',other:'Other'}[t]||'Other');}
 function mmhVaultRenderManager(){
   const host=$('mmhDataManagerV445'); if(!host)return;
@@ -6394,32 +6413,35 @@ function mmhVaultRenderManager(){
   const groups=['Expense','Income','Personal','LoanIncome','LoanExpense'];
   host.querySelector('[data-manager-account-list]')?.replaceChildren(...accounts.map(a=>{
     const row=document.createElement('div'); row.className='mmh-manager-row-v445';
-    row.innerHTML=`<div class="mmh-manager-main-v445"><b>${esc(a.name)}</b><span>${esc(a.currency)} · ${esc(mmhVaultAccountTypeLabel(a.type))}${a.active?'':' · Archived'}</span></div><div class="mmh-manager-actions-v445"><button class="btn" type="button" onclick="mmhVaultToggleAccountV445('${esc(a.id)}')">${a.active?'Archive':'Restore'}</button></div>`;return row;
+    const canDelete=!a.builtin&&!mmhVaultHasAccountHistory(a.name);
+    row.innerHTML=`<div class="mmh-manager-main-v445"><b>${esc(a.name)}</b><span>${esc(a.currency)} · ${esc(mmhVaultAccountTypeLabel(a.type))}${a.active?'':' · Archived'}</span></div><div class="mmh-manager-actions-v445"><button class="btn" type="button" onclick="mmhVaultToggleAccountV445('${esc(a.id)}')">${a.active?'Archive':'Restore'}</button>${canDelete?`<button class="btn danger" type="button" onclick="mmhVaultDeleteAccountV445('${esc(a.id)}')">Delete</button>`:''}</div>`;return row;
   }));
-  host.querySelector('[data-manager-category-list]')?.replaceChildren(...groups.flatMap(g=>CATS[g].map(name=>{const row=document.createElement('div');row.className='mmh-manager-row-v445';row.innerHTML=`<div class="mmh-manager-main-v445"><b>${esc(name)}</b><span>${esc(mmhVaultCategoryGroupLabel(g))}</span></div><div class="mmh-manager-actions-v445"><button class="btn" type="button" onclick="mmhVaultArchiveCategoryV445('${esc(g)}','${esc(name)}')">Archive</button></div>`;return row;})));
+  host.querySelector('[data-manager-category-list]')?.replaceChildren(...groups.flatMap(g=>CATS[g].map(name=>{const row=document.createElement('div');row.className='mmh-manager-row-v445';const canDelete=!mmhVaultIsBuiltinCategory(g,name)&&!mmhVaultHasCategoryHistory(name);row.innerHTML=`<div class="mmh-manager-main-v445"><b>${esc(name)}</b><span>${esc(mmhVaultCategoryGroupLabel(g))}</span></div><div class="mmh-manager-actions-v445"><button class="btn" type="button" onclick="mmhVaultArchiveCategoryV445('${esc(g)}','${esc(name)}')">Archive</button>${canDelete?`<button class="btn danger" type="button" onclick="mmhVaultDeleteCategoryV445('${esc(g)}','${esc(name)}')">Delete</button>`:''}</div>`;return row;})));
   const archivedCats=[]; for(const g of groups){(MMHVAULT_CONFIG.archivedCategories[g]||[]).forEach(x=>archivedCats.push({g,name:x}));}
   const arch=host.querySelector('[data-manager-archived-categories]');
-  if(arch)arch.innerHTML=archivedCats.length?archivedCats.map(x=>`<div class="mmh-manager-row-v445"><div class="mmh-manager-main-v445"><b>${esc(x.name)}</b><span>${esc(mmhVaultCategoryGroupLabel(x.g))} · Archived</span></div><div class="mmh-manager-actions-v445"><button class="btn" type="button" onclick="mmhVaultRestoreCategoryV445('${esc(x.g)}','${esc(x.name)}')">Restore</button></div></div>`).join(''):'<div class="small">No archived categories.</div>';
+  if(arch)arch.innerHTML=archivedCats.length?archivedCats.map(x=>{const canDelete=!mmhVaultIsBuiltinCategory(x.g,x.name)&&!mmhVaultHasCategoryHistory(x.name);return `<div class="mmh-manager-row-v445"><div class="mmh-manager-main-v445"><b>${esc(x.name)}</b><span>${esc(mmhVaultCategoryGroupLabel(x.g))} · Archived${mmhVaultHasCategoryHistory(x.name)?' · history linked':''}</span></div><div class="mmh-manager-actions-v445"><button class="btn" type="button" onclick="mmhVaultRestoreCategoryV445('${esc(x.g)}','${esc(x.name)}')">Restore</button>${canDelete?`<button class="btn danger" type="button" onclick="mmhVaultDeleteCategoryV445('${esc(x.g)}','${esc(x.name)}')">Delete</button>`:''}</div></div>`}).join(''):'<div class="small">No archived categories.</div>';
   const archivedAccounts=allAccounts.filter(a=>a.active===false);
   const aa=host.querySelector('[data-manager-archived-accounts]');
-  if(aa)aa.innerHTML=archivedAccounts.length?archivedAccounts.map(a=>`<div class="mmh-manager-row-v445"><div class="mmh-manager-main-v445"><b>${esc(a.name)}</b><span>${esc(a.currency)} · ${esc(mmhVaultAccountTypeLabel(a.type))} · Archived${mmhVaultHasAccountHistory(a.name)?' · history linked':''}</span></div><div class="mmh-manager-actions-v445"><button class="btn" type="button" onclick="mmhVaultToggleAccountV445('${esc(a.id)}')">Restore</button></div></div>`).join(''):'<div class="small">No archived accounts.</div>';
+  if(aa)aa.innerHTML=archivedAccounts.length?archivedAccounts.map(a=>{const canDelete=!a.builtin&&!mmhVaultHasAccountHistory(a.name);return `<div class="mmh-manager-row-v445"><div class="mmh-manager-main-v445"><b>${esc(a.name)}</b><span>${esc(a.currency)} · ${esc(mmhVaultAccountTypeLabel(a.type))} · Archived${mmhVaultHasAccountHistory(a.name)?' · history linked':''}</span></div><div class="mmh-manager-actions-v445"><button class="btn" type="button" onclick="mmhVaultToggleAccountV445('${esc(a.id)}')">Restore</button>${canDelete?`<button class="btn danger" type="button" onclick="mmhVaultDeleteAccountV445('${esc(a.id)}')">Delete</button>`:''}</div></div>`}).join(''):'<div class="small">No archived accounts.</div>';
 }
 function mmhVaultAddAccountV445(){
   const name=String($('mmhNewAccountNameV445')?.value||'').trim(); const currency=$('mmhNewAccountCurrencyV445')?.value||'MMK'; const type=$('mmhNewAccountTypeV445')?.value||'other';
   if(!name){alert('Enter an account name.');return;} if(MMHVAULT_CONFIG.accounts.some(a=>a.name.toLowerCase()===name.toLowerCase())){alert('This account already exists.');return;}
   MMHVAULT_CONFIG.accounts.push({id:'acc_'+Date.now().toString(36),name,currency,type,active:true,builtin:false}); mmhVaultPersistConfig();mmhVaultRebuildConfigArrays();
-  if($('mmhNewAccountNameV445'))$('mmhNewAccountNameV445').value=''; mmhVaultRefreshAccountSelectors();mmhVaultRenderManager();render();
+  if($('mmhNewAccountNameV445'))$('mmhNewAccountNameV445').value=''; mmhVaultRefreshAccountSelectors();mmhVaultRefreshTransactionConfigV445();mmhVaultRenderManager();render();
 }
+function mmhVaultDeleteAccountV445(id){const a=MMHVAULT_CONFIG.accounts.find(x=>x.id===id);if(!a||a.builtin)return;if(mmhVaultHasAccountHistory(a.name)){alert(`Cannot permanently delete ${a.name} because existing records use it. Archive it instead.`);return;}if(!confirm(`Delete ${a.name} permanently? This cannot be undone.`))return;MMHVAULT_CONFIG.accounts=MMHVAULT_CONFIG.accounts.filter(x=>x.id!==id);mmhVaultPersistConfig();mmhVaultRebuildConfigArrays();mmhVaultRefreshAccountSelectors();mmhVaultRefreshTransactionConfigV445();mmhVaultRenderManager();render();}
 function mmhVaultToggleAccountV445(id){const a=MMHVAULT_CONFIG.accounts.find(x=>x.id===id);if(!a)return;if(a.active&&mmhVaultHasAccountHistory(a.name)){if(!confirm(`Archive ${a.name}? Existing transaction history will remain unchanged.`))return;}else if(a.active&&!confirm(`Archive ${a.name}? It will disappear from new transaction selectors, but history will remain.`))return;a.active=!a.active;mmhVaultPersistConfig();mmhVaultRebuildConfigArrays();mmhVaultRefreshAccountSelectors();mmhVaultRenderManager();render();}
 function mmhVaultAddCategoryV445(){
   const name=String($('mmhNewCategoryNameV445')?.value||'').trim(); const group=$('mmhNewCategoryGroupV445')?.value||'Expense';
   if(!name){alert('Enter a category name.');return;} if(group==='Transfer'){alert('Transfer is system-managed.');return;} if((MMHVAULT_CONFIG.categories[group]||[]).some(x=>x.toLowerCase()===name.toLowerCase())){alert('This category already exists in this group.');return;}
   (MMHVAULT_CONFIG.categories[group]||(MMHVAULT_CONFIG.categories[group]=[])).push(name);mmhVaultPersistConfig();mmhVaultRebuildConfigArrays();
-  if($('mmhNewCategoryNameV445'))$('mmhNewCategoryNameV445').value='';updateCategories();mmhVaultRenderManager();render();
+  if($('mmhNewCategoryNameV445'))$('mmhNewCategoryNameV445').value='';updateCategories();mmhVaultRefreshTransactionConfigV445();mmhVaultRenderManager();render();
 }
+function mmhVaultDeleteCategoryV445(group,name){if(mmhVaultIsBuiltinCategory(group,name))return;if(mmhVaultHasCategoryHistory(name)){alert(`Cannot permanently delete ${name} because existing records use it. Archive it instead.`);return;}if(!confirm(`Delete ${name} permanently? This cannot be undone.`))return;MMHVAULT_CONFIG.categories[group]=(MMHVAULT_CONFIG.categories[group]||[]).filter(x=>x!==name);MMHVAULT_CONFIG.archivedCategories[group]=(MMHVAULT_CONFIG.archivedCategories[group]||[]).filter(x=>x!==name);mmhVaultPersistConfig();mmhVaultRebuildConfigArrays();updateCategories();mmhVaultRefreshTransactionConfigV445();mmhVaultRenderManager();render();}
 function mmhVaultArchiveCategoryV445(group,name){if(!CATS[group]?.includes(name))return;if(mmhVaultHasCategoryHistory(name)&&!confirm(`Archive ${name}? Existing transaction history will remain unchanged.`))return;MMHVAULT_CONFIG.categories[group]=MMHVAULT_CONFIG.categories[group].filter(x=>x!==name);(MMHVAULT_CONFIG.archivedCategories[group]||(MMHVAULT_CONFIG.archivedCategories[group]=[])).push(name);mmhVaultPersistConfig();mmhVaultRebuildConfigArrays();updateCategories();mmhVaultRenderManager();render();}
-function mmhVaultRestoreCategoryV445(group,name){if((MMHVAULT_CONFIG.categories[group]||[]).includes(name))return;MMHVAULT_CONFIG.archivedCategories[group]=(MMHVAULT_CONFIG.archivedCategories[group]||[]).filter(x=>x!==name);MMHVAULT_CONFIG.categories[group].push(name);mmhVaultPersistConfig();mmhVaultRebuildConfigArrays();updateCategories();mmhVaultRenderManager();render();}
-window.mmhVaultAddAccountV445=mmhVaultAddAccountV445;window.mmhVaultToggleAccountV445=mmhVaultToggleAccountV445;window.mmhVaultAddCategoryV445=mmhVaultAddCategoryV445;window.mmhVaultArchiveCategoryV445=mmhVaultArchiveCategoryV445;window.mmhVaultRestoreCategoryV445=mmhVaultRestoreCategoryV445;window.mmhVaultRenderManager=mmhVaultRenderManager;
+function mmhVaultRestoreCategoryV445(group,name){if((MMHVAULT_CONFIG.categories[group]||[]).includes(name))return;MMHVAULT_CONFIG.archivedCategories[group]=(MMHVAULT_CONFIG.archivedCategories[group]||[]).filter(x=>x!==name);MMHVAULT_CONFIG.categories[group].push(name);mmhVaultPersistConfig();mmhVaultRebuildConfigArrays();updateCategories();mmhVaultRefreshTransactionConfigV445();mmhVaultRenderManager();render();}
+window.mmhVaultAddAccountV445=mmhVaultAddAccountV445;window.mmhVaultDeleteAccountV445=mmhVaultDeleteAccountV445;window.mmhVaultToggleAccountV445=mmhVaultToggleAccountV445;window.mmhVaultAddCategoryV445=mmhVaultAddCategoryV445;window.mmhVaultDeleteCategoryV445=mmhVaultDeleteCategoryV445;window.mmhVaultArchiveCategoryV445=mmhVaultArchiveCategoryV445;window.mmhVaultRestoreCategoryV445=mmhVaultRestoreCategoryV445;window.mmhVaultRenderManager=mmhVaultRenderManager;
 
 let transactions=[], investments=[], rates={usd_mmk:4400,usd_thb:31.5,usd_cny:7.18}, realtimeReady=false, currentUserEmail="", currentSessionUser=null, currentCustomerId="";
 const $=id=>document.getElementById(id), n=v=>Number(v||0), fmt=v=>n(v).toLocaleString(undefined,{maximumFractionDigits:2}), esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
