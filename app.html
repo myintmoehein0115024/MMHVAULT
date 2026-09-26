@@ -6590,7 +6590,21 @@ async function mmhVaultDeleteAccountV445(id){
   if(mmhVaultHasAccountHistory(a.name)){mmhVaultCustomMessageV449('Account has history',`${a.name} has existing transactions or investment records, so it cannot be permanently deleted. Use Archive instead to keep the history safe.`);return;}
   mmhVaultOpenDialogV449({title:'Delete Account',message:`Delete ${a.name} permanently?`,body:'<div class="mmh-v449-dialog-note">This account has no linked history. Permanent deletion cannot be undone.</div>',actions:[
     {label:'Cancel',onClick:()=>false},{label:'Delete Permanently',className:'danger',onClick:()=>{
-      MMHVAULT_CONFIG.accounts=MMHVAULT_CONFIG.accounts.filter(x=>x.id!==id);mmhVaultPersistConfig();mmhVaultRebuildConfigArrays();mmhVaultRefreshAccountSelectors();mmhVaultRefreshTransactionConfigV445();mmhVaultRenderManager();mmhVaultRefreshDashboardAccountOverviewV449();try{render?.()}catch(_){};return true;
+      MMHVAULT_CONFIG.accounts=MMHVAULT_CONFIG.accounts.filter(x=>x.id!==id);
+      mmhVaultPersistConfig();
+      mmhVaultRebuildConfigArrays();
+
+      /* Close BEFORE any manager/dashboard re-render can replace or retain the
+         dialog DOM. The previous implementation closed only after render(),
+         which is why the modal could remain visible until a full refresh. */
+      mmhVaultCloseDialogV449(true);
+
+      mmhVaultRefreshAccountSelectors();
+      mmhVaultRefreshTransactionConfigV445();
+      mmhVaultRenderManager();
+      mmhVaultRefreshDashboardAccountOverviewV449();
+      try{render?.()}catch(_){}
+      return false;
     }}
   ]});
 }
@@ -7137,7 +7151,7 @@ function renderDashboard(){
   }
   const {A,E,I,L,available}=C.base;
 
-  /* V4.4.16 — Account edit explicitly closes after successful save.
+  /* V4.4.17 — Delete Account closes immediately before UI re-render.
      The previous renderer had the original six accounts hard-coded, so newly-added
      accounts could exist in Settings/Transactions but never appear on Dashboard. */
   const accountConfigSig=hash((MMHVAULT_CONFIG?.accounts||[]).map(a=>[
