@@ -6519,18 +6519,16 @@ function mmhVaultOpenDialogV449({title,message='',body='',actions=[]}={}){
     b.type='button';
     b.textContent=x.label||'OK';
     if(x.className)b.className=x.className;
-    const runAction=async(e)=>{
-      e?.preventDefault?.();
-      e?.stopImmediatePropagation?.();
+    b.onclick=async()=>{
       if(b.dataset.busy==='1')return;
       b.dataset.busy='1';
       try{
         const r=x.onClick?x.onClick():true;
         if(r&&typeof r.then==='function'){
           const resolved=await r;
-          if(resolved!==false || x.closeOnFalse)mmhVaultCloseDialogV449(resolved===false?false:resolved);
-        }else if(r!==false || x.closeOnFalse){
-          mmhVaultCloseDialogV449(r===false?false:r);
+          if(resolved!==false)mmhVaultCloseDialogV449(resolved);
+        }else if(r!==false){
+          mmhVaultCloseDialogV449(r);
         }
       }catch(err){
         console.error('[MMHVAULT] dialog action failed',err);
@@ -6540,7 +6538,6 @@ function mmhVaultOpenDialogV449({title,message='',body='',actions=[]}={}){
         }
       }
     };
-    b.addEventListener('click',runAction,true);
     a.appendChild(b);
   });
   m.style.display='';
@@ -6576,7 +6573,7 @@ function mmhVaultEditAccountV449(id){
     message:`Update ${a.name}`,
     body,
     actions:[
-      {label:'Cancel',closeOnFalse:true,onClick:()=>false},
+      {label:'Cancel',onClick:()=>true},
       {label:'Save Changes',className:'primary',onClick:async()=>{
         const newName=String($('mmhEditAccountNameV449')?.value||'').trim();
         const newCurrency=$('mmhEditAccountCurrencyV449')?.value||a.currency;
@@ -6633,7 +6630,7 @@ async function mmhVaultDeleteAccountV445(id){
   const a=MMHVAULT_CONFIG.accounts.find(x=>x.id===id);if(!a)return;
   if(mmhVaultHasAccountHistory(a.name)){mmhVaultCustomMessageV449('Account has history',`${a.name} has existing transactions or investment records, so it cannot be permanently deleted. Use Archive instead to keep the history safe.`);return;}
   mmhVaultOpenDialogV449({title:'Delete Account',message:`Delete ${a.name} permanently?`,body:'<div class="mmh-v449-dialog-note">This account has no linked history. Permanent deletion cannot be undone.</div>',actions:[
-    {label:'Cancel',onClick:()=>false},{label:'Delete Permanently',className:'danger',onClick:()=>{
+    {label:'Cancel',onClick:()=>true},{label:'Delete Permanently',className:'danger',onClick:()=>{
       MMHVAULT_CONFIG.accounts=MMHVAULT_CONFIG.accounts.filter(x=>x.id!==id);
       mmhVaultPersistConfig();
       mmhVaultRebuildConfigArrays();
@@ -6651,7 +6648,7 @@ async function mmhVaultToggleAccountV445(id){
   const active=a.active;
   if(active){
     mmhVaultOpenDialogV449({title:'Archive Account',message:`Archive ${a.name}?`,body:'<div class="mmh-v449-dialog-note">It will disappear from new transaction selectors, while existing history remains unchanged.</div>',actions:[
-      {label:'Cancel',onClick:()=>false},{label:'Archive',className:'primary',onClick:()=>{
+      {label:'Cancel',onClick:()=>true},{label:'Archive',className:'primary',onClick:()=>{
         a.active=false;mmhVaultPersistConfig();mmhVaultRebuildConfigArrays();mmhVaultRefreshAccountSelectors();mmhVaultRenderManager();mmhVaultRefreshDashboardAccountOverviewV449();try{render?.()}catch(_){};return true;
       }}
     ]});
@@ -6660,7 +6657,7 @@ async function mmhVaultToggleAccountV445(id){
   }
 }
 
-function mmhVaultBindCategoryDialogButtonsV449(){}
+
 
 function mmhVaultEditCategoryV449(group,name){
   const currentGroup=String(group||'');
@@ -6678,7 +6675,7 @@ function mmhVaultEditCategoryV449(group,name){
     message:`Rename ${currentName}`,
     body,
     actions:[
-      {label:'Cancel',closeOnFalse:true,onClick:()=>false},
+      {label:'Cancel',onClick:()=>true},
       {label:'Save Changes',className:'primary',onClick:()=>{
         const input=$('mmhEditCategoryNameV449');
         const newName=String(input?.value||'').trim();
@@ -6710,7 +6707,6 @@ function mmhVaultEditCategoryV449(group,name){
       }}
     ]
   });
-  mmhVaultBindCategoryDialogButtonsV449();
 }
 window.mmhVaultEditCategoryV449=mmhVaultEditCategoryV449;
 
@@ -6738,7 +6734,7 @@ function mmhVaultDeleteCategoryV445(group,name){
     title:'Delete Category',message:`Delete ${name} permanently?`,
     body:'<div class="mmh-v449-dialog-note">This category has no linked history. Permanent deletion cannot be undone.</div>',
     actions:[
-      {label:'Cancel',closeOnFalse:true,onClick:()=>false},
+      {label:'Cancel',onClick:()=>true},
       {label:'Delete Permanently',className:'danger',onClick:()=>{
         MMHVAULT_CONFIG.categories[group]=(MMHVAULT_CONFIG.categories[group]||[]).filter(x=>x!==name);
         MMHVAULT_CONFIG.archivedCategories[group]=(MMHVAULT_CONFIG.archivedCategories[group]||[]).filter(x=>x!==name);
@@ -6748,7 +6744,6 @@ function mmhVaultDeleteCategoryV445(group,name){
       }}
     ]
   });
-  mmhVaultBindCategoryDialogButtonsV449();
 }
 function mmhVaultArchiveCategoryV445(group,name){
   if(!CATS[group]?.includes(name))return;
@@ -6756,18 +6751,16 @@ function mmhVaultArchiveCategoryV445(group,name){
     title:'Archive Category',message:`Archive ${name}?`,
     body:'<div class="mmh-v449-dialog-note">It will disappear from new transaction selectors while historical records remain unchanged.</div>',
     actions:[
-      {label:'Cancel',closeOnFalse:true,onClick:()=>false},
+      {label:'Cancel',onClick:()=>true},
       {label:'Archive',className:'primary',onClick:()=>{
         MMHVAULT_CONFIG.categories[group]=MMHVAULT_CONFIG.categories[group].filter(x=>x!==name);
         (MMHVAULT_CONFIG.archivedCategories[group]||(MMHVAULT_CONFIG.archivedCategories[group]=[])).push(name);
         mmhVaultPersistConfig();
         mmhVaultRefreshCategoryUIV449(group,'');
-        mmhVaultForceHideDialogV449();
         return true;
       }}
     ]
   });
-  mmhVaultBindCategoryDialogButtonsV449();
 }
 function mmhVaultRestoreCategoryV445(group,name){
   if((MMHVAULT_CONFIG.categories[group]||[]).includes(name))return;
