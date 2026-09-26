@@ -6464,6 +6464,7 @@ function mmhVaultRefreshCategoryUIV449(preferredGroup='', preferredName=''){
     mmhVaultRebuildConfigArrays();
     mmhVaultRenderManager();
     mmhVaultSyncTransactionCategoriesV450();
+    window.dispatchEvent(new Event('mmhvault:category-config-changed'));
     const txType=$('txType'),txGroup=$('txGroup'),txCategory=$('txCategory');
     if(preferredGroup&&txType&&txGroup&&txCategory){
       const effectiveGroup=(preferredGroup==='LoanIncome'||preferredGroup==='LoanExpense')?'Loans':preferredGroup==='Personal'?'Personal':preferredGroup;
@@ -17493,7 +17494,10 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
   window.__mmhV34430TxCascadeHotfix=true;
 
   const $=id=>document.getElementById(id);
-  const OPTIONS={
+  // Transaction Category must read the live Category Manager configuration.
+  // The previous hotfix kept a hard-coded OPTIONS object, so newly-created
+  // Personal / Loan Income / Loan Expense categories never reached Transactions.
+  const DEFAULT_OPTIONS={
     Income:['Salary','Meal Allowance','Bonus','Other Income'],
     Expense:['Dining','Snacks','Smoking','Transport','Wellness','Lifestyle','Other'],
     Personal:['Family Support','Special Transfer','Gifts','Donation'],
@@ -17501,6 +17505,15 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
     LoanExpense:['PaidDeb','Loan Out'],
     Transfer:['Transfer']
   };
+  function liveOptions(key){
+    try{
+      const live=window.MMHVAULT_CONFIG?.categories?.[key];
+      if(Array.isArray(live))return live.slice();
+      const cats=window.CATS?.[key];
+      if(Array.isArray(cats))return cats.slice();
+    }catch(e){}
+    return (DEFAULT_OPTIONS[key]||[]).slice();
+  }
   const GROUPS={Income:['Income','Loans'],Expense:['Expense','Personal','Loans'],Transfer:['Transfer']};
 
   function replaceSelect(id,values,preferred){
@@ -17524,9 +17537,10 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
   }
 
   function categoriesFor(type,group){
-    if(type==='Transfer')return OPTIONS.Transfer;
-    if(group==='Loans')return type==='Income'?OPTIONS.LoanIncome:OPTIONS.LoanExpense;
-    return OPTIONS[group]||['Other'];
+    if(type==='Transfer')return liveOptions('Transfer');
+    if(group==='Loans')return type==='Income'?liveOptions('LoanIncome'):liveOptions('LoanExpense');
+    if(type==='Expense' && group==='Personal')return liveOptions('Personal');
+    return liveOptions(group)||['Other'];
   }
 
   function applyLocks(){
@@ -17568,6 +17582,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
   }
 
   function stabilize(){
+    try{window.mmhVaultRebuildConfigArrays?.();}catch(e){}
     bind();
   }
 
@@ -17575,7 +17590,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
   else stabilize();
 
   // Legacy language/data hooks can still attempt to rewrite the selects; run last and restore one source of truth.
-  ['mmhvault-language-change','mmhvault:data-loaded','mmhvault:cache-restored','mmhvault:sync-complete'].forEach(ev=>{
+  ['mmhvault-language-change','mmhvault:data-loaded','mmhvault:cache-restored','mmhvault:sync-complete','mmhvault:category-config-changed'].forEach(ev=>{
     window.addEventListener(ev,()=>setTimeout(stabilize,0));
   });
 
