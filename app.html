@@ -7425,8 +7425,37 @@ async function fetchCryptoPrices(){
 function renderCryptoPrices(){const symbols=["BTC","ETH","SOL","BNB"];cryptoPrices.innerHTML=symbols.map(s=>{const p=livePrices[s];return`<div class="price-card"><div class="symbol">${s}</div><div class="price">${p&&Number.isFinite(p.price)?"$"+fmt(p.price):"Unavailable"}</div><div class="change ${p&&p.change>=0?"green":"red"}">${p&&Number.isFinite(p.change)?(p.change>=0?"+":"")+p.change.toFixed(2)+"% 24h":"Market feed unavailable"}</div></div>`}).join("");}
 try{marketStatus?.addEventListener("click",()=>fetchCryptoPrices());marketStatus?.setAttribute("role","button");marketStatus?.setAttribute("title","Click to refresh market prices");}catch(_e){}
 let cryptoExplorerCoins=[];let cryptoExplorerLoaded=false;
-async function loadCryptoExplorer(){const status=$("cryptoExplorerStatus"),list=$("cryptoExplorerList");if(cryptoExplorerLoaded){renderCryptoExplorer();return;}status.textContent="Loading…";list.innerHTML='<div class="crypto-explorer-empty">Loading market data…</div>';try{const r=await fetch("https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=false&price_change_percentage=24h",{cache:"no-store"});if(!r.ok)throw new Error("HTTP "+r.status);cryptoExplorerCoins=await r.json();cryptoExplorerLoaded=true;status.textContent=`${cryptoExplorerCoins.length} coins`;renderCryptoExplorer();}catch(e){status.textContent="Unavailable";list.innerHTML='<div class="crypto-explorer-empty">Unable to load the additional market list right now. Please try again.</div>';}}
-function renderCryptoExplorer(){const list=$("cryptoExplorerList"),q=($("cryptoExplorerSearch")?.value||"").trim().toLowerCase();const rows=cryptoExplorerCoins.filter(c=>!q||c.symbol.toLowerCase().includes(q)||c.name.toLowerCase().includes(q)).slice(0,100);if(!rows.length){list.innerHTML='<div class="crypto-explorer-empty">No matching cryptocurrency found.</div>';return;}list.innerHTML=rows.map((c,i)=>{const price=Number(c.current_price);const ch=Number(c.price_change_percentage_24h||0);return`<div class="crypto-explorer-row"><div class="crypto-explorer-name"><span class="crypto-explorer-rank">#${i+1}</span><div><div class="crypto-explorer-symbol">${String(c.symbol||"").toUpperCase()}</div><div class="crypto-explorer-full">${c.name||"Unknown"}</div></div></div><div class="crypto-explorer-price">${Number.isFinite(price)?"$"+fmt(price):"—"}</div><div class="crypto-explorer-change ${ch>=0?"up":"down"}">${Number.isFinite(ch)?(ch>=0?"+":"")+ch.toFixed(2)+"%":"—"}</div></div>`}).join("");}
+async function loadCryptoExplorer(){
+  const status=$("cryptoExplorerStatus"),list=$("cryptoExplorerList");
+  if(cryptoExplorerLoaded){renderCryptoExplorer();return;}
+  status.textContent="Loading…";list.innerHTML='<div class="crypto-explorer-empty">Loading market data…</div>';
+  const normalize=(rows)=>rows.filter(Boolean).map((c,i)=>({id:c.id||String(c.symbol||'').toLowerCase(),symbol:String(c.symbol||'').toLowerCase(),name:c.name||String(c.symbol||'').toUpperCase(),current_price:Number(c.current_price),price_change_percentage_24h:Number(c.price_change_percentage_24h||0),market_cap_rank:Number(c.market_cap_rank||i+1)})).filter(c=>c.symbol&&Number.isFinite(c.current_price));
+  try{
+    const r=await fetch("https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=false&price_change_percentage=24h",{cache:"no-store"});
+    if(!r.ok)throw new Error("CoinGecko HTTP "+r.status);
+    const d=await r.json();
+    cryptoExplorerCoins=normalize(d);cryptoExplorerLoaded=true;status.textContent=`${cryptoExplorerCoins.length} coins`;renderCryptoExplorer();return;
+  }catch(e){console.warn("CoinGecko explorer unavailable, trying CoinCap:",e);}
+  try{
+    const r=await fetch("https://api.coincap.io/v2/assets?limit=100",{cache:"no-store"});
+    if(!r.ok)throw new Error("CoinCap HTTP "+r.status);
+    const d=await r.json();
+    cryptoExplorerCoins=normalize((d.data||[]).map((c,i)=>({id:c.id,symbol:c.symbol,name:c.name,current_price:c.priceUsd,price_change_percentage_24h:c.changePercent24Hr,market_cap_rank:c.rank||i+1})));
+    if(!cryptoExplorerCoins.length)throw new Error("CoinCap returned no usable coins");
+    cryptoExplorerLoaded=true;status.textContent=`${cryptoExplorerCoins.length} coins`;renderCryptoExplorer();return;
+  }catch(e){console.warn("CoinCap explorer unavailable, trying Binance:",e);}
+  try{
+    const r=await fetch("https://api.binance.com/api/v3/ticker/24hr",{cache:"no-store"});
+    if(!r.ok)throw new Error("Binance HTTP "+r.status);
+    const rows=await r.json();
+    const known={BTC:'Bitcoin',ETH:'Ethereum',USDT:'Tether',BNB:'BNB',XRP:'XRP',USDC:'USDC',SOL:'Solana',TRX:'TRON',DOGE:'Dogecoin',ADA:'Cardano',AVAX:'Avalanche',LINK:'Chainlink',DOT:'Polkadot',MATIC:'Polygon',LTC:'Litecoin',BCH:'Bitcoin Cash',UNI:'Uniswap',ATOM:'Cosmos',ETC:'Ethereum Classic',XLM:'Stellar',NEAR:'NEAR Protocol',APT:'Aptos',SUI:'Sui',FIL:'Filecoin',ALGO:'Algorand',AAVE:'Aave',ARB:'Arbitrum',OP:'Optimism',PEPE:'Pepe',SHIB:'Shiba Inu',ICP:'Internet Computer',HBAR:'Hedera',VET:'VeChain',MKR:'Maker',RUNE:'THORChain',GRT:'The Graph',INJ:'Injective',SEI:'Sei',TIA:'Celestia',WLD:'Worldcoin',JUP:'Jupiter',RENDER:'Render'};
+    cryptoExplorerCoins=rows.filter(x=>/USDT$/i.test(x.symbol)&&Number(x.lastPrice)>0).sort((a,b)=>Number(b.quoteVolume||0)-Number(a.quoteVolume||0)).slice(0,100).map((x,i)=>{const sym=String(x.symbol).replace(/USDT$/i,'').toUpperCase();return{id:sym.toLowerCase(),symbol:sym.toLowerCase(),name:known[sym]||sym,current_price:Number(x.lastPrice),price_change_percentage_24h:Number(x.priceChangePercent||0),market_cap_rank:i+1};});
+    if(!cryptoExplorerCoins.length)throw new Error("Binance returned no USDT markets");
+    cryptoExplorerLoaded=true;status.textContent=`${cryptoExplorerCoins.length} coins · Binance`;renderCryptoExplorer();return;
+  }catch(e){console.warn("All explorer feeds unavailable:",e);}
+  status.textContent="Unavailable";list.innerHTML='<div class="crypto-explorer-empty">Market list is temporarily unavailable. Check your connection and try again.</div>';
+}
+function renderCryptoExplorer(){const list=$("cryptoExplorerList"),q=($("cryptoExplorerSearch")?.value||"").trim().toLowerCase();const rows=cryptoExplorerCoins.filter(c=>!q||c.symbol.toLowerCase().includes(q)||c.name.toLowerCase().includes(q)).slice(0,100);if(!rows.length){list.innerHTML='<div class="crypto-explorer-empty">No matching cryptocurrency found.</div>';return;}list.innerHTML=rows.map((c,i)=>{const price=Number(c.current_price);const ch=Number(c.price_change_percentage_24h||0);return`<div class="crypto-explorer-row"><div class="crypto-explorer-name"><span class="crypto-explorer-rank">#${Number(c.market_cap_rank)||i+1}</span><div><div class="crypto-explorer-symbol">${String(c.symbol||"").toUpperCase()}</div><div class="crypto-explorer-full">${c.name||"Unknown"}</div></div></div><div class="crypto-explorer-price">${Number.isFinite(price)?"$"+fmt(price):"—"}</div><div class="crypto-explorer-change ${ch>=0?"up":"down"}">${Number.isFinite(ch)?(ch>=0?"+":"")+ch.toFixed(2)+"%":"—"}</div></div>`}).join("");}
 function openCryptoExplorer(){const modal=$("cryptoExplorer");if(!modal)return;modal.classList.add("open");modal.setAttribute("aria-hidden","false");document.body.classList.add("crypto-explorer-open");$("cryptoExplorerSearch").value="";loadCryptoExplorer();setTimeout(()=>$("cryptoExplorerSearch")?.focus(),60);}
 function closeCryptoExplorer(){const modal=$("cryptoExplorer");if(!modal)return;modal.classList.remove("open");modal.setAttribute("aria-hidden","true");document.body.classList.remove("crypto-explorer-open");}
 
