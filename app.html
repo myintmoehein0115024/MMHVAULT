@@ -6423,6 +6423,8 @@ function mmhVaultRebuildConfigArrays(){
   try{if(window.__mmhDashV34242Cache)window.__mmhDashV34242Cache.accountSig=null;}catch(_){}
   ACC=MMHVAULT_CONFIG.accounts.filter(a=>a.active!==false).map(a=>a.name);
   CATS=Object.fromEntries(Object.entries(MMHVAULT_CONFIG.categories).map(([k,v])=>[k,[...v]]));
+  // Keep the legacy combined Loans list synchronized with the dynamic manager.
+  CATS.Loans=[...(CATS.LoanIncome||[]),...(CATS.LoanExpense||[])];
   window.ACC=ACC; window.CATS=CATS;
 }
 function mmhVaultAccountMeta(name){
@@ -6461,7 +6463,7 @@ function mmhVaultRefreshCategoryUIV449(preferredGroup='', preferredName=''){
   try{
     mmhVaultRebuildConfigArrays();
     mmhVaultRenderManager();
-    mmhVaultRefreshTransactionConfigV445();
+    mmhVaultSyncTransactionCategoriesV450();
     const txType=$('txType'),txGroup=$('txGroup'),txCategory=$('txCategory');
     if(preferredGroup&&txType&&txGroup&&txCategory){
       const effectiveGroup=(preferredGroup==='LoanIncome'||preferredGroup==='LoanExpense')?'Loans':preferredGroup;
@@ -6706,7 +6708,7 @@ function mmhVaultRestoreCategoryV445(group,name){
   mmhVaultPersistConfig();
   mmhVaultRefreshCategoryUIV449(group,name);
 }
-window.mmhVaultAddAccountV445=mmhVaultAddAccountV445;window.mmhVaultDeleteAccountV445=mmhVaultDeleteAccountV445;window.mmhVaultToggleAccountV445=mmhVaultToggleAccountV445;window.mmhVaultEditAccountV449=mmhVaultEditAccountV449;window.mmhVaultAddCategoryV445=mmhVaultAddCategoryV445;window.mmhVaultDeleteCategoryV445=mmhVaultDeleteCategoryV445;window.mmhVaultArchiveCategoryV445=mmhVaultArchiveCategoryV445;window.mmhVaultRestoreCategoryV445=mmhVaultRestoreCategoryV445;window.mmhVaultRenderManager=mmhVaultRenderManager;
+window.mmhVaultAddAccountV445=mmhVaultAddAccountV445;window.mmhVaultDeleteAccountV445=mmhVaultDeleteAccountV445;window.mmhVaultSyncTransactionCategoriesV450=mmhVaultSyncTransactionCategoriesV450;window.mmhVaultToggleAccountV445=mmhVaultToggleAccountV445;window.mmhVaultEditAccountV449=mmhVaultEditAccountV449;window.mmhVaultAddCategoryV445=mmhVaultAddCategoryV445;window.mmhVaultDeleteCategoryV445=mmhVaultDeleteCategoryV445;window.mmhVaultArchiveCategoryV445=mmhVaultArchiveCategoryV445;window.mmhVaultRestoreCategoryV445=mmhVaultRestoreCategoryV445;window.mmhVaultRenderManager=mmhVaultRenderManager;
 
 
 /* V4.4.9 — Dynamic account dashboard sync */
@@ -6781,6 +6783,7 @@ document.addEventListener('visibilitychange',()=>{
 mmhVaultRefreshAccountSelectors();
 $("txType").onchange=()=>{syncTransactionGroup();updateCategories();};$("txGroup").onchange=updateCategories;updateCategories();
 if($("authForm"))$("authForm").onsubmit=auth;if($("txForm"))$("txForm").onsubmit=addTransaction;if($("invForm"))$("invForm").onsubmit=addInvestment;if($("month"))$("month").onchange=scheduleRenderV3441;
+document.addEventListener("click",e=>{const b=e.target.closest?.("#bottomNav [data-page]");if(!b)return; if(b.dataset.page==="transactions") setTimeout(()=>window.mmhVaultSyncTransactionCategoriesV450?.(),0);},{capture:false});
 document.addEventListener("click",e=>{const b=e.target.closest?.("#bottomNav [data-page]");if(!b)return;e.preventDefault();e.stopPropagation();setPage(b.dataset.page);},{capture:true});
 }
 let mmhvaultAuthMode="signin";
@@ -6960,17 +6963,39 @@ g.value=groups.includes(current)?current:groups[0];
 g.disabled=type==="Transfer";
 }
 function updateCategories(){
-const type=$("txType").value, group=$("txGroup").value;
+const type=$("txType").value, group=$("txGroup").value, category=$("txCategory");
+if(!category)return;
 if(type==="Transfer"){
-  $("txCategory").innerHTML="<option>Transfer</option>";
+  category.innerHTML="<option>Transfer</option>";
   $("txGroup").disabled=true;
 }else{
   $("txGroup").disabled=false;
-  const list=group==="Loans"?(type==="Income"?CATS.LoanIncome:CATS.LoanExpense):(CATS[group]||[]);
-  $("txCategory").innerHTML=list.map(x=>`<option>${x}</option>`).join("");
+  // Read the live dynamic configuration first. This is the single source of truth
+  // for Category Manager -> Transactions, so newly added categories are available
+  // immediately without a full page reload.
+  const live=MMHVAULT_CONFIG?.categories||{};
+  const list=group==="Loans"
+    ? (type==="Income" ? (live.LoanIncome||CATS.LoanIncome||[]) : (live.LoanExpense||CATS.LoanExpense||[]))
+    : (live[group]||CATS[group]||[]);
+  const previous=category.value;
+  category.innerHTML=list.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join("");
+  if([...category.options].some(o=>o.value===previous))category.value=previous;
 }
 updateAccountLocks();
 }
+function mmhVaultSyncTransactionCategoriesV450(){
+  try{
+    mmhVaultRebuildConfigArrays();
+    const type=$("txType"),group=$("txGroup"),category=$("txCategory");
+    if(!type||!group||!category)return;
+    const oldType=type.value,oldGroup=group.value,oldCategory=category.value;
+    syncTransactionGroup();
+    if([...group.options].some(o=>o.value===oldGroup))group.value=oldGroup;
+    updateCategories();
+    if([...category.options].some(o=>o.value===oldCategory))category.value=oldCategory;
+  }catch(e){console.warn('[MMHVAULT] transaction category sync failed',e);}
+}
+
 function updateAccountLocks(){
 const type=$("txType").value;
 const fromOff=type==="Income", toOff=type==="Expense";
