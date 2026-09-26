@@ -7388,8 +7388,42 @@ if($("invReceiptHint")){$("invReceiptHint").textContent='No file selected';$("in
 await loadAll();
 window.refreshInvestmentReceiptFlagsV3304?.();
 }
-async function fetchCryptoPrices(){try{const ids="bitcoin,ethereum,solana,binancecoin,ripple,dogecoin,cardano,tron";const r=await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true`,{cache:"no-store"});if(!r.ok)throw new Error("HTTP "+r.status);const d=await r.json();const map={BTC:d.bitcoin,ETH:d.ethereum,SOL:d.solana,BNB:d.binancecoin,XRP:d.ripple,DOGE:d.dogecoin,ADA:d.cardano,TRX:d.tron};livePrices=Object.fromEntries(Object.entries(map).map(([k,v])=>[k,v&&{price:Number(v.usd),change:Number(v.usd_24h_change||0)}]));marketStatus.textContent="Live · 4 featured coins";renderCryptoPrices();if(invAsset.value==="Crypto")updateInvestFields();if(document.getElementById("dashboard")?.classList.contains("active"))renderDashboard();if(document.getElementById("invest")?.classList.contains("active"))renderInvest();try{window.dispatchEvent(new CustomEvent('mmhvault:market-updated'));}catch(_e){}}catch(e){marketStatus.textContent="Feed unavailable · using saved prices";renderCryptoPrices();}}
+async function fetchCryptoPrices(){
+  const symbols=["BTC","ETH","SOL","BNB","XRP","DOGE","ADA","TRX"];
+  const apply=(map,status)=>{
+    livePrices=Object.fromEntries(symbols.map(k=>[k,map[k]||livePrices[k]||null]));
+    marketStatus.textContent=status;
+    renderCryptoPrices();
+    if(invAsset.value==="Crypto")updateInvestFields();
+    if(document.getElementById("dashboard")?.classList.contains("active"))renderDashboard();
+    if(document.getElementById("invest")?.classList.contains("active"))renderInvest();
+    try{window.dispatchEvent(new CustomEvent('mmhvault:market-updated'));}catch(_e){}
+  };
+  try{
+    const ids="bitcoin,ethereum,solana,binancecoin,ripple,dogecoin,cardano,tron";
+    const r=await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true`,{cache:"no-store"});
+    if(!r.ok)throw new Error("CoinGecko HTTP "+r.status);
+    const d=await r.json();
+    const map={BTC:d.bitcoin,ETH:d.ethereum,SOL:d.solana,BNB:d.binancecoin,XRP:d.ripple,DOGE:d.dogecoin,ADA:d.cardano,TRX:d.tron};
+    apply(Object.fromEntries(Object.entries(map).map(([k,v])=>[k,v&&{price:Number(v.usd),change:Number(v.usd_24h_change||0)}])),"Live · 4 featured coins");
+    return;
+  }catch(e){console.warn("CoinGecko market feed unavailable, trying Binance fallback:",e);}
+  try{
+    const pairSymbols=symbols.map(s=>`\"${s}USDT\"`).join(",");
+    const r=await fetch(`https://api.binance.com/api/v3/ticker/24hr?symbols=[${pairSymbols}]`,{cache:"no-store"});
+    if(!r.ok)throw new Error("Binance HTTP "+r.status);
+    const rows=await r.json();
+    const map={};
+    rows.forEach(x=>{const k=String(x.symbol||"").replace(/USDT$/i,"").toUpperCase();if(symbols.includes(k))map[k]={price:Number(x.lastPrice),change:Number(x.priceChangePercent||0)};});
+    if(!Object.keys(map).length)throw new Error("No supported Binance pairs returned");
+    apply(map,"Live · Binance fallback");
+    return;
+  }catch(e){console.warn("Binance market feed unavailable:",e);}
+  marketStatus.textContent="Feed unavailable · using saved prices";
+  renderCryptoPrices();
+}
 function renderCryptoPrices(){const symbols=["BTC","ETH","SOL","BNB"];cryptoPrices.innerHTML=symbols.map(s=>{const p=livePrices[s];return`<div class="price-card"><div class="symbol">${s}</div><div class="price">${p&&Number.isFinite(p.price)?"$"+fmt(p.price):"Unavailable"}</div><div class="change ${p&&p.change>=0?"green":"red"}">${p&&Number.isFinite(p.change)?(p.change>=0?"+":"")+p.change.toFixed(2)+"% 24h":"Market feed unavailable"}</div></div>`}).join("");}
+try{marketStatus?.addEventListener("click",()=>fetchCryptoPrices());marketStatus?.setAttribute("role","button");marketStatus?.setAttribute("title","Click to refresh market prices");}catch(_e){}
 let cryptoExplorerCoins=[];let cryptoExplorerLoaded=false;
 async function loadCryptoExplorer(){const status=$("cryptoExplorerStatus"),list=$("cryptoExplorerList");if(cryptoExplorerLoaded){renderCryptoExplorer();return;}status.textContent="Loading…";list.innerHTML='<div class="crypto-explorer-empty">Loading market data…</div>';try{const r=await fetch("https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=false&price_change_percentage=24h",{cache:"no-store"});if(!r.ok)throw new Error("HTTP "+r.status);cryptoExplorerCoins=await r.json();cryptoExplorerLoaded=true;status.textContent=`${cryptoExplorerCoins.length} coins`;renderCryptoExplorer();}catch(e){status.textContent="Unavailable";list.innerHTML='<div class="crypto-explorer-empty">Unable to load the additional market list right now. Please try again.</div>';}}
 function renderCryptoExplorer(){const list=$("cryptoExplorerList"),q=($("cryptoExplorerSearch")?.value||"").trim().toLowerCase();const rows=cryptoExplorerCoins.filter(c=>!q||c.symbol.toLowerCase().includes(q)||c.name.toLowerCase().includes(q)).slice(0,100);if(!rows.length){list.innerHTML='<div class="crypto-explorer-empty">No matching cryptocurrency found.</div>';return;}list.innerHTML=rows.map((c,i)=>{const price=Number(c.current_price);const ch=Number(c.price_change_percentage_24h||0);return`<div class="crypto-explorer-row"><div class="crypto-explorer-name"><span class="crypto-explorer-rank">#${i+1}</span><div><div class="crypto-explorer-symbol">${String(c.symbol||"").toUpperCase()}</div><div class="crypto-explorer-full">${c.name||"Unknown"}</div></div></div><div class="crypto-explorer-price">${Number.isFinite(price)?"$"+fmt(price):"—"}</div><div class="crypto-explorer-change ${ch>=0?"up":"down"}">${Number.isFinite(ch)?(ch>=0?"+":"")+ch.toFixed(2)+"%":"—"}</div></div>`}).join("");}
