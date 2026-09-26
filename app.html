@@ -6514,10 +6514,26 @@ function mmhVaultOpenDialogV449({title,message='',body='',actions=[]}={}){
     };
     a.appendChild(b);
   });
+  m.style.display='';
   m.classList.add('show');m.setAttribute('aria-hidden','false');
   return new Promise(resolve=>{m._resolver=resolve;});
 }
 window.mmhVaultCloseDialogV449=()=>mmhVaultCloseDialogV449(false);
+function mmhVaultForceHideDialogV449(){
+  const m=$('mmhVaultDialogV449');
+  if(!m)return;
+  m.classList.remove('show');
+  m.setAttribute('aria-hidden','true');
+  m.style.display='none';
+  setTimeout(()=>{
+    const live=$('mmhVaultDialogV449');
+    if(live){
+      live.classList.remove('show');
+      live.setAttribute('aria-hidden','true');
+      live.style.display='';
+    }
+  },0);
+}
 
 function mmhVaultEditAccountV449(id){
   const a=MMHVAULT_CONFIG.accounts.find(x=>x.id===id); if(!a)return;
@@ -6554,11 +6570,10 @@ function mmhVaultEditAccountV449(id){
           }
           a.name=newName;a.currency=newCurrency;a.type=newType;
           mmhVaultPersistConfig();mmhVaultRebuildConfigArrays();
-          mmhVaultRefreshAccountSelectors();mmhVaultRefreshTransactionConfigV445();mmhVaultRenderManager();
-          mmhVaultRefreshDashboardAccountOverviewV449();
-          try{render?.()}catch(_){}
-          /* Explicit close after a confirmed successful save. */
-          mmhVaultCloseDialogV449(true);
+          mmhVaultRefreshAccountSelectors();
+          mmhVaultRefreshTransactionConfigV445();
+          mmhVaultRenderManager();
+          mmhVaultForceHideDialogV449();
           return false;
         }catch(err){
           console.error('Account edit failed:',err);
@@ -6594,16 +6609,10 @@ async function mmhVaultDeleteAccountV445(id){
       mmhVaultPersistConfig();
       mmhVaultRebuildConfigArrays();
 
-      /* Close BEFORE any manager/dashboard re-render can replace or retain the
-         dialog DOM. The previous implementation closed only after render(),
-         which is why the modal could remain visible until a full refresh. */
-      mmhVaultCloseDialogV449(true);
-
       mmhVaultRefreshAccountSelectors();
       mmhVaultRefreshTransactionConfigV445();
       mmhVaultRenderManager();
-      mmhVaultRefreshDashboardAccountOverviewV449();
-      try{render?.()}catch(_){}
+      mmhVaultForceHideDialogV449();
       return false;
     }}
   ]});
@@ -7151,7 +7160,7 @@ function renderDashboard(){
   }
   const {A,E,I,L,available}=C.base;
 
-  /* V4.4.17 — Delete Account closes immediately before UI re-render.
+  /* V4.4.18 — Account edit/delete avoid recursive dashboard render and force-hide mutation dialogs.
      The previous renderer had the original six accounts hard-coded, so newly-added
      accounts could exist in Settings/Transactions but never appear on Dashboard. */
   const accountConfigSig=hash((MMHVAULT_CONFIG?.accounts||[]).map(a=>[
