@@ -6457,6 +6457,21 @@ function mmhVaultRefreshTransactionConfigV445(){
     if([...categoryEl.options].some(o=>o.value===oldCategory))categoryEl.value=oldCategory;
   }catch(e){console.warn('Transaction selector refresh failed',e);}
 }
+function mmhVaultRefreshCategoryUIV449(preferredGroup='', preferredName=''){
+  try{
+    mmhVaultRebuildConfigArrays();
+    mmhVaultRenderManager();
+    mmhVaultRefreshTransactionConfigV445();
+    const txType=$('txType'),txGroup=$('txGroup'),txCategory=$('txCategory');
+    if(preferredGroup&&txType&&txGroup&&txCategory){
+      const effectiveGroup=(preferredGroup==='LoanIncome'||preferredGroup==='LoanExpense')?'Loans':preferredGroup;
+      const effectiveType=preferredGroup==='LoanIncome'?'Income':preferredGroup==='LoanExpense'?'Expense':preferredGroup;
+      if(txType.value===effectiveType&&txGroup.value===effectiveGroup&&[...txCategory.options].some(o=>o.value===preferredName)){
+        txCategory.value=preferredName;
+      }
+    }
+  }catch(e){console.warn('[MMHVAULT] category UI refresh failed',e);}
+}
 function mmhVaultAccountTypeLabel(t){return ({cash:'Cash',wallet:'Wallet',bank:'Bank',credit:'Credit Card',crypto:'Crypto',investment:'Investment',other:'Other'}[t]||'Other');}
 function mmhVaultRenderManager(){
   const host=$('mmhDataManagerV445'); if(!host)return;
@@ -6631,31 +6646,66 @@ async function mmhVaultToggleAccountV445(id){
   }
 }
 function mmhVaultAddCategoryV445(){
-  const name=String($('mmhNewCategoryNameV445')?.value||'').trim(); const group=$('mmhNewCategoryGroupV445')?.value||'Expense';
+  const name=String($('mmhNewCategoryNameV445')?.value||'').trim();
+  const group=$('mmhNewCategoryGroupV445')?.value||'Expense';
   if(!name){mmhVaultCustomMessageV449('Add Category','Please enter a category name.');return;}
   if(group==='Transfer'){mmhVaultCustomMessageV449('System Category','Transfer is system-managed.');return;}
-  if((MMHVAULT_CONFIG.categories[group]||[]).some(x=>x.toLowerCase()===name.toLowerCase())){mmhVaultCustomMessageV449('Category already exists',`${name} is already in this group.`);return;}
-  (MMHVAULT_CONFIG.categories[group]||(MMHVAULT_CONFIG.categories[group]=[])).push(name);mmhVaultPersistConfig();mmhVaultRebuildConfigArrays();
-  if($('mmhNewCategoryNameV445'))$('mmhNewCategoryNameV445').value='';updateCategories();mmhVaultRefreshTransactionConfigV445();mmhVaultRenderManager();try{render?.()}catch(_){}
+  if((MMHVAULT_CONFIG.categories[group]||[]).some(x=>x.toLowerCase()===name.toLowerCase())){
+    mmhVaultCustomMessageV449('Category already exists',`${name} is already in this group.`);
+    return;
+  }
+  (MMHVAULT_CONFIG.categories[group]||(MMHVAULT_CONFIG.categories[group]=[])).push(name);
+  mmhVaultPersistConfig();
+  if($('mmhNewCategoryNameV445'))$('mmhNewCategoryNameV445').value='';
+  mmhVaultRefreshCategoryUIV449(group,name);
 }
 function mmhVaultDeleteCategoryV445(group,name){
   if(mmhVaultIsBuiltinCategory(group,name))return;
-  if(mmhVaultHasCategoryHistory(name)){mmhVaultCustomMessageV449('Category has history',`${name} has existing records, so it cannot be permanently deleted. Use Archive instead.`);return;}
-  mmhVaultOpenDialogV449({title:'Delete Category',message:`Delete ${name} permanently?`,body:'<div class="mmh-v449-dialog-note">This category has no linked history. Permanent deletion cannot be undone.</div>',actions:[
-    {label:'Cancel',onClick:()=>false},{label:'Delete Permanently',className:'danger',onClick:()=>{
-      MMHVAULT_CONFIG.categories[group]=(MMHVAULT_CONFIG.categories[group]||[]).filter(x=>x!==name);MMHVAULT_CONFIG.archivedCategories[group]=(MMHVAULT_CONFIG.archivedCategories[group]||[]).filter(x=>x!==name);mmhVaultPersistConfig();mmhVaultRebuildConfigArrays();updateCategories();mmhVaultRefreshTransactionConfigV445();mmhVaultRenderManager();try{render?.()}catch(_){};return true;
-    }}
-  ]});
+  if(mmhVaultHasCategoryHistory(name)){
+    mmhVaultCustomMessageV449('Category has history',`${name} has existing records, so it cannot be permanently deleted. Use Archive instead.`);
+    return;
+  }
+  mmhVaultOpenDialogV449({
+    title:'Delete Category',message:`Delete ${name} permanently?`,
+    body:'<div class="mmh-v449-dialog-note">This category has no linked history. Permanent deletion cannot be undone.</div>',
+    actions:[
+      {label:'Cancel',onClick:()=>false},
+      {label:'Delete Permanently',className:'danger',onClick:()=>{
+        MMHVAULT_CONFIG.categories[group]=(MMHVAULT_CONFIG.categories[group]||[]).filter(x=>x!==name);
+        MMHVAULT_CONFIG.archivedCategories[group]=(MMHVAULT_CONFIG.archivedCategories[group]||[]).filter(x=>x!==name);
+        mmhVaultPersistConfig();
+        mmhVaultRefreshCategoryUIV449(group,'');
+        mmhVaultForceHideDialogV449();
+        return false;
+      }}
+    ]
+  });
 }
 function mmhVaultArchiveCategoryV445(group,name){
   if(!CATS[group]?.includes(name))return;
-  mmhVaultOpenDialogV449({title:'Archive Category',message:`Archive ${name}?`,body:'<div class="mmh-v449-dialog-note">It will disappear from new transaction selectors while historical records remain unchanged.</div>',actions:[
-    {label:'Cancel',onClick:()=>false},{label:'Archive',className:'primary',onClick:()=>{
-      MMHVAULT_CONFIG.categories[group]=MMHVAULT_CONFIG.categories[group].filter(x=>x!==name);(MMHVAULT_CONFIG.archivedCategories[group]||(MMHVAULT_CONFIG.archivedCategories[group]=[])).push(name);mmhVaultPersistConfig();mmhVaultRebuildConfigArrays();updateCategories();mmhVaultRefreshTransactionConfigV445();mmhVaultRenderManager();try{render?.()}catch(_){};return true;
-    }}
-  ]});
+  mmhVaultOpenDialogV449({
+    title:'Archive Category',message:`Archive ${name}?`,
+    body:'<div class="mmh-v449-dialog-note">It will disappear from new transaction selectors while historical records remain unchanged.</div>',
+    actions:[
+      {label:'Cancel',onClick:()=>false},
+      {label:'Archive',className:'primary',onClick:()=>{
+        MMHVAULT_CONFIG.categories[group]=MMHVAULT_CONFIG.categories[group].filter(x=>x!==name);
+        (MMHVAULT_CONFIG.archivedCategories[group]||(MMHVAULT_CONFIG.archivedCategories[group]=[])).push(name);
+        mmhVaultPersistConfig();
+        mmhVaultRefreshCategoryUIV449(group,'');
+        mmhVaultForceHideDialogV449();
+        return false;
+      }}
+    ]
+  });
 }
-function mmhVaultRestoreCategoryV445(group,name){if((MMHVAULT_CONFIG.categories[group]||[]).includes(name))return;MMHVAULT_CONFIG.archivedCategories[group]=(MMHVAULT_CONFIG.archivedCategories[group]||[]).filter(x=>x!==name);MMHVAULT_CONFIG.categories[group].push(name);mmhVaultPersistConfig();mmhVaultRebuildConfigArrays();updateCategories();mmhVaultRefreshTransactionConfigV445();mmhVaultRenderManager();try{render?.()}catch(_){}}
+function mmhVaultRestoreCategoryV445(group,name){
+  if((MMHVAULT_CONFIG.categories[group]||[]).includes(name))return;
+  MMHVAULT_CONFIG.archivedCategories[group]=(MMHVAULT_CONFIG.archivedCategories[group]||[]).filter(x=>x!==name);
+  (MMHVAULT_CONFIG.categories[group]||(MMHVAULT_CONFIG.categories[group]=[])).push(name);
+  mmhVaultPersistConfig();
+  mmhVaultRefreshCategoryUIV449(group,name);
+}
 window.mmhVaultAddAccountV445=mmhVaultAddAccountV445;window.mmhVaultDeleteAccountV445=mmhVaultDeleteAccountV445;window.mmhVaultToggleAccountV445=mmhVaultToggleAccountV445;window.mmhVaultEditAccountV449=mmhVaultEditAccountV449;window.mmhVaultAddCategoryV445=mmhVaultAddCategoryV445;window.mmhVaultDeleteCategoryV445=mmhVaultDeleteCategoryV445;window.mmhVaultArchiveCategoryV445=mmhVaultArchiveCategoryV445;window.mmhVaultRestoreCategoryV445=mmhVaultRestoreCategoryV445;window.mmhVaultRenderManager=mmhVaultRenderManager;
 
 
@@ -7160,7 +7210,7 @@ function renderDashboard(){
   }
   const {A,E,I,L,available}=C.base;
 
-  /* V4.4.18 — Account edit/delete avoid recursive dashboard render and force-hide mutation dialogs.
+  /* V4.4.19 — Category manager uses local UI refresh and safe dialog teardown.
      The previous renderer had the original six accounts hard-coded, so newly-added
      accounts could exist in Settings/Transactions but never appear on Dashboard. */
   const accountConfigSig=hash((MMHVAULT_CONFIG?.accounts||[]).map(a=>[
