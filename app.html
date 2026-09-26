@@ -5427,6 +5427,42 @@ body {
 }
 </style>
 
+
+<style id="mmhvault-crypto-market-compact">
+/* Crypto Market: compact 4-card overview + searchable explorer. Data and other sections untouched. */
+#invest #v371CryptoMarket>.toolbar{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:14px!important;padding:14px 16px 12px!important}
+#invest #v371CryptoMarket .crypto-market-title{min-width:0}
+#invest #v371CryptoMarket .crypto-market-title h2{margin:0!important}
+#invest #v371CryptoMarket .crypto-market-sub{margin-top:3px!important;opacity:.68!important}
+#invest #v371CryptoMarket .crypto-market-actions{display:flex!important;align-items:center!important;gap:8px!important;flex-wrap:wrap!important;justify-content:flex-end!important}
+#invest #v371CryptoMarket #cryptoPrices{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:9px!important;padding:12px 14px 8px!important}
+#invest #v371CryptoMarket .price-grid .price-card{min-height:86px!important;padding:12px 13px!important;border-radius:14px!important}
+#invest #v371CryptoMarket .price-grid .price-card .price{font-size:18px!important;margin-top:5px!important}
+#invest #v371CryptoMarket .price-grid .price-card .change{font-size:11px!important;margin-top:3px!important}
+#invest #v371CryptoMarket .crypto-more-btn{padding:8px 11px!important;white-space:nowrap!important;font-size:12px!important;border-color:rgba(76,199,255,.25)!important;background:rgba(76,199,255,.06)!important}
+#invest #v371CryptoMarket .crypto-market-note{padding:0 14px 11px!important;margin:0!important;opacity:.72!important}
+.crypto-explorer-backdrop{position:fixed!important;inset:0!important;z-index:99999!important;display:none;align-items:center!important;justify-content:center!important;padding:22px!important;background:rgba(1,6,16,.68)!important;backdrop-filter:blur(10px)!important}
+.crypto-explorer-backdrop.open{display:flex!important}
+.crypto-explorer{width:min(760px,96vw)!important;max-height:min(760px,88vh)!important;overflow:hidden!important;border:1px solid rgba(93,183,255,.3)!important;border-radius:22px!important;background:linear-gradient(145deg,rgba(8,25,52,.98),rgba(3,11,26,.99))!important;box-shadow:0 30px 90px rgba(0,0,0,.48),inset 0 1px 0 rgba(255,255,255,.05)!important}
+.crypto-explorer-head{display:flex!important;align-items:flex-start!important;justify-content:space-between!important;gap:16px!important;padding:20px 22px 15px!important;border-bottom:1px solid rgba(117,163,220,.14)!important}
+.crypto-explorer-head h2{margin:0!important;font-size:21px!important}
+.crypto-explorer-close{width:36px!important;height:36px!important;border-radius:12px!important;border:1px solid rgba(127,176,231,.2)!important;background:rgba(255,255,255,.04)!important;color:#dcecff!important;font-size:25px!important;line-height:1!important;cursor:pointer!important}
+.crypto-explorer-tools{display:flex!important;gap:10px!important;align-items:center!important;padding:14px 22px!important;border-bottom:1px solid rgba(117,163,220,.1)!important}
+.crypto-explorer-tools input{flex:1!important;min-width:0!important;padding:11px 13px!important;border-radius:12px!important;border:1px solid rgba(93,183,255,.2)!important;background:rgba(3,12,28,.72)!important;color:#eef7ff!important;outline:none!important}
+.crypto-explorer-tools input:focus{border-color:rgba(76,199,255,.5)!important;box-shadow:0 0 0 3px rgba(76,199,255,.08)!important}
+.crypto-explorer-list{overflow:auto!important;max-height:calc(min(760px,88vh) - 150px)!important;padding:10px 14px 16px!important}
+.crypto-explorer-row{display:grid!important;grid-template-columns:minmax(0,1fr) auto auto!important;align-items:center!important;gap:14px!important;padding:12px 10px!important;border-bottom:1px solid rgba(111,151,202,.09)!important}
+.crypto-explorer-row:hover{background:rgba(76,199,255,.045)!important}
+.crypto-explorer-name{display:flex!important;align-items:center!important;gap:10px!important;min-width:0!important}
+.crypto-explorer-rank{width:28px!important;color:#7190b3!important;font-size:11px!important;text-align:center!important}
+.crypto-explorer-symbol{font-weight:900!important;color:#edf6ff!important}
+.crypto-explorer-full{font-size:12px!important;color:#7f9abb!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+.crypto-explorer-price{font-weight:850!important;color:#f1f7ff!important;white-space:nowrap!important}
+.crypto-explorer-change{min-width:68px!important;text-align:right!important;font-size:12px!important}
+.crypto-explorer-change.up{color:#31d7a1!important}.crypto-explorer-change.down{color:#ff6d86!important}
+.crypto-explorer-empty{padding:35px 15px!important;text-align:center!important;color:#8098b8!important}
+@media(max-width:900px){#invest #v371CryptoMarket #cryptoPrices{grid-template-columns:repeat(2,minmax(0,1fr))!important}.crypto-explorer-backdrop{padding:10px!important}.crypto-explorer{width:100%!important;border-radius:18px!important}.crypto-explorer-head{padding:16px!important}.crypto-explorer-tools{padding:11px 16px!important}.crypto-explorer-list{padding:6px 10px 12px!important}.crypto-explorer-row{grid-template-columns:minmax(0,1fr) auto!important}.crypto-explorer-change{display:none!important}}
+</style>
 <style id="mmhvault-market-visual-only">
 /* MMHVAULT · Crypto Market visual refinement only
    No data, structure, behavior, or other sections changed. */
@@ -5955,7 +5991,13 @@ body {
 <button aria-selected="false" class="invest-subtab-v371" id="investSubPortfolioV371" role="tab" type="button">Portfolio</button>
 <button aria-selected="false" class="invest-subtab-v371" id="investSubAddV371" role="tab" type="button">Add Investment</button>
 </div>
-<div class="grid two invest-top"><div class="panel v371-crypto" id="v371CryptoMarket"><div class="toolbar"><h2>Crypto Market</h2><span class="pill" id="marketStatus">Live feed</span></div><div class="price-grid" id="cryptoPrices"></div><div class="small" style="margin-top:10px">Market reference refreshes automatically. CoinGlass API requires an API key; the free public feed below is used when no CoinGlass key is configured.</div></div>
+<div class="grid two invest-top"><div class="panel v371-crypto" id="v371CryptoMarket"><div class="toolbar"><div class="crypto-market-title"><h2>Crypto Market</h2><div class="small crypto-market-sub">Popular market prices</div></div><div class="crypto-market-actions"><span class="pill" id="marketStatus">Live feed</span><button class="btn crypto-more-btn" id="openCryptoExplorer" type="button">View More Coins</button></div></div><div class="price-grid" id="cryptoPrices"></div><div class="small crypto-market-note">Market reference refreshes automatically. View More Coins lets you search additional cryptocurrencies and check their current USD price.</div></div>
+<div class="crypto-explorer-backdrop" id="cryptoExplorer" aria-hidden="true">
+<div class="crypto-explorer" role="dialog" aria-modal="true" aria-labelledby="cryptoExplorerTitle">
+<div class="crypto-explorer-head"><div><h2 id="cryptoExplorerTitle">Explore Cryptocurrencies</h2><div class="sub">Search and check current USD prices for additional coins.</div></div><button class="crypto-explorer-close" id="closeCryptoExplorer" type="button" aria-label="Close">×</button></div>
+<div class="crypto-explorer-tools"><input id="cryptoExplorerSearch" type="search" autocomplete="off" placeholder="Search by name or symbol…"><span class="pill" id="cryptoExplorerStatus">Loading…</span></div>
+<div class="crypto-explorer-list" id="cryptoExplorerList"><div class="crypto-explorer-empty">Loading market data…</div></div>
+</div></div>
 <div class="panel v371-gold" id="v371GoldMarket"><div class="toolbar"><h2>Gold Market</h2><span class="pill">Manual · MMK / ကျပ်သား</span></div><div class="gold-market"><div><span class="name">Current Gold Price · MMK / ကျပ်သား</span><div class="big-price" id="goldMarket">—</div><div class="small" id="goldMarketMeta" style="margin-top:5px">Enter your current market price below.</div></div><button class="btn" onclick="openGoldSearch()">Open Google</button></div><div class="manual-gold"><label>Gold Market Price / ကျပ်သား<input id="manualGoldPrice" min="0" placeholder="e.g. 10,000,000" step="0.01" type="number"/></label><button class="btn primary" onclick="saveManualGoldPrice()" type="button">Save Price</button></div><div class="notice small" style="margin-top:12px">Gold market is intentionally manual for reliability. MMHVAULT stores the last price on this device and uses it for Gold P/L and ROI. <a href="https://goldprice.org/gold-price-myanmar.html" rel="noopener" target="_blank">GoldPrice.org Myanmar</a></div></div></div>
 <div class="grid invest-metrics" id="investMetrics"></div>
 <div class="panel portfolio-manager-v310" data-invest-visible-v310="1" id="portfolioManagerV310">
@@ -7346,9 +7388,18 @@ if($("invReceiptHint")){$("invReceiptHint").textContent='No file selected';$("in
 await loadAll();
 window.refreshInvestmentReceiptFlagsV3304?.();
 }
-async function fetchCryptoPrices(){try{const ids="bitcoin,ethereum,solana,binancecoin,ripple,dogecoin,cardano,tron";const r=await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true`,{cache:"no-store"});if(!r.ok)throw new Error("HTTP "+r.status);const d=await r.json();const map={BTC:d.bitcoin,ETH:d.ethereum,SOL:d.solana,BNB:d.binancecoin,XRP:d.ripple,DOGE:d.dogecoin,ADA:d.cardano,TRX:d.tron};livePrices=Object.fromEntries(Object.entries(map).map(([k,v])=>[k,v&&{price:Number(v.usd),change:Number(v.usd_24h_change||0)}]));marketStatus.textContent="Live · 8-coin public feed";renderCryptoPrices();if(invAsset.value==="Crypto")updateInvestFields();if(document.getElementById("dashboard")?.classList.contains("active"))renderDashboard();if(document.getElementById("invest")?.classList.contains("active"))renderInvest();try{window.dispatchEvent(new CustomEvent('mmhvault:market-updated'));}catch(_e){}}catch(e){marketStatus.textContent="Feed unavailable · using saved prices";renderCryptoPrices();}}
-function renderCryptoPrices(){const symbols=["BTC","ETH","SOL","BNB","XRP","DOGE","ADA","TRX"];cryptoPrices.innerHTML=symbols.map(s=>{const p=livePrices[s];return`<div class="price-card"><div class="symbol">${s}</div><div class="price">${p&&Number.isFinite(p.price)?"$"+fmt(p.price):"Unavailable"}</div><div class="change ${p&&p.change>=0?"green":"red"}">${p&&Number.isFinite(p.change)?(p.change>=0?"+":"")+p.change.toFixed(2)+"% 24h":"Market feed unavailable"}</div></div>`}).join("");}
+async function fetchCryptoPrices(){try{const ids="bitcoin,ethereum,solana,binancecoin,ripple,dogecoin,cardano,tron";const r=await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true`,{cache:"no-store"});if(!r.ok)throw new Error("HTTP "+r.status);const d=await r.json();const map={BTC:d.bitcoin,ETH:d.ethereum,SOL:d.solana,BNB:d.binancecoin,XRP:d.ripple,DOGE:d.dogecoin,ADA:d.cardano,TRX:d.tron};livePrices=Object.fromEntries(Object.entries(map).map(([k,v])=>[k,v&&{price:Number(v.usd),change:Number(v.usd_24h_change||0)}]));marketStatus.textContent="Live · 4 featured coins";renderCryptoPrices();if(invAsset.value==="Crypto")updateInvestFields();if(document.getElementById("dashboard")?.classList.contains("active"))renderDashboard();if(document.getElementById("invest")?.classList.contains("active"))renderInvest();try{window.dispatchEvent(new CustomEvent('mmhvault:market-updated'));}catch(_e){}}catch(e){marketStatus.textContent="Feed unavailable · using saved prices";renderCryptoPrices();}}
+function renderCryptoPrices(){const symbols=["BTC","ETH","SOL","BNB"];cryptoPrices.innerHTML=symbols.map(s=>{const p=livePrices[s];return`<div class="price-card"><div class="symbol">${s}</div><div class="price">${p&&Number.isFinite(p.price)?"$"+fmt(p.price):"Unavailable"}</div><div class="change ${p&&p.change>=0?"green":"red"}">${p&&Number.isFinite(p.change)?(p.change>=0?"+":"")+p.change.toFixed(2)+"% 24h":"Market feed unavailable"}</div></div>`}).join("");}
+let cryptoExplorerCoins=[];let cryptoExplorerLoaded=false;
+async function loadCryptoExplorer(){const status=$("cryptoExplorerStatus"),list=$("cryptoExplorerList");if(cryptoExplorerLoaded){renderCryptoExplorer();return;}status.textContent="Loading…";list.innerHTML='<div class="crypto-explorer-empty">Loading market data…</div>';try{const r=await fetch("https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=false&price_change_percentage=24h",{cache:"no-store"});if(!r.ok)throw new Error("HTTP "+r.status);cryptoExplorerCoins=await r.json();cryptoExplorerLoaded=true;status.textContent=`${cryptoExplorerCoins.length} coins`;renderCryptoExplorer();}catch(e){status.textContent="Unavailable";list.innerHTML='<div class="crypto-explorer-empty">Unable to load the additional market list right now. Please try again.</div>';}}
+function renderCryptoExplorer(){const list=$("cryptoExplorerList"),q=($("cryptoExplorerSearch")?.value||"").trim().toLowerCase();const rows=cryptoExplorerCoins.filter(c=>!q||c.symbol.toLowerCase().includes(q)||c.name.toLowerCase().includes(q)).slice(0,100);if(!rows.length){list.innerHTML='<div class="crypto-explorer-empty">No matching cryptocurrency found.</div>';return;}list.innerHTML=rows.map((c,i)=>{const price=Number(c.current_price);const ch=Number(c.price_change_percentage_24h||0);return`<div class="crypto-explorer-row"><div class="crypto-explorer-name"><span class="crypto-explorer-rank">#${i+1}</span><div><div class="crypto-explorer-symbol">${String(c.symbol||"").toUpperCase()}</div><div class="crypto-explorer-full">${c.name||"Unknown"}</div></div></div><div class="crypto-explorer-price">${Number.isFinite(price)?"$"+fmt(price):"—"}</div><div class="crypto-explorer-change ${ch>=0?"up":"down"}">${Number.isFinite(ch)?(ch>=0?"+":"")+ch.toFixed(2)+"%":"—"}</div></div>`}).join("");}
+function openCryptoExplorer(){const modal=$("cryptoExplorer");if(!modal)return;modal.classList.add("open");modal.setAttribute("aria-hidden","false");document.body.classList.add("crypto-explorer-open");$("cryptoExplorerSearch").value="";loadCryptoExplorer();setTimeout(()=>$("cryptoExplorerSearch")?.focus(),60);}
+function closeCryptoExplorer(){const modal=$("cryptoExplorer");if(!modal)return;modal.classList.remove("open");modal.setAttribute("aria-hidden","true");document.body.classList.remove("crypto-explorer-open");}
+
 function openGoldSearch(){window.open("https://www.google.com/search?q=Myanmar+gold+price+MMK+per+kyattha","_blank","noopener")}
+
+function initCryptoExplorer(){const open=$("openCryptoExplorer"),close=$("closeCryptoExplorer"),modal=$("cryptoExplorer"),search=$("cryptoExplorerSearch");open?.addEventListener("click",openCryptoExplorer);close?.addEventListener("click",closeCryptoExplorer);modal?.addEventListener("click",e=>{if(e.target===modal)closeCryptoExplorer();});search?.addEventListener("input",renderCryptoExplorer);document.addEventListener("keydown",e=>{if(e.key==="Escape"&&modal?.classList.contains("open"))closeCryptoExplorer();});}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",initCryptoExplorer,{once:true});else initCryptoExplorer();
 function renderPortfolioHealthV3716({totalROI,concentration,positionsCount,cryptoW,goldW,top}){
   const el=$("portfolioHealthV3716"); if(!el)return;
   let concentrationScore=concentration<=35?35:concentration<=50?28:concentration<=65?20:concentration<=80?10:2;
