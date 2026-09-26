@@ -6343,7 +6343,7 @@ mmhvaultAuthBootTimerV3285=setTimeout(()=>{
   const g=document.getElementById('mmhvaultAppBootGuardV3282');
   if(g)g.innerHTML='<div style="max-width:480px;border:1px solid rgba(255,193,7,.28);border-radius:18px;padding:24px 22px;background:rgba(25,24,12,.96);font-family:Arial,sans-serif;text-align:center;"><div style="font-size:18px;font-weight:800;color:#fff;">MMHVAULT is still connecting…</div><div style="margin-top:8px;color:#d8cfa1;font-size:13px;line-height:1.5;">Supabase Auth has not finished initializing. Please refresh once. Your cloud data is not being changed.</div><button type="button" style="margin-top:16px;padding:10px 16px;border-radius:10px;border:1px solid rgba(90,190,255,.35);background:#102a49;color:#fff;font-weight:700;cursor:pointer;" onclick="location.reload()">Refresh</button></div>';
 },10000);
-/* MMHVAULT V4.4.9 · Account Edit + Dashboard Sync + Custom Dialogs
+/* MMHVAULT V4.4.10 · Dynamic Dashboard Accounts
    Accounts/categories are configuration, not hard-coded UI. Existing transactions keep
    their original text values so historical data is never rewritten by this manager.
 */
@@ -6385,6 +6385,7 @@ function mmhVaultPersistConfig(){
   try{localStorage.setItem(MMHVAULT_CONFIG_KEY,JSON.stringify(MMHVAULT_CONFIG));}catch(e){console.warn('MMHVAULT config save failed',e);}
 }
 function mmhVaultRebuildConfigArrays(){
+  try{if(window.__mmhDashV34242Cache)window.__mmhDashV34242Cache.accountSig=null;}catch(_){}
   ACC=MMHVAULT_CONFIG.accounts.filter(a=>a.active!==false).map(a=>a.name);
   CATS=Object.fromEntries(Object.entries(MMHVAULT_CONFIG.categories).map(([k,v])=>[k,[...v]]));
   window.ACC=ACC; window.CATS=CATS;
@@ -7063,14 +7064,24 @@ function renderDashboard(){
   }
   const {A,E,I,L,available}=C.base;
 
-  const accountSig=`${baseSig}|accounts`;
+  /* V4.4.10 — Dashboard Account Overview is now driven by Settings > Accounts.
+     The previous renderer had the original six accounts hard-coded, so newly-added
+     accounts could exist in Settings/Transactions but never appear on Dashboard. */
+  const accountConfigSig=hash((MMHVAULT_CONFIG?.accounts||[]).map(a=>[
+    a?.id,a?.name,a?.currency,a?.type,a?.active
+  ].join('\u001f')).join('\u001e'));
+  const accountSig=`${baseSig}|accounts|${accountConfigSig}`;
   if(C.accountSig!==accountSig){
     C.accountSig=accountSig;
+    const activeAccounts=(MMHVAULT_CONFIG?.accounts||[]).filter(a=>a&&a.name&&a.active!==false);
+    const cashTypes=new Set(['cash','wallet','bank','credit','other']);
+    const cryptoTypes=new Set(['crypto']);
+    const investmentTypes=new Set(['investment']);
     const groups=[
-      {title:"Cash",icon:"Bath",accounts:["Bath","TrueMoney","KPay"]},
-      {title:"USD",icon:"USD",accounts:["OKX","ByBit","MetaMask"]},
-      {title:"Investment",icon:"Investment",accounts:[]}
-    ];
+      {title:"Cash",icon:"Bath",accounts:activeAccounts.filter(a=>cashTypes.has(String(a.type||'other').toLowerCase()))},
+      {title:"USD",icon:"USD",accounts:activeAccounts.filter(a=>cryptoTypes.has(String(a.type||'').toLowerCase()))},
+      {title:"Investment",icon:"Investment",accounts:activeAccounts.filter(a=>investmentTypes.has(String(a.type||'').toLowerCase()))}
+    ].filter(g=>g.accounts.length||g.title==='Investment');
     const logo73=()=>'';
     const goldMMK73=(typeof goldHoldingQty==='function'?investments.filter(x=>x.asset==='Gold').reduce((s,x)=>s+goldHoldingQty(x)*(goldMarketState.pricePerKyattha||n(x.market_price)),0):0);
     $("accounts").innerHTML=groups.map(g=>{
@@ -7079,11 +7090,22 @@ function renderDashboard(){
         const goldValue=goldMMK73;
         return `<div class="account-group investment-account"><div class="group-title"><strong>${logo73('Investment','gold')}<span>Investment</span></strong><span class="group-total">USD</span></div><div class="account-list"><div class="account-row"><div class="left"><div class="name">${logo73('CryptoPortfolio','crypto')}<span>Crypto Portfolio</span><div class="small">USD</div></div></div><div class="amount">${usd(investments.filter(x=>x.asset==='Crypto').reduce((sum,x)=>sum+n(x.quantity)*(livePrices[x.symbol]?.price||n(x.market_price)),0))}</div></div><div class="account-row"><div class="left"><div class="name">${logo73('GoldPortfolio','gold')}<span>Gold Portfolio</span><div class="small">Converted from MMK</div></div></div><div class="amount">${usd(goldValue/(rates.usd_mmk||1))}</div></div></div></div>`;
       }
-      const total=g.accounts.reduce((sum,a)=>sum+balance(a)*toMMK(a),0);
-      return `<div class="account-group"><div class="group-title"><strong>${logo73(g.icon)}<span>${g.title}</span></strong><span class="group-total">${g.title==='Cash'?'Native Currency':'USD'}</span></div><div class="account-list">${g.accounts.map(a=>{
-        const ln=a==='Bath'?'Bath':a;
-        const iconName=a;
-        return `<div class="account-row"><div class="left"><div class="name">${logo73(iconName)}<span>${a}</span><div class="small">${currency(a)}</div></div></div><div class="amount">${a==='Bath'||a==='TrueMoney'?'฿ '+fmt(balance(a)):a==='KPay'?'MMK '+fmt(balance(a)):usd(balance(a))}</div></div>`;
+      const total=g.accounts.reduce((sum,a)=>sum+balance(a.name)*toMMK(a.name),0);
+      const groupCurrency=g.title==='USD'?'USD':g.title==='Investment'?'USD':'Native Currency';
+      return `<div class="account-group"><div class="group-title"><strong>${logo73(g.icon)}<span>${g.title}</span></strong><span class="group-total">${groupCurrency}</span></div><div class="account-list">${g.accounts.map(a=>{
+        const name=a.name;
+        const iconName=name;
+        const bal=balance(name);
+        const cur=a.currency||currency(name);
+        const isCrypto=String(a.type||'').toLowerCase()==='crypto';
+        const isUSD=String(cur).toUpperCase()==='USD';
+        let amountText;
+        if(isCrypto || isUSD){
+          amountText=usd(bal);
+        }else{
+          amountText=`${cur} ${fmt(bal)}`;
+        }
+        return `<div class="account-row"><div class="left"><div class="name">${logo73(iconName)}<span>${name}</span><div class="small">${cur}</div></div></div><div class="amount">${amountText}</div></div>`;
       }).join('')}</div></div>`;
     }).join("");
   }
@@ -9123,7 +9145,7 @@ function refineCashOnlyAccountOverviewV371(){
   const sub=panel?.querySelector('h2')?.parentElement?.querySelector('.sub');
   if(sub) sub.textContent='Organized by cash, crypto and investment holdings · USD reference shown for selected accounts';
   const pill=panel?.querySelector('.pill');
-  if(pill) pill.textContent='6 Accounts · 2 Portfolios';
+  if(pill) pill.textContent=`${(MMHVAULT_CONFIG?.accounts||[]).filter(a=>a&&a.active!==false).length} Accounts · 2 Portfolios`;
 }
 
 (function(){
