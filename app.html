@@ -9024,6 +9024,7 @@ function editTx(id){
 
   $('editTxForm').onsubmit=async e=>{
     e.preventDefault();
+  e.stopImmediatePropagation();
     const saveBtn=$('editTxForm').querySelector('button.primary');
     if(saveBtn)saveBtn.disabled=true;
 
@@ -19376,12 +19377,116 @@ body.mmh-manager-open-v1{overflow:hidden}
 
 
 <style id="mmhvault-feedback-notices-v15">
-#settings .fb-rating-v15{margin:14px 0}#settings .fb-stars-v15{display:flex;gap:7px;margin-top:8px}#settings .fb-stars-v15 button{width:44px;height:44px;padding:0;font-size:23px;color:#647c91;background:#162a3b}#settings .fb-stars-v15 button.on{color:#f0c65f;border-color:#8c7441;background:#2d2a20}#settings .fb-photo-v15{margin:14px 0;padding:14px;border:1px dashed #3b566e;border-radius:12px}#settings .fb-photo-v15 input{margin-top:8px!important;padding:9px!important}#settings .fb-photo-preview-v15,.fb-admin-photos-v15{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.fb-photo-preview-v15 img,.fb-admin-photos-v15 img{width:72px;height:72px;object-fit:cover;border-radius:9px;border:1px solid #3a556e}.notice-nav-v15{display:flex;align-items:center;gap:10px;width:100%;padding:12px 14px;border:0;border-top:1px solid #263e52;background:transparent;text-align:left;color:#e0edf7;min-height:76px}.notice-nav-v15 .st-chevron{margin-left:auto;font-size:22px;color:#96aec5}.notice-badge-v15{margin-left:auto;min-width:20px;height:20px;padding:0 6px;border-radius:10px;background:#c89f48;color:#101923;font-size:10px;display:grid;place-items:center}.notice-card-v15{border:1px solid #30495d;border-radius:12px;background:#162a3b;margin-top:10px;padding:14px}.notice-card-v15.unread{border-color:#7caed1;box-shadow:inset 3px 0 #a9cfee}.notice-card-v15 h4{margin:0 0 7px;font-size:14px}.notice-card-v15 p{white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px;line-height:1.65;margin:8px 0}.notice-card-v15 small{color:#96aec5}.notice-card-v15 button{margin-top:8px}@media(max-width:700px){#settings .notice-nav-v15{min-height:64px}}
+#settings .fb-rating-v15{margin:18px 0 14px}
+#settings .fb-rating-label-v15{display:block;margin-bottom:10px}
+#settings .fb-stars-v15{display:flex;flex-wrap:wrap;gap:10px}
+#settings .fb-star-v15{display:grid;place-items:center;width:52px;height:52px;padding:0;border-radius:14px;border:1px solid #3d5870;background:linear-gradient(180deg,#20374b,#162a3b);color:#7f97ad;font-size:26px;line-height:1;box-shadow:inset 0 1px 0 rgba(255,255,255,.04);transition:transform .14s ease,box-shadow .14s ease,border-color .14s ease,background .14s ease,color .14s ease}
+#settings .fb-star-v15:hover{transform:translateY(-1px);border-color:#6e97ba;color:#c4dff4;box-shadow:0 8px 16px rgba(0,0,0,.16),inset 0 1px 0 rgba(255,255,255,.06)}
+#settings .fb-star-v15:active{transform:translateY(0) scale(.98)}
+#settings .fb-star-v15.on{color:#f3c55a;border-color:#95763a;background:linear-gradient(180deg,#43361d,#2a2419);box-shadow:0 10px 18px rgba(0,0,0,.18),inset 0 1px 0 rgba(255,255,255,.07)}
+#settings .fb-star-v15:focus-visible{outline:2px solid #a9cfee;outline-offset:2px}
+#settings .fb-rating-helper-v15{margin-top:8px}
+#settings .fb-photo-v15{margin:16px 0 14px}
+#settings .fb-photo-drop-v15{position:relative;display:block;margin-top:8px;padding:18px;border:1px dashed #4e708d;border-radius:16px;background:linear-gradient(180deg,rgba(24,44,61,.92),rgba(17,33,47,.96));transition:border-color .15s ease,background .15s ease,box-shadow .15s ease;cursor:pointer}
+#settings .fb-photo-drop-v15:hover{border-color:#82b2d8;background:linear-gradient(180deg,rgba(28,50,68,.96),rgba(18,36,51,.98));box-shadow:0 12px 24px rgba(0,0,0,.13)}
+#settings .fb-photo-drop-v15:focus-within{outline:2px solid #a9cfee;outline-offset:2px;border-color:#9dcced}
+#settings .fb-photo-input-v15{position:absolute;inset:0;opacity:0;cursor:pointer}
+#settings .fb-photo-drop-inner-v15{display:flex;align-items:center;gap:14px;min-height:72px}
+#settings .fb-photo-icon-v15{flex:0 0 54px;height:54px;border-radius:16px;display:grid;place-items:center;font-size:25px;color:#cae3f8;background:linear-gradient(180deg,#24435a,#1a3042);border:1px solid #3f607b;box-shadow:inset 0 1px 0 rgba(255,255,255,.05)}
+#settings .fb-photo-copy-v15{min-width:0;flex:1}
+#settings .fb-photo-copy-v15 strong{display:block;color:#edf4fa;font-size:15px;margin-bottom:4px}
+#settings .fb-photo-copy-v15 small{display:block;color:#98aec3;line-height:1.5}
+#settings .fb-photo-selected-v15{margin-top:10px;color:#c6def0;font-size:12px;line-height:1.6;word-break:break-word}
+#settings .fb-photo-preview-v15,.fb-admin-photos-v15{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+#settings .fb-photo-thumb-v15,.fb-admin-photos-v15 a{position:relative;display:block}
+#settings .fb-photo-preview-v15 img,.fb-admin-photos-v15 img{width:86px;height:86px;object-fit:cover;border-radius:12px;border:1px solid #46627a;background:#122130;box-shadow:0 8px 16px rgba(0,0,0,.16)}
+#settings .fb-photo-index-v15{position:absolute;right:6px;bottom:6px;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:rgba(9,20,31,.82);border:1px solid rgba(169,207,238,.25);display:grid;place-items:center;color:#edf4fa;font-size:10px}
+#settings .fb-rating-show-v15{margin-top:10px}
+.notice-nav-v15{display:flex;align-items:center;gap:10px;width:100%;padding:12px 14px;border:0;border-top:1px solid #263e52;background:transparent;text-align:left;color:#e0edf7;min-height:76px}
+.notice-nav-v15 .st-chevron{margin-left:auto;font-size:22px;color:#96aec5}
+.notice-badge-v15{margin-left:auto;min-width:20px;height:20px;padding:0 6px;border-radius:10px;background:#c89f48;color:#101923;font-size:10px;display:grid;place-items:center}
+.notice-card-v15{border:1px solid #30495d;border-radius:12px;background:#162a3b;margin-top:10px;padding:14px}
+.notice-card-v15.unread{border-color:#7caed1;box-shadow:inset 3px 0 #a9cfee}
+.notice-card-v15 h4{margin:0 0 7px;font-size:14px}
+.notice-card-v15 p{white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px;line-height:1.65;margin:8px 0}
+.notice-card-v15 small{color:#96aec5}
+.notice-card-v15 button{margin-top:8px}
+@media(max-width:700px){#settings .notice-nav-v15{min-height:64px}#settings .fb-photo-drop-inner-v15{align-items:flex-start}#settings .fb-star-v15{width:48px;height:48px}}
+body.light #settings .fb-star-v15{background:linear-gradient(180deg,#ffffff,#eef5fa);border-color:#c8d9e6;color:#89a0b5}
+body.light #settings .fb-star-v15.on{background:linear-gradient(180deg,#fff6da,#f6e3a5);border-color:#cfb36b;color:#8a6717}
+body.light #settings .fb-photo-drop-v15{background:linear-gradient(180deg,#fbfdff,#f2f7fb);border-color:#c9d8e5}
+body.light #settings .fb-photo-copy-v15 strong{color:#244058}
+body.light #settings .fb-photo-copy-v15 small,#settings .fb-photo-selected-v15{color:#6e859a}
 </style>
 <script id="mmhvault-feedback-notices-v15-script">
 (()=>{'use strict';const tr=(en,zh)=>(localStorage.getItem('mmhvault_language_v3363')||'en')==='zh'?zh:en,$=id=>document.getElementById(id);let rating=0,noticePage=null,noticeEntry=null,noticeUid=null;
-function addFeedbackExtras(){const form=$('fbFormV14');if(!form||$('fbRatingV15'))return;const body=form.querySelector('.fb-body-label');const rate=document.createElement('div');rate.className='fb-rating-v15';rate.innerHTML='<label><span data-en="Review rating" data-zh="评分">Review rating</span></label><div class="fb-stars-v15" id="fbRatingV15" role="radiogroup" aria-label="Review rating"></div>';body.after(rate);const stars=rate.querySelector('#fbRatingV15');for(let i=1;i<=5;i++){const b=document.createElement('button');b.type='button';b.textContent='★';b.setAttribute('aria-label',i+' star');b.onclick=()=>{rating=i;[...stars.children].forEach((x,j)=>x.classList.toggle('on',j<i))};stars.append(b)}const photo=document.createElement('div');photo.className='fb-photo-v15';photo.innerHTML='<label><span data-en="Photos (optional)" data-zh="照片（可选）">Photos (optional)</span><input id="fbPhotosV15" type="file" accept="image/jpeg,image/png,image/webp" multiple></label><small class="fb-note" data-en="Up to 3 photos · JPG, PNG or WEBP · 3 MB each" data-zh="最多 3 张 · JPG、PNG 或 WEBP · 每张最大 3 MB">Up to 3 photos · JPG, PNG or WEBP · 3 MB each</small><div class="fb-photo-preview-v15" id="fbPhotoPreviewV15"></div>';rate.after(photo);$('fbPhotosV15').onchange=()=>{const files=[...$('fbPhotosV15').files].slice(0,3);if($('fbPhotosV15').files.length>3){alert(tr('Maximum 3 photos.','最多上传 3 张照片。'));$('fbPhotosV15').value='';return}if(files.some(f=>f.size>3145728)){alert(tr('Each photo must be 3 MB or smaller.','每张照片不能超过 3 MB。'));$('fbPhotosV15').value='';return}const box=$('fbPhotoPreviewV15');box.replaceChildren();files.forEach(f=>{const img=document.createElement('img');img.src=URL.createObjectURL(f);img.onload=()=>URL.revokeObjectURL(img.src);box.append(img)})};
-form.onsubmit=async e=>{e.preventDefault();const {data:{user}}=await db.auth.getUser();if(!user)return;const title=$('fbTitleV14').value.trim(),bodyText=$('fbBodyV14').value.trim(),category=$('fbTypeV14').value,files=[...($('fbPhotosV15').files||[])];if(!title||!bodyText){$('fbMsgV14').textContent=tr('Please enter a title and description.','请填写标题和描述。');return}if(!rating){$('fbMsgV14').textContent=tr('Please select a review rating.','请选择评分。');return}if(files.length>3||files.some(f=>f.size>3145728)){$('fbMsgV14').textContent=tr('Please check the photo limits.','请检查照片数量和大小。');return}const btn=$('fbSubmitV14');btn.disabled=true;$('fbMsgV14').textContent=tr('Uploading and submitting…','正在上传并提交…');const paths=[];try{for(const f of files){const ext=(f.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'');const path=user.id+'/'+crypto.randomUUID()+'.'+ext;const {error}=await db.storage.from('mmh-feedback').upload(path,f,{contentType:f.type,upsert:false});if(error)throw error;paths.push(path)}const {error}=await db.rpc('mmh_feedback_extras',{p_action:'submit',p_data:{request_id:crypto.randomUUID(),category,title,body:bodyText,rating,photos:paths}});if(error)throw error;form.reset();rating=0;[...stars.children].forEach(x=>x.classList.remove('on'));$('fbPhotoPreviewV15').replaceChildren();$('fbMsgV14').textContent=tr('Feedback submitted. Thank you for your review.','反馈已提交，感谢您的评价。');$('fbRefreshV14').click()}catch(err){$('fbMsgV14').textContent=tr('Submission failed. Please retry.','提交失败，请重试。');console.error(err)}finally{btn.disabled=false}}}
+function renderStars(stars,value){[...stars.querySelectorAll('.fb-star-v15')].forEach(btn=>{const on=Number(btn.dataset.value)<=value;btn.classList.toggle('on',on);btn.setAttribute('aria-checked',String(Number(btn.dataset.value)===value));btn.setAttribute('aria-pressed',String(on))});const helper=$('fbRatingHelperV15');if(helper)helper.textContent=value?tr('Selected: ','已选择：')+value+'/5':tr('Tap a star to rate your experience.','点击星星为本次体验评分。')}
+function renderPhotoSelection(files){const selected=$('fbPhotoSelectedV15'),box=$('fbPhotoPreviewV15');if(!selected||!box)return;selected.textContent=files.length?files.map((f,i)=>`${i+1}. ${f.name}`).join(' · '):tr('No photos selected.','尚未选择照片。');box.replaceChildren();files.forEach((f,i)=>{const wrap=document.createElement('div');wrap.className='fb-photo-thumb-v15';const img=document.createElement('img');img.src=URL.createObjectURL(f);img.onload=()=>URL.revokeObjectURL(img.src);img.alt=f.name;const badge=document.createElement('span');badge.className='fb-photo-index-v15';badge.textContent=String(i+1);wrap.append(img,badge);box.append(wrap)})}
+function addFeedbackExtras(){const form=$('fbFormV14');if(!form||$('fbRatingV15'))return;const body=form.querySelector('.fb-body-label');const note=form.querySelector('.fb-note');const rate=document.createElement('div');rate.className='fb-rating-v15';rate.innerHTML='<label class="fb-rating-label-v15"><span data-en="Review rating" data-zh="评分">Review rating</span></label><div class="fb-stars-v15" id="fbRatingV15" role="radiogroup" aria-label="Review rating"></div><small class="fb-note fb-rating-helper-v15" id="fbRatingHelperV15">'+tr('Tap a star to rate your experience.','点击星星为本次体验评分。')+'</small>';
+body.after(rate);
+const stars=rate.querySelector('#fbRatingV15');
+for(let i=1;i<=5;i++){
+  const b=document.createElement('button');
+  b.type='button';
+  b.className='fb-star-v15';
+  b.dataset.value=String(i);
+  b.innerHTML='★';
+  b.setAttribute('aria-label',i+' star');
+  b.setAttribute('aria-checked','false');
+  b.setAttribute('aria-pressed','false');
+  b.addEventListener('click',()=>{rating=i;renderStars(stars,rating)});
+  stars.append(b);
+}
+const photo=document.createElement('div');
+photo.className='fb-photo-v15';
+photo.innerHTML='<label><span data-en="Photos (optional)" data-zh="照片（可选）">Photos (optional)</span></label><label class="fb-photo-drop-v15"><input id="fbPhotosV15" class="fb-photo-input-v15" type="file" accept="image/jpeg,image/png,image/webp" multiple><div class="fb-photo-drop-inner-v15"><div class="fb-photo-icon-v15" aria-hidden="true">🖼</div><div class="fb-photo-copy-v15"><strong>'+tr('Choose photos','选择照片')+'</strong><small>'+tr('Upload screenshots or images to help explain the issue.','上传截图或图片，帮助更清楚说明问题。')+'</small></div></div></label><small class="fb-note" data-en="Up to 3 photos · JPG, PNG or WEBP · 3 MB each" data-zh="最多 3 张 · JPG、PNG 或 WEBP · 每张最大 3 MB">Up to 3 photos · JPG, PNG or WEBP · 3 MB each</small><div class="fb-photo-selected-v15" id="fbPhotoSelectedV15">'+tr('No photos selected.','尚未选择照片。')+'</div><div class="fb-photo-preview-v15" id="fbPhotoPreviewV15"></div>';
+rate.after(photo);
+const input=$('fbPhotosV15');
+form.onsubmit=null;
+input.addEventListener('change',()=>{
+  let files=[...(input.files||[])];
+  if(files.length>3){alert(tr('Maximum 3 photos.','最多上传 3 张照片。'));input.value='';files=[]}
+  if(files.some(f=>f.size>3145728)){alert(tr('Each photo must be 3 MB or smaller.','每张照片不能超过 3 MB。'));input.value='';files=[]}
+  renderPhotoSelection(files.slice(0,3));
+});
+form.addEventListener('submit',async e=>{
+  e.preventDefault();
+  e.stopImmediatePropagation();
+  const {data:{user}}=await db.auth.getUser();
+  if(!user)return;
+  const title=$('fbTitleV14').value.trim(),bodyText=$('fbBodyV14').value.trim(),category=$('fbTypeV14').value,files=[...(input.files||[])].slice(0,3);
+  if(!title||!bodyText){$('fbMsgV14').textContent=tr('Please enter a title and description.','请填写标题和描述。');return}
+  if(!rating){$('fbMsgV14').textContent=tr('Please select a review rating.','请选择评分。');return}
+  if(files.length>3||files.some(f=>f.size>3145728)){$('fbMsgV14').textContent=tr('Please check the photo limits.','请检查照片数量和大小。');return}
+  const btn=$('fbSubmitV14');
+  btn.disabled=true;
+  $('fbMsgV14').textContent=tr('Uploading and submitting…','正在上传并提交…');
+  const paths=[];
+  try{
+    for(const f of files){
+      const ext=(f.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'');
+      const path=user.id+'/'+crypto.randomUUID()+'.'+ext;
+      const {error}=await db.storage.from('mmh-feedback').upload(path,f,{contentType:f.type,upsert:false});
+      if(error)throw error;
+      paths.push(path)
+    }
+    const {error}=await db.rpc('mmh_feedback_extras',{p_action:'submit',p_data:{request_id:crypto.randomUUID(),category,title,body:bodyText,rating,photos:paths}});
+    if(error)throw error;
+    form.reset();
+    rating=0;
+    renderStars(stars,0);
+    renderPhotoSelection([]);
+    $('fbMsgV14').textContent=tr('Feedback submitted. Thank you for your review.','反馈已提交，感谢您的评价。');
+    $('fbRefreshV14').click();
+  }catch(err){
+    $('fbMsgV14').textContent=tr('Submission failed. Please retry.','提交失败，请重试。');
+    console.error(err)
+  }finally{btn.disabled=false}
+  
+  }, {capture:true});
+ if(note)note.before(photo);
+ renderStars(stars,0);
+}
 async function decorateFeedback(){const list=$('fbListV14');if(!list)return;const {data,error}=await db.rpc('mmh_list_feedback',{p_admin:false,p_status:'',p_offset:0});if(error)return;const cards=[...list.querySelectorAll('.fb-record')];for(let i=0;i<Math.min(cards.length,data.items.length);i++){const row=data.items[i],card=cards[i];if(row.rating&&!card.querySelector('.fb-rating-show-v15')){const x=document.createElement('p');x.className='fb-note fb-rating-show-v15';x.textContent=tr('Rating: ','评分：')+'★'.repeat(row.rating)+'☆'.repeat(5-row.rating);card.append(x)}if(row.photos?.length&&!card.querySelector('.fb-admin-photos-v15')){const box=document.createElement('div');box.className='fb-admin-photos-v15';for(const path of row.photos){const {data:signed}=await db.storage.from('mmh-feedback').createSignedUrl(path,600);if(signed?.signedUrl){const a=document.createElement('a');a.href=signed.signedUrl;a.target='_blank';a.rel='noopener';const img=document.createElement('img');img.src=signed.signedUrl;a.append(img);box.append(a)}}card.append(box)}}}
 function createNotices(){const settings=$('settings'),group=document.querySelector('#stSettingsHomeV3 .st-template-group:nth-child(3)');if(!settings||!group||$('stPage_noticesV15'))return;noticeEntry=document.createElement('button');noticeEntry.type='button';noticeEntry.className='notice-nav-v15';noticeEntry.innerHTML='<span class="st-icon">🔔</span><span class="st-template-nav-copy"><span class="st-nav-name">'+tr('Notifications & announcements','通知与公告')+'</span><small>'+tr('Personal messages and MMHVAULT announcements','个人通知与 MMHVAULT 公告')+'</small></span><span class="notice-badge-v15" id="noticeBadgeV15" hidden>0</span><span class="st-chevron">›</span>';group.append(noticeEntry);noticePage=document.createElement('section');noticePage.id='stPage_noticesV15';noticePage.className='st-page';noticePage.hidden=true;noticePage.innerHTML='<div class="st-page-head"><button class="st-back" id="noticeBackV15" type="button">'+tr('‹ Back','‹ 返回')+'</button><h2>'+tr('Notifications & announcements','通知与公告')+'</h2></div><section class="fb-panel"><div class="fb-heading"><h3>'+tr('Inbox','收件箱')+'</h3><button id="noticeRefreshV15" type="button">'+tr('Refresh','刷新')+'</button></div><div id="noticeListV15"></div></section>';settings.append(noticePage);noticeEntry.onclick=()=>{const home=$('stSettingsHomeV3');home.hidden=true;settings.querySelectorAll('.st-page').forEach(p=>p.hidden=true);noticePage.hidden=false;loadNotices(true);window.scrollTo({top:0,behavior:'instant'})};$('noticeBackV15').onclick=()=>{noticePage.hidden=true;$('stSettingsHomeV3').hidden=false;noticeEntry.focus({preventScroll:true})};$('noticeRefreshV15').onclick=()=>loadNotices(true)}
 async function loadNotices(render=false){if(!noticeUid)return;const {data,error}=await db.rpc('mmh_feedback_extras',{p_action:'list',p_data:{offset:0}});if(error)return;const rows=Array.isArray(data)?data:[],unread=rows.filter(x=>!x.is_read).length,badge=$('noticeBadgeV15');if(badge){badge.hidden=!unread;badge.textContent=unread>99?'99+':String(unread)}if(!render||!$('noticeListV15'))return;const box=$('noticeListV15');box.replaceChildren();if(!rows.length){box.textContent=tr('No notifications yet.','暂无通知。');return}for(const row of rows){const c=document.createElement('article');c.className='notice-card-v15'+(row.is_read?'':' unread');const h=document.createElement('h4');h.textContent=row.title;const meta=document.createElement('small');meta.textContent=(row.audience==='all'?tr('Announcement','公告'):tr('Personal notification','个人通知'))+' · '+new Date(row.created_at).toLocaleString();const p=document.createElement('p');p.textContent=row.body;c.append(h,meta,p);if(!row.is_read){const b=document.createElement('button');b.type='button';b.textContent=tr('Mark as read','标记已读');b.onclick=async()=>{const {error}=await db.rpc('mmh_feedback_extras',{p_action:'read',p_data:{id:row.id}});if(!error)loadNotices(true)};c.append(b)}box.append(c)}}
