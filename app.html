@@ -19493,6 +19493,141 @@ async function loadNotices(render=false){if(!noticeUid)return;const {data,error}
 const boot=()=>{addFeedbackExtras();createNotices();db.auth.getSession().then(({data})=>{noticeUid=data?.session?.user?.id||null;if(noticeUid)loadNotices(false)});const list=$('fbListV14');if(list)new MutationObserver(()=>decorateFeedback()).observe(list,{childList:true})};if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(boot,0));else setTimeout(boot,0);db.auth.onAuthStateChange((_,s)=>{noticeUid=s?.user?.id||null;if(noticeUid)setTimeout(()=>loadNotices(false),0)});
 })();
 </script>
+
+<style id="mmhvault-premium-phase2-fix-v2">
+@media(min-width:1100px){
+  #bottomNav .mmh-sidebar-brand-v500{padding:8px 10px 18px!important;min-height:auto!important;gap:10px!important;align-items:center!important}
+  #bottomNav .mmh-sidebar-brand-v500 img{width:52px!important;height:52px!important;flex:0 0 52px!important;object-fit:contain!important;object-position:center!important;filter:drop-shadow(0 8px 18px rgba(242,196,94,.14))!important}
+  #bottomNav .mmh-sidebar-brand-v500>div{display:block!important;min-width:0!important;flex:1!important}
+  #bottomNav .mmh-sidebar-brand-v500 strong{display:block!important;font-size:15px!important;line-height:1.2!important;letter-spacing:.06em!important;color:#f7f9fc!important;white-space:nowrap!important}
+  #bottomNav .mmh-sidebar-brand-v500 small{display:block!important;margin-top:4px!important;font-size:8.5px!important;line-height:1.45!important;letter-spacing:.15em!important;text-transform:uppercase!important;color:#7f95a8!important;white-space:normal!important}
+
+  #moreNavMenu{display:none!important}
+
+  #bottomNav .mmh-sidebar-private-v500{margin:10px 7px 4px!important;padding:13px 12px!important;min-width:0!important;overflow:hidden!important}
+  #bottomNav .mmh-sidebar-private-v500 .icon{font-size:18px!important}
+  #bottomNav .mmh-sidebar-private-v500 b,
+  #bottomNav .mmh-sidebar-private-v500 p,
+  #bottomNav .mmh-sidebar-private-v500 span{display:block!important;white-space:normal!important;overflow-wrap:anywhere!important;word-break:break-word!important;max-width:100%!important}
+  #bottomNav .mmh-sidebar-private-v500 b{margin-top:8px!important;font-size:11px!important;line-height:1.35!important}
+  #bottomNav .mmh-sidebar-private-v500 p{margin:5px 0 8px!important;font-size:9.5px!important;line-height:1.5!important;color:#8ea4b6!important}
+  #bottomNav .mmh-sidebar-private-v500 span{font-size:9px!important;line-height:1.45!important;color:#bdd0dc!important}
+  #bottomNav .mmh-sidebar-private-v500 span::before{display:inline-block!important;vertical-align:middle!important;margin-top:0!important;flex:0 0 6px!important}
+
+  #accounts-page .ap-heading{display:flex!important;align-items:flex-end!important;justify-content:space-between!important;gap:16px!important;flex-wrap:wrap!important;margin-bottom:16px!important}
+  #accounts-page .ap-heading>div{min-width:0!important}
+  #accounts-page .ap-heading h1{margin-bottom:6px!important}
+  #accounts-page .mmh-more-hub-v521{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:0 0 16px!important}
+  #accounts-page .mmh-more-card-v521{display:flex;flex-direction:column;gap:10px;min-width:0;padding:18px;border-radius:18px;border:1px solid rgba(91,145,188,.22);background:linear-gradient(145deg,rgba(10,29,47,.90),rgba(5,17,30,.95));box-shadow:0 18px 38px rgba(0,0,0,.15),inset 0 1px 0 rgba(255,255,255,.025)!important}
+  #accounts-page .mmh-more-card-v521 .icon{width:40px;height:40px;border-radius:13px;display:grid;place-items:center;font-size:18px;background:linear-gradient(145deg,#17364d,#0d2639);border:1px solid rgba(93,153,202,.18);color:#c6e1f3}
+  #accounts-page .mmh-more-card-v521.gold .icon{background:linear-gradient(145deg,#3a311d,#201d16);border-color:rgba(242,196,94,.22);color:#f0c75f}
+  #accounts-page .mmh-more-card-v521 b{font-size:14px;line-height:1.3;color:#edf5fb}
+  #accounts-page .mmh-more-card-v521 p{margin:0;min-height:38px;font-size:11px;line-height:1.55;color:#89a2b7}
+  #accounts-page .mmh-more-card-v521 .btn{margin-top:auto;min-height:40px;border-radius:11px!important}
+  #accounts-page .mmh-more-card-v521 .btn.primary{background:linear-gradient(135deg,#e2b64f,#f2cf7a)!important;color:#1d1b14!important;border-color:rgba(255,217,126,.62)!important}
+  #accounts-page #apBody{margin-top:0!important}
+}
+@media(min-width:1100px) and (max-width:1360px){
+  #accounts-page .mmh-more-hub-v521{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+</style>
+<script id="mmhvault-premium-phase2-fix-v2-script">
+(()=>{'use strict';
+  const isDesktop=()=>window.matchMedia('(min-width:1100px)').matches;
+  function syncMoreActive(){
+    const more=document.getElementById('moreNavButton');
+    if(!more) return;
+    const page=document.querySelector('.page.active')?.id||'';
+    const active=['accounts-page','exchange','cashflow-analyze'].includes(page);
+    if(isDesktop()){
+      more.classList.toggle('mmh-side-active-v500',active);
+      if(active) more.setAttribute('aria-current','page'); else more.removeAttribute('aria-current');
+      more.classList.remove('active');
+      more.setAttribute('aria-expanded','false');
+    }
+  }
+  function buildMoreHub(){
+    const page=document.getElementById('accounts-page');
+    if(!page) return;
+    const heading=page.querySelector('.ap-heading');
+    if(heading){
+      const title=heading.querySelector('h1');
+      const sub=heading.querySelector('p');
+      if(title) title.textContent='More Workspace';
+      if(sub) sub.textContent='Shortcuts, account management, utility tools, and administrator access.';
+    }
+    if(page.querySelector('.mmh-more-hub-v521')) return;
+    const hub=document.createElement('section');
+    hub.className='mmh-more-hub-v521';
+    hub.innerHTML=''
+      +'<article class="mmh-more-card-v521">'
+      +  '<div class="icon">👛</div>'
+      +  '<b>Accounts</b>'
+      +  '<p>Review balances, net assets, and manage your account list in one place.</p>'
+      +  '<button type="button" class="btn" data-open-page="accounts-page">Open Accounts</button>'
+      +'</article>'
+      +'<article class="mmh-more-card-v521">'
+      +  '<div class="icon">💱</div>'
+      +  '<b>Exchange Center</b>'
+      +  '<p>Convert currencies using your saved rates and review exchange references.</p>'
+      +  '<button type="button" class="btn" data-open-page="exchange">Open Exchange</button>'
+      +'</article>'
+      +'<article class="mmh-more-card-v521">'
+      +  '<div class="icon">📊</div>'
+      +  '<b>Cash Flow Analyze</b>'
+      +  '<p>Check income, spending, budget, and remaining funds for your selected period.</p>'
+      +  '<button type="button" class="btn" data-open-page="cashflow-analyze">Open Analyze</button>'
+      +'</article>'
+      +'<article class="mmh-more-card-v521 gold">'
+      +  '<div class="icon">🛡</div>'
+      +  '<b>Administrator Dashboard</b>'
+      +  '<p>Open the admin workspace to review users, feedback, and platform operations.</p>'
+      +  '<button type="button" class="btn primary" data-open-admin="1">Open Admin</button>'
+      +'</article>';
+    heading?.after(hub);
+    hub.querySelectorAll('[data-open-page]').forEach(btn=>btn.addEventListener('click',()=>{
+      if(typeof window.setPage==='function') window.setPage(btn.dataset.openPage);
+    }));
+    hub.querySelector('[data-open-admin]')?.addEventListener('click',()=>{ window.location.href='admin.html'; });
+  }
+  function wireDesktopMore(){
+    const more=document.getElementById('moreNavButton');
+    const menu=document.getElementById('moreNavMenu');
+    if(!more) return;
+    more.addEventListener('click',e=>{
+      if(!isDesktop()) return;
+      e.preventDefault();
+      e.stopPropagation();
+      e.stopImmediatePropagation();
+      if(menu){menu.classList.remove('open');menu.setAttribute('aria-hidden','true');}
+      if(typeof window.setPage==='function') window.setPage('accounts-page');
+      syncMoreActive();
+      window.scrollTo({top:0,behavior:'instant'});
+    },true);
+  }
+  function polishBrand(){
+    const brand=document.querySelector('#bottomNav .mmh-sidebar-brand-v500');
+    if(!brand) return;
+    const img=brand.querySelector('img');
+    const copy=brand.querySelector('div');
+    if(img){img.src='images/mmhvault-logo-transparent.png';img.alt='MMHVAULT';}
+    if(copy){
+      const strong=copy.querySelector('strong');
+      const small=copy.querySelector('small');
+      if(strong) strong.textContent='MMHVAULT';
+      if(small) small.textContent='Private Wealth Console';
+    }
+  }
+  function init(){polishBrand();buildMoreHub();wireDesktopMore();syncMoreActive();}
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',()=>setTimeout(init,0),{once:true}); else setTimeout(init,0);
+  const oldSet=window.setPage;
+  if(typeof oldSet==='function' && !oldSet.__phase2fixv2){
+    const wrapped=function(){const r=oldSet.apply(this,arguments);setTimeout(syncMoreActive,0);return r;};
+    wrapped.__phase2fixv2=true;window.setPage=wrapped;
+  }
+  window.addEventListener('resize',()=>setTimeout(syncMoreActive,0));
+})();
+</script>
 </body>
 <!-- MMHVAULT V4.3.0 performance baseline: logo-free account cards + restrained dashboard rendering. -->
 
