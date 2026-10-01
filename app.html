@@ -17358,23 +17358,28 @@ html body.mmh-workspace-active #moreNavMenu.more-nav-menu.open{
 
 #mmhPremiumDashboardV500 .pf-recent-flow-v620 .pf-transactions-v500{padding-bottom:14px}
 #mmhPremiumDashboardV500 .pf-tx-viewport-v620{position:relative;height:245px;overflow:hidden;mask-image:linear-gradient(to bottom,transparent 0,#000 5%,#000 95%,transparent 100%);-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 5%,#000 95%,transparent 100%)}
-#mmhPremiumDashboardV500 .pf-tx-track-v620{display:block;will-change:transform;animation:pfTxFlowV620 var(--pf-flow-duration,58s) linear infinite}
+#mmhPremiumDashboardV500 .pf-tx-track-v620{display:block;will-change:transform;transform:translate3d(0,0,0)}
 #mmhPremiumDashboardV500 .pf-tx-set-v620{display:block}
-#mmhPremiumDashboardV500 .pf-recent-flow-v620:hover .pf-tx-track-v620,#mmhPremiumDashboardV500 .pf-recent-flow-v620:focus-within .pf-tx-track-v620{animation-play-state:paused}
-@keyframes pfTxFlowV620{from{transform:translateY(0)}to{transform:translateY(-50%)}}
+#mmhPremiumDashboardV500 .pf-recent-flow-v620:hover .pf-tx-track-v620,#mmhPremiumDashboardV500 .pf-recent-flow-v620:focus-within .pf-tx-track-v620{will-change:transform}
+@keyframes pfTxFlowV620{from{transform:translate3d(0,0,0)}to{transform:translate3d(0,-50%,0)}}
 #mmhPremiumDashboardV500 .pf-recent-flow-v620::after{content:"LIVE FLOW";position:absolute;right:18px;top:48px;font-size:7px;font-weight:850;letter-spacing:.16em;color:#54dfa8;opacity:.72;pointer-events:none}
 @media(max-width:620px){
   #mmhPremiumDashboardV500 .pf-range-v500 button{min-width:27px;padding:5px 6px;font-size:7px}
   #mmhPremiumDashboardV500 .pf-tx-viewport-v620{height:310px}
-  #mmhPremiumDashboardV500 .pf-tx-track-v620{animation-duration:var(--pf-flow-duration,64s)}
+  #mmhPremiumDashboardV500 .pf-tx-track-v620{will-change:transform}
   #mmhPremiumDashboardV500 .pf-recent-flow-v620::after{top:43px;right:13px;font-size:6px}
 }
 @media(prefers-reduced-motion:reduce){
   #mmhPremiumDashboardV500 .pf-chart-swap-v620{animation:none!important}
-  #mmhPremiumDashboardV500 .pf-tx-track-v620{animation:none!important;transform:none!important}
+  #mmhPremiumDashboardV500 .pf-tx-track-v620{transform:none!important}
 }
 </style>
 
+
+<style id="mmhvault-recent-flow-seamless-v710">
+#mmhPremiumDashboardV500 .pf-tx-track-v620{animation:none!important;backface-visibility:hidden;transform-style:preserve-3d}
+#mmhPremiumDashboardV500 .pf-tx-set-v620{contain:layout paint style}
+</style>
 </body>
 <!-- MMHVAULT V4.3.0 performance baseline: logo-free account cards + restrained dashboard rendering. -->
 
@@ -22562,15 +22567,46 @@ function render(){
    <article class="pf-card-v500 pf-allocation-card-v630"><div class="pf-card-head-v500"><div><h2>Asset Allocation</h2><p>Current wealth composition</p></div><button class="pf-link-v500" type="button" onclick="setPage('accounts-page')">View details →</button></div><div class="pf-allocation-v500 pf-allocation-premium-v630"><div class="pf-donut-wrap-v500"><div class="pf-donut-v500 pf-donut-v630" style="--cash:${cashPct.toFixed(2)}%;--invest:${investPct.toFixed(2)}%"><div class="pf-donut-center-v500"><small>NET ASSETS</small><strong>${money(d.total)}</strong><span>Total Value</span></div></div><div class="pf-allocation-health-v630"><i></i><span>${investPct>65?'Investment-led':'Balanced liquidity'}</span></div></div><div class="pf-legend-v500 pf-legend-v630"><button type="button" class="pf-legend-row-v500 pf-allocation-row-v630" data-allocation-target="accounts-page"><i style="background:#f2c45e"></i><span><em>Cash Assets</em><small>${money(d.cash)}</small></span><b>${cashPct.toFixed(1)}%</b><u style="--pct:${Math.max(0,Math.min(100,cashPct)).toFixed(1)}%"></u></button><button type="button" class="pf-legend-row-v500 pf-allocation-row-v630" data-allocation-target="invest"><i style="background:#3198ff"></i><span><em>Investments</em><small>${money(d.invest)}</small></span><b>${investPct.toFixed(1)}%</b><u style="--pct:${Math.max(0,Math.min(100,investPct)).toFixed(1)}%"></u></button><button type="button" class="pf-legend-row-v500 pf-allocation-row-v630" data-allocation-target="transactions"><i style="background:#31cfa0"></i><span><em>Loan Receivable</em><small>${money(d.receivable)}</small></span><b>${recvPct.toFixed(1)}%</b><u style="--pct:${Math.max(0,Math.min(100,recvPct)).toFixed(1)}%"></u></button></div></div></article>
  </section>
  <section class="pf-bottom-grid-v500">
-   ${(()=>{const recentRows=recentTransactionRows(24),rowCount=recentRows.length,duration=Math.max(42,Math.min(86,rowCount*2.9));const rowHtml=txRows(24,recentRows);return `<article class="pf-card-v500 pf-recent-flow-v620"><div class="pf-card-head-v500"><div><h2>Recent Transactions</h2><p>Live flow · latest activity across recent months</p></div><button class="pf-link-v500" type="button" onclick="setPage('transactions')">View all →</button></div><div class="pf-transactions-v500"><div class="pf-tx-head-v500"><span>Date</span><span>Description</span><span>Type</span><span>Amount</span><span>Status</span></div><div class="pf-tx-viewport-v620"><div class="pf-tx-track-v620" style="--pf-flow-duration:${duration}s"><div class="pf-tx-set-v620">${rowHtml}</div><div class="pf-tx-set-v620" aria-hidden="true">${rowHtml}</div></div></div></div></article>`})()}
+   ${(()=>{const recentRows=recentTransactionRows(24);let loopRows=recentRows.slice();if(loopRows.length){const seed=recentRows.slice();while(loopRows.length<12)loopRows=loopRows.concat(seed);loopRows=loopRows.slice(0,Math.max(12,recentRows.length));}const rowHtml=txRows(loopRows.length||24,loopRows.length?loopRows:recentRows);const signature=recentRows.map(r=>String(r.id??'')+'@'+String(r.tx_date??'')).join('|');return `<article class="pf-card-v500 pf-recent-flow-v620"><div class="pf-card-head-v500"><div><h2>Recent Transactions</h2><p>Live flow · latest activity across recent months</p></div><button class="pf-link-v500" type="button" onclick="setPage('transactions')">View all →</button></div><div class="pf-transactions-v500"><div class="pf-tx-head-v500"><span>Date</span><span>Description</span><span>Type</span><span>Amount</span><span>Status</span></div><div class="pf-tx-viewport-v620"><div class="pf-tx-track-v620" data-flow-signature="${esc(signature)}"><div class="pf-tx-set-v620">${rowHtml}</div><div class="pf-tx-set-v620" aria-hidden="true">${rowHtml}</div></div></div></div></article>`})()}
    <article class="pf-card-v500 pf-market-card-v630"><div class="pf-card-head-v500"><div><h2>Market Watch</h2><p>${marketTab==='Popular'?'Live crypto & gold reference':marketTab==='Crypto'?'Crypto market snapshot':marketTab==='Gold'?'Gold market reference':'Live movers with available prices'}</p></div><button class="pf-link-v500" type="button" onclick="setPage('invest')">Open Invest →</button></div><div class="pf-market-tabs-v500" role="tablist" aria-label="Market watch filter"><button type="button" data-market-tab="Popular" class="${marketTab==='Popular'?'active':''}">Popular</button><button type="button" data-market-tab="Crypto" class="${marketTab==='Crypto'?'active':''}">Crypto</button><button type="button" data-market-tab="Gold" class="${marketTab==='Gold'?'active':''}">Gold</button><button type="button" data-market-tab="Live" class="${marketTab==='Live'?'active':''}"><span class="pf-live-dot-v630"></span>Live</button></div><div class="pf-market-v500 pf-market-swap-v630"><div class="pf-market-head-v500"><span>Asset</span><span>Price</span><span>24h</span><span>Trend</span></div>${marketRows(marketTab)}</div></article>
  </section>`;
  host.querySelectorAll('[data-pf-range]').forEach(btn=>btn.addEventListener('click',()=>{const next=btn.dataset.pfRange;if(!next||next===trendRange)return;trendRange=next;render();}));
  host.querySelectorAll('[data-market-tab]').forEach(btn=>btn.addEventListener('click',()=>{const next=btn.dataset.marketTab;if(!next||next===marketTab)return;marketTab=next;render();}));
  host.querySelectorAll('[data-allocation-target]').forEach(btn=>btn.addEventListener('click',()=>{const target=btn.dataset.allocationTarget;if(target&&typeof window.setPage==='function')window.setPage(target);}));
 }
+
+function ensureSeamlessTransactionFlowV710(){
+ if(window.__mmhTxFlowV710?.started)return;
+ const state=window.__mmhTxFlowV710={started:true,offset:0,last:performance.now(),signature:'',paused:false,raf:0};
+ const reduced=window.matchMedia?.('(prefers-reduced-motion: reduce)');
+ const speed=()=>window.innerWidth<=620?12:15; // px/sec: restrained continuous financial tape
+ const tick=(now)=>{
+   const track=document.querySelector('#mmhPremiumDashboardV500 .pf-tx-track-v620');
+   if(track){
+     const viewport=track.closest('.pf-tx-viewport-v620');
+     const first=track.querySelector('.pf-tx-set-v620');
+     const sig=track.dataset.flowSignature||'';
+     if(sig!==state.signature){state.signature=sig;state.offset=0;}
+     const h=first?.getBoundingClientRect().height||0;
+     const hover=!!track.closest('.pf-recent-flow-v620')?.matches(':hover');
+     const focused=!!track.closest('.pf-recent-flow-v620')?.matches(':focus-within');
+     const shouldPause=hover||focused||!!reduced?.matches||document.hidden||!h||!viewport;
+     const dt=Math.min(80,Math.max(0,now-state.last));
+     if(!shouldPause){
+       state.offset+=speed()*(dt/1000);
+       // True ring behavior: subtract one full copy instead of resetting to zero.
+       // Because the second copy is identical, this coordinate wrap is visually invisible.
+       if(h>0 && state.offset>=h)state.offset-=h*Math.floor(state.offset/h);
+     }
+     if(h>0)track.style.transform=`translate3d(0,${(-state.offset).toFixed(3)}px,0)`;
+   }
+   state.last=now;
+   state.raf=requestAnimationFrame(tick);
+ };
+ state.raf=requestAnimationFrame(tick);
+}
 function wrapRender(){const base=window.renderDashboard;if(typeof base==='function'&&!base.__pfV500){const wrapped=function(){const r=base.apply(this,arguments);requestAnimationFrame(render);return r};wrapped.__pfV500=true;window.renderDashboard=wrapped;try{renderDashboard=wrapped}catch(_){}}}
-function init(){addSidebar();addTopbar();ensureDashboardHost();wrapRender();setTimeout(render,240)}
+function init(){addSidebar();addTopbar();ensureDashboardHost();wrapRender();ensureSeamlessTransactionFlowV710();setTimeout(render,240)}
 ['mmhvault:data-loaded','mmhvault:data-change','mmhvault:cache-restored','mmhvault:sync-complete','mmhvault:market-updated','mmhvault:dashboard-rendered','languagechange','mmhvault-language-change','mmhvault-birthday-change','mmhvault:age-tick'].forEach(ev=>window.addEventListener(ev,()=>setTimeout(render,90)));
 window.addEventListener('resize',()=>{clearTimeout(window.__pfResizeV500);window.__pfResizeV500=setTimeout(render,120)});
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
