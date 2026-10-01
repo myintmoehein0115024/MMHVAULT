@@ -17358,7 +17358,7 @@ html body.mmh-workspace-active #moreNavMenu.more-nav-menu.open{
 
 #mmhPremiumDashboardV500 .pf-recent-flow-v620 .pf-transactions-v500{padding-bottom:14px}
 #mmhPremiumDashboardV500 .pf-tx-viewport-v620{position:relative;height:245px;overflow:hidden;mask-image:linear-gradient(to bottom,transparent 0,#000 5%,#000 95%,transparent 100%);-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 5%,#000 95%,transparent 100%)}
-#mmhPremiumDashboardV500 .pf-tx-track-v620{display:block;will-change:transform;animation:pfTxFlowV620 24s linear infinite}
+#mmhPremiumDashboardV500 .pf-tx-track-v620{display:block;will-change:transform;animation:pfTxFlowV620 var(--pf-flow-duration,58s) linear infinite}
 #mmhPremiumDashboardV500 .pf-tx-set-v620{display:block}
 #mmhPremiumDashboardV500 .pf-recent-flow-v620:hover .pf-tx-track-v620,#mmhPremiumDashboardV500 .pf-recent-flow-v620:focus-within .pf-tx-track-v620{animation-play-state:paused}
 @keyframes pfTxFlowV620{from{transform:translateY(0)}to{transform:translateY(-50%)}}
@@ -17366,7 +17366,7 @@ html body.mmh-workspace-active #moreNavMenu.more-nav-menu.open{
 @media(max-width:620px){
   #mmhPremiumDashboardV500 .pf-range-v500 button{min-width:27px;padding:5px 6px;font-size:7px}
   #mmhPremiumDashboardV500 .pf-tx-viewport-v620{height:310px}
-  #mmhPremiumDashboardV500 .pf-tx-track-v620{animation-duration:30s}
+  #mmhPremiumDashboardV500 .pf-tx-track-v620{animation-duration:var(--pf-flow-duration,64s)}
   #mmhPremiumDashboardV500 .pf-recent-flow-v620::after{top:43px;right:13px;font-size:6px}
 }
 @media(prefers-reduced-motion:reduce){
@@ -22509,8 +22509,19 @@ function chartSvg(series){
  const labels=series.map((x,i)=>(i%step===0||i===series.length-1)?`<text class="pf-chart-label-v500" text-anchor="middle" x="${pts[i][0]}" y="${h-2}">${esc(x.label)}</text>`:'').join('');
  return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><defs><linearGradient id="pfAreaGradientV500" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#f2c45e" stop-opacity=".27"/><stop offset="100%" stop-color="#f2c45e" stop-opacity="0"/></linearGradient></defs>${grid}<path class="pf-area-v500" d="${area}"/><path class="pf-line-v500" d="${line}"/><circle cx="${pts.at(-1)[0]}" cy="${pts.at(-1)[1]}" r="4.4" fill="#ffd36b" stroke="#76561d" stroke-width="2"/>${labels}</svg>`;
 }
-function txRows(limit=8){
- const rows=(Array.isArray(window.transactions)?window.transactions:[]).filter(t=>typeof window.isLinkedInvestmentTx==='function'?!window.isLinkedInvestmentTx(t):true).slice(0,limit);
+function recentTransactionRows(limit=24){
+ const rows=(Array.isArray(window.transactions)?window.transactions:[])
+   .filter(t=>typeof window.isLinkedInvestmentTx==='function'?!window.isLinkedInvestmentTx(t):true)
+   .slice()
+   .sort((a,b)=>{
+     const ad=String(a?.tx_date||''),bd=String(b?.tx_date||'');
+     if(bd!==ad)return bd.localeCompare(ad);
+     return N(b?.id)-N(a?.id);
+   });
+ return rows.slice(0,Math.max(1,limit));
+}
+function txRows(limit=24,sourceRows=null){
+ const rows=Array.isArray(sourceRows)?sourceRows:recentTransactionRows(limit);
  if(!rows.length)return '<div style="padding:24px 2px;color:#71899d;font-size:10px">No transactions yet.</div>';
  return rows.map(t=>{const type=String(t.type||'Other'),amt=type==='Income'?N(t.to_amount):N(t.from_amount),acct=type==='Income'?(t.to_account||''):(t.from_account||''),usd=typeof window.mmhvaultAmountUSD==='function'?window.mmhvaultAmountUSD(acct,amt):amt;const cls=type==='Income'?'income':type==='Expense'?'expense':'transfer',sign=type==='Income'?'+':type==='Expense'?'-':'';return `<div class="pf-tx-row-v500"><span>${esc(t.tx_date||'—')}</span><div class="pf-tx-name-v500"><i class="pf-tx-icon-v500">${type==='Income'?'↙':type==='Expense'?'↗':'⇄'}</i><div class="pf-tx-copy-v500"><b>${esc(t.category||type)}</b><small>${esc(acct||t.note||type)}</small></div></div><span class="pf-tag-v500 ${cls}">${esc(type)}</span><span class="pf-amount-v500 ${type==='Income'?'pos':type==='Expense'?'neg':''}">${sign}${money(usd)}</span><span class="pf-status-v500">Completed</span></div>`}).join('');
 }
@@ -22551,7 +22562,7 @@ function render(){
    <article class="pf-card-v500 pf-allocation-card-v630"><div class="pf-card-head-v500"><div><h2>Asset Allocation</h2><p>Current wealth composition</p></div><button class="pf-link-v500" type="button" onclick="setPage('accounts-page')">View details →</button></div><div class="pf-allocation-v500 pf-allocation-premium-v630"><div class="pf-donut-wrap-v500"><div class="pf-donut-v500 pf-donut-v630" style="--cash:${cashPct.toFixed(2)}%;--invest:${investPct.toFixed(2)}%"><div class="pf-donut-center-v500"><small>NET ASSETS</small><strong>${money(d.total)}</strong><span>Total Value</span></div></div><div class="pf-allocation-health-v630"><i></i><span>${investPct>65?'Investment-led':'Balanced liquidity'}</span></div></div><div class="pf-legend-v500 pf-legend-v630"><button type="button" class="pf-legend-row-v500 pf-allocation-row-v630" data-allocation-target="accounts-page"><i style="background:#f2c45e"></i><span><em>Cash Assets</em><small>${money(d.cash)}</small></span><b>${cashPct.toFixed(1)}%</b><u style="--pct:${Math.max(0,Math.min(100,cashPct)).toFixed(1)}%"></u></button><button type="button" class="pf-legend-row-v500 pf-allocation-row-v630" data-allocation-target="invest"><i style="background:#3198ff"></i><span><em>Investments</em><small>${money(d.invest)}</small></span><b>${investPct.toFixed(1)}%</b><u style="--pct:${Math.max(0,Math.min(100,investPct)).toFixed(1)}%"></u></button><button type="button" class="pf-legend-row-v500 pf-allocation-row-v630" data-allocation-target="transactions"><i style="background:#31cfa0"></i><span><em>Loan Receivable</em><small>${money(d.receivable)}</small></span><b>${recvPct.toFixed(1)}%</b><u style="--pct:${Math.max(0,Math.min(100,recvPct)).toFixed(1)}%"></u></button></div></div></article>
  </section>
  <section class="pf-bottom-grid-v500">
-   <article class="pf-card-v500 pf-recent-flow-v620"><div class="pf-card-head-v500"><div><h2>Recent Transactions</h2><p>Live flow · continuously updating activity</p></div><button class="pf-link-v500" type="button" onclick="setPage('transactions')">View all →</button></div><div class="pf-transactions-v500"><div class="pf-tx-head-v500"><span>Date</span><span>Description</span><span>Type</span><span>Amount</span><span>Status</span></div><div class="pf-tx-viewport-v620"><div class="pf-tx-track-v620"><div class="pf-tx-set-v620">${txRows(8)}</div><div class="pf-tx-set-v620" aria-hidden="true">${txRows(8)}</div></div></div></div></article>
+   ${(()=>{const recentRows=recentTransactionRows(24),rowCount=recentRows.length,duration=Math.max(42,Math.min(86,rowCount*2.9));const rowHtml=txRows(24,recentRows);return `<article class="pf-card-v500 pf-recent-flow-v620"><div class="pf-card-head-v500"><div><h2>Recent Transactions</h2><p>Live flow · latest activity across recent months</p></div><button class="pf-link-v500" type="button" onclick="setPage('transactions')">View all →</button></div><div class="pf-transactions-v500"><div class="pf-tx-head-v500"><span>Date</span><span>Description</span><span>Type</span><span>Amount</span><span>Status</span></div><div class="pf-tx-viewport-v620"><div class="pf-tx-track-v620" style="--pf-flow-duration:${duration}s"><div class="pf-tx-set-v620">${rowHtml}</div><div class="pf-tx-set-v620" aria-hidden="true">${rowHtml}</div></div></div></div></article>`})()}
    <article class="pf-card-v500 pf-market-card-v630"><div class="pf-card-head-v500"><div><h2>Market Watch</h2><p>${marketTab==='Popular'?'Live crypto & gold reference':marketTab==='Crypto'?'Crypto market snapshot':marketTab==='Gold'?'Gold market reference':'Live movers with available prices'}</p></div><button class="pf-link-v500" type="button" onclick="setPage('invest')">Open Invest →</button></div><div class="pf-market-tabs-v500" role="tablist" aria-label="Market watch filter"><button type="button" data-market-tab="Popular" class="${marketTab==='Popular'?'active':''}">Popular</button><button type="button" data-market-tab="Crypto" class="${marketTab==='Crypto'?'active':''}">Crypto</button><button type="button" data-market-tab="Gold" class="${marketTab==='Gold'?'active':''}">Gold</button><button type="button" data-market-tab="Live" class="${marketTab==='Live'?'active':''}"><span class="pf-live-dot-v630"></span>Live</button></div><div class="pf-market-v500 pf-market-swap-v630"><div class="pf-market-head-v500"><span>Asset</span><span>Price</span><span>24h</span><span>Trend</span></div>${marketRows(marketTab)}</div></article>
  </section>`;
  host.querySelectorAll('[data-pf-range]').forEach(btn=>btn.addEventListener('click',()=>{const next=btn.dataset.pfRange;if(!next||next===trendRange)return;trendRange=next;render();}));
