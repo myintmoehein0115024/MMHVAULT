@@ -21275,7 +21275,17 @@ body.light #category-manage{color:#294663}body.light #category-manage .mmh-manag
 const page=document.createElement('section');page.className='page';page.id='category-manage';page.innerHTML='<div class="cm-heading"><div><h1>Transactions</h1><p>Organize transaction categories for your account.</p></div><div id="cmPickerHost"></div></div><div id="cmContent"></div>';document.getElementById('transactions').parentElement.append(page);document.getElementById('cmContent').append(document.getElementById('mmhDataManagerV445'));
 const picker=document.getElementById('mmhTxPagePickerV3'),pickerHome=picker.parentElement;
 const originalSetPage=window.setPage;window.setPage=function(id){if(id==='transactions'){pickerHome.append(picker);window.mmhTxPagePickerSyncV3?.(sessionStorage.getItem('myfinance_tx_tab'))}return originalSetPage.apply(this,arguments)};
-const originalShowTab=window.showTxTab;window.showTxTab=function(tab){return originalShowTab.apply(this,arguments)};
+const originalShowTab=window.showTxTab;window.showTxTab=function(tab){
+  const safe=tab==='history'?'history':'add';
+  const activePage=document.querySelector('.page.active')?.id||'';
+  if(activePage==='category-manage'){
+    setPage('transactions');
+  }
+  const result=originalShowTab.call(this,safe);
+  window.mmhTxPagePickerSyncV3?.(safe);
+  window.scrollTo({top:0,behavior:'instant'});
+  return result;
+};
 const controls=document.createElement('div');controls.className='cm-filters';controls.innerHTML='<input id="cmSearch" type="search" placeholder="Search categories" aria-label="Search categories"><select id="cmGroup" aria-label="View category type"><option value="all">All types</option><option value="Expense">Expense</option><option value="Income">Income</option><option value="Personal">Personal</option><option value="LoanIncome">Loan Income</option><option value="LoanExpense">Loan Expense</option></select><span id="cmCount" role="status" aria-live="polite"></span>';const categoryPanel=document.getElementById('mmhManagerCategoriesPanelV445');categoryPanel.querySelector('.mmh-manager-list-v445').before(controls);
 function filter(){const term=document.getElementById('cmSearch').value.trim().toLocaleLowerCase(),group=document.getElementById('cmGroup').value,label=group==='all'?'':mmhVaultCategoryGroupLabel(group);let visible=0,total=0;categoryPanel.querySelectorAll('[data-manager-category-list] .mmh-manager-row-v445').forEach(row=>{total++;const match=(!term||row.querySelector('b').textContent.toLocaleLowerCase().includes(term))&&(!label||row.querySelector('.mmh-manager-main-v445 span').textContent.trim()===label);row.hidden=!match;if(match)visible++});document.getElementById('cmCount').textContent=visible+' / '+total+' categories'}
 document.getElementById('cmSearch').oninput=filter;document.getElementById('cmGroup').onchange=filter;const renderManager=window.mmhVaultRenderManager;window.mmhVaultRenderManager=function(){const r=renderManager.apply(this,arguments);filter();return r};
