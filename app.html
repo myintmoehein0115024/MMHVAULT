@@ -19628,6 +19628,172 @@ const boot=()=>{addFeedbackExtras();createNotices();db.auth.getSession().then(({
   window.addEventListener('resize',()=>setTimeout(syncMoreActive,0));
 })();
 </script>
+
+<style id="mmhvault-sidebar-more-popup-v540">
+@media(min-width:1100px){
+  /* Final desktop rail: Dashboard / Transactions / Invest / More only */
+  html body.mmh-workspace-active #bottomNav .mmh-side-extra-v500,
+  html body.mmh-workspace-active #bottomNav .mmh-direct-nav-v530{display:none!important}
+  html body.mmh-workspace-active #moreNavButton{
+    display:flex!important;width:100%!important;min-height:49px!important;height:auto!important;margin:0!important;padding:0 13px!important;
+    align-items:center!important;justify-content:flex-start!important;gap:12px!important;border:1px solid transparent!important;border-radius:13px!important;
+    background:transparent!important;color:#aebed0!important;box-shadow:none!important;font-size:13px!important;font-weight:650!important;text-align:left!important;
+  }
+  html body.mmh-workspace-active #moreNavButton:hover{color:#f1f6fa!important;background:rgba(92,143,186,.08)!important;border-color:rgba(108,159,201,.10)!important}
+  html body.mmh-workspace-active #moreNavButton.active,
+  html body.mmh-workspace-active #moreNavButton[aria-expanded="true"]{
+    color:#fff!important;border-color:rgba(242,196,94,.28)!important;background:linear-gradient(90deg,rgba(242,196,94,.18),rgba(72,111,145,.08))!important;
+    box-shadow:inset 3px 0 0 #f2c45e,0 8px 24px rgba(0,0,0,.14)!important
+  }
+  html body.mmh-workspace-active #moreNavButton.active .mmh-nav-icon,
+  html body.mmh-workspace-active #moreNavButton[aria-expanded="true"] .mmh-nav-icon{color:#f5ce72!important}
+
+  /* Compact popup beside More */
+  html body.mmh-workspace-active #moreNavMenu.more-nav-menu{
+    position:fixed!important;left:252px!important;top:420px!important;bottom:auto!important;right:auto!important;transform:translate(-8px,0)!important;
+    width:248px!important;max-width:calc(100vw - 280px)!important;padding:8px!important;display:grid!important;grid-template-columns:1fr!important;gap:4px!important;
+    border-radius:16px!important;border:1px solid rgba(104,164,211,.28)!important;
+    background:linear-gradient(155deg,rgba(8,27,44,.985),rgba(3,14,26,.99))!important;
+    box-shadow:0 24px 60px rgba(0,0,0,.48),inset 0 1px 0 rgba(255,255,255,.04)!important;
+    backdrop-filter:blur(22px) saturate(120%)!important;-webkit-backdrop-filter:blur(22px) saturate(120%)!important;
+    opacity:0!important;visibility:hidden!important;pointer-events:none!important;z-index:24050!important;overflow:hidden!important;
+    transition:opacity .15s ease,transform .15s ease,visibility .15s ease!important
+  }
+  html body.mmh-workspace-active #moreNavMenu.more-nav-menu.open{
+    opacity:1!important;visibility:visible!important;pointer-events:auto!important;transform:translate(0,0)!important
+  }
+  html body.mmh-workspace-active #moreNavMenu.more-nav-menu::before{
+    content:'MORE'!important;display:block!important;grid-column:1!important;padding:8px 10px 7px!important;margin:0 0 2px!important;
+    color:#708da4!important;font-size:9px!important;font-weight:850!important;letter-spacing:.17em!important;text-transform:uppercase!important;border:0!important
+  }
+  html body.mmh-workspace-active #moreNavMenu.more-nav-menu::after{display:none!important;content:none!important}
+  html body.mmh-workspace-active #moreNavMenu.more-nav-menu>button{
+    display:flex!important;align-items:center!important;gap:11px!important;width:100%!important;min-height:48px!important;margin:0!important;padding:8px 10px!important;
+    border:1px solid transparent!important;border-radius:11px!important;background:transparent!important;color:#c3d6e4!important;
+    font:inherit!important;font-size:12px!important;font-weight:680!important;text-align:left!important;transform:none!important;box-shadow:none!important;opacity:1!important
+  }
+  html body.mmh-workspace-active #moreNavMenu.more-nav-menu>button:hover,
+  html body.mmh-workspace-active #moreNavMenu.more-nav-menu>button.active{
+    background:linear-gradient(90deg,rgba(76,199,255,.10),rgba(242,196,94,.055))!important;border-color:rgba(92,153,199,.16)!important;color:#f4f8fb!important
+  }
+  html body.mmh-workspace-active #moreNavMenu.more-nav-menu>button::after{content:'›'!important;margin-left:auto!important;color:#68879f!important;font-size:18px!important}
+  html body.mmh-workspace-active #moreNavMenu .mmh-more-icon-v540{
+    width:31px;height:31px;flex:0 0 31px;display:grid;place-items:center;border-radius:9px;background:#102b40;border:1px solid rgba(92,151,195,.18);font-size:14px;color:#b8d8ed
+  }
+  html body.mmh-workspace-active #moreNavMenu #mmhMoreAdminV540 .mmh-more-icon-v540{background:#322a18;border-color:rgba(242,196,94,.23);color:#f0c75f}
+  html body.mmh-workspace-active #moreNavMenu #mmhMoreAdminV540[hidden]{display:none!important}
+}
+</style>
+<script id="mmhvault-sidebar-more-popup-v540-script">
+(()=>{'use strict';
+  if(window.__mmhSidebarMorePopupV540)return;window.__mmhSidebarMorePopupV540=true;
+  const desktop=()=>window.matchMedia('(min-width:1100px)').matches;
+  const morePages=new Set(['accounts-page','exchange','cashflow-analyze','settings']);
+  let moreBtn=null,menu=null,adminEpoch=0;
+
+  function iconify(btn,icon,label){
+    if(!btn)return;
+    btn.innerHTML='<span class="mmh-more-icon-v540" aria-hidden="true">'+icon+'</span><span>'+label+'</span>';
+  }
+  function prepareMenu(){
+    menu=document.getElementById('moreNavMenu');
+    if(!menu)return false;
+    const buttons=[...menu.querySelectorAll('[data-more-page]')];
+    const accounts=buttons.find(b=>b.dataset.morePage==='accounts-page');
+    const exchange=buttons.find(b=>b.dataset.morePage==='exchange');
+    const analyze=buttons.find(b=>b.dataset.morePage==='cashflow-analyze');
+    const settings=buttons.find(b=>b.dataset.morePage==='settings');
+    iconify(accounts,'▣','Accounts');
+    iconify(exchange,'⇄','Exchange');
+    iconify(analyze,'◉','Analyze');
+    iconify(settings,'⚙','Settings');
+    buttons.forEach(b=>{
+      if(!['accounts-page','exchange','cashflow-analyze','settings'].includes(b.dataset.morePage))b.remove();
+    });
+    let admin=document.getElementById('mmhMoreAdminV540');
+    if(!admin){
+      admin=document.createElement('button');admin.type='button';admin.id='mmhMoreAdminV540';admin.hidden=true;
+      iconify(admin,'♜','Administrator');
+      admin.addEventListener('click',async e=>{
+        e.preventDefault();e.stopPropagation();
+        const token=++adminEpoch;admin.disabled=true;
+        try{
+          if(typeof db==='undefined')return;
+          const {data,error}=await db.rpc('mmh_is_admin');
+          if(token!==adminEpoch)return;
+          if(!error&&data===true)location.assign('admin.html');else admin.hidden=true;
+        }catch(_){admin.hidden=true}finally{if(document.body.contains(admin))admin.disabled=false}
+      });
+      if(settings)menu.insertBefore(admin,settings);else menu.append(admin);
+    }
+    syncAdmin();
+    return true;
+  }
+  async function syncAdmin(){
+    const admin=document.getElementById('mmhMoreAdminV540');if(!admin)return;
+    const token=++adminEpoch;
+    try{
+      if(typeof db==='undefined'){admin.hidden=true;return}
+      const {data,error}=await db.rpc('mmh_is_admin');
+      if(token!==adminEpoch)return;
+      admin.hidden=!!error||data!==true;
+    }catch(_){if(token===adminEpoch)admin.hidden=true}
+  }
+  function replaceMore(){
+    const old=document.getElementById('moreNavButton');if(!old)return false;
+    if(old.dataset.v540==='1'){moreBtn=old;return true}
+    const clone=old.cloneNode(true);clone.dataset.v540='1';clone.classList.remove('active','mmh-side-active-v500');clone.setAttribute('aria-expanded','false');
+    old.replaceWith(clone);moreBtn=clone;
+    clone.addEventListener('click',e=>{
+      if(!desktop())return;
+      e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
+      toggle(!menu?.classList.contains('open'));
+    },true);
+    return true;
+  }
+  function position(){
+    if(!desktop()||!moreBtn||!menu)return;
+    const r=moreBtn.getBoundingClientRect();
+    const approxH=310;
+    const top=Math.max(86,Math.min(r.top-4,window.innerHeight-approxH-16));
+    menu.style.left=(r.right+10)+'px';menu.style.top=top+'px';
+  }
+  function toggle(open){
+    if(!menu||!moreBtn)return;
+    if(open)position();
+    menu.classList.toggle('open',open);menu.setAttribute('aria-hidden',String(!open));moreBtn.setAttribute('aria-expanded',String(open));
+    syncActive();
+  }
+  function syncActive(){
+    if(!desktop()||!moreBtn)return;
+    const page=document.querySelector('.page.active')?.id||'';
+    const active=morePages.has(page)||menu?.classList.contains('open');
+    moreBtn.classList.toggle('active',active);
+    menu?.querySelectorAll('[data-more-page]').forEach(b=>b.classList.toggle('active',b.dataset.morePage===page));
+  }
+  function hideDirectItems(){
+    const rail=document.getElementById('bottomNav');if(!rail)return;
+    rail.querySelectorAll('.mmh-side-extra-v500,.mmh-direct-nav-v530').forEach(b=>{b.style.display='none'});
+  }
+  function init(){
+    if(!prepareMenu()||!replaceMore())return;
+    hideDirectItems();position();syncActive();
+  }
+  document.addEventListener('click',e=>{
+    if(!desktop()||!menu?.classList.contains('open'))return;
+    if(menu.contains(e.target)||moreBtn?.contains(e.target))return;
+    toggle(false);
+  },true);
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')toggle(false)});
+  window.addEventListener('resize',()=>{if(menu?.classList.contains('open'))position();syncActive()});
+  window.addEventListener('scroll',()=>{if(menu?.classList.contains('open'))position()},{passive:true});
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{setTimeout(init,0);setTimeout(init,500);setTimeout(init,1300)},{once:true});
+  else{setTimeout(init,0);setTimeout(init,500);setTimeout(init,1300)}
+  const rail=document.getElementById('bottomNav');if(rail)new MutationObserver(()=>{setTimeout(()=>{hideDirectItems();replaceMore();syncActive()},0)}).observe(rail,{childList:true});
+  const main=document.querySelector('main.wrap')||document.body;new MutationObserver(syncActive).observe(main,{subtree:true,attributes:true,attributeFilter:['class']});
+  try{if(typeof db!=='undefined'&&db.auth?.onAuthStateChange)db.auth.onAuthStateChange(()=>setTimeout(syncAdmin,50))}catch(_){ }
+})();
+</script>
 </body>
 <!-- MMHVAULT V4.3.0 performance baseline: logo-free account cards + restrained dashboard rendering. -->
 
