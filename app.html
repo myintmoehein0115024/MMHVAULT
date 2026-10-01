@@ -7814,9 +7814,10 @@ async function enter(session){
     const shouldWelcome=sessionStorage.getItem("myfinance_show_welcome")==="1";
     if(shouldWelcome){sessionStorage.removeItem("myfinance_show_welcome");showWelcome();}
     await loadAll();
-    const saved=sessionStorage.getItem("myfinance_page")||"dashboard";
-    const page=["dashboard","transactions","invest","exchange","settings","accounts-page"].includes(saved)?saved:"dashboard";
-    setPage(page);
+    // V6.4: every full app load starts from Dashboard.
+    // In-app navigation still works normally after boot.
+    sessionStorage.removeItem("myfinance_page");
+    setPage("dashboard");
     restoreTxTab();
     subscribeRealtime();
     window.setTimeout(()=>openGettingStarted(session.user),250);
@@ -18661,6 +18662,41 @@ html body.mmh-workspace-active #moreNavMenu.more-nav-menu.open{
   #mmhPremiumDashboardV500 .pf-tx-track-v620{animation:none!important;transform:none!important}
 }
 </style>
+
+<style id="mmhvault-sidebar-background-v640">
+/* V6.4 desktop rail atmosphere: same finance artwork, restrained for legibility. */
+@media(min-width:1100px){
+  html body.mmh-workspace-active #bottomNav.bottom-nav{
+    background-image:
+      linear-gradient(180deg,rgba(2,12,22,.985) 0%,rgba(2,12,22,.955) 38%,rgba(2,12,22,.80) 72%,rgba(2,12,22,.92) 100%),
+      radial-gradient(circle at 74% 74%,rgba(75,190,246,.10),transparent 26%),
+      radial-gradient(circle at 28% 91%,rgba(242,196,94,.13),transparent 26%),
+      url("images/mmhvault-bg-v342.webp")!important;
+    background-size:cover,cover,cover,auto 58%!important;
+    background-position:center,center,center,left bottom!important;
+    background-repeat:no-repeat!important;
+    background-blend-mode:normal,screen,screen,normal!important;
+  }
+  html body.mmh-workspace-active #bottomNav.bottom-nav::after{
+    content:"";position:absolute;inset:0;pointer-events:none;z-index:0;border-radius:0 24px 24px 0;
+    background:linear-gradient(90deg,rgba(255,255,255,.018),transparent 34%),linear-gradient(180deg,transparent 58%,rgba(76,199,255,.035) 78%,rgba(242,196,94,.035));
+  }
+  html body.mmh-workspace-active #bottomNav .mmh-sidebar-brand-v500,
+  html body.mmh-workspace-active #bottomNav .mmh-sidebar-section-v500,
+  html body.mmh-workspace-active #bottomNav>button,
+  html body.mmh-workspace-active #bottomNav .mmh-sidebar-private-v500{position:relative;z-index:1}
+  html body.mmh-workspace-active #bottomNav .mmh-sidebar-private-v500{
+    background:radial-gradient(circle at 100% 0,rgba(242,196,94,.12),transparent 38%),linear-gradient(145deg,rgba(12,34,51,.90),rgba(5,19,32,.94))!important;
+    backdrop-filter:blur(10px) saturate(115%);-webkit-backdrop-filter:blur(10px) saturate(115%);
+  }
+}
+</style>
+<script id="mmhvault-dashboard-default-v640">
+(()=>{
+  // Keep the refresh contract explicit even if an older patch writes a remembered page.
+  try{sessionStorage.removeItem('myfinance_page')}catch(_){}
+})();
+</script>
 </body>
 <!-- MMHVAULT V4.3.0 performance baseline: logo-free account cards + restrained dashboard rendering. -->
 
