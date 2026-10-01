@@ -18634,6 +18634,33 @@ html body.mmh-workspace-active #moreNavMenu.more-nav-menu.open{
   #mmhNotifyPopoverV560,#moreNavMenu.more-nav-menu,#moreNavMenu.more-nav-menu>button{transition:none!important;filter:none!important}
 }
 </style>
+
+<style id="mmhvault-dashboard-interactions-v620">
+#mmhPremiumDashboardV500 .pf-range-v500 button{appearance:none;-webkit-appearance:none;min-width:34px;padding:6px 8px;border:1px solid transparent;border-radius:7px;background:transparent;color:#8097aa;font:inherit;font-size:8px;line-height:1;cursor:pointer;transition:background .16s ease,border-color .16s ease,color .16s ease,transform .16s ease,box-shadow .16s ease}
+#mmhPremiumDashboardV500 .pf-range-v500 button:hover{color:#d8e9f5;background:rgba(76,199,255,.08);transform:translateY(-1px)}
+#mmhPremiumDashboardV500 .pf-range-v500 button.active{color:#edf7ff;background:linear-gradient(180deg,#1b4768,#14334e);border-color:#3b6e93;box-shadow:0 4px 14px rgba(25,102,151,.16),inset 0 1px rgba(255,255,255,.06)}
+#mmhPremiumDashboardV500 .pf-range-v500 button:focus-visible{outline:2px solid #78c9f3;outline-offset:2px}
+@keyframes pfChartSwapV620{from{opacity:.35;filter:blur(3px);transform:translateY(3px)}to{opacity:1;filter:blur(0);transform:none}}
+#mmhPremiumDashboardV500 .pf-chart-swap-v620{animation:pfChartSwapV620 .28s cubic-bezier(.2,.75,.25,1) both}
+
+#mmhPremiumDashboardV500 .pf-recent-flow-v620 .pf-transactions-v500{padding-bottom:14px}
+#mmhPremiumDashboardV500 .pf-tx-viewport-v620{position:relative;height:245px;overflow:hidden;mask-image:linear-gradient(to bottom,transparent 0,#000 5%,#000 95%,transparent 100%);-webkit-mask-image:linear-gradient(to bottom,transparent 0,#000 5%,#000 95%,transparent 100%)}
+#mmhPremiumDashboardV500 .pf-tx-track-v620{display:block;will-change:transform;animation:pfTxFlowV620 24s linear infinite}
+#mmhPremiumDashboardV500 .pf-tx-set-v620{display:block}
+#mmhPremiumDashboardV500 .pf-recent-flow-v620:hover .pf-tx-track-v620,#mmhPremiumDashboardV500 .pf-recent-flow-v620:focus-within .pf-tx-track-v620{animation-play-state:paused}
+@keyframes pfTxFlowV620{from{transform:translateY(0)}to{transform:translateY(-50%)}}
+#mmhPremiumDashboardV500 .pf-recent-flow-v620::after{content:"LIVE FLOW";position:absolute;right:18px;top:48px;font-size:7px;font-weight:850;letter-spacing:.16em;color:#54dfa8;opacity:.72;pointer-events:none}
+@media(max-width:620px){
+  #mmhPremiumDashboardV500 .pf-range-v500 button{min-width:27px;padding:5px 6px;font-size:7px}
+  #mmhPremiumDashboardV500 .pf-tx-viewport-v620{height:310px}
+  #mmhPremiumDashboardV500 .pf-tx-track-v620{animation-duration:30s}
+  #mmhPremiumDashboardV500 .pf-recent-flow-v620::after{top:43px;right:13px;font-size:6px}
+}
+@media(prefers-reduced-motion:reduce){
+  #mmhPremiumDashboardV500 .pf-chart-swap-v620{animation:none!important}
+  #mmhPremiumDashboardV500 .pf-tx-track-v620{animation:none!important;transform:none!important}
+}
+</style>
 </body>
 <!-- MMHVAULT V4.3.0 performance baseline: logo-free account cards + restrained dashboard rendering. -->
 
@@ -24095,6 +24122,7 @@ db.auth.getSession().then(({data})=>owner(data?.session?.user)).catch(()=>{});db
 (()=>{'use strict';
 if(window.__mmhPremiumFinanceV500)return;window.__mmhPremiumFinanceV500=true;
 const $=id=>document.getElementById(id),N=v=>Number.isFinite(Number(v))?Number(v):0;
+let trendRange='6M';
 const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 const money=v=>'$'+N(v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
 const pct=v=>(v>=0?'+':'')+N(v).toFixed(1)+'%';
@@ -24142,22 +24170,49 @@ function financeData(){
  const change=(a,b)=>b?((a-b)/Math.abs(b))*100:null;
  return {cash,invest,receivable,total,cost:basis,pl,key,cur,old,cashFlow,flowChange:change(cashFlow,oldFlow),investChange:basis?pl/basis*100:0};
 }
-function historySeries(currentTotal){
+function dayKey(d=new Date()){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
+function dailyUSD(key){
+ const rows=Array.isArray(window.transactions)?window.transactions:[];let income=0,expense=0;
+ rows.filter(t=>String(t.tx_date||'').slice(0,10)===key).forEach(t=>{
+   if(t.type==='Income'&&typeof window.mmhvaultAmountUSD==='function')income+=N(window.mmhvaultAmountUSD(t.to_account,t.to_amount));
+   if(t.type==='Expense'&&typeof window.mmhvaultAmountUSD==='function')expense+=N(window.mmhvaultAmountUSD(t.from_account,t.from_amount));
+ });
+ return {income,expense,saved:income-expense};
+}
+function monthSeries(currentTotal,count){
  const out=[];const d=new Date();d.setDate(1);
- for(let i=5;i>=0;i--){const x=new Date(d.getFullYear(),d.getMonth()-i,1),key=monthKey(x),t=monthlyUSD(key);out.push({key,label:x.toLocaleDateString(undefined,{month:'short'}),flow:N(t.saved)})}
+ for(let i=count-1;i>=0;i--){const x=new Date(d.getFullYear(),d.getMonth()-i,1),key=monthKey(x),t=monthlyUSD(key);out.push({key,label:x.toLocaleDateString(undefined,{month:'short'}),flow:N(t.saved)})}
  let value=N(currentTotal);for(let i=out.length-1;i>=0;i--){out[i].value=value;if(i>0)value-=out[i].flow;}
  return out;
 }
+function weekSeries(currentTotal){
+ const out=[];const today=new Date();today.setHours(12,0,0,0);
+ for(let i=6;i>=0;i--){const x=new Date(today);x.setDate(today.getDate()-i);const key=dayKey(x),t=dailyUSD(key);out.push({key,label:x.toLocaleDateString(undefined,{month:'numeric',day:'numeric'}),flow:N(t.saved)})}
+ let value=N(currentTotal);for(let i=out.length-1;i>=0;i--){out[i].value=value;if(i>0)value-=out[i].flow;}
+ return out;
+}
+function allSeries(currentTotal){
+ const rows=Array.isArray(window.transactions)?window.transactions:[];
+ const dates=rows.map(t=>String(t.tx_date||'').slice(0,7)).filter(x=>/^\d{4}-\d{2}$/.test(x)).sort();
+ if(!dates.length)return monthSeries(currentTotal,6);
+ const [sy,sm]=dates[0].split('-').map(Number),now=new Date(),start=new Date(sy,sm-1,1),end=new Date(now.getFullYear(),now.getMonth(),1),months=Math.max(1,(end.getFullYear()-start.getFullYear())*12+(end.getMonth()-start.getMonth())+1),out=[];
+ for(let i=0;i<months;i++){const x=new Date(start.getFullYear(),start.getMonth()+i,1),key=monthKey(x),t=monthlyUSD(key);out.push({key,label:x.toLocaleDateString(undefined,{month:'short',year:months>18?'2-digit':undefined}),flow:N(t.saved)})}
+ let value=N(currentTotal);for(let i=out.length-1;i>=0;i--){out[i].value=value;if(i>0)value-=out[i].flow;}
+ return out;
+}
+function trendSeries(currentTotal,range=trendRange){if(range==='1W')return weekSeries(currentTotal);if(range==='1Y')return monthSeries(currentTotal,12);if(range==='ALL')return allSeries(currentTotal);return monthSeries(currentTotal,6)}
+function trendDescription(range=trendRange){return range==='1W'?'Estimated 7-day wealth path from recorded cash flow':range==='1Y'?'Estimated 12-month wealth path from recorded cash flow':range==='ALL'?'Estimated wealth path across all recorded cash flow':'Estimated six-month wealth path from recorded cash flow'}
 function chartSvg(series){
  const w=760,h=205,padX=32,padY=18,vals=series.map(x=>x.value);let min=Math.min(...vals,0),max=Math.max(...vals,0);if(max===min){max=min+1}const range=max-min;
  const pts=series.map((x,i)=>{const xx=padX+(w-padX*2)*(i/Math.max(1,series.length-1)),yy=h-padY-(h-padY*2)*((x.value-min)/range);return [xx,yy]});
  const line=pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' '),area=line+` L ${pts.at(-1)[0].toFixed(1)},${h-padY} L ${pts[0][0].toFixed(1)},${h-padY} Z`;
  const grid=[0,.25,.5,.75,1].map(r=>`<line class="pf-grid-line-v500" x1="${padX}" x2="${w-padX}" y1="${(padY+(h-padY*2)*r).toFixed(1)}" y2="${(padY+(h-padY*2)*r).toFixed(1)}"/>`).join('');
- const labels=series.map((x,i)=>`<text class="pf-chart-label-v500" text-anchor="middle" x="${pts[i][0]}" y="${h-2}">${esc(x.label)}</text>`).join('');
+ const step=Math.max(1,Math.ceil(series.length/8));
+ const labels=series.map((x,i)=>(i%step===0||i===series.length-1)?`<text class="pf-chart-label-v500" text-anchor="middle" x="${pts[i][0]}" y="${h-2}">${esc(x.label)}</text>`:'').join('');
  return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><defs><linearGradient id="pfAreaGradientV500" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#f2c45e" stop-opacity=".27"/><stop offset="100%" stop-color="#f2c45e" stop-opacity="0"/></linearGradient></defs>${grid}<path class="pf-area-v500" d="${area}"/><path class="pf-line-v500" d="${line}"/><circle cx="${pts.at(-1)[0]}" cy="${pts.at(-1)[1]}" r="4.4" fill="#ffd36b" stroke="#76561d" stroke-width="2"/>${labels}</svg>`;
 }
-function txRows(){
- const rows=(Array.isArray(window.transactions)?window.transactions:[]).filter(t=>typeof window.isLinkedInvestmentTx==='function'?!window.isLinkedInvestmentTx(t):true).slice(0,5);
+function txRows(limit=8){
+ const rows=(Array.isArray(window.transactions)?window.transactions:[]).filter(t=>typeof window.isLinkedInvestmentTx==='function'?!window.isLinkedInvestmentTx(t):true).slice(0,limit);
  if(!rows.length)return '<div style="padding:24px 2px;color:#71899d;font-size:10px">No transactions yet.</div>';
  return rows.map(t=>{const type=String(t.type||'Other'),amt=type==='Income'?N(t.to_amount):N(t.from_amount),acct=type==='Income'?(t.to_account||''):(t.from_account||''),usd=typeof window.mmhvaultAmountUSD==='function'?window.mmhvaultAmountUSD(acct,amt):amt;const cls=type==='Income'?'income':type==='Expense'?'expense':'transfer',sign=type==='Income'?'+':type==='Expense'?'-':'';return `<div class="pf-tx-row-v500"><span>${esc(t.tx_date||'—')}</span><div class="pf-tx-name-v500"><i class="pf-tx-icon-v500">${type==='Income'?'↙':type==='Expense'?'↗':'⇄'}</i><div class="pf-tx-copy-v500"><b>${esc(t.category||type)}</b><small>${esc(acct||t.note||type)}</small></div></div><span class="pf-tag-v500 ${cls}">${esc(type)}</span><span class="pf-amount-v500 ${type==='Income'?'pos':type==='Expense'?'neg':''}">${sign}${money(usd)}</span><span class="pf-status-v500">Completed</span></div>`}).join('');
 }
@@ -24171,7 +24226,7 @@ function marketRows(){
 }
 function name(){const raw=($('headerDisplayName')?.textContent||'').trim();if(!raw||/MMHVAULT User/i.test(raw))return lang()?'用户':'there';return raw.split(/\s+/)[0]}
 function render(){
- if(!pageActive())return;const host=ensureDashboardHost();if(!host)return;const d=financeData(),series=historySeries(d.total),latest=series.at(-1)?.value||0,prev=series.at(-2)?.value||0,trend=prev?((latest-prev)/Math.abs(prev))*100:0,total=d.total||1,cashPct=d.cash/total*100,investPct=d.invest/total*100,recvPct=Math.max(0,100-cashPct-investPct),pnlCls=d.pl>=0?'pos':'neg';
+ if(!pageActive())return;const host=ensureDashboardHost();if(!host)return;const d=financeData(),series=trendSeries(d.total,trendRange),latest=series.at(-1)?.value||0,first=series.at(0)?.value||0,trend=first?((latest-first)/Math.abs(first))*100:0,total=d.total||1,cashPct=d.cash/total*100,investPct=d.invest/total*100,recvPct=Math.max(0,100-cashPct-investPct),pnlCls=d.pl>=0?'pos':'neg';
  host.innerHTML=`
  <section class="pf-hero-v500"><div class="pf-hero-copy-v500"><div class="pf-eyebrow-v500">MMHVAULT · FINANCIAL OVERVIEW</div><h1>${lang()?'欢迎回来':'Welcome back'}, <span class="pf-name-v500">${esc(name())}</span></h1><div class="pf-hero-sub-v500">${lang()?'这是您当前的财务概览。继续稳步建立自己的财富系统。':'Here’s your financial overview. Keep building your wealth system.'}</div></div><div class="pf-hero-date-v500">${new Date().toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric',year:'numeric'})}</div></section>
  <section class="pf-kpis-v500">
@@ -24181,13 +24236,14 @@ function render(){
    <article class="pf-kpi-v500 gold"><span class="pf-kpi-label-v500">Investment Profit / Loss</span><div class="pf-kpi-value-v500">${d.pl>=0?'+':''}${money(d.pl)}</div><div class="pf-kpi-meta-v500"><span class="${pnlCls}">${pct(d.investChange)}</span><span>unrealized</span></div><i class="pf-kpi-icon-v500">⌁</i></article>
  </section>
  <section class="pf-main-grid-v500">
-   <article class="pf-card-v500"><div class="pf-card-head-v500"><div><h2>Portfolio Trend</h2><p>Estimated six-month wealth path from recorded cash flow</p></div><div class="pf-range-v500"><span>1W</span><span class="active">6M</span><span>1Y</span><span>ALL</span></div></div><div class="pf-trend-summary-v500"><strong>${money(d.total)}</strong><span>${pct(trend)} momentum</span></div><div class="pf-chart-v500">${chartSvg(series)}</div></article>
+   <article class="pf-card-v500 pf-trend-card-v620"><div class="pf-card-head-v500"><div><h2>Portfolio Trend</h2><p>${trendDescription(trendRange)}</p></div><div class="pf-range-v500" role="group" aria-label="Portfolio trend period"><button type="button" data-pf-range="1W" class="${trendRange==='1W'?'active':''}">1W</button><button type="button" data-pf-range="6M" class="${trendRange==='6M'?'active':''}">6M</button><button type="button" data-pf-range="1Y" class="${trendRange==='1Y'?'active':''}">1Y</button><button type="button" data-pf-range="ALL" class="${trendRange==='ALL'?'active':''}">ALL</button></div></div><div class="pf-trend-summary-v500"><strong>${money(d.total)}</strong><span>${pct(trend)} momentum</span></div><div class="pf-chart-v500 pf-chart-swap-v620">${chartSvg(series)}</div></article>
    <article class="pf-card-v500"><div class="pf-card-head-v500"><div><h2>Asset Allocation</h2><p>Current wealth composition</p></div><button class="pf-link-v500" type="button" onclick="setPage('accounts-page')">View details →</button></div><div class="pf-allocation-v500"><div class="pf-donut-wrap-v500"><div class="pf-donut-v500" style="--cash:${cashPct.toFixed(2)}%;--invest:${investPct.toFixed(2)}%"><div class="pf-donut-center-v500"><strong>${money(d.total)}</strong><span>Total Value</span></div></div></div><div class="pf-legend-v500"><div class="pf-legend-row-v500"><i style="background:#f2c45e"></i><span>Cash Assets</span><b>${cashPct.toFixed(1)}%</b></div><div class="pf-legend-row-v500"><i style="background:#3198ff"></i><span>Investments</span><b>${investPct.toFixed(1)}%</b></div><div class="pf-legend-row-v500"><i style="background:#31cfa0"></i><span>Loan Receivable</span><b>${recvPct.toFixed(1)}%</b></div></div></div></article>
  </section>
  <section class="pf-bottom-grid-v500">
-   <article class="pf-card-v500"><div class="pf-card-head-v500"><div><h2>Recent Transactions</h2><p>Your latest finance activity</p></div><button class="pf-link-v500" type="button" onclick="setPage('transactions')">View all →</button></div><div class="pf-transactions-v500"><div class="pf-tx-head-v500"><span>Date</span><span>Description</span><span>Type</span><span>Amount</span><span>Status</span></div>${txRows()}</div></article>
+   <article class="pf-card-v500 pf-recent-flow-v620"><div class="pf-card-head-v500"><div><h2>Recent Transactions</h2><p>Live flow · continuously updating activity</p></div><button class="pf-link-v500" type="button" onclick="setPage('transactions')">View all →</button></div><div class="pf-transactions-v500"><div class="pf-tx-head-v500"><span>Date</span><span>Description</span><span>Type</span><span>Amount</span><span>Status</span></div><div class="pf-tx-viewport-v620"><div class="pf-tx-track-v620"><div class="pf-tx-set-v620">${txRows(8)}</div><div class="pf-tx-set-v620" aria-hidden="true">${txRows(8)}</div></div></div></div></article>
    <article class="pf-card-v500"><div class="pf-card-head-v500"><div><h2>Market Watch</h2><p>Live crypto & gold reference</p></div><button class="pf-link-v500" type="button" onclick="setPage('invest')">Open Invest →</button></div><div class="pf-market-tabs-v500"><span class="active">Popular</span><span>Crypto</span><span>Gold</span><span>Live</span></div><div class="pf-market-v500"><div class="pf-market-head-v500"><span>Asset</span><span>Price</span><span>24h</span><span>Trend</span></div>${marketRows()}</div></article>
  </section>`;
+ host.querySelectorAll('[data-pf-range]').forEach(btn=>btn.addEventListener('click',()=>{const next=btn.dataset.pfRange;if(!next||next===trendRange)return;trendRange=next;render();}));
 }
 function wrapRender(){const base=window.renderDashboard;if(typeof base==='function'&&!base.__pfV500){const wrapped=function(){const r=base.apply(this,arguments);requestAnimationFrame(render);return r};wrapped.__pfV500=true;window.renderDashboard=wrapped;try{renderDashboard=wrapped}catch(_){}}}
 function init(){addSidebar();addTopbar();ensureDashboardHost();wrapRender();setTimeout(render,240)}
