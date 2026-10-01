@@ -26995,3 +26995,144 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 <style id="mmhvault-premium-finance-v510-kicker-css">
 @media(min-width:1100px){.mmh-pf-kicker-v510{margin:0 0 7px;color:#d8ad48;font-size:9px;font-weight:850;letter-spacing:.19em;text-transform:uppercase}.mmh-pf-kicker-v510:before{content:"";display:inline-block;width:22px;height:1px;margin:0 8px 3px 0;background:linear-gradient(90deg,#f1c65d,rgba(241,198,93,.05))}}
 </style>
+
+<style id="mmhvault-sidebar-final-v530">
+@media(min-width:1100px){
+  /* Compact transparent brand with copy */
+  html body.mmh-workspace-active #bottomNav .mmh-sidebar-brand-v500{
+    display:flex!important;align-items:center!important;justify-content:flex-start!important;
+    gap:10px!important;min-height:58px!important;padding:7px 9px 16px!important;margin-bottom:4px!important;
+    overflow:visible!important;border-bottom:1px solid rgba(118,164,204,.12)!important;
+  }
+  html body.mmh-workspace-active #bottomNav .mmh-sidebar-brand-v500 img{
+    display:block!important;width:38px!important;height:38px!important;min-width:38px!important;max-width:38px!important;
+    flex:0 0 38px!important;object-fit:contain!important;object-position:center!important;background:transparent!important;
+    filter:drop-shadow(0 5px 12px rgba(242,196,94,.14))!important;
+  }
+  html body.mmh-workspace-active #bottomNav .mmh-sidebar-brand-v500>div{
+    display:block!important;min-width:0!important;flex:1 1 auto!important;
+  }
+  html body.mmh-workspace-active #bottomNav .mmh-sidebar-brand-v500 strong{
+    display:block!important;margin:0!important;color:#f5f8fb!important;font-size:14px!important;line-height:1.16!important;
+    font-weight:800!important;letter-spacing:.055em!important;white-space:nowrap!important;
+  }
+  html body.mmh-workspace-active #bottomNav .mmh-sidebar-brand-v500 small{
+    display:block!important;margin-top:4px!important;color:#748da1!important;font-size:7.5px!important;line-height:1.35!important;
+    font-weight:750!important;letter-spacing:.12em!important;text-transform:uppercase!important;white-space:normal!important;
+  }
+
+  /* Desktop no longer uses More */
+  html body.mmh-workspace-active #moreNavButton{display:none!important}
+  html body.mmh-workspace-active #moreNavMenu{display:none!important;opacity:0!important;pointer-events:none!important}
+
+  /* Direct navigation items */
+  html body.mmh-workspace-active #bottomNav .mmh-direct-nav-v530{display:flex!important}
+  html body.mmh-workspace-active #bottomNav #mmhAdminSideV530[hidden]{display:none!important}
+  html body.mmh-workspace-active #bottomNav #mmhAdminSideV530 .mmh-nav-icon{color:#f0c75f!important}
+
+  /* Accounts is again a normal account page, not a More hub */
+  #accounts-page .mmh-more-hub-v521{display:none!important}
+}
+</style>
+<script id="mmhvault-sidebar-final-v530-script">
+(()=>{'use strict';
+  if(window.__mmhSidebarFinalV530)return;window.__mmhSidebarFinalV530=true;
+  const isDesktop=()=>window.matchMedia('(min-width:1100px)').matches;
+  let adminEpoch=0;
+
+  function resetAccountsPage(){
+    const page=document.getElementById('accounts-page');
+    if(!page)return;
+    page.querySelector('.mmh-more-hub-v521')?.remove();
+    const heading=page.querySelector('.ap-heading');
+    if(heading){
+      const h=heading.querySelector('h1');
+      const p=heading.querySelector('p');
+      if(h)h.textContent='Accounts';
+      if(p)p.textContent='Your cash accounts and investment portfolios';
+    }
+  }
+
+  function brand(){
+    const brand=document.querySelector('#bottomNav .mmh-sidebar-brand-v500');
+    if(!brand)return false;
+    const img=brand.querySelector('img');
+    if(img){img.src='images/mmhvault-logo-transparent.png';img.alt='MMHVAULT';img.decoding='async';}
+    let copy=brand.querySelector('div');
+    if(!copy){copy=document.createElement('div');brand.append(copy)}
+    let strong=copy.querySelector('strong');if(!strong){strong=document.createElement('strong');copy.append(strong)}
+    let small=copy.querySelector('small');if(!small){small=document.createElement('small');copy.append(small)}
+    strong.textContent='MMHVAULT';
+    small.textContent='PERSONAL FINANCE · WEALTH';
+    return true;
+  }
+
+  function makeButton(id,page,icon,label){
+    const b=document.createElement('button');b.type='button';b.id=id;b.className='mmh-side-extra-v500 mmh-direct-nav-v530';b.dataset.premiumPage=page;
+    b.innerHTML='<i class="mmh-nav-icon" aria-hidden="true">'+icon+'</i><span>'+label+'</span>';
+    b.addEventListener('click',()=>{if(typeof window.setPage==='function')window.setPage(page)});
+    return b;
+  }
+
+  function nav(){
+    const rail=document.getElementById('bottomNav');
+    if(!rail)return false;
+    const more=document.getElementById('moreNavButton');
+    const settings=[...rail.querySelectorAll('button')].find(b=>b.dataset.premiumPage==='settings');
+    if(!rail.querySelector('#mmhAccountsSideV530')){
+      const b=makeButton('mmhAccountsSideV530','accounts-page','◫','Accounts');
+      rail.insertBefore(b,more||settings||rail.querySelector('.mmh-sidebar-private-v500'));
+    }
+    if(!rail.querySelector('#mmhExchangeSideV530')){
+      const b=makeButton('mmhExchangeSideV530','exchange','⇄','Exchange');
+      rail.insertBefore(b,more||settings||rail.querySelector('.mmh-sidebar-private-v500'));
+    }
+    if(!rail.querySelector('#mmhAdminSideV530')){
+      const b=document.createElement('button');b.type='button';b.id='mmhAdminSideV530';b.className='mmh-side-extra-v500 mmh-direct-nav-v530';b.hidden=true;
+      b.innerHTML='<i class="mmh-nav-icon" aria-hidden="true">♜</i><span>Administrator</span>';
+      b.addEventListener('click',async()=>{
+        const token=++adminEpoch;b.disabled=true;
+        try{
+          if(typeof db==='undefined')return;
+          const {data,error}=await db.rpc('mmh_is_admin');
+          if(token!==adminEpoch)return;
+          if(!error&&data===true)location.assign('admin.html');else b.remove();
+        }catch(_){b.remove()}finally{if(document.body.contains(b))b.disabled=false}
+      });
+      rail.insertBefore(b,more||settings||rail.querySelector('.mmh-sidebar-private-v500'));
+    }
+    if(more){more.setAttribute('aria-expanded','false');more.classList.remove('active','mmh-side-active-v500');}
+    document.getElementById('moreNavMenu')?.classList.remove('open');
+    syncActive();
+    return true;
+  }
+
+  function syncActive(){
+    if(!isDesktop())return;
+    const page=document.querySelector('.page.active')?.id||'';
+    document.querySelectorAll('#bottomNav [data-premium-page]').forEach(b=>b.classList.toggle('mmh-side-active-v500',b.dataset.premiumPage===page));
+  }
+
+  async function syncAdmin(){
+    const b=document.getElementById('mmhAdminSideV530');if(!b)return;
+    const token=++adminEpoch;
+    try{
+      if(typeof db==='undefined'){b.hidden=true;return}
+      const {data,error}=await db.rpc('mmh_is_admin');
+      if(token!==adminEpoch)return;
+      b.hidden=!!error||data!==true;
+    }catch(_){if(token===adminEpoch)b.hidden=true}
+  }
+
+  function run(){brand();nav();resetAccountsPage();syncActive();syncAdmin()}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{setTimeout(run,0);setTimeout(run,450);setTimeout(run,1200)},{once:true});
+  else{setTimeout(run,0);setTimeout(run,450);setTimeout(run,1200)}
+
+  const rail=document.getElementById('bottomNav');
+  if(rail)new MutationObserver(()=>{brand();nav()}).observe(rail,{childList:true,subtree:false});
+  const main=document.querySelector('main.wrap')||document.body;
+  new MutationObserver(syncActive).observe(main,{subtree:true,attributes:true,attributeFilter:['class']});
+  window.addEventListener('resize',syncActive);
+  try{if(typeof db!=='undefined'&&db.auth?.onAuthStateChange)db.auth.onAuthStateChange(()=>setTimeout(syncAdmin,50))}catch(_){}
+})();
+</script>
