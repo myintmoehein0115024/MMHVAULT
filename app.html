@@ -26376,3 +26376,322 @@ db.auth.getSession().then(({data})=>owner(data?.session?.user)).catch(()=>{});db
 <style id="mmhvault-feedback-primary-v14">html body:not(#fb-ui-a):not(#fb-ui-b):not(#fb-ui-c):not(#fb-ui-d) #settings #fbSubmitV14{background:#a9cfee!important;color:#102235!important;border-color:#a9cfee!important;font-weight:650!important}</style>
 
 <style id="mmhvault-admin-more-v15">#moreNavMenu #mmhAdminMoreV15{border-top:1px solid rgba(151,183,207,.22)!important}#moreNavMenu #mmhAdminMoreV15 i{font-style:normal;color:#e7ca82}#moreNavMenu #mmhAdminMoreV15:disabled{opacity:.5}#moreNavMenu #mmhAdminMoreV15:focus-visible{outline:2px solid #a9cfee;outline-offset:-3px}</style>
+
+<!-- MMHVAULT V5.0 · Premium Finance Desktop Shell + Dashboard (presentation layer only) -->
+<style id="mmhvault-premium-finance-v500-css">
+:root{
+  --pf-bg:#030a13;
+  --pf-panel:#081828;
+  --pf-panel-2:#0b2033;
+  --pf-line:#29465f;
+  --pf-line-soft:rgba(122,174,216,.16);
+  --pf-text:#edf5fb;
+  --pf-muted:#8ea6bb;
+  --pf-gold:#f2c45e;
+  --pf-gold-2:#d89e34;
+  --pf-cyan:#4cc7ff;
+  --pf-green:#2ee59d;
+  --pf-red:#ff6f82;
+}
+@media(min-width:1100px){
+  html body.mmh-workspace-active{background:#020811!important;color:var(--pf-text)!important}
+  html body.mmh-workspace-active::before{
+    background:
+      linear-gradient(90deg,rgba(2,8,16,.98) 0 242px,rgba(2,8,16,.40) 242px 100%),
+      linear-gradient(180deg,rgba(2,8,17,.12),rgba(2,8,17,.58)),
+      url("images/mmhvault-bg-v342.webp") center center/cover no-repeat!important;
+    filter:saturate(.88) contrast(1.04);
+  }
+  html body.mmh-workspace-active::after{
+    background:
+      radial-gradient(circle at 77% 5%,rgba(242,196,94,.13),transparent 22%),
+      radial-gradient(circle at 70% 16%,rgba(76,199,255,.10),transparent 27%),
+      linear-gradient(180deg,rgba(1,6,13,.08),rgba(1,6,13,.34) 58%,rgba(1,6,13,.64))!important;
+  }
+
+  /* desktop side rail */
+  html body.mmh-workspace-active #bottomNav.bottom-nav{
+    position:fixed!important;left:0!important;top:0!important;bottom:0!important;right:auto!important;
+    width:242px!important;height:100vh!important;max-width:none!important;
+    padding:18px 14px 18px!important;margin:0!important;
+    display:flex!important;flex-direction:column!important;align-items:stretch!important;justify-content:flex-start!important;gap:5px!important;
+    border-radius:0 24px 24px 0!important;border:0!important;border-right:1px solid rgba(87,146,196,.28)!important;
+    background:linear-gradient(180deg,rgba(3,13,24,.98),rgba(2,10,20,.97))!important;
+    box-shadow:16px 0 50px rgba(0,0,0,.24),inset -1px 0 rgba(255,255,255,.025)!important;
+    overflow:hidden!important;z-index:23000!important;
+    transform:none!important;
+  }
+  #bottomNav .mmh-sidebar-brand-v500{display:flex;align-items:center;gap:12px;padding:6px 9px 24px;margin-bottom:4px;border-bottom:1px solid rgba(118,164,204,.12)}
+  #bottomNav .mmh-sidebar-brand-v500 img{width:42px;height:42px;object-fit:contain;filter:drop-shadow(0 0 13px rgba(242,196,94,.22))}
+  #bottomNav .mmh-sidebar-brand-v500 strong{display:block;font-size:16px;letter-spacing:.05em;color:#f7f9fc}
+  #bottomNav .mmh-sidebar-brand-v500 small{display:block;margin-top:3px;font-size:8px;letter-spacing:.18em;text-transform:uppercase;color:#788ea3}
+  #bottomNav .mmh-sidebar-section-v500{padding:11px 10px 5px;font-size:9px;letter-spacing:.16em;text-transform:uppercase;color:#536f88;font-weight:800}
+  html body.mmh-workspace-active #bottomNav>button{
+    width:100%!important;min-width:0!important;min-height:49px!important;height:auto!important;margin:0!important;padding:0 13px!important;
+    display:flex!important;align-items:center!important;justify-content:flex-start!important;gap:12px!important;
+    border:1px solid transparent!important;border-radius:13px!important;
+    background:transparent!important;color:#aebed0!important;box-shadow:none!important;
+    font-size:13px!important;font-weight:650!important;text-align:left!important;transform:none!important;
+  }
+  html body.mmh-workspace-active #bottomNav>button .mmh-nav-icon{width:23px!important;font-size:17px!important;line-height:1!important;display:grid!important;place-items:center!important;filter:grayscale(.15)}
+  html body.mmh-workspace-active #bottomNav>button span{font-size:13px!important}
+  html body.mmh-workspace-active #bottomNav>button::after{display:none!important}
+  html body.mmh-workspace-active #bottomNav>button:hover{color:#f1f6fa!important;background:rgba(92,143,186,.08)!important;border-color:rgba(108,159,201,.10)!important}
+  html body.mmh-workspace-active #bottomNav>button[aria-current="page"],
+  html body.mmh-workspace-active #bottomNav>button.mmh-side-active-v500{
+    color:#fff!important;border-color:rgba(242,196,94,.28)!important;
+    background:linear-gradient(90deg,rgba(242,196,94,.18),rgba(72,111,145,.08))!important;
+    box-shadow:inset 3px 0 0 var(--pf-gold),0 8px 24px rgba(0,0,0,.14)!important;
+  }
+  html body.mmh-workspace-active #bottomNav>button[aria-current="page"] .mmh-nav-icon,
+  html body.mmh-workspace-active #bottomNav>button.mmh-side-active-v500 .mmh-nav-icon{color:#f5ce72!important;filter:none!important}
+  #bottomNav .mmh-sidebar-private-v500{margin:auto 7px 2px;padding:15px 14px;border-radius:15px;border:1px solid rgba(242,196,94,.30);background:radial-gradient(circle at 100% 0,rgba(242,196,94,.13),transparent 38%),linear-gradient(145deg,rgba(13,31,47,.92),rgba(6,18,31,.94));box-shadow:0 16px 34px rgba(0,0,0,.18),inset 0 1px rgba(255,255,255,.035)}
+  #bottomNav .mmh-sidebar-private-v500 .icon{font-size:20px;color:var(--pf-gold)}
+  #bottomNav .mmh-sidebar-private-v500 b{display:block;margin-top:9px;font-size:12px;color:#f1f5f8}
+  #bottomNav .mmh-sidebar-private-v500 p{margin:5px 0 10px;font-size:10px;line-height:1.5;color:#8096aa}
+  #bottomNav .mmh-sidebar-private-v500 span{display:flex;align-items:center;gap:7px;font-size:9px;color:#b6c6d2}
+  #bottomNav .mmh-sidebar-private-v500 span::before{content:"";width:6px;height:6px;border-radius:50%;background:#35e39c;box-shadow:0 0 10px rgba(53,227,156,.65)}
+
+  /* desktop top bar */
+  html body.mmh-workspace-active #header{
+    position:fixed!important;left:242px!important;right:0!important;top:0!important;height:72px!important;
+    padding:12px 24px 10px!important;display:flex!important;align-items:center!important;gap:16px!important;
+    border:0!important;border-bottom:1px solid rgba(115,160,200,.11)!important;
+    background:linear-gradient(180deg,rgba(3,10,19,.91),rgba(3,10,19,.62))!important;
+    backdrop-filter:blur(18px) saturate(118%)!important;-webkit-backdrop-filter:blur(18px) saturate(118%)!important;
+    box-shadow:0 10px 30px rgba(0,0,0,.09)!important;z-index:22000!important;
+  }
+  #header .mmhvault-header-brand{display:none!important}
+  #header .header-spacer{display:none!important}
+  #header .mmhvault-sync-status-v337{display:none!important}
+  #header .mmh-finance-topbar-v500{display:flex;align-items:center;gap:12px;flex:1;min-width:0}
+  #header .mmh-global-search-v500{position:relative;display:flex;align-items:center;min-width:260px;max-width:545px;flex:1}
+  #header .mmh-global-search-v500::before{content:"⌕";position:absolute;left:15px;top:50%;transform:translateY(-51%);font-size:23px;color:#9eb5cb;pointer-events:none}
+  #header .mmh-global-search-v500 input{width:100%;height:44px;padding:0 58px 0 43px;border:1px solid #31516c;border-radius:13px;background:linear-gradient(180deg,rgba(11,29,47,.90),rgba(6,20,35,.92));color:#e7f1f8;font:inherit;font-size:12px;outline:none;box-shadow:inset 0 1px rgba(255,255,255,.025)}
+  #header .mmh-global-search-v500 input:focus{border-color:#6aa8d2;box-shadow:0 0 0 3px rgba(76,199,255,.08),inset 0 1px rgba(255,255,255,.03)}
+  #header .mmh-global-search-v500 input::placeholder{color:#7890a6}
+  #header .mmh-global-search-v500 kbd{position:absolute;right:10px;top:50%;transform:translateY(-50%);padding:4px 7px;border-radius:7px;border:1px solid #304b63;background:#0b1d2e;color:#8fa4b7;font-size:10px;font-family:inherit}
+  #header .mmh-topbar-date-v500{white-space:nowrap;font-size:10px;color:#7f94a8;padding:0 2px}
+  #header .mmh-topbar-bell-v500{position:relative;width:42px;height:42px;display:grid;place-items:center;border-radius:12px;border:1px solid #2d4a62;background:linear-gradient(180deg,#10273b,#0a1c2d);color:#cfdeea;font-size:18px;cursor:pointer}
+  #header .mmh-topbar-bell-v500::after{content:"";position:absolute;right:9px;top:8px;width:6px;height:6px;border-radius:50%;background:#ff506b;box-shadow:0 0 0 2px #091a2b}
+  #header .header-profile{display:flex!important;align-items:center!important;min-width:176px!important;max-width:225px!important;height:44px!important;padding:5px 10px 5px 6px!important;border-radius:13px!important;border:1px solid #2d4a62!important;background:linear-gradient(180deg,#10263a,#0a1b2c)!important;box-shadow:none!important}
+  #header .header-avatar{width:32px!important;height:32px!important;min-width:32px!important;border-radius:10px!important;background:linear-gradient(145deg,#2b4d69,#132c43)!important;border:1px solid rgba(166,205,235,.23)!important;color:#eaf5fc!important}
+  #header .header-profile-copy b{font-size:11px!important;color:#e7f0f6!important}
+  #header .header-profile-copy span{font-size:8px!important;color:#7890a4!important;max-width:150px!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important}
+
+  /* workspace canvas */
+  html body.mmh-workspace-active main.wrap{width:auto!important;max-width:none!important;margin:0!important;padding:90px 24px 36px 266px!important;box-sizing:border-box!important}
+  html body.mmh-workspace-active .page:not(#login){border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;padding:0!important;overflow:visible!important}
+  html body.mmh-workspace-active .page:not(#login)::after{display:none!important}
+  #dashboard .mmhvault-dashboard-head{display:none!important}
+  #dashboard #dashboardCommandCenterV34210,
+  #dashboard .dashboard-quick-actions-v371,
+  #dashboard #dashboardDetails,
+  #dashboard #wealthSnapshotV386,
+  #dashboard #dashboardCoreV372,
+  #dashboard #dashboardHero{display:none!important}
+  #dashboard .mmh-age-strip-v34213{display:none!important}
+
+  /* premium dashboard */
+  #mmhPremiumDashboardV500{display:block;max-width:1420px;margin:0 auto;color:var(--pf-text)}
+  #mmhPremiumDashboardV500 .pf-hero-v500{position:relative;min-height:92px;padding:2px 4px 16px;display:flex;align-items:flex-end;justify-content:space-between;gap:22px;overflow:visible}
+  #mmhPremiumDashboardV500 .pf-hero-v500::after{content:"";position:absolute;right:-4px;top:-76px;width:540px;height:215px;pointer-events:none;background:radial-gradient(ellipse at center,rgba(242,196,94,.13),transparent 52%),radial-gradient(ellipse at 72% 58%,rgba(76,199,255,.09),transparent 48%);filter:blur(1px);opacity:.95}
+  #mmhPremiumDashboardV500 .pf-hero-copy-v500{position:relative;z-index:1}
+  #mmhPremiumDashboardV500 .pf-eyebrow-v500{font-size:9px;letter-spacing:.18em;text-transform:uppercase;color:#7692aa;font-weight:800;margin-bottom:7px}
+  #mmhPremiumDashboardV500 h1{margin:0;font-size:32px;line-height:1.08;font-weight:850;letter-spacing:-.035em;color:#f5f8fb}
+  #mmhPremiumDashboardV500 h1 .pf-name-v500{color:#f2c45e}
+  #mmhPremiumDashboardV500 .pf-hero-sub-v500{margin-top:7px;font-size:12px;color:#8ba2b7}
+  #mmhPremiumDashboardV500 .pf-hero-date-v500{position:relative;z-index:1;align-self:flex-end;padding:8px 11px;border-radius:10px;background:rgba(6,22,36,.58);border:1px solid rgba(89,139,179,.15);font-size:10px;color:#8fa4b8}
+
+  #mmhPremiumDashboardV500 .pf-kpis-v500{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px;margin-top:3px}
+  #mmhPremiumDashboardV500 .pf-kpi-v500{position:relative;min-height:124px;padding:17px 18px;border:1px solid #2d4b65;border-radius:15px;background:radial-gradient(circle at 90% 10%,rgba(76,199,255,.075),transparent 35%),linear-gradient(145deg,rgba(12,34,54,.95),rgba(7,23,39,.96));box-shadow:0 14px 32px rgba(0,0,0,.16),inset 0 1px rgba(255,255,255,.035);overflow:hidden;transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease}
+  #mmhPremiumDashboardV500 .pf-kpi-v500.gold{border-color:rgba(242,196,94,.48);background:radial-gradient(circle at 93% 12%,rgba(242,196,94,.12),transparent 34%),linear-gradient(145deg,rgba(14,34,51,.96),rgba(8,23,36,.96));box-shadow:0 14px 32px rgba(0,0,0,.16),inset 0 0 24px rgba(242,196,94,.035)}
+  #mmhPremiumDashboardV500 .pf-kpi-v500:hover{transform:translateY(-2px);border-color:#4a7190;box-shadow:0 18px 36px rgba(0,0,0,.20),inset 0 1px rgba(255,255,255,.04)}
+  #mmhPremiumDashboardV500 .pf-kpi-label-v500{font-size:10px;color:#90a6b9;letter-spacing:.01em}
+  #mmhPremiumDashboardV500 .pf-kpi-value-v500{margin-top:8px;font-size:25px;line-height:1.08;font-weight:820;letter-spacing:-.035em;color:#f4f8fb;font-variant-numeric:tabular-nums}
+  #mmhPremiumDashboardV500 .pf-kpi-meta-v500{display:flex;align-items:center;gap:7px;margin-top:10px;font-size:10px;color:#8aa0b3}
+  #mmhPremiumDashboardV500 .pf-kpi-meta-v500 .pos{color:var(--pf-green);font-weight:760}#mmhPremiumDashboardV500 .pf-kpi-meta-v500 .neg{color:var(--pf-red);font-weight:760}
+  #mmhPremiumDashboardV500 .pf-kpi-icon-v500{position:absolute;right:15px;top:15px;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;border:1px solid rgba(76,199,255,.24);background:rgba(18,65,91,.20);font-size:16px;color:#69d5ff}
+  #mmhPremiumDashboardV500 .gold .pf-kpi-icon-v500{border-color:rgba(242,196,94,.25);background:rgba(112,76,16,.18);color:#f2c45e}
+
+  #mmhPremiumDashboardV500 .pf-main-grid-v500{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(330px,.72fr);gap:13px;margin-top:13px}
+  #mmhPremiumDashboardV500 .pf-bottom-grid-v500{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(390px,1fr);gap:13px;margin-top:13px}
+  #mmhPremiumDashboardV500 .pf-card-v500{position:relative;border:1px solid #2b4962;border-radius:15px;background:linear-gradient(145deg,rgba(9,29,48,.96),rgba(5,20,34,.97));box-shadow:0 14px 34px rgba(0,0,0,.16),inset 0 1px rgba(255,255,255,.03);overflow:hidden}
+  #mmhPremiumDashboardV500 .pf-card-head-v500{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;padding:16px 17px 0}
+  #mmhPremiumDashboardV500 .pf-card-head-v500 h2{margin:0;font-size:15px;font-weight:780;letter-spacing:-.015em;color:#f0f5f8}
+  #mmhPremiumDashboardV500 .pf-card-head-v500 p{margin:5px 0 0;font-size:9px;color:#7890a5}
+  #mmhPremiumDashboardV500 .pf-link-v500{border:0;background:transparent;color:#83bde4;font-size:9px;padding:2px;cursor:pointer}
+
+  #mmhPremiumDashboardV500 .pf-trend-summary-v500{display:flex;align-items:baseline;gap:10px;padding:8px 17px 0}
+  #mmhPremiumDashboardV500 .pf-trend-summary-v500 strong{font-size:23px;letter-spacing:-.03em;color:#f2f7fb}
+  #mmhPremiumDashboardV500 .pf-trend-summary-v500 span{font-size:10px;color:var(--pf-green);font-weight:760}
+  #mmhPremiumDashboardV500 .pf-range-v500{display:flex;gap:2px;padding:4px;border:1px solid rgba(83,128,166,.22);border-radius:9px;background:#071827}
+  #mmhPremiumDashboardV500 .pf-range-v500 span{min-width:29px;padding:5px 7px;text-align:center;border-radius:6px;color:#8097aa;font-size:8px}
+  #mmhPremiumDashboardV500 .pf-range-v500 span.active{color:#dbeaf5;background:#173752;border:1px solid #315d80}
+  #mmhPremiumDashboardV500 .pf-chart-v500{padding:10px 13px 12px;height:224px}
+  #mmhPremiumDashboardV500 .pf-chart-v500 svg{width:100%;height:100%;display:block;overflow:visible}
+  #mmhPremiumDashboardV500 .pf-grid-line-v500{stroke:#18344c;stroke-width:1;opacity:.72}
+  #mmhPremiumDashboardV500 .pf-area-v500{fill:url(#pfAreaGradientV500)}
+  #mmhPremiumDashboardV500 .pf-line-v500{fill:none;stroke:#f2c45e;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 5px rgba(242,196,94,.28))}
+  #mmhPremiumDashboardV500 .pf-chart-label-v500{font-size:8px;fill:#678197}
+
+  #mmhPremiumDashboardV500 .pf-allocation-v500{display:grid;grid-template-columns:minmax(145px,.95fr) minmax(160px,1.05fr);align-items:center;gap:12px;padding:22px 18px 19px}
+  #mmhPremiumDashboardV500 .pf-donut-wrap-v500{display:grid;place-items:center}
+  #mmhPremiumDashboardV500 .pf-donut-v500{position:relative;width:154px;height:154px;border-radius:50%;background:conic-gradient(var(--pf-gold) 0 var(--cash),#3198ff var(--cash) calc(var(--cash) + var(--invest)),#31cfa0 calc(var(--cash) + var(--invest)) 100%);box-shadow:0 0 28px rgba(43,143,224,.08)}
+  #mmhPremiumDashboardV500 .pf-donut-v500::before{content:"";position:absolute;inset:27px;border-radius:50%;background:#071a2b;border:1px solid #25435b;box-shadow:inset 0 10px 24px rgba(0,0,0,.16)}
+  #mmhPremiumDashboardV500 .pf-donut-center-v500{position:absolute;inset:0;display:grid;place-content:center;text-align:center;z-index:2;pointer-events:none}
+  #mmhPremiumDashboardV500 .pf-donut-center-v500 strong{font-size:17px;color:#f0f5f8;letter-spacing:-.025em}.pf-donut-center-v500 span{font-size:9px;color:#788fa3;margin-top:2px}
+  #mmhPremiumDashboardV500 .pf-legend-v500{display:grid;gap:12px}
+  #mmhPremiumDashboardV500 .pf-legend-row-v500{display:grid;grid-template-columns:10px 1fr auto;align-items:center;gap:8px;font-size:10px;color:#b6c6d2}
+  #mmhPremiumDashboardV500 .pf-legend-row-v500 i{width:8px;height:8px;border-radius:50%;display:block}.pf-legend-row-v500 b{font-size:10px;color:#e6eef4}
+
+  #mmhPremiumDashboardV500 .pf-transactions-v500{padding:8px 16px 12px}
+  #mmhPremiumDashboardV500 .pf-tx-head-v500,#mmhPremiumDashboardV500 .pf-tx-row-v500{display:grid;grid-template-columns:86px minmax(150px,1.4fr) minmax(80px,.7fr) minmax(90px,.65fr) 76px;gap:10px;align-items:center}
+  #mmhPremiumDashboardV500 .pf-tx-head-v500{padding:7px 2px 8px;border-bottom:1px solid rgba(91,137,173,.14);font-size:8px;color:#6f879b;text-transform:uppercase;letter-spacing:.06em}
+  #mmhPremiumDashboardV500 .pf-tx-row-v500{min-height:49px;padding:6px 2px;border-bottom:1px solid rgba(91,137,173,.10);font-size:9px;color:#9fb2c2}
+  #mmhPremiumDashboardV500 .pf-tx-row-v500:last-child{border-bottom:0}
+  #mmhPremiumDashboardV500 .pf-tx-name-v500{display:flex;align-items:center;gap:8px;min-width:0}.pf-tx-icon-v500{width:27px;height:27px;border-radius:9px;background:#102d44;border:1px solid #294e69;display:grid;place-items:center;font-size:12px}.pf-tx-copy-v500{min-width:0}.pf-tx-copy-v500 b{display:block;color:#dce7ef;font-size:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pf-tx-copy-v500 small{display:block;margin-top:2px;color:#6f879b;font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  #mmhPremiumDashboardV500 .pf-tag-v500{display:inline-flex;width:max-content;max-width:100%;padding:4px 7px;border-radius:6px;background:#153751;color:#75c9ff;font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.pf-tag-v500.income{background:#123d31;color:#65e0a9}.pf-tag-v500.expense{background:#3c202a;color:#ff8ca0}.pf-tag-v500.transfer{background:#2d2850;color:#a99bff}
+  #mmhPremiumDashboardV500 .pf-amount-v500{font-weight:760;color:#e3ecf3;white-space:nowrap}.pf-amount-v500.pos{color:#40dfa0}.pf-amount-v500.neg{color:#f2b3bd}
+  #mmhPremiumDashboardV500 .pf-status-v500{display:inline-flex;align-items:center;justify-content:center;padding:4px 7px;border-radius:6px;background:#123a31;color:#64d9a6;font-size:8px}
+
+  #mmhPremiumDashboardV500 .pf-market-tabs-v500{display:flex;gap:3px;margin:8px 15px 0;padding:3px;border:1px solid rgba(84,127,162,.18);border-radius:9px;background:#071827}
+  #mmhPremiumDashboardV500 .pf-market-tabs-v500 span{flex:1;padding:5px 4px;text-align:center;border-radius:6px;font-size:8px;color:#71899d}.pf-market-tabs-v500 span.active{background:#173752;color:#dcecf8;border:1px solid #315c7e}
+  #mmhPremiumDashboardV500 .pf-market-v500{padding:7px 15px 13px}
+  #mmhPremiumDashboardV500 .pf-market-head-v500,#mmhPremiumDashboardV500 .pf-market-row-v500{display:grid;grid-template-columns:minmax(100px,1.25fr) 86px 70px minmax(80px,1fr);gap:8px;align-items:center}
+  #mmhPremiumDashboardV500 .pf-market-head-v500{padding:6px 0;border-bottom:1px solid rgba(91,137,173,.14);font-size:8px;color:#6f879b;text-transform:uppercase}
+  #mmhPremiumDashboardV500 .pf-market-row-v500{min-height:42px;border-bottom:1px solid rgba(91,137,173,.10);font-size:9px;color:#a7b8c5}.pf-market-row-v500:last-child{border-bottom:0}
+  #mmhPremiumDashboardV500 .pf-asset-v500{display:flex;align-items:center;gap:7px}.pf-coin-v500{width:25px;height:25px;border-radius:50%;display:grid;place-items:center;background:#102f48;border:1px solid #2e5978;color:#f4d07b;font-size:9px;font-weight:800}.pf-asset-v500 b{font-size:10px;color:#e1ebf2}.pf-asset-v500 small{margin-left:4px;color:#637c91;font-size:7px}
+  #mmhPremiumDashboardV500 .pf-change-v500.pos{color:#37dfa0}.pf-change-v500.neg{color:#ff7083}
+  #mmhPremiumDashboardV500 .pf-spark-v500{height:22px;display:flex;align-items:center}.pf-spark-v500 svg{width:100%;height:18px}.pf-spark-v500 path{fill:none;stroke:#33dfa1;stroke-width:1.6}.pf-spark-v500.neg path{stroke:#ff667d}
+
+  #moreNavMenu.more-nav-menu{left:226px!important;bottom:auto!important;top:320px!important;transform:translate(14px,0)!important;width:330px!important;grid-template-columns:1fr 1fr!important;border-radius:16px!important;padding:11px!important;z-index:24000!important}
+  #moreNavMenu.more-nav-menu.open{transform:translate(0,0)!important}
+}
+@media(max-width:1099px){
+  #mmhPremiumDashboardV500{display:none!important}
+  #bottomNav .mmh-sidebar-brand-v500,#bottomNav .mmh-sidebar-section-v500,#bottomNav .mmh-sidebar-private-v500,#bottomNav .mmh-side-extra-v500{display:none!important}
+  #header .mmh-finance-topbar-v500{display:none!important}
+}
+@media(min-width:1100px) and (max-width:1280px){
+  html body.mmh-workspace-active #bottomNav.bottom-nav{width:218px!important}
+  html body.mmh-workspace-active #header{left:218px!important}
+  html body.mmh-workspace-active main.wrap{padding-left:240px!important;padding-right:18px!important}
+  #mmhPremiumDashboardV500 .pf-kpis-v500{grid-template-columns:repeat(2,minmax(0,1fr))}
+  #mmhPremiumDashboardV500 .pf-main-grid-v500,#mmhPremiumDashboardV500 .pf-bottom-grid-v500{grid-template-columns:1fr}
+  #moreNavMenu.more-nav-menu{left:204px!important}
+}
+@media(prefers-reduced-motion:reduce){
+  #mmhPremiumDashboardV500 *{transition:none!important;animation:none!important}
+}
+</style>
+<script id="mmhvault-premium-finance-v500-script">
+(()=>{'use strict';
+if(window.__mmhPremiumFinanceV500)return;window.__mmhPremiumFinanceV500=true;
+const $=id=>document.getElementById(id),N=v=>Number.isFinite(Number(v))?Number(v):0;
+const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const money=v=>'$'+N(v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+const pct=v=>(v>=0?'+':'')+N(v).toFixed(1)+'%';
+function lang(){return (localStorage.getItem('mmhvault_language_v3363')||'en')==='zh'}
+function pageActive(){return $('dashboard')?.classList.contains('active')}
+function addSidebar(){
+ const nav=$('bottomNav');if(!nav||nav.querySelector('.mmh-sidebar-brand-v500'))return;
+ const brand=document.createElement('div');brand.className='mmh-sidebar-brand-v500';brand.innerHTML='<img src="images/mmhvault-logo-transparent.png" alt=""><div><strong>MMHVAULT</strong><small>Private wealth console</small></div>';nav.prepend(brand);
+ const section=document.createElement('div');section.className='mmh-sidebar-section-v500';section.textContent='Workspace';brand.after(section);
+ const more=$('moreNavButton');
+ const analyze=document.createElement('button');analyze.type='button';analyze.className='mmh-side-extra-v500';analyze.dataset.premiumPage='cashflow-analyze';analyze.innerHTML='<i class="mmh-nav-icon" aria-hidden="true">◉</i><span>Analyze</span>';analyze.onclick=()=>setPage('cashflow-analyze');nav.insertBefore(analyze,more);
+ const settings=document.createElement('button');settings.type='button';settings.className='mmh-side-extra-v500';settings.dataset.premiumPage='settings';settings.innerHTML='<i class="mmh-nav-icon" aria-hidden="true">⚙</i><span>Settings</span>';settings.onclick=()=>setPage('settings');more.after(settings);
+ const card=document.createElement('div');card.className='mmh-sidebar-private-v500';card.innerHTML='<div class="icon">◈</div><b>Private Wealth Workspace</b><p>Your finance data stays connected to your authenticated MMHVAULT account.</p><span>Cloud workspace active</span>';nav.append(card);
+ const update=()=>{const active=document.querySelector('.page.active')?.id||'';nav.querySelectorAll('[data-premium-page]').forEach(b=>b.classList.toggle('mmh-side-active-v500',b.dataset.premiumPage===active));};
+ new MutationObserver(update).observe(document.querySelector('main.wrap')||document.body,{subtree:true,attributes:true,attributeFilter:['class']});update();
+}
+function addTopbar(){
+ const header=$('header');if(!header||header.querySelector('.mmh-finance-topbar-v500'))return;
+ const bar=document.createElement('div');bar.className='mmh-finance-topbar-v500';bar.innerHTML='<label class="mmh-global-search-v500"><input id="mmhGlobalSearchV500" type="search" autocomplete="off" placeholder="Search transactions, accounts, or pages…"><kbd>⌘ K</kbd></label><span class="mmh-topbar-date-v500" id="mmhTopDateV500"></span><button class="mmh-topbar-bell-v500" id="mmhTopBellV500" type="button" aria-label="Notifications"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>';header.prepend(bar);
+ const search=$('mmhGlobalSearchV500');
+ const runSearch=()=>{const q=search.value.trim();if(!q)return;const key=q.toLowerCase();const pages={dashboard:'dashboard',home:'dashboard',transaction:'transactions',transactions:'transactions',invest:'invest',investment:'invest',accounts:'accounts-page',account:'accounts-page',setting:'settings',settings:'settings',feedback:'settings',notification:'settings',exchange:'exchange',currency:'exchange',analyze:'cashflow-analyze','cash flow':'cashflow-analyze'};const found=Object.keys(pages).find(k=>key.includes(k));if(found){setPage(pages[found]);if(pages[found]==='settings'&&key.includes('feedback'))setTimeout(()=>document.querySelector('#settings .fb-nav')?.click(),180);return}setPage('transactions');setTimeout(()=>{const tx=$('txSearch');if(tx){tx.value=q;tx.dispatchEvent(new Event('input',{bubbles:true}));tx.focus();}},160)};
+ search.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();runSearch()}if(e.key==='Escape')search.value=''});
+ window.addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();search.focus();search.select()}});
+ $('mmhTopBellV500').onclick=()=>{setPage('settings');setTimeout(()=>document.querySelector('#settings .notice-nav-v15')?.click(),220)};
+ function clock(){const d=new Date();const el=$('mmhTopDateV500');if(el)el.textContent=d.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric',year:'numeric'});}clock();setInterval(clock,60000);
+}
+function ensureDashboardHost(){
+ let host=$('mmhPremiumDashboardV500');if(host)return host;const dash=$('dashboard');if(!dash)return null;host=document.createElement('div');host.id='mmhPremiumDashboardV500';dash.prepend(host);return host;
+}
+function monthKey(d=new Date()){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`}
+function prevMonth(key){const [y,m]=key.split('-').map(Number),d=new Date(y,m-2,1);return monthKey(d)}
+function monthlyUSD(key){if(typeof window.mmhvaultPeriodTotalsUSD==='function')return window.mmhvaultPeriodTotalsUSD(key);const rows=Array.isArray(window.transactions)?window.transactions:[];let income=0,expense=0;rows.filter(t=>String(t.tx_date||'').slice(0,7)===key).forEach(t=>{if(t.type==='Income'&&typeof window.mmhvaultAmountUSD==='function')income+=window.mmhvaultAmountUSD(t.to_account,t.to_amount);if(t.type==='Expense'&&typeof window.mmhvaultAmountUSD==='function')expense+=window.mmhvaultAmountUSD(t.from_account,t.from_amount)});return {income,expense,saved:income-expense}}
+function financeData(){
+ const cash=Math.max(0,typeof window.mmhvaultCashUSD==='function'?N(window.mmhvaultCashUSD()):0);
+ const invest=Math.max(0,typeof window.mmhDashboardHeldInvestmentUSD==='function'?N(window.mmhDashboardHeldInvestmentUSD()):(typeof window.mmhvaultInvestmentValueUSD==='function'?N(window.mmhvaultInvestmentValueUSD()):0));
+ const receivable=Math.max(0,typeof window.mmhDashboardReceivableUSD==='function'?N(window.mmhDashboardReceivableUSD()):0);
+ const total=cash+invest+receivable;
+ const fx=N((typeof rates!=='undefined'?rates?.usd_mmk:window.rates?.usd_mmk)||0);
+ const cryptoValue=typeof window.mmHVaultCryptoCurrentValueV336==='function'?N(window.mmHVaultCryptoCurrentValueV336()):0;
+ const cryptoBasis=typeof window.mmHVaultCryptoBasisV336==='function'?N(window.mmHVaultCryptoBasisV336()):0;
+ const goldLedger=typeof window.mmHVaultGoldLedgerV444==='function'?window.mmHVaultGoldLedgerV444():null;
+ const goldState=(typeof goldMarketState!=='undefined'?goldMarketState:window.goldMarketState)||{};
+ const goldValue=goldLedger&&fx>0?Math.max(0,N(goldLedger.qty))*N(goldState.pricePerKyattha)/fx:0;
+ const goldBasis=goldLedger&&fx>0?Math.max(0,N(goldLedger.basis))/fx:0;
+ const basis=(cryptoBasis+goldBasis)>0?(cryptoBasis+goldBasis):(typeof window.mmhvaultInvestmentCostUSD==='function'?N(window.mmhvaultInvestmentCostUSD()):0);
+ const valued=(cryptoValue+goldValue)>0?(cryptoValue+goldValue):invest;
+ const pl=valued-basis;
+ const key=monthKey(),prev=prevMonth(key),cur=monthlyUSD(key),old=monthlyUSD(prev);
+ const cashFlow=N(cur.income)-N(cur.expense),oldFlow=N(old.income)-N(old.expense);
+ const change=(a,b)=>b?((a-b)/Math.abs(b))*100:null;
+ return {cash,invest,receivable,total,cost:basis,pl,key,cur,old,cashFlow,flowChange:change(cashFlow,oldFlow),investChange:basis?pl/basis*100:0};
+}
+function historySeries(currentTotal){
+ const out=[];const d=new Date();d.setDate(1);
+ for(let i=5;i>=0;i--){const x=new Date(d.getFullYear(),d.getMonth()-i,1),key=monthKey(x),t=monthlyUSD(key);out.push({key,label:x.toLocaleDateString(undefined,{month:'short'}),flow:N(t.saved)})}
+ let value=N(currentTotal);for(let i=out.length-1;i>=0;i--){out[i].value=value;if(i>0)value-=out[i].flow;}
+ return out;
+}
+function chartSvg(series){
+ const w=760,h=205,padX=32,padY=18,vals=series.map(x=>x.value);let min=Math.min(...vals,0),max=Math.max(...vals,0);if(max===min){max=min+1}const range=max-min;
+ const pts=series.map((x,i)=>{const xx=padX+(w-padX*2)*(i/Math.max(1,series.length-1)),yy=h-padY-(h-padY*2)*((x.value-min)/range);return [xx,yy]});
+ const line=pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+','+p[1].toFixed(1)).join(' '),area=line+` L ${pts.at(-1)[0].toFixed(1)},${h-padY} L ${pts[0][0].toFixed(1)},${h-padY} Z`;
+ const grid=[0,.25,.5,.75,1].map(r=>`<line class="pf-grid-line-v500" x1="${padX}" x2="${w-padX}" y1="${(padY+(h-padY*2)*r).toFixed(1)}" y2="${(padY+(h-padY*2)*r).toFixed(1)}"/>`).join('');
+ const labels=series.map((x,i)=>`<text class="pf-chart-label-v500" text-anchor="middle" x="${pts[i][0]}" y="${h-2}">${esc(x.label)}</text>`).join('');
+ return `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><defs><linearGradient id="pfAreaGradientV500" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#f2c45e" stop-opacity=".27"/><stop offset="100%" stop-color="#f2c45e" stop-opacity="0"/></linearGradient></defs>${grid}<path class="pf-area-v500" d="${area}"/><path class="pf-line-v500" d="${line}"/><circle cx="${pts.at(-1)[0]}" cy="${pts.at(-1)[1]}" r="4.4" fill="#ffd36b" stroke="#76561d" stroke-width="2"/>${labels}</svg>`;
+}
+function txRows(){
+ const rows=(Array.isArray(window.transactions)?window.transactions:[]).filter(t=>typeof window.isLinkedInvestmentTx==='function'?!window.isLinkedInvestmentTx(t):true).slice(0,5);
+ if(!rows.length)return '<div style="padding:24px 2px;color:#71899d;font-size:10px">No transactions yet.</div>';
+ return rows.map(t=>{const type=String(t.type||'Other'),amt=type==='Income'?N(t.to_amount):N(t.from_amount),acct=type==='Income'?(t.to_account||''):(t.from_account||''),usd=typeof window.mmhvaultAmountUSD==='function'?window.mmhvaultAmountUSD(acct,amt):amt;const cls=type==='Income'?'income':type==='Expense'?'expense':'transfer',sign=type==='Income'?'+':type==='Expense'?'-':'';return `<div class="pf-tx-row-v500"><span>${esc(t.tx_date||'—')}</span><div class="pf-tx-name-v500"><i class="pf-tx-icon-v500">${type==='Income'?'↙':type==='Expense'?'↗':'⇄'}</i><div class="pf-tx-copy-v500"><b>${esc(t.category||type)}</b><small>${esc(acct||t.note||type)}</small></div></div><span class="pf-tag-v500 ${cls}">${esc(type)}</span><span class="pf-amount-v500 ${type==='Income'?'pos':type==='Expense'?'neg':''}">${sign}${money(usd)}</span><span class="pf-status-v500">Completed</span></div>`}).join('');
+}
+function marketRows(){
+ const live=(typeof livePrices!=='undefined'?livePrices:(window.livePrices||{}));
+ const gold=(typeof goldMarketState!=='undefined'?goldMarketState:(window.goldMarketState||{}));
+ const fx=N((typeof rates!=='undefined'?rates?.usd_mmk:window.rates?.usd_mmk)||1);
+ const items=['BTC','ETH','SOL','BNB'].map(sym=>{const p=N(live?.[sym]?.price),c=N(live?.[sym]?.change24h??live?.[sym]?.change??0);return {sym,p,c}});items.push({sym:'GOLD',p:N(gold?.pricePerKyattha)/fx,c:0});
+ const label={BTC:'Bitcoin',ETH:'Ethereum',SOL:'Solana',BNB:'BNB',GOLD:'Gold'};
+ return items.map((x,i)=>{const c=x.c||0,neg=c<0;const y=[14,9,12,6,10,4,7,3].map((v,j)=>`${j? 'L':'M'}${j*11},${neg?22-v:v+2}`).join(' ');return `<div class="pf-market-row-v500"><div class="pf-asset-v500"><i class="pf-coin-v500">${esc(x.sym==='GOLD'?'Au':x.sym[0])}</i><span><b>${esc(x.sym)}</b><small>${esc(label[x.sym]||'')}</small></span></div><span>${x.p?money(x.p):'—'}</span><span class="pf-change-v500 ${neg?'neg':'pos'}">${x.c?pct(x.c):'Live'}</span><span class="pf-spark-v500 ${neg?'neg':''}"><svg viewBox="0 0 78 26" preserveAspectRatio="none"><path d="${y}"/></svg></span></div>`}).join('');
+}
+function name(){const raw=($('headerDisplayName')?.textContent||'').trim();if(!raw||/MMHVAULT User/i.test(raw))return lang()?'用户':'there';return raw.split(/\s+/)[0]}
+function render(){
+ if(!pageActive()||window.innerWidth<1100)return;const host=ensureDashboardHost();if(!host)return;const d=financeData(),series=historySeries(d.total),latest=series.at(-1)?.value||0,prev=series.at(-2)?.value||0,trend=prev?((latest-prev)/Math.abs(prev))*100:0,total=d.total||1,cashPct=d.cash/total*100,investPct=d.invest/total*100,recvPct=Math.max(0,100-cashPct-investPct),pnlCls=d.pl>=0?'pos':'neg';
+ host.innerHTML=`
+ <section class="pf-hero-v500"><div class="pf-hero-copy-v500"><div class="pf-eyebrow-v500">MMHVAULT · FINANCIAL OVERVIEW</div><h1>${lang()?'欢迎回来':'Welcome back'}, <span class="pf-name-v500">${esc(name())}</span></h1><div class="pf-hero-sub-v500">${lang()?'这是您当前的财务概览。继续稳步建立自己的财富系统。':'Here’s your financial overview. Keep building your wealth system.'}</div></div><div class="pf-hero-date-v500">${new Date().toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric',year:'numeric'})}</div></section>
+ <section class="pf-kpis-v500">
+   <article class="pf-kpi-v500 gold"><span class="pf-kpi-label-v500">Total Balance</span><div class="pf-kpi-value-v500">${money(d.total)}</div><div class="pf-kpi-meta-v500"><span class="pos">LIVE</span><span>Cash + investments + receivable</span></div><i class="pf-kpi-icon-v500">◉</i></article>
+   <article class="pf-kpi-v500"><span class="pf-kpi-label-v500">Cash Flow · This Month</span><div class="pf-kpi-value-v500">${money(d.cashFlow)}</div><div class="pf-kpi-meta-v500"><span class="${d.flowChange==null||d.flowChange>=0?'pos':'neg'}">${d.flowChange==null?'—':pct(d.flowChange)}</span><span>vs. last month</span></div><i class="pf-kpi-icon-v500">↗</i></article>
+   <article class="pf-kpi-v500"><span class="pf-kpi-label-v500">Portfolio Value</span><div class="pf-kpi-value-v500">${money(d.invest)}</div><div class="pf-kpi-meta-v500"><span class="${d.investChange>=0?'pos':'neg'}">${pct(d.investChange)}</span><span>vs. investment cost</span></div><i class="pf-kpi-icon-v500">▥</i></article>
+   <article class="pf-kpi-v500 gold"><span class="pf-kpi-label-v500">Investment Profit / Loss</span><div class="pf-kpi-value-v500">${d.pl>=0?'+':''}${money(d.pl)}</div><div class="pf-kpi-meta-v500"><span class="${pnlCls}">${pct(d.investChange)}</span><span>unrealized</span></div><i class="pf-kpi-icon-v500">⌁</i></article>
+ </section>
+ <section class="pf-main-grid-v500">
+   <article class="pf-card-v500"><div class="pf-card-head-v500"><div><h2>Portfolio Trend</h2><p>Estimated six-month wealth path from recorded cash flow</p></div><div class="pf-range-v500"><span>1W</span><span class="active">6M</span><span>1Y</span><span>ALL</span></div></div><div class="pf-trend-summary-v500"><strong>${money(d.total)}</strong><span>${pct(trend)} momentum</span></div><div class="pf-chart-v500">${chartSvg(series)}</div></article>
+   <article class="pf-card-v500"><div class="pf-card-head-v500"><div><h2>Asset Allocation</h2><p>Current wealth composition</p></div><button class="pf-link-v500" type="button" onclick="setPage('accounts-page')">View details →</button></div><div class="pf-allocation-v500"><div class="pf-donut-wrap-v500"><div class="pf-donut-v500" style="--cash:${cashPct.toFixed(2)}%;--invest:${investPct.toFixed(2)}%"><div class="pf-donut-center-v500"><strong>${money(d.total)}</strong><span>Total Value</span></div></div></div><div class="pf-legend-v500"><div class="pf-legend-row-v500"><i style="background:#f2c45e"></i><span>Cash Assets</span><b>${cashPct.toFixed(1)}%</b></div><div class="pf-legend-row-v500"><i style="background:#3198ff"></i><span>Investments</span><b>${investPct.toFixed(1)}%</b></div><div class="pf-legend-row-v500"><i style="background:#31cfa0"></i><span>Loan Receivable</span><b>${recvPct.toFixed(1)}%</b></div></div></div></article>
+ </section>
+ <section class="pf-bottom-grid-v500">
+   <article class="pf-card-v500"><div class="pf-card-head-v500"><div><h2>Recent Transactions</h2><p>Your latest finance activity</p></div><button class="pf-link-v500" type="button" onclick="setPage('transactions')">View all →</button></div><div class="pf-transactions-v500"><div class="pf-tx-head-v500"><span>Date</span><span>Description</span><span>Type</span><span>Amount</span><span>Status</span></div>${txRows()}</div></article>
+   <article class="pf-card-v500"><div class="pf-card-head-v500"><div><h2>Market Watch</h2><p>Live crypto & gold reference</p></div><button class="pf-link-v500" type="button" onclick="setPage('invest')">Open Invest →</button></div><div class="pf-market-tabs-v500"><span class="active">Popular</span><span>Crypto</span><span>Gold</span><span>Live</span></div><div class="pf-market-v500"><div class="pf-market-head-v500"><span>Asset</span><span>Price</span><span>24h</span><span>Trend</span></div>${marketRows()}</div></article>
+ </section>`;
+}
+function wrapRender(){const base=window.renderDashboard;if(typeof base==='function'&&!base.__pfV500){const wrapped=function(){const r=base.apply(this,arguments);requestAnimationFrame(render);return r};wrapped.__pfV500=true;window.renderDashboard=wrapped;try{renderDashboard=wrapped}catch(_){}}}
+function init(){addSidebar();addTopbar();ensureDashboardHost();wrapRender();setTimeout(render,240)}
+['mmhvault:data-loaded','mmhvault:data-change','mmhvault:cache-restored','mmhvault:sync-complete','mmhvault:market-updated','mmhvault:dashboard-rendered','languagechange','mmhvault-language-change'].forEach(ev=>window.addEventListener(ev,()=>setTimeout(render,90)));
+window.addEventListener('resize',()=>{clearTimeout(window.__pfResizeV500);window.__pfResizeV500=setTimeout(render,120)});
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+})();
+</script>
