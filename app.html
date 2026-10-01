@@ -26695,3 +26695,168 @@ window.addEventListener('resize',()=>{clearTimeout(window.__pfResizeV500);window
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
 </script>
+
+<!-- MMHVAULT V5.1 · Premium Finance Phase 2: Transactions / Invest / More / Settings / Feedback / Notifications -->
+<style id="mmhvault-premium-finance-v510-css">
+@media(min-width:1100px){
+/* transparent brand lockup */
+#bottomNav .mmh-sidebar-brand-v500{padding:4px 10px 20px!important;min-height:74px;justify-content:flex-start!important;overflow:visible!important}
+#bottomNav .mmh-sidebar-brand-v500 img{width:154px!important;height:68px!important;object-fit:contain!important;object-position:left center!important;filter:drop-shadow(0 8px 18px rgba(242,196,94,.12))!important}
+#bottomNav .mmh-sidebar-brand-v500>div{display:none!important}
+
+/* shared premium page language */
+#transactions,#invest,#settings{position:relative;isolation:isolate}
+#transactions:before,#invest:before,#settings:before{content:"";position:absolute;z-index:-1;right:-60px;top:-115px;width:560px;height:300px;pointer-events:none;background:radial-gradient(circle at 68% 42%,rgba(242,196,94,.14),transparent 28%),radial-gradient(circle at 45% 38%,rgba(76,199,255,.10),transparent 38%);filter:blur(2px)}
+#transactions h1,#invest h1,#settings>h1{font-size:34px!important;line-height:1.05!important;letter-spacing:-.035em!important;color:#f7fbff!important;text-shadow:0 8px 30px rgba(0,0,0,.24)}
+#transactions .sub,#invest .sub,#settings>.sub{color:#90a7bd!important}
+#transactions .panel,#invest .panel,#invest .mmh-ui-panel,#settings .panel,#settings .fb-panel,#settings .notice-card-v15,#settings .fb-record{background:linear-gradient(145deg,rgba(10,29,47,.88),rgba(5,17,30,.94))!important;border:1px solid rgba(91,145,188,.24)!important;box-shadow:0 18px 38px rgba(0,0,0,.18),inset 0 1px 0 rgba(255,255,255,.025)!important;backdrop-filter:blur(18px)}
+#transactions .panel:hover,#invest .panel:hover,#invest .mmh-ui-panel:hover,#settings .panel:hover{border-color:rgba(105,169,218,.34)!important}
+#transactions :is(input,select,textarea),#invest :is(input,select,textarea),#settings :is(input,select,textarea){background:#071829!important;color:#edf6fc!important;border:1px solid #294a65!important;border-radius:12px!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.015)!important}
+#transactions :is(input,select,textarea):focus,#invest :is(input,select,textarea):focus,#settings :is(input,select,textarea):focus{border-color:#559bd0!important;box-shadow:0 0 0 3px rgba(76,199,255,.10)!important;outline:none!important}
+#transactions .btn,#invest .btn,#settings .btn,#settings .fb-nav,#settings .notice-nav-v15,#settings #stPage_feedback button,#settings #stPage_noticesV15 button{border-radius:11px!important;border:1px solid rgba(88,139,181,.30)!important;background:linear-gradient(180deg,#102a40,#0a1e31)!important;color:#cfe5f5!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.025)!important}
+#transactions .btn.primary,#invest .btn.primary,#settings .btn.primary,#settings #fbSubmitV14{background:linear-gradient(135deg,#f8d36f,#d99b2f)!important;color:#1b160b!important;border-color:#f3ce69!important;font-weight:800!important;box-shadow:0 10px 24px rgba(216,158,52,.18),inset 0 1px 0 rgba(255,255,255,.35)!important}
+#transactions .btn.danger,#invest .btn.danger,#settings .btn.danger{background:rgba(102,31,45,.32)!important;border-color:rgba(255,111,130,.30)!important;color:#ffb3bd!important}
+#transactions .pill,#invest .pill,#settings .pill{background:rgba(12,40,61,.82)!important;border:1px solid rgba(88,148,194,.22)!important;color:#a9cfee!important;border-radius:999px!important}
+
+/* Transactions */
+#transactions .mmh-transaction-heading-v2{margin:2px 0 18px!important;padding:0 4px 18px!important;border-bottom:1px solid rgba(94,153,202,.13)!important;align-items:flex-end!important}
+#transactions .mmh-tx-page-trigger-v3{min-width:200px!important;min-height:46px!important;border-radius:12px!important;border:1px solid rgba(93,153,202,.28)!important;background:linear-gradient(180deg,#0e2b43,#091b2d)!important;color:#eaf4fc!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.025)!important}
+#transactions .tx-tabs-v371{background:#061522!important;border:1px solid rgba(96,156,203,.24)!important;border-radius:14px!important;padding:6px!important;box-shadow:0 16px 34px rgba(0,0,0,.25)!important}
+#transactions .tx-tab-v371{border-radius:10px!important;color:#98aec2!important}
+#transactions .tx-tab-v371.active{background:linear-gradient(135deg,rgba(242,196,94,.17),rgba(76,199,255,.08))!important;border-color:rgba(242,196,94,.35)!important;color:#f2cf78!important;box-shadow:inset 3px 0 #f2c45e!important}
+#transactions #txAddPanel>.panel{padding:24px!important;border-radius:18px!important}
+#transactions #txAddPanel h2{font-size:19px!important;margin-bottom:18px!important}
+#transactions .mmh-form-section-v1{margin-top:6px!important;padding:10px 0 7px!important;border-bottom:1px solid rgba(93,148,192,.14)!important;color:#f0c96b!important;letter-spacing:.06em!important;text-transform:uppercase!important;font-size:10px!important}
+#transactions .formgrid{gap:14px 16px!important}
+#transactions .formgrid label{color:#9eb2c5!important;font-size:11px!important;font-weight:650!important;letter-spacing:.02em!important}
+#transactions .formgrid :is(input,select){min-height:46px!important;margin-top:8px!important;padding:11px 12px!important}
+#transactions .receipt-upload-v3300{background:linear-gradient(145deg,rgba(9,28,45,.84),rgba(8,22,37,.95))!important;border:1px dashed rgba(93,159,210,.34)!important;border-radius:16px!important;padding:16px!important}
+#transactions .receipt-dropzone-v3300{border-radius:14px!important;border:1px dashed rgba(86,163,219,.38)!important;background:rgba(7,24,39,.62)!important}
+#transactions #txHistoryPanel>.panel{padding:22px!important;border-radius:18px!important}
+#transactions .filter-grid{padding:14px!important;border:1px solid rgba(93,148,192,.14)!important;border-radius:15px!important;background:rgba(5,18,31,.48)!important}
+#transactions .filter-grid label{color:#8fa6ba!important;font-size:10px!important;text-transform:uppercase!important;letter-spacing:.06em!important}
+#transactions #txList{margin-top:14px!important;border-radius:15px!important;overflow:auto!important;border:1px solid rgba(90,145,188,.16)!important;background:rgba(4,15,27,.42)!important}
+#transactions #txList table{width:100%!important;border-collapse:separate!important;border-spacing:0!important}
+#transactions #txList th{position:sticky;top:0;z-index:2;background:#091c2c!important;color:#839cb2!important;font-size:10px!important;text-transform:uppercase!important;letter-spacing:.055em!important;border-bottom:1px solid rgba(94,151,197,.18)!important}
+#transactions #txList td{border-bottom:1px solid rgba(90,144,186,.10)!important;color:#d6e5ef!important;padding:13px 10px!important}
+#transactions #txList tr:hover td{background:rgba(43,104,145,.08)!important}
+
+/* Investment center */
+#invest>.toolbar.v371-head{padding:2px 4px 18px!important;margin-bottom:18px!important;border-bottom:1px solid rgba(94,153,202,.13)!important;gap:14px!important}
+#invest .v371-switch{padding:5px!important;border-radius:13px!important;background:rgba(5,19,31,.72)!important;border:1px solid rgba(92,149,194,.20)!important}
+#invest .v371-switch .btn.active{background:linear-gradient(135deg,rgba(242,196,94,.18),rgba(216,158,52,.10))!important;color:#f3cc6d!important;border-color:rgba(242,196,94,.32)!important}
+#invest .mmh-page-picker-trigger-v1{min-height:46px!important;border-radius:12px!important;background:linear-gradient(180deg,#0e2b43,#091b2d)!important;border:1px solid rgba(93,153,202,.28)!important;color:#eaf4fc!important}
+#invest .invest-subtabs-v371{background:#061522!important;border:1px solid rgba(96,156,203,.24)!important;border-radius:14px!important;padding:6px!important;box-shadow:0 16px 34px rgba(0,0,0,.25)!important}
+#invest .invest-subtab-v371{border-radius:10px!important;color:#9aafc1!important}
+#invest .invest-subtab-v371.active{background:linear-gradient(135deg,rgba(242,196,94,.18),rgba(76,199,255,.07))!important;color:#f2cc70!important;border-color:rgba(242,196,94,.32)!important}
+#invest #mmhUnifiedInvestV1{gap:16px!important}
+#invest .mmh-ui-panel{border-radius:18px!important;padding:20px!important}
+#invest .mmh-ui-heading{padding-bottom:14px!important;margin-bottom:14px!important;border-bottom:1px solid rgba(89,145,190,.13)!important}
+#invest .mmh-ui-heading h2,#invest .toolbar h2{font-size:18px!important;color:#f2f7fb!important}
+#invest .mmh-ui-heading p,#invest .small{color:#829bb0!important}
+#invest .mmh-ui-kpi{background:linear-gradient(145deg,rgba(15,43,65,.92),rgba(8,25,41,.92))!important;border:1px solid rgba(96,155,202,.20)!important;border-radius:15px!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.025)!important}
+#invest .mmh-ui-kpi:nth-child(1){border-color:rgba(242,196,94,.28)!important;box-shadow:inset 3px 0 #e4b54f!important}
+#invest .mmh-ui-kpi strong{font-size:19px!important;color:#f5f8fb!important}
+#invest .price-grid>*,#invest .portfolio-panel-v310,#invest .portfolio-summary-v310>*,#invest .portfolio-health-v3716>*{background:linear-gradient(145deg,rgba(13,39,60,.86),rgba(7,23,38,.90))!important;border:1px solid rgba(89,149,196,.18)!important;border-radius:14px!important}
+#invest .big-price{color:#f4cd70!important;text-shadow:0 0 20px rgba(242,196,94,.10)!important}
+#invest #v371CryptoMarket,#invest #v371GoldMarket{border-radius:18px!important;overflow:hidden!important}
+#invest #v371CryptoMarket{box-shadow:inset 0 2px 0 rgba(76,199,255,.34),0 18px 38px rgba(0,0,0,.16)!important}
+#invest #v371GoldMarket{box-shadow:inset 0 2px 0 rgba(242,196,94,.38),0 18px 38px rgba(0,0,0,.16)!important}
+#invest .invest-entry{border-radius:18px!important;padding:22px!important}
+#invest .invest-entry .formgrid{gap:14px 16px!important}
+#invest .invest-entry label{color:#97acbe!important;font-size:11px!important;font-weight:650!important}
+#invest .invest-entry :is(input,select){min-height:46px!important;margin-top:8px!important}
+
+/* Settings home and subpages */
+#settings{max-width:none!important}
+#settings>h1{margin-bottom:7px!important}
+#settings>.sub{margin-bottom:19px!important}
+#settings #stSettingsHomeV3:not([hidden]){gap:18px!important}
+#settings .account-center-card-v375,#settings .st-template-group,#settings .st-page .st-rows{background:linear-gradient(145deg,rgba(10,29,47,.90),rgba(5,17,30,.95))!important;border:1px solid rgba(91,145,188,.22)!important;border-radius:18px!important;box-shadow:0 18px 38px rgba(0,0,0,.15),inset 0 1px 0 rgba(255,255,255,.025)!important}
+#settings .st-template-group{overflow:hidden!important;padding:8px!important}
+#settings .st-template-group h3{padding:10px 10px 11px!important;color:#718aa0!important;font-size:10px!important;letter-spacing:.12em!important;text-transform:uppercase!important}
+#settings .st-template-group :is(.st-nav,.fb-nav,.notice-nav-v15){min-height:72px!important;border:0!important;border-radius:13px!important;background:transparent!important;padding:12px!important;transition:.18s ease!important}
+#settings .st-template-group :is(.st-nav,.fb-nav,.notice-nav-v15):hover{background:linear-gradient(90deg,rgba(58,119,162,.12),rgba(242,196,94,.045))!important;transform:translateX(2px)!important}
+#settings .st-template-group .st-icon{width:38px!important;height:38px!important;border-radius:12px!important;background:linear-gradient(145deg,#17364d,#0d2639)!important;border:1px solid rgba(93,153,202,.18)!important;color:#b8daf1!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.035)!important}
+#settings .st-template-group:nth-child(3) .st-icon{color:#f0c75f!important;background:linear-gradient(145deg,#3a311d,#201d16)!important;border-color:rgba(242,196,94,.18)!important}
+#settings .st-nav-name{font-size:13px!important;color:#e8f0f6!important;font-weight:720!important}
+#settings .st-template-nav-copy small{color:#7f97ab!important;margin-top:4px!important}
+#settings .st-chevron{color:#658198!important}
+#settings .st-page-head{padding:3px 0 16px!important;margin-bottom:16px!important;border-bottom:1px solid rgba(92,150,196,.14)!important}
+#settings .st-page-head h2{font-size:28px!important;letter-spacing:-.025em!important;color:#f5f9fc!important}
+#settings .st-back{border-radius:10px!important;color:#acc9dd!important;background:rgba(10,31,48,.75)!important}
+
+/* Feedback Center: align with template */
+#settings #stPage_feedback{max-width:none!important}
+#settings #stPage_feedback>.fb-panel{border-radius:18px!important;padding:22px!important;margin-top:15px!important}
+#settings #stPage_feedback>.fb-panel:first-of-type{box-shadow:inset 0 2px 0 rgba(242,196,94,.38),0 18px 38px rgba(0,0,0,.16)!important}
+#settings #stPage_feedback>.fb-panel:nth-of-type(2){box-shadow:inset 0 2px 0 rgba(76,199,255,.30),0 18px 38px rgba(0,0,0,.16)!important}
+#settings .fb-heading{padding-bottom:13px!important;margin-bottom:16px!important;border-bottom:1px solid rgba(91,145,188,.13)!important}
+#settings .fb-heading h3{font-size:18px!important;color:#f4f8fb!important}
+#settings #stPage_feedback .fb-fields{grid-template-columns:minmax(180px,.7fr) minmax(0,1.4fr)!important;gap:14px!important}
+#settings #stPage_feedback label>span{font-size:10px!important;text-transform:uppercase!important;letter-spacing:.07em!important;color:#91a9bc!important;font-weight:700!important}
+#settings #stPage_feedback :is(input,select,textarea){margin-top:8px!important;padding:12px 13px!important}
+#settings #stPage_feedback textarea{min-height:138px!important}
+#settings .fb-rating-v15{padding:14px 0 3px!important}
+#settings .fb-star-v15{width:48px!important;height:48px!important;border-radius:13px!important}
+#settings .fb-photo-drop-v15{min-height:112px!important;border-radius:15px!important;background:linear-gradient(145deg,rgba(8,29,46,.90),rgba(5,19,32,.96))!important;border-color:rgba(91,157,207,.34)!important}
+#settings .fb-photo-icon-v15{color:#64c9ff!important;background:rgba(28,83,119,.20)!important}
+#settings #fbSubmitV14{min-width:178px!important;min-height:46px!important;margin-left:auto!important;display:block!important}
+#settings .fb-record{border-radius:14px!important;padding:0 15px!important;overflow:hidden!important}
+#settings .fb-record summary{min-height:60px!important}
+#settings .fb-status{border-radius:999px!important;padding:6px 9px!important}
+#settings .fb-reply{background:rgba(8,29,46,.70)!important;border-left:2px solid #4cc7ff!important;border-radius:10px!important}
+
+/* Notifications */
+#settings #stPage_noticesV15{max-width:none!important}
+#settings #stPage_noticesV15>.fb-panel{border-radius:18px!important;padding:22px!important;box-shadow:inset 0 2px 0 rgba(242,196,94,.34),0 18px 38px rgba(0,0,0,.16)!important}
+#settings .notice-card-v15{position:relative;border-radius:14px!important;padding:16px 17px 16px 19px!important;margin-top:10px!important;transition:transform .16s ease,border-color .16s ease!important}
+#settings .notice-card-v15:hover{transform:translateY(-1px)!important;border-color:rgba(104,170,218,.34)!important}
+#settings .notice-card-v15.unread{border-color:rgba(76,199,255,.38)!important;box-shadow:inset 3px 0 #4cc7ff!important}
+#settings .notice-card-v15 h4{font-size:14px!important;color:#eef6fb!important}
+#settings .notice-card-v15 small{color:#7490a6!important}
+#settings .notice-card-v15 p{color:#acc1d1!important}
+#settings .notice-badge-v15{background:#d7a43b!important;color:#171107!important;font-weight:800!important}
+
+/* More popup becomes a compact finance command menu */
+#moreNavMenu{padding:8px!important;border-radius:15px!important;background:linear-gradient(145deg,rgba(8,27,44,.97),rgba(3,14,26,.98))!important;border:1px solid rgba(97,155,202,.28)!important;box-shadow:0 22px 55px rgba(0,0,0,.42),inset 0 1px 0 rgba(255,255,255,.035)!important;backdrop-filter:blur(20px)!important}
+#moreNavMenu button{min-height:48px!important;border-radius:10px!important;border:0!important;color:#c9dce9!important;background:transparent!important}
+#moreNavMenu button:hover{background:linear-gradient(90deg,rgba(76,199,255,.10),rgba(242,196,94,.06))!important;color:#f6f9fb!important}
+#moreNavMenu button span{font-weight:650!important}
+
+/* gentle entrance */
+#transactions.active>.mmh-transaction-heading-v2,#invest.active>.toolbar.v371-head,#settings.active>h1{animation:mmhPF510In .38s cubic-bezier(.2,.75,.2,1) both}
+@keyframes mmhPF510In{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+}
+
+/* Keep phone/tablet stable while improving logo transparency only */
+@media(max-width:1099px){
+#bottomNav img[src*="mmhvault-logo-transparent"]{background:transparent!important}
+}
+</style>
+<script id="mmhvault-premium-finance-v510-script">
+(()=>{'use strict';
+function polishBrand(){
+ const brand=document.querySelector('#bottomNav .mmh-sidebar-brand-v500');
+ if(!brand)return;
+ const img=brand.querySelector('img');
+ if(img){img.src='images/mmhvault-logo-transparent.png';img.alt='MMHVAULT';img.decoding='async';}
+}
+function tagPage(page,title,kicker){
+ if(!page||page.querySelector('.mmh-pf-kicker-v510'))return;
+ const h=page.querySelector(':scope > .mmh-transaction-heading-v2 h1,:scope > .toolbar.v371-head h1,:scope > h1');
+ if(!h)return;
+ const k=document.createElement('div');k.className='mmh-pf-kicker-v510';k.textContent=kicker;h.parentNode.insertBefore(k,h);
+}
+function init(){
+ polishBrand();
+ tagPage(document.getElementById('transactions'),'Transactions','CASH FLOW LEDGER');
+ tagPage(document.getElementById('invest'),'Investment Center','PORTFOLIO & MARKETS');
+ tagPage(document.getElementById('settings'),'Settings','PRIVATE FINANCE CONTROL');
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{setTimeout(init,0);setTimeout(polishBrand,500)},{once:true});else{setTimeout(init,0);setTimeout(polishBrand,500)};
+})();
+</script>
+<style id="mmhvault-premium-finance-v510-kicker-css">
+@media(min-width:1100px){.mmh-pf-kicker-v510{margin:0 0 7px;color:#d8ad48;font-size:9px;font-weight:850;letter-spacing:.19em;text-transform:uppercase}.mmh-pf-kicker-v510:before{content:"";display:inline-block;width:22px;height:1px;margin:0 8px 3px 0;background:linear-gradient(90deg,#f1c65d,rgba(241,198,93,.05))}}
+</style>
