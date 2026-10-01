@@ -7814,11 +7814,11 @@ async function enter(session){
     const shouldWelcome=sessionStorage.getItem("myfinance_show_welcome")==="1";
     if(shouldWelcome){sessionStorage.removeItem("myfinance_show_welcome");showWelcome();}
     await loadAll();
-    // V6.4: every full app load starts from Dashboard.
-    // In-app navigation still works normally after boot.
+    // Restore the user's preferred transaction sub-tab without navigating away.
+    restoreTxTab();
+    // V6.5: Dashboard is the final page selected on every full app boot.
     sessionStorage.removeItem("myfinance_page");
     setPage("dashboard");
-    restoreTxTab();
     subscribeRealtime();
     window.setTimeout(()=>openGettingStarted(session.user),250);
   } finally {
@@ -22961,7 +22961,7 @@ body.light #category-manage{color:#294663}body.light #category-manage .mmh-manag
 const page=document.createElement('section');page.className='page';page.id='category-manage';page.innerHTML='<div class="cm-heading"><div><h1>Transactions</h1><p>Organize transaction categories for your account.</p></div><div id="cmPickerHost"></div></div><div id="cmContent"></div>';document.getElementById('transactions').parentElement.append(page);document.getElementById('cmContent').append(document.getElementById('mmhDataManagerV445'));
 const picker=document.getElementById('mmhTxPagePickerV3'),pickerHome=picker.parentElement;
 const originalSetPage=window.setPage;window.setPage=function(id){if(id==='transactions'){pickerHome.append(picker);window.mmhTxPagePickerSyncV3?.(sessionStorage.getItem('myfinance_tx_tab'))}return originalSetPage.apply(this,arguments)};
-const originalShowTab=window.showTxTab;window.showTxTab=function(tab){setPage('transactions');return originalShowTab.apply(this,arguments)};
+const originalShowTab=window.showTxTab;window.showTxTab=function(tab){return originalShowTab.apply(this,arguments)};
 const controls=document.createElement('div');controls.className='cm-filters';controls.innerHTML='<input id="cmSearch" type="search" placeholder="Search categories" aria-label="Search categories"><select id="cmGroup" aria-label="View category type"><option value="all">All types</option><option value="Expense">Expense</option><option value="Income">Income</option><option value="Personal">Personal</option><option value="LoanIncome">Loan Income</option><option value="LoanExpense">Loan Expense</option></select><span id="cmCount" role="status" aria-live="polite"></span>';const categoryPanel=document.getElementById('mmhManagerCategoriesPanelV445');categoryPanel.querySelector('.mmh-manager-list-v445').before(controls);
 function filter(){const term=document.getElementById('cmSearch').value.trim().toLocaleLowerCase(),group=document.getElementById('cmGroup').value,label=group==='all'?'':mmhVaultCategoryGroupLabel(group);let visible=0,total=0;categoryPanel.querySelectorAll('[data-manager-category-list] .mmh-manager-row-v445').forEach(row=>{total++;const match=(!term||row.querySelector('b').textContent.toLocaleLowerCase().includes(term))&&(!label||row.querySelector('.mmh-manager-main-v445 span').textContent.trim()===label);row.hidden=!match;if(match)visible++});document.getElementById('cmCount').textContent=visible+' / '+total+' categories'}
 document.getElementById('cmSearch').oninput=filter;document.getElementById('cmGroup').onchange=filter;const renderManager=window.mmhVaultRenderManager;window.mmhVaultRenderManager=function(){const r=renderManager.apply(this,arguments);filter();return r};
@@ -24697,3 +24697,34 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   #header .header-profile-copy b{font-size:11px!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
 }
 </style>
+
+<style id="mmhvault-sidebar-background-final-v650">
+@media(min-width:1100px){
+  html body.mmh-workspace-active #bottomNav.bottom-nav{
+    background:
+      linear-gradient(180deg,rgba(2,12,22,.985) 0%,rgba(2,12,22,.955) 34%,rgba(2,12,22,.80) 60%,rgba(2,12,22,.48) 82%,rgba(2,12,22,.82) 100%),
+      radial-gradient(circle at 72% 70%,rgba(76,199,255,.16),transparent 27%),
+      radial-gradient(circle at 24% 92%,rgba(242,196,94,.17),transparent 25%),
+      url("images/mmhvault-bg-v342.webp") 68% bottom/auto 64% no-repeat,
+      #03101c!important;
+    background-blend-mode:normal,screen,screen,normal,normal!important;
+  }
+  html body.mmh-workspace-active #bottomNav.bottom-nav::after{
+    content:""!important;position:absolute!important;inset:0!important;pointer-events:none!important;z-index:0!important;
+    border-radius:0 24px 24px 0!important;
+    background:linear-gradient(90deg,rgba(255,255,255,.022),transparent 38%),linear-gradient(180deg,rgba(0,0,0,0) 56%,rgba(76,199,255,.045) 78%,rgba(242,196,94,.055))!important;
+    opacity:1!important;
+  }
+  html body.mmh-workspace-active #bottomNav .mmh-sidebar-brand-v500,
+  html body.mmh-workspace-active #bottomNav .mmh-sidebar-section-v500,
+  html body.mmh-workspace-active #bottomNav>button,
+  html body.mmh-workspace-active #bottomNav .mmh-sidebar-private-v500{position:relative!important;z-index:1!important}
+}
+</style>
+<script id="mmhvault-dashboard-refresh-final-v650">
+(()=>{
+  // Defensive cleanup for legacy page memory. The boot path still makes Dashboard the final selection.
+  try{sessionStorage.removeItem('myfinance_page')}catch(_){}
+})();
+</script>
+
