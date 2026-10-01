@@ -9648,9 +9648,11 @@ function renderTransactionsMobileCardsV371(){
   }
   host.innerHTML=rows.length?rows.map(t=>{
     const from=t.from_account||'—', to=t.to_account||'—';
-    const fromAmt=t.from_amount?fmt(t.from_amount):'—', toAmt=t.to_amount?fmt(t.to_amount):'—';
+    const markFor=a=>{let c='';try{c=typeof currency==='function'?currency(a):''}catch(_){}return ({USD:'$',MMK:'K',THB:'฿',CNY:'￥'}[String(c||'').toUpperCase()]||c||'')};
+    const moneyFor=(v,a)=>v?(markFor(a)?markFor(a)+' ':'')+fmt(v):'—';
+    const fromAmt=moneyFor(t.from_amount,t.from_account), toAmt=moneyFor(t.to_amount,t.to_account);
     const note=t.note||'—';
-    const amount=t.to_amount||t.from_amount||0;
+    const useTo=Number(t.to_amount)>0,amount=useTo?t.to_amount:t.from_amount,amountAccount=useTo?t.to_account:t.from_account;
     return `<div class="tx-mobile-card-v371" onclick="this.classList.toggle('open')">
       <div class="tx-mobile-top-v371">
         <div class="tx-mobile-main-v371">
@@ -9658,7 +9660,7 @@ function renderTransactionsMobileCardsV371(){
           <div class="tx-mobile-title-v371">${esc(t.category||'—')}</div>
           <div class="tx-mobile-sub-v371">${esc(t.type||'—')} · ${esc(transactionGroupFor(t)||'—')}</div>
         </div>
-        <div class="tx-mobile-amount-v371">${fmt(amount)}</div>
+        <div class="tx-mobile-amount-v371">${esc(moneyFor(amount,amountAccount))}</div>
         <div class="tx-mobile-chevron-v371">▼</div>
       </div>
       <div class="tx-mobile-details-v371">
@@ -14638,10 +14640,25 @@ body.mmhvault-scroll-active #invest .invest-top>.panel{box-shadow:inset 0 1px 0 
   let queued=false;
 
   const receiptHas=t=>{try{return !!window.mmHVaultHasReceiptV3302?.(t.id);}catch(_){return false;}};
+  const txCurrencyV720=account=>{
+    if(!account)return '';
+    try{if(typeof currency==='function')return String(currency(account)||'').toUpperCase();}catch(_){}
+    try{return String((window.MMHVAULT_CONFIG?.accounts||[]).find(a=>a.name===account)?.currency||'').toUpperCase();}catch(_){return '';}
+  };
+  const txCurrencyMarkV720=code=>({USD:'$',MMK:'K',THB:'฿',CNY:'￥',RMB:'￥'}[String(code||'').toUpperCase()]||String(code||''));
+  const txMoneyV720=(amount,account)=>{
+    const n=Number(amount);if(!Number.isFinite(n))return '—';
+    const mark=txCurrencyMarkV720(txCurrencyV720(account));
+    return (mark?mark+' ':'')+(typeof fmt==='function'?fmt(n):n.toLocaleString());
+  };
+  const txPrimaryV720=t=>{
+    const useTo=Number(t?.to_amount)>0;
+    return {amount:useTo?t?.to_amount:t?.from_amount,account:useTo?t?.to_account:t?.from_account};
+  };
   const rowKey=t=>String(t?.id??'');
   const dataKey=t=>JSON.stringify([
     t?.tx_date,t?.type,transactionGroupFor(t),t?.category,t?.from_account,t?.from_amount,
-    t?.to_account,t?.to_amount,t?.note,receiptHas(t)
+    t?.to_account,t?.to_amount,t?.note,txCurrencyV720(t?.from_account),txCurrencyV720(t?.to_account),receiptHas(t)
   ]);
   const currentFilterKey=()=>['txSearch','txFilterType','txFilterGroup','txFilterCategory','txFilterAccount'].map(id=>String($(id)?.value||'')).concat(window.mmhHistoryCalendarContextV1?.()||'').join('\x1f');
   const rows=()=>{
@@ -14667,9 +14684,9 @@ body.mmhvault-scroll-active #invest .invest-top>.panel{box-shadow:inset 0 1px 0 
     setCell(row,2,transactionGroupFor(t)||'');
     setCell(row,3,t.category||'');
     setCell(row,4,t.from_account||'—');
-    setCell(row,5,t.from_amount?fmt(t.from_amount):'—');
+    setCell(row,5,t.from_amount?txMoneyV720(t.from_amount,t.from_account):'—');
     setCell(row,6,t.to_account||'—');
-    setCell(row,7,t.to_amount?fmt(t.to_amount):'—');
+    setCell(row,7,t.to_amount?txMoneyV720(t.to_amount,t.to_account):'—');
     setCell(row,8,t.note||'');
     const receiptCell=row.cells?.[9];
     if(receiptCell){
@@ -14689,7 +14706,7 @@ body.mmhvault-scroll-active #invest .invest-top>.panel{box-shadow:inset 0 1px 0 
   }
 
   function buildDesktop(list,rs){
-    list.innerHTML=`<table><tr><th>Date</th><th>Type</th><th>Transaction</th><th>Category</th><th>From</th><th>From Amount</th><th>To</th><th>To Amount</th><th>Note</th><th>Receipt</th><th></th></tr>${rs.map(t=>`<tr data-mmh-tx-id="${esc(String(t.id))}"><td>${esc(t.tx_date||'')}</td><td>${esc(t.type||'')}</td><td>${esc(transactionGroupFor(t)||'')}</td><td>${esc(t.category||'')}</td><td>${esc(t.from_account||'—')}</td><td>${t.from_amount?fmt(t.from_amount):'—'}</td><td>${esc(t.to_account||'—')}</td><td>${t.to_amount?fmt(t.to_amount):'—'}</td><td>${esc(t.note||'')}</td><td>${receiptHas(t)?`<button class="btn" type="button" onclick="openTransactionReceiptV396(${Number(t.id)})">👁 View</button>`:''}</td><td class="icon-actions"><button class="btn" type="button" data-action="edit-tx" data-id="${esc(String(t.id))}">Edit</button><button class="btn danger" type="button">×</button></td></tr>`).join('')}</table>`;
+    list.innerHTML=`<table><tr><th>Date</th><th>Type</th><th>Transaction</th><th>Category</th><th>From</th><th>From Amount</th><th>To</th><th>To Amount</th><th>Note</th><th>Receipt</th><th></th></tr>${rs.map(t=>`<tr data-mmh-tx-id="${esc(String(t.id))}"><td>${esc(t.tx_date||'')}</td><td>${esc(t.type||'')}</td><td>${esc(transactionGroupFor(t)||'')}</td><td>${esc(t.category||'')}</td><td>${esc(t.from_account||'—')}</td><td>${t.from_amount?esc(txMoneyV720(t.from_amount,t.from_account)):'—'}</td><td>${esc(t.to_account||'—')}</td><td>${t.to_amount?esc(txMoneyV720(t.to_amount,t.to_account)):'—'}</td><td>${esc(t.note||'')}</td><td>${receiptHas(t)?`<button class="btn" type="button" onclick="openTransactionReceiptV396(${Number(t.id)})">👁 View</button>`:''}</td><td class="icon-actions"><button class="btn" type="button" data-action="edit-tx" data-id="${esc(String(t.id))}">Edit</button><button class="btn danger" type="button">×</button></td></tr>`).join('')}</table>`;
     rs.forEach(t=>{
       const row=list.querySelector(`tr[data-mmh-tx-id="${CSS.escape(String(t.id))}"]`);
       if(!row)return;
@@ -14703,9 +14720,9 @@ body.mmhvault-scroll-active #invest .invest-top>.panel{box-shadow:inset 0 1px 0 
 
   function mobileCardHTML(t){
     const from=t.from_account||'—',to=t.to_account||'—';
-    const fromAmt=t.from_amount?fmt(t.from_amount):'—',toAmt=t.to_amount?fmt(t.to_amount):'—';
-    const note=t.note||'—',amount=t.to_amount||t.from_amount||0;
-    return `<div class="tx-mobile-top-v371"><div class="tx-mobile-main-v371"><div class="tx-mobile-date-v371">${esc(t.tx_date||'—')}</div><div class="tx-mobile-title-v371">${esc(t.category||'—')}</div><div class="tx-mobile-sub-v371">${esc(t.type||'—')} · ${esc(transactionGroupFor(t)||'—')}</div></div><div class="tx-mobile-amount-v371">${fmt(amount)}</div><div class="tx-mobile-chevron-v371">▼</div></div><div class="tx-mobile-details-v371"><div class="tx-mobile-detail-v371"><div class="tx-mobile-detail-label-v371">From</div><div class="tx-mobile-detail-value-v371">${esc(from)}</div></div><div class="tx-mobile-detail-v371"><div class="tx-mobile-detail-label-v371">From Amount</div><div class="tx-mobile-detail-value-v371">${fromAmt}</div></div><div class="tx-mobile-detail-v371"><div class="tx-mobile-detail-label-v371">To</div><div class="tx-mobile-detail-value-v371">${esc(to)}</div></div><div class="tx-mobile-detail-v371"><div class="tx-mobile-detail-label-v371">To Amount</div><div class="tx-mobile-detail-value-v371">${toAmt}</div></div><div class="tx-mobile-detail-v371" style="grid-column:1/-1"><div class="tx-mobile-detail-label-v371">Note</div><div class="tx-mobile-detail-value-v371">${esc(note)}</div></div><div class="tx-mobile-actions-v371" style="grid-column:1/-1">${receiptHas(t)?`<button class="btn" type="button" data-role="receipt">👁 Receipt</button>`:''}<button class="btn" type="button" data-role="edit">Edit</button><button class="btn danger" type="button" data-role="delete">Delete</button></div></div>`;
+    const fromAmt=t.from_amount?txMoneyV720(t.from_amount,t.from_account):'—',toAmt=t.to_amount?txMoneyV720(t.to_amount,t.to_account):'—';
+    const note=t.note||'—',primary=txPrimaryV720(t);
+    return `<div class="tx-mobile-top-v371"><div class="tx-mobile-main-v371"><div class="tx-mobile-date-v371">${esc(t.tx_date||'—')}</div><div class="tx-mobile-title-v371">${esc(t.category||'—')}</div><div class="tx-mobile-sub-v371">${esc(t.type||'—')} · ${esc(transactionGroupFor(t)||'—')}</div></div><div class="tx-mobile-amount-v371">${esc(txMoneyV720(primary.amount,primary.account))}</div><div class="tx-mobile-chevron-v371">▼</div></div><div class="tx-mobile-details-v371"><div class="tx-mobile-detail-v371"><div class="tx-mobile-detail-label-v371">From</div><div class="tx-mobile-detail-value-v371">${esc(from)}</div></div><div class="tx-mobile-detail-v371"><div class="tx-mobile-detail-label-v371">From Amount</div><div class="tx-mobile-detail-value-v371">${fromAmt}</div></div><div class="tx-mobile-detail-v371"><div class="tx-mobile-detail-label-v371">To</div><div class="tx-mobile-detail-value-v371">${esc(to)}</div></div><div class="tx-mobile-detail-v371"><div class="tx-mobile-detail-label-v371">To Amount</div><div class="tx-mobile-detail-value-v371">${toAmt}</div></div><div class="tx-mobile-detail-v371" style="grid-column:1/-1"><div class="tx-mobile-detail-label-v371">Note</div><div class="tx-mobile-detail-value-v371">${esc(note)}</div></div><div class="tx-mobile-actions-v371" style="grid-column:1/-1">${receiptHas(t)?`<button class="btn" type="button" data-role="receipt">👁 Receipt</button>`:''}<button class="btn" type="button" data-role="edit">Edit</button><button class="btn danger" type="button" data-role="delete">Delete</button></div></div>`;
   }
   function updateMobileCard(card,t){
     const key=dataKey(t);
@@ -17380,6 +17397,47 @@ html body.mmh-workspace-active #moreNavMenu.more-nav-menu.open{
 #mmhPremiumDashboardV500 .pf-tx-track-v620{animation:none!important;backface-visibility:hidden;transform-style:preserve-3d}
 #mmhPremiumDashboardV500 .pf-tx-set-v620{contain:layout paint style}
 </style>
+
+<style id="mmhvault-transaction-receipt-premium-v720">
+/* v7.2 Transaction receipt chooser: premium drop-card, no native file chrome. */
+#transactions #receiptUploadV3300{padding:18px!important;border:1px solid rgba(91,151,197,.24)!important;border-radius:18px!important;background:radial-gradient(circle at 8% 0,rgba(76,199,255,.065),transparent 28%),linear-gradient(145deg,rgba(9,28,45,.92),rgba(5,18,31,.97))!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.025)!important}
+#transactions #receiptUploadV3300 .receipt-upload-head-v3300{display:flex!important;align-items:center!important;gap:12px!important;padding:0 2px 13px!important;border-bottom:1px solid rgba(94,151,197,.13)!important}
+#transactions #receiptUploadV3300 .receipt-upload-icon-v3300{width:42px!important;height:42px!important;flex:0 0 42px!important;display:grid!important;place-items:center!important;border-radius:13px!important;background:linear-gradient(145deg,#173d58,#0d293e)!important;border:1px solid rgba(93,164,214,.24)!important;font-size:19px!important;filter:none!important}
+#transactions #receiptUploadV3300 .receipt-upload-title-v3300{font-size:14px!important;font-weight:780!important;color:#edf5fb!important}
+#transactions #receiptUploadV3300 .receipt-upload-sub-v3300{margin-top:3px!important;font-size:10px!important;line-height:1.45!important;color:#8098ac!important}
+#transactions #receiptUploadV3300 .receipt-upload-badge-v3300{margin-left:auto!important;padding:5px 8px!important;border-radius:999px!important;background:rgba(242,196,94,.10)!important;border:1px solid rgba(242,196,94,.24)!important;color:#e8c66f!important;font-size:9px!important;font-weight:700!important}
+#transactions #receiptDropzoneV3300{position:relative!important;display:grid!important;grid-template-columns:58px minmax(0,1fr) auto!important;align-items:center!important;gap:14px!important;min-height:104px!important;margin-top:14px!important;padding:16px 18px!important;border:1px dashed rgba(94,171,226,.42)!important;border-radius:15px!important;background:linear-gradient(145deg,rgba(11,36,55,.78),rgba(6,23,38,.88))!important;cursor:pointer!important;overflow:hidden!important;transition:border-color .16s ease,background .16s ease,box-shadow .16s ease!important}
+#transactions #receiptDropzoneV3300:hover,#transactions #receiptDropzoneV3300.is-drag-v720{border-color:rgba(113,197,247,.72)!important;background:linear-gradient(145deg,rgba(15,47,70,.88),rgba(8,29,46,.94))!important;box-shadow:0 10px 24px rgba(0,0,0,.12),inset 0 1px 0 rgba(255,255,255,.03)!important}
+#transactions #receiptDropzoneV3300 input[type=file]{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;margin:0!important;padding:0!important;opacity:0!important;cursor:pointer!important;z-index:3!important}
+#transactions #receiptDropzoneV3300 .receipt-drop-icon-v3300{width:52px!important;height:52px!important;display:grid!important;place-items:center!important;border-radius:15px!important;background:linear-gradient(145deg,#1a4664,#103149)!important;border:1px solid rgba(105,181,231,.28)!important;color:#a9ddfb!important;font-size:24px!important;line-height:1!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.04)!important}
+#transactions #receiptDropzoneV3300 .receipt-drop-copy-v3300{min-width:0!important;display:block!important}
+#transactions #receiptDropzoneV3300 .receipt-drop-copy-v3300 strong{display:block!important;font-size:13px!important;color:#edf5fb!important;margin:0 0 5px!important}
+#transactions #receiptDropzoneV3300 .receipt-drop-copy-v3300 span{display:block!important;font-size:10px!important;line-height:1.5!important;color:#8199ad!important}
+#transactions #receiptDropzoneV3300::after{content:"Browse"!important;position:static!important;width:auto!important;height:auto!important;padding:8px 12px!important;border-radius:10px!important;background:#173b56!important;border:1px solid #315c78!important;color:#cfe5f4!important;font-size:10px!important;font-weight:700!important;opacity:1!important;animation:none!important;box-shadow:none!important;z-index:1!important}
+#transactions .receipt-upload-footer-v3300{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:10px!important;flex-wrap:wrap!important;padding:12px 2px 0!important}
+#transactions .receipt-secure-v3300,#transactions .receipt-file-state-v3300{font-size:9.5px!important;line-height:1.45!important;color:#7f98ac!important}
+#transactions .receipt-file-state-v3300{color:#b9cedd!important;font-weight:650!important;max-width:50%!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+#transactions .tx-receipt-preview-v720{display:none;align-items:center;gap:12px;margin-top:12px;padding:10px 12px;border:1px solid rgba(93,151,196,.17);border-radius:13px;background:rgba(4,18,31,.54)}
+#transactions .tx-receipt-preview-v720.show{display:flex}
+#transactions .tx-receipt-preview-v720 img{width:58px;height:58px;object-fit:cover;border-radius:10px;border:1px solid rgba(107,169,214,.24);background:#071827}
+#transactions .tx-receipt-preview-v720 .file-icon{width:58px;height:58px;display:grid;place-items:center;border-radius:10px;background:#132f46;border:1px solid rgba(107,169,214,.24);font-size:24px}
+#transactions .tx-receipt-preview-v720 .copy{min-width:0;flex:1}
+#transactions .tx-receipt-preview-v720 b{display:block;font-size:11px;color:#dceaf4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#transactions .tx-receipt-preview-v720 small{display:block;margin-top:4px;font-size:9px;color:#7891a6}
+@media(max-width:620px){#transactions #receiptDropzoneV3300{grid-template-columns:48px minmax(0,1fr)!important;padding:14px!important;min-height:92px!important}#transactions #receiptDropzoneV3300 .receipt-drop-icon-v3300{width:44px!important;height:44px!important;font-size:20px!important}#transactions #receiptDropzoneV3300::after{display:none!important}#transactions .receipt-file-state-v3300{max-width:100%!important}}
+</style>
+<script id="mmhvault-transaction-receipt-premium-v720-script">
+(()=>{'use strict';
+ if(window.__mmhReceiptPremiumV720)return;window.__mmhReceiptPremiumV720=true;
+ let objectUrl='';
+ const humanSize=n=>{n=Number(n)||0;if(n<1024)return n+' B';if(n<1048576)return (n/1024).toFixed(1)+' KB';return (n/1048576).toFixed(1)+' MB'};
+ function ensurePreview(){const upload=document.getElementById('receiptUploadV3300');if(!upload)return null;let p=document.getElementById('txReceiptPreviewV720');if(!p){p=document.createElement('div');p.id='txReceiptPreviewV720';p.className='tx-receipt-preview-v720';upload.querySelector('.receipt-dropzone-v3300')?.after(p);}return p;}
+ function clearPreview(){if(objectUrl){URL.revokeObjectURL(objectUrl);objectUrl='';}const p=ensurePreview();if(p){p.classList.remove('show');p.replaceChildren();}const title=document.getElementById('receiptDropTitleV3300');const meta=document.getElementById('receiptDropMetaV3300');const hint=document.getElementById('txReceiptHint');if(title)title.textContent='Choose a receipt';if(meta)meta.textContent='PNG, JPG, WEBP or PDF · up to 10 MB';if(hint)hint.textContent='No file selected';}
+ function showFile(file){const p=ensurePreview();if(!p)return;if(objectUrl){URL.revokeObjectURL(objectUrl);objectUrl='';}p.replaceChildren();let visual;if(file.type?.startsWith('image/')){visual=document.createElement('img');objectUrl=URL.createObjectURL(file);visual.src=objectUrl;visual.alt='Receipt preview';}else{visual=document.createElement('div');visual.className='file-icon';visual.textContent='📄';}const copy=document.createElement('div');copy.className='copy';const b=document.createElement('b');b.textContent=file.name;const sm=document.createElement('small');sm.textContent=(file.type||'File')+' · '+humanSize(file.size);copy.append(b,sm);p.append(visual,copy);p.classList.add('show');const title=document.getElementById('receiptDropTitleV3300');const meta=document.getElementById('receiptDropMetaV3300');const hint=document.getElementById('txReceiptHint');if(title)title.textContent='Receipt selected';if(meta)meta.textContent='Click to replace this file';if(hint)hint.textContent=file.name;}
+ function bind(){const input=document.getElementById('txReceipt'),drop=document.getElementById('receiptDropzoneV3300'),form=document.getElementById('txForm');if(!input||input.dataset.premiumV720)return;input.dataset.premiumV720='1';ensurePreview();input.addEventListener('change',()=>{const f=input.files?.[0];f?showFile(f):clearPreview()});if(drop){['dragenter','dragover'].forEach(ev=>drop.addEventListener(ev,()=>drop.classList.add('is-drag-v720')));['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,()=>drop.classList.remove('is-drag-v720')));}form?.addEventListener('reset',()=>setTimeout(clearPreview,0));}
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(bind,0),{once:true});else setTimeout(bind,0);
+})();
+</script>
 </body>
 <!-- MMHVAULT V4.3.0 performance baseline: logo-free account cards + restrained dashboard rendering. -->
 
@@ -22426,7 +22484,8 @@ db.auth.getSession().then(({data})=>owner(data?.session?.user)).catch(()=>{});db
 (()=>{'use strict';
 if(window.__mmhPremiumFinanceV500)return;window.__mmhPremiumFinanceV500=true;
 const $=id=>document.getElementById(id),N=v=>Number.isFinite(Number(v))?Number(v):0;
-let trendRange='6M',marketTab='Popular';
+let trendRange='6M',marketTab='Popular',lastFullSignatureV720='';
+let marketTimerV720=0;
 const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 const money=v=>'$'+N(v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
 const pct=v=>(v>=0?'+':'')+N(v).toFixed(1)+'%';
@@ -22552,8 +22611,30 @@ function personalTimeData(){
   countdown:clean($('mmhSettingsBirthdayCountdownV34215')?.textContent)
  };
 }
-function render(){
- if(!pageActive())return;const host=ensureDashboardHost();if(!host)return;const d=financeData(),pt=personalTimeData(),series=trendSeries(d.total,trendRange),latest=series.at(-1)?.value||0,first=series.at(0)?.value||0,trend=first?((latest-first)/Math.abs(first))*100:0,total=d.total||1,cashPct=d.cash/total*100,investPct=d.invest/total*100,recvPct=Math.max(0,100-cashPct-investPct),pnlCls=d.pl>=0?'pos':'neg';
+function fullSignatureV720(){
+ const tx=(Array.isArray(window.transactions)?window.transactions:[]).map(t=>[t.id,t.tx_date,t.type,t.category,t.from_account,t.from_amount,t.to_account,t.to_amount].join(':')).join('|');
+ const inv=(Array.isArray(window.investments)?window.investments:[]).map(x=>[x.id,x.asset,x.symbol,x.amount,x.buy_price,x.quantity,x.source_account].join(':')).join('|');
+ const r=(typeof rates!=='undefined'?rates:window.rates)||{};
+ return [trendRange,tx,inv,N(r.usd_mmk),N(r.usd_thb),N(r.usd_cny)].join('§');
+}
+function updateMarketOnlyV720(){
+ if(!pageActive())return;const host=ensureDashboardHost();if(!host)return;
+ const card=host.querySelector('.pf-market-card-v630'),box=host.querySelector('.pf-market-v500');
+ if(card){const p=card.querySelector('.pf-card-head-v500 p');if(p)p.textContent=marketTab==='Popular'?'Live crypto & gold reference':marketTab==='Crypto'?'Crypto market snapshot':marketTab==='Gold'?'Gold market reference':'Live movers with available prices';}
+ if(box){const next=`<div class="pf-market-head-v500"><span>Asset</span><span>Price</span><span>24h</span><span>Trend</span></div>${marketRows(marketTab)}`;if(box.dataset.liveHtmlV720!==next){box.innerHTML=next;box.dataset.liveHtmlV720=next;}}
+ const d=financeData();
+ const kpis=host.querySelectorAll('.pf-kpi-v500');
+ if(kpis[0]?.querySelector('.pf-kpi-value-v500'))kpis[0].querySelector('.pf-kpi-value-v500').textContent=money(d.total);
+ if(kpis[2]?.querySelector('.pf-kpi-value-v500'))kpis[2].querySelector('.pf-kpi-value-v500').textContent=money(d.invest);
+ if(kpis[3]?.querySelector('.pf-kpi-value-v500'))kpis[3].querySelector('.pf-kpi-value-v500').textContent=(d.pl>=0?'+':'')+money(d.pl);
+ const trendValue=host.querySelector('.pf-trend-summary-v500 strong');if(trendValue)trendValue.textContent=money(d.total);
+ const total=d.total||1,cashPct=d.cash/total*100,investPct=d.invest/total*100,recvPct=Math.max(0,100-cashPct-investPct);
+ const donut=host.querySelector('.pf-donut-v630');if(donut){donut.style.setProperty('--cash',cashPct.toFixed(2)+'%');donut.style.setProperty('--invest',investPct.toFixed(2)+'%');const totalEl=donut.querySelector('strong');if(totalEl)totalEl.textContent=money(d.total);}
+ const alloc=host.querySelectorAll('.pf-allocation-row-v630');[[d.cash,cashPct],[d.invest,investPct],[d.receivable,recvPct]].forEach((v,i)=>{const row=alloc[i];if(!row)return;const amount=row.querySelector('small'),pctEl=row.querySelector('b'),bar=row.querySelector('u');if(amount)amount.textContent=money(v[0]);if(pctEl)pctEl.textContent=v[1].toFixed(1)+'%';if(bar)bar.style.setProperty('--pct',Math.max(0,Math.min(100,v[1])).toFixed(1)+'%');});
+}
+function scheduleMarketOnlyV720(){clearTimeout(marketTimerV720);marketTimerV720=setTimeout(updateMarketOnlyV720,180);}
+function render(force=false){
+ if(!pageActive())return;const host=ensureDashboardHost();if(!host)return;const sig=fullSignatureV720();if(!force&&host.childElementCount&&sig===lastFullSignatureV720){updateMarketOnlyV720();return;}lastFullSignatureV720=sig;const d=financeData(),pt=personalTimeData(),series=trendSeries(d.total,trendRange),latest=series.at(-1)?.value||0,first=series.at(0)?.value||0,trend=first?((latest-first)/Math.abs(first))*100:0,total=d.total||1,cashPct=d.cash/total*100,investPct=d.invest/total*100,recvPct=Math.max(0,100-cashPct-investPct),pnlCls=d.pl>=0?'pos':'neg';
  host.innerHTML=`
  <section class="pf-hero-v500"><div class="pf-hero-copy-v500"><div class="pf-eyebrow-v500">MMHVAULT · FINANCIAL OVERVIEW</div><h1>${lang()?'欢迎回来':'Welcome back'}, <span class="pf-name-v500">${esc(name())}</span></h1><div class="pf-hero-sub-v500">${lang()?'这是您当前的财务概览。继续稳步建立自己的财富系统。':'Here’s your financial overview. Keep building your wealth system.'}</div></div><div class="pf-hero-meta-v670"><div class="pf-hero-date-v500 pf-hero-age-v670"><span class="pf-age-label-v670">You Age:</span> ${esc(pt.age)}</div><div class="pf-hero-date-v500">${new Date().toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric',year:'numeric'})}</div></div></section>
  <section class="pf-kpis-v500">
@@ -22570,8 +22651,8 @@ function render(){
    ${(()=>{const recentRows=recentTransactionRows(24);let loopRows=recentRows.slice();if(loopRows.length){const seed=recentRows.slice();while(loopRows.length<12)loopRows=loopRows.concat(seed);loopRows=loopRows.slice(0,Math.max(12,recentRows.length));}const rowHtml=txRows(loopRows.length||24,loopRows.length?loopRows:recentRows);const signature=recentRows.map(r=>String(r.id??'')+'@'+String(r.tx_date??'')).join('|');return `<article class="pf-card-v500 pf-recent-flow-v620"><div class="pf-card-head-v500"><div><h2>Recent Transactions</h2><p>Live flow · latest activity across recent months</p></div><button class="pf-link-v500" type="button" onclick="setPage('transactions')">View all →</button></div><div class="pf-transactions-v500"><div class="pf-tx-head-v500"><span>Date</span><span>Description</span><span>Type</span><span>Amount</span><span>Status</span></div><div class="pf-tx-viewport-v620"><div class="pf-tx-track-v620" data-flow-signature="${esc(signature)}"><div class="pf-tx-set-v620">${rowHtml}</div><div class="pf-tx-set-v620" aria-hidden="true">${rowHtml}</div></div></div></div></article>`})()}
    <article class="pf-card-v500 pf-market-card-v630"><div class="pf-card-head-v500"><div><h2>Market Watch</h2><p>${marketTab==='Popular'?'Live crypto & gold reference':marketTab==='Crypto'?'Crypto market snapshot':marketTab==='Gold'?'Gold market reference':'Live movers with available prices'}</p></div><button class="pf-link-v500" type="button" onclick="setPage('invest')">Open Invest →</button></div><div class="pf-market-tabs-v500" role="tablist" aria-label="Market watch filter"><button type="button" data-market-tab="Popular" class="${marketTab==='Popular'?'active':''}">Popular</button><button type="button" data-market-tab="Crypto" class="${marketTab==='Crypto'?'active':''}">Crypto</button><button type="button" data-market-tab="Gold" class="${marketTab==='Gold'?'active':''}">Gold</button><button type="button" data-market-tab="Live" class="${marketTab==='Live'?'active':''}"><span class="pf-live-dot-v630"></span>Live</button></div><div class="pf-market-v500 pf-market-swap-v630"><div class="pf-market-head-v500"><span>Asset</span><span>Price</span><span>24h</span><span>Trend</span></div>${marketRows(marketTab)}</div></article>
  </section>`;
- host.querySelectorAll('[data-pf-range]').forEach(btn=>btn.addEventListener('click',()=>{const next=btn.dataset.pfRange;if(!next||next===trendRange)return;trendRange=next;render();}));
- host.querySelectorAll('[data-market-tab]').forEach(btn=>btn.addEventListener('click',()=>{const next=btn.dataset.marketTab;if(!next||next===marketTab)return;marketTab=next;render();}));
+ host.querySelectorAll('[data-pf-range]').forEach(btn=>btn.addEventListener('click',()=>{const next=btn.dataset.pfRange;if(!next||next===trendRange)return;trendRange=next;lastFullSignatureV720='';render(true);}));
+ host.querySelectorAll('[data-market-tab]').forEach(btn=>btn.addEventListener('click',()=>{const next=btn.dataset.marketTab;if(!next||next===marketTab)return;marketTab=next;host.querySelectorAll('[data-market-tab]').forEach(x=>x.classList.toggle('active',x.dataset.marketTab===marketTab));scheduleMarketOnlyV720();}));
  host.querySelectorAll('[data-allocation-target]').forEach(btn=>btn.addEventListener('click',()=>{const target=btn.dataset.allocationTarget;if(target&&typeof window.setPage==='function')window.setPage(target);}));
 }
 
@@ -22607,7 +22688,8 @@ function ensureSeamlessTransactionFlowV710(){
 }
 function wrapRender(){const base=window.renderDashboard;if(typeof base==='function'&&!base.__pfV500){const wrapped=function(){const r=base.apply(this,arguments);requestAnimationFrame(render);return r};wrapped.__pfV500=true;window.renderDashboard=wrapped;try{renderDashboard=wrapped}catch(_){}}}
 function init(){addSidebar();addTopbar();ensureDashboardHost();wrapRender();ensureSeamlessTransactionFlowV710();setTimeout(render,240)}
-['mmhvault:data-loaded','mmhvault:data-change','mmhvault:cache-restored','mmhvault:sync-complete','mmhvault:market-updated','mmhvault:dashboard-rendered','languagechange','mmhvault-language-change','mmhvault-birthday-change','mmhvault:age-tick'].forEach(ev=>window.addEventListener(ev,()=>setTimeout(render,90)));
+['mmhvault:data-loaded','mmhvault:data-change','mmhvault:cache-restored','mmhvault:sync-complete','mmhvault:dashboard-rendered','languagechange','mmhvault-language-change','mmhvault-birthday-change','mmhvault:age-tick'].forEach(ev=>window.addEventListener(ev,()=>setTimeout(()=>render(false),90)));
+window.addEventListener('mmhvault:market-updated',scheduleMarketOnlyV720);
 window.addEventListener('resize',()=>{clearTimeout(window.__pfResizeV500);window.__pfResizeV500=setTimeout(render,120)});
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
@@ -22622,7 +22704,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 #mmhPremiumDashboardV500 .pf-market-tabs-v500 button:active{transform:scale(.98)}
 #mmhPremiumDashboardV500 .pf-market-tabs-v500 button:focus-visible{outline:2px solid rgba(111,196,243,.72);outline-offset:2px}
 #mmhPremiumDashboardV500 .pf-live-dot-v630{width:5px;height:5px;border-radius:50%;background:#38dfa1;box-shadow:0 0 8px rgba(56,223,161,.7);animation:mmhLivePulseV630 1.8s ease-in-out infinite}
-#mmhPremiumDashboardV500 .pf-market-swap-v630{animation:mmhMarketSwapV630 .25s ease both}
+#mmhPremiumDashboardV500 .pf-market-swap-v630{animation:none!important}
 #mmhPremiumDashboardV500 .pf-market-empty-v630{padding:23px 4px;color:#7d95a9;font-size:10px;text-align:center}
 @keyframes mmhMarketSwapV630{from{opacity:.25;transform:translateY(4px);filter:blur(2px)}to{opacity:1;transform:none;filter:none}}
 @keyframes mmhLivePulseV630{50%{opacity:.42;box-shadow:0 0 2px rgba(56,223,161,.3)}}
@@ -23029,4 +23111,10 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     z-index:3!important;
   }
 }
+</style>
+<style id="mmhvault-dashboard-stability-v720-final">
+/* Final stability guard: live market updates must not look like a full dashboard refresh. */
+#mmhPremiumDashboardV500 .pf-chart-swap-v620{animation:none!important;filter:none!important;opacity:1!important}
+#mmhPremiumDashboardV500 .pf-market-swap-v630{animation:none!important;filter:none!important;opacity:1!important}
+#mmhPremiumDashboardV500 .pf-market-tabs-v500 .pf-live-dot-v630{flex:0 0 5px!important;width:5px!important;min-width:5px!important;max-width:5px!important;height:5px!important;min-height:5px!important;padding:0!important;margin:0!important;border:0!important;border-radius:50%!important;background:#38dfa1!important;box-shadow:0 0 6px rgba(56,223,161,.55)!important;animation:none!important}
 </style>
