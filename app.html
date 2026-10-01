@@ -5407,6 +5407,21 @@ body.mmh-v436-explorer-open #bottomNav{visibility:hidden!important;pointer-event
   #analyze .analyze-extra{grid-template-columns:1fr!important;gap:9px!important;margin-top:9px!important}
 }
 </style>
+
+<style id="mmhvault-personal-time-age-v670">
+#mmhPremiumDashboardV500 .pf-hero-meta-v670{position:relative;z-index:1;display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap;max-width:min(520px,48vw)}
+#mmhPremiumDashboardV500 .pf-hero-meta-v670 .pf-hero-date-v500{margin:0!important;display:inline-flex!important;align-items:center!important;min-height:34px;box-sizing:border-box;white-space:nowrap}
+#mmhPremiumDashboardV500 .pf-hero-age-v670{color:#b8c9d7!important}
+#mmhPremiumDashboardV500 .pf-age-label-v670{margin-right:5px;color:#e3b84e;font-weight:750;letter-spacing:.01em}
+@media(max-width:900px){
+  #mmhPremiumDashboardV500 .pf-hero-meta-v670{max-width:100%;justify-content:flex-start;margin-top:10px;gap:7px}
+  #mmhPremiumDashboardV500 .pf-hero-meta-v670 .pf-hero-date-v500{margin-top:0!important;min-height:30px;padding:6px 8px!important;font-size:8px!important}
+}
+@media(max-width:520px){
+  #mmhPremiumDashboardV500 .pf-hero-meta-v670{align-items:flex-start;gap:6px}
+  #mmhPremiumDashboardV500 .pf-hero-age-v670{white-space:normal!important;line-height:1.35;max-width:100%}
+}
+</style>
 </head>
 <!-- MMHVAULT V4.3.6 · iOS JSON import bridge + V4.3.0 Dashboard report relocation + Transaction receipt center + Invest Add precision -->
 <body>
@@ -18698,40 +18713,7 @@ html body.mmh-workspace-active #moreNavMenu.more-nav-menu.open{
 })();
 </script>
 
-<style id="mmhvault-personal-time-sidebar-fix-v660">
-@media(min-width:1100px){
-  html body.mmh-workspace-active #bottomNav.bottom-nav{padding-bottom:154px!important}
-  html body.mmh-workspace-active #bottomNav .mmh-sidebar-private-v500{
-    position:absolute!important;left:14px!important;right:14px!important;bottom:14px!important;
-    margin:0!important;z-index:6!important;transform:none!important;
-  }
-}
-#mmhPremiumDashboardV500 .pf-personal-time-v660{
-  margin-top:13px;padding:15px 17px 16px;border:1px solid rgba(85,143,187,.24);border-radius:15px;
-  background:radial-gradient(circle at 88% 18%,rgba(242,196,94,.09),transparent 28%),linear-gradient(145deg,rgba(9,29,48,.96),rgba(5,20,34,.97));
-  box-shadow:0 14px 34px rgba(0,0,0,.15),inset 0 1px rgba(255,255,255,.03);
-}
-#mmhPremiumDashboardV500 .pf-personal-time-head-v660{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:12px}
-#mmhPremiumDashboardV500 .pf-personal-time-kicker-v660{display:block;margin-bottom:4px;font-size:8px;font-weight:850;letter-spacing:.16em;color:#d5aa45}
-#mmhPremiumDashboardV500 .pf-personal-time-head-v660 h2{margin:0;font-size:15px;color:#f0f5f8}
-#mmhPremiumDashboardV500 .pf-personal-time-head-v660 p{margin:4px 0 0;font-size:9px;color:#7890a5}
-#mmhPremiumDashboardV500 .pf-personal-time-link-v660{border:1px solid rgba(82,151,199,.22);border-radius:9px;background:#0b2235;color:#8bc6e9;padding:7px 9px;font:inherit;font-size:8px;cursor:pointer}
-#mmhPremiumDashboardV500 .pf-personal-time-grid-v660{display:grid;grid-template-columns:1.25fr .9fr 1.05fr;gap:10px}
-#mmhPremiumDashboardV500 .pf-personal-time-metric-v660{min-width:0;padding:12px 13px;border:1px solid rgba(86,137,176,.16);border-radius:11px;background:rgba(12,34,53,.56)}
-#mmhPremiumDashboardV500 .pf-personal-time-metric-v660 span{display:block;font-size:8px;text-transform:uppercase;letter-spacing:.08em;color:#7690a6}
-#mmhPremiumDashboardV500 .pf-personal-time-metric-v660 strong{display:block;margin-top:5px;color:#e8f1f7;font-size:12px;line-height:1.35;overflow-wrap:anywhere}
-#mmhPremiumDashboardV500 .pf-personal-time-metric-v660.accent strong{color:#f2c45e}
-@media(max-width:900px){
-  #mmhPremiumDashboardV500 .pf-personal-time-grid-v660{grid-template-columns:1fr 1fr}
-  #mmhPremiumDashboardV500 .pf-personal-time-metric-v660.accent{grid-column:1/-1}
-}
-@media(max-width:560px){
-  #mmhPremiumDashboardV500 .pf-personal-time-head-v660{display:block}
-  #mmhPremiumDashboardV500 .pf-personal-time-link-v660{margin-top:10px}
-  #mmhPremiumDashboardV500 .pf-personal-time-grid-v660{grid-template-columns:1fr}
-  #mmhPremiumDashboardV500 .pf-personal-time-metric-v660.accent{grid-column:auto}
-}
-</style>
+
 </body>
 <!-- MMHVAULT V4.3.0 performance baseline: logo-free account cards + restrained dashboard rendering. -->
 
@@ -24312,20 +24294,12 @@ function personalTimeData(){
 function render(){
  if(!pageActive())return;const host=ensureDashboardHost();if(!host)return;const d=financeData(),pt=personalTimeData(),series=trendSeries(d.total,trendRange),latest=series.at(-1)?.value||0,first=series.at(0)?.value||0,trend=first?((latest-first)/Math.abs(first))*100:0,total=d.total||1,cashPct=d.cash/total*100,investPct=d.invest/total*100,recvPct=Math.max(0,100-cashPct-investPct),pnlCls=d.pl>=0?'pos':'neg';
  host.innerHTML=`
- <section class="pf-hero-v500"><div class="pf-hero-copy-v500"><div class="pf-eyebrow-v500">MMHVAULT · FINANCIAL OVERVIEW</div><h1>${lang()?'欢迎回来':'Welcome back'}, <span class="pf-name-v500">${esc(name())}</span></h1><div class="pf-hero-sub-v500">${lang()?'这是您当前的财务概览。继续稳步建立自己的财富系统。':'Here’s your financial overview. Keep building your wealth system.'}</div></div><div class="pf-hero-date-v500">${new Date().toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric',year:'numeric'})}</div></section>
+ <section class="pf-hero-v500"><div class="pf-hero-copy-v500"><div class="pf-eyebrow-v500">MMHVAULT · FINANCIAL OVERVIEW</div><h1>${lang()?'欢迎回来':'Welcome back'}, <span class="pf-name-v500">${esc(name())}</span></h1><div class="pf-hero-sub-v500">${lang()?'这是您当前的财务概览。继续稳步建立自己的财富系统。':'Here’s your financial overview. Keep building your wealth system.'}</div></div><div class="pf-hero-meta-v670"><div class="pf-hero-date-v500 pf-hero-age-v670"><span class="pf-age-label-v670">You Age:</span> ${esc(pt.age)}</div><div class="pf-hero-date-v500">${new Date().toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric',year:'numeric'})}</div></div></section>
  <section class="pf-kpis-v500">
    <article class="pf-kpi-v500 gold"><span class="pf-kpi-label-v500">Total Balance</span><div class="pf-kpi-value-v500">${money(d.total)}</div><div class="pf-kpi-meta-v500"><span class="pos">LIVE</span><span>Cash + investments + receivable</span></div><i class="pf-kpi-icon-v500">◉</i></article>
    <article class="pf-kpi-v500"><span class="pf-kpi-label-v500">Cash Flow · This Month</span><div class="pf-kpi-value-v500">${money(d.cashFlow)}</div><div class="pf-kpi-meta-v500"><span class="${d.flowChange==null||d.flowChange>=0?'pos':'neg'}">${d.flowChange==null?'—':pct(d.flowChange)}</span><span>vs. last month</span></div><i class="pf-kpi-icon-v500">↗</i></article>
    <article class="pf-kpi-v500"><span class="pf-kpi-label-v500">Portfolio Value</span><div class="pf-kpi-value-v500">${money(d.invest)}</div><div class="pf-kpi-meta-v500"><span class="${d.investChange>=0?'pos':'neg'}">${pct(d.investChange)}</span><span>vs. investment cost</span></div><i class="pf-kpi-icon-v500">▥</i></article>
    <article class="pf-kpi-v500 gold"><span class="pf-kpi-label-v500">Investment Profit / Loss</span><div class="pf-kpi-value-v500">${d.pl>=0?'+':''}${money(d.pl)}</div><div class="pf-kpi-meta-v500"><span class="${pnlCls}">${pct(d.investChange)}</span><span>unrealized</span></div><i class="pf-kpi-icon-v500">⌁</i></article>
- </section>
- <section class="pf-personal-time-v660" aria-label="Personal Time">
-   <div class="pf-personal-time-head-v660"><div><span class="pf-personal-time-kicker-v660">${lang()?'个人时间':'PERSONAL TIME'}</span><h2>${lang()?'时间与生日':'Personal Time'}</h2><p>${lang()?'根据您在设置中保存的生日实时计算。':'Live from the birth date saved in Settings.'}</p></div><button type="button" class="pf-personal-time-link-v660" onclick="setPage('settings')">${lang()?'在设置中编辑 →':'Edit in Settings →'}</button></div>
-   <div class="pf-personal-time-grid-v660">
-     <div class="pf-personal-time-metric-v660"><span>${lang()?'当前年龄':'Current Age'}</span><strong>${esc(pt.age)}</strong></div>
-     <div class="pf-personal-time-metric-v660"><span>${lang()?'下次生日':'Next Birthday'}</span><strong>${esc(pt.next)}</strong></div>
-     <div class="pf-personal-time-metric-v660 accent"><span>${lang()?'倒计时':'Countdown'}</span><strong>${esc(pt.countdown)}</strong></div>
-   </div>
  </section>
  <section class="pf-main-grid-v500">
    <article class="pf-card-v500 pf-trend-card-v620"><div class="pf-card-head-v500"><div><h2>Portfolio Trend</h2><p>${trendDescription(trendRange)}</p></div><div class="pf-range-v500" role="group" aria-label="Portfolio trend period"><button type="button" data-pf-range="1W" class="${trendRange==='1W'?'active':''}">1W</button><button type="button" data-pf-range="6M" class="${trendRange==='6M'?'active':''}">6M</button><button type="button" data-pf-range="1Y" class="${trendRange==='1Y'?'active':''}">1Y</button><button type="button" data-pf-range="ALL" class="${trendRange==='ALL'?'active':''}">ALL</button></div></div><div class="pf-trend-summary-v500"><strong>${money(d.total)}</strong><span>${pct(trend)} momentum</span></div><div class="pf-chart-v500 pf-chart-swap-v620">${chartSvg(series)}</div></article>
