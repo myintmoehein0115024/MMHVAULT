@@ -18379,6 +18379,8 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 
   function bind(){
     if(!ensure())return;
+    if(bell.dataset.mmhNotifyBoundV560==='1'){load(false);return;}
+    bell.dataset.mmhNotifyBoundV560='1';
     bell.setAttribute('aria-haspopup','dialog');bell.setAttribute('aria-expanded','false');
     bell.addEventListener('click',e=>{if(!desktop())return;e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();toggle()},true);
     document.addEventListener('click',e=>{if(!popup?.classList.contains('open'))return;if(!popup.contains(e.target)&&!bell.contains(e.target))close()});
@@ -18392,7 +18394,9 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     removeSettingsNotices();
     bind();
     const settings=$('settings');if(settings)new MutationObserver(removeSettingsNotices).observe(settings,{childList:true,subtree:true});
-    setTimeout(removeSettingsNotices,250);setTimeout(removeSettingsNotices,900);
+    setTimeout(()=>{removeSettingsNotices();bind();},300);
+    setTimeout(()=>{removeSettingsNotices();bind();},900);
+    setTimeout(bind,1600);
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(init,0),{once:true});else setTimeout(init,0);
 })();
@@ -23970,7 +23974,9 @@ db.auth.getSession().then(({data})=>owner(data?.session?.user)).catch(()=>{});db
 }
 @media(max-width:1099px){
   #bottomNav .mmh-sidebar-brand-v500,#bottomNav .mmh-sidebar-section-v500,#bottomNav .mmh-sidebar-private-v500,#bottomNav .mmh-side-extra-v500{display:none!important}
-  #header .mmh-finance-topbar-v500{display:none!important}
+  #header .mmh-finance-topbar-v500{display:flex!important;align-items:center!important;justify-content:center!important;flex:0 0 auto!important;width:auto!important;min-width:38px!important}
+  #header .mmh-finance-topbar-v500 .mmh-global-search-v500,#header .mmh-finance-topbar-v500 .mmh-topbar-date-v500{display:none!important}
+  #header .mmh-finance-topbar-v500 .mmh-topbar-bell-v500{display:grid!important}
 }
 @media(min-width:1100px) and (max-width:1280px){
   html body.mmh-workspace-active #bottomNav.bottom-nav{width:218px!important}
@@ -24405,5 +24411,39 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   #header .mmh-topbar-bell-v500::after{display:none!important;content:none!important}
   #header .mmh-topbar-bell-v500 .mmh-notify-count-v560{position:absolute!important;right:-4px!important;top:-4px!important;min-width:17px!important;height:17px!important;padding:0 4px!important;display:grid!important;place-items:center!important;border-radius:999px!important;background:#ef4f69!important;color:#fff!important;border:2px solid #071725!important;font-size:8px!important;font-weight:900!important;line-height:1!important;box-sizing:border-box!important}
   #header .mmh-topbar-bell-v500 .mmh-notify-count-v560[hidden]{display:none!important}
+}
+</style>
+
+
+<style id="mmhvault-mobile-tablet-notification-final-v600">
+@media(max-width:1099px){
+  html body.mmh-workspace-active #header{
+    display:flex!important;align-items:center!important;overflow:visible!important;
+  }
+  #header .mmhvault-sync-status-v337,#header #mmhvaultSyncStatusV337{display:none!important}
+  #header .header-spacer{display:none!important}
+  #header .mmhvault-header-brand{display:flex!important;order:1!important;flex:1 1 auto!important;min-width:0!important}
+  #header .mmh-finance-topbar-v500{display:flex!important;order:2!important;flex:0 0 auto!important;align-items:center!important;justify-content:center!important;width:auto!important;min-width:40px!important;margin-left:auto!important}
+  #header .mmh-global-search-v500,#header .mmh-topbar-date-v500{display:none!important}
+  #header .mmh-topbar-bell-v500{position:relative!important;display:grid!important;place-items:center!important;width:40px!important;height:40px!important;min-width:40px!important;padding:0!important;margin:0!important;border-radius:12px!important;border:1px solid #2d4a62!important;background:linear-gradient(180deg,#10273b,#0a1c2d)!important;color:#cfdeea!important;box-shadow:none!important;cursor:pointer!important}
+  #header .header-profile{display:flex!important;order:3!important;flex:0 0 auto!important;margin-left:8px!important}
+  #mmhNotifyPopoverV560{left:auto!important;right:10px!important;top:72px!important;bottom:auto!important;width:min(390px,calc(100vw - 20px))!important;max-height:min(66vh,520px)!important;transform:translateY(8px) scale(.985)!important}
+  #mmhNotifyPopoverV560.open{transform:translateY(0) scale(1)!important}
+}
+@media(max-width:620px){
+  html body.mmh-workspace-active #header{gap:6px!important;padding-left:10px!important;padding-right:10px!important}
+  #header .mmhvault-brand-tagline{display:none!important}
+  #header .mmhvault-header-brand .version{display:none!important}
+  #header .mmh-finance-topbar-v500{min-width:38px!important}
+  #header .mmh-topbar-bell-v500{width:38px!important;height:38px!important;min-width:38px!important}
+  #header .header-profile{margin-left:4px!important;max-width:140px!important}
+  #header .header-profile-copy span{display:none!important}
+  #mmhNotifyPopoverV560{right:8px!important;top:66px!important;width:calc(100vw - 16px)!important;max-height:calc(100vh - 158px)!important}
+}
+@media(max-width:390px){
+  #header .mmhvault-header-brand .logo>span:not(.version){font-size:14px!important}
+  #header .mmhvault-header-logo-img{width:30px!important;height:30px!important;flex-basis:30px!important}
+  #header .header-profile{max-width:108px!important;padding-right:7px!important}
+  #header .header-profile-copy b{font-size:11px!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
 }
 </style>
