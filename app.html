@@ -24122,7 +24122,7 @@ db.auth.getSession().then(({data})=>owner(data?.session?.user)).catch(()=>{});db
 (()=>{'use strict';
 if(window.__mmhPremiumFinanceV500)return;window.__mmhPremiumFinanceV500=true;
 const $=id=>document.getElementById(id),N=v=>Number.isFinite(Number(v))?Number(v):0;
-let trendRange='6M';
+let trendRange='6M',marketTab='Popular';
 const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 const money=v=>'$'+N(v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
 const pct=v=>(v>=0?'+':'')+N(v).toFixed(1)+'%';
@@ -24216,13 +24216,18 @@ function txRows(limit=8){
  if(!rows.length)return '<div style="padding:24px 2px;color:#71899d;font-size:10px">No transactions yet.</div>';
  return rows.map(t=>{const type=String(t.type||'Other'),amt=type==='Income'?N(t.to_amount):N(t.from_amount),acct=type==='Income'?(t.to_account||''):(t.from_account||''),usd=typeof window.mmhvaultAmountUSD==='function'?window.mmhvaultAmountUSD(acct,amt):amt;const cls=type==='Income'?'income':type==='Expense'?'expense':'transfer',sign=type==='Income'?'+':type==='Expense'?'-':'';return `<div class="pf-tx-row-v500"><span>${esc(t.tx_date||'—')}</span><div class="pf-tx-name-v500"><i class="pf-tx-icon-v500">${type==='Income'?'↙':type==='Expense'?'↗':'⇄'}</i><div class="pf-tx-copy-v500"><b>${esc(t.category||type)}</b><small>${esc(acct||t.note||type)}</small></div></div><span class="pf-tag-v500 ${cls}">${esc(type)}</span><span class="pf-amount-v500 ${type==='Income'?'pos':type==='Expense'?'neg':''}">${sign}${money(usd)}</span><span class="pf-status-v500">Completed</span></div>`}).join('');
 }
-function marketRows(){
+function marketRows(filter=marketTab){
  const live=(typeof livePrices!=='undefined'?livePrices:(window.livePrices||{}));
  const gold=(typeof goldMarketState!=='undefined'?goldMarketState:(window.goldMarketState||{}));
  const fx=N((typeof rates!=='undefined'?rates?.usd_mmk:window.rates?.usd_mmk)||1);
- const items=['BTC','ETH','SOL','BNB'].map(sym=>{const p=N(live?.[sym]?.price),c=N(live?.[sym]?.change24h??live?.[sym]?.change??0);return {sym,p,c}});items.push({sym:'GOLD',p:N(gold?.pricePerKyattha)/fx,c:0});
+ let items=['BTC','ETH','SOL','BNB'].map(sym=>{const p=N(live?.[sym]?.price),c=N(live?.[sym]?.change24h??live?.[sym]?.change??0);return {sym,p,c,kind:'crypto'}});
+ items.push({sym:'GOLD',p:N(gold?.pricePerKyattha)/fx,c:0,kind:'gold'});
+ if(filter==='Crypto')items=items.filter(x=>x.kind==='crypto');
+ else if(filter==='Gold')items=items.filter(x=>x.kind==='gold');
+ else if(filter==='Live')items=items.filter(x=>x.p>0).sort((a,b)=>Math.abs(b.c)-Math.abs(a.c));
  const label={BTC:'Bitcoin',ETH:'Ethereum',SOL:'Solana',BNB:'BNB',GOLD:'Gold'};
- return items.map((x,i)=>{const c=x.c||0,neg=c<0;const y=[14,9,12,6,10,4,7,3].map((v,j)=>`${j? 'L':'M'}${j*11},${neg?22-v:v+2}`).join(' ');return `<div class="pf-market-row-v500"><div class="pf-asset-v500"><i class="pf-coin-v500">${esc(x.sym==='GOLD'?'Au':x.sym[0])}</i><span><b>${esc(x.sym)}</b><small>${esc(label[x.sym]||'')}</small></span></div><span>${x.p?money(x.p):'—'}</span><span class="pf-change-v500 ${neg?'neg':'pos'}">${x.c?pct(x.c):'Live'}</span><span class="pf-spark-v500 ${neg?'neg':''}"><svg viewBox="0 0 78 26" preserveAspectRatio="none"><path d="${y}"/></svg></span></div>`}).join('');
+ if(!items.length)return '<div class="pf-market-empty-v630">No live market data yet.</div>';
+ return items.map((x,i)=>{const c=x.c||0,neg=c<0;const seed=(i+1)*2;const y=[14,9,12,6,10,4,7,3].map((v,j)=>`${j?'L':'M'}${j*11},${neg?22-v+seed*.15:v+2+seed*.12}`).join(' ');return `<div class="pf-market-row-v500" data-market-kind="${x.kind}"><div class="pf-asset-v500"><i class="pf-coin-v500">${esc(x.sym==='GOLD'?'Au':x.sym[0])}</i><span><b>${esc(x.sym)}</b><small>${esc(label[x.sym]||'')}</small></span></div><span>${x.p?money(x.p):'—'}</span><span class="pf-change-v500 ${neg?'neg':'pos'}">${x.c?pct(x.c):'Live'}</span><span class="pf-spark-v500 ${neg?'neg':''}"><svg viewBox="0 0 78 26" preserveAspectRatio="none"><path d="${y}"/></svg></span></div>`}).join('');
 }
 function name(){const raw=($('headerDisplayName')?.textContent||'').trim();if(!raw||/MMHVAULT User/i.test(raw))return lang()?'用户':'there';return raw.split(/\s+/)[0]}
 function render(){
@@ -24237,13 +24242,15 @@ function render(){
  </section>
  <section class="pf-main-grid-v500">
    <article class="pf-card-v500 pf-trend-card-v620"><div class="pf-card-head-v500"><div><h2>Portfolio Trend</h2><p>${trendDescription(trendRange)}</p></div><div class="pf-range-v500" role="group" aria-label="Portfolio trend period"><button type="button" data-pf-range="1W" class="${trendRange==='1W'?'active':''}">1W</button><button type="button" data-pf-range="6M" class="${trendRange==='6M'?'active':''}">6M</button><button type="button" data-pf-range="1Y" class="${trendRange==='1Y'?'active':''}">1Y</button><button type="button" data-pf-range="ALL" class="${trendRange==='ALL'?'active':''}">ALL</button></div></div><div class="pf-trend-summary-v500"><strong>${money(d.total)}</strong><span>${pct(trend)} momentum</span></div><div class="pf-chart-v500 pf-chart-swap-v620">${chartSvg(series)}</div></article>
-   <article class="pf-card-v500"><div class="pf-card-head-v500"><div><h2>Asset Allocation</h2><p>Current wealth composition</p></div><button class="pf-link-v500" type="button" onclick="setPage('accounts-page')">View details →</button></div><div class="pf-allocation-v500"><div class="pf-donut-wrap-v500"><div class="pf-donut-v500" style="--cash:${cashPct.toFixed(2)}%;--invest:${investPct.toFixed(2)}%"><div class="pf-donut-center-v500"><strong>${money(d.total)}</strong><span>Total Value</span></div></div></div><div class="pf-legend-v500"><div class="pf-legend-row-v500"><i style="background:#f2c45e"></i><span>Cash Assets</span><b>${cashPct.toFixed(1)}%</b></div><div class="pf-legend-row-v500"><i style="background:#3198ff"></i><span>Investments</span><b>${investPct.toFixed(1)}%</b></div><div class="pf-legend-row-v500"><i style="background:#31cfa0"></i><span>Loan Receivable</span><b>${recvPct.toFixed(1)}%</b></div></div></div></article>
+   <article class="pf-card-v500 pf-allocation-card-v630"><div class="pf-card-head-v500"><div><h2>Asset Allocation</h2><p>Current wealth composition</p></div><button class="pf-link-v500" type="button" onclick="setPage('accounts-page')">View details →</button></div><div class="pf-allocation-v500 pf-allocation-premium-v630"><div class="pf-donut-wrap-v500"><div class="pf-donut-v500 pf-donut-v630" style="--cash:${cashPct.toFixed(2)}%;--invest:${investPct.toFixed(2)}%"><div class="pf-donut-center-v500"><small>NET ASSETS</small><strong>${money(d.total)}</strong><span>Total Value</span></div></div><div class="pf-allocation-health-v630"><i></i><span>${investPct>65?'Investment-led':'Balanced liquidity'}</span></div></div><div class="pf-legend-v500 pf-legend-v630"><button type="button" class="pf-legend-row-v500 pf-allocation-row-v630" data-allocation-target="accounts-page"><i style="background:#f2c45e"></i><span><em>Cash Assets</em><small>${money(d.cash)}</small></span><b>${cashPct.toFixed(1)}%</b><u style="--pct:${Math.max(0,Math.min(100,cashPct)).toFixed(1)}%"></u></button><button type="button" class="pf-legend-row-v500 pf-allocation-row-v630" data-allocation-target="invest"><i style="background:#3198ff"></i><span><em>Investments</em><small>${money(d.invest)}</small></span><b>${investPct.toFixed(1)}%</b><u style="--pct:${Math.max(0,Math.min(100,investPct)).toFixed(1)}%"></u></button><button type="button" class="pf-legend-row-v500 pf-allocation-row-v630" data-allocation-target="transactions"><i style="background:#31cfa0"></i><span><em>Loan Receivable</em><small>${money(d.receivable)}</small></span><b>${recvPct.toFixed(1)}%</b><u style="--pct:${Math.max(0,Math.min(100,recvPct)).toFixed(1)}%"></u></button></div></div></article>
  </section>
  <section class="pf-bottom-grid-v500">
    <article class="pf-card-v500 pf-recent-flow-v620"><div class="pf-card-head-v500"><div><h2>Recent Transactions</h2><p>Live flow · continuously updating activity</p></div><button class="pf-link-v500" type="button" onclick="setPage('transactions')">View all →</button></div><div class="pf-transactions-v500"><div class="pf-tx-head-v500"><span>Date</span><span>Description</span><span>Type</span><span>Amount</span><span>Status</span></div><div class="pf-tx-viewport-v620"><div class="pf-tx-track-v620"><div class="pf-tx-set-v620">${txRows(8)}</div><div class="pf-tx-set-v620" aria-hidden="true">${txRows(8)}</div></div></div></div></article>
-   <article class="pf-card-v500"><div class="pf-card-head-v500"><div><h2>Market Watch</h2><p>Live crypto & gold reference</p></div><button class="pf-link-v500" type="button" onclick="setPage('invest')">Open Invest →</button></div><div class="pf-market-tabs-v500"><span class="active">Popular</span><span>Crypto</span><span>Gold</span><span>Live</span></div><div class="pf-market-v500"><div class="pf-market-head-v500"><span>Asset</span><span>Price</span><span>24h</span><span>Trend</span></div>${marketRows()}</div></article>
+   <article class="pf-card-v500 pf-market-card-v630"><div class="pf-card-head-v500"><div><h2>Market Watch</h2><p>${marketTab==='Popular'?'Live crypto & gold reference':marketTab==='Crypto'?'Crypto market snapshot':marketTab==='Gold'?'Gold market reference':'Live movers with available prices'}</p></div><button class="pf-link-v500" type="button" onclick="setPage('invest')">Open Invest →</button></div><div class="pf-market-tabs-v500" role="tablist" aria-label="Market watch filter"><button type="button" data-market-tab="Popular" class="${marketTab==='Popular'?'active':''}">Popular</button><button type="button" data-market-tab="Crypto" class="${marketTab==='Crypto'?'active':''}">Crypto</button><button type="button" data-market-tab="Gold" class="${marketTab==='Gold'?'active':''}">Gold</button><button type="button" data-market-tab="Live" class="${marketTab==='Live'?'active':''}"><span class="pf-live-dot-v630"></span>Live</button></div><div class="pf-market-v500 pf-market-swap-v630"><div class="pf-market-head-v500"><span>Asset</span><span>Price</span><span>24h</span><span>Trend</span></div>${marketRows(marketTab)}</div></article>
  </section>`;
  host.querySelectorAll('[data-pf-range]').forEach(btn=>btn.addEventListener('click',()=>{const next=btn.dataset.pfRange;if(!next||next===trendRange)return;trendRange=next;render();}));
+ host.querySelectorAll('[data-market-tab]').forEach(btn=>btn.addEventListener('click',()=>{const next=btn.dataset.marketTab;if(!next||next===marketTab)return;marketTab=next;render();}));
+ host.querySelectorAll('[data-allocation-target]').forEach(btn=>btn.addEventListener('click',()=>{const target=btn.dataset.allocationTarget;if(target&&typeof window.setPage==='function')window.setPage(target);}));
 }
 function wrapRender(){const base=window.renderDashboard;if(typeof base==='function'&&!base.__pfV500){const wrapped=function(){const r=base.apply(this,arguments);requestAnimationFrame(render);return r};wrapped.__pfV500=true;window.renderDashboard=wrapped;try{renderDashboard=wrapped}catch(_){}}}
 function init(){addSidebar();addTopbar();ensureDashboardHost();wrapRender();setTimeout(render,240)}
@@ -24253,6 +24260,56 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 })();
 </script>
 
+
+<style id="mmhvault-dashboard-market-allocation-v630">
+/* V6.3 Dashboard interactions: clickable Market Watch + premium Asset Allocation */
+#mmhPremiumDashboardV500 .pf-market-tabs-v500 button{appearance:none;-webkit-appearance:none;flex:1;min-width:0;padding:7px 8px;border:1px solid transparent;border-radius:7px;background:transparent;color:#71899d;font:inherit;font-size:8px;line-height:1;cursor:pointer;transition:background-color .18s ease,border-color .18s ease,color .18s ease,transform .18s ease,box-shadow .18s ease;display:flex;align-items:center;justify-content:center;gap:5px}
+#mmhPremiumDashboardV500 .pf-market-tabs-v500 button:hover{color:#c9ddeb;background:rgba(44,92,126,.18)}
+#mmhPremiumDashboardV500 .pf-market-tabs-v500 button.active{color:#e8f4fb;background:linear-gradient(180deg,#1d4564,#15364f);border-color:#35698e;box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 5px 14px rgba(0,0,0,.13)}
+#mmhPremiumDashboardV500 .pf-market-tabs-v500 button:active{transform:scale(.98)}
+#mmhPremiumDashboardV500 .pf-market-tabs-v500 button:focus-visible{outline:2px solid rgba(111,196,243,.72);outline-offset:2px}
+#mmhPremiumDashboardV500 .pf-live-dot-v630{width:5px;height:5px;border-radius:50%;background:#38dfa1;box-shadow:0 0 8px rgba(56,223,161,.7);animation:mmhLivePulseV630 1.8s ease-in-out infinite}
+#mmhPremiumDashboardV500 .pf-market-swap-v630{animation:mmhMarketSwapV630 .25s ease both}
+#mmhPremiumDashboardV500 .pf-market-empty-v630{padding:23px 4px;color:#7d95a9;font-size:10px;text-align:center}
+@keyframes mmhMarketSwapV630{from{opacity:.25;transform:translateY(4px);filter:blur(2px)}to{opacity:1;transform:none;filter:none}}
+@keyframes mmhLivePulseV630{50%{opacity:.42;box-shadow:0 0 2px rgba(56,223,161,.3)}}
+
+#mmhPremiumDashboardV500 .pf-allocation-card-v630{background:radial-gradient(circle at 23% 54%,rgba(49,152,255,.075),transparent 33%),linear-gradient(145deg,rgba(9,29,48,.97),rgba(5,20,34,.98))}
+#mmhPremiumDashboardV500 .pf-allocation-premium-v630{gap:20px;padding-top:18px;padding-bottom:18px}
+#mmhPremiumDashboardV500 .pf-donut-v630{width:166px;height:166px;border:1px solid rgba(102,162,207,.12);box-shadow:0 0 0 8px rgba(42,94,132,.045),0 18px 42px rgba(0,0,0,.18),0 0 30px rgba(49,152,255,.07)}
+#mmhPremiumDashboardV500 .pf-donut-v630::after{content:"";position:absolute;inset:-7px;border-radius:50%;border:1px solid rgba(242,196,94,.10);pointer-events:none}
+#mmhPremiumDashboardV500 .pf-donut-v630 .pf-donut-center-v500 small{display:block;margin-bottom:4px;font-size:7px;font-weight:750;letter-spacing:.15em;color:#6f8aa0}
+#mmhPremiumDashboardV500 .pf-donut-v630 .pf-donut-center-v500 strong{font-size:17px}
+#mmhPremiumDashboardV500 .pf-allocation-health-v630{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:12px;color:#8fa7ba;font-size:8px}
+#mmhPremiumDashboardV500 .pf-allocation-health-v630 i{width:6px;height:6px;border-radius:50%;background:#39dfa2;box-shadow:0 0 9px rgba(57,223,162,.55)}
+#mmhPremiumDashboardV500 .pf-legend-v630{display:grid;gap:7px}
+#mmhPremiumDashboardV500 .pf-allocation-row-v630{position:relative;width:100%;display:grid!important;grid-template-columns:9px minmax(0,1fr) auto!important;grid-template-rows:auto auto;align-items:center;gap:3px 9px!important;padding:9px 10px 10px!important;border:1px solid rgba(84,131,169,.14)!important;border-radius:10px!important;background:rgba(10,31,49,.44)!important;color:inherit!important;text-align:left!important;font:inherit!important;cursor:pointer!important;overflow:hidden!important;transition:background-color .18s ease,border-color .18s ease,transform .18s ease!important}
+#mmhPremiumDashboardV500 .pf-allocation-row-v630:hover{background:rgba(16,43,65,.66)!important;border-color:rgba(99,164,211,.28)!important;transform:translateX(2px)}
+#mmhPremiumDashboardV500 .pf-allocation-row-v630>i{grid-row:1/3;width:7px;height:7px;border-radius:50%;align-self:center}
+#mmhPremiumDashboardV500 .pf-allocation-row-v630>span{display:grid;gap:2px;min-width:0}
+#mmhPremiumDashboardV500 .pf-allocation-row-v630 em{font-style:normal;color:#b8c9d6;font-size:9px;font-weight:650}
+#mmhPremiumDashboardV500 .pf-allocation-row-v630 small{font-size:8px;color:#708a9f;font-variant-numeric:tabular-nums}
+#mmhPremiumDashboardV500 .pf-allocation-row-v630>b{font-size:10px;color:#eef5fa;font-variant-numeric:tabular-nums}
+#mmhPremiumDashboardV500 .pf-allocation-row-v630>u{grid-column:2/4;position:relative;height:3px;border-radius:999px;background:#102b42;text-decoration:none;overflow:hidden}
+#mmhPremiumDashboardV500 .pf-allocation-row-v630>u::after{content:"";display:block;width:var(--pct);height:100%;border-radius:inherit;background:linear-gradient(90deg,#4fcaff,#efc45f);opacity:.74}
+#mmhPremiumDashboardV500 .pf-allocation-row-v630:focus-visible{outline:2px solid rgba(111,196,243,.72);outline-offset:2px}
+
+@media(max-width:1099px){
+ #mmhPremiumDashboardV500 .pf-market-tabs-v500 button{min-height:32px;font-size:9px}
+ #mmhPremiumDashboardV500 .pf-allocation-premium-v630{grid-template-columns:minmax(150px,.8fr) minmax(190px,1.2fr);gap:14px}
+ #mmhPremiumDashboardV500 .pf-donut-v630{width:150px;height:150px}
+}
+@media(max-width:700px){
+ #mmhPremiumDashboardV500 .pf-allocation-premium-v630{grid-template-columns:1fr;gap:14px;padding:16px 13px 17px}
+ #mmhPremiumDashboardV500 .pf-donut-v630{width:150px;height:150px}
+ #mmhPremiumDashboardV500 .pf-legend-v630{width:100%;max-width:none;margin:0}
+ #mmhPremiumDashboardV500 .pf-allocation-row-v630{padding:10px!important}
+ #mmhPremiumDashboardV500 .pf-market-tabs-v500{margin-left:11px;margin-right:11px;overflow-x:auto;scrollbar-width:none}
+ #mmhPremiumDashboardV500 .pf-market-tabs-v500::-webkit-scrollbar{display:none}
+ #mmhPremiumDashboardV500 .pf-market-tabs-v500 button{min-width:76px;flex:1 0 auto}
+}
+@media(prefers-reduced-motion:reduce){#mmhPremiumDashboardV500 .pf-market-swap-v630,#mmhPremiumDashboardV500 .pf-live-dot-v630{animation:none!important}}
+</style>
 <!-- MMHVAULT V5.1 · Premium Finance Phase 2: Transactions / Invest / More / Settings / Feedback / Notifications -->
 <style id="mmhvault-premium-finance-v510-css">
 @media(min-width:1100px){
