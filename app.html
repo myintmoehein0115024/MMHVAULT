@@ -812,91 +812,6 @@ body.mmhvault-scroll-active .card{transition:none!important}
 </style>
 
 
-<style id="mmhvault-v34277-allocation-age-final">
-
-/* ---------- Your Age: compact, quiet, same visual scale as LIVE ---------- */
-#dashboard .mmh-command-live-stack-v34218{
-  gap:6px!important;
-}
-#dashboard .mmh-age-live-badge-v34218{
-  width:auto!important;
-  min-width:0!important;
-  max-width:min(235px,100%)!important;
-  padding:7px 10px 8px!important;
-  gap:3px!important;
-  border-radius:12px!important;
-  background:rgba(7,19,38,.70)!important;
-  border-color:rgba(79,157,226,.20)!important;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.025)!important;
-  backdrop-filter:blur(8px)!important;
-}
-#dashboard .mmh-age-live-label-v34218{
-  font-size:8px!important;
-  line-height:1!important;
-  letter-spacing:.14em!important;
-  font-weight:900!important;
-  gap:5px!important;
-}
-#dashboard .mmh-age-live-label-v34218::before{
-  width:6px!important;
-  height:6px!important;
-  flex-basis:6px!important;
-  box-shadow:0 0 0 2px rgba(47,230,160,.07),0 0 7px rgba(47,230,160,.34)!important;
-}
-#dashboard #mmhCommandAgeValueV34218{
-  font-size:12px!important;
-  line-height:1.16!important;
-  font-weight:650!important;
-  letter-spacing:.005em!important;
-  color:#9aacc6!important;
-  white-space:nowrap!important;
-  text-shadow:none!important;
-}
-@media(max-width:900px){
-}
-@media(max-width:650px){
-  #dashboard .mmh-age-live-badge-v34218{max-width:205px!important;padding:6px 9px 7px!important;}
-  #dashboard #mmhCommandAgeValueV34218{font-size:11px!important;white-space:normal!important;}
-}
-</style>
-
-<style id="mmhvault-v34278-allocation-authority">
-/* Keep the age block visually subordinate to LIVE. */
-#dashboard .mmh-age-live-badge-v34218{
-  width:auto!important;
-  max-width:230px!important;
-  min-width:0!important;
-  padding:5px 9px 6px!important;
-  border-radius:11px!important;
-}
-#dashboard .mmh-age-live-label-v34218{
-  font-size:7px!important;
-  line-height:1!important;
-  letter-spacing:.13em!important;
-  font-weight:900!important;
-}
-#dashboard .mmh-age-live-label-v34218::before{
-  width:5px!important;
-  height:5px!important;
-  flex-basis:5px!important;
-  box-shadow:0 0 0 2px rgba(47,230,160,.05),0 0 6px rgba(47,230,160,.28)!important;
-}
-#dashboard #mmhCommandAgeValueV34218{
-  font-size:11px!important;
-  line-height:1.12!important;
-  font-weight:600!important;
-  color:#93a6c2!important;
-  letter-spacing:0!important;
-}
-@media(max-width:900px){
-}
-@media(max-width:650px){
-  #dashboard .mmh-age-live-badge-v34218{max-width:205px!important;padding:5px 8px 6px!important;}
-  #dashboard #mmhCommandAgeValueV34218{font-size:10.5px!important;white-space:normal!important;}
-}
-</style>
-
-
 <style id="mmhvault-v3434-render-isolation">
 /* V4.3.0 — Phase 1: isolate off-screen secondary panels to reduce layout/paint work. */
 @media (min-width: 900px){
@@ -14478,73 +14393,6 @@ html body #invest .invest-subtabs-v371{display:grid!important;grid-template-colu
   window.MM_HVAULT_FINANCIAL_DATA_ENGLISH={version:'V4.3.0',protected:[...EXACT]};
 })();
 </script>
-<script id="mmhvault-v34210-dashboard-command-js">
-(function(){
-  if(window.__mmhV34210CommandInstalled)return; window.__mmhV34210CommandInstalled=true;
-  const $=id=>document.getElementById(id), N=v=>Number(v)||0;
-  // Dashboard display only: sales reduce the position before it is valued.
-  window.mmhDashboardHeldInvestmentUSD=function(){
-    const rows=Array.isArray(window.investments)?window.investments:(investments||[]);
-    const crypto=new Map(); let goldQty=0;
-    rows.forEach(x=>{
-      if(x.asset==='Crypto'){
-        const key=String(x.symbol||'').toUpperCase();
-        const q=N(x.quantity)*(String(x.side||x.trade_type||'').toUpperCase()==='SELL'&&N(x.quantity)>0?-1:1);
-        const held=crypto.get(key)||{quantity:0,price:0};
-        held.quantity+=q; held.price=N(x.market_price)||held.price;
-        crypto.set(key,held);
-      }else if(x.asset==='Gold') goldQty+=goldHoldingQty(x);
-    });
-    let value=0;
-    crypto.forEach((held,key)=>{value+=Math.max(0,held.quantity)*(N(livePrices?.[key]?.price)||held.price);});
-    const fx=N(rates?.usd_mmk), goldPrice=N(window.mmhGoldAuthorityV376?.().priceMMK)||N(goldMarketState?.pricePerKyattha);
-    if(fx>0)value+=Math.max(0,goldQty)*goldPrice/fx;
-    return value;
-  };
-  window.mmhDashboardReceivableUSD=function(){
-    const fx=N(rates?.usd_mmk);
-    return fx>0?Math.max(0,N(loanOutMMK())-N(loanPaidMMK()))/fx:0;
-  };
-  function money(v){ try{return '$ '+fmt(v);}catch(e){return '$ '+Number(v||0).toLocaleString(undefined,{maximumFractionDigits:2});} }
-  function monthKey(d){return String(d||'').slice(0,7)}
-  function prevMonthKey(key){const [y,m]=String(key).split('-').map(Number);const d=new Date(y,m-2,1);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;}
-  function monthTotals(key){const t=window.mmhCommandMonthlyTotalsV470(key);return {inc:t.income,exp:t.expense,save:t.remaining,rate:t.rate};}
-  function change(a,b){ if(!b)return null; return ((a-b)/Math.abs(b))*100; }
-  function pct(v){return `${v>=0?'+':''}${v.toFixed(1)}%`;}
-  function netWorthUSD(){
-    try{const mmk=Math.max(0,N(totalAssetMMK())-N(loanOutMMK())+N(loanPaidMMK())); return mmk/rates.usd_mmk;}catch(e){return 0;}
-  }
-  function render(){
-    const host=$('dashboardCommandCenterV34210'); if(!host)return;
-    try{
-      const now=new Date(), key=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`, prev=prevMonthKey(key), cur=monthTotals(key), old=monthTotals(prev);
-      const cash=Math.max(0,typeof mmhvaultCashUSD==='function'?N(mmhvaultCashUSD()):0); const invest=Math.max(0,N(window.mmhDashboardHeldInvestmentUSD())); const receivable=N(window.mmhDashboardReceivableUSD()); const net=Math.max(0,cash+invest+receivable); const weight=net?(invest/net*100):0;
-      const target=60; const incomeCh=change(cur.inc,old.inc), expCh=change(cur.exp,old.exp), saveCh=change(cur.save,old.save);
-      $('mmhCommandNetWorthV34210').textContent=money(net);    
-      $('mmhCommandNetWorthChangeV34210').textContent=net?'Live total assets':'Awaiting data';
-      
-      
-      
-      
-      $('mmhCommandCashV34210').textContent=money(cash); $('mmhCommandInvestV34210').textContent=money(invest); $('mmhCommandWeightV34210').textContent=weight.toFixed(1)+'%';
-      const tm=$('mmhCommandTimeV34210'); if(tm)tm.textContent=now.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'});
-      const path=$('mmhCommandSparkV34210'); if(path){const amp=Math.min(28,Math.max(8,Math.abs(cur.save)/(Math.max(1,cur.inc))*46)); path.setAttribute('d',`M0,96 C55,${88-amp/2} 80,${82+amp/4} 120,${88-amp/3} S190,${74-amp/2} 232,${79+amp/5} S300,${60-amp} 345,${68+amp/3} S420,${48-amp/2} 462,${56+amp/3} S530,${34-amp/2} 600,${40}`);}
-      window.dispatchEvent(new CustomEvent('mmhvault:dashboard-rendered'));
-    }catch(e){console.warn('MMHVAULT v34210 command center render skipped',e);}
-  }
-  // Use explicit data/market events instead of wrapping the global renderer.
-  ['mmhvault:data-loaded','mmhvault:cache-restored','mmhvault:sync-complete','mmhvault:market-updated'].forEach(ev=>window.addEventListener(ev,()=>setTimeout(render,80)));
-  // V4.3.0: redundant 30s dashboard polling removed; renderDashboard wrapper + data/price events now drive updates.
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(render,180),{once:true});else setTimeout(render,180);
-})();
-</script>
-<style id="mmhvault-v34219-age-green-css">
-/* V4.3.0 — Your Age receives the same live green status cue as LIVE. */
-#dashboard .mmh-age-live-badge-v34218{position:relative;overflow:hidden}
-#dashboard .mmh-age-live-badge-v34218::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;background:#2fe6a0;box-shadow:0 0 0 3px rgba(47,230,160,.10),0 0 12px rgba(47,230,160,.80);position:absolute;left:10px;top:10px;animation:mmhAgeLiveDot34219 2.4s ease-in-out infinite}
-@keyframes mmhAgeLiveDot34219{0%,100%{opacity:.55;transform:scale(.9);box-shadow:0 0 0 3px rgba(47,230,160,.08),0 0 10px rgba(47,230,160,.55)}50%{opacity:1;transform:scale(1.08);box-shadow:0 0 0 4px rgba(47,230,160,.12),0 0 18px rgba(47,230,160,.95)}}
-@media(prefers-reduced-motion:reduce){#dashboard .mmh-age-live-badge-v34218::before{animation:none!important}}
-</style>
 <style id="mmhvault-v34222-performance-css">
 /* V4.3.0 — performance layer: preserve visual quality while reducing off-screen/GPU work. */
 #dashboard .panel:not(#dashboardCommandCenterV34210),
@@ -15944,31 +15792,6 @@ body.mmhvault-scroll-active #invest .invest-top>.panel{box-shadow:inset 0 1px 0 
   document.addEventListener('click',e=>{if(e.target?.closest?.('[data-page="insights"]'))setTimeout(refresh,80);});
 })();
 </script>
-<style id="mmhvault-v34218-age-live-css">
-#dashboard .mmh-command-live-stack-v34218{display:flex;flex-direction:column;align-items:flex-end;gap:8px;position:relative;z-index:4}
-#dashboard .mmh-age-live-badge-v34218{min-width:132px;padding:7px 11px 8px;border-radius:14px;border:1px solid rgba(82,160,238,.24);background:linear-gradient(145deg,rgba(8,27,52,.76),rgba(5,14,29,.62));box-shadow:0 0 22px rgba(72,180,255,.07),inset 0 1px 0 rgba(255,255,255,.035);backdrop-filter:blur(14px);display:flex;flex-direction:column;align-items:flex-end;gap:2px;animation:mmhAgeBadgeGlow34218 4.8s ease-in-out infinite}
-#dashboard .mmh-age-live-label-v34218{font-size:8px;font-weight:900;letter-spacing:.13em;text-transform:uppercase;color:#8ba2c7}
-#dashboard .mmh-age-live-badge-v34218 b{font-size:12px;font-weight:900;color:#eef5ff;font-variant-numeric:tabular-nums;text-shadow:0 0 14px rgba(86,207,255,.12);white-space:nowrap}
-@keyframes mmhAgeBadgeGlow34218{0%,100%{transform:translateY(0);box-shadow:0 0 18px rgba(72,180,255,.06),inset 0 1px 0 rgba(255,255,255,.035)}50%{transform:translateY(-1px);box-shadow:0 0 28px rgba(72,180,255,.11),0 0 16px rgba(244,201,93,.04),inset 0 1px 0 rgba(255,255,255,.045)}}
-@media(max-width:620px){#dashboard .mmh-command-live-stack-v34218{align-items:flex-start;width:100%}#dashboard .mmh-age-live-badge-v34218{align-items:flex-start;min-width:126px}}
-@media(prefers-reduced-motion:reduce){#dashboard .mmh-age-live-badge-v34218{animation:none!important}}
-</style>
-<script id="mmhvault-v34218-age-live-js">
-(function(){
-  if(window.__mmhV34218AgeLiveInstalled)return; window.__mmhV34218AgeLiveInstalled=true;
-  const $=id=>document.getElementById(id);
-  function render(){
-    const out=$('mmhCommandAgeValueV34218'), src=$('mmhSettingsAgeValueV34215'); if(!out)return;
-    const text=(src?.textContent||'').trim(); out.textContent=text||'—';
-    const zh=(localStorage.getItem('mmhvault_language_v3363')||'en')==='zh';
-    const label=document.querySelector('.mmh-age-live-label-v34218'); if(label)label.textContent=zh?'当前年龄':'Your Age';
-  }
-  ['mmhvault-birthday-change','mmhvault-language-change','mmhvault:data-loaded','mmhvault:cache-restored','mmhvault:sync-complete'].forEach(ev=>window.addEventListener(ev,()=>setTimeout(render,80)));
-  window.addEventListener('storage',e=>{if(e.key==='mmhvault_language_v3363'||e.key==='mmhvault_birth_date_v34216')setTimeout(render,80);});
-  window.addEventListener('mmhvault:age-tick',()=>{if(document.visibilityState!=='hidden' && document.getElementById('dashboard')?.classList.contains('active'))render();},{passive:true});
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(render,220),{once:true}); else setTimeout(render,220);
-})();
-</script>
 <style id="mmhvault-v34220-performance-css">
 /* V4.3.0 performance stabilization. Keep visual motion, remove expensive/continuous flicker during interaction. */
 #transactions::after{animation-duration:34s!important;opacity:.72!important}
@@ -16310,72 +16133,6 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
 }
 </style>
 <!-- MMHVAULT V4.3.0 · Gold valuation authority + allocation parity fix -->
-
-<style id="mmhvault-v34279-age-final">
-/* V4.3.0 — Final Your Age polish: compact live-style capsule, low-cost rendering. */
-#dashboard .mmh-age-live-badge-v34218{
-  display:flex!important;
-  flex-direction:row!important;
-  align-items:center!important;
-  justify-content:flex-start!important;
-  gap:9px!important;
-  width:max-content!important;
-  max-width:min(275px,100%)!important;
-  min-height:32px!important;
-  padding:6px 10px!important;
-  border-radius:999px!important;
-  background:rgba(7,19,38,.66)!important;
-  border:1px solid rgba(79,157,226,.22)!important;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.025)!important;
-  backdrop-filter:none!important;
-  -webkit-backdrop-filter:none!important;
-}
-#dashboard .mmh-age-live-label-v34218{
-  flex:0 0 auto!important;
-  display:flex!important;
-  align-items:center!important;
-  gap:5px!important;
-  margin:0!important;
-  padding:0!important;
-  font-size:8px!important;
-  line-height:1!important;
-  letter-spacing:.14em!important;
-  font-weight:900!important;
-  color:#8fa8cb!important;
-  white-space:nowrap!important;
-}
-#dashboard .mmh-age-live-label-v34218::before{
-  width:5px!important;
-  height:5px!important;
-  flex-basis:5px!important;
-  margin:0!important;
-  box-shadow:0 0 0 2px rgba(47,230,160,.05),0 0 6px rgba(47,230,160,.28)!important;
-}
-#dashboard #mmhCommandAgeValueV34218{
-  flex:0 1 auto!important;
-  min-width:0!important;
-  margin:0!important;
-  font-size:11px!important;
-  line-height:1!important;
-  font-weight:650!important;
-  letter-spacing:0!important;
-  color:#9aacc6!important;
-  white-space:nowrap!important;
-  text-shadow:none!important;
-  font-variant-numeric:tabular-nums!important;
-}
-@media(max-width:650px){
-  #dashboard .mmh-age-live-badge-v34218{
-    max-width:235px!important;
-    min-height:30px!important;
-    gap:7px!important;
-    padding:6px 9px!important;
-  }
-  #dashboard .mmh-age-live-label-v34218{font-size:7px!important;letter-spacing:.12em!important;}
-  #dashboard #mmhCommandAgeValueV34218{font-size:10px!important;white-space:normal!important;line-height:1.15!important;}
-}
-</style>
-
 
 <style id="v3447-analyze-mobile-polish">
 /* MMHVAULT V4.3.0 · Analyze mobile polish */
@@ -16976,7 +16733,7 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
 #analyze .analyze-tab-panel-v371.mmh-merged-visible-v2 + .analyze-tab-panel-v371{margin-top:0;}
 #analyze .analyze-tab-panel-v371[data-panel="insights"] .mmh-insights-head-v340{margin-top:0;}
 </style>
-<script id="mmhvault-analyze-tabs-merged-datafix-v2">
+<script id="mmhvault-analyze-tabs-merged-datafix-v2-script">
 (function(){
   const root=document.getElementById('analyze');
   if(!root)return;
@@ -18011,57 +17768,6 @@ body.mmh-manager-open-v1{overflow:hidden}
 }
 </style>
 <!-- MMHVAULT v4.7.0 · Dashboard Monthly Snapshot. Reuses existing transaction categories; no data schema changes. -->
-<script id="mmhvault-v470-dashboard-monthly-snapshot-js">
-(function(){
-  if(window.__mmhV470DashboardSnapshotInstalled)return;window.__mmhV470DashboardSnapshotInstalled=true;
-  const N=v=>Number(v)||0,$=id=>document.getElementById(id);
-  const money=v=>{try{return '$ '+fmt(v)}catch(_){return '$ '+N(v).toLocaleString(undefined,{maximumFractionDigits:2})}};
-  const keyOf=d=>String(d||'').slice(0,7);
-  function prevKey(key){const [y,m]=String(key).split('-').map(Number),d=new Date(y,m-2,1);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`}
-  function totals(key){
-    let income=0,expense=0;
-    (window.transactions||[]).forEach(t=>{
-      if(keyOf(t.tx_date)!==key)return;
-      if(t.category==='Data Adjustment')return;
-      const group=inferTxGroup(t);
-      if(t.type==='Income'&&group==='Income')income+=N(t.to_amount)*N(toUSD(t.to_account));
-      if(t.type==='Expense'&&(group==='Expense'||group==='Personal')&&t.category!=='Investment'&&!isLinkedInvestmentTx(t))expense+=N(t.from_amount)*N(toUSD(t.from_account));
-    });
-    const remaining=income-expense,rate=income?remaining/income*100:0;
-    return {income,expense,remaining,rate};
-  }
-  window.mmhCommandMonthlyTotalsV470=totals;
-  function delta(a,b){if(!b)return 'No prior data';const d=(a-b)/Math.abs(b)*100;return `${d>=0?'+':''}${d.toFixed(1)}% vs last month`}
-  function render(){
-    const host=$('dashboardCommandCenterV34210');if(!host)return;
-    const key=(typeof today==='function'?today():new Date().toISOString().slice(0,10)).slice(0,7),cur=totals(key),old=totals(prevKey(key));
-    const income=$('mmhCommandIncomeV34210'),expense=$('mmhCommandExpenseV34210'),save=$('mmhCommandSavingsV34210'),rate=$('mmhCommandRateV34210');
-    if(!income||!expense||!save||!rate)return;
-    const cards=host.querySelectorAll('.mmh-command-stat');
-    if(cards[0]?.querySelector('span'))cards[0].querySelector('span').textContent='INCOME';
-    if(cards[1]?.querySelector('span'))cards[1].querySelector('span').textContent='EXPENSE';
-    if(cards[2]?.querySelector('span'))cards[2].querySelector('span').textContent='REMAINING';
-    if(cards[3]?.querySelector('span'))cards[3].querySelector('span').textContent='REMAINING %';
-    income.textContent=money(cur.income);expense.textContent=money(cur.expense);save.textContent=money(cur.remaining);rate.textContent=cur.rate.toFixed(1)+'%';
-    const state=$('mmhCommandStatusV34210');if(state){state.innerHTML='<span></span> '+(cur.rate>=60?'Financial state is healthy':cur.rate>=40?'Savings are close to target':'Savings need attention');state.classList.toggle('warn',cur.rate<60&&cur.rate>=40);state.classList.toggle('bad',cur.rate<40);}
-    const a=$('mmhCommandIncomeDeltaV34210'),b=$('mmhCommandExpenseDeltaV34210'),c=$('mmhCommandSavingsDeltaV34210'),d=$('mmhCommandRateDeltaV34210');
-    if(a)a.textContent=delta(cur.income,old.income);
-    if(b)b.textContent=delta(cur.expense,old.expense);
-    if(c)c.textContent=cur.remaining>=0?'Income after all expenses':'Expenses exceed income';
-    if(d)d.textContent=cur.income?`${money(cur.remaining)} left this month`:'No income recorded this month';
-    const ribbonSave=$('mmhRibbonSaveV34212'),ribbonRate=$('mmhRibbonRateV34212'),ribbonExp=$('mmhRibbonExpV34212');
-    if(ribbonSave)ribbonSave.textContent=save.textContent;if(ribbonRate)ribbonRate.textContent=rate.textContent;if(ribbonExp)ribbonExp.textContent=expense.textContent;
-    const receivable=$('mmhCommandReceivableV472');
-    if(receivable)receivable.textContent=money(typeof window.mmhDashboardReceivableUSD==='function'?Math.max(0,N(window.mmhDashboardReceivableUSD())):0);
-  }
-  const oldRender=window.renderDashboard;
-  if(typeof oldRender==='function')window.renderDashboard=function(){const r=oldRender.apply(this,arguments);try{render()}catch(e){console.warn('V4.7.0 dashboard snapshot skipped',e)}return r};
-  ['mmhvault:data-loaded','mmhvault:cache-restored','mmhvault:sync-complete','mmhvault:dashboard-rendered'].forEach(ev=>window.addEventListener(ev,()=>setTimeout(render,0)));
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(render,320),{once:true});else setTimeout(render,320);
-})();
-</script>
-
-
 <!-- MMHVAULT v4.7.1 · Dashboard Desktop Snapshot alignment fix. Presentation only. -->
 <style id="mmhvault-invest-quote-state-v1">
 #invest .mmh-invest-quote-state{margin-top:8px;font-size:11px;color:#72d7b5;line-height:1.35}
@@ -18103,7 +17809,7 @@ body.light #settings .fb-photo-copy-v15 strong{color:#244058}
 body.light #settings .fb-photo-copy-v15 small,#settings .fb-photo-selected-v15{color:#6e859a}
 </style>
 <script id="mmhvault-feedback-notices-v15-script">
-(()=>{'use strict';const tr=(en,zh)=>(localStorage.getItem('mmhvault_language_v3363')||'en')==='zh'?zh:en,$=id=>document.getElementById(id);let rating=0,noticePage=null,noticeEntry=null,noticeUid=null;
+(()=>{'use strict';const tr=(en,zh)=>(localStorage.getItem('mmhvault_language_v3363')||'en')==='zh'?zh:en,$=id=>document.getElementById(id);let rating=0;
 function renderStars(stars,value){[...stars.querySelectorAll('.fb-star-v15')].forEach(btn=>{const on=Number(btn.dataset.value)<=value;btn.classList.toggle('on',on);btn.setAttribute('aria-checked',String(Number(btn.dataset.value)===value));btn.setAttribute('aria-pressed',String(on))});const helper=$('fbRatingHelperV15');if(helper)helper.textContent=value?tr('Selected: ','已选择：')+value+'/5':tr('Tap a star to rate your experience.','点击星星为本次体验评分。')}
 function renderPhotoSelection(files){const selected=$('fbPhotoSelectedV15'),box=$('fbPhotoPreviewV15');if(!selected||!box)return;selected.textContent=files.length?files.map((f,i)=>`${i+1}. ${f.name}`).join(' · '):tr('No photos selected.','尚未选择照片。');box.replaceChildren();files.forEach((f,i)=>{const wrap=document.createElement('div');wrap.className='fb-photo-thumb-v15';const img=document.createElement('img');img.src=URL.createObjectURL(f);img.onload=()=>URL.revokeObjectURL(img.src);img.alt=f.name;const badge=document.createElement('span');badge.className='fb-photo-index-v15';badge.textContent=String(i+1);wrap.append(img,badge);box.append(wrap)})}
 function addFeedbackExtras(){const form=$('fbFormV14');if(!form||$('fbRatingV15'))return;const body=form.querySelector('.fb-body-label');const note=form.querySelector('.fb-note');const rate=document.createElement('div');rate.className='fb-rating-v15';rate.innerHTML='<label class="fb-rating-label-v15"><span data-en="Review rating" data-zh="评分">Review rating</span></label><div class="fb-stars-v15" id="fbRatingV15" role="radiogroup" aria-label="Review rating"></div><small class="fb-note fb-rating-helper-v15" id="fbRatingHelperV15">'+tr('Tap a star to rate your experience.','点击星星为本次体验评分。')+'</small>';
@@ -18178,15 +17884,8 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 </script>
 
 
-
-
-
-
-
 <style id="mmhvault-notification-popover-v560-style">
 /* v560 — notifications live in the top bell, not Settings. */
-#settings .notice-nav-v15,#settings #stPage_noticesV15{display:none!important}
-
 @media(min-width:1100px){
   /* Preserve the compact brand and the lower status card on shorter screens. */
   html body.mmh-workspace-active #bottomNav .mmh-sidebar-brand-v500{
@@ -18290,7 +17989,6 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 
 /* On smaller devices the existing app navigation remains untouched; Settings notice UI is still removed. */
 @media(max-width:1099px){
-  #settings .notice-nav-v15,#settings #stPage_noticesV15{display:none!important}
   #mmhNotifyPopoverV560{display:none!important}
 }
 </style>
@@ -18304,9 +18002,6 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   const tr=(en,zh)=>(localStorage.getItem('mmhvault_language_v3363')||'en')==='zh'?zh:en;
   let popup=null,bell=null,list=null,rows=[],loading=false;
 
-  function removeSettingsNotices(){
-    document.querySelectorAll('#settings .notice-nav-v15,#settings #stPage_noticesV15').forEach(el=>el.remove());
-  }
 
   function ensure(){
     bell=$('mmhTopBellV500');
@@ -18407,11 +18102,9 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   }
 
   function init(){
-    removeSettingsNotices();
     bind();
-    const settings=$('settings');if(settings)new MutationObserver(removeSettingsNotices).observe(settings,{childList:true,subtree:true});
-    setTimeout(()=>{removeSettingsNotices();bind();},300);
-    setTimeout(()=>{removeSettingsNotices();bind();},900);
+    setTimeout(bind,300);
+    setTimeout(bind,900);
     setTimeout(bind,1600);
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(init,0),{once:true});else setTimeout(init,0);
@@ -18677,42 +18370,6 @@ html body.mmh-workspace-active #moreNavMenu.more-nav-menu.open{
   #mmhPremiumDashboardV500 .pf-tx-track-v620{animation:none!important;transform:none!important}
 }
 </style>
-
-<style id="mmhvault-sidebar-background-v640">
-/* V6.4 desktop rail atmosphere: same finance artwork, restrained for legibility. */
-@media(min-width:1100px){
-  html body.mmh-workspace-active #bottomNav.bottom-nav{
-    background-image:
-      linear-gradient(180deg,rgba(2,12,22,.985) 0%,rgba(2,12,22,.955) 38%,rgba(2,12,22,.80) 72%,rgba(2,12,22,.92) 100%),
-      radial-gradient(circle at 74% 74%,rgba(75,190,246,.10),transparent 26%),
-      radial-gradient(circle at 28% 91%,rgba(242,196,94,.13),transparent 26%),
-      url("images/mmhvault-bg-v342.webp")!important;
-    background-size:cover,cover,cover,auto 58%!important;
-    background-position:center,center,center,left bottom!important;
-    background-repeat:no-repeat!important;
-    background-blend-mode:normal,screen,screen,normal!important;
-  }
-  html body.mmh-workspace-active #bottomNav.bottom-nav::after{
-    content:"";position:absolute;inset:0;pointer-events:none;z-index:0;border-radius:0 24px 24px 0;
-    background:linear-gradient(90deg,rgba(255,255,255,.018),transparent 34%),linear-gradient(180deg,transparent 58%,rgba(76,199,255,.035) 78%,rgba(242,196,94,.035));
-  }
-  html body.mmh-workspace-active #bottomNav .mmh-sidebar-brand-v500,
-  html body.mmh-workspace-active #bottomNav .mmh-sidebar-section-v500,
-  html body.mmh-workspace-active #bottomNav>button,
-  html body.mmh-workspace-active #bottomNav .mmh-sidebar-private-v500{position:relative;z-index:1}
-  html body.mmh-workspace-active #bottomNav .mmh-sidebar-private-v500{
-    background:radial-gradient(circle at 100% 0,rgba(242,196,94,.12),transparent 38%),linear-gradient(145deg,rgba(12,34,51,.90),rgba(5,19,32,.94))!important;
-    backdrop-filter:blur(10px) saturate(115%);-webkit-backdrop-filter:blur(10px) saturate(115%);
-  }
-}
-</style>
-<script id="mmhvault-dashboard-default-v640">
-(()=>{
-  // Keep the refresh contract explicit even if an older patch writes a remembered page.
-  try{sessionStorage.removeItem('myfinance_page')}catch(_){}
-})();
-</script>
-
 
 </body>
 <!-- MMHVAULT V4.3.0 performance baseline: logo-free account cards + restrained dashboard rendering. -->
@@ -22870,6 +22527,38 @@ body.light :is(#mmhManageOverlayV1,#accounts-page) .am-shell{color:#294663}body.
 
 :is(#mmhManageOverlayV1,#accounts-page) .am-icons{grid-template-columns:repeat(5,minmax(0,1fr));gap:8px}:is(#mmhManageOverlayV1,#accounts-page) .am-icons button{height:52px;padding:6px;font-size:23px;background:#15324b;border:1px solid #274862;border-radius:12px;transition:background .15s,border-color .15s}:is(#mmhManageOverlayV1,#accounts-page) .am-icons button:hover{background:#214763}:is(#mmhManageOverlayV1,#accounts-page) .am-fields label.am-upload{position:relative;display:flex!important;flex-direction:row!important;align-items:center!important;text-align:left!important;gap:12px;margin:14px 0 0;padding:14px;border:1px dashed #4b7898;border-radius:13px;background:linear-gradient(120deg,#173d59,#102a43);color:#dbeefa;cursor:pointer}:is(#mmhManageOverlayV1,#accounts-page) .am-upload-symbol{display:flex;align-items:center;justify-content:center;width:42px;height:42px;flex:none;border:1px solid #427296;border-radius:12px;background:#214865;color:#a8d9f4}:is(#mmhManageOverlayV1,#accounts-page) .am-upload-symbol svg{width:24px;height:24px}:is(#mmhManageOverlayV1,#accounts-page) .am-upload-copy{flex:1;min-width:0}:is(#mmhManageOverlayV1,#accounts-page) .am-upload-copy b{display:block;font-size:13px;font-weight:650}:is(#mmhManageOverlayV1,#accounts-page) .am-upload-copy small{display:block;font-size:10px;color:#9bbbd2;margin-top:5px;line-height:1.4}:is(#mmhManageOverlayV1,#accounts-page) .am-upload-arrow{font-size:22px;color:#95c9e6}:is(#mmhManageOverlayV1,#accounts-page) .am-upload #amLogoFile{position:absolute;width:1px;height:1px;min-height:0;padding:0;opacity:0;overflow:hidden}:is(#mmhManageOverlayV1,#accounts-page) .am-upload:hover,:is(#mmhManageOverlayV1,#accounts-page) .am-upload:focus-within{border-color:#9bd5f6;background:#204663;outline:2px solid #70b9e8;outline-offset:2px}body.light :is(#mmhManageOverlayV1,#accounts-page) .am-fields label.am-upload{background:#e7f2fa;color:#294663}body.light :is(#mmhManageOverlayV1,#accounts-page) .am-upload-copy small{color:#52738c}
 </style>
+<script id="mmhvault-dashboard-finance-helpers-v680">
+(()=>{'use strict';
+  if(window.__mmhDashboardFinanceHelpersV680)return;
+  window.__mmhDashboardFinanceHelpersV680=true;
+  const N=v=>Number(v)||0;
+  window.mmhDashboardHeldInvestmentUSD=function(){
+    const rows=Array.isArray(window.investments)?window.investments:(typeof investments!=='undefined'&&Array.isArray(investments)?investments:[]);
+    const crypto=new Map();let goldQty=0;
+    rows.forEach(x=>{
+      if(x.asset==='Crypto'){
+        const key=String(x.symbol||'').toUpperCase();
+        const sell=String(x.side||x.trade_type||'').toUpperCase()==='SELL';
+        const q=N(x.quantity)*(sell&&N(x.quantity)>0?-1:1);
+        const held=crypto.get(key)||{quantity:0,price:0};
+        held.quantity+=q;held.price=N(x.market_price)||held.price;crypto.set(key,held);
+      }else if(x.asset==='Gold'&&typeof goldHoldingQty==='function') goldQty+=N(goldHoldingQty(x));
+    });
+    let value=0;
+    crypto.forEach((held,key)=>{value+=Math.max(0,held.quantity)*(N(window.livePrices?.[key]?.price)||N(typeof livePrices!=='undefined'?livePrices?.[key]?.price:0)||held.price)});
+    const fx=N(typeof rates!=='undefined'?rates?.usd_mmk:window.rates?.usd_mmk);
+    const goldState=typeof goldMarketState!=='undefined'?goldMarketState:window.goldMarketState;
+    const goldPrice=N(window.mmhGoldAuthorityV376?.().priceMMK)||N(goldState?.pricePerKyattha);
+    if(fx>0)value+=Math.max(0,goldQty)*goldPrice/fx;
+    return value;
+  };
+  window.mmhDashboardReceivableUSD=function(){
+    const fx=N(typeof rates!=='undefined'?rates?.usd_mmk:window.rates?.usd_mmk);
+    if(!(fx>0)||typeof loanOutMMK!=='function'||typeof loanPaidMMK!=='function')return 0;
+    return Math.max(0,N(loanOutMMK())-N(loanPaidMMK()))/fx;
+  };
+})();
+</script>
 <script id="mmhvault-account-manager-v2-js">
 (function(){
 const $=id=>document.getElementById(id),icons=['💵','🏦','👛','💳','₿','📈','💰','🪙','⭐','◈'];
@@ -24191,10 +23880,9 @@ function addTopbar(){
  const header=$('header');if(!header||header.querySelector('.mmh-finance-topbar-v500'))return;
  const bar=document.createElement('div');bar.className='mmh-finance-topbar-v500';bar.innerHTML='<label class="mmh-global-search-v500"><input id="mmhGlobalSearchV500" type="search" autocomplete="off" placeholder="Search transactions, accounts, or pages…"><kbd>⌘ K</kbd></label><span class="mmh-topbar-date-v500" id="mmhTopDateV500"></span><button class="mmh-topbar-bell-v500" id="mmhTopBellV500" type="button" aria-label="Notifications"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>';header.prepend(bar);
  const search=$('mmhGlobalSearchV500');
- const runSearch=()=>{const q=search.value.trim();if(!q)return;const key=q.toLowerCase();const pages={dashboard:'dashboard',home:'dashboard',transaction:'transactions',transactions:'transactions',invest:'invest',investment:'invest',accounts:'accounts-page',account:'accounts-page',setting:'settings',settings:'settings',feedback:'settings',notification:'settings',exchange:'exchange',currency:'exchange',analyze:'cashflow-analyze','cash flow':'cashflow-analyze'};const found=Object.keys(pages).find(k=>key.includes(k));if(found){setPage(pages[found]);if(pages[found]==='settings'&&key.includes('feedback'))setTimeout(()=>document.querySelector('#settings .fb-nav')?.click(),180);return}setPage('transactions');setTimeout(()=>{const tx=$('txSearch');if(tx){tx.value=q;tx.dispatchEvent(new Event('input',{bubbles:true}));tx.focus();}},160)};
+ const runSearch=()=>{const q=search.value.trim();if(!q)return;const key=q.toLowerCase();if(key.includes('notification')||key.includes('通知')){document.getElementById('mmhTopBellV500')?.click();return}const pages={dashboard:'dashboard',home:'dashboard',transaction:'transactions',transactions:'transactions',invest:'invest',investment:'invest',accounts:'accounts-page',account:'accounts-page',setting:'settings',settings:'settings',feedback:'settings',exchange:'exchange',currency:'exchange',analyze:'cashflow-analyze','cash flow':'cashflow-analyze'};const found=Object.keys(pages).find(k=>key.includes(k));if(found){setPage(pages[found]);if(pages[found]==='settings'&&key.includes('feedback'))setTimeout(()=>document.querySelector('#settings .fb-nav')?.click(),180);return}setPage('transactions');setTimeout(()=>{const tx=$('txSearch');if(tx){tx.value=q;tx.dispatchEvent(new Event('input',{bubbles:true}));tx.focus();}},160)};
  search.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();runSearch()}if(e.key==='Escape')search.value=''});
  window.addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();search.focus();search.select()}});
- $('mmhTopBellV500').onclick=()=>{setPage('settings');setTimeout(()=>document.querySelector('#settings .notice-nav-v15')?.click(),220)};
  function clock(){const d=new Date();const el=$('mmhTopDateV500');if(el)el.textContent=d.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric',year:'numeric'});}clock();setInterval(clock,60000);
 }
 function ensureDashboardHost(){
@@ -24375,20 +24063,20 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 <style id="mmhvault-premium-finance-v510-css">
 @media(min-width:1100px){
 /* transparent brand lockup */
-#bottomNav .mmh-sidebar-brand-v500{padding:4px 10px 20px!important;min-height:74px;justify-content:flex-start!important;overflow:visible!important}
-#bottomNav .mmh-sidebar-brand-v500 img{width:154px!important;height:68px!important;object-fit:contain!important;object-position:left center!important;filter:drop-shadow(0 8px 18px rgba(242,196,94,.12))!important}
-#bottomNav .mmh-sidebar-brand-v500>div{display:none!important}
+
+
+
 
 /* shared premium page language */
 #transactions,#invest,#settings{position:relative;isolation:isolate}
 #transactions:before,#invest:before,#settings:before{content:"";position:absolute;z-index:-1;right:-60px;top:-115px;width:560px;height:300px;pointer-events:none;background:radial-gradient(circle at 68% 42%,rgba(242,196,94,.14),transparent 28%),radial-gradient(circle at 45% 38%,rgba(76,199,255,.10),transparent 38%);filter:blur(2px)}
 #transactions h1,#invest h1,#settings>h1{font-size:34px!important;line-height:1.05!important;letter-spacing:-.035em!important;color:#f7fbff!important;text-shadow:0 8px 30px rgba(0,0,0,.24)}
 #transactions .sub,#invest .sub,#settings>.sub{color:#90a7bd!important}
-#transactions .panel,#invest .panel,#invest .mmh-ui-panel,#settings .panel,#settings .fb-panel,#settings .notice-card-v15,#settings .fb-record{background:linear-gradient(145deg,rgba(10,29,47,.88),rgba(5,17,30,.94))!important;border:1px solid rgba(91,145,188,.24)!important;box-shadow:0 18px 38px rgba(0,0,0,.18),inset 0 1px 0 rgba(255,255,255,.025)!important;backdrop-filter:blur(18px)}
+#transactions .panel,#invest .panel,#invest .mmh-ui-panel,#settings .panel,#settings .fb-panel,#settings .fb-record{background:linear-gradient(145deg,rgba(10,29,47,.88),rgba(5,17,30,.94))!important;border:1px solid rgba(91,145,188,.24)!important;box-shadow:0 18px 38px rgba(0,0,0,.18),inset 0 1px 0 rgba(255,255,255,.025)!important;backdrop-filter:blur(18px)}
 #transactions .panel:hover,#invest .panel:hover,#invest .mmh-ui-panel:hover,#settings .panel:hover{border-color:rgba(105,169,218,.34)!important}
 #transactions :is(input,select,textarea),#invest :is(input,select,textarea),#settings :is(input,select,textarea){background:#071829!important;color:#edf6fc!important;border:1px solid #294a65!important;border-radius:12px!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.015)!important}
 #transactions :is(input,select,textarea):focus,#invest :is(input,select,textarea):focus,#settings :is(input,select,textarea):focus{border-color:#559bd0!important;box-shadow:0 0 0 3px rgba(76,199,255,.10)!important;outline:none!important}
-#transactions .btn,#invest .btn,#settings .btn,#settings .fb-nav,#settings .notice-nav-v15,#settings #stPage_feedback button,#settings #stPage_noticesV15 button{border-radius:11px!important;border:1px solid rgba(88,139,181,.30)!important;background:linear-gradient(180deg,#102a40,#0a1e31)!important;color:#cfe5f5!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.025)!important}
+#transactions .btn,#invest .btn,#settings .btn,#settings .fb-nav,#settings #stPage_feedback button{border-radius:11px!important;border:1px solid rgba(88,139,181,.30)!important;background:linear-gradient(180deg,#102a40,#0a1e31)!important;color:#cfe5f5!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.025)!important}
 #transactions .btn.primary,#invest .btn.primary,#settings .btn.primary,#settings #fbSubmitV14{background:linear-gradient(135deg,#f8d36f,#d99b2f)!important;color:#1b160b!important;border-color:#f3ce69!important;font-weight:800!important;box-shadow:0 10px 24px rgba(216,158,52,.18),inset 0 1px 0 rgba(255,255,255,.35)!important}
 #transactions .btn.danger,#invest .btn.danger,#settings .btn.danger{background:rgba(102,31,45,.32)!important;border-color:rgba(255,111,130,.30)!important;color:#ffb3bd!important}
 #transactions .pill,#invest .pill,#settings .pill{background:rgba(12,40,61,.82)!important;border:1px solid rgba(88,148,194,.22)!important;color:#a9cfee!important;border-radius:999px!important}
@@ -24450,8 +24138,8 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 #settings .account-center-card-v375,#settings .st-template-group,#settings .st-page .st-rows{background:linear-gradient(145deg,rgba(10,29,47,.90),rgba(5,17,30,.95))!important;border:1px solid rgba(91,145,188,.22)!important;border-radius:18px!important;box-shadow:0 18px 38px rgba(0,0,0,.15),inset 0 1px 0 rgba(255,255,255,.025)!important}
 #settings .st-template-group{overflow:hidden!important;padding:8px!important}
 #settings .st-template-group h3{padding:10px 10px 11px!important;color:#718aa0!important;font-size:10px!important;letter-spacing:.12em!important;text-transform:uppercase!important}
-#settings .st-template-group :is(.st-nav,.fb-nav,.notice-nav-v15){min-height:72px!important;border:0!important;border-radius:13px!important;background:transparent!important;padding:12px!important;transition:.18s ease!important}
-#settings .st-template-group :is(.st-nav,.fb-nav,.notice-nav-v15):hover{background:linear-gradient(90deg,rgba(58,119,162,.12),rgba(242,196,94,.045))!important;transform:translateX(2px)!important}
+#settings .st-template-group :is(.st-nav,.fb-nav){min-height:72px!important;border:0!important;border-radius:13px!important;background:transparent!important;padding:12px!important;transition:.18s ease!important}
+#settings .st-template-group :is(.st-nav,.fb-nav):hover{background:linear-gradient(90deg,rgba(58,119,162,.12),rgba(242,196,94,.045))!important;transform:translateX(2px)!important}
 #settings .st-template-group .st-icon{width:38px!important;height:38px!important;border-radius:12px!important;background:linear-gradient(145deg,#17364d,#0d2639)!important;border:1px solid rgba(93,153,202,.18)!important;color:#b8daf1!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.035)!important}
 #settings .st-template-group:nth-child(3) .st-icon{color:#f0c75f!important;background:linear-gradient(145deg,#3a311d,#201d16)!important;border-color:rgba(242,196,94,.18)!important}
 #settings .st-nav-name{font-size:13px!important;color:#e8f0f6!important;font-weight:720!important}
@@ -24482,22 +24170,8 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 #settings .fb-status{border-radius:999px!important;padding:6px 9px!important}
 #settings .fb-reply{background:rgba(8,29,46,.70)!important;border-left:2px solid #4cc7ff!important;border-radius:10px!important}
 
-/* Notifications */
-#settings #stPage_noticesV15{max-width:none!important}
-#settings #stPage_noticesV15>.fb-panel{border-radius:18px!important;padding:22px!important;box-shadow:inset 0 2px 0 rgba(242,196,94,.34),0 18px 38px rgba(0,0,0,.16)!important}
-#settings .notice-card-v15{position:relative;border-radius:14px!important;padding:16px 17px 16px 19px!important;margin-top:10px!important;transition:transform .16s ease,border-color .16s ease!important}
-#settings .notice-card-v15:hover{transform:translateY(-1px)!important;border-color:rgba(104,170,218,.34)!important}
-#settings .notice-card-v15.unread{border-color:rgba(76,199,255,.38)!important;box-shadow:inset 3px 0 #4cc7ff!important}
-#settings .notice-card-v15 h4{font-size:14px!important;color:#eef6fb!important}
-#settings .notice-card-v15 small{color:#7490a6!important}
-#settings .notice-card-v15 p{color:#acc1d1!important}
-#settings .notice-badge-v15{background:#d7a43b!important;color:#171107!important;font-weight:800!important}
-
 /* More popup becomes a compact finance command menu */
-#moreNavMenu{padding:8px!important;border-radius:15px!important;background:linear-gradient(145deg,rgba(8,27,44,.97),rgba(3,14,26,.98))!important;border:1px solid rgba(97,155,202,.28)!important;box-shadow:0 22px 55px rgba(0,0,0,.42),inset 0 1px 0 rgba(255,255,255,.035)!important;backdrop-filter:blur(20px)!important}
-#moreNavMenu button{min-height:48px!important;border-radius:10px!important;border:0!important;color:#c9dce9!important;background:transparent!important}
-#moreNavMenu button:hover{background:linear-gradient(90deg,rgba(76,199,255,.10),rgba(242,196,94,.06))!important;color:#f6f9fb!important}
-#moreNavMenu button span{font-weight:650!important}
+
 
 /* gentle entrance */
 #transactions.active>.mmh-transaction-heading-v2,#invest.active>.toolbar.v371-head,#settings.active>h1{animation:mmhPF510In .38s cubic-bezier(.2,.75,.2,1) both}
@@ -24752,10 +24426,3 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   }
 }
 </style>
-<script id="mmhvault-dashboard-refresh-final-v650">
-(()=>{
-  // Defensive cleanup for legacy page memory. The boot path still makes Dashboard the final selection.
-  try{sessionStorage.removeItem('myfinance_page')}catch(_){}
-})();
-</script>
-
