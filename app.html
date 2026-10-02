@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
-<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<meta content="width=device-width,initial-scale=1,viewport-fit=cover" name="viewport"/>
 <link href="images/icon-512.png?v=4.3.0" rel="icon" sizes="512x512" type="image/png"/>
 <link href="images/icon-192.png?v=4.3.0" rel="apple-touch-icon" sizes="192x192"/>
 <link href="other/manifest.webmanifest" rel="manifest"/>
@@ -4915,6 +4915,56 @@ body.mmh-v436-explorer-open #bottomNav{visibility:hidden!important;pointer-event
 </head>
 <!-- MMHVAULT V4.3.6 · iOS JSON import bridge + V4.3.0 Dashboard report relocation + Transaction receipt center + Invest Add precision -->
 <body>
+<script id="mmhvault-v930-native-dialog-bridge">
+(function(){
+  'use strict';
+  const pending=[];
+  let retries=0;
+  function fallback(title,message){
+    try{
+      let host=document.getElementById('mmhLegacyNoticeV930');
+      if(!host){
+        host=document.createElement('div');
+        host.id='mmhLegacyNoticeV930';
+        host.setAttribute('role','status');
+        host.setAttribute('aria-live','polite');
+        Object.assign(host.style,{position:'fixed',left:'50%',bottom:'calc(24px + env(safe-area-inset-bottom, 0px))',transform:'translateX(-50%)',zIndex:'2147483647',width:'min(92vw,520px)',padding:'14px 16px',borderRadius:'14px',border:'1px solid rgba(145,189,226,.28)',background:'rgba(8,24,40,.97)',boxShadow:'0 18px 48px rgba(0,0,0,.38)',color:'#e8f2fb',font:'600 14px/1.5 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',whiteSpace:'pre-wrap'});
+        document.body.appendChild(host);
+      }
+      host.textContent=(title?title+'\n':'')+message;
+      clearTimeout(host._hideTimer);
+      host._hideTimer=setTimeout(()=>{host?.remove();},4200);
+    }catch(err){console.warn('[MMHVAULT]',title,message,err);}
+  }
+  function show(item){
+    const ui=window.mmhEditDeleteUI;
+    if(ui&&typeof ui.message==='function'){
+      Promise.resolve(ui.message(item.title,item.message)).catch(err=>console.warn('[MMHVAULT] notice failed',err));
+      return true;
+    }
+    return false;
+  }
+  function flush(){
+    if(!pending.length)return;
+    if(window.mmhEditDeleteUI&&typeof window.mmhEditDeleteUI.message==='function'){
+      const items=pending.splice(0);
+      (async()=>{for(const item of items){try{await window.mmhEditDeleteUI.message(item.title,item.message);}catch(err){console.warn('[MMHVAULT] queued notice failed',err);}}})();
+      return;
+    }
+    if(retries++<24){setTimeout(flush,100);return;}
+    const items=pending.splice(0);
+    items.forEach(item=>fallback(item.title,item.message));
+  }
+  window.mmhVaultNoticeV930=function(message,title='MMHVAULT'){
+    const item={title:String(title||'MMHVAULT'),message:String(message??'')};
+    if(!show(item)){pending.push(item);flush();}
+    return undefined;
+  };
+  document.addEventListener('DOMContentLoaded',flush,{once:true});
+  window.addEventListener('load',flush,{once:true});
+})();
+</script>
+
 <div id="mmhvaultAppBootGuardV3282" style="position:fixed;inset:0;z-index:30000;display:none;align-items:center;justify-content:center;background:#050a18;color:#dce8ff;font-family:Arial,sans-serif;padding:24px;text-align:center;">
 <div style="max-width:420px;border:1px solid rgba(78,164,255,.25);border-radius:18px;padding:24px 22px;background:rgba(10,20,42,.92);box-shadow:0 18px 60px rgba(0,0,0,.4);">
 <div style="font-size:18px;font-weight:800;letter-spacing:.02em;">MMHVAULT</div>
@@ -5589,7 +5639,7 @@ body.mmh-v436-explorer-open #bottomNav{visibility:hidden!important;pointer-event
     event.preventDefault();if(!storageKey)return;
     const name=normalized(el('mmhTypeNameV1').value);
     if(!name)return;
-    if(types().some(t=>t.name.toLowerCase()===name.toLowerCase())){alert('Investment type already exists.');return;}
+    if(types().some(t=>t.name.toLowerCase()===name.toLowerCase())){mmhVaultNoticeV930('Investment type already exists.');return;}
     const next=valid(state);next.types.push({id:'type_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8),name,active:true});
     if(await save(next))event.target.reset();
   }
@@ -5599,7 +5649,7 @@ body.mmh-v436-explorer-open #bottomNav{visibility:hidden!important;pointer-event
     if(!name||!activeTypes().some(t=>t.id===typeId))return;
     if(state.assets.some(a=>a.typeId===typeId&&a.name.toLowerCase()===name.toLowerCase())||
       (Array.isArray(window.investments)&&window.investments.some(x=>x?.asset?.toLowerCase()===typeId&&
-        (typeId==='gold'?'Physical Gold':String(x.symbol||'').trim()).toLowerCase()===name.toLowerCase()))){alert('Asset already exists in this type.');return;}
+        (typeId==='gold'?'Physical Gold':String(x.symbol||'').trim()).toLowerCase()===name.toLowerCase()))){mmhVaultNoticeV930('Asset already exists in this type.');return;}
     const next=valid(state);next.assets.push({id:'asset_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,8),typeId,name,active:true});
     if(await save(next))event.target.reset();
   }
@@ -7787,14 +7837,14 @@ function closeTransactionReceiptV3297(){
 }
 async function openTransactionReceiptV396(id){
   const u=(await db.auth.getUser()).data.user;
-  if(!u){alert('Please sign in first.');return;}
+  if(!u){mmhVaultNoticeV930('Please sign in first.');return;}
   const modal=$("receiptViewerModalV3297"),body=$("receiptViewerBodyV3297");
-  if(!modal||!body){alert('Receipt viewer is unavailable.');return;}
+  if(!modal||!body){mmhVaultNoticeV930('Receipt viewer is unavailable.');return;}
   body.innerHTML='<div class="receipt-viewer-loading-v3297">Loading receipt…</div>';
   modal.classList.add('show');
   const path=receiptPathV396(u.id,id);
   const {data,error}=await db.storage.from(RECEIPTS_BUCKET_V396).createSignedUrl(path,3600);
-  if(error){closeTransactionReceiptV3297();alert('No receipt was found for this transaction.');return;}
+  if(error){closeTransactionReceiptV3297();mmhVaultNoticeV930('No receipt was found for this transaction.');return;}
   const url=data.signedUrl;
   const clean=url.split('?')[0].toLowerCase();
   if(clean.endsWith('.pdf')){
@@ -7827,11 +7877,11 @@ const receiptFile=$("txReceipt")?.files?.[0]||null;
 const row={user_id:u.id,tx_date:txDate.value,type,category:txGroup.value==='Data Adjustment'?'Data Adjustment':txCategory.value,from_account:type==="Income"?null:fromAccount.value,from_amount:type==="Income"?0:n(fromAmount.value),to_account:type==="Expense"?null:toAccount.value,to_amount:type==="Expense"?0:n(toAmount.value),note:txNote.value||null};
 if(type==="Income"){row.from_account=null;row.from_amount=0}
 if(type==="Expense"){row.to_account=null;row.to_amount=0}
-const r=await db.from("transactions").insert(row).select('id').single();if(r.error){alert(r.error.message);return}
+const r=await db.from("transactions").insert(row).select('id').single();if(r.error){mmhVaultNoticeV930(r.error.message);return}
 if(receiptFile){
   const hint=$("txReceiptHint"); if(hint)hint.textContent='Uploading receipt…';
   try{await uploadTransactionReceiptV396(u.id,r.data.id,receiptFile);if(hint)hint.textContent='✓ Receipt uploaded successfully';}
-  catch(err){console.error(err);alert('Transaction was saved, but the receipt upload failed: '+(err?.message||err));}
+  catch(err){console.error(err);mmhVaultNoticeV930('Transaction was saved, but the receipt upload failed: '+(err?.message||err));}
 }
 // Keep the user's selections for rapid consecutive entries; only transaction-specific values are cleared.
 txType.value=selected.type;syncTransactionGroup();txGroup.value=selected.group;updateCategories();txCategory.value=[...txCategory.options].some(o=>o.value===selected.category)?selected.category:txCategory.value;fromAccount.value=selected.fromAccount;toAccount.value=selected.toAccount;fromAmount.value="";toAmount.value="";txNote.value="";if($("txReceipt"))$("txReceipt").value="";if(window.resetReceiptUploadUIV3300)window.resetReceiptUploadUIV3300();updateAccountLocks();await loadAll({force:true});window.mmhvaultForceRenderAllV34421?.('transaction-add');window.mmHVaultRefreshReceiptFlagsV3302?.();
@@ -8179,12 +8229,12 @@ function clearInvestForm(){invForm.reset();invDate.value=today();invAsset.value=
 async function addInvestment(e){
 e.preventDefault();const u=(await db.auth.getUser()).data.user;if(!u)return;
 const asset=invAsset.value,source=invSource.value,amount=n(invAmount.value),fee=n(invFee.value),other=n(invOther.value),buy=n(invBuy.value),market=asset==="Gold"?(goldMarketState.pricePerKyattha||buy):(n(invMarket.value)||livePrices[invSymbol.value]?.price||buy);
-if(!buy||!amount){alert("Please enter amount and purchase-day market price.");return}
+if(!buy||!amount){mmhVaultNoticeV930("Please enter amount and purchase-day market price.");return}
 const receiptFile=$("invReceipt")?.files?.[0]||null;
-if(receiptFile&&receiptFile.size>10*1024*1024){alert("Receipt file is too large. Maximum size is 10 MB.");return}
+if(receiptFile&&receiptFile.size>10*1024*1024){mmhVaultNoticeV930("Receipt file is too large. Maximum size is 10 MB.");return}
 const quantity=amount/buy;
 const row={user_id:u.id,inv_date:invDate.value,asset,symbol:asset==="Crypto"?invSymbol.value:"Gold",source_account:source,amount,fee,other_cost:other,buy_price:buy,market_price:market,quantity,note:invNote.value||null};
-const r=await db.from("investments").insert(row).select('id').single();if(r.error){alert(r.error.message+"\\n\\nIf this mentions source_account, run migration_v2.7.sql once in Supabase SQL Editor.");return}
+const r=await db.from("investments").insert(row).select('id').single();if(r.error){mmhVaultNoticeV930(r.error.message+"\\n\\nIf this mentions source_account, run migration_v2.7.sql once in Supabase SQL Editor.");return}
 if(receiptFile){
   const hint=$("invReceiptHint");if(hint){hint.textContent='Uploading receipt…';hint.classList.remove('ready','error')}
   try{
@@ -8192,7 +8242,7 @@ if(receiptFile){
     if(hint){hint.textContent='✓ Receipt uploaded successfully';hint.classList.add('ready')}
   }catch(err){
     console.error(err);
-    alert('Investment was saved, but the receipt upload failed: '+(err?.message||err));
+    mmhVaultNoticeV930('Investment was saved, but the receipt upload failed: '+(err?.message||err));
   }
 }
 clearInvestForm();
@@ -8744,9 +8794,9 @@ function invFp(x){return [x.date||x.inv_date,x.asset,x.symbol||'',n(x.amount),n(
 async function handleExcelFile(file){
  const preview=$('excelPreview');if(!file){selectedExcelRows=null;$('excelImportBtn').disabled=true;preview.style.display='none';return;}
  try{const data=await file.arrayBuffer();const wb=XLSX.read(data,{type:'array',cellDates:false});const parsed=parseExcelWorkbook(wb);const txSet=new Set(transactions.map(txFp)),invSet=new Set(investments.map(invFp));const newTx=parsed.tx.filter(x=>!txSet.has(txFp(x))),newInv=parsed.inv.filter(x=>!invSet.has(invFp(x)));selectedExcelRows={newTx,newInv,fileName:file.name};preview.style.display='block';preview.innerHTML=`<b>${esc(file.name)}</b><br>Found <b>${parsed.tx.length}</b> real transaction rows and <b>${parsed.inv.length}</b> investment operations (<b>${parsed.meta.cryptoOps}</b> crypto + <b>${parsed.meta.goldOps}</b> gold).<br>New to your account: <b>${newTx.length}</b> transactions + <b>${newInv.length}</b> investments.<br><br><b>Calculated holdings preview</b><br>BTC ${parsed.meta.holdings.BTC.toFixed(10)} · ETH ${parsed.meta.holdings.ETH.toFixed(10)} · SOL ${parsed.meta.holdings.SOL.toFixed(10)} · BNB ${parsed.meta.holdings.BNB.toFixed(10)}<br>Gold ${parsed.meta.goldYwei.toFixed(2)} ရွေး = ${parsed.meta.goldKyattha.toFixed(8)} ကျပ်သား`;$('excelImportBtn').disabled=!(newTx.length||newInv.length);}catch(e){selectedExcelRows=null;$('excelImportBtn').disabled=true;preview.style.display='block';preview.innerHTML=`<span class="err">Excel read failed: ${esc(e.message)}</span>`;}}
-async function importSelectedExcel(){if(!selectedExcelRows)return;const u=(await db.auth.getUser()).data.user;if(!u)return;const {newTx,newInv,fileName}=selectedExcelRows;if(!await window.mmhVaultConfirmV740(`Import ${newTx.length} transactions and ${newInv.length} investments from ${fileName}?`,'Import data'))return; if(newTx.length){const r=await db.from('transactions').insert(newTx.map(x=>({user_id:u.id,tx_date:x.date,type:x.type,category:x.category,from_account:x.from_account,from_amount:x.from_amount,to_account:x.to_account,to_amount:x.to_amount,note:x.note})));if(r.error){alert('Transaction import failed: '+r.error.message);return;}}
- if(newInv.length){const r=await db.from('investments').insert(newInv.map(x=>({user_id:u.id,inv_date:x.date,asset:x.asset,symbol:x.symbol,amount:x.amount,fee:x.fee,other_cost:x.other_cost,buy_price:x.buy_price,market_price:x.market_price,quantity:x.quantity,note:x.note})));if(r.error){alert('Investment import failed: '+r.error.message);return;}}
- selectedExcelRows=null;$('excelFile').value='';clearExcelPreview();await loadAll({force:true});window.mmhvaultForceRenderAllV34421?.('excel-import');setPage('dashboard');alert('Excel import completed. Dashboard, Analyze and Invest are now linked to the imported Supabase data.');}
+async function importSelectedExcel(){if(!selectedExcelRows)return;const u=(await db.auth.getUser()).data.user;if(!u)return;const {newTx,newInv,fileName}=selectedExcelRows;if(!await window.mmhVaultConfirmV740(`Import ${newTx.length} transactions and ${newInv.length} investments from ${fileName}?`,'Import data'))return; if(newTx.length){const r=await db.from('transactions').insert(newTx.map(x=>({user_id:u.id,tx_date:x.date,type:x.type,category:x.category,from_account:x.from_account,from_amount:x.from_amount,to_account:x.to_account,to_amount:x.to_amount,note:x.note})));if(r.error){mmhVaultNoticeV930('Transaction import failed: '+r.error.message);return;}}
+ if(newInv.length){const r=await db.from('investments').insert(newInv.map(x=>({user_id:u.id,inv_date:x.date,asset:x.asset,symbol:x.symbol,amount:x.amount,fee:x.fee,other_cost:x.other_cost,buy_price:x.buy_price,market_price:x.market_price,quantity:x.quantity,note:x.note})));if(r.error){mmhVaultNoticeV930('Investment import failed: '+r.error.message);return;}}
+ selectedExcelRows=null;$('excelFile').value='';clearExcelPreview();await loadAll({force:true});window.mmhvaultForceRenderAllV34421?.('excel-import');setPage('dashboard');mmhVaultNoticeV930('Excel import completed. Dashboard, Analyze and Invest are now linked to the imported Supabase data.');}
 function clearExcelPreview(){selectedExcelRows=null;const p=$('excelPreview');if(p){p.style.display='none';p.innerHTML='';}$('excelImportBtn').disabled=true;if($('excelFile'))$('excelFile').value='';const t=$('excelDropTitleV318');const s=$('excelDropSubV318');if(t)t.textContent='Choose a workbook';if(s)s.textContent='.XLSX, .XLS or .XLSM · select your finance workbook';}
 async function resetMyCloudData(){if(!await window.mmhEditDeleteUI.requirePhrase('Reset Cloud Data','Permanently delete Transactions, Investments and Exchange Rates?','RESET'))return;const u=(await db.auth.getUser()).data.user;if(!u)return;for(const table of ['transactions','investments','exchange_rates']){const r=await db.from(table).delete().eq('user_id',u.id);if(r.error){await window.mmhEditDeleteUI.message('Reset failed',`${table}: ${r.error.message}`);return;}}await loadAll({force:true});window.mmhvaultForceRenderAllV34421?.('cloud-reset');window.mmhEditDeleteUI.toast('Cloud data reset.');}
 
@@ -8777,7 +8827,7 @@ function refreshTxFilters(){
 
 const _renderTransactionsV27=renderTransactions;
 function renderTransactionsV28(){refreshTxFilters();const rows=v28FilteredTx();$('txResultCount').textContent=`${rows.length} of ${transactions.length} records`;if(!rows.length){$('txList').innerHTML='<div class="empty">No matching transactions.</div>';return}$('txList').innerHTML=`<table><tr><th>Date</th><th>Type</th><th>Transaction</th><th>Category</th><th>From</th><th>From Amount</th><th>To</th><th>To Amount</th><th>Note</th><th>Receipt</th><th></th></tr>${rows.map(t=>`<tr><td>${t.tx_date}</td><td>${t.type}</td><td>${transactionGroupFor(t)}</td><td>${esc(t.category)}</td><td>${esc(t.from_account||'—')}</td><td>${t.from_amount?fmt(t.from_amount):'—'}</td><td>${esc(t.to_account||'—')}</td><td>${t.to_amount?fmt(t.to_amount):'—'}</td><td>${esc(t.note)}</td><td>${window.mmHVaultHasReceiptV3302?.(t.id)?`<button class="btn" type="button" onclick="openTransactionReceiptV396(${t.id})">👁 View</button>`:''}</td><td class="icon-actions"><button class="btn" type="button" data-action="edit-tx" data-id="${t.id}" onclick="editTransaction(${t.id})">Edit</button><button class="btn danger" type="button" onclick="deleteTx(${t.id})">×</button></td></tr>`).join('')}</table>`;}
-async function duplicateTransaction(id){const t=transactions.find(x=>x.id===id);if(!t)return;const u=(await db.auth.getUser()).data.user;if(!u)return;const row={user_id:u.id,tx_date:t.tx_date,type:t.type,category:t.category,from_account:t.from_account,from_amount:t.from_amount,to_account:t.to_account,to_amount:t.to_amount,note:t.note?String(t.note)+' · copy':'Duplicate'};const r=await db.from('transactions').insert(row);if(r.error)alert(r.error.message);else await loadAll();}
+async function duplicateTransaction(id){const t=transactions.find(x=>x.id===id);if(!t)return;const u=(await db.auth.getUser()).data.user;if(!u)return;const row={user_id:u.id,tx_date:t.tx_date,type:t.type,category:t.category,from_account:t.from_account,from_amount:t.from_amount,to_account:t.to_account,to_amount:t.to_amount,note:t.note?String(t.note)+' · copy':'Duplicate'};const r=await db.from('transactions').insert(row);if(r.error)mmhVaultNoticeV930(r.error.message);else await loadAll();}
 function exportTransactionsCSV(){const rows=v28FilteredTx();const head=['Date','Type','Transaction','Category','From','From Amount','To','To Amount','Note'];const csv=[head,...rows.map(t=>[t.tx_date,t.type,transactionGroupFor(t),t.category,t.from_account||'',t.from_amount||0,t.to_account||'',t.to_amount||0,t.note||''])].map(r=>r.map(v=>`"${String(v).replaceAll('"','""')}"`).join(',')).join('\n');const blob=new Blob([csv],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`MMHVAULT_Transactions_${today()}.csv`;a.click();URL.revokeObjectURL(a.href);}
 let txSearchTimerV1=0;
 function cancelTxSearchRefreshV1(){clearTimeout(txSearchTimerV1);txSearchTimerV1=0;}
@@ -11513,16 +11563,16 @@ window.mmHVaultHasInvestmentReceiptV3304=id=>window.mmHVaultInvestmentReceiptIds
 
 async function openInvestmentReceiptV3304(id){
   const u=(await db.auth.getUser()).data.user;
-  if(!u){alert('Please sign in first.');return;}
+  if(!u){mmhVaultNoticeV930('Please sign in first.');return;}
   const modal=$("receiptViewerModalV3297"),body=$("receiptViewerBodyV3297");
-  if(!modal||!body){alert('Receipt viewer is unavailable.');return;}
+  if(!modal||!body){mmhVaultNoticeV930('Receipt viewer is unavailable.');return;}
   body.innerHTML='<div class="receipt-viewer-loading-v3297">Loading receipt…</div>';
   modal.classList.add('show');
   const path=await findInvestmentReceiptPathV3304(u.id,id);
-  if(!path){closeTransactionReceiptV3297();alert('No receipt was found for this investment.');return;}
+  if(!path){closeTransactionReceiptV3297();mmhVaultNoticeV930('No receipt was found for this investment.');return;}
   const bucket=typeof RECEIPTS_BUCKET_V396!=='undefined'?RECEIPTS_BUCKET_V396:'receipts';
   const {data,error}=await db.storage.from(bucket).createSignedUrl(path,3600);
-  if(error){closeTransactionReceiptV3297();alert('Unable to open this investment receipt.');return;}
+  if(error){closeTransactionReceiptV3297();mmhVaultNoticeV930('Unable to open this investment receipt.');return;}
   const url=data.signedUrl;
   const name=path.toLowerCase();
   if(name.endsWith('.pdf')){
@@ -11696,16 +11746,16 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
 
   openTransactionReceiptV396=async function(id){
     const u=(await db.auth.getUser()).data.user;
-    if(!u){alert('Please sign in first.');return;}
+    if(!u){mmhVaultNoticeV930('Please sign in first.');return;}
     const modal=$("receiptViewerModalV3297"),body=$("receiptViewerBodyV3297");
-    if(!modal||!body){alert('Receipt viewer is unavailable.');return;}
+    if(!modal||!body){mmhVaultNoticeV930('Receipt viewer is unavailable.');return;}
     body.innerHTML='<div class="receipt-viewer-loading-v3297">Loading receipt…</div>';
     modal.classList.add('show');
     const paths=await listReceiptPathsV3314(u.id,'transaction',id);
     const path=paths[0];
-    if(!path){closeTransactionReceiptV3297();alert('No receipt was found for this transaction.');return;}
+    if(!path){closeTransactionReceiptV3297();mmhVaultNoticeV930('No receipt was found for this transaction.');return;}
     const {data,error}=await db.storage.from(BUCKET()).createSignedUrl(path,3600);
-    if(error){closeTransactionReceiptV3297();alert('No receipt was found for this transaction.');return;}
+    if(error){closeTransactionReceiptV3297();mmhVaultNoticeV930('No receipt was found for this transaction.');return;}
     const url=data.signedUrl;
     const clean=path.toLowerCase();
     if(clean.endsWith('.pdf')){
@@ -16719,8 +16769,8 @@ const input=$('fbPhotosV15');
 form.onsubmit=null;
 input.addEventListener('change',()=>{
   let files=[...(input.files||[])];
-  if(files.length>3){alert(tr('Maximum 3 photos.','最多上传 3 张照片。'));input.value='';files=[]}
-  if(files.some(f=>f.size>3145728)){alert(tr('Each photo must be 3 MB or smaller.','每张照片不能超过 3 MB。'));input.value='';files=[]}
+  if(files.length>3){mmhVaultNoticeV930(tr('Maximum 3 photos.','最多上传 3 张照片。'));input.value='';files=[]}
+  if(files.some(f=>f.size>3145728)){mmhVaultNoticeV930(tr('Each photo must be 3 MB or smaller.','每张照片不能超过 3 MB。'));input.value='';files=[]}
   renderPhotoSelection(files.slice(0,3));
 });
 form.addEventListener('submit',async e=>{
@@ -17278,7 +17328,7 @@ html body.mmh-workspace-active #moreNavMenu.more-nav-menu.open{
   const get=id=>document.getElementById(id);
   const safeText=v=>String(v??'').replace(/\s+/g,' ').trim();
 
-  // Unified MMHVAULT message layer. Existing alert() calls become in-app dialogs.
+  // Unified MMHVAULT message layer. Existing mmhVaultNoticeV930() calls become in-app dialogs.
   window.mmhVaultMessageV740=async function(message,title='MMHVAULT'){
     const text=safeText(message)||'Done.';
     try{
@@ -17414,7 +17464,7 @@ button[data-mmh-busy="1"],.btn[data-mmh-busy="1"]{position:relative;cursor:wait!
   window.MMHUI={toast,message,confirm:confirmAction,dismissPopovers,setBusy,withBusy};
   window.mmhVaultMessageV740=(m,t='MMHVAULT')=>message(m,t);
   window.mmhVaultConfirmV740=(m,t='Confirm')=>confirmAction(m,t);
-  // Keep legacy alert() callers inside the branded UI without browser-native popups.
+  // Keep legacy mmhVaultNoticeV930() callers inside the branded UI without browser-native popups.
   window.alert=(m)=>{message(m,'MMHVAULT');};
 
   document.addEventListener('pointerdown',e=>{
@@ -17757,6 +17807,8 @@ html body #invest .invest-entry .receipt-dropzone-v3300{width:100%!important;max
 @media(max-width:700px){#mmhNotifyPopoverV560 .np-filter-v900{gap:5px;padding:7px}#mmhNotifyPopoverV560 .np-filter-v900 button{padding:5px 7px;font-size:8px}.mmh-notify-detail-v900 p{font-size:12px}}
 </style>
 
+
+<!-- MMHVAULT v930 · Release Candidate hardening: in-app notices + iOS viewport-safe-area completion. -->
 </body>
 <!-- MMHVAULT V4.3.0 performance baseline: logo-free account cards + restrained dashboard rendering. -->
 
@@ -23813,7 +23865,7 @@ html body.mmh-workspace-active main.wrap .page.active :is(.empty,.mmh-ui-empty,.
 }
 </style>
 
-<script id="mmhvault-v920-build">window.MMHVAULT_BUILD='v920';</script>
+<script id="mmhvault-v920-build">window.MMHVAULT_BUILD='v930';</script>
 <!-- MMHVAULT v920 · v1.0 visual final pass: unified interaction geometry + desktop/tablet/phone safe-area polish. -->
 
 
