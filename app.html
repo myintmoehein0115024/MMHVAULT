@@ -9,7 +9,7 @@
 <link href="other/manifest.webmanifest" rel="manifest"/>
 <meta content="#06111f" name="theme-color"/>
 <title>MMHVAULT · Personal Finance &amp; Wealth Management</title>
-<meta name="mmhvault-release" content="1.1.2-budget-integration-beta"/>
+<meta name="mmhvault-release" content="1.1.6-report-export-beta"/>
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="dns-prefetch" href="https://unpkg.com">
@@ -18091,8 +18091,8 @@ html body #invest .invest-entry .receipt-dropzone-v3300{width:100%!important;max
 </script>
 
 <script id="mmhvault-v1-stable-build">
-window.MMHVAULT_BUILD='1.1.5-monthly-report-beta';
-window.MMHVAULT_RELEASE='MMHVAULT v1.1 Goals + Budget Alerts Beta';
+window.MMHVAULT_BUILD='1.1.6-report-export-beta';
+window.MMHVAULT_RELEASE='MMHVAULT v1.1.6 Report Export Beta';
 </script>
 <!-- MMHVAULT v1.1 Budget Beta · branched from v1.0 Stable. -->
 
@@ -24549,3 +24549,63 @@ html body.mmh-workspace-active main.wrap .page.active :is(.empty,.mmh-ui-empty,.
 })();
 </script>
 <!-- MMHVAULT v1.1.2 · Dashboard and Cash Flow Analyze now share Supabase Cloud Budget. -->
+
+<!-- MMHVAULT v1.1.6 · Financial Report Export -->
+<style id="mmhvault-report-export-v116-css">
+#reports .report-export-actions-v116{display:flex;gap:8px;align-items:end;flex-wrap:wrap}
+#reports .report-export-actions-v116 .btn{min-height:42px;white-space:nowrap;border-radius:11px;padding:0 14px}
+#reports .report-export-actions-v116 .export-pdf-v116{border-color:rgba(228,189,95,.38);background:linear-gradient(135deg,rgba(228,189,95,.13),rgba(20,38,56,.86));color:#f1d98f}
+#reports .report-export-actions-v116 .export-image-v116{border-color:rgba(90,177,229,.35);background:linear-gradient(135deg,rgba(71,154,210,.12),rgba(20,38,56,.86));color:#b8ddf4}
+#reports .report-export-actions-v116 .btn:disabled{opacity:.58;cursor:wait;transform:none!important}
+#reports .report-export-brand-v116{display:none}
+#reports .report-export-footer-v116{display:none}
+#reports .report-export-stage-v116{position:fixed;left:-20000px;top:0;width:1180px;max-width:none!important;z-index:-1;pointer-events:none;overflow:visible;background:#06111f;padding:34px;box-sizing:border-box}
+#reports .report-export-stage-v116>.report-shell-v115{width:100%!important;max-width:none!important;margin:0!important;gap:16px!important}
+#reports .report-export-stage-v116 .report-export-brand-v116{display:flex!important;align-items:flex-end;justify-content:space-between;gap:24px;padding:2px 2px 18px;border-bottom:1px solid rgba(128,169,199,.22)}
+#reports .report-export-stage-v116 .report-export-brand-v116>div{min-width:0}
+#reports .report-export-stage-v116 .report-export-brand-v116 b{display:block;color:#f2c45e;font-size:24px;letter-spacing:.08em;line-height:1}
+#reports .report-export-stage-v116 .report-export-brand-v116 small{display:block;margin-top:7px;color:#7e99ad;font-size:9px;font-weight:800;letter-spacing:.18em}
+#reports .report-export-stage-v116 .report-export-brand-v116 span{color:#9bb1c2;font-size:10px;text-align:right;line-height:1.5}
+#reports .report-export-stage-v116 .report-head-v115{padding-top:4px!important}
+#reports .report-export-stage-v116 .report-controls-v115,
+#reports .report-export-stage-v116 .report-export-actions-v116,
+#reports .report-export-stage-v116 [data-report-open]{display:none!important}
+#reports .report-export-stage-v116 .report-panel-head-v115{min-height:42px}
+#reports .report-export-stage-v116 .report-export-footer-v116{display:flex!important;justify-content:space-between;gap:20px;padding:14px 2px 0;border-top:1px solid rgba(128,169,199,.16);color:#718a9e;font-size:8px;letter-spacing:.04em;line-height:1.5}
+#reports .report-export-stage-v116 .report-export-footer-v116 span:last-child{text-align:right}
+@media(max-width:700px){
+  #reports .report-controls-v115{width:100%}
+  #reports .report-export-actions-v116{width:100%}
+  #reports .report-export-actions-v116 .btn{flex:1 1 140px;min-height:44px}
+}
+@media(max-width:400px){#reports .report-export-actions-v116 .btn{flex-basis:100%}}
+</style>
+<script id="mmhvault-report-export-v116-js">
+(()=>{'use strict';
+  if(window.__mmhReportExportV116)return;window.__mmhReportExportV116=true;
+  const $=id=>document.getElementById(id);
+  const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+  let exportBusy=false;
+  function monthLabel(){const v=$('reportMonthV115')?.value||new Date().toISOString().slice(0,7);try{const [y,m]=v.split('-').map(Number);return new Date(y,m-1,1).toLocaleDateString(undefined,{year:'numeric',month:'long'})}catch(_){return v}}
+  function currency(){return $('reportCurrencyV115')?.value||'USD'}
+  function fileMonth(){return ($('reportMonthV115')?.value||new Date().toISOString().slice(0,7)).replace(/[^0-9-]/g,'')}
+  function generatedLabel(){try{return new Date().toLocaleString()}catch(_){return new Date().toISOString()}}
+  function toast(msg,type='success'){try{window.MMHUI?.toast?.(msg,{title:'Financial Report',type})}catch(_){}}
+  function message(msg,type='error'){if(window.MMHUI?.message)return window.MMHUI.message(msg,'Financial Report',{type});console.warn('[MMHVAULT]',msg)}
+  function loadScript(src,test){return new Promise((resolve,reject)=>{if(test())return resolve();const prior=[...document.scripts].find(s=>s.src===src);if(prior){const started=Date.now();const tick=()=>{if(test())resolve();else if(Date.now()-started>12000)reject(new Error('Export library timeout'));else setTimeout(tick,80)};tick();return}const s=document.createElement('script');s.src=src;s.async=true;s.crossOrigin='anonymous';s.onload=()=>test()?resolve():reject(new Error('Export library unavailable'));s.onerror=()=>reject(new Error('Unable to load export library'));document.head.append(s)})}
+  async function ensureCanvas(){await loadScript('https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js',()=>typeof window.html2canvas==='function')}
+  async function ensurePdf(){await Promise.all([ensureCanvas(),loadScript('https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js',()=>!!window.jspdf?.jsPDF)])}
+  function stripIds(root){root.querySelectorAll('[id]').forEach(el=>el.removeAttribute('id'))}
+  function makeStage(){const page=$('reports'),shell=page?.querySelector('.report-shell-v115');if(!page||!shell)throw new Error('Financial Report is not ready.');const stage=document.createElement('div');stage.className='report-export-stage-v116';stage.setAttribute('aria-hidden','true');const clone=shell.cloneNode(true);stripIds(clone);const brand=document.createElement('div');brand.className='report-export-brand-v116';brand.innerHTML='<div><b>MMHVAULT</b><small>MONTHLY FINANCIAL REPORT</small></div><span>'+monthLabel()+' · '+currency()+'<br>Generated '+generatedLabel()+'</span>';clone.prepend(brand);const footer=document.createElement('div');footer.className='report-export-footer-v116';footer.innerHTML='<span>MMHVAULT · Personal Finance & Wealth Management</span><span>Private financial report · generated from your signed-in workspace</span>';clone.append(footer);stage.append(clone);page.append(stage);return stage}
+  async function capture(){await ensureCanvas();const stage=makeStage();try{await sleep(80);if(document.fonts?.ready)await Promise.race([document.fonts.ready,sleep(1500)]);const canvas=await window.html2canvas(stage,{backgroundColor:'#06111f',scale:2,useCORS:true,logging:false,removeContainer:false,windowWidth:1180,scrollX:0,scrollY:0});return canvas}finally{stage.remove()}}
+  function downloadBlob(blob,name){const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;a.rel='noopener';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),3000)}
+  async function exportImage(){if(exportBusy)return;exportBusy=true;const btn=$('reportExportImageV116'),old=btn?.textContent;if(btn){btn.disabled=true;btn.textContent='Rendering…'}try{const canvas=await capture();const blob=await new Promise((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(new Error('Unable to create image.')),'image/png',1));downloadBlob(blob,`MMHVAULT-Report-${fileMonth()}-${currency()}.png`);toast('Report image exported.')}catch(err){console.warn('[MMHVAULT] report image export failed',err);message(err?.message||'Unable to export the report image.')}finally{exportBusy=false;if(btn){btn.disabled=false;btn.textContent=old||'Export Image'}}}
+  async function exportPdf(){if(exportBusy)return;exportBusy=true;const btn=$('reportExportPdfV116'),old=btn?.textContent;if(btn){btn.disabled=true;btn.textContent='Building PDF…'}try{await ensurePdf();const canvas=await capture();const {jsPDF}=window.jspdf;const pdf=new jsPDF({orientation:'landscape',unit:'mm',format:'a4',compress:true});const pageW=297,pageH=210,margin=10,usableW=pageW-margin*2,usableH=pageH-margin*2,pxPerMm=canvas.width/usableW,slicePx=Math.max(1,Math.floor(usableH*pxPerMm));let y=0,pageIndex=0;const totalPages=Math.ceil(canvas.height/slicePx);while(y<canvas.height){const h=Math.min(slicePx,canvas.height-y),part=document.createElement('canvas');part.width=canvas.width;part.height=h;const ctx=part.getContext('2d',{alpha:false});ctx.fillStyle='#06111f';ctx.fillRect(0,0,part.width,part.height);ctx.drawImage(canvas,0,y,canvas.width,h,0,0,canvas.width,h);if(pageIndex>0)pdf.addPage('a4','landscape');const mmH=h/pxPerMm;pdf.addImage(part.toDataURL('image/jpeg',0.94),'JPEG',margin,margin,usableW,mmH,undefined,'FAST');pdf.setFontSize(7);pdf.setTextColor(115,139,157);pdf.text(`MMHVAULT · ${fileMonth()} · ${currency()} · Page ${pageIndex+1}/${totalPages}`,margin,pageH-3.5);y+=h;pageIndex++}pdf.save(`MMHVAULT-Report-${fileMonth()}-${currency()}.pdf`);toast('Report PDF exported.')}catch(err){console.warn('[MMHVAULT] report PDF export failed',err);message(err?.message||'Unable to export the PDF. Check your connection and try again.')}finally{exportBusy=false;if(btn){btn.disabled=false;btn.textContent=old||'Export PDF'}}}
+  function install(){const page=$('reports'),controls=page?.querySelector('.report-controls-v115');if(!page||!controls)return false;if($('reportExportActionsV116'))return true;const box=document.createElement('div');box.id='reportExportActionsV116';box.className='report-export-actions-v116';box.innerHTML='<button class="btn export-image-v116" id="reportExportImageV116" type="button">Export Image</button><button class="btn export-pdf-v116" id="reportExportPdfV116" type="button">Export PDF</button>';controls.after(box);$('reportExportImageV116').addEventListener('click',exportImage);$('reportExportPdfV116').addEventListener('click',exportPdf);return true}
+  function schedule(){setTimeout(install,0);setTimeout(install,120);setTimeout(install,500)}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',schedule,{once:true});else schedule();
+  const target=$('reports');if(target)new MutationObserver(()=>{if(target.classList.contains('active'))install()}).observe(target,{childList:true,subtree:false,attributes:true,attributeFilter:['class']});
+  window.MMHReportExportV116={exportImage,exportPdf,install};
+})();
+</script>
+<!-- MMHVAULT v1.1.6 · Report export is presentation-only and never mutates finance records. -->
