@@ -1752,3 +1752,9 @@ a{overflow-wrap:anywhere}
 .data-load-overlay-v384:not(.show){display:none!important;pointer-events:none!important;}
 .welcome-screen:not(.show){pointer-events:none!important;}
 #mmhvaultAppBootGuardV3282{pointer-events:none;}
+
+/* MMHVAULT v1.2.5 Boot Quarantine · startup interaction safety */
+body.mmh-workspace-active #dataLoadOverlayV384{pointer-events:none!important;}
+body.mmh-workspace-active #dataLoadOverlayV384:not(.show){display:none!important;}
+#gettingStarted:not(.open),#welcomeScreen:not(.show){pointer-events:none!important;}
+body.mmh-workspace-active main.wrap,body.mmh-workspace-active #header,body.mmh-workspace-active #bottomNav{pointer-events:auto!important;}

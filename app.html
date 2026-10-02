@@ -6839,7 +6839,7 @@ db.auth.onAuthStateChange((event,session)=>{
      PWA/controller changes can make SIGNED_IN arrive before/without a fresh INITIAL_SESSION. */
   if(session){
     if(!mmhvaultAuthBootSettledV3285 || !currentSessionUser?.id){mmhvaultFinishAuthBootV3285(session);return;}
-    if(currentSessionUser.id!==session.user?.id){applyUserProfile(session.user);location.reload();return;}
+    if(currentSessionUser.id!==session.user?.id){applyUserProfile(session.user);Promise.resolve().then(()=>enter(session)).catch(err=>console.warn('[MMHVAULT] session handoff skipped',err));return;}
     applyUserProfile(session.user);
     return;
   }
@@ -7559,6 +7559,29 @@ function mmhDispatchAppReadyV124(detail={}){
   window.__mmhAppReadyV124=true;
   setTimeout(()=>{try{window.dispatchEvent(new CustomEvent("mmhvault:app-ready",{detail:{at:Date.now(),...detail}}));}catch(_e){}},0);
 }
+function mmhBootWorkspaceWatchdogV125(){
+  let ticks=0;
+  const timer=setInterval(()=>{
+    ticks++;
+    try{
+      if(currentSessionUser?.id){
+        document.body.classList.remove('auth-page-active');
+        document.body.classList.add('mmh-workspace-active');
+        const h=document.getElementById('header'),n=document.getElementById('bottomNav');
+        if(h)h.style.display='flex'; if(n)n.style.display='flex';
+        const loader=document.getElementById('dataLoadOverlayV384');
+        if(loader){loader.classList.remove('show');loader.setAttribute('aria-hidden','true');loader.style.pointerEvents='none';}
+        const gs=document.getElementById('gettingStarted');
+        if(gs?.classList.contains('open')){gs.classList.remove('open');gs.setAttribute('aria-hidden','true');}
+        const active=[...document.querySelectorAll('.page.active')].filter(x=>x.id!=='login');
+        if(!active.length){
+          try{setPage('dashboard');}catch(_e){document.getElementById('dashboard')?.classList.add('active');}
+        }
+      }
+    }catch(e){console.warn('[MMHVAULT] boot workspace watchdog warning',e);}
+    if(ticks>=15)clearInterval(timer);
+  },1000);
+}
 async function enter(session){
   if(!session?.user?.id)return;
   const bootGuard=$("mmhvaultAppBootGuardV3282");
@@ -7580,16 +7603,18 @@ async function enter(session){
     Promise.resolve().then(()=>loadAll()).then(result=>{
       mmhReleasePrimaryUIV124("main-data-settled");
       try{restoreTxTab();}catch(_e){}
-      try{subscribeRealtime();}catch(err){console.warn("Realtime boot skipped",err);}
-      mmhDispatchAppReadyV124({dataOk:result?.ok!==false});
+      /* v1.2.5 boot quarantine: realtime is deliberately not attached during initial startup.
+         It can no longer trigger a second loadAll/render wave while the dashboard is settling. */
+      mmhDispatchAppReadyV124({dataOk:result?.ok!==false,bootQuarantine:true});
     }).catch(err=>{
       console.error("MMHVAULT main data boot failed",err);
       mmhReleasePrimaryUIV124("main-data-error");
       mmhDispatchAppReadyV124({dataOk:false,error:err?.message||String(err)});
     });
+    mmhBootWorkspaceWatchdogV125();
     window.setTimeout(()=>{mmhReleasePrimaryUIV124("boot-watchdog-1500");},1500);
     window.setTimeout(()=>{mmhReleasePrimaryUIV124("boot-watchdog-7000");mmhDispatchAppReadyV124({watchdog:true});},7000);
-    window.setTimeout(()=>openGettingStarted(session.user),250);
+    /* v1.2.5: never open onboarding automatically during boot; it is a full-screen pointer-blocking layer. */
   }finally{
     activeEnterUserId="";
   }
@@ -7711,8 +7736,12 @@ function mmhSchedulePostLoadV124(loadOwner,detail){
   requestAnimationFrame(()=>{
     try{mmhVaultRecoverOwnedLegacyConfigV1(loadOwner);}catch(e){console.warn("Config recovery skipped",e);}
     try{loadRateInputs();}catch(e){console.warn("Rate input render skipped",e);}
-    try{scheduleRenderV3441();}catch(e){console.warn("Primary render schedule skipped",e);}
-    setTimeout(()=>{try{window.dispatchEvent(new CustomEvent("mmhvault:data-loaded",{detail:{at:Date.now(),bootIsolated:true,...detail}}));}catch(_e){}},0);
+    /* v1.2.5: render only the visible Dashboard here. The legacy global render/event
+       fan-out is quarantined from boot because one secondary listener can blank/freeze the shell. */
+    try{
+      if(document.getElementById('dashboard')?.classList.contains('active')&&typeof renderDashboard==='function')renderDashboard();
+    }catch(e){console.warn("Primary dashboard render skipped",e);}
+    try{window.dispatchEvent(new CustomEvent('mmhvault:primary-data-ready',{detail:{at:Date.now(),bootIsolated:true,...detail}}));}catch(_e){}
   });
 }
 async function loadAll(opts={}){
@@ -7750,7 +7779,7 @@ async function loadAll(opts={}){
         window.mmhGoldFxReadyV1=!r?.error&&!!r?.data;
         if(r?.error){console.warn("Exchange rates load skipped",r.error);return;}
         if(r?.data){rates=r.data;window.rates=rates;}
-        setTimeout(()=>{try{loadRateInputs();scheduleRenderV3441();window.dispatchEvent(new CustomEvent("mmhvault:sync-complete",{detail:{source:"exchange-rates",at:Date.now()}}));}catch(e){console.warn("Exchange rate post-load skipped",e);}},0);
+        setTimeout(()=>{try{loadRateInputs();if(document.getElementById('dashboard')?.classList.contains('active')&&typeof renderDashboard==='function')renderDashboard();}catch(e){console.warn("Exchange rate post-load skipped",e);}},0);
       }).catch(err=>console.warn("Exchange rates load skipped",err));
 
       return {ok:true,errors:[]};
@@ -7774,7 +7803,7 @@ async function loadAll(opts={}){
       setDataLoadingV384(false);
       try{mmhReleasePrimaryUIV124("main-data-failed");}catch(_e){}
       setDataErrorV384(msg);
-      setTimeout(()=>{try{window.dispatchEvent(new CustomEvent("mmhvault:data-loaded",{detail:{ok:false,restored,at:Date.now(),bootIsolated:true}}));}catch(_e){}},0);
+      setTimeout(()=>{try{window.dispatchEvent(new CustomEvent('mmhvault:primary-data-ready',{detail:{ok:false,restored,at:Date.now(),bootIsolated:true}}));}catch(_e){}},0);
       return {ok:false,restored,errors:[err?.message||String(err)]};
     }finally{
       clearTimeout(failsafe);
@@ -18592,7 +18621,7 @@ body.light #reports .report-mini-v115{background:#f3f8fb;border-color:#cfdee9}bo
 <script id="mmhvault-v122-pwa-safe-js">
 (()=>{'use strict';
   if(window.__MMHVAULT_PWA_V122)return;window.__MMHVAULT_PWA_V122=true;
-  const VERSION='1.2.4-loading-recovery',RECOVERY='mmhvault_pwa_recovery_v124';
+  const VERSION='1.2.5-boot-quarantine',RECOVERY='mmhvault_pwa_recovery_v125';
   const $=id=>document.getElementById(id),lang=()=>localStorage.getItem('mmhvault_language_v3363')||'en',tr=(en,zh)=>lang()==='zh'?zh:en;
   const standalone=()=>window.matchMedia?.('(display-mode: standalone)')?.matches===true||window.navigator.standalone===true;
   const secure=()=>location.protocol==='https:'||['localhost','127.0.0.1'].includes(location.hostname);
@@ -18611,7 +18640,10 @@ body.light #reports .report-mini-v115{background:#f3f8fb;border-color:#cfdee9}bo
   if('serviceWorker'in navigator)navigator.serviceWorker.addEventListener('controllerchange',refreshStatus);
   window.addEventListener('online',()=>{networkUI();setTimeout(()=>check(false),1200)});window.addEventListener('offline',networkUI);window.addEventListener('appinstalled',refreshStatus);
   let pwaStarted=false;
-  async function start(){if(pwaStarted)return;pwaStarted=true;networkUI();observe();await recoverCaches();await register();window.MMHPWAV122={checkForUpdate:check,refresh:refreshStatus,version:VERSION}}
+  async function start(){if(pwaStarted)return;pwaStarted=true;networkUI();observe();
+    /* v1.2.5 diagnostic quarantine: do not install/update a Service Worker while the finance shell is booting. */
+    try{if('serviceWorker' in navigator){const regs=await navigator.serviceWorker.getRegistrations();await Promise.allSettled(regs.map(r=>r.unregister()));}}catch(e){console.warn('[MMHVAULT] SW quarantine skipped',e)}
+    window.MMHPWAV122={checkForUpdate:()=>Promise.resolve(),refresh:refreshStatus,version:VERSION,quarantined:true};refreshStatus()}
   const startLater=()=>setTimeout(()=>start().catch(e=>console.warn('[MMHVAULT] deferred PWA start skipped',e)),700);
   /* v1.2.4: PWA registration begins after primary app boot settles, never in parallel with finance startup. */
   window.addEventListener('mmhvault:app-ready',startLater,{once:true});
