@@ -16842,115 +16842,51 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 
 <script id="mmhvault-notification-popover-v560-script">
 (()=>{'use strict';
-  if(window.__mmhNotifyPopoverV560)return;window.__mmhNotifyPopoverV560=true;
+  if(window.__mmhNotifyPopoverV900)return;window.__mmhNotifyPopoverV900=true;
   const $=id=>document.getElementById(id);
-  const desktop=()=>true;
   const tr=(en,zh)=>(localStorage.getItem('mmhvault_language_v3363')||'en')==='zh'?zh:en;
-  let popup=null,bell=null,list=null,rows=[],loading=false;
-
-
+  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  let popup=null,bell=null,list=null,rows=[],loading=false,mode='all';
   function ensure(){
-    bell=$('mmhTopBellV500');
-    if(!bell)return false;
-    bell.onclick=null;
-    if(!bell.querySelector('.mmh-notify-count-v560')){
-      const badge=document.createElement('span');badge.className='mmh-notify-count-v560';badge.hidden=true;badge.textContent='0';bell.append(badge);
-    }
+    bell=$('mmhTopBellV500');if(!bell)return false;
+    if(!bell.querySelector('.mmh-notify-count-v560')){const badge=document.createElement('span');badge.className='mmh-notify-count-v560';badge.hidden=true;badge.textContent='0';bell.append(badge)}
     popup=$('mmhNotifyPopoverV560');
-    if(!popup){
-      popup=document.createElement('aside');popup.id='mmhNotifyPopoverV560';popup.setAttribute('role','dialog');popup.setAttribute('aria-label',tr('Notifications','通知'));
-      popup.innerHTML='<div class="np-head"><div class="np-title"><span class="np-title-icon">🔔</span><span><strong>'+tr('Notifications','通知')+'</strong><small>'+tr('Personal messages & announcements','个人通知与公告')+'</small></span></div><button class="np-refresh" type="button" id="mmhNotifyRefreshV560">'+tr('Refresh','刷新')+'</button></div><div class="np-list" id="mmhNotifyListV560"></div><div class="np-foot">'+tr('Click an unread message to mark it as read.','点击未读消息即可标记为已读。')+'</div>';
-      document.body.append(popup);
-      list=$('mmhNotifyListV560');
-      $('mmhNotifyRefreshV560').onclick=e=>{e.stopPropagation();load(true)};
-    }else list=$('mmhNotifyListV560');
+    if(!popup){popup=document.createElement('aside');popup.id='mmhNotifyPopoverV560';popup.setAttribute('role','dialog');popup.setAttribute('aria-label',tr('Notifications','通知'));document.body.append(popup)}
+    popup.innerHTML='<div class="np-head"><div class="np-title"><span class="np-title-icon">🔔</span><span><strong>'+tr('Notifications','通知')+'</strong><small>'+tr('Personal messages & announcements','个人通知与公告')+'</small></span></div><button class="np-refresh" type="button" id="mmhNotifyRefreshV560">'+tr('Refresh','刷新')+'</button></div><div class="np-filter-v900"><button type="button" data-notify-mode="all" class="active">'+tr('All','全部')+' <span id="mmhNotifyAllCountV900">0</span></button><button type="button" data-notify-mode="unread">'+tr('Unread','未读')+' <span id="mmhNotifyUnreadCountV900">0</span></button><button type="button" id="mmhNotifyMarkAllV900" class="mark-all">'+tr('Mark all read','全部已读')+'</button></div><div class="np-list" id="mmhNotifyListV560"></div><div class="np-foot">'+tr('Open a message to view details.','点击消息查看完整内容。')+'</div>';
+    list=$('mmhNotifyListV560');
+    $('mmhNotifyRefreshV560').onclick=e=>{e.stopPropagation();load(true)};
+    popup.querySelectorAll('[data-notify-mode]').forEach(btn=>btn.onclick=e=>{e.stopPropagation();mode=btn.dataset.notifyMode;popup.querySelectorAll('[data-notify-mode]').forEach(x=>x.classList.toggle('active',x===btn));render()});
+    $('mmhNotifyMarkAllV900').onclick=async e=>{e.stopPropagation();const btn=e.currentTarget;if(btn.disabled)return;btn.disabled=true;try{const {error}=await db.rpc('mmh_feedback_extras',{p_action:'mark_all_read',p_data:{}});if(error)throw error;rows.forEach(r=>r.is_read=true);updateBadge();render()}catch(err){console.warn('[MMHVAULT] mark all notifications failed',err)}finally{btn.disabled=false}};
     return true;
   }
-
-  function formatDate(v){
-    try{return new Date(v).toLocaleString()}catch(_){return String(v||'')}
-  }
-
+  const formatDate=v=>{try{return new Date(v).toLocaleString()}catch(_){return String(v||'')}};
   function updateBadge(){
-    const badge=bell?.querySelector('.mmh-notify-count-v560');if(!badge)return;
-    const n=rows.filter(r=>!r.is_read).length;
-    badge.hidden=!n;badge.textContent=n>99?'99+':String(n);
-    bell?.classList.toggle('has-unread-v560',n>0);
+    const unread=rows.filter(r=>!r.is_read).length,badge=bell?.querySelector('.mmh-notify-count-v560');
+    if(badge){badge.hidden=!unread;badge.textContent=unread>99?'99+':String(unread)}
+    bell?.classList.toggle('has-unread-v560',unread>0);
+    if($('mmhNotifyAllCountV900'))$('mmhNotifyAllCountV900').textContent=rows.length;
+    if($('mmhNotifyUnreadCountV900'))$('mmhNotifyUnreadCountV900').textContent=unread;
+    const mark=$('mmhNotifyMarkAllV900');if(mark)mark.disabled=!unread;
   }
-
+  async function markRead(row){if(row.is_read)return;try{const {error}=await db.rpc('mmh_feedback_extras',{p_action:'read',p_data:{id:row.id}});if(error)throw error;row.is_read=true;updateBadge();render()}catch(err){console.warn('[MMHVAULT] notification read failed',err)}}
+  async function openDetail(row){
+    await markRead(row);close();
+    const kind=row.audience==='all'?tr('Announcement','公告'):tr('Personal notification','个人通知');
+    const body='<div class="mmh-notify-detail-v900"><div class="mmh-notify-detail-badge-v900">'+esc(kind)+'</div><p>'+esc(row.body||'').replace(/\n/g,'<br>')+'</p><small>'+esc(formatDate(row.created_at))+'</small></div>';
+    if(typeof window.mmhVaultOpenDialogV449==='function')await window.mmhVaultOpenDialogV449({title:row.title||tr('Notification','通知'),message:'',body,actions:[{label:tr('Close','关闭'),className:'primary'}]});
+    else await window.mmhVaultMessageV740?.(row.body||'',row.title||tr('Notification','通知'));
+  }
   function render(){
-    if(!list)return;
-    list.replaceChildren();
-    if(!rows.length){const e=document.createElement('div');e.className='np-empty';e.textContent=tr('No notifications yet.','暂无通知。');list.append(e);return;}
-    rows.forEach(row=>{
-      const b=document.createElement('button');b.type='button';b.className='np-item'+(row.is_read?'':' unread');
-      const top=document.createElement('div');top.className='np-row';
-      const h=document.createElement('h4');h.textContent=row.title||tr('Notification','通知');
-      const kind=document.createElement('span');kind.className='np-kind';kind.textContent=row.audience==='all'?tr('Announcement','公告'):tr('Personal','个人');
-      top.append(h,kind);
-      const body=document.createElement('p');body.textContent=row.body||'';
-      const meta=document.createElement('div');meta.className='np-meta';
-      const date=document.createElement('span');date.textContent=formatDate(row.created_at);
-      const state=document.createElement('span');state.className=row.is_read?'np-read':'';state.textContent=row.is_read?tr('Read','已读'):tr('Unread','未读');
-      meta.append(date,state);b.append(top,body,meta);
-      b.onclick=async e=>{
-        e.stopPropagation();
-        if(row.is_read)return;
-        try{const {error}=await db.rpc('mmh_feedback_extras',{p_action:'read',p_data:{id:row.id}});if(error)throw error;row.is_read=true;b.classList.remove('unread');state.className='np-read';state.textContent=tr('Read','已读');updateBadge();}catch(err){console.warn('[MMHVAULT] notification read failed',err)}
-      };
-      list.append(b);
-    });
+    if(!list)return;updateBadge();list.replaceChildren();const visible=mode==='unread'?rows.filter(r=>!r.is_read):rows;
+    if(!visible.length){const e=document.createElement('div');e.className='np-empty';e.textContent=mode==='unread'?tr('No unread notifications.','暂无未读通知。'):tr('No notifications yet.','暂无通知。');list.append(e);return}
+    visible.forEach(row=>{const b=document.createElement('button');b.type='button';b.className='np-item'+(row.is_read?'':' unread');const top=document.createElement('div');top.className='np-row';const h=document.createElement('h4');h.textContent=row.title||tr('Notification','通知');const kind=document.createElement('span');kind.className='np-kind';kind.textContent=row.audience==='all'?tr('Announcement','公告'):tr('Personal','个人');top.append(h,kind);const body=document.createElement('p');body.textContent=row.body||'';const meta=document.createElement('div');meta.className='np-meta';const date=document.createElement('span');date.textContent=formatDate(row.created_at);const state=document.createElement('span');state.className=row.is_read?'np-read':'';state.textContent=row.is_read?tr('Read','已读'):tr('Unread','未读');meta.append(date,state);b.append(top,body,meta);b.onclick=e=>{e.stopPropagation();openDetail(row)};list.append(b)});
   }
-
-  async function load(showLoading=false){
-    if(loading)return;loading=true;
-    if(showLoading&&list){list.innerHTML='<div class="np-empty">'+tr('Loading…','加载中…')+'</div>';}
-    try{
-      const {data,error}=await db.rpc('mmh_feedback_extras',{p_action:'list',p_data:{offset:0}});
-      if(error)throw error;
-      rows=Array.isArray(data)?data:[];updateBadge();render();
-    }catch(err){
-      console.warn('[MMHVAULT] notification load failed',err);
-      if(list){list.innerHTML='<div class="np-empty">'+tr('Unable to load notifications.','通知加载失败。')+'</div>';}
-    }finally{loading=false}
-  }
-
-  function place(){
-    if(!desktop()||!popup||!bell||!popup.classList.contains('open'))return;
-    const r=bell.getBoundingClientRect(),safe=12,gap=10;
-    const width=Math.min(390,window.innerWidth-safe*2);
-    popup.style.width=width+'px';
-    let left=Math.min(window.innerWidth-width-safe,Math.max(safe,r.right-width));
-    let top=r.bottom+gap;
-    const maxH=Math.max(220,window.innerHeight-top-safe);
-    popup.style.left=left+'px';popup.style.top=top+'px';popup.style.maxHeight=Math.min(520,maxH)+'px';
-  }
-
+  async function load(showLoading=false){if(loading)return;loading=true;if(!ensure()){loading=false;return}if(showLoading&&list)list.innerHTML='<div class="np-empty">'+tr('Loading…','加载中…')+'</div>';try{const {data,error}=await db.rpc('mmh_feedback_extras',{p_action:'list',p_data:{offset:0}});if(error)throw error;rows=Array.isArray(data)?data:[];render()}catch(err){console.warn('[MMHVAULT] notification load failed',err);if(list)list.innerHTML='<div class="np-empty">'+tr('Unable to load notifications.','通知加载失败。')+'</div>'}finally{loading=false}}
+  function place(){if(!popup||!bell||!popup.classList.contains('open'))return;const r=bell.getBoundingClientRect(),safe=12,gap=10,width=Math.min(410,window.innerWidth-safe*2);popup.style.width=width+'px';popup.style.left=Math.min(window.innerWidth-width-safe,Math.max(safe,r.right-width))+'px';popup.style.top=(r.bottom+gap)+'px';popup.style.maxHeight=Math.min(560,Math.max(240,window.innerHeight-r.bottom-gap-safe))+'px'}
   function close(){popup?.classList.remove('open');bell?.setAttribute('aria-expanded','false')}
-  function toggle(){
-    if(!desktop()||!ensure())return;
-    const open=!popup.classList.contains('open');
-    if(!open){close();return;}
-    popup.classList.add('open');bell.setAttribute('aria-expanded','true');place();load(false);
-  }
-
-  function bind(){
-    if(!ensure())return;
-    if(bell.dataset.mmhNotifyBoundV560==='1'){load(false);return;}
-    bell.dataset.mmhNotifyBoundV560='1';
-    bell.setAttribute('aria-haspopup','dialog');bell.setAttribute('aria-expanded','false');
-    bell.addEventListener('click',e=>{if(!desktop())return;e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();toggle()},true);
-    window.addEventListener('resize',()=>{if(!desktop())close();else requestAnimationFrame(place)});
-    window.addEventListener('orientationchange',()=>setTimeout(place,80));
-    load(false);
-  }
-
-  function init(){
-    bind();
-    setTimeout(bind,300);
-    setTimeout(bind,900);
-    setTimeout(bind,1600);
-  }
+  function toggle(){if(!ensure())return;const open=!popup.classList.contains('open');if(!open){close();return}popup.classList.add('open');bell.setAttribute('aria-expanded','true');place();load(false)}
+  function bind(){if(!ensure())return;if(bell.dataset.mmhNotifyBoundV900==='1'){load(false);return}bell.dataset.mmhNotifyBoundV900='1';bell.setAttribute('aria-haspopup','dialog');bell.setAttribute('aria-expanded','false');bell.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();toggle()},true);window.addEventListener('resize',()=>requestAnimationFrame(place));window.addEventListener('orientationchange',()=>setTimeout(place,80));load(false)}
+  function init(){bind();setTimeout(bind,300);setTimeout(bind,900);setTimeout(bind,1600);setInterval(()=>{if(!document.hidden)load(false)},120000)}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(init,0),{once:true});else setTimeout(init,0);
 })();
 </script>
@@ -17968,7 +17904,19 @@ html body #invest .invest-entry .receipt-dropzone-v3300{width:100%!important;max
 </style>
 <script id="mmhvault-v842-build">window.MMHVAULT_BUILD='v842';</script>
 
-</body>
+<style id="mmhvault-v900-closure-polish">
+#mmhNotifyPopoverV560 .np-filter-v900{display:flex;gap:6px;align-items:center;padding:8px 10px;border-bottom:1px solid rgba(101,154,196,.12);background:rgba(5,20,33,.55)}
+#mmhNotifyPopoverV560 .np-filter-v900 button{min-height:30px;padding:5px 9px;border-radius:9px;border:1px solid rgba(88,145,188,.16);background:rgba(12,37,55,.68);color:#8fa8ba;font-size:9px;font-weight:700;cursor:pointer}
+#mmhNotifyPopoverV560 .np-filter-v900 button.active{background:linear-gradient(180deg,#183e58,#0f2b40);border-color:rgba(86,183,238,.35);color:#d7edfa}
+#mmhNotifyPopoverV560 .np-filter-v900 button span{display:inline-grid;place-items:center;min-width:17px;height:17px;padding:0 5px;margin-left:3px;border-radius:999px;background:rgba(116,169,205,.14);font-size:8px}
+#mmhNotifyPopoverV560 .np-filter-v900 .mark-all{margin-left:auto;color:#d5b65e;border-color:rgba(242,196,94,.20);background:rgba(75,58,18,.18)}
+#mmhNotifyPopoverV560 .np-filter-v900 .mark-all:disabled{opacity:.42;cursor:default}
+.mmh-notify-detail-v900{display:grid;gap:12px;padding:2px 0 4px}.mmh-notify-detail-v900 p{margin:0;color:#dceaf3;font-size:13px;line-height:1.75;white-space:normal;overflow-wrap:anywhere}.mmh-notify-detail-v900 small{color:#758fa4;font-size:10px}.mmh-notify-detail-badge-v900{width:max-content;padding:5px 8px;border-radius:999px;border:1px solid rgba(242,196,94,.18);background:rgba(242,196,94,.08);color:#e2bd5d;font-size:9px;font-weight:800;letter-spacing:.04em;text-transform:uppercase}
+#settings #stPage_feedback{max-width:none!important;width:100%!important;margin:0!important}
+#settings .fb-record{transition:border-color .16s ease,background .16s ease}#settings .fb-record:hover{border-color:rgba(94,168,216,.42)!important}
+#settings .fb-reply{border-left-color:#5bd6b0!important;background:linear-gradient(90deg,rgba(39,111,90,.18),rgba(16,37,54,.78))!important}#settings .fb-reply b{color:#77dbbb!important}
+@media(max-width:700px){#mmhNotifyPopoverV560 .np-filter-v900{gap:5px;padding:7px}#mmhNotifyPopoverV560 .np-filter-v900 button{padding:5px 7px;font-size:8px}.mmh-notify-detail-v900 p{font-size:12px}}
+</style></body>
 <!-- MMHVAULT V4.3.0 performance baseline: logo-free account cards + restrained dashboard rendering. -->
 
 <meta name="mmhvault-architecture" content="V4.3.0 · Goals feature removed and dependency cleanup" />
