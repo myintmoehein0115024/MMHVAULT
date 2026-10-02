@@ -5002,6 +5002,7 @@ body.mmh-v436-explorer-open #bottomNav{visibility:hidden!important;pointer-event
 <button data-more-page="accounts-page" role="menuitem" type="button">👛<span>Accounts</span></button>
 <button data-more-page="exchange" role="menuitem" type="button">💱<span>Exchange</span></button>
 <button data-more-page="cashflow-analyze" role="menuitem" type="button">📊<span>Cash Flow Analyze</span></button>
+<button data-more-page="budget" role="menuitem" type="button">◒<span>Budget</span></button>
 <button data-more-page="settings" role="menuitem" type="button">⚙️<span>Settings</span></button>
 </div>
 <style id="mmhvault-retired-pages-v480">
@@ -5031,6 +5032,52 @@ body.mmh-v436-explorer-open #bottomNav{visibility:hidden!important;pointer-event
 </div>
 <main class="wrap">
 <section class="page" id="accounts-page"><div class="ap-heading"><div><h1>Accounts</h1><p>Your cash accounts and investment portfolios</p></div><label>Display currency<select id="apCurrency" aria-label="Account display currency"><option value="NATIVE" selected>Original currency</option><option value="USD">$</option><option value="MMK">K</option><option value="THB">฿</option><option value="CNY">￥</option></select></label></div><div id="apBody"></div></section>
+<section class="page" id="budget" aria-label="Budget">
+  <div class="budget-shell-v110">
+    <div class="budget-head-v110">
+      <div>
+        <div class="budget-eyebrow-v110">SPENDING PLAN</div>
+        <h1>Budget</h1>
+        <p>Plan your individual spending and compare it with real Transaction records.</p>
+      </div>
+      <div class="budget-controls-v110">
+        <label>Month<input id="budgetMonthV110" type="month" aria-label="Budget month"></label>
+        <label>Currency<select id="budgetCurrencyV110" aria-label="Budget currency"><option value="THB">฿ THB</option><option value="MMK">K MMK</option><option value="USD">$ USD</option><option value="CNY">￥ CNY</option></select></label>
+      </div>
+    </div>
+
+    <div class="budget-kpis-v110" aria-live="polite">
+      <article class="budget-kpi-v110"><span>MONTHLY BUDGET</span><strong id="budgetTotalV110">Not set</strong><small>Individual Expense target</small></article>
+      <article class="budget-kpi-v110"><span>SPENT</span><strong id="budgetSpentV110">—</strong><small>Actual individual expense</small></article>
+      <article class="budget-kpi-v110"><span>REMAINING</span><strong id="budgetRemainingV110">—</strong><small>Budget − spent</small></article>
+      <article class="budget-kpi-v110"><span>UTILIZATION</span><strong id="budgetUsageV110">—</strong><small id="budgetUsageMetaV110">Set a monthly budget</small></article>
+    </div>
+
+    <section class="budget-panel-v110 budget-overview-v110">
+      <div class="budget-panel-head-v110">
+        <div><h2>Monthly Budget</h2><p>Individual Expense only. Personal, loans, investments, transfers and data adjustments are excluded.</p></div>
+        <span class="budget-status-pill-v110" id="budgetStatusV110">Not set</span>
+      </div>
+      <div class="budget-month-form-v110">
+        <label><span>Monthly spending limit</span><div class="budget-money-input-v110"><b id="budgetInputMarkV110">฿</b><input id="budgetMonthlyAmountV110" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0.00"></div></label>
+        <div class="budget-actions-v110"><button class="btn" id="budgetClearV110" type="button">Clear Month</button><button class="btn primary" id="budgetSaveV110" type="button">Save Budget</button></div>
+      </div>
+      <div class="budget-progress-track-v110" id="budgetProgressV110" role="progressbar" aria-label="Monthly budget used" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span></span></div>
+      <div class="budget-progress-meta-v110"><span id="budgetProgressTextV110">Enter a budget to start tracking.</span><span id="budgetBudgetedCategoryTotalV110"></span></div>
+      <div class="budget-alert-v110" id="budgetAlertV110" hidden></div>
+    </section>
+
+    <section class="budget-panel-v110">
+      <div class="budget-panel-head-v110">
+        <div><h2>Category Budgets</h2><p>Set optional limits for the Expense categories you actually use.</p></div>
+        <span class="budget-category-count-v110" id="budgetCategoryCountV110">0 categories</span>
+      </div>
+      <div class="budget-category-list-v110" id="budgetCategoryListV110"></div>
+    </section>
+
+    <p class="budget-method-v110">Budget amounts are stored in your private Supabase account and sync across devices when this page reloads. Actual spending comes from Transactions and is converted with the exchange rates saved in MMHVAULT.</p>
+  </div>
+</section>
 <section class="page" id="dashboard">
 <div id="mmhPremiumDashboardV500"></div>
 <div id="mmhDashboardLegacyBridgeV580" hidden aria-hidden="true" style="display:none!important">
@@ -17806,11 +17853,97 @@ html body #invest .invest-entry .receipt-dropzone-v3300{width:100%!important;max
 
 <!-- MMHVAULT v930 · Release Candidate hardening: in-app notices + iOS viewport-safe-area completion. -->
 
-<script id="mmhvault-v1-stable-build">
-window.MMHVAULT_BUILD='1.0.0-stable';
-window.MMHVAULT_RELEASE='MMHVAULT v1.0 Stable';
+<!-- MMHVAULT v1.1 · Cloud Budget System core -->
+<style id="mmhvault-budget-v110-css">
+#budget{position:relative;min-height:calc(100vh - 150px);padding-bottom:120px;max-width:none!important;width:100%!important;margin:0!important;box-sizing:border-box!important}
+#budget::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:-1;border-radius:28px;background:radial-gradient(circle at 82% 8%,rgba(68,202,255,.055),transparent 24%),radial-gradient(circle at 14% 78%,rgba(245,196,81,.045),transparent 22%)}
+#budget .budget-shell-v110{width:100%;max-width:1540px;margin:0 auto;display:grid;gap:15px;min-width:0}
+#budget .budget-head-v110{display:flex;justify-content:space-between;align-items:end;gap:22px;padding:22px 26px;border:1px solid rgba(96,159,224,.24);border-radius:23px;background:linear-gradient(125deg,rgba(12,31,61,.88),rgba(5,16,37,.90));box-shadow:0 18px 38px rgba(0,0,0,.16)}
+#budget .budget-eyebrow-v110{font-size:10px;font-weight:900;letter-spacing:.22em;color:#eac86c}
+#budget h1{margin:7px 0 5px;font-size:clamp(28px,3vw,40px);line-height:1.08}#budget .budget-head-v110 p{margin:0;color:#91a8c7;line-height:1.5}
+#budget .budget-controls-v110{display:flex;gap:10px;align-items:end;flex-wrap:wrap}#budget .budget-controls-v110 label{display:grid;gap:6px;color:#99b2d0;font-size:11px;font-weight:800;letter-spacing:.035em}
+#budget .budget-controls-v110 input,#budget .budget-controls-v110 select{box-sizing:border-box;width:160px;min-height:43px;padding:9px 12px;border-radius:11px;border:1px solid rgba(91,155,224,.37);background:#091c36;color:#eef5ff;font:inherit;font-size:14px;color-scheme:dark}
+#budget .budget-kpis-v110{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px}
+#budget .budget-kpi-v110{min-width:0;display:flex;flex-direction:column;min-height:128px;padding:18px 19px;box-sizing:border-box;border:1px solid rgba(91,150,211,.24);border-top:2px solid #55c8f6;border-radius:18px;background:linear-gradient(145deg,rgba(16,36,65,.83),rgba(7,18,37,.93));box-shadow:0 12px 32px rgba(0,0,0,.13),inset 0 1px 0 rgba(255,255,255,.035)}
+#budget .budget-kpi-v110:nth-child(2){border-top-color:#f2919f}#budget .budget-kpi-v110:nth-child(3){border-top-color:#54d8aa}#budget .budget-kpi-v110:nth-child(4){border-top-color:#eac86c}
+#budget .budget-kpi-v110>span{font-size:10px;letter-spacing:.12em;color:#9bb2ce;font-weight:850}#budget .budget-kpi-v110>strong{margin:10px 0 5px;font-size:clamp(22px,2.1vw,31px);line-height:1.12;color:#f1f7ff;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}#budget .budget-kpi-v110>small{margin-top:auto;color:#829bbc;font-size:11px}
+#budget .budget-kpi-v110>strong.good{color:#65dda9}#budget .budget-kpi-v110>strong.warn{color:#f0c96c}#budget .budget-kpi-v110>strong.over{color:#ff8f9f}
+#budget .budget-panel-v110{padding:22px;border:1px solid rgba(91,150,211,.25);border-radius:20px;background:linear-gradient(145deg,rgba(16,36,65,.84),rgba(7,18,37,.94));box-shadow:0 12px 32px rgba(0,0,0,.13),inset 0 1px 0 rgba(255,255,255,.035);min-width:0}
+#budget .budget-panel-head-v110{display:flex;align-items:start;justify-content:space-between;gap:14px;margin-bottom:17px}#budget .budget-panel-head-v110 h2{margin:0 0 5px;font-size:20px;color:#eaf3ff}#budget .budget-panel-head-v110 p{margin:0;color:#8fa8c8;font-size:11px;line-height:1.5}
+#budget .budget-status-pill-v110,#budget .budget-category-count-v110{padding:7px 10px;border:1px solid rgba(84,184,233,.28);border-radius:999px;color:#a8d4eb;background:rgba(55,147,196,.08);font-size:10px;font-weight:800;white-space:nowrap}#budget .budget-status-pill-v110.watch{color:#e9c972;border-color:rgba(235,197,91,.28);background:rgba(235,197,91,.08)}#budget .budget-status-pill-v110.over{color:#ff9cac;border-color:rgba(255,113,137,.3);background:rgba(255,113,137,.08)}
+#budget .budget-month-form-v110{display:grid;grid-template-columns:minmax(260px,1fr) auto;gap:14px;align-items:end}#budget .budget-month-form-v110>label{display:grid;gap:7px;color:#9cb2cd;font-size:11px;font-weight:800}
+#budget .budget-money-input-v110{display:grid;grid-template-columns:46px minmax(0,1fr);align-items:center;border:1px solid rgba(91,155,224,.34);border-radius:13px;background:#081a33;overflow:hidden}#budget .budget-money-input-v110 b{display:grid;place-items:center;min-height:48px;border-right:1px solid rgba(91,155,224,.18);color:#eac86c;font-size:16px}#budget .budget-money-input-v110 input{width:100%;min-width:0;min-height:48px;border:0!important;background:transparent!important;color:#f3f7ff!important;padding:10px 13px!important;font-size:18px!important;font-weight:800;outline:0!important}
+#budget .budget-actions-v110{display:flex;gap:9px;justify-content:flex-end;flex-wrap:wrap}#budget .budget-actions-v110 .btn{min-height:46px;border-radius:12px}
+#budget .budget-progress-track-v110{height:10px;margin-top:18px;border-radius:999px;background:#08182d;overflow:hidden;border:1px solid rgba(94,151,207,.12)}#budget .budget-progress-track-v110>span{display:block;height:100%;width:0;border-radius:inherit;background:linear-gradient(90deg,#59c5ef,#58d7ad);transition:width .22s ease}#budget .budget-progress-track-v110.watch>span{background:linear-gradient(90deg,#59c5ef,#edc861)}#budget .budget-progress-track-v110.over>span{background:linear-gradient(90deg,#f0b460,#f17f93)}
+#budget .budget-progress-meta-v110{display:flex;justify-content:space-between;gap:12px;margin-top:8px;color:#8fa6c4;font-size:10px;line-height:1.4}
+#budget .budget-alert-v110{margin-top:14px;padding:11px 13px;border:1px solid rgba(238,197,91,.24);border-left:3px solid #ebc45f;border-radius:12px;background:rgba(89,70,22,.14);color:#e6cf91;font-size:11px;line-height:1.5}#budget .budget-alert-v110.over{border-color:rgba(255,113,137,.24);border-left-color:#ff7189;background:rgba(105,30,45,.16);color:#ffb0bc}
+#budget .budget-category-list-v110{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+#budget .budget-category-row-v110{display:grid;grid-template-columns:minmax(0,1fr) minmax(150px,.55fr);gap:12px;align-items:center;padding:13px 14px;border:1px solid rgba(91,150,211,.17);border-radius:14px;background:rgba(5,16,33,.46);min-width:0}#budget .budget-category-copy-v110{min-width:0}.budget-category-name-v110{display:flex;align-items:center;gap:8px;color:#e5effc;font-size:13px;font-weight:850}.budget-category-name-v110 em{font-style:normal;padding:3px 6px;border-radius:999px;border:1px solid rgba(128,154,196,.16);color:#8298b9;font-size:8px;font-weight:750}.budget-category-meta-v110{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;color:#89a1c0;font-size:10px}.budget-category-meta-v110 b{color:#cbd9eb;font-weight:750}
+#budget .budget-category-input-v110{display:grid;grid-template-columns:34px minmax(0,1fr);align-items:center;border:1px solid rgba(91,155,224,.26);border-radius:11px;background:#081a33;overflow:hidden}.budget-category-input-v110 span{display:grid;place-items:center;min-height:40px;color:#dabb65;font-size:12px;border-right:1px solid rgba(91,155,224,.14)}.budget-category-input-v110 input{width:100%;min-width:0;min-height:40px;border:0!important;background:transparent!important;color:#eff6ff!important;padding:8px 10px!important;font-size:13px!important;outline:0!important}
+#budget .budget-category-bar-v110{grid-column:1/-1;height:6px;border-radius:999px;background:#07172b;overflow:hidden}.budget-category-bar-v110 span{display:block;height:100%;border-radius:inherit;background:#57cca9}.budget-category-row-v110.watch .budget-category-bar-v110 span{background:#e6c35f}.budget-category-row-v110.over .budget-category-bar-v110 span{background:#ef8292}.budget-category-row-v110.over{border-color:rgba(240,126,143,.24)}
+#budget .budget-empty-v110{grid-column:1/-1;padding:22px;text-align:center;border:1px dashed rgba(103,158,211,.2);border-radius:14px;color:#88a1c1;font-size:12px}
+#budget .budget-method-v110{margin:0 2px;color:#7188a7;font-size:10px;line-height:1.55}
+@media(max-width:1050px){#budget .budget-kpis-v110{grid-template-columns:repeat(2,minmax(0,1fr))}#budget .budget-category-list-v110{grid-template-columns:1fr}}
+@media(min-width:700px) and (max-width:999px){#budget .budget-head-v110{align-items:start}#budget .budget-controls-v110{justify-content:flex-end}#budget .budget-month-form-v110{grid-template-columns:minmax(0,1fr) auto}}
+@media(max-width:699px){#budget{padding-bottom:calc(112px + env(safe-area-inset-bottom,0px))}#budget .budget-shell-v110{gap:12px}#budget .budget-head-v110{padding:17px;display:grid;gap:16px;border-radius:19px}#budget .budget-controls-v110{display:grid;grid-template-columns:1fr 1fr;width:100%}#budget .budget-controls-v110 input,#budget .budget-controls-v110 select{width:100%;font-size:16px!important}#budget .budget-kpis-v110{grid-template-columns:1fr 1fr;gap:9px}#budget .budget-kpi-v110{min-height:112px;padding:14px;border-radius:15px}#budget .budget-kpi-v110>strong{font-size:20px}#budget .budget-panel-v110{padding:15px;border-radius:18px}#budget .budget-panel-head-v110{align-items:flex-start;flex-wrap:wrap}#budget .budget-month-form-v110{grid-template-columns:1fr}#budget .budget-actions-v110{display:grid;grid-template-columns:1fr 1fr}#budget .budget-actions-v110 .btn{width:100%}#budget .budget-progress-meta-v110{display:grid;gap:4px}#budget .budget-category-row-v110{grid-template-columns:1fr;padding:12px}.budget-category-bar-v110{grid-column:1}#budget .budget-category-input-v110 input{font-size:16px!important}}
+@media(max-width:390px){#budget .budget-kpis-v110{grid-template-columns:1fr}#budget .budget-controls-v110{grid-template-columns:1fr}#budget .budget-actions-v110{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){#budget .budget-progress-track-v110>span{transition:none!important}}
+</style>
+<script id="mmhvault-budget-v110-js">
+(()=>{'use strict';
+  if(window.__MMHVAULT_BUDGET_V110)return;window.__MMHVAULT_BUDGET_V110=true;
+  const get=id=>document.getElementById(id),num=v=>{const n=Number(v);return Number.isFinite(n)?n:0};
+  const escapeHtml=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  const symbols={USD:'$',THB:'฿',MMK:'K',CNY:'￥'};
+  const monthNow=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`};
+  const state={month:monthNow(),currency:'THB',row:null,loadedMonth:'',loading:false,saveBusy:false};
+  const page=()=>get('budget');
+  const user=()=>typeof currentSessionUser!=='undefined'?currentSessionUser:null;
+  const config=()=>typeof MMHVAULT_CONFIG!=='undefined'&&MMHVAULT_CONFIG?MMHVAULT_CONFIG:{categories:{}};
+  const expenseCategories=()=>Array.isArray(config().categories?.Expense)?config().categories.Expense.filter(Boolean).map(String):[];
+  const format=v=>num(v).toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:2});
+  const money=v=>(symbols[state.currency]||state.currency)+' '+format(v);
+  function groupOf(t){
+    if(!t)return '';
+    if(t.category==='Data Adjustment')return 'Data Adjustment';
+    if(typeof inferTxGroup==='function'){try{return inferTxGroup(t)}catch(_e){}}
+    const cats=config().categories||{};
+    if(t.type==='Income')return (cats.LoanIncome||[]).includes(t.category)?'Loans':'Income';
+    if(t.type==='Expense')return (cats.LoanExpense||[]).includes(t.category)?'Loans':(cats.Personal||[]).includes(t.category)?'Personal':'Expense';
+    return t.type||'';
+  }
+  function isIndividualExpense(t){return !!t&&t.type==='Expense'&&groupOf(t)==='Expense'&&t.category!=='Investment'&&t.category!=='Data Adjustment'&&!(typeof isLinkedInvestmentTx==='function'&&isLinkedInvestmentTx(t));}
+  function usdPerUnit(account){try{const f=Number(typeof toUSD==='function'?toUSD(account):0);return Number.isFinite(f)&&f>0?f:0}catch(_e){return 0}}
+  function perUsd(currencyCode){const c=String(currencyCode||'USD').toUpperCase();if(c==='USD')return 1;if(c==='MMK')return num(rates?.usd_mmk);if(c==='THB')return num(rates?.usd_thb);if(c==='CNY')return num(rates?.usd_cny);return 0}
+  function convertCode(amount,from,to){const a=num(amount),f=perUsd(from),t=perUsd(to);return f>0&&t>0?a/f*t:0}
+  function transactionValue(t){const usd=usdPerUnit(t.from_account);const target=perUsd(state.currency);return usd>0&&target>0?num(t.from_amount)*usd*target:0}
+  function monthRows(){const rows=Array.isArray(transactions)?transactions:[];return rows.filter(t=>String(t.tx_date||'').slice(0,7)===state.month&&isIndividualExpense(t))}
+  function spending(){const rows=monthRows(),by=new Map();let total=0,missing=0;for(const t of rows){const v=transactionValue(t);if(!(v>=0)||(!v&&num(t.from_amount)>0)){missing++;continue}total+=v;const k=String(t.category||'Other');by.set(k,(by.get(k)||0)+v)}return{total,by,missing,rows}}
+  function inferDefaultCurrency(){const score=new Map();for(const t of monthRows()){let c='';try{c=String(typeof currency==='function'?currency(t.from_account):'').toUpperCase()}catch(_e){}if(!['USD','THB','MMK','CNY'].includes(c))continue;const usd=num(t.from_amount)*usdPerUnit(t.from_account);score.set(c,(score.get(c)||0)+usd)}return [...score.entries()].sort((a,b)=>b[1]-a[1])[0]?.[0]||'THB'}
+  function rowMonth(){return state.month+'-01'}
+  function rawCategoryBudgets(){const x=state.row?.category_budgets;return x&&typeof x==='object'&&!Array.isArray(x)?x:{}}
+  function budgetCategories(){const current=expenseCategories(),saved=Object.keys(rawCategoryBudgets());return [...new Set([...current,...saved])].filter(Boolean)}
+  function monthlyAmount(){return Math.max(0,num(state.row?.monthly_amount))}
+  function categoryBudget(name){return Math.max(0,num(rawCategoryBudgets()[name]))}
+  function usageLevel(pct){return pct>=100?'over':pct>=80?'watch':'good'}
+  function progressPct(spent,budget){if(!(budget>0))return 0;return Math.max(0,Math.min(100,spent/budget*100))}
+  function renderCategories(spend){const host=get('budgetCategoryListV110');if(!host)return;const names=budgetCategories();get('budgetCategoryCountV110').textContent=`${names.length} categor${names.length===1?'y':'ies'}`;if(!names.length){host.innerHTML='<div class="budget-empty-v110">No Expense categories yet. Add categories in Settings → Category.</div>';return}const mark=symbols[state.currency]||state.currency;host.innerHTML=names.map(name=>{const b=categoryBudget(name),used=num(spend.by.get(name)),rawPct=b>0?used/b*100:0,level=usageLevel(rawPct),archived=!expenseCategories().includes(name);return `<div class="budget-category-row-v110 ${b>0?level:''}" data-budget-category="${escapeHtml(name)}"><div class="budget-category-copy-v110"><div class="budget-category-name-v110"><span>${escapeHtml(name)}</span>${archived?'<em>Archived / renamed</em>':''}</div><div class="budget-category-meta-v110"><span>Spent <b>${money(used)}</b></span><span>${b>0?`${rawPct.toFixed(1)}% used`:'No category limit'}</span></div></div><label class="budget-category-input-v110"><span>${escapeHtml(mark)}</span><input type="number" min="0" step="0.01" inputmode="decimal" data-budget-category-input="${escapeHtml(name)}" value="${b>0?String(Number(b.toFixed(2))):''}" placeholder="Optional"></label><div class="budget-category-bar-v110"><span style="width:${progressPct(used,b)}%"></span></div></div>`}).join('')}
+  function maybeAlert(usage,budget){if(!(budget>0)||usage<80)return;const level=usage>=100?'over':'watch',key=`mmh_budget_alert_v110_${state.month}_${level}`;if(sessionStorage.getItem(key))return;sessionStorage.setItem(key,'1');const msg=usage>=100?`You have used ${usage.toFixed(1)}% of your ${state.month} individual expense budget.`:`You have used ${usage.toFixed(1)}% of your ${state.month} individual expense budget.`;setTimeout(()=>window.MMHUI?.toast?.(msg,{title:usage>=100?'Budget exceeded':'Budget watch',type:usage>=100?'error':'warn',duration:4600}),120)}
+  function render(){const root=page();if(!root)return;get('budgetMonthV110').value=state.month;get('budgetCurrencyV110').value=state.currency;get('budgetInputMarkV110').textContent=symbols[state.currency]||state.currency;const spend=spending(),budget=monthlyAmount(),remaining=budget-spend.total,usage=budget>0?spend.total/budget*100:0,level=usageLevel(usage);const input=get('budgetMonthlyAmountV110');if(document.activeElement!==input)input.value=budget>0?String(Number(budget.toFixed(2))):'';get('budgetTotalV110').textContent=budget>0?money(budget):'Not set';get('budgetSpentV110').textContent=money(spend.total);get('budgetRemainingV110').textContent=budget>0?money(remaining):'—';get('budgetRemainingV110').className=budget>0?(remaining<0?'over':'good'):'';get('budgetUsageV110').textContent=budget>0?usage.toFixed(1)+'%':'—';get('budgetUsageV110').className=budget>0?level:'';get('budgetUsageMetaV110').textContent=budget>0?(level==='over'?'Over budget':level==='watch'?'Approaching limit':'Within budget'):'Set a monthly budget';const pill=get('budgetStatusV110');pill.className='budget-status-pill-v110'+(budget>0?' '+level:'');pill.textContent=budget>0?(level==='over'?'Over budget':level==='watch'?'Watch':'On track'):'Not set';const bar=get('budgetProgressV110');bar.className='budget-progress-track-v110'+(budget>0?' '+level:'');bar.setAttribute('aria-valuenow',String(Math.round(progressPct(spend.total,budget))));bar.querySelector('span').style.width=progressPct(spend.total,budget)+'%';get('budgetProgressTextV110').textContent=budget>0?`${usage.toFixed(1)}% used · ${remaining>=0?money(remaining)+' remaining':money(Math.abs(remaining))+' over budget'}`:'Enter a monthly limit to start tracking.';const catTotal=Object.values(rawCategoryBudgets()).reduce((a,v)=>a+Math.max(0,num(v)),0);get('budgetBudgetedCategoryTotalV110').textContent=catTotal>0?`Category limits: ${money(catTotal)}`:'';const alert=get('budgetAlertV110');if(budget>0&&usage>=80){alert.hidden=false;alert.className='budget-alert-v110'+(usage>=100?' over':'');alert.textContent=usage>=100?`Budget exceeded by ${money(Math.abs(remaining))}. Review this month’s individual spending or adjust the plan.`:`You have used ${usage.toFixed(1)}% of this month’s budget. ${money(Math.max(0,remaining))} remains.`}else{alert.hidden=true;alert.textContent=''}if(spend.missing){alert.hidden=false;alert.className='budget-alert-v110';alert.textContent=`${spend.missing} expense record${spend.missing===1?'':'s'} could not be converted because an exchange rate is unavailable.`}renderCategories(spend);maybeAlert(usage,budget)}
+  async function load(month=state.month){if(state.loading)return;const u=user();if(!u?.id||typeof db==='undefined')return;state.loading=true;try{const {data,error}=await db.from('budgets').select('user_id,budget_month,currency,monthly_amount,category_budgets,updated_at').eq('user_id',u.id).eq('budget_month',month+'-01').maybeSingle();if(error)throw error;state.month=month;state.row=data||null;state.loadedMonth=month;state.currency=data?.currency||inferDefaultCurrency();render()}catch(err){console.warn('[MMHVAULT] budget load failed',err);window.MMHUI?.message?.(err?.message||'Unable to load this budget.','Budget',{type:'error'})}finally{state.loading=false}}
+  function collect(){const totalRaw=get('budgetMonthlyAmountV110').value.trim(),monthly=totalRaw===''?0:Number(totalRaw);if(!Number.isFinite(monthly)||monthly<0)throw new Error('Enter a monthly budget of 0 or more.');const categories={};document.querySelectorAll('[data-budget-category-input]').forEach(input=>{const raw=input.value.trim();if(raw==='')return;const v=Number(raw);if(!Number.isFinite(v)||v<0)throw new Error('Category budgets must be 0 or more.');if(v>0)categories[input.dataset.budgetCategoryInput]=v});return{monthly,categories}}
+  async function save(){if(state.saveBusy)return;const u=user();if(!u?.id)return window.MMHUI?.message?.('Please sign in again.','Budget',{type:'error'});let payload;try{const x=collect();payload={user_id:u.id,budget_month:rowMonth(),currency:state.currency,monthly_amount:x.monthly,category_budgets:x.categories}}catch(err){return window.MMHUI?.message?.(err.message,'Budget',{type:'warn'})}state.saveBusy=true;const button=get('budgetSaveV110');window.MMHUI?.setBusy?.(button,true,'Saving…');try{const {data,error}=await db.from('budgets').upsert(payload,{onConflict:'user_id,budget_month'}).select('user_id,budget_month,currency,monthly_amount,category_budgets,updated_at').single();if(error)throw error;state.row=data;state.loadedMonth=state.month;render();window.MMHUI?.toast?.('Budget saved to your account.',{title:'Budget',type:'success'})}catch(err){console.warn('[MMHVAULT] budget save failed',err);window.MMHUI?.message?.(err?.message||'Unable to save the budget.','Budget',{type:'error'})}finally{state.saveBusy=false;window.MMHUI?.setBusy?.(button,false)}}
+  async function clearMonth(){const u=user();if(!u?.id||!state.row)return;const ok=await window.MMHUI?.confirm?.(`Clear the budget for ${state.month}?`,'Clear Budget',{details:'This removes the monthly and category limits for this month. Transactions are not changed.',danger:true,confirmLabel:'Clear Budget'});if(!ok)return;const button=get('budgetClearV110');window.MMHUI?.setBusy?.(button,true,'Clearing…');try{const {error}=await db.from('budgets').delete().eq('user_id',u.id).eq('budget_month',rowMonth());if(error)throw error;state.row=null;state.currency=inferDefaultCurrency();render();window.MMHUI?.toast?.('Budget cleared. Your Transactions were not changed.',{title:'Budget',type:'success'})}catch(err){window.MMHUI?.message?.(err?.message||'Unable to clear the budget.','Budget',{type:'error'})}finally{window.MMHUI?.setBusy?.(button,false)}}
+  function changeCurrency(next){if(!['USD','THB','MMK','CNY'].includes(next)||next===state.currency)return;const previous=state.currency;const monthlyInput=get('budgetMonthlyAmountV110'),oldMonthly=Number(monthlyInput.value);if(Number.isFinite(oldMonthly)&&oldMonthly>0)monthlyInput.value=String(Number(convertCode(oldMonthly,previous,next).toFixed(2)));document.querySelectorAll('[data-budget-category-input]').forEach(input=>{const v=Number(input.value);if(Number.isFinite(v)&&v>0)input.value=String(Number(convertCode(v,previous,next).toFixed(2)))});state.currency=next;if(state.row){state.row={...state.row,currency:next,monthly_amount:Number(monthlyInput.value)||0,category_budgets:Object.fromEntries([...document.querySelectorAll('[data-budget-category-input]')].map(i=>[i.dataset.budgetCategoryInput,Number(i.value)||0]).filter(([,v])=>v>0))}}render()}
+  function setup(){if(!page())return;get('budgetMonthV110').value=state.month;get('budgetMonthV110').addEventListener('change',e=>{if(/^\d{4}-(0[1-9]|1[0-2])$/.test(e.target.value))load(e.target.value)});get('budgetCurrencyV110').addEventListener('change',e=>changeCurrency(e.target.value));get('budgetSaveV110').addEventListener('click',save);get('budgetClearV110').addEventListener('click',clearMonth);['mmhvault:data-loaded','mmhvault:sync-complete','mmhvault:cache-restored','mmhvault:category-config-changed','mmhvault:config-owner-changed'].forEach(ev=>window.addEventListener(ev,()=>{if(page()?.classList.contains('active')){if(state.loadedMonth===state.month)render();else load(state.month)}}));const original=window.setPage;if(typeof original==='function'&&!original.__budgetV110){const wrapped=function(id){const result=original.apply(this,arguments);if(result==='budget'||id==='budget')setTimeout(()=>{if(state.loadedMonth===state.month)render();else load(state.month)},0);return result};wrapped.__budgetV110=true;window.setPage=wrapped}window.MMHBudgetV110={load,render,get state(){return state}}}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setup,{once:true});else setup();
+})();
 </script>
-<!-- MMHVAULT v1.0 Stable · locked release baseline after v930 RC validation. -->
+<script id="mmhvault-v1-stable-build">
+window.MMHVAULT_BUILD='1.1.0-budget-beta';
+window.MMHVAULT_RELEASE='MMHVAULT v1.1 Budget Beta';
+</script>
+<!-- MMHVAULT v1.1 Budget Beta · branched from v1.0 Stable. -->
 </body>
 <!-- MMHVAULT V4.3.0 performance baseline: logo-free account cards + restrained dashboard rendering. -->
 
@@ -22544,7 +22677,7 @@ function addTopbar(){
  const header=$('header');if(!header||header.querySelector('.mmh-finance-topbar-v500'))return;
  const bar=document.createElement('div');bar.className='mmh-finance-topbar-v500';bar.innerHTML='<label class="mmh-global-search-v500"><input id="mmhGlobalSearchV500" type="search" autocomplete="off" placeholder="Search transactions, accounts, or pages…"><kbd>⌘ K</kbd></label><span class="mmh-topbar-date-v500" id="mmhTopDateV500"></span><button class="mmh-topbar-bell-v500" id="mmhTopBellV500" type="button" aria-label="Notifications"><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>';header.prepend(bar);
  const search=$('mmhGlobalSearchV500');
- const runSearch=()=>{const q=search.value.trim();if(!q)return;const key=q.toLowerCase();if(key.includes('notification')||key.includes('通知')){document.getElementById('mmhTopBellV500')?.click();return}const pages={dashboard:'dashboard',home:'dashboard',transaction:'transactions',transactions:'transactions',invest:'invest',investment:'invest',accounts:'accounts-page',account:'accounts-page',setting:'settings',settings:'settings',feedback:'settings',exchange:'exchange',currency:'exchange',analyze:'cashflow-analyze','cash flow':'cashflow-analyze'};const found=Object.keys(pages).find(k=>key.includes(k));if(found){setPage(pages[found]);if(pages[found]==='settings'&&key.includes('feedback'))setTimeout(()=>document.querySelector('#settings .fb-nav')?.click(),180);return}setPage('transactions');setTimeout(()=>{const tx=$('txSearch');if(tx){tx.value=q;tx.dispatchEvent(new Event('input',{bubbles:true}));tx.focus();}},160)};
+ const runSearch=()=>{const q=search.value.trim();if(!q)return;const key=q.toLowerCase();if(key.includes('notification')||key.includes('通知')){document.getElementById('mmhTopBellV500')?.click();return}const pages={dashboard:'dashboard',home:'dashboard',transaction:'transactions',transactions:'transactions',invest:'invest',investment:'invest',accounts:'accounts-page',account:'accounts-page',setting:'settings',settings:'settings',feedback:'settings',exchange:'exchange',currency:'exchange',analyze:'cashflow-analyze','cash flow':'cashflow-analyze',budget:'budget',预算:'budget'};const found=Object.keys(pages).find(k=>key.includes(k));if(found){setPage(pages[found]);if(pages[found]==='settings'&&key.includes('feedback'))setTimeout(()=>document.querySelector('#settings .fb-nav')?.click(),180);return}setPage('transactions');setTimeout(()=>{const tx=$('txSearch');if(tx){tx.value=q;tx.dispatchEvent(new Event('input',{bubbles:true}));tx.focus();}},160)};
  search.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();runSearch()}if(e.key==='Escape')search.value=''});
  window.addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();search.focus();search.select()}});
  function clock(){const d=new Date();const el=$('mmhTopDateV500');if(el)el.textContent=d.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric',year:'numeric'});}clock();setInterval(clock,60000);
@@ -23063,7 +23196,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   if(window.__mmhResponsiveNavV570)return;window.__mmhResponsiveNavV570=true;
   const $=id=>document.getElementById(id);
   let menu=null,more=null,adminEpoch=0;
-  const secondary=new Set(['accounts-page','exchange','cashflow-analyze','settings']);
+  const secondary=new Set(['accounts-page','exchange','cashflow-analyze','budget','settings']);
 
   function iconButton(page,icon,label,id=''){
     const b=document.createElement('button');b.type='button';if(id)b.id=id;
@@ -23074,7 +23207,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   function rebuildMenu(){
     menu=$('moreNavMenu');if(!menu)return false;
     menu.replaceChildren();
-    const defs=[['accounts-page','▣','Accounts'],['exchange','⇄','Exchange'],['cashflow-analyze','◉','Analyze'],['settings','⚙','Settings']];
+    const defs=[['accounts-page','▣','Accounts'],['exchange','⇄','Exchange'],['cashflow-analyze','◉','Analyze'],['budget','◒','Budget'],['settings','⚙','Settings']];
     defs.forEach(([page,icon,label])=>{const b=iconButton(page,icon,label);b.onclick=e=>{e.preventDefault();e.stopPropagation();if(typeof window.setPage==='function')window.setPage(page);close();syncActive()};menu.append(b)});
     const admin=iconButton('', '♜','Administrator dashboard','mmhMoreAdminV570');admin.hidden=true;
     admin.onclick=async e=>{e.preventDefault();e.stopPropagation();const token=++adminEpoch;admin.disabled=true;try{const {data,error}=await db.rpc('mmh_is_admin');if(token!==adminEpoch)return;if(!error&&data===true)location.assign('admin.html');else admin.hidden=true}catch(_){admin.hidden=true}finally{if(document.body.contains(admin))admin.disabled=false}};
