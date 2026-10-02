@@ -6531,11 +6531,11 @@ body.mmh-v436-explorer-open #bottomNav{visibility:hidden!important;pointer-event
         <div class="cfa-budget-comparison"><div><span>Actual individual expense</span><b id="cfaActual">$ 0.00</b></div><div><span>Estimated expense</span><b id="cfaEstimate">Not set</b></div><div><span>Budget left</span><b id="cfaBudgetLeft">—</b></div></div>
         <div class="cfa-progress" role="progressbar" aria-label="Individual expense used" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="cfaProgress"><span id="cfaProgressFill"></span></div><p class="cfa-progress-caption" id="cfaProgressCaption">Enter an estimate to track spending.</p>
       </section>
-      <section class="cfa-panel" aria-labelledby="cfaBreakdownTitle"><div class="cfa-panel-head"><div><h2 id="cfaBreakdownTitle">Expense Breakdown</h2><p>Individual and Personal are kept separate.</p></div></div><div id="cfaBreakdown" class="cfa-breakdown"></div></section>
+      <section class="cfa-panel" aria-labelledby="cfaBreakdownTitle"><div class="cfa-panel-head"><div><h2 id="cfaBreakdownTitle">Expense Breakdown</h2><p>Individual and Personal are kept separate · rates show share of total spending.</p></div></div><div id="cfaBreakdown" class="cfa-breakdown"></div></section>
     </div>
     <section class="cfa-panel cfa-trend-panel" aria-labelledby="cfaTrendTitle"><div class="cfa-panel-head"><div><h2 id="cfaTrendTitle">Period Overview</h2><p id="cfaTrendSubtitle">Selected period</p></div></div><div id="cfaTrend" class="cfa-trend"></div></section>
     <section class="cfa-panel cfa-records-panel" aria-labelledby="cfaRecordsTitle"><div class="cfa-panel-head"><div><h2 id="cfaRecordsTitle">Included Records</h2><p>Transactions used in these cash flow totals.</p></div><span class="cfa-badge" id="cfaRecordCount">0 records</span></div><div class="cfa-records-scroll"><table><thead><tr><th>Date</th><th>Flow</th><th>Category</th><th>Original</th><th id="cfaRecordCurrency">USD equivalent</th></tr></thead><tbody id="cfaRecords"></tbody></table></div></section>
-    <p class="cfa-method">Amounts use your saved exchange rates. Loans, transfers, investment cash flows and Data Adjustment are excluded. The estimate follows the selected currency and is saved on this device for the signed-in account.</p>
+    <p class="cfa-method">Amounts use your saved exchange rates. Avg Daily Spend uses Individual Expense only; Personal spending is excluded from that metric. Breakdown rates show each item as a share of total spending. Loans, transfers, investment cash flows and Data Adjustment are excluded. The estimate follows the selected currency and is saved on this device for the signed-in account.</p>
   </div>
 </section>
 </main>
@@ -20813,7 +20813,12 @@ html,body{max-width:100%;overflow-x:clip}
 #cashflow-analyze .cfa-breakdown-group{padding:11px 0;border-top:1px solid rgba(111,162,214,.15)}#cashflow-analyze .cfa-breakdown-group:first-child{border-top:0;padding-top:0}
 #cashflow-analyze .cfa-breakdown-title,#cashflow-analyze .cfa-breakdown-row{display:flex;justify-content:space-between;gap:12px;align-items:baseline}
 #cashflow-analyze .cfa-breakdown-title{font-weight:850;color:#e6f0fc;margin-bottom:8px}#cashflow-analyze .cfa-breakdown-title b{font-size:16px;color:#fff}
-#cashflow-analyze .cfa-breakdown-row{padding:5px 0;color:#9db4d0;font-size:12px}#cashflow-analyze .cfa-breakdown-row b{color:#cfddf0;font-variant-numeric:tabular-nums}
+#cashflow-analyze .cfa-breakdown-row{padding:5px 0;color:#9db4d0;font-size:12px}
+#cashflow-analyze .cfa-breakdown-value{display:inline-flex;align-items:center;justify-content:flex-end;gap:8px;min-width:0;white-space:nowrap}
+#cashflow-analyze .cfa-breakdown-value b{color:#cfddf0;font-variant-numeric:tabular-nums}
+#cashflow-analyze .cfa-breakdown-title .cfa-breakdown-value b{font-size:16px;color:#fff}
+#cashflow-analyze .cfa-breakdown-rate{display:inline-flex;align-items:center;justify-content:center;min-width:44px;padding:3px 7px;border:1px solid rgba(89,187,232,.22);border-radius:999px;background:rgba(54,143,190,.09);color:#8fcce9;font-size:9px;font-style:normal;font-weight:800;letter-spacing:.025em;font-variant-numeric:tabular-nums}
+#cashflow-analyze .cfa-breakdown-title .cfa-breakdown-rate{border-color:rgba(245,196,81,.22);background:rgba(245,196,81,.08);color:#eacb78}
 #cashflow-analyze .cfa-trend-panel{margin-top:15px}#cashflow-analyze .cfa-trend{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:8px;min-height:124px;align-items:end}
 #cashflow-analyze .cfa-trend-item{min-width:0;text-align:center;color:#9cb1cc;font-size:10px}#cashflow-analyze .cfa-trend-bars{height:78px;display:flex;align-items:end;justify-content:center;gap:3px;margin-bottom:8px}
 #cashflow-analyze .cfa-trend-bars i{display:block;width:10px;min-height:3px;border-radius:4px 4px 0 0;background:#55c8f6}#cashflow-analyze .cfa-trend-bars i:last-child{background:#f494a3}
@@ -20897,13 +20902,15 @@ html,body{max-width:100%;overflow-x:clip}
     const result=totals(periodRows());
     $('cfaPeriodLabel').textContent=state.mode==='month'?new Date(state.month+'-01T12:00:00').toLocaleDateString(undefined,{month:'long',year:'numeric'}):String(state.year);
     $('cfaIncome').textContent=money(result.income);$('cfaIndividual').textContent=money(result.individual);$('cfaPersonal').textContent=money(result.personal);$('cfaRemaining').textContent=money(result.remaining);$('cfaRemaining').classList.toggle('negative',result.remaining<0);
-    const totalSpend=result.individual+result.personal,savingsRate=result.income>0?(result.remaining/result.income*100):null,days=periodDayCount(),dailySpend=days>0?totalSpend/days:0;
+    const totalSpend=result.individual+result.personal,savingsRate=result.income>0?(result.remaining/result.income*100):null,days=periodDayCount(),dailySpend=days>0?result.individual/days:0;
     const savingsEl=$('cfaSavingsRate');savingsEl.textContent=savingsRate===null?'—':savingsRate.toFixed(1)+'%';savingsEl.classList.toggle('positive',savingsRate!==null&&savingsRate>=0);savingsEl.classList.toggle('negative',savingsRate!==null&&savingsRate<0);
-    $('cfaDailySpend').textContent=money(dailySpend);$('cfaDailySpendMeta').textContent=`Total spending ${money(totalSpend)} ÷ ${days} day${days===1?'':'s'}`;
+    $('cfaDailySpend').textContent=money(dailySpend);$('cfaDailySpendMeta').textContent=`Individual expense ${money(result.individual)} ÷ ${days} day${days===1?'':'s'}`;
     drawBudget(result.individual);
+    const shareOfSpend=value=>totalSpend>0?(num(value)/totalSpend*100):0;
+    const rateBadge=value=>`<em class="cfa-breakdown-rate">${shareOfSpend(value).toFixed(1)}%</em>`;
     $('cfaBreakdown').innerHTML=[['Expense','Individual Expense',result.individual],['Personal','Personal',result.personal]].map(([key,label,total])=>{
       const rows=[...result.breakdown[key]].sort((a,b)=>b[1]-a[1]);
-      return `<div class="cfa-breakdown-group"><div class="cfa-breakdown-title"><span>${label}</span><b>${money(total)}</b></div>${rows.length?rows.map(([name,value])=>`<div class="cfa-breakdown-row"><span>${safe(name)}</span><b>${money(value)}</b></div>`).join(''):'<div class="cfa-breakdown-row">No spending in this period.</div>'}</div>`;
+      return `<div class="cfa-breakdown-group"><div class="cfa-breakdown-title"><span>${label}</span><span class="cfa-breakdown-value"><b>${money(total)}</b>${rateBadge(total)}</span></div>${rows.length?rows.map(([name,value])=>`<div class="cfa-breakdown-row"><span>${safe(name)}</span><span class="cfa-breakdown-value"><b>${money(value)}</b>${rateBadge(value)}</span></div>`).join(''):'<div class="cfa-breakdown-row">No spending in this period.</div>'}</div>`;
     }).join('');
     const year=state.mode==='month'?Number(state.month.slice(0,4)):state.year;
     const all=Array.isArray(transactions)?transactions:[];
