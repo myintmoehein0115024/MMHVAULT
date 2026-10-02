@@ -17594,6 +17594,59 @@ html body.mmh-workspace-active #moreNavMenu.more-nav-menu.open{
   window.addEventListener('mmhvault:data-change',bindReceipt);
 })();
 </script>
+
+<script id="mmhvault-popover-outside-dismiss-v750">
+(()=>{'use strict';
+  if(window.__mmhPopoverOutsideDismissV750)return;
+  window.__mmhPopoverOutsideDismissV750=true;
+  const $=id=>document.getElementById(id);
+  const closeNotify=()=>{
+    const p=$('mmhNotifyPopoverV560'),b=$('mmhTopBellV500');
+    if(p?.classList.contains('open'))p.classList.remove('open');
+    b?.setAttribute('aria-expanded','false');
+  };
+  const closeMore=()=>{
+    const m=$('moreNavMenu'),b=$('moreNavButton');
+    if(m?.classList.contains('open')){
+      m.classList.remove('open');m.setAttribute('aria-hidden','true');
+    }
+    b?.setAttribute('aria-expanded','false');
+  };
+  const outside=(target,box,trigger)=>box&&!box.contains(target)&&(!trigger||!trigger.contains(target));
+
+  // Capture phase makes dismissal reliable even when older handlers stop propagation.
+  document.addEventListener('pointerdown',e=>{
+    const target=e.target;
+    const notify=$('mmhNotifyPopoverV560'),bell=$('mmhTopBellV500');
+    const more=$('moreNavMenu'),moreBtn=$('moreNavButton');
+    if(notify?.classList.contains('open')&&outside(target,notify,bell))closeNotify();
+    if(more?.classList.contains('open')&&outside(target,more,moreBtn))closeMore();
+  },true);
+
+  // Opening one popover closes the other first.
+  document.addEventListener('click',e=>{
+    const bell=e.target?.closest?.('#mmhTopBellV500');
+    const moreBtn=e.target?.closest?.('#moreNavButton');
+    if(bell)closeMore();
+    if(moreBtn)closeNotify();
+  },true);
+
+  // Popovers should not remain floating after navigation/scrolling away.
+  window.addEventListener('scroll',()=>{closeNotify();closeMore()},{passive:true,capture:true});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeNotify();closeMore();}},true);
+  document.addEventListener('visibilitychange',()=>{if(document.hidden){closeNotify();closeMore();}});
+
+  // Any page change also dismisses both layers.
+  const installPageHook=()=>{
+    if(typeof window.setPage!=='function'||window.setPage.__mmhDismissV750)return false;
+    const old=window.setPage;
+    const wrapped=function(){closeNotify();closeMore();return old.apply(this,arguments)};
+    wrapped.__mmhDismissV750=true;wrapped.__mmhOriginal=old;window.setPage=wrapped;return true;
+  };
+  installPageHook();setTimeout(installPageHook,300);setTimeout(installPageHook,1000);
+})();
+</script>
+
 </body>
 <!-- MMHVAULT V4.3.0 performance baseline: logo-free account cards + restrained dashboard rendering. -->
 
