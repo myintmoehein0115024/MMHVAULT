@@ -23402,3 +23402,150 @@ body.light .mmh-account-detail-v830 .mmh-account-flow-v830>div,body.light .mmh-a
 </script>
 <script id="mmhvault-v830-build">window.MMHVAULT_BUILD='v830';</script>
 <!-- MMHVAULT v830 · Accounts asset center: clean Account Detail, flow, contribution, linked investments and recent activity. -->
+<style id="mmhvault-v841-exchange-settings-responsive">
+/* MMHVAULT v8.41 · Exchange + Settings responsive completion
+   Final layout layer placed after legacy templates so page width/columns cannot be re-narrowed. */
+
+/* ---------- Exchange ---------- */
+html body.mmh-workspace-active #exchange.active{
+  width:100%!important;max-width:none!important;margin:0!important;
+  display:grid!important;grid-template-columns:repeat(12,minmax(0,1fr))!important;
+  gap:18px!important;align-items:start!important;box-sizing:border-box!important;
+}
+html body #exchange>.ex-template-head,
+html body #exchange>.ex-currency-cards,
+html body #exchange>#exAsiaV10{grid-column:1/-1!important;min-width:0!important}
+html body #exchange>.exchange-converter-panel{grid-column:1/span 7!important;margin:0!important;min-width:0!important;height:100%}
+html body #exchange>.ex-rate-editor{grid-column:8/-1!important;margin:0!important;min-width:0!important;height:100%}
+html body #exchange>.panel,
+html body #exchange>#exAsiaV10{width:100%!important;max-width:none!important;box-sizing:border-box!important}
+html body #exchange .ex-currency-cards{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+html body #exchange .exchange-converter-grid{grid-template-columns:minmax(0,1fr) 48px minmax(0,1fr)!important;gap:16px!important;align-items:stretch!important}
+html body #exchange .ex-convert-side{height:100%;box-sizing:border-box}
+html body #exchange .ex-swap{align-self:center!important;justify-self:center!important}
+html body #exchange .ex-rate-editor .formgrid{grid-template-columns:repeat(3,minmax(0,1fr)) minmax(120px,.55fr)!important;gap:12px!important;align-items:end!important}
+html body #exchange .ex-save,
+html body #exchange .ex-save .btn{width:100%!important}
+html body #exchange #exAsiaV10 .asia-controls{grid-template-columns:minmax(180px,.55fr) minmax(0,1.45fr)!important;gap:14px!important}
+html body #exchange #exAsiaV10 .asia-list{grid-template-columns:repeat(3,minmax(0,1fr))!important;max-height:none!important;overflow:visible!important}
+html body #exchange #rateCards{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+
+/* ---------- Settings ---------- */
+html body.mmh-workspace-active #settings{
+  width:100%!important;max-width:none!important;margin:0!important;box-sizing:border-box!important;
+}
+html body #settings #stSettingsHomeV3:not([hidden]){
+  width:100%!important;max-width:none!important;margin:0!important;
+  display:grid!important;grid-template-columns:minmax(290px,330px) minmax(0,1fr)!important;
+  gap:20px!important;align-items:start!important;
+}
+html body #settings #stSettingsHomeV3>[id]{min-width:0!important}
+html body #settings .st-home-menu{
+  display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:16px!important;width:100%!important;min-width:0!important;
+}
+html body #settings .st-template-group,
+html body #settings .st-template-group:last-child{grid-column:auto!important;min-width:0!important;height:100%;box-sizing:border-box!important}
+html body #settings .st-template-group :is(.st-nav,.fb-nav){width:100%!important;min-width:0!important}
+html body #settings .st-template-nav-copy{min-width:0!important}
+html body #settings .st-page:not([hidden]),
+html body #settings #stPage_icon,
+html body #settings #stPage_feedback{
+  width:100%!important;max-width:none!important;margin-left:0!important;margin-right:0!important;
+  box-sizing:border-box!important;
+}
+html body #settings .st-page .st-rows,
+html body #settings .st-page .panel,
+html body #settings .st-page .st-detail,
+html body #settings .st-page .fb-panel{width:100%!important;max-width:none!important;box-sizing:border-box!important}
+html body #settings .data-center-grid-v380{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:12px!important}
+html body #settings .mmh-birthday-grid-v34216{grid-template-columns:minmax(220px,.7fr) minmax(0,1.3fr)!important;gap:16px!important}
+html body #settings .security-password-form-v379{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:14px!important}
+html body #settings .security-password-form-v379 .full{grid-column:1/-1!important}
+html body #settings #stPage_profile #mmhProfileFormV1{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+html body #settings #stPage_feedback .fb-fields{grid-template-columns:minmax(180px,.7fr) minmax(0,1.3fr)!important}
+
+/* Large tablets / compact laptops */
+@media(max-width:1279px){
+  html body.mmh-workspace-active #exchange.active{grid-template-columns:minmax(0,1fr)!important}
+  html body #exchange>.ex-template-head,
+  html body #exchange>.ex-currency-cards,
+  html body #exchange>.exchange-converter-panel,
+  html body #exchange>.ex-rate-editor,
+  html body #exchange>#exAsiaV10{grid-column:1!important;height:auto}
+  html body #exchange .ex-currency-cards{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+  html body #exchange #exAsiaV10 .asia-list{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  html body #settings #stSettingsHomeV3:not([hidden]){grid-template-columns:minmax(250px,290px) minmax(0,1fr)!important;gap:16px!important}
+  html body #settings .st-home-menu{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  html body #settings .st-template-group:last-child{grid-column:1/-1!important}
+  html body #settings .data-center-grid-v380{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+
+/* iPad / Android tablet portrait */
+@media(min-width:700px) and (max-width:999px){
+  html body #exchange .ex-currency-cards{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  html body #exchange .exchange-converter-grid{grid-template-columns:minmax(0,1fr) 48px minmax(0,1fr)!important}
+  html body #exchange .ex-rate-editor .formgrid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  html body #exchange .ex-save{grid-column:1/-1!important}
+  html body #exchange #exAsiaV10 .asia-controls{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  html body #settings #stSettingsHomeV3:not([hidden]){grid-template-columns:minmax(0,1fr)!important}
+  html body #settings .account-center-card-v375{width:100%!important}
+  html body #settings .account-center-head-v375{flex-direction:row!important;text-align:left!important;align-items:center!important}
+  html body #settings .account-center-avatar-v375{width:64px!important;height:64px!important;min-width:64px!important}
+  html body #settings .st-home-menu{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  html body #settings .st-template-group:last-child{grid-column:1/-1!important}
+}
+
+/* Phones: iPhone + Android */
+@media(max-width:699px){
+  html body.mmh-workspace-active #exchange.active,
+  html body.mmh-workspace-active #settings{width:100%!important;max-width:none!important;margin:0!important}
+  html body #exchange .ex-template-head{align-items:flex-start!important;gap:10px!important}
+  html body #exchange .ex-brand{gap:10px!important}
+  html body #exchange .ex-brand img{width:36px!important;height:36px!important}
+  html body #exchange .ex-brand h1{font-size:22px!important}
+  html body #exchange .ex-brand p{font-size:11px!important;line-height:1.45!important}
+  html body #exchange .ex-currency-cards{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}
+  html body #exchange .exchange-converter-grid{grid-template-columns:minmax(0,1fr)!important;gap:10px!important}
+  html body #exchange .ex-swap{grid-column:1!important;transform:rotate(90deg)!important;margin:0 auto!important}
+  html body #exchange .ex-rate-editor .formgrid{grid-template-columns:minmax(0,1fr)!important}
+  html body #exchange .ex-save{grid-column:1!important}
+  html body #exchange #exAsiaV10 .asia-controls,
+  html body #exchange #exAsiaV10 .asia-list{grid-template-columns:minmax(0,1fr)!important}
+  html body #exchange #rateCards{grid-template-columns:minmax(0,1fr)!important}
+  html body #exchange #exAsiaV10{padding:14px!important}
+  html body #exchange #exAsiaV10 .asia-head{align-items:flex-start!important;flex-wrap:wrap!important}
+  html body #exchange #exAsiaV10 .asia-head button{width:100%!important}
+
+  html body #settings #stSettingsHomeV3:not([hidden]),
+  html body #settings .st-home-menu{grid-template-columns:minmax(0,1fr)!important;gap:12px!important}
+  html body #settings .st-template-group,
+  html body #settings .st-template-group:last-child{grid-column:1!important}
+  html body #settings .account-center-card-v375{padding:14px!important}
+  html body #settings .account-center-head-v375{flex-direction:row!important;text-align:left!important;align-items:center!important;gap:12px!important}
+  html body #settings .account-center-avatar-v375{width:56px!important;height:56px!important;min-width:56px!important}
+  html body #settings .st-stats{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+  html body #settings .st-template-group :is(.st-nav,.fb-nav){min-height:64px!important;padding:10px!important}
+  html body #settings .st-page-head{align-items:center!important;gap:10px!important}
+  html body #settings .st-page-head h2{font-size:22px!important}
+  html body #settings .st-page .st-row{flex-wrap:wrap!important;gap:8px 12px!important}
+  html body #settings .st-page .st-row select{max-width:100%!important;width:100%!important;text-align:left!important}
+  html body #settings .data-center-grid-v380,
+  html body #settings .mmh-birthday-grid-v34216,
+  html body #settings .security-password-form-v379,
+  html body #settings #stPage_profile #mmhProfileFormV1,
+  html body #settings #stPage_feedback .fb-fields{grid-template-columns:minmax(0,1fr)!important}
+  html body #settings .security-password-form-v379 .full{grid-column:1!important}
+  html body #settings #stPage_feedback>.fb-panel{padding:14px!important}
+  html body #settings #fbSubmitV14{width:100%!important;min-width:0!important}
+}
+
+/* Narrow phones: prevent cramped two-column currency cards. */
+@media(max-width:380px){
+  html body #exchange .ex-currency-cards{grid-template-columns:minmax(0,1fr)!important}
+  html body #settings .st-stats{gap:4px!important}
+  html body #settings .st-stats b{font-size:18px!important}
+}
+</style>
+<script id="mmhvault-v841-build">window.MMHVAULT_BUILD='v841';</script>
+<!-- MMHVAULT v841 · Exchange + Settings responsive completion across desktop, iPad/Android tablet, iPhone/Android phone. -->
