@@ -9,7 +9,7 @@
 <link href="other/manifest.webmanifest" rel="manifest"/>
 <meta content="#06111f" name="theme-color"/>
 <title>MMHVAULT · Personal Finance &amp; Wealth Management</title>
-<meta name="mmhvault-release" content="1.2.1-pwa-safe-hotfix"/>
+<meta name="mmhvault-release" content="1.2.2-boot-recovery"/>
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="dns-prefetch" href="https://unpkg.com">
@@ -6835,8 +6835,15 @@ function mmhvaultFinishAuthBootV3285(session){
   }
 }
 db.auth.onAuthStateChange((event,session)=>{
-  if(event==='INITIAL_SESSION'){mmhvaultFinishAuthBootV3285(session);return;}
-  if(session){if(currentSessionUser?.id&&session.user?.id!==currentSessionUser.id){applyUserProfile(session.user);location.reload();}return;}
+  /* v1.2.2: any authenticated boot event may start the app.
+     PWA/controller changes can make SIGNED_IN arrive before/without a fresh INITIAL_SESSION. */
+  if(session){
+    if(!mmhvaultAuthBootSettledV3285 || !currentSessionUser?.id){mmhvaultFinishAuthBootV3285(session);return;}
+    if(currentSessionUser.id!==session.user?.id){applyUserProfile(session.user);location.reload();return;}
+    applyUserProfile(session.user);
+    return;
+  }
+  if(event==='INITIAL_SESSION'){mmhvaultFinishAuthBootV3285(null);return;}
   if(typeof currentSessionUser!=='undefined'&&currentSessionUser)applyUserProfile(null);
   sessionStorage.removeItem('myfinance_page');
   location.replace('login.html');
@@ -7541,15 +7548,19 @@ async function enter(session){
     if(navEl) navEl.style.display="flex";
     currentUserEmail=session.user.email||"";
     applyUserProfile(session.user);
-    await loadCustomerId(session.user);
+    /* v1.2.2: activate the workspace immediately. Cloud data can finish afterward,
+       so a slow request never leaves the app as an empty shell. */
+    sessionStorage.removeItem("myfinance_page");
+    setPage("dashboard");
+    const customerTask=loadCustomerId(session.user).catch(err=>console.warn("Customer ID boot load skipped",err));
     const se=$("settingsEmail"); if(se) se.textContent=currentUserEmail;
     const shouldWelcome=sessionStorage.getItem("myfinance_show_welcome")==="1";
     if(shouldWelcome){sessionStorage.removeItem("myfinance_show_welcome");showWelcome();}
     await loadAll();
+    await customerTask;
     // Restore the user's preferred transaction sub-tab without navigating away.
     restoreTxTab();
-    // V6.5: Dashboard is the final page selected on every full app boot.
-    sessionStorage.removeItem("myfinance_page");
+    // Dashboard stays selected after cloud data is ready.
     setPage("dashboard");
     subscribeRealtime();
     window.setTimeout(()=>openGettingStarted(session.user),250);
@@ -7651,11 +7662,13 @@ async function loadAll(opts={}){
     try{
       /* Transaction + investment data are authoritative. Rate/render issues should not
          be reported as a generic cloud connection failure. */
-      const [a,b,r]=await Promise.all([
+      const cloudRequests=Promise.all([
         db.from("transactions").select("*").eq("user_id",loadOwner).order("tx_date",{ascending:false}).order("created_at",{ascending:false}),
         db.from("investments").select("*").eq("user_id",loadOwner).order("inv_date",{ascending:false}).order("created_at",{ascending:false}),
         db.from("exchange_rates").select("*").eq("user_id",loadOwner).limit(1).maybeSingle()
       ]);
+      const cloudTimeout=new Promise((_,reject)=>setTimeout(()=>reject(new Error("Cloud data request timed out.")),15000));
+      const [a,b,r]=await Promise.race([cloudRequests,cloudTimeout]);
       if(currentSessionUser?.id!==loadOwner)return {ok:false,errors:['Session changed']};
       const hardErrors=[];
       const optionalErrors=[];
@@ -18091,8 +18104,8 @@ html body #invest .invest-entry .receipt-dropzone-v3300{width:100%!important;max
 </script>
 
 <script id="mmhvault-v1-stable-build">
-window.MMHVAULT_BUILD='1.2.1-pwa-safe-hotfix';
-window.MMHVAULT_RELEASE='MMHVAULT v1.2.1 PWA Safe Hotfix';
+window.MMHVAULT_BUILD='1.2.2-boot-recovery';
+window.MMHVAULT_RELEASE='MMHVAULT v1.2.2 Boot Recovery';
 </script>
 <!-- MMHVAULT v1.1 Budget Beta · branched from v1.0 Stable. -->
 
@@ -18494,32 +18507,32 @@ body.light #reports .report-mini-v115{background:#f3f8fb;border-color:#cfdee9}bo
 #stPage_icon .mmh-pwa-status-actions-v121{display:flex;justify-content:flex-end;margin-top:10px}
 @media(max-width:560px){#mmhPwaUpdateV121{right:14px;bottom:max(14px,calc(env(safe-area-inset-bottom,0px) + 92px));width:calc(100vw - 28px)}#mmhPwaUpdateV121 .actions{display:grid;grid-template-columns:1fr 1fr}#stPage_icon .mmh-pwa-status-grid-v121{grid-template-columns:1fr}}
 </style>
-<script id="mmhvault-v121-pwa-safe-js">
+<script id="mmhvault-v122-pwa-safe-js">
 (()=>{'use strict';
-  if(window.__MMHVAULT_PWA_V121)return;window.__MMHVAULT_PWA_V121=true;
-  const VERSION='1.2.1-pwa-safe-hotfix',RECOVERY='mmhvault_pwa_recovery_v121';
+  if(window.__MMHVAULT_PWA_V122)return;window.__MMHVAULT_PWA_V122=true;
+  const VERSION='1.2.2-boot-recovery',RECOVERY='mmhvault_pwa_recovery_v122';
   const $=id=>document.getElementById(id),lang=()=>localStorage.getItem('mmhvault_language_v3363')||'en',tr=(en,zh)=>lang()==='zh'?zh:en;
   const standalone=()=>window.matchMedia?.('(display-mode: standalone)')?.matches===true||window.navigator.standalone===true;
   const secure=()=>location.protocol==='https:'||['localhost','127.0.0.1'].includes(location.hostname);
-  let registration=null,waiting=null,reloading=false,lastCheck=0;
+  let registration=null,waiting=null,lastCheck=0;
   function offlineBox(){let e=$('mmhPwaOfflineV121');if(e)return e;e=document.createElement('div');e.id='mmhPwaOfflineV121';e.setAttribute('role','status');e.setAttribute('aria-live','polite');e.innerHTML='<i></i><span></span>';document.body.append(e);return e}
   function networkUI(){const e=offlineBox(),off=navigator.onLine===false;e.querySelector('span').textContent=tr('Offline mode · showing locally available app data. Cloud changes wait for the network.','离线模式 · 显示本地可用内容，云端操作会等待网络恢复。');e.classList.toggle('show',off);refreshStatus()}
   function updateBox(){let e=$('mmhPwaUpdateV121');if(e)return e;e=document.createElement('aside');e.id='mmhPwaUpdateV121';e.setAttribute('role','dialog');e.innerHTML='<div class="kicker">MMHVAULT UPDATE</div><h3></h3><p></p><div class="actions"><button type="button" data-later>Later</button><button class="primary" type="button" data-update>Update now</button></div>';document.body.append(e);e.querySelector('[data-later]').onclick=()=>e.classList.remove('show');e.querySelector('[data-update]').onclick=activate;return e}
   function showUpdate(worker){waiting=worker||waiting;const e=updateBox();e.querySelector('h3').textContent=tr('A new MMHVAULT version is ready','MMHVAULT 新版本已准备好');e.querySelector('p').textContent=tr('Update app files now. Financial API data is never served from the Service Worker cache.','立即更新 APP 文件。财务 API 数据不会由 Service Worker 缓存提供。');e.querySelector('[data-later]').textContent=tr('Later','稍后');e.querySelector('[data-update]').textContent=tr('Update now','立即更新');e.classList.add('show')}
-  function activate(){const w=waiting||registration?.waiting;if(!w)return check(true);reloading=true;w.postMessage({type:'SKIP_WAITING'})}
-  async function recoverOldPwa(){if(localStorage.getItem(RECOVERY)==='done')return false;let controlled=!!navigator.serviceWorker?.controller;try{if('caches'in window){const keys=await caches.keys();await Promise.all(keys.filter(k=>k.startsWith('mmhvault-')).map(k=>caches.delete(k)))}}catch(e){console.warn('[MMHVAULT] cache recovery',e)}try{if('serviceWorker'in navigator){const regs=await navigator.serviceWorker.getRegistrations();await Promise.all(regs.filter(r=>r.scope.startsWith(location.origin+location.pathname.replace(/[^/]*$/,''))).map(r=>r.unregister()))}}catch(e){console.warn('[MMHVAULT] worker recovery',e)}localStorage.setItem(RECOVERY,'done');if(controlled){location.reload();return true}return false}
+  function activate(){const w=waiting||registration?.waiting;if(w)w.postMessage({type:'SKIP_WAITING'});else check(true)}
+  async function recoverCaches(){if(localStorage.getItem(RECOVERY)==='done')return;try{if('caches'in window){const keys=await caches.keys();await Promise.all(keys.filter(k=>k.startsWith('mmhvault-')).map(k=>caches.delete(k)))}}catch(e){console.warn('[MMHVAULT] cache cleanup skipped',e)}localStorage.setItem(RECOVERY,'done')}
   async function check(user=false){if(!registration)return;const now=Date.now();if(!user&&now-lastCheck<120000)return;lastCheck=now;try{await registration.update();if(registration.waiting)showUpdate(registration.waiting);else if(user)window.MMHUI?.toast?.(tr('MMHVAULT is up to date.','MMHVAULT 已是最新版本。'),{title:'PWA',type:'success'})}catch(e){if(user)window.MMHUI?.message?.(tr('Unable to check for updates.','无法检查更新。'),'PWA',{type:'error'})}refreshStatus()}
-  function bind(reg){registration=reg;waiting=reg.waiting||null;if(waiting&&navigator.serviceWorker.controller)showUpdate(waiting);reg.addEventListener('updatefound',()=>{const w=reg.installing;if(!w)return;w.addEventListener('statechange',()=>{if(w.state==='installed'&&navigator.serviceWorker.controller)showUpdate(reg.waiting||w);refreshStatus()})});refreshStatus()}
-  async function register(){if(!('serviceWorker'in navigator)||!secure())return refreshStatus();try{const reg=await navigator.serviceWorker.register('./sw.js',{scope:'./',updateViaCache:'none'});bind(reg)}catch(e){console.warn('[MMHVAULT] safe Service Worker registration failed',e);refreshStatus()}}
-  function refreshStatus(){const host=$('stPage_icon');if(!host)return;let box=$('mmhPwaStatusV121');if(!box){box=document.createElement('section');box.id='mmhPwaStatusV121';box.className='mmh-pwa-status-v121';box.innerHTML='<h3>PWA Status</h3><div class="mmh-pwa-status-grid-v121"><div class="mmh-pwa-status-item-v121"><span>Installation</span><b data-i>—</b></div><div class="mmh-pwa-status-item-v121"><span>Offline shell</span><b data-w>—</b></div><div class="mmh-pwa-status-item-v121"><span>Network</span><b data-n>—</b></div><div class="mmh-pwa-status-item-v121"><span>Version</span><b>'+VERSION+'</b></div></div><div class="mmh-pwa-status-actions-v121"><button class="btn" type="button" data-c>Check for Update</button></div>';host.append(box);box.querySelector('[data-c]').onclick=()=>check(true)}const zh=lang()==='zh';box.querySelector('h3').textContent=zh?'PWA 状态':'PWA Status';box.querySelector('[data-i]').textContent=standalone()?(zh?'已安装 APP':'Installed app'):(navigator.serviceWorker?.controller?(zh?'浏览器 · PWA 已就绪':'Browser · PWA ready'):(zh?'浏览器':'Browser'));box.querySelector('[data-w]').textContent=registration?.waiting?(zh?'有更新可用':'Update ready'):(navigator.serviceWorker?.controller?(zh?'已启用 · 安全网络优先':'Active · safe network-first'):(registration?.installing?(zh?'正在安装…':'Installing…'):(zh?'准备中…':'Preparing…')));box.querySelector('[data-n]').textContent=navigator.onLine?(zh?'在线':'Online'):(zh?'离线':'Offline');box.querySelector('[data-c]').textContent=zh?'检查更新':'Check for Update'}
+  function bind(reg){registration=reg;waiting=reg.waiting||null;if(waiting&&navigator.serviceWorker.controller)showUpdate(waiting);reg.addEventListener('updatefound',()=>{const w=reg.installing;if(!w)return;w.addEventListener('statechange',()=>{if(w.state==='installed'&&navigator.serviceWorker.controller&&reg.waiting)showUpdate(reg.waiting);refreshStatus()})});refreshStatus()}
+  async function register(){if(!('serviceWorker'in navigator)||!secure())return refreshStatus();try{const reg=await navigator.serviceWorker.register('./sw.js',{scope:'./',updateViaCache:'none'});bind(reg)}catch(e){console.warn('[MMHVAULT] Service Worker registration skipped',e);refreshStatus()}}
+  function refreshStatus(){const host=$('stPage_icon');if(!host)return;let box=$('mmhPwaStatusV121');if(!box){box=document.createElement('section');box.id='mmhPwaStatusV121';box.className='mmh-pwa-status-v121';box.innerHTML='<h3>PWA Status</h3><div class="mmh-pwa-status-grid-v121"><div class="mmh-pwa-status-item-v121"><span>Installation</span><b data-i>—</b></div><div class="mmh-pwa-status-item-v121"><span>Offline shell</span><b data-w>—</b></div><div class="mmh-pwa-status-item-v121"><span>Network</span><b data-n>—</b></div><div class="mmh-pwa-status-item-v121"><span>Version</span><b>'+VERSION+'</b></div></div><div class="mmh-pwa-status-actions-v121"><button class="btn" type="button" data-c>Check for Update</button></div>';host.append(box);box.querySelector('[data-c]').onclick=()=>check(true)}const zh=lang()==='zh';box.querySelector('h3').textContent=zh?'PWA 状态':'PWA Status';box.querySelector('[data-i]').textContent=standalone()?(zh?'已安装 APP':'Installed app'):(navigator.serviceWorker?.controller?(zh?'浏览器 · PWA 已就绪':'Browser · PWA ready'):(zh?'浏览器':'Browser'));box.querySelector('[data-w]').textContent=registration?.waiting?(zh?'有更新可用':'Update ready'):(navigator.serviceWorker?.controller?(zh?'已启用 · 网络优先':'Active · network-first'):(registration?.installing?(zh?'正在安装…':'Installing…'):(zh?'准备中…':'Preparing…')));box.querySelector('[data-n]').textContent=navigator.onLine?(zh?'在线':'Online'):(zh?'离线':'Offline');box.querySelector('[data-c]').textContent=zh?'检查更新':'Check for Update'}
   function observe(){const root=$('settings')||document.body;new MutationObserver(()=>{if($('stPage_icon'))refreshStatus()}).observe(root,{childList:true,subtree:true});setTimeout(refreshStatus,800)}
-  if('serviceWorker'in navigator){navigator.serviceWorker.addEventListener('controllerchange',()=>{refreshStatus();if(reloading){reloading=false;location.reload()}})}
+  if('serviceWorker'in navigator)navigator.serviceWorker.addEventListener('controllerchange',refreshStatus);
   window.addEventListener('online',()=>{networkUI();setTimeout(()=>check(false),1200)});window.addEventListener('offline',networkUI);window.addEventListener('appinstalled',refreshStatus);
-  async function start(){networkUI();observe();if(await recoverOldPwa())return;await register();window.MMHPWAV121={checkForUpdate:check,refresh:refreshStatus,version:VERSION}}
+  async function start(){networkUI();observe();await recoverCaches();await register();window.MMHPWAV122={checkForUpdate:check,refresh:refreshStatus,version:VERSION}}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();
 </script>
-<!-- MMHVAULT v1.2.1 · recovery clears v1.2.0 caches once, then uses network-first static caching. -->
+<!-- MMHVAULT v1.2.2 · boot-safe PWA update: no forced reload during authentication/data startup. -->
 
 </body>
 <!-- MMHVAULT V4.3.0 performance baseline: logo-free account cards + restrained dashboard rendering. -->
