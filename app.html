@@ -8698,7 +8698,7 @@ function invFp(x){return [x.date||x.inv_date,x.asset,x.symbol||'',n(x.amount),n(
 async function handleExcelFile(file){
  const preview=$('excelPreview');if(!file){selectedExcelRows=null;$('excelImportBtn').disabled=true;preview.style.display='none';return;}
  try{const data=await file.arrayBuffer();const wb=XLSX.read(data,{type:'array',cellDates:false});const parsed=parseExcelWorkbook(wb);const txSet=new Set(transactions.map(txFp)),invSet=new Set(investments.map(invFp));const newTx=parsed.tx.filter(x=>!txSet.has(txFp(x))),newInv=parsed.inv.filter(x=>!invSet.has(invFp(x)));selectedExcelRows={newTx,newInv,fileName:file.name};preview.style.display='block';preview.innerHTML=`<b>${esc(file.name)}</b><br>Found <b>${parsed.tx.length}</b> real transaction rows and <b>${parsed.inv.length}</b> investment operations (<b>${parsed.meta.cryptoOps}</b> crypto + <b>${parsed.meta.goldOps}</b> gold).<br>New to your account: <b>${newTx.length}</b> transactions + <b>${newInv.length}</b> investments.<br><br><b>Calculated holdings preview</b><br>BTC ${parsed.meta.holdings.BTC.toFixed(10)} · ETH ${parsed.meta.holdings.ETH.toFixed(10)} · SOL ${parsed.meta.holdings.SOL.toFixed(10)} · BNB ${parsed.meta.holdings.BNB.toFixed(10)}<br>Gold ${parsed.meta.goldYwei.toFixed(2)} ရွေး = ${parsed.meta.goldKyattha.toFixed(8)} ကျပ်သား`;$('excelImportBtn').disabled=!(newTx.length||newInv.length);}catch(e){selectedExcelRows=null;$('excelImportBtn').disabled=true;preview.style.display='block';preview.innerHTML=`<span class="err">Excel read failed: ${esc(e.message)}</span>`;}}
-async function importSelectedExcel(){if(!selectedExcelRows)return;const u=(await db.auth.getUser()).data.user;if(!u)return;const {newTx,newInv,fileName}=selectedExcelRows;if(!confirm(`Import ${newTx.length} transactions and ${newInv.length} investments from ${fileName}?`))return; if(newTx.length){const r=await db.from('transactions').insert(newTx.map(x=>({user_id:u.id,tx_date:x.date,type:x.type,category:x.category,from_account:x.from_account,from_amount:x.from_amount,to_account:x.to_account,to_amount:x.to_amount,note:x.note})));if(r.error){alert('Transaction import failed: '+r.error.message);return;}}
+async function importSelectedExcel(){if(!selectedExcelRows)return;const u=(await db.auth.getUser()).data.user;if(!u)return;const {newTx,newInv,fileName}=selectedExcelRows;if(!await window.mmhVaultConfirmV740(`Import ${newTx.length} transactions and ${newInv.length} investments from ${fileName}?`,'Import data'))return; if(newTx.length){const r=await db.from('transactions').insert(newTx.map(x=>({user_id:u.id,tx_date:x.date,type:x.type,category:x.category,from_account:x.from_account,from_amount:x.from_amount,to_account:x.to_account,to_amount:x.to_amount,note:x.note})));if(r.error){alert('Transaction import failed: '+r.error.message);return;}}
  if(newInv.length){const r=await db.from('investments').insert(newInv.map(x=>({user_id:u.id,inv_date:x.date,asset:x.asset,symbol:x.symbol,amount:x.amount,fee:x.fee,other_cost:x.other_cost,buy_price:x.buy_price,market_price:x.market_price,quantity:x.quantity,note:x.note})));if(r.error){alert('Investment import failed: '+r.error.message);return;}}
  selectedExcelRows=null;$('excelFile').value='';clearExcelPreview();await loadAll({force:true});window.mmhvaultForceRenderAllV34421?.('excel-import');setPage('dashboard');alert('Excel import completed. Dashboard, Analyze and Invest are now linked to the imported Supabase data.');}
 function clearExcelPreview(){selectedExcelRows=null;const p=$('excelPreview');if(p){p.style.display='none';p.innerHTML='';}$('excelImportBtn').disabled=true;if($('excelFile'))$('excelFile').value='';const t=$('excelDropTitleV318');const s=$('excelDropSubV318');if(t)t.textContent='Choose a workbook';if(s)s.textContent='.XLSX, .XLS or .XLSM · select your finance workbook';}
@@ -8810,7 +8810,7 @@ const _renderInvestV27=renderInvest;
 function avgBuy(sym){const rows=investments.filter(x=>x.asset==='Crypto'&&x.symbol===sym);let q=0,c=0;rows.forEach(x=>{const qq=n(x.quantity);q+=qq;c+=n(x.amount)+n(x.fee)+n(x.other_cost);});return q>0?c/q:0;}
 function renderInvestV28(){_renderInvestV27();const syms=['BTC','ETH','SOL','BNB'];const cur=syms.map(s=>{const q=investments.filter(x=>x.asset==='Crypto'&&x.symbol===s).reduce((a,x)=>a+n(x.quantity),0);const p=livePrices[s]?.price||0;const v=q*p;return{s,q,p,v,avg:avgBuy(s)}});const totalV=cur.reduce((s,x)=>s+x.v,0);$('allocation').innerHTML=`<div class="invest-target-grid">${cur.map(x=>{const w=totalV?x.v/totalV*100:0;const target=V28_TARGETS[x.s]||0;return`<div class="target-card"><b>${x.s}</b><div class="small">Current ${w.toFixed(1)}% · Target ${target}%</div><div class="alloc-bar" style="margin-top:8px"><span style="width:${Math.min(100,w)}%"></span></div><div class="small" style="margin-top:6px">Avg Buy $${fmt(x.avg)}</div></div>`}).join('')}</div><div class="small" style="margin-top:10px">Targets are editable in code for now; current holdings are calculated from your investment records.</div>`;}
 async function exportMyFinanceBackup(){const out={version:'V2.9',exported_at:new Date().toISOString(),transactions,investments,rates};const blob=new Blob([JSON.stringify(out,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`MMHVAULT_Backup_${today()}.json`;a.click();URL.revokeObjectURL(a.href);$('backupStatus').textContent='Backup exported successfully.';}
-async function importMyFinanceBackup(file){if(!file)return;try{const data=JSON.parse(await file.text());if(!Array.isArray(data.transactions)||!Array.isArray(data.investments))throw new Error('Invalid MMHVAULT backup file.');const u=(await db.auth.getUser()).data.user;if(!u)throw new Error('Not signed in to MMHVAULT.');if(!confirm(`Restore ${data.transactions.length} transactions and ${data.investments.length} investments into your MMHVAULT account?`))return;const txExisting=new Set(transactions.map(txFp));const invExisting=new Set(investments.map(invFp));const ntx=data.transactions.filter(x=>!txExisting.has(txFp(x))).map(x=>({...x,user_id:u.id,tx_date:x.tx_date||x.date,created_at:undefined}));const ninv=data.investments.filter(x=>!invExisting.has(invFp(x))).map(x=>({...x,user_id:u.id,inv_date:x.inv_date||x.date,created_at:undefined}));if(ntx.length){const r=await db.from('transactions').insert(ntx.map(x=>{const {created_at,...rest}=x;return rest;}));if(r.error)throw r.error;}if(ninv.length){const r=await db.from('investments').insert(ninv.map(x=>{const {created_at,...rest}=x;return rest;}));if(r.error)throw r.error;}if(data.rates){await db.from('exchange_rates').upsert({...data.rates,user_id:u.id});}await loadAll();$('backupStatus').textContent=`Restore complete: ${ntx.length} transactions + ${ninv.length} investments added.`;}catch(e){$('backupStatus').textContent='Restore failed: '+e.message;}}
+async function importMyFinanceBackup(file){if(!file)return;try{const data=JSON.parse(await file.text());if(!Array.isArray(data.transactions)||!Array.isArray(data.investments))throw new Error('Invalid MMHVAULT backup file.');const u=(await db.auth.getUser()).data.user;if(!u)throw new Error('Not signed in to MMHVAULT.');if(!await window.mmhVaultConfirmV740(`Restore ${data.transactions.length} transactions and ${data.investments.length} investments into your MMHVAULT account?`,'Restore backup'))return;const txExisting=new Set(transactions.map(txFp));const invExisting=new Set(investments.map(invFp));const ntx=data.transactions.filter(x=>!txExisting.has(txFp(x))).map(x=>({...x,user_id:u.id,tx_date:x.tx_date||x.date,created_at:undefined}));const ninv=data.investments.filter(x=>!invExisting.has(invFp(x))).map(x=>({...x,user_id:u.id,inv_date:x.inv_date||x.date,created_at:undefined}));if(ntx.length){const r=await db.from('transactions').insert(ntx.map(x=>{const {created_at,...rest}=x;return rest;}));if(r.error)throw r.error;}if(ninv.length){const r=await db.from('investments').insert(ninv.map(x=>{const {created_at,...rest}=x;return rest;}));if(r.error)throw r.error;}if(data.rates){await db.from('exchange_rates').upsert({...data.rates,user_id:u.id});}await loadAll();$('backupStatus').textContent=`Restore complete: ${ntx.length} transactions + ${ninv.length} investments added.`;}catch(e){$('backupStatus').textContent='Restore failed: '+e.message;}}
 // Patch existing UI events without changing core cloud model.
 const _initV27=init;
 function initV28(){_initV27();bindTxFilters();}
@@ -9970,7 +9970,7 @@ async function signOutOtherSessionsV379(){
   }
 }
 async function signOutAllSessionsV379(){
-  if(!confirm('Sign out from all devices? You will also be signed out on this device.'))return;
+  if(!await window.mmhVaultConfirmV740('Sign out from all devices? You will also be signed out on this device.','Sign out all devices'))return;
   try{
     const r=await db.auth.signOut();
     if(r?.error)throw r.error;
@@ -10023,7 +10023,7 @@ async function importMyFinanceBackupV380(file){
     const invExisting=new Set(investments.map(invFp));
     const ntx=data.transactions.filter(x=>!txExisting.has(txFp(x))).map(x=>{const {created_at,...rest}=x;return {...rest,user_id:u.id,tx_date:x.tx_date||x.date};});
     const ninv=data.investments.filter(x=>!invExisting.has(invFp(x))).map(x=>{const {created_at,...rest}=x;return {...rest,user_id:u.id,inv_date:x.inv_date||x.date};});
-    if(!confirm(`Restore ${ntx.length} new transactions and ${ninv.length} new investments?`))return;
+    if(!await window.mmhVaultConfirmV740(`Restore ${ntx.length} new transactions and ${ninv.length} new investments?`,'Restore backup'))return;
     if(ntx.length){const r=await db.from('transactions').insert(ntx);if(r.error)throw r.error;}
     if(ninv.length){const r=await db.from('investments').insert(ninv);if(r.error)throw r.error;}
     if(data.rates){const safe={usd_mmk:n(data.rates.usd_mmk),usd_thb:n(data.rates.usd_thb),usd_cny:n(data.rates.usd_cny),user_id:u.id};const r=await db.from('exchange_rates').upsert(safe);if(r.error)throw r.error;}
@@ -10243,7 +10243,7 @@ async function confirmRestorePreviewV383(){
   if(!u){setRestoreStatusV383('Restore failed: not signed in to MMHVAULT.','err');return;}
   restorePreviewV383.u=u;
   const rateText=hasRates?' and saved exchange rates':'';
-  if(!confirm(`Restore ${ntx.length} new transactions and ${ninv.length} new investments${rateText}? Existing records will be kept.`))return;
+  if(!await window.mmhVaultConfirmV740(`Restore ${ntx.length} new transactions and ${ninv.length} new investments${rateText}? Existing records will be kept.`,'Review & restore'))return;
   const btn=$('restoreConfirmV383');if(btn)btn.disabled=true;
   setRestoreStatusV383('Restoring selected data to your private cloud…');
   try{
@@ -17436,6 +17436,162 @@ html body.mmh-workspace-active #moreNavMenu.more-nav-menu.open{
  function showFile(file){const p=ensurePreview();if(!p)return;if(objectUrl){URL.revokeObjectURL(objectUrl);objectUrl='';}p.replaceChildren();let visual;if(file.type?.startsWith('image/')){visual=document.createElement('img');objectUrl=URL.createObjectURL(file);visual.src=objectUrl;visual.alt='Receipt preview';}else{visual=document.createElement('div');visual.className='file-icon';visual.textContent='📄';}const copy=document.createElement('div');copy.className='copy';const b=document.createElement('b');b.textContent=file.name;const sm=document.createElement('small');sm.textContent=(file.type||'File')+' · '+humanSize(file.size);copy.append(b,sm);p.append(visual,copy);p.classList.add('show');const title=document.getElementById('receiptDropTitleV3300');const meta=document.getElementById('receiptDropMetaV3300');const hint=document.getElementById('txReceiptHint');if(title)title.textContent='Receipt selected';if(meta)meta.textContent='Click to replace this file';if(hint)hint.textContent=file.name;}
  function bind(){const input=document.getElementById('txReceipt'),drop=document.getElementById('receiptDropzoneV3300'),form=document.getElementById('txForm');if(!input||input.dataset.premiumV720)return;input.dataset.premiumV720='1';ensurePreview();input.addEventListener('change',()=>{const f=input.files?.[0];f?showFile(f):clearPreview()});if(drop){['dragenter','dragover'].forEach(ev=>drop.addEventListener(ev,()=>drop.classList.add('is-drag-v720')));['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,()=>drop.classList.remove('is-drag-v720')));}form?.addEventListener('reset',()=>setTimeout(clearPreview,0));}
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(bind,0),{once:true});else setTimeout(bind,0);
+})();
+</script>
+
+<!-- MMHVAULT v7.40 · Invest receipt upload polish + unified app dialogs -->
+<style id="mmhvault-v740-invest-receipt-dialog-polish">
+/* Add Invest receipt: compact premium upload card, no browser-native field visible */
+#invest #investmentReceiptUploadV3300{
+  width:100%;max-width:100%;box-sizing:border-box;margin:14px 0 2px;padding:16px;
+  border:1px solid rgba(96,155,210,.26);border-radius:18px;
+  background:linear-gradient(145deg,rgba(8,25,47,.86),rgba(5,16,34,.94));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.035),0 14px 34px rgba(0,0,0,.16);
+  overflow:hidden;
+}
+#invest #investmentReceiptUploadV3300 .receipt-upload-head-v3300{
+  display:flex;align-items:center;gap:11px;margin:0 0 12px;padding:0;min-width:0;
+}
+#invest #investmentReceiptUploadV3300 .receipt-upload-icon-v3300{
+  flex:0 0 38px;width:38px;height:38px;display:grid;place-items:center;border-radius:12px;
+  background:linear-gradient(145deg,rgba(46,131,181,.22),rgba(23,70,112,.18));
+  border:1px solid rgba(92,176,226,.22);font-size:17px;
+}
+#invest #investmentReceiptUploadV3300 .receipt-upload-title-v3300{font-size:15px;font-weight:800;color:#edf6ff;line-height:1.25}
+#invest #investmentReceiptUploadV3300 .receipt-upload-sub-v3300{margin-top:3px;font-size:11px;color:#8fa8c2;line-height:1.45}
+#invest #investmentReceiptUploadV3300 .receipt-upload-badge-v3300{
+  margin-left:auto;flex:0 0 auto;padding:5px 9px;border-radius:999px;border:1px solid rgba(246,199,91,.22);
+  background:rgba(246,199,91,.07);color:#ddc37c;font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;
+}
+#invest #investmentReceiptDropzoneV3300{
+  position:relative;display:grid;grid-template-columns:48px minmax(0,1fr) auto;align-items:center;gap:13px;
+  min-height:88px;width:100%;box-sizing:border-box;padding:14px 16px;border-radius:15px;
+  border:1px dashed rgba(91,169,221,.38);background:linear-gradient(180deg,rgba(12,33,57,.74),rgba(6,20,40,.72));
+  cursor:pointer;overflow:hidden;transition:border-color .18s ease,background .18s ease,transform .18s ease,box-shadow .18s ease;
+}
+#invest #investmentReceiptDropzoneV3300:hover{
+  border-color:rgba(99,194,243,.62);background:linear-gradient(180deg,rgba(15,41,69,.86),rgba(7,24,46,.82));
+  box-shadow:0 10px 24px rgba(0,0,0,.12),inset 0 0 0 1px rgba(72,190,246,.04);
+}
+#invest #investmentReceiptDropzoneV3300:active{transform:scale(.997)}
+#invest #investmentReceiptDropzoneV3300 input[type="file"]{
+  position:absolute!important;inset:0!important;width:100%!important;height:100%!important;opacity:0!important;cursor:pointer!important;
+  padding:0!important;margin:0!important;border:0!important;appearance:none!important;-webkit-appearance:none!important;
+}
+#invest #investmentReceiptDropzoneV3300 .receipt-drop-icon-v3300{
+  width:46px;height:46px;border-radius:13px;display:grid;place-items:center;
+  background:linear-gradient(145deg,rgba(63,172,226,.18),rgba(32,87,132,.18));border:1px solid rgba(85,173,223,.25);
+  color:#9bdcff;font-size:23px;font-weight:400;
+}
+#invest #investmentReceiptDropzoneV3300 .receipt-drop-copy-v3300{min-width:0;display:flex;flex-direction:column;gap:4px}
+#invest #investmentReceiptDropzoneV3300 .receipt-drop-copy-v3300 strong{
+  min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#eaf5ff;font-size:13px;font-weight:800;
+}
+#invest #investmentReceiptDropzoneV3300 .receipt-drop-copy-v3300 span{color:#849db7;font-size:10.5px;line-height:1.35}
+#invest #investmentReceiptDropzoneV3300::after{
+  content:'Select file';justify-self:end;display:inline-flex;align-items:center;justify-content:center;min-width:86px;height:34px;padding:0 12px;
+  border-radius:10px;border:1px solid rgba(93,177,227,.28);background:rgba(27,66,102,.7);color:#cceaff;font-size:11px;font-weight:800;
+}
+#invest #investmentReceiptUploadV3300 .receipt-upload-footer-v3300{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:10px;padding:0 2px;color:#758da7;font-size:10.5px;line-height:1.4;
+}
+#invest #investmentReceiptUploadV3300 .receipt-secure-v3300{min-width:0}
+#invest #investmentReceiptUploadV3300 .receipt-file-state-v3300{flex:0 0 auto;text-align:right;max-width:42%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#invest #investmentReceiptUploadV3300 .receipt-file-state-v3300.ready{color:#63dfbd}
+#invest #investmentReceiptUploadV3300 .receipt-file-state-v3300.error{color:#ff8f9d}
+#invest #investmentReceiptPreviewV740{
+  display:none;margin-top:11px;padding:10px;border-radius:13px;border:1px solid rgba(79,151,201,.22);background:rgba(5,18,36,.56);
+}
+#invest #investmentReceiptPreviewV740.show{display:flex;align-items:center;gap:11px}
+#invest #investmentReceiptPreviewV740 img{width:62px;height:62px;object-fit:cover;border-radius:10px;border:1px solid rgba(120,184,226,.24);background:#07172b}
+#invest #investmentReceiptPreviewV740 .pdf{width:62px;height:62px;display:grid;place-items:center;border-radius:10px;background:rgba(244,92,111,.1);border:1px solid rgba(244,92,111,.2);font-size:11px;font-weight:900;color:#ff9baa}
+#invest #investmentReceiptPreviewV740 .copy{min-width:0;display:flex;flex-direction:column;gap:4px}
+#invest #investmentReceiptPreviewV740 .copy b{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#e6f3ff;font-size:12px}
+#invest #investmentReceiptPreviewV740 .copy span{color:#829ab4;font-size:10.5px}
+@media(max-width:720px){
+  #invest #investmentReceiptUploadV3300{padding:13px;border-radius:16px}
+  #invest #investmentReceiptDropzoneV3300{grid-template-columns:42px minmax(0,1fr);min-height:82px;padding:12px;gap:10px}
+  #invest #investmentReceiptDropzoneV3300 .receipt-drop-icon-v3300{width:40px;height:40px;border-radius:11px;font-size:20px}
+  #invest #investmentReceiptDropzoneV3300::after{grid-column:2;justify-self:start;min-width:0;height:29px;margin-top:1px;padding:0 9px;font-size:10px}
+  #invest #investmentReceiptUploadV3300 .receipt-upload-footer-v3300{align-items:flex-start;flex-direction:column;gap:4px}
+  #invest #investmentReceiptUploadV3300 .receipt-file-state-v3300{max-width:100%;text-align:left}
+}
+</style>
+<script id="mmhvault-v740-dialog-receipt-js">
+(function(){
+  const get=id=>document.getElementById(id);
+  const safeText=v=>String(v??'').replace(/\s+/g,' ').trim();
+
+  // Unified MMHVAULT message layer. Existing alert() calls become in-app dialogs.
+  window.mmhVaultMessageV740=async function(message,title='MMHVAULT'){
+    const text=safeText(message)||'Done.';
+    try{
+      if(window.mmhEditDeleteUI?.message) return await window.mmhEditDeleteUI.message(title,text);
+      if(typeof window.mmhVaultOpenDialogV449==='function') return await window.mmhVaultOpenDialogV449({title,message:text,actions:[{label:'Close',className:'primary'}]});
+    }catch(e){console.warn('[MMHVAULT] dialog fallback',e);}
+    return false;
+  };
+  window.mmhVaultConfirmV740=async function(message,title='Confirm'){
+    const text=safeText(message);
+    try{
+      if(window.mmhEditDeleteUI?.confirm) return !!(await window.mmhEditDeleteUI.confirm(title,'MMHVAULT',text));
+      if(typeof window.mmhVaultOpenDialogV449==='function') return !!(await window.mmhVaultOpenDialogV449({title,message:text,body:'<div class="mmh-v449-dialog-note">Please review before continuing.</div>',actions:[{label:'Cancel',value:false},{label:'Confirm',className:'primary',value:true}]}));
+    }catch(e){console.warn('[MMHVAULT] confirm fallback',e);}
+    return false;
+  };
+
+  // Prevent browser-native alert boxes across the app. Non-blocking by design.
+  const nativeAlert=window.alert?.bind(window);
+  window.__mmhNativeAlertV740=nativeAlert;
+  window.alert=function(message){
+    try{window.mmhVaultMessageV740(message,'MMHVAULT');}catch(e){console.warn(e);}
+  };
+
+  function ensurePreview(){
+    const host=get('investmentReceiptUploadV3300');if(!host)return null;
+    let box=get('investmentReceiptPreviewV740');
+    if(!box){box=document.createElement('div');box.id='investmentReceiptPreviewV740';host.appendChild(box);}
+    return box;
+  }
+  function clearPreview(){
+    const box=get('investmentReceiptPreviewV740');if(!box)return;
+    const img=box.querySelector('img');if(img?.dataset?.objectUrl){try{URL.revokeObjectURL(img.dataset.objectUrl);}catch(_){}}
+    box.classList.remove('show');box.innerHTML='';
+  }
+  function renderPreview(file){
+    const box=ensurePreview();if(!box)return;
+    clearPreview();
+    if(!file)return;
+    const size=(file.size/1024/1024).toFixed(2)+' MB';
+    const isPdf=/pdf/i.test(file.type)||/\.pdf$/i.test(file.name||'');
+    if(isPdf){
+      box.innerHTML='<div class="pdf">PDF</div><div class="copy"><b></b><span></span></div>';
+      box.querySelector('b').textContent=file.name||'Receipt.pdf';box.querySelector('span').textContent=size+' · ready to upload';
+    }else{
+      const url=URL.createObjectURL(file);
+      box.innerHTML='<img alt="Receipt preview"><div class="copy"><b></b><span></span></div>';
+      const img=box.querySelector('img');img.src=url;img.dataset.objectUrl=url;
+      box.querySelector('b').textContent=file.name||'Receipt image';box.querySelector('span').textContent=size+' · ready to upload';
+    }
+    box.classList.add('show');
+  }
+  function bindReceipt(){
+    const input=get('invReceipt');if(!input||input.dataset.v740Bound==='1')return;
+    input.dataset.v740Bound='1';ensurePreview();
+    input.addEventListener('change',()=>{
+      const file=input.files?.[0]||null;
+      if(file&&file.size>10*1024*1024){clearPreview();return;}
+      renderPreview(file);
+    });
+    const form=get('invForm');
+    if(form&&!form.dataset.v740ResetBound){
+      form.dataset.v740ResetBound='1';
+      form.addEventListener('reset',()=>setTimeout(clearPreview,0));
+    }
+  }
+  function boot(){bindReceipt();setTimeout(bindReceipt,400);}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
+  window.addEventListener('mmhvault:data-change',bindReceipt);
 })();
 </script>
 </body>
