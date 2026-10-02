@@ -9,7 +9,7 @@
 <link href="other/manifest.webmanifest" rel="manifest"/>
 <meta content="#06111f" name="theme-color"/>
 <title>MMHVAULT · Personal Finance &amp; Wealth Management</title>
-<meta name="mmhvault-release" content="1.2.4-loading-recovery"/>
+<meta name="mmhvault-release" content="1.2.2-pwa-rollback"/>
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="dns-prefetch" href="https://unpkg.com">
@@ -6835,15 +6835,8 @@ function mmhvaultFinishAuthBootV3285(session){
   }
 }
 db.auth.onAuthStateChange((event,session)=>{
-  /* v1.2.2: any authenticated boot event may start the app.
-     PWA/controller changes can make SIGNED_IN arrive before/without a fresh INITIAL_SESSION. */
-  if(session){
-    if(!mmhvaultAuthBootSettledV3285 || !currentSessionUser?.id){mmhvaultFinishAuthBootV3285(session);return;}
-    if(currentSessionUser.id!==session.user?.id){applyUserProfile(session.user);Promise.resolve().then(()=>enter(session)).catch(err=>console.warn('[MMHVAULT] session handoff skipped',err));return;}
-    applyUserProfile(session.user);
-    return;
-  }
-  if(event==='INITIAL_SESSION'){mmhvaultFinishAuthBootV3285(null);return;}
+  if(event==='INITIAL_SESSION'){mmhvaultFinishAuthBootV3285(session);return;}
+  if(session){if(currentSessionUser?.id&&session.user?.id!==currentSessionUser.id){applyUserProfile(session.user);location.reload();}return;}
   if(typeof currentSessionUser!=='undefined'&&currentSessionUser)applyUserProfile(null);
   sessionStorage.removeItem('myfinance_page');
   location.replace('login.html');
@@ -7536,86 +7529,31 @@ function showWelcome(){
  window.setTimeout(hide,1900);
 }
 let activeEnterUserId="";
-function mmhReleasePrimaryUIV124(reason="boot"){
-  try{
-    const headerEl=$("header"),navEl=$("bottomNav");
-    if(headerEl)headerEl.style.display="flex";
-    if(navEl)navEl.style.display="flex";
-    document.body.classList.remove("auth-page-active");
-    document.body.classList.add("mmh-workspace-active");
-    const active=document.querySelector(".page.active");
-    if(!active||active.id==="login"){
-      try{setPage("dashboard");}catch(_e){
-        document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
-        $("dashboard")?.classList.add("active");
-      }
-    }
-    try{setDataLoadingV384(false);}catch(_e){}
-    window.__mmhPrimaryUIReleasedV124={reason,at:Date.now()};
-  }catch(err){console.warn("[MMHVAULT] primary UI release warning",err);}
-}
-function mmhDispatchAppReadyV124(detail={}){
-  if(window.__mmhAppReadyV124)return;
-  window.__mmhAppReadyV124=true;
-  setTimeout(()=>{try{window.dispatchEvent(new CustomEvent("mmhvault:app-ready",{detail:{at:Date.now(),...detail}}));}catch(_e){}},0);
-}
-function mmhBootWorkspaceWatchdogV125(){
-  let ticks=0;
-  const timer=setInterval(()=>{
-    ticks++;
-    try{
-      if(currentSessionUser?.id){
-        document.body.classList.remove('auth-page-active');
-        document.body.classList.add('mmh-workspace-active');
-        const h=document.getElementById('header'),n=document.getElementById('bottomNav');
-        if(h)h.style.display='flex'; if(n)n.style.display='flex';
-        const loader=document.getElementById('dataLoadOverlayV384');
-        if(loader){loader.classList.remove('show');loader.setAttribute('aria-hidden','true');loader.style.pointerEvents='none';}
-        const gs=document.getElementById('gettingStarted');
-        if(gs?.classList.contains('open')){gs.classList.remove('open');gs.setAttribute('aria-hidden','true');}
-        const active=[...document.querySelectorAll('.page.active')].filter(x=>x.id!=='login');
-        if(!active.length){
-          try{setPage('dashboard');}catch(_e){document.getElementById('dashboard')?.classList.add('active');}
-        }
-      }
-    }catch(e){console.warn('[MMHVAULT] boot workspace watchdog warning',e);}
-    if(ticks>=15)clearInterval(timer);
-  },1000);
-}
 async function enter(session){
-  if(!session?.user?.id)return;
+  if(!session?.user?.id) return;
   const bootGuard=$("mmhvaultAppBootGuardV3282");
   if(bootGuard)bootGuard.remove();
-  if(activeEnterUserId===session.user.id)return;
+  if(activeEnterUserId===session.user.id) return;
   activeEnterUserId=session.user.id;
   try{
+    const headerEl=$("header"), navEl=$("bottomNav");
+    if(headerEl) headerEl.style.display="flex";
+    if(navEl) navEl.style.display="flex";
     currentUserEmail=session.user.email||"";
     applyUserProfile(session.user);
-    /* v1.2.4: the workspace becomes usable before any cloud/secondary module finishes. */
-    sessionStorage.removeItem("myfinance_page");
-    mmhReleasePrimaryUIV124("session-ready");
-    const se=$("settingsEmail");if(se)se.textContent=currentUserEmail;
+    await loadCustomerId(session.user);
+    const se=$("settingsEmail"); if(se) se.textContent=currentUserEmail;
     const shouldWelcome=sessionStorage.getItem("myfinance_show_welcome")==="1";
     if(shouldWelcome){sessionStorage.removeItem("myfinance_show_welcome");showWelcome();}
-
-    /* Customer ID, cloud finance data, realtime and onboarding are all non-blocking boot tasks. */
-    Promise.resolve().then(()=>loadCustomerId(session.user)).catch(err=>console.warn("Customer ID boot load skipped",err));
-    Promise.resolve().then(()=>loadAll()).then(result=>{
-      mmhReleasePrimaryUIV124("main-data-settled");
-      try{restoreTxTab();}catch(_e){}
-      /* v1.2.5 boot quarantine: realtime is deliberately not attached during initial startup.
-         It can no longer trigger a second loadAll/render wave while the dashboard is settling. */
-      mmhDispatchAppReadyV124({dataOk:result?.ok!==false,bootQuarantine:true});
-    }).catch(err=>{
-      console.error("MMHVAULT main data boot failed",err);
-      mmhReleasePrimaryUIV124("main-data-error");
-      mmhDispatchAppReadyV124({dataOk:false,error:err?.message||String(err)});
-    });
-    mmhBootWorkspaceWatchdogV125();
-    window.setTimeout(()=>{mmhReleasePrimaryUIV124("boot-watchdog-1500");},1500);
-    window.setTimeout(()=>{mmhReleasePrimaryUIV124("boot-watchdog-7000");mmhDispatchAppReadyV124({watchdog:true});},7000);
-    /* v1.2.5: never open onboarding automatically during boot; it is a full-screen pointer-blocking layer. */
-  }finally{
+    await loadAll();
+    // Restore the user's preferred transaction sub-tab without navigating away.
+    restoreTxTab();
+    // V6.5: Dashboard is the final page selected on every full app boot.
+    sessionStorage.removeItem("myfinance_page");
+    setPage("dashboard");
+    subscribeRealtime();
+    window.setTimeout(()=>openGettingStarted(session.user),250);
+  } finally {
     activeEnterUserId="";
   }
 }
@@ -7700,113 +7638,51 @@ if(toOff){$("toAccount").value="";$("toAmount").value="";}
 }
 let loadAllPromiseV384=null;
 let lastLoadErrorV384="";
-function setDataLoadingV384(show,sub="Syncing your private cloud records."){
-  const el=$("dataLoadOverlayV384"),txt=$("dataLoadSubV384");
-  if(txt)txt.textContent=sub;
-  if(!el)return;
-  /* v1.2.4: never place a pointer-blocking overlay over an authenticated workspace. */
-  const workspaceActive=document.body?.classList.contains("mmh-workspace-active")===true;
-  const visible=!!show&&!workspaceActive;
-  el.classList.toggle("show",visible);
-  el.setAttribute("aria-hidden",visible?"false":"true");
-  el.style.pointerEvents="none";
-}
+function setDataLoadingV384(show,sub="Syncing your private cloud records."){const el=$("dataLoadOverlayV384"),txt=$("dataLoadSubV384");if(txt)txt.textContent=sub;if(el){el.classList.toggle("show",!!show);el.setAttribute("aria-hidden",show?"false":"true");}}
 function setDataErrorV384(message=""){lastLoadErrorV384=message||"";const box=$("dataErrorBannerV384"),msg=$("dataErrorMsgV384");if(msg)msg.textContent=message||"";if(box)box.classList.toggle("show",!!message);}
 function retryLoadAllV384(){setDataErrorV384("");return loadAll({force:true});}
-function mmhTimeoutV124(promise,ms,label){
-  let timer;
-  return Promise.race([Promise.resolve(promise),new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error(label||"Request timed out.")),ms);})]).finally(()=>clearTimeout(timer));
-}
-function mmhCommitMainDataV124(loadOwner,a,b){
-  if(currentSessionUser?.id!==loadOwner)throw new Error("Session changed");
-  const hardErrors=[];
-  if(a?.error){console.error("Transactions load failed",a.error);hardErrors.push("Transactions: "+a.error.message);}
-  if(b?.error){console.error("Investments load failed",b.error);hardErrors.push("Investments: "+b.error.message);}
-  if(hardErrors.length)throw new Error(hardErrors.join(" "));
-  if((a?.data||[]).some(x=>x.user_id!==loadOwner)||(b?.data||[]).some(x=>x.user_id!==loadOwner))throw new Error("Unexpected record owner");
-  transactions=a?.data||[];
-  investments=b?.data||[];
-  window.transactions=transactions;
-  window.investments=investments;
-  window.__mmhTransactionsMirror=transactions.slice();
-  window.__mmhInvestmentsMirror=investments.slice();
-  window.__mmhMainDataReadyV124={userId:loadOwner,at:Date.now(),transactions:transactions.length,investments:investments.length};
-}
-function mmhSchedulePostLoadV124(loadOwner,detail){
-  requestAnimationFrame(()=>{
-    try{mmhVaultRecoverOwnedLegacyConfigV1(loadOwner);}catch(e){console.warn("Config recovery skipped",e);}
-    try{loadRateInputs();}catch(e){console.warn("Rate input render skipped",e);}
-    /* v1.2.5: render only the visible Dashboard here. The legacy global render/event
-       fan-out is quarantined from boot because one secondary listener can blank/freeze the shell. */
-    try{
-      if(document.getElementById('dashboard')?.classList.contains('active')&&typeof renderDashboard==='function')renderDashboard();
-    }catch(e){console.warn("Primary dashboard render skipped",e);}
-    try{window.dispatchEvent(new CustomEvent('mmhvault:primary-data-ready',{detail:{at:Date.now(),bootIsolated:true,...detail}}));}catch(_e){}
-  });
-}
 async function loadAll(opts={}){
   if(loadAllPromiseV384&&!opts.force)return loadAllPromiseV384;
   loadAllPromiseV384=(async()=>{
-    const loadOwner=currentSessionUser?.id;
-    if(!loadOwner)return {ok:false,errors:["Sign in required"]};
+    const loadOwner=currentSessionUser?.id;if(!loadOwner)return {ok:false,errors:['Sign in required']};
     const hadExisting=transactions.length>0||investments.length>0;
     setDataErrorV384("");
     setDataLoadingV384(true,hadExisting?"Refreshing your private cloud records…":"Loading your private cloud records…");
-    const failsafe=setTimeout(()=>{
-      try{
-        setDataLoadingV384(false);
-        mmhReleasePrimaryUIV124?.("load-failsafe");
-      }catch(_e){}
-    },5000);
     try{
-      /* Critical boot only waits for Transactions + Investments. Exchange is isolated below. */
-      const txReq=db.from("transactions").select("*").eq("user_id",loadOwner).order("tx_date",{ascending:false}).order("created_at",{ascending:false});
-      const invReq=db.from("investments").select("*").eq("user_id",loadOwner).order("inv_date",{ascending:false}).order("created_at",{ascending:false});
-      const rateReq=db.from("exchange_rates").select("*").eq("user_id",loadOwner).limit(1).maybeSingle();
-      const [a,b]=await mmhTimeoutV124(Promise.all([txReq,invReq]),10000,"Main finance data request timed out.");
-      mmhCommitMainDataV124(loadOwner,a,b);
-
-      /* Main rows are in memory now: release UI immediately, before any render/listener/rate work. */
-      clearTimeout(failsafe);
-      setDataLoadingV384(false);
-      setDataErrorV384("");
-      try{mmhReleasePrimaryUIV124("main-data-committed");}catch(_e){}
-      mmhSchedulePostLoadV124(loadOwner,{ok:true,phase:"main-data"});
-
-      /* Exchange rate completion is optional and cannot hold startup open. */
-      Promise.resolve(rateReq).then(r=>{
-        if(currentSessionUser?.id!==loadOwner)return;
-        window.mmhGoldFxReadyV1=!r?.error&&!!r?.data;
-        if(r?.error){console.warn("Exchange rates load skipped",r.error);return;}
-        if(r?.data){rates=r.data;window.rates=rates;}
-        setTimeout(()=>{try{loadRateInputs();if(document.getElementById('dashboard')?.classList.contains('active')&&typeof renderDashboard==='function')renderDashboard();}catch(e){console.warn("Exchange rate post-load skipped",e);}},0);
-      }).catch(err=>console.warn("Exchange rates load skipped",err));
-
-      return {ok:true,errors:[]};
+      /* Transaction + investment data are authoritative. Rate/render issues should not
+         be reported as a generic cloud connection failure. */
+      const [a,b,r]=await Promise.all([
+        db.from("transactions").select("*").eq("user_id",loadOwner).order("tx_date",{ascending:false}).order("created_at",{ascending:false}),
+        db.from("investments").select("*").eq("user_id",loadOwner).order("inv_date",{ascending:false}).order("created_at",{ascending:false}),
+        db.from("exchange_rates").select("*").eq("user_id",loadOwner).limit(1).maybeSingle()
+      ]);
+      if(currentSessionUser?.id!==loadOwner)return {ok:false,errors:['Session changed']};
+      const hardErrors=[];
+      const optionalErrors=[];
+      if(a.error){console.error("Transactions load failed",a.error);hardErrors.push("Transactions: "+a.error.message);}
+      if(b.error){console.error("Investments load failed",b.error);hardErrors.push("Investments: "+b.error.message);}
+      if(hardErrors.length)throw new Error(hardErrors.join(" "));
+      if((a.data||[]).some(x=>x.user_id!==loadOwner)||(b.data||[]).some(x=>x.user_id!==loadOwner))throw Error('Unexpected record owner');
+      transactions=a.data||[];investments=b.data||[];
+      mmhVaultRecoverOwnedLegacyConfigV1(loadOwner);
+      window.mmhGoldFxReadyV1=!r.error&&!!r.data;
+      if(r.error){console.warn("Exchange rates load skipped",r.error);optionalErrors.push("Exchange Rates: "+r.error.message);}else if(r.data)rates=r.data;
+      try{loadRateInputs();}catch(e){console.warn("Rate input render skipped",e);}
+      try{render();}catch(e){console.error("MMHVAULT render failed after cloud load",e);}
+      if(optionalErrors.length)console.warn("Optional cloud data warning",optionalErrors);
+      try{window.transactions=transactions;window.investments=investments;window.rates=rates;}catch(_e){}
+      try{window.dispatchEvent(new CustomEvent("mmhvault:data-loaded",{detail:{ok:hardErrors.length===0,at:Date.now()}}));}catch(_e){}
+      return {ok:hardErrors.length===0,errors:[...hardErrors,...optionalErrors]};
     }catch(err){
-      clearTimeout(failsafe);
-      if(currentSessionUser?.id!==loadOwner)return {ok:false,errors:["Session changed"]};
+      if(currentSessionUser?.id!==loadOwner)return {ok:false,errors:['Session changed']};
       console.error("loadAll failed",err);
       let restored=false;
-      try{
-        if(!hadExisting&&typeof window.mmhvaultRestoreCacheV336==='function'){
-          restored=window.mmhvaultRestoreCacheV336();
-          if(restored){
-            transactions=window.transactions||transactions;
-            investments=window.investments||investments;
-            rates=Object.assign({},rates||{},window.rates||{});
-            setTimeout(()=>{try{scheduleRenderV3441();}catch(_e){}},0);
-          }
-        }
-      }catch(_e){}
+      try{if(!hadExisting&&typeof window.mmhvaultRestoreCacheV336==='function'){restored=window.mmhvaultRestoreCacheV336();if(restored){try{transactions=window.transactions||transactions;investments=window.investments||investments;rates=Object.assign({},rates||{},window.rates||{});}catch(_e){}try{render();}catch(_e){}}}}catch(_e){}
       const msg=restored?"Cloud is temporarily unavailable. Showing your last saved data. Reconnect to refresh.":(hadExisting?"Cloud refresh failed. Your last loaded data is still shown. Please check your connection and retry.":"Unable to load cloud data. Please check your connection and retry.");
-      setDataLoadingV384(false);
-      try{mmhReleasePrimaryUIV124("main-data-failed");}catch(_e){}
       setDataErrorV384(msg);
-      setTimeout(()=>{try{window.dispatchEvent(new CustomEvent('mmhvault:primary-data-ready',{detail:{ok:false,restored,at:Date.now(),bootIsolated:true}}));}catch(_e){}},0);
+      try{window.dispatchEvent(new CustomEvent("mmhvault:data-loaded",{detail:{ok:false,restored,at:Date.now()}}));}catch(_e){}
       return {ok:false,restored,errors:[err?.message||String(err)]};
     }finally{
-      clearTimeout(failsafe);
       setDataLoadingV384(false);
     }
   })();
@@ -12389,7 +12265,7 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
         state.status=result&&result.ok===false?'stale':'ready';if(result?.ok===true)state.lastLoadedAt=Date.now();
         try{window.__mmhTransactionsMirror=Array.isArray(transactions)?transactions.slice():[];}catch(e){}
         try{window.__mmhInvestmentsMirror=Array.isArray(investments)?investments.slice():[];}catch(e){}
-        setTimeout(()=>publish('mmhvault:data-loaded',{reason:'cloud-refresh',ok:result?.ok===true,result:result||null}),0);
+        publish('mmhvault:data-loaded',{reason:'cloud-refresh',ok:result?.ok===true,result:result||null});
         return result;
       }catch(err){
         state.status='error';state.lastReason='cloud-refresh-error';publish('mmhvault:data-error',{error:String(err?.message||err)});throw err;
@@ -12415,7 +12291,7 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
     try{document.documentElement.dataset.realtime=String(d.connected?"connected":(d.status||"unknown")).toLowerCase();}catch(_e){}
   });
   window.addEventListener("mmhvault:data-loaded",function(){
-    setTimeout(()=>{try{window.dispatchEvent(new CustomEvent("mmhvault:sync-complete",{detail:window.mmhvaultGetRealtimeStateV335()}));}catch(_e){}},0);
+    try{window.dispatchEvent(new CustomEvent("mmhvault:sync-complete",{detail:window.mmhvaultGetRealtimeStateV335()}));}catch(_e){}
   });
   if(typeof subscribeRealtime==='function') setTimeout(()=>{try{subscribeRealtime();}catch(err){console.warn("Realtime kernel init skipped:",err);}},0);
 })();
@@ -18215,8 +18091,8 @@ html body #invest .invest-entry .receipt-dropzone-v3300{width:100%!important;max
 </script>
 
 <script id="mmhvault-v1-stable-build">
-window.MMHVAULT_BUILD='1.2.3-boot-isolation';
-window.MMHVAULT_RELEASE='MMHVAULT v1.2.3 Boot Isolation';
+window.MMHVAULT_BUILD='1.2.2-pwa-rollback';
+window.MMHVAULT_RELEASE='MMHVAULT v1.2.2 PWA Rollback';
 </script>
 <!-- MMHVAULT v1.1 Budget Beta · branched from v1.0 Stable. -->
 
@@ -18596,61 +18472,37 @@ body.light #reports .report-mini-v115{background:#f3f8fb;border-color:#cfdee9}bo
 
 
 
-<!-- MMHVAULT v1.2.1 · PWA Safe Recovery -->
-<style id="mmhvault-v121-pwa-safe-css">
-#mmhPwaOfflineV121{position:fixed;left:50%;top:max(12px,env(safe-area-inset-top,0px));transform:translate(-50%,-16px);z-index:62000;display:flex;align-items:center;gap:9px;max-width:min(92vw,520px);padding:10px 14px;border:1px solid rgba(231,197,104,.32);border-radius:13px;background:rgba(24,27,31,.96);color:#f1d98f;box-shadow:0 18px 52px rgba(0,0,0,.34);font-size:11px;font-weight:750;line-height:1.35;opacity:0;pointer-events:none;transition:opacity .18s ease,transform .18s ease;backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px)}
-#mmhPwaOfflineV121.show{opacity:1;transform:translate(-50%,0)}
-#mmhPwaOfflineV121 i{width:8px;height:8px;border-radius:50%;background:#e7c568;box-shadow:0 0 0 4px rgba(231,197,104,.09);flex:0 0 auto}
-#mmhPwaUpdateV121{position:fixed;right:max(18px,env(safe-area-inset-right,0px));bottom:max(18px,calc(env(safe-area-inset-bottom,0px) + 18px));z-index:62010;width:min(390px,calc(100vw - 28px));padding:16px;border:1px solid rgba(87,170,226,.34);border-radius:17px;background:linear-gradient(145deg,rgba(8,25,43,.98),rgba(4,14,27,.99));box-shadow:0 24px 72px rgba(0,0,0,.42),inset 0 1px 0 rgba(255,255,255,.035);color:#e5eef5;opacity:0;transform:translateY(16px) scale(.985);pointer-events:none;transition:opacity .2s ease,transform .2s ease}
-#mmhPwaUpdateV121.show{opacity:1;transform:none;pointer-events:auto}
-#mmhPwaUpdateV121 .kicker{font-size:8px;font-weight:850;letter-spacing:.14em;color:#e1bd66;text-transform:uppercase}
-#mmhPwaUpdateV121 h3{margin:6px 0 5px;font-size:16px;color:#eef5fa;letter-spacing:-.02em}
-#mmhPwaUpdateV121 p{margin:0;color:#89a0b3;font-size:10px;line-height:1.55}
-#mmhPwaUpdateV121 .actions{display:flex;justify-content:flex-end;gap:8px;margin-top:13px}
-#mmhPwaUpdateV121 button{min-height:38px;padding:0 13px;border:1px solid #31516a;border-radius:11px;background:#0c2439;color:#b9cad8;font:inherit;font-size:10px;font-weight:800;cursor:pointer}
-#mmhPwaUpdateV121 button.primary{border-color:rgba(228,189,95,.38);background:linear-gradient(135deg,rgba(228,189,95,.15),rgba(24,41,57,.93));color:#f0d68a}
-#stPage_icon .mmh-pwa-status-v121{margin-top:14px;padding:15px;border:1px solid rgba(86,151,204,.22);border-radius:15px;background:linear-gradient(145deg,rgba(10,29,48,.74),rgba(5,17,31,.82))}
-#stPage_icon .mmh-pwa-status-v121 h3{margin:0 0 11px;font-size:14px;color:#e5eef5}
-#stPage_icon .mmh-pwa-status-grid-v121{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
-#stPage_icon .mmh-pwa-status-item-v121{min-width:0;padding:10px 11px;border:1px solid rgba(90,145,184,.14);border-radius:11px;background:rgba(8,24,39,.52)}
-#stPage_icon .mmh-pwa-status-item-v121 span{display:block;color:#70899c;font-size:8px;font-weight:800;letter-spacing:.07em;text-transform:uppercase}
-#stPage_icon .mmh-pwa-status-item-v121 b{display:block;margin-top:5px;color:#dbe8f0;font-size:10px;overflow-wrap:anywhere}
-#stPage_icon .mmh-pwa-status-actions-v121{display:flex;justify-content:flex-end;margin-top:10px}
-@media(max-width:560px){#mmhPwaUpdateV121{right:14px;bottom:max(14px,calc(env(safe-area-inset-bottom,0px) + 92px));width:calc(100vw - 28px)}#mmhPwaUpdateV121 .actions{display:grid;grid-template-columns:1fr 1fr}#stPage_icon .mmh-pwa-status-grid-v121{grid-template-columns:1fr}}
-</style>
-<script id="mmhvault-v122-pwa-safe-js">
+<!-- MMHVAULT v1.2.2 · PWA rollback recovery
+     The v1.2.1 runtime Service Worker/PWA controller was removed because it introduced
+     a reload/control race during authenticated app boot. This cleanup never reloads the page. -->
+<script id="mmhvault-v122-pwa-rollback-cleanup">
 (()=>{'use strict';
-  if(window.__MMHVAULT_PWA_V122)return;window.__MMHVAULT_PWA_V122=true;
-  const VERSION='1.2.5-boot-quarantine',RECOVERY='mmhvault_pwa_recovery_v125';
-  const $=id=>document.getElementById(id),lang=()=>localStorage.getItem('mmhvault_language_v3363')||'en',tr=(en,zh)=>lang()==='zh'?zh:en;
-  const standalone=()=>window.matchMedia?.('(display-mode: standalone)')?.matches===true||window.navigator.standalone===true;
-  const secure=()=>location.protocol==='https:'||['localhost','127.0.0.1'].includes(location.hostname);
-  let registration=null,waiting=null,lastCheck=0;
-  function offlineBox(){let e=$('mmhPwaOfflineV121');if(e)return e;e=document.createElement('div');e.id='mmhPwaOfflineV121';e.setAttribute('role','status');e.setAttribute('aria-live','polite');e.innerHTML='<i></i><span></span>';document.body.append(e);return e}
-  function networkUI(){const e=offlineBox(),off=navigator.onLine===false;e.querySelector('span').textContent=tr('Offline mode · showing locally available app data. Cloud changes wait for the network.','离线模式 · 显示本地可用内容，云端操作会等待网络恢复。');e.classList.toggle('show',off);refreshStatus()}
-  function updateBox(){let e=$('mmhPwaUpdateV121');if(e)return e;e=document.createElement('aside');e.id='mmhPwaUpdateV121';e.setAttribute('role','dialog');e.innerHTML='<div class="kicker">MMHVAULT UPDATE</div><h3></h3><p></p><div class="actions"><button type="button" data-later>Later</button><button class="primary" type="button" data-update>Update now</button></div>';document.body.append(e);e.querySelector('[data-later]').onclick=()=>e.classList.remove('show');e.querySelector('[data-update]').onclick=activate;return e}
-  function showUpdate(worker){waiting=worker||waiting;const e=updateBox();e.querySelector('h3').textContent=tr('A new MMHVAULT version is ready','MMHVAULT 新版本已准备好');e.querySelector('p').textContent=tr('Update app files now. Financial API data is never served from the Service Worker cache.','立即更新 APP 文件。财务 API 数据不会由 Service Worker 缓存提供。');e.querySelector('[data-later]').textContent=tr('Later','稍后');e.querySelector('[data-update]').textContent=tr('Update now','立即更新');e.classList.add('show')}
-  function activate(){const w=waiting||registration?.waiting;if(w)w.postMessage({type:'SKIP_WAITING'});else check(true)}
-  async function recoverCaches(){if(localStorage.getItem(RECOVERY)==='done')return;try{if('caches'in window){const keys=await caches.keys();await Promise.all(keys.filter(k=>k.startsWith('mmhvault-')).map(k=>caches.delete(k)))}}catch(e){console.warn('[MMHVAULT] cache cleanup skipped',e)}localStorage.setItem(RECOVERY,'done')}
-  async function check(user=false){if(!registration)return;const now=Date.now();if(!user&&now-lastCheck<120000)return;lastCheck=now;try{await registration.update();if(registration.waiting)showUpdate(registration.waiting);else if(user)window.MMHUI?.toast?.(tr('MMHVAULT is up to date.','MMHVAULT 已是最新版本。'),{title:'PWA',type:'success'})}catch(e){if(user)window.MMHUI?.message?.(tr('Unable to check for updates.','无法检查更新。'),'PWA',{type:'error'})}refreshStatus()}
-  function bind(reg){registration=reg;waiting=reg.waiting||null;if(waiting&&navigator.serviceWorker.controller)showUpdate(waiting);reg.addEventListener('updatefound',()=>{const w=reg.installing;if(!w)return;w.addEventListener('statechange',()=>{if(w.state==='installed'&&navigator.serviceWorker.controller&&reg.waiting)showUpdate(reg.waiting);refreshStatus()})});refreshStatus()}
-  async function register(){if(!('serviceWorker'in navigator)||!secure())return refreshStatus();try{const reg=await navigator.serviceWorker.register('./sw.js',{scope:'./',updateViaCache:'none'});bind(reg)}catch(e){console.warn('[MMHVAULT] Service Worker registration skipped',e);refreshStatus()}}
-  function refreshStatus(){const host=$('stPage_icon');if(!host)return;let box=$('mmhPwaStatusV121');if(!box){box=document.createElement('section');box.id='mmhPwaStatusV121';box.className='mmh-pwa-status-v121';box.innerHTML='<h3>PWA Status</h3><div class="mmh-pwa-status-grid-v121"><div class="mmh-pwa-status-item-v121"><span>Installation</span><b data-i>—</b></div><div class="mmh-pwa-status-item-v121"><span>Offline shell</span><b data-w>—</b></div><div class="mmh-pwa-status-item-v121"><span>Network</span><b data-n>—</b></div><div class="mmh-pwa-status-item-v121"><span>Version</span><b>'+VERSION+'</b></div></div><div class="mmh-pwa-status-actions-v121"><button class="btn" type="button" data-c>Check for Update</button></div>';host.append(box);box.querySelector('[data-c]').onclick=()=>check(true)}const zh=lang()==='zh';box.querySelector('h3').textContent=zh?'PWA 状态':'PWA Status';box.querySelector('[data-i]').textContent=standalone()?(zh?'已安装 APP':'Installed app'):(navigator.serviceWorker?.controller?(zh?'浏览器 · PWA 已就绪':'Browser · PWA ready'):(zh?'浏览器':'Browser'));box.querySelector('[data-w]').textContent=registration?.waiting?(zh?'有更新可用':'Update ready'):(navigator.serviceWorker?.controller?(zh?'已启用 · 网络优先':'Active · network-first'):(registration?.installing?(zh?'正在安装…':'Installing…'):(zh?'准备中…':'Preparing…')));box.querySelector('[data-n]').textContent=navigator.onLine?(zh?'在线':'Online'):(zh?'离线':'Offline');box.querySelector('[data-c]').textContent=zh?'检查更新':'Check for Update'}
-  function observe(){const root=$('settings')||document.body;new MutationObserver(()=>{if($('stPage_icon'))refreshStatus()}).observe(root,{childList:true,subtree:true});setTimeout(refreshStatus,800)}
-  if('serviceWorker'in navigator)navigator.serviceWorker.addEventListener('controllerchange',refreshStatus);
-  window.addEventListener('online',()=>{networkUI();setTimeout(()=>check(false),1200)});window.addEventListener('offline',networkUI);window.addEventListener('appinstalled',refreshStatus);
-  let pwaStarted=false;
-  async function start(){if(pwaStarted)return;pwaStarted=true;networkUI();observe();
-    /* v1.2.5 diagnostic quarantine: do not install/update a Service Worker while the finance shell is booting. */
-    try{if('serviceWorker' in navigator){const regs=await navigator.serviceWorker.getRegistrations();await Promise.allSettled(regs.map(r=>r.unregister()));}}catch(e){console.warn('[MMHVAULT] SW quarantine skipped',e)}
-    window.MMHPWAV122={checkForUpdate:()=>Promise.resolve(),refresh:refreshStatus,version:VERSION,quarantined:true};refreshStatus()}
-  const startLater=()=>setTimeout(()=>start().catch(e=>console.warn('[MMHVAULT] deferred PWA start skipped',e)),700);
-  /* v1.2.4: PWA registration begins after primary app boot settles, never in parallel with finance startup. */
-  window.addEventListener('mmhvault:app-ready',startLater,{once:true});
-  setTimeout(()=>{if(!pwaStarted&&document.body?.classList.contains('mmh-workspace-active'))startLater();},15000);
+  if(window.__MMHVAULT_PWA_ROLLBACK_V122)return;
+  window.__MMHVAULT_PWA_ROLLBACK_V122=true;
+  const retire=async()=>{
+    try{
+      if('serviceWorker' in navigator){
+        const regs=await navigator.serviceWorker.getRegistrations();
+        await Promise.allSettled(regs.map(reg=>reg.unregister()));
+      }
+    }catch(e){console.warn('[MMHVAULT] Service Worker retirement skipped',e);}
+    try{
+      if('caches' in window){
+        const keys=await caches.keys();
+        await Promise.allSettled(keys.filter(k=>k.startsWith('mmhvault-')).map(k=>caches.delete(k)));
+      }
+    }catch(e){console.warn('[MMHVAULT] PWA cache cleanup skipped',e);}
+    try{
+      localStorage.removeItem('mmhvault_pwa_recovery_v121');
+      localStorage.setItem('mmhvault_pwa_rollback_v122','done');
+    }catch(_e){}
+  };
+  // Never block finance boot and never reload. Cleanup runs after the current document is usable.
+  if(document.readyState==='complete')setTimeout(retire,0);
+  else window.addEventListener('load',()=>setTimeout(retire,0),{once:true});
 })();
 </script>
-<!-- MMHVAULT v1.2.4 · loading recovery: primary UI and main data are isolated from secondary/PWA boot work. -->
+<!-- MMHVAULT v1.2.2 · PWA runtime disabled; finance boot restored to pre-PWA behavior. -->
 
 </body>
 <!-- MMHVAULT V4.3.0 performance baseline: logo-free account cards + restrained dashboard rendering. -->

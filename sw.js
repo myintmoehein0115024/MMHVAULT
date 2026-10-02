@@ -1,10 +1,19 @@
-/* MMHVAULT v1.2.5 Boot Quarantine Service Worker
-   Temporary safe shell: no application HTML/data caching and no fetch interception. */
+/* MMHVAULT v1.2.2 PWA rollback retirement worker */
 'use strict';
-const VERSION='1.2.5-boot-quarantine';
-self.addEventListener('install',event=>{self.skipWaiting();});
-self.addEventListener('activate',event=>{event.waitUntil((async()=>{
-  try{const keys=await caches.keys();await Promise.all(keys.filter(k=>k.startsWith('mmhvault-')).map(k=>caches.delete(k)));}catch(_){}
-  await self.clients.claim();
-})());});
-self.addEventListener('message',event=>{if(event.data?.type==='SKIP_WAITING')self.skipWaiting();});
+self.addEventListener('install',event=>{
+  event.waitUntil(self.skipWaiting());
+});
+self.addEventListener('activate',event=>{
+  event.waitUntil((async()=>{
+    try{
+      const keys=await caches.keys();
+      await Promise.allSettled(keys.filter(k=>k.startsWith('mmhvault-')).map(k=>caches.delete(k)));
+    }catch(_e){}
+    try{await self.registration.unregister();}catch(_e){}
+    try{
+      const clients=await self.clients.matchAll({type:'window',includeUncontrolled:true});
+      for(const client of clients){try{client.postMessage({type:'MMHVAULT_SW_RETIRED'});}catch(_e){}}
+    }catch(_e){}
+  })());
+});
+self.addEventListener('fetch',()=>{});
