@@ -17115,8 +17115,6 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     bell.dataset.mmhNotifyBoundV560='1';
     bell.setAttribute('aria-haspopup','dialog');bell.setAttribute('aria-expanded','false');
     bell.addEventListener('click',e=>{if(!desktop())return;e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();toggle()},true);
-    document.addEventListener('click',e=>{if(!popup?.classList.contains('open'))return;if(!popup.contains(e.target)&&!bell.contains(e.target))close()});
-    document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});
     window.addEventListener('resize',()=>{if(!desktop())close();else requestAnimationFrame(place)});
     window.addEventListener('orientationchange',()=>setTimeout(place,80));
     load(false);
@@ -17683,6 +17681,8 @@ button[data-mmh-busy="1"],.btn[data-mmh-busy="1"]{position:relative;cursor:wait!
 })();
 </script>
 
+
+<!-- MMHVAULT V7.7 interaction cleanup: one global popover dismissal layer; consolidated mobile notification CSS. -->
 </body>
 <!-- MMHVAULT V4.3.0 performance baseline: logo-free account cards + restrained dashboard rendering. -->
 
@@ -23288,37 +23288,31 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   function toggle(v){v?open():close()}
   function syncActive(){if(!more)return;const page=document.querySelector('.page.active')?.id||'';const active=secondary.has(page)||menu?.classList.contains('open');more.classList.toggle('active',active);if(secondary.has(page))more.setAttribute('aria-current','page');else more.removeAttribute('aria-current');menu?.querySelectorAll('[data-more-page]').forEach(b=>b.classList.toggle('active',b.dataset.morePage===page))}
   function cleanupRail(){const rail=$('bottomNav');if(!rail)return;rail.querySelectorAll('.mmh-side-extra-v500,.mmh-direct-nav-v530').forEach(el=>el.remove());const brand=rail.querySelector('.mmh-sidebar-brand-v500');if(brand){const img=brand.querySelector('img');if(img)img.src='images/mmhvault-logo-transparent.png';const strong=brand.querySelector('strong');const small=brand.querySelector('small');if(strong)strong.textContent='MMHVAULT';if(small)small.textContent='PERSONAL FINANCE · WEALTH'}}
-  function init(){cleanupRail();rebuildMenu();replaceMore();syncActive();document.addEventListener('click',e=>{if(menu?.classList.contains('open')&&!menu.contains(e.target)&&!more?.contains(e.target))close()});document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});window.addEventListener('resize',()=>{if(window.innerWidth>=1100&&menu?.classList.contains('open'))requestAnimationFrame(positionDesktop)});window.addEventListener('orientationchange',()=>setTimeout(()=>{close();syncActive()},80));try{db.auth?.onAuthStateChange(()=>setTimeout(syncAdmin,50))}catch(_){}}
+  function init(){cleanupRail();rebuildMenu();replaceMore();syncActive();window.addEventListener('resize',()=>{if(window.innerWidth>=1100&&menu?.classList.contains('open'))requestAnimationFrame(positionDesktop)});window.addEventListener('orientationchange',()=>setTimeout(()=>{close();syncActive()},80));try{db.auth?.onAuthStateChange(()=>setTimeout(syncAdmin,50))}catch(_){}}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(init,0),{once:true});else setTimeout(init,0);
   const main=document.querySelector('main.wrap')||document.body;new MutationObserver(syncActive).observe(main,{subtree:true,attributes:true,attributeFilter:['class']});
 })();
 </script>
-<style id="mmhvault-notification-popover-mobile-v570">
-@media(max-width:1099px){
-  #mmhNotifyPopoverV560{position:fixed!important;z-index:26050!important;left:50%!important;right:auto!important;top:auto!important;bottom:calc(96px + env(safe-area-inset-bottom,0px))!important;width:min(420px,calc(100vw - 20px))!important;max-height:min(62vh,500px)!important;display:flex!important;flex-direction:column!important;overflow:hidden!important;border:1px solid rgba(98,159,205,.30)!important;border-radius:18px!important;background:linear-gradient(155deg,rgba(8,28,45,.995),rgba(3,14,26,.998))!important;box-shadow:0 24px 65px rgba(0,0,0,.50),inset 0 1px 0 rgba(255,255,255,.04)!important;backdrop-filter:blur(22px) saturate(120%)!important;-webkit-backdrop-filter:blur(22px) saturate(120%)!important;opacity:0!important;visibility:hidden!important;pointer-events:none!important;transform:translate(-50%,10px) scale(.985)!important;transition:opacity .15s ease,transform .15s ease,visibility .15s ease!important}
-  #mmhNotifyPopoverV560.open{opacity:1!important;visibility:visible!important;pointer-events:auto!important;transform:translate(-50%,0) scale(1)!important}
-  #header .mmh-topbar-bell-v500{overflow:visible!important}
-  #header .mmh-topbar-bell-v500::after{display:none!important;content:none!important}
-  #header .mmh-topbar-bell-v500 .mmh-notify-count-v560{position:absolute!important;right:-4px!important;top:-4px!important;min-width:17px!important;height:17px!important;padding:0 4px!important;display:grid!important;place-items:center!important;border-radius:999px!important;background:#ef4f69!important;color:#fff!important;border:2px solid #071725!important;font-size:8px!important;font-weight:900!important;line-height:1!important;box-sizing:border-box!important}
-  #header .mmh-topbar-bell-v500 .mmh-notify-count-v560[hidden]{display:none!important}
-}
-</style>
 
 
-<style id="mmhvault-mobile-tablet-notification-final-v600">
+<style id="mmhvault-mobile-tablet-notification-v770">
+/* V7.7 — consolidated mobile/tablet notification rules.
+   Replaces the overlapping v570 + v600 layers with one authoritative block. */
 @media(max-width:1099px){
-  html body.mmh-workspace-active #header{
-    display:flex!important;align-items:center!important;overflow:visible!important;
-  }
+  html body.mmh-workspace-active #header{display:flex!important;align-items:center!important;overflow:visible!important}
   #header .mmhvault-sync-status-v337,#header #mmhvaultSyncStatusV337{display:none!important}
   #header .header-spacer{display:none!important}
   #header .mmhvault-header-brand{display:flex!important;order:1!important;flex:1 1 auto!important;min-width:0!important}
   #header .mmh-finance-topbar-v500{display:flex!important;order:2!important;flex:0 0 auto!important;align-items:center!important;justify-content:center!important;width:auto!important;min-width:40px!important;margin-left:auto!important}
   #header .mmh-global-search-v500,#header .mmh-topbar-date-v500{display:none!important}
-  #header .mmh-topbar-bell-v500{position:relative!important;display:grid!important;place-items:center!important;width:40px!important;height:40px!important;min-width:40px!important;padding:0!important;margin:0!important;border-radius:12px!important;border:1px solid #2d4a62!important;background:linear-gradient(180deg,#10273b,#0a1c2d)!important;color:#cfdeea!important;box-shadow:none!important;cursor:pointer!important}
+  #header .mmh-topbar-bell-v500{position:relative!important;display:grid!important;place-items:center!important;width:40px!important;height:40px!important;min-width:40px!important;padding:0!important;margin:0!important;border-radius:12px!important;border:1px solid #2d4a62!important;background:linear-gradient(180deg,#10273b,#0a1c2d)!important;color:#cfdeea!important;box-shadow:none!important;cursor:pointer!important;overflow:visible!important}
+  #header .mmh-topbar-bell-v500::after{display:none!important;content:none!important}
+  #header .mmh-topbar-bell-v500 .mmh-notify-count-v560{position:absolute!important;right:-4px!important;top:-4px!important;min-width:17px!important;height:17px!important;padding:0 4px!important;display:grid!important;place-items:center!important;border-radius:999px!important;background:#ef4f69!important;color:#fff!important;border:2px solid #071725!important;font-size:8px!important;font-weight:900!important;line-height:1!important;box-sizing:border-box!important}
+  #header .mmh-topbar-bell-v500 .mmh-notify-count-v560[hidden]{display:none!important}
   #header .header-profile{display:flex!important;order:3!important;flex:0 0 auto!important;margin-left:8px!important}
-  #mmhNotifyPopoverV560{left:auto!important;right:10px!important;top:72px!important;bottom:auto!important;width:min(390px,calc(100vw - 20px))!important;max-height:min(66vh,520px)!important;transform:translateY(8px) scale(.985)!important}
-  #mmhNotifyPopoverV560.open{transform:translateY(0) scale(1)!important}
+
+  #mmhNotifyPopoverV560{position:fixed!important;z-index:26050!important;display:flex!important;flex-direction:column!important;overflow:hidden!important;left:auto!important;right:10px!important;top:72px!important;bottom:auto!important;width:min(390px,calc(100vw - 20px))!important;max-width:none!important;max-height:min(66vh,520px)!important;border-radius:18px!important;opacity:0!important;visibility:hidden!important;pointer-events:none!important;transform:translateY(8px) scale(.985)!important;transform-origin:90% 0!important}
+  #mmhNotifyPopoverV560.open{opacity:1!important;visibility:visible!important;pointer-events:auto!important;transform:translateY(0) scale(1)!important}
 }
 @media(max-width:620px){
   html body.mmh-workspace-active #header{gap:6px!important;padding-left:10px!important;padding-right:10px!important}
@@ -23328,7 +23322,15 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   #header .mmh-topbar-bell-v500{width:38px!important;height:38px!important;min-width:38px!important}
   #header .header-profile{margin-left:4px!important;max-width:140px!important}
   #header .header-profile-copy span{display:none!important}
-  #mmhNotifyPopoverV560{right:8px!important;top:66px!important;width:calc(100vw - 16px)!important;max-height:calc(100vh - 158px)!important}
+  #mmhNotifyPopoverV560{right:8px!important;top:66px!important;width:calc(100vw - 16px)!important;max-height:calc(100vh - 158px)!important;border-radius:16px!important}
+  #mmhNotifyPopoverV560 .np-head{padding:12px 11px 10px!important}
+  #mmhNotifyPopoverV560 .np-title-icon{width:32px!important;height:32px!important;flex-basis:32px!important}
+  #mmhNotifyPopoverV560 .np-title strong{font-size:12px!important}
+  #mmhNotifyPopoverV560 .np-title small{font-size:8px!important}
+  #mmhNotifyPopoverV560 .np-refresh{min-height:31px!important;padding:5px 8px!important;font-size:9px!important}
+  #mmhNotifyPopoverV560 .np-list{padding:7px!important}
+  #mmhNotifyPopoverV560 .np-item{padding:11px 10px 10px 13px!important}
+  #mmhNotifyPopoverV560 .np-kind{font-size:7.5px!important;padding:4px 6px!important}
 }
 @media(max-width:390px){
   #header .mmhvault-header-brand .logo>span:not(.version){font-size:14px!important}
