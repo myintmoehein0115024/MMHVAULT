@@ -13777,37 +13777,7 @@ html body #invest .invest-subtabs-v371{display:grid!important;grid-template-colu
   window.MM_HVAULT_FINANCIAL_DATA_ENGLISH={version:'V4.3.0',protected:[...EXACT]};
 })();
 </script>
-<style id="mmhvault-v34222-performance-css">
-/* V4.3.0 — performance layer: preserve visual quality while reducing off-screen/GPU work. */
-#dashboard .panel:not(#dashboardCommandCenterV34210),
-#dashboard .dashboard-premium-panel{
-  content-visibility:auto;
-  contain:layout paint style;
-  contain-intrinsic-size: 420px;
-}
-#dashboard .panel:not(#dashboardCommandCenterV34210),
-#dashboard .dashboard-premium-panel{
-  backdrop-filter:blur(7px)!important;
-  -webkit-backdrop-filter:blur(7px)!important;
-}
-#dashboard .mmh-dashboard-stage-panel::before,
-#dashboard .mmh-dashboard-stage-panel::after{
-  animation-duration:28s!important;
-}
-#dashboard .mmh-age-live-badge-v34218{
-  animation-duration:7s!important;
-}
-@media (max-width:800px){
-  #dashboard .panel:not(#dashboardCommandCenterV34210),
-  #dashboard .dashboard-premium-panel{
-    backdrop-filter:blur(4px)!important;
-    -webkit-backdrop-filter:blur(4px)!important;
-  }
-}
-@media (prefers-reduced-motion:reduce){
-  #dashboard *{animation:none!important;transition:none!important;scroll-behavior:auto!important}
-}
-</style>
+
 <script id="mmhvault-v34222-performance-js">
 (function(){
   if(window.__mmhV34221PerformanceInstalled)return;
@@ -15106,38 +15076,7 @@ body.mmhvault-scroll-active #invest .invest-top>.panel{box-shadow:inset 0 1px 0 
     }
   }catch(_e){}
 
-  // 2) Scope Dashboard Core refreshes by a compact data signature.
-  try{
-    const baseDashCore=window.renderDashboardV372 || (typeof renderDashboardV372==='function' ? renderDashboardV372 : null);
-    if(baseDashCore && !baseDashCore.__mmhV34238Wrapped){
-      let lastKey='';
-      const wrapped=function(){
-        try{
-          const monthKey=document.getElementById('month')?.value || (typeof today==='function'?today().slice(0,7):'');
-          const tx=Array.isArray(window.transactions)?window.transactions:[];
-          let amountSum=0, idSum=0, dateSum=0;
-          const prefix=monthKey;
-          for(const t of tx){
-            if(String(t?.tx_date||'').startsWith(prefix)){
-              amountSum += (Number(t?.from_amount)||0) + (Number(t?.to_amount)||0);
-              idSum += Number(t?.id)||0;
-              dateSum += String(t?.tx_date||'').length;
-            }
-          }
-          const invCount=Array.isArray(window.investments)?window.investments.length:0;
-          const liveSum=Object.values(window.livePrices||{}).reduce((s,x)=>s+(Number(x?.price)||0),0);
-          const key=[monthKey,tx.length,amountSum.toFixed(8),idSum, dateSum, invCount, liveSum.toFixed(8), localStorage.getItem('mmhSavingsTarget')||localStorage.getItem('targetSavingsRate')||60].join('|');
-          if(key===lastKey)return;
-          lastKey=key;
-        }catch(_e){ lastKey=''; }
-        return baseDashCore.apply(this,arguments);
-      };
-      wrapped.__mmhV34238Wrapped=true;
-      window.renderDashboardV372=wrapped;
-      try{ renderDashboardV372=wrapped; }catch(_e){}
-    }
-  }catch(_e){}
-
+  // 2) Retired legacy Dashboard Core gate removed in v790; Premium Dashboard owns dashboard rendering.
   // 3) Debounce only the free-text transaction search input; selects remain immediate.
   try{
     const search=document.getElementById('txSearch');
@@ -17151,48 +17090,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   #mmhPremiumDashboardV500 .pf-allocation-v500{grid-template-columns:1fr}.pf-legend-v500{width:min(240px,100%);margin:0 auto}
 }
 </style>\n
-<style id="mmhvault-dashboard-mobile-fix-v590">
-@media(max-width:1099px){
-  html body.mmh-workspace-active #header{
-    display:flex!important;align-items:center!important;gap:10px!important;overflow:visible!important;
-  }
-  #header .mmh-finance-topbar-v500{
-    display:flex!important;flex:0 0 auto!important;align-items:center!important;gap:0!important;min-width:42px!important;width:42px!important;order:2!important;
-  }
-  #header .mmh-global-search-v500,#header .mmh-topbar-date-v500{display:none!important}
-  #header .mmh-topbar-bell-v500{
-    position:relative!important;display:grid!important;place-items:center!important;width:42px!important;height:42px!important;min-width:42px!important;
-    padding:0!important;margin:0!important;border-radius:13px!important;border:1px solid #2d4a62!important;
-    background:linear-gradient(180deg,#10273b,#0a1c2d)!important;color:#cfdeea!important;box-shadow:none!important;cursor:pointer!important;
-  }
-  #header .header-profile{order:3!important}
-  #header .mmhvault-header-brand{order:1!important;min-width:0!important}
 
-  #dashboard #mmhPremiumDashboardV500{display:block!important;width:100%!important;max-width:none!important}
-  #mmhPremiumDashboardV500 .pf-kpi-v500,#mmhPremiumDashboardV500 .pf-card-v500{display:block!important}
-}
-@media(max-width:620px){
-  html body.mmh-workspace-active #header{padding-left:10px!important;padding-right:10px!important;gap:7px!important}
-  #header .mmhvault-header-brand .logo{gap:6px!important}
-  #header .mmhvault-header-logo-img{width:34px!important;height:34px!important;flex-basis:34px!important}
-  #header .mmhvault-header-brand .logo>span:not(.version){font-size:17px!important}
-  #header .header-profile{max-width:132px!important}
-  #header .mmh-finance-topbar-v500{width:38px!important;min-width:38px!important}
-  #header .mmh-topbar-bell-v500{width:38px!important;height:38px!important;min-width:38px!important;border-radius:12px!important}
-
-  #mmhPremiumDashboardV500 .pf-hero-v500{border-radius:16px!important}
-  #mmhPremiumDashboardV500 .pf-kpis-v500{grid-template-columns:repeat(2,minmax(0,1fr))!important}
-  #mmhPremiumDashboardV500 .pf-kpi-v500{min-height:112px!important}
-  #mmhPremiumDashboardV500 .pf-main-grid-v500,#mmhPremiumDashboardV500 .pf-bottom-grid-v500{grid-template-columns:1fr!important}
-}
-@media(max-width:390px){
-  #header .mmhvault-header-brand .logo>span:not(.version){font-size:15px!important}
-  #header .header-profile{max-width:112px!important}
-  #header .header-avatar{width:34px!important;height:34px!important;min-width:34px!important}
-  #header .header-profile-copy b{font-size:12px!important}
-  #mmhPremiumDashboardV500 .pf-kpis-v500{grid-template-columns:1fr!important}
-}
-</style>
 
 <style id="mmhvault-premium-popovers-v610">
 /* V6.1 — unified premium notification + More popovers on desktop/tablet/phone. */
@@ -17616,6 +17514,8 @@ button[data-mmh-busy="1"],.btn[data-mmh-busy="1"]{position:relative;cursor:wait!
 
 <!-- MMHVAULT V7.7 interaction cleanup: one global popover dismissal layer; consolidated mobile notification CSS. -->
 <!-- MMHVAULT v7.8.0 · Native account currency + Analyze efficiency metrics + render/responsive cleanup -->
+
+<!-- MMHVAULT v790 structure cleanup: v580 owns Premium Dashboard responsive, v570 owns navigation, v770 owns mobile notification/header responsive. -->
 </body>
 <!-- MMHVAULT V4.3.0 performance baseline: logo-free account cards + restrained dashboard rendering. -->
 
@@ -19152,226 +19052,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
      MMHVAULT V4.3.0 · SIGNATURE ACTIONS & NAVIGATION POLISH
      Visual refinement only — no features, routes, data or logic changed.
 ========================================================= -->
-<style id="mmhvault-v4301-signature-actions-navigation">
-/* ============================================================
-   PREMIUM QUICK ACTION BAR
-============================================================ */
-#dashboard .dashboard-quick-actions-v371{
-  position:relative!important;
-  isolation:isolate;
-  gap:12px!important;
-}
-#dashboard .dashboard-quick-actions-v371::before{
-  content:"";
-  position:absolute;
-  left:4%;
-  right:4%;
-  top:-8px;
-  height:1px;
-  background:linear-gradient(90deg,transparent,rgba(117,197,255,.16),rgba(238,196,99,.12),transparent);
-  pointer-events:none;
-}
 
-/* All actions share one premium glass system */
-#dashboard .dashboard-quick-actions-v371 .btn{
-  position:relative!important;
-  overflow:hidden!important;
-  isolation:isolate!important;
-  min-height:58px!important;
-  border-radius:18px!important;
-  border:1px solid rgba(129,177,226,.18)!important;
-  background:
-    linear-gradient(135deg,
-      rgba(255,255,255,.065),
-      rgba(76,112,160,.045) 34%,
-      rgba(12,29,55,.72) 100%)!important;
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.09),
-    0 10px 24px rgba(0,0,0,.13)!important;
-  backdrop-filter:blur(16px) saturate(125%)!important;
-  -webkit-backdrop-filter:blur(16px) saturate(125%)!important;
-  color:#e5eefb!important;
-  font-weight:780!important;
-  letter-spacing:.015em!important;
-}
-
-/* Moving glass reflection */
-#dashboard .dashboard-quick-actions-v371 .btn::before{
-  content:""!important;
-  position:absolute!important;
-  width:42%!important;
-  height:180%!important;
-  left:-55%!important;
-  top:-40%!important;
-  z-index:-1!important;
-  transform:rotate(22deg)!important;
-  background:linear-gradient(90deg,transparent,rgba(255,255,255,.13),transparent)!important;
-  opacity:.52;
-  transition:transform .85s cubic-bezier(.2,.8,.2,1);
-}
-
-/* Fine top light */
-#dashboard .dashboard-quick-actions-v371 .btn::after{
-  content:""!important;
-  position:absolute!important;
-  left:14px!important;
-  right:14px!important;
-  top:0!important;
-  height:1px!important;
-  border-radius:999px!important;
-  background:linear-gradient(90deg,transparent,rgba(229,244,255,.60),transparent)!important;
-  opacity:.62;
-  pointer-events:none!important;
-}
-
-/* Primary action becomes a refined cyan-to-violet signature */
-#dashboard .dashboard-quick-actions-v371 .btn.primary{
-  border-color:rgba(119,209,255,.33)!important;
-  background:
-    linear-gradient(110deg,
-      rgba(52,185,227,.82),
-      rgba(74,132,231,.74) 48%,
-      rgba(179,56,197,.78))!important;
-  color:#f6fbff!important;
-  text-shadow:0 1px 0 rgba(0,0,0,.14)!important;
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.22),
-    0 14px 30px rgba(47,128,224,.17),
-    0 0 26px rgba(191,62,224,.06)!important;
-}
-
-/* Open Analyze gets a quiet champagne accent */
-#dashboard .dashboard-quick-actions-v371 .btn:last-child{
-  border-color:rgba(207,177,108,.18)!important;
-}
-#dashboard .dashboard-quick-actions-v371 .btn:last-child::after{
-  background:linear-gradient(90deg,transparent,rgba(248,216,141,.56),transparent)!important;
-}
-
-@media(hover:hover){
-  #dashboard .dashboard-quick-actions-v371 .btn:hover{
-    transform:translateY(-3px)!important;
-    border-color:rgba(145,211,255,.32)!important;
-    box-shadow:
-      inset 0 1px 0 rgba(255,255,255,.13),
-      0 18px 36px rgba(0,0,0,.20),
-      0 0 24px rgba(71,180,255,.045)!important;
-  }
-  #dashboard .dashboard-quick-actions-v371 .btn:hover::before{
-    transform:translateX(360%) rotate(22deg)!important;
-  }
-  #dashboard .dashboard-quick-actions-v371 .btn.primary:hover{
-    box-shadow:
-      inset 0 1px 0 rgba(255,255,255,.28),
-      0 20px 40px rgba(47,128,224,.22),
-      0 0 34px rgba(191,62,224,.10)!important;
-  }
-}
-
-/* ============================================================
-   BOTTOM NAVIGATION — FLOATING PRIVATE TERMINAL DOCK
-============================================================ */
-#dashboard .bottom-nav,
-#dashboard .dashboard-bottom-nav,
-#dashboard nav.bottom-nav{
-  position:relative!important;
-  border:1px solid rgba(120,178,231,.20)!important;
-  border-radius:22px!important;
-  background:
-    linear-gradient(145deg,
-      rgba(24,45,76,.84),
-      rgba(7,18,37,.92))!important;
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.10),
-    0 16px 34px rgba(0,0,0,.25),
-    0 0 32px rgba(45,152,228,.035)!important;
-  backdrop-filter:blur(18px) saturate(125%)!important;
-  -webkit-backdrop-filter:blur(18px) saturate(125%)!important;
-  overflow:hidden!important;
-}
-
-/* Glass highlight across the navigation dock */
-#dashboard .bottom-nav::before,
-#dashboard .dashboard-bottom-nav::before,
-#dashboard nav.bottom-nav::before{
-  content:"";
-  position:absolute;
-  left:18px;
-  right:18px;
-  top:0;
-  height:1px;
-  border-radius:999px;
-  background:linear-gradient(90deg,transparent,rgba(235,247,255,.58),rgba(104,204,255,.38),transparent);
-  pointer-events:none;
-}
-
-/* Navigation items */
-#dashboard .bottom-nav a,
-#dashboard .dashboard-bottom-nav a,
-#dashboard nav.bottom-nav a{
-  position:relative;
-  border-radius:14px!important;
-  color:#a8bbd2!important;
-  transition:transform .22s ease,color .22s ease,background .22s ease!important;
-}
-#dashboard .bottom-nav a.active,
-#dashboard .dashboard-bottom-nav a.active,
-#dashboard nav.bottom-nav a.active{
-  color:#eef7ff!important;
-  background:
-    linear-gradient(135deg,rgba(105,180,255,.16),rgba(80,118,199,.10))!important;
-  border:1px solid rgba(121,192,255,.20)!important;
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.08),
-    0 6px 16px rgba(0,0,0,.12)!important;
-}
-#dashboard .bottom-nav a.active::after,
-#dashboard .dashboard-bottom-nav a.active::after,
-#dashboard nav.bottom-nav a.active::after{
-  content:"";
-  position:absolute;
-  left:28%;
-  right:28%;
-  bottom:5px;
-  height:2px;
-  border-radius:999px;
-  background:linear-gradient(90deg,rgba(87,202,255,.22),rgba(155,212,255,.85),rgba(87,202,255,.22));
-  box-shadow:0 0 10px rgba(89,204,255,.20);
-}
-@media(hover:hover){
-  #dashboard .bottom-nav a:hover,
-  #dashboard .dashboard-bottom-nav a:hover,
-  #dashboard nav.bottom-nav a:hover{
-    color:#eaf4ff!important;
-    transform:translateY(-1px);
-  }
-}
-
-/* Mobile */
-@media(max-width:760px){
-  #dashboard .dashboard-quick-actions-v371{
-    gap:9px!important;
-  }
-  #dashboard .dashboard-quick-actions-v371 .btn{
-    min-height:52px!important;
-    border-radius:15px!important;
-  }
-  #dashboard .bottom-nav,
-  #dashboard .dashboard-bottom-nav,
-  #dashboard nav.bottom-nav{
-    border-radius:18px!important;
-  }
-}
-
-@media(prefers-reduced-motion:reduce){
-  #dashboard .dashboard-quick-actions-v371 .btn,
-  #dashboard .bottom-nav a,
-  #dashboard .dashboard-bottom-nav a,
-  #dashboard nav.bottom-nav a{
-    transition:none!important;
-  }
-}
-</style>
 
 <!-- =========================================================
      MMHVAULT V4.3.0 · BOTTOM NAVIGATION FIX
@@ -22791,11 +22472,24 @@ function ensureSeamlessTransactionFlowV710(){
  };
  state.raf=requestAnimationFrame(tick);
 }
-function wrapRender(){const base=window.renderDashboard;if(typeof base==='function'&&!base.__pfV500){window.__mmhLegacyDashboardRenderV780=base;const wrapped=function(){let legacyResult;if(!document.getElementById('mmhPremiumDashboardV500')){try{legacyResult=base.apply(this,arguments)}catch(e){console.warn('[MMHVAULT] legacy dashboard fallback skipped',e)}}requestAnimationFrame(()=>render(false));return legacyResult};wrapped.__pfV500=true;window.renderDashboard=wrapped;try{renderDashboard=wrapped}catch(_){}}}
-function init(){addSidebar();addTopbar();ensureDashboardHost();wrapRender();ensureSeamlessTransactionFlowV710();setTimeout(render,240)}
-['mmhvault:data-loaded','mmhvault:data-change','mmhvault:cache-restored','mmhvault:sync-complete','mmhvault:dashboard-rendered','languagechange','mmhvault-language-change','mmhvault-birthday-change','mmhvault:age-tick'].forEach(ev=>window.addEventListener(ev,()=>setTimeout(()=>render(false),90)));
+let dashboardRenderTimerV790=0,dashboardRenderRafV790=0,dashboardRenderForceV790=false;
+function scheduleDashboardRenderV790(delay=0,force=false){
+ dashboardRenderForceV790=dashboardRenderForceV790||!!force;
+ clearTimeout(dashboardRenderTimerV790);
+ dashboardRenderTimerV790=setTimeout(()=>{
+   if(dashboardRenderRafV790)return;
+   dashboardRenderRafV790=requestAnimationFrame(()=>{
+     dashboardRenderRafV790=0;
+     const runForce=dashboardRenderForceV790;dashboardRenderForceV790=false;
+     render(runForce);
+   });
+ },Math.max(0,Number(delay)||0));
+}
+function wrapRender(){const base=window.renderDashboard;if(typeof base==='function'&&!base.__pfV500){window.__mmhLegacyDashboardRenderV780=base;const wrapped=function(){let legacyResult;if(!document.getElementById('mmhPremiumDashboardV500')){try{legacyResult=base.apply(this,arguments)}catch(e){console.warn('[MMHVAULT] legacy dashboard fallback skipped',e)}}scheduleDashboardRenderV790(0,false);return legacyResult};wrapped.__pfV500=true;window.renderDashboard=wrapped;try{renderDashboard=wrapped}catch(_){}}}
+function init(){addSidebar();addTopbar();ensureDashboardHost();wrapRender();ensureSeamlessTransactionFlowV710();scheduleDashboardRenderV790(180,true)}
+['mmhvault:data-loaded','mmhvault:data-change','mmhvault:cache-restored','mmhvault:sync-complete','mmhvault:dashboard-rendered','languagechange','mmhvault-language-change','mmhvault-birthday-change','mmhvault:age-tick'].forEach(ev=>window.addEventListener(ev,()=>scheduleDashboardRenderV790(70,false)));
 window.addEventListener('mmhvault:market-updated',scheduleMarketOnlyV720);
-window.addEventListener('resize',()=>{clearTimeout(window.__pfResizeV500);window.__pfResizeV500=setTimeout(render,120)});
+window.addEventListener('resize',()=>scheduleDashboardRenderV790(110,false));
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
 </script>
