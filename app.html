@@ -4979,7 +4979,7 @@ body.mmh-v436-explorer-open #bottomNav{visibility:hidden!important;pointer-event
 </div>
 </div>
 <main class="wrap">
-<section class="page" id="accounts-page"><div class="ap-heading"><div><h1>Accounts</h1><p>Your cash accounts and investment portfolios</p></div><label>Display currency<select id="apCurrency" aria-label="Account display currency"><option value="USD">$</option><option value="MMK">K</option><option value="THB">฿</option><option value="CNY">￥</option><option value="NATIVE">Original currency</option></select></label></div><div id="apBody"></div></section>
+<section class="page" id="accounts-page"><div class="ap-heading"><div><h1>Accounts</h1><p>Your cash accounts and investment portfolios</p></div><label>Display currency<select id="apCurrency" aria-label="Account display currency"><option value="NATIVE" selected>Original currency</option><option value="USD">$</option><option value="MMK">K</option><option value="THB">฿</option><option value="CNY">￥</option></select></label></div><div id="apBody"></div></section>
 <section class="page" id="dashboard">
 <div id="mmhPremiumDashboardV500"></div>
 <div id="mmhDashboardLegacyBridgeV580" hidden aria-hidden="true" style="display:none!important">
@@ -6518,6 +6518,10 @@ body.mmh-v436-explorer-open #bottomNav{visibility:hidden!important;pointer-event
       <div class="cfa-card cfa-expense"><span>INDIVIDUAL EXPENSE</span><strong id="cfaIndividual">$ 0.00</strong><small>Everyday Expense transactions</small></div>
       <div class="cfa-card cfa-personal"><span>PERSONAL</span><strong id="cfaPersonal">$ 0.00</strong><small>Personal and family spending</small></div>
       <div class="cfa-card cfa-remaining"><span>REMAINING</span><strong id="cfaRemaining">$ 0.00</strong><small>Income − Individual Expense − Personal</small></div>
+    </div>
+    <div class="cfa-efficiency-kpis" aria-live="polite">
+      <div class="cfa-mini-card cfa-savings-rate"><span>SAVINGS RATE</span><strong id="cfaSavingsRate">—</strong><small>Remaining ÷ income</small></div>
+      <div class="cfa-mini-card cfa-daily-spend"><span>AVG DAILY SPEND</span><strong id="cfaDailySpend">$ 0.00</strong><small id="cfaDailySpendMeta">Average across the selected period</small></div>
     </div>
     <div class="cfa-detail-grid">
       <section class="cfa-panel" aria-labelledby="cfaBudgetTitle">
@@ -15880,78 +15884,6 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
 
 <!-- MMHVAULT · UNIFIED MOBILE BOTTOM NAV
      Minimal visual correction on the approved version. -->
-<style id="mmhvault-unified-mobile-bottom-nav">
-@media (max-width: 760px){
-  #bottomNav.bottom-nav{
-    display:grid!important;
-    grid-template-columns:repeat(4,minmax(0,1fr))!important;
-    align-items:stretch!important;
-    gap:6px!important;
-    box-sizing:border-box!important;
-  }
-
-  /* All four tabs use exactly the same dimensions */
-  #bottomNav.bottom-nav > button,
-  #bottomNav.bottom-nav > button:nth-child(2),
-  #bottomNav.bottom-nav > button.active,
-  #bottomNav.bottom-nav > button[aria-current="page"]{
-    width:100%!important;
-    min-width:0!important;
-    max-width:100%!important;
-    height:78px!important;
-    min-height:78px!important;
-    margin:0!important;
-    padding:8px 3px!important;
-    display:flex!important;
-    flex-direction:column!important;
-    align-items:center!important;
-    justify-content:center!important;
-    gap:6px!important;
-    border-radius:17px!important;
-    box-sizing:border-box!important;
-    transform:none!important;
-  }
-
-  /* Icons are normalized, including the smaller 💳 Transactions glyph */
-  #bottomNav.bottom-nav > button .mmh-nav-icon{
-    display:flex!important;
-    width:30px!important;
-    height:30px!important;
-    align-items:center!important;
-    justify-content:center!important;
-    flex:0 0 30px!important;
-    margin:0!important;
-    padding:0!important;
-    font-style:normal!important;
-    font-size:25px!important;
-    line-height:1!important;
-  }
-
-  /* Every label uses one consistent size and alignment */
-  #bottomNav.bottom-nav > button > span,
-  #bottomNav.bottom-nav > button:nth-child(2) > span{
-    display:block!important;
-    width:100%!important;
-    margin:0!important;
-    padding:0!important;
-    overflow:hidden!important;
-    text-overflow:ellipsis!important;
-    white-space:nowrap!important;
-    text-align:center!important;
-    font-size:11px!important;
-    line-height:1.15!important;
-    letter-spacing:0!important;
-  }
-
-  #bottomNav.bottom-nav > button.active::after,
-  #bottomNav.bottom-nav > button[aria-current="page"]::after{
-    left:34%!important;
-    right:34%!important;
-    bottom:5px!important;
-  }
-}
-</style>
-
 <script src="js/mmhvault-premium-motion.js"></script>
 
 <script id="mmhvault-analyze-insights-render-bridge-v2">
@@ -17683,6 +17615,7 @@ button[data-mmh-busy="1"],.btn[data-mmh-busy="1"]{position:relative;cursor:wait!
 
 
 <!-- MMHVAULT V7.7 interaction cleanup: one global popover dismissal layer; consolidated mobile notification CSS. -->
+<!-- MMHVAULT v7.8.0 · Native account currency + Analyze efficiency metrics + render/responsive cleanup -->
 </body>
 <!-- MMHVAULT V4.3.0 performance baseline: logo-free account cards + restrained dashboard rendering. -->
 
@@ -19215,21 +19148,6 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
      Step 2 — premium glass asset rows + subtle live depth.
      Visual only: no data, calculations, or interactions changed.
 ========================================================= -->
-<style id="mmhvault-v4301-allocation-cards-signature">
-
-/* Subtle premium response */
-@media(hover:hover){
-}
-
-/* Responsive refinement */
-@media(max-width:760px){
-}
-
-/* Reduced motion */
-@media(prefers-reduced-motion:reduce){
-}
-</style>
-
 <!-- =========================================================
      MMHVAULT V4.3.0 · SIGNATURE ACTIONS & NAVIGATION POLISH
      Visual refinement only — no features, routes, data or logic changed.
@@ -19600,102 +19518,6 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
      MMHVAULT V4.3.0 · MOBILE BOTTOM NAVIGATION SPACING FIX
      Mobile-only layout refinement — removes crowding.
 ========================================================= -->
-<style id="mmhvault-v4301-mobile-bottom-nav-spacing">
-@media(max-width:760px){
-
-  /* Give the dock more breathing room and a stable width */
-  #bottomNav.bottom-nav{
-    width:calc(100% - 42px)!important;
-    max-width:430px!important;
-    min-height:92px!important;
-    padding:10px 9px 12px!important;
-    border-radius:26px!important;
-    display:grid!important;
-    grid-template-columns:repeat(4,minmax(0,1fr))!important;
-    align-items:center!important;
-    justify-items:stretch!important;
-    gap:4px!important;
-    box-sizing:border-box!important;
-  }
-
-  /* Each item gets its own clear touch area */
-  #bottomNav.bottom-nav button{
-    min-width:0!important;
-    min-height:68px!important;
-    padding:8px 2px 7px!important;
-    display:flex!important;
-    flex-direction:column!important;
-    align-items:center!important;
-    justify-content:center!important;
-    gap:6px!important;
-    border-radius:18px!important;
-    box-sizing:border-box!important;
-    font-size:12px!important;
-    line-height:1.05!important;
-    letter-spacing:0!important;
-    white-space:nowrap!important;
-  }
-
-  /* Prevent icons and labels from visually colliding */
-  #bottomNav.bottom-nav button > span,
-  #bottomNav.bottom-nav button > div{
-    max-width:100%!important;
-  }
-
-  /* Icons slightly smaller, labels clearer */
-  #bottomNav.bottom-nav button .nav-icon,
-  #bottomNav.bottom-nav button .icon{
-    transform:scale(.92)!important;
-    margin:0!important;
-  }
-
-  /* Active item is premium but no longer oversized */
-  #bottomNav.bottom-nav button.active,
-  #bottomNav.bottom-nav button[aria-current="page"]{
-    min-height:68px!important;
-    transform:none!important;
-    border-radius:18px!important;
-  }
-
-  #bottomNav.bottom-nav button.active::after,
-  #bottomNav.bottom-nav button[aria-current="page"]::after{
-    left:34%!important;
-    right:34%!important;
-    bottom:5px!important;
-  }
-
-  /* Specifically keep long labels inside their own columns */
-  #bottomNav.bottom-nav button:nth-child(2){
-    font-size:11px!important;
-    letter-spacing:-.01em!important;
-  }
-
-  /* Avoid hover movement sticking on touch devices */
-  #bottomNav.bottom-nav button:hover{
-    transform:none!important;
-  }
-}
-
-/* Extra-small phones */
-@media(max-width:390px){
-  #bottomNav.bottom-nav{
-    width:calc(100% - 28px)!important;
-    gap:2px!important;
-    padding-left:6px!important;
-    padding-right:6px!important;
-  }
-
-  #bottomNav.bottom-nav button{
-    font-size:11px!important;
-    gap:5px!important;
-  }
-
-  #bottomNav.bottom-nav button:nth-child(2){
-    font-size:10px!important;
-  }
-}
-</style>
-
 <!-- =========================================================
      MMHVAULT V4.3.0 · MOBILE BOTTOM NAV HARD FIX
      Fixes real button width + label collision on iPhone layouts.
@@ -20961,6 +20783,13 @@ html,body{max-width:100%;overflow-x:clip}
 #cashflow-analyze #cfaYearWrap[hidden],#cashflow-analyze #cfaMonthWrap[hidden]{display:none!important}
 #cashflow-analyze .cfa-period-label{padding:19px 2px 11px;color:#c4d6eb;font-weight:800}
 #cashflow-analyze .cfa-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px}
+#cashflow-analyze .cfa-efficiency-kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px;margin-top:13px}
+#cashflow-analyze .cfa-mini-card{position:relative;min-width:0;display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"label value" "meta value";align-items:center;gap:5px 16px;min-height:76px;padding:14px 17px;box-sizing:border-box;border:1px solid rgba(91,150,211,.22);border-left:3px solid #4fd6a5;border-radius:14px;background:linear-gradient(145deg,rgba(12,32,55,.88),rgba(7,19,35,.94));box-shadow:0 10px 26px rgba(0,0,0,.10)}
+#cashflow-analyze .cfa-mini-card.cfa-daily-spend{border-left-color:#e9bf5c}
+#cashflow-analyze .cfa-mini-card>span{grid-area:label;color:#9bb2ce;font-size:9px;font-weight:850;letter-spacing:.12em}
+#cashflow-analyze .cfa-mini-card>strong{grid-area:value;justify-self:end;color:#eef6ff;font-size:clamp(20px,2vw,27px);font-weight:780;font-variant-numeric:tabular-nums;letter-spacing:-.02em;white-space:nowrap}
+#cashflow-analyze .cfa-mini-card>strong.positive{color:#68dca9}#cashflow-analyze .cfa-mini-card>strong.negative{color:#f095a1}
+#cashflow-analyze .cfa-mini-card>small{grid-area:meta;color:#829bbc;font-size:10px;line-height:1.35}
 #cashflow-analyze .cfa-card,#cashflow-analyze .cfa-panel{border:1px solid rgba(91,150,211,.25);border-radius:19px;background:linear-gradient(145deg,rgba(16,36,65,.83),rgba(7,18,37,.93));box-shadow:0 12px 32px rgba(0,0,0,.13),inset 0 1px 0 rgba(255,255,255,.035)}
 #cashflow-analyze .cfa-card{display:flex;flex-direction:column;min-height:134px;padding:20px;box-sizing:border-box;border-top:2px solid #55c8f6}
 #cashflow-analyze .cfa-card.cfa-expense{border-top-color:#fa8496}#cashflow-analyze .cfa-card.cfa-personal{border-top-color:#ad9bfa}#cashflow-analyze .cfa-card.cfa-remaining{border-top-color:#47dcb0}
@@ -20993,7 +20822,8 @@ html,body{max-width:100%;overflow-x:clip}
 #cashflow-analyze .cfa-records-scroll th,#cashflow-analyze .cfa-records-scroll td{padding:10px 12px;border-bottom:1px solid rgba(95,151,209,.11)}#cashflow-analyze .cfa-records-scroll td{color:#d5e2f3;font-size:12px}#cashflow-analyze .cfa-records-scroll td:nth-last-child(-n+2){text-align:right;font-variant-numeric:tabular-nums}#cashflow-analyze .cfa-records-scroll th:nth-last-child(-n+2){text-align:right}
 #cashflow-analyze .cfa-method{margin:16px 2px 0!important;font-size:11px}
 @media(max-width:1000px){#cashflow-analyze .cfa-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}#cashflow-analyze .cfa-detail-grid{grid-template-columns:1fr}}
-@media(max-width:620px){#cashflow-analyze .cfa-head{flex-direction:column;align-items:stretch;padding:18px}#cashflow-analyze .cfa-controls{display:grid;grid-template-columns:1fr 1fr}#cashflow-analyze .cfa-controls select,#cashflow-analyze .cfa-controls input{width:100%}#cashflow-analyze .cfa-kpis{gap:8px}#cashflow-analyze .cfa-card{min-height:115px;padding:13px}#cashflow-analyze .cfa-card strong{font-size:20px}#cashflow-analyze .cfa-card small{font-size:9px}#cashflow-analyze .cfa-panel{padding:16px}#cashflow-analyze .cfa-budget-comparison{grid-template-columns:1fr 1fr}#cashflow-analyze .cfa-budget-comparison>div:last-child{grid-column:1/-1}#cashflow-analyze .cfa-trend{gap:3px}#cashflow-analyze .cfa-trend-bars i{width:5px}}
+@media(max-width:620px){#cashflow-analyze .cfa-head{flex-direction:column;align-items:stretch;padding:18px}#cashflow-analyze .cfa-controls{display:grid;grid-template-columns:1fr 1fr}#cashflow-analyze .cfa-controls select,#cashflow-analyze .cfa-controls input{width:100%}#cashflow-analyze .cfa-kpis{gap:8px}#cashflow-analyze .cfa-efficiency-kpis{gap:8px;margin-top:8px}#cashflow-analyze .cfa-mini-card{min-height:70px;padding:12px 13px;gap:4px 10px}#cashflow-analyze .cfa-mini-card>strong{font-size:18px}#cashflow-analyze .cfa-mini-card>small{font-size:9px}#cashflow-analyze .cfa-card{min-height:115px;padding:13px}#cashflow-analyze .cfa-card strong{font-size:20px}#cashflow-analyze .cfa-card small{font-size:9px}#cashflow-analyze .cfa-panel{padding:16px}#cashflow-analyze .cfa-budget-comparison{grid-template-columns:1fr 1fr}#cashflow-analyze .cfa-budget-comparison>div:last-child{grid-column:1/-1}#cashflow-analyze .cfa-trend{gap:3px}#cashflow-analyze .cfa-trend-bars i{width:5px}}
+@media(max-width:430px){#cashflow-analyze .cfa-efficiency-kpis{grid-template-columns:1fr}#cashflow-analyze .cfa-mini-card{min-height:66px}}
 #cashflow-analyze .cfa-controls #cfaMonthWrap,#cashflow-analyze .cfa-controls #cfaYearWrap{min-width:0}
 @media(max-width:620px){#cashflow-analyze .cfa-controls #cfaMonthWrap,#cashflow-analyze .cfa-controls #cfaYearWrap{grid-column:1/-1}}
 </style>
@@ -21041,6 +20871,18 @@ html,body{max-width:100%;overflow-x:clip}
     return result;
   }
   function periodRows(){const key=context().key;return (Array.isArray(transactions)?transactions:[]).filter(t=>String(t.tx_date||'').startsWith(key))}
+  function periodDayCount(){
+    const now=new Date(),todayYear=now.getFullYear(),todayMonth=now.getMonth()+1;
+    if(state.mode==='month'){
+      const parts=String(state.month||'').split('-').map(Number),y=parts[0],m=parts[1];
+      if(!(y>0&&m>=1&&m<=12))return 1;
+      if(y===todayYear&&m===todayMonth)return Math.max(1,now.getDate());
+      return new Date(y,m,0).getDate();
+    }
+    const y=Number(state.year)||todayYear;
+    if(y===todayYear){const start=new Date(y,0,1),today=new Date(y,now.getMonth(),now.getDate());return Math.max(1,Math.floor((today-start)/86400000)+1)}
+    return new Date(y,1,29).getMonth()===1?366:365;
+  }
   function drawBudget(actual){
     const target=estimate(),input=$('cfaBudget');if(document.activeElement!==input)input.value=target===null?'':String(Number((target*fx()).toFixed(2)));
     $('cfaBudgetLabel').textContent='Estimated expense · '+(({USD:'$',THB:'฿',MMK:'K',CNY:'￥'}[state.currency]||state.currency));
@@ -21055,6 +20897,9 @@ html,body{max-width:100%;overflow-x:clip}
     const result=totals(periodRows());
     $('cfaPeriodLabel').textContent=state.mode==='month'?new Date(state.month+'-01T12:00:00').toLocaleDateString(undefined,{month:'long',year:'numeric'}):String(state.year);
     $('cfaIncome').textContent=money(result.income);$('cfaIndividual').textContent=money(result.individual);$('cfaPersonal').textContent=money(result.personal);$('cfaRemaining').textContent=money(result.remaining);$('cfaRemaining').classList.toggle('negative',result.remaining<0);
+    const totalSpend=result.individual+result.personal,savingsRate=result.income>0?(result.remaining/result.income*100):null,days=periodDayCount(),dailySpend=days>0?totalSpend/days:0;
+    const savingsEl=$('cfaSavingsRate');savingsEl.textContent=savingsRate===null?'—':savingsRate.toFixed(1)+'%';savingsEl.classList.toggle('positive',savingsRate!==null&&savingsRate>=0);savingsEl.classList.toggle('negative',savingsRate!==null&&savingsRate<0);
+    $('cfaDailySpend').textContent=money(dailySpend);$('cfaDailySpendMeta').textContent=`Total spending ${money(totalSpend)} ÷ ${days} day${days===1?'':'s'}`;
     drawBudget(result.individual);
     $('cfaBreakdown').innerHTML=[['Expense','Individual Expense',result.individual],['Personal','Personal',result.personal]].map(([key,label,total])=>{
       const rows=[...result.breakdown[key]].sort((a,b)=>b[1]-a[1]);
@@ -21417,7 +21262,7 @@ body.light :is(#mmhManageOverlayV1,#accounts-page) .am-shell{color:#294663}body.
 const $=id=>document.getElementById(id),icons=['💵','🏦','👛','💳','₿','📈','💰','🪙','⭐','◈'];
 const owner=()=>currentSessionUser?.id||'guest',key=()=> 'mmhvault_account_visuals_v1_'+owner();
 const defaults={cash:'💵',wallet:'👛',bank:'🏦',credit:'💳',crypto:'₿',investment:'📈',other:'◈'};
-let selected='all',conceal=false,draft=null,editing=null,token=0,busy=false,query='',sortMode='original',displayCurrency='USD';
+let selected='all',conceal=false,draft=null,editing=null,token=0,busy=false,query='',sortMode='original',displayCurrency='NATIVE';
 function visuals(){try{const d=JSON.parse(localStorage.getItem(key())||'{}');return d&&typeof d==='object'?d:{}}catch(_){return {}}}
 function meta(a){return visuals()[a.id]||{}}
 function logoHTML(a,override){const v=override||meta(a),color=/^#[0-9a-f]{6}$/i.test(v.color||'')?v.color:'#82bddf';const image=/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(v.image||'')?v.image:'';const icon=icons.includes(v.icon)?v.icon:defaults[a.type]||'◈';return `<span class="am-logo ${icon.length>3?'am-brand':''}" data-color="1" style="--am-color:${color}">${image?`<img alt="" src="${image}">`:esc(icon)}</span>`}
@@ -21455,9 +21300,9 @@ if(a){const runAccountAction=async(button,action)=>{if(busy||owner()!==sessionOw
 function init(){const panel=$('mmhManagerAccountsPanelV445');if(!panel)return;panel.classList.add('am-ready');const shell=document.createElement('div');shell.className='am-shell';shell.id='amShell';shell.innerHTML='<div class="am-page" id="amHome"><div class="am-top"><select id="amFilter" aria-label="Account group"><option value="all">All accounts</option>'+Object.keys(defaults).map(t=>`<option value="${t}">${esc(mmhVaultAccountTypeLabel(t))}</option>`).join('')+'<option value="archived">Archived</option></select><button id="amAdd" type="button">＋ Add account</button></div><div class="am-summary"><div class="am-top"><span>Account net assets</span><button id="amHideAll" type="button">Hide amounts</button></div><strong id="amNet"></strong><div class="am-summary-grid"><div><small>Assets</small><b id="amAssets"></b></div><div><small>Liabilities</small><b id="amDebts"></b></div></div><p class="am-help">Cash balances + held investments · converted to your display currency.</p></div><div class="am-find"><div class="am-search-wrap"><input id="amSearch" type="search" placeholder="Search accounts" aria-label="Search account name, currency, type or note" autocomplete="off"><button id="amClearSearch" type="button" aria-label="Clear account search" hidden>×</button></div><select id="amSort" aria-label="Sort accounts"><option value="original">Original order</option><option value="name">Name A–Z</option><option value="name-desc">Name Z–A</option><option value="type">Account type</option><option value="currency">Currency</option></select></div><p class="am-help am-count" id="amCount" role="status" aria-live="polite"></p><div class="am-list" id="amList"></div></div><div class="am-page" id="amTypes" hidden><div class="am-top"><button id="amTypesBack" type="button">‹ Back</button><b>Add account</b></div><div class="am-types" id="amTypeList"></div></div><div class="am-page" id="amEditor" hidden><div class="am-top"><button id="amEditorBack" type="button">‹ Back</button><b id="amEditorTitle">Account</b></div><div id="amEditorBody"></div></div>';$('apBody').append(shell);
 $('amSearch').oninput=e=>{query=e.target.value;renderHome()};$('amClearSearch').onclick=()=>{query='';$('amSearch').value='';renderHome();$('amSearch').focus()};$('amSort').onchange=e=>{sortMode=e.target.value;renderHome()};$('amFilter').onchange=e=>{selected=e.target.value;renderHome()};$('amHideAll').onclick=()=>{conceal=!conceal;renderHome()};$('amTypesBack').onclick=home;$('amEditorBack').onclick=home;
 $('amAdd').onclick=()=>{const host=$('amTypeList');host.replaceChildren();for(const [title,types] of [['Funds',['bank','cash','wallet','other']],['Credit',['credit']],['Investments',['crypto','investment']]]){const h=document.createElement('h3');h.textContent=title;host.append(h);for(const type of types){const b=document.createElement('button');b.type='button';b.className='am-row';b.innerHTML=logoHTML({id:'',type})+`<span class="am-row-copy">${esc(mmhVaultAccountTypeLabel(type))}</span><span>›</span>`;b.onclick=()=>{selected=type;buildEditor(null,null)};host.append(b)}}page('amTypes')};
-window.mmhAccountsRefreshV1=renderHome;window.mmhAccountsHomeV1=home;$('apCurrency').onchange=e=>{displayCurrency=e.target.value;renderHome()};
+window.mmhAccountsRefreshV1=renderHome;window.mmhAccountsHomeV1=home;$('apCurrency').value=displayCurrency;$('apCurrency').onchange=e=>{displayCurrency=e.target.value;renderHome()};
 const original=window.mmhVaultRenderManager;window.mmhVaultRenderManager=function(){const r=original.apply(this,arguments);renderHome();return r};const open=window.mmhOpenManagerV1;window.mmhOpenManagerV1=function(mode){if(mode!=='categories'){home();$('amFilter').value=selected;setPage('accounts-page');return}return open.apply(this,arguments)};renderHome();
-window.addEventListener('mmhvault:config-owner-changed',()=>{token++;busy=false;query='';sortMode='original';selected='all';conceal=false;displayCurrency='USD';$('apCurrency').value='USD';$('amSearch').value='';$('amSort').value='original';$('amFilter').value='all';home()});
+window.addEventListener('mmhvault:config-owner-changed',()=>{token++;busy=false;query='';sortMode='original';selected='all';conceal=false;displayCurrency='NATIVE';$('apCurrency').value='NATIVE';$('amSearch').value='';$('amSort').value='original';$('amFilter').value='all';home()});
 ['mmhvault:data-loaded','mmhvault:cache-restored','mmhvault:market-updated','mmhvault:sync-complete'].forEach(event=>window.addEventListener(event,renderHome));
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
@@ -21694,6 +21539,7 @@ html body #exchange #rateCards>*{box-sizing:border-box;min-width:0;padding:14px!
 html body #exchange #rateCards>*::before,html body #exchange #rateCards>*::after{display:none!important}
 html body #exchange .exchange-converter-result{box-sizing:border-box;max-width:100%;overflow-wrap:anywhere;background:#0a192b!important;border:1px solid #29435d!important;border-radius:12px!important;color:#89c6e7!important;padding:16px!important;box-shadow:none!important}
 body.light :is(#cashflow-analyze,#exchange) :is(.panel,.cfa-head,.cfa-panel){background:#f5f9fc!important;color:#294663!important}body.light :is(#cashflow-analyze,#exchange) :is(h1,h2){color:#294663!important}body.light :is(#cashflow-analyze,#exchange) :is(input,select,.cfa-card,.cfa-budget-comparison>div,.exchange-converter-result){background:#eff5fa!important;color:#294663!important}body.light #cashflow-analyze .cfa-card strong{color:#294663!important}body.light #cashflow-analyze .cfa-card.cfa-remaining strong{color:#18734d!important}body.light #cashflow-analyze .cfa-card.cfa-remaining strong.negative{color:#b33c51!important}
+body.light #cashflow-analyze .cfa-mini-card{background:#eff5fa!important;color:#294663!important;border-color:#cbd9e5!important}body.light #cashflow-analyze .cfa-mini-card>strong{color:#215f88!important}body.light #cashflow-analyze .cfa-mini-card>strong.positive{color:#18734d!important}body.light #cashflow-analyze .cfa-mini-card>strong.negative{color:#b33c51!important}body.light #cashflow-analyze .cfa-mini-card :is(span,small){color:#536b80!important}
 @media(max-width:760px){html body #cashflow-analyze .cfa-kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important}html body #cashflow-analyze .cfa-detail-grid{grid-template-columns:minmax(0,1fr)!important}html body #exchange .formgrid,html body #exchange .exchange-converter-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
 @media(max-width:620px){html body :is(#cashflow-analyze,#exchange){padding-left:12px!important;padding-right:12px!important}html body :is(#cashflow-analyze,#exchange) :is(.panel,.cfa-head,.cfa-panel){padding:14px!important}html body :is(#cashflow-analyze,#exchange) h1{font-size:24px!important}html body #cashflow-analyze .cfa-head{align-items:stretch!important;gap:14px!important}html body #cashflow-analyze .cfa-panel-head{flex-wrap:wrap!important}html body #exchange #rateCards{grid-template-columns:minmax(0,1fr)!important}html body #cashflow-analyze .cfa-controls{width:100%;box-sizing:border-box;grid-template-columns:repeat(2,minmax(0,1fr))!important}html body #cashflow-analyze .cfa-trend{gap:3px!important}}
 @media(max-width:370px){html body #exchange .formgrid,html body #exchange .exchange-converter-grid{grid-template-columns:minmax(0,1fr)!important}html body #cashflow-analyze .cfa-card{padding:11px!important}html body #cashflow-analyze .cfa-card strong{font-size:18px!important}}
@@ -22206,9 +22052,6 @@ html body.light:not(#mmh-card-a):not(#mmh-card-b):not(#mmh-card-c) #dashboard .d
 html body.light:not(#mmh-card-a):not(#mmh-card-b):not(#mmh-card-c) #accounts-page .am-summary-grid>div{background:#f8fbfd!important;border-color:#cbd9e5!important}
 html body.light:not(#mmh-card-a):not(#mmh-card-b):not(#mmh-card-c) #accounts-page #amNet{color:#215f88!important}
 html body.light:not(#mmh-card-a):not(#mmh-card-b):not(#mmh-card-c) #accounts-page #amAssets{color:#16704d!important}html body.light:not(#mmh-card-a):not(#mmh-card-b):not(#mmh-card-c) #accounts-page #amDebts{color:#b33449!important}
-</style>
-<style id="mmhvault-action-card-hidden-legacy-v1">
-html body:not(#mmh-card-a):not(#mmh-card-b):not(#mmh-card-c) #dashboard .dashboard-quick-actions-v371 button[onclick*="setPage('analyze')"]{display:none!important}
 </style>
 <style id="mmhvault-install-guide-v5-css">
 html body #stInstallGuideV5[hidden]{display:none!important}
@@ -22941,7 +22784,7 @@ function ensureSeamlessTransactionFlowV710(){
  };
  state.raf=requestAnimationFrame(tick);
 }
-function wrapRender(){const base=window.renderDashboard;if(typeof base==='function'&&!base.__pfV500){const wrapped=function(){const r=base.apply(this,arguments);requestAnimationFrame(render);return r};wrapped.__pfV500=true;window.renderDashboard=wrapped;try{renderDashboard=wrapped}catch(_){}}}
+function wrapRender(){const base=window.renderDashboard;if(typeof base==='function'&&!base.__pfV500){window.__mmhLegacyDashboardRenderV780=base;const wrapped=function(){let legacyResult;if(!document.getElementById('mmhPremiumDashboardV500')){try{legacyResult=base.apply(this,arguments)}catch(e){console.warn('[MMHVAULT] legacy dashboard fallback skipped',e)}}requestAnimationFrame(()=>render(false));return legacyResult};wrapped.__pfV500=true;window.renderDashboard=wrapped;try{renderDashboard=wrapped}catch(_){}}}
 function init(){addSidebar();addTopbar();ensureDashboardHost();wrapRender();ensureSeamlessTransactionFlowV710();setTimeout(render,240)}
 ['mmhvault:data-loaded','mmhvault:data-change','mmhvault:cache-restored','mmhvault:sync-complete','mmhvault:dashboard-rendered','languagechange','mmhvault-language-change','mmhvault-birthday-change','mmhvault:age-tick'].forEach(ev=>window.addEventListener(ev,()=>setTimeout(()=>render(false),90)));
 window.addEventListener('mmhvault:market-updated',scheduleMarketOnlyV720);
