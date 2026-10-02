@@ -17671,7 +17671,14 @@ button[data-mmh-busy="1"],.btn[data-mmh-busy="1"]{position:relative;cursor:wait!
   window.addEventListener('scroll',()=>dismissPopovers(),{passive:true});
   window.addEventListener('resize',()=>dismissPopovers(),{passive:true});
   document.addEventListener('visibilitychange',()=>{if(document.hidden)dismissPopovers();});
-  document.addEventListener('click',e=>{if(e.target?.closest?.('[data-page],.nav-item,.bottom-nav button'))setTimeout(()=>dismissPopovers(),0);},true);
+  document.addEventListener('click',e=>{
+    const nav=e.target?.closest?.('[data-page],.nav-item,.bottom-nav button');
+    if(!nav)return;
+    /* More and Notifications are popover triggers, not ordinary page navigation.
+       Do not auto-dismiss them in the same click that opens them. */
+    if(nav.matches?.('#moreNavButton,#mmhTopBellV500')||nav.closest?.('#moreNavMenu,#mmhNotifyPopoverV560'))return;
+    setTimeout(()=>dismissPopovers(),0);
+  },true);
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ensureToastHost,{once:true});else ensureToastHost();
 })();
 </script>
