@@ -9,7 +9,7 @@
 <link href="other/manifest.webmanifest" rel="manifest"/>
 <meta content="#06111f" name="theme-color"/>
 <title>MMHVAULT · Personal Finance &amp; Wealth Management</title>
-<meta name="mmhvault-release" content="1.0.0-stable"/>
+<meta name="mmhvault-release" content="1.1.1-budget-beta"/>
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="dns-prefetch" href="https://unpkg.com">
@@ -17940,10 +17940,136 @@ html body #invest .invest-entry .receipt-dropzone-v3300{width:100%!important;max
 })();
 </script>
 <script id="mmhvault-v1-stable-build">
-window.MMHVAULT_BUILD='1.1.0-budget-beta';
+window.MMHVAULT_BUILD='1.1.1-budget-beta';
 window.MMHVAULT_RELEASE='MMHVAULT v1.1 Budget Beta';
 </script>
 <!-- MMHVAULT v1.1 Budget Beta · branched from v1.0 Stable. -->
+
+<style id="mmhvault-v111-exchange-mobile-tablet-fix">
+/* MMHVAULT v1.1.1 · Exchange mobile/tablet specificity repair.
+   The v902 desktop 12-column root has higher specificity than its older compact overrides.
+   Match that root specificity here so iPhone/Android/iPad/Android-tablet always collapse correctly. */
+@media(max-width:1099px){
+  html body.mmh-workspace-active main.wrap > #exchange.page.active{
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr)!important;
+    grid-auto-flow:row!important;
+    width:100%!important;
+    max-width:none!important;
+    min-width:0!important;
+    margin:0!important;
+    gap:14px!important;
+    align-items:stretch!important;
+    justify-items:stretch!important;
+    box-sizing:border-box!important;
+  }
+  html body.mmh-workspace-active main.wrap > #exchange.page.active > .ex-template-head,
+  html body.mmh-workspace-active main.wrap > #exchange.page.active > .ex-currency-cards,
+  html body.mmh-workspace-active main.wrap > #exchange.page.active > .exchange-converter-panel,
+  html body.mmh-workspace-active main.wrap > #exchange.page.active > .ex-rate-editor,
+  html body.mmh-workspace-active main.wrap > #exchange.page.active > #exAsiaV10{
+    grid-column:1/-1!important;
+    width:100%!important;
+    max-width:none!important;
+    min-width:0!important;
+    margin-left:0!important;
+    margin-right:0!important;
+    box-sizing:border-box!important;
+  }
+  html body.mmh-workspace-active main.wrap > #exchange.page.active > .ex-template-head{grid-row:1!important}
+  html body.mmh-workspace-active main.wrap > #exchange.page.active > .ex-currency-cards{
+    grid-row:2!important;
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:10px!important;
+  }
+  html body.mmh-workspace-active main.wrap > #exchange.page.active > .exchange-converter-panel{grid-row:3!important}
+  html body.mmh-workspace-active main.wrap > #exchange.page.active > .ex-rate-editor{grid-row:4!important}
+  html body.mmh-workspace-active main.wrap > #exchange.page.active > #exAsiaV10{grid-row:5!important}
+
+  html body.mmh-workspace-active main.wrap > #exchange.page.active .ex-template-head,
+  html body.mmh-workspace-active main.wrap > #exchange.page.active .ex-brand,
+  html body.mmh-workspace-active main.wrap > #exchange.page.active .ex-brand>div,
+  html body.mmh-workspace-active main.wrap > #exchange.page.active .ex-currency-card,
+  html body.mmh-workspace-active main.wrap > #exchange.page.active .ex-currency-card>div{
+    min-width:0!important;
+    box-sizing:border-box!important;
+  }
+  html body.mmh-workspace-active main.wrap > #exchange.page.active .ex-brand{width:100%!important;flex:1 1 auto!important}
+  html body.mmh-workspace-active main.wrap > #exchange.page.active .ex-brand>div{flex:1 1 auto!important;width:auto!important}
+  html body.mmh-workspace-active main.wrap > #exchange.page.active .ex-brand h1{
+    width:auto!important;
+    max-width:100%!important;
+    word-break:normal!important;
+    overflow-wrap:normal!important;
+  }
+  html body.mmh-workspace-active main.wrap > #exchange.page.active .ex-currency-card{
+    width:100%!important;
+    max-width:none!important;
+  }
+  html body.mmh-workspace-active main.wrap > #exchange.page.active .ex-currency-card>div{flex:1 1 auto!important}
+}
+
+/* iPad / Android tablet portrait + compact tablet landscape */
+@media(min-width:700px) and (max-width:1099px){
+  html body.mmh-workspace-active main.wrap > #exchange.page.active{gap:16px!important}
+  html body.mmh-workspace-active main.wrap > #exchange.page.active > .ex-currency-cards{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:12px!important;
+  }
+  html body.mmh-workspace-active main.wrap > #exchange.page.active .exchange-converter-grid{
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr) 48px minmax(0,1fr)!important;
+    gap:12px!important;
+    width:100%!important;
+  }
+  html body.mmh-workspace-active main.wrap > #exchange.page.active .ex-rate-editor .formgrid{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+  html body.mmh-workspace-active main.wrap > #exchange.page.active #exAsiaV10 .asia-controls,
+  html body.mmh-workspace-active main.wrap > #exchange.page.active #exAsiaV10 .asia-list{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+}
+
+/* iPhone + Android phones */
+@media(max-width:699px){
+  html body.mmh-workspace-active main.wrap > #exchange.page.active{gap:12px!important}
+  html body.mmh-workspace-active main.wrap > #exchange.page.active > .ex-currency-cards{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:8px!important;
+  }
+  html body.mmh-workspace-active main.wrap > #exchange.page.active .exchange-converter-grid,
+  html body.mmh-workspace-active main.wrap > #exchange.page.active .ex-rate-editor .formgrid,
+  html body.mmh-workspace-active main.wrap > #exchange.page.active #exAsiaV10 .asia-controls,
+  html body.mmh-workspace-active main.wrap > #exchange.page.active #exAsiaV10 .asia-list{
+    grid-template-columns:minmax(0,1fr)!important;
+    width:100%!important;
+  }
+  html body.mmh-workspace-active main.wrap > #exchange.page.active .ex-swap{
+    grid-column:1!important;
+    justify-self:center!important;
+    margin:0 auto!important;
+    transform:rotate(90deg)!important;
+  }
+  html body.mmh-workspace-active main.wrap > #exchange.page.active .ex-template-head{
+    align-items:flex-start!important;
+    gap:10px!important;
+  }
+  html body.mmh-workspace-active main.wrap > #exchange.page.active .ex-source{display:none!important}
+  html body.mmh-workspace-active main.wrap > #exchange.page.active .ex-currency-card{
+    padding:12px!important;
+    gap:9px!important;
+  }
+}
+
+@media(max-width:380px){
+  html body.mmh-workspace-active main.wrap > #exchange.page.active > .ex-currency-cards{
+    grid-template-columns:minmax(0,1fr)!important;
+  }
+}
+</style>
+
 </body>
 <!-- MMHVAULT V4.3.0 performance baseline: logo-free account cards + restrained dashboard rendering. -->
 
