@@ -18425,6 +18425,51 @@ body.light #reports .report-mini-v115{background:#f3f8fb;border-color:#cfdee9}bo
 </script>
 <!-- MMHVAULT v1.1.5 · Monthly Financial Report aggregates current app data without changing ledger records. -->
 
+
+<style id="mmhvault-v118-report-responsive-patch">
+/* MMHVAULT v1.1.8 · Report responsive refinement */
+#reports .report-head-v115{display:grid!important;grid-template-columns:minmax(0,1fr) auto auto;align-items:end;gap:16px}
+#reports .report-head-v115>div:first-child{min-width:0}
+#reports .report-head-v115 h1{line-height:1.05}
+#reports .report-controls-v115 label{min-width:132px}
+#reports .report-export-actions-v116{align-self:end}
+#reports .report-kpi-v115>strong{overflow-wrap:anywhere}
+#reports .report-panel-head-v115>div:first-child{min-width:0}
+#reports .report-panel-head-v115 .btn{white-space:nowrap}
+@media(max-width:1280px){
+  #reports .report-head-v115{grid-template-columns:minmax(0,1fr) minmax(220px,300px);align-items:start}
+  #reports .report-controls-v115{grid-column:2;display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));justify-content:stretch;width:100%}
+  #reports .report-controls-v115 label{min-width:0;width:100%}
+  #reports .report-export-actions-v116{grid-column:2;display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));width:100%}
+  #reports .report-export-actions-v116 .btn{width:100%;min-height:44px}
+}
+@media(max-width:1024px){
+  #reports .report-head-v115{grid-template-columns:1fr;gap:12px}
+  #reports .report-controls-v115,#reports .report-export-actions-v116{grid-column:auto;width:100%}
+  #reports .report-controls-v115{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));justify-content:stretch}
+  #reports .report-export-actions-v116{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))}
+  #reports .report-kpis-v115{grid-template-columns:repeat(2,minmax(0,1fr))}
+  #reports .report-grid-v115{grid-template-columns:1fr}
+  #reports .report-panel-head-v115{flex-wrap:wrap;align-items:flex-start}
+  #reports .report-kpi-v115>strong{white-space:normal;overflow:visible;text-overflow:clip}
+}
+@media(max-width:760px){
+  #reports .report-head-v115 h1{font-size:28px}
+  #reports .report-head-v115 p{font-size:11px}
+  #reports .report-controls-v115,#reports .report-export-actions-v116{grid-template-columns:1fr}
+  #reports .report-kpis-v115{gap:8px}
+  #reports .report-budget-v115,#reports .report-snapshot-v115,#reports .report-invest-v115{grid-template-columns:repeat(2,minmax(0,1fr))}
+  #reports .report-panel-v115{padding:14px}
+}
+@media(max-width:540px){
+  #reports .report-head-v115 h1{font-size:26px}
+  #reports .report-kpis-v115,#reports .report-budget-v115,#reports .report-snapshot-v115,#reports .report-invest-v115{grid-template-columns:1fr}
+  #reports .report-panel-head-v115{gap:10px}
+  #reports .report-panel-head-v115 .btn,#reports .report-actions-v115 .btn{width:100%}
+  #reports .report-pill-v115{max-width:100%}
+}
+</style>
+
 </body>
 <!-- MMHVAULT V4.3.0 performance baseline: logo-free account cards + restrained dashboard rendering. -->
 
