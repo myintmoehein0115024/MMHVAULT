@@ -17595,55 +17595,84 @@ html body.mmh-workspace-active #moreNavMenu.more-nav-menu.open{
 })();
 </script>
 
-<script id="mmhvault-popover-outside-dismiss-v750">
+
+<!-- MMHVAULT v7.60 · Stability + unified interaction foundation -->
+<style id="mmhvault-v760-interaction-foundation">
+:root{--mmh-ui-ease:cubic-bezier(.22,.8,.26,1);--mmh-ui-fast:160ms;--mmh-ui-normal:240ms}
+#mmhToastHostV760{position:fixed;right:24px;top:92px;z-index:10040;display:flex;flex-direction:column;gap:10px;width:min(360px,calc(100vw - 28px));pointer-events:none}
+.mmh-toast-v760{pointer-events:auto;display:grid;grid-template-columns:34px minmax(0,1fr) auto;gap:10px;align-items:start;padding:12px 13px;border-radius:15px;border:1px solid rgba(97,167,218,.28);background:linear-gradient(145deg,rgba(7,22,42,.96),rgba(4,14,29,.97));box-shadow:0 18px 48px rgba(0,0,0,.34),inset 0 1px 0 rgba(255,255,255,.035);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);transform:translateY(-8px) scale(.985);opacity:0;filter:blur(4px);transition:opacity var(--mmh-ui-normal) var(--mmh-ui-ease),transform var(--mmh-ui-normal) var(--mmh-ui-ease),filter var(--mmh-ui-normal) var(--mmh-ui-ease)}
+.mmh-toast-v760.show{opacity:1;transform:none;filter:none}.mmh-toast-v760.leave{opacity:0;transform:translateY(-6px) scale(.985);filter:blur(3px)}
+.mmh-toast-icon-v760{width:32px;height:32px;border-radius:10px;display:grid;place-items:center;background:rgba(74,190,246,.10);border:1px solid rgba(92,190,238,.20);font-size:15px;color:#9ddfff}.mmh-toast-v760.success .mmh-toast-icon-v760{color:#74efbe;background:rgba(45,211,153,.09);border-color:rgba(45,211,153,.20)}.mmh-toast-v760.error .mmh-toast-icon-v760{color:#ff9dac;background:rgba(255,91,115,.09);border-color:rgba(255,91,115,.20)}.mmh-toast-v760.warn .mmh-toast-icon-v760{color:#f7cf6c;background:rgba(247,199,91,.09);border-color:rgba(247,199,91,.20)}
+.mmh-toast-copy-v760{min-width:0}.mmh-toast-title-v760{font-size:12px;font-weight:850;color:#edf6ff;line-height:1.2}.mmh-toast-text-v760{margin-top:3px;font-size:11px;color:#9eb2c9;line-height:1.45;overflow-wrap:anywhere}.mmh-toast-close-v760{appearance:none;border:0;background:transparent;color:#7891ab;cursor:pointer;padding:2px 4px;font-size:16px;line-height:1}.mmh-toast-close-v760:hover{color:#d8e9f8}
+button[data-mmh-busy="1"],.btn[data-mmh-busy="1"]{position:relative;cursor:wait!important;opacity:.78!important;pointer-events:none!important}.mmh-busy-spinner-v760{display:inline-block;width:12px;height:12px;margin-right:7px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;vertical-align:-2px;animation:mmhSpinV760 .75s linear infinite}@keyframes mmhSpinV760{to{transform:rotate(360deg)}}
+:where(button,.btn,input,select,textarea,a,[tabindex]):focus-visible{outline:2px solid rgba(92,194,245,.68)!important;outline-offset:2px!important}
+@media(max-width:900px){#mmhToastHostV760{top:74px;right:14px}}
+@media(max-width:560px){#mmhToastHostV760{left:12px;right:12px;top:70px;width:auto}.mmh-toast-v760{grid-template-columns:30px minmax(0,1fr) auto;padding:11px}.mmh-toast-icon-v760{width:28px;height:28px;border-radius:9px}}
+@media(prefers-reduced-motion:reduce){.mmh-toast-v760{transition:none!important;filter:none!important}.mmh-busy-spinner-v760{animation:none!important}}
+</style>
+
+<script id="mmhvault-v760-interaction-foundation-js">
 (()=>{'use strict';
-  if(window.__mmhPopoverOutsideDismissV750)return;
-  window.__mmhPopoverOutsideDismissV750=true;
-  const $=id=>document.getElementById(id);
-  const closeNotify=()=>{
-    const p=$('mmhNotifyPopoverV560'),b=$('mmhTopBellV500');
-    if(p?.classList.contains('open'))p.classList.remove('open');
-    b?.setAttribute('aria-expanded','false');
-  };
-  const closeMore=()=>{
-    const m=$('moreNavMenu'),b=$('moreNavButton');
-    if(m?.classList.contains('open')){
-      m.classList.remove('open');m.setAttribute('aria-hidden','true');
+  if(window.__MMHVAULT_UI_V760)return;window.__MMHVAULT_UI_V760=true;
+  const byId=id=>document.getElementById(id);
+  const asText=v=>String(v??'').replace(/\s+/g,' ').trim();
+  const successRx=/(success|successful|completed|complete|saved|uploaded|restored|added|updated|ready|done)/i;
+  const errorRx=/(error|failed|unable|invalid|missing|too large|not found|could not|please sign in|unavailable)/i;
+  const warnRx=/(warning|review|cannot|can't|limit|required|please enter)/i;
+  function ensureToastHost(){let h=byId('mmhToastHostV760');if(!h){h=document.createElement('div');h.id='mmhToastHostV760';h.setAttribute('aria-live','polite');h.setAttribute('aria-atomic','false');document.body.appendChild(h);}return h;}
+  function toast(message,{title='MMHVAULT',type='info',duration=3200}={}){
+    const text=asText(message);if(!text)return null;const host=ensureToastHost();
+    const el=document.createElement('div');el.className='mmh-toast-v760 '+type;el.setAttribute('role',type==='error'?'alert':'status');
+    const icon={success:'✓',error:'!',warn:'!',info:'↗'}[type]||'↗';
+    el.innerHTML='<div class="mmh-toast-icon-v760"></div><div class="mmh-toast-copy-v760"><div class="mmh-toast-title-v760"></div><div class="mmh-toast-text-v760"></div></div><button class="mmh-toast-close-v760" type="button" aria-label="Dismiss">×</button>';
+    el.querySelector('.mmh-toast-icon-v760').textContent=icon;el.querySelector('.mmh-toast-title-v760').textContent=title;el.querySelector('.mmh-toast-text-v760').textContent=text;
+    let timer=null;const close=()=>{if(!el.isConnected)return;clearTimeout(timer);el.classList.add('leave');setTimeout(()=>el.remove(),220)};el.querySelector('button').addEventListener('click',close,{once:true});host.appendChild(el);requestAnimationFrame(()=>el.classList.add('show'));timer=setTimeout(close,Math.max(1600,duration));return el;
+  }
+  async function dialog({title='MMHVAULT',message='',details='',type='info',confirmLabel='Close',cancelLabel='',danger=false}={}){
+    const msg=asText(message),body=details?'<div class="mmh-v449-dialog-note">'+String(details).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))+'</div>':'';
+    if(typeof window.mmhVaultOpenDialogV449==='function'){
+      const actions=[];if(cancelLabel)actions.push({label:cancelLabel,onClick:()=>false});actions.push({label:confirmLabel,className:danger?'danger':'primary',onClick:()=>true});
+      return !!(await window.mmhVaultOpenDialogV449({title,message:msg,body,actions}));
     }
-    b?.setAttribute('aria-expanded','false');
-  };
-  const outside=(target,box,trigger)=>box&&!box.contains(target)&&(!trigger||!trigger.contains(target));
+    toast(msg||details,{title,type:type==='danger'?'error':type,duration:4200});return !cancelLabel;
+  }
+  async function message(message,title='MMHVAULT',opts={}){
+    const text=asText(message);if(!text)return false;const type=opts.type||(errorRx.test(text)?'error':warnRx.test(text)?'warn':successRx.test(text)?'success':'info');
+    if(opts.toast===true||type==='success'){toast(text,{title,type,duration:opts.duration||3200});return true;}
+    return dialog({title,message:text,type,confirmLabel:'Close'});
+  }
+  async function confirmAction(message,title='Confirm',opts={}){
+    return dialog({title,message:asText(message),details:opts.details||'Please review before continuing.',cancelLabel:opts.cancelLabel||'Cancel',confirmLabel:opts.confirmLabel||'Confirm',danger:!!opts.danger,type:opts.danger?'danger':'info'});
+  }
+  function dismissPopovers(except=''){
+    const notify=byId('mmhNotifyPopoverV560'),bell=byId('mmhTopBellV500');const more=byId('moreNavMenu'),moreBtn=byId('moreNavButton');
+    if(except!=='notify'){notify?.classList.remove('open');notify?.setAttribute('aria-hidden','true');bell?.setAttribute('aria-expanded','false');}
+    if(except!=='more'){more?.classList.remove('open');more?.setAttribute('aria-hidden','true');moreBtn?.setAttribute('aria-expanded','false');}
+  }
+  function outside(target,box,trigger){return !!box&&!box.contains(target)&&(!trigger||!trigger.contains(target));}
+  function setBusy(button,busy=true,label='Working…'){
+    if(!button)return;button.dataset.mmhBusy=busy?'1':'0';if(busy){button.dataset.mmhOldHtml=button.innerHTML;button.innerHTML='<span class="mmh-busy-spinner-v760" aria-hidden="true"></span>'+label;button.setAttribute('aria-busy','true');}
+    else{if(button.dataset.mmhOldHtml!=null)button.innerHTML=button.dataset.mmhOldHtml;delete button.dataset.mmhOldHtml;button.removeAttribute('aria-busy');delete button.dataset.mmhBusy;}
+  }
+  async function withBusy(button,fn,label='Working…'){setBusy(button,true,label);try{return await fn();}finally{setBusy(button,false);}}
+  window.MMHUI={toast,message,confirm:confirmAction,dismissPopovers,setBusy,withBusy};
+  window.mmhVaultMessageV740=(m,t='MMHVAULT')=>message(m,t);
+  window.mmhVaultConfirmV740=(m,t='Confirm')=>confirmAction(m,t);
+  // Keep legacy alert() callers inside the branded UI without browser-native popups.
+  window.alert=(m)=>{message(m,'MMHVAULT');};
 
-  // Capture phase makes dismissal reliable even when older handlers stop propagation.
   document.addEventListener('pointerdown',e=>{
-    const target=e.target;
-    const notify=$('mmhNotifyPopoverV560'),bell=$('mmhTopBellV500');
-    const more=$('moreNavMenu'),moreBtn=$('moreNavButton');
-    if(notify?.classList.contains('open')&&outside(target,notify,bell))closeNotify();
-    if(more?.classList.contains('open')&&outside(target,more,moreBtn))closeMore();
+    const target=e.target,notify=byId('mmhNotifyPopoverV560'),bell=byId('mmhTopBellV500'),more=byId('moreNavMenu'),moreBtn=byId('moreNavButton');
+    if(notify?.classList.contains('open')&&outside(target,notify,bell))dismissPopovers('more');
+    if(more?.classList.contains('open')&&outside(target,more,moreBtn))dismissPopovers('notify');
   },true);
-
-  // Opening one popover closes the other first.
-  document.addEventListener('click',e=>{
-    const bell=e.target?.closest?.('#mmhTopBellV500');
-    const moreBtn=e.target?.closest?.('#moreNavButton');
-    if(bell)closeMore();
-    if(moreBtn)closeNotify();
-  },true);
-
-  // Popovers should not remain floating after navigation/scrolling away.
-  window.addEventListener('scroll',()=>{closeNotify();closeMore()},{passive:true,capture:true});
-  document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeNotify();closeMore();}},true);
-  document.addEventListener('visibilitychange',()=>{if(document.hidden){closeNotify();closeMore();}});
-
-  // Any page change also dismisses both layers.
-  const installPageHook=()=>{
-    if(typeof window.setPage!=='function'||window.setPage.__mmhDismissV750)return false;
-    const old=window.setPage;
-    const wrapped=function(){closeNotify();closeMore();return old.apply(this,arguments)};
-    wrapped.__mmhDismissV750=true;wrapped.__mmhOriginal=old;window.setPage=wrapped;return true;
-  };
-  installPageHook();setTimeout(installPageHook,300);setTimeout(installPageHook,1000);
+  document.addEventListener('click',e=>{if(e.target?.closest?.('#mmhTopBellV500'))dismissPopovers('notify');if(e.target?.closest?.('#moreNavButton'))dismissPopovers('more');},true);
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')dismissPopovers();},true);
+  window.addEventListener('scroll',()=>dismissPopovers(),{passive:true});
+  window.addEventListener('resize',()=>dismissPopovers(),{passive:true});
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)dismissPopovers();});
+  document.addEventListener('click',e=>{if(e.target?.closest?.('[data-page],.nav-item,.bottom-nav button'))setTimeout(()=>dismissPopovers(),0);},true);
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',ensureToastHost,{once:true});else ensureToastHost();
 })();
 </script>
 
