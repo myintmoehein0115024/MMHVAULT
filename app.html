@@ -5330,7 +5330,7 @@ body.mmh-v436-explorer-open #bottomNav{visibility:hidden!important;pointer-event
   <div class="mmh-ui-panel"><div class="mmh-ui-heading"><div><h2>My Investments</h2><p>One list for every asset. Investment history remains available in Portfolio.</p></div><button class="mmh-catalog-toggle" id="mmhCatalogToggleV1" type="button" aria-expanded="false">Manage Types & Assets</button></div><div class="mmh-ui-filters" id="mmhUnifiedFiltersV1" aria-label="Filter investments"></div><div class="mmh-ui-list" id="mmhUnifiedListV1"></div></div>
   <div class="mmh-ui-panel" id="mmhInvestCatalogV1" hidden><div class="mmh-ui-heading"><div><h2>Investment Types & Assets</h2><p>Set up types and assets for future investments. Existing records stay intact.</p></div></div><div id="mmhCatalogNoticeV1" class="mmh-ui-empty">Loading your signed-in investment catalog…</div><div class="mmh-catalog-sections"><div class="mmh-catalog-section"><h3>1 · Investment Types</h3><p>Create a category such as Stocks, then manage its name or availability here.</p><form class="mmh-catalog-form" id="mmhTypeFormV1"><input id="mmhTypeNameV1" maxlength="40" placeholder="New type, e.g. Stocks" required><button type="submit">Add Type</button></form><div id="mmhTypeRowsV1"></div></div><div class="mmh-catalog-section"><h3>2 · Assets</h3><p>Choose a type, then add assets to it. New assets will appear in this list.</p><form class="mmh-catalog-form" id="mmhAssetFormV1"><select id="mmhAssetTypeV1" aria-label="Investment type"></select><input id="mmhAssetNameV1" maxlength="60" placeholder="Asset name, e.g. AAPL" required><button type="submit">Add Asset</button></form><div id="mmhAssetRowsV1"></div></div></div></div>
 </div>
-<div class="mmh-ui-panel" id="mmhUnifiedHistoryV1" aria-label="Investment History"><div class="mmh-ui-heading"><div><h2>Investment History</h2><p>Recorded Crypto, Gold and custom investment activity.</p></div></div><div class="mmh-ui-filters" id="mmhHistoryFiltersV1" aria-label="Filter investment history"></div><div class="mmh-ui-list" id="mmhHistoryRowsV1"></div></div>
+<div class="mmh-ui-panel" id="mmhUnifiedHistoryV1" aria-label="Investment History"><div class="mmh-ui-heading"><div><h2>Investment History</h2><p>Recorded Crypto, Gold and custom investment activity. Click any record for full details.</p></div></div><div class="mmh-ui-filters" id="mmhHistoryFiltersV1" aria-label="Filter investment history"></div><div class="mmh-ui-list" id="mmhHistoryRowsV1"></div></div>
 <div class="grid two invest-top"><div class="panel v371-crypto" id="v371CryptoMarket"><div class="toolbar"><h2>Crypto Market</h2><span class="pill" id="marketStatus">Live feed</span></div><div class="price-grid" id="cryptoPrices"></div><div class="small" style="margin-top:10px">Market reference refreshes automatically. CoinGlass API requires an API key; the free public feed below is used when no CoinGlass key is configured.</div></div>
 <div class="panel v371-gold" id="v371GoldMarket"><div class="toolbar"><div><h2>Gold Price</h2><div class="small" id="goldPriceIntroV1">International spot conversion reference · MMK / ကျပ်သား</div></div><span class="pill" id="goldManualBadgeV1">Online reference</span></div><div class="gold-market"><div><span class="name" id="goldPriceLabelV1">International spot conversion reference</span><div class="big-price" id="goldMarket">—</div><div class="small" id="goldMarketMeta" role="status">Loading XAU/USD and your USD→MMK rate…</div><div class="small" id="goldSpotDetailsV1"></div></div></div><div class="small" id="goldPriceFootnoteV1">Reference only · not a Myanmar local gold shop transaction price.</div></div></div>
 <div class="grid invest-metrics" id="investMetrics"></div>
@@ -5864,12 +5864,21 @@ body.mmh-v436-explorer-open #bottomNav{visibility:hidden!important;pointer-event
 .mmh-history-confirm .mmh-history-dialog-actions{margin-top:18px;flex-wrap:wrap}
 .mmh-history-confirm [data-confirm]{background:#7d283b!important;color:#fff!important}
 @media(max-width:620px){#invest #mmhHistoryRowsV1{grid-template-columns:1fr}#invest .mmh-history-card{padding:13px}#invest .mmh-history-grid{gap:6px}#invest .mmh-history-top{flex-direction:column}#invest .mmh-history-tags{justify-content:flex-start}}
+#invest #mmhHistoryFiltersV1{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+#invest #mmhHistoryFiltersV1 .mmh-history-filter-group{display:flex;gap:7px;flex-wrap:wrap;align-items:center}
+#invest #mmhHistoryFiltersV1 .mmh-history-filter-divider{width:1px;height:28px;background:rgba(137,198,231,.18);margin:0 2px}
+#invest #mmhHistoryFiltersV1 .mmh-history-filter-meta{margin-left:auto;color:#8fa9c2;font-size:10px;line-height:1.5;white-space:nowrap}
+#invest #mmhHistoryFiltersV1 button[data-history-side="Buy"]{color:#72d6a5!important}
+#invest #mmhHistoryFiltersV1 button[data-history-side="Sell"]{color:#f095a1!important}
+#invest #mmhHistoryRowsV1 .mmh-history-detail:last-child{grid-column:1/-1}
+#ldBody:has(.mmh-history-card) .mmh-history-detail:last-child{grid-column:1/-1}
+@media(max-width:720px){#invest #mmhHistoryFiltersV1 .mmh-history-filter-divider{display:none}#invest #mmhHistoryFiltersV1 .mmh-history-filter-meta{width:100%;margin-left:0;white-space:normal}}
 </style>
 <script id="mmhvault-invest-history-v1-js">
 (function(){
   const el=id=>document.getElementById(id);
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  let filter='ALL';
+  let filter='ALL',sideFilter='ALL';
   const numeric=v=>v!==null&&v!==undefined&&v!==''&&Number.isFinite(Number(v));
   const fmt=v=>{const n=Math.abs(Number(v));if(!Number.isFinite(n))return '—';
     if(n>0&&n<0.000001)return '<0.000001';
@@ -5975,30 +5984,28 @@ body.mmh-v436-explorer-open #bottomNav{visibility:hidden!important;pointer-event
     const action=a=>'<button type="button" data-history-action="'+a+'" data-history-kind="'+x.kind+'" data-history-id="'+esc(x.id)+'">'+(a==='receipt'?'View receipt':a==='edit'?'Edit':'Delete')+'</button>';
     const receipt=x.receipt?action('receipt'):'—';
     const actions=x.id==null?'':action('edit')+' '+action('delete');
-    return {type,side,pl,receipt,actions,account:esc(x.account||'Not recorded'),amount:numeric(x.amount)?esc(currencyMark(x.currency))+' '+dir+esc(fmt(x.amount)):'Not recorded',price:price(x.buy_price)+(x.type==='Gold'?' / ကျပ်သား':''),qty,
+    return {type,side,pl,receipt,actions,account:esc(x.account||'Not recorded'),amount:numeric(x.amount)?esc(currencyMark(x.currency))+' '+dir+esc(fmt(Math.abs(Number(x.amount)))):'Not recorded',price:price(x.buy_price)+(x.type==='Gold'?' / ကျပ်သား':''),qty,
       fees:(numeric(x.fee)&&Number(x.fee)!==0?money(x.fee):'—')+' / '+(numeric(x.other_cost)&&Number(x.other_cost)!==0?money(x.other_cost):'—')};
   }
   function rowHTML(x){
     const v=display(x),field=(label,value)=>'<div class="mmh-history-detail"><small>'+label+'</small><b>'+value+'</b></div>',fee=v=>numeric(v)&&Number(v)!==0?esc(currencyMark(x.currency))+' '+esc(fmt(v)):'—';
-    return '<article class="mmh-history-card"><div class="mmh-history-top"><div><time>'+esc(x.date||'Date not recorded')+'</time><h3>'+esc(x.name||'Project not recorded')+'</h3></div><div class="mmh-history-tags">'+v.type+v.side+'<small class="mmh-history-account-summary"> · '+v.account+'</small></div><div class="mmh-history-amount-summary">'+v.amount+'</div></div><div class="mmh-history-grid">'+
+    return '<article class="mmh-history-card" data-investment-id="'+esc(x.id)+'" data-investment-kind="'+esc(x.kind)+'"><div class="mmh-history-top"><div><time>'+esc(x.date||'Date not recorded')+'</time><h3>'+esc(x.name||'Project not recorded')+'</h3></div><div class="mmh-history-tags">'+v.type+v.side+'<small class="mmh-history-account-summary"> · '+v.account+'</small></div><div class="mmh-history-amount-summary">'+v.amount+'</div></div><div class="mmh-history-grid">'+
       field('Source account',v.account)+field('Trade amount',v.amount)+field('Trade price',v.price)+field('Trade quantity',v.qty)+
-      field('Fee',fee(x.fee))+field('Other costs',fee(x.other_cost))+
-      field('Realized P/L',v.pl)+'</div><div class="mmh-history-actions">'+(x.receipt?v.receipt+' ':'')+v.actions+'</div></article>';
-  }
-  function tableHTML(x){
-    const v=display(x),cell=(html,cls='')=>'<div class="mmh-invest-cell '+cls+'">'+html+'</div>';
-    return '<article class="mmh-invest-table-row">'+cell(esc(x.date||'—'))+cell(v.type)+cell('<strong>'+esc(x.name||'—')+'</strong>')+cell(v.side)+cell(v.account)+
-      cell(v.amount)+cell(v.price)+cell(v.qty)+cell(v.fees)+cell(v.pl)+cell(v.receipt)+cell(v.actions,'mmh-invest-row-actions')+'</article>';
+      field('Fee',fee(x.fee))+field('Other costs',fee(x.other_cost))+field('Realized P/L',v.pl)+
+      field('Note',esc(x.note||'—'))+'</div><div class="mmh-history-actions">'+(x.receipt?v.receipt+' ':'')+v.actions+'</div></article>';
   }
   function render(){
     const filters=el('mmhHistoryFiltersV1'),list=el('mmhHistoryRowsV1');if(!filters||!list)return;
     const rows=entries(),catalog=window.mmhInvestCatalogSnapshotV1?.()||{types:[]};
     const types=['ALL','Crypto','Gold',...new Set([...rows.map(x=>x.type),...(catalog.types||[]).map(x=>x.name)].filter(x=>x&&x!=='Crypto'&&x!=='Gold'))];
     if(!types.includes(filter))filter='ALL';
-    filters.innerHTML=types.map(t=>'<button type="button" data-history-type="'+esc(t)+'" aria-pressed="'+(filter===t)+'">'+(t==='ALL'?'All':esc(t))+'</button>').join('');
-    const visible=rows.filter(x=>filter==='ALL'||x.type===filter);
-    const heads=['Date','Type','Project','Buy / Sell','Source Account','Amount','Trade Price','Quantity','Fee / Other','Realized P/L','Receipt','Actions'];
-    list.innerHTML=visible.length?'<div class="mmh-history-mobile">'+visible.map(rowHTML).join('')+'</div>':'<div class="mmh-ui-empty">No recorded investments in this filter.</div>';
+    const buys=rows.filter(x=>x.side==='Buy').length,sells=rows.filter(x=>x.side==='Sell').length,receipts=rows.filter(x=>x.receipt).length;
+    filters.innerHTML='<div class="mmh-history-filter-group" aria-label="Asset filter">'+types.map(t=>'<button type="button" data-history-type="'+esc(t)+'" aria-pressed="'+(filter===t)+'">'+(t==='ALL'?'All Assets':esc(t))+'</button>').join('')+'</div>'+
+      '<span class="mmh-history-filter-divider" aria-hidden="true"></span><div class="mmh-history-filter-group mmh-history-side-filter" aria-label="Trade direction filter">'+
+      ['ALL','Buy','Sell'].map(side=>'<button type="button" data-history-side="'+side+'" aria-pressed="'+(sideFilter===side)+'">'+(side==='ALL'?'All Trades':side)+'</button>').join('')+'</div>'+
+      '<span class="mmh-history-filter-meta">'+rows.length+' records · '+buys+' BUY · '+sells+' SELL · '+receipts+' receipts</span>';
+    const visible=rows.filter(x=>(filter==='ALL'||x.type===filter)&&(sideFilter==='ALL'||x.side===sideFilter));
+    list.innerHTML=visible.length?'<div class="mmh-history-mobile">'+visible.map(rowHTML).join('')+'</div>':'<div class="mmh-ui-empty">No recorded investments match these filters.</div>';
     if(window.mmhCustomInvestLoaded!==true)list.insertAdjacentHTML('afterbegin','<div class="mmh-ui-empty">Custom records are unavailable or still loading.</div>');
   }
   window.mmhRenderInvestHistoryV1=render;
@@ -6092,7 +6099,12 @@ body.mmh-v436-explorer-open #bottomNav{visibility:hidden!important;pointer-event
     });
     modal.showModal();
   }
-  document.addEventListener('click',e=>{const b=e.target.closest('#mmhHistoryFiltersV1 button[data-history-type]');if(b){filter=b.dataset.historyType;render();}});
+  document.addEventListener('click',e=>{
+    const typeButton=e.target.closest('#mmhHistoryFiltersV1 button[data-history-type]');
+    if(typeButton){filter=typeButton.dataset.historyType;render();return;}
+    const sideButton=e.target.closest('#mmhHistoryFiltersV1 button[data-history-side]');
+    if(sideButton){sideFilter=sideButton.dataset.historySide;render();}
+  });
   document.addEventListener('click',e=>{
     const b=e.target.closest('#mmhHistoryRowsV1 button[data-history-action]');if(!b)return;
     e.preventDefault();e.stopImmediatePropagation();const id=b.dataset.historyId;
@@ -17536,6 +17548,7 @@ button[data-mmh-busy="1"],.btn[data-mmh-busy="1"]{position:relative;cursor:wait!
 </script>
 <!-- MMHVAULT v800 · Transaction detail interaction + retired duplicate transaction render gate. -->
 
+<script id="mmhvault-v810-invest-history-version">window.MMHVAULT_BUILD='v810';</script>
 </body>
 <!-- MMHVAULT V4.3.0 performance baseline: logo-free account cards + restrained dashboard rendering. -->
 
