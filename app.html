@@ -17521,7 +17521,6 @@ button[data-mmh-busy="1"],.btn[data-mmh-busy="1"]{position:relative;cursor:wait!
     const t=findTx(id);if(!t)return false;
     const actions=[{label:'Close',onClick:()=>true}];
     if(hasReceipt(t))actions.push({label:'View Receipt',onClick:()=>{setTimeout(()=>window.openTransactionReceiptV396?.(t.id),0);return true;}});
-    actions.push({label:'Edit',className:'primary',onClick:()=>{setTimeout(()=>window.editTransaction?.(t.id),0);return true;}});
     if(typeof window.mmhVaultOpenDialogV449==='function')return window.mmhVaultOpenDialogV449({title:'Transaction',message:(t.tx_date||'')+' · '+(t.category||t.type||''),body:body(t),actions});
     return false;
   }
@@ -17589,12 +17588,8 @@ body.light .mmh-invest-detail-v821 .mmh-invest-realized-loss-v821{color:#b33c51!
     if(!card)return false;
     const date=text(card,'time',''),name=text(card,'h3','Investment');
     const receiptBtn=card.querySelector('[data-history-action="receipt"]');
-    const editBtn=card.querySelector('[data-history-action="edit"]');
-    const deleteBtn=card.querySelector('[data-history-action="delete"]');
     const actions=[{label:'Close',onClick:()=>true}];
     if(receiptBtn)actions.push({label:'View Receipt',onClick:()=>{setTimeout(()=>receiptBtn.click(),0);return true;}});
-    if(deleteBtn)actions.push({label:'Delete',className:'danger',onClick:()=>{setTimeout(()=>deleteBtn.click(),0);return true;}});
-    if(editBtn)actions.push({label:'Edit',className:'primary',onClick:()=>{setTimeout(()=>editBtn.click(),0);return true;}});
     if(typeof window.mmhVaultOpenDialogV449==='function')return window.mmhVaultOpenDialogV449({title:'Investment',message:(date?date+' · ':'')+name,body:body(card),actions});
     return false;
   }
@@ -17603,6 +17598,21 @@ body.light .mmh-invest-detail-v821 .mmh-invest-realized-loss-v821{color:#b33c51!
 </script>
 <script id="mmhvault-v821-build">window.MMHVAULT_BUILD='v821';</script>
 <!-- MMHVAULT v821 · Portfolio records now open the same premium detail dialog pattern as Transaction detail. -->
+
+<style id="mmhvault-v831-invest-detail-flow-css">
+/* v831 · Investment history follows the same two-step detail flow as Transactions. */
+#ledger-detail #ldBody:has(.mmh-history-card) .mmh-history-actions [data-history-role="details-v831"]{
+  background:linear-gradient(180deg,#1e5d8b,#174b73)!important;
+  border-color:#3d7ba7!important;
+  color:#f4fbff!important;
+  font-weight:800!important;
+}
+body.light #ledger-detail #ldBody:has(.mmh-history-card) .mmh-history-actions [data-history-role="details-v831"]{
+  background:#286d9d!important;border-color:#286d9d!important;color:#fff!important;
+}
+</style>
+<script id="mmhvault-v831-build">window.MMHVAULT_BUILD='v831';</script>
+<!-- MMHVAULT v831 · Transaction detail is view-only; Investment Portfolio uses page → Details dialog flow. -->
 </body>
 <!-- MMHVAULT V4.3.0 performance baseline: logo-free account cards + restrained dashboard rendering. -->
 
@@ -21108,7 +21118,7 @@ let origin='transactions',savedScroll=0,detailOwner='';
 function init(){
  const host=document.createElement('section');host.id='ledger-detail';host.className='page';host.innerHTML='<div class="ld-head"><button id="ldBack" type="button">‹ Back</button><h1 id="ldTitle">Details</h1></div><div id="ldBody"></div>';document.getElementById('transactions').parentElement.append(host);
  document.getElementById('ldBack').onclick=()=>{document.getElementById('ldBody').replaceChildren();setPage(origin);requestAnimationFrame(()=>window.scrollTo({top:savedScroll}))};
- function open(card,page){if(card.classList.contains('mmh-history-card')&&typeof window.openInvestmentPortfolioDetailV821==='function'){window.openInvestmentPortfolioDetailV821(card);return;}origin=page;savedScroll=window.scrollY;detailOwner=currentSessionUser?.id||'';const clone=card.cloneNode(true);clone.removeAttribute('tabindex');clone.removeAttribute('role');clone.classList.add('open');const buttons=[...card.querySelectorAll('button')];clone.querySelectorAll('button').forEach((b,i)=>{b.onclick=e=>{e.stopPropagation();if(currentSessionUser?.id!==detailOwner)return;buttons[i]?.click()}});const detailTitle=page==='transactions'?'Transaction details':'Holding details';document.getElementById('ldTitle').dataset.i18nBase=detailTitle;document.getElementById('ldTitle').textContent=detailTitle;document.getElementById('ldBody').replaceChildren(clone);setPage('ledger-detail');window.scrollTo({top:0});document.getElementById('ldBack').focus();}
+ function open(card,page){origin=page;savedScroll=window.scrollY;detailOwner=currentSessionUser?.id||'';const clone=card.cloneNode(true);clone.removeAttribute('tabindex');clone.removeAttribute('role');clone.classList.add('open');const buttons=[...card.querySelectorAll('button')];clone.querySelectorAll('button').forEach((b,i)=>{b.onclick=e=>{e.stopPropagation();if(currentSessionUser?.id!==detailOwner)return;buttons[i]?.click()}});if(card.classList.contains('mmh-history-card')){let actions=clone.querySelector('.mmh-history-actions');if(!actions){actions=document.createElement('div');actions.className='mmh-history-actions';clone.append(actions)}const detailBtn=document.createElement('button');detailBtn.type='button';detailBtn.dataset.historyRole='details-v831';detailBtn.textContent='Details';detailBtn.onclick=e=>{e.preventDefault();e.stopPropagation();if(currentSessionUser?.id!==detailOwner)return false;window.openInvestmentPortfolioDetailV821?.(clone);return false};actions.insertBefore(detailBtn,actions.firstChild)}const detailTitle=page==='transactions'?'Transaction details':card.classList.contains('mmh-history-card')?'Investment details':'Holding details';document.getElementById('ldTitle').dataset.i18nBase=detailTitle;document.getElementById('ldTitle').textContent=detailTitle;document.getElementById('ldBody').replaceChildren(clone);setPage('ledger-detail');window.scrollTo({top:0});document.getElementById('ldBack').focus();}
  document.addEventListener('click',e=>{const card=e.target.closest('#txMobileListV371 .tx-mobile-card-v371,#mmhUnifiedListV1 .mmh-overview-card,#mmhHistoryRowsV1 .mmh-history-card');if(!card||e.target.closest('button,a,input,select'))return;e.preventDefault();e.stopImmediatePropagation();open(card,card.closest('#transactions')?'transactions':'invest')},true);
  document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches('#txMobileListV371 .tx-mobile-card-v371,#mmhUnifiedListV1 .mmh-overview-card,#mmhHistoryRowsV1 .mmh-history-card')){e.preventDefault();e.target.click()}});
  const decorate=()=>{document.querySelectorAll('#txMobileListV371 .tx-mobile-card-v371,#mmhUnifiedListV1 .mmh-overview-card,#mmhHistoryRowsV1 .mmh-history-card').forEach(x=>{x.tabIndex=0;x.setAttribute('role','button');x.setAttribute('aria-label','Open '+(x.querySelector('b')?.textContent||'record')+' details')});};
