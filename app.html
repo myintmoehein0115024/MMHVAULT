@@ -9,7 +9,7 @@
 <link href="other/manifest.webmanifest" rel="manifest"/>
 <meta content="#06111f" name="theme-color"/>
 <title>MMHVAULT · Personal Finance &amp; Wealth Management</title>
-<meta name="mmhvault-release" content="1.1.1-budget-beta"/>
+<meta name="mmhvault-release" content="1.1.2-budget-integration-beta"/>
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="dns-prefetch" href="https://unpkg.com">
@@ -6634,18 +6634,18 @@ body.mmh-v436-explorer-open #bottomNav{visibility:hidden!important;pointer-event
       <div class="cfa-mini-card cfa-daily-spend"><span>AVG DAILY SPEND</span><strong id="cfaDailySpend">$ 0.00</strong><small id="cfaDailySpendMeta">Average across the selected period</small></div>
     </div>
     <div class="cfa-detail-grid">
-      <section class="cfa-panel" aria-labelledby="cfaBudgetTitle">
-        <div class="cfa-panel-head"><div><h2 id="cfaBudgetTitle">Individual Expense Plan</h2><p>Set an estimated spending amount for this period.</p></div><span class="cfa-badge">Manual target</span></div>
-        <form id="cfaBudgetForm" class="cfa-budget-form"><label><span id="cfaBudgetLabel">Estimated expense · USD</span><input id="cfaBudget" type="number" min="0" step="0.01" inputmode="decimal" placeholder="Enter an amount"></label><button class="btn primary" type="submit">Save estimate</button></form>
+      <section class="cfa-panel cfa-cloud-budget-v112" aria-labelledby="cfaBudgetTitle">
+        <div class="cfa-panel-head"><div><h2 id="cfaBudgetTitle">Individual Expense Budget</h2><p>Cloud Budget from Budget Center for the selected period.</p></div><span class="cfa-badge" id="cfaBudgetSourceV112">Cloud synced</span></div>
+        <div class="cfa-budget-cloud-action-v112"><div><span>Budget source</span><strong id="cfaBudgetCloudPeriodV112">Loading cloud budget…</strong></div><button class="btn" id="cfaOpenBudgetV112" type="button">Open Budget →</button></div>
         <p class="cfa-budget-status" id="cfaBudgetStatus" role="status"></p>
-        <div class="cfa-budget-comparison"><div><span>Actual individual expense</span><b id="cfaActual">$ 0.00</b></div><div><span>Estimated expense</span><b id="cfaEstimate">Not set</b></div><div><span>Budget left</span><b id="cfaBudgetLeft">—</b></div></div>
-        <div class="cfa-progress" role="progressbar" aria-label="Individual expense used" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="cfaProgress"><span id="cfaProgressFill"></span></div><p class="cfa-progress-caption" id="cfaProgressCaption">Enter an estimate to track spending.</p>
+        <div class="cfa-budget-comparison"><div><span>Actual individual expense</span><b id="cfaActual">$ 0.00</b></div><div><span>Cloud budget</span><b id="cfaEstimate">Loading…</b></div><div><span>Budget left</span><b id="cfaBudgetLeft">—</b></div></div>
+        <div class="cfa-progress" role="progressbar" aria-label="Individual expense budget used" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="cfaProgress"><span id="cfaProgressFill"></span></div><p class="cfa-progress-caption" id="cfaProgressCaption">Loading cloud budget…</p>
       </section>
       <section class="cfa-panel" aria-labelledby="cfaBreakdownTitle"><div class="cfa-panel-head"><div><h2 id="cfaBreakdownTitle">Expense Breakdown</h2><p>Individual and Personal are kept separate · rates show share of total spending.</p></div></div><div id="cfaBreakdown" class="cfa-breakdown"></div></section>
     </div>
     <section class="cfa-panel cfa-trend-panel" aria-labelledby="cfaTrendTitle"><div class="cfa-panel-head"><div><h2 id="cfaTrendTitle">Period Overview</h2><p id="cfaTrendSubtitle">Selected period</p></div></div><div id="cfaTrend" class="cfa-trend"></div></section>
     <section class="cfa-panel cfa-records-panel" aria-labelledby="cfaRecordsTitle"><div class="cfa-panel-head"><div><h2 id="cfaRecordsTitle">Included Records</h2><p>Transactions used in these cash flow totals.</p></div><span class="cfa-badge" id="cfaRecordCount">0 records</span></div><div class="cfa-records-scroll"><table><thead><tr><th>Date</th><th>Flow</th><th>Category</th><th>Original</th><th id="cfaRecordCurrency">USD equivalent</th></tr></thead><tbody id="cfaRecords"></tbody></table></div></section>
-    <p class="cfa-method">Amounts use your saved exchange rates. Avg Daily Spend uses Individual Expense only; Personal spending is excluded from that metric. Breakdown rates show each item as a share of total spending. Loans, transfers, investment cash flows and Data Adjustment are excluded. The estimate follows the selected currency and is saved on this device for the signed-in account.</p>
+    <p class="cfa-method">Amounts use your saved exchange rates. Avg Daily Spend uses Individual Expense only; Personal spending is excluded from that metric. Breakdown rates show each item as a share of total spending. Loans, transfers, investment cash flows and Data Adjustment are excluded. The Cloud Budget is read from Budget Center for the signed-in account and converted with your saved exchange rates.</p>
   </div>
 </section>
 </main>
@@ -17932,16 +17932,16 @@ html body #invest .invest-entry .receipt-dropzone-v3300{width:100%!important;max
   function render(){const root=page();if(!root)return;get('budgetMonthV110').value=state.month;get('budgetCurrencyV110').value=state.currency;get('budgetInputMarkV110').textContent=symbols[state.currency]||state.currency;const spend=spending(),budget=monthlyAmount(),remaining=budget-spend.total,usage=budget>0?spend.total/budget*100:0,level=usageLevel(usage);const input=get('budgetMonthlyAmountV110');if(document.activeElement!==input)input.value=budget>0?String(Number(budget.toFixed(2))):'';get('budgetTotalV110').textContent=budget>0?money(budget):'Not set';get('budgetSpentV110').textContent=money(spend.total);get('budgetRemainingV110').textContent=budget>0?money(remaining):'—';get('budgetRemainingV110').className=budget>0?(remaining<0?'over':'good'):'';get('budgetUsageV110').textContent=budget>0?usage.toFixed(1)+'%':'—';get('budgetUsageV110').className=budget>0?level:'';get('budgetUsageMetaV110').textContent=budget>0?(level==='over'?'Over budget':level==='watch'?'Approaching limit':'Within budget'):'Set a monthly budget';const pill=get('budgetStatusV110');pill.className='budget-status-pill-v110'+(budget>0?' '+level:'');pill.textContent=budget>0?(level==='over'?'Over budget':level==='watch'?'Watch':'On track'):'Not set';const bar=get('budgetProgressV110');bar.className='budget-progress-track-v110'+(budget>0?' '+level:'');bar.setAttribute('aria-valuenow',String(Math.round(progressPct(spend.total,budget))));bar.querySelector('span').style.width=progressPct(spend.total,budget)+'%';get('budgetProgressTextV110').textContent=budget>0?`${usage.toFixed(1)}% used · ${remaining>=0?money(remaining)+' remaining':money(Math.abs(remaining))+' over budget'}`:'Enter a monthly limit to start tracking.';const catTotal=Object.values(rawCategoryBudgets()).reduce((a,v)=>a+Math.max(0,num(v)),0);get('budgetBudgetedCategoryTotalV110').textContent=catTotal>0?`Category limits: ${money(catTotal)}`:'';const alert=get('budgetAlertV110');if(budget>0&&usage>=80){alert.hidden=false;alert.className='budget-alert-v110'+(usage>=100?' over':'');alert.textContent=usage>=100?`Budget exceeded by ${money(Math.abs(remaining))}. Review this month’s individual spending or adjust the plan.`:`You have used ${usage.toFixed(1)}% of this month’s budget. ${money(Math.max(0,remaining))} remains.`}else{alert.hidden=true;alert.textContent=''}if(spend.missing){alert.hidden=false;alert.className='budget-alert-v110';alert.textContent=`${spend.missing} expense record${spend.missing===1?'':'s'} could not be converted because an exchange rate is unavailable.`}renderCategories(spend);maybeAlert(usage,budget)}
   async function load(month=state.month){if(state.loading)return;const u=user();if(!u?.id||typeof db==='undefined')return;state.loading=true;try{const {data,error}=await db.from('budgets').select('user_id,budget_month,currency,monthly_amount,category_budgets,updated_at').eq('user_id',u.id).eq('budget_month',month+'-01').maybeSingle();if(error)throw error;state.month=month;state.row=data||null;state.loadedMonth=month;state.currency=data?.currency||inferDefaultCurrency();render()}catch(err){console.warn('[MMHVAULT] budget load failed',err);window.MMHUI?.message?.(err?.message||'Unable to load this budget.','Budget',{type:'error'})}finally{state.loading=false}}
   function collect(){const totalRaw=get('budgetMonthlyAmountV110').value.trim(),monthly=totalRaw===''?0:Number(totalRaw);if(!Number.isFinite(monthly)||monthly<0)throw new Error('Enter a monthly budget of 0 or more.');const categories={};document.querySelectorAll('[data-budget-category-input]').forEach(input=>{const raw=input.value.trim();if(raw==='')return;const v=Number(raw);if(!Number.isFinite(v)||v<0)throw new Error('Category budgets must be 0 or more.');if(v>0)categories[input.dataset.budgetCategoryInput]=v});return{monthly,categories}}
-  async function save(){if(state.saveBusy)return;const u=user();if(!u?.id)return window.MMHUI?.message?.('Please sign in again.','Budget',{type:'error'});let payload;try{const x=collect();payload={user_id:u.id,budget_month:rowMonth(),currency:state.currency,monthly_amount:x.monthly,category_budgets:x.categories}}catch(err){return window.MMHUI?.message?.(err.message,'Budget',{type:'warn'})}state.saveBusy=true;const button=get('budgetSaveV110');window.MMHUI?.setBusy?.(button,true,'Saving…');try{const {data,error}=await db.from('budgets').upsert(payload,{onConflict:'user_id,budget_month'}).select('user_id,budget_month,currency,monthly_amount,category_budgets,updated_at').single();if(error)throw error;state.row=data;state.loadedMonth=state.month;render();window.MMHUI?.toast?.('Budget saved to your account.',{title:'Budget',type:'success'})}catch(err){console.warn('[MMHVAULT] budget save failed',err);window.MMHUI?.message?.(err?.message||'Unable to save the budget.','Budget',{type:'error'})}finally{state.saveBusy=false;window.MMHUI?.setBusy?.(button,false)}}
-  async function clearMonth(){const u=user();if(!u?.id||!state.row)return;const ok=await window.MMHUI?.confirm?.(`Clear the budget for ${state.month}?`,'Clear Budget',{details:'This removes the monthly and category limits for this month. Transactions are not changed.',danger:true,confirmLabel:'Clear Budget'});if(!ok)return;const button=get('budgetClearV110');window.MMHUI?.setBusy?.(button,true,'Clearing…');try{const {error}=await db.from('budgets').delete().eq('user_id',u.id).eq('budget_month',rowMonth());if(error)throw error;state.row=null;state.currency=inferDefaultCurrency();render();window.MMHUI?.toast?.('Budget cleared. Your Transactions were not changed.',{title:'Budget',type:'success'})}catch(err){window.MMHUI?.message?.(err?.message||'Unable to clear the budget.','Budget',{type:'error'})}finally{window.MMHUI?.setBusy?.(button,false)}}
+  async function save(){if(state.saveBusy)return;const u=user();if(!u?.id)return window.MMHUI?.message?.('Please sign in again.','Budget',{type:'error'});let payload;try{const x=collect();payload={user_id:u.id,budget_month:rowMonth(),currency:state.currency,monthly_amount:x.monthly,category_budgets:x.categories}}catch(err){return window.MMHUI?.message?.(err.message,'Budget',{type:'warn'})}state.saveBusy=true;const button=get('budgetSaveV110');window.MMHUI?.setBusy?.(button,true,'Saving…');try{const {data,error}=await db.from('budgets').upsert(payload,{onConflict:'user_id,budget_month'}).select('user_id,budget_month,currency,monthly_amount,category_budgets,updated_at').single();if(error)throw error;state.row=data;state.loadedMonth=state.month;render();window.dispatchEvent(new CustomEvent('mmhvault:budget-changed',{detail:{month:state.month,action:'save'}}));window.MMHUI?.toast?.('Budget saved to your account.',{title:'Budget',type:'success'})}catch(err){console.warn('[MMHVAULT] budget save failed',err);window.MMHUI?.message?.(err?.message||'Unable to save the budget.','Budget',{type:'error'})}finally{state.saveBusy=false;window.MMHUI?.setBusy?.(button,false)}}
+  async function clearMonth(){const u=user();if(!u?.id||!state.row)return;const ok=await window.MMHUI?.confirm?.(`Clear the budget for ${state.month}?`,'Clear Budget',{details:'This removes the monthly and category limits for this month. Transactions are not changed.',danger:true,confirmLabel:'Clear Budget'});if(!ok)return;const button=get('budgetClearV110');window.MMHUI?.setBusy?.(button,true,'Clearing…');try{const {error}=await db.from('budgets').delete().eq('user_id',u.id).eq('budget_month',rowMonth());if(error)throw error;state.row=null;state.currency=inferDefaultCurrency();render();window.dispatchEvent(new CustomEvent('mmhvault:budget-changed',{detail:{month:state.month,action:'clear'}}));window.MMHUI?.toast?.('Budget cleared. Your Transactions were not changed.',{title:'Budget',type:'success'})}catch(err){window.MMHUI?.message?.(err?.message||'Unable to clear the budget.','Budget',{type:'error'})}finally{window.MMHUI?.setBusy?.(button,false)}}
   function changeCurrency(next){if(!['USD','THB','MMK','CNY'].includes(next)||next===state.currency)return;const previous=state.currency;const monthlyInput=get('budgetMonthlyAmountV110'),oldMonthly=Number(monthlyInput.value);if(Number.isFinite(oldMonthly)&&oldMonthly>0)monthlyInput.value=String(Number(convertCode(oldMonthly,previous,next).toFixed(2)));document.querySelectorAll('[data-budget-category-input]').forEach(input=>{const v=Number(input.value);if(Number.isFinite(v)&&v>0)input.value=String(Number(convertCode(v,previous,next).toFixed(2)))});state.currency=next;if(state.row){state.row={...state.row,currency:next,monthly_amount:Number(monthlyInput.value)||0,category_budgets:Object.fromEntries([...document.querySelectorAll('[data-budget-category-input]')].map(i=>[i.dataset.budgetCategoryInput,Number(i.value)||0]).filter(([,v])=>v>0))}}render()}
   function setup(){if(!page())return;get('budgetMonthV110').value=state.month;get('budgetMonthV110').addEventListener('change',e=>{if(/^\d{4}-(0[1-9]|1[0-2])$/.test(e.target.value))load(e.target.value)});get('budgetCurrencyV110').addEventListener('change',e=>changeCurrency(e.target.value));get('budgetSaveV110').addEventListener('click',save);get('budgetClearV110').addEventListener('click',clearMonth);['mmhvault:data-loaded','mmhvault:sync-complete','mmhvault:cache-restored','mmhvault:category-config-changed','mmhvault:config-owner-changed'].forEach(ev=>window.addEventListener(ev,()=>{if(page()?.classList.contains('active')){if(state.loadedMonth===state.month)render();else load(state.month)}}));const original=window.setPage;if(typeof original==='function'&&!original.__budgetV110){const wrapped=function(id){const result=original.apply(this,arguments);if(result==='budget'||id==='budget')setTimeout(()=>{if(state.loadedMonth===state.month)render();else load(state.month)},0);return result};wrapped.__budgetV110=true;window.setPage=wrapped}window.MMHBudgetV110={load,render,get state(){return state}}}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setup,{once:true});else setup();
 })();
 </script>
 <script id="mmhvault-v1-stable-build">
-window.MMHVAULT_BUILD='1.1.1-budget-beta';
-window.MMHVAULT_RELEASE='MMHVAULT v1.1 Budget Beta';
+window.MMHVAULT_BUILD='1.1.2-budget-integration-beta';
+window.MMHVAULT_RELEASE='MMHVAULT v1.1 Budget Integration Beta';
 </script>
 <!-- MMHVAULT v1.1 Budget Beta · branched from v1.0 Stable. -->
 
@@ -21071,19 +21071,18 @@ html,body{max-width:100%;overflow-x:clip}
 
 <script id="mmhvault-cashflow-analyze-v1-js">
 (function(){
-  if(window.__mmhCashflowAnalyzeV1)return;window.__mmhCashflowAnalyzeV1=true;
+  if(window.__mmhCashflowAnalyzeV112)return;window.__mmhCashflowAnalyzeV112=true;
   const $=id=>document.getElementById(id);
   const num=v=>{const x=Number(v);return Number.isFinite(x)?x:0};
-  const fx=()=>state.currency==='USD'?1:num(rates?.[{THB:'usd_thb',MMK:'usd_mmk',CNY:'usd_cny'}[state.currency]]);
+  const currencyRate=code=>{const c=String(code||'USD').toUpperCase();if(c==='USD')return 1;const key={THB:'usd_thb',MMK:'usd_mmk',CNY:'usd_cny'}[c];return key?num(rates?.[key]):0};
+  const fx=()=>currencyRate(state.currency);
   const money=v=>!(fx()>0)?'—':({USD:'$ ',THB:'฿ ',MMK:'K ',CNY:'￥ '}[state.currency]||'$ ')+(window.mmhSettingsNumberV2?window.mmhSettingsNumberV2(num(v)*fx()):(num(v)*fx()).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}));
   const safe=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const monthKey=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`};
-  const state={mode:'month',month:monthKey(),year:new Date().getFullYear(),currency:'USD'};
-  function context(){
-    const key=state.mode==='month'?state.month:String(state.year);
-    return {key,storage:`mmhvault_cashflow_estimate_v1_${currentSessionUser?.id||'guest'}_${state.mode}_${key}`};
-  }
-  function estimate(){try{const raw=localStorage.getItem(context().storage);if(raw===null)return null;const value=Number(raw);return Number.isFinite(value)&&value>=0?value:null}catch(_){return null}}
+  const state={mode:'month',month:monthKey(),year:new Date().getFullYear(),currency:'USD',budget:null,budgetKey:'',budgetLoading:false,budgetRequest:0};
+  function context(){const key=state.mode==='month'?state.month:String(state.year);return {key};}
+  function budgetContextKey(){return `${currentSessionUser?.id||'guest'}:${state.mode}:${context().key}`}
+  function budgetAmountUsd(row){const rate=currencyRate(row?.currency);return rate>0?Math.max(0,num(row?.monthly_amount))/rate:0}
   function group(t){
     if(t.category==='Data Adjustment')return 'Data Adjustment';
     if(typeof inferTxGroup==='function')return inferTxGroup(t);
@@ -21124,14 +21123,42 @@ html,body{max-width:100%;overflow-x:clip}
     if(y===todayYear){const start=new Date(y,0,1),today=new Date(y,now.getMonth(),now.getDate());return Math.max(1,Math.floor((today-start)/86400000)+1)}
     return new Date(y,1,29).getMonth()===1?366:365;
   }
+  async function loadBudget(){
+    const u=currentSessionUser,key=budgetContextKey(),request=++state.budgetRequest;
+    state.budgetKey=key;state.budgetLoading=true;state.budget=null;render();
+    if(!u?.id||typeof db==='undefined'){state.budgetLoading=false;state.budget={targetUsd:null,months:0,error:'Sign in to load Cloud Budget.'};render();return}
+    try{
+      let rows=[];
+      if(state.mode==='month'){
+        const {data,error}=await db.from('budgets').select('budget_month,currency,monthly_amount,updated_at').eq('user_id',u.id).eq('budget_month',state.month+'-01').maybeSingle();
+        if(error)throw error;rows=data?[data]:[];
+      }else{
+        const start=`${state.year}-01-01`,end=`${state.year}-12-01`;
+        const {data,error}=await db.from('budgets').select('budget_month,currency,monthly_amount,updated_at').eq('user_id',u.id).gte('budget_month',start).lte('budget_month',end).order('budget_month',{ascending:true});
+        if(error)throw error;rows=Array.isArray(data)?data:[];
+      }
+      if(request!==state.budgetRequest||key!==budgetContextKey())return;
+      const planned=rows.filter(r=>num(r.monthly_amount)>0&&currencyRate(r.currency)>0);
+      const targetUsd=planned.length?planned.reduce((sum,r)=>sum+budgetAmountUsd(r),0):null;
+      state.budget={targetUsd,months:planned.length,rows,error:'',missingFx:rows.filter(r=>num(r.monthly_amount)>0&&!(currencyRate(r.currency)>0)).length};
+    }catch(err){
+      if(request!==state.budgetRequest)return;
+      console.warn('[MMHVAULT] cash flow cloud budget load failed',err);state.budget={targetUsd:null,months:0,rows:[],error:err?.message||'Unable to load Cloud Budget.',missingFx:0};
+    }finally{
+      if(request===state.budgetRequest){state.budgetLoading=false;render()}
+    }
+  }
+  function ensureBudget(){if(state.budgetKey!==budgetContextKey()&&!state.budgetLoading)void loadBudget()}
   function drawBudget(actual){
-    const target=estimate(),input=$('cfaBudget');if(document.activeElement!==input)input.value=target===null?'':String(Number((target*fx()).toFixed(2)));
-    $('cfaBudgetLabel').textContent='Estimated expense · '+(({USD:'$',THB:'฿',MMK:'K',CNY:'￥'}[state.currency]||state.currency));
-    $('cfaActual').textContent=money(actual);$('cfaEstimate').textContent=target===null?'Not set':money(target);
-    $('cfaBudgetLeft').textContent=target===null?'—':money(target-actual);
+    const b=state.budgetKey===budgetContextKey()?state.budget:null,target=b?.targetUsd??null,loading=state.budgetLoading;
+    $('cfaActual').textContent=money(actual);$('cfaEstimate').textContent=loading?'Loading…':target===null?'Not set':money(target);$('cfaBudgetLeft').textContent=loading||target===null?'—':money(target-actual);
+    const source=$('cfaBudgetSourceV112'),period=$('cfaBudgetCloudPeriodV112'),status=$('cfaBudgetStatus');
+    if(source)source.textContent=loading?'Syncing…':'Cloud synced';
+    if(period)period.textContent=loading?'Loading cloud budget…':state.mode==='month'?(target===null?'No monthly budget set':`${state.month} · Budget Center`):(target===null?`No budgets set for ${state.year}`:`${state.year} · ${b?.months||0}/12 months budgeted`);
+    if(status)status.textContent=b?.error||((b?.missingFx||0)>0?`${b.missingFx} budget month${b.missingFx===1?'':'s'} could not be converted because an exchange rate is unavailable.`:'');
     const pct=target===null?0:target===0?(actual>0?100:0):Math.min(100,Math.max(0,actual/target*100));
     const bar=$('cfaProgress');bar.classList.toggle('over',target!==null&&actual>target);bar.setAttribute('aria-valuenow',String(Math.round(pct)));$('cfaProgressFill').style.width=pct+'%';
-    $('cfaProgressCaption').textContent=target===null?'Enter an estimate to track spending.':target===0?(actual>0?'Spending is above the zero estimate.':'No spending against the zero estimate.'):`${(actual/target*100).toFixed(1)}% used · ${actual>target?'above estimate by '+money(actual-target):'within estimate by '+money(target-actual)}`;
+    $('cfaProgressCaption').textContent=loading?'Loading Cloud Budget…':target===null?'Set a budget in Budget Center to compare spending.':target===0?(actual>0?'Spending is above the zero budget.':'No spending against the zero budget.'):`${(actual/target*100).toFixed(1)}% used · ${actual>target?'over budget by '+money(actual-target):money(target-actual)+' remaining'}`;
   }
   function render(){
     const page=$('cashflow-analyze');if(!page)return;
@@ -21141,7 +21168,7 @@ html,body{max-width:100%;overflow-x:clip}
     const totalSpend=result.individual+result.personal,savingsRate=result.income>0?(result.remaining/result.income*100):null,days=periodDayCount(),dailySpend=days>0?result.individual/days:0;
     const savingsEl=$('cfaSavingsRate');savingsEl.textContent=savingsRate===null?'—':savingsRate.toFixed(1)+'%';savingsEl.classList.toggle('positive',savingsRate!==null&&savingsRate>=0);savingsEl.classList.toggle('negative',savingsRate!==null&&savingsRate<0);
     $('cfaDailySpend').textContent=money(dailySpend);$('cfaDailySpendMeta').textContent=`Individual expense ${money(result.individual)} ÷ ${days} day${days===1?'':'s'}`;
-    drawBudget(result.individual);
+    drawBudget(result.individual);ensureBudget();
     const shareOfSpend=value=>totalSpend>0?(num(value)/totalSpend*100):0;
     const rateBadge=value=>`<em class="cfa-breakdown-rate">${shareOfSpend(value).toFixed(1)}%</em>`;
     $('cfaBreakdown').innerHTML=[['Expense','Individual Expense',result.individual],['Personal','Personal',result.personal]].map(([key,label,total])=>{
@@ -21155,33 +21182,28 @@ html,body{max-width:100%;overflow-x:clip}
     $('cfaTrendSubtitle').textContent=`${year} · income (blue) and total spending (pink)`;
     $('cfaTrend').innerHTML=series.map((x,i)=>`<div class="cfa-trend-item" title="${safe(new Date(year,i,1).toLocaleDateString(undefined,{month:'long',year:'numeric'}))}: Income ${money(x.income)} · Expense ${money(x.individual+x.personal)}"><div class="cfa-trend-bars"><i style="height:${Math.max(3,x.income/max*78)}px"></i><i style="height:${Math.max(3,(x.individual+x.personal)/max*78)}px"></i></div><span>${String(i+1).padStart(2,'0')}</span></div>`).join('');
     const records=periodRows().filter(isIncluded).sort((a,b)=>String(b.tx_date||'').localeCompare(String(a.tx_date||'')));
-    $('cfaRecordCount').textContent=`${records.length} record${records.length===1?'':'s'}`;
-    $('cfaRecordCurrency').textContent=state.currency+' equivalent';
-    $('cfaRecords').innerHTML=records.length?records.map(t=>{
-      const incoming=t.type==='Income',account=incoming?t.to_account:t.from_account,amount=num(incoming?t.to_amount:t.from_amount);
-      const nativeCurrency=typeof currency==='function'?currency(account):'';
-      const native=amount.toLocaleString(undefined,{maximumFractionDigits:2})+' '+nativeCurrency;
-      return `<tr><td>${safe(t.tx_date)}</td><td>${incoming?'Income':group(t)==='Personal'?'Personal':'Individual Expense'}</td><td>${safe(t.category)}</td><td>${safe(native)}</td><td>${money(toUsd(amount,account))}</td></tr>`;
-    }).join(''):'<tr><td colspan="5">No included transactions for this period.</td></tr>';
+    $('cfaRecordCount').textContent=`${records.length} record${records.length===1?'':'s'}`;$('cfaRecordCurrency').textContent=state.currency+' equivalent';
+    $('cfaRecords').innerHTML=records.length?records.map(t=>{const incoming=t.type==='Income',account=incoming?t.to_account:t.from_account,amount=num(incoming?t.to_amount:t.from_amount),nativeCurrency=typeof currency==='function'?currency(account):'',native=amount.toLocaleString(undefined,{maximumFractionDigits:2})+' '+nativeCurrency;return `<tr><td>${safe(t.tx_date)}</td><td>${incoming?'Income':group(t)==='Personal'?'Personal':'Individual Expense'}</td><td>${safe(t.category)}</td><td>${safe(native)}</td><td>${money(toUsd(amount,account))}</td></tr>`}).join(''):'<tr><td colspan="5">No included transactions for this period.</td></tr>';
   }
+  function openBudget(){
+    const selected=state.mode==='month'?state.month:`${state.year}-${String((new Date().getFullYear()===state.year?new Date().getMonth()+1:1)).padStart(2,'0')}`;
+    if(typeof window.setPage==='function')window.setPage('budget');
+    setTimeout(()=>{const input=$('budgetMonthV110');if(input&&input.value!==selected){input.value=selected;input.dispatchEvent(new Event('change',{bubbles:true}))}},80);
+  }
+  function periodChanged(){state.budgetKey='';state.budget=null;render();void loadBudget()}
   function setup(){
     const page=$('cashflow-analyze');if(!page)return;
     const year=$('cfaYear'),now=new Date().getFullYear();
     year.innerHTML=Array.from({length:Math.max(7,now-2019+2)},(_,i)=>`<option value="${now+1-i}">${now+1-i}</option>`).join('');
     $('cfaMonth').value=state.month;year.value=String(state.year);
-    $('cfaCurrency').addEventListener('change',e=>{state.currency=['USD','THB','MMK','CNY'].includes(e.target.value)?e.target.value:'USD';$('cfaBudget').blur();$('cfaBudgetStatus').textContent='';render()});
-    $('cfaMode').addEventListener('change',e=>{state.mode=e.target.value==='year'?'year':'month';$('cfaMonthWrap').hidden=state.mode!=='month';$('cfaYearWrap').hidden=state.mode!=='year';$('cfaBudgetStatus').textContent='';render()});
-    $('cfaMonth').addEventListener('change',e=>{if(/^\d{4}-(0[1-9]|1[0-2])$/.test(e.target.value))state.month=e.target.value;$('cfaBudgetStatus').textContent='';render()});
-    year.addEventListener('change',e=>{state.year=Number(e.target.value)||now;$('cfaBudgetStatus').textContent='';render()});
-    $('cfaBudgetForm').addEventListener('submit',e=>{
-      e.preventDefault();const input=$('cfaBudget'),raw=input.value.trim(),value=Number(raw);
-      if(!(fx()>0)){$('cfaBudgetStatus').textContent='Set a valid exchange rate in Exchange first.';return}
-      if(raw===''||!Number.isFinite(value)||value<0){$('cfaBudgetStatus').textContent='Enter an amount of 0 or more.';return}
-      try{localStorage.setItem(context().storage,String(value/fx()));$('cfaBudgetStatus').textContent='Estimate saved for this period.';render()}
-      catch(_){$('cfaBudgetStatus').textContent='Could not save the estimate on this device.'}
-    });
-    ['mmhvault:data-loaded','mmhvault:cache-restored','mmhvault:sync-complete','mmhvault:category-config-changed','mmhvault:page-visible'].forEach(ev=>window.addEventListener(ev,()=>{if(page.classList.contains('active'))render()}));
-    render();
+    $('cfaCurrency').addEventListener('change',e=>{state.currency=['USD','THB','MMK','CNY'].includes(e.target.value)?e.target.value:'USD';render()});
+    $('cfaMode').addEventListener('change',e=>{state.mode=e.target.value==='year'?'year':'month';$('cfaMonthWrap').hidden=state.mode!=='month';$('cfaYearWrap').hidden=state.mode!=='year';periodChanged()});
+    $('cfaMonth').addEventListener('change',e=>{if(/^\d{4}-(0[1-9]|1[0-2])$/.test(e.target.value))state.month=e.target.value;periodChanged()});
+    year.addEventListener('change',e=>{state.year=Number(e.target.value)||now;periodChanged()});
+    $('cfaOpenBudgetV112')?.addEventListener('click',openBudget);
+    ['mmhvault:data-loaded','mmhvault:cache-restored','mmhvault:sync-complete','mmhvault:category-config-changed','mmhvault:page-visible'].forEach(ev=>window.addEventListener(ev,()=>{if(page.classList.contains('active')){render();if(state.budgetKey!==budgetContextKey())void loadBudget()}}));
+    window.addEventListener('mmhvault:budget-changed',()=>{state.budgetKey='';state.budget=null;if(page.classList.contains('active'))periodChanged()});
+    render();void loadBudget();
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setup,{once:true});else setup();
   window.mmhRenderCashflowAnalyzeV1=render;
@@ -24127,3 +24149,48 @@ html body.mmh-workspace-active main.wrap .page.active :is(.empty,.mmh-ui-empty,.
 <!-- MMHVAULT v920 · v1.0 visual final pass: unified interaction geometry + desktop/tablet/phone safe-area polish. -->
 
 
+
+
+<!-- MMHVAULT v1.1.2 · Cloud Budget integration: Dashboard + Cash Flow Analyze -->
+<style id="mmhvault-budget-integration-v112-css">
+#mmhPremiumDashboardV500 .pf-budget-v112{margin-top:13px;display:grid;grid-template-columns:minmax(190px,.95fr) repeat(4,minmax(0,1fr));gap:0;border:1px solid #2b4962;border-radius:15px;background:linear-gradient(145deg,rgba(9,29,48,.97),rgba(5,20,34,.98));box-shadow:0 14px 34px rgba(0,0,0,.16),inset 0 1px rgba(255,255,255,.03);overflow:hidden}
+#mmhPremiumDashboardV500 .pf-budget-head-v112{padding:15px 17px;display:flex;flex-direction:column;justify-content:center;gap:5px;min-width:0;background:radial-gradient(circle at 0 0,rgba(242,196,94,.10),transparent 62%);border-right:1px solid rgba(89,137,173,.14)}
+#mmhPremiumDashboardV500 .pf-budget-head-v112 span{font-size:9px;letter-spacing:.11em;color:#e0bb62;font-weight:850}#mmhPremiumDashboardV500 .pf-budget-head-v112 strong{font-size:16px;color:#f0f5f8}#mmhPremiumDashboardV500 .pf-budget-head-v112 small{font-size:9px;color:#7890a5;line-height:1.45}
+#mmhPremiumDashboardV500 .pf-budget-head-v112 button{margin-top:4px;width:max-content;padding:3px 0;border:0;background:transparent;color:#83bde4;font:inherit;font-size:9px;cursor:pointer}
+#mmhPremiumDashboardV500 .pf-budget-stat-v112{padding:15px 14px;min-width:0;border-right:1px solid rgba(89,137,173,.10);display:flex;flex-direction:column;justify-content:center}#mmhPremiumDashboardV500 .pf-budget-stat-v112:last-of-type{border-right:0}
+#mmhPremiumDashboardV500 .pf-budget-stat-v112 span{font-size:8px;color:#71899d;text-transform:uppercase;letter-spacing:.07em}#mmhPremiumDashboardV500 .pf-budget-stat-v112 strong{margin-top:6px;font-size:16px;color:#e9f1f7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}#mmhPremiumDashboardV500 .pf-budget-stat-v112 small{margin-top:4px;font-size:8px;color:#71899d}
+#mmhPremiumDashboardV500 .pf-budget-stat-v112.good strong{color:#55dda9}#mmhPremiumDashboardV500 .pf-budget-stat-v112.watch strong{color:#e9c76d}#mmhPremiumDashboardV500 .pf-budget-stat-v112.over strong{color:#ff8d9e}
+#mmhPremiumDashboardV500 .pf-budget-progress-v112{grid-column:1/-1;height:5px;background:#071827;border-top:1px solid rgba(89,137,173,.10);overflow:hidden}#mmhPremiumDashboardV500 .pf-budget-progress-v112 i{display:block;height:100%;width:0;background:linear-gradient(90deg,#55c8f6,#55dda9);transition:width .18s ease}#mmhPremiumDashboardV500 .pf-budget-v112.watch .pf-budget-progress-v112 i{background:linear-gradient(90deg,#55c8f6,#e9c76d)}#mmhPremiumDashboardV500 .pf-budget-v112.over .pf-budget-progress-v112 i{background:linear-gradient(90deg,#f0b460,#ff7f94)}
+#cashflow-analyze .cfa-budget-cloud-action-v112{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 13px;padding:11px 12px;border:1px solid rgba(89,155,216,.16);border-radius:12px;background:rgba(7,20,38,.52)}#cashflow-analyze .cfa-budget-cloud-action-v112>div{min-width:0;display:flex;flex-direction:column;gap:3px}#cashflow-analyze .cfa-budget-cloud-action-v112 span{font-size:9px;color:#7893ad;text-transform:uppercase;letter-spacing:.07em}#cashflow-analyze .cfa-budget-cloud-action-v112 strong{font-size:12px;color:#d8e7f4;overflow-wrap:anywhere}#cashflow-analyze .cfa-budget-cloud-action-v112 .btn{flex:0 0 auto}
+@media(max-width:950px){#mmhPremiumDashboardV500 .pf-budget-v112{grid-template-columns:repeat(2,minmax(0,1fr))}#mmhPremiumDashboardV500 .pf-budget-head-v112{grid-column:1/-1;border-right:0;border-bottom:1px solid rgba(89,137,173,.12)}#mmhPremiumDashboardV500 .pf-budget-stat-v112:nth-of-type(2n){border-right:0}}
+@media(max-width:620px){#mmhPremiumDashboardV500 .pf-budget-v112{margin-top:10px}#mmhPremiumDashboardV500 .pf-budget-head-v112{padding:13px 14px}#mmhPremiumDashboardV500 .pf-budget-stat-v112{padding:12px}#cashflow-analyze .cfa-budget-cloud-action-v112{align-items:stretch;flex-direction:column}#cashflow-analyze .cfa-budget-cloud-action-v112 .btn{width:100%}}
+@media(max-width:390px){#mmhPremiumDashboardV500 .pf-budget-v112{grid-template-columns:1fr}#mmhPremiumDashboardV500 .pf-budget-stat-v112{border-right:0;border-bottom:1px solid rgba(89,137,173,.10)}}
+</style>
+<script id="mmhvault-budget-dashboard-v112-js">
+(function(){
+  if(window.__MMHVAULT_BUDGET_DASH_V112)return;window.__MMHVAULT_BUDGET_DASH_V112=true;
+  const n=v=>{const x=Number(v);return Number.isFinite(x)?x:0},symbols={USD:'$',THB:'฿',MMK:'K',CNY:'￥'};
+  const month=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`};
+  const state={month:'',row:null,loading:false,request:0,observer:null};
+  function rate(code){const c=String(code||'USD').toUpperCase();if(c==='USD')return 1;const k={THB:'usd_thb',MMK:'usd_mmk',CNY:'usd_cny'}[c];return k?n(rates?.[k]):0}
+  function fmt(value,currency){return (symbols[currency]||currency)+' '+n(value).toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:2})}
+  function group(t){if(!t)return'';if(t.category==='Data Adjustment')return'Data Adjustment';try{if(typeof inferTxGroup==='function')return inferTxGroup(t)}catch(_e){}const cats=window.MMHVAULT_CONFIG?.categories||window.CATS||{};if(t.type==='Expense')return (cats.LoanExpense||[]).includes(t.category)?'Loans':(cats.Personal||[]).includes(t.category)?'Personal':'Expense';return t.type||''}
+  function included(t){return !!t&&t.type==='Expense'&&group(t)==='Expense'&&t.category!=='Investment'&&t.category!=='Data Adjustment'&&!(typeof isLinkedInvestmentTx==='function'&&isLinkedInvestmentTx(t))}
+  function spent(currency){const target=rate(currency);if(!(target>0))return 0;return (Array.isArray(transactions)?transactions:[]).filter(t=>String(t.tx_date||'').slice(0,7)===month()&&included(t)).reduce((sum,t)=>{let usd=0;try{usd=n(t.from_amount)*n(typeof toUSD==='function'?toUSD(t.from_account):0)}catch(_e){}return sum+usd*target},0)}
+  function level(usage){return usage>=100?'over':usage>=80?'watch':'good'}
+  function render(){
+    const host=document.getElementById('mmhPremiumDashboardV500'),kpis=host?.querySelector('.pf-kpis-v500');if(!host||!kpis)return;
+    let card=host.querySelector('.pf-budget-v112');if(!card){card=document.createElement('section');card.className='pf-budget-v112';kpis.insertAdjacentElement('afterend',card)}
+    const row=state.row,currency=String(row?.currency||'THB').toUpperCase(),budget=Math.max(0,n(row?.monthly_amount)),used=spent(currency),remaining=budget-used,usage=budget>0?used/budget*100:0,lvl=budget>0?level(usage):'good';
+    const sig=[state.loading,currency,budget.toFixed(4),used.toFixed(4),month()].join('|');if(card.dataset.sig===sig)return;card.dataset.sig=sig;card.className='pf-budget-v112 '+(budget>0?lvl:'');
+    card.innerHTML=`<div class="pf-budget-head-v112"><span>MONTHLY BUDGET</span><strong>${state.loading?'Syncing…':budget>0?(lvl==='over'?'Over budget':lvl==='watch'?'Budget watch':'On track'):'Not set'}</strong><small>Individual Expense · ${month()}</small><button type="button" data-open-budget-v112>Open Budget →</button></div><div class="pf-budget-stat-v112"><span>Budget</span><strong>${state.loading?'—':budget>0?fmt(budget,currency):'Not set'}</strong><small>Cloud limit</small></div><div class="pf-budget-stat-v112"><span>Spent</span><strong>${fmt(used,currency)}</strong><small>Individual Expense</small></div><div class="pf-budget-stat-v112 ${budget>0?(remaining<0?'over':'good'):''}"><span>Remaining</span><strong>${budget>0?fmt(remaining,currency):'—'}</strong><small>${budget>0?(remaining<0?'Over limit':'Available'):'Set a limit'}</small></div><div class="pf-budget-stat-v112 ${budget>0?lvl:''}"><span>Usage</span><strong>${budget>0?usage.toFixed(1)+'%':'—'}</strong><small>${budget>0?(lvl==='over'?'Over budget':lvl==='watch'?'Approaching limit':'Within budget'):'Budget Center'}</small></div><div class="pf-budget-progress-v112"><i style="width:${budget>0?Math.max(0,Math.min(100,usage)):0}%"></i></div>`;
+    card.querySelector('[data-open-budget-v112]')?.addEventListener('click',()=>window.setPage?.('budget'));
+  }
+  async function load(){const u=typeof currentSessionUser!=='undefined'?currentSessionUser:null,key=month(),request=++state.request;state.month=key;state.loading=true;render();if(!u?.id||typeof db==='undefined'){state.loading=false;state.row=null;render();return}try{const {data,error}=await db.from('budgets').select('budget_month,currency,monthly_amount,updated_at').eq('user_id',u.id).eq('budget_month',key+'-01').maybeSingle();if(error)throw error;if(request!==state.request)return;state.row=data||null}catch(err){console.warn('[MMHVAULT] dashboard budget load failed',err);if(request===state.request)state.row=null}finally{if(request===state.request){state.loading=false;render()}}}
+  function schedule(){setTimeout(render,0);setTimeout(render,80)}
+  function observe(){const host=document.getElementById('mmhPremiumDashboardV500');if(!host||state.observer)return;state.observer=new MutationObserver(()=>schedule());state.observer.observe(host,{childList:true})}
+  function setup(){observe();load();['mmhvault:data-loaded','mmhvault:data-change','mmhvault:cache-restored','mmhvault:sync-complete','mmhvault:budget-changed'].forEach(ev=>window.addEventListener(ev,()=>{if(ev==='mmhvault:budget-changed'||state.month!==month())load();else schedule()}));window.addEventListener('resize',schedule);setTimeout(()=>{observe();schedule()},250)}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setup,{once:true});else setup();
+})();
+</script>
+<!-- MMHVAULT v1.1.2 · Dashboard and Cash Flow Analyze now share Supabase Cloud Budget. -->
