@@ -7139,7 +7139,28 @@ function mmhVaultRefreshDashboardAccountOverviewV449(){
 let transactions=[], investments=[], rates={usd_mmk:4400,usd_thb:31.5,usd_cny:7.18}, realtimeReady=false, currentUserEmail="", currentSessionUser=null, currentCustomerId="";
 const $=id=>document.getElementById(id), n=v=>Number(v||0), fmt=v=>n(v).toLocaleString(undefined,{maximumFractionDigits:2}), esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
 const today=()=>new Date().toISOString().slice(0,10);
-function setPage(p){if(["analyze","wealth-planning","reports"].includes(p))p="dashboard";document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));$(p).classList.add("active");document.body.classList.toggle("auth-page-active",p==="login");document.body.classList.toggle("mmh-workspace-active",p!=="login");document.querySelectorAll(".bottom-nav button").forEach(b=>{const active=b.dataset.page===p;b.classList.toggle("active",active);if(active)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current");});if(p!=="login")sessionStorage.setItem("myfinance_page",p);if(p==="accounts-page"){window.mmhAccountsRefreshV1?.();}if(p==="settings"){const se=$("settingsEmail");if(se&&currentUserEmail)se.textContent=currentUserEmail;setTimeout(()=>mmhVaultRenderManager(),0);}if(p==="transactions"){setTimeout(()=>{try{mmhVaultSyncTransactionCategoriesV450();}catch(e){console.warn("[MMHVAULT] transaction category refresh failed",e);}},0);}if(p==="dashboard"){setTimeout(()=>{try{renderDashboard();}catch(e){console.warn("[MMHVAULT] dashboard account overview refresh failed",e);}},0);}scheduleRenderV3441();}
+function setPage(p){
+  if(["analyze","wealth-planning","reports"].includes(p))p="dashboard";
+  let target=$(p);
+  if(!target){
+    console.warn("[MMHVAULT] Unknown page requested:",p,"· returning to Dashboard");
+    p="dashboard";target=$(p);
+    if(!target)return false;
+  }
+  try{window.MMHUI?.dismissPopovers?.();}catch(_e){}
+  document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
+  target.classList.add("active");
+  document.body.classList.toggle("auth-page-active",p==="login");
+  document.body.classList.toggle("mmh-workspace-active",p!=="login");
+  document.querySelectorAll(".bottom-nav button").forEach(b=>{const active=b.dataset.page===p;b.classList.toggle("active",active);if(active)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current");});
+  if(p!=="login")sessionStorage.setItem("myfinance_page",p);
+  if(p==="accounts-page")window.mmhAccountsRefreshV1?.();
+  if(p==="settings"){const se=$("settingsEmail");if(se&&currentUserEmail)se.textContent=currentUserEmail;setTimeout(()=>mmhVaultRenderManager(),0);}
+  if(p==="transactions")setTimeout(()=>{try{mmhVaultSyncTransactionCategoriesV450();}catch(e){console.warn("[MMHVAULT] transaction category refresh failed",e);}},0);
+  if(p==="dashboard")setTimeout(()=>{try{renderDashboard();}catch(e){console.warn("[MMHVAULT] dashboard account overview refresh failed",e);}},0);
+  scheduleRenderV3441();
+  return p;
+}
 function applyTheme(theme){document.body.classList.toggle('light',theme==='light');document.querySelectorAll('input[name="theme"]').forEach(r=>r.checked=r.value===theme);localStorage.setItem('myfinance_theme',theme);}
 function initTheme(){const t=localStorage.getItem('myfinance_theme')||'dark';applyTheme(t);document.querySelectorAll('input[name="theme"]').forEach(r=>r.addEventListener('change',()=>applyTheme(r.value)));}
 function editTheme(){initTheme();}
@@ -7503,7 +7524,16 @@ function subscribeRealtime(){
 }
 
 function currency(a){return mmhVaultAccountMeta(a).currency||"MMK";}
-function toMMK(a){if(!a)return 1;if(currency(a)==="USD")return rates.usd_mmk;if(currency(a)==="THB")return rates.usd_mmk/rates.usd_thb;return 1;}
+function toMMK(a){
+  if(!a)return 1;
+  const cur=String(currency(a)||'MMK').toUpperCase(),mmk=Number(rates?.usd_mmk)||0;
+  if(cur==='MMK')return 1;
+  if(!(mmk>0))return 0;
+  if(cur==='USD')return mmk;
+  if(cur==='THB'){const thb=Number(rates?.usd_thb)||0;return thb>0?mmk/thb:0;}
+  if(cur==='CNY'||cur==='RMB'){const cny=Number(rates?.usd_cny)||0;return cny>0?mmk/cny:0;}
+  return 0;
+}
 function isLinkedInvestmentTx(t){return t?.category==="Investment" && String(t?.note||"").startsWith("Investment:");}
 function investmentCashOut(a){
  const legacy=investments.filter(x=>(x.source_account||(x.asset==="Gold"?"KPay":"OKX"))===a)
@@ -8782,7 +8812,7 @@ function clearTxFilters(){
   renderTransactionsV28();
 }
 const _renderDashboardV27=renderDashboard;
-function toUSD(a){return toMMK(a)/rates.usd_mmk;}
+function toUSD(a){const mmk=Number(rates?.usd_mmk)||0,factor=toMMK(a);return mmk>0&&factor>0?factor/mmk:0;}
 function usd(v){return '$ '+(window.mmhSettingsNumberV2?window.mmhSettingsNumberV2(v):fmt(v));}
 function renderDashboardV29(){
   const cashAccounts=ACC;
@@ -8805,7 +8835,15 @@ renderDashboard=renderDashboardV29;
 const _renderAnalyzeV27=renderAnalyze;
 function monthSeries(){const ms=[];const d=new Date();for(let i=5;i>=0;i--){const x=new Date(d.getFullYear(),d.getMonth()-i,1);ms.push(`${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}`);}return ms;}
 function monthTotals(m){let inc=0,expv=0;transactions.filter(t=>t.tx_date.startsWith(m)).forEach(t=>{if(t.type==='Income')inc+=n(t.to_amount)*toMMK(t.to_account);if(t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment')expv+=n(t.from_amount)*toMMK(t.from_account);});return{inc,exp:expv,save:inc-expv};}
-function toTHB(a){const cur=currency(a); if(cur==='THB')return 1; if(cur==='USD')return rates.usd_thb; return rates.usd_thb/rates.usd_mmk;}
+function toTHB(a){
+  const cur=String(currency(a)||'MMK').toUpperCase(),thb=Number(rates?.usd_thb)||0;
+  if(cur==='THB')return 1;
+  if(!(thb>0))return 0;
+  if(cur==='USD')return thb;
+  if(cur==='MMK'){const mmk=Number(rates?.usd_mmk)||0;return mmk>0?thb/mmk:0;}
+  if(cur==='CNY'||cur==='RMB'){const cny=Number(rates?.usd_cny)||0;return cny>0?thb/cny:0;}
+  return 0;
+}
 function thb(v){return '฿ '+(window.mmhSettingsNumberV2?window.mmhSettingsNumberV2(v):fmt(v));}
 function analyzeTotals(m){let inc=0,expv=0;transactions.filter(t=>t.tx_date.startsWith(m)).forEach(t=>{if(t.type==='Income')inc+=n(t.to_amount)*toTHB(t.to_account);if(t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t))expv+=n(t.from_amount)*toTHB(t.from_account);});return{inc,exp:expv,save:inc-expv};}
 function renderAnalyzeV29(){
@@ -8833,12 +8871,13 @@ function initV28(){_initV27();bindTxFilters();}
 // Replace globals before the original init executes.
 /* ===================== V4.3.0 CANONICAL DATA LAYER ===================== */
 function mmhvaultAmountUSD(account,amount){
-  const v=n(amount);
-  if(!v)return 0;
-  const c=currency(account);
+  const v=n(amount);if(!v)return 0;
+  const c=String(currency(account)||'MMK').toUpperCase();
   if(c==='USD')return v;
-  if(c==='THB')return v/(n(rates.usd_thb)||1);
-  return v/(n(rates.usd_mmk)||1);
+  if(c==='THB'){const rate=n(rates?.usd_thb);return rate>0?v/rate:0;}
+  if(c==='CNY'||c==='RMB'){const rate=n(rates?.usd_cny);return rate>0?v/rate:0;}
+  if(c==='MMK'){const rate=n(rates?.usd_mmk);return rate>0?v/rate:0;}
+  return 0;
 }
 function mmhvaultTxIncomeUSD(t){return t?.type==='Income'?mmhvaultAmountUSD(t.to_account,t.to_amount):0;}
 function mmhvaultTxExpenseUSD(t){
@@ -14428,7 +14467,7 @@ body.mmhvault-scroll-active #invest .invest-top>.panel{box-shadow:inset 0 1px 0 
     const inv=Array.isArray(window.investments)?window.investments:investments||[];
     const gold=window.mmhGoldAuthorityV376();
     const cryptoUSD=inv.filter(x=>x&&x.asset==='Crypto').reduce((s,x)=>s+N(x.quantity)*(N(livePrices?.[x.symbol]?.price)||N(x.market_price)),0);
-    const cashUSD=ACC.reduce((s,a)=>s+N(balance(a))*((()=>{const c=currency(a);if(c==='USD')return 1;if(c==='THB')return 1/(N(rates?.usd_thb)||1);return 1/(N(rates?.usd_mmk)||1);})()),0);
+    const cashUSD=ACC.reduce((s,a)=>s+(typeof mmhvaultAmountUSD==='function'?mmhvaultAmountUSD(a,N(balance(a))):0),0);
     const mix=[['Cash',cashUSD],['Crypto',cryptoUSD],['Gold',gold.valueUSD]];const total=mix.reduce((s,x)=>s+x[1],0)||1;
     const cPct=mix[0][1]/total*100, crPct=mix[1][1]/total*100, gPct=mix[2][1]/total*100;
     /* V4.4.13 — ONLY Account Overview: read the live Settings account registry.
@@ -14469,10 +14508,9 @@ body.mmhvault-scroll-active #invest .invest-top>.panel{box-shadow:inset 0 1px 0 
         const type=String(a.type||'').toLowerCase();
         const native=type==='crypto'||cur==='USD'
           ? wholeUSD(bal)
-          : `${cur==='THB'?'฿ ':cur+' '}${whole(bal)}`;
-        const usdEq=(type==='crypto'||cur==='USD')
-          ? wholeUSD(bal)
-          : `≈ ${wholeUSD(bal*((cur==='THB')?1/(N(rates?.usd_thb)||1):1/(N(rates?.usd_mmk)||1)))}`;
+          : `${cur==='THB'?'฿ ':cur==='CNY'||cur==='RMB'?'￥ ':cur+' '}${whole(bal)}`;
+        const usdValue=typeof mmhvaultAmountUSD==='function'?mmhvaultAmountUSD(name,bal):0;
+        const usdEq=(type==='crypto'||cur==='USD')?wholeUSD(bal):`≈ ${wholeUSD(usdValue)}`;
         return `<div class="account-row"><div class="left"><div class="name"><span>${escAccount(name)}</span><div class="small">${escAccount(cur)}</div></div></div><div class="amount"><div>${native}</div><div class="small">${usdEq}</div></div></div>`;
       };
 
@@ -17718,6 +17756,7 @@ html body #invest .invest-entry .receipt-dropzone-v3300{width:100%!important;max
 #settings .fb-reply{border-left-color:#5bd6b0!important;background:linear-gradient(90deg,rgba(39,111,90,.18),rgba(16,37,54,.78))!important}#settings .fb-reply b{color:#77dbbb!important}
 @media(max-width:700px){#mmhNotifyPopoverV560 .np-filter-v900{gap:5px;padding:7px}#mmhNotifyPopoverV560 .np-filter-v900 button{padding:5px 7px;font-size:8px}.mmh-notify-detail-v900 p{font-size:12px}}
 </style>
+
 </body>
 <!-- MMHVAULT V4.3.0 performance baseline: logo-free account cards + restrained dashboard rendering. -->
 
@@ -17962,6 +18001,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
     const n=N(v);
     if(cur==='USD')return '$'+n.toLocaleString(undefined,{maximumFractionDigits:6});
     if(cur==='THB')return '฿ '+n.toLocaleString(undefined,{maximumFractionDigits:6});
+    if(cur==='CNY'||cur==='RMB')return '￥ '+n.toLocaleString(undefined,{maximumFractionDigits:6});
     if(cur==='MMK')return 'MMK '+n.toLocaleString(undefined,{maximumFractionDigits:2});
     return n.toLocaleString(undefined,{maximumFractionDigits:6});
   };
@@ -23641,7 +23681,7 @@ html body #settings.page.active #stPage_feedback{
   html body #exchange.page.active > .ex-currency-cards{grid-template-columns:minmax(0,1fr)!important}
 }
 </style>
-<script id="mmhvault-v902-build">window.MMHVAULT_BUILD='v902';</script>
-<!-- MMHVAULT v902 · Exchange deterministic rows + Settings balanced responsive layout. -->
+<script id="mmhvault-v910-build">window.MMHVAULT_BUILD='v910';</script>
+<!-- MMHVAULT v910 · Regression/Stability audit: v902 layout + safe navigation + complete CNY account conversion paths. -->
 
 
