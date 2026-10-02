@@ -17705,205 +17705,6 @@ html body #invest .invest-entry .receipt-dropzone-v3300{width:100%!important;max
 </style>
 
 
-<style id="mmhvault-v842-exchange-settings-root-fix">
-/* v842 — hard root-level responsive fix for Exchange + Settings.
-   This intentionally wins over retired max-width:980px / margin:auto layers. */
-@media(min-width:1100px){
-  html body.mmh-workspace-active main.wrap > #exchange.page.active,
-  html body.mmh-workspace-active main.wrap > #settings.page.active{
-    display:block!important;
-    width:100%!important;
-    min-width:0!important;
-    max-width:none!important;
-    margin:0!important;
-    padding-left:0!important;
-    padding-right:0!important;
-    box-sizing:border-box!important;
-    justify-self:stretch!important;
-    align-self:start!important;
-  }
-
-  /* Exchange: true dashboard-width canvas. */
-  html body.mmh-workspace-active main.wrap > #exchange.page.active{
-    display:grid!important;
-    grid-template-columns:repeat(12,minmax(0,1fr))!important;
-    column-gap:18px!important;
-    row-gap:18px!important;
-  }
-  html body #exchange.page.active > .ex-template-head,
-  html body #exchange.page.active > .ex-currency-cards,
-  html body #exchange.page.active > #exAsiaV10{
-    grid-column:1 / -1!important;
-    width:100%!important;
-    max-width:none!important;
-    margin:0!important;
-    min-width:0!important;
-  }
-  html body #exchange.page.active > .exchange-converter-panel{
-    grid-column:1 / span 7!important;
-    width:100%!important;
-    max-width:none!important;
-    margin:0!important;
-    min-width:0!important;
-  }
-  html body #exchange.page.active > .ex-rate-editor{
-    grid-column:8 / -1!important;
-    width:100%!important;
-    max-width:none!important;
-    margin:0!important;
-    min-width:0!important;
-  }
-  html body #exchange.page.active .ex-currency-cards{
-    display:grid!important;
-    grid-template-columns:repeat(4,minmax(0,1fr))!important;
-    gap:14px!important;
-  }
-  html body #exchange.page.active .exchange-converter-grid{
-    width:100%!important;
-    max-width:none!important;
-    grid-template-columns:minmax(0,1fr) 48px minmax(0,1fr)!important;
-  }
-  html body #exchange.page.active .ex-rate-editor .formgrid{
-    display:grid!important;
-    grid-template-columns:repeat(2,minmax(0,1fr))!important;
-    gap:12px!important;
-  }
-  html body #exchange.page.active .ex-rate-editor .ex-save{
-    grid-column:1/-1!important;
-  }
-  html body #exchange.page.active .ex-rate-editor .ex-save .btn{width:100%!important}
-  html body #exchange.page.active #exAsiaV10 .asia-list{
-    grid-template-columns:repeat(3,minmax(0,1fr))!important;
-    max-height:none!important;
-  }
-
-  /* Settings: remove the old centered 980px shell completely. */
-  html body.mmh-workspace-active main.wrap > #settings.page.active{
-    max-width:none!important;
-    margin-left:0!important;
-    margin-right:0!important;
-  }
-  html body #settings.page.active #stSettingsHomeV3:not([hidden]){
-    width:100%!important;
-    max-width:none!important;
-    margin:0!important;
-    display:grid!important;
-    grid-template-columns:minmax(300px,340px) minmax(0,1fr)!important;
-    gap:20px!important;
-    align-items:start!important;
-  }
-  html body #settings.page.active #stSettingsHomeV3 > *{
-    min-width:0!important;
-    max-width:none!important;
-  }
-  html body #settings.page.active .st-home-menu{
-    width:100%!important;
-    max-width:none!important;
-    display:grid!important;
-    grid-template-columns:repeat(3,minmax(0,1fr))!important;
-    gap:16px!important;
-    align-items:stretch!important;
-  }
-  html body #settings.page.active .st-template-group,
-  html body #settings.page.active .st-template-group:last-child{
-    width:100%!important;
-    max-width:none!important;
-    min-width:0!important;
-    grid-column:auto!important;
-    height:100%!important;
-  }
-  html body #settings.page.active .account-center-card-v375{
-    width:100%!important;
-    max-width:none!important;
-    box-sizing:border-box!important;
-  }
-  html body #settings.page.active .st-page:not([hidden]),
-  html body #settings.page.active #stPage_icon,
-  html body #settings.page.active #stPage_feedback{
-    width:100%!important;
-    max-width:none!important;
-    margin:0!important;
-  }
-}
-
-/* Compact laptops / landscape tablets. */
-@media(min-width:900px) and (max-width:1279px){
-  html body.mmh-workspace-active main.wrap > #exchange.page.active,
-  html body.mmh-workspace-active main.wrap > #settings.page.active{
-    width:100%!important;max-width:none!important;margin:0!important;
-  }
-  html body #exchange.page.active{
-    grid-template-columns:minmax(0,1fr)!important;
-  }
-  html body #exchange.page.active > :is(.ex-template-head,.ex-currency-cards,.exchange-converter-panel,.ex-rate-editor,#exAsiaV10){
-    grid-column:1!important;width:100%!important;max-width:none!important;margin:0!important;
-  }
-  html body #exchange.page.active .ex-currency-cards{grid-template-columns:repeat(4,minmax(0,1fr))!important}
-  html body #exchange.page.active #exAsiaV10 .asia-list{grid-template-columns:repeat(2,minmax(0,1fr))!important}
-
-  html body #settings.page.active #stSettingsHomeV3:not([hidden]){
-    width:100%!important;max-width:none!important;margin:0!important;
-    grid-template-columns:minmax(260px,300px) minmax(0,1fr)!important;
-  }
-  html body #settings.page.active .st-home-menu{grid-template-columns:repeat(2,minmax(0,1fr))!important}
-  html body #settings.page.active .st-template-group:last-child{grid-column:1/-1!important}
-}
-
-/* iPad / Android tablet portrait. */
-@media(min-width:700px) and (max-width:899px){
-  html body.mmh-workspace-active main.wrap > #exchange.page.active,
-  html body.mmh-workspace-active main.wrap > #settings.page.active{
-    width:100%!important;max-width:none!important;margin:0!important;
-  }
-  html body #exchange.page.active{display:grid!important;grid-template-columns:minmax(0,1fr)!important}
-  html body #exchange.page.active > :is(.ex-template-head,.ex-currency-cards,.exchange-converter-panel,.ex-rate-editor,#exAsiaV10){
-    grid-column:1!important;width:100%!important;max-width:none!important;margin:0!important;
-  }
-  html body #exchange.page.active .ex-currency-cards{grid-template-columns:repeat(2,minmax(0,1fr))!important}
-  html body #exchange.page.active .ex-rate-editor .formgrid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
-  html body #exchange.page.active #exAsiaV10 .asia-list{grid-template-columns:repeat(2,minmax(0,1fr))!important}
-
-  html body #settings.page.active #stSettingsHomeV3:not([hidden]){
-    width:100%!important;max-width:none!important;margin:0!important;
-    grid-template-columns:minmax(0,1fr)!important;
-  }
-  html body #settings.page.active .st-home-menu{grid-template-columns:repeat(2,minmax(0,1fr))!important}
-  html body #settings.page.active .st-template-group:last-child{grid-column:1/-1!important}
-}
-
-/* iPhone + Android phones. */
-@media(max-width:699px){
-  html body.mmh-workspace-active main.wrap > #exchange.page.active,
-  html body.mmh-workspace-active main.wrap > #settings.page.active{
-    width:100%!important;min-width:0!important;max-width:none!important;margin:0!important;
-    padding-left:0!important;padding-right:0!important;box-sizing:border-box!important;
-  }
-  html body #exchange.page.active{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:12px!important}
-  html body #exchange.page.active > :is(.ex-template-head,.ex-currency-cards,.exchange-converter-panel,.ex-rate-editor,#exAsiaV10){
-    grid-column:1!important;width:100%!important;max-width:none!important;margin:0!important;min-width:0!important;
-  }
-  html body #exchange.page.active .ex-currency-cards{grid-template-columns:repeat(2,minmax(0,1fr))!important}
-  html body #exchange.page.active .exchange-converter-grid,
-  html body #exchange.page.active .ex-rate-editor .formgrid,
-  html body #exchange.page.active #exAsiaV10 .asia-controls,
-  html body #exchange.page.active #exAsiaV10 .asia-list{grid-template-columns:minmax(0,1fr)!important}
-  html body #exchange.page.active .ex-swap{transform:rotate(90deg)!important;margin:0 auto!important}
-
-  html body #settings.page.active #stSettingsHomeV3:not([hidden]),
-  html body #settings.page.active .st-home-menu{
-    width:100%!important;max-width:none!important;margin:0!important;
-    grid-template-columns:minmax(0,1fr)!important;gap:12px!important;
-  }
-  html body #settings.page.active .st-template-group,
-  html body #settings.page.active .st-template-group:last-child{grid-column:1!important;width:100%!important}
-}
-
-@media(max-width:380px){
-  html body #exchange.page.active .ex-currency-cards{grid-template-columns:minmax(0,1fr)!important}
-}
-</style>
-<script id="mmhvault-v842-build">window.MMHVAULT_BUILD='v842';</script>
-
 <style id="mmhvault-v900-closure-polish">
 #mmhNotifyPopoverV560 .np-filter-v900{display:flex;gap:6px;align-items:center;padding:8px 10px;border-bottom:1px solid rgba(101,154,196,.12);background:rgba(5,20,33,.55)}
 #mmhNotifyPopoverV560 .np-filter-v900 button{min-height:30px;padding:5px 9px;border-radius:9px;border:1px solid rgba(88,145,188,.16);background:rgba(12,37,55,.68);color:#8fa8ba;font-size:9px;font-weight:700;cursor:pointer}
@@ -17916,7 +17717,8 @@ html body #invest .invest-entry .receipt-dropzone-v3300{width:100%!important;max
 #settings .fb-record{transition:border-color .16s ease,background .16s ease}#settings .fb-record:hover{border-color:rgba(94,168,216,.42)!important}
 #settings .fb-reply{border-left-color:#5bd6b0!important;background:linear-gradient(90deg,rgba(39,111,90,.18),rgba(16,37,54,.78))!important}#settings .fb-reply b{color:#77dbbb!important}
 @media(max-width:700px){#mmhNotifyPopoverV560 .np-filter-v900{gap:5px;padding:7px}#mmhNotifyPopoverV560 .np-filter-v900 button{padding:5px 7px;font-size:8px}.mmh-notify-detail-v900 p{font-size:12px}}
-</style></body>
+</style>
+</body>
 <!-- MMHVAULT V4.3.0 performance baseline: logo-free account cards + restrained dashboard rendering. -->
 
 <meta name="mmhvault-architecture" content="V4.3.0 · Goals feature removed and dependency cleanup" />
@@ -21682,46 +21484,6 @@ body.light #accounts-page .am-row-value,body.light #category-manage .mmh-manager
 })();
 </script>
 
-<style id="mmhvault-exchange-redesign-currency-v1">
-html body #exchange{display:none!important}html body #exchange.active{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;gap:16px!important;align-items:start!important}
-html body #exchange>h1,html body #exchange>.sub,html body #exchange>#rateCards{grid-column:1/-1!important}
-html body #exchange>h1{font-size:32px!important;margin:0!important}html body #exchange>.sub{margin:0 0 4px!important;max-width:none!important}
-html body #exchange>.panel{margin:0!important;padding:22px!important;background:linear-gradient(145deg,#0f243b,#0a192b)!important;border:1px solid #29435d!important;border-radius:18px!important;min-height:0!important}
-html body #exchange>.panel:first-of-type{grid-column:1!important;grid-row:4!important}
-html body #exchange>.exchange-converter-panel{grid-column:2!important;grid-row:4!important}
-html body #exchange #rateCards{grid-row:3!important;display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;margin:0!important;gap:12px!important}
-html body #exchange #rateCards>*{padding:18px!important;background:#10263e!important;border:1px solid #29435d!important;border-radius:14px!important}
-html body #exchange .formgrid,html body #exchange .exchange-converter-grid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:14px!important}
-html body #exchange .formgrid>label:first-child,html body #exchange .formgrid>div,html body #exchange .exchange-converter-grid>.wide{grid-column:1/-1!important}
-html body #exchange .formgrid>div .btn{width:100%!important}html body #exchange .exchange-converter-grid>button{grid-column:1/-1!important;width:100%!important}
-html body #exchange .toolbar{gap:10px;flex-wrap:wrap;margin-bottom:16px!important}html body #exchange .panel h2{font-size:18px!important;margin:0 0 14px!important}
-html body #exchange input,html body #exchange select{width:100%!important;min-height:48px!important;background:#081727!important;border-color:#34516c!important}
-html body #exchange .exchange-converter-result{margin-top:18px!important;padding:20px!important;border-left:3px solid #89c6e7!important;background:#081727!important;min-height:76px;display:flex;flex-direction:column;justify-content:center}
-html body #exchange button{min-height:46px!important}html body #exchange button:hover{filter:brightness(1.1)}
-body.light #exchange>.panel{background:#f5f9fc!important}body.light #exchange #rateCards>*{background:#eff5fa!important}body.light #exchange :is(input,select,.exchange-converter-result){background:#eff5fa!important;color:#294663!important}
-@media(max-width:760px){html body #exchange.active{grid-template-columns:minmax(0,1fr)!important}html body #exchange>.panel:first-of-type,html body #exchange>.exchange-converter-panel{grid-column:1!important;grid-row:auto!important}html body #exchange #rateCards{grid-template-columns:repeat(3,minmax(0,1fr))!important}html body #exchange #rateCards>*{padding:12px!important}html body #exchange #rateCards :is(.value,b,strong){font-size:17px!important}}
-@media(max-width:420px){html body #exchange #rateCards{grid-template-columns:minmax(0,1fr)!important}html body #exchange>.panel{padding:16px!important}html body #accounts-page .ap-heading{flex-wrap:wrap!important}html body #accounts-page .ap-heading select{max-width:100%!important}}
-</style>
-
-<style id="mmhvault-exchange-flow-layout-v2">
-html body #exchange.active{grid-template-columns:minmax(0,1fr)!important;gap:16px!important}
-html body #exchange>.panel:first-of-type{grid-column:1!important;grid-row:3!important}
-html body #exchange>.exchange-converter-panel{grid-column:1!important;grid-row:4!important}
-html body #exchange #rateCards{grid-column:1!important;grid-row:5!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:10px!important}
-html body #exchange .formgrid{grid-template-columns:repeat(3,minmax(0,1fr)) auto!important;align-items:end!important}
-html body #exchange .formgrid>label:first-child,html body #exchange .formgrid>div{grid-column:auto!important}
-html body #exchange .exchange-converter-grid{grid-template-columns:minmax(0,1.4fr) repeat(2,minmax(0,1fr)) auto!important;align-items:end!important}
-html body #exchange .exchange-converter-grid>.wide,html body #exchange .exchange-converter-grid>button{grid-column:auto!important}
-html body #exchange .toolbar{padding:0!important;background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important}
-html body #exchange .toolbar::before,html body #exchange .toolbar::after{display:none!important}
-html body #exchange .exchange-converter-result{min-height:90px!important;align-items:flex-start!important;text-align:left!important;border-left-width:3px!important}
-html body #exchange .exchange-converter-result .label,html body #exchange .exchange-converter-result .meta{font-size:11px!important;color:#96aec5!important;font-weight:500!important}
-html body #exchange .exchange-converter-result .value{font-size:30px!important;color:#89c6e7!important;font-weight:750!important;margin:7px 0!important}
-html body #exchange #rateCards .amount{font-size:20px!important;font-weight:750!important;color:#89c6e7!important;overflow-wrap:anywhere;line-height:1.4}
-html body #exchange #rateCards .name{font-size:11px!important;color:#96aec5!important}html body #exchange #rateCards .small{font-size:10px!important;color:#96aec5!important}
-@media(max-width:760px){html body #exchange .formgrid,html body #exchange .exchange-converter-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}html body #exchange #rateCards{grid-template-columns:repeat(2,minmax(0,1fr))!important}html body #exchange .formgrid>div,html body #exchange .exchange-converter-grid>.wide,html body #exchange .exchange-converter-grid>button{grid-column:1/-1!important}}
-@media(max-width:370px){html body #exchange .formgrid{grid-template-columns:minmax(0,1fr)!important}html body #exchange .exchange-converter-result .value{font-size:25px!important}}
-</style>
 <script id="mmhvault-account-native-language-v1">
 (function(){
  function update(){const option=document.querySelector('#apCurrency option[value="NATIVE"]');if(!option)return;const zh=localStorage.getItem('mmhvault_language_v3363')==='zh'||(!localStorage.getItem('mmhvault_language_v3363')&&document.documentElement.lang==='zh-CN');const label=zh?'原币显示':'Original currency';if(option.textContent!==label)option.textContent=label;option.dataset.i18nBase='Original currency';}
@@ -23697,44 +23459,189 @@ html body #settings #stPage_feedback .fb-fields{grid-template-columns:minmax(180
 }
 </style>
 <script id="mmhvault-v841-build">window.MMHVAULT_BUILD='v841';</script>
-<style id="mmhvault-v901-exchange-settings-specificity-cleanup">
-/* v901 · Remove legacy v7 specificity traps so the existing unified responsive system can win. */
+<!-- MMHVAULT v841 · Exchange + Settings responsive completion across desktop, iPad/Android tablet, iPhone/Android phone. -->
+<style id="mmhvault-v902-exchange-settings-layout-rebalance">
+/* MMHVAULT v9.02 · Exchange + Settings layout rebalance.
+   Explicit rows remove legacy auto-placement gaps; Settings uses a balanced 2-column control surface.
+   Breakpoints cover desktop, iPad/Android tablets, iPhone/Android phones. */
+
+/* ---------- Shared root canvas ---------- */
 html body.mmh-workspace-active main.wrap > #exchange.page.active,
 html body.mmh-workspace-active main.wrap > #settings.page.active{
-  width:100%!important;max-width:none!important;min-width:0!important;margin-left:0!important;margin-right:0!important;justify-self:stretch!important;box-sizing:border-box!important;
+  width:100%!important;max-width:none!important;min-width:0!important;
+  margin:0!important;box-sizing:border-box!important;justify-self:stretch!important;
 }
-@media(min-width:1280px){
-  html body.mmh-workspace-active main.wrap > #exchange.page.active{display:grid!important;grid-template-columns:repeat(12,minmax(0,1fr))!important;gap:18px!important}
-  html body.mmh-workspace-active main.wrap > #exchange.page.active > .ex-template-head,
-  html body.mmh-workspace-active main.wrap > #exchange.page.active > .ex-currency-cards,
-  html body.mmh-workspace-active main.wrap > #exchange.page.active > #exAsiaV10{grid-column:1/-1!important;width:100%!important;max-width:none!important;margin:0!important}
-  html body.mmh-workspace-active main.wrap > #exchange.page.active > .exchange-converter-panel{grid-column:1/span 7!important;width:100%!important;max-width:none!important;margin:0!important}
-  html body.mmh-workspace-active main.wrap > #exchange.page.active > .ex-rate-editor{grid-column:8/-1!important;width:100%!important;max-width:none!important;margin:0!important}
-  html body.mmh-workspace-active main.wrap > #settings.page.active #stSettingsHomeV3:not([hidden]){width:100%!important;max-width:none!important;margin:0!important;grid-template-columns:minmax(300px,340px) minmax(0,1fr)!important}
-  html body.mmh-workspace-active main.wrap > #settings.page.active .st-home-menu{width:100%!important;max-width:none!important;grid-template-columns:repeat(3,minmax(0,1fr))!important}
-  html body.mmh-workspace-active main.wrap > #settings.page.active .st-template-group:last-child{grid-column:auto!important}
+
+/* ---------- Exchange: deterministic content order ---------- */
+html body.mmh-workspace-active main.wrap > #exchange.page.active{
+  display:grid!important;
+  grid-template-columns:repeat(12,minmax(0,1fr))!important;
+  grid-auto-flow:row!important;
+  gap:18px!important;
+  align-items:stretch!important;
 }
-@media(min-width:900px) and (max-width:1279px){
-  html body.mmh-workspace-active main.wrap > #exchange.page.active{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:16px!important}
-  html body.mmh-workspace-active main.wrap > #exchange.page.active > :is(.ex-template-head,.ex-currency-cards,.exchange-converter-panel,.ex-rate-editor,#exAsiaV10){grid-column:1!important;width:100%!important;max-width:none!important;margin:0!important}
-  html body.mmh-workspace-active main.wrap > #settings.page.active #stSettingsHomeV3:not([hidden]){width:100%!important;max-width:none!important;margin:0!important;grid-template-columns:minmax(260px,300px) minmax(0,1fr)!important}
-  html body.mmh-workspace-active main.wrap > #settings.page.active .st-home-menu{grid-template-columns:repeat(2,minmax(0,1fr))!important}
-  html body.mmh-workspace-active main.wrap > #settings.page.active .st-template-group:last-child{grid-column:1/-1!important}
+html body #exchange.page.active > .ex-template-head{
+  grid-column:1/-1!important;grid-row:1!important;
+  width:100%!important;margin:0!important;min-width:0!important;
 }
+html body #exchange.page.active > .ex-currency-cards{
+  grid-column:1/-1!important;grid-row:2!important;
+  width:100%!important;margin:0!important;min-width:0!important;
+  display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:14px!important;
+}
+html body #exchange.page.active > .exchange-converter-panel{
+  grid-column:1/span 7!important;grid-row:3!important;
+  width:100%!important;max-width:none!important;margin:0!important;min-width:0!important;
+  align-self:stretch!important;
+}
+html body #exchange.page.active > .ex-rate-editor{
+  grid-column:8/-1!important;grid-row:3!important;
+  width:100%!important;max-width:none!important;margin:0!important;min-width:0!important;
+  align-self:stretch!important;
+}
+html body #exchange.page.active > #exAsiaV10{
+  grid-column:1/-1!important;grid-row:4!important;
+  width:100%!important;max-width:none!important;margin:0!important;min-width:0!important;
+}
+html body #exchange.page.active .exchange-converter-grid{
+  display:grid!important;grid-template-columns:minmax(0,1fr) 48px minmax(0,1fr)!important;
+  gap:16px!important;align-items:stretch!important;width:100%!important;
+}
+html body #exchange.page.active .ex-convert-side{height:100%!important;box-sizing:border-box!important}
+html body #exchange.page.active .ex-swap{align-self:center!important;justify-self:center!important}
+html body #exchange.page.active .ex-rate-editor .formgrid{
+  display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:12px!important;align-items:end!important;
+}
+html body #exchange.page.active .ex-rate-editor .formgrid>*{grid-column:auto!important;min-width:0!important}
+html body #exchange.page.active .ex-rate-editor .ex-save{grid-column:auto!important;align-self:end!important}
+html body #exchange.page.active .ex-rate-editor .ex-save .btn{width:100%!important;min-height:46px!important}
+html body #exchange.page.active #exAsiaV10 .asia-list{
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;max-height:none!important;overflow:visible!important;
+}
+html body #exchange.page.active #exAsiaV10 .asia-controls{
+  grid-template-columns:minmax(220px,.6fr) minmax(0,1.4fr)!important;gap:14px!important;
+}
+
+/* ---------- Settings: balanced information architecture ---------- */
+html body #settings.page.active #stSettingsHomeV3:not([hidden]){
+  width:100%!important;max-width:none!important;margin:0!important;
+  display:grid!important;grid-template-columns:minmax(300px,330px) minmax(0,1fr)!important;
+  gap:18px!important;align-items:stretch!important;
+}
+html body #settings.page.active #stSettingsHomeV3 > *{min-width:0!important;max-width:none!important}
+html body #settings.page.active .account-center-v375,
+html body #settings.page.active .account-center-card-v375{height:100%!important;box-sizing:border-box!important}
+html body #settings.page.active .st-home-menu{
+  width:100%!important;max-width:none!important;margin:0!important;
+  display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:14px!important;align-items:stretch!important;
+}
+html body #settings.page.active .st-template-group{
+  grid-column:auto!important;width:100%!important;min-width:0!important;height:100%!important;box-sizing:border-box!important;
+}
+html body #settings.page.active .st-template-group:last-child{
+  grid-column:1/-1!important;
+  display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  align-content:start!important;
+}
+html body #settings.page.active .st-template-group:last-child > h3{grid-column:1/-1!important}
+html body #settings.page.active .st-template-group:last-child > :is(.st-nav,.fb-nav){
+  min-width:0!important;border-top:1px solid #263e52!important;
+}
+html body #settings.page.active .st-template-group :is(.st-nav,.fb-nav){width:100%!important;min-width:0!important}
+html body #settings.page.active .st-template-nav-copy{min-width:0!important}
+html body #settings.page.active .st-template-nav-copy small{overflow-wrap:anywhere!important}
+
+/* Settings subpages continue to use the full responsive canvas. */
+html body #settings.page.active .st-page:not([hidden]),
+html body #settings.page.active #stPage_icon,
+html body #settings.page.active #stPage_feedback{
+  width:100%!important;max-width:none!important;margin:0!important;box-sizing:border-box!important;
+}
+
+/* ---------- Compact laptop / landscape tablet ---------- */
+@media(min-width:900px) and (max-width:1199px){
+  html body #exchange.page.active > .exchange-converter-panel{
+    grid-column:1/-1!important;grid-row:3!important;
+  }
+  html body #exchange.page.active > .ex-rate-editor{
+    grid-column:1/-1!important;grid-row:4!important;
+  }
+  html body #exchange.page.active > #exAsiaV10{grid-row:5!important}
+  html body #exchange.page.active .ex-rate-editor .formgrid{
+    grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  }
+  html body #exchange.page.active #exAsiaV10 .asia-list{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+
+  html body #settings.page.active #stSettingsHomeV3:not([hidden]){
+    grid-template-columns:minmax(260px,290px) minmax(0,1fr)!important;gap:16px!important;
+  }
+  html body #settings.page.active .st-home-menu{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px!important}
+  html body #settings.page.active .st-template-group:last-child{
+    grid-column:1/-1!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  }
+}
+
+/* ---------- iPad / Android tablet portrait ---------- */
 @media(min-width:700px) and (max-width:899px){
-  html body.mmh-workspace-active main.wrap > #exchange.page.active,html body.mmh-workspace-active main.wrap > #settings.page.active{width:100%!important;max-width:none!important;margin:0!important}
-  html body.mmh-workspace-active main.wrap > #exchange.page.active{display:grid!important;grid-template-columns:minmax(0,1fr)!important}
-  html body.mmh-workspace-active main.wrap > #exchange.page.active > :is(.ex-template-head,.ex-currency-cards,.exchange-converter-panel,.ex-rate-editor,#exAsiaV10){grid-column:1!important;width:100%!important;max-width:none!important;margin:0!important}
-  html body.mmh-workspace-active main.wrap > #settings.page.active #stSettingsHomeV3:not([hidden]){grid-template-columns:minmax(0,1fr)!important;width:100%!important;max-width:none!important;margin:0!important}
-  html body.mmh-workspace-active main.wrap > #settings.page.active .st-home-menu{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  html body #exchange.page.active{grid-template-columns:minmax(0,1fr)!important;gap:14px!important}
+  html body #exchange.page.active > .ex-template-head{grid-column:1!important;grid-row:1!important}
+  html body #exchange.page.active > .ex-currency-cards{grid-column:1!important;grid-row:2!important;grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  html body #exchange.page.active > .exchange-converter-panel{grid-column:1!important;grid-row:3!important}
+  html body #exchange.page.active > .ex-rate-editor{grid-column:1!important;grid-row:4!important}
+  html body #exchange.page.active > #exAsiaV10{grid-column:1!important;grid-row:5!important}
+  html body #exchange.page.active .ex-rate-editor .formgrid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  html body #exchange.page.active #exAsiaV10 .asia-list{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+
+  html body #settings.page.active #stSettingsHomeV3:not([hidden]){
+    grid-template-columns:minmax(0,1fr)!important;gap:14px!important;
+  }
+  html body #settings.page.active .account-center-card-v375{height:auto!important}
+  html body #settings.page.active .account-center-head-v375{
+    flex-direction:row!important;text-align:left!important;align-items:center!important;gap:14px!important;
+  }
+  html body #settings.page.active .account-center-avatar-v375{width:64px!important;height:64px!important;min-width:64px!important}
+  html body #settings.page.active .st-home-menu{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px!important}
+  html body #settings.page.active .st-template-group:last-child{
+    grid-column:1/-1!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  }
 }
+
+/* ---------- iPhone / Android phone ---------- */
 @media(max-width:699px){
-  html body.mmh-workspace-active main.wrap > #exchange.page.active,html body.mmh-workspace-active main.wrap > #settings.page.active{width:100%!important;max-width:none!important;margin:0!important;padding-left:0!important;padding-right:0!important}
-  html body.mmh-workspace-active main.wrap > #exchange.page.active{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:12px!important}
-  html body.mmh-workspace-active main.wrap > #exchange.page.active > :is(.ex-template-head,.ex-currency-cards,.exchange-converter-panel,.ex-rate-editor,#exAsiaV10){grid-column:1!important;width:100%!important;max-width:none!important;margin:0!important}
-  html body.mmh-workspace-active main.wrap > #settings.page.active #stSettingsHomeV3:not([hidden]),html body.mmh-workspace-active main.wrap > #settings.page.active .st-home-menu{grid-template-columns:minmax(0,1fr)!important;width:100%!important;max-width:none!important;margin:0!important}
+  html body #exchange.page.active{grid-template-columns:minmax(0,1fr)!important;gap:12px!important}
+  html body #exchange.page.active > .ex-template-head{grid-column:1!important;grid-row:1!important}
+  html body #exchange.page.active > .ex-currency-cards{grid-column:1!important;grid-row:2!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}
+  html body #exchange.page.active > .exchange-converter-panel{grid-column:1!important;grid-row:3!important}
+  html body #exchange.page.active > .ex-rate-editor{grid-column:1!important;grid-row:4!important}
+  html body #exchange.page.active > #exAsiaV10{grid-column:1!important;grid-row:5!important}
+  html body #exchange.page.active .exchange-converter-grid,
+  html body #exchange.page.active .ex-rate-editor .formgrid,
+  html body #exchange.page.active #exAsiaV10 .asia-controls,
+  html body #exchange.page.active #exAsiaV10 .asia-list{grid-template-columns:minmax(0,1fr)!important}
+  html body #exchange.page.active .ex-swap{grid-column:1!important;transform:rotate(90deg)!important;margin:0 auto!important}
+  html body #exchange.page.active .ex-template-head{align-items:flex-start!important;gap:10px!important}
+  html body #exchange.page.active .ex-source{display:none!important}
+
+  html body #settings.page.active #stSettingsHomeV3:not([hidden]),
+  html body #settings.page.active .st-home-menu{grid-template-columns:minmax(0,1fr)!important;gap:12px!important}
+  html body #settings.page.active .account-center-card-v375{height:auto!important;padding:14px!important}
+  html body #settings.page.active .account-center-head-v375{
+    flex-direction:row!important;text-align:left!important;align-items:center!important;gap:12px!important;
+  }
+  html body #settings.page.active .account-center-avatar-v375{width:56px!important;height:56px!important;min-width:56px!important}
+  html body #settings.page.active .st-template-group,
+  html body #settings.page.active .st-template-group:last-child{
+    grid-column:1!important;display:block!important;width:100%!important;
+  }
+}
+
+@media(max-width:400px){
+  html body #exchange.page.active > .ex-currency-cards{grid-template-columns:minmax(0,1fr)!important}
 }
 </style>
-<script id="mmhvault-v901-build">window.MMHVAULT_BUILD='v901';</script>
+<script id="mmhvault-v902-build">window.MMHVAULT_BUILD='v902';</script>
+<!-- MMHVAULT v902 · Exchange deterministic rows + Settings balanced responsive layout. -->
 
-<!-- MMHVAULT v841 · Exchange + Settings responsive completion across desktop, iPad/Android tablet, iPhone/Android phone. -->
+
