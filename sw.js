@@ -1,6 +1,6 @@
-/* MMHVAULT v1.2.2 Boot-Safe Service Worker */
+/* MMHVAULT v1.2.3 Boot-Isolated Service Worker */
 'use strict';
-const VERSION='1.2.2-boot-recovery';
+const VERSION='1.2.3-boot-isolation';
 const PREFIX='mmhvault-';
 const CACHE=`${PREFIX}safe-${VERSION}`;
 const FALLBACK='./app.html';

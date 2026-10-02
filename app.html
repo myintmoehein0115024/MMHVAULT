@@ -9,7 +9,7 @@
 <link href="other/manifest.webmanifest" rel="manifest"/>
 <meta content="#06111f" name="theme-color"/>
 <title>MMHVAULT · Personal Finance &amp; Wealth Management</title>
-<meta name="mmhvault-release" content="1.2.2-boot-recovery"/>
+<meta name="mmhvault-release" content="1.2.3-boot-isolation"/>
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="dns-prefetch" href="https://unpkg.com">
@@ -7655,47 +7655,86 @@ function retryLoadAllV384(){setDataErrorV384("");return loadAll({force:true});}
 async function loadAll(opts={}){
   if(loadAllPromiseV384&&!opts.force)return loadAllPromiseV384;
   loadAllPromiseV384=(async()=>{
-    const loadOwner=currentSessionUser?.id;if(!loadOwner)return {ok:false,errors:['Sign in required']};
+    const loadOwner=currentSessionUser?.id;
+    if(!loadOwner)return {ok:false,errors:['Sign in required']};
     const hadExisting=transactions.length>0||investments.length>0;
     setDataErrorV384("");
     setDataLoadingV384(true,hadExisting?"Refreshing your private cloud records…":"Loading your private cloud records…");
+    const failsafe=setTimeout(()=>{
+      try{
+        setDataLoadingV384(false);
+        if(!hadExisting && !(window.transactions||[]).length){
+          setDataErrorV384("Finance data is taking longer than expected. The app will keep trying in the background.");
+        }
+      }catch(_e){}
+    },8000);
     try{
-      /* Transaction + investment data are authoritative. Rate/render issues should not
-         be reported as a generic cloud connection failure. */
       const cloudRequests=Promise.all([
         db.from("transactions").select("*").eq("user_id",loadOwner).order("tx_date",{ascending:false}).order("created_at",{ascending:false}),
         db.from("investments").select("*").eq("user_id",loadOwner).order("inv_date",{ascending:false}).order("created_at",{ascending:false}),
         db.from("exchange_rates").select("*").eq("user_id",loadOwner).limit(1).maybeSingle()
       ]);
-      const cloudTimeout=new Promise((_,reject)=>setTimeout(()=>reject(new Error("Cloud data request timed out.")),15000));
+      const cloudTimeout=new Promise((_,reject)=>setTimeout(()=>reject(new Error("Cloud data request timed out.")),12000));
       const [a,b,r]=await Promise.race([cloudRequests,cloudTimeout]);
       if(currentSessionUser?.id!==loadOwner)return {ok:false,errors:['Session changed']};
+
       const hardErrors=[];
       const optionalErrors=[];
-      if(a.error){console.error("Transactions load failed",a.error);hardErrors.push("Transactions: "+a.error.message);}
-      if(b.error){console.error("Investments load failed",b.error);hardErrors.push("Investments: "+b.error.message);}
+      if(a?.error){console.error("Transactions load failed",a.error);hardErrors.push("Transactions: "+a.error.message);}
+      if(b?.error){console.error("Investments load failed",b.error);hardErrors.push("Investments: "+b.error.message);}
       if(hardErrors.length)throw new Error(hardErrors.join(" "));
-      if((a.data||[]).some(x=>x.user_id!==loadOwner)||(b.data||[]).some(x=>x.user_id!==loadOwner))throw Error('Unexpected record owner');
-      transactions=a.data||[];investments=b.data||[];
-      mmhVaultRecoverOwnedLegacyConfigV1(loadOwner);
-      window.mmhGoldFxReadyV1=!r.error&&!!r.data;
-      if(r.error){console.warn("Exchange rates load skipped",r.error);optionalErrors.push("Exchange Rates: "+r.error.message);}else if(r.data)rates=r.data;
-      try{loadRateInputs();}catch(e){console.warn("Rate input render skipped",e);}
-      try{render();}catch(e){console.error("MMHVAULT render failed after cloud load",e);}
-      if(optionalErrors.length)console.warn("Optional cloud data warning",optionalErrors);
+      if((a?.data||[]).some(x=>x.user_id!==loadOwner)||(b?.data||[]).some(x=>x.user_id!==loadOwner))throw Error('Unexpected record owner');
+
+      /* v1.2.3: commit authoritative cloud rows first, before any secondary renderer/event. */
+      transactions=a?.data||[];
+      investments=b?.data||[];
+      window.mmhGoldFxReadyV1=!r?.error&&!!r?.data;
+      if(r?.error){console.warn("Exchange rates load skipped",r.error);optionalErrors.push("Exchange Rates: "+r.error.message);}
+      else if(r?.data)rates=r.data;
       try{window.transactions=transactions;window.investments=investments;window.rates=rates;}catch(_e){}
-      try{window.dispatchEvent(new CustomEvent("mmhvault:data-loaded",{detail:{ok:hardErrors.length===0,at:Date.now()}}));}catch(_e){}
-      return {ok:hardErrors.length===0,errors:[...hardErrors,...optionalErrors]};
+      try{window.__mmhTransactionsMirror=transactions.slice();window.__mmhInvestmentsMirror=investments.slice();}catch(_e){}
+
+      /* Critical: release the startup overlay before non-critical UI work. */
+      clearTimeout(failsafe);
+      setDataLoadingV384(false);
+      setDataErrorV384("");
+
+      /* Secondary work runs after the current boot task, so it can never hold the loader open. */
+      setTimeout(()=>{
+        try{mmhVaultRecoverOwnedLegacyConfigV1(loadOwner);}catch(e){console.warn("Config recovery skipped",e);}
+        try{loadRateInputs();}catch(e){console.warn("Rate input render skipped",e);}
+        try{
+          if(typeof scheduleRenderV3441==='function')scheduleRenderV3441();
+          else if(typeof render==='function')render();
+        }catch(e){console.error("MMHVAULT render scheduled after cloud load failed",e);}
+        setTimeout(()=>{
+          try{window.dispatchEvent(new CustomEvent("mmhvault:data-loaded",{detail:{ok:true,at:Date.now(),bootIsolated:true}}));}catch(_e){}
+        },0);
+      },0);
+
+      if(optionalErrors.length)console.warn("Optional cloud data warning",optionalErrors);
+      return {ok:true,errors:optionalErrors};
     }catch(err){
+      clearTimeout(failsafe);
       if(currentSessionUser?.id!==loadOwner)return {ok:false,errors:['Session changed']};
       console.error("loadAll failed",err);
       let restored=false;
-      try{if(!hadExisting&&typeof window.mmhvaultRestoreCacheV336==='function'){restored=window.mmhvaultRestoreCacheV336();if(restored){try{transactions=window.transactions||transactions;investments=window.investments||investments;rates=Object.assign({},rates||{},window.rates||{});}catch(_e){}try{render();}catch(_e){}}}}catch(_e){}
+      try{
+        if(!hadExisting&&typeof window.mmhvaultRestoreCacheV336==='function'){
+          restored=window.mmhvaultRestoreCacheV336();
+          if(restored){
+            try{transactions=window.transactions||transactions;investments=window.investments||investments;rates=Object.assign({},rates||{},window.rates||{});}catch(_e){}
+            setTimeout(()=>{try{if(typeof scheduleRenderV3441==='function')scheduleRenderV3441();else render();}catch(_e){}},0);
+          }
+        }
+      }catch(_e){}
       const msg=restored?"Cloud is temporarily unavailable. Showing your last saved data. Reconnect to refresh.":(hadExisting?"Cloud refresh failed. Your last loaded data is still shown. Please check your connection and retry.":"Unable to load cloud data. Please check your connection and retry.");
+      setDataLoadingV384(false);
       setDataErrorV384(msg);
-      try{window.dispatchEvent(new CustomEvent("mmhvault:data-loaded",{detail:{ok:false,restored,at:Date.now()}}));}catch(_e){}
+      setTimeout(()=>{try{window.dispatchEvent(new CustomEvent("mmhvault:data-loaded",{detail:{ok:false,restored,at:Date.now(),bootIsolated:true}}));}catch(_e){}},0);
       return {ok:false,restored,errors:[err?.message||String(err)]};
     }finally{
+      clearTimeout(failsafe);
       setDataLoadingV384(false);
     }
   })();
@@ -12278,7 +12317,7 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
         state.status=result&&result.ok===false?'stale':'ready';if(result?.ok===true)state.lastLoadedAt=Date.now();
         try{window.__mmhTransactionsMirror=Array.isArray(transactions)?transactions.slice():[];}catch(e){}
         try{window.__mmhInvestmentsMirror=Array.isArray(investments)?investments.slice():[];}catch(e){}
-        publish('mmhvault:data-loaded',{reason:'cloud-refresh',ok:result?.ok===true,result:result||null});
+        setTimeout(()=>publish('mmhvault:data-loaded',{reason:'cloud-refresh',ok:result?.ok===true,result:result||null}),0);
         return result;
       }catch(err){
         state.status='error';state.lastReason='cloud-refresh-error';publish('mmhvault:data-error',{error:String(err?.message||err)});throw err;
@@ -12304,7 +12343,7 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
     try{document.documentElement.dataset.realtime=String(d.connected?"connected":(d.status||"unknown")).toLowerCase();}catch(_e){}
   });
   window.addEventListener("mmhvault:data-loaded",function(){
-    try{window.dispatchEvent(new CustomEvent("mmhvault:sync-complete",{detail:window.mmhvaultGetRealtimeStateV335()}));}catch(_e){}
+    setTimeout(()=>{try{window.dispatchEvent(new CustomEvent("mmhvault:sync-complete",{detail:window.mmhvaultGetRealtimeStateV335()}));}catch(_e){}},0);
   });
   if(typeof subscribeRealtime==='function') setTimeout(()=>{try{subscribeRealtime();}catch(err){console.warn("Realtime kernel init skipped:",err);}},0);
 })();
@@ -18104,8 +18143,8 @@ html body #invest .invest-entry .receipt-dropzone-v3300{width:100%!important;max
 </script>
 
 <script id="mmhvault-v1-stable-build">
-window.MMHVAULT_BUILD='1.2.2-boot-recovery';
-window.MMHVAULT_RELEASE='MMHVAULT v1.2.2 Boot Recovery';
+window.MMHVAULT_BUILD='1.2.3-boot-isolation';
+window.MMHVAULT_RELEASE='MMHVAULT v1.2.3 Boot Isolation';
 </script>
 <!-- MMHVAULT v1.1 Budget Beta · branched from v1.0 Stable. -->
 
@@ -18510,7 +18549,7 @@ body.light #reports .report-mini-v115{background:#f3f8fb;border-color:#cfdee9}bo
 <script id="mmhvault-v122-pwa-safe-js">
 (()=>{'use strict';
   if(window.__MMHVAULT_PWA_V122)return;window.__MMHVAULT_PWA_V122=true;
-  const VERSION='1.2.2-boot-recovery',RECOVERY='mmhvault_pwa_recovery_v122';
+  const VERSION='1.2.3-boot-isolation',RECOVERY='mmhvault_pwa_recovery_v123';
   const $=id=>document.getElementById(id),lang=()=>localStorage.getItem('mmhvault_language_v3363')||'en',tr=(en,zh)=>lang()==='zh'?zh:en;
   const standalone=()=>window.matchMedia?.('(display-mode: standalone)')?.matches===true||window.navigator.standalone===true;
   const secure=()=>location.protocol==='https:'||['localhost','127.0.0.1'].includes(location.hostname);
@@ -18529,10 +18568,11 @@ body.light #reports .report-mini-v115{background:#f3f8fb;border-color:#cfdee9}bo
   if('serviceWorker'in navigator)navigator.serviceWorker.addEventListener('controllerchange',refreshStatus);
   window.addEventListener('online',()=>{networkUI();setTimeout(()=>check(false),1200)});window.addEventListener('offline',networkUI);window.addEventListener('appinstalled',refreshStatus);
   async function start(){networkUI();observe();await recoverCaches();await register();window.MMHPWAV122={checkForUpdate:check,refresh:refreshStatus,version:VERSION}}
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
+  const startLater=()=>setTimeout(()=>start().catch(e=>console.warn('[MMHVAULT] deferred PWA start skipped',e)),1800);
+  if(document.readyState==='complete')startLater();else window.addEventListener('load',startLater,{once:true});
 })();
 </script>
-<!-- MMHVAULT v1.2.2 · boot-safe PWA update: no forced reload during authentication/data startup. -->
+<!-- MMHVAULT v1.2.3 · boot isolation: cloud rows commit before secondary render/event chains. -->
 
 </body>
 <!-- MMHVAULT V4.3.0 performance baseline: logo-free account cards + restrained dashboard rendering. -->
