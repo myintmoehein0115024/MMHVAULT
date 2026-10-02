@@ -473,7 +473,7 @@ body.light header{background:#ffffffee}.light .card,.light .panel{background:lin
 
 
 /* V4.0 Production Readiness */
-.data-load-overlay-v384{position:fixed;inset:0;z-index:9998;display:none;align-items:center;justify-content:center;background:rgba(8,11,36,.45);backdrop-filter:blur(3px);padding:18px}
+.data-load-overlay-v384{position:fixed;inset:0;z-index:9998;display:none;align-items:center;justify-content:center;background:rgba(8,11,36,.45);backdrop-filter:blur(3px);padding:18px;pointer-events:none}
 .data-load-overlay-v384.show{display:flex}
 .data-load-card-v384{min-width:260px;max-width:420px;border:1px solid var(--line);border-radius:16px;background:var(--panel);padding:18px 20px;box-shadow:0 20px 60px #0008;text-align:center}
 .data-load-title-v384{font-weight:900;font-size:16px}
