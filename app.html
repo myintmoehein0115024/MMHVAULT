@@ -6870,8 +6870,46 @@ const MMHVAULT_CONFIG_KEY='mmhvault_dynamic_config_v445';
 let MMHVAULT_CONFIG_OWNER='';
 function mmhVaultConfigKey(owner=MMHVAULT_CONFIG_OWNER){return owner?MMHVAULT_CONFIG_KEY+'_'+owner:'';}
 function mmhVaultRequireConfigOwner(expected=MMHVAULT_CONFIG_OWNER){return !!expected&&expected===MMHVAULT_CONFIG_OWNER&&expected===currentSessionUser?.id;}
+/* v1.2.3.1 · Transaction category separation guard.
+   Expense / Personal / Loan Expense share the same database type=Expense, so category names
+   must stay unambiguous across those groups. Income / Loan Income follow the same rule. */
+function mmhVaultCategoryKeyV1231(name){return String(name||'').trim().toLowerCase();}
+function mmhVaultCategoryFamilyV1231(group){
+  if(['Expense','Personal','LoanExpense'].includes(group))return ['Expense','Personal','LoanExpense'];
+  if(['Income','LoanIncome'].includes(group))return ['Income','LoanIncome'];
+  return [group];
+}
+function mmhVaultNormalizeCategoryConfigV1231(categories,archived={}){
+  const out={};
+  for(const [group,base] of Object.entries(MMHVAULT_DEFAULT_CATEGORIES)){
+    const src=Array.isArray(categories?.[group])?categories[group]:base;
+    const seen=new Set();
+    out[group]=src.map(v=>String(v).trim()).filter(v=>v&&!seen.has(mmhVaultCategoryKeyV1231(v))&&seen.add(mmhVaultCategoryKeyV1231(v)));
+  }
+  const names=(group)=>[...(out[group]||[]),...(Array.isArray(archived?.[group])?archived[group]:[])].map(mmhVaultCategoryKeyV1231).filter(Boolean);
+  const personalOrLoan=new Set([...names('Personal'),...names('LoanExpense')]);
+  const loanIncome=new Set(names('LoanIncome'));
+  out.Expense=(out.Expense||[]).filter(name=>!personalOrLoan.has(mmhVaultCategoryKeyV1231(name)));
+  out.Income=(out.Income||[]).filter(name=>!loanIncome.has(mmhVaultCategoryKeyV1231(name)));
+  return out;
+}
+function mmhVaultCategoryNamesV1231(group){
+  const active=MMHVAULT_CONFIG?.categories?.[group]||window.CATS?.[group]||[];
+  const archived=MMHVAULT_CONFIG?.archivedCategories?.[group]||[];
+  const seen=new Set();
+  return [...active,...archived].map(v=>String(v).trim()).filter(v=>v&&!seen.has(mmhVaultCategoryKeyV1231(v))&&seen.add(mmhVaultCategoryKeyV1231(v)));
+}
+function mmhVaultCategoryInGroupV1231(group,name){const key=mmhVaultCategoryKeyV1231(name);return !!key&&mmhVaultCategoryNamesV1231(group).some(v=>mmhVaultCategoryKeyV1231(v)===key);}
+function mmhVaultCategoryConflictV1231(group,name){
+  const key=mmhVaultCategoryKeyV1231(name);if(!key)return '';
+  for(const other of mmhVaultCategoryFamilyV1231(group)){
+    if(other===group)continue;
+    if(mmhVaultCategoryNamesV1231(other).some(v=>mmhVaultCategoryKeyV1231(v)===key))return other;
+  }
+  return '';
+}
 function mmhVaultReadConfig(owner=MMHVAULT_CONFIG_OWNER){
-  const fallback={accounts:[],categories:Object.fromEntries(Object.entries(MMHVAULT_DEFAULT_CATEGORIES).map(([k,v])=>[k,[...v]]))};
+  const fallback={accounts:[],categories:Object.fromEntries(Object.entries(MMHVAULT_DEFAULT_CATEGORIES).map(([k,v])=>[k,[...v]])),archivedCategories:{}};
   try{
     const storageKey=mmhVaultConfigKey(owner);if(!storageKey)return fallback;
     const raw=localStorage.getItem(storageKey); if(!raw)return fallback;
@@ -6880,7 +6918,8 @@ function mmhVaultReadConfig(owner=MMHVAULT_CONFIG_OWNER){
     const accounts=Array.isArray(x.accounts)?x.accounts.filter(a=>a&&a.name).map(a=>({id:String(a.id||('acc_'+Date.now()+Math.random().toString(36).slice(2,7))),name:String(a.name).trim(),currency:['MMK','THB','USD','CNY'].includes(a.currency)?a.currency:'MMK',type:String(a.type||'other'),active:a.active!==false,builtin:!!a.builtin})):fallback.accounts;
     const categories={};
     for(const [k,base] of Object.entries(MMHVAULT_DEFAULT_CATEGORIES)) categories[k]=Array.isArray(x.categories?.[k])?x.categories[k].map(String).map(v=>v.trim()).filter(Boolean):[...base];
-    return {accounts:accounts,categories,archivedCategories:(x.archivedCategories&&typeof x.archivedCategories==='object')?x.archivedCategories:{}};
+    const archivedCategories=(x.archivedCategories&&typeof x.archivedCategories==='object')?x.archivedCategories:{};
+    return {accounts:accounts,categories:mmhVaultNormalizeCategoryConfigV1231(categories,archivedCategories),archivedCategories};
   }catch(_){return fallback;}
 }
 let MMHVAULT_CONFIG=mmhVaultReadConfig();
@@ -6905,12 +6944,26 @@ function mmhVaultRecoverOwnedLegacyConfigV1(owner){
     // Unknown currency/type cannot be safely inferred from account name. Never guess financial metadata.
     if(base)MMHVAULT_CONFIG.accounts.push({...base});
   }
-  // Category text is recovered exclusively from this owner's records, without shared configuration.
-  for(const t of ownTx){const group=t.transaction_group||t.group||t.type;const list=MMHVAULT_CONFIG.categories[group];if(Array.isArray(list)&&t.category&&!list.includes(t.category))list.push(String(t.category));}
+  // Category text is recovered exclusively from this owner's records. Expense-family groups
+  // are inferred with Personal/Loan precedence so they can never be folded into ordinary Expense.
+  for(const t of ownTx){
+    const explicit=String(t?.transaction_group||t?.group||'');
+    let group=explicit;
+    if(!group){
+      if(t?.type==='Income')group=mmhVaultCategoryInGroupV1231('LoanIncome',t.category)?'LoanIncome':'Income';
+      else if(t?.type==='Expense')group=mmhVaultCategoryInGroupV1231('LoanExpense',t.category)?'LoanExpense':mmhVaultCategoryInGroupV1231('Personal',t.category)?'Personal':'Expense';
+      else group=t?.type;
+    }
+    if(group==='Loans')group=t?.type==='Income'?'LoanIncome':'LoanExpense';
+    const list=MMHVAULT_CONFIG.categories[group];
+    if(Array.isArray(list)&&t.category&&!list.some(v=>mmhVaultCategoryKeyV1231(v)===mmhVaultCategoryKeyV1231(t.category)))list.push(String(t.category));
+  }
+  MMHVAULT_CONFIG.categories=mmhVaultNormalizeCategoryConfigV1231(MMHVAULT_CONFIG.categories,MMHVAULT_CONFIG.archivedCategories||{});
   if(names.size){mmhVaultPersistConfig();mmhVaultRebuildConfigArrays();mmhVaultRefreshAccountSelectors();}
 }
 function mmhVaultRebuildConfigArrays(){
   try{if(window.__mmhDashV34242Cache)window.__mmhDashV34242Cache.accountSig=null;}catch(_){}
+  MMHVAULT_CONFIG.categories=mmhVaultNormalizeCategoryConfigV1231(MMHVAULT_CONFIG.categories,MMHVAULT_CONFIG.archivedCategories||{});
   ACC=MMHVAULT_CONFIG.accounts.filter(a=>a.active!==false).map(a=>a.name);
   CATS=Object.fromEntries(Object.entries(MMHVAULT_CONFIG.categories).map(([k,v])=>[k,[...v]]));
   // Keep the legacy combined Loans list synchronized with the dynamic manager.
@@ -7217,6 +7270,11 @@ function mmhVaultEditCategoryV449(group,name){
           window.mmhEditDeleteUI.inline(`${newName} is already used in this group.`);
           return false;
         }
+        const conflictGroup=mmhVaultCategoryConflictV1231(currentGroup,newName);
+        if(conflictGroup){
+          window.mmhEditDeleteUI.inline(`${newName} already belongs to ${mmhVaultCategoryGroupLabel(conflictGroup)}. Use a unique name so historical transactions remain correctly classified.`);
+          return false;
+        }
 
         const idx=list.indexOf(currentName);
         if(idx<0){
@@ -7231,7 +7289,10 @@ function mmhVaultEditCategoryV449(group,name){
           window.mmhEditDeleteUI.inline('Your session is no longer available. Please sign in again.');
           return false;
         }
-        const txUpdate=await db.from('transactions').update({category:newName}).eq('user_id',user.id).eq('category',currentName);
+        const flowType=['Expense','Personal','LoanExpense'].includes(currentGroup)?'Expense':['Income','LoanIncome'].includes(currentGroup)?'Income':null;
+        let txUpdateQuery=db.from('transactions').update({category:newName}).eq('user_id',user.id).eq('category',currentName);
+        if(flowType)txUpdateQuery=txUpdateQuery.eq('type',flowType);
+        const txUpdate=await txUpdateQuery;
         if(txUpdate?.error){
           console.error('[MMHVAULT] category rename transaction update failed',txUpdate.error);
           window.mmhEditDeleteUI.inline('The category name was not changed in your transaction history. Please try again.');
@@ -7264,6 +7325,11 @@ function mmhVaultAddCategoryV445(){
   if(group==='Transfer'){mmhVaultCustomMessageV449('System Category','Transfer is system-managed.');return;}
   if((MMHVAULT_CONFIG.categories[group]||[]).some(x=>x.toLowerCase()===name.toLowerCase())){
     mmhVaultCustomMessageV449('Category already exists',`${name} is already in this group.`);
+    return;
+  }
+  const conflictGroup=mmhVaultCategoryConflictV1231(group,name);
+  if(conflictGroup){
+    mmhVaultCustomMessageV449('Category name already in use',`${name} already belongs to ${mmhVaultCategoryGroupLabel(conflictGroup)}. Expense-family and Income-family category names must stay unique so reports remain correctly separated.`);
     return;
   }
   (MMHVAULT_CONFIG.categories[group]||(MMHVAULT_CONFIG.categories[group]=[])).push(name);
@@ -7316,6 +7382,8 @@ function mmhVaultArchiveCategoryV445(group,name){
 function mmhVaultRestoreCategoryV445(group,name){
   const configOwner=MMHVAULT_CONFIG_OWNER;if(!mmhVaultRequireConfigOwner(configOwner))return false;
   if((MMHVAULT_CONFIG.categories[group]||[]).includes(name))return;
+  const conflictGroup=mmhVaultCategoryConflictV1231(group,name);
+  if(conflictGroup){mmhVaultCustomMessageV449('Cannot restore category',`${name} is currently used by ${mmhVaultCategoryGroupLabel(conflictGroup)}. Rename that category first so transaction history stays unambiguous.`);return false;}
   MMHVAULT_CONFIG.archivedCategories[group]=(MMHVAULT_CONFIG.archivedCategories[group]||[]).filter(x=>x!==name);
   (MMHVAULT_CONFIG.categories[group]||(MMHVAULT_CONFIG.categories[group]=[])).push(name);
   mmhVaultPersistConfig();
@@ -8039,8 +8107,40 @@ txList.innerHTML=`<table><tr><th>Date</th><th>Type</th><th>Category</th><th>From
 }
 function closeEditModal(){$('editModal').classList.remove('open');$('editModalBody').innerHTML='';}
 function openEditModal(title,body){$('editModalTitle').textContent=title;$('editModalBody').innerHTML=body;$('editModal').classList.add('open');}
-function txCategoryOptions(type,group){if(type==='Transfer')return ['Transfer'];if(group==='Income')return ['Salary','Meal Allowance','Bonus','Other Income'];if(group==='Data Adjustment')return ['Data Adjustment'];if(group==='Expense')return (window.CATS?.Expense||['Dining','Snacks','Smoking','Transport','Wellness','Lifestyle','Other']).filter(x=>x!=='Data Adjustment');if(group==='Personal')return ['Family Support','Special Transfer','Gifts','Donation'];if(group==='Loans')return type==='Income'?['Debt','Loan Repayment']:['PaidDeb','Loan Out'];return ['Other'];}
-function inferTxGroup(t){if(t.type==='Transfer')return 'Transfer';if(t.category==='Data Adjustment'&&(t.type==='Income'||t.type==='Expense'))return 'Data Adjustment';if(t.type==='Income')return CATS.LoanIncome.includes(t.category)?'Loans':'Income';if(t.type==='Expense'){if(CATS.Expense.includes(t.category))return 'Expense';if(CATS.Personal.includes(t.category))return 'Personal';if(CATS.LoanExpense.includes(t.category))return 'Loans';}return t.type;}
+function txCategoryOptions(type,group){
+  if(type==='Transfer')return ['Transfer'];
+  if(group==='Data Adjustment')return ['Data Adjustment'];
+  try{const list=mmhVaultTransactionCategoryListV451(type,group);if(Array.isArray(list)&&list.length)return [...list];}catch(_e){}
+  if(group==='Income')return ['Salary','Meal Allowance','Bonus','Other Income'];
+  if(group==='Expense')return ['Dining','Snacks','Smoking','Transport','Wellness','Lifestyle','Other'];
+  if(group==='Personal')return ['Family Support','Special Transfer','Gifts','Donation'];
+  if(group==='Loans')return type==='Income'?['Debt','Loan Repayment']:['PaidDeb','Loan Out'];
+  return ['Other'];
+}
+function inferTxGroup(t){
+  if(!t)return '';
+  const type=String(t.type||''),category=String(t.category||'').trim(),explicit=String(t.transaction_group||t.group||'').trim();
+  if(type==='Transfer')return 'Transfer';
+  if(category==='Data Adjustment'&&(type==='Income'||type==='Expense'))return 'Data Adjustment';
+  if(type==='Income'){
+    if(explicit==='Loans'||explicit==='LoanIncome')return 'Loans';
+    // A specific category family is more reliable than an old generic Income hint.
+    if(mmhVaultCategoryInGroupV1231('LoanIncome',category))return 'Loans';
+    if(explicit==='Income')return 'Income';
+    return 'Income';
+  }
+  if(type==='Expense'){
+    if(explicit==='Loans'||explicit==='LoanExpense')return 'Loans';
+    if(explicit==='Personal')return 'Personal';
+    // Same database type is shared by three UI groups. Loan and Personal must win over
+    // an old generic Expense hint, including archived categories and polluted configs.
+    if(mmhVaultCategoryInGroupV1231('LoanExpense',category))return 'Loans';
+    if(mmhVaultCategoryInGroupV1231('Personal',category))return 'Personal';
+    if(explicit==='Expense')return 'Expense';
+    return 'Expense';
+  }
+  return type;
+}
 
 
 /* V4.3.0 · Transaction delete repair */
@@ -8954,7 +9054,7 @@ autoBindExcel();
 const V28_TARGETS={BTC:45,ETH:25,SOL:12,BNB:10,USDT:8}; CATS.Loans=[...CATS.LoanIncome,...CATS.LoanExpense];
 const V28_BUDGETS={Dining:10000,Snacks:3000,Smoking:2500,Transport:2000,Wellness:8000,Lifestyle:2000,Other:1000};
 function v28PageList(){return ['dashboard','analyze','transactions','invest','exchange','settings'];}
-function transactionGroupFor(t){if(t.category==='Data Adjustment'&&(t.type==='Income'||t.type==='Expense'))return 'Data Adjustment';if(t.type==='Transfer')return 'Transfer';if(t.type==='Income')return ['Debt','Loan Repayment'].includes(t.category)?'Loans':'Income';if(t.type==='Expense')return ['PaidDeb','Loan Out'].includes(t.category)?'Loans':['Family Support','Special Transfer','Gifts','Donation'].includes(t.category)?'Personal':'Expense';return '';}
+function transactionGroupFor(t){try{return inferTxGroup(t)}catch(_e){if(t?.category==='Data Adjustment')return'Data Adjustment';if(t?.type==='Transfer')return'Transfer';return t?.type||'';}}
 function fmtPct(x){return Number(x||0).toFixed(1)+'%';}
 function monthLabel(m){const d=new Date((m||today().slice(0,7))+'-01T00:00:00');return d.toLocaleDateString(undefined,{month:'short',year:'numeric'});}
 function v28FilteredTx(){const s=($('txSearch')?.value||'').toLowerCase();const ty=$('txFilterType')?.value||'';const gr=$('txFilterGroup')?.value||'';const ca=$('txFilterCategory')?.value||'';const ac=$('txFilterAccount')?.value||'';return transactions.filter(t=>{const hay=[t.tx_date,t.type,transactionGroupFor(t),t.category,t.from_account,t.to_account,t.note].join(' ').toLowerCase();return(!s||hay.includes(s))&&(!ty||t.type===ty)&&(!gr||transactionGroupFor(t)===gr)&&(!ca||t.category===ca)&&(!ac||t.from_account===ac||t.to_account===ac);});}
@@ -18000,7 +18100,10 @@ html body #invest .invest-entry .receipt-dropzone-v3300{width:100%!important;max
   const page=()=>get('budget');
   const user=()=>typeof currentSessionUser!=='undefined'?currentSessionUser:null;
   const config=()=>typeof MMHVAULT_CONFIG!=='undefined'&&MMHVAULT_CONFIG?MMHVAULT_CONFIG:{categories:{}};
-  const expenseCategories=()=>Array.isArray(config().categories?.Expense)?config().categories.Expense.filter(Boolean).map(String):[];
+  const expenseCategories=()=>{
+    const cats=config().categories||{},blocked=new Set([...(cats.Personal||[]),...(cats.LoanExpense||[]),...((config().archivedCategories||{}).Personal||[]),...((config().archivedCategories||{}).LoanExpense||[])].map(mmhVaultCategoryKeyV1231));
+    return Array.isArray(cats.Expense)?cats.Expense.filter(Boolean).map(String).filter(name=>!blocked.has(mmhVaultCategoryKeyV1231(name))):[];
+  };
   const format=v=>num(v).toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:2});
   const money=v=>(symbols[state.currency]||state.currency)+' '+format(v);
   function groupOf(t){
@@ -24949,4 +25052,5 @@ html body.mmh-workspace-active main.wrap .page.active :is(.empty,.mmh-ui-empty,.
   window.MMHReportExportV116={exportImage,exportPdf,install};
 })();
 </script>
+<!-- MMHVAULT v1.2.3.1 · Personal / Individual Expense separation audit. Category grouping only; no Supabase schema or PWA changes. -->
 <!-- MMHVAULT v1.1.6 · Report export is presentation-only and never mutates finance records. -->
