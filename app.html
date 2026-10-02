@@ -11379,7 +11379,6 @@ window.mmHVaultRefreshReceiptFlagsV3302 = async function(){
     try{
       if(typeof renderTransactionsV28==='function') renderTransactionsV28();
       else if(typeof renderTransactions==='function') renderTransactions();
-      if(typeof renderTransactionsMobileCardsV371==='function') renderTransactionsMobileCardsV371();
     }catch(_e){}
   }catch(e){
     console.debug('Receipt visibility refresh unavailable',e);
@@ -11742,7 +11741,6 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
       try{
         if(typeof renderTransactionsV28==='function')renderTransactionsV28();
         else if(typeof renderTransactions==='function')renderTransactions();
-        if(typeof renderTransactionsMobileCardsV371==='function')renderTransactionsMobileCardsV371();
       }catch(_e){}
     }catch(e){console.debug('Receipt visibility refresh unavailable',e);}
   };
@@ -13849,62 +13847,6 @@ html.mmhv-tab-hidden .mmh-glow-anim{animation-play-state:paused!important}
   document.addEventListener('visibilitychange',sync,{passive:true});
   sync();
   window.MM_HVAULT_PERFORMANCE_V34239={version:'3.42.39',visibilityGovernor:true};
-})();
-</script>
-<!-- MMHVAULT V4.3.0 · Performance Architecture v1.5: Transaction Render Gate -->
-<script id="mmhvault-v34240-transaction-render-gate">
-(function(){
-  if(window.__mmhV34240TransactionRenderGateInstalled)return;
-  window.__mmhV34240TransactionRenderGateInstalled=true;
-  const source=window.renderTransactionsV28;
-  if(typeof source!=='function')return;
-  if(source.__mmhV34240)return;
-  let lastSignature=null;
-  let renderQueued=false;
-
-  function filteredRows(){
-    try{return typeof v28FilteredTx==='function' ? (v28FilteredTx()||[]) : [];}catch(_){return [];}
-  }
-  function receiptKey(t){
-    try{
-      const ids=window.mmHVaultReceiptIdsV3302;
-      if(ids&&typeof ids.has==='function')return ids.has(Number(t?.id))?'1':'0';
-    }catch(_){ }
-    return '?';
-  }
-  function signature(rows){
-    return rows.map(t=>[
-      t?.id,t?.tx_date,t?.type,t?.category,t?.transaction_group,
-      t?.from_account,t?.from_amount,t?.to_account,t?.to_amount,t?.note,
-      receiptKey(t)
-    ].map(v=>String(v==null?'':v)).join('\x1f')).join('\x1e');
-  }
-  function run(force){
-    const rows=filteredRows();
-    const sig=signature(rows);
-    const list=document.getElementById('txList');
-    if(!force && sig===lastSignature && list?.querySelector('[data-v34240-rendered="1"],table,.tx-mobile-list-v371,.empty,.tx-mobile-empty-v371')){
-      return false;
-    }
-    lastSignature=sig;
-    source.apply(this,arguments);
-    const host=document.getElementById('txList');
-    if(host)host.setAttribute('data-v34240-rendered','1');
-    return true;
-  }
-  function wrapped(){return run(false);}
-  wrapped.__mmhV34240=true;
-  wrapped.__mmhV34240Base=source;
-  window.renderTransactionsV28=wrapped;
-  window.renderTransactions=wrapped;
-  window.mmhvaultInvalidateTransactionRenderV34240=function(){lastSignature=null;};
-  window.mmhvaultScheduleTransactionRenderV34240=function(){
-    if(renderQueued)return;
-    renderQueued=true;
-    const cb=()=>{renderQueued=false;try{window.renderTransactionsV28();}catch(_){}};
-    if(window.requestAnimationFrame)requestAnimationFrame(cb);else setTimeout(cb,0);
-  };
-  window.MM_HVAULT_PERFORMANCE_V34240={version:'3.42.41',transactionRenderGate:true,signatureBasedSkip:true,noNewPolling:true};
 })();
 </script>
 <!-- MMHVAULT V4.3.0 · Hidden Page Render Suspension -->
@@ -17516,6 +17458,84 @@ button[data-mmh-busy="1"],.btn[data-mmh-busy="1"]{position:relative;cursor:wait!
 <!-- MMHVAULT v7.8.0 · Native account currency + Analyze efficiency metrics + render/responsive cleanup -->
 
 <!-- MMHVAULT v790 structure cleanup: v580 owns Premium Dashboard responsive, v570 owns navigation, v770 owns mobile notification/header responsive. -->
+
+<style id="mmhvault-v800-transaction-detail-css">
+#transactions #txList tr[data-mmh-tx-id]{cursor:pointer;transition:background .16s ease,border-color .16s ease,transform .16s ease}
+#transactions #txList tr[data-mmh-tx-id]:hover{background:rgba(77,170,225,.045)}
+#transactions #txList tr[data-mmh-tx-id]:focus-visible{outline:2px solid rgba(92,194,245,.58);outline-offset:-2px}
+.mmh-tx-detail-v800{display:grid;gap:14px}
+.mmh-tx-detail-hero-v800{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;padding:15px;border-radius:16px;background:linear-gradient(135deg,rgba(27,60,91,.62),rgba(8,26,47,.72));border:1px solid rgba(98,176,229,.18)}
+.mmh-tx-detail-eyebrow-v800{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#8fb4d1;font-weight:800}
+.mmh-tx-detail-title-v800{margin-top:4px;font-size:20px;font-weight:900;color:#f1f7ff;overflow-wrap:anywhere}
+.mmh-tx-detail-amount-v800{text-align:right;font-size:20px;font-weight:900;color:#f2f8ff;font-variant-numeric:tabular-nums;white-space:nowrap}
+.mmh-tx-detail-chip-v800{display:inline-flex;align-items:center;min-height:25px;padding:0 9px;margin-top:6px;border-radius:999px;background:rgba(53,195,148,.10);border:1px solid rgba(53,195,148,.17);color:#72e7bc;font-size:10px;font-weight:800}
+.mmh-tx-detail-grid-v800{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.mmh-tx-detail-item-v800{min-width:0;padding:11px 12px;border-radius:13px;background:rgba(255,255,255,.025);border:1px solid rgba(108,167,214,.10)}
+.mmh-tx-detail-label-v800{font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:#7893ac;font-weight:800}
+.mmh-tx-detail-value-v800{margin-top:4px;color:#dceaf7;font-size:12px;line-height:1.45;overflow-wrap:anywhere}
+.mmh-tx-detail-note-v800{padding:12px 13px;border-radius:13px;background:rgba(4,14,28,.44);border:1px solid rgba(108,167,214,.10);color:#aebfd0;font-size:12px;line-height:1.55;overflow-wrap:anywhere}
+.mmh-tx-detail-receipt-v800{display:flex;align-items:center;gap:8px;color:#8fb2cc;font-size:11px}.mmh-tx-detail-receipt-v800 strong{color:#dcebf8}
+@media(max-width:560px){.mmh-tx-detail-hero-v800{padding:13px}.mmh-tx-detail-title-v800,.mmh-tx-detail-amount-v800{font-size:17px}.mmh-tx-detail-grid-v800{grid-template-columns:1fr}.mmh-tx-detail-amount-v800{white-space:normal}}
+@media(prefers-reduced-motion:reduce){#transactions #txList tr[data-mmh-tx-id]{transition:none!important}}
+</style>
+<script id="mmhvault-v800-transaction-detail-js">
+(()=>{'use strict';
+  if(window.__MMHVAULT_TX_DETAIL_V800)return;window.__MMHVAULT_TX_DETAIL_V800=true;
+  const E=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  const N=v=>{const x=Number(v);return Number.isFinite(x)?x:0};
+  const money=(amount,account)=>{
+    if(!N(amount))return '—';let code='';
+    try{code=typeof currency==='function'?String(currency(account)||'').toUpperCase():''}catch(_e){}
+    if(!code){try{code=String((window.MMHVAULT_CONFIG?.accounts||[]).find(a=>a.name===account)?.currency||'').toUpperCase()}catch(_e){}}
+    const mark={USD:'$',MMK:'K',THB:'฿',CNY:'￥',RMB:'￥'}[code]||code;
+    const value=typeof fmt==='function'?fmt(N(amount)):N(amount).toLocaleString();
+    return (mark?mark+' ':'')+value;
+  };
+  const primary=t=>N(t?.to_amount)>0?money(t.to_amount,t.to_account):money(t?.from_amount,t?.from_account);
+  const findTx=id=>(window.transactions||[]).find(t=>String(t?.id)===String(id));
+  const group=t=>{try{return typeof transactionGroupFor==='function'?transactionGroupFor(t):(t?.type||'Transaction')}catch(_e){return t?.type||'Transaction'}};
+  const hasReceipt=t=>{try{return !!window.mmHVaultHasReceiptV3302?.(t?.id)}catch(_e){return false}};
+  const item=(label,value)=>'<div class="mmh-tx-detail-item-v800"><div class="mmh-tx-detail-label-v800">'+E(label)+'</div><div class="mmh-tx-detail-value-v800">'+E(value||'—')+'</div></div>';
+  function body(t){
+    const receipt=hasReceipt(t);
+    return '<div class="mmh-tx-detail-v800">'+
+      '<div class="mmh-tx-detail-hero-v800"><div><div class="mmh-tx-detail-eyebrow-v800">Transaction detail</div><div class="mmh-tx-detail-title-v800">'+E(t.category||group(t)||'Transaction')+'</div><span class="mmh-tx-detail-chip-v800">'+E((t.type||'Transaction')+' · '+group(t))+'</span></div><div class="mmh-tx-detail-amount-v800">'+E(primary(t))+'</div></div>'+
+      '<div class="mmh-tx-detail-grid-v800">'+item('Date',t.tx_date||'—')+item('Category',t.category||'—')+item('From account',t.from_account||'—')+item('From amount',N(t.from_amount)?money(t.from_amount,t.from_account):'—')+item('To account',t.to_account||'—')+item('To amount',N(t.to_amount)?money(t.to_amount,t.to_account):'—')+'</div>'+
+      '<div class="mmh-tx-detail-note-v800"><strong style="color:#d9e8f6">Note</strong><br>'+E(t.note||'No note')+'</div>'+
+      '<div class="mmh-tx-detail-receipt-v800"><span>▧</span><strong>Receipt</strong><span>'+E(receipt?'Attached':'No receipt attached')+'</span></div>'+
+    '</div>';
+  }
+  async function open(id){
+    const t=findTx(id);if(!t)return false;
+    const actions=[{label:'Close',onClick:()=>true}];
+    if(hasReceipt(t))actions.push({label:'View Receipt',onClick:()=>{setTimeout(()=>window.openTransactionReceiptV396?.(t.id),0);return true;}});
+    actions.push({label:'Edit',className:'primary',onClick:()=>{setTimeout(()=>window.editTransaction?.(t.id),0);return true;}});
+    if(typeof window.mmhVaultOpenDialogV449==='function')return window.mmhVaultOpenDialogV449({title:'Transaction',message:(t.tx_date||'')+' · '+(t.category||t.type||''),body:body(t),actions});
+    return false;
+  }
+  window.openTransactionDetailV800=open;
+  function enhance(){
+    document.querySelectorAll('#transactions #txList tr[data-mmh-tx-id]').forEach(row=>{row.tabIndex=0;row.setAttribute('role','button');row.setAttribute('aria-label','View transaction details');});
+    document.querySelectorAll('#transactions .tx-mobile-card-v371').forEach(card=>{
+      const actions=card.querySelector('.tx-mobile-actions-v371');if(!actions||actions.querySelector('[data-role="details-v800"]'))return;
+      const b=document.createElement('button');b.className='btn';b.type='button';b.dataset.role='details-v800';b.textContent='Details';actions.insertBefore(b,actions.firstChild);
+    });
+  }
+  document.addEventListener('click',e=>{
+    const details=e.target?.closest?.('[data-role="details-v800"]');
+    if(details){e.preventDefault();e.stopPropagation();const card=details.closest('.tx-mobile-card-v371');if(card)open(card.dataset.txId);return;}
+    if(e.target?.closest?.('button,a,input,select,textarea,label'))return;
+    const row=e.target?.closest?.('#transactions #txList tr[data-mmh-tx-id]');if(row){open(row.dataset.mmhTxId);}
+  });
+  document.addEventListener('keydown',e=>{
+    if(e.key!=='Enter'&&e.key!==' ')return;const row=e.target?.closest?.('#transactions #txList tr[data-mmh-tx-id]');if(!row)return;e.preventDefault();open(row.dataset.mmhTxId);
+  });
+  const host=document.getElementById('txList');if(host){new MutationObserver(()=>enhance()).observe(host,{childList:true,subtree:true});enhance();}
+  else if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{const h=document.getElementById('txList');if(h){new MutationObserver(()=>enhance()).observe(h,{childList:true,subtree:true});enhance();}},{once:true});
+})();
+</script>
+<!-- MMHVAULT v800 · Transaction detail interaction + retired duplicate transaction render gate. -->
+
 </body>
 <!-- MMHVAULT V4.3.0 performance baseline: logo-free account cards + restrained dashboard rendering. -->
 
