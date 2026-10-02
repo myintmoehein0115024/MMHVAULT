@@ -23681,7 +23681,139 @@ html body #settings.page.active #stPage_feedback{
   html body #exchange.page.active > .ex-currency-cards{grid-template-columns:minmax(0,1fr)!important}
 }
 </style>
-<script id="mmhvault-v910-build">window.MMHVAULT_BUILD='v910';</script>
-<!-- MMHVAULT v910 · Regression/Stability audit: v902 layout + safe navigation + complete CNY account conversion paths. -->
+
+<style id="mmhvault-v920-visual-final-pass">
+/* MMHVAULT v9.20 · v1.0 visual final pass.
+   Presentation/touch/accessibility only. No finance, auth, storage or data logic changes. */
+:root{
+  --mmh-v920-card-radius:18px;
+  --mmh-v920-control-radius:11px;
+  --mmh-v920-border:rgba(111,166,210,.22);
+  --mmh-v920-border-hover:rgba(132,190,232,.34);
+  --mmh-v920-focus:#77c9f2;
+  --mmh-v920-shadow:0 14px 36px rgba(0,0,0,.15),inset 0 1px 0 rgba(255,255,255,.022);
+  --mmh-v920-shadow-hover:0 18px 42px rgba(0,0,0,.20),inset 0 1px 0 rgba(255,255,255,.032);
+}
+html{scrollbar-gutter:stable}
+html,body{max-width:100%;overflow-x:hidden}
+html body.mmh-workspace-active main.wrap,
+html body.mmh-workspace-active main.wrap>.page{min-width:0!important;box-sizing:border-box!important}
+html body.mmh-workspace-active main.wrap>.page.active{isolation:isolate}
+html body.mmh-workspace-active img,html body.mmh-workspace-active svg{max-width:100%}
+
+/* Stable card language across the application without changing page structure. */
+html body.mmh-workspace-active main.wrap .page.active :is(
+  .panel,.card,.analyze-panel,.mmh-ui-panel,.pf-card-v500,
+  .st-template-group,.account-center-card-v375,.mmh-v373-card,
+  .cashflow-card-v371,.networth-analyze-card-v371,.overview-snapshot-card-v371
+){
+  border-radius:var(--mmh-v920-card-radius);
+  box-sizing:border-box;
+  min-width:0;
+}
+@media(hover:hover) and (pointer:fine){
+  html body.mmh-workspace-active main.wrap .page.active :is(
+    .panel,.card,.analyze-panel,.mmh-ui-panel,.pf-card-v500,.st-template-group
+  ){transition:border-color .16s ease,box-shadow .16s ease,background-color .16s ease}
+  html body.mmh-workspace-active main.wrap .page.active :is(
+    .panel,.card,.analyze-panel,.mmh-ui-panel,.pf-card-v500,.st-template-group
+  ):hover{border-color:var(--mmh-v920-border-hover);box-shadow:var(--mmh-v920-shadow-hover)}
+}
+
+/* Controls: consistent geometry and visible keyboard focus. */
+html body.mmh-workspace-active main.wrap .page.active :is(
+  input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="file"]),
+  select,textarea
+){
+  box-sizing:border-box;max-width:100%;border-radius:var(--mmh-v920-control-radius);
+  transition:border-color .15s ease,box-shadow .15s ease,background-color .15s ease;
+}
+html body.mmh-workspace-active main.wrap .page.active :is(.btn,button,input,select,textarea,a,[tabindex]):focus-visible,
+#bottomNav button:focus-visible,#moreNavMenu button:focus-visible,#mmhVaultDialogV449 button:focus-visible{
+  outline:2px solid var(--mmh-v920-focus)!important;
+  outline-offset:2px!important;
+  box-shadow:0 0 0 4px rgba(119,201,242,.12)!important;
+}
+html body.mmh-workspace-active main.wrap .page.active :is(.btn,button){touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+html body.mmh-workspace-active main.wrap .page.active .btn{border-radius:var(--mmh-v920-control-radius)}
+
+/* Long content must shrink rather than force horizontal page overflow. */
+html body.mmh-workspace-active main.wrap .page.active :is(
+  .grid,.formgrid,.toolbar,.detail,.actions,.st-home-menu,.exchange-converter-grid,
+  .mmh-ui-heading,.mmh-ui-list,.mmh-ui-kpis
+)>*{min-width:0}
+html body.mmh-workspace-active main.wrap .page.active :is(.small,.sub,.meta,.detail,.notice,.empty,.mmh-ui-empty){overflow-wrap:anywhere}
+
+/* Unified empty/loading states remain quiet and financial-app-like. */
+html body.mmh-workspace-active main.wrap .page.active :is(.empty,.mmh-ui-empty,.tx-mobile-empty-v371,.portfolio-empty-v310,.mmh-v436-empty){
+  color:#8298b1;line-height:1.55;
+}
+
+/* Native and MMHVAULT dialogs: bounded to the visual viewport on phones/tablets. */
+.modal-backdrop,#mmhVaultDialogV449{overscroll-behavior:contain}
+.modal,.mmh-v449-dialog{box-sizing:border-box}
+#mmhVaultDialogV449 .mmh-v449-dialog{
+  max-height:calc(100dvh - max(24px,env(safe-area-inset-top)) - max(24px,env(safe-area-inset-bottom)));
+  display:flex;flex-direction:column;overflow:hidden;
+}
+#mmhVaultDialogV449 .mmh-v449-dialog-body{overflow:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+#mmhVaultDialogV449 .mmh-v449-dialog-head,#mmhVaultDialogV449 .mmh-v449-dialog-actions{flex:0 0 auto}
+
+/* Tablet: keep a generous canvas while preserving touch targets. */
+@media(min-width:700px) and (max-width:1199px){
+  html body.mmh-workspace-active main.wrap>.page.active{padding-left:clamp(12px,2vw,22px)!important;padding-right:clamp(12px,2vw,22px)!important}
+  html body.mmh-workspace-active main.wrap .page.active :is(.btn,button,input:not([type="checkbox"]):not([type="radio"]):not([type="color"]),select){min-height:42px}
+  #mmhVaultDialogV449{padding:max(14px,env(safe-area-inset-top)) 14px max(14px,env(safe-area-inset-bottom))}
+}
+
+/* Phones: iPhone + Android. Safe-area, tap size, iOS form zoom and bottom-nav clearance. */
+@media(max-width:699px){
+  html body.mmh-workspace-active main.wrap>.page.active{
+    width:100%!important;max-width:none!important;min-width:0!important;
+    padding-left:12px!important;padding-right:12px!important;
+    padding-bottom:calc(92px + env(safe-area-inset-bottom,0px))!important;
+  }
+  html body.mmh-workspace-active main.wrap .page.active :is(
+    input:not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="file"]),select,textarea
+  ){font-size:16px!important}
+  html body.mmh-workspace-active main.wrap .page.active :is(.btn,button:not(.mmh-toast-close-v760)){min-height:44px}
+  html body.mmh-workspace-active main.wrap .page.active textarea{line-height:1.5}
+  #bottomNav.bottom-nav{
+    bottom:max(7px,env(safe-area-inset-bottom,0px))!important;
+    max-width:calc(100vw - 14px)!important;
+  }
+  #moreNavMenu{max-height:calc(100dvh - 96px - env(safe-area-inset-bottom,0px))!important;overflow:auto!important;overscroll-behavior:contain}
+  #mmhVaultDialogV449{
+    align-items:flex-end!important;
+    padding:10px 10px max(10px,env(safe-area-inset-bottom,0px))!important;
+  }
+  #mmhVaultDialogV449 .mmh-v449-dialog{
+    width:100%!important;max-width:none!important;
+    max-height:calc(100dvh - max(18px,env(safe-area-inset-top)) - max(10px,env(safe-area-inset-bottom)))!important;
+    border-radius:18px!important;
+  }
+  #mmhVaultDialogV449 .mmh-v449-dialog-actions{gap:8px}
+  #mmhVaultDialogV449 .mmh-v449-dialog-actions button{min-height:44px}
+  #mmhToastHostV760{top:max(68px,calc(env(safe-area-inset-top,0px) + 56px))!important}
+}
+
+/* Very narrow Android/iPhone widths: protect labels and action rows. */
+@media(max-width:380px){
+  html body.mmh-workspace-active main.wrap>.page.active{padding-left:9px!important;padding-right:9px!important}
+  html body.mmh-workspace-active main.wrap .page.active :is(.actions,.toolbar){gap:8px}
+  #mmhVaultDialogV449 .mmh-v449-dialog-actions{flex-direction:column}
+  #mmhVaultDialogV449 .mmh-v449-dialog-actions button{width:100%;flex:none!important}
+}
+
+/* Respect the OS motion preference in the final release candidate. */
+@media(prefers-reduced-motion:reduce){
+  html body.mmh-workspace-active *,html body.mmh-workspace-active *::before,html body.mmh-workspace-active *::after{
+    scroll-behavior:auto!important;animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important;
+  }
+}
+</style>
+
+<script id="mmhvault-v920-build">window.MMHVAULT_BUILD='v920';</script>
+<!-- MMHVAULT v920 · v1.0 visual final pass: unified interaction geometry + desktop/tablet/phone safe-area polish. -->
 
 
