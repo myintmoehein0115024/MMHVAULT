@@ -1854,3 +1854,101 @@ body.light.mmh-workspace-active #transactions .tx-kind-grid-v141>button.active,b
     width:100%!important;min-width:0!important;
   }
 }
+
+
+/* MMHVAULT v1.4.3 · Account daily actions + clickable Dashboard recent flow */
+.mmh-account-actions-v143{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:8px;
+}
+.mmh-account-actions-v143>button{
+  min-width:0;
+  min-height:54px;
+  display:grid;
+  grid-template-columns:30px minmax(0,1fr);
+  align-items:center;
+  gap:9px;
+  padding:9px 10px;
+  border:1px solid rgba(99,163,210,.13);
+  border-radius:13px;
+  background:linear-gradient(145deg,rgba(13,37,57,.55),rgba(6,21,35,.62));
+  color:#bdd2e2;
+  text-align:left;
+  cursor:pointer;
+  font:inherit;
+}
+.mmh-account-actions-v143>button:hover{
+  border-color:rgba(89,188,235,.28);
+  background:linear-gradient(145deg,rgba(17,49,72,.70),rgba(8,28,44,.76));
+}
+.mmh-account-actions-v143 i{
+  width:30px;height:30px;display:grid;place-items:center;
+  border-radius:9px;
+  border:1px solid rgba(89,184,229,.15);
+  background:rgba(65,168,219,.08);
+  color:#8bd2f3;
+  font-style:normal;
+  font-size:14px;
+}
+.mmh-account-actions-v143 b{display:block;color:#e0edf7;font-size:10px}
+.mmh-account-actions-v143 small{display:block;margin-top:2px;color:#7f9ab1;font-size:8px;line-height:1.35}
+.mmh-account-archived-note-v143{
+  padding:10px 12px;
+  border:1px solid rgba(226,181,82,.16);
+  border-radius:12px;
+  background:rgba(226,181,82,.05);
+  color:#bda76f;
+  font-size:10px;
+  line-height:1.45;
+}
+.mmh-account-section-tools-v143{
+  display:flex!important;
+  align-items:center;
+  justify-content:flex-end;
+  gap:8px;
+}
+.mmh-account-section-tools-v143 em{
+  font-style:normal;
+  color:#819bb1;
+}
+.mmh-account-section-tools-v143 button{
+  border:0;
+  padding:0;
+  background:transparent;
+  color:#8ccbed;
+  font:inherit;
+  font-size:10px;
+  font-weight:750;
+  cursor:pointer;
+}
+.mmh-account-section-tools-v143 button:hover{color:#d8eefb}
+#dashboard .pf-tx-row-v500[data-mmh-dashboard-tx-v143]{
+  cursor:pointer;
+  border-radius:9px;
+  outline:none;
+}
+#dashboard .pf-tx-row-v500[data-mmh-dashboard-tx-v143]:hover,
+#dashboard .pf-tx-row-v500[data-mmh-dashboard-tx-v143]:focus-visible{
+  background:rgba(63,158,207,.08)!important;
+}
+#dashboard .pf-tx-row-v500[data-mmh-dashboard-tx-v143]:focus-visible{
+  box-shadow:inset 0 0 0 1px rgba(89,188,235,.34);
+}
+#dashboard .pf-tx-viewport-v620:hover .pf-tx-track-v620,
+#dashboard .pf-tx-viewport-v620:focus-within .pf-tx-track-v620{
+  animation-play-state:paused!important;
+}
+body.light .mmh-account-actions-v143>button{
+  background:#f6fafc;
+  border-color:#d7e4ed;
+  color:#405d73;
+}
+body.light .mmh-account-actions-v143 b{color:#294663}
+body.light .mmh-account-actions-v143 small{color:#607d92}
+@media(max-width:620px){
+  .mmh-account-actions-v143{grid-template-columns:1fr}
+  .mmh-account-actions-v143>button{min-height:50px}
+  .mmh-account-section-head-v830{align-items:flex-start}
+  .mmh-account-section-tools-v143{flex-direction:column;align-items:flex-end;gap:3px}
+}

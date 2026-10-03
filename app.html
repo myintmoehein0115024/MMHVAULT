@@ -800,7 +800,7 @@ html{scrollbar-gutter:stable;}
 <link rel="stylesheet" href="css/mmhvault-v4.css?v=4.3.0">
 
 <link rel="stylesheet" href="css/mmhvault-premium-motion.css?v=20260929-bg1">
-<link rel="stylesheet" href="css/mmhvault-uiux-v130.css?v=1.4.2">
+<link rel="stylesheet" href="css/mmhvault-uiux-v130.css?v=1.4.3">
 
 <style id="mmhvault-v343-expenses-reduction">
 /* V4.3.0 data reduction: budget control now owns category ranking + budget progress;
@@ -24169,7 +24169,7 @@ function recentTransactionRows(limit=24){
 function txRows(limit=24,sourceRows=null){
  const rows=Array.isArray(sourceRows)?sourceRows:recentTransactionRows(limit);
  if(!rows.length)return '<div style="padding:24px 2px;color:#71899d;font-size:10px">No transactions yet.</div>';
- return rows.map(t=>{const type=String(t.type||'Other'),amt=type==='Income'?N(t.to_amount):N(t.from_amount),acct=type==='Income'?(t.to_account||''):(t.from_account||''),usd=typeof window.mmhvaultAmountUSD==='function'?window.mmhvaultAmountUSD(acct,amt):amt;const cls=type==='Income'?'income':type==='Expense'?'expense':'transfer',sign=type==='Income'?'+':type==='Expense'?'-':'';return `<div class="pf-tx-row-v500"><span>${esc(t.tx_date||'—')}</span><div class="pf-tx-name-v500"><i class="pf-tx-icon-v500">${type==='Income'?'↙':type==='Expense'?'↗':'⇄'}</i><div class="pf-tx-copy-v500"><b>${esc(t.category||type)}</b><small>${esc(acct||t.note||type)}</small></div></div><span class="pf-tag-v500 ${cls}">${esc(type)}</span><span class="pf-amount-v500 ${type==='Income'?'pos':type==='Expense'?'neg':''}">${sign}${money(usd)}</span><span class="pf-status-v500">Completed</span></div>`}).join('');
+ return rows.map(t=>{const type=String(t.type||'Other'),amt=type==='Income'?N(t.to_amount):N(t.from_amount),acct=type==='Income'?(t.to_account||''):(t.from_account||''),usd=typeof window.mmhvaultAmountUSD==='function'?window.mmhvaultAmountUSD(acct,amt):amt;const cls=type==='Income'?'income':type==='Expense'?'expense':'transfer',sign=type==='Income'?'+':type==='Expense'?'-':'';return `<div class="pf-tx-row-v500" data-mmh-dashboard-tx-v143="${esc(t.id)}" role="button" tabindex="0" aria-label="Open ${esc(t.category||type)} transaction detail" title="Open transaction detail"><span>${esc(t.tx_date||'—')}</span><div class="pf-tx-name-v500"><i class="pf-tx-icon-v500">${type==='Income'?'↙':type==='Expense'?'↗':'⇄'}</i><div class="pf-tx-copy-v500"><b>${esc(t.category||type)}</b><small>${esc(acct||t.note||type)}</small></div></div><span class="pf-tag-v500 ${cls}">${esc(type)}</span><span class="pf-amount-v500 ${type==='Income'?'pos':type==='Expense'?'neg':''}">${sign}${money(usd)}</span><span class="pf-status-v500">Completed</span></div>`}).join('');
 }
 function marketRows(filter=marketTab){
  const live=(typeof livePrices!=='undefined'?livePrices:(window.livePrices||{}));
@@ -24979,8 +24979,9 @@ body.light .mmh-account-detail-v830 .mmh-account-flow-v830>div,body.light .mmh-a
       '<div class="mmh-tx-detail-hero-v800"><div><div class="mmh-tx-detail-eyebrow-v800">Account detail</div><div class="mmh-tx-detail-title-v800">'+E(a.name)+'</div><span class="mmh-tx-detail-chip-v800">'+E(code(a)+' · '+typeLabel(a)+' · '+status)+'</span></div><div class="mmh-tx-detail-amount-v800">'+E(nativeMoney(bal,a))+'<small class="mmh-account-usd-v830">'+E(f>0?usdMoney(cashUSD)+' converted':'Conversion unavailable')+'</small></div></div>'+
       '<div class="mmh-tx-detail-grid-v800">'+item('Currency',code(a)==='CNY'?'RMB / CNY':code(a))+item('Account type',typeLabel(a))+item('Wealth contribution',share.toFixed(1)+'%')+item('Related records',String(related))+'</div>'+
       '<div class="mmh-account-flow-v830"><div class="in"><small>Total inflow</small><b>'+E(nativeMoney(flows.incoming,a))+'</b></div><div class="out"><small>Total outflow</small><b>'+E(nativeMoney(flows.outgoing,a))+'</b></div><div><small>Linked investment value</small><b>'+E(usdMoney(linkedUSD))+'</b></div></div>'+
+      (a.active===false?'<div class="mmh-account-archived-note-v143">Restore this account before recording new activity.</div>':'<div class="mmh-account-actions-v143" aria-label="Account quick actions"><button type="button" data-account-action-v143="expense" data-account-id-v143="'+E(a.id)+'"><i>↑</i><span><b>Expense</b><small>Pay from this account</small></span></button><button type="button" data-account-action-v143="income" data-account-id-v143="'+E(a.id)+'"><i>↓</i><span><b>Income</b><small>Deposit to this account</small></span></button><button type="button" data-account-action-v143="transfer" data-account-id-v143="'+E(a.id)+'"><i>↔</i><span><b>Transfer</b><small>Move money from here</small></span></button></div>')+
       '<div class="mmh-account-section-v830"><div class="mmh-account-section-head-v830"><strong>Linked investments</strong><span>'+E(String(invRows.length+customRows.length)+' records · '+usdMoney(linkedUSD))+'</span></div>'+(symbols.length?'<div class="mmh-account-invest-tags-v830">'+symbols.map(s=>'<span>'+E(s)+'</span>').join('')+'</div>':'<div class="mmh-account-empty-v830">No linked investment records.</div>')+'</div>'+
-      '<div class="mmh-account-section-v830"><div class="mmh-account-section-head-v830"><strong>Recent transactions</strong><span>'+E(String(rows.length)+' linked records')+'</span></div>'+recentHTML(rows,a)+'</div>'+
+      '<div class="mmh-account-section-v830"><div class="mmh-account-section-head-v830"><strong>Recent transactions</strong><span class="mmh-account-section-tools-v143"><em>'+E(String(rows.length)+' linked records')+'</em>'+(rows.length?'<button type="button" data-account-action-v143="history" data-account-id-v143="'+E(a.id)+'">View all ›</button>':'')+'</span></div>'+recentHTML(rows,a)+'</div>'+
       '<div class="mmh-tx-detail-note-v800"><strong style="color:#d9e8f6">Note</strong><br>'+E(meta.note||'No note')+'</div>'+
     '</div>';
   }
@@ -26012,6 +26013,87 @@ window.MM_HVAULT_STABILITY_V12311={version:'1.2.3.11',storageFailureIsolation:tr
 })();
 </script>
 
-<script id="mmhvault-v142-transaction-history-marker">window.MMHVAULT_TRANSACTION_HISTORY_V142={version:'1.4.2',detailToEdit:true,useAgain:true,receiptNotCopied:true};</script>
+
+<script id="mmhvault-v143-account-dashboard-flow">
+(()=>{'use strict';
+  if(window.__MMHVAULT_ACCOUNT_DASHBOARD_FLOW_V143)return;window.__MMHVAULT_ACCOUNT_DASHBOARD_FLOW_V143=true;
+  const $=id=>document.getElementById(id);
+  const accounts=()=>typeof MMHVAULT_CONFIG!=='undefined'&&Array.isArray(MMHVAULT_CONFIG.accounts)?MMHVAULT_CONFIG.accounts:[];
+  const account=id=>accounts().find(a=>String(a?.id)===String(id));
+  const wait=ms=>new Promise(r=>setTimeout(r,ms));
+  function choose(select,value){
+    if(!select||value==null)return false;
+    const wanted=String(value),ok=[...select.options].some(o=>String(o.value)===wanted);
+    if(!ok)return false;
+    select.value=wanted;
+    select.dispatchEvent(new Event('change',{bubbles:true}));
+    return true;
+  }
+  async function openAccountTransaction(id,kind){
+    const a=account(id);if(!a||a.active===false)return false;
+    try{window.mmhVaultCloseDialogV449?.()}catch(_){}
+    try{window.setPage?.('transactions')}catch(_){}
+    await wait(60);
+    try{window.showTxTab?.('add')}catch(_){try{showTxTab('add')}catch(__){}}
+    await wait(50);
+    try{window.clearTxForm?.()}catch(_){try{clearTxForm()}catch(__){}}
+    await wait(20);
+    const kindName=kind==='income'?'Income':kind==='transfer'?'Transfer':'Expense';
+    const kindBtn=document.querySelector(`#txSmartV141 [data-kind-v141="${kindName}"]`);
+    if(kindBtn)kindBtn.click();
+    else{
+      const type=$('txType');if(type){type.value=kindName==='Transfer'?'Transfer':kindName;type.dispatchEvent(new Event('change',{bubbles:true}));}
+    }
+    await wait(35);
+    if(kind==='income')choose($('toAccount'),a.name);
+    else choose($('fromAccount'),a.name);
+    try{window.updateAccountLocks?.()}catch(_){}
+    try{window.mmhSyncTxAddV141?.()}catch(_){}
+    await wait(20);
+    const focusTarget=kind==='transfer'?$('toAccount'):$('txCategory');
+    try{focusTarget?.focus({preventScroll:true});focusTarget?.scrollIntoView({behavior:'smooth',block:'center'})}catch(_){}
+    try{window.MMHUI?.toast?.(`${a.name} is ready in Add Transaction.`,{title:kindName,type:'success',duration:2600})}catch(_){}
+    return true;
+  }
+  async function openAccountHistory(id){
+    const a=account(id);if(!a)return false;
+    try{window.mmhVaultCloseDialogV449?.()}catch(_){}
+    try{window.setPage?.('transactions')}catch(_){}
+    await wait(60);
+    try{window.showTxTab?.('history')}catch(_){try{showTxTab('history')}catch(__){}}
+    await wait(50);
+    const search=$('txSearch');
+    if(search){search.value=a.name;search.dispatchEvent(new Event('input',{bubbles:true}));search.focus({preventScroll:true});}
+    return true;
+  }
+  function openDashboardTransaction(id){
+    if(id==null||id==='')return false;
+    if(typeof window.openTransactionDetailV800==='function'){window.openTransactionDetailV800(id);return true;}
+    try{window.setPage?.('transactions')}catch(_){}
+    setTimeout(()=>window.openTransactionDetailV800?.(id),100);
+    return true;
+  }
+  window.mmhOpenAccountTransactionV143=openAccountTransaction;
+  window.mmhOpenAccountHistoryV143=openAccountHistory;
+  document.addEventListener('click',e=>{
+    const accountAction=e.target?.closest?.('[data-account-action-v143][data-account-id-v143]');
+    if(accountAction){
+      e.preventDefault();e.stopPropagation();
+      const action=accountAction.dataset.accountActionV143,id=accountAction.dataset.accountIdV143;
+      if(action==='history')openAccountHistory(id);else openAccountTransaction(id,action);
+      return;
+    }
+    const tx=e.target?.closest?.('#dashboard [data-mmh-dashboard-tx-v143]');
+    if(tx){e.preventDefault();e.stopPropagation();openDashboardTransaction(tx.dataset.mmhDashboardTxV143);}
+  });
+  document.addEventListener('keydown',e=>{
+    if(e.key!=='Enter'&&e.key!==' ')return;
+    const tx=e.target?.closest?.('#dashboard [data-mmh-dashboard-tx-v143]');
+    if(!tx)return;e.preventDefault();e.stopPropagation();openDashboardTransaction(tx.dataset.mmhDashboardTxV143);
+  });
+})();
+</script>
+
+<script id="mmhvault-v142-transaction-history-marker">window.MMHVAULT_TRANSACTION_HISTORY_V142={version:'1.4.3',detailToEdit:true,useAgain:true,receiptNotCopied:true,accountQuickActions:true,dashboardRecentDetail:true};</script>
 </body>
 </html>
