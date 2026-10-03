@@ -24615,7 +24615,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 (()=>{'use strict';
   if(window.__mmhResponsiveNavV570)return;window.__mmhResponsiveNavV570=true;
   const $=id=>document.getElementById(id);
-  let menu=null,more=null,adminEpoch=0,view='main',renderEpoch=0;
+  let menu=null,more=null,adminEpoch=0,view='main',renderEpoch=0,switchTimer=0;
   const mainPages=new Set(['exchange','cashflow-analyze','reports','settings']);
   const extraPages=new Set(['budget','goals','recurring']);
   const secondary=new Set([...mainPages,...extraPages]);
@@ -24623,8 +24623,9 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   function currentPage(){return document.querySelector('.page.active')?.id||'';}
   function iconButton(page,icon,label,id=''){
     const b=document.createElement('button');b.type='button';if(id)b.id=id;
+    b.className='mmh-more-item-v153';
     if(page)b.dataset.morePage=page;
-    b.innerHTML='<span class="mmh-more-icon-v570" aria-hidden="true">'+icon+'</span><span>'+label+'</span>';
+    b.innerHTML='<span class="mmh-more-icon-v570" aria-hidden="true">'+icon+'</span><span class="mmh-more-copy-v153"><b>'+label+'</b></span><span class="mmh-more-chevron-v153" aria-hidden="true">›</span>';
     return b;
   }
   function pageButton(page,icon,label){
@@ -24639,6 +24640,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   function adminButton(){
     const b=iconButton('', '♜','Administrator','mmhMoreAdminV570');
     b.hidden=true;
+    b.classList.add('admin-v153');
     b.onclick=async e=>{
       e.preventDefault();e.stopPropagation();
       const token=++adminEpoch;b.disabled=true;
@@ -24654,61 +24656,119 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   }
   function morePageButton(){
     const b=iconButton('', '⋯','More');
-    b.classList.add('mmh-more-page-switch-v152');
-    b.innerHTML='<span class="mmh-more-icon-v570" aria-hidden="true">⋯</span><span><b>More</b><small>Budget, Goals & Recurring</small></span>';
-    b.onclick=e=>{e.preventDefault();e.stopPropagation();switchView('extra')};
+    b.classList.add('mmh-more-page-switch-v153');
+    b.querySelector('.mmh-more-copy-v153').innerHTML='<b>More</b><small>Budget · Goals · Recurring</small>';
+    b.onclick=e=>{e.preventDefault();e.stopPropagation();switchView('extra',1)};
     return b;
   }
   function backButton(){
     const b=document.createElement('button');
-    b.type='button';b.className='mmh-more-back-v152';
-    b.innerHTML='<span class="mmh-more-icon-v570" aria-hidden="true">‹</span><span><b>Back</b><small>Primary tools</small></span>';
-    b.onclick=e=>{e.preventDefault();e.stopPropagation();switchView('main')};
+    b.type='button';b.className='mmh-more-back-v153';
+    b.innerHTML='<span aria-hidden="true">‹</span><b>Back</b><small>Primary tools</small>';
+    b.onclick=e=>{e.preventDefault();e.stopPropagation();switchView('main',-1)};
     return b;
   }
-  function buildView(nextView,{animate=false}={}){
-    if(!menu)return;
-    const token=++renderEpoch;
-    const commit=()=>{
-      if(token!==renderEpoch||!menu)return;
-      view=nextView;
-      menu.dataset.viewV152=view;
-      menu.replaceChildren();
-      if(view==='main'){
-        [
-          ['exchange','⇄','Exchange'],
-          ['cashflow-analyze','◉','Analyze'],
-          ['reports','▤','Reports'],
-          ['settings','⚙','Settings']
-        ].forEach(([p,i,l])=>menu.append(pageButton(p,i,l)));
-        menu.append(adminButton());
-        menu.append(morePageButton());
-        syncAdmin();
-      }else{
-        menu.append(backButton());
-        [
-          ['budget','◒','Budget'],
-          ['goals','◎','Goals'],
-          ['recurring','↻','Recurring']
-        ].forEach(([p,i,l])=>menu.append(pageButton(p,i,l)));
-      }
-      menu.querySelectorAll('[data-more-page]').forEach(b=>b.classList.toggle('active',b.dataset.morePage===currentPage()));
-      if(animate){
-        menu.classList.remove('mmh-more-switching-v152');
-        requestAnimationFrame(()=>menu.classList.add('mmh-more-view-ready-v152'));
-      }
-      if(window.innerWidth>=1100&&menu.classList.contains('open'))requestAnimationFrame(positionDesktop);
-    };
-    if(!animate){commit();return}
-    menu.classList.remove('mmh-more-view-ready-v152');
-    menu.classList.add('mmh-more-switching-v152');
-    setTimeout(commit,90);
+  function headerFor(page){
+    const h=document.createElement('div');h.className='mmh-more-view-head-v153';
+    if(page==='extra')h.append(backButton());
+    const copy=document.createElement('div');copy.className='mmh-more-view-title-v153';
+    copy.innerHTML=page==='extra'
+      ?'<span>MORE TOOLS</span><strong>Planning & automation</strong><small>Budget, goals and recurring activity</small>'
+      :'<span>MORE</span><strong>Workspace tools</strong><small>Analysis, reports and application controls</small>';
+    h.append(copy);
+    return h;
   }
-  function switchView(next){if(next===view)return;buildView(next,{animate:true})}
+  function createPage(page){
+    const wrap=document.createElement('section');
+    wrap.className='mmh-more-view-v153';
+    wrap.dataset.moreView=page;
+    wrap.append(headerFor(page));
+    const list=document.createElement('div');list.className='mmh-more-list-v153';
+    if(page==='main'){
+      [
+        ['exchange','⇄','Exchange'],
+        ['cashflow-analyze','◉','Analyze'],
+        ['reports','▤','Reports'],
+        ['settings','⚙','Settings']
+      ].forEach(([p,i,l])=>list.append(pageButton(p,i,l)));
+      list.append(adminButton());
+      list.append(morePageButton());
+    }else{
+      [
+        ['budget','◒','Budget'],
+        ['goals','◎','Goals'],
+        ['recurring','↻','Recurring']
+      ].forEach(([p,i,l])=>list.append(pageButton(p,i,l)));
+    }
+    wrap.append(list);
+    return wrap;
+  }
+  function ensureStage(){
+    if(!menu)return null;
+    let stage=menu.querySelector('.mmh-more-stage-v153');
+    if(!stage){
+      menu.replaceChildren();
+      stage=document.createElement('div');
+      stage.className='mmh-more-stage-v153';
+      menu.append(stage);
+    }
+    return stage;
+  }
+  function syncPageButtons(scope=menu){
+    scope?.querySelectorAll('[data-more-page]').forEach(b=>b.classList.toggle('active',b.dataset.morePage===currentPage()));
+  }
+  function setViewImmediate(nextView){
+    clearTimeout(switchTimer);
+    const stage=ensureStage();if(!stage)return;
+    view=nextView;menu.dataset.viewV153=view;
+    stage.replaceChildren(createPage(view));
+    stage.style.height='auto';
+    menu.classList.remove('mmh-more-transition-v153','forward-v153','backward-v153');
+    syncPageButtons(stage);
+    if(view==='main')syncAdmin();
+  }
+  function switchView(nextView,direction=1){
+    if(!menu||nextView===view)return;
+    const stage=ensureStage(),oldPage=stage?.querySelector('.mmh-more-view-v153');
+    if(!stage||!oldPage){setViewImmediate(nextView);return}
+    clearTimeout(switchTimer);
+    const token=++renderEpoch;
+    const nextPage=createPage(nextView);
+    nextPage.classList.add(direction>0?'enter-right-v153':'enter-left-v153');
+    nextPage.style.position='absolute';
+    nextPage.style.inset='0';
+    nextPage.style.width='100%';
+    stage.style.height=oldPage.getBoundingClientRect().height+'px';
+    stage.append(nextPage);
+    menu.classList.remove('forward-v153','backward-v153');
+    menu.classList.add('mmh-more-transition-v153',direction>0?'forward-v153':'backward-v153');
+    requestAnimationFrame(()=>{
+      if(token!==renderEpoch)return;
+      const targetH=nextPage.scrollHeight;
+      stage.style.height=targetH+'px';
+      oldPage.classList.add(direction>0?'exit-left-v153':'exit-right-v153');
+      nextPage.classList.remove('enter-right-v153','enter-left-v153');
+      nextPage.classList.add('active-v153');
+    });
+    switchTimer=setTimeout(()=>{
+      if(token!==renderEpoch)return;
+      view=nextView;menu.dataset.viewV153=view;
+      oldPage.remove();
+      nextPage.style.position='';
+      nextPage.style.inset='';
+      nextPage.style.width='';
+      nextPage.className='mmh-more-view-v153';
+      stage.style.height='auto';
+      menu.classList.remove('mmh-more-transition-v153','forward-v153','backward-v153');
+      syncPageButtons(stage);
+      if(view==='main')syncAdmin();
+      if(window.innerWidth>=1100&&menu.classList.contains('open'))requestAnimationFrame(positionDesktop);
+    },270);
+  }
   function rebuildMenu(){
     menu=$('moreNavMenu');if(!menu)return false;
     const page=currentPage();
-    buildView(extraPages.has(page)?'extra':'main');
+    setViewImmediate(extraPages.has(page)?'extra':'main');
     return true;
   }
   async function syncAdmin(){
@@ -24739,8 +24799,8 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   function positionDesktop(){
     if(!menu||!more||window.innerWidth<1100||!menu.classList.contains('open'))return;
     const r=more.getBoundingClientRect(),safe=12,gap=10,railRight=$('bottomNav')?.getBoundingClientRect().right||r.right;
-    const width=Math.min(292,Math.max(232,window.innerWidth*.19));
-    menu.style.width=Math.min(width,Math.max(204,window.innerWidth-railRight-gap-safe))+'px';
+    const width=Math.min(300,Math.max(238,window.innerWidth*.19));
+    menu.style.width=Math.min(width,Math.max(210,window.innerWidth-railRight-gap-safe))+'px';
     menu.style.left=Math.min(railRight+gap,window.innerWidth-menu.offsetWidth-safe)+'px';
     const h=Math.min(menu.scrollHeight,window.innerHeight-safe*2);
     let top=r.top+r.height/2;
@@ -24751,15 +24811,18 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   function open(){
     if(!menu||!more)return;
     const page=currentPage();
-    buildView(extraPages.has(page)?'extra':'main');
-    menu.classList.add('open','mmh-more-view-ready-v152');
+    setViewImmediate(extraPages.has(page)?'extra':'main');
+    menu.classList.add('open');
     menu.setAttribute('aria-hidden','false');
     more.setAttribute('aria-expanded','true');
+    requestAnimationFrame(()=>menu.classList.add('mmh-more-open-v153'));
     if(window.innerWidth>=1100)requestAnimationFrame(positionDesktop);
     syncActive();
   }
   function close(){
-    menu?.classList.remove('open','mmh-more-switching-v152','mmh-more-view-ready-v152');
+    clearTimeout(switchTimer);
+    menu?.classList.remove('mmh-more-open-v153','mmh-more-transition-v153','forward-v153','backward-v153');
+    menu?.classList.remove('open');
     menu?.setAttribute('aria-hidden','true');
     more?.setAttribute('aria-expanded','false');
     syncActive();
@@ -24770,7 +24833,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     const page=currentPage(),active=secondary.has(page)||menu?.classList.contains('open');
     more.classList.toggle('active',active);
     if(secondary.has(page))more.setAttribute('aria-current','page');else more.removeAttribute('aria-current');
-    menu?.querySelectorAll('[data-more-page]').forEach(b=>b.classList.toggle('active',b.dataset.morePage===page));
+    syncPageButtons();
   }
   function cleanupRail(){
     const rail=$('bottomNav');if(!rail)return;
@@ -27186,6 +27249,251 @@ window.MMHVAULT_V151={version:'1.5.1',assetAllocationPolish:true,compactMobileAc
 </style>
 <script id="mmhvault-v152-navigation-marker">
 window.MMHVAULT_NAVIGATION_V152={version:'1.5.2',accountsPrimary:true,morePaged:true,mainMore:['exchange','cashflow-analyze','reports','settings','admin'],extraMore:['budget','goals','recurring']};
+</script>
+
+
+<style id="mmhvault-v153-mobile-actions-more-transition">
+/* MMHVAULT v1.5.3 · mobile action row + full More page transition */
+
+/* Account: Close / Archive / Edit are always one single row on phone. */
+@media(max-width:699px){
+  html body #mmhVaultDialogV449.show #mmhVaultDialogActionsV449.mmh-account-detail-actions-v148{
+    display:grid!important;
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+    grid-auto-flow:column!important;
+    flex-direction:row!important;
+    align-items:stretch!important;
+    gap:6px!important;
+    padding:8px 10px max(8px,env(safe-area-inset-bottom,0px))!important;
+  }
+  html body #mmhVaultDialogV449.show #mmhVaultDialogActionsV449.mmh-account-detail-actions-v148>button{
+    grid-column:auto!important;
+    grid-row:1!important;
+    width:100%!important;
+    max-width:none!important;
+    min-width:0!important;
+    flex:0 1 auto!important;
+    min-height:40px!important;
+    margin:0!important;
+    padding:0 4px!important;
+    border-radius:10px!important;
+    font-size:10px!important;
+    white-space:nowrap!important;
+  }
+  html body #mmhVaultDialogV449.show #mmhVaultDialogActionsV449.mmh-account-detail-actions-v148>button.primary{
+    grid-column:auto!important;
+    grid-row:1!important;
+  }
+}
+
+/* Entire More panel is now a small page viewport. */
+html body #moreNavMenu.more-nav-menu{
+  display:block!important;
+  padding:0!important;
+  overflow:hidden!important;
+  background:
+    radial-gradient(circle at 100% 0,rgba(76,199,255,.10),transparent 34%),
+    linear-gradient(155deg,rgba(8,29,46,.985),rgba(4,18,31,.99))!important;
+  border:1px solid rgba(93,157,203,.22)!important;
+  border-radius:20px!important;
+  box-shadow:0 28px 72px rgba(0,0,0,.44),inset 0 1px rgba(255,255,255,.035)!important;
+  transform-origin:15% 50%!important;
+  transition:opacity .16s ease,transform .2s cubic-bezier(.2,.72,.2,1),box-shadow .2s ease!important;
+}
+html body #moreNavMenu.more-nav-menu::before,
+html body #moreNavMenu.more-nav-menu::after{
+  content:none!important;
+  display:none!important;
+}
+html body #moreNavMenu.more-nav-menu.open{
+  opacity:1!important;
+}
+html body #moreNavMenu.more-nav-menu.mmh-more-open-v153{
+  box-shadow:0 34px 82px rgba(0,0,0,.50),inset 0 1px rgba(255,255,255,.04)!important;
+}
+#moreNavMenu .mmh-more-stage-v153{
+  position:relative!important;
+  width:100%!important;
+  overflow:hidden!important;
+  transition:height .26s cubic-bezier(.2,.72,.2,1)!important;
+}
+#moreNavMenu .mmh-more-view-v153{
+  width:100%!important;
+  box-sizing:border-box!important;
+  padding:13px!important;
+  opacity:1;
+  transform:translateX(0) scale(1);
+  filter:blur(0);
+  transition:
+    transform .26s cubic-bezier(.2,.72,.2,1),
+    opacity .20s ease,
+    filter .20s ease!important;
+}
+#moreNavMenu .mmh-more-view-v153.enter-right-v153{
+  opacity:0;transform:translateX(34px) scale(.985);filter:blur(3px)
+}
+#moreNavMenu .mmh-more-view-v153.enter-left-v153{
+  opacity:0;transform:translateX(-34px) scale(.985);filter:blur(3px)
+}
+#moreNavMenu .mmh-more-view-v153.exit-left-v153{
+  opacity:0;transform:translateX(-34px) scale(.985);filter:blur(3px)
+}
+#moreNavMenu .mmh-more-view-v153.exit-right-v153{
+  opacity:0;transform:translateX(34px) scale(.985);filter:blur(3px)
+}
+#moreNavMenu.mmh-more-transition-v153{
+  background:
+    radial-gradient(circle at 0 50%,rgba(242,196,94,.08),transparent 42%),
+    radial-gradient(circle at 100% 0,rgba(76,199,255,.11),transparent 36%),
+    linear-gradient(155deg,rgba(8,29,46,.99),rgba(4,18,31,.99))!important;
+}
+#moreNavMenu.mmh-more-transition-v153.forward-v153{
+  transform:translateX(3px) scale(.992)!important;
+}
+#moreNavMenu.mmh-more-transition-v153.backward-v153{
+  transform:translateX(-3px) scale(.992)!important;
+}
+#moreNavMenu .mmh-more-view-head-v153{
+  display:flex!important;
+  align-items:flex-start!important;
+  gap:9px!important;
+  min-height:48px!important;
+  margin:0 0 10px!important;
+  padding:4px 4px 9px!important;
+  border-bottom:1px solid rgba(94,151,193,.13)!important;
+}
+#moreNavMenu .mmh-more-view-title-v153{
+  min-width:0!important;
+  display:flex!important;
+  flex:1!important;
+  flex-direction:column!important;
+}
+#moreNavMenu .mmh-more-view-title-v153>span{
+  color:#d8b657!important;
+  font-size:8px!important;
+  font-weight:850!important;
+  letter-spacing:.16em!important;
+}
+#moreNavMenu .mmh-more-view-title-v153>strong{
+  margin-top:3px!important;
+  color:#edf5fa!important;
+  font-size:14px!important;
+  line-height:1.15!important;
+}
+#moreNavMenu .mmh-more-view-title-v153>small{
+  margin-top:4px!important;
+  color:#708ca1!important;
+  font-size:8.5px!important;
+  line-height:1.35!important;
+}
+#moreNavMenu .mmh-more-back-v153{
+  width:39px!important;
+  height:39px!important;
+  flex:0 0 39px!important;
+  display:grid!important;
+  grid-template-columns:1fr!important;
+  place-items:center!important;
+  padding:0!important;
+  border:1px solid rgba(91,151,196,.17)!important;
+  border-radius:12px!important;
+  background:rgba(11,35,52,.74)!important;
+  color:#a9d9ef!important;
+  cursor:pointer!important;
+}
+#moreNavMenu .mmh-more-back-v153>span{font-size:24px!important;line-height:1!important}
+#moreNavMenu .mmh-more-back-v153>b,
+#moreNavMenu .mmh-more-back-v153>small{display:none!important}
+#moreNavMenu .mmh-more-list-v153{
+  display:grid!important;
+  grid-template-columns:1fr!important;
+  gap:7px!important;
+}
+#moreNavMenu .mmh-more-item-v153{
+  width:100%!important;
+  min-width:0!important;
+  min-height:54px!important;
+  display:grid!important;
+  grid-template-columns:38px minmax(0,1fr) 14px!important;
+  align-items:center!important;
+  gap:10px!important;
+  margin:0!important;
+  padding:8px 10px!important;
+  border:1px solid rgba(89,149,193,.13)!important;
+  border-radius:14px!important;
+  background:linear-gradient(145deg,rgba(16,43,64,.67),rgba(7,25,40,.76))!important;
+  color:#c8dbe8!important;
+  font:inherit!important;
+  text-align:left!important;
+  cursor:pointer!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.025)!important;
+  transition:transform .14s ease,border-color .14s ease,background .14s ease!important;
+}
+#moreNavMenu .mmh-more-item-v153:hover,
+#moreNavMenu .mmh-more-item-v153.active{
+  transform:translateY(-1px)!important;
+  border-color:rgba(92,184,234,.27)!important;
+  background:linear-gradient(145deg,rgba(20,54,77,.78),rgba(8,30,47,.84))!important;
+}
+#moreNavMenu .mmh-more-item-v153 .mmh-more-icon-v570{
+  width:36px!important;height:36px!important;
+  display:grid!important;place-items:center!important;
+  border-radius:11px!important;
+  border:1px solid rgba(83,161,210,.16)!important;
+  background:rgba(37,105,144,.12)!important;
+  color:#a8daf2!important;
+}
+#moreNavMenu .mmh-more-copy-v153{
+  min-width:0!important;
+  display:flex!important;
+  flex-direction:column!important;
+}
+#moreNavMenu .mmh-more-copy-v153 b{
+  color:#e3edf4!important;
+  font-size:12px!important;
+  line-height:1.15!important;
+}
+#moreNavMenu .mmh-more-copy-v153 small{
+  margin-top:3px!important;
+  color:#6f8a9f!important;
+  font-size:8px!important;
+  line-height:1.25!important;
+}
+#moreNavMenu .mmh-more-chevron-v153{
+  justify-self:end!important;
+  color:#6e91a8!important;
+  font-size:20px!important;
+}
+#moreNavMenu .mmh-more-page-switch-v153{
+  margin-top:2px!important;
+  border-color:rgba(225,188,91,.22)!important;
+  background:linear-gradient(145deg,rgba(49,40,22,.42),rgba(9,29,44,.80))!important;
+}
+#moreNavMenu .mmh-more-page-switch-v153 .mmh-more-icon-v570{
+  border-color:rgba(225,188,91,.20)!important;
+  background:rgba(225,188,91,.08)!important;
+  color:#e2bd61!important;
+}
+#moreNavMenu .mmh-more-page-switch-v153 .mmh-more-chevron-v153{color:#e0bc60!important}
+#moreNavMenu .mmh-more-item-v153.admin-v153 .mmh-more-icon-v570{
+  border-color:rgba(225,188,91,.19)!important;
+  color:#e2bd61!important;
+}
+
+@media(max-width:520px){
+  html body #moreNavMenu.more-nav-menu{
+    border-radius:18px!important;
+  }
+  #moreNavMenu .mmh-more-view-v153{padding:10px!important}
+  #moreNavMenu .mmh-more-item-v153{min-height:51px!important}
+}
+@media(prefers-reduced-motion:reduce){
+  #moreNavMenu .mmh-more-stage-v153,
+  #moreNavMenu .mmh-more-view-v153,
+  html body #moreNavMenu.more-nav-menu{transition:none!important}
+}
+</style>
+<script id="mmhvault-v153-marker">
+window.MMHVAULT_V153={version:'1.5.3',accountActionsOneRowHardFix:true,moreFullPanelTransition:true};
 </script>
 
 </body>
