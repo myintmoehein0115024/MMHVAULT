@@ -1767,3 +1767,48 @@ body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-quick-actions-
 body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-quick-actions-v140>button small{display:block;margin-top:3px;font-size:8px;color:#738fa4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media(max-width:1040px){body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-quick-actions-v140{grid-template-columns:repeat(2,minmax(0,1fr))!important}body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-quick-label-v140{grid-column:1/-1!important;padding:3px 6px!important}}
 @media(max-width:620px){body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-quick-actions-v140{gap:6px!important;padding:7px!important;margin-top:9px!important}body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-quick-actions-v140>button{min-height:50px!important;padding:7px!important;grid-template-columns:28px minmax(0,1fr)!important}body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-quick-actions-v140>button i{width:28px;height:28px;font-size:12px!important}}
+
+
+/* MMHVAULT v1.4.1 · Transaction Add Experience */
+body.mmh-workspace-active #transactions #txAddPanel>.panel{max-width:1120px!important;margin-left:auto!important;margin-right:auto!important}
+body.mmh-workspace-active #transactions .tx-smart-v141{
+  margin:2px 0 16px!important;padding:13px!important;border:1px solid rgba(91,151,199,.17)!important;border-radius:15px!important;
+  background:linear-gradient(145deg,rgba(7,24,40,.64),rgba(4,17,30,.72))!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.025)!important
+}
+body.mmh-workspace-active #transactions .tx-smart-head-v141{display:flex!important;align-items:center!important;justify-content:space-between!important;margin-bottom:9px!important}
+body.mmh-workspace-active #transactions .tx-smart-head-v141 span{display:block!important;font-size:8px!important;line-height:1.2!important;font-weight:850!important;letter-spacing:.12em!important;color:#d2ad59!important}
+body.mmh-workspace-active #transactions .tx-smart-head-v141 small{display:block!important;margin-top:4px!important;font-size:9px!important;line-height:1.4!important;color:#708da4!important}
+body.mmh-workspace-active #transactions .tx-kind-grid-v141{display:grid!important;grid-template-columns:repeat(6,minmax(0,1fr))!important;gap:6px!important}
+body.mmh-workspace-active #transactions .tx-kind-grid-v141>button{
+  min-width:0!important;min-height:48px!important;display:flex!important;align-items:center!important;justify-content:center!important;gap:7px!important;padding:8px 7px!important;
+  border:1px solid rgba(91,151,198,.13)!important;border-radius:11px!important;background:rgba(13,37,57,.50)!important;color:#9fb6c8!important;font:inherit!important;font-size:10px!important;font-weight:730!important;box-shadow:none!important;cursor:pointer!important
+}
+body.mmh-workspace-active #transactions .tx-kind-grid-v141>button i{width:23px;height:23px;display:grid;place-items:center;border-radius:7px;background:#102f46;color:#9bc8e0;font-style:normal;font-size:12px;flex:0 0 23px}
+body.mmh-workspace-active #transactions .tx-kind-grid-v141>button:hover{border-color:rgba(102,177,224,.26)!important;background:rgba(18,49,73,.67)!important;color:#e2eef6!important}
+body.mmh-workspace-active #transactions .tx-kind-grid-v141>button.active{border-color:rgba(242,196,94,.34)!important;background:linear-gradient(135deg,rgba(242,196,94,.10),rgba(58,132,177,.10))!important;color:#f4f8fb!important;box-shadow:inset 0 -2px 0 rgba(242,196,94,.76)!important}
+body.mmh-workspace-active #transactions .tx-kind-grid-v141>button.active i{background:#3b351f!important;color:#f1c965!important;border:1px solid rgba(242,196,94,.20)!important}
+body.mmh-workspace-active #transactions .tx-direction-wrap-v141{display:grid!important;grid-template-columns:auto minmax(220px,340px)!important;align-items:center!important;gap:12px!important;margin-top:9px!important;padding-top:9px!important;border-top:1px solid rgba(91,151,198,.11)!important}
+body.mmh-workspace-active #transactions .tx-direction-wrap-v141[hidden]{display:none!important}
+body.mmh-workspace-active #transactions .tx-direction-title-v141{font-size:9px!important;font-weight:800!important;letter-spacing:.06em!important;text-transform:uppercase!important;color:#829eb3!important}
+body.mmh-workspace-active #transactions .tx-direction-grid-v141{display:grid!important;grid-template-columns:1fr 1fr!important;gap:5px!important}
+body.mmh-workspace-active #transactions .tx-direction-grid-v141>button{min-height:34px!important;padding:6px 9px!important;border-radius:9px!important;border:1px solid rgba(91,151,198,.13)!important;background:#0d293e!important;color:#8fa9bd!important;font:inherit!important;font-size:9px!important;font-weight:720!important;box-shadow:none!important;cursor:pointer!important}
+body.mmh-workspace-active #transactions .tx-direction-grid-v141>button.active{border-color:rgba(93,181,229,.34)!important;background:#153b55!important;color:#e2f2fb!important}
+body.mmh-workspace-active #transactions .tx-smart-note-v141{margin-top:8px!important;min-height:16px!important;font-size:9px!important;line-height:1.45!important;color:#6f8da3!important}
+body.mmh-workspace-active #transactions #txForm .tx-native-selector-v141{display:none!important}
+body.mmh-workspace-active #transactions #txForm .tx-field-hidden-v141{display:none!important}
+body.mmh-workspace-active #transactions #txForm.tx-single-flow-v141 .formgrid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+body.mmh-workspace-active #transactions #txForm.tx-single-flow-v141 .mmh-form-section-v1{grid-column:1/-1!important}
+body.mmh-workspace-active #transactions #txForm.tx-transfer-flow-v141 .formgrid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+body.mmh-workspace-active #transactions #txForm .actions{margin-top:16px!important;padding-top:14px!important;border-top:1px solid rgba(92,150,196,.10)!important}
+body.light.mmh-workspace-active #transactions .tx-smart-v141{background:#f4f8fb!important;border-color:#ccdce8!important}
+body.light.mmh-workspace-active #transactions .tx-kind-grid-v141>button,body.light.mmh-workspace-active #transactions .tx-direction-grid-v141>button{background:#edf4f9!important;border-color:#ccdce8!important;color:#526d82!important}
+body.light.mmh-workspace-active #transactions .tx-kind-grid-v141>button.active,body.light.mmh-workspace-active #transactions .tx-direction-grid-v141>button.active{background:#dfeef7!important;border-color:#9fc7dd!important;color:#245f83!important}
+@media(max-width:900px){body.mmh-workspace-active #transactions .tx-kind-grid-v141{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
+@media(max-width:620px){
+  body.mmh-workspace-active #transactions .tx-smart-v141{margin-bottom:12px!important;padding:10px!important;border-radius:13px!important}
+  body.mmh-workspace-active #transactions .tx-smart-head-v141 small{font-size:8px!important}
+  body.mmh-workspace-active #transactions .tx-kind-grid-v141{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:5px!important}
+  body.mmh-workspace-active #transactions .tx-kind-grid-v141>button{min-height:44px!important;justify-content:flex-start!important;padding:7px 9px!important;font-size:9px!important}
+  body.mmh-workspace-active #transactions .tx-direction-wrap-v141{grid-template-columns:1fr!important;gap:6px!important}
+  body.mmh-workspace-active #transactions #txForm.tx-single-flow-v141 .formgrid,body.mmh-workspace-active #transactions #txForm.tx-transfer-flow-v141 .formgrid{grid-template-columns:1fr!important}
+}

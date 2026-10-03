@@ -800,7 +800,7 @@ html{scrollbar-gutter:stable;}
 <link rel="stylesheet" href="css/mmhvault-v4.css?v=4.3.0">
 
 <link rel="stylesheet" href="css/mmhvault-premium-motion.css?v=20260929-bg1">
-<link rel="stylesheet" href="css/mmhvault-uiux-v130.css?v=1.4.0">
+<link rel="stylesheet" href="css/mmhvault-uiux-v130.css?v=1.4.1">
 
 <style id="mmhvault-v343-expenses-reduction">
 /* V4.3.0 data reduction: budget control now owns category ranking + budget progress;
@@ -25782,7 +25782,7 @@ window.MM_HVAULT_STABILITY_V12311={version:'1.2.3.11',storageFailureIsolation:tr
   }
 
   function quickAction(action){
-    if(action==='transaction'){openPage('transactions');setTimeout(()=>{try{showTxTab('add')}catch(_){};$('txType')?.focus();},100);return;}
+    if(action==='transaction'){openPage('transactions');setTimeout(()=>{try{showTxTab('add')}catch(_){};if(typeof window.mmhFocusTxAddV141==='function')window.mmhFocusTxAddV141();else $('txType')?.focus();},100);return;}
     if(action==='invest'){openPage('invest');setTimeout(()=>window.setInvestSubtabV371?.('add'),100);return;}
     if(action==='account'){openPage('accounts-page');setTimeout(()=>$('amAdd')?.click(),120);return;}
     if(action==='report'){openPage('reports');return;}
@@ -25801,6 +25801,141 @@ window.MM_HVAULT_STABILITY_V12311={version:'1.2.3.11',storageFailureIsolation:tr
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(init,0),{once:true});else setTimeout(init,0);
   window.addEventListener('mmhvault:page-visible',schedule);
   window.addEventListener('mmhvault:data-loaded',schedule);
+})();
+</script>
+
+<script id="mmhvault-v141-transaction-add-experience">
+(()=>{'use strict';
+  if(window.__mmhTxAddExperienceV141)return;window.__mmhTxAddExperienceV141=true;
+  const $=id=>document.getElementById(id);
+  const KIND_MAP={Income:['Income','Income'],Expense:['Expense','Expense'],Personal:['Expense','Personal'],Transfer:['Transfer','Transfer']};
+  const SPECIAL=new Set(['Loans','Adjustment']);
+  let syncTimer=0,formObserver=null;
+
+  function txForm(){return $('txForm')}
+  function nativeLabel(id){return $(id)?.closest('label')||null}
+  function setLabelText(label,text){
+    if(!label)return;
+    const node=[...label.childNodes].find(n=>n.nodeType===3&&String(n.nodeValue||'').trim());
+    if(node)node.nodeValue=text;
+  }
+  function deriveKind(){
+    const type=$('txType')?.value||'Income',group=$('txGroup')?.value||'';
+    if(type==='Transfer'||group==='Transfer')return'Transfer';
+    if(group==='Personal')return'Personal';
+    if(group==='Loans')return'Loans';
+    if(group==='Data Adjustment')return'Adjustment';
+    return type==='Income'?'Income':'Expense';
+  }
+  function helpText(kind,type){
+    if(kind==='Income')return'Money enters one account. Only the receiving account and amount are needed.';
+    if(kind==='Expense')return'Money leaves one account. This stays in Individual Expense.';
+    if(kind==='Personal')return'Personal and family spending stays separate from Individual Expense.';
+    if(kind==='Transfer')return'Move value between two accounts without changing income or spending.';
+    if(kind==='Loans')return type==='Income'?'Loan cash is coming back into an account.':'Loan cash is leaving an account.';
+    return type==='Income'?'Increase an account balance for correction only.':'Decrease an account balance for correction only.';
+  }
+  function ensurePanel(){
+    const form=txForm();if(!form)return null;
+    let panel=$('txSmartV141');if(panel)return panel;
+    const grid=form.querySelector('.formgrid');if(!grid)return null;
+    panel=document.createElement('div');panel.id='txSmartV141';panel.className='tx-smart-v141';
+    panel.innerHTML=`<div class="tx-smart-head-v141"><div><span>TRANSACTION KIND</span><small>Choose once — MMHVAULT will configure the form for you.</small></div></div>
+      <div class="tx-kind-grid-v141" role="group" aria-label="Transaction kind">
+        <button type="button" data-kind-v141="Income"><i>↓</i><span>Income</span></button>
+        <button type="button" data-kind-v141="Expense"><i>↑</i><span>Expense</span></button>
+        <button type="button" data-kind-v141="Personal"><i>♡</i><span>Personal</span></button>
+        <button type="button" data-kind-v141="Loans"><i>⇄</i><span>Loans</span></button>
+        <button type="button" data-kind-v141="Transfer"><i>↔</i><span>Transfer</span></button>
+        <button type="button" data-kind-v141="Adjustment"><i>±</i><span>Adjustment</span></button>
+      </div>
+      <div class="tx-direction-wrap-v141" id="txDirectionWrapV141" hidden>
+        <div class="tx-direction-title-v141" id="txDirectionTitleV141">Direction</div>
+        <div class="tx-direction-grid-v141" role="group" aria-label="Transaction direction">
+          <button type="button" data-direction-v141="Expense">Money out</button>
+          <button type="button" data-direction-v141="Income">Money in</button>
+        </div>
+      </div>
+      <div class="tx-smart-note-v141" id="txSmartNoteV141"></div>`;
+    grid.before(panel);
+    panel.addEventListener('click',e=>{
+      const kindBtn=e.target.closest('[data-kind-v141]');if(kindBtn){e.preventDefault();setKind(kindBtn.dataset.kindV141,true);return;}
+      const dirBtn=e.target.closest('[data-direction-v141]');if(dirBtn){e.preventDefault();setDirection(dirBtn.dataset.directionV141,true);}
+    });
+    return panel;
+  }
+  function setCascade(typeValue,groupValue){
+    let type=$('txType');if(!type)return;
+    if(type.value!==typeValue){type.value=typeValue;type.dispatchEvent(new Event('change',{bubbles:true}));}
+    const group=$('txGroup');if(group&&[...group.options].some(o=>o.value===groupValue)){
+      if(group.value!==groupValue){group.value=groupValue;group.dispatchEvent(new Event('change',{bubbles:true}));}
+      else try{window.updateCategories?.()}catch(_){}
+    }
+    scheduleSync();
+  }
+  function setKind(kind,focusAmount=false){
+    if(KIND_MAP[kind])setCascade(...KIND_MAP[kind]);
+    else if(kind==='Loans'){
+      const current=$('txType')?.value,dir=(current==='Income'||current==='Expense')?current:'Expense';setCascade(dir,'Loans');
+    }else if(kind==='Adjustment'){
+      const current=$('txType')?.value,dir=(current==='Income'||current==='Expense')?current:'Income';setCascade(dir,'Data Adjustment');
+    }
+    if(focusAmount)setTimeout(focusPrimary,30);
+  }
+  function setDirection(typeValue,focusAmount=false){
+    const kind=deriveKind();
+    if(kind==='Loans')setCascade(typeValue,'Loans');
+    else if(kind==='Adjustment')setCascade(typeValue,'Data Adjustment');
+    if(focusAmount)setTimeout(focusPrimary,30);
+  }
+  function visible(el,v){if(!el)return;el.classList.toggle('tx-field-hidden-v141',!v);el.setAttribute('aria-hidden',v?'false':'true')}
+  function syncFields(){
+    const type=$('txType')?.value||'Income',kind=deriveKind();
+    const fromA=nativeLabel('fromAccount'),fromM=nativeLabel('fromAmount'),toA=nativeLabel('toAccount'),toM=nativeLabel('toAmount');
+    const incoming=type==='Income',outgoing=type==='Expense',transfer=type==='Transfer';
+    visible(fromA,!incoming);visible(fromM,!incoming);visible(toA,!outgoing);visible(toM,!outgoing);
+    if(transfer){setLabelText(fromA,'From Account');setLabelText(fromM,'From Amount');setLabelText(toA,'To Account');setLabelText(toM,'To Amount');}
+    else if(incoming){setLabelText(toA,kind==='Adjustment'?'Adjust account':'Deposit to');setLabelText(toM,'Amount');}
+    else{setLabelText(fromA,kind==='Adjustment'?'Adjust account':'Pay from');setLabelText(fromM,'Amount');}
+    const form=txForm();form?.classList.toggle('tx-single-flow-v141',!transfer);form?.classList.toggle('tx-transfer-flow-v141',transfer);
+  }
+  function sync(){
+    const form=txForm();if(!form)return;
+    const panel=ensurePanel();if(!panel)return;
+    ['txType','txGroup'].forEach(id=>nativeLabel(id)?.classList.add('tx-native-selector-v141'));
+    const kind=deriveKind(),type=$('txType')?.value||'Income';
+    panel.querySelectorAll('[data-kind-v141]').forEach(b=>{const on=b.dataset.kindV141===kind;b.classList.toggle('active',on);b.setAttribute('aria-pressed',on?'true':'false')});
+    const wrap=$('txDirectionWrapV141'),title=$('txDirectionTitleV141');
+    const special=SPECIAL.has(kind);if(wrap)wrap.hidden=!special;
+    if(special&&title)title.textContent=kind==='Loans'?'Loan direction':'Balance direction';
+    const dirButtons=panel.querySelectorAll('[data-direction-v141]');
+    dirButtons.forEach(b=>{const on=b.dataset.directionV141===type;b.classList.toggle('active',on);b.setAttribute('aria-pressed',on?'true':'false');if(kind==='Adjustment')b.textContent=b.dataset.directionV141==='Income'?'Increase balance':'Decrease balance';else b.textContent=b.dataset.directionV141==='Income'?'Money in':'Money out';});
+    const note=$('txSmartNoteV141');if(note)note.textContent=helpText(kind,type);
+    syncFields();
+  }
+  function scheduleSync(){clearTimeout(syncTimer);syncTimer=setTimeout(sync,0)}
+  function focusPrimary(){
+    const type=$('txType')?.value||'Income';
+    const target=type==='Income'?$('toAmount'):$('fromAmount');
+    if(target&&!target.disabled){target.focus({preventScroll:true});return true;}
+    $('txCategory')?.focus({preventScroll:true});return false;
+  }
+  function bind(){
+    const form=txForm();if(!form)return false;
+    ensurePanel();sync();
+    if(form.dataset.txV141Bound!=='1'){
+      form.dataset.txV141Bound='1';
+      form.addEventListener('change',e=>{if(['txType','txGroup','txCategory','fromAccount','toAccount'].includes(e.target.id))scheduleSync()});
+      form.addEventListener('input',e=>{if(['txType','txGroup'].includes(e.target.id))scheduleSync()});
+    }
+    if(!formObserver){formObserver=new MutationObserver(()=>scheduleSync());formObserver.observe(form,{childList:true,subtree:true});}
+    return true;
+  }
+  function init(){bind();}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(init,0),{once:true});else setTimeout(init,0);
+  ['mmhvault:page-visible','mmhvault:data-loaded','mmhvault:cache-restored','mmhvault:category-config-changed','mmhvault-language-change'].forEach(ev=>window.addEventListener(ev,()=>setTimeout(bind,20)));
+  window.mmhFocusTxAddV141=()=>{bind();setTimeout(focusPrimary,30)};
+  window.mmhSyncTxAddV141=sync;
 })();
 </script>
 </body>
