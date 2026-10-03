@@ -7612,8 +7612,7 @@ function setPage(p){
   if(p==="accounts-page")window.mmhAccountsRefreshV1?.();
   if(p==="settings"){const se=$("settingsEmail");if(se&&currentUserEmail)se.textContent=currentUserEmail;setTimeout(()=>mmhVaultRenderManager(),0);}
   if(p==="transactions")setTimeout(()=>{try{mmhVaultSyncTransactionCategoriesV450();}catch(e){console.warn("[MMHVAULT] transaction category refresh failed",e);}},0);
-  if(p==="dashboard")setTimeout(()=>{try{renderDashboard();}catch(e){console.warn("[MMHVAULT] dashboard account overview refresh failed",e);}},0);
-  scheduleRenderV3441();
+  if(["dashboard","transactions","exchange","invest"].includes(p))scheduleRenderV3441();
   return p;
 }
 function applyTheme(theme){document.body.classList.toggle('light',theme==='light');document.querySelectorAll('input[name="theme"]').forEach(r=>r.checked=r.value===theme);try{localStorage.setItem('myfinance_theme',theme)}catch(_e){}}
@@ -7644,7 +7643,7 @@ document.addEventListener('visibilitychange',()=>{
   if(document.visibilityState==='visible'){
     const activeMarketPage=document.getElementById('dashboard')?.classList.contains('active') || document.getElementById('invest')?.classList.contains('active');
     if(activeMarketPage){fetchCryptoPrices();fetchGoldPrice();}
-    render();
+    scheduleRenderV3441();
   }
 });
 mmhVaultRefreshAccountSelectors();
@@ -17556,6 +17555,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     return true;
   }
   const formatDate=v=>{try{return new Date(v).toLocaleString()}catch(_){return String(v||'')}};
+  const isOpen=()=>!!popup?.classList.contains('open');
   function updateBadge(){
     const unread=rows.filter(r=>!r.is_read).length,badge=bell?.querySelector('.mmh-notify-count-v560');
     if(badge){badge.hidden=!unread;badge.textContent=unread>99?'99+':String(unread)}
@@ -17566,12 +17566,12 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   }
   async function markRead(row,force=false){
     if(row.is_read&&!force)return;const targetOwner=currentOwner();if(!targetOwner||targetOwner!==owner)return;
-    try{const {error}=await db.rpc('mmh_feedback_extras',{p_action:'read',p_data:{id:row.id}});if(error)throw error;if(currentOwner()!==targetOwner||owner!==targetOwner)return;row.is_read=true;updateBadge();render()}
+    try{const {error}=await db.rpc('mmh_feedback_extras',{p_action:'read',p_data:{id:row.id}});if(error)throw error;if(currentOwner()!==targetOwner||owner!==targetOwner)return;row.is_read=true;updateBadge();if(isOpen())render()}
     catch(err){if(currentOwner()===targetOwner)console.warn('[MMHVAULT] notification read failed',err)}
   }
   async function openDetail(row){
     close();
-    if(!row.is_read){row.is_read=true;updateBadge();render();markRead(row,true).catch(()=>{});}
+    if(!row.is_read){row.is_read=true;updateBadge();markRead(row,true).catch(()=>{});}
     const kind=row.audience==='all'?tr('Announcement','公告'):tr('Personal notification','个人通知');
     const target=window.mmhNotificationResolveV145?.(row)||null;
     const actionHint=target?'<div class="mmh-notify-action-hint-v145"><span>↗</span><div><strong>'+esc(target.label||tr('Open related page','打开相关页面'))+'</strong><small>'+esc(target.hint||tr('Continue from this notification.','从这条通知继续处理。'))+'</small></div></div>':'';
@@ -17590,18 +17590,18 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   async function load(showLoading=false){
     const targetOwner=currentOwner(),req=++request;
     if(!ensure())return;
-    if(!targetOwner){owner='';rows=[];loading=false;render();return}
-    if(owner!==targetOwner){owner=targetOwner;rows=[];mode='all';render()}
-    loading=true;if(showLoading&&list)list.innerHTML='<div class="np-empty">'+tr('Loading…','加载中…')+'</div>';
-    try{const {data,error}=await db.rpc('mmh_feedback_extras',{p_action:'list',p_data:{offset:0}});if(error)throw error;if(req!==request||currentOwner()!==targetOwner)return;rows=Array.isArray(data)?data:[];lastLoaded=Date.now();render()}
-    catch(err){if(req!==request||currentOwner()!==targetOwner)return;console.warn('[MMHVAULT] notification load failed',err);if(list)list.innerHTML='<div class="np-empty">'+tr('Unable to load notifications.','通知加载失败。')+'</div>'}
+    if(!targetOwner){owner='';rows=[];loading=false;updateBadge();if(isOpen())render();return}
+    if(owner!==targetOwner){owner=targetOwner;rows=[];mode='all';updateBadge();if(isOpen())render()}
+    loading=true;if(showLoading&&list&&isOpen())list.innerHTML='<div class="np-empty">'+tr('Loading…','加载中…')+'</div>';
+    try{const {data,error}=await db.rpc('mmh_feedback_extras',{p_action:'list',p_data:{offset:0}});if(error)throw error;if(req!==request||currentOwner()!==targetOwner)return;rows=Array.isArray(data)?data:[];lastLoaded=Date.now();updateBadge();if(isOpen())render()}
+    catch(err){if(req!==request||currentOwner()!==targetOwner)return;console.warn('[MMHVAULT] notification load failed',err);if(list&&isOpen())list.innerHTML='<div class="np-empty">'+tr('Unable to load notifications.','通知加载失败。')+'</div>'}
     finally{if(req===request&&currentOwner()===targetOwner)loading=false}
   }
   function place(){if(!popup||!bell||!popup.classList.contains('open'))return;const r=bell.getBoundingClientRect(),safe=12,gap=10,width=Math.min(410,window.innerWidth-safe*2);popup.style.width=width+'px';popup.style.left=Math.min(window.innerWidth-width-safe,Math.max(safe,r.right-width))+'px';popup.style.top=(r.bottom+gap)+'px';popup.style.maxHeight=Math.min(560,Math.max(240,window.innerHeight-r.bottom-gap-safe))+'px'}
   function close(){popup?.classList.remove('open');bell?.setAttribute('aria-expanded','false')}
   function toggle(){if(!ensure())return;const open=!popup.classList.contains('open');if(!open){close();return}popup.classList.add('open');bell.setAttribute('aria-expanded','true');place();render();if(!rows.length&&!loading)load(true);else if(Date.now()-lastLoaded>45000&&!loading)setTimeout(()=>load(false),120)}
-  function bind(){if(!ensure())return;if(bell.dataset.mmhNotifyBoundV900==='1'){load(false);return}bell.dataset.mmhNotifyBoundV900='1';bell.setAttribute('aria-haspopup','dialog');bell.setAttribute('aria-expanded','false');bell.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();toggle()},true);window.addEventListener('resize',()=>requestAnimationFrame(place));window.addEventListener('orientationchange',()=>setTimeout(place,80));load(false)}
-  function resetForOwner(){request++;loading=false;owner=currentOwner();rows=[];mode='all';close();if(ensure()){render();if(owner)load(false)}}
+  function bind(){if(!ensure())return;if(bell.dataset.mmhNotifyBoundV900==='1')return;bell.dataset.mmhNotifyBoundV900='1';bell.setAttribute('aria-haspopup','dialog');bell.setAttribute('aria-expanded','false');bell.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();toggle()},true);window.addEventListener('resize',()=>{if(isOpen())requestAnimationFrame(place)});window.addEventListener('orientationchange',()=>{if(isOpen())setTimeout(place,80)});load(false)}
+  function resetForOwner(){request++;loading=false;owner=currentOwner();rows=[];mode='all';close();if(ensure()){updateBadge();if(owner)load(false)}}
   function init(){bind();window.addEventListener('mmhvault:notifications-changed',()=>load(false));window.addEventListener('mmhvault:config-owner-changed',resetForOwner);setTimeout(bind,300);setTimeout(bind,900);setTimeout(bind,1600);setInterval(()=>{if(!document.hidden&&currentOwner())load(false)},120000)}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(init,0),{once:true});else setTimeout(init,0);
 })();
@@ -27950,6 +27950,17 @@ window.MMHVAULT_V159={
   activePageNumberFormatting:true,
   hiddenInvestDecorators:false,
   hiddenInvestReceiptStorageCheck:false
+};
+</script>
+
+
+<script id="mmhvault-v1510-navigation-notification-marker">
+window.MMHVAULT_V1510={
+  version:'1.5.10',
+  pageRenderDedup:true,
+  visibilityRenderScheduled:true,
+  notificationStartupRpcDedup:true,
+  notificationClosedDomIdle:true
 };
 </script>
 
