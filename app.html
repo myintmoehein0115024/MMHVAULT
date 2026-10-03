@@ -6452,9 +6452,9 @@ body.mmh-v436-explorer-open #bottomNav{visibility:hidden!important;pointer-event
   }
   el('mmhUnifiedFiltersV1')?.addEventListener('click',event=>{const b=event.target.closest('button[data-type]');if(b){filter=b.dataset.type;render();}});
   const schedule=()=>{if(el('invest')?.classList.contains('active'))render();};
-  ['mmhvault:data-loaded','mmhvault:cache-restored','mmhvault:sync-complete','mmhvault:market-updated','mmhvault-language-change','languagechange'].forEach(name=>window.addEventListener(name,schedule));
+  ['mmhvault:data-loaded','mmhvault:cache-restored','mmhvault:market-updated','mmhvault-language-change','languagechange'].forEach(name=>window.addEventListener(name,schedule));
   document.addEventListener('click',event=>{if(event.target.closest('.language-choice-v3363'))setTimeout(()=>{render();window.renderInvestNavigationHardFixV371?.();},180);});
-  document.addEventListener('click',()=>setTimeout(schedule,0));
+  window.addEventListener('mmhvault:page-visible',schedule);
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',schedule,{once:true});else schedule();
   window.mmhRenderUnifiedInvestV1=render;
 })();
@@ -8352,14 +8352,14 @@ async function deleteTransactionReceiptV396(userId,id){
   try{await db.storage.from(RECEIPTS_BUCKET_V396).remove([receiptPathV396(userId,id)]);}catch(_e){}
 }
 async function addTransaction(e){
-e.preventDefault();const u=(await db.auth.getUser()).data.user;if(!u)return;
+e.preventDefault();const authResult=await db.auth.getUser();if(authResult?.error)throw authResult.error;const u=authResult?.data?.user;if(!u)throw new Error('Please sign in again.');
 const type=txType.value;
 const selected={type,group:txGroup.value,category:txGroup.value==='Data Adjustment'?'Data Adjustment':txCategory.value,fromAccount:fromAccount.value,toAccount:toAccount.value};
 const receiptFile=$("txReceipt")?.files?.[0]||null;
 const row={user_id:u.id,tx_date:txDate.value,type,category:txGroup.value==='Data Adjustment'?'Data Adjustment':txCategory.value,from_account:type==="Income"?null:fromAccount.value,from_amount:type==="Income"?0:n(fromAmount.value),to_account:type==="Expense"?null:toAccount.value,to_amount:type==="Expense"?0:n(toAmount.value),note:txNote.value||null};
 if(type==="Income"){row.from_account=null;row.from_amount=0}
 if(type==="Expense"){row.to_account=null;row.to_amount=0}
-const r=await db.from("transactions").insert(row).select('id').single();if(r.error){mmhVaultNoticeV930(r.error.message);return}
+const r=await db.from("transactions").insert(row).select('id').single();if(r.error)throw r.error;
 if(receiptFile){
   const hint=$("txReceiptHint"); if(hint)hint.textContent='Uploading receipt…';
   try{await uploadTransactionReceiptV396(u.id,r.data.id,receiptFile);if(hint)hint.textContent='✓ Receipt uploaded successfully';}
@@ -8759,14 +8759,14 @@ function updateInvestCalc(){
 }
 function clearInvestForm(){invForm.reset();invDate.value=today();invAsset.value="Crypto";updateInvestFields();}
 async function addInvestment(e){
-e.preventDefault();const u=(await db.auth.getUser()).data.user;if(!u)return;
+e.preventDefault();const authResult=await db.auth.getUser();if(authResult?.error)throw authResult.error;const u=authResult?.data?.user;if(!u)throw new Error('Please sign in again.');
 const asset=invAsset.value,source=invSource.value,amount=n(invAmount.value),fee=n(invFee.value),other=n(invOther.value),buy=n(invBuy.value),market=asset==="Gold"?(goldMarketState.pricePerKyattha||buy):(n(invMarket.value)||livePrices[invSymbol.value]?.price||buy);
-if(!buy||!amount){mmhVaultNoticeV930("Please enter amount and purchase-day market price.");return}
+if(!buy||!amount)throw new Error("Please enter amount and purchase-day market price.");
 const receiptFile=$("invReceipt")?.files?.[0]||null;
-if(receiptFile&&receiptFile.size>10*1024*1024){mmhVaultNoticeV930("Receipt file is too large. Maximum size is 10 MB.");return}
+if(receiptFile&&receiptFile.size>10*1024*1024)throw new Error("Receipt file is too large. Maximum size is 10 MB.");
 const quantity=amount/buy;
 const row={user_id:u.id,inv_date:invDate.value,asset,symbol:asset==="Crypto"?invSymbol.value:"Gold",source_account:source,amount,fee,other_cost:other,buy_price:buy,market_price:market,quantity,note:invNote.value||null};
-const r=await db.from("investments").insert(row).select('id').single();if(r.error){mmhVaultNoticeV930(r.error.message+"\\n\\nIf this mentions source_account, run migration_v2.7.sql once in Supabase SQL Editor.");return}
+const r=await db.from("investments").insert(row).select('id').single();if(r.error)throw new Error(r.error.message+"\n\nIf this mentions source_account, run migration_v2.7.sql once in Supabase SQL Editor.");
 if(receiptFile){
   const hint=$("invReceiptHint");if(hint){hint.textContent='Uploading receipt…';hint.classList.remove('ready','error')}
   try{
@@ -10702,6 +10702,29 @@ async function signOutAllSessionsV379(){
 }
 
 
+/* MMHVAULT v1.2.3.10 · owner-scoped local preferences + safe storage access. */
+(function(){
+  if(window.__mmhScopedStorageV12310)return;window.__mmhScopedStorageV12310=true;
+  const owner=()=>{try{return currentSessionUser?.id||'guest'}catch(_){return 'guest'}};
+  const rawGet=k=>{try{return localStorage.getItem(k)}catch(_){return null}};
+  const rawSet=(k,v)=>{try{localStorage.setItem(k,String(v));return true}catch(err){console.warn('[MMHVAULT] local preference save skipped',k,err);return false}};
+  const rawRemove=k=>{try{localStorage.removeItem(k);return true}catch(_){return false}};
+  function key(base,id=owner()){return String(base)+'::'+String(id||'guest')}
+  function get(base){
+    const id=owner(), scoped=key(base,id); let value=rawGet(scoped);
+    if(value!==null)return value;
+    if(id==='guest')return null;
+    const legacy=rawGet(base), claimKey=String(base)+'::legacy-owner-v12310', claimed=rawGet(claimKey);
+    if(legacy!==null&&(!claimed||claimed===id)){rawSet(scoped,legacy);if(!claimed)rawSet(claimKey,id);value=legacy;}
+    return value;
+  }
+  function set(base,value){return rawSet(key(base),value)}
+  function remove(base){return rawRemove(key(base))}
+  window.mmhVaultLocalKeyV12310=key;
+  window.mmhVaultLocalGetV12310=get;
+  window.mmhVaultLocalSetV12310=set;
+  window.mmhVaultLocalRemoveV12310=remove;
+})();
 /* ===================== V4.3.0 DATA CENTER ===================== */
 function refreshDataCenterV380(){
   const set=(id,v)=>{const el=$(id);if(el)el.textContent=v;};
@@ -10709,7 +10732,7 @@ function refreshDataCenterV380(){
   set('dataCenterInvCountV380',String(investments.length));
   const rateCount=Object.keys(rates||{}).filter(k=>k.startsWith('usd_')).length;
   set('dataCenterRateCountV380',String(rateCount));
-  const last=localStorage.getItem('myfinance_last_backup_v380');
+  const last=window.mmhVaultLocalGetV12310?.('myfinance_last_backup_v380')??null;
   if(last){
     const d=new Date(last);
     set('dataCenterBackupV380',Number.isNaN(d.getTime())?'Saved':d.toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'}));
@@ -10729,7 +10752,7 @@ async function exportMyFinanceBackupV380(){
     const out={version:'V4.3.0+Config1',exported_at:new Date().toISOString(),customer_id:$('accountUserIdV372')?.textContent||'',user_id:u.id,transactions,investments,rates,configuration};
     const blob=new Blob([JSON.stringify(out,null,2)],{type:'application/json'});
     const url=URL.createObjectURL(blob),a=document.createElement('a');const filename=`MMHVAULT_Backup_${today()}.json`;a.href=url;a.download=filename;a.click();URL.revokeObjectURL(url);
-    localStorage.setItem('myfinance_last_backup_v380',new Date().toISOString());
+    window.mmhVaultLocalSetV12310?.('myfinance_last_backup_v380',new Date().toISOString());
     recordBackupHistoryV381({filename,tx:transactions.length,inv:investments.length,size:blob.size,customer_id:$('accountUserIdV372')?.textContent||''});
     setBackupStatusV380(`Backup exported: ${transactions.length} transactions + ${investments.length} investments.`,'ok');refreshDataCenterV380();
   }catch(e){console.error(e);setBackupStatusV380('Backup export failed: '+(e?.message||e),'err');}
@@ -11014,13 +11037,24 @@ function downloadTransactionsCSVV380(){
   const blob=new Blob([csv],{type:'text/csv;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=`MMHVAULT_Transactions_${today()}.csv`;a.click();URL.revokeObjectURL(url);
 }
 function backupHistoryKeyV381(){
-  const email=(currentUserEmail||'anonymous').trim().toLowerCase();
-  return `myfinance_backup_history_v381:${email}`;
+  const owner=currentSessionUser?.id||'anonymous';
+  const key=`myfinance_backup_history_v381:${owner}`;
+  if(owner!=='anonymous'){
+    try{
+      if(!localStorage.getItem(key)){
+        const email=(currentUserEmail||'').trim().toLowerCase();
+        const legacy=email?`myfinance_backup_history_v381:${email}`:'';
+        const raw=legacy?localStorage.getItem(legacy):null;
+        if(raw)localStorage.setItem(key,raw);
+      }
+    }catch(_e){}
+  }
+  return key;
 }
 function readBackupHistoryV381(){
   try{const raw=localStorage.getItem(backupHistoryKeyV381());const arr=raw?JSON.parse(raw):[];return Array.isArray(arr)?arr:[];}catch(e){return [];}
 }
-function writeBackupHistoryV381(list){localStorage.setItem(backupHistoryKeyV381(),JSON.stringify(list.slice(0,10)));}
+function writeBackupHistoryV381(list){try{localStorage.setItem(backupHistoryKeyV381(),JSON.stringify(list.slice(0,10)));return true;}catch(err){console.warn('[MMHVAULT] backup history save skipped',err);return false;}}
 function renderBackupHistoryV381(){
   const el=$('backupHistoryListV381');if(!el)return;
   const list=readBackupHistoryV381();
@@ -11050,7 +11084,7 @@ async function removeBackupHistoryV381(index){
 async function clearBackupHistoryV381(){
   const list=readBackupHistoryV381();if(!list.length)return;
   if(!await window.mmhEditDeleteUI.confirm('Clear Backup History','All backup history','This removes history entries on this device. Cloud data and backup files remain.'))return;
-  localStorage.removeItem(backupHistoryKeyV381());renderBackupHistoryV381();window.mmhEditDeleteUI.toast('Backup history cleared.');
+  try{localStorage.removeItem(backupHistoryKeyV381());}catch(_e){}renderBackupHistoryV381();window.mmhEditDeleteUI.toast('Backup history cleared.');
 }
 async function resetMyCloudDataV380(){
   if(!await window.mmhEditDeleteUI.requirePhrase('Reset Cloud Data','Permanently delete Transactions, Investments and Exchange Rates?','RESET'))return;
@@ -11161,7 +11195,7 @@ renderDashboard=function(){
     if(cls) el.classList.add(cls);
   }
   function backupInfo(){
-    const raw=localStorage.getItem('myfinance_last_backup_v380');
+    const raw=window.mmhVaultLocalGetV12310?.('myfinance_last_backup_v380')??null;
     if(!raw) return null;
     const d=new Date(raw);
     return Number.isNaN(d.getTime())?null:d;
@@ -11254,8 +11288,8 @@ renderDashboard=function(){
 (function(){
   function wsNum(v){const x=Number(v);return Number.isFinite(x)?x:0;}
   function wsMoney(v){return typeof mmhMoney387==='function'?mmhMoney387(v):('$ '+fmt(v));}
-  function wsMonths(){const saved=localStorage.getItem('myfinance_ws_months_v315');const x=Number(saved);return [12,24,36].includes(x)?x:24;}
-  function wsMode(){return localStorage.getItem('myfinance_ws_mode_v315')||'balanced';}
+  function wsMonths(){const saved=window.mmhVaultLocalGetV12310?.('myfinance_ws_months_v315');const x=Number(saved);return [12,24,36].includes(x)?x:24;}
+  function wsMode(){return window.mmhVaultLocalGetV12310?.('myfinance_ws_mode_v315')||'balanced';}
   function wsBaseRaw(){
     const cash=ACC.reduce((s,a)=>s+balance(a)*toUSD(a),0);
     const invest=investmentValueUSD();
@@ -11301,8 +11335,8 @@ renderDashboard=function(){
       el.className='panel wealth-scenarios-v315';
       el.innerHTML=`<div class="ws-head"><div><div class="ws-kicker">V4.3.0 · Wealth Planning</div><h2>Wealth Forecast &amp; Scenarios</h2><div class="sub">Project future net worth using your recent savings pace. Market returns are intentionally excluded.</div></div><span class="ws-badge">Savings-only model</span></div><div class="ws-body"><div class="ws-summary"><div class="ws-card"><div class="label">Current Net Worth</div><div class="value cyan">${wsMoney(b.net)}</div><div class="meta">Cash + current investment value</div></div><div class="ws-card"><div class="label">Recent Savings Pace</div><div class="value green">${wsMoney(b.avg)} / mo</div><div class="meta">Average of positive savings across the last 6 completed months</div></div><div class="ws-card"><div class="label">${months}-Month Projection</div><div class="value pink">${wsMoney(selectedValue)}</div><div class="meta">${selected.name} scenario · ${wsMoney(monthly)} / mo</div></div><div class="ws-card"><div class="label">Annual Saving Potential</div><div class="value yellow">${wsMoney(annual)}</div><div class="meta">Based on selected scenario</div></div></div><div class="ws-controls"><div class="ws-control"><div class="label">Scenario</div><select id="wsModeV315"><option value="conservative">Conservative · 70%</option><option value="balanced">Current Pace · 100%</option><option value="aggressive">Accelerated · 125%</option></select></div><div class="ws-control"><div class="label">Projection Horizon</div><select id="wsMonthsV315"><option value="12">12 months</option><option value="24">24 months</option><option value="36">36 months</option></select></div><div class="ws-control"><div class="label">Next Review</div><input type="text" value="${wsDate(1)}" readonly aria-label="Next review date"></div></div><div class="ws-scenario-grid">${scenarioCards}</div><div class="ws-note">This planning view is a scenario tool, not a market forecast. It assumes the selected monthly savings pace continues and does not assume BTC, gold, or other investment returns.</div></div>`;
       $('wsModeV315').value=mode;$('wsMonthsV315').value=String(months);
-      $('wsModeV315').onchange=()=>{localStorage.setItem('myfinance_ws_mode_v315',$('wsModeV315').value);renderWealthPlanningV387();};
-      $('wsMonthsV315').onchange=()=>{localStorage.setItem('myfinance_ws_months_v315',$('wsMonthsV315').value);renderWealthPlanningV387();};
+      $('wsModeV315').onchange=()=>{window.mmhVaultLocalSetV12310?.('myfinance_ws_mode_v315',$('wsModeV315').value);renderWealthPlanningV387();};
+      $('wsMonthsV315').onchange=()=>{window.mmhVaultLocalSetV12310?.('myfinance_ws_months_v315',$('wsMonthsV315').value);renderWealthPlanningV387();};
     }catch(err){console.warn('Wealth Scenarios V4.3.0:',err);el.innerHTML='<div class="ws-body"><div class="empty">Wealth planning is temporarily unavailable. Your underlying finance data is unchanged.</div></div>';}
   }
   window.renderWealthPlanningV387=renderWealthPlanningV387;
@@ -11406,8 +11440,9 @@ function loadRateInputs(){
   if(cny)cny.value=Number(rates?.usd_cny||0);
 }
 async function saveRates(){
-  const u=(await db.auth.getUser()).data.user;
-  if(!u) return;
+  const authResult=await db.auth.getUser();if(authResult?.error)throw authResult.error;
+  const u=authResult?.data?.user;
+  if(!u)throw new Error('Please sign in again.');
   const row={
     user_id:u.id,
     usd_mmk:n($('usdMmk')?.value),
@@ -11590,7 +11625,7 @@ function bind(){
 (function(){
   const escD=window.esc||function(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));};
   const numD=v=>typeof n==='function'?n(v):(Number(v)||0);
-  const rulesD=()=>{let r={reserveMin:3,reserveComfort:6,savingsTarget:60,investmentCeiling:30};try{const x=JSON.parse(localStorage.getItem('mmhvault_wealth_rules_v326')||'null');if(x)r={...r,...x};}catch(e){}return r;};
+  const rulesD=()=>{let r={reserveMin:3,reserveComfort:6,savingsTarget:60,investmentCeiling:30};try{const x=JSON.parse(window.mmhVaultLocalGetV12310?.('mmhvault_wealth_rules_v326')||'null');if(x)r={...r,...x};}catch(e){}return r;};
   const usdD=v=>typeof usd==='function'?usd(v):('$'+Math.round(v||0).toLocaleString());
   const monthsD=()=>{const out=[];const d=new Date();d.setDate(1);for(let i=3;i>=1;i--){const x=new Date(d);x.setMonth(d.getMonth()-i);out.push(`${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}`);}return out;};
   function monthDataD(ym){
@@ -11667,7 +11702,7 @@ function bind(){
 (function(){
   const KEY='mmhvault_wealth_rules_v326';
   const defaults={reserveMin:3,reserveComfort:6,savingsTarget:60,investmentCeiling:30};
-  const getRules=()=>{try{const x=JSON.parse(localStorage.getItem(KEY)||'null');return x?{...defaults,...x}:{...defaults};}catch(e){return {...defaults};}};
+  const getRules=()=>{try{const x=JSON.parse((window.mmhVaultLocalGetV12310?.(KEY))||'null');return x?{...defaults,...x}:{...defaults};}catch(e){return {...defaults};}};
   const setVal=(id,val)=>{const e=document.getElementById(id);if(e)e.value=val;};
   function fill(){const r=getRules();setVal('wealthRuleReserveV326',r.reserveMin);setVal('wealthRuleComfortV326',r.reserveComfort);setVal('wealthRuleSavingsV326',r.savingsTarget);setVal('wealthRuleInvestV326',r.investmentCeiling);}
   function status(msg,ok=true){const e=document.getElementById('wealthRulesStatusV326');if(e){e.textContent=msg;e.style.color=ok?'#9be7ff':'#ffb4b4';}}
@@ -11675,17 +11710,17 @@ function bind(){
     const r={reserveMin:Number(document.getElementById('wealthRuleReserveV326')?.value)||defaults.reserveMin,reserveComfort:Number(document.getElementById('wealthRuleComfortV326')?.value)||defaults.reserveComfort,savingsTarget:Number(document.getElementById('wealthRuleSavingsV326')?.value)||defaults.savingsTarget,investmentCeiling:Number(document.getElementById('wealthRuleInvestV326')?.value)||defaults.investmentCeiling};
     if(r.reserveComfort<r.reserveMin){status('Comfortable reserve must be at least the minimum reserve.',false);return;}
     if(r.savingsTarget>100||r.savingsTarget<1||r.investmentCeiling>100||r.investmentCeiling<1){status('Please keep percentage rules between 1% and 100%.',false);return;}
-    localStorage.setItem(KEY,JSON.stringify(r));status('Rules saved. Decision Center will use them immediately.');
+    window.mmhVaultLocalSetV12310?.(KEY,JSON.stringify(r));status('Rules saved. Decision Center will use them immediately.');
     window.renderFinancialDecisionV325?.();
   }
-  function reset(){localStorage.removeItem(KEY);fill();status('Defaults restored locally.');window.renderFinancialDecisionV325?.();}
+  function reset(){window.mmhVaultLocalRemoveV12310?.(KEY);fill();status('Defaults restored locally.');window.renderFinancialDecisionV325?.();}
   function init(){
     fill();
     document.getElementById('saveWealthRulesV326')?.addEventListener('click',save);
     document.getElementById('resetWealthRulesV326')?.addEventListener('click',reset);
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
-  window.getPersonalWealthRulesV326=getRules;
+  window.getPersonalWealthRulesV326=getRules;window.mmhVaultRefreshWealthRulesV12310=fill;window.addEventListener('mmhvault:config-owner-changed',()=>{fill();window.renderFinancialDecisionV325?.();window.renderWealthPlanningV387?.();});
 })();
 </script>
 <script id="mmhvault-v3287-navigation-safety">
@@ -12704,43 +12739,6 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
       try{loadAll=wrapped;}catch(_e){}
     }
   }catch(err){console.warn('MMHVAULT loadAll sync hook skipped:',err);}
-})();
-</script>
-<script id="mmhvault-v333-data-mutation-bridge">
-/* MMHVAULT V4.3.0 · Mutation bridge
-   Routes successful user-data mutations into the unified render kernel. UI/data model unchanged. */
-(function(){
-  const bridge={
-    addTransaction:'transaction-add',
-    deleteTx:'transaction-delete',
-    deleteAllTx:'transaction-clear',
-    editTx:'transaction-edit',
-    addInvestment:'investment-add',
-    deleteInvestment:'investment-delete',
-    saveRates:'exchange-rates-save',
-    saveManualGoldPrice:'gold-price-save',
-  };
-  function notify(reason){
-    try{
-      if(typeof window.mmhvaultNotifyDataChangeV332==='function') window.mmhvaultNotifyDataChangeV332(reason);
-      window.dispatchEvent(new CustomEvent('mmhvault:data-change',{detail:{reason:String(reason||'data')}}));
-    }catch(e){console.warn('MMHVAULT mutation bridge skipped:',e);}
-  }
-  function wrap(name,reason){
-    const fn=window[name];
-    if(typeof fn!=='function'||fn.__mmh333Wrapped)return;
-    const wrapped=async function(){
-      const result=await fn.apply(this,arguments);
-      notify(reason);
-      return result;
-    };
-    wrapped.__mmh333Wrapped=true;
-    wrapped.__mmh333Original=fn;
-    window[name]=wrapped;
-    try{globalThis[name]=wrapped;}catch(_e){}
-  }
-  function bind(){Object.entries(bridge).forEach(([name,reason])=>wrap(name,reason));}
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(bind,0),{once:true});else setTimeout(bind,0);
 })();
 </script>
 <script id="mmhvault-v334-data-lifecycle-kernel">
@@ -13800,7 +13798,7 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
         const v=num(r&&r.savingsTarget);
         if(v>0&&v<=100)return v;
       }
-      const r=JSON.parse(localStorage.getItem(rulesKey)||'{}');
+      const r=JSON.parse((window.mmhVaultLocalGetV12310?.(rulesKey))||'{}');
       const v=num(r.savingsTarget);
       return v>0&&v<=100?v:60;
     }catch(e){return 60;}
@@ -13943,7 +13941,7 @@ document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{child
   const money=v=>typeof usd==='function'?usd(v):('$'+Math.round(v||0).toLocaleString());
   const zh=()=>((localStorage.getItem('mmhvault_language_v3363')||'en')==='zh');
   const T=(en,cn)=>zh()?cn:en;
-  const rules=()=>{let r={reserveMin:3,reserveComfort:6,savingsTarget:60,investmentCeiling:30};try{const x=JSON.parse(localStorage.getItem('mmhvault_wealth_rules_v326')||'null');if(x)r={...r,...x};}catch(e){}return r;};
+  const rules=()=>{let r={reserveMin:3,reserveComfort:6,savingsTarget:60,investmentCeiling:30};try{const x=JSON.parse(window.mmhVaultLocalGetV12310?.('mmhvault_wealth_rules_v326')||'null');if(x)r={...r,...x};}catch(e){}return r;};
   function calc(){
     const rr=rules();
     const source=window.mmhAnalyzeDecisionInputs?.();
@@ -16178,55 +16176,12 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
 
 
 <!-- MMHVAULT V4.3.0 · Transaction Delete Stability Hotfix -->
-<style id="mmhvault-v34433-delete-stability">
-#mmhDeleteConfirmV34433{position:fixed;inset:0;z-index:2147483000;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(2,7,18,.72);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
-#mmhDeleteConfirmV34433.show{display:flex}
-#mmhDeleteConfirmV34433 .mmh-delete-card{width:min(420px,calc(100vw - 32px));background:linear-gradient(145deg,#10213a,#081321);border:1px solid rgba(105,177,255,.28);border-radius:22px;padding:22px;box-shadow:0 28px 90px rgba(0,0,0,.55);color:#eef6ff}
-#mmhDeleteConfirmV34433 .mmh-delete-title{font-size:20px;font-weight:900;margin:0 0 8px}
-#mmhDeleteConfirmV34433 .mmh-delete-copy{color:#9fb0c8;line-height:1.55;margin-bottom:20px}
-#mmhDeleteConfirmV34433 .mmh-delete-actions{display:flex;justify-content:flex-end;gap:10px}
-#mmhDeleteConfirmV34433 button{min-height:42px;border-radius:12px;padding:0 17px;font-weight:800;cursor:pointer}
-#mmhDeleteConfirmV34433 .mmh-cancel{background:#14243b;border:1px solid rgba(120,165,215,.24);color:#e9f3ff}
-#mmhDeleteConfirmV34433 .mmh-confirm{background:linear-gradient(135deg,#d95b6a,#b73d50);border:1px solid rgba(255,160,170,.35);color:white}
-#mmhDeleteConfirmV34433 .mmh-confirm[disabled]{opacity:.55;cursor:wait}
-</style>
 <script id="mmhvault-v34433-delete-stability-script">
 /* V4.3.0 — prevents the History delete flow from blanking the page.
    Delete updates the current list first; cloud refresh and receipt cleanup are background work. */
 (function(){
   let deleting=false;
   const isZh=()=>((localStorage.getItem('mmhvault_language_v3363')||'en')==='zh');
-
-  function ensureConfirm(){
-    let el=document.getElementById('mmhDeleteConfirmV34433');
-    if(el)return el;
-    el=document.createElement('div');
-    el.id='mmhDeleteConfirmV34433';
-    el.setAttribute('aria-hidden','true');
-    el.innerHTML='<div class="mmh-delete-card" role="dialog" aria-modal="true">'+
-      '<div class="mmh-delete-title"></div><div class="mmh-delete-copy"></div>'+ 
-      '<div class="mmh-delete-actions"><button type="button" class="mmh-cancel"></button><button type="button" class="mmh-confirm"></button></div></div>';
-    document.body.appendChild(el);
-    return el;
-  }
-
-  function confirmDelete(){
-    return new Promise(resolve=>{
-      const el=ensureConfirm(), zh=isZh();
-      const title=el.querySelector('.mmh-delete-title'),copy=el.querySelector('.mmh-delete-copy');
-      const cancel=el.querySelector('.mmh-cancel'),ok=el.querySelector('.mmh-confirm');
-      title.textContent=zh?'删除这条交易记录？':'Delete this transaction?';
-      copy.textContent=zh?'此操作无法撤销。':'This action cannot be undone.';
-      cancel.textContent=zh?'取消':'Cancel'; ok.textContent=zh?'删除':'Delete';
-      const finish=(v)=>{el.classList.remove('show');el.setAttribute('aria-hidden','true');cleanup();resolve(v);};
-      const onCancel=()=>finish(false),onOk=()=>finish(true),onBg=(e)=>{if(e.target===el)finish(false);};
-      const onKey=(e)=>{if(e.key==='Escape')finish(false);};
-      const cleanup=()=>{cancel.removeEventListener('click',onCancel);ok.removeEventListener('click',onOk);el.removeEventListener('click',onBg);document.removeEventListener('keydown',onKey);};
-      cancel.addEventListener('click',onCancel,{once:true});ok.addEventListener('click',onOk,{once:true});el.addEventListener('click',onBg);document.addEventListener('keydown',onKey);
-      el.classList.add('show');el.setAttribute('aria-hidden','false');
-      setTimeout(()=>cancel.focus(),0);
-    });
-  }
 
   window.deleteTx=async function(id){
     if(deleting)return;
@@ -16270,50 +16225,11 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
 
 
 <!-- MMHVAULT V4.3.0 · Investment Interaction Stability Hotfix -->
-<style id="mmhvault-v34434-invest-stability">
-#mmhInvestDeleteConfirmV34434{position:fixed;inset:0;z-index:2147483001;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(2,7,18,.72);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
-#mmhInvestDeleteConfirmV34434.show{display:flex}
-#mmhInvestDeleteConfirmV34434 .card{width:min(430px,calc(100vw - 32px));background:linear-gradient(145deg,#10213a,#081321);border:1px solid rgba(105,177,255,.28);border-radius:22px;padding:22px;box-shadow:0 28px 90px rgba(0,0,0,.55);color:#eef6ff}
-#mmhInvestDeleteConfirmV34434 h3{font-size:20px;font-weight:900;margin:0 0 8px}
-#mmhInvestDeleteConfirmV34434 p{color:#9fb0c8;line-height:1.55;margin:0 0 20px}
-#mmhInvestDeleteConfirmV34434 .actions{display:flex;justify-content:flex-end;gap:10px}
-#mmhInvestDeleteConfirmV34434 button{min-height:42px;border-radius:12px;padding:0 17px;font-weight:800;cursor:pointer}
-#mmhInvestDeleteConfirmV34434 .cancel{background:#14243b;border:1px solid rgba(120,165,215,.24);color:#e9f3ff}
-#mmhInvestDeleteConfirmV34434 .confirm{background:linear-gradient(135deg,#d95b6a,#b73d50);border:1px solid rgba(255,160,170,.35);color:#fff}
-#mmhInvestDeleteConfirmV34434 .confirm[disabled]{opacity:.55;cursor:wait}
-#editInvForm button[type="submit"][disabled]{opacity:.62;cursor:wait}
-</style>
 <script id="mmhvault-v34434-invest-stability-script">
 /* V4.3.0 — Investment edit/delete now use immediate local UI updates and safe background cloud sync. */
 (function(){
   let deleting=false, saving=false;
   const isZh=()=>((localStorage.getItem('mmhvault_language_v3363')||'en')==='zh');
-
-  function ensureConfirm(){
-    let el=document.getElementById('mmhInvestDeleteConfirmV34434');
-    if(el)return el;
-    el=document.createElement('div');
-    el.id='mmhInvestDeleteConfirmV34434';
-    el.innerHTML='<div class="card" role="dialog" aria-modal="true"><h3></h3><p></p><div class="actions"><button type="button" class="cancel"></button><button type="button" class="confirm"></button></div></div>';
-    document.body.appendChild(el);
-    return el;
-  }
-
-  function confirmInvestmentDelete(){
-    return new Promise(resolve=>{
-      const el=ensureConfirm(),zh=isZh();
-      const title=el.querySelector('h3'),copy=el.querySelector('p'),cancel=el.querySelector('.cancel'),ok=el.querySelector('.confirm');
-      title.textContent=zh?'删除这条投资记录？':'Delete this investment record?';
-      copy.textContent=zh?'此操作无法撤销。':'This action cannot be undone.';
-      cancel.textContent=zh?'取消':'Cancel';ok.textContent=zh?'删除':'Delete';
-      let done=false;
-      const finish=v=>{if(done)return;done=true;el.classList.remove('show');cleanup();resolve(v);};
-      const onCancel=()=>finish(false),onOk=()=>finish(true),onBg=e=>{if(e.target===el)finish(false)},onKey=e=>{if(e.key==='Escape')finish(false)};
-      const cleanup=()=>{cancel.removeEventListener('click',onCancel);ok.removeEventListener('click',onOk);el.removeEventListener('click',onBg);document.removeEventListener('keydown',onKey)};
-      cancel.addEventListener('click',onCancel,{once:true});ok.addEventListener('click',onOk,{once:true});el.addEventListener('click',onBg);document.addEventListener('keydown',onKey);
-      el.classList.add('show');setTimeout(()=>cancel.focus(),0);
-    });
-  }
 
   window.deleteInvestment=async function(id){
     if(deleting)return;
@@ -16386,6 +16302,7 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
 
 <!-- MMHVAULT edit/delete messages: reuse the existing application dialog. -->
 <style id="mmh-edit-delete-ui-style">
+#editInvForm button[type="submit"][disabled]{opacity:.62;cursor:wait}
 #mmhVaultDialogV449 .mmh-v449-dialog{max-height:calc(100dvh - 24px);overflow-y:auto;overscroll-behavior:contain}
 #mmhEditDeleteToast{position:fixed;z-index:2147483100;bottom:max(18px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);max-width:min(480px,calc(100vw - 24px));padding:12px 18px;border-radius:13px;background:#102a46;border:1px solid rgba(105,177,255,.35);color:#eef6ff;box-shadow:0 12px 40px rgba(0,0,0,.45);text-align:center}
 #mmhEditDeleteToast[hidden]{display:none!important}
@@ -25607,5 +25524,10 @@ window.MMHVAULT_STABILITY_PASS='1.2.3.4';
 <script id="mmhvault-v1235-stability-pass-4-marker">window.MM_HVAULT_STABILITY_V1235={version:'1.2.3.5',backupImportIntegrity:true,realtimeOwnerScope:true,transactionEditRecovery:true,bulkMutationIsolation:true};</script>
 
 <script id="mmhvault-v1238-stability-pass-7-marker">window.MM_HVAULT_STABILITY_V1238={version:'1.2.3.8',singleRenderPath:true,pageLifecycleDestacked:true,dialogPromiseLifecycle:true,reportOwnerSafety:true,narrowObservers:true};</script>
+
+<script id="mmhvault-v12310-stability-pass-9-marker">
+window.MMHVAULT_STABILITY_PASS='1.2.3.10';
+window.MM_HVAULT_STABILITY_V12310={version:'1.2.3.10',scopedLocalFinancePrefs:true,crudFalseSuccessGuard:true,investClickRenderCleanup:true,deadDeleteLayerRemoved:true,obsoleteMutationBridgeRemoved:true,safeBackupHistoryStorage:true};
+</script>
 </body>
 </html>
