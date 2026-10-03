@@ -4997,6 +4997,7 @@ body.mmh-v436-explorer-open #bottomNav{visibility:hidden!important;pointer-event
 <button data-page="dashboard"><i class="mmh-nav-icon" aria-hidden="true">📊</i><span>Dashboard</span></button>
 <button data-page="transactions"><i class="mmh-nav-icon" aria-hidden="true">💳</i><span>Transactions</span></button>
 <button data-page="invest"><i class="mmh-nav-icon" aria-hidden="true">📈</i><span>Invest</span></button>
+<button data-page="accounts-page" id="accountsNavButtonV152"><i class="mmh-nav-icon" aria-hidden="true">▣</i><span>Accounts</span></button>
 <button aria-expanded="false" aria-haspopup="menu" class="more-nav-trigger" id="moreNavButton" type="button"><i class="mmh-nav-icon" aria-hidden="true">☰</i><span>More</span></button>
 </div>
 <div aria-hidden="true" class="more-nav-menu" id="moreNavMenu" role="menu">
@@ -24614,9 +24615,10 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 (()=>{'use strict';
   if(window.__mmhResponsiveNavV570)return;window.__mmhResponsiveNavV570=true;
   const $=id=>document.getElementById(id);
-  let menu=null,more=null,adminEpoch=0,nestedMenu=null,nestedTrigger=null,nestedOpen=false;
-  const secondary=new Set(['accounts-page','exchange','cashflow-analyze','budget','goals','recurring','reports','settings']);
-  const nestedPages=new Set(['recurring','reports','settings']);
+  let menu=null,more=null,adminEpoch=0,view='main',renderEpoch=0;
+  const mainPages=new Set(['exchange','cashflow-analyze','reports','settings']);
+  const extraPages=new Set(['budget','goals','recurring']);
+  const secondary=new Set([...mainPages,...extraPages]);
 
   function currentPage(){return document.querySelector('.page.active')?.id||'';}
   function iconButton(page,icon,label,id=''){
@@ -24625,71 +24627,171 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     b.innerHTML='<span class="mmh-more-icon-v570" aria-hidden="true">'+icon+'</span><span>'+label+'</span>';
     return b;
   }
-  function setNested(open){
-    nestedOpen=!!open;
-    const keepOpen=nestedPages.has(currentPage()) || nestedOpen;
-    if(nestedMenu)nestedMenu.hidden=!keepOpen;
-    if(nestedTrigger){
-      nestedTrigger.classList.toggle('active',keepOpen);
-      nestedTrigger.setAttribute('aria-expanded', keepOpen ? 'true' : 'false');
-    }
-    menu?.classList.toggle('mmh-more-nested-open-v131', keepOpen);
-    if(window.innerWidth>=1100&&menu?.classList.contains('open'))requestAnimationFrame(positionDesktop);
-  }
-  function buildPageButton(page,icon,label,parent){
+  function pageButton(page,icon,label){
     const b=iconButton(page,icon,label);
-    b.onclick=e=>{e.preventDefault();e.stopPropagation();if(typeof window.setPage==='function')window.setPage(page);close();syncActive()};
-    parent.append(b);
+    b.onclick=e=>{
+      e.preventDefault();e.stopPropagation();
+      if(typeof window.setPage==='function')window.setPage(page);
+      close();syncActive();
+    };
     return b;
   }
+  function adminButton(){
+    const b=iconButton('', '♜','Administrator','mmhMoreAdminV570');
+    b.hidden=true;
+    b.onclick=async e=>{
+      e.preventDefault();e.stopPropagation();
+      const token=++adminEpoch;b.disabled=true;
+      try{
+        const {data,error}=await db.rpc('mmh_is_admin');
+        if(token!==adminEpoch)return;
+        if(!error&&data===true)location.assign('admin.html');
+        else b.hidden=true;
+      }catch(_){b.hidden=true}
+      finally{if(document.body.contains(b))b.disabled=false}
+    };
+    return b;
+  }
+  function morePageButton(){
+    const b=iconButton('', '⋯','More');
+    b.classList.add('mmh-more-page-switch-v152');
+    b.innerHTML='<span class="mmh-more-icon-v570" aria-hidden="true">⋯</span><span><b>More</b><small>Budget, Goals & Recurring</small></span>';
+    b.onclick=e=>{e.preventDefault();e.stopPropagation();switchView('extra')};
+    return b;
+  }
+  function backButton(){
+    const b=document.createElement('button');
+    b.type='button';b.className='mmh-more-back-v152';
+    b.innerHTML='<span class="mmh-more-icon-v570" aria-hidden="true">‹</span><span><b>Back</b><small>Primary tools</small></span>';
+    b.onclick=e=>{e.preventDefault();e.stopPropagation();switchView('main')};
+    return b;
+  }
+  function buildView(nextView,{animate=false}={}){
+    if(!menu)return;
+    const token=++renderEpoch;
+    const commit=()=>{
+      if(token!==renderEpoch||!menu)return;
+      view=nextView;
+      menu.dataset.viewV152=view;
+      menu.replaceChildren();
+      if(view==='main'){
+        [
+          ['exchange','⇄','Exchange'],
+          ['cashflow-analyze','◉','Analyze'],
+          ['reports','▤','Reports'],
+          ['settings','⚙','Settings']
+        ].forEach(([p,i,l])=>menu.append(pageButton(p,i,l)));
+        menu.append(adminButton());
+        menu.append(morePageButton());
+        syncAdmin();
+      }else{
+        menu.append(backButton());
+        [
+          ['budget','◒','Budget'],
+          ['goals','◎','Goals'],
+          ['recurring','↻','Recurring']
+        ].forEach(([p,i,l])=>menu.append(pageButton(p,i,l)));
+      }
+      menu.querySelectorAll('[data-more-page]').forEach(b=>b.classList.toggle('active',b.dataset.morePage===currentPage()));
+      if(animate){
+        menu.classList.remove('mmh-more-switching-v152');
+        requestAnimationFrame(()=>menu.classList.add('mmh-more-view-ready-v152'));
+      }
+      if(window.innerWidth>=1100&&menu.classList.contains('open'))requestAnimationFrame(positionDesktop);
+    };
+    if(!animate){commit();return}
+    menu.classList.remove('mmh-more-view-ready-v152');
+    menu.classList.add('mmh-more-switching-v152');
+    setTimeout(commit,90);
+  }
+  function switchView(next){if(next===view)return;buildView(next,{animate:true})}
   function rebuildMenu(){
     menu=$('moreNavMenu');if(!menu)return false;
-    menu.replaceChildren();
-    const primary=[['accounts-page','▣','Accounts'],['exchange','⇄','Exchange'],['cashflow-analyze','◉','Analyze'],['budget','◒','Budget'],['goals','◎','Goals']];
-    primary.forEach(([page,icon,label])=>buildPageButton(page,icon,label,menu));
-
-    nestedTrigger=iconButton('', '⋯','More');
-    nestedTrigger.classList.add('mmh-more-nested-trigger-v131');
-    nestedTrigger.setAttribute('aria-expanded','false');
-    nestedTrigger.onclick=e=>{e.preventDefault();e.stopPropagation();setNested(!(nestedPages.has(currentPage())||nestedOpen));syncActive()};
-    menu.append(nestedTrigger);
-
-    nestedMenu=document.createElement('div');
-    nestedMenu.className='mmh-more-submenu-v131';
-    nestedMenu.hidden=true;
-    buildPageButton('recurring','↻','Recurring',nestedMenu);
-    buildPageButton('reports','▤','Reports',nestedMenu);
-    buildPageButton('settings','⚙','Settings',nestedMenu);
-    const admin=iconButton('', '♜','Administrator dashboard','mmhMoreAdminV570');admin.hidden=true;
-    admin.onclick=async e=>{e.preventDefault();e.stopPropagation();const token=++adminEpoch;admin.disabled=true;try{const {data,error}=await db.rpc('mmh_is_admin');if(token!==adminEpoch)return;if(!error&&data===true)location.assign('admin.html');else admin.hidden=true}catch(_){admin.hidden=true}finally{if(document.body.contains(admin))admin.disabled=false}};
-    nestedMenu.append(admin);
-    menu.append(nestedMenu);
-    syncAdmin();return true;
+    const page=currentPage();
+    buildView(extraPages.has(page)?'extra':'main');
+    return true;
   }
-  async function syncAdmin(){const b=$('mmhMoreAdminV570');if(!b)return;const token=++adminEpoch;try{if(typeof db==='undefined'){b.hidden=true;return}const {data,error}=await db.rpc('mmh_is_admin');if(token!==adminEpoch)return;b.hidden=!!error||data!==true}catch(_){if(token===adminEpoch)b.hidden=true}}
-  function replaceMore(){const old=$('moreNavButton');if(!old)return false;if(old.dataset.v570==='1'){more=old;return true}const clone=old.cloneNode(true);clone.dataset.v570='1';clone.classList.remove('active','mmh-side-active-v500');clone.removeAttribute('aria-current');clone.setAttribute('aria-expanded','false');old.replaceWith(clone);more=clone;clone.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();toggle(!menu?.classList.contains('open'))},true);return true}
-  function positionDesktop(){if(!menu||!more||window.innerWidth<1100||!menu.classList.contains('open'))return;const r=more.getBoundingClientRect(),safe=12,gap=10,railRight=$('bottomNav')?.getBoundingClientRect().right||r.right;const width=Math.min(290,Math.max(226,window.innerWidth*.19));menu.style.width=Math.min(width,Math.max(200,window.innerWidth-railRight-gap-safe))+'px';menu.style.left=Math.min(railRight+gap,window.innerWidth-menu.offsetWidth-safe)+'px';const h=Math.min(menu.scrollHeight,window.innerHeight-safe*2);let top=r.top+r.height/2;top=Math.max(safe+h/2,Math.min(window.innerHeight-safe-h/2,top));menu.style.top=top+'px';menu.style.maxHeight=(window.innerHeight-safe*2)+'px'}
-  function open(){if(!menu||!more)return;menu.classList.add('open');menu.setAttribute('aria-hidden','false');more.setAttribute('aria-expanded','true');if(nestedPages.has(currentPage()))setNested(true);if(window.innerWidth>=1100)requestAnimationFrame(positionDesktop);syncActive()}
-  function close(){menu?.classList.remove('open');menu?.setAttribute('aria-hidden','true');more?.setAttribute('aria-expanded','false');if(!nestedPages.has(currentPage()))setNested(false);syncActive()}
+  async function syncAdmin(){
+    const b=$('mmhMoreAdminV570');if(!b)return;
+    const token=++adminEpoch;
+    try{
+      if(typeof db==='undefined'){b.hidden=true;return}
+      const {data,error}=await db.rpc('mmh_is_admin');
+      if(token!==adminEpoch)return;
+      b.hidden=!!error||data!==true;
+    }catch(_){if(token===adminEpoch)b.hidden=true}
+  }
+  function replaceMore(){
+    const old=$('moreNavButton');if(!old)return false;
+    if(old.dataset.v570==='1'){more=old;return true}
+    const clone=old.cloneNode(true);
+    clone.dataset.v570='1';
+    clone.classList.remove('active','mmh-side-active-v500');
+    clone.removeAttribute('aria-current');
+    clone.setAttribute('aria-expanded','false');
+    old.replaceWith(clone);more=clone;
+    clone.addEventListener('click',e=>{
+      e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();
+      toggle(!menu?.classList.contains('open'));
+    },true);
+    return true;
+  }
+  function positionDesktop(){
+    if(!menu||!more||window.innerWidth<1100||!menu.classList.contains('open'))return;
+    const r=more.getBoundingClientRect(),safe=12,gap=10,railRight=$('bottomNav')?.getBoundingClientRect().right||r.right;
+    const width=Math.min(292,Math.max(232,window.innerWidth*.19));
+    menu.style.width=Math.min(width,Math.max(204,window.innerWidth-railRight-gap-safe))+'px';
+    menu.style.left=Math.min(railRight+gap,window.innerWidth-menu.offsetWidth-safe)+'px';
+    const h=Math.min(menu.scrollHeight,window.innerHeight-safe*2);
+    let top=r.top+r.height/2;
+    top=Math.max(safe+h/2,Math.min(window.innerHeight-safe-h/2,top));
+    menu.style.top=top+'px';
+    menu.style.maxHeight=(window.innerHeight-safe*2)+'px';
+  }
+  function open(){
+    if(!menu||!more)return;
+    const page=currentPage();
+    buildView(extraPages.has(page)?'extra':'main');
+    menu.classList.add('open','mmh-more-view-ready-v152');
+    menu.setAttribute('aria-hidden','false');
+    more.setAttribute('aria-expanded','true');
+    if(window.innerWidth>=1100)requestAnimationFrame(positionDesktop);
+    syncActive();
+  }
+  function close(){
+    menu?.classList.remove('open','mmh-more-switching-v152','mmh-more-view-ready-v152');
+    menu?.setAttribute('aria-hidden','true');
+    more?.setAttribute('aria-expanded','false');
+    syncActive();
+  }
   function toggle(v){v?open():close()}
   function syncActive(){
     if(!more)return;
-    const page=currentPage();
-    const active=secondary.has(page)||menu?.classList.contains('open');
+    const page=currentPage(),active=secondary.has(page)||menu?.classList.contains('open');
     more.classList.toggle('active',active);
     if(secondary.has(page))more.setAttribute('aria-current','page');else more.removeAttribute('aria-current');
     menu?.querySelectorAll('[data-more-page]').forEach(b=>b.classList.toggle('active',b.dataset.morePage===page));
-    if(nestedTrigger){
-      const nestedActive=nestedPages.has(page)||nestedOpen;
-      nestedTrigger.classList.toggle('active',nestedActive);
-      nestedTrigger.setAttribute('aria-expanded', nestedActive ? 'true' : 'false');
-    }
-    if(nestedMenu)nestedMenu.hidden=!(nestedPages.has(page)||nestedOpen);
   }
-  function cleanupRail(){const rail=$('bottomNav');if(!rail)return;rail.querySelectorAll('.mmh-side-extra-v500,.mmh-direct-nav-v530').forEach(el=>el.remove());const brand=rail.querySelector('.mmh-sidebar-brand-v500');if(brand){const img=brand.querySelector('img');if(img)img.src='images/mmhvault-logo-transparent.png';const strong=brand.querySelector('strong');const small=brand.querySelector('small');if(strong)strong.textContent='MMHVAULT';if(small)small.textContent='PERSONAL FINANCE · WEALTH'}}
-  function init(){cleanupRail();rebuildMenu();replaceMore();syncActive();window.addEventListener('resize',()=>{if(window.innerWidth>=1100&&menu?.classList.contains('open'))requestAnimationFrame(positionDesktop)});window.addEventListener('orientationchange',()=>setTimeout(()=>{close();syncActive()},80));try{db.auth?.onAuthStateChange(()=>setTimeout(syncAdmin,50))}catch(_){}}
+  function cleanupRail(){
+    const rail=$('bottomNav');if(!rail)return;
+    rail.querySelectorAll('.mmh-side-extra-v500,.mmh-direct-nav-v530').forEach(el=>el.remove());
+    const brand=rail.querySelector('.mmh-sidebar-brand-v500');
+    if(brand){
+      const img=brand.querySelector('img');if(img)img.src='images/mmhvault-logo-transparent.png';
+      const strong=brand.querySelector('strong'),small=brand.querySelector('small');
+      if(strong)strong.textContent='MMHVAULT';
+      if(small)small.textContent='PERSONAL FINANCE · WEALTH';
+    }
+  }
+  function init(){
+    cleanupRail();rebuildMenu();replaceMore();syncActive();
+    window.addEventListener('resize',()=>{if(window.innerWidth>=1100&&menu?.classList.contains('open'))requestAnimationFrame(positionDesktop)});
+    window.addEventListener('orientationchange',()=>setTimeout(()=>{close();syncActive()},80));
+    try{db.auth?.onAuthStateChange(()=>setTimeout(syncAdmin,50))}catch(_){}
+  }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(init,0),{once:true});else setTimeout(init,0);
-  const navObserver=new MutationObserver(syncActive);document.querySelectorAll('.page').forEach(page=>navObserver.observe(page,{attributes:true,attributeFilter:['class']}));
+  const navObserver=new MutationObserver(syncActive);
+  document.querySelectorAll('.page').forEach(page=>navObserver.observe(page,{attributes:true,attributeFilter:['class']}));
 })();
 </script>
 
@@ -26937,6 +27039,153 @@ window.MM_HVAULT_STABILITY_V12311={version:'1.2.3.11',storageFailureIsolation:tr
 </style>
 <script id="mmhvault-v151-ui-marker">
 window.MMHVAULT_V151={version:'1.5.1',assetAllocationPolish:true,compactMobileAccountDetail:true,accountActionsOneRow:true};
+</script>
+
+
+<style id="mmhvault-v152-navigation-architecture">
+/* MMHVAULT v1.5.2 · Accounts promoted to primary nav + paged More menu */
+@media(max-width:1099px){
+  html body.mmh-workspace-active #bottomNav.bottom-nav{
+    width:min(650px,calc(100vw - 18px))!important;
+    grid-template-columns:repeat(5,minmax(0,1fr))!important;
+    gap:3px!important;
+  }
+}
+@media(max-width:520px){
+  html body.mmh-workspace-active #bottomNav.bottom-nav{
+    width:calc(100vw - 12px)!important;
+    min-height:66px!important;
+    padding:5px 4px!important;
+    gap:2px!important;
+  }
+  html body.mmh-workspace-active #bottomNav>button{
+    min-height:55px!important;
+    padding:4px 1px!important;
+    gap:3px!important;
+    border-radius:14px!important;
+  }
+  html body.mmh-workspace-active #bottomNav>button .mmh-nav-icon{
+    height:19px!important;
+    flex-basis:19px!important;
+    font-size:17px!important;
+  }
+  html body.mmh-workspace-active #bottomNav>button span{
+    font-size:8.5px!important;
+  }
+  html body.mmh-workspace-active #moreNavMenu.more-nav-menu{
+    bottom:calc(78px + env(safe-area-inset-bottom,0px))!important;
+  }
+}
+
+/* Menu is now a viewport: Main tools OR More tools, never a long appended list. */
+#moreNavMenu.more-nav-menu{
+  overflow:hidden!important;
+  align-content:start!important;
+}
+#moreNavMenu.more-nav-menu::before{
+  content:'MORE'!important;
+  display:block!important;
+  grid-column:1/-1!important;
+  padding:5px 6px 1px!important;
+  color:#7791a6!important;
+  font-size:9px!important;
+  font-weight:850!important;
+  letter-spacing:.17em!important;
+  text-transform:uppercase!important;
+}
+#moreNavMenu.more-nav-menu[data-view-v152="extra"]::before{
+  content:'MORE TOOLS'!important;
+  color:#d9b85f!important;
+}
+#moreNavMenu.more-nav-menu::after{
+  content:'Exchange · Analyze · Reports · Settings'!important;
+  display:block!important;
+  grid-column:1/-1!important;
+  margin:0 6px 7px!important;
+  color:#617e94!important;
+  font-size:8.5px!important;
+  line-height:1.35!important;
+}
+#moreNavMenu.more-nav-menu[data-view-v152="extra"]::after{
+  content:'Planning and recurring tools'!important;
+}
+#moreNavMenu.more-nav-menu>button{
+  min-height:52px!important;
+  border-radius:13px!important;
+}
+#moreNavMenu.more-nav-menu>button>span:nth-child(2){
+  min-width:0!important;
+}
+#moreNavMenu .mmh-more-page-switch-v152{
+  margin-top:3px!important;
+  border-color:rgba(242,196,94,.24)!important;
+  background:linear-gradient(145deg,rgba(45,38,23,.46),rgba(10,29,44,.80))!important;
+}
+#moreNavMenu .mmh-more-page-switch-v152>span:last-child,
+#moreNavMenu .mmh-more-back-v152>span:last-child{
+  display:flex!important;
+  min-width:0!important;
+  flex-direction:column!important;
+  align-items:flex-start!important;
+  gap:2px!important;
+}
+#moreNavMenu .mmh-more-page-switch-v152 b,
+#moreNavMenu .mmh-more-back-v152 b{
+  color:#edf5fa!important;
+  font-size:12px!important;
+  line-height:1.15!important;
+}
+#moreNavMenu .mmh-more-page-switch-v152 small,
+#moreNavMenu .mmh-more-back-v152 small{
+  color:#718da2!important;
+  font-size:8px!important;
+  font-weight:600!important;
+  line-height:1.25!important;
+  white-space:nowrap!important;
+}
+#moreNavMenu .mmh-more-page-switch-v152::after{
+  content:'›'!important;
+  margin-left:auto!important;
+  color:#d9b85f!important;
+  font-size:20px!important;
+}
+#moreNavMenu .mmh-more-back-v152{
+  border-color:rgba(91,151,196,.16)!important;
+  background:linear-gradient(145deg,rgba(11,34,52,.76),rgba(5,21,35,.84))!important;
+}
+#moreNavMenu .mmh-more-back-v152::after{
+  content:none!important;
+}
+#moreNavMenu .mmh-more-back-v152 .mmh-more-icon-v570{
+  color:#8fd5f4!important;
+}
+#moreNavMenu.mmh-more-switching-v152>*{
+  opacity:0!important;
+  transform:translateX(8px)!important;
+}
+#moreNavMenu.mmh-more-view-ready-v152>*{
+  animation:mmhMoreViewInV152 .16s cubic-bezier(.2,.72,.2,1) both;
+}
+@keyframes mmhMoreViewInV152{
+  from{opacity:0;transform:translateX(8px)}
+  to{opacity:1;transform:none}
+}
+@media(prefers-reduced-motion:reduce){
+  #moreNavMenu.mmh-more-view-ready-v152>*{animation:none!important}
+}
+
+/* Desktop sidebar: five primary destinations stay visible and balanced. */
+@media(min-width:1100px){
+  html body.mmh-workspace-active #bottomNav>button[data-page="accounts-page"]{
+    display:flex!important;
+  }
+  html body.mmh-workspace-active #moreNavMenu.more-nav-menu{
+    overflow:hidden!important;
+  }
+}
+</style>
+<script id="mmhvault-v152-navigation-marker">
+window.MMHVAULT_NAVIGATION_V152={version:'1.5.2',accountsPrimary:true,morePaged:true,mainMore:['exchange','cashflow-analyze','reports','settings','admin'],extraMore:['budget','goals','recurring']};
 </script>
 
 </body>
