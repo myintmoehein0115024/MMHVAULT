@@ -800,7 +800,7 @@ html{scrollbar-gutter:stable;}
 <link rel="stylesheet" href="css/mmhvault-v4.css?v=4.3.0">
 
 <link rel="stylesheet" href="css/mmhvault-premium-motion.css?v=20260929-bg1">
-<link rel="stylesheet" href="css/mmhvault-uiux-v130.css?v=1.4.5">
+<link rel="stylesheet" href="css/mmhvault-uiux-v130.css?v=1.4.6">
 
 <style id="mmhvault-v343-expenses-reduction">
 /* V4.3.0 data reduction: budget control now owns category ranking + budget progress;
@@ -17334,7 +17334,7 @@ body.light #settings .fb-photo-copy-v15 small,#settings .fb-photo-selected-v15{c
 </style>
 <script id="mmhvault-feedback-notices-v15-script">
 (()=>{'use strict';const tr=(en,zh)=>(localStorage.getItem('mmhvault_language_v3363')||'en')==='zh'?zh:en,$=id=>document.getElementById(id);let rating=0;
-function renderStars(stars,value){[...stars.querySelectorAll('.fb-star-v15')].forEach(btn=>{const on=Number(btn.dataset.value)<=value;btn.classList.toggle('on',on);btn.setAttribute('aria-checked',String(Number(btn.dataset.value)===value));btn.setAttribute('aria-pressed',String(on))});const helper=$('fbRatingHelperV15');if(helper)helper.textContent=value?tr('Selected: ','已选择：')+value+'/5':tr('Tap a star to rate your experience.','点击星星为本次体验评分。')}
+function renderStars(stars,value){[...stars.querySelectorAll('.fb-star-v15')].forEach(btn=>{const on=Number(btn.dataset.value)<=value;btn.classList.toggle('on',on);btn.textContent=on?'★':'☆';btn.setAttribute('aria-checked',String(Number(btn.dataset.value)===value));btn.setAttribute('aria-pressed',String(on))});const helper=$('fbRatingHelperV15');if(helper)helper.textContent=value?tr('Selected: ','已选择：')+value+'/5':tr('Tap a star to rate your experience.','点击星星为本次体验评分。')}
 function renderPhotoSelection(files){const selected=$('fbPhotoSelectedV15'),box=$('fbPhotoPreviewV15');if(!selected||!box)return;selected.textContent=files.length?files.map((f,i)=>`${i+1}. ${f.name}`).join(' · '):tr('No photos selected.','尚未选择照片。');box.replaceChildren();files.forEach((f,i)=>{const wrap=document.createElement('div');wrap.className='fb-photo-thumb-v15';const img=document.createElement('img');img.src=URL.createObjectURL(f);img.onload=()=>URL.revokeObjectURL(img.src);img.alt=f.name;const badge=document.createElement('span');badge.className='fb-photo-index-v15';badge.textContent=String(i+1);wrap.append(img,badge);box.append(wrap)})}
 function addFeedbackExtras(){const form=$('fbFormV14');if(!form||$('fbRatingV15'))return;const body=form.querySelector('.fb-body-label');const note=form.querySelector('.fb-note');const rate=document.createElement('div');rate.className='fb-rating-v15';rate.innerHTML='<label class="fb-rating-label-v15"><span data-en="Review rating" data-zh="评分">Review rating</span></label><div class="fb-stars-v15" id="fbRatingV15" role="radiogroup" aria-label="Review rating"></div><small class="fb-note fb-rating-helper-v15" id="fbRatingHelperV15">'+tr('Tap a star to rate your experience.','点击星星为本次体验评分。')+'</small>';
 body.after(rate);
@@ -17344,7 +17344,7 @@ for(let i=1;i<=5;i++){
   b.type='button';
   b.className='fb-star-v15';
   b.dataset.value=String(i);
-  b.innerHTML='★';
+  b.innerHTML='☆';
   b.setAttribute('aria-label',i+' star');
   b.setAttribute('aria-checked','false');
   b.setAttribute('aria-pressed','false');
@@ -17554,13 +17554,14 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     if($('mmhNotifyUnreadCountV900'))$('mmhNotifyUnreadCountV900').textContent=unread;
     const mark=$('mmhNotifyMarkAllV900');if(mark)mark.disabled=!unread;
   }
-  async function markRead(row){
-    if(row.is_read)return;const targetOwner=currentOwner();if(!targetOwner||targetOwner!==owner)return;
+  async function markRead(row,force=false){
+    if(row.is_read&&!force)return;const targetOwner=currentOwner();if(!targetOwner||targetOwner!==owner)return;
     try{const {error}=await db.rpc('mmh_feedback_extras',{p_action:'read',p_data:{id:row.id}});if(error)throw error;if(currentOwner()!==targetOwner||owner!==targetOwner)return;row.is_read=true;updateBadge();render()}
     catch(err){if(currentOwner()===targetOwner)console.warn('[MMHVAULT] notification read failed',err)}
   }
   async function openDetail(row){
-    await markRead(row);close();
+    close();
+    if(!row.is_read){row.is_read=true;updateBadge();render();markRead(row,true).catch(()=>{});}
     const kind=row.audience==='all'?tr('Announcement','公告'):tr('Personal notification','个人通知');
     const target=window.mmhNotificationResolveV145?.(row)||null;
     const actionHint=target?'<div class="mmh-notify-action-hint-v145"><span>↗</span><div><strong>'+esc(target.label||tr('Open related page','打开相关页面'))+'</strong><small>'+esc(target.hint||tr('Continue from this notification.','从这条通知继续处理。'))+'</small></div></div>':'';
@@ -24189,7 +24190,7 @@ function marketRows(filter=marketTab){
  if(!items.length)return '<div class="pf-market-empty-v630">No live market data yet.</div>';
  return items.map((x,i)=>{const c=x.c||0,neg=c<0;const seed=(i+1)*2;const y=[14,9,12,6,10,4,7,3].map((v,j)=>`${j?'L':'M'}${j*11},${neg?22-v+seed*.15:v+2+seed*.12}`).join(' ');return `<div class="pf-market-row-v500" data-market-kind="${x.kind}"><div class="pf-asset-v500"><i class="pf-coin-v500">${esc(x.sym==='GOLD'?'Au':x.sym[0])}</i><span><b>${esc(x.sym)}</b><small>${esc(label[x.sym]||'')}</small></span></div><span>${x.p?money(x.p):'—'}</span><span class="pf-change-v500 ${neg?'neg':'pos'}">${x.c?pct(x.c):'Live'}</span><span class="pf-spark-v500 ${neg?'neg':''}"><svg viewBox="0 0 78 26" preserveAspectRatio="none"><path d="${y}"/></svg></span></div>`}).join('');
 }
-function name(){const raw=($('headerDisplayName')?.textContent||'').trim();if(!raw||/MMHVAULT User/i.test(raw))return lang()?'用户':'there';return raw.split(/\s+/)[0]}
+function name(){const raw=($('headerDisplayName')?.textContent||'').trim();if(!raw||/MMHVAULT User/i.test(raw))return lang()?'用户':'there';return raw}
 function personalTimeData(){
  const clean=v=>String(v||'').trim()||'—';
  return {
@@ -24256,9 +24257,7 @@ function ensureSeamlessTransactionFlowV710(){
      const sig=track.dataset.flowSignature||'';
      if(sig!==state.signature){state.signature=sig;state.offset=0;}
      const h=first?.getBoundingClientRect().height||0;
-     const hover=!!track.closest('.pf-recent-flow-v620')?.matches(':hover');
-     const focused=!!track.closest('.pf-recent-flow-v620')?.matches(':focus-within');
-     const shouldPause=hover||focused||!!reduced?.matches||document.hidden||!h||!viewport;
+     const shouldPause=!!reduced?.matches||document.hidden||!h||!viewport;
      const dt=Math.min(80,Math.max(0,now-state.last));
      if(!shouldPause){
        state.offset+=speed()*(dt/1000);
@@ -25920,15 +25919,15 @@ window.MM_HVAULT_STABILITY_V12311={version:'1.2.3.11',storageFailureIsolation:tr
   }
 
   function quickAction(action){
-    if(action==='transaction'){openPage('transactions');setTimeout(()=>{try{showTxTab('add')}catch(_){};if(typeof window.mmhFocusTxAddV141==='function')window.mmhFocusTxAddV141();else $('txType')?.focus();},100);return;}
-    if(action==='invest'){openPage('invest');setTimeout(()=>window.setInvestSubtabV371?.('add'),100);return;}
-    if(action==='account'){openPage('accounts-page');setTimeout(()=>$('amAdd')?.click(),120);return;}
+    if(action==='transaction'){openPage('transactions');setTimeout(()=>{try{window.showTxTab?.('history')}catch(_){try{showTxTab('history')}catch(__){}}},90);return;}
+    if(action==='invest'){openPage('invest');setTimeout(()=>window.setInvestSubtabV371?.('overview'),90);return;}
+    if(action==='account'){openPage('accounts-page');return;}
     if(action==='report'){openPage('reports');return;}
   }
   function ensureQuickActions(){
     const host=$('mmhPremiumDashboardV500'),kpis=host?.querySelector('.pf-kpis-v500');if(!host||!kpis||host.querySelector('.pf-quick-actions-v140'))return;
     const row=document.createElement('section');row.className='pf-quick-actions-v140';row.setAttribute('aria-label','Quick actions');
-    row.innerHTML='<div class="pf-quick-label-v140"><span>QUICK ACTIONS</span><small>Common tasks</small></div><button type="button" data-quick-v140="transaction"><i>＋</i><span><b>Add transaction</b><small>Record income or expense</small></span></button><button type="button" data-quick-v140="invest"><i>↗</i><span><b>Add investment</b><small>Record Crypto or Gold</small></span></button><button type="button" data-quick-v140="account"><i>▣</i><span><b>Add account</b><small>Create a cash account</small></span></button><button type="button" data-quick-v140="report"><i>▤</i><span><b>Reports</b><small>Open financial reports</small></span></button>';
+    row.innerHTML='<div class="pf-quick-label-v140"><span>QUICK ACTIONS</span><small>Common pages</small></div><button type="button" data-quick-v140="transaction"><i>≡</i><span><b>Transactions</b><small>Open transaction history</small></span></button><button type="button" data-quick-v140="invest"><i>↗</i><span><b>Invest</b><small>Open portfolio overview</small></span></button><button type="button" data-quick-v140="account"><i>▣</i><span><b>Accounts</b><small>Open account center</small></span></button><button type="button" data-quick-v140="report"><i>▤</i><span><b>Reports</b><small>Open financial reports</small></span></button>';
     row.addEventListener('click',e=>{const b=e.target.closest('[data-quick-v140]');if(b)quickAction(b.dataset.quickV140);});
     kpis.after(row);
   }
@@ -26283,5 +26282,6 @@ window.MM_HVAULT_STABILITY_V12311={version:'1.2.3.11',storageFailureIsolation:tr
 })();
 </script>
 
+<script id="mmhvault-v146-ui-flow-marker">window.MMHVAULT_V146={version:'1.4.6',quickActionsMainPages:true,tickerAlwaysMoves:true,notificationInstant:true,wideResponsive:true,feedbackStarGlow:true,fullDashboardName:true};</script>
 </body>
 </html>

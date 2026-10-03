@@ -1935,10 +1935,6 @@ body.light.mmh-workspace-active #transactions .tx-kind-grid-v141>button.active,b
 #dashboard .pf-tx-row-v500[data-mmh-dashboard-tx-v143]:focus-visible{
   box-shadow:inset 0 0 0 1px rgba(89,188,235,.34);
 }
-#dashboard .pf-tx-viewport-v620:hover .pf-tx-track-v620,
-#dashboard .pf-tx-viewport-v620:focus-within .pf-tx-track-v620{
-  animation-play-state:paused!important;
-}
 body.light .mmh-account-actions-v143>button{
   background:#f6fafc;
   border-color:#d7e4ed;
@@ -2041,4 +2037,145 @@ body.light .mmh-notify-action-hint-v145 small{color:#688196}
 @media(max-width:620px){
   .mmh-notify-action-hint-v145{grid-template-columns:28px minmax(0,1fr);gap:8px;padding:9px}
   .mmh-notify-action-hint-v145>span{width:27px;height:27px}
+}
+
+
+/* MMHVAULT v1.4.6 · Navigation defaults, continuous ticker, wide responsive,
+   instant notifications, rating polish and full dashboard name. */
+
+/* Dashboard full display name */
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-hero-copy-v500{
+  min-width:0!important;
+  max-width:min(860px,68vw)!important;
+}
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-hero-copy-v500 h1{
+  max-width:100%!important;
+  overflow:visible!important;
+  white-space:normal!important;
+  overflow-wrap:anywhere!important;
+}
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-name-v500{
+  display:inline!important;
+  max-width:none!important;
+  white-space:normal!important;
+  overflow:visible!important;
+  text-overflow:clip!important;
+}
+
+/* Recent Transactions never pauses just because the pointer/focus is on it. */
+body.mmh-workspace-active #dashboard .pf-tx-track-v620,
+body.mmh-workspace-active #dashboard .pf-tx-viewport-v620:hover .pf-tx-track-v620,
+body.mmh-workspace-active #dashboard .pf-tx-viewport-v620:focus-within .pf-tx-track-v620{
+  animation-play-state:running!important;
+}
+
+/* Feedback rating: compact stars that visibly light up after click. */
+body.mmh-workspace-active #settings .fb-rating-v15{
+  margin:14px 0 12px!important;
+  padding:13px 14px!important;
+  border:1px solid rgba(91,151,199,.14)!important;
+  border-radius:14px!important;
+  background:linear-gradient(145deg,rgba(7,24,40,.50),rgba(4,17,30,.58))!important;
+}
+body.mmh-workspace-active #settings .fb-rating-label-v15{
+  margin-bottom:7px!important;
+}
+body.mmh-workspace-active #settings .fb-stars-v15{
+  display:flex!important;
+  flex-wrap:nowrap!important;
+  align-items:center!important;
+  gap:4px!important;
+}
+body.mmh-workspace-active #settings .fb-star-v15{
+  width:39px!important;
+  height:39px!important;
+  min-width:39px!important;
+  padding:0!important;
+  border:0!important;
+  border-radius:10px!important;
+  background:transparent!important;
+  color:#527087!important;
+  font-size:31px!important;
+  line-height:1!important;
+  box-shadow:none!important;
+  text-shadow:none!important;
+  transform:none!important;
+}
+body.mmh-workspace-active #settings .fb-star-v15:hover{
+  color:#e7bd59!important;
+  background:rgba(242,196,94,.055)!important;
+  transform:translateY(-1px)!important;
+}
+body.mmh-workspace-active #settings .fb-star-v15.on{
+  color:#ffd260!important;
+  background:rgba(242,196,94,.075)!important;
+  box-shadow:none!important;
+  text-shadow:0 0 8px rgba(255,207,91,.38),0 0 18px rgba(242,196,94,.22)!important;
+}
+body.mmh-workspace-active #settings .fb-rating-helper-v15{
+  margin-top:5px!important;
+  font-size:9px!important;
+}
+body.light.mmh-workspace-active #settings .fb-rating-v15{
+  background:#f6fafc!important;
+  border-color:#d3e1ea!important;
+}
+body.light.mmh-workspace-active #settings .fb-star-v15{
+  color:#9eb0bd!important;
+  background:transparent!important;
+  border:0!important;
+}
+body.light.mmh-workspace-active #settings .fb-star-v15.on{
+  color:#d79b16!important;
+  background:#fff7de!important;
+  text-shadow:0 0 8px rgba(215,155,22,.18)!important;
+}
+
+/* Wide desktop responsiveness: use more of the available workspace instead of
+   holding Add Transaction and Cash Flow Analyze at the old narrow caps. */
+@media(min-width:1500px){
+  body.mmh-workspace-active #transactions #txAddPanel>.panel{
+    width:100%!important;
+    max-width:1380px!important;
+  }
+  body.mmh-workspace-active #transactions #txForm .formgrid{
+    column-gap:18px!important;
+  }
+  body.mmh-workspace-active #cashflow-analyze .cfa-shell{
+    width:100%!important;
+    max-width:1480px!important;
+  }
+  body.mmh-workspace-active #cashflow-analyze .cfa-head{
+    padding-left:20px!important;
+    padding-right:20px!important;
+  }
+  body.mmh-workspace-active #cashflow-analyze .cfa-detail-grid{
+    grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr)!important;
+    gap:12px!important;
+  }
+}
+@media(min-width:1850px){
+  body.mmh-workspace-active #transactions #txAddPanel>.panel{
+    max-width:1500px!important;
+  }
+  body.mmh-workspace-active #cashflow-analyze .cfa-shell{
+    max-width:1580px!important;
+  }
+}
+@media(max-width:760px){
+  body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-hero-copy-v500{
+    max-width:100%!important;
+  }
+  body.mmh-workspace-active #settings .fb-rating-v15{
+    padding:11px 12px!important;
+  }
+  body.mmh-workspace-active #settings .fb-stars-v15{
+    gap:2px!important;
+  }
+  body.mmh-workspace-active #settings .fb-star-v15{
+    width:36px!important;
+    height:36px!important;
+    min-width:36px!important;
+    font-size:28px!important;
+  }
 }
