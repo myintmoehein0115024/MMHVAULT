@@ -800,7 +800,7 @@ html{scrollbar-gutter:stable;}
 <link rel="stylesheet" href="css/mmhvault-v4.css?v=4.3.0">
 
 <link rel="stylesheet" href="css/mmhvault-premium-motion.css?v=20260929-bg1">
-<link rel="stylesheet" href="css/mmhvault-uiux-v130.css?v=1.3.6">
+<link rel="stylesheet" href="css/mmhvault-uiux-v130.css?v=1.4.0">
 
 <style id="mmhvault-v343-expenses-reduction">
 /* V4.3.0 data reduction: budget control now owns category ranking + budget progress;
@@ -25683,6 +25683,125 @@ html body.mmh-workspace-active main.wrap .page.active :is(.empty,.mmh-ui-empty,.
 <script id="mmhvault-v12311-stability-pass-10-marker">
 window.MMHVAULT_STABILITY_PASS='1.2.3.11';
 window.MM_HVAULT_STABILITY_V12311={version:'1.2.3.11',storageFailureIsolation:true,scopedPwaRetirement:true,canonicalInvestViewKey:true,redundantSyncConsumersRemoved:true,finalHygiene:true};
+</script>
+
+<script id="mmhvault-v140-command-search-actions">
+(()=>{'use strict';
+  if(window.__mmhCommandSearchV140)return;window.__mmhCommandSearchV140=true;
+  const $=id=>document.getElementById(id);
+  const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  const norm=s=>String(s??'').trim().toLocaleLowerCase();
+  let selected=-1,results=[];
+
+  function openPage(page,extra=''){
+    try{window.setPage?.(page);}catch(_){}
+    if(extra==='feedback')setTimeout(()=>window.mmhOpenFeedbackV136?.(),100);
+  }
+  function actionFor(item,q){
+    if(!item)return;
+    if(item.kind==='page'){openPage(item.page,item.extra);return;}
+    if(item.kind==='notification'){$('mmhTopBellV500')?.click();return;}
+    if(item.kind==='account'){
+      openPage('accounts-page');
+      setTimeout(()=>{if(typeof window.mmhOpenAccountDetailV830==='function')window.mmhOpenAccountDetailV830(item.id);},130);
+      return;
+    }
+    if(item.kind==='transaction'){
+      openPage('transactions');
+      try{window.showTxTab?.('history');}catch(_){try{showTxTab('history')}catch(__){}}
+      setTimeout(()=>{
+        if(typeof window.openTransactionDetailV800==='function'&&item.id!=null){window.openTransactionDetailV800(item.id);return;}
+        const tx=$('txSearch');if(tx){tx.value=q||item.label||'';tx.dispatchEvent(new Event('input',{bubbles:true}));tx.focus();}
+      },130);
+    }
+  }
+  function pageCatalog(){return [
+    {label:'Dashboard',page:'dashboard',meta:'Financial overview',keys:'dashboard home overview'},
+    {label:'Transactions',page:'transactions',meta:'Add, history and calendar',keys:'transactions transaction history records calendar'},
+    {label:'Invest',page:'invest',meta:'Portfolio and markets',keys:'invest investment portfolio crypto gold'},
+    {label:'Accounts',page:'accounts-page',meta:'Cash accounts and portfolios',keys:'account accounts wallet bank cash'},
+    {label:'Exchange',page:'exchange',meta:'Converter and saved rates',keys:'exchange currency rate rates converter'},
+    {label:'Cash Flow Analyze',page:'cashflow-analyze',meta:'Income and spending analysis',keys:'analyze analysis cash flow spending expense'},
+    {label:'Budget',page:'budget',meta:'Monthly spending plan',keys:'budget spending plan'},
+    {label:'Goals',page:'goals',meta:'Financial goals',keys:'goal goals target'},
+    {label:'Recurring',page:'recurring',meta:'Recurring transactions',keys:'recurring repeat subscription schedule'},
+    {label:'Reports',page:'reports',meta:'Monthly financial reports',keys:'report reports monthly export pdf'},
+    {label:'Settings',page:'settings',meta:'Preferences and data tools',keys:'settings setting preference backup'},
+    {label:'Feedback center',page:'settings',extra:'feedback',meta:'Feedback and replies',keys:'feedback issue suggestion reply'}
+  ];}
+  function collect(q){
+    const key=norm(q);if(!key)return [];
+    const out=[];
+    for(const p of pageCatalog()){const hay=norm(p.label+' '+p.keys+' '+p.meta);if(hay.includes(key))out.push({...p,kind:'page'});}
+    if('notification notifications notice notices 通知'.includes(key)||norm('notification notifications notices').includes(key))out.push({kind:'notification',label:'Notifications',meta:'Open notification center'});
+    try{
+      const accts=(typeof MMHVAULT_CONFIG!=='undefined'&&Array.isArray(MMHVAULT_CONFIG.accounts))?MMHVAULT_CONFIG.accounts:[];
+      for(const a of accts){if(a?.active===false)continue;const hay=norm([a?.name,a?.currency,a?.type,a?.note].join(' '));if(hay.includes(key))out.push({kind:'account',id:a.id,label:a.name||'Account',meta:[a.currency,window.mmhVaultAccountTypeLabel?.(a.type)||a.type].filter(Boolean).join(' · ')});}
+    }catch(_){}
+    try{
+      const txs=Array.isArray(window.transactions)?window.transactions:[];
+      const matched=txs.filter(t=>norm([t?.tx_date,t?.type,t?.category,t?.from_account,t?.to_account,t?.note].join(' ')).includes(key)).slice().sort((a,b)=>String(b?.tx_date||'').localeCompare(String(a?.tx_date||''))).slice(0,6);
+      for(const t of matched){const acct=t?.type==='Income'?(t?.to_account||''):(t?.from_account||'');out.push({kind:'transaction',id:t?.id,label:t?.category||t?.type||'Transaction',meta:[t?.tx_date,t?.type,acct].filter(Boolean).join(' · ')});}
+    }catch(_){}
+    const priority={page:0,notification:1,account:2,transaction:3};
+    return out.sort((a,b)=>(priority[a.kind]??9)-(priority[b.kind]??9)).slice(0,10);
+  }
+  function icon(kind){return ({page:'↗',notification:'♢',account:'▣',transaction:'≡'}[kind]||'•');}
+  function ensureSearch(){
+    const input=$('mmhGlobalSearchV500');if(!input||input.dataset.commandV140==='1')return !!input;
+    input.dataset.commandV140='1';
+    const host=input.closest('.mmh-global-search-v500');if(!host)return false;
+    host.classList.add('mmh-command-search-v140');
+    const box=document.createElement('div');box.id='mmhGlobalSearchResultsV140';box.className='mmh-search-results-v140';box.hidden=true;box.setAttribute('role','listbox');host.append(box);
+    function close(){box.hidden=true;box.innerHTML='';results=[];selected=-1;input.removeAttribute('aria-activedescendant');}
+    function paint(){
+      const q=input.value.trim();results=collect(q);selected=-1;
+      if(!q){close();return;}
+      box.hidden=false;
+      if(!results.length){box.innerHTML='<div class="mmh-search-empty-v140">No matching pages, accounts or transactions.</div>';return;}
+      box.innerHTML=results.map((r,i)=>`<button type="button" class="mmh-search-result-v140" id="mmhSearchResultV140_${i}" data-index="${i}" role="option" aria-selected="false"><span class="mmh-search-result-icon-v140" aria-hidden="true">${icon(r.kind)}</span><span class="mmh-search-result-copy-v140"><b>${esc(r.label)}</b><small>${esc(r.meta||r.kind)}</small></span><span class="mmh-search-result-kind-v140">${esc(r.kind==='page'?'Page':r.kind==='account'?'Account':r.kind==='transaction'?'Transaction':'Notice')}</span></button>`).join('');
+    }
+    function choose(i){
+      if(!results.length)return;selected=Math.max(0,Math.min(results.length-1,i));
+      box.querySelectorAll('.mmh-search-result-v140').forEach((b,j)=>{const on=j===selected;b.classList.toggle('active',on);b.setAttribute('aria-selected',on?'true':'false');});
+      const active=box.querySelector(`[data-index="${selected}"]`);if(active){input.setAttribute('aria-activedescendant',active.id);active.scrollIntoView({block:'nearest'});}
+    }
+    input.setAttribute('aria-controls',box.id);input.setAttribute('aria-autocomplete','list');
+    input.addEventListener('input',paint);
+    input.addEventListener('focus',()=>{if(input.value.trim())paint()});
+    input.addEventListener('keydown',e=>{
+      if(e.key==='ArrowDown'&&!box.hidden&&results.length){e.preventDefault();e.stopImmediatePropagation();choose(selected<0?0:selected+1);}
+      else if(e.key==='ArrowUp'&&!box.hidden&&results.length){e.preventDefault();e.stopImmediatePropagation();choose(selected<0?results.length-1:selected-1);}
+      else if(e.key==='Enter'&&!box.hidden&&selected>=0&&results[selected]){e.preventDefault();e.stopImmediatePropagation();const q=input.value.trim(),item=results[selected];close();input.blur();actionFor(item,q);}
+      else if(e.key==='Escape'&&!box.hidden){e.preventDefault();e.stopImmediatePropagation();close();}
+    },true);
+    box.addEventListener('pointerdown',e=>{const b=e.target.closest('.mmh-search-result-v140');if(!b)return;e.preventDefault();const i=Number(b.dataset.index);const q=input.value.trim(),item=results[i];close();input.blur();actionFor(item,q);});
+    document.addEventListener('pointerdown',e=>{if(!host.contains(e.target))close();});
+    window.addEventListener('mmhvault:data-loaded',()=>{if(document.activeElement===input&&input.value.trim())paint()});
+    return true;
+  }
+
+  function quickAction(action){
+    if(action==='transaction'){openPage('transactions');setTimeout(()=>{try{showTxTab('add')}catch(_){};$('txType')?.focus();},100);return;}
+    if(action==='invest'){openPage('invest');setTimeout(()=>window.setInvestSubtabV371?.('add'),100);return;}
+    if(action==='account'){openPage('accounts-page');setTimeout(()=>$('amAdd')?.click(),120);return;}
+    if(action==='report'){openPage('reports');return;}
+  }
+  function ensureQuickActions(){
+    const host=$('mmhPremiumDashboardV500'),kpis=host?.querySelector('.pf-kpis-v500');if(!host||!kpis||host.querySelector('.pf-quick-actions-v140'))return;
+    const row=document.createElement('section');row.className='pf-quick-actions-v140';row.setAttribute('aria-label','Quick actions');
+    row.innerHTML='<div class="pf-quick-label-v140"><span>QUICK ACTIONS</span><small>Common tasks</small></div><button type="button" data-quick-v140="transaction"><i>＋</i><span><b>Add transaction</b><small>Record income or expense</small></span></button><button type="button" data-quick-v140="invest"><i>↗</i><span><b>Add investment</b><small>Record Crypto or Gold</small></span></button><button type="button" data-quick-v140="account"><i>▣</i><span><b>Add account</b><small>Create a cash account</small></span></button><button type="button" data-quick-v140="report"><i>▤</i><span><b>Reports</b><small>Open financial reports</small></span></button>';
+    row.addEventListener('click',e=>{const b=e.target.closest('[data-quick-v140]');if(b)quickAction(b.dataset.quickV140);});
+    kpis.after(row);
+  }
+  let scheduled=0;
+  function schedule(){clearTimeout(scheduled);scheduled=setTimeout(()=>{ensureSearch();ensureQuickActions();},20);}
+  const observer=new MutationObserver(schedule);
+  function init(){ensureSearch();ensureQuickActions();const dash=$('mmhPremiumDashboardV500');if(dash)observer.observe(dash,{childList:true});}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(init,0),{once:true});else setTimeout(init,0);
+  window.addEventListener('mmhvault:page-visible',schedule);
+  window.addEventListener('mmhvault:data-loaded',schedule);
+})();
 </script>
 </body>
 </html>

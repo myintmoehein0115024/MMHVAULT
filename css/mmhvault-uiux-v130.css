@@ -1727,3 +1727,43 @@ body.mmh-workspace-active #settings .fb-my-body-v136 .fb-record{margin-top:6px!i
   body.mmh-workspace-active #settings #stPage_feedback>.fb-compose-v136{padding:14px!important}
   body.mmh-workspace-active #settings .fb-my-toggle-v136{min-height:64px!important;padding:10px 12px!important}
 }
+
+
+/* MMHVAULT v1.4.0 · Command Search + Dashboard Quick Actions */
+body.mmh-workspace-active #header .mmh-command-search-v140{overflow:visible!important;z-index:24500!important}
+body.mmh-workspace-active #header .mmh-search-results-v140{
+  position:absolute!important;left:0!important;right:0!important;top:calc(100% + 8px)!important;max-height:min(440px,64vh)!important;overflow:auto!important;padding:7px!important;
+  border:1px solid rgba(100,164,211,.30)!important;border-radius:15px!important;background:linear-gradient(160deg,rgba(8,27,44,.995),rgba(3,14,26,.995))!important;
+  box-shadow:0 24px 62px rgba(0,0,0,.48),inset 0 1px 0 rgba(255,255,255,.04)!important;backdrop-filter:blur(22px) saturate(120%)!important;
+}
+body.mmh-workspace-active #header .mmh-search-results-v140[hidden]{display:none!important}
+body.mmh-workspace-active #header .mmh-search-result-v140{
+  width:100%!important;min-height:54px!important;display:grid!important;grid-template-columns:34px minmax(0,1fr) auto!important;align-items:center!important;gap:10px!important;
+  padding:8px 9px!important;border:1px solid transparent!important;border-radius:11px!important;background:transparent!important;color:#dbe9f3!important;text-align:left!important;font:inherit!important;cursor:pointer!important;box-shadow:none!important
+}
+body.mmh-workspace-active #header .mmh-search-result-v140:hover,body.mmh-workspace-active #header .mmh-search-result-v140.active{background:rgba(55,126,173,.13)!important;border-color:rgba(100,171,216,.20)!important}
+body.mmh-workspace-active #header .mmh-search-result-icon-v140{width:34px;height:34px;display:grid;place-items:center;border-radius:10px;background:#102d43;border:1px solid rgba(94,155,199,.18);color:#b7d6e8;font-size:14px}
+body.mmh-workspace-active #header .mmh-search-result-copy-v140{min-width:0;display:block}
+body.mmh-workspace-active #header .mmh-search-result-copy-v140 b{display:block;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#eef6fb}
+body.mmh-workspace-active #header .mmh-search-result-copy-v140 small{display:block;margin-top:3px;font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#7895aa}
+body.mmh-workspace-active #header .mmh-search-result-kind-v140{padding:4px 6px;border-radius:7px;background:rgba(81,140,180,.11);color:#7895aa;font-size:8px;font-weight:750;text-transform:uppercase;letter-spacing:.05em}
+body.mmh-workspace-active #header .mmh-search-empty-v140{padding:20px 12px;color:#8099ad;font-size:10px;text-align:center}
+
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-quick-actions-v140{
+  display:grid!important;grid-template-columns:minmax(150px,.9fr) repeat(4,minmax(0,1fr))!important;gap:8px!important;margin-top:12px!important;padding:8px!important;
+  border:1px solid rgba(88,146,190,.17)!important;border-radius:15px!important;background:linear-gradient(145deg,rgba(8,26,43,.72),rgba(4,17,29,.78))!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.025)!important
+}
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-quick-label-v140{display:flex!important;flex-direction:column!important;justify-content:center!important;padding:5px 10px!important;min-width:0!important}
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-quick-label-v140 span{font-size:8px!important;letter-spacing:.13em!important;font-weight:850!important;color:#d3af58!important}
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-quick-label-v140 small{margin-top:4px!important;font-size:9px!important;color:#6f899d!important}
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-quick-actions-v140>button{
+  min-width:0!important;min-height:54px!important;display:grid!important;grid-template-columns:31px minmax(0,1fr)!important;align-items:center!important;gap:9px!important;padding:8px 9px!important;
+  border:1px solid rgba(87,145,190,.12)!important;border-radius:11px!important;background:rgba(13,37,57,.52)!important;color:#dbe9f3!important;text-align:left!important;font:inherit!important;cursor:pointer!important;box-shadow:none!important;transition:border-color .15s ease,background-color .15s ease!important
+}
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-quick-actions-v140>button:hover{border-color:rgba(103,181,228,.28)!important;background:rgba(19,50,74,.70)!important}
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-quick-actions-v140>button i{width:31px;height:31px;display:grid;place-items:center;border-radius:9px;background:#12324a;border:1px solid rgba(94,157,201,.16);font-style:normal;color:#a8d1e9;font-size:14px}
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-quick-actions-v140>button span{min-width:0}
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-quick-actions-v140>button b{display:block;font-size:10px;color:#e9f3f9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-quick-actions-v140>button small{display:block;margin-top:3px;font-size:8px;color:#738fa4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media(max-width:1040px){body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-quick-actions-v140{grid-template-columns:repeat(2,minmax(0,1fr))!important}body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-quick-label-v140{grid-column:1/-1!important;padding:3px 6px!important}}
+@media(max-width:620px){body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-quick-actions-v140{gap:6px!important;padding:7px!important;margin-top:9px!important}body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-quick-actions-v140>button{min-height:50px!important;padding:7px!important;grid-template-columns:28px minmax(0,1fr)!important}body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-quick-actions-v140>button i{width:28px;height:28px;font-size:12px!important}}
