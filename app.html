@@ -21896,8 +21896,12 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
     get('invAsset')?.addEventListener('change',()=>queueMicrotask(refresh));
     refresh();
   }
-  window.addEventListener('mmhvault:data-loaded',refresh);
-  window.addEventListener('mmhvault:data-change',refresh);
+  let sourceDirtyV159=true;
+  const investVisibleV159=()=>!!document.getElementById('invest')?.classList.contains('active');
+  const refreshVisibleV159=()=>{if(!investVisibleV159()){sourceDirtyV159=true;return}sourceDirtyV159=false;refresh()};
+  window.addEventListener('mmhvault:data-loaded',refreshVisibleV159);
+  window.addEventListener('mmhvault:data-change',refreshVisibleV159);
+  window.addEventListener('mmhvault:page-visible',()=>{if(investVisibleV159()&&sourceDirtyV159)refreshVisibleV159()});
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
 </script>
@@ -22008,9 +22012,16 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
     for(const file of [...legacy,...current]){const id=eligible(file?.name);if(id&&gold.has(id))next.add(id);}
     known=next;render();
   };
-  function refresh(){window.mmhRefreshGoldReceiptsV1().catch(err=>console.warn('Gold receipt listing could not be verified:',err));}
+  let receiptDirtyV159=true;
+  const investVisibleV159=()=>!!document.getElementById('invest')?.classList.contains('active');
+  function refresh(){
+    if(!investVisibleV159()){receiptDirtyV159=true;return}
+    receiptDirtyV159=false;
+    window.mmhRefreshGoldReceiptsV1().catch(err=>console.warn('Gold receipt listing could not be verified:',err));
+  }
   window.addEventListener('mmhvault:data-loaded',refresh);
   window.addEventListener('mmhvault:cache-restored',refresh);
+  window.addEventListener('mmhvault:page-visible',()=>{if(investVisibleV159()&&receiptDirtyV159)refresh()});
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',refresh,{once:true});else queueMicrotask(refresh);
 })();
 </script>
@@ -22789,10 +22800,18 @@ if(a){const runAccountAction=async(button,action)=>{if(busy||owner()!==sessionOw
 function init(){const panel=$('mmhManagerAccountsPanelV445');if(!panel)return;panel.classList.add('am-ready');const shell=document.createElement('div');shell.className='am-shell';shell.id='amShell';shell.innerHTML='<div class="am-page" id="amHome"><div class="am-top"><select id="amFilter" aria-label="Account group"><option value="all">All accounts</option>'+Object.keys(defaults).map(t=>`<option value="${t}">${esc(mmhVaultAccountTypeLabel(t))}</option>`).join('')+'<option value="archived">Archived</option></select><button id="amAdd" type="button">＋ Add account</button></div><div class="am-summary"><div class="am-top"><span>Account net assets</span><button id="amHideAll" type="button">Hide amounts</button></div><strong id="amNet"></strong><div class="am-summary-grid"><div><small>Assets</small><b id="amAssets"></b></div><div><small>Liabilities</small><b id="amDebts"></b></div></div><p class="am-help">Cash balances + held investments · converted to your display currency.</p></div><div class="am-find"><div class="am-search-wrap"><input id="amSearch" type="search" placeholder="Search accounts" aria-label="Search account name, currency, type or note" autocomplete="off"><button id="amClearSearch" type="button" aria-label="Clear account search" hidden>×</button></div><select id="amSort" aria-label="Sort accounts"><option value="original">Original order</option><option value="name">Name A–Z</option><option value="name-desc">Name Z–A</option><option value="type">Account type</option><option value="currency">Currency</option></select></div><p class="am-help am-count" id="amCount" role="status" aria-live="polite"></p><div class="am-list" id="amList"></div></div><div class="am-page" id="amTypes" hidden><div class="am-top"><button id="amTypesBack" type="button">‹ Back</button><b>Add account</b></div><div class="am-types" id="amTypeList"></div></div><div class="am-page" id="amEditor" hidden><div class="am-top"><button id="amEditorBack" type="button">‹ Back</button><b id="amEditorTitle">Account</b></div><div id="amEditorBody"></div></div>';$('apBody').append(shell);
 $('amSearch').oninput=e=>{query=e.target.value;renderHome()};$('amClearSearch').onclick=()=>{query='';$('amSearch').value='';renderHome();$('amSearch').focus()};$('amSort').onchange=e=>{sortMode=e.target.value;renderHome()};$('amFilter').onchange=e=>{selected=e.target.value;renderHome()};$('amHideAll').onclick=()=>{conceal=!conceal;renderHome()};$('amTypesBack').onclick=home;$('amEditorBack').onclick=home;
 $('amAdd').onclick=()=>{const host=$('amTypeList');host.replaceChildren();for(const [title,types] of [['Funds',['bank','cash','wallet','other']],['Credit',['credit']],['Investments',['crypto','investment']]]){const h=document.createElement('h3');h.textContent=title;host.append(h);for(const type of types){const b=document.createElement('button');b.type='button';b.className='am-row';b.innerHTML=logoHTML({id:'',type})+`<span class="am-row-copy">${esc(mmhVaultAccountTypeLabel(type))}</span><span>›</span>`;b.onclick=()=>{buildEditor(null,null,type)};host.append(b)}}page('amTypes')};
+let accountsRenderDirtyV159=false,accountsRenderRafV159=0;
+const accountsActiveV159=()=>!!$('accounts-page')?.classList.contains('active');
+function scheduleAccountsRenderV159(){
+  if(!accountsActiveV159()){accountsRenderDirtyV159=true;return}
+  if(accountsRenderRafV159)return;
+  accountsRenderRafV159=requestAnimationFrame(()=>{accountsRenderRafV159=0;if(!accountsActiveV159()){accountsRenderDirtyV159=true;return}accountsRenderDirtyV159=false;renderHome()});
+}
 window.mmhAccountsRefreshV1=renderHome;window.mmhAccountsHomeV1=home;$('apCurrency').value=displayCurrency;$('apCurrency').onchange=e=>{displayCurrency=e.target.value;renderHome()};
-const original=window.mmhVaultRenderManager;window.mmhVaultRenderManager=function(){const r=original.apply(this,arguments);renderHome();return r};const open=window.mmhOpenManagerV1;window.mmhOpenManagerV1=function(mode){if(mode!=='categories'){home();$('amFilter').value=selected;setPage('accounts-page');return}return open.apply(this,arguments)};renderHome();
+const original=window.mmhVaultRenderManager;window.mmhVaultRenderManager=function(){const r=original.apply(this,arguments);scheduleAccountsRenderV159();return r};const open=window.mmhOpenManagerV1;window.mmhOpenManagerV1=function(mode){if(mode!=='categories'){home();$('amFilter').value=selected;setPage('accounts-page');return}return open.apply(this,arguments)};renderHome();
 window.addEventListener('mmhvault:config-owner-changed',()=>{token++;busy=false;query='';sortMode='original';selected='all';conceal=false;displayCurrency='NATIVE';$('apCurrency').value='NATIVE';$('amSearch').value='';$('amSort').value='original';$('amFilter').value='all';home()});
-['mmhvault:data-loaded','mmhvault:cache-restored','mmhvault:market-updated','mmhvault:sync-complete'].forEach(event=>window.addEventListener(event,renderHome));
+['mmhvault:data-loaded','mmhvault:cache-restored','mmhvault:market-updated','mmhvault:sync-complete'].forEach(event=>window.addEventListener(event,scheduleAccountsRenderV159));
+window.addEventListener('mmhvault:page-visible',()=>{if(accountsActiveV159()&&accountsRenderDirtyV159)scheduleAccountsRenderV159()});
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
@@ -23133,9 +23152,28 @@ html body.st-overview-compact #dashboard :is(.panel,#dashboardCommandCenterV3421
 (function(){
  const tracked=new WeakMap();let queued=false;
  const targets='#dashboard .mmh-networth-value,#dashboard .mmh-command-stat b,#accounts-page .am-row-value,#accounts-page .am-summary>strong,#accounts-page .am-summary-grid b,#invest .mmh-ui-kpi strong,#invest .mmh-ui-kpi strong>span,#invest .mmh-overview-fields .mmh-overview-field:nth-child(3) b,#invest .mmh-overview-fields .mmh-overview-field:nth-child(5) b,#invest .mmh-overview-fields .mmh-overview-field:nth-child(6) b,#exchange .exchange-converter-result .value';
- function refresh(){queued=false;if(typeof window.mmhSettingsNumberV2!=='function')return;document.querySelectorAll(targets).forEach(el=>{if(el.children.length)return;const text=el.textContent,prior=tracked.get(el),raw=prior&&text===prior.rendered?prior.raw:text;const match=raw.match(/^([+−-]?)(USD|MMK|RMB|CNY|THB|\$|K|฿|￥)\s*([+−-]?)([\d,]+(?:\.\d+)?)(\s*›)?$/);if(!match)return;const value=Number(match[4].replace(/,/g,''));if(!Number.isFinite(value))return;const rendered=match[1]+match[2]+' '+match[3]+window.mmhSettingsNumberV2(value)+(match[5]||'');tracked.set(el,{raw,rendered});if(text!==rendered)el.textContent=rendered;});}
+ function refresh(){
+   queued=false;if(typeof window.mmhSettingsNumberV2!=='function')return;
+   document.querySelectorAll(targets).forEach(el=>{
+     if(!el.closest('.page.active')||el.children.length)return;
+     const text=el.textContent,prior=tracked.get(el),raw=prior&&text===prior.rendered?prior.raw:text;
+     const match=raw.match(/^([+−-]?)(USD|MMK|RMB|CNY|THB|\$|K|฿|￥)\s*([+−-]?)([\d,]+(?:\.\d+)?)(\s*›)?$/);
+     if(!match)return;
+     const value=Number(match[4].replace(/,/g,''));if(!Number.isFinite(value))return;
+     const rendered=match[1]+match[2]+' '+match[3]+window.mmhSettingsNumberV2(value)+(match[5]||'');
+     tracked.set(el,{raw,rendered});if(text!==rendered)el.textContent=rendered;
+   });
+ }
  function schedule(){if(queued)return;queued=true;requestAnimationFrame(refresh)}
- function init(){const observer=new MutationObserver(schedule);['dashboard','accounts-page','invest','exchange'].forEach(id=>{const root=document.getElementById(id);if(root)observer.observe(root,{childList:true,subtree:true,characterData:true})});document.getElementById('settings')?.addEventListener('change',schedule);schedule();}
+ function init(){
+   for(const id of ['dashboard','accounts-page','invest','exchange']){
+     const root=document.getElementById(id);if(!root)continue;
+     new MutationObserver(()=>{if(root.classList.contains('active'))schedule()}).observe(root,{childList:true,subtree:true,characterData:true});
+   }
+   document.getElementById('settings')?.addEventListener('change',schedule);
+   window.addEventListener('mmhvault:page-visible',schedule);
+   schedule();
+ }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
 </script>
@@ -24319,15 +24357,22 @@ function ensureSeamlessTransactionFlowV710(){
  };
  state.raf=requestAnimationFrame(tick);
 }
-let dashboardRenderTimerV790=0,dashboardRenderRafV790=0,dashboardRenderForceV790=false;
+let dashboardRenderTimerV790=0,dashboardRenderRafV790=0,dashboardRenderForceV790=false,dashboardDirtyV159=false;
 function scheduleDashboardRenderV790(delay=0,force=false){
  dashboardRenderForceV790=dashboardRenderForceV790||!!force;
+ if(!pageActive()){
+   dashboardDirtyV159=true;
+   clearTimeout(dashboardRenderTimerV790);
+   return;
+ }
  clearTimeout(dashboardRenderTimerV790);
  dashboardRenderTimerV790=setTimeout(()=>{
-   if(dashboardRenderRafV790)return;
+   if(dashboardRenderRafV790||!pageActive()){dashboardDirtyV159=true;return}
    dashboardRenderRafV790=requestAnimationFrame(()=>{
      dashboardRenderRafV790=0;
+     if(!pageActive()){dashboardDirtyV159=true;return}
      const runForce=dashboardRenderForceV790;dashboardRenderForceV790=false;
+     dashboardDirtyV159=false;
      render(runForce);
    });
  },Math.max(0,Number(delay)||0));
@@ -24335,7 +24380,8 @@ function scheduleDashboardRenderV790(delay=0,force=false){
 function wrapRender(){const base=window.renderDashboard;if(typeof base==='function'&&!base.__pfV500){window.__mmhLegacyDashboardRenderV780=base;const wrapped=function(){let legacyResult;if(!document.getElementById('mmhPremiumDashboardV500')){try{legacyResult=base.apply(this,arguments)}catch(e){console.warn('[MMHVAULT] legacy dashboard fallback skipped',e)}}scheduleDashboardRenderV790(0,false);return legacyResult};wrapped.__pfV500=true;window.renderDashboard=wrapped;try{renderDashboard=wrapped}catch(_){}}}
 function init(){addSidebar();addTopbar();ensureDashboardHost();wrapRender();ensureSeamlessTransactionFlowV710();scheduleDashboardRenderV790(180,true)}
 ['mmhvault:data-loaded','mmhvault:data-change','mmhvault:cache-restored','languagechange','mmhvault-language-change','mmhvault-birthday-change','mmhvault:age-tick'].forEach(ev=>window.addEventListener(ev,()=>scheduleDashboardRenderV790(70,false)));
-window.addEventListener('mmhvault:market-updated',scheduleMarketOnlyV720);
+window.addEventListener('mmhvault:page-visible',()=>{if(pageActive()&&dashboardDirtyV159)scheduleDashboardRenderV790(0,dashboardRenderForceV790)});
+window.addEventListener('mmhvault:market-updated',()=>{if(pageActive())scheduleMarketOnlyV720();else dashboardDirtyV159=true});
 /* v1.5.5: CSS handles responsive layout; do not rebuild Dashboard DOM on resize. */
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
@@ -26160,9 +26206,10 @@ window.MM_HVAULT_STABILITY_V12311={version:'1.2.3.11',storageFailureIsolation:tr
     kpis.after(row);
   }
   let scheduled=0;
-  function schedule(){clearTimeout(scheduled);scheduled=setTimeout(()=>{ensureSearch();ensureQuickActions();},20);}
-  const observer=new MutationObserver(schedule);
-  function init(){ensureSearch();ensureQuickActions();const dash=$('mmhPremiumDashboardV500');if(dash)observer.observe(dash,{childList:true});}
+  const dashboardActiveV159=()=>!!$('dashboard')?.classList.contains('active');
+  function schedule(){clearTimeout(scheduled);scheduled=setTimeout(()=>{ensureSearch();if(dashboardActiveV159())ensureQuickActions();},20);}
+  const observer=new MutationObserver(()=>{if(dashboardActiveV159())schedule()});
+  function init(){ensureSearch();if(dashboardActiveV159())ensureQuickActions();const dash=$('mmhPremiumDashboardV500');if(dash)observer.observe(dash,{childList:true});}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(init,0),{once:true});else setTimeout(init,0);
   window.addEventListener('mmhvault:page-visible',schedule);
   window.addEventListener('mmhvault:data-loaded',schedule);
@@ -26439,11 +26486,13 @@ window.MM_HVAULT_STABILITY_V12311={version:'1.2.3.11',storageFailureIsolation:tr
     const kpi=e.target?.closest?.('#dashboard [data-invest-route-v144]');if(kpi){e.preventDefault();e.stopPropagation();openDashboardRoute(kpi.dataset.investRouteV144);}
   });
   document.addEventListener('keydown',e=>{if(e.key!=='Enter'&&e.key!==' ')return;const kpi=e.target?.closest?.('#dashboard [data-invest-route-v144]');if(!kpi)return;e.preventDefault();openDashboardRoute(kpi.dataset.investRouteV144);});
-  const refresh=()=>{ensureQuickBar();dashboardKpiTargets();};
-  ['mmhvault:data-loaded','mmhvault:page-visible','mmhvault:data-change'].forEach(name=>window.addEventListener(name,()=>setTimeout(refresh,0)));
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(refresh,0),{once:true});else setTimeout(refresh,0);
-  const dash=$('mmhPremiumDashboardV500');if(dash)new MutationObserver(()=>dashboardKpiTargets()).observe(dash,{childList:true,subtree:true});
-  const invest=$('invest');if(invest)new MutationObserver(()=>ensureQuickBar()).observe(invest,{childList:true,subtree:true});
+  const dashboardActiveV159=()=>!!$('dashboard')?.classList.contains('active');
+  const investActiveV159=()=>!!$('invest')?.classList.contains('active');
+  const refresh=()=>{if(investActiveV159())ensureQuickBar();if(dashboardActiveV159())dashboardKpiTargets();};
+  ['mmhvault:data-loaded','mmhvault:page-visible','mmhvault:data-change'].forEach(name=>window.addEventListener(name,()=>requestAnimationFrame(refresh)));
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>requestAnimationFrame(refresh),{once:true});else requestAnimationFrame(refresh);
+  const dash=$('mmhPremiumDashboardV500');if(dash)new MutationObserver(()=>{if(dashboardActiveV159())dashboardKpiTargets()}).observe(dash,{childList:true,subtree:true});
+  const invest=$('invest');if(invest)new MutationObserver(()=>{if(investActiveV159())ensureQuickBar()}).observe(invest,{childList:true,subtree:true});
   window.mmhOpenInvestTradeV144=openTrade;window.mmhOpenInvestHistoryV144=openHistory;
 })();
 </script>
@@ -27889,6 +27938,18 @@ window.MMHVAULT_V158={
   hiddenDashboardBudgetDomRender:false,
   hiddenDashboardPlanningCloudRefresh:false,
   reportInsightObserverSelfLoop:false
+};
+</script>
+
+
+<script id="mmhvault-v159-hidden-page-idle-marker">
+window.MMHVAULT_V159={
+  version:'1.5.9',
+  hiddenDashboardRender:false,
+  hiddenAccountRender:false,
+  activePageNumberFormatting:true,
+  hiddenInvestDecorators:false,
+  hiddenInvestReceiptStorageCheck:false
 };
 </script>
 
