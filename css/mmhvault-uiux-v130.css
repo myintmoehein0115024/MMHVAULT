@@ -1988,3 +1988,57 @@ body.light .mmh-account-actions-v143 small{color:#607d92}
 body.light #invest .mmh-invest-quick-v144{background:#f6fafc;border-color:#d4e2eb}body.light #invest .mmh-invest-quick-v144>button{background:#edf5fa;color:#36546b;border-color:#d4e2eb}body.light #invest .mmh-invest-quick-v144 b{color:#294663}
 @media(max-width:920px){#invest .mmh-invest-quick-v144{grid-template-columns:repeat(2,minmax(0,1fr))}#invest .mmh-invest-quick-label-v144{grid-column:1/-1;padding:4px 5px 2px}}
 @media(max-width:430px){#invest .mmh-invest-quick-v144{grid-template-columns:1fr}#invest .mmh-invest-quick-label-v144{grid-column:auto}#invest .mmh-invest-quick-v144>button{min-height:48px}}
+
+
+/* MMHVAULT v1.4.5 · Notification actions + deeper global search */
+.mmh-notify-action-hint-v145{
+  display:grid;
+  grid-template-columns:32px minmax(0,1fr);
+  gap:10px;
+  align-items:start;
+  margin-top:12px;
+  padding:10px 11px;
+  border:1px solid rgba(82,181,231,.16);
+  border-radius:12px;
+  background:linear-gradient(145deg,rgba(12,40,61,.55),rgba(6,23,37,.62));
+}
+.mmh-notify-action-hint-v145>span{
+  width:30px;height:30px;display:grid;place-items:center;
+  border-radius:9px;
+  border:1px solid rgba(76,199,255,.17);
+  background:rgba(76,199,255,.08);
+  color:#8ed7f7;
+}
+.mmh-notify-action-hint-v145 strong{
+  display:block;
+  color:#dbeaf5;
+  font-size:10px;
+  line-height:1.35;
+}
+.mmh-notify-action-hint-v145 small{
+  display:block;
+  margin-top:3px;
+  color:#7f9aaf;
+  font-size:9px;
+  line-height:1.45;
+}
+.mmh-search-focus-v145{
+  animation:mmhSearchFocusV145 1.8s ease both!important;
+}
+@keyframes mmhSearchFocusV145{
+  0%,100%{box-shadow:inherit}
+  18%,65%{box-shadow:0 0 0 2px rgba(76,199,255,.28),0 14px 32px rgba(0,0,0,.16)!important;border-color:rgba(76,199,255,.42)!important}
+}
+.mmh-search-result-v140 .mmh-search-result-kind-v140{
+  white-space:nowrap;
+}
+body.light .mmh-notify-action-hint-v145{
+  background:#f2f8fb;
+  border-color:#cfe2ed;
+}
+body.light .mmh-notify-action-hint-v145 strong{color:#2d4d65}
+body.light .mmh-notify-action-hint-v145 small{color:#688196}
+@media(max-width:620px){
+  .mmh-notify-action-hint-v145{grid-template-columns:28px minmax(0,1fr);gap:8px;padding:9px}
+  .mmh-notify-action-hint-v145>span{width:27px;height:27px}
+}

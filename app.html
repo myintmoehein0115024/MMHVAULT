@@ -800,7 +800,7 @@ html{scrollbar-gutter:stable;}
 <link rel="stylesheet" href="css/mmhvault-v4.css?v=4.3.0">
 
 <link rel="stylesheet" href="css/mmhvault-premium-motion.css?v=20260929-bg1">
-<link rel="stylesheet" href="css/mmhvault-uiux-v130.css?v=1.4.4">
+<link rel="stylesheet" href="css/mmhvault-uiux-v130.css?v=1.4.5">
 
 <style id="mmhvault-v343-expenses-reduction">
 /* V4.3.0 data reduction: budget control now owns category ranking + budget progress;
@@ -17562,8 +17562,13 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   async function openDetail(row){
     await markRead(row);close();
     const kind=row.audience==='all'?tr('Announcement','公告'):tr('Personal notification','个人通知');
-    const body='<div class="mmh-notify-detail-v900"><div class="mmh-notify-detail-badge-v900">'+esc(kind)+'</div><p>'+esc(row.body||'').replace(/\n/g,'<br>')+'</p><small>'+esc(formatDate(row.created_at))+'</small></div>';
-    if(typeof window.mmhVaultOpenDialogV449==='function')await window.mmhVaultOpenDialogV449({title:row.title||tr('Notification','通知'),message:'',body,actions:[{label:tr('Close','关闭'),className:'primary'}]});
+    const target=window.mmhNotificationResolveV145?.(row)||null;
+    const actionHint=target?'<div class="mmh-notify-action-hint-v145"><span>↗</span><div><strong>'+esc(target.label||tr('Open related page','打开相关页面'))+'</strong><small>'+esc(target.hint||tr('Continue from this notification.','从这条通知继续处理。'))+'</small></div></div>':'';
+    const body='<div class="mmh-notify-detail-v900"><div class="mmh-notify-detail-badge-v900">'+esc(kind)+'</div><p>'+esc(row.body||'').replace(/\n/g,'<br>')+'</p><small>'+esc(formatDate(row.created_at))+'</small>'+actionHint+'</div>';
+    const actions=[{label:tr('Close','关闭')}];
+    if(target)actions.push({label:target.label||tr('Open','打开'),className:'primary',onClick:()=>{setTimeout(()=>window.mmhNotificationOpenTargetV145?.(target),0);return true;}});
+    else actions[0].className='primary';
+    if(typeof window.mmhVaultOpenDialogV449==='function')await window.mmhVaultOpenDialogV449({title:row.title||tr('Notification','通知'),message:'',body,actions});
     else await window.mmhVaultMessageV740?.(row.body||'',row.title||tr('Notification','通知'));
   }
   function render(){
@@ -25771,6 +25776,40 @@ window.MM_HVAULT_STABILITY_V12311={version:'1.2.3.11',storageFailureIsolation:tr
     try{window.setPage?.(page);}catch(_){}
     if(extra==='feedback')setTimeout(()=>window.mmhOpenFeedbackV136?.(),100);
   }
+  function findDataButton(selector,key,value){
+    return [...document.querySelectorAll(selector)].find(x=>String(x.dataset?.[key]??'')===String(value??''));
+  }
+  async function openGoal(item){
+    openPage('goals');
+    await new Promise(r=>setTimeout(r,90));
+    try{await window.MMHGoalsV113?.load?.()}catch(_){}
+    try{if(window.MMHGoalsV113?.state){window.MMHGoalsV113.state.mode='all';window.MMHGoalsV113.render?.();}}catch(_){}
+    await new Promise(r=>setTimeout(r,25));
+    const b=findDataButton('[data-goal-detail]','goalDetail',item.id);
+    if(b){b.scrollIntoView({behavior:'smooth',block:'center'});b.click();}
+  }
+  async function openRecurring(item){
+    openPage('recurring');
+    await new Promise(r=>setTimeout(r,90));
+    try{await window.MMHRecurringV114?.load?.()}catch(_){}
+    try{if(window.MMHRecurringV114?.state){window.MMHRecurringV114.state.mode='all';window.MMHRecurringV114.render?.();}}catch(_){}
+    await new Promise(r=>setTimeout(r,25));
+    const b=findDataButton('[data-rec-detail]','recDetail',item.id);
+    if(b){b.scrollIntoView({behavior:'smooth',block:'center'});b.click();}
+  }
+  async function openBudgetCategory(item){
+    openPage('budget');
+    await new Promise(r=>setTimeout(r,90));
+    try{await window.MMHBudgetV110?.load?.()}catch(_){}
+    await new Promise(r=>setTimeout(r,25));
+    const row=[...document.querySelectorAll('[data-budget-category]')].find(x=>String(x.dataset.budgetCategory||'')===String(item.category||''));
+    if(row){
+      row.scrollIntoView({behavior:'smooth',block:'center'});
+      row.classList.add('mmh-search-focus-v145');
+      setTimeout(()=>row.classList.remove('mmh-search-focus-v145'),1800);
+      row.querySelector('input')?.focus({preventScroll:true});
+    }
+  }
   function actionFor(item,q){
     if(!item)return;
     if(item.kind==='page'){openPage(item.page,item.extra);return;}
@@ -25780,6 +25819,9 @@ window.MM_HVAULT_STABILITY_V12311={version:'1.2.3.11',storageFailureIsolation:tr
       setTimeout(()=>{if(typeof window.mmhOpenAccountDetailV830==='function')window.mmhOpenAccountDetailV830(item.id);},130);
       return;
     }
+    if(item.kind==='goal'){openGoal(item);return;}
+    if(item.kind==='recurring'){openRecurring(item);return;}
+    if(item.kind==='budget'){openBudgetCategory(item);return;}
     if(item.kind==='transaction'){
       openPage('transactions');
       try{window.showTxTab?.('history');}catch(_){try{showTxTab('history')}catch(__){}}
@@ -25813,14 +25855,36 @@ window.MM_HVAULT_STABILITY_V12311={version:'1.2.3.11',storageFailureIsolation:tr
       for(const a of accts){if(a?.active===false)continue;const hay=norm([a?.name,a?.currency,a?.type,a?.note].join(' '));if(hay.includes(key))out.push({kind:'account',id:a.id,label:a.name||'Account',meta:[a.currency,window.mmhVaultAccountTypeLabel?.(a.type)||a.type].filter(Boolean).join(' · ')});}
     }catch(_){}
     try{
+      const goals=window.MMHGoalsV113?.state?.rows||[];
+      for(const g of goals){
+        const hay=norm([g?.name,g?.goal_type,g?.currency,g?.target_date,g?.note,'goal'].join(' '));
+        if(hay.includes(key))out.push({kind:'goal',id:g.id,label:g.name||'Financial goal',meta:[g.goal_type,g.currency,g.target_date].filter(Boolean).join(' · ')});
+      }
+    }catch(_){}
+    try{
+      const recurring=window.MMHRecurringV114?.state?.rows||[];
+      for(const r of recurring){
+        const hay=norm([r?.name,r?.tx_type,r?.tx_group,r?.category,r?.from_account,r?.to_account,r?.frequency,r?.next_due_date,r?.note,'recurring'].join(' '));
+        if(hay.includes(key))out.push({kind:'recurring',id:r.id,label:r.name||'Recurring schedule',meta:[r.category,r.frequency,r.next_due_date].filter(Boolean).join(' · ')});
+      }
+    }catch(_){}
+    try{
+      const cats=window.MMHBudgetV110?.state?.row?.category_budgets||{};
+      for(const name of Object.keys(cats)){
+        const hay=norm([name,'budget category spending limit'].join(' '));
+        if(hay.includes(key))out.push({kind:'budget',category:name,label:name+' budget',meta:'Budget category limit'});
+      }
+    }catch(_){}
+    try{
       const txs=Array.isArray(window.transactions)?window.transactions:[];
       const matched=txs.filter(t=>norm([t?.tx_date,t?.type,t?.category,t?.from_account,t?.to_account,t?.note].join(' ')).includes(key)).slice().sort((a,b)=>String(b?.tx_date||'').localeCompare(String(a?.tx_date||''))).slice(0,6);
       for(const t of matched){const acct=t?.type==='Income'?(t?.to_account||''):(t?.from_account||'');out.push({kind:'transaction',id:t?.id,label:t?.category||t?.type||'Transaction',meta:[t?.tx_date,t?.type,acct].filter(Boolean).join(' · ')});}
     }catch(_){}
-    const priority={page:0,notification:1,account:2,transaction:3};
+    const priority={page:0,notification:1,account:2,goal:3,recurring:4,budget:5,transaction:6};
     return out.sort((a,b)=>(priority[a.kind]??9)-(priority[b.kind]??9)).slice(0,10);
   }
-  function icon(kind){return ({page:'↗',notification:'♢',account:'▣',transaction:'≡'}[kind]||'•');}
+  function icon(kind){return ({page:'↗',notification:'♢',account:'▣',goal:'◎',recurring:'↻',budget:'◒',transaction:'≡'}[kind]||'•');}
+  function kindLabel(kind){return ({page:'Page',notification:'Notice',account:'Account',goal:'Goal',recurring:'Recurring',budget:'Budget',transaction:'Transaction'}[kind]||kind);}
   function ensureSearch(){
     const input=$('mmhGlobalSearchV500');if(!input||input.dataset.commandV140==='1')return !!input;
     input.dataset.commandV140='1';
@@ -25833,7 +25897,7 @@ window.MM_HVAULT_STABILITY_V12311={version:'1.2.3.11',storageFailureIsolation:tr
       if(!q){close();return;}
       box.hidden=false;
       if(!results.length){box.innerHTML='<div class="mmh-search-empty-v140">No matching pages, accounts or transactions.</div>';return;}
-      box.innerHTML=results.map((r,i)=>`<button type="button" class="mmh-search-result-v140" id="mmhSearchResultV140_${i}" data-index="${i}" role="option" aria-selected="false"><span class="mmh-search-result-icon-v140" aria-hidden="true">${icon(r.kind)}</span><span class="mmh-search-result-copy-v140"><b>${esc(r.label)}</b><small>${esc(r.meta||r.kind)}</small></span><span class="mmh-search-result-kind-v140">${esc(r.kind==='page'?'Page':r.kind==='account'?'Account':r.kind==='transaction'?'Transaction':'Notice')}</span></button>`).join('');
+      box.innerHTML=results.map((r,i)=>`<button type="button" class="mmh-search-result-v140" id="mmhSearchResultV140_${i}" data-index="${i}" role="option" aria-selected="false"><span class="mmh-search-result-icon-v140" aria-hidden="true">${icon(r.kind)}</span><span class="mmh-search-result-copy-v140"><b>${esc(r.label)}</b><small>${esc(r.meta||r.kind)}</small></span><span class="mmh-search-result-kind-v140">${esc(kindLabel(r.kind))}</span></button>`).join('');
     }
     function choose(i){
       if(!results.length)return;selected=Math.max(0,Math.min(results.length-1,i));
@@ -26158,5 +26222,66 @@ window.MM_HVAULT_STABILITY_V12311={version:'1.2.3.11',storageFailureIsolation:tr
 </script>
 
 <script id="mmhvault-v142-transaction-history-marker">window.MMHVAULT_TRANSACTION_HISTORY_V142={version:'1.4.4',detailToEdit:true,useAgain:true,receiptNotCopied:true,accountQuickActions:true,dashboardRecentDetail:true,investQuickFlow:true};</script>
+
+<script id="mmhvault-v145-notification-search-deeplink">
+(()=>{'use strict';
+  if(window.__MMHVAULT_DEEPLINK_V145)return;window.__MMHVAULT_DEEPLINK_V145=true;
+  const $=id=>document.getElementById(id);
+  const clean=v=>String(v??'').trim();
+  const lower=v=>clean(v).toLocaleLowerCase();
+  const pageAliases={
+    dashboard:'dashboard',home:'dashboard',
+    transaction:'transactions',transactions:'transactions',
+    invest:'invest',investment:'invest',portfolio:'invest',
+    account:'accounts-page',accounts:'accounts-page',
+    exchange:'exchange',currency:'exchange',
+    analyze:'cashflow-analyze','cash flow':'cashflow-analyze',
+    budget:'budget',goal:'goals',goals:'goals',
+    recurring:'recurring',report:'reports',reports:'reports',
+    settings:'settings',feedback:'settings'
+  };
+  function objectText(row){
+    const nested=[row?.meta,row?.data,row?.payload,row?.context].map(x=>{
+      if(!x)return '';
+      if(typeof x==='string')return x;
+      try{return JSON.stringify(x)}catch(_){return ''}
+    }).join(' ');
+    return lower([row?.source,row?.kind,row?.type,row?.category,row?.title,row?.body,nested].join(' '));
+  }
+  function target(page,label,hint,extra=''){return{page,label,hint,extra}}
+  window.mmhNotificationResolveV145=function(row){
+    if(!row)return null;
+    const explicit=lower(row.target_page||row.page||row.action_page||row?.meta?.page||row?.data?.page||row?.payload?.page);
+    if(explicit){
+      const exact=pageAliases[explicit]||explicit;
+      if(['dashboard','transactions','invest','accounts-page','exchange','cashflow-analyze','budget','goals','recurring','reports','settings'].includes(exact)){
+        if(exact==='settings'&&(explicit==='feedback'||objectText(row).includes('feedback')))return target('settings','Open Feedback','View your feedback status and administrator replies.','feedback');
+        return target(exact,'Open '+({transactions:'Transactions',invest:'Invest','accounts-page':'Accounts','cashflow-analyze':'Cash Flow Analyze',budget:'Budget',goals:'Goals',recurring:'Recurring',reports:'Reports',settings:'Settings',exchange:'Exchange',dashboard:'Dashboard'}[exact]||'page'),'Continue on the related MMHVAULT page.');
+      }
+    }
+    const s=objectText(row);
+    if(/feedback|administrator reply|admin reply|review reply|suggestion reply|support reply/.test(s))return target('settings','Open Feedback','View your submission status and administrator reply.','feedback');
+    if(/recurring|subscription|scheduled transaction|due date|payment due|recurr|周期|定期|固定支出/.test(s))return target('recurring','Open Recurring','Review the related recurring schedule.');
+    if(/budget|spending limit|over budget|budget watch|预算|超预算/.test(s))return target('budget','Open Budget','Review this month’s spending plan and category limits.');
+    if(/financial goal|goal progress|goal target|savings goal|目标/.test(s))return target('goals','Open Goals','Review your financial goal progress.');
+    if(/portfolio|investment|crypto|bitcoin|ethereum|gold|投资|加密|黄金/.test(s))return target('invest','Open Invest','Review your portfolio and investment activity.');
+    if(/account balance|account|wallet|bank|账户|余额/.test(s))return target('accounts-page','Open Accounts','Review the related account.');
+    if(/monthly report|financial report|report ready|报告|月报/.test(s))return target('reports','Open Reports','Review your financial report.');
+    if(/transaction|payment|expense|income|交易|付款|支出|收入/.test(s))return target('transactions','Open Transactions','Review the related transaction activity.');
+    return null;
+  };
+  window.mmhNotificationOpenTargetV145=function(t){
+    if(!t?.page)return false;
+    try{window.setPage?.(t.page)}catch(_){}
+    if(t.extra==='feedback')setTimeout(()=>window.mmhOpenFeedbackV136?.(),110);
+    if(t.page==='budget')setTimeout(()=>window.MMHBudgetV110?.load?.(),100);
+    if(t.page==='goals')setTimeout(()=>window.MMHGoalsV113?.load?.(),100);
+    if(t.page==='recurring')setTimeout(()=>window.MMHRecurringV114?.load?.(),100);
+    return true;
+  };
+  window.MMHVAULT_DEEPLINK_V145={version:'1.4.5',notificationActions:true,goalSearch:true,recurringSearch:true,budgetCategorySearch:true};
+})();
+</script>
+
 </body>
 </html>
