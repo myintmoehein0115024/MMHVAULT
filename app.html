@@ -6643,10 +6643,10 @@ body.mmh-v436-explorer-open #bottomNav{visibility:hidden!important;pointer-event
 <button class="btn" onclick="cancelRestorePreviewV383()" type="button">Cancel</button>
 <button class="btn primary" id="restoreConfirmV383" onclick="confirmRestorePreviewV383()" type="button">Review &amp; Restore</button>
 </div>
-<div class="restore-note-v383">Restore never replaces your Customer ID or authentication. Existing transactions and investments are preserved; only missing records are added. Saved exchange rates are applied to your signed-in account after confirmation.</div>
+<div class="restore-note-v383">Restore never replaces your Customer ID or authentication. Existing transactions and investments are preserved; only missing records are added. Saved exchange rates are applied after confirmation, and missing Account / Category settings are merged without overwriting your current setup.</div>
 </div>
 </div>
-<div class="data-center-note-v380">Backups are downloaded to your device as a JSON file. Restore adds missing transactions/investments and applies the saved exchange rates to your signed-in account. Your Customer ID and Supabase authentication are not replaced by a backup.</div>
+<div class="data-center-note-v380">Backups are downloaded to your device as a JSON file. They include Transactions, Investments, Exchange Rates and your Account / Category configuration. Restore adds missing finance records and merges missing configuration into the signed-in account. Your Customer ID and Supabase authentication are never replaced by a backup.</div>
 </div>
 <div class="panel system-status-v313">
 <div class="toolbar">
@@ -6930,6 +6930,122 @@ function mmhVaultPersistConfig(){
   if(!mmhVaultRequireConfigOwner())throw new Error('Account session changed. Reopen account management.');
   localStorage.setItem(mmhVaultConfigKey(),JSON.stringify({...MMHVAULT_CONFIG,ownerId:MMHVAULT_CONFIG_OWNER}));
 }
+/* v1.2.3.6 · Settings/config continuity helpers.
+   Account/category configuration is device-local, so backups carry a sanitized snapshot.
+   Restore only merges missing settings into the currently signed-in owner's config. */
+function mmhVaultBackupConfigSnapshotV1236(owner=MMHVAULT_CONFIG_OWNER){
+  if(!owner||owner!==MMHVAULT_CONFIG_OWNER||owner!==currentSessionUser?.id)return null;
+  const accounts=(MMHVAULT_CONFIG?.accounts||[]).filter(a=>a&&a.name).map(a=>({
+    id:String(a.id||''),name:String(a.name).trim(),currency:['MMK','THB','USD','CNY'].includes(a.currency)?a.currency:'MMK',
+    type:String(a.type||'other'),active:a.active!==false,builtin:!!a.builtin
+  }));
+  const categories={},archivedCategories={};
+  for(const group of Object.keys(MMHVAULT_DEFAULT_CATEGORIES)){
+    categories[group]=[...(MMHVAULT_CONFIG?.categories?.[group]||[])].map(String);
+    archivedCategories[group]=[...(MMHVAULT_CONFIG?.archivedCategories?.[group]||[])].map(String);
+  }
+  let account_visuals={};
+  try{const x=JSON.parse(localStorage.getItem('mmhvault_account_visuals_v1_'+owner)||'{}');if(x&&typeof x==='object'&&!Array.isArray(x))account_visuals=x;}catch(_){ }
+  return {schema:'accounts-categories-v1',owner_id:owner,accounts,categories,archivedCategories,account_visuals};
+}
+function mmhVaultMergeBackupConfigV1236(snapshot,owner=MMHVAULT_CONFIG_OWNER){
+  if(!snapshot||typeof snapshot!=='object'||Array.isArray(snapshot))return {accounts:0,categories:0,archived:0,visuals:0,conflicts:0};
+  if(!mmhVaultRequireConfigOwner(owner))throw new Error('Account session changed while restoring settings.');
+  if(snapshot.owner_id!=null&&String(snapshot.owner_id)!==String(owner))throw new Error('Backup settings belong to another MMHVAULT account.');
+  const result={accounts:0,categories:0,archived:0,visuals:0,conflicts:0},idMap={};
+  const usedIds=new Set((MMHVAULT_CONFIG.accounts||[]).map(a=>String(a.id||'')));
+  for(const raw of Array.isArray(snapshot.accounts)?snapshot.accounts:[]){
+    const name=String(raw?.name||'').trim();if(!name)continue;
+    const existing=(MMHVAULT_CONFIG.accounts||[]).find(a=>String(a.name||'').trim().toLowerCase()===name.toLowerCase());
+    if(existing){if(raw?.id)idMap[String(raw.id)]=existing.id;continue;}
+    let id=String(raw?.id||'').trim();if(!id||usedIds.has(id)){do{id='acc_restore_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2,7);}while(usedIds.has(id));}
+    usedIds.add(id);idMap[String(raw?.id||id)]=id;
+    MMHVAULT_CONFIG.accounts.push({id,name,currency:['MMK','THB','USD','CNY'].includes(raw?.currency)?raw.currency:'MMK',type:String(raw?.type||'other'),active:raw?.active!==false,builtin:!!raw?.builtin});
+    result.accounts++;
+  }
+  const groups=['Expense','Income','Personal','LoanIncome','LoanExpense'];
+  const addName=(group,name,archived)=>{
+    name=String(name||'').trim();if(!name)return;
+    const active=MMHVAULT_CONFIG.categories[group]||(MMHVAULT_CONFIG.categories[group]=[]),old=MMHVAULT_CONFIG.archivedCategories[group]||(MMHVAULT_CONFIG.archivedCategories[group]=[]);
+    const key=mmhVaultCategoryKeyV1231(name);
+    if([...active,...old].some(x=>mmhVaultCategoryKeyV1231(x)===key))return;
+    const conflict=mmhVaultCategoryConflictV1231(group,name);if(conflict){result.conflicts++;return;}
+    (archived?old:active).push(name);archived?result.archived++:result.categories++;
+  };
+  for(const group of groups){for(const name of Array.isArray(snapshot?.categories?.[group])?snapshot.categories[group]:[])addName(group,name,false);}
+  for(const group of groups){for(const name of Array.isArray(snapshot?.archivedCategories?.[group])?snapshot.archivedCategories[group]:[])addName(group,name,true);}
+  MMHVAULT_CONFIG.categories=mmhVaultNormalizeCategoryConfigV1231(MMHVAULT_CONFIG.categories,MMHVAULT_CONFIG.archivedCategories||{});
+  try{
+    const incoming=snapshot.account_visuals;
+    if(incoming&&typeof incoming==='object'&&!Array.isArray(incoming)){
+      const storageKey='mmhvault_account_visuals_v1_'+owner;
+      let current={};try{const x=JSON.parse(localStorage.getItem(storageKey)||'{}');if(x&&typeof x==='object'&&!Array.isArray(x))current=x;}catch(_){ }
+      for(const [oldId,visual] of Object.entries(incoming)){
+        const target=idMap[String(oldId)]||((MMHVAULT_CONFIG.accounts||[]).some(a=>String(a.id)===String(oldId))?String(oldId):'');
+        if(!target||current[target]||!visual||typeof visual!=='object'||Array.isArray(visual))continue;
+        current[target]=visual;result.visuals++;
+      }
+      localStorage.setItem(storageKey,JSON.stringify(current));
+    }
+  }catch(e){console.warn('[MMHVAULT] account visuals restore skipped',e);}
+  if(result.accounts||result.categories||result.archived||result.visuals){
+    mmhVaultPersistConfig();mmhVaultRebuildConfigArrays();mmhVaultRefreshAccountSelectors();mmhVaultRefreshTransactionConfigV445();mmhVaultRenderManager();mmhVaultRefreshDashboardAccountOverviewV449();
+    try{window.dispatchEvent(new CustomEvent('mmhvault:category-config-changed',{detail:{reason:'backup-restore'}}));}catch(_){ }
+  }
+  return result;
+}
+async function mmhVaultRecurringUsesAccountV1236(name,owner){
+  if(!owner||typeof db==='undefined')return false;
+  const [from,to]=await Promise.all([
+    db.from('recurring_transactions').select('id').eq('user_id',owner).eq('from_account',name).limit(1),
+    db.from('recurring_transactions').select('id').eq('user_id',owner).eq('to_account',name).limit(1)
+  ]);
+  if(from.error)throw from.error;if(to.error)throw to.error;return !!((from.data||[]).length||(to.data||[]).length);
+}
+async function mmhVaultRecurringUsesCategoryV1236(group,name,owner){
+  if(!owner||typeof db==='undefined')return false;
+  const flowType=['Expense','Personal','LoanExpense'].includes(group)?'Expense':['Income','LoanIncome'].includes(group)?'Income':null;
+  let q=db.from('recurring_transactions').select('id').eq('user_id',owner).eq('category',name);if(flowType)q=q.eq('tx_type',flowType);
+  const r=await q.limit(1);if(r.error)throw r.error;return !!(r.data||[]).length;
+}
+async function mmhVaultSyncAccountRenameSecondaryV1236(oldName,newName,owner){
+  const warnings=[];
+  try{
+    const [a,b]=await Promise.all([
+      db.from('recurring_transactions').update({from_account:newName}).eq('user_id',owner).eq('from_account',oldName),
+      db.from('recurring_transactions').update({to_account:newName}).eq('user_id',owner).eq('to_account',oldName)
+    ]);
+    if(a.error)throw a.error;if(b.error)throw b.error;
+    try{for(const r of window.MMHRecurringV114?.state?.rows||[]){if(r.from_account===oldName)r.from_account=newName;if(r.to_account===oldName)r.to_account=newName;}}catch(_){ }
+    try{window.dispatchEvent(new CustomEvent('mmhvault:recurring-changed',{detail:{action:'account-rename'}}));}catch(_){ }
+  }catch(e){console.warn('[MMHVAULT] recurring account rename sync failed',e);warnings.push('Recurring schedules could not be fully updated. Open Recurring and review any schedule that used the old account name.');}
+  return warnings;
+}
+async function mmhVaultSyncCategoryRenameSecondaryV1236(group,oldName,newName,owner){
+  const warnings=[],flowType=['Expense','Personal','LoanExpense'].includes(group)?'Expense':['Income','LoanIncome'].includes(group)?'Income':null;
+  try{
+    let q=db.from('recurring_transactions').update({category:newName}).eq('user_id',owner).eq('category',oldName);if(flowType)q=q.eq('tx_type',flowType);
+    const r=await q;if(r.error)throw r.error;
+    try{for(const x of window.MMHRecurringV114?.state?.rows||[]){if(x.category===oldName&&(!flowType||x.tx_type===flowType))x.category=newName;}}catch(_){ }
+    try{window.dispatchEvent(new CustomEvent('mmhvault:recurring-changed',{detail:{action:'category-rename'}}));}catch(_){ }
+  }catch(e){console.warn('[MMHVAULT] recurring category rename sync failed',e);warnings.push('Recurring schedules could not be fully updated. Open Recurring and review schedules that used the old category name.');}
+  if(group==='Expense'){
+    try{
+      const rows=await db.from('budgets').select('budget_month,category_budgets').eq('user_id',owner);if(rows.error)throw rows.error;
+      for(const row of rows.data||[]){
+        const cats=row?.category_budgets&&typeof row.category_budgets==='object'&&!Array.isArray(row.category_budgets)?row.category_budgets:null;
+        if(!cats||!Object.prototype.hasOwnProperty.call(cats,oldName))continue;
+        const next={...cats},oldValue=next[oldName];
+        if(!Object.prototype.hasOwnProperty.call(next,newName))next[newName]=oldValue;
+        else if(!(Number(next[newName])>0)&&Number(oldValue)>0)next[newName]=oldValue;
+        delete next[oldName];
+        const u=await db.from('budgets').update({category_budgets:next}).eq('user_id',owner).eq('budget_month',row.budget_month);if(u.error)throw u.error;
+      }
+      try{window.dispatchEvent(new CustomEvent('mmhvault:budget-changed',{detail:{action:'category-rename'}}));}catch(_){ }
+    }catch(e){console.warn('[MMHVAULT] budget category rename sync failed',e);warnings.push('Some saved category budgets still use the old name. Open Budget and review those months.');}
+  }
+  return warnings;
+}
 function mmhVaultRecoverOwnedLegacyConfigV1(owner){
   if(!mmhVaultRequireConfigOwner(owner))return;
   const scoped=mmhVaultConfigKey(owner);
@@ -7149,7 +7265,9 @@ function mmhVaultEditAccountV449(id){
           mmhVaultRenderManager();
           mmhVaultRefreshDashboardAccountOverviewV449();
           try{window.mmhvaultInvalidateTransactionRenderV34241?.();window.mmhvaultForceRenderAllV34421?.('account-rename');}catch(_){ }
-          window.mmhEditDeleteUI.toast('Account changes saved.');
+          const secondaryWarnings=nameChanged?await mmhVaultSyncAccountRenameSecondaryV1236(oldName,newName,u.id):[];
+          if(secondaryWarnings.length)window.MMHUI?.toast?.(secondaryWarnings.join(' '),{title:'Account saved · review needed',type:'warn',duration:6500});
+          else window.mmhEditDeleteUI.toast('Account changes saved.');
           return true;
         }catch(err){
           console.error('Account edit failed:',err);
@@ -7181,7 +7299,10 @@ async function mmhVaultDeleteAccountV445(id){
   const configOwner=MMHVAULT_CONFIG_OWNER;if(!mmhVaultRequireConfigOwner(configOwner))return false;
   const a=MMHVAULT_CONFIG.accounts.find(x=>x.id===id);if(!a)return;
   if(mmhVaultHasAccountHistory(a.name)){mmhVaultCustomMessageV449('Account has history',`${a.name} has existing transactions or investment records, so it cannot be permanently deleted. Use Archive instead to keep the history safe.`);return;}
-  return mmhVaultOpenDialogV449({title:'Delete Account',message:`Delete ${a.name} permanently?`,body:'<div class="mmh-v449-dialog-note">This account has no linked history. Permanent deletion cannot be undone.</div>',actions:[
+  try{
+    if(await mmhVaultRecurringUsesAccountV1236(a.name,configOwner)){mmhVaultCustomMessageV449('Account is used by Recurring',`${a.name} is linked to a recurring schedule, so it cannot be permanently deleted. Edit the recurring schedule or use Archive.`);return false;}
+  }catch(e){console.warn('[MMHVAULT] recurring account delete check failed',e);mmhVaultCustomMessageV449('Could not verify Recurring','MMHVAULT could not safely verify recurring schedules. Please check your connection and try again.');return false;}
+  return mmhVaultOpenDialogV449({title:'Delete Account',message:`Delete ${a.name} permanently?`,body:'<div class="mmh-v449-dialog-note">This account has no linked history or recurring schedule. Permanent deletion cannot be undone.</div>',actions:[
     {label:'Cancel',onClick:()=>{mmhVaultResolveDialogV449(false);return false;}},{label:'Delete Permanently',className:'danger',onClick:()=>{if(!mmhVaultRequireConfigOwner(configOwner))return false;
       MMHVAULT_CONFIG.accounts=MMHVAULT_CONFIG.accounts.filter(x=>x.id!==id);
       mmhVaultPersistConfig();
@@ -7307,8 +7428,10 @@ function mmhVaultEditCategoryV449(group,name){
         mmhVaultRefreshCategoryUIV449(currentGroup,newName);
         try{window.mmhvaultInvalidateTransactionRenderV34241?.();}catch(_){ }
         try{window.mmhvaultForceRenderAllV34421?.('category-rename');}catch(_){ }
-        try{window.dispatchEvent(new CustomEvent('mmhvault:data-change',{detail:{reason:'category-rename'}}));}catch(_){ }
-        window.mmhEditDeleteUI.toast('Category changes saved.');
+        try{window.dispatchEvent(new CustomEvent('mmhvault:data-change',{detail:{reason:'category-rename',group:currentGroup,oldName,newName}}));}catch(_){ }
+        const secondaryWarnings=await mmhVaultSyncCategoryRenameSecondaryV1236(currentGroup,currentName,newName,user.id);
+        if(secondaryWarnings.length)window.MMHUI?.toast?.(secondaryWarnings.join(' '),{title:'Category saved · review needed',type:'warn',duration:7000});
+        else window.mmhEditDeleteUI.toast('Category changes saved.');
         return true;
       }}
     ]
@@ -7336,16 +7459,19 @@ function mmhVaultAddCategoryV445(){
   if($('mmhNewCategoryNameV445'))$('mmhNewCategoryNameV445').value='';
   mmhVaultRefreshCategoryUIV449(group,name);
 }
-function mmhVaultDeleteCategoryV445(group,name){
+async function mmhVaultDeleteCategoryV445(group,name){
   const configOwner=MMHVAULT_CONFIG_OWNER;if(!mmhVaultRequireConfigOwner(configOwner))return false;
   if(mmhVaultIsBuiltinCategory(group,name))return;
   if(mmhVaultHasCategoryHistory(name)){
     mmhVaultCustomMessageV449('Category has history',`${name} has existing records, so it cannot be permanently deleted. Use Archive instead.`);
     return;
   }
+  try{
+    if(await mmhVaultRecurringUsesCategoryV1236(group,name,configOwner)){mmhVaultCustomMessageV449('Category is used by Recurring',`${name} is linked to a recurring schedule, so it cannot be permanently deleted. Edit the recurring schedule or use Archive.`);return false;}
+  }catch(e){console.warn('[MMHVAULT] recurring category delete check failed',e);mmhVaultCustomMessageV449('Could not verify Recurring','MMHVAULT could not safely verify recurring schedules. Please check your connection and try again.');return false;}
   mmhVaultOpenDialogV449({
     title:'Delete Category',message:`Delete ${name} permanently?`,
-    body:'<div class="mmh-v449-dialog-note">This category has no linked history. Permanent deletion cannot be undone.</div>',
+    body:'<div class="mmh-v449-dialog-note">This category has no linked history or recurring schedule. Permanent deletion cannot be undone.</div>',
     actions:[
       {label:'Cancel',onClick:()=>true},
       {label:'Delete Permanently',className:'danger',onClick:()=>{if(!mmhVaultRequireConfigOwner(configOwner))return false;
@@ -9088,8 +9214,9 @@ function mmhVaultMissingRowsV1235(incoming,existing,fp){
 }
 function mmhVaultValidateBackupOwnerV1235(data,u){
   if(!u?.id)throw new Error('Not signed in to MMHVAULT.');
-  const owner=String(u.id),top=data?.user_id==null?'':String(data.user_id);
+  const owner=String(u.id),top=data?.user_id==null?'':String(data.user_id),configOwner=data?.configuration?.owner_id==null?'':String(data.configuration.owner_id);
   if(top&&top!==owner)throw new Error('This backup belongs to another MMHVAULT account and cannot be restored here.');
+  if(configOwner&&configOwner!==owner)throw new Error('This backup contains settings from another MMHVAULT account and cannot be restored here.');
   for(const rows of [data?.transactions,data?.investments]){
     if(!Array.isArray(rows))continue;
     if(rows.some(x=>x?.user_id!=null&&String(x.user_id)!==owner))throw new Error('This backup contains records from another MMHVAULT account and cannot be restored here.');
@@ -10468,7 +10595,8 @@ function setBackupStatusV380(text,kind=''){
 async function exportMyFinanceBackupV380(){
   try{
     const u=(await db.auth.getUser()).data.user;if(!u){setBackupStatusV380('Please sign in again.','err');return;}
-    const out={version:'V4.3.0',exported_at:new Date().toISOString(),customer_id:$('accountUserIdV372')?.textContent||'',user_id:u.id,transactions,investments,rates};
+    const configuration=mmhVaultBackupConfigSnapshotV1236(u.id);
+    const out={version:'V4.3.0+Config1',exported_at:new Date().toISOString(),customer_id:$('accountUserIdV372')?.textContent||'',user_id:u.id,transactions,investments,rates,configuration};
     const blob=new Blob([JSON.stringify(out,null,2)],{type:'application/json'});
     const url=URL.createObjectURL(blob),a=document.createElement('a');const filename=`MMHVAULT_Backup_${today()}.json`;a.href=url;a.download=filename;a.click();URL.revokeObjectURL(url);
     localStorage.setItem('myfinance_last_backup_v380',new Date().toISOString());
@@ -10591,8 +10719,9 @@ function previewMyFinanceBackupDataV434(file,data){
     const ninv=normalizedInv.filter(x=>!invExisting.has(invFpLocal(x)));
     const duplicates=(arrTx.length-ntx.length)+(normalizedInv.length-ninv.length);
     const hasRates=!!data.rates && [data.rates.usd_mmk,data.rates.usd_thb,data.rates.usd_cny].some(v=>num(v)>0);
+    const hasConfig=!!data?.configuration&&typeof data.configuration==='object';
 
-    restorePreviewV383={file,data,u:null,ntx,ninv,duplicates,hasRates,needsAuth:true};
+    restorePreviewV383={file,data,u:null,ntx,ninv,duplicates,hasRates,hasConfig,needsAuth:true};
     const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v;};
     set('restoreFileNameV383',file?.name||'MMHVAULT backup.json');
     set('restoreFileMetaV383',`Backup date: ${formatBackupDateV383(data.exported_at)} · Format: ${data.version||'Trade Import / JSON'}`);
@@ -10604,10 +10733,10 @@ function previewMyFinanceBackupDataV434(file,data){
     if(conflict){
       const buys=ninv.filter(x=>num(x.quantity)>0).length;
       const sells=ninv.filter(x=>num(x.quantity)<0).length;
-      conflict.textContent=`Ready: ${buys} BUY + ${sells} SELL investment records. ${duplicates} existing records will be skipped. Existing cloud records will not be overwritten.`;
+      conflict.textContent=`Ready: ${buys} BUY + ${sells} SELL investment records. ${duplicates} existing records will be skipped. Existing cloud records will not be overwritten.${hasConfig?' Account/category settings are included and will be merged safely.':''}`;
     }
     const confirmBtn=document.getElementById('restoreConfirmV383');
-    if(confirmBtn)confirmBtn.disabled=(ntx.length===0&&ninv.length===0&&!hasRates);
+    if(confirmBtn)confirmBtn.disabled=(ntx.length===0&&ninv.length===0&&!hasRates&&!hasConfig);
     if(box){
       box.classList.add('show');
       try{setTimeout(()=>box.scrollIntoView({behavior:'smooth',block:'center'}),80);}catch(_e){}
@@ -10714,13 +10843,14 @@ async function confirmRestorePreviewV383(){
     const ninv=mmhVaultMissingRowsV1235(allInv,invCloud.data||[],invFp);
     const duplicates=(allTx.length-ntx.length)+(allInv.length-ninv.length);
     const hasRates=!!data?.rates&&[data.rates.usd_mmk,data.rates.usd_thb,data.rates.usd_cny].some(v=>Number(v)>0);
-    const rateText=hasRates?' and saved exchange rates':'';
-    if(!(ntx.length||ninv.length||hasRates)){
+    const hasConfig=!!data?.configuration&&typeof data.configuration==='object';
+    const rateText=hasRates?' and saved exchange rates':'',configText=hasConfig?' and account/category settings':'';
+    if(!(ntx.length||ninv.length||hasRates||hasConfig)){
       setRestoreStatusV383(`Nothing to restore. ${duplicates} records already exist in your account.`,'ok');
       restorePreviewV383=null;const box=$('restorePreviewV383');if(box)box.classList.remove('show');const input=$('backupFile');if(input)input.value='';
       return;
     }
-    if(!await window.mmhVaultConfirmV740(`Restore ${ntx.length} new transactions and ${ninv.length} new investments${rateText}? Existing records will be kept.`,'Review & restore'))return;
+    if(!await window.mmhVaultConfirmV740(`Restore ${ntx.length} new transactions and ${ninv.length} new investments${rateText}${configText}? Existing records and current settings will be kept; missing settings are merged.`,'Review & restore'))return;
     setRestoreStatusV383('Restoring selected data to your private cloud…');
     mmhVaultBeginBulkMutationV1235();
     try{
@@ -10731,10 +10861,13 @@ async function confirmRestorePreviewV383(){
         const r=await db.from('exchange_rates').upsert(safe);if(r.error)throw new Error('Exchange rates import failed: '+r.error.message);
       }
     }finally{mmhVaultEndBulkMutationV1235();}
+    let configResult=null,configWarning='';
+    if(hasConfig){try{configResult=mmhVaultMergeBackupConfigV1236(data.configuration,u.id);}catch(configErr){console.warn('[MMHVAULT] backup settings restore failed',configErr);configWarning=' Account/category settings could not be merged; your finance records were still restored safely.';}}
     const loaded=await loadAll({force:true});
     if(loaded?.ok===false&&loaded.errors?.length)throw new Error('Records were submitted, but cloud refresh failed: '+loaded.errors.join(' '));
     refreshDataCenterV380();
-    setRestoreStatusV383(`✓ Restore complete: ${ntx.length} transactions + ${ninv.length} investments added. ${duplicates} existing records skipped.`,'ok');
+    const configSummary=configResult?` Settings merged: ${configResult.accounts} accounts, ${configResult.categories} active categories, ${configResult.archived} archived categories${configResult.visuals?`, ${configResult.visuals} account visuals`:''}${configResult.conflicts?`; ${configResult.conflicts} conflicting names skipped`:''}.`:'';
+    setRestoreStatusV383(`✓ Restore complete: ${ntx.length} transactions + ${ninv.length} investments added. ${duplicates} existing records skipped.${configSummary}${configWarning}`,'ok');
     restorePreviewV383=null;const box=$('restorePreviewV383');if(box)box.classList.remove('show');const input=$('backupFile');if(input)input.value='';
     window.mmhvaultForceRenderAllV34421?.('json-restore');
   }catch(e){
@@ -18551,7 +18684,7 @@ window.MMHVAULT_RELEASE='MMHVAULT v1.2.2 PWA Rollback';
   function ensurePrefillBanner(){const form=$('txForm');if(!form)return null;let banner=$('recurringPrefillBannerV114');if(!banner){banner=document.createElement('div');banner.id='recurringPrefillBannerV114';banner.className='recurring-prefill-banner-v114';banner.innerHTML='<div><b id="recurringPrefillNameV114">Recurring template loaded</b><br><small>Review the transaction before submitting it.</small></div><button type="button" id="recurringPrefillCancelV114">Cancel template</button>';form.prepend(banner);$('recurringPrefillCancelV114').onclick=()=>clearPending()}return banner}
   function clearPending(){state.pending=null;const b=ensurePrefillBanner();b?.classList.remove('show')}
   function showPending(r){state.pending={id:r.id,due:r.next_due_date};const b=ensurePrefillBanner();$('recurringPrefillNameV114').textContent=`Recurring · ${r.name}`;b.classList.add('show')}
-  function recordNow(id){const r=state.rows.find(x=>x.id===id);if(!r||r.status==='paused')return;const activeAccounts=new Set(window.ACC||[]);if((r.from_account&&!activeAccounts.has(r.from_account))||(r.to_account&&!activeAccounts.has(r.to_account)))return window.MMHUI?.message?.('One of the saved accounts is archived or unavailable. Edit the recurring schedule first.','Recurring',{type:'warn'});if(typeof window.setPage==='function')window.setPage('transactions');setTimeout(()=>{try{window.showTxTab?.('add');$('txDate').value=r.next_due_date||todayKey();$('txType').value=r.tx_type;syncTransactionGroup();const group=$('txGroup');if([...group.options].some(o=>o.value===r.tx_group))group.value=r.tx_group;updateCategories();if([...$('txCategory').options].some(o=>o.value===r.category))$('txCategory').value=r.category;updateAccountLocks();if(r.from_account&&!$('fromAccount').disabled)$('fromAccount').value=r.from_account;if(r.to_account&&!$('toAccount').disabled)$('toAccount').value=r.to_account;if(!$('fromAmount').disabled)$('fromAmount').value=r.from_amount||'';if(!$('toAmount').disabled)$('toAmount').value=r.to_amount||'';$('txNote').value=r.note||'';showPending(r);$('txForm')?.scrollIntoView({behavior:'smooth',block:'start'});window.MMHUI?.toast?.('Recurring template loaded. Review and submit the transaction.',{title:r.name,type:'info',duration:3600})}catch(err){console.warn('[MMHVAULT] recurring prefill failed',err);window.MMHUI?.message?.('Unable to prefill Add Transaction.','Recurring',{type:'error'})}},120)}
+  function recordNow(id){const r=state.rows.find(x=>x.id===id);if(!r||r.status==='paused')return;const activeAccounts=new Set(window.ACC||[]);if((r.from_account&&!activeAccounts.has(r.from_account))||(r.to_account&&!activeAccounts.has(r.to_account)))return window.MMHUI?.message?.('One of the saved accounts is archived or unavailable. Edit the recurring schedule first.','Recurring',{type:'warn'});const activeCategories=categories(r.tx_type,r.tx_group);if(r.category&&!activeCategories.includes(r.category))return window.MMHUI?.message?.('The saved category is archived, renamed or unavailable. Edit the recurring schedule before recording this transaction.','Recurring',{type:'warn'});if(typeof window.setPage==='function')window.setPage('transactions');setTimeout(()=>{try{window.showTxTab?.('add');$('txDate').value=r.next_due_date||todayKey();$('txType').value=r.tx_type;syncTransactionGroup();const group=$('txGroup');if([...group.options].some(o=>o.value===r.tx_group))group.value=r.tx_group;updateCategories();if([...$('txCategory').options].some(o=>o.value===r.category))$('txCategory').value=r.category;updateAccountLocks();if(r.from_account&&!$('fromAccount').disabled)$('fromAccount').value=r.from_account;if(r.to_account&&!$('toAccount').disabled)$('toAccount').value=r.to_account;if(!$('fromAmount').disabled)$('fromAmount').value=r.from_amount||'';if(!$('toAmount').disabled)$('toAmount').value=r.to_amount||'';$('txNote').value=r.note||'';showPending(r);$('txForm')?.scrollIntoView({behavior:'smooth',block:'start'});window.MMHUI?.toast?.('Recurring template loaded. Review and submit the transaction.',{title:r.name,type:'info',duration:3600})}catch(err){console.warn('[MMHVAULT] recurring prefill failed',err);window.MMHUI?.message?.('Unable to prefill Add Transaction.','Recurring',{type:'error'})}},120)}
   function nextDate(date,frequency){const m=String(date||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);if(!m)return date;let y=+m[1],mo=+m[2]-1,d=+m[3];if(frequency==='weekly'){const x=new Date(Date.UTC(y,mo,d+7));return x.toISOString().slice(0,10)}if(frequency==='yearly'){const last=new Date(Date.UTC(y+1,mo+1,0)).getUTCDate();return `${y+1}-${String(mo+1).padStart(2,'0')}-${String(Math.min(d,last)).padStart(2,'0')}`}const nextMo=mo+1,ny=y+Math.floor(nextMo/12),nm=((nextMo%12)+12)%12,last=new Date(Date.UTC(ny,nm+1,0)).getUTCDate();return `${ny}-${String(nm+1).padStart(2,'0')}-${String(Math.min(d,last)).padStart(2,'0')}`}
   async function advance(id,due){const u=signedUser(),r=state.rows.find(x=>x.id===id);if(!u?.id||!r||r.next_due_date!==due)return;const next=nextDate(due,r.frequency);try{const {error}=await db.from('recurring_transactions').update({next_due_date:next,last_completed_at:new Date().toISOString()}).eq('user_id',u.id).eq('id',id).eq('next_due_date',due);if(error)throw error;await load();window.dispatchEvent(new CustomEvent('mmhvault:recurring-changed',{detail:{action:'advance',next_due_date:next}}));window.MMHUI?.toast?.(`Next due date: ${next}`,{title:'Recurring schedule advanced',type:'success'})}catch(err){console.warn('[MMHVAULT] recurring advance failed',err);window.MMHUI?.message?.('The transaction was saved, but the recurring due date could not be advanced. Open Recurring and update it manually.','Recurring',{type:'warn'})}}
   function installTxBridge(){const form=$('txForm');if(!form||form.dataset.recurringBridgeV114==='1'||typeof form.onsubmit!=='function')return false;const original=form.onsubmit;form.dataset.recurringBridgeV114='1';form.onsubmit=async function(e){const pending=state.pending?{...state.pending}:null;const before=new Set((window.transactions||[]).map(x=>String(x.id)));await original.call(this,e);if(!pending)return;const added=(window.transactions||[]).some(x=>!before.has(String(x.id)));if(added){clearPending();await advance(pending.id,pending.due)}};const clearBtn=form.querySelector('button[onclick*="clearTxForm"]');if(clearBtn)clearBtn.addEventListener('click',()=>setTimeout(clearPending,0));return true}
@@ -21358,12 +21491,12 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
       const normalized=arrInv.map(normalizeImportV444), err=normalized.map(validImportV444).find(Boolean); if(err)throw new Error(err);
       const ntx=mmhVaultMissingRowsV1235(arrTx,window.transactions||[],txFp), ninv=mmhVaultMissingRowsV1235(normalized,window.investments||[],invFp), dup=arrTx.length-ntx.length+normalized.length-ninv.length;
       const buys=ninv.filter(x=>x.asset==='Crypto'&&x.quantity>0).length,sells=ninv.filter(x=>x.asset==='Crypto'&&x.quantity<0).length,gBuys=ninv.filter(x=>x.asset==='Gold'&&x.quantity>0).length,gSells=ninv.filter(x=>x.asset==='Gold'&&x.quantity<0).length;
-      const hasRates=!!data?.rates&&[data.rates.usd_mmk,data.rates.usd_thb,data.rates.usd_cny].some(v=>num(v)>0);
-      window.restorePreviewV383={file,data,u,ntx,ninv,duplicates:dup,hasRates,needsAuth:false};
+      const hasRates=!!data?.rates&&[data.rates.usd_mmk,data.rates.usd_thb,data.rates.usd_cny].some(v=>num(v)>0),hasConfig=!!data?.configuration&&typeof data.configuration==='object';
+      window.restorePreviewV383={file,data,u,ntx,ninv,duplicates:dup,hasRates,hasConfig,needsAuth:false};
       const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=String(v);};
       set('restoreFileNameV383',file?.name||'MMHVAULT backup.json');set('restoreFileMetaV383',`Backup date: ${typeof formatBackupDateV383==='function'?formatBackupDateV383(data?.exported_at):'Unknown'} · Format: ${data?.version||'Trade Import / JSON'}`);set('restoreNewTxV383',ntx.length);set('restoreNewInvV383',ninv.length);set('restoreDuplicateV383',dup);set('restoreRatesV383',hasRates?'Included':'Not included');
-      const c=document.getElementById('restoreConflictV383');if(c)c.textContent=`Ready: ${buys} Crypto BUY + ${sells} Crypto SELL + ${gBuys} Gold BUY + ${gSells} Gold SELL. ${dup} existing records will be skipped. Existing cloud records will not be overwritten.`;
-      const b=document.getElementById('restoreConfirmV383');if(b)b.disabled=(ntx.length===0&&ninv.length===0&&!hasRates);
+      const c=document.getElementById('restoreConflictV383');if(c)c.textContent=`Ready: ${buys} Crypto BUY + ${sells} Crypto SELL + ${gBuys} Gold BUY + ${gSells} Gold SELL. ${dup} existing records will be skipped. Existing cloud records will not be overwritten.${hasConfig?' Account/category settings are included and will be merged safely.':''}`;
+      const b=document.getElementById('restoreConfirmV383');if(b)b.disabled=(ntx.length===0&&ninv.length===0&&!hasRates&&!hasConfig);
       document.getElementById('restorePreviewV383')?.classList.add('show');
       if(typeof setRestoreStatusV383==='function')setRestoreStatusV383(`✓ JSON loaded · ${arrInv.length} investment records found. Restore will recheck the cloud before writing.`,'ok');
     }catch(e){console.error(e);window.restorePreviewV383=null;document.getElementById('restorePreviewV383')?.classList.remove('show');if(typeof setRestoreStatusV383==='function')setRestoreStatusV383('Import preview failed: '+(e?.message||e),'err');}
