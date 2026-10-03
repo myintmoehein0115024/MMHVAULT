@@ -27496,5 +27496,32 @@ html body #moreNavMenu.more-nav-menu.mmh-more-open-v153{
 window.MMHVAULT_V153={version:'1.5.3',accountActionsOneRowHardFix:true,moreFullPanelTransition:true};
 </script>
 
+
+<style id="mmhvault-v154-more-fixed-frame-polish">
+/* MMHVAULT v1.5.4 · More fixed-frame page transition */
+html body #moreNavMenu.more-nav-menu{height:min(452px,calc(100dvh - 28px))!important;min-height:min(392px,calc(100dvh - 28px))!important;max-height:calc(100dvh - 28px)!important}
+#moreNavMenu .mmh-more-stage-v153{height:100%!important;min-height:0!important;transition:none!important}
+#moreNavMenu .mmh-more-view-v153{height:100%!important;min-height:0!important;display:flex!important;flex-direction:column!important;padding:13px!important}
+#moreNavMenu .mmh-more-list-v153{align-content:start!important;flex:0 0 auto!important}
+#moreNavMenu .mmh-more-view-head-v153{display:grid!important;grid-template-columns:39px minmax(0,1fr)!important;align-items:start!important;column-gap:9px!important;min-height:70px!important;height:70px!important;flex:0 0 70px!important;margin:0 0 10px!important;padding:4px 4px 9px!important;box-sizing:border-box!important}
+#moreNavMenu .mmh-more-view-v153[data-more-view="main"] .mmh-more-view-head-v153::before{content:'•••';width:39px!important;height:39px!important;display:grid!important;place-items:center!important;box-sizing:border-box!important;border:1px solid rgba(91,151,196,.17)!important;border-radius:12px!important;background:rgba(11,35,52,.64)!important;color:#7ea9c1!important;font-size:11px!important;letter-spacing:1px!important}
+#moreNavMenu .mmh-more-view-title-v153{min-height:48px!important;justify-content:flex-start!important}
+#moreNavMenu .mmh-more-view-title-v153>span{line-height:1.1!important}
+#moreNavMenu .mmh-more-view-title-v153>strong{min-height:17px!important}
+#moreNavMenu .mmh-more-view-title-v153>small{min-height:22px!important;max-width:210px!important}
+#moreNavMenu .mmh-more-view-v153.enter-right-v153{opacity:0!important;transform:translate3d(42px,0,0) scale(.988)!important;filter:blur(3px)!important}
+#moreNavMenu .mmh-more-view-v153.enter-left-v153{opacity:0!important;transform:translate3d(-42px,0,0) scale(.988)!important;filter:blur(3px)!important}
+#moreNavMenu .mmh-more-view-v153.exit-left-v153{opacity:0!important;transform:translate3d(-42px,0,0) scale(.988)!important;filter:blur(3px)!important}
+#moreNavMenu .mmh-more-view-v153.exit-right-v153{opacity:0!important;transform:translate3d(42px,0,0) scale(.988)!important;filter:blur(3px)!important}
+#moreNavMenu.mmh-more-transition-v153.forward-v153,#moreNavMenu.mmh-more-transition-v153.backward-v153{transform:none!important}
+#moreNavMenu.mmh-more-transition-v153 .mmh-more-stage-v153::after{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,transparent,rgba(112,190,232,.045),transparent);opacity:.7;animation:mmhMoreFrameSweepV154 .28s ease both}
+@keyframes mmhMoreFrameSweepV154{from{transform:translateX(-45%);opacity:0}45%{opacity:.72}to{transform:translateX(45%);opacity:0}}
+#moreNavMenu .mmh-more-view-v153[data-more-view="extra"]::after{content:'Planning tools stay together here · return anytime with Back';margin-top:auto!important;padding:11px 12px!important;border:1px solid rgba(93,151,193,.10)!important;border-radius:12px!important;background:rgba(8,27,43,.44)!important;color:#638096!important;font-size:8px!important;line-height:1.45!important}
+@media(max-width:1099px){html body #moreNavMenu.more-nav-menu{height:min(520px,calc(100dvh - 170px))!important;min-height:min(430px,calc(100dvh - 170px))!important;max-height:calc(100dvh - 170px)!important}#moreNavMenu .mmh-more-view-v153{padding:11px!important}#moreNavMenu .mmh-more-view-head-v153{grid-template-columns:37px minmax(0,1fr)!important;column-gap:8px!important;min-height:67px!important;height:67px!important;flex-basis:67px!important;padding:3px 3px 8px!important}#moreNavMenu .mmh-more-view-v153[data-more-view="main"] .mmh-more-view-head-v153::before,#moreNavMenu .mmh-more-back-v153{width:37px!important;height:37px!important;flex-basis:37px!important}#moreNavMenu .mmh-more-view-title-v153>strong{font-size:13px!important}#moreNavMenu .mmh-more-view-title-v153>small{max-width:190px!important}#moreNavMenu .mmh-more-list-v153{gap:6px!important}#moreNavMenu .mmh-more-item-v153{min-height:50px!important;grid-template-columns:34px minmax(0,1fr) 12px!important;gap:9px!important;padding:7px 9px!important}#moreNavMenu .mmh-more-item-v153 .mmh-more-icon-v570{width:33px!important;height:33px!important;border-radius:10px!important}}
+@media(max-width:520px) and (max-height:760px){html body #moreNavMenu.more-nav-menu{height:calc(100dvh - 154px)!important;min-height:360px!important}#moreNavMenu .mmh-more-list-v153{min-height:0!important;overflow-y:auto!important;overscroll-behavior:contain!important;scrollbar-width:none!important}#moreNavMenu .mmh-more-list-v153::-webkit-scrollbar{display:none!important}#moreNavMenu .mmh-more-view-v153[data-more-view="extra"]::after{margin-top:10px!important}}
+@media(prefers-reduced-motion:reduce){#moreNavMenu.mmh-more-transition-v153 .mmh-more-stage-v153::after{animation:none!important}}
+</style>
+<script id="mmhvault-v154-marker">window.MMHVAULT_V154={version:'1.5.4',moreFixedFrame:true,moreSharedHeaderGeometry:true,mobileMoreStable:true};</script>
+
 </body>
 </html>
