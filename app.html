@@ -6833,12 +6833,34 @@ function mmhvaultFinishAuthBootV3285(session){
     location.replace('index.html');
   }
 }
+let mmhvaultAuthRedirectingV1239=false;
 db.auth.onAuthStateChange((event,session)=>{
   if(event==='INITIAL_SESSION'){mmhvaultFinishAuthBootV3285(session);return;}
-  if(session){if(currentSessionUser?.id&&session.user?.id!==currentSessionUser.id){applyUserProfile(session.user);location.reload();}return;}
-  if(typeof currentSessionUser!=='undefined'&&currentSessionUser)applyUserProfile(null);
-  sessionStorage.removeItem('myfinance_page');
-  location.replace('login.html');
+  if(session?.user?.id){
+    const liveOwner=currentSessionUser?.id||'';
+    const nextOwner=session.user.id;
+    if(liveOwner&&liveOwner!==nextOwner){
+      Promise.resolve().then(()=>{
+        if(typeof window.mmhVaultSwitchSessionV1239==='function')return window.mmhVaultSwitchSessionV1239(session);
+        applyUserProfile(session.user);activeEnterUserId='';return enter(session);
+      }).catch(err=>console.error('MMHVAULT account switch failed',err));
+      return;
+    }
+    if(liveOwner===nextOwner){
+      try{applyUserProfile(session.user);}catch(err){console.warn('MMHVAULT session profile refresh skipped',err);}
+      return;
+    }
+    if(mmhvaultAuthBootSettledV3285){Promise.resolve().then(()=>enter(session)).catch(err=>console.error('MMHVAULT session resume failed',err));}
+    return;
+  }
+  if(mmhvaultAuthRedirectingV1239)return;
+  mmhvaultAuthRedirectingV1239=true;
+  Promise.resolve().then(()=>{
+    if(typeof window.mmhVaultSignOutCleanupV1239==='function')return window.mmhVaultSignOutCleanupV1239('auth-signed-out');
+    try{applyUserProfile(null);}catch(_e){}
+    sessionStorage.removeItem('myfinance_page');
+    location.replace('login.html');
+  });
 });
 mmhvaultAuthBootTimerV3285=setTimeout(()=>{
   if(mmhvaultAuthBootSettledV3285)return;
@@ -7630,6 +7652,7 @@ function applyUserProfile(user){
   const priorOwner=currentSessionUser?.id||'';
   currentSessionUser=user||null;
   const nextOwner=user?.id||'';
+  if(priorOwner!==nextOwner)window.__mmhSessionEpochV1239=(Number(window.__mmhSessionEpochV1239)||0)+1;
   if(MMHVAULT_CONFIG_OWNER!==nextOwner){
     MMHVAULT_CONFIG_OWNER=nextOwner;MMHVAULT_CONFIG=mmhVaultReadConfig(nextOwner);
     MMHVAULT_CONFIG.archivedCategories=MMHVAULT_CONFIG.archivedCategories||{};
@@ -7737,12 +7760,14 @@ async function enter(session){
     if(navEl) navEl.style.display="flex";
     currentUserEmail=session.user.email||"";
     applyUserProfile(session.user);
+    const enterOwner=session.user.id,enterEpoch=Number(window.__mmhSessionEpochV1239)||0;
     // Customer ID is secondary profile metadata. Never let it block core finance boot.
     Promise.resolve().then(()=>loadCustomerId(session.user)).catch(err=>console.warn('Customer ID background load skipped',err));
     const se=$("settingsEmail"); if(se) se.textContent=currentUserEmail;
     const shouldWelcome=sessionStorage.getItem("myfinance_show_welcome")==="1";
     if(shouldWelcome){sessionStorage.removeItem("myfinance_show_welcome");showWelcome();}
     await loadAll();
+    if(currentSessionUser?.id!==enterOwner||Number(window.__mmhSessionEpochV1239)!==enterEpoch)return;
     // Restore the user's preferred transaction sub-tab without navigating away.
     restoreTxTab();
     // V6.5: Dashboard is the final page selected on every full app boot.
@@ -7768,7 +7793,19 @@ function closeGettingStarted(markDone=true){const root=$("gettingStarted");if(!r
 function gsNext(){if(gettingStartedStep<2){gettingStartedStep++;renderGettingStarted();}else closeGettingStarted(true);}function gsBack(){if(gettingStartedStep>0){gettingStartedStep--;renderGettingStarted();}}
 window.myFinanceCloseGettingStarted=()=>closeGettingStarted(true);window.myFinanceGsNext=gsNext;window.myFinanceGsBack=gsBack;
 
-async function signOut(){await db.auth.signOut();}
+let mmhvaultSignOutBusyV1239=false;
+async function signOut(){
+  if(mmhvaultSignOutBusyV1239)return;
+  mmhvaultSignOutBusyV1239=true;
+  try{
+    const r=await db.auth.signOut();
+    if(r?.error)throw r.error;
+    setTimeout(()=>{if(currentSessionUser&&typeof window.mmhVaultSignOutCleanupV1239==='function')window.mmhVaultSignOutCleanupV1239('logout-fallback');},80);
+  }catch(err){
+    console.error('MMHVAULT sign out failed',err);
+    const msg=$('securityPasswordResultV379');if(msg)msg.textContent=err?.message||'Unable to sign out. Please try again.';
+  }finally{mmhvaultSignOutBusyV1239=false;}
+}
 function syncTransactionGroup(){
 const type=$("txType").value, g=$("txGroup");
 const groups=type==="Income"?["Income","Loans","Data Adjustment"]:type==="Expense"?["Expense","Personal","Loans","Data Adjustment"]:["Transfer"];
@@ -7826,14 +7863,18 @@ if(fromOff){$("fromAccount").value="";$("fromAmount").value="";}
 if(toOff){$("toAccount").value="";$("toAmount").value="";}
 }
 let loadAllPromiseV384=null;
+let loadAllPromiseOwnerV1239='',loadAllPromiseEpochV1239=-1;
 let lastLoadErrorV384="";
 function setDataLoadingV384(show,sub="Syncing your private cloud records."){const el=$("dataLoadOverlayV384"),txt=$("dataLoadSubV384");if(txt)txt.textContent=sub;if(el){el.classList.toggle("show",!!show);el.setAttribute("aria-hidden",show?"false":"true");}}
 function setDataErrorV384(message=""){lastLoadErrorV384=message||"";const box=$("dataErrorBannerV384"),msg=$("dataErrorMsgV384");if(msg)msg.textContent=message||"";if(box)box.classList.toggle("show",!!message);}
 function retryLoadAllV384(){setDataErrorV384("");return loadAll({force:true});}
 async function loadAll(opts={}){
-  if(loadAllPromiseV384&&!opts.force)return loadAllPromiseV384;
-  loadAllPromiseV384=(async()=>{
-    const loadOwner=currentSessionUser?.id;if(!loadOwner)return {ok:false,errors:['Sign in required']};
+  const requestedOwner=currentSessionUser?.id||'';
+  const requestedEpoch=Number(window.__mmhSessionEpochV1239)||0;
+  if(!requestedOwner)return {ok:false,errors:['Sign in required']};
+  if(loadAllPromiseV384&&loadAllPromiseOwnerV1239===requestedOwner&&loadAllPromiseEpochV1239===requestedEpoch)return loadAllPromiseV384;
+  const task=(async()=>{
+    const loadOwner=requestedOwner,loadEpoch=requestedEpoch;
     const hadExisting=transactions.length>0||investments.length>0;
     setDataErrorV384("");
     setDataLoadingV384(true,hadExisting?"Refreshing your private cloud records…":"Loading your private cloud records…");
@@ -7845,7 +7886,7 @@ async function loadAll(opts={}){
         db.from("investments").select("*").eq("user_id",loadOwner).order("inv_date",{ascending:false}).order("created_at",{ascending:false}),
         db.from("exchange_rates").select("*").eq("user_id",loadOwner).limit(1).maybeSingle()
       ]);
-      if(currentSessionUser?.id!==loadOwner)return {ok:false,errors:['Session changed']};
+      if(currentSessionUser?.id!==loadOwner||Number(window.__mmhSessionEpochV1239)!==loadEpoch)return {ok:false,errors:['Session changed']};
       const hardErrors=[];
       const optionalErrors=[];
       if(a.error){console.error("Transactions load failed",a.error);hardErrors.push("Transactions: "+a.error.message);}
@@ -7864,7 +7905,7 @@ async function loadAll(opts={}){
       try{window.dispatchEvent(new CustomEvent("mmhvault:data-loaded",{detail:{ok:hardErrors.length===0,at:window.__mmhLastCloudLoadAtV1235}}));}catch(_e){}
       return {ok:hardErrors.length===0,errors:[...hardErrors,...optionalErrors]};
     }catch(err){
-      if(currentSessionUser?.id!==loadOwner)return {ok:false,errors:['Session changed']};
+      if(currentSessionUser?.id!==loadOwner||Number(window.__mmhSessionEpochV1239)!==loadEpoch)return {ok:false,errors:['Session changed']};
       console.error("loadAll failed",err);
       let restored=false;
       try{if(!hadExisting&&typeof window.mmhvaultRestoreCacheV336==='function'){restored=window.mmhvaultRestoreCacheV336();if(restored){try{transactions=window.transactions||transactions;investments=window.investments||investments;rates=Object.assign({},rates||{},window.rates||{});}catch(_e){}try{render();}catch(_e){}}}}catch(_e){}
@@ -7873,10 +7914,11 @@ async function loadAll(opts={}){
       try{window.dispatchEvent(new CustomEvent("mmhvault:data-loaded",{detail:{ok:false,restored,at:Date.now()}}));}catch(_e){}
       return {ok:false,restored,errors:[err?.message||String(err)]};
     }finally{
-      setDataLoadingV384(false);
+      if(loadAllPromiseOwnerV1239===loadOwner&&loadAllPromiseEpochV1239===loadEpoch)setDataLoadingV384(false);
     }
   })();
-  try{return await loadAllPromiseV384;}finally{loadAllPromiseV384=null;}
+  loadAllPromiseV384=task;loadAllPromiseOwnerV1239=requestedOwner;loadAllPromiseEpochV1239=requestedEpoch;
+  try{return await task;}finally{if(loadAllPromiseV384===task){loadAllPromiseV384=null;loadAllPromiseOwnerV1239='';loadAllPromiseEpochV1239=-1;}}
 }
 let realtimeRefreshTimerV384=null;
 let realtimeChannelV384=null;
@@ -7899,34 +7941,119 @@ function scheduleRealtimeRefreshV384(reason="realtime-change"){
     }catch(err){console.warn("MMHVAULT realtime refresh failed:",err);}
   },delay);
 }
-function subscribeRealtime(){
-  const owner=currentSessionUser?.id||"";
-  if(!owner)return null;
-  if(realtimeChannelV384&&realtimeChannelOwnerV1235===owner)return realtimeChannelV384;
-  if(realtimeChannelV384){
-    try{realtimeChannelV384.unsubscribe?.();}catch(_e){}
-    realtimeChannelV384=null;
+let realtimeReconnectTimerV1239=null,realtimeReconnectAttemptV1239=0;
+function mmhVaultRealtimeStateV1239(connected,status,owner=currentSessionUser?.id||''){
+  realtimeReady=!!connected;
+  window.mmhvaultRealtimeStateV335={connected:!!connected,status:String(status||''),at:Date.now(),owner};
+  try{window.dispatchEvent(new CustomEvent('mmhvault:realtime-state',{detail:window.mmhvaultRealtimeStateV335}));}catch(_e){}
+}
+function mmhVaultDisposeRealtimeV1239(reason='STOPPED'){
+  clearTimeout(realtimeReconnectTimerV1239);realtimeReconnectTimerV1239=null;
+  clearTimeout(realtimeRefreshTimerV384);realtimeRefreshTimerV384=null;
+  const channel=realtimeChannelV384;realtimeChannelV384=null;realtimeChannelOwnerV1235='';
+  mmhVaultRealtimeStateV1239(false,reason,currentSessionUser?.id||'');
+  if(channel){
+    try{
+      const removal=typeof db.removeChannel==='function'?db.removeChannel(channel):channel.unsubscribe?.();
+      Promise.resolve(removal).catch(()=>{try{channel.unsubscribe?.();}catch(_e){}});
+    }catch(_e){try{channel.unsubscribe?.();}catch(__e){}}
   }
+}
+function mmhVaultScheduleRealtimeReconnectV1239(owner,reason='reconnect'){
+  if(!owner||currentSessionUser?.id!==owner||navigator.onLine===false)return;
+  clearTimeout(realtimeReconnectTimerV1239);
+  const delay=Math.min(10000,500*Math.pow(2,Math.min(realtimeReconnectAttemptV1239,4)));
+  realtimeReconnectAttemptV1239++;
+  realtimeReconnectTimerV1239=setTimeout(()=>{
+    realtimeReconnectTimerV1239=null;
+    if(currentSessionUser?.id!==owner||navigator.onLine===false)return;
+    try{subscribeRealtime({force:true,reason});}catch(err){console.warn('MMHVAULT realtime reconnect failed',err);}
+  },delay);
+}
+function subscribeRealtime(opts={}){
+  const owner=currentSessionUser?.id||'';
+  const force=opts===true||opts?.force===true;
+  if(!owner||navigator.onLine===false)return null;
+  if(realtimeChannelV384&&realtimeChannelOwnerV1235===owner&&!force)return realtimeChannelV384;
+  if(realtimeChannelV384)mmhVaultDisposeRealtimeV1239(force?'RECONNECTING':'OWNER_CHANGED');
   realtimeChannelOwnerV1235=owner;
-  const setState=(connected,status)=>{
-    realtimeReady=!!connected;
-    window.mmhvaultRealtimeStateV335={connected:!!connected,status:String(status||""),at:Date.now(),owner};
-    try{window.dispatchEvent(new CustomEvent("mmhvault:realtime-state",{detail:window.mmhvaultRealtimeStateV335}));}catch(_e){}
-  };
   const onlyOwner=`user_id=eq.${owner}`;
-  const channel=db.channel(`myfinance-sync-v1235-${owner.slice(0,8)}`)
-    .on("postgres_changes",{event:"*",schema:"public",table:"transactions",filter:onlyOwner},()=>{if(currentSessionUser?.id===owner)scheduleRealtimeRefreshV384("transactions");})
-    .on("postgres_changes",{event:"*",schema:"public",table:"investments",filter:onlyOwner},()=>{if(currentSessionUser?.id===owner)scheduleRealtimeRefreshV384("investments");})
-    .on("postgres_changes",{event:"*",schema:"public",table:"exchange_rates",filter:onlyOwner},()=>{if(currentSessionUser?.id===owner)scheduleRealtimeRefreshV384("exchange_rates");})
+  const channel=db.channel(`myfinance-sync-v1239-${owner.slice(0,8)}-${Date.now().toString(36)}`)
+    .on('postgres_changes',{event:'*',schema:'public',table:'transactions',filter:onlyOwner},()=>{if(currentSessionUser?.id===owner&&realtimeChannelV384===channel)scheduleRealtimeRefreshV384('transactions');})
+    .on('postgres_changes',{event:'*',schema:'public',table:'investments',filter:onlyOwner},()=>{if(currentSessionUser?.id===owner&&realtimeChannelV384===channel)scheduleRealtimeRefreshV384('investments');})
+    .on('postgres_changes',{event:'*',schema:'public',table:'exchange_rates',filter:onlyOwner},()=>{if(currentSessionUser?.id===owner&&realtimeChannelV384===channel)scheduleRealtimeRefreshV384('exchange_rates');})
     .subscribe((status)=>{
-      if(currentSessionUser?.id!==owner)return;
-      if(status==="SUBSCRIBED") setState(true,status);
-      else if(status==="CHANNEL_ERROR"||status==="TIMED_OUT"||status==="CLOSED") setState(false,status);
+      if(currentSessionUser?.id!==owner||realtimeChannelV384!==channel)return;
+      if(status==='SUBSCRIBED'){realtimeReconnectAttemptV1239=0;clearTimeout(realtimeReconnectTimerV1239);realtimeReconnectTimerV1239=null;mmhVaultRealtimeStateV1239(true,status,owner);}
+      else if(status==='CHANNEL_ERROR'||status==='TIMED_OUT'||status==='CLOSED'){mmhVaultRealtimeStateV1239(false,status,owner);mmhVaultScheduleRealtimeReconnectV1239(owner,status);}
+      else mmhVaultRealtimeStateV1239(false,status||'CONNECTING',owner);
     });
   realtimeChannelV384=channel;
-  setState(false,"CONNECTING");
+  mmhVaultRealtimeStateV1239(false,'CONNECTING',owner);
   return channel;
 }
+
+let mmhVaultSessionCheckPromiseV1239=null,mmhVaultLastSessionCheckV1239=0,mmhVaultSessionExitBusyV1239=false;
+function mmhVaultResetDataLifecycleV1239(reason='session-change'){
+  try{
+    const ds=window.mmhvaultDataStateV334;if(ds){ds.status='idle';ds.lastReason=reason;ds.lastLoadedAt=0;ds.transactions=0;ds.investments=0;}
+    window.__mmhLastCloudLoadAtV1235=0;
+    window.dispatchEvent(new CustomEvent('mmhvault:data-state',{detail:{status:'idle',reason}}));
+  }catch(_e){}
+}
+window.mmhVaultSignOutCleanupV1239=function(reason='signed-out'){
+  if(mmhVaultSessionExitBusyV1239)return;
+  mmhVaultSessionExitBusyV1239=true;
+  try{
+    mmhVaultDisposeRealtimeV1239('SIGNED_OUT');
+    activeEnterUserId='';
+    setDataLoadingV384(false);setDataErrorV384('');
+    applyUserProfile(null);
+    mmhVaultResetDataLifecycleV1239(reason);
+    sessionStorage.removeItem('myfinance_page');
+  }catch(err){console.warn('MMHVAULT sign-out cleanup warning',err);}
+  location.replace('login.html');
+};
+window.mmhVaultSwitchSessionV1239=async function(session){
+  if(!session?.user?.id)return;
+  const nextOwner=session.user.id;
+  mmhVaultDisposeRealtimeV1239('ACCOUNT_SWITCH');
+  activeEnterUserId='';
+  applyUserProfile(session.user);
+  mmhVaultResetDataLifecycleV1239('account-switch');
+  if(currentSessionUser?.id!==nextOwner)return;
+  await enter(session);
+};
+async function mmhVaultReconcileSessionV1239(reason='resume',opts={}){
+  if(mmhVaultSessionCheckPromiseV1239)return mmhVaultSessionCheckPromiseV1239;
+  const run=(async()=>{
+    try{
+      const result=await db.auth.getSession();
+      if(result.error)throw result.error;
+      const session=result.data?.session||null;
+      if(!session?.user?.id){window.mmhVaultSignOutCleanupV1239('session-missing');return {ok:false};}
+      const owner=session.user.id;
+      if(currentSessionUser?.id&&currentSessionUser.id!==owner){await window.mmhVaultSwitchSessionV1239(session);return {ok:true,switched:true};}
+      if(!currentSessionUser){await enter(session);return {ok:true,resumed:true};}
+      applyUserProfile(session.user);
+      if(navigator.onLine!==false&&(opts.forceRealtime||!realtimeReady||realtimeChannelOwnerV1235!==owner))subscribeRealtime({force:true,reason});
+      const staleFor=Date.now()-Number(window.__mmhLastCloudLoadAtV1235||0);
+      if(opts.refreshData&&(!Number.isFinite(staleFor)||staleFor>15000))await window.loadAll?.({force:true});
+      return {ok:true};
+    }catch(err){console.warn('MMHVAULT session reconcile skipped',reason,err);return {ok:false,error:err};}
+  })();
+  mmhVaultSessionCheckPromiseV1239=run;
+  try{return await run;}finally{if(mmhVaultSessionCheckPromiseV1239===run)mmhVaultSessionCheckPromiseV1239=null;}
+}
+window.mmhVaultHandleOnlineV1239=function(){return mmhVaultReconcileSessionV1239('online',{forceRealtime:true,refreshData:true});};
+window.mmhVaultHandleOfflineV1239=function(){mmhVaultDisposeRealtimeV1239('OFFLINE');};
+function mmhVaultResumeLifecycleV1239(reason){
+  const now=Date.now();if(now-mmhVaultLastSessionCheckV1239<1200)return;mmhVaultLastSessionCheckV1239=now;
+  const staleFor=now-Number(window.__mmhLastCloudLoadAtV1235||0);
+  mmhVaultReconcileSessionV1239(reason,{forceRealtime:!realtimeReady,refreshData:staleFor>120000});
+}
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')mmhVaultResumeLifecycleV1239('visible');});
+window.addEventListener('focus',()=>mmhVaultResumeLifecycleV1239('focus'));
 
 function currency(a){return mmhVaultAccountMeta(a).currency||"MMK";}
 function toMMK(a){
@@ -12635,6 +12762,7 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
   window.mmhvaultGetDataStateV334=snapshot;
   window.addEventListener('mmhvault:data-change',()=>{state.lastReason='mutation';state.status='dirty';publish('mmhvault:data-state');});
   window.addEventListener('mmhvault:period-change',()=>publish('mmhvault:data-state',{reason:'period-change'}));
+  window.addEventListener('mmhvault:config-owner-changed',()=>{state.status='idle';state.lastReason='owner-change';state.lastLoadedAt=0;state.transactions=0;state.investments=0;publish('mmhvault:data-state',{reason:'owner-change'});});
   const base=window.loadAll;
   if(typeof base==='function'&&!base.__mmh334Wrapped){
     const wrapped=async function(){
@@ -12718,8 +12846,8 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
       return true;
     }catch(e){console.warn('MMHVAULT cache restore failed:',e);return false;}
   };
-  window.addEventListener('online',function(){setNet();dispatch('mmhvault:network-change',{online:true});if(typeof loadAll==='function')setTimeout(()=>{try{loadAll({force:true});}catch(_e){}},150);});
-  window.addEventListener('offline',function(){setNet();dispatch('mmhvault:network-change',{online:false});});
+  window.addEventListener('online',function(){setNet();dispatch('mmhvault:network-change',{online:true});setTimeout(()=>{try{window.mmhVaultHandleOnlineV1239?.();}catch(_e){}},120);});
+  window.addEventListener('offline',function(){setNet();dispatch('mmhvault:network-change',{online:false});try{window.mmhVaultHandleOfflineV1239?.();}catch(_e){}});
   window.addEventListener('mmhvault:data-loaded',function(e){if(e?.detail?.ok===true||e?.detail?.result?.ok===true)safeWrite();});
   setNet();
 })();
@@ -12760,84 +12888,71 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
 </script>
 <script id="mmhvault-v338-retry-recovery">
 /* MMHVAULT V4.3.0 · Sync error recovery + exponential retry.
-   Retries failed cloud refreshes without changing data rules or schema. */
+   V1.2.3.9 hardening: retries are scoped to the current auth owner + session generation. */
 (function(){
   if(window.__mmhV338RetryInstalled)return;
   window.__mmhV338RetryInstalled=true;
-  const MAX_RETRIES=3, BASE_DELAY=900, MAX_DELAY=7000;
-  let active=null;
+  const MAX_RETRIES=3,BASE_DELAY=900,MAX_DELAY=7000;
+  let active=null,activeOwner='',activeEpoch=-1;
   const sleep=ms=>new Promise(r=>setTimeout(r,ms));
   function publish(name,detail){try{window.dispatchEvent(new CustomEvent(name,{detail}));}catch(_e){}}
   function setSyncStatus(kind,label,msg){
     publish('mmhvault:retry-state',{kind,label,msg});
     try{
-      const root=document.getElementById('mmhvaultSyncStatusV337'); if(!root)return;
+      const root=document.getElementById('mmhvaultSyncStatusV337');if(!root)return;
       root.classList.remove('syncing','offline','error','stale');
-      if(kind==='syncing')root.classList.add('syncing');
-      if(kind==='offline')root.classList.add('offline');
-      if(kind==='error')root.classList.add('error');
-      if(kind==='stale')root.classList.add('stale');
-      const labelEl=root.querySelector('.sync-label'); if(labelEl)labelEl.textContent=label;
-      if(msg)root.title=msg;
+      if(kind==='syncing')root.classList.add('syncing');if(kind==='offline')root.classList.add('offline');if(kind==='error')root.classList.add('error');if(kind==='stale')root.classList.add('stale');
+      const labelEl=root.querySelector('.sync-label');if(labelEl)labelEl.textContent=label;if(msg)root.title=msg;
     }catch(_e){}
   }
   function waitForOnline(timeout=15000){
     if(navigator.onLine!==false)return Promise.resolve(true);
     return new Promise(resolve=>{
-      let done=false;
-      const finish=v=>{if(done)return;done=true;window.removeEventListener('online',on);clearTimeout(timer);resolve(v);};
-      const on=()=>finish(true); const timer=setTimeout(()=>finish(false),timeout);
-      window.addEventListener('online',on,{once:true});
+      let done=false;const finish=v=>{if(done)return;done=true;window.removeEventListener('online',on);clearTimeout(timer);resolve(v);};
+      const on=()=>finish(true),timer=setTimeout(()=>finish(false),timeout);window.addEventListener('online',on,{once:true});
     });
   }
   const originalLoadAll=window.loadAll;
-  if(typeof originalLoadAll!=='function')return;
-  if(originalLoadAll.__mmh338RetryWrapped)return;
+  if(typeof originalLoadAll!=='function'||originalLoadAll.__mmh338RetryWrapped)return;
   const wrapped=async function(opts={}){
-    if(active) return active;
+    const owner=currentSessionUser?.id||'',epoch=Number(window.__mmhSessionEpochV1239)||0;
+    if(active&&activeOwner===owner&&activeEpoch===epoch)return active;
+    const args=arguments,self=this;
     const run=async()=>{
       let last=null;
-      for(let attempt=0; attempt<=MAX_RETRIES; attempt++){
+      for(let attempt=0;attempt<=MAX_RETRIES;attempt++){
+        if(currentSessionUser?.id!==owner||Number(window.__mmhSessionEpochV1239)!==epoch)return {ok:false,errors:['Session changed']};
         if(navigator.onLine===false){
           setSyncStatus('offline','Offline','Waiting for the network before retrying cloud sync');
           const online=await waitForOnline();
+          if(currentSessionUser?.id!==owner||Number(window.__mmhSessionEpochV1239)!==epoch)return {ok:false,errors:['Session changed']};
           if(!online){last=new Error('Offline');break;}
         }
         if(attempt>0){
           const delay=Math.min(MAX_DELAY,BASE_DELAY*Math.pow(2,attempt-1));
           setSyncStatus('syncing','Retrying',`Cloud refresh retry ${attempt}/${MAX_RETRIES} in ${Math.ceil(delay/1000)}s`);
-          publish('mmhvault:sync-retry',{attempt,maxRetries:MAX_RETRIES,delay});
+          publish('mmhvault:sync-retry',{attempt,maxRetries:MAX_RETRIES,delay,owner});
           await sleep(delay);
-        }else{
-          setSyncStatus('syncing','Syncing','Refreshing your latest cloud data');
-        }
+          if(currentSessionUser?.id!==owner||Number(window.__mmhSessionEpochV1239)!==epoch)return {ok:false,errors:['Session changed']};
+        }else setSyncStatus('syncing','Syncing','Refreshing your latest cloud data');
         try{
-          const result=await originalLoadAll.apply(this,arguments);
-          const ok=!result || result.ok!==false;
-          if(ok){
-            setSyncStatus('ready','Cloud Synced','Latest cloud data loaded');
-            publish('mmhvault:sync-recovered',{attempt,result:result||null});
-            return result;
-          }
+          const result=await originalLoadAll.apply(self,args);
+          if(currentSessionUser?.id!==owner||Number(window.__mmhSessionEpochV1239)!==epoch)return {ok:false,errors:['Session changed']};
+          if(!result||result.ok!==false){setSyncStatus('ready','Cloud Synced','Latest cloud data loaded');publish('mmhvault:sync-recovered',{attempt,result:result||null,owner});return result;}
+          if(result.errors?.[0]==='Session changed')return result;
           last=new Error((result.errors&&result.errors[0])||'Cloud refresh returned an error');
-        }catch(err){
-          last=err;
-        }
-        if(attempt<MAX_RETRIES) continue;
+        }catch(err){last=err;}
       }
       setSyncStatus('error','Sync Error','Cloud refresh failed after automatic retries');
-      publish('mmhvault:sync-failed',{error:String(last?.message||last||'Unknown error'),maxRetries:MAX_RETRIES});
+      publish('mmhvault:sync-failed',{error:String(last?.message||last||'Unknown error'),maxRetries:MAX_RETRIES,owner});
       return {ok:false,errors:[String(last?.message||last||'Unknown error')],retries:MAX_RETRIES};
     };
-    active=run();
-    try{return await active;}finally{active=null;}
+    const task=run();active=task;activeOwner=owner;activeEpoch=epoch;
+    try{return await task;}finally{if(active===task){active=null;activeOwner='';activeEpoch=-1;}}
   };
-  wrapped.__mmh338RetryWrapped=true;
-  wrapped.__mmh338Original=originalLoadAll;
-  window.loadAll=wrapped;
+  wrapped.__mmh338RetryWrapped=true;wrapped.__mmh338Original=originalLoadAll;window.loadAll=wrapped;
   try{globalThis.loadAll=wrapped;}catch(_e){}
   window.mmhvaultRetryCloudSyncV338=()=>wrapped({force:true});
-  window.addEventListener('online',()=>{setTimeout(()=>{if(typeof window.mmhvaultRetryCloudSyncV338==='function')window.mmhvaultRetryCloudSyncV338();},250);});
 })();
 </script>
 <style id="mmhvault-v336-crypto-portfolio-css">
