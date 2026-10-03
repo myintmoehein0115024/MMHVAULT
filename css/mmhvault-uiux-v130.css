@@ -1,0 +1,417 @@
+/* MMHVAULT v1.3.0 · UI/UX Final Pass 1
+   Scope: Dashboard + Transactions + Investment Center presentation only.
+   No finance calculations, Supabase queries, CRUD handlers, auth, PWA or data models are changed. */
+
+body.mmh-workspace-active :is(#dashboard,#transactions,#invest){
+  --mmh-ui-surface:linear-gradient(145deg,rgba(9,28,47,.96),rgba(5,18,32,.98));
+  --mmh-ui-surface-soft:linear-gradient(145deg,rgba(12,31,52,.86),rgba(6,19,34,.92));
+  --mmh-ui-border:rgba(91,151,199,.22);
+  --mmh-ui-border-strong:rgba(104,174,226,.34);
+  --mmh-ui-gold:rgba(242,196,94,.92);
+  --mmh-ui-muted:rgba(166,190,211,.78);
+  --mmh-ui-shadow:0 16px 38px rgba(0,0,0,.18),inset 0 1px 0 rgba(255,255,255,.03);
+}
+
+/* ---------------- Dashboard: calmer hierarchy, denser financial scan ---------------- */
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500{
+  max-width:1420px!important;
+  padding:2px 0 18px!important;
+}
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-hero-v500{
+  min-height:84px!important;
+  padding:0 3px 14px!important;
+  gap:18px!important;
+}
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 h1{
+  font-size:clamp(30px,2.35vw,38px)!important;
+  line-height:1.04!important;
+}
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-hero-sub-v500{
+  max-width:760px!important;
+  margin-top:6px!important;
+  color:var(--mmh-ui-muted)!important;
+}
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-hero-date-v500{
+  border-color:rgba(101,157,201,.18)!important;
+  background:rgba(5,19,32,.68)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.025)!important;
+}
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-kpis-v500{
+  gap:12px!important;
+  margin-top:2px!important;
+}
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-kpi-v500{
+  min-height:118px!important;
+  padding:16px 17px!important;
+  border-radius:18px!important;
+  border-color:var(--mmh-ui-border)!important;
+  background:var(--mmh-ui-surface-soft)!important;
+  box-shadow:var(--mmh-ui-shadow)!important;
+  transform:none!important;
+  transition:border-color .16s ease,background-color .16s ease,box-shadow .16s ease!important;
+}
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-kpi-v500:hover{
+  transform:none!important;
+  border-color:var(--mmh-ui-border-strong)!important;
+  box-shadow:0 18px 42px rgba(0,0,0,.21),inset 0 1px 0 rgba(255,255,255,.035)!important;
+}
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-kpi-v500.gold{
+  border-color:rgba(242,196,94,.38)!important;
+  background:radial-gradient(circle at 94% 8%,rgba(242,196,94,.09),transparent 35%),var(--mmh-ui-surface-soft)!important;
+}
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-kpi-value-v500{
+  margin-top:9px!important;
+  font-size:clamp(22px,1.85vw,27px)!important;
+}
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-kpi-icon-v500{
+  width:36px!important;height:36px!important;right:14px!important;top:14px!important;
+  background:rgba(25,67,94,.24)!important;
+}
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 :is(.pf-card-v500,.pf-budget-v112,.pf-planning-card-v117){
+  border-radius:18px!important;
+  border-color:var(--mmh-ui-border)!important;
+  background:var(--mmh-ui-surface)!important;
+  box-shadow:var(--mmh-ui-shadow)!important;
+}
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-main-grid-v500{
+  grid-template-columns:minmax(0,1.5fr) minmax(330px,.78fr)!important;
+  gap:12px!important;margin-top:12px!important;
+}
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-bottom-grid-v500{
+  grid-template-columns:minmax(0,1.18fr) minmax(360px,.92fr)!important;
+  gap:12px!important;margin-top:12px!important;
+}
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-card-head-v500{
+  padding:16px 17px 0!important;
+}
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-card-head-v500 h2{
+  font-size:15px!important;letter-spacing:-.012em!important;
+}
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-link-v500,
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-planning-open-v117{
+  min-height:28px!important;
+  padding:6px 9px!important;
+  border:1px solid rgba(106,165,210,.16)!important;
+  border-radius:9px!important;
+  background:rgba(14,42,64,.36)!important;
+  color:#9bcbe8!important;
+  font-weight:750!important;
+  text-decoration:none!important;
+}
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 :is(.pf-link-v500,.pf-planning-open-v117):hover{
+  border-color:rgba(111,184,230,.34)!important;
+  background:rgba(18,54,82,.52)!important;
+  color:#d9effc!important;
+}
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-tx-row-v500{
+  border-radius:9px!important;
+  transition:background-color .14s ease!important;
+}
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-tx-row-v500:hover{
+  background:rgba(24,58,81,.22)!important;
+}
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-planning-v117{
+  gap:12px!important;margin-top:12px!important;
+}
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-planning-card-v117{
+  padding:15px!important;
+}
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-budget-v112{
+  margin-top:12px!important;
+}
+
+/* ---------------- Transactions: quicker forms, cleaner history hierarchy ---------------- */
+body.mmh-workspace-active #transactions>.mmh-tx-hero-v3{
+  margin-bottom:14px!important;
+  padding:5px 2px 13px!important;
+  border-bottom:1px solid rgba(94,154,202,.10)!important;
+}
+body.mmh-workspace-active #transactions .mmh-tx-hero-copy-v3 h1{
+  font-size:clamp(29px,2.25vw,37px)!important;
+  letter-spacing:-.04em!important;
+}
+body.mmh-workspace-active #transactions .mmh-transaction-sub-v2{
+  max-width:650px!important;
+  color:var(--mmh-ui-muted)!important;
+}
+body.mmh-workspace-active #transactions .mmh-tx-page-trigger-v3{
+  min-width:190px!important;
+  min-height:42px!important;
+  border:1px solid rgba(102,169,220,.22)!important;
+  background:linear-gradient(145deg,rgba(12,35,58,.88),rgba(7,23,40,.94))!important;
+  box-shadow:0 9px 20px rgba(0,0,0,.13),inset 0 1px 0 rgba(255,255,255,.035)!important;
+}
+body.mmh-workspace-active #transactions .tx-tab-panel-v371>.panel{
+  border-radius:19px!important;
+  border-color:var(--mmh-ui-border)!important;
+  background:var(--mmh-ui-surface)!important;
+  box-shadow:var(--mmh-ui-shadow)!important;
+}
+body.mmh-workspace-active #transactions #txAddPanel>.panel{
+  padding:21px!important;
+}
+body.mmh-workspace-active #transactions #txForm .formgrid{
+  gap:13px 15px!important;
+}
+body.mmh-workspace-active #transactions #txForm .mmh-form-section-v1{
+  display:flex!important;
+  align-items:center!important;
+  gap:10px!important;
+  min-height:30px!important;
+  margin:4px 0 0!important;
+  color:#d7e7f3!important;
+  font-size:10px!important;
+  font-weight:850!important;
+  letter-spacing:.08em!important;
+  text-transform:uppercase!important;
+}
+body.mmh-workspace-active #transactions #txForm .mmh-form-section-v1::after{
+  content:"";height:1px;flex:1;background:linear-gradient(90deg,rgba(105,173,220,.22),transparent)!important;
+}
+body.mmh-workspace-active #transactions #txForm label{
+  color:rgba(194,214,230,.78)!important;
+  font-size:10px!important;
+  font-weight:740!important;
+}
+body.mmh-workspace-active #transactions #txForm :is(input,select,textarea){
+  min-height:44px!important;
+  border-radius:11px!important;
+  border-color:rgba(97,158,205,.22)!important;
+  background:rgba(5,20,35,.88)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.025)!important;
+}
+body.mmh-workspace-active #transactions #txForm :is(input,select,textarea):focus{
+  border-color:rgba(78,192,247,.52)!important;
+  box-shadow:0 0 0 3px rgba(69,175,232,.08),inset 0 1px 0 rgba(255,255,255,.035)!important;
+}
+body.mmh-workspace-active #transactions .receipt-upload-v3300{
+  border-radius:15px!important;
+  border-color:rgba(92,158,207,.18)!important;
+  background:rgba(7,25,43,.58)!important;
+}
+body.mmh-workspace-active #transactions #txAddPanel .actions .btn.primary{
+  min-width:178px!important;
+  border-color:rgba(95,194,241,.30)!important;
+  box-shadow:0 10px 25px rgba(41,139,207,.14)!important;
+}
+body.mmh-workspace-active #transactions #txHistoryPanel>.panel{
+  padding:19px!important;
+}
+body.mmh-workspace-active #transactions #txHistoryPanel .filter-grid{
+  border-radius:13px!important;
+  border-color:rgba(91,150,197,.14)!important;
+  background:rgba(4,17,30,.52)!important;
+}
+body.mmh-workspace-active #transactions #txHistoryPanel .filter-grid :is(input,select){
+  background:rgba(6,22,38,.91)!important;
+  border-color:rgba(99,157,204,.19)!important;
+}
+body.mmh-workspace-active #transactions #txList table{
+  border-spacing:0 6px!important;
+}
+body.mmh-workspace-active #transactions #txList tbody td{
+  background:linear-gradient(180deg,rgba(9,27,46,.92),rgba(6,20,35,.95))!important;
+  border-top-color:rgba(84,145,194,.12)!important;
+  border-bottom-color:rgba(84,145,194,.10)!important;
+}
+body.mmh-workspace-active #transactions #txList tbody tr:hover td{
+  background:linear-gradient(180deg,rgba(12,35,58,.96),rgba(8,25,43,.97))!important;
+}
+body.mmh-workspace-active #transactions #txList thead th{
+  background:rgba(4,18,32,.97)!important;
+  color:rgba(227,201,129,.82)!important;
+}
+
+/* ---------------- Investment Center: reduce visual noise, improve scan + navigation ---------------- */
+body.mmh-workspace-active #invest::before,
+body.mmh-workspace-active #invest::after,
+body.mmh-workspace-active #invest .v371-head,
+body.mmh-workspace-active #invest .v371-head::before,
+body.mmh-workspace-active #invest .v371-head>div:first-child::after,
+body.mmh-workspace-active #invest .v371-switch::after,
+body.mmh-workspace-active #invest .invest-subtabs-v371,
+body.mmh-workspace-active #invest .invest-subtabs-v371::before,
+body.mmh-workspace-active #invest :is(#v371CryptoMarket,#v371GoldMarket){
+  animation:none!important;
+}
+body.mmh-workspace-active #invest .v371-head>div:first-child::after,
+body.mmh-workspace-active #invest .v371-switch::after,
+body.mmh-workspace-active #invest .invest-subtabs-v371::before{
+  display:none!important;
+}
+body.mmh-workspace-active #invest .v371-head{
+  min-height:112px!important;
+  padding:21px 22px 18px!important;
+  border-radius:0 0 20px 20px!important;
+  border-bottom:1px solid rgba(87,151,201,.17)!important;
+  background:radial-gradient(circle at 92% 10%,rgba(72,190,241,.055),transparent 30%),linear-gradient(120deg,rgba(5,20,35,.97),rgba(7,24,41,.91))!important;
+  box-shadow:0 16px 38px rgba(0,0,0,.16),inset 0 1px 0 rgba(255,255,255,.035)!important;
+}
+body.mmh-workspace-active #invest .v371-head h1{
+  font-size:clamp(34px,3.25vw,48px)!important;
+  line-height:1!important;
+  letter-spacing:-.05em!important;
+}
+body.mmh-workspace-active #invest .v371-head .sub{
+  max-width:720px!important;
+  margin-top:8px!important;
+  color:var(--mmh-ui-muted)!important;
+  font-size:10px!important;
+}
+body.mmh-workspace-active #invest .v371-head .v371-switch{
+  min-width:200px!important;
+  padding:4px!important;
+  border-radius:14px!important;
+  background:rgba(3,16,28,.7)!important;
+  border-color:rgba(94,155,204,.16)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.025)!important;
+}
+body.mmh-workspace-active #invest .v371-switch .btn{
+  min-height:46px!important;
+  border-radius:10px!important;
+  transform:none!important;
+}
+body.mmh-workspace-active #invest .invest-subtabs-v371{
+  min-height:58px!important;
+  margin-top:9px!important;
+  padding:4px!important;
+  border-radius:15px!important;
+  border-color:rgba(91,151,199,.15)!important;
+  background:rgba(4,18,32,.74)!important;
+  box-shadow:0 10px 24px rgba(0,0,0,.12),inset 0 1px 0 rgba(255,255,255,.025)!important;
+}
+body.mmh-workspace-active #invest .invest-subtab-v371{
+  min-height:48px!important;
+  border-radius:11px!important;
+  font-size:11px!important;
+  transform:none!important;
+}
+body.mmh-workspace-active #invest .invest-subtab-v371:hover{
+  transform:none!important;
+}
+body.mmh-workspace-active #invest .invest-subtab-v371.active{
+  border-color:rgba(91,182,226,.24)!important;
+  background:linear-gradient(145deg,rgba(39,104,143,.23),rgba(19,57,83,.19))!important;
+}
+body.mmh-workspace-active #invest :is(.panel,.mmh-ui-panel,.portfolio-panel-v310,.portfolio-manager-v310){
+  border-radius:18px!important;
+  border-color:var(--mmh-ui-border)!important;
+  box-shadow:var(--mmh-ui-shadow)!important;
+}
+body.mmh-workspace-active #invest .invest-top{
+  gap:12px!important;
+  padding-top:12px!important;
+}
+body.mmh-workspace-active #invest .invest-top::before{
+  color:rgba(123,160,188,.62)!important;
+  letter-spacing:.16em!important;
+}
+body.mmh-workspace-active #invest #investMetrics{
+  gap:12px!important;
+}
+body.mmh-workspace-active #invest .portfolio-manager-v310{
+  padding:19px!important;
+}
+body.mmh-workspace-active #invest .portfolio-grid-v310{
+  gap:12px!important;
+}
+body.mmh-workspace-active #invest .portfolio-panel-v310{
+  background:rgba(6,22,38,.58)!important;
+}
+body.mmh-workspace-active #invest .invest-entry{
+  padding:19px!important;
+  border-radius:18px!important;
+  background:var(--mmh-ui-surface)!important;
+  border-color:var(--mmh-ui-border)!important;
+  box-shadow:var(--mmh-ui-shadow)!important;
+}
+body.mmh-workspace-active #invest .invest-entry>.toolbar{
+  padding-bottom:13px!important;
+  border-bottom:1px solid rgba(91,151,199,.11)!important;
+}
+body.mmh-workspace-active #invest .invest-entry .mmh-form-section-v1{
+  display:flex!important;align-items:center!important;gap:10px!important;
+  min-height:29px!important;margin:3px 0 0!important;
+  color:#d6e7f3!important;font-size:10px!important;font-weight:850!important;
+  letter-spacing:.08em!important;text-transform:uppercase!important;
+}
+body.mmh-workspace-active #invest .invest-entry .mmh-form-section-v1::after{
+  content:"";height:1px;flex:1;background:linear-gradient(90deg,rgba(104,171,219,.21),transparent)!important;
+}
+body.mmh-workspace-active #invest .invest-entry .formgrid>label{
+  color:rgba(194,214,230,.78)!important;
+  font-size:10px!important;
+  font-weight:740!important;
+}
+body.mmh-workspace-active #invest .invest-entry .formgrid :is(input,select,textarea){
+  min-height:44px!important;
+  border-radius:11px!important;
+  border-color:rgba(97,158,205,.22)!important;
+  background:rgba(5,20,35,.88)!important;
+}
+body.mmh-workspace-active #invest .invest-entry .formgrid :is(input,select,textarea):focus{
+  border-color:rgba(78,192,247,.52)!important;
+  box-shadow:0 0 0 3px rgba(69,175,232,.08),inset 0 1px 0 rgba(255,255,255,.035)!important;
+}
+body.mmh-workspace-active #invest :is(#mmhUnifiedHistoryV1,#mmhInvestCatalogV1,#mmhUnifiedInvestV1) .mmh-ui-heading{
+  gap:12px!important;
+}
+body.mmh-workspace-active #invest .mmh-ui-row{
+  border-radius:13px!important;
+  border-color:rgba(91,151,199,.13)!important;
+  background:rgba(6,22,38,.52)!important;
+}
+body.mmh-workspace-active #invest .mmh-ui-row:hover{
+  border-color:rgba(102,174,221,.25)!important;
+  background:rgba(9,29,49,.66)!important;
+}
+
+/* ---------------- Responsive pass ---------------- */
+@media(max-width:1180px){
+  body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-main-grid-v500{grid-template-columns:minmax(0,1.35fr) minmax(300px,.82fr)!important}
+  body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-bottom-grid-v500{grid-template-columns:1fr 1fr!important}
+}
+@media(max-width:980px){
+  body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-kpis-v500{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 :is(.pf-main-grid-v500,.pf-bottom-grid-v500){grid-template-columns:1fr!important}
+  body.mmh-workspace-active #invest .v371-head{align-items:flex-start!important}
+}
+@media(max-width:760px){
+  body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500{padding-bottom:88px!important}
+  body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-hero-v500{display:block!important;padding:0 0 12px!important}
+  body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 h1{font-size:28px!important}
+  body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-kpis-v500{gap:9px!important}
+  body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-kpi-v500{min-height:108px!important;padding:14px!important;border-radius:15px!important}
+  body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-kpi-value-v500{font-size:21px!important;padding-right:28px!important}
+  body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 :is(.pf-card-v500,.pf-budget-v112,.pf-planning-card-v117){border-radius:15px!important}
+
+  body.mmh-workspace-active #transactions>.mmh-tx-hero-v3{border-bottom:0!important;padding-left:0!important;padding-right:0!important}
+  body.mmh-workspace-active #transactions .mmh-tx-page-trigger-v3{min-width:0!important;width:100%!important}
+  body.mmh-workspace-active #transactions #txAddPanel>.panel,
+  body.mmh-workspace-active #transactions #txHistoryPanel>.panel{padding:13px!important;border-radius:16px!important}
+  body.mmh-workspace-active #transactions #txForm .mmh-form-section-v1{margin-top:2px!important}
+
+  body.mmh-workspace-active #invest .v371-head{padding:17px 14px 14px!important;border-radius:0 0 17px 17px!important}
+  body.mmh-workspace-active #invest .v371-head h1{font-size:32px!important}
+  body.mmh-workspace-active #invest .v371-head .v371-switch{width:100%!important;min-width:0!important;margin-top:11px!important}
+  body.mmh-workspace-active #invest .invest-subtabs-v371{overflow-x:auto!important;scrollbar-width:none!important;display:flex!important;gap:4px!important;justify-content:flex-start!important}
+  body.mmh-workspace-active #invest .invest-subtabs-v371::-webkit-scrollbar{display:none!important}
+  body.mmh-workspace-active #invest .invest-subtab-v371{flex:0 0 auto!important;min-width:116px!important;padding-inline:13px!important}
+  body.mmh-workspace-active #invest :is(.panel,.mmh-ui-panel,.portfolio-panel-v310,.portfolio-manager-v310,.invest-entry){border-radius:16px!important}
+  body.mmh-workspace-active #invest .portfolio-manager-v310,
+  body.mmh-workspace-active #invest .invest-entry{padding:13px!important}
+}
+@media(max-width:430px){
+  body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-kpis-v500{grid-template-columns:1fr!important}
+  body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-kpi-v500{min-height:100px!important}
+  body.mmh-workspace-active #transactions #txAddPanel .actions{grid-template-columns:1fr 1.25fr!important}
+  body.mmh-workspace-active #invest .invest-subtab-v371{min-width:108px!important}
+}
+
+@media(prefers-reduced-motion:reduce){
+  body.mmh-workspace-active :is(#dashboard,#transactions,#invest) *,
+  body.mmh-workspace-active :is(#dashboard,#transactions,#invest) *::before,
+  body.mmh-workspace-active :is(#dashboard,#transactions,#invest) *::after{
+    scroll-behavior:auto!important;
+  }
+}
