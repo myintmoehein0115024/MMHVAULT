@@ -5774,7 +5774,8 @@ body.mmh-v436-explorer-open #bottomNav{visibility:hidden!important;pointer-event
   const el=id=>document.getElementById(id);
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const builtins=[{id:'crypto',name:'Crypto',active:true,builtin:true},{id:'gold',name:'Gold',active:true,builtin:true}];
-  let storageKey='',userId='',cloud=false,busy=false,loading=false,lastCloudUpdatedAt=null,lastRefresh=0,state={types:[],assets:[]};
+  let storageKey='',userId='',cloud=false,busy=false,loading=false,lastCloudUpdatedAt=null,lastRefresh=0,state={types:[],assets:[]},catalogDomDirtyV1513=true;
+  const investActiveV1513=()=>!!el('invest')?.classList.contains('active');
   const types=()=>[...builtins,...state.types];
   const activeTypes=()=>types().filter(t=>t.active!==false);
   window.mmhInvestCatalogTypesV1=activeTypes;
@@ -5796,7 +5797,11 @@ body.mmh-v436-explorer-open #bottomNav{visibility:hidden!important;pointer-event
       if(!result.data)throw Error('Catalog changed on another device. Reload this page to get the latest version before editing.');
       lastCloudUpdatedAt=result.data.updated_at;
       localStorage.setItem(storageKey,JSON.stringify(next));state=next;
-      render();window.mmhCustomInvestSync?.();window.mmhRenderInvestHistoryV1?.();window.mmhRenderUnifiedInvestV1?.();return true;
+      if(investActiveV1513()){
+        catalogDomDirtyV1513=false;
+        render();window.mmhCustomInvestSync?.();window.mmhRenderInvestHistoryV1?.();window.mmhRenderUnifiedInvestV1?.();
+      }else catalogDomDirtyV1513=true;
+      return true;
     }catch(err){el('mmhCatalogNoticeV1').textContent='Catalog was not saved: '+(err?.message||'Storage error');return false;}
     finally{busy=false;}
   }
@@ -5888,7 +5893,7 @@ body.mmh-v436-explorer-open #bottomNav{visibility:hidden!important;pointer-event
   async function load(){
     try{
       const user=(await db.auth.getUser()).data.user;
-      if(!user){storageKey='';userId='';cloud=false;lastCloudUpdatedAt=null;state={types:[],assets:[]};render();window.mmhRenderUnifiedInvestV1?.();return;}
+      if(!user){storageKey='';userId='';cloud=false;lastCloudUpdatedAt=null;state={types:[],assets:[]};if(investActiveV1513()){catalogDomDirtyV1513=false;render();window.mmhRenderUnifiedInvestV1?.()}else catalogDomDirtyV1513=true;return;}
       const key='mmhvault_invest_catalog_v1:'+user.id;
       if(busy||loading)return;
       loading=true;
@@ -5908,7 +5913,10 @@ body.mmh-v436-explorer-open #bottomNav{visibility:hidden!important;pointer-event
       lastRefresh=Date.now();
       if(cloud)localStorage.setItem(key,JSON.stringify(state));
       el('mmhCatalogNoticeV1').textContent=cloud?'Catalog synced to your signed-in account. Return to this page on another device to refresh it.':'Cloud catalog unavailable. Reconnect and refresh before editing; existing data is still visible here.';
-      render();window.mmhCustomInvestSync?.();window.mmhRenderUnifiedInvestV1?.();
+      if(investActiveV1513()){
+        catalogDomDirtyV1513=false;
+        render();window.mmhCustomInvestSync?.();window.mmhRenderUnifiedInvestV1?.();
+      }else catalogDomDirtyV1513=true;
     }catch(_){el('mmhCatalogNoticeV1').textContent='Investment catalog is unavailable on this device.';}
     finally{loading=false;}
   }
@@ -5927,14 +5935,19 @@ body.mmh-v436-explorer-open #bottomNav{visibility:hidden!important;pointer-event
     document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')refresh();});
   }
   window.addEventListener('mmhvault:data-loaded',load);
-  window.addEventListener('mmhvault:data-loaded',render);
+  window.addEventListener('mmhvault:page-visible',()=>{
+    if(!investActiveV1513()||!catalogDomDirtyV1513)return;
+    catalogDomDirtyV1513=false;
+    render();window.mmhCustomInvestSync?.();window.mmhRenderUnifiedInvestV1?.();
+  });
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
 </script>
 <script id="mmhvault-custom-invest-v1-js">
 (function(){
   const get=id=>document.getElementById(id),safe=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  let loading=false,saving=false,pending=false,revision=0;
+  let loading=false,saving=false,pending=false,revision=0,investDomDirtyV1513=true;
+  const investActiveV1513=()=>!!get('invest')?.classList.contains('active');
   window.mmhCustomInvestRecords=[];
   window.mmhCustomInvestLoaded=false;
   function catalog(){return window.mmhInvestCatalogSnapshotV1?.()||{types:[],assets:[]};}
@@ -5963,6 +5976,8 @@ body.mmh-v436-explorer-open #bottomNav{visibility:hidden!important;pointer-event
   function showChange(reason){
     if(reason!=='custom-investment-reloaded')revision++;
     window.dispatchEvent(new CustomEvent('mmhvault:data-change',{detail:{reason}}));
+    if(!investActiveV1513()){investDomDirtyV1513=true;return}
+    investDomDirtyV1513=false;
     window.mmhRenderInvestHistoryV1?.();window.mmhRenderUnifiedInvestV1?.();
     window.renderInvestNavigationHardFixV371?.();preview();
   }
@@ -6008,7 +6023,9 @@ body.mmh-v436-explorer-open #bottomNav{visibility:hidden!important;pointer-event
       const o=document.createElement('option');o.value='custom:'+t.id;o.textContent=t.name;o.dataset.customType='1';select.append(o);
     });
     if([...select.options].some(o=>o.value===current))select.value=current;
-    refreshAssets();window.mmhRenderUnifiedInvestV1?.();
+    refreshAssets();
+    if(investActiveV1513())window.mmhRenderUnifiedInvestV1?.();
+    else investDomDirtyV1513=true;
   }
   window.mmhCustomInvestSync=sync;
   async function reload(){
@@ -6070,6 +6087,12 @@ body.mmh-v436-explorer-open #bottomNav{visibility:hidden!important;pointer-event
     sync();reload();
   }
   window.addEventListener('mmhvault:data-loaded',reload);
+  window.addEventListener('mmhvault:page-visible',()=>{
+    if(!investActiveV1513()||!investDomDirtyV1513)return;
+    investDomDirtyV1513=false;
+    sync();window.mmhRenderInvestHistoryV1?.();window.mmhRenderUnifiedInvestV1?.();
+    window.renderInvestNavigationHardFixV371?.();preview();
+  });
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
 </script>
@@ -6112,7 +6135,8 @@ body.mmh-v436-explorer-open #bottomNav{visibility:hidden!important;pointer-event
 (function(){
   const el=id=>document.getElementById(id);
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  let filter='ALL',sideFilter='ALL';
+  let filter='ALL',sideFilter='ALL',historyDirtyV1513=true,receiptDirtyV1513=true,historyRafV1513=0;
+  const investActiveV1513=()=>!!el('invest')?.classList.contains('active');
   const numeric=v=>v!==null&&v!==undefined&&v!==''&&Number.isFinite(Number(v));
   const fmt=v=>{const n=Math.abs(Number(v));if(!Number.isFinite(n))return '—';
     if(n>0&&n<0.000001)return '<0.000001';
@@ -6333,6 +6357,15 @@ body.mmh-v436-explorer-open #bottomNav{visibility:hidden!important;pointer-event
     });
     modal.showModal();
   }
+  function scheduleHistoryV1513(){
+    if(!investActiveV1513()){historyDirtyV1513=true;return}
+    if(historyRafV1513)return;
+    historyRafV1513=requestAnimationFrame(()=>{
+      historyRafV1513=0;
+      if(!investActiveV1513()){historyDirtyV1513=true;return}
+      historyDirtyV1513=false;render();
+    });
+  }
   document.addEventListener('click',e=>{
     const typeButton=e.target.closest('#mmhHistoryFiltersV1 button[data-history-type]');
     if(typeButton){filter=typeButton.dataset.historyType;render();return;}
@@ -6353,12 +6386,21 @@ body.mmh-v436-explorer-open #bottomNav{visibility:hidden!important;pointer-event
       db.auth.getUser().then(r=>confirmDelete(row,r.data.user)).catch(err=>window.mmhEditDeleteUI.message('Delete unavailable',err?.message||String(err)));
     }
   });
-  window.addEventListener('mmhvault:data-loaded',render);
-  window.addEventListener('mmhvault:data-loaded',refreshCustomReceipts);
-  window.addEventListener('mmhvault:data-loaded',()=>window.refreshInvestmentReceiptFlagsV3304?.());
-  window.addEventListener('mmhvault:cache-restored',render);
-  window.addEventListener('mmhvault:data-change',render);
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',render,{once:true});else render();
+  ['mmhvault:data-loaded','mmhvault:cache-restored','mmhvault:data-change'].forEach(ev=>window.addEventListener(ev,()=>{
+    historyDirtyV1513=true;
+    scheduleHistoryV1513();
+    if(ev==='mmhvault:data-loaded')receiptDirtyV1513=true;
+  }));
+  window.addEventListener('mmhvault:page-visible',()=>{
+    if(!investActiveV1513())return;
+    if(historyDirtyV1513)scheduleHistoryV1513();
+    if(receiptDirtyV1513){
+      receiptDirtyV1513=false;
+      refreshCustomReceipts();
+      window.refreshInvestmentReceiptFlagsV3304?.();
+    }
+  });
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',scheduleHistoryV1513,{once:true});else scheduleHistoryV1513();
 })();
 </script>
 <script id="mmhvault-unified-invest-v1-js">
@@ -6457,7 +6499,7 @@ body.mmh-v436-explorer-open #bottomNav{visibility:hidden!important;pointer-event
     el('mmhUnifiedAllocationV1').innerHTML='<span>'+L('持仓占比 · USD','Portfolio mix · USD')+'</span>'+ (allocation||'<span>'+L('暂无持仓','No open positions')+'</span>');
     const mix=el('mmhUnifiedAllocationV1'),mixWrap=mix?.parentElement;
     const updateMixHint=()=>mixWrap?.classList.toggle('mmh-mix-more',mix.scrollWidth-mix.scrollLeft>mix.clientWidth+3);
-    if(mix&&!mix.dataset.mmhMixBound){mix.dataset.mmhMixBound='1';mix.addEventListener('scroll',updateMixHint,{passive:true});window.addEventListener('resize',updateMixHint,{passive:true});}
+    if(mix&&!mix.dataset.mmhMixBound){mix.dataset.mmhMixBound='1';mix.addEventListener('scroll',updateMixHint,{passive:true});window.addEventListener('resize',()=>{if(el('invest')?.classList.contains('active'))updateMixHint()},{passive:true});}
     if(mix)requestAnimationFrame(updateMixHint);
     const catalog=window.mmhInvestCatalogTypesV1?.()||[];
     const types=['ALL',...new Set([...data.cryptos.map(x=>x.type),...(data.hasGold?['GOLD']:[]),...catalog.map(x=>String(x.name).toUpperCase()),...data.custom.map(x=>String(x.type_name).toUpperCase())])];if(!types.includes(filter))filter='ALL';
@@ -28060,6 +28102,18 @@ window.MMHVAULT_V1512={
   financialLabelScanActiveSurfaceOnly:true,
   financialDataEnglishScanActiveSurfaceOnly:true,
   transactionLabelSyncActiveOnly:true
+};
+</script>
+
+
+<script id="mmhvault-v1513-invest-background-idle-marker">
+window.MMHVAULT_V1513={
+  version:'1.5.13',
+  investCatalogHiddenDomIdle:true,
+  customInvestHiddenDomIdle:true,
+  investHistoryHiddenDomIdle:true,
+  hiddenInvestReceiptStorageList:false,
+  hiddenInvestResizeMeasure:false
 };
 </script>
 
