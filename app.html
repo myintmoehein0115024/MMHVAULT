@@ -800,7 +800,7 @@ html{scrollbar-gutter:stable;}
 <link rel="stylesheet" href="css/mmhvault-v4.css?v=4.3.0">
 
 <link rel="stylesheet" href="css/mmhvault-premium-motion.css?v=20260929-bg1">
-<link rel="stylesheet" href="css/mmhvault-uiux-v130.css?v=1.4.3">
+<link rel="stylesheet" href="css/mmhvault-uiux-v130.css?v=1.4.4">
 
 <style id="mmhvault-v343-expenses-reduction">
 /* V4.3.0 data reduction: budget control now owns category ranking + budget progress;
@@ -6452,13 +6452,13 @@ body.mmh-v436-explorer-open #bottomNav{visibility:hidden!important;pointer-event
       const quantity=gold?weight:number(x.quantity,6)+' '+safe(unit),current=known?x.quantity*x.price:null;
       const pnl=known?current-x.cost:null,returnRate=known&&x.cost>0?pnl/x.cost*100:null;
       const goldRate=gold&&data.fx>0?L('换算汇率：1 USD = ','Rate: 1 USD = ')+number(data.fx)+' MMK':'';
-      return '<article class="mmh-overview-card"><div class="mmh-overview-card-head"><b>'+safe(x.name)+'</b><span class="'+typeTone(x.type)+'">'+(gold?L('黄金','Gold'):L('加密资产','Crypto'))+' · '+native+'</span></div><div class="mmh-overview-fields">'+
+      return '<article class="mmh-overview-card" data-invest-holding-v144="1" data-invest-type-v144="'+safe(x.type)+'" data-invest-name-v144="'+safe(x.name)+'"><div class="mmh-overview-card-head"><b>'+safe(x.name)+'</b><span class="'+typeTone(x.type)+'">'+(gold?L('黄金','Gold'):L('加密资产','Crypto'))+' · '+native+'</span></div><div class="mmh-overview-fields">'+
         field(L('持有数量','Quantity'),quantity)+field(L('单位平均成本','Average cost'),cash(x.cost/x.quantity,native,6)+' / '+safe(unit))+
         field(L('持仓成本','Holding cost'),cash(x.cost,native),gold&&data.fx>0?L('约 ','≈ ')+cash(x.cost/data.fx,'USD'):'')+
         field(L('估值价格','Valuation price'),known?cash(x.price,native,6)+' / '+safe(unit):L('暂无价格','Price unavailable'),safe(x.priceSource))+
         field(L('持仓价值','Holding value'),known?cash(current,native):L('暂无法估值','Valuation unavailable'),gold&&known&&data.fx>0?L('约 ','≈ ')+cash(current/data.fx,'USD'):'')+
         field(L('未实现盈亏','Unrealized P/L'),known?signed(pnl,native):'—',known&&returnRate!==null?L('回报率 ','Return ')+(returnRate>0?'+':returnRate<0?'−':'')+number(Math.abs(returnRate))+'%':'',known?tone(pnl):'mmh-pl-flat')+
-        '</div>'+(goldRate?'<div class="mmh-overview-rate">'+goldRate+'</div>':'')+'</article>';
+        '</div>'+(goldRate?'<div class="mmh-overview-rate">'+goldRate+'</div>':'')+'<div class="mmh-holding-actions-v144"><button type="button" data-invest-holding-action-v144="buy">＋ Buy more</button><button type="button" data-invest-holding-action-v144="sell">↗ Sell / Reduce</button><button type="button" data-invest-holding-action-v144="history">▤ History</button></div></article>';
     });
     const custom=data.custom.filter(x=>filter==='ALL'||String(x.type_name).toUpperCase()===filter).map(x=>{
       const account=typeof MMHVAULT_CONFIG!=='undefined'?MMHVAULT_CONFIG.accounts?.find(a=>a.name===x.source_account):null;
@@ -26094,6 +26094,69 @@ window.MM_HVAULT_STABILITY_V12311={version:'1.2.3.11',storageFailureIsolation:tr
 })();
 </script>
 
-<script id="mmhvault-v142-transaction-history-marker">window.MMHVAULT_TRANSACTION_HISTORY_V142={version:'1.4.3',detailToEdit:true,useAgain:true,receiptNotCopied:true,accountQuickActions:true,dashboardRecentDetail:true};</script>
+
+<script id="mmhvault-v144-invest-quick-flow">
+(()=>{'use strict';
+  if(window.__MMHVAULT_INVEST_QUICK_FLOW_V144)return;window.__MMHVAULT_INVEST_QUICK_FLOW_V144=true;
+  const $=id=>document.getElementById(id),wait=ms=>new Promise(r=>setTimeout(r,ms));
+  function ensureQuickBar(){
+    const host=$('mmhFiveoverview');if(!host||$('mmhInvestQuickV144'))return;
+    const bar=document.createElement('div');bar.id='mmhInvestQuickV144';bar.className='mmh-invest-quick-v144';
+    bar.innerHTML='<div class="mmh-invest-quick-label-v144"><span>QUICK INVEST</span><small>Common portfolio actions</small></div><button type="button" data-invest-quick-v144="buy-crypto"><i>＋</i><span><b>Buy Crypto</b><small>Open a new crypto buy</small></span></button><button type="button" data-invest-quick-v144="buy-gold"><i>＋</i><span><b>Buy Gold</b><small>Record a gold purchase</small></span></button><button type="button" data-invest-quick-v144="sell"><i>↗</i><span><b>Sell / Reduce</b><small>Record a position sale</small></span></button><button type="button" data-invest-quick-v144="history"><i>▤</i><span><b>History</b><small>Review investment records</small></span></button>';
+    host.prepend(bar);
+  }
+  async function openTrade({side='BUY',type='CRYPTO',name='' }={}){
+    try{window.setPage?.('invest')}catch(_){ }
+    await wait(40);
+    window.setInvestSubtabV371?.('add');
+    await wait(45);
+    const sideEl=$('invSideV336'),asset=$('invAsset'),symbol=$('invSymbol');
+    if(sideEl){sideEl.value=side==='SELL'?'SELL':'BUY';sideEl.dispatchEvent(new Event('change',{bubbles:true}));}
+    if(asset){asset.value=String(type).toUpperCase()==='GOLD'?'Gold':'Crypto';asset.dispatchEvent(new Event('change',{bubbles:true}));}
+    await wait(20);
+    if(symbol&&String(type).toUpperCase()!=='GOLD'&&name){symbol.value=String(name).toUpperCase();symbol.dispatchEvent(new Event('input',{bubbles:true}));symbol.dispatchEvent(new Event('change',{bubbles:true}));}
+    try{window.updateInvestFields?.()}catch(_){ }
+    try{window.mmHVaultRefreshTradeFormV336?.()}catch(_){ }
+    const focus=String(type).toUpperCase()==='GOLD'?$('invAmount'):(name?$('invAmount'):$('invSymbol'));
+    setTimeout(()=>{try{focus?.focus({preventScroll:true});$('invForm')?.scrollIntoView({behavior:'smooth',block:'start'})}catch(_){ }},30);
+    return true;
+  }
+  async function openHistory(){
+    try{window.setPage?.('invest')}catch(_){ }
+    await wait(35);window.setInvestSubtabV371?.('portfolio');return true;
+  }
+  function dashboardKpiTargets(){
+    const host=$('mmhPremiumDashboardV500');if(!host)return;
+    host.querySelectorAll('.pf-kpi-v500').forEach(card=>{
+      const label=card.querySelector('.pf-kpi-label-v500')?.textContent?.trim();
+      const target=label==='Portfolio Value'?'overview':label==='Investment Profit / Loss'?'portfolio':'';
+      if(!target)return;
+      card.dataset.investRouteV144=target;card.tabIndex=0;card.setAttribute('role','button');
+      card.setAttribute('aria-label',target==='portfolio'?'Open investment history':'Open investment overview');
+      card.title=target==='portfolio'?'Open investment history':'Open investment overview';
+    });
+  }
+  async function openDashboardRoute(target){
+    try{window.setPage?.('invest')}catch(_){ }
+    await wait(40);window.setInvestSubtabV371?.(target==='portfolio'?'portfolio':'overview');
+  }
+  document.addEventListener('click',e=>{
+    const quick=e.target?.closest?.('[data-invest-quick-v144]');
+    if(quick){e.preventDefault();e.stopPropagation();const action=quick.dataset.investQuickV144;if(action==='history')openHistory();else if(action==='buy-gold')openTrade({side:'BUY',type:'GOLD'});else if(action==='sell')openTrade({side:'SELL',type:'CRYPTO'});else openTrade({side:'BUY',type:'CRYPTO'});return;}
+    const holding=e.target?.closest?.('[data-invest-holding-action-v144]');
+    if(holding){e.preventDefault();e.stopPropagation();const card=holding.closest('[data-invest-holding-v144]');if(!card)return;const action=holding.dataset.investHoldingActionV144,type=card.dataset.investTypeV144||'CRYPTO',name=card.dataset.investNameV144||'';if(action==='history')openHistory();else openTrade({side:action==='sell'?'SELL':'BUY',type,name});return;}
+    const kpi=e.target?.closest?.('#dashboard [data-invest-route-v144]');if(kpi){e.preventDefault();e.stopPropagation();openDashboardRoute(kpi.dataset.investRouteV144);}
+  });
+  document.addEventListener('keydown',e=>{if(e.key!=='Enter'&&e.key!==' ')return;const kpi=e.target?.closest?.('#dashboard [data-invest-route-v144]');if(!kpi)return;e.preventDefault();openDashboardRoute(kpi.dataset.investRouteV144);});
+  const refresh=()=>{ensureQuickBar();dashboardKpiTargets();};
+  ['mmhvault:data-loaded','mmhvault:page-visible','mmhvault:data-change'].forEach(name=>window.addEventListener(name,()=>setTimeout(refresh,0)));
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(refresh,0),{once:true});else setTimeout(refresh,0);
+  const dash=$('mmhPremiumDashboardV500');if(dash)new MutationObserver(()=>dashboardKpiTargets()).observe(dash,{childList:true,subtree:true});
+  const invest=$('invest');if(invest)new MutationObserver(()=>ensureQuickBar()).observe(invest,{childList:true,subtree:true});
+  window.mmhOpenInvestTradeV144=openTrade;window.mmhOpenInvestHistoryV144=openHistory;
+})();
+</script>
+
+<script id="mmhvault-v142-transaction-history-marker">window.MMHVAULT_TRANSACTION_HISTORY_V142={version:'1.4.4',detailToEdit:true,useAgain:true,receiptNotCopied:true,accountQuickActions:true,dashboardRecentDetail:true,investQuickFlow:true};</script>
 </body>
 </html>

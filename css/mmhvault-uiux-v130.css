@@ -1952,3 +1952,39 @@ body.light .mmh-account-actions-v143 small{color:#607d92}
   .mmh-account-section-head-v830{align-items:flex-start}
   .mmh-account-section-tools-v143{flex-direction:column;align-items:flex-end;gap:3px}
 }
+
+
+/* MMHVAULT v1.4.4 · Invest daily quick flow + Dashboard portfolio linkage */
+#invest .mmh-invest-quick-v144{
+  display:grid;
+  grid-template-columns:minmax(145px,.8fr) repeat(4,minmax(0,1fr));
+  gap:8px;
+  margin:0 0 12px;
+  padding:8px;
+  border:1px solid rgba(91,151,199,.18);
+  border-radius:15px;
+  background:linear-gradient(145deg,rgba(9,29,47,.82),rgba(5,18,31,.90));
+}
+#invest .mmh-invest-quick-label-v144{display:flex;flex-direction:column;justify-content:center;padding:0 9px;min-width:0}
+#invest .mmh-invest-quick-label-v144 span{color:#d7c172;font-size:9px;font-weight:900;letter-spacing:.13em}
+#invest .mmh-invest-quick-label-v144 small{margin-top:4px;color:#728da5;font-size:9px}
+#invest .mmh-invest-quick-v144>button{
+  min-width:0;min-height:52px;padding:8px 9px;display:grid;grid-template-columns:28px minmax(0,1fr);align-items:center;gap:8px;
+  border:1px solid rgba(97,159,205,.12);border-radius:11px;background:rgba(12,35,55,.58);color:#c6d9e8;font:inherit;text-align:left;cursor:pointer;
+}
+#invest .mmh-invest-quick-v144>button:hover{border-color:rgba(94,190,235,.28);background:rgba(18,48,71,.72)}
+#invest .mmh-invest-quick-v144 i{width:28px;height:28px;display:grid;place-items:center;border-radius:8px;background:rgba(72,178,226,.08);border:1px solid rgba(83,177,222,.13);font-style:normal;color:#8ed5f3}
+#invest .mmh-invest-quick-v144 b{display:block;font-size:10px;color:#e2edf6}#invest .mmh-invest-quick-v144 button small{display:block;margin-top:2px;font-size:8px;color:#7d97ad;line-height:1.3}
+
+/* Keep overview clean; expose position actions only inside the existing holding detail page. */
+#invest #mmhUnifiedListV1 .mmh-holding-actions-v144{display:none!important}
+#ldBody .mmh-holding-actions-v144{display:flex!important;gap:8px;flex-wrap:wrap;margin-top:16px;padding-top:14px;border-top:1px solid #29435d}
+#ldBody .mmh-holding-actions-v144 button{min-height:40px;padding:8px 12px;border:1px solid #31526d;border-radius:9px;background:#102943;color:#dceaf5;font:inherit;font-size:11px;font-weight:750;cursor:pointer}
+#ldBody .mmh-holding-actions-v144 button:hover{border-color:#4c8db7;background:#163550}
+
+#dashboard .pf-kpi-v500[data-invest-route-v144]{cursor:pointer;outline:none}
+#dashboard .pf-kpi-v500[data-invest-route-v144]:focus-visible{border-color:rgba(92,190,235,.42)!important;box-shadow:0 0 0 3px rgba(76,199,255,.08),var(--mmh-ui-shadow)!important}
+#dashboard .pf-kpi-v500[data-invest-route-v144]::after{content:'›';position:absolute;right:13px;bottom:10px;color:rgba(139,190,220,.55);font-size:16px;font-weight:800}
+body.light #invest .mmh-invest-quick-v144{background:#f6fafc;border-color:#d4e2eb}body.light #invest .mmh-invest-quick-v144>button{background:#edf5fa;color:#36546b;border-color:#d4e2eb}body.light #invest .mmh-invest-quick-v144 b{color:#294663}
+@media(max-width:920px){#invest .mmh-invest-quick-v144{grid-template-columns:repeat(2,minmax(0,1fr))}#invest .mmh-invest-quick-label-v144{grid-column:1/-1;padding:4px 5px 2px}}
+@media(max-width:430px){#invest .mmh-invest-quick-v144{grid-template-columns:1fr}#invest .mmh-invest-quick-label-v144{grid-column:auto}#invest .mmh-invest-quick-v144>button{min-height:48px}}
