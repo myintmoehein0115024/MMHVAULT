@@ -911,3 +911,125 @@ body.mmh-workspace-active :is(#budget .budget-method-v110,#goals .goals-method-v
   body.mmh-workspace-active #goals .goals-kpis-v113 article,
   body.mmh-workspace-active #recurring .recurring-kpis-v114 article{min-height:82px!important}
 }
+
+
+/* MMHVAULT v1.3.3 · Settings avatar + two-level More menu refinements */
+body.mmh-workspace-active #settings .account-center-card-v375{
+  padding:20px 18px!important;
+}
+body.mmh-workspace-active #settings .account-center-card-v375>.toolbar{
+  margin-bottom:18px!important;
+}
+body.mmh-workspace-active #settings .account-center-head-v375{
+  display:grid!important;
+  grid-template-columns:auto minmax(0,1fr)!important;
+  align-items:center!important;
+  gap:16px!important;
+  margin-bottom:16px!important;
+  text-align:left!important;
+}
+body.mmh-workspace-active #settings .account-center-avatar-v375{
+  width:88px!important;
+  height:88px!important;
+  min-width:88px!important;
+  border-radius:50%!important;
+  border:2px solid rgba(97,155,199,.36)!important;
+  box-shadow:0 12px 28px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.08)!important;
+  background:linear-gradient(145deg,rgba(16,43,64,.86),rgba(8,26,40,.95))!important;
+}
+body.mmh-workspace-active #settings .account-center-name-v375{
+  font-size:clamp(24px,1.7vw,29px)!important;
+  line-height:1.08!important;
+  margin:0!important;
+}
+body.mmh-workspace-active #settings .account-center-email-v375{
+  margin-top:5px!important;
+  line-height:1.5!important;
+  font-size:12px!important;
+}
+body.mmh-workspace-active #settings .account-center-provider-v375{
+  margin-top:10px!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  gap:6px!important;
+  padding:6px 10px!important;
+  border-radius:999px!important;
+  border:1px solid rgba(96,151,193,.20)!important;
+  background:rgba(10,31,47,.58)!important;
+}
+body.mmh-workspace-active #settings .st-stats{
+  padding-top:14px!important;
+}
+@media (max-width:820px){
+  body.mmh-workspace-active #settings .account-center-head-v375{
+    grid-template-columns:1fr!important;
+    justify-items:center!important;
+    text-align:center!important;
+    gap:12px!important;
+  }
+  body.mmh-workspace-active #settings .account-center-avatar-v375{
+    width:74px!important;
+    height:74px!important;
+    min-width:74px!important;
+  }
+  body.mmh-workspace-active #settings .account-center-provider-v375{
+    justify-content:center!important;
+  }
+}
+
+#moreNavMenu.more-nav-menu>.mmh-more-nested-trigger-v131,
+#moreNavMenu .mmh-more-submenu-v131>button{
+  display:flex!important;
+  align-items:center!important;
+  gap:10px!important;
+  width:100%!important;
+  margin:0!important;
+  padding:8px 10px!important;
+  min-height:48px!important;
+  border-radius:12px!important;
+  border:1px solid rgba(91,151,196,.10)!important;
+  background:linear-gradient(145deg,rgba(16,43,64,.62),rgba(7,25,40,.70))!important;
+  color:#c8dbe8!important;
+  font:inherit!important;
+  font-size:12px!important;
+  font-weight:680!important;
+  text-align:left!important;
+  box-shadow:none!important;
+}
+#moreNavMenu.more-nav-menu>.mmh-more-nested-trigger-v131::after,
+#moreNavMenu .mmh-more-submenu-v131>button::after{
+  content:'›'!important;
+  margin-left:auto!important;
+  color:#6c899f!important;
+  font-size:18px!important;
+  transition:transform .16s ease!important;
+}
+#moreNavMenu.more-nav-menu>.mmh-more-nested-trigger-v131[aria-expanded='true']::after{
+  transform:rotate(90deg)!important;
+}
+#moreNavMenu.more-nav-menu>.mmh-more-nested-trigger-v131:hover,
+#moreNavMenu.more-nav-menu>.mmh-more-nested-trigger-v131.active,
+#moreNavMenu .mmh-more-submenu-v131>button:hover,
+#moreNavMenu .mmh-more-submenu-v131>button.active{
+  border-color:rgba(242,196,94,.24)!important;
+  background:linear-gradient(135deg,rgba(76,199,255,.10),rgba(242,196,94,.08))!important;
+  color:#f5f9fc!important;
+}
+#moreNavMenu .mmh-more-submenu-v131{
+  grid-column:1/-1!important;
+  display:grid!important;
+  grid-template-columns:1fr!important;
+  gap:6px!important;
+  margin-top:2px!important;
+  padding:8px 0 0 14px!important;
+  border-top:1px dashed rgba(96,149,191,.18)!important;
+}
+#moreNavMenu .mmh-more-submenu-v131[hidden]{display:none!important}
+#moreNavMenu .mmh-more-submenu-v131 .mmh-more-icon-v570{background:#0f2b40!important}
+#moreNavMenu .mmh-more-submenu-v131 #mmhMoreAdminV570 .mmh-more-icon-v570{background:#342b18!important;border-color:rgba(242,196,94,.24)!important;color:#f0c75f!important}
+@media (max-width:1099px){
+  #moreNavMenu .mmh-more-submenu-v131{padding-left:8px!important}
+}
+@media (max-width:420px){
+  #moreNavMenu .mmh-more-submenu-v131{padding-left:0!important}
+}

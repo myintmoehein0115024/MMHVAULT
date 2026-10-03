@@ -24495,32 +24495,78 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 (()=>{'use strict';
   if(window.__mmhResponsiveNavV570)return;window.__mmhResponsiveNavV570=true;
   const $=id=>document.getElementById(id);
-  let menu=null,more=null,adminEpoch=0;
+  let menu=null,more=null,adminEpoch=0,nestedMenu=null,nestedTrigger=null,nestedOpen=false;
   const secondary=new Set(['accounts-page','exchange','cashflow-analyze','budget','goals','recurring','reports','settings']);
+  const nestedPages=new Set(['recurring','reports','settings']);
 
+  function currentPage(){return document.querySelector('.page.active')?.id||'';}
   function iconButton(page,icon,label,id=''){
     const b=document.createElement('button');b.type='button';if(id)b.id=id;
     if(page)b.dataset.morePage=page;
     b.innerHTML='<span class="mmh-more-icon-v570" aria-hidden="true">'+icon+'</span><span>'+label+'</span>';
     return b;
   }
+  function setNested(open){
+    nestedOpen=!!open;
+    const keepOpen=nestedPages.has(currentPage()) || nestedOpen;
+    if(nestedMenu)nestedMenu.hidden=!keepOpen;
+    if(nestedTrigger){
+      nestedTrigger.classList.toggle('active',keepOpen);
+      nestedTrigger.setAttribute('aria-expanded', keepOpen ? 'true' : 'false');
+    }
+    menu?.classList.toggle('mmh-more-nested-open-v131', keepOpen);
+    if(window.innerWidth>=1100&&menu?.classList.contains('open'))requestAnimationFrame(positionDesktop);
+  }
+  function buildPageButton(page,icon,label,parent){
+    const b=iconButton(page,icon,label);
+    b.onclick=e=>{e.preventDefault();e.stopPropagation();if(typeof window.setPage==='function')window.setPage(page);close();syncActive()};
+    parent.append(b);
+    return b;
+  }
   function rebuildMenu(){
     menu=$('moreNavMenu');if(!menu)return false;
     menu.replaceChildren();
-    const defs=[['accounts-page','▣','Accounts'],['exchange','⇄','Exchange'],['cashflow-analyze','◉','Analyze'],['budget','◒','Budget'],['goals','◎','Goals'],['recurring','↻','Recurring'],['reports','▤','Reports'],['settings','⚙','Settings']];
-    defs.forEach(([page,icon,label])=>{const b=iconButton(page,icon,label);b.onclick=e=>{e.preventDefault();e.stopPropagation();if(typeof window.setPage==='function')window.setPage(page);close();syncActive()};menu.append(b)});
+    const primary=[['accounts-page','▣','Accounts'],['exchange','⇄','Exchange'],['cashflow-analyze','◉','Analyze'],['budget','◒','Budget'],['goals','◎','Goals']];
+    primary.forEach(([page,icon,label])=>buildPageButton(page,icon,label,menu));
+
+    nestedTrigger=iconButton('', '⋯','More');
+    nestedTrigger.classList.add('mmh-more-nested-trigger-v131');
+    nestedTrigger.setAttribute('aria-expanded','false');
+    nestedTrigger.onclick=e=>{e.preventDefault();e.stopPropagation();setNested(!(nestedPages.has(currentPage())||nestedOpen));syncActive()};
+    menu.append(nestedTrigger);
+
+    nestedMenu=document.createElement('div');
+    nestedMenu.className='mmh-more-submenu-v131';
+    nestedMenu.hidden=true;
+    buildPageButton('recurring','↻','Recurring',nestedMenu);
+    buildPageButton('reports','▤','Reports',nestedMenu);
+    buildPageButton('settings','⚙','Settings',nestedMenu);
     const admin=iconButton('', '♜','Administrator dashboard','mmhMoreAdminV570');admin.hidden=true;
     admin.onclick=async e=>{e.preventDefault();e.stopPropagation();const token=++adminEpoch;admin.disabled=true;try{const {data,error}=await db.rpc('mmh_is_admin');if(token!==adminEpoch)return;if(!error&&data===true)location.assign('admin.html');else admin.hidden=true}catch(_){admin.hidden=true}finally{if(document.body.contains(admin))admin.disabled=false}};
-    menu.insertBefore(admin,menu.lastElementChild);
+    nestedMenu.append(admin);
+    menu.append(nestedMenu);
     syncAdmin();return true;
   }
   async function syncAdmin(){const b=$('mmhMoreAdminV570');if(!b)return;const token=++adminEpoch;try{if(typeof db==='undefined'){b.hidden=true;return}const {data,error}=await db.rpc('mmh_is_admin');if(token!==adminEpoch)return;b.hidden=!!error||data!==true}catch(_){if(token===adminEpoch)b.hidden=true}}
   function replaceMore(){const old=$('moreNavButton');if(!old)return false;if(old.dataset.v570==='1'){more=old;return true}const clone=old.cloneNode(true);clone.dataset.v570='1';clone.classList.remove('active','mmh-side-active-v500');clone.removeAttribute('aria-current');clone.setAttribute('aria-expanded','false');old.replaceWith(clone);more=clone;clone.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();toggle(!menu?.classList.contains('open'))},true);return true}
-  function positionDesktop(){if(!menu||!more||window.innerWidth<1100||!menu.classList.contains('open'))return;const r=more.getBoundingClientRect(),safe=12,gap=10,railRight=$('bottomNav')?.getBoundingClientRect().right||r.right;const width=Math.min(270,Math.max(220,window.innerWidth*.18));menu.style.width=Math.min(width,Math.max(190,window.innerWidth-railRight-gap-safe))+'px';menu.style.left=Math.min(railRight+gap,window.innerWidth-menu.offsetWidth-safe)+'px';const h=Math.min(menu.scrollHeight,window.innerHeight-safe*2);let top=r.top+r.height/2;top=Math.max(safe+h/2,Math.min(window.innerHeight-safe-h/2,top));menu.style.top=top+'px';menu.style.maxHeight=(window.innerHeight-safe*2)+'px'}
-  function open(){if(!menu||!more)return;menu.classList.add('open');menu.setAttribute('aria-hidden','false');more.setAttribute('aria-expanded','true');if(window.innerWidth>=1100)requestAnimationFrame(positionDesktop);syncActive()}
-  function close(){menu?.classList.remove('open');menu?.setAttribute('aria-hidden','true');more?.setAttribute('aria-expanded','false');syncActive()}
+  function positionDesktop(){if(!menu||!more||window.innerWidth<1100||!menu.classList.contains('open'))return;const r=more.getBoundingClientRect(),safe=12,gap=10,railRight=$('bottomNav')?.getBoundingClientRect().right||r.right;const width=Math.min(290,Math.max(226,window.innerWidth*.19));menu.style.width=Math.min(width,Math.max(200,window.innerWidth-railRight-gap-safe))+'px';menu.style.left=Math.min(railRight+gap,window.innerWidth-menu.offsetWidth-safe)+'px';const h=Math.min(menu.scrollHeight,window.innerHeight-safe*2);let top=r.top+r.height/2;top=Math.max(safe+h/2,Math.min(window.innerHeight-safe-h/2,top));menu.style.top=top+'px';menu.style.maxHeight=(window.innerHeight-safe*2)+'px'}
+  function open(){if(!menu||!more)return;menu.classList.add('open');menu.setAttribute('aria-hidden','false');more.setAttribute('aria-expanded','true');if(nestedPages.has(currentPage()))setNested(true);if(window.innerWidth>=1100)requestAnimationFrame(positionDesktop);syncActive()}
+  function close(){menu?.classList.remove('open');menu?.setAttribute('aria-hidden','true');more?.setAttribute('aria-expanded','false');if(!nestedPages.has(currentPage()))setNested(false);syncActive()}
   function toggle(v){v?open():close()}
-  function syncActive(){if(!more)return;const page=document.querySelector('.page.active')?.id||'';const active=secondary.has(page)||menu?.classList.contains('open');more.classList.toggle('active',active);if(secondary.has(page))more.setAttribute('aria-current','page');else more.removeAttribute('aria-current');menu?.querySelectorAll('[data-more-page]').forEach(b=>b.classList.toggle('active',b.dataset.morePage===page))}
+  function syncActive(){
+    if(!more)return;
+    const page=currentPage();
+    const active=secondary.has(page)||menu?.classList.contains('open');
+    more.classList.toggle('active',active);
+    if(secondary.has(page))more.setAttribute('aria-current','page');else more.removeAttribute('aria-current');
+    menu?.querySelectorAll('[data-more-page]').forEach(b=>b.classList.toggle('active',b.dataset.morePage===page));
+    if(nestedTrigger){
+      const nestedActive=nestedPages.has(page)||nestedOpen;
+      nestedTrigger.classList.toggle('active',nestedActive);
+      nestedTrigger.setAttribute('aria-expanded', nestedActive ? 'true' : 'false');
+    }
+    if(nestedMenu)nestedMenu.hidden=!(nestedPages.has(page)||nestedOpen);
+  }
   function cleanupRail(){const rail=$('bottomNav');if(!rail)return;rail.querySelectorAll('.mmh-side-extra-v500,.mmh-direct-nav-v530').forEach(el=>el.remove());const brand=rail.querySelector('.mmh-sidebar-brand-v500');if(brand){const img=brand.querySelector('img');if(img)img.src='images/mmhvault-logo-transparent.png';const strong=brand.querySelector('strong');const small=brand.querySelector('small');if(strong)strong.textContent='MMHVAULT';if(small)small.textContent='PERSONAL FINANCE · WEALTH'}}
   function init(){cleanupRail();rebuildMenu();replaceMore();syncActive();window.addEventListener('resize',()=>{if(window.innerWidth>=1100&&menu?.classList.contains('open'))requestAnimationFrame(positionDesktop)});window.addEventListener('orientationchange',()=>setTimeout(()=>{close();syncActive()},80));try{db.auth?.onAuthStateChange(()=>setTimeout(syncAdmin,50))}catch(_){}}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(init,0),{once:true});else setTimeout(init,0);
