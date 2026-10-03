@@ -27646,5 +27646,123 @@ html.mmh-responsive-resizing-v155 #dashboard .pf-tx-track-v620{
 })();
 </script>
 
+
+<style id="mmhvault-v156-more-layout-fix">
+/* MMHVAULT v1.5.6 · More layout fix
+   1) Mobile: remove the accidental empty second grid column.
+   2) Desktop: give the primary page enough stable height so the last More item is never clipped. */
+
+/* High-specificity reset: older responsive rules still set the popup itself to a
+   two-column grid. The v1.5.3 page stage must own the layout instead. */
+html body.mmh-workspace-active #moreNavMenu.more-nav-menu{
+  display:block!important;
+  grid-template-columns:none!important;
+  grid-auto-columns:auto!important;
+  grid-auto-flow:row!important;
+  gap:0!important;
+  padding:0!important;
+  overflow:hidden!important;
+}
+
+/* Every internal page uses the complete popup width. */
+html body.mmh-workspace-active #moreNavMenu .mmh-more-stage-v153,
+html body.mmh-workspace-active #moreNavMenu .mmh-more-view-v153,
+html body.mmh-workspace-active #moreNavMenu .mmh-more-list-v153{
+  width:100%!important;
+  max-width:none!important;
+  min-width:0!important;
+  box-sizing:border-box!important;
+}
+html body.mmh-workspace-active #moreNavMenu .mmh-more-list-v153{
+  display:grid!important;
+  grid-template-columns:1fr!important;
+}
+
+/* Desktop fixed frame: tall enough for header + Exchange/Analyze/Reports/
+   Settings/Admin/More without clipping the last action. */
+@media(min-width:1100px){
+  html body.mmh-workspace-active #moreNavMenu.more-nav-menu{
+    height:min(530px,calc(100dvh - 28px))!important;
+    min-height:min(500px,calc(100dvh - 28px))!important;
+    max-height:calc(100dvh - 28px)!important;
+  }
+  html body.mmh-workspace-active #moreNavMenu .mmh-more-view-v153{
+    padding:13px!important;
+  }
+  html body.mmh-workspace-active #moreNavMenu .mmh-more-list-v153{
+    gap:7px!important;
+    overflow-y:auto!important;
+    overscroll-behavior:contain!important;
+    scrollbar-width:none!important;
+  }
+  html body.mmh-workspace-active #moreNavMenu .mmh-more-list-v153::-webkit-scrollbar{
+    display:none!important;
+  }
+}
+
+/* Phone/tablet: fill the popup instead of occupying only the first old grid column. */
+@media(max-width:1099px){
+  html body.mmh-workspace-active #moreNavMenu.more-nav-menu{
+    left:50%!important;
+    right:auto!important;
+    top:auto!important;
+    bottom:calc(82px + env(safe-area-inset-bottom,0px))!important;
+    width:min(460px,calc(100vw - 16px))!important;
+    max-width:none!important;
+    height:min(520px,calc(100dvh - 166px))!important;
+    min-height:min(430px,calc(100dvh - 166px))!important;
+    max-height:calc(100dvh - 166px)!important;
+    transform:translate(-50%,10px) scale(.985)!important;
+  }
+  html body.mmh-workspace-active #moreNavMenu.more-nav-menu.open{
+    transform:translate(-50%,0) scale(1)!important;
+  }
+  html body.mmh-workspace-active #moreNavMenu .mmh-more-stage-v153{
+    display:block!important;
+    height:100%!important;
+  }
+  html body.mmh-workspace-active #moreNavMenu .mmh-more-view-v153{
+    width:100%!important;
+    height:100%!important;
+    padding:11px!important;
+  }
+  html body.mmh-workspace-active #moreNavMenu .mmh-more-list-v153{
+    width:100%!important;
+    grid-template-columns:1fr!important;
+  }
+  html body.mmh-workspace-active #moreNavMenu .mmh-more-item-v153{
+    width:100%!important;
+    max-width:none!important;
+  }
+}
+
+/* Very small phones: use the available width cleanly and scroll inside only if
+   the viewport is short. */
+@media(max-width:520px){
+  html body.mmh-workspace-active #moreNavMenu.more-nav-menu{
+    width:calc(100vw - 14px)!important;
+    bottom:calc(78px + env(safe-area-inset-bottom,0px))!important;
+    height:min(520px,calc(100dvh - 150px))!important;
+    min-height:min(390px,calc(100dvh - 150px))!important;
+    max-height:calc(100dvh - 150px)!important;
+  }
+  html body.mmh-workspace-active #moreNavMenu .mmh-more-view-v153{
+    padding:10px!important;
+  }
+  html body.mmh-workspace-active #moreNavMenu .mmh-more-list-v153{
+    min-height:0!important;
+    overflow-y:auto!important;
+    overscroll-behavior:contain!important;
+    scrollbar-width:none!important;
+  }
+  html body.mmh-workspace-active #moreNavMenu .mmh-more-list-v153::-webkit-scrollbar{
+    display:none!important;
+  }
+}
+</style>
+<script id="mmhvault-v156-marker">
+window.MMHVAULT_V156={version:'1.5.6',mobileMoreFullWidth:true,desktopMoreNoClip:true};
+</script>
+
 </body>
 </html>
