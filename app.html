@@ -24299,7 +24299,7 @@ function wrapRender(){const base=window.renderDashboard;if(typeof base==='functi
 function init(){addSidebar();addTopbar();ensureDashboardHost();wrapRender();ensureSeamlessTransactionFlowV710();scheduleDashboardRenderV790(180,true)}
 ['mmhvault:data-loaded','mmhvault:data-change','mmhvault:cache-restored','languagechange','mmhvault-language-change','mmhvault-birthday-change','mmhvault:age-tick'].forEach(ev=>window.addEventListener(ev,()=>scheduleDashboardRenderV790(70,false)));
 window.addEventListener('mmhvault:market-updated',scheduleMarketOnlyV720);
-window.addEventListener('resize',()=>scheduleDashboardRenderV790(110,false));
+/* v1.5.5: CSS handles responsive layout; do not rebuild Dashboard DOM on resize. */
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
 </script>
@@ -25671,7 +25671,7 @@ html body.mmh-workspace-active main.wrap .page.active :is(.empty,.mmh-ui-empty,.
   async function load(){const u=typeof currentSessionUser!=='undefined'?currentSessionUser:null,key=month(),request=++state.request;state.month=key;state.loading=true;render();if(!u?.id||typeof db==='undefined'){state.loading=false;state.row=null;render();return}try{const {data,error}=await db.from('budgets').select('budget_month,currency,monthly_amount,updated_at').eq('user_id',u.id).eq('budget_month',key+'-01').maybeSingle();if(error)throw error;if(request!==state.request)return;state.row=data||null}catch(err){console.warn('[MMHVAULT] dashboard budget load failed',err);if(request===state.request)state.row=null}finally{if(request===state.request){state.loading=false;render()}}}
   function schedule(){setTimeout(render,0);setTimeout(render,80)}
   function observe(){const host=document.getElementById('mmhPremiumDashboardV500');if(!host||state.observer)return;state.observer=new MutationObserver(()=>schedule());state.observer.observe(host,{childList:true})}
-  function setup(){observe();load();['mmhvault:data-loaded','mmhvault:data-change','mmhvault:cache-restored','mmhvault:budget-changed'].forEach(ev=>window.addEventListener(ev,()=>{if(ev==='mmhvault:budget-changed'||state.month!==month())load();else schedule()}));window.addEventListener('resize',schedule);setTimeout(()=>{observe();schedule()},250)}
+  function setup(){observe();load();['mmhvault:data-loaded','mmhvault:data-change','mmhvault:cache-restored','mmhvault:budget-changed'].forEach(ev=>window.addEventListener(ev,()=>{if(ev==='mmhvault:budget-changed'||state.month!==month())load();else schedule()}));setTimeout(()=>{observe();schedule()},250)}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setup,{once:true});else setup();
 })();
 </script>
@@ -27522,6 +27522,129 @@ html body #moreNavMenu.more-nav-menu{height:min(452px,calc(100dvh - 28px))!impor
 @media(prefers-reduced-motion:reduce){#moreNavMenu.mmh-more-transition-v153 .mmh-more-stage-v153::after{animation:none!important}}
 </style>
 <script id="mmhvault-v154-marker">window.MMHVAULT_V154={version:'1.5.4',moreFixedFrame:true,moreSharedHeaderGeometry:true,mobileMoreStable:true};</script>
+
+
+<style id="mmhvault-v155-responsive-stability-css">
+/* MMHVAULT v1.5.5 · Responsive Stability
+   Keep responsive behavior CSS-driven and avoid expensive repaint/re-render loops. */
+
+html.mmh-responsive-resizing-v155,
+html.mmh-responsive-resizing-v155 body{
+  scroll-behavior:auto!important;
+}
+
+/* Geometry should change immediately while the viewport is moving, not animate. */
+html.mmh-responsive-resizing-v155 body.mmh-workspace-active .page:not(#login),
+html.mmh-responsive-resizing-v155 body.mmh-workspace-active .panel,
+html.mmh-responsive-resizing-v155 body.mmh-workspace-active .card,
+html.mmh-responsive-resizing-v155 body.mmh-workspace-active .pf-card-v500,
+html.mmh-responsive-resizing-v155 body.mmh-workspace-active .pf-kpi-v500,
+html.mmh-responsive-resizing-v155 body.mmh-workspace-active .pf-budget-v112,
+html.mmh-responsive-resizing-v155 body.mmh-workspace-active .pf-planning-card-v117,
+html.mmh-responsive-resizing-v155 body.mmh-workspace-active .pf-insights-v150,
+html.mmh-responsive-resizing-v155 body.mmh-workspace-active #cashflow-analyze .cfa-shell,
+html.mmh-responsive-resizing-v155 body.mmh-workspace-active #transactions #txAddPanel>.panel,
+html.mmh-responsive-resizing-v155 body.mmh-workspace-active #moreNavMenu.more-nav-menu{
+  transition:none!important;
+}
+
+/* Blur on dozens of cards is costly while the browser is continuously resizing.
+   Use the opaque card backgrounds during live resize; restore blur after settling. */
+html.mmh-responsive-resizing-v155 body.mmh-workspace-active .panel,
+html.mmh-responsive-resizing-v155 body.mmh-workspace-active .card,
+html.mmh-responsive-resizing-v155 body.mmh-workspace-active .pf-card-v500,
+html.mmh-responsive-resizing-v155 body.mmh-workspace-active .pf-kpi-v500,
+html.mmh-responsive-resizing-v155 body.mmh-workspace-active #mmhNotifyPopoverV560,
+html.mmh-responsive-resizing-v155 body.mmh-workspace-active #moreNavMenu.more-nav-menu{
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+}
+
+/* Isolate large responsive workspaces so one grid reflow does not invalidate
+   paint/layout across unrelated pages. */
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500,
+body.mmh-workspace-active #transactions,
+body.mmh-workspace-active #invest,
+body.mmh-workspace-active #accounts-page,
+body.mmh-workspace-active #cashflow-analyze,
+body.mmh-workspace-active #budget,
+body.mmh-workspace-active #goals,
+body.mmh-workspace-active #recurring,
+body.mmh-workspace-active #reports,
+body.mmh-workspace-active #settings{
+  contain:layout style;
+}
+
+/* Keep wallpaper on a compositor layer to reduce full-screen repaint flashes. */
+body.mmh-workspace-active::before,
+body.mmh-workspace-active::after{
+  transform:translateZ(0);
+  backface-visibility:hidden;
+}
+
+/* Recent Transactions ticker remains continuous; only transition interpolation is removed. */
+html.mmh-responsive-resizing-v155 #dashboard .pf-tx-track-v620{
+  transition:none!important;
+}
+</style>
+
+<script id="mmhvault-v155-responsive-stability-js">
+(()=>{'use strict';
+  if(window.__MMHVAULT_RESPONSIVE_STABILITY_V155)return;
+  window.__MMHVAULT_RESPONSIVE_STABILITY_V155=true;
+
+  const root=document.documentElement;
+  const vv=window.visualViewport||null;
+  let settleTimer=0,raf=0,lastW=window.innerWidth,lastH=window.innerHeight;
+
+  function finish(){
+    clearTimeout(settleTimer);
+    settleTimer=0;
+    root.classList.remove('mmh-responsive-resizing-v155');
+
+    const width=window.innerWidth,height=window.innerHeight;
+    const detail={
+      width,height,
+      widthChanged:width!==lastW,
+      heightChanged:height!==lastH
+    };
+    lastW=width;lastH=height;
+
+    /* Consumers may refresh geometry after resize settles.
+       Intentionally do NOT call render()/renderDashboard()/Budget render here. */
+    window.dispatchEvent(new CustomEvent('mmhvault:responsive-settled',{detail}));
+  }
+
+  function begin(){
+    root.classList.add('mmh-responsive-resizing-v155');
+    clearTimeout(settleTimer);
+    settleTimer=setTimeout(finish,150);
+  }
+
+  function onResize(){
+    if(raf)return;
+    raf=requestAnimationFrame(()=>{
+      raf=0;
+      begin();
+    });
+  }
+
+  window.addEventListener('resize',onResize,{passive:true});
+  vv?.addEventListener?.('resize',onResize,{passive:true});
+  window.addEventListener('orientationchange',()=>{
+    begin();
+    clearTimeout(settleTimer);
+    settleTimer=setTimeout(finish,240);
+  },{passive:true});
+
+  window.MMHVAULT_RESPONSIVE_STABILITY_V155={
+    version:'1.5.5',
+    cssDriven:true,
+    dashboardResizeRender:false,
+    budgetResizeRender:false
+  };
+})();
+</script>
 
 </body>
 </html>
