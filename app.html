@@ -800,7 +800,7 @@ html{scrollbar-gutter:stable;}
 <link rel="stylesheet" href="css/mmhvault-v4.css?v=4.3.0">
 
 <link rel="stylesheet" href="css/mmhvault-premium-motion.css?v=20260929-bg1">
-<link rel="stylesheet" href="css/mmhvault-uiux-v130.css?v=1.4.7">
+<link rel="stylesheet" href="css/mmhvault-uiux-v130.css?v=1.4.8">
 
 <style id="mmhvault-v343-expenses-reduction">
 /* V4.3.0 data reduction: budget control now owns category ranking + budget progress;
@@ -7206,15 +7206,21 @@ function mmhVaultResolveDialogV449(result=false){
   else if($('mmhManageOverlayV1')?.classList.contains('open'))$('mmhManageCloseV1')?.focus();
   m._returnFocus=null;
 }
-function mmhVaultOpenDialogV449({title,message='',body='',actions=[]}={}){
+function mmhVaultOpenDialogV449({title,message='',body='',actions=[],dialogClass='',bodyClass='',actionsClass=''}={}){
   const m=$('mmhVaultDialogV449'); if(!m)return Promise.resolve(false);
   if(m.classList.contains('show'))return Promise.resolve(false);
   m._returnFocus=document.activeElement;
   if($('mmhManageOverlayV1')?.classList.contains('open'))$('mmhManageOverlayV1').classList.add('dialog-active');
+  const dialog=m.querySelector('.mmh-v449-dialog');
+  const bodyHost=$('mmhVaultDialogBodyV449');
+  const a=$('mmhVaultDialogActionsV449');
+  if(dialog)dialog.className='mmh-v449-dialog'+(dialogClass?' '+dialogClass:'');
+  if(bodyHost)bodyHost.className='mmh-v449-dialog-body'+(bodyClass?' '+bodyClass:'');
+  if(a)a.className='mmh-v449-dialog-actions'+(actionsClass?' '+actionsClass:'');
   $('mmhVaultDialogTitleV449').textContent=title||'MMHVAULT';
   $('mmhVaultDialogMessageV449').textContent=message||'';
-  $('mmhVaultDialogBodyV449').innerHTML=body||'';
-  const a=$('mmhVaultDialogActionsV449');a.innerHTML='';
+  bodyHost.innerHTML=body||'';
+  a.innerHTML='';
   actions.forEach(x=>{
     const b=document.createElement('button');
     b.type='button';
@@ -17531,18 +17537,21 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   const $=id=>document.getElementById(id);
   const tr=(en,zh)=>(localStorage.getItem('mmhvault_language_v3363')||'en')==='zh'?zh:en;
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  let popup=null,bell=null,list=null,rows=[],loading=false,mode='all',owner='',request=0;
+  let popup=null,bell=null,list=null,rows=[],loading=false,mode='all',owner='',request=0,lastLoaded=0;
   const currentOwner=()=>typeof currentSessionUser!=='undefined'?(currentSessionUser?.id||''):'';
   function ensure(){
     bell=$('mmhTopBellV500');if(!bell)return false;
     if(!bell.querySelector('.mmh-notify-count-v560')){const badge=document.createElement('span');badge.className='mmh-notify-count-v560';badge.hidden=true;badge.textContent='0';bell.append(badge)}
     popup=$('mmhNotifyPopoverV560');
     if(!popup){popup=document.createElement('aside');popup.id='mmhNotifyPopoverV560';popup.setAttribute('role','dialog');popup.setAttribute('aria-label',tr('Notifications','通知'));document.body.append(popup)}
-    popup.innerHTML='<div class="np-head"><div class="np-title"><span class="np-title-icon">🔔</span><span><strong>'+tr('Notifications','通知')+'</strong><small>'+tr('Personal messages & announcements','个人通知与公告')+'</small></span></div><button class="np-refresh" type="button" id="mmhNotifyRefreshV560">'+tr('Refresh','刷新')+'</button></div><div class="np-filter-v900"><button type="button" data-notify-mode="all" class="active">'+tr('All','全部')+' <span id="mmhNotifyAllCountV900">0</span></button><button type="button" data-notify-mode="unread">'+tr('Unread','未读')+' <span id="mmhNotifyUnreadCountV900">0</span></button><button type="button" id="mmhNotifyMarkAllV900" class="mark-all">'+tr('Mark all read','全部已读')+'</button></div><div class="np-list" id="mmhNotifyListV560"></div><div class="np-foot">'+tr('Open a message to view details.','点击消息查看完整内容。')+'</div>';
+    if(popup.dataset.built!=='1'){
+      popup.innerHTML='<div class="np-head"><div class="np-title"><span class="np-title-icon">🔔</span><span><strong>'+tr('Notifications','通知')+'</strong><small>'+tr('Personal messages & announcements','个人通知与公告')+'</small></span></div><button class="np-refresh" type="button" id="mmhNotifyRefreshV560">'+tr('Refresh','刷新')+'</button></div><div class="np-filter-v900"><button type="button" data-notify-mode="all" class="active">'+tr('All','全部')+' <span id="mmhNotifyAllCountV900">0</span></button><button type="button" data-notify-mode="unread">'+tr('Unread','未读')+' <span id="mmhNotifyUnreadCountV900">0</span></button><button type="button" id="mmhNotifyMarkAllV900" class="mark-all">'+tr('Mark all read','全部已读')+'</button></div><div class="np-list" id="mmhNotifyListV560"></div><div class="np-foot">'+tr('Open a message to view details.','点击消息查看完整内容。')+'</div>';
+      popup.dataset.built='1';
+      $('mmhNotifyRefreshV560').onclick=e=>{e.stopPropagation();load(true)};
+      popup.querySelectorAll('[data-notify-mode]').forEach(btn=>btn.onclick=e=>{e.stopPropagation();mode=btn.dataset.notifyMode;popup.querySelectorAll('[data-notify-mode]').forEach(x=>x.classList.toggle('active',x===btn));render()});
+      $('mmhNotifyMarkAllV900').onclick=async e=>{e.stopPropagation();const btn=e.currentTarget,targetOwner=currentOwner();if(btn.disabled||!targetOwner||targetOwner!==owner)return;btn.disabled=true;try{const {error}=await db.rpc('mmh_feedback_extras',{p_action:'mark_all_read',p_data:{}});if(error)throw error;if(currentOwner()!==targetOwner||owner!==targetOwner)return;rows.forEach(r=>r.is_read=true);updateBadge();render()}catch(err){if(currentOwner()===targetOwner)console.warn('[MMHVAULT] mark all notifications failed',err)}finally{btn.disabled=false}};
+    }
     list=$('mmhNotifyListV560');
-    $('mmhNotifyRefreshV560').onclick=e=>{e.stopPropagation();load(true)};
-    popup.querySelectorAll('[data-notify-mode]').forEach(btn=>btn.onclick=e=>{e.stopPropagation();mode=btn.dataset.notifyMode;popup.querySelectorAll('[data-notify-mode]').forEach(x=>x.classList.toggle('active',x===btn));render()});
-    $('mmhNotifyMarkAllV900').onclick=async e=>{e.stopPropagation();const btn=e.currentTarget,targetOwner=currentOwner();if(btn.disabled||!targetOwner||targetOwner!==owner)return;btn.disabled=true;try{const {error}=await db.rpc('mmh_feedback_extras',{p_action:'mark_all_read',p_data:{}});if(error)throw error;if(currentOwner()!==targetOwner||owner!==targetOwner)return;rows.forEach(r=>r.is_read=true);updateBadge();render()}catch(err){if(currentOwner()===targetOwner)console.warn('[MMHVAULT] mark all notifications failed',err)}finally{btn.disabled=false}};
     return true;
   }
   const formatDate=v=>{try{return new Date(v).toLocaleString()}catch(_){return String(v||'')}};
@@ -17583,13 +17592,13 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     if(!targetOwner){owner='';rows=[];loading=false;render();return}
     if(owner!==targetOwner){owner=targetOwner;rows=[];mode='all';render()}
     loading=true;if(showLoading&&list)list.innerHTML='<div class="np-empty">'+tr('Loading…','加载中…')+'</div>';
-    try{const {data,error}=await db.rpc('mmh_feedback_extras',{p_action:'list',p_data:{offset:0}});if(error)throw error;if(req!==request||currentOwner()!==targetOwner)return;rows=Array.isArray(data)?data:[];render()}
+    try{const {data,error}=await db.rpc('mmh_feedback_extras',{p_action:'list',p_data:{offset:0}});if(error)throw error;if(req!==request||currentOwner()!==targetOwner)return;rows=Array.isArray(data)?data:[];lastLoaded=Date.now();render()}
     catch(err){if(req!==request||currentOwner()!==targetOwner)return;console.warn('[MMHVAULT] notification load failed',err);if(list)list.innerHTML='<div class="np-empty">'+tr('Unable to load notifications.','通知加载失败。')+'</div>'}
     finally{if(req===request&&currentOwner()===targetOwner)loading=false}
   }
   function place(){if(!popup||!bell||!popup.classList.contains('open'))return;const r=bell.getBoundingClientRect(),safe=12,gap=10,width=Math.min(410,window.innerWidth-safe*2);popup.style.width=width+'px';popup.style.left=Math.min(window.innerWidth-width-safe,Math.max(safe,r.right-width))+'px';popup.style.top=(r.bottom+gap)+'px';popup.style.maxHeight=Math.min(560,Math.max(240,window.innerHeight-r.bottom-gap-safe))+'px'}
   function close(){popup?.classList.remove('open');bell?.setAttribute('aria-expanded','false')}
-  function toggle(){if(!ensure())return;const open=!popup.classList.contains('open');if(!open){close();return}popup.classList.add('open');bell.setAttribute('aria-expanded','true');place();load(false)}
+  function toggle(){if(!ensure())return;const open=!popup.classList.contains('open');if(!open){close();return}popup.classList.add('open');bell.setAttribute('aria-expanded','true');place();render();if(!rows.length&&!loading)load(true);else if(Date.now()-lastLoaded>45000&&!loading)setTimeout(()=>load(false),120)}
   function bind(){if(!ensure())return;if(bell.dataset.mmhNotifyBoundV900==='1'){load(false);return}bell.dataset.mmhNotifyBoundV900='1';bell.setAttribute('aria-haspopup','dialog');bell.setAttribute('aria-expanded','false');bell.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();toggle()},true);window.addEventListener('resize',()=>requestAnimationFrame(place));window.addEventListener('orientationchange',()=>setTimeout(place,80));load(false)}
   function resetForOwner(){request++;loading=false;owner=currentOwner();rows=[];mode='all';close();if(ensure()){render();if(owner)load(false)}}
   function init(){bind();window.addEventListener('mmhvault:notifications-changed',()=>load(false));window.addEventListener('mmhvault:config-owner-changed',resetForOwner);setTimeout(bind,300);setTimeout(bind,900);setTimeout(bind,1600);setInterval(()=>{if(!document.hidden&&currentOwner())load(false)},120000)}
@@ -18234,7 +18243,7 @@ button[data-mmh-busy="1"],.btn[data-mmh-busy="1"]{position:relative;cursor:wait!
     actions.push({label:'Use Again',onClick:()=>{setTimeout(()=>reuse(t),0);return true;}});
     if(hasReceipt(t))actions.push({label:'View Receipt',onClick:()=>{setTimeout(()=>window.openTransactionReceiptV396?.(t.id),0);return true;}});
     actions.push({label:'Edit',className:'primary',onClick:()=>{setTimeout(()=>window.editTransaction?.(t.id),0);return true;}});
-    if(typeof window.mmhVaultOpenDialogV449==='function')return window.mmhVaultOpenDialogV449({title:'Transaction',message:(t.tx_date||'')+' · '+(t.category||t.type||''),body:body(t),actions});
+    if(typeof window.mmhVaultOpenDialogV449==='function')return window.mmhVaultOpenDialogV449({title:'Transaction',message:(t.tx_date||'')+' · '+(t.category||t.type||''),body:body(t),actions,dialogClass:'mmh-detail-dialog-v148 mmh-tx-dialog-v148',bodyClass:'mmh-detail-dialog-body-v148',actionsClass:'mmh-detail-actions-v148 mmh-tx-detail-actions-v148'});
     return false;
   }
   window.openTransactionDetailV800=open;
@@ -24979,17 +24988,16 @@ body.light .mmh-account-detail-v830 .mmh-account-flow-v830>div,body.light .mmh-a
   function body(a){
     const rows=accountTx(a),invRows=accountInvestments(a),customRows=customInvs().filter(x=>x?.source_account===a.name),f=usdFactor(a),bal=nativeBalance(a),cashUSD=bal*f,linkedUSD=investmentValueUSD(invRows),share=wealthShare(a,cashUSD,linkedUSD),flows=flow(rows,a),meta=visualMeta(a),symbols=[...new Set(invRows.map(x=>x?.asset==='Gold'?'Gold':String(x?.symbol||'').toUpperCase()).filter(Boolean))];
     const related=rows.length+invRows.length+customRows.length,status=a.active===false?'Archived':'Active';
-    return '<div class="mmh-tx-detail-v800 mmh-account-detail-v830">'+
+    return '<div class="mmh-tx-detail-v800 mmh-account-detail-v830 mmh-account-detail-v148">'+
       '<div class="mmh-tx-detail-hero-v800"><div><div class="mmh-tx-detail-eyebrow-v800">Account detail</div><div class="mmh-tx-detail-title-v800">'+E(a.name)+'</div><span class="mmh-tx-detail-chip-v800">'+E(code(a)+' · '+typeLabel(a)+' · '+status)+'</span></div><div class="mmh-tx-detail-amount-v800">'+E(nativeMoney(bal,a))+'<small class="mmh-account-usd-v830">'+E(f>0?usdMoney(cashUSD)+' converted':'Conversion unavailable')+'</small></div></div>'+
-      '<div class="mmh-tx-detail-grid-v800">'+item('Currency',code(a)==='CNY'?'RMB / CNY':code(a))+item('Account type',typeLabel(a))+item('Wealth contribution',share.toFixed(1)+'%')+item('Related records',String(related))+'</div>'+
-      '<div class="mmh-account-flow-v830"><div class="in"><small>Total inflow</small><b>'+E(nativeMoney(flows.incoming,a))+'</b></div><div class="out"><small>Total outflow</small><b>'+E(nativeMoney(flows.outgoing,a))+'</b></div><div><small>Linked investment value</small><b>'+E(usdMoney(linkedUSD))+'</b></div></div>'+
-      (a.active===false?'<div class="mmh-account-archived-note-v143">Restore this account before recording new activity.</div>':'<div class="mmh-account-actions-v143" aria-label="Account quick actions"><button type="button" data-account-action-v143="expense" data-account-id-v143="'+E(a.id)+'"><i>↑</i><span><b>Expense</b><small>Pay from this account</small></span></button><button type="button" data-account-action-v143="income" data-account-id-v143="'+E(a.id)+'"><i>↓</i><span><b>Income</b><small>Deposit to this account</small></span></button><button type="button" data-account-action-v143="transfer" data-account-id-v143="'+E(a.id)+'"><i>↔</i><span><b>Transfer</b><small>Move money from here</small></span></button></div>')+
-      '<div class="mmh-account-section-v830"><div class="mmh-account-section-head-v830"><strong>Linked investments</strong><span>'+E(String(invRows.length+customRows.length)+' records · '+usdMoney(linkedUSD))+'</span></div>'+(symbols.length?'<div class="mmh-account-invest-tags-v830">'+symbols.map(s=>'<span>'+E(s)+'</span>').join('')+'</div>':'<div class="mmh-account-empty-v830">No linked investment records.</div>')+'</div>'+
-      '<div class="mmh-account-section-v830"><div class="mmh-account-section-head-v830"><strong>Recent transactions</strong><span class="mmh-account-section-tools-v143"><em>'+E(String(rows.length)+' linked records')+'</em>'+(rows.length?'<button type="button" data-account-action-v143="history" data-account-id-v143="'+E(a.id)+'">View all ›</button>':'')+'</span></div>'+recentHTML(rows,a)+'</div>'+
-      '<div class="mmh-tx-detail-note-v800"><strong style="color:#d9e8f6">Note</strong><br>'+E(meta.note||'No note')+'</div>'+
+      '<div class="mmh-tx-detail-grid-v800 mmh-account-topgrid-v148">'+item('Currency',code(a)==='CNY'?'RMB / CNY':code(a))+item('Account type',typeLabel(a))+item('Wealth contribution',share.toFixed(1)+'%')+item('Related records',String(related))+'</div>'+
+      '<div class="mmh-account-kpis-v148"><div class="mmh-account-kpi-v148 in"><small>Total inflow</small><b>'+E(nativeMoney(flows.incoming,a))+'</b></div><div class="mmh-account-kpi-v148 out"><small>Total outflow</small><b>'+E(nativeMoney(flows.outgoing,a))+'</b></div><div class="mmh-account-kpi-v148"><small>Linked investment value</small><b>'+E(usdMoney(linkedUSD))+'</b></div></div>'+
+      (a.active===false?'<div class="mmh-account-archived-note-v143">Restore this account before recording new activity.</div>':'<div class="mmh-account-actions-v143 mmh-account-actions-v148" aria-label="Account quick actions"><button type="button" data-account-action-v143="expense" data-account-id-v143="'+E(a.id)+'"><i>↑</i><span><b>Expense</b><small>Pay from this account</small></span></button><button type="button" data-account-action-v143="income" data-account-id-v143="'+E(a.id)+'"><i>↓</i><span><b>Income</b><small>Deposit to this account</small></span></button><button type="button" data-account-action-v143="transfer" data-account-id-v143="'+E(a.id)+'"><i>↔</i><span><b>Transfer</b><small>Move money from here</small></span></button></div>')+
+      '<div class="mmh-account-split-v148"><div class="mmh-account-section-v830"><div class="mmh-account-section-head-v830"><strong>Linked investments</strong><span>'+E(String(invRows.length+customRows.length)+' records · '+usdMoney(linkedUSD))+'</span></div>'+(symbols.length?'<div class="mmh-account-invest-tags-v830">'+symbols.map(s=>'<span>'+E(s)+'</span>').join('')+'</div>':'<div class="mmh-account-empty-v830">No linked investment records.</div>')+'</div><div class="mmh-account-section-v830"><div class="mmh-account-section-head-v830"><strong>Recent transactions</strong><span class="mmh-account-section-tools-v143"><em>'+E(String(rows.length)+' linked records')+'</em>'+(rows.length?'<button type="button" data-account-action-v143="history" data-account-id-v143="'+E(a.id)+'">View all ›</button>':'')+'</span></div>'+recentHTML(rows,a)+'</div></div>'+
+      '<div class="mmh-tx-detail-note-v800 mmh-account-note-v148"><strong style="color:#d9e8f6">Note</strong><br>'+E(meta.note||'No note')+'</div>'+
     '</div>';
   }
-  async function open(id){const a=account(id);if(!a)return false;const bal=nativeBalance(a);const actions=[{label:'Close',onClick:()=>true},{label:a.active===false?'Restore':'Archive',onClick:()=>{setTimeout(()=>window.mmhVaultToggleAccountV445?.(a.id),0);return true;}},{label:'Edit',className:'primary',onClick:()=>{setTimeout(()=>window.mmhAccountsEditV2?.(a.id),0);return true;}}];if(typeof window.mmhVaultOpenDialogV449==='function')return window.mmhVaultOpenDialogV449({title:'Account',message:a.name+' · '+nativeMoney(bal,a),body:body(a),actions});return false}
+  async function open(id){const a=account(id);if(!a)return false;const bal=nativeBalance(a);const actions=[{label:'Close',onClick:()=>true},{label:a.active===false?'Restore':'Archive',onClick:()=>{setTimeout(()=>window.mmhVaultToggleAccountV445?.(a.id),0);return true;}},{label:'Edit',className:'primary',onClick:()=>{setTimeout(()=>window.mmhAccountsEditV2?.(a.id),0);return true;}}];if(typeof window.mmhVaultOpenDialogV449==='function')return window.mmhVaultOpenDialogV449({title:'Account',message:a.name+' · '+nativeMoney(bal,a),body:body(a),actions,dialogClass:'mmh-detail-dialog-v148 mmh-account-dialog-v148',bodyClass:'mmh-detail-dialog-body-v148',actionsClass:'mmh-detail-actions-v148 mmh-account-detail-actions-v148'});return false}
   window.openAccountDetailV830=open;
   window.mmhOpenAccountRecentTxV830=id=>{try{window.mmhVaultCloseDialogV449?.()}catch(_e){}setTimeout(()=>window.openTransactionDetailV800?.(id),70)};
   document.addEventListener('click',e=>{const b=e.target?.closest?.('.mmh-account-recent-v830[data-tx-id]');if(!b)return;e.preventDefault();e.stopPropagation();window.mmhOpenAccountRecentTxV830(b.dataset.txId)});
@@ -26345,6 +26353,54 @@ window.MM_HVAULT_STABILITY_V12311={version:'1.2.3.11',storageFailureIsolation:tr
   window.MMHVAULT_PLANNING_V147={version:'1.4.7',dashboardGoalDetail:true,dashboardRecurringDetail:true,goalUpdateAction:true,recurringRecordAction:true,budgetQuickReview:true};
 })();
 </script>
+
+
+<style id="mmhvault-v148-detail-popover-polish">
+/* MMHVAULT v1.4.8 · detail / notification / more polish */
+#mmhVaultDialogV449 .mmh-detail-dialog-v148{width:min(760px,calc(100vw - 28px));border-radius:22px;border-color:rgba(101,166,229,.24);box-shadow:0 30px 90px rgba(0,0,0,.56),inset 0 1px 0 rgba(255,255,255,.04)}
+#mmhVaultDialogV449 .mmh-detail-dialog-v148 .mmh-v449-dialog-head{padding-bottom:8px}
+#mmhVaultDialogV449 .mmh-detail-dialog-body-v148{padding-top:8px}
+#mmhVaultDialogV449 .mmh-detail-actions-v148{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:stretch;gap:10px}
+#mmhVaultDialogV449 .mmh-detail-actions-v148 button{width:100%;min-width:0;min-height:46px;padding:0 12px;white-space:nowrap}
+#mmhVaultDialogV449 .mmh-tx-dialog-v148{width:min(780px,calc(100vw - 28px))}
+#mmhVaultDialogV449 .mmh-tx-detail-actions-v148:has(button:nth-child(4)){grid-template-columns:repeat(2,minmax(0,1fr))}
+#mmhVaultDialogV449 .mmh-tx-detail-v800{gap:14px}
+#mmhVaultDialogV449 .mmh-tx-dialog-v148 .mmh-tx-detail-grid-v800{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+#mmhVaultDialogV449 .mmh-tx-dialog-v148 .mmh-tx-detail-receipt-v800,#mmhVaultDialogV449 .mmh-tx-dialog-v148 .mmh-tx-reuse-hint-v142,#mmhVaultDialogV449 .mmh-tx-dialog-v148 .mmh-tx-detail-note-v800{border-radius:16px}
+#mmhVaultDialogV449 .mmh-account-dialog-v148{width:min(880px,calc(100vw - 28px))}
+#mmhVaultDialogV449 .mmh-account-detail-v148{display:grid;gap:14px}
+#mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-topgrid-v148{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+#mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-kpis-v148{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+#mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-kpi-v148{padding:14px 15px;border-radius:16px;border:1px solid rgba(89,149,196,.17);background:linear-gradient(145deg,rgba(15,42,62,.66),rgba(7,25,40,.74));box-shadow:inset 0 1px 0 rgba(255,255,255,.025)}
+#mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-kpi-v148 small{display:block;margin-bottom:6px;color:#87a2b7;font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:700}
+#mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-kpi-v148 b{font-size:25px;line-height:1.05;color:#eef5fb}
+#mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-kpi-v148.in b{color:#78e0b6}
+#mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-kpi-v148.out b{color:#ff9daf}
+#mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-actions-v148{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+#mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-actions-v148 button{min-height:74px;padding:12px 14px;border-radius:15px}
+#mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-split-v148{display:grid;grid-template-columns:1fr 1.18fr;gap:12px;align-items:start}
+#mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-section-v830{height:100%}
+#mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-note-v148{margin-top:0}
+#mmhVaultDialogV449 .mmh-account-detail-actions-v148{grid-template-columns:repeat(3,minmax(0,1fr))}
+#mmhNotifyPopoverV560{will-change:transform,opacity;filter:none!important;backdrop-filter:blur(18px) saturate(118%)!important;-webkit-backdrop-filter:blur(18px) saturate(118%)!important;transition:opacity .12s ease,transform .14s cubic-bezier(.2,.72,.2,1),visibility .12s ease!important}
+#mmhNotifyPopoverV560.open{filter:none!important}
+#mmhNotifyPopoverV560 .np-list{contain:layout paint}
+#mmhNotifyPopoverV560 .np-item{transition:transform .12s ease,border-color .12s ease,background .12s ease!important}
+#moreNavMenu.more-nav-menu{overflow:visible!important}
+#moreNavMenu.more-nav-menu::before{content:'WORKSPACE TOOLS'!important;color:#7691a8!important;letter-spacing:.18em!important}
+#moreNavMenu.more-nav-menu::after{content:'Core actions first · more tools nested below'!important;display:block!important;grid-column:1/-1!important;margin:-2px 0 6px!important;color:#6d889e!important;font-size:10px!important;line-height:1.35!important}
+#moreNavMenu.more-nav-menu>button{position:relative;min-height:54px!important;border-color:rgba(91,151,196,.14)!important;border-radius:14px!important;background:linear-gradient(145deg,rgba(16,43,64,.7),rgba(7,25,40,.78))!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.03),0 10px 22px rgba(0,0,0,.12)!important;transition:transform .14s ease,border-color .14s ease,background .14s ease,box-shadow .14s ease!important}
+#moreNavMenu.more-nav-menu>button:hover,#moreNavMenu.more-nav-menu>button.active{transform:translateY(-1px)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.035),0 14px 26px rgba(0,0,0,.16)!important}
+#moreNavMenu .mmh-more-submenu-v131{grid-column:1/-1;display:grid;grid-template-columns:inherit;gap:8px;padding:10px;border-radius:16px;border:1px solid rgba(90,150,194,.12);background:linear-gradient(145deg,rgba(8,28,44,.76),rgba(5,19,33,.84));box-shadow:inset 0 1px 0 rgba(255,255,255,.022)}
+#moreNavMenu .mmh-more-submenu-v131[hidden]{display:none!important}
+#moreNavMenu .mmh-more-nested-trigger-v131{border-style:dashed!important;border-color:rgba(242,196,94,.22)!important;background:linear-gradient(145deg,rgba(36,34,28,.42),rgba(10,28,43,.8))!important}
+#moreNavMenu .mmh-more-nested-trigger-v131::after{content:'⌄'!important}
+#moreNavMenu.mmh-more-nested-open-v131 .mmh-more-nested-trigger-v131::after{content:'⌃'!important}
+#moreNavMenu .mmh-more-submenu-v131::before{content:'MORE TOOLS';display:block;grid-column:1/-1;color:#d9b85f;font-size:9px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;padding:2px 3px 0}
+@media(max-width:820px){#mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-topgrid-v148{grid-template-columns:repeat(2,minmax(0,1fr))}#mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-kpis-v148{grid-template-columns:1fr}#mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-split-v148{grid-template-columns:1fr}}
+@media(max-width:620px){#mmhVaultDialogV449 .mmh-detail-actions-v148{grid-template-columns:repeat(2,minmax(0,1fr))}#mmhVaultDialogV449 .mmh-tx-dialog-v148 .mmh-tx-detail-grid-v800{grid-template-columns:1fr}#mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-actions-v148{grid-template-columns:1fr}}
+@media(max-width:420px){#mmhVaultDialogV449 .mmh-detail-actions-v148{grid-template-columns:1fr}#moreNavMenu.more-nav-menu::after{font-size:9px!important}}
+</style>
 
 </body>
 </html>
