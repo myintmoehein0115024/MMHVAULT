@@ -5234,7 +5234,16 @@ body.mmh-v436-explorer-open #bottomNav{visibility:hidden!important;pointer-event
     if(n) n.textContent=`${nb.getFullYear()}-${pad(nb.getMonth()+1)}-${pad(nb.getDate())}`;
     if(c) c.textContent=zh?`${days}天 ${hrs}小时 ${mins}分 ${secs}秒`:`${days}d ${hrs}h ${mins}m ${secs}s`;
   }
-  function tick(){render();window.dispatchEvent(new CustomEvent('mmhvault:age-tick'));}
+  let lastAgeKey='';
+  function ageKey(now=new Date()){const a=parts(now);return `${a.years}|${a.months}|${a.days}`}
+  function dispatchAgeDayIfChanged(force=false){
+    const key=ageKey();
+    if(force||key!==lastAgeKey){
+      lastAgeKey=key;
+      window.dispatchEvent(new CustomEvent('mmhvault:age-day-change',{detail:{key}}));
+    }
+  }
+  function tickSettings(){render();dispatchAgeDayIfChanged(false);}
   const bind=()=>{
     const input=document.getElementById('mmhBirthDateInputV34215');
     if(input&&!input.__v34216){ input.__v34216=true; input.value=getBirthISO(); input.addEventListener('change',()=>{const v=input.value;const date=new Date(v+'T00:00:00');const today=new Date();today.setHours(0,0,0,0);if(!/^\d{4}-\d{2}-\d{2}$/.test(v)||!Number.isFinite(date.getTime())||date>today||date.getFullYear()<1900){input.setCustomValidity('Choose a valid past birth date, from 1900 onward.');input.reportValidity();input.value=getBirthISO();return;}input.setCustomValidity('');if(/^\d{4}-\d{2}-\d{2}$/.test(v)){localStorage.setItem(scopedKey(),v); render(); window.dispatchEvent(new CustomEvent('mmhvault-birthday-change'));}}); }
@@ -5243,17 +5252,23 @@ body.mmh-v436-explorer-open #bottomNav{visibility:hidden!important;pointer-event
   function startAgeTickerV3435(){
     let timer=0;
     const loop=()=>{
-      const active=document.visibilityState!=='hidden' && (document.getElementById('dashboard')?.classList.contains('active') || document.getElementById('settings')?.classList.contains('active'));
-      if(active)tick();
+      const visible=document.visibilityState!=='hidden';
+      const settingsActive=visible&&document.getElementById('settings')?.classList.contains('active');
+      const dashboardActive=visible&&document.getElementById('dashboard')?.classList.contains('active');
+      if(settingsActive)tickSettings();
+      else if(dashboardActive)dispatchAgeDayIfChanged(false);
       clearTimeout(timer);
-      timer=setTimeout(loop,active?1000:2500);
+      timer=setTimeout(loop,settingsActive?1000:(dashboardActive?30000:5000));
     };
+    dispatchAgeDayIfChanged(true);
     loop();
-    document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')loop();},{passive:true});
+    document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){dispatchAgeDayIfChanged(false);loop()}},{passive:true});
+    window.addEventListener('mmhvault:page-visible',()=>{dispatchAgeDayIfChanged(false)},{passive:true});
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{bind();startAgeTickerV3435();},{once:true}); else {bind();startAgeTickerV3435();}
   window.addEventListener('languagechange',render);
-  window.addEventListener('mmhvault-birthday-change',render);window.addEventListener('mmhvault:config-owner-changed',bind);
+  window.addEventListener('mmhvault-birthday-change',()=>{render();dispatchAgeDayIfChanged(true)});
+  window.addEventListener('mmhvault:config-owner-changed',()=>{lastAgeKey='';bind();dispatchAgeDayIfChanged(true)});
 })();
 </script>
 <section class="page" id="wealth-planning" aria-hidden="true" inert>
@@ -15937,7 +15952,7 @@ body.mmhvault-scroll-active #invest .invest-top>.panel{box-shadow:inset 0 1px 0 
   const active=()=>PAGE_IDS.find(k=>document.getElementById(k)?.classList.contains('active'))||null;
   const markForEvent=()=>markAll();
   ['mmhvault:data-loaded','mmhvault:cache-restored','mmhvault:sync-complete','mmhvault:data-state','mmhvault-language-change','languagechange','mmhvault-birthday-change'].forEach(ev=>window.addEventListener(ev,markForEvent,{passive:true}));
-  window.addEventListener('mmhvault:age-tick',()=>{if(document.visibilityState!=='hidden')mark('dashboard');},{passive:true});
+  window.addEventListener('mmhvault:age-day-change',()=>{if(document.visibilityState!=='hidden')mark('dashboard');},{passive:true});
   document.addEventListener('visibilitychange',()=>{if(document.visibilityState!=='hidden')markAll();},{passive:true});
   window.addEventListener('storage',e=>{
     if(!e)return;
@@ -24140,7 +24155,7 @@ function addTopbar(){
  const runSearch=()=>{const q=search.value.trim();if(!q)return;const key=q.toLowerCase();if(key.includes('notification')||key.includes('通知')){document.getElementById('mmhTopBellV500')?.click();return}const pages={dashboard:'dashboard',home:'dashboard',transaction:'transactions',transactions:'transactions',invest:'invest',investment:'invest',accounts:'accounts-page',account:'accounts-page',setting:'settings',settings:'settings',feedback:'settings',exchange:'exchange',currency:'exchange',analyze:'cashflow-analyze','cash flow':'cashflow-analyze',budget:'budget',预算:'budget',goal:'goals',goals:'goals',目标:'goals',recurring:'recurring',repeat:'recurring',subscription:'recurring',周期:'recurring',固定:'recurring',report:'reports',reports:'reports',monthly:'reports',月报:'reports',报告:'reports'};const found=Object.keys(pages).find(k=>key.includes(k));if(found){setPage(pages[found]);if(pages[found]==='settings'&&key.includes('feedback'))setTimeout(()=>document.querySelector('#settings .fb-nav')?.click(),180);return}setPage('transactions');setTimeout(()=>{const tx=$('txSearch');if(tx){tx.value=q;tx.dispatchEvent(new Event('input',{bubbles:true}));tx.focus();}},160)};
  search.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();runSearch()}if(e.key==='Escape')search.value=''});
  window.addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();search.focus();search.select()}});
- function clock(){const d=new Date();const el=$('mmhTopDateV500');if(el)el.textContent=d.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric',year:'numeric'});}clock();setInterval(clock,60000);
+ let lastTopDateV1511='';function clock(){const d=new Date();const el=$('mmhTopDateV500');if(!el)return;const next=d.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric',year:'numeric'});if(next!==lastTopDateV1511){lastTopDateV1511=next;el.textContent=next;}}clock();setInterval(clock,60000);
 }
 function ensureDashboardHost(){
  let host=$('mmhPremiumDashboardV500');if(host)return host;const dash=$('dashboard');if(!dash)return null;host=document.createElement('div');host.id='mmhPremiumDashboardV500';dash.prepend(host);return host;
@@ -24379,7 +24394,7 @@ function scheduleDashboardRenderV790(delay=0,force=false){
 }
 function wrapRender(){const base=window.renderDashboard;if(typeof base==='function'&&!base.__pfV500){window.__mmhLegacyDashboardRenderV780=base;const wrapped=function(){let legacyResult;if(!document.getElementById('mmhPremiumDashboardV500')){try{legacyResult=base.apply(this,arguments)}catch(e){console.warn('[MMHVAULT] legacy dashboard fallback skipped',e)}}scheduleDashboardRenderV790(0,false);return legacyResult};wrapped.__pfV500=true;window.renderDashboard=wrapped;try{renderDashboard=wrapped}catch(_){}}}
 function init(){addSidebar();addTopbar();ensureDashboardHost();wrapRender();ensureSeamlessTransactionFlowV710();scheduleDashboardRenderV790(180,true)}
-['mmhvault:data-loaded','mmhvault:data-change','mmhvault:cache-restored','languagechange','mmhvault-language-change','mmhvault-birthday-change','mmhvault:age-tick'].forEach(ev=>window.addEventListener(ev,()=>scheduleDashboardRenderV790(70,false)));
+['mmhvault:data-loaded','mmhvault:data-change','mmhvault:cache-restored','languagechange','mmhvault-language-change','mmhvault-birthday-change','mmhvault:age-day-change'].forEach(ev=>window.addEventListener(ev,()=>scheduleDashboardRenderV790(70,false)));
 window.addEventListener('mmhvault:page-visible',()=>{if(pageActive()&&dashboardDirtyV159)scheduleDashboardRenderV790(0,dashboardRenderForceV790)});
 window.addEventListener('mmhvault:market-updated',()=>{if(pageActive())scheduleMarketOnlyV720();else dashboardDirtyV159=true});
 /* v1.5.5: CSS handles responsive layout; do not rebuild Dashboard DOM on resize. */
@@ -27961,6 +27976,17 @@ window.MMHVAULT_V1510={
   visibilityRenderScheduled:true,
   notificationStartupRpcDedup:true,
   notificationClosedDomIdle:true
+};
+</script>
+
+
+<script id="mmhvault-v1511-idle-clock-marker">
+window.MMHVAULT_V1511={
+  version:'1.5.11',
+  dashboardAgeSecondRender:false,
+  settingsAgeCountdownLive:true,
+  dashboardAgeDayEvent:true,
+  topbarDateWriteDedup:true
 };
 </script>
 
