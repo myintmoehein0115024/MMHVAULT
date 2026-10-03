@@ -26630,5 +26630,314 @@ window.MM_HVAULT_STABILITY_V12311={version:'1.2.3.11',storageFailureIsolation:tr
 })();
 </script>
 
+
+<style id="mmhvault-v151-asset-account-mobile-polish">
+/* MMHVAULT v1.5.1 · Asset Allocation + compact mobile Account Detail
+   Presentation only. No finance/data rules changed. */
+
+/* ---------- Dashboard · Asset Allocation ---------- */
+@media(min-width:1100px){
+  #mmhPremiumDashboardV500 .pf-bottom-grid-v500{
+    grid-template-columns:minmax(0,1.32fr) minmax(420px,.92fr)!important;
+  }
+  #mmhPremiumDashboardV500 .pf-allocation-card-v630 .pf-card-head-v500{
+    padding:15px 15px 0!important;
+    gap:10px!important;
+  }
+  #mmhPremiumDashboardV500 .pf-allocation-card-v630 .pf-card-head-v500 h2{
+    font-size:15px!important;
+  }
+  #mmhPremiumDashboardV500 .pf-allocation-card-v630 .pf-card-head-v500 p{
+    margin-top:4px!important;
+    font-size:8.5px!important;
+  }
+  #mmhPremiumDashboardV500 .pf-allocation-card-v630 .pf-link-v500{
+    min-height:32px!important;
+    padding:0 9px!important;
+    border:1px solid rgba(91,151,196,.18)!important;
+    border-radius:9px!important;
+    background:rgba(12,38,57,.54)!important;
+    white-space:nowrap!important;
+  }
+  #mmhPremiumDashboardV500 .pf-allocation-premium-v630{
+    grid-template-columns:minmax(128px,.76fr) minmax(0,1.24fr)!important;
+    gap:15px!important;
+    padding:15px 14px 16px!important;
+    align-items:center!important;
+  }
+  #mmhPremiumDashboardV500 .pf-donut-v630{
+    width:138px!important;
+    height:138px!important;
+  }
+  #mmhPremiumDashboardV500 .pf-donut-v500::before{
+    inset:24px!important;
+  }
+  #mmhPremiumDashboardV500 .pf-donut-v630 .pf-donut-center-v500 strong{
+    font-size:15px!important;
+    line-height:1.08!important;
+  }
+  #mmhPremiumDashboardV500 .pf-donut-v630 .pf-donut-center-v500 span{
+    font-size:7.5px!important;
+  }
+  #mmhPremiumDashboardV500 .pf-allocation-health-v630{
+    margin-top:9px!important;
+    font-size:7.5px!important;
+  }
+  #mmhPremiumDashboardV500 .pf-legend-v630{
+    min-width:0!important;
+    width:100%!important;
+    gap:7px!important;
+  }
+  #mmhPremiumDashboardV500 .pf-allocation-row-v630{
+    min-width:0!important;
+    grid-template-columns:8px minmax(0,1fr) 46px!important;
+    gap:3px 8px!important;
+    padding:8px 9px 9px!important;
+    border-radius:11px!important;
+  }
+  #mmhPremiumDashboardV500 .pf-allocation-row-v630>span{
+    min-width:0!important;
+    overflow:hidden!important;
+  }
+  #mmhPremiumDashboardV500 .pf-allocation-row-v630 em{
+    font-size:8.5px!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+  }
+  #mmhPremiumDashboardV500 .pf-allocation-row-v630 small{
+    font-size:7.5px!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+  }
+  #mmhPremiumDashboardV500 .pf-allocation-row-v630>b{
+    min-width:0!important;
+    text-align:right!important;
+    font-size:9.5px!important;
+    white-space:nowrap!important;
+  }
+  #mmhPremiumDashboardV500 .pf-allocation-row-v630>u{
+    grid-column:2/4!important;
+  }
+}
+@media(min-width:1100px) and (max-width:1280px){
+  #mmhPremiumDashboardV500 .pf-bottom-grid-v500{
+    grid-template-columns:minmax(0,1.25fr) minmax(390px,.9fr)!important;
+  }
+  #mmhPremiumDashboardV500 .pf-allocation-premium-v630{
+    grid-template-columns:118px minmax(0,1fr)!important;
+    gap:11px!important;
+    padding-left:11px!important;
+    padding-right:11px!important;
+  }
+  #mmhPremiumDashboardV500 .pf-donut-v630{
+    width:122px!important;
+    height:122px!important;
+  }
+  #mmhPremiumDashboardV500 .pf-donut-v500::before{inset:21px!important}
+}
+
+/* ---------- Phone · Account Detail ---------- */
+@media(max-width:620px){
+  #mmhVaultDialogV449 .mmh-account-dialog-v148{
+    width:100%!important;
+    max-width:none!important;
+    max-height:calc(100dvh - max(12px,env(safe-area-inset-top)) - max(8px,env(safe-area-inset-bottom)))!important;
+    border-radius:16px!important;
+  }
+  #mmhVaultDialogV449 .mmh-account-dialog-v148 .mmh-v449-dialog-head{
+    padding:11px 12px 6px!important;
+  }
+  #mmhVaultDialogV449 .mmh-account-dialog-v148 .mmh-v449-dialog-head h3{
+    font-size:15px!important;
+  }
+  #mmhVaultDialogV449 .mmh-account-dialog-v148 .mmh-v449-dialog-head p{
+    margin-top:3px!important;
+    font-size:9px!important;
+  }
+  #mmhVaultDialogV449 .mmh-account-dialog-v148 .mmh-detail-dialog-body-v148{
+    padding:7px 10px 9px!important;
+  }
+  #mmhVaultDialogV449 .mmh-account-detail-v148{
+    gap:8px!important;
+  }
+  #mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-tx-detail-hero-v800{
+    padding:10px!important;
+    border-radius:13px!important;
+    gap:8px!important;
+    align-items:center!important;
+  }
+  #mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-tx-detail-eyebrow-v800{
+    font-size:7px!important;
+    letter-spacing:.12em!important;
+  }
+  #mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-tx-detail-title-v800{
+    margin-top:2px!important;
+    font-size:15px!important;
+  }
+  #mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-tx-detail-chip-v800{
+    margin-top:5px!important;
+    padding:4px 7px!important;
+    font-size:7px!important;
+  }
+  #mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-tx-detail-amount-v800{
+    font-size:15px!important;
+    text-align:right!important;
+    white-space:nowrap!important;
+  }
+  #mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-usd-v830{
+    margin-top:2px!important;
+    font-size:7px!important;
+  }
+
+  #mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-topgrid-v148{
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+    gap:6px!important;
+  }
+  #mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-topgrid-v148 .mmh-tx-detail-item-v800{
+    padding:8px 9px!important;
+    border-radius:11px!important;
+  }
+  #mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-topgrid-v148 .mmh-tx-detail-label-v800{
+    font-size:7px!important;
+    letter-spacing:.08em!important;
+  }
+  #mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-topgrid-v148 .mmh-tx-detail-value-v800{
+    margin-top:3px!important;
+    font-size:10px!important;
+  }
+
+  #mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-kpis-v148{
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+    gap:6px!important;
+  }
+  #mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-kpi-v148{
+    min-width:0!important;
+    padding:8px 7px!important;
+    border-radius:11px!important;
+  }
+  #mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-kpi-v148 small{
+    margin-bottom:3px!important;
+    font-size:6.5px!important;
+    letter-spacing:.04em!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+  }
+  #mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-kpi-v148 b{
+    font-size:11px!important;
+    line-height:1.15!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+  }
+
+  #mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-actions-v148{
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+    gap:6px!important;
+  }
+  #mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-actions-v148 button{
+    min-width:0!important;
+    min-height:48px!important;
+    padding:7px!important;
+    border-radius:11px!important;
+    grid-template-columns:24px minmax(0,1fr)!important;
+    gap:6px!important;
+  }
+  #mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-actions-v148 i{
+    width:24px!important;
+    height:24px!important;
+    font-size:11px!important;
+  }
+  #mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-actions-v148 b{
+    font-size:8.5px!important;
+  }
+  #mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-actions-v148 small{
+    display:none!important;
+  }
+
+  #mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-split-v148{
+    grid-template-columns:1fr!important;
+    gap:7px!important;
+  }
+  #mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-section-v830{
+    padding:9px 10px!important;
+    border-radius:11px!important;
+  }
+  #mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-section-head-v830{
+    margin-bottom:5px!important;
+  }
+  #mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-section-head-v830 strong{
+    font-size:9.5px!important;
+  }
+  #mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-section-head-v830 span{
+    font-size:7.5px!important;
+  }
+  #mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-recent-v830{
+    grid-template-columns:64px minmax(0,1fr) auto!important;
+    gap:6px!important;
+    padding:7px 8px!important;
+  }
+  #mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-recent-v830 time{
+    font-size:7.5px!important;
+  }
+  #mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-recent-v830 .copy b{
+    font-size:8.5px!important;
+  }
+  #mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-recent-v830 .copy small{
+    font-size:7px!important;
+  }
+  #mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-recent-v830 .amt{
+    grid-column:auto!important;
+    text-align:right!important;
+    font-size:8px!important;
+  }
+  #mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-note-v148{
+    padding:9px 10px!important;
+    border-radius:11px!important;
+    font-size:8.5px!important;
+  }
+
+  /* Bottom actions: Close / Archive / Edit always remain one row on phone. */
+  #mmhVaultDialogV449 .mmh-account-detail-actions-v148{
+    display:grid!important;
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+    flex-direction:row!important;
+    gap:6px!important;
+    padding:8px 10px max(8px,env(safe-area-inset-bottom,0px))!important;
+  }
+  #mmhVaultDialogV449 .mmh-account-detail-actions-v148 button{
+    width:100%!important;
+    min-width:0!important;
+    min-height:40px!important;
+    padding:0 5px!important;
+    font-size:10px!important;
+    border-radius:10px!important;
+  }
+}
+@media(max-width:380px){
+  #mmhVaultDialogV449 .mmh-account-detail-actions-v148{
+    display:grid!important;
+    grid-template-columns:repeat(3,minmax(0,1fr))!important;
+    flex-direction:row!important;
+  }
+  #mmhVaultDialogV449 .mmh-account-detail-actions-v148 button{
+    width:100%!important;
+    min-height:38px!important;
+    font-size:9px!important;
+  }
+  #mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-kpi-v148 small{
+    font-size:6px!important;
+  }
+  #mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-kpi-v148 b{
+    font-size:10px!important;
+  }
+}
+</style>
+<script id="mmhvault-v151-ui-marker">
+window.MMHVAULT_V151={version:'1.5.1',assetAllocationPolish:true,compactMobileAccountDetail:true,accountActionsOneRow:true};
+</script>
+
 </body>
 </html>
