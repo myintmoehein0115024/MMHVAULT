@@ -800,7 +800,7 @@ html{scrollbar-gutter:stable;}
 <link rel="stylesheet" href="css/mmhvault-v4.css?v=4.3.0">
 
 <link rel="stylesheet" href="css/mmhvault-premium-motion.css?v=20260929-bg1">
-<link rel="stylesheet" href="css/mmhvault-uiux-v130.css?v=1.4.6">
+<link rel="stylesheet" href="css/mmhvault-uiux-v130.css?v=1.4.7">
 
 <style id="mmhvault-v343-expenses-reduction">
 /* V4.3.0 data reduction: budget control now owns category ranking + budget progress;
@@ -18714,7 +18714,7 @@ html body #invest .invest-entry .receipt-dropzone-v3300{width:100%!important;max
     try{const {error}=await db.from('financial_goals').delete().eq('user_id',owner).eq('id',id);if(error)throw error;if(user()?.id!==owner)return;await load();if(user()?.id!==owner)return;window.dispatchEvent(new CustomEvent('mmhvault:goals-changed'));window.MMHUI?.toast?.('Goal deleted.',{title:'Financial Goals',type:'success'})}
     catch(err){if(user()?.id===owner)window.MMHUI?.message?.(err?.message||'Unable to delete the goal.','Financial Goals',{type:'error'})}
   }
-  async function openDetail(id){const r=state.rows.find(x=>x.id===id);if(!r)return;const [icon,label]=typeInfo(r.goal_type),pct=progress(r),need=monthlyNeed(r),status=normalizeStatus(r),body=`<div class="goal-detail-v113"><div class="goal-detail-hero-v113"><span>${esc(icon+' '+label)} · ${esc(status)}</span><strong>${money(r.current_amount,r.currency)} / ${money(r.target_amount,r.currency)}</strong></div><div class="goal-track-v113"><i style="width:${Math.min(100,pct)}%"></i></div><div class="goal-detail-grid-v113"><div><span>Progress</span><b>${pct.toFixed(1)}%</b></div><div><span>Remaining</span><b>${money(remaining(r),r.currency)}</b></div><div><span>Target date</span><b>${esc(r.target_date||'No deadline')}</b></div><div><span>Monthly pace</span><b>${need===null?'—':money(need,r.currency)}</b></div><div><span>Currency</span><b>${esc(r.currency)}</b></div><div><span>Status</span><b>${esc(status)}</b></div></div><div class="goal-detail-note-v113">${r.note?esc(r.note):'No note'}</div></div>`;if(typeof window.mmhVaultOpenDialogV449==='function'){await window.mmhVaultOpenDialogV449({title:r.name,message:'',body,actions:[{label:'Close',className:'primary'}]})}else await window.MMHUI?.message?.(`${pct.toFixed(1)}% complete · ${money(remaining(r),r.currency)} remaining`,r.name)}
+  async function openDetail(id){const r=state.rows.find(x=>x.id===id);if(!r)return;const [icon,label]=typeInfo(r.goal_type),pct=progress(r),need=monthlyNeed(r),status=normalizeStatus(r),body=`<div class="goal-detail-v113"><div class="goal-detail-hero-v113"><span>${esc(icon+' '+label)} · ${esc(status)}</span><strong>${money(r.current_amount,r.currency)} / ${money(r.target_amount,r.currency)}</strong></div><div class="goal-track-v113"><i style="width:${Math.min(100,pct)}%"></i></div><div class="goal-detail-grid-v113"><div><span>Progress</span><b>${pct.toFixed(1)}%</b></div><div><span>Remaining</span><b>${money(remaining(r),r.currency)}</b></div><div><span>Target date</span><b>${esc(r.target_date||'No deadline')}</b></div><div><span>Monthly pace</span><b>${need===null?'—':money(need,r.currency)}</b></div><div><span>Currency</span><b>${esc(r.currency)}</b></div><div><span>Status</span><b>${esc(status)}</b></div></div><div class="goal-detail-note-v113">${r.note?esc(r.note):'No note'}</div></div>`;if(typeof window.mmhVaultOpenDialogV449==='function'){const actions=[{label:'Close'}];if(status!=='archived')actions.push({label:'Update progress',className:'primary',onClick:()=>{setTimeout(()=>{editGoal(id);setTimeout(()=>{$('goalCurrentV113')?.focus({preventScroll:true});$('goalCurrentV113')?.select?.()},130)},0);return true;}});actions.push({label:'Edit Goal',onClick:()=>{setTimeout(()=>editGoal(id),0);return true;}});await window.mmhVaultOpenDialogV449({title:r.name,message:'',body,actions})}else await window.MMHUI?.message?.(`${pct.toFixed(1)}% complete · ${money(remaining(r),r.currency)} remaining`,r.name)}
   async function load(){
     const u=user(),request=++state.request,owner=u?.id||'';
     if(!owner||typeof db==='undefined'){state.owner='';state.rows=[];state.loading=false;render();return}
@@ -18962,7 +18962,7 @@ window.MMHVAULT_RELEASE='MMHVAULT v1.3.0 UI/UX Pass 1';
     try{const {error}=await db.from('recurring_transactions').delete().eq('user_id',owner).eq('id',id);if(error)throw error;if(signedUser()?.id!==owner)return;if(state.pending?.id===id)clearPending();await load();if(signedUser()?.id!==owner)return;window.dispatchEvent(new CustomEvent('mmhvault:recurring-changed',{detail:{action:'delete'}}));window.MMHUI?.toast?.('Recurring schedule deleted.',{title:'Recurring',type:'success'})}
     catch(err){if(signedUser()?.id===owner)window.MMHUI?.message?.(err?.message||'Unable to delete the schedule.','Recurring',{type:'error'})}
   }
-  async function openDetail(id){const r=state.rows.find(x=>x.id===id);if(!r)return;const due=dueInfo(r),sum=amountSummary(r),body=`<div class="recurring-detail-v114"><div class="recurring-detail-hero-v114"><span>${E(r.tx_type)} · ${E(r.tx_group)} · ${E(r.category)}</span><strong>${E(sum.main)}</strong></div><div class="recurring-detail-grid-v114"><div><span>Frequency</span><b>${E(frequencyLabel(r.frequency))}</b></div><div><span>Next due</span><b>${E(r.next_due_date)}</b></div><div><span>Status</span><b>${E(due.label)}</b></div><div><span>Reminder</span><b>${Number(r.reminder_days)||0} day(s) before</b></div><div><span>From</span><b>${E(r.from_account||'—')} · ${r.from_account?money(r.from_amount,accountCurrency(r.from_account)):'—'}</b></div><div><span>To</span><b>${E(r.to_account||'—')} · ${r.to_account?money(r.to_amount,accountCurrency(r.to_account)):'—'}</b></div></div><div class="recurring-detail-note-v114">${r.note?E(r.note):'No note'}</div></div>`;if(typeof window.mmhVaultOpenDialogV449==='function')await window.mmhVaultOpenDialogV449({title:r.name,message:'',body,actions:[{label:'Close',className:'primary'}]});else await window.MMHUI?.message?.(`${frequencyLabel(r.frequency)} · ${r.next_due_date}`,r.name)}
+  async function openDetail(id){const r=state.rows.find(x=>x.id===id);if(!r)return;const due=dueInfo(r),sum=amountSummary(r),body=`<div class="recurring-detail-v114"><div class="recurring-detail-hero-v114"><span>${E(r.tx_type)} · ${E(r.tx_group)} · ${E(r.category)}</span><strong>${E(sum.main)}</strong></div><div class="recurring-detail-grid-v114"><div><span>Frequency</span><b>${E(frequencyLabel(r.frequency))}</b></div><div><span>Next due</span><b>${E(r.next_due_date)}</b></div><div><span>Status</span><b>${E(due.label)}</b></div><div><span>Reminder</span><b>${Number(r.reminder_days)||0} day(s) before</b></div><div><span>From</span><b>${E(r.from_account||'—')} · ${r.from_account?money(r.from_amount,accountCurrency(r.from_account)):'—'}</b></div><div><span>To</span><b>${E(r.to_account||'—')} · ${r.to_account?money(r.to_amount,accountCurrency(r.to_account)):'—'}</b></div></div><div class="recurring-detail-note-v114">${r.note?E(r.note):'No note'}</div></div>`;if(typeof window.mmhVaultOpenDialogV449==='function'){const actions=[{label:'Close'}];if(r.status!=='paused')actions.push({label:'Record now',className:'primary',onClick:()=>{setTimeout(()=>recordNow(id),0);return true;}});actions.push({label:'Edit Schedule',onClick:()=>{setTimeout(()=>edit(id),0);return true;}});await window.mmhVaultOpenDialogV449({title:r.name,message:'',body,actions})}else await window.MMHUI?.message?.(`${frequencyLabel(r.frequency)} · ${r.next_due_date}`,r.name)}
   function ensurePrefillBanner(){const form=$('txForm');if(!form)return null;let banner=$('recurringPrefillBannerV114');if(!banner){banner=document.createElement('div');banner.id='recurringPrefillBannerV114';banner.className='recurring-prefill-banner-v114';banner.innerHTML='<div><b id="recurringPrefillNameV114">Recurring template loaded</b><br><small>Review the transaction before submitting it.</small></div><button type="button" id="recurringPrefillCancelV114">Cancel template</button>';form.prepend(banner);$('recurringPrefillCancelV114').onclick=()=>clearPending()}return banner}
   function clearPending(){state.pending=null;const b=ensurePrefillBanner();b?.classList.remove('show')}
   function showPending(r){state.pending={id:r.id,due:r.next_due_date};const b=ensurePrefillBanner();$('recurringPrefillNameV114').textContent=`Recurring · ${r.name}`;b.classList.add('show')}
@@ -25645,17 +25645,19 @@ html body.mmh-workspace-active main.wrap .page.active :is(.empty,.mmh-ui-empty,.
   }
   function renderGoals(){
     const g=goalMeta(),next=g.next,rows=[...g.activeGoals].sort((a,b)=>progress(b)-progress(a)).slice(0,3);
-    return `<article class="pf-planning-card-v117 goals"><div class="pf-planning-head-v117"><div><h2>${tr('Financial Goals','财务目标')}</h2><p>${tr('Progress toward the goals that matter most.','查看当前最重要目标的进度。')}</p></div><button class="pf-planning-open-v117" type="button" data-plan-open="goals">${tr('Open Goals →','打开目标 →')}</button></div><div class="pf-planning-metrics-v117"><div class="pf-planning-metric-v117"><span>${tr('Active','进行中')}</span><b>${g.activeGoals.length}</b><small>${tr('goal(s)','个目标')}</small></div><div class="pf-planning-metric-v117"><span>${tr('Avg progress','平均进度')}</span><b>${g.activeGoals.length?g.avg.toFixed(1)+'%':'—'}</b><small>${tr('active goals','进行中的目标')}</small></div><div class="pf-planning-metric-v117"><span>${tr('Next deadline','最近期限')}</span><b>${next?fmtDate(next.target_date):'—'}</b><small>${next?esc(next.name):tr('No dated goals','暂无期限')}</small></div></div><div class="pf-planning-list-v117">${state.loading?`<div class="pf-planning-empty-v117">${tr('Syncing goals…','正在同步目标…')}</div>`:rows.length?rows.map(x=>{const p=progress(x);return `<button class="pf-plan-row-v117" type="button" data-plan-open="goals"><div><b>${esc(x.name||tr('Goal','目标'))}</b><small>${x.target_date?tr('Target ','目标 ') + esc(x.target_date):tr('No deadline','无期限')}</small><div class="pf-goal-track-v117"><i style="width:${p.toFixed(2)}%"></i></div></div><strong>${p.toFixed(1)}%</strong></button>`}).join(''):`<div class="pf-planning-empty-v117">${tr('No active goals yet. Create one to start tracking progress.','暂无进行中的目标，可创建一个开始追踪。')}</div>`}</div></article>`;
+    return `<article class="pf-planning-card-v117 goals"><div class="pf-planning-head-v117"><div><h2>${tr('Financial Goals','财务目标')}</h2><p>${tr('Progress toward the goals that matter most.','查看当前最重要目标的进度。')}</p></div><button class="pf-planning-open-v117" type="button" data-plan-open="goals">${tr('Open Goals →','打开目标 →')}</button></div><div class="pf-planning-metrics-v117"><div class="pf-planning-metric-v117"><span>${tr('Active','进行中')}</span><b>${g.activeGoals.length}</b><small>${tr('goal(s)','个目标')}</small></div><div class="pf-planning-metric-v117"><span>${tr('Avg progress','平均进度')}</span><b>${g.activeGoals.length?g.avg.toFixed(1)+'%':'—'}</b><small>${tr('active goals','进行中的目标')}</small></div><div class="pf-planning-metric-v117"><span>${tr('Next deadline','最近期限')}</span><b>${next?fmtDate(next.target_date):'—'}</b><small>${next?esc(next.name):tr('No dated goals','暂无期限')}</small></div></div><div class="pf-planning-list-v117">${state.loading?`<div class="pf-planning-empty-v117">${tr('Syncing goals…','正在同步目标…')}</div>`:rows.length?rows.map(x=>{const p=progress(x);return `<button class="pf-plan-row-v117" type="button" data-plan-goal-v147="${esc(x.id)}"><div><b>${esc(x.name||tr('Goal','目标'))}</b><small>${x.target_date?tr('Target ','目标 ') + esc(x.target_date):tr('No deadline','无期限')}</small><div class="pf-goal-track-v117"><i style="width:${p.toFixed(2)}%"></i></div></div><strong>${p.toFixed(1)}%</strong></button>`}).join(''):`<div class="pf-planning-empty-v117">${tr('No active goals yet. Create one to start tracking progress.','暂无进行中的目标，可创建一个开始追踪。')}</div>`}</div></article>`;
   }
   function renderRecurring(){
     const r=recurringMeta(),rows=r.rows.slice(0,4),next=r.next;
-    return `<article class="pf-planning-card-v117 recurring"><div class="pf-planning-head-v117"><div><h2>${tr('Recurring','固定交易')}</h2><p>${tr('Upcoming commitments and items that need attention.','查看即将到期和需要处理的固定交易。')}</p></div><button class="pf-planning-open-v117" type="button" data-plan-open="recurring">${tr('Open Recurring →','打开固定交易 →')}</button></div><div class="pf-planning-metrics-v117"><div class="pf-planning-metric-v117"><span>${tr('Upcoming','即将到期')}</span><b>${r.upcoming.length}</b><small>${tr('next 7 days','未来 7 天')}</small></div><div class="pf-planning-metric-v117"><span>${tr('Due today','今天到期')}</span><b>${r.due.length}</b><small>${tr('needs review','需要确认')}</small></div><div class="pf-planning-metric-v117"><span>${tr('Overdue','已逾期')}</span><b>${r.overdue.length}</b><small>${next?tr('Next ','最近 ') + fmtDate(next.next_due_date):tr('No active schedule','无活动计划')}</small></div></div><div class="pf-planning-list-v117">${state.loading?`<div class="pf-planning-empty-v117">${tr('Syncing recurring schedules…','正在同步固定交易…')}</div>`:rows.length?rows.map(x=>{const d=dueLabel(x.next_due_date);return `<button class="pf-plan-row-v117" type="button" data-plan-open="recurring"><div><b>${esc(x.name||tr('Recurring item','固定项目'))}</b><small>${esc(x.frequency||'monthly')} · ${esc(x.next_due_date||'—')}</small><span class="pf-rec-status-v117 ${d.cls}">${esc(d.label)}</span></div><strong>›</strong></button>`}).join(''):`<div class="pf-planning-empty-v117">${tr('No active recurring schedules.','暂无活动中的固定交易。')}</div>`}</div></article>`;
+    return `<article class="pf-planning-card-v117 recurring"><div class="pf-planning-head-v117"><div><h2>${tr('Recurring','固定交易')}</h2><p>${tr('Upcoming commitments and items that need attention.','查看即将到期和需要处理的固定交易。')}</p></div><button class="pf-planning-open-v117" type="button" data-plan-open="recurring">${tr('Open Recurring →','打开固定交易 →')}</button></div><div class="pf-planning-metrics-v117"><div class="pf-planning-metric-v117"><span>${tr('Upcoming','即将到期')}</span><b>${r.upcoming.length}</b><small>${tr('next 7 days','未来 7 天')}</small></div><div class="pf-planning-metric-v117"><span>${tr('Due today','今天到期')}</span><b>${r.due.length}</b><small>${tr('needs review','需要确认')}</small></div><div class="pf-planning-metric-v117"><span>${tr('Overdue','已逾期')}</span><b>${r.overdue.length}</b><small>${next?tr('Next ','最近 ') + fmtDate(next.next_due_date):tr('No active schedule','无活动计划')}</small></div></div><div class="pf-planning-list-v117">${state.loading?`<div class="pf-planning-empty-v117">${tr('Syncing recurring schedules…','正在同步固定交易…')}</div>`:rows.length?rows.map(x=>{const d=dueLabel(x.next_due_date);return `<button class="pf-plan-row-v117" type="button" data-plan-recurring-v147="${esc(x.id)}"><div><b>${esc(x.name||tr('Recurring item','固定项目'))}</b><small>${esc(x.frequency||'monthly')} · ${esc(x.next_due_date||'—')}</small><span class="pf-rec-status-v117 ${d.cls}">${esc(d.label)}</span></div><strong>›</strong></button>`}).join(''):`<div class="pf-planning-empty-v117">${tr('No active recurring schedules.','暂无活动中的固定交易。')}</div>`}</div></article>`;
   }
   function render(){
     if(!active())return;const section=ensureSection();if(!section)return;
     const sig=JSON.stringify([state.loading,state.goals.map(x=>[x.id,x.status,x.name,x.target_amount,x.current_amount,x.target_date]),state.recurring.map(x=>[x.id,x.status,x.name,x.next_due_date,x.frequency]),(localStorage.getItem('mmhvault_language_v3363')||'en')]);
     if(section.dataset.sig===sig)return;section.dataset.sig=sig;section.innerHTML=renderGoals()+renderRecurring();
     section.querySelectorAll('[data-plan-open]').forEach(b=>b.addEventListener('click',()=>window.setPage?.(b.dataset.planOpen)));
+    section.querySelectorAll('[data-plan-goal-v147]').forEach(b=>b.addEventListener('click',()=>window.mmhOpenGoalDetailV147?.(b.dataset.planGoalV147)));
+    section.querySelectorAll('[data-plan-recurring-v147]').forEach(b=>b.addEventListener('click',()=>window.mmhOpenRecurringDetailV147?.(b.dataset.planRecurringV147)));
   }
   async function load(force=false){
     if(!active()&&!force)return;const u=user();if(!u?.id||typeof db==='undefined'){state.owner='';state.goals=[];state.recurring=[];state.loading=false;render();return}
@@ -26283,5 +26285,66 @@ window.MM_HVAULT_STABILITY_V12311={version:'1.2.3.11',storageFailureIsolation:tr
 </script>
 
 <script id="mmhvault-v146-ui-flow-marker">window.MMHVAULT_V146={version:'1.4.6',quickActionsMainPages:true,tickerAlwaysMoves:true,notificationInstant:true,wideResponsive:true,feedbackStarGlow:true,fullDashboardName:true};</script>
+
+<script id="mmhvault-v147-planning-quick-flow">
+(()=>{'use strict';
+  if(window.__MMHVAULT_PLANNING_QUICK_FLOW_V147)return;window.__MMHVAULT_PLANNING_QUICK_FLOW_V147=true;
+  const $=id=>document.getElementById(id);
+  const wait=ms=>new Promise(r=>setTimeout(r,ms));
+
+  async function openGoalDetail(id){
+    try{window.setPage?.('goals')}catch(_){}
+    await wait(80);
+    try{await window.MMHGoalsV113?.load?.()}catch(_){}
+    try{if(window.MMHGoalsV113?.state){window.MMHGoalsV113.state.mode='all';window.MMHGoalsV113.render?.();}}catch(_){}
+    await wait(35);
+    const b=[...document.querySelectorAll('[data-goal-detail]')].find(x=>String(x.dataset.goalDetail)===String(id));
+    if(b){b.scrollIntoView({behavior:'smooth',block:'center'});b.click();return true}
+    return false;
+  }
+  async function openRecurringDetail(id){
+    try{window.setPage?.('recurring')}catch(_){}
+    await wait(80);
+    try{await window.MMHRecurringV114?.load?.()}catch(_){}
+    try{if(window.MMHRecurringV114?.state){window.MMHRecurringV114.state.mode='all';window.MMHRecurringV114.render?.();}}catch(_){}
+    await wait(35);
+    const b=[...document.querySelectorAll('[data-rec-detail]')].find(x=>String(x.dataset.recDetail)===String(id));
+    if(b){b.scrollIntoView({behavior:'smooth',block:'center'});b.click();return true}
+    return false;
+  }
+  function ensureBudgetActions(){
+    const page=$('budget'),kpis=page?.querySelector('.budget-kpis-v110');
+    if(!page||!kpis||page.querySelector('.budget-quick-v147'))return;
+    const row=document.createElement('div');
+    row.className='budget-quick-v147';
+    row.innerHTML='<div><span>QUICK REVIEW</span><small>Continue from your spending plan</small></div><button type="button" data-budget-quick-v147="analyze"><i>◉</i><span><b>Analyze spending</b><small>Open Cash Flow Analyze</small></span></button><button type="button" data-budget-quick-v147="history"><i>≡</i><span><b>Transaction history</b><small>Review individual expenses</small></span></button>';
+    kpis.insertAdjacentElement('afterend',row);
+  }
+  async function budgetAction(action){
+    if(action==='analyze'){try{window.setPage?.('cashflow-analyze')}catch(_){};return}
+    if(action==='history'){
+      try{window.setPage?.('transactions')}catch(_){}
+      await wait(65);
+      try{window.showTxTab?.('history')}catch(_){try{showTxTab('history')}catch(__){}}
+    }
+  }
+
+  window.mmhOpenGoalDetailV147=openGoalDetail;
+  window.mmhOpenRecurringDetailV147=openRecurringDetail;
+
+  document.addEventListener('click',e=>{
+    const b=e.target?.closest?.('[data-budget-quick-v147]');
+    if(!b)return;
+    e.preventDefault();
+    budgetAction(b.dataset.budgetQuickV147);
+  });
+
+  const init=()=>{ensureBudgetActions();};
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+  window.addEventListener('mmhvault:page-visible',()=>ensureBudgetActions());
+  window.MMHVAULT_PLANNING_V147={version:'1.4.7',dashboardGoalDetail:true,dashboardRecurringDetail:true,goalUpdateAction:true,recurringRecordAction:true,budgetQuickReview:true};
+})();
+</script>
+
 </body>
 </html>

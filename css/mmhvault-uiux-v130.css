@@ -2179,3 +2179,107 @@ body.light.mmh-workspace-active #settings .fb-star-v15.on{
     font-size:28px!important;
   }
 }
+
+
+/* MMHVAULT v1.4.7 · Planning Quick Flow */
+body.mmh-workspace-active #budget .budget-quick-v147{
+  display:grid;
+  grid-template-columns:minmax(170px,.78fr) repeat(2,minmax(0,1fr));
+  gap:8px;
+  align-items:stretch;
+  padding:9px;
+  border:1px solid rgba(91,151,199,.14);
+  border-radius:15px;
+  background:linear-gradient(145deg,rgba(8,28,46,.68),rgba(5,19,33,.75));
+}
+body.mmh-workspace-active #budget .budget-quick-v147>div{
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  padding:6px 8px;
+}
+body.mmh-workspace-active #budget .budget-quick-v147>div>span{
+  color:#e3bf60;
+  font-size:8px;
+  font-weight:850;
+  letter-spacing:.14em;
+}
+body.mmh-workspace-active #budget .budget-quick-v147>div>small{
+  margin-top:3px;
+  color:#708ba1;
+  font-size:9px;
+}
+body.mmh-workspace-active #budget .budget-quick-v147>button{
+  display:grid;
+  grid-template-columns:31px minmax(0,1fr);
+  align-items:center;
+  gap:9px;
+  min-width:0;
+  min-height:52px;
+  padding:8px 10px;
+  border:1px solid rgba(91,151,199,.12);
+  border-radius:12px;
+  background:linear-gradient(145deg,rgba(15,42,62,.60),rgba(7,25,40,.70));
+  color:#c7d9e6;
+  font:inherit;
+  text-align:left;
+  cursor:pointer;
+}
+body.mmh-workspace-active #budget .budget-quick-v147>button:hover{
+  border-color:rgba(76,199,255,.26);
+  background:linear-gradient(145deg,rgba(17,49,72,.72),rgba(8,28,44,.78));
+}
+body.mmh-workspace-active #budget .budget-quick-v147 i{
+  width:30px;height:30px;display:grid;place-items:center;
+  border-radius:9px;
+  background:rgba(76,199,255,.07);
+  border:1px solid rgba(76,199,255,.13);
+  color:#8bd4f4;
+  font-style:normal;
+}
+body.mmh-workspace-active #budget .budget-quick-v147 b{
+  display:block;
+  color:#dceaf5;
+  font-size:10px;
+}
+body.mmh-workspace-active #budget .budget-quick-v147 button small{
+  display:block;
+  margin-top:2px;
+  color:#7892a8;
+  font-size:8px;
+}
+body.mmh-workspace-active #dashboard .pf-plan-row-v117[data-plan-goal-v147],
+body.mmh-workspace-active #dashboard .pf-plan-row-v117[data-plan-recurring-v147]{
+  cursor:pointer;
+}
+body.mmh-workspace-active #dashboard .pf-plan-row-v117[data-plan-goal-v147]:focus-visible,
+body.mmh-workspace-active #dashboard .pf-plan-row-v117[data-plan-recurring-v147]:focus-visible{
+  outline:1px solid rgba(76,199,255,.38)!important;
+  outline-offset:2px!important;
+}
+body.light.mmh-workspace-active #budget .budget-quick-v147{
+  background:#f7fafc;
+  border-color:#d4e2eb;
+}
+body.light.mmh-workspace-active #budget .budget-quick-v147>button{
+  background:#f2f7fa;
+  border-color:#d8e5ed;
+}
+body.light.mmh-workspace-active #budget .budget-quick-v147 b{color:#2b4c63}
+body.light.mmh-workspace-active #budget .budget-quick-v147>div>small,
+body.light.mmh-workspace-active #budget .budget-quick-v147 button small{color:#6b8496}
+@media(max-width:760px){
+  body.mmh-workspace-active #budget .budget-quick-v147{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+  body.mmh-workspace-active #budget .budget-quick-v147>div{
+    grid-column:1/-1;
+    padding:3px 4px 5px;
+  }
+}
+@media(max-width:430px){
+  body.mmh-workspace-active #budget .budget-quick-v147{
+    grid-template-columns:1fr;
+  }
+  body.mmh-workspace-active #budget .budget-quick-v147>div{grid-column:auto}
+}
