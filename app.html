@@ -7608,7 +7608,8 @@ async function enter(session){
     if(navEl) navEl.style.display="flex";
     currentUserEmail=session.user.email||"";
     applyUserProfile(session.user);
-    await loadCustomerId(session.user);
+    // Customer ID is secondary profile metadata. Never let it block core finance boot.
+    Promise.resolve().then(()=>loadCustomerId(session.user)).catch(err=>console.warn('Customer ID background load skipped',err));
     const se=$("settingsEmail"); if(se) se.textContent=currentUserEmail;
     const shouldWelcome=sessionStorage.getItem("myfinance_show_welcome")==="1";
     if(shouldWelcome){sessionStorage.removeItem("myfinance_show_welcome");showWelcome();}
@@ -7655,14 +7656,6 @@ function mmhVaultTransactionCategoryListV451(type,group){
   if(type==='Income' && group==='Income') return live.Income||CATS.Income||[];
   if(type==='Expense' && group==='Expense') return live.Expense||CATS.Expense||[];
   return live[group]||CATS[group]||[];
-}
-function syncTransactionGroup(){
-const type=$("txType").value, g=$("txGroup");
-const groups=type==="Income"?["Income","Loans","Data Adjustment"]:type==="Expense"?["Expense","Personal","Loans","Data Adjustment"]:["Transfer"];
-const current=g.value;
-g.innerHTML=groups.map(x=>`<option>${x}</option>`).join("");
-g.value=groups.includes(current)?current:groups[0];
-g.disabled=type==="Transfer";
 }
 function updateCategories(){
 const type=$("txType").value, group=$("txGroup").value, category=$("txCategory");
@@ -9410,12 +9403,16 @@ function analyzePeriodMonths(count){
     return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
   });
 }
-// Analyze-only flow filter. Loan transfers change balances, not earned income or spending.
+// Analyze-only canonical flow filter. Individual Expense and Personal are spending;
+// Loans, Data Adjustment, Transfer and linked investment cash flows stay outside income/spending.
 function analyzeFlowRows(rows){
-  const loans=new Set([...(window.CATS?.LoanIncome||[]),...(window.CATS?.LoanExpense||[]),'Debt','Loan Repayment','PaidDeb','Paid Debt','Loan Out']);
-  return (rows||[]).filter(t=>!(t?.transaction_group==='Loans'||((t?.type==='Income'||t?.type==='Expense')&&loans.has(String(t.category||'').trim()))));
+  return (rows||[]).filter(t=>{
+    if(!t||t.category==='Investment'||isLinkedInvestmentTx(t))return false;
+    const group=typeof inferTxGroup==='function'?inferTxGroup(t):String(t.type||'');
+    return (t.type==='Income'&&group==='Income')||(t.type==='Expense'&&(group==='Expense'||group==='Personal'));
+  });
 }
-function analyzePeriodTotals(rows){return v37Totals(analyzeFlowRows(rows));}
+function analyzePeriodTotals(rows){return v37Totals(rows);}
 function analyzeMonthTotals(ym){return analyzePeriodTotals((window.transactions||[]).filter(t=>String(t.tx_date||'').slice(0,7)===ym));}
 function v37Rows(){
   const p=v37Period();
@@ -9425,9 +9422,10 @@ function v37Rows(){
 }
 function v37Totals(rows){
   let inc=0,exp=0;
-  for(const t of rows){
-    if(t.type==="Income")inc+=n(t.to_amount)*toTHB(t.to_account);
-    if(t.type==="Expense"&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=="Investment"&&!isLinkedInvestmentTx(t))exp+=n(t.from_amount)*toTHB(t.from_account);
+  for(const t of analyzeFlowRows(rows)){
+    const group=typeof inferTxGroup==='function'?inferTxGroup(t):String(t.type||'');
+    if(t.type==='Income'&&group==='Income')inc+=n(t.to_amount)*toTHB(t.to_account);
+    if(t.type==='Expense'&&(group==='Expense'||group==='Personal'))exp+=n(t.from_amount)*toTHB(t.from_account);
   }
   return {inc,exp,save:inc-exp,er:inc?exp/inc*100:0,sr:inc?(inc-exp)/inc*100:0};
 }
@@ -9455,16 +9453,18 @@ function v37ConsistencyCheck(){
 }
 
 function analyzePersonalExpenseTHB(rows){
-  const categories=new Set(['Family Support','Special Transfer','Gifts','Donation']);
-  return (rows||[]).reduce((total,t)=>t?.type==='Expense'&&categories.has(String(t.category||'').trim())
-    ?total+n(t.from_amount)*toTHB(t.from_account):total,0);
+  return (rows||[]).reduce((total,t)=>{
+    if(t?.type!=='Expense'||t.category==='Investment'||isLinkedInvestmentTx(t))return total;
+    const group=typeof inferTxGroup==='function'?inferTxGroup(t):'Expense';
+    return group==='Personal'?total+n(t.from_amount)*toTHB(t.from_account):total;
+  },0);
 }
 function renderOverviewSnapshotV371(){
   const el=$("overviewSnapshotV371"), periodEl=$("overviewSnapshotPeriodV371");
   if(!el||!periodEl)return;
   const p=v37Period(), rows=v37Rows(), t=analyzePeriodTotals(rows);
   periodEl.textContent=v37Label(p);
-  const personal=analyzePersonalExpenseTHB(rows), remaining=t.inc-personal, rate=t.inc?remaining/t.inc*100:0;
+  const personal=analyzePersonalExpenseTHB(rows), remaining=t.save, rate=t.sr;
   const status=remaining>0?'Positive':remaining===0?'Break-even':'Negative';
   el.innerHTML=`
     <div class="overview-snapshot-card-v371"><div class="label">Income</div><div class="value green">${thb(t.inc)}</div><div class="small">Selected period</div></div>
@@ -9479,13 +9479,13 @@ function renderAnalyzeV37(){
   const allRows=Array.isArray(window.transactions)?window.transactions:[];
   const rows=[];
   const expenseByCategory=Object.create(null);
-  const personalCats=['Family Support','Special Transfer','Gifts','Donation'];
   const personalByCategory=Object.create(null);
   let inc=0,exp=0,debt=0,paid=0,out=0,repay=0;
   const targetYear=String(p.year);
   const targetMonth=p.month==='annual'?null:`${p.year}-${p.month}`;
-  const loans=new Set(window.CATS?.Loans||[]);
-  const isOrdinaryExpense=t=>t.type==='Expense'&&analyzeFlowRows([t]).length>0&&!loans.has(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t);
+  const txGroup=t=>typeof inferTxGroup==='function'?inferTxGroup(t):String(t?.type||'');
+  const isIndividualExpense=t=>t?.type==='Expense'&&txGroup(t)==='Expense'&&t.category!=='Investment'&&!isLinkedInvestmentTx(t);
+  const isPersonalExpense=t=>t?.type==='Expense'&&txGroup(t)==='Personal'&&t.category!=='Investment'&&!isLinkedInvestmentTx(t);
   const totalsMap=new Map();
   let previousMonthKey='';
   if(p.month!=='annual'){const d=new Date(p.year,Number(p.month)-1,1);d.setMonth(d.getMonth()-1);previousMonthKey=`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;}
@@ -9497,19 +9497,22 @@ function renderAnalyzeV37(){
     if(trackMonth(key)){
       let z=totalsMap.get(key);
       if(!z)totalsMap.set(key,z={inc:0,exp:0});
-      if(t.type==='Income'&&analyzeFlowRows([t]).length) z.inc+=n(t.to_amount)*toTHB(t.to_account);
-      if(isOrdinaryExpense(t)) z.exp+=n(t.from_amount)*toTHB(t.from_account);
+      if(t.type==='Income'&&txGroup(t)==='Income') z.inc+=n(t.to_amount)*toTHB(t.to_account);
+      if(isIndividualExpense(t)||isPersonalExpense(t)) z.exp+=n(t.from_amount)*toTHB(t.from_account);
     }
     if(year!==targetYear)continue;
     if(targetMonth!==null && key!==targetMonth)continue;
     rows.push(t);
-    if(t.type==='Income'&&analyzeFlowRows([t]).length) inc+=n(t.to_amount)*toTHB(t.to_account);
-    if(isOrdinaryExpense(t)){
+    if(t.type==='Income'&&txGroup(t)==='Income') inc+=n(t.to_amount)*toTHB(t.to_account);
+    if(isIndividualExpense(t)){
       const value=n(t.from_amount)*toTHB(t.from_account);
       exp+=value;
       const cat=t.category||'Other';
       expenseByCategory[cat]=(expenseByCategory[cat]||0)+value;
-      if(personalCats.includes(cat)) personalByCategory[cat]=(personalByCategory[cat]||0)+value;
+    }else if(isPersonalExpense(t)){
+      const value=n(t.from_amount)*toTHB(t.from_account);
+      const cat=t.category||'Other Personal';
+      personalByCategory[cat]=(personalByCategory[cat]||0)+value;
     }
     if(t.category==='Debt')debt+=n(t.from_amount)*toMMK(t.from_account);
     if(t.category==='Paid Debt'||t.category==='PaidDeb')paid+=n(t.to_amount)*toMMK(t.to_account);
@@ -9521,7 +9524,7 @@ function renderAnalyzeV37(){
   const el=$('overviewSnapshotV371'), periodEl=$('overviewSnapshotPeriodV371');
   if(el&&periodEl){
     periodEl.textContent=v37Label(p);
-    const personal=analyzePersonalExpenseTHB(rows), remaining=t.inc-personal, rate=t.inc?remaining/t.inc*100:0;
+    const personal=analyzePersonalExpenseTHB(rows), remaining=t.save, rate=t.sr;
     const status=remaining>0?'Positive':remaining===0?'Break-even':'Negative';
     el.innerHTML=`
       <div class="overview-snapshot-card-v371"><div class="label">Income</div><div class="value green">${thb(t.inc)}</div><div class="small">Selected period</div></div>
@@ -9588,36 +9591,36 @@ function renderAnalyzeV37(){
 function renderPersonalExpenseAnalysisV371(summary){
   const el=$('personalExpenseAnalysisV371');
   if(!el)return;
-  let data;
-  let income;
+  let byCategory=Object.create(null);
+  let income=0;
   if(summary&&summary.byCategory){
-    data={
-      family:Number(summary.byCategory['Family Support']||0),
-      special:Number(summary.byCategory['Special Transfer']||0),
-      gifts:Number(summary.byCategory['Gifts']||0),
-      donation:Number(summary.byCategory['Donation']||0)
-    };
+    byCategory={...summary.byCategory};
     income=Number(summary.income||0);
   }else{
     const rows=v37Rows();
-    const cats=['Family Support','Special Transfer','Gifts','Donation'];
-    const amounts=Object.fromEntries(cats.map(cat=>[cat,rows.filter(t=>t.type==='Expense'&&t.category===cat).reduce((s,t)=>s+n(t.from_amount)*toTHB(t.from_account),0)]));
-    data={family:amounts['Family Support']||0,special:amounts['Special Transfer']||0,gifts:amounts['Gifts']||0,donation:amounts['Donation']||0};
+    for(const t of rows){
+      if(t?.type!=='Expense'||t.category==='Investment'||isLinkedInvestmentTx(t))continue;
+      const group=typeof inferTxGroup==='function'?inferTxGroup(t):'Expense';
+      if(group!=='Personal')continue;
+      const cat=t.category||'Other Personal';
+      byCategory[cat]=(byCategory[cat]||0)+n(t.from_amount)*toTHB(t.from_account);
+    }
     income=analyzePeriodTotals(rows).inc;
   }
-  const total=data.family+data.special+data.gifts+data.donation;
+  const total=Object.values(byCategory).reduce((sum,v)=>sum+Number(v||0),0);
   if(total<=0){el.innerHTML='<div class="empty">No personal or family spending for this period.</div>';return;}
-  const familyPct=income?data.family/income*100:0;
-  const other=data.special+data.gifts+data.donation;
+  const family=Number(byCategory['Family Support']||0);
+  const other=Math.max(0,total-family);
+  const familyPct=income?family/income*100:0;
   const otherPct=income?other/income*100:0;
   const personalPct=income?total/income*100:0;
   el.innerHTML=`
     <div class="personal-command-grid-v1">
       <div class="personal-command-card-v1 primary"><div class="label">Total Personal &amp; Family</div><div class="value red">${thb(total)}</div><div class="small">${personalPct.toFixed(1)}% of income</div></div>
-      <div class="personal-command-card-v1"><div class="label">Family Support</div><div class="value">${thb(data.family)}</div><div class="small">${familyPct.toFixed(1)}% of income</div></div>
-      <div class="personal-command-card-v1"><div class="label">Other Personal</div><div class="value">${thb(other)}</div><div class="small">Special Transfer + Gifts + Donation · ${otherPct.toFixed(1)}% of income</div></div>
+      <div class="personal-command-card-v1"><div class="label">Family Support</div><div class="value">${thb(family)}</div><div class="small">${familyPct.toFixed(1)}% of income</div></div>
+      <div class="personal-command-card-v1"><div class="label">Other Personal</div><div class="value">${thb(other)}</div><div class="small">All other Personal categories · ${otherPct.toFixed(1)}% of income</div></div>
     </div>
-    <div class="personal-command-note-v1">Detailed category records remain available in Transactions. Analyze only keeps the high-value personal/family summary here.</div>`;
+    <div class="personal-command-note-v1">Detailed category records remain available in Transactions. Analyze keeps Personal separate from Individual Expense, including renamed and archived categories.</div>`;
 }
 
 function renderCashFlowSummaryV371(summary){
@@ -9636,7 +9639,7 @@ function renderCashFlowSummaryV371(summary){
       <div class="cashflow-card-v371"><div class="label">Net Cash Flow</div><div class="value ${net>0?'green':net<0?'red':'yellow'}">${thb(net)}</div></div>
       <div class="cashflow-card-v371"><div class="label">Savings Rate</div><div class="value ${sr>=60?'green':sr>=40?'yellow':'red'}">${sr.toFixed(1)}%</div></div>
     </div>
-    <div class="cashflow-summary-note-v371">Expense Ratio <b>${er.toFixed(1)}%</b> · Net cash flow is Income minus ordinary Expenses; loans and linked investment transactions are excluded.</div>`;
+    <div class="cashflow-summary-note-v371">Expense Ratio <b>${er.toFixed(1)}%</b> · Net cash flow is Income minus Individual Expense and Personal spending; loans, Data Adjustment and linked investment transactions are excluded.</div>`;
 }
 
 function renderDashboardSavingsTrendV1(){
@@ -12364,7 +12367,9 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
         state.status=result&&result.ok===false?'stale':'ready';if(result?.ok===true)state.lastLoadedAt=Date.now();
         try{window.__mmhTransactionsMirror=Array.isArray(transactions)?transactions.slice():[];}catch(e){}
         try{window.__mmhInvestmentsMirror=Array.isArray(investments)?investments.slice():[];}catch(e){}
-        publish('mmhvault:data-loaded',{reason:'cloud-refresh',ok:result?.ok===true,result:result||null});
+        // Base loadAll already emits mmhvault:data-loaded. Publish lifecycle state only,
+        // otherwise every refresh fans out twice into Reports/Goals/Recurring/Analyze listeners.
+        publish('mmhvault:data-state',{reason:'cloud-refresh',ok:result?.ok===true,result:result||null});
         return result;
       }catch(err){
         state.status='error';state.lastReason='cloud-refresh-error';publish('mmhvault:data-error',{error:String(err?.message||err)});throw err;
@@ -25052,6 +25057,7 @@ html body.mmh-workspace-active main.wrap .page.active :is(.empty,.mmh-ui-empty,.
 })();
 </script>
 <!-- MMHVAULT v1.2.3.1 · Personal / Individual Expense separation audit. Category grouping only; no Supabase schema or PWA changes. -->
+<!-- MMHVAULT v1.2.3.3 · Stability Pass 2: non-blocking profile boot, single data-loaded fan-out, canonical Analyze grouping. -->
 <!-- MMHVAULT v1.1.6 · Report export is presentation-only and never mutates finance records. -->
 </body>
 </html>
