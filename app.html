@@ -800,7 +800,7 @@ html{scrollbar-gutter:stable;}
 <link rel="stylesheet" href="css/mmhvault-v4.css?v=4.3.0">
 
 <link rel="stylesheet" href="css/mmhvault-premium-motion.css?v=20260929-bg1">
-<link rel="stylesheet" href="css/mmhvault-uiux-v130.css?v=1.4.1">
+<link rel="stylesheet" href="css/mmhvault-uiux-v130.css?v=1.4.2">
 
 <style id="mmhvault-v343-expenses-reduction">
 /* V4.3.0 data reduction: budget control now owns category ranking + budget progress;
@@ -18131,6 +18131,7 @@ button[data-mmh-busy="1"],.btn[data-mmh-busy="1"]{position:relative;cursor:wait!
   if(window.__MMHVAULT_TX_DETAIL_V800)return;window.__MMHVAULT_TX_DETAIL_V800=true;
   const E=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
   const N=v=>{const x=Number(v);return Number.isFinite(x)?x:0};
+  const $=id=>document.getElementById(id);
   const money=(amount,account)=>{
     if(!N(amount))return '—';let code='';
     try{code=typeof currency==='function'?String(currency(account)||'').toUpperCase():''}catch(_e){}
@@ -18151,12 +18152,82 @@ button[data-mmh-busy="1"],.btn[data-mmh-busy="1"]{position:relative;cursor:wait!
       '<div class="mmh-tx-detail-grid-v800">'+item('Date',t.tx_date||'—')+item('Category',t.category||'—')+item('From account',t.from_account||'—')+item('From amount',N(t.from_amount)?money(t.from_amount,t.from_account):'—')+item('To account',t.to_account||'—')+item('To amount',N(t.to_amount)?money(t.to_amount,t.to_account):'—')+'</div>'+
       '<div class="mmh-tx-detail-note-v800"><strong style="color:#d9e8f6">Note</strong><br>'+E(t.note||'No note')+'</div>'+
       '<div class="mmh-tx-detail-receipt-v800"><span>▧</span><strong>Receipt</strong><span>'+E(receipt?'Attached':'No receipt attached')+'</span></div>'+
+      '<div class="mmh-tx-reuse-hint-v142"><span>↻</span><div><strong>Use Again</strong><small>Creates a new transaction with the same category, accounts, amount and note. The date resets to today and the old receipt is never copied.</small></div></div>'+
     '</div>';
   }
+  function todayLocal(){
+    const d=new Date(),pad=n=>String(n).padStart(2,'0');
+    return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+  }
+  function selectValue(id,value){
+    const el=$(id);if(!el)return false;
+    const wanted=String(value??'');
+    const ok=[...el.options].some(o=>String(o.value)===wanted);
+    if(ok)el.value=wanted;
+    return ok;
+  }
+  function noteUnavailable(list){
+    if(!list.length)return;
+    const msg='Some saved fields are no longer available: '+list.join(', ')+'. Please review before saving.';
+    try{window.MMHUI?.toast?.(msg,{title:'Transaction template',type:'warn',duration:4200})}catch(_e){}
+  }
+  async function reuse(t){
+    if(!t)return false;
+    try{
+      window.setPage?.('transactions');
+      try{window.showTxTab?.('add')}catch(_e){try{showTxTab('add')}catch(__){}}
+      await new Promise(r=>setTimeout(r,70));
+      try{window.clearTxForm?.()}catch(_e){try{clearTxForm()}catch(__){}}
+      const missing=[];
+      const type=$('txType');
+      if(type){
+        type.value=t.type||'Expense';
+        type.dispatchEvent(new Event('change',{bubbles:true}));
+      }
+      await new Promise(r=>setTimeout(r,0));
+      const desiredGroup=group(t);
+      const groupEl=$('txGroup');
+      if(groupEl){
+        if([...groupEl.options].some(o=>String(o.value)===String(desiredGroup))){
+          groupEl.value=desiredGroup;
+          groupEl.dispatchEvent(new Event('change',{bubbles:true}));
+        }else missing.push('transaction group');
+      }
+      await new Promise(r=>setTimeout(r,0));
+      if(t.category&&desiredGroup!=='Data Adjustment'&&!selectValue('txCategory',t.category))missing.push('category');
+      try{window.updateAccountLocks?.()}catch(_e){}
+      if(t.from_account&&!selectValue('fromAccount',t.from_account))missing.push('from account');
+      if(t.to_account&&!selectValue('toAccount',t.to_account))missing.push('to account');
+      if($('fromAmount'))$('fromAmount').value=N(t.from_amount)>0?String(t.from_amount):'';
+      if($('toAmount'))$('toAmount').value=N(t.to_amount)>0?String(t.to_amount):'';
+      if($('txNote'))$('txNote').value=t.note||'';
+      if($('txDate'))$('txDate').value=todayLocal();
+      if($('txReceipt'))$('txReceipt').value='';
+      const hint=$('txReceiptHint');if(hint)hint.textContent='No file selected';
+      try{window.mmhSyncTxAddV141?.()}catch(_e){}
+      noteUnavailable(missing);
+      const primaryInput=(t.type==='Income'?$ ('toAmount'):$('fromAmount'));
+      setTimeout(()=>{
+        try{
+          (primaryInput&&!primaryInput.disabled?primaryInput:$('txCategory'))?.focus({preventScroll:true});
+          $('txForm')?.scrollIntoView({behavior:'smooth',block:'start'});
+        }catch(_e){}
+      },40);
+      try{window.MMHUI?.toast?.('Template loaded. Review it, then add as a new transaction.',{title:t.category||'Transaction',type:'success',duration:3400})}catch(_e){}
+      return true;
+    }catch(err){
+      console.warn('[MMHVAULT] transaction reuse failed',err);
+      try{await window.mmhEditDeleteUI?.message?.('Could not reuse transaction',err?.message||String(err))}catch(_e){}
+      return false;
+    }
+  }
+  window.mmhReuseTransactionV142=id=>reuse(findTx(id));
   async function open(id){
     const t=findTx(id);if(!t)return false;
     const actions=[{label:'Close',onClick:()=>true}];
+    actions.push({label:'Use Again',onClick:()=>{setTimeout(()=>reuse(t),0);return true;}});
     if(hasReceipt(t))actions.push({label:'View Receipt',onClick:()=>{setTimeout(()=>window.openTransactionReceiptV396?.(t.id),0);return true;}});
+    actions.push({label:'Edit',className:'primary',onClick:()=>{setTimeout(()=>window.editTransaction?.(t.id),0);return true;}});
     if(typeof window.mmhVaultOpenDialogV449==='function')return window.mmhVaultOpenDialogV449({title:'Transaction',message:(t.tx_date||'')+' · '+(t.category||t.type||''),body:body(t),actions});
     return false;
   }
@@ -18164,8 +18235,10 @@ button[data-mmh-busy="1"],.btn[data-mmh-busy="1"]{position:relative;cursor:wait!
   function enhance(){
     document.querySelectorAll('#transactions #txList tr[data-mmh-tx-id]').forEach(row=>{row.tabIndex=0;row.setAttribute('role','button');row.setAttribute('aria-label','View transaction details');});
     document.querySelectorAll('#transactions .tx-mobile-card-v371').forEach(card=>{
-      const actions=card.querySelector('.tx-mobile-actions-v371');if(!actions||actions.querySelector('[data-role="details-v800"]'))return;
-      const b=document.createElement('button');b.className='btn';b.type='button';b.dataset.role='details-v800';b.textContent='Details';actions.insertBefore(b,actions.firstChild);
+      const actions=card.querySelector('.tx-mobile-actions-v371');if(!actions)return;
+      if(!actions.querySelector('[data-role="details-v800"]')){
+        const b=document.createElement('button');b.className='btn';b.type='button';b.dataset.role='details-v800';b.textContent='Details';actions.insertBefore(b,actions.firstChild);
+      }
     });
   }
   document.addEventListener('click',e=>{
@@ -25938,5 +26011,7 @@ window.MM_HVAULT_STABILITY_V12311={version:'1.2.3.11',storageFailureIsolation:tr
   window.mmhSyncTxAddV141=sync;
 })();
 </script>
+
+<script id="mmhvault-v142-transaction-history-marker">window.MMHVAULT_TRANSACTION_HISTORY_V142={version:'1.4.2',detailToEdit:true,useAgain:true,receiptNotCopied:true};</script>
 </body>
 </html>

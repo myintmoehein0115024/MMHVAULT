@@ -1812,3 +1812,45 @@ body.light.mmh-workspace-active #transactions .tx-kind-grid-v141>button.active,b
   body.mmh-workspace-active #transactions .tx-direction-wrap-v141{grid-template-columns:1fr!important;gap:6px!important}
   body.mmh-workspace-active #transactions #txForm.tx-single-flow-v141 .formgrid,body.mmh-workspace-active #transactions #txForm.tx-transfer-flow-v141 .formgrid{grid-template-columns:1fr!important}
 }
+
+
+/* MMHVAULT v1.4.2 · Transaction History flow
+   Detail → Edit + safe Use Again. */
+.mmh-tx-reuse-hint-v142{
+  display:grid;
+  grid-template-columns:32px minmax(0,1fr);
+  gap:10px;
+  align-items:start;
+  padding:11px 12px;
+  border:1px solid rgba(100,167,214,.13);
+  border-radius:13px;
+  background:linear-gradient(145deg,rgba(12,35,54,.48),rgba(5,20,34,.54));
+}
+.mmh-tx-reuse-hint-v142>span{
+  width:30px;height:30px;display:grid;place-items:center;
+  border-radius:9px;
+  background:rgba(76,199,255,.08);
+  border:1px solid rgba(76,199,255,.14);
+  color:#8fd4f3;font-size:15px;
+}
+.mmh-tx-reuse-hint-v142 strong{
+  display:block;color:#dcebf8;font-size:11px;line-height:1.3;
+}
+.mmh-tx-reuse-hint-v142 small{
+  display:block;margin-top:3px;color:#819bb3;font-size:10px;line-height:1.5;
+}
+#mmhVaultDialogV449:has(.mmh-tx-detail-v800) .mmh-v449-dialog-actions{
+  flex-wrap:wrap;
+}
+#mmhVaultDialogV449:has(.mmh-tx-detail-v800) .mmh-v449-dialog-actions button{
+  min-width:92px;
+}
+@media(max-width:620px){
+  #mmhVaultDialogV449:has(.mmh-tx-detail-v800) .mmh-v449-dialog-actions{
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+  #mmhVaultDialogV449:has(.mmh-tx-detail-v800) .mmh-v449-dialog-actions button{
+    width:100%!important;min-width:0!important;
+  }
+}
