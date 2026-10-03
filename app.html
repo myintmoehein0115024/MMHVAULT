@@ -6619,7 +6619,7 @@ body.mmh-v436-explorer-open #bottomNav{visibility:hidden!important;pointer-event
 </div>
 <div class="data-center-actions-v380">
 <button class="btn primary" onclick="exportMyFinanceBackupV380()" type="button">Export Backup</button>
-<label class="btn mmh-native-file-picker-v433" id="selectBackupBtnV433" style="display:inline-flex;align-items:center;justify-content:center;cursor:pointer;position:relative;overflow:hidden">📥 Select Backup / Import JSON<input accept=".json,application/json,text/json" id="backupFile" type="file" onchange="window.mmhvaultHandleBackupFileV436 && window.mmhvaultHandleBackupFileV436(this.files && this.files[0], this)" aria-label="Select MMHVAULT JSON backup" style="position:absolute;inset:0;width:100%;height:100%;opacity:0.01;cursor:pointer;margin:0;padding:0;border:0" onchange="window.mmhvaultHandleBackupFileV436 && window.mmhvaultHandleBackupFileV436(this.files && this.files[0], this)" /></label>
+<label class="btn mmh-native-file-picker-v433" id="selectBackupBtnV433" style="display:inline-flex;align-items:center;justify-content:center;cursor:pointer;position:relative;overflow:hidden">📥 Select Backup / Import JSON<input accept=".json,application/json,text/json" id="backupFile" type="file" aria-label="Select MMHVAULT JSON backup" style="position:absolute;inset:0;width:100%;height:100%;opacity:0.01;cursor:pointer;margin:0;padding:0;border:0" /></label>
 <button class="btn" onclick="downloadTransactionsCSVV380()" type="button">Export Transactions CSV</button>
 </div>
 <div id="backupStatus" class="data-center-status-v380" aria-live="polite"></div><div id="backupPickerHelpV432" class="small" style="margin-top:8px;display:none" aria-live="polite">Tap “Select Backup / Import JSON” to open the iPhone Files picker.</div>
@@ -7731,7 +7731,8 @@ async function loadAll(opts={}){
       try{render();}catch(e){console.error("MMHVAULT render failed after cloud load",e);}
       if(optionalErrors.length)console.warn("Optional cloud data warning",optionalErrors);
       try{window.transactions=transactions;window.investments=investments;window.rates=rates;}catch(_e){}
-      try{window.dispatchEvent(new CustomEvent("mmhvault:data-loaded",{detail:{ok:hardErrors.length===0,at:Date.now()}}));}catch(_e){}
+      window.__mmhLastCloudLoadAtV1235=Date.now();
+      try{window.dispatchEvent(new CustomEvent("mmhvault:data-loaded",{detail:{ok:hardErrors.length===0,at:window.__mmhLastCloudLoadAtV1235}}));}catch(_e){}
       return {ok:hardErrors.length===0,errors:[...hardErrors,...optionalErrors]};
     }catch(err){
       if(currentSessionUser?.id!==loadOwner)return {ok:false,errors:['Session changed']};
@@ -7750,28 +7751,46 @@ async function loadAll(opts={}){
 }
 let realtimeRefreshTimerV384=null;
 let realtimeChannelV384=null;
+let realtimeChannelOwnerV1235="";
+function mmhVaultBeginBulkMutationV1235(){window.__mmhBulkMutationV1235=(Number(window.__mmhBulkMutationV1235)||0)+1;}
+function mmhVaultEndBulkMutationV1235(){window.__mmhBulkMutationV1235=Math.max(0,(Number(window.__mmhBulkMutationV1235)||0)-1);}
 function scheduleRealtimeRefreshV384(reason="realtime-change"){
+  if((Number(window.__mmhBulkMutationV1235)||0)>0)return;
   clearTimeout(realtimeRefreshTimerV384);
+  const eventAt=Date.now();
+  const since=eventAt-Number(window.__mmhLastCloudLoadAtV1235||0);
+  const delay=Number.isFinite(since)&&since>=0&&since<700?Math.max(120,760-since):250;
   realtimeRefreshTimerV384=setTimeout(async()=>{
     realtimeRefreshTimerV384=null;
     try{
+      if((Number(window.__mmhBulkMutationV1235)||0)>0)return;
+      if(Number(window.__mmhLastCloudLoadAtV1235||0)>=eventAt)return;
       if(typeof window.mmhvaultRequestRenderV332==='function') window.mmhvaultRequestRenderV332(reason);
       if(typeof loadAll==='function') await loadAll();
     }catch(err){console.warn("MMHVAULT realtime refresh failed:",err);}
-  },250);
+  },delay);
 }
 function subscribeRealtime(){
-  if(realtimeChannelV384)return realtimeChannelV384;
+  const owner=currentSessionUser?.id||"";
+  if(!owner)return null;
+  if(realtimeChannelV384&&realtimeChannelOwnerV1235===owner)return realtimeChannelV384;
+  if(realtimeChannelV384){
+    try{realtimeChannelV384.unsubscribe?.();}catch(_e){}
+    realtimeChannelV384=null;
+  }
+  realtimeChannelOwnerV1235=owner;
   const setState=(connected,status)=>{
     realtimeReady=!!connected;
-    window.mmhvaultRealtimeStateV335={connected:!!connected,status:String(status||""),at:Date.now()};
+    window.mmhvaultRealtimeStateV335={connected:!!connected,status:String(status||""),at:Date.now(),owner};
     try{window.dispatchEvent(new CustomEvent("mmhvault:realtime-state",{detail:window.mmhvaultRealtimeStateV335}));}catch(_e){}
   };
-  const channel=db.channel("myfinance-sync-v335")
-    .on("postgres_changes",{event:"*",schema:"public",table:"transactions"},()=>scheduleRealtimeRefreshV384("transactions"))
-    .on("postgres_changes",{event:"*",schema:"public",table:"investments"},()=>scheduleRealtimeRefreshV384("investments"))
-    .on("postgres_changes",{event:"*",schema:"public",table:"exchange_rates"},()=>scheduleRealtimeRefreshV384("exchange_rates"))
+  const onlyOwner=`user_id=eq.${owner}`;
+  const channel=db.channel(`myfinance-sync-v1235-${owner.slice(0,8)}`)
+    .on("postgres_changes",{event:"*",schema:"public",table:"transactions",filter:onlyOwner},()=>{if(currentSessionUser?.id===owner)scheduleRealtimeRefreshV384("transactions");})
+    .on("postgres_changes",{event:"*",schema:"public",table:"investments",filter:onlyOwner},()=>{if(currentSessionUser?.id===owner)scheduleRealtimeRefreshV384("investments");})
+    .on("postgres_changes",{event:"*",schema:"public",table:"exchange_rates",filter:onlyOwner},()=>{if(currentSessionUser?.id===owner)scheduleRealtimeRefreshV384("exchange_rates");})
     .subscribe((status)=>{
+      if(currentSessionUser?.id!==owner)return;
       if(status==="SUBSCRIBED") setState(true,status);
       else if(status==="CHANNEL_ERROR"||status==="TIMED_OUT"||status==="CLOSED") setState(false,status);
     });
@@ -8164,26 +8183,29 @@ async function deleteTx(id){
   }
 }
 async function deleteAllTx(){
+  const actionOwner=currentSessionUser?.id;
+  if(!actionOwner){await window.mmhEditDeleteUI.message('Delete failed','Please sign in again.');return;}
   try{
-    const u=(await db.auth.getUser()).data.user;
-    if(!u){await window.mmhEditDeleteUI.message('Delete failed','Please sign in again.');return;}
     if(!await window.mmhEditDeleteUI.confirm('Delete All Transactions','All transactions'))return;
-
-    const r=await db.from("transactions").delete().eq("user_id",u.id);
-    if(r.error){
-      console.error("Clear transactions failed:",r.error);
-      await window.mmhEditDeleteUI.message('Delete failed',r.error.message||'Unknown error');
-      return;
-    }
-    await loadAll({force:true});
+    if(currentSessionUser?.id!==actionOwner)return;
+    const u=(await db.auth.getUser()).data.user;
+    if(!u||u.id!==actionOwner||currentSessionUser?.id!==actionOwner){await window.mmhEditDeleteUI.message('Delete failed','Please sign in again.');return;}
+    const r=await db.from('transactions').delete().eq('user_id',u.id);
+    if(r.error)throw r.error;
+    if(currentSessionUser?.id!==actionOwner)return;
+    transactions=[];window.transactions=transactions;
+    try{renderTransactions();}catch(err){console.warn('[MMHVAULT] transaction clear local render failed',err);}
+    try{window.dispatchEvent(new CustomEvent('mmhvault:data-change',{detail:{reason:'transaction-clear'}}));}catch(_e){}
     window.mmhEditDeleteUI.toast('Transactions deleted.');
-    window.mmhvaultForceRenderAllV34421?.('transaction-mutation');
-    if(typeof window.mmHVaultRefreshReceiptFlagsV3302==="function"){
-      await window.mmHVaultRefreshReceiptFlagsV3302();
-    }
+    Promise.resolve().then(()=>currentSessionUser?.id===actionOwner&&loadAll?.({force:true})).then(()=>{
+      if(currentSessionUser?.id!==actionOwner)return;
+      try{window.mmhvaultForceRenderAllV34421?.('transaction-clear-sync');}catch(_e){}
+      try{window.mmHVaultRefreshReceiptFlagsV3302?.();}catch(_e){}
+    }).catch(err=>console.warn('[MMHVAULT] background transaction clear sync failed',err));
   }catch(e){
-    console.error("Clear transactions exception:",e);
-    await window.mmhEditDeleteUI.message('Delete failed','Unable to delete transactions. Please try again.');
+    if(currentSessionUser?.id!==actionOwner)return;
+    console.error('Clear transactions exception:',e);
+    await window.mmhEditDeleteUI.message('Delete failed',(e?.message||'Unable to delete transactions. Please try again.'));
   }
 }
 
@@ -8310,8 +8332,9 @@ function editTx(id){
 
   $('editTxForm').onsubmit=async e=>{
     e.preventDefault();
-  e.stopImmediatePropagation();
-    const saveBtn=$('editTxForm').querySelector('button.primary');
+    e.stopImmediatePropagation();
+    const form=$('editTxForm');
+    const saveBtn=form?.querySelector('button.primary');
     if(saveBtn)saveBtn.disabled=true;
 
     const receiptFile=$('editReceiptFile')?.files?.[0]||null;
@@ -8328,32 +8351,46 @@ function editTx(id){
 
     try{
       const owner=(await db.auth.getUser()).data.user;
-      if(!owner)throw new Error('Please sign in again.');
+      const actionOwner=currentSessionUser?.id;
+      if(!owner||!actionOwner||owner.id!==actionOwner)throw new Error('Please sign in again.');
       const r=await db.from('transactions').update(row).eq('id',id).eq('user_id',owner.id).select('id').single();
       if(r.error)throw r.error;
+      if(currentSessionUser?.id!==actionOwner)return;
 
+      let receiptWarning='';
       if(receiptFile){
-        const u=(await db.auth.getUser()).data.user;
-        if(!u)throw new Error('Please sign in again before uploading a receipt.');
         const status=$('editReceiptStatusV3303');
         if(status)status.textContent='Uploading receipt…';
-        await uploadTransactionReceiptV396(u.id,id,receiptFile);
-        if(status)status.textContent='✓ Receipt updated successfully';
+        try{
+          await uploadTransactionReceiptV396(owner.id,id,receiptFile);
+          if(status)status.textContent='✓ Receipt updated successfully';
+        }catch(err){
+          receiptWarning='Transaction changes were saved, but the receipt upload failed: '+(err?.message||err);
+        }
       }
 
+      const localIndex=Array.isArray(transactions)?transactions.findIndex(x=>String(x.id)===String(id)):-1;
+      if(localIndex>=0)transactions[localIndex]={...transactions[localIndex],...row};
+      window.transactions=transactions;
       closeEditModal();
-      await loadAll({force:true});
-      // Transaction edits keep the same row id/order, so explicitly invalidate the keyed render cache.
       window.mmhvaultInvalidateTransactionRenderV34241?.();
-      window.mmhvaultForceRenderAllV34421?.('transaction-edit');
-      window.mmHVaultRefreshReceiptFlagsV3302?.();
-      window.mmhEditDeleteUI.toast('Transaction changes saved.');
+      try{renderTransactions();}catch(err){console.warn('[MMHVAULT] transaction edit local render failed',err);}
+      try{window.dispatchEvent(new CustomEvent('mmhvault:data-change',{detail:{reason:'transaction-edit'}}));}catch(_e){}
+      if(receiptWarning)await window.mmhEditDeleteUI.message('Receipt upload failed',receiptWarning);
+      else window.mmhEditDeleteUI.toast('Transaction changes saved.');
+
+      Promise.resolve().then(()=>currentSessionUser?.id===actionOwner&&loadAll?.({force:true})).then(()=>{
+        if(currentSessionUser?.id!==actionOwner)return;
+        try{window.mmhvaultForceRenderAllV34421?.('transaction-edit-sync');}catch(_e){}
+        try{window.mmHVaultRefreshReceiptFlagsV3302?.();}catch(_e){}
+      }).catch(err=>console.warn('[MMHVAULT] background transaction edit sync failed',err));
     }catch(err){
       console.error(err);
-      window.mmhEditDeleteUI.inline(err?.message||'Unable to save the transaction.',$('editTxForm'));
-      if(saveBtn)saveBtn.disabled=false;
+      window.mmhEditDeleteUI.inline(err?.message||'Unable to save the transaction.',form);
+      if(saveBtn&&document.body.contains(saveBtn))saveBtn.disabled=false;
     }
   };
+
 }
 const GOLD_SPOT_CACHE_V1='mmhvault_xau_usd_spot_v1';
 const GOLD_SPOT_URL_V1='https://api.gold-api.com/price/XAU';
@@ -9029,13 +9066,74 @@ function parseExcelWorkbook(wb){
  return {tx,inv,meta};
 }
 function txFp(x){return [x.date||x.tx_date,x.type,x.category||'',x.from_account||'',n(x.from_amount),x.to_account||'',n(x.to_amount),x.note||''].join('|');}
-function invFp(x){return [x.date||x.inv_date,x.asset,x.symbol||'',n(x.amount),n(x.fee),n(x.other_cost),n(x.buy_price),n(x.quantity)].join('|');}
+function invFp(x){return [x.date||x.inv_date,x.asset,x.symbol||'',x.source_account||'',n(x.amount),n(x.fee),n(x.other_cost),n(x.buy_price),n(x.quantity),x.note||''].join('|');}
+function mmhVaultMissingRowsV1235(incoming,existing,fp){
+  const source=Array.isArray(incoming)?incoming:[], current=Array.isArray(existing)?existing:[];
+  const used=new Set(), byId=new Map(), byFp=new Map();
+  current.forEach((row,i)=>{
+    const id=row?.id;
+    if(id!==undefined&&id!==null&&String(id)!=='')byId.set(String(id),i);
+    const key=fp(row);if(!byFp.has(key))byFp.set(key,[]);byFp.get(key).push(i);
+  });
+  const claim=i=>{if(i===undefined||i===null||used.has(i))return false;used.add(i);return true;};
+  const out=[];
+  for(const row of source){
+    const id=row?.id;
+    if(id!==undefined&&id!==null&&String(id)!==''&&claim(byId.get(String(id))))continue;
+    const list=byFp.get(fp(row))||[];let matched=false;
+    for(const i of list){if(claim(i)){matched=true;break;}}
+    if(!matched)out.push(row);
+  }
+  return out;
+}
+function mmhVaultValidateBackupOwnerV1235(data,u){
+  if(!u?.id)throw new Error('Not signed in to MMHVAULT.');
+  const owner=String(u.id),top=data?.user_id==null?'':String(data.user_id);
+  if(top&&top!==owner)throw new Error('This backup belongs to another MMHVAULT account and cannot be restored here.');
+  for(const rows of [data?.transactions,data?.investments]){
+    if(!Array.isArray(rows))continue;
+    if(rows.some(x=>x?.user_id!=null&&String(x.user_id)!==owner))throw new Error('This backup contains records from another MMHVAULT account and cannot be restored here.');
+  }
+}
+function mmhVaultTxImportPayloadV1235(x,userId){return {user_id:userId,tx_date:x?.tx_date||x?.date,type:x?.type,category:x?.category||null,from_account:x?.from_account||null,from_amount:n(x?.from_amount),to_account:x?.to_account||null,to_amount:n(x?.to_amount),note:x?.note||null};}
+function mmhVaultInvImportPayloadV1235(x,userId){return {user_id:userId,inv_date:x?.inv_date||x?.date,asset:x?.asset||'Crypto',symbol:x?.symbol||null,source_account:x?.source_account||null,amount:n(x?.amount),fee:n(x?.fee),other_cost:n(x?.other_cost),buy_price:n(x?.buy_price),market_price:n(x?.market_price),quantity:n(x?.quantity),note:x?.note||null};}
+async function mmhVaultInsertChunksV1235(table,rows,size=50){
+  for(let i=0;i<rows.length;i+=size){const r=await db.from(table).insert(rows.slice(i,i+size));if(r.error)throw new Error(`${table} import failed: ${r.error.message}`);}
+}
 async function handleExcelFile(file){
  const preview=$('excelPreview');if(!file){selectedExcelRows=null;$('excelImportBtn').disabled=true;preview.style.display='none';return;}
- try{const data=await file.arrayBuffer();const wb=XLSX.read(data,{type:'array',cellDates:false});const parsed=parseExcelWorkbook(wb);const txSet=new Set(transactions.map(txFp)),invSet=new Set(investments.map(invFp));const newTx=parsed.tx.filter(x=>!txSet.has(txFp(x))),newInv=parsed.inv.filter(x=>!invSet.has(invFp(x)));selectedExcelRows={newTx,newInv,fileName:file.name};preview.style.display='block';preview.innerHTML=`<b>${esc(file.name)}</b><br>Found <b>${parsed.tx.length}</b> real transaction rows and <b>${parsed.inv.length}</b> investment operations (<b>${parsed.meta.cryptoOps}</b> crypto + <b>${parsed.meta.goldOps}</b> gold).<br>New to your account: <b>${newTx.length}</b> transactions + <b>${newInv.length}</b> investments.<br><br><b>Calculated holdings preview</b><br>BTC ${parsed.meta.holdings.BTC.toFixed(10)} · ETH ${parsed.meta.holdings.ETH.toFixed(10)} · SOL ${parsed.meta.holdings.SOL.toFixed(10)} · BNB ${parsed.meta.holdings.BNB.toFixed(10)}<br>Gold ${parsed.meta.goldYwei.toFixed(2)} ရွေး = ${parsed.meta.goldKyattha.toFixed(8)} ကျပ်သား`;$('excelImportBtn').disabled=!(newTx.length||newInv.length);}catch(e){selectedExcelRows=null;$('excelImportBtn').disabled=true;preview.style.display='block';preview.innerHTML=`<span class="err">Excel read failed: ${esc(e.message)}</span>`;}}
-async function importSelectedExcel(){if(!selectedExcelRows)return;const u=(await db.auth.getUser()).data.user;if(!u)return;const {newTx,newInv,fileName}=selectedExcelRows;if(!await window.mmhVaultConfirmV740(`Import ${newTx.length} transactions and ${newInv.length} investments from ${fileName}?`,'Import data'))return; if(newTx.length){const r=await db.from('transactions').insert(newTx.map(x=>({user_id:u.id,tx_date:x.date,type:x.type,category:x.category,from_account:x.from_account,from_amount:x.from_amount,to_account:x.to_account,to_amount:x.to_amount,note:x.note})));if(r.error){mmhVaultNoticeV930('Transaction import failed: '+r.error.message);return;}}
- if(newInv.length){const r=await db.from('investments').insert(newInv.map(x=>({user_id:u.id,inv_date:x.date,asset:x.asset,symbol:x.symbol,amount:x.amount,fee:x.fee,other_cost:x.other_cost,buy_price:x.buy_price,market_price:x.market_price,quantity:x.quantity,note:x.note})));if(r.error){mmhVaultNoticeV930('Investment import failed: '+r.error.message);return;}}
- selectedExcelRows=null;$('excelFile').value='';clearExcelPreview();await loadAll({force:true});window.mmhvaultForceRenderAllV34421?.('excel-import');setPage('dashboard');mmhVaultNoticeV930('Excel import completed. Dashboard, Analyze and Invest are now linked to the imported Supabase data.');}
+ try{
+   const data=await file.arrayBuffer(),wb=XLSX.read(data,{type:'array',cellDates:false}),parsed=parseExcelWorkbook(wb);
+   const newTx=mmhVaultMissingRowsV1235(parsed.tx,transactions,txFp),newInv=mmhVaultMissingRowsV1235(parsed.inv,investments,invFp);
+   selectedExcelRows={allTx:parsed.tx,allInv:parsed.inv,newTx,newInv,fileName:file.name};
+   preview.style.display='block';
+   preview.innerHTML=`<b>${esc(file.name)}</b><br>Found <b>${parsed.tx.length}</b> real transaction rows and <b>${parsed.inv.length}</b> investment operations (<b>${parsed.meta.cryptoOps}</b> crypto + <b>${parsed.meta.goldOps}</b> gold).<br>New to your account: <b>${newTx.length}</b> transactions + <b>${newInv.length}</b> investments.<br><br><b>Calculated holdings preview</b><br>BTC ${parsed.meta.holdings.BTC.toFixed(10)} · ETH ${parsed.meta.holdings.ETH.toFixed(10)} · SOL ${parsed.meta.holdings.SOL.toFixed(10)} · BNB ${parsed.meta.holdings.BNB.toFixed(10)}<br>Gold ${parsed.meta.goldYwei.toFixed(2)} ရွေး = ${parsed.meta.goldKyattha.toFixed(8)} ကျပ်သား`;
+   $('excelImportBtn').disabled=!(newTx.length||newInv.length);
+ }catch(e){selectedExcelRows=null;$('excelImportBtn').disabled=true;preview.style.display='block';preview.innerHTML=`<span class="err">Excel read failed: ${esc(e.message)}</span>`;}
+}
+async function importSelectedExcel(){
+ if(!selectedExcelRows)return;
+ const u=(await db.auth.getUser()).data.user;if(!u)return;
+ const allTx=selectedExcelRows.allTx||selectedExcelRows.newTx||[],allInv=selectedExcelRows.allInv||selectedExcelRows.newInv||[],fileName=selectedExcelRows.fileName||'workbook';
+ try{
+   const refreshed=await loadAll({force:true});
+   if(refreshed?.ok===false)throw new Error('Cloud data could not be refreshed safely before import. Please check your connection and try again.');
+   const newTx=mmhVaultMissingRowsV1235(allTx,transactions,txFp),newInv=mmhVaultMissingRowsV1235(allInv,investments,invFp);
+   selectedExcelRows.newTx=newTx;selectedExcelRows.newInv=newInv;
+   if(!(newTx.length||newInv.length)){mmhVaultNoticeV930('All workbook records already exist in your account.');clearExcelPreview();return;}
+   if(!await window.mmhVaultConfirmV740(`Import ${newTx.length} transactions and ${newInv.length} investments from ${fileName}?`,'Import data'))return;
+   mmhVaultBeginBulkMutationV1235();
+   try{
+     await mmhVaultInsertChunksV1235('transactions',newTx.map(x=>mmhVaultTxImportPayloadV1235(x,u.id)),50);
+     await mmhVaultInsertChunksV1235('investments',newInv.map(x=>mmhVaultInvImportPayloadV1235(x,u.id)),50);
+   }finally{mmhVaultEndBulkMutationV1235();}
+   selectedExcelRows=null;$('excelFile').value='';clearExcelPreview();await loadAll({force:true});window.mmhvaultForceRenderAllV34421?.('excel-import');setPage('dashboard');mmhVaultNoticeV930('Excel import completed. Dashboard, Analyze and Invest are linked to the imported Supabase data.');
+ }catch(err){
+   console.error('[MMHVAULT] Excel import failed',err);
+   try{await loadAll({force:true});}catch(_e){}
+   mmhVaultNoticeV930('Excel import stopped: '+(err?.message||err)+'. Any completed chunks are already safe; retry will recheck the cloud and skip them.');
+ }
+}
 function clearExcelPreview(){selectedExcelRows=null;const p=$('excelPreview');if(p){p.style.display='none';p.innerHTML='';}$('excelImportBtn').disabled=true;if($('excelFile'))$('excelFile').value='';const t=$('excelDropTitleV318');const s=$('excelDropSubV318');if(t)t.textContent='Choose a workbook';if(s)s.textContent='.XLSX, .XLS or .XLSM · select your finance workbook';}
 async function resetMyCloudData(){if(!await window.mmhEditDeleteUI.requirePhrase('Reset Cloud Data','Permanently delete Transactions, Investments and Exchange Rates?','RESET'))return;const u=(await db.auth.getUser()).data.user;if(!u)return;for(const table of ['transactions','investments','exchange_rates']){const r=await db.from(table).delete().eq('user_id',u.id);if(r.error){await window.mmhEditDeleteUI.message('Reset failed',`${table}: ${r.error.message}`);return;}}await loadAll({force:true});window.mmhvaultForceRenderAllV34421?.('cloud-reset');window.mmhEditDeleteUI.toast('Cloud data reset.');}
 
@@ -9153,7 +9251,7 @@ const _renderInvestV27=renderInvest;
 function avgBuy(sym){const rows=investments.filter(x=>x.asset==='Crypto'&&x.symbol===sym);let q=0,c=0;rows.forEach(x=>{const qq=n(x.quantity);q+=qq;c+=n(x.amount)+n(x.fee)+n(x.other_cost);});return q>0?c/q:0;}
 function renderInvestV28(){_renderInvestV27();const syms=['BTC','ETH','SOL','BNB'];const cur=syms.map(s=>{const q=investments.filter(x=>x.asset==='Crypto'&&x.symbol===s).reduce((a,x)=>a+n(x.quantity),0);const p=livePrices[s]?.price||0;const v=q*p;return{s,q,p,v,avg:avgBuy(s)}});const totalV=cur.reduce((s,x)=>s+x.v,0);$('allocation').innerHTML=`<div class="invest-target-grid">${cur.map(x=>{const w=totalV?x.v/totalV*100:0;const target=V28_TARGETS[x.s]||0;return`<div class="target-card"><b>${x.s}</b><div class="small">Current ${w.toFixed(1)}% · Target ${target}%</div><div class="alloc-bar" style="margin-top:8px"><span style="width:${Math.min(100,w)}%"></span></div><div class="small" style="margin-top:6px">Avg Buy $${fmt(x.avg)}</div></div>`}).join('')}</div><div class="small" style="margin-top:10px">Targets are editable in code for now; current holdings are calculated from your investment records.</div>`;}
 async function exportMyFinanceBackup(){const out={version:'V2.9',exported_at:new Date().toISOString(),transactions,investments,rates};const blob=new Blob([JSON.stringify(out,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`MMHVAULT_Backup_${today()}.json`;a.click();URL.revokeObjectURL(a.href);$('backupStatus').textContent='Backup exported successfully.';}
-async function importMyFinanceBackup(file){if(!file)return;try{const data=JSON.parse(await file.text());if(!Array.isArray(data.transactions)||!Array.isArray(data.investments))throw new Error('Invalid MMHVAULT backup file.');const u=(await db.auth.getUser()).data.user;if(!u)throw new Error('Not signed in to MMHVAULT.');if(!await window.mmhVaultConfirmV740(`Restore ${data.transactions.length} transactions and ${data.investments.length} investments into your MMHVAULT account?`,'Restore backup'))return;const txExisting=new Set(transactions.map(txFp));const invExisting=new Set(investments.map(invFp));const ntx=data.transactions.filter(x=>!txExisting.has(txFp(x))).map(x=>({...x,user_id:u.id,tx_date:x.tx_date||x.date,created_at:undefined}));const ninv=data.investments.filter(x=>!invExisting.has(invFp(x))).map(x=>({...x,user_id:u.id,inv_date:x.inv_date||x.date,created_at:undefined}));if(ntx.length){const r=await db.from('transactions').insert(ntx.map(x=>{const {created_at,...rest}=x;return rest;}));if(r.error)throw r.error;}if(ninv.length){const r=await db.from('investments').insert(ninv.map(x=>{const {created_at,...rest}=x;return rest;}));if(r.error)throw r.error;}if(data.rates){await db.from('exchange_rates').upsert({...data.rates,user_id:u.id});}await loadAll();$('backupStatus').textContent=`Restore complete: ${ntx.length} transactions + ${ninv.length} investments added.`;}catch(e){$('backupStatus').textContent='Restore failed: '+e.message;}}
+async function importMyFinanceBackup(file){if(!file)return;const handler=window.mmhvaultHandleBackupFileV436||window.mmhvaultHandleBackupFileV434;if(typeof handler==='function'){handler(file,$('backupFile'));return;}mmhVaultNoticeV930('Backup import is still initializing. Please try again in a moment.');}
 // Patch existing UI events without changing core cloud model.
 const _initV27=init;
 function initV28(){_initV27();bindTxFilters();}
@@ -10380,21 +10478,9 @@ async function exportMyFinanceBackupV380(){
 }
 async function importMyFinanceBackupV380(file){
   if(!file)return;
-  setBackupStatusV380('Reading backup…');
-  try{
-    const data=JSON.parse(await file.text());
-    if(!Array.isArray(data.transactions)||!Array.isArray(data.investments))throw new Error('Invalid MMHVAULT backup file.');
-    const u=(await db.auth.getUser()).data.user;if(!u)throw new Error('Not signed in to MMHVAULT.');
-    const txExisting=new Set(transactions.map(txFp));
-    const invExisting=new Set(investments.map(invFp));
-    const ntx=data.transactions.filter(x=>!txExisting.has(txFp(x))).map(x=>{const {created_at,...rest}=x;return {...rest,user_id:u.id,tx_date:x.tx_date||x.date};});
-    const ninv=data.investments.filter(x=>!invExisting.has(invFp(x))).map(x=>{const {created_at,...rest}=x;return {...rest,user_id:u.id,inv_date:x.inv_date||x.date};});
-    if(!await window.mmhVaultConfirmV740(`Restore ${ntx.length} new transactions and ${ninv.length} new investments?`,'Restore backup'))return;
-    if(ntx.length){const r=await db.from('transactions').insert(ntx);if(r.error)throw r.error;}
-    if(ninv.length){const r=await db.from('investments').insert(ninv);if(r.error)throw r.error;}
-    if(data.rates){const safe={usd_mmk:n(data.rates.usd_mmk),usd_thb:n(data.rates.usd_thb),usd_cny:n(data.rates.usd_cny),user_id:u.id};const r=await db.from('exchange_rates').upsert(safe);if(r.error)throw r.error;}
-    await loadAll();setBackupStatusV380(`Restore complete: ${ntx.length} transactions + ${ninv.length} investments added.`,'ok');refreshDataCenterV380();
-  }catch(e){console.error(e);setBackupStatusV380('Restore failed: '+(e?.message||e),'err');}
+  const handler=window.mmhvaultHandleBackupFileV436||window.mmhvaultHandleBackupFileV434;
+  if(typeof handler==='function'){handler(file,$('backupFile'));return;}
+  setBackupStatusV380('Backup import is still initializing. Please try again in a moment.','err');
 }
 
 var restorePreviewV383=null;
@@ -10603,33 +10689,59 @@ async function previewMyFinanceBackupV383(file){
 function cancelRestorePreviewV383(){restorePreviewV383=null;const box=$('restorePreviewV383');if(box)box.classList.remove('show');const input=$('backupFile');if(input)input.value='';setRestoreStatusV383('Import cancelled.');}
 async function confirmRestorePreviewV383(){
   if(!restorePreviewV383)return;
-  const {data,ntx,ninv,hasRates,duplicates}=restorePreviewV383;
+  const preview=restorePreviewV383,data=preview.data;
   let u=null;
   try{u=(await db.auth.getUser()).data.user;}catch(e){setRestoreStatusV383('Restore failed: authentication is not ready. Please sign in again.','err');return;}
   if(!u){setRestoreStatusV383('Restore failed: not signed in to MMHVAULT.','err');return;}
-  restorePreviewV383.u=u;
-  const rateText=hasRates?' and saved exchange rates':'';
-  if(!await window.mmhVaultConfirmV740(`Restore ${ntx.length} new transactions and ${ninv.length} new investments${rateText}? Existing records will be kept.`,'Review & restore'))return;
+  try{mmhVaultValidateBackupOwnerV1235(data,u);}catch(err){setRestoreStatusV383('Restore blocked: '+(err?.message||err),'err');return;}
+
+  const normalizer=window.mmHVaultNormalizeImportV444||normalizeInvestmentImportV383;
+  const allTx=Array.isArray(data?.transactions)?data.transactions:[];
+  const allInv=(Array.isArray(data?.investments)?data.investments:[]).map(normalizer);
+  const validation=allInv.map(validateInvestmentImportV383).find(Boolean);
+  if(validation){setRestoreStatusV383('Restore blocked: '+validation,'err');return;}
+
   const btn=$('restoreConfirmV383');if(btn)btn.disabled=true;
-  setRestoreStatusV383('Restoring selected data to your private cloud…');
+  setRestoreStatusV383('Rechecking your current cloud data before restore…');
   try{
-    if(ntx.length){
-      const payload=ntx.map(x=>{const {created_at,user_id,...rest}=x;return {...rest,user_id:u.id,tx_date:x.tx_date||x.date};});
-      const r=await db.from('transactions').insert(payload);if(r.error)throw new Error('Transactions import failed: '+r.error.message);
+    const [txCloud,invCloud]=await Promise.all([
+      db.from('transactions').select('*').eq('user_id',u.id),
+      db.from('investments').select('*').eq('user_id',u.id)
+    ]);
+    if(txCloud.error)throw new Error('Transactions recheck failed: '+txCloud.error.message);
+    if(invCloud.error)throw new Error('Investments recheck failed: '+invCloud.error.message);
+    const ntx=mmhVaultMissingRowsV1235(allTx,txCloud.data||[],txFp);
+    const ninv=mmhVaultMissingRowsV1235(allInv,invCloud.data||[],invFp);
+    const duplicates=(allTx.length-ntx.length)+(allInv.length-ninv.length);
+    const hasRates=!!data?.rates&&[data.rates.usd_mmk,data.rates.usd_thb,data.rates.usd_cny].some(v=>Number(v)>0);
+    const rateText=hasRates?' and saved exchange rates':'';
+    if(!(ntx.length||ninv.length||hasRates)){
+      setRestoreStatusV383(`Nothing to restore. ${duplicates} records already exist in your account.`,'ok');
+      restorePreviewV383=null;const box=$('restorePreviewV383');if(box)box.classList.remove('show');const input=$('backupFile');if(input)input.value='';
+      return;
     }
-    if(ninv.length){
-      const payload=ninv.map(x=>{const {created_at,user_id,date,...rest}=x;return {...rest,user_id:u.id,inv_date:x.inv_date||date};});
-      const chunkSize=50;
-      for(let i=0;i<payload.length;i+=chunkSize){const r=await db.from('investments').insert(payload.slice(i,i+chunkSize));if(r.error)throw new Error('Investments import failed: '+r.error.message);}
-    }
-    if(hasRates){const safe={usd_mmk:n(data.rates.usd_mmk),usd_thb:n(data.rates.usd_thb),usd_cny:n(data.rates.usd_cny),user_id:u.id};const r=await db.from('exchange_rates').upsert(safe);if(r.error)throw new Error('Exchange rates import failed: '+r.error.message);}
+    if(!await window.mmhVaultConfirmV740(`Restore ${ntx.length} new transactions and ${ninv.length} new investments${rateText}? Existing records will be kept.`,'Review & restore'))return;
+    setRestoreStatusV383('Restoring selected data to your private cloud…');
+    mmhVaultBeginBulkMutationV1235();
+    try{
+      await mmhVaultInsertChunksV1235('transactions',ntx.map(x=>mmhVaultTxImportPayloadV1235(x,u.id)),50);
+      await mmhVaultInsertChunksV1235('investments',ninv.map(x=>mmhVaultInvImportPayloadV1235(x,u.id)),50);
+      if(hasRates){
+        const safe={usd_mmk:n(data.rates.usd_mmk),usd_thb:n(data.rates.usd_thb),usd_cny:n(data.rates.usd_cny),user_id:u.id};
+        const r=await db.from('exchange_rates').upsert(safe);if(r.error)throw new Error('Exchange rates import failed: '+r.error.message);
+      }
+    }finally{mmhVaultEndBulkMutationV1235();}
     const loaded=await loadAll({force:true});
-    if(loaded && loaded.ok===false && loaded.errors?.length) throw new Error('Records were submitted, but cloud refresh failed: '+loaded.errors.join(' '));
+    if(loaded?.ok===false&&loaded.errors?.length)throw new Error('Records were submitted, but cloud refresh failed: '+loaded.errors.join(' '));
     refreshDataCenterV380();
-    setRestoreStatusV383(`✓ Restore complete: ${ntx.length} transactions + ${ninv.length} investments added. ${duplicates} duplicates skipped.`,'ok');
+    setRestoreStatusV383(`✓ Restore complete: ${ntx.length} transactions + ${ninv.length} investments added. ${duplicates} existing records skipped.`,'ok');
     restorePreviewV383=null;const box=$('restorePreviewV383');if(box)box.classList.remove('show');const input=$('backupFile');if(input)input.value='';
     window.mmhvaultForceRenderAllV34421?.('json-restore');
-  }catch(e){console.error(e);setRestoreStatusV383('Restore failed: '+(e?.message||e),'err');if(btn)btn.disabled=false;}
+  }catch(e){
+    console.error(e);
+    try{await loadAll({force:true});}catch(_e){}
+    setRestoreStatusV383('Restore stopped: '+(e?.message||e)+'. Any completed chunks are already saved; retry is safe because MMHVAULT will recheck the cloud and skip them.','err');
+  }finally{if(btn&&restorePreviewV383)btn.disabled=false;}
 }
 
 function downloadTransactionsCSVV380(){
@@ -10679,11 +10791,26 @@ async function clearBackupHistoryV381(){
 }
 async function resetMyCloudDataV380(){
   if(!await window.mmhEditDeleteUI.requirePhrase('Reset Cloud Data','Permanently delete Transactions, Investments and Exchange Rates?','RESET'))return;
-  const u=(await db.auth.getUser()).data.user;if(!u){setBackupStatusV380('Please sign in again.','err');return;}
-  for(const table of ['transactions','investments','exchange_rates']){
-    const r=await db.from(table).delete().eq('user_id',u.id);if(r.error){setBackupStatusV380(`Reset failed on ${table}: ${r.error.message}`,'err');return;}
+  const actionOwner=currentSessionUser?.id;
+  const u=(await db.auth.getUser()).data.user;
+  if(!u||!actionOwner||u.id!==actionOwner||currentSessionUser?.id!==actionOwner){setBackupStatusV380('Please sign in again.','err');return;}
+  mmhVaultBeginBulkMutationV1235();
+  try{
+    for(const table of ['transactions','investments','exchange_rates']){
+      if(currentSessionUser?.id!==actionOwner)throw new Error('Account changed while reset was running.');
+      const r=await db.from(table).delete().eq('user_id',u.id);if(r.error)throw new Error(`${table}: ${r.error.message}`);
+    }
+  }catch(err){
+    setBackupStatusV380(`Reset stopped: ${err?.message||err}. Reloading the current cloud state…`,'err');
+    return;
+  }finally{
+    mmhVaultEndBulkMutationV1235();
+    try{if(currentSessionUser?.id===actionOwner)await loadAll({force:true});}catch(_e){}
+    refreshDataCenterV380();
   }
-  await loadAll();setBackupStatusV380('Your cloud data has been reset.','ok');refreshDataCenterV380();
+  if(currentSessionUser?.id!==actionOwner)return;
+  setBackupStatusV380('Your cloud data has been reset.','ok');
+  window.mmhvaultForceRenderAllV34421?.('cloud-reset');
 }
 setTimeout(()=>{refreshDataCenterV380();renderBackupHistoryV381();},100);
 const _renderV380Old=render;
@@ -21225,21 +21352,20 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
   const oldPreview=window.previewMyFinanceBackupDataV434;
   window.previewMyFinanceBackupDataV444=async function(file,data){
     try{
+      const u=(await db.auth.getUser()).data.user;if(!u)throw new Error('Not signed in to MMHVAULT.');
+      mmhVaultValidateBackupOwnerV1235(data,u);
       const arrTx=Array.isArray(data?.transactions)?data.transactions:[], arrInv=Array.isArray(data?.investments)?data.investments:[];
       const normalized=arrInv.map(normalizeImportV444), err=normalized.map(validImportV444).find(Boolean); if(err)throw new Error(err);
-      const fpTx=x=>[x?.date||x?.tx_date,x?.type,x?.category||'',x?.from_account||'',num(x?.from_amount),x?.to_account||'',num(x?.to_amount),x?.note||''].join('|');
-      const fpInv=x=>[x?.inv_date||x?.date,x?.asset,x?.symbol||'',num(x?.amount),num(x?.fee),num(x?.other_cost),num(x?.buy_price),num(x?.quantity)].join('|');
-      const txExisting=new Set((window.transactions||[]).map(fpTx)), invExisting=new Set((window.investments||[]).map(fpInv));
-      const ntx=arrTx.filter(x=>!txExisting.has(fpTx(x))), ninv=normalized.filter(x=>!invExisting.has(fpInv(x))), dup=arrTx.length-ntx.length+normalized.length-ninv.length;
+      const ntx=mmhVaultMissingRowsV1235(arrTx,window.transactions||[],txFp), ninv=mmhVaultMissingRowsV1235(normalized,window.investments||[],invFp), dup=arrTx.length-ntx.length+normalized.length-ninv.length;
       const buys=ninv.filter(x=>x.asset==='Crypto'&&x.quantity>0).length,sells=ninv.filter(x=>x.asset==='Crypto'&&x.quantity<0).length,gBuys=ninv.filter(x=>x.asset==='Gold'&&x.quantity>0).length,gSells=ninv.filter(x=>x.asset==='Gold'&&x.quantity<0).length;
       const hasRates=!!data?.rates&&[data.rates.usd_mmk,data.rates.usd_thb,data.rates.usd_cny].some(v=>num(v)>0);
-      window.restorePreviewV383={file,data,u:null,ntx,ninv,duplicates:dup,hasRates,needsAuth:true};
+      window.restorePreviewV383={file,data,u,ntx,ninv,duplicates:dup,hasRates,needsAuth:false};
       const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=String(v);};
       set('restoreFileNameV383',file?.name||'MMHVAULT backup.json');set('restoreFileMetaV383',`Backup date: ${typeof formatBackupDateV383==='function'?formatBackupDateV383(data?.exported_at):'Unknown'} · Format: ${data?.version||'Trade Import / JSON'}`);set('restoreNewTxV383',ntx.length);set('restoreNewInvV383',ninv.length);set('restoreDuplicateV383',dup);set('restoreRatesV383',hasRates?'Included':'Not included');
       const c=document.getElementById('restoreConflictV383');if(c)c.textContent=`Ready: ${buys} Crypto BUY + ${sells} Crypto SELL + ${gBuys} Gold BUY + ${gSells} Gold SELL. ${dup} existing records will be skipped. Existing cloud records will not be overwritten.`;
       const b=document.getElementById('restoreConfirmV383');if(b)b.disabled=(ntx.length===0&&ninv.length===0&&!hasRates);
       document.getElementById('restorePreviewV383')?.classList.add('show');
-      if(typeof setRestoreStatusV383==='function')setRestoreStatusV383(`✓ JSON loaded · ${arrInv.length} investment records found. BUY/SELL signs have been normalized for the ledger.`,'ok');
+      if(typeof setRestoreStatusV383==='function')setRestoreStatusV383(`✓ JSON loaded · ${arrInv.length} investment records found. Restore will recheck the cloud before writing.`,'ok');
     }catch(e){console.error(e);window.restorePreviewV383=null;document.getElementById('restorePreviewV383')?.classList.remove('show');if(typeof setRestoreStatusV383==='function')setRestoreStatusV383('Import preview failed: '+(e?.message||e),'err');}
   };
   // Replace the native-file handler target used by the current button. No hidden/offscreen picker changes.
@@ -21261,8 +21387,14 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
   };
   window.mmHVaultGoldLedgerV444=goldLedger;
   window.mmHVaultNormalizeImportV444=normalizeImportV444;
-  // Fix the duplicated inline onchange attributes on the current input and ensure one clean handler.
-  function bindInput(){const input=document.getElementById('backupFile');if(!input||input.dataset.v444Bound==='1')return;input.dataset.v444Bound='1';input.removeAttribute('onchange');input.addEventListener('change',function(){const f=input.files?.[0];window.mmhvaultHandleBackupFileV436(f,input);});}
+  window.previewMyFinanceBackupDataV434=window.previewMyFinanceBackupDataV444;
+  // Replace the legacy-bound file input once so only the current safe JSON handler can run.
+  function bindInput(){
+    const oldInput=document.getElementById('backupFile');if(!oldInput||oldInput.dataset.v444Bound==='1')return;
+    const input=oldInput.cloneNode(true);input.value='';input.dataset.v444Bound='1';input.removeAttribute('onchange');input.onchange=null;
+    oldInput.replaceWith(input);
+    input.addEventListener('change',function(){const f=input.files?.[0];window.mmhvaultHandleBackupFileV436(f,input);});
+  }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bindInput,{once:true});else bindInput();
   setTimeout(()=>{try{window.renderInvest?.();}catch(_e){}},250);
 })();
@@ -25079,5 +25211,7 @@ html body.mmh-workspace-active main.wrap .page.active :is(.empty,.mmh-ui-empty,.
 <script id="mmhvault-v1234-stability-marker">
 window.MMHVAULT_STABILITY_PASS='1.2.3.4';
 </script>
+
+<script id="mmhvault-v1235-stability-pass-4-marker">window.MM_HVAULT_STABILITY_V1235={version:'1.2.3.5',backupImportIntegrity:true,realtimeOwnerScope:true,transactionEditRecovery:true,bulkMutationIsolation:true};</script>
 </body>
 </html>
