@@ -24231,6 +24231,43 @@ function updateMarketOnlyV720(){
  const alloc=host.querySelectorAll('.pf-allocation-row-v630');[[d.cash,cashPct],[d.invest,investPct],[d.receivable,recvPct]].forEach((v,i)=>{const row=alloc[i];if(!row)return;const amount=row.querySelector('small'),pctEl=row.querySelector('b'),bar=row.querySelector('u');if(amount)amount.textContent=money(v[0]);if(pctEl)pctEl.textContent=v[1].toFixed(1)+'%';if(bar)bar.style.setProperty('--pct',Math.max(0,Math.min(100,v[1])).toFixed(1)+'%');});
 }
 function scheduleMarketOnlyV720(){clearTimeout(marketTimerV720);marketTimerV720=setTimeout(updateMarketOnlyV720,180);}
+function updateTrendPanelOnlyV157(){
+ if(!pageActive())return;
+ const host=ensureDashboardHost(),card=host?.querySelector('.pf-trend-card-v620');if(!card)return;
+ const d=financeData(),series=trendSeries(d.total,trendRange),latest=series.at(-1)?.value||0,first=series.at(0)?.value||0,trend=first?((latest-first)/Math.abs(first))*100:0;
+ card.querySelectorAll('[data-pf-range]').forEach(x=>x.classList.toggle('active',x.dataset.pfRange===trendRange));
+ const desc=card.querySelector('.pf-card-head-v500 p');if(desc)desc.textContent=trendDescription(trendRange);
+ const total=card.querySelector('.pf-trend-summary-v500 strong');if(total)total.textContent=money(d.total);
+ const momentum=card.querySelector('.pf-trend-summary-v500 span');if(momentum)momentum.textContent=pct(trend)+' momentum';
+ const chart=card.querySelector('.pf-chart-v500');
+ if(chart){
+   card.classList.add('pf-local-updating-v157');
+   requestAnimationFrame(()=>{
+     chart.innerHTML=chartSvg(series);
+     requestAnimationFrame(()=>card.classList.remove('pf-local-updating-v157'));
+   });
+ }
+ lastFullSignatureV720=fullSignatureV720();
+}
+function updateMarketPanelOnlyV157(){
+ if(!pageActive())return;
+ const host=ensureDashboardHost(),card=host?.querySelector('.pf-market-card-v630');if(!card)return;
+ card.querySelectorAll('[data-market-tab]').forEach(x=>x.classList.toggle('active',x.dataset.marketTab===marketTab));
+ const p=card.querySelector('.pf-card-head-v500 p');
+ if(p)p.textContent=marketTab==='Popular'?'Live crypto & gold reference':marketTab==='Crypto'?'Crypto market snapshot':marketTab==='Gold'?'Gold market reference':'Live movers with available prices';
+ const box=card.querySelector('.pf-market-v500');
+ if(box){
+   const next=`<div class="pf-market-head-v500"><span>Asset</span><span>Price</span><span>24h</span><span>Trend</span></div>${marketRows(marketTab)}`;
+   if(box.dataset.liveHtmlV720!==next){
+     card.classList.add('pf-local-updating-v157');
+     requestAnimationFrame(()=>{
+       box.innerHTML=next;
+       box.dataset.liveHtmlV720=next;
+       requestAnimationFrame(()=>card.classList.remove('pf-local-updating-v157'));
+     });
+   }
+ }
+}
 function render(force=false){
  if(!pageActive())return;const host=ensureDashboardHost();if(!host)return;const sig=fullSignatureV720();if(!force&&host.childElementCount&&sig===lastFullSignatureV720){updateMarketOnlyV720();return;}lastFullSignatureV720=sig;const d=financeData(),pt=personalTimeData(),series=trendSeries(d.total,trendRange),latest=series.at(-1)?.value||0,first=series.at(0)?.value||0,trend=first?((latest-first)/Math.abs(first))*100:0,total=d.total||1,cashPct=d.cash/total*100,investPct=d.invest/total*100,recvPct=Math.max(0,100-cashPct-investPct),pnlCls=d.pl>=0?'pos':'neg';
  host.innerHTML=`
@@ -24249,8 +24286,8 @@ function render(force=false){
    ${(()=>{const recentRows=recentTransactionRows(24);let loopRows=recentRows.slice();if(loopRows.length){const seed=recentRows.slice();while(loopRows.length<12)loopRows=loopRows.concat(seed);loopRows=loopRows.slice(0,Math.max(12,recentRows.length));}const rowHtml=txRows(loopRows.length||24,loopRows.length?loopRows:recentRows);const signature=recentRows.map(r=>String(r.id??'')+'@'+String(r.tx_date??'')).join('|');return `<article class="pf-card-v500 pf-recent-flow-v620"><div class="pf-card-head-v500"><div><h2>Recent Transactions</h2><p>Live flow · latest activity across recent months</p></div><button class="pf-link-v500" type="button" onclick="setPage('transactions')">View all →</button></div><div class="pf-transactions-v500"><div class="pf-tx-head-v500"><span>Date</span><span>Description</span><span>Type</span><span>Amount</span><span>Status</span></div><div class="pf-tx-viewport-v620"><div class="pf-tx-track-v620" data-flow-signature="${esc(signature)}"><div class="pf-tx-set-v620">${rowHtml}</div><div class="pf-tx-set-v620" aria-hidden="true">${rowHtml}</div></div></div></div></article>`})()}
    <article class="pf-card-v500 pf-market-card-v630"><div class="pf-card-head-v500"><div><h2>Market Watch</h2><p>${marketTab==='Popular'?'Live crypto & gold reference':marketTab==='Crypto'?'Crypto market snapshot':marketTab==='Gold'?'Gold market reference':'Live movers with available prices'}</p></div><button class="pf-link-v500" type="button" onclick="setPage('invest')">Open Invest →</button></div><div class="pf-market-tabs-v500" role="tablist" aria-label="Market watch filter"><button type="button" data-market-tab="Popular" class="${marketTab==='Popular'?'active':''}">Popular</button><button type="button" data-market-tab="Crypto" class="${marketTab==='Crypto'?'active':''}">Crypto</button><button type="button" data-market-tab="Gold" class="${marketTab==='Gold'?'active':''}">Gold</button><button type="button" data-market-tab="Live" class="${marketTab==='Live'?'active':''}"><span class="pf-live-dot-v630"></span>Live</button></div><div class="pf-market-v500 pf-market-swap-v630"><div class="pf-market-head-v500"><span>Asset</span><span>Price</span><span>24h</span><span>Trend</span></div>${marketRows(marketTab)}</div></article>
  </section>`;
- host.querySelectorAll('[data-pf-range]').forEach(btn=>btn.addEventListener('click',()=>{const next=btn.dataset.pfRange;if(!next||next===trendRange)return;trendRange=next;lastFullSignatureV720='';render(true);}));
- host.querySelectorAll('[data-market-tab]').forEach(btn=>btn.addEventListener('click',()=>{const next=btn.dataset.marketTab;if(!next||next===marketTab)return;marketTab=next;host.querySelectorAll('[data-market-tab]').forEach(x=>x.classList.toggle('active',x.dataset.marketTab===marketTab));scheduleMarketOnlyV720();}));
+ host.querySelectorAll('[data-pf-range]').forEach(btn=>btn.addEventListener('click',()=>{const next=btn.dataset.pfRange;if(!next||next===trendRange)return;trendRange=next;updateTrendPanelOnlyV157();}));
+ host.querySelectorAll('[data-market-tab]').forEach(btn=>btn.addEventListener('click',()=>{const next=btn.dataset.marketTab;if(!next||next===marketTab)return;marketTab=next;updateMarketPanelOnlyV157();}));
  host.querySelectorAll('[data-allocation-target]').forEach(btn=>btn.addEventListener('click',()=>{const target=btn.dataset.allocationTarget;if(target&&typeof window.setPage==='function')window.setPage(target);}));
 }
 
@@ -27762,6 +27799,39 @@ html body.mmh-workspace-active #moreNavMenu .mmh-more-list-v153{
 </style>
 <script id="mmhvault-v156-marker">
 window.MMHVAULT_V156={version:'1.5.6',mobileMoreFullWidth:true,desktopMoreNoClip:true};
+</script>
+
+
+<style id="mmhvault-v157-dashboard-local-interaction-css">
+/* MMHVAULT v1.5.7 · Dashboard local interaction isolation
+   Portfolio Trend and Market Watch switch only their own content region. */
+#mmhPremiumDashboardV500 .pf-trend-card-v620,
+#mmhPremiumDashboardV500 .pf-market-card-v630{
+  contain:layout style paint;
+}
+#mmhPremiumDashboardV500 .pf-trend-card-v620 .pf-chart-v500,
+#mmhPremiumDashboardV500 .pf-market-card-v630 .pf-market-v500{
+  transition:opacity .10s ease,transform .10s ease!important;
+  will-change:opacity,transform;
+}
+#mmhPremiumDashboardV500 .pf-trend-card-v620.pf-local-updating-v157 .pf-chart-v500,
+#mmhPremiumDashboardV500 .pf-market-card-v630.pf-local-updating-v157 .pf-market-v500{
+  opacity:.72!important;
+  transform:translateY(1px)!important;
+}
+#mmhPremiumDashboardV500 .pf-range-v500 button,
+#mmhPremiumDashboardV500 .pf-market-tabs-v500 button{
+  contain:layout style;
+}
+@media(prefers-reduced-motion:reduce){
+  #mmhPremiumDashboardV500 .pf-trend-card-v620 .pf-chart-v500,
+  #mmhPremiumDashboardV500 .pf-market-card-v630 .pf-market-v500{
+    transition:none!important;
+  }
+}
+</style>
+<script id="mmhvault-v157-marker">
+window.MMHVAULT_V157={version:'1.5.7',trendLocalUpdate:true,marketTabLocalUpdate:true,fullDashboardRenderOnSwitch:false};
 </script>
 
 </body>
