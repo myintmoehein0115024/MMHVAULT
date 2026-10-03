@@ -5774,8 +5774,7 @@ body.mmh-v436-explorer-open #bottomNav{visibility:hidden!important;pointer-event
   const el=id=>document.getElementById(id);
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const builtins=[{id:'crypto',name:'Crypto',active:true,builtin:true},{id:'gold',name:'Gold',active:true,builtin:true}];
-  let storageKey='',userId='',cloud=false,busy=false,loading=false,lastCloudUpdatedAt=null,lastRefresh=0,state={types:[],assets:[]},catalogDomDirtyV1513=true;
-  const investActiveV1513=()=>!!el('invest')?.classList.contains('active');
+  let storageKey='',userId='',cloud=false,busy=false,loading=false,lastCloudUpdatedAt=null,lastRefresh=0,state={types:[],assets:[]};
   const types=()=>[...builtins,...state.types];
   const activeTypes=()=>types().filter(t=>t.active!==false);
   window.mmhInvestCatalogTypesV1=activeTypes;
@@ -5797,11 +5796,7 @@ body.mmh-v436-explorer-open #bottomNav{visibility:hidden!important;pointer-event
       if(!result.data)throw Error('Catalog changed on another device. Reload this page to get the latest version before editing.');
       lastCloudUpdatedAt=result.data.updated_at;
       localStorage.setItem(storageKey,JSON.stringify(next));state=next;
-      if(investActiveV1513()){
-        catalogDomDirtyV1513=false;
-        render();window.mmhCustomInvestSync?.();window.mmhRenderInvestHistoryV1?.();window.mmhRenderUnifiedInvestV1?.();
-      }else catalogDomDirtyV1513=true;
-      return true;
+      render();window.mmhCustomInvestSync?.();window.mmhRenderInvestHistoryV1?.();window.mmhRenderUnifiedInvestV1?.();return true;
     }catch(err){el('mmhCatalogNoticeV1').textContent='Catalog was not saved: '+(err?.message||'Storage error');return false;}
     finally{busy=false;}
   }
@@ -5893,7 +5888,7 @@ body.mmh-v436-explorer-open #bottomNav{visibility:hidden!important;pointer-event
   async function load(){
     try{
       const user=(await db.auth.getUser()).data.user;
-      if(!user){storageKey='';userId='';cloud=false;lastCloudUpdatedAt=null;state={types:[],assets:[]};if(investActiveV1513()){catalogDomDirtyV1513=false;render();window.mmhRenderUnifiedInvestV1?.()}else catalogDomDirtyV1513=true;return;}
+      if(!user){storageKey='';userId='';cloud=false;lastCloudUpdatedAt=null;state={types:[],assets:[]};render();window.mmhRenderUnifiedInvestV1?.();return;}
       const key='mmhvault_invest_catalog_v1:'+user.id;
       if(busy||loading)return;
       loading=true;
@@ -5913,10 +5908,7 @@ body.mmh-v436-explorer-open #bottomNav{visibility:hidden!important;pointer-event
       lastRefresh=Date.now();
       if(cloud)localStorage.setItem(key,JSON.stringify(state));
       el('mmhCatalogNoticeV1').textContent=cloud?'Catalog synced to your signed-in account. Return to this page on another device to refresh it.':'Cloud catalog unavailable. Reconnect and refresh before editing; existing data is still visible here.';
-      if(investActiveV1513()){
-        catalogDomDirtyV1513=false;
-        render();window.mmhCustomInvestSync?.();window.mmhRenderUnifiedInvestV1?.();
-      }else catalogDomDirtyV1513=true;
+      render();window.mmhCustomInvestSync?.();window.mmhRenderUnifiedInvestV1?.();
     }catch(_){el('mmhCatalogNoticeV1').textContent='Investment catalog is unavailable on this device.';}
     finally{loading=false;}
   }
@@ -5935,19 +5927,14 @@ body.mmh-v436-explorer-open #bottomNav{visibility:hidden!important;pointer-event
     document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')refresh();});
   }
   window.addEventListener('mmhvault:data-loaded',load);
-  window.addEventListener('mmhvault:page-visible',()=>{
-    if(!investActiveV1513()||!catalogDomDirtyV1513)return;
-    catalogDomDirtyV1513=false;
-    render();window.mmhCustomInvestSync?.();window.mmhRenderUnifiedInvestV1?.();
-  });
+  window.addEventListener('mmhvault:data-loaded',render);
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
 </script>
 <script id="mmhvault-custom-invest-v1-js">
 (function(){
   const get=id=>document.getElementById(id),safe=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  let loading=false,saving=false,pending=false,revision=0,investDomDirtyV1513=true;
-  const investActiveV1513=()=>!!get('invest')?.classList.contains('active');
+  let loading=false,saving=false,pending=false,revision=0;
   window.mmhCustomInvestRecords=[];
   window.mmhCustomInvestLoaded=false;
   function catalog(){return window.mmhInvestCatalogSnapshotV1?.()||{types:[],assets:[]};}
@@ -5976,8 +5963,6 @@ body.mmh-v436-explorer-open #bottomNav{visibility:hidden!important;pointer-event
   function showChange(reason){
     if(reason!=='custom-investment-reloaded')revision++;
     window.dispatchEvent(new CustomEvent('mmhvault:data-change',{detail:{reason}}));
-    if(!investActiveV1513()){investDomDirtyV1513=true;return}
-    investDomDirtyV1513=false;
     window.mmhRenderInvestHistoryV1?.();window.mmhRenderUnifiedInvestV1?.();
     window.renderInvestNavigationHardFixV371?.();preview();
   }
@@ -6023,9 +6008,7 @@ body.mmh-v436-explorer-open #bottomNav{visibility:hidden!important;pointer-event
       const o=document.createElement('option');o.value='custom:'+t.id;o.textContent=t.name;o.dataset.customType='1';select.append(o);
     });
     if([...select.options].some(o=>o.value===current))select.value=current;
-    refreshAssets();
-    if(investActiveV1513())window.mmhRenderUnifiedInvestV1?.();
-    else investDomDirtyV1513=true;
+    refreshAssets();window.mmhRenderUnifiedInvestV1?.();
   }
   window.mmhCustomInvestSync=sync;
   async function reload(){
@@ -6087,12 +6070,6 @@ body.mmh-v436-explorer-open #bottomNav{visibility:hidden!important;pointer-event
     sync();reload();
   }
   window.addEventListener('mmhvault:data-loaded',reload);
-  window.addEventListener('mmhvault:page-visible',()=>{
-    if(!investActiveV1513()||!investDomDirtyV1513)return;
-    investDomDirtyV1513=false;
-    sync();window.mmhRenderInvestHistoryV1?.();window.mmhRenderUnifiedInvestV1?.();
-    window.renderInvestNavigationHardFixV371?.();preview();
-  });
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
 </script>
@@ -6135,8 +6112,7 @@ body.mmh-v436-explorer-open #bottomNav{visibility:hidden!important;pointer-event
 (function(){
   const el=id=>document.getElementById(id);
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  let filter='ALL',sideFilter='ALL',historyDirtyV1513=true,receiptDirtyV1513=true,historyRafV1513=0;
-  const investActiveV1513=()=>!!el('invest')?.classList.contains('active');
+  let filter='ALL',sideFilter='ALL';
   const numeric=v=>v!==null&&v!==undefined&&v!==''&&Number.isFinite(Number(v));
   const fmt=v=>{const n=Math.abs(Number(v));if(!Number.isFinite(n))return '—';
     if(n>0&&n<0.000001)return '<0.000001';
@@ -6357,15 +6333,6 @@ body.mmh-v436-explorer-open #bottomNav{visibility:hidden!important;pointer-event
     });
     modal.showModal();
   }
-  function scheduleHistoryV1513(){
-    if(!investActiveV1513()){historyDirtyV1513=true;return}
-    if(historyRafV1513)return;
-    historyRafV1513=requestAnimationFrame(()=>{
-      historyRafV1513=0;
-      if(!investActiveV1513()){historyDirtyV1513=true;return}
-      historyDirtyV1513=false;render();
-    });
-  }
   document.addEventListener('click',e=>{
     const typeButton=e.target.closest('#mmhHistoryFiltersV1 button[data-history-type]');
     if(typeButton){filter=typeButton.dataset.historyType;render();return;}
@@ -6386,21 +6353,12 @@ body.mmh-v436-explorer-open #bottomNav{visibility:hidden!important;pointer-event
       db.auth.getUser().then(r=>confirmDelete(row,r.data.user)).catch(err=>window.mmhEditDeleteUI.message('Delete unavailable',err?.message||String(err)));
     }
   });
-  ['mmhvault:data-loaded','mmhvault:cache-restored','mmhvault:data-change'].forEach(ev=>window.addEventListener(ev,()=>{
-    historyDirtyV1513=true;
-    scheduleHistoryV1513();
-    if(ev==='mmhvault:data-loaded')receiptDirtyV1513=true;
-  }));
-  window.addEventListener('mmhvault:page-visible',()=>{
-    if(!investActiveV1513())return;
-    if(historyDirtyV1513)scheduleHistoryV1513();
-    if(receiptDirtyV1513){
-      receiptDirtyV1513=false;
-      refreshCustomReceipts();
-      window.refreshInvestmentReceiptFlagsV3304?.();
-    }
-  });
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',scheduleHistoryV1513,{once:true});else scheduleHistoryV1513();
+  window.addEventListener('mmhvault:data-loaded',render);
+  window.addEventListener('mmhvault:data-loaded',refreshCustomReceipts);
+  window.addEventListener('mmhvault:data-loaded',()=>window.refreshInvestmentReceiptFlagsV3304?.());
+  window.addEventListener('mmhvault:cache-restored',render);
+  window.addEventListener('mmhvault:data-change',render);
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',render,{once:true});else render();
 })();
 </script>
 <script id="mmhvault-unified-invest-v1-js">
@@ -6499,7 +6457,7 @@ body.mmh-v436-explorer-open #bottomNav{visibility:hidden!important;pointer-event
     el('mmhUnifiedAllocationV1').innerHTML='<span>'+L('持仓占比 · USD','Portfolio mix · USD')+'</span>'+ (allocation||'<span>'+L('暂无持仓','No open positions')+'</span>');
     const mix=el('mmhUnifiedAllocationV1'),mixWrap=mix?.parentElement;
     const updateMixHint=()=>mixWrap?.classList.toggle('mmh-mix-more',mix.scrollWidth-mix.scrollLeft>mix.clientWidth+3);
-    if(mix&&!mix.dataset.mmhMixBound){mix.dataset.mmhMixBound='1';mix.addEventListener('scroll',updateMixHint,{passive:true});window.addEventListener('resize',()=>{if(el('invest')?.classList.contains('active'))updateMixHint()},{passive:true});}
+    if(mix&&!mix.dataset.mmhMixBound){mix.dataset.mmhMixBound='1';mix.addEventListener('scroll',updateMixHint,{passive:true});window.addEventListener('mmhvault:responsive-settled',()=>{if(el('invest')?.classList.contains('active'))updateMixHint()},{passive:true});}
     if(mix)requestAnimationFrame(updateMixHint);
     const catalog=window.mmhInvestCatalogTypesV1?.()||[];
     const types=['ALL',...new Set([...data.cryptos.map(x=>x.type),...(data.hasGold?['GOLD']:[]),...catalog.map(x=>String(x.name).toUpperCase()),...data.custom.map(x=>String(x.type_name).toUpperCase())])];if(!types.includes(filter))filter='ALL';
@@ -13663,14 +13621,17 @@ Object.assign(zh, {
 /* UI-only additions for current pages; user-defined financial labels remain unchanged. */
 Object.assign(zh,{"Basic information": "基本信息", "Accounts & amounts": "账户与金额", "Account, amount & costs": "账户、金额与费用", "Price & quantity": "价格与数量", "Note & attachment": "备注与附件", "‹ Back": "‹ 返回", "Back": "返回", "Details": "详情", "Transaction details": "交易详情", "Investment details": "投资详情", "Holding details": "持仓详情", "My profile": "我的资料", "Your identity and everyday progress": "您的个人资料与日常记录", "Day streak": "连续记账天数", "Days recorded": "已记账天数", "General": "通用设置", "Overview": "概览", "Budget": "预算", "Theme": "主题", "Comfortable": "宽松", "Compact": "紧凑", "System": "跟随系统", "Light": "浅色", "Dark": "深色", "Cashflow default currency": "现金流默认显示币种", "Show double decimals": "显示两位小数", "Round decimals in summaries": "汇总金额显示整数", "Default expense category": "默认支出分类", "Default income category": "默认收入分类", "Default transfer source": "默认转出账户", "Use existing default": "使用现有默认值", "Password & devices": "密码与设备", "Personal time": "个人时间", "App icon": "应用图标", "Data & backup": "数据与备份", "Edit profile": "编辑资料", "Preferences are saved on this device. Rounding changes displayed summaries only; original amounts retain their precision.": "偏好设置保存在此设备。取整只改变汇总显示，原始金额保留原有精度。", "Accounts": "账户", "Display currency": "显示币种", "Original currency": "原币种", "Account net assets": "账户净资产", "All accounts": "全部账户", "Search accounts": "搜索账户", "Original order": "原始顺序", "Hide amounts": "隐藏金额", "Show amounts": "显示金额", "Your cash accounts and investment portfolios": "您的现金账户与投资组合", "Cash balances + held investments · converted to your display currency.": "现金余额与投资持仓，按所选显示币种换算。", "Live Prices": "实时行情", "More Crypto": "更多加密货币", "Manage Projects": "管理项目", "Portfolio": "投资记录", "Investment Center": "投资中心", "Investment sections": "投资页面", "No file selected": "未选择文件", "Choose a receipt": "选择收据", "Receipt attachment": "收据附件", "Optional": "选填", "Optional · add proof, invoice or payment screenshot": "选填，可添加凭证、发票或付款截图", "PNG, JPG, WEBP or PDF · up to 10 MB": "PNG、JPG、WEBP 或 PDF，最大 10 MB", "Source Account": "来源账户", "Trade Type": "买卖方向", "Other Cost": "其他成本", "Purchase-day Market Price": "交易时市场价格", "Current Market Price": "当前市场价格", "Quantity (Auto)": "数量（自动计算）", "Gold Weight (Auto)": "黄金重量（自动计算）", "Currency Converter": "货币换算", "Converted Amount": "换算金额", "Live from saved rates": "使用已保存汇率", "⇄ Swap": "⇄ 对调", "Income, spending and remaining funds for your selected period.": "所选期间的收入、支出与剩余资金。", "Manual target": "手动预算", "Save estimate": "保存预算", "No spending in this period.": "该期间没有支出记录。", "Add to Home Screen": "添加到主屏幕"});
 function translateAttributes(root){
-  root.querySelectorAll?.('[placeholder],[title],[aria-label]').forEach(el=>{
+  const applyAttrs=el=>{
+    if(!el?.getAttribute)return;
     ['placeholder','title','aria-label'].forEach(a=>{
       const v=el.getAttribute(a); if(!v)return;
       const key='i18n'+a.replace(/-([a-z])/g,(_,c)=>c.toUpperCase());
       if(!el.dataset[key]) el.dataset[key]=v;
       const base=el.dataset[key]; el.setAttribute(a,(lang==='zh'&&zh[base])?zh[base]:base);
     });
-  });
+  };
+  if(root?.nodeType===Node.ELEMENT_NODE&&root.matches?.('[placeholder],[title],[aria-label]'))applyAttrs(root);
+  root?.querySelectorAll?.('[placeholder],[title],[aria-label]').forEach(applyAttrs);
 }
 function translateDynamicText(base){
   if(lang!=='zh') return base;
@@ -13714,13 +13675,64 @@ function translateDynamicText(base){
   for(const [re,out] of reps){if(re.test(x)) return x.replace(re,out);}
   return x;
 }
-function walk(root){const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);const a=[];while(w.nextNode())a.push(w.currentNode);a.forEach(n=>{const t=n.nodeValue.trim();if(!t)return;if(!n.parentElement.dataset.i18nBase)n.parentElement.dataset.i18nBase=t;const base=n.parentElement.dataset.i18nBase;const out=lang==='zh'?translateDynamicText(base):base;n.nodeValue=n.nodeValue.replace(t,out);});}
-function apply(){document.documentElement.lang=lang==='zh'?'zh-CN':'en';walk(document.body);translateAttributes(document.body);document.querySelectorAll('.language-choice-v3363').forEach(b=>b.classList.toggle('active',b.dataset.lang===lang));}
+function translateTextNode(n){
+  if(!n||n.nodeType!==Node.TEXT_NODE)return;
+  const t=n.nodeValue.trim();if(!t||!n.parentElement)return;
+  if(!n.parentElement.dataset.i18nBase)n.parentElement.dataset.i18nBase=t;
+  const base=n.parentElement.dataset.i18nBase;
+  const out=lang==='zh'?translateDynamicText(base):base;
+  n.nodeValue=n.nodeValue.replace(t,out);
+}
+function walk(root){
+  if(!root)return;
+  if(root.nodeType===Node.TEXT_NODE){translateTextNode(root);return;}
+  const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);const a=[];
+  while(w.nextNode())a.push(w.currentNode);
+  a.forEach(translateTextNode);
+}
+function translateRoot(root){if(!root)return;walk(root);translateAttributes(root);}
+function syncLanguageChoices(){document.querySelectorAll('.language-choice-v3363').forEach(b=>b.classList.toggle('active',b.dataset.lang===lang));}
+function apply(){document.documentElement.lang=lang==='zh'?'zh-CN':'en';translateRoot(document.body);syncLanguageChoices();}
+function activeTranslationRoots(){
+  const roots=[];
+  const page=document.querySelector('.page.active');if(page)roots.push(page);
+  document.querySelectorAll('dialog[open],#mmhVaultDialogV449.show,#mmhNotifyPopoverV560.open,#moreNavMenu.open').forEach(root=>{if(!roots.includes(root))roots.push(root)});
+  return roots;
+}
+function applyActive(){if(lang!=='zh')return;activeTranslationRoots().forEach(translateRoot);syncLanguageChoices();}
 window.setMMHVAULTLanguage=function(next){lang=next;localStorage.setItem('mmhvault_language_v3363',lang);apply();setTimeout(apply,80);};
 document.addEventListener('click',e=>{const b=e.target.closest('.language-choice-v3363');if(b)window.setMMHVAULTLanguage(b.dataset.lang);});
 document.addEventListener('DOMContentLoaded',()=>{apply();setTimeout(apply,300);});
-let moQueued=false;
-const mo=new MutationObserver(()=>{if(lang!=='zh'||moQueued)return;moQueued=true;const run=()=>{moQueued=false;apply();};if(typeof requestAnimationFrame==='function')requestAnimationFrame(run);else setTimeout(run,0);});
+let moQueued=false;const pendingRoots=new Set();
+function rootIsActive(node){
+  const el=node?.nodeType===Node.ELEMENT_NODE?node:node?.parentElement;
+  const page=el?.closest?.('.page');
+  return !page||page.classList.contains('active');
+}
+function queueIncremental(root){if(root&&rootIsActive(root))pendingRoots.add(root);}
+function flushIncremental(){
+  moQueued=false;
+  if(lang!=='zh'){pendingRoots.clear();return;}
+  const queued=[...pendingRoots];
+  const roots=queued.filter(root=>{
+    let parent=root?.parentNode;
+    while(parent){if(pendingRoots.has(parent))return false;parent=parent.parentNode;}
+    return true;
+  });
+  pendingRoots.clear();
+  roots.forEach(root=>{if(root?.isConnected!==false&&rootIsActive(root))translateRoot(root)});
+  syncLanguageChoices();
+}
+const mo=new MutationObserver(mutations=>{
+  if(lang!=='zh')return;
+  for(const mutation of mutations){
+    for(const node of mutation.addedNodes||[])queueIncremental(node);
+  }
+  if(!pendingRoots.size||moQueued)return;
+  moQueued=true;
+  if(typeof requestAnimationFrame==='function')requestAnimationFrame(flushIncremental);else setTimeout(flushIncremental,0);
+});
+window.addEventListener('mmhvault:page-visible',()=>{if(lang!=='zh')return;if(typeof requestAnimationFrame==='function')requestAnimationFrame(applyActive);else setTimeout(applyActive,0)},{passive:true});
 document.addEventListener('DOMContentLoaded',()=>mo.observe(document.body,{childList:true,subtree:true}));
 })();
 </script>
@@ -17720,7 +17732,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   function place(){if(!popup||!bell||!popup.classList.contains('open'))return;const r=bell.getBoundingClientRect(),safe=12,gap=10,width=Math.min(410,window.innerWidth-safe*2);popup.style.width=width+'px';popup.style.left=Math.min(window.innerWidth-width-safe,Math.max(safe,r.right-width))+'px';popup.style.top=(r.bottom+gap)+'px';popup.style.maxHeight=Math.min(560,Math.max(240,window.innerHeight-r.bottom-gap-safe))+'px'}
   function close(){popup?.classList.remove('open');bell?.setAttribute('aria-expanded','false')}
   function toggle(){if(!ensure())return;const open=!popup.classList.contains('open');if(!open){close();return}popup.classList.add('open');bell.setAttribute('aria-expanded','true');place();render();if(!rows.length&&!loading)load(true);else if(Date.now()-lastLoaded>45000&&!loading)setTimeout(()=>load(false),120)}
-  function bind(){if(!ensure())return;if(bell.dataset.mmhNotifyBoundV900==='1')return;bell.dataset.mmhNotifyBoundV900='1';bell.setAttribute('aria-haspopup','dialog');bell.setAttribute('aria-expanded','false');bell.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();toggle()},true);window.addEventListener('resize',()=>{if(isOpen())requestAnimationFrame(place)});window.addEventListener('orientationchange',()=>{if(isOpen())setTimeout(place,80)});load(false)}
+  function bind(){if(!ensure())return;if(bell.dataset.mmhNotifyBoundV900==='1')return;bell.dataset.mmhNotifyBoundV900='1';bell.setAttribute('aria-haspopup','dialog');bell.setAttribute('aria-expanded','false');bell.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();toggle()},true);window.addEventListener('mmhvault:responsive-settled',()=>{if(isOpen())requestAnimationFrame(place)},{passive:true});window.addEventListener('orientationchange',()=>{if(isOpen())setTimeout(place,80)});load(false)}
   function resetForOwner(){request++;loading=false;owner=currentOwner();rows=[];mode='all';close();if(ensure()){updateBadge();if(owner)load(false)}}
   function init(){bind();window.addEventListener('mmhvault:notifications-changed',()=>load(false));window.addEventListener('mmhvault:config-owner-changed',resetForOwner);setTimeout(bind,300);setTimeout(bind,900);setTimeout(bind,1600);setInterval(()=>{if(!document.hidden&&currentOwner())load(false)},120000)}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(init,0),{once:true});else setTimeout(init,0);
@@ -25051,7 +25063,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   }
   function init(){
     cleanupRail();rebuildMenu();replaceMore();syncActive();
-    window.addEventListener('resize',()=>{if(window.innerWidth>=1100&&menu?.classList.contains('open'))requestAnimationFrame(positionDesktop)});
+    window.addEventListener('mmhvault:responsive-settled',()=>{if(window.innerWidth>=1100&&menu?.classList.contains('open'))requestAnimationFrame(positionDesktop)},{passive:true});
     window.addEventListener('orientationchange',()=>setTimeout(()=>{close();syncActive()},80));
     try{db.auth?.onAuthStateChange(()=>setTimeout(syncAdmin,50))}catch(_){}
   }
@@ -28106,14 +28118,16 @@ window.MMHVAULT_V1512={
 </script>
 
 
-<script id="mmhvault-v1513-invest-background-idle-marker">
+<script id="mmhvault-v1513-incremental-dom-resize-marker">
 window.MMHVAULT_V1513={
   version:'1.5.13',
-  investCatalogHiddenDomIdle:true,
-  customInvestHiddenDomIdle:true,
-  investHistoryHiddenDomIdle:true,
-  hiddenInvestReceiptStorageList:false,
-  hiddenInvestResizeMeasure:false
+  incrementalLanguageMutationScan:true,
+  incrementalMutationRootDedup:true,
+  hiddenPageLanguageMutationIdle:true,
+  activePageLanguageWake:true,
+  investResizeMeasureOnSettle:true,
+  notificationGeometryOnSettle:true,
+  moreGeometryOnSettle:true
 };
 </script>
 
