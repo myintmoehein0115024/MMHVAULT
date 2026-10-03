@@ -1302,3 +1302,236 @@ html body #mmhNotifyPopoverV560 .np-foot{
     border-radius:16px!important;
   }
 }
+
+
+/* MMHVAULT v1.3.5 · UI/UX Pass 4
+   Scope: Reports + Exchange + Accounts/Manage Account + modal/dialog presentation.
+   Presentation only. No finance calculations, CRUD, auth, storage, Supabase or PWA behavior is changed. */
+
+/* ---------------- Reports: denser executive-report hierarchy ---------------- */
+body.mmh-workspace-active #reports{
+  --rpt-surface:linear-gradient(145deg,rgba(9,28,47,.95),rgba(5,18,32,.98));
+  --rpt-border:rgba(91,151,199,.20);
+  --rpt-muted:rgba(155,181,202,.76);
+  max-width:1420px!important;
+}
+body.mmh-workspace-active #reports>.mmh-v390-page-head{
+  display:flex!important;
+  align-items:flex-end!important;
+  justify-content:space-between!important;
+  gap:18px!important;
+  padding:4px 2px 15px!important;
+  margin-bottom:12px!important;
+  border-bottom:1px solid rgba(95,153,198,.11)!important;
+}
+body.mmh-workspace-active #reports>.mmh-v390-page-head h1{
+  margin:0!important;
+  font-size:clamp(30px,2.45vw,39px)!important;
+  line-height:1.02!important;
+  letter-spacing:-.045em!important;
+}
+body.mmh-workspace-active #reports>.mmh-v390-page-head .sub{
+  margin-top:7px!important;
+  max-width:720px!important;
+  color:var(--rpt-muted)!important;
+  line-height:1.5!important;
+}
+body.mmh-workspace-active #reports .report-period-controls{
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(130px,1fr))!important;
+  gap:9px!important;
+  padding:8px!important;
+  border:1px solid rgba(96,154,199,.16)!important;
+  border-radius:14px!important;
+  background:rgba(6,20,34,.58)!important;
+}
+body.mmh-workspace-active #reports .report-period-controls label{
+  display:grid!important;
+  gap:5px!important;
+  color:#7f99ad!important;
+  font-size:9px!important;
+  font-weight:800!important;
+  letter-spacing:.08em!important;
+  text-transform:uppercase!important;
+}
+body.mmh-workspace-active #reports .report-period-controls select{
+  min-height:38px!important;
+  padding:7px 10px!important;
+  border-radius:10px!important;
+  border:1px solid rgba(98,157,203,.21)!important;
+  background:rgba(7,24,41,.90)!important;
+  color:#e2edf5!important;
+}
+body.mmh-workspace-active #reports .mmh-v390-kpis{gap:10px!important;margin-bottom:12px!important}
+body.mmh-workspace-active #reports .mmh-v390-kpis>.panel{
+  min-height:105px!important;
+  padding:14px 15px!important;
+  border-radius:16px!important;
+  border-color:var(--rpt-border)!important;
+  background:var(--rpt-surface)!important;
+  box-shadow:0 14px 32px rgba(0,0,0,.14),inset 0 1px 0 rgba(255,255,255,.025)!important;
+}
+body.mmh-workspace-active #reports .mmh-v390-kpis .value{margin-top:7px!important;font-size:clamp(21px,1.65vw,26px)!important;line-height:1.05!important}
+body.mmh-workspace-active #reports>.panel,
+body.mmh-workspace-active #reports>.grid.two>.panel{
+  border-radius:17px!important;
+  border-color:var(--rpt-border)!important;
+  background:var(--rpt-surface)!important;
+  box-shadow:0 14px 34px rgba(0,0,0,.14),inset 0 1px 0 rgba(255,255,255,.025)!important;
+  padding:16px!important;
+}
+body.mmh-workspace-active #reports>.grid.two{gap:12px!important;margin-top:12px!important}
+body.mmh-workspace-active #reports>.panel[style*="margin-top"],
+body.mmh-workspace-active #reports>.grid.two + .panel{margin-top:12px!important}
+body.mmh-workspace-active #reports .toolbar h2{font-size:15px!important;letter-spacing:-.015em!important}
+body.mmh-workspace-active #reports .mmh-v390-table{width:100%!important;border-collapse:separate!important;border-spacing:0 5px!important}
+body.mmh-workspace-active #reports .mmh-v390-table :is(th,td){padding:9px 10px!important;border-bottom:0!important;background:rgba(7,24,40,.42)!important}
+body.mmh-workspace-active #reports .mmh-v390-table tr>*:first-child{border-radius:9px 0 0 9px!important}
+body.mmh-workspace-active #reports .mmh-v390-table tr>*:last-child{border-radius:0 9px 9px 0!important}
+body.mmh-workspace-active #reports .mmh-v391-item{border-radius:11px!important;border-color:rgba(89,146,189,.13)!important;background:rgba(7,24,39,.38)!important}
+body.mmh-workspace-active #reports .mmh-v390-insight{border-radius:11px!important;background:rgba(17,50,70,.34)!important;border-color:rgba(89,153,197,.16)!important}
+body.mmh-workspace-active #reports .report-shell-v115{gap:12px!important}
+body.mmh-workspace-active #reports .report-head-v115{padding:0 0 12px!important;border-bottom:1px solid rgba(96,154,199,.10)!important}
+body.mmh-workspace-active #reports .report-head-v115 h1{font-size:clamp(27px,2.1vw,34px)!important}
+body.mmh-workspace-active #reports .report-kpis-v115{gap:10px!important}
+body.mmh-workspace-active #reports .report-kpi-v115{
+  min-height:96px!important;padding:14px!important;border-radius:14px!important;border-color:var(--rpt-border)!important;
+  background:var(--rpt-surface)!important;box-shadow:0 12px 28px rgba(0,0,0,.12)!important;
+}
+body.mmh-workspace-active #reports .report-kpi-v115>strong{font-size:21px!important}
+body.mmh-workspace-active #reports .report-grid-v115{gap:12px!important}
+body.mmh-workspace-active #reports .report-panel-v115{
+  padding:15px!important;border-radius:15px!important;border-color:var(--rpt-border)!important;
+  background:var(--rpt-surface)!important;box-shadow:0 12px 30px rgba(0,0,0,.12)!important;
+}
+body.mmh-workspace-active #reports .report-export-actions-v116 .btn{min-height:39px!important;padding:0 12px!important;border-radius:10px!important;box-shadow:none!important}
+
+/* ---------------- Exchange: compact workspace, stronger converter focus ---------------- */
+body.mmh-workspace-active #exchange.page.active{gap:12px!important;max-width:1420px!important}
+body.mmh-workspace-active #exchange.page.active>.ex-template-head{
+  min-height:74px!important;padding:11px 14px!important;border-radius:16px!important;border-color:rgba(91,151,199,.18)!important;
+  background:linear-gradient(145deg,rgba(8,27,45,.78),rgba(5,18,32,.88))!important;box-shadow:none!important;
+}
+body.mmh-workspace-active #exchange.page.active .ex-brand img{width:36px!important;height:36px!important}
+body.mmh-workspace-active #exchange.page.active .ex-brand h1{font-size:clamp(25px,2vw,32px)!important;letter-spacing:-.035em!important}
+body.mmh-workspace-active #exchange.page.active>.ex-currency-cards{gap:9px!important}
+body.mmh-workspace-active #exchange.page.active>.ex-currency-cards>*{
+  min-height:74px!important;padding:11px 12px!important;border-radius:13px!important;border-color:rgba(91,151,199,.16)!important;
+  background:linear-gradient(145deg,rgba(11,31,50,.82),rgba(6,21,36,.91))!important;box-shadow:none!important;
+}
+body.mmh-workspace-active #exchange.page.active>.exchange-converter-panel,
+body.mmh-workspace-active #exchange.page.active>.ex-rate-editor,
+body.mmh-workspace-active #exchange.page.active>.ex-asia-summary-v130{
+  border-radius:17px!important;border-color:rgba(91,151,199,.20)!important;
+  background:linear-gradient(145deg,rgba(9,28,47,.93),rgba(5,18,32,.97))!important;
+  box-shadow:0 14px 32px rgba(0,0,0,.13),inset 0 1px 0 rgba(255,255,255,.025)!important;
+}
+body.mmh-workspace-active #exchange.page.active>.exchange-converter-panel,
+body.mmh-workspace-active #exchange.page.active>.ex-rate-editor{padding:15px!important}
+body.mmh-workspace-active #exchange.page.active .exchange-converter-grid :is(input,select),
+body.mmh-workspace-active #exchange.page.active .ex-rate-editor :is(input,select){min-height:42px!important;border-radius:10px!important;border-color:rgba(96,156,202,.21)!important;background:rgba(6,22,38,.88)!important}
+body.mmh-workspace-active #exchange.page.active .exchange-converter-result{min-height:76px!important;border-radius:12px!important;border-color:rgba(96,160,207,.18)!important;background:rgba(6,22,38,.66)!important;box-shadow:none!important}
+body.mmh-workspace-active #exchange.page.active .ex-swap{width:42px!important;height:42px!important;min-height:42px!important;border-radius:12px!important;box-shadow:none!important}
+body.mmh-workspace-active #exchange.page.active .ex-asia-summary-v130{padding:14px 15px!important;gap:12px!important}
+body.mmh-workspace-active #exchange.page.active .ex-asia-mini-v130{min-height:48px!important;padding:9px 10px!important;border-radius:11px!important}
+body.mmh-workspace-active #exchange.page.active #exAsiaV10.ex-asia-page-v130{padding:0!important}
+body.mmh-workspace-active #exchange.page.active #exAsiaV10 .asia-page-top-v130{min-height:48px!important;padding:8px 0 10px!important;border-bottom:1px solid rgba(96,154,199,.12)!important}
+body.mmh-workspace-active #exchange.page.active #exAsiaV10 .asia-row{
+  min-height:64px!important;padding:10px 11px!important;border-radius:12px!important;border-color:rgba(91,151,199,.16)!important;
+  background:linear-gradient(145deg,rgba(10,30,49,.84),rgba(6,21,36,.91))!important;
+}
+
+/* ---------------- Accounts + Manage Account: less blocky, stronger list scan ---------------- */
+body.mmh-workspace-active #accounts-page{max-width:1180px!important}
+body.mmh-workspace-active #accounts-page .ap-heading{margin:5px 0 14px!important;padding-bottom:12px!important;border-bottom:1px solid rgba(94,151,195,.10)!important}
+body.mmh-workspace-active #accounts-page .ap-heading h1{font-size:clamp(29px,2.25vw,36px)!important;letter-spacing:-.04em!important}
+body.mmh-workspace-active #accounts-page .ap-heading select{min-height:40px!important;border-radius:10px!important;border-color:rgba(96,156,202,.22)!important;background:rgba(7,24,41,.88)!important}
+body.mmh-workspace-active #accounts-page .am-shell{
+  padding:15px!important;border-radius:18px!important;border-color:rgba(91,151,199,.19)!important;
+  background:linear-gradient(145deg,rgba(9,28,47,.94),rgba(5,18,32,.97))!important;
+  box-shadow:0 14px 32px rgba(0,0,0,.13),inset 0 1px 0 rgba(255,255,255,.025)!important;
+}
+body.mmh-workspace-active :is(#accounts-page,#mmhManageOverlayV1) .am-top{margin-bottom:10px!important}
+body.mmh-workspace-active :is(#accounts-page,#mmhManageOverlayV1) .am-top :is(button,select){min-height:40px!important;border-radius:10px!important;border-color:rgba(96,156,202,.22)!important;background:rgba(11,35,56,.86)!important;box-shadow:none!important}
+body.mmh-workspace-active :is(#accounts-page,#mmhManageOverlayV1) .am-summary{
+  padding:15px 16px!important;margin-bottom:11px!important;border-radius:14px!important;border-color:rgba(102,166,211,.21)!important;
+  background:radial-gradient(circle at 92% 12%,rgba(242,196,94,.07),transparent 34%),linear-gradient(145deg,rgba(16,45,70,.84),rgba(8,27,46,.92))!important;box-shadow:none!important;
+}
+body.mmh-workspace-active :is(#accounts-page,#mmhManageOverlayV1) .am-summary>strong{font-size:clamp(24px,2vw,29px)!important;margin:5px 0 11px!important}
+body.mmh-workspace-active :is(#accounts-page,#mmhManageOverlayV1) .am-find{margin-top:10px!important;gap:7px!important}
+body.mmh-workspace-active :is(#accounts-page,#mmhManageOverlayV1) .am-find :is(input,select){min-height:40px!important;border-radius:10px!important;border-color:rgba(96,156,202,.20)!important;background:rgba(7,24,41,.82)!important}
+body.mmh-workspace-active :is(#accounts-page,#mmhManageOverlayV1) .am-list{border-radius:13px!important;border-color:rgba(91,151,199,.16)!important;background:rgba(5,19,33,.44)!important}
+body.mmh-workspace-active :is(#accounts-page,#mmhManageOverlayV1) .am-row{min-height:58px!important;padding:9px 11px!important;gap:10px!important;border-bottom-color:rgba(91,151,199,.10)!important;transition:background-color .14s ease!important}
+body.mmh-workspace-active :is(#accounts-page,#mmhManageOverlayV1) .am-row:hover{background:rgba(24,58,81,.28)!important}
+body.mmh-workspace-active :is(#accounts-page,#mmhManageOverlayV1) .am-logo{width:36px!important;height:36px!important;border-radius:10px!important}
+body.mmh-workspace-active :is(#accounts-page,#mmhManageOverlayV1) .am-fields{padding:13px!important;margin:10px 0!important;border-radius:13px!important;border-color:rgba(91,151,199,.16)!important;background:rgba(5,19,33,.52)!important}
+body.mmh-workspace-active :is(#accounts-page,#mmhManageOverlayV1) .am-fields :is(input,select){min-height:41px!important;border-radius:10px!important}
+body.mmh-workspace-active :is(#accounts-page,#mmhManageOverlayV1) .am-upload{padding:11px!important;border-radius:12px!important;background:linear-gradient(120deg,rgba(18,52,76,.75),rgba(8,29,47,.80))!important}
+body.mmh-workspace-active :is(#accounts-page,#mmhManageOverlayV1) .am-actions{margin:10px 0!important}
+body.mmh-workspace-active :is(#accounts-page,#mmhManageOverlayV1) .am-actions .btn{min-height:40px!important;border-radius:10px!important}
+
+/* ---------------- Dialog / modal system: one visual language ---------------- */
+body.mmh-workspace-active #mmhVaultDialogV449,
+body.mmh-workspace-active #editModal,
+body.mmh-workspace-active #receiptViewerModalV3297{background:rgba(2,8,16,.74)!important;backdrop-filter:blur(10px) saturate(105%)!important;-webkit-backdrop-filter:blur(10px) saturate(105%)!important}
+body.mmh-workspace-active .mmh-v449-dialog,
+body.mmh-workspace-active #editModal .modal,
+body.mmh-workspace-active .receipt-viewer-dialog-v3297,
+body.mmh-workspace-active dialog.mmh-history-edit,
+body.mmh-workspace-active .modal-backdrop>.modal{
+  border:1px solid rgba(98,158,204,.26)!important;border-radius:18px!important;
+  background:linear-gradient(145deg,rgba(10,29,48,.985),rgba(4,15,28,.995))!important;
+  box-shadow:0 28px 80px rgba(0,0,0,.52),inset 0 1px 0 rgba(255,255,255,.035)!important;
+}
+body.mmh-workspace-active .mmh-v449-dialog{width:min(500px,calc(100vw - 26px))!important}
+body.mmh-workspace-active .mmh-v449-dialog-head{padding:17px 18px 9px!important}
+body.mmh-workspace-active .mmh-v449-dialog-head h3{font-size:17px!important;letter-spacing:-.015em!important}
+body.mmh-workspace-active .mmh-v449-dialog-body{padding:10px 18px 16px!important}
+body.mmh-workspace-active .mmh-v449-dialog-actions{padding:11px 18px!important;gap:7px!important;border-top-color:rgba(96,154,199,.12)!important;background:rgba(3,14,26,.34)!important}
+body.mmh-workspace-active .mmh-v449-dialog-actions button,
+body.mmh-workspace-active dialog.mmh-history-edit .mmh-history-dialog-actions button{min-height:39px!important;padding:0 14px!important;border-radius:10px!important;box-shadow:none!important}
+body.mmh-workspace-active #editModal .modal{width:min(680px,calc(100vw - 28px))!important;max-height:min(88dvh,820px)!important}
+body.mmh-workspace-active #editModal .modal>.toolbar{
+  position:sticky!important;top:0!important;z-index:3!important;padding:12px 14px!important;margin:-1px -1px 10px!important;
+  border-bottom:1px solid rgba(96,154,199,.11)!important;background:rgba(8,25,42,.96)!important;backdrop-filter:blur(10px)!important;
+}
+body.mmh-workspace-active #editModalBody :is(input,select,textarea){min-height:42px!important;border-radius:10px!important;border-color:rgba(96,156,202,.21)!important;background:rgba(6,22,38,.88)!important}
+body.mmh-workspace-active dialog.mmh-history-edit{width:min(620px,calc(100vw - 24px))!important;padding:18px!important}
+body.mmh-workspace-active dialog.mmh-history-edit::backdrop{background:rgba(2,8,16,.74)!important;backdrop-filter:blur(8px)!important}
+body.mmh-workspace-active .receipt-viewer-dialog-v3297{border-radius:17px!important}
+body.mmh-workspace-active .receipt-viewer-head-v3297{padding:12px 14px!important;border-bottom-color:rgba(96,154,199,.12)!important;background:rgba(8,25,42,.92)!important}
+
+/* ---------------- Responsive polish for this pass ---------------- */
+@media(max-width:899px){
+  body.mmh-workspace-active #reports>.mmh-v390-page-head{align-items:stretch!important;flex-direction:column!important;gap:11px!important}
+  body.mmh-workspace-active #reports .report-period-controls{width:100%!important}
+  body.mmh-workspace-active #reports .mmh-v390-kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  body.mmh-workspace-active #reports>.grid.two{grid-template-columns:minmax(0,1fr)!important}
+  body.mmh-workspace-active #accounts-page{max-width:none!important}
+}
+@media(max-width:699px){
+  body.mmh-workspace-active #reports>.mmh-v390-page-head h1{font-size:28px!important}
+  body.mmh-workspace-active #reports .report-period-controls{grid-template-columns:1fr 1fr!important}
+  body.mmh-workspace-active #reports>.panel,
+  body.mmh-workspace-active #reports>.grid.two>.panel{padding:13px!important;border-radius:15px!important}
+  body.mmh-workspace-active #reports .mmh-v390-table{display:block!important;overflow-x:auto!important;overscroll-behavior-x:contain!important}
+  body.mmh-workspace-active #reports .mmh-v390-table :is(th,td){white-space:nowrap!important}
+  body.mmh-workspace-active #exchange.page.active>.ex-currency-cards{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  body.mmh-workspace-active #exchange.page.active>.exchange-converter-panel,
+  body.mmh-workspace-active #exchange.page.active>.ex-rate-editor{padding:13px!important}
+  body.mmh-workspace-active #accounts-page .am-shell{padding:11px!important;border-radius:15px!important}
+  body.mmh-workspace-active :is(#accounts-page,#mmhManageOverlayV1) .am-summary{padding:13px!important}
+  body.mmh-workspace-active :is(#accounts-page,#mmhManageOverlayV1) .am-find{grid-template-columns:minmax(0,1fr)!important}
+  body.mmh-workspace-active :is(#accounts-page,#mmhManageOverlayV1) .am-row{min-height:56px!important;padding:9px!important}
+  body.mmh-workspace-active .mmh-v449-dialog-actions{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  body.mmh-workspace-active #editModal .modal{width:calc(100vw - 12px)!important;border-radius:16px!important}
+}
+@media(max-width:420px){
+  body.mmh-workspace-active #reports .report-period-controls,
+  body.mmh-workspace-active #reports .mmh-v390-kpis,
+  body.mmh-workspace-active #exchange.page.active>.ex-currency-cards{grid-template-columns:minmax(0,1fr)!important}
+  body.mmh-workspace-active #reports .mmh-v390-kpis>.panel{min-height:88px!important}
+  body.mmh-workspace-active #reports .mmh-v390-kpis .value{font-size:21px!important}
+  body.mmh-workspace-active .mmh-v449-dialog-actions{grid-template-columns:1fr!important}
+  body.mmh-workspace-active .mmh-v449-dialog-actions button{width:100%!important}
+}
