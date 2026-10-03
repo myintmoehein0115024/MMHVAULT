@@ -14497,15 +14497,14 @@ html body #invest .invest-subtabs-v371{display:grid!important;grid-template-colu
     'Buy','Sell','BUY','SELL','Acquired'
   ]);
 
-  let restoring=false;
+  let restoring=false,raf=0;
+
   function restoreNodeText(n){
-    if(restoring || n.nodeType!==Node.TEXT_NODE) return;
-    const raw=n.nodeValue||'';
-    const trimmed=raw.trim();
-    if(!trimmed || !PROTECTED.has(trimmed)) return;
-    if(trimmed!==raw.trim()) return;
+    if(restoring || n.nodeType!==Node.TEXT_NODE)return;
+    const raw=n.nodeValue||'',trimmed=raw.trim();
+    if(!trimmed || !PROTECTED.has(trimmed))return;
     const parent=n.parentElement;
-    if(parent) parent.dataset.mmhFinancialEnglish='1';
+    if(parent)parent.dataset.mmhFinancialEnglish='1';
     if(raw!==trimmed){
       restoring=true;
       n.nodeValue=trimmed;
@@ -14514,67 +14513,128 @@ html body #invest .invest-subtabs-v371{display:grid!important;grid-template-colu
   }
 
   function scan(root){
-    if(!root) return;
-    if(root.nodeType===Node.TEXT_NODE){restoreNodeText(root);return;}
+    if(!root)return;
+    if(root.nodeType===Node.TEXT_NODE){restoreNodeText(root);return}
     const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
-    const nodes=[];
-    while(walker.nextNode()) nodes.push(walker.currentNode);
-    nodes.forEach(restoreNodeText);
+    while(walker.nextNode())restoreNodeText(walker.currentNode);
   }
 
-  function protectKnownLabels(){
-    if(restoring) return;
-    scan(document.body);
+  function activeRoots(){
+    const roots=[];
+    const page=document.querySelector('.page.active');
+    if(page)roots.push(page);
+    const dialog=document.querySelector('#mmhVaultDialogV449.show');
+    if(dialog)roots.push(dialog);
+    const notify=document.querySelector('#mmhNotifyPopoverV560.open');
+    if(notify)roots.push(notify);
+    const more=document.querySelector('#moreNavMenu.open');
+    if(more)roots.push(more);
+    return roots;
   }
 
-  if(document.readyState==='loading'){
-    document.addEventListener('DOMContentLoaded',()=>{
-      protectKnownLabels();
-      setTimeout(protectKnownLabels,250);
-    },{once:true});
-  }else{
-    protectKnownLabels();
-    setTimeout(protectKnownLabels,250);
+  function protectActiveLabels(){
+    if(restoring)return;
+    activeRoots().forEach(scan);
   }
-  ['mmhvault-language-change','mmhvault:data-loaded','mmhvault:cache-restored','mmhvault:sync-complete'].forEach(ev=>window.addEventListener(ev,()=>setTimeout(protectKnownLabels,120)));
 
-  window.MM_HVAULT_FINANCIAL_LABELS_ENGLISH = {version:'3.42.5',protected:[...PROTECTED]};
+  function schedule(){
+    if(raf)return;
+    raf=requestAnimationFrame(()=>{raf=0;protectActiveLabels()});
+  }
+
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',schedule,{once:true});
+  else schedule();
+
+  [
+    'mmhvault-language-change','languagechange',
+    'mmhvault:data-loaded','mmhvault:cache-restored','mmhvault:sync-complete',
+    'mmhvault:page-visible'
+  ].forEach(ev=>window.addEventListener(ev,schedule,{passive:true}));
+
+  window.MM_HVAULT_FINANCIAL_LABELS_ENGLISH={
+    version:'3.42.5-v1512',
+    protected:[...PROTECTED],
+    activeSurfaceOnly:true
+  };
 })();
 </script>
 <script id="mmhvault-v3427-financial-data-english-guard">
 (function(){
-  const MAP = {'收入': 'Income', '支出': 'Expense', '转账': 'Transfer', '个人': 'Personal', '借贷': 'Loans', '餐饮': 'Dining', '零食': 'Snacks', '烟草': 'Smoking', '交通': 'Transport', '健康': 'Wellness', '生活方式': 'Lifestyle', '其他': 'Other', '工资': 'Salary', '餐补': 'Meal Allowance', '奖金': 'Bonus', '其他收入': 'Other Income', '家庭支持': 'Family Support', '特别转账': 'Special Transfer', '礼物': 'Gifts', '捐赠': 'Donation', '债务': 'Debt', '贷款还款': 'Loan Repayment', '还款': 'PaidDeb', '借出': 'Loan Out', '投资': 'Investment', '买入': 'BUY', '卖出': 'SELL', '已买入': 'Acquired'};
-  const EXACT = new Set(Object.keys(MAP));
-  let busy=false;
+  const MAP = {'收入':'Income','支出':'Expense','转账':'Transfer','个人':'Personal','借贷':'Loans','餐饮':'Dining','零食':'Snacks','烟草':'Smoking','交通':'Transport','健康':'Wellness','生活方式':'Lifestyle','其他':'Other','工资':'Salary','餐补':'Meal Allowance','奖金':'Bonus','其他收入':'Other Income','家庭支持':'Family Support','特别转账':'Special Transfer','礼物':'Gifts','捐赠':'Donation','债务':'Debt','贷款还款':'Loan Repayment','还款':'PaidDeb','借出':'Loan Out','投资':'Investment','买入':'BUY','卖出':'SELL','已买入':'Acquired'};
+  const EXACT=new Set(Object.keys(MAP));
+  let busy=false,raf=0;
+
   function restoreTextNode(node){
-    if(busy || !node || node.nodeType!==Node.TEXT_NODE) return;
-    const raw=node.nodeValue||'', trim=raw.trim();
+    if(busy||!node||node.nodeType!==Node.TEXT_NODE)return;
+    const raw=node.nodeValue||'',trim=raw.trim();
     if(EXACT.has(trim)){
-      busy=true; node.nodeValue=raw.replace(trim,MAP[trim]); busy=false; return;
+      busy=true;node.nodeValue=raw.replace(trim,MAP[trim]);busy=false;return;
     }
-    const p=node.parentElement;
-    if(!p) return;
+    const p=node.parentElement;if(!p)return;
     const tag=p.tagName;
-    const inData = tag==='OPTION' || tag==='TD' || tag==='TH' || tag==='LI' ||
+    const inData=tag==='OPTION'||tag==='TD'||tag==='TH'||tag==='LI'||
       !!p.closest('#transactions,#dashboard,.analyze-panel,.panel,#invest,#wealth-planning,#reports,#insights');
-    if(!inData) return;
+    if(!inData)return;
     let next=raw;
-    for(const [zh,en] of Object.entries(MAP)) if(next.includes(zh)) next=next.split(zh).join(en);
-    if(next!==raw){busy=true;node.nodeValue=next;busy=false;}
+    for(const [zh,en] of Object.entries(MAP))if(next.includes(zh))next=next.split(zh).join(en);
+    if(next!==raw){busy=true;node.nodeValue=next;busy=false}
   }
+
   function scan(root){
-    if(!root) return;
-    if(root.nodeType===Node.TEXT_NODE){restoreTextNode(root);return;}
-    if(root.querySelectorAll) root.querySelectorAll('option').forEach(o=>{
-      const v=(o.textContent||'').trim(); if(EXACT.has(v)) o.textContent=MAP[v];
+    if(!root)return;
+    if(root.nodeType===Node.TEXT_NODE){restoreTextNode(root);return}
+    root.querySelectorAll?.('option').forEach(o=>{
+      const v=(o.textContent||'').trim();
+      if(EXACT.has(v))o.textContent=MAP[v];
     });
-    const w=document.createTreeWalker(root,NodeFilter.SHOW_TEXT); const a=[]; while(w.nextNode()) a.push(w.currentNode); a.forEach(restoreTextNode);
+    const walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);
+    while(walker.nextNode())restoreTextNode(walker.currentNode);
   }
-  function run(){ if(busy) return; scan(document.body); }
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',run,{once:true}); else run();
-  document.addEventListener('change',e=>{ if(e.target && (e.target.matches?.('select')||e.target.closest?.('#transactions,#dashboard,#invest,#wealth-planning,#reports,#insights'))) setTimeout(run,60); });
-  ['mmhvault-language-change','mmhvault:data-loaded','mmhvault:cache-restored','mmhvault:sync-complete'].forEach(ev=>window.addEventListener(ev,()=>setTimeout(run,120)));
-  window.MM_HVAULT_FINANCIAL_DATA_ENGLISH={version:'V4.3.0',protected:[...EXACT]};
+
+  function activeRoots(){
+    const roots=[];
+    const page=document.querySelector('.page.active');
+    if(page)roots.push(page);
+    const dialog=document.querySelector('#mmhVaultDialogV449.show');
+    if(dialog)roots.push(dialog);
+    const notify=document.querySelector('#mmhNotifyPopoverV560.open');
+    if(notify)roots.push(notify);
+    const more=document.querySelector('#moreNavMenu.open');
+    if(more)roots.push(more);
+    return roots;
+  }
+
+  function runActive(){
+    if(busy)return;
+    activeRoots().forEach(scan);
+  }
+
+  function schedule(){
+    if(raf)return;
+    raf=requestAnimationFrame(()=>{raf=0;runActive()});
+  }
+
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',schedule,{once:true});
+  else schedule();
+
+  document.addEventListener('change',e=>{
+    const target=e.target;
+    if(!target)return;
+    const localRoot=target.closest?.('.page.active,#mmhVaultDialogV449.show,#mmhNotifyPopoverV560.open,#moreNavMenu.open');
+    if(localRoot)requestAnimationFrame(()=>scan(localRoot));
+  });
+
+  [
+    'mmhvault-language-change','languagechange',
+    'mmhvault:data-loaded','mmhvault:cache-restored','mmhvault:sync-complete',
+    'mmhvault:page-visible'
+  ].forEach(ev=>window.addEventListener(ev,schedule,{passive:true}));
+
+  window.MM_HVAULT_FINANCIAL_DATA_ENGLISH={
+    version:'V4.3.0-v1512',
+    protected:[...EXACT],
+    activeSurfaceOnly:true
+  };
 })();
 </script>
 
@@ -15928,10 +15988,13 @@ body.mmhvault-scroll-active #invest .invest-top>.panel{box-shadow:inset 0 1px 0 
     sync();
     if(!window.__mmhV34220LangBound){
       window.__mmhV34220LangBound=true;
-      window.addEventListener('mmhvault-language-change',()=>mmhvaultScheduleFrameV34244('language-sync',sync));
-      window.addEventListener('storage',e=>{if(e.key===langKey)mmhvaultScheduleFrameV34244('language-sync',sync)});
-      window.addEventListener('mmhvault:data-loaded',()=>mmhvaultScheduleFrameV34244('language-sync-data',sync));
-      window.addEventListener('mmhvault:cache-restored',()=>mmhvaultScheduleFrameV34244('language-sync-cache',sync));
+      const txActive=()=>!!document.getElementById('transactions')?.classList.contains('active');
+      const scheduleTxSync=key=>{if(txActive())mmhvaultScheduleFrameV34244(key,sync)};
+      window.addEventListener('mmhvault-language-change',()=>scheduleTxSync('language-sync'));
+      window.addEventListener('storage',e=>{if(e.key===langKey)scheduleTxSync('language-sync')});
+      window.addEventListener('mmhvault:data-loaded',()=>scheduleTxSync('language-sync-data'));
+      window.addEventListener('mmhvault:cache-restored',()=>scheduleTxSync('language-sync-cache'));
+      window.addEventListener('mmhvault:page-visible',()=>scheduleTxSync('language-sync-visible'));
     }
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
@@ -27987,6 +28050,16 @@ window.MMHVAULT_V1511={
   settingsAgeCountdownLive:true,
   dashboardAgeDayEvent:true,
   topbarDateWriteDedup:true
+};
+</script>
+
+
+<script id="mmhvault-v1512-active-dom-scan-marker">
+window.MMHVAULT_V1512={
+  version:'1.5.12',
+  financialLabelScanActiveSurfaceOnly:true,
+  financialDataEnglishScanActiveSurfaceOnly:true,
+  transactionLabelSyncActiveOnly:true
 };
 </script>
 
