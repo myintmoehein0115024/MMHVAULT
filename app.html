@@ -800,7 +800,7 @@ html{scrollbar-gutter:stable;}
 <link rel="stylesheet" href="css/mmhvault-v4.css?v=4.3.0">
 
 <link rel="stylesheet" href="css/mmhvault-premium-motion.css?v=20260929-bg1">
-<link rel="stylesheet" href="css/mmhvault-uiux-v130.css?v=1.4.9">
+<link rel="stylesheet" href="css/mmhvault-uiux-v130.css?v=1.5.0">
 
 <style id="mmhvault-v343-expenses-reduction">
 /* V4.3.0 data reduction: budget control now owns category ranking + budget progress;
@@ -26459,6 +26459,176 @@ window.MM_HVAULT_STABILITY_V12311={version:'1.2.3.11',storageFailureIsolation:tr
   #mmhVaultDialogV449 .mmh-tx-detail-actions-v148:not(:has(button:nth-child(4))) button,#mmhVaultDialogV449 .mmh-account-detail-actions-v148 button{min-height:43px;font-size:11px}
 }
 </style>
+
+
+<script id="mmhvault-v150-financial-signals">
+(()=>{'use strict';
+  if(window.__MMHVAULT_FINANCIAL_SIGNALS_V150)return;window.__MMHVAULT_FINANCIAL_SIGNALS_V150=true;
+  const $=id=>document.getElementById(id);
+  const N=v=>{const x=Number(v);return Number.isFinite(x)?x:0};
+  const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const rows=()=>Array.isArray(window.transactions)?window.transactions:[];
+  const monthKey=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+  const currentMonth=()=>monthKey(new Date());
+  const shiftMonth=(key,delta)=>{const [y,m]=String(key).split('-').map(Number),d=new Date(y,m-1+delta,1);return monthKey(d)};
+  function txGroup(t){
+    if(!t)return '';
+    if(t.category==='Data Adjustment')return 'Data Adjustment';
+    try{if(typeof inferTxGroup==='function')return inferTxGroup(t)}catch(_){}
+    try{if(typeof transactionGroupFor==='function')return transactionGroupFor(t)}catch(_){}
+    const cats=window.MMHVAULT_CONFIG?.categories||window.CATS||{};
+    if(t.type==='Expense'){
+      if((cats.LoanExpense||[]).includes(t.category))return 'Loans';
+      if((cats.Personal||[]).includes(t.category))return 'Personal';
+      return 'Expense';
+    }
+    return t.type||'';
+  }
+  function linkedInvestment(t){try{return typeof isLinkedInvestmentTx==='function'&&isLinkedInvestmentTx(t)}catch(_){return false}}
+  function isSpend(t){
+    const g=txGroup(t);
+    return t?.type==='Expense'&&(g==='Expense'||g==='Personal')&&t.category!=='Investment'&&t.category!=='Data Adjustment'&&!linkedInvestment(t);
+  }
+  function isIndividual(t){return isSpend(t)&&txGroup(t)==='Expense'}
+  function amountUSD(t){
+    const amount=N(t?.from_amount),account=t?.from_account||'';
+    if(!(amount>0))return 0;
+    try{
+      if(typeof window.mmhvaultAmountUSD==='function'){
+        const v=N(window.mmhvaultAmountUSD(account,amount));
+        if(v>0)return v;
+      }
+    }catch(_){}
+    try{
+      if(typeof toUSD==='function'){
+        const f=N(toUSD(account));
+        if(f>0)return amount*f;
+      }
+    }catch(_){}
+    return 0;
+  }
+  function summary(key){
+    const spend=rows().filter(t=>String(t?.tx_date||'').slice(0,7)===key&&isSpend(t));
+    const individual=spend.filter(isIndividual);
+    const catAll=new Map(),catIndividual=new Map();
+    let total=0,individualTotal=0,largest=null,largestUSD=0;
+    for(const t of spend){
+      const usd=amountUSD(t); if(!(usd>0))continue;
+      total+=usd;
+      const cat=String(t.category||'Other');
+      catAll.set(cat,N(catAll.get(cat))+usd);
+      if(usd>largestUSD){largestUSD=usd;largest=t}
+      if(isIndividual(t)){individualTotal+=usd;catIndividual.set(cat,N(catIndividual.get(cat))+usd)}
+    }
+    const top=[...catIndividual.entries()].sort((a,b)=>b[1]-a[1])[0]||null;
+    return {key,spend,individual,total,individualTotal,catAll,catIndividual,top,largest,largestUSD};
+  }
+  function pct(a,b){return b>0?(a-b)/b*100:null}
+  function fmtUSD(v){return '$ '+N(v).toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:2})}
+  function fx(code){
+    const c=String(code||'USD').toUpperCase();
+    if(c==='USD')return 1;
+    const key={THB:'usd_thb',MMK:'usd_mmk',CNY:'usd_cny',RMB:'usd_cny'}[c];
+    return key?N(window.rates?.[key]):0;
+  }
+  function fmtCode(usd,code){
+    const c=String(code||'USD').toUpperCase(),f=fx(c),mark={USD:'$',THB:'฿',MMK:'K',CNY:'￥',RMB:'￥'}[c]||c;
+    const v=f>0?N(usd)*f:N(usd);
+    return `${mark} ${v.toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:2})}`;
+  }
+  function jump(cur,prev){
+    const candidates=[];
+    for(const [cat,value] of cur.catIndividual){
+      const old=N(prev.catIndividual.get(cat));
+      const delta=value-old;
+      const growth=old>0?delta/old*100:null;
+      if(old>0&&value>=10&&delta>=10&&growth>=35)candidates.push({cat,value,old,delta,growth});
+    }
+    return candidates.sort((a,b)=>b.delta-a.delta)[0]||null;
+  }
+  function budgetSignal(){
+    const card=document.querySelector('#mmhPremiumDashboardV500 .pf-budget-v112');
+    if(!card)return {status:'Not loaded',usage:'Open Budget',tone:''};
+    const status=card.querySelector('.pf-budget-head-v112 strong')?.textContent?.trim()||'Budget';
+    const stats=[...card.querySelectorAll('.pf-budget-stat-v112 strong')];
+    const usage=stats[3]?.textContent?.trim()||'—';
+    const tone=card.classList.contains('over')?'over':card.classList.contains('watch')?'watch':'good';
+    return {status,usage,tone};
+  }
+  function openHistoryFilter(q){
+    try{window.setPage?.('transactions')}catch(_){}
+    setTimeout(()=>{
+      try{window.showTxTab?.('history')}catch(_){try{showTxTab('history')}catch(__){}}
+      setTimeout(()=>{
+        const input=$('txSearch');
+        if(input){input.value=q||'';input.dispatchEvent(new Event('input',{bubbles:true}));input.focus({preventScroll:true})}
+      },50);
+    },70);
+  }
+  function handleAction(action,el){
+    if(action==='analyze'){try{window.setPage?.('cashflow-analyze')}catch(_){};return}
+    if(action==='budget'){try{window.setPage?.('budget')}catch(_){};return}
+    if(action==='category'){openHistoryFilter(el.dataset.category||'');return}
+    if(action==='transaction'){
+      const id=el.dataset.txId;
+      if(typeof window.openTransactionDetailV800==='function'){window.openTransactionDetailV800(id);return}
+      try{window.setPage?.('transactions')}catch(_){}
+      setTimeout(()=>window.openTransactionDetailV800?.(id),100);
+    }
+  }
+  function signalCard(icon,label,value,meta,tone,action,attrs=''){
+    return `<button type="button" class="pf-signal-card-v150 ${tone||''}" data-signal-action-v150="${action||''}" ${attrs}><i>${icon}</i><span><small>${esc(label)}</small><b>${esc(value)}</b><em>${esc(meta)}</em></span><strong>›</strong></button>`;
+  }
+  function renderDashboard(){
+    const host=$('mmhPremiumDashboardV500');if(!host)return;
+    const cur=summary(currentMonth()),prev=summary(shiftMonth(currentMonth(),-1)),delta=pct(cur.total,prev.total),top=cur.top,big=cur.largest,spike=jump(cur,prev),budget=budgetSignal();
+    let section=host.querySelector('.pf-insights-v150');
+    if(!section){section=document.createElement('section');section.className='pf-insights-v150';section.setAttribute('aria-label','Financial signals')}
+    const quick=host.querySelector('.pf-quick-actions-v140'),planning=host.querySelector('.pf-planning-v117'),budgetCard=host.querySelector('.pf-budget-v112'),kpis=host.querySelector('.pf-kpis-v500');
+    const anchor=quick||budgetCard||kpis;
+    if(anchor&&section.previousElementSibling!==anchor)anchor.insertAdjacentElement('afterend',section);
+    const trendValue=delta===null?'No prior comparison':`${delta>0?'+':''}${delta.toFixed(1)}%`;
+    const trendMeta=prev.total>0?`${fmtUSD(cur.total)} vs ${fmtUSD(prev.total)} last month`:`${fmtUSD(cur.total)} recorded this month`;
+    const trendTone=delta===null?'':delta>10?'watch':delta<0?'good':'';
+    const topValue=top?top[0]:'No spending yet';
+    const topMeta=top?`${fmtUSD(top[1])} · ${cur.individualTotal>0?(top[1]/cur.individualTotal*100).toFixed(1):'0'}% of Individual Expense`:'Individual Expense has no recorded activity';
+    const largeValue=big?(big.category||big.type||'Transaction'):'No spending record';
+    const largeMeta=big?`${fmtUSD(cur.largestUSD)} · ${big.tx_date||''}`:'No current-month spending record';
+    const spikeHtml=spike?`<button type="button" class="pf-signal-alert-v150" data-signal-action-v150="category" data-category="${esc(spike.cat)}"><span>↗ CATEGORY JUMP</span><b>${esc(spike.cat)}</b><small>+${spike.growth.toFixed(1)}% vs last month · ${fmtUSD(spike.value)} this month</small><strong>Review ›</strong></button>`:'';
+    section.innerHTML=`<div class="pf-insights-head-v150"><div><span>FINANCIAL SIGNALS</span><h2>This month at a glance</h2><p>Derived from your recorded transactions. No balances or ledger rules are changed.</p></div><button type="button" data-signal-action-v150="analyze">Open Analyze →</button></div><div class="pf-signal-grid-v150">${signalCard('↕','Spending trend',trendValue,trendMeta,trendTone,'analyze')}${signalCard('◎','Top individual expense',topValue,topMeta,'','category',top?`data-category="${esc(top[0])}"`:'disabled')}${signalCard('↗','Largest spend',largeValue,largeMeta,'','transaction',big?`data-tx-id="${esc(big.id)}"`:'disabled')}${signalCard('◒','Budget pace',budget.status,budget.usage,budget.tone,'budget')}</div>${spikeHtml}<div class="pf-insights-note-v150">Data Adjustment, Loans, Transfers and linked investment movements are excluded from these signals.</div>`;
+  }
+  function reportInsightCard(label,value,meta,action,attrs=''){
+    return `<button type="button" class="report-insight-card-v150" data-report-signal-v150="${action||''}" ${attrs}><small>${esc(label)}</small><b>${esc(value)}</b><span>${esc(meta)}</span><strong>›</strong></button>`;
+  }
+  function renderReport(){
+    const page=$('reports');if(!page||!page.classList.contains('active'))return;
+    const kpis=$('reportKpisV115');if(!kpis)return;
+    let sec=page.querySelector('.report-insights-v150');
+    if(!sec){sec=document.createElement('section');sec.className='report-insights-v150';kpis.insertAdjacentElement('afterend',sec)}
+    const key=$('reportMonthV115')?.value||currentMonth(),code=$('reportCurrencyV115')?.value||'USD';
+    const cur=summary(key),prev=summary(shiftMonth(key,-1)),delta=pct(cur.total,prev.total),top=cur.top,big=cur.largest,spike=jump(cur,prev);
+    const top3=[...cur.catAll.entries()].sort((a,b)=>b[1]-a[1]).slice(0,3).reduce((s,x)=>s+x[1],0);
+    const concentration=cur.total>0?top3/cur.total*100:0;
+    const trend=delta===null?'No prior comparison':`${delta>0?'+':''}${delta.toFixed(1)}%`;
+    sec.innerHTML=`<div class="report-insights-head-v150"><div><span>INSIGHT FOCUS</span><h2>What stands out</h2></div><small>${esc(key)} · derived from recorded spending</small></div><div class="report-insight-grid-v150">${reportInsightCard('Spending change',trend,prev.total>0?`${fmtCode(cur.total,code)} this month`:'No previous-month baseline','analyze')}${reportInsightCard('Top individual category',top?top[0]:'No category',top?`${fmtCode(top[1],code)} · ${(top[1]/Math.max(cur.individualTotal,1)*100).toFixed(1)}% share`:'No Individual Expense activity','category',top?`data-category="${esc(top[0])}"`:'disabled')}${reportInsightCard('Largest spending record',big?(big.category||big.type||'Transaction'):'No record',big?`${fmtCode(cur.largestUSD,code)} · ${big.tx_date||''}`:'No spending record','transaction',big?`data-tx-id="${esc(big.id)}"`:'disabled')}${reportInsightCard('Top-3 concentration',cur.total?`${concentration.toFixed(1)}%`:'—',cur.total?'Share of total recorded spending':'No spending activity','analyze')}</div>${spike?`<button type="button" class="report-insight-alert-v150" data-report-signal-v150="category" data-category="${esc(spike.cat)}"><span>Category jump</span><b>${esc(spike.cat)} +${spike.growth.toFixed(1)}%</b><small>${fmtCode(spike.value,code)} this month vs ${fmtCode(spike.old,code)} last month</small><strong>Review history ›</strong></button>`:''}`;
+  }
+  function bind(){
+    document.addEventListener('click',e=>{
+      const s=e.target?.closest?.('[data-signal-action-v150]');
+      if(s){e.preventDefault();handleAction(s.dataset.signalActionV150,s);return}
+      const r=e.target?.closest?.('[data-report-signal-v150]');
+      if(r){e.preventDefault();handleAction(r.dataset.reportSignalV150,r)}
+    });
+    ['mmhvault:data-loaded','mmhvault:data-change','mmhvault:cache-restored','mmhvault:budget-changed','mmhvault:page-visible'].forEach(ev=>window.addEventListener(ev,()=>{setTimeout(renderDashboard,0);setTimeout(renderReport,0)}));
+    document.addEventListener('change',e=>{if(e.target?.matches?.('#reportMonthV115,#reportCurrencyV115'))setTimeout(renderReport,0)});
+    const dash=$('mmhPremiumDashboardV500');if(dash)new MutationObserver(()=>setTimeout(renderDashboard,0)).observe(dash,{childList:true,subtree:false});
+    const reports=$('reports');if(reports)new MutationObserver(()=>setTimeout(renderReport,0)).observe(reports,{childList:true,subtree:true});
+    setTimeout(renderDashboard,40);setTimeout(renderReport,80);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
+  window.MMHVAULT_FINANCIAL_SIGNALS_V150={version:'1.5.0',dashboardSignals:true,reportInsightFocus:true,ledgerReadOnly:true};
+})();
+</script>
 
 </body>
 </html>

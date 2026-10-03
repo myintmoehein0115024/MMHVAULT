@@ -2283,3 +2283,143 @@ body.light.mmh-workspace-active #budget .budget-quick-v147 button small{color:#6
   }
   body.mmh-workspace-active #budget .budget-quick-v147>div{grid-column:auto}
 }
+
+
+/* MMHVAULT v1.5.0 · Financial Signals / Report Insight Focus */
+#mmhPremiumDashboardV500 .pf-insights-v150{
+  margin-top:13px;
+  padding:15px;
+  border:1px solid rgba(91,151,196,.20);
+  border-radius:17px;
+  background:
+    radial-gradient(circle at 100% 0,rgba(76,199,255,.08),transparent 30%),
+    linear-gradient(145deg,rgba(9,29,48,.96),rgba(5,20,34,.98));
+  box-shadow:0 14px 34px rgba(0,0,0,.14),inset 0 1px rgba(255,255,255,.025);
+}
+#mmhPremiumDashboardV500 .pf-insights-head-v150{
+  display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:11px
+}
+#mmhPremiumDashboardV500 .pf-insights-head-v150>div{min-width:0}
+#mmhPremiumDashboardV500 .pf-insights-head-v150 span{
+  color:#e0b957;font-size:8px;font-weight:850;letter-spacing:.15em
+}
+#mmhPremiumDashboardV500 .pf-insights-head-v150 h2{
+  margin:3px 0 0;color:#eff6fb;font-size:16px;letter-spacing:-.02em
+}
+#mmhPremiumDashboardV500 .pf-insights-head-v150 p{
+  margin:4px 0 0;color:#7792a8;font-size:9px;line-height:1.45
+}
+#mmhPremiumDashboardV500 .pf-insights-head-v150>button{
+  flex:0 0 auto;min-height:34px;padding:0 10px;border-radius:9px;
+  border:1px solid rgba(83,160,210,.22);background:#0d2a41;color:#a9d6ef;
+  font:inherit;font-size:9px;font-weight:720;cursor:pointer
+}
+#mmhPremiumDashboardV500 .pf-signal-grid-v150{
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px
+}
+#mmhPremiumDashboardV500 .pf-signal-card-v150{
+  position:relative;min-width:0;min-height:78px;
+  display:grid;grid-template-columns:32px minmax(0,1fr) 13px;align-items:center;gap:9px;
+  padding:10px;border:1px solid rgba(91,151,196,.13);border-radius:13px;
+  background:linear-gradient(145deg,rgba(15,42,62,.60),rgba(7,25,40,.72));
+  color:#dbe8f1;text-align:left;font:inherit;cursor:pointer;
+  transition:transform .14s ease,border-color .14s ease,background .14s ease
+}
+#mmhPremiumDashboardV500 .pf-signal-card-v150:hover{
+  transform:translateY(-1px);border-color:rgba(83,181,233,.28);
+  background:linear-gradient(145deg,rgba(18,50,72,.74),rgba(8,29,45,.80))
+}
+#mmhPremiumDashboardV500 .pf-signal-card-v150:disabled{opacity:.58;cursor:default;transform:none}
+#mmhPremiumDashboardV500 .pf-signal-card-v150>i{
+  width:31px;height:31px;display:grid;place-items:center;border-radius:9px;
+  border:1px solid rgba(76,199,255,.14);background:rgba(76,199,255,.07);
+  color:#87d3f4;font-style:normal;font-size:13px
+}
+#mmhPremiumDashboardV500 .pf-signal-card-v150>span{min-width:0}
+#mmhPremiumDashboardV500 .pf-signal-card-v150 small{
+  display:block;color:#718ba0;font-size:8px;text-transform:uppercase;letter-spacing:.07em
+}
+#mmhPremiumDashboardV500 .pf-signal-card-v150 b{
+  display:block;margin-top:4px;color:#edf5fa;font-size:13px;line-height:1.25;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis
+}
+#mmhPremiumDashboardV500 .pf-signal-card-v150 em{
+  display:block;margin-top:4px;color:#829caf;font-size:8px;line-height:1.35;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-style:normal
+}
+#mmhPremiumDashboardV500 .pf-signal-card-v150>strong{color:#668ba5;font-size:15px}
+#mmhPremiumDashboardV500 .pf-signal-card-v150.good b{color:#61dfad}
+#mmhPremiumDashboardV500 .pf-signal-card-v150.watch b{color:#e7c364}
+#mmhPremiumDashboardV500 .pf-signal-card-v150.over b{color:#ff8fa2}
+#mmhPremiumDashboardV500 .pf-signal-alert-v150{
+  width:100%;margin-top:9px;display:grid;grid-template-columns:auto auto minmax(0,1fr) auto;
+  align-items:center;gap:9px;padding:9px 11px;border:1px solid rgba(231,195,100,.16);
+  border-radius:12px;background:rgba(231,195,100,.045);color:#d7e5ef;text-align:left;font:inherit;cursor:pointer
+}
+#mmhPremiumDashboardV500 .pf-signal-alert-v150 span{
+  color:#e4bd5f;font-size:8px;font-weight:850;letter-spacing:.09em
+}
+#mmhPremiumDashboardV500 .pf-signal-alert-v150 b{font-size:10px;color:#eff5f8}
+#mmhPremiumDashboardV500 .pf-signal-alert-v150 small{
+  min-width:0;color:#8ca2b4;font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis
+}
+#mmhPremiumDashboardV500 .pf-signal-alert-v150 strong{color:#c6d9e7;font-size:9px}
+#mmhPremiumDashboardV500 .pf-insights-note-v150{
+  margin-top:9px;color:#607d92;font-size:8px;line-height:1.45
+}
+
+#reports .report-insights-v150{
+  margin-top:12px;padding:14px;border:1px solid rgba(91,151,196,.18);border-radius:16px;
+  background:linear-gradient(145deg,rgba(9,29,48,.92),rgba(5,20,34,.96));
+  box-shadow:0 12px 28px rgba(0,0,0,.10),inset 0 1px rgba(255,255,255,.02)
+}
+#reports .report-insights-head-v150{
+  display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:10px
+}
+#reports .report-insights-head-v150 span{color:#dcb756;font-size:8px;font-weight:850;letter-spacing:.14em}
+#reports .report-insights-head-v150 h2{margin:3px 0 0;color:#edf5fa;font-size:15px}
+#reports .report-insights-head-v150>small{color:#71899d;font-size:8px}
+#reports .report-insight-grid-v150{
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px
+}
+#reports .report-insight-card-v150{
+  min-width:0;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 8px;
+  padding:11px;border:1px solid rgba(91,151,196,.12);border-radius:12px;
+  background:rgba(8,27,43,.62);color:inherit;text-align:left;font:inherit;cursor:pointer
+}
+#reports .report-insight-card-v150:hover{border-color:rgba(76,199,255,.26);background:rgba(11,35,53,.78)}
+#reports .report-insight-card-v150:disabled{opacity:.55;cursor:default}
+#reports .report-insight-card-v150 small{grid-column:1/-1;color:#71899d;font-size:8px;text-transform:uppercase;letter-spacing:.07em}
+#reports .report-insight-card-v150 b{
+  min-width:0;color:#eaf3f8;font-size:12px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis
+}
+#reports .report-insight-card-v150 span{
+  grid-column:1/2;min-width:0;color:#8199ac;font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis
+}
+#reports .report-insight-card-v150 strong{grid-column:2;grid-row:2/4;align-self:center;color:#6f95ae}
+#reports .report-insight-alert-v150{
+  width:100%;margin-top:8px;display:grid;grid-template-columns:auto auto minmax(0,1fr) auto;
+  gap:8px;align-items:center;padding:9px 10px;border:1px solid rgba(231,195,100,.16);
+  border-radius:11px;background:rgba(231,195,100,.04);color:inherit;text-align:left;font:inherit;cursor:pointer
+}
+#reports .report-insight-alert-v150 span{color:#dcb757;font-size:8px;font-weight:820;text-transform:uppercase;letter-spacing:.07em}
+#reports .report-insight-alert-v150 b{color:#e9f1f6;font-size:9px}
+#reports .report-insight-alert-v150 small{min-width:0;color:#8298a9;font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#reports .report-insight-alert-v150 strong{color:#aecadc;font-size:8px}
+
+@media(max-width:1050px){
+  #mmhPremiumDashboardV500 .pf-signal-grid-v150,#reports .report-insight-grid-v150{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:620px){
+  #mmhPremiumDashboardV500 .pf-insights-v150,#reports .report-insights-v150{padding:12px;margin-top:10px}
+  #mmhPremiumDashboardV500 .pf-insights-head-v150,#reports .report-insights-head-v150{align-items:flex-start}
+  #mmhPremiumDashboardV500 .pf-insights-head-v150 p{max-width:250px}
+  #mmhPremiumDashboardV500 .pf-signal-alert-v150,#reports .report-insight-alert-v150{grid-template-columns:1fr auto}
+  #mmhPremiumDashboardV500 .pf-signal-alert-v150 span,#mmhPremiumDashboardV500 .pf-signal-alert-v150 small,
+  #reports .report-insight-alert-v150 span,#reports .report-insight-alert-v150 small{grid-column:1/-1}
+}
+@media(max-width:430px){
+  #mmhPremiumDashboardV500 .pf-signal-grid-v150,#reports .report-insight-grid-v150{grid-template-columns:1fr}
+  #mmhPremiumDashboardV500 .pf-insights-head-v150{flex-direction:column}
+  #mmhPremiumDashboardV500 .pf-insights-head-v150>button{width:100%}
+}
