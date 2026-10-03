@@ -25690,14 +25690,16 @@ html body.mmh-workspace-active main.wrap .page.active :is(.empty,.mmh-ui-empty,.
   if(window.__MMHVAULT_BUDGET_DASH_V112)return;window.__MMHVAULT_BUDGET_DASH_V112=true;
   const n=v=>{const x=Number(v);return Number.isFinite(x)?x:0},symbols={USD:'$',THB:'฿',MMK:'K',CNY:'￥'};
   const month=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`};
-  const state={month:'',row:null,loading:false,request:0,observer:null};
+  const state={month:'',row:null,loading:false,request:0,observer:null,renderRaf:0};
   function rate(code){const c=String(code||'USD').toUpperCase();if(c==='USD')return 1;const k={THB:'usd_thb',MMK:'usd_mmk',CNY:'usd_cny'}[c];return k?n(rates?.[k]):0}
   function fmt(value,currency){return (symbols[currency]||currency)+' '+n(value).toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:2})}
   function group(t){if(!t)return'';if(t.category==='Data Adjustment')return'Data Adjustment';try{if(typeof inferTxGroup==='function')return inferTxGroup(t)}catch(_e){}const cats=window.MMHVAULT_CONFIG?.categories||window.CATS||{};if(t.type==='Expense')return (cats.LoanExpense||[]).includes(t.category)?'Loans':(cats.Personal||[]).includes(t.category)?'Personal':'Expense';return t.type||''}
   function included(t){return !!t&&t.type==='Expense'&&group(t)==='Expense'&&t.category!=='Investment'&&t.category!=='Data Adjustment'&&!(typeof isLinkedInvestmentTx==='function'&&isLinkedInvestmentTx(t))}
   function spent(currency){const target=rate(currency);if(!(target>0))return 0;return (Array.isArray(transactions)?transactions:[]).filter(t=>String(t.tx_date||'').slice(0,7)===month()&&included(t)).reduce((sum,t)=>{let usd=0;try{usd=n(t.from_amount)*n(typeof toUSD==='function'?toUSD(t.from_account):0)}catch(_e){}return sum+usd*target},0)}
   function level(usage){return usage>=100?'over':usage>=80?'watch':'good'}
+  function active(){return !!document.getElementById('dashboard')?.classList.contains('active')}
   function render(){
+    if(!active())return;
     const host=document.getElementById('mmhPremiumDashboardV500'),kpis=host?.querySelector('.pf-kpis-v500');if(!host||!kpis)return;
     let card=host.querySelector('.pf-budget-v112');if(!card){card=document.createElement('section');card.className='pf-budget-v112';kpis.insertAdjacentElement('afterend',card)}
     const row=state.row,currency=String(row?.currency||'THB').toUpperCase(),budget=Math.max(0,n(row?.monthly_amount)),used=spent(currency),remaining=budget-used,usage=budget>0?used/budget*100:0,lvl=budget>0?level(usage):'good';
@@ -25706,9 +25708,20 @@ html body.mmh-workspace-active main.wrap .page.active :is(.empty,.mmh-ui-empty,.
     card.querySelector('[data-open-budget-v112]')?.addEventListener('click',()=>window.setPage?.('budget'));
   }
   async function load(){const u=typeof currentSessionUser!=='undefined'?currentSessionUser:null,key=month(),request=++state.request;state.month=key;state.loading=true;render();if(!u?.id||typeof db==='undefined'){state.loading=false;state.row=null;render();return}try{const {data,error}=await db.from('budgets').select('budget_month,currency,monthly_amount,updated_at').eq('user_id',u.id).eq('budget_month',key+'-01').maybeSingle();if(error)throw error;if(request!==state.request)return;state.row=data||null}catch(err){console.warn('[MMHVAULT] dashboard budget load failed',err);if(request===state.request)state.row=null}finally{if(request===state.request){state.loading=false;render()}}}
-  function schedule(){setTimeout(render,0);setTimeout(render,80)}
-  function observe(){const host=document.getElementById('mmhPremiumDashboardV500');if(!host||state.observer)return;state.observer=new MutationObserver(()=>schedule());state.observer.observe(host,{childList:true})}
-  function setup(){observe();load();['mmhvault:data-loaded','mmhvault:data-change','mmhvault:cache-restored','mmhvault:budget-changed'].forEach(ev=>window.addEventListener(ev,()=>{if(ev==='mmhvault:budget-changed'||state.month!==month())load();else schedule()}));setTimeout(()=>{observe();schedule()},250)}
+  function schedule(){
+    if(!active()||state.renderRaf)return;
+    state.renderRaf=requestAnimationFrame(()=>{state.renderRaf=0;render()});
+  }
+  function observe(){const host=document.getElementById('mmhPremiumDashboardV500');if(!host||state.observer)return;state.observer=new MutationObserver(()=>{if(active())schedule()});state.observer.observe(host,{childList:true})}
+  function setup(){
+    observe();load();
+    ['mmhvault:data-loaded','mmhvault:data-change','mmhvault:cache-restored','mmhvault:budget-changed'].forEach(ev=>window.addEventListener(ev,()=>{
+      if(ev==='mmhvault:budget-changed'||state.month!==month())load();
+      else schedule();
+    }));
+    window.addEventListener('mmhvault:page-visible',()=>{if(active()){if(state.month!==month())load();else schedule()}});
+    setTimeout(()=>{observe();schedule()},250)
+  }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setup,{once:true});else setup();
 })();
 </script>
@@ -25892,7 +25905,10 @@ html body.mmh-workspace-active main.wrap .page.active :is(.empty,.mmh-ui-empty,.
   }
   function setup(){
     observe();
-    ['mmhvault:data-loaded','mmhvault:cache-restored','mmhvault:goals-changed','mmhvault:recurring-changed'].forEach(ev=>window.addEventListener(ev,()=>load(true)));
+    ['mmhvault:data-loaded','mmhvault:cache-restored','mmhvault:goals-changed','mmhvault:recurring-changed'].forEach(ev=>window.addEventListener(ev,()=>{
+      if(active())load(true);
+      else state.lastLoad=0;
+    }));
     ['mmhvault-language-change','languagechange'].forEach(ev=>window.addEventListener(ev,()=>render()));
     window.addEventListener('mmhvault:page-visible',()=>{if(active())load(false)});
     setTimeout(()=>{observe();if(active())load(true)},850);
@@ -26670,6 +26686,17 @@ window.MM_HVAULT_STABILITY_V12311={version:'1.2.3.11',storageFailureIsolation:tr
   const N=v=>{const x=Number(v);return Number.isFinite(x)?x:0};
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const rows=()=>Array.isArray(window.transactions)?window.transactions:[];
+  const dashboardActive=()=>!!$('dashboard')?.classList.contains('active');
+  const reportsActive=()=>!!$('reports')?.classList.contains('active');
+  let dashRaf=0,reportRaf=0;
+  function scheduleDashboard(){
+    if(!dashboardActive()||dashRaf)return;
+    dashRaf=requestAnimationFrame(()=>{dashRaf=0;renderDashboard()});
+  }
+  function scheduleReport(){
+    if(!reportsActive()||reportRaf)return;
+    reportRaf=requestAnimationFrame(()=>{reportRaf=0;renderReport()});
+  }
   const monthKey=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
   const currentMonth=()=>monthKey(new Date());
   const shiftMonth=(key,delta)=>{const [y,m]=String(key).split('-').map(Number),d=new Date(y,m-1+delta,1);return monthKey(d)};
@@ -26782,6 +26809,7 @@ window.MM_HVAULT_STABILITY_V12311={version:'1.2.3.11',storageFailureIsolation:tr
     return `<button type="button" class="pf-signal-card-v150 ${tone||''}" data-signal-action-v150="${action||''}" ${attrs}><i>${icon}</i><span><small>${esc(label)}</small><b>${esc(value)}</b><em>${esc(meta)}</em></span><strong>›</strong></button>`;
   }
   function renderDashboard(){
+    if(!dashboardActive())return;
     const host=$('mmhPremiumDashboardV500');if(!host)return;
     const cur=summary(currentMonth()),prev=summary(shiftMonth(currentMonth(),-1)),delta=pct(cur.total,prev.total),top=cur.top,big=cur.largest,spike=jump(cur,prev),budget=budgetSignal();
     let section=host.querySelector('.pf-insights-v150');
@@ -26803,7 +26831,8 @@ window.MM_HVAULT_STABILITY_V12311={version:'1.2.3.11',storageFailureIsolation:tr
     return `<button type="button" class="report-insight-card-v150" data-report-signal-v150="${action||''}" ${attrs}><small>${esc(label)}</small><b>${esc(value)}</b><span>${esc(meta)}</span><strong>›</strong></button>`;
   }
   function renderReport(){
-    const page=$('reports');if(!page||!page.classList.contains('active'))return;
+    if(!reportsActive())return;
+    const page=$('reports');if(!page)return;
     const kpis=$('reportKpisV115');if(!kpis)return;
     let sec=page.querySelector('.report-insights-v150');
     if(!sec){sec=document.createElement('section');sec.className='report-insights-v150';kpis.insertAdjacentElement('afterend',sec)}
@@ -26821,11 +26850,20 @@ window.MM_HVAULT_STABILITY_V12311={version:'1.2.3.11',storageFailureIsolation:tr
       const r=e.target?.closest?.('[data-report-signal-v150]');
       if(r){e.preventDefault();handleAction(r.dataset.reportSignalV150,r)}
     });
-    ['mmhvault:data-loaded','mmhvault:data-change','mmhvault:cache-restored','mmhvault:budget-changed','mmhvault:page-visible'].forEach(ev=>window.addEventListener(ev,()=>{setTimeout(renderDashboard,0);setTimeout(renderReport,0)}));
-    document.addEventListener('change',e=>{if(e.target?.matches?.('#reportMonthV115,#reportCurrencyV115'))setTimeout(renderReport,0)});
-    const dash=$('mmhPremiumDashboardV500');if(dash)new MutationObserver(()=>setTimeout(renderDashboard,0)).observe(dash,{childList:true,subtree:false});
-    const reports=$('reports');if(reports)new MutationObserver(()=>setTimeout(renderReport,0)).observe(reports,{childList:true,subtree:true});
-    setTimeout(renderDashboard,40);setTimeout(renderReport,80);
+    ['mmhvault:data-loaded','mmhvault:data-change','mmhvault:cache-restored','mmhvault:budget-changed'].forEach(ev=>window.addEventListener(ev,()=>{
+      scheduleDashboard();scheduleReport();
+    }));
+    window.addEventListener('mmhvault:page-visible',()=>{scheduleDashboard();scheduleReport()});
+    document.addEventListener('change',e=>{if(e.target?.matches?.('#reportMonthV115,#reportCurrencyV115'))scheduleReport()});
+    const dash=$('mmhPremiumDashboardV500');
+    if(dash)new MutationObserver(()=>scheduleDashboard()).observe(dash,{childList:true,subtree:false});
+    const reports=$('reports');
+    if(reports)new MutationObserver(mutations=>{
+      if(!reportsActive())return;
+      const onlyOwnInsightMutations=mutations.every(m=>m.target?.closest?.('.report-insights-v150'));
+      if(!onlyOwnInsightMutations)scheduleReport();
+    }).observe(reports,{childList:true,subtree:true});
+    setTimeout(scheduleDashboard,40);setTimeout(scheduleReport,80);
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
   window.MMHVAULT_FINANCIAL_SIGNALS_V150={version:'1.5.0',dashboardSignals:true,reportInsightFocus:true,ledgerReadOnly:true};
@@ -27832,6 +27870,26 @@ window.MMHVAULT_V156={version:'1.5.6',mobileMoreFullWidth:true,desktopMoreNoClip
 </style>
 <script id="mmhvault-v157-marker">
 window.MMHVAULT_V157={version:'1.5.7',trendLocalUpdate:true,marketTabLocalUpdate:true,fullDashboardRenderOnSwitch:false};
+</script>
+
+
+<style id="mmhvault-v158-active-render-isolation-css">
+/* MMHVAULT v1.5.8 · Active Page Render Isolation */
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-planning-v117,
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-bottom-grid-v500,
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-lower-grid-v500,
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-insights-v150{
+  contain:layout style;
+}
+</style>
+<script id="mmhvault-v158-marker">
+window.MMHVAULT_V158={
+  version:'1.5.8',
+  activePageRenderIsolation:true,
+  hiddenDashboardBudgetDomRender:false,
+  hiddenDashboardPlanningCloudRefresh:false,
+  reportInsightObserverSelfLoop:false
+};
 </script>
 
 </body>
