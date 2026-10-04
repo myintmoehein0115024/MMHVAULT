@@ -74,20 +74,9 @@
 .receipt-dropzone-v3300{margin-left:auto!important;margin-right:auto!important;}
 </style>
 <style id="mmhvault-v3303-edit-receipt-style">
+/* v1.5.39 audit: only the outer compatibility wrapper is still emitted by the canonical edit forms. */
 .edit-receipt-box-v3303{margin-top:14px;padding:14px 15px;border:1px solid rgba(91,147,245,.22);border-radius:14px;background:linear-gradient(135deg,rgba(20,31,58,.55),rgba(9,17,34,.78))}
-.edit-receipt-head-v3303{display:flex;align-items:center;gap:10px;margin-bottom:10px}
-.edit-receipt-title-v3303{font-size:13px;font-weight:800;color:#edf4ff}
-.edit-receipt-sub-v3303{margin-top:2px;font-size:10px;color:#8ea4c6}
-.edit-receipt-badge-v3303{margin-left:auto;padding:4px 8px;border:1px solid rgba(255,255,255,.09);border-radius:999px;color:#9bb0d0;font-size:9px;font-weight:800;letter-spacing:.06em}
-.edit-receipt-drop-v3303{display:flex;align-items:center;justify-content:center;gap:9px;min-height:48px;width:min(100%,560px);margin:0 auto;border:1px dashed rgba(99,153,255,.32);border-radius:11px;background:rgba(5,12,26,.28);cursor:pointer}
-.edit-receipt-plus-v3303{display:grid;place-items:center;width:30px;height:30px;border-radius:9px;background:#172844;border:1px solid rgba(112,165,255,.2);color:#8fc3ff;font-size:19px;line-height:1}
-.edit-receipt-copy-v3303{display:flex;flex-direction:column;gap:2px;text-align:left}
-.edit-receipt-copy-v3303 strong{font-size:12px;color:#dce9ff}
-.edit-receipt-copy-v3303 small{font-size:10px;color:#7f95b5}
-.edit-receipt-status-v3303{margin-top:7px;text-align:center;font-size:9px;color:#6f84a5}
-.edit-receipt-status-v3303.ready{color:#63d6a5}
-.edit-receipt-status-v3303.error{color:#ff7d92}
-@media(max-width:650px){.edit-receipt-box-v3303{padding:12px}.edit-receipt-drop-v3303{width:100%}}
+@media(max-width:650px){.edit-receipt-box-v3303{padding:12px}}
 </style>
 <style id="mmhvault-v3309-receipt-management-style">
 .receipt-manage-v3309{margin-top:10px;padding:10px 12px;border:1px solid rgba(91,147,245,.20);border-radius:12px;background:rgba(7,15,30,.28)}
@@ -121,9 +110,6 @@
 .excel-tip-v318{font-size:11px;color:#7890bb}
 .excel-import-v318 .btn.primary:disabled{opacity:.45;cursor:not-allowed;transform:none}
 @media(max-width:720px){.excel-import-head-v318{flex-direction:column}.excel-badge-v318{align-self:flex-start}.excel-import-footer-v318{align-items:stretch;flex-direction:column}.excel-import-footer-v318 .actions{display:flex;width:100%}.excel-import-footer-v318 .btn{flex:1}.excel-dropzone-v318{min-height:112px}}
-</style>
-<style id="mmhvault-v339-integrity-css">
-.data-integrity-grid-v339{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-top:14px}.data-integrity-card-v339{padding:14px;border:1px solid var(--line);border-radius:14px;background:rgba(11,16,48,.34);min-width:0}.data-integrity-card-v339 .label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}.data-integrity-card-v339 .value{font-size:20px;font-weight:850;margin-top:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.data-integrity-card-v339 .meta{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.35}.data-integrity-actions-v339{display:flex;justify-content:flex-end;margin-top:12px}.data-integrity-result-v339{margin-top:10px;padding:11px 12px;border:1px solid var(--line);border-radius:12px;color:var(--muted);font-size:12px;line-height:1.45;background:rgba(11,16,48,.24)}.data-integrity-result-v339.ok{color:#80e6b4;border-color:rgba(57,230,161,.25)}.data-integrity-result-v339.warn{color:#ffd36b;border-color:rgba(255,211,107,.25)}.data-integrity-result-v339.err{color:#ff9aaa;border-color:rgba(255,113,133,.25)}@media(max-width:800px){.data-integrity-grid-v339{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:520px){.data-integrity-grid-v339{grid-template-columns:1fr}.data-integrity-actions-v339 .btn{width:100%}}
 </style>
 <!-- MMHVAULT V4.3.0 · Portfolio Health & Concentration -->
 <style id="mmhvault-v3716-portfolio-health-css">
@@ -1800,19 +1786,13 @@ body.mmhvault-scroll-active #invest #v371CryptoMarket::before{
 
 
 <style id="mmhvault-v34510-investment-activity-premium">
-/* v34510 — Investment Activity / Capital Flow premium visual layer. Scoped to #invest only. */
+/* v1.5.39 audit: retired the obsolete v34510 chart/command DOM; keep the active Portfolio Manager shell only. */
 #invest #portfolioManagerV310 .portfolio-activity-v310{position:relative;overflow:hidden;background:linear-gradient(145deg,rgba(10,24,45,.82),rgba(4,11,24,.94))!important;border-color:rgba(87,158,224,.15)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.035),0 14px 32px rgba(0,0,0,.14)!important}
 #invest #portfolioManagerV310 .portfolio-activity-v310::before{content:"";position:absolute;inset:-40% -10%;background:linear-gradient(105deg,transparent 42%,rgba(91,204,255,.055) 50%,transparent 58%);transform:translateX(-45%);animation:mmhActivitySweep34510 9s ease-in-out infinite;pointer-events:none}
 #invest #portfolioManagerV310 .portfolio-activity-v310>.mini-head-v310{position:relative;z-index:2}
-.activity-command-v34510{position:relative;z-index:2;display:flex;justify-content:space-between;align-items:flex-end;gap:18px;margin:12px 14px 8px;padding:13px 14px;border:1px solid rgba(100,168,230,.11);border-radius:15px;background:linear-gradient(115deg,rgba(8,20,39,.78),rgba(14,31,54,.46));box-shadow:inset 0 1px 0 rgba(255,255,255,.035)}
-.activity-command-main-v34510{min-width:0}.activity-eyebrow-v34510{display:block;font-size:9px;letter-spacing:.16em;font-weight:900;color:#6382a9;margin-bottom:5px}.activity-command-main-v34510>b{display:block;font-size:15px;letter-spacing:-.01em;color:#e9f2ff}.activity-command-main-v34510>small{display:block;margin-top:4px;font-size:10px;color:#7189aa;line-height:1.35}.activity-command-stat-v34510{text-align:right;min-width:112px}.activity-command-stat-v34510 span{display:block;font-size:8px;letter-spacing:.15em;color:#637da1;font-weight:900}.activity-command-stat-v34510 b{display:block;margin-top:3px;font-size:18px;line-height:1.1;font-variant-numeric:tabular-nums}.activity-command-stat-v34510 small{display:block;margin-top:4px;color:#6f86a7;font-size:9px}
-.activity-chart-v34510{position:relative;z-index:2;min-height:190px;margin:4px 14px 14px;padding:18px 12px 9px;border:1px solid rgba(94,156,214,.09);border-radius:16px;background:radial-gradient(circle at 50% 10%,rgba(66,151,218,.075),transparent 54%),rgba(3,10,22,.52);overflow:hidden}
-.activity-gridline-v34510{position:absolute;left:12px;right:12px;height:1px;background:rgba(115,163,210,.075);pointer-events:none}.activity-gridline-v34510.g1{top:28%}.activity-gridline-v34510.g2{top:51%}.activity-gridline-v34510.g3{top:74%}.activity-baseline-v34510{position:absolute;left:12px;right:12px;top:82%;height:1px;background:linear-gradient(90deg,transparent,rgba(104,163,218,.24),transparent);box-shadow:0 0 12px rgba(73,170,230,.08)}
-.activity-bars-v34510{position:absolute;left:22px;right:22px;top:18px;bottom:8px;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;align-items:stretch}.activity-node-v34510{position:relative;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-top:1px;transition:transform .22s ease}.activity-node-v34510:hover{transform:translateY(-3px);z-index:3}.activity-amount-v34510{height:24px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:9px;font-weight:850;color:#9bb1cd;font-variant-numeric:tabular-nums}.activity-node-v34510.positive .activity-amount-v34510{color:#72dfff}.activity-node-v34510.negative .activity-amount-v34510{color:#ff8fa2}.activity-track-v34510{position:relative;width:min(30px,72%);height:calc(100% - 45px);min-height:72px;display:flex;align-items:flex-end;justify-content:center}.activity-bar-v34510{position:relative;width:100%;max-height:100%;min-height:7px;border-radius:8px 8px 3px 3px;background:linear-gradient(180deg,#79e0ff,#2d83bd);box-shadow:0 0 16px rgba(66,197,255,.16);transform-origin:bottom;animation:mmhActivityRise34510 .75s cubic-bezier(.2,.75,.25,1) both;animation-delay:calc(var(--i)*70ms)}.activity-node-v34510.negative .activity-bar-v34510{background:linear-gradient(180deg,#ff9aac,#b64d68);box-shadow:0 0 15px rgba(255,99,126,.12)}.activity-bar-v34510::after{content:"";position:absolute;left:12%;right:12%;top:5px;height:2px;border-radius:2px;background:rgba(255,255,255,.34);animation:mmhActivityPulse34510 3.6s ease-in-out infinite}
-.activity-month-v34510{margin-top:8px;font-size:9px;color:#7189aa;font-weight:800;letter-spacing:.04em}.activity-node-v34510.latest .activity-month-v34510{color:#dcecff}.activity-live-v34510{position:absolute;top:-2px;padding:3px 5px;border:1px solid rgba(91,216,255,.16);border-radius:999px;background:rgba(47,170,220,.08);font-size:7px;letter-spacing:.12em;color:#72dfff;font-weight:900;box-shadow:0 0 14px rgba(72,199,255,.08);animation:mmhActivityLive34510 2.6s ease-in-out infinite}
-@keyframes mmhActivitySweep34510{0%,65%{transform:translateX(-55%);opacity:0}74%{opacity:1}88%,100%{transform:translateX(55%);opacity:0}}@keyframes mmhActivityRise34510{from{transform:scaleY(0);opacity:.2}to{transform:scaleY(1);opacity:1}}@keyframes mmhActivityPulse34510{0%,100%{opacity:.22}50%{opacity:.58}}@keyframes mmhActivityLive34510{50%{box-shadow:0 0 18px rgba(72,199,255,.18)}}
-@media(max-width:620px){#invest #portfolioManagerV310 .portfolio-activity-v310{margin-left:12px!important;margin-right:12px!important}.activity-command-v34510{align-items:flex-start;gap:10px;margin:10px 10px 7px;padding:11px}.activity-command-main-v34510>b{font-size:13px}.activity-command-stat-v34510{min-width:92px}.activity-command-stat-v34510 b{font-size:15px}.activity-chart-v34510{min-height:168px;margin:4px 10px 10px;padding-left:7px;padding-right:7px}.activity-bars-v34510{left:12px;right:12px;gap:5px}.activity-track-v34510{width:min(25px,70%)}.activity-amount-v34510{font-size:8px}.activity-month-v34510{font-size:8px}.activity-live-v34510{font-size:6px;padding:2px 4px}}
-@media(prefers-reduced-motion:reduce){#invest #portfolioManagerV310 .portfolio-activity-v310::before,.activity-bar-v34510,.activity-live-v34510,.activity-bar-v34510::after{animation:none!important}.activity-node-v34510{transition:none!important}}
+@keyframes mmhActivitySweep34510{0%,65%{transform:translateX(-55%);opacity:0}74%{opacity:1}88%,100%{transform:translateX(55%);opacity:0}}
+@media(max-width:620px){#invest #portfolioManagerV310 .portfolio-activity-v310{margin-left:12px!important;margin-right:12px!important}}
+@media(prefers-reduced-motion:reduce){#invest #portfolioManagerV310 .portfolio-activity-v310::before{animation:none!important}}
 </style>
 
 <style id="mmhvault-v34530-investment-activity-layout-fix">
@@ -1841,27 +1821,6 @@ body.mmhvault-scroll-active #invest #v371CryptoMarket::before{
   max-height:none!important;
   overflow:visible!important;
   box-sizing:border-box!important;
-}
-#invest #portfolioManagerV310 .activity-chart-v34510{
-  height:236px!important;
-  min-height:236px!important;
-  max-height:none!important;
-  overflow:hidden!important;
-  box-sizing:border-box!important;
-  margin-bottom:14px!important;
-}
-#invest #portfolioManagerV310 .activity-bars-v34510{
-  position:absolute!important;
-  top:16px!important;
-  right:18px!important;
-  bottom:10px!important;
-  left:18px!important;
-}
-@media(max-width:620px){
-  #invest #portfolioManagerV310 .activity-chart-v34510{
-    height:205px!important;
-    min-height:205px!important;
-  }
 }
 </style>
 
@@ -19659,9 +19618,7 @@ body.light #reports .report-mini-v115{background:#f3f8fb;border-color:#cfdee9}bo
 input,select,textarea{font-variant-numeric:tabular-nums;}
 input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visible{outline:2px solid rgba(110,180,255,.72);outline-offset:2px;}
 .modal,.modal-overlay{overscroll-behavior:contain;}
-.modal-content,.modal-box,.modal-card{max-width:min(720px,calc(100vw - 28px));}
-.modal-content,.modal-box,.modal-card{scrollbar-gutter:stable both-edges;}
-.table-wrap,.history-table,.transactions-table{overscroll-behavior-inline:contain;scrollbar-gutter:stable;}
+.table-wrap{overscroll-behavior-inline:contain;scrollbar-gutter:stable;}
 .table-wrap{max-width:100%;}
 .table-wrap table{font-variant-numeric:tabular-nums;}
 @media (hover:hover) and (pointer:fine){
@@ -19669,7 +19626,6 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
 }
 @media(max-width:700px){
   input,select,textarea{font-size:max(16px,1em);}
-  .modal-content,.modal-box,.modal-card{max-width:calc(100vw - 20px);}
   .table-wrap{border-radius:14px;}
 }
 @media(prefers-reduced-motion:reduce){
@@ -28311,5 +28267,7 @@ window.MMHVAULT_V1523_ACTIVE_OBSERVER_SLEEP={version:'1.5.23',transactions:true,
 <script id="mmhvault-v1537-responsive-cleanup-marker">window.MMHVAULT_V1537={version:'1.5.37',responsiveCleanupPhase3:true,accountsAnalyzeCleanup:true,phoneSmsPaused:true};</script>
 
 <script id="mmhvault-v1538-more-responsive-cleanup-marker">window.MMHVAULT_V1538={version:'1.5.38',moreLegacyCssRemoved:true,moreFrameGeometryCanonical:true};</script>
+
+<script id="mmhvault-v1539-final-css-audit-marker">window.MMHVAULT_V1539={version:'1.5.39',finalCssDeadLayerAudit:true,retiredUnusedResponsiveLayers:true};</script>
 </body>
 </html>
