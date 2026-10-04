@@ -5748,6 +5748,13 @@ body.mmh-v436-explorer-open #bottomNav{visibility:hidden!important;pointer-event
       if(body && !state.rows.length)body.innerHTML='<div class="mmh-v436-empty">Live market data is temporarily unavailable. Please try again in a moment.</div>';
     }finally{state.loading=false;}
   }
+  const stopMarketTimer=()=>{if(state.timer){clearTimeout(state.timer);state.timer=null;}};
+  const explorerCanPoll=()=>document.visibilityState!=='hidden'&&el("mmhV436CryptoExplorer")?.classList.contains("show")&&el("mmhV436CryptoExplorer")?.classList.contains("active");
+  function scheduleMarketTimer(delay=60000){
+    stopMarketTimer();
+    if(!explorerCanPoll())return;
+    state.timer=setTimeout(async()=>{state.timer=null;if(!explorerCanPoll())return;await loadLive();scheduleMarketTimer(60000);},Math.max(250,delay));
+  }
   window.openMmhV436CryptoExplorer=function(){
     const modal=el("mmhV436CryptoExplorer"); if(!modal)return;
     // Keep fixed positioning tied to the viewport, outside transformed page containers.
@@ -5756,24 +5763,24 @@ body.mmh-v436-explorer-open #bottomNav{visibility:hidden!important;pointer-event
     modal.dataset.returnScroll=String(window.scrollY);
     setPage('mmhV436CryptoExplorer');
     window.scrollTo({top:0});
-    
     modal.classList.add("show");modal.setAttribute("aria-hidden","false");
-    if(state.timer)clearInterval(state.timer);
-    loadLive();
-    state.timer=setInterval(()=>{if(modal.classList.contains("show"))loadLive();},60000);
+    stopMarketTimer();
+    loadLive().finally(()=>scheduleMarketTimer(60000));
     setTimeout(()=>el("mmhV436CryptoSearch")?.focus(),40);
   };
   window.closeMmhV436CryptoExplorer=function(){
     const modal=el("mmhV436CryptoExplorer"); if(!modal)return;
     modal.classList.remove("show");modal.setAttribute("aria-hidden","true");
+    stopMarketTimer();
     setPage("invest");
     requestAnimationFrame(()=>{window.scrollTo({top:Number(modal.dataset.returnScroll)||0});el("mmhV436MoreCrypto")?.focus({preventScroll:true});});
     document.body.classList.remove("mmh-v436-explorer-open");
-    if(state.timer){clearInterval(state.timer);state.timer=null;}
   };
   el("mmhV436CryptoExplorer")?.addEventListener("click",e=>{if(e.target===el("mmhV436CryptoExplorer"))window.closeMmhV436CryptoExplorer();});
   el("mmhV436CryptoSearch")?.addEventListener("input",refreshView);
-  new MutationObserver(()=>{const page=el("mmhV436CryptoExplorer");if(!page?.classList.contains("active")){if(state.timer){clearInterval(state.timer);state.timer=null;}if(page?.classList.contains("show"))page.classList.remove("show");page?.setAttribute("aria-hidden","true");}}).observe(el("mmhV436CryptoExplorer"),{attributes:true,attributeFilter:["class"]});
+  new MutationObserver(()=>{const page=el("mmhV436CryptoExplorer");if(!page?.classList.contains("active")){stopMarketTimer();if(page?.classList.contains("show"))page.classList.remove("show");page?.setAttribute("aria-hidden","true");}}).observe(el("mmhV436CryptoExplorer"),{attributes:true,attributeFilter:["class"]});
+  document.addEventListener("visibilitychange",()=>{if(document.visibilityState==='hidden'){stopMarketTimer();return}if(explorerCanPoll()){const stale=Date.now()-state.lastUpdated>=55000;if(stale)loadLive().finally(()=>scheduleMarketTimer(60000));else scheduleMarketTimer(Math.max(1000,60000-(Date.now()-state.lastUpdated)));}},{passive:true});
+  window.addEventListener('pagehide',stopMarketTimer,{passive:true});
   document.addEventListener("keydown",e=>{if(e.key==="Escape"&&el("mmhV436CryptoExplorer")?.classList.contains("show"))window.closeMmhV436CryptoExplorer();});
 })();
 </script>
@@ -7652,24 +7659,33 @@ initTheme();
 loadCachedGoldSpotV1();
 $("txDate").value=today();$("invDate").value=today();$("month").value=today().slice(0,7);$("txGroup").value="Income";$("invAsset").onchange=updateInvestFields;$("invSymbol").onchange=updateInvestFields;$("invAmount").oninput=updateInvestCalc;$("invBuy").oninput=updateInvestCalc;$("invMarket").oninput=updateInvestCalc;updateInvestFields();
 fetchCryptoPrices();fetchGoldPrice();
-let mmhvaultMarketPollV322=null;
-function startMarketPollingV322(){
-  if(mmhvaultMarketPollV322)clearInterval(mmhvaultMarketPollV322);
-  const poll=()=>{
-    const visible=document.visibilityState!=='hidden';
-    const active=document.getElementById('dashboard')?.classList.contains('active') || document.getElementById('invest')?.classList.contains('active');
-    if(visible && active){fetchCryptoPrices();fetchGoldPrice();}
-  };
-  mmhvaultMarketPollV322=setInterval(poll,60000);
+let mmhvaultMarketPollV322=null,mmhvaultMarketLastRunV1522=Date.now();
+const mmhvaultMarketPageActiveV1522=()=>document.getElementById('dashboard')?.classList.contains('active') || document.getElementById('invest')?.classList.contains('active');
+function stopMarketPollingV1522(){if(mmhvaultMarketPollV322){clearTimeout(mmhvaultMarketPollV322);mmhvaultMarketPollV322=null;}}
+function runMarketPollV1522(){
+  if(document.visibilityState==='hidden'||!mmhvaultMarketPageActiveV1522()){stopMarketPollingV1522();return;}
+  mmhvaultMarketLastRunV1522=Date.now();fetchCryptoPrices();fetchGoldPrice();scheduleMarketPollingV1522(60000);
 }
-startMarketPollingV322();
+function scheduleMarketPollingV1522(delay=60000){
+  stopMarketPollingV1522();
+  if(document.visibilityState==='hidden'||!mmhvaultMarketPageActiveV1522())return;
+  mmhvaultMarketPollV322=setTimeout(()=>{mmhvaultMarketPollV322=null;runMarketPollV1522();},Math.max(250,delay));
+}
+function resumeMarketPollingV1522(refreshIfStale=false){
+  if(document.visibilityState==='hidden'||!mmhvaultMarketPageActiveV1522()){stopMarketPollingV1522();return;}
+  const age=Date.now()-mmhvaultMarketLastRunV1522;
+  if(refreshIfStale&&age>=55000){runMarketPollV1522();return;}
+  scheduleMarketPollingV1522(Math.max(1000,60000-age));
+}
+resumeMarketPollingV1522(false);
+window.addEventListener('mmhvault:page-visible',()=>resumeMarketPollingV1522(true),{passive:true});
 document.addEventListener('visibilitychange',()=>{
   if(document.visibilityState==='visible'){
-    const activeMarketPage=document.getElementById('dashboard')?.classList.contains('active') || document.getElementById('invest')?.classList.contains('active');
-    if(activeMarketPage){fetchCryptoPrices();fetchGoldPrice();}
+    resumeMarketPollingV1522(true);
     scheduleRenderV3441();
-  }
-});
+  }else stopMarketPollingV1522();
+},{passive:true});
+window.addEventListener('pagehide',stopMarketPollingV1522,{passive:true});
 mmhVaultRefreshAccountSelectors();
 $("txType").onchange=()=>{syncTransactionGroup();updateCategories();};$("txGroup").onchange=updateCategories;updateCategories();
 if($("authForm"))$("authForm").onsubmit=auth;if($("txForm"))$("txForm").onsubmit=addTransaction;if($("invForm"))$("invForm").onsubmit=addInvestment;if($("month"))$("month").onchange=scheduleRenderV3441;
@@ -17678,7 +17694,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   const $=id=>document.getElementById(id);
   const tr=(en,zh)=>(localStorage.getItem('mmhvault_language_v3363')||'en')==='zh'?zh:en;
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  let popup=null,bell=null,list=null,rows=[],loading=false,mode='all',owner='',request=0,lastLoaded=0,queuedLoad=false,queuedShowLoading=false;
+  let popup=null,bell=null,list=null,rows=[],loading=false,mode='all',owner='',request=0,lastLoaded=0,queuedLoad=false,queuedShowLoading=false,pollTimer=0;
   const currentOwner=()=>typeof currentSessionUser!=='undefined'?(currentSessionUser?.id||''):'';
   function ensure(){
     bell=$('mmhTopBellV500');if(!bell)return false;
@@ -17771,8 +17787,10 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   function close(){popup?.classList.remove('open');bell?.setAttribute('aria-expanded','false')}
   function toggle(){if(!ensure())return;const open=!popup.classList.contains('open');if(!open){close();return}popup.classList.add('open');bell.setAttribute('aria-expanded','true');place();render();if(!rows.length&&!loading)load(true);else if(Date.now()-lastLoaded>45000&&!loading)setTimeout(()=>load(false),120)}
   function bind(){if(!ensure())return;if(bell.dataset.mmhNotifyBoundV900==='1')return;bell.dataset.mmhNotifyBoundV900='1';bell.setAttribute('aria-haspopup','dialog');bell.setAttribute('aria-expanded','false');bell.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();toggle()},true);window.addEventListener('mmhvault:responsive-settled',()=>{if(isOpen())requestAnimationFrame(place)},{passive:true});window.addEventListener('orientationchange',()=>{if(isOpen())setTimeout(place,80)});load(false)}
-  function resetForOwner(){request++;loading=false;queuedLoad=false;queuedShowLoading=false;owner=currentOwner();rows=[];mode='all';close();if(ensure()){updateBadge();if(owner)load(false)}}
-  function init(){bind();window.addEventListener('mmhvault:notifications-changed',()=>load(false));window.addEventListener('mmhvault:config-owner-changed',resetForOwner);setTimeout(bind,300);setTimeout(bind,900);setTimeout(bind,1600);setInterval(()=>{if(!document.hidden&&currentOwner()&&!loading)load(false)},120000)}
+  function stopPoll(){if(pollTimer){clearTimeout(pollTimer);pollTimer=0}}
+  function schedulePoll(delay=120000){stopPoll();if(document.hidden||!currentOwner())return;pollTimer=setTimeout(()=>{pollTimer=0;if(!document.hidden&&currentOwner()&&!loading)load(false);schedulePoll(120000)},Math.max(500,delay))}
+  function resetForOwner(){request++;loading=false;queuedLoad=false;queuedShowLoading=false;owner=currentOwner();rows=[];mode='all';close();if(ensure()){updateBadge();if(owner)load(false)}schedulePoll(120000)}
+  function init(){bind();window.addEventListener('mmhvault:notifications-changed',()=>load(false));window.addEventListener('mmhvault:config-owner-changed',resetForOwner);setTimeout(bind,300);setTimeout(bind,900);setTimeout(bind,1600);schedulePoll(120000);document.addEventListener('visibilitychange',()=>{if(document.hidden)stopPoll();else{if(currentOwner()&&!loading&&Date.now()-lastLoaded>120000)load(false);schedulePoll(120000)}},{passive:true});window.addEventListener('pagehide',stopPoll,{passive:true})}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(init,0),{once:true});else setTimeout(init,0);
 })();
 </script>
@@ -19179,7 +19197,7 @@ window.MMHVAULT_RELEASE='MMHVAULT v1.3.0 UI/UX Pass 1';
     ['mmhvault:data-loaded','mmhvault:cache-restored','mmhvault:category-config-changed'].forEach(ev=>window.addEventListener(ev,()=>{syncForm();installTxBridge();scanAlerts(false);if(page()?.classList.contains('active'))load()}));
     window.addEventListener('mmhvault:page-visible',()=>{if(page()?.classList.contains('active'))load()});
     window.addEventListener('mmhvault:config-owner-changed',()=>{state.request++;state.owner=signedUser()?.id||'';state.rows=[];state.loading=false;state.pending=null;state.lastAlertScan=0;state.alertOwner=state.owner;closeForm();clearPending();syncForm();render();if(page()?.classList.contains('active'))load();scanAlerts(false)});
-    setTimeout(()=>{installTxBridge();scanAlerts(false)},900);setInterval(()=>{if(!document.hidden)scanAlerts(false)},3600000);window.MMHRecurringV114={load,render,scanAlerts,recordNow,get state(){return state}}
+    let alertTimerV1522=0;const stopAlertTimerV1522=()=>{if(alertTimerV1522){clearTimeout(alertTimerV1522);alertTimerV1522=0}};const scheduleAlertTimerV1522=(delay=3600000)=>{stopAlertTimerV1522();if(document.hidden)return;alertTimerV1522=setTimeout(()=>{alertTimerV1522=0;if(!document.hidden)scanAlerts(false);scheduleAlertTimerV1522(3600000)},Math.max(1000,delay))};setTimeout(()=>{installTxBridge();scanAlerts(false);scheduleAlertTimerV1522(3600000)},900);document.addEventListener('visibilitychange',()=>{if(document.hidden)stopAlertTimerV1522();else{scanAlerts(false);scheduleAlertTimerV1522(3600000)}},{passive:true});window.addEventListener('pagehide',stopAlertTimerV1522,{passive:true});window.MMHRecurringV114={load,render,scanAlerts,recordNow,get state(){return state}}
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(setup,0),{once:true});else setTimeout(setup,0);
 })();
@@ -24333,7 +24351,7 @@ function addTopbar(){
  const runSearch=()=>{const q=search.value.trim();if(!q)return;const key=q.toLowerCase();if(key.includes('support')||key.includes('customer service')||key.includes('客服')){supportButton?.click();return}if(key.includes('notification')||key.includes('通知')){document.getElementById('mmhTopBellV500')?.click();return}const pages={dashboard:'dashboard',home:'dashboard',transaction:'transactions',transactions:'transactions',invest:'invest',investment:'invest',accounts:'accounts-page',account:'accounts-page',setting:'settings',settings:'settings',feedback:'settings',exchange:'exchange',currency:'exchange',analyze:'cashflow-analyze','cash flow':'cashflow-analyze',budget:'budget',预算:'budget',goal:'goals',goals:'goals',目标:'goals',recurring:'recurring',repeat:'recurring',subscription:'recurring',周期:'recurring',固定:'recurring',report:'reports',reports:'reports',monthly:'reports',月报:'reports',报告:'reports'};const found=Object.keys(pages).find(k=>key.includes(k));if(found){setPage(pages[found]);if(pages[found]==='settings'&&key.includes('feedback'))setTimeout(()=>document.querySelector('#settings .fb-nav')?.click(),180);return}setPage('transactions');setTimeout(()=>{const tx=$('txSearch');if(tx){tx.value=q;tx.dispatchEvent(new Event('input',{bubbles:true}));tx.focus();}},160)};
  search.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();runSearch()}if(e.key==='Escape')search.value=''});
  window.addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();search.focus();search.select()}});
- let lastTopDateV1511='';function clock(){const d=new Date();const el=$('mmhTopDateV500');if(!el)return;const next=d.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric',year:'numeric'});if(next!==lastTopDateV1511){lastTopDateV1511=next;el.textContent=next;}}clock();setInterval(clock,60000);
+ let lastTopDateV1511='',topDateTimerV1522=0;function clock(){const d=new Date();const el=$('mmhTopDateV500');if(!el)return;const next=d.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric',year:'numeric'});if(next!==lastTopDateV1511){lastTopDateV1511=next;el.textContent=next;}}function stopTopDateTimerV1522(){if(topDateTimerV1522){clearTimeout(topDateTimerV1522);topDateTimerV1522=0}}function scheduleTopDateV1522(){stopTopDateTimerV1522();if(document.hidden)return;const now=new Date(),next=new Date(now);next.setHours(24,0,1,0);topDateTimerV1522=setTimeout(()=>{topDateTimerV1522=0;clock();scheduleTopDateV1522()},Math.max(1000,next.getTime()-now.getTime()))}clock();scheduleTopDateV1522();document.addEventListener('visibilitychange',()=>{if(document.hidden)stopTopDateTimerV1522();else{clock();scheduleTopDateV1522()}},{passive:true});window.addEventListener('pagehide',stopTopDateTimerV1522,{passive:true});
 }
 function ensureDashboardHost(){
  let host=$('mmhPremiumDashboardV500');if(host)return host;const dash=$('dashboard');if(!dash)return null;host=document.createElement('div');host.id='mmhPremiumDashboardV500';dash.prepend(host);return host;
@@ -28348,5 +28366,7 @@ body.light #settings .cs-panel-v1518{background:linear-gradient(160deg,#fff,#f3f
 })();
 </script>
 
+
+<!-- MMHVAULT v1.5.22 · Background Timer Idle: persistent intervals replaced by visibility/page-aware one-shot schedulers. -->
 </body>
 </html>
