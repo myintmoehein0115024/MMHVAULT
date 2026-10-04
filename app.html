@@ -19860,12 +19860,13 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
 <!-- MMHVAULT V4.3.0 · Dashboard Alignment Refinement -->
 <script id="mmhvault-v4301-total-records-refinement">
 (function(){
+  let observer=null,observedBadge=null,raf=0;
+  const dashboardActive=()=>!!document.getElementById('dashboard')?.classList.contains('active');
   function normalizeTotalBadge(){
     const badge = document.getElementById("dashTxCount");
     if(!badge) return;
 
     const text = (badge.textContent || "").trim();
-    // Existing dashboard text: “5 shown of 69” → “69 TOTAL RECORDS”
     const match = text.match(/(?:shown\s+of\s+)(\d+)/i) || text.match(/\bof\s+(\d+)/i);
     if(match){
       badge.textContent = match[1] + " TOTAL RECORDS";
@@ -19873,7 +19874,6 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
       return;
     }
 
-    // If the existing renderer already gives a numeric total, present it consistently.
     if(!badge.dataset.mmhTotalOnly){
       const number = text.match(/\d+/);
       if(number && !/total records/i.test(text)){
@@ -19882,25 +19882,25 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
       }
     }
   }
-
-  function start(){
+  function scheduleNormalize(){
+    if(raf||document.hidden||!dashboardActive())return;
+    raf=requestAnimationFrame(()=>{raf=0;if(dashboardActive()&&!document.hidden)normalizeTotalBadge()});
+  }
+  function disconnect(){observer?.disconnect();observer=null;observedBadge=null;}
+  function syncObserver(){
+    disconnect();
+    if(document.hidden||!dashboardActive())return;
     normalizeTotalBadge();
-    const badge = document.getElementById("dashTxCount");
-    if(badge && !badge.__mmhTotalObserver){
-      badge.__mmhTotalObserver = true;
-      new MutationObserver(() => {
-        // The original dashboard renderer may write “5 shown of 69” again.
-        requestAnimationFrame(normalizeTotalBadge);
-      }).observe(badge,{childList:true,characterData:true,subtree:true});
-    }
-
+    const badge=document.getElementById('dashTxCount');if(!badge)return;
+    observedBadge=badge;
+    observer=new MutationObserver(scheduleNormalize);
+    observer.observe(badge,{childList:true,characterData:true,subtree:true});
   }
-
-  if(document.readyState === "loading"){
-    document.addEventListener("DOMContentLoaded", start, {once:true});
-  }else{
-    start();
-  }
+  function start(){syncObserver();}
+  if(document.readyState === "loading")document.addEventListener("DOMContentLoaded", start, {once:true});else start();
+  window.addEventListener('mmhvault:page-visible',syncObserver,{passive:true});
+  ['mmhvault:data-loaded','mmhvault:data-change'].forEach(ev=>window.addEventListener(ev,scheduleNormalize,{passive:true}));
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)disconnect();else syncObserver()},{passive:true});
 })();
 </script>
 
@@ -21644,6 +21644,8 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
 <script id="mmhvault-overview-premium-v1-js">
 (function(){
   const root=()=>document.querySelector('#analyze .analyze-tab-panel-v371[data-panel="overview"]');
+  const analyzeActive=()=>!!document.getElementById('analyze')?.classList.contains('active');
+  let obs=null,setupRaf=0;
   function markEnter(){
     const panel=root(); if(!panel)return;
     panel.classList.remove('mmh-ov-enter');
@@ -21671,22 +21673,34 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
       window.addEventListener('mouseup',()=>core.classList.remove('mmh-ov-clicked'),{passive:true});
     }
   }
-  function observe(){
+  function scheduleSetup(){
+    if(setupRaf||document.hidden||!analyzeActive())return;
+    setupRaf=requestAnimationFrame(()=>{setupRaf=0;if(analyzeActive()&&!document.hidden)setupClicks()});
+  }
+  function disconnect(){obs?.disconnect();obs=null;}
+  function syncObserver(){
+    disconnect();
+    if(document.hidden||!analyzeActive())return;
     setupClicks();
-    const panel=root(); if(!panel)return;
-    const obs=new MutationObserver(()=>setupClicks());
+    const panel=root();if(!panel)return;
+    obs=new MutationObserver(scheduleSetup);
     obs.observe(panel,{childList:true,subtree:true});
   }
   function bind(){
     document.querySelectorAll('.analyze-tab-v371').forEach(btn=>{
       if(btn.dataset.mmhOverviewPremiumBound==='1')return;
       btn.dataset.mmhOverviewPremiumBound='1';
-      btn.addEventListener('click',()=>{if(btn.dataset.tab==='overview'){setTimeout(markEnter,30);setTimeout(setupClicks,80)}},{passive:true});
+      btn.addEventListener('click',()=>{
+        setTimeout(syncObserver,20);
+        if(btn.dataset.tab==='overview'){setTimeout(markEnter,30);setTimeout(setupClicks,80)}
+      },{passive:true});
     });
-    observe();
-    if(root()?.classList.contains('active'))setTimeout(markEnter,80);
+    syncObserver();
+    if(analyzeActive()&&root()?.classList.contains('active'))setTimeout(markEnter,80);
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
+  window.addEventListener('mmhvault:page-visible',syncObserver,{passive:true});
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)disconnect();else syncObserver()},{passive:true});
 })();
 </script>
 
@@ -26019,18 +26033,27 @@ html body.mmh-workspace-active main.wrap .page.active :is(.empty,.mmh-ui-empty,.
   }
   async function load(){const u=typeof currentSessionUser!=='undefined'?currentSessionUser:null,key=month(),request=++state.request;state.month=key;state.loading=true;render();if(!u?.id||typeof db==='undefined'){state.loading=false;state.row=null;render();return}try{const {data,error}=await db.from('budgets').select('budget_month,currency,monthly_amount,updated_at').eq('user_id',u.id).eq('budget_month',key+'-01').maybeSingle();if(error)throw error;if(request!==state.request)return;state.row=data||null}catch(err){console.warn('[MMHVAULT] dashboard budget load failed',err);if(request===state.request)state.row=null}finally{if(request===state.request){state.loading=false;render()}}}
   function schedule(){
-    if(!active()||state.renderRaf)return;
-    state.renderRaf=requestAnimationFrame(()=>{state.renderRaf=0;render()});
+    if(!active()||document.hidden||state.renderRaf)return;
+    state.renderRaf=requestAnimationFrame(()=>{state.renderRaf=0;if(active()&&!document.hidden)render()});
   }
-  function observe(){const host=document.getElementById('mmhPremiumDashboardV500');if(!host||state.observer)return;state.observer=new MutationObserver(()=>{if(active())schedule()});state.observer.observe(host,{childList:true})}
+  function disconnectObserver(){state.observer?.disconnect();state.observer=null;}
+  function syncObserver(){
+    disconnectObserver();
+    if(document.hidden||!active())return;
+    const host=document.getElementById('mmhPremiumDashboardV500');if(!host)return;
+    state.observer=new MutationObserver(schedule);
+    state.observer.observe(host,{childList:true});
+    schedule();
+  }
   function setup(){
-    observe();load();
+    syncObserver();load();
     ['mmhvault:data-loaded','mmhvault:data-change','mmhvault:cache-restored','mmhvault:budget-changed'].forEach(ev=>window.addEventListener(ev,()=>{
       if(ev==='mmhvault:budget-changed'||state.month!==month())load();
       else schedule();
     }));
-    window.addEventListener('mmhvault:page-visible',()=>{if(active()){if(state.month!==month())load();else schedule()}});
-    setTimeout(()=>{observe();schedule()},250)
+    window.addEventListener('mmhvault:page-visible',()=>{syncObserver();if(active()){if(state.month!==month())load();else schedule()}},{passive:true});
+    document.addEventListener('visibilitychange',()=>{if(document.hidden)disconnectObserver();else syncObserver()},{passive:true});
+    setTimeout(()=>{syncObserver();schedule()},250)
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setup,{once:true});else setup();
 })();
@@ -26139,7 +26162,7 @@ html body.mmh-workspace-active main.wrap .page.active :is(.empty,.mmh-ui-empty,.
   const $=id=>document.getElementById(id),num=v=>{const x=Number(v);return Number.isFinite(x)?x:0};
   const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
   const tr=(en,zh)=>(localStorage.getItem('mmhvault_language_v3363')||'en')==='zh'?zh:en;
-  const state={goals:[],recurring:[],loading:false,request:0,observer:null,lastLoad:0,owner:''};
+  const state={goals:[],recurring:[],loading:false,request:0,observer:null,lastLoad:0,owner:'',renderRaf:0};
   const dashboard=()=>document.getElementById('dashboard');
   const active=()=>dashboard()?.classList.contains('active');
   const user=()=>typeof currentSessionUser!=='undefined'?currentSessionUser:null;
@@ -26208,20 +26231,29 @@ html body.mmh-workspace-active main.wrap .page.active :is(.empty,.mmh-ui-empty,.
     }catch(err){console.warn('[MMHVAULT] dashboard planning load failed',err)}
     finally{if(request===state.request){state.loading=false;render()}}
   }
-  function observe(){
-    const host=$('mmhPremiumDashboardV500');if(!host||state.observer)return;
-    state.observer=new MutationObserver(()=>{if(active())requestAnimationFrame(render)});
+  function scheduleRender(){
+    if(!active()||document.hidden||state.renderRaf)return;
+    state.renderRaf=requestAnimationFrame(()=>{state.renderRaf=0;if(active()&&!document.hidden)render()});
+  }
+  function disconnectObserver(){state.observer?.disconnect();state.observer=null;}
+  function syncObserver(){
+    disconnectObserver();
+    if(document.hidden||!active())return;
+    const host=$('mmhPremiumDashboardV500');if(!host)return;
+    state.observer=new MutationObserver(scheduleRender);
     state.observer.observe(host,{childList:true});
+    scheduleRender();
   }
   function setup(){
-    observe();
+    syncObserver();
     ['mmhvault:data-loaded','mmhvault:cache-restored','mmhvault:goals-changed','mmhvault:recurring-changed'].forEach(ev=>window.addEventListener(ev,()=>{
       if(active())load(true);
       else state.lastLoad=0;
     }));
-    ['mmhvault-language-change','languagechange'].forEach(ev=>window.addEventListener(ev,()=>render()));
-    window.addEventListener('mmhvault:page-visible',()=>{if(active())load(false)});
-    setTimeout(()=>{observe();if(active())load(true)},850);
+    ['mmhvault-language-change','languagechange'].forEach(ev=>window.addEventListener(ev,scheduleRender,{passive:true}));
+    window.addEventListener('mmhvault:page-visible',()=>{syncObserver();if(active())load(false)},{passive:true});
+    document.addEventListener('visibilitychange',()=>{if(document.hidden)disconnectObserver();else syncObserver()},{passive:true});
+    setTimeout(()=>{syncObserver();if(active())load(true)},850);
     window.MMHDashboardPlanningV117={load,render,get state(){return state}};
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setup,{once:true});else setup();
@@ -26282,9 +26314,25 @@ html body.mmh-workspace-active main.wrap .page.active :is(.empty,.mmh-ui-empty,.
   async function exportImage(){if(exportBusy)return;exportBusy=true;const btn=$('reportExportImageV116'),old=btn?.textContent;if(btn){btn.disabled=true;btn.textContent='Rendering…'}try{const canvas=await capture();const blob=await new Promise((resolve,reject)=>canvas.toBlob(b=>b?resolve(b):reject(new Error('Unable to create image.')),'image/png',1));downloadBlob(blob,`MMHVAULT-Report-${fileMonth()}-${currency()}.png`);toast('Report image exported.')}catch(err){console.warn('[MMHVAULT] report image export failed',err);message(err?.message||'Unable to export the report image.')}finally{exportBusy=false;if(btn){btn.disabled=false;btn.textContent=old||'Export Image'}}}
   async function exportPdf(){if(exportBusy)return;exportBusy=true;const btn=$('reportExportPdfV116'),old=btn?.textContent;if(btn){btn.disabled=true;btn.textContent='Building PDF…'}try{await ensurePdf();const canvas=await capture();const {jsPDF}=window.jspdf;const pdf=new jsPDF({orientation:'landscape',unit:'mm',format:'a4',compress:true});const pageW=297,pageH=210,margin=10,usableW=pageW-margin*2,usableH=pageH-margin*2,pxPerMm=canvas.width/usableW,slicePx=Math.max(1,Math.floor(usableH*pxPerMm));let y=0,pageIndex=0;const totalPages=Math.ceil(canvas.height/slicePx);while(y<canvas.height){const h=Math.min(slicePx,canvas.height-y),part=document.createElement('canvas');part.width=canvas.width;part.height=h;const ctx=part.getContext('2d',{alpha:false});ctx.fillStyle='#06111f';ctx.fillRect(0,0,part.width,part.height);ctx.drawImage(canvas,0,y,canvas.width,h,0,0,canvas.width,h);if(pageIndex>0)pdf.addPage('a4','landscape');const mmH=h/pxPerMm;pdf.addImage(part.toDataURL('image/jpeg',0.94),'JPEG',margin,margin,usableW,mmH,undefined,'FAST');pdf.setFontSize(7);pdf.setTextColor(115,139,157);pdf.text(`MMHVAULT · ${fileMonth()} · ${currency()} · Page ${pageIndex+1}/${totalPages}`,margin,pageH-3.5);y+=h;pageIndex++}pdf.save(`MMHVAULT-Report-${fileMonth()}-${currency()}.pdf`);toast('Report PDF exported.')}catch(err){console.warn('[MMHVAULT] report PDF export failed',err);message(err?.message||'Unable to export the PDF. Check your connection and try again.')}finally{exportBusy=false;if(btn){btn.disabled=false;btn.textContent=old||'Export PDF'}}}
   function install(){const page=$('reports'),controls=page?.querySelector('.report-controls-v115');if(!page||!controls)return false;if($('reportExportActionsV116'))return true;const box=document.createElement('div');box.id='reportExportActionsV116';box.className='report-export-actions-v116';box.innerHTML='<button class="btn export-image-v116" id="reportExportImageV116" type="button">Export Image</button><button class="btn export-pdf-v116" id="reportExportPdfV116" type="button">Export PDF</button>';controls.after(box);$('reportExportImageV116').addEventListener('click',exportImage);$('reportExportPdfV116').addEventListener('click',exportPdf);return true}
-  function schedule(){setTimeout(install,0);setTimeout(install,120);setTimeout(install,500)}
+  let reportObserver=null,installRaf=0;
+  const reportsActive=()=>!!$('reports')?.classList.contains('active');
+  function scheduleInstall(){
+    if(installRaf||document.hidden||!reportsActive())return;
+    installRaf=requestAnimationFrame(()=>{installRaf=0;if(reportsActive()&&!document.hidden)install()});
+  }
+  function disconnectObserver(){reportObserver?.disconnect();reportObserver=null;}
+  function syncObserver(){
+    disconnectObserver();
+    if(document.hidden||!reportsActive())return;
+    install();
+    const target=$('reports');if(!target)return;
+    reportObserver=new MutationObserver(scheduleInstall);
+    reportObserver.observe(target,{childList:true,subtree:false});
+  }
+  function schedule(){setTimeout(syncObserver,0);setTimeout(syncObserver,120);setTimeout(syncObserver,500)}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',schedule,{once:true});else schedule();
-  const target=$('reports');if(target)new MutationObserver(()=>{if(target.classList.contains('active'))install()}).observe(target,{childList:true,subtree:false,attributes:true,attributeFilter:['class']});
+  window.addEventListener('mmhvault:page-visible',syncObserver,{passive:true});
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)disconnectObserver();else syncObserver()},{passive:true});
   window.MMHReportExportV116={exportImage,exportPdf,install};
 })();
 </script>
