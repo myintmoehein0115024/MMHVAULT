@@ -23404,7 +23404,8 @@ html body.st-overview-compact #dashboard :is(.panel,#dashboardCommandCenterV3421
 </script>
 <script id="mmhvault-settings-summary-number-effects-v4">
 (function(){
- const tracked=new WeakMap();let queued=false;
+ const tracked=new WeakMap();let queued=false,observer=null,observedRoot=null;
+ const pageIds=['dashboard','accounts-page','invest','exchange'];
  const targets='#dashboard .mmh-networth-value,#dashboard .mmh-command-stat b,#accounts-page .am-row-value,#accounts-page .am-summary>strong,#accounts-page .am-summary-grid b,#invest .mmh-ui-kpi strong,#invest .mmh-ui-kpi strong>span,#invest .mmh-overview-fields .mmh-overview-field:nth-child(3) b,#invest .mmh-overview-fields .mmh-overview-field:nth-child(5) b,#invest .mmh-overview-fields .mmh-overview-field:nth-child(6) b,#exchange .exchange-converter-result .value';
  function refresh(){
    queued=false;if(typeof window.mmhSettingsNumberV2!=='function')return;
@@ -23419,14 +23420,22 @@ html body.st-overview-compact #dashboard :is(.panel,#dashboardCommandCenterV3421
    });
  }
  function schedule(){if(queued)return;queued=true;requestAnimationFrame(refresh)}
+ function disconnect(){observer?.disconnect();observer=null;observedRoot=null}
+ function activeRoot(){for(const id of pageIds){const root=document.getElementById(id);if(root?.classList.contains('active'))return root}return null}
+ function syncObserver(){
+   const root=!document.hidden?activeRoot():null;
+   if(root===observedRoot&&observer){schedule();return}
+   disconnect();
+   if(!root)return;
+   observedRoot=root;schedule();
+   observer=new MutationObserver(schedule);
+   observer.observe(root,{childList:true,subtree:true,characterData:true});
+ }
  function init(){
-   for(const id of ['dashboard','accounts-page','invest','exchange']){
-     const root=document.getElementById(id);if(!root)continue;
-     new MutationObserver(()=>{if(root.classList.contains('active'))schedule()}).observe(root,{childList:true,subtree:true,characterData:true});
-   }
    document.getElementById('settings')?.addEventListener('change',schedule);
-   window.addEventListener('mmhvault:page-visible',schedule);
-   schedule();
+   window.addEventListener('mmhvault:page-visible',syncObserver,{passive:true});
+   document.addEventListener('visibilitychange',()=>{if(document.hidden)disconnect();else syncObserver()},{passive:true});
+   syncObserver();
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
@@ -24090,14 +24099,19 @@ base.addEventListener('change',draw);$('asiaSearchV10').addEventListener('input'
   openBtn.addEventListener('click',window.openMmhAsiaRatesV130);
   backBtn.addEventListener('click',window.closeMmhAsiaRatesV130);
   detail.addEventListener('keydown',e=>{if(e.key==='Escape'&&detail.classList.contains('active')){e.preventDefault();window.closeMmhAsiaRatesV130();}});
+  let previewObservers=[],previewRaf=0;
+  const previewActive=()=>!document.hidden&&exchange.classList.contains('active');
+  const schedulePreview=()=>{if(previewRaf||!previewActive())return;previewRaf=requestAnimationFrame(()=>{previewRaf=0;if(previewActive())refreshPreview()})};
+  const disconnectPreview=()=>{previewObservers.forEach(obs=>obs.disconnect());previewObservers=[];if(previewRaf){cancelAnimationFrame(previewRaf);previewRaf=0}};
+  const syncPreviewObservers=()=>{disconnectPreview();if(!previewActive())return;refreshPreview();const listObserver=new MutationObserver(schedulePreview);listObserver.observe(list,{childList:true,subtree:true,characterData:true});previewObservers.push(listObserver);if(status){const statusObserver=new MutationObserver(schedulePreview);statusObserver.observe(status,{childList:true,subtree:true,characterData:true});previewObservers.push(statusObserver)}};
   const detailState=new MutationObserver(()=>{const active=detail.classList.contains('active');detail.setAttribute('aria-hidden',String(!active));if(!active)refreshPreview();});
   detailState.observe(detail,{attributes:true,attributeFilter:['class']});
-  new MutationObserver(refreshPreview).observe(list,{childList:true,subtree:true,characterData:true});
-  if(status)new MutationObserver(refreshPreview).observe(status,{childList:true,subtree:true,characterData:true});
-  base?.addEventListener('change',()=>requestAnimationFrame(refreshPreview));
-  window.addEventListener('languagechange',refreshPreview);
-  new MutationObserver(refreshPreview).observe(document.documentElement,{attributes:true,attributeFilter:['lang']});
-  ensureTopLevel();refreshPreview();
+  base?.addEventListener('change',schedulePreview);
+  window.addEventListener('languagechange',()=>{if(previewActive())schedulePreview()});
+  new MutationObserver(()=>{if(previewActive())schedulePreview()}).observe(document.documentElement,{attributes:true,attributeFilter:['lang']});
+  window.addEventListener('mmhvault:page-visible',syncPreviewObservers,{passive:true});
+  document.addEventListener('visibilitychange',()=>{if(document.hidden)disconnectPreview();else syncPreviewObservers()},{passive:true});
+  ensureTopLevel();syncPreviewObservers();
 })();
 </script>
 
