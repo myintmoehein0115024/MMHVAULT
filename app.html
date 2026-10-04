@@ -18870,10 +18870,11 @@ html body #invest .invest-entry .receipt-dropzone-v3300{width:100%!important;max
     if(!page())return;get('budgetMonthV110').value=state.month;
     get('budgetMonthV110').addEventListener('change',e=>{if(/^\d{4}-(0[1-9]|1[0-2])$/.test(e.target.value))load(e.target.value)});
     get('budgetCurrencyV110').addEventListener('change',e=>changeCurrency(e.target.value));get('budgetSaveV110').addEventListener('click',save);get('budgetClearV110').addEventListener('click',clearMonth);
-    const refreshActive=()=>{if(!page()?.classList.contains('active'))return;const owner=user()?.id||'';if(state.loadedOwner===owner&&state.loadedMonth===state.month)render();else load(state.month)};
-    ['mmhvault:data-loaded','mmhvault:cache-restored','mmhvault:category-config-changed'].forEach(ev=>window.addEventListener(ev,refreshActive));
-    window.addEventListener('mmhvault:page-visible',refreshActive);
-    window.addEventListener('mmhvault:config-owner-changed',()=>{state.request++;state.row=null;state.loadedMonth='';state.loadedOwner='';state.loading=false;state.saveBusy=false;if(page()?.classList.contains('active'))load(state.month)});
+    const refreshActive=()=>{if(document.hidden||!page()?.classList.contains('active'))return;const owner=user()?.id||'';if(state.loadedOwner===owner&&state.loadedMonth===state.month)render();else load(state.month)};
+    ['mmhvault:data-loaded','mmhvault:cache-restored','mmhvault:category-config-changed'].forEach(ev=>window.addEventListener(ev,refreshActive,{passive:true}));
+    window.addEventListener('mmhvault:page-visible',refreshActive,{passive:true});
+    document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshActive()},{passive:true});
+    window.addEventListener('mmhvault:config-owner-changed',()=>{state.request++;state.row=null;state.loadedMonth='';state.loadedOwner='';state.loading=false;state.saveBusy=false;if(!document.hidden&&page()?.classList.contains('active'))load(state.month)});
     window.MMHBudgetV110={load,render,get state(){return state}}
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setup,{once:true});else setup();
@@ -18954,10 +18955,11 @@ html body #invest .invest-entry .receipt-dropzone-v3300{width:100%!important;max
   function setup(){
     if(!page())return;$('goalAddV113').onclick=()=>{resetForm();openForm()};$('goalFormCloseV113').onclick=closeForm;$('goalResetV113').onclick=resetForm;$('goalSaveV113').onclick=save;
     page().querySelectorAll('[data-goal-filter]').forEach(b=>b.onclick=()=>{state.mode=b.dataset.goalFilter;render()});
-    const refreshActive=()=>{if(page()?.classList.contains('active'))load()};
-    ['mmhvault:data-loaded','mmhvault:cache-restored'].forEach(ev=>window.addEventListener(ev,refreshActive));
-    window.addEventListener('mmhvault:page-visible',refreshActive);
-    window.addEventListener('mmhvault:config-owner-changed',()=>{state.request++;state.owner=user()?.id||'';state.rows=[];state.loading=false;closeForm();render();if(page()?.classList.contains('active'))load()});
+    const refreshActive=()=>{if(!document.hidden&&page()?.classList.contains('active'))load()};
+    ['mmhvault:data-loaded','mmhvault:cache-restored'].forEach(ev=>window.addEventListener(ev,refreshActive,{passive:true}));
+    window.addEventListener('mmhvault:page-visible',refreshActive,{passive:true});
+    document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshActive()},{passive:true});
+    window.addEventListener('mmhvault:config-owner-changed',()=>{state.request++;state.owner=user()?.id||'';state.rows=[];state.loading=false;closeForm();render();if(!document.hidden&&page()?.classList.contains('active'))load()});
     window.MMHGoalsV113={load,render,get state(){return state}}
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setup,{once:true});else setup();
@@ -19223,10 +19225,10 @@ window.MMHVAULT_RELEASE='MMHVAULT v1.3.0 UI/UX Pass 1';
   function setup(){
     if(!page())return;resetForm();$('recurringAddV114').onclick=()=>{resetForm();openForm()};$('recurringFormCloseV114').onclick=closeForm;$('recurringResetV114').onclick=resetForm;$('recurringSaveV114').onclick=save;$('recurringTypeV114').onchange=syncForm;$('recurringGroupV114').onchange=syncForm;$('recurringFromAccountV114').onchange=syncCurrencyLabels;$('recurringToAccountV114').onchange=syncCurrencyLabels;
     page().querySelectorAll('[data-recurring-filter]').forEach(b=>b.onclick=()=>{state.mode=b.dataset.recurringFilter;render()});
-    ['mmhvault:data-loaded','mmhvault:cache-restored','mmhvault:category-config-changed'].forEach(ev=>window.addEventListener(ev,()=>{syncForm();installTxBridge();scanAlerts(false);if(page()?.classList.contains('active'))load()}));
-    window.addEventListener('mmhvault:page-visible',()=>{if(page()?.classList.contains('active'))load()});
-    window.addEventListener('mmhvault:config-owner-changed',()=>{state.request++;state.owner=signedUser()?.id||'';state.rows=[];state.loading=false;state.pending=null;state.lastAlertScan=0;state.alertOwner=state.owner;closeForm();clearPending();syncForm();render();if(page()?.classList.contains('active'))load();scanAlerts(false)});
-    let alertTimerV1522=0;const stopAlertTimerV1522=()=>{if(alertTimerV1522){clearTimeout(alertTimerV1522);alertTimerV1522=0}};const scheduleAlertTimerV1522=(delay=3600000)=>{stopAlertTimerV1522();if(document.hidden)return;alertTimerV1522=setTimeout(()=>{alertTimerV1522=0;if(!document.hidden)scanAlerts(false);scheduleAlertTimerV1522(3600000)},Math.max(1000,delay))};setTimeout(()=>{installTxBridge();scanAlerts(false);scheduleAlertTimerV1522(3600000)},900);document.addEventListener('visibilitychange',()=>{if(document.hidden)stopAlertTimerV1522();else{scanAlerts(false);scheduleAlertTimerV1522(3600000)}},{passive:true});window.addEventListener('pagehide',stopAlertTimerV1522,{passive:true});window.MMHRecurringV114={load,render,scanAlerts,recordNow,get state(){return state}}
+    ['mmhvault:data-loaded','mmhvault:cache-restored','mmhvault:category-config-changed'].forEach(ev=>window.addEventListener(ev,()=>{syncForm();installTxBridge();if(document.hidden)return;scanAlerts(false);if(page()?.classList.contains('active'))load()},{passive:true}));
+    window.addEventListener('mmhvault:page-visible',()=>{if(!document.hidden&&page()?.classList.contains('active'))load()},{passive:true});
+    window.addEventListener('mmhvault:config-owner-changed',()=>{state.request++;state.owner=signedUser()?.id||'';state.rows=[];state.loading=false;state.pending=null;state.lastAlertScan=0;state.alertOwner=state.owner;closeForm();clearPending();syncForm();render();if(document.hidden)return;if(page()?.classList.contains('active'))load();scanAlerts(false)});
+    let alertTimerV1522=0;const stopAlertTimerV1522=()=>{if(alertTimerV1522){clearTimeout(alertTimerV1522);alertTimerV1522=0}};const scheduleAlertTimerV1522=(delay=3600000)=>{stopAlertTimerV1522();if(document.hidden)return;alertTimerV1522=setTimeout(()=>{alertTimerV1522=0;if(!document.hidden)scanAlerts(false);scheduleAlertTimerV1522(3600000)},Math.max(1000,delay))};setTimeout(()=>{installTxBridge();if(!document.hidden)scanAlerts(false);scheduleAlertTimerV1522(3600000)},900);document.addEventListener('visibilitychange',()=>{if(document.hidden)stopAlertTimerV1522();else{if(page()?.classList.contains('active'))load();scanAlerts(false);scheduleAlertTimerV1522(3600000)}},{passive:true});window.addEventListener('pagehide',stopAlertTimerV1522,{passive:true});window.MMHRecurringV114={load,render,scanAlerts,recordNow,get state(){return state}}
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(setup,0),{once:true});else setTimeout(setup,0);
 })();
@@ -19351,12 +19353,14 @@ body.light #reports .report-mini-v115{background:#f3f8fb;border-color:#cfdee9}bo
     finally{if(request===state.request&&currentSessionUser?.id===owner){state.loading=false;render();if(state.pendingLoad){const nextForce=state.pendingForce;state.pendingLoad=false;state.pendingForce=false;scheduleCloudLoad(nextForce,0)}}}
   }
   function setup(){
-    state.month=currentMonth();state.currency=prefsCurrency();ensureMarkup();const active=()=>byId('reports')?.classList.contains('active');
-    ['mmhvault:data-loaded','mmhvault:data-change'].forEach(ev=>window.addEventListener(ev,()=>{if(active())render()}));
-    ['mmhvault:cache-restored','mmhvault:budget-changed','mmhvault:goals-changed','mmhvault:recurring-changed'].forEach(ev=>window.addEventListener(ev,()=>{state.cloudDirty=true;if(active())scheduleCloudLoad(true)}));
-    window.addEventListener('mmhvault:page-visible',()=>{if(!active())return;const key=cloudKey();if(state.cloudDirty||state.lastCloudKey!==key||Date.now()-state.lastCloudAt>=1200)scheduleCloudLoad(false);else render()});
-    window.addEventListener('mmhvault:config-owner-changed',()=>{state.request++;clearTimeout(state.loadTimer);state.loadTimer=0;state.pendingLoad=false;state.pendingForce=false;state.cloudDirty=true;state.lastCloudKey='';state.lastCloudAt=0;state.budget=null;state.goals=[];state.recurring=[];state.loading=false;state.currency=prefsCurrency();if(active())scheduleCloudLoad(true,0)});
-    window.renderReportsV390=()=>render();
+    state.month=currentMonth();state.currency=prefsCurrency();ensureMarkup();const active=()=>byId('reports')?.classList.contains('active'),visibleActive=()=>!document.hidden&&active();
+    const refreshVisible=()=>{if(!visibleActive())return;const key=cloudKey();if(state.cloudDirty||state.lastCloudKey!==key||Date.now()-state.lastCloudAt>=1200)scheduleCloudLoad(false);else render()};
+    ['mmhvault:data-loaded','mmhvault:data-change'].forEach(ev=>window.addEventListener(ev,()=>{if(visibleActive())render()},{passive:true}));
+    ['mmhvault:cache-restored','mmhvault:budget-changed','mmhvault:goals-changed','mmhvault:recurring-changed'].forEach(ev=>window.addEventListener(ev,()=>{state.cloudDirty=true;if(visibleActive())scheduleCloudLoad(true)},{passive:true}));
+    window.addEventListener('mmhvault:page-visible',refreshVisible,{passive:true});
+    document.addEventListener('visibilitychange',()=>{if(document.hidden){if(state.loadTimer){clearTimeout(state.loadTimer);state.loadTimer=0;state.cloudDirty=true}}else refreshVisible()},{passive:true});
+    window.addEventListener('mmhvault:config-owner-changed',()=>{state.request++;clearTimeout(state.loadTimer);state.loadTimer=0;state.pendingLoad=false;state.pendingForce=false;state.cloudDirty=true;state.lastCloudKey='';state.lastCloudAt=0;state.budget=null;state.goals=[];state.recurring=[];state.loading=false;state.currency=prefsCurrency();if(visibleActive())scheduleCloudLoad(true,0)});
+    window.renderReportsV390=()=>{if(visibleActive())render()};
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setup,{once:true});else setup();
 })();
@@ -22675,12 +22679,15 @@ html,body{max-width:100%;overflow-x:clip}
     $('cfaMonth').addEventListener('change',e=>{if(/^\d{4}-(0[1-9]|1[0-2])$/.test(e.target.value))state.month=e.target.value;periodChanged()});
     year.addEventListener('change',e=>{state.year=Number(e.target.value)||now;periodChanged()});
     $('cfaOpenBudgetV112')?.addEventListener('click',openBudget);
-    ['mmhvault:data-loaded','mmhvault:cache-restored','mmhvault:category-config-changed','mmhvault:page-visible'].forEach(ev=>window.addEventListener(ev,()=>{if(page.classList.contains('active')){render();if(state.budgetKey!==budgetContextKey())void loadBudget()}}));
-    window.addEventListener('mmhvault:budget-changed',()=>{state.budgetKey='';state.budget=null;if(page.classList.contains('active'))periodChanged()});
-    render();void loadBudget();
+    const visibleActive=()=>!document.hidden&&page.classList.contains('active');
+    const refreshVisible=()=>{if(!visibleActive())return;render();if(state.budgetKey!==budgetContextKey())void loadBudget()};
+    ['mmhvault:data-loaded','mmhvault:cache-restored','mmhvault:category-config-changed','mmhvault:page-visible'].forEach(ev=>window.addEventListener(ev,refreshVisible,{passive:true}));
+    window.addEventListener('mmhvault:budget-changed',()=>{state.budgetKey='';state.budget=null;if(visibleActive())periodChanged()},{passive:true});
+    document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshVisible()},{passive:true});
+    render();if(!document.hidden)void loadBudget();
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',setup,{once:true});else setup();
-  window.mmhRenderCashflowAnalyzeV1=render;
+  window.mmhRenderCashflowAnalyzeV1=()=>{const page=$('cashflow-analyze');if(page?.classList.contains('active')&&!document.hidden)render()};
 })();
 </script>
 
@@ -28269,5 +28276,6 @@ window.MMHVAULT_V1523_ACTIVE_OBSERVER_SLEEP={version:'1.5.23',transactions:true,
 <script id="mmhvault-v1538-more-responsive-cleanup-marker">window.MMHVAULT_V1538={version:'1.5.38',moreLegacyCssRemoved:true,moreFrameGeometryCanonical:true};</script>
 
 <script id="mmhvault-v1539-final-css-audit-marker">window.MMHVAULT_V1539={version:'1.5.39',finalCssDeadLayerAudit:true,retiredUnusedResponsiveLayers:true};</script>
+<script id="mmhvault-v1540-final-stable-regression-marker">window.MMHVAULT_V1540={version:'1.5.40',finalStableRegression:true,hiddenPageRecovery:true,phoneSmsPaused:true};</script>
 </body>
 </html>
