@@ -22524,7 +22524,7 @@ html,body{max-width:100%;overflow-x:clip}
 
 <!-- MMHVAULT v4.6.2 · Analyze mobile Wealth Rules selector alignment fix only. -->
 <!-- v4.8.0 Analyze information architecture: relocate existing rendered modules. -->
-<style id="mmhvault-cashflow-analyze-v1-style">
+<style id="mmhvault-cashflow-analyze-v1537-responsive-cleanup">
 #cashflow-analyze{min-height:calc(100vh - 150px);padding-bottom:120px}
 #cashflow-analyze .cfa-shell{max-width:1540px;margin:0 auto}
 #cashflow-analyze .cfa-head{display:flex;justify-content:space-between;align-items:end;gap:22px;padding:22px 26px;border:1px solid rgba(96,159,224,.24);border-radius:23px;background:linear-gradient(125deg,rgba(12,31,61,.88),rgba(5,16,37,.88));box-shadow:0 18px 38px rgba(0,0,0,.16)}
@@ -22580,11 +22580,11 @@ html,body{max-width:100%;overflow-x:clip}
 #cashflow-analyze .cfa-records-scroll table{width:100%;min-width:610px;border-collapse:collapse;text-align:left}#cashflow-analyze .cfa-records-scroll th{position:sticky;top:0;background:#102746;color:#a7bfd9;z-index:1;font-size:10px;letter-spacing:.07em;text-transform:uppercase}
 #cashflow-analyze .cfa-records-scroll th,#cashflow-analyze .cfa-records-scroll td{padding:10px 12px;border-bottom:1px solid rgba(95,151,209,.11)}#cashflow-analyze .cfa-records-scroll td{color:#d5e2f3;font-size:12px}#cashflow-analyze .cfa-records-scroll td:nth-last-child(-n+2){text-align:right;font-variant-numeric:tabular-nums}#cashflow-analyze .cfa-records-scroll th:nth-last-child(-n+2){text-align:right}
 #cashflow-analyze .cfa-method{margin:16px 2px 0!important;font-size:11px}
-@media(max-width:1000px){#cashflow-analyze .cfa-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}#cashflow-analyze .cfa-detail-grid{grid-template-columns:1fr}}
-@media(max-width:620px){#cashflow-analyze .cfa-head{flex-direction:column;align-items:stretch;padding:18px}#cashflow-analyze .cfa-controls{display:grid;grid-template-columns:1fr 1fr}#cashflow-analyze .cfa-controls select,#cashflow-analyze .cfa-controls input{width:100%}#cashflow-analyze .cfa-kpis{gap:8px}#cashflow-analyze .cfa-efficiency-kpis{gap:8px;margin-top:8px}#cashflow-analyze .cfa-mini-card{min-height:70px;padding:12px 13px;gap:4px 10px}#cashflow-analyze .cfa-mini-card>strong{font-size:18px}#cashflow-analyze .cfa-mini-card>small{font-size:9px}#cashflow-analyze .cfa-card{min-height:115px;padding:13px}#cashflow-analyze .cfa-card strong{font-size:20px}#cashflow-analyze .cfa-card small{font-size:9px}#cashflow-analyze .cfa-panel{padding:16px}#cashflow-analyze .cfa-budget-comparison{grid-template-columns:1fr 1fr}#cashflow-analyze .cfa-budget-comparison>div:last-child{grid-column:1/-1}#cashflow-analyze .cfa-trend{gap:3px}#cashflow-analyze .cfa-trend-bars i{width:5px}}
+
+@media(max-width:620px){#cashflow-analyze .cfa-head{flex-direction:column}#cashflow-analyze .cfa-controls{display:grid}#cashflow-analyze .cfa-controls select,#cashflow-analyze .cfa-controls input{width:100%}#cashflow-analyze .cfa-controls #cfaMonthWrap,#cashflow-analyze .cfa-controls #cfaYearWrap{grid-column:1/-1}#cashflow-analyze .cfa-efficiency-kpis{gap:8px;margin-top:8px}#cashflow-analyze .cfa-mini-card{min-height:70px;padding:12px 13px;gap:4px 10px}#cashflow-analyze .cfa-mini-card>strong{font-size:18px}#cashflow-analyze .cfa-mini-card>small{font-size:9px}#cashflow-analyze .cfa-budget-comparison{grid-template-columns:1fr 1fr}#cashflow-analyze .cfa-budget-comparison>div:last-child{grid-column:1/-1}#cashflow-analyze .cfa-trend-bars i{width:5px}}
 @media(max-width:430px){#cashflow-analyze .cfa-efficiency-kpis{grid-template-columns:1fr}#cashflow-analyze .cfa-mini-card{min-height:66px}}
 #cashflow-analyze .cfa-controls #cfaMonthWrap,#cashflow-analyze .cfa-controls #cfaYearWrap{min-width:0}
-@media(max-width:620px){#cashflow-analyze .cfa-controls #cfaMonthWrap,#cashflow-analyze .cfa-controls #cfaYearWrap{grid-column:1/-1}}
+
 </style>
 
 <script id="mmhvault-cashflow-analyze-v1-js">
@@ -23123,7 +23123,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 </script>
 
 <style id="mmhvault-accounts-page-css">
-#accounts-page{max-width:980px;margin:0 auto;padding-bottom:max(125px,calc(100px + env(safe-area-inset-bottom,0px)))!important}#accounts-page .ap-heading{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:8px 0 20px}#accounts-page h1{font-size:30px;margin:0;color:#e4f1fc}#accounts-page .ap-heading p{font-size:12px;color:#94abc4;margin:7px 0 0}#accounts-page .ap-heading label{display:flex;flex-direction:column;gap:6px;color:#9db7ce;font-size:10px}#accounts-page .ap-heading select{min-height:44px;min-width:110px;padding:10px 12px;border:1px solid #30516f;border-radius:11px;background:#102943;color:#e4f1fc}#accounts-page .am-shell{padding:18px;border:1px solid #294862;border-radius:20px;background:linear-gradient(145deg,rgba(13,30,54,.95),rgba(7,18,36,.95));color:#e2effc}#accounts-page .am-portfolio{background:rgba(31,64,85,.25)}body.light #accounts-page h1{color:#294663}@media(max-width:620px){#accounts-page .am-shell{padding:12px;border-radius:17px}#accounts-page .ap-heading{margin-bottom:14px}#accounts-page h1{font-size:25px}#accounts-page .ap-heading p{font-size:10px;max-width:200px}}
+#accounts-page{max-width:980px;margin:0 auto;padding-bottom:max(125px,calc(100px + env(safe-area-inset-bottom,0px)))!important}#accounts-page .ap-heading{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:8px 0 20px}#accounts-page h1{font-size:30px;margin:0;color:#e4f1fc}#accounts-page .ap-heading p{font-size:12px;color:#94abc4;margin:7px 0 0}#accounts-page .ap-heading label{display:flex;flex-direction:column;gap:6px;color:#9db7ce;font-size:10px}#accounts-page .ap-heading select{min-height:44px;min-width:110px;padding:10px 12px;border:1px solid #30516f;border-radius:11px;background:#102943;color:#e4f1fc}#accounts-page .am-shell{padding:18px;border:1px solid #294862;border-radius:20px;background:linear-gradient(145deg,rgba(13,30,54,.95),rgba(7,18,36,.95));color:#e2effc}#accounts-page .am-portfolio{background:rgba(31,64,85,.25)}body.light #accounts-page h1{color:#294663}
 </style>
 <style id="mmhvault-ledger-settings-layout-css">
 :is(#transactions,#invest),:is(#transactions,#invest) *,:is(#transactions,#invest) *::before,:is(#transactions,#invest) *::after{animation:none!important;transition:none!important}
@@ -23393,7 +23393,7 @@ html body #settings .st-group>h2{color:#96aec5!important;letter-spacing:.08em!im
 html body #category-manage .mmh-manager-main-v445 span{color:#96aec5!important;font-size:10px!important}html body #category-manage .mmh-manager-main-v445 b{color:#dcecf8!important;font-size:13px!important}
 body.light :is(#dashboard,#transactions,#invest,#accounts-page,#settings,#cashflow-analyze,#exchange,#category-manage,#ledger-detail){--mmh-profit:#18734d;--mmh-loss:#b33c51;--mmh-accent:#21658c;--mmh-personal:#735299;--mmh-loan:#836217;--mmh-muted:#526f88}
 body.light #accounts-page .am-row-value,body.light #category-manage .mmh-manager-main-v445 b{color:#294663!important}
-@media(max-width:620px){html body #transactions .tx-mobile-amount-v371,html body #invest #mmhHistoryRowsV1 .mmh-history-amount-summary{font-size:15px!important}html body #accounts-page .am-row-value{font-size:14px!important}html body #invest #mmhUnifiedListV1 .mmh-overview-field b{font-size:14px!important}html body #invest #mmhUnifiedKpisV1 .mmh-ui-kpi strong{font-size:19px!important}html body #ldBody .mmh-history-top{flex-wrap:wrap!important}html body #ldBody .mmh-history-amount-summary{margin-left:auto;max-width:100%;overflow-wrap:anywhere}html body #transactions .tx-mobile-amount-v371{max-width:40%;white-space:normal!important;overflow-wrap:anywhere}html body #accounts-page .am-row{gap:8px!important}}
+@media(max-width:620px){html body #transactions .tx-mobile-amount-v371,html body #invest #mmhHistoryRowsV1 .mmh-history-amount-summary{font-size:15px!important}html body #accounts-page .am-row-value{font-size:14px!important}html body #accounts-page .am-row{gap:8px!important}html body #accounts-page .am-shell{padding:12px;border-radius:17px}html body #accounts-page .ap-heading{margin-bottom:14px}html body #accounts-page h1{font-size:25px}html body #accounts-page .ap-heading p{font-size:10px;max-width:200px}html body #invest #mmhUnifiedListV1 .mmh-overview-field b{font-size:14px!important}html body #invest #mmhUnifiedKpisV1 .mmh-ui-kpi strong{font-size:19px!important}html body #ldBody .mmh-history-top{flex-wrap:wrap!important}html body #ldBody .mmh-history-amount-summary{margin-left:auto;max-width:100%;overflow-wrap:anywhere}html body #transactions .tx-mobile-amount-v371{max-width:40%;white-space:normal!important;overflow-wrap:anywhere}}
 </style>
 <script id="mmhvault-transaction-visual-groups-v1">
 (function(){
@@ -28415,5 +28415,6 @@ window.MMHVAULT_V1523_ACTIVE_OBSERVER_SLEEP={version:'1.5.23',transactions:true,
 
 <script id="mmhvault-v1535-responsive-cleanup-marker">window.MMHVAULT_V1535={version:'1.5.35',responsiveCleanupPhase1:true,exchangeSettingsCanonical:true,legacyResponsiveLayersRemoved:['v8.41','v9.02']};</script>
 <script id="mmhvault-v1536-reports-responsive-marker">window.MMHVAULT_V1536={version:'1.5.36',responsiveCleanupPhase2:true,reportsCanonical:true,reportComparisonPreservesAllData:true,legacyReportResponsiveRemoved:['v1.1.8','v1.1.8-workspace-hotfix']};</script>
+<script id="mmhvault-v1537-responsive-cleanup-marker">window.MMHVAULT_V1537={version:'1.5.37',responsiveCleanupPhase3:true,accountsAnalyzeCleanup:true,phoneSmsPaused:true};</script>
 </body>
 </html>
