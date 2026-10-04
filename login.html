@@ -261,7 +261,9 @@ function phoneProviderErrorV1532(error,mode='signin'){
   return raw||phoneTextV1531('Unable to send verification code.','无法发送验证码。');
 }
 function msg(text,type=''){statusEl.textContent=window.translateMMHVAULTMessage?window.translateMMHVAULTMessage(text):text;statusEl.className='status '+type}
-function appUrl(){return new URL('app.html',location.href).toString()}
+function nextTargetV160(){return new URLSearchParams(location.search).get('next')==='business.html'?'business.html':'app.html'}
+function appUrl(){return new URL(nextTargetV160(),location.href).toString()}
+function loginCallbackUrlV160(){const u=new URL('login.html',location.href);if(nextTargetV160()==='business.html')u.searchParams.set('next','business.html');return u.toString()}
 function renderPhoneCountriesV1531(){
   const zh=isZhV1531();
   for(const id of ['signinPhoneCountry','signupPhoneCountry']){
@@ -333,12 +335,12 @@ async function verifyPhoneOtpV1531(mode){
   document.getElementById(mode+'PhoneOtp')?.addEventListener('input',e=>{e.target.value=String(e.target.value||'').replace(/\D/g,'').slice(0,6)},{passive:true});
 });
 window.addEventListener('online',()=>{for(const m of ['signin','signup'])updatePhoneCooldownV1531(m)},{passive:true});
-async function googleLogin(btn){if(!db){msg('Authentication service is unavailable. Please refresh.','err');return}btn.disabled=true;msg('Opening Google sign-in…');try{const {error}=await db.auth.signInWithOAuth({provider:'google',options:{redirectTo:new URL('login.html',location.href).toString()}});if(error)throw error}catch(e){console.error(e);msg(e.message||'Unable to sign in with Google.','err');btn.disabled=false}}
+async function googleLogin(btn){if(!db){msg('Authentication service is unavailable. Please refresh.','err');return}btn.disabled=true;msg('Opening Google sign-in…');try{const {error}=await db.auth.signInWithOAuth({provider:'google',options:{redirectTo:loginCallbackUrlV160()}});if(error)throw error}catch(e){console.error(e);msg(e.message||'Unable to sign in with Google.','err');btn.disabled=false}}
 ['googleSignIn','googleSignUp'].forEach(id=>document.getElementById(id).onclick=()=>googleLogin(document.getElementById(id)));
 document.getElementById('signin').addEventListener('submit',async e=>{e.preventDefault();if(!db){msg('Authentication service is unavailable.','err');return}if(currentAuthMethod==='phone'){await verifyPhoneOtpV1531('signin');return}const email=signinEmail.value.trim(),password=signinPassword.value;msg('Signing in…');const {data,error}=await db.auth.signInWithPassword({email,password});if(error){msg(error.message==='Invalid login credentials'?'Incorrect email or password.':error.message,'err');return}if(data.session)location.replace(appUrl())});
 document.getElementById('signup').addEventListener('submit',async e=>{e.preventDefault();if(!db){msg('Authentication service is unavailable.','err');return}if(currentAuthMethod==='phone'){await verifyPhoneOtpV1531('signup');return}if(!terms.checked){msg('Please agree to the terms.','err');return}msg('Creating your account…');const {data,error}=await db.auth.signUp({email:signupEmail.value.trim(),password:signupPassword.value,options:{data:{full_name:signupName.value.trim()}}});if(error){msg(error.message,'err');return}if(data.session)location.replace(appUrl());else msg('Account created. Please check your email to confirm your account.','ok')});
-document.getElementById('forgotBtn').onclick=async e=>{e.preventDefault();const email=signinEmail.value.trim();if(!email){msg('Enter your email first, then try again.','err');return}if(!db){msg('Authentication service is unavailable.','err');return}msg('Sending reset email…');const {error}=await db.auth.resetPasswordForEmail(email,{redirectTo:new URL('login.html',location.href).toString()});msg(error?error.message:'Password reset email sent. Please check your inbox.',error?'err':'ok')};
-renderPhoneCountriesV1531();setAuthMethodV1531('email');window.MMHVAULT_PHONE_AUTH_V1532={version:'1.5.32',providerReady:true,chinaMainland:false,persistentOtpCooldown:true,friendlySmsErrors:true};
+document.getElementById('forgotBtn').onclick=async e=>{e.preventDefault();const email=signinEmail.value.trim();if(!email){msg('Enter your email first, then try again.','err');return}if(!db){msg('Authentication service is unavailable.','err');return}msg('Sending reset email…');const {error}=await db.auth.resetPasswordForEmail(email,{redirectTo:loginCallbackUrlV160()});msg(error?error.message:'Password reset email sent. Please check your inbox.',error?'err':'ok')};
+renderPhoneCountriesV1531();setAuthMethodV1531('email');window.MMHVAULT_PHONE_AUTH_V1532={version:'1.5.32',providerReady:true,chinaMainland:false,persistentOtpCooldown:true,friendlySmsErrors:true};window.MMHVAULT_LOGIN_REDIRECT_V160={version:'1.6.0',businessReturn:true};
 if(db){db.auth.getSession().then(({data})=>{if(data.session)location.replace(appUrl())}).catch(()=>{});db.auth.onAuthStateChange((event,session)=>{if(session&&(event==='SIGNED_IN'||event==='INITIAL_SESSION'))location.replace(appUrl())})}
 </script>
 </body></html>
