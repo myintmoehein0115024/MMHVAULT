@@ -8231,7 +8231,24 @@ function showTxTab(tab){
 }
 function restoreTxTab(){showTxTab(sessionStorage.getItem('myfinance_tx_tab')||'add');}
 
-let mmhvaultRenderFrameV3441=0; function scheduleRenderV3441(){ if(mmhvaultRenderFrameV3441)return; const run=()=>{mmhvaultRenderFrameV3441=0; try{render();window.dispatchEvent(new CustomEvent('mmhvault:rendered',{detail:{reason:'frame-render',page:document.querySelector('.page.active')?.id||''}}));}catch(err){console.warn("MMHVAULT render warning:",err);}}; if(typeof requestAnimationFrame==="function")mmhvaultRenderFrameV3441=requestAnimationFrame(run); else mmhvaultRenderFrameV3441=setTimeout(run,0);}
+let mmhvaultRenderFrameV3441=0;
+const mmhvaultRenderReasonsV1534=new Set();
+function scheduleRenderV3441(reason='frame-render'){
+  const normalizedReason=typeof reason==='string'&&reason?reason:'frame-render';
+  mmhvaultRenderReasonsV1534.add(normalizedReason);
+  if(mmhvaultRenderFrameV3441)return;
+  const run=()=>{
+    mmhvaultRenderFrameV3441=0;
+    const why=[...mmhvaultRenderReasonsV1534].join(',')||'frame-render';
+    mmhvaultRenderReasonsV1534.clear();
+    try{
+      render();
+      window.dispatchEvent(new CustomEvent('mmhvault:rendered',{detail:{reason:why,page:document.querySelector('.page.active')?.id||''}}));
+    }catch(err){console.warn("MMHVAULT render warning:",err);}
+  };
+  if(typeof requestAnimationFrame==="function")mmhvaultRenderFrameV3441=requestAnimationFrame(run);
+  else mmhvaultRenderFrameV3441=setTimeout(run,0);
+}
 function render(){if($("dashboard").classList.contains("active"))renderDashboard();if($("transactions").classList.contains("active"))renderTransactions();if($("analyze").classList.contains("active"))renderAnalyze();if($("exchange").classList.contains("active"))renderRates();if($("invest").classList.contains("active"))renderInvest();}
 function renderCurrentHoldings(cryptos){
  const syms=['BTC','ETH','SOL','BNB'];
@@ -12821,8 +12838,12 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
     const why=reasons.join(',')||'sync';
     reasons=[];
     try{
-      if(typeof window.render==='function') window.render();
-      window.dispatchEvent(new CustomEvent('mmhvault:rendered',{detail:{reason:why,page:document.querySelector('.page.active')?.id||''}}));
+      if(typeof window.scheduleRenderV3441==='function') window.scheduleRenderV3441(why);
+      else if(typeof scheduleRenderV3441==='function') scheduleRenderV3441(why);
+      else{
+        if(typeof window.render==='function') window.render();
+        window.dispatchEvent(new CustomEvent('mmhvault:rendered',{detail:{reason:why,page:document.querySelector('.page.active')?.id||''}}));
+      }
     }catch(err){console.warn('MMHVAULT render kernel failed:',err);}
   }
   function request(reason='sync'){
@@ -14830,6 +14851,7 @@ html.mmhv-tab-hidden .mmh-glow-anim{animation-play-state:paused!important}
     renderInsightsV340:'analyze'
   };
   const wrapped={};
+  let pendingVisiblePageV1534='',pendingRequestedPageV1534='',pageVisibleSeqV1534=0;
   const canRender=(pageId)=>document.visibilityState!=='hidden' && document.getElementById(pageId)?.classList.contains('active');
   const wrapOne=(name,pageId)=>{
     const fn=window[name];
@@ -14848,8 +14870,16 @@ html.mmhv-tab-hidden .mmh-glow-anim{animation-play-state:paused!important}
     const sp=window.setPage;
     if(typeof sp==='function' && !sp.__mmhV34243Wrapped){
       const next=function(){
+        const requested=String(arguments[0]??'');
         const r=sp.apply(this,arguments);
-        const signal=()=>window.dispatchEvent(new CustomEvent('mmhvault:page-visible',{detail:{page:document.querySelector('.page.active')?.id||''}}));
+        pendingRequestedPageV1534=requested;
+        pendingVisiblePageV1534=typeof r==='string'&&r?r:(document.querySelector('.page.active')?.id||'');
+        const signal=()=>{
+          const page=pendingVisiblePageV1534||document.querySelector('.page.active')?.id||'';
+          const requestedPage=pendingRequestedPageV1534;
+          pendingVisiblePageV1534='';pendingRequestedPageV1534='';pageVisibleSeqV1534++;
+          window.dispatchEvent(new CustomEvent('mmhvault:page-visible',{detail:{page,requestedPage,reason:'set-page',seq:pageVisibleSeqV1534}}));
+        };
         if(typeof window.mmhvaultScheduleFrameV34244==='function')window.mmhvaultScheduleFrameV34244('page-visible-signal',signal);
         else requestAnimationFrame(signal);
         return r;
@@ -15665,10 +15695,13 @@ body.mmhvault-scroll-active #invest .invest-top>.panel{box-shadow:inset 0 1px 0 
     patchMobile(rs); lastOrderKey=ord; lastRowsKey=val;
   }
 
-  window.renderTransactions=function(){renderPartial();};
+  function publishTransactionListRenderedV1534(reason='render'){
+    try{window.dispatchEvent(new CustomEvent('mmhvault:list-rendered',{detail:{page:'transactions',section:'transactions',reason}}));}catch(_e){}
+  }
+  window.renderTransactions=function(){renderPartial();publishTransactionListRenderedV1534('canonical-render');};
   window.renderTransactionsV28=window.renderTransactions;
   window.mmhvaultInvalidateTransactionRenderV34241=function(){lastOrderKey=null;lastRowsKey=null;};
-  window.mmhvaultScheduleTransactionRenderV34241=function(){if(queued)return;queued=true;const cb=()=>{queued=false;try{renderPartial();}catch(e){console.warn('[MMHVAULT] tx partial render',e);}};requestAnimationFrame?requestAnimationFrame(cb):setTimeout(cb,0);};
+  window.mmhvaultScheduleTransactionRenderV34241=function(){if(queued)return;queued=true;const cb=()=>{queued=false;try{renderPartial();publishTransactionListRenderedV1534('scheduled-render');}catch(e){console.warn('[MMHVAULT] tx partial render',e);}};requestAnimationFrame?requestAnimationFrame(cb):setTimeout(cb,0);};
   window.MM_HVAULT_PERFORMANCE_V34241={version:'3.42.41',partialTransactionDOM:true,keyedMobileCards:true,desktopRowPatch:true};
 })();
 </script>
@@ -28499,5 +28532,6 @@ window.MMHVAULT_V1523_ACTIVE_OBSERVER_SLEEP={version:'1.5.23',transactions:true,
 </script>
 
 <script id="mmhvault-v1533-list-render-signal-marker">window.MMHVAULT_V1533={version:'1.5.33',listRenderSignal:true,transactionListObserversRemoved:true,investListObserversRemoved:true,transactionFormObserverRemoved:true};</script>
+<script id="mmhvault-v1534-stability-regression-marker">window.MMHVAULT_V1534={version:'1.5.34',stabilityRegressionPass:true,canonicalTransactionListSignal:true,renderQueueUnified:true,pageVisibleSignalStable:true};</script>
 </body>
 </html>
