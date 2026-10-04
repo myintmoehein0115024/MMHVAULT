@@ -18454,8 +18454,21 @@ button[data-mmh-busy="1"],.btn[data-mmh-busy="1"]{position:relative;cursor:wait!
   document.addEventListener('keydown',e=>{
     if(e.key!=='Enter'&&e.key!==' ')return;const row=e.target?.closest?.('#transactions #txList tr[data-mmh-tx-id]');if(!row)return;e.preventDefault();open(row.dataset.mmhTxId);
   });
-  const host=document.getElementById('txList');if(host){new MutationObserver(()=>enhance()).observe(host,{childList:true,subtree:true});enhance();}
-  else if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{const h=document.getElementById('txList');if(h){new MutationObserver(()=>enhance()).observe(h,{childList:true,subtree:true});enhance();}},{once:true});
+  let txDetailObserverV1523=null,txDetailRafV1523=0;
+  const txPageActiveV1523=()=>!!document.getElementById('transactions')?.classList.contains('active');
+  function scheduleTxEnhanceV1523(){
+    if(txDetailRafV1523||!txPageActiveV1523())return;
+    txDetailRafV1523=requestAnimationFrame(()=>{txDetailRafV1523=0;if(txPageActiveV1523())enhance()});
+  }
+  function syncTxDetailObserverV1523(){
+    const host=document.getElementById('txList');if(!host)return;
+    if(!txPageActiveV1523()){txDetailObserverV1523?.disconnect();txDetailObserverV1523=null;return;}
+    enhance();
+    if(!txDetailObserverV1523){txDetailObserverV1523=new MutationObserver(scheduleTxEnhanceV1523);txDetailObserverV1523.observe(host,{childList:true,subtree:true});}
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',syncTxDetailObserverV1523,{once:true});else syncTxDetailObserverV1523();
+  window.addEventListener('mmhvault:page-visible',syncTxDetailObserverV1523,{passive:true});
+  document.addEventListener('visibilitychange',()=>{if(document.hidden){txDetailObserverV1523?.disconnect();txDetailObserverV1523=null}else syncTxDetailObserverV1523()},{passive:true});
 })();
 </script>
 <!-- MMHVAULT v800 · Transaction detail interaction + retired duplicate transaction render gate. -->
@@ -23053,8 +23066,21 @@ function init(){
  function open(card,page){origin=page;savedScroll=window.scrollY;detailOwner=currentSessionUser?.id||'';const clone=card.cloneNode(true);clone.removeAttribute('tabindex');clone.removeAttribute('role');clone.classList.add('open');const buttons=[...card.querySelectorAll('button')];clone.querySelectorAll('button').forEach((b,i)=>{b.onclick=e=>{e.stopPropagation();if(currentSessionUser?.id!==detailOwner)return;buttons[i]?.click()}});if(card.classList.contains('mmh-history-card')){let actions=clone.querySelector('.mmh-history-actions');if(!actions){actions=document.createElement('div');actions.className='mmh-history-actions';clone.append(actions)}const detailBtn=document.createElement('button');detailBtn.type='button';detailBtn.dataset.historyRole='details-v831';detailBtn.textContent='Details';detailBtn.onclick=e=>{e.preventDefault();e.stopPropagation();if(currentSessionUser?.id!==detailOwner)return false;window.openInvestmentPortfolioDetailV821?.(clone);return false};actions.insertBefore(detailBtn,actions.firstChild)}const detailTitle=page==='transactions'?'Transaction details':card.classList.contains('mmh-history-card')?'Investment details':'Holding details';document.getElementById('ldTitle').dataset.i18nBase=detailTitle;document.getElementById('ldTitle').textContent=detailTitle;document.getElementById('ldBody').replaceChildren(clone);setPage('ledger-detail');window.scrollTo({top:0});document.getElementById('ldBack').focus();}
  document.addEventListener('click',e=>{const card=e.target.closest('#txMobileListV371 .tx-mobile-card-v371,#mmhUnifiedListV1 .mmh-overview-card,#mmhHistoryRowsV1 .mmh-history-card');if(!card||e.target.closest('button,a,input,select'))return;e.preventDefault();e.stopImmediatePropagation();open(card,card.closest('#transactions')?'transactions':'invest')},true);
  document.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches('#txMobileListV371 .tx-mobile-card-v371,#mmhUnifiedListV1 .mmh-overview-card,#mmhHistoryRowsV1 .mmh-history-card')){e.preventDefault();e.target.click()}});
- const decorate=()=>{document.querySelectorAll('#txMobileListV371 .tx-mobile-card-v371,#mmhUnifiedListV1 .mmh-overview-card,#mmhHistoryRowsV1 .mmh-history-card').forEach(x=>{x.tabIndex=0;x.setAttribute('role','button');x.setAttribute('aria-label','Open '+(x.querySelector('b')?.textContent||'record')+' details')});};
- for(const id of ['txList','mmhUnifiedListV1','mmhHistoryRowsV1']){const list=document.getElementById(id);if(list)new MutationObserver(decorate).observe(list,{childList:true,subtree:true})}decorate();
+ const decorate=()=>{const selector=document.getElementById('transactions')?.classList.contains('active')?'#txMobileListV371 .tx-mobile-card-v371':document.getElementById('invest')?.classList.contains('active')?'#mmhUnifiedListV1 .mmh-overview-card,#mmhHistoryRowsV1 .mmh-history-card':'';if(!selector)return;document.querySelectorAll(selector).forEach(x=>{x.tabIndex=0;x.setAttribute('role','button');x.setAttribute('aria-label','Open '+(x.querySelector('b')?.textContent||'record')+' details')});};
+ let ledgerObserversV1523=[],ledgerDecorateRafV1523=0;
+ const ledgerObservedPageV1523=()=>document.getElementById('transactions')?.classList.contains('active')?'transactions':document.getElementById('invest')?.classList.contains('active')?'invest':'';
+ function disconnectLedgerObserversV1523(){ledgerObserversV1523.forEach(o=>o.disconnect());ledgerObserversV1523=[];}
+ function scheduleLedgerDecorateV1523(){if(ledgerDecorateRafV1523)return;ledgerDecorateRafV1523=requestAnimationFrame(()=>{ledgerDecorateRafV1523=0;decorate()});}
+ function syncLedgerObserversV1523(){
+   disconnectLedgerObserversV1523();
+   const active=ledgerObservedPageV1523();if(!active||document.hidden)return;
+   decorate();
+   const ids=active==='transactions'?['txList']:['mmhUnifiedListV1','mmhHistoryRowsV1'];
+   ids.forEach(id=>{const list=document.getElementById(id);if(!list)return;const obs=new MutationObserver(scheduleLedgerDecorateV1523);obs.observe(list,{childList:true,subtree:true});ledgerObserversV1523.push(obs)});
+ }
+ syncLedgerObserversV1523();
+ window.addEventListener('mmhvault:page-visible',syncLedgerObserversV1523,{passive:true});
+ document.addEventListener('visibilitychange',()=>{if(document.hidden)disconnectLedgerObserversV1523();else syncLedgerObserversV1523()},{passive:true});
  window.addEventListener('mmhvault:config-owner-changed',()=>{document.getElementById('ldBody').replaceChildren();if(document.getElementById('ledger-detail').classList.contains('active'))setPage('dashboard')});
  window.addEventListener('mmhvault:data-loaded',()=>{if(document.getElementById('ledger-detail').classList.contains('active')){document.getElementById('ldBody').replaceChildren();setPage(origin)}});
 }
@@ -23305,8 +23331,12 @@ body.light #accounts-page .am-row-value,body.light #category-manage .mmh-manager
       if(card.dataset.visualGroup!==group)card.dataset.visualGroup=group;
     });
   }
-  function init(){const list=document.getElementById('txList');if(list)new MutationObserver(decorate).observe(list,{childList:true,subtree:true});decorate();}
-  ['mmhvault:data-loaded','mmhvault:data-change','mmhvault:cache-restored'].forEach(name=>window.addEventListener(name,decorate));
+  let visualObserverV1523=null,visualRafV1523=0;
+  const txVisualActiveV1523=()=>!!document.getElementById('transactions')?.classList.contains('active');
+  function scheduleDecorateV1523(){if(visualRafV1523||!txVisualActiveV1523())return;visualRafV1523=requestAnimationFrame(()=>{visualRafV1523=0;if(txVisualActiveV1523())decorate()});}
+  function syncVisualObserverV1523(){const list=document.getElementById('txList');if(!list)return;if(document.hidden||!txVisualActiveV1523()){visualObserverV1523?.disconnect();visualObserverV1523=null;return}decorate();if(!visualObserverV1523){visualObserverV1523=new MutationObserver(scheduleDecorateV1523);visualObserverV1523.observe(list,{childList:true,subtree:true})}}
+  function init(){syncVisualObserverV1523();window.addEventListener('mmhvault:page-visible',syncVisualObserverV1523,{passive:true});document.addEventListener('visibilitychange',()=>{if(document.hidden){visualObserverV1523?.disconnect();visualObserverV1523=null}else syncVisualObserverV1523()},{passive:true})}
+  ['mmhvault:data-loaded','mmhvault:data-change','mmhvault:cache-restored'].forEach(name=>window.addEventListener(name,()=>{if(txVisualActiveV1523())scheduleDecorateV1523()}));
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
 </script>
@@ -25399,8 +25429,13 @@ body.light #invest #mmhFiveportfolio #mmhHistoryRowsV1 .mmh-history-amount-summa
     });
   }
   const list=document.getElementById('mmhHistoryRowsV1');
-  if(list)new MutationObserver(refreshCopy).observe(list,{childList:true,subtree:true});
-  ['mmhvault:data-loaded','mmhvault:data-change','mmhvault:cache-restored'].forEach(name=>window.addEventListener(name,refreshCopy));
+  let portfolioObserverV1523=null,portfolioRafV1523=0;
+  const investPortfolioActiveV1523=()=>!!document.getElementById('invest')?.classList.contains('active');
+  function schedulePortfolioCopyV1523(){if(portfolioRafV1523||!investPortfolioActiveV1523())return;portfolioRafV1523=requestAnimationFrame(()=>{portfolioRafV1523=0;if(investPortfolioActiveV1523())refreshCopy()})}
+  function syncPortfolioObserverV1523(){if(!list)return;if(document.hidden||!investPortfolioActiveV1523()){portfolioObserverV1523?.disconnect();portfolioObserverV1523=null;return}refreshCopy();if(!portfolioObserverV1523){portfolioObserverV1523=new MutationObserver(schedulePortfolioCopyV1523);portfolioObserverV1523.observe(list,{childList:true,subtree:true})}}
+  window.addEventListener('mmhvault:page-visible',syncPortfolioObserverV1523,{passive:true});
+  document.addEventListener('visibilitychange',()=>{if(document.hidden){portfolioObserverV1523?.disconnect();portfolioObserverV1523=null}else syncPortfolioObserverV1523()},{passive:true});
+  ['mmhvault:data-loaded','mmhvault:data-change','mmhvault:cache-restored'].forEach(name=>window.addEventListener(name,()=>{if(investPortfolioActiveV1523())schedulePortfolioCopyV1523()}));
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',refreshCopy,{once:true});else refreshCopy();
 })();
 </script>
@@ -28368,5 +28403,9 @@ body.light #settings .cs-panel-v1518{background:linear-gradient(160deg,#fff,#f3f
 
 
 <!-- MMHVAULT v1.5.22 · Background Timer Idle: persistent intervals replaced by visibility/page-aware one-shot schedulers. -->
+
+<script id="mmhvault-v1523-active-observer-sleep-marker">
+window.MMHVAULT_V1523_ACTIVE_OBSERVER_SLEEP={version:'1.5.23',transactions:true,invest:true,hiddenDisconnect:true,rafCoalescing:true};
+</script>
 </body>
 </html>
