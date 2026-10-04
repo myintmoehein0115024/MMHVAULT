@@ -7632,8 +7632,12 @@ function setPage(p){
     if(!target)return false;
   }
   try{window.MMHUI?.dismissPopovers?.();}catch(_e){}
-  document.querySelectorAll(".page").forEach(x=>x.classList.remove("active"));
-  target.classList.add("active");
+  const activePages=document.querySelectorAll(".page.active");
+  const pageChanged=activePages.length!==1||activePages[0]!==target;
+  if(pageChanged){
+    activePages.forEach(x=>{if(x!==target)x.classList.remove("active")});
+    if(!target.classList.contains("active"))target.classList.add("active");
+  }
   document.body.classList.toggle("auth-page-active",p==="login");
   document.body.classList.toggle("mmh-workspace-active",p!=="login");
   document.querySelectorAll(".bottom-nav button").forEach(b=>{const active=b.dataset.page===p;b.classList.toggle("active",active);if(active)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current");});
@@ -14822,7 +14826,9 @@ html.mmhv-tab-hidden .mmh-glow-anim{animation-play-state:paused!important}
     if(typeof sp==='function' && !sp.__mmhV34243Wrapped){
       const next=function(){
         const r=sp.apply(this,arguments);
-        requestAnimationFrame(()=>window.dispatchEvent(new CustomEvent('mmhvault:page-visible')));
+        const signal=()=>window.dispatchEvent(new CustomEvent('mmhvault:page-visible',{detail:{page:document.querySelector('.page.active')?.id||''}}));
+        if(typeof window.mmhvaultScheduleFrameV34244==='function')window.mmhvaultScheduleFrameV34244('page-visible-signal',signal);
+        else requestAnimationFrame(signal);
         return r;
       };
       next.__mmhV34243Wrapped=true;
@@ -25223,8 +25229,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     try{db.auth?.onAuthStateChange(()=>setTimeout(syncAdmin,50))}catch(_){}
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(init,0),{once:true});else setTimeout(init,0);
-  const navObserver=new MutationObserver(syncActive);
-  document.querySelectorAll('.page').forEach(page=>navObserver.observe(page,{attributes:true,attributeFilter:['class']}));
+  window.addEventListener('mmhvault:page-visible',syncActive,{passive:true});
 })();
 </script>
 
@@ -28521,5 +28526,7 @@ window.MMHVAULT_V1523_ACTIVE_OBSERVER_SLEEP={version:'1.5.23',transactions:true,
 </script>
 <script id="mmhvault-v1524-feedback-render-reuse-marker">window.MMHVAULT_V1524={version:'1.5.24',feedbackRenderReuse:true,duplicateFeedbackRpcRemoved:true,feedbackObserverRemoved:true};</script>
 <script id="mmhvault-v1525-active-page-observer-sleep-marker">window.MMHVAULT_V1525={version:'1.5.25',dashboardObserverSleep:true,reportsObserverSleep:true,quickFlowObserverSleep:true,transactionAddObserverSleep:true,rafCoalescing:true};</script>
+
+<script id="mmhvault-v1528-navigation-signal-cleanup-marker">window.MMHVAULT_NAV_SIGNAL_V1528={version:'1.5.28',samePageClassChurn:false,pageVisibleFrameCoalesced:true,sidebarClassObserver:false};</script>
 </body>
 </html>
