@@ -10998,27 +10998,28 @@ function setRestoreStatusV383(text,kind=''){
 }
 function formatBackupDateV383(value){const d=new Date(value);return Number.isNaN(d.getTime())?'Unknown date':d.toLocaleString(undefined,{year:'numeric',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});}
 function backupRecordHasUserIdV383(record,u){return !record?.user_id || record.user_id===u.id;}
+function restoreNumberV383(v){const value=Number(v);return Number.isFinite(value)?value:0;}
 function normalizeInvestmentImportV383(x){
   const side=String(x?.side||x?.trade_type||'').toUpperCase();
-  let amount=N(x?.amount ?? x?.invested_amount ?? x?.order_amount ?? x?.order_value);
-  let quantity=N(x?.quantity ?? x?.filled_quantity ?? x?.filled);
-  const price=N(x?.buy_price ?? x?.fill_price ?? x?.price ?? x?.trade_price);
+  let amount=restoreNumberV383(x?.amount ?? x?.invested_amount ?? x?.order_amount ?? x?.order_value);
+  let quantity=restoreNumberV383(x?.quantity ?? x?.filled_quantity ?? x?.filled);
+  const price=restoreNumberV383(x?.buy_price ?? x?.fill_price ?? x?.price ?? x?.trade_price);
   if(side==='SELL'){amount=-Math.abs(amount);quantity=-Math.abs(quantity);}
   else {amount=Math.abs(amount);quantity=Math.abs(quantity);}
-  const fee=N(x?.fee_usd ?? x?.fee ?? 0);
-  const other=N(x?.other_cost ?? 0);
+  const fee=restoreNumberV383(x?.fee_usd ?? x?.fee ?? 0);
+  const other=restoreNumberV383(x?.other_cost ?? 0);
   return {
     inv_date:x?.inv_date||x?.date||x?.created_at?.slice?.(0,10),
     asset:x?.asset||'Crypto',symbol:String(x?.symbol||x?.coin||'').toUpperCase(),
     source_account:x?.source_account||x?.source||'OKX',amount,fee:Math.abs(fee),other_cost:Math.abs(other),
-    buy_price:price,market_price:N(x?.market_price)||price,quantity,
+    buy_price:price,market_price:restoreNumberV383(x?.market_price)||price,quantity,
     note:x?.note||null
   };
 }
 function validateInvestmentImportV383(x,i){
   if(!x.inv_date) return `Investment #${i+1}: missing date.`;
   if(x.asset==='Crypto' && !x.symbol) return `Investment #${i+1}: missing crypto symbol.`;
-  if(!(N(x.amount)!==0) || !(N(x.buy_price)>0) || !(N(x.quantity)!==0)) return `Investment #${i+1}: amount, price or quantity is invalid.`;
+  if(!(restoreNumberV383(x.amount)!==0) || !(restoreNumberV383(x.buy_price)>0) || !(restoreNumberV383(x.quantity)!==0)) return `Investment #${i+1}: amount, price or quantity is invalid.`;
   return '';
 }
 async function previewMyFinanceBackupV383(file){
@@ -11048,7 +11049,7 @@ async function previewMyFinanceBackupV383(file){
     set('restoreNewTxV383',String(ntx.length));set('restoreNewInvV383',String(ninv.length));set('restoreDuplicateV383',String(duplicates));set('restoreRatesV383',hasRates?'Included':'Not included');
     const conflict=$('restoreConflictV383');
     if(conflict){
-      const buys=ninv.filter(x=>N(x.quantity)>0).length,sells=ninv.filter(x=>N(x.quantity)<0).length;
+      const buys=ninv.filter(x=>restoreNumberV383(x.quantity)>0).length,sells=ninv.filter(x=>restoreNumberV383(x.quantity)<0).length;
       conflict.textContent=`Ready: ${buys} BUY + ${sells} SELL investment records. ${duplicates} existing records will be skipped. Existing cloud records will not be overwritten.`;
     }
     const confirmBtn=$('restoreConfirmV383');if(confirmBtn)confirmBtn.disabled=(ntx.length===0&&ninv.length===0&&!hasRates);
