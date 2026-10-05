@@ -22064,14 +22064,14 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
       const ntx=mmhVaultMissingRowsV1235(arrTx,window.transactions||[],txFp), ninv=mmhVaultMissingRowsV1235(normalized,window.investments||[],invFp), dup=arrTx.length-ntx.length+normalized.length-ninv.length;
       const buys=ninv.filter(x=>x.asset==='Crypto'&&x.quantity>0).length,sells=ninv.filter(x=>x.asset==='Crypto'&&x.quantity<0).length,gBuys=ninv.filter(x=>x.asset==='Gold'&&x.quantity>0).length,gSells=ninv.filter(x=>x.asset==='Gold'&&x.quantity<0).length;
       const hasRates=!!data?.rates&&[data.rates.usd_mmk,data.rates.usd_thb,data.rates.usd_cny].some(v=>num(v)>0),hasConfig=!!data?.configuration&&typeof data.configuration==='object';
-      window.restorePreviewV383={file,data,u,ntx,ninv,duplicates:dup,hasRates,hasConfig,needsAuth:false};
+      restorePreviewV383={file,data,u,ntx,ninv,duplicates:dup,hasRates,hasConfig,needsAuth:false};window.restorePreviewV383=restorePreviewV383;
       const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=String(v);};
       set('restoreFileNameV383',file?.name||'MMHVAULT backup.json');set('restoreFileMetaV383',`Backup date: ${typeof formatBackupDateV383==='function'?formatBackupDateV383(data?.exported_at):'Unknown'} · Format: ${data?.version||'Trade Import / JSON'}`);set('restoreNewTxV383',ntx.length);set('restoreNewInvV383',ninv.length);set('restoreDuplicateV383',dup);set('restoreRatesV383',hasRates?'Included':'Not included');
       const c=document.getElementById('restoreConflictV383');if(c)c.textContent=`Ready: ${buys} Crypto BUY + ${sells} Crypto SELL + ${gBuys} Gold BUY + ${gSells} Gold SELL. ${dup} existing records will be skipped. Existing cloud records will not be overwritten.${hasConfig?' Account/category settings are included and will be merged safely.':''}`;
       const b=document.getElementById('restoreConfirmV383');if(b)b.disabled=(ntx.length===0&&ninv.length===0&&!hasRates&&!hasConfig);
       document.getElementById('restorePreviewV383')?.classList.add('show');
       if(typeof setRestoreStatusV383==='function')setRestoreStatusV383(`✓ JSON loaded · ${arrInv.length} investment records found. Restore will recheck the cloud before writing.`,'ok');
-    }catch(e){console.error(e);window.restorePreviewV383=null;document.getElementById('restorePreviewV383')?.classList.remove('show');if(typeof setRestoreStatusV383==='function')setRestoreStatusV383('Import preview failed: '+(e?.message||e),'err');}
+    }catch(e){console.error(e);restorePreviewV383=null;window.restorePreviewV383=null;document.getElementById('restorePreviewV383')?.classList.remove('show');if(typeof setRestoreStatusV383==='function')setRestoreStatusV383('Import preview failed: '+(e?.message||e),'err');}
   };
   // Replace the native-file handler target used by the current button. No hidden/offscreen picker changes.
   window.mmhvaultHandleBackupFileV436=function(file,input){
