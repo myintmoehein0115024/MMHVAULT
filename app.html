@@ -28367,5 +28367,57 @@ window.MMHVAULT_V1523_ACTIVE_OBSERVER_SLEEP={version:'1.5.23',transactions:true,
 })();
 </script>
 
+
+<style id="mmhvault-v172-json-restore-touch-fix-css">
+#restoreConfirmV383,#restorePreviewV383 .restore-actions-v383 button{touch-action:manipulation;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+#restoreConfirmV383{position:relative;z-index:2;pointer-events:auto!important}
+</style>
+<script id="mmhvault-v172-json-restore-touch-fix-js">
+(function(){
+  'use strict';
+  let running=false,lastTouch=0;
+  function status(text,kind){
+    try{if(typeof window.setRestoreStatusV383==='function')window.setRestoreStatusV383(text,kind||'');else{const el=document.getElementById('backupStatus');if(el){el.style.display='block';el.textContent=text;}}}catch(_e){}
+  }
+  async function runRestore(){
+    if(running)return;
+    const preview=window.restorePreviewV383 || (typeof restorePreviewV383!=='undefined'?restorePreviewV383:null);
+    if(!preview){status('Restore preview expired. Please select the JSON file again.','err');return;}
+    running=true;
+    const btn=document.getElementById('restoreConfirmV383');
+    if(btn){btn.disabled=true;btn.setAttribute('aria-busy','true');}
+    status('Preparing restore review…');
+    try{
+      if(typeof window.confirmRestorePreviewV383==='function'){
+        await window.confirmRestorePreviewV383();
+      }else if(typeof confirmRestorePreviewV383==='function'){
+        await confirmRestorePreviewV383();
+      }else{
+        throw new Error('Restore handler is unavailable.');
+      }
+    }catch(e){
+      console.error('[MMHVAULT] JSON restore button failed',e);
+      status('Restore could not start: '+(e?.message||e),'err');
+    }finally{
+      running=false;
+      if(btn&&document.getElementById('restorePreviewV383')?.classList.contains('show')){btn.disabled=false;btn.removeAttribute('aria-busy');}
+    }
+  }
+  function bind(){
+    const btn=document.getElementById('restoreConfirmV383');
+    if(!btn||btn.dataset.touchFixV172==='1')return;
+    btn.dataset.touchFixV172='1';
+    btn.removeAttribute('onclick');
+    btn.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();if(Date.now()-lastTouch<650)return;runRestore();},true);
+    btn.addEventListener('touchend',function(e){lastTouch=Date.now();e.preventDefault();e.stopPropagation();runRestore();},{passive:false,capture:true});
+  }
+  // Make the legacy handler explicitly global for GitHub Pages / Safari.
+  try{if(typeof confirmRestorePreviewV383==='function')window.confirmRestorePreviewV383=confirmRestorePreviewV383;}catch(_e){}
+  window.mmhVaultRunRestoreV172=runRestore;
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind,{once:true});else bind();
+  window.addEventListener('pageshow',bind);
+  document.addEventListener('mmhvault:data-change',bind);
+})();
+</script>
 </body>
 </html>
