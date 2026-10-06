@@ -1776,7 +1776,7 @@ body.mmh-workspace-active #dataLoadOverlayV384{pointer-events:none!important;}
 body.mmh-workspace-active #dataLoadOverlayV384:not(.show){display:none!important;}
 #gettingStarted:not(.open),#welcomeScreen:not(.show){pointer-events:none!important;}
 body.mmh-workspace-active main.wrap,body.mmh-workspace-active #header,body.mmh-workspace-active #bottomNav{pointer-events:auto!important;}
-</style><meta content="Personal Stable Candidate 1.9.3 · Stability, backup integrity and native Wallet UI" name="mmhvault-architecture"/>
+</style><meta content="Personal Stable Candidate 1.9.4 · Stability, backup integrity and native Wallet UI" name="mmhvault-architecture"/>
 <style id="mmhvault-v34216-birthday-settings-css">
 .mmh-birthday-settings-v34216{margin-top:14px;background:linear-gradient(140deg,rgba(9,23,45,.88),rgba(4,11,24,.95));border:1px solid rgba(80,140,220,.28);box-shadow:0 18px 48px rgba(0,0,0,.16)}
 .mmh-birthday-grid-v34216{display:grid;grid-template-columns:minmax(220px,.65fr) minmax(0,1.35fr);gap:14px;align-items:stretch}
@@ -12090,7 +12090,7 @@ body.mmh-v436-explorer-open #bottomNav{visibility:hidden!important;pointer-event
     if(!a){box.textContent='Select an active source account with a known currency.';return;}
     if(!window.mmhCustomInvestLoaded){box.textContent='Account balance cannot be confirmed until investment records finish loading.';return;}
     const available=balance(a.name);
-    box.textContent='Available: '+a.currency+' '+available.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})+' · Required: '+a.currency+' '+(Number.isFinite(required)?required:0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})+(required>available?' · Insufficient balance':'');
+    box.textContent='Available: '+mmhCurrencySymbolV194(a.currency)+' '+available.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})+' · Required: '+mmhCurrencySymbolV194(a.currency)+' '+(Number.isFinite(required)?required:0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})+(required>available?' · Insufficient balance':'');
   }
   async function checkFunds(user,candidate,original){
     const a=account(candidate.source_account);
@@ -12111,7 +12111,7 @@ body.mmh-v436-explorer-open #bottomNav{visibility:hidden!important;pointer-event
     const old=(i.data||[]).filter(x=>(x.source_account||(x.asset==='Gold'?'KPay':'OKX'))===a.name).reduce((s,x)=>s+cost(x),0);
     const custom=(c.data||[]).filter(x=>x.source_account===a.name&&(!original||String(x.id)!==String(original.id))).reduce((s,x)=>s+cost(x),0);
     const available=tx-old-custom,required=cost(candidate);
-    if(!Number.isFinite(available)||available<required-1e-8)throw Error('Insufficient balance in '+a.name+'. Available: '+a.currency+' '+available.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})+'; required: '+a.currency+' '+required.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})+'.');
+    if(!Number.isFinite(available)||available<required-1e-8)throw Error('Insufficient balance in '+a.name+'. Available: '+mmhCurrencySymbolV194(a.currency)+' '+available.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})+'; required: '+mmhCurrencySymbolV194(a.currency)+' '+required.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})+'.');
     return {available,required,currency:a.currency};
   }
   window.mmhCustomInvestCheckFunds=checkFunds;
@@ -12236,7 +12236,7 @@ body.mmh-v436-explorer-open #bottomNav{visibility:hidden!important;pointer-event
     return n.toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:6});};
   const moneyDigits=v=>Math.abs(Number(v)).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
   function currencyMark(code){
-    const c=String(code||'').toUpperCase(),known={USD:'$',CNY:'¥',THB:'฿',MMK:'K'};
+    const c=String(code||'').toUpperCase(),known={USD:'$',CNY:'￥',RMB:'￥',THB:'฿',MMK:'K'};
     if(known[c])return known[c];
     if(!/^[A-Z]{3}$/.test(c))return c||'Currency unknown';
     try{const mark=new Intl.NumberFormat('en',{style:'currency',currency:c,currencyDisplay:'symbol'}).formatToParts(0).find(p=>p.type==='currency')?.value;
@@ -12432,7 +12432,7 @@ body.mmh-v436-explorer-open #bottomNav{visibility:hidden!important;pointer-event
       if(!a){f.querySelector('[data-funds]').textContent='Select an active account with a supported currency.';return;}
       const required=Number(fd.get('amount'))+Number(fd.get('fee'))+Number(fd.get('other'));
       const available=balance(a.name)+(a.name===row.source_account?Number(row.amount||0)+Number(row.fee||0)+Number(row.other_cost||0):0);
-      f.querySelector('[data-funds]').textContent='Available including this investment: '+a.currency+' '+available.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})+' · Required after edit: '+a.currency+' '+required.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})+(required>available?' · Insufficient balance':'');};
+      f.querySelector('[data-funds]').textContent='Available including this investment: '+mmhCurrencySymbolV194(a.currency)+' '+available.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})+' · Required after edit: '+mmhCurrencySymbolV194(a.currency)+' '+required.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})+(required>available?' · Insufficient balance':'');};
     for(const name of ['account','amount','fee','other'])modal.querySelector('[name="'+name+'"]').addEventListener('input',funds);
     funds();
     modal.querySelector('form').addEventListener('submit',async e=>{
@@ -12523,7 +12523,7 @@ body.mmh-v436-explorer-open #bottomNav{visibility:hidden!important;pointer-event
   const L=(cn,en)=>zh()?cn:en;
   window.mmhOverviewTextV1=L;
   const number=(v,precision=2)=>{const n=Number(v);if(!Number.isFinite(n))return '—';if(n!==0&&Math.abs(n)<.000001)return (n<0?'−':'')+'<0.000001';return n.toLocaleString(undefined,{minimumFractionDigits:0,maximumFractionDigits:precision});};
-  const cash=(v,currency)=>currency+' '+Number(v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+  const cash=(v,currency)=>mmhCurrencySymbolV194(currency)+' '+Number(v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
   const signed=(v,currency)=>(v>0?'+':v<0?'−':'')+cash(Math.abs(v),currency);
   const tone=v=>v>0?'mmh-pl-profit':v<0?'mmh-pl-loss':'mmh-pl-flat';
   const typeTone=type=>String(type).toUpperCase()==='CRYPTO'?'mmh-asset-crypto':String(type).toUpperCase()==='GOLD'?'mmh-asset-gold':'mmh-asset-custom-'+([...String(type).toUpperCase()].reduce((sum,c)=>sum+c.charCodeAt(0),0)%5);
@@ -14274,6 +14274,7 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
 window.addEventListener('focus',()=>mmhVaultResumeLifecycleV1239('focus'));
 
 function currency(a){return mmhVaultAccountMeta(a).currency||"MMK";}
+function mmhCurrencySymbolV194(code){const c=String(code||'').trim().toUpperCase();return ({USD:'$',USDT:'$',THB:'฿',MMK:'K',CNY:'￥',RMB:'￥'}[c]||c);}
 function toMMK(a){
   if(!a)return 1;
   const cur=String(currency(a)||'MMK').toUpperCase(),mmk=Number(rates?.usd_mmk)||0;
@@ -14399,16 +14400,16 @@ function renderDashboardV372(){
     host.innerHTML=`
       <div class="toolbar mmh-dash372-head"><div><h2>Wealth Control Center</h2><div class="sub">Current financial position and this month vs last month.</div></div><span class="pill">${monthKey} · ${status}</span></div>
       <div class="mmh-dash372-grid">
-        <div class="mmh-dash372-card"><span>Net Worth</span><b>MMK ${fmt(net)}</b><small>Current net worth</small></div>
-        <div class="mmh-dash372-card"><span>Cash &amp; Stable Assets</span><b>MMK ${fmt(cash)}</b><small>Outside investment assets</small></div>
-        <div class="mmh-dash372-card"><span>Investments</span><b>MMK ${fmt(invest)}</b><small>${net?((invest/net)*100).toFixed(2):'0.0'}% of net worth</small></div>
-        <div class="mmh-dash372-card"><span>Monthly Savings</span><b class="${cur.save>=0?'green':'red'}">MMK ${fmt(cur.save)}</b><small>${cur.rate.toFixed(2)}% savings rate</small></div>
+        <div class="mmh-dash372-card"><span>Net Worth</span><b>K ${fmt(net)}</b><small>Current net worth</small></div>
+        <div class="mmh-dash372-card"><span>Cash &amp; Stable Assets</span><b>K ${fmt(cash)}</b><small>Outside investment assets</small></div>
+        <div class="mmh-dash372-card"><span>Investments</span><b>K ${fmt(invest)}</b><small>${net?((invest/net)*100).toFixed(2):'0.0'}% of net worth</small></div>
+        <div class="mmh-dash372-card"><span>Monthly Savings</span><b class="${cur.save>=0?'green':'red'}">K ${fmt(cur.save)}</b><small>${cur.rate.toFixed(2)}% savings rate</small></div>
       </div>
       <div class="mmh-dash372-compare"><div class="mmh-dash372-compare-head"><div><strong>${monthKey} vs ${prevKey}</strong><span>Automatic comparison from transaction data.</span></div><div class="mmh-dash372-target">Target savings: ${target.toFixed(2)}%</div></div>
         <div class="mmh-dash372-rows">
-          <div><span>Income</span><b>MMK ${fmt(cur.inc)}</b><em>${signed(cur.inc-prev.inc)} vs last month</em></div>
-          <div><span>Expenses</span><b>MMK ${fmt(cur.exp)}</b><em>${expCh===null?'No prior data':pct(expCh)} vs last month</em></div>
-          <div><span>Net Savings</span><b class="${cur.save>=0?'green':'red'}">MMK ${fmt(cur.save)}</b><em>${saveCh===null?'No prior data':pct(saveCh)} vs last month</em></div>
+          <div><span>Income</span><b>K ${fmt(cur.inc)}</b><em>${signed(cur.inc-prev.inc)} vs last month</em></div>
+          <div><span>Expenses</span><b>K ${fmt(cur.exp)}</b><em>${expCh===null?'No prior data':pct(expCh)} vs last month</em></div>
+          <div><span>Net Savings</span><b class="${cur.save>=0?'green':'red'}">K ${fmt(cur.save)}</b><em>${saveCh===null?'No prior data':pct(saveCh)} vs last month</em></div>
           <div><span>Savings Rate</span><b>${cur.rate.toFixed(2)}%</b><em>${(cur.rate-prev.rate>=0?'+':'')+(cur.rate-prev.rate).toFixed(2)} percentage points</em></div>
         </div>
       </div>
@@ -14474,7 +14475,7 @@ function renderDashboard(){
     let mi=0,me=0;monthTx.forEach(t=>{if(t.type==="Income")mi+=n(t.to_amount)*toMMK(t.to_account);if(t.type==="Expense"&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=="Investment")me+=n(t.from_amount)*toMMK(t.from_account);});
     const mr=mi-me,er=mi?me/mi*100:0;
     $("dashMonthLabel").textContent=month;
-    $("dashFlow").innerHTML=`<div class="flow-grid"><div><span>Income</span><b class="green">MMK ${fmt(mi)}</b></div><div><span>Expenses</span><b class="red">MMK ${fmt(me)}</b></div><div><span>Remaining</span><b class="${mr>=0?"green":"red"}">MMK ${fmt(mr)}</b></div><div><span>Expense Ratio</span><b>${er.toFixed(2)}%</b></div></div>`;
+    $("dashFlow").innerHTML=`<div class="flow-grid"><div><span>Income</span><b class="green">K ${fmt(mi)}</b></div><div><span>Expenses</span><b class="red">K ${fmt(me)}</b></div><div><span>Remaining</span><b class="${mr>=0?"green":"red"}">K ${fmt(mr)}</b></div><div><span>Expense Ratio</span><b>${er.toFixed(2)}%</b></div></div>`;
   }
 
   const investSig=`${baseSig}|invest`;
@@ -14482,7 +14483,7 @@ function renderDashboard(){
     C.investSig=investSig;
     const crypto=investments.filter(x=>x.asset==="Crypto"), gold=investments.filter(x=>x.asset==="Gold");
     const holdings=["BTC","ETH","SOL","BNB"].map(sym=>{const q=crypto.filter(x=>x.symbol===sym).reduce((s,x)=>s+n(x.quantity),0);const m=livePrices[sym]?.price||0;return {sym,q,v:q*m};});
-    $("dashInvest").innerHTML=`<div class="mini-invest"><div><span>Crypto Cost</span><b>$${fmt(crypto.reduce((s,x)=>s+n(x.amount)+n(x.fee)+n(x.other_cost),0))}</b></div><div><span>Gold Cost</span><b>MMK ${fmt(gold.reduce((s,x)=>s+n(x.amount)+n(x.fee)+n(x.other_cost),0))}</b></div></div><div class="holding-line">${holdings.map(h=>`<span><b>${h.sym}</b> ${h.q.toFixed(8)}</span>`).join("")}</div>`;
+    $("dashInvest").innerHTML=`<div class="mini-invest"><div><span>Crypto Cost</span><b>$${fmt(crypto.reduce((s,x)=>s+n(x.amount)+n(x.fee)+n(x.other_cost),0))}</b></div><div><span>Gold Cost</span><b>K ${fmt(gold.reduce((s,x)=>s+n(x.amount)+n(x.fee)+n(x.other_cost),0))}</b></div></div><div class="holding-line">${holdings.map(h=>`<span><b>${h.sym}</b> ${h.q.toFixed(8)}</span>`).join("")}</div>`;
   }
 
   const recentSig=`${txSignature}|recent`;
@@ -14916,7 +14917,7 @@ function renderGoldPriceV1(){
   set('goldPriceFootnoteV1',L('仅作国际现货换算参考，并非缅甸当地金店成交价。','International spot conversion reference only; not a Myanmar local gold shop transaction price.'));
   const title=host.querySelector('.toolbar h2');if(title){title.textContent=L('黄金价格','Gold Price');title.dataset.i18nBase=title.textContent;}
   const price=Number(goldMarketState.pricePerKyattha),hasPrice=Number.isFinite(price)&&price>0;
-  set('goldMarket',hasPrice?'MMK '+fmt(price)+' / ကျပ်သား':'—');
+  set('goldMarket',hasPrice?'K '+fmt(price)+' / ကျပ်သား':'—');
   const status=!window.mmhGoldFxReadyV1||!(Number(rates?.usd_mmk)>0)?L('站内 USD→MMK 汇率不可用','In-app USD→MMK rate unavailable'):
     !goldSpotQuoteV1?(goldSpotBusyV1?L('正在获取 XAU/USD 报价…','Loading XAU/USD quote…'):L('XAU/USD 报价不可用','XAU/USD quote unavailable')):
     goldMarketState.stale?L('报价已过期，请勿视为实时价','Stale quote · not a live price'):L('在线报价已换算','Online quote converted');
@@ -15340,23 +15341,23 @@ function renderGoldTable(rows){
   const avgBuy=totalWeight>0?netCost/totalWeight:0;
   const ky=Math.floor(Math.max(0,totalWeight)), pe=Math.floor((Math.max(0,totalWeight)-ky)*16), re=((((Math.max(0,totalWeight)-ky)*16)-pe)*8);
   const summary=`<div class="gold-summary gold-summary-v438">
-    <div class="gold-summary-card"><div class="label">Net Invested</div><div class="value">MMK ${fmt(netCost)}</div><div class="meta">${totalBuys} BUY · ${totalSells} SELL</div></div>
-    <div class="gold-summary-card"><div class="label">Current Value</div><div class="value green">MMK ${fmt(totalValue)}</div><div class="meta">Market ${fmt(price)} / ကျပ်သား</div></div>
-    <div class="gold-summary-card"><div class="label">Unrealized P/L</div><div class="value ${totalPL>=0?'green':'red'}">MMK ${fmt(totalPL)}</div><div class="meta">${totalPL>=0?'+':''}${totalROI.toFixed(2)}% vs net invested</div></div>
+    <div class="gold-summary-card"><div class="label">Net Invested</div><div class="value">K ${fmt(netCost)}</div><div class="meta">${totalBuys} BUY · ${totalSells} SELL</div></div>
+    <div class="gold-summary-card"><div class="label">Current Value</div><div class="value green">K ${fmt(totalValue)}</div><div class="meta">Market ${fmt(price)} / ကျပ်သား</div></div>
+    <div class="gold-summary-card"><div class="label">Unrealized P/L</div><div class="value ${totalPL>=0?'green':'red'}">K ${fmt(totalPL)}</div><div class="meta">${totalPL>=0?'+':''}${totalROI.toFixed(2)}% vs net invested</div></div>
     <div class="gold-summary-card"><div class="label">Current Holding</div><div class="value">${ky} ကျပ်</div><div class="meta">${pe} ပဲ ${re.toFixed(2)} ရွေး · ${Math.max(0,totalWeight).toFixed(8)} ကျပ်သား</div></div>
   </div>`;
   const performance=`<div class="gold-performance-v438">
-    <div class="gold-performance-v438-head"><div><div class="gold-performance-kicker-v34650">GOLD PERFORMANCE</div><div class="gold-performance-title-v34650">Average purchase cost → current market</div></div><div class="gold-performance-result-v34650"><div class="value ${totalPL>=0?'green':'red'}">${totalPL>=0?'+':'−'}MMK ${fmt(Math.abs(totalPL))}</div><div class="label">${totalROI>=0?'+':''}${totalROI.toFixed(2)}%</div></div></div>
-    <div class="gold-performance-v438-grid"><div><span>Avg Buy / ကျပ်သား</span><b>MMK ${fmt(avgBuy)}</b></div><div><span>Market / ကျပ်သား</span><b>MMK ${fmt(price)}</b></div><div><span>Market Delta</span><b class="${price>=avgBuy?'green':'red'}">${avgBuy?((price-avgBuy)/avgBuy*100).toFixed(2):'0.00'}%</b></div><div><span>Current Weight</span><b>${Math.max(0,totalWeight).toFixed(8)} ကျပ်သား</b></div></div>
+    <div class="gold-performance-v438-head"><div><div class="gold-performance-kicker-v34650">GOLD PERFORMANCE</div><div class="gold-performance-title-v34650">Average purchase cost → current market</div></div><div class="gold-performance-result-v34650"><div class="value ${totalPL>=0?'green':'red'}">${totalPL>=0?'+':'−'}K ${fmt(Math.abs(totalPL))}</div><div class="label">${totalROI>=0?'+':''}${totalROI.toFixed(2)}%</div></div></div>
+    <div class="gold-performance-v438-grid"><div><span>Avg Buy / ကျပ်သား</span><b>K ${fmt(avgBuy)}</b></div><div><span>Market / ကျပ်သား</span><b>K ${fmt(price)}</b></div><div><span>Market Delta</span><b class="${price>=avgBuy?'green':'red'}">${avgBuy?((price-avgBuy)/avgBuy*100).toFixed(2):'0.00'}%</b></div><div><span>Current Weight</span><b>${Math.max(0,totalWeight).toFixed(8)} ကျပ်သား</b></div></div>
   </div>`;
   const table=`<div class="gold-table-wrap"><table><tr><th>Date</th><th>Side</th><th>Source</th><th>Amount</th><th>Price</th><th>Weight</th><th>Current Value</th><th>P/L</th><th>ROI</th><th></th></tr>${[...rows].sort((a,b)=>String(b.inv_date).localeCompare(String(a.inv_date))).map(x=>{
     const q=goldHoldingQty(x),side=q<0?'SELL':'BUY',cur=price,cost=n(x.amount)+n(x.fee)+n(x.other_cost),val=Math.max(0,q)*cur,p=q<0?0:val-cost,roi=cost?Math.abs(p)/Math.abs(cost)*100:0;
     const aq=Math.abs(q), ky=Math.floor(aq), pe=Math.floor((aq-ky)*16), re=((((aq-ky)*16)-pe)*8);
-    return `<tr><td>${esc(x.inv_date)}</td><td class="${side==='BUY'?'green':'red'}"><b>${side}</b></td><td>${esc(x.source_account||'KPay')}</td><td>MMK ${fmt(Math.abs(n(x.amount)))}</td><td>MMK ${fmt(x.buy_price)} / ကျပ်သား</td><td><div class="gold-weight-main">${ky} ကျပ် ${pe} ပဲ</div><div class="gold-weight-sub">${re.toFixed(2)} ရွေး</div></td><td>MMK ${fmt(val)}</td><td class="${p>=0?'green':'red'}">${side==='SELL'?'—':'MMK '+fmt(p)}</td><td>${side==='SELL'?'—':roi.toFixed(2)+'%'}</td><td class="icon-actions">${window.mmHVaultHasInvestmentReceiptV3304?.(x.id)?`<button class="btn" onclick="openInvestmentReceiptV3304(${x.id})">👁 View</button>`:''}<button class="btn" onclick="editInvestment(${x.id})">Edit</button><button class="btn danger" onclick="deleteInvestment(${x.id})">×</button></td></tr>`;
+    return `<tr><td>${esc(x.inv_date)}</td><td class="${side==='BUY'?'green':'red'}"><b>${side}</b></td><td>${esc(x.source_account||'KPay')}</td><td>K ${fmt(Math.abs(n(x.amount)))}</td><td>K ${fmt(x.buy_price)} / ကျပ်သား</td><td><div class="gold-weight-main">${ky} ကျပ် ${pe} ပဲ</div><div class="gold-weight-sub">${re.toFixed(2)} ရွေး</div></td><td>K ${fmt(val)}</td><td class="${p>=0?'green':'red'}">${side==='SELL'?'—':'K '+fmt(p)}</td><td>${side==='SELL'?'—':roi.toFixed(2)+'%'}</td><td class="icon-actions">${window.mmHVaultHasInvestmentReceiptV3304?.(x.id)?`<button class="btn" onclick="openInvestmentReceiptV3304(${x.id})">👁 View</button>`:''}<button class="btn" onclick="editInvestment(${x.id})">Edit</button><button class="btn danger" onclick="deleteInvestment(${x.id})">×</button></td></tr>`;
   }).join('')}</table></div>`;
   const cards=`<div class="gold-mobile-list">${[...rows].sort((a,b)=>String(b.inv_date).localeCompare(String(a.inv_date))).map(x=>{
     const q=goldHoldingQty(x),side=q<0?'SELL':'BUY',cost=n(x.amount)+n(x.fee)+n(x.other_cost),val=Math.max(0,q)*price,p=side==='SELL'?0:val-cost,roi=cost?Math.abs(p)/Math.abs(cost)*100:0,aq=Math.abs(q),ky=Math.floor(aq),pe=Math.floor((aq-ky)*16),re=((((aq-ky)*16)-pe)*8);
-    return `<div class="gold-mobile-card gold-mobile-card-v438"><div class="gold-mobile-top"><div><div class="gold-mobile-date">${esc(x.inv_date)}</div><div class="gold-mobile-source"><span class="${side==='BUY'?'green':'red'}">${side}</span> · ${esc(x.source_account||'KPay')}</div></div><div class="gold-mobile-roi ${side==='SELL'?'':' '+(roi>=0?'green':'red')}" >${side==='SELL'?'SOLD':roi.toFixed(2)+'%'}</div></div><div class="gold-mobile-grid"><div class="gold-mobile-item"><div class="label">Trade Amount</div><div class="value">MMK ${fmt(Math.abs(n(x.amount)))}</div></div><div class="gold-mobile-item"><div class="label">Weight</div><div class="value">${ky} ကျပ် ${pe} ပဲ ${re.toFixed(2)} ရွေး</div></div><div class="gold-mobile-item"><div class="label">Price</div><div class="value">MMK ${fmt(x.buy_price)} / ကျပ်သား</div></div><div class="gold-mobile-item"><div class="label">Current Value</div><div class="value">${side==='SELL'?'—':'MMK '+fmt(val)}</div></div><div class="gold-mobile-item"><div class="label">P/L</div><div class="value ${p>=0?'green':'red'}">${side==='SELL'?'—':'MMK '+fmt(p)}</div></div><div class="gold-mobile-item"><div class="label">Note</div><div class="value">${esc(x.note||'Gold investment')}</div></div></div><div class="gold-mobile-actions">${window.mmHVaultHasInvestmentReceiptV3304?.(x.id)?`<button class="btn" onclick="event.stopPropagation();openInvestmentReceiptV3304(${x.id})">👁 View</button>`:''}<button class="btn" onclick="event.stopPropagation();editInvestment(${x.id})">Edit</button><button class="btn danger" onclick="event.stopPropagation();deleteInvestment(${x.id})">Delete</button></div></div>`;
+    return `<div class="gold-mobile-card gold-mobile-card-v438"><div class="gold-mobile-top"><div><div class="gold-mobile-date">${esc(x.inv_date)}</div><div class="gold-mobile-source"><span class="${side==='BUY'?'green':'red'}">${side}</span> · ${esc(x.source_account||'KPay')}</div></div><div class="gold-mobile-roi ${side==='SELL'?'':' '+(roi>=0?'green':'red')}" >${side==='SELL'?'SOLD':roi.toFixed(2)+'%'}</div></div><div class="gold-mobile-grid"><div class="gold-mobile-item"><div class="label">Trade Amount</div><div class="value">K ${fmt(Math.abs(n(x.amount)))}</div></div><div class="gold-mobile-item"><div class="label">Weight</div><div class="value">${ky} ကျပ် ${pe} ပဲ ${re.toFixed(2)} ရွေး</div></div><div class="gold-mobile-item"><div class="label">Price</div><div class="value">K ${fmt(x.buy_price)} / ကျပ်သား</div></div><div class="gold-mobile-item"><div class="label">Current Value</div><div class="value">${side==='SELL'?'—':'K '+fmt(val)}</div></div><div class="gold-mobile-item"><div class="label">P/L</div><div class="value ${p>=0?'green':'red'}">${side==='SELL'?'—':'K '+fmt(p)}</div></div><div class="gold-mobile-item"><div class="label">Note</div><div class="value">${esc(x.note||'Gold investment')}</div></div></div><div class="gold-mobile-actions">${window.mmHVaultHasInvestmentReceiptV3304?.(x.id)?`<button class="btn" onclick="event.stopPropagation();openInvestmentReceiptV3304(${x.id})">👁 View</button>`:''}<button class="btn" onclick="event.stopPropagation();editInvestment(${x.id})">Edit</button><button class="btn danger" onclick="event.stopPropagation();deleteInvestment(${x.id})">Delete</button></div></div>`;
   }).join('')}</div>`;
   return summary+performance+`<div class="gold-history-caption-v34660"><div><div class="title">Gold History</div><div class="hint">BUY adds weight · SELL reduces weight · all records remain in history</div></div><div class="count">${totalBuys} BUY · ${totalSells} SELL</div></div>`+table+cards;
 }
@@ -15430,7 +15431,7 @@ async function editInvestment(id){
     });
   };
   await renderInvestmentReceiptManageV3309();
-  eiSource.replaceChildren(...MMHVAULT_CONFIG.accounts.filter(a=>a.active!==false).map(a=>{const o=document.createElement('option');o.value=a.name;o.textContent=a.name+' · '+a.currency+' · available '+balance(a.name).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});if(a.name===defaultSource)o.selected=true;return o;}));
+  eiSource.replaceChildren(...MMHVAULT_CONFIG.accounts.filter(a=>a.active!==false).map(a=>{const o=document.createElement('option');o.value=a.name;o.textContent=a.name+' · '+mmhCurrencySymbolV194(a.currency)+' '+balance(a.name).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});if(a.name===defaultSource)o.selected=true;return o;}));
   if(!MMHVAULT_CONFIG.accounts.some(a=>a.name===defaultSource&&a.active!==false)){const o=document.createElement('option');o.value='';o.textContent=(defaultSource||'Unknown account')+' · archived; select an active account';o.disabled=true;o.selected=true;eiSource.prepend(o);}
   const picker=$("editInvestmentReceiptFile"),status=$("editInvestmentReceiptStatusV3304");
   picker?.addEventListener("change",()=>{
@@ -17022,7 +17023,7 @@ async function exportMyFinanceBackupV380(){
     const configuration=mmhVaultBackupConfigSnapshotV1236(u.id);
     const tables=['transactions','investments','crypto_wallet_movements','exchange_rates','budgets','financial_goals','recurring_transactions','custom_investments'];
     const datasets=await Promise.all(tables.map(table=>mmhPersonalReadAllV191(table,u.id)));
-    const out={schema_version:2,scope:'personal',version:'Personal Stable Candidate 1.9.3',exported_at:new Date().toISOString(),customer_id:$('accountUserIdV372')?.textContent||'',user_id:u.id,transactions:datasets[0],investments:datasets[1],wallet_movements:datasets[2],rates:datasets[3][0]||{},configuration,budgets:datasets[4],goals:datasets[5],recurring:datasets[6],custom_investments:datasets[7],settings:mmhPersonalPreferencesV191()};
+    const out={schema_version:2,scope:'personal',version:'Personal Stable Candidate 1.9.4',exported_at:new Date().toISOString(),customer_id:$('accountUserIdV372')?.textContent||'',user_id:u.id,transactions:datasets[0],investments:datasets[1],wallet_movements:datasets[2],rates:datasets[3][0]||{},configuration,budgets:datasets[4],goals:datasets[5],recurring:datasets[6],custom_investments:datasets[7],settings:mmhPersonalPreferencesV191()};
     if(currentSessionUser?.id!==u.id)throw Error('Account session changed. Backup export stopped.');
     const blob=new Blob([JSON.stringify(out,null,2)],{type:'application/json'});
     const url=URL.createObjectURL(blob),a=document.createElement('a');const filename=`MMHVAULT_Backup_${today()}.json`;a.href=url;a.download=filename;a.click();URL.revokeObjectURL(url);
@@ -17559,7 +17560,7 @@ renderDashboard=function(){
 <script id="mmhvault-v316-budget-intelligence-js">
 /* ===================== MMHVAULT V4.3.0 BUDGET & SPENDING INTELLIGENCE ===================== */
 (function(){
-  const money=v=>typeof thb==='function'?thb(v):('THB '+fmt(v));
+  const money=v=>typeof thb==='function'?thb(v):('฿ '+fmt(v));
   const periodData=()=>{
     const p=typeof v37Period==='function'?v37Period():{year:new Date().getFullYear(),month:String(new Date().getMonth()+1).padStart(2,'0')};
     const year=Number(p.year)||new Date().getFullYear();
@@ -26008,7 +26009,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
     if(cur==='USD')return '$'+n.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
     if(cur==='THB')return '฿ '+n.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
     if(cur==='CNY'||cur==='RMB')return '￥ '+n.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
-    if(cur==='MMK')return 'MMK '+n.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+    if(cur==='MMK')return 'K '+n.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
     return n.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
   };
   function requiredSource(){
@@ -28190,12 +28191,12 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
     rows=Array.isArray(rows)?rows:goldRows(); if(!rows.length)return '<div class="empty gold-empty-note">No gold investments.</div>';
     const price=currentGoldPrice(), led=goldLedger(); const value=Math.max(0,led.qty)*price; const unreal=value-led.basis; const totalPnl=unreal+led.realized; const roi=led.buyCash?totalPnl/led.buyCash*100:0;
     const w=splitWeight(led.qty), map=rowGoldRealizedMap();
-    const summary=`<div class="gold-summary-v444"><div class="gold-summary-card"><div class="label">Net Cash Invested</div><div class="value">MMK ${fmt(led.netCashInvested)}</div><div class="meta">BUY cost − SELL proceeds · ${rows.filter(x=>goldQty(x)>0).length} BUY · ${rows.filter(x=>goldQty(x)<0).length} SELL</div></div><div class="gold-summary-card"><div class="label">Current Value</div><div class="value green">MMK ${fmt(value)}</div><div class="meta">Market MMK ${fmt(price)} / ကျပ်သား</div></div><div class="gold-summary-card"><div class="label">Total P/L</div><div class="value ${totalPnl>=0?'green':'red'}">${totalPnl>=0?'+':'−'}MMK ${fmt(Math.abs(totalPnl))}</div><div class="meta">Realized + Unrealized · ROI ${roi>=0?'+':''}${roi.toFixed(2)}%</div></div><div class="gold-summary-card"><div class="label">Current Holding</div><div class="value">${w.ky} ကျပ် ${w.pe} ပဲ</div><div class="meta">${w.re.toFixed(2)} ရွေး · ${led.qty.toFixed(8)} ကျပ်သား</div></div></div>`;
-    const performance=`<div class="gold-performance-v444"><div class="gold-performance-v444-head"><div><div class="gold-performance-v444-kicker">GOLD LEDGER</div><div class="gold-performance-v444-title">Remaining cost basis → current market</div></div><div class="gold-performance-v444-result"><div class="value ${totalPnl>=0?'green':'red'}">${totalPnl>=0?'+':'−'}MMK ${fmt(Math.abs(totalPnl))}</div><div class="label">Total P/L · ${roi>=0?'+':''}${roi.toFixed(2)}%</div></div></div><div class="gold-performance-v444-grid"><div><span>Avg Cost / ကျပ်သား</span><b>MMK ${fmt(led.avgCost)}</b></div><div><span>Market / ကျပ်သား</span><b>MMK ${fmt(price)}</b></div><div><span>Realized P/L</span><b class="${led.realized>=0?'green':'red'}">MMK ${led.realized>=0?'+':''}${fmt(led.realized)}</b></div><div><span>Unrealized P/L</span><b class="${unreal>=0?'green':'red'}">MMK ${unreal>=0?'+':''}${fmt(unreal)}</b></div></div></div>`;
+    const summary=`<div class="gold-summary-v444"><div class="gold-summary-card"><div class="label">Net Cash Invested</div><div class="value">K ${fmt(led.netCashInvested)}</div><div class="meta">BUY cost − SELL proceeds · ${rows.filter(x=>goldQty(x)>0).length} BUY · ${rows.filter(x=>goldQty(x)<0).length} SELL</div></div><div class="gold-summary-card"><div class="label">Current Value</div><div class="value green">K ${fmt(value)}</div><div class="meta">Market K ${fmt(price)} / ကျပ်သား</div></div><div class="gold-summary-card"><div class="label">Total P/L</div><div class="value ${totalPnl>=0?'green':'red'}">${totalPnl>=0?'+':'−'}K ${fmt(Math.abs(totalPnl))}</div><div class="meta">Realized + Unrealized · ROI ${roi>=0?'+':''}${roi.toFixed(2)}%</div></div><div class="gold-summary-card"><div class="label">Current Holding</div><div class="value">${w.ky} ကျပ် ${w.pe} ပဲ</div><div class="meta">${w.re.toFixed(2)} ရွေး · ${led.qty.toFixed(8)} ကျပ်သား</div></div></div>`;
+    const performance=`<div class="gold-performance-v444"><div class="gold-performance-v444-head"><div><div class="gold-performance-v444-kicker">GOLD LEDGER</div><div class="gold-performance-v444-title">Remaining cost basis → current market</div></div><div class="gold-performance-v444-result"><div class="value ${totalPnl>=0?'green':'red'}">${totalPnl>=0?'+':'−'}K ${fmt(Math.abs(totalPnl))}</div><div class="label">Total P/L · ${roi>=0?'+':''}${roi.toFixed(2)}%</div></div></div><div class="gold-performance-v444-grid"><div><span>Avg Cost / ကျပ်သား</span><b>K ${fmt(led.avgCost)}</b></div><div><span>Market / ကျပ်သား</span><b>K ${fmt(price)}</b></div><div><span>Realized P/L</span><b class="${led.realized>=0?'green':'red'}">MMK ${led.realized>=0?'+':''}${fmt(led.realized)}</b></div><div><span>Unrealized P/L</span><b class="${unreal>=0?'green':'red'}">MMK ${unreal>=0?'+':''}${fmt(unreal)}</b></div></div></div>`;
     const note=`<div class="gold-ledger-note-v444">BUY increases gold weight and cost basis. SELL reduces the remaining weight and basis, while the sale proceeds and realized P/L stay in the historical ledger. Gold is calculated in MMK; USD conversion is only used outside the Gold ledger for portfolio comparison.</div>`;
     const ordered=rows.slice().sort((a,b)=>String(b.inv_date||'').localeCompare(String(a.inv_date||''))||num(b.id)-num(a.id));
-    const table=`<div class="gold-table-wrap"><table><tr><th>Date</th><th>Side</th><th>Source</th><th>Amount</th><th>Price</th><th>Weight</th><th>Current Value</th><th>P/L</th><th>ROI</th><th></th></tr>${ordered.map(x=>{const q=goldQty(x),side=q<0?'SELL':'BUY',cost=Math.abs(num(x.amount))+Math.abs(num(x.fee))+Math.abs(num(x.other_cost)),aq=Math.abs(q),sw=splitWeight(aq);let p=0,rt='—';if(side==='SELL'){p=num(map.get(x.id!=null?String(x.id):x));rt=cost?((p/cost)*100).toFixed(2)+'%':'—';}else{const val=aq*price;p=val-cost;rt=cost?((p/cost)*100).toFixed(2)+'%':'—';}return `<tr><td>${esc4(x.inv_date)}</td><td class="${side==='BUY'?'green':'red'}"><b>${side}</b></td><td>${esc4(x.source_account||'KPay')}</td><td>MMK ${fmt(Math.abs(num(x.amount)))}</td><td>MMK ${fmt(x.buy_price)} / ကျပ်သား</td><td><div class="gold-weight-main">${sw.ky} ကျပ် ${sw.pe} ပဲ</div><div class="gold-weight-sub">${sw.re.toFixed(2)} ရွေး</div></td><td>${side==='SELL'?'—':'MMK '+fmt(aq*price)}</td><td class="${p>=0?'green':'red'}">${p>=0?'+':''}MMK ${fmt(p)}</td><td>${rt}</td><td class="icon-actions">${window.mmHVaultHasInvestmentReceiptV3304?.(x.id)?`<button class="btn" onclick="openInvestmentReceiptV3304(${x.id})">👁 View</button>`:''}<button class="btn" onclick="editInvestment(${x.id})">Edit</button><button class="btn danger" onclick="deleteInvestment(${x.id})">×</button></td></tr>`;}).join('')}</table></div>`;
-    const cards=`<div class="gold-mobile-list">${ordered.map(x=>{const q=goldQty(x),side=q<0?'SELL':'BUY',cost=Math.abs(num(x.amount))+Math.abs(num(x.fee))+Math.abs(num(x.other_cost)),aq=Math.abs(q),sw=splitWeight(aq);let p=0,rt='—',cv='—';if(side==='SELL'){p=num(map.get(x.id!=null?String(x.id):x));rt=cost?((p/cost)*100).toFixed(2)+'%':'—';}else{cv='MMK '+fmt(aq*price);p=aq*price-cost;rt=cost?((p/cost)*100).toFixed(2)+'%':'—';}return `<div class="gold-mobile-card gold-mobile-card-v438"><div class="gold-mobile-top"><div><div class="gold-mobile-date">${esc4(x.inv_date)}</div><div class="gold-mobile-source"><span class="${side==='BUY'?'green':'red'}">${side}</span> · ${esc4(x.source_account||'KPay')}</div></div><div class="gold-mobile-roi ${p>=0?'green':'red'}">${rt}</div></div><div class="gold-mobile-grid"><div class="gold-mobile-item"><div class="label">Trade Amount</div><div class="value">MMK ${fmt(Math.abs(num(x.amount)))}</div></div><div class="gold-mobile-item"><div class="label">Weight</div><div class="value">${sw.ky} ကျပ် ${sw.pe} ပဲ ${sw.re.toFixed(2)} ရွေး</div></div><div class="gold-mobile-item"><div class="label">Price</div><div class="value">MMK ${fmt(x.buy_price)} / ကျပ်သား</div></div><div class="gold-mobile-item"><div class="label">Current Value</div><div class="value">${cv}</div></div><div class="gold-mobile-item"><div class="label">P/L</div><div class="value ${p>=0?'green':'red'}">MMK ${p>=0?'+':''}${fmt(p)}</div></div><div class="gold-mobile-item"><div class="label">Note</div><div class="value">${esc4(x.note||'Gold investment')}</div></div></div><div class="gold-mobile-actions">${window.mmHVaultHasInvestmentReceiptV3304?.(x.id)?`<button class="btn" onclick="event.stopPropagation();openInvestmentReceiptV3304(${x.id})">👁 View</button>`:''}<button class="btn" onclick="event.stopPropagation();editInvestment(${x.id})">Edit</button><button class="btn danger" onclick="event.stopPropagation();deleteInvestment(${x.id})">Delete</button></div></div>`;}).join('')}</div>`;
+    const table=`<div class="gold-table-wrap"><table><tr><th>Date</th><th>Side</th><th>Source</th><th>Amount</th><th>Price</th><th>Weight</th><th>Current Value</th><th>P/L</th><th>ROI</th><th></th></tr>${ordered.map(x=>{const q=goldQty(x),side=q<0?'SELL':'BUY',cost=Math.abs(num(x.amount))+Math.abs(num(x.fee))+Math.abs(num(x.other_cost)),aq=Math.abs(q),sw=splitWeight(aq);let p=0,rt='—';if(side==='SELL'){p=num(map.get(x.id!=null?String(x.id):x));rt=cost?((p/cost)*100).toFixed(2)+'%':'—';}else{const val=aq*price;p=val-cost;rt=cost?((p/cost)*100).toFixed(2)+'%':'—';}return `<tr><td>${esc4(x.inv_date)}</td><td class="${side==='BUY'?'green':'red'}"><b>${side}</b></td><td>${esc4(x.source_account||'KPay')}</td><td>K ${fmt(Math.abs(num(x.amount)))}</td><td>K ${fmt(x.buy_price)} / ကျပ်သား</td><td><div class="gold-weight-main">${sw.ky} ကျပ် ${sw.pe} ပဲ</div><div class="gold-weight-sub">${sw.re.toFixed(2)} ရွေး</div></td><td>${side==='SELL'?'—':'K '+fmt(aq*price)}</td><td class="${p>=0?'green':'red'}">${p>=0?'+':''}K ${fmt(p)}</td><td>${rt}</td><td class="icon-actions">${window.mmHVaultHasInvestmentReceiptV3304?.(x.id)?`<button class="btn" onclick="openInvestmentReceiptV3304(${x.id})">👁 View</button>`:''}<button class="btn" onclick="editInvestment(${x.id})">Edit</button><button class="btn danger" onclick="deleteInvestment(${x.id})">×</button></td></tr>`;}).join('')}</table></div>`;
+    const cards=`<div class="gold-mobile-list">${ordered.map(x=>{const q=goldQty(x),side=q<0?'SELL':'BUY',cost=Math.abs(num(x.amount))+Math.abs(num(x.fee))+Math.abs(num(x.other_cost)),aq=Math.abs(q),sw=splitWeight(aq);let p=0,rt='—',cv='—';if(side==='SELL'){p=num(map.get(x.id!=null?String(x.id):x));rt=cost?((p/cost)*100).toFixed(2)+'%':'—';}else{cv='K '+fmt(aq*price);p=aq*price-cost;rt=cost?((p/cost)*100).toFixed(2)+'%':'—';}return `<div class="gold-mobile-card gold-mobile-card-v438"><div class="gold-mobile-top"><div><div class="gold-mobile-date">${esc4(x.inv_date)}</div><div class="gold-mobile-source"><span class="${side==='BUY'?'green':'red'}">${side}</span> · ${esc4(x.source_account||'KPay')}</div></div><div class="gold-mobile-roi ${p>=0?'green':'red'}">${rt}</div></div><div class="gold-mobile-grid"><div class="gold-mobile-item"><div class="label">Trade Amount</div><div class="value">K ${fmt(Math.abs(num(x.amount)))}</div></div><div class="gold-mobile-item"><div class="label">Weight</div><div class="value">${sw.ky} ကျပ် ${sw.pe} ပဲ ${sw.re.toFixed(2)} ရွေး</div></div><div class="gold-mobile-item"><div class="label">Price</div><div class="value">K ${fmt(x.buy_price)} / ကျပ်သား</div></div><div class="gold-mobile-item"><div class="label">Current Value</div><div class="value">${cv}</div></div><div class="gold-mobile-item"><div class="label">P/L</div><div class="value ${p>=0?'green':'red'}">MMK ${p>=0?'+':''}${fmt(p)}</div></div><div class="gold-mobile-item"><div class="label">Note</div><div class="value">${esc4(x.note||'Gold investment')}</div></div></div><div class="gold-mobile-actions">${window.mmHVaultHasInvestmentReceiptV3304?.(x.id)?`<button class="btn" onclick="event.stopPropagation();openInvestmentReceiptV3304(${x.id})">👁 View</button>`:''}<button class="btn" onclick="event.stopPropagation();editInvestment(${x.id})">Edit</button><button class="btn danger" onclick="event.stopPropagation();deleteInvestment(${x.id})">Delete</button></div></div>`;}).join('')}</div>`;
     return summary+performance+note+`<div class="gold-history-caption-v34660"><div><div class="title">Gold History</div><div class="hint">BUY adds weight · SELL reduces weight · all records remain in history</div></div><div class="count">${rows.filter(x=>goldQty(x)>0).length} BUY · ${rows.filter(x=>goldQty(x)<0).length} SELL</div></div>`+table+cards;
   }
   function normalizeImportV444(x){
@@ -28274,7 +28275,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
   function refresh(){
     const source=get('invSource');if(!source)return;
     const previous=source.value,asset=get('invAsset')?.value,active=(MMHVAULT_CONFIG.accounts||[]).filter(a=>a.active!==false),valid=active.filter(a=>account(a.name));
-    source.replaceChildren(...active.map(a=>{const option=document.createElement('option');option.value=a.name;option.textContent=a.name+' · '+(a.currency||'Currency unknown')+' · available '+(account(a.name)?displayBalance(balance(a.name)):'unavailable');return option;}));
+    source.replaceChildren(...active.map(a=>{const option=document.createElement('option');option.value=a.name;option.textContent=a.name+' · '+(account(a.name)?mmhCurrencySymbolV194(a.currency)+' '+displayBalance(balance(a.name)):'unavailable');return option;}));
     if(valid.some(a=>a.name===previous))source.value=previous;
     else{const preferred=valid.find(a=>a.currency===expected(asset))||valid[0];if(preferred)source.value=preferred.name;}
     preview();
@@ -28284,7 +28285,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
     const a=account(source.value),reason=status(a,asset),amount=num(get('invAmount')?.value||0),fee=num(get('invFee')?.value||0),other=num(get('invOther')?.value||0),sell=get('invSideV336')?.value==='SELL';
     const required=(sell?-amount:amount)+fee+other;
     const available=a?balance(a.name):0;
-    box.textContent=reason||('Source: '+a.name+' · '+a.currency+' · available '+fmt(available)+' · '+(sell?'net credit':'required')+' '+fmt(Math.abs(required))+' '+a.currency+(required>available?' · insufficient balance':''));
+    box.textContent=reason||('Source: '+a.name+' · available '+mmhCurrencySymbolV194(a.currency)+' '+fmt(available)+' · '+(sell?'net credit':'required')+' '+mmhCurrencySymbolV194(a.currency)+' '+fmt(Math.abs(required))+(required>available?' · insufficient balance':''));
     box.classList.toggle('error',!!reason||(!!a&&required>available));
     const old=get('mmhCustomBalanceStatus');if(old)old.hidden=true;
   }
@@ -28305,7 +28306,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
     const legacy=old.data.filter(x=>(x.source_account||(x.asset==='Gold'?'KPay':'OKX'))===a.name&&(!original||String(x.id)!==String(original.id))).reduce((sum,x)=>sum+cost(x),0);
     const extra=custom.data.filter(x=>x.source_account===a.name).reduce((sum,x)=>sum+cost(x),0);
     const available=cash-legacy-extra,required=amount+fee+other;
-    if(!Number.isFinite(available)||available<required-1e-8)throw Error('Insufficient balance in '+a.name+': available '+a.currency+' '+fmt(available)+'; required '+a.currency+' '+fmt(required)+'.');
+    if(!Number.isFinite(available)||available<required-1e-8)throw Error('Insufficient balance in '+a.name+': available '+mmhCurrencySymbolV194(a.currency)+' '+fmt(available)+'; required '+mmhCurrencySymbolV194(a.currency)+' '+fmt(required)+'.');
     return {available,required,currency:a.currency};
   }
   window.mmhInvestSourceRefresh=refresh;
@@ -28818,7 +28819,7 @@ html,body{max-width:100%;overflow-x:clip}
     $('cfaTrend').innerHTML=series.map((x,i)=>`<div class="cfa-trend-item" title="${safe(new Date(year,i,1).toLocaleDateString(undefined,{month:'long',year:'numeric'}))}: Income ${money(x.income)} · Expense ${money(x.individual+x.personal)}"><div class="cfa-trend-bars"><i style="height:${Math.max(3,x.income/max*78)}px"></i><i style="height:${Math.max(3,(x.individual+x.personal)/max*78)}px"></i></div><span>${String(i+1).padStart(2,'0')}</span></div>`).join('');
     const records=periodRows().filter(isIncluded).sort((a,b)=>String(b.tx_date||'').localeCompare(String(a.tx_date||'')));
     $('cfaRecordCount').textContent=`${records.length} record${records.length===1?'':'s'}`;$('cfaRecordCurrency').textContent=state.currency+' equivalent';
-    $('cfaRecords').innerHTML=records.length?records.map(t=>{const incoming=t.type==='Income',account=incoming?t.to_account:t.from_account,amount=num(incoming?t.to_amount:t.from_amount),nativeCurrency=typeof currency==='function'?currency(account):'',native=amount.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})+' '+nativeCurrency;return `<tr><td>${safe(t.tx_date)}</td><td>${incoming?'Income':group(t)==='Personal'?'Personal':'Individual Expense'}</td><td>${safe(t.category)}</td><td>${safe(native)}</td><td>${money(toUsd(amount,account))}</td></tr>`}).join(''):'<tr><td colspan="5">No included transactions for this period.</td></tr>';
+    $('cfaRecords').innerHTML=records.length?records.map(t=>{const incoming=t.type==='Income',account=incoming?t.to_account:t.from_account,amount=num(incoming?t.to_amount:t.from_amount),nativeCurrency=typeof currency==='function'?currency(account):'',native=mmhCurrencySymbolV194(nativeCurrency)+' '+amount.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});return `<tr><td>${safe(t.tx_date)}</td><td>${incoming?'Income':group(t)==='Personal'?'Personal':'Individual Expense'}</td><td>${safe(t.category)}</td><td>${safe(native)}</td><td>${money(toUsd(amount,account))}</td></tr>`}).join(''):'<tr><td colspan="5">No included transactions for this period.</td></tr>';
   }
   function openBudget(){
     const selected=state.mode==='month'?state.month:`${state.year}-${String((new Date().getFullYear()===state.year?new Date().getMonth()+1:1)).padStart(2,'0')}`;
@@ -31701,7 +31702,7 @@ body.light .mmh-account-detail-v830 .mmh-account-flow-v830>div,body.light .mmh-a
       const otherLabel=one?(String(one.sym||'Other crypto')+' holding'):'Other crypto';
       return '<div class="mmh-account-balance-grid-v149 crypto">'+
         '<div class="mmh-account-balance-card-v149 accent"><small>Total balance</small><b>'+E(usdMoney(totalUSD))+'</b><span>'+E('USDT '+usdMoney(cashUSD)+' · Other crypto '+usdMoney(otherCrypto))+'</span></div>'+
-        '<div class="mmh-account-balance-card-v149"><small>USDT balance</small><b>'+E(N(bal).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})+' USDT')+'</b><span>'+E(usdMoney(cashUSD))+'</span></div>'+
+        '<div class="mmh-account-balance-card-v149"><small>USDT balance</small><b>'+E(usdMoney(cashUSD))+'</b></div>'+
         '<div class="mmh-account-balance-card-v149 crypto-qty"><small>'+E(otherLabel)+'</small><b>'+E(otherMain)+'</b><span>'+E(otherSub)+'</span></div>'+
       '</div>';
     }
