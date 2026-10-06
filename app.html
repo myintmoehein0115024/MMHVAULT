@@ -25554,6 +25554,26 @@ body.light .mmh-account-detail-v830 .mmh-account-flow-v830>div,body.light .mmh-a
   }
   const item=(label,value)=>'<div class="mmh-tx-detail-item-v800"><div class="mmh-tx-detail-label-v800">'+E(label)+'</div><div class="mmh-tx-detail-value-v800">'+E(value||'—')+'</div></div>';
   function flow(rows,a){let incoming=0,outgoing=0;for(const t of rows){if(t?.to_account===a.name)incoming+=N(t.to_amount);if(t?.from_account===a.name)outgoing+=N(t.from_amount)}return {incoming,outgoing}}
+  function accountBalanceCardsHTML(a,bal,cashUSD,linkedUSD,flows,wallet,invRows,customRows){
+    const flowNet=flows.incoming-flows.outgoing;
+    const tokenCount=(wallet?.tokens||[]).length;
+    const linkedCount=(invRows?.length||0)+(customRows?.length||0);
+    if(a.type==='crypto'){
+      const totalUSD=cashUSD+linkedUSD;
+      return '<div class="mmh-account-balance-grid-v149">'+
+        '<div class="mmh-account-balance-card-v149 accent"><small>Total balance</small><b>'+E(usdMoney(totalUSD))+'</b><span>'+E('Cash '+usdMoney(cashUSD)+' · Crypto '+usdMoney(linkedUSD))+'</span></div>'+
+        '<div class="mmh-account-balance-card-v149"><small>Cash balance</small><b>'+E(nativeMoney(bal,a))+'</b><span>'+E(usdMoney(cashUSD))+'</span></div>'+
+        '<div class="mmh-account-balance-card-v149"><small>Crypto holdings</small><b>'+E(usdMoney(linkedUSD))+'</b><span>'+E(String(tokenCount)+' assets in this wallet')+'</span></div>'+
+        '<div class="mmh-account-balance-card-v149 subtle"><small>Flow snapshot</small><b>'+E(nativeMoney(flowNet,a))+'</b><span>'+E('In '+nativeMoney(flows.incoming,a)+' · Out '+nativeMoney(flows.outgoing,a))+'</span></div>'+
+      '</div>';
+    }
+    return '<div class="mmh-account-balance-grid-v149">'+
+      '<div class="mmh-account-balance-card-v149 accent"><small>Available balance</small><b>'+E(nativeMoney(bal,a))+'</b><span>'+E(cashUSD>0?usdMoney(cashUSD)+' converted':'Conversion unavailable')+'</span></div>'+
+      '<div class="mmh-account-balance-card-v149 in"><small>Total inflow</small><b>'+E(nativeMoney(flows.incoming,a))+'</b><span>'+E('Money received into this account')+'</span></div>'+
+      '<div class="mmh-account-balance-card-v149 out"><small>Total outflow</small><b>'+E(nativeMoney(flows.outgoing,a))+'</b><span>'+E('Money sent from this account')+'</span></div>'+
+      '<div class="mmh-account-balance-card-v149"><small>Linked investments</small><b>'+E(usdMoney(linkedUSD))+'</b><span>'+E(String(linkedCount)+' related records')+'</span></div>'+
+    '</div>';
+  }
   function recentHTML(rows,a){if(!rows.length)return '<div class="mmh-account-empty-v830">No transaction history linked to this account yet.</div>';return '<div class="mmh-account-recent-list-v830">'+rows.slice(0,5).map(t=>{const isIn=t?.to_account===a.name&&N(t?.to_amount)>0;const amount=isIn?N(t.to_amount):N(t.from_amount);const label=t?.category||t?.type||'Transaction';const sub=(t?.type||'Transaction')+(t?.note?' · '+t.note:'');return '<button type="button" class="mmh-account-recent-v830" data-tx-id="'+E(t.id)+'"><time>'+E(t.tx_date||'—')+'</time><span class="copy"><b>'+E(label)+'</b><small>'+E(sub)+'</small></span><span class="amt '+(isIn?'in':'out')+'">'+(isIn?'+':'−')+E(nativeMoney(amount,a))+'</span></button>'}).join('')+'</div>'}
   function body(a){
     const rows=accountTx(a),invRows=accountInvestments(a),customRows=customInvs().filter(x=>x?.source_account===a.name),f=usdFactor(a),bal=nativeBalance(a),cashUSD=bal*f,wallet=walletSnapshot(a),linkedUSD=a.type==='crypto'?N(wallet.total):investmentValueUSD(invRows),totalUSD=cashUSD+linkedUSD,totalNative=f>0?totalUSD/f:bal,share=wealthShare(a,cashUSD,linkedUSD),flows=flow(rows,a),meta=visualMeta(a),symbols=a.type==='crypto'?(wallet.tokens||[]).map(x=>x.sym):[...new Set(invRows.map(x=>x?.asset==='Gold'?'Gold':String(x?.symbol||'').toUpperCase()).filter(Boolean))],walletRows=walletMoves(a);
@@ -25561,7 +25581,7 @@ body.light .mmh-account-detail-v830 .mmh-account-flow-v830>div,body.light .mmh-a
     return '<div class="mmh-tx-detail-v800 mmh-account-detail-v830 mmh-account-detail-v148">'+
       '<div class="mmh-tx-detail-hero-v800"><div><div class="mmh-tx-detail-eyebrow-v800">Account detail</div><div class="mmh-tx-detail-title-v800">'+E(a.name)+'</div><span class="mmh-tx-detail-chip-v800">'+E(code(a)+' · '+typeLabel(a)+' · '+status)+'</span></div><div class="mmh-tx-detail-amount-v800">'+E(a.type==='crypto'?nativeMoney(totalNative,a):nativeMoney(bal,a))+'<small class="mmh-account-usd-v830">'+E(a.type==='crypto'?'Total · Cash '+usdMoney(cashUSD)+' + Crypto '+usdMoney(linkedUSD):(f>0?usdMoney(cashUSD)+' converted':'Conversion unavailable'))+'</small></div></div>'+
       '<div class="mmh-tx-detail-grid-v800 mmh-account-topgrid-v148">'+item('Currency',code(a)==='CNY'?'RMB / CNY':code(a))+item('Account type',typeLabel(a))+item('Wealth contribution',share.toFixed(1)+'%')+item('Related records',String(related))+'</div>'+
-      '<div class="mmh-account-kpis-v148"><div class="mmh-account-kpi-v148 in"><small>Total inflow</small><b>'+E(nativeMoney(flows.incoming,a))+'</b></div><div class="mmh-account-kpi-v148 out"><small>Total outflow</small><b>'+E(nativeMoney(flows.outgoing,a))+'</b></div><div class="mmh-account-kpi-v148"><small>Linked investment value</small><b>'+E(usdMoney(linkedUSD))+'</b></div></div>'+
+      accountBalanceCardsHTML(a,bal,cashUSD,linkedUSD,flows,wallet,invRows,customRows)+
       (a.active===false?'<div class="mmh-account-archived-note-v143">Restore this account before recording new activity.</div>':'<div class="mmh-account-actions-v143 mmh-account-actions-v148" aria-label="Account quick actions"><button type="button" data-account-action-v143="expense" data-account-id-v143="'+E(a.id)+'"><i>↑</i><span><b>Expense</b><small>Pay from this account</small></span></button><button type="button" data-account-action-v143="income" data-account-id-v143="'+E(a.id)+'"><i>↓</i><span><b>Income</b><small>Deposit to this account</small></span></button><button type="button" data-account-action-v143="transfer" data-account-id-v143="'+E(a.id)+'"><i>↔</i><span><b>Transfer</b><small>Move money from here</small></span></button></div>')+
       walletHoldingsHTML(a,wallet)+
       '<div class="mmh-account-split-v148"><div class="mmh-account-section-v830"><div class="mmh-account-section-head-v830"><strong>'+E(a.type==='crypto'?'Wallet summary':'Linked investments')+'</strong><span>'+E(a.type==='crypto'?(String(walletRows.length)+' transfers · '+usdMoney(linkedUSD)):(String(invRows.length+customRows.length)+' records · '+usdMoney(linkedUSD)))+'</span></div>'+(symbols.length?'<div class="mmh-account-invest-tags-v830">'+symbols.map(s=>'<span>'+E(s)+'</span>').join('')+'</div>':'<div class="mmh-account-empty-v830">'+E(a.type==='crypto'?'No wallet assets.':'No linked investment records.')+'</div>')+'</div><div class="mmh-account-section-v830"><div class="mmh-account-section-head-v830"><strong>Recent transactions</strong><span class="mmh-account-section-tools-v143"><em>'+E(String(rows.length)+' linked records')+'</em>'+(rows.length?'<button type="button" data-account-action-v143="history" data-account-id-v143="'+E(a.id)+'">View all ›</button>':'')+'</span></div>'+recentHTML(rows,a)+'</div></div>'+
@@ -26836,12 +26856,16 @@ window.MM_HVAULT_STABILITY_V12311={version:'1.2.3.11',storageFailureIsolation:tr
 #mmhVaultDialogV449 .mmh-account-dialog-v148{width:min(880px,calc(100vw - 28px))}
 #mmhVaultDialogV449 .mmh-account-detail-v148{display:grid;gap:14px}
 #mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-topgrid-v148{grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
-#mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-kpis-v148{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
-#mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-kpi-v148{padding:14px 15px;border-radius:16px;border:1px solid rgba(89,149,196,.17);background:linear-gradient(145deg,rgba(15,42,62,.66),rgba(7,25,40,.74));box-shadow:inset 0 1px 0 rgba(255,255,255,.025)}
-#mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-kpi-v148 small{display:block;margin-bottom:6px;color:#87a2b7;font-size:10px;text-transform:uppercase;letter-spacing:.08em;font-weight:700}
-#mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-kpi-v148 b{font-size:25px;line-height:1.05;color:#eef5fb}
-#mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-kpi-v148.in b{color:#78e0b6}
-#mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-kpi-v148.out b{color:#ff9daf}
+#mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-balance-grid-v149{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+#mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-balance-card-v149{padding:15px 16px;border-radius:18px;border:1px solid rgba(89,149,196,.18);background:linear-gradient(145deg,rgba(16,43,64,.82),rgba(8,24,38,.92));box-shadow:inset 0 1px 0 rgba(255,255,255,.03),0 10px 30px rgba(0,0,0,.12);display:grid;gap:7px;align-content:start;min-height:108px}
+#mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-balance-card-v149 small{display:block;color:#86a2b7;font-size:10px;text-transform:uppercase;letter-spacing:.1em;font-weight:800}
+#mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-balance-card-v149 b{font-size:24px;line-height:1.08;color:#f3f8fd;letter-spacing:-.02em}
+#mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-balance-card-v149 span{display:block;color:#8ea8bc;font-size:11px;line-height:1.45}
+#mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-balance-card-v149.accent{border-color:rgba(103,199,255,.35);background:linear-gradient(145deg,rgba(17,56,83,.88),rgba(8,32,52,.96));box-shadow:inset 0 1px 0 rgba(255,255,255,.035),0 14px 34px rgba(7,22,38,.2)}
+#mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-balance-card-v149.accent b{color:#f7fbff}
+#mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-balance-card-v149.in b{color:#79e0b7}
+#mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-balance-card-v149.out b{color:#ff9fb1}
+#mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-balance-card-v149.subtle b{color:#d7ebff}
 #mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-actions-v148{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
 #mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-actions-v148 button{min-height:74px;padding:12px 14px;border-radius:15px}
 #mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-split-v148{display:grid;grid-template-columns:1fr 1.18fr;gap:12px;align-items:start}
@@ -28588,7 +28612,7 @@ window.MMHVAULT_V1523_ACTIVE_OBSERVER_SLEEP={version:'1.5.23',transactions:true,
 
 <style id="mmhvault-v175-no-negative-balance-css">
 .mmh-balance-guard-note-v175{font-size:11px;color:#9eb8d5;line-height:1.5}
-</style>
+@media(max-width:980px){#mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-balance-grid-v149{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:640px){#mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-topgrid-v148,#mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-balance-grid-v149{grid-template-columns:1fr}#mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-balance-card-v149{min-height:auto}}</style>
 <script id="mmhvault-v175-no-negative-balance-js">
 (()=>{'use strict';if(window.__mmhNoNegativeBalanceV175)return;window.__mmhNoNegativeBalanceV175=true;
  const N=v=>{const n=Number(v);return Number.isFinite(n)?n:0};
