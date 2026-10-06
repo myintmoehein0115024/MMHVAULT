@@ -1654,7 +1654,7 @@ body.mmh-workspace-active #dataLoadOverlayV384{pointer-events:none!important;}
 body.mmh-workspace-active #dataLoadOverlayV384:not(.show){display:none!important;}
 #gettingStarted:not(.open),#welcomeScreen:not(.show){pointer-events:none!important;}
 body.mmh-workspace-active main.wrap,body.mmh-workspace-active #header,body.mmh-workspace-active #bottomNav{pointer-events:auto!important;}
-</style><meta content="Personal Stable Candidate 1.9.18 · retired Analyze runtime and Reports lifecycle cleanup" name="mmhvault-architecture"/>
+</style><meta content="Personal Stable Candidate 1.9.19 · retired Analyze runtime quarantine and freeze preparation" name="mmhvault-architecture"/>
 <style id="mmhvault-v34216-birthday-settings-css">
 .mmh-birthday-settings-v34216{margin-top:14px;background:linear-gradient(140deg,rgba(9,23,45,.88),rgba(4,11,24,.95));border:1px solid rgba(80,140,220,.28);box-shadow:0 18px 48px rgba(0,0,0,.16)}
 .mmh-birthday-grid-v34216{display:grid;grid-template-columns:minmax(220px,.65fr) minmax(0,1.35fr);gap:14px;align-items:stretch}
@@ -10691,6 +10691,7 @@ body.mmh-v436-explorer-open #bottomNav{visibility:hidden!important;pointer-event
 @media(max-width:760px){.mmh-wallet-card-v172 .mmh-wallet-help-v181{grid-template-columns:1fr}.mmh-wallet-combo-menu-v181{max-height:210px}}
 </style>
 
+
 </head>
 <!-- MMHVAULT V4.3.6 · iOS JSON import bridge + V4.3.0 Dashboard report relocation + Transaction receipt center + Invest Add precision -->
 <body>
@@ -10788,7 +10789,7 @@ body.mmh-v436-explorer-open #bottomNav{visibility:hidden!important;pointer-event
 <button data-more-page="settings" role="menuitem" type="button">⚙️<span>Settings</span></button>
 </div>
 <style id="mmhvault-retired-pages-v480">
-#analyze{display:none!important}
+#analyze{display:none!important;visibility:hidden!important;pointer-events:none!important}
 #dashboard .dashboard-quick-actions-v371 button[onclick*="setPage('analyze')"],#dashboard .mmh-dash372-status button[onclick*="setPage('analyze')"]{display:none!important}
 </style>
 <div aria-hidden="true" class="welcome-screen" id="welcomeScreen">
@@ -11091,7 +11092,7 @@ body.mmh-v436-explorer-open #bottomNav{visibility:hidden!important;pointer-event
 <div class="scroll" id="txList"></div>
 </div></div>
 </section>
-<section class="page" id="analyze" aria-hidden="true" inert>
+<section class="page" id="analyze" aria-hidden="true" inert hidden>
 <div class="toolbar analyze-period-bar"><div class="mmh-analyze-title-v1"><h1 class="mmh-hint-anchor-v195 mmh-context-title-v199" data-mmh-hint-source="next" tabindex="0">Analyze</h1><div class="sub mmh-context-desc-v199">Explore your financial picture.</div></div>
 <div class="mmh-analyze-header-controls-v1"><div class="mmh-analyze-page-picker-v1" id="mmhAnalyzePagePickerV1"><span class="mmh-analyze-control-label-v1">View</span><button class="mmh-analyze-page-trigger-v1" id="mmhAnalyzePageTriggerV1" type="button" aria-label="选择分析页面：Overview" aria-haspopup="true" aria-controls="mmhAnalyzePageOptionsV1" aria-expanded="false"><span id="mmhAnalyzePageCurrentV1">Overview</span><span class="mmh-analyze-chevron-v1" aria-hidden="true"></span></button>
 <div aria-label="Analysis sections" class="analyze-tabs-v371 analyze-tabs-merged-v1" id="mmhAnalyzePageOptionsV1" role="tablist" aria-hidden="true">
@@ -14008,7 +14009,7 @@ function scheduleRenderV3441(reason='frame-render'){
   if(typeof requestAnimationFrame==="function")mmhvaultRenderFrameV3441=requestAnimationFrame(run);
   else mmhvaultRenderFrameV3441=setTimeout(run,0);
 }
-function render(){if($("dashboard").classList.contains("active"))renderDashboard();if($("transactions").classList.contains("active"))renderTransactions();if($("analyze").classList.contains("active"))renderAnalyze();if($("exchange").classList.contains("active"))renderRates();if($("invest").classList.contains("active"))renderInvest();}
+function render(){if($("dashboard").classList.contains("active"))renderDashboard();if($("transactions").classList.contains("active"))renderTransactions();if($("exchange").classList.contains("active"))renderRates();if($("invest").classList.contains("active"))renderInvest();}
 function renderCurrentHoldings(cryptos){
  const syms=['BTC','ETH','SOL','BNB'];
  currentHoldings.innerHTML=syms.map(s=>{
@@ -15598,21 +15599,10 @@ function renderDashboardV35(){
 function renderV35(){
   if($("dashboard")?.classList.contains("active"))renderDashboardV35();
   if($("transactions")?.classList.contains("active"))renderTransactions();
-  if($("analyze")?.classList.contains("active"))renderAnalyzeV35();
   if($("exchange")?.classList.contains("active"))renderRates();
   if($("invest")?.classList.contains("active"))renderInvest();
 }
-function bindV35Analyze(){
-  const p=$("analyzePeriod");if(!p)return;
-  const saved=localStorage.getItem("myfinance_analyze_period")||today().slice(0,7);
-  p.value=[...p.options].some(o=>o.value===saved)?saved:"annual";
-  const month=$("month");if(month)month.value=p.value==="annual"?today().slice(0,7):p.value;
-  p.onchange=()=>{localStorage.setItem("myfinance_analyze_period",p.value);if(month)month.value=p.value==="annual"?today().slice(0,7):p.value;renderAnalyzeV35();};
-}
-renderDashboard=renderDashboardV35;
-renderAnalyze=renderAnalyzeV35;
-render=renderV35;
-bindV35Analyze();
+/* Analyze v35 period binding retired: the legacy Analyze page is permanently redirected to Dashboard. */
 
 
 document.addEventListener("click",e=>{
@@ -15967,19 +15957,7 @@ function renderDashboardInsightsV37(){
   ];
   el.innerHTML=messages.map(x=>`<div class="insight-v37"><b>${x.title}</b><div class="small">${x.text}</div></div>`).join("");
 }
-(function(){
-  const y=$("analyzeYear"),m=$("analyzeMonth");
-  if(!y||!m)return;
-  v37EnsurePeriodControls();
-  const bindPeriodChange=(el,key)=>{
-    if(!el)return;
-    try{el.__mmhV34247Abort?.abort?.();}catch(_e){}
-    const ctrl=new AbortController();el.__mmhV34247Abort=ctrl;
-    el.addEventListener("change",()=>{localStorage.setItem(key,el.value);renderAnalyzeV37();},{signal:ctrl.signal});
-  };
-  bindPeriodChange(y,"myfinance_analyze_year");
-  bindPeriodChange(m,"myfinance_analyze_month");
-})();
+/* Analyze v37 period listeners retired with the hidden compatibility page. */
 /* ===================== V4.3.0 Financial Health ===================== */
 function fhNumber(v){return Number.isFinite(Number(v))?Number(v):0;}
 function fhMonthKeyFromOffset(offset){const d=new Date();d.setDate(1);d.setMonth(d.getMonth()+offset);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;}
@@ -16152,11 +16130,7 @@ function renderNetWorthAnalyzeV371(){
       }).join('')}</div>
     </div>`;
 }
-(function(){
-  const tabs=document.querySelectorAll('.analyze-tab-v371');if(!tabs.length)return;
-  tabs.forEach(b=>b.addEventListener('click',()=>setAnalyzeTabV371(b.dataset.tab)));
-  setAnalyzeTabV371(localStorage.getItem('myfinance_analyze_tab')||'overview');
-})();
+/* Analyze v371 tab listeners retired; Cash Flow Analyze is the active analysis surface. */
 
 renderAnalyze=renderAnalyzeV37;
 const _renderAnalyzeV371Base=renderAnalyzeV37;
@@ -16165,7 +16139,6 @@ renderAnalyzeV37=function(){_renderAnalyzeV371Base();renderFinancialHealthV371()
 render=function(){
   if($("dashboard")?.classList.contains("active"))renderDashboard();
   if($("transactions")?.classList.contains("active"))renderTransactions();
-  if($("analyze")?.classList.contains("active"))renderAnalyzeV37();
   if($("exchange")?.classList.contains("active"))renderRates();
   if($("invest")?.classList.contains("active"))renderInvest();
 };
@@ -16490,7 +16463,7 @@ async function exportMyFinanceBackupV380(){
     const configuration=mmhVaultBackupConfigSnapshotV1236(u.id);
     const tables=['transactions','investments','crypto_wallet_movements','exchange_rates','budgets','financial_goals','recurring_transactions','custom_investments'];
     const datasets=await Promise.all(tables.map(table=>mmhPersonalReadAllV191(table,u.id)));
-    const out={schema_version:2,scope:'personal',version:'Personal Stable Candidate 1.9.18',exported_at:new Date().toISOString(),customer_id:$('accountUserIdV372')?.textContent||'',user_id:u.id,transactions:datasets[0],investments:datasets[1],wallet_movements:datasets[2],rates:datasets[3][0]||{},configuration,budgets:datasets[4],goals:datasets[5],recurring:datasets[6],custom_investments:datasets[7],settings:mmhPersonalPreferencesV191()};
+    const out={schema_version:2,scope:'personal',version:'Personal Stable Candidate 1.9.19',exported_at:new Date().toISOString(),customer_id:$('accountUserIdV372')?.textContent||'',user_id:u.id,transactions:datasets[0],investments:datasets[1],wallet_movements:datasets[2],rates:datasets[3][0]||{},configuration,budgets:datasets[4],goals:datasets[5],recurring:datasets[6],custom_investments:datasets[7],settings:mmhPersonalPreferencesV191()};
     if(currentSessionUser?.id!==u.id)throw Error('Account session changed. Backup export stopped.');
     const blob=new Blob([JSON.stringify(out,null,2)],{type:'application/json'});
     const url=URL.createObjectURL(blob),a=document.createElement('a');const filename=`MMHVAULT_Backup_${today()}.json`;a.href=url;a.download=filename;a.click();URL.revokeObjectURL(url);
@@ -18531,9 +18504,8 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 <!-- MMHVAULT V4.3.0.5 · Net Worth Growth Breakdown -->
 <!-- MMHVAULT V4.3.0 · Portfolio Health & Concentration -->
 <script id="mmhvault-v338-hotfix-runtime-recovery">
-/* MMHVAULT V4.3.0.8 runtime recovery hotfix
-   Fixes stale window data mirrors, Analyze period controls, and Settings tab interaction.
-   Non-destructive: cloud data remains authoritative. */
+/* MMHVAULT runtime recovery: keep data mirrors and Settings interaction resilient.
+   Retired Analyze repair/render work was removed in Personal Stable Candidate 1.9.19. */
 (function(){
   if(window.__mmhV338RuntimeRecoveryInstalled)return;
   window.__mmhV338RuntimeRecoveryInstalled=true;
@@ -18544,36 +18516,6 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       if(typeof investments!=='undefined' && Array.isArray(investments)) window.investments=investments;
       if(typeof rates!=='undefined' && rates && typeof rates==='object') window.rates=rates;
     }catch(e){console.warn('MMHVAULT data mirror recovery skipped',e);}
-  }
-
-  function repairPeriod(){
-    const y=document.getElementById('analyzeYear');
-    const m=document.getElementById('analyzeMonth');
-    if(!y||!m)return;
-    const rows=Array.isArray(window.transactions)?window.transactions:[];
-    const years=new Set([new Date().getFullYear()]);
-    rows.forEach(t=>{
-      const yy=String(t&&t.tx_date||'').slice(0,4);
-      if(/^\d{4}$/.test(yy))years.add(Number(yy));
-    });
-    const current=String(y.value||localStorage.getItem('myfinance_analyze_year')||'');
-    const list=[...years].sort((a,b)=>a-b);
-    y.innerHTML=list.map(v=>`<option value="${v}">${v}</option>`).join('');
-    y.value=list.includes(Number(current))?current:String(list[list.length-1]);
-    if(m.options.length<13){
-      const old=String(m.value||localStorage.getItem('myfinance_analyze_month')||'annual');
-      m.innerHTML='<option value="annual">Annual</option>'+Array.from({length:12},(_,i)=>{
-        const value=String(i+1).padStart(2,'0');
-        const label=new Date(2000,i,1).toLocaleString(undefined,{month:'long'});
-        return `<option value="${value}">${label}</option>`;
-      }).join('');
-      m.value=(old==='annual'||/^\d{2}$/.test(old))?old:'annual';
-    }
-    if(!y.dataset.mmhV338Bound){
-      y.dataset.mmhV338Bound='1';
-      y.addEventListener('change',()=>{localStorage.setItem('myfinance_analyze_year',y.value);try{window.renderAnalyzeV37?.();}catch(e){console.warn(e);}});
-      m.addEventListener('change',()=>{localStorage.setItem('myfinance_analyze_month',m.value);try{window.renderAnalyzeV37?.();}catch(e){console.warn(e);}});
-    }
   }
 
   function repairSettings(){
@@ -18596,13 +18538,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     try{window.setSettingsTabV371?.(tab);}catch(err){console.error('Settings tab recovery failed',err);}
   },true);
 
-  function refresh(){
-    syncMirrors();
-    repairPeriod();
-    repairSettings();
-    try{window.renderAnalyzeV37?.();}catch(e){console.warn('Analyze recovery render skipped',e);}
-  }
-
+  function refresh(){syncMirrors();repairSettings();}
   window.addEventListener('mmhvault:data-loaded',()=>setTimeout(refresh,0));
   window.addEventListener('load',()=>setTimeout(refresh,0),{once:true});
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(refresh,0),{once:true});
@@ -19957,7 +19893,7 @@ body.mmhvault-scroll-active #invest .invest-top>.panel{box-shadow:inset 0 1px 0 
   document.addEventListener('visibilitychange',()=>{if(document.visibilityState!=='hidden')markAll();},{passive:true});
   window.addEventListener('storage',e=>{
     if(!e)return;
-    if(e.key==='mmhvault_language_v3363'||e.key==='mmhvault_birth_date_v34216'||e.key==='myfinance_analyze_period'||e.key==='myfinance_invest_view_v371'||e.key==='myfinance_invest_subtab_v371')markAll();
+    if(e.key==='mmhvault_language_v3363'||e.key==='mmhvault_birth_date_v34216'||e.key==='myfinance_invest_view_v371'||e.key==='myfinance_invest_subtab_v371')markAll();
   },{passive:true});
 
   // Preserve the latest explicit render API, but skip duplicate calls for the same clean page.
@@ -31368,7 +31304,7 @@ body.light #mmhHintBubbleV195{background:rgba(248,252,255,.99);border-color:rgba
 })();
 </script>
 <style id="mmhvault-v1917-personal-final-ui-css">
-/* Personal Stable Candidate 1.9.18 · canonical Personal presentation layer.
+/* Personal Stable Candidate 1.9.19 · canonical Personal presentation layer.
    Consolidates the recent final-pass CSS while preserving rule order and behavior. */
 /* Keep Wallet Activity aligned with Add Transaction / Add Invest field geometry. */
 .mmh-wallet-form-v172 input,.mmh-wallet-form-v172 select{min-height:44px;box-sizing:border-box}
@@ -31550,7 +31486,7 @@ html body.mmh-workspace-active main.wrap .page.active th{vertical-align:middle}
   #mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-recent-v830 .copy small{white-space:normal;line-height:1.35}
 }
 
-/* Personal Stable Candidate 1.9.18 · final Settings / More / detail responsive pass.
+/* Personal Stable Candidate 1.9.19 · final Settings / More / detail responsive pass.
    Presentation-only. Uses vh fallbacks before dvh so older mobile browsers remain usable. */
 html body.mmh-workspace-active #moreNavMenu.more-nav-menu{
   max-height:calc(100vh - 28px)!important;
