@@ -1654,7 +1654,7 @@ body.mmh-workspace-active #dataLoadOverlayV384{pointer-events:none!important;}
 body.mmh-workspace-active #dataLoadOverlayV384:not(.show){display:none!important;}
 #gettingStarted:not(.open),#welcomeScreen:not(.show){pointer-events:none!important;}
 body.mmh-workspace-active main.wrap,body.mmh-workspace-active #header,body.mmh-workspace-active #bottomNav{pointer-events:auto!important;}
-</style><meta content="Personal Stable Candidate 1.9.15 · final render cleanup and responsive stability" name="mmhvault-architecture"/>
+</style><meta content="Personal Stable Candidate 1.9.16 · legacy dashboard idle cleanup and More CSS consolidation" name="mmhvault-architecture"/>
 <style id="mmhvault-v34216-birthday-settings-css">
 .mmh-birthday-settings-v34216{margin-top:14px;background:linear-gradient(140deg,rgba(9,23,45,.88),rgba(4,11,24,.95));border:1px solid rgba(80,140,220,.28);box-shadow:0 18px 48px rgba(0,0,0,.16)}
 .mmh-birthday-grid-v34216{display:grid;grid-template-columns:minmax(220px,.65fr) minmax(0,1.35fr);gap:14px;align-items:stretch}
@@ -5344,62 +5344,6 @@ body.mmh-workspace-active #settings .st-stats{
   }
 }
 
-#moreNavMenu.more-nav-menu>.mmh-more-nested-trigger-v131,
-#moreNavMenu .mmh-more-submenu-v131>button{
-  display:flex!important;
-  align-items:center!important;
-  gap:10px!important;
-  width:100%!important;
-  margin:0!important;
-  padding:8px 10px!important;
-  min-height:48px!important;
-  border-radius:12px!important;
-  border:1px solid rgba(91,151,196,.10)!important;
-  background:linear-gradient(145deg,rgba(16,43,64,.62),rgba(7,25,40,.70))!important;
-  color:#c8dbe8!important;
-  font:inherit!important;
-  font-size:12px!important;
-  font-weight:680!important;
-  text-align:left!important;
-  box-shadow:none!important;
-}
-#moreNavMenu.more-nav-menu>.mmh-more-nested-trigger-v131::after,
-#moreNavMenu .mmh-more-submenu-v131>button::after{
-  content:'›'!important;
-  margin-left:auto!important;
-  color:#6c899f!important;
-  font-size:18px!important;
-  transition:transform .16s ease!important;
-}
-#moreNavMenu.more-nav-menu>.mmh-more-nested-trigger-v131[aria-expanded='true']::after{
-  transform:rotate(90deg)!important;
-}
-#moreNavMenu.more-nav-menu>.mmh-more-nested-trigger-v131:hover,
-#moreNavMenu.more-nav-menu>.mmh-more-nested-trigger-v131.active,
-#moreNavMenu .mmh-more-submenu-v131>button:hover,
-#moreNavMenu .mmh-more-submenu-v131>button.active{
-  border-color:rgba(242,196,94,.24)!important;
-  background:linear-gradient(135deg,rgba(76,199,255,.10),rgba(242,196,94,.08))!important;
-  color:#f5f9fc!important;
-}
-#moreNavMenu .mmh-more-submenu-v131{
-  grid-column:1/-1!important;
-  display:grid!important;
-  grid-template-columns:1fr!important;
-  gap:6px!important;
-  margin-top:2px!important;
-  padding:8px 0 0 14px!important;
-  border-top:1px dashed rgba(96,149,191,.18)!important;
-}
-#moreNavMenu .mmh-more-submenu-v131[hidden]{display:none!important}
-#moreNavMenu .mmh-more-submenu-v131 .mmh-more-icon-v570{background:#0f2b40!important}
-#moreNavMenu .mmh-more-submenu-v131 #mmhMoreAdminV570 .mmh-more-icon-v570{background:#342b18!important;border-color:rgba(242,196,94,.24)!important;color:#f0c75f!important}
-@media (max-width:1099px){
-  #moreNavMenu .mmh-more-submenu-v131{padding-left:8px!important}
-}
-@media (max-width:420px){
-  #moreNavMenu .mmh-more-submenu-v131{padding-left:0!important}
-}
 
 
 /* MMHVAULT v1.3.4 · UI/UX Pass 3
@@ -15525,6 +15469,7 @@ function investmentCostUSD(){return mmhvaultInvestmentCostUSD();}
 function investmentValueUSD(){return mmhvaultInvestmentValueUSD();}
 function mmhvaultNetWorthUSD(){return Math.max(0,mmhvaultCashUSD()+mmhvaultInvestmentValueUSD());}
 function renderDashboardV30(){
+  if(document.getElementById('mmhPremiumDashboardV500')) return;
   const cashAccounts=ACC;
   // Available Balance = all six cash-account balances converted to USD, less outstanding loans.
   // This explicitly includes THB (Bath/TrueMoney) and MMK (KPay) via the exchange center.
@@ -16116,8 +16061,6 @@ function renderFinancialHealthV371(){
       </div>
     </div>`;
 }
-const _renderDashboardV371Health=renderDashboard;
-renderDashboard=function(){_renderDashboardV371Health();};
 
 
 
@@ -16399,74 +16342,6 @@ function setAccountsCategoriesTabV445(tab){
 window.setAccountsCategoriesTabV445 = setAccountsCategoriesTabV445;
 setTimeout(()=>setAccountsCategoriesTabV445(localStorage.getItem('mmhvault_accounts_categories_tab_v445')||'accounts'),0);
 
-/* V4.3.0 Net Worth History polished chart */
-function renderNetWorthHistoryPolishedV371(){
-  const el=$('netWorthHistory');
-  if(!el)return;
-  const currentNet=(typeof investmentValueUSD==='function'?investmentValueUSD():0) + ACC.reduce((sum,a)=>sum+balance(a)*toUSD(a),0);
-  const months=monthSeries();
-  const flows=months.map(m=>{
-    const z=monthTotals(m);
-    return {m,flow:(z.inc-z.exp)/rates.usd_mmk};
-  });
-  let running=currentNet;
-  const series=new Array(flows.length);
-  for(let i=flows.length-1;i>=0;i--){
-    series[i]={m:flows[i].m,net:running};
-    running-=flows[i].flow;
-  }
-  const minVal=Math.min(...series.map(x=>x.net));
-  const maxVal=Math.max(...series.map(x=>x.net));
-  const span=Math.max(1,maxVal-minVal);
-  const W=720,H=190,PL=44,PR=12,PT=16,PB=30;
-  const innerW=W-PL-PR, innerH=H-PT-PB;
-  const points=series.map((x,i)=>{
-    const px=PL+(series.length===1?innerW/2:i/(series.length-1)*innerW);
-    const py=PT+(1-(x.net-minVal)/span)*innerH;
-    return {...x,px,py};
-  });
-  const pointStr=points.map(x=>`${x.px.toFixed(2)},${x.py.toFixed(2)}`).join(' ');
-  const areaPts=`${PL},${PT+innerH} ${pointStr} ${PL+innerW},${PT+innerH}`;
-  const gridVals=[0,.5,1].map(r=>minVal+span*r);
-  const grid=gridVals.map(v=>{const y=PT+(1-(v-minVal)/span)*innerH;return `<line x1="${PL}" y1="${y.toFixed(2)}" x2="${W-PR}" y2="${y.toFixed(2)}"></line><text x="2" y="${(y+3).toFixed(2)}" class="nw-chart-axis-v371">${usd(v)}</text>`;}).join('');
-  const labels=points.map(x=>`<text x="${x.px.toFixed(2)}" y="${H-8}" text-anchor="middle" class="nw-chart-label-v371">${esc(monthLabel(x.m).split(' ')[0])}</text>`).join('');
-  const circles=points.map((x,i)=>`<circle cx="${x.px.toFixed(2)}" cy="${x.py.toFixed(2)}" r="4" fill="var(--cyan)"><title>${monthLabel(x.m)} · Estimated Net Worth ${usd(x.net)}</title></circle>`).join('');
-  const first=series[0]?.net||0;
-  const change=currentNet-first;
-  const growth=first?change/first*100:null;
-  const deltaClass=change>=0?'green':'red';
-  const growthTxt=growth===null?'—':`${growth>=0?'+':''}${growth.toFixed(2)}%`;
-  el.innerHTML=`<div class="networth-history-v371">
-    <div class="nw-chart-wrap-v371">
-      <svg class="nw-chart-v371" viewBox="0 0 ${W} ${H}" role="img" aria-label="Estimated six month net worth trend">
-        <g class="nw-chart-grid-v371">${grid}</g>
-        <polygon points="${areaPts}" fill="rgba(56,198,238,.10)"></polygon>
-        <polyline points="${pointStr}" fill="none" stroke="var(--cyan)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></polyline>
-        ${circles}
-        ${labels}
-      </svg>
-    </div>
-    <div class="nw-trend-summary-v371">
-      <div class="nw-trend-stat-v371"><div class="label">Current</div><div class="value">${usd(currentNet)}</div></div>
-      <div class="nw-trend-stat-v371"><div class="label">6M Change</div><div class="value ${deltaClass}">${change>=0?'+':''}${usd(change)}</div></div>
-      <div class="nw-trend-stat-v371"><div class="label">6M Growth</div><div class="value ${deltaClass}">${growthTxt}</div></div>
-    </div>
-    <div class="nw-trend-note-v371">Estimated trend from monthly cash flow and current holdings. Historical Crypto/Gold market prices are not stored.</div>
-  </div>`;
-}
-const _renderDashboardNWHistoryV371=renderDashboard;
-renderDashboard=function(){_renderDashboardNWHistoryV371();renderNetWorthHistoryPolishedV371();};
-const _renderDashboardBrandingV385=renderDashboard;
-function renderDashboardBrandingV385(){
-  _renderDashboardBrandingV385();
-  try{
-    const name=(typeof currentUserDisplayName==='string'&&currentUserDisplayName.trim())?currentUserDisplayName.trim():(typeof currentUserEmail==='string'&&currentUserEmail?currentUserEmail.split('@')[0]:'User');
-    const customer=(typeof currentCustomerId==='string'&&currentCustomerId)?currentCustomerId:'Customer';
-    const title=$('dashboardWelcomeTitle'); if(title) title.textContent='Financial Dashboard';
-    const badge=$('dashboardCustomerBadge'); if(badge) badge.textContent=customer;
-  }catch(e){console.warn('Dashboard branding:',e)}
-}
-renderDashboard=renderDashboardBrandingV385;
 
 
 
@@ -16622,7 +16497,7 @@ async function exportMyFinanceBackupV380(){
     const configuration=mmhVaultBackupConfigSnapshotV1236(u.id);
     const tables=['transactions','investments','crypto_wallet_movements','exchange_rates','budgets','financial_goals','recurring_transactions','custom_investments'];
     const datasets=await Promise.all(tables.map(table=>mmhPersonalReadAllV191(table,u.id)));
-    const out={schema_version:2,scope:'personal',version:'Personal Stable Candidate 1.9.15',exported_at:new Date().toISOString(),customer_id:$('accountUserIdV372')?.textContent||'',user_id:u.id,transactions:datasets[0],investments:datasets[1],wallet_movements:datasets[2],rates:datasets[3][0]||{},configuration,budgets:datasets[4],goals:datasets[5],recurring:datasets[6],custom_investments:datasets[7],settings:mmhPersonalPreferencesV191()};
+    const out={schema_version:2,scope:'personal',version:'Personal Stable Candidate 1.9.16',exported_at:new Date().toISOString(),customer_id:$('accountUserIdV372')?.textContent||'',user_id:u.id,transactions:datasets[0],investments:datasets[1],wallet_movements:datasets[2],rates:datasets[3][0]||{},configuration,budgets:datasets[4],goals:datasets[5],recurring:datasets[6],custom_investments:datasets[7],settings:mmhPersonalPreferencesV191()};
     if(currentSessionUser?.id!==u.id)throw Error('Account session changed. Backup export stopped.');
     const blob=new Blob([JSON.stringify(out,null,2)],{type:'application/json'});
     const url=URL.createObjectURL(blob),a=document.createElement('a');const filename=`MMHVAULT_Backup_${today()}.json`;a.href=url;a.download=filename;a.click();URL.revokeObjectURL(url);
@@ -18906,13 +18781,6 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 </script>
 <!-- MMHVAULT V4.3.0.5 · Net Worth Growth Breakdown -->
 <!-- MMHVAULT V4.3.0 · Portfolio Health & Concentration -->
-<style id="v3717-surplus-allocation-css">
-.surplus-plan-v3717{margin-top:16px;border:1px solid var(--line);border-radius:16px;background:linear-gradient(135deg,rgba(17,30,66,.82),rgba(11,18,43,.72));padding:16px}
-.surplus-plan-v3717 .sp-head{display:flex;justify-content:space-between;gap:14px;align-items:flex-start;margin-bottom:12px}.surplus-plan-v3717 h3{margin:0;font-size:17px}.surplus-plan-v3717 .sp-sub{margin-top:4px;color:var(--muted);font-size:12px;line-height:1.45}.surplus-plan-v3717 .sp-badge{border:1px solid rgba(99,210,255,.35);border-radius:999px;padding:7px 10px;font-size:11px;color:#9be7ff;white-space:nowrap}
-.surplus-plan-grid-v3717{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.surplus-plan-card-v3717{border:1px solid rgba(120,150,220,.2);border-radius:13px;background:rgba(5,12,31,.42);padding:13px}.surplus-plan-card-v3717 .label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}.surplus-plan-card-v3717 .value{font-size:22px;font-weight:800;margin-top:6px}.surplus-plan-card-v3717 .meta{font-size:11px;color:var(--muted);margin-top:5px;line-height:1.4}.surplus-plan-card-v3717.cash .value{color:#7adfff}.surplus-plan-card-v3717.invest .value{color:#7fe0b4}
-.surplus-bars-v3717{margin-top:14px;display:grid;gap:9px}.surplus-row-v3717{display:grid;grid-template-columns:150px minmax(0,1fr) 82px;gap:10px;align-items:center;font-size:12px}.surplus-row-v3717 b{font-size:12px}.surplus-track-v3717{height:8px;border-radius:999px;background:rgba(255,255,255,.06);overflow:hidden}.surplus-track-v3717 i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#4fd5ff,#b889ff,#ee70d7)}.surplus-row-v3717 strong{text-align:right}.surplus-invest-breakdown-v3717{margin-top:13px;padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,.08);background:rgba(5,12,31,.35)}.surplus-invest-breakdown-v3717 .sp-mini{display:flex;justify-content:space-between;gap:10px;font-size:12px;margin-top:6px}.surplus-invest-breakdown-v3717 .sp-mini span{color:var(--muted)}.surplus-plan-note-v3717{margin-top:12px;padding-top:11px;border-top:1px solid rgba(255,255,255,.08);font-size:11px;color:var(--muted);line-height:1.5}
-@media(max-width:800px){.surplus-plan-grid-v3717{grid-template-columns:1fr}.surplus-row-v3717{grid-template-columns:110px minmax(0,1fr) 70px}.surplus-plan-v3717 .sp-head{flex-direction:column}.surplus-plan-v3717 .sp-badge{white-space:normal}}
-</style>
 <script id="mmhvault-v338-hotfix-runtime-recovery">
 /* MMHVAULT V4.3.0.8 runtime recovery hotfix
    Fixes stale window data mirrors, Analyze period controls, and Settings tab interaction.
@@ -20299,24 +20167,15 @@ body.mmhvault-scroll-active #invest .invest-top>.panel{box-shadow:inset 0 1px 0 
 <!-- MMHVAULT V4.3.0 · Planning/Insights organization -->
 
 <style id="mmhvault-v34220-performance-css">
-/* V4.3.0 performance stabilization. Keep visual motion, remove expensive/continuous flicker during interaction. */
+/* Active Transactions paint-budget rules only; retired Dashboard selectors removed in 1.9.16. */
 #transactions::after{animation-duration:34s!important;opacity:.72!important}
 #transactions > .tx-tabs-v371::after{animation-duration:18s!important;opacity:.48!important}
 #transactions .tx-tab-panel-v371 > .panel::before{animation-duration:26s!important;opacity:.72!important}
 #transactions .receipt-upload-v3300::after{animation-duration:22s!important;opacity:.22!important}
 #transactions #txHistoryPanel .scroll::before{animation-duration:14s!important;opacity:.25!important}
-#transactions .mmh-tx-visual-orbit-v34219{animation-duration:34s!important}
-#dashboard .dashboard-premium-panel::before{animation-duration:22s!important}
-#dashboard .dashboard-premium-panel::after{animation-duration:32s!important}
-#dashboard .dashboard-account-panel .account-groups > *::after{animation-duration:16s!important}
-#dashboard .dashboard-recent-panel .scroll::before{animation-duration:14s!important}
 @media(prefers-reduced-motion:reduce){
   #transactions::after,#transactions > .tx-tabs-v371::after,#transactions .tx-tab-panel-v371 > .panel::before,
-  #transactions .receipt-upload-v3300::after,#transactions #txHistoryPanel .scroll::before,
-  #transactions .mmh-tx-visual-orbit-v34219,
-  #dashboard .dashboard-premium-panel::before,#dashboard .dashboard-premium-panel::after,
-  #dashboard .dashboard-account-panel .account-groups > *::after,
-  #dashboard .dashboard-recent-panel .scroll::before{animation:none!important}
+  #transactions .receipt-upload-v3300::after,#transactions #txHistoryPanel .scroll::before{animation:none!important}
 }
 </style>
 <script id="mmhvault-v34220-performance-js">
@@ -20877,11 +20736,6 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
 </script>
 
 <!-- MMHVAULT V4.3.0.3 · Cash USD Display Fix -->
-<style id="mmhvault-v403-cash-usd-css">
-#accounts .account-row .amount-block{display:flex;flex-direction:column;align-items:flex-end;justify-content:center;gap:3px;min-width:0}
-#accounts .account-row .usd-equiv{font-size:11px;font-weight:700;color:rgba(150,184,220,.78);line-height:1.15;white-space:nowrap;letter-spacing:.01em}
-@media(max-width:700px){#accounts .account-row .usd-equiv{font-size:10px}}
-</style>
 
 
 
@@ -23847,32 +23701,6 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
      No business/data logic changed.
 ========================================================= -->
 <!-- MMHVAULT V4.3.0 · Dashboard Alignment Refinement -->
-<script id="mmhvault-v4301-total-records-refinement">
-(function(){
-  let raf=0;
-  const dashboardActive=()=>!!document.getElementById('dashboard')?.classList.contains('active');
-  function normalizeTotalBadge(){
-    const badge=document.getElementById("dashTxCount");
-    if(!badge)return;
-    const text=(badge.textContent||"").trim();
-    const match=text.match(/(?:shown\s+of\s+)(\d+)/i)||text.match(/\bof\s+(\d+)/i);
-    if(match){badge.textContent=match[1]+" TOTAL RECORDS";badge.dataset.mmhTotalOnly="1";return;}
-    if(!badge.dataset.mmhTotalOnly){
-      const number=text.match(/\d+/);
-      if(number&&!/total records/i.test(text)){badge.textContent=number[0]+" TOTAL RECORDS";badge.dataset.mmhTotalOnly="1";}
-    }
-  }
-  function scheduleNormalize(){
-    if(raf||document.hidden||!dashboardActive())return;
-    raf=requestAnimationFrame(()=>{raf=0;if(dashboardActive()&&!document.hidden)normalizeTotalBadge()});
-  }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',scheduleNormalize,{once:true});else scheduleNormalize();
-  window.addEventListener('mmhvault:rendered',e=>{if((e?.detail?.page||'')==='dashboard'||dashboardActive())scheduleNormalize()},{passive:true});
-  window.addEventListener('mmhvault:page-visible',e=>{if((e?.detail?.page||'')==='dashboard')scheduleNormalize()},{passive:true});
-  ['mmhvault:data-loaded','mmhvault:data-change'].forEach(ev=>window.addEventListener(ev,scheduleNormalize,{passive:true}));
-  document.addEventListener('visibilitychange',()=>{if(!document.hidden)scheduleNormalize()},{passive:true});
-})();
-</script>
 
 <!-- =========================================================
      MMHVAULT V4.3.0 · DASHBOARD COMPOSITION POLISH
@@ -23882,129 +23710,6 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
      MMHVAULT V4.3.0 · ACCOUNT & SNAPSHOT PRECISION POLISH
      Visual refinement only — no data or business logic changed.
 ========================================================= -->
-<style id="mmhvault-v4301-account-snapshot-precision">
-/* ---------- Account / Asset rows: cleaner private-banking hierarchy ---------- */
-#dashboard .dashboard-account-panel .account-groups{
-  gap:14px!important;
-}
-#dashboard .dashboard-account-panel .account-groups > .account-group{
-  position:relative;
-  overflow:hidden;
-}
-#dashboard .dashboard-account-panel .account-groups > .account-group::before{
-  content:"";
-  position:absolute;
-  inset:0 auto 0 0;
-  width:2px;
-  background:linear-gradient(180deg,rgba(83,211,255,.78),rgba(83,211,255,.06));
-  opacity:.75;
-}
-#dashboard .dashboard-account-panel .account-card{
-  border-radius:14px!important;
-  border-color:rgba(99,149,219,.16)!important;
-  background:
-    linear-gradient(100deg,rgba(22,40,70,.64),rgba(8,18,38,.54))!important;
-}
-#dashboard .dashboard-account-panel .account-card:hover{
-  border-color:rgba(105,191,250,.30)!important;
-  box-shadow:0 10px 26px rgba(0,0,0,.14),inset 0 1px 0 rgba(255,255,255,.025)!important;
-}
-#dashboard .dashboard-account-panel .account-card .name,
-#dashboard .dashboard-account-panel .account-card .label{
-  font-weight:850!important;
-  letter-spacing:.005em;
-}
-#dashboard .dashboard-account-panel .account-card .value,
-#dashboard .dashboard-account-panel .account-card .amount{
-  font-weight:900!important;
-  letter-spacing:-.018em;
-  font-variant-numeric:tabular-nums;
-}
-#dashboard .dashboard-account-panel .account-card small,
-#dashboard .dashboard-account-panel .account-card .sub{
-  color:#7f98bb!important;
-  font-variant-numeric:tabular-nums;
-}
-
-/* ---------- Snapshot panels: subtle data-terminal polish ---------- */
-#dashboard .wealth-snapshot-v386,
-#dashboard .mmh-dashboard-v372,
-#dashboard .mmh-monthly-report-v373{
-  position:relative;
-  overflow:hidden;
-}
-#dashboard .wealth-snapshot-v386::after,
-#dashboard .mmh-dashboard-v372::after,
-#dashboard .mmh-monthly-report-v373::after{
-  content:"";
-  position:absolute;
-  top:0;
-  right:9%;
-  width:120px;
-  height:1px;
-  background:linear-gradient(90deg,transparent,rgba(90,206,255,.55),transparent);
-  opacity:.65;
-}
-#dashboard .wealth-snapshot-v386 .sub,
-#dashboard .mmh-dashboard-v372 .sub,
-#dashboard .mmh-monthly-report-v373 .sub{
-  letter-spacing:.012em;
-}
-
-/* ---------- KPI values: make important numbers feel deliberate ---------- */
-#dashboard .kpi-polish .kpi-value,
-#dashboard .kpi-polish .value,
-#dashboard .kpi-polish b{
-  font-variant-numeric:tabular-nums;
-}
-#dashboard .kpi-polish .kpi-value{
-  letter-spacing:-.03em!important;
-  font-weight:900!important;
-}
-#dashboard .kpi-polish .kpi-card{
-  position:relative;
-  overflow:hidden;
-}
-#dashboard .kpi-polish .kpi-card::after{
-  content:"";
-  position:absolute;
-  left:18px;
-  right:18px;
-  bottom:0;
-  height:1px;
-  background:linear-gradient(90deg,rgba(76,198,255,.42),transparent 70%);
-  opacity:.55;
-}
-
-/* ---------- Cleaner module separation ---------- */
-#dashboard .dashboard-details > * + *{
-  margin-top:0!important;
-}
-#dashboard .dashboard-account-panel .toolbar,
-#dashboard .wealth-snapshot-v386 .toolbar,
-#dashboard .mmh-dashboard-v372 .toolbar,
-#dashboard .mmh-monthly-report-v373 .toolbar{
-  align-items:center;
-}
-
-/* ---------- Mobile precision ---------- */
-@media(max-width:700px){
-  #dashboard .dashboard-account-panel .account-groups{gap:10px!important}
-  #dashboard .dashboard-account-panel .account-card{border-radius:12px!important}
-  #dashboard .wealth-snapshot-v386::after,
-  #dashboard .mmh-dashboard-v372::after,
-  #dashboard .mmh-monthly-report-v373::after{
-    right:6%;
-    width:80px;
-  }
-}
-@media(hover:none){
-  #dashboard .dashboard-account-panel .account-card:hover{
-    transform:none!important;
-    box-shadow:inset 0 1px 0 rgba(255,255,255,.025)!important;
-  }
-}
-</style>
 
 <!-- =========================================================
      MMHVAULT V4.3.0 · DASHBOARD DATA CLARITY POLISH
@@ -24945,48 +24650,6 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
      Premium animated glass frame for the Asset Allocation ring.
      Visual treatment only — chart data and calculations unchanged.
 ========================================================= -->
-<style id="mmhvault-v4301-signature-allocation-frame">
-
-/* Animated corner atmosphere */
-@keyframes mmhAllocationFrameOrbitV4301{
-  from{transform:rotate(0deg)}
-  to{transform:rotate(360deg)}
-}
-@keyframes mmhAllocationGlassSweepV4301{
-  0%,18%{transform:translateX(0) rotate(20deg);opacity:0}
-  35%{opacity:.82}
-  62%{opacity:.38}
-  100%{transform:translateX(330%) rotate(20deg);opacity:0}
-}
-@keyframes mmhAllocationRingBreathV4301{
-  0%,100%{
-    box-shadow:
-      0 0 0 1px rgba(255,255,255,.055),
-      0 0 0 10px rgba(70,147,217,.018),
-      0 0 28px rgba(44,184,239,.065),
-      0 20px 42px rgba(0,0,0,.28);
-  }
-  50%{
-    box-shadow:
-      0 0 0 1px rgba(255,255,255,.075),
-      0 0 0 13px rgba(70,147,217,.032),
-      0 0 42px rgba(44,184,239,.12),
-      0 20px 48px rgba(0,0,0,.30);
-  }
-}
-
-/* Hover adds a refined response, not a dramatic jump */
-@media(hover:hover){
-}
-
-/* Mobile keeps the premium frame without excessive height */
-@media(max-width:760px){
-}
-
-/* Respect accessibility motion preferences */
-@media(prefers-reduced-motion:reduce){
-}
-</style>
 
 <!-- =========================================================
      MMHVAULT V4.3.0 · ALLOCATION CARDS SIGNATURE POLISH
@@ -30297,12 +29960,6 @@ html body.mmh-workspace-active main.wrap .page.active :is(.empty,.mmh-ui-empty,.
 #moreNavMenu.more-nav-menu::after{content:'Core actions first · more tools nested below'!important;display:block!important;grid-column:1/-1!important;margin:-2px 0 6px!important;color:#6d889e!important;font-size:10px!important;line-height:1.35!important}
 #moreNavMenu.more-nav-menu>button{position:relative;min-height:54px!important;border-color:rgba(91,151,196,.14)!important;border-radius:14px!important;background:linear-gradient(145deg,rgba(16,43,64,.7),rgba(7,25,40,.78))!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.03),0 10px 22px rgba(0,0,0,.12)!important;transition:transform .14s ease,border-color .14s ease,background .14s ease,box-shadow .14s ease!important}
 #moreNavMenu.more-nav-menu>button:hover,#moreNavMenu.more-nav-menu>button.active{transform:translateY(-1px)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.035),0 14px 26px rgba(0,0,0,.16)!important}
-#moreNavMenu .mmh-more-submenu-v131{grid-column:1/-1;display:grid;grid-template-columns:inherit;gap:8px;padding:10px;border-radius:16px;border:1px solid rgba(90,150,194,.12);background:linear-gradient(145deg,rgba(8,28,44,.76),rgba(5,19,33,.84));box-shadow:inset 0 1px 0 rgba(255,255,255,.022)}
-#moreNavMenu .mmh-more-submenu-v131[hidden]{display:none!important}
-#moreNavMenu .mmh-more-nested-trigger-v131{border-style:dashed!important;border-color:rgba(242,196,94,.22)!important;background:linear-gradient(145deg,rgba(36,34,28,.42),rgba(10,28,43,.8))!important}
-#moreNavMenu .mmh-more-nested-trigger-v131::after{content:'⌄'!important}
-#moreNavMenu.mmh-more-nested-open-v131 .mmh-more-nested-trigger-v131::after{content:'⌃'!important}
-#moreNavMenu .mmh-more-submenu-v131::before{content:'MORE TOOLS';display:block;grid-column:1/-1;color:#d9b85f;font-size:9px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;padding:2px 3px 0}
 @media(max-width:820px){#mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-topgrid-v148{grid-template-columns:repeat(2,minmax(0,1fr))}#mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-kpis-v148{grid-template-columns:1fr}#mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-split-v148{grid-template-columns:1fr}}
 @media(max-width:620px){#mmhVaultDialogV449 .mmh-detail-actions-v148{grid-template-columns:repeat(2,minmax(0,1fr))}#mmhVaultDialogV449 .mmh-tx-dialog-v148 .mmh-tx-detail-grid-v800{grid-template-columns:1fr}#mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-actions-v148{grid-template-columns:1fr}}
 @media(max-width:420px){#mmhVaultDialogV449 .mmh-detail-actions-v148{grid-template-columns:1fr}#moreNavMenu.more-nav-menu::after{font-size:9px!important}}
@@ -32209,7 +31866,7 @@ html body.mmh-workspace-active main.wrap .page.active th{vertical-align:middle}
   #mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-recent-v830 .copy small{white-space:normal;line-height:1.35}
 }
 </style>
-<script id="mmhvault-v1915-marker">window.MMHVAULT_PERSONAL_STABLE_CANDIDATE={version:'1.9.15',reportCanonicalStatic:true,retiredAnalyzeRenderCleanup:true,accountDeleteAccess:true,contextHints:true,accountCryptoQuantityPrecision:true,caseInsensitiveAccountDetail:true,walletHistoryDeleteProtection:true,walletRenameSync:true,translationObserverLifecycle:true,externalizedStaticImages:true,investmentHistoryDirectRender:true,walletGridDeterministic:true,walletSnapshotSingleRender:true,walletFieldContextHints:true,tapContextHints:true,systemTitleHints:true,responsiveFinalPass:true,visualRhythmFinal:true,deadCssCleanup:true,contextHintCardRefined:true,touchHintFocusGuard:true,reportTitleHints:true,recentCssConsolidated:true,detailLayoutFinal:true,walletActivityUnifiedInvest:true,retiredWealthPlanningCleanup:true,investInnerTabsAccessible:true,walletPortfolioLayoutFinal:true,legacyDashboardBridgePruned:true,deadVisualObserversRemoved:true,legacyDashboardWrapperCleanup:true,reportRetiredRuleCleanup:true,legacyMarkersPruned:true};</script>
+<script id="mmhvault-v1916-marker">window.MMHVAULT_PERSONAL_STABLE_CANDIDATE={version:'1.9.16',reportCanonicalStatic:true,retiredAnalyzeRenderCleanup:true,accountDeleteAccess:true,contextHints:true,accountCryptoQuantityPrecision:true,caseInsensitiveAccountDetail:true,walletHistoryDeleteProtection:true,walletRenameSync:true,translationObserverLifecycle:true,externalizedStaticImages:true,investmentHistoryDirectRender:true,walletGridDeterministic:true,walletSnapshotSingleRender:true,walletFieldContextHints:true,tapContextHints:true,systemTitleHints:true,responsiveFinalPass:true,visualRhythmFinal:true,deadCssCleanup:true,contextHintCardRefined:true,touchHintFocusGuard:true,reportTitleHints:true,recentCssConsolidated:true,detailLayoutFinal:true,walletActivityUnifiedInvest:true,retiredWealthPlanningCleanup:true,investInnerTabsAccessible:true,walletPortfolioLayoutFinal:true,legacyDashboardBridgePruned:true,deadVisualObserversRemoved:true,legacyDashboardWrapperCleanup:true,reportRetiredRuleCleanup:true,legacyMarkersPruned:true,legacyDashboardStartupIdle:true,legacyMoreCssPruned:true,deadDashboardCssPruned:true};</script>
 
 
 </body>
