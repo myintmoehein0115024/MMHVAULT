@@ -1654,7 +1654,7 @@ body.mmh-workspace-active #dataLoadOverlayV384{pointer-events:none!important;}
 body.mmh-workspace-active #dataLoadOverlayV384:not(.show){display:none!important;}
 #gettingStarted:not(.open),#welcomeScreen:not(.show){pointer-events:none!important;}
 body.mmh-workspace-active main.wrap,body.mmh-workspace-active #header,body.mmh-workspace-active #bottomNav{pointer-events:auto!important;}
-</style><meta content="Personal Stable Candidate 1.9.19 · retired Analyze runtime quarantine and freeze preparation" name="mmhvault-architecture"/>
+</style><meta content="Personal Stable Candidate 1.9.20 · account reference integrity and freeze preparation" name="mmhvault-architecture"/>
 <style id="mmhvault-v34216-birthday-settings-css">
 .mmh-birthday-settings-v34216{margin-top:14px;background:linear-gradient(140deg,rgba(9,23,45,.88),rgba(4,11,24,.95));border:1px solid rgba(80,140,220,.28);box-shadow:0 18px 48px rgba(0,0,0,.16)}
 .mmh-birthday-grid-v34216{display:grid;grid-template-columns:minmax(220px,.65fr) minmax(0,1.35fr);gap:14px;align-items:stretch}
@@ -12815,13 +12815,39 @@ function mmhVaultMergeBackupConfigV1236(snapshot,owner=MMHVAULT_CONFIG_OWNER){
   }
   return result;
 }
-async function mmhVaultRecurringUsesAccountV1236(name,owner){
-  if(!owner||typeof db==='undefined')return false;
-  const [from,to]=await Promise.all([
-    db.from('recurring_transactions').select('id').eq('user_id',owner).eq('from_account',name).limit(1),
-    db.from('recurring_transactions').select('id').eq('user_id',owner).eq('to_account',name).limit(1)
+function mmhVaultAccountKeyV192(value){return String(value||'').trim().toLowerCase();}
+function mmhVaultAccountMatchesV192(value,name){const key=mmhVaultAccountKeyV192(name);return !!key&&mmhVaultAccountKeyV192(value)===key;}
+async function mmhVaultRowsUsingAccountV192(table,fields,name,owner){
+  if(!owner||typeof db==='undefined')return [];
+  const key=mmhVaultAccountKeyV192(name);if(!key)return [];
+  const rows=await mmhPersonalReadAllV191(table,owner);
+  return (rows||[]).filter(row=>(fields||[]).some(field=>mmhVaultAccountKeyV192(row?.[field])===key));
+}
+async function mmhVaultUpdateAccountRefsV192(table,fields,oldName,newName,owner){
+  if(!owner||typeof db==='undefined')return 0;
+  const oldKey=mmhVaultAccountKeyV192(oldName);if(!oldKey)return 0;
+  const rows=await mmhPersonalReadAllV191(table,owner);let updated=0;
+  for(const field of fields||[]){
+    const ids=(rows||[]).filter(row=>mmhVaultAccountKeyV192(row?.[field])===oldKey).map(row=>row?.id).filter(id=>id!==null&&id!==undefined);
+    for(let i=0;i<ids.length;i+=200){
+      if(currentSessionUser?.id!==owner)throw Error('Account session changed.');
+      const chunk=ids.slice(i,i+200),payload={};payload[field]=newName;
+      const r=await db.from(table).update(payload).eq('user_id',owner).in('id',chunk);
+      if(r.error)throw r.error;updated+=chunk.length;
+    }
+  }
+  return updated;
+}
+async function mmhVaultPrimaryHistoryUsesAccountV192(name,owner){
+  const checks=await Promise.all([
+    mmhVaultRowsUsingAccountV192('transactions',['from_account','to_account'],name,owner),
+    mmhVaultRowsUsingAccountV192('investments',['source_account'],name,owner),
+    mmhVaultRowsUsingAccountV192('custom_investments',['source_account'],name,owner)
   ]);
-  if(from.error)throw from.error;if(to.error)throw to.error;return !!((from.data||[]).length||(to.data||[]).length);
+  return checks.some(rows=>rows.length>0);
+}
+async function mmhVaultRecurringUsesAccountV1236(name,owner){
+  return (await mmhVaultRowsUsingAccountV192('recurring_transactions',['from_account','to_account'],name,owner)).length>0;
 }
 async function mmhVaultRecurringUsesCategoryV1236(group,name,owner){
   if(!owner||typeof db==='undefined')return false;
@@ -12830,32 +12856,18 @@ async function mmhVaultRecurringUsesCategoryV1236(group,name,owner){
   const r=await q.limit(1);if(r.error)throw r.error;return !!(r.data||[]).length;
 }
 async function mmhVaultWalletUsesAccountV196(name,owner){
-  if(!owner||typeof db==='undefined')return false;
-  const [from,to]=await Promise.all([
-    db.from('crypto_wallet_movements').select('id').eq('user_id',owner).eq('from_wallet',name).limit(1),
-    db.from('crypto_wallet_movements').select('id').eq('user_id',owner).eq('to_wallet',name).limit(1)
-  ]);
-  if(from.error)throw from.error;if(to.error)throw to.error;
-  return !!((from.data||[]).length||(to.data||[]).length);
+  return (await mmhVaultRowsUsingAccountV192('crypto_wallet_movements',['from_wallet','to_wallet'],name,owner)).length>0;
 }
 async function mmhVaultSyncAccountRenameSecondaryV1236(oldName,newName,owner){
   const warnings=[];
   try{
-    const [a,b]=await Promise.all([
-      db.from('recurring_transactions').update({from_account:newName}).eq('user_id',owner).eq('from_account',oldName),
-      db.from('recurring_transactions').update({to_account:newName}).eq('user_id',owner).eq('to_account',oldName)
-    ]);
-    if(a.error)throw a.error;if(b.error)throw b.error;
-    try{for(const r of window.MMHRecurringV114?.state?.rows||[]){if(r.from_account===oldName)r.from_account=newName;if(r.to_account===oldName)r.to_account=newName;}}catch(_){ }
+    await mmhVaultUpdateAccountRefsV192('recurring_transactions',['from_account','to_account'],oldName,newName,owner);
+    try{for(const r of window.MMHRecurringV114?.state?.rows||[]){if(mmhVaultAccountMatchesV192(r.from_account,oldName))r.from_account=newName;if(mmhVaultAccountMatchesV192(r.to_account,oldName))r.to_account=newName;}}catch(_){ }
     try{window.dispatchEvent(new CustomEvent('mmhvault:recurring-changed',{detail:{action:'account-rename'}}));}catch(_){ }
   }catch(e){console.warn('[MMHVAULT] recurring account rename sync failed',e);warnings.push('Recurring schedules could not be fully updated. Open Recurring and review any schedule that used the old account name.');}
   try{
-    const [a,b]=await Promise.all([
-      db.from('crypto_wallet_movements').update({from_wallet:newName}).eq('user_id',owner).eq('from_wallet',oldName),
-      db.from('crypto_wallet_movements').update({to_wallet:newName}).eq('user_id',owner).eq('to_wallet',oldName)
-    ]);
-    if(a.error)throw a.error;if(b.error)throw b.error;
-    try{for(const r of window.mmhWalletMovementsV174||[]){if(r.from_wallet===oldName)r.from_wallet=newName;if(r.to_wallet===oldName)r.to_wallet=newName;}}catch(_){ }
+    await mmhVaultUpdateAccountRefsV192('crypto_wallet_movements',['from_wallet','to_wallet'],oldName,newName,owner);
+    try{for(const r of window.mmhWalletMovementsV174||[]){if(mmhVaultAccountMatchesV192(r.from_wallet,oldName))r.from_wallet=newName;if(mmhVaultAccountMatchesV192(r.to_wallet,oldName))r.to_wallet=newName;}}catch(_){ }
     try{window.mmhRenderWalletBreakdownV174?.();}catch(_){ }
   }catch(e){console.warn('[MMHVAULT] wallet account rename sync failed',e);warnings.push('Wallet activity could not be fully updated. Open Invest → Portfolio → Wallet Activity and review records that used the old account name.');}
   return warnings;
@@ -13094,18 +13106,15 @@ function mmhVaultEditAccountV449(id){
         try{
           const u=(await db.auth.getUser()).data.user;if(!u||u.id!==configOwner||!mmhVaultRequireConfigOwner(configOwner))throw Error('Account session changed.');
           if(nameChanged&&u){
-            const r1=await db.from('transactions').update({from_account:newName}).eq('user_id',u.id).eq('from_account',oldName);
-            if(r1.error)throw r1.error;
+            await mmhVaultUpdateAccountRefsV192('transactions',['from_account','to_account'],oldName,newName,u.id);
             if(!mmhVaultRequireConfigOwner(configOwner))throw Error('Account session changed.');
-            const r2=await db.from('transactions').update({to_account:newName}).eq('user_id',u.id).eq('to_account',oldName);
-            if(r2.error)throw r2.error;
+            await mmhVaultUpdateAccountRefsV192('investments',['source_account'],oldName,newName,u.id);
             if(!mmhVaultRequireConfigOwner(configOwner))throw Error('Account session changed.');
-            const r3=await db.from('investments').update({source_account:newName}).eq('user_id',u.id).eq('source_account',oldName);
-            if(r3.error)throw r3.error;
+            await mmhVaultUpdateAccountRefsV192('custom_investments',['source_account'],oldName,newName,u.id);
             if(!mmhVaultRequireConfigOwner(configOwner))throw Error('Account session changed.');
-            if((window.mmhCustomInvestRecords||[]).some(x=>x.source_account===oldName)){const r4=await db.from('custom_investments').update({source_account:newName}).eq('user_id',u.id).eq('source_account',oldName);if(r4.error)throw r4.error;if(!mmhVaultRequireConfigOwner(configOwner))throw Error('Account session changed.');window.mmhCustomInvestRecords.forEach(x=>{if(x.source_account===oldName)x.source_account=newName;});}
-            (transactions||[]).forEach(t=>{if(t.from_account===oldName)t.from_account=newName;if(t.to_account===oldName)t.to_account=newName;});
-            (investments||[]).forEach(x=>{if(x.source_account===oldName)x.source_account=newName;});
+            (transactions||[]).forEach(t=>{if(mmhVaultAccountMatchesV192(t.from_account,oldName))t.from_account=newName;if(mmhVaultAccountMatchesV192(t.to_account,oldName))t.to_account=newName;});
+            (investments||[]).forEach(x=>{if(mmhVaultAccountMatchesV192(x.source_account,oldName))x.source_account=newName;});
+            (window.mmhCustomInvestRecords||[]).forEach(x=>{if(mmhVaultAccountMatchesV192(x.source_account,oldName))x.source_account=newName;});
           }
           a.name=newName;a.currency=newCurrency;a.type=newType;
           mmhVaultPersistConfig();mmhVaultRebuildConfigArrays();
@@ -13148,6 +13157,9 @@ async function mmhVaultDeleteAccountV445(id){
   const configOwner=MMHVAULT_CONFIG_OWNER;if(!mmhVaultRequireConfigOwner(configOwner))return false;
   const a=MMHVAULT_CONFIG.accounts.find(x=>x.id===id);if(!a)return;
   if(mmhVaultHasAccountHistory(a.name)){mmhVaultCustomMessageV449('Account has history',`${a.name} has existing transactions or investment records, so it cannot be permanently deleted. Use Archive instead to keep the history safe.`);return;}
+  try{
+    if(await mmhVaultPrimaryHistoryUsesAccountV192(a.name,configOwner)){mmhVaultCustomMessageV449('Account has history',`${a.name} is linked to transaction or investment history, so it cannot be permanently deleted. Use Archive instead to keep the history safe.`);return false;}
+  }catch(e){console.warn('[MMHVAULT] account history delete check failed',e);mmhVaultCustomMessageV449('Could not verify Account history','MMHVAULT could not safely verify transaction and investment history. Please check your connection and try again.');return false;}
   try{
     if(await mmhVaultRecurringUsesAccountV1236(a.name,configOwner)){mmhVaultCustomMessageV449('Account is used by Recurring',`${a.name} is linked to a recurring schedule, so it cannot be permanently deleted. Edit the recurring schedule or use Archive.`);return false;}
   }catch(e){console.warn('[MMHVAULT] recurring account delete check failed',e);mmhVaultCustomMessageV449('Could not verify Recurring','MMHVAULT could not safely verify recurring schedules. Please check your connection and try again.');return false;}
@@ -16463,7 +16475,7 @@ async function exportMyFinanceBackupV380(){
     const configuration=mmhVaultBackupConfigSnapshotV1236(u.id);
     const tables=['transactions','investments','crypto_wallet_movements','exchange_rates','budgets','financial_goals','recurring_transactions','custom_investments'];
     const datasets=await Promise.all(tables.map(table=>mmhPersonalReadAllV191(table,u.id)));
-    const out={schema_version:2,scope:'personal',version:'Personal Stable Candidate 1.9.19',exported_at:new Date().toISOString(),customer_id:$('accountUserIdV372')?.textContent||'',user_id:u.id,transactions:datasets[0],investments:datasets[1],wallet_movements:datasets[2],rates:datasets[3][0]||{},configuration,budgets:datasets[4],goals:datasets[5],recurring:datasets[6],custom_investments:datasets[7],settings:mmhPersonalPreferencesV191()};
+    const out={schema_version:2,scope:'personal',version:'Personal Stable Candidate 1.9.20',exported_at:new Date().toISOString(),customer_id:$('accountUserIdV372')?.textContent||'',user_id:u.id,transactions:datasets[0],investments:datasets[1],wallet_movements:datasets[2],rates:datasets[3][0]||{},configuration,budgets:datasets[4],goals:datasets[5],recurring:datasets[6],custom_investments:datasets[7],settings:mmhPersonalPreferencesV191()};
     if(currentSessionUser?.id!==u.id)throw Error('Account session changed. Backup export stopped.');
     const blob=new Blob([JSON.stringify(out,null,2)],{type:'application/json'});
     const url=URL.createObjectURL(blob),a=document.createElement('a');const filename=`MMHVAULT_Backup_${today()}.json`;a.href=url;a.download=filename;a.click();URL.revokeObjectURL(url);
