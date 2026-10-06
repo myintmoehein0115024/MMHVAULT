@@ -1776,7 +1776,7 @@ body.mmh-workspace-active #dataLoadOverlayV384{pointer-events:none!important;}
 body.mmh-workspace-active #dataLoadOverlayV384:not(.show){display:none!important;}
 #gettingStarted:not(.open),#welcomeScreen:not(.show){pointer-events:none!important;}
 body.mmh-workspace-active main.wrap,body.mmh-workspace-active #header,body.mmh-workspace-active #bottomNav{pointer-events:auto!important;}
-</style><meta content="Personal Stable Candidate 1.9.9 · system-wide tap hints, responsive layout and visual cleanup" name="mmhvault-architecture"/>
+</style><meta content="Personal Stable Candidate 1.9.10 · visual rhythm, hint refinement and dead-code cleanup" name="mmhvault-architecture"/>
 <style id="mmhvault-v34216-birthday-settings-css">
 .mmh-birthday-settings-v34216{margin-top:14px;background:linear-gradient(140deg,rgba(9,23,45,.88),rgba(4,11,24,.95));border:1px solid rgba(80,140,220,.28);box-shadow:0 18px 48px rgba(0,0,0,.16)}
 .mmh-birthday-grid-v34216{display:grid;grid-template-columns:minmax(220px,.65fr) minmax(0,1.35fr);gap:14px;align-items:stretch}
@@ -2420,17 +2420,6 @@ body.mmhvault-scroll-active .card{transition:none!important}
   #invest .invest-entry .receipt-dropzone-v3300{width:calc(100% - 32px)!important;}
 }
 </style>
-
-
-<style id="mmhvault-v3434-render-isolation">
-/* V4.3.0 — Phase 1: isolate off-screen secondary panels to reduce layout/paint work. */
-@media (min-width: 900px){
-  .mmh-render-isolate{
-    contain:layout paint style;
-  }
-}
-</style>
-
 <style id="mmhvault-v3436-premium-polish">
 /* MMHVAULT V4.3.0 · Premium interaction polish */
 /* 1) Respect OS/browser reduced-motion preferences without changing normal animations. */
@@ -9219,121 +9208,6 @@ body.mmhvault-scroll-active #invest #v371CryptoMarket::before{
   }
 }
 </style>
-
-
-<style id="mmhvault-v34630-gold-position-leaders">
-/* v34630 — Gold Position Leaders. Scoped visual addition; no data/calculation changes. */
-#invest #v371GoldPortfolio .gold-leaders-v34630{
-  display:grid!important;
-  grid-template-columns:repeat(3,minmax(0,1fr))!important;
-  gap:9px!important;
-  margin:0 0 13px!important;
-}
-#invest #v371GoldPortfolio .gold-leader-v34630{
-  position:relative!important;
-  min-width:0!important;
-  min-height:112px!important;
-  padding:14px 14px 12px!important;
-  border:1px solid rgba(246,199,91,.13)!important;
-  border-radius:16px!important;
-  background:
-    radial-gradient(circle at 100% 0%,rgba(246,199,91,.075),transparent 42%),
-    linear-gradient(145deg,rgba(17,35,61,.66),rgba(4,12,27,.88))!important;
-  overflow:hidden!important;
-  transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease!important;
-}
-#invest #v371GoldPortfolio .gold-leader-v34630:hover{
-  transform:translateY(-2px)!important;
-  border-color:rgba(246,199,91,.25)!important;
-  box-shadow:0 14px 28px rgba(0,0,0,.16),0 0 22px rgba(246,199,91,.035)!important;
-}
-#invest #v371GoldPortfolio .gold-leader-v34630::before{
-  content:""!important;
-  position:absolute!important;
-  left:0!important;top:0!important;bottom:0!important;width:2px!important;
-  background:linear-gradient(to bottom,#f2ce65,rgba(242,206,101,0))!important;
-}
-#invest #v371GoldPortfolio .gold-leader-rank-v34630{
-  display:inline-flex!important;
-  align-items:center!important;
-  gap:5px!important;
-  color:#d9b957!important;
-  font-size:7px!important;
-  font-weight:950!important;
-  letter-spacing:.13em!important;
-}
-#invest #v371GoldPortfolio .gold-leader-source-v34630{
-  margin-top:8px!important;
-  color:#e8f1fc!important;
-  font-size:13px!important;
-  font-weight:950!important;
-  white-space:nowrap!important;
-  overflow:hidden!important;
-  text-overflow:ellipsis!important;
-}
-#invest #v371GoldPortfolio .gold-leader-weight-v34630{
-  margin-top:4px!important;
-  color:#7189aa!important;
-  font-size:8px!important;
-}
-#invest #v371GoldPortfolio .gold-leader-bottom-v34630{
-  display:flex!important;
-  justify-content:space-between!important;
-  align-items:end!important;
-  gap:8px!important;
-  margin-top:11px!important;
-  padding-top:8px!important;
-  border-top:1px solid rgba(246,199,91,.07)!important;
-}
-#invest #v371GoldPortfolio .gold-leader-value-v34630{
-  color:#f5d46b!important;
-  font-size:14px!important;
-  font-weight:950!important;
-  font-variant-numeric:tabular-nums!important;
-}
-#invest #v371GoldPortfolio .gold-leader-roi-v34630{
-  font-size:8px!important;
-  font-weight:900!important;
-  font-variant-numeric:tabular-nums!important;
-}
-#invest #v371GoldPortfolio .gold-leader-roi-v34630.green{color:#35e3a4!important}
-#invest #v371GoldPortfolio .gold-leader-roi-v34630.red{color:#ff829c!important}
-#invest #v371GoldPortfolio .gold-leader-empty-v34630{
-  grid-column:1/-1!important;
-  padding:13px!important;
-  border-radius:13px!important;
-  border:1px dashed rgba(246,199,91,.12)!important;
-  color:#7188a8!important;
-  font-size:9px!important;
-}
-@media(max-width:760px){
-  #invest #v371GoldPortfolio .gold-leaders-v34630{
-    grid-template-columns:repeat(2,minmax(0,1fr))!important;
-  }
-  #invest #v371GoldPortfolio .gold-leader-v34630:last-child:nth-child(3){
-    grid-column:1/-1!important;
-  }
-}
-@media(max-width:520px){
-  #invest #v371GoldPortfolio .gold-leaders-v34630{
-    display:flex!important;
-    overflow-x:auto!important;
-    gap:8px!important;
-    padding:1px 1px 4px!important;
-    scrollbar-width:none!important;
-  }
-  #invest #v371GoldPortfolio .gold-leaders-v34630::-webkit-scrollbar{display:none!important}
-  #invest #v371GoldPortfolio .gold-leader-v34630{
-    flex:0 0 188px!important;
-    min-height:106px!important;
-  }
-}
-@media(prefers-reduced-motion:reduce){
-  #invest #v371GoldPortfolio .gold-leader-v34630:hover{transform:none!important}
-}
-</style>
-
-
 <style id="mmhvault-v34650-gold-performance">
 /* v34650 — Gold Performance Visual. Reuses existing Gold calculations only. */
 #invest #v371GoldPortfolio .gold-performance-v34650{
@@ -11471,13 +11345,13 @@ body.mmh-v436-explorer-open #bottomNav{visibility:hidden!important;pointer-event
 <div aria-label="Financial Intelligence Center" class="panel financial-intelligence-v314" id="financialIntelligenceV314"></div>
 <div class="panel analyze-panel"><div class="toolbar"><h2>Ordinary Expense Details</h2><span class="pill">Loans excluded</span></div><div class="analyze-table" id="expenses"></div></div>
 <div class="panel analyze-panel"><div class="toolbar"><h2>Loans</h2><span class="pill">Outstanding</span></div><div class="analyze-table" id="loans"></div></div>
-<div class="panel analyze-panel monthly-compact"><div class="toolbar"><div><h2>Period Comparison</h2><div class="sub" id="monthlyPeriodHint">Selected period</div></div></div><div class="analyze-table" id="monthly"></div><div class="month-compare-v37" id="monthCompareV37"></div></div>
+<div class="panel analyze-panel monthly-compact"><div class="toolbar"><div><h2 class="mmh-hint-anchor-v195 mmh-context-title-v199" data-mmh-hint-source="next" tabindex="0">Period Comparison</h2><div class="sub mmh-context-desc-v199" id="monthlyPeriodHint">Selected period</div></div></div><div class="analyze-table" id="monthly"></div><div class="month-compare-v37" id="monthCompareV37"></div></div>
 </div>
 <div aria-hidden="true" class="analyze-tab-panel-v371" data-panel="health" role="tabpanel">
 <div class="panel analyze-panel"><div class="toolbar"><div><h2 class="mmh-hint-anchor-v195 mmh-context-title-v199" data-mmh-hint-source="next" tabindex="0">Financial Health</h2><div class="sub mmh-context-desc-v199">Health score based on your selected analysis period.</div></div></div><div id="financialHealthV371"></div></div>
 </div>
 <div aria-hidden="true" class="analyze-tab-panel-v371" data-panel="cashflow" role="tabpanel">
-<div class="panel analyze-panel"><div class="toolbar"><div><h2>Personal Cash Flow Summary</h2><div class="sub" id="cashFlowSummaryPeriod">Selected period · THB</div></div><span class="pill" id="cashFlowSummaryStatus">—</span></div><div class="cashflow-summary-v371" id="cashFlowSummary"></div></div>
+<div class="panel analyze-panel"><div class="toolbar"><div><h2 class="mmh-hint-anchor-v195 mmh-context-title-v199" data-mmh-hint-source="next" tabindex="0">Personal Cash Flow Summary</h2><div class="sub mmh-context-desc-v199" id="cashFlowSummaryPeriod">Selected period · THB</div></div><span class="pill" id="cashFlowSummaryStatus">—</span></div><div class="cashflow-summary-v371" id="cashFlowSummary"></div></div>
 <div class="panel analyze-panel savings-trend-panel"><div class="toolbar"><div><h2 class="mmh-hint-anchor-v195 mmh-context-title-v199" data-mmh-hint-source="next" tabindex="0">Savings Rate Trend</h2><div class="sub mmh-context-desc-v199">Six months ending at selected period · target 60%</div></div><span class="pill" id="savingsTrendChange">—</span></div><div class="savings-trend-wrap" id="dashboardSavingsTrend"></div></div>
 <div class="grid two analyze-extra" style="margin-top:14px">
 <div class="panel analyze-panel"><div class="toolbar"><h2>Expense Trend</h2></div><div id="expenseTrend"></div></div>
@@ -11545,13 +11419,13 @@ body.mmh-v436-explorer-open #bottomNav{visibility:hidden!important;pointer-event
 <section class="page" id="exchange">
 <div class="ex-template-head"><div class="ex-brand"><img src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" data-mmh-brand-v11="true" alt="MMHVAULT" width="42" height="42"><div><div class="ex-eyebrow">MMHVAULT</div><h1 data-en="Currency Exchange" data-zh="货币换算" class="mmh-hint-anchor-v195 mmh-context-title-v199" data-mmh-hint-source="next" tabindex="0">Currency Exchange</h1><p data-en="Convert currencies using your saved rates." data-zh="使用您已保存的汇率换算货币。" class="mmh-context-desc-v199">Convert currencies using your saved rates.</p></div></div><span class="ex-source" data-en="Saved account rates" data-zh="已保存的账户汇率">Saved account rates</span></div>
 <div id="exCurrencyCardsV7" class="ex-currency-cards"></div>
-<div class="panel exchange-converter-panel"><div class="toolbar"><h2 data-en="Currency Converter" data-zh="货币换算">Currency Converter</h2><span class="small" data-en="Calculation preview" data-zh="换算预览">Calculation preview</span></div>
+<div class="panel exchange-converter-panel"><div class="toolbar"><h2 data-en="Currency Converter" data-zh="货币换算" class="mmh-hint-anchor-v195 mmh-context-title-v199" data-mmh-hint-source="next" tabindex="0">Currency Converter</h2><span class="small mmh-context-desc-v199" data-en="Calculation preview" data-zh="换算预览">Calculation preview</span></div>
 <div class="exchange-converter-grid">
 <div class="ex-convert-side"><label><span data-en="From" data-zh="从">From</span><select id="exchangeFrom" onchange="renderExchangeConverter()"><option value="USD">USD · $</option><option value="MMK">MMK · K</option><option value="THB">THB · ฿</option><option value="CNY">RMB · ￥</option></select></label><label class="ex-amount-label"><span data-en="Amount" data-zh="金额">Amount</span><input id="exchangeAmount" min="0" oninput="renderExchangeConverter()" step="0.01" type="number" value="1"/></label></div>
 <button class="btn ex-swap" onclick="swapExchangeCurrencies()" type="button" aria-label="Swap currencies" title="Swap currencies">⇄</button>
 <div class="ex-convert-side ex-target"><label><span data-en="To" data-zh="到">To</span><select id="exchangeTo" onchange="renderExchangeConverter()"><option value="MMK">MMK · K</option><option value="USD">USD · $</option><option value="THB">THB · ฿</option><option value="CNY">RMB · ￥</option></select></label><div class="exchange-converter-result" id="exchangeConverterResult" aria-live="polite"></div></div>
 </div><p class="ex-footnote" data-en="Currency conversion is a preview. Your transactions and account balances remain unchanged." data-zh="换算仅用于预览，不改变交易记录和账户余额。">Currency conversion is a preview. Your transactions and account balances remain unchanged.</p></div>
-<div class="panel ex-rate-editor"><div class="toolbar"><h2 data-en="Saved Rates" data-zh="已保存汇率">Saved Rates</h2><span class="small" data-en="Edit your USD reference rates" data-zh="编辑美元参考汇率">Edit your USD reference rates</span></div><div class="formgrid"><label>USD → MMK<input id="usdMmk" step="0.0001" type="number"/></label><label>USD → THB<input id="usdThb" step="0.0001" type="number"/></label><label>USD → RMB<input id="usdCny" step="0.0001" type="number"/></label><div class="ex-save"><button class="btn primary" onclick="saveRates()" data-en="Save rates" data-zh="保存汇率">Save rates</button></div></div></div>
+<div class="panel ex-rate-editor"><div class="toolbar"><h2 data-en="Saved Rates" data-zh="已保存汇率" class="mmh-hint-anchor-v195 mmh-context-title-v199" data-mmh-hint-source="next" tabindex="0">Saved Rates</h2><span class="small mmh-context-desc-v199" data-en="Edit your USD reference rates" data-zh="编辑美元参考汇率">Edit your USD reference rates</span></div><div class="formgrid"><label>USD → MMK<input id="usdMmk" step="0.0001" type="number"/></label><label>USD → THB<input id="usdThb" step="0.0001" type="number"/></label><label>USD → RMB<input id="usdCny" step="0.0001" type="number"/></label><div class="ex-save"><button class="btn primary" onclick="saveRates()" data-en="Save rates" data-zh="保存汇率">Save rates</button></div></div></div>
 <section id="exAsiaSummaryV130" class="panel ex-asia-summary-v130" aria-label="Asia currency rates">
   <div class="ex-asia-summary-copy-v130">
     <div class="ex-asia-summary-icon-v130" aria-hidden="true">FX</div>
@@ -11572,7 +11446,7 @@ body.mmh-v436-explorer-open #bottomNav{visibility:hidden!important;pointer-event
   </div>
 </section>
 <section id="exAsiaV10" class="ex-cross-rates page ex-asia-page-v130" aria-hidden="true">
-<div class="asia-page-top-v130"><button id="asiaBackV130" type="button" data-en="‹ Back" data-zh="‹ 返回">‹ Back</button><span data-en="Asia Market" data-zh="亚洲市场">Asia Market</span></div><div class="asia-head"><div><h3 data-en="Asia currency rates" data-zh="亚洲货币汇率">Asia currency rates</h3><p data-en="Daily reference rates · separate from your saved rates" data-zh="每日参考行情 · 与已保存的记账汇率独立">Daily reference rates · separate from your saved rates</p></div><button id="asiaRefreshV10" type="button" data-en="Refresh" data-zh="刷新">Refresh</button></div><div class="asia-controls"><label><span data-en="Reference currency" data-zh="基准货币">Reference currency</span><select id="asiaBaseV10" aria-label="Reference currency"></select></label><label><span data-en="Search currency or country" data-zh="搜索货币或国家">Search currency or country</span><input id="asiaSearchV10" type="search" placeholder="USD / RMB / MMK" autocomplete="off"></label></div><div id="asiaQuickV10" class="asia-quick"></div><p id="asiaStatusV10" role="status" aria-live="polite"></p><div id="asiaListV10" class="asia-list"></div><p class="asia-disclaimer" data-en="Reference rates may differ from bank or local market rates, especially MMK. Your saved accounting rates remain unchanged." data-zh="参考行情可能与银行或当地市场汇率不同，尤其是 MMK。不会改动已保存的记账汇率。">Reference rates may differ from bank or local market rates, especially MMK. Your saved accounting rates remain unchanged.</p><a href="https://www.exchangerate-api.com" target="_blank" rel="noopener noreferrer">Rates By Exchange Rate API ↗</a><details class="asia-saved"><summary data-en="Saved accounting currency pairs" data-zh="已保存的记账换算汇率">Saved accounting currency pairs</summary><div class="grid three" id="rateCards"></div></details></section>
+<div class="asia-page-top-v130"><button id="asiaBackV130" type="button" data-en="‹ Back" data-zh="‹ 返回">‹ Back</button><span data-en="Asia Market" data-zh="亚洲市场">Asia Market</span></div><div class="asia-head"><div><h3 data-en="Asia currency rates" data-zh="亚洲货币汇率" class="mmh-hint-anchor-v195 mmh-context-title-v199" data-mmh-hint-source="next" tabindex="0">Asia currency rates</h3><p class="mmh-context-desc-v199" data-en="Daily reference rates · separate from your saved rates" data-zh="每日参考行情 · 与已保存的记账汇率独立">Daily reference rates · separate from your saved rates</p></div><button id="asiaRefreshV10" type="button" data-en="Refresh" data-zh="刷新">Refresh</button></div><div class="asia-controls"><label><span data-en="Reference currency" data-zh="基准货币">Reference currency</span><select id="asiaBaseV10" aria-label="Reference currency"></select></label><label><span data-en="Search currency or country" data-zh="搜索货币或国家">Search currency or country</span><input id="asiaSearchV10" type="search" placeholder="USD / RMB / MMK" autocomplete="off"></label></div><div id="asiaQuickV10" class="asia-quick"></div><p id="asiaStatusV10" role="status" aria-live="polite"></p><div id="asiaListV10" class="asia-list"></div><p class="asia-disclaimer" data-en="Reference rates may differ from bank or local market rates, especially MMK. Your saved accounting rates remain unchanged." data-zh="参考行情可能与银行或当地市场汇率不同，尤其是 MMK。不会改动已保存的记账汇率。">Reference rates may differ from bank or local market rates, especially MMK. Your saved accounting rates remain unchanged.</p><a href="https://www.exchangerate-api.com" target="_blank" rel="noopener noreferrer">Rates By Exchange Rate API ↗</a><details class="asia-saved"><summary data-en="Saved accounting currency pairs" data-zh="已保存的记账换算汇率">Saved accounting currency pairs</summary><div class="grid three" id="rateCards"></div></details></section>
 </section>
 <style id="mmhvault-exchange-premium-v450">
 /* MMHVAULT — Exchange Center Premium visual pass. Presentation only. */
@@ -17045,7 +16919,7 @@ async function exportMyFinanceBackupV380(){
     const configuration=mmhVaultBackupConfigSnapshotV1236(u.id);
     const tables=['transactions','investments','crypto_wallet_movements','exchange_rates','budgets','financial_goals','recurring_transactions','custom_investments'];
     const datasets=await Promise.all(tables.map(table=>mmhPersonalReadAllV191(table,u.id)));
-    const out={schema_version:2,scope:'personal',version:'Personal Stable Candidate 1.9.9',exported_at:new Date().toISOString(),customer_id:$('accountUserIdV372')?.textContent||'',user_id:u.id,transactions:datasets[0],investments:datasets[1],wallet_movements:datasets[2],rates:datasets[3][0]||{},configuration,budgets:datasets[4],goals:datasets[5],recurring:datasets[6],custom_investments:datasets[7],settings:mmhPersonalPreferencesV191()};
+    const out={schema_version:2,scope:'personal',version:'Personal Stable Candidate 1.9.10',exported_at:new Date().toISOString(),customer_id:$('accountUserIdV372')?.textContent||'',user_id:u.id,transactions:datasets[0],investments:datasets[1],wallet_movements:datasets[2],rates:datasets[3][0]||{},configuration,budgets:datasets[4],goals:datasets[5],recurring:datasets[6],custom_investments:datasets[7],settings:mmhPersonalPreferencesV191()};
     if(currentSessionUser?.id!==u.id)throw Error('Account session changed. Backup export stopped.');
     const blob=new Blob([JSON.stringify(out,null,2)],{type:'application/json'});
     const url=URL.createObjectURL(blob),a=document.createElement('a');const filename=`MMHVAULT_Backup_${today()}.json`;a.href=url;a.download=filename;a.click();URL.revokeObjectURL(url);
@@ -20924,31 +20798,6 @@ html body #invest .invest-subtabs-v371{display:grid!important;grid-template-colu
 })();
 </script>
 <!-- MMHVAULT V4.3.0 · Performance Architecture v1.4: Visibility / Animation Governor -->
-<style id="mmhvault-v34239-visibility-governor-css"> 
-html.mmhv-tab-hidden [data-mmhdynamic="pause-when-hidden"],
-html.mmhv-tab-hidden .mmh-orbit-v34210,
-html.mmhv-tab-hidden .mmh-command-orbit,
-html.mmhv-tab-hidden .mmh-command-grid,
-html.mmhv-tab-hidden .mmh-scanline,
-html.mmhv-tab-hidden .mmh-pulse,
-html.mmhv-tab-hidden .mmh-glow-anim{animation-play-state:paused!important}
-</style>
-<script id="mmhvault-v34239-visibility-governor-js">
-(function(){
-  if(window.__mmhV34239VisibilityGovernorInstalled)return;
-  window.__mmhV34239VisibilityGovernorInstalled=true;
-  const root=document.documentElement;
-  function sync(){
-    root.classList.toggle('mmhv-tab-hidden',document.visibilityState==='hidden');
-    if(document.visibilityState==='visible'){
-      window.dispatchEvent(new CustomEvent('mmhvault:tab-visible'));
-    }
-  }
-  document.addEventListener('visibilitychange',sync,{passive:true});
-  sync();
-  window.MM_HVAULT_PERFORMANCE_V34239={version:'3.42.39',visibilityGovernor:true};
-})();
-</script>
 <!-- MMHVAULT V4.3.0 · Hidden Page Render Suspension -->
 <script id="mmhvault-v34243-hidden-page-render-suspension">
 (function(){
@@ -26115,24 +25964,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
 
 
 <!-- MMHVAULT V4.3.0.5 · Final Cash Native + USD Equivalent Fix -->
-<style id="mmhvault-v405-final-cash-usd-css">
-#accounts .account-row .amount-block-final{display:flex!important;flex-direction:column!important;align-items:flex-end!important;justify-content:center!important;gap:4px!important;min-width:132px}
-#accounts .account-row .amount-block-final .native-amount-final{font-weight:850;line-height:1.15;white-space:nowrap}
-#accounts .account-row .amount-block-final .usd-equiv-final{font-size:11px!important;font-weight:700!important;color:rgba(150,184,220,.82)!important;line-height:1.1!important;white-space:nowrap!important}
-@media(max-width:700px){
-  #accounts .account-row .amount-block-final{min-width:100px}
-  #accounts .account-row .amount-block-final .usd-equiv-final{font-size:10px!important}
-}
-</style>
-
-
 <!-- MMHVAULT V4.3.0 · Account Overview renderer fix -->
-<style id="mmhvault-v406-account-overview">
-#accounts .cash-amount-v406{display:flex!important;flex-direction:column!important;align-items:flex-end!important;justify-content:center!important;gap:4px!important;min-width:132px!important}
-#accounts .cash-native-v406{font-weight:850!important;line-height:1.15!important;white-space:nowrap!important}
-#accounts .cash-usd-v406{font-size:11px!important;font-weight:700!important;color:rgba(150,184,220,.86)!important;line-height:1.1!important;white-space:nowrap!important}
-@media(max-width:700px){#accounts .cash-amount-v406{min-width:100px!important}#accounts .cash-usd-v406{font-size:10px!important}}
-</style>
 <style>
 /* =========================================================
    MMHVAULT V4.3.0 · FINAL DASHBOARD VISUAL REFINEMENT
@@ -34848,11 +34680,11 @@ body.light #mmhHintBubbleV195{background:rgba(248,252,255,.99);border-color:rgba
  const coarse=()=>window.matchMedia?.('(pointer:coarse)')?.matches===true;
  const target=e=>e?.target?.closest?.(sel);
  function hintText(el){if(!el)return'';const direct=String(el.dataset?.mmhHint||'').trim();if(direct)return direct;if(el.dataset?.mmhHintSource==='next'){const n=el.nextElementSibling;return String(n?.textContent||'').replace(/\s+/g,' ').trim()}return''}
- function ensure(){if(bubble?.isConnected)return bubble;bubble=document.createElement('div');bubble.id='mmhHintBubbleV195';bubble.setAttribute('role','tooltip');const text=document.createElement('span');text.className='mmh-hint-text-v199';const close=document.createElement('button');close.type='button';close.className='mmh-hint-close-v199';close.setAttribute('aria-label','Close help');close.textContent='×';close.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();hide(true)});bubble.append(text,close);document.body.appendChild(bubble);return bubble}
+ function ensure(){if(bubble?.isConnected)return bubble;bubble=document.createElement('div');bubble.id='mmhHintBubbleV195';bubble.setAttribute('role','tooltip');const kicker=document.createElement('strong');kicker.className='mmh-hint-kicker-v1910';const text=document.createElement('span');text.className='mmh-hint-text-v199';const close=document.createElement('button');close.type='button';close.className='mmh-hint-close-v199';close.setAttribute('aria-label','Close help');close.textContent='×';close.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();hide(true)});bubble.append(kicker,text,close);document.body.appendChild(bubble);return bubble}
  function viewport(){const v=window.visualViewport;return v?{left:v.offsetLeft||0,top:v.offsetTop||0,width:v.width||innerWidth,height:v.height||innerHeight}:{left:0,top:0,width:innerWidth,height:innerHeight}}
  function position(el){if(coarse())return;const b=ensure(),r=el.getBoundingClientRect(),v=viewport(),pad=12;b.style.visibility='hidden';b.classList.add('show');const br=b.getBoundingClientRect();let left=Math.min(v.left+v.width-br.width-pad,Math.max(v.left+pad,r.left+(r.width-br.width)/2));let top=r.top-br.height-10;if(top<v.top+pad)top=Math.min(v.top+v.height-br.height-pad,r.bottom+10);b.style.left=Math.round(left)+'px';b.style.top=Math.round(top)+'px';b.style.right='auto';b.style.bottom='auto';b.style.visibility=''}
- function show(el,{pin=false,temporary=false}={}){const text=hintText(el);if(!text)return;clearTimeout(hideTimer);active=el;pinned=pin;const b=ensure();b.querySelector('.mmh-hint-text-v199').textContent=text;position(el);b.classList.add('show');el.setAttribute('aria-describedby',b.id);if(temporary)hideTimer=setTimeout(()=>hide(true),5200)}
- function hide(force=false){if(pinned&&!force)return;clearTimeout(hideTimer);if(active?.getAttribute?.('aria-describedby')==='mmhHintBubbleV195')active.removeAttribute('aria-describedby');active=null;pinned=false;bubble?.classList.remove('show')}
+ function show(el,{pin=false,temporary=false}={}){const text=hintText(el);if(!text)return;clearTimeout(hideTimer);active=el;pinned=pin;const b=ensure(),label=String(el.textContent||'').replace(/\s+/g,' ').trim();b.querySelector('.mmh-hint-kicker-v1910').textContent=label;b.querySelector('.mmh-hint-text-v199').textContent=text;position(el);b.classList.add('show');el.setAttribute('aria-describedby',b.id);el.setAttribute('aria-expanded','true');if(temporary)hideTimer=setTimeout(()=>hide(true),7200)}
+ function hide(force=false){if(pinned&&!force)return;clearTimeout(hideTimer);if(active?.getAttribute?.('aria-describedby')==='mmhHintBubbleV195')active.removeAttribute('aria-describedby');active?.setAttribute?.('aria-expanded','false');active=null;pinned=false;bubble?.classList.remove('show')}
  document.addEventListener('mouseover',e=>{if(coarse())return;const el=target(e);if(el&&!pinned)show(el)});
  document.addEventListener('mouseout',e=>{if(coarse()||pinned)return;const el=target(e);if(el&&(!e.relatedTarget||!el.contains(e.relatedTarget)))hide(true)});
  document.addEventListener('focusin',e=>{const el=target(e);if(el)show(el,{pin:false})});
@@ -34936,7 +34768,96 @@ body.light .mmh-v449-dialog-actions{background:linear-gradient(180deg,rgba(250,2
 }
 </style>
 
-<script id="mmhvault-v199-marker">window.MMHVAULT_PERSONAL_STABLE_CANDIDATE={version:'1.9.9',accountDeleteAccess:true,contextHints:true,accountCryptoQuantityPrecision:true,caseInsensitiveAccountDetail:true,walletHistoryDeleteProtection:true,walletRenameSync:true,translationObserverLifecycle:true,externalizedStaticImages:true,investmentHistoryDirectRender:true,walletGridDeterministic:true,walletSnapshotSingleRender:true,walletFieldContextHints:true,tapContextHints:true,systemTitleHints:true,responsiveFinalPass:true};</script>
+
+<style id="mmhvault-v1910-personal-visual-rhythm-css">
+/* Personal Stable Candidate 1.9.10 · final visual rhythm + contextual-help refinement.
+   Presentation only: no finance, auth, storage, backup or wallet calculation changes. */
+:root{--mmh-1910-gap-xs:6px;--mmh-1910-gap-sm:9px;--mmh-1910-gap-md:13px;--mmh-1910-gap-lg:17px;--mmh-1910-radius:16px}
+
+/* Context help: titles stay visually clean; the small info dot is the affordance. */
+.mmh-context-title-v199.mmh-hint-anchor-v195{
+  text-decoration:none!important;cursor:help;
+}
+.mmh-context-title-v199::after{
+  width:15px;height:15px;margin-left:8px;vertical-align:2px;
+  border-color:rgba(126,188,238,.30);background:rgba(85,153,205,.055);
+}
+.mmh-wallet-field-title-v198.mmh-hint-anchor-v195{
+  text-decoration-line:underline;text-decoration-style:dotted;text-decoration-thickness:1px;
+  text-underline-offset:4px;text-decoration-color:rgba(122,181,231,.28);
+}
+#mmhHintBubbleV195{max-width:min(390px,calc(100vw - 24px));padding:11px 14px;border-radius:13px}
+#mmhHintBubbleV195 .mmh-hint-kicker-v1910{display:none;margin:0 0 4px;color:#eef7ff;font-size:12px;font-weight:850;line-height:1.25}
+body.light #mmhHintBubbleV195 .mmh-hint-kicker-v1910{color:#203d57}
+
+/* Shared page rhythm. Avoid page-specific rewrites: only normalize shrink/wrap/spacing. */
+html body.mmh-workspace-active main.wrap>.page.active{min-width:0}
+html body.mmh-workspace-active main.wrap .page.active :is(.toolbar,.mmh-ui-heading,.ap-heading,.budget-head-v110,.goals-head-v113,.recurring-head-v114,.cfa-head,.report-head-v115,.ex-template-head){min-width:0}
+html body.mmh-workspace-active main.wrap .page.active :is(.toolbar,.mmh-ui-heading)>div:first-child{min-width:0}
+html body.mmh-workspace-active main.wrap .page.active :is(h1,h2,h3){line-height:1.18}
+html body.mmh-workspace-active main.wrap .page.active h1{letter-spacing:-.025em}
+html body.mmh-workspace-active main.wrap .page.active h2{letter-spacing:-.018em}
+html body.mmh-workspace-active main.wrap .page.active :is(.panel,.card,.analyze-panel,.mmh-ui-panel,.st-template-group,.account-center-card-v375){min-width:0}
+html body.mmh-workspace-active main.wrap .page.active :is(.value,.amount,.money,.metric,.metric-value,.stat-value,strong[data-money]){font-variant-numeric:tabular-nums lining-nums}
+html body.mmh-workspace-active main.wrap .page.active :is(.pill,.tag,.badge){max-width:100%}
+
+/* Dense financial rows/tables: keep numbers readable without forcing the page wider. */
+html body.mmh-workspace-active main.wrap .page.active :is(.table-wrap,.history-wrap,.cfa-records-scroll,.mmh-history-scroll){max-width:100%;overflow-x:auto;overscroll-behavior-inline:contain;-webkit-overflow-scrolling:touch}
+html body.mmh-workspace-active main.wrap .page.active table{max-width:100%;font-variant-numeric:tabular-nums}
+html body.mmh-workspace-active main.wrap .page.active td,
+html body.mmh-workspace-active main.wrap .page.active th{vertical-align:middle}
+
+/* More / Settings / dialog finishing: consistent touch geometry and less visual crowding. */
+#moreNavMenu .mmh-more-item-v153{min-width:0}
+#moreNavMenu .mmh-more-copy-v153{min-width:0}
+#moreNavMenu .mmh-more-copy-v153 :is(b,small){overflow:hidden;text-overflow:ellipsis}
+#mmhVaultDialogV449 .mmh-v449-dialog-head{gap:10px}
+#mmhVaultDialogV449 .mmh-v449-dialog-body{min-width:0}
+#mmhVaultDialogV449 .mmh-v449-dialog-actions{gap:8px}
+#mmhVaultDialogV449 .mmh-v449-dialog-actions>button{min-width:0}
+
+@media (hover:hover) and (pointer:fine){
+  .mmh-context-title-v199:hover::after{transform:translateY(-1px);box-shadow:0 0 0 4px rgba(86,159,212,.07)}
+}
+
+/* Tablet/phone help becomes a compact bottom help card; tap once, no long-press dependency. */
+@media (pointer:coarse), (max-width:820px){
+  .mmh-context-title-v199.mmh-hint-anchor-v195{cursor:pointer}
+  .mmh-context-title-v199::after{width:18px;height:18px;font-size:10px;margin-left:8px;vertical-align:1px;opacity:.9}
+  #mmhHintBubbleV195{
+    left:50%!important;right:auto!important;top:auto!important;
+    bottom:calc(12px + env(safe-area-inset-bottom))!important;
+    width:min(560px,calc(100vw - 24px))!important;max-width:none!important;
+    padding:14px 44px 14px 15px;border-radius:16px;font-size:13px;line-height:1.5;
+    transform:translate(-50%,9px) scale(.99)!important;
+  }
+  #mmhHintBubbleV195.show{transform:translate(-50%,0) scale(1)!important}
+  #mmhHintBubbleV195 .mmh-hint-kicker-v1910{display:block}
+}
+
+@media(max-width:699px){
+  html body.mmh-workspace-active main.wrap .page.active :is(.toolbar,.mmh-ui-heading,.ap-heading,.budget-head-v110,.goals-head-v113,.recurring-head-v114,.cfa-head,.report-head-v115,.ex-template-head){
+    gap:10px!important;align-items:flex-start;
+  }
+  html body.mmh-workspace-active main.wrap .page.active .toolbar{flex-wrap:wrap}
+  html body.mmh-workspace-active main.wrap .page.active .toolbar>div:first-child{flex:1 1 210px}
+  html body.mmh-workspace-active main.wrap .page.active .toolbar>.pill{flex:0 1 auto;white-space:normal;text-align:center}
+  html body.mmh-workspace-active main.wrap .page.active :is(.panel,.card,.analyze-panel,.mmh-ui-panel){border-radius:15px}
+  html body.mmh-workspace-active main.wrap .page.active :is(.actions,.mmh-wallet-actions-v172,.report-actions-v115){gap:8px}
+  #moreNavMenu .mmh-more-item-v153{min-height:52px!important}
+  #moreNavMenu .mmh-more-copy-v153 small{white-space:normal;line-height:1.35}
+  #mmhVaultDialogV449 .mmh-v449-dialog-head{padding-left:14px;padding-right:14px}
+  #mmhVaultDialogV449 .mmh-v449-dialog-body{padding-left:14px;padding-right:14px}
+}
+
+@media(max-width:420px){
+  html body.mmh-workspace-active main.wrap .page.active h1{font-size:clamp(24px,7.4vw,28px)}
+  html body.mmh-workspace-active main.wrap .page.active .toolbar>.pill{max-width:100%}
+  #mmhHintBubbleV195{width:calc(100vw - 18px)!important;bottom:calc(9px + env(safe-area-inset-bottom))!important}
+  #mmhVaultDialogV449 .mmh-v449-dialog-actions{grid-template-columns:1fr!important}
+}
+</style>
+<script id="mmhvault-v199-marker">window.MMHVAULT_PERSONAL_STABLE_CANDIDATE={version:'1.9.10',accountDeleteAccess:true,contextHints:true,accountCryptoQuantityPrecision:true,caseInsensitiveAccountDetail:true,walletHistoryDeleteProtection:true,walletRenameSync:true,translationObserverLifecycle:true,externalizedStaticImages:true,investmentHistoryDirectRender:true,walletGridDeterministic:true,walletSnapshotSingleRender:true,walletFieldContextHints:true,tapContextHints:true,systemTitleHints:true,responsiveFinalPass:true,visualRhythmFinal:true,deadCssCleanup:true,contextHintCardRefined:true};</script>
 
 
 </body>
