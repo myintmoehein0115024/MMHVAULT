@@ -1654,7 +1654,7 @@ body.mmh-workspace-active #dataLoadOverlayV384{pointer-events:none!important;}
 body.mmh-workspace-active #dataLoadOverlayV384:not(.show){display:none!important;}
 #gettingStarted:not(.open),#welcomeScreen:not(.show){pointer-events:none!important;}
 body.mmh-workspace-active main.wrap,body.mmh-workspace-active #header,body.mmh-workspace-active #bottomNav{pointer-events:auto!important;}
-</style><meta content="Personal Stable Candidate 1.9.14 · unified Invest wallet activity and portfolio records" name="mmhvault-architecture"/>
+</style><meta content="Personal Stable Candidate 1.9.15 · final render cleanup and responsive stability" name="mmhvault-architecture"/>
 <style id="mmhvault-v34216-birthday-settings-css">
 .mmh-birthday-settings-v34216{margin-top:14px;background:linear-gradient(140deg,rgba(9,23,45,.88),rgba(4,11,24,.95));border:1px solid rgba(80,140,220,.28);box-shadow:0 18px 48px rgba(0,0,0,.16)}
 .mmh-birthday-grid-v34216{display:grid;grid-template-columns:minmax(220px,.65fr) minmax(0,1.35fr);gap:14px;align-items:stretch}
@@ -10851,7 +10851,7 @@ body.mmh-v436-explorer-open #bottomNav{visibility:hidden!important;pointer-event
 <button data-more-page="settings" role="menuitem" type="button">⚙️<span>Settings</span></button>
 </div>
 <style id="mmhvault-retired-pages-v480">
-#analyze,#reports{display:none!important}
+#analyze{display:none!important}
 #dashboard .dashboard-quick-actions-v371 button[onclick*="setPage('analyze')"],#dashboard .mmh-dash372-status button[onclick*="setPage('analyze')"]{display:none!important}
 </style>
 <div aria-hidden="true" class="welcome-screen" id="welcomeScreen">
@@ -11023,18 +11023,7 @@ body.mmh-v436-explorer-open #bottomNav{visibility:hidden!important;pointer-event
 <div id="mmhPremiumDashboardV500"></div>
 <div id="mmhDashboardLegacyBridgeV580" hidden aria-hidden="true" style="display:none!important">
   <div id="dashboardWelcomeTitle"></div><div id="dashboardCustomerBadge"></div>
-  <div id="dashboardCommandCenterV34210"></div><span id="mmhCommandTimeV34210"></span>
-  <div id="mmhCommandAgeV34218"><b id="mmhCommandAgeValueV34218"></b></div>
-  <div id="mmhCommandNetWorthV34210"></div><div id="mmhCommandNetWorthChangeV34210"></div>
-  <svg width="0" height="0" aria-hidden="true"><path id="mmhCommandSparkV34210"></path></svg>
-  <div id="mmhCommandIncomeV34210"></div><div id="mmhCommandIncomeDeltaV34210"></div>
-  <div id="mmhCommandExpenseV34210"></div><div id="mmhCommandExpenseDeltaV34210"></div>
-  <div id="mmhCommandSavingsV34210"></div><div id="mmhCommandSavingsDeltaV34210"></div>
-  <div id="mmhCommandRateV34210"></div><div id="mmhCommandRateDeltaV34210"></div>
-  <div id="mmhCommandStatusV34210"><span></span></div><div id="mmhCommandCashV34210"></div>
-  <div id="mmhCommandInvestV34210"></div><div id="mmhCommandWeightV34210"></div><div id="mmhCommandReceivableV472"></div>
   <div id="dashboardHero"></div><div id="dashboardCoreV372"></div><div id="metrics"></div>
-  <button id="dashboardAddAccountV1" type="button"></button><div id="dashboardDetails"></div>
   <span id="dashMonthLabel"></span><div id="dashFlow"></div><div id="dashInvest"></div><span id="dashTxCount"></span><div id="dashRecent"></div>
 </div>
 </section>
@@ -16410,118 +16399,6 @@ function setAccountsCategoriesTabV445(tab){
 window.setAccountsCategoriesTabV445 = setAccountsCategoriesTabV445;
 setTimeout(()=>setAccountsCategoriesTabV445(localStorage.getItem('mmhvault_accounts_categories_tab_v445')||'accounts'),0);
 
-/* ===================== V4.3.0 ACCOUNT OVERVIEW POLISH ===================== */
-function polishAccountOverviewV371(){
-  const root=document.getElementById('accounts');
-  if(!root)return;
-  root.classList.add('account-overview-polished');
-  const accountEls=[...root.querySelectorAll('.account-row')];
-  accountEls.forEach(row=>{
-    if(row.querySelector('.usd-equiv'))return;
-    const left=row.querySelector('.left');
-    const name=left?.querySelector('.name')?.textContent?.trim()||'';
-    if(!name||['Gold Portfolio'].includes(name))return;
-    const amountEl=row.querySelector('.amount');
-    if(!amountEl)return;
-    const val=balance(name);
-    const usdVal=toUSD(name)*val;
-    const wrap=document.createElement('div');
-    wrap.className='amount-block';
-    amountEl.parentNode.replaceChild(wrap,amountEl);
-    wrap.appendChild(amountEl);
-    const sub=document.createElement('div');
-    sub.className='usd-equiv';
-    sub.textContent=`≈ ${usd(usdVal)}`;
-    wrap.appendChild(sub);
-  });
-  root.querySelectorAll('.account-group').forEach(group=>{
-    const title=group.querySelector('.group-title strong')?.textContent||'';
-    if(title.includes('Investment')){
-      const totalEl=group.querySelector('.group-total');
-      if(totalEl&&!group.querySelector('.group-usd')){
-        const text=totalEl.textContent.replace(/[^0-9.\-]/g,'');
-        const mmk=Number(text)||0;
-        const sub=document.createElement('div');sub.className='group-usd';sub.textContent=`≈ ${usd(mmk/rates.usd_mmk)}`;
-        totalEl.parentNode.appendChild(sub);
-      }
-    } else {
-      const totalEl=group.querySelector('.group-total');
-      if(totalEl&&!group.querySelector('.group-usd')){
-        const t=totalEl.textContent.replace(/[^0-9.\-]/g,'');
-        const mmk=Number(t)||0;
-        const sub=document.createElement('div');sub.className='group-usd';sub.textContent=`≈ ${usd(mmk/rates.usd_mmk)}`;
-        totalEl.parentNode.appendChild(sub);
-      }
-    }
-  });
-}
-(function(){
-  const _renderDashboardAccountPolishV371=renderDashboard;
-  renderDashboard=function(){
-    _renderDashboardAccountPolishV371();
-    polishAccountOverviewV371();
-  };
-})();
-
-/* ===================== V4.3.0 ACCOUNT OVERVIEW SELECTIVE USD EQUIVALENT ===================== */
-function refineCashOnlyAccountOverviewV371(){
-  const root=document.getElementById('accounts');
-  if(!root) return;
-
-  // Account Overview keeps every account/portfolio row. Only these four rows
-  // show an optional USD reference value: Bath, TrueMoney, KPay and Gold Portfolio.
-  root.querySelectorAll('.usd-equiv,.cash-group-usd,.group-usd').forEach(el=>el.remove());
-  root.querySelectorAll('.amount-block').forEach(wrap=>{
-    const amount=wrap.querySelector('.amount');
-    if(amount) wrap.replaceWith(amount);
-  });
-
-  const usdRows=new Set(['Bath','TrueMoney','KPay','Gold Portfolio']);
-  root.querySelectorAll('.account-row').forEach(row=>{
-    // The account name also contains the currency label (THB/MMK), so read the
-    // dedicated <span> first. Falling back to text keeps this compatible with
-    // older account-row layouts.
-    const nameNode=row.querySelector('.left .name span');
-    const name=(nameNode?.textContent || row.querySelector('.left .name')?.childNodes?.[0]?.textContent || row.querySelector('.left .name')?.textContent || '').trim();
-    if(!usdRows.has(name)) return;
-    const amountEl=row.querySelector('.amount');
-    if(!amountEl) return;
-
-    let usdVal=0;
-    if(name==='Gold Portfolio'){
-      const gold=investments.filter(x=>x.asset==='Gold');
-      const goldValue=gold.reduce((s,x)=>s+(goldHoldingQty(x)*(goldMarketState.pricePerKyattha||n(x.market_price))),0);
-      usdVal=goldValue/rates.usd_mmk;
-    }else{
-      usdVal=balance(name)*toUSD(name);
-    }
-
-    const wrap=document.createElement('div');
-    wrap.className='amount-block';
-    amountEl.parentNode.replaceChild(wrap,amountEl);
-    wrap.appendChild(amountEl);
-    const sub=document.createElement('div');
-    sub.className='usd-equiv';
-    sub.textContent=`≈ ${usd(usdVal)}`;
-    wrap.appendChild(sub);
-  });
-
-  const panel=root.closest('.panel');
-  const sub=panel?.querySelector('h2')?.parentElement?.querySelector('.sub');
-  if(sub) sub.textContent='Organized by cash, crypto and investment holdings · USD reference shown for selected accounts';
-  const pill=panel?.querySelector('.pill');
-  if(pill) pill.textContent=`${(MMHVAULT_CONFIG?.accounts||[]).filter(a=>a&&a.active!==false).length} Accounts · 2 Portfolios`;
-}
-
-(function(){
-  const _renderDashboardSelectiveUSDV371=renderDashboard;
-  renderDashboard=function(){
-    _renderDashboardSelectiveUSDV371();
-    refineCashOnlyAccountOverviewV371();
-  };
-})();
-
-
 /* V4.3.0 Net Worth History polished chart */
 function renderNetWorthHistoryPolishedV371(){
   const el=$('netWorthHistory');
@@ -16745,7 +16622,7 @@ async function exportMyFinanceBackupV380(){
     const configuration=mmhVaultBackupConfigSnapshotV1236(u.id);
     const tables=['transactions','investments','crypto_wallet_movements','exchange_rates','budgets','financial_goals','recurring_transactions','custom_investments'];
     const datasets=await Promise.all(tables.map(table=>mmhPersonalReadAllV191(table,u.id)));
-    const out={schema_version:2,scope:'personal',version:'Personal Stable Candidate 1.9.14',exported_at:new Date().toISOString(),customer_id:$('accountUserIdV372')?.textContent||'',user_id:u.id,transactions:datasets[0],investments:datasets[1],wallet_movements:datasets[2],rates:datasets[3][0]||{},configuration,budgets:datasets[4],goals:datasets[5],recurring:datasets[6],custom_investments:datasets[7],settings:mmhPersonalPreferencesV191()};
+    const out={schema_version:2,scope:'personal',version:'Personal Stable Candidate 1.9.15',exported_at:new Date().toISOString(),customer_id:$('accountUserIdV372')?.textContent||'',user_id:u.id,transactions:datasets[0],investments:datasets[1],wallet_movements:datasets[2],rates:datasets[3][0]||{},configuration,budgets:datasets[4],goals:datasets[5],recurring:datasets[6],custom_investments:datasets[7],settings:mmhPersonalPreferencesV191()};
     if(currentSessionUser?.id!==u.id)throw Error('Account session changed. Backup export stopped.');
     const blob=new Blob([JSON.stringify(out,null,2)],{type:'application/json'});
     const url=URL.createObjectURL(blob),a=document.createElement('a');const filename=`MMHVAULT_Backup_${today()}.json`;a.href=url;a.download=filename;a.click();URL.revokeObjectURL(url);
@@ -17116,10 +16993,6 @@ render=function(){_renderV380Old();refreshDataCenterV380();};
     };
   }
 })();
-</script>
-<script id="mmhvault-v317-audit-note">
-/* V4.3.0 audit marker — presentation cleanup only. */
-window.MM_HVAULT_UI_AUDIT = { version:'V4.3.0', duplicatePresentationCleanup:true, dataConsistency:true };
 </script>
 <script id="mmhvault-v318-data-consistency-js">
 /* V4.3.0 — Canonical calculations: all cross-page USD totals use one conversion/filtering layer. */
@@ -17852,9 +17725,6 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
     return openTransactionReceiptV396(id);
   };
 })();
-</script>
-<script id="mmhvault-v330-stability-cleanup-note">/* MMHVAULT V4.3.0 · Stability/render sync baseline. No data model changes. */</script><script id="mmhvault-v3312-transaction-receipt-ui">
-/* V4.3.0 · Transaction edit receipt management UI */
 </script>
 <script id="mmhvault-v332-render-data-sync-kernel">
 /* MMHVAULT V4.3.0 · Unified render/data sync kernel. Non-destructive compatibility layer. */
@@ -19494,7 +19364,7 @@ html body #invest .invest-subtabs-v371{display:grid!important;grid-template-colu
 (function(){
   if(window.__mmhV34237HeavyDOMUpdateGateInstalled)return;
   window.__mmhV34237HeavyDOMUpdateGateInstalled=true;
-  const targets=['accounts','metrics','dashFlow','dashInvest','dashRecent','expenses','loans','monthly','txList','cryptoInvList','goldInvList'];
+  const targets=['txList','cryptoInvList','goldInvList'];
   const protoDesc=Object.getOwnPropertyDescriptor(Element.prototype,'innerHTML')||Object.getOwnPropertyDescriptor(HTMLElement.prototype,'innerHTML');
   if(!protoDesc||typeof protoDesc.get!=='function'||typeof protoDesc.set!=='function')return;
   const state=new WeakMap();
@@ -19640,10 +19510,6 @@ html body #invest .invest-subtabs-v371{display:grid!important;grid-template-colu
   }
 }
 </style>
-<script id="mmhvault-v34245-performance-css-paint-budget-js">(function(){
-  if(window.MM_HVAULT_PERFORMANCE_V34245)return;
-  window.MM_HVAULT_PERFORMANCE_V34245={version:'3.42.45',cssPaintBudget:true,noNewPolling:true};
-})();</script>
 <script id="mmhvault-v34246-scroll-governor">
 (()=>{
   if(window.__mmhV34246ScrollGovernor)return;
@@ -20060,10 +19926,6 @@ body.mmhvault-scroll-active #invest .invest-top>.panel{box-shadow:inset 0 1px 0 
 }
 </style>
 <!-- MMHVAULT V4.3.0 · Dashboard motion-light / typography polish -->
-<style id="mmhvault-v34276-allocation-layout">
-@media(max-width:900px){}
-@media(max-width:650px){}
-</style>
 <script id="mmhvault-v34276-gold-authority">
 (function(){
   const N=v=>{const x=Number(v);return Number.isFinite(x)?x:0};
@@ -21082,102 +20944,13 @@ body.mmhvault-scroll-active #invest .panel{transition:none!important}
 <!-- MMHVAULT · UNIFIED MOBILE BOTTOM NAV
      Minimal visual correction on the approved version. -->
 <script data-mmh-bundled="mmhvault-premium-motion.js">
-/* MMHVAULT · visual-only motion helpers */
+/* MMHVAULT · retained header scroll state only.
+   Retired unused deep-scroll / active-page / IntersectionObserver presentation passes. */
 (function(){
-  const onScroll = () => document.body.classList.toggle('mmh-scrolled', window.scrollY > 18);
-  onScroll();
-  window.addEventListener('scroll', onScroll, {passive:true});
-
-  if (!('IntersectionObserver' in window)) return;
-  const items = document.querySelectorAll('.card,.panel,.feature-card,.feature,.security-card,.experience-card,.about-card,.mmh-dash372-card');
-  items.forEach(el => {
-    if (el.classList.contains('mmh-visual-reveal')) return;
-    el.classList.add('mmh-visual-ready');
-  });
+  const sync=()=>document.body.classList.toggle('mmh-scrolled',window.scrollY>18);
+  sync();
+  window.addEventListener('scroll',sync,{passive:true});
 })();
-
-/* Premium visual pass 2: decorative layer only */
-(function(){
-  const root = document.documentElement;
-  if (!root.dataset.mmhPremiumVisual2) root.dataset.mmhPremiumVisual2 = '1';
-
-  const syncScrollState = () => {
-    document.body.classList.toggle('mmh-deep-scroll', window.scrollY > 160);
-  };
-  syncScrollState();
-  window.addEventListener('scroll', syncScrollState, {passive:true});
-})();
-
-/* Premium visual pass 3: subtle active-page pulse, presentation only */
-(function(){
-  const markActivePage = () => {
-    const pageIds = ['dashboard','transactions','invest','analyze','exchange','settings'];
-    const active = pageIds.find(id => {
-      const el = document.getElementById(id);
-      if (!el) return false;
-      const cs = getComputedStyle(el);
-      return cs.display !== 'none' && cs.visibility !== 'hidden';
-    });
-    if (active) document.documentElement.dataset.mmhActivePage = active;
-  };
-  markActivePage();
-  window.addEventListener('hashchange', markActivePage, {passive:true});
-})();
-
-/* Premium visual pass 4: visual-only observer for major dashboard cards */
-(function(){
-  if (!('IntersectionObserver' in window)) return;
-  const targets = document.querySelectorAll('.mmh-command-v34210,.mmh-dash372-card');
-  const observer = new IntersectionObserver((entries)=>{
-    entries.forEach(entry=>{
-      entry.target.classList.toggle('mmh-in-view',entry.isIntersecting);
-    });
-  },{threshold:.18});
-  targets.forEach(el=>observer.observe(el));
-})();
-
-/* Premium visual pass 5 marker — presentation only */
-(function(){
-  document.documentElement.dataset.mmhTypographySystem = 'premium-v5';
-})();
-
-/* Premium visual pass 6 marker — dashboard composition only */
-(function(){
-  document.documentElement.dataset.mmhDashboardComposition = 'premium-v6';
-})();
-
-/* Premium visual pass 7 marker — Transactions + Invest presentation only */
-(function(){
-  document.documentElement.dataset.mmhSecondaryPages = 'premium-v7';
-})();
-
-/* Premium visual pass 8 marker — analytics presentation only */
-(function(){
-  document.documentElement.dataset.mmhAnalyticsSystem = 'premium-v8';
-})();
-
-/* Premium visual pass 9 marker — Settings / Data Center presentation only */
-(function(){
-  document.documentElement.dataset.mmhControlCenter = 'premium-v9';
-})();
-
-/* Premium visual pass 10 marker — final micro-detail layer */
-(function(){
-  document.documentElement.dataset.mmhMicroPolish = 'premium-v10';
-})();
-
-/* Premium visual pass 11 marker — art direction finalization only */
-(function(){
-  document.documentElement.dataset.mmhArtDirection = 'premium-v11-final';
-})();
-
-/* Premium visual pass 12 marker — entry experience only */
-(function(){
-  document.documentElement.dataset.mmhEntryPolish = 'premium-v12';
-})();
-
-/* Premium visual pass 13 retired in v4.4.8 stability pass.
-   The former full-screen pointer spotlight forced desktop-wide repaints on every pointer frame. */
 </script>
 
 <!-- MMHVAULT HEALTH & DECISIONS SPACING POLISH -->
@@ -23831,12 +23604,6 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
 
 
 <!-- MMHVAULT V4.4.30 · Dialog action close reliability patch -->
-<script id="mmhvault-v4430-dialog-action-close">
-(function(){
-  window.MM_HVAULT_DIALOG_ACTION_CLOSE_V4430={version:'1.2.3.8',retiredLegacyHardHide:true,canonicalResolver:'mmhVaultResolveDialogV449'};
-})();
-</script>
-
 <!-- MMHVAULT v4.7.2 · Dashboard Desktop 2x2 Snapshot. Desktop only; mobile/tablet unchanged. -->
 
 
@@ -29900,15 +29667,6 @@ html body.mmh-workspace-active main.wrap .page.active :is(.empty,.mmh-ui-empty,.
 <!-- MMHVAULT v1.2.3.3 · Stability Pass 2: non-blocking profile boot, single data-loaded fan-out, canonical Analyze grouping. -->
 <!-- MMHVAULT v1.1.6 · Report export is presentation-only and never mutates finance records. -->
 
-<script id="mmhvault-v1235-stability-pass-4-marker">window.MM_HVAULT_STABILITY_V1235={version:'1.2.3.5',backupImportIntegrity:true,realtimeOwnerScope:true,transactionEditRecovery:true,bulkMutationIsolation:true};</script>
-
-<script id="mmhvault-v1238-stability-pass-7-marker">window.MM_HVAULT_STABILITY_V1238={version:'1.2.3.8',singleRenderPath:true,pageLifecycleDestacked:true,dialogPromiseLifecycle:true,reportOwnerSafety:true,narrowObservers:true};</script>
-
-<script id="mmhvault-v12311-stability-pass-10-marker">
-window.MMHVAULT_STABILITY_PASS='1.2.3.11';
-window.MM_HVAULT_STABILITY_V12311={version:'1.2.3.11',storageFailureIsolation:true,scopedPwaRetirement:true,canonicalInvestViewKey:true,redundantSyncConsumersRemoved:true,finalHygiene:true};
-</script>
-
 <script id="mmhvault-v140-command-search-actions">
 (()=>{'use strict';
   if(window.__mmhCommandSearchV140)return;window.__mmhCommandSearchV140=true;
@@ -30376,8 +30134,6 @@ window.MM_HVAULT_STABILITY_V12311={version:'1.2.3.11',storageFailureIsolation:tr
 })();
 </script>
 
-<script id="mmhvault-v142-transaction-history-marker">window.MMHVAULT_TRANSACTION_HISTORY_V142={version:'1.4.4',detailToEdit:true,useAgain:true,receiptNotCopied:true,accountQuickActions:true,dashboardRecentDetail:true,investQuickFlow:true};</script>
-
 <script id="mmhvault-v145-notification-search-deeplink">
 (()=>{'use strict';
   if(window.__MMHVAULT_DEEPLINK_V145)return;window.__MMHVAULT_DEEPLINK_V145=true;
@@ -30439,8 +30195,6 @@ window.MM_HVAULT_STABILITY_V12311={version:'1.2.3.11',storageFailureIsolation:tr
   window.MMHVAULT_DEEPLINK_V145={version:'1.4.5',notificationActions:true,goalSearch:true,recurringSearch:true,budgetCategorySearch:true};
 })();
 </script>
-
-<script id="mmhvault-v146-ui-flow-marker">window.MMHVAULT_V146={version:'1.4.6',quickActionsMainPages:true,tickerAlwaysMoves:true,notificationInstant:true,wideResponsive:true,feedbackStarGlow:true,fullDashboardName:true};</script>
 
 <script id="mmhvault-v147-planning-quick-flow">
 (()=>{'use strict';
@@ -31107,11 +30861,6 @@ window.MM_HVAULT_STABILITY_V12311={version:'1.2.3.11',storageFailureIsolation:tr
   }
 }
 </style>
-<script id="mmhvault-v151-ui-marker">
-window.MMHVAULT_V151={version:'1.5.1',assetAllocationPolish:true,compactMobileAccountDetail:true,accountActionsOneRow:true};
-</script>
-
-
 <style id="mmhvault-v152-navigation-architecture">
 /* MMHVAULT v1.5.38 · v1.5.2 navigation compatibility
    The old v152 More-menu viewport/classes were retired by the v153 staged menu.
@@ -31147,11 +30896,6 @@ window.MMHVAULT_V151={version:'1.5.1',assetAllocationPolish:true,compactMobileAc
   html body.mmh-workspace-active #bottomNav>button[data-page="accounts-page"]{display:flex!important}
 }
 </style>
-<script id="mmhvault-v152-navigation-marker">
-window.MMHVAULT_NAVIGATION_V152={version:'1.5.2',accountsPrimary:true,morePaged:true,mainMore:['exchange','cashflow-analyze','reports','settings','admin'],extraMore:['budget','goals','recurring']};
-</script>
-
-
 <style id="mmhvault-v153-mobile-actions-more-transition">
 /* MMHVAULT v1.5.3 · mobile action row + full More page transition */
 
@@ -31392,11 +31136,6 @@ html body #moreNavMenu.more-nav-menu.mmh-more-open-v153{
   html body #moreNavMenu.more-nav-menu{transition:none!important}
 }
 </style>
-<script id="mmhvault-v153-marker">
-window.MMHVAULT_V153={version:'1.5.3',accountActionsOneRowHardFix:true,moreFullPanelTransition:true};
-</script>
-
-
 <style id="mmhvault-v154-more-fixed-frame-polish">
 /* MMHVAULT v1.5.4 · More fixed-frame page transition */
 html body #moreNavMenu.more-nav-menu{height:min(452px,calc(100dvh - 28px))!important;min-height:min(392px,calc(100dvh - 28px))!important;max-height:calc(100dvh - 28px)!important}
@@ -31421,9 +31160,6 @@ html body #moreNavMenu.more-nav-menu{height:min(452px,calc(100dvh - 28px))!impor
 @media(max-width:520px) and (max-height:760px){#moreNavMenu .mmh-more-list-v153{min-height:0!important;overflow-y:auto!important;overscroll-behavior:contain!important;scrollbar-width:none!important}#moreNavMenu .mmh-more-list-v153::-webkit-scrollbar{display:none!important}#moreNavMenu .mmh-more-view-v153[data-more-view="extra"]::after{margin-top:10px!important}}
 @media(prefers-reduced-motion:reduce){#moreNavMenu.mmh-more-transition-v153 .mmh-more-stage-v153::after{animation:none!important}}
 </style>
-<script id="mmhvault-v154-marker">window.MMHVAULT_V154={version:'1.5.4',moreFixedFrame:true,moreSharedHeaderGeometry:true,mobileMoreStable:true};</script>
-
-
 <style id="mmhvault-v155-responsive-stability-css">
 /* MMHVAULT v1.5.5 · Responsive Stability
    Keep responsive behavior CSS-driven and avoid expensive repaint/re-render loops. */
@@ -31660,11 +31396,6 @@ html body.mmh-workspace-active #moreNavMenu .mmh-more-list-v153{
   }
 }
 </style>
-<script id="mmhvault-v156-marker">
-window.MMHVAULT_V156={version:'1.5.6',mobileMoreFullWidth:true,desktopMoreNoClip:true};
-</script>
-
-
 <style id="mmhvault-v157-dashboard-local-interaction-css">
 /* MMHVAULT v1.5.7 · Dashboard local interaction isolation
    Portfolio Trend and Market Watch switch only their own content region. */
@@ -31693,11 +31424,6 @@ window.MMHVAULT_V156={version:'1.5.6',mobileMoreFullWidth:true,desktopMoreNoClip
   }
 }
 </style>
-<script id="mmhvault-v157-marker">
-window.MMHVAULT_V157={version:'1.5.7',trendLocalUpdate:true,marketTabLocalUpdate:true,fullDashboardRenderOnSwitch:false};
-</script>
-
-
 <style id="mmhvault-v158-active-render-isolation-css">
 /* MMHVAULT v1.5.8 · Active Page Render Isolation */
 body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-planning-v117,
@@ -31707,86 +31433,6 @@ body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-insights-v150{
   contain:layout style;
 }
 </style>
-<script id="mmhvault-v158-marker">
-window.MMHVAULT_V158={
-  version:'1.5.8',
-  activePageRenderIsolation:true,
-  hiddenDashboardBudgetDomRender:false,
-  hiddenDashboardPlanningCloudRefresh:false,
-  reportInsightObserverSelfLoop:false
-};
-</script>
-
-
-<script id="mmhvault-v159-hidden-page-idle-marker">
-window.MMHVAULT_V159={
-  version:'1.5.9',
-  hiddenDashboardRender:false,
-  hiddenAccountRender:false,
-  activePageNumberFormatting:true,
-  hiddenInvestDecorators:false,
-  hiddenInvestReceiptStorageCheck:false
-};
-</script>
-
-
-<script id="mmhvault-v1510-navigation-notification-marker">
-window.MMHVAULT_V1510={
-  version:'1.5.10',
-  pageRenderDedup:true,
-  visibilityRenderScheduled:true,
-  notificationStartupRpcDedup:true,
-  notificationClosedDomIdle:true
-};
-</script>
-
-
-<script id="mmhvault-v1511-idle-clock-marker">
-window.MMHVAULT_V1511={
-  version:'1.5.11',
-  dashboardAgeSecondRender:false,
-  settingsAgeCountdownLive:true,
-  dashboardAgeDayEvent:true,
-  topbarDateWriteDedup:true
-};
-</script>
-
-
-<script id="mmhvault-v1512-active-dom-scan-marker">
-window.MMHVAULT_V1512={
-  version:'1.5.12',
-  financialLabelScanActiveSurfaceOnly:true,
-  financialDataEnglishScanActiveSurfaceOnly:true,
-  transactionLabelSyncActiveOnly:true
-};
-</script>
-
-
-<script id="mmhvault-v1513-incremental-dom-resize-marker">
-window.MMHVAULT_V1513={
-  version:'1.5.13',
-  incrementalLanguageMutationScan:true,
-  incrementalMutationRootDedup:true,
-  hiddenPageLanguageMutationIdle:true,
-  activePageLanguageWake:true,
-  investResizeMeasureOnSettle:true,
-  notificationGeometryOnSettle:true,
-  moreGeometryOnSettle:true
-};
-</script>
-
-
-<script id="mmhvault-v1514-rpc-coalescing-marker">
-window.MMHVAULT_V1514={
-  version:'1.5.14',
-  reportCloudEventCoalescing:true,
-  reportNavigationBurstDedup:true,
-  reportInFlightLoadDedup:true,
-  notificationInFlightRpcDedup:true
-};
-</script>
-
-
 <style id="mmhvault-customer-support-v1518-style">
 #settings .cs-entry-v1518{background:transparent!important;border:0!important;border-top:1px solid #263e52!important;border-radius:0!important;box-shadow:none!important;color:#e0edf7!important;text-align:left!important;padding:12px 14px!important;min-height:76px!important;width:100%!important}
 #settings .cs-entry-v1518:hover{background:#192f42!important}#settings .cs-entry-v1518 .st-icon{color:#a9cfee}#settings #stPage_supportV1518{max-width:980px!important;margin:0 auto!important;width:100%!important}
@@ -31914,14 +31560,6 @@ body.light #settings .cs-panel-v1518{background:linear-gradient(160deg,#fff,#f3f
 
 <!-- MMHVAULT v1.5.22 · Background Timer Idle: persistent intervals replaced by visibility/page-aware one-shot schedulers. -->
 
-<script id="mmhvault-v1523-active-observer-sleep-marker">
-window.MMHVAULT_V1523_ACTIVE_OBSERVER_SLEEP={version:'1.5.23',transactions:true,invest:true,hiddenDisconnect:true,rafCoalescing:true};
-</script>
-<script id="mmhvault-v1524-feedback-render-reuse-marker">window.MMHVAULT_V1524={version:'1.5.24',feedbackRenderReuse:true,duplicateFeedbackRpcRemoved:true,feedbackObserverRemoved:true};</script>
-<script id="mmhvault-v1525-active-page-observer-sleep-marker">window.MMHVAULT_V1525={version:'1.5.25',dashboardObserverSleep:true,reportsObserverSleep:true,quickFlowObserverSleep:true,transactionAddObserverSleep:true,rafCoalescing:true};</script>
-
-<script id="mmhvault-v1528-navigation-signal-cleanup-marker">window.MMHVAULT_NAV_SIGNAL_V1528={version:'1.5.28',samePageClassChurn:false,pageVisibleFrameCoalesced:true,sidebarClassObserver:false};</script>
-
 <style id="mmhvault-v1531-phone-auth-style">
 .mmh-phone-security-v1531{min-width:0}.mmh-phone-linked-v1531{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:14px 0;padding:12px 14px;border:1px solid rgba(88,172,228,.13);border-radius:14px;background:rgba(5,18,34,.32)}.mmh-phone-linked-v1531 span{color:var(--muted);font-size:12px}.mmh-phone-linked-v1531 b{color:#d8f4ff;font-size:12px}.mmh-phone-grid-v1531{display:grid;grid-template-columns:minmax(160px,.9fr) minmax(0,1.1fr);gap:12px}.mmh-phone-grid-v1531 label,.mmh-phone-otp-v1531 label{display:grid;gap:7px;color:var(--muted);font-size:12px;font-weight:750}.mmh-phone-grid-v1531 select,.mmh-phone-grid-v1531 input,.mmh-phone-otp-v1531 input{width:100%;min-width:0;height:44px;border:1px solid rgba(93,154,205,.22);border-radius:12px;background:rgba(5,15,29,.72);color:var(--text);padding:0 12px;font:inherit;outline:none}.mmh-phone-grid-v1531 select:focus,.mmh-phone-grid-v1531 input:focus,.mmh-phone-otp-v1531 input:focus{border-color:rgba(95,194,239,.65);box-shadow:0 0 0 3px rgba(75,184,235,.08)}.mmh-phone-grid-v1531 select option{background:#071526;color:#e7f1f7}.mmh-phone-otp-v1531{margin-top:12px;padding:12px;border:1px solid rgba(87,181,229,.13);border-radius:14px;background:rgba(7,23,39,.36)}.mmh-phone-otp-v1531[hidden]{display:none!important}.mmh-phone-otp-v1531 input{text-align:center;letter-spacing:.28em;font-weight:900}.mmh-phone-security-v1531 .security-actions-v379{margin-top:12px;flex-wrap:wrap}.mmh-phone-security-v1531 .btn:disabled{opacity:.55;cursor:wait}
 @media(max-width:700px){.mmh-phone-grid-v1531{grid-template-columns:1fr}.mmh-phone-security-v1531 .security-actions-v379 .btn{flex:1 1 140px}}
@@ -31953,19 +31591,6 @@ window.MMHVAULT_V1523_ACTIVE_OBSERVER_SLEEP={version:'1.5.23',transactions:true,
  window.MMHVAULT_PHONE_AUTH_V1532={version:'1.5.32',providerReady:true,chinaMainland:false,persistentOtpCooldown:true,friendlySmsErrors:true,phoneBindGuard:true};
 })();
 </script>
-
-<script id="mmhvault-v1533-list-render-signal-marker">window.MMHVAULT_V1533={version:'1.5.33',listRenderSignal:true,transactionListObserversRemoved:true,investListObserversRemoved:true,transactionFormObserverRemoved:true};</script>
-<script id="mmhvault-v1534-stability-regression-marker">window.MMHVAULT_V1534={version:'1.5.34',stabilityRegressionPass:true,canonicalTransactionListSignal:true,renderQueueUnified:true,pageVisibleSignalStable:true};</script>
-
-<script id="mmhvault-v1535-responsive-cleanup-marker">window.MMHVAULT_V1535={version:'1.5.35',responsiveCleanupPhase1:true,exchangeSettingsCanonical:true,legacyResponsiveLayersRemoved:['v8.41','v9.02']};</script>
-<script id="mmhvault-v1536-reports-responsive-marker">window.MMHVAULT_V1536={version:'1.5.36',responsiveCleanupPhase2:true,reportsCanonical:true,reportComparisonPreservesAllData:true,legacyReportResponsiveRemoved:['v1.1.8','v1.1.8-workspace-hotfix']};</script>
-<script id="mmhvault-v1537-responsive-cleanup-marker">window.MMHVAULT_V1537={version:'1.5.37',responsiveCleanupPhase3:true,accountsAnalyzeCleanup:true,phoneSmsPaused:true};</script>
-
-<script id="mmhvault-v1538-more-responsive-cleanup-marker">window.MMHVAULT_V1538={version:'1.5.38',moreLegacyCssRemoved:true,moreFrameGeometryCanonical:true};</script>
-
-<script id="mmhvault-v1539-final-css-audit-marker">window.MMHVAULT_V1539={version:'1.5.39',finalCssDeadLayerAudit:true,retiredUnusedResponsiveLayers:true};</script>
-<script id="mmhvault-v1540-final-stable-regression-marker">window.MMHVAULT_V1540={version:'1.5.40',finalStableRegression:true,hiddenPageRecovery:true,phoneSmsPaused:true};</script>
-
 
 <style id="mmhvault-v160-workspace-switch-style">
 #header .mmh-workspace-switch-v160{position:relative;flex:0 0 auto}
@@ -32402,7 +32027,7 @@ body.light #mmhHintBubbleV195{background:rgba(248,252,255,.99);border-color:rgba
 })();
 </script>
 <style id="mmhvault-v1911-personal-final-ui-css">
-/* Personal Stable Candidate 1.9.14 · canonical Personal presentation layer.
+/* Personal Stable Candidate 1.9.15 · canonical Personal presentation layer.
    Consolidates the recent final-pass CSS while preserving rule order and behavior. */
 /* Keep Wallet Activity aligned with Add Transaction / Add Invest field geometry. */
 .mmh-wallet-form-v172 input,.mmh-wallet-form-v172 select{min-height:44px;box-sizing:border-box}
@@ -32584,7 +32209,7 @@ html body.mmh-workspace-active main.wrap .page.active th{vertical-align:middle}
   #mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-recent-v830 .copy small{white-space:normal;line-height:1.35}
 }
 </style>
-<script id="mmhvault-v1914-marker">window.MMHVAULT_PERSONAL_STABLE_CANDIDATE={version:'1.9.14',reportCanonicalStatic:true,retiredAnalyzeRenderCleanup:true,accountDeleteAccess:true,contextHints:true,accountCryptoQuantityPrecision:true,caseInsensitiveAccountDetail:true,walletHistoryDeleteProtection:true,walletRenameSync:true,translationObserverLifecycle:true,externalizedStaticImages:true,investmentHistoryDirectRender:true,walletGridDeterministic:true,walletSnapshotSingleRender:true,walletFieldContextHints:true,tapContextHints:true,systemTitleHints:true,responsiveFinalPass:true,visualRhythmFinal:true,deadCssCleanup:true,contextHintCardRefined:true,touchHintFocusGuard:true,reportTitleHints:true,recentCssConsolidated:true,detailLayoutFinal:true,walletActivityUnifiedInvest:true,retiredWealthPlanningCleanup:true,investInnerTabsAccessible:true,walletPortfolioLayoutFinal:true};</script>
+<script id="mmhvault-v1915-marker">window.MMHVAULT_PERSONAL_STABLE_CANDIDATE={version:'1.9.15',reportCanonicalStatic:true,retiredAnalyzeRenderCleanup:true,accountDeleteAccess:true,contextHints:true,accountCryptoQuantityPrecision:true,caseInsensitiveAccountDetail:true,walletHistoryDeleteProtection:true,walletRenameSync:true,translationObserverLifecycle:true,externalizedStaticImages:true,investmentHistoryDirectRender:true,walletGridDeterministic:true,walletSnapshotSingleRender:true,walletFieldContextHints:true,tapContextHints:true,systemTitleHints:true,responsiveFinalPass:true,visualRhythmFinal:true,deadCssCleanup:true,contextHintCardRefined:true,touchHintFocusGuard:true,reportTitleHints:true,recentCssConsolidated:true,detailLayoutFinal:true,walletActivityUnifiedInvest:true,retiredWealthPlanningCleanup:true,investInnerTabsAccessible:true,walletPortfolioLayoutFinal:true,legacyDashboardBridgePruned:true,deadVisualObserversRemoved:true,legacyDashboardWrapperCleanup:true,reportRetiredRuleCleanup:true,legacyMarkersPruned:true};</script>
 
 
 </body>
