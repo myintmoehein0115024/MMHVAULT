@@ -25597,11 +25597,15 @@ body.light .mmh-account-detail-v830 .mmh-account-flow-v830>div,body.light .mmh-a
     const tokenCount=(wallet?.tokens||[]).length;
     const linkedCount=(invRows?.length||0)+(customRows?.length||0);
     if(a.type==='crypto'){
-      const totalUSD=linkedUSD,otherCrypto=Math.max(0,linkedUSD-cashUSD);
+      const totalUSD=linkedUSD,otherCrypto=Math.max(0,linkedUSD-cashUSD),nonUsdt=(wallet?.tokens||[]).filter(t=>String(t?.sym||'').toUpperCase()!=='USDT');
+      const one=nonUsdt.length===1?nonUsdt[0]:null;
+      const otherMain=one?(N(one.q).toLocaleString(undefined,{maximumFractionDigits:8})+' '+String(one.sym||'')):usdMoney(otherCrypto);
+      const otherSub=one?(usdMoney(Math.max(0,N(one.value)))+' current value'):(String(nonUsdt.length)+' non-USDT assets');
+      const otherLabel=one?(String(one.sym||'Other crypto')+' holding'):'Other crypto';
       return '<div class="mmh-account-balance-grid-v149">'+
         '<div class="mmh-account-balance-card-v149 accent"><small>Total balance</small><b>'+E(usdMoney(totalUSD))+'</b><span>'+E('USDT '+usdMoney(cashUSD)+' · Other crypto '+usdMoney(otherCrypto))+'</span></div>'+
-        '<div class="mmh-account-balance-card-v149"><small>USDT balance</small><b>'+E(nativeMoney(bal,a))+'</b><span>'+E(usdMoney(cashUSD))+'</span></div>'+
-        '<div class="mmh-account-balance-card-v149"><small>Other crypto</small><b>'+E(usdMoney(otherCrypto))+'</b><span>'+E(String(Math.max(0,tokenCount-(cashUSD>0?1:0)))+' non-USDT assets')+'</span></div>'+
+        '<div class="mmh-account-balance-card-v149"><small>USDT balance</small><b>'+E(N(bal).toLocaleString(undefined,{maximumFractionDigits:8})+' USDT')+'</b><span>'+E(usdMoney(cashUSD))+'</span></div>'+
+        '<div class="mmh-account-balance-card-v149 crypto-qty"><small>'+E(otherLabel)+'</small><b>'+E(otherMain)+'</b><span>'+E(otherSub)+'</span></div>'+
         '<div class="mmh-account-balance-card-v149 subtle"><small>Flow snapshot</small><b>'+E(nativeMoney(flowNet,a))+'</b><span>'+E('In '+nativeMoney(flows.incoming,a)+' · Out '+nativeMoney(flows.outgoing,a))+'</span></div>'+
       '</div>';
     }
@@ -25622,7 +25626,8 @@ body.light .mmh-account-detail-v830 .mmh-account-flow-v830>div,body.light .mmh-a
       accountBalanceCardsHTML(a,bal,cashUSD,linkedUSD,flows,wallet,invRows,customRows)+
       (a.active===false?'<div class="mmh-account-archived-note-v143">Restore this account before recording new activity.</div>':'<div class="mmh-account-actions-v143 mmh-account-actions-v148" aria-label="Account quick actions"><button type="button" data-account-action-v143="expense" data-account-id-v143="'+E(a.id)+'"><i>↑</i><span><b>Expense</b><small>Pay from this account</small></span></button><button type="button" data-account-action-v143="income" data-account-id-v143="'+E(a.id)+'"><i>↓</i><span><b>Income</b><small>Deposit to this account</small></span></button><button type="button" data-account-action-v143="transfer" data-account-id-v143="'+E(a.id)+'"><i>↔</i><span><b>Transfer</b><small>Move money from here</small></span></button></div>')+
       walletHoldingsHTML(a,wallet)+
-      '<div class="mmh-account-split-v148"><div class="mmh-account-section-v830"><div class="mmh-account-section-head-v830"><strong>'+E(a.type==='crypto'?'Wallet summary':'Linked investments')+'</strong><span>'+E(a.type==='crypto'?(String(walletRows.length)+' transfers · '+usdMoney(linkedUSD)):(String(invRows.length+customRows.length)+' records · '+usdMoney(linkedUSD)))+'</span></div>'+(symbols.length?'<div class="mmh-account-invest-tags-v830">'+symbols.map(s=>'<span>'+E(s)+'</span>').join('')+'</div>':'<div class="mmh-account-empty-v830">'+E(a.type==='crypto'?'No wallet assets.':'No linked investment records.')+'</div>')+'</div><div class="mmh-account-section-v830"><div class="mmh-account-section-head-v830"><strong>Recent transactions</strong><span class="mmh-account-section-tools-v143"><em>'+E(String(rows.length)+' linked records')+'</em>'+(rows.length?'<button type="button" data-account-action-v143="history" data-account-id-v143="'+E(a.id)+'">View all ›</button>':'')+'</span></div>'+recentHTML(rows,a)+'</div></div>'+
+      (a.type==='crypto'?'<div class="mmh-account-wallet-summary-compact-v183"><div><strong>Wallet summary</strong><span>'+E(String(walletRows.length)+' transfer'+(walletRows.length===1?'':'s')+' · '+String(symbols.length)+' assets')+'</span></div><div class="mmh-account-invest-tags-v830">'+symbols.map(s=>'<span>'+E(s)+'</span>').join('')+'</div></div>':'<div class="mmh-account-section-v830"><div class="mmh-account-section-head-v830"><strong>Linked investments</strong><span>'+E(String(invRows.length+customRows.length)+' records · '+usdMoney(linkedUSD))+'</span></div>'+(symbols.length?'<div class="mmh-account-invest-tags-v830">'+symbols.map(s=>'<span>'+E(s)+'</span>').join('')+'</div>':'<div class="mmh-account-empty-v830">No linked investment records.</div>')+'</div>')+
+      '<div class="mmh-account-section-v830"><div class="mmh-account-section-head-v830"><strong>Recent transactions</strong><span class="mmh-account-section-tools-v143"><em>'+E(String(rows.length)+' linked records')+'</em>'+(rows.length?'<button type="button" data-account-action-v143="history" data-account-id-v143="'+E(a.id)+'">View all ›</button>':'')+'</span></div>'+recentHTML(rows,a)+'</div>'+
       '<div class="mmh-tx-detail-note-v800 mmh-account-note-v148"><strong style="color:#d9e8f6">Note</strong><br>'+E(meta.note||'No note')+'</div>'+
     '</div>';
   }
@@ -28705,6 +28710,73 @@ window.MMHVAULT_V1523_ACTIVE_OBSERVER_SLEEP={version:'1.5.23',transactions:true,
  document.addEventListener('change',e=>{if(['txType','fromAccount','toAccount'].includes(e.target?.id))refresh()});
  document.addEventListener('submit',async e=>{const form=e.target;if(form?.id!=='txForm')return;const type=$('txType')?.value;if(type!=='Transfer')return;const from=$('fromAccount')?.value||'',to=$('toAccount')?.value||'',fc=isCrypto(from),tc=isCrypto(to);if(!fc&&!tc)return;if(!(fc&&tc)){e.preventDefault();e.stopImmediatePropagation();await window.mmhEditDeleteUI?.message?.('Crypto transfer','Crypto accounts can only transfer USDT to another Crypto account here. Use Crypto Wallet & Gas for on-chain crypto transfers.');return}const a=account(from),b=account(to),fa=N($('fromAmount')?.value),ta=N($('toAmount')?.value);if(String(a?.currency||'').toUpperCase()!=='USD'||String(b?.currency||'').toUpperCase()!=='USD'||Math.abs(fa-ta)>0.000001){e.preventDefault();e.stopImmediatePropagation();await window.mmhEditDeleteUI?.message?.('USDT transfer only','For OKX / ByBit / MetaMask Transfer, From and To must both be Crypto USD accounts and the USDT amounts must be equal.');}},true);
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',refresh,{once:true});else refresh();
+})();
+</script>
+
+<style id="mmhvault-v183-wallet-record-account-polish">
+/* v1.8.3 Account detail + Wallet Record visual pass */
+#mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-balance-card-v149{min-height:92px;padding:13px 14px;gap:5px}
+#mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-balance-card-v149 small{font-size:9px;letter-spacing:.09em}
+#mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-balance-card-v149 b{font-size:clamp(16px,1.65vw,20px)!important;line-height:1.12!important}
+#mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-balance-card-v149.crypto-qty b{font-size:clamp(15px,1.55vw,19px)!important}
+#mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-balance-card-v149 span{font-size:10px;line-height:1.35}
+#mmhVaultDialogV449 .mmh-account-wallet-summary-compact-v183{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 13px;border:1px solid rgba(91,151,196,.14);border-radius:14px;background:linear-gradient(145deg,rgba(12,36,54,.58),rgba(6,23,37,.7))}
+#mmhVaultDialogV449 .mmh-account-wallet-summary-compact-v183>div:first-child{display:grid;gap:2px;min-width:0}
+#mmhVaultDialogV449 .mmh-account-wallet-summary-compact-v183 strong{font-size:12px;color:#e6f1f8}
+#mmhVaultDialogV449 .mmh-account-wallet-summary-compact-v183>div:first-child span{font-size:9px;color:#7f9bad}
+#mmhVaultDialogV449 .mmh-account-wallet-summary-compact-v183 .mmh-account-invest-tags-v830{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:6px;margin:0}
+#mmhVaultDialogV449 .mmh-account-wallet-summary-compact-v183 .mmh-account-invest-tags-v830 span{margin:0;padding:4px 7px;font-size:9px}
+
+/* Record wallet activity = compact Add Transaction / Add Invest style */
+.mmh-wallet-grid-v172{align-items:start}
+.mmh-wallet-card-v172:first-child{padding:0!important;overflow:hidden;background:linear-gradient(145deg,rgba(10,31,49,.88),rgba(6,22,36,.92))!important;border-color:rgba(90,151,196,.18)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.025),0 18px 38px rgba(0,0,0,.16)}
+.mmh-wallet-record-head-v183{width:100%;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:15px 16px;border:0;background:transparent;color:#e9f5fc;text-align:left;cursor:pointer;font:inherit}
+.mmh-wallet-record-head-v183:hover{background:rgba(76,199,255,.035)}
+.mmh-wallet-record-head-v183 .copy{display:grid;gap:3px}
+.mmh-wallet-record-head-v183 strong{font-size:15px;line-height:1.2}
+.mmh-wallet-record-head-v183 small{font-size:10px;color:#7897ad;font-weight:600}
+.mmh-wallet-record-head-v183 .icon{width:34px;height:34px;border-radius:11px;border:1px solid rgba(92,171,221,.26);display:grid;place-items:center;color:#8bdcff;background:rgba(20,58,82,.56);transition:.18s ease;flex:0 0 auto}
+.mmh-wallet-card-v172.mmh-wallet-record-open-v183 .mmh-wallet-record-head-v183 .icon{transform:rotate(45deg);background:rgba(38,119,166,.36)}
+.mmh-wallet-record-body-v183{border-top:1px solid rgba(91,151,196,.12);padding:14px 16px 16px}
+.mmh-wallet-card-v172:not(.mmh-wallet-record-open-v183) .mmh-wallet-record-body-v183{display:none}
+.mmh-wallet-record-body-v183>.sub{margin:0 0 12px!important;color:#7592a8!important;font-size:10px!important}
+.mmh-wallet-record-body-v183 .mmh-wallet-help-v181{grid-template-columns:repeat(3,minmax(0,1fr));margin:0 0 14px;gap:8px}
+.mmh-wallet-record-body-v183 .mmh-wallet-help-v181>div{padding:9px 10px;border-radius:12px;background:rgba(8,28,44,.5)}
+.mmh-wallet-form-v172{gap:11px 12px!important}
+.mmh-wallet-form-v172>label{font-size:10px!important;font-weight:700;color:#8faec3!important}
+.mmh-wallet-form-v172 input,.mmh-wallet-form-v172 select,.mmh-wallet-form-v172 textarea{min-height:44px!important;border-radius:13px!important;background:linear-gradient(180deg,rgba(14,39,59,.96),rgba(7,26,43,.98))!important;border-color:rgba(90,151,196,.22)!important;padding:11px 12px!important}
+.mmh-wallet-form-v172 textarea{min-height:76px!important}
+.mmh-wallet-form-v172 input:focus,.mmh-wallet-form-v172 select:focus,.mmh-wallet-form-v172 textarea:focus{border-color:rgba(91,196,250,.58)!important;box-shadow:0 0 0 3px rgba(58,168,229,.08)!important}
+.mmh-wallet-form-v172 .mmh-wallet-group-title-v181{margin-top:7px!important;color:#6fa9ca!important}
+.mmh-wallet-form-v172 .mmh-wallet-preview-v172{border-radius:12px!important;padding:10px 12px!important;font-size:10px!important}
+.mmh-wallet-form-v172 .mmh-wallet-save-v172{min-height:46px!important;border-radius:13px!important;font-weight:800!important}
+.mmh-wallet-combo-v181:after{font-size:13px!important;right:12px!important;opacity:.58!important}
+.mmh-wallet-combo-v181.open:after{opacity:.9!important}
+@media(max-width:760px){.mmh-wallet-record-body-v183 .mmh-wallet-help-v181{grid-template-columns:1fr}.mmh-wallet-record-head-v183{padding:13px 14px}.mmh-wallet-record-body-v183{padding:13px 14px 15px}#mmhVaultDialogV449 .mmh-account-wallet-summary-compact-v183{align-items:flex-start;flex-direction:column}#mmhVaultDialogV449 .mmh-account-wallet-summary-compact-v183 .mmh-account-invest-tags-v830{justify-content:flex-start}}
+</style>
+<script id="mmhvault-v183-wallet-record-collapse">
+(()=>{'use strict';
+  if(window.__MMHWalletRecordCollapseV183)return;window.__MMHWalletRecordCollapseV183=true;
+  function enhance(){
+    const host=document.getElementById('mmhCryptoWalletGasV172');
+    if(!host)return;
+    const card=host.querySelector('.mmh-wallet-grid-v172>.mmh-wallet-card-v172:first-child');
+    if(!card||card.dataset.v183Done==='1')return;
+    card.dataset.v183Done='1';
+    const h3=card.querySelector(':scope>h3'),sub=card.querySelector(':scope>.sub');
+    const body=document.createElement('div');body.className='mmh-wallet-record-body-v183';
+    [...card.children].filter(x=>x!==h3&&x!==sub).forEach(x=>body.appendChild(x));
+    if(sub)body.prepend(sub);
+    if(h3)h3.remove();
+    const head=document.createElement('button');head.type='button';head.className='mmh-wallet-record-head-v183';head.setAttribute('aria-expanded','false');
+    head.innerHTML='<span class="copy"><strong>Record wallet activity</strong><small>Transfer crypto / USDT or record network gas</small></span><span class="icon">＋</span>';
+    card.prepend(head);card.append(body);
+    head.addEventListener('click',()=>{const open=card.classList.toggle('mmh-wallet-record-open-v183');head.setAttribute('aria-expanded',String(open));if(open)setTimeout(()=>body.querySelector('select,input')?.focus({preventScroll:true}),50)});
+  }
+  document.addEventListener('DOMContentLoaded',enhance);
+  window.addEventListener('mmhvault:data-loaded',()=>setTimeout(enhance,0));
+  document.addEventListener('click',e=>{if(e.target.closest('[data-page="invest"],#navInvest,[data-nav="invest"]'))setTimeout(enhance,80)});
+  setTimeout(enhance,250);
 })();
 </script>
 </body>
