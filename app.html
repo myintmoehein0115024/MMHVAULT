@@ -6078,5 +6078,33 @@ body.mmh-v436-explorer-open #bottomNav{visibility:hidden!important;pointer-event
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',fetchMoves,{once:true});else fetchMoves();
 })();
 </script>
+
+<style id="mmhvault-v175-no-negative-balance-css">
+.mmh-balance-guard-note-v175{font-size:11px;color:#9eb8d5;line-height:1.5}
+</style>
+<script id="mmhvault-v175-no-negative-balance-js">
+(()=>{'use strict';if(window.__mmhNoNegativeBalanceV175)return;window.__mmhNoNegativeBalanceV175=true;
+ const N=v=>{const n=Number(v);return Number.isFinite(n)?n:0};
+ const T=(en,zh)=>{try{return (window.getMMHVAULTLanguage?.()==='zh'||document.documentElement.lang.toLowerCase().startsWith('zh'))?zh:en}catch(_){return en}};
+ async function message(title,body){if(window.mmhEditDeleteUI?.message)return window.mmhEditDeleteUI.message(title,body);if(window.mmhVaultNoticeV930)return window.mmhVaultNoticeV930(`${title}: ${body}`);console.warn('[MMHVAULT]',title,body)}
+ async function accountBalance(name){const u=(await db.auth.getUser()).data.user;if(!u)throw Error(T('Please sign in first.','请先登录。'));const r=await db.rpc('mmh_personal_account_balance',{p_user_id:u.id,p_account_name:name,p_exclude_transaction_id:null,p_exclude_investment_id:null});if(r.error)throw r.error;return N(r.data)}
+ async function ensure(account,needed){account=String(account||'').trim();needed=N(needed);if(!account||needed<=0)return true;let available;try{available=await accountBalance(account)}catch(err){await message(T('Balance check unavailable','余额检查暂时不可用'),err?.message||T('Please try again.','请稍后再试。'));return false}if(needed>available+0.0000005){await message(T('Insufficient balance','余额不足'),T(`Account ${account} has ${available.toLocaleString(undefined,{maximumFractionDigits:6})} available, but this action needs ${needed.toLocaleString(undefined,{maximumFractionDigits:6})}.`,`账户 ${account} 当前可用 ${available.toLocaleString(undefined,{maximumFractionDigits:6})}，本次操作需要 ${needed.toLocaleString(undefined,{maximumFractionDigits:6})}。`));return false}return true}
+ document.addEventListener('submit',async e=>{const f=e.target;if(!(f instanceof HTMLFormElement)||f.dataset.mmhBalanceGuardBypass==='1')return;
+   if(f.id==='txForm'){
+     const account=document.getElementById('fromAccount')?.value||'';const needed=N(document.getElementById('fromAmount')?.value);
+     if(!account||needed<=0)return;e.preventDefault();e.stopImmediatePropagation();
+     if(await ensure(account,needed)){f.dataset.mmhBalanceGuardBypass='1';try{f.requestSubmit()}finally{setTimeout(()=>delete f.dataset.mmhBalanceGuardBypass,0)}}return;
+   }
+   if(f.id==='invForm'){
+     const side=String(document.getElementById('invSideV336')?.value||'BUY').toUpperCase();if(side!=='BUY')return;
+     const account=document.getElementById('invSource')?.value||'';const needed=N(document.getElementById('invAmount')?.value)+N(document.getElementById('invFee')?.value)+N(document.getElementById('invOther')?.value);
+     if(!account||needed<=0)return;e.preventDefault();e.stopImmediatePropagation();
+     if(await ensure(account,needed)){f.dataset.mmhBalanceGuardBypass='1';try{f.requestSubmit()}finally{setTimeout(()=>delete f.dataset.mmhBalanceGuardBypass,0)}}return;
+   }
+ },true);
+ window.mmhPersonalAccountBalanceV175=accountBalance;
+})();
+</script>
+
 </body>
 </html>
