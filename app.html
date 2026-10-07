@@ -21222,7 +21222,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 (()=>{'use strict';
   if(window.__MMHVAULT_BACKGROUND_PUSH_V123)return;window.__MMHVAULT_BACKGROUND_PUSH_V123=true;
   const VAPID_PUBLIC='BMzJw2oIcANv0iNApqQbdqg7_fgo7dMHbjRKQ9kBebUbGTYy1eR_y-pMShny17NpTxxg4lGYoNHbhofxJohVkDI';
-  let cached={state:'unknown',sub:null,at:0},preparedReg=null,preparePromise=null,verifiedKey='',reconcilePromise=null;
+  let cached={state:'unknown',sub:null,at:0},preparedReg=null,preparePromise=null,verifiedKey='',reconcilePromise=null,pushMutationTail=Promise.resolve();
   const language=()=>localStorage.getItem('mmhvault_language_v3363')||'en';
   const tr=(en,zh)=>language()==='zh'?zh:en;
   const owner=()=>typeof currentSessionUser!=='undefined'?(currentSessionUser?.id||''):'';
@@ -21244,6 +21244,14 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   function appKey(){const pad='='.repeat((4-VAPID_PUBLIC.length%4)%4),b64=(VAPID_PUBLIC+pad).replace(/-/g,'+').replace(/_/g,'/'),raw=atob(b64),out=new Uint8Array(raw.length);for(let i=0;i<raw.length;i++)out[i]=raw.charCodeAt(i);return out}
   function keysOf(sub){const j=sub?.toJSON?.()||{};return{p256dh:String(j?.keys?.p256dh||''),auth:String(j?.keys?.auth||'')}}
   const verificationKey=sub=>owner()&&sub?.endpoint?owner()+'|'+sub.endpoint:'';
+  async function withPushMutation(fn){
+    if(typeof fn!=='function')throw new TypeError('Push mutation callback required');
+    if(navigator.locks?.request){
+      return navigator.locks.request('mmhvault-push-subscription-v1211',{mode:'exclusive'},()=>fn());
+    }
+    const job=pushMutationTail.catch(()=>{}).then(()=>fn());
+    pushMutationTail=job.catch(()=>{});return job;
+  }
   async function pushRegistration(){
     if(!('serviceWorker'in navigator))return null;if(registrationScopeIsExpected(preparedReg)&&workerIsExpected(preparedReg?.active))return preparedReg;const regs=await navigator.serviceWorker.getRegistrations();const reg=regs.find(x=>registrationScopeIsExpected(x)&&workerIsExpected(x.active))||null;if(reg)preparedReg=reg;return reg;
   }
@@ -21269,12 +21277,13 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     if(!('serviceWorker'in navigator))return null;const base=appBaseURL(),regs=await navigator.serviceWorker.getRegistrations();
     return regs.find(reg=>{try{return new URL(reg.scope,location.href).href===base&&[reg.active,reg.waiting,reg.installing].filter(Boolean).some(workerIsExpected)}catch(_e){return false}})||null;
   }
-  async function disableServerEndpoint(endpoint){
+  async function disableServerEndpointCore(endpoint){
     const u=owner();if(!u||!endpoint)return false;
     const rpc=await db.rpc('mmh_push_subscription_disable',{p_endpoint:endpoint});if(!rpc?.error)return true;
     const stamp=new Date().toISOString(),fallback=await db.from('personal_push_subscriptions').update({enabled:false,updated_at:stamp,last_seen_at:stamp}).eq('user_id',u).eq('endpoint',endpoint);
     if(fallback?.error)throw rpc.error||fallback.error;return true;
   }
+  async function disableServerEndpoint(endpoint){return withPushMutation(()=>disableServerEndpointCore(endpoint))}
   async function retireOwnedLegacyRootPush(excludeEndpoint=''){
     const reg=await legacyRootPushRegistration();if(!reg)return{registration:false,subscription:false,owned:false,retired:false};
     const sub=await reg.pushManager.getSubscription();if(!sub)return{registration:true,subscription:false,owned:false,retired:false};if(excludeEndpoint&&sub.endpoint===excludeEndpoint)return{registration:true,subscription:true,owned:false,retired:false,leftUntouched:true};
@@ -21284,21 +21293,24 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     if(!unsubscribed)throw new Error(tr('The older Push subscription was disabled on the server but could not be removed from this browser yet. Reload MMHVAULT and run Device check again.','旧版 Push 订阅已在服务器关闭，但暂时无法从此浏览器移除。请刷新 MMHVAULT 后再次运行“设备检查”。'));
     return{registration:true,subscription:true,owned:true,retired:true};
   }
-  async function claim(sub){
+  async function claimCore(sub){
     const u=owner();if(!u||!sub)throw new Error(tr('Please sign in again.','请重新登录。'));const k=keysOf(sub);if(!k.p256dh||!k.auth)throw new Error(tr('Invalid push subscription.','推送订阅无效。'));
     await window.MMHConfigCloudSyncV122?.syncNow?.(false);
     const {data,error}=await db.rpc('mmh_push_subscription_claim',{p_endpoint:sub.endpoint,p_p256dh:k.p256dh,p_auth:k.auth,p_user_agent:navigator.userAgent||'',p_platform:navigator.userAgentData?.platform||navigator.platform||'',p_timezone:timezone()});if(error)throw error;if(data?.ok===false){const err=new Error(tr('This browser push identity needs to be refreshed. Tap Enable again after this message.','此浏览器的推送身份需要刷新。关闭此提示后，请再次点击开启。'));err.code=String(data?.code||'PUSH_CLAIM_FAILED');throw err}return true;
   }
+  async function claim(sub){return withPushMutation(()=>claimCore(sub))}
   async function serverSubscription(sub){
     const u=owner();if(!u||!sub)return{exists:false,enabled:false,keysMatch:false};const k=keysOf(sub);
     const {data,error}=await db.from('personal_push_subscriptions').select('id,enabled,p256dh,auth').eq('user_id',u).eq('endpoint',sub.endpoint).maybeSingle();if(error)throw error;
     if(!data)return{exists:false,enabled:false,keysMatch:false};return{exists:true,enabled:data.enabled===true,keysMatch:String(data.p256dh||'')===k.p256dh&&String(data.auth||'')===k.auth};
   }
   async function verifyOrClaim(sub,{allowDisabled=false}={}){
-    const server=await serverSubscription(sub);
-    if(server.exists&&server.enabled&&server.keysMatch)return true;
-    if(server.exists&&!server.enabled&&!allowDisabled){const err=new Error(tr('Background alerts are off for this browser identity. Tap Enable background alerts to turn them on again.','此浏览器身份的后台提醒已关闭。请点击“开启后台提醒”重新开启。'));err.code='PUSH_DISABLED';throw err}
-    await claim(sub);return true;
+    return withPushMutation(async()=>{
+      const server=await serverSubscription(sub);
+      if(server.exists&&server.enabled&&server.keysMatch)return true;
+      if(server.exists&&!server.enabled&&!allowDisabled){const err=new Error(tr('Background alerts are off for this browser identity. Tap Enable background alerts to turn them on again.','此浏览器身份的后台提醒已关闭。请点击“开启后台提醒”重新开启。'));err.code='PUSH_DISABLED';throw err}
+      await claimCore(sub);return true;
+    });
   }
   async function resetLocalSubscription(sub,notify=false){
     const removed=await unsubscribeCurrentLocal(sub);verifiedKey='';
@@ -21362,7 +21374,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     if(!data?.ok)throw new Error(data?.error||tr('Push test failed.','推送测试失败。'));return data;
   }
   async function diagnostics(){
-    const report={version:'1.12.10',browser:browserLabel(),platform:platformLabel(),secureContext:!!isSecureContext,serviceWorkerSupported:'serviceWorker'in navigator,pushManagerSupported:'PushManager'in window,notificationSupported:'Notification'in window,permission:('Notification'in window?Notification.permission:'unavailable'),ios:isIOS(),android:isAndroid(),standalone:standalone(),workerActive:false,legacyWorkerPresent:false,legacyRootPushPresent:false,legacyRootSubscriptionPresent:false,legacyRootOwnedByCurrentUser:false,legacyRootBinding:'not-checked',subscriptionPresent:false,serverBinding:'not-checked',keysMatch:false,state:'unknown',endpointHost:'',timezone:timezone(),signedIn:!!owner(),pushScope:expectedPushScopeURL()};
+    const report={version:'1.12.11',browser:browserLabel(),platform:platformLabel(),secureContext:!!isSecureContext,serviceWorkerSupported:'serviceWorker'in navigator,pushManagerSupported:'PushManager'in window,notificationSupported:'Notification'in window,permission:('Notification'in window?Notification.permission:'unavailable'),ios:isIOS(),android:isAndroid(),standalone:standalone(),workerActive:false,legacyWorkerPresent:false,legacyRootPushPresent:false,legacyRootSubscriptionPresent:false,legacyRootOwnedByCurrentUser:false,legacyRootBinding:'not-checked',subscriptionPresent:false,serverBinding:'not-checked',keysMatch:false,state:'unknown',endpointHost:'',timezone:timezone(),signedIn:!!owner(),pushScope:expectedPushScopeURL(),crossTabPushLock:!!navigator.locks?.request};
     if(!report.serviceWorkerSupported||!report.pushManagerSupported||!report.notificationSupported||!report.secureContext){report.state='unsupported';return report}
     if(report.ios&&!report.standalone){report.state='ios-install';return report}
     if(report.permission==='denied'){report.state='blocked'}
@@ -21398,7 +21410,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   }
   function refreshPermissionState(){cached.at=0;window.dispatchEvent(new CustomEvent('mmhvault:push-state'))}
   async function watchPermission(){try{if(!navigator.permissions?.query)return;const ps=await navigator.permissions.query({name:'notifications'});ps.onchange=refreshPermissionState}catch(_e){}}
-  window.MMHBackgroundPushV123={status,enable,disable,toggle,test,diagnostics,reconcile,permissionHelp,subscribedCached,version:'1.12.10'};window.MMHBackgroundPushV122=window.MMHBackgroundPushV123;
+  window.MMHBackgroundPushV123={status,enable,disable,toggle,test,diagnostics,reconcile,permissionHelp,subscribedCached,version:'1.12.11'};window.MMHBackgroundPushV122=window.MMHBackgroundPushV123;
   window.addEventListener('mmhvault:config-owner-changed',()=>{cached.at=0;if(owner())setTimeout(reconcile,600)},{passive:true});
   window.addEventListener('focus',refreshPermissionState,{passive:true});window.addEventListener('pageshow',refreshPermissionState,{passive:true});document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshPermissionState()},{passive:true});watchPermission();
   const prep=()=>setTimeout(()=>prepareWorker().catch(err=>console.warn('[MMHVAULT] push worker prepare skipped',err)),220);if(document.readyState==='complete')prep();else window.addEventListener('load',prep,{once:true,passive:true});
@@ -21597,6 +21609,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
         `${tr('Home Screen mode','主屏幕模式')}: ${d.ios?(d.standalone?yes:no):na}`,
         `${tr('Push Service Worker','Push Service Worker')}: ${d.workerActive?tr('Active (isolated scope)','已激活（独立作用域）'):tr('Not active','未激活')}`,
         `${tr('Dedicated Push scope','专用 Push 作用域')}: ${(()=>{try{return new URL(d.pushScope).pathname}catch(_){return d.pushScope||na}})()}`,
+        `${tr('Cross-tab Push lock','跨标签 Push 锁')}: ${d.crossTabPushLock?tr('Browser lock active','浏览器锁已启用'):tr('Same-tab fallback','单标签回退模式')}`,
         `${tr('Legacy sw.js registration','旧 sw.js 注册')}: ${d.legacyWorkerPresent?tr('Detected — left untouched','已检测到 — 保持不动'):no}`,
         `${tr('Older root-scope Push worker','旧根作用域 Push Worker')}: ${d.legacyRootPushPresent?tr('Detected — registration left untouched','已检测到 — 注册保持不动'):no}`,
         `${tr('Older root Push subscription','旧根作用域 Push 订阅')}: ${d.legacyRootSubscriptionPresent?tr('Present','存在'):no}`,
@@ -23520,6 +23533,7 @@ body.light #reports .report-mini-v115{background:#f3f8fb;border-color:#cfdee9}bo
 </script>
 <!-- MMHVAULT v1.12.9 · isolated Push migration: legacy sw.js stays untouched; current-account obsolete root Push subscriptions are retired only through user Push actions. -->
 <!-- MMHVAULT v1.12.10 · Push disable/recovery hardening: server disable must succeed before local unsubscribe; disabled server bindings stay off instead of being mislabeled as repair. -->
+<!-- MMHVAULT v1.12.11 · Push mutation serialization + Notification table least-privilege hardening; no financial calculation changes. -->
 
 
 
