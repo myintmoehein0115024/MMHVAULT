@@ -1,15 +1,17 @@
 {
-  "id": "./app.html",
+  "id": "./",
   "name": "MMHVAULT Personal Finance",
   "short_name": "MMHVAULT",
   "description": "Private personal finance, wealth tracking and financial alerts.",
-  "start_url": "./app.html",
+  "start_url": "./app.html?source=pwa",
   "scope": "./",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
   "background_color": "#06111f",
   "theme_color": "#06111f",
   "orientation": "any",
   "categories": ["finance", "productivity"],
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "./images/icon-192.png",
