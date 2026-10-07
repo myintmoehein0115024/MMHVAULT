@@ -21270,11 +21270,11 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     popup=$('mmhNotifyPopoverV560');
     if(!popup){popup=document.createElement('aside');popup.id='mmhNotifyPopoverV560';popup.setAttribute('role','dialog');popup.setAttribute('aria-label',tr('Notifications','通知'));document.body.append(popup)}
     if(popup.dataset.built!=='1'){
-      popup.innerHTML='<div class="np-head"><div class="np-title"><span class="np-title-icon">🔔</span><span><strong>'+tr('Notifications','通知')+'</strong><small>'+tr('Personal messages & announcements','个人通知与公告')+'</small></span></div><button class="np-refresh" type="button" id="mmhNotifyRefreshV560">'+tr('Refresh','刷新')+'</button></div><div class="np-filter-v900"><button type="button" data-notify-mode="all" class="active">'+tr('All','全部')+' <span id="mmhNotifyAllCountV900">0</span></button><button type="button" data-notify-mode="unread">'+tr('Unread','未读')+' <span id="mmhNotifyUnreadCountV900">0</span></button><button type="button" id="mmhNotifyMarkAllV900" class="mark-all">'+tr('Mark all read','全部已读')+'</button></div><div class="np-list" id="mmhNotifyListV560"></div><div class="np-foot">'+tr('Open a message to view details.','点击消息查看完整内容。')+'</div>';
+      popup.innerHTML='<div class="np-head"><div class="np-title"><span class="np-title-icon">🔔</span><span><strong>'+tr('Notifications','通知')+'</strong><small>'+tr('Financial alerts, personal messages & announcements','财务提醒、个人通知与公告')+'</small></span></div><button class="np-refresh" type="button" id="mmhNotifyRefreshV560">'+tr('Refresh','刷新')+'</button></div><div class="np-filter-v900"><button type="button" data-notify-mode="all" class="active">'+tr('All','全部')+' <span id="mmhNotifyAllCountV900">0</span></button><button type="button" data-notify-mode="unread">'+tr('Unread','未读')+' <span id="mmhNotifyUnreadCountV900">0</span></button><button type="button" id="mmhNotifyMarkAllV900" class="mark-all">'+tr('Mark all read','全部已读')+'</button></div><div class="np-list" id="mmhNotifyListV560"></div><div class="np-foot">'+tr('Open a message to view details.','点击消息查看完整内容。')+'</div>';
       popup.dataset.built='1';
       $('mmhNotifyRefreshV560').onclick=e=>{e.stopPropagation();load(true)};
       popup.querySelectorAll('[data-notify-mode]').forEach(btn=>btn.onclick=e=>{e.stopPropagation();mode=btn.dataset.notifyMode;popup.querySelectorAll('[data-notify-mode]').forEach(x=>x.classList.toggle('active',x===btn));render()});
-      $('mmhNotifyMarkAllV900').onclick=async e=>{e.stopPropagation();const btn=e.currentTarget,targetOwner=currentOwner();if(btn.disabled||!targetOwner||targetOwner!==owner)return;btn.disabled=true;try{const {error}=await db.rpc('mmh_feedback_extras',{p_action:'mark_all_read',p_data:{}});if(error)throw error;if(currentOwner()!==targetOwner||owner!==targetOwner)return;rows.forEach(r=>r.is_read=true);updateBadge();render()}catch(err){if(currentOwner()===targetOwner)console.warn('[MMHVAULT] mark all notifications failed',err)}finally{btn.disabled=false}};
+      $('mmhNotifyMarkAllV900').onclick=async e=>{e.stopPropagation();const btn=e.currentTarget,targetOwner=currentOwner();if(btn.disabled||!targetOwner||targetOwner!==owner)return;btn.disabled=true;try{const [{error:noticeError},{error:alertError}]=await Promise.all([db.rpc('mmh_feedback_extras',{p_action:'mark_all_read',p_data:{}}),db.from('personal_financial_alerts').update({is_read:true,updated_at:new Date().toISOString()}).eq('user_id',targetOwner).eq('is_read',false)]);if(noticeError)throw noticeError;if(alertError)throw alertError;if(currentOwner()!==targetOwner||owner!==targetOwner)return;rows.forEach(r=>r.is_read=true);updateBadge();render()}catch(err){if(currentOwner()===targetOwner)console.warn('[MMHVAULT] mark all notifications failed',err)}finally{btn.disabled=false}};
     }
     list=$('mmhNotifyListV560');
     return true;
@@ -21286,6 +21286,19 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     try{const data=JSON.parse(source.slice(at+SUPPORT_REPLY_PREFIX_V1519.length).trim());const messages=Array.isArray(data?.messages)?data.messages:[];const last=messages.filter(Boolean).at(-1);if(!last)return null;const text=String(last.text||'').trim(),files=Array.isArray(last.files)?last.files:[];return{text,files}}catch(_){return null}
   }
   function cleanNotice(row){
+    if(row?._source==='financial'){
+      const m=row?.meta&&typeof row.meta==='object'?row.meta:{};
+      const money=v=>'$'+Number(v||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+      if(row.kind==='category_vs_last_month'){
+        const cat=String(m.category||tr('Category','分类'));
+        const pct=Number(m.change_pct||0);
+        return{title:tr(`${cat} spending is above last month`,`${cat} 开销已超过上月`),body:tr(`${cat} is ${money(m.current_usd)} this month vs ${money(m.previous_usd)} last month (${pct>=0?'+':''}${pct.toFixed(1)}%). Internal transfers, Data Adjustment, loans and linked investment cash flow are excluded.`,`${cat} 本月为 ${money(m.current_usd)}，上月为 ${money(m.previous_usd)}（${pct>=0?'+':''}${pct.toFixed(1)}%）。内部 Transfer、Data Adjustment、Loan 和 linked investment cash flow 均不计入。`)};
+      }
+      if(row.kind==='total_spending_vs_last_month'){
+        const pct=Number(m.change_pct||0);
+        return{title:tr('Monthly spending is above last month','本月开销已超过上月'),body:tr(`Ordinary spending is ${money(m.current_usd)} this month vs ${money(m.previous_usd)} last month (${pct>=0?'+':''}${pct.toFixed(1)}%).`,`本月普通开销为 ${money(m.current_usd)}，上月为 ${money(m.previous_usd)}（${pct>=0?'+':''}${pct.toFixed(1)}%）。`)};
+      }
+    }
     const rawTitle=String(row?.title||''),rawBody=String(row?.body||''),parsed=supportNoticePayload(rawBody);
     const support=/\[SUPPORT\]|customer\s*(service|support)|live\s*support|support\s*(agent|reply)/i.test(rawTitle+' '+rawBody)||!!parsed;
     if(!support)return{title:rawTitle||tr('Notification','通知'),body:rawBody};
@@ -21313,13 +21326,17 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   }
   async function markRead(row,force=false){
     if(row.is_read&&!force)return;const targetOwner=currentOwner();if(!targetOwner||targetOwner!==owner)return;
-    try{const {error}=await db.rpc('mmh_feedback_extras',{p_action:'read',p_data:{id:row.id}});if(error)throw error;if(currentOwner()!==targetOwner||owner!==targetOwner)return;row.is_read=true;updateBadge();if(isOpen())render()}
-    catch(err){if(currentOwner()===targetOwner)console.warn('[MMHVAULT] notification read failed',err)}
+    try{
+      const result=row?._source==='financial'
+        ?await db.from('personal_financial_alerts').update({is_read:true,updated_at:new Date().toISOString()}).eq('id',row.id).eq('user_id',targetOwner)
+        :await db.rpc('mmh_feedback_extras',{p_action:'read',p_data:{id:row.id}});
+      if(result?.error)throw result.error;if(currentOwner()!==targetOwner||owner!==targetOwner)return;row.is_read=true;updateBadge();if(isOpen())render()
+    }catch(err){if(currentOwner()===targetOwner)console.warn('[MMHVAULT] notification read failed',err)}
   }
   async function openDetail(row){
     close();
     if(!row.is_read){row.is_read=true;updateBadge();markRead(row,true).catch(()=>{});}
-    const kind=row.audience==='all'?tr('Announcement','公告'):tr('Personal notification','个人通知');
+    const kind=row?._source==='financial'?tr('Financial alert','财务提醒'):(row.audience==='all'?tr('Announcement','公告'):tr('Personal notification','个人通知'));
     const clean=cleanNotice(row);
     const target=window.mmhNotificationResolveV145?.(row)||null;
     const actionHint=target?'<div class="mmh-notify-action-hint-v145"><span>↗</span><div><strong>'+esc(target.label||tr('Open related page','打开相关页面'))+'</strong><small>'+esc(target.hint||tr('Continue from this notification.','从这条通知继续处理。'))+'</small></div></div>':'';
@@ -21333,7 +21350,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   function render(){
     if(!list)return;updateBadge();list.replaceChildren();const visible=mode==='unread'?rows.filter(r=>!r.is_read):rows;
     if(!visible.length){const e=document.createElement('div');e.className='np-empty';e.textContent=mode==='unread'?tr('No unread notifications.','暂无未读通知。'):tr('No notifications yet.','暂无通知。');list.append(e);return}
-    visible.forEach(row=>{const clean=cleanNotice(row),b=document.createElement('button');b.type='button';b.className='np-item'+(row.is_read?'':' unread');const top=document.createElement('div');top.className='np-row';const h=document.createElement('h4');h.textContent=clean.title;const kind=document.createElement('span');kind.className='np-kind';kind.textContent=row.audience==='all'?tr('Announcement','公告'):tr('Personal','个人');top.append(h,kind);const body=document.createElement('p');body.textContent=clean.body;const meta=document.createElement('div');meta.className='np-meta';const date=document.createElement('span');date.textContent=formatDate(row.created_at);const state=document.createElement('span');state.className=row.is_read?'np-read':'';state.textContent=row.is_read?tr('Read','已读'):tr('Unread','未读');meta.append(date,state);b.append(top,body,meta);b.onclick=e=>{e.stopPropagation();openDetail(row)};list.append(b)});
+    visible.forEach(row=>{const clean=cleanNotice(row),b=document.createElement('button');b.type='button';b.className='np-item'+(row.is_read?'':' unread');const top=document.createElement('div');top.className='np-row';const h=document.createElement('h4');h.textContent=clean.title;const kind=document.createElement('span');kind.className='np-kind';kind.textContent=row?._source==='financial'?tr('Financial','财务'):(row.audience==='all'?tr('Announcement','公告'):tr('Personal','个人'));top.append(h,kind);const body=document.createElement('p');body.textContent=clean.body;const meta=document.createElement('div');meta.className='np-meta';const date=document.createElement('span');date.textContent=formatDate(row.created_at);const state=document.createElement('span');state.className=row.is_read?'np-read':'';state.textContent=row.is_read?tr('Read','已读'):tr('Unread','未读');meta.append(date,state);b.append(top,body,meta);b.onclick=e=>{e.stopPropagation();openDetail(row)};list.append(b)});
   }
   async function load(showLoading=false){
     const targetOwner=currentOwner();
@@ -21342,7 +21359,16 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     if(owner!==targetOwner){owner=targetOwner;rows=[];mode='all';queuedLoad=false;queuedShowLoading=false;updateBadge();if(isOpen())render()}
     if(loading){queuedLoad=true;queuedShowLoading=queuedShowLoading||showLoading;return}
     const req=++request;loading=true;if(showLoading&&list&&isOpen())list.innerHTML='<div class="np-empty">'+tr('Loading…','加载中…')+'</div>';
-    try{const {data,error}=await db.rpc('mmh_feedback_extras',{p_action:'list',p_data:{offset:0}});if(error)throw error;if(req!==request||currentOwner()!==targetOwner)return;rows=Array.isArray(data)?data:[];lastLoaded=Date.now();updateBadge();if(isOpen())render()}
+    try{
+      const [noticeResult,alertResult]=await Promise.all([
+        db.rpc('mmh_feedback_extras',{p_action:'list',p_data:{offset:0}}),
+        db.from('personal_financial_alerts').select('id,user_id,alert_key,kind,title,body,severity,target_page,meta,is_read,created_at,updated_at').eq('user_id',targetOwner).order('created_at',{ascending:false}).limit(30)
+      ]);
+      if(noticeResult?.error)throw noticeResult.error;if(alertResult?.error)throw alertResult.error;if(req!==request||currentOwner()!==targetOwner)return;
+      const notices=(Array.isArray(noticeResult?.data)?noticeResult.data:[]).map(x=>({...x,_source:'notice'}));
+      const alerts=(Array.isArray(alertResult?.data)?alertResult.data:[]).map(x=>({...x,audience:'personal',_source:'financial'}));
+      rows=[...notices,...alerts].sort((a,b)=>new Date(b.created_at||0)-new Date(a.created_at||0)).slice(0,50);lastLoaded=Date.now();updateBadge();if(isOpen())render()
+    }
     catch(err){if(req!==request||currentOwner()!==targetOwner)return;console.warn('[MMHVAULT] notification load failed',err);if(list&&isOpen())list.innerHTML='<div class="np-empty">'+tr('Unable to load notifications.','通知加载失败。')+'</div>'}
     finally{
       if(req===request&&currentOwner()===targetOwner){
@@ -21360,6 +21386,71 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   function resetForOwner(){request++;loading=false;queuedLoad=false;queuedShowLoading=false;owner=currentOwner();rows=[];mode='all';close();if(ensure()){updateBadge();if(owner)load(false)}schedulePoll(120000)}
   function init(){bind();window.addEventListener('mmhvault:notifications-changed',()=>load(false));window.addEventListener('mmhvault:config-owner-changed',resetForOwner);setTimeout(bind,300);setTimeout(bind,900);setTimeout(bind,1600);schedulePoll(120000);document.addEventListener('visibilitychange',()=>{if(document.hidden)stopPoll();else{if(currentOwner()&&!loading&&Date.now()-lastLoaded>120000)load(false);schedulePoll(120000)}},{passive:true});window.addEventListener('pagehide',stopPoll,{passive:true})}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+})();
+</script>
+<script id="mmhvault-financial-alerts-v120">
+(()=>{'use strict';
+  if(window.__MMHVAULT_FINANCIAL_ALERTS_V120)return;window.__MMHVAULT_FINANCIAL_ALERTS_V120=true;
+  let running=false,pending=false,lastFingerprint='';
+  const tr=(en,zh)=>(localStorage.getItem('mmhvault_language_v3363')||'en')==='zh'?zh:en;
+  const clean=v=>String(v??'').trim();
+  const monthKey=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+  const monthPair=()=>{const now=new Date(),cur=monthKey(now),p=new Date(now.getFullYear(),now.getMonth()-1,1);return{cur,prev:monthKey(p)}};
+  const uidNow=()=>typeof currentSessionUser!=='undefined'?(currentSessionUser?.id||''):'';
+  function ordinaryExpense(t){
+    if(!t||t.type!=='Expense'||t.category==='Investment')return false;
+    if(typeof isLinkedInvestmentTx==='function'&&isLinkedInvestmentTx(t))return false;
+    const g=typeof inferTxGroup==='function'?inferTxGroup(t):String(t.transaction_group||'Expense');
+    return g==='Expense';
+  }
+  function amountUSD(t){
+    if(typeof mmhvaultTxExpenseUSD==='function')return Number(mmhvaultTxExpenseUSD(t)||0);
+    return 0;
+  }
+  function buildCandidates(){
+    const {cur,prev}=monthPair(),rows=Array.isArray(window.transactions)?window.transactions:[];
+    const curCats=new Map(),prevCats=new Map();let curTotal=0,prevTotal=0;
+    for(const t of rows){
+      if(!ordinaryExpense(t))continue;const mk=clean(t.tx_date).slice(0,7);if(mk!==cur&&mk!==prev)continue;
+      const usd=amountUSD(t);if(!(usd>0))continue;const cat=clean(t.category)||'Other';
+      if(mk===cur){curTotal+=usd;curCats.set(cat,(curCats.get(cat)||0)+usd)}
+      else{prevTotal+=usd;prevCats.set(cat,(prevCats.get(cat)||0)+usd)}
+    }
+    const out=[];
+    if(prevTotal>0&&curTotal>prevTotal+0.005){const pct=(curTotal-prevTotal)/prevTotal*100;out.push({alert_key:`momo:${cur}:total`,kind:'total_spending_vs_last_month',title:'Monthly spending is above last month',body:'Ordinary spending exceeded last month.',severity:'warning',target_page:'cashflow-analyze',meta:{month:cur,previous_month:prev,current_usd:curTotal,previous_usd:prevTotal,change_pct:pct,rule:'current_month_gt_previous_month'}})}
+    for(const [cat,current] of curCats){const previous=prevCats.get(cat)||0;if(previous<=0||current<=previous+0.005)continue;const pct=(current-previous)/previous*100;out.push({alert_key:`momo:${cur}:category:${cat.toLocaleLowerCase()}`,kind:'category_vs_last_month',title:`${cat} spending is above last month`,body:'Category spending exceeded last month.',severity:'warning',target_page:'cashflow-analyze',meta:{category:cat,month:cur,previous_month:prev,current_usd:current,previous_usd:previous,change_pct:pct,rule:'category_current_month_gt_previous_month'}})}
+    return out;
+  }
+  function browserNotice(a){
+    if(typeof Notification==='undefined'||Notification.permission!=='granted')return;
+    const m=a.meta||{},money=v=>'$'+Number(v||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+    const title=a.kind==='category_vs_last_month'?tr(`${m.category} spending alert`,`${m.category} 开销提醒`):tr('Monthly spending alert','本月开销提醒');
+    const body=a.kind==='category_vs_last_month'?tr(`${money(m.current_usd)} this month vs ${money(m.previous_usd)} last month.`, `本月 ${money(m.current_usd)}，上月 ${money(m.previous_usd)}。`):tr(`${money(m.current_usd)} this month vs ${money(m.previous_usd)} last month.`,`本月 ${money(m.current_usd)}，上月 ${money(m.previous_usd)}。`);
+    try{new Notification(title,{body,tag:a.alert_key,renotify:false})}catch(_e){}
+  }
+  async function run(){
+    if(running){pending=true;return}const uid=uidNow();if(!uid||!Array.isArray(window.transactions))return;
+    const candidates=buildCandidates(),fingerprint=JSON.stringify(candidates.map(x=>[x.alert_key,Number(x.meta.current_usd).toFixed(2),Number(x.meta.previous_usd).toFixed(2)]));
+    if(fingerprint===lastFingerprint)return;lastFingerprint=fingerprint;running=true;
+    try{
+      const {cur}=monthPair();
+      const {data:existing,error:readError}=await db.from('personal_financial_alerts').select('alert_key').eq('user_id',uid).like('alert_key',`momo:${cur}:%`);
+      if(readError)throw readError;const existed=new Set((existing||[]).map(x=>x.alert_key));
+      for(const a of candidates){
+        if(uidNow()!==uid)return;
+        const row={...a,user_id:uid,updated_at:new Date().toISOString()};
+        const {error}=await db.from('personal_financial_alerts').upsert(row,{onConflict:'user_id,alert_key'});if(error)throw error;
+        if(!existed.has(a.alert_key))browserNotice(a);
+      }
+      window.dispatchEvent(new CustomEvent('mmhvault:notifications-changed',{detail:{source:'financial-alerts'}}));
+    }catch(err){console.warn('[MMHVAULT] financial alert evaluation failed',err)}
+    finally{running=false;if(pending){pending=false;queueMicrotask(run)}}
+  }
+  let raf=0;function schedule(){if(raf)return;raf=requestAnimationFrame(()=>{raf=0;run()})}
+  ['mmhvault:data-loaded','mmhvault:data-change','mmhvault:cache-restored','mmhvault:sync-complete'].forEach(n=>window.addEventListener(n,schedule,{passive:true}));
+  window.addEventListener('mmhvault:config-owner-changed',()=>{lastFingerprint='';schedule()},{passive:true});
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',schedule,{once:true});else schedule();
+  window.MMHFinancialAlertsV120={evaluate:run,schedule,version:'1.12.0'};
 })();
 </script>
 \n<style id="mmhvault-dashboard-unified-v580">
