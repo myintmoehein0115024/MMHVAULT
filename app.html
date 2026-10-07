@@ -9,6 +9,11 @@
 
 <meta content="#06111f" name="theme-color"/>
 <link rel="manifest" href="./mmh-manifest.webmanifest"/>
+<meta name="application-name" content="MMHVAULT"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-title" content="MMHVAULT"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 <title>MMHVAULT · Personal Finance &amp; Wealth Management</title>
 <meta name="mmhvault-release" content="1.3.0-uiux-pass1"/>
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
@@ -21213,12 +21218,13 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 })();
 </script>
 
-<script id="mmhvault-background-push-v122">
+<script id="mmhvault-background-push-v123">
 (()=>{'use strict';
-  if(window.__MMHVAULT_BACKGROUND_PUSH_V122)return;window.__MMHVAULT_BACKGROUND_PUSH_V122=true;
+  if(window.__MMHVAULT_BACKGROUND_PUSH_V123)return;window.__MMHVAULT_BACKGROUND_PUSH_V123=true;
   const VAPID_PUBLIC='BMzJw2oIcANv0iNApqQbdqg7_fgo7dMHbjRKQ9kBebUbGTYy1eR_y-pMShny17NpTxxg4lGYoNHbhofxJohVkDI';
   let cached={state:'unknown',sub:null,at:0};
-  const tr=(en,zh)=>(localStorage.getItem('mmhvault_language_v3363')||'en')==='zh'?zh:en;
+  const language=()=>localStorage.getItem('mmhvault_language_v3363')||'en';
+  const tr=(en,zh)=>language()==='zh'?zh:en;
   const owner=()=>typeof currentSessionUser!=='undefined'?(currentSessionUser?.id||''):'';
   const timezone=()=>{try{return Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC'}catch(_){return'UTC'}};
   const isIOS=()=>/iPad|iPhone|iPod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
@@ -21256,8 +21262,15 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     try{await sub.unsubscribe()}catch(_e){}cached={state:Notification.permission==='granted'?'granted':'permission',sub:null,at:Date.now()};window.dispatchEvent(new CustomEvent('mmhvault:push-state',{detail:{state:cached.state}}));if(!options.silent)window.MMHUI?.toast?.(tr('Background alerts are off on this device.','此设备的后台提醒已关闭。'),{title:tr('Notifications','通知'),type:'info'});return true;
   }
   async function toggle(){const st=await status(true);if(st.state==='ios-install'){await explainIOS();return false}if(st.state==='subscribed')return disable();return enable()}
+  async function test(){
+    const st=await status(true);if(st.state!=='subscribed'||!st.sub)throw new Error(tr('Enable background alerts on this device first.','请先在此设备开启后台提醒。'));
+    const {data,error}=await db.functions.invoke('mmh-push-test',{body:{endpoint:st.sub.endpoint,language:language()}});
+    if(error){let message=error?.message||tr('Push test failed.','推送测试失败。');try{const ctx=error?.context;const body=ctx?.clone?await ctx.clone().json():null;if(body?.error)message=body.error}catch(_e){}throw new Error(message)}
+    if(!data?.ok)throw new Error(data?.error||tr('Push test failed.','推送测试失败。'));return data;
+  }
+  const subscribedCached=()=>cached.state==='subscribed';
   async function reconcile(){if(!owner()||!supported()||(isIOS()&&!standalone())||Notification.permission!=='granted')return;try{const sub=await currentSubscription();if(sub){await claim(sub);cached={state:'subscribed',sub,at:Date.now()};window.dispatchEvent(new CustomEvent('mmhvault:push-state',{detail:{state:'subscribed'}}))}}catch(err){console.warn('[MMHVAULT] push subscription reconcile failed',err)}}
-  window.MMHBackgroundPushV122={status,enable,disable,toggle,reconcile,version:'1.12.2'};
+  window.MMHBackgroundPushV123={status,enable,disable,toggle,test,reconcile,subscribedCached,version:'1.12.3'};window.MMHBackgroundPushV122=window.MMHBackgroundPushV123;
   window.addEventListener('mmhvault:config-owner-changed',()=>{cached.at=0;if(owner())setTimeout(reconcile,600)},{passive:true});
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(reconcile,900),{once:true});else setTimeout(reconcile,900);
 })();
@@ -21379,12 +21392,14 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   #mmhNotifyPopoverV560 .np-list{min-height:0!important;overflow:auto!important;-webkit-overflow-scrolling:touch!important}
   #mmhNotifyPopoverV560 .np-head{padding-top:max(13px,env(safe-area-inset-top,0px))!important}
   #mmhNotifyPopoverV560 .np-foot{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:8px!important;text-align:left!important}
+  #mmhNotifyPopoverV560 .np-system-actions-v123{display:flex!important;align-items:center!important;justify-content:flex-end!important;gap:8px!important;flex-wrap:wrap!important;min-width:0!important}
   #mmhNotifyPopoverV560 .np-system-v121{min-height:44px!important;flex:0 0 auto!important}
   #mmhNotifyPopoverV560 .np-item{min-height:58px!important}
 }
 @media(max-width:560px){
   #mmhNotifyPopoverV560{left:7px!important;right:7px!important;bottom:calc(7px + env(safe-area-inset-bottom,0px))!important;max-height:82dvh!important}
   #mmhNotifyPopoverV560 .np-foot{align-items:stretch!important;flex-direction:column!important}
+  #mmhNotifyPopoverV560 .np-system-actions-v123{width:100%!important;display:grid!important;grid-template-columns:1fr!important}
   #mmhNotifyPopoverV560 .np-system-v121{width:100%!important}
 }
 </style>
@@ -21400,7 +21415,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   const currentOwner=()=>typeof currentSessionUser!=='undefined'?(currentSessionUser?.id||''):'';
   async function syncSystemButton(){
     const b=$('mmhNotifySystemV121');if(!b)return;
-    const ctl=window.MMHBackgroundPushV122;
+    const ctl=window.MMHBackgroundPushV123||window.MMHBackgroundPushV122;
     if(!ctl){b.hidden=false;b.disabled=true;b.dataset.state='loading';b.textContent=tr('Preparing alerts…','正在准备提醒…');return}
     try{
       const st=await ctl.status();b.hidden=false;b.disabled=false;b.dataset.state=st.state||'off';
@@ -21410,14 +21425,21 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       else if(st.state==='unsupported'){b.disabled=true;b.textContent=tr('Background alerts unavailable','此设备不支持后台提醒')}
       else if(st.state==='granted')b.textContent=tr('Enable background push','开启后台推送');
       else b.textContent=tr('Enable background alerts','开启后台提醒');
+      const t=$('mmhNotifyPushTestV123');if(t){t.hidden=false;t.disabled=st.state!=='subscribed';t.textContent=tr('Test push','测试推送')}
     }catch(err){console.warn('[MMHVAULT] push status failed',err);b.disabled=false;b.textContent=tr('Enable background alerts','开启后台提醒')}
   }
   async function requestSystemPermission(e){
     e?.stopPropagation?.();
-    const ctl=window.MMHBackgroundPushV122;if(!ctl)return;
+    const ctl=window.MMHBackgroundPushV123||window.MMHBackgroundPushV122;if(!ctl)return;
     const b=$('mmhNotifySystemV121');if(b)b.disabled=true;
     try{await ctl.toggle();}
     catch(err){console.warn('[MMHVAULT] background push toggle failed',err);window.MMHUI?.message?.(err?.message||tr('Unable to update background alerts.','无法更新后台提醒。'),tr('Notifications','通知'),{type:'error'});}
+    finally{await syncSystemButton();}
+  }
+  async function requestPushTest(e){
+    e?.stopPropagation?.();const ctl=window.MMHBackgroundPushV123||window.MMHBackgroundPushV122;if(!ctl)return;const b=$('mmhNotifyPushTestV123');if(b)b.disabled=true;
+    try{const result=await ctl.test();window.MMHUI?.toast?.(tr('Test push sent. It should arrive on this device shortly.','测试推送已发送，此设备应很快收到通知。'),{title:tr('Background alerts','后台提醒'),type:'success'});return result}
+    catch(err){console.warn('[MMHVAULT] push test failed',err);window.MMHUI?.message?.(err?.message||tr('Unable to send a test push.','无法发送测试推送。'),tr('Push test','推送测试'),{type:'error'});}
     finally{await syncSystemButton();}
   }
   function ensure(){
@@ -21426,12 +21448,12 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     popup=$('mmhNotifyPopoverV560');
     if(!popup){popup=document.createElement('aside');popup.id='mmhNotifyPopoverV560';popup.setAttribute('role','dialog');popup.setAttribute('aria-label',tr('Notifications','通知'));document.body.append(popup)}
     if(popup.dataset.built!=='1'){
-      popup.innerHTML='<div class="np-head"><div class="np-title"><span class="np-title-icon">🔔</span><span><strong>'+tr('Notifications','通知')+'</strong><small>'+tr('Financial alerts, personal messages & announcements','财务提醒、个人通知与公告')+'</small></span></div><button class="np-refresh" type="button" id="mmhNotifyRefreshV560">'+tr('Refresh','刷新')+'</button></div><div class="np-filter-v900"><button type="button" data-notify-mode="all" class="active">'+tr('All','全部')+' <span id="mmhNotifyAllCountV900">0</span></button><button type="button" data-notify-mode="unread">'+tr('Unread','未读')+' <span id="mmhNotifyUnreadCountV900">0</span></button><button type="button" id="mmhNotifyMarkAllV900" class="mark-all">'+tr('Mark all read','全部已读')+'</button></div><div class="np-list" id="mmhNotifyListV560"></div><div class="np-foot"><span>'+tr('Open a message to view details.','点击消息查看完整内容。')+'</span><button type="button" id="mmhNotifySystemV121" class="np-system-v121">'+tr('Enable system alerts','开启系统提醒')+'</button></div>';
+      popup.innerHTML='<div class="np-head"><div class="np-title"><span class="np-title-icon">🔔</span><span><strong>'+tr('Notifications','通知')+'</strong><small>'+tr('Financial alerts, personal messages & announcements','财务提醒、个人通知与公告')+'</small></span></div><button class="np-refresh" type="button" id="mmhNotifyRefreshV560">'+tr('Refresh','刷新')+'</button></div><div class="np-filter-v900"><button type="button" data-notify-mode="all" class="active">'+tr('All','全部')+' <span id="mmhNotifyAllCountV900">0</span></button><button type="button" data-notify-mode="unread">'+tr('Unread','未读')+' <span id="mmhNotifyUnreadCountV900">0</span></button><button type="button" id="mmhNotifyMarkAllV900" class="mark-all">'+tr('Mark all read','全部已读')+'</button></div><div class="np-list" id="mmhNotifyListV560"></div><div class="np-foot"><span>'+tr('Open a message to view details.','点击消息查看完整内容。')+'</span><div class="np-system-actions-v123"><button type="button" id="mmhNotifyPushTestV123" class="np-system-v121" disabled>'+tr('Test push','测试推送')+'</button><button type="button" id="mmhNotifySystemV121" class="np-system-v121">'+tr('Enable system alerts','开启系统提醒')+'</button></div></div>';
       popup.dataset.built='1';
       $('mmhNotifyRefreshV560').onclick=e=>{e.stopPropagation();load(true)};
       popup.querySelectorAll('[data-notify-mode]').forEach(btn=>btn.onclick=e=>{e.stopPropagation();mode=btn.dataset.notifyMode;popup.querySelectorAll('[data-notify-mode]').forEach(x=>x.classList.toggle('active',x===btn));render()});
       $('mmhNotifyMarkAllV900').onclick=async e=>{e.stopPropagation();const btn=e.currentTarget,targetOwner=currentOwner();if(btn.disabled||!targetOwner||targetOwner!==owner)return;btn.disabled=true;try{const [{error:noticeError},{error:alertError}]=await Promise.all([db.rpc('mmh_feedback_extras',{p_action:'mark_all_read',p_data:{}}),db.from('personal_financial_alerts').update({is_read:true,updated_at:new Date().toISOString()}).eq('user_id',targetOwner).eq('is_read',false)]);if(noticeError)throw noticeError;if(alertError)throw alertError;if(currentOwner()!==targetOwner||owner!==targetOwner)return;rows.forEach(r=>r.is_read=true);updateBadge();render()}catch(err){if(currentOwner()===targetOwner)console.warn('[MMHVAULT] mark all notifications failed',err)}finally{btn.disabled=false}};
-      $('mmhNotifySystemV121').onclick=requestSystemPermission;
+      $('mmhNotifySystemV121').onclick=requestSystemPermission;$('mmhNotifyPushTestV123').onclick=requestPushTest;
     }
     list=$('mmhNotifyListV560');syncSystemButton();
     return true;
@@ -21634,7 +21656,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     if(!budget)return null;const currency=String(budget.currency||'THB').toUpperCase(),unit=perUsd(currency),limit=num(budget.monthly_amount);if(!(unit>0&&limit>0))return null;const spent=d.curTotal*unit,usage=spent/limit*100;if(usage<80)return null;return{month:d.cur,currency,spent,budget:limit,usage,threshold:usage>=100?100:80};
   }
   function browserNotice(a){
-    if(window.MMHBackgroundPushV122)return;
+    if(window.MMHBackgroundPushV123?.subscribedCached?.()||window.MMHBackgroundPushV122?.subscribedCached?.())return;
     if(typeof Notification==='undefined'||Notification.permission!=='granted')return;const m=a.meta||{},money=v=>'$'+num(v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}),marks={USD:'$',USDT:'$',THB:'฿',MMK:'K',CNY:'￥',RMB:'￥'},moneyCode=(v,c)=>(marks[String(c||'USD').toUpperCase()]||String(c||'USD')+' ')+num(v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});let title='',body='';
     if(a.kind==='category_vs_last_month'){title=tr(`${m.category} spending alert`,`${m.category} 开销提醒`);body=tr(`${money(m.current_usd)} this month vs ${money(m.previous_usd)} last month.`,`本月 ${money(m.current_usd)}，上月 ${money(m.previous_usd)}。`)}
     else if(a.kind==='total_spending_vs_last_month'){title=tr('Monthly spending alert','本月开销提醒');body=tr(`${money(m.current_usd)} this month vs ${money(m.previous_usd)} last month.`,`本月 ${money(m.current_usd)}，上月 ${money(m.previous_usd)}。`)}
@@ -23248,10 +23270,11 @@ body.light #reports .report-mini-v115{background:#f3f8fb;border-color:#cfdee9}bo
 
 <script id="mmhvault-push-deeplink-v122">
 (()=>{'use strict';
-  const params=new URLSearchParams(location.search),alertId=params.get('mmh_push'),target=params.get('target');if(!alertId&&!target)return;let done=false;
+  const params=new URLSearchParams(location.search),alertId=params.get('mmh_push'),target=params.get('target'),pushTest=params.get('mmh_push_test');if(!alertId&&!target&&!pushTest)return;let done=false;
   async function open(){if(done||!currentSessionUser?.id)return;done=true;try{if(alertId)await db.from('personal_financial_alerts').update({is_read:true,updated_at:new Date().toISOString()}).eq('id',alertId).eq('user_id',currentSessionUser.id)}catch(_e){}
+    if(pushTest)window.MMHUI?.toast?.((localStorage.getItem('mmhvault_language_v3363')||'en')==='zh'?'后台推送测试已成功打开 MMHVAULT。':'Background push test opened MMHVAULT successfully.',{title:(localStorage.getItem('mmhvault_language_v3363')||'en')==='zh'?'后台提醒':'Background alerts',type:'success'});
     if(target&&document.getElementById(target)){try{window.mmhNotificationOpenTargetV145?.({page:target})||window.setPage?.(target)}catch(_e){}}
-    try{const u=new URL(location.href);u.searchParams.delete('mmh_push');u.searchParams.delete('target');history.replaceState(history.state,'',u.pathname+u.search+u.hash)}catch(_e){}
+    try{const u=new URL(location.href);u.searchParams.delete('mmh_push');u.searchParams.delete('target');u.searchParams.delete('mmh_push_test');history.replaceState(history.state,'',u.pathname+u.search+u.hash)}catch(_e){}
     window.dispatchEvent(new CustomEvent('mmhvault:notifications-changed',{detail:{source:'push-deeplink'}}));
   }
   window.addEventListener('mmhvault:data-loaded',()=>setTimeout(open,80),{once:true});window.addEventListener('mmhvault:config-owner-changed',()=>setTimeout(open,180),{once:true});setTimeout(open,1200);
@@ -23296,7 +23319,7 @@ body.light #reports .report-mini-v115{background:#f3f8fb;border-color:#cfdee9}bo
   else window.addEventListener('load',()=>setTimeout(retire,0),{once:true});
 })();
 </script>
-<!-- MMHVAULT v1.12.2 · legacy PWA caching stays disabled; the separate mmh-push-sw.js handles Push only. -->
+<!-- MMHVAULT v1.12.3 · legacy PWA caching stays disabled; mmh-push-sw.js is Push-only and the manifest enables an installable Home Screen app. -->
 
 
 
