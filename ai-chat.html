@@ -6,7 +6,7 @@
 <meta name="color-scheme" content="dark light">
 <meta name="theme-color" content="#061522">
 <title>MMHVAULT · Local AI Financial Assistant</title>
-<!-- MMHVAULT Local AI 1.11.3 · hybrid exact finance engine + browser WebGPU AI · no paid AI API -->
+<!-- MMHVAULT Local AI 1.11.4 · hybrid exact finance engine + browser WebGPU AI · no paid AI API -->
 <link rel="icon" href="images/icon-192.png">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>if(typeof supabase==='undefined')document.write('<script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.min.js"><\/script>')</script>
@@ -18,7 +18,7 @@
 .notice{display:flex;align-items:flex-start;gap:10px;margin:0 0 12px;padding:10px 12px;border:1px solid rgba(237,198,110,.16);border-radius:13px;background:rgba(80,58,21,.12);color:#adbdc7;font-size:10px;line-height:1.45}.notice b{color:#e9d294}.notice span:first-child{color:var(--gold);font-weight:900}
 .metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:12px}.metric{min-width:0;padding:13px 14px;border:1px solid var(--line);border-radius:16px;background:linear-gradient(155deg,rgba(9,31,49,.78),rgba(4,18,31,.90));box-shadow:inset 0 1px 0 rgba(255,255,255,.025)}.metric span{display:block;color:#7e9bb0;font-size:9px;font-weight:850;letter-spacing:.08em;text-transform:uppercase}.metric strong{display:block;margin-top:5px;font-size:clamp(18px,2vw,24px);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.metric small{display:block;margin-top:3px;color:#6f8ca0;font-size:9px}
 .layout{display:grid;grid-template-columns:minmax(230px,292px) minmax(0,1fr);gap:12px;align-items:stretch}.prompts,.chat{min-width:0;border:1px solid var(--line);border-radius:18px;background:linear-gradient(155deg,rgba(7,26,43,.90),rgba(3,15,28,.96));box-shadow:var(--shadow),inset 0 1px 0 rgba(255,255,255,.025)}.prompts{padding:12px;display:flex;flex-direction:column;gap:7px}.sidehead{padding:3px 4px 8px}.sidehead b{display:block;font-size:12px}.sidehead small{color:var(--muted);font-size:9px}.prompt{display:grid;grid-template-columns:32px minmax(0,1fr);gap:9px;align-items:center;width:100%;min-height:50px;padding:8px 10px;border:1px solid rgba(99,153,196,.12);border-radius:12px;background:rgba(13,42,62,.48);color:#c9deea;text-align:left}.prompt:hover{border-color:rgba(237,198,110,.28);background:linear-gradient(135deg,rgba(109,200,238,.08),rgba(237,198,110,.07))}.prompt>span{width:32px;height:32px;display:grid;place-items:center;border-radius:9px;background:#102f47;color:#9fd4ef}.prompt b{font-size:10px;line-height:1.3;min-width:0}.sidenote{margin-top:auto;padding:10px;border-radius:12px;background:rgba(5,19,31,.65);border:1px solid rgba(91,151,196,.10)}.sidenote b{display:block;font-size:9px;color:#a9c1d1;margin-bottom:4px}.sidenote span{display:block;color:#68879c;font-size:9px;line-height:1.45}
-.chat{display:grid;grid-template-rows:auto minmax(320px,1fr) auto auto;min-height:590px;overflow:hidden}.chathead{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;border-bottom:1px solid rgba(91,151,196,.12)}.chathead b{display:block;font-size:12px}.chathead small{display:block;color:#6f92a7;font-size:9px;margin-top:2px}.chathead button{border:1px solid rgba(91,151,196,.14);background:#0c2a40;color:#94afc1;border-radius:9px;min-height:32px;padding:5px 9px;font-size:9px}.thread{min-width:0;overflow-y:auto;overscroll-behavior:contain;padding:16px 15px 8px;scrollbar-gutter:stable}.msg{display:flex;margin-bottom:12px;max-width:88%}.msg.user{margin-left:auto;justify-content:flex-end}.bubble{min-width:0;padding:10px 12px;border-radius:14px;border:1px solid rgba(100,157,199,.14);background:#0a273b;color:#cfe2ee;font-size:12px;line-height:1.58;white-space:pre-wrap;overflow-wrap:anywhere}.msg.user .bubble{background:linear-gradient(135deg,#18435d,#14354d);border-color:rgba(109,200,238,.22);color:#f3f8fb;border-top-right-radius:5px}.msg.assistant .bubble{border-top-left-radius:5px}.meta{display:block;margin-top:7px;padding-top:6px;border-top:1px solid rgba(127,169,196,.10);color:#6f91a6;font-size:8px;letter-spacing:.04em}.compose{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;padding:10px;border-top:1px solid rgba(91,151,196,.12);background:rgba(4,18,31,.75)}textarea{width:100%;min-height:48px;max-height:150px;resize:vertical;border:1px solid rgba(102,164,203,.16);border-radius:12px;background:#081f31;color:#e3eef4;padding:11px 12px;outline:none;font-size:13px;line-height:1.45}textarea:focus{border-color:rgba(109,200,238,.50);box-shadow:0 0 0 3px rgba(109,200,238,.06)}.send{min-width:86px;border:1px solid rgba(109,200,238,.26);border-radius:12px;background:linear-gradient(135deg,#17608a,#184b70);color:#fff;font-size:11px;font-weight:850;padding:0 14px}.send:disabled{opacity:.55;cursor:wait}.foot{padding:0 12px 10px;color:#5e7d91;font-size:8px;line-height:1.4}.typing{display:inline-flex;gap:4px;align-items:center;height:16px}.typing i{width:5px;height:5px;border-radius:50%;background:#81a9bf;animation:dot 1s infinite ease-in-out}.typing i:nth-child(2){animation-delay:.14s}.typing i:nth-child(3){animation-delay:.28s}@keyframes dot{0%,80%,100%{opacity:.35;transform:translateY(0)}40%{opacity:1;transform:translateY(-3px)}}.status-error{color:#ffc4c4!important}
+.chat{display:grid;grid-template-rows:auto minmax(320px,1fr) auto auto;min-height:590px;overflow:hidden}.chathead{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;border-bottom:1px solid rgba(91,151,196,.12)}.chathead b{display:block;font-size:12px}.chathead small{display:block;color:#6f92a7;font-size:9px;margin-top:2px}.chathead button{border:1px solid rgba(91,151,196,.14);background:#0c2a40;color:#94afc1;border-radius:9px;min-height:32px;padding:5px 9px;font-size:9px}.thread{min-width:0;overflow-y:auto;overscroll-behavior:contain;padding:16px 15px 8px;scrollbar-gutter:stable}.msg{display:flex;margin-bottom:12px;max-width:88%}.msg.user{margin-left:auto;justify-content:flex-end}.bubble{min-width:0;padding:10px 12px;border-radius:14px;border:1px solid rgba(100,157,199,.14);background:#0a273b;color:#cfe2ee;font-size:12px;line-height:1.58;white-space:pre-wrap;overflow-wrap:anywhere}.msg.user .bubble{background:linear-gradient(135deg,#18435d,#14354d);border-color:rgba(109,200,238,.22);color:#f3f8fb;border-top-right-radius:5px}.msg.assistant .bubble{border-top-left-radius:5px}.meta{display:block;margin-top:7px;padding-top:6px;border-top:1px solid rgba(127,169,196,.10);color:#6f91a6;font-size:8px;letter-spacing:.04em}.compose{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;padding:10px;border-top:1px solid rgba(91,151,196,.12);background:rgba(4,18,31,.75)}textarea{width:100%;min-height:48px;max-height:150px;resize:vertical;border:1px solid rgba(102,164,203,.16);border-radius:12px;background:#081f31;color:#e3eef4;padding:11px 12px;outline:none;font-size:13px;line-height:1.45}textarea:focus{border-color:rgba(109,200,238,.50);box-shadow:0 0 0 3px rgba(109,200,238,.06)}.send{min-width:86px;border:1px solid rgba(109,200,238,.26);border-radius:12px;background:linear-gradient(135deg,#17608a,#184b70);color:#fff;font-size:11px;font-weight:850;padding:0 14px}.send:disabled{opacity:.55;cursor:wait}.foot{padding:0 12px 10px;color:#5e7d91;font-size:8px;line-height:1.4}.typing{display:inline-flex;gap:4px;align-items:center;height:16px}.typing i{width:5px;height:5px;border-radius:50%;background:#81a9bf;animation:dot 1s infinite ease-in-out}.typing i:nth-child(2){animation-delay:.14s}.typing i:nth-child(3){animation-delay:.28s}@keyframes dot{0%,80%,100%{opacity:.35;transform:translateY(0)}40%{opacity:1;transform:translateY(-3px)}}.type-caret{display:inline-block;margin-left:1px;color:#88c9e8;animation:caretBlink .8s steps(1,end) infinite}@keyframes caretBlink{50%{opacity:.18}}.scope-ok{color:var(--green)!important}.thinking-label{display:inline-flex;align-items:center;gap:6px;color:#8fb2c6;font-size:9px}.thinking-label:before{content:"";width:6px;height:6px;border-radius:50%;background:var(--blue);box-shadow:0 0 0 4px rgba(109,200,238,.07)}.status-error{color:#ffc4c4!important}
 body.light{--bg:#eef5f8;--bg2:#f7fbfd;--panel:#fff;--panel2:#f7fbfd;--line:rgba(62,105,132,.18);--text:#24465b;--muted:#6a8596;--shadow:none;background:radial-gradient(circle at 86% 10%,rgba(76,154,196,.11),transparent 30%),#eef5f8}body.light .top{background:rgba(247,251,253,.92)}body.light .back,body.light .privacy,body.light .metric,body.light .prompts,body.light .chat{background:#f9fcfd;color:#27465b;border-color:#cbdde7;box-shadow:none}body.light .prompt{background:#edf5f9;color:#35566b;border-color:#d5e4ec}body.light .prompt>span{background:#dcecf4;color:#315f79}body.light .bubble{background:#eef5f8;color:#2b4c60;border-color:#d4e4ec}body.light .msg.user .bubble{background:#dcecf4;color:#24475d}body.light .compose{background:#f7fbfd;border-color:#d6e4ec}body.light textarea{background:#fff;color:#29495d;border-color:#c9dce7}
 @media(max-width:980px){.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.layout{grid-template-columns:1fr}.prompts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}.sidehead,.sidenote{grid-column:1/-1}.chat{min-height:540px}}
 @media(max-width:620px){.wrap{width:min(100% - 20px,1240px);padding-top:18px}.top{padding:10px 10px}.brand small{display:none}.hero{display:block}.privacy{margin-top:12px;width:max-content}.metrics{grid-template-columns:1fr 1fr}.prompts{grid-template-columns:1fr}.sidehead,.sidenote{grid-column:auto}.chat{min-height:calc(100vh - 230px);min-height:calc(100dvh - 230px)}.thread{padding:12px 10px 6px}.msg{max-width:94%}.compose{grid-template-columns:1fr}.send{min-height:44px}.chathead{align-items:flex-start}textarea{font-size:16px}}
@@ -36,9 +36,9 @@ body.light .localsetup{background:#f7fbfd;border-color:#cbdfe4}body.light .local
 <div class="shell">
 <header class="top"><div class="brand"><img src="images/mmhvault-logo-transparent.png" alt=""><div><strong>MMHVAULT</strong><small data-en="Personal Finance · AI" data-zh="个人财务 · AI">Personal Finance · AI</small></div></div><button class="back" id="backApp" type="button" data-en="‹ Back to MMHVAULT" data-zh="‹ 返回 MMHVAULT">‹ Back to MMHVAULT</button></header>
 <main class="wrap">
-  <section class="hero"><div><span class="kicker">MMHVAULT AI</span><h1 data-en="Financial Assistant" data-zh="AI 财务助手">Financial Assistant</h1><p data-en="Ask about spending, income, cash flow, assets and planning. This page only reads data for the currently authenticated Personal account." data-zh="可以询问开销、收入、现金流、资产和规划。本页面只读取当前已登录 Personal 账号的数据。">Ask about spending, income, cash flow, assets and planning. This page only reads data for the currently authenticated Personal account.</p></div><div class="privacy"><i></i><b data-en="Local AI · Read-only" data-zh="本地 AI · 只读">Local AI · Read-only</b><small data-en="Current account only" data-zh="仅当前账号">Current account only</small></div></section>
+  <section class="hero"><div><span class="kicker">MMHVAULT AI</span><h1 data-en="Financial Assistant" data-zh="AI 财务助手">Financial Assistant</h1><p data-en="Ask about spending, income, cash flow, assets and planning. This page only reads data for the currently authenticated Personal account." data-zh="可以询问开销、收入、现金流、资产和规划。本页面只读取当前已登录 Personal 账号的数据。">Ask about spending, income, cash flow, assets and planning. This page only reads data for the currently authenticated Personal account.</p></div><div class="privacy"><i></i><b data-en="Local AI · Read-only" data-zh="本地 AI · 只读">Local AI · Read-only</b><small id="scopeBadge" data-en="Verified current session only" data-zh="仅限已验证当前登录账号">Verified current session only</small></div></section>
   <div class="notice"><span>i</span><div><b data-en="Private Local AI" data-zh="私有本地 AI">Private Local AI</b> · <span data-en="The language model runs directly in this browser with WebGPU. Your MMHVAULT financial context is not sent to an AI provider. First use downloads public model files to this browser and caches them locally; no paid AI API key is required." data-zh="语言模型通过 WebGPU 直接在当前浏览器运行。MMHVAULT 财务上下文不会发送给 AI 服务商。首次使用会把公开模型文件下载并缓存到本浏览器，不需要任何付费 AI API Key。">The language model runs directly in this browser with WebGPU. Your MMHVAULT financial context is not sent to an AI provider. First use downloads public model files to this browser and caches them locally; no paid AI API key is required.</span></div></div>
-  <section class="localsetup" id="localSetup"><div><b class="local-badge" data-en="Free Local AI" data-zh="免费本地 AI">Free Local AI</b><small id="localStatus" data-en="Exact balances and projections are calculated by MMHVAULT first; Local AI handles explanations and open-ended planning. Choose a model and prepare it once." data-zh="余额、分类比较和预测会先由 MMHVAULT 精确计算；本地 AI 负责解释和开放式规划。选择模型并首次准备一次即可。">Exact balances and projections are calculated by MMHVAULT first; Local AI handles explanations and open-ended planning. Choose a model and prepare it once.</small></div><div class="localtools"><select id="modelChoice" aria-label="Local AI model"><option value="Qwen3-0.6B-q4f16_1-MLC" data-en="Recommended · Qwen3 0.6B · Chinese-friendly · ~0.35 GB download" data-zh="推荐 · Qwen3 0.6B · 中文更好 · 约 0.35 GB 下载">Recommended · Qwen3 0.6B · Chinese-friendly · ~0.35 GB download</option><option value="Llama-3.2-1B-Instruct-q4f16_1-MLC" data-en="Compatibility · Llama 3.2 1B · ~0.9 GB memory" data-zh="兼容 · Llama 3.2 1B · 约 0.9 GB 内存">Compatibility · Llama 3.2 1B · ~0.9 GB memory</option><option value="Qwen3-1.7B-q4f16_1-MLC" data-en="Advanced · Qwen3 1.7B · ~1.0 GB download · regular window recommended" data-zh="增强 · Qwen3 1.7B · 约 1.0 GB 下载 · 建议普通窗口">Advanced · Qwen3 1.7B · ~1.0 GB download · regular window recommended</option></select><button id="prepareAI" type="button" data-en="Prepare Local AI" data-zh="准备本地 AI">Prepare Local AI</button><button id="clearAICache" type="button" class="secondary" data-en="Clear AI cache" data-zh="清理 AI 缓存">Clear AI cache</button></div><div class="progress" id="modelProgress"><i id="modelProgressBar"></i></div></section>
+  <section class="localsetup" id="localSetup"><div><b class="local-badge" data-en="Free Local AI" data-zh="免费本地 AI">Free Local AI</b><small id="localStatus" data-en="MMHVAULT verifies the current account and exact facts first; Local AI then reviews the question and explains planning. Choose a model and prepare it once." data-zh="MMHVAULT 会先验证当前账号并核对精确数据；本地 AI 再审题并解释规划。选择模型并首次准备一次即可。">MMHVAULT verifies the current account and exact facts first; Local AI then reviews the question and explains planning. Choose a model and prepare it once.</small></div><div class="localtools"><select id="modelChoice" aria-label="Local AI model"><option value="Qwen3-0.6B-q4f16_1-MLC" data-en="Recommended · Qwen3 0.6B · Chinese-friendly · ~0.35 GB download" data-zh="推荐 · Qwen3 0.6B · 中文更好 · 约 0.35 GB 下载">Recommended · Qwen3 0.6B · Chinese-friendly · ~0.35 GB download</option><option value="Llama-3.2-1B-Instruct-q4f16_1-MLC" data-en="Compatibility · Llama 3.2 1B · ~0.9 GB memory" data-zh="兼容 · Llama 3.2 1B · 约 0.9 GB 内存">Compatibility · Llama 3.2 1B · ~0.9 GB memory</option><option value="Qwen3-1.7B-q4f16_1-MLC" data-en="Advanced · Qwen3 1.7B · ~1.0 GB download · regular window recommended" data-zh="增强 · Qwen3 1.7B · 约 1.0 GB 下载 · 建议普通窗口">Advanced · Qwen3 1.7B · ~1.0 GB download · regular window recommended</option></select><button id="prepareAI" type="button" data-en="Prepare Local AI" data-zh="准备本地 AI">Prepare Local AI</button><button id="clearAICache" type="button" class="secondary" data-en="Clear AI cache" data-zh="清理 AI 缓存">Clear AI cache</button></div><div class="progress" id="modelProgress"><i id="modelProgressBar"></i></div></section>
 
   <section class="metrics" id="metrics" aria-live="polite"></section>
   <section class="layout">
@@ -49,7 +49,7 @@ body.light .localsetup{background:#f7fbfd;border-color:#cbdfe4}body.light .local
       <button class="prompt" type="button" data-prompt-en="Based on my current cash flow, account balances, investments and goals, how should I think about capital for a business or new project?" data-prompt-zh="按照我目前的现金流、账户余额、投资和目标，如果要规划产业或新项目资金，应该怎么考虑？"><span>◇</span><b data-en="Capital planning" data-zh="产业 / 资金规划">Capital planning</b></button>
       <div class="sidenote"><b data-en="Planning support, not a guarantee" data-zh="规划辅助，不是保证">Planning support, not a guarantee</b><span data-en="Projections are scenarios. The assistant cannot trade, transfer funds, edit records, or access another user's data." data-zh="预测属于情景分析。AI 不能交易、转账、修改记录，也不能访问其他用户的数据。">Projections are scenarios. The assistant cannot trade, transfer funds, edit records, or access another user's data.</span></div>
     </aside>
-    <section class="chat"><div class="chathead"><div><b data-en="Private finance chat" data-zh="私人财务对话">Private finance chat</b><small id="mode">Checking your signed-in account…</small></div><div class="chattools"><button id="clear" type="button" data-en="Clear chat" data-zh="清空对话">Clear chat</button></div></div><div class="thread" id="thread" role="log" aria-live="polite"></div><div class="compose"><textarea id="input" rows="2" maxlength="1600" data-en-placeholder="Ask about your spending, income, assets or financial planning…" data-zh-placeholder="询问你的开销、收入、资产或财务规划……" placeholder="Ask about your spending, income, assets or financial planning…"></textarea><button class="send" id="send" type="button" data-en="Send ↑" data-zh="发送 ↑">Send ↑</button></div><div class="foot" data-en="Read-only · local WebGPU inference · no paid AI API · chat is not stored by this page · Enter sends, Shift+Enter adds a line" data-zh="只读 · 本地 WebGPU 推理 · 无付费 AI API · 本页面不保存聊天记录 · Enter 发送，Shift+Enter 换行">Read-only · local WebGPU inference · no paid AI API · chat is not stored by this page · Enter sends, Shift+Enter adds a line</div></section>
+    <section class="chat"><div class="chathead"><div><b data-en="Private finance chat" data-zh="私人财务对话">Private finance chat</b><small id="mode">Checking your signed-in account…</small></div><div class="chattools"><button id="refreshData" type="button" data-en="Refresh data" data-zh="刷新数据">Refresh data</button><button id="clear" type="button" data-en="Clear chat" data-zh="清空对话">Clear chat</button></div></div><div class="thread" id="thread" role="log" aria-live="polite"></div><div class="compose"><textarea id="input" rows="2" maxlength="1600" data-en-placeholder="Ask about your spending, income, assets or financial planning…" data-zh-placeholder="询问你的开销、收入、资产或财务规划……" placeholder="Ask about your spending, income, assets or financial planning…"></textarea><button class="send" id="send" type="button" data-en="Send ↑" data-zh="发送 ↑">Send ↑</button></div><div class="foot" data-en="Read-only · local WebGPU inference · no paid AI API · chat is not stored by this page · Enter sends, Shift+Enter adds a line" data-zh="只读 · 本地 WebGPU 推理 · 无付费 AI API · 本页面不保存聊天记录 · Enter 发送，Shift+Enter 换行">Read-only · local WebGPU inference · no paid AI API · chat is not stored by this page · Enter sends, Shift+Enter adds a line</div></section>
   </section>
 </main>
 </div>
@@ -60,7 +60,7 @@ import * as webllm from "https://cdn.jsdelivr.net/npm/@mlc-ai/web-llm@0.2.85/+es
 const SUPABASE_URL="https://vrypucmyrztxgiqhjspd.supabase.co",SUPABASE_KEY="sb_publishable_H38v4XbO0ARnSJToD42wGg_27-SZ3Ao";
 const $=id=>document.getElementById(id),N=v=>Number.isFinite(Number(v))?Number(v):0,lc=v=>String(v??'').trim().toLowerCase();
 const db=typeof supabase!=='undefined'?supabase.createClient(SUPABASE_URL,SUPABASE_KEY):null;
-const state={user:null,data:null,messages:[],sending:false,engine:null,engineModel:'',engineReady:false,engineLoading:false};
+const state={user:null,scopeUserId:'',data:null,loadedAt:0,messages:[],sending:false,engine:null,engineModel:'',engineReady:false,engineLoading:false,authSubscription:null};
 function lang(){try{return (localStorage.getItem('mmhvault_language_v3363')||'en')==='zh'?'zh':'en'}catch(_e){return'en'}}function T(en,zh){return lang()==='zh'?zh:en}
 function applyTheme(){let t='dark';try{t=localStorage.getItem('myfinance_theme')||'dark'}catch(_e){}document.body.classList.toggle('light',t==='light')}
 function translate(){document.documentElement.lang=lang()==='zh'?'zh-CN':'en';document.querySelectorAll('[data-en][data-zh]').forEach(el=>el.textContent=T(el.dataset.en,el.dataset.zh));const ta=$('input');if(ta)ta.placeholder=T(ta.dataset.enPlaceholder,ta.dataset.zhPlaceholder);renderMetrics();renderThread()}
@@ -76,12 +76,62 @@ function flowRows(key){return (state.data?.transactions||[]).filter(t=>String(t.
 function monthSummary(key){let income=0,expense=0,personal=0;const cats={};for(const t of flowRows(key)){const g=txGroup(t);if(t.type==='Income')income+=amountUSD(t.to_account,t.to_amount);else{const v=amountUSD(t.from_account,t.from_amount);expense+=v;if(g==='Personal')personal+=v;const cat=String(t.category||'Other');cats[cat]=(cats[cat]||0)+v}}const remaining=income-expense,top=Object.entries(cats).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([name,value])=>({name,value,pct:expense?value/expense*100:0}));return{key,income,expense,personal,remaining,savings_rate:income?remaining/income*100:0,top_categories:top,records:flowRows(key).length}}
 function accountBalances(){const cfg=state.data?.config?.accounts||[],tx=state.data?.transactions||[],inv=state.data?.investments||[],custom=state.data?.customInvestments||[];return cfg.filter(a=>a?.name&&a.active!==false).map(a=>{let bal=0;for(const t of tx){if(isLinkedInvestment(t))continue;if(lc(t.to_account)===lc(a.name))bal+=N(t.to_amount);if(lc(t.from_account)===lc(a.name))bal-=N(t.from_amount)}for(const x of inv)if(lc(x.source_account)===lc(a.name))bal-=N(x.amount)+N(x.fee)+N(x.other_cost);for(const x of custom)if(lc(x.source_account)===lc(a.name))bal-=N(x.amount)+N(x.fee)+N(x.other_cost);return{name:a.name,currency:a.currency||'USD',balance:bal,balance_usd:amountUSD(a.name,bal)}})}
 function summary(){const curKey=monthKey(),prevKey=shiftMonth(curKey,-1),cur=monthSummary(curKey),prev=monthSummary(prevKey);const months=[];for(let i=11;i>=0;i--)months.push(monthSummary(shiftMonth(curKey,-i)));const completed=months.filter(x=>x.key!==curKey&&x.records>0).slice(-6),avg=completed.length?completed.reduce((s,x)=>s+x.remaining,0)/completed.length:0;const balances=accountBalances();return{generated_at:new Date().toISOString(),current_month:cur,previous_month:prev,last_12_months:months.map(x=>({key:x.key,income_usd:x.income,expense_usd:x.expense,remaining_usd:x.remaining,savings_rate_pct:x.savings_rate,records:x.records})),completed_months_used:completed.length,average_completed_month_net_usd:avg,accounts:balances.map(x=>({name:x.name,currency:x.currency,balance:x.balance,balance_usd:x.balance_usd})),investment_records:(state.data?.investments||[]).length,custom_investment_records:(state.data?.customInvestments||[]).length,wallet_activity_records:(state.data?.walletMovements||[]).length,budgets:(state.data?.budgets||[]).slice(0,12),goals:(state.data?.goals||[]).slice(0,30),recurring:(state.data?.recurring||[]).slice(0,40)}}
-async function safeQuery(table,select='*',order='',limit=200){try{let q=db.from(table).select(select).eq('user_id',state.user.id);if(order){const [col,dir]=order.split('.');q=q.order(col,{ascending:dir!=='desc'})}if(limit)q=q.limit(limit);const r=await q;if(r.error)throw r.error;return Array.isArray(r.data)?r.data:[]}catch(e){console.warn('[MMHVAULT AI] read failed',table,e);return[]}}
-async function loadData(){if(!db)throw Error('Supabase client unavailable');const s=(await db.auth.getSession()).data?.session;if(!s?.user?.id)throw Error('not-signed-in');const verified=(await db.auth.getUser()).data?.user;if(!verified?.id||verified.id!==s.user.id)throw Error('not-signed-in');state.user=verified;const [transactions,investments,customInvestments,walletMovements,rateRows,budgets,goals,recurring]=await Promise.all([safeQuery('transactions','*','tx_date.desc',700),safeQuery('investments','*','inv_date.desc',300),safeQuery('custom_investments','*','inv_date.desc',200),safeQuery('crypto_wallet_movements','*','movement_date.desc',240),safeQuery('exchange_rates','*','',5),safeQuery('budgets','*','budget_month.desc',24),safeQuery('financial_goals','*','updated_at.desc',80),safeQuery('recurring_transactions','*','next_due_date.asc',100)]);state.data={transactions,investments,customInvestments,walletMovements,rates:rateRows[0]||{},budgets,goals,recurring,config:configFor(verified.id)};setMode(T('Account data ready · prepare Local AI','账号数据已读取 · 请准备本地 AI')); renderMetrics();renderThread()}
+async function verifiedAuthUser(){
+  if(!db)throw Error('Supabase client unavailable');
+  const session=(await db.auth.getSession()).data?.session;
+  if(!session?.user?.id)throw Error('not-signed-in');
+  const verified=(await db.auth.getUser()).data?.user;
+  if(!verified?.id||verified.id!==session.user.id)throw Error('not-signed-in');
+  return verified
+}
+function clearFinancialScope(reason='scope-cleared'){
+  state.user=null;state.scopeUserId='';state.data=null;state.loadedAt=0;state.messages=[];
+  const badge=$('scopeBadge');if(badge)badge.classList.remove('scope-ok');
+  renderMetrics();renderThread();
+  setMode(reason==='account-changed'?T('Account changed · reloading current account only','账号已切换 · 正在重新读取当前账号'):T('Signed-in account required','需要登录当前账号'),true)
+}
+async function assertCurrentScope(expectedId=''){
+  const verified=await verifiedAuthUser();
+  if(expectedId&&verified.id!==expectedId)throw Error('account-scope-changed');
+  if(state.scopeUserId&&verified.id!==state.scopeUserId)throw Error('account-scope-changed');
+  return verified
+}
+async function safeQuery(table,select='*',order='',limit=200,expectedUserId=''){
+  const uid=expectedUserId||state.scopeUserId||state.user?.id;
+  if(!uid)throw Error('missing-user-scope');
+  try{
+    let q=db.from(table).select(select).eq('user_id',uid);
+    if(order){const [col,dir]=order.split('.');q=q.order(col,{ascending:dir!=='desc'})}
+    if(limit)q=q.limit(limit);
+    const r=await q;if(r.error)throw r.error;
+    if(state.scopeUserId&&state.scopeUserId!==uid)throw Error('account-scope-changed');
+    return Array.isArray(r.data)?r.data:[]
+  }catch(e){console.warn('[MMHVAULT AI] scoped read failed',table,e);if(String(e?.message||e)==='account-scope-changed')throw e;return[]}
+}
+async function loadData(options={}){
+  const silent=options?.silent===true,verified=await verifiedAuthUser(),uid=verified.id;
+  if(state.scopeUserId&&state.scopeUserId!==uid)clearFinancialScope('account-changed');
+  state.user=verified;state.scopeUserId=uid;
+  const [transactions,investments,customInvestments,walletMovements,rateRows,budgets,goals,recurring]=await Promise.all([
+    safeQuery('transactions','*','tx_date.desc',700,uid),safeQuery('investments','*','inv_date.desc',300,uid),safeQuery('custom_investments','*','inv_date.desc',200,uid),safeQuery('crypto_wallet_movements','*','movement_date.desc',240,uid),safeQuery('exchange_rates','*','',5,uid),safeQuery('budgets','*','budget_month.desc',24,uid),safeQuery('financial_goals','*','updated_at.desc',80,uid),safeQuery('recurring_transactions','*','next_due_date.asc',100,uid)
+  ]);
+  const confirmed=await assertCurrentScope(uid);
+  if(confirmed.id!==uid)throw Error('account-scope-changed');
+  state.user=confirmed;state.scopeUserId=uid;state.loadedAt=Date.now();
+  state.data={transactions,investments,customInvestments,walletMovements,rates:rateRows[0]||{},budgets,goals,recurring,config:configFor(uid)};
+  const badge=$('scopeBadge');if(badge)badge.classList.add('scope-ok');
+  if(!silent)setMode(T('Verified current account data ready · prepare Local AI','已验证当前登录账号数据 · 请准备本地 AI'));
+  renderMetrics();renderThread();return state.data
+}
+async function ensureCurrentScope(){
+  const verified=await assertCurrentScope(state.scopeUserId||'');
+  if(!state.data||!state.loadedAt||Date.now()-state.loadedAt>120000)await loadData({silent:true});
+  return verified
+}
 function renderMetrics(){const box=$('metrics');if(!box)return;if(!state.data){box.innerHTML=`<article class="metric"><span>${T('Status','状态')}</span><strong>—</strong><small>${T('Sign in required','需要登录')}</small></article>`;return}const s=summary(),m=s.current_month,p=s.previous_month,delta=p.expense?((m.expense-p.expense)/p.expense*100):null;box.innerHTML=`<article class="metric"><span>${T('Income · this month','本月收入')}</span><strong>${usd(m.income)}</strong><small>${T('Ordinary income only','仅正常收入')}</small></article><article class="metric"><span>${T('Spending · this month','本月开销')}</span><strong>${usd(m.expense)}</strong><small>${delta===null?T('No prior-month baseline','上月无可比基线'):(delta>=0?'+':'')+pct(delta)+' '+T('vs last month','对比上月')}</small></article><article class="metric"><span>${T('Savings rate','储蓄率')}</span><strong>${pct(m.savings_rate)}</strong><small>${usd(m.remaining)} ${T('remaining','剩余')}</small></article><article class="metric"><span>${T('Accounts in scope','已读取账户')}</span><strong>${s.accounts.length}</strong><small>${T('Current signed-in account only','仅当前登录账号')}</small></article>`}
 function setMode(t,error=false){const el=$('mode');if(el){el.textContent=t;el.classList.toggle('status-error',!!error)}}
 function addMessage(role,text,mode=''){state.messages.push({role,text:String(text||''),mode});if(state.messages.length>24)state.messages=state.messages.slice(-24);renderThread()}
-function renderThread(){const el=$('thread');if(!el)return;el.replaceChildren();if(!state.messages.length){const row=document.createElement('div');row.className='msg assistant';const b=document.createElement('div');b.className='bubble';b.textContent=state.data?T('Ask me about your current MMHVAULT Personal data. I can compare months, explain spending changes and build planning scenarios. I am read-only.','可以直接询问当前 MMHVAULT Personal 数据。我可以比较月份、解释开销变化并做规划情景分析。我只有只读权限。'):T('Open MMHVAULT and sign in first, then return here.','请先在 MMHVAULT 登录，然后返回这里。');row.append(b);el.append(row)}else for(const m of state.messages){const row=document.createElement('div');row.className='msg '+m.role;const b=document.createElement('div');b.className='bubble';b.textContent=m.text;if(m.role==='assistant'&&m.mode){const meta=document.createElement('small');meta.className='meta';meta.textContent=m.mode;b.append(meta)}row.append(b);el.append(row)}requestAnimationFrame(()=>el.scrollTop=el.scrollHeight)}
+function renderThread(){const el=$('thread');if(!el)return;el.replaceChildren();if(!state.messages.length){const row=document.createElement('div');row.className='msg assistant';const b=document.createElement('div');b.className='bubble';b.textContent=state.data?T('Ask about the verified current-account MMHVAULT Personal data. I check exact facts first, then Local AI explains open-ended questions. I am read-only.','可以直接询问当前已验证登录账号的 MMHVAULT Personal 数据。我会先核对精确数字，再由本地 AI 解释开放式问题；全程只读。'):T('Open MMHVAULT and sign in first, then return here.','请先在 MMHVAULT 登录，然后返回这里。');row.append(b);el.append(row)}else for(const m of state.messages){const row=document.createElement('div');row.className='msg '+m.role;const b=document.createElement('div');b.className='bubble';b.textContent=m.text;if(m.role==='assistant'&&m.mode){const meta=document.createElement('small');meta.className='meta';meta.textContent=m.mode;b.append(meta)}row.append(b);el.append(row)}requestAnimationFrame(()=>el.scrollTop=el.scrollHeight)}
 function typing(on){const el=$('thread');el?.querySelector('[data-typing]')?.remove();if(!on||!el)return;const row=document.createElement('div');row.className='msg assistant';row.dataset.typing='1';row.innerHTML='<div class="bubble"><span class="typing"><i></i><i></i><i></i></span></div>';el.append(row);el.scrollTop=el.scrollHeight}
 
 function questionLang(q){return /[\u3400-\u9fff]/.test(String(q||''))?'zh':lang()}
@@ -133,18 +183,37 @@ function aiContext(question){
   if(/spend|expense|income|dining|food|category|cash|balance|开销|支出|收入|餐饮|分类|余额|现金/.test(ql)){const ordinary=(state.data?.transactions||[]).filter(t=>!isLinkedInvestment(t));base.recent_transactions=ordinary.slice(0,10).map(t=>({date:t.tx_date,type:t.type,group:txGroup(t),category:t.category,from:t.from_account,to:t.to_account,amount_usd:round2(t.type==='Income'?amountUSD(t.to_account,t.to_amount):amountUSD(t.from_account,t.from_amount)),note:trimText(t.note,70)}))}
   if(/invest|portfolio|crypto|btc|eth|gold|wallet|gas|投资|持仓|加密|黄金|钱包/.test(ql)){base.recent_investments=(state.data?.investments||[]).slice(0,8).map(x=>({date:x.inv_date,asset:x.asset||x.symbol,symbol:x.symbol,side:x.side,quantity:x.quantity,amount:x.amount,market_price:x.market_price}))}
   if(/budget|goal|recurr|plan|business|capital|future|forecast|产业|规划|预算|目标|未来|周期/.test(ql)){base.goals=(state.data?.goals||[]).slice(0,6).map(x=>({name:x.name,type:x.goal_type,currency:x.currency,target:x.target_amount,current:x.current_amount,target_date:x.target_date,status:x.status}));base.recurring=(state.data?.recurring||[]).slice(0,6).map(x=>({name:x.name,type:x.tx_type,category:x.category,from_amount:x.from_amount,to_amount:x.to_amount,frequency:x.frequency,next_due_date:x.next_due_date,status:x.status}))}
-  let raw=JSON.stringify(base);if(raw.length>6200)raw=raw.slice(0,6200)+'}';return raw
+  const limits=isAdvanced(state.engineModel)?{chars:9000,tx:10,inv:8,goals:6,rec:6}:{chars:5600,tx:6,inv:5,goals:4,rec:4};
+  const shrink=()=>{
+    if(Array.isArray(base.recent_transactions)&&base.recent_transactions.length>limits.tx)base.recent_transactions=base.recent_transactions.slice(0,limits.tx);
+    if(Array.isArray(base.recent_investments)&&base.recent_investments.length>limits.inv)base.recent_investments=base.recent_investments.slice(0,limits.inv);
+    if(Array.isArray(base.goals)&&base.goals.length>limits.goals)base.goals=base.goals.slice(0,limits.goals);
+    if(Array.isArray(base.recurring)&&base.recurring.length>limits.rec)base.recurring=base.recurring.slice(0,limits.rec)
+  };
+  shrink();let raw=JSON.stringify(base);
+  if(raw.length>limits.chars){delete base.recent_transactions;raw=JSON.stringify(base)}
+  if(raw.length>limits.chars){delete base.recent_investments;raw=JSON.stringify(base)}
+  if(raw.length>limits.chars){delete base.goals;delete base.recurring;raw=JSON.stringify(base)}
+  return raw
 }
-function systemPrompt(question){const zh=questionLang(question)==='zh';return `${zh?'你是':'You are'} MMHVAULT Local Financial Assistant. ${zh?'你在用户自己的浏览器里离线推理，只分析当前已登录账号提供的财务上下文。':'You run locally in the user\'s browser and analyze only the supplied current-account financial context.'}
+function systemPrompt(question){const zh=questionLang(question)==='zh';return `${zh?'你是':'You are'} MMHVAULT Local Financial Assistant. ${zh?'你只在用户自己的浏览器里处理已经通过 Supabase 当前会话验证的数据。':'You only process data that has been verified against the current Supabase session in the user\'s browser.'}
+${zh?'回答前先静默完成三项检查：理解用户真正问什么；核对 MMHVAULT 权威数字；确认没有使用上下文以外的账号或数据。不要向用户展示内部推理过程。':'Before answering, silently do three checks: identify what the user actually asked; verify the authoritative MMHVAULT facts; confirm you are not using data outside the supplied current-account context. Do not reveal internal reasoning.'}
 ${zh?'最重要规则：':'Most important rules:'}
+- ${zh?'只能使用本次上下文中当前登录账号的数据。绝不推断、请求或讨论其他账号的数据；如果用户要求其他账号数据，明确说明不可访问。':'Use only the current signed-in account data in this context. Never infer, request, or discuss another user/account\'s data; if asked, state that it is unavailable.'}
 - ${zh?'exact_facts 和 current_month/previous_month 里的数字由 MMHVAULT 计算引擎提供，是权威数字。不要重新心算、改写或猜测这些数值。':'Numbers in exact_facts and current_month/previous_month are computed by MMHVAULT and are authoritative. Do not recalculate, alter, or guess them.'}
 - ${zh?'如果问题要求一个上下文没有提供的精确数字，明确说当前无法精确计算，不要编造。':'If an exact number is not present in context, say it cannot be calculated exactly from the available context. Never invent it.'}
+- ${zh?'先直接回答用户的问题，再解释最相关的 2-4 个依据；不要答非所问，不要重复固定模板。':'Answer the actual question first, then explain the 2-4 most relevant supporting points. Do not answer a different question or repeat a canned template.'}
 - ${zh?'只读，不声称修改、删除、交易、转账或写入任何记录。':'Read-only. Never claim to edit, delete, trade, transfer, or write records.'}
 - ${zh?'内部 Transfer、Data Adjustment、Loan、linked investment cash flow 不属于正常收入/开销。':'Internal Transfer, Data Adjustment, Loan, and linked investment cash flow are excluded from ordinary income/spending.'}
 - ${zh?'钱包内部转币不是收入或开销；网络费只减少持仓，不是生活开销。':'Wallet-to-wallet crypto movement is not income/expense; network fees reduce holdings but are not lifestyle spending.'}
-- ${zh?'预测必须说明是假设情景，不是保证。':'Projections are scenarios, not guarantees.'}
-- ${zh?'回答使用用户提问的语言。尽量 2-5 个短段落，先回答问题，再解释关键依据。':'Answer in the user\'s language. Prefer 2-5 short paragraphs: answer first, then explain the key evidence.'}
-- ${zh?'如果用户问开放式规划，结合现金流、流动性、风险和目标进行解释，但不要保证收益。':'For open-ended planning, discuss cash flow, liquidity, risk and goals without guaranteeing returns.'}`}
+- ${zh?'预测必须说明关键假设并标明是假设情景，不是保证。':'For projections, state key assumptions and make clear they are scenarios, not guarantees.'}
+- ${zh?'回答使用用户提问的语言。尽量 2-5 个短段落，清楚、具体，不要为了显得聪明而扩写无关内容。':'Answer in the user\'s language. Prefer 2-5 short paragraphs, clear and specific, without irrelevant elaboration.'}
+- ${zh?'如果用户问开放式规划，结合现金流、流动性、风险、现有资产和目标进行解释，但不要保证收益，也不要把情景预测说成事实。':'For open-ended planning, discuss cash flow, liquidity, risk, current assets and goals without guaranteeing returns or presenting scenarios as facts.'}`}
+function reviewPrompt(question,context){const zh=questionLang(question)==='zh';return `${zh?'你是 MMHVAULT 的回答审核器。':'You are MMHVAULT\'s answer reviewer.'} ${zh?'不要回答用户问题，只做简短审核。':'Do not answer the user; only review the question briefly.'}
+${zh?'请输出严格 JSON，不要 Markdown：':'Return strict JSON only, no Markdown:'}{"intent":"...","focus":"...","missing":[],"cautions":[]}
+${zh?'要求：只根据给定当前账号上下文判断用户真正想问什么；不要计算新数字；如果缺少关键信息放进 missing。':'Use only the supplied current-account context to identify what the user truly asks. Do not calculate new numbers. Put missing critical information in missing.'}
+CONTEXT:${context}
+QUESTION:${question}`}
 function modelLabel(id){
   if(id.includes('Qwen3-1.7B'))return T('Qwen3 1.7B · Advanced','Qwen3 1.7B · 增强');
   if(id.includes('Qwen3-0.6B'))return T('Qwen3 0.6B · Recommended','Qwen3 0.6B · 推荐');
@@ -211,7 +280,7 @@ async function clearAllLocalAICaches(){
   return removed
 }
 async function createEngine(model){
-  const ctx=isAdvanced(model)?1024:(String(model).includes('Qwen3-0.6B')?1024:1536);
+  const ctx=isAdvanced(model)?2048:(String(model).includes('Qwen3-0.6B')?1536:1536);
   return await webllm.CreateMLCEngine(model,{initProgressCallback:progressUpdate,logLevel:'WARN'},{context_window_size:ctx})
 }
 async function prepareLocalAI(force=false){
@@ -296,34 +365,63 @@ async function prepareLocalAI(force=false){
   }
 }
 function assistantMessageShell(mode=''){
-  const row=document.createElement('div');row.className='msg assistant';const b=document.createElement('div');b.className='bubble';const t=document.createTextNode('');b.append(t);if(mode){const meta=document.createElement('small');meta.className='meta';meta.textContent=mode;b.append(meta)}row.append(b);$('thread').append(row);$('thread').scrollTop=$('thread').scrollHeight;return{row,b,t}
+  const row=document.createElement('div');row.className='msg assistant';const b=document.createElement('div');b.className='bubble';const t=document.createTextNode('');const caret=document.createElement('span');caret.className='type-caret';caret.textContent='▍';b.append(t,caret);if(mode){const meta=document.createElement('small');meta.className='meta';meta.textContent=mode;b.append(meta)}row.append(b);$('thread').append(row);$('thread').scrollTop=$('thread').scrollHeight;return{row,b,t,caret}
+}
+function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
+async function typewriterAnswer(text,mode='',speed=12){
+  const answer=String(text||'').trim();const shell=assistantMessageShell(mode);let i=0;
+  const chunk=answer.length>700?4:answer.length>350?3:2;
+  while(i<answer.length){const next=Math.min(answer.length,i+chunk);shell.t.nodeValue=answer.slice(0,next);i=next;$('thread').scrollTop=$('thread').scrollHeight;await sleep(speed)}
+  shell.caret.remove();state.messages.push({role:'assistant',text:answer,mode});if(state.messages.length>24)state.messages=state.messages.slice(-24);return answer
+}
+function thinkingStage(en,zh){setMode(T(en,zh));const el=$('thread'),row=el?.querySelector('[data-typing] .bubble');if(row){row.innerHTML='';const lab=document.createElement('span');lab.className='thinking-label';lab.textContent=T(en,zh);row.append(lab)}if(el)el.scrollTop=el.scrollHeight}
+async function reviewQuestion(engine,question,context){
+  if(!isQwen(state.engineModel))return null;
+  try{
+    const r=await engine.chat.completions.create({messages:[{role:'system',content:reviewPrompt(question,context)}],temperature:0,top_p:.7,max_tokens:140,stream:false,extra_body:{enable_thinking:false}});
+    const text=String(r?.choices?.[0]?.message?.content||'').trim().replace(/^```(?:json)?\s*/i,'').replace(/\s*```$/,'');
+    const parsed=JSON.parse(text);return parsed&&typeof parsed==='object'?parsed:null
+  }catch(e){console.warn('[MMHVAULT Local AI] review pass skipped',e);return null}
 }
 async function localAIAsk(question){
+  thinkingStage('Verifying the current account scope…','正在验证当前登录账号范围……');await ensureCurrentScope();
+  thinkingStage('Checking exact MMHVAULT facts…','正在核对 MMHVAULT 精确数据……');const context=aiContext(question);
   const engine=await prepareLocalAI(false);
-  const history=state.messages.slice(-4).filter(x=>x.role==='user'||x.role==='assistant').map(x=>({role:x.role,content:trimText(x.text,420)}));
-  const messages=[{role:'system',content:systemPrompt(question)},{role:'user',content:`MMHVAULT FINANCIAL CONTEXT (computed locally):\n${aiContext(question)}\n\nUSER QUESTION:\n${question}`}];
+  thinkingStage('Local AI is reviewing the question…','本地 AI 正在审题……');const review=await reviewQuestion(engine,question,context);
+  const history=state.messages.slice(-5).filter(x=>x.role==='user'||x.role==='assistant').map(x=>({role:x.role,content:trimText(x.text,420)}));
+  const reviewText=review?`\n\nANSWER REVIEW (not chain-of-thought; use as a compact checklist):\n${JSON.stringify(review)}`:'';
+  const messages=[{role:'system',content:systemPrompt(question)},{role:'user',content:`MMHVAULT FINANCIAL CONTEXT (verified current account; computed locally):\n${context}${reviewText}\n\nUSER QUESTION:\n${question}`}];
   if(history.length>1){const prior=history.slice(0,-1);messages.splice(1,0,...prior)}
-  const stream=await engine.chat.completions.create({messages,temperature:.12,top_p:.82,max_tokens:520,stream:true,...(isQwen(state.engineModel)?{extra_body:{enable_thinking:false}}:{})});
-  let answer='';const shell=assistantMessageShell(T(`Local AI · ${modelLabel(state.engineModel)}`,`本地 AI · ${modelLabel(state.engineModel)}`));
-  for await (const chunk of stream){const delta=chunk?.choices?.[0]?.delta?.content||'';if(delta){answer+=delta;shell.t.nodeValue=answer;$('thread').scrollTop=$('thread').scrollHeight}}
-  answer=answer.trim();if(!answer)throw Error('empty-local-ai-response');
-  state.messages.push({role:'assistant',text:answer,mode:T(`Local AI · ${modelLabel(state.engineModel)}`,`本地 AI · ${modelLabel(state.engineModel)}`)});if(state.messages.length>24)state.messages=state.messages.slice(-24);
-  return answer;
+  thinkingStage('Writing a grounded answer…','正在组织有依据的回答……');
+  const stream=await engine.chat.completions.create({messages,temperature:isAdvanced(state.engineModel)?.08:.06,top_p:.78,max_tokens:isAdvanced(state.engineModel)?700:520,stream:true,...(isQwen(state.engineModel)?{extra_body:{enable_thinking:false}}:{})});
+  typing(false);
+  const mode=T(`Local AI · ${modelLabel(state.engineModel)} · verified scope`,`本地 AI · ${modelLabel(state.engineModel)} · 已验证账号范围`),shell=assistantMessageShell(mode);
+  let finalAnswer='',pending='',done=false,streamError=null;
+  const pump=(async()=>{while(!done||pending){if(pending){const take=Math.min(pending.length,pending.length>80?4:2);finalAnswer+=pending.slice(0,take);pending=pending.slice(take);shell.t.nodeValue=finalAnswer;$('thread').scrollTop=$('thread').scrollHeight}else await sleep(18)}if(shell.caret?.isConnected)shell.caret.remove()})();
+  try{for await(const chunk of stream){const delta=chunk?.choices?.[0]?.delta?.content||'';if(delta)pending+=delta}}catch(e){streamError=e}finally{done=true}
+  await pump;if(streamError)throw streamError;
+  finalAnswer=finalAnswer.trim();if(!finalAnswer)throw Error('empty-local-ai-response');
+  shell.t.nodeValue=finalAnswer;state.messages.push({role:'assistant',text:finalAnswer,mode});if(state.messages.length>24)state.messages=state.messages.slice(-24);return finalAnswer
 }
 async function send(text){
   const input=$('input'),q=String(text??input?.value??'').trim();if(!q||state.sending)return;
   if(!state.user||!state.data){addMessage('assistant',T('Please open MMHVAULT, sign in, and return to AI Assistant.','请先打开 MMHVAULT 登录，然后再返回 AI 财务助手。'),'MMHVAULT');return}
-  state.sending=true;if(input)input.value='';addMessage('user',q);typing(true);$('send').disabled=true;
+  state.sending=true;if(input)input.value='';addMessage('user',q);typing(true);$('send').disabled=true;$('refreshData').disabled=true;
   try{
-    const exact=exactToolAnswer(q);if(exact){typing(false);addMessage('assistant',exact,questionLang(q)==='zh'?'MMHVAULT 精确计算':'MMHVAULT exact calculation');setMode(T('Exact finance engine ready · Local AI for open questions','精确财务计算可用 · 开放式问题由本地 AI 处理'));return}
-    typing(false);await localAIAsk(q);setMode(T(`Local AI ready · ${modelLabel(state.engineModel)} · read-only`,`本地 AI 已就绪 · ${modelLabel(state.engineModel)} · 只读`));
+    thinkingStage('Verifying the current account scope…','正在验证当前登录账号范围……');await ensureCurrentScope();
+    thinkingStage('Checking exact MMHVAULT facts…','正在核对 MMHVAULT 精确数据……');const exact=exactToolAnswer(q);
+    if(exact){typing(false);await typewriterAnswer(exact,questionLang(q)==='zh'?'MMHVAULT 精确计算 · 当前账号':'MMHVAULT exact calculation · current account',11);setMode(T('Verified current-account finance engine ready','已验证当前账号财务计算可用'));return}
+    await localAIAsk(q);setMode(T(`Local AI ready · ${modelLabel(state.engineModel)} · verified current account only`,`本地 AI 已就绪 · ${modelLabel(state.engineModel)} · 仅限已验证当前账号`));
   }catch(e){
-    typing(false);console.warn('[MMHVAULT Local AI] answer failed',e);const zh=questionLang(q)==='zh';if(String(e?.message||e)!=='webgpu-unavailable')addMessage('assistant',zh?'这个问题需要语言模型进行开放式解释，但当前本地模型没有成功运行。精确数字类问题（余额、分类比较、储蓄率、月份预测）仍可直接询问。':'This open-ended question needs the language model, but the local model is not running. Exact numeric questions such as balances, category comparisons, savings rate and month projections still work.',zh?'本地 AI 暂不可用':'Local AI unavailable');
-  }finally{state.sending=false;$('send').disabled=false;input?.focus({preventScroll:true})}
+    typing(false);console.warn('[MMHVAULT Local AI] answer failed',e);const zh=questionLang(q)==='zh',msg=String(e?.message||e);
+    if(msg==='account-scope-changed'||msg==='not-signed-in'){clearFinancialScope('account-changed');addMessage('assistant',zh?'检测到登录账号发生变化。为防止混用旧账号数据，我已经清空当前财务上下文。请确认当前账号后点击“刷新数据”。':'The signed-in account changed. To prevent mixing data across accounts, the financial context was cleared. Confirm the current account and press Refresh data.','MMHVAULT scope guard')}
+    else if(msg!=='webgpu-unavailable')addMessage('assistant',zh?'这个问题需要本地语言模型进行开放式解释，但当前模型没有成功运行。精确数字类问题仍可直接询问；也可以重新准备模型后再试。':'This open-ended question needs the local language model, but the model is not running. Exact numeric questions still work; you can also prepare the model and retry.','Local AI unavailable');
+  }finally{state.sending=false;$('send').disabled=false;$('refreshData').disabled=false;input?.focus({preventScroll:true})}
 }
 function bind(){
   $('backApp').onclick=()=>location.assign('app.html');
   $('clear').onclick=()=>{state.messages=[];renderThread();$('input')?.focus()};
+  $('refreshData').onclick=async()=>{if(state.sending)return;$('refreshData').disabled=true;try{setMode(T('Refreshing verified current-account data…','正在刷新已验证的当前账号数据……'));await loadData();setMode(T('Current-account data refreshed','当前账号数据已刷新'))}catch(e){clearFinancialScope(String(e?.message||e)==='account-scope-changed'?'account-changed':'scope-cleared')}finally{$('refreshData').disabled=false}};
   $('send').onclick=()=>send();
   $('prepareAI').onclick=()=>prepareLocalAI(true).catch(()=>{});
   $('clearAICache').onclick=async()=>{
@@ -338,6 +436,16 @@ function bind(){
 }
 async function start(){
   applyTheme();bind();translate();
+  if(db?.auth?.onAuthStateChange){
+    const sub=db.auth.onAuthStateChange((event,session)=>{
+      const nextId=session?.user?.id||'';
+      if(state.scopeUserId&&nextId!==state.scopeUserId){
+        clearFinancialScope('account-changed');
+        if(nextId)queueMicrotask(()=>loadData().catch(e=>console.warn('[MMHVAULT AI] account reload failed',e)))
+      }else if(!nextId&&state.scopeUserId)clearFinancialScope('scope-cleared')
+    });
+    state.authSubscription=sub?.data?.subscription||null
+  }
   try{const saved=localStorage.getItem('mmhvault_local_ai_model_v113');if(saved&&[...$('modelChoice').options].some(o=>o.value===saved))$('modelChoice').value=saved}catch(_e){}
   if(!('gpu' in navigator)){$('localStatus').textContent=T('WebGPU not detected. Exact finance calculations still work; open-ended Local AI needs a supported browser/device.','未检测到 WebGPU。精确财务计算仍可使用；开放式本地 AI 需要支持 WebGPU 的浏览器/设备。');$('prepareAI').disabled=true}
   else{
