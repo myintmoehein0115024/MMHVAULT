@@ -6,7 +6,7 @@
 <meta name="color-scheme" content="dark light">
 <meta name="theme-color" content="#061522">
 <title>MMHVAULT · Local AI Financial Assistant</title>
-<!-- MMHVAULT Local AI 1.11.2 · hybrid exact finance engine + browser WebGPU AI · no paid AI API -->
+<!-- MMHVAULT Local AI 1.11.3 · hybrid exact finance engine + browser WebGPU AI · no paid AI API -->
 <link rel="icon" href="images/icon-192.png">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>if(typeof supabase==='undefined')document.write('<script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.min.js"><\/script>')</script>
@@ -28,6 +28,8 @@ body.light{--bg:#eef5f8;--bg2:#f7fbfd;--panel:#fff;--panel2:#f7fbfd;--line:rgba(
 body.light .localsetup{background:#f7fbfd;border-color:#cbdfe4}body.light .localtools select,body.light .localtools button{background:#eef6f9;color:#2f5468;border-color:#cddfe8}body.light .localtools button{background:#2a7697;color:#fff}
 @media(max-width:720px){.localsetup{grid-template-columns:1fr}.localtools{justify-content:stretch}.localtools select,.localtools button{flex:1 1 100%;max-width:none}.chathead{gap:8px}.chattools{flex-wrap:wrap;justify-content:flex-end}}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;scroll-behavior:auto!important;transition:none!important}}
+
+.localtools .secondary{background:rgba(11,41,62,.72);border-color:#284e67;color:#bcd0de}.localtools .secondary:hover{background:rgba(16,55,80,.9)}
 </style>
 </head>
 <body>
@@ -36,7 +38,7 @@ body.light .localsetup{background:#f7fbfd;border-color:#cbdfe4}body.light .local
 <main class="wrap">
   <section class="hero"><div><span class="kicker">MMHVAULT AI</span><h1 data-en="Financial Assistant" data-zh="AI 财务助手">Financial Assistant</h1><p data-en="Ask about spending, income, cash flow, assets and planning. This page only reads data for the currently authenticated Personal account." data-zh="可以询问开销、收入、现金流、资产和规划。本页面只读取当前已登录 Personal 账号的数据。">Ask about spending, income, cash flow, assets and planning. This page only reads data for the currently authenticated Personal account.</p></div><div class="privacy"><i></i><b data-en="Local AI · Read-only" data-zh="本地 AI · 只读">Local AI · Read-only</b><small data-en="Current account only" data-zh="仅当前账号">Current account only</small></div></section>
   <div class="notice"><span>i</span><div><b data-en="Private Local AI" data-zh="私有本地 AI">Private Local AI</b> · <span data-en="The language model runs directly in this browser with WebGPU. Your MMHVAULT financial context is not sent to an AI provider. First use downloads public model files to this browser and caches them locally; no paid AI API key is required." data-zh="语言模型通过 WebGPU 直接在当前浏览器运行。MMHVAULT 财务上下文不会发送给 AI 服务商。首次使用会把公开模型文件下载并缓存到本浏览器，不需要任何付费 AI API Key。">The language model runs directly in this browser with WebGPU. Your MMHVAULT financial context is not sent to an AI provider. First use downloads public model files to this browser and caches them locally; no paid AI API key is required.</span></div></div>
-  <section class="localsetup" id="localSetup"><div><b class="local-badge" data-en="Free Local AI" data-zh="免费本地 AI">Free Local AI</b><small id="localStatus" data-en="Exact balances and projections are calculated by MMHVAULT first; Local AI handles explanations and open-ended planning. Choose a model and prepare it once." data-zh="余额、分类比较和预测会先由 MMHVAULT 精确计算；本地 AI 负责解释和开放式规划。选择模型并首次准备一次即可。">Exact balances and projections are calculated by MMHVAULT first; Local AI handles explanations and open-ended planning. Choose a model and prepare it once.</small></div><div class="localtools"><select id="modelChoice" aria-label="Local AI model"><option value="Qwen3-0.6B-q4f16_1-MLC" data-en="Recommended · Qwen3 0.6B · Chinese-friendly · ~0.35 GB download" data-zh="推荐 · Qwen3 0.6B · 中文更好 · 约 0.35 GB 下载">Recommended · Qwen3 0.6B · Chinese-friendly · ~0.35 GB download</option><option value="Llama-3.2-1B-Instruct-q4f16_1-MLC" data-en="Compatibility · Llama 3.2 1B · ~0.9 GB memory" data-zh="兼容 · Llama 3.2 1B · 约 0.9 GB 内存">Compatibility · Llama 3.2 1B · ~0.9 GB memory</option><option value="Qwen3-1.7B-q4f16_1-MLC" data-en="Advanced · Qwen3 1.7B · ~1.0 GB download · regular window recommended" data-zh="增强 · Qwen3 1.7B · 约 1.0 GB 下载 · 建议普通窗口">Advanced · Qwen3 1.7B · ~1.0 GB download · regular window recommended</option></select><button id="prepareAI" type="button" data-en="Prepare Local AI" data-zh="准备本地 AI">Prepare Local AI</button></div><div class="progress" id="modelProgress"><i id="modelProgressBar"></i></div></section>
+  <section class="localsetup" id="localSetup"><div><b class="local-badge" data-en="Free Local AI" data-zh="免费本地 AI">Free Local AI</b><small id="localStatus" data-en="Exact balances and projections are calculated by MMHVAULT first; Local AI handles explanations and open-ended planning. Choose a model and prepare it once." data-zh="余额、分类比较和预测会先由 MMHVAULT 精确计算；本地 AI 负责解释和开放式规划。选择模型并首次准备一次即可。">Exact balances and projections are calculated by MMHVAULT first; Local AI handles explanations and open-ended planning. Choose a model and prepare it once.</small></div><div class="localtools"><select id="modelChoice" aria-label="Local AI model"><option value="Qwen3-0.6B-q4f16_1-MLC" data-en="Recommended · Qwen3 0.6B · Chinese-friendly · ~0.35 GB download" data-zh="推荐 · Qwen3 0.6B · 中文更好 · 约 0.35 GB 下载">Recommended · Qwen3 0.6B · Chinese-friendly · ~0.35 GB download</option><option value="Llama-3.2-1B-Instruct-q4f16_1-MLC" data-en="Compatibility · Llama 3.2 1B · ~0.9 GB memory" data-zh="兼容 · Llama 3.2 1B · 约 0.9 GB 内存">Compatibility · Llama 3.2 1B · ~0.9 GB memory</option><option value="Qwen3-1.7B-q4f16_1-MLC" data-en="Advanced · Qwen3 1.7B · ~1.0 GB download · regular window recommended" data-zh="增强 · Qwen3 1.7B · 约 1.0 GB 下载 · 建议普通窗口">Advanced · Qwen3 1.7B · ~1.0 GB download · regular window recommended</option></select><button id="prepareAI" type="button" data-en="Prepare Local AI" data-zh="准备本地 AI">Prepare Local AI</button><button id="clearAICache" type="button" class="secondary" data-en="Clear AI cache" data-zh="清理 AI 缓存">Clear AI cache</button></div><div class="progress" id="modelProgress"><i id="modelProgressBar"></i></div></section>
 
   <section class="metrics" id="metrics" aria-live="polite"></section>
   <section class="layout">
@@ -176,6 +178,38 @@ function modelDownloadNeed(id){
   if(String(id).includes('Qwen3-0.6B'))return .48*(1024**3);
   return .75*(1024**3)
 }
+const KNOWN_LOCAL_AI_MODELS=['Qwen3-0.6B-q4f16_1-MLC','Llama-3.2-1B-Instruct-q4f16_1-MLC','Qwen3-1.7B-q4f16_1-MLC'];
+function isQuotaError(e){return /quota|storage|exceed|space|capacity/i.test(String(e?.message||e||''))}
+async function releaseLocalEngine(){
+  if(state.engine&&typeof state.engine.unload==='function'){try{await state.engine.unload()}catch(_e){}}
+  state.engine=null;state.engineReady=false;state.engineModel='';
+}
+async function clearKnownModelCaches(keep=''){
+  const removed=[];
+  for(const id of KNOWN_LOCAL_AI_MODELS){
+    if(keep&&id===keep)continue;
+    try{
+      if(typeof webllm.deleteModelAllInfoInCache==='function'){
+        await webllm.deleteModelAllInfoInCache(id);
+        removed.push(id)
+      }
+    }catch(e){console.warn('[MMHVAULT Local AI] cache cleanup skipped',id,e)}
+  }
+  return removed
+}
+async function clearAllLocalAICaches(){
+  await releaseLocalEngine();
+  const removed=await clearKnownModelCaches('');
+  try{localStorage.removeItem('mmhvault_local_ai_model_v113')}catch(_e){}
+  $('modelProgressBar').style.width='0%';$('modelProgress').classList.remove('show');
+  const sp=await storageProfile();
+  const msg=T(
+    `Local AI model cache cleared${sp.quota>0?` · ${gb(sp.free).toFixed(2)} GB browser storage available`:''}. Your MMHVAULT financial data was not deleted.`,
+    `本地 AI 模型缓存已清理${sp.quota>0?` · 当前约有 ${gb(sp.free).toFixed(2)} GB 浏览器存储可用`:''}。MMHVAULT 财务数据没有被删除。`
+  );
+  $('localStatus').textContent=msg;setMode(T('Local AI cache cleared · choose a model','本地 AI 缓存已清理 · 请选择模型'));
+  return removed
+}
 async function createEngine(model){
   const ctx=isAdvanced(model)?1024:(String(model).includes('Qwen3-0.6B')?1024:1536);
   return await webllm.CreateMLCEngine(model,{initProgressCallback:progressUpdate,logLevel:'WARN'},{context_window_size:ctx})
@@ -208,7 +242,7 @@ async function prepareLocalAI(force=false){
     }
   }
 
-  state.engineLoading=true;state.engineReady=false;$('prepareAI').disabled=true;$('modelChoice').disabled=true;$('modelProgress').classList.add('show');
+  state.engineLoading=true;state.engineReady=false;$('prepareAI').disabled=true;$('clearAICache').disabled=true;$('modelChoice').disabled=true;$('modelProgress').classList.add('show');
   try{
     const storageNote=sp.quota>0?T(
       `Browser storage available: ${gb(sp.free).toFixed(2)} GB${sp.persisted?' · persistent':' · temporary/non-persistent'}.`,
@@ -219,10 +253,24 @@ async function prepareLocalAI(force=false){
       `First use downloads public model files once. ${storageNote} Exact financial calculations do not depend on the model.`,
       `首次会下载公开模型文件一次。${storageNote} 精确财务计算不依赖语言模型。`
     );
-    if(state.engine&&state.engineModel!==wanted&&typeof state.engine.unload==='function'){try{await state.engine.unload()}catch(_e){}}
-    state.engine=await createEngine(wanted);
+    if(state.engine&&state.engineModel!==wanted)await releaseLocalEngine();
+    try{
+      state.engine=await createEngine(wanted);
+    }catch(firstError){
+      if(!isQuotaError(firstError))throw firstError;
+      console.warn('[MMHVAULT Local AI] quota reached; reclaiming old model caches and retrying once',firstError);
+      $('localStatus').textContent=T(
+        'Browser model storage is full. MMHVAULT is clearing old Local AI model files and retrying the selected model once. Financial data is not touched.',
+        '浏览器 AI 模型存储已满。MMHVAULT 正在清理旧的本地 AI 模型文件，并自动重试当前模型一次。不会删除任何财务数据。'
+      );
+      await releaseLocalEngine();
+      await clearKnownModelCaches('');
+      const after=await storageProfile();
+      if(after.quota>0&&after.free<need)throw Error(`Quota exceeded: selected model needs about ${gb(need).toFixed(2)} GB but browser has ${gb(after.free).toFixed(2)} GB free after cache cleanup`);
+      state.engine=await createEngine(wanted);
+    }
     state.engineModel=wanted;state.engineReady=true;
-    try{localStorage.setItem('mmhvault_local_ai_model_v112',wanted)}catch(_e){}
+    try{localStorage.setItem('mmhvault_local_ai_model_v113',wanted)}catch(_e){}
     $('modelProgressBar').style.width='100%';
     $('localStatus').textContent=T(
       `${modelLabel(wanted)} is ready. Exact numbers come from MMHVAULT; AI handles explanation and planning.`,
@@ -243,7 +291,7 @@ async function prepareLocalAI(force=false){
     );
     $('localStatus').textContent=msg;setMode(msg,true);throw e
   }finally{
-    state.engineLoading=false;$('prepareAI').disabled=false;$('modelChoice').disabled=false;
+    state.engineLoading=false;$('prepareAI').disabled=false;$('clearAICache').disabled=false;$('modelChoice').disabled=false;
     setTimeout(()=>{if(state.engineReady)$('modelProgress')?.classList.remove('show')},1000)
   }
 }
@@ -278,22 +326,27 @@ function bind(){
   $('clear').onclick=()=>{state.messages=[];renderThread();$('input')?.focus()};
   $('send').onclick=()=>send();
   $('prepareAI').onclick=()=>prepareLocalAI(true).catch(()=>{});
-  $('modelChoice').addEventListener('change',()=>{state.engineReady=false;setMode(T('Model changed · prepare Local AI','模型已更改 · 请准备本地 AI'));$('localStatus').textContent=T('Press Prepare Local AI to load the selected model.','点击“准备本地 AI”加载所选模型。')});
+  $('clearAICache').onclick=async()=>{
+    if(state.engineLoading)return;
+    $('clearAICache').disabled=true;$('prepareAI').disabled=true;$('modelChoice').disabled=true;
+    try{await clearAllLocalAICaches()}finally{$('clearAICache').disabled=false;$('prepareAI').disabled=false;$('modelChoice').disabled=false}
+  };
+  $('modelChoice').addEventListener('change',()=>{state.engineReady=false;setMode(T('Model changed · prepare Local AI','模型已更改 · 请准备本地 AI'));$('localStatus').textContent=T('Press Prepare Local AI to load the selected model. If browser storage is full, MMHVAULT will clear old model files and retry once.','点击“准备本地 AI”加载所选模型。如果浏览器存储已满，MMHVAULT 会清理旧模型文件并自动重试一次。')});
   $('input').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();send()}});
   document.querySelectorAll('.prompt').forEach(b=>b.addEventListener('click',()=>send(lang()==='zh'?b.dataset.promptZh:b.dataset.promptEn)));
   window.addEventListener('storage',e=>{if(e.key==='myfinance_theme')applyTheme();if(e.key==='mmhvault_language_v3363')translate()})
 }
 async function start(){
   applyTheme();bind();translate();
-  try{const saved=localStorage.getItem('mmhvault_local_ai_model_v112');if(saved&&[...$('modelChoice').options].some(o=>o.value===saved))$('modelChoice').value=saved}catch(_e){}
+  try{const saved=localStorage.getItem('mmhvault_local_ai_model_v113');if(saved&&[...$('modelChoice').options].some(o=>o.value===saved))$('modelChoice').value=saved}catch(_e){}
   if(!('gpu' in navigator)){$('localStatus').textContent=T('WebGPU not detected. Exact finance calculations still work; open-ended Local AI needs a supported browser/device.','未检测到 WebGPU。精确财务计算仍可使用；开放式本地 AI 需要支持 WebGPU 的浏览器/设备。');$('prepareAI').disabled=true}
   else{
     try{
       const sp=await storageProfile();
       if(sp.quota>0&&!sp.persisted&&gb(sp.free)<1.25){
         $('localStatus').textContent=T(
-          `Browser storage is temporary/non-persistent and only ${gb(sp.free).toFixed(2)} GB is available. Recommended should work; Advanced may fail in private/incognito mode.`,
-          `浏览器存储为临时/非持久状态，当前可用约 ${gb(sp.free).toFixed(2)} GB。推荐模型通常可用；无痕/隐私模式下增强模型可能失败。`
+          `Browser storage is temporary/non-persistent and only ${gb(sp.free).toFixed(2)} GB is available. Private/incognito mode often limits model storage. Use one model at a time; MMHVAULT can clear old AI model files automatically if quota is reached.`,
+          `浏览器存储为临时/非持久状态，当前可用约 ${gb(sp.free).toFixed(2)} GB。无痕/隐私模式通常会限制模型存储。建议一次只保留一个模型；达到额度时 MMHVAULT 会自动清理旧 AI 模型文件。`
         )
       }
     }catch(_e){}
