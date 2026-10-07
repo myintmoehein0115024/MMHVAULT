@@ -6,7 +6,7 @@
 <meta name="color-scheme" content="dark light">
 <meta name="theme-color" content="#061522">
 <title>MMHVAULT · Local AI Financial Assistant</title>
-<!-- MMHVAULT Local AI 1.11.5 · hybrid exact finance engine + browser WebGPU AI · no paid AI API -->
+<!-- MMHVAULT Local AI 1.11.6 · resilient session/RLS scope + browser WebGPU AI · no paid AI API -->
 <link rel="icon" href="images/icon-192.png">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>if(typeof supabase==='undefined')document.write('<script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.min.js"><\/script>')</script>
@@ -76,13 +76,31 @@ function flowRows(key){return (state.data?.transactions||[]).filter(t=>String(t.
 function monthSummary(key){let income=0,expense=0,personal=0;const cats={};for(const t of flowRows(key)){const g=txGroup(t);if(t.type==='Income')income+=amountUSD(t.to_account,t.to_amount);else{const v=amountUSD(t.from_account,t.from_amount);expense+=v;if(g==='Personal')personal+=v;const cat=String(t.category||'Other');cats[cat]=(cats[cat]||0)+v}}const remaining=income-expense,top=Object.entries(cats).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([name,value])=>({name,value,pct:expense?value/expense*100:0}));return{key,income,expense,personal,remaining,savings_rate:income?remaining/income*100:0,top_categories:top,records:flowRows(key).length}}
 function accountBalances(){const cfg=state.data?.config?.accounts||[],tx=state.data?.transactions||[],inv=state.data?.investments||[],custom=state.data?.customInvestments||[];return cfg.filter(a=>a?.name&&a.active!==false).map(a=>{let bal=0;for(const t of tx){if(isLinkedInvestment(t))continue;if(lc(t.to_account)===lc(a.name))bal+=N(t.to_amount);if(lc(t.from_account)===lc(a.name))bal-=N(t.from_amount)}for(const x of inv)if(lc(x.source_account)===lc(a.name))bal-=N(x.amount)+N(x.fee)+N(x.other_cost);for(const x of custom)if(lc(x.source_account)===lc(a.name))bal-=N(x.amount)+N(x.fee)+N(x.other_cost);return{name:a.name,currency:a.currency||'USD',balance:bal,balance_usd:amountUSD(a.name,bal)}})}
 function summary(){const curKey=monthKey(),prevKey=shiftMonth(curKey,-1),cur=monthSummary(curKey),prev=monthSummary(prevKey);const months=[];for(let i=11;i>=0;i--)months.push(monthSummary(shiftMonth(curKey,-i)));const completed=months.filter(x=>x.key!==curKey&&x.records>0).slice(-6),avg=completed.length?completed.reduce((s,x)=>s+x.remaining,0)/completed.length:0;const balances=accountBalances();return{generated_at:new Date().toISOString(),current_month:cur,previous_month:prev,last_12_months:months.map(x=>({key:x.key,income_usd:x.income,expense_usd:x.expense,remaining_usd:x.remaining,savings_rate_pct:x.savings_rate,records:x.records})),completed_months_used:completed.length,average_completed_month_net_usd:avg,accounts:balances.map(x=>({name:x.name,currency:x.currency,balance:x.balance,balance_usd:x.balance_usd})),investment_records:(state.data?.investments||[]).length,custom_investment_records:(state.data?.customInvestments||[]).length,wallet_activity_records:(state.data?.walletMovements||[]).length,budgets:(state.data?.budgets||[]).slice(0,12),goals:(state.data?.goals||[]).slice(0,30),recurring:(state.data?.recurring||[]).slice(0,40)}}
+function withTimeout(promise,ms,code='timeout'){
+  let timer;
+  return Promise.race([
+    Promise.resolve(promise).finally(()=>{if(timer)clearTimeout(timer)}),
+    new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error(code)),ms)})
+  ])
+}
+function jwtSubject(token){
+  try{
+    const p=String(token||'').split('.')[1];if(!p)return'';
+    const b64=p.replace(/-/g,'+').replace(/_/g,'/').padEnd(Math.ceil(p.length/4)*4,'=');
+    return String(JSON.parse(atob(b64))?.sub||'')
+  }catch(_e){return''}
+}
 async function verifiedAuthUser(){
   if(!db)throw Error('Supabase client unavailable');
-  const session=(await db.auth.getSession()).data?.session;
-  if(!session?.user?.id)throw Error('not-signed-in');
-  const verified=(await db.auth.getUser()).data?.user;
-  if(!verified?.id||verified.id!==session.user.id)throw Error('not-signed-in');
-  return verified
+  const result=await withTimeout(db.auth.getSession(),5000,'auth-timeout');
+  const session=result?.data?.session;
+  if(!session?.user?.id||!session?.access_token)throw Error('not-signed-in');
+  const sub=jwtSubject(session.access_token);
+  if(!sub||sub!==String(session.user.id))throw Error('account-scope-changed');
+  // Database reads below use this signed-in JWT and Supabase RLS, plus an explicit user_id filter.
+  // That server-side enforcement is the authority for current-account isolation; no remote getUser()
+  // round-trip is required here, avoiding Safari/Supabase auth-lock stalls during page navigation.
+  return session.user
 }
 function clearFinancialScope(reason='scope-cleared'){
   state.user=null;state.scopeUserId='';state.data=null;state.canonical=null;state.loadedAt=0;state.messages=[];
@@ -108,19 +126,30 @@ function canonicalSnapshotFor(userId){
 async function safeQuery(table,select='*',order='',limit=200,expectedUserId=''){
   const uid=expectedUserId||state.scopeUserId||state.user?.id;
   if(!uid)throw Error('missing-user-scope');
+  let q=db.from(table).select(select).eq('user_id',uid);
+  if(order){const [col,dir]=order.split('.');q=q.order(col,{ascending:dir!=='desc'})}
+  if(limit)q=q.limit(limit);
   try{
-    let q=db.from(table).select(select).eq('user_id',uid);
-    if(order){const [col,dir]=order.split('.');q=q.order(col,{ascending:dir!=='desc'})}
-    if(limit)q=q.limit(limit);
-    const r=await q;if(r.error)throw r.error;
+    const r=await withTimeout(q,12000,'data-timeout:'+table);
+    if(r?.error){
+      const msg=String(r.error?.message||r.error||'');
+      if(/jwt|auth|session|permission|401|403/i.test(msg))throw Error('not-signed-in');
+      throw Error('data-read-failed:'+table);
+    }
     if(state.scopeUserId&&state.scopeUserId!==uid)throw Error('account-scope-changed');
-    return Array.isArray(r.data)?r.data:[]
-  }catch(e){console.warn('[MMHVAULT AI] scoped read failed',table,e);if(String(e?.message||e)==='account-scope-changed')throw e;return[]}
+    return Array.isArray(r?.data)?r.data:[]
+  }catch(e){
+    console.warn('[MMHVAULT AI] scoped read failed',table,e);
+    const msg=String(e?.message||e);
+    if(msg==='account-scope-changed'||msg==='not-signed-in'||msg.startsWith('data-timeout:')||msg.startsWith('data-read-failed:'))throw e;
+    throw Error('data-read-failed:'+table)
+  }
 }
 async function loadData(options={}){
   const silent=options?.silent===true,verified=await verifiedAuthUser(),uid=verified.id;
   if(state.scopeUserId&&state.scopeUserId!==uid)clearFinancialScope('account-changed');
   state.user=verified;state.scopeUserId=uid;
+  if(!silent)setMode(T('Current account verified · loading Personal data…','当前账号已验证 · 正在读取 Personal 数据……'));
   const [transactions,investments,customInvestments,walletMovements,rateRows,budgets,goals,recurring]=await Promise.all([
     safeQuery('transactions','*','tx_date.desc',700,uid),safeQuery('investments','*','inv_date.desc',300,uid),safeQuery('custom_investments','*','inv_date.desc',200,uid),safeQuery('crypto_wallet_movements','*','movement_date.desc',240,uid),safeQuery('exchange_rates','*','',5,uid),safeQuery('budgets','*','budget_month.desc',24,uid),safeQuery('financial_goals','*','updated_at.desc',80,uid),safeQuery('recurring_transactions','*','next_due_date.asc',100,uid)
   ]);
@@ -172,7 +201,7 @@ function exactToolAnswer(q){
   const zh=questionLang(q)==='zh',ql=lc(q),f=financeFacts(),cur=f.current_month,prev=f.previous_month;
   if(/^(你好|您好|嗨|hello|hi|hey)[!！。\s]*$/i.test(String(q).trim())||/你能(帮我|做|解答)|能回答什么|what can you|what do you do/i.test(q))return zh?'我可以读取当前登录账号的 MMHVAULT Personal 数据，精确计算账户余额、收入、开销、储蓄率、分类变化和现金流情景；开放式的“为什么、怎么规划”再交给本地 AI 解释。所有功能只读，不会改账。':'I can read only the current signed-in MMHVAULT Personal data, calculate balances, income, spending, savings rate, category changes and cash-flow scenarios exactly, then use Local AI for open-ended explanations and planning. I am read-only.';
   const target=projectionTarget(q);if(target&&/(存款|余额|现金|save|saving|balance|cash)/i.test(q)){if(f.average_completed_month_net_usd===null)return zh?'目前没有足够的已完成月份记录来做可靠预测。至少需要 1 个完整月份的正常收入/开销数据。':'There is not enough completed-month history for a reliable projection yet.';const change=round2(f.average_completed_month_net_usd*target.months),projected=round2(f.account_cash_total_usd+change);return zh?`按最近 ${f.completed_months_used} 个有记录的完整月份，平均每月净现金流约为 ${signedMoney(f.average_completed_month_net_usd)}。当前账户现金余额合计约 ${usd(f.account_cash_total_usd)}。如果这个平均水平保持不变，到${target.label}预计账户现金余额约为 ${usd(projected)}（预计变化 ${signedMoney(change)}）。这是现金流情景，不是保证；投资价格、大额支出和收入变化都会改变结果。`:`Using the most recent ${f.completed_months_used} completed months with records, average monthly net cash flow is about ${signedMoney(f.average_completed_month_net_usd)}. Current account cash is about ${usd(f.account_cash_total_usd)}. If that pace continues, projected account cash for ${target.label} is about ${usd(projected)} (${signedMoney(change)} change). This is a scenario, not a guarantee.`}
-  if(/(总资产|净资产|总余额|账户净资产|net\s*worth|total\s*assets?|account\s*net\s*assets?|total\s*balance)/i.test(q)){if(f.account_net_assets_usd!=null)return zh?`当前 MMHVAULT Accounts 页面口径的账户净资产为 ${usd(f.account_net_assets_usd)}。其中资产 ${usd(f.account_assets_usd)}，负债 ${usd(f.account_liabilities_usd)}；该数字直接使用主 APP 的 Accounts 正式计算结果，不再由 AI 重新估算。`:`Current MMHVAULT Accounts net assets are ${usd(f.account_net_assets_usd)}: ${usd(f.account_assets_usd)} assets and ${usd(f.account_liabilities_usd)} liabilities. This comes directly from the main app's canonical Accounts calculation, not an AI estimate.`;return zh?'当前 AI 页面没有拿到主 APP 的 Accounts 精确快照。请点击“Back to MMHVAULT”，再从 More → AI Assistant 进入，我会读取主 APP 已算好的账户净资产，而不是自行估算。':'The AI page does not currently have the main app's canonical Accounts snapshot. Return to MMHVAULT and reopen More → AI Assistant so I can use the exact Accounts total instead of estimating it.'}
+  if(/(总资产|净资产|总余额|账户净资产|net\s*worth|total\s*assets?|account\s*net\s*assets?|total\s*balance)/i.test(q)){if(f.account_net_assets_usd!=null)return zh?`当前 MMHVAULT Accounts 页面口径的账户净资产为 ${usd(f.account_net_assets_usd)}。其中资产 ${usd(f.account_assets_usd)}，负债 ${usd(f.account_liabilities_usd)}；该数字直接使用主 APP 的 Accounts 正式计算结果，不再由 AI 重新估算。`:`Current MMHVAULT Accounts net assets are ${usd(f.account_net_assets_usd)}: ${usd(f.account_assets_usd)} assets and ${usd(f.account_liabilities_usd)} liabilities. This comes directly from the main app\'s canonical Accounts calculation, not an AI estimate.`;return zh?'当前 AI 页面没有拿到主 APP 的 Accounts 精确快照。请点击“Back to MMHVAULT”，再从 More → AI Assistant 进入，我会读取主 APP 已算好的账户净资产，而不是自行估算。':'The AI page does not currently have the main app\'s canonical Accounts snapshot. Return to MMHVAULT and reopen More → AI Assistant so I can use the exact Accounts total instead of estimating it.'}
   if(/(现金余额|现金有多少|cash\s*balance|cash\s*on\s*hand)/i.test(q))return zh?`按交易与账户货币换算计算，当前活动账户的现金/USDT 部分约为 ${usd(f.account_cash_total_usd)}。这只是现金部分；MMHVAULT Accounts 的“账户净资产”请以 ${f.account_net_assets_usd!=null?usd(f.account_net_assets_usd):'主 APP Accounts 页面'} 为准。`:`Current transaction-derived cash/USDT is about ${usd(f.account_cash_total_usd)}. This is the cash portion only; use ${f.account_net_assets_usd!=null?usd(f.account_net_assets_usd):'the main MMHVAULT Accounts page'} for Account net assets.`;
   const cat=categoryFromQuestion(q);if(cat&&/(上个月|本月|这个月|相比|变化|多了|少了|last month|this month|compare|change)/i.test(q)){const a=categoryValue(cur.key,cat),b=categoryValue(prev.key,cat),d=round2(a-b),rate=b?round2(d/b*100):null;return zh?`${cat}：本月 ${usd(a)}，上月 ${usd(b)}，变化 ${signedMoney(d)}${rate===null?'':`（${rate>=0?'+':''}${rate.toFixed(1)}%）`}。${a>b?'本月已高于上月。':a<b?'本月目前低于上月。':'目前与上月相同。'}`:`${cat}: ${usd(a)} this month vs ${usd(b)} last month, a ${signedMoney(d)} change${rate===null?'':` (${rate>=0?'+':''}${rate.toFixed(1)}%)`}.`}
   if(/(开销|支出|spending|expense).*(上个月|相比|compare|last month)|(上个月|last month).*(开销|支出|spending|expense)/i.test(q)){const d=round2(cur.expense-prev.expense),rate=prev.expense?round2(d/prev.expense*100):null;return zh?`本月正常开销 ${usd(cur.expense)}，上月 ${usd(prev.expense)}，变化 ${signedMoney(d)}${rate===null?'':`（${rate>=0?'+':''}${rate.toFixed(1)}%）`}。内部 Transfer、Data Adjustment、Loan 和 linked investment cash flow 都没有计入。`:`Ordinary spending is ${usd(cur.expense)} this month vs ${usd(prev.expense)} last month, a ${signedMoney(d)} change${rate===null?'':` (${rate>=0?'+':''}${rate.toFixed(1)}%)`}. Transfers, adjustments, loans and linked investment cash flow are excluded.`}
@@ -210,7 +239,7 @@ function systemPrompt(question){const zh=questionLang(question)==='zh';return `$
 ${zh?'回答前先静默完成三项检查：理解用户真正问什么；核对 MMHVAULT 权威数字；确认没有使用上下文以外的账号或数据。不要向用户展示内部推理过程。':'Before answering, silently do three checks: identify what the user actually asked; verify the authoritative MMHVAULT facts; confirm you are not using data outside the supplied current-account context. Do not reveal internal reasoning.'}
 ${zh?'最重要规则：':'Most important rules:'}
 - ${zh?'只能使用本次上下文中当前登录账号的数据。绝不推断、请求或讨论其他账号的数据；如果用户要求其他账号数据，明确说明不可访问。':'Use only the current signed-in account data in this context. Never infer, request, or discuss another user/account\'s data; if asked, state that it is unavailable.'}
-- ${zh?'exact_facts.account_net_assets_usd（有值时）直接来自主 APP 的 Accounts 正式计算，是账户净资产唯一权威总额；不要用 account_cash_total_usd 或 estimated_net_assets_usd 替代它。current_month/previous_month 也由 MMHVAULT 计算引擎提供。不要重新心算、改写或猜测这些数值。':'When exact_facts.account_net_assets_usd is present, it comes directly from the main app's canonical Accounts calculation and is the only authoritative Account net-assets total. Never substitute account_cash_total_usd or estimated_net_assets_usd for it. current_month/previous_month are also MMHVAULT-computed facts. Do not recalculate, alter, or guess these values.'}
+- ${zh?'exact_facts.account_net_assets_usd（有值时）直接来自主 APP 的 Accounts 正式计算，是账户净资产唯一权威总额；不要用 account_cash_total_usd 或 estimated_net_assets_usd 替代它。current_month/previous_month 也由 MMHVAULT 计算引擎提供。不要重新心算、改写或猜测这些数值。':'When exact_facts.account_net_assets_usd is present, it comes directly from the main app\'s canonical Accounts calculation and is the only authoritative Account net-assets total. Never substitute account_cash_total_usd or estimated_net_assets_usd for it. current_month/previous_month are also MMHVAULT-computed facts. Do not recalculate, alter, or guess these values.'}
 - ${zh?'如果问题要求一个上下文没有提供的精确数字，明确说当前无法精确计算，不要编造。':'If an exact number is not present in context, say it cannot be calculated exactly from the available context. Never invent it.'}
 - ${zh?'先直接回答用户的问题，再解释最相关的 2-4 个依据；不要答非所问，不要重复固定模板。':'Answer the actual question first, then explain the 2-4 most relevant supporting points. Do not answer a different question or repeat a canned template.'}
 - ${zh?'只读，不声称修改、删除、交易、转账或写入任何记录。':'Read-only. Never claim to edit, delete, trade, transfer, or write records.'}
@@ -440,7 +469,7 @@ async function send(text){
 function bind(){
   $('backApp').onclick=()=>location.assign('app.html');
   $('clear').onclick=()=>{state.messages=[];renderThread();$('input')?.focus()};
-  $('refreshData').onclick=async()=>{if(state.sending)return;$('refreshData').disabled=true;try{setMode(T('Refreshing verified current-account data…','正在刷新已验证的当前账号数据……'));await loadData();setMode(T('Current-account data refreshed','当前账号数据已刷新'))}catch(e){clearFinancialScope(String(e?.message||e)==='account-scope-changed'?'account-changed':'scope-cleared')}finally{$('refreshData').disabled=false}};
+  $('refreshData').onclick=async()=>{if(state.sending)return;$('refreshData').disabled=true;try{setMode(T('Refreshing verified current-account data…','正在刷新已验证的当前账号数据……'));await loadData();setMode(T('Current-account data refreshed','当前账号数据已刷新'))}catch(e){const msg=String(e?.message||e);if(msg==='account-scope-changed'||msg==='not-signed-in')clearFinancialScope(msg==='account-scope-changed'?'account-changed':'scope-cleared');else setMode(msg.startsWith('data-timeout:')?T('Personal data loading timed out · tap Refresh data to retry','Personal 数据读取超时 · 请再次点击“刷新数据”'):T('Could not refresh current-account data · retry in a moment','无法刷新当前账号数据 · 请稍后重试'),true)}finally{$('refreshData').disabled=false}};
   $('send').onclick=()=>send();
   $('prepareAI').onclick=()=>prepareLocalAI(true).catch(()=>{});
   $('clearAICache').onclick=async()=>{
@@ -478,7 +507,15 @@ async function start(){
       }
     }catch(_e){}
   }
-  try{await loadData()}catch(e){console.warn('[MMHVAULT AI] start failed',e);setMode(T('Sign in required','需要登录'),true);renderMetrics();renderThread()}
+  try{await loadData()}catch(e){
+    console.warn('[MMHVAULT AI] start failed',e);
+    const msg=String(e?.message||e);
+    if(msg==='not-signed-in'||msg==='account-scope-changed')setMode(T('Sign in required · return to MMHVAULT and sign in','需要登录 · 请返回 MMHVAULT 登录'),true);
+    else if(msg==='auth-timeout')setMode(T('Account check timed out · tap Refresh data to retry','账号检查超时 · 请点击“刷新数据”重试'),true);
+    else if(msg.startsWith('data-timeout:'))setMode(T('Personal data loading timed out · tap Refresh data','Personal 数据读取超时 · 请点击“刷新数据”重试'),true);
+    else setMode(T('Could not load current-account data · tap Refresh data','无法读取当前账号数据 · 请点击“刷新数据”重试'),true);
+    renderMetrics();renderThread()
+  }
 }
 start();
 })();
