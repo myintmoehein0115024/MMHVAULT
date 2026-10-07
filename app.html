@@ -8,6 +8,7 @@
 <link href="images/icon-192.png" rel="apple-touch-icon" sizes="192x192"/>
 
 <meta content="#06111f" name="theme-color"/>
+<link rel="manifest" href="./mmh-manifest.webmanifest"/>
 <title>MMHVAULT · Personal Finance &amp; Wealth Management</title>
 <meta name="mmhvault-release" content="1.3.0-uiux-pass1"/>
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
@@ -12856,7 +12857,9 @@ let CATS=Object.fromEntries(Object.entries(MMHVAULT_CONFIG.categories).map(([k,v
 window.ACC=ACC; window.CATS=CATS;
 function mmhVaultPersistConfig(){
   if(!mmhVaultRequireConfigOwner())throw new Error('Account session changed. Reopen account management.');
-  localStorage.setItem(mmhVaultConfigKey(),JSON.stringify({...MMHVAULT_CONFIG,ownerId:MMHVAULT_CONFIG_OWNER}));
+  const updatedAt=new Date().toISOString();
+  localStorage.setItem(mmhVaultConfigKey(),JSON.stringify({...MMHVAULT_CONFIG,ownerId:MMHVAULT_CONFIG_OWNER,updatedAt}));
+  try{window.MMHConfigCloudSyncV122?.queue?.(MMHVAULT_CONFIG_OWNER,updatedAt)}catch(_e){}
 }
 /* v1.2.3.6 · Settings/config continuity helpers.
    Account/category configuration is device-local, so backups carry a sanitized snapshot.
@@ -13782,6 +13785,7 @@ async function signOut(){
   if(mmhvaultSignOutBusyV1239)return;
   mmhvaultSignOutBusyV1239=true;
   try{
+    try{await window.MMHBackgroundPushV122?.disable?.({silent:true})}catch(_e){}
     const r=await db.auth.signOut();
     if(r?.error)throw r.error;
     setTimeout(()=>{if(currentSessionUser&&typeof window.mmhVaultSignOutCleanupV1239==='function')window.mmhVaultSignOutCleanupV1239('logout-fallback');},80);
@@ -16491,6 +16495,7 @@ async function signOutOtherSessionsV379(){
 async function signOutAllSessionsV379(){
   if(!await window.mmhVaultConfirmV740('Sign out from all devices? You will also be signed out on this device.','Sign out all devices'))return;
   try{
+    try{await window.MMHBackgroundPushV122?.disable?.({silent:true})}catch(_e){}
     const r=await db.auth.signOut();
     if(r?.error)throw r.error;
   }catch(err){
@@ -21156,6 +21161,108 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 </script>
 
 
+<script id="mmhvault-config-cloud-sync-v122">
+(()=>{'use strict';
+  if(window.__MMHVAULT_CONFIG_CLOUD_SYNC_V122)return;window.__MMHVAULT_CONFIG_CLOUD_SYNC_V122=true;
+  let busy=false,pending=false,timer=0,lastOwner='';
+  const uid=()=>typeof currentSessionUser!=='undefined'?(currentSessionUser?.id||''):'';
+  const tz=()=>{try{return Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC'}catch(_){return'UTC'}};
+  const lang=()=>localStorage.getItem('mmhvault_language_v3363')||'en';
+  const parseTime=v=>{const n=Date.parse(v||'');return Number.isFinite(n)?n:0};
+  function localEnvelope(owner){try{const raw=localStorage.getItem(mmhVaultConfigKey(owner));const x=raw?JSON.parse(raw):null;return x&&typeof x==='object'&&!Array.isArray(x)?x:null}catch(_){return null}}
+  function safeConfig(source){
+    const x=source&&typeof source==='object'&&!Array.isArray(source)?source:{};
+    const accounts=Array.isArray(x.accounts)?x.accounts.filter(a=>a&&String(a.name||'').trim()).map(a=>({id:String(a.id||('acc_'+Date.now()+Math.random().toString(36).slice(2,7))),name:String(a.name).trim(),currency:['MMK','THB','USD','CNY'].includes(String(a.currency||'').toUpperCase())?String(a.currency).toUpperCase():'MMK',type:String(a.type||'other'),active:a.active!==false,builtin:!!a.builtin})):[];
+    const categories={},archivedCategories={};
+    for(const [group,base] of Object.entries(MMHVAULT_DEFAULT_CATEGORIES||{})){
+      categories[group]=(Array.isArray(x.categories?.[group])?x.categories[group]:base).map(String).map(v=>v.trim()).filter(Boolean);
+      archivedCategories[group]=(Array.isArray(x.archivedCategories?.[group])?x.archivedCategories[group]:[]).map(String).map(v=>v.trim()).filter(Boolean);
+    }
+    return{accounts,categories:mmhVaultNormalizeCategoryConfigV1231(categories,archivedCategories),archivedCategories};
+  }
+  function writeLocal(owner,config,updatedAt){localStorage.setItem(mmhVaultConfigKey(owner),JSON.stringify({...config,ownerId:owner,updatedAt}))}
+  function applyCloud(owner,config,updatedAt){
+    if(!owner||uid()!==owner||MMHVAULT_CONFIG_OWNER!==owner)return false;
+    const clean=safeConfig(config);writeLocal(owner,clean,updatedAt);MMHVAULT_CONFIG=mmhVaultReadConfig(owner);MMHVAULT_CONFIG.archivedCategories=MMHVAULT_CONFIG.archivedCategories||{};mmhVaultRebuildConfigArrays();
+    try{mmhVaultCloseDialogV449();window.mmhCloseManagerV1?.();mmhVaultRefreshAccountSelectors();mmhVaultRefreshTransactionConfigV445?.();mmhVaultRenderManager();mmhVaultRefreshDashboardAccountOverviewV449();}catch(_e){}
+    window.dispatchEvent(new CustomEvent('mmhvault:config-cloud-synced',{detail:{userId:owner,source:'cloud'}}));return true;
+  }
+  async function upload(owner,stamp){
+    if(uid()!==owner||MMHVAULT_CONFIG_OWNER!==owner)return false;const config=safeConfig(MMHVAULT_CONFIG),updatedAt=stamp||new Date().toISOString();writeLocal(owner,config,updatedAt);
+    const row={user_id:owner,config,language:lang(),timezone:tz(),updated_at:updatedAt};const {error}=await db.from('personal_configuration').upsert(row,{onConflict:'user_id'});if(error)throw error;return true;
+  }
+  async function syncNow(forceUpload=false){
+    const owner=uid();if(!owner||typeof db==='undefined'||MMHVAULT_CONFIG_OWNER!==owner)return false;if(busy){pending=true;return false}busy=true;lastOwner=owner;
+    try{
+      const local=localEnvelope(owner),localStamp=parseTime(local?.updatedAt);const {data:cloud,error}=await db.from('personal_configuration').select('user_id,config,language,timezone,updated_at').eq('user_id',owner).maybeSingle();if(error)throw error;if(uid()!==owner||MMHVAULT_CONFIG_OWNER!==owner)return false;
+      if(!cloud){await upload(owner,new Date().toISOString());return true}
+      const cloudStamp=parseTime(cloud.updated_at);
+      if(forceUpload||localStamp>cloudStamp+500){await upload(owner,local?.updatedAt||new Date().toISOString());return true}
+      if(cloudStamp>localStamp+500&&cloud.config&&typeof cloud.config==='object'){applyCloud(owner,cloud.config,cloud.updated_at);return true}
+      const needsMeta=String(cloud.language||'')!==lang()||String(cloud.timezone||'')!==tz();if(needsMeta){const {error:metaError}=await db.from('personal_configuration').update({language:lang(),timezone:tz()}).eq('user_id',owner);if(metaError)throw metaError}
+      return true;
+    }catch(err){if(uid()===owner)console.warn('[MMHVAULT] Personal config cloud sync failed',err);return false}
+    finally{busy=false;if(pending){pending=false;queueMicrotask(()=>syncNow(false))}}
+  }
+  function queue(owner=uid()){if(!owner||owner!==uid())return;clearTimeout(timer);timer=setTimeout(()=>{timer=0;syncNow(false)},450)}
+  window.MMHConfigCloudSyncV122={syncNow,queue,version:'1.12.2'};
+  window.addEventListener('mmhvault:config-owner-changed',()=>{clearTimeout(timer);timer=0;const owner=uid();lastOwner=owner;if(owner)setTimeout(()=>syncNow(false),40)},{passive:true});
+  window.addEventListener('mmhvault-language-change',()=>queue(),{passive:true});window.addEventListener('languagechange',()=>queue(),{passive:true});
+  window.addEventListener('mmhvault:data-loaded',()=>{if(uid()&&uid()!==lastOwner){lastOwner=uid();syncNow(false)}},{passive:true});
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(()=>syncNow(false),120),{once:true});else setTimeout(()=>syncNow(false),120);
+})();
+</script>
+
+<script id="mmhvault-background-push-v122">
+(()=>{'use strict';
+  if(window.__MMHVAULT_BACKGROUND_PUSH_V122)return;window.__MMHVAULT_BACKGROUND_PUSH_V122=true;
+  const VAPID_PUBLIC='BMzJw2oIcANv0iNApqQbdqg7_fgo7dMHbjRKQ9kBebUbGTYy1eR_y-pMShny17NpTxxg4lGYoNHbhofxJohVkDI';
+  let cached={state:'unknown',sub:null,at:0};
+  const tr=(en,zh)=>(localStorage.getItem('mmhvault_language_v3363')||'en')==='zh'?zh:en;
+  const owner=()=>typeof currentSessionUser!=='undefined'?(currentSessionUser?.id||''):'';
+  const timezone=()=>{try{return Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC'}catch(_){return'UTC'}};
+  const isIOS=()=>/iPad|iPhone|iPod/i.test(navigator.userAgent)||(navigator.platform==='MacIntel'&&navigator.maxTouchPoints>1);
+  const standalone=()=>!!(window.matchMedia?.('(display-mode: standalone)')?.matches||navigator.standalone===true);
+  const supported=()=>isSecureContext&&'serviceWorker'in navigator&&'PushManager'in window&&'Notification'in window&&typeof Notification.requestPermission==='function';
+  function appKey(){const pad='='.repeat((4-VAPID_PUBLIC.length%4)%4),b64=(VAPID_PUBLIC+pad).replace(/-/g,'+').replace(/_/g,'/'),raw=atob(b64),out=new Uint8Array(raw.length);for(let i=0;i<raw.length;i++)out[i]=raw.charCodeAt(i);return out}
+  function keysOf(sub){const j=sub?.toJSON?.()||{};return{p256dh:String(j?.keys?.p256dh||''),auth:String(j?.keys?.auth||'')}}
+  async function pushRegistration(){
+    if(!('serviceWorker'in navigator))return null;const regs=await navigator.serviceWorker.getRegistrations();const expected=new URL('./mmh-push-sw.js',location.href).href;
+    return regs.find(reg=>[reg.active,reg.waiting,reg.installing].filter(Boolean).some(w=>{try{return new URL(w.scriptURL,location.href).href===expected}catch(_){return false}}))||null;
+  }
+  async function currentSubscription(){const reg=await pushRegistration();return reg?await reg.pushManager.getSubscription():null}
+  async function claim(sub){
+    const u=owner();if(!u||!sub)throw new Error(tr('Please sign in again.','请重新登录。'));const k=keysOf(sub);if(!k.p256dh||!k.auth)throw new Error(tr('Invalid push subscription.','推送订阅无效。'));
+    await window.MMHConfigCloudSyncV122?.syncNow?.(false);
+    const {error}=await db.rpc('mmh_push_subscription_claim',{p_endpoint:sub.endpoint,p_p256dh:k.p256dh,p_auth:k.auth,p_user_agent:navigator.userAgent||'',p_platform:navigator.userAgentData?.platform||navigator.platform||'',p_timezone:timezone()});if(error)throw error;return true;
+  }
+  async function status(force=false){
+    if(!supported())return{state:'unsupported'};if(isIOS()&&!standalone())return{state:'ios-install'};if(Notification.permission==='denied')return{state:'blocked'};
+    if(!force&&Date.now()-cached.at<2500)return cached;const sub=await currentSubscription();const state=sub?'subscribed':(Notification.permission==='granted'?'granted':'permission');cached={state,sub,at:Date.now()};return cached;
+  }
+  async function explainIOS(){await window.MMHUI?.message?.(tr('On iPhone/iPad, add MMHVAULT to the Home Screen first, open it from the Home Screen, then enable Background Alerts.','在 iPhone/iPad 上，请先将 MMHVAULT 添加到主屏幕，再从主屏幕打开，然后开启后台提醒。'),tr('Background alerts','后台提醒'),{type:'info'})}
+  async function enable(){
+    const u=owner();if(!u)throw new Error(tr('Please sign in again.','请重新登录。'));if(!supported())throw new Error(tr('This browser does not support Web Push.','此浏览器不支持 Web Push。'));if(isIOS()&&!standalone()){await explainIOS();return false}
+    let permission=Notification.permission;if(permission==='default')permission=await Notification.requestPermission();if(permission!=='granted'){cached={state:permission==='denied'?'blocked':'permission',sub:null,at:Date.now()};window.dispatchEvent(new CustomEvent('mmhvault:push-state'));return false}
+    await window.MMHConfigCloudSyncV122?.syncNow?.(false);
+    const reg0=await navigator.serviceWorker.register('./mmh-push-sw.js',{scope:'./',updateViaCache:'none'});let reg=reg0;
+    try{reg=await Promise.race([navigator.serviceWorker.ready,new Promise(resolve=>setTimeout(()=>resolve(reg0),8000))])}catch(_e){}
+    let sub=await reg.pushManager.getSubscription();if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:appKey()});await claim(sub);cached={state:'subscribed',sub,at:Date.now()};window.dispatchEvent(new CustomEvent('mmhvault:push-state',{detail:{state:'subscribed'}}));window.MMHUI?.toast?.(tr('Background financial alerts are enabled on this device.','此设备已开启后台财务提醒。'),{title:tr('Notifications','通知'),type:'success'});return true;
+  }
+  async function disable(options={}){
+    const sub=await currentSubscription();if(!sub){cached={state:Notification.permission==='granted'?'granted':'permission',sub:null,at:Date.now()};window.dispatchEvent(new CustomEvent('mmhvault:push-state'));return true}
+    if(!options.silent){const ok=await window.MMHUI?.confirm?.(tr('Disable background financial alerts on this device?','关闭此设备的后台财务提醒吗？'),tr('Background alerts','后台提醒'),{details:tr('In-app notifications will still remain available.','应用内通知仍会保留。'),confirmLabel:tr('Disable','关闭')});if(!ok)return false}
+    try{if(owner()){const {error}=await db.rpc('mmh_push_subscription_disable',{p_endpoint:sub.endpoint});if(error)console.warn('[MMHVAULT] push server disable failed',error)}}catch(_e){}
+    try{await sub.unsubscribe()}catch(_e){}cached={state:Notification.permission==='granted'?'granted':'permission',sub:null,at:Date.now()};window.dispatchEvent(new CustomEvent('mmhvault:push-state',{detail:{state:cached.state}}));if(!options.silent)window.MMHUI?.toast?.(tr('Background alerts are off on this device.','此设备的后台提醒已关闭。'),{title:tr('Notifications','通知'),type:'info'});return true;
+  }
+  async function toggle(){const st=await status(true);if(st.state==='ios-install'){await explainIOS();return false}if(st.state==='subscribed')return disable();return enable()}
+  async function reconcile(){if(!owner()||!supported()||(isIOS()&&!standalone())||Notification.permission!=='granted')return;try{const sub=await currentSubscription();if(sub){await claim(sub);cached={state:'subscribed',sub,at:Date.now()};window.dispatchEvent(new CustomEvent('mmhvault:push-state',{detail:{state:'subscribed'}}))}}catch(err){console.warn('[MMHVAULT] push subscription reconcile failed',err)}}
+  window.MMHBackgroundPushV122={status,enable,disable,toggle,reconcile,version:'1.12.2'};
+  window.addEventListener('mmhvault:config-owner-changed',()=>{cached.at=0;if(owner())setTimeout(reconcile,600)},{passive:true});
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>setTimeout(reconcile,900),{once:true});else setTimeout(reconcile,900);
+})();
+</script>
+
 <style id="mmhvault-notification-popover-v560-style">
 /* v560 — notifications live in the top bell, not Settings. */
 @media(min-width:1100px){
@@ -21259,9 +21366,26 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   html body.mmh-workspace-active #bottomNav .mmh-sidebar-brand-v500 small{font-size:7px!important}
 }
 
-/* On smaller devices the existing app navigation remains untouched; Settings notice UI is still removed. */
+/* Notification 2.0 · mobile/tablet inbox uses a safe-area bottom sheet. */
 @media(max-width:1099px){
-  #mmhNotifyPopoverV560{display:none!important}
+  #mmhNotifyPopoverV560{
+    display:none!important;position:fixed!important;z-index:10080!important;
+    left:10px!important;right:10px!important;top:auto!important;
+    bottom:calc(10px + env(safe-area-inset-bottom,0px))!important;
+    width:auto!important;max-height:min(78dvh,680px)!important;
+    border-radius:20px!important;overflow:hidden!important;
+  }
+  #mmhNotifyPopoverV560.open{display:flex!important;flex-direction:column!important}
+  #mmhNotifyPopoverV560 .np-list{min-height:0!important;overflow:auto!important;-webkit-overflow-scrolling:touch!important}
+  #mmhNotifyPopoverV560 .np-head{padding-top:max(13px,env(safe-area-inset-top,0px))!important}
+  #mmhNotifyPopoverV560 .np-foot{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:8px!important;text-align:left!important}
+  #mmhNotifyPopoverV560 .np-system-v121{min-height:44px!important;flex:0 0 auto!important}
+  #mmhNotifyPopoverV560 .np-item{min-height:58px!important}
+}
+@media(max-width:560px){
+  #mmhNotifyPopoverV560{left:7px!important;right:7px!important;bottom:calc(7px + env(safe-area-inset-bottom,0px))!important;max-height:82dvh!important}
+  #mmhNotifyPopoverV560 .np-foot{align-items:stretch!important;flex-direction:column!important}
+  #mmhNotifyPopoverV560 .np-system-v121{width:100%!important}
 }
 </style>
 
@@ -21274,24 +21398,27 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   let popup=null,bell=null,list=null,rows=[],loading=false,mode='all',owner='',request=0,lastLoaded=0,queuedLoad=false,queuedShowLoading=false,pollTimer=0;
   const currentOwner=()=>typeof currentSessionUser!=='undefined'?(currentSessionUser?.id||''):'';
-  function syncSystemButton(){
+  async function syncSystemButton(){
     const b=$('mmhNotifySystemV121');if(!b)return;
-    const supported=typeof Notification!=='undefined'&&typeof Notification.requestPermission==='function';
-    if(!supported){b.hidden=true;return}b.hidden=false;
-    const p=Notification.permission;
-    if(p==='granted'){b.disabled=true;b.dataset.state='on';b.textContent=tr('System alerts on','系统提醒已开启')}
-    else if(p==='denied'){b.disabled=true;b.dataset.state='blocked';b.textContent=tr('System alerts blocked','系统提醒已阻止')}
-    else{b.disabled=false;b.dataset.state='off';b.textContent=tr('Enable system alerts','开启系统提醒')}
+    const ctl=window.MMHBackgroundPushV122;
+    if(!ctl){b.hidden=false;b.disabled=true;b.dataset.state='loading';b.textContent=tr('Preparing alerts…','正在准备提醒…');return}
+    try{
+      const st=await ctl.status();b.hidden=false;b.disabled=false;b.dataset.state=st.state||'off';
+      if(st.state==='subscribed')b.textContent=tr('Background alerts on','后台提醒已开启');
+      else if(st.state==='blocked'){b.disabled=true;b.textContent=tr('Notifications blocked','通知已阻止')}
+      else if(st.state==='ios-install')b.textContent=tr('Add to Home Screen for alerts','添加到主屏幕后开启提醒');
+      else if(st.state==='unsupported'){b.disabled=true;b.textContent=tr('Background alerts unavailable','此设备不支持后台提醒')}
+      else if(st.state==='granted')b.textContent=tr('Enable background push','开启后台推送');
+      else b.textContent=tr('Enable background alerts','开启后台提醒');
+    }catch(err){console.warn('[MMHVAULT] push status failed',err);b.disabled=false;b.textContent=tr('Enable background alerts','开启后台提醒')}
   }
   async function requestSystemPermission(e){
     e?.stopPropagation?.();
-    if(typeof Notification==='undefined'||typeof Notification.requestPermission!=='function')return;
-    try{
-      const p=Notification.permission==='default'?await Notification.requestPermission():Notification.permission;
-      syncSystemButton();
-      if(p==='granted')window.MMHUI?.toast?.(tr('System notifications are enabled on this device.','此设备的系统通知已开启。'),{title:tr('Notifications','通知'),type:'success'});
-      else if(p==='denied')window.MMHUI?.toast?.(tr('System notifications are blocked in browser settings.','系统通知已被浏览器设置阻止。'),{title:tr('Notifications','通知'),type:'warn'});
-    }catch(err){console.warn('[MMHVAULT] notification permission request failed',err);syncSystemButton()}
+    const ctl=window.MMHBackgroundPushV122;if(!ctl)return;
+    const b=$('mmhNotifySystemV121');if(b)b.disabled=true;
+    try{await ctl.toggle();}
+    catch(err){console.warn('[MMHVAULT] background push toggle failed',err);window.MMHUI?.message?.(err?.message||tr('Unable to update background alerts.','无法更新后台提醒。'),tr('Notifications','通知'),{type:'error'});}
+    finally{await syncSystemButton();}
   }
   function ensure(){
     bell=$('mmhTopBellV500');if(!bell)return false;
@@ -21333,6 +21460,10 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       if(row.kind==='budget_category_threshold'){
         const cat=String(m.category||tr('Category','分类')),usage=Number(m.usage||0),threshold=Number(m.threshold||80),currency=String(m.currency||'USD');
         return{title:threshold>=100?tr(`${cat} budget exceeded`,`${cat} 分类预算已超出`):tr(`${cat} budget watch`,`${cat} 分类预算提醒`),body:tr(`${cat} has used ${usage.toFixed(1)}% of its budget: ${moneyCode(m.spent,currency)} spent of ${moneyCode(m.budget,currency)}.`,`${cat} 已使用分类预算的 ${usage.toFixed(1)}%：已支出 ${moneyCode(m.spent,currency)} / 预算 ${moneyCode(m.budget,currency)}。`)};
+      }
+      if(row.kind==='budget_month_threshold'){
+        const usage=Number(m.usage||0),threshold=Number(m.threshold||80),currency=String(m.currency||'USD');
+        return{title:threshold>=100?tr('Monthly budget exceeded','月度预算已超出'):tr('Monthly budget watch','月度预算提醒'),body:tr(`Monthly budget usage is ${usage.toFixed(1)}%: ${moneyCode(m.spent,currency)} spent of ${moneyCode(m.budget,currency)}.`,`本月预算已使用 ${usage.toFixed(1)}%：已支出 ${moneyCode(m.spent,currency)} / 预算 ${moneyCode(m.budget,currency)}。`)};
       }
       if(row.kind==='savings_rate_drop'){
         const cur=Number(m.current_rate||0),prev=Number(m.previous_rate||0),drop=Number(m.drop_pp||0);
@@ -21435,7 +21566,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   function stopPoll(){if(pollTimer){clearTimeout(pollTimer);pollTimer=0}}
   function schedulePoll(delay=120000){stopPoll();if(document.hidden||!currentOwner())return;pollTimer=setTimeout(()=>{pollTimer=0;if(!document.hidden&&currentOwner()&&!loading)load(false);schedulePoll(120000)},Math.max(500,delay))}
   function resetForOwner(){request++;loading=false;queuedLoad=false;queuedShowLoading=false;owner=currentOwner();rows=[];mode='all';close();if(ensure()){updateBadge();if(owner)load(false)}schedulePoll(120000)}
-  function init(){bind();window.addEventListener('mmhvault:notifications-changed',()=>load(false));window.addEventListener('mmhvault:config-owner-changed',resetForOwner);setTimeout(bind,300);setTimeout(bind,900);setTimeout(bind,1600);schedulePoll(120000);document.addEventListener('visibilitychange',()=>{if(document.hidden)stopPoll();else{if(currentOwner()&&!loading&&Date.now()-lastLoaded>120000)load(false);schedulePoll(120000)}},{passive:true});window.addEventListener('pagehide',stopPoll,{passive:true})}
+  function init(){bind();window.addEventListener('mmhvault:notifications-changed',()=>load(false));window.addEventListener('mmhvault:config-owner-changed',resetForOwner);window.addEventListener('mmhvault:push-state',()=>syncSystemButton(),{passive:true});setTimeout(bind,300);setTimeout(bind,900);setTimeout(bind,1600);schedulePoll(120000);document.addEventListener('visibilitychange',()=>{if(document.hidden)stopPoll();else{if(currentOwner()&&!loading&&Date.now()-lastLoaded>120000)load(false);schedulePoll(120000)}},{passive:true});window.addEventListener('pagehide',stopPoll,{passive:true})}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
 </script>
@@ -21468,13 +21599,13 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   function buildSpendingCandidates(d){
     const out=[];
     if(d.prevTotal>0&&d.curTotal>d.prevTotal+0.005){const pct=(d.curTotal-d.prevTotal)/d.prevTotal*100;out.push({alert_key:`momo:${d.cur}:total`,kind:'total_spending_vs_last_month',title:'Monthly spending is above last month',body:'Ordinary spending exceeded last month.',severity:'warning',target_page:'cashflow-analyze',meta:{month:d.cur,previous_month:d.prev,current_usd:d.curTotal,previous_usd:d.prevTotal,change_pct:pct,rule:'current_month_gt_previous_month'}})}
-    for(const [cat,current] of d.curCats){const previous=d.prevCats.get(cat)||0;if(previous<=0||current<=previous+0.005)continue;const pct=(current-previous)/previous*100;out.push({alert_key:`momo:${d.cur}:category:${encodeURIComponent(cat.toLocaleLowerCase())}`,kind:'category_vs_last_month',title:`${cat} spending is above last month`,body:'Category spending exceeded last month.',severity:'warning',target_page:'cashflow-analyze',meta:{category:cat,month:d.cur,previous_month:d.prev,current_usd:current,previous_usd:previous,change_pct:pct,rule:'category_current_month_gt_previous_month'}})}
+    for(const [cat,current] of d.curCats){const previous=d.prevCats.get(cat)||0;if(previous<=0||current<=previous+0.005)continue;const pct=(current-previous)/previous*100;out.push({alert_key:`momo:${d.cur}:category:${cat.trim().toLocaleLowerCase()}`,kind:'category_vs_last_month',title:`${cat} spending is above last month`,body:'Category spending exceeded last month.',severity:'warning',target_page:'cashflow-analyze',meta:{category:cat,month:d.cur,previous_month:d.prev,current_usd:current,previous_usd:previous,change_pct:pct,rule:'category_current_month_gt_previous_month'}})}
     return out;
   }
   function perUsd(code){const c=String(code||'USD').toUpperCase();if(c==='USD'||c==='USDT')return 1;if(c==='THB')return num((typeof rates!=='undefined'&&rates?.usd_thb)||window.rates?.usd_thb);if(c==='MMK')return num((typeof rates!=='undefined'&&rates?.usd_mmk)||window.rates?.usd_mmk);if(c==='CNY'||c==='RMB')return num((typeof rates!=='undefined'&&rates?.usd_cny)||window.rates?.usd_cny);return 0}
   function buildBudgetCategoryCandidates(budget,d){
     if(!budget||typeof budget!=='object')return[];const currency=String(budget.currency||'THB').toUpperCase(),unit=perUsd(currency),cats=budget.category_budgets&&typeof budget.category_budgets==='object'&&!Array.isArray(budget.category_budgets)?budget.category_budgets:{};if(!(unit>0))return[];
-    const out=[];for(const [cat,raw] of Object.entries(cats)){const limit=num(raw);if(!(limit>0))continue;const spentUsd=num(d.curCats.get(cat)),spent=spentUsd*unit,usage=spent/limit*100;if(usage<80)continue;const threshold=usage>=100?100:80;out.push({alert_key:`budget:${d.cur}:category:${encodeURIComponent(cat.toLocaleLowerCase())}:${threshold}`,kind:'budget_category_threshold',title:`${cat} budget ${threshold>=100?'exceeded':'watch'}`,body:'Category budget threshold reached.',severity:threshold>=100?'error':'warning',target_page:'budget',meta:{category:cat,month:d.cur,currency,spent,budget:limit,usage,threshold,rule:'category_budget_threshold'}})}return out;
+    const out=[];for(const [cat,raw] of Object.entries(cats)){const limit=num(raw);if(!(limit>0))continue;const spentUsd=num(d.curCats.get(cat)),spent=spentUsd*unit,usage=spent/limit*100;if(usage<80)continue;const threshold=usage>=100?100:80;out.push({alert_key:`budget:${d.cur}:category:${cat.trim().toLocaleLowerCase()}:${threshold}`,kind:'budget_category_threshold',title:`${cat} budget ${threshold>=100?'exceeded':'watch'}`,body:'Category budget threshold reached.',severity:threshold>=100?'error':'warning',target_page:'budget',meta:{category:cat,month:d.cur,currency,spent,budget:limit,usage,threshold,rule:'category_budget_threshold'}})}return out;
   }
   function buildSavingsCandidates(d){
     if(new Date().getDate()<7||typeof mmhvaultPeriodTotalsUSD!=='function')return[];const cur=mmhvaultPeriodTotalsUSD(d.cur),prev=mmhvaultPeriodTotalsUSD(d.prev);if(!(cur.income>0&&prev.income>0))return[];
@@ -21503,6 +21634,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     if(!budget)return null;const currency=String(budget.currency||'THB').toUpperCase(),unit=perUsd(currency),limit=num(budget.monthly_amount);if(!(unit>0&&limit>0))return null;const spent=d.curTotal*unit,usage=spent/limit*100;if(usage<80)return null;return{month:d.cur,currency,spent,budget:limit,usage,threshold:usage>=100?100:80};
   }
   function browserNotice(a){
+    if(window.MMHBackgroundPushV122)return;
     if(typeof Notification==='undefined'||Notification.permission!=='granted')return;const m=a.meta||{},money=v=>'$'+num(v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}),marks={USD:'$',USDT:'$',THB:'฿',MMK:'K',CNY:'￥',RMB:'￥'},moneyCode=(v,c)=>(marks[String(c||'USD').toUpperCase()]||String(c||'USD')+' ')+num(v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});let title='',body='';
     if(a.kind==='category_vs_last_month'){title=tr(`${m.category} spending alert`,`${m.category} 开销提醒`);body=tr(`${money(m.current_usd)} this month vs ${money(m.previous_usd)} last month.`,`本月 ${money(m.current_usd)}，上月 ${money(m.previous_usd)}。`)}
     else if(a.kind==='total_spending_vs_last_month'){title=tr('Monthly spending alert','本月开销提醒');body=tr(`${money(m.current_usd)} this month vs ${money(m.previous_usd)} last month.`,`本月 ${money(m.current_usd)}，上月 ${money(m.previous_usd)}。`)}
@@ -21514,11 +21646,12 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     else if(a.kind==='recurring_upcoming'){title=tr(`${m.name} is due soon`,`${m.name} 即将到期`);body=tr(`Due in ${m.days_until} day${Number(m.days_until)===1?'':'s'}.`,`还有 ${m.days_until} 天到期。`)}
     if(!title)return;try{new Notification(title,{body,tag:a.alert_key,renotify:false})}catch(_e){}
   }
+  function monthlyBudgetCandidate(signal){return signal?{alert_key:`budget:${signal.month}:monthly:${signal.threshold}`,kind:'budget_month_threshold',title:signal.threshold>=100?'Monthly budget exceeded':'Monthly budget watch',body:'Monthly budget threshold reached.',severity:signal.threshold>=100?'error':'warning',target_page:'budget',meta:{...signal,rule:'monthly_budget_threshold'}}:null}
   async function processMonthlyBudget(signal,uid){
-    if(!signal)return false;const {data,error}=await db.rpc('mmh_budget_alert',{p_month:signal.month+'-01',p_usage:Number(signal.usage.toFixed(4)),p_spent:Number(signal.spent.toFixed(4))});if(error)throw error;if(data?.created){browserNotice({kind:'budget_month_threshold',alert_key:`budget:${signal.month}:monthly:${data.threshold||signal.threshold}`,meta:{...signal,threshold:Number(data.threshold||signal.threshold)}});return true}return false;
+    const a=monthlyBudgetCandidate(signal);if(!a)return false;const {error}=await db.from('personal_financial_alerts').upsert({...a,user_id:uid,updated_at:new Date().toISOString()},{onConflict:'user_id,alert_key'});if(error)throw error;return true;
   }
   async function processRecurringSignals(signals,uid){
-    let changed=false;for(const a of signals){if(uidNow()!==uid)return changed;const id=String(a.alert_key||'').split(':')[1];if(!id)continue;const {data,error}=await db.rpc('mmh_recurring_alert',{p_recurring_id:id});if(error)throw error;if(data?.created){browserNotice(a);changed=true}}return changed;
+    let changed=false;for(const a of signals){if(uidNow()!==uid)return changed;const {error}=await db.from('personal_financial_alerts').upsert({...a,user_id:uid,updated_at:new Date().toISOString()},{onConflict:'user_id,alert_key'});if(error)throw error;changed=true}return changed;
   }
   function candidateFingerprint(candidates,monthly,recurringSignals=[]){
     const compact=candidates.map(x=>[x.alert_key,x.kind,Number(x.meta?.current_usd||x.meta?.spent||x.meta?.current_rate||0).toFixed(4),Number(x.meta?.previous_usd||x.meta?.budget||x.meta?.previous_rate||0).toFixed(4)]);if(monthly)compact.push([`budget:${monthly.month}:monthly:${monthly.threshold}`,'budget_month_threshold',monthly.usage.toFixed(4),monthly.spent.toFixed(4)]);for(const r of recurringSignals)compact.push([r.alert_key,r.kind,String(r.meta?.due_date||''),Number(r.meta?.days_until||0)]);compact.push(['day',new Date().toISOString().slice(0,10)]);return JSON.stringify(compact)
@@ -21528,9 +21661,10 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     try{
       const d=spendingData(),planning=await loadPlanning(uid,d.cur,forcePlanning);if(uidNow()!==uid)return;
       const candidates=[...buildSpendingCandidates(d),...buildBudgetCategoryCandidates(planning.budget,d),...buildSavingsCandidates(d)];const monthly=monthlyBudgetSignal(planning.budget,d),recurringSignals=buildRecurringCandidates(planning.recurring),fingerprint=candidateFingerprint(candidates,monthly,recurringSignals);if(fingerprint===lastFingerprint)return;
-      const {data:existing,error:readError}=await db.from('personal_financial_alerts').select('alert_key').eq('user_id',uid).limit(500);if(readError)throw readError;const existed=new Set((existing||[]).map(x=>x.alert_key));let changed=await processMonthlyBudget(monthly,uid);changed=(await processRecurringSignals(recurringSignals,uid))||changed;
-      for(const a of candidates){if(uidNow()!==uid)return;const row={...a,user_id:uid,updated_at:new Date().toISOString()};const {error}=await db.from('personal_financial_alerts').upsert(row,{onConflict:'user_id,alert_key'});if(error)throw error;if(!existed.has(a.alert_key)){browserNotice(a);changed=true}}
-      lastFingerprint=fingerprint;if(changed||candidates.length||monthly||recurringSignals.length)window.dispatchEvent(new CustomEvent('mmhvault:notifications-changed',{detail:{source:'financial-alerts-v121'}}));
+      const {data:existing,error:readError}=await db.from('personal_financial_alerts').select('alert_key').eq('user_id',uid).limit(500);if(readError)throw readError;const existed=new Set((existing||[]).map(x=>x.alert_key));
+      const all=[...candidates];const monthlyCandidate=monthlyBudgetCandidate(monthly);if(monthlyCandidate)all.push(monthlyCandidate);all.push(...recurringSignals);let changed=false;
+      for(const a of all){if(uidNow()!==uid)return;const row={...a,user_id:uid,updated_at:new Date().toISOString()};const {error}=await db.from('personal_financial_alerts').upsert(row,{onConflict:'user_id,alert_key'});if(error)throw error;if(!existed.has(a.alert_key)){browserNotice(a);changed=true}}
+      lastFingerprint=fingerprint;if(changed||all.length)window.dispatchEvent(new CustomEvent('mmhvault:notifications-changed',{detail:{source:'financial-alerts-v122'}}));
     }catch(err){console.warn('[MMHVAULT] financial alert evaluation failed',err)}finally{running=false;if(pending){pending=false;queueMicrotask(()=>run())}}
   }
   let raf=0;function schedule(forcePlanning=false){if(forcePlanning)planningCache.at=0;if(raf)return;raf=requestAnimationFrame(()=>{raf=0;run(forcePlanning)})}
@@ -21539,7 +21673,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   window.addEventListener('mmhvault:config-owner-changed',()=>{lastFingerprint='';planningCache={uid:'',month:'',at:0,budget:null,recurring:[]};schedule(true)},{passive:true});
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)schedule(false)},{passive:true});window.addEventListener('pageshow',()=>schedule(false),{passive:true});
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>schedule(true),{once:true});else schedule(true);
-  window.MMHFinancialAlertsV121={evaluate:run,schedule,version:'1.12.1'};
+  window.MMHFinancialAlertsV121={evaluate:run,schedule,version:'1.12.2'};
 })();
 </script>
 \n<style id="mmhvault-dashboard-unified-v580">
@@ -23112,6 +23246,18 @@ body.light #reports .report-mini-v115{background:#f3f8fb;border-color:#cfdee9}bo
 
 
 
+<script id="mmhvault-push-deeplink-v122">
+(()=>{'use strict';
+  const params=new URLSearchParams(location.search),alertId=params.get('mmh_push'),target=params.get('target');if(!alertId&&!target)return;let done=false;
+  async function open(){if(done||!currentSessionUser?.id)return;done=true;try{if(alertId)await db.from('personal_financial_alerts').update({is_read:true,updated_at:new Date().toISOString()}).eq('id',alertId).eq('user_id',currentSessionUser.id)}catch(_e){}
+    if(target&&document.getElementById(target)){try{window.mmhNotificationOpenTargetV145?.({page:target})||window.setPage?.(target)}catch(_e){}}
+    try{const u=new URL(location.href);u.searchParams.delete('mmh_push');u.searchParams.delete('target');history.replaceState(history.state,'',u.pathname+u.search+u.hash)}catch(_e){}
+    window.dispatchEvent(new CustomEvent('mmhvault:notifications-changed',{detail:{source:'push-deeplink'}}));
+  }
+  window.addEventListener('mmhvault:data-loaded',()=>setTimeout(open,80),{once:true});window.addEventListener('mmhvault:config-owner-changed',()=>setTimeout(open,180),{once:true});setTimeout(open,1200);
+})();
+</script>
+
 <!-- MMHVAULT v1.2.2 · PWA rollback recovery
      The v1.2.1 runtime Service Worker/PWA controller was removed because it introduced
      a reload/control race during authenticated app boot. This cleanup never reloads the page. -->
@@ -23124,11 +23270,11 @@ body.light #reports .report-mini-v115{background:#f3f8fb;border-color:#cfdee9}bo
       if('serviceWorker' in navigator){
         const regs=await navigator.serviceWorker.getRegistrations();
         const appBase=new URL('./',location.href).href;
+        const legacyUrl=new URL('sw.js',appBase).href;
         const mine=regs.filter(reg=>{
           try{
-            if(reg.scope===appBase||reg.scope.startsWith(appBase))return true;
             const workers=[reg.active,reg.waiting,reg.installing].filter(Boolean);
-            return workers.some(w=>new URL(w.scriptURL,location.href).href===new URL('sw.js',appBase).href);
+            return workers.some(w=>new URL(w.scriptURL,location.href).href===legacyUrl);
           }catch(_e){return false}
         });
         await Promise.allSettled(mine.map(reg=>reg.unregister()));
@@ -23150,7 +23296,7 @@ body.light #reports .report-mini-v115{background:#f3f8fb;border-color:#cfdee9}bo
   else window.addEventListener('load',()=>setTimeout(retire,0),{once:true});
 })();
 </script>
-<!-- MMHVAULT v1.2.2 · PWA runtime disabled; finance boot restored to pre-PWA behavior. -->
+<!-- MMHVAULT v1.12.2 · legacy PWA caching stays disabled; the separate mmh-push-sw.js handles Push only. -->
 
 
 
