@@ -6,7 +6,7 @@
 <meta name="color-scheme" content="dark light">
 <meta name="theme-color" content="#061522">
 <title>MMHVAULT · Local AI Financial Assistant</title>
-<!-- MMHVAULT Local AI 1.11.4 · hybrid exact finance engine + browser WebGPU AI · no paid AI API -->
+<!-- MMHVAULT Local AI 1.11.5 · hybrid exact finance engine + browser WebGPU AI · no paid AI API -->
 <link rel="icon" href="images/icon-192.png">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>if(typeof supabase==='undefined')document.write('<script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.min.js"><\/script>')</script>
@@ -60,7 +60,7 @@ import * as webllm from "https://cdn.jsdelivr.net/npm/@mlc-ai/web-llm@0.2.85/+es
 const SUPABASE_URL="https://vrypucmyrztxgiqhjspd.supabase.co",SUPABASE_KEY="sb_publishable_H38v4XbO0ARnSJToD42wGg_27-SZ3Ao";
 const $=id=>document.getElementById(id),N=v=>Number.isFinite(Number(v))?Number(v):0,lc=v=>String(v??'').trim().toLowerCase();
 const db=typeof supabase!=='undefined'?supabase.createClient(SUPABASE_URL,SUPABASE_KEY):null;
-const state={user:null,scopeUserId:'',data:null,loadedAt:0,messages:[],sending:false,engine:null,engineModel:'',engineReady:false,engineLoading:false,authSubscription:null};
+const state={user:null,scopeUserId:'',data:null,canonical:null,loadedAt:0,messages:[],sending:false,engine:null,engineModel:'',engineReady:false,engineLoading:false,authSubscription:null};
 function lang(){try{return (localStorage.getItem('mmhvault_language_v3363')||'en')==='zh'?'zh':'en'}catch(_e){return'en'}}function T(en,zh){return lang()==='zh'?zh:en}
 function applyTheme(){let t='dark';try{t=localStorage.getItem('myfinance_theme')||'dark'}catch(_e){}document.body.classList.toggle('light',t==='light')}
 function translate(){document.documentElement.lang=lang()==='zh'?'zh-CN':'en';document.querySelectorAll('[data-en][data-zh]').forEach(el=>el.textContent=T(el.dataset.en,el.dataset.zh));const ta=$('input');if(ta)ta.placeholder=T(ta.dataset.enPlaceholder,ta.dataset.zhPlaceholder);renderMetrics();renderThread()}
@@ -85,7 +85,7 @@ async function verifiedAuthUser(){
   return verified
 }
 function clearFinancialScope(reason='scope-cleared'){
-  state.user=null;state.scopeUserId='';state.data=null;state.loadedAt=0;state.messages=[];
+  state.user=null;state.scopeUserId='';state.data=null;state.canonical=null;state.loadedAt=0;state.messages=[];
   const badge=$('scopeBadge');if(badge)badge.classList.remove('scope-ok');
   renderMetrics();renderThread();
   setMode(reason==='account-changed'?T('Account changed · reloading current account only','账号已切换 · 正在重新读取当前账号'):T('Signed-in account required','需要登录当前账号'),true)
@@ -95,6 +95,15 @@ async function assertCurrentScope(expectedId=''){
   if(expectedId&&verified.id!==expectedId)throw Error('account-scope-changed');
   if(state.scopeUserId&&verified.id!==state.scopeUserId)throw Error('account-scope-changed');
   return verified
+}
+function canonicalSnapshotFor(userId){
+  try{
+    const raw=sessionStorage.getItem('mmhvault_ai_canonical_v1115');if(!raw)return null;
+    const x=JSON.parse(raw),age=Date.now()-N(x?.generated_at);
+    if(!x||String(x.owner_id)!==String(userId)||x.schema_version!==1||age<0||age>30*60*1000)return null;
+    if(!Number.isFinite(Number(x.account_net_assets_usd))||x.valid===false)return null;
+    return x
+  }catch(_e){return null}
 }
 async function safeQuery(table,select='*',order='',limit=200,expectedUserId=''){
   const uid=expectedUserId||state.scopeUserId||state.user?.id;
@@ -119,6 +128,7 @@ async function loadData(options={}){
   if(confirmed.id!==uid)throw Error('account-scope-changed');
   state.user=confirmed;state.scopeUserId=uid;state.loadedAt=Date.now();
   state.data={transactions,investments,customInvestments,walletMovements,rates:rateRows[0]||{},budgets,goals,recurring,config:configFor(uid)};
+  state.canonical=canonicalSnapshotFor(uid);
   const badge=$('scopeBadge');if(badge)badge.classList.add('scope-ok');
   if(!silent)setMode(T('Verified current account data ready · prepare Local AI','已验证当前登录账号数据 · 请准备本地 AI'));
   renderMetrics();renderThread();return state.data
@@ -128,7 +138,7 @@ async function ensureCurrentScope(){
   if(!state.data||!state.loadedAt||Date.now()-state.loadedAt>120000)await loadData({silent:true});
   return verified
 }
-function renderMetrics(){const box=$('metrics');if(!box)return;if(!state.data){box.innerHTML=`<article class="metric"><span>${T('Status','状态')}</span><strong>—</strong><small>${T('Sign in required','需要登录')}</small></article>`;return}const s=summary(),m=s.current_month,p=s.previous_month,delta=p.expense?((m.expense-p.expense)/p.expense*100):null;box.innerHTML=`<article class="metric"><span>${T('Income · this month','本月收入')}</span><strong>${usd(m.income)}</strong><small>${T('Ordinary income only','仅正常收入')}</small></article><article class="metric"><span>${T('Spending · this month','本月开销')}</span><strong>${usd(m.expense)}</strong><small>${delta===null?T('No prior-month baseline','上月无可比基线'):(delta>=0?'+':'')+pct(delta)+' '+T('vs last month','对比上月')}</small></article><article class="metric"><span>${T('Savings rate','储蓄率')}</span><strong>${pct(m.savings_rate)}</strong><small>${usd(m.remaining)} ${T('remaining','剩余')}</small></article><article class="metric"><span>${T('Accounts in scope','已读取账户')}</span><strong>${s.accounts.length}</strong><small>${T('Current signed-in account only','仅当前登录账号')}</small></article>`}
+function renderMetrics(){const box=$('metrics');if(!box)return;if(!state.data){box.innerHTML=`<article class="metric"><span>${T('Status','状态')}</span><strong>—</strong><small>${T('Sign in required','需要登录')}</small></article>`;return}const s=summary(),m=s.current_month,p=s.previous_month,delta=p.expense?((m.expense-p.expense)/p.expense*100):null,canon=state.canonical,net=canon?N(canon.account_net_assets_usd):null;box.innerHTML=`<article class="metric"><span>${T('Income · this month','本月收入')}</span><strong>${usd(m.income)}</strong><small>${T('Ordinary income only','仅正常收入')}</small></article><article class="metric"><span>${T('Spending · this month','本月开销')}</span><strong>${usd(m.expense)}</strong><small>${delta===null?T('No prior-month baseline','上月无可比基线'):(delta>=0?'+':'')+pct(delta)+' '+T('vs last month','对比上月')}</small></article><article class="metric"><span>${T('Savings rate','储蓄率')}</span><strong>${pct(m.savings_rate)}</strong><small>${usd(m.remaining)} ${T('remaining','剩余')}</small></article><article class="metric"><span>${T('Account net assets','账户净资产')}</span><strong>${canon?usd(net):'—'}</strong><small>${canon?T(`${s.accounts.length} accounts · synced from MMHVAULT Accounts`,`${s.accounts.length} 个账户 · 与 MMHVAULT Accounts 同步`):T('Open AI from MMHVAULT to sync exact total','请从 MMHVAULT 内进入 AI 以同步精确总额')}</small></article>`}
 function setMode(t,error=false){const el=$('mode');if(el){el.textContent=t;el.classList.toggle('status-error',!!error)}}
 function addMessage(role,text,mode=''){state.messages.push({role,text:String(text||''),mode});if(state.messages.length>24)state.messages=state.messages.slice(-24);renderThread()}
 function renderThread(){const el=$('thread');if(!el)return;el.replaceChildren();if(!state.messages.length){const row=document.createElement('div');row.className='msg assistant';const b=document.createElement('div');b.className='bubble';b.textContent=state.data?T('Ask about the verified current-account MMHVAULT Personal data. I check exact facts first, then Local AI explains open-ended questions. I am read-only.','可以直接询问当前已验证登录账号的 MMHVAULT Personal 数据。我会先核对精确数字，再由本地 AI 解释开放式问题；全程只读。'):T('Open MMHVAULT and sign in first, then return here.','请先在 MMHVAULT 登录，然后返回这里。');row.append(b);el.append(row)}else for(const m of state.messages){const row=document.createElement('div');row.className='msg '+m.role;const b=document.createElement('div');b.className='bubble';b.textContent=m.text;if(m.role==='assistant'&&m.mode){const meta=document.createElement('small');meta.className='meta';meta.textContent=m.mode;b.append(meta)}row.append(b);el.append(row)}requestAnimationFrame(()=>el.scrollTop=el.scrollHeight)}
@@ -151,9 +161,9 @@ function investmentEstimate(){
 }
 function receivableEstimateUSD(){let out=0,paid=0;for(const t of state.data?.transactions||[]){const cat=lc(t.category);if(t.type==='Expense'&&(cat==='loan out'||cat==='paiddeb'))out+=amountUSD(t.from_account,t.from_amount);if(t.type==='Income'&&(cat==='loan repayment'||cat==='debt'))paid+=amountUSD(t.to_account,t.to_amount)}return round2(Math.max(0,out-paid))}
 function financeFacts(){
-  const s=summary(),cash=round2(s.accounts.reduce((sum,a)=>sum+N(a.balance_usd),0)),portfolio=investmentEstimate(),receivable=receivableEstimateUSD(),estimatedAssets=round2(cash+portfolio.total_usd+receivable);
+  const s=summary(),cash=round2(s.accounts.reduce((sum,a)=>sum+N(a.balance_usd),0)),portfolio=investmentEstimate(),receivable=receivableEstimateUSD(),estimatedAssets=round2(cash+portfolio.total_usd+receivable),canon=state.canonical;
   const completed=s.last_12_months.filter(x=>x.key!==s.current_month.key&&N(x.records)>0).slice(-6),avgNet=completed.length?round2(completed.reduce((sum,x)=>sum+N(x.remaining_usd),0)/completed.length):null;
-  return{as_of:new Date().toISOString(),account_cash_total_usd:cash,portfolio_estimate_usd:portfolio.total_usd,portfolio_breakdown:portfolio,receivable_estimate_usd:receivable,estimated_net_assets_usd:estimatedAssets,estimated_net_assets_note:'Estimate = active account cash + portfolio value using latest recorded prices + estimated receivables. Main MMHVAULT live market values may differ.',current_month:s.current_month,previous_month:s.previous_month,completed_months_used:completed.length,average_completed_month_net_usd:avgNet,accounts:s.accounts.map(a=>({name:a.name,currency:a.currency,balance:round2(a.balance),balance_usd:round2(a.balance_usd)}))}
+  return{as_of:new Date().toISOString(),account_net_assets_usd:canon?round2(canon.account_net_assets_usd):null,account_assets_usd:canon?round2(canon.account_assets_usd):null,account_liabilities_usd:canon?round2(canon.account_liabilities_usd):null,account_net_assets_source:canon?'MMHVAULT Accounts canonical snapshot':'unavailable',canonical_accounts:canon&&Array.isArray(canon.accounts)?canon.accounts:[],account_cash_total_usd:cash,portfolio_estimate_usd:portfolio.total_usd,portfolio_breakdown:portfolio,receivable_estimate_usd:receivable,estimated_net_assets_usd:estimatedAssets,estimated_net_assets_note:'Fallback estimate only. For exact Account net assets, use account_net_assets_usd when available from the canonical MMHVAULT Accounts snapshot.',current_month:s.current_month,previous_month:s.previous_month,completed_months_used:completed.length,average_completed_month_net_usd:avgNet,accounts:s.accounts.map(a=>({name:a.name,currency:a.currency,balance:round2(a.balance),balance_usd:round2(a.balance_usd)}))}
 }
 function categoryValue(key,name){let total=0;for(const t of flowRows(key)){if(t.type==='Expense'&&lc(t.category)===lc(name))total+=amountUSD(t.from_account,t.from_amount)}return round2(total)}
 function categoryFromQuestion(q){const ql=lc(q),names=new Set();for(const x of state.data?.config?.categories?.Expense||[])names.add(String(x));for(const x of state.data?.config?.categories?.Personal||[])names.add(String(x));for(const x of summary().current_month.top_categories||[])names.add(String(x.name));for(const x of summary().previous_month.top_categories||[])names.add(String(x.name));const aliases={'餐饮':'Dining','吃饭':'Dining','交通':'Transport','零食':'Snacks','家庭支持':'Family Support','生活方式':'Lifestyle','健康':'Wellness'};for(const [a,n] of Object.entries(aliases))if(String(q).includes(a))return n;return [...names].sort((a,b)=>b.length-a.length).find(n=>n&&ql.includes(lc(n)))||''}
@@ -162,8 +172,8 @@ function exactToolAnswer(q){
   const zh=questionLang(q)==='zh',ql=lc(q),f=financeFacts(),cur=f.current_month,prev=f.previous_month;
   if(/^(你好|您好|嗨|hello|hi|hey)[!！。\s]*$/i.test(String(q).trim())||/你能(帮我|做|解答)|能回答什么|what can you|what do you do/i.test(q))return zh?'我可以读取当前登录账号的 MMHVAULT Personal 数据，精确计算账户余额、收入、开销、储蓄率、分类变化和现金流情景；开放式的“为什么、怎么规划”再交给本地 AI 解释。所有功能只读，不会改账。':'I can read only the current signed-in MMHVAULT Personal data, calculate balances, income, spending, savings rate, category changes and cash-flow scenarios exactly, then use Local AI for open-ended explanations and planning. I am read-only.';
   const target=projectionTarget(q);if(target&&/(存款|余额|现金|save|saving|balance|cash)/i.test(q)){if(f.average_completed_month_net_usd===null)return zh?'目前没有足够的已完成月份记录来做可靠预测。至少需要 1 个完整月份的正常收入/开销数据。':'There is not enough completed-month history for a reliable projection yet.';const change=round2(f.average_completed_month_net_usd*target.months),projected=round2(f.account_cash_total_usd+change);return zh?`按最近 ${f.completed_months_used} 个有记录的完整月份，平均每月净现金流约为 ${signedMoney(f.average_completed_month_net_usd)}。当前账户现金余额合计约 ${usd(f.account_cash_total_usd)}。如果这个平均水平保持不变，到${target.label}预计账户现金余额约为 ${usd(projected)}（预计变化 ${signedMoney(change)}）。这是现金流情景，不是保证；投资价格、大额支出和收入变化都会改变结果。`:`Using the most recent ${f.completed_months_used} completed months with records, average monthly net cash flow is about ${signedMoney(f.average_completed_month_net_usd)}. Current account cash is about ${usd(f.account_cash_total_usd)}. If that pace continues, projected account cash for ${target.label} is about ${usd(projected)} (${signedMoney(change)} change). This is a scenario, not a guarantee.`}
-  if(/(总资产|净资产|net\s*worth|total\s*assets?)/i.test(q))return zh?`按当前可读取数据估算，总资产约为 ${usd(f.estimated_net_assets_usd)}：账户现金 ${usd(f.account_cash_total_usd)} + 按最近记录价格估算的投资/加密/黄金 ${usd(f.portfolio_estimate_usd)}${f.receivable_estimate_usd?` + 应收约 ${usd(f.receivable_estimate_usd)}`:''}。注意：这里的投资部分使用记录里的最近 market_price，主 APP 如果拿到更新的实时行情，数字可能不同。`:`Estimated net assets are about ${usd(f.estimated_net_assets_usd)}: ${usd(f.account_cash_total_usd)} account cash + ${usd(f.portfolio_estimate_usd)} portfolio value using latest recorded prices${f.receivable_estimate_usd?` + about ${usd(f.receivable_estimate_usd)} receivables`:''}. Live values in the main app may differ.`;
-  if(/(总余额|账户余额|现金余额|目前.*余额|现在.*余额|存款有多少|cash\s*balance|account\s*balance|how much.*balance)/i.test(q))return zh?`当前活动账户的现金/USDT 余额合计约为 ${usd(f.account_cash_total_usd)}（已按各账户货币换算成 USD）。这是“账户现金余额”，不等同于包含加密币、黄金等市值的总资产。若你问“总资产”，我会把投资估值也加进去。`:`Current active-account cash/USDT balance is about ${usd(f.account_cash_total_usd)} after currency conversion. This is account cash, not total net assets including crypto/gold market value.`;
+  if(/(总资产|净资产|总余额|账户净资产|net\s*worth|total\s*assets?|account\s*net\s*assets?|total\s*balance)/i.test(q)){if(f.account_net_assets_usd!=null)return zh?`当前 MMHVAULT Accounts 页面口径的账户净资产为 ${usd(f.account_net_assets_usd)}。其中资产 ${usd(f.account_assets_usd)}，负债 ${usd(f.account_liabilities_usd)}；该数字直接使用主 APP 的 Accounts 正式计算结果，不再由 AI 重新估算。`:`Current MMHVAULT Accounts net assets are ${usd(f.account_net_assets_usd)}: ${usd(f.account_assets_usd)} assets and ${usd(f.account_liabilities_usd)} liabilities. This comes directly from the main app's canonical Accounts calculation, not an AI estimate.`;return zh?'当前 AI 页面没有拿到主 APP 的 Accounts 精确快照。请点击“Back to MMHVAULT”，再从 More → AI Assistant 进入，我会读取主 APP 已算好的账户净资产，而不是自行估算。':'The AI page does not currently have the main app's canonical Accounts snapshot. Return to MMHVAULT and reopen More → AI Assistant so I can use the exact Accounts total instead of estimating it.'}
+  if(/(现金余额|现金有多少|cash\s*balance|cash\s*on\s*hand)/i.test(q))return zh?`按交易与账户货币换算计算，当前活动账户的现金/USDT 部分约为 ${usd(f.account_cash_total_usd)}。这只是现金部分；MMHVAULT Accounts 的“账户净资产”请以 ${f.account_net_assets_usd!=null?usd(f.account_net_assets_usd):'主 APP Accounts 页面'} 为准。`:`Current transaction-derived cash/USDT is about ${usd(f.account_cash_total_usd)}. This is the cash portion only; use ${f.account_net_assets_usd!=null?usd(f.account_net_assets_usd):'the main MMHVAULT Accounts page'} for Account net assets.`;
   const cat=categoryFromQuestion(q);if(cat&&/(上个月|本月|这个月|相比|变化|多了|少了|last month|this month|compare|change)/i.test(q)){const a=categoryValue(cur.key,cat),b=categoryValue(prev.key,cat),d=round2(a-b),rate=b?round2(d/b*100):null;return zh?`${cat}：本月 ${usd(a)}，上月 ${usd(b)}，变化 ${signedMoney(d)}${rate===null?'':`（${rate>=0?'+':''}${rate.toFixed(1)}%）`}。${a>b?'本月已高于上月。':a<b?'本月目前低于上月。':'目前与上月相同。'}`:`${cat}: ${usd(a)} this month vs ${usd(b)} last month, a ${signedMoney(d)} change${rate===null?'':` (${rate>=0?'+':''}${rate.toFixed(1)}%)`}.`}
   if(/(开销|支出|spending|expense).*(上个月|相比|compare|last month)|(上个月|last month).*(开销|支出|spending|expense)/i.test(q)){const d=round2(cur.expense-prev.expense),rate=prev.expense?round2(d/prev.expense*100):null;return zh?`本月正常开销 ${usd(cur.expense)}，上月 ${usd(prev.expense)}，变化 ${signedMoney(d)}${rate===null?'':`（${rate>=0?'+':''}${rate.toFixed(1)}%）`}。内部 Transfer、Data Adjustment、Loan 和 linked investment cash flow 都没有计入。`:`Ordinary spending is ${usd(cur.expense)} this month vs ${usd(prev.expense)} last month, a ${signedMoney(d)} change${rate===null?'':` (${rate>=0?'+':''}${rate.toFixed(1)}%)`}. Transfers, adjustments, loans and linked investment cash flow are excluded.`}
   if(/(最高|最大|top|largest).*(开销|支出|分类|category)|(开销|支出).*(最高|最大|top)/i.test(q)){const top=cur.top_categories?.[0];return top?(zh?`本月最大的开销分类是 ${top.name}，目前约 ${usd(top.value)}，占本月正常开销约 ${pct(top.pct)}。`:`The largest spending category this month is ${top.name} at about ${usd(top.value)}, around ${pct(top.pct)} of ordinary spending.`):(zh?'本月还没有可用于分类比较的正常开销记录。':'There is no ordinary spending category data for this month yet.')}
@@ -173,7 +183,7 @@ function exactToolAnswer(q){
 }
 function aiContext(question){
   const f=financeFacts(),ql=lc(question),cat=categoryFromQuestion(question),base={
-    exact_facts:{account_cash_total_usd:f.account_cash_total_usd,portfolio_estimate_usd:f.portfolio_estimate_usd,receivable_estimate_usd:f.receivable_estimate_usd,estimated_net_assets_usd:f.estimated_net_assets_usd,estimated_net_assets_note:f.estimated_net_assets_note,average_completed_month_net_usd:f.average_completed_month_net_usd,completed_months_used:f.completed_months_used},
+    exact_facts:{account_net_assets_usd:f.account_net_assets_usd,account_assets_usd:f.account_assets_usd,account_liabilities_usd:f.account_liabilities_usd,account_net_assets_source:f.account_net_assets_source,account_cash_total_usd:f.account_cash_total_usd,portfolio_estimate_usd:f.portfolio_estimate_usd,receivable_estimate_usd:f.receivable_estimate_usd,estimated_net_assets_usd:f.estimated_net_assets_usd,estimated_net_assets_note:f.estimated_net_assets_note,average_completed_month_net_usd:f.average_completed_month_net_usd,completed_months_used:f.completed_months_used},
     current_month:{key:f.current_month.key,income_usd:round2(f.current_month.income),spending_usd:round2(f.current_month.expense),personal_expense_usd:round2(f.current_month.personal),remaining_usd:round2(f.current_month.remaining),savings_rate_pct:round2(f.current_month.savings_rate),top_categories:f.current_month.top_categories.slice(0,5).map(x=>({name:x.name,value_usd:round2(x.value),pct:round2(x.pct)}))},
     previous_month:{key:f.previous_month.key,income_usd:round2(f.previous_month.income),spending_usd:round2(f.previous_month.expense),remaining_usd:round2(f.previous_month.remaining),savings_rate_pct:round2(f.previous_month.savings_rate),top_categories:f.previous_month.top_categories.slice(0,5).map(x=>({name:x.name,value_usd:round2(x.value),pct:round2(x.pct)}))},
     accounts:f.accounts,
@@ -200,7 +210,7 @@ function systemPrompt(question){const zh=questionLang(question)==='zh';return `$
 ${zh?'回答前先静默完成三项检查：理解用户真正问什么；核对 MMHVAULT 权威数字；确认没有使用上下文以外的账号或数据。不要向用户展示内部推理过程。':'Before answering, silently do three checks: identify what the user actually asked; verify the authoritative MMHVAULT facts; confirm you are not using data outside the supplied current-account context. Do not reveal internal reasoning.'}
 ${zh?'最重要规则：':'Most important rules:'}
 - ${zh?'只能使用本次上下文中当前登录账号的数据。绝不推断、请求或讨论其他账号的数据；如果用户要求其他账号数据，明确说明不可访问。':'Use only the current signed-in account data in this context. Never infer, request, or discuss another user/account\'s data; if asked, state that it is unavailable.'}
-- ${zh?'exact_facts 和 current_month/previous_month 里的数字由 MMHVAULT 计算引擎提供，是权威数字。不要重新心算、改写或猜测这些数值。':'Numbers in exact_facts and current_month/previous_month are computed by MMHVAULT and are authoritative. Do not recalculate, alter, or guess them.'}
+- ${zh?'exact_facts.account_net_assets_usd（有值时）直接来自主 APP 的 Accounts 正式计算，是账户净资产唯一权威总额；不要用 account_cash_total_usd 或 estimated_net_assets_usd 替代它。current_month/previous_month 也由 MMHVAULT 计算引擎提供。不要重新心算、改写或猜测这些数值。':'When exact_facts.account_net_assets_usd is present, it comes directly from the main app's canonical Accounts calculation and is the only authoritative Account net-assets total. Never substitute account_cash_total_usd or estimated_net_assets_usd for it. current_month/previous_month are also MMHVAULT-computed facts. Do not recalculate, alter, or guess these values.'}
 - ${zh?'如果问题要求一个上下文没有提供的精确数字，明确说当前无法精确计算，不要编造。':'If an exact number is not present in context, say it cannot be calculated exactly from the available context. Never invent it.'}
 - ${zh?'先直接回答用户的问题，再解释最相关的 2-4 个依据；不要答非所问，不要重复固定模板。':'Answer the actual question first, then explain the 2-4 most relevant supporting points. Do not answer a different question or repeat a canned template.'}
 - ${zh?'只读，不声称修改、删除、交易、转账或写入任何记录。':'Read-only. Never claim to edit, delete, trade, transfer, or write records.'}
@@ -364,6 +374,15 @@ async function prepareLocalAI(force=false){
     setTimeout(()=>{if(state.engineReady)$('modelProgress')?.classList.remove('show')},1000)
   }
 }
+function sanitizeAssistantOutput(text,final=false){
+  let s=String(text||'');
+  s=s.replace(/<think\b[^>]*>[\s\S]*?<\/think\s*>/gi,'').replace(/<analysis\b[^>]*>[\s\S]*?<\/analysis\s*>/gi,'');
+  s=s.replace(/&lt;think&gt;[\s\S]*?&lt;\/think&gt;/gi,'').replace(/&lt;analysis&gt;[\s\S]*?&lt;\/analysis&gt;/gi,'');
+  const openThink=s.search(/<(?:think|analysis)\b[^>]*>/i);if(openThink>=0)s=s.slice(0,openThink);
+  s=s.replace(/<\/?(?:think|analysis)\b[^>]*>/gi,'');
+  const lt=s.lastIndexOf('<'),gt=s.lastIndexOf('>');if(lt>gt){const frag=s.slice(lt).toLowerCase(),tags=['<think>','</think>','<analysis>','</analysis>'];if(tags.some(tag=>tag.startsWith(frag)))s=s.slice(0,lt)}
+  return final?s.trim():s.replace(/^\s+/,'')
+}
 function assistantMessageShell(mode=''){
   const row=document.createElement('div');row.className='msg assistant';const b=document.createElement('div');b.className='bubble';const t=document.createTextNode('');const caret=document.createElement('span');caret.className='type-caret';caret.textContent='▍';b.append(t,caret);if(mode){const meta=document.createElement('small');meta.className='meta';meta.textContent=mode;b.append(meta)}row.append(b);$('thread').append(row);$('thread').scrollTop=$('thread').scrollHeight;return{row,b,t,caret}
 }
@@ -379,7 +398,7 @@ async function reviewQuestion(engine,question,context){
   if(!isQwen(state.engineModel))return null;
   try{
     const r=await engine.chat.completions.create({messages:[{role:'system',content:reviewPrompt(question,context)}],temperature:0,top_p:.7,max_tokens:140,stream:false,extra_body:{enable_thinking:false}});
-    const text=String(r?.choices?.[0]?.message?.content||'').trim().replace(/^```(?:json)?\s*/i,'').replace(/\s*```$/,'');
+    const text=sanitizeAssistantOutput(String(r?.choices?.[0]?.message?.content||''),true).replace(/^```(?:json)?\s*/i,'').replace(/\s*```$/,'');
     const parsed=JSON.parse(text);return parsed&&typeof parsed==='object'?parsed:null
   }catch(e){console.warn('[MMHVAULT Local AI] review pass skipped',e);return null}
 }
@@ -396,11 +415,11 @@ async function localAIAsk(question){
   const stream=await engine.chat.completions.create({messages,temperature:isAdvanced(state.engineModel)?.08:.06,top_p:.78,max_tokens:isAdvanced(state.engineModel)?700:520,stream:true,...(isQwen(state.engineModel)?{extra_body:{enable_thinking:false}}:{})});
   typing(false);
   const mode=T(`Local AI · ${modelLabel(state.engineModel)} · verified scope`,`本地 AI · ${modelLabel(state.engineModel)} · 已验证账号范围`),shell=assistantMessageShell(mode);
-  let finalAnswer='',pending='',done=false,streamError=null;
-  const pump=(async()=>{while(!done||pending){if(pending){const take=Math.min(pending.length,pending.length>80?4:2);finalAnswer+=pending.slice(0,take);pending=pending.slice(take);shell.t.nodeValue=finalAnswer;$('thread').scrollTop=$('thread').scrollHeight}else await sleep(18)}if(shell.caret?.isConnected)shell.caret.remove()})();
-  try{for await(const chunk of stream){const delta=chunk?.choices?.[0]?.delta?.content||'';if(delta)pending+=delta}}catch(e){streamError=e}finally{done=true}
+  let rawAnswer='',targetAnswer='',finalAnswer='',done=false,streamError=null;
+  const pump=(async()=>{while(!done||finalAnswer.length<targetAnswer.length){if(finalAnswer.length<targetAnswer.length){const remain=targetAnswer.slice(finalAnswer.length),take=Math.min(remain.length,remain.length>80?4:2);finalAnswer+=remain.slice(0,take);shell.t.nodeValue=finalAnswer;$('thread').scrollTop=$('thread').scrollHeight}else await sleep(18)}if(shell.caret?.isConnected)shell.caret.remove()})();
+  try{for await(const chunk of stream){const delta=chunk?.choices?.[0]?.delta?.content||'';if(delta){rawAnswer+=delta;targetAnswer=sanitizeAssistantOutput(rawAnswer,false)}}}catch(e){streamError=e}finally{targetAnswer=sanitizeAssistantOutput(rawAnswer,true);done=true}
   await pump;if(streamError)throw streamError;
-  finalAnswer=finalAnswer.trim();if(!finalAnswer)throw Error('empty-local-ai-response');
+  finalAnswer=sanitizeAssistantOutput(finalAnswer||targetAnswer,true);if(!finalAnswer)throw Error('empty-local-ai-response');
   shell.t.nodeValue=finalAnswer;state.messages.push({role:'assistant',text:finalAnswer,mode});if(state.messages.length>24)state.messages=state.messages.slice(-24);return finalAnswer
 }
 async function send(text){
