@@ -1,4 +1,4 @@
-/* MMHVAULT Notification 2.0 · Push-only Service Worker v1.12.3
+/* MMHVAULT Notification 2.0 · Push-only Service Worker v1.12.5
    No fetch interception, no page cache, no navigation controller logic. */
 const clamp=(value,max)=>String(value??'').slice(0,max);
 function safeTarget(raw){
@@ -6,7 +6,9 @@ function safeTarget(raw){
   try{
     const scope=new URL(self.registration.scope);
     const target=new URL(raw||fallback.href,self.registration.scope);
-    if(target.origin!==scope.origin||!target.pathname.startsWith(scope.pathname))return fallback.href;
+    /* Push notifications may only reopen the authenticated Personal app entrypoint.
+       Query/hash are allowed for the alert deep-link; other MMHVAULT pages are not. */
+    if(target.origin!==scope.origin||target.pathname!==fallback.pathname)return fallback.href;
     return target.href;
   }catch(_e){return fallback.href}
 }
