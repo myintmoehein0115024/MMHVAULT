@@ -1,16 +1,18 @@
-/* MMHVAULT Notification 2.0 · Push-only Service Worker v1.12.5
+/* MMHVAULT Notification 2.0 · Push-only Service Worker v1.12.8
+   Dedicated registration scope: ./mmh-push-scope/
    No fetch interception, no page cache, no navigation controller logic. */
 const clamp=(value,max)=>String(value??'').slice(0,max);
+const APP_BASE=new URL('./',self.location.href);
+const APP_URL=new URL('app.html',APP_BASE);
+const ICON_URL=new URL('images/icon-192.png',APP_BASE).href;
 function safeTarget(raw){
-  const fallback=new URL('./app.html',self.registration.scope);
   try{
-    const scope=new URL(self.registration.scope);
-    const target=new URL(raw||fallback.href,self.registration.scope);
+    const target=new URL(raw||APP_URL.href,APP_URL.href);
     /* Push notifications may only reopen the authenticated Personal app entrypoint.
        Query/hash are allowed for the alert deep-link; other MMHVAULT pages are not. */
-    if(target.origin!==scope.origin||target.pathname!==fallback.pathname)return fallback.href;
+    if(target.origin!==APP_URL.origin||target.pathname!==APP_URL.pathname)return APP_URL.href;
     return target.href;
-  }catch(_e){return fallback.href}
+  }catch(_e){return APP_URL.href}
 }
 self.addEventListener('push',event=>{
   let data={};
@@ -19,8 +21,8 @@ self.addEventListener('push',event=>{
   const title=clamp(data.title||'MMHVAULT',120);
   const options={
     body:clamp(data.body||'',240),
-    icon:new URL('./images/icon-192.png',self.registration.scope).href,
-    badge:new URL('./images/icon-192.png',self.registration.scope).href,
+    icon:ICON_URL,
+    badge:ICON_URL,
     tag:clamp(data.tag||data.alert_id||'mmhvault-financial-alert',180),
     renotify:false,
     data:{
@@ -43,9 +45,9 @@ self.addEventListener('notificationclick',event=>{
     const wins=await self.clients.matchAll({type:'window',includeUncontrolled:true});
     for(const client of wins){
       try{
-        const clientURL=new URL(client.url),targetURL=new URL(target),scopeURL=new URL(self.registration.scope);
-        if(clientURL.origin===targetURL.origin&&clientURL.pathname.startsWith(scopeURL.pathname)){
-          if('navigate'in client)await client.navigate(target);
+        const clientURL=new URL(client.url),targetURL=new URL(target);
+        if(clientURL.origin===APP_URL.origin&&clientURL.pathname===APP_URL.pathname){
+          if('navigate'in client&&clientURL.href!==targetURL.href)await client.navigate(target);
           await client.focus();
           return;
         }

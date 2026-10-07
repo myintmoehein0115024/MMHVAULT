@@ -21236,20 +21236,24 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   const platformLabel=()=>isIOS()?'iPhone/iPad':isAndroid()?'Android':(/Win/i.test(navigator.platform||navigator.userAgent)?'Windows':(/Mac/i.test(navigator.platform||navigator.userAgent)?'macOS':String(navigator.userAgentData?.platform||navigator.platform||'Unknown')));
   const standalone=()=>!!(window.matchMedia?.('(display-mode: standalone)')?.matches||navigator.standalone===true);
   const supported=()=>isSecureContext&&'serviceWorker'in navigator&&'PushManager'in window&&'Notification'in window&&typeof Notification.requestPermission==='function';
-  const expectedWorkerURL=()=>new URL('./mmh-push-sw.js',location.href).href;
+  const appBaseURL=()=>new URL('./',location.href).href;
+  const expectedWorkerURL=()=>new URL('./mmh-push-sw.js',appBaseURL()).href;
+  const expectedPushScopeURL=()=>new URL('./mmh-push-scope/',appBaseURL()).href;
   const workerIsExpected=w=>{try{return !!w&&new URL(w.scriptURL,location.href).href===expectedWorkerURL()}catch(_){return false}};
+  const registrationScopeIsExpected=reg=>{try{return !!reg&&new URL(reg.scope,location.href).href===expectedPushScopeURL()}catch(_){return false}};
   function appKey(){const pad='='.repeat((4-VAPID_PUBLIC.length%4)%4),b64=(VAPID_PUBLIC+pad).replace(/-/g,'+').replace(/_/g,'/'),raw=atob(b64),out=new Uint8Array(raw.length);for(let i=0;i<raw.length;i++)out[i]=raw.charCodeAt(i);return out}
   function keysOf(sub){const j=sub?.toJSON?.()||{};return{p256dh:String(j?.keys?.p256dh||''),auth:String(j?.keys?.auth||'')}}
   const verificationKey=sub=>owner()&&sub?.endpoint?owner()+'|'+sub.endpoint:'';
   async function pushRegistration(){
-    if(!('serviceWorker'in navigator))return null;if(workerIsExpected(preparedReg?.active))return preparedReg;const regs=await navigator.serviceWorker.getRegistrations();const reg=regs.find(x=>workerIsExpected(x.active))||null;if(reg)preparedReg=reg;return reg;
+    if(!('serviceWorker'in navigator))return null;if(registrationScopeIsExpected(preparedReg)&&workerIsExpected(preparedReg?.active))return preparedReg;const regs=await navigator.serviceWorker.getRegistrations();const reg=regs.find(x=>registrationScopeIsExpected(x)&&workerIsExpected(x.active))||null;if(reg)preparedReg=reg;return reg;
   }
   async function waitForPushWorker(reg){
+    if(!registrationScopeIsExpected(reg))throw new Error(tr('The dedicated Push worker scope is not ready yet. Reload MMHVAULT and try again.','专用 Push Worker 的独立作用域尚未准备好。请刷新 MMHVAULT 后重试。'));
     if(workerIsExpected(reg?.active)){preparedReg=reg;return reg}const worker=[reg?.installing,reg?.waiting].find(workerIsExpected);if(worker){await Promise.race([new Promise(resolve=>{const done=()=>{if(worker.state==='activated'||worker.state==='redundant'){worker.removeEventListener('statechange',done);resolve()}};worker.addEventListener('statechange',done);done()}),new Promise(resolve=>setTimeout(resolve,8000))])}
-    if(!workerIsExpected(reg?.active))throw new Error(tr('The push service worker is not active yet. Close other MMHVAULT tabs, reopen this page, and try again.','推送服务尚未激活。请关闭其他 MMHVAULT 标签页，重新打开此页面后再试。'));preparedReg=reg;return reg;
+    if(!workerIsExpected(reg?.active))throw new Error(tr('The dedicated Push worker is not active yet. Close other MMHVAULT tabs, reopen this page, and try again.','专用 Push Worker 尚未激活。请关闭其他 MMHVAULT 标签页，重新打开此页面后再试。'));preparedReg=reg;return reg;
   }
   async function prepareWorker(){
-    if(!supported()||(isIOS()&&!standalone()))return null;if(workerIsExpected(preparedReg?.active))return preparedReg;if(preparePromise)return preparePromise;preparePromise=(async()=>{const existing=await pushRegistration();if(existing)return existing;return waitForPushWorker(await navigator.serviceWorker.register('./mmh-push-sw.js',{scope:'./',updateViaCache:'none'}))})();try{return await preparePromise}finally{preparePromise=null}
+    if(!supported()||(isIOS()&&!standalone()))return null;if(registrationScopeIsExpected(preparedReg)&&workerIsExpected(preparedReg?.active))return preparedReg;if(preparePromise)return preparePromise;preparePromise=(async()=>{const existing=await pushRegistration();if(existing)return existing;return waitForPushWorker(await navigator.serviceWorker.register('./mmh-push-sw.js',{scope:'./mmh-push-scope/',updateViaCache:'none'}))})();try{return await preparePromise}finally{preparePromise=null}
   }
   async function currentSubscription(){const reg=await pushRegistration();return reg?await reg.pushManager.getSubscription():null}
   async function claim(sub){
@@ -21292,7 +21296,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   async function enable(){
     const u=owner();if(!u)throw new Error(tr('Please sign in again.','请重新登录。'));if(!supported())throw new Error(tr('This browser does not support Web Push.','此浏览器不支持 Web Push。'));if(isIOS()&&!standalone()){await explainIOS();return false}
     if(Notification.permission==='denied'){cached={state:'blocked',sub:null,at:Date.now()};window.dispatchEvent(new CustomEvent('mmhvault:push-state'));return permissionHelp()}
-    let reg=workerIsExpected(preparedReg?.active)?preparedReg:null;
+    let reg=registrationScopeIsExpected(preparedReg)&&workerIsExpected(preparedReg?.active)?preparedReg:null;
     if(!reg){try{await prepareWorker()}catch(err){throw err}window.MMHUI?.toast?.(tr('Background alert service is ready. Tap Enable background alerts once more.','后台提醒服务已准备好，请再点一次“开启后台提醒”。'),{title:tr('Notifications','通知'),type:'info'});return false}
     let sub=null;
     try{sub=await reg.pushManager.getSubscription();if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:appKey()})}
@@ -21315,15 +21319,16 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     if(!data?.ok)throw new Error(data?.error||tr('Push test failed.','推送测试失败。'));return data;
   }
   async function diagnostics(){
-    const report={version:'1.12.7',browser:browserLabel(),platform:platformLabel(),secureContext:!!isSecureContext,serviceWorkerSupported:'serviceWorker'in navigator,pushManagerSupported:'PushManager'in window,notificationSupported:'Notification'in window,permission:('Notification'in window?Notification.permission:'unavailable'),ios:isIOS(),android:isAndroid(),standalone:standalone(),workerActive:false,legacyWorkerPresent:false,subscriptionPresent:false,serverBinding:'not-checked',keysMatch:false,state:'unknown',endpointHost:'',timezone:timezone(),signedIn:!!owner()};
+    const report={version:'1.12.8',browser:browserLabel(),platform:platformLabel(),secureContext:!!isSecureContext,serviceWorkerSupported:'serviceWorker'in navigator,pushManagerSupported:'PushManager'in window,notificationSupported:'Notification'in window,permission:('Notification'in window?Notification.permission:'unavailable'),ios:isIOS(),android:isAndroid(),standalone:standalone(),workerActive:false,legacyWorkerPresent:false,legacyRootPushPresent:false,subscriptionPresent:false,serverBinding:'not-checked',keysMatch:false,state:'unknown',endpointHost:'',timezone:timezone(),signedIn:!!owner(),pushScope:expectedPushScopeURL()};
     if(!report.serviceWorkerSupported||!report.pushManagerSupported||!report.notificationSupported||!report.secureContext){report.state='unsupported';return report}
     if(report.ios&&!report.standalone){report.state='ios-install';return report}
     if(report.permission==='denied'){report.state='blocked'}
     try{
-      const regs=await navigator.serviceWorker.getRegistrations();
-      const expected=regs.find(x=>workerIsExpected(x.active))||null;
+      const regs=await navigator.serviceWorker.getRegistrations(),base=appBaseURL(),legacyUrl=new URL('sw.js',base).href;
+      const expected=regs.find(x=>registrationScopeIsExpected(x)&&workerIsExpected(x.active))||null;
       report.workerActive=!!expected;
-      report.legacyWorkerPresent=regs.some(x=>!!x.active&&!workerIsExpected(x.active));
+      report.legacyWorkerPresent=regs.some(reg=>{try{return new URL(reg.scope,location.href).href===base&&[reg.active,reg.waiting,reg.installing].filter(Boolean).some(w=>new URL(w.scriptURL,location.href).href===legacyUrl)}catch(_e){return false}});
+      report.legacyRootPushPresent=regs.some(reg=>{try{return new URL(reg.scope,location.href).href===base&&[reg.active,reg.waiting,reg.installing].filter(Boolean).some(workerIsExpected)}catch(_e){return false}});
       const sub=expected?await expected.pushManager.getSubscription():null;
       report.subscriptionPresent=!!sub;
       if(sub){try{report.endpointHost=new URL(sub.endpoint).hostname}catch(_e){}
@@ -21346,7 +21351,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   }
   function refreshPermissionState(){cached.at=0;window.dispatchEvent(new CustomEvent('mmhvault:push-state'))}
   async function watchPermission(){try{if(!navigator.permissions?.query)return;const ps=await navigator.permissions.query({name:'notifications'});ps.onchange=refreshPermissionState}catch(_e){}}
-  window.MMHBackgroundPushV123={status,enable,disable,toggle,test,diagnostics,reconcile,permissionHelp,subscribedCached,version:'1.12.7'};window.MMHBackgroundPushV122=window.MMHBackgroundPushV123;
+  window.MMHBackgroundPushV123={status,enable,disable,toggle,test,diagnostics,reconcile,permissionHelp,subscribedCached,version:'1.12.8'};window.MMHBackgroundPushV122=window.MMHBackgroundPushV123;
   window.addEventListener('mmhvault:config-owner-changed',()=>{cached.at=0;if(owner())setTimeout(reconcile,600)},{passive:true});
   window.addEventListener('focus',refreshPermissionState,{passive:true});window.addEventListener('pageshow',refreshPermissionState,{passive:true});document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshPermissionState()},{passive:true});watchPermission();
   const prep=()=>setTimeout(()=>prepareWorker().catch(err=>console.warn('[MMHVAULT] push worker prepare skipped',err)),220);if(document.readyState==='complete')prep();else window.addEventListener('load',prep,{once:true,passive:true});
@@ -21531,6 +21536,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       else if(d.state==='unsupported')next=tr('This environment cannot provide Web Push. Use a supported secure browser context.','当前环境无法提供 Web Push，请使用支持的安全浏览器环境。');
       else if(d.state==='worker-missing')next=tr('Reload MMHVAULT once. If the Push worker still does not become active, close other MMHVAULT tabs and reopen the app.','请刷新 MMHVAULT 一次；若 Push Worker 仍未激活，请关闭其他 MMHVAULT 标签页后重新打开。');
       else next=tr('Tap Enable/Repair background alerts to finish this device registration. Chrome/Edge Push should be tested in a normal window, not Incognito/InPrivate.','请点击“开启/修复后台提醒”完成此设备注册。Chrome/Edge Push 请使用普通窗口测试，不要使用无痕/InPrivate。');
+      if(d.legacyWorkerPresent||d.legacyRootPushPresent)next+=' '+tr('A legacy root-scope worker was detected and intentionally left untouched; Notification 2.0 now uses a separate Push-only scope so it does not replace or unregister the legacy worker.','检测到旧的根作用域 Worker，MMHVAULT 已按规则保持不动；Notification 2.0 现在使用独立的 Push-only 作用域，不会替换或注销旧 Worker。');
       const lines=[
         tr('Notification / Push device check','Notification / Push 设备检查'),
         `${tr('Version','版本')}: ${d.version}`,
@@ -21538,8 +21544,10 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
         `${tr('Secure context','安全上下文')}: ${d.secureContext?yes:no}`,
         `${tr('Notification permission','通知权限')}: ${d.permission}`,
         `${tr('Home Screen mode','主屏幕模式')}: ${d.ios?(d.standalone?yes:no):na}`,
-        `${tr('Push Service Worker','Push Service Worker')}: ${d.workerActive?tr('Active','已激活'):tr('Not active','未激活')}`,
-        `${tr('Other/legacy worker present','其他/旧 Worker')}: ${d.legacyWorkerPresent?yes:no}`,
+        `${tr('Push Service Worker','Push Service Worker')}: ${d.workerActive?tr('Active (isolated scope)','已激活（独立作用域）'):tr('Not active','未激活')}`,
+        `${tr('Dedicated Push scope','专用 Push 作用域')}: ${(()=>{try{return new URL(d.pushScope).pathname}catch(_){return d.pushScope||na}})()}`,
+        `${tr('Legacy sw.js registration','旧 sw.js 注册')}: ${d.legacyWorkerPresent?tr('Detected — left untouched','已检测到 — 保持不动'):no}`,
+        `${tr('Older root-scope Push worker','旧根作用域 Push Worker')}: ${d.legacyRootPushPresent?tr('Detected — left untouched','已检测到 — 保持不动'):no}`,
         `${tr('Browser subscription','浏览器订阅')}: ${d.subscriptionPresent?tr('Present','存在'):tr('Missing','不存在')}`,
         `${tr('Server binding','服务器绑定')}: ${binding}`,
         `${tr('Push keys match','Push 密钥匹配')}: ${d.subscriptionPresent?(d.keysMatch?yes:no):na}`,
@@ -23435,45 +23443,29 @@ body.light #reports .report-mini-v115{background:#f3f8fb;border-color:#cfdee9}bo
 })();
 </script>
 
-<!-- MMHVAULT v1.2.2 · PWA rollback recovery
-     The v1.2.1 runtime Service Worker/PWA controller was removed because it introduced
-     a reload/control race during authenticated app boot. This cleanup never reloads the page. -->
+<!-- MMHVAULT Notification 2.0 · legacy Service Worker audit only
+     Old sw.js registrations are detected but intentionally left untouched.
+     Background Push uses a separate Push-only registration scope and never reloads the page. -->
 <script id="mmhvault-v122-pwa-rollback-cleanup">
 (()=>{'use strict';
   if(window.__MMHVAULT_PWA_ROLLBACK_V122)return;
   window.__MMHVAULT_PWA_ROLLBACK_V122=true;
-  const retire=async()=>{
+  const audit=async()=>{
     try{
-      if('serviceWorker' in navigator){
-        const regs=await navigator.serviceWorker.getRegistrations();
-        const appBase=new URL('./',location.href).href;
-        const legacyUrl=new URL('sw.js',appBase).href;
-        const mine=regs.filter(reg=>{
-          try{
-            const workers=[reg.active,reg.waiting,reg.installing].filter(Boolean);
-            return workers.some(w=>new URL(w.scriptURL,location.href).href===legacyUrl);
-          }catch(_e){return false}
-        });
-        await Promise.allSettled(mine.map(reg=>reg.unregister()));
-      }
-    }catch(e){console.warn('[MMHVAULT] Service Worker retirement skipped',e);}
-    try{
-      if('caches' in window){
-        const keys=await caches.keys();
-        await Promise.allSettled(keys.filter(k=>k.startsWith('mmhvault-')).map(k=>caches.delete(k)));
-      }
-    }catch(e){console.warn('[MMHVAULT] PWA cache cleanup skipped',e);}
-    try{
-      localStorage.removeItem('mmhvault_pwa_recovery_v121');
-      localStorage.setItem('mmhvault_pwa_rollback_v122','done');
-    }catch(_e){}
+      if(!('serviceWorker' in navigator))return;
+      const regs=await navigator.serviceWorker.getRegistrations(),appBase=new URL('./',location.href).href,legacyUrl=new URL('sw.js',appBase).href;
+      const legacy=regs.filter(reg=>{try{return new URL(reg.scope,location.href).href===appBase&&[reg.active,reg.waiting,reg.installing].filter(Boolean).some(w=>new URL(w.scriptURL,location.href).href===legacyUrl)}catch(_e){return false}});
+      if(legacy.length)console.info('[MMHVAULT] Legacy sw.js registration detected and intentionally left untouched. Notification 2.0 uses an isolated Push-only scope.');
+      try{localStorage.setItem('mmhvault_pwa_rollback_v122',legacy.length?'legacy-detected-left-untouched':'no-legacy-registration')}catch(_e){}
+    }catch(e){console.warn('[MMHVAULT] Legacy Service Worker audit skipped',e)}
   };
-  // Never block finance boot and never reload. Cleanup runs after the current document is usable.
-  if(document.readyState==='complete')setTimeout(retire,0);
-  else window.addEventListener('load',()=>setTimeout(retire,0),{once:true});
+  /* Notification 2.0 rule: never unregister legacy sw.js or delete its caches automatically.
+     The dedicated Push worker is isolated under ./mmh-push-scope/ and has no fetch handler. */
+  if(document.readyState==='complete')setTimeout(audit,0);
+  else window.addEventListener('load',()=>setTimeout(audit,0),{once:true});
 })();
 </script>
-<!-- MMHVAULT v1.12.3 · legacy PWA caching stays disabled; mmh-push-sw.js is Push-only and the manifest enables an installable Home Screen app. -->
+<!-- MMHVAULT v1.12.8 · legacy sw.js is audit-only/left untouched; mmh-push-sw.js is Push-only on an isolated scope. -->
 
 
 
