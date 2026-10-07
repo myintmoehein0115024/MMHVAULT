@@ -21256,6 +21256,25 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     if(!supported()||(isIOS()&&!standalone()))return null;if(registrationScopeIsExpected(preparedReg)&&workerIsExpected(preparedReg?.active))return preparedReg;if(preparePromise)return preparePromise;preparePromise=(async()=>{const existing=await pushRegistration();if(existing)return existing;return waitForPushWorker(await navigator.serviceWorker.register('./mmh-push-sw.js',{scope:'./mmh-push-scope/',updateViaCache:'none'}))})();try{return await preparePromise}finally{preparePromise=null}
   }
   async function currentSubscription(){const reg=await pushRegistration();return reg?await reg.pushManager.getSubscription():null}
+  async function legacyRootPushRegistration(){
+    if(!('serviceWorker'in navigator))return null;const base=appBaseURL(),regs=await navigator.serviceWorker.getRegistrations();
+    return regs.find(reg=>{try{return new URL(reg.scope,location.href).href===base&&[reg.active,reg.waiting,reg.installing].filter(Boolean).some(workerIsExpected)}catch(_e){return false}})||null;
+  }
+  async function disableServerEndpoint(endpoint){
+    const u=owner();if(!u||!endpoint)return false;
+    const rpc=await db.rpc('mmh_push_subscription_disable',{p_endpoint:endpoint});if(!rpc?.error)return true;
+    const stamp=new Date().toISOString(),fallback=await db.from('personal_push_subscriptions').update({enabled:false,updated_at:stamp,last_seen_at:stamp}).eq('user_id',u).eq('endpoint',endpoint);
+    if(fallback?.error)throw rpc.error||fallback.error;return true;
+  }
+  async function retireOwnedLegacyRootPush(excludeEndpoint=''){
+    const reg=await legacyRootPushRegistration();if(!reg)return{registration:false,subscription:false,owned:false,retired:false};
+    const sub=await reg.pushManager.getSubscription();if(!sub)return{registration:true,subscription:false,owned:false,retired:false};if(excludeEndpoint&&sub.endpoint===excludeEndpoint)return{registration:true,subscription:true,owned:false,retired:false,leftUntouched:true};
+    let server;try{server=await serverSubscription(sub)}catch(err){return{registration:true,subscription:true,owned:false,retired:false,serverUnavailable:true,error:err}}
+    if(!server.exists)return{registration:true,subscription:true,owned:false,retired:false,leftUntouched:true};
+    await disableServerEndpoint(sub.endpoint);let unsubscribed=false;try{unsubscribed=await sub.unsubscribe()}catch(err){console.warn('[MMHVAULT] legacy root Push unsubscribe failed',err)}
+    if(!unsubscribed)throw new Error(tr('The older Push subscription was disabled on the server but could not be removed from this browser yet. Reload MMHVAULT and run Device check again.','旧版 Push 订阅已在服务器关闭，但暂时无法从此浏览器移除。请刷新 MMHVAULT 后再次运行“设备检查”。'));
+    return{registration:true,subscription:true,owned:true,retired:true};
+  }
   async function claim(sub){
     const u=owner();if(!u||!sub)throw new Error(tr('Please sign in again.','请重新登录。'));const k=keysOf(sub);if(!k.p256dh||!k.auth)throw new Error(tr('Invalid push subscription.','推送订阅无效。'));
     await window.MMHConfigCloudSyncV122?.syncNow?.(false);
@@ -21301,13 +21320,19 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     let sub=null;
     try{sub=await reg.pushManager.getSubscription();if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:appKey()})}
     catch(err){verifiedKey='';cached={state:Notification.permission==='denied'?'blocked':'permission',sub:null,at:Date.now()};window.dispatchEvent(new CustomEvent('mmhvault:push-state'));if(Notification.permission==='denied'){await permissionHelp();return false}if(err?.name==='NotAllowedError'){await window.MMHUI?.message?.(tr('The browser refused Push permission. If you are using a Private/Incognito window, reopen MMHVAULT in a normal browser window and enable alerts there. Otherwise check this site’s notification permission and try again.','浏览器拒绝了 Push 权限。如果你正在使用隐私/无痕窗口，请改用普通浏览器窗口打开 MMHVAULT 后再开启提醒；否则请检查此网站的通知权限后重试。'),tr('Background alerts','后台提醒'),{type:'info'});return false}throw new Error(err?.message||tr('Notification permission was not granted.','未获得通知权限。'))}
-    await window.MMHConfigCloudSyncV122?.syncNow?.(false);try{await claim(sub);verifiedKey=verificationKey(sub)}catch(err){verifiedKey='';cached={state:'repair',sub,at:Date.now()};window.dispatchEvent(new CustomEvent('mmhvault:push-state',{detail:{state:'repair'}}));if(err?.code==='ENDPOINT_UNAVAILABLE'){await resetLocalSubscription(sub,true);return false}throw err}cached={state:'subscribed',sub,at:Date.now()};window.dispatchEvent(new CustomEvent('mmhvault:push-state',{detail:{state:'subscribed'}}));window.MMHUI?.toast?.(tr('Background financial alerts are enabled on this device.','此设备已开启后台财务提醒。'),{title:tr('Notifications','通知'),type:'success'});return true;
+    await window.MMHConfigCloudSyncV122?.syncNow?.(false);try{await claim(sub);verifiedKey=verificationKey(sub)}catch(err){verifiedKey='';cached={state:'repair',sub,at:Date.now()};window.dispatchEvent(new CustomEvent('mmhvault:push-state',{detail:{state:'repair'}}));if(err?.code==='ENDPOINT_UNAVAILABLE'){await resetLocalSubscription(sub,true);return false}throw err}
+    try{const legacy=await retireOwnedLegacyRootPush(sub.endpoint);if(legacy.retired)console.info('[MMHVAULT] Older root-scope Push subscription retired for the current account; legacy sw.js was not touched.')}catch(err){console.warn('[MMHVAULT] older root-scope Push cleanup deferred',err)}
+    cached={state:'subscribed',sub,at:Date.now()};window.dispatchEvent(new CustomEvent('mmhvault:push-state',{detail:{state:'subscribed'}}));window.MMHUI?.toast?.(tr('Background financial alerts are enabled on this device.','此设备已开启后台财务提醒。'),{title:tr('Notifications','通知'),type:'success'});return true;
   }
   async function disable(options={}){
-    const sub=await currentSubscription();if(!sub){cached={state:Notification.permission==='granted'?'granted':'permission',sub:null,at:Date.now()};window.dispatchEvent(new CustomEvent('mmhvault:push-state'));return true}
-    if(!options.silent){const ok=await window.MMHUI?.confirm?.(tr('Disable background financial alerts on this device?','关闭此设备的后台财务提醒吗？'),tr('Background alerts','后台提醒'),{details:tr('In-app notifications will still remain available.','应用内通知仍会保留。'),confirmLabel:tr('Disable','关闭')});if(!ok)return false}
-    try{if(owner()){const {error}=await db.rpc('mmh_push_subscription_disable',{p_endpoint:sub.endpoint});if(error)console.warn('[MMHVAULT] push server disable failed',error)}}catch(_e){}
-    try{await sub.unsubscribe()}catch(_e){}verifiedKey='';cached={state:Notification.permission==='granted'?'granted':'permission',sub:null,at:Date.now()};window.dispatchEvent(new CustomEvent('mmhvault:push-state',{detail:{state:cached.state}}));if(!options.silent)window.MMHUI?.toast?.(tr('Background alerts are off on this device.','此设备的后台提醒已关闭。'),{title:tr('Notifications','通知'),type:'info'});return true;
+    const sub=await currentSubscription();
+    if(!options.silent&&sub){const ok=await window.MMHUI?.confirm?.(tr('Disable background financial alerts on this device?','关闭此设备的后台财务提醒吗？'),tr('Background alerts','后台提醒'),{details:tr('In-app notifications will still remain available.','应用内通知仍会保留。'),confirmLabel:tr('Disable','关闭')});if(!ok)return false}
+    let serverDisabled=!sub,localUnsubscribed=!sub,legacyResult=null;
+    if(sub){try{serverDisabled=await disableServerEndpoint(sub.endpoint)}catch(err){serverDisabled=false;console.warn('[MMHVAULT] push server disable failed',err)}try{localUnsubscribed=await sub.unsubscribe()}catch(err){localUnsubscribed=false;console.warn('[MMHVAULT] local Push unsubscribe failed',err)}}
+    try{legacyResult=await retireOwnedLegacyRootPush()}catch(err){console.warn('[MMHVAULT] legacy root Push cleanup deferred',err)}
+    verifiedKey='';cached={state:Notification.permission==='granted'?'granted':'permission',sub:null,at:Date.now()};window.dispatchEvent(new CustomEvent('mmhvault:push-state',{detail:{state:cached.state}}));
+    if(!serverDisabled&&!localUnsubscribed)throw new Error(tr('MMHVAULT could not fully disable this Push subscription. Check your connection and try again before leaving this device.','MMHVAULT 无法完整关闭此 Push 订阅。请检查网络后重试，再离开此设备。'));
+    if(!options.silent){const retired=legacyResult?.retired===true;window.MMHUI?.toast?.(retired?tr('Background alerts are off, including the older Push subscription on this account.','后台提醒已关闭，同时已停用当前账号的旧版 Push 订阅。'):tr('Background alerts are off on this device.','此设备的后台提醒已关闭。'),{title:tr('Notifications','通知'),type:'info'})}return true;
   }
   async function toggle(){if(!supported())throw new Error(tr('This browser does not support Web Push.','此浏览器不支持 Web Push。'));if(isIOS()&&!standalone()){await explainIOS();return false}if(Notification.permission==='denied')return permissionHelp();if(cached.state==='subscribed'&&cached.sub)return disable();if(Notification.permission==='default'||Notification.permission==='granted')return enable();return enable()}
   async function test(){
@@ -21319,7 +21344,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     if(!data?.ok)throw new Error(data?.error||tr('Push test failed.','推送测试失败。'));return data;
   }
   async function diagnostics(){
-    const report={version:'1.12.8',browser:browserLabel(),platform:platformLabel(),secureContext:!!isSecureContext,serviceWorkerSupported:'serviceWorker'in navigator,pushManagerSupported:'PushManager'in window,notificationSupported:'Notification'in window,permission:('Notification'in window?Notification.permission:'unavailable'),ios:isIOS(),android:isAndroid(),standalone:standalone(),workerActive:false,legacyWorkerPresent:false,legacyRootPushPresent:false,subscriptionPresent:false,serverBinding:'not-checked',keysMatch:false,state:'unknown',endpointHost:'',timezone:timezone(),signedIn:!!owner(),pushScope:expectedPushScopeURL()};
+    const report={version:'1.12.9',browser:browserLabel(),platform:platformLabel(),secureContext:!!isSecureContext,serviceWorkerSupported:'serviceWorker'in navigator,pushManagerSupported:'PushManager'in window,notificationSupported:'Notification'in window,permission:('Notification'in window?Notification.permission:'unavailable'),ios:isIOS(),android:isAndroid(),standalone:standalone(),workerActive:false,legacyWorkerPresent:false,legacyRootPushPresent:false,legacyRootSubscriptionPresent:false,legacyRootOwnedByCurrentUser:false,legacyRootBinding:'not-checked',subscriptionPresent:false,serverBinding:'not-checked',keysMatch:false,state:'unknown',endpointHost:'',timezone:timezone(),signedIn:!!owner(),pushScope:expectedPushScopeURL()};
     if(!report.serviceWorkerSupported||!report.pushManagerSupported||!report.notificationSupported||!report.secureContext){report.state='unsupported';return report}
     if(report.ios&&!report.standalone){report.state='ios-install';return report}
     if(report.permission==='denied'){report.state='blocked'}
@@ -21328,7 +21353,10 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       const expected=regs.find(x=>registrationScopeIsExpected(x)&&workerIsExpected(x.active))||null;
       report.workerActive=!!expected;
       report.legacyWorkerPresent=regs.some(reg=>{try{return new URL(reg.scope,location.href).href===base&&[reg.active,reg.waiting,reg.installing].filter(Boolean).some(w=>new URL(w.scriptURL,location.href).href===legacyUrl)}catch(_e){return false}});
-      report.legacyRootPushPresent=regs.some(reg=>{try{return new URL(reg.scope,location.href).href===base&&[reg.active,reg.waiting,reg.installing].filter(Boolean).some(workerIsExpected)}catch(_e){return false}});
+      const legacyPushReg=regs.find(reg=>{try{return new URL(reg.scope,location.href).href===base&&[reg.active,reg.waiting,reg.installing].filter(Boolean).some(workerIsExpected)}catch(_e){return false}})||null;
+      report.legacyRootPushPresent=!!legacyPushReg;
+      const legacySub=legacyPushReg?await legacyPushReg.pushManager.getSubscription():null;report.legacyRootSubscriptionPresent=!!legacySub;
+      if(legacySub&&owner()){try{const legacyServer=await serverSubscription(legacySub);report.legacyRootOwnedByCurrentUser=!!legacyServer.exists;report.legacyRootBinding=legacyServer.exists?(legacyServer.enabled?'current-enabled':'current-disabled'):'other-or-unbound'}catch(_e){report.legacyRootBinding='unavailable'}}else if(legacySub)report.legacyRootBinding='not-signed-in';
       const sub=expected?await expected.pushManager.getSubscription():null;
       report.subscriptionPresent=!!sub;
       if(sub){try{report.endpointHost=new URL(sub.endpoint).hostname}catch(_e){}
@@ -21351,7 +21379,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   }
   function refreshPermissionState(){cached.at=0;window.dispatchEvent(new CustomEvent('mmhvault:push-state'))}
   async function watchPermission(){try{if(!navigator.permissions?.query)return;const ps=await navigator.permissions.query({name:'notifications'});ps.onchange=refreshPermissionState}catch(_e){}}
-  window.MMHBackgroundPushV123={status,enable,disable,toggle,test,diagnostics,reconcile,permissionHelp,subscribedCached,version:'1.12.8'};window.MMHBackgroundPushV122=window.MMHBackgroundPushV123;
+  window.MMHBackgroundPushV123={status,enable,disable,toggle,test,diagnostics,reconcile,permissionHelp,subscribedCached,version:'1.12.9'};window.MMHBackgroundPushV122=window.MMHBackgroundPushV123;
   window.addEventListener('mmhvault:config-owner-changed',()=>{cached.at=0;if(owner())setTimeout(reconcile,600)},{passive:true});
   window.addEventListener('focus',refreshPermissionState,{passive:true});window.addEventListener('pageshow',refreshPermissionState,{passive:true});document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshPermissionState()},{passive:true});watchPermission();
   const prep=()=>setTimeout(()=>prepareWorker().catch(err=>console.warn('[MMHVAULT] push worker prepare skipped',err)),220);if(document.readyState==='complete')prep();else window.addEventListener('load',prep,{once:true,passive:true});
@@ -21536,7 +21564,9 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       else if(d.state==='unsupported')next=tr('This environment cannot provide Web Push. Use a supported secure browser context.','当前环境无法提供 Web Push，请使用支持的安全浏览器环境。');
       else if(d.state==='worker-missing')next=tr('Reload MMHVAULT once. If the Push worker still does not become active, close other MMHVAULT tabs and reopen the app.','请刷新 MMHVAULT 一次；若 Push Worker 仍未激活，请关闭其他 MMHVAULT 标签页后重新打开。');
       else next=tr('Tap Enable/Repair background alerts to finish this device registration. Chrome/Edge Push should be tested in a normal window, not Incognito/InPrivate.','请点击“开启/修复后台提醒”完成此设备注册。Chrome/Edge Push 请使用普通窗口测试，不要使用无痕/InPrivate。');
-      if(d.legacyWorkerPresent||d.legacyRootPushPresent)next+=' '+tr('A legacy root-scope worker was detected and intentionally left untouched; Notification 2.0 now uses a separate Push-only scope so it does not replace or unregister the legacy worker.','检测到旧的根作用域 Worker，MMHVAULT 已按规则保持不动；Notification 2.0 现在使用独立的 Push-only 作用域，不会替换或注销旧 Worker。');
+      if(d.legacyWorkerPresent||d.legacyRootPushPresent)next+=' '+tr('A legacy root-scope worker was detected and intentionally left registered; Notification 2.0 never unregisters sw.js.','检测到旧的根作用域 Worker，并已按规则保留注册；Notification 2.0 不会注销 sw.js。');
+      if(d.legacyRootSubscriptionPresent&&d.legacyRootOwnedByCurrentUser)next+=' '+tr('This account also has an older root-scope Push subscription. Enable/Repair or Disable background alerts once to retire that obsolete subscription safely; the legacy worker registration itself remains untouched.','当前账号还存在旧的根作用域 Push 订阅。请执行一次“开启/修复”或“关闭后台提醒”，MMHVAULT 会安全停用该旧订阅；旧 Worker 注册本身仍保持不动。');
+      else if(d.legacyRootSubscriptionPresent&&!d.legacyRootOwnedByCurrentUser)next+=' '+tr('An older root-scope Push subscription exists but is not bound to the current signed-in account. MMHVAULT will not modify another account’s server record.','检测到旧的根作用域 Push 订阅，但它未绑定到当前登录账号。MMHVAULT 不会修改其他账号的服务器记录。');
       const lines=[
         tr('Notification / Push device check','Notification / Push 设备检查'),
         `${tr('Version','版本')}: ${d.version}`,
@@ -21547,7 +21577,9 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
         `${tr('Push Service Worker','Push Service Worker')}: ${d.workerActive?tr('Active (isolated scope)','已激活（独立作用域）'):tr('Not active','未激活')}`,
         `${tr('Dedicated Push scope','专用 Push 作用域')}: ${(()=>{try{return new URL(d.pushScope).pathname}catch(_){return d.pushScope||na}})()}`,
         `${tr('Legacy sw.js registration','旧 sw.js 注册')}: ${d.legacyWorkerPresent?tr('Detected — left untouched','已检测到 — 保持不动'):no}`,
-        `${tr('Older root-scope Push worker','旧根作用域 Push Worker')}: ${d.legacyRootPushPresent?tr('Detected — left untouched','已检测到 — 保持不动'):no}`,
+        `${tr('Older root-scope Push worker','旧根作用域 Push Worker')}: ${d.legacyRootPushPresent?tr('Detected — registration left untouched','已检测到 — 注册保持不动'):no}`,
+        `${tr('Older root Push subscription','旧根作用域 Push 订阅')}: ${d.legacyRootSubscriptionPresent?tr('Present','存在'):no}`,
+        `${tr('Older subscription account','旧订阅账号归属')}: ${!d.legacyRootSubscriptionPresent?na:(d.legacyRootOwnedByCurrentUser?tr('Current account','当前账号'):(d.legacyRootBinding==='unavailable'?tr('Server check unavailable','服务器检查不可用'):tr('Other or unbound — left untouched','其他账号或未绑定 — 保持不动')))}`,
         `${tr('Browser subscription','浏览器订阅')}: ${d.subscriptionPresent?tr('Present','存在'):tr('Missing','不存在')}`,
         `${tr('Server binding','服务器绑定')}: ${binding}`,
         `${tr('Push keys match','Push 密钥匹配')}: ${d.subscriptionPresent?(d.keysMatch?yes:no):na}`,
@@ -23465,7 +23497,7 @@ body.light #reports .report-mini-v115{background:#f3f8fb;border-color:#cfdee9}bo
   else window.addEventListener('load',()=>setTimeout(audit,0),{once:true});
 })();
 </script>
-<!-- MMHVAULT v1.12.8 · legacy sw.js is audit-only/left untouched; mmh-push-sw.js is Push-only on an isolated scope. -->
+<!-- MMHVAULT v1.12.9 · isolated Push migration: legacy sw.js stays untouched; current-account obsolete root Push subscriptions are retired only through user Push actions. -->
 
 
 
