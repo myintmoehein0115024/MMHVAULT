@@ -21255,6 +21255,17 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     await window.MMHConfigCloudSyncV122?.syncNow?.(false);
     const {data,error}=await db.rpc('mmh_push_subscription_claim',{p_endpoint:sub.endpoint,p_p256dh:k.p256dh,p_auth:k.auth,p_user_agent:navigator.userAgent||'',p_platform:navigator.userAgentData?.platform||navigator.platform||'',p_timezone:timezone()});if(error)throw error;if(data?.ok===false){const err=new Error(tr('This browser push identity needs to be refreshed. Tap Enable again after this message.','此浏览器的推送身份需要刷新。关闭此提示后，请再次点击开启。'));err.code=String(data?.code||'PUSH_CLAIM_FAILED');throw err}return true;
   }
+  async function serverSubscription(sub){
+    const u=owner();if(!u||!sub)return{exists:false,enabled:false,keysMatch:false};const k=keysOf(sub);
+    const {data,error}=await db.from('personal_push_subscriptions').select('id,enabled,p256dh,auth').eq('user_id',u).eq('endpoint',sub.endpoint).maybeSingle();if(error)throw error;
+    if(!data)return{exists:false,enabled:false,keysMatch:false};return{exists:true,enabled:data.enabled===true,keysMatch:String(data.p256dh||'')===k.p256dh&&String(data.auth||'')===k.auth};
+  }
+  async function verifyOrClaim(sub,{allowDisabled=false}={}){
+    const server=await serverSubscription(sub);
+    if(server.exists&&server.enabled&&server.keysMatch)return true;
+    if(server.exists&&!server.enabled&&!allowDisabled){const err=new Error(tr('Background alerts are off for this browser identity. Tap Repair background alerts to enable them again.','此浏览器身份的后台提醒已关闭。请点击“修复后台提醒”重新开启。'));err.code='PUSH_DISABLED';throw err}
+    await claim(sub);return true;
+  }
   async function resetLocalSubscription(sub,notify=false){try{await sub?.unsubscribe?.()}catch(_e){}verifiedKey='';cached={state:Notification.permission==='granted'?'granted':'permission',sub:null,at:Date.now()};window.dispatchEvent(new CustomEvent('mmhvault:push-state',{detail:{state:cached.state}}));if(notify)await window.MMHUI?.message?.(tr('MMHVAULT refreshed this browser’s push identity without changing another account. Tap Enable background alerts again to finish setup.','MMHVAULT 已刷新此浏览器的推送身份，没有修改其他账号。请再次点击“开启后台提醒”完成设置。'),tr('Background alerts','后台提醒'),{type:'info'})}
   async function status(force=false){
     if(!supported())return{state:'unsupported'};if(isIOS()&&!standalone())return{state:'ios-install'};if(Notification.permission==='denied'){verifiedKey='';return{state:'blocked'}};
@@ -21295,8 +21306,8 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   async function toggle(){if(!supported())throw new Error(tr('This browser does not support Web Push.','此浏览器不支持 Web Push。'));if(isIOS()&&!standalone()){await explainIOS();return false}if(Notification.permission==='denied')return permissionHelp();if(cached.state==='subscribed'&&cached.sub)return disable();if(Notification.permission==='default'||Notification.permission==='granted')return enable();return enable()}
   async function test(){
     const sub=await currentSubscription();if(!sub)throw new Error(tr('Enable background alerts on this device first.','请先在此设备开启后台提醒。'));
-    try{await claim(sub);verifiedKey=verificationKey(sub);cached={state:'subscribed',sub,at:Date.now()};window.dispatchEvent(new CustomEvent('mmhvault:push-state',{detail:{state:'subscribed'}}))}
-    catch(err){verifiedKey='';if(err?.code==='ENDPOINT_UNAVAILABLE'){await resetLocalSubscription(sub,false);throw new Error(tr('This browser push identity expired. Tap Enable background alerts again to create a fresh subscription.','此浏览器的推送身份已失效。请再次点击“开启后台提醒”以创建新的订阅。'))}throw err}
+    try{await verifyOrClaim(sub,{allowDisabled:false});verifiedKey=verificationKey(sub);cached={state:'subscribed',sub,at:Date.now()};window.dispatchEvent(new CustomEvent('mmhvault:push-state',{detail:{state:'subscribed'}}))}
+    catch(err){verifiedKey='';if(err?.code==='ENDPOINT_UNAVAILABLE'){await resetLocalSubscription(sub,false);throw new Error(tr('This browser push identity expired. Tap Enable background alerts again to create a fresh subscription.','此浏览器的推送身份已失效。请再次点击“开启后台提醒”以创建新的订阅。'))}if(err?.code==='PUSH_DISABLED'){cached={state:'repair',sub,at:Date.now()};window.dispatchEvent(new CustomEvent('mmhvault:push-state',{detail:{state:'repair'}}));throw err}throw err}
     const {data,error}=await db.functions.invoke('mmh-push-test',{body:{endpoint:sub.endpoint,language:language()}});
     if(error){let message=error?.message||tr('Push test failed.','推送测试失败。'),code='';try{const ctx=error?.context;const body=ctx?.clone?await ctx.clone().json():null;if(body?.error)message=body.error;if(body?.code)code=String(body.code)}catch(_e){}if(code==='SUBSCRIPTION_GONE'){await resetLocalSubscription(sub,false);message=tr('This browser push subscription expired. Enable background alerts again, then retry the test.','此浏览器的推送订阅已失效。请重新开启后台提醒后再次测试。')}throw new Error(message)}
     if(!data?.ok)throw new Error(data?.error||tr('Push test failed.','推送测试失败。'));return data;
@@ -21305,12 +21316,12 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   async function reconcile(){
     if(reconcilePromise)return reconcilePromise;
     if(!owner()||!supported()||(isIOS()&&!standalone())||Notification.permission!=='granted')return false;
-    reconcilePromise=(async()=>{let sub=null;try{sub=await currentSubscription();if(!sub){verifiedKey='';cached={state:'granted',sub:null,at:Date.now()};return false}await claim(sub);verifiedKey=verificationKey(sub);cached={state:'subscribed',sub,at:Date.now()};window.dispatchEvent(new CustomEvent('mmhvault:push-state',{detail:{state:'subscribed'}}));return true}catch(err){verifiedKey='';if(err?.code==='ENDPOINT_UNAVAILABLE'&&sub){await resetLocalSubscription(sub,false);return false}cached={state:sub?'repair':'granted',sub,at:Date.now()};window.dispatchEvent(new CustomEvent('mmhvault:push-state',{detail:{state:cached.state}}));console.warn('[MMHVAULT] push subscription reconcile failed',err);return false}})();
+    reconcilePromise=(async()=>{let sub=null;try{sub=await currentSubscription();if(!sub){verifiedKey='';cached={state:'granted',sub:null,at:Date.now()};return false}await verifyOrClaim(sub,{allowDisabled:false});verifiedKey=verificationKey(sub);cached={state:'subscribed',sub,at:Date.now()};window.dispatchEvent(new CustomEvent('mmhvault:push-state',{detail:{state:'subscribed'}}));return true}catch(err){verifiedKey='';if(err?.code==='ENDPOINT_UNAVAILABLE'&&sub){await resetLocalSubscription(sub,false);return false}cached={state:sub?'repair':'granted',sub,at:Date.now()};window.dispatchEvent(new CustomEvent('mmhvault:push-state',{detail:{state:cached.state}}));if(err?.code!=='PUSH_DISABLED')console.warn('[MMHVAULT] push subscription reconcile failed',err);return false}})();
     try{return await reconcilePromise}finally{reconcilePromise=null}
   }
   function refreshPermissionState(){cached.at=0;window.dispatchEvent(new CustomEvent('mmhvault:push-state'))}
   async function watchPermission(){try{if(!navigator.permissions?.query)return;const ps=await navigator.permissions.query({name:'notifications'});ps.onchange=refreshPermissionState}catch(_e){}}
-  window.MMHBackgroundPushV123={status,enable,disable,toggle,test,reconcile,permissionHelp,subscribedCached,version:'1.12.4'};window.MMHBackgroundPushV122=window.MMHBackgroundPushV123;
+  window.MMHBackgroundPushV123={status,enable,disable,toggle,test,reconcile,permissionHelp,subscribedCached,version:'1.12.6'};window.MMHBackgroundPushV122=window.MMHBackgroundPushV123;
   window.addEventListener('mmhvault:config-owner-changed',()=>{cached.at=0;if(owner())setTimeout(reconcile,600)},{passive:true});
   window.addEventListener('focus',refreshPermissionState,{passive:true});window.addEventListener('pageshow',refreshPermissionState,{passive:true});document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshPermissionState()},{passive:true});watchPermission();
   const prep=()=>setTimeout(()=>prepareWorker().catch(err=>console.warn('[MMHVAULT] push worker prepare skipped',err)),220);if(document.readyState==='complete')prep();else window.addEventListener('load',prep,{once:true,passive:true});
@@ -21469,7 +21480,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       else if(st.state==='unsupported'){b.disabled=true;b.textContent=tr('Background alerts unavailable','此设备不支持后台提醒')}
       else if(st.state==='granted')b.textContent=tr('Enable background push','开启后台推送');
       else b.textContent=tr('Enable background alerts','开启后台提醒');
-      const t=$('mmhNotifyPushTestV123');if(t){t.hidden=false;t.disabled=!['subscribed','repair','registering'].includes(st.state);t.textContent=tr('Test push','测试推送')}
+      const t=$('mmhNotifyPushTestV123');if(t){t.hidden=false;t.disabled=st.state!=='subscribed';t.textContent=tr('Test push','测试推送')}
     }catch(err){console.warn('[MMHVAULT] push status failed',err);b.disabled=false;b.textContent=tr('Enable background alerts','开启后台提醒')}
   }
   async function requestSystemPermission(e){
@@ -23336,7 +23347,7 @@ body.light #reports .report-mini-v115{background:#f3f8fb;border-color:#cfdee9}bo
 
 
 
-<script id="mmhvault-push-deeplink-v125">
+<script id="mmhvault-push-deeplink-v126">
 (()=>{'use strict';
   const params=new URLSearchParams(location.search),alertId=params.get('mmh_push'),target=params.get('target'),pushTest=params.get('mmh_push_test');if(!alertId&&!target&&!pushTest)return;
   let done=false,attempts=0,retryTimer=0;
@@ -23357,8 +23368,8 @@ body.light #reports .report-mini-v115{background:#f3f8fb;border-color:#cfdee9}bo
     done=true;if(retryTimer){clearTimeout(retryTimer);retryTimer=0}
     if(pushTest)window.MMHUI?.toast?.(tr('Background push test opened MMHVAULT successfully.','后台推送测试已成功打开 MMHVAULT。'),{title:tr('Background alerts','后台提醒'),type:'success'});
     let opened=false;if(row){try{const resolved=window.mmhNotificationResolveV145?.(row);if(resolved)opened=!!window.mmhNotificationOpenTargetV145?.(resolved)}catch(_e){}}
-    if(!opened&&target){try{const page=String(target);if(document.getElementById(page))opened=!!(window.mmhNotificationOpenTargetV145?.({page})||window.setPage?.(page))}catch(_e){}}
-    cleanURL();window.dispatchEvent(new CustomEvent('mmhvault:notifications-changed',{detail:{source:'push-deeplink-v125'}}));
+    if(!opened&&target&&!alertId){try{const page=String(target);if(document.getElementById(page))opened=!!(window.mmhNotificationOpenTargetV145?.({page})||window.setPage?.(page))}catch(_e){}}
+    cleanURL();window.dispatchEvent(new CustomEvent('mmhvault:notifications-changed',{detail:{source:'push-deeplink-v126'}}));
   }
   window.addEventListener('mmhvault:data-loaded',()=>setTimeout(open,80),{once:true});window.addEventListener('mmhvault:config-owner-changed',()=>setTimeout(open,180),{once:true});setTimeout(open,1200);
 })();
@@ -32214,6 +32225,7 @@ html body.mmh-workspace-active #moreNavMenu.more-nav-menu{
 
 <style id="mmhvault-notification-v125-detail-metrics">
 /* Notification 2.0 v1.12.5 — structured alert details without changing finance calculations. */
+/* Notification 2.0 v1.12.6 — server-verified push state, no silent re-enable, and account-safe deep-link fallback. */
 .mmh-notify-detail-badges-v125{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
 .mmh-notify-severity-v125{width:max-content;padding:5px 8px;border-radius:999px;border:1px solid rgba(100,157,198,.18);background:rgba(74,126,162,.08);color:#9fc5db;font-size:9px;font-weight:800;letter-spacing:.04em;text-transform:uppercase}
 .mmh-notify-severity-v125.warning{border-color:rgba(242,196,94,.20);background:rgba(242,196,94,.08);color:#e2bd5d}
