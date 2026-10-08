@@ -490,13 +490,37 @@ html,body{max-width:100%;overflow-x:hidden}.shell,.wrap,.hero,.layout,.chat,.pro
   .tx-preview-actions button{min-height:40px}
 }
 
+
+/* MMHVAULT AI 1.12.33 · repaired document flow */
+.wrap{
+  display:block!important;
+  width:min(1240px,calc(100% - 28px))!important;
+  margin:0 auto!important;
+  padding-top:18px!important
+}
+.hero{
+  display:block!important;
+  min-height:0!important;
+  height:auto!important;
+  margin:0 0 10px!important;
+  padding:0!important
+}
+.hero h1{margin:2px 0 0!important}
+.metrics{margin:0 0 10px!important}
+.layout{display:block!important}
+.chat{margin:0!important}
+@media(max-width:700px){
+  .wrap{width:min(100% - 16px,1240px)!important;padding-top:10px!important}
+  .hero{margin-bottom:7px!important}
+}
+
 </style>
 </head>
 <body>
 <div class="shell">
 <header class="top"><div class="brand"><img src="images/mmhvault-logo-transparent.png" alt=""><div><strong>MMHVAULT</strong><small data-en="Personal Finance · AI" data-zh="个人财务 · AI">Personal Finance · AI</small></div></div><button class="back" id="backApp" type="button" data-en="‹ Back to MMHVAULT" data-zh="‹ 返回 MMHVAULT">‹ Back to MMHVAULT</button></header>
 <main class="wrap">
-  <section class="hero"><div><span class="kicker">MMHVAULT AI</span><h1 data-en="Financial Assistant" data-zh="AI 财务助手">Financial Assistant</h1></div></section></div>
+  <section class="hero"><div><span class="kicker">MMHVAULT AI</span><h1 data-en="Financial Assistant" data-zh="AI 财务助手">Financial Assistant</h1></div></section>
   
 
   <section class="metrics" id="metrics" aria-live="polite"></section>
@@ -665,6 +689,21 @@ function verifiedSupportAnswer(q){
     return zh
       ?'账号密码和已登录设备入口在 Settings → Password & devices。涉及真正的账号安全操作时，请使用这个正式入口；AI Chat 不会代替你修改密码或会话。'
       :'Password and signed-in device controls are under Settings → Password & devices. Use that official screen for account-security changes; AI Chat does not change passwords or sessions.'
+  }
+  if(/(怎么备份|如何备份|备份数据|backup data|how.*backup)/i.test(x)){
+    return zh
+      ?'在 Settings → Data & backup 创建备份。MMHVAULT 的正式备份使用 schema_version 2，并覆盖 Transactions、Investments、Crypto Wallet Movements、Exchange Rates、Configuration、Budgets、Goals、Recurring、Custom Investments 和 Settings。'
+      :'Create a backup under Settings → Data & backup. MMHVAULT backup schema_version 2 covers Transactions, Investments, Crypto Wallet Movements, Exchange Rates, Configuration, Budgets, Goals, Recurring, Custom Investments and Settings.'
+  }
+  if(/(怎么恢复|如何恢复|恢复数据|restore data|how.*restore)/i.test(x)){
+    return zh
+      ?'在 Settings → Data & backup 使用 Restore。恢复前必须先 Preview，再由你确认正式导入；这样可以在真正写入前检查内容并降低重复或误覆盖风险。'
+      :'Use Restore under Settings → Data & backup. Restore must Preview first and only imports after your confirmation, so you can inspect the contents before anything is written.'
+  }
+  if(/(怎么添加交易|如何添加交易|新增交易|add transaction|record transaction)/i.test(x)){
+    return zh
+      ?'你可以直接在 AI Chat 里描述一笔 Income、Expense 或同币种 Transfer。我会先生成 Preview，只有你点击“确认新增”才会写入当前账号。AI 不提供删除或编辑已有交易。'
+      :'Describe an Income, Expense, or same-currency Transfer directly in AI Chat. I will show a Preview first and write it only after you press Confirm add. AI does not delete or edit existing transactions.'
   }
   return''
 }
@@ -873,7 +912,19 @@ function transactionMutationIntent(q){
   const x=String(q||'');
   if(/(删除|删掉|移除|清除).*(交易|记录|流水)|(delete|remove).*(transaction|record)/i.test(x))return'delete';
   if(/(修改|编辑|更改|改一下).*(交易|记录|流水)|(edit|update|change).*(transaction|record)/i.test(x))return'edit';
+
+  // Explicit add/record commands.
   if(/(添加|新增|记一笔|记录一笔|帮我记|帮我记录|记账|录入).*(交易|收入|支出|开销|消费|转账)?|(add|record|log).*(transaction|expense|income|spending|transfer)/i.test(x))return'add';
+
+  // Natural transfer command: 从 A 转 500 THB 到 B / transfer 500 from A to B.
+  const hasAmount=/\d+(?:\.\d+)?\s*(THB|MMK|USD|USDT|CNY|RMB|泰铢|缅币|缅元|美元|人民币|元|baht|kyat|yuan)?/i.test(x);
+  if(hasAmount&&(
+    /从.{1,50}(?:转|转出|划转).{0,50}(?:到|至|给).+/i.test(x) ||
+    /(?:transfer|move)\s+\d[\d,.]*.*\bfrom\b.+\bto\b.+/i.test(x)
+  ))return'add';
+
+  // Natural expense/income command even without the word "add".
+  if(hasAmount&&/(支出|开销|消费|花了|付款|支付|收入|工资|薪水|餐补|奖金|expense|spent|paid|income|salary|bonus)/i.test(x))return'add';
   return''
 }
 function aiWriteRefusal(kind){
@@ -925,12 +976,45 @@ function txAmountToken(q){
 }
 function txDateFromCommand(q){
   const x=String(q||''),now=new Date();
+  const ymd=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  const valid=(y,m,d)=>{const z=new Date(y,m-1,d);return z.getFullYear()===y&&z.getMonth()===m-1&&z.getDate()===d};
+
   const iso=x.match(/\b(20\d{2})[-/.](\d{1,2})[-/.](\d{1,2})\b/);
-  if(iso)return`${iso[1]}-${String(iso[2]).padStart(2,'0')}-${String(iso[3]).padStart(2,'0')}`;
-  const cn=x.match(/(\d{1,2})月(\d{1,2})日/);
-  if(cn)return`${now.getFullYear()}-${String(cn[1]).padStart(2,'0')}-${String(cn[2]).padStart(2,'0')}`;
-  if(/昨天|yesterday/i.test(x)){const d=new Date(now);d.setDate(d.getDate()-1);return d.toLocaleDateString('en-CA')}
-  return now.toLocaleDateString('en-CA')
+  if(iso){
+    const y=+iso[1],m=+iso[2],d=+iso[3];
+    if(valid(y,m,d))return`${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`
+  }
+
+  const cnFull=x.match(/(\d{1,2})月(\d{1,2})(?:日|号)/);
+  if(cnFull){
+    const y=now.getFullYear(),m=+cnFull[1],d=+cnFull[2];
+    if(valid(y,m,d))return`${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`
+  }
+
+  const relDay=x.match(/(?:下个月|上个月)\s*(\d{1,2})(?:日|号)/);
+  if(relDay){
+    const base=new Date(now.getFullYear(),now.getMonth()+(x.includes('下个月')?1:-1),1);
+    const y=base.getFullYear(),m=base.getMonth()+1,d=+relDay[1];
+    if(valid(y,m,d))return`${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`
+  }
+
+  const dayOnly=x.match(/(?:^|[^\d])(\d{1,2})(?:日|号)(?!\d)/);
+  if(dayOnly){
+    const y=now.getFullYear(),m=now.getMonth()+1,d=+dayOnly[1];
+    if(valid(y,m,d))return`${y}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`
+  }
+
+  const relative=[
+    [/(后天|day after tomorrow)/i,2],
+    [/(明天|tomorrow)/i,1],
+    [/(今天|today)/i,0],
+    [/(昨天|yesterday)/i,-1],
+    [/(前天|day before yesterday)/i,-2]
+  ];
+  for(const [rx,delta] of relative){
+    if(rx.test(x)){const d=new Date(now);d.setDate(d.getDate()+delta);return ymd(d)}
+  }
+  return ymd(now)
 }
 function txConfiguredCategories(){
   const c=state.data?.config?.categories||{};
@@ -949,7 +1033,11 @@ function txCategoryFromCommand(q,type){
 }
 function txTypeFromCommand(q){
   const x=lc(q);
-  if(/转账|转给|transfer/.test(x))return'Transfer';
+  if(
+    /转账|转给|transfer/.test(x) ||
+    /从.{1,50}(?:转|转出|划转).{0,50}(?:到|至|给).+/.test(x) ||
+    /(?:transfer|move)\s+\d[\d,.]*.*\bfrom\b.+\bto\b.+/i.test(x)
+  )return'Transfer';
   if(/收入|工资|薪水|餐补|奖金|income|salary|bonus|received|收到/.test(x))return'Income';
   if(/支出|开销|消费|花了|付款|支付|买了|expense|spending|spent|paid|purchase|午餐|晚餐|早餐|吃饭|零食|打车|交通/.test(x))return'Expense';
   return''
@@ -1670,7 +1758,10 @@ async function send(text,displayText=''){
   }catch(e){
     typing(false);console.warn('[MMHVAULT Local AI] answer failed',e);const zh=questionLang(q)==='zh',msg=String(e?.message||e);
     if(msg==='account-scope-changed'||msg==='not-signed-in'){clearFinancialScope('account-changed');addMessage('assistant',zh?'检测到登录账号发生变化。为防止混用旧账号数据，我已经清空当前财务上下文。请确认当前账号后点击“刷新数据”。':'The signed-in account changed. To prevent mixing data across accounts, the financial context was cleared. Confirm the current account and press Refresh data.','MMHVAULT scope guard')}
-    else if(msg!=='webgpu-unavailable')addMessage('assistant',zh?'这个问题需要本地语言模型进行开放式解释，但当前模型没有成功运行。精确数字类问题仍可直接询问；也可以重新准备模型后再试。':'This open-ended question needs the local language model, but the model is not running. Exact numeric questions still work; you can also prepare the model and retry.','Local AI unavailable');
+    else if(msg!=='webgpu-unavailable')addMessage('assistant',zh
+      ?'我没有足够的已验证规则来确定这个开放式问题的答案，而当前本地语言模型也没有成功运行，所以我不会猜。你可以先点底部模型按钮恢复 Local AI，或换成更具体的 MMHVAULT 页面、账号、余额、交易、预算、提醒等问题。'
+      :'I do not have enough verified rules to determine this open-ended answer, and the local model is not currently running, so I will not guess. Restore Local AI from the model control below, or ask a more specific MMHVAULT page/account/balance/transaction/budget/alert question.'
+      ,'Verified answer unavailable');
   }finally{state.sending=false;$('send').disabled=false;$('refreshData').disabled=false;$('clear').disabled=false;input?.focus({preventScroll:true})}
 }
 function bind(){
