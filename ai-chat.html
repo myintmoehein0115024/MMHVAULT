@@ -6,7 +6,7 @@
 <meta name="color-scheme" content="dark light">
 <meta name="theme-color" content="#061522">
 <title>MMHVAULT · Local AI Financial Assistant</title>
-<!-- MMHVAULT Local AI 1.11.11 · cross-platform Safari/iOS/Android/desktop responsive pass -->
+<!-- MMHVAULT Local AI 1.11.12 · mobile responsive bugfix · logic unchanged -->
 <link rel="icon" href="images/icon-192.png">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/dist/umd/supabase.js"></script>
 <script>if(typeof supabase==='undefined')console.error('[MMHVAULT] Supabase SDK failed to load from the primary CDN.')</script>
@@ -31,6 +31,35 @@ body.light .localsetup{background:#f7fbfd;border-color:#cbdfe4}body.light .local
 @media(prefers-reduced-motion:reduce){*{animation:none!important;scroll-behavior:auto!important;transition:none!important}}
 
 .localtools .secondary{background:rgba(11,41,62,.72);border-color:#284e67;color:#bcd0de}.localtools .secondary:hover{background:rgba(16,55,80,.9)}
+
+/* MMHVAULT AI Stable 1.11.12 · mobile responsive bugfix only */
+html,body{max-width:100%;overflow-x:hidden}.shell,.wrap,.hero,.layout,.chat,.prompts,.localsetup,.metrics{min-width:0}.brand>div,.chathead>div:first-child{min-width:0}.brand strong,.brand small,.chathead small{overflow-wrap:anywhere}
+@media(max-width:760px){
+  .shell{display:block;min-height:100dvh}
+  .top{gap:8px;padding-top:calc(8px + env(safe-area-inset-top,0px));padding-bottom:8px;padding-left:max(10px,env(safe-area-inset-left,0px));padding-right:max(10px,env(safe-area-inset-right,0px))}
+  .brand{flex:1 1 auto;overflow:hidden}.brand img{width:30px;height:30px;flex:0 0 30px}.brand strong{font-size:11px;white-space:nowrap;text-overflow:ellipsis;overflow:hidden}.brand small{display:none}
+  .back{flex:0 0 auto;min-height:40px;max-width:44vw;padding:7px 10px;font-size:0;white-space:nowrap}.back:after{content:'← MMHVAULT';font-size:10px;font-weight:850}
+  .wrap{width:100%;margin:0;padding:14px max(10px,env(safe-area-inset-right,0px)) calc(22px + env(safe-area-inset-bottom,0px)) max(10px,env(safe-area-inset-left,0px))}
+  .hero{display:block;margin-bottom:12px}.kicker{font-size:9px;margin-bottom:5px}h1{font-size:clamp(26px,9vw,34px);line-height:1.04}.hero p{font-size:12px;line-height:1.5;margin-top:7px}.privacy{width:100%;margin-top:10px;white-space:normal;padding:9px 11px}
+  .notice{margin-bottom:10px;padding:9px 10px;font-size:10px;line-height:1.45}
+  .localsetup{grid-template-columns:1fr;gap:9px;margin-bottom:10px;padding:10px}.localsetup b{font-size:10px}.localsetup small{font-size:9px}.localtools{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:7px;justify-content:stretch}.localtools select{grid-column:1/-1;width:100%;min-width:0;max-width:none;font-size:16px}.localtools button{width:100%;min-width:0;min-height:42px;padding:8px;font-size:10px}
+  .metrics{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:10px}.metric{padding:10px 11px;border-radius:14px}.metric strong{font-size:18px}.metric span,.metric small{font-size:8px}
+  .layout{display:block}.prompts{display:flex;flex-direction:row;gap:8px;overflow-x:auto;overflow-y:hidden;padding:10px;margin-bottom:10px;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;scrollbar-width:none}.prompts::-webkit-scrollbar{display:none}.sidehead{flex:0 0 100%;padding:2px 2px 4px}.prompt{flex:0 0 min(76vw,280px);min-height:52px;scroll-snap-align:start}.sidenote{display:none}
+  .chat{display:grid;grid-template-rows:auto minmax(280px,1fr) auto auto;min-height:68dvh;max-height:none;border-radius:16px}
+  .chathead{display:grid;grid-template-columns:minmax(0,1fr);gap:8px;align-items:start;padding:10px}.chathead b{font-size:11px}.chathead small{font-size:8px;line-height:1.35}.chattools{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:7px}.chathead button{width:100%;min-width:0;min-height:40px;font-size:9px}
+  .thread{min-height:280px;max-height:58dvh;padding:12px 9px 8px;scroll-padding-bottom:108px}.msg{max-width:96%;margin-bottom:10px}.bubble{padding:9px 10px;border-radius:13px;font-size:12px;line-height:1.55}.meta{font-size:8px}
+  .compose{position:sticky;bottom:0;z-index:4;grid-template-columns:minmax(0,1fr) auto;gap:7px;padding:9px 9px max(9px,env(safe-area-inset-bottom,0px));backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px)}
+  textarea{min-width:0;min-height:46px;max-height:120px;resize:none;font-size:16px;padding:10px 11px}.send{min-width:76px;min-height:46px;padding:0 10px;font-size:11px}.foot{padding:7px 10px calc(9px + env(safe-area-inset-bottom,0px));font-size:8px;line-height:1.35}
+}
+@media(max-width:430px){
+  .top{gap:6px}.brand img{width:28px;height:28px;flex-basis:28px}.back{max-width:42vw;padding-inline:8px}.back:after{font-size:9px}
+  .wrap{padding-left:max(8px,env(safe-area-inset-left,0px));padding-right:max(8px,env(safe-area-inset-right,0px))}
+  .metrics{grid-template-columns:1fr 1fr}.metric{padding:9px}.metric strong{font-size:17px}
+  .prompt{flex-basis:82vw}.thread{max-height:62dvh}.send{min-width:68px}.chat{min-height:72dvh}
+}
+@media(max-width:350px){.metrics{grid-template-columns:1fr}.localtools{grid-template-columns:1fr}.localtools select{grid-column:auto}.chattools{grid-template-columns:1fr}.back:after{content:'← APP'}}
+@media(max-width:900px) and (max-height:520px) and (orientation:landscape){.wrap{padding-top:10px}.hero p,.notice,.privacy{display:none}.metrics{grid-template-columns:repeat(4,minmax(0,1fr))}.prompts{margin-bottom:8px}.chat{min-height:78dvh}.thread{max-height:55dvh}}
+
 </style>
 </head>
 <body>
