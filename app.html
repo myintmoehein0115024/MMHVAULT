@@ -18981,6 +18981,72 @@ Object.assign(zh,{
 "Please sign in again.":"请重新登录。",
 "Please sign in first.":"请先登录。"
 });
+
+// MMHVAULT 1.12.37 · runtime Chinese completion
+Object.assign(zh,{
+"Updating":"正在更新",
+"Updated":"已更新",
+"Feed unavailable":"数据源暂不可用",
+"Catalog was not saved:":"投资目录未保存：",
+"Investment catalog is unavailable on this device.":"此设备上的投资目录暂不可用。",
+"Select an active source account with a known currency.":"请选择币种已知的活动资金账户。",
+"Account balance cannot be confirmed until investment records finish loading.":"投资记录加载完成前，暂无法确认账户余额。",
+"Available:":"可用：",
+"Custom Asset":"自定义资产",
+"Deleting…":"正在删除…",
+"Delete failed:":"删除失败：",
+"Retry Delete":"重试删除",
+"Select an active account with a supported currency.":"请选择支持币种的活动账户。",
+"Available including this investment:":"包含本笔投资后的可用余额：",
+"Holdings":"持仓",
+"Current Crypto/Gold positions and recorded custom projects; custom returns are not calculated.":"当前 Crypto/Gold 持仓与已记录的自定义项目；自定义项目收益不会自动计算。",
+"Live · fallback feed":"实时 · 备用数据源",
+"Feed unavailable · retrying automatically":"数据源暂不可用 · 正在自动重试",
+"Custom investment: record a purchase with the entered amount and price. Market value and profit/loss are not calculated automatically.":"自定义投资：按输入的金额与价格记录买入；市场价值和盈亏不会自动计算。",
+"Search Bitcoin, ETH, Solana…":"搜索 Bitcoin、ETH、Solana…",
+"New type, e.g. Stocks":"新类型，例如 Stocks",
+"Asset name, e.g. AAPL":"资产名称，例如 AAPL",
+"Import preview failed:":"导入预览失败：",
+"JSON loaded, but the MMHVAULT preview module did not start. Please reload the page once and try again.":"JSON 已加载，但 MMHVAULT 预览模块未启动。请刷新页面后再试。",
+"Import failed:":"导入失败：",
+"Import failed: iPhone could not read this file.":"导入失败：iPhone 无法读取此文件。",
+"JSON backup":"JSON 备份",
+"Reading…":"正在读取…",
+"Copied":"已复制",
+"Your display name":"您的显示名称",
+"Current password":"当前密码",
+"At least 8 characters":"至少 8 个字符",
+"Repeat new password":"再次输入新密码",
+"Mobile number":"手机号码",
+"Account name · e.g. Binance":"账户名称 · 例如 Binance",
+"Category name · e.g. Coffee":"分类名称 · 例如 Coffee",
+"Search categories":"搜索分类",
+"Message the support agent…":"给客服留言…",
+"Other active sessions have been signed out. This device remains signed in.":"其他活动会话已退出，当前设备仍保持登录。",
+"Checking / 检查中…":"正在检查…",
+"Check unavailable / 检查未完成:":"检查未完成：",
+"File is larger than 10 MB":"文件超过 10 MB",
+"✓ Ready to upload":"✓ 已准备上传",
+"Receipt selected":"已选择收据",
+"Click to replace this file":"点击可替换此文件",
+"Edit Goal":"编辑目标",
+"Edit Recurring":"编辑周期交易",
+"Selected:":"已选择：",
+"Uploading receipt…":"正在上传收据…",
+"✓ Receipt uploaded successfully":"✓ 收据上传成功",
+"✓ Receipt updated successfully":"✓ 收据更新成功",
+"Crypto account Transfer is USDT only. For BTC / ETH / TRX / BNB / SOL or on-chain USDT with network fee, use Invest → Add Investment → Wallet Activity.":"Crypto 账户的 Transfer 仅支持 USDT。BTC / ETH / TRX / BNB / SOL，或带网络手续费的链上 USDT，请使用 Invest → Add Investment → Wallet Activity。",
+"Close help":"关闭帮助",
+"Rendering…":"正在渲染…",
+"Building PDF…":"正在生成 PDF…",
+"e.g. Emergency Fund":"例如：Emergency Fund",
+"Optional note":"可选备注",
+"e.g. Monthly rent":"例如：Monthly rent",
+"Salary / OKX / Dining / note":"工资 / OKX / 餐饮 / 备注",
+"TRON / Ethereum / BNB Smart Chain":"TRON / Ethereum / BNB Smart Chain",
+"Auto when available":"可用时自动获取",
+"Transaction hash":"交易哈希"
+});
 function translateAttributes(root){
   const applyAttrs=el=>{
     if(!el?.getAttribute)return;
@@ -19012,6 +19078,17 @@ function translateDynamicText(base){
     [/^(.+) · current held value$/,'$1 · 当前持有价值'],
     [/^(\d+) active goals$/,'$1 个进行中目标'],
     [/^(\d+) schedules$/,'$1 个计划'],
+    [/^Updated (.+)$/,'已更新 $1'],
+    [/^Available: (.+)$/,'可用：$1'],
+    [/^Available including this investment: (.+)$/,'包含本笔投资后的可用余额：$1'],
+    [/^Catalog was not saved: (.+)$/,'投资目录未保存：$1'],
+    [/^Delete failed: (.+)$/,'删除失败：$1'],
+    [/^Import preview failed: (.+)$/,'导入预览失败：$1'],
+    [/^Import failed: (.+)$/,'导入失败：$1'],
+    [/^✓ JSON loaded · (\d+) investment records found\. Preparing preview…$/,'✓ JSON 已加载 · 找到 $1 条投资记录，正在准备预览…'],
+    [/^📄 Selected: (.+) · Reading…$/,'📄 已选择：$1 · 正在读取…'],
+    [/^Check unavailable \/ 检查未完成: (.+)$/,'检查未完成：$1'],
+    [/^📄 Selected: (.+)$/,'📄 已选择：$1'],
     [/^(\$[\d,.]+) remaining$/,'$1 剩余'],
     [/^(\$[\d,.]+)\/mo required$/,'每月需 $1'],
     [/^(\d+) total tracked$/,'共追踪 $1 个目标'],
@@ -29247,7 +29324,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       const img=brand.querySelector('img');if(img)img.src='images/mmhvault-logo-transparent.png';
       const strong=brand.querySelector('strong'),small=brand.querySelector('small');
       if(strong)strong.textContent='MMHVAULT';
-      if(small)small.textContent='PERSONAL FINANCE · WEALTH';
+      if(small)small.textContent=(localStorage.getItem('mmhvault_language_v3363')==='zh'?'个人财务 · 财富管理':'PERSONAL FINANCE · WEALTH');
     }
   }
   function init(){

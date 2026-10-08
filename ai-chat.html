@@ -618,20 +618,22 @@ function asksOtherUsersPrivateData(q){
   return /(别人的账号|别人的账户|其他用户|另一个用户|他人账号|他人账户|someone else'?s account|another user'?s|other user'?s|another person'?s)/i.test(String(q||''))
 }
 function normalizedAccountKey(v){
-  let x=lc(v).replace(/[^a-z0-9\u3400-\u9fff]/g,'');
-  if(x==='bath')x='baht';
-  if(x==='truewallet')x='truemoney';
-  return x
+  // Keep the literal compact key here. Aliases are expanded separately.
+  // Converting "bath" -> "baht" or "truewallet" -> "truemoney" at this stage
+  // loses the literal spelling when the account name appears inside a sentence.
+  return lc(v).replace(/[^a-z0-9\u3400-\u9fff]/g,'')
 }
 function accountAliases(a){
   const base=normalizedAccountKey(a?.name),out=new Set([base]);
   const common={
     baht:['bath','baht'],
-    truemoney:['truemoney','truewallet','true'],
+    bath:['bath','baht'],
+    truemoney:['truemoney','truewallet','true money','true'],
+    truewallet:['truewallet','truemoney','true money','true'],
     okx:['okx'],
-    bybit:['bybit','bybitwallet'],
-    metamask:['metamask','meta'],
-    kpay:['kpay','kbzpay']
+    bybit:['bybit','bybitwallet','bybit wallet'],
+    metamask:['metamask','meta mask','meta'],
+    kpay:['kpay','kbzpay','kbz pay']
   };
   for(const [k,list] of Object.entries(common)){
     if(base===k||list.includes(base))for(const v of list)out.add(normalizedAccountKey(v))
