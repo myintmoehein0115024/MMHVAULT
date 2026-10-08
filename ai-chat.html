@@ -125,10 +125,10 @@ html,body{max-width:100%;overflow-x:hidden}.shell,.wrap,.hero,.layout,.chat,.pro
 }
 
 
-/* MMHVAULT AI 1.12.26 · persistent App Guide inside conversation frame */
+/* MMHVAULT AI 1.12.27 · App Guide shown as normal content inside the chatbox */
 .thread>#appGuide{
-  position:sticky;top:0;z-index:3;
-  margin:-2px -2px 14px;
+  position:relative;
+  margin:0 0 14px;
   border:1px solid rgba(91,151,196,.14);
   border-radius:14px;
   background:linear-gradient(180deg,rgba(8,31,49,.98),rgba(5,21,35,.97));
@@ -136,7 +136,7 @@ html,body{max-width:100%;overflow-x:hidden}.shell,.wrap,.hero,.layout,.chat,.pro
 }
 #messageList{min-width:0}
 @media(max-width:700px){
-  .thread>#appGuide{margin:0 0 12px;top:0}
+  .thread>#appGuide{margin:0 0 12px}
 }
 
 </style>
@@ -155,8 +155,8 @@ html,body{max-width:100%;overflow-x:hidden}.shell,.wrap,.hero,.layout,.chat,.pro
       <div class="chathead"><div><b data-en="Private finance chat" data-zh="私人财务对话">Private finance chat</b><small id="mode" data-en="Checking your signed-in account…" data-zh="正在检查当前登录账号……">Checking your signed-in account…</small></div><div class="chattools"><button id="refreshData" type="button" data-en="Refresh data" data-zh="刷新数据">Refresh data</button><button id="clear" type="button" data-en="Clear chat" data-zh="清空对话">Clear chat</button></div></div><div class="thread" id="thread" role="log" aria-live="polite">
         <div class="guidebar" id="appGuide">
         <div class="guidebar-head">
-          <div><b data-en="MMHVAULT App Guide" data-zh="MMHVAULT 新用户指南">MMHVAULT App Guide</b><small data-en="Tap a page or type any app question below" data-zh="点击页面查看功能，也可以直接在下面输入任何 APP 问题">Tap a page or type any app question below</small></div>
-          <span class="guidebar-badge" data-en="Read-only help" data-zh="只读帮助">Read-only help</span>
+          <div><b data-en="MMHVAULT App Guide" data-zh="MMHVAULT 新用户指南">MMHVAULT App Guide</b><small data-en="Tap a page to send it like a normal message, or type any app question below" data-zh="点击页面查看功能，也可以直接在下面输入任何 APP 问题">Tap a page to send it like a normal message, or type any app question below</small></div>
+          <span class="guidebar-badge" data-en="Quick start" data-zh="快速开始">Quick start</span>
         </div>
         <div class="guidegrid" role="group" aria-label="MMHVAULT App Guide">
           <button class="prompt guide-prompt" type="button" data-prompt-en="Explain the Dashboard page: what does it show, why should I use it first, and what should I do next?" data-prompt-zh="请介绍 Dashboard：首页显示什么、为什么先看这里、看到异常后下一步应该去哪里？"><span>▦</span><b data-en="Dashboard" data-zh="Dashboard 首页">Dashboard</b></button>
@@ -313,15 +313,7 @@ function addMessage(role,text,mode=''){state.messages.push({role,text:String(tex
 function renderThread(){
   const el=$('thread'),list=$('messageList');if(!el||!list)return;
   list.replaceChildren();
-  if(!state.messages.length){
-    const row=document.createElement('div');row.className='msg assistant';
-    const b=document.createElement('div');b.className='bubble';
-    b.textContent=state.data?T(
-      'Ask about MMHVAULT pages or your verified current-account finances. The App Guide above stays available even after chat refresh or Clear chat. Local AI handles broader explanations. I am read-only.',
-      '可以询问 MMHVAULT 各页面怎么用，也可以询问当前已验证账号的财务情况。上方 APP 指南会一直保留，即使刷新页面或清空聊天也不会消失；更开放的问题再交给本地 AI。全程只读。'
-    ):T('Open MMHVAULT and sign in first, then return here.','请先在 MMHVAULT 登录，然后返回这里。');
-    row.append(b);list.append(row)
-  }else{
+  if(state.messages.length){
     for(const m of state.messages){
       const row=document.createElement('div');row.className='msg '+m.role;
       const b=document.createElement('div');b.className='bubble';b.textContent=m.text;
@@ -331,7 +323,7 @@ function renderThread(){
       row.append(b);list.append(row)
     }
   }
-  requestAnimationFrame(()=>el.scrollTop=el.scrollHeight)
+  requestAnimationFrame(()=>{if(state.messages.length)el.scrollTop=el.scrollHeight;else el.scrollTop=0})
 }
 function typing(on){
   const el=$('thread'),list=$('messageList');
