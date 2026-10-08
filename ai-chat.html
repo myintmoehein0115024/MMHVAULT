@@ -369,6 +369,46 @@ html,body{max-width:100%;overflow-x:hidden}.shell,.wrap,.hero,.layout,.chat,.pro
   .compose{bottom:0!important}
 }
 
+
+/* MMHVAULT AI 1.12.30 · structural bottom composer, never overlays messages */
+.chat{
+  position:relative!important;
+  display:grid!important;
+  grid-template-rows:auto minmax(0,1fr) auto auto!important;
+  overflow:hidden!important
+}
+.thread{
+  position:relative!important;
+  z-index:1!important;
+  min-height:0!important;
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  padding-bottom:12px!important;
+  scroll-padding-bottom:18px!important
+}
+.compose{
+  position:relative!important;
+  inset:auto!important;
+  bottom:auto!important;
+  z-index:5!important;
+  flex:0 0 auto!important;
+  background:rgba(4,18,31,.995)!important;
+  box-shadow:0 -8px 18px rgba(0,0,0,.16)!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important
+}
+.foot{
+  position:relative!important;
+  z-index:6!important;
+  flex:0 0 auto!important;
+  background:rgba(4,18,31,.995)!important
+}
+@media(max-width:700px){
+  .chat{grid-template-rows:auto minmax(0,1fr) auto auto!important}
+  .thread{min-height:0!important;padding-bottom:10px!important;scroll-padding-bottom:14px!important}
+  .compose{position:relative!important;bottom:auto!important}
+}
+
 </style>
 </head>
 <body>
@@ -1076,14 +1116,21 @@ function sanitizeAssistantOutput(text,final=false){
   return final?s.trim():s.replace(/^\s+/,'')
 }
 function assistantMessageShell(mode=''){
-  const row=document.createElement('div');row.className='msg assistant';const b=document.createElement('div');b.className='bubble';const t=document.createTextNode('');const caret=document.createElement('span');caret.className='type-caret';caret.textContent='▍';b.append(t,caret);if(mode){const meta=document.createElement('small');meta.className='meta';meta.textContent=mode;b.append(meta)}row.append(b);$('thread').append(row);$('thread').scrollTop=$('thread').scrollHeight;return{row,b,t,caret}
+  const thread=$('thread'),list=$('messageList');if(!thread||!list)throw Error('chat-message-list-unavailable');
+  const row=document.createElement('div');row.className='msg assistant';
+  const b=document.createElement('div');b.className='bubble';
+  const t=document.createTextNode(''),caret=document.createElement('span');caret.className='type-caret';caret.textContent='▍';
+  b.append(t,caret);
+  if(mode){const meta=document.createElement('small');meta.className='meta';meta.textContent=mode;b.append(meta)}
+  row.append(b);list.append(row);thread.scrollTop=thread.scrollHeight;
+  return{row,b,t,caret}
 }
 function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
 async function typewriterAnswer(text,mode='',speed=12){
   const answer=String(text||'').trim();const shell=assistantMessageShell(mode);let i=0;
   const chunk=answer.length>700?4:answer.length>350?3:2;
   while(i<answer.length){const next=Math.min(answer.length,i+chunk);shell.t.nodeValue=answer.slice(0,next);i=next;$('thread').scrollTop=$('thread').scrollHeight;await sleep(speed)}
-  shell.caret.remove();state.messages.push({role:'assistant',text:answer,mode});if(state.messages.length>24)state.messages=state.messages.slice(-24);return answer
+  shell.caret.remove();state.messages.push({role:'assistant',text:answer,mode});if(state.messages.length>24)state.messages=state.messages.slice(-24);renderThread();return answer
 }
 function thinkingStage(en,zh){setMode(T(en,zh));const el=$('thread'),row=el?.querySelector('[data-typing] .bubble');if(row){row.innerHTML='';const lab=document.createElement('span');lab.className='thinking-label';lab.textContent=T(en,zh);row.append(lab)}if(el)el.scrollTop=el.scrollHeight}
 async function reviewQuestion(engine,question,context){
@@ -1113,13 +1160,13 @@ async function localAIAsk(question){
   try{for await(const chunk of stream){const delta=chunk?.choices?.[0]?.delta?.content||'';if(delta){rawAnswer+=delta;targetAnswer=sanitizeAssistantOutput(rawAnswer,false)}}}catch(e){streamError=e}finally{targetAnswer=sanitizeAssistantOutput(rawAnswer,true);done=true}
   await pump;if(streamError)throw streamError;
   finalAnswer=sanitizeAssistantOutput(finalAnswer||targetAnswer,true);if(!finalAnswer)throw Error('empty-local-ai-response');
-  shell.t.nodeValue=finalAnswer;state.messages.push({role:'assistant',text:finalAnswer,mode});if(state.messages.length>24)state.messages=state.messages.slice(-24);return finalAnswer
+  shell.t.nodeValue=finalAnswer;state.messages.push({role:'assistant',text:finalAnswer,mode});if(state.messages.length>24)state.messages=state.messages.slice(-24);renderThread();return finalAnswer
 }
 async function send(text,displayText=''){
   const input=$('input'),q=String(text??input?.value??'').trim();if(!q||state.sending)return;
   const directive=languageDirective(q);if(directive)state.replyLang=directive;
   if(!state.user||!state.data){addMessage('assistant',T('Please open MMHVAULT, sign in, and return to AI Assistant.','请先打开 MMHVAULT 登录，然后再返回 AI 财务助手。'),'MMHVAULT');return}
-  state.sending=true;if(input)input.value='';addMessage('user',String(displayText||q));typing(true);$('send').disabled=true;$('refreshData').disabled=true;
+  state.sending=true;if(input)input.value='';addMessage('user',String(displayText||q));typing(true);$('send').disabled=true;$('refreshData').disabled=true;$('clear').disabled=true;
   try{
     thinkingStage('Verifying the current account scope…','正在验证当前登录账号范围……');await ensureCurrentScope();
     thinkingStage('Checking exact MMHVAULT facts…','正在核对 MMHVAULT 精确数据……');const exact=exactToolAnswer(q);
@@ -1129,11 +1176,19 @@ async function send(text,displayText=''){
     typing(false);console.warn('[MMHVAULT Local AI] answer failed',e);const zh=questionLang(q)==='zh',msg=String(e?.message||e);
     if(msg==='account-scope-changed'||msg==='not-signed-in'){clearFinancialScope('account-changed');addMessage('assistant',zh?'检测到登录账号发生变化。为防止混用旧账号数据，我已经清空当前财务上下文。请确认当前账号后点击“刷新数据”。':'The signed-in account changed. To prevent mixing data across accounts, the financial context was cleared. Confirm the current account and press Refresh data.','MMHVAULT scope guard')}
     else if(msg!=='webgpu-unavailable')addMessage('assistant',zh?'这个问题需要本地语言模型进行开放式解释，但当前模型没有成功运行。精确数字类问题仍可直接询问；也可以重新准备模型后再试。':'This open-ended question needs the local language model, but the model is not running. Exact numeric questions still work; you can also prepare the model and retry.','Local AI unavailable');
-  }finally{state.sending=false;$('send').disabled=false;$('refreshData').disabled=false;input?.focus({preventScroll:true})}
+  }finally{state.sending=false;$('send').disabled=false;$('refreshData').disabled=false;$('clear').disabled=false;input?.focus({preventScroll:true})}
 }
 function bind(){
   $('backApp').onclick=()=>location.assign('app.html');
-  $('clear').onclick=()=>{state.messages=[];renderThread();requestAnimationFrame(()=>{const t=$('thread');if(t)t.scrollTop=0});$('input')?.focus()};
+  $('clear').onclick=()=>{
+    if(state.sending)return;
+    state.messages=[];state.replyLang='';state.lastIntent='';
+    const list=$('messageList');if(list)list.replaceChildren();
+    $('thread')?.querySelectorAll('[data-typing]').forEach(el=>el.remove());
+    renderThread();
+    requestAnimationFrame(()=>{const t=$('thread');if(t)t.scrollTop=0});
+    $('input')?.focus()
+  };
   $('refreshData').onclick=async()=>{if(state.sending)return;$('refreshData').disabled=true;try{setMode(T('Refreshing verified current-account data…','正在刷新已验证的当前账号数据……'));await loadData();setMode(T('Current-account data refreshed','当前账号数据已刷新'))}catch(e){const msg=String(e?.message||e);if(msg==='account-scope-changed'||msg==='not-signed-in')clearFinancialScope(msg==='account-scope-changed'?'account-changed':'scope-cleared');else setMode(msg.startsWith('data-timeout:')?T('Personal data loading timed out · tap Refresh data to retry','Personal 数据读取超时 · 请再次点击“刷新数据”'):T('Could not refresh current-account data · retry in a moment','无法刷新当前账号数据 · 请稍后重试'),true)}finally{$('refreshData').disabled=false}};
   $('send').onclick=()=>send();
   $('prepareAI').onclick=()=>prepareLocalAI(false).catch(()=>{});
