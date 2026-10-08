@@ -10803,6 +10803,47 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
 #mmhNotifyPopoverV560 .np-system-v121:disabled{cursor:default;opacity:.9}
 @media(max-width:520px){#mmhNotifyPopoverV560 .np-foot{align-items:stretch!important;flex-direction:column!important;text-align:center!important}.np-system-v121{width:100%}}
 </style>
+
+<style id="mmhvault-personal-rc2-responsive-guard-v11220">
+/* RC2 responsive guard.
+   Layout-only: contain decorative layers and keep compact planning headers
+   inside their page box without changing intentional table/tab scrollers. */
+#invest #portfolioManagerV310{
+  min-width:0!important;
+  max-width:100%!important;
+  box-sizing:border-box!important;
+  overflow-x:clip!important;
+}
+#invest #portfolioManagerV310 > *,
+#invest #portfolioManagerV310 .portfolio-grid-v310,
+#invest #portfolioManagerV310 .portfolio-panel-v310,
+#invest #portfolioManagerV310 .portfolio-health-v3716{
+  min-width:0!important;
+  max-width:100%!important;
+  box-sizing:border-box!important;
+}
+#recurring .recurring-shell-v114,
+#recurring .recurring-head-v114,
+#recurring .recurring-head-v114 > div:first-child{
+  min-width:0!important;
+  max-width:100%!important;
+  box-sizing:border-box!important;
+}
+@media(max-width:700px){
+  #recurring .recurring-head-v114{
+    overflow-x:hidden!important;
+  }
+  #recurring .recurring-head-v114 > div:first-child{
+    width:100%!important;
+  }
+  #recurring .recurring-eyebrow-v114,
+  #recurring .recurring-head-v114 h1{
+    max-width:100%!important;
+    overflow-wrap:anywhere!important;
+  }
+}
+</style>
+
 </head>
 <!-- MMHVAULT V4.3.6 · iOS JSON import bridge + V4.3.0 Dashboard report relocation + Transaction receipt center + Invest Add precision -->
 <body>
