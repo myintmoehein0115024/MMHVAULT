@@ -409,6 +409,87 @@ html,body{max-width:100%;overflow-x:hidden}.shell,.wrap,.hero,.layout,.chat,.pro
   .compose{position:relative!important;bottom:auto!important}
 }
 
+
+/* MMHVAULT AI 1.12.31 · clean shell + safe transaction-add preview */
+.hero{
+  align-items:center!important;
+  margin-bottom:10px!important;
+  padding-top:2px!important
+}
+.hero>div:first-child p,
+.hero .privacy,
+.notice{display:none!important}
+.hero h1{
+  margin:2px 0 0!important;
+  font-size:clamp(25px,3.1vw,38px)!important;
+  line-height:1.02!important
+}
+.hero .kicker{font-size:9px!important}
+.metrics{margin:0 0 10px!important;gap:8px!important}
+.metric{padding:12px 13px!important;min-height:76px!important}
+.metric small{margin-top:2px!important}
+.chathead{min-height:52px!important}
+.foot{
+  font-size:7px!important;
+  white-space:nowrap!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important
+}
+
+/* Safe write preview: no transaction is written until Confirm add is pressed. */
+.tx-preview{
+  width:min(680px,92%);
+  border:1px solid rgba(92,188,229,.24);
+  border-radius:14px;
+  background:linear-gradient(180deg,rgba(11,43,64,.96),rgba(7,29,46,.98));
+  box-shadow:0 10px 26px rgba(0,0,0,.16);
+  padding:12px 13px;
+  color:#cfe0e9
+}
+.tx-preview-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.tx-preview-head b{font-size:12px;color:#e7f3f8}
+.tx-preview-head span{font-size:8px;color:#78a2b8}
+.tx-preview-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+.tx-preview-item{
+  min-width:0;padding:8px 9px;border:1px solid rgba(91,151,196,.12);
+  border-radius:10px;background:rgba(5,24,39,.62)
+}
+.tx-preview-item span{display:block;color:#6f94a8;font-size:7px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px}
+.tx-preview-item b{display:block;font-size:10px;color:#d8e9f1;overflow-wrap:anywhere}
+.tx-preview-note{
+  grid-column:1/-1;padding:8px 9px;border:1px solid rgba(91,151,196,.12);
+  border-radius:10px;background:rgba(5,24,39,.62)
+}
+.tx-preview-actions{display:flex;justify-content:flex-end;gap:7px;margin-top:10px}
+.tx-preview-actions button{
+  min-height:34px;padding:6px 10px;border-radius:9px;
+  border:1px solid rgba(95,172,211,.22);background:#0a2a40;color:#cfe2ec;
+  font:inherit;font-size:8px;font-weight:800;cursor:pointer
+}
+.tx-preview-actions .confirm{
+  color:#fff;border-color:rgba(75,199,154,.28);
+  background:linear-gradient(135deg,#126e66,#17617a)
+}
+.tx-preview-actions button:disabled{opacity:.55;cursor:wait}
+.tx-write-badge{
+  display:inline-flex;align-items:center;gap:5px;padding:3px 7px;border-radius:999px;
+  border:1px solid rgba(87,202,159,.18);background:rgba(62,147,116,.08);
+  color:#82d9b6;font-size:7px;font-weight:800
+}
+
+@media(max-width:700px){
+  .hero{margin-bottom:7px!important}
+  .hero h1{font-size:26px!important}
+  .metrics{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:6px!important}
+  .metric{min-height:68px!important;padding:9px 10px!important}
+  .metric small{display:none!important}
+  .tx-preview{width:100%;padding:10px}
+  .tx-preview-grid{grid-template-columns:1fr}
+  .tx-preview-note{grid-column:auto}
+  .tx-preview-actions{display:grid;grid-template-columns:1fr 1fr}
+  .tx-preview-actions button{min-height:40px}
+}
+
 </style>
 </head>
 <body>
@@ -458,7 +539,7 @@ html,body{max-width:100%;overflow-x:hidden}.shell,.wrap,.hero,.layout,.chat,.pro
           <textarea id="input" rows="2" maxlength="1600" data-en-placeholder="Ask MMHVAULT anything…" data-zh-placeholder="询问 MMHVAULT 任何问题……" placeholder="Ask MMHVAULT anything…"></textarea>
           <button class="send" id="send" type="button" data-en="Send ↑" data-zh="发送 ↑">Send ↑</button>
         </div>
-      </div><div class="foot" data-en="Read-only · App Guide + current-account finance Q&A · local WebGPU · no paid AI API · chat is not stored by this page · Enter sends, Shift+Enter adds a line" data-zh="只读 · APP 指南 + 当前账号财务问答 · 本地 WebGPU · 无付费 AI API · 本页面不保存聊天记录 · Enter 发送，Shift+Enter 换行">Read-only · App Guide + current-account finance Q&A · local WebGPU · no paid AI API · chat is not stored by this page · Enter sends, Shift+Enter adds a line</div></section>
+      </div><div class="foot" data-en="Current account only · transaction add requires Preview + Confirm · AI cannot edit/delete records · local WebGPU · Enter sends" data-zh="仅当前账号 · 新增交易必须 Preview + Confirm · AI 不可编辑/删除记录 · 本地 WebGPU · Enter 发送">Current account only · transaction add requires Preview + Confirm · AI cannot edit/delete records · local WebGPU · Enter sends</div></section>
   </section>
 </main>
 </div>
@@ -470,7 +551,7 @@ import * as webllm from "https://cdn.jsdelivr.net/npm/@mlc-ai/web-llm@0.2.85/+es
 const SUPABASE_URL="https://vrypucmyrztxgiqhjspd.supabase.co",SUPABASE_KEY="sb_publishable_H38v4XbO0ARnSJToD42wGg_27-SZ3Ao";
 const $=id=>document.getElementById(id),N=v=>Number.isFinite(Number(v))?Number(v):0,lc=v=>String(v??'').trim().toLowerCase();
 const db=typeof supabase!=='undefined'?supabase.createClient(SUPABASE_URL,SUPABASE_KEY):null;
-const state={user:null,scopeUserId:'',data:null,canonical:null,loadedAt:0,messages:[],sending:false,engine:null,engineModel:'',engineReady:false,engineLoading:false,authSubscription:null,cacheStatus:'loading',replyLang:'',lastIntent:''};
+const state={user:null,scopeUserId:'',data:null,canonical:null,loadedAt:0,messages:[],sending:false,engine:null,engineModel:'',engineReady:false,engineLoading:false,authSubscription:null,cacheStatus:'loading',replyLang:'',lastIntent:'',pendingTxId:'',txSaving:false};
 function lang(){try{return (localStorage.getItem('mmhvault_language_v3363')||'en')==='zh'?'zh':'en'}catch(_e){return'en'}}function T(en,zh){return lang()==='zh'?zh:en}
 function applyTheme(){let t='dark';try{t=localStorage.getItem('myfinance_theme')||'dark'}catch(_e){}document.body.classList.toggle('light',t==='light')}
 function translate(){
@@ -602,11 +683,34 @@ function renderThread(){
   if(state.messages.length){
     for(const m of state.messages){
       const row=document.createElement('div');row.className='msg '+m.role;
-      const b=document.createElement('div');b.className='bubble';b.textContent=m.text;
-      if(m.role==='assistant'&&m.mode){
-        const meta=document.createElement('small');meta.className='meta';meta.textContent=m.mode;b.append(meta)
+      if(m.kind==='tx-preview'&&m.draft){
+        const d=m.draft,amount=d.type==='Income'?d.to_amount:d.from_amount,account=d.type==='Income'?d.to_account:d.from_account;
+        const card=document.createElement('div');card.className='tx-preview';
+        const head=document.createElement('div');head.className='tx-preview-head';
+        head.innerHTML=`<b>${T('Preview transaction','预览交易')}</b><span class="tx-write-badge">${T('Confirm required','必须确认')}</span>`;
+        const grid=document.createElement('div');grid.className='tx-preview-grid';
+        const item=(label,value)=>{const box=document.createElement('div');box.className='tx-preview-item';const a=document.createElement('span');a.textContent=label;const b=document.createElement('b');b.textContent=String(value??'—');box.append(a,b);return box};
+        grid.append(
+          item(T('Date','日期'),d.tx_date),
+          item(T('Type','类型'),d.type),
+          item(T('Category','分类'),d.category),
+          item(T('Amount','金额'),`${Number(amount).toLocaleString()} ${d.currency||''}`),
+          item(T('Account','账户'),account||'—'),
+          item(T('Counterparty account','对应账户'),d.type==='Transfer'?d.to_account:'—')
+        );
+        if(d.note){const n=document.createElement('div');n.className='tx-preview-note';n.textContent=`${T('Note','备注')}: ${d.note}`;grid.append(n)}
+        const actions=document.createElement('div');actions.className='tx-preview-actions';
+        const cancel=document.createElement('button');cancel.type='button';cancel.textContent=T('Cancel','取消');cancel.disabled=state.txSaving;cancel.onclick=()=>cancelTransactionDraft(d.id);
+        const confirm=document.createElement('button');confirm.type='button';confirm.className='confirm';confirm.textContent=state.txSaving&&state.pendingTxId===d.id?T('Saving…','正在保存……'):T('Confirm add','确认新增');confirm.disabled=state.txSaving;confirm.onclick=()=>commitTransactionDraft(d.id);
+        actions.append(cancel,confirm);card.append(head,grid,actions);
+        if(m.error){const e=document.createElement('div');e.className='tx-preview-note';e.style.marginTop='8px';e.textContent=m.error;card.append(e)}
+        row.append(card)
+      }else{
+        const b=document.createElement('div');b.className='bubble';b.textContent=m.text;
+        if(m.role==='assistant'&&m.mode){const meta=document.createElement('small');meta.className='meta';meta.textContent=m.mode;b.append(meta)}
+        row.append(b)
       }
-      row.append(b);list.append(row)
+      list.append(row)
     }
   }
   requestAnimationFrame(()=>{if(state.messages.length)el.scrollTop=el.scrollHeight;else el.scrollTop=0})
@@ -642,6 +746,188 @@ function languagePreferenceAnswer(q){
   return next==='zh'
     ?'好的。接下来包括新人指南按钮、APP 功能说明和财务问答，我都会优先用中文回答；除非你之后明确要求切换成英文。'
     :'Understood. From now on, Quick Start guides, app explanations, and finance answers will use English unless you explicitly switch back to Chinese.'
+}
+
+function transactionMutationIntent(q){
+  const x=String(q||'');
+  if(/(删除|删掉|移除|清除).*(交易|记录|流水)|(delete|remove).*(transaction|record)/i.test(x))return'delete';
+  if(/(修改|编辑|更改|改一下).*(交易|记录|流水)|(edit|update|change).*(transaction|record)/i.test(x))return'edit';
+  if(/(添加|新增|记一笔|记录一笔|帮我记|帮我记录|记账|录入).*(交易|收入|支出|开销|消费|转账)?|(add|record|log).*(transaction|expense|income|spending|transfer)/i.test(x))return'add';
+  return''
+}
+function aiWriteRefusal(kind){
+  if(kind==='delete')return questionLang('')==='zh'
+    ?'AI Chat 不提供删除交易的能力。删除会永久影响历史记录，请到 Transactions 页面由你手动操作。'
+    :'AI Chat cannot delete transactions. Deletion permanently changes history, so use the Transactions page manually.';
+  return questionLang('')==='zh'
+    ?'AI Chat 目前不通过指令编辑已有交易。你可以让我新增一笔交易；已有记录的修改请到 Transactions 页面手动完成。'
+    :'AI Chat does not edit existing transactions by command. I can prepare a new transaction, but existing records must be edited manually in Transactions.';
+}
+function txActiveAccounts(){
+  return (state.data?.config?.accounts||[]).filter(a=>a?.name&&a.active!==false)
+}
+function txAccount(name){
+  const key=lc(name);return txActiveAccounts().find(a=>lc(a.name)===key)||null
+}
+function txFindAccounts(q){
+  const raw=String(q||'').toLowerCase();
+  return txActiveAccounts()
+    .map(a=>({a,i:raw.indexOf(String(a.name).toLowerCase())}))
+    .filter(x=>x.i>=0).sort((x,y)=>x.i-y.i).map(x=>x.a)
+}
+function txCurrencyAlias(v){
+  const x=lc(v);
+  if(/^(thb|泰铢|บาท|baht)$/.test(x))return'THB';
+  if(/^(mmk|缅币|缅元|kyat)$/.test(x))return'MMK';
+  if(/^(usd|usdt|美元|dollar|dollars)$/.test(x))return'USD';
+  if(/^(cny|rmb|人民币|元|yuan)$/.test(x))return'CNY';
+  return''
+}
+function txAmountToken(q){
+  const x=String(q||'').replace(/,/g,'');
+  const patterns=[
+    /(?:金额|amount)\s*[:：]?\s*([0-9]+(?:\.[0-9]+)?)\s*(THB|MMK|USD|USDT|CNY|RMB|泰铢|缅币|缅元|美元|人民币|元|baht|kyat|yuan)?/i,
+    /([0-9]+(?:\.[0-9]+)?)\s*(THB|MMK|USD|USDT|CNY|RMB|泰铢|缅币|缅元|美元|人民币|元|baht|kyat|yuan)\b/i,
+    /([$฿￥])\s*([0-9]+(?:\.[0-9]+)?)/,
+  ];
+  for(let i=0;i<patterns.length;i++){
+    const m=x.match(patterns[i]);if(!m)continue;
+    if(i===2){
+      const c=m[1]==='$'?'USD':m[1]==='฿'?'THB':'CNY';
+      return{amount:N(m[2]),currency:c}
+    }
+    return{amount:N(m[1]),currency:txCurrencyAlias(m[2]||'')}
+  }
+  const cleaned=x
+    .replace(/\b20\d{2}[-/.]\d{1,2}[-/.]\d{1,2}\b/g,' ')
+    .replace(/\b\d{1,2}[-/.]\d{1,2}[-/.]20\d{2}\b/g,' ');
+  const nums=[...cleaned.matchAll(/(?:^|[^\d])([0-9]+(?:\.[0-9]+)?)(?!\d)/g)]
+    .map(m=>N(m[1])).filter(n=>n>0);
+  return nums.length===1?{amount:nums[0],currency:''}:{amount:0,currency:''}
+}
+function txDateFromCommand(q){
+  const x=String(q||''),now=new Date();
+  const iso=x.match(/\b(20\d{2})[-/.](\d{1,2})[-/.](\d{1,2})\b/);
+  if(iso)return`${iso[1]}-${String(iso[2]).padStart(2,'0')}-${String(iso[3]).padStart(2,'0')}`;
+  const cn=x.match(/(\d{1,2})月(\d{1,2})日/);
+  if(cn)return`${now.getFullYear()}-${String(cn[1]).padStart(2,'0')}-${String(cn[2]).padStart(2,'0')}`;
+  if(/昨天|yesterday/i.test(x)){const d=new Date(now);d.setDate(d.getDate()-1);return d.toLocaleDateString('en-CA')}
+  return now.toLocaleDateString('en-CA')
+}
+function txConfiguredCategories(){
+  const c=state.data?.config?.categories||{};
+  return Object.values(c).flat().filter(Boolean)
+}
+function txCategoryFromCommand(q,type){
+  const raw=lc(q),all=txConfiguredCategories();
+  const exact=all.slice().sort((a,b)=>String(b).length-String(a).length).find(v=>raw.includes(lc(v)));
+  if(exact)return exact;
+  const aliases=type==='Income'
+    ?[['工资','Salary'],['薪水','Salary'],['salary','Salary'],['餐补','Meal Allowance'],['meal allowance','Meal Allowance'],['奖金','Bonus'],['bonus','Bonus']]
+    :[['午餐','Dining'],['晚餐','Dining'],['早餐','Dining'],['吃饭','Dining'],['餐饮','Dining'],['food','Dining'],['dining','Dining'],['零食','Snacks'],['snack','Snacks'],['交通','Transport'],['打车','Transport'],['taxi','Transport'],['transport','Transport'],['香烟','Smoking'],['抽烟','Smoking'],['smoking','Smoking'],['健身','Wellness'],['医疗','Wellness'],['健康','Wellness'],['wellness','Wellness'],['生活','Lifestyle'],['lifestyle','Lifestyle']];
+  for(const [needle,cat] of aliases)if(raw.includes(lc(needle))&&all.some(v=>lc(v)===lc(cat)))return all.find(v=>lc(v)===lc(cat));
+  const fallback=type==='Income'?'Other Income':'Other';
+  return all.find(v=>lc(v)===lc(fallback))||fallback
+}
+function txTypeFromCommand(q){
+  const x=lc(q);
+  if(/转账|转给|transfer/.test(x))return'Transfer';
+  if(/收入|工资|薪水|餐补|奖金|income|salary|bonus|received|收到/.test(x))return'Income';
+  if(/支出|开销|消费|花了|付款|支付|买了|expense|spending|spent|paid|purchase|午餐|晚餐|早餐|吃饭|零食|打车|交通/.test(x))return'Expense';
+  return''
+}
+function txNoteFromCommand(q){
+  const m=String(q||'').match(/(?:备注|note)\s*[:：]?\s*(.+)$/i);
+  return m?String(m[1]).trim().slice(0,180):''
+}
+function txAccountBalance(name){
+  const row=financeFacts().accounts.find(a=>lc(a.name)===lc(name));
+  return row?N(row.balance):null
+}
+function makeTransactionDraft(q){
+  const type=txTypeFromCommand(q),accounts=txFindAccounts(q),token=txAmountToken(q),date=txDateFromCommand(q);
+  const missing=[];
+  if(!type)missing.push(T('type (Income or Expense)','类型（Income 或 Expense）'));
+  if(!(token.amount>0))missing.push(T('amount','金额'));
+  if(type==='Transfer'){
+    if(accounts.length<2)missing.push(T('from and to accounts','转出与转入账户'));
+  }else if(type==='Expense'&&!accounts[0])missing.push(T('payment account','支付账户'));
+  else if(type==='Income'&&!accounts[0])missing.push(T('receiving account','收款账户'));
+  if(missing.length)return{ok:false,message:T(`I can prepare it, but I still need: ${missing.join(', ')}. Example: “Add expense 900 THB from Bath for Dining today.”`,`可以新增，但还需要确认：${missing.join('、')}。例如：“添加一笔今天 Dining 支出 900 THB，从 Bath 支付。”`)};
+
+  if(type==='Transfer'){
+    const from=accounts[0],to=accounts[1];
+    const fc=String(from.currency||'').toUpperCase(),tc=String(to.currency||'').toUpperCase();
+    if(fc!==tc)return{ok:false,message:T('For safety, AI Chat only adds same-currency Transfers for now. Please enter cross-currency transfers manually in Transactions.','为了安全，AI Chat 目前只允许新增同币种 Transfer。跨币种转账请在 Transactions 页面手动录入。')};
+    if(token.currency&&token.currency!==fc&&!(token.currency==='USD'&&fc==='USDT'))return{ok:false,message:T(`The amount currency (${token.currency}) does not match ${from.name} (${fc}). Please restate the amount in the account currency.`,`金额币种（${token.currency}）与 ${from.name}（${fc}）不一致，请使用该账户原币金额重新说明。`)};
+    const bal=txAccountBalance(from.name);if(bal!==null&&token.amount>bal+1e-9)return{ok:false,message:T(`That would exceed the current ${from.name} balance (${bal.toLocaleString()} ${fc}). I will not create a negative balance.`,`这笔转账会超过 ${from.name} 当前余额（${bal.toLocaleString()} ${fc}），为了避免负余额，我不会创建这笔记录。`)};
+    return{ok:true,draft:{id:'tx_'+Date.now(),ownerId:state.scopeUserId,tx_date:date,type:'Transfer',category:'Transfer',from_account:from.name,from_amount:token.amount,to_account:to.name,to_amount:token.amount,note:txNoteFromCommand(q),currency:fc}}
+  }
+
+  const acct=accounts[0],acctCurrency=String(acct.currency||'USD').toUpperCase();
+  if(token.currency&&token.currency!==acctCurrency&&!(token.currency==='USD'&&acctCurrency==='USDT')){
+    return{ok:false,message:T(`The amount currency (${token.currency}) does not match ${acct.name} (${acctCurrency}). Please use the account's original currency.`,`金额币种（${token.currency}）与 ${acct.name}（${acctCurrency}）不一致，请按该账户的原币金额输入。`)}
+  }
+  if(type==='Expense'){
+    const bal=txAccountBalance(acct.name);if(bal!==null&&token.amount>bal+1e-9)return{ok:false,message:T(`That expense would exceed the current ${acct.name} balance (${bal.toLocaleString()} ${acctCurrency}). I will not create a negative balance.`,`这笔支出会超过 ${acct.name} 当前余额（${bal.toLocaleString()} ${acctCurrency}），为了避免负余额，我不会创建这笔记录。`)}
+  }
+  const category=txCategoryFromCommand(q,type);
+  return{ok:true,draft:{
+    id:'tx_'+Date.now(),ownerId:state.scopeUserId,tx_date:date,type,category,
+    from_account:type==='Expense'?acct.name:null,from_amount:type==='Expense'?token.amount:0,
+    to_account:type==='Income'?acct.name:null,to_amount:type==='Income'?token.amount:0,
+    note:txNoteFromCommand(q),currency:acctCurrency
+  }}
+}
+function txDraftSummary(d){
+  const amount=d.type==='Income'?d.to_amount:d.from_amount;
+  const account=d.type==='Income'?d.to_account:d.from_account;
+  return `${d.type} · ${d.category} · ${Number(amount).toLocaleString()} ${d.currency||''} · ${account||''}`
+}
+async function commitTransactionDraft(id){
+  const item=state.messages.find(m=>m.kind==='tx-preview'&&m.draft?.id===id);
+  if(!item||state.txSaving)return;
+  const d=item.draft;
+  state.txSaving=true;renderThread();
+  try{
+    const verified=await assertCurrentScope(d.ownerId||'');
+    if(!verified?.id||verified.id!==d.ownerId||verified.id!==state.scopeUserId)throw Error('account-scope-changed');
+    const accounts=txActiveAccounts().map(a=>lc(a.name));
+    if(d.type==='Expense'&&!accounts.includes(lc(d.from_account)))throw Error('source-account-unavailable');
+    if(d.type==='Income'&&!accounts.includes(lc(d.to_account)))throw Error('destination-account-unavailable');
+    if(d.type==='Transfer'&&(!accounts.includes(lc(d.from_account))||!accounts.includes(lc(d.to_account))))throw Error('transfer-account-unavailable');
+    if(!['Income','Expense','Transfer'].includes(d.type))throw Error('unsupported-transaction-type');
+    if(d.category==='Data Adjustment'||/loan/i.test(String(d.category||'')))throw Error('restricted-transaction-category');
+
+    const row={
+      user_id:verified.id,tx_date:d.tx_date,type:d.type,category:d.type==='Transfer'?'Transfer':d.category,
+      from_account:d.type==='Income'?null:d.from_account,from_amount:d.type==='Income'?0:N(d.from_amount),
+      to_account:d.type==='Expense'?null:d.to_account,to_amount:d.type==='Expense'?0:N(d.to_amount),
+      note:d.note||null
+    };
+    const r=await db.from('transactions').insert(row).select('id').single();
+    if(r.error)throw r.error;
+
+    item.kind='tx-result';
+    item.text=T(`Transaction added successfully · #${r.data.id} · ${txDraftSummary(d)}`,`交易已新增成功 · #${r.data.id} · ${txDraftSummary(d)}`);
+    delete item.draft;state.pendingTxId='';
+    await loadData({silent:true});
+    renderThread();
+    setMode(T('Transaction saved · current-account data refreshed','交易已保存 · 当前账号数据已刷新'));
+  }catch(e){
+    console.warn('[MMHVAULT AI] transaction add failed',e);
+    item.saving=false;
+    const msg=String(e?.message||e);
+    item.error=msg==='account-scope-changed'
+      ?T('Account changed. The draft was not saved. Refresh data and try again.','账号已变化，这笔草稿没有保存。请刷新数据后重试。')
+      :T('The transaction was not saved. Check the preview and try again.','交易没有保存，请检查预览内容后再试。');
+    renderThread()
+  }finally{state.txSaving=false;renderThread()}
+}
+function cancelTransactionDraft(id){
+  const item=state.messages.find(m=>m.kind==='tx-preview'&&m.draft?.id===id);if(!item)return;
+  item.kind='tx-result';item.text=T('Transaction draft cancelled. Nothing was written.','交易草稿已取消，没有写入任何记录。');delete item.draft;
+  if(state.pendingTxId===id)state.pendingTxId='';renderThread()
 }
 function trimText(v,max=500){const s=String(v??'').trim();return s.length>max?s.slice(0,max)+'…':s}
 function round2(v){return Math.round((N(v)+Number.EPSILON)*100)/100}
@@ -746,8 +1032,8 @@ function productHelpAnswer(q,zh){
     'Exchange / rates lets MMHVAULT normalize different currencies for display and analysis while preserving original-currency amounts. Updating rates changes converted USD/other display values, but does not rewrite original transaction amounts. When comparing history, distinguish the original amount from the converted display value.'
   );
   if(/ai\s*(chat|assistant)?|ai助手|ai\s*助手|local ai|webgpu/.test(x))return answer(
-    'AI Financial Assistant 有两类能力：第一类是 MMHVAULT 规则引擎直接回答当前账号的精确财务问题；第二类是 Local AI 用 WebGPU 在浏览器里解释开放式问题和 APP 使用方法。它只读，不能交易、转账、删除、恢复、改预算、改目标或写任何财务记录；也不能读取其他账号。首次准备 Local AI 会下载公开模型文件到当前浏览器缓存，不需要付费 AI API Key。',
-    'AI Financial Assistant has two layers: the MMHVAULT rules engine answers exact current-account financial questions, while Local AI uses WebGPU in the browser for open-ended explanations and app guidance. It is read-only: it cannot trade, transfer, delete, restore, change budgets/goals or write financial records, and it cannot access another account. Preparing Local AI downloads public model files into this browser cache and does not require a paid AI API key.'
+    'AI Financial Assistant 有两类能力：第一类是 MMHVAULT 规则引擎直接回答当前账号的精确财务问题；第二类是 Local AI 用 WebGPU 在浏览器里解释开放式问题和 APP 使用方法。Local AI 本身不能直接写账；AI Chat 只允许生成“新增交易”预览，并且必须由你点击确认后才写入当前账号。它不能编辑或删除已有交易，也不能读取其他账号。首次准备 Local AI 会下载公开模型文件到当前浏览器缓存，不需要付费 AI API Key。',
+    'AI Financial Assistant has two layers: the MMHVAULT rules engine answers exact current-account financial questions, while Local AI uses WebGPU in the browser for open-ended explanations and app guidance. The Local AI model cannot write directly. AI Chat may prepare a new-transaction preview, but it is written only after you explicitly confirm it. It cannot edit/delete existing transactions or access another account. Preparing Local AI downloads public model files into this browser cache and does not require a paid AI API key.'
   );
   if(/beginner|新用户|新手|指南|怎么开始|从哪里开始|first\s*use|getting started/.test(x))return answer(
     '新用户建议按这个顺序：1) Dashboard 先认识整体结构；2) Transactions 正确记录 Income / Expense / Transfer；3) Accounts 和汇率确认资产基础；4) Budget 设置消费边界；5) Goals 与 Recurring 建立未来计划；6) Notifications 做 Device Check；7) 用 AI Assistant 提问和解释；8) 最后做一次 Backup。AI Chat → Quick Start 会按页面提供入口，你也可以直接输入问题。',
@@ -768,7 +1054,7 @@ function exactToolAnswer(q){
   // If the user says we misunderstood, preserve the recent conversation and let Local AI resolve the clarification.
   if(isCorrectionMessage(q))return'';
   const help=productHelpAnswer(q,zh);if(help)return help;
-  if(/^(你好|您好|嗨|hello|hi|hey)[!！。\s]*$/i.test(String(q).trim())||/(你|您)能(帮我|做|解答)|能回答什么|可以做什么|能做些什么|what can you|what do you do/i.test(q))return zh?'我现在可以做两类事情：① 当作 MMHVAULT 新用户指南，回答 Dashboard、Transactions、Accounts、Invest、Analyze、Reports、Budget、Goals、Recurring、Notifications、Settings、Backup/Restore、Exchange、AI Assistant 等页面怎么用、为什么这样设计、页面之间有什么区别；② 读取当前登录账号的数据，回答净资产、现金、收入、工资、开销、储蓄率、分类变化和现金流规划。始终只读，不会改账，也不会读取其他账号。':'I can do two things: ① act as the MMHVAULT new-user guide and explain how/why to use Dashboard, Transactions, Accounts, Invest, Analyze, Reports, Budget, Goals, Recurring, Notifications, Settings, Backup/Restore, Exchange and AI Assistant; ② read only the current signed-in account to answer questions about net assets, cash, income, salary, spending, savings rate, category changes and planning. I remain read-only and cannot access other accounts.';
+  if(/^(你好|您好|嗨|hello|hi|hey)[!！。\s]*$/i.test(String(q).trim())||/(你|您)能(帮我|做|解答)|能回答什么|可以做什么|能做些什么|what can you|what do you do/i.test(q))return zh?'我现在可以做两类事情：① 当作 MMHVAULT 新用户指南，回答 Dashboard、Transactions、Accounts、Invest、Analyze、Reports、Budget、Goals、Recurring、Notifications、Settings、Backup/Restore、Exchange、AI Assistant 等页面怎么用、为什么这样设计、页面之间有什么区别；② 读取当前登录账号的数据，回答净资产、现金、收入、工资、开销、储蓄率、分类变化和现金流规划。财务分析本身保持只读；只有“新增交易”支持 Preview → Confirm 后写入当前账号，AI 不支持编辑或删除已有记录，也不会读取其他账号。':'I can do two things: ① act as the MMHVAULT new-user guide and explain how/why to use Dashboard, Transactions, Accounts, Invest, Analyze, Reports, Budget, Goals, Recurring, Notifications, Settings, Backup/Restore, Exchange and AI Assistant; ② read only the current signed-in account to answer questions about net assets, cash, income, salary, spending, savings rate, category changes and planning. Financial analysis remains read-only. Only new-transaction creation is allowed through Preview → Confirm; AI cannot edit/delete existing records or access another account.';
 
   const sym=marketSymbolFromQuestion(q);if(sym&&/(价格|price|行情|多少)/i.test(q)){const m=f.market?.crypto?.[sym],updated=N(f.market?.crypto_updated_at),age=updated?Date.now()-updated:Infinity;if(m&&N(m.price_usd)>0&&age<15*60*1000){const ch=Number(m.change_24h_pct),change=Number.isFinite(ch)?`，24 小时变化 ${ch>=0?'+':''}${ch.toFixed(2)}%`:'';return zh?`${sym} 当前在 MMHVAULT Live Prices 中的参考价约为 ${usd(m.price_usd)}${change}。来源：${f.market?.crypto_source||'市场参考数据'}。这是市场参考价，不是交易报价。`:`${sym} is about ${usd(m.price_usd)} in MMHVAULT Live Prices${Number.isFinite(ch)?`, with a ${ch>=0?'+':''}${ch.toFixed(2)}% 24h change`:''}. Source: ${f.market?.crypto_source||'market reference data'}. This is a reference price, not an execution quote.`}return zh?`当前 AI 上下文没有一条足够新的 ${sym} 市场报价，我不会猜价格。请先在 Invest → Live Prices 刷新行情，再点击“刷新数据”。`:`There is no sufficiently fresh ${sym} market quote in the current AI context, so I will not guess. Refresh Invest → Live Prices, then press Refresh data.`}
 
@@ -828,7 +1114,7 @@ ${zh?'最重要规则：':'Most important rules:'}
 - ${zh?'最近一条用户澄清拥有最高优先级。如果用户说“我的意思是 / 不是这个 / 你理解错了”，先根据最近对话重新理解，不要继续沿用之前错误的意图。':'The user\'s latest clarification has highest priority. If they say “I mean / not that / you misunderstood”, reinterpret the request using recent conversation instead of continuing the earlier mistaken intent.'}
 - ${zh?'不要因为一句话同时提到多个页面，就只回答第一个关键词；如果用户是在比较多个页面或要求整体说明，要覆盖他实际点名的对象。':'Do not answer only the first keyword when a question names multiple pages. If the user is comparing several pages or asks for an overview, cover the objects they actually named.'}
 - ${zh?'如果用户已经明确指定中文或英文，后续回答遵守该语言偏好，直到用户再次明确切换。':'If the user explicitly selected Chinese or English, follow that reply-language preference until they explicitly switch again.'}
-- ${zh?'只读，不声称修改、删除、交易、转账或写入任何记录。':'Read-only. Never claim to edit, delete, trade, transfer, or write records.'}
+- ${zh?'语言模型本身不能直接写入。新增交易只能由页面的安全 Preview → Confirm 流程完成；绝不能声称自行保存、编辑或删除记录。':'The language model itself cannot write directly. New transactions can only be created by the page\'s safe Preview → Confirm flow; never claim to save, edit, or delete records by yourself.'}
 - ${zh?'内部 Transfer、Data Adjustment、Loan、linked investment cash flow 不属于正常收入/开销。':'Internal Transfer, Data Adjustment, Loan, and linked investment cash flow are excluded from ordinary income/spending.'}
 - ${zh?'钱包内部转币不是收入或开销；网络费只减少持仓，不是生活开销。':'Wallet-to-wallet crypto movement is not income/expense; network fees reduce holdings but are not lifestyle spending.'}
 - ${zh?'预测必须说明关键假设并标明是假设情景，不是保证。':'For projections, state key assumptions and make clear they are scenarios, not guarantees.'}
@@ -1169,6 +1455,20 @@ async function send(text,displayText=''){
   state.sending=true;if(input)input.value='';addMessage('user',String(displayText||q));typing(true);$('send').disabled=true;$('refreshData').disabled=true;$('clear').disabled=true;
   try{
     thinkingStage('Verifying the current account scope…','正在验证当前登录账号范围……');await ensureCurrentScope();
+    const mutation=transactionMutationIntent(q);
+    if(mutation==='delete'||mutation==='edit'){
+      typing(false);await typewriterAnswer(aiWriteRefusal(mutation),T('AI transaction safety','AI 交易安全保护'),8);return
+    }
+    if(mutation==='add'){
+      typing(false);
+      const parsed=makeTransactionDraft(q);
+      if(!parsed.ok){await typewriterAnswer(parsed.message,T('Transaction details needed','需要补充交易信息'),8);return}
+      // Only one unconfirmed write draft at a time.
+      state.messages=state.messages.filter(m=>m.kind!=='tx-preview');
+      state.pendingTxId=parsed.draft.id;
+      state.messages.push({role:'assistant',kind:'tx-preview',draft:parsed.draft,text:txDraftSummary(parsed.draft)});
+      renderThread();setMode(T('Transaction preview ready · confirm before saving','交易预览已准备 · 确认后才会保存'));return
+    }
     thinkingStage('Checking exact MMHVAULT facts…','正在核对 MMHVAULT 精确数据……');const exact=exactToolAnswer(q);
     if(exact){typing(false);await typewriterAnswer(exact,questionLang(q)==='zh'?'MMHVAULT 精确计算 · 当前账号':'MMHVAULT exact calculation · current account',11);setMode(T('Verified current-account finance engine ready','已验证当前账号财务计算可用'));return}
     await localAIAsk(q);setMode(T(`Local AI ready · ${modelLabel(state.engineModel)} · verified current account only`,`本地 AI 已就绪 · ${modelLabel(state.engineModel)} · 仅限已验证当前账号`));
@@ -1182,7 +1482,7 @@ function bind(){
   $('backApp').onclick=()=>location.assign('app.html');
   $('clear').onclick=()=>{
     if(state.sending)return;
-    state.messages=[];state.replyLang='';state.lastIntent='';
+    state.messages=[];state.replyLang='';state.lastIntent='';state.pendingTxId='';state.txSaving=false;
     const list=$('messageList');if(list)list.replaceChildren();
     $('thread')?.querySelectorAll('[data-typing]').forEach(el=>el.remove());
     renderThread();
