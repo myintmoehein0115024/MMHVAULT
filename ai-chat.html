@@ -68,6 +68,62 @@ html,body{max-width:100%;overflow-x:hidden}.shell,.wrap,.hero,.layout,.chat,.pro
 @media(min-width:981px){.prompts{max-height:590px;overflow-y:auto;scrollbar-gutter:stable}.prompts::-webkit-scrollbar{width:5px}.prompts::-webkit-scrollbar-thumb{background:rgba(93,151,188,.22);border-radius:999px}}
 @media(max-width:760px){.prompts{display:flex!important;flex-direction:row!important;gap:8px!important;overflow-x:auto!important;overflow-y:hidden!important;scroll-snap-type:x proximity;padding-bottom:10px}.sidehead,.sidenote,.guide-divider{flex:0 0 100%;min-width:100%;scroll-snap-align:start}.prompt{flex:0 0 min(82vw,310px)!important;min-width:min(82vw,310px)!important;scroll-snap-align:start}.guide-divider{align-self:center}.sidenote{margin-top:0}.layout{align-items:start}}
 
+
+/* MMHVAULT AI 1.12.24 · integrated guide + cache-aware responsive layout */
+.layout{display:block!important}
+.chat{
+  width:100%;min-width:0;min-height:620px;
+  display:grid!important;
+  grid-template-rows:auto auto minmax(320px,1fr) auto auto!important;
+  overflow:hidden
+}
+.guidebar{padding:13px 14px 12px;border-bottom:1px solid rgba(91,151,196,.12);background:linear-gradient(180deg,rgba(7,30,47,.64),rgba(4,19,32,.38))}
+.guidebar-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:10px}
+.guidebar-head b{display:block;font-size:12px}
+.guidebar-head small{display:block;margin-top:2px;color:#6f92a7;font-size:9px}
+.guidebar-badge{flex:0 0 auto;padding:5px 8px;border:1px solid rgba(101,214,168,.16);border-radius:999px;background:rgba(60,141,111,.08);color:#83d9b4;font-size:8px;font-weight:800}
+.guidegrid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px}
+.guidegrid .prompt{display:flex;align-items:center;gap:7px;min-width:0;min-height:42px;padding:7px 8px;border-radius:11px}
+.guidegrid .prompt>span{flex:0 0 27px;width:27px;height:27px;border-radius:8px;font-size:10px}
+.guidegrid .prompt b{font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cache-state{display:inline-flex;align-items:center;gap:6px;margin-left:7px;padding:3px 7px;border-radius:999px;border:1px solid rgba(105,177,215,.16);background:rgba(16,54,76,.34);color:#8eb8cf;font-size:8px;font-weight:800;vertical-align:middle}
+.cache-state.ready{border-color:rgba(101,214,168,.20);background:rgba(55,137,105,.10);color:#83d9b4}
+.cache-state.missing{border-color:rgba(237,198,110,.18);background:rgba(130,92,28,.10);color:#d8bb77}
+@media(max-width:980px){
+  .guidegrid{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:700px){
+  .wrap{width:min(100% - 18px,1240px)!important;padding-top:16px!important}
+  .chat{min-height:690px!important;grid-template-rows:auto auto minmax(360px,1fr) auto auto!important}
+  .guidebar{padding:12px 10px 10px}
+  .guidebar-head{align-items:flex-start;margin-bottom:9px}
+  .guidebar-badge{display:none}
+  .guidegrid{
+    display:flex!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    gap:8px!important;
+    padding-bottom:3px;
+    scroll-snap-type:x proximity;
+    scrollbar-width:none
+  }
+  .guidegrid::-webkit-scrollbar{display:none}
+  .guidegrid .prompt{
+    flex:0 0 auto!important;
+    width:auto!important;min-width:128px!important;max-width:172px!important;
+    min-height:44px!important;
+    scroll-snap-align:start
+  }
+  .guidegrid .prompt b{font-size:9px!important}
+  .chathead{padding:11px 10px!important}
+  .thread{padding:13px 10px 8px!important}
+  .compose{padding:9px!important}
+}
+@media(max-width:420px){
+  .guidegrid .prompt{min-width:116px!important;max-width:150px!important}
+  .guidebar-head small{font-size:8px}
+}
+
 </style>
 </head>
 <body>
@@ -75,28 +131,30 @@ html,body{max-width:100%;overflow-x:hidden}.shell,.wrap,.hero,.layout,.chat,.pro
 <header class="top"><div class="brand"><img src="images/mmhvault-logo-transparent.png" alt=""><div><strong>MMHVAULT</strong><small data-en="Personal Finance · AI" data-zh="个人财务 · AI">Personal Finance · AI</small></div></div><button class="back" id="backApp" type="button" data-en="‹ Back to MMHVAULT" data-zh="‹ 返回 MMHVAULT">‹ Back to MMHVAULT</button></header>
 <main class="wrap">
   <section class="hero"><div><span class="kicker">MMHVAULT AI</span><h1 data-en="Financial Assistant" data-zh="AI 财务助手">Financial Assistant</h1><p data-en="Ask about your finances or how to use MMHVAULT. The built-in App Guide explains every Personal page, while financial answers only read data for the currently authenticated account." data-zh="既可以询问你的财务，也可以询问 MMHVAULT 怎么使用。内置 App Guide 会解释 Personal 各页面的功能；涉及财务时只读取当前已登录账号的数据。">Ask about your finances or how to use MMHVAULT. The built-in App Guide explains every Personal page, while financial answers only read data for the currently authenticated account.</p></div><div class="privacy"><i></i><b data-en="Local AI · Read-only" data-zh="本地 AI · 只读">Local AI · Read-only</b><small id="scopeBadge" data-en="Verified current session only" data-zh="仅限已验证当前登录账号">Verified current session only</small></div></section>
-  <div class="notice"><span>i</span><div><b data-en="Private Local AI" data-zh="私有本地 AI">Private Local AI</b> · <span data-en="The language model runs directly in this browser with WebGPU. Your MMHVAULT financial context is not sent to an AI provider. First use downloads public model files to this browser and caches them locally; no paid AI API key is required." data-zh="语言模型通过 WebGPU 直接在当前浏览器运行。MMHVAULT 财务上下文不会发送给 AI 服务商。首次使用会把公开模型文件下载并缓存到本浏览器，不需要任何付费 AI API Key。">The language model runs directly in this browser with WebGPU. Your MMHVAULT financial context is not sent to an AI provider. First use downloads public model files to this browser and caches them locally; no paid AI API key is required.</span></div></div>
-  <section class="localsetup" id="localSetup"><div><b class="local-badge" data-en="Free Local AI" data-zh="免费本地 AI">Free Local AI</b><small id="localStatus" data-en="MMHVAULT verifies the current account and reuses the main app's canonical totals first; Local AI then reviews the question and explains planning. Choose a model and prepare it once." data-zh="MMHVAULT 会先验证当前账号并优先复用主 APP 的统一计算结果；本地 AI 再审题并解释规划。选择模型并首次准备一次即可。">MMHVAULT verifies the current account and exact facts first; Local AI then reviews the question and explains planning. Choose a model and prepare it once.</small></div><div class="localtools"><select id="modelChoice" aria-label="Local AI model"><option value="Qwen3-0.6B-q4f16_1-MLC" data-en="Recommended · Qwen3 0.6B · Chinese-friendly · ~0.35 GB download" data-zh="推荐 · Qwen3 0.6B · 中文更好 · 约 0.35 GB 下载">Recommended · Qwen3 0.6B · Chinese-friendly · ~0.35 GB download</option><option value="Llama-3.2-1B-Instruct-q4f16_1-MLC" data-en="Compatibility · Llama 3.2 1B · ~0.9 GB memory" data-zh="兼容 · Llama 3.2 1B · 约 0.9 GB 内存">Compatibility · Llama 3.2 1B · ~0.9 GB memory</option><option value="Qwen3-1.7B-q4f16_1-MLC" data-en="Advanced · Qwen3 1.7B · ~1.0 GB download · regular window recommended" data-zh="增强 · Qwen3 1.7B · 约 1.0 GB 下载 · 建议普通窗口">Advanced · Qwen3 1.7B · ~1.0 GB download · regular window recommended</option></select><button id="prepareAI" type="button" data-en="Prepare Local AI" data-zh="准备本地 AI">Prepare Local AI</button><button id="clearAICache" type="button" class="secondary" data-en="Clear AI cache" data-zh="清理 AI 缓存">Clear AI cache</button></div><div class="progress" id="modelProgress"><i id="modelProgressBar"></i></div></section>
+  <div class="notice"><span>i</span><div><b data-en="Private Local AI" data-zh="私有本地 AI">Private Local AI</b> · <span data-en="The language model runs directly in this browser with WebGPU. Your MMHVAULT financial context is not sent to an AI provider. First use downloads public model files once. Later visits reuse the model already stored by this browser when available; only missing model files need downloading. No paid AI API key is required." data-zh="语言模型通过 WebGPU 直接在当前浏览器运行。MMHVAULT 财务上下文不会发送给 AI 服务商。首次使用会下载并缓存公开模型文件；以后优先直接读取当前浏览器已经保存的模型，只有找不到时才需要重新下载。不需要任何付费 AI API Key。">The language model runs directly in this browser with WebGPU. Your MMHVAULT financial context is not sent to an AI provider. First use downloads public model files to this browser and caches them locally; no paid AI API key is required.</span></div></div>
+  <section class="localsetup" id="localSetup"><div><b class="local-badge" data-en="Free Local AI" data-zh="免费本地 AI">Free Local AI</b><span id="cacheState" class="cache-state" data-en="Checking local cache…" data-zh="正在检查本地缓存……">Checking local cache…</span><small id="localStatus" data-en="MMHVAULT verifies the current account and reuses the main app's canonical totals first; Local AI then reviews the question and explains planning. Choose a model once. MMHVAULT will reuse its browser cache automatically on later visits." data-zh="MMHVAULT 会先验证当前账号并优先复用主 APP 的统一计算结果；本地 AI 再审题并解释规划。首次选择模型即可；以后 MMHVAULT 会自动优先读取浏览器缓存。">MMHVAULT verifies the current account and exact facts first; Local AI then reviews the question and explains planning. Choose a model and prepare it once.</small></div><div class="localtools"><select id="modelChoice" aria-label="Local AI model"><option value="Qwen3-0.6B-q4f16_1-MLC" data-en="Recommended · Qwen3 0.6B · Chinese-friendly · ~0.35 GB download" data-zh="推荐 · Qwen3 0.6B · 中文更好 · 约 0.35 GB 下载">Recommended · Qwen3 0.6B · Chinese-friendly · ~0.35 GB download</option><option value="Llama-3.2-1B-Instruct-q4f16_1-MLC" data-en="Compatibility · Llama 3.2 1B · ~0.9 GB memory" data-zh="兼容 · Llama 3.2 1B · 约 0.9 GB 内存">Compatibility · Llama 3.2 1B · ~0.9 GB memory</option><option value="Qwen3-1.7B-q4f16_1-MLC" data-en="Advanced · Qwen3 1.7B · ~1.0 GB download · regular window recommended" data-zh="增强 · Qwen3 1.7B · 约 1.0 GB 下载 · 建议普通窗口">Advanced · Qwen3 1.7B · ~1.0 GB download · regular window recommended</option></select><button id="prepareAI" type="button" data-en="Prepare Local AI" data-zh="准备本地 AI">Prepare Local AI</button><button id="clearAICache" type="button" class="secondary" data-en="Clear AI cache" data-zh="清理 AI 缓存">Clear AI cache</button></div><div class="progress" id="modelProgress"><i id="modelProgressBar"></i></div></section>
 
   <section class="metrics" id="metrics" aria-live="polite"></section>
   <section class="layout">
-    <aside class="prompts"><div class="sidehead"><b data-en="MMHVAULT App Guide" data-zh="MMHVAULT 新用户指南">MMHVAULT App Guide</b><small data-en="Tap a page to learn what it does, why it exists, and how to use it" data-zh="点击页面，了解它的功能、为什么这样设计、应该怎么用">Tap a page to learn what it does, why it exists, and how to use it</small></div>
-      <button class="prompt guide-prompt" type="button" data-prompt-en="Explain the Dashboard page: what does it show, why should I use it first, and what should I do next?" data-prompt-zh="请介绍 Dashboard：首页显示什么、为什么先看这里、看到异常后下一步应该去哪里？"><span>▦</span><b data-en="Dashboard" data-zh="Dashboard 首页">Dashboard</b></button>
-      <button class="prompt guide-prompt" type="button" data-prompt-en="Explain Transactions: what is Income, Expense and Transfer, why are some flows excluded from spending, and how should I record transactions correctly?" data-prompt-zh="请介绍 Transactions：Income、Expense、Transfer 分别怎么用？为什么有些流水不算开销？正确记账应该怎么做？"><span>↕</span><b data-en="Transactions" data-zh="Transactions 交易">Transactions</b></button>
-      <button class="prompt guide-prompt" type="button" data-prompt-en="Explain Accounts: what balances mean, how Crypto Accounts work, and why account balances are separate from portfolio views." data-prompt-zh="请介绍 Accounts：余额代表什么？Crypto Account 怎么计算？为什么账户余额和投资组合要分开看？"><span>▤</span><b data-en="Accounts" data-zh="Accounts 账户">Accounts</b></button>
-      <button class="prompt guide-prompt" type="button" data-prompt-en="Explain Invest: Add Investment, Portfolio, Wallet Activity and Live Prices, and when I should use each one." data-prompt-zh="请介绍 Invest：Add Investment、Portfolio、Wallet Activity、Live Prices 分别什么时候使用？"><span>⌁</span><b data-en="Invest" data-zh="Invest 投资">Invest</b></button>
-      <button class="prompt guide-prompt" type="button" data-prompt-en="Explain Cash Flow Analyze and Reports: what is the difference, why are Internal Transfers excluded, and when should I use each page?" data-prompt-zh="请介绍 Cash Flow Analyze 和 Reports：两者有什么区别？为什么 Internal Transfer 不算正常现金流？分别什么时候看？"><span>◎</span><b data-en="Analyze & Reports" data-zh="分析与报告">Analyze & Reports</b></button>
-      <button class="prompt guide-prompt" type="button" data-prompt-en="Explain Budget and Goals: what each page is for, how to set them up, and how they work with alerts and planning." data-prompt-zh="请介绍 Budget 和 Goals：各自有什么用途？怎么设置？如何配合提醒和财务规划？"><span>◇</span><b data-en="Budget & Goals" data-zh="Budget 与 Goals">Budget & Goals</b></button>
-      <button class="prompt guide-prompt" type="button" data-prompt-en="Explain Recurring: why it exists, what upcoming/due/overdue means, and how I should use it for repeated income or expenses." data-prompt-zh="请介绍 Recurring：为什么需要它？Upcoming、Due、Overdue 是什么意思？重复收入和支出应该怎么管理？"><span>↻</span><b data-en="Recurring" data-zh="Recurring 周期项目">Recurring</b></button>
-      <button class="prompt guide-prompt" type="button" data-prompt-en="Explain Notifications: what Financial Alerts can notify me about, how Device Check and background Push work, and what the privacy rules are." data-prompt-zh="请介绍 Notifications：Financial Alerts 会提醒什么？Device Check 和后台 Push 怎么工作？隐私规则是什么？"><span>◉</span><b data-en="Notifications" data-zh="Notifications 通知">Notifications</b></button>
-      <button class="prompt guide-prompt" type="button" data-prompt-en="Explain Settings, Backup and Restore: what should I configure, what Backup contains, and why Restore uses a preview before import." data-prompt-zh="请介绍 Settings、Backup 和 Restore：应该设置哪些内容？Backup 包含什么？为什么 Restore 导入前必须先 Preview？"><span>⚙</span><b data-en="Settings & Backup" data-zh="设置与备份">Settings & Backup</b></button>
-      <button class="prompt guide-prompt" type="button" data-prompt-en="Explain this AI Financial Assistant: what it can answer about the app and my finances, what Local AI means, and what it is not allowed to change." data-prompt-zh="请介绍 AI Financial Assistant：它能回答哪些 APP 和财务问题？Local AI 是什么意思？哪些事情它绝对不能修改？"><span>AI</span><b data-en="AI Assistant" data-zh="AI 助手">AI Assistant</b></button>
-      <div class="guide-divider"><span data-en="Finance shortcuts" data-zh="财务快捷问题">Finance shortcuts</span></div>
-      <button class="prompt finance-prompt" type="button" data-prompt-en="How is my spending this month compared with last month?" data-prompt-zh="我这个月的开销和上个月相比怎么样？"><span>↗</span><b data-en="Spending vs last month" data-zh="本月 vs 上月开销">Spending vs last month</b></button>
-      <button class="prompt finance-prompt" type="button" data-prompt-en="Which spending category is highest this month, how much did it change, and why does it matter?" data-prompt-zh="这个月哪个开销分类最高？比上个月变化多少？这代表什么？"><span>◌</span><b data-en="Top spending category" data-zh="最高开销分类">Top spending category</b></button>
-      <div class="sidenote"><b data-en="App help + financial help" data-zh="APP 使用 + 财务问题">App help + financial help</b><span data-en="You can also type your own question about any Personal page. Financial data stays current-account only, and the assistant remains read-only." data-zh="你也可以直接打字询问任意 Personal 页面。涉及财务数据时仍仅限当前账号，而且 AI 始终只读。">You can also type your own question about any Personal page. Financial data stays current-account only, and the assistant remains read-only.</span></div>
-    </aside>
-    <section class="chat"><div class="chathead"><div><b data-en="Private finance chat" data-zh="私人财务对话">Private finance chat</b><small id="mode">Checking your signed-in account…</small></div><div class="chattools"><button id="refreshData" type="button" data-en="Refresh data" data-zh="刷新数据">Refresh data</button><button id="clear" type="button" data-en="Clear chat" data-zh="清空对话">Clear chat</button></div></div><div class="thread" id="thread" role="log" aria-live="polite"></div><div class="compose"><textarea id="input" rows="2" maxlength="1600" data-en-placeholder="Ask about MMHVAULT features, pages, spending, assets or planning…" data-zh-placeholder="可以问 MMHVAULT 页面怎么用，也可以问开销、资产和规划……" placeholder="Ask about MMHVAULT features, pages, spending, assets or planning…"></textarea><button class="send" id="send" type="button" data-en="Send ↑" data-zh="发送 ↑">Send ↑</button></div><div class="foot" data-en="Read-only · App Guide + current-account finance Q&A · local WebGPU · no paid AI API · chat is not stored by this page · Enter sends, Shift+Enter adds a line" data-zh="只读 · APP 指南 + 当前账号财务问答 · 本地 WebGPU · 无付费 AI API · 本页面不保存聊天记录 · Enter 发送，Shift+Enter 换行">Read-only · App Guide + current-account finance Q&A · local WebGPU · no paid AI API · chat is not stored by this page · Enter sends, Shift+Enter adds a line</div></section>
+    <section class="chat">
+      <div class="guidebar" id="appGuide">
+        <div class="guidebar-head">
+          <div><b data-en="MMHVAULT App Guide" data-zh="MMHVAULT 新用户指南">MMHVAULT App Guide</b><small data-en="Tap a page or type any app question below" data-zh="点击页面查看功能，也可以直接在下面输入任何 APP 问题">Tap a page or type any app question below</small></div>
+          <span class="guidebar-badge" data-en="Read-only help" data-zh="只读帮助">Read-only help</span>
+        </div>
+        <div class="guidegrid" role="group" aria-label="MMHVAULT App Guide">
+          <button class="prompt guide-prompt" type="button" data-prompt-en="Explain the Dashboard page: what does it show, why should I use it first, and what should I do next?" data-prompt-zh="请介绍 Dashboard：首页显示什么、为什么先看这里、看到异常后下一步应该去哪里？"><span>▦</span><b data-en="Dashboard" data-zh="Dashboard 首页">Dashboard</b></button>
+          <button class="prompt guide-prompt" type="button" data-prompt-en="Explain Transactions: what is Income, Expense and Transfer, why are some flows excluded from spending, and how should I record transactions correctly?" data-prompt-zh="请介绍 Transactions：Income、Expense、Transfer 分别怎么用？为什么有些流水不算开销？正确记账应该怎么做？"><span>↕</span><b data-en="Transactions" data-zh="Transactions 交易">Transactions</b></button>
+          <button class="prompt guide-prompt" type="button" data-prompt-en="Explain Accounts: what balances mean, how Crypto Accounts work, and why account balances are separate from portfolio views." data-prompt-zh="请介绍 Accounts：余额代表什么？Crypto Account 怎么计算？为什么账户余额和投资组合要分开看？"><span>▤</span><b data-en="Accounts" data-zh="Accounts 账户">Accounts</b></button>
+          <button class="prompt guide-prompt" type="button" data-prompt-en="Explain Invest: Add Investment, Portfolio, Wallet Activity and Live Prices, and when I should use each one." data-prompt-zh="请介绍 Invest：Add Investment、Portfolio、Wallet Activity、Live Prices 分别什么时候使用？"><span>⌁</span><b data-en="Invest" data-zh="Invest 投资">Invest</b></button>
+          <button class="prompt guide-prompt" type="button" data-prompt-en="Explain Cash Flow Analyze and Reports: what is the difference, why are Internal Transfers excluded, and when should I use each page?" data-prompt-zh="请介绍 Cash Flow Analyze 和 Reports：两者有什么区别？为什么 Internal Transfer 不算正常现金流？分别什么时候看？"><span>◎</span><b data-en="Analyze & Reports" data-zh="分析与报告">Analyze & Reports</b></button>
+          <button class="prompt guide-prompt" type="button" data-prompt-en="Explain Budget and Goals: what each page is for, how to set them up, and how they work with alerts and planning." data-prompt-zh="请介绍 Budget 和 Goals：各自有什么用途？怎么设置？如何配合提醒和财务规划？"><span>◇</span><b data-en="Budget & Goals" data-zh="Budget 与 Goals">Budget & Goals</b></button>
+          <button class="prompt guide-prompt" type="button" data-prompt-en="Explain Recurring: why it exists, what upcoming/due/overdue means, and how I should use it for repeated income or expenses." data-prompt-zh="请介绍 Recurring：为什么需要它？Upcoming、Due、Overdue 是什么意思？重复收入和支出应该怎么管理？"><span>↻</span><b data-en="Recurring" data-zh="Recurring 周期项目">Recurring</b></button>
+          <button class="prompt guide-prompt" type="button" data-prompt-en="Explain Notifications: what Financial Alerts can notify me about, how Device Check and background Push work, and what the privacy rules are." data-prompt-zh="请介绍 Notifications：Financial Alerts 会提醒什么？Device Check 和后台 Push 怎么工作？隐私规则是什么？"><span>◉</span><b data-en="Notifications" data-zh="Notifications 通知">Notifications</b></button>
+          <button class="prompt guide-prompt" type="button" data-prompt-en="Explain Settings, Backup and Restore: what should I configure, what Backup contains, and why Restore uses a preview before import." data-prompt-zh="请介绍 Settings、Backup 和 Restore：应该设置哪些内容？Backup 包含什么？为什么 Restore 导入前必须先 Preview？"><span>⚙</span><b data-en="Settings & Backup" data-zh="设置与备份">Settings & Backup</b></button>
+          <button class="prompt guide-prompt" type="button" data-prompt-en="Explain this AI Financial Assistant: what it can answer about the app and my finances, what Local AI means, and what it is not allowed to change." data-prompt-zh="请介绍 AI Financial Assistant：它能回答哪些 APP 和财务问题？Local AI 是什么意思？哪些事情它绝对不能修改？"><span>AI</span><b data-en="AI Assistant" data-zh="AI 助手">AI Assistant</b></button>
+        </div>
+      </div><div class="chathead"><div><b data-en="Private finance chat" data-zh="私人财务对话">Private finance chat</b><small id="mode">Checking your signed-in account…</small></div><div class="chattools"><button id="refreshData" type="button" data-en="Refresh data" data-zh="刷新数据">Refresh data</button><button id="clear" type="button" data-en="Clear chat" data-zh="清空对话">Clear chat</button></div></div><div class="thread" id="thread" role="log" aria-live="polite"></div><div class="compose"><textarea id="input" rows="2" maxlength="1600" data-en-placeholder="Ask about MMHVAULT features, pages, spending, assets or planning…" data-zh-placeholder="可以问 MMHVAULT 页面怎么用，也可以问开销、资产和规划……" placeholder="Ask about MMHVAULT features, pages, spending, assets or planning…"></textarea><button class="send" id="send" type="button" data-en="Send ↑" data-zh="发送 ↑">Send ↑</button></div><div class="foot" data-en="Read-only · App Guide + current-account finance Q&A · local WebGPU · no paid AI API · chat is not stored by this page · Enter sends, Shift+Enter adds a line" data-zh="只读 · APP 指南 + 当前账号财务问答 · 本地 WebGPU · 无付费 AI API · 本页面不保存聊天记录 · Enter 发送，Shift+Enter 换行">Read-only · App Guide + current-account finance Q&A · local WebGPU · no paid AI API · chat is not stored by this page · Enter sends, Shift+Enter adds a line</div></section>
   </section>
 </main>
 </div>
@@ -225,7 +283,7 @@ async function ensureCurrentScope(){
 function renderMetrics(){const box=$('metrics');if(!box)return;if(!state.data){box.innerHTML=`<article class="metric"><span>${T('Status','状态')}</span><strong>—</strong><small>${T('Sign in required','需要登录')}</small></article>`;return}const f=financeFacts(),m=f.current_month,p=f.previous_month,delta=p.expense?((m.expense-p.expense)/p.expense*100):null,canon=state.canonical,net=canon?N(canon.account_net_assets_usd):null,count=canon&&Number.isFinite(Number(canon.active_account_count))?N(canon.active_account_count):f.accounts.length;box.innerHTML=`<article class="metric"><span>${T('Income · this month','本月收入')}</span><strong>${usd(m.income)}</strong><small>${T('Ordinary income only','仅正常收入')}</small></article><article class="metric"><span>${T('Spending · this month','本月开销')}</span><strong>${usd(m.expense)}</strong><small>${delta===null?T('No prior-month baseline','上月无可比基线'):(delta>=0?'+':'')+pct(delta)+' '+T('vs last month','对比上月')}</small></article><article class="metric"><span>${T('Savings rate','储蓄率')}</span><strong>${pct(m.savings_rate)}</strong><small>${usd(m.remaining)} ${T('remaining','剩余')}</small></article><article class="metric"><span>${T('Account net assets','账户净资产')}</span><strong>${canon?usd(net):'—'}</strong><small>${canon?T(`${count} accounts · synced from MMHVAULT`,`${count} 个账户 · 与 MMHVAULT 同步`):T('Open AI from MMHVAULT to sync exact total','请从 MMHVAULT 内进入 AI 以同步精确总额')}</small></article>`}
 function setMode(t,error=false){const el=$('mode');if(el){el.textContent=t;el.classList.toggle('status-error',!!error)}}
 function addMessage(role,text,mode=''){state.messages.push({role,text:String(text||''),mode});if(state.messages.length>24)state.messages=state.messages.slice(-24);renderThread()}
-function renderThread(){const el=$('thread');if(!el)return;el.replaceChildren();if(!state.messages.length){const row=document.createElement('div');row.className='msg assistant';const b=document.createElement('div');b.className='bubble';b.textContent=state.data?T('Ask about the verified current-account MMHVAULT Personal data. I check exact facts first, then Local AI explains open-ended questions. I am read-only.','可以直接询问当前已验证登录账号的 MMHVAULT Personal 数据。我会先核对精确数字，再由本地 AI 解释开放式问题；全程只读。'):T('Open MMHVAULT and sign in first, then return here.','请先在 MMHVAULT 登录，然后返回这里。');row.append(b);el.append(row)}else for(const m of state.messages){const row=document.createElement('div');row.className='msg '+m.role;const b=document.createElement('div');b.className='bubble';b.textContent=m.text;if(m.role==='assistant'&&m.mode){const meta=document.createElement('small');meta.className='meta';meta.textContent=m.mode;b.append(meta)}row.append(b);el.append(row)}requestAnimationFrame(()=>el.scrollTop=el.scrollHeight)}
+function renderThread(){const el=$('thread');if(!el)return;el.replaceChildren();if(!state.messages.length){const row=document.createElement('div');row.className='msg assistant';const b=document.createElement('div');b.className='bubble';b.textContent=state.data?T('Ask about MMHVAULT pages or your verified current-account finances. Built-in App Guide answers common product questions immediately; Local AI handles broader explanations. I am read-only.','可以直接询问当前已验证登录账号的 MMHVAULT Personal 数据。我会先核对精确数字，再由本地 AI 解释开放式问题；全程只读。'):T('Open MMHVAULT and sign in first, then return here.','请先在 MMHVAULT 登录，然后返回这里。');row.append(b);el.append(row)}else for(const m of state.messages){const row=document.createElement('div');row.className='msg '+m.role;const b=document.createElement('div');b.className='bubble';b.textContent=m.text;if(m.role==='assistant'&&m.mode){const meta=document.createElement('small');meta.className='meta';meta.textContent=m.mode;b.append(meta)}row.append(b);el.append(row)}requestAnimationFrame(()=>el.scrollTop=el.scrollHeight)}
 function typing(on){const el=$('thread');el?.querySelector('[data-typing]')?.remove();if(!on||!el)return;const row=document.createElement('div');row.className='msg assistant';row.dataset.typing='1';row.innerHTML='<div class="bubble"><span class="typing"><i></i><i></i><i></i></span></div>';el.append(row);el.scrollTop=el.scrollHeight}
 
 function questionLang(q){return /[\u3400-\u9fff]/.test(String(q||''))?'zh':lang()}
@@ -426,6 +484,55 @@ function gb(v){return Number(v||0)/(1024**3)}
 function isQwen(id){return String(id||'').includes('Qwen3-')}
 function modelAvailable(id){try{return (webllm.prebuiltAppConfig?.model_list||[]).some(x=>x?.model_id===id)}catch(_e){return true}}
 function isAdvanced(id){return String(id||'').includes('Qwen3-1.7B')}
+
+async function modelCached(id){
+  if(!id)return false;
+  try{
+    if(typeof webllm.hasModelInCache==='function'){
+      return await webllm.hasModelInCache(id,webllm.prebuiltAppConfig)
+    }
+  }catch(e){console.warn('[MMHVAULT Local AI] cache check failed',id,e)}
+  return false
+}
+function setCacheState(status,model=''){
+  const el=$('cacheState'),btn=$('prepareAI');if(!el||!btn)return;
+  el.classList.remove('ready','missing');
+  if(status==='ready'){
+    el.classList.add('ready');
+    el.textContent=T('Saved on this device','已保存在此设备');
+    btn.textContent=T('Use Cached AI','使用已缓存 AI')
+  }else if(status==='missing'){
+    el.classList.add('missing');
+    el.textContent=T('Not downloaded yet','尚未下载');
+    btn.textContent=T('Download & Prepare','下载并准备')
+  }else if(status==='loading'){
+    el.textContent=T('Checking local cache…','正在检查本地缓存……');
+    btn.textContent=T('Prepare Local AI','准备本地 AI')
+  }else{
+    el.textContent=T('Browser cache','浏览器缓存');
+    btn.textContent=T('Prepare Local AI','准备本地 AI')
+  }
+}
+async function refreshSelectedModelCacheState({autoload=false}={}){
+  const select=$('modelChoice');if(!select)return false;
+  let wanted=select.value||'Qwen3-0.6B-q4f16_1-MLC';
+  setCacheState('loading',wanted);
+  const cached=await modelCached(wanted);
+  setCacheState(cached?'ready':'missing',wanted);
+  if(cached&&autoload&&!state.engineReady&&!state.engineLoading){
+    $('localStatus').textContent=T(
+      `${modelLabel(wanted)} was found in this browser. Restoring it from local storage without downloading the full model again…`,
+      `已在当前浏览器找到 ${modelLabel(wanted)}。正在直接从本地缓存恢复，不会重新下载完整模型……`
+    );
+    try{await prepareLocalAI(false,{cachedRestore:true})}catch(e){console.warn('[MMHVAULT Local AI] cached restore failed',e)}
+  }else if(!cached&&!state.engineReady){
+    $('localStatus').textContent=T(
+      `${modelLabel(wanted)} is not stored in this browser yet. It will download only after you press Download & Prepare.`,
+      `当前浏览器还没有保存 ${modelLabel(wanted)}。只有点击“下载并准备”后才会开始下载。`
+    )
+  }
+  return cached
+}
 function modelDownloadNeed(id){
   if(isAdvanced(id))return 1.15*(1024**3);
   if(String(id).includes('Qwen3-0.6B'))return .48*(1024**3);
@@ -461,13 +568,14 @@ async function clearAllLocalAICaches(){
     `本地 AI 模型缓存已清理${sp.quota>0?` · 当前约有 ${gb(sp.free).toFixed(2)} GB 浏览器存储可用`:''}。MMHVAULT 财务数据没有被删除。`
   );
   $('localStatus').textContent=msg;setMode(T('Local AI cache cleared · choose a model','本地 AI 缓存已清理 · 请选择模型'));
+  setCacheState('missing',$('modelChoice')?.value||'');
   return removed
 }
 async function createEngine(model){
   const ctx=isAdvanced(model)?2048:(String(model).includes('Qwen3-0.6B')?1536:1536);
   return await webllm.CreateMLCEngine(model,{initProgressCallback:progressUpdate,logLevel:'WARN'},{context_window_size:ctx})
 }
-async function prepareLocalAI(force=false){
+async function prepareLocalAI(force=false,opts={}){
   if(state.engineLoading)return;
   const profile=await gpuProfile();
   if(!profile){
@@ -497,14 +605,19 @@ async function prepareLocalAI(force=false){
 
   state.engineLoading=true;state.engineReady=false;$('prepareAI').disabled=true;$('clearAICache').disabled=true;$('modelChoice').disabled=true;$('modelProgress').classList.add('show');
   try{
+    const cachedBefore=await modelCached(wanted);
+    setCacheState(cachedBefore?'ready':'missing',wanted);
     const storageNote=sp.quota>0?T(
       `Browser storage available: ${gb(sp.free).toFixed(2)} GB${sp.persisted?' · persistent':' · temporary/non-persistent'}.`,
       `浏览器可用存储：${gb(sp.free).toFixed(2)} GB${sp.persisted?' · 持久':' · 临时/非持久'}。`
     ):'';
-    setMode(T('Preparing free Local AI…','正在准备免费本地 AI……'));
-    $('localStatus').textContent=T(
-      `First use downloads public model files once. ${storageNote} Exact financial calculations do not depend on the model.`,
-      `首次会下载公开模型文件一次。${storageNote} 精确财务计算不依赖语言模型。`
+    setMode(cachedBefore?T('Restoring cached Local AI…','正在恢复已缓存的本地 AI……'):T('Preparing free Local AI…','正在准备免费本地 AI……'));
+    $('localStatus').textContent=cachedBefore?T(
+      `Saved model files were found in this browser. MMHVAULT is loading them from local cache. ${storageNote}`,
+      `已在当前浏览器找到保存的模型文件。MMHVAULT 正在从本地缓存读取。${storageNote}`
+    ):T(
+      `This model is not cached yet. Download starts now and is saved for later reuse when the browser allows it. ${storageNote} Exact financial calculations do not depend on the model.`,
+      `当前模型尚未缓存，现在开始下载；浏览器允许时会保存下来供以后直接复用。${storageNote} 精确财务计算不依赖语言模型。`
     );
     if(state.engine&&state.engineModel!==wanted)await releaseLocalEngine();
     try{
@@ -524,6 +637,8 @@ async function prepareLocalAI(force=false){
     }
     state.engineModel=wanted;state.engineReady=true;
     try{localStorage.setItem('mmhvault_local_ai_model_v113',wanted)}catch(_e){}
+    try{await navigator.storage?.persist?.()}catch(_e){}
+    setCacheState('ready',wanted);
     $('modelProgressBar').style.width='100%';
     $('localStatus').textContent=T(
       `${modelLabel(wanted)} is ready. Exact numbers come from MMHVAULT; AI handles explanation and planning.`,
@@ -617,13 +732,17 @@ function bind(){
   $('clear').onclick=()=>{state.messages=[];renderThread();$('input')?.focus()};
   $('refreshData').onclick=async()=>{if(state.sending)return;$('refreshData').disabled=true;try{setMode(T('Refreshing verified current-account data…','正在刷新已验证的当前账号数据……'));await loadData();setMode(T('Current-account data refreshed','当前账号数据已刷新'))}catch(e){const msg=String(e?.message||e);if(msg==='account-scope-changed'||msg==='not-signed-in')clearFinancialScope(msg==='account-scope-changed'?'account-changed':'scope-cleared');else setMode(msg.startsWith('data-timeout:')?T('Personal data loading timed out · tap Refresh data to retry','Personal 数据读取超时 · 请再次点击“刷新数据”'):T('Could not refresh current-account data · retry in a moment','无法刷新当前账号数据 · 请稍后重试'),true)}finally{$('refreshData').disabled=false}};
   $('send').onclick=()=>send();
-  $('prepareAI').onclick=()=>prepareLocalAI(true).catch(()=>{});
+  $('prepareAI').onclick=()=>prepareLocalAI(false).catch(()=>{});
   $('clearAICache').onclick=async()=>{
     if(state.engineLoading)return;
     $('clearAICache').disabled=true;$('prepareAI').disabled=true;$('modelChoice').disabled=true;
     try{await clearAllLocalAICaches()}finally{$('clearAICache').disabled=false;$('prepareAI').disabled=false;$('modelChoice').disabled=false}
   };
-  $('modelChoice').addEventListener('change',()=>{state.engineReady=false;setMode(T('Model changed · prepare Local AI','模型已更改 · 请准备本地 AI'));$('localStatus').textContent=T('Press Prepare Local AI to load the selected model. If browser storage is full, MMHVAULT will clear old model files and retry once.','点击“准备本地 AI”加载所选模型。如果浏览器存储已满，MMHVAULT 会清理旧模型文件并自动重试一次。')});
+  $('modelChoice').addEventListener('change',async()=>{
+    await releaseLocalEngine();
+    setMode(T('Model changed · checking this device','模型已更改 · 正在检查当前设备缓存'));
+    await refreshSelectedModelCacheState({autoload:true});
+  });
   $('input').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();send()}});
   document.querySelectorAll('.prompt').forEach(b=>b.addEventListener('click',()=>send(lang()==='zh'?b.dataset.promptZh:b.dataset.promptEn)));
   window.addEventListener('storage',e=>{if(e.key==='myfinance_theme')applyTheme();if(e.key==='mmhvault_language_v3363')translate()})
@@ -642,17 +761,20 @@ async function start(){
     state.authSubscription=sub?.data?.subscription||null
   }
   try{const saved=localStorage.getItem('mmhvault_local_ai_model_v113');if(saved&&[...$('modelChoice').options].some(o=>o.value===saved))$('modelChoice').value=saved}catch(_e){}
-  if(!('gpu' in navigator)){$('localStatus').textContent=T('WebGPU not detected. Exact finance calculations still work; open-ended Local AI needs a supported browser/device.','未检测到 WebGPU。精确财务计算仍可使用；开放式本地 AI 需要支持 WebGPU 的浏览器/设备。');$('prepareAI').disabled=true}
-  else{
+  if(!('gpu' in navigator)){
+    setCacheState('missing',$('modelChoice')?.value||'');
+    $('localStatus').textContent=T('WebGPU not detected. Exact finance calculations still work; open-ended Local AI needs a supported browser/device.','未检测到 WebGPU。精确财务计算仍可使用；开放式本地 AI 需要支持 WebGPU 的浏览器/设备。');$('prepareAI').disabled=true
+  }else{
     try{
       const sp=await storageProfile();
-      if(sp.quota>0&&!sp.persisted&&gb(sp.free)<1.25){
+      const cached=await refreshSelectedModelCacheState({autoload:true});
+      if(!cached&&sp.quota>0&&!sp.persisted&&gb(sp.free)<1.25){
         $('localStatus').textContent=T(
-          `Browser storage is temporary/non-persistent and only ${gb(sp.free).toFixed(2)} GB is available. Private/incognito mode often limits model storage. Use one model at a time; MMHVAULT can clear old AI model files automatically if quota is reached.`,
-          `浏览器存储为临时/非持久状态，当前可用约 ${gb(sp.free).toFixed(2)} GB。无痕/隐私模式通常会限制模型存储。建议一次只保留一个模型；达到额度时 MMHVAULT 会自动清理旧 AI 模型文件。`
+          `This model is not cached yet. Browser storage is temporary/non-persistent and only ${gb(sp.free).toFixed(2)} GB is available. Use a normal browser window before downloading a large model.`,
+          `当前模型尚未缓存。浏览器存储为临时/非持久状态，当前可用约 ${gb(sp.free).toFixed(2)} GB。下载较大模型前建议使用普通浏览器窗口。`
         )
       }
-    }catch(_e){}
+    }catch(_e){setCacheState('missing',$('modelChoice')?.value||'')}
   }
   try{await loadData()}catch(e){
     console.warn('[MMHVAULT AI] start failed',e);
