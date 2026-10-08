@@ -18841,6 +18841,146 @@ Object.assign(zh,{
 "Budget Center":"预算中心",
 "Transaction Kind":"交易类型"
 });
+
+// MMHVAULT 1.12.35 · dynamic Chinese completeness
+Object.assign(zh,{
+"Income":"收入",
+"Expense":"支出",
+"Personal":"个人支出",
+"Loans":"借贷",
+"Transfer":"转账",
+"Adjustment":"调整",
+"Add Transaction":"添加交易",
+"Clear":"清除",
+"Clear All":"全部清除",
+"Clear Filters":"清除筛选",
+"Export CSV":"导出 CSV",
+"Date":"日期",
+"Type":"类型",
+"Transaction":"交易",
+"Category":"分类",
+"From Account":"转出账户",
+"Account From Amount":"转出金额",
+"To Account":"转入账户",
+"Account To Amount":"转入金额",
+"Note":"备注",
+"Search":"搜索",
+"All":"全部",
+"Cash Flow Ledger":"现金流账本",
+"CASH FLOW LEDGER":"现金流账本",
+"Record transactions and review your history.":"记录交易并查看历史记录。",
+"Stored privately in your secure cloud storage":"安全存储在您的私有云空间",
+"No file selected":"未选择文件",
+"Save Changes":"保存更改",
+"Cancel":"取消",
+"Receipt attached":"已附加收据",
+"View":"查看",
+"Replace":"替换",
+"Remove":"移除",
+"No receipt attached · choose one below to add it.":"暂无收据，可在下方选择文件添加。",
+"Sign in to manage receipt.":"请登录后管理收据。",
+"No new file selected · existing receipt will remain unchanged.":"未选择新文件，现有收据保持不变。",
+"File is larger than 10 MB.":"文件超过 10 MB。",
+"+ Add account":"+ 添加账户",
+"Add account":"添加账户",
+"Account":"账户",
+"Account net assets":"账户净资产",
+"Assets":"资产",
+"Liabilities":"负债",
+"All accounts":"全部账户",
+"Archived":"已归档",
+"Search accounts":"搜索账户",
+"Original order":"原始顺序",
+"Name A–Z":"名称 A–Z",
+"Name Z–A":"名称 Z–A",
+"Account type":"账户类型",
+"Currency":"币种",
+"Show amounts":"显示金额",
+"Hide amounts":"隐藏金额",
+"Each account uses its original currency. Combined totals are converted to USD.":"每个账户保持原币种显示，合计总额统一折算为 USD。",
+"Sum of the account balances shown below + Gold Portfolio · converted to your display currency.":"下方账户余额加 Gold Portfolio 的合计，按所选显示币种换算。",
+"No matching accounts. Try another name or clear search.":"没有匹配的账户，请尝试其他名称或清除搜索。",
+"No accounts in this group.":"该分组暂无账户。",
+"No accounts yet. Add your first account to start.":"暂无账户，请先添加第一个账户。",
+"Investment · current held value":"投资 · 当前持有价值",
+"Gold Portfolio":"Gold Portfolio",
+"Funds":"资金账户",
+"Credit":"信用账户",
+"Investments":"投资账户",
+"Cash":"现金",
+"Wallet":"钱包",
+"Bank":"银行",
+"Credit Card":"信用卡",
+"Investment":"投资",
+"Other":"其他",
+"Account Logo":"账户图标",
+"Choose account Logo":"选择账户图标",
+"Upload Logo":"上传图标",
+"PNG, JPG or WEBP · up to 2 MB":"PNG、JPG 或 WEBP · 最大 2 MB",
+"Accent color":"强调色",
+"Hide this account amount":"隐藏此账户金额",
+"Save account":"保存账户",
+"Edit account":"编辑账户",
+"Restore":"恢复",
+"Archive":"归档",
+"Delete":"删除",
+"Account name":"账户名称",
+"Account session changed. Reopen account management.":"账号会话已变化，请重新打开账户管理。",
+"Balance:":"余额：",
+"calculated from existing records. Use Data Adjustment in Transactions to correct funds.":"由现有记录计算。如需校正资金，请在交易记录中使用 Data Adjustment。",
+"Logo, note and visibility preferences are saved for this account on this browser.":"图标、备注和金额显示偏好保存在当前浏览器中。",
+"Logo ready. Save account to keep it.":"图标已准备，保存账户后生效。",
+"Could not read this image.":"无法读取此图片。",
+"Choose PNG, JPG or WEBP up to 2 MB.":"请选择不超过 2 MB 的 PNG、JPG 或 WEBP 图片。",
+"Crypto":"Crypto",
+"Available Balance":"可用余额",
+"Total Invest":"投资总额",
+"Net Change":"净变化",
+"Outstanding loans":"未结借贷",
+"Expenses":"支出",
+"Saved":"已结余",
+"Saving Ratio":"储蓄率",
+"Monthly income bars · USD":"月度收入柱状图 · USD",
+"No recent transactions.":"暂无最近交易。",
+"shown of":"显示 / 共",
+"held":"持有",
+"Feedback center":"反馈中心",
+"Live support":"在线客服",
+"Appearance":"外观",
+"Transactions":"交易记录",
+"Preferences":"偏好设置",
+"Personal & Security":"个人与安全",
+"APP & DATA":"应用与数据",
+"Logout":"退出登录",
+"Save":"保存",
+"Close":"关闭",
+"Delete Permanently":"永久删除",
+"Loading":"正在加载",
+"Ready":"就绪",
+"Saving…":"正在保存…",
+"Deleted":"已删除",
+"Not recorded":"未记录",
+"Price unavailable":"暂无价格",
+"Conversion unavailable":"暂无法换算",
+"No note":"无备注",
+"No deadline":"暂无期限",
+"Over budget":"超出预算",
+"Budget watch":"预算提醒",
+"Monthly budget exceeded":"月度预算已超出",
+"Monthly budget watch":"月度预算提醒",
+"Background alerts":"后台提醒",
+"Enable background alerts":"启用后台提醒",
+"No prior data":"暂无历史数据",
+"Sign in required":"需要登录",
+"Signed out":"已退出登录",
+"Latest cloud data loaded":"已加载最新云端数据",
+"Sync Error":"同步错误",
+"No network connection · showing the latest available data":"网络不可用 · 正在显示最近可用数据",
+"You appear to be offline. Check your connection and try again.":"当前似乎处于离线状态，请检查网络后重试。",
+"Please try again.":"请重试。",
+"Please sign in again.":"请重新登录。",
+"Please sign in first.":"请先登录。"
+});
 function translateAttributes(root){
   const applyAttrs=el=>{
     if(!el?.getAttribute)return;
@@ -18865,6 +19005,11 @@ function translateDynamicText(base){
     [/^(\d+) category$/,'$1 个分类'],
     [/^(\d+) records$/,'$1 条记录'],
     [/^(\d+) accounts$/,'$1 个账户'],
+    [/^(\d+) \/ (\d+) accounts$/,'$1 / $2 个账户'],
+    [/^(\d+) \/ (\d+) accounts · (\d+) portfolios$/,'$1 / $2 个账户 · $3 个投资组合'],
+    [/^(\d+) portfolios$/,'$1 个投资组合'],
+    [/^(.+) · Archived$/,'$1 · 已归档'],
+    [/^(.+) · current held value$/,'$1 · 当前持有价值'],
     [/^(\d+) active goals$/,'$1 个进行中目标'],
     [/^(\d+) schedules$/,'$1 个计划'],
     [/^(\$[\d,.]+) remaining$/,'$1 剩余'],
@@ -18904,14 +19049,30 @@ function translateDynamicText(base){
   for(const [re,out] of reps){if(re.test(x)) return x.replace(re,out);}
   return x;
 }
+const mmhI18nTextStateV135=new WeakMap();
 function translateTextNode(n){
   if(!n||n.nodeType!==Node.TEXT_NODE)return;
-  const t=n.nodeValue.trim();if(!t||!n.parentElement)return;
-  if(!n.parentElement.dataset.i18nBase)n.parentElement.dataset.i18nBase=t;
-  const base=n.parentElement.dataset.i18nBase;
-  const out=lang==='zh'?translateDynamicText(base):base;
-  n.nodeValue=n.nodeValue.replace(t,out);
+  const current=n.nodeValue.trim();if(!current||!n.parentElement)return;
+
+  let rec=mmhI18nTextStateV135.get(n);
+  if(!rec){
+    rec={base:current,last:current};
+  }else if(current!==rec.last && current!==rec.base){
+    // The app itself changed this dynamic text (amount, count, live status, etc.).
+    // Treat the new value as the fresh source instead of restoring stale text.
+    rec={base:current,last:current};
+  }
+
+  const desired=lang==='zh'?translateDynamicText(rec.base):rec.base;
+  if(current!==desired){
+    const raw=n.nodeValue;
+    const lead=raw.match(/^\s*/)?.[0]||'',tail=raw.match(/\s*$/)?.[0]||'';
+    n.nodeValue=lead+desired+tail;
+  }
+  rec.last=desired;
+  mmhI18nTextStateV135.set(n,rec);
 }
+window.mmhI18nTextV135=base=>lang==='zh'?translateDynamicText(String(base??'')):String(base??'');
 function walk(root){
   if(!root)return;
   if(root.nodeType===Node.TEXT_NODE){translateTextNode(root);return;}
@@ -18929,7 +19090,18 @@ function activeTranslationRoots(){
   return roots;
 }
 function applyActive(){if(lang!=='zh')return;activeTranslationRoots().forEach(translateRoot);syncLanguageChoices();}
-window.setMMHVAULTLanguage=function(next){const changed=lang!==next;lang=next;localStorage.setItem('mmhvault_language_v3363',lang);apply();if(changed)window.dispatchEvent(new CustomEvent('mmhvault-language-change',{detail:{lang}}));setTimeout(apply,80);};
+window.setMMHVAULTLanguage=function(next){
+  const changed=lang!==next;lang=next;localStorage.setItem('mmhvault_language_v3363',lang);
+  apply();
+  if(changed)window.dispatchEvent(new CustomEvent('mmhvault-language-change',{detail:{lang}}));
+  requestAnimationFrame(()=>{
+    try{window.mmhAccountsRefreshV1?.()}catch(_e){}
+    try{window.mmhVaultRenderManager?.()}catch(_e){}
+    try{typeof scheduleRenderV3441==='function'&&scheduleRenderV3441('language-change')}catch(_e){}
+    applyActive();
+  });
+  setTimeout(()=>{apply();applyActive()},120);
+};
 document.addEventListener('click',e=>{const b=e.target.closest('.language-choice-v3363');if(b)window.setMMHVAULTLanguage(b.dataset.lang);});
 document.addEventListener('DOMContentLoaded',()=>{apply();setTimeout(apply,300);});
 let moQueued=false;const pendingRoots=new Set();
@@ -18955,6 +19127,7 @@ function flushIncremental(){
 const mo=new MutationObserver(mutations=>{
   if(lang!=='zh')return;
   for(const mutation of mutations){
+    if(mutation.type==='characterData')queueIncremental(mutation.target);
     for(const node of mutation.addedNodes||[])queueIncremental(node);
   }
   if(!pendingRoots.size||moQueued)return;
@@ -18965,7 +19138,7 @@ window.addEventListener('mmhvault:page-visible',()=>{if(lang!=='zh')return;if(ty
 let moConnected=false;
 function syncTranslationObserver(){
   if(document.hidden||!document.body){if(moConnected){mo.disconnect();moConnected=false;}return;}
-  if(!moConnected){mo.observe(document.body,{childList:true,subtree:true});moConnected=true;}
+  if(!moConnected){mo.observe(document.body,{childList:true,characterData:true,subtree:true});moConnected=true;}
 }
 document.addEventListener('visibilitychange',()=>{syncTranslationObserver();if(!document.hidden&&lang==='zh'){if(typeof requestAnimationFrame==='function')requestAnimationFrame(applyActive);else setTimeout(applyActive,0)}},{passive:true});
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',syncTranslationObserver,{once:true});else syncTranslationObserver();
@@ -26837,15 +27010,36 @@ function portfolios(){
   return {total:Math.max(0,total||0),gold,crypto:Math.max(0,(total||0)-gold)};
 }
 function cryptoWalletSnapshot(name){try{const rows=window.mmhWalletLedgerV174?.()||[];return rows.find(w=>String(w?.name||'').trim().toLowerCase()===String(name||'').trim().toLowerCase())||{name,tokens:[],total:0}}catch(_e){return {name,tokens:[],total:0}}}
-function accountTotalUSD(a){const factor=Number(toUSD(a.name));const cash=Number(balance(a.name));const cashUSD=Number.isFinite(factor)&&factor>0&&Number.isFinite(cash)?cash*factor:0;if(a.type==='crypto'){const snap=cryptoWalletSnapshot(a.name),tokens=Array.isArray(snap?.tokens)?snap.tokens:[];const other=tokens.filter(t=>String(t?.sym||'').toUpperCase()!=='USDT').reduce((sum,t)=>sum+Math.max(0,Number(t?.value)||0),0);return Math.max(0,cashUSD)+other}return cashUSD}
-function accountTotalNative(a){const factor=Number(toUSD(a.name));const totalUSD=accountTotalUSD(a);return Number.isFinite(factor)&&factor>0?totalUSD/factor:Number(balance(a.name))}
+function accountToUSDFactorV135(a){
+  const cur=String(a?.currency||mmhVaultAccountMeta(a?.name)?.currency||'MMK').toUpperCase();
+  if(cur==='USD'||cur==='USDT')return 1;
+  if(cur==='THB'){const r=Number(rates?.usd_thb);return r>0?1/r:NaN}
+  if(cur==='MMK'){const r=Number(rates?.usd_mmk);return r>0?1/r:NaN}
+  if(cur==='CNY'||cur==='RMB'){const r=Number(rates?.usd_cny);return r>0?1/r:NaN}
+  const legacy=Number(toUSD(a?.name));return legacy>0?legacy:NaN
+}
+function accountTotalUSD(a){
+  const factor=accountToUSDFactorV135(a),cash=Number(balance(a.name));
+  const cashUSD=Number.isFinite(factor)&&Number.isFinite(cash)?cash*factor:NaN;
+  if(a.type==='crypto'){
+    const snap=cryptoWalletSnapshot(a.name),tokens=Array.isArray(snap?.tokens)?snap.tokens:[];
+    const other=tokens.filter(t=>String(t?.sym||'').toUpperCase()!=='USDT').reduce((sum,t)=>sum+Math.max(0,Number(t?.value)||0),0);
+    if(Number.isFinite(cashUSD))return Math.max(0,cashUSD)+other;
+    return other>0?other:NaN
+  }
+  return cash===0?0:cashUSD
+}
+function accountTotalNative(a){
+  const factor=accountToUSDFactorV135(a),totalUSD=accountTotalUSD(a);
+  return Number.isFinite(factor)&&factor>0&&Number.isFinite(totalUSD)?totalUSD/factor:Number(balance(a.name))
+}
 function mmhAICanonicalSnapshotV1115(){
   const userId=owner();if(!userId||userId==='guest')return null;
   const active=(MMHVAULT_CONFIG.accounts||[]).filter(a=>a&&a.name&&a.active!==false);
   let assets=0,debts=0,valid=true;
   const accountRows=active.map(a=>{
     const nativeBalance=Number(balance(a.name));
-    const valueUSD=a.type==='crypto'?Number(accountTotalUSD(a)):(nativeBalance*Number(toUSD(a.name)));
+    const valueUSD=Number(accountTotalUSD(a));
     if(!Number.isFinite(valueUSD)){valid=false;return{name:a.name,currency:a.currency||'',type:a.type||'',native_balance:Number.isFinite(nativeBalance)?nativeBalance:null,value_usd:null}}
     if(valueUSD>=0)assets+=valueUSD;else debts-=valueUSD;
     return{name:a.name,currency:a.currency||'',type:a.type||'',native_balance:Number.isFinite(nativeBalance)?nativeBalance:null,value_usd:valueUSD};
@@ -26869,12 +27063,12 @@ window.mmhWriteAISnapshotV1115=function(){
 let mmhAISnapshotTimerV1117=0;
 function scheduleAISnapshotV1117(){clearTimeout(mmhAISnapshotTimerV1117);mmhAISnapshotTimerV1117=setTimeout(()=>{try{window.mmhWriteAISnapshotV1115?.()}catch(_e){}},80)}
 ['mmhvault:data-loaded','mmhvault:data-change','mmhvault:cache-restored','mmhvault:sync-complete','mmhvault:market-updated'].forEach(ev=>window.addEventListener(ev,scheduleAISnapshotV1117,{passive:true}));
-function renderHome(){const list=$('amList');if(!list)return;const accounts=MMHVAULT_CONFIG.accounts||[],active=accounts.filter(a=>a.active!==false);let assets=0,debts=0,valid=true;for(const a of active){const v=a.type==='crypto'?Number(accountTotalUSD(a)):(Number(balance(a.name))*Number(toUSD(a.name)));if(!Number.isFinite(v)){valid=false;continue}if(v>=0)assets+=v;else debts-=v}
-const held=portfolios();assets+=Number(held.gold)||0;const display=v=>conceal?'••••':valid?displayMoney(v):'—';$('amNet').textContent=display(assets-debts);$('amAssets').textContent=display(assets);$('amDebts').textContent=display(debts);$('amHideAll').textContent=conceal?'Show amounts':'Hide amounts';const note=$('amHome')?.querySelector('.am-summary .am-help');if(note)note.textContent=displayCurrency==='NATIVE'?'Each account uses its original currency. Combined totals are converted to USD.':'Sum of the account balances shown below + Gold Portfolio · converted to your display currency.';
-const group=accounts.filter(a=>selected==='archived'?a.active===false:a.active!==false&&(selected==='all'||a.type===selected));const term=query.trim().toLocaleLowerCase();const rows=group.filter(a=>!term||[a.name,a.currency,mmhVaultAccountTypeLabel(a.type),meta(a).note].some(v=>String(v||'').toLocaleLowerCase().includes(term)));const compare=(a,b)=>String(a||'').localeCompare(String(b||''),undefined,{numeric:true,sensitivity:'base'});if(sortMode!=='original')rows.sort((a,b)=>sortMode==='name-desc'?compare(b.name,a.name):sortMode==='type'?compare(mmhVaultAccountTypeLabel(a.type),mmhVaultAccountTypeLabel(b.type))||compare(a.name,b.name):sortMode==='currency'?compare(a.currency,b.currency)||compare(a.name,b.name):compare(a.name,b.name));$('amCount').textContent=rows.length+' / '+group.length+' accounts';$('amClearSearch').hidden=!query;list.replaceChildren();for(const a of rows){const v=meta(a),b=document.createElement('button');b.type='button';b.className='am-row';b.innerHTML=logoHTML(a)+`<span class="am-row-copy"><b>${esc(a.name)}</b><small>${esc(a.currency)} · ${esc(mmhVaultAccountTypeLabel(a.type))}${a.active===false?' · Archived':''}</small></span><span class="am-row-value">${conceal||v.hidden?'••••':esc(displayCurrency==='NATIVE'?money(a.type==='crypto'?accountTotalNative(a):Number(balance(a.name)),a.currency==='CNY'?'RMB':a.currency):displayMoney(a.type==='crypto'?accountTotalUSD(a):Number(balance(a.name))*Number(toUSD(a.name))))} ›</span>`;b.dataset.accountId=a.id;b.onclick=()=>{if(typeof window.openAccountDetailV830==='function')window.openAccountDetailV830(a.id);else edit(a)};list.append(b)}const showPortfolios=selected==='all'||selected==='investment';const portfolioRows=[{id:'portfolio_gold',name:'Gold Portfolio',type:'investment',amount:held.gold,has:(investments||[]).some(x=>x.asset==='Gold')}].filter(x=>x.has&&showPortfolios&&(!term||x.name.toLocaleLowerCase().includes(term)||'investment'.includes(term)));
-for(const a of portfolioRows){const button=document.createElement('button');button.type='button';button.className='am-row am-portfolio';button.innerHTML=logoHTML(a)+`<span class="am-row-copy"><b>${esc(a.name)}</b><small>Investment · current held value</small></span><span class="am-row-value">${conceal?'••••':esc(displayCurrency==='NATIVE'&&a.id==='portfolio_gold'?money(a.amount*Number(rates?.usd_mmk),'MMK'):displayMoney(a.amount))} ›</span>`;button.onclick=()=>setPage('invest');list.append(button)}
-$('amCount').textContent=rows.length+' / '+group.length+' accounts'+(portfolioRows.length?' · '+portfolioRows.length+' portfolios':'');
-if(!rows.length&&!portfolioRows.length){const e=document.createElement('p');e.className='am-help';e.textContent=term?'No matching accounts. Try another name or clear search.':accounts.length?'No accounts in this group.':'No accounts yet. Add your first account to start.';list.append(e)}try{window.mmhWriteAISnapshotV1115?.()}catch(_e){}}
+function renderHome(){const list=$('amList');if(!list)return;const T=v=>window.mmhI18nTextV135?.(v)||v;const accounts=MMHVAULT_CONFIG.accounts||[],active=accounts.filter(a=>a.active!==false);let assets=0,debts=0,valid=true;for(const a of active){const v=Number(accountTotalUSD(a));if(!Number.isFinite(v)){valid=false;continue}if(v>=0)assets+=v;else debts-=v}
+const held=portfolios();assets+=Number(held.gold)||0;const display=v=>conceal?'••••':valid?displayMoney(v):'—';$('amNet').textContent=display(assets-debts);$('amAssets').textContent=display(assets);$('amDebts').textContent=display(debts);$('amHideAll').textContent=T(conceal?'Show amounts':'Hide amounts');const note=$('amHome')?.querySelector('.am-summary .am-help');if(note)note.textContent=T(displayCurrency==='NATIVE'?'Each account uses its original currency. Combined totals are converted to USD.':'Sum of the account balances shown below + Gold Portfolio · converted to your display currency.');
+const group=accounts.filter(a=>selected==='archived'?a.active===false:a.active!==false&&(selected==='all'||a.type===selected));const term=query.trim().toLocaleLowerCase();const rows=group.filter(a=>!term||[a.name,a.currency,mmhVaultAccountTypeLabel(a.type),meta(a).note].some(v=>String(v||'').toLocaleLowerCase().includes(term)));const compare=(a,b)=>String(a||'').localeCompare(String(b||''),undefined,{numeric:true,sensitivity:'base'});if(sortMode!=='original')rows.sort((a,b)=>sortMode==='name-desc'?compare(b.name,a.name):sortMode==='type'?compare(mmhVaultAccountTypeLabel(a.type),mmhVaultAccountTypeLabel(b.type))||compare(a.name,b.name):sortMode==='currency'?compare(a.currency,b.currency)||compare(a.name,b.name):compare(a.name,b.name));$('amCount').textContent=T(rows.length+' / '+group.length+' accounts');$('amClearSearch').hidden=!query;list.replaceChildren();for(const a of rows){const v=meta(a),b=document.createElement('button');b.type='button';b.className='am-row';b.innerHTML=logoHTML(a)+`<span class="am-row-copy"><b>${esc(a.name)}</b><small>${esc(a.currency)} · ${esc(T(mmhVaultAccountTypeLabel(a.type)))}${a.active===false?' · '+T('Archived'):''}</small></span><span class="am-row-value">${conceal||v.hidden?'••••':esc(displayCurrency==='NATIVE'?money(a.type==='crypto'?accountTotalNative(a):Number(balance(a.name)),a.currency==='CNY'?'RMB':a.currency):displayMoney(a.type==='crypto'?accountTotalUSD(a):Number(balance(a.name))*Number(toUSD(a.name))))} ›</span>`;b.dataset.accountId=a.id;b.onclick=()=>{if(typeof window.openAccountDetailV830==='function')window.openAccountDetailV830(a.id);else edit(a)};list.append(b)}const showPortfolios=selected==='all'||selected==='investment';const portfolioRows=[{id:'portfolio_gold',name:'Gold Portfolio',type:'investment',amount:held.gold,has:(investments||[]).some(x=>x.asset==='Gold')}].filter(x=>x.has&&showPortfolios&&(!term||x.name.toLocaleLowerCase().includes(term)||'investment'.includes(term)));
+for(const a of portfolioRows){const button=document.createElement('button');button.type='button';button.className='am-row am-portfolio';button.innerHTML=logoHTML(a)+`<span class="am-row-copy"><b>${esc(a.name)}</b><small>${esc(T('Investment · current held value'))}</small></span><span class="am-row-value">${conceal?'••••':esc(displayCurrency==='NATIVE'&&a.id==='portfolio_gold'?money(a.amount*Number(rates?.usd_mmk),'MMK'):displayMoney(a.amount))} ›</span>`;button.onclick=()=>setPage('invest');list.append(button)}
+$('amCount').textContent=T(rows.length+' / '+group.length+' accounts'+(portfolioRows.length?' · '+portfolioRows.length+' portfolios':''));
+if(!rows.length&&!portfolioRows.length){const e=document.createElement('p');e.className='am-help';e.textContent=T(term?'No matching accounts. Try another name or clear search.':accounts.length?'No accounts in this group.':'No accounts yet. Add your first account to start.');list.append(e)}try{window.mmhWriteAISnapshotV1115?.()}catch(_e){}}
 function page(id){for(const e of document.querySelectorAll('#amShell .am-page'))e.hidden=e.id!==id;$('mmhManageOverlayV1')?.querySelector('.mmh-manager-window-v1')?.scrollTo({top:0});}
 function home(){if(busy)return;token++;editing=null;draft=null;const filter=$('amFilter');if(filter?.value)selected=filter.value;$('amEditorBody')?.replaceChildren();page('amHome');renderHome();$('amAdd')?.focus()}
 function picker(){const p=$('amPicker');p.hidden=!p.hidden;if(!p.hidden)drawIcons()}
@@ -26917,6 +27111,7 @@ window.mmhAccountsRefreshV1=renderHome;window.mmhAccountsHomeV1=home;$('apCurren
 const original=window.mmhVaultRenderManager;window.mmhVaultRenderManager=function(){const r=original.apply(this,arguments);scheduleAccountsRenderV159();return r};const open=window.mmhOpenManagerV1;window.mmhOpenManagerV1=function(mode){if(mode!=='categories'){home();$('amFilter').value=selected;setPage('accounts-page');return}return open.apply(this,arguments)};renderHome();
 window.addEventListener('mmhvault:config-owner-changed',()=>{token++;busy=false;query='';sortMode='original';selected='all';conceal=false;displayCurrency='NATIVE';$('apCurrency').value='NATIVE';$('amSearch').value='';$('amSort').value='original';$('amFilter').value='all';home()});
 ['mmhvault:data-loaded','mmhvault:cache-restored','mmhvault:market-updated','mmhvault:sync-complete'].forEach(event=>window.addEventListener(event,scheduleAccountsRenderV159));
+window.addEventListener('mmhvault-language-change',scheduleAccountsRenderV159,{passive:true});
 window.addEventListener('mmhvault:page-visible',()=>{if(accountsActiveV159()&&accountsRenderDirtyV159)scheduleAccountsRenderV159()});
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
