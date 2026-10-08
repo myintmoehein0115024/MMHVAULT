@@ -154,7 +154,7 @@ html,body{max-width:100%;overflow-x:hidden}.shell,.wrap,.hero,.layout,.chat,.pro
           <button class="prompt guide-prompt" type="button" data-prompt-en="Explain Settings, Backup and Restore: what should I configure, what Backup contains, and why Restore uses a preview before import." data-prompt-zh="请介绍 Settings、Backup 和 Restore：应该设置哪些内容？Backup 包含什么？为什么 Restore 导入前必须先 Preview？"><span>⚙</span><b data-en="Settings & Backup" data-zh="设置与备份">Settings & Backup</b></button>
           <button class="prompt guide-prompt" type="button" data-prompt-en="Explain this AI Financial Assistant: what it can answer about the app and my finances, what Local AI means, and what it is not allowed to change." data-prompt-zh="请介绍 AI Financial Assistant：它能回答哪些 APP 和财务问题？Local AI 是什么意思？哪些事情它绝对不能修改？"><span>AI</span><b data-en="AI Assistant" data-zh="AI 助手">AI Assistant</b></button>
         </div>
-      </div><div class="chathead"><div><b data-en="Private finance chat" data-zh="私人财务对话">Private finance chat</b><small id="mode">Checking your signed-in account…</small></div><div class="chattools"><button id="refreshData" type="button" data-en="Refresh data" data-zh="刷新数据">Refresh data</button><button id="clear" type="button" data-en="Clear chat" data-zh="清空对话">Clear chat</button></div></div><div class="thread" id="thread" role="log" aria-live="polite"></div><div class="compose"><textarea id="input" rows="2" maxlength="1600" data-en-placeholder="Ask about MMHVAULT features, pages, spending, assets or planning…" data-zh-placeholder="可以问 MMHVAULT 页面怎么用，也可以问开销、资产和规划……" placeholder="Ask about MMHVAULT features, pages, spending, assets or planning…"></textarea><button class="send" id="send" type="button" data-en="Send ↑" data-zh="发送 ↑">Send ↑</button></div><div class="foot" data-en="Read-only · App Guide + current-account finance Q&A · local WebGPU · no paid AI API · chat is not stored by this page · Enter sends, Shift+Enter adds a line" data-zh="只读 · APP 指南 + 当前账号财务问答 · 本地 WebGPU · 无付费 AI API · 本页面不保存聊天记录 · Enter 发送，Shift+Enter 换行">Read-only · App Guide + current-account finance Q&A · local WebGPU · no paid AI API · chat is not stored by this page · Enter sends, Shift+Enter adds a line</div></section>
+      </div><div class="chathead"><div><b data-en="Private finance chat" data-zh="私人财务对话">Private finance chat</b><small id="mode" data-en="Checking your signed-in account…" data-zh="正在检查当前登录账号……">Checking your signed-in account…</small></div><div class="chattools"><button id="refreshData" type="button" data-en="Refresh data" data-zh="刷新数据">Refresh data</button><button id="clear" type="button" data-en="Clear chat" data-zh="清空对话">Clear chat</button></div></div><div class="thread" id="thread" role="log" aria-live="polite"></div><div class="compose"><textarea id="input" rows="2" maxlength="1600" data-en-placeholder="Ask about MMHVAULT features, pages, spending, assets or planning…" data-zh-placeholder="可以问 MMHVAULT 页面怎么用，也可以问开销、资产和规划……" placeholder="Ask about MMHVAULT features, pages, spending, assets or planning…"></textarea><button class="send" id="send" type="button" data-en="Send ↑" data-zh="发送 ↑">Send ↑</button></div><div class="foot" data-en="Read-only · App Guide + current-account finance Q&A · local WebGPU · no paid AI API · chat is not stored by this page · Enter sends, Shift+Enter adds a line" data-zh="只读 · APP 指南 + 当前账号财务问答 · 本地 WebGPU · 无付费 AI API · 本页面不保存聊天记录 · Enter 发送，Shift+Enter 换行">Read-only · App Guide + current-account finance Q&A · local WebGPU · no paid AI API · chat is not stored by this page · Enter sends, Shift+Enter adds a line</div></section>
   </section>
 </main>
 </div>
@@ -166,10 +166,19 @@ import * as webllm from "https://cdn.jsdelivr.net/npm/@mlc-ai/web-llm@0.2.85/+es
 const SUPABASE_URL="https://vrypucmyrztxgiqhjspd.supabase.co",SUPABASE_KEY="sb_publishable_H38v4XbO0ARnSJToD42wGg_27-SZ3Ao";
 const $=id=>document.getElementById(id),N=v=>Number.isFinite(Number(v))?Number(v):0,lc=v=>String(v??'').trim().toLowerCase();
 const db=typeof supabase!=='undefined'?supabase.createClient(SUPABASE_URL,SUPABASE_KEY):null;
-const state={user:null,scopeUserId:'',data:null,canonical:null,loadedAt:0,messages:[],sending:false,engine:null,engineModel:'',engineReady:false,engineLoading:false,authSubscription:null};
+const state={user:null,scopeUserId:'',data:null,canonical:null,loadedAt:0,messages:[],sending:false,engine:null,engineModel:'',engineReady:false,engineLoading:false,authSubscription:null,cacheStatus:'loading'};
 function lang(){try{return (localStorage.getItem('mmhvault_language_v3363')||'en')==='zh'?'zh':'en'}catch(_e){return'en'}}function T(en,zh){return lang()==='zh'?zh:en}
 function applyTheme(){let t='dark';try{t=localStorage.getItem('myfinance_theme')||'dark'}catch(_e){}document.body.classList.toggle('light',t==='light')}
-function translate(){document.documentElement.lang=lang()==='zh'?'zh-CN':'en';document.querySelectorAll('[data-en][data-zh]').forEach(el=>el.textContent=T(el.dataset.en,el.dataset.zh));const ta=$('input');if(ta)ta.placeholder=T(ta.dataset.enPlaceholder,ta.dataset.zhPlaceholder);renderMetrics();renderThread()}
+function translate(){
+  document.documentElement.lang=lang()==='zh'?'zh-CN':'en';
+  document.title=T('MMHVAULT · Local AI Financial Assistant','MMHVAULT · 本地 AI 财务助手');
+  document.querySelectorAll('[data-en][data-zh]').forEach(el=>el.textContent=T(el.dataset.en,el.dataset.zh));
+  const ta=$('input');if(ta){ta.placeholder=T(ta.dataset.enPlaceholder,ta.dataset.zhPlaceholder);ta.setAttribute('aria-label',T('Ask MMHVAULT AI','询问 MMHVAULT AI'))}
+  const model=$('modelChoice');if(model)model.setAttribute('aria-label',T('Local AI model','本地 AI 模型'));
+  const guide=$('appGuide')?.querySelector('.guidegrid');if(guide)guide.setAttribute('aria-label',T('MMHVAULT App Guide','MMHVAULT 新用户指南'));
+  renderMetrics();renderThread();
+  refreshLocalizedRuntimeUI();
+}
 function usd(v){return '$'+N(v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}function pct(v){return N(v).toLocaleString(undefined,{minimumFractionDigits:1,maximumFractionDigits:1})+'%'}
 function requestedCurrency(q){const x=lc(q);if(/泰铢|thb|baht|บาท/.test(x))return'THB';if(/缅币|mmk|kyat/.test(x))return'MMK';if(/人民币|rmb|cny|yuan|元/.test(x))return'CNY';if(/美元|usd|usdt|dollar/.test(x))return'USD';return''}
 function moneyInCurrency(usdValue,currency){const c=String(currency||'USD').toUpperCase(),v=N(usdValue),r=state.data?.rates||{};if(c==='THB'){const fx=N(r.usd_thb);return fx>0?'฿'+N(v*fx).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}):usd(v)}if(c==='MMK'){const fx=N(r.usd_mmk);return fx>0?'K '+N(v*fx).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}):usd(v)}if(c==='CNY'||c==='RMB'){const fx=N(r.usd_cny);return fx>0?'￥'+N(v*fx).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}):usd(v)}return usd(v)}
@@ -283,7 +292,7 @@ async function ensureCurrentScope(){
 function renderMetrics(){const box=$('metrics');if(!box)return;if(!state.data){box.innerHTML=`<article class="metric"><span>${T('Status','状态')}</span><strong>—</strong><small>${T('Sign in required','需要登录')}</small></article>`;return}const f=financeFacts(),m=f.current_month,p=f.previous_month,delta=p.expense?((m.expense-p.expense)/p.expense*100):null,canon=state.canonical,net=canon?N(canon.account_net_assets_usd):null,count=canon&&Number.isFinite(Number(canon.active_account_count))?N(canon.active_account_count):f.accounts.length;box.innerHTML=`<article class="metric"><span>${T('Income · this month','本月收入')}</span><strong>${usd(m.income)}</strong><small>${T('Ordinary income only','仅正常收入')}</small></article><article class="metric"><span>${T('Spending · this month','本月开销')}</span><strong>${usd(m.expense)}</strong><small>${delta===null?T('No prior-month baseline','上月无可比基线'):(delta>=0?'+':'')+pct(delta)+' '+T('vs last month','对比上月')}</small></article><article class="metric"><span>${T('Savings rate','储蓄率')}</span><strong>${pct(m.savings_rate)}</strong><small>${usd(m.remaining)} ${T('remaining','剩余')}</small></article><article class="metric"><span>${T('Account net assets','账户净资产')}</span><strong>${canon?usd(net):'—'}</strong><small>${canon?T(`${count} accounts · synced from MMHVAULT`,`${count} 个账户 · 与 MMHVAULT 同步`):T('Open AI from MMHVAULT to sync exact total','请从 MMHVAULT 内进入 AI 以同步精确总额')}</small></article>`}
 function setMode(t,error=false){const el=$('mode');if(el){el.textContent=t;el.classList.toggle('status-error',!!error)}}
 function addMessage(role,text,mode=''){state.messages.push({role,text:String(text||''),mode});if(state.messages.length>24)state.messages=state.messages.slice(-24);renderThread()}
-function renderThread(){const el=$('thread');if(!el)return;el.replaceChildren();if(!state.messages.length){const row=document.createElement('div');row.className='msg assistant';const b=document.createElement('div');b.className='bubble';b.textContent=state.data?T('Ask about MMHVAULT pages or your verified current-account finances. Built-in App Guide answers common product questions immediately; Local AI handles broader explanations. I am read-only.','可以直接询问当前已验证登录账号的 MMHVAULT Personal 数据。我会先核对精确数字，再由本地 AI 解释开放式问题；全程只读。'):T('Open MMHVAULT and sign in first, then return here.','请先在 MMHVAULT 登录，然后返回这里。');row.append(b);el.append(row)}else for(const m of state.messages){const row=document.createElement('div');row.className='msg '+m.role;const b=document.createElement('div');b.className='bubble';b.textContent=m.text;if(m.role==='assistant'&&m.mode){const meta=document.createElement('small');meta.className='meta';meta.textContent=m.mode;b.append(meta)}row.append(b);el.append(row)}requestAnimationFrame(()=>el.scrollTop=el.scrollHeight)}
+function renderThread(){const el=$('thread');if(!el)return;el.replaceChildren();if(!state.messages.length){const row=document.createElement('div');row.className='msg assistant';const b=document.createElement('div');b.className='bubble';b.textContent=state.data?T('Ask about MMHVAULT pages or your verified current-account finances. Built-in App Guide answers common product questions immediately; Local AI handles broader explanations. I am read-only.','可以询问 MMHVAULT 各页面怎么用，也可以询问当前已验证账号的财务情况。内置 APP 指南会直接回答常见功能问题，更开放的问题再交给本地 AI；全程只读。'):T('Open MMHVAULT and sign in first, then return here.','请先在 MMHVAULT 登录，然后返回这里。');row.append(b);el.append(row)}else for(const m of state.messages){const row=document.createElement('div');row.className='msg '+m.role;const b=document.createElement('div');b.className='bubble';b.textContent=m.text;if(m.role==='assistant'&&m.mode){const meta=document.createElement('small');meta.className='meta';meta.textContent=m.mode;b.append(meta)}row.append(b);el.append(row)}requestAnimationFrame(()=>el.scrollTop=el.scrollHeight)}
 function typing(on){const el=$('thread');el?.querySelector('[data-typing]')?.remove();if(!on||!el)return;const row=document.createElement('div');row.className='msg assistant';row.dataset.typing='1';row.innerHTML='<div class="bubble"><span class="typing"><i></i><i></i><i></i></span></div>';el.append(row);el.scrollTop=el.scrollHeight}
 
 function questionLang(q){return /[\u3400-\u9fff]/.test(String(q||''))?'zh':lang()}
@@ -464,7 +473,10 @@ function modelLabel(id){
 function progressUpdate(report){
   const p=Math.max(0,Math.min(1,N(report?.progress))),bar=$('modelProgressBar'),wrap=$('modelProgress'),st=$('localStatus');
   if(wrap)wrap.classList.add('show');if(bar)bar.style.width=(p*100).toFixed(1)+'%';
-  if(st)st.textContent=(report?.text||T('Preparing model…','正在准备模型……'))+(p>0?` · ${(p*100).toFixed(0)}%`:'');
+  if(st){
+    const label=lang()==='zh'?'正在准备本地模型……':(report?.text||'Preparing model…');
+    st.textContent=label+(p>0?` · ${(p*100).toFixed(0)}%`:'')
+  }
 }
 async function gpuProfile(){
   if(!('gpu' in navigator))return null;
@@ -495,6 +507,7 @@ async function modelCached(id){
   return false
 }
 function setCacheState(status,model=''){
+  state.cacheStatus=status||'loading';
   const el=$('cacheState'),btn=$('prepareAI');if(!el||!btn)return;
   el.classList.remove('ready','missing');
   if(status==='ready'){
@@ -511,6 +524,61 @@ function setCacheState(status,model=''){
   }else{
     el.textContent=T('Browser cache','浏览器缓存');
     btn.textContent=T('Prepare Local AI','准备本地 AI')
+  }
+}
+
+function refreshLocalizedRuntimeUI(){
+  const wanted=$('modelChoice')?.value||state.engineModel||'Qwen3-0.6B-q4f16_1-MLC';
+  setCacheState(state.cacheStatus||'loading',wanted);
+
+  if(!('gpu' in navigator)){
+    $('localStatus').textContent=T(
+      'WebGPU not detected. Exact finance calculations still work; open-ended Local AI needs a supported browser/device.',
+      '未检测到 WebGPU。精确财务计算仍可使用；开放式本地 AI 需要支持 WebGPU 的浏览器或设备。'
+    );
+    if(!state.scopeUserId)setMode(T('Checking your signed-in account…','正在检查当前登录账号……'));
+    return;
+  }
+
+  if(state.engineLoading){
+    setMode(T('Preparing free Local AI…','正在准备免费本地 AI……'));
+    if(lang()==='zh'&&$('localStatus')&&!/%/.test($('localStatus').textContent||'')){
+      $('localStatus').textContent='正在准备本地模型……';
+    }
+    return;
+  }
+
+  if(state.engineReady){
+    $('localStatus').textContent=T(
+      `${modelLabel(wanted)} is ready. Exact numbers come from MMHVAULT; AI handles explanation and planning.`,
+      `${modelLabel(wanted)} 已准备完成。精确数字由 MMHVAULT 计算，AI 负责解释和规划。`
+    );
+    setMode(T(
+      `Local AI ready · ${modelLabel(wanted)} · read-only`,
+      `本地 AI 已就绪 · ${modelLabel(wanted)} · 只读`
+    ));
+    return;
+  }
+
+  if(state.cacheStatus==='ready'){
+    $('localStatus').textContent=T(
+      `${modelLabel(wanted)} is already saved in this browser. Press Use Cached AI to load it without downloading the full model again.`,
+      `当前浏览器已经保存 ${modelLabel(wanted)}。点击“使用已缓存 AI”即可直接加载，不会重新下载完整模型。`
+    );
+  }else if(state.cacheStatus==='missing'){
+    $('localStatus').textContent=T(
+      `${modelLabel(wanted)} is not stored in this browser yet. It will download only after you press Download & Prepare.`,
+      `当前浏览器还没有保存 ${modelLabel(wanted)}。只有点击“下载并准备”后才会开始下载。`
+    );
+  }
+
+  if(state.scopeUserId&&state.data){
+    setMode(T(
+      'Verified current account data ready · prepare Local AI',
+      '当前登录账号数据已验证 · 可准备本地 AI'
+    ));
+  }else if(!state.scopeUserId){
+    setMode(T('Checking your signed-in account…','正在检查当前登录账号……'));
   }
 }
 async function refreshSelectedModelCacheState({autoload=false}={}){
@@ -655,7 +723,7 @@ async function prepareLocalAI(force=false,opts={}){
     ):'';
     const msg=T(
       `Local AI could not start${detail?`: ${detail}`:''}.${privateHint} Exact MMHVAULT calculations still work without the model.`,
-      `本地 AI 无法启动${detail?`：${detail}`:''}。${privateHint} 即使模型不可用，MMHVAULT 的精确财务计算仍然可以使用。`
+      `本地 AI 无法启动。${privateHint}即使模型不可用，MMHVAULT 的精确财务计算仍然可以使用。`
     );
     $('localStatus').textContent=msg;setMode(msg,true);throw e
   }finally{
