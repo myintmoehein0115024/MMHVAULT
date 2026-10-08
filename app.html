@@ -13688,7 +13688,7 @@ function applyUserProfile(user){
   const method=methodParts.join(" + ")||(p.provider==="phone"?"Phone OTP":p.provider==="google"?"Google":"Email / Password");
   setText("accountLoginMethodV372",method);setText("accountProviderV372",method);
   const created=user?.created_at?new Date(user.created_at):null;
-  setText("accountMemberSinceV375",created&&!Number.isNaN(created.getTime())?created.toLocaleDateString(undefined,{year:"numeric",month:"short",day:"numeric"}):"—");
+  setText("accountMemberSinceV375",created&&!Number.isNaN(created.getTime())?created.toLocaleDateString((localStorage.getItem('mmhvault_language_v3363')==='zh'?'zh-CN':'en-US'),{year:"numeric",month:"short",day:"numeric"}):"—");
   setText("accountStatusV375",user?"Active":"Signed out");
   const emailConfirmed=!!(user?.email_confirmed_at||user?.confirmed_at);
   setText("accountEmailStatusV375",p.email?(emailConfirmed?"Verified":"Pending"):"Not added");
@@ -15450,7 +15450,7 @@ const V28_BUDGETS={Dining:10000,Snacks:3000,Smoking:2500,Transport:2000,Wellness
 function v28PageList(){return ['dashboard','analyze','transactions','invest','exchange','settings'];}
 function transactionGroupFor(t){try{return inferTxGroup(t)}catch(_e){if(t?.category==='Data Adjustment')return'Data Adjustment';if(t?.type==='Transfer')return'Transfer';return t?.type||'';}}
 function fmtPct(x){return Number(x||0).toFixed(2)+'%';}
-function monthLabel(m){const d=new Date((m||today().slice(0,7))+'-01T00:00:00');return d.toLocaleDateString(undefined,{month:'short',year:'numeric'});}
+function monthLabel(m){const d=new Date((m||today().slice(0,7))+'-01T00:00:00');return d.toLocaleDateString((localStorage.getItem('mmhvault_language_v3363')==='zh'?'zh-CN':'en-US'),{month:'short',year:'numeric'});}
 function v28FilteredTx(){const s=($('txSearch')?.value||'').toLowerCase();const ty=$('txFilterType')?.value||'';const gr=$('txFilterGroup')?.value||'';const ca=$('txFilterCategory')?.value||'';const ac=$('txFilterAccount')?.value||'';return transactions.filter(t=>{const hay=[t.tx_date,t.type,transactionGroupFor(t),t.category,t.from_account,t.to_account,t.note].join(' ').toLowerCase();return(!s||hay.includes(s))&&(!ty||t.type===ty)&&(!gr||transactionGroupFor(t)===gr)&&(!ca||t.category===ca)&&(!ac||t.from_account===ac||t.to_account===ac);});}
 function refreshTxFilters(){
   const cats=[...new Set(transactions.map(t=>t.category).filter(Boolean))].sort();
@@ -15847,7 +15847,7 @@ function v37SaveBudget(cat,val){
   localStorage.setItem(v37BudgetKey(cat),String(n(val)));renderAnalyzeV37();
 }
 function v37Label(p){
-  return p.month==="annual"?`${p.year} Annual`:new Date(p.year,Number(p.month)-1,1).toLocaleDateString(undefined,{month:"long",year:"numeric"});
+  return p.month==="annual"?`${p.year} Annual`:new Date(p.year,Number(p.month)-1,1).toLocaleDateString((localStorage.getItem('mmhvault_language_v3363')==='zh'?'zh-CN':'en-US'),{month:"long",year:"numeric"});
 }
 function v37ConsistencyCheck(){
   const p=v37Period(), rows=v37Rows(), t=analyzePeriodTotals(rows);
@@ -16576,8 +16576,8 @@ function refreshDataCenterV380(){
   const last=window.mmhVaultLocalGetV12310?.('myfinance_last_backup_v380')??null;
   if(last){
     const d=new Date(last);
-    set('dataCenterBackupV380',Number.isNaN(d.getTime())?'Saved':d.toLocaleDateString(undefined,{year:'numeric',month:'short',day:'numeric'}));
-    set('dataCenterBackupMetaV380',Number.isNaN(d.getTime())?'Backup created locally.':d.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'}));
+    set('dataCenterBackupV380',Number.isNaN(d.getTime())?'Saved':d.toLocaleDateString((localStorage.getItem('mmhvault_language_v3363')==='zh'?'zh-CN':'en-US'),{year:'numeric',month:'short',day:'numeric'}));
+    set('dataCenterBackupMetaV380',Number.isNaN(d.getTime())?'Backup created locally.':d.toLocaleTimeString((localStorage.getItem('mmhvault_language_v3363')==='zh'?'zh-CN':'en-US'),{hour:'2-digit',minute:'2-digit'}));
   }else{
     set('dataCenterBackupV380','Never');
     set('dataCenterBackupMetaV380','Create a local copy before major changes.');
@@ -18537,6 +18537,310 @@ Object.assign(zh, {
 });
 /* UI-only additions for current pages; user-defined financial labels remain unchanged. */
 Object.assign(zh,{"Basic information": "基本信息", "Accounts & amounts": "账户与金额", "Account, amount & costs": "账户、金额与费用", "Price & quantity": "价格与数量", "Note & attachment": "备注与附件", "‹ Back": "‹ 返回", "Back": "返回", "Details": "详情", "Transaction details": "交易详情", "Investment details": "投资详情", "Holding details": "持仓详情", "My profile": "我的资料", "Your identity and everyday progress": "您的个人资料与日常记录", "Day streak": "连续记账天数", "Days recorded": "已记账天数", "General": "通用设置", "Overview": "概览", "Budget": "预算", "Theme": "主题", "Comfortable": "宽松", "Compact": "紧凑", "System": "跟随系统", "Light": "浅色", "Dark": "深色", "Cashflow default currency": "现金流默认显示币种", "Show double decimals": "显示两位小数", "Round decimals in summaries": "汇总金额显示整数", "Default expense category": "默认支出分类", "Default income category": "默认收入分类", "Default transfer source": "默认转出账户", "Use existing default": "使用现有默认值", "Password & devices": "密码与设备", "Personal time": "个人时间", "App icon": "应用图标", "Data & backup": "数据与备份", "Edit profile": "编辑资料", "Amounts always display two decimal places. Investment quantities and original stored values retain their precision.": "偏好设置保存在此设备。取整只改变汇总显示，原始金额保留原有精度。", "Accounts": "账户", "Display currency": "显示币种", "Original currency": "原币种", "Account net assets": "账户净资产", "All accounts": "全部账户", "Search accounts": "搜索账户", "Original order": "原始顺序", "Hide amounts": "隐藏金额", "Show amounts": "显示金额", "Your cash accounts and investment portfolios": "您的现金账户与投资组合", "Cash balances + held investments · converted to your display currency.": "现金余额与投资持仓，按所选显示币种换算。", "Live Prices": "实时行情", "More Crypto": "更多加密货币", "Manage Projects": "管理项目", "Portfolio": "投资记录", "Investment Center": "投资中心", "Investment sections": "投资页面", "No file selected": "未选择文件", "Choose a receipt": "选择收据", "Receipt attachment": "收据附件", "Optional": "选填", "Optional · add proof, invoice or payment screenshot": "选填，可添加凭证、发票或付款截图", "PNG, JPG, WEBP or PDF · up to 10 MB": "PNG、JPG、WEBP 或 PDF，最大 10 MB", "Source Account": "来源账户", "Trade Type": "买卖方向", "Other Cost": "其他成本", "Purchase-day Market Price": "交易时市场价格", "Current Market Price": "当前市场价格", "Quantity (Auto)": "数量（自动计算）", "Gold Weight (Auto)": "黄金重量（自动计算）", "Currency Converter": "货币换算", "Converted Amount": "换算金额", "Live from saved rates": "使用已保存汇率", "⇄ Swap": "⇄ 对调", "Income, spending and remaining funds for your selected period.": "所选期间的收入、支出与剩余资金。", "Manual target": "手动预算", "Save estimate": "保存预算", "No spending in this period.": "该期间没有支出记录。", "Add to Home Screen": "添加到主屏幕"});
+
+// MMHVAULT 1.12.34 · Chinese language completeness audit
+Object.assign(zh,{
+"Currency":"币种",
+"Accounts":"账户",
+"Cash Flow Analyze":"现金流分析",
+"Budget":"预算",
+"Not set":"未设置",
+"Actual individual expense":"实际个人支出",
+"REMAINING":"剩余",
+"Financial Goals":"财务目标",
+"Period":"周期",
+"Loading cloud budget…":"正在加载云端预算…",
+"More":"更多",
+"Goals":"目标",
+"Recurring":"周期交易",
+"Reports":"报告",
+"Start with one income or expense. MMHVAULT will automatically use it across Dashboard, Analyze and Cash Flow.":"先记录一笔收入或支出，MMHVAULT 会自动同步用于仪表盘、分析和现金流。",
+"You can add investments, update exchange rates, review your financial health and manage backups from MMHVAULT.":"您还可以添加投资、更新汇率、查看财务健康状况，并在 MMHVAULT 中管理备份。",
+"Your cash accounts and investment portfolios":"您的现金账户与投资组合",
+"Display currency":"显示币种",
+"SPENDING PLAN":"支出计划",
+"Plan your individual spending and compare it with real Transaction records.":"规划个人支出，并与真实交易记录进行对比。",
+"MONTHLY BUDGET":"月度预算",
+"Individual Expense target":"普通支出目标",
+"SPENT":"已支出",
+"Budget − spent":"预算 − 已支出",
+"UTILIZATION":"使用率",
+"Set a monthly budget":"设置月度预算",
+"Monthly Budget":"月度预算",
+"Individual Expense only. Personal, loans, investments, transfers and data adjustments are excluded.":"仅统计普通支出；Personal、借贷、投资、转账和数据调整不计入。",
+"Monthly spending limit":"月度支出上限",
+"Clear Month":"清除本月",
+"Save Budget":"保存预算",
+"Enter a budget to start tracking.":"输入预算后开始追踪。",
+"Category Budgets":"分类预算",
+"Set optional limits for the Expense categories you actually use.":"可为实际使用的支出分类设置单独上限。",
+"0 categories":"0 个分类",
+"Budget amounts are stored in your private Supabase account and sync across devices when this page reloads. Actual spending comes from Transactions and is converted with the exchange rates saved in MMHVAULT.":"预算金额保存在您的私有 Supabase 账户中，页面重新加载后会在设备间同步。实际支出来自交易记录，并按 MMHVAULT 保存的汇率换算。",
+"WEALTH PLANNING":"财富规划",
+"Set targets, track progress and see the monthly pace needed to reach them.":"设置目标、追踪进度，并查看达到目标所需的每月节奏。",
+"+ New Goal":"+ 新建目标",
+"ACTIVE GOALS":"进行中的目标",
+"Currently in progress":"当前进行中",
+"AVERAGE PROGRESS":"平均进度",
+"Across active goals":"所有进行中目标",
+"COMPLETED":"已完成",
+"Targets reached":"已达成目标",
+"NEXT DEADLINE":"最近期限",
+"No dated goals":"暂无带日期目标",
+"New Goal":"新建目标",
+"Amounts stay in the goal's own currency.":"金额保持目标本身的币种。",
+"Goal type":"目标类型",
+"Goal name":"目标名称",
+"Target amount":"目标金额",
+"Current saved":"当前已存",
+"Target date":"目标日期",
+"Save Goal":"保存目标",
+"Your Goals":"您的目标",
+"Open a goal for a clean progress detail.":"打开目标查看清晰的进度详情。",
+"Completed":"已完成",
+"Archived":"已归档",
+"Goals are private to your signed-in MMHVAULT account. Progress is manual in this first version; it does not move money or alter account balances.":"目标仅属于当前登录的 MMHVAULT 账号。当前版本的进度需手动维护，不会自动移动资金或改变账户余额。",
+"AUTOMATED PLANNING":"自动化规划",
+"Recurring Transactions":"周期交易",
+"Save repeat transaction templates, see what is due next and record them without retyping the details.":"保存重复交易模板，查看下一笔到期项目，并无需重复输入即可记录。",
+"+ New Recurring":"+ 新建周期交易",
+"ACTIVE":"进行中",
+"Running schedules":"正在运行的计划",
+"Due within 7 days":"7 天内到期",
+"OVERDUE":"已逾期",
+"Needs attention":"需要关注",
+"NEXT DUE":"下次到期",
+"No active schedules":"暂无进行中的计划",
+"New Recurring":"新建周期交易",
+"Create a reusable transaction template. Amounts stay in the selected account's original currency.":"创建可重复使用的交易模板；金额保持所选账户的原始币种。",
+"Name":"名称",
+"Transaction type":"交易类型",
+"Transaction group":"交易分组",
+"From account":"转出账户",
+"From amount":"转出金额",
+"To account":"转入账户",
+"To amount":"转入金额",
+"Frequency":"频率",
+"Next due date":"下次到期日期",
+"Reminder":"提醒",
+"Save Recurring":"保存周期交易",
+"Schedules":"计划列表",
+"Record a due item to prefill Add Transaction with the saved template.":"记录到期项目时，会使用已保存模板预填“添加交易”。",
+"Paused":"已暂停",
+"Recurring schedules are reminders and reusable templates. They never create transactions or move money automatically. You review and submit each transaction yourself.":"周期计划仅作为提醒和可重复使用的模板，不会自动创建交易或移动资金；每笔交易都由您检查并提交。",
+"Explore your financial picture.":"查看您的整体财务状况。",
+"View":"视图",
+"Spending":"支出",
+"Decision Center":"决策中心",
+"Period Summary":"周期摘要",
+"Ordinary Expense Details":"普通支出详情",
+"Period Comparison":"周期对比",
+"Personal Cash Flow Summary":"个人现金流摘要",
+"Six months ending at selected period · target 60%":"截至所选周期的最近 6 个月 · 目标 60%",
+"Income Trend":"收入趋势",
+"Remaining Funds After Expected Spending":"预计支出后的剩余资金",
+"Current available funds minus future spending expected this month · THB":"当前可用资金减去本月预计未来支出 · THB",
+"Current Available Funds":"当前可用资金",
+"Current cash + investment value, converted to THB":"当前现金 + 投资价值，折算为 THB",
+"Estimated Monthly Spending":"预计月度支出",
+"Actual spending this month + expected spending still ahead":"本月已发生支出 + 后续预计支出",
+"Remaining After Expected Spending":"预计支出后剩余",
+"Estimated funds left after this month’s normal spending":"本月正常支出后预计剩余资金",
+"Budget & Spending Control":"预算与支出控制",
+"Personal & Family Spending":"个人与家庭支出",
+"Essential personal transfers summarized · THB":"必要个人转账汇总 · THB",
+"Liquidity → Savings → Investment":"流动性 → 储蓄 → 投资",
+"These rules remain local and do not change transactions automatically.":"这些规则仅保存在本地，不会自动修改交易记录。",
+"MONTHLY FINANCIAL REPORT":"月度财务报告",
+"Financial Report":"财务报告",
+"Income, spending, budget, wealth, investments, goals and recurring commitments in one monthly view.":"在一个月度视图中汇总收入、支出、预算、财富、投资、目标和周期义务。",
+"Monthly Summary":"月度摘要",
+"Budget Performance":"预算表现",
+"Cloud Budget · Individual Expense only":"云端预算 · 仅普通支出",
+"Open Budget":"打开预算",
+"Month vs Previous Month":"本月与上月对比",
+"Cash-flow comparison using the selected display currency.":"使用所选显示币种进行现金流对比。",
+"Top Expense Categories":"主要支出分类",
+"Individual + Personal spending, ranked by amount.":"普通支出 + Personal 支出，按金额排序。",
+"Current Wealth Snapshot":"当前财富快照",
+"Live snapshot now — not a reconstructed month-end balance.":"当前实时快照，不是重建的月末余额。",
+"LIVE":"实时",
+"Selected-month recorded cost + current portfolio P/L snapshot.":"所选月份已记录成本 + 当前投资组合盈亏快照。",
+"Open Invest":"打开投资",
+"Current active-goal progress.":"当前进行中目标的进度。",
+"Open Goals":"打开目标",
+"Recurring Commitments":"周期义务",
+"Current schedules. Historical reports cannot reconstruct already-advanced due dates.":"当前周期计划；历史报告无法重建已经推进过的到期日期。",
+"Open Recurring":"打开周期交易",
+"Income excludes loan income and Data Adjustment. Individual Expense and Personal are shown separately. Savings Rate = (Income − Individual Expense − Personal) ÷ Income. Average Daily Spend uses Individual Expense only. Current wealth, goal progress and current investment P/L are live snapshots; they are not historical month-end values.":"收入不包含借贷收入和 Data Adjustment。普通支出与 Personal 支出分开显示。储蓄率 =（收入 − 普通支出 − Personal）÷ 收入。日均支出仅使用普通支出。当前财富、目标进度和投资盈亏均为实时快照，不代表历史月末数值。",
+"Rates By Exchange Rate API ↗":"汇率来源：Exchange Rate API ↗",
+"Add investments or wallet activity, review your portfolio, manage projects, inspect returns and follow market prices.":"添加投资或钱包活动，查看投资组合、管理项目、检查收益并追踪市场价格。",
+"Manage Projects":"管理项目",
+"Live Prices":"实时价格",
+"Investment Portfolio Overview":"投资组合概览",
+"Crypto / Gold 当前持仓与历史卖出分开统计 · 合计用 USD":"Crypto / Gold 当前持仓与历史卖出分开统计 · 合计使用 USD",
+"My Investments":"我的投资",
+"One list for every asset. Investment history remains available in Portfolio.":"所有资产集中在一个列表中；投资历史仍可在 Portfolio 中查看。",
+"Manage Types & Assets":"管理类型与资产",
+"Investment Types & Assets":"投资类型与资产",
+"Set up types and assets for future investments. Existing records stay intact.":"设置未来投资使用的类型和资产，现有记录保持不变。",
+"Loading your signed-in investment catalog…":"正在加载当前登录账号的投资目录…",
+"1 · Investment Types":"1 · 投资类型",
+"Create a category such as Stocks, then manage its name or availability here.":"创建例如 Stocks 的投资类别，并在这里管理名称或可用状态。",
+"Add Type":"添加类型",
+"2 · Assets":"2 · 资产",
+"Choose a type, then add assets to it. New assets will appear in this list.":"先选择类型，再添加资产；新资产会显示在此列表中。",
+"Add Asset":"添加资产",
+"Investment History":"投资历史",
+"Clean record list · click any investment to view full details, receipt and actions.":"清晰的记录列表 · 点击任意投资查看完整详情、收据和操作。",
+"Gold Price":"黄金价格",
+"International spot conversion reference · MMK / ကျပ်သား":"国际现货换算参考 · MMK / ကျပ်သား",
+"Online reference":"在线参考",
+"International spot conversion reference":"国际现货换算参考",
+"Loading XAU/USD and your USD→MMK rate…":"正在加载 XAU/USD 与 USD→MMK 汇率…",
+"Reference only · not a Myanmar local gold shop transaction price.":"仅供参考 · 不是缅甸当地金店成交价。",
+"Live Market Explorer":"实时市场浏览",
+"Crypto Market · 50 Assets":"Crypto 市场 · 50 个资产",
+"Real-time USD price, 24h movement and 24h trading volume for a broader crypto watchlist.":"更广泛的 Crypto 观察列表：实时 USD 价格、24 小时涨跌和 24 小时成交量。",
+"‹ Back":"‹ 返回",
+"Ready":"就绪",
+"Open More Crypto to load live market data.":"打开“更多 Crypto”加载实时市场数据。",
+"Live Binance market data updates every 60 seconds while this page is open.":"此页面打开期间，Binance 实时市场数据每 60 秒更新一次。",
+"Edit profile":"编辑资料",
+"Display name":"显示名称",
+"Profile photo":"个人头像",
+"Change photo":"更换头像",
+"JPG, PNG or WEBP · up to 2 MB":"JPG、PNG 或 WEBP · 最大 2 MB",
+"Save changes":"保存更改",
+"Email":"邮箱",
+"Phone":"手机",
+"Signing out other devices keeps this device signed in. “Sign out all devices” also signs out this device.":"退出其他设备不会退出当前设备；“退出所有设备”也会退出当前设备。",
+"Send verification code":"发送验证码",
+"Verify & bind":"验证并绑定",
+"Resend":"重新发送",
+"Manage Accounts":"管理账户",
+"＋ Add Account":"＋ 添加账户",
+"Archived Accounts":"已归档账户",
+"＋ Add Category":"＋ 添加分类",
+"Archived Categories":"已归档分类",
+"Data Health / 数据健康检查":"数据健康检查",
+"Read only · 仅检查，不自动修改数据":"只读 · 仅检查，不自动修改数据",
+"Check / 检查":"检查",
+"Not checked / 尚未检查":"尚未检查",
+"📥 Select Backup / Import JSON":"📥 选择备份 / 导入 JSON",
+"Tap “Select Backup / Import JSON” to open the iPhone Files picker.":"点击“选择备份 / 导入 JSON”打开 iPhone 文件选择器。",
+"Restore never replaces your Customer ID or authentication. Existing transactions and investments are preserved; only missing records are added. Saved exchange rates are applied after confirmation, and missing Account / Category settings are merged without overwriting your current setup.":"恢复不会替换 Customer ID 或登录认证。现有交易和投资会保留，只添加缺失记录。确认后会应用已保存汇率，缺失的账户/分类设置会合并，不覆盖当前配置。",
+"Backups are downloaded to your device as a JSON file. They include Transactions, Investments, Exchange Rates and your Account / Category configuration. Restore adds missing finance records and merges missing configuration into the signed-in account. Your Customer ID and Supabase authentication are never replaced by a backup.":"备份会以 JSON 文件下载到设备，包含交易、投资、汇率以及账户/分类配置。恢复会为当前登录账号补充缺失的财务记录和配置；Customer ID 与 Supabase 登录认证不会被备份替换。",
+"Status is derived from the MMHVAULT session, loaded account records, realtime subscription state and the backup history stored on this device.":"状态基于 MMHVAULT 会话、已加载账户记录、实时订阅状态以及本设备保存的备份历史。",
+"Bring your transaction and investment history into MMHVAULT without overwriting existing cloud records.":"将交易和投资历史导入 MMHVAULT，不覆盖已有云端记录。",
+"Transactions, Investments, Exchange Rates and Customer Profile are protected by Supabase Row Level Security.":"交易、投资、汇率和客户资料均受 Supabase Row Level Security 保护。",
+"Your current signed-in account is the only account used when loading and writing your finance records.":"加载和写入财务记录时，只使用当前登录账号。",
+"FINANCIAL ANALYSIS":"财务分析",
+"Income, spending and remaining funds for your selected period.":"所选周期的收入、支出和剩余资金。",
+"INCOME":"收入",
+"Ordinary income":"普通收入",
+"INDIVIDUAL EXPENSE":"普通支出",
+"Everyday Expense transactions":"日常支出交易",
+"PERSONAL":"Personal 支出",
+"Personal and family spending":"个人与家庭支出",
+"Income − Individual Expense − Personal":"收入 − 普通支出 − Personal",
+"SAVINGS RATE":"储蓄率",
+"Remaining ÷ income":"剩余 ÷ 收入",
+"AVG DAILY SPEND":"日均支出",
+"Average across the selected period":"所选周期内的日均值",
+"Individual Expense Budget":"普通支出预算",
+"Cloud Budget from Budget Center for the selected period.":"来自预算中心的所选周期云端预算。",
+"Cloud synced":"云端已同步",
+"Budget source":"预算来源",
+"Open Budget →":"打开预算 →",
+"Cloud budget":"云端预算",
+"Loading…":"正在加载…",
+"Budget left":"预算剩余",
+"Expense Breakdown":"支出明细",
+"Individual and Personal are kept separate · rates show share of total spending.":"普通支出与 Personal 支出分开统计 · 比例表示占总支出的份额。",
+"Included Records":"已计入记录",
+"Transactions used in these cash flow totals.":"用于这些现金流合计的交易记录。",
+"Flow":"流水",
+"Original":"原币金额",
+"USD equivalent":"USD 等值",
+"Amounts use your saved exchange rates. Avg Daily Spend uses Individual Expense only; Personal spending is excluded from that metric. Breakdown rates show each item as a share of total spending. Loans, transfers, investment cash flows and Data Adjustment are excluded. The Cloud Budget is read from Budget Center for the signed-in account and converted with your saved exchange rates.":"金额使用您保存的汇率换算。日均支出仅统计普通支出，Personal 支出不计入该指标。明细比例表示各项占总支出的份额。借贷、转账、投资现金流和 Data Adjustment 均排除。云端预算来自当前登录账号的预算中心，并按已保存汇率换算。",
+"MMHVAULT · FINANCIAL OVERVIEW":"MMHVAULT · 财务概览",
+"You Age:":"您的年龄：",
+"Total Balance":"总资产",
+"Cash + investments + receivable":"现金 + 投资 + 应收款",
+"Cash Flow · This Month":"本月现金流",
+"vs. last month":"对比上月",
+"Portfolio Value":"投资组合价值",
+"vs. investment cost":"对比投资成本",
+"Investment Profit / Loss":"投资盈亏",
+"unrealized":"未实现",
+"Portfolio Trend":"投资组合趋势",
+"Current wealth composition":"当前财富构成",
+"View details →":"查看详情 →",
+"NET ASSETS":"净资产",
+"Total Value":"总价值",
+"Investment-led":"投资占比较高",
+"Balanced liquidity":"流动性均衡",
+"Cash Assets":"现金资产",
+"Loan Receivable":"应收借款",
+"Live flow · latest activity across recent months":"实时流水 · 近期月份最新活动",
+"View all →":"查看全部 →",
+"Description":"说明",
+"Amount":"金额",
+"Status":"状态",
+"Market Watch":"市场观察",
+"Live crypto & gold reference":"实时 Crypto 与 Gold 参考",
+"Crypto market snapshot":"Crypto 市场概览",
+"Gold market reference":"Gold 市场参考",
+"Live movers with available prices":"实时报价涨跌",
+"Open Invest →":"打开投资 →",
+"Popular":"热门",
+"Asset":"资产",
+"Price":"价格",
+"Trend":"趋势",
+"Live":"实时",
+"ALL":"全部",
+"Private Wealth Workspace":"私人财富空间",
+"Your finance data stays connected to your authenticated MMHVAULT account.":"您的财务数据持续连接到当前已认证的 MMHVAULT 账号。",
+"Cloud workspace active":"云端空间已连接",
+"Workspace":"工作区",
+"Personal Finance · Wealth":"个人财务 · 财富管理",
+"Customer support":"客户支持",
+"Search transactions, accounts, or pages…":"搜索交易、账户或页面…",
+"Here’s your financial overview. Keep building your wealth system.":"这是您的财务概览。继续稳步建立自己的财富系统。",
+"TRANSACTION KIND":"交易类型",
+"Choose once — MMHVAULT will configure the form for you.":"选择一次，MMHVAULT 会自动配置表单。",
+"Money enters one account. Only the receiving account and amount are needed.":"资金进入一个账户，只需填写收款账户和金额。",
+"Basic information":"基本信息",
+"Accounts & amounts":"账户与金额",
+"Note & attachment":"备注与附件",
+"Data Adjustment":"数据调整",
+"History":"历史记录",
+"Manage Categories":"管理分类",
+"Bank":"银行",
+"Car":"汽车",
+"Cash":"现金",
+"Credit Card":"信用卡",
+"Custom":"自定义",
+"House":"房产",
+"Travel":"旅行",
+"Wallet":"钱包",
+"Loan Expense":"借贷支出",
+"Loan Income":"借贷收入",
+"Original currency":"原币种",
+"Monthly":"每月",
+"Weekly":"每周",
+"Yearly":"每年",
+"On due date":"到期当天",
+"1 day before":"提前 1 天",
+"3 days before":"提前 3 天",
+"7 days before":"提前 7 天",
+"14 days before":"提前 14 天",
+"Cloud limit":"云端上限",
+"Set a limit":"设置上限",
+"Budget Center":"预算中心",
+"Transaction Kind":"交易类型"
+});
 function translateAttributes(root){
   const applyAttrs=el=>{
     if(!el?.getAttribute)return;
@@ -18555,6 +18859,14 @@ function translateDynamicText(base){
   if(zh[base]) return zh[base];
   let x=base;
   const reps=[
+    [/^Welcome back,\s*(.+)$/,'欢迎回来，$1'],
+    [/^(.+) momentum$/,'$1 动能'],
+    [/^(\d+) categories$/,'$1 个分类'],
+    [/^(\d+) category$/,'$1 个分类'],
+    [/^(\d+) records$/,'$1 条记录'],
+    [/^(\d+) accounts$/,'$1 个账户'],
+    [/^(\d+) active goals$/,'$1 个进行中目标'],
+    [/^(\d+) schedules$/,'$1 个计划'],
     [/^(\$[\d,.]+) remaining$/,'$1 剩余'],
     [/^(\$[\d,.]+)\/mo required$/,'每月需 $1'],
     [/^(\d+) total tracked$/,'共追踪 $1 个目标'],
@@ -19985,14 +20297,23 @@ body.mmhvault-scroll-active #invest .invest-top>.panel{box-shadow:inset 0 1px 0 
   const groupMap={'收入':'Income','支出':'Expense','个人':'Personal','贷款':'Loans','借贷':'Loans','转账':'Transfer','Income':'Income','Expense':'Expense','Personal':'Personal','Loans':'Loans','Transfer':'Transfer'};
   const catMap={'餐饮':'Dining','零食':'Snacks','烟草':'Smoking','交通':'Transport','健康':'Wellness','生活方式':'Lifestyle','其他':'Other','工资':'Salary','餐补':'Meal Allowance','奖金':'Bonus','其他收入':'Other Income','家庭支持':'Family Support','特别转账':'Special Transfer','礼物':'Gifts','捐赠':'Donation','债务':'Debt','贷款还款':'Loan Repayment','还款':'PaidDeb','借出':'Loan Out','投资':'Investment','转账':'Transfer'};
   const norm=(v,map)=>map[String(v??'').trim()]||String(v??'').trim();
+  const displayMap={
+    '':'全部','Income':'收入','Expense':'支出','Transfer':'转账','Personal':'个人支出','Loans':'借贷','Data Adjustment':'数据调整',
+    'Dining':'餐饮','Snacks':'零食','Smoking':'烟草','Transport':'交通','Wellness':'健康','Lifestyle':'生活方式','Other':'其他',
+    'Salary':'工资','Meal Allowance':'餐补','Bonus':'奖金','Other Income':'其他收入',
+    'Family Support':'家庭支持','Special Transfer':'特别转账','Gifts':'礼物','Donation':'捐赠',
+    'Debt':'债务','Loan Repayment':'贷款还款','PaidDeb':'还款','Loan Out':'借出','Investment':'投资'
+  };
+  const isZh=()=>((localStorage.getItem('mmhvault_language_v3363')||'en')==='zh');
+  const display=k=>isZh()?(displayMap[k]||k):k;
   const setSelect=(el,keys,normalizer)=>{
     if(!el)return;
     const old=normalizer(el.value);
-    // Avoid rewriting if the exact value set is already correct: this is the key anti-flicker guard.
-    const same=el.options.length===keys.length && keys.every((k,i)=>el.options[i]?.value===k && el.options[i]?.textContent===k);
+    // Values stay canonical English; only visible option labels follow the UI language.
+    const same=el.options.length===keys.length && keys.every((k,i)=>el.options[i]?.value===k && el.options[i]?.textContent===display(k));
     if(!same){
       const frag=document.createDocumentFragment();
-      keys.forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=k;frag.appendChild(o);});
+      keys.forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=display(k);frag.appendChild(o);});
       el.replaceChildren(frag);
     }
     el.value=keys.includes(old)?old:keys[0];
@@ -26122,7 +26443,7 @@ html,body{max-width:100%;overflow-x:clip}
   function render(){
     const page=$('cashflow-analyze');if(!page)return;
     const result=totals(periodRows());
-    $('cfaPeriodLabel').textContent=state.mode==='month'?new Date(state.month+'-01T12:00:00').toLocaleDateString(undefined,{month:'long',year:'numeric'}):String(state.year);
+    $('cfaPeriodLabel').textContent=state.mode==='month'?new Date(state.month+'-01T12:00:00').toLocaleDateString((localStorage.getItem('mmhvault_language_v3363')==='zh'?'zh-CN':'en-US'),{month:'long',year:'numeric'}):String(state.year);
     $('cfaIncome').textContent=money(result.income);$('cfaIndividual').textContent=money(result.individual);$('cfaPersonal').textContent=money(result.personal);$('cfaRemaining').textContent=money(result.remaining);$('cfaRemaining').classList.toggle('negative',result.remaining<0);
     const totalSpend=result.individual+result.personal,savingsRate=result.income>0?(result.remaining/result.income*100):null,days=periodDayCount(),dailySpend=days>0?result.individual/days:0;
     const savingsEl=$('cfaSavingsRate');savingsEl.textContent=savingsRate===null?'—':savingsRate.toFixed(2)+'%';savingsEl.classList.toggle('positive',savingsRate!==null&&savingsRate>=0);savingsEl.classList.toggle('negative',savingsRate!==null&&savingsRate<0);
@@ -26139,7 +26460,7 @@ html,body{max-width:100%;overflow-x:clip}
     const series=Array.from({length:12},(_,i)=>{const key=`${year}-${String(i+1).padStart(2,'0')}`;return totals(all.filter(t=>String(t.tx_date||'').startsWith(key)))});
     const max=Math.max(1,...series.map(x=>Math.max(x.income,x.individual+x.personal)));
     $('cfaTrendSubtitle').textContent=`${year} · income (blue) and total spending (pink)`;
-    $('cfaTrend').innerHTML=series.map((x,i)=>`<div class="cfa-trend-item" title="${safe(new Date(year,i,1).toLocaleDateString(undefined,{month:'long',year:'numeric'}))}: Income ${money(x.income)} · Expense ${money(x.individual+x.personal)}"><div class="cfa-trend-bars"><i style="height:${Math.max(3,x.income/max*78)}px"></i><i style="height:${Math.max(3,(x.individual+x.personal)/max*78)}px"></i></div><span>${String(i+1).padStart(2,'0')}</span></div>`).join('');
+    $('cfaTrend').innerHTML=series.map((x,i)=>`<div class="cfa-trend-item" title="${safe(new Date(year,i,1).toLocaleDateString((localStorage.getItem('mmhvault_language_v3363')==='zh'?'zh-CN':'en-US'),{month:'long',year:'numeric'}))}: Income ${money(x.income)} · Expense ${money(x.individual+x.personal)}"><div class="cfa-trend-bars"><i style="height:${Math.max(3,x.income/max*78)}px"></i><i style="height:${Math.max(3,(x.individual+x.personal)/max*78)}px"></i></div><span>${String(i+1).padStart(2,'0')}</span></div>`).join('');
     const records=periodRows().filter(isIncluded).sort((a,b)=>String(b.tx_date||'').localeCompare(String(a.tx_date||'')));
     $('cfaRecordCount').textContent=`${records.length} record${records.length===1?'':'s'}`;$('cfaRecordCurrency').textContent=state.currency+' equivalent';
     $('cfaRecords').innerHTML=records.length?records.map(t=>{const incoming=t.type==='Income',account=incoming?t.to_account:t.from_account,amount=num(incoming?t.to_amount:t.from_amount),nativeCurrency=typeof currency==='function'?currency(account):'',native=mmhCurrencySymbolV194(nativeCurrency)+' '+amount.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});return `<tr><td>${safe(t.tx_date)}</td><td>${incoming?'Income':group(t)==='Personal'?'Personal':'Individual Expense'}</td><td>${safe(t.category)}</td><td>${safe(native)}</td><td>${money(toUsd(amount,account))}</td></tr>`}).join(''):'<tr><td colspan="5">No included transactions for this period.</td></tr>';
@@ -27911,7 +28232,7 @@ function addTopbar(){
  const runSearch=()=>{const q=search.value.trim();if(!q)return;const key=q.toLowerCase();if(key.includes('support')||key.includes('customer service')||key.includes('客服')){supportButton?.click();return}if(key.includes('notification')||key.includes('通知')){document.getElementById('mmhTopBellV500')?.click();return}if(key==='ai'||key.includes('ai chat')||key.includes('assistant')||key.includes('financial assistant')||key.includes('财务助手')||key.includes('ai助手')){try{window.mmhWriteAISnapshotV1115?.()}catch(_e){}location.assign('ai-chat.html');return}const pages={dashboard:'dashboard',home:'dashboard',transaction:'transactions',transactions:'transactions',invest:'invest',investment:'invest',accounts:'accounts-page',account:'accounts-page',setting:'settings',settings:'settings',feedback:'settings',exchange:'exchange',currency:'exchange',analyze:'cashflow-analyze','cash flow':'cashflow-analyze',budget:'budget',预算:'budget',goal:'goals',goals:'goals',目标:'goals',recurring:'recurring',repeat:'recurring',subscription:'recurring',周期:'recurring',固定:'recurring',report:'reports',reports:'reports',monthly:'reports',月报:'reports',报告:'reports'};const found=Object.keys(pages).find(k=>key.includes(k));if(found){setPage(pages[found]);if(pages[found]==='settings'&&key.includes('feedback'))setTimeout(()=>document.querySelector('#settings .fb-nav')?.click(),180);return}setPage('transactions');setTimeout(()=>{const tx=$('txSearch');if(tx){tx.value=q;tx.dispatchEvent(new Event('input',{bubbles:true}));tx.focus();}},160)};
  search.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();runSearch()}if(e.key==='Escape')search.value=''});
  window.addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();search.focus();search.select()}});
- let lastTopDateV1511='',topDateTimerV1522=0;function clock(){const d=new Date();const el=$('mmhTopDateV500');if(!el)return;const next=d.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric',year:'numeric'});if(next!==lastTopDateV1511){lastTopDateV1511=next;el.textContent=next;}}function stopTopDateTimerV1522(){if(topDateTimerV1522){clearTimeout(topDateTimerV1522);topDateTimerV1522=0}}function scheduleTopDateV1522(){stopTopDateTimerV1522();if(document.hidden)return;const now=new Date(),next=new Date(now);next.setHours(24,0,1,0);topDateTimerV1522=setTimeout(()=>{topDateTimerV1522=0;clock();scheduleTopDateV1522()},Math.max(1000,next.getTime()-now.getTime()))}clock();scheduleTopDateV1522();document.addEventListener('visibilitychange',()=>{if(document.hidden)stopTopDateTimerV1522();else{clock();scheduleTopDateV1522()}},{passive:true});window.addEventListener('pagehide',stopTopDateTimerV1522,{passive:true});
+ let lastTopDateV1511='',topDateTimerV1522=0;function clock(){const d=new Date();const el=$('mmhTopDateV500');if(!el)return;const next=d.toLocaleDateString((localStorage.getItem('mmhvault_language_v3363')==='zh'?'zh-CN':'en-US'),{weekday:'short',month:'short',day:'numeric',year:'numeric'});if(next!==lastTopDateV1511){lastTopDateV1511=next;el.textContent=next;}}function stopTopDateTimerV1522(){if(topDateTimerV1522){clearTimeout(topDateTimerV1522);topDateTimerV1522=0}}function scheduleTopDateV1522(){stopTopDateTimerV1522();if(document.hidden)return;const now=new Date(),next=new Date(now);next.setHours(24,0,1,0);topDateTimerV1522=setTimeout(()=>{topDateTimerV1522=0;clock();scheduleTopDateV1522()},Math.max(1000,next.getTime()-now.getTime()))}clock();scheduleTopDateV1522();document.addEventListener('visibilitychange',()=>{if(document.hidden)stopTopDateTimerV1522();else{clock();scheduleTopDateV1522()}},{passive:true});window.addEventListener('pagehide',stopTopDateTimerV1522,{passive:true});
 }
 function ensureDashboardHost(){
  let host=$('mmhPremiumDashboardV500');if(host)return host;const dash=$('dashboard');if(!dash)return null;host=document.createElement('div');host.id='mmhPremiumDashboardV500';dash.prepend(host);return host;
@@ -27950,13 +28271,13 @@ function dailyUSD(key){
 }
 function monthSeries(currentTotal,count){
  const out=[];const d=new Date();d.setDate(1);
- for(let i=count-1;i>=0;i--){const x=new Date(d.getFullYear(),d.getMonth()-i,1),key=monthKey(x),t=monthlyUSD(key);out.push({key,label:x.toLocaleDateString(undefined,{month:'short'}),flow:N(t.saved)})}
+ for(let i=count-1;i>=0;i--){const x=new Date(d.getFullYear(),d.getMonth()-i,1),key=monthKey(x),t=monthlyUSD(key);out.push({key,label:x.toLocaleDateString((localStorage.getItem('mmhvault_language_v3363')==='zh'?'zh-CN':'en-US'),{month:'short'}),flow:N(t.saved)})}
  let value=N(currentTotal);for(let i=out.length-1;i>=0;i--){out[i].value=value;if(i>0)value-=out[i].flow;}
  return out;
 }
 function weekSeries(currentTotal){
  const out=[];const today=new Date();today.setHours(12,0,0,0);
- for(let i=6;i>=0;i--){const x=new Date(today);x.setDate(today.getDate()-i);const key=dayKey(x),t=dailyUSD(key);out.push({key,label:x.toLocaleDateString(undefined,{month:'numeric',day:'numeric'}),flow:N(t.saved)})}
+ for(let i=6;i>=0;i--){const x=new Date(today);x.setDate(today.getDate()-i);const key=dayKey(x),t=dailyUSD(key);out.push({key,label:x.toLocaleDateString((localStorage.getItem('mmhvault_language_v3363')==='zh'?'zh-CN':'en-US'),{month:'numeric',day:'numeric'}),flow:N(t.saved)})}
  let value=N(currentTotal);for(let i=out.length-1;i>=0;i--){out[i].value=value;if(i>0)value-=out[i].flow;}
  return out;
 }
@@ -27965,7 +28286,7 @@ function allSeries(currentTotal){
  const dates=rows.map(t=>String(t.tx_date||'').slice(0,7)).filter(x=>/^\d{4}-\d{2}$/.test(x)).sort();
  if(!dates.length)return monthSeries(currentTotal,6);
  const [sy,sm]=dates[0].split('-').map(Number),now=new Date(),start=new Date(sy,sm-1,1),end=new Date(now.getFullYear(),now.getMonth(),1),months=Math.max(1,(end.getFullYear()-start.getFullYear())*12+(end.getMonth()-start.getMonth())+1),out=[];
- for(let i=0;i<months;i++){const x=new Date(start.getFullYear(),start.getMonth()+i,1),key=monthKey(x),t=monthlyUSD(key);out.push({key,label:x.toLocaleDateString(undefined,{month:'short',year:months>18?'2-digit':undefined}),flow:N(t.saved)})}
+ for(let i=0;i<months;i++){const x=new Date(start.getFullYear(),start.getMonth()+i,1),key=monthKey(x),t=monthlyUSD(key);out.push({key,label:x.toLocaleDateString((localStorage.getItem('mmhvault_language_v3363')==='zh'?'zh-CN':'en-US'),{month:'short',year:months>18?'2-digit':undefined}),flow:N(t.saved)})}
  let value=N(currentTotal);for(let i=out.length-1;i>=0;i--){out[i].value=value;if(i>0)value-=out[i].flow;}
  return out;
 }
@@ -28080,7 +28401,7 @@ function updateMarketPanelOnlyV157(){
 function render(force=false){
  if(!pageActive())return;const host=ensureDashboardHost();if(!host)return;const sig=fullSignatureV720();if(!force&&host.childElementCount&&sig===lastFullSignatureV720){updateMarketOnlyV720();return;}lastFullSignatureV720=sig;const d=financeData(),pt=personalTimeData(),series=trendSeries(d.total,trendRange),latest=series.at(-1)?.value||0,first=series.at(0)?.value||0,trend=first?((latest-first)/Math.abs(first))*100:0,total=d.total||1,cashPct=d.cash/total*100,investPct=d.invest/total*100,recvPct=Math.max(0,100-cashPct-investPct),pnlCls=d.pl>=0?'pos':'neg';
  host.innerHTML=`
- <section class="pf-hero-v500"><div class="pf-hero-copy-v500"><div class="pf-eyebrow-v500">MMHVAULT · FINANCIAL OVERVIEW</div><h1>${lang()?'欢迎回来':'Welcome back'}, <span class="pf-name-v500">${esc(name())}</span></h1><div class="pf-hero-sub-v500">${lang()?'这是您当前的财务概览。继续稳步建立自己的财富系统。':'Here’s your financial overview. Keep building your wealth system.'}</div></div><div class="pf-hero-meta-v670"><div class="pf-hero-date-v500 pf-hero-age-v670"><span class="pf-age-label-v670">You Age:</span> ${esc(pt.age)}</div><div class="pf-hero-date-v500">${new Date().toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric',year:'numeric'})}</div></div></section>
+ <section class="pf-hero-v500"><div class="pf-hero-copy-v500"><div class="pf-eyebrow-v500">MMHVAULT · FINANCIAL OVERVIEW</div><h1>${lang()?'欢迎回来':'Welcome back'}, <span class="pf-name-v500">${esc(name())}</span></h1><div class="pf-hero-sub-v500">${lang()?'这是您当前的财务概览。继续稳步建立自己的财富系统。':'Here’s your financial overview. Keep building your wealth system.'}</div></div><div class="pf-hero-meta-v670"><div class="pf-hero-date-v500 pf-hero-age-v670"><span class="pf-age-label-v670">You Age:</span> ${esc(pt.age)}</div><div class="pf-hero-date-v500">${new Date().toLocaleDateString((localStorage.getItem('mmhvault_language_v3363')==='zh'?'zh-CN':'en-US'),{weekday:'short',month:'short',day:'numeric',year:'numeric'})}</div></div></section>
  <section class="pf-kpis-v500">
    <article class="pf-kpi-v500 gold"><span class="pf-kpi-label-v500">Total Balance</span><div class="pf-kpi-value-v500">${money(d.total)}</div><div class="pf-kpi-meta-v500"><span class="pos">LIVE</span><span>Cash + investments + receivable</span></div><i class="pf-kpi-icon-v500">◉</i></article>
    <article class="pf-kpi-v500"><span class="pf-kpi-label-v500">Cash Flow · This Month</span><div class="pf-kpi-value-v500">${money(d.cashFlow)}</div><div class="pf-kpi-meta-v500"><span class="${d.flowChange==null||d.flowChange>=0?'pos':'neg'}">${d.flowChange==null?'—':pct(d.flowChange)}</span><span>vs. last month</span></div><i class="pf-kpi-icon-v500">↗</i></article>
@@ -29571,7 +29892,7 @@ html body.mmh-workspace-active main.wrap .page.active :is(.empty,.mmh-ui-empty,.
   const todayKey=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};
   const dayNum=s=>{const m=String(s||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?Date.UTC(+m[1],+m[2]-1,+m[3])/86400000:NaN};
   const dayDelta=s=>Math.round(dayNum(s)-dayNum(todayKey()));
-  const fmtDate=s=>{const m=String(s||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);if(!m)return '—';try{return new Date(+m[1],+m[2]-1,+m[3]).toLocaleDateString(undefined,{month:'short',day:'numeric'})}catch(_){return s}};
+  const fmtDate=s=>{const m=String(s||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);if(!m)return '—';try{return new Date(+m[1],+m[2]-1,+m[3]).toLocaleDateString((localStorage.getItem('mmhvault_language_v3363')==='zh'?'zh-CN':'en-US'),{month:'short',day:'numeric'})}catch(_){return s}};
   const progress=g=>num(g.target_amount)>0?Math.max(0,Math.min(100,num(g.current_amount)/num(g.target_amount)*100)):0;
   function dueLabel(s){
     const d=dayDelta(s);
@@ -29687,7 +30008,7 @@ html body.mmh-workspace-active main.wrap .page.active :is(.empty,.mmh-ui-empty,.
   const $=id=>document.getElementById(id);
   const sleep=ms=>new Promise(r=>setTimeout(r,ms));
   let exportBusy=false;
-  function monthLabel(){const v=$('reportMonthV115')?.value||new Date().toISOString().slice(0,7);try{const [y,m]=v.split('-').map(Number);return new Date(y,m-1,1).toLocaleDateString(undefined,{year:'numeric',month:'long'})}catch(_){return v}}
+  function monthLabel(){const v=$('reportMonthV115')?.value||new Date().toISOString().slice(0,7);try{const [y,m]=v.split('-').map(Number);return new Date(y,m-1,1).toLocaleDateString((localStorage.getItem('mmhvault_language_v3363')==='zh'?'zh-CN':'en-US'),{year:'numeric',month:'long'})}catch(_){return v}}
   function currency(){return $('reportCurrencyV115')?.value||'USD'}
   function fileMonth(){return ($('reportMonthV115')?.value||new Date().toISOString().slice(0,7)).replace(/[^0-9-]/g,'')}
   function generatedLabel(){try{return new Date().toLocaleString()}catch(_){return new Date().toISOString()}}
