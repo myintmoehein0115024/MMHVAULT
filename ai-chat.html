@@ -74,7 +74,7 @@ html,body{max-width:100%;overflow-x:hidden}.shell,.wrap,.hero,.layout,.chat,.pro
 .chat{
   width:100%;min-width:0;min-height:620px;
   display:grid!important;
-  grid-template-rows:auto auto minmax(320px,1fr) auto auto!important;
+  grid-template-rows:auto minmax(320px,1fr) auto auto!important;
   overflow:hidden
 }
 .guidebar{padding:13px 14px 12px;border-bottom:1px solid rgba(91,151,196,.12);background:linear-gradient(180deg,rgba(7,30,47,.64),rgba(4,19,32,.38))}
@@ -124,6 +124,21 @@ html,body{max-width:100%;overflow-x:hidden}.shell,.wrap,.hero,.layout,.chat,.pro
   .guidebar-head small{font-size:8px}
 }
 
+
+/* MMHVAULT AI 1.12.26 · persistent App Guide inside conversation frame */
+.thread>#appGuide{
+  position:sticky;top:0;z-index:3;
+  margin:-2px -2px 14px;
+  border:1px solid rgba(91,151,196,.14);
+  border-radius:14px;
+  background:linear-gradient(180deg,rgba(8,31,49,.98),rgba(5,21,35,.97));
+  box-shadow:0 8px 22px rgba(0,0,0,.14)
+}
+#messageList{min-width:0}
+@media(max-width:700px){
+  .thread>#appGuide{margin:0 0 12px;top:0}
+}
+
 </style>
 </head>
 <body>
@@ -137,7 +152,8 @@ html,body{max-width:100%;overflow-x:hidden}.shell,.wrap,.hero,.layout,.chat,.pro
   <section class="metrics" id="metrics" aria-live="polite"></section>
   <section class="layout">
     <section class="chat">
-      <div class="guidebar" id="appGuide">
+      <div class="chathead"><div><b data-en="Private finance chat" data-zh="私人财务对话">Private finance chat</b><small id="mode" data-en="Checking your signed-in account…" data-zh="正在检查当前登录账号……">Checking your signed-in account…</small></div><div class="chattools"><button id="refreshData" type="button" data-en="Refresh data" data-zh="刷新数据">Refresh data</button><button id="clear" type="button" data-en="Clear chat" data-zh="清空对话">Clear chat</button></div></div><div class="thread" id="thread" role="log" aria-live="polite">
+        <div class="guidebar" id="appGuide">
         <div class="guidebar-head">
           <div><b data-en="MMHVAULT App Guide" data-zh="MMHVAULT 新用户指南">MMHVAULT App Guide</b><small data-en="Tap a page or type any app question below" data-zh="点击页面查看功能，也可以直接在下面输入任何 APP 问题">Tap a page or type any app question below</small></div>
           <span class="guidebar-badge" data-en="Read-only help" data-zh="只读帮助">Read-only help</span>
@@ -154,7 +170,9 @@ html,body{max-width:100%;overflow-x:hidden}.shell,.wrap,.hero,.layout,.chat,.pro
           <button class="prompt guide-prompt" type="button" data-prompt-en="Explain Settings, Backup and Restore: what should I configure, what Backup contains, and why Restore uses a preview before import." data-prompt-zh="请介绍 Settings、Backup 和 Restore：应该设置哪些内容？Backup 包含什么？为什么 Restore 导入前必须先 Preview？"><span>⚙</span><b data-en="Settings & Backup" data-zh="设置与备份">Settings & Backup</b></button>
           <button class="prompt guide-prompt" type="button" data-prompt-en="Explain this AI Financial Assistant: what it can answer about the app and my finances, what Local AI means, and what it is not allowed to change." data-prompt-zh="请介绍 AI Financial Assistant：它能回答哪些 APP 和财务问题？Local AI 是什么意思？哪些事情它绝对不能修改？"><span>AI</span><b data-en="AI Assistant" data-zh="AI 助手">AI Assistant</b></button>
         </div>
-      </div><div class="chathead"><div><b data-en="Private finance chat" data-zh="私人财务对话">Private finance chat</b><small id="mode" data-en="Checking your signed-in account…" data-zh="正在检查当前登录账号……">Checking your signed-in account…</small></div><div class="chattools"><button id="refreshData" type="button" data-en="Refresh data" data-zh="刷新数据">Refresh data</button><button id="clear" type="button" data-en="Clear chat" data-zh="清空对话">Clear chat</button></div></div><div class="thread" id="thread" role="log" aria-live="polite"></div><div class="compose"><textarea id="input" rows="2" maxlength="1600" data-en-placeholder="Ask about MMHVAULT features, pages, spending, assets or planning…" data-zh-placeholder="可以问 MMHVAULT 页面怎么用，也可以问开销、资产和规划……" placeholder="Ask about MMHVAULT features, pages, spending, assets or planning…"></textarea><button class="send" id="send" type="button" data-en="Send ↑" data-zh="发送 ↑">Send ↑</button></div><div class="foot" data-en="Read-only · App Guide + current-account finance Q&A · local WebGPU · no paid AI API · chat is not stored by this page · Enter sends, Shift+Enter adds a line" data-zh="只读 · APP 指南 + 当前账号财务问答 · 本地 WebGPU · 无付费 AI API · 本页面不保存聊天记录 · Enter 发送，Shift+Enter 换行">Read-only · App Guide + current-account finance Q&A · local WebGPU · no paid AI API · chat is not stored by this page · Enter sends, Shift+Enter adds a line</div></section>
+      </div>
+        <div id="messageList"></div>
+      </div><div class="compose"><textarea id="input" rows="2" maxlength="1600" data-en-placeholder="Ask about MMHVAULT features, pages, spending, assets or planning…" data-zh-placeholder="可以问 MMHVAULT 页面怎么用，也可以问开销、资产和规划……" placeholder="Ask about MMHVAULT features, pages, spending, assets or planning…"></textarea><button class="send" id="send" type="button" data-en="Send ↑" data-zh="发送 ↑">Send ↑</button></div><div class="foot" data-en="Read-only · App Guide + current-account finance Q&A · local WebGPU · no paid AI API · chat is not stored by this page · Enter sends, Shift+Enter adds a line" data-zh="只读 · APP 指南 + 当前账号财务问答 · 本地 WebGPU · 无付费 AI API · 本页面不保存聊天记录 · Enter 发送，Shift+Enter 换行">Read-only · App Guide + current-account finance Q&A · local WebGPU · no paid AI API · chat is not stored by this page · Enter sends, Shift+Enter adds a line</div></section>
   </section>
 </main>
 </div>
@@ -292,8 +310,38 @@ async function ensureCurrentScope(){
 function renderMetrics(){const box=$('metrics');if(!box)return;if(!state.data){box.innerHTML=`<article class="metric"><span>${T('Status','状态')}</span><strong>—</strong><small>${T('Sign in required','需要登录')}</small></article>`;return}const f=financeFacts(),m=f.current_month,p=f.previous_month,delta=p.expense?((m.expense-p.expense)/p.expense*100):null,canon=state.canonical,net=canon?N(canon.account_net_assets_usd):null,count=canon&&Number.isFinite(Number(canon.active_account_count))?N(canon.active_account_count):f.accounts.length;box.innerHTML=`<article class="metric"><span>${T('Income · this month','本月收入')}</span><strong>${usd(m.income)}</strong><small>${T('Ordinary income only','仅正常收入')}</small></article><article class="metric"><span>${T('Spending · this month','本月开销')}</span><strong>${usd(m.expense)}</strong><small>${delta===null?T('No prior-month baseline','上月无可比基线'):(delta>=0?'+':'')+pct(delta)+' '+T('vs last month','对比上月')}</small></article><article class="metric"><span>${T('Savings rate','储蓄率')}</span><strong>${pct(m.savings_rate)}</strong><small>${usd(m.remaining)} ${T('remaining','剩余')}</small></article><article class="metric"><span>${T('Account net assets','账户净资产')}</span><strong>${canon?usd(net):'—'}</strong><small>${canon?T(`${count} accounts · synced from MMHVAULT`,`${count} 个账户 · 与 MMHVAULT 同步`):T('Open AI from MMHVAULT to sync exact total','请从 MMHVAULT 内进入 AI 以同步精确总额')}</small></article>`}
 function setMode(t,error=false){const el=$('mode');if(el){el.textContent=t;el.classList.toggle('status-error',!!error)}}
 function addMessage(role,text,mode=''){state.messages.push({role,text:String(text||''),mode});if(state.messages.length>24)state.messages=state.messages.slice(-24);renderThread()}
-function renderThread(){const el=$('thread');if(!el)return;el.replaceChildren();if(!state.messages.length){const row=document.createElement('div');row.className='msg assistant';const b=document.createElement('div');b.className='bubble';b.textContent=state.data?T('Ask about MMHVAULT pages or your verified current-account finances. Built-in App Guide answers common product questions immediately; Local AI handles broader explanations. I am read-only.','可以询问 MMHVAULT 各页面怎么用，也可以询问当前已验证账号的财务情况。内置 APP 指南会直接回答常见功能问题，更开放的问题再交给本地 AI；全程只读。'):T('Open MMHVAULT and sign in first, then return here.','请先在 MMHVAULT 登录，然后返回这里。');row.append(b);el.append(row)}else for(const m of state.messages){const row=document.createElement('div');row.className='msg '+m.role;const b=document.createElement('div');b.className='bubble';b.textContent=m.text;if(m.role==='assistant'&&m.mode){const meta=document.createElement('small');meta.className='meta';meta.textContent=m.mode;b.append(meta)}row.append(b);el.append(row)}requestAnimationFrame(()=>el.scrollTop=el.scrollHeight)}
-function typing(on){const el=$('thread');el?.querySelector('[data-typing]')?.remove();if(!on||!el)return;const row=document.createElement('div');row.className='msg assistant';row.dataset.typing='1';row.innerHTML='<div class="bubble"><span class="typing"><i></i><i></i><i></i></span></div>';el.append(row);el.scrollTop=el.scrollHeight}
+function renderThread(){
+  const el=$('thread'),list=$('messageList');if(!el||!list)return;
+  list.replaceChildren();
+  if(!state.messages.length){
+    const row=document.createElement('div');row.className='msg assistant';
+    const b=document.createElement('div');b.className='bubble';
+    b.textContent=state.data?T(
+      'Ask about MMHVAULT pages or your verified current-account finances. The App Guide above stays available even after chat refresh or Clear chat. Local AI handles broader explanations. I am read-only.',
+      '可以询问 MMHVAULT 各页面怎么用，也可以询问当前已验证账号的财务情况。上方 APP 指南会一直保留，即使刷新页面或清空聊天也不会消失；更开放的问题再交给本地 AI。全程只读。'
+    ):T('Open MMHVAULT and sign in first, then return here.','请先在 MMHVAULT 登录，然后返回这里。');
+    row.append(b);list.append(row)
+  }else{
+    for(const m of state.messages){
+      const row=document.createElement('div');row.className='msg '+m.role;
+      const b=document.createElement('div');b.className='bubble';b.textContent=m.text;
+      if(m.role==='assistant'&&m.mode){
+        const meta=document.createElement('small');meta.className='meta';meta.textContent=m.mode;b.append(meta)
+      }
+      row.append(b);list.append(row)
+    }
+  }
+  requestAnimationFrame(()=>el.scrollTop=el.scrollHeight)
+}
+function typing(on){
+  const el=$('thread'),list=$('messageList');
+  el?.querySelector('[data-typing]')?.remove();
+  if(!on||!el||!list)return;
+  const row=document.createElement('div');row.className='msg assistant';row.dataset.typing='1';
+  row.innerHTML='<div class="bubble"><span class="typing"><i></i><i></i><i></i></span></div>';
+  list.append(row);el.scrollTop=el.scrollHeight
+}
+
 
 function questionLang(q){return /[\u3400-\u9fff]/.test(String(q||''))?'zh':lang()}
 function trimText(v,max=500){const s=String(v??'').trim();return s.length>max?s.slice(0,max)+'…':s}
