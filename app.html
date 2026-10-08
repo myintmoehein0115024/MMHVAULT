@@ -26293,11 +26293,13 @@ function buildBeginnerGuideV1217(){
     ['backup','Backup & restore','Create a backup after setup. Restore always shows a preview before official import.','data','Open Backup']
   ];
   const owner=()=>currentSessionUser?.id||'guest';
-  const key=()=>`mmhvault_beginner_guide_v1217_${owner()}`;
-  const read=()=>{try{const v=JSON.parse(localStorage.getItem(key())||'[]');return new Set(Array.isArray(v)?v:[])}catch(_e){return new Set()}};
-  let done=read();
-  function saveGuide(){try{localStorage.setItem(key(),JSON.stringify([...done]))}catch(_e){}}
+  const key=o=>`mmhvault_beginner_guide_v1218_${o||'guest'}`;
+  const read=o=>{try{const v=JSON.parse(localStorage.getItem(key(o))||'[]');return new Set(Array.isArray(v)?v:[])}catch(_e){return new Set()}};
+  let loadedOwner='',done=new Set();
+  function syncOwner(){const next=owner();if(next!==loadedOwner){loadedOwner=next;done=read(next)}}
+  function saveGuide(){syncOwner();try{localStorage.setItem(key(loadedOwner),JSON.stringify([...done]))}catch(_e){}}
   function renderProgress(){
+    syncOwner();
     const count=steps.filter(x=>done.has(x[0])).length;
     const bar=$('stGuideProgressBarV1217'),label=$('stGuideProgressTextV1217');
     if(bar)bar.style.width=`${Math.round(count/steps.length*100)}%`;
@@ -26325,6 +26327,8 @@ function buildBeginnerGuideV1217(){
     actions.append(open,toggle);card.append(index,copy,actions);list.append(card);
   }
   const note=document.createElement('p');note.className='st-guide-note';note.textContent='Guide completion is a local preference only. It does not modify transactions, accounts, investments, budgets, goals, recurring records or cloud data.';shell.append(note);
+  window.addEventListener('mmhvault:config-owner-changed',renderProgress);
+  window.addEventListener('mmhvault:data-loaded',renderProgress);
   setTimeout(renderProgress,0);
   return shell;
 }
