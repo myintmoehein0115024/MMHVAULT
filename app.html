@@ -26275,6 +26275,60 @@ function save(){lsSet(prefKey(),JSON.stringify(prefs));apply();window.mmhvaultFo
 function row(icon,label,id,options,value){const l=document.createElement('label');l.className='st-row';const i=document.createElement('span');i.className='st-icon';i.textContent=icon;const t=document.createElement('span');t.textContent=label;const input=document.createElement(options?'select':'input');input.id=id;if(options){for(const [v,title] of options){const o=document.createElement('option');o.value=v;o.textContent=title;input.append(o)}input.value=value}else{input.type='checkbox';input.checked=!!value}l.append(i,t,input);return l;}
 function group(title){const g=document.createElement('section');g.className='st-group';const h=document.createElement('h2');h.textContent=title;const r=document.createElement('div');r.className='st-rows';g.append(h,r);$('stPreferences').append(g);return r;}
 function add(r,icon,label,name,options){const id='stPref_'+name;r.append(row(icon,label,id,options,prefs[name]));$(id).addEventListener('change',e=>{prefs[name]=options?e.target.value:e.target.checked;save();if(name==='currency'&&$('cfaCurrency')){$('cfaCurrency').value=prefs.currency;$('cfaCurrency').dispatchEvent(new Event('change',{bubbles:true}))}});}
+
+function buildBeginnerGuideV1217(){
+  const shell=document.createElement('div');shell.className='st-guide-shell';
+  const hero=document.createElement('section');hero.className='st-guide-hero';
+  hero.innerHTML='<h3>MMHVAULT Beginner Guide</h3><p>Finish these steps in order to set up the app safely. The checklist is stored only on this device and never changes your financial records.</p><div class="st-guide-progress"><div class="st-guide-progress-track"><div class="st-guide-progress-bar" id="stGuideProgressBarV1217"></div></div><span class="st-guide-progress-text" id="stGuideProgressTextV1217">0 / 8</span></div>';
+  shell.append(hero);
+  const list=document.createElement('div');list.className='st-guide-list';shell.append(list);
+  const steps=[
+    ['dashboard','Dashboard','Review net assets, income, expenses and your current financial snapshot.','dashboard','Open Dashboard'],
+    ['transaction','Add transactions','Record income and expenses first. Transfers stay separate from spending.','transactions','Open Transactions'],
+    ['accounts','Accounts & exchange rates','Confirm cash accounts, wallet balances and saved exchange rates before relying on converted totals.','accounts-page','Open Accounts'],
+    ['budget','Budget','Set monthly or category budgets so Notification 2.0 can warn you at useful thresholds.','budget','Open Budget'],
+    ['goals','Goals & recurring','Add savings goals and recurring items so upcoming obligations are visible.','goals','Open Goals'],
+    ['notifications','Notifications','Use the bell → Device check to confirm background alerts on this device.','notifications','Open Notifications'],
+    ['ai','AI Financial Assistant','Use the read-only assistant to ask about your MMHVAULT data. It cannot edit finance records.','ai','Open AI Chat'],
+    ['backup','Backup & restore','Create a backup after setup. Restore always shows a preview before official import.','data','Open Backup']
+  ];
+  const owner=()=>currentSessionUser?.id||'guest';
+  const key=()=>`mmhvault_beginner_guide_v1217_${owner()}`;
+  const read=()=>{try{const v=JSON.parse(localStorage.getItem(key())||'[]');return new Set(Array.isArray(v)?v:[])}catch(_e){return new Set()}};
+  let done=read();
+  function saveGuide(){try{localStorage.setItem(key(),JSON.stringify([...done]))}catch(_e){}}
+  function renderProgress(){
+    const count=steps.filter(x=>done.has(x[0])).length;
+    const bar=$('stGuideProgressBarV1217'),label=$('stGuideProgressTextV1217');
+    if(bar)bar.style.width=`${Math.round(count/steps.length*100)}%`;
+    if(label)label.textContent=`${count} / ${steps.length}`;
+    list.querySelectorAll('.st-guide-step').forEach(card=>{
+      const yes=done.has(card.dataset.step);card.classList.toggle('done',yes);
+      const toggle=card.querySelector('.st-guide-done');if(toggle){toggle.setAttribute('aria-pressed',String(yes));toggle.textContent=yes?'✓':'○'}
+    });
+  }
+  function openTarget(target,button){
+    if(target==='ai'){location.href='ai-chat.html';return}
+    if(target==='notifications'){setPage('dashboard');setTimeout(()=>$('mmhTopBellV500')?.click(),120);return}
+    if(target==='data'){window.mmhOpenSettingsSectionV3?.('data',button);return}
+    setPage(target);
+  }
+  for(let i=0;i<steps.length;i++){
+    const [id,title,desc,target,action]=steps[i];
+    const card=document.createElement('article');card.className='st-guide-step';card.dataset.step=id;
+    const index=document.createElement('div');index.className='st-guide-index';index.textContent=String(i+1).padStart(2,'0');
+    const copy=document.createElement('div');copy.className='st-guide-copy';
+    const strong=document.createElement('b');strong.textContent=title;const span=document.createElement('span');span.textContent=desc;copy.append(strong,span);
+    const actions=document.createElement('div');actions.className='st-guide-actions';
+    const open=document.createElement('button');open.type='button';open.className='st-guide-action';open.textContent=action;open.addEventListener('click',()=>openTarget(target,open));
+    const toggle=document.createElement('button');toggle.type='button';toggle.className='st-guide-done';toggle.setAttribute('aria-label','Mark '+title+' complete');toggle.addEventListener('click',()=>{done.has(id)?done.delete(id):done.add(id);saveGuide();renderProgress()});
+    actions.append(open,toggle);card.append(index,copy,actions);list.append(card);
+  }
+  const note=document.createElement('p');note.className='st-guide-note';note.textContent='Guide completion is a local preference only. It does not modify transactions, accounts, investments, budgets, goals, recurring records or cloud data.';shell.append(note);
+  setTimeout(renderProgress,0);
+  return shell;
+}
+
 function disclosure(title,source){const d=document.createElement('details');d.className='st-detail';const su=document.createElement('summary');su.textContent=title;const arrow=document.createElement('span');arrow.textContent='›';su.append(arrow);d.append(su);if(source)d.append(source);return d;}
 function stats(){const days=[...new Set(transactions.map(t=>String(t.tx_date||'').slice(0,10)).filter(d=>/^\d{4}-\d{2}-\d{2}$/.test(d)))];const set=new Set(days);let streak=0;const d=new Date();const local=()=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;if(!set.has(local()))d.setDate(d.getDate()-1);while(set.has(local())){streak++;d.setDate(d.getDate()-1)};[$('stStreak'),$('stDays'),$('stCount')].forEach((e,i)=>{if(e)e.textContent=[streak,days.length,transactions.length][i]});}
 function txKey(){return 'mmhvault_transaction_defaults_v2_'+(currentSessionUser?.id||'guest')}
@@ -26304,6 +26358,7 @@ function register(id,title,icon,content,host=menu){const page=document.createEle
 const button=document.createElement('button');button.type='button';button.className='st-nav';button.setAttribute('aria-controls',page.id);const glyph=document.createElement('span');glyph.className='st-icon';glyph.textContent=icon;glyph.setAttribute('aria-hidden','true');const label=document.createElement('span');label.className='st-nav-name';label.textContent=title;const arrow=document.createElement('span');arrow.className='st-chevron';arrow.textContent='›';arrow.setAttribute('aria-hidden','true');button.append(glyph,label,arrow);button.addEventListener('click',()=>go(id,button));host.append(button);return button;}
 for(const [i,g] of [...main.querySelectorAll('.st-group')].entries()){const title=g.querySelector('h2').textContent;register(['appearance','general','transactions'][i],title,['◐','⚙','⇄'][i],g);}main.remove();
 const editor=top.querySelector('.settings-profile-editor');const form=$('mmhProfileFormV1');const profileButton=register('profile','Edit profile','◉',form,top.querySelector('.account-center-card-v375'));profileButton.classList.add('st-profile-link');editor.remove();
+const guideButtonV1217=register('guide','Beginner Guide','? ',buildBeginnerGuideV1217());menu.prepend(guideButtonV1217);
 for(const [i,d] of [...root.querySelectorAll('.st-detail')].sort((a,b)=>['Password & devices','Personal time','App icon','Data & backup'].indexOf(a.querySelector('summary').firstChild.textContent)-['Password & devices','Personal time','App icon','Data & backup'].indexOf(b.querySelector('summary').firstChild.textContent)).entries()){const title=d.querySelector('summary').firstChild.textContent;const content=document.createElement('div');for(const node of [...d.childNodes])if(node.nodeName!=='SUMMARY')content.append(node);const kind={'Password & devices':['security','⌑'],'Personal time':['personal','◷'],'App icon':['icon','▣'],'Data & backup':['data','⇩']}[title];register(kind[0],title,kind[1],content);d.remove();}
 window.mmhOpenSettingsSectionV3=go;
 root.addEventListener('keydown',e=>{if(e.key==='Escape'&&root.classList.contains('st-in-subpage')){e.preventDefault();back()}});
@@ -26314,6 +26369,39 @@ root.addEventListener('click',stats);root.addEventListener('focusin',e=>{if(e.ta
 media.addEventListener('change',()=>{if(prefs.theme==='system')apply()});if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
 </script>
+
+<style id="mmhvault-beginner-guide-v1217-style">
+#settings .st-guide-shell{display:grid;gap:14px}
+#settings .st-guide-hero{padding:18px;border:1px solid var(--st-border);border-radius:16px;background:linear-gradient(145deg,rgba(16,39,64,.95),rgba(8,22,39,.96))}
+#settings .st-guide-hero h3{margin:0 0 7px;font-size:18px;color:#e6f3fb}
+#settings .st-guide-hero p{margin:0;color:var(--st-muted);font-size:12px;line-height:1.65}
+#settings .st-guide-progress{display:flex;align-items:center;gap:10px;margin-top:14px}
+#settings .st-guide-progress-track{height:7px;flex:1;border-radius:999px;background:rgba(127,167,202,.12);overflow:hidden}
+#settings .st-guide-progress-bar{height:100%;width:0;background:linear-gradient(90deg,#65bfe8,#8bd9c5);border-radius:inherit;transition:width .2s ease}
+#settings .st-guide-progress-text{font-size:11px;color:var(--st-muted);white-space:nowrap}
+#settings .st-guide-list{display:grid;gap:9px}
+#settings .st-guide-step{display:grid;grid-template-columns:38px minmax(0,1fr) auto;gap:11px;align-items:center;padding:13px;border:1px solid var(--st-border);border-radius:14px;background:var(--st-bg)}
+#settings .st-guide-step.done{border-color:rgba(87,201,160,.25);background:linear-gradient(145deg,rgba(21,64,57,.20),var(--st-bg))}
+#settings .st-guide-index{width:36px;height:36px;border-radius:11px;display:grid;place-items:center;background:rgba(91,180,223,.1);color:var(--st-gold);font-size:12px;font-weight:800}
+#settings .st-guide-step.done .st-guide-index{background:rgba(77,191,148,.14);color:#79d5ae}
+#settings .st-guide-copy{min-width:0}
+#settings .st-guide-copy b{display:block;font-size:13px;color:#e0edf7;margin-bottom:4px}
+#settings .st-guide-copy span{display:block;font-size:11px;line-height:1.5;color:var(--st-muted)}
+#settings .st-guide-actions{display:flex;gap:6px;align-items:center}
+#settings .st-guide-action,#settings .st-guide-done{min-height:34px;border-radius:9px;border:1px solid rgba(101,174,219,.23);background:rgba(53,117,157,.12);color:#bfe5f7;padding:7px 9px;font:inherit;font-size:10px;font-weight:700;cursor:pointer}
+#settings .st-guide-done{width:34px;padding:0;font-size:14px}
+#settings .st-guide-done[aria-pressed="true"]{border-color:rgba(83,200,156,.30);background:rgba(61,154,121,.16);color:#8de0bc}
+#settings .st-guide-note{font-size:10px;line-height:1.55;color:var(--st-muted);padding:2px 4px 0}
+body.light #settings .st-guide-hero{background:linear-gradient(145deg,#f6fbfe,#eef6fb)}
+body.light #settings .st-guide-hero h3,body.light #settings .st-guide-copy b{color:#1d4058}
+@media(max-width:600px){
+  #settings .st-guide-step{grid-template-columns:34px minmax(0,1fr);align-items:start}
+  #settings .st-guide-actions{grid-column:2;justify-content:flex-start}
+  #settings .st-guide-action{min-height:40px;padding:9px 12px}
+  #settings .st-guide-done{width:40px;height:40px}
+}
+</style>
+
 <style id="mmhvault-mobile-layout-v1">
 /* Keep final controls reachable above fixed navigation, including Exchange and tablets. */
 @media(max-width:900px){
