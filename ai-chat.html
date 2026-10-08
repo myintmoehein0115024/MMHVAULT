@@ -139,6 +139,208 @@ html,body{max-width:100%;overflow-x:hidden}.shell,.wrap,.hero,.layout,.chat,.pro
   .thread>#appGuide{margin:0 0 12px}
 }
 
+
+/* MMHVAULT AI 1.12.28 · conversation-first responsive template */
+.localsetup{display:none!important}
+
+/* The conversation gets its own stable viewport; long content scrolls inside it. */
+.chat{
+  height:clamp(560px,68dvh,760px)!important;
+  min-height:0!important;
+  grid-template-rows:auto minmax(0,1fr) auto auto!important
+}
+.thread{
+  min-height:0!important;
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  scroll-behavior:smooth;
+  padding:14px 14px 10px!important
+}
+
+/* Quick-start guide behaves like the first chat content, not a dashboard panel. */
+.thread>#appGuide{
+  position:relative!important;
+  margin:0 0 12px!important;
+  padding:0!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  box-shadow:none!important
+}
+.guide-intro{
+  display:flex;align-items:center;gap:9px;
+  margin:0 0 8px;padding:0 2px
+}
+.guide-ai-icon{
+  width:30px;height:30px;flex:0 0 30px;
+  display:grid;place-items:center;border-radius:9px;
+  background:linear-gradient(135deg,#0f7898,#174f78);
+  color:#fff;font-size:9px;font-weight:900;
+  box-shadow:0 0 0 4px rgba(109,200,238,.05)
+}
+.guide-intro b{display:block;font-size:11px;color:#dbeaf2}
+.guide-intro small{display:block;margin-top:2px;color:#6f92a7;font-size:8px}
+.guidegrid{
+  display:flex!important;
+  flex-wrap:wrap!important;
+  gap:7px!important;
+  overflow:visible!important
+}
+.guidegrid .prompt{
+  width:auto!important;min-width:0!important;min-height:38px!important;
+  padding:6px 10px!important;
+  display:inline-flex!important;align-items:center!important;gap:7px!important;
+  border-radius:11px!important;
+  background:rgba(12,42,64,.72)!important
+}
+.guidegrid .prompt>span{
+  width:25px!important;height:25px!important;flex:0 0 25px!important;
+  border-radius:7px!important;font-size:9px!important
+}
+.guidegrid .prompt b{
+  white-space:nowrap!important;overflow:visible!important;text-overflow:clip!important;
+  font-size:9px!important
+}
+
+/* ChatGPT-like compact composer with model/version controls integrated at the bottom. */
+.compose{
+  display:grid!important;
+  grid-template-columns:minmax(190px,260px) minmax(0,1fr)!important;
+  gap:8px!important;
+  padding:9px 10px!important;
+  border-top:1px solid rgba(91,151,196,.12)!important;
+  background:rgba(4,18,31,.92)!important;
+  align-items:stretch
+}
+.model-dock{
+  min-width:0;
+  display:grid;grid-template-rows:auto auto 3px;
+  gap:4px;padding:6px;
+  border:1px solid rgba(102,164,203,.14);
+  border-radius:12px;background:#071d2d
+}
+.model-dock-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:5px;align-items:center}
+.model-dock select,.model-action,.model-more summary,.model-more-menu button{
+  border:1px solid rgba(107,177,213,.18);
+  border-radius:9px;background:#0a2a40;color:#c9dce7;
+  min-height:34px;font:inherit;font-size:8px;font-weight:800
+}
+.model-dock select{min-width:0;width:100%;padding:5px 7px}
+.model-action{padding:5px 8px;color:#fff;background:linear-gradient(135deg,#11607d,#154766)}
+.model-more{position:relative}
+.model-more summary{
+  width:34px;display:grid;place-items:center;list-style:none;cursor:pointer
+}
+.model-more summary::-webkit-details-marker{display:none}
+.model-more-menu{
+  position:absolute;right:0;bottom:calc(100% + 7px);z-index:20;
+  width:max-content;min-width:130px;padding:5px;
+  border:1px solid rgba(102,164,203,.18);border-radius:10px;
+  background:#071b2c;box-shadow:0 14px 32px rgba(0,0,0,.28)
+}
+.model-more-menu button{width:100%;padding:7px 9px}
+.model-state-row{display:flex;align-items:center;gap:6px;min-width:0;padding:0 2px}
+.model-state-row .cache-state{
+  margin:0!important;padding:2px 6px!important;flex:0 0 auto;
+  font-size:7px!important;line-height:1.3
+}
+.model-state-row small{
+  min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  color:#68899d;font-size:7px
+}
+.model-dock .progress{
+  grid-column:auto!important;height:3px!important;margin:0!important;
+  display:block!important;opacity:.55
+}
+.model-dock .progress:not(.show) i{width:0!important}
+
+.compose-main{
+  min-width:0;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px
+}
+.compose textarea{
+  min-height:62px!important;max-height:120px!important;
+  resize:none!important;overflow-y:auto!important;
+  padding:10px 11px!important
+}
+.compose .send{min-width:76px!important}
+
+/* The old guide CSS should not force a large panel or sidebar. */
+.guidebar-head,.guidebar-badge{display:none!important}
+
+/* Mobile: keep model selection compact, then the input/send row below it. */
+@media(max-width:700px){
+  .chat{
+    height:clamp(540px,72dvh,700px)!important;
+    min-height:0!important;
+    grid-template-rows:auto minmax(0,1fr) auto auto!important
+  }
+  .thread{padding:11px 10px 8px!important}
+  .guide-intro{margin-bottom:7px}
+  .guidegrid{
+    flex-wrap:nowrap!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    padding-bottom:3px!important;
+    scrollbar-width:none;
+    scroll-snap-type:x proximity
+  }
+  .guidegrid::-webkit-scrollbar{display:none}
+  .guidegrid .prompt{
+    flex:0 0 auto!important;
+    min-width:auto!important;max-width:none!important;
+    scroll-snap-align:start
+  }
+  .guidegrid .prompt>span{width:23px!important;height:23px!important;flex-basis:23px!important}
+  .compose{
+    grid-template-columns:1fr!important;
+    gap:6px!important;
+    padding:8px!important
+  }
+  .model-dock{
+    grid-template-rows:auto 3px;
+    padding:5px 6px;gap:4px
+  }
+  .model-dock-row{
+    grid-template-columns:minmax(0,1fr) auto auto
+  }
+  .model-dock select{
+    min-height:36px!important;
+    font-size:13px!important;
+    padding:6px 7px!important
+  }
+  .model-action{
+    min-height:36px!important;
+    padding:5px 8px!important;
+    font-size:9px!important
+  }
+  .model-more summary{min-height:36px!important}
+  .model-state-row{
+    position:absolute!important;
+    width:1px;height:1px;overflow:hidden;
+    clip:rect(0 0 0 0);clip-path:inset(50%)
+  }
+  .model-dock .progress{height:3px!important}
+  .compose-main{
+    grid-template-columns:minmax(0,1fr) 64px!important;
+    gap:6px!important
+  }
+  .compose textarea{
+    min-height:54px!important;max-height:104px!important;
+    font-size:14px!important
+  }
+  .compose .send{
+    min-width:64px!important;min-height:54px!important;
+    padding:0 8px!important
+  }
+}
+@media(max-width:380px){
+  .model-dock-row{grid-template-columns:minmax(0,1fr) auto}
+  .model-more{display:none}
+  .model-action{padding-inline:7px!important}
+  .compose-main{grid-template-columns:minmax(0,1fr) 58px!important}
+  .compose .send{min-width:58px!important}
+}
+
 </style>
 </head>
 <body>
@@ -147,32 +349,48 @@ html,body{max-width:100%;overflow-x:hidden}.shell,.wrap,.hero,.layout,.chat,.pro
 <main class="wrap">
   <section class="hero"><div><span class="kicker">MMHVAULT AI</span><h1 data-en="Financial Assistant" data-zh="AI 财务助手">Financial Assistant</h1><p data-en="Ask about your finances or how to use MMHVAULT. The built-in App Guide explains every Personal page, while financial answers only read data for the currently authenticated account." data-zh="既可以询问你的财务，也可以询问 MMHVAULT 怎么使用。内置 App Guide 会解释 Personal 各页面的功能；涉及财务时只读取当前已登录账号的数据。">Ask about your finances or how to use MMHVAULT. The built-in App Guide explains every Personal page, while financial answers only read data for the currently authenticated account.</p></div><div class="privacy"><i></i><b data-en="Local AI · Read-only" data-zh="本地 AI · 只读">Local AI · Read-only</b><small id="scopeBadge" data-en="Verified current session only" data-zh="仅限已验证当前登录账号">Verified current session only</small></div></section>
   <div class="notice"><span>i</span><div><b data-en="Private Local AI" data-zh="私有本地 AI">Private Local AI</b> · <span data-en="The language model runs directly in this browser with WebGPU. Your MMHVAULT financial context is not sent to an AI provider. First use downloads public model files once. Later visits reuse the model already stored by this browser when available; only missing model files need downloading. No paid AI API key is required." data-zh="语言模型通过 WebGPU 直接在当前浏览器运行。MMHVAULT 财务上下文不会发送给 AI 服务商。首次使用会下载并缓存公开模型文件；以后优先直接读取当前浏览器已经保存的模型，只有找不到时才需要重新下载。不需要任何付费 AI API Key。">The language model runs directly in this browser with WebGPU. Your MMHVAULT financial context is not sent to an AI provider. First use downloads public model files to this browser and caches them locally; no paid AI API key is required.</span></div></div>
-  <section class="localsetup" id="localSetup"><div><b class="local-badge" data-en="Free Local AI" data-zh="免费本地 AI">Free Local AI</b><span id="cacheState" class="cache-state" data-en="Checking local cache…" data-zh="正在检查本地缓存……">Checking local cache…</span><small id="localStatus" data-en="MMHVAULT verifies the current account and reuses the main app's canonical totals first; Local AI then reviews the question and explains planning. Choose a model once. MMHVAULT will reuse its browser cache automatically on later visits." data-zh="MMHVAULT 会先验证当前账号并优先复用主 APP 的统一计算结果；本地 AI 再审题并解释规划。首次选择模型即可；以后 MMHVAULT 会自动优先读取浏览器缓存。">MMHVAULT verifies the current account and exact facts first; Local AI then reviews the question and explains planning. Choose a model and prepare it once.</small></div><div class="localtools"><select id="modelChoice" aria-label="Local AI model"><option value="Qwen3-0.6B-q4f16_1-MLC" data-en="Recommended · Qwen3 0.6B · Chinese-friendly · ~0.35 GB download" data-zh="推荐 · Qwen3 0.6B · 中文更好 · 约 0.35 GB 下载">Recommended · Qwen3 0.6B · Chinese-friendly · ~0.35 GB download</option><option value="Llama-3.2-1B-Instruct-q4f16_1-MLC" data-en="Compatibility · Llama 3.2 1B · ~0.9 GB memory" data-zh="兼容 · Llama 3.2 1B · 约 0.9 GB 内存">Compatibility · Llama 3.2 1B · ~0.9 GB memory</option><option value="Qwen3-1.7B-q4f16_1-MLC" data-en="Advanced · Qwen3 1.7B · ~1.0 GB download · regular window recommended" data-zh="增强 · Qwen3 1.7B · 约 1.0 GB 下载 · 建议普通窗口">Advanced · Qwen3 1.7B · ~1.0 GB download · regular window recommended</option></select><button id="prepareAI" type="button" data-en="Prepare Local AI" data-zh="准备本地 AI">Prepare Local AI</button><button id="clearAICache" type="button" class="secondary" data-en="Clear AI cache" data-zh="清理 AI 缓存">Clear AI cache</button></div><div class="progress" id="modelProgress"><i id="modelProgressBar"></i></div></section>
+  
 
   <section class="metrics" id="metrics" aria-live="polite"></section>
   <section class="layout">
     <section class="chat">
       <div class="chathead"><div><b data-en="Private finance chat" data-zh="私人财务对话">Private finance chat</b><small id="mode" data-en="Checking your signed-in account…" data-zh="正在检查当前登录账号……">Checking your signed-in account…</small></div><div class="chattools"><button id="refreshData" type="button" data-en="Refresh data" data-zh="刷新数据">Refresh data</button><button id="clear" type="button" data-en="Clear chat" data-zh="清空对话">Clear chat</button></div></div><div class="thread" id="thread" role="log" aria-live="polite">
         <div class="guidebar" id="appGuide">
-        <div class="guidebar-head">
-          <div><b data-en="MMHVAULT App Guide" data-zh="MMHVAULT 新用户指南">MMHVAULT App Guide</b><small data-en="Tap a page to send it like a normal message, or type any app question below" data-zh="点击页面查看功能，也可以直接在下面输入任何 APP 问题">Tap a page to send it like a normal message, or type any app question below</small></div>
-          <span class="guidebar-badge" data-en="Quick start" data-zh="快速开始">Quick start</span>
+          <div class="guide-intro">
+            <span class="guide-ai-icon" aria-hidden="true">AI</span>
+            <div><b data-en="Quick start" data-zh="快速开始">Quick start</b><small data-en="Choose a page — it will be sent like a normal message." data-zh="选择一个页面，会像普通消息一样发送。">Choose a page — it will be sent like a normal message.</small></div>
+          </div>
+          <div class="guidegrid" role="group" aria-label="MMHVAULT App Guide">
+            <button class="prompt guide-prompt" type="button" data-prompt-en="Explain the Dashboard page: what does it show, why should I use it first, and what should I do next?" data-prompt-zh="请介绍 Dashboard：首页显示什么、为什么先看这里、看到异常后下一步应该去哪里？"><span>▦</span><b>Dashboard</b></button>
+            <button class="prompt guide-prompt" type="button" data-prompt-en="Explain Transactions: what is Income, Expense and Transfer, why are some flows excluded from spending, and how should I record transactions correctly?" data-prompt-zh="请介绍 Transactions：Income、Expense、Transfer 分别怎么用？为什么有些流水不算开销？正确记账应该怎么做？"><span>↕</span><b>Transactions</b></button>
+            <button class="prompt guide-prompt" type="button" data-prompt-en="Explain Invest: Add Investment, Portfolio, Wallet Activity and Live Prices, and when I should use each one." data-prompt-zh="请介绍 Invest：Add Investment、Portfolio、Wallet Activity、Live Prices 分别什么时候使用？"><span>⌁</span><b>Invest</b></button>
+            <button class="prompt guide-prompt" type="button" data-prompt-en="Explain Accounts: what balances mean, how Crypto Accounts work, and why account balances are separate from portfolio views." data-prompt-zh="请介绍 Accounts：余额代表什么？Crypto Account 怎么计算？为什么账户余额和投资组合要分开看？"><span>▤</span><b>Accounts</b></button>
+            <button class="prompt guide-prompt" type="button" data-prompt-en="Explain Reports and Cash Flow Analyze: what is the difference, why are Internal Transfers excluded, and when should I use each page?" data-prompt-zh="请介绍 Reports 和 Cash Flow Analyze：两者有什么区别？为什么 Internal Transfer 不算正常现金流？分别什么时候看？"><span>◎</span><b>Reports</b></button>
+            <button class="prompt guide-prompt guide-more" type="button" data-prompt-en="Give me a quick guide to Budget, Goals, Recurring, Notifications, Settings & Backup, and the AI Assistant." data-prompt-zh="请继续介绍 Budget、Goals、Recurring、Notifications、Settings & Backup 和 AI Assistant 应该怎么使用。"><span>＋</span><b data-en="More" data-zh="更多">More</b></button>
+          </div>
         </div>
-        <div class="guidegrid" role="group" aria-label="MMHVAULT App Guide">
-          <button class="prompt guide-prompt" type="button" data-prompt-en="Explain the Dashboard page: what does it show, why should I use it first, and what should I do next?" data-prompt-zh="请介绍 Dashboard：首页显示什么、为什么先看这里、看到异常后下一步应该去哪里？"><span>▦</span><b data-en="Dashboard" data-zh="Dashboard 首页">Dashboard</b></button>
-          <button class="prompt guide-prompt" type="button" data-prompt-en="Explain Transactions: what is Income, Expense and Transfer, why are some flows excluded from spending, and how should I record transactions correctly?" data-prompt-zh="请介绍 Transactions：Income、Expense、Transfer 分别怎么用？为什么有些流水不算开销？正确记账应该怎么做？"><span>↕</span><b data-en="Transactions" data-zh="Transactions 交易">Transactions</b></button>
-          <button class="prompt guide-prompt" type="button" data-prompt-en="Explain Accounts: what balances mean, how Crypto Accounts work, and why account balances are separate from portfolio views." data-prompt-zh="请介绍 Accounts：余额代表什么？Crypto Account 怎么计算？为什么账户余额和投资组合要分开看？"><span>▤</span><b data-en="Accounts" data-zh="Accounts 账户">Accounts</b></button>
-          <button class="prompt guide-prompt" type="button" data-prompt-en="Explain Invest: Add Investment, Portfolio, Wallet Activity and Live Prices, and when I should use each one." data-prompt-zh="请介绍 Invest：Add Investment、Portfolio、Wallet Activity、Live Prices 分别什么时候使用？"><span>⌁</span><b data-en="Invest" data-zh="Invest 投资">Invest</b></button>
-          <button class="prompt guide-prompt" type="button" data-prompt-en="Explain Cash Flow Analyze and Reports: what is the difference, why are Internal Transfers excluded, and when should I use each page?" data-prompt-zh="请介绍 Cash Flow Analyze 和 Reports：两者有什么区别？为什么 Internal Transfer 不算正常现金流？分别什么时候看？"><span>◎</span><b data-en="Analyze & Reports" data-zh="分析与报告">Analyze & Reports</b></button>
-          <button class="prompt guide-prompt" type="button" data-prompt-en="Explain Budget and Goals: what each page is for, how to set them up, and how they work with alerts and planning." data-prompt-zh="请介绍 Budget 和 Goals：各自有什么用途？怎么设置？如何配合提醒和财务规划？"><span>◇</span><b data-en="Budget & Goals" data-zh="Budget 与 Goals">Budget & Goals</b></button>
-          <button class="prompt guide-prompt" type="button" data-prompt-en="Explain Recurring: why it exists, what upcoming/due/overdue means, and how I should use it for repeated income or expenses." data-prompt-zh="请介绍 Recurring：为什么需要它？Upcoming、Due、Overdue 是什么意思？重复收入和支出应该怎么管理？"><span>↻</span><b data-en="Recurring" data-zh="Recurring 周期项目">Recurring</b></button>
-          <button class="prompt guide-prompt" type="button" data-prompt-en="Explain Notifications: what Financial Alerts can notify me about, how Device Check and background Push work, and what the privacy rules are." data-prompt-zh="请介绍 Notifications：Financial Alerts 会提醒什么？Device Check 和后台 Push 怎么工作？隐私规则是什么？"><span>◉</span><b data-en="Notifications" data-zh="Notifications 通知">Notifications</b></button>
-          <button class="prompt guide-prompt" type="button" data-prompt-en="Explain Settings, Backup and Restore: what should I configure, what Backup contains, and why Restore uses a preview before import." data-prompt-zh="请介绍 Settings、Backup 和 Restore：应该设置哪些内容？Backup 包含什么？为什么 Restore 导入前必须先 Preview？"><span>⚙</span><b data-en="Settings & Backup" data-zh="设置与备份">Settings & Backup</b></button>
-          <button class="prompt guide-prompt" type="button" data-prompt-en="Explain this AI Financial Assistant: what it can answer about the app and my finances, what Local AI means, and what it is not allowed to change." data-prompt-zh="请介绍 AI Financial Assistant：它能回答哪些 APP 和财务问题？Local AI 是什么意思？哪些事情它绝对不能修改？"><span>AI</span><b data-en="AI Assistant" data-zh="AI 助手">AI Assistant</b></button>
-        </div>
-      </div>
         <div id="messageList"></div>
-      </div><div class="compose"><textarea id="input" rows="2" maxlength="1600" data-en-placeholder="Ask about MMHVAULT features, pages, spending, assets or planning…" data-zh-placeholder="可以问 MMHVAULT 页面怎么用，也可以问开销、资产和规划……" placeholder="Ask about MMHVAULT features, pages, spending, assets or planning…"></textarea><button class="send" id="send" type="button" data-en="Send ↑" data-zh="发送 ↑">Send ↑</button></div><div class="foot" data-en="Read-only · App Guide + current-account finance Q&A · local WebGPU · no paid AI API · chat is not stored by this page · Enter sends, Shift+Enter adds a line" data-zh="只读 · APP 指南 + 当前账号财务问答 · 本地 WebGPU · 无付费 AI API · 本页面不保存聊天记录 · Enter 发送，Shift+Enter 换行">Read-only · App Guide + current-account finance Q&A · local WebGPU · no paid AI API · chat is not stored by this page · Enter sends, Shift+Enter adds a line</div></section>
+      </div><div class="compose">
+        <div class="model-dock" id="modelDock">
+          <div class="model-dock-row">
+            <select id="modelChoice" aria-label="Local AI model"><option value="Qwen3-0.6B-q4f16_1-MLC" data-en="Recommended · Qwen3 0.6B · Chinese-friendly · ~0.35 GB download" data-zh="推荐 · Qwen3 0.6B · 中文更好 · 约 0.35 GB 下载">Recommended · Qwen3 0.6B · Chinese-friendly · ~0.35 GB download</option><option value="Llama-3.2-1B-Instruct-q4f16_1-MLC" data-en="Compatibility · Llama 3.2 1B · ~0.9 GB memory" data-zh="兼容 · Llama 3.2 1B · 约 0.9 GB 内存">Compatibility · Llama 3.2 1B · ~0.9 GB memory</option><option value="Qwen3-1.7B-q4f16_1-MLC" data-en="Advanced · Qwen3 1.7B · ~1.0 GB download · regular window recommended" data-zh="增强 · Qwen3 1.7B · 约 1.0 GB 下载 · 建议普通窗口">Advanced · Qwen3 1.7B · ~1.0 GB download · regular window recommended</option></select>
+            <button id="prepareAI" type="button" class="model-action" data-en="Prepare" data-zh="准备">Prepare</button>
+            <details class="model-more">
+              <summary aria-label="AI model options">•••</summary>
+              <div class="model-more-menu"><button id="clearAICache" type="button" data-en="Clear AI cache" data-zh="清理 AI 缓存">Clear AI cache</button></div>
+            </details>
+          </div>
+          <div class="model-state-row">
+            <span id="cacheState" class="cache-state" data-en="Checking local cache…" data-zh="正在检查本地缓存……">Checking local cache…</span>
+            <small id="localStatus" data-en="Checking this browser…" data-zh="正在检查当前浏览器……">Checking this browser…</small>
+          </div>
+          <div class="progress" id="modelProgress"><i id="modelProgressBar"></i></div>
+        </div>
+        <div class="compose-main">
+          <textarea id="input" rows="2" maxlength="1600" data-en-placeholder="Ask MMHVAULT anything…" data-zh-placeholder="询问 MMHVAULT 任何问题……" placeholder="Ask MMHVAULT anything…"></textarea>
+          <button class="send" id="send" type="button" data-en="Send ↑" data-zh="发送 ↑">Send ↑</button>
+        </div>
+      </div><div class="foot" data-en="Read-only · App Guide + current-account finance Q&A · local WebGPU · no paid AI API · chat is not stored by this page · Enter sends, Shift+Enter adds a line" data-zh="只读 · APP 指南 + 当前账号财务问答 · 本地 WebGPU · 无付费 AI API · 本页面不保存聊天记录 · Enter 发送，Shift+Enter 换行">Read-only · App Guide + current-account finance Q&A · local WebGPU · no paid AI API · chat is not stored by this page · Enter sends, Shift+Enter adds a line</div></section>
   </section>
 </main>
 </div>
@@ -553,17 +771,17 @@ function setCacheState(status,model=''){
   if(status==='ready'){
     el.classList.add('ready');
     el.textContent=T('Saved on this device','已保存在此设备');
-    btn.textContent=T('Use Cached AI','使用已缓存 AI')
+    btn.textContent=T('Use cached','使用缓存')
   }else if(status==='missing'){
     el.classList.add('missing');
     el.textContent=T('Not downloaded yet','尚未下载');
-    btn.textContent=T('Download & Prepare','下载并准备')
+    btn.textContent=T('Download','下载模型')
   }else if(status==='loading'){
     el.textContent=T('Checking local cache…','正在检查本地缓存……');
-    btn.textContent=T('Prepare Local AI','准备本地 AI')
+    btn.textContent=T('Prepare','准备')
   }else{
     el.textContent=T('Browser cache','浏览器缓存');
-    btn.textContent=T('Prepare Local AI','准备本地 AI')
+    btn.textContent=T('Prepare','准备')
   }
 }
 
@@ -593,6 +811,7 @@ function refreshLocalizedRuntimeUI(){
       `${modelLabel(wanted)} is ready. Exact numbers come from MMHVAULT; AI handles explanation and planning.`,
       `${modelLabel(wanted)} 已准备完成。精确数字由 MMHVAULT 计算，AI 负责解释和规划。`
     );
+    const readyBtn=$('prepareAI');if(readyBtn)readyBtn.textContent=T('Ready','已就绪');
     setMode(T(
       `Local AI ready · ${modelLabel(wanted)} · read-only`,
       `本地 AI 已就绪 · ${modelLabel(wanted)} · 只读`
@@ -837,7 +1056,7 @@ async function send(text){
 }
 function bind(){
   $('backApp').onclick=()=>location.assign('app.html');
-  $('clear').onclick=()=>{state.messages=[];renderThread();$('input')?.focus()};
+  $('clear').onclick=()=>{state.messages=[];renderThread();requestAnimationFrame(()=>{const t=$('thread');if(t)t.scrollTop=0});$('input')?.focus()};
   $('refreshData').onclick=async()=>{if(state.sending)return;$('refreshData').disabled=true;try{setMode(T('Refreshing verified current-account data…','正在刷新已验证的当前账号数据……'));await loadData();setMode(T('Current-account data refreshed','当前账号数据已刷新'))}catch(e){const msg=String(e?.message||e);if(msg==='account-scope-changed'||msg==='not-signed-in')clearFinancialScope(msg==='account-scope-changed'?'account-changed':'scope-cleared');else setMode(msg.startsWith('data-timeout:')?T('Personal data loading timed out · tap Refresh data to retry','Personal 数据读取超时 · 请再次点击“刷新数据”'):T('Could not refresh current-account data · retry in a moment','无法刷新当前账号数据 · 请稍后重试'),true)}finally{$('refreshData').disabled=false}};
   $('send').onclick=()=>send();
   $('prepareAI').onclick=()=>prepareLocalAI(false).catch(()=>{});
