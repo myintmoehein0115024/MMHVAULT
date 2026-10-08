@@ -341,6 +341,34 @@ html,body{max-width:100%;overflow-x:hidden}.shell,.wrap,.hero,.layout,.chat,.pro
   .compose .send{min-width:58px!important}
 }
 
+
+/* MMHVAULT AI 1.12.29 · locked composer + safer intent flow */
+.chat{position:relative!important;isolation:isolate}
+.thread{
+  position:relative!important;
+  z-index:1!important;
+  padding-bottom:24px!important;
+  scroll-padding-bottom:36px!important
+}
+.compose{
+  position:sticky!important;
+  bottom:0!important;
+  z-index:12!important;
+  background:rgba(4,18,31,.985)!important;
+  box-shadow:0 -14px 28px rgba(0,0,0,.22)!important;
+  backdrop-filter:blur(12px);
+  -webkit-backdrop-filter:blur(12px)
+}
+.foot{
+  position:relative!important;
+  z-index:13!important;
+  background:rgba(4,18,31,.985)!important
+}
+@media(max-width:700px){
+  .thread{padding-bottom:18px!important;scroll-padding-bottom:28px!important}
+  .compose{bottom:0!important}
+}
+
 </style>
 </head>
 <body>
@@ -402,7 +430,7 @@ import * as webllm from "https://cdn.jsdelivr.net/npm/@mlc-ai/web-llm@0.2.85/+es
 const SUPABASE_URL="https://vrypucmyrztxgiqhjspd.supabase.co",SUPABASE_KEY="sb_publishable_H38v4XbO0ARnSJToD42wGg_27-SZ3Ao";
 const $=id=>document.getElementById(id),N=v=>Number.isFinite(Number(v))?Number(v):0,lc=v=>String(v??'').trim().toLowerCase();
 const db=typeof supabase!=='undefined'?supabase.createClient(SUPABASE_URL,SUPABASE_KEY):null;
-const state={user:null,scopeUserId:'',data:null,canonical:null,loadedAt:0,messages:[],sending:false,engine:null,engineModel:'',engineReady:false,engineLoading:false,authSubscription:null,cacheStatus:'loading'};
+const state={user:null,scopeUserId:'',data:null,canonical:null,loadedAt:0,messages:[],sending:false,engine:null,engineModel:'',engineReady:false,engineLoading:false,authSubscription:null,cacheStatus:'loading',replyLang:'',lastIntent:''};
 function lang(){try{return (localStorage.getItem('mmhvault_language_v3363')||'en')==='zh'?'zh':'en'}catch(_e){return'en'}}function T(en,zh){return lang()==='zh'?zh:en}
 function applyTheme(){let t='dark';try{t=localStorage.getItem('myfinance_theme')||'dark'}catch(_e){}document.body.classList.toggle('light',t==='light')}
 function translate(){
@@ -553,7 +581,28 @@ function typing(on){
 }
 
 
-function questionLang(q){return /[\u3400-\u9fff]/.test(String(q||''))?'zh':lang()}
+function languageDirective(q){
+  const x=String(q||'');
+  if(/(用中文|中文回复|中文回答|中文解释|说中文|请中文|以后.*中文|接下来.*中文|in chinese|reply in chinese|answer in chinese)/i.test(x))return'zh';
+  if(/(用英文|英文回复|英文回答|英文解释|说英文|请英文|以后.*英文|接下来.*英文|in english|reply in english|answer in english)/i.test(x))return'en';
+  return''
+}
+function isCorrectionMessage(q){
+  return /(我的意思是|我是说|不是这个|不是这个意思|你理解错|你没理解|没听懂|答非所问|重新理解|重新回答|我说的是|i mean|that's not what i asked|not what i meant|you misunderstood|try again)/i.test(String(q||''))
+}
+function questionLang(q){
+  const explicit=languageDirective(q);if(explicit)return explicit;
+  if(/[\u3400-\u9fff]/.test(String(q||'')))return'zh';
+  if(state.replyLang)return state.replyLang;
+  return lang()
+}
+function languagePreferenceAnswer(q){
+  const next=languageDirective(q);if(!next)return'';
+  state.replyLang=next;
+  return next==='zh'
+    ?'好的。接下来包括新人指南按钮、APP 功能说明和财务问答，我都会优先用中文回答；除非你之后明确要求切换成英文。'
+    :'Understood. From now on, Quick Start guides, app explanations, and finance answers will use English unless you explicitly switch back to Chinese.'
+}
 function trimText(v,max=500){const s=String(v??'').trim();return s.length>max?s.slice(0,max)+'…':s}
 function round2(v){return Math.round((N(v)+Number.EPSILON)*100)/100}
 function signedMoney(v){const n=round2(v);return (n<0?'−':'')+usd(Math.abs(n))}
@@ -587,6 +636,27 @@ function productHelpAnswer(q,zh){
   if(!asks&&!appIntent)return'';
   const answer=(zhText,enText)=>zh?zhText:enText;
 
+  // Multi-page questions must be answered as multi-page questions instead of being hijacked by the first keyword.
+  if((/cash\s*flow|analy|分析/.test(x))&&(/reports?|报告/.test(x)))return answer(
+    'Cash Flow Analyze 和 Reports 是互补的：Analyze 用来找“为什么”，重点看收入、开销、储蓄率、分类和趋势；Reports 用来回顾“结果”，适合按月查看汇总、对比和导出。Internal Transfer、Data Adjustment、Loan 和 linked investment cash flow 不进入正常现金流口径，所以两边的生活收支不会被内部移动虚增。',
+    'Cash Flow Analyze and Reports are complementary. Analyze answers “why” by focusing on income, spending, savings rate, categories and trends; Reports reviews the finished monthly result for comparison and export. Internal Transfers, Data Adjustments, Loans and linked investment cash flows stay outside ordinary cash flow so internal movements do not inflate living-income/spending totals.'
+  );
+  if((/budget|预算/.test(x))&&(/goals?|目标/.test(x)))return answer(
+    'Budget 和 Goals 解决的是两个不同问题：Budget 控制“最多准备花多少”，Goals 跟踪“想积累到哪里”。先用 Transactions 稳定分类，再设 Budget；长期储蓄或资金目标放到 Goals。两者都只做规划，不会改已经发生的交易。',
+    'Budget and Goals solve different problems: Budget controls “how much am I willing to spend”, while Goals tracks “what am I trying to build toward”. Keep Transaction categories consistent first, then set Budgets; use Goals for longer-term savings or funding objectives. Neither rewrites past transactions.'
+  );
+  const topicHits=[
+    /budget|预算/.test(x),
+    /goals?|目标/.test(x),
+    /recurring|周期|定期/.test(x),
+    /notification|noti|通知/.test(x),
+    /settings?|设置|backup|restore|备份|恢复/.test(x),
+    /ai\s*(assistant|chat)|ai助手|ai\s*助手/.test(x)
+  ].filter(Boolean).length;
+  if(topicHits>=3||/(quick guide|快速介绍|都介绍|全部介绍|整体介绍|more)/i.test(raw)&&topicHits>=2)return answer(
+    '可以按这条线理解：Budget 管消费边界；Goals 管长期目标；Recurring 管未来会重复发生的收入/支出；Notifications 负责预算、开销、储蓄率和到期项目的提醒；Settings 管语言、显示、配置、数据健康以及 Backup / Restore；AI Assistant 负责只读问答和 APP 使用说明。新人快捷指南现在放在 AI Chat 的 Quick Start 里，不再放在 Settings。',
+    'A quick map: Budget sets spending boundaries; Goals tracks long-term objectives; Recurring tracks future repeating income/expenses; Notifications surfaces budget/spending/savings-rate/due-item alerts; Settings manages language, display, configuration, Data Health and Backup / Restore; AI Assistant provides read-only finance Q&A and app guidance. The beginner quick guide now lives in AI Chat → Quick Start, not in Settings.'
+  );
   if(/dashboard|仪表盘|首页/.test(x))return answer(
     'Dashboard 是“先看全局”的首页。它把账户净资产、本月正常收入、正常开销、剩余资金、储蓄率和主要趋势集中在一起。这样设计是为了让你先发现变化，再去明细页找原因。看到开销异常时去 Transactions / Cash Flow Analyze；看到资产不对时去 Accounts；看到投资变化时去 Invest。Dashboard 不负责手工改余额，正式数据来自各业务页面。',
     'Dashboard is the “see the whole picture first” page. It brings together account net assets, ordinary income, spending, remaining funds, savings rate and key trends. The purpose is to spot changes first, then investigate them in detail. For spending issues use Transactions / Cash Flow Analyze; for asset issues use Accounts; for investments use Invest. Dashboard itself is not where balances are manually edited.'
@@ -628,8 +698,8 @@ function productHelpAnswer(q,zh){
     'Notifications / Financial Alerts can surface important changes even while the site is closed, such as category spending exceeding last month, total-spending changes, budget thresholds, savings-rate drops and recurring items becoming due. Device Check verifies permission, the Push Service Worker, browser subscription and server binding. Lock-screen payloads contain only necessary summaries—not full transaction history, all balances, email or user ID—and tapping opens the authenticated app page.'
   );
   if(/settings?|设置|backup|restore|备份|恢复|data health|配置/.test(x))return answer(
-    'Settings 管理语言、显示、个人配置、Beginner Guide、数据健康和 Backup / Restore。Backup 使用 schema_version 2，覆盖 Transactions、Investments、Crypto Wallet Movements、Exchange Rates、Configuration、Budgets、Goals、Recurring、Custom Investments 和 Settings。Restore 先 Preview 再确认，是为了让你在真正写入前看清将恢复什么、避免重复或误覆盖；不要绕过正式 Restore 流程直接改底层数据。',
-    'Settings manages language, display, Personal configuration, Beginner Guide, Data Health and Backup / Restore. Backup uses schema_version 2 and covers Transactions, Investments, Crypto Wallet Movements, Exchange Rates, Configuration, Budgets, Goals, Recurring, Custom Investments and Settings. Restore previews first so you can see what will be imported before any official write, reducing duplication or accidental overwrite. Do not bypass the official Restore flow to edit underlying data directly.'
+    'Settings 管理语言、显示、个人配置、数据健康和 Backup / Restore。新人快捷指南现在放在 AI Chat 的 Quick Start，不再放在 Settings。Backup 使用 schema_version 2，覆盖 Transactions、Investments、Crypto Wallet Movements、Exchange Rates、Configuration、Budgets、Goals、Recurring、Custom Investments 和 Settings。Restore 先 Preview 再确认，是为了让你在真正写入前看清将恢复什么、避免重复或误覆盖；不要绕过正式 Restore 流程直接改底层数据。',
+    'Settings manages language, display, Personal configuration, Data Health and Backup / Restore. The beginner quick guide now lives in AI Chat → Quick Start instead of Settings. Backup uses schema_version 2 and covers Transactions, Investments, Crypto Wallet Movements, Exchange Rates, Configuration, Budgets, Goals, Recurring, Custom Investments and Settings. Restore previews first so you can see what will be imported before any official write, reducing duplication or accidental overwrite. Do not bypass the official Restore flow to edit underlying data directly.'
   );
   if(/exchange|汇率|currency|币种/.test(x))return answer(
     'Exchange / 汇率用于把不同币种统一换算到展示和分析口径。MMHVAULT 保存并使用配置过的汇率来做跨币种汇总；原币金额仍保留。更新汇率会影响换算后的 USD / 其他展示值，但不会把原始交易金额改掉。做历史比较时要区分“原币真实金额”和“按当前/保存汇率换算后的展示值”。',
@@ -640,8 +710,8 @@ function productHelpAnswer(q,zh){
     'AI Financial Assistant has two layers: the MMHVAULT rules engine answers exact current-account financial questions, while Local AI uses WebGPU in the browser for open-ended explanations and app guidance. It is read-only: it cannot trade, transfer, delete, restore, change budgets/goals or write financial records, and it cannot access another account. Preparing Local AI downloads public model files into this browser cache and does not require a paid AI API key.'
   );
   if(/beginner|新用户|新手|指南|怎么开始|从哪里开始|first\s*use|getting started/.test(x))return answer(
-    '新用户建议按这个顺序：1) Dashboard 先认识整体结构；2) Transactions 正确记录 Income / Expense / Transfer；3) Accounts 和汇率确认资产基础；4) Budget 设置消费边界；5) Goals 与 Recurring 建立未来计划；6) Notifications 做 Device Check；7) 用 AI Assistant 提问和解释；8) 最后做一次 Backup。Settings → Beginner Guide 也按这个顺序提供可勾选进度。',
-    'For a new user, follow this order: 1) Dashboard for the big picture; 2) Transactions to learn Income / Expense / Transfer; 3) Accounts and exchange rates to establish the asset base; 4) Budget for spending limits; 5) Goals and Recurring for future planning; 6) Notifications and Device Check; 7) AI Assistant for questions and explanations; 8) make a Backup. Settings → Beginner Guide follows the same sequence with progress tracking.'
+    '新用户建议按这个顺序：1) Dashboard 先认识整体结构；2) Transactions 正确记录 Income / Expense / Transfer；3) Accounts 和汇率确认资产基础；4) Budget 设置消费边界；5) Goals 与 Recurring 建立未来计划；6) Notifications 做 Device Check；7) 用 AI Assistant 提问和解释；8) 最后做一次 Backup。AI Chat → Quick Start 会按页面提供入口，你也可以直接输入问题。',
+    'For a new user, follow this order: 1) Dashboard for the big picture; 2) Transactions to learn Income / Expense / Transfer; 3) Accounts and exchange rates to establish the asset base; 4) Budget for spending limits; 5) Goals and Recurring for future planning; 6) Notifications and Device Check; 7) AI Assistant for questions and explanations; 8) make a Backup. AI Chat → Quick Start provides page shortcuts, and you can also type any app question directly.'
   );
   if(/mmhvault|app|网站|页面|功能|怎么用|如何使用|能做什么|what can|how to use|app guide/.test(x))return answer(
     'MMHVAULT Personal 的核心流程是：Transactions 记录真实流水 → Accounts / Invest 维护资产位置与投资 → Dashboard / Analyze / Reports 汇总和解释 → Budget / Goals / Recurring 做未来规划 → Notifications 提醒重要变化 → Settings 负责配置和备份 → AI Assistant 负责只读问答。你可以直接打字问“某个页面为什么这样设计”“某个按钮什么时候用”“两个页面有什么区别”，我会按这个产品逻辑解释。',
@@ -653,7 +723,10 @@ function marketSymbolFromQuestion(q){const x=lc(q),pairs=[['BTC',['btc','bitcoin
 function categoryFromQuestion(q){const ql=lc(q),names=new Set();for(const x of state.data?.config?.categories?.Expense||[])names.add(String(x));for(const x of state.data?.config?.categories?.Personal||[])names.add(String(x));for(const x of summary().current_month.top_categories||[])names.add(String(x.name));for(const x of summary().previous_month.top_categories||[])names.add(String(x.name));const aliases={'餐饮':'Dining','吃饭':'Dining','交通':'Transport','零食':'Snacks','家庭支持':'Family Support','生活方式':'Lifestyle','健康':'Wellness'};for(const [a,n] of Object.entries(aliases))if(String(q).includes(a))return n;return [...names].sort((a,b)=>b.length-a.length).find(n=>n&&ql.includes(lc(n)))||''}
 function projectionTarget(q){const text=String(q||''),now=new Date();if(/12\s*(个月|months?)/i.test(text)||/未来\s*(一年|1\s*年)|next\s*year/i.test(text))return{months:12,label:questionLang(text)==='zh'?'未来 12 个月':'the next 12 months'};const m=text.match(/(?:到|在|等到|今年)?\s*(1[0-2]|[1-9])\s*月份?(?:底|末|的时候)?/);if(m&&!/个月/.test(text)){let target=Number(m[1]),cur=now.getMonth()+1,months=target-cur;if(months<0)months+=12;return{months,label:questionLang(text)==='zh'?`${target} 月`:`month ${target}`}}return null}
 function exactToolAnswer(q){
+  const pref=languagePreferenceAnswer(q);if(pref)return pref;
   const zh=questionLang(q)==='zh',ql=lc(q),f=financeFacts(),cur=f.current_month,prev=f.previous_month;
+  // If the user says we misunderstood, preserve the recent conversation and let Local AI resolve the clarification.
+  if(isCorrectionMessage(q))return'';
   const help=productHelpAnswer(q,zh);if(help)return help;
   if(/^(你好|您好|嗨|hello|hi|hey)[!！。\s]*$/i.test(String(q).trim())||/(你|您)能(帮我|做|解答)|能回答什么|可以做什么|能做些什么|what can you|what do you do/i.test(q))return zh?'我现在可以做两类事情：① 当作 MMHVAULT 新用户指南，回答 Dashboard、Transactions、Accounts、Invest、Analyze、Reports、Budget、Goals、Recurring、Notifications、Settings、Backup/Restore、Exchange、AI Assistant 等页面怎么用、为什么这样设计、页面之间有什么区别；② 读取当前登录账号的数据，回答净资产、现金、收入、工资、开销、储蓄率、分类变化和现金流规划。始终只读，不会改账，也不会读取其他账号。':'I can do two things: ① act as the MMHVAULT new-user guide and explain how/why to use Dashboard, Transactions, Accounts, Invest, Analyze, Reports, Budget, Goals, Recurring, Notifications, Settings, Backup/Restore, Exchange and AI Assistant; ② read only the current signed-in account to answer questions about net assets, cash, income, salary, spending, savings rate, category changes and planning. I remain read-only and cannot access other accounts.';
 
@@ -712,6 +785,9 @@ ${zh?'最重要规则：':'Most important rules:'}
 - ${zh?'你同时是 MMHVAULT Personal 的新用户指南。可解释 Dashboard、Transactions、Invest、Accounts、Cash Flow Analyze、Reports、Budget、Goals、Recurring、Notifications、Settings、Backup/Restore、Exchange 和 AI Assistant 的用途、页面之间的区别、推荐使用顺序和设计原因。':'You are also the new-user guide for MMHVAULT Personal. You may explain the purpose, differences, recommended workflow and design rationale for Dashboard, Transactions, Invest, Accounts, Cash Flow Analyze, Reports, Budget, Goals, Recurring, Notifications, Settings, Backup/Restore, Exchange and AI Assistant.'}
 - ${zh?'APP 使用问题不要求用户提供财务数据；不要为了回答页面功能而编造当前余额或交易。涉及用户财务数字时仍必须只用当前账号验证数据。':'App-usage questions do not require financial data; never invent balances or transactions merely to explain a feature. If the question asks for personal financial numbers, continue to use only verified current-account data.'}
 - ${zh?'先直接回答用户的问题，再解释最相关的 2-4 个依据；不要答非所问，不要重复固定模板。':'Answer the actual question first, then explain the 2-4 most relevant supporting points. Do not answer a different question or repeat a canned template.'}
+- ${zh?'最近一条用户澄清拥有最高优先级。如果用户说“我的意思是 / 不是这个 / 你理解错了”，先根据最近对话重新理解，不要继续沿用之前错误的意图。':'The user\'s latest clarification has highest priority. If they say “I mean / not that / you misunderstood”, reinterpret the request using recent conversation instead of continuing the earlier mistaken intent.'}
+- ${zh?'不要因为一句话同时提到多个页面，就只回答第一个关键词；如果用户是在比较多个页面或要求整体说明，要覆盖他实际点名的对象。':'Do not answer only the first keyword when a question names multiple pages. If the user is comparing several pages or asks for an overview, cover the objects they actually named.'}
+- ${zh?'如果用户已经明确指定中文或英文，后续回答遵守该语言偏好，直到用户再次明确切换。':'If the user explicitly selected Chinese or English, follow that reply-language preference until they explicitly switch again.'}
 - ${zh?'只读，不声称修改、删除、交易、转账或写入任何记录。':'Read-only. Never claim to edit, delete, trade, transfer, or write records.'}
 - ${zh?'内部 Transfer、Data Adjustment、Loan、linked investment cash flow 不属于正常收入/开销。':'Internal Transfer, Data Adjustment, Loan, and linked investment cash flow are excluded from ordinary income/spending.'}
 - ${zh?'钱包内部转币不是收入或开销；网络费只减少持仓，不是生活开销。':'Wallet-to-wallet crypto movement is not income/expense; network fees reduce holdings but are not lifestyle spending.'}
@@ -1039,10 +1115,11 @@ async function localAIAsk(question){
   finalAnswer=sanitizeAssistantOutput(finalAnswer||targetAnswer,true);if(!finalAnswer)throw Error('empty-local-ai-response');
   shell.t.nodeValue=finalAnswer;state.messages.push({role:'assistant',text:finalAnswer,mode});if(state.messages.length>24)state.messages=state.messages.slice(-24);return finalAnswer
 }
-async function send(text){
+async function send(text,displayText=''){
   const input=$('input'),q=String(text??input?.value??'').trim();if(!q||state.sending)return;
+  const directive=languageDirective(q);if(directive)state.replyLang=directive;
   if(!state.user||!state.data){addMessage('assistant',T('Please open MMHVAULT, sign in, and return to AI Assistant.','请先打开 MMHVAULT 登录，然后再返回 AI 财务助手。'),'MMHVAULT');return}
-  state.sending=true;if(input)input.value='';addMessage('user',q);typing(true);$('send').disabled=true;$('refreshData').disabled=true;
+  state.sending=true;if(input)input.value='';addMessage('user',String(displayText||q));typing(true);$('send').disabled=true;$('refreshData').disabled=true;
   try{
     thinkingStage('Verifying the current account scope…','正在验证当前登录账号范围……');await ensureCurrentScope();
     thinkingStage('Checking exact MMHVAULT facts…','正在核对 MMHVAULT 精确数据……');const exact=exactToolAnswer(q);
@@ -1071,7 +1148,12 @@ function bind(){
     await refreshSelectedModelCacheState({autoload:true});
   });
   $('input').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&!e.isComposing){e.preventDefault();send()}});
-  document.querySelectorAll('.prompt').forEach(b=>b.addEventListener('click',()=>send(lang()==='zh'?b.dataset.promptZh:b.dataset.promptEn)));
+  document.querySelectorAll('.prompt').forEach(b=>b.addEventListener('click',()=>{
+    const replyLanguage=state.replyLang||lang();
+    const prompt=replyLanguage==='zh'?b.dataset.promptZh:b.dataset.promptEn;
+    const label=(b.querySelector('b')?.textContent||'').trim()||T('Quick start','快速开始');
+    send(prompt,label)
+  }));
   window.addEventListener('storage',e=>{if(e.key==='myfinance_theme')applyTheme();if(e.key==='mmhvault_language_v3363')translate()})
   window.addEventListener('pagehide',()=>{try{state.engine?.unload?.()}catch(_e){}})
 }
