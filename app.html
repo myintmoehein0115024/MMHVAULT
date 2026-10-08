@@ -26294,7 +26294,29 @@ function buildBeginnerGuideV1217(){
   ];
   const owner=()=>currentSessionUser?.id||'guest';
   const key=o=>`mmhvault_beginner_guide_v1218_${o||'guest'}`;
-  const read=o=>{try{const v=JSON.parse(localStorage.getItem(key(o))||'[]');return new Set(Array.isArray(v)?v:[])}catch(_e){return new Set()}};
+  const legacyKey=o=>`mmhvault_beginner_guide_v1217_${o||'guest'}`;
+  const read=o=>{
+    try{
+      const primary=localStorage.getItem(key(o));
+      if(primary!==null){
+        const v=JSON.parse(primary||'[]');
+        return new Set(Array.isArray(v)?v:[]);
+      }
+      if(o&&o!=='guest'){
+        const legacy=localStorage.getItem(legacyKey(o));
+        if(legacy!==null){
+          const v=JSON.parse(legacy||'[]');
+          const migrated=new Set(Array.isArray(v)?v:[]);
+          try{
+            localStorage.setItem(key(o),JSON.stringify([...migrated]));
+            localStorage.removeItem(legacyKey(o));
+          }catch(_e){}
+          return migrated;
+        }
+      }
+    }catch(_e){}
+    return new Set();
+  };
   let loadedOwner='',done=new Set();
   function syncOwner(){const next=owner();if(next!==loadedOwner){loadedOwner=next;done=read(next)}}
   function saveGuide(){syncOwner();try{localStorage.setItem(key(loadedOwner),JSON.stringify([...done]))}catch(_e){}}
