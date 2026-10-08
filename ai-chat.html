@@ -496,8 +496,7 @@ html,body{max-width:100%;overflow-x:hidden}.shell,.wrap,.hero,.layout,.chat,.pro
 <div class="shell">
 <header class="top"><div class="brand"><img src="images/mmhvault-logo-transparent.png" alt=""><div><strong>MMHVAULT</strong><small data-en="Personal Finance · AI" data-zh="个人财务 · AI">Personal Finance · AI</small></div></div><button class="back" id="backApp" type="button" data-en="‹ Back to MMHVAULT" data-zh="‹ 返回 MMHVAULT">‹ Back to MMHVAULT</button></header>
 <main class="wrap">
-  <section class="hero"><div><span class="kicker">MMHVAULT AI</span><h1 data-en="Financial Assistant" data-zh="AI 财务助手">Financial Assistant</h1><p data-en="Ask about your finances or how to use MMHVAULT. The built-in App Guide explains every Personal page, while financial answers only read data for the currently authenticated account." data-zh="既可以询问你的财务，也可以询问 MMHVAULT 怎么使用。内置 App Guide 会解释 Personal 各页面的功能；涉及财务时只读取当前已登录账号的数据。">Ask about your finances or how to use MMHVAULT. The built-in App Guide explains every Personal page, while financial answers only read data for the currently authenticated account.</p></div><div class="privacy"><i></i><b data-en="Local AI · Read-only" data-zh="本地 AI · 只读">Local AI · Read-only</b><small id="scopeBadge" data-en="Verified current session only" data-zh="仅限已验证当前登录账号">Verified current session only</small></div></section>
-  <div class="notice"><span>i</span><div><b data-en="Private Local AI" data-zh="私有本地 AI">Private Local AI</b> · <span data-en="The language model runs directly in this browser with WebGPU. Your MMHVAULT financial context is not sent to an AI provider. First use downloads public model files once. Later visits reuse the model already stored by this browser when available; only missing model files need downloading. No paid AI API key is required." data-zh="语言模型通过 WebGPU 直接在当前浏览器运行。MMHVAULT 财务上下文不会发送给 AI 服务商。首次使用会下载并缓存公开模型文件；以后优先直接读取当前浏览器已经保存的模型，只有找不到时才需要重新下载。不需要任何付费 AI API Key。">The language model runs directly in this browser with WebGPU. Your MMHVAULT financial context is not sent to an AI provider. First use downloads public model files to this browser and caches them locally; no paid AI API key is required.</span></div></div>
+  <section class="hero"><div><span class="kicker">MMHVAULT AI</span><h1 data-en="Financial Assistant" data-zh="AI 财务助手">Financial Assistant</h1></div></section></div>
   
 
   <section class="metrics" id="metrics" aria-live="polite"></section>
@@ -573,6 +572,102 @@ function moneyForQuestion(usdValue,q){return moneyInCurrency(usdValue,inheritedC
 function periodForQuestion(q,cur,prev){const x=String(q||''),p=priorUserQuestion();if(/上个月|上月|last month|previous month/i.test(x))return{row:prev,label:questionLang(q)==='zh'?'上个月':'last month'};if(/本月|这个月|这月|this month|current month/i.test(x))return{row:cur,label:questionLang(q)==='zh'?'本月':'this month'};if(/呢[?？。!！\s]*$|多少[?？。!！\s]*$/.test(x)){if(/上个月|上月|last month|previous month/i.test(p))return{row:prev,label:questionLang(q)==='zh'?'上个月':'last month'};if(/本月|这个月|这月|this month|current month/i.test(p))return{row:cur,label:questionLang(q)==='zh'?'本月':'this month'}}return{row:cur,label:questionLang(q)==='zh'?'本月':'this month'}}
 function monthKey(d=new Date()){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`}function shiftMonth(key,delta){const [y,m]=key.split('-').map(Number),d=new Date(y,m-1+delta,1);return monthKey(d)}
 function configFor(userId){const fallback={accounts:[{name:'Bath',currency:'THB',type:'cash',active:true},{name:'TrueMoney',currency:'THB',type:'wallet',active:true},{name:'OKX',currency:'USD',type:'crypto',active:true},{name:'ByBit',currency:'USD',type:'crypto',active:true},{name:'MetaMask',currency:'USD',type:'crypto',active:true},{name:'KPay',currency:'MMK',type:'wallet',active:true}],categories:{Expense:['Dining','Snacks','Smoking','Transport','Wellness','Lifestyle','Other'],Income:['Salary','Meal Allowance','Bonus','Other Income'],Personal:['Family Support','Special Transfer','Gifts','Donation'],LoanIncome:['Debt','Loan Repayment'],LoanExpense:['PaidDeb','Loan Out'],Transfer:['Transfer']},archivedCategories:{}};try{const raw=localStorage.getItem('mmhvault_dynamic_config_v445_'+userId);if(!raw)return fallback;const x=JSON.parse(raw);if(!x||typeof x!=='object'||Array.isArray(x)||(x.ownerId&&String(x.ownerId)!==String(userId)))return fallback;return{accounts:Array.isArray(x.accounts)?x.accounts:fallback.accounts,categories:{...fallback.categories,...(x.categories||{})},archivedCategories:x.archivedCategories&&typeof x.archivedCategories==='object'?x.archivedCategories:{}}}catch(_e){return fallback}}
+
+function replyText(q,en,zh){return questionLang(q)==='zh'?zh:en}
+function safeDateTime(v){
+  const d=new Date(v);if(!v||Number.isNaN(d.getTime()))return'';
+  try{return d.toLocaleString(lang()==='zh'?'zh-CN':'en-US',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'})}catch(_e){return d.toISOString()}
+}
+function ownAccountProfile(){
+  const p=state.data?.profile||{},a=state.data?.authProfile||{};
+  return{
+    customer_no:p.customer_no??null,
+    created_at:String(p.created_at||a.created_at||''),
+    email:String(a.email||''),
+    provider:String(a.provider||''),
+    last_sign_in_at:String(a.last_sign_in_at||''),
+    language:String(state.data?.personalConfiguration?.language||lang()),
+    timezone:String(state.data?.personalConfiguration?.timezone||'')
+  }
+}
+function asksOtherUsersPrivateData(q){
+  return /(别人的账号|别人的账户|其他用户|另一个用户|他人账号|他人账户|someone else'?s account|another user'?s|other user'?s|another person'?s)/i.test(String(q||''))
+}
+function normalizedAccountKey(v){
+  let x=lc(v).replace(/[^a-z0-9\u3400-\u9fff]/g,'');
+  if(x==='bath')x='baht';
+  if(x==='truewallet')x='truemoney';
+  return x
+}
+function accountAliases(a){
+  const base=normalizedAccountKey(a?.name),out=new Set([base]);
+  const common={
+    baht:['bath','baht'],
+    truemoney:['truemoney','truewallet','true'],
+    okx:['okx'],
+    bybit:['bybit','bybitwallet'],
+    metamask:['metamask','meta'],
+    kpay:['kpay','kbzpay']
+  };
+  for(const [k,list] of Object.entries(common)){
+    if(base===k||list.includes(base))for(const v of list)out.add(normalizedAccountKey(v))
+  }
+  return [...out].filter(Boolean)
+}
+function oneEditOrSwap(a,b){
+  a=String(a||'');b=String(b||'');if(a===b)return true;
+  if(a.length===b.length&&a.length>2){
+    let diff=[];for(let i=0;i<a.length;i++)if(a[i]!==b[i])diff.push(i);
+    if(diff.length===2&&diff[1]===diff[0]+1&&a[diff[0]]===b[diff[1]]&&a[diff[1]]===b[diff[0]])return true
+  }
+  if(Math.abs(a.length-b.length)>1)return false;
+  let i=0,j=0,edits=0;
+  while(i<a.length&&j<b.length){
+    if(a[i]===b[j]){i++;j++;continue}
+    if(++edits>1)return false;
+    if(a.length>b.length)i++;else if(b.length>a.length)j++;else{i++;j++}
+  }
+  return edits+(i<a.length||j<b.length?1:0)<=1
+}
+function accountMatchesFromText(q){
+  const accounts=(state.data?.config?.accounts||[]).filter(a=>a?.name&&a.active!==false);
+  const raw=normalizedAccountKey(q),direct=[];
+  for(const a of accounts){
+    const aliases=accountAliases(a),pos=Math.min(...aliases.map(x=>{const i=raw.indexOf(x);return i<0?Number.MAX_SAFE_INTEGER:i}));
+    if(pos!==Number.MAX_SAFE_INTEGER)direct.push({a,pos})
+  }
+  if(direct.length)return direct.sort((x,y)=>x.pos-y.pos).map(x=>x.a);
+
+  const words=(String(q||'').toLowerCase().match(/[a-z0-9]{3,}/g)||[]).map(normalizedAccountKey);
+  const fuzzy=[];
+  for(const a of accounts){
+    const aliases=accountAliases(a);
+    if(words.some(w=>aliases.some(v=>oneEditOrSwap(w,v))))fuzzy.push(a)
+  }
+  return fuzzy.length===1?fuzzy:[]
+}
+function accountFactFromQuestion(q){
+  const matches=accountMatchesFromText(q),facts=financeFacts().accounts||[];
+  if(!matches.length)return null;
+  return facts.find(x=>lc(x.name)===lc(matches[0].name))||null
+}
+function activeAccountNames(){
+  return (state.data?.config?.accounts||[]).filter(a=>a?.name&&a.active!==false).map(a=>String(a.name))
+}
+function verifiedSupportAnswer(q){
+  const zh=questionLang(q)==='zh',x=String(q||'');
+  if(/(联系客服|联系.*客服|客服.*联系|人工客服|live support|contact support|customer service|反馈|feedback)/i.test(x)){
+    return zh
+      ?'可以在 MMHVAULT 主 APP 打开 Settings → Live support 联系客服；如果是问题反馈，也可以使用 Settings → Feedback center。当前代码没有验证任何官方客服邮箱、电话号码或外部客服网址，所以我不会编造这些联系方式。'
+      :'Use MMHVAULT Settings → Live support to contact support. For issue reports, use Settings → Feedback center. The current app data does not verify any official support email, phone number, or external support URL, so I will not invent one.'
+  }
+  if(/(忘记密码|修改密码|密码.*设备|登录设备|password|signed-in devices|login device)/i.test(x)){
+    return zh
+      ?'账号密码和已登录设备入口在 Settings → Password & devices。涉及真正的账号安全操作时，请使用这个正式入口；AI Chat 不会代替你修改密码或会话。'
+      :'Password and signed-in device controls are under Settings → Password & devices. Use that official screen for account-security changes; AI Chat does not change passwords or sessions.'
+  }
+  return''
+}
 function accountCurrency(name){const a=state.data?.config?.accounts?.find(x=>lc(x?.name)===lc(name));return String(a?.currency||'USD').toUpperCase()}
 function amountUSD(account,amount){const v=N(amount),c=accountCurrency(account),r=state.data?.rates||{};if(c==='USD'||c==='USDT')return v;if(c==='THB')return N(r.usd_thb)>0?v/N(r.usd_thb):0;if(c==='MMK')return N(r.usd_mmk)>0?v/N(r.usd_mmk):0;if(c==='CNY'||c==='RMB')return N(r.usd_cny)>0?v/N(r.usd_cny):0;return 0}
 function categoriesFor(group){const c=state.data?.config||{};return [...(c.categories?.[group]||[]),...(c.archivedCategories?.[group]||[])].map(lc)}
@@ -656,15 +751,41 @@ async function loadData(options={}){
   if(state.scopeUserId&&state.scopeUserId!==uid)clearFinancialScope('account-changed');
   state.user=verified;state.scopeUserId=uid;
   if(!silent)setMode(T('Current account verified · loading Personal data…','当前账号已验证 · 正在读取 Personal 数据……'));
-  const [transactions,investments,customInvestments,walletMovements,rateRows,budgets,goals,recurring]=await Promise.all([
-    safeQuery('transactions','*','tx_date.desc',700,uid),safeQuery('investments','*','inv_date.desc',300,uid),safeQuery('custom_investments','*','inv_date.desc',200,uid),safeQuery('crypto_wallet_movements','*','movement_date.desc',240,uid),safeQuery('exchange_rates','*','',5,uid),safeQuery('budgets','*','budget_month.desc',24,uid),safeQuery('financial_goals','*','updated_at.desc',80,uid),safeQuery('recurring_transactions','*','next_due_date.asc',100,uid)
+  const [transactions,investments,customInvestments,walletMovements,rateRows,budgets,goals,recurring,configRows,profileRows,alerts]=await Promise.all([
+    safeQuery('transactions','*','tx_date.desc',700,uid),
+    safeQuery('investments','*','inv_date.desc',300,uid),
+    safeQuery('custom_investments','*','inv_date.desc',200,uid),
+    safeQuery('crypto_wallet_movements','*','movement_date.desc',240,uid),
+    safeQuery('exchange_rates','*','',5,uid),
+    safeQuery('budgets','*','budget_month.desc',36,uid),
+    safeQuery('financial_goals','*','updated_at.desc',100,uid),
+    safeQuery('recurring_transactions','*','next_due_date.asc',140,uid),
+    safeQuery('personal_configuration','*','updated_at.desc',1,uid),
+    safeQuery('customer_profiles','*','created_at.asc',1,uid),
+    safeQuery('personal_financial_alerts','*','created_at.desc',80,uid)
   ]);
   const confirmed=await assertCurrentScope(uid);
   if(confirmed.id!==uid)throw Error('account-scope-changed');
   state.user=confirmed;state.scopeUserId=uid;state.loadedAt=Date.now();
   state.canonical=canonicalSnapshotFor(uid);
   const canonicalConfig=state.canonical?.config&&typeof state.canonical.config==='object'?state.canonical.config:null;
-  state.data={transactions,investments,customInvestments,walletMovements,rates:rateRows[0]||{},budgets,goals,recurring,config:canonicalConfig||configFor(uid)};
+  const cloudRow=configRows[0]||{},cloudConfig=cloudRow?.config&&typeof cloudRow.config==='object'?cloudRow.config:null;
+  const fallbackConfig=configFor(uid);
+  const chosenConfig=cloudConfig||canonicalConfig||fallbackConfig;
+  state.data={
+    transactions,investments,customInvestments,walletMovements,
+    rates:rateRows[0]||{},budgets,goals,recurring,
+    config:chosenConfig,
+    personalConfiguration:cloudRow,
+    profile:profileRows[0]||{},
+    alerts,
+    authProfile:{
+      email:String(confirmed?.email||''),
+      created_at:String(confirmed?.created_at||''),
+      last_sign_in_at:String(confirmed?.last_sign_in_at||''),
+      provider:String(confirmed?.app_metadata?.provider||'')
+    }
+  };
   const badge=$('scopeBadge');if(badge)badge.classList.add('scope-ok');
   if(!silent)setMode(T('Verified current account data ready · prepare Local AI','已验证当前登录账号数据 · 请准备本地 AI'));
   renderMetrics();renderThread();return state.data
@@ -770,10 +891,7 @@ function txAccount(name){
   const key=lc(name);return txActiveAccounts().find(a=>lc(a.name)===key)||null
 }
 function txFindAccounts(q){
-  const raw=String(q||'').toLowerCase();
-  return txActiveAccounts()
-    .map(a=>({a,i:raw.indexOf(String(a.name).toLowerCase())}))
-    .filter(x=>x.i>=0).sort((x,y)=>x.i-y.i).map(x=>x.a)
+  return accountMatchesFromText(q)
 }
 function txCurrencyAlias(v){
   const x=lc(v);
@@ -845,31 +963,54 @@ function txAccountBalance(name){
   return row?N(row.balance):null
 }
 function makeTransactionDraft(q){
-  const type=txTypeFromCommand(q),accounts=txFindAccounts(q),token=txAmountToken(q),date=txDateFromCommand(q);
+  const type=txTypeFromCommand(q),token=txAmountToken(q),date=txDateFromCommand(q);
+  let accounts=txFindAccounts(q);
+  const active=txActiveAccounts();
+
+  // If the user gave a currency but no recognizable account, use a currency match only
+  // when exactly one active account uses that currency. Never guess between multiple accounts.
+  if(!accounts.length&&token.currency&&type!=='Transfer'){
+    const same=active.filter(a=>{
+      const c=String(a.currency||'').toUpperCase();
+      return c===token.currency||(token.currency==='USD'&&c==='USDT')||(token.currency==='USDT'&&c==='USD')
+    });
+    if(same.length===1)accounts=same
+  }
+
   const missing=[];
-  if(!type)missing.push(T('type (Income or Expense)','类型（Income 或 Expense）'));
-  if(!(token.amount>0))missing.push(T('amount','金额'));
+  if(!type)missing.push(replyText(q,'type (Income / Expense / Transfer)','类型（Income / Expense / Transfer）'));
+  if(!(token.amount>0))missing.push(replyText(q,'amount','金额'));
   if(type==='Transfer'){
-    if(accounts.length<2)missing.push(T('from and to accounts','转出与转入账户'));
-  }else if(type==='Expense'&&!accounts[0])missing.push(T('payment account','支付账户'));
-  else if(type==='Income'&&!accounts[0])missing.push(T('receiving account','收款账户'));
-  if(missing.length)return{ok:false,message:T(`I can prepare it, but I still need: ${missing.join(', ')}. Example: “Add expense 900 THB from Bath for Dining today.”`,`可以新增，但还需要确认：${missing.join('、')}。例如：“添加一笔今天 Dining 支出 900 THB，从 Bath 支付。”`)};
+    if(accounts.length<2)missing.push(replyText(q,'from and to accounts','转出与转入账户'));
+  }else if(type==='Expense'&&!accounts[0])missing.push(replyText(q,'payment account','支付账户'));
+  else if(type==='Income'&&!accounts[0])missing.push(replyText(q,'receiving account','收款账户'));
+
+  if(missing.length){
+    const names=activeAccountNames();
+    return{ok:false,message:replyText(q,
+      `I can prepare the transaction, but I still need: ${missing.join(', ')}.${names.length?` Available accounts: ${names.join(', ')}.`:''}`,
+      `可以准备这笔交易，但还需要确认：${missing.join('、')}。${names.length?`当前可用账户：${names.join('、')}。`:''}`
+    )}
+  }
 
   if(type==='Transfer'){
     const from=accounts[0],to=accounts[1];
+    if(lc(from.name)===lc(to.name))return{ok:false,message:replyText(q,'The source and destination accounts must be different.','转出账户和转入账户不能相同。')};
     const fc=String(from.currency||'').toUpperCase(),tc=String(to.currency||'').toUpperCase();
-    if(fc!==tc)return{ok:false,message:T('For safety, AI Chat only adds same-currency Transfers for now. Please enter cross-currency transfers manually in Transactions.','为了安全，AI Chat 目前只允许新增同币种 Transfer。跨币种转账请在 Transactions 页面手动录入。')};
-    if(token.currency&&token.currency!==fc&&!(token.currency==='USD'&&fc==='USDT'))return{ok:false,message:T(`The amount currency (${token.currency}) does not match ${from.name} (${fc}). Please restate the amount in the account currency.`,`金额币种（${token.currency}）与 ${from.name}（${fc}）不一致，请使用该账户原币金额重新说明。`)};
-    const bal=txAccountBalance(from.name);if(bal!==null&&token.amount>bal+1e-9)return{ok:false,message:T(`That would exceed the current ${from.name} balance (${bal.toLocaleString()} ${fc}). I will not create a negative balance.`,`这笔转账会超过 ${from.name} 当前余额（${bal.toLocaleString()} ${fc}），为了避免负余额，我不会创建这笔记录。`)};
+    if(fc!==tc)return{ok:false,message:replyText(q,'For safety, AI Chat currently prepares same-currency Transfers only. Enter cross-currency transfers manually in Transactions.','为了安全，AI Chat 目前只准备同币种 Transfer。跨币种转账请在 Transactions 页面手动录入。')};
+    if(token.currency&&token.currency!==fc&&!(token.currency==='USD'&&fc==='USDT'))return{ok:false,message:replyText(q,`The amount currency (${token.currency}) does not match ${from.name} (${fc}).`,`金额币种（${token.currency}）与 ${from.name}（${fc}）不一致。`)};
+    const bal=txAccountBalance(from.name);
+    if(bal!==null&&token.amount>bal+1e-9)return{ok:false,message:replyText(q,`That transfer would exceed ${from.name}'s current balance (${bal.toLocaleString()} ${fc}). I will not create a negative balance.`,`这笔转账会超过 ${from.name} 当前余额（${bal.toLocaleString()} ${fc}），为了避免负余额，我不会创建。`)};
     return{ok:true,draft:{id:'tx_'+Date.now(),ownerId:state.scopeUserId,tx_date:date,type:'Transfer',category:'Transfer',from_account:from.name,from_amount:token.amount,to_account:to.name,to_amount:token.amount,note:txNoteFromCommand(q),currency:fc}}
   }
 
   const acct=accounts[0],acctCurrency=String(acct.currency||'USD').toUpperCase();
-  if(token.currency&&token.currency!==acctCurrency&&!(token.currency==='USD'&&acctCurrency==='USDT')){
-    return{ok:false,message:T(`The amount currency (${token.currency}) does not match ${acct.name} (${acctCurrency}). Please use the account's original currency.`,`金额币种（${token.currency}）与 ${acct.name}（${acctCurrency}）不一致，请按该账户的原币金额输入。`)}
+  if(token.currency&&token.currency!==acctCurrency&&!(token.currency==='USD'&&acctCurrency==='USDT')&&!(token.currency==='USDT'&&acctCurrency==='USD')){
+    return{ok:false,message:replyText(q,`The amount currency (${token.currency}) does not match ${acct.name} (${acctCurrency}). Please use the account's original currency.`,`金额币种（${token.currency}）与 ${acct.name}（${acctCurrency}）不一致，请按该账户原币金额输入。`)}
   }
   if(type==='Expense'){
-    const bal=txAccountBalance(acct.name);if(bal!==null&&token.amount>bal+1e-9)return{ok:false,message:T(`That expense would exceed the current ${acct.name} balance (${bal.toLocaleString()} ${acctCurrency}). I will not create a negative balance.`,`这笔支出会超过 ${acct.name} 当前余额（${bal.toLocaleString()} ${acctCurrency}），为了避免负余额，我不会创建这笔记录。`)}
+    const bal=txAccountBalance(acct.name);
+    if(bal!==null&&token.amount>bal+1e-9)return{ok:false,message:replyText(q,`That expense would exceed ${acct.name}'s current balance (${bal.toLocaleString()} ${acctCurrency}). I will not create a negative balance.`,`这笔支出会超过 ${acct.name} 当前余额（${bal.toLocaleString()} ${acctCurrency}），为了避免负余额，我不会创建。`)}
   }
   const category=txCategoryFromCommand(q,type);
   return{ok:true,draft:{
@@ -958,9 +1099,10 @@ function incomeCategoryFromQuestion(q){const ql=lc(q),names=new Set(state.data?.
 function productHelpAnswer(q,zh){
   const x=lc(q),raw=String(q||'');
   const asks=/(能做什么|有什么用|怎么用|如何用|作用|功能|为什么|区别|介绍|说明|what can|what does|how to use|how does|why|difference|explain|guide)/i.test(raw)||/(上呢|呢)[?？。!！\s]*$/i.test(raw);
-  const appIntent=/(mmhvault|app|网站|页面|功能|新手|指南|使用|dashboard|transaction|invest|account|cash\s*flow|analy|report|budget|goal|recurring|notification|setting|backup|restore|exchange|ai\s*(chat|assistant)|交易|投资|账户|分析|报告|预算|目标|周期|通知|设置|备份|恢复|汇率|ai助手|ai\s*助手)/i.test(raw);
+  const appIntent=/(mmhvault|app|网站|页面|功能|新手|指南|使用|dashboard|transaction|invest|account|cash\s*flow|analy|report|budget|goal|recurring|notification|setting|backup|restore|exchange|ai\s*(chat|assistant)|交易|投资|账户|账号|登录|注册|密码|客服|联系|帮助|反馈|分析|报告|预算|目标|周期|通知|设置|备份|恢复|汇率|ai助手|ai\s*助手|support|contact|feedback|login|sign\s*in|register|password)/i.test(raw);
   if(!asks&&!appIntent)return'';
   const answer=(zhText,enText)=>zh?zhText:enText;
+  const support=verifiedSupportAnswer(q);if(support)return support;
 
   // Multi-page questions must be answered as multi-page questions instead of being hijacked by the first keyword.
   if((/cash\s*flow|analy|分析/.test(x))&&(/reports?|报告/.test(x)))return answer(
@@ -1032,8 +1174,8 @@ function productHelpAnswer(q,zh){
     'Exchange / rates lets MMHVAULT normalize different currencies for display and analysis while preserving original-currency amounts. Updating rates changes converted USD/other display values, but does not rewrite original transaction amounts. When comparing history, distinguish the original amount from the converted display value.'
   );
   if(/ai\s*(chat|assistant)?|ai助手|ai\s*助手|local ai|webgpu/.test(x))return answer(
-    'AI Financial Assistant 有两类能力：第一类是 MMHVAULT 规则引擎直接回答当前账号的精确财务问题；第二类是 Local AI 用 WebGPU 在浏览器里解释开放式问题和 APP 使用方法。Local AI 本身不能直接写账；AI Chat 只允许生成“新增交易”预览，并且必须由你点击确认后才写入当前账号。它不能编辑或删除已有交易，也不能读取其他账号。首次准备 Local AI 会下载公开模型文件到当前浏览器缓存，不需要付费 AI API Key。',
-    'AI Financial Assistant has two layers: the MMHVAULT rules engine answers exact current-account financial questions, while Local AI uses WebGPU in the browser for open-ended explanations and app guidance. The Local AI model cannot write directly. AI Chat may prepare a new-transaction preview, but it is written only after you explicitly confirm it. It cannot edit/delete existing transactions or access another account. Preparing Local AI downloads public model files into this browser cache and does not require a paid AI API key.'
+    'AI Financial Assistant 有两类能力：第一类是 MMHVAULT 规则引擎直接回答当前账号的精确财务问题；第二类是 Local AI 用 WebGPU 在浏览器里解释开放式问题和 APP 使用方法。Local AI 本身不能直接写账；AI Chat 只允许生成“新增交易”预览，并且必须由你点击确认后才写入当前账号。它不能编辑或删除已有交易；可以读取当前登录用户下面的各个财务账户，但不能读取其他 MMHVAULT 用户的私人数据。首次准备 Local AI 会下载公开模型文件到当前浏览器缓存，不需要付费 AI API Key。',
+    'AI Financial Assistant has two layers: the MMHVAULT rules engine answers exact current-account financial questions, while Local AI uses WebGPU in the browser for open-ended explanations and app guidance. The Local AI model cannot write directly. AI Chat may prepare a new-transaction preview, but it is written only after you explicitly confirm it. It cannot edit/delete existing transactions. It can read financial accounts inside the signed-in profile, but cannot access another MMHVAULT user\'s private data. Preparing Local AI downloads public model files into this browser cache and does not require a paid AI API key.'
   );
   if(/beginner|新用户|新手|指南|怎么开始|从哪里开始|first\s*use|getting started/.test(x))return answer(
     '新用户建议按这个顺序：1) Dashboard 先认识整体结构；2) Transactions 正确记录 Income / Expense / Transfer；3) Accounts 和汇率确认资产基础；4) Budget 设置消费边界；5) Goals 与 Recurring 建立未来计划；6) Notifications 做 Device Check；7) 用 AI Assistant 提问和解释；8) 最后做一次 Backup。AI Chat → Quick Start 会按页面提供入口，你也可以直接输入问题。',
@@ -1053,8 +1195,50 @@ function exactToolAnswer(q){
   const zh=questionLang(q)==='zh',ql=lc(q),f=financeFacts(),cur=f.current_month,prev=f.previous_month;
   // If the user says we misunderstood, preserve the recent conversation and let Local AI resolve the clarification.
   if(isCorrectionMessage(q))return'';
+
+  if(asksOtherUsersPrivateData(q))return zh
+    ?'我可以读取当前登录用户自己的 Personal 数据，以及这个用户下面的各个财务账户；但不能读取其他 MMHVAULT 用户的私人资料、交易或余额。'
+    :'I can read the signed-in user’s own Personal data and the financial accounts inside that profile, but I cannot access another MMHVAULT user’s private profile, transactions, or balances.';
+
+  const own=ownAccountProfile();
+  if(/(什么时候注册|注册时间|账号.*创建|账户.*创建|创建时间|joined|registered|account.*created|created.*account)/i.test(q)){
+    const created=safeDateTime(own.created_at);
+    return created?(zh?`当前登录账号的注册/创建时间是 ${created}。这是从当前账号已验证资料读取的。`:`The current signed-in account was created on ${created}. This comes from the verified current-account profile.`):(zh?'当前账号上下文没有可验证的注册时间，所以我不会猜。':'The current account context does not contain a verified registration time, so I will not guess.')
+  }
+  if(/(登录邮箱|账号邮箱|我的邮箱|email.*account|account.*email)/i.test(q)){
+    return own.email?(zh?`当前登录账号邮箱是 ${own.email}。`:`The current signed-in account email is ${own.email}.`):(zh?'当前会话没有可验证的邮箱信息。':'No verified email is available in the current session.')
+  }
+  if(/(customer\s*(id|no)|客户编号|客户号)/i.test(q)){
+    return own.customer_no!=null?(zh?`当前账号的 Customer No. 是 ${own.customer_no}。`:`The current account Customer No. is ${own.customer_no}.`):(zh?'当前账号没有可验证的 Customer No.。':'No verified Customer No. is available for the current account.')
+  }
+  if(/(上次登录|最后登录|last sign.?in|last login)/i.test(q)){
+    const t=safeDateTime(own.last_sign_in_at);
+    return t?(zh?`当前账号最近一次登录时间是 ${t}。`:`The current account’s last sign-in time is ${t}.`):(zh?'当前会话没有可验证的最近登录时间。':'No verified last-sign-in time is available in the current session.')
+  }
+
+  const namedAccount=accountFactFromQuestion(q);
+  if(namedAccount&&/(余额|有多少|多少钱|balance|how much|account)/i.test(q)){
+    return zh
+      ?`${namedAccount.name} 当前余额约为 ${N(namedAccount.balance).toLocaleString()} ${namedAccount.currency}，按当前 MMHVAULT 汇率折算约 ${usd(namedAccount.balance_usd)}。`
+      :`${namedAccount.name} currently holds about ${N(namedAccount.balance).toLocaleString()} ${namedAccount.currency}, approximately ${usd(namedAccount.balance_usd)} using MMHVAULT's current exchange rates.`
+  }
+  if(/(有哪些账户|有哪些账号|所有账户|所有账号|账户列表|账号列表|其他账户|list.*accounts|all.*accounts)/i.test(q)){
+    const rows=f.accounts||[];
+    if(!rows.length)return zh?'当前没有活动财务账户。':'There are no active financial accounts in the current profile.';
+    const text=rows.map(a=>`${a.name}: ${N(a.balance).toLocaleString()} ${a.currency} (${usd(a.balance_usd)})`).join('；');
+    return zh?`当前登录用户的活动财务账户有：${text}。`:`Active financial accounts for the signed-in user: ${text}.`
+  }
+  if(/(多少笔交易|交易数量|交易记录.*多少|transaction count|how many transactions)/i.test(q)){
+    const n=(state.data?.transactions||[]).length;
+    return zh?`当前已加载并验证的交易记录共有 ${n} 笔。`:`There are ${n} verified transaction records currently loaded for this account.`
+  }
+  if(/(未读.*通知|未读.*提醒|通知.*未读|提醒.*未读|unread.*alert|unread.*notification)/i.test(q)){
+    const alerts=state.data?.alerts||[],unread=alerts.filter(a=>a.is_read===false).length;
+    return zh?`当前账号有 ${unread} 条未读 Financial Alert。`:`The current account has ${unread} unread Financial Alerts.`
+  }
+
   const help=productHelpAnswer(q,zh);if(help)return help;
-  if(/^(你好|您好|嗨|hello|hi|hey)[!！。\s]*$/i.test(String(q).trim())||/(你|您)能(帮我|做|解答)|能回答什么|可以做什么|能做些什么|what can you|what do you do/i.test(q))return zh?'我现在可以做两类事情：① 当作 MMHVAULT 新用户指南，回答 Dashboard、Transactions、Accounts、Invest、Analyze、Reports、Budget、Goals、Recurring、Notifications、Settings、Backup/Restore、Exchange、AI Assistant 等页面怎么用、为什么这样设计、页面之间有什么区别；② 读取当前登录账号的数据，回答净资产、现金、收入、工资、开销、储蓄率、分类变化和现金流规划。财务分析本身保持只读；只有“新增交易”支持 Preview → Confirm 后写入当前账号，AI 不支持编辑或删除已有记录，也不会读取其他账号。':'I can do two things: ① act as the MMHVAULT new-user guide and explain how/why to use Dashboard, Transactions, Accounts, Invest, Analyze, Reports, Budget, Goals, Recurring, Notifications, Settings, Backup/Restore, Exchange and AI Assistant; ② read only the current signed-in account to answer questions about net assets, cash, income, salary, spending, savings rate, category changes and planning. Financial analysis remains read-only. Only new-transaction creation is allowed through Preview → Confirm; AI cannot edit/delete existing records or access another account.';
+  if(/^(你好|您好|嗨|hello|hi|hey)[!！。\s]*$/i.test(String(q).trim())||/(你|您)能(帮我|做|解答)|能回答什么|可以做什么|能做些什么|what can you|what do you do/i.test(q))return zh?'我现在可以做两类事情：① 当作 MMHVAULT 新用户指南，回答 Dashboard、Transactions、Accounts、Invest、Analyze、Reports、Budget、Goals、Recurring、Notifications、Settings、Backup/Restore、Exchange、AI Assistant 等页面怎么用、为什么这样设计、页面之间有什么区别；② 读取当前登录账号的数据，回答净资产、现金、收入、工资、开销、储蓄率、分类变化和现金流规划。财务分析本身保持只读；只有“新增交易”支持 Preview → Confirm 后写入当前账号，AI 不支持编辑或删除已有记录，可以读取当前登录用户下面的各个财务账户，但不会读取其他 MMHVAULT 用户。':'I can do two things: ① act as the MMHVAULT new-user guide and explain how/why to use Dashboard, Transactions, Accounts, Invest, Analyze, Reports, Budget, Goals, Recurring, Notifications, Settings, Backup/Restore, Exchange and AI Assistant; ② read only the current signed-in account to answer questions about net assets, cash, income, salary, spending, savings rate, category changes and planning. Financial analysis remains read-only. Only new-transaction creation is allowed through Preview → Confirm; AI cannot edit/delete existing records or access another MMHVAULT user\'s private account.';
 
   const sym=marketSymbolFromQuestion(q);if(sym&&/(价格|price|行情|多少)/i.test(q)){const m=f.market?.crypto?.[sym],updated=N(f.market?.crypto_updated_at),age=updated?Date.now()-updated:Infinity;if(m&&N(m.price_usd)>0&&age<15*60*1000){const ch=Number(m.change_24h_pct),change=Number.isFinite(ch)?`，24 小时变化 ${ch>=0?'+':''}${ch.toFixed(2)}%`:'';return zh?`${sym} 当前在 MMHVAULT Live Prices 中的参考价约为 ${usd(m.price_usd)}${change}。来源：${f.market?.crypto_source||'市场参考数据'}。这是市场参考价，不是交易报价。`:`${sym} is about ${usd(m.price_usd)} in MMHVAULT Live Prices${Number.isFinite(ch)?`, with a ${ch>=0?'+':''}${ch.toFixed(2)}% 24h change`:''}. Source: ${f.market?.crypto_source||'market reference data'}. This is a reference price, not an execution quote.`}return zh?`当前 AI 上下文没有一条足够新的 ${sym} 市场报价，我不会猜价格。请先在 Invest → Live Prices 刷新行情，再点击“刷新数据”。`:`There is no sufficiently fresh ${sym} market quote in the current AI context, so I will not guess. Refresh Invest → Live Prices, then press Refresh data.`}
 
@@ -1084,6 +1268,14 @@ function aiContext(question){
     rules:['Transfers are asset-location changes, not income/expense','Data Adjustment and Loans are excluded from ordinary cash flow','Linked investment cash flows are excluded from ordinary income/spending','Wallet-to-wallet crypto transfer is not income/expense; network fees reduce holdings but are not lifestyle spending']
   };
   if(cat)base.requested_category={name:cat,current_month_usd:categoryValue(f.current_month.key,cat),previous_month_usd:categoryValue(f.previous_month.key,cat)};
+  if(/账号|账户|登录|注册|邮箱|customer|profile|account|login|register|email|客服|support|contact/.test(ql)){
+    const p=ownAccountProfile();
+    base.account_profile={created_at:p.created_at,email:p.email,provider:p.provider,last_sign_in_at:p.last_sign_in_at,customer_no:p.customer_no,language:p.language,timezone:p.timezone}
+  }
+  if(/budget|预算/.test(ql))base.budgets=(state.data?.budgets||[]).slice(0,12).map(x=>({month:x.budget_month,category:x.category,amount:x.amount,currency:x.currency,status:x.status}));
+  if(/notification|alert|提醒|通知/.test(ql))base.financial_alerts=(state.data?.alerts||[]).slice(0,12).map(x=>({kind:x.kind,title:x.title,body:trimText(x.body,120),severity:x.severity,target_page:x.target_page,is_read:x.is_read,created_at:x.created_at}));
+  if(/wallet|钱包/.test(ql))base.wallet_movements=(state.data?.walletMovements||[]).slice(0,8).map(x=>({date:x.movement_date,kind:x.kind||x.movement_type,asset:x.asset||x.symbol,quantity:x.quantity,from:x.from_wallet||x.from_account,to:x.to_wallet||x.to_account,fee:x.fee||x.network_fee}));
+
   if(/spend|expense|income|dining|food|category|cash|balance|开销|支出|收入|餐饮|分类|余额|现金/.test(ql)){const ordinary=(state.data?.transactions||[]).filter(t=>!isLinkedInvestment(t));base.recent_transactions=ordinary.slice(0,10).map(t=>({date:t.tx_date,type:t.type,group:txGroup(t),category:t.category,from:t.from_account,to:t.to_account,amount_usd:round2(t.type==='Income'?amountUSD(t.to_account,t.to_amount):amountUSD(t.from_account,t.from_amount)),note:trimText(t.note,70)}))}
   if(/invest|portfolio|crypto|btc|eth|gold|wallet|gas|投资|持仓|加密|黄金|钱包/.test(ql)){base.recent_investments=(state.data?.investments||[]).slice(0,8).map(x=>({date:x.inv_date,asset:x.asset||x.symbol,symbol:x.symbol,side:x.side,quantity:x.quantity,amount:x.amount,market_price:x.market_price}))}
   if(/budget|goal|recurr|plan|business|capital|future|forecast|产业|规划|预算|目标|未来|周期/.test(ql)){base.goals=(state.data?.goals||[]).slice(0,6).map(x=>({name:x.name,type:x.goal_type,currency:x.currency,target:x.target_amount,current:x.current_amount,target_date:x.target_date,status:x.status}));base.recurring=(state.data?.recurring||[]).slice(0,6).map(x=>({name:x.name,type:x.tx_type,category:x.category,from_amount:x.from_amount,to_amount:x.to_amount,frequency:x.frequency,next_due_date:x.next_due_date,status:x.status}))}
@@ -1110,6 +1302,9 @@ ${zh?'最重要规则：':'Most important rules:'}
 - ${zh?'如果用户问 MMHVAULT 页面能做什么，要解释该页面真实用途，不要把 Transactions 错说成只负责 Transfer。':'If the user asks what an MMHVAULT page does, explain its actual purpose; never describe Transactions as Transfer-only.'}
 - ${zh?'你同时是 MMHVAULT Personal 的新用户指南。可解释 Dashboard、Transactions、Invest、Accounts、Cash Flow Analyze、Reports、Budget、Goals、Recurring、Notifications、Settings、Backup/Restore、Exchange 和 AI Assistant 的用途、页面之间的区别、推荐使用顺序和设计原因。':'You are also the new-user guide for MMHVAULT Personal. You may explain the purpose, differences, recommended workflow and design rationale for Dashboard, Transactions, Invest, Accounts, Cash Flow Analyze, Reports, Budget, Goals, Recurring, Notifications, Settings, Backup/Restore, Exchange and AI Assistant.'}
 - ${zh?'APP 使用问题不要求用户提供财务数据；不要为了回答页面功能而编造当前余额或交易。涉及用户财务数字时仍必须只用当前账号验证数据。':'App-usage questions do not require financial data; never invent balances or transactions merely to explain a feature. If the question asks for personal financial numbers, continue to use only verified current-account data.'}
+- ${zh?'把自己当作“已验证资料优先”的客服：当前账号事实优先用上下文和规则引擎；产品功能优先用已知 MMHVAULT 页面规则。若没有验证依据，就明确说“当前无法验证”，不要猜。':'Act like a verified-information-first support agent: current-account facts must come from supplied context/rules, and product answers must come from known MMHVAULT behavior. If a fact is not verified, say you cannot verify it rather than guessing.'}
+- ${zh?'绝对不要编造客服邮箱、电话号码、网址、公司政策、退款政策、账户注册时间或不存在的页面。已验证的联系客服入口只有 Settings → Live support 和 Settings → Feedback center。':'Never invent support emails, phone numbers, URLs, company policies, refund policies, registration dates, or pages. The only verified support paths in this app are Settings → Live support and Settings → Feedback center.'}
+- ${zh?'“其他账号”如果指当前登录用户下面的 Bath/OKX/TrueMoney 等财务账户，可以回答；如果指其他 MMHVAULT 用户的私人账号数据，必须拒绝访问。':'If “other accounts” means financial accounts such as Bath/OKX/TrueMoney inside the current signed-in profile, you may answer. If it means another MMHVAULT user’s private data, you must not access it.'}
 - ${zh?'先直接回答用户的问题，再解释最相关的 2-4 个依据；不要答非所问，不要重复固定模板。':'Answer the actual question first, then explain the 2-4 most relevant supporting points. Do not answer a different question or repeat a canned template.'}
 - ${zh?'最近一条用户澄清拥有最高优先级。如果用户说“我的意思是 / 不是这个 / 你理解错了”，先根据最近对话重新理解，不要继续沿用之前错误的意图。':'The user\'s latest clarification has highest priority. If they say “I mean / not that / you misunderstood”, reinterpret the request using recent conversation instead of continuing the earlier mistaken intent.'}
 - ${zh?'不要因为一句话同时提到多个页面，就只回答第一个关键词；如果用户是在比较多个页面或要求整体说明，要覆盖他实际点名的对象。':'Do not answer only the first keyword when a question names multiple pages. If the user is comparing several pages or asks for an overview, cover the objects they actually named.'}
