@@ -8,7 +8,7 @@
 <link href="images/icon-192.png" rel="apple-touch-icon" sizes="192x192"/>
 
 <meta content="#06111f" name="theme-color"/>
-<link rel="manifest" href="./mmh-manifest-v2.webmanifest?v=1.12.13"/>
+<link rel="manifest" href="./mmh-manifest-v2.webmanifest?v=1.12.14"/>
 <meta name="application-name" content="MMHVAULT"/>
 <meta name="mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
@@ -18,8 +18,6 @@
 <meta name="mmhvault-release" content="1.3.0-uiux-pass1"/>
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-<link rel="dns-prefetch" href="https://unpkg.com">
-<link rel="preconnect" href="https://unpkg.com" crossorigin>
 <link rel="dns-prefetch" href="https://vrypucmyrztxgiqhjspd.supabase.co">
 <link rel="preconnect" href="https://vrypucmyrztxgiqhjspd.supabase.co" crossorigin>
 <style data-mmh-bundled="mmhvault.css">
@@ -12661,14 +12659,8 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
 </main>
 <div class="modal-backdrop" id="editModal" onclick="if(event.target===this)closeEditModal()"><div class="modal"><div class="toolbar"><div class="modal-title" id="editModalTitle">Edit</div><button class="btn" onclick="closeEditModal()">Close</button></div><div id="editModalBody"></div></div></div>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script>
-/* V4.3.0 CDN resilience: GitHub Pages may occasionally fail to load jsDelivr.
-   Keep the core app blocked until the Supabase SDK is actually available. */
-if(!window.supabase){
-  document.write('<script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.min.js"><\/script>');
-}
-</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/dist/umd/supabase.js"></script>
+<script>if(!window.supabase){console.error("[MMHVAULT] Supabase SDK failed to load from the primary CDN; authentication will remain unavailable until reload.");}</script>
 <script id="mmhvault-v435-native-import-boot">
 /* V4.3.7: standalone iOS file-input bridge. Must not depend on the main app script booting first. */
 window.mmhvaultHandleBackupFileV436=function(file,input){
@@ -21374,7 +21366,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     if(!data?.ok)throw new Error(data?.error||tr('Push test failed.','推送测试失败。'));return data;
   }
   async function diagnostics(){
-    const report={version:'1.12.13',browser:browserLabel(),platform:platformLabel(),secureContext:!!isSecureContext,serviceWorkerSupported:'serviceWorker'in navigator,pushManagerSupported:'PushManager'in window,notificationSupported:'Notification'in window,permission:('Notification'in window?Notification.permission:'unavailable'),ios:isIOS(),android:isAndroid(),standalone:standalone(),workerActive:false,legacyWorkerPresent:false,legacyRootPushPresent:false,legacyRootSubscriptionPresent:false,legacyRootOwnedByCurrentUser:false,legacyRootBinding:'not-checked',subscriptionPresent:false,serverBinding:'not-checked',keysMatch:false,state:'unknown',endpointHost:'',timezone:timezone(),signedIn:!!owner(),pushScope:expectedPushScopeURL(),crossTabPushLock:!!navigator.locks?.request};
+    const report={version:'1.12.14',browser:browserLabel(),platform:platformLabel(),secureContext:!!isSecureContext,serviceWorkerSupported:'serviceWorker'in navigator,pushManagerSupported:'PushManager'in window,notificationSupported:'Notification'in window,permission:('Notification'in window?Notification.permission:'unavailable'),ios:isIOS(),android:isAndroid(),standalone:standalone(),workerActive:false,legacyWorkerPresent:false,legacyRootPushPresent:false,legacyRootSubscriptionPresent:false,legacyRootOwnedByCurrentUser:false,legacyRootBinding:'not-checked',subscriptionPresent:false,serverBinding:'not-checked',keysMatch:false,state:'unknown',endpointHost:'',timezone:timezone(),signedIn:!!owner(),pushScope:expectedPushScopeURL(),crossTabPushLock:!!navigator.locks?.request};
     if(!report.serviceWorkerSupported||!report.pushManagerSupported||!report.notificationSupported||!report.secureContext){report.state='unsupported';return report}
     if(report.ios&&!report.standalone){report.state='ios-install';return report}
     if(report.permission==='denied'){report.state='blocked'}
@@ -21410,7 +21402,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   }
   function refreshPermissionState(){cached.at=0;window.dispatchEvent(new CustomEvent('mmhvault:push-state'))}
   async function watchPermission(){try{if(!navigator.permissions?.query)return;const ps=await navigator.permissions.query({name:'notifications'});ps.onchange=refreshPermissionState}catch(_e){}}
-  window.MMHBackgroundPushV123={status,enable,disable,toggle,test,diagnostics,reconcile,permissionHelp,subscribedCached,version:'1.12.13'};window.MMHBackgroundPushV122=window.MMHBackgroundPushV123;
+  window.MMHBackgroundPushV123={status,enable,disable,toggle,test,diagnostics,reconcile,permissionHelp,subscribedCached,version:'1.12.14'};window.MMHBackgroundPushV122=window.MMHBackgroundPushV123;
   window.addEventListener('mmhvault:config-owner-changed',()=>{cached.at=0;if(owner())setTimeout(reconcile,600)},{passive:true});
   window.addEventListener('focus',refreshPermissionState,{passive:true});window.addEventListener('pageshow',refreshPermissionState,{passive:true});document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshPermissionState()},{passive:true});watchPermission();
   const prep=()=>setTimeout(()=>prepareWorker().catch(err=>console.warn('[MMHVAULT] push worker prepare skipped',err)),220);if(document.readyState==='complete')prep();else window.addEventListener('load',prep,{once:true,passive:true});
@@ -23533,7 +23525,7 @@ body.light #reports .report-mini-v115{background:#f3f8fb;border-color:#cfdee9}bo
 </script>
 <!-- MMHVAULT v1.12.9 · isolated Push migration: legacy sw.js stays untouched; current-account obsolete root Push subscriptions are retired only through user Push actions. -->
 <!-- MMHVAULT v1.12.10 · Push disable/recovery hardening: server disable must succeed before local unsubscribe; disabled server bindings stay off instead of being mislabeled as repair. -->
-<!-- MMHVAULT v1.12.13 · Android fresh-install PWA identity; old broken Android WebAPK may remain untouched; no financial calculation changes. -->
+<!-- MMHVAULT v1.12.14 · Safe Browsing recovery: neutral root landing, explicit auth disclosure, single-CDN fallback policy; no financial calculation changes. -->
 
 
 
