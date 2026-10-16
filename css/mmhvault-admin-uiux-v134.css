@@ -1,0 +1,216 @@
+/* MMHVAULT v1.3.4 · Administrator Dashboard UI/UX Pass
+   Presentation only. Admin authorization, Supabase RPCs, feedback updates and usage tracking are unchanged. */
+:root{
+  --adm-bg:#06111d;
+  --adm-surface:linear-gradient(145deg,rgba(13,34,52,.96),rgba(7,23,37,.98));
+  --adm-surface-soft:rgba(12,34,51,.78);
+  --adm-line:rgba(96,153,197,.22);
+  --adm-text:#edf5fb;
+  --adm-muted:#8ea8bc;
+  --adm-gold:#e7c96f;
+  --adm-cyan:#a9d6f3;
+  --adm-green:#8cd2b4;
+}
+html,body{min-height:100%}
+body{
+  background:
+    radial-gradient(circle at 86% 0,rgba(64,128,173,.14),transparent 32%),
+    radial-gradient(circle at 8% 75%,rgba(226,188,94,.045),transparent 28%),
+    var(--adm-bg)!important;
+  color:var(--adm-text)!important;
+}
+header{
+  max-width:1180px!important;
+  min-height:76px!important;
+  padding:16px 22px!important;
+  border-bottom:1px solid rgba(91,148,190,.16)!important;
+}
+header .brand{gap:10px!important}
+header .brand .mmh-brand-v11{width:40px!important;height:40px!important}
+header .brand b{font-size:16px!important;letter-spacing:.08em!important}
+header .brand small{font-size:10px!important;letter-spacing:.06em!important}
+header>.button{
+  min-height:38px!important;
+  padding:7px 12px!important;
+  border-radius:10px!important;
+  border-color:var(--adm-line)!important;
+  background:rgba(12,38,57,.72)!important;
+}
+main{
+  max-width:1180px!important;
+  padding:22px!important;
+}
+#message{
+  min-height:34px!important;
+  padding:7px 11px!important;
+  margin:0 0 14px!important;
+  border-radius:10px!important;
+  border-color:rgba(91,151,197,.18)!important;
+  background:rgba(8,29,45,.72)!important;
+  color:#aac9dc!important;
+  box-shadow:none!important;
+}
+#dashboard>.toolbar{
+  margin-bottom:14px!important;
+  padding:2px 0 11px!important;
+  border-bottom:1px solid rgba(91,151,197,.12)!important;
+}
+#dashboard h1{font-size:clamp(25px,2.4vw,32px)!important;letter-spacing:-.035em!important}
+#dashboard>.toolbar .sub{margin-top:4px!important}
+#dashboard>.toolbar .actions button{min-height:38px!important;padding:7px 11px!important}
+.admin-tabs{
+  width:max-content!important;
+  max-width:100%!important;
+  margin:0 0 14px!important;
+  padding:4px!important;
+  gap:3px!important;
+  border-radius:12px!important;
+  border-color:rgba(91,151,197,.17)!important;
+  background:rgba(7,25,39,.74)!important;
+}
+.admin-tabs button{
+  min-width:120px!important;
+  min-height:36px!important;
+  padding:7px 11px!important;
+  border-radius:9px!important;
+  font-size:11px!important;
+}
+.admin-tabs button[aria-pressed=true]{
+  background:linear-gradient(145deg,rgba(39,83,112,.88),rgba(23,58,82,.92))!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.04)!important;
+}
+.metrics{
+  grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  gap:10px!important;
+  margin:0 0 12px!important;
+}
+.metric{
+  min-height:104px!important;
+  padding:14px 15px!important;
+  border-radius:15px!important;
+  border-color:var(--adm-line)!important;
+  background:var(--adm-surface)!important;
+  box-shadow:0 12px 28px rgba(0,0,0,.13),inset 0 1px 0 rgba(255,255,255,.025)!important;
+}
+.metric::before{width:22px!important;height:2px!important;margin-bottom:11px!important}
+.metric strong{margin-top:6px!important;font-size:clamp(26px,2.7vw,32px)!important}
+.metric small{font-size:10px!important}
+.panel{
+  padding:18px!important;
+  border-radius:17px!important;
+  border-color:var(--adm-line)!important;
+  background:var(--adm-surface)!important;
+  box-shadow:0 14px 32px rgba(0,0,0,.14),inset 0 1px 0 rgba(255,255,255,.025)!important;
+}
+.panel>.toolbar{margin-bottom:12px!important}
+.panel h2{font-size:15px!important;letter-spacing:-.015em!important}
+.search{gap:7px!important;margin-bottom:11px!important}
+.search input,
+#adminFeedbackView select,
+#adminFeedbackView textarea{
+  border-color:rgba(94,152,196,.20)!important;
+  background:rgba(5,21,35,.82)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.02)!important;
+}
+.search input{min-height:40px!important;padding:9px 11px!important;font-size:13px!important}
+.search button{min-height:40px!important;padding:8px 12px!important}
+.users{gap:6px!important}
+.users .user{
+  min-height:62px!important;
+  padding:11px 12px!important;
+  border-radius:11px!important;
+  border-color:rgba(88,145,188,.15)!important;
+  background:rgba(7,25,40,.58)!important;
+  box-shadow:none!important;
+}
+.users .user:hover{border-color:rgba(104,174,220,.30)!important;background:rgba(10,34,52,.70)!important}
+.identity b{font-size:12px!important}
+.identity small,.activity{font-size:10px!important}
+.activity b{margin-bottom:4px!important;padding:3px 7px!important;border-radius:999px!important;font-size:9px!important}
+.pagination{margin-top:12px!important}
+.pagination button{min-height:36px!important;padding:7px 10px!important;font-size:11px!important}
+footer{margin-top:12px!important;padding-top:9px!important;font-size:10px!important;color:rgba(143,169,190,.72)!important}
+
+/* Feedback inbox */
+.feedback-metrics{
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:10px!important;
+  margin-bottom:12px!important;
+}
+.feedback-metrics>div{
+  min-height:86px!important;
+  padding:13px 14px!important;
+  border-radius:14px!important;
+  border-color:var(--adm-line)!important;
+  background:var(--adm-surface)!important;
+  box-shadow:0 11px 25px rgba(0,0,0,.11)!important;
+}
+.feedback-metrics strong{margin-top:5px!important;font-size:25px!important}
+.af-filter{
+  width:max-content!important;
+  max-width:100%!important;
+  margin:0 0 10px!important;
+  padding:5px 7px!important;
+  border:1px solid rgba(91,151,197,.14)!important;
+  border-radius:10px!important;
+  background:rgba(6,23,37,.60)!important;
+}
+.af-filter select{min-height:34px!important;padding:6px 26px 6px 8px!important;font-size:11px!important}
+#afMessage{min-height:20px!important;margin:6px 0 8px!important;font-size:11px!important}
+.af-item{
+  margin-top:7px!important;
+  padding:11px 12px!important;
+  border-radius:12px!important;
+  border-color:rgba(89,147,190,.16)!important;
+  background:rgba(7,25,40,.60)!important;
+  box-shadow:none!important;
+}
+.af-item[open]{border-color:rgba(105,174,220,.26)!important;background:rgba(9,30,47,.76)!important}
+.af-item summary{min-height:38px!important}
+.af-item summary b{font-size:12px!important}
+.af-badge{padding:4px 7px!important;border-radius:999px!important;font-size:9px!important}
+.af-meta{margin:5px 0 0!important;font-size:9.5px!important}
+.af-body{margin:10px 0!important;font-size:12px!important;line-height:1.6!important}
+.af-editor{padding-top:11px!important;gap:8px!important}
+.af-editor label{font-size:10px!important}
+#adminFeedbackView textarea{min-height:90px!important;margin-top:6px!important;padding:9px 10px!important;font-size:12px!important}
+.af-editor button{min-height:38px!important;padding:7px 11px!important;font-size:11px!important;border-radius:9px!important}
+.fb-admin-photos-v15{gap:7px!important;margin-top:9px!important}
+.fb-admin-photos-v15 img{width:76px!important;height:76px!important;border-radius:10px!important}
+
+/* Gate */
+#gate{max-width:500px!important;margin:44px auto!important;padding:22px!important}
+#gate h1{font-size:23px!important}
+#gate p{font-size:12px!important}
+#gate .actions button{min-height:40px!important}
+
+@media(max-width:900px){
+  .metrics{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+@media(max-width:700px){
+  header,main{padding-left:max(13px,env(safe-area-inset-left))!important;padding-right:max(13px,env(safe-area-inset-right))!important}
+  header{min-height:68px!important}
+  header .brand .mmh-brand-v11{width:34px!important;height:34px!important}
+  #dashboard>.toolbar{align-items:flex-start!important}
+  #dashboard>.toolbar .actions{width:100%!important}
+  #dashboard>.toolbar .actions button{flex:1!important}
+  .admin-tabs{width:100%!important}
+  .admin-tabs button{flex:1!important;min-width:0!important}
+  .metric{min-height:92px!important;padding:12px!important}
+  .panel{padding:14px!important}
+  .feedback-metrics{gap:7px!important}
+  .feedback-metrics>div{min-height:78px!important;padding:11px!important}
+  .feedback-metrics strong{font-size:22px!important}
+  .af-filter{width:100%!important;justify-content:space-between!important}
+  .af-item{padding:10px!important}
+}
+@media(max-width:430px){
+  .metrics{grid-template-columns:1fr 1fr!important}
+  .metric strong{font-size:24px!important}
+  .feedback-metrics{grid-template-columns:1fr!important}
+  .feedback-metrics>div{min-height:68px!important}
+  .feedback-metrics strong{font-size:21px!important}
+}
+@media(prefers-reduced-motion:reduce){
+  .users .user,.af-item{transition:none!important}
+}

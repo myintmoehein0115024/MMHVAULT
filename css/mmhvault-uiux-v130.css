@@ -1,0 +1,2425 @@
+/* MMHVAULT v1.3.0 · UI/UX Final Pass 1
+   Scope: Dashboard + Transactions + Investment Center presentation only.
+   No finance calculations, Supabase queries, CRUD handlers, auth, PWA or data models are changed. */
+
+body.mmh-workspace-active :is(#dashboard,#transactions,#invest){
+  --mmh-ui-surface:linear-gradient(145deg,rgba(9,28,47,.96),rgba(5,18,32,.98));
+  --mmh-ui-surface-soft:linear-gradient(145deg,rgba(12,31,52,.86),rgba(6,19,34,.92));
+  --mmh-ui-border:rgba(91,151,199,.22);
+  --mmh-ui-border-strong:rgba(104,174,226,.34);
+  --mmh-ui-gold:rgba(242,196,94,.92);
+  --mmh-ui-muted:rgba(166,190,211,.78);
+  --mmh-ui-shadow:0 16px 38px rgba(0,0,0,.18),inset 0 1px 0 rgba(255,255,255,.03);
+}
+
+/* ---------------- Dashboard: calmer hierarchy, denser financial scan ---------------- */
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500{
+  max-width:1420px!important;
+  padding:2px 0 18px!important;
+}
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-hero-v500{
+  min-height:84px!important;
+  padding:0 3px 14px!important;
+  gap:18px!important;
+}
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 h1{
+  font-size:clamp(30px,2.35vw,38px)!important;
+  line-height:1.04!important;
+}
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-hero-sub-v500{
+  max-width:760px!important;
+  margin-top:6px!important;
+  color:var(--mmh-ui-muted)!important;
+}
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-hero-date-v500{
+  border-color:rgba(101,157,201,.18)!important;
+  background:rgba(5,19,32,.68)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.025)!important;
+}
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-kpis-v500{
+  gap:12px!important;
+  margin-top:2px!important;
+}
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-kpi-v500{
+  min-height:118px!important;
+  padding:16px 17px!important;
+  border-radius:18px!important;
+  border-color:var(--mmh-ui-border)!important;
+  background:var(--mmh-ui-surface-soft)!important;
+  box-shadow:var(--mmh-ui-shadow)!important;
+  transform:none!important;
+  transition:border-color .16s ease,background-color .16s ease,box-shadow .16s ease!important;
+}
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-kpi-v500:hover{
+  transform:none!important;
+  border-color:var(--mmh-ui-border-strong)!important;
+  box-shadow:0 18px 42px rgba(0,0,0,.21),inset 0 1px 0 rgba(255,255,255,.035)!important;
+}
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-kpi-v500.gold{
+  border-color:rgba(242,196,94,.38)!important;
+  background:radial-gradient(circle at 94% 8%,rgba(242,196,94,.09),transparent 35%),var(--mmh-ui-surface-soft)!important;
+}
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-kpi-value-v500{
+  margin-top:9px!important;
+  font-size:clamp(22px,1.85vw,27px)!important;
+}
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-kpi-icon-v500{
+  width:36px!important;height:36px!important;right:14px!important;top:14px!important;
+  background:rgba(25,67,94,.24)!important;
+}
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 :is(.pf-card-v500,.pf-budget-v112,.pf-planning-card-v117){
+  border-radius:18px!important;
+  border-color:var(--mmh-ui-border)!important;
+  background:var(--mmh-ui-surface)!important;
+  box-shadow:var(--mmh-ui-shadow)!important;
+}
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-main-grid-v500{
+  grid-template-columns:minmax(0,1.5fr) minmax(330px,.78fr)!important;
+  gap:12px!important;margin-top:12px!important;
+}
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-bottom-grid-v500{
+  grid-template-columns:minmax(0,1.18fr) minmax(360px,.92fr)!important;
+  gap:12px!important;margin-top:12px!important;
+}
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-card-head-v500{
+  padding:16px 17px 0!important;
+}
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-card-head-v500 h2{
+  font-size:15px!important;letter-spacing:-.012em!important;
+}
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-link-v500,
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-planning-open-v117{
+  min-height:28px!important;
+  padding:6px 9px!important;
+  border:1px solid rgba(106,165,210,.16)!important;
+  border-radius:9px!important;
+  background:rgba(14,42,64,.36)!important;
+  color:#9bcbe8!important;
+  font-weight:750!important;
+  text-decoration:none!important;
+}
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 :is(.pf-link-v500,.pf-planning-open-v117):hover{
+  border-color:rgba(111,184,230,.34)!important;
+  background:rgba(18,54,82,.52)!important;
+  color:#d9effc!important;
+}
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-tx-row-v500{
+  border-radius:9px!important;
+  transition:background-color .14s ease!important;
+}
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-tx-row-v500:hover{
+  background:rgba(24,58,81,.22)!important;
+}
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-planning-v117{
+  gap:12px!important;margin-top:12px!important;
+}
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-planning-card-v117{
+  padding:15px!important;
+}
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-budget-v112{
+  margin-top:12px!important;
+}
+
+/* ---------------- Transactions: quicker forms, cleaner history hierarchy ---------------- */
+body.mmh-workspace-active #transactions>.mmh-tx-hero-v3{
+  margin-bottom:14px!important;
+  padding:5px 2px 13px!important;
+  border-bottom:1px solid rgba(94,154,202,.10)!important;
+}
+body.mmh-workspace-active #transactions .mmh-tx-hero-copy-v3 h1{
+  font-size:clamp(29px,2.25vw,37px)!important;
+  letter-spacing:-.04em!important;
+}
+body.mmh-workspace-active #transactions .mmh-transaction-sub-v2{
+  max-width:650px!important;
+  color:var(--mmh-ui-muted)!important;
+}
+body.mmh-workspace-active #transactions .mmh-tx-page-trigger-v3{
+  min-width:190px!important;
+  min-height:42px!important;
+  border:1px solid rgba(102,169,220,.22)!important;
+  background:linear-gradient(145deg,rgba(12,35,58,.88),rgba(7,23,40,.94))!important;
+  box-shadow:0 9px 20px rgba(0,0,0,.13),inset 0 1px 0 rgba(255,255,255,.035)!important;
+}
+body.mmh-workspace-active #transactions .tx-tab-panel-v371>.panel{
+  border-radius:19px!important;
+  border-color:var(--mmh-ui-border)!important;
+  background:var(--mmh-ui-surface)!important;
+  box-shadow:var(--mmh-ui-shadow)!important;
+}
+body.mmh-workspace-active #transactions #txAddPanel>.panel{
+  padding:21px!important;
+}
+body.mmh-workspace-active #transactions #txForm .formgrid{
+  gap:13px 15px!important;
+}
+body.mmh-workspace-active #transactions #txForm .mmh-form-section-v1{
+  display:flex!important;
+  align-items:center!important;
+  gap:10px!important;
+  min-height:30px!important;
+  margin:4px 0 0!important;
+  color:#d7e7f3!important;
+  font-size:10px!important;
+  font-weight:850!important;
+  letter-spacing:.08em!important;
+  text-transform:uppercase!important;
+}
+body.mmh-workspace-active #transactions #txForm .mmh-form-section-v1::after{
+  content:"";height:1px;flex:1;background:linear-gradient(90deg,rgba(105,173,220,.22),transparent)!important;
+}
+body.mmh-workspace-active #transactions #txForm label{
+  color:rgba(194,214,230,.78)!important;
+  font-size:10px!important;
+  font-weight:740!important;
+}
+body.mmh-workspace-active #transactions #txForm :is(input,select,textarea){
+  min-height:44px!important;
+  border-radius:11px!important;
+  border-color:rgba(97,158,205,.22)!important;
+  background:rgba(5,20,35,.88)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.025)!important;
+}
+body.mmh-workspace-active #transactions #txForm :is(input,select,textarea):focus{
+  border-color:rgba(78,192,247,.52)!important;
+  box-shadow:0 0 0 3px rgba(69,175,232,.08),inset 0 1px 0 rgba(255,255,255,.035)!important;
+}
+body.mmh-workspace-active #transactions .receipt-upload-v3300{
+  border-radius:15px!important;
+  border-color:rgba(92,158,207,.18)!important;
+  background:rgba(7,25,43,.58)!important;
+}
+body.mmh-workspace-active #transactions #txAddPanel .actions .btn.primary{
+  min-width:178px!important;
+  border-color:rgba(95,194,241,.30)!important;
+  box-shadow:0 10px 25px rgba(41,139,207,.14)!important;
+}
+body.mmh-workspace-active #transactions #txHistoryPanel>.panel{
+  padding:19px!important;
+}
+body.mmh-workspace-active #transactions #txHistoryPanel .filter-grid{
+  border-radius:13px!important;
+  border-color:rgba(91,150,197,.14)!important;
+  background:rgba(4,17,30,.52)!important;
+}
+body.mmh-workspace-active #transactions #txHistoryPanel .filter-grid :is(input,select){
+  background:rgba(6,22,38,.91)!important;
+  border-color:rgba(99,157,204,.19)!important;
+}
+body.mmh-workspace-active #transactions #txList table{
+  border-spacing:0 6px!important;
+}
+body.mmh-workspace-active #transactions #txList tbody td{
+  background:linear-gradient(180deg,rgba(9,27,46,.92),rgba(6,20,35,.95))!important;
+  border-top-color:rgba(84,145,194,.12)!important;
+  border-bottom-color:rgba(84,145,194,.10)!important;
+}
+body.mmh-workspace-active #transactions #txList tbody tr:hover td{
+  background:linear-gradient(180deg,rgba(12,35,58,.96),rgba(8,25,43,.97))!important;
+}
+body.mmh-workspace-active #transactions #txList thead th{
+  background:rgba(4,18,32,.97)!important;
+  color:rgba(227,201,129,.82)!important;
+}
+
+/* ---------------- Investment Center: reduce visual noise, improve scan + navigation ---------------- */
+body.mmh-workspace-active #invest::before,
+body.mmh-workspace-active #invest::after,
+body.mmh-workspace-active #invest .v371-head,
+body.mmh-workspace-active #invest .v371-head::before,
+body.mmh-workspace-active #invest .v371-head>div:first-child::after,
+body.mmh-workspace-active #invest .v371-switch::after,
+body.mmh-workspace-active #invest .invest-subtabs-v371,
+body.mmh-workspace-active #invest .invest-subtabs-v371::before,
+body.mmh-workspace-active #invest :is(#v371CryptoMarket,#v371GoldMarket){
+  animation:none!important;
+}
+body.mmh-workspace-active #invest .v371-head>div:first-child::after,
+body.mmh-workspace-active #invest .v371-switch::after,
+body.mmh-workspace-active #invest .invest-subtabs-v371::before{
+  display:none!important;
+}
+body.mmh-workspace-active #invest .v371-head{
+  min-height:112px!important;
+  padding:21px 22px 18px!important;
+  border-radius:0 0 20px 20px!important;
+  border-bottom:1px solid rgba(87,151,201,.17)!important;
+  background:radial-gradient(circle at 92% 10%,rgba(72,190,241,.055),transparent 30%),linear-gradient(120deg,rgba(5,20,35,.97),rgba(7,24,41,.91))!important;
+  box-shadow:0 16px 38px rgba(0,0,0,.16),inset 0 1px 0 rgba(255,255,255,.035)!important;
+}
+body.mmh-workspace-active #invest .v371-head h1{
+  font-size:clamp(34px,3.25vw,48px)!important;
+  line-height:1!important;
+  letter-spacing:-.05em!important;
+}
+body.mmh-workspace-active #invest .v371-head .sub{
+  max-width:720px!important;
+  margin-top:8px!important;
+  color:var(--mmh-ui-muted)!important;
+  font-size:10px!important;
+}
+body.mmh-workspace-active #invest .v371-head .v371-switch{
+  min-width:200px!important;
+  padding:4px!important;
+  border-radius:14px!important;
+  background:rgba(3,16,28,.7)!important;
+  border-color:rgba(94,155,204,.16)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.025)!important;
+}
+body.mmh-workspace-active #invest .v371-switch .btn{
+  min-height:46px!important;
+  border-radius:10px!important;
+  transform:none!important;
+}
+body.mmh-workspace-active #invest .invest-subtabs-v371{
+  min-height:58px!important;
+  margin-top:9px!important;
+  padding:4px!important;
+  border-radius:15px!important;
+  border-color:rgba(91,151,199,.15)!important;
+  background:rgba(4,18,32,.74)!important;
+  box-shadow:0 10px 24px rgba(0,0,0,.12),inset 0 1px 0 rgba(255,255,255,.025)!important;
+}
+body.mmh-workspace-active #invest .invest-subtab-v371{
+  min-height:48px!important;
+  border-radius:11px!important;
+  font-size:11px!important;
+  transform:none!important;
+}
+body.mmh-workspace-active #invest .invest-subtab-v371:hover{
+  transform:none!important;
+}
+body.mmh-workspace-active #invest .invest-subtab-v371.active{
+  border-color:rgba(91,182,226,.24)!important;
+  background:linear-gradient(145deg,rgba(39,104,143,.23),rgba(19,57,83,.19))!important;
+}
+body.mmh-workspace-active #invest :is(.panel,.mmh-ui-panel,.portfolio-panel-v310,.portfolio-manager-v310){
+  border-radius:18px!important;
+  border-color:var(--mmh-ui-border)!important;
+  box-shadow:var(--mmh-ui-shadow)!important;
+}
+body.mmh-workspace-active #invest .invest-top{
+  gap:12px!important;
+  padding-top:12px!important;
+}
+body.mmh-workspace-active #invest .invest-top::before{
+  color:rgba(123,160,188,.62)!important;
+  letter-spacing:.16em!important;
+}
+body.mmh-workspace-active #invest #investMetrics{
+  gap:12px!important;
+}
+body.mmh-workspace-active #invest .portfolio-manager-v310{
+  padding:19px!important;
+}
+body.mmh-workspace-active #invest .portfolio-grid-v310{
+  gap:12px!important;
+}
+body.mmh-workspace-active #invest .portfolio-panel-v310{
+  background:rgba(6,22,38,.58)!important;
+}
+body.mmh-workspace-active #invest .invest-entry{
+  padding:19px!important;
+  border-radius:18px!important;
+  background:var(--mmh-ui-surface)!important;
+  border-color:var(--mmh-ui-border)!important;
+  box-shadow:var(--mmh-ui-shadow)!important;
+}
+body.mmh-workspace-active #invest .invest-entry>.toolbar{
+  padding-bottom:13px!important;
+  border-bottom:1px solid rgba(91,151,199,.11)!important;
+}
+body.mmh-workspace-active #invest .invest-entry .mmh-form-section-v1{
+  display:flex!important;align-items:center!important;gap:10px!important;
+  min-height:29px!important;margin:3px 0 0!important;
+  color:#d6e7f3!important;font-size:10px!important;font-weight:850!important;
+  letter-spacing:.08em!important;text-transform:uppercase!important;
+}
+body.mmh-workspace-active #invest .invest-entry .mmh-form-section-v1::after{
+  content:"";height:1px;flex:1;background:linear-gradient(90deg,rgba(104,171,219,.21),transparent)!important;
+}
+body.mmh-workspace-active #invest .invest-entry .formgrid>label{
+  color:rgba(194,214,230,.78)!important;
+  font-size:10px!important;
+  font-weight:740!important;
+}
+body.mmh-workspace-active #invest .invest-entry .formgrid :is(input,select,textarea){
+  min-height:44px!important;
+  border-radius:11px!important;
+  border-color:rgba(97,158,205,.22)!important;
+  background:rgba(5,20,35,.88)!important;
+}
+body.mmh-workspace-active #invest .invest-entry .formgrid :is(input,select,textarea):focus{
+  border-color:rgba(78,192,247,.52)!important;
+  box-shadow:0 0 0 3px rgba(69,175,232,.08),inset 0 1px 0 rgba(255,255,255,.035)!important;
+}
+body.mmh-workspace-active #invest :is(#mmhUnifiedHistoryV1,#mmhInvestCatalogV1,#mmhUnifiedInvestV1) .mmh-ui-heading{
+  gap:12px!important;
+}
+body.mmh-workspace-active #invest .mmh-ui-row{
+  border-radius:13px!important;
+  border-color:rgba(91,151,199,.13)!important;
+  background:rgba(6,22,38,.52)!important;
+}
+body.mmh-workspace-active #invest .mmh-ui-row:hover{
+  border-color:rgba(102,174,221,.25)!important;
+  background:rgba(9,29,49,.66)!important;
+}
+
+/* ---------------- Responsive pass ---------------- */
+@media(max-width:1180px){
+  body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-main-grid-v500{grid-template-columns:minmax(0,1.35fr) minmax(300px,.82fr)!important}
+  body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-bottom-grid-v500{grid-template-columns:1fr 1fr!important}
+}
+@media(max-width:980px){
+  body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-kpis-v500{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 :is(.pf-main-grid-v500,.pf-bottom-grid-v500){grid-template-columns:1fr!important}
+  body.mmh-workspace-active #invest .v371-head{align-items:flex-start!important}
+}
+@media(max-width:760px){
+  body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500{padding-bottom:88px!important}
+  body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-hero-v500{display:block!important;padding:0 0 12px!important}
+  body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 h1{font-size:28px!important}
+  body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-kpis-v500{gap:9px!important}
+  body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-kpi-v500{min-height:108px!important;padding:14px!important;border-radius:15px!important}
+  body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-kpi-value-v500{font-size:21px!important;padding-right:28px!important}
+  body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 :is(.pf-card-v500,.pf-budget-v112,.pf-planning-card-v117){border-radius:15px!important}
+
+  body.mmh-workspace-active #transactions>.mmh-tx-hero-v3{border-bottom:0!important;padding-left:0!important;padding-right:0!important}
+  body.mmh-workspace-active #transactions .mmh-tx-page-trigger-v3{min-width:0!important;width:100%!important}
+  body.mmh-workspace-active #transactions #txAddPanel>.panel,
+  body.mmh-workspace-active #transactions #txHistoryPanel>.panel{padding:13px!important;border-radius:16px!important}
+  body.mmh-workspace-active #transactions #txForm .mmh-form-section-v1{margin-top:2px!important}
+
+  body.mmh-workspace-active #invest .v371-head{padding:17px 14px 14px!important;border-radius:0 0 17px 17px!important}
+  body.mmh-workspace-active #invest .v371-head h1{font-size:32px!important}
+  body.mmh-workspace-active #invest .v371-head .v371-switch{width:100%!important;min-width:0!important;margin-top:11px!important}
+  body.mmh-workspace-active #invest .invest-subtabs-v371{overflow-x:auto!important;scrollbar-width:none!important;display:flex!important;gap:4px!important;justify-content:flex-start!important}
+  body.mmh-workspace-active #invest .invest-subtabs-v371::-webkit-scrollbar{display:none!important}
+  body.mmh-workspace-active #invest .invest-subtab-v371{flex:0 0 auto!important;min-width:116px!important;padding-inline:13px!important}
+  body.mmh-workspace-active #invest :is(.panel,.mmh-ui-panel,.portfolio-panel-v310,.portfolio-manager-v310,.invest-entry){border-radius:16px!important}
+  body.mmh-workspace-active #invest .portfolio-manager-v310,
+  body.mmh-workspace-active #invest .invest-entry{padding:13px!important}
+}
+@media(max-width:430px){
+  body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-kpis-v500{grid-template-columns:1fr!important}
+  body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-kpi-v500{min-height:100px!important}
+  body.mmh-workspace-active #transactions #txAddPanel .actions{grid-template-columns:1fr 1.25fr!important}
+  body.mmh-workspace-active #invest .invest-subtab-v371{min-width:108px!important}
+}
+
+@media(prefers-reduced-motion:reduce){
+  body.mmh-workspace-active :is(#dashboard,#transactions,#invest) *,
+  body.mmh-workspace-active :is(#dashboard,#transactions,#invest) *::before,
+  body.mmh-workspace-active :is(#dashboard,#transactions,#invest) *::after{
+    scroll-behavior:auto!important;
+  }
+}
+
+/* ---------------- v1.3.1 · Exchange Asia market compact entry + dedicated page ---------------- */
+body.mmh-workspace-active #exchange #exAsiaSummaryV130{
+  grid-column:1/-1!important;
+  display:grid!important;
+  grid-template-columns:minmax(260px,.95fr) minmax(360px,1.35fr) auto!important;
+  align-items:center!important;
+  gap:18px!important;
+  min-height:118px!important;
+  margin-top:14px!important;
+  padding:17px 18px!important;
+  border-radius:17px!important;
+  border:1px solid rgba(86,151,199,.17)!important;
+  background:linear-gradient(135deg,rgba(8,27,45,.95),rgba(8,24,41,.90))!important;
+  box-shadow:0 14px 34px rgba(0,0,0,.14),inset 0 1px 0 rgba(255,255,255,.025)!important;
+  overflow:hidden!important;
+}
+body.mmh-workspace-active #exchange #exAsiaSummaryV130::before{
+  display:none!important;
+}
+body.mmh-workspace-active #exchange #exAsiaSummaryV130:hover{
+  transform:none!important;
+  border-color:rgba(102,179,229,.24)!important;
+  box-shadow:0 16px 38px rgba(0,0,0,.16),inset 0 1px 0 rgba(255,255,255,.03)!important;
+}
+#exAsiaSummaryV130 .ex-asia-summary-copy-v130{display:flex;align-items:center;gap:13px;min-width:0}
+#exAsiaSummaryV130 .ex-asia-summary-icon-v130{
+  width:42px;height:42px;flex:0 0 42px;display:grid;place-items:center;border-radius:13px;
+  border:1px solid rgba(242,196,94,.24);background:rgba(242,196,94,.08);color:#efc969;
+  font-size:11px;font-weight:850;letter-spacing:.08em;
+}
+#exAsiaSummaryV130 .ex-asia-summary-kicker-v130{font-size:8px;font-weight:800;letter-spacing:.18em;color:#748da4;margin-bottom:4px}
+#exAsiaSummaryV130 h2{margin:0!important;font-size:16px!important;line-height:1.15!important;color:#edf5fb!important}
+#exAsiaSummaryV130 p{margin:5px 0 0!important;font-size:10px!important;line-height:1.45!important;color:#8299ad!important;max-width:390px}
+#exAsiaSummaryV130 .ex-asia-preview-v130{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;min-width:0}
+#exAsiaSummaryV130 .ex-asia-mini-v130{
+  min-width:0;padding:9px 11px;border-radius:12px;border:1px solid rgba(87,150,199,.14);
+  background:rgba(6,21,36,.58);display:grid;grid-template-columns:auto 1fr;column-gap:8px;align-items:baseline;
+}
+#exAsiaSummaryV130 .ex-asia-mini-v130>span{font-size:9px;font-weight:760;color:#8fa6ba;letter-spacing:.06em}
+#exAsiaSummaryV130 .ex-asia-mini-v130>b{justify-self:end;font-size:14px;line-height:1.1;color:#e3eef6;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+#exAsiaSummaryV130 .ex-asia-mini-v130>small{grid-column:1/-1;margin-top:4px;font-size:8px;color:#637f96;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#exAsiaSummaryV130 .ex-asia-summary-actions-v130{display:flex;flex-direction:column;align-items:flex-end;gap:8px;min-width:142px}
+#exAsiaSummaryV130 .ex-asia-summary-actions-v130>span{max-width:180px;font-size:8px;color:#617e96;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#exAsiaSummaryV130 .ex-asia-open-v130{
+  min-height:40px!important;padding:0 14px!important;border-radius:11px!important;white-space:nowrap!important;
+  border:1px solid rgba(98,178,231,.25)!important;background:linear-gradient(180deg,rgba(20,57,84,.92),rgba(12,38,59,.94))!important;
+  color:#d9edf9!important;font-size:10px!important;font-weight:720!important;
+}
+#exAsiaSummaryV130 .ex-asia-open-v130::after{content:"›";margin-left:7px;color:#79caf1;font-size:16px;line-height:0}
+
+/* Full Asia market behaves like Invest's dedicated More Crypto view. */
+body.mmh-workspace-active #exAsiaV10.ex-asia-page-v130.page{
+  width:min(1180px,calc(100% - 36px))!important;
+  max-width:1180px!important;
+  min-width:0!important;
+  margin:0 auto!important;
+  padding:22px 0 42px!important;
+  box-sizing:border-box!important;
+  background:transparent!important;
+  border:0!important;
+  box-shadow:none!important;
+}
+body.mmh-workspace-active #exAsiaV10.ex-asia-page-v130.page:not(.active){display:none!important}
+body.mmh-workspace-active #exAsiaV10.ex-asia-page-v130.page.active{display:block!important}
+#exAsiaV10 .asia-page-top-v130{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;margin:0 0 12px;padding:0 1px;
+}
+#exAsiaV10 .asia-page-top-v130>span{font-size:9px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:#6e8aa3}
+#exAsiaV10 #asiaBackV130{
+  min-height:38px!important;padding:0 13px!important;border-radius:11px!important;border:1px solid rgba(85,151,199,.18)!important;
+  background:rgba(7,25,42,.78)!important;color:#c9deec!important;font-size:10px!important;font-weight:700!important;
+}
+#exAsiaV10.ex-asia-page-v130 .asia-head{
+  margin-bottom:14px!important;padding:19px 20px!important;border-radius:17px!important;
+  border:1px solid rgba(86,151,199,.17)!important;background:linear-gradient(135deg,rgba(8,27,45,.95),rgba(8,24,41,.90))!important;
+}
+#exAsiaV10.ex-asia-page-v130 .asia-head h3{font-size:22px!important;letter-spacing:-.025em!important;color:#eef6fb!important}
+#exAsiaV10.ex-asia-page-v130 .asia-head p{margin:6px 0 0!important;font-size:10px!important;color:#8199ad!important}
+#exAsiaV10.ex-asia-page-v130 .asia-controls{
+  grid-template-columns:minmax(220px,.65fr) minmax(260px,1.35fr)!important;gap:12px!important;
+  margin:0 0 10px!important;padding:15px!important;border-radius:15px!important;border:1px solid rgba(83,145,192,.14)!important;background:rgba(6,21,36,.58)!important;
+}
+#exAsiaV10.ex-asia-page-v130 .asia-quick{margin:0 0 8px!important}
+#exAsiaV10.ex-asia-page-v130 #asiaStatusV10{margin:8px 1px 11px!important;min-height:18px!important}
+#exAsiaV10.ex-asia-page-v130 .asia-list{
+  display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:8px!important;max-height:none!important;overflow:visible!important;
+}
+#exAsiaV10.ex-asia-page-v130 .asia-row{
+  min-height:66px!important;padding:10px 11px!important;border-radius:13px!important;border-color:rgba(86,148,194,.16)!important;
+  background:linear-gradient(180deg,rgba(10,31,50,.88),rgba(7,24,40,.92))!important;
+}
+#exAsiaV10.ex-asia-page-v130 .asia-flag{font-size:20px!important}
+#exAsiaV10.ex-asia-page-v130 .asia-name b{font-size:11px!important}
+#exAsiaV10.ex-asia-page-v130 small{font-size:9px!important}
+#exAsiaV10.ex-asia-page-v130 .asia-value strong{font-size:14px!important}
+#exAsiaV10.ex-asia-page-v130 .asia-disclaimer{margin-top:15px!important}
+#exAsiaV10.ex-asia-page-v130 .asia-saved{margin-top:14px!important}
+
+@media(max-width:980px){
+  body.mmh-workspace-active #exchange #exAsiaSummaryV130{grid-template-columns:minmax(220px,.9fr) minmax(0,1.1fr)!important}
+  #exAsiaSummaryV130 .ex-asia-summary-actions-v130{grid-column:1/-1;flex-direction:row;align-items:center;justify-content:space-between;min-width:0}
+  #exAsiaV10.ex-asia-page-v130 .asia-list{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+@media(max-width:700px){
+  body.mmh-workspace-active #exchange #exAsiaSummaryV130{grid-template-columns:1fr!important;gap:13px!important;padding:15px!important;min-height:0!important}
+  #exAsiaSummaryV130 .ex-asia-summary-copy-v130{align-items:flex-start}
+  #exAsiaSummaryV130 .ex-asia-preview-v130{grid-template-columns:repeat(3,minmax(0,1fr))}
+  #exAsiaSummaryV130 .ex-asia-mini-v130{grid-template-columns:1fr;padding:8px 9px}
+  #exAsiaSummaryV130 .ex-asia-mini-v130>b{justify-self:start;margin-top:3px;font-size:13px}
+  #exAsiaSummaryV130 .ex-asia-mini-v130>small{display:none}
+  #exAsiaSummaryV130 .ex-asia-summary-actions-v130{grid-column:auto;flex-direction:row;width:100%}
+  #exAsiaSummaryV130 .ex-asia-summary-actions-v130>span{max-width:48%}
+  #exAsiaSummaryV130 .ex-asia-open-v130{margin-left:auto!important}
+  body.mmh-workspace-active #exAsiaV10.ex-asia-page-v130.page{width:calc(100% - 24px)!important;padding:14px 0 30px!important}
+  #exAsiaV10.ex-asia-page-v130 .asia-head{padding:15px!important;align-items:flex-start!important}
+  #exAsiaV10.ex-asia-page-v130 .asia-head h3{font-size:19px!important}
+  #exAsiaV10.ex-asia-page-v130 .asia-head>button{width:auto!important;min-width:82px!important}
+  #exAsiaV10.ex-asia-page-v130 .asia-controls{grid-template-columns:1fr!important;padding:13px!important}
+  #exAsiaV10.ex-asia-page-v130 .asia-list{grid-template-columns:1fr!important}
+}
+@media(max-width:430px){
+  #exAsiaSummaryV130 .ex-asia-preview-v130{gap:6px}
+  #exAsiaSummaryV130 .ex-asia-mini-v130{padding:7px 8px}
+  #exAsiaSummaryV130 .ex-asia-mini-v130>b{font-size:12px}
+  #exAsiaSummaryV130 .ex-asia-summary-actions-v130>span{display:none}
+  #exAsiaSummaryV130 .ex-asia-open-v130{width:100%!important;justify-content:center!important}
+}
+body.light #exAsiaSummaryV130,
+body.light #exAsiaV10.ex-asia-page-v130 .asia-head,
+body.light #exAsiaV10.ex-asia-page-v130 .asia-controls{background:#f4f8fb!important;border-color:#cedbe5!important}
+body.light #exAsiaSummaryV130 h2,body.light #exAsiaV10.ex-asia-page-v130 .asia-head h3{color:#20384d!important}
+body.light #exAsiaSummaryV130 .ex-asia-mini-v130{background:#fff!important;border-color:#d6e1e9!important}
+body.light #exAsiaSummaryV130 .ex-asia-mini-v130>b{color:#29455d!important}
+
+/* ---------------- v1.3.2 · UI/UX Pass 2
+   Scope: Accounts + Cash Flow Analyze + Budget + Goals + Recurring presentation only.
+   No finance calculations, Supabase queries, CRUD handlers, auth, realtime, PWA or data models are changed. */
+
+body.mmh-workspace-active :is(#accounts-page,#cashflow-analyze,#budget,#goals,#recurring){
+  --mmh-v132-surface:linear-gradient(145deg,rgba(9,28,47,.96),rgba(5,18,32,.98));
+  --mmh-v132-surface-soft:linear-gradient(145deg,rgba(12,31,52,.84),rgba(6,19,34,.92));
+  --mmh-v132-border:rgba(91,151,199,.20);
+  --mmh-v132-border-strong:rgba(104,174,226,.32);
+  --mmh-v132-muted:rgba(166,190,211,.76);
+  --mmh-v132-shadow:0 15px 34px rgba(0,0,0,.16),inset 0 1px 0 rgba(255,255,255,.025);
+}
+
+/* Accounts: compact command surface + cleaner list scan */
+body.mmh-workspace-active #accounts-page{
+  max-width:1120px!important;
+}
+body.mmh-workspace-active #accounts-page .ap-heading{
+  min-height:64px!important;
+  margin:2px 0 14px!important;
+  padding:0 2px 12px!important;
+  border-bottom:1px solid rgba(95,154,201,.10)!important;
+}
+body.mmh-workspace-active #accounts-page .ap-heading h1{
+  font-size:clamp(28px,2.3vw,35px)!important;
+  letter-spacing:-.035em!important;
+}
+body.mmh-workspace-active #accounts-page .ap-heading p{
+  margin-top:5px!important;
+  color:var(--mmh-v132-muted)!important;
+}
+body.mmh-workspace-active #accounts-page .ap-heading label{
+  min-width:168px!important;
+  gap:5px!important;
+  color:rgba(167,192,211,.72)!important;
+  font-weight:760!important;
+}
+body.mmh-workspace-active #accounts-page .ap-heading select,
+body.mmh-workspace-active #accounts-page :is(.am-top button,.am-top select,.am-find input,.am-find select){
+  min-height:42px!important;
+  border-radius:10px!important;
+  border-color:rgba(95,157,205,.22)!important;
+  background:rgba(7,24,41,.92)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.025)!important;
+}
+body.mmh-workspace-active #accounts-page .am-shell{
+  padding:16px!important;
+  border-radius:18px!important;
+  border-color:var(--mmh-v132-border)!important;
+  background:var(--mmh-v132-surface)!important;
+  box-shadow:var(--mmh-v132-shadow)!important;
+}
+body.mmh-workspace-active #accounts-page .am-top{
+  margin-bottom:10px!important;
+}
+body.mmh-workspace-active #accounts-page .am-top #amAdd{
+  border-color:rgba(87,180,226,.28)!important;
+  background:linear-gradient(145deg,rgba(35,102,142,.48),rgba(21,69,101,.42))!important;
+  color:#e3f4fd!important;
+  font-weight:760!important;
+}
+body.mmh-workspace-active #accounts-page .am-summary{
+  margin-bottom:12px!important;
+  padding:17px!important;
+  border-radius:15px!important;
+  border-color:rgba(91,151,199,.20)!important;
+  background:linear-gradient(135deg,rgba(13,42,66,.94),rgba(7,26,45,.94))!important;
+  box-shadow:none!important;
+}
+body.mmh-workspace-active #accounts-page .am-summary>.am-top{
+  margin-bottom:0!important;
+}
+body.mmh-workspace-active #accounts-page .am-summary>strong{
+  font-size:clamp(25px,2.55vw,32px)!important;
+  margin:4px 0 9px!important;
+}
+body.mmh-workspace-active #accounts-page .am-summary-grid{
+  gap:8px!important;
+}
+body.mmh-workspace-active #accounts-page .am-summary-grid>div{
+  min-height:62px!important;
+  padding:10px 12px!important;
+  border-radius:10px!important;
+  border-color:rgba(87,147,194,.14)!important;
+  background:rgba(6,21,36,.44)!important;
+}
+body.mmh-workspace-active #accounts-page .am-summary-grid b{
+  font-size:17px!important;
+}
+body.mmh-workspace-active #accounts-page .am-find{
+  margin-top:11px!important;
+  gap:7px!important;
+}
+body.mmh-workspace-active #accounts-page .am-count{
+  margin:7px 1px!important;
+}
+body.mmh-workspace-active #accounts-page .am-list{
+  border-radius:13px!important;
+  border-color:rgba(92,151,197,.16)!important;
+  background:rgba(5,18,32,.56)!important;
+  box-shadow:none!important;
+}
+body.mmh-workspace-active #accounts-page .am-list .am-row{
+  min-height:66px!important;
+  padding:10px 12px!important;
+  border-bottom-color:rgba(90,148,194,.12)!important;
+  background:transparent!important;
+}
+body.mmh-workspace-active #accounts-page .am-list .am-row:hover{
+  background:rgba(17,48,72,.34)!important;
+}
+body.mmh-workspace-active #accounts-page .am-logo{
+  width:36px!important;height:36px!important;border-radius:10px!important;
+}
+body.mmh-workspace-active #accounts-page .am-row-value{
+  font-size:15px!important;
+  font-weight:760!important;
+}
+
+/* Cash Flow Analyze: denser overview, calmer panels */
+body.mmh-workspace-active #cashflow-analyze .cfa-shell{
+  max-width:1220px!important;
+}
+body.mmh-workspace-active #cashflow-analyze .cfa-head{
+  align-items:center!important;
+  min-height:78px!important;
+  padding:16px 18px!important;
+  border-radius:18px!important;
+  border-color:var(--mmh-v132-border)!important;
+  background:var(--mmh-v132-surface)!important;
+  box-shadow:var(--mmh-v132-shadow)!important;
+}
+body.mmh-workspace-active #cashflow-analyze .cfa-eyebrow{
+  font-size:9px!important;
+  letter-spacing:.18em!important;
+}
+body.mmh-workspace-active #cashflow-analyze h1{
+  margin:5px 0 3px!important;
+  font-size:clamp(27px,2.25vw,34px)!important;
+  letter-spacing:-.035em!important;
+}
+body.mmh-workspace-active #cashflow-analyze .cfa-head p{
+  font-size:11px!important;
+  color:var(--mmh-v132-muted)!important;
+}
+body.mmh-workspace-active #cashflow-analyze .cfa-controls{
+  gap:7px!important;
+}
+body.mmh-workspace-active #cashflow-analyze .cfa-controls :is(select,input){
+  min-height:40px!important;
+  border-radius:10px!important;
+  border-color:rgba(91,157,205,.22)!important;
+  background:rgba(6,22,38,.92)!important;
+}
+body.mmh-workspace-active #cashflow-analyze .cfa-period-label{
+  padding:13px 2px 8px!important;
+  font-size:12px!important;
+  color:#b8cad9!important;
+}
+body.mmh-workspace-active #cashflow-analyze .cfa-kpis{
+  gap:9px!important;
+}
+body.mmh-workspace-active #cashflow-analyze .cfa-card{
+  min-height:112px!important;
+  padding:15px 16px!important;
+  border-radius:15px!important;
+  border-color:var(--mmh-v132-border)!important;
+  background:var(--mmh-v132-surface-soft)!important;
+  box-shadow:none!important;
+}
+body.mmh-workspace-active #cashflow-analyze .cfa-card strong{
+  margin:7px 0 4px!important;
+  font-size:clamp(21px,1.9vw,28px)!important;
+}
+body.mmh-workspace-active #cashflow-analyze .cfa-efficiency-kpis{
+  gap:9px!important;
+  margin-top:9px!important;
+}
+body.mmh-workspace-active #cashflow-analyze .cfa-mini-card{
+  min-height:68px!important;
+  padding:12px 14px!important;
+  border-radius:13px!important;
+  border-color:rgba(92,151,197,.17)!important;
+  background:rgba(7,24,41,.72)!important;
+  box-shadow:none!important;
+}
+body.mmh-workspace-active #cashflow-analyze .cfa-mini-card>strong{
+  font-size:clamp(18px,1.65vw,23px)!important;
+}
+body.mmh-workspace-active #cashflow-analyze .cfa-detail-grid{
+  gap:10px!important;
+  margin-top:10px!important;
+}
+body.mmh-workspace-active #cashflow-analyze .cfa-panel{
+  padding:17px!important;
+  border-radius:16px!important;
+  border-color:var(--mmh-v132-border)!important;
+  background:var(--mmh-v132-surface)!important;
+  box-shadow:none!important;
+}
+body.mmh-workspace-active #cashflow-analyze .cfa-panel-head{
+  margin-bottom:13px!important;
+}
+body.mmh-workspace-active #cashflow-analyze .cfa-panel h2{
+  font-size:17px!important;
+}
+body.mmh-workspace-active #cashflow-analyze .cfa-trend-panel,
+body.mmh-workspace-active #cashflow-analyze .cfa-records-panel{
+  margin-top:10px!important;
+}
+body.mmh-workspace-active #cashflow-analyze .cfa-records-scroll{
+  border-radius:11px!important;
+  border-color:rgba(92,151,197,.13)!important;
+}
+
+/* Budget + Goals + Recurring: one planning system */
+body.mmh-workspace-active :is(#budget .budget-shell-v110,#goals .goals-shell-v113,#recurring .recurring-shell-v114){
+  max-width:1220px!important;
+  margin-inline:auto!important;
+  gap:11px!important;
+}
+body.mmh-workspace-active :is(#budget .budget-head-v110,#goals .goals-head-v113,#recurring .recurring-head-v114){
+  min-height:78px!important;
+  padding:16px 18px!important;
+  border:1px solid var(--mmh-v132-border)!important;
+  border-radius:18px!important;
+  background:var(--mmh-v132-surface)!important;
+  box-shadow:var(--mmh-v132-shadow)!important;
+}
+body.mmh-workspace-active :is(#budget .budget-head-v110,#goals .goals-head-v113,#recurring .recurring-head-v114) h1{
+  margin:4px 0 3px!important;
+  font-size:clamp(27px,2.2vw,34px)!important;
+  letter-spacing:-.035em!important;
+}
+body.mmh-workspace-active :is(#budget .budget-head-v110,#goals .goals-head-v113,#recurring .recurring-head-v114) p{
+  margin-top:0!important;
+  font-size:11px!important;
+  color:var(--mmh-v132-muted)!important;
+}
+body.mmh-workspace-active :is(#budget .budget-eyebrow-v110,#goals .goals-eyebrow-v113,#recurring .recurring-eyebrow-v114){
+  font-size:9px!important;
+  letter-spacing:.18em!important;
+}
+body.mmh-workspace-active :is(#budget .budget-kpis-v110,#goals .goals-kpis-v113,#recurring .recurring-kpis-v114){
+  gap:9px!important;
+}
+body.mmh-workspace-active #budget .budget-kpi-v110,
+body.mmh-workspace-active #goals .goals-kpis-v113 article,
+body.mmh-workspace-active #recurring .recurring-kpis-v114 article{
+  min-height:98px!important;
+  padding:13px 14px!important;
+  border-radius:14px!important;
+  border-color:rgba(91,151,199,.17)!important;
+  background:var(--mmh-v132-surface-soft)!important;
+  box-shadow:none!important;
+}
+body.mmh-workspace-active #budget .budget-kpi-v110>strong,
+body.mmh-workspace-active #goals .goals-kpis-v113 strong,
+body.mmh-workspace-active #recurring .recurring-kpis-v114 strong{
+  margin-top:6px!important;
+  font-size:clamp(19px,1.75vw,24px)!important;
+}
+body.mmh-workspace-active #recurring .recurring-kpis-v114 strong{
+  margin-bottom:2px!important;
+}
+body.mmh-workspace-active #budget .budget-panel-v110,
+body.mmh-workspace-active #goals .goals-panel-v113,
+body.mmh-workspace-active #recurring .recurring-panel-v114{
+  padding:16px!important;
+  border-radius:16px!important;
+  border-color:var(--mmh-v132-border)!important;
+  background:var(--mmh-v132-surface)!important;
+  box-shadow:none!important;
+}
+body.mmh-workspace-active :is(#budget .budget-panel-head-v110,#goals .goals-panel-head-v113,#recurring .recurring-panel-head-v114){
+  gap:12px!important;
+  margin-bottom:12px!important;
+}
+body.mmh-workspace-active :is(#budget .budget-panel-head-v110,#goals .goals-panel-head-v113,#recurring .recurring-panel-head-v114) h2{
+  font-size:16px!important;
+  letter-spacing:-.012em!important;
+}
+body.mmh-workspace-active :is(#budget .budget-controls-v110 input,#budget .budget-controls-v110 select,#budget .budget-money-input-v110,#goals .goal-form-grid-v113 input,#goals .goal-form-grid-v113 select,#goals .goal-form-grid-v113 textarea,#recurring .recurring-form-grid-v114 input,#recurring .recurring-form-grid-v114 select,#recurring .recurring-form-grid-v114 textarea){
+  border-radius:10px!important;
+  border-color:rgba(95,157,205,.21)!important;
+  background:rgba(6,22,38,.90)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.02)!important;
+}
+body.mmh-workspace-active #budget .budget-category-row-v110,
+body.mmh-workspace-active #goals .goal-card-v113,
+body.mmh-workspace-active #recurring .recurring-card-v114{
+  border-radius:12px!important;
+  border-color:rgba(91,151,199,.14)!important;
+  background:rgba(6,22,38,.54)!important;
+  box-shadow:none!important;
+}
+body.mmh-workspace-active :is(#goals .goal-filters-v113,#recurring .recurring-filters-v114){
+  gap:3px!important;
+  padding:3px!important;
+  border:1px solid rgba(91,151,199,.14)!important;
+  border-radius:10px!important;
+  background:rgba(4,17,30,.42)!important;
+}
+body.mmh-workspace-active :is(#goals .goal-filters-v113,#recurring .recurring-filters-v114) button{
+  min-height:31px!important;
+  border-radius:7px!important;
+  border:0!important;
+  background:transparent!important;
+}
+body.mmh-workspace-active :is(#goals .goal-filters-v113,#recurring .recurring-filters-v114) button.active{
+  background:rgba(36,89,124,.54)!important;
+  color:#e9f6fd!important;
+}
+body.mmh-workspace-active :is(#budget .budget-method-v110,#goals .goals-method-v113,#recurring .recurring-method-v114){
+  margin-top:1px!important;
+  padding-inline:2px!important;
+  font-size:9px!important;
+  color:rgba(131,158,181,.66)!important;
+}
+
+/* Tablet / phone consistency */
+@media(max-width:900px){
+  body.mmh-workspace-active #accounts-page{max-width:100%!important}
+  body.mmh-workspace-active #cashflow-analyze .cfa-shell,
+  body.mmh-workspace-active :is(#budget .budget-shell-v110,#goals .goals-shell-v113,#recurring .recurring-shell-v114){max-width:100%!important}
+}
+@media(max-width:700px){
+  body.mmh-workspace-active #accounts-page .ap-heading{align-items:stretch!important;flex-direction:column!important;gap:10px!important}
+  body.mmh-workspace-active #accounts-page .ap-heading label{width:100%!important;min-width:0!important}
+  body.mmh-workspace-active #accounts-page .ap-heading select{width:100%!important}
+  body.mmh-workspace-active #accounts-page .am-shell{padding:12px!important;border-radius:15px!important}
+  body.mmh-workspace-active #accounts-page .am-find{grid-template-columns:minmax(0,1fr)!important}
+  body.mmh-workspace-active #accounts-page .am-summary{padding:13px!important}
+
+  body.mmh-workspace-active #cashflow-analyze .cfa-head,
+  body.mmh-workspace-active :is(#budget .budget-head-v110,#goals .goals-head-v113,#recurring .recurring-head-v114){padding:14px!important;border-radius:16px!important}
+  body.mmh-workspace-active #cashflow-analyze .cfa-kpis,
+  body.mmh-workspace-active :is(#budget .budget-kpis-v110,#goals .goals-kpis-v113,#recurring .recurring-kpis-v114){grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}
+  body.mmh-workspace-active #cashflow-analyze .cfa-card,
+  body.mmh-workspace-active #budget .budget-kpi-v110,
+  body.mmh-workspace-active #goals .goals-kpis-v113 article,
+  body.mmh-workspace-active #recurring .recurring-kpis-v114 article{min-height:92px!important;padding:12px!important}
+  body.mmh-workspace-active #cashflow-analyze .cfa-panel,
+  body.mmh-workspace-active #budget .budget-panel-v110,
+  body.mmh-workspace-active #goals .goals-panel-v113,
+  body.mmh-workspace-active #recurring .recurring-panel-v114{padding:13px!important;border-radius:14px!important}
+}
+@media(max-width:430px){
+  body.mmh-workspace-active #accounts-page .am-top{align-items:stretch!important;flex-direction:column!important}
+  body.mmh-workspace-active #accounts-page .am-top :is(button,select){width:100%!important}
+  body.mmh-workspace-active #accounts-page .am-summary-grid{grid-template-columns:1fr 1fr!important}
+  body.mmh-workspace-active #accounts-page .am-list .am-row{min-height:62px!important}
+  body.mmh-workspace-active #accounts-page .am-row-value{max-width:44%!important;font-size:14px!important}
+
+  body.mmh-workspace-active #cashflow-analyze .cfa-kpis,
+  body.mmh-workspace-active :is(#budget .budget-kpis-v110,#goals .goals-kpis-v113,#recurring .recurring-kpis-v114){grid-template-columns:1fr!important}
+  body.mmh-workspace-active #cashflow-analyze .cfa-card,
+  body.mmh-workspace-active #budget .budget-kpi-v110,
+  body.mmh-workspace-active #goals .goals-kpis-v113 article,
+  body.mmh-workspace-active #recurring .recurring-kpis-v114 article{min-height:82px!important}
+}
+
+
+/* MMHVAULT v1.3.3 · Settings avatar + two-level More menu refinements */
+body.mmh-workspace-active #settings .account-center-card-v375{
+  padding:20px 18px!important;
+}
+body.mmh-workspace-active #settings .account-center-card-v375>.toolbar{
+  margin-bottom:18px!important;
+}
+body.mmh-workspace-active #settings .account-center-head-v375{
+  display:grid!important;
+  grid-template-columns:auto minmax(0,1fr)!important;
+  align-items:center!important;
+  gap:16px!important;
+  margin-bottom:16px!important;
+  text-align:left!important;
+}
+body.mmh-workspace-active #settings .account-center-avatar-v375{
+  width:88px!important;
+  height:88px!important;
+  min-width:88px!important;
+  border-radius:50%!important;
+  border:2px solid rgba(97,155,199,.36)!important;
+  box-shadow:0 12px 28px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.08)!important;
+  background:linear-gradient(145deg,rgba(16,43,64,.86),rgba(8,26,40,.95))!important;
+}
+body.mmh-workspace-active #settings .account-center-name-v375{
+  font-size:clamp(24px,1.7vw,29px)!important;
+  line-height:1.08!important;
+  margin:0!important;
+}
+body.mmh-workspace-active #settings .account-center-email-v375{
+  margin-top:5px!important;
+  line-height:1.5!important;
+  font-size:12px!important;
+}
+body.mmh-workspace-active #settings .account-center-provider-v375{
+  margin-top:10px!important;
+  display:inline-flex!important;
+  align-items:center!important;
+  gap:6px!important;
+  padding:6px 10px!important;
+  border-radius:999px!important;
+  border:1px solid rgba(96,151,193,.20)!important;
+  background:rgba(10,31,47,.58)!important;
+}
+body.mmh-workspace-active #settings .st-stats{
+  padding-top:14px!important;
+}
+@media (max-width:820px){
+  body.mmh-workspace-active #settings .account-center-head-v375{
+    grid-template-columns:1fr!important;
+    justify-items:center!important;
+    text-align:center!important;
+    gap:12px!important;
+  }
+  body.mmh-workspace-active #settings .account-center-avatar-v375{
+    width:74px!important;
+    height:74px!important;
+    min-width:74px!important;
+  }
+  body.mmh-workspace-active #settings .account-center-provider-v375{
+    justify-content:center!important;
+  }
+}
+
+#moreNavMenu.more-nav-menu>.mmh-more-nested-trigger-v131,
+#moreNavMenu .mmh-more-submenu-v131>button{
+  display:flex!important;
+  align-items:center!important;
+  gap:10px!important;
+  width:100%!important;
+  margin:0!important;
+  padding:8px 10px!important;
+  min-height:48px!important;
+  border-radius:12px!important;
+  border:1px solid rgba(91,151,196,.10)!important;
+  background:linear-gradient(145deg,rgba(16,43,64,.62),rgba(7,25,40,.70))!important;
+  color:#c8dbe8!important;
+  font:inherit!important;
+  font-size:12px!important;
+  font-weight:680!important;
+  text-align:left!important;
+  box-shadow:none!important;
+}
+#moreNavMenu.more-nav-menu>.mmh-more-nested-trigger-v131::after,
+#moreNavMenu .mmh-more-submenu-v131>button::after{
+  content:'›'!important;
+  margin-left:auto!important;
+  color:#6c899f!important;
+  font-size:18px!important;
+  transition:transform .16s ease!important;
+}
+#moreNavMenu.more-nav-menu>.mmh-more-nested-trigger-v131[aria-expanded='true']::after{
+  transform:rotate(90deg)!important;
+}
+#moreNavMenu.more-nav-menu>.mmh-more-nested-trigger-v131:hover,
+#moreNavMenu.more-nav-menu>.mmh-more-nested-trigger-v131.active,
+#moreNavMenu .mmh-more-submenu-v131>button:hover,
+#moreNavMenu .mmh-more-submenu-v131>button.active{
+  border-color:rgba(242,196,94,.24)!important;
+  background:linear-gradient(135deg,rgba(76,199,255,.10),rgba(242,196,94,.08))!important;
+  color:#f5f9fc!important;
+}
+#moreNavMenu .mmh-more-submenu-v131{
+  grid-column:1/-1!important;
+  display:grid!important;
+  grid-template-columns:1fr!important;
+  gap:6px!important;
+  margin-top:2px!important;
+  padding:8px 0 0 14px!important;
+  border-top:1px dashed rgba(96,149,191,.18)!important;
+}
+#moreNavMenu .mmh-more-submenu-v131[hidden]{display:none!important}
+#moreNavMenu .mmh-more-submenu-v131 .mmh-more-icon-v570{background:#0f2b40!important}
+#moreNavMenu .mmh-more-submenu-v131 #mmhMoreAdminV570 .mmh-more-icon-v570{background:#342b18!important;border-color:rgba(242,196,94,.24)!important;color:#f0c75f!important}
+@media (max-width:1099px){
+  #moreNavMenu .mmh-more-submenu-v131{padding-left:8px!important}
+}
+@media (max-width:420px){
+  #moreNavMenu .mmh-more-submenu-v131{padding-left:0!important}
+}
+
+
+/* MMHVAULT v1.3.4 · UI/UX Pass 3
+   Scope: Settings subpages, Feedback Center and Notification Center presentation only.
+   No Supabase queries, CRUD logic, auth/session behavior or finance calculations are changed. */
+
+/* -------- Settings subpages: lighter hierarchy, less nested-card weight -------- */
+body.mmh-workspace-active #settings .st-page{
+  width:100%!important;
+  max-width:1120px!important;
+  margin:0 auto!important;
+}
+body.mmh-workspace-active #settings .st-page-head{
+  min-height:56px!important;
+  margin:0 0 14px!important;
+  padding:8px 2px 13px!important;
+  gap:12px!important;
+  border-bottom:1px solid rgba(94,153,198,.15)!important;
+}
+body.mmh-workspace-active #settings .st-page-head h2{
+  font-size:clamp(20px,1.8vw,25px)!important;
+  letter-spacing:-.025em!important;
+  color:#edf5fb!important;
+}
+body.mmh-workspace-active #settings .st-back{
+  min-height:38px!important;
+  padding:7px 11px!important;
+  border-radius:10px!important;
+  border-color:rgba(96,156,201,.20)!important;
+  background:rgba(10,34,52,.60)!important;
+  box-shadow:none!important;
+}
+body.mmh-workspace-active #settings .st-page :is(.st-rows,.st-detail,.panel,.mmh-profile-edit-v1){
+  border-color:rgba(89,148,193,.18)!important;
+  background:linear-gradient(145deg,rgba(10,29,47,.82),rgba(5,18,31,.91))!important;
+  box-shadow:0 12px 28px rgba(0,0,0,.12),inset 0 1px 0 rgba(255,255,255,.025)!important;
+}
+body.mmh-workspace-active #settings .st-page .st-row{
+  min-height:54px!important;
+  padding:10px 14px!important;
+}
+body.mmh-workspace-active #settings .st-page .st-row:hover{
+  background:rgba(33,74,101,.13)!important;
+}
+body.mmh-workspace-active #settings .st-page .st-icon{
+  width:30px!important;
+  height:30px!important;
+  border-radius:9px!important;
+}
+body.mmh-workspace-active #settings .st-page .st-note{
+  color:rgba(155,181,202,.72)!important;
+}
+body.mmh-workspace-active #settings .st-page details[open] > summary{
+  color:#e9d18a!important;
+}
+
+/* -------- Feedback Center: desktop split view, compact history -------- */
+body.mmh-workspace-active #settings #stPage_feedback{
+  display:grid!important;
+  grid-template-columns:minmax(0,.92fr) minmax(360px,1.08fr)!important;
+  gap:14px!important;
+  align-items:start!important;
+  max-width:1180px!important;
+}
+body.mmh-workspace-active #settings #stPage_feedback[hidden]{display:none!important}
+body.mmh-workspace-active #settings #stPage_feedback>.st-page-head{
+  grid-column:1/-1!important;
+  width:100%!important;
+}
+body.mmh-workspace-active #settings #stPage_feedback>.fb-panel{
+  min-width:0!important;
+  margin:0!important;
+  padding:18px!important;
+  border-radius:18px!important;
+  border-color:rgba(91,151,197,.20)!important;
+  background:linear-gradient(145deg,rgba(10,30,49,.91),rgba(5,18,31,.95))!important;
+  box-shadow:0 14px 32px rgba(0,0,0,.14),inset 0 1px 0 rgba(255,255,255,.025)!important;
+}
+body.mmh-workspace-active #settings #stPage_feedback>.fb-panel:last-child{
+  max-height:min(720px,calc(100vh - 210px))!important;
+  overflow:auto!important;
+  scrollbar-width:thin!important;
+  scrollbar-color:rgba(86,143,184,.42) transparent!important;
+}
+body.mmh-workspace-active #settings #stPage_feedback .fb-heading{
+  min-height:38px!important;
+  margin-bottom:12px!important;
+}
+body.mmh-workspace-active #settings #stPage_feedback .fb-heading h3{
+  font-size:15px!important;
+  letter-spacing:-.012em!important;
+}
+body.mmh-workspace-active #settings #stPage_feedback .fb-fields{
+  grid-template-columns:minmax(130px,.42fr) minmax(0,1fr)!important;
+  gap:10px!important;
+}
+body.mmh-workspace-active #settings #stPage_feedback :is(input,select,textarea){
+  min-height:42px!important;
+  margin-top:6px!important;
+  border-radius:10px!important;
+  border-color:rgba(95,154,199,.22)!important;
+  background:rgba(5,21,36,.86)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.02)!important;
+  font-size:13px!important;
+}
+body.mmh-workspace-active #settings #stPage_feedback textarea{
+  min-height:116px!important;
+  line-height:1.55!important;
+}
+body.mmh-workspace-active #settings #fbSubmitV14{
+  min-height:40px!important;
+  padding:8px 14px!important;
+  border-radius:10px!important;
+  box-shadow:0 9px 20px rgba(62,143,194,.10)!important;
+}
+body.mmh-workspace-active #settings .fb-rating-v15{
+  margin-top:12px!important;
+  padding:11px 12px!important;
+  border:1px solid rgba(91,151,197,.16)!important;
+  border-radius:12px!important;
+  background:rgba(5,21,36,.48)!important;
+}
+body.mmh-workspace-active #settings .fb-stars-v15{
+  gap:5px!important;
+}
+body.mmh-workspace-active #settings .fb-stars-v15 button{
+  min-width:34px!important;
+  min-height:34px!important;
+  padding:4px!important;
+  border-radius:9px!important;
+}
+body.mmh-workspace-active #settings .fb-photo-preview-v15 img{
+  width:72px!important;
+  height:72px!important;
+  border-radius:11px!important;
+}
+body.mmh-workspace-active #settings .fb-record{
+  margin-top:7px!important;
+  padding:11px 12px!important;
+  border-radius:12px!important;
+  border-color:rgba(89,147,191,.16)!important;
+  background:rgba(8,27,43,.58)!important;
+  box-shadow:none!important;
+}
+body.mmh-workspace-active #settings .fb-record summary{
+  min-height:38px!important;
+}
+body.mmh-workspace-active #settings .fb-record summary b{
+  font-size:12px!important;
+}
+body.mmh-workspace-active #settings .fb-text{
+  margin:10px 0!important;
+  font-size:12px!important;
+  line-height:1.6!important;
+}
+body.mmh-workspace-active #settings .fb-status{
+  padding:4px 7px!important;
+  border-radius:999px!important;
+  font-size:9px!important;
+}
+body.mmh-workspace-active #settings .fb-pagination{
+  position:sticky!important;
+  bottom:-1px!important;
+  margin-top:10px!important;
+  padding:9px 0 2px!important;
+  background:linear-gradient(180deg,rgba(5,18,31,0),rgba(5,18,31,.98) 36%)!important;
+}
+
+/* -------- Notification Center: compact inbox, clearer unread state -------- */
+html body #mmhNotifyPopoverV560{
+  width:min(420px,calc(100vw - 20px))!important;
+  max-height:min(70vh,600px)!important;
+  border-radius:18px!important;
+  border-color:rgba(96,157,204,.28)!important;
+  background:linear-gradient(155deg,rgba(8,27,44,.99),rgba(3,14,26,.995))!important;
+  box-shadow:0 26px 70px rgba(0,0,0,.48),inset 0 1px 0 rgba(255,255,255,.04)!important;
+}
+html body #mmhNotifyPopoverV560 .np-head{
+  padding:13px 14px 11px!important;
+}
+html body #mmhNotifyPopoverV560 .np-title-icon{
+  width:34px!important;
+  height:34px!important;
+  flex-basis:34px!important;
+  border-radius:11px!important;
+}
+html body #mmhNotifyPopoverV560 .np-title strong{
+  font-size:13px!important;
+  letter-spacing:-.01em!important;
+}
+html body #mmhNotifyPopoverV560 .np-filter-v900{
+  padding:7px 9px!important;
+  gap:5px!important;
+  background:rgba(4,18,31,.64)!important;
+}
+html body #mmhNotifyPopoverV560 .np-filter-v900 button{
+  min-height:29px!important;
+  padding:5px 8px!important;
+  border-radius:9px!important;
+  font-size:8.5px!important;
+}
+html body #mmhNotifyPopoverV560 .np-list{
+  padding:6px!important;
+}
+html body #mmhNotifyPopoverV560 .np-item{
+  padding:10px 10px 9px 13px!important;
+  border-radius:11px!important;
+}
+html body #mmhNotifyPopoverV560 .np-item+.np-item{
+  margin-top:2px!important;
+}
+html body #mmhNotifyPopoverV560 .np-item.unread{
+  background:linear-gradient(90deg,rgba(76,199,255,.085),rgba(242,196,94,.018))!important;
+}
+html body #mmhNotifyPopoverV560 .np-item.unread::before{
+  left:4px!important;
+  top:13px!important;
+  height:25px!important;
+}
+html body #mmhNotifyPopoverV560 .np-item h4{
+  font-size:11.5px!important;
+}
+html body #mmhNotifyPopoverV560 .np-item p{
+  margin:5px 0 6px!important;
+  font-size:9.5px!important;
+  line-height:1.45!important;
+  -webkit-line-clamp:2!important;
+}
+html body #mmhNotifyPopoverV560 .np-meta{
+  font-size:8px!important;
+}
+html body #mmhNotifyPopoverV560 .np-kind{
+  padding:3px 6px!important;
+  font-size:7.5px!important;
+  border-radius:999px!important;
+}
+html body #mmhNotifyPopoverV560 .np-foot{
+  padding:8px 10px 9px!important;
+}
+
+@media(max-width:980px){
+  body.mmh-workspace-active #settings #stPage_feedback{
+    grid-template-columns:minmax(0,1fr)!important;
+    max-width:900px!important;
+  }
+  body.mmh-workspace-active #settings #stPage_feedback>.fb-panel:last-child{
+    max-height:none!important;
+    overflow:visible!important;
+  }
+}
+@media(max-width:620px){
+  body.mmh-workspace-active #settings .st-page-head{
+    min-height:50px!important;
+    margin-bottom:11px!important;
+    padding-bottom:10px!important;
+  }
+  body.mmh-workspace-active #settings #stPage_feedback>.fb-panel{
+    padding:14px!important;
+    border-radius:15px!important;
+  }
+  body.mmh-workspace-active #settings #stPage_feedback .fb-fields{
+    grid-template-columns:minmax(0,1fr)!important;
+  }
+  html body #mmhNotifyPopoverV560{
+    width:calc(100vw - 16px)!important;
+    max-height:calc(100dvh - 150px)!important;
+    border-radius:16px!important;
+  }
+}
+
+
+/* MMHVAULT v1.3.5 · UI/UX Pass 4
+   Scope: Reports + Exchange + Accounts/Manage Account + modal/dialog presentation.
+   Presentation only. No finance calculations, CRUD, auth, storage, Supabase or PWA behavior is changed. */
+
+/* ---------------- Reports: denser executive-report hierarchy ---------------- */
+body.mmh-workspace-active #reports{
+  --rpt-surface:linear-gradient(145deg,rgba(9,28,47,.95),rgba(5,18,32,.98));
+  --rpt-border:rgba(91,151,199,.20);
+  --rpt-muted:rgba(155,181,202,.76);
+  max-width:1420px!important;
+}
+body.mmh-workspace-active #reports>.mmh-v390-page-head{
+  display:flex!important;
+  align-items:flex-end!important;
+  justify-content:space-between!important;
+  gap:18px!important;
+  padding:4px 2px 15px!important;
+  margin-bottom:12px!important;
+  border-bottom:1px solid rgba(95,153,198,.11)!important;
+}
+body.mmh-workspace-active #reports>.mmh-v390-page-head h1{
+  margin:0!important;
+  font-size:clamp(30px,2.45vw,39px)!important;
+  line-height:1.02!important;
+  letter-spacing:-.045em!important;
+}
+body.mmh-workspace-active #reports>.mmh-v390-page-head .sub{
+  margin-top:7px!important;
+  max-width:720px!important;
+  color:var(--rpt-muted)!important;
+  line-height:1.5!important;
+}
+body.mmh-workspace-active #reports .report-period-controls{
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(130px,1fr))!important;
+  gap:9px!important;
+  padding:8px!important;
+  border:1px solid rgba(96,154,199,.16)!important;
+  border-radius:14px!important;
+  background:rgba(6,20,34,.58)!important;
+}
+body.mmh-workspace-active #reports .report-period-controls label{
+  display:grid!important;
+  gap:5px!important;
+  color:#7f99ad!important;
+  font-size:9px!important;
+  font-weight:800!important;
+  letter-spacing:.08em!important;
+  text-transform:uppercase!important;
+}
+body.mmh-workspace-active #reports .report-period-controls select{
+  min-height:38px!important;
+  padding:7px 10px!important;
+  border-radius:10px!important;
+  border:1px solid rgba(98,157,203,.21)!important;
+  background:rgba(7,24,41,.90)!important;
+  color:#e2edf5!important;
+}
+body.mmh-workspace-active #reports .mmh-v390-kpis{gap:10px!important;margin-bottom:12px!important}
+body.mmh-workspace-active #reports .mmh-v390-kpis>.panel{
+  min-height:105px!important;
+  padding:14px 15px!important;
+  border-radius:16px!important;
+  border-color:var(--rpt-border)!important;
+  background:var(--rpt-surface)!important;
+  box-shadow:0 14px 32px rgba(0,0,0,.14),inset 0 1px 0 rgba(255,255,255,.025)!important;
+}
+body.mmh-workspace-active #reports .mmh-v390-kpis .value{margin-top:7px!important;font-size:clamp(21px,1.65vw,26px)!important;line-height:1.05!important}
+body.mmh-workspace-active #reports>.panel,
+body.mmh-workspace-active #reports>.grid.two>.panel{
+  border-radius:17px!important;
+  border-color:var(--rpt-border)!important;
+  background:var(--rpt-surface)!important;
+  box-shadow:0 14px 34px rgba(0,0,0,.14),inset 0 1px 0 rgba(255,255,255,.025)!important;
+  padding:16px!important;
+}
+body.mmh-workspace-active #reports>.grid.two{gap:12px!important;margin-top:12px!important}
+body.mmh-workspace-active #reports>.panel[style*="margin-top"],
+body.mmh-workspace-active #reports>.grid.two + .panel{margin-top:12px!important}
+body.mmh-workspace-active #reports .toolbar h2{font-size:15px!important;letter-spacing:-.015em!important}
+body.mmh-workspace-active #reports .mmh-v390-table{width:100%!important;border-collapse:separate!important;border-spacing:0 5px!important}
+body.mmh-workspace-active #reports .mmh-v390-table :is(th,td){padding:9px 10px!important;border-bottom:0!important;background:rgba(7,24,40,.42)!important}
+body.mmh-workspace-active #reports .mmh-v390-table tr>*:first-child{border-radius:9px 0 0 9px!important}
+body.mmh-workspace-active #reports .mmh-v390-table tr>*:last-child{border-radius:0 9px 9px 0!important}
+body.mmh-workspace-active #reports .mmh-v391-item{border-radius:11px!important;border-color:rgba(89,146,189,.13)!important;background:rgba(7,24,39,.38)!important}
+body.mmh-workspace-active #reports .mmh-v390-insight{border-radius:11px!important;background:rgba(17,50,70,.34)!important;border-color:rgba(89,153,197,.16)!important}
+body.mmh-workspace-active #reports .report-shell-v115{gap:12px!important}
+body.mmh-workspace-active #reports .report-head-v115{padding:0 0 12px!important;border-bottom:1px solid rgba(96,154,199,.10)!important}
+body.mmh-workspace-active #reports .report-head-v115 h1{font-size:clamp(27px,2.1vw,34px)!important}
+body.mmh-workspace-active #reports .report-kpis-v115{gap:10px!important}
+body.mmh-workspace-active #reports .report-kpi-v115{
+  min-height:96px!important;padding:14px!important;border-radius:14px!important;border-color:var(--rpt-border)!important;
+  background:var(--rpt-surface)!important;box-shadow:0 12px 28px rgba(0,0,0,.12)!important;
+}
+body.mmh-workspace-active #reports .report-kpi-v115>strong{font-size:21px!important}
+body.mmh-workspace-active #reports .report-grid-v115{gap:12px!important}
+body.mmh-workspace-active #reports .report-panel-v115{
+  padding:15px!important;border-radius:15px!important;border-color:var(--rpt-border)!important;
+  background:var(--rpt-surface)!important;box-shadow:0 12px 30px rgba(0,0,0,.12)!important;
+}
+body.mmh-workspace-active #reports .report-export-actions-v116 .btn{min-height:39px!important;padding:0 12px!important;border-radius:10px!important;box-shadow:none!important}
+
+/* ---------------- Exchange: compact workspace, stronger converter focus ---------------- */
+body.mmh-workspace-active #exchange.page.active{gap:12px!important;max-width:1420px!important}
+body.mmh-workspace-active #exchange.page.active>.ex-template-head{
+  min-height:74px!important;padding:11px 14px!important;border-radius:16px!important;border-color:rgba(91,151,199,.18)!important;
+  background:linear-gradient(145deg,rgba(8,27,45,.78),rgba(5,18,32,.88))!important;box-shadow:none!important;
+}
+body.mmh-workspace-active #exchange.page.active .ex-brand img{width:36px!important;height:36px!important}
+body.mmh-workspace-active #exchange.page.active .ex-brand h1{font-size:clamp(25px,2vw,32px)!important;letter-spacing:-.035em!important}
+body.mmh-workspace-active #exchange.page.active>.ex-currency-cards{gap:9px!important}
+body.mmh-workspace-active #exchange.page.active>.ex-currency-cards>*{
+  min-height:74px!important;padding:11px 12px!important;border-radius:13px!important;border-color:rgba(91,151,199,.16)!important;
+  background:linear-gradient(145deg,rgba(11,31,50,.82),rgba(6,21,36,.91))!important;box-shadow:none!important;
+}
+body.mmh-workspace-active #exchange.page.active>.exchange-converter-panel,
+body.mmh-workspace-active #exchange.page.active>.ex-rate-editor,
+body.mmh-workspace-active #exchange.page.active>.ex-asia-summary-v130{
+  border-radius:17px!important;border-color:rgba(91,151,199,.20)!important;
+  background:linear-gradient(145deg,rgba(9,28,47,.93),rgba(5,18,32,.97))!important;
+  box-shadow:0 14px 32px rgba(0,0,0,.13),inset 0 1px 0 rgba(255,255,255,.025)!important;
+}
+body.mmh-workspace-active #exchange.page.active>.exchange-converter-panel,
+body.mmh-workspace-active #exchange.page.active>.ex-rate-editor{padding:15px!important}
+body.mmh-workspace-active #exchange.page.active .exchange-converter-grid :is(input,select),
+body.mmh-workspace-active #exchange.page.active .ex-rate-editor :is(input,select){min-height:42px!important;border-radius:10px!important;border-color:rgba(96,156,202,.21)!important;background:rgba(6,22,38,.88)!important}
+body.mmh-workspace-active #exchange.page.active .exchange-converter-result{min-height:76px!important;border-radius:12px!important;border-color:rgba(96,160,207,.18)!important;background:rgba(6,22,38,.66)!important;box-shadow:none!important}
+body.mmh-workspace-active #exchange.page.active .ex-swap{width:42px!important;height:42px!important;min-height:42px!important;border-radius:12px!important;box-shadow:none!important}
+body.mmh-workspace-active #exchange.page.active .ex-asia-summary-v130{padding:14px 15px!important;gap:12px!important}
+body.mmh-workspace-active #exchange.page.active .ex-asia-mini-v130{min-height:48px!important;padding:9px 10px!important;border-radius:11px!important}
+body.mmh-workspace-active #exchange.page.active #exAsiaV10.ex-asia-page-v130{padding:0!important}
+body.mmh-workspace-active #exchange.page.active #exAsiaV10 .asia-page-top-v130{min-height:48px!important;padding:8px 0 10px!important;border-bottom:1px solid rgba(96,154,199,.12)!important}
+body.mmh-workspace-active #exchange.page.active #exAsiaV10 .asia-row{
+  min-height:64px!important;padding:10px 11px!important;border-radius:12px!important;border-color:rgba(91,151,199,.16)!important;
+  background:linear-gradient(145deg,rgba(10,30,49,.84),rgba(6,21,36,.91))!important;
+}
+
+/* ---------------- Accounts + Manage Account: less blocky, stronger list scan ---------------- */
+body.mmh-workspace-active #accounts-page{max-width:1180px!important}
+body.mmh-workspace-active #accounts-page .ap-heading{margin:5px 0 14px!important;padding-bottom:12px!important;border-bottom:1px solid rgba(94,151,195,.10)!important}
+body.mmh-workspace-active #accounts-page .ap-heading h1{font-size:clamp(29px,2.25vw,36px)!important;letter-spacing:-.04em!important}
+body.mmh-workspace-active #accounts-page .ap-heading select{min-height:40px!important;border-radius:10px!important;border-color:rgba(96,156,202,.22)!important;background:rgba(7,24,41,.88)!important}
+body.mmh-workspace-active #accounts-page .am-shell{
+  padding:15px!important;border-radius:18px!important;border-color:rgba(91,151,199,.19)!important;
+  background:linear-gradient(145deg,rgba(9,28,47,.94),rgba(5,18,32,.97))!important;
+  box-shadow:0 14px 32px rgba(0,0,0,.13),inset 0 1px 0 rgba(255,255,255,.025)!important;
+}
+body.mmh-workspace-active :is(#accounts-page,#mmhManageOverlayV1) .am-top{margin-bottom:10px!important}
+body.mmh-workspace-active :is(#accounts-page,#mmhManageOverlayV1) .am-top :is(button,select){min-height:40px!important;border-radius:10px!important;border-color:rgba(96,156,202,.22)!important;background:rgba(11,35,56,.86)!important;box-shadow:none!important}
+body.mmh-workspace-active :is(#accounts-page,#mmhManageOverlayV1) .am-summary{
+  padding:15px 16px!important;margin-bottom:11px!important;border-radius:14px!important;border-color:rgba(102,166,211,.21)!important;
+  background:radial-gradient(circle at 92% 12%,rgba(242,196,94,.07),transparent 34%),linear-gradient(145deg,rgba(16,45,70,.84),rgba(8,27,46,.92))!important;box-shadow:none!important;
+}
+body.mmh-workspace-active :is(#accounts-page,#mmhManageOverlayV1) .am-summary>strong{font-size:clamp(24px,2vw,29px)!important;margin:5px 0 11px!important}
+body.mmh-workspace-active :is(#accounts-page,#mmhManageOverlayV1) .am-find{margin-top:10px!important;gap:7px!important}
+body.mmh-workspace-active :is(#accounts-page,#mmhManageOverlayV1) .am-find :is(input,select){min-height:40px!important;border-radius:10px!important;border-color:rgba(96,156,202,.20)!important;background:rgba(7,24,41,.82)!important}
+body.mmh-workspace-active :is(#accounts-page,#mmhManageOverlayV1) .am-list{border-radius:13px!important;border-color:rgba(91,151,199,.16)!important;background:rgba(5,19,33,.44)!important}
+body.mmh-workspace-active :is(#accounts-page,#mmhManageOverlayV1) .am-row{min-height:58px!important;padding:9px 11px!important;gap:10px!important;border-bottom-color:rgba(91,151,199,.10)!important;transition:background-color .14s ease!important}
+body.mmh-workspace-active :is(#accounts-page,#mmhManageOverlayV1) .am-row:hover{background:rgba(24,58,81,.28)!important}
+body.mmh-workspace-active :is(#accounts-page,#mmhManageOverlayV1) .am-logo{width:36px!important;height:36px!important;border-radius:10px!important}
+body.mmh-workspace-active :is(#accounts-page,#mmhManageOverlayV1) .am-fields{padding:13px!important;margin:10px 0!important;border-radius:13px!important;border-color:rgba(91,151,199,.16)!important;background:rgba(5,19,33,.52)!important}
+body.mmh-workspace-active :is(#accounts-page,#mmhManageOverlayV1) .am-fields :is(input,select){min-height:41px!important;border-radius:10px!important}
+body.mmh-workspace-active :is(#accounts-page,#mmhManageOverlayV1) .am-upload{padding:11px!important;border-radius:12px!important;background:linear-gradient(120deg,rgba(18,52,76,.75),rgba(8,29,47,.80))!important}
+body.mmh-workspace-active :is(#accounts-page,#mmhManageOverlayV1) .am-actions{margin:10px 0!important}
+body.mmh-workspace-active :is(#accounts-page,#mmhManageOverlayV1) .am-actions .btn{min-height:40px!important;border-radius:10px!important}
+
+/* ---------------- Dialog / modal system: one visual language ---------------- */
+body.mmh-workspace-active #mmhVaultDialogV449,
+body.mmh-workspace-active #editModal,
+body.mmh-workspace-active #receiptViewerModalV3297{background:rgba(2,8,16,.74)!important;backdrop-filter:blur(10px) saturate(105%)!important;-webkit-backdrop-filter:blur(10px) saturate(105%)!important}
+body.mmh-workspace-active .mmh-v449-dialog,
+body.mmh-workspace-active #editModal .modal,
+body.mmh-workspace-active .receipt-viewer-dialog-v3297,
+body.mmh-workspace-active dialog.mmh-history-edit,
+body.mmh-workspace-active .modal-backdrop>.modal{
+  border:1px solid rgba(98,158,204,.26)!important;border-radius:18px!important;
+  background:linear-gradient(145deg,rgba(10,29,48,.985),rgba(4,15,28,.995))!important;
+  box-shadow:0 28px 80px rgba(0,0,0,.52),inset 0 1px 0 rgba(255,255,255,.035)!important;
+}
+body.mmh-workspace-active .mmh-v449-dialog{width:min(500px,calc(100vw - 26px))!important}
+body.mmh-workspace-active .mmh-v449-dialog-head{padding:17px 18px 9px!important}
+body.mmh-workspace-active .mmh-v449-dialog-head h3{font-size:17px!important;letter-spacing:-.015em!important}
+body.mmh-workspace-active .mmh-v449-dialog-body{padding:10px 18px 16px!important}
+body.mmh-workspace-active .mmh-v449-dialog-actions{padding:11px 18px!important;gap:7px!important;border-top-color:rgba(96,154,199,.12)!important;background:rgba(3,14,26,.34)!important}
+body.mmh-workspace-active .mmh-v449-dialog-actions button,
+body.mmh-workspace-active dialog.mmh-history-edit .mmh-history-dialog-actions button{min-height:39px!important;padding:0 14px!important;border-radius:10px!important;box-shadow:none!important}
+body.mmh-workspace-active #editModal .modal{width:min(680px,calc(100vw - 28px))!important;max-height:min(88dvh,820px)!important}
+body.mmh-workspace-active #editModal .modal>.toolbar{
+  position:sticky!important;top:0!important;z-index:3!important;padding:12px 14px!important;margin:-1px -1px 10px!important;
+  border-bottom:1px solid rgba(96,154,199,.11)!important;background:rgba(8,25,42,.96)!important;backdrop-filter:blur(10px)!important;
+}
+body.mmh-workspace-active #editModalBody :is(input,select,textarea){min-height:42px!important;border-radius:10px!important;border-color:rgba(96,156,202,.21)!important;background:rgba(6,22,38,.88)!important}
+body.mmh-workspace-active dialog.mmh-history-edit{width:min(620px,calc(100vw - 24px))!important;padding:18px!important}
+body.mmh-workspace-active dialog.mmh-history-edit::backdrop{background:rgba(2,8,16,.74)!important;backdrop-filter:blur(8px)!important}
+body.mmh-workspace-active .receipt-viewer-dialog-v3297{border-radius:17px!important}
+body.mmh-workspace-active .receipt-viewer-head-v3297{padding:12px 14px!important;border-bottom-color:rgba(96,154,199,.12)!important;background:rgba(8,25,42,.92)!important}
+
+/* ---------------- Responsive polish for this pass ---------------- */
+@media(max-width:899px){
+  body.mmh-workspace-active #reports>.mmh-v390-page-head{align-items:stretch!important;flex-direction:column!important;gap:11px!important}
+  body.mmh-workspace-active #reports .report-period-controls{width:100%!important}
+  body.mmh-workspace-active #reports .mmh-v390-kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  body.mmh-workspace-active #reports>.grid.two{grid-template-columns:minmax(0,1fr)!important}
+  body.mmh-workspace-active #accounts-page{max-width:none!important}
+}
+@media(max-width:699px){
+  body.mmh-workspace-active #reports>.mmh-v390-page-head h1{font-size:28px!important}
+  body.mmh-workspace-active #reports .report-period-controls{grid-template-columns:1fr 1fr!important}
+  body.mmh-workspace-active #reports>.panel,
+  body.mmh-workspace-active #reports>.grid.two>.panel{padding:13px!important;border-radius:15px!important}
+  body.mmh-workspace-active #reports .mmh-v390-table{display:block!important;overflow-x:auto!important;overscroll-behavior-x:contain!important}
+  body.mmh-workspace-active #reports .mmh-v390-table :is(th,td){white-space:nowrap!important}
+  body.mmh-workspace-active #exchange.page.active>.ex-currency-cards{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  body.mmh-workspace-active #exchange.page.active>.exchange-converter-panel,
+  body.mmh-workspace-active #exchange.page.active>.ex-rate-editor{padding:13px!important}
+  body.mmh-workspace-active #accounts-page .am-shell{padding:11px!important;border-radius:15px!important}
+  body.mmh-workspace-active :is(#accounts-page,#mmhManageOverlayV1) .am-summary{padding:13px!important}
+  body.mmh-workspace-active :is(#accounts-page,#mmhManageOverlayV1) .am-find{grid-template-columns:minmax(0,1fr)!important}
+  body.mmh-workspace-active :is(#accounts-page,#mmhManageOverlayV1) .am-row{min-height:56px!important;padding:9px!important}
+  body.mmh-workspace-active .mmh-v449-dialog-actions{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  body.mmh-workspace-active #editModal .modal{width:calc(100vw - 12px)!important;border-radius:16px!important}
+}
+@media(max-width:420px){
+  body.mmh-workspace-active #reports .report-period-controls,
+  body.mmh-workspace-active #reports .mmh-v390-kpis,
+  body.mmh-workspace-active #exchange.page.active>.ex-currency-cards{grid-template-columns:minmax(0,1fr)!important}
+  body.mmh-workspace-active #reports .mmh-v390-kpis>.panel{min-height:88px!important}
+  body.mmh-workspace-active #reports .mmh-v390-kpis .value{font-size:21px!important}
+  body.mmh-workspace-active .mmh-v449-dialog-actions{grid-template-columns:1fr!important}
+  body.mmh-workspace-active .mmh-v449-dialog-actions button{width:100%!important}
+}
+
+/* MMHVAULT v1.3.6 · Account workflow + Feedback compact history */
+
+/* Account edit now uses the same unified dialog language as Transaction / Invest edit. */
+body.mmh-workspace-active #mmhVaultDialogV449 .mmh-v449-dialog:has(.am-dialog-editor-v136){
+  width:min(720px,calc(100vw - 28px))!important;
+}
+body.mmh-workspace-active #mmhVaultDialogV449 .am-dialog-editor-v136{
+  display:grid!important;
+  gap:10px!important;
+  min-width:0!important;
+}
+body.mmh-workspace-active #mmhVaultDialogV449 .am-dialog-editor-v136 .am-fields{
+  margin:0!important;
+  padding:0!important;
+  border:0!important;
+  background:transparent!important;
+}
+body.mmh-workspace-active #mmhVaultDialogV449 .am-dialog-editor-v136 .am-logo-row{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:14px!important;
+  min-height:58px!important;
+  margin-bottom:12px!important;
+  padding:10px 12px!important;
+  border:1px solid rgba(94,154,201,.18)!important;
+  border-radius:13px!important;
+  background:rgba(7,25,42,.55)!important;
+  color:#a9bed2!important;
+  font-size:11px!important;
+  font-weight:750!important;
+}
+body.mmh-workspace-active #mmhVaultDialogV449 .am-dialog-editor-v136 .am-logo-row>button{
+  display:flex!important;
+  align-items:center!important;
+  gap:7px!important;
+  min-width:64px!important;
+  min-height:46px!important;
+  padding:5px 8px!important;
+  border-radius:11px!important;
+  border:1px solid rgba(98,166,214,.28)!important;
+  background:linear-gradient(145deg,rgba(20,54,78,.86),rgba(10,35,55,.94))!important;
+  color:#cfe6f5!important;
+}
+body.mmh-workspace-active #mmhVaultDialogV449 .am-dialog-editor-v136 .am-logo{
+  width:34px!important;
+  height:34px!important;
+  min-width:34px!important;
+  display:grid!important;
+  place-items:center!important;
+  overflow:hidden!important;
+  border-radius:9px!important;
+  border:1px solid color-mix(in srgb,var(--am-color,#82bddf) 70%,transparent)!important;
+  background:color-mix(in srgb,var(--am-color,#82bddf) 18%,#0c2439)!important;
+}
+body.mmh-workspace-active #mmhVaultDialogV449 .am-dialog-editor-v136 .am-logo img{
+  width:100%!important;height:100%!important;object-fit:contain!important;
+}
+body.mmh-workspace-active #mmhVaultDialogV449 .am-dialog-editor-v136 .am-picker{
+  margin:0 0 12px!important;
+  padding:12px!important;
+  border:1px solid rgba(92,151,199,.18)!important;
+  border-radius:13px!important;
+  background:rgba(5,20,34,.58)!important;
+}
+body.mmh-workspace-active #mmhVaultDialogV449 .am-dialog-editor-v136 .am-picker[hidden]{display:none!important}
+body.mmh-workspace-active #mmhVaultDialogV449 .am-dialog-editor-v136 .am-icons{
+  display:grid!important;
+  grid-template-columns:repeat(5,minmax(0,1fr))!important;
+  gap:7px!important;
+}
+body.mmh-workspace-active #mmhVaultDialogV449 .am-dialog-editor-v136 .am-icons button{
+  height:44px!important;
+  padding:4px!important;
+  border:1px solid rgba(91,151,196,.18)!important;
+  border-radius:10px!important;
+  background:#102d43!important;
+  color:#d9ebf8!important;
+  font-size:20px!important;
+}
+body.mmh-workspace-active #mmhVaultDialogV449 .am-dialog-editor-v136 .am-upload{
+  position:relative!important;
+  display:flex!important;
+  align-items:center!important;
+  gap:11px!important;
+  margin-top:10px!important;
+  padding:11px!important;
+  border:1px dashed rgba(111,182,226,.34)!important;
+  border-radius:12px!important;
+  background:rgba(15,47,69,.52)!important;
+  cursor:pointer!important;
+}
+body.mmh-workspace-active #mmhVaultDialogV449 .am-dialog-editor-v136 .am-upload-symbol{
+  width:38px!important;height:38px!important;flex:0 0 38px!important;display:grid!important;place-items:center!important;
+  border-radius:10px!important;border:1px solid rgba(104,172,218,.28)!important;background:#183b55!important;
+}
+body.mmh-workspace-active #mmhVaultDialogV449 .am-dialog-editor-v136 .am-upload-symbol svg{width:21px!important;height:21px!important}
+body.mmh-workspace-active #mmhVaultDialogV449 .am-dialog-editor-v136 .am-upload-copy{flex:1!important;min-width:0!important}
+body.mmh-workspace-active #mmhVaultDialogV449 .am-dialog-editor-v136 .am-upload-copy b{display:block!important;font-size:12px!important;color:#e4f0f8!important}
+body.mmh-workspace-active #mmhVaultDialogV449 .am-dialog-editor-v136 .am-upload-copy small{display:block!important;margin-top:3px!important;font-size:9px!important;color:#8faac0!important}
+body.mmh-workspace-active #mmhVaultDialogV449 .am-dialog-editor-v136 .am-upload-arrow{font-size:18px!important;color:#8cb9d4!important}
+body.mmh-workspace-active #mmhVaultDialogV449 .am-dialog-editor-v136 #amLogoFile{position:absolute!important;width:1px!important;height:1px!important;opacity:0!important;pointer-events:none!important}
+body.mmh-workspace-active #mmhVaultDialogV449 .am-dialog-editor-v136> .am-fields>label:not(.am-hide){
+  display:grid!important;gap:6px!important;margin:0 0 11px!important;color:#91a9bf!important;font-size:11px!important;font-weight:750!important;
+}
+body.mmh-workspace-active #mmhVaultDialogV449 .am-dialog-editor-v136 :is(input:not([type=checkbox]):not([type=file]),select){
+  width:100%!important;min-height:44px!important;box-sizing:border-box!important;border-radius:11px!important;border:1px solid rgba(95,154,201,.23)!important;background:#07182a!important;color:#edf5fb!important;padding:0 12px!important;font:inherit!important;
+}
+body.mmh-workspace-active #mmhVaultDialogV449 .am-dialog-editor-v136 input[type=color]{padding:5px!important}
+body.mmh-workspace-active #mmhVaultDialogV449 .am-dialog-editor-v136 .am-hide{
+  display:flex!important;align-items:center!important;justify-content:space-between!important;gap:12px!important;min-height:44px!important;margin:3px 0 10px!important;padding:0 3px!important;color:#a4b8c9!important;font-size:11px!important;
+}
+body.mmh-workspace-active #mmhVaultDialogV449 .am-dialog-editor-v136 .am-hide input{width:18px!important;height:18px!important;min-height:0!important}
+body.mmh-workspace-active #mmhVaultDialogV449 .am-dialog-editor-v136 .am-help{margin:7px 0 0!important;color:#829cb2!important;font-size:10px!important;line-height:1.55!important}
+body.mmh-workspace-active #mmhVaultDialogV449 .am-dialog-editor-v136 .am-result{margin:2px 0 0!important;min-height:0!important;color:#9fd3ef!important;font-size:11px!important}
+body.mmh-workspace-active #mmhVaultDialogV449 .am-dialog-editor-v136 .am-result.error{color:#f3a2ad!important}
+
+/* Feedback: one focused compose card + compact history disclosure. */
+body.mmh-workspace-active #settings #stPage_feedback{
+  display:block!important;
+  width:min(100%,920px)!important;
+  max-width:920px!important;
+  margin:0 auto!important;
+}
+body.mmh-workspace-active #settings #stPage_feedback[hidden]{display:none!important}
+body.mmh-workspace-active #settings #stPage_feedback>.st-page-head{width:100%!important}
+body.mmh-workspace-active #settings #stPage_feedback>.fb-panel{
+  width:100%!important;
+  max-width:none!important;
+  margin:0 0 12px!important;
+  box-sizing:border-box!important;
+}
+body.mmh-workspace-active #settings #stPage_feedback>.fb-compose-v136{
+  padding:19px!important;
+}
+body.mmh-workspace-active #settings #stPage_feedback>.fb-compose-v136 .fb-heading{
+  align-items:flex-start!important;
+  margin-bottom:11px!important;
+}
+body.mmh-workspace-active #settings #stPage_feedback>.fb-compose-v136 .fb-heading .fb-note{
+  margin:4px 0 0!important;
+  font-size:10px!important;
+}
+body.mmh-workspace-active #settings #stPage_feedback>.fb-my-panel-v136{
+  padding:0!important;
+  overflow:hidden!important;
+  max-height:none!important;
+}
+body.mmh-workspace-active #settings .fb-my-toggle-v136{
+  width:100%!important;
+  min-height:68px!important;
+  display:flex!important;
+  align-items:center!important;
+  gap:12px!important;
+  padding:11px 14px!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  color:#dfeaf3!important;
+  text-align:left!important;
+  box-shadow:none!important;
+}
+body.mmh-workspace-active #settings .fb-my-toggle-v136:hover{background:rgba(72,151,199,.06)!important}
+body.mmh-workspace-active #settings .fb-my-icon-v136{
+  width:38px!important;height:38px!important;flex:0 0 38px!important;display:grid!important;place-items:center!important;border-radius:11px!important;border:1px solid rgba(95,156,201,.20)!important;background:#102d43!important;color:#afd1e6!important;font-size:14px!important;
+}
+body.mmh-workspace-active #settings .fb-my-copy-v136{flex:1!important;min-width:0!important}
+body.mmh-workspace-active #settings .fb-my-copy-v136 strong{display:block!important;font-size:13px!important;color:#e5eff7!important}
+body.mmh-workspace-active #settings .fb-my-copy-v136 small{display:block!important;margin-top:3px!important;font-size:9px!important;color:#829db3!important;line-height:1.45!important}
+body.mmh-workspace-active #settings .fb-my-arrow-v136{font-size:22px!important;color:#7696ad!important;transition:transform .16s ease!important}
+body.mmh-workspace-active #settings .fb-my-toggle-v136.open .fb-my-arrow-v136{transform:rotate(90deg)!important}
+body.mmh-workspace-active #settings .fb-my-body-v136{
+  padding:0 14px 14px!important;
+  border-top:1px solid rgba(91,151,197,.12)!important;
+}
+body.mmh-workspace-active #settings .fb-my-body-v136[hidden]{display:none!important}
+body.mmh-workspace-active #settings .fb-my-head-v136{
+  min-height:48px!important;
+  margin:0!important;
+  padding-top:10px!important;
+}
+body.mmh-workspace-active #settings .fb-my-head-v136 h3{font-size:12px!important;color:#a9c2d5!important}
+body.mmh-workspace-active #settings .fb-my-head-v136 #fbRefreshV14{min-height:34px!important;padding:6px 10px!important;font-size:10px!important}
+body.mmh-workspace-active #settings .fb-my-body-v136 .fb-record{margin-top:6px!important}
+
+@media(max-width:620px){
+  body.mmh-workspace-active #mmhVaultDialogV449 .mmh-v449-dialog:has(.am-dialog-editor-v136){width:calc(100vw - 18px)!important}
+  body.mmh-workspace-active #mmhVaultDialogV449 .am-dialog-editor-v136 .am-icons{grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:5px!important}
+  body.mmh-workspace-active #settings #stPage_feedback>.fb-compose-v136{padding:14px!important}
+  body.mmh-workspace-active #settings .fb-my-toggle-v136{min-height:64px!important;padding:10px 12px!important}
+}
+
+
+/* MMHVAULT v1.4.0 · Command Search + Dashboard Quick Actions */
+body.mmh-workspace-active #header .mmh-command-search-v140{overflow:visible!important;z-index:24500!important}
+body.mmh-workspace-active #header .mmh-search-results-v140{
+  position:absolute!important;left:0!important;right:0!important;top:calc(100% + 8px)!important;max-height:min(440px,64vh)!important;overflow:auto!important;padding:7px!important;
+  border:1px solid rgba(100,164,211,.30)!important;border-radius:15px!important;background:linear-gradient(160deg,rgba(8,27,44,.995),rgba(3,14,26,.995))!important;
+  box-shadow:0 24px 62px rgba(0,0,0,.48),inset 0 1px 0 rgba(255,255,255,.04)!important;backdrop-filter:blur(22px) saturate(120%)!important;
+}
+body.mmh-workspace-active #header .mmh-search-results-v140[hidden]{display:none!important}
+body.mmh-workspace-active #header .mmh-search-result-v140{
+  width:100%!important;min-height:54px!important;display:grid!important;grid-template-columns:34px minmax(0,1fr) auto!important;align-items:center!important;gap:10px!important;
+  padding:8px 9px!important;border:1px solid transparent!important;border-radius:11px!important;background:transparent!important;color:#dbe9f3!important;text-align:left!important;font:inherit!important;cursor:pointer!important;box-shadow:none!important
+}
+body.mmh-workspace-active #header .mmh-search-result-v140:hover,body.mmh-workspace-active #header .mmh-search-result-v140.active{background:rgba(55,126,173,.13)!important;border-color:rgba(100,171,216,.20)!important}
+body.mmh-workspace-active #header .mmh-search-result-icon-v140{width:34px;height:34px;display:grid;place-items:center;border-radius:10px;background:#102d43;border:1px solid rgba(94,155,199,.18);color:#b7d6e8;font-size:14px}
+body.mmh-workspace-active #header .mmh-search-result-copy-v140{min-width:0;display:block}
+body.mmh-workspace-active #header .mmh-search-result-copy-v140 b{display:block;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#eef6fb}
+body.mmh-workspace-active #header .mmh-search-result-copy-v140 small{display:block;margin-top:3px;font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:#7895aa}
+body.mmh-workspace-active #header .mmh-search-result-kind-v140{padding:4px 6px;border-radius:7px;background:rgba(81,140,180,.11);color:#7895aa;font-size:8px;font-weight:750;text-transform:uppercase;letter-spacing:.05em}
+body.mmh-workspace-active #header .mmh-search-empty-v140{padding:20px 12px;color:#8099ad;font-size:10px;text-align:center}
+
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-quick-actions-v140{
+  display:grid!important;grid-template-columns:minmax(150px,.9fr) repeat(4,minmax(0,1fr))!important;gap:8px!important;margin-top:12px!important;padding:8px!important;
+  border:1px solid rgba(88,146,190,.17)!important;border-radius:15px!important;background:linear-gradient(145deg,rgba(8,26,43,.72),rgba(4,17,29,.78))!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.025)!important
+}
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-quick-label-v140{display:flex!important;flex-direction:column!important;justify-content:center!important;padding:5px 10px!important;min-width:0!important}
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-quick-label-v140 span{font-size:8px!important;letter-spacing:.13em!important;font-weight:850!important;color:#d3af58!important}
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-quick-label-v140 small{margin-top:4px!important;font-size:9px!important;color:#6f899d!important}
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-quick-actions-v140>button{
+  min-width:0!important;min-height:54px!important;display:grid!important;grid-template-columns:31px minmax(0,1fr)!important;align-items:center!important;gap:9px!important;padding:8px 9px!important;
+  border:1px solid rgba(87,145,190,.12)!important;border-radius:11px!important;background:rgba(13,37,57,.52)!important;color:#dbe9f3!important;text-align:left!important;font:inherit!important;cursor:pointer!important;box-shadow:none!important;transition:border-color .15s ease,background-color .15s ease!important
+}
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-quick-actions-v140>button:hover{border-color:rgba(103,181,228,.28)!important;background:rgba(19,50,74,.70)!important}
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-quick-actions-v140>button i{width:31px;height:31px;display:grid;place-items:center;border-radius:9px;background:#12324a;border:1px solid rgba(94,157,201,.16);font-style:normal;color:#a8d1e9;font-size:14px}
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-quick-actions-v140>button span{min-width:0}
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-quick-actions-v140>button b{display:block;font-size:10px;color:#e9f3f9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-quick-actions-v140>button small{display:block;margin-top:3px;font-size:8px;color:#738fa4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media(max-width:1040px){body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-quick-actions-v140{grid-template-columns:repeat(2,minmax(0,1fr))!important}body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-quick-label-v140{grid-column:1/-1!important;padding:3px 6px!important}}
+@media(max-width:620px){body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-quick-actions-v140{gap:6px!important;padding:7px!important;margin-top:9px!important}body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-quick-actions-v140>button{min-height:50px!important;padding:7px!important;grid-template-columns:28px minmax(0,1fr)!important}body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-quick-actions-v140>button i{width:28px;height:28px;font-size:12px!important}}
+
+
+/* MMHVAULT v1.4.1 · Transaction Add Experience */
+body.mmh-workspace-active #transactions #txAddPanel>.panel{max-width:1120px!important;margin-left:auto!important;margin-right:auto!important}
+body.mmh-workspace-active #transactions .tx-smart-v141{
+  margin:2px 0 16px!important;padding:13px!important;border:1px solid rgba(91,151,199,.17)!important;border-radius:15px!important;
+  background:linear-gradient(145deg,rgba(7,24,40,.64),rgba(4,17,30,.72))!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.025)!important
+}
+body.mmh-workspace-active #transactions .tx-smart-head-v141{display:flex!important;align-items:center!important;justify-content:space-between!important;margin-bottom:9px!important}
+body.mmh-workspace-active #transactions .tx-smart-head-v141 span{display:block!important;font-size:8px!important;line-height:1.2!important;font-weight:850!important;letter-spacing:.12em!important;color:#d2ad59!important}
+body.mmh-workspace-active #transactions .tx-smart-head-v141 small{display:block!important;margin-top:4px!important;font-size:9px!important;line-height:1.4!important;color:#708da4!important}
+body.mmh-workspace-active #transactions .tx-kind-grid-v141{display:grid!important;grid-template-columns:repeat(6,minmax(0,1fr))!important;gap:6px!important}
+body.mmh-workspace-active #transactions .tx-kind-grid-v141>button{
+  min-width:0!important;min-height:48px!important;display:flex!important;align-items:center!important;justify-content:center!important;gap:7px!important;padding:8px 7px!important;
+  border:1px solid rgba(91,151,198,.13)!important;border-radius:11px!important;background:rgba(13,37,57,.50)!important;color:#9fb6c8!important;font:inherit!important;font-size:10px!important;font-weight:730!important;box-shadow:none!important;cursor:pointer!important
+}
+body.mmh-workspace-active #transactions .tx-kind-grid-v141>button i{width:23px;height:23px;display:grid;place-items:center;border-radius:7px;background:#102f46;color:#9bc8e0;font-style:normal;font-size:12px;flex:0 0 23px}
+body.mmh-workspace-active #transactions .tx-kind-grid-v141>button:hover{border-color:rgba(102,177,224,.26)!important;background:rgba(18,49,73,.67)!important;color:#e2eef6!important}
+body.mmh-workspace-active #transactions .tx-kind-grid-v141>button.active{border-color:rgba(242,196,94,.34)!important;background:linear-gradient(135deg,rgba(242,196,94,.10),rgba(58,132,177,.10))!important;color:#f4f8fb!important;box-shadow:inset 0 -2px 0 rgba(242,196,94,.76)!important}
+body.mmh-workspace-active #transactions .tx-kind-grid-v141>button.active i{background:#3b351f!important;color:#f1c965!important;border:1px solid rgba(242,196,94,.20)!important}
+body.mmh-workspace-active #transactions .tx-direction-wrap-v141{display:grid!important;grid-template-columns:auto minmax(220px,340px)!important;align-items:center!important;gap:12px!important;margin-top:9px!important;padding-top:9px!important;border-top:1px solid rgba(91,151,198,.11)!important}
+body.mmh-workspace-active #transactions .tx-direction-wrap-v141[hidden]{display:none!important}
+body.mmh-workspace-active #transactions .tx-direction-title-v141{font-size:9px!important;font-weight:800!important;letter-spacing:.06em!important;text-transform:uppercase!important;color:#829eb3!important}
+body.mmh-workspace-active #transactions .tx-direction-grid-v141{display:grid!important;grid-template-columns:1fr 1fr!important;gap:5px!important}
+body.mmh-workspace-active #transactions .tx-direction-grid-v141>button{min-height:34px!important;padding:6px 9px!important;border-radius:9px!important;border:1px solid rgba(91,151,198,.13)!important;background:#0d293e!important;color:#8fa9bd!important;font:inherit!important;font-size:9px!important;font-weight:720!important;box-shadow:none!important;cursor:pointer!important}
+body.mmh-workspace-active #transactions .tx-direction-grid-v141>button.active{border-color:rgba(93,181,229,.34)!important;background:#153b55!important;color:#e2f2fb!important}
+body.mmh-workspace-active #transactions .tx-smart-note-v141{margin-top:8px!important;min-height:16px!important;font-size:9px!important;line-height:1.45!important;color:#6f8da3!important}
+body.mmh-workspace-active #transactions #txForm .tx-native-selector-v141{display:none!important}
+body.mmh-workspace-active #transactions #txForm .tx-field-hidden-v141{display:none!important}
+body.mmh-workspace-active #transactions #txForm.tx-single-flow-v141 .formgrid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+body.mmh-workspace-active #transactions #txForm.tx-single-flow-v141 .mmh-form-section-v1{grid-column:1/-1!important}
+body.mmh-workspace-active #transactions #txForm.tx-transfer-flow-v141 .formgrid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+body.mmh-workspace-active #transactions #txForm .actions{margin-top:16px!important;padding-top:14px!important;border-top:1px solid rgba(92,150,196,.10)!important}
+body.light.mmh-workspace-active #transactions .tx-smart-v141{background:#f4f8fb!important;border-color:#ccdce8!important}
+body.light.mmh-workspace-active #transactions .tx-kind-grid-v141>button,body.light.mmh-workspace-active #transactions .tx-direction-grid-v141>button{background:#edf4f9!important;border-color:#ccdce8!important;color:#526d82!important}
+body.light.mmh-workspace-active #transactions .tx-kind-grid-v141>button.active,body.light.mmh-workspace-active #transactions .tx-direction-grid-v141>button.active{background:#dfeef7!important;border-color:#9fc7dd!important;color:#245f83!important}
+@media(max-width:900px){body.mmh-workspace-active #transactions .tx-kind-grid-v141{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
+@media(max-width:620px){
+  body.mmh-workspace-active #transactions .tx-smart-v141{margin-bottom:12px!important;padding:10px!important;border-radius:13px!important}
+  body.mmh-workspace-active #transactions .tx-smart-head-v141 small{font-size:8px!important}
+  body.mmh-workspace-active #transactions .tx-kind-grid-v141{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:5px!important}
+  body.mmh-workspace-active #transactions .tx-kind-grid-v141>button{min-height:44px!important;justify-content:flex-start!important;padding:7px 9px!important;font-size:9px!important}
+  body.mmh-workspace-active #transactions .tx-direction-wrap-v141{grid-template-columns:1fr!important;gap:6px!important}
+  body.mmh-workspace-active #transactions #txForm.tx-single-flow-v141 .formgrid,body.mmh-workspace-active #transactions #txForm.tx-transfer-flow-v141 .formgrid{grid-template-columns:1fr!important}
+}
+
+
+/* MMHVAULT v1.4.2 · Transaction History flow
+   Detail → Edit + safe Use Again. */
+.mmh-tx-reuse-hint-v142{
+  display:grid;
+  grid-template-columns:32px minmax(0,1fr);
+  gap:10px;
+  align-items:start;
+  padding:11px 12px;
+  border:1px solid rgba(100,167,214,.13);
+  border-radius:13px;
+  background:linear-gradient(145deg,rgba(12,35,54,.48),rgba(5,20,34,.54));
+}
+.mmh-tx-reuse-hint-v142>span{
+  width:30px;height:30px;display:grid;place-items:center;
+  border-radius:9px;
+  background:rgba(76,199,255,.08);
+  border:1px solid rgba(76,199,255,.14);
+  color:#8fd4f3;font-size:15px;
+}
+.mmh-tx-reuse-hint-v142 strong{
+  display:block;color:#dcebf8;font-size:11px;line-height:1.3;
+}
+.mmh-tx-reuse-hint-v142 small{
+  display:block;margin-top:3px;color:#819bb3;font-size:10px;line-height:1.5;
+}
+#mmhVaultDialogV449:has(.mmh-tx-detail-v800) .mmh-v449-dialog-actions{
+  flex-wrap:wrap;
+}
+#mmhVaultDialogV449:has(.mmh-tx-detail-v800) .mmh-v449-dialog-actions button{
+  min-width:92px;
+}
+@media(max-width:620px){
+  #mmhVaultDialogV449:has(.mmh-tx-detail-v800) .mmh-v449-dialog-actions{
+    display:grid!important;
+    grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  }
+  #mmhVaultDialogV449:has(.mmh-tx-detail-v800) .mmh-v449-dialog-actions button{
+    width:100%!important;min-width:0!important;
+  }
+}
+
+
+/* MMHVAULT v1.4.3 · Account daily actions + clickable Dashboard recent flow */
+.mmh-account-actions-v143{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:8px;
+}
+.mmh-account-actions-v143>button{
+  min-width:0;
+  min-height:54px;
+  display:grid;
+  grid-template-columns:30px minmax(0,1fr);
+  align-items:center;
+  gap:9px;
+  padding:9px 10px;
+  border:1px solid rgba(99,163,210,.13);
+  border-radius:13px;
+  background:linear-gradient(145deg,rgba(13,37,57,.55),rgba(6,21,35,.62));
+  color:#bdd2e2;
+  text-align:left;
+  cursor:pointer;
+  font:inherit;
+}
+.mmh-account-actions-v143>button:hover{
+  border-color:rgba(89,188,235,.28);
+  background:linear-gradient(145deg,rgba(17,49,72,.70),rgba(8,28,44,.76));
+}
+.mmh-account-actions-v143 i{
+  width:30px;height:30px;display:grid;place-items:center;
+  border-radius:9px;
+  border:1px solid rgba(89,184,229,.15);
+  background:rgba(65,168,219,.08);
+  color:#8bd2f3;
+  font-style:normal;
+  font-size:14px;
+}
+.mmh-account-actions-v143 b{display:block;color:#e0edf7;font-size:10px}
+.mmh-account-actions-v143 small{display:block;margin-top:2px;color:#7f9ab1;font-size:8px;line-height:1.35}
+.mmh-account-archived-note-v143{
+  padding:10px 12px;
+  border:1px solid rgba(226,181,82,.16);
+  border-radius:12px;
+  background:rgba(226,181,82,.05);
+  color:#bda76f;
+  font-size:10px;
+  line-height:1.45;
+}
+.mmh-account-section-tools-v143{
+  display:flex!important;
+  align-items:center;
+  justify-content:flex-end;
+  gap:8px;
+}
+.mmh-account-section-tools-v143 em{
+  font-style:normal;
+  color:#819bb1;
+}
+.mmh-account-section-tools-v143 button{
+  border:0;
+  padding:0;
+  background:transparent;
+  color:#8ccbed;
+  font:inherit;
+  font-size:10px;
+  font-weight:750;
+  cursor:pointer;
+}
+.mmh-account-section-tools-v143 button:hover{color:#d8eefb}
+#dashboard .pf-tx-row-v500[data-mmh-dashboard-tx-v143]{
+  cursor:pointer;
+  border-radius:9px;
+  outline:none;
+}
+#dashboard .pf-tx-row-v500[data-mmh-dashboard-tx-v143]:hover,
+#dashboard .pf-tx-row-v500[data-mmh-dashboard-tx-v143]:focus-visible{
+  background:rgba(63,158,207,.08)!important;
+}
+#dashboard .pf-tx-row-v500[data-mmh-dashboard-tx-v143]:focus-visible{
+  box-shadow:inset 0 0 0 1px rgba(89,188,235,.34);
+}
+body.light .mmh-account-actions-v143>button{
+  background:#f6fafc;
+  border-color:#d7e4ed;
+  color:#405d73;
+}
+body.light .mmh-account-actions-v143 b{color:#294663}
+body.light .mmh-account-actions-v143 small{color:#607d92}
+@media(max-width:620px){
+  .mmh-account-actions-v143{grid-template-columns:1fr}
+  .mmh-account-actions-v143>button{min-height:50px}
+  .mmh-account-section-head-v830{align-items:flex-start}
+  .mmh-account-section-tools-v143{flex-direction:column;align-items:flex-end;gap:3px}
+}
+
+
+/* MMHVAULT v1.4.4 · Invest daily quick flow + Dashboard portfolio linkage */
+#invest .mmh-invest-quick-v144{
+  display:grid;
+  grid-template-columns:minmax(145px,.8fr) repeat(4,minmax(0,1fr));
+  gap:8px;
+  margin:0 0 12px;
+  padding:8px;
+  border:1px solid rgba(91,151,199,.18);
+  border-radius:15px;
+  background:linear-gradient(145deg,rgba(9,29,47,.82),rgba(5,18,31,.90));
+}
+#invest .mmh-invest-quick-label-v144{display:flex;flex-direction:column;justify-content:center;padding:0 9px;min-width:0}
+#invest .mmh-invest-quick-label-v144 span{color:#d7c172;font-size:9px;font-weight:900;letter-spacing:.13em}
+#invest .mmh-invest-quick-label-v144 small{margin-top:4px;color:#728da5;font-size:9px}
+#invest .mmh-invest-quick-v144>button{
+  min-width:0;min-height:52px;padding:8px 9px;display:grid;grid-template-columns:28px minmax(0,1fr);align-items:center;gap:8px;
+  border:1px solid rgba(97,159,205,.12);border-radius:11px;background:rgba(12,35,55,.58);color:#c6d9e8;font:inherit;text-align:left;cursor:pointer;
+}
+#invest .mmh-invest-quick-v144>button:hover{border-color:rgba(94,190,235,.28);background:rgba(18,48,71,.72)}
+#invest .mmh-invest-quick-v144 i{width:28px;height:28px;display:grid;place-items:center;border-radius:8px;background:rgba(72,178,226,.08);border:1px solid rgba(83,177,222,.13);font-style:normal;color:#8ed5f3}
+#invest .mmh-invest-quick-v144 b{display:block;font-size:10px;color:#e2edf6}#invest .mmh-invest-quick-v144 button small{display:block;margin-top:2px;font-size:8px;color:#7d97ad;line-height:1.3}
+
+/* Keep overview clean; expose position actions only inside the existing holding detail page. */
+#invest #mmhUnifiedListV1 .mmh-holding-actions-v144{display:none!important}
+#ldBody .mmh-holding-actions-v144{display:flex!important;gap:8px;flex-wrap:wrap;margin-top:16px;padding-top:14px;border-top:1px solid #29435d}
+#ldBody .mmh-holding-actions-v144 button{min-height:40px;padding:8px 12px;border:1px solid #31526d;border-radius:9px;background:#102943;color:#dceaf5;font:inherit;font-size:11px;font-weight:750;cursor:pointer}
+#ldBody .mmh-holding-actions-v144 button:hover{border-color:#4c8db7;background:#163550}
+
+#dashboard .pf-kpi-v500[data-invest-route-v144]{cursor:pointer;outline:none}
+#dashboard .pf-kpi-v500[data-invest-route-v144]:focus-visible{border-color:rgba(92,190,235,.42)!important;box-shadow:0 0 0 3px rgba(76,199,255,.08),var(--mmh-ui-shadow)!important}
+#dashboard .pf-kpi-v500[data-invest-route-v144]::after{content:'›';position:absolute;right:13px;bottom:10px;color:rgba(139,190,220,.55);font-size:16px;font-weight:800}
+body.light #invest .mmh-invest-quick-v144{background:#f6fafc;border-color:#d4e2eb}body.light #invest .mmh-invest-quick-v144>button{background:#edf5fa;color:#36546b;border-color:#d4e2eb}body.light #invest .mmh-invest-quick-v144 b{color:#294663}
+@media(max-width:920px){#invest .mmh-invest-quick-v144{grid-template-columns:repeat(2,minmax(0,1fr))}#invest .mmh-invest-quick-label-v144{grid-column:1/-1;padding:4px 5px 2px}}
+@media(max-width:430px){#invest .mmh-invest-quick-v144{grid-template-columns:1fr}#invest .mmh-invest-quick-label-v144{grid-column:auto}#invest .mmh-invest-quick-v144>button{min-height:48px}}
+
+
+/* MMHVAULT v1.4.5 · Notification actions + deeper global search */
+.mmh-notify-action-hint-v145{
+  display:grid;
+  grid-template-columns:32px minmax(0,1fr);
+  gap:10px;
+  align-items:start;
+  margin-top:12px;
+  padding:10px 11px;
+  border:1px solid rgba(82,181,231,.16);
+  border-radius:12px;
+  background:linear-gradient(145deg,rgba(12,40,61,.55),rgba(6,23,37,.62));
+}
+.mmh-notify-action-hint-v145>span{
+  width:30px;height:30px;display:grid;place-items:center;
+  border-radius:9px;
+  border:1px solid rgba(76,199,255,.17);
+  background:rgba(76,199,255,.08);
+  color:#8ed7f7;
+}
+.mmh-notify-action-hint-v145 strong{
+  display:block;
+  color:#dbeaf5;
+  font-size:10px;
+  line-height:1.35;
+}
+.mmh-notify-action-hint-v145 small{
+  display:block;
+  margin-top:3px;
+  color:#7f9aaf;
+  font-size:9px;
+  line-height:1.45;
+}
+.mmh-search-focus-v145{
+  animation:mmhSearchFocusV145 1.8s ease both!important;
+}
+@keyframes mmhSearchFocusV145{
+  0%,100%{box-shadow:inherit}
+  18%,65%{box-shadow:0 0 0 2px rgba(76,199,255,.28),0 14px 32px rgba(0,0,0,.16)!important;border-color:rgba(76,199,255,.42)!important}
+}
+.mmh-search-result-v140 .mmh-search-result-kind-v140{
+  white-space:nowrap;
+}
+body.light .mmh-notify-action-hint-v145{
+  background:#f2f8fb;
+  border-color:#cfe2ed;
+}
+body.light .mmh-notify-action-hint-v145 strong{color:#2d4d65}
+body.light .mmh-notify-action-hint-v145 small{color:#688196}
+@media(max-width:620px){
+  .mmh-notify-action-hint-v145{grid-template-columns:28px minmax(0,1fr);gap:8px;padding:9px}
+  .mmh-notify-action-hint-v145>span{width:27px;height:27px}
+}
+
+
+/* MMHVAULT v1.4.6 · Navigation defaults, continuous ticker, wide responsive,
+   instant notifications, rating polish and full dashboard name. */
+
+/* Dashboard full display name */
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-hero-copy-v500{
+  min-width:0!important;
+  max-width:min(860px,68vw)!important;
+}
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-hero-copy-v500 h1{
+  max-width:100%!important;
+  overflow:visible!important;
+  white-space:normal!important;
+  overflow-wrap:anywhere!important;
+}
+body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-name-v500{
+  display:inline!important;
+  max-width:none!important;
+  white-space:normal!important;
+  overflow:visible!important;
+  text-overflow:clip!important;
+}
+
+/* Recent Transactions never pauses just because the pointer/focus is on it. */
+body.mmh-workspace-active #dashboard .pf-tx-track-v620,
+body.mmh-workspace-active #dashboard .pf-tx-viewport-v620:hover .pf-tx-track-v620,
+body.mmh-workspace-active #dashboard .pf-tx-viewport-v620:focus-within .pf-tx-track-v620{
+  animation-play-state:running!important;
+}
+
+/* Feedback rating: compact stars that visibly light up after click. */
+body.mmh-workspace-active #settings .fb-rating-v15{
+  margin:14px 0 12px!important;
+  padding:13px 14px!important;
+  border:1px solid rgba(91,151,199,.14)!important;
+  border-radius:14px!important;
+  background:linear-gradient(145deg,rgba(7,24,40,.50),rgba(4,17,30,.58))!important;
+}
+body.mmh-workspace-active #settings .fb-rating-label-v15{
+  margin-bottom:7px!important;
+}
+body.mmh-workspace-active #settings .fb-stars-v15{
+  display:flex!important;
+  flex-wrap:nowrap!important;
+  align-items:center!important;
+  gap:4px!important;
+}
+body.mmh-workspace-active #settings .fb-star-v15{
+  width:39px!important;
+  height:39px!important;
+  min-width:39px!important;
+  padding:0!important;
+  border:0!important;
+  border-radius:10px!important;
+  background:transparent!important;
+  color:#527087!important;
+  font-size:31px!important;
+  line-height:1!important;
+  box-shadow:none!important;
+  text-shadow:none!important;
+  transform:none!important;
+}
+body.mmh-workspace-active #settings .fb-star-v15:hover{
+  color:#e7bd59!important;
+  background:rgba(242,196,94,.055)!important;
+  transform:translateY(-1px)!important;
+}
+body.mmh-workspace-active #settings .fb-star-v15.on{
+  color:#ffd260!important;
+  background:rgba(242,196,94,.075)!important;
+  box-shadow:none!important;
+  text-shadow:0 0 8px rgba(255,207,91,.38),0 0 18px rgba(242,196,94,.22)!important;
+}
+body.mmh-workspace-active #settings .fb-rating-helper-v15{
+  margin-top:5px!important;
+  font-size:9px!important;
+}
+body.light.mmh-workspace-active #settings .fb-rating-v15{
+  background:#f6fafc!important;
+  border-color:#d3e1ea!important;
+}
+body.light.mmh-workspace-active #settings .fb-star-v15{
+  color:#9eb0bd!important;
+  background:transparent!important;
+  border:0!important;
+}
+body.light.mmh-workspace-active #settings .fb-star-v15.on{
+  color:#d79b16!important;
+  background:#fff7de!important;
+  text-shadow:0 0 8px rgba(215,155,22,.18)!important;
+}
+
+/* Wide desktop responsiveness: use more of the available workspace instead of
+   holding Add Transaction and Cash Flow Analyze at the old narrow caps. */
+@media(min-width:1500px){
+  body.mmh-workspace-active #transactions #txAddPanel>.panel{
+    width:100%!important;
+    max-width:1380px!important;
+  }
+  body.mmh-workspace-active #transactions #txForm .formgrid{
+    column-gap:18px!important;
+  }
+  body.mmh-workspace-active #cashflow-analyze .cfa-shell{
+    width:100%!important;
+    max-width:1480px!important;
+  }
+  body.mmh-workspace-active #cashflow-analyze .cfa-head{
+    padding-left:20px!important;
+    padding-right:20px!important;
+  }
+  body.mmh-workspace-active #cashflow-analyze .cfa-detail-grid{
+    grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr)!important;
+    gap:12px!important;
+  }
+}
+@media(min-width:1850px){
+  body.mmh-workspace-active #transactions #txAddPanel>.panel{
+    max-width:1500px!important;
+  }
+  body.mmh-workspace-active #cashflow-analyze .cfa-shell{
+    max-width:1580px!important;
+  }
+}
+@media(max-width:760px){
+  body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-hero-copy-v500{
+    max-width:100%!important;
+  }
+  body.mmh-workspace-active #settings .fb-rating-v15{
+    padding:11px 12px!important;
+  }
+  body.mmh-workspace-active #settings .fb-stars-v15{
+    gap:2px!important;
+  }
+  body.mmh-workspace-active #settings .fb-star-v15{
+    width:36px!important;
+    height:36px!important;
+    min-width:36px!important;
+    font-size:28px!important;
+  }
+}
+
+
+/* MMHVAULT v1.4.7 · Planning Quick Flow */
+body.mmh-workspace-active #budget .budget-quick-v147{
+  display:grid;
+  grid-template-columns:minmax(170px,.78fr) repeat(2,minmax(0,1fr));
+  gap:8px;
+  align-items:stretch;
+  padding:9px;
+  border:1px solid rgba(91,151,199,.14);
+  border-radius:15px;
+  background:linear-gradient(145deg,rgba(8,28,46,.68),rgba(5,19,33,.75));
+}
+body.mmh-workspace-active #budget .budget-quick-v147>div{
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  padding:6px 8px;
+}
+body.mmh-workspace-active #budget .budget-quick-v147>div>span{
+  color:#e3bf60;
+  font-size:8px;
+  font-weight:850;
+  letter-spacing:.14em;
+}
+body.mmh-workspace-active #budget .budget-quick-v147>div>small{
+  margin-top:3px;
+  color:#708ba1;
+  font-size:9px;
+}
+body.mmh-workspace-active #budget .budget-quick-v147>button{
+  display:grid;
+  grid-template-columns:31px minmax(0,1fr);
+  align-items:center;
+  gap:9px;
+  min-width:0;
+  min-height:52px;
+  padding:8px 10px;
+  border:1px solid rgba(91,151,199,.12);
+  border-radius:12px;
+  background:linear-gradient(145deg,rgba(15,42,62,.60),rgba(7,25,40,.70));
+  color:#c7d9e6;
+  font:inherit;
+  text-align:left;
+  cursor:pointer;
+}
+body.mmh-workspace-active #budget .budget-quick-v147>button:hover{
+  border-color:rgba(76,199,255,.26);
+  background:linear-gradient(145deg,rgba(17,49,72,.72),rgba(8,28,44,.78));
+}
+body.mmh-workspace-active #budget .budget-quick-v147 i{
+  width:30px;height:30px;display:grid;place-items:center;
+  border-radius:9px;
+  background:rgba(76,199,255,.07);
+  border:1px solid rgba(76,199,255,.13);
+  color:#8bd4f4;
+  font-style:normal;
+}
+body.mmh-workspace-active #budget .budget-quick-v147 b{
+  display:block;
+  color:#dceaf5;
+  font-size:10px;
+}
+body.mmh-workspace-active #budget .budget-quick-v147 button small{
+  display:block;
+  margin-top:2px;
+  color:#7892a8;
+  font-size:8px;
+}
+body.mmh-workspace-active #dashboard .pf-plan-row-v117[data-plan-goal-v147],
+body.mmh-workspace-active #dashboard .pf-plan-row-v117[data-plan-recurring-v147]{
+  cursor:pointer;
+}
+body.mmh-workspace-active #dashboard .pf-plan-row-v117[data-plan-goal-v147]:focus-visible,
+body.mmh-workspace-active #dashboard .pf-plan-row-v117[data-plan-recurring-v147]:focus-visible{
+  outline:1px solid rgba(76,199,255,.38)!important;
+  outline-offset:2px!important;
+}
+body.light.mmh-workspace-active #budget .budget-quick-v147{
+  background:#f7fafc;
+  border-color:#d4e2eb;
+}
+body.light.mmh-workspace-active #budget .budget-quick-v147>button{
+  background:#f2f7fa;
+  border-color:#d8e5ed;
+}
+body.light.mmh-workspace-active #budget .budget-quick-v147 b{color:#2b4c63}
+body.light.mmh-workspace-active #budget .budget-quick-v147>div>small,
+body.light.mmh-workspace-active #budget .budget-quick-v147 button small{color:#6b8496}
+@media(max-width:760px){
+  body.mmh-workspace-active #budget .budget-quick-v147{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+  body.mmh-workspace-active #budget .budget-quick-v147>div{
+    grid-column:1/-1;
+    padding:3px 4px 5px;
+  }
+}
+@media(max-width:430px){
+  body.mmh-workspace-active #budget .budget-quick-v147{
+    grid-template-columns:1fr;
+  }
+  body.mmh-workspace-active #budget .budget-quick-v147>div{grid-column:auto}
+}
+
+
+/* MMHVAULT v1.5.0 · Financial Signals / Report Insight Focus */
+#mmhPremiumDashboardV500 .pf-insights-v150{
+  margin-top:13px;
+  padding:15px;
+  border:1px solid rgba(91,151,196,.20);
+  border-radius:17px;
+  background:
+    radial-gradient(circle at 100% 0,rgba(76,199,255,.08),transparent 30%),
+    linear-gradient(145deg,rgba(9,29,48,.96),rgba(5,20,34,.98));
+  box-shadow:0 14px 34px rgba(0,0,0,.14),inset 0 1px rgba(255,255,255,.025);
+}
+#mmhPremiumDashboardV500 .pf-insights-head-v150{
+  display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:11px
+}
+#mmhPremiumDashboardV500 .pf-insights-head-v150>div{min-width:0}
+#mmhPremiumDashboardV500 .pf-insights-head-v150 span{
+  color:#e0b957;font-size:8px;font-weight:850;letter-spacing:.15em
+}
+#mmhPremiumDashboardV500 .pf-insights-head-v150 h2{
+  margin:3px 0 0;color:#eff6fb;font-size:16px;letter-spacing:-.02em
+}
+#mmhPremiumDashboardV500 .pf-insights-head-v150 p{
+  margin:4px 0 0;color:#7792a8;font-size:9px;line-height:1.45
+}
+#mmhPremiumDashboardV500 .pf-insights-head-v150>button{
+  flex:0 0 auto;min-height:34px;padding:0 10px;border-radius:9px;
+  border:1px solid rgba(83,160,210,.22);background:#0d2a41;color:#a9d6ef;
+  font:inherit;font-size:9px;font-weight:720;cursor:pointer
+}
+#mmhPremiumDashboardV500 .pf-signal-grid-v150{
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px
+}
+#mmhPremiumDashboardV500 .pf-signal-card-v150{
+  position:relative;min-width:0;min-height:78px;
+  display:grid;grid-template-columns:32px minmax(0,1fr) 13px;align-items:center;gap:9px;
+  padding:10px;border:1px solid rgba(91,151,196,.13);border-radius:13px;
+  background:linear-gradient(145deg,rgba(15,42,62,.60),rgba(7,25,40,.72));
+  color:#dbe8f1;text-align:left;font:inherit;cursor:pointer;
+  transition:transform .14s ease,border-color .14s ease,background .14s ease
+}
+#mmhPremiumDashboardV500 .pf-signal-card-v150:hover{
+  transform:translateY(-1px);border-color:rgba(83,181,233,.28);
+  background:linear-gradient(145deg,rgba(18,50,72,.74),rgba(8,29,45,.80))
+}
+#mmhPremiumDashboardV500 .pf-signal-card-v150:disabled{opacity:.58;cursor:default;transform:none}
+#mmhPremiumDashboardV500 .pf-signal-card-v150>i{
+  width:31px;height:31px;display:grid;place-items:center;border-radius:9px;
+  border:1px solid rgba(76,199,255,.14);background:rgba(76,199,255,.07);
+  color:#87d3f4;font-style:normal;font-size:13px
+}
+#mmhPremiumDashboardV500 .pf-signal-card-v150>span{min-width:0}
+#mmhPremiumDashboardV500 .pf-signal-card-v150 small{
+  display:block;color:#718ba0;font-size:8px;text-transform:uppercase;letter-spacing:.07em
+}
+#mmhPremiumDashboardV500 .pf-signal-card-v150 b{
+  display:block;margin-top:4px;color:#edf5fa;font-size:13px;line-height:1.25;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis
+}
+#mmhPremiumDashboardV500 .pf-signal-card-v150 em{
+  display:block;margin-top:4px;color:#829caf;font-size:8px;line-height:1.35;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-style:normal
+}
+#mmhPremiumDashboardV500 .pf-signal-card-v150>strong{color:#668ba5;font-size:15px}
+#mmhPremiumDashboardV500 .pf-signal-card-v150.good b{color:#61dfad}
+#mmhPremiumDashboardV500 .pf-signal-card-v150.watch b{color:#e7c364}
+#mmhPremiumDashboardV500 .pf-signal-card-v150.over b{color:#ff8fa2}
+#mmhPremiumDashboardV500 .pf-signal-alert-v150{
+  width:100%;margin-top:9px;display:grid;grid-template-columns:auto auto minmax(0,1fr) auto;
+  align-items:center;gap:9px;padding:9px 11px;border:1px solid rgba(231,195,100,.16);
+  border-radius:12px;background:rgba(231,195,100,.045);color:#d7e5ef;text-align:left;font:inherit;cursor:pointer
+}
+#mmhPremiumDashboardV500 .pf-signal-alert-v150 span{
+  color:#e4bd5f;font-size:8px;font-weight:850;letter-spacing:.09em
+}
+#mmhPremiumDashboardV500 .pf-signal-alert-v150 b{font-size:10px;color:#eff5f8}
+#mmhPremiumDashboardV500 .pf-signal-alert-v150 small{
+  min-width:0;color:#8ca2b4;font-size:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis
+}
+#mmhPremiumDashboardV500 .pf-signal-alert-v150 strong{color:#c6d9e7;font-size:9px}
+#mmhPremiumDashboardV500 .pf-insights-note-v150{
+  margin-top:9px;color:#607d92;font-size:8px;line-height:1.45
+}
+
+#reports .report-insights-v150{
+  margin-top:12px;padding:14px;border:1px solid rgba(91,151,196,.18);border-radius:16px;
+  background:linear-gradient(145deg,rgba(9,29,48,.92),rgba(5,20,34,.96));
+  box-shadow:0 12px 28px rgba(0,0,0,.10),inset 0 1px rgba(255,255,255,.02)
+}
+#reports .report-insights-head-v150{
+  display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:10px
+}
+#reports .report-insights-head-v150 span{color:#dcb756;font-size:8px;font-weight:850;letter-spacing:.14em}
+#reports .report-insights-head-v150 h2{margin:3px 0 0;color:#edf5fa;font-size:15px}
+#reports .report-insights-head-v150>small{color:#71899d;font-size:8px}
+#reports .report-insight-grid-v150{
+  display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px
+}
+#reports .report-insight-card-v150{
+  min-width:0;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 8px;
+  padding:11px;border:1px solid rgba(91,151,196,.12);border-radius:12px;
+  background:rgba(8,27,43,.62);color:inherit;text-align:left;font:inherit;cursor:pointer
+}
+#reports .report-insight-card-v150:hover{border-color:rgba(76,199,255,.26);background:rgba(11,35,53,.78)}
+#reports .report-insight-card-v150:disabled{opacity:.55;cursor:default}
+#reports .report-insight-card-v150 small{grid-column:1/-1;color:#71899d;font-size:8px;text-transform:uppercase;letter-spacing:.07em}
+#reports .report-insight-card-v150 b{
+  min-width:0;color:#eaf3f8;font-size:12px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis
+}
+#reports .report-insight-card-v150 span{
+  grid-column:1/2;min-width:0;color:#8199ac;font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis
+}
+#reports .report-insight-card-v150 strong{grid-column:2;grid-row:2/4;align-self:center;color:#6f95ae}
+#reports .report-insight-alert-v150{
+  width:100%;margin-top:8px;display:grid;grid-template-columns:auto auto minmax(0,1fr) auto;
+  gap:8px;align-items:center;padding:9px 10px;border:1px solid rgba(231,195,100,.16);
+  border-radius:11px;background:rgba(231,195,100,.04);color:inherit;text-align:left;font:inherit;cursor:pointer
+}
+#reports .report-insight-alert-v150 span{color:#dcb757;font-size:8px;font-weight:820;text-transform:uppercase;letter-spacing:.07em}
+#reports .report-insight-alert-v150 b{color:#e9f1f6;font-size:9px}
+#reports .report-insight-alert-v150 small{min-width:0;color:#8298a9;font-size:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#reports .report-insight-alert-v150 strong{color:#aecadc;font-size:8px}
+
+@media(max-width:1050px){
+  #mmhPremiumDashboardV500 .pf-signal-grid-v150,#reports .report-insight-grid-v150{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:620px){
+  #mmhPremiumDashboardV500 .pf-insights-v150,#reports .report-insights-v150{padding:12px;margin-top:10px}
+  #mmhPremiumDashboardV500 .pf-insights-head-v150,#reports .report-insights-head-v150{align-items:flex-start}
+  #mmhPremiumDashboardV500 .pf-insights-head-v150 p{max-width:250px}
+  #mmhPremiumDashboardV500 .pf-signal-alert-v150,#reports .report-insight-alert-v150{grid-template-columns:1fr auto}
+  #mmhPremiumDashboardV500 .pf-signal-alert-v150 span,#mmhPremiumDashboardV500 .pf-signal-alert-v150 small,
+  #reports .report-insight-alert-v150 span,#reports .report-insight-alert-v150 small{grid-column:1/-1}
+}
+@media(max-width:430px){
+  #mmhPremiumDashboardV500 .pf-signal-grid-v150,#reports .report-insight-grid-v150{grid-template-columns:1fr}
+  #mmhPremiumDashboardV500 .pf-insights-head-v150{flex-direction:column}
+  #mmhPremiumDashboardV500 .pf-insights-head-v150>button{width:100%}
+}
