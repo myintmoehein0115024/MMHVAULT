@@ -30,7 +30,7 @@
 
   function sessionValid(owner,epoch){return owner&&owner===ownerNow()&&epoch===epochNow();}
   function owns(record){return record&&record.user_id===state.owner;}
-  function reset(){state.request++;state.events=[];state.exceptions=[];state.reminders=[];state.remindersReady=false;state.reminderError='';state.reminderChecking=false;state.browserReminderOptIn=false;state.loaded=false;state.loading=false;state.saving=false;state.error='';state.toast='';state.privateVisible=false;state.categoryFilter='all';state.statusFilter='all';state.search='';state.section='home';state.dialog=null;state.owner=ownerNow();state.epoch=epochNow();closeDialog();render();}
+  function reset(){window.MMHLifeHabitsV21?.unmount();state.request++;state.events=[];state.exceptions=[];state.reminders=[];state.remindersReady=false;state.reminderError='';state.reminderChecking=false;state.browserReminderOptIn=false;state.loaded=false;state.loading=false;state.saving=false;state.error='';state.toast='';state.privateVisible=false;state.categoryFilter='all';state.statusFilter='all';state.search='';state.section='home';state.dialog=null;state.owner=ownerNow();state.epoch=epochNow();closeDialog();render();}
   function parseMissing(error){const code=String(error?.code||'');const msg=String(error?.message||'');return /42P01|PGRST205|PGRST116/i.test(code)||/could not find the table|does not exist|schema cache/i.test(msg);}
   function notice(message){state.toast=message;const el=$('lpNoticeV1');if(el){el.textContent=message;el.hidden=false;} }
   async function guardedUser(){const c=cloud(),owner=ownerNow();if(!c||!owner)throw Error('LOGIN');const r=await c.auth.getUser();if(r.error||r.data?.user?.id!==owner)throw Error('LOGIN');if(!sessionValid(owner,epochNow()))throw Error('CHANGED');return owner;}
@@ -278,13 +278,14 @@
     // Only My Schedule has a live editor in Phase 1. Other modules are safe placeholders.
     const modules=[
       {id:'schedule',symbol:'▦',art:'schedule',zh:'我的日程',en:'My Schedule',descZh:'安排每天的计划，开启充实的一天。',descEn:'Plan your days, stay organized and grow.',available:true},
-      {id:'habit',symbol:'✓',art:'habit',zh:'习惯管理',en:'Habit Control',descZh:'循序渐进，培养更好的自己。',descEn:'Build good habits, one small step at a time.'},
+      {id:'habit',symbol:'✓',art:'habit',zh:'习惯管理',en:'Habit Control',descZh:'循序渐进，培养更好的自己。',descEn:'Build good habits, one small step at a time.',available:true},
       {id:'spending',symbol:'▣',art:'spending',zh:'消费控制',en:'Spending Control',descZh:'理性消费，让生活更有余裕。',descEn:'Spend mindfully and make room for what matters.'},
       {id:'fund',symbol:'♡',art:'fund',zh:'愿望储蓄',en:'Wish Fund',descZh:'为喜欢的生活和梦想存下希望。',descEn:'Set money aside for the things you love.'},
       {id:'goals',symbol:'◎',art:'goals',zh:'长期目标',en:'My Goals',descZh:'把梦想分成一步步可实现的目标。',descEn:'Turn big dreams into small, clear steps.'},
       {id:'insights',symbol:'▥',art:'insights',zh:'生活分析',en:'Life Insights',descZh:'记录进步，发现生活的美好变化。',descEn:'Reflect on your progress and keep growing.'}
     ];
     if(state.section==='home'){
+      window.MMHLifeHabitsV21?.unmount();
       host.innerHTML=`<div class="lp-shell lp-hub-shell">
         <header class="lp-hero lp-lifestyle-hero"><div class="lp-lifestyle-copy">
           <div class="lp-eyebrow">MMHVAULT / LIFE PLANNER</div>
@@ -302,13 +303,19 @@
             <span class="lp-hub-art" aria-hidden="true"></span>
             <span class="lp-hub-card-icon" aria-hidden="true">${item.symbol}</span>
             <span class="lp-hub-card-copy"><strong>${safe(L(item.zh,item.en))}</strong><small>${safe(L(item.descZh,item.descEn))}</small></span>
-            <span class="lp-hub-card-status">${item.available?L('开启今天 ↗','Open schedule ↗'):L('了解计划 ↗','Explore preview ↗')}</span>
+            <span class="lp-hub-card-status">${item.available?item.id==='habit'?L('开始管理 ↗','Open habits ↗'):L('开启今天 ↗','Open schedule ↗'):L('了解计划 ↗','Explore preview ↗')}</span>
             ${item.available?'':`<span class="lp-hub-soon">${L('即将推出','Coming soon')}</span>`}
           </button>`).join('')}
         </nav><p class="lp-hub-footnote"><span aria-hidden="true">✦</span> ${L('保持自己的节奏。私人习惯及消费明细不会在此首页展示。','Grow at your own pace. Private habits and spending details are not shown on this overview.')}</p>
       </div>`;
       return;
     }
+    if(state.section==='habit'){
+      if(!document.getElementById('mmhLifeHabitsV21'))host.innerHTML='<div class="lp-shell lp-habit-host"><div class="lp-subnav"><button type="button" class="lp-btn" data-lp-act="home">'+L('← 返回 Life Planner','← Back to Life Planner')+'</button><span>Life Planner › '+L('习惯管理','Habit Control')+'</span></div><div id="mmhLifeHabitsV21"></div></div>';
+      window.MMHLifeHabitsV21?.mount();
+      return;
+    }
+    window.MMHLifeHabitsV21?.unmount();
     if(state.section!=='schedule'){
       const item=modules.find(x=>x.id===state.section)||modules[0];
       host.innerHTML=`<div class="lp-shell lp-module-placeholder">
@@ -614,11 +621,11 @@
     window.addEventListener('mmhvault:life-planner-home',()=>{closeDialog();state.privateVisible=false;state.section='home';if(active())render();});
     window.addEventListener('mmhvault:page-visible',e=>{
       if(e?.detail?.page===PAGE){if(ownerNow()!==state.owner||epochNow()!==state.epoch)reset();if(!state.loaded&&!state.loading)load();else render();}
-      else {if(state.dialog)closeDialog();state.privateVisible=false;state.search='';state.categoryFilter='all';state.statusFilter='all';}
+      else {window.MMHLifeHabitsV21?.unmount();if(state.dialog)closeDialog();state.privateVisible=false;state.search='';state.categoryFilter='all';state.statusFilter='all';}
     });
     window.addEventListener('mmhvault:config-owner-changed',reset);
     for(const n of ['mmhvault-language-change','languagechange'])window.addEventListener(n,()=>{if(state.ready)render();});
-    document.addEventListener('visibilitychange',()=>{if(document.hidden){state.privateVisible=false;closeDialog();}else if(active())load();});
+    document.addEventListener('visibilitychange',()=>{if(document.hidden){window.MMHLifeHabitsV21?.unmount();state.privateVisible=false;closeDialog();}else if(active())load();});
     // No background scheduling promise: browsers may throttle or suspend this timer.
     setInterval(()=>{if(!document.hidden&&active()&&state.section==='schedule')checkDueReminders();},60000);
     window.addEventListener('focus',()=>{if(active()&&!state.saving&&!state.loading)load();},{passive:true});
