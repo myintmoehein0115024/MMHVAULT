@@ -124,3 +124,14 @@
 #life-planner .lh-pause-clock{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;color:#44764e;}
 #life-planner .lh-pause-running button{border-color:#ddcba6;}
 @media(max-width:560px){#life-planner .lh-period-line{grid-template-columns:minmax(72px,1.1fr) minmax(30px,1.8fr) minmax(55px,1fr);gap:5px;}#life-planner .lh-insights{padding:12px 10px;}#life-planner .lh-pause-tool{align-items:stretch;flex-direction:column;}#life-planner .lh-pause-running{justify-content:space-between;}}
+
+/* Phase 2.4: privacy controls, masked actions and gentle goal review. */
+#life-planner .lh-reveal-controls{display:flex;align-items:flex-end;flex-direction:column;gap:8px;flex:0 0 auto;}
+#life-planner .lh-reveal-controls small{font-size:10px;line-height:1.5;color:#65806b;max-width:265px;text-align:right;}
+#life-planner .lh-reveal-controls button{white-space:nowrap;}
+#life-planner .lh-locked-actions{margin:16px 0 0;padding:11px 13px;border:1px solid #d6e4d3;background:#f5faf3;border-radius:12px;color:#55745b;font-size:11px;line-height:1.65;}
+.lh-dialog .lh-goal-review{border:1px solid #d5e4d4;background:linear-gradient(125deg,#f1f7ed,#fff9ee);padding:14px;border-radius:12px;display:flex;flex-direction:column;gap:7px;}
+.lh-dialog .lh-goal-review strong{font-size:12px;color:#315c43;}
+.lh-dialog .lh-goal-review p{margin:0;font-size:13px;color:#365945;font-weight:700;line-height:1.5;overflow-wrap:anywhere;}
+.lh-dialog .lh-goal-review small{font-size:11px;line-height:1.6;color:#607461;}
+@media(max-width:560px){#life-planner .lh-reveal-controls{width:100%;align-items:stretch;}#life-planner .lh-reveal-controls small{text-align:left;max-width:none;}#life-planner .lh-reveal-controls button{white-space:normal;}}

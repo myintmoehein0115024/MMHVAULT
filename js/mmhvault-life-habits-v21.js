@@ -1,4 +1,4 @@
-/* MMHVAULT Life Planner · Phase 2.3 / Habit Insights & Pause
+/* MMHVAULT Life Planner · Phase 2.4 / Privacy & Goal Review
  * Deliberately separate from finance, notification, AI Chat and analytics.
  * No localStorage, sessionStorage, offline seed, third-party requests or global habit data.
  * Requires independently reviewed RLS schema. Do not persist sensitive data before migration.
@@ -21,11 +21,23 @@ const shift=(day,n)=>{const d=new Date(day+'T12:00:00');d.setDate(d.getDate()+n)
 const validDay=v=>/^\d{4}-\d\d-\d\d$/.test(v)&&date(new Date(v+'T12:00:00'))===v;
 const modes={reduce:['减少频率','Reduce'],build:['培养习惯','Build'],maintain:['维持习惯','Maintain']};
 const periods={day:['每天','Daily'],week:['每周','Weekly'],month:['每月','Monthly']};
-const state={owner:'',epoch:0,token:0,habits:[],entries:[],loaded:false,busy:false,error:'',reveal:false,selected:localDate(),viewMonth:localDate().slice(0,7),filter:'all',dialog:null,notice:'',expanded:{},delay:null};
+const state={owner:'',epoch:0,token:0,habits:[],entries:[],loaded:false,busy:false,error:'',reveal:false,selected:localDate(),viewMonth:localDate().slice(0,7),filter:'all',dialog:null,notice:'',expanded:{},delay:null,revealUntil:0};
 const live=()=>state.owner&&state.owner===owner()&&state.epoch===epoch()&&$(ROOT)&&document.getElementById('life-planner')?.classList.contains('active')&&!document.hidden;
-let delayTimer=null;
+let delayTimer=null,revealTimer=null;
+function clearRevealTimer(){if(revealTimer!==null){clearTimeout(revealTimer);revealTimer=null;}state.revealUntil=0;}
+function concealPrivate(){
+ const open=state.dialog?.id&&state.habits.find(h=>h.id===state.dialog.id);
+ clearRevealTimer();stopDelay();state.reveal=false;state.expanded={};
+ if(open?.is_private)close();
+ if($(ROOT))render();
+}
+function revealPrivate(){
+ clearRevealTimer();state.reveal=true;state.revealUntil=Date.now()+90000;
+ revealTimer=setTimeout(()=>{revealTimer=null;concealPrivate();},90000);
+ render();
+}
 function stopDelay(){if(delayTimer!==null){clearInterval(delayTimer);delayTimer=null;}state.delay=null;}
-function forget(){stopDelay();state.expanded={};state.token++;state.habits=[];state.entries=[];state.loaded=false;state.busy=false;state.error='';state.reveal=false;state.dialog=null;state.notice='';state.selected=localDate();state.viewMonth=localDate().slice(0,7);state.filter='all';const d=$('lhDialogV21');if(d){d.close?.();d.remove();}const root=$(ROOT);if(root)root.replaceChildren();}
+function forget(){clearRevealTimer();stopDelay();state.expanded={};state.token++;state.habits=[];state.entries=[];state.loaded=false;state.busy=false;state.error='';state.reveal=false;state.dialog=null;state.notice='';state.selected=localDate();state.viewMonth=localDate().slice(0,7);state.filter='all';const d=$('lhDialogV21');if(d){d.close?.();d.remove();}const root=$(ROOT);if(root)root.replaceChildren();}
 function available(){return state.loaded&&!state.busy&&live();}
 async function auth(){const c=client();if(!c||!live())throw Error('LOGIN');const result=await c.auth.getUser();if(result.error||result.data?.user?.id!==state.owner||!live())throw Error('LOGIN');return c;}
 function errorKind(e){const t=String(e?.message||''),code=String(e?.code||'');return /42P01|PGRST205|schema cache|does not exist|could not find the table/i.test(code+' '+t)?'MIGRATION':'CONNECT';}
@@ -120,7 +132,7 @@ const period=esc(periods[h.target_period]?.[isZh()?0:1]||h.target_period);
 const expanded=!!state.expanded[h.id];
 return `<article class="lh-card ${h.is_paused?'lh-paused':''}" data-lh-card-id="${h.id}">
   <div class="lh-card-top"><span class="lh-mode">${masked?L('隐私已保护','Private'):esc(modes[h.mode]?.[isZh()?0:1]||h.mode)}</span><span class="lh-private-flag">${h.is_private?'◈ '+L('私人','Private'):L('普通','Regular')}</span></div>
-  <h3>${esc(title(h))}</h3><p class="lh-card-hint">${masked?L('目标与记录已隐藏','Goal and activity hidden'):period+' · '+label+' '+target+' '+L('次','times')}${h.is_paused?' · '+L('已暂停','Paused'):''}</p>
+  <h3>${esc(title(h))}</h3><p class="lh-card-hint">${masked?L('目标与记录已隐藏','Goal and activity hidden'):period+' · '+label+' '+target+' '+L('次','times')}${!masked&&h.is_paused?' · '+L('已暂停','Paused'):''}</p>
   ${masked?`<div class="lh-hidden-activity" aria-label="${L('私人统计已隐藏','Private statistics hidden')}"><span>•••</span><small>${L('统计、次数与趋势仅在临时显示后可见','Counts, progress and trends require temporary reveal')}</small></div>`:`<div class="lh-number"><strong>${p.num}</strong><small>${L('本周期次数','times this period')} · ${p.days} ${L('个有记录的日期','recorded days')}</small></div>
   <div class="lh-goal-progress"><p>${esc(progressLabel)}</p>${h.mode==='reduce'?`<div class="lh-guide-line">${L('观察变化，不作成绩评判。','Observe gently; no score or penalty.')}</div>`:`<div class="lh-progress-track" role="progressbar" aria-label="${L('自定目标进度','Personal target progress')}" aria-valuenow="${progress}" aria-valuemin="0" aria-valuemax="100"><span style="width:${progress}%"></span></div>`}</div>
   ${trend(h)}
@@ -128,13 +140,14 @@ return `<article class="lh-card ${h.is_paused?'lh-paused':''}" data-lh-card-id="
   ${expanded?insights(h):''}
   ${h.mode==='reduce'&&!h.is_paused?renderDelay(h):''}
   <p class="lh-chosen-entry">${esc(state.selected)} · ${selectedEntry?`${L('已记录','Recorded')} ${Number(selectedEntry.count)} ${L('次','times')}`:L('未记录（不等于零）','No entry (not zero)')}</p>`}
-  <div class="lh-actions"><button data-lh-act="record" data-id="${h.id}" type="button" ${!available()?'disabled':''}>${L('记录选中日期','Log selected day')}</button><button data-lh-act="edit" data-id="${h.id}" type="button" ${!available()?'disabled':''}>${L('编辑','Edit')}</button><button data-lh-act="pause" data-id="${h.id}" type="button" ${!available()?'disabled':''}>${h.is_paused?L('恢复','Resume'):L('暂停','Pause')}</button><button data-lh-act="delete" data-id="${h.id}" type="button" ${!available()?'disabled':''}>${L('删除','Delete')}</button></div>
+  ${masked?`<div class="lh-locked-actions" role="note">◈ ${L('先点击上方“显示 90 秒”，再记录、编辑或删除私人习惯。','Use “Reveal for 90 seconds” above before logging, editing or deleting private habits.')}</div>`:''}
+  ${masked?'':`<div class="lh-actions"><button data-lh-act="record" data-id="${h.id}" type="button" ${!available()?'disabled':''}>${L('记录选中日期','Log selected day')}</button><button data-lh-act="edit" data-id="${h.id}" type="button" ${!available()?'disabled':''}>${L('编辑','Edit')}</button><button data-lh-act="pause" data-id="${h.id}" type="button" ${!available()?'disabled':''}>${h.is_paused?L('恢复','Resume'):L('暂停','Pause')}</button><button data-lh-act="delete" data-id="${h.id}" type="button" ${!available()?'disabled':''}>${L('删除','Delete')}</button></div>`}
 </article>`;}
 function render(){const host=$(ROOT);if(!host)return;
 const error=state.error==='MIGRATION'?L('私人习惯数据库尚未建立或无权限访问。为保护隐私，当前禁止保存；需要先审核并执行独立的 Supabase RLS 迁移。','Private habit tables are not yet available. Writes remain disabled until the separate RLS migration is reviewed and deployed.'):state.error?L('云端连接或身份验证失败，请重试。不会将私人习惯写入浏览器缓存。','Could not verify cloud access. No sensitive habit data is written to browser storage.'):'';
 const visible=state.habits.filter(h=>state.filter==='all'||(state.filter==='active'?!h.is_paused:h.is_paused));
 host.innerHTML=`<div class="lh-shell"><header class="lh-hero"><div class="lh-eyebrow">LIFE PLANNER / HABIT CONTROL</div><h1>${L('把生活过成喜欢的样子','Small steps, your own pace')}</h1><p>${L('培养积极习惯，温和地调整频率。不设惩罚，也不要求每天连续打卡。','Build helpful habits or adjust your frequency gently. No punishment or forced streaks.')}</p></header>
-<section class="lh-privacy"><div><strong>◈ ${L('隐私优先','Privacy first')}</strong><p>${L('私人习惯的名称、次数与进度默认隐藏，仅能在这里主动临时显示。数据库受到 RLS 隔离，但并非端到端加密。','Private titles, counts and progress stay masked until you temporarily reveal them here. RLS protects access, but this is not end-to-end encryption.')}</p></div><button type="button" data-lh-act="reveal" class="lh-soft" ${!state.loaded?'disabled':''}>${state.reveal?L('重新隐藏私人数据','Hide private details'):L('临时显示私人数据','Reveal private details')}</button></section>
+<section class="lh-privacy"><div><strong>◈ ${L('隐私优先','Privacy first')}</strong><p>${L('私人习惯的名称、次数与进度默认隐藏，仅能在这里主动临时显示。数据库受到 RLS 隔离，但并非端到端加密。','Private titles, counts and progress stay masked until you temporarily reveal them here. RLS protects access, but this is not end-to-end encryption.')}</p></div><div class="lh-reveal-controls"><small>${L('显示后 90 秒自动隐藏，离开或失焦也会立即隐藏。','Details auto-hide after 90 seconds, or immediately on leaving or losing focus.')}</small><button type="button" data-lh-act="reveal" class="lh-soft" ${!state.loaded?'disabled':''}>${state.reveal?L('立即隐藏私人数据','Hide private details now'):L('显示 90 秒','Reveal for 90 seconds')}</button></div></section>
 ${state.busy?`<p class="lh-status" role="status">${L('正在安全同步习惯记录…','Synchronizing securely…')}</p>`:''}
 ${error?`<p class="lh-status lh-error" role="alert">${esc(error)}</p>`:''}
 ${state.notice?`<p class="lh-status" role="status">${esc(state.notice)}</p>`:''}
@@ -145,31 +158,57 @@ ${state.loaded?(visible.length?`<div class="lh-grid">${visible.map(card).join(''
 function options(obj,selected){return Object.entries(obj).map(([id,n])=>`<option value="${id}" ${selected===id?'selected':''}>${esc(n[isZh()?0:1])}</option>`).join('');}
 function modal(html){const old=$('lhDialogV21');if(old)old.remove();const d=document.createElement('dialog');d.id='lhDialogV21';d.className='lh-dialog';d.innerHTML=html;document.body.appendChild(d);d.addEventListener('close',()=>{if(state.dialog){state.dialog=null;}d.remove();});d.showModal();const input=d.querySelector('input:not([type=checkbox])');input?.focus({preventScroll:true});}
 function close(){const d=$('lhDialogV21');d?.close();state.dialog=null;}
-function openHabit(h){if(!available())return;state.dialog={type:'habit',id:h?.id||null};modal(`<form id="lhHabitFormV21" method="dialog"><div class="lh-dialog-top"><span class="lh-eyebrow">HABIT CONTROL</span><h2>${h?L('编辑习惯','Edit habit'):L('创建习惯','New habit')}</h2><button type="button" data-lh-act="close" aria-label="${L('关闭','Close')}">×</button></div><div class="lh-dialog-body">
+function openHabit(h){if(!available()||(h&&privateMasked(h)))return;state.dialog={type:'habit',id:h?.id||null};modal(`<form id="lhHabitFormV21" method="dialog"><div class="lh-dialog-top"><span class="lh-eyebrow">HABIT CONTROL</span><h2>${h?L('编辑习惯','Edit habit'):L('创建习惯','New habit')}</h2><button type="button" data-lh-act="close" aria-label="${L('关闭','Close')}">×</button></div><div class="lh-dialog-body">
 <label>${L('习惯名称','Habit name')}<input name="title" required maxlength="100" autocomplete="off" value="${esc(h?.title||'')}" placeholder="${L('自己填写，默认保密','Your own private title')}"></label>
 <div class="lh-form-grid"><label>${L('管理方式','Goal type')}<select name="mode">${options(modes,h?.mode||'build')}</select></label><label>${L('目标周期','Goal period')}<select name="target_period">${options(periods,h?.target_period||'week')}</select></label></div>
 <label>${L('参考次数目标','Frequency target')}<input type="number" name="target_count" min="0" max="500" step="1" required value="${Number(h?.target_count??3)}"></label>
+<section class="lh-goal-review" aria-live="polite"><strong>${L('调整前先看看','Review your goal')}</strong><p id="lhGoalPreviewV24">${L('计算本周期预览中…','Calculating preview…')}</p><small>${L('调整只更新当前目标设定，不会更改、清零或复制过去的每日次数。旧版目标不保留为历史版本，历史统计会按新周期重新显示。','Changes only update the current goal, without rewriting, clearing, or duplicating past daily logs. Previous goal settings are not versioned; history views use the new period.')}</small></section>
 <label class="lh-check"><input type="checkbox" name="is_private" ${h?.is_private===false?'':'checked'}> ${L('私人习惯（默认开启；在列表中遮盖名称）','Private habit (default on; title masked in lists)')}</label>
 <p class="lh-modal-note">${L('只有你主动创建的习惯才会保存。私人数据不会进入财务交易、通知或 AI Chat。','Only habits you create are saved. Habit data is never added to financial transactions, notifications or AI Chat.')}</p><p id="lhErrorV21" class="lh-form-error" role="alert" hidden></p>
-</div><div class="lh-dialog-actions"><button type="button" data-lh-act="close">${L('取消','Cancel')}</button><button class="lh-accent" type="submit">${L('保存习惯','Save habit')}</button></div></form>`);}
-function openLog(h){if(!available())return;state.dialog={type:'log',id:h.id};const current=state.entries.find(e=>e.habit_id===h.id&&e.entry_date===state.selected);modal(`<form id="lhLogFormV21" method="dialog"><div class="lh-dialog-top"><span class="lh-eyebrow">HABIT CONTROL</span><h2>${L('记录次数','Record occurrences')}</h2><button type="button" data-lh-act="close">×</button></div><div class="lh-dialog-body"><p class="lh-modal-note">${esc(title(h))} · ${L('按自己真实记录的次数填写，零次也可以主动记录。','Record only what actually happened; you may explicitly log zero.')}</p><label>${L('日期','Date')}<input type="date" name="entry_date" required value="${esc(state.selected)}" min="${shift(localDate(),-365)}" max="${localDate()}"></label><label>${L('当天次数','Count on this date')}<input type="number" name="count" required min="0" max="24" step="1" value="${current?Number(current.count):0}"></label><p class="lh-modal-note">${L('缺失记录并不代表零次。编辑同一天的记录不会重复计数。','A missing entry is not counted as zero. Updating a day does not duplicate it.')}</p><p id="lhErrorV21" class="lh-form-error" role="alert" hidden></p></div><div class="lh-dialog-actions"><button type="button" data-lh-act="deleteLog" data-id="${h.id}" class="lh-danger" ${current?'':'hidden'}>${L('删除当天记录','Delete day entry')}</button><button type="button" data-lh-act="close">${L('取消','Cancel')}</button><button class="lh-accent" type="submit">${L('保存记录','Save')}</button></div></form>`);}
+</div><div class="lh-dialog-actions"><button type="button" data-lh-act="close">${L('取消','Cancel')}</button><button class="lh-accent" type="submit">${L('保存习惯','Save habit')}</button></div></form>`);updateGoalPreview();}
+function updateGoalPreview(){
+ const f=$('lhHabitFormV21'),el=$('lhGoalPreviewV24');if(!f||!el)return;
+ const existing=state.habits.find(h=>h.id===state.dialog?.id);
+ const period=f.elements.namedItem('target_period')?.value;
+ const mode=f.elements.namedItem('mode')?.value;
+ const target=Number(f.elements.namedItem('target_count')?.value);
+ if(!(period in periods)||!(mode in modes)||!Number.isInteger(target)||target<0||target>500){el.textContent=L('请输入有效目标（0～500）。','Enter a valid goal (0–500).');return;}
+ const [start,end]=periodRange(period,localDate());
+ const logged=existing?state.entries.filter(e=>e.habit_id===existing.id&&e.entry_date>=start&&e.entry_date<=end):[];
+ const count=logged.reduce((n,e)=>n+Number(e.count||0),0);
+ const label=periods[period][isZh()?0:1];
+ const freq=modes[mode][isZh()?0:1];
+ el.textContent=existing
+  ?`${freq} · ${label} · ${L('已记录','Logged')} ${count} ${L('次','times')} / ${L('新目标','new target')} ${target} ${L('次','times')} · ${logged.length} ${L('个有记录的日期','recorded dates')}`
+  :`${freq} · ${label} · ${L('初始目标','Starting target')} ${target} ${L('次','times')}`;
+}
+function openLog(h){if(!available()||privateMasked(h))return;state.dialog={type:'log',id:h.id};const current=state.entries.find(e=>e.habit_id===h.id&&e.entry_date===state.selected);modal(`<form id="lhLogFormV21" method="dialog"><div class="lh-dialog-top"><span class="lh-eyebrow">HABIT CONTROL</span><h2>${L('记录次数','Record occurrences')}</h2><button type="button" data-lh-act="close">×</button></div><div class="lh-dialog-body"><p class="lh-modal-note">${esc(title(h))} · ${L('按自己真实记录的次数填写，零次也可以主动记录。','Record only what actually happened; you may explicitly log zero.')}</p><label>${L('日期','Date')}<input type="date" name="entry_date" required value="${esc(state.selected)}" min="${shift(localDate(),-365)}" max="${localDate()}"></label><label>${L('当天次数','Count on this date')}<input type="number" name="count" required min="0" max="24" step="1" value="${current?Number(current.count):0}"></label><p class="lh-modal-note">${L('缺失记录并不代表零次。编辑同一天的记录不会重复计数。','A missing entry is not counted as zero. Updating a day does not duplicate it.')}</p><p id="lhErrorV21" class="lh-form-error" role="alert" hidden></p></div><div class="lh-dialog-actions"><button type="button" data-lh-act="deleteLog" data-id="${h.id}" class="lh-danger" ${current?'':'hidden'}>${L('删除当天记录','Delete day entry')}</button><button type="button" data-lh-act="close">${L('取消','Cancel')}</button><button class="lh-accent" type="submit">${L('保存记录','Save')}</button></div></form>`);}
 function showError(message){const el=$('lhErrorV21');if(el){el.textContent=message;el.hidden=false;}}
 async function write(kind,fn){if(state.busy||!live())return;state.busy=true;const token=++state.token,u=state.owner,e=state.epoch;try{const c=await auth();await fn(c,u);if(state.owner!==u||state.epoch!==e||token!==state.token)return;close();state.notice=kind;state.busy=false;await load();}catch(err){if(token!==state.token||!live())return;state.busy=false;const msg=err.message==='CONFLICT'?L('这条记录已被其他设备更新，请刷新重试。','This record changed elsewhere. Refresh and retry.'):L('保存失败。请检查网络与权限后重试。','Save failed. Check connection and access permissions.');if($('lhDialogV21'))showError(msg);else{state.notice=msg;render();}}}
 async function saveHabit(form){const data=new FormData(form),title=String(data.get('title')||'').trim(),mode=String(data.get('mode')),period=String(data.get('target_period')),goal=Number(data.get('target_count')),privateMode=data.has('is_private');if(!title||title.length>100||!(mode in modes)||!(period in periods)||!Number.isInteger(goal)||goal<0||goal>500){showError(L('请填写有效的名称与目标。','Enter a valid name and target.'));return;}
-const existing=state.habits.find(h=>h.id===state.dialog?.id);await write(L('习惯已保存。','Habit saved.'),async(c,u)=>{let q;if(existing){q=c.from(TABLE).update({title,mode,target_period:period,target_count:goal,is_private:privateMode,version:existing.version+1,updated_at:new Date().toISOString()}).eq('id',existing.id).eq('user_id',u).eq('version',existing.version).select('id');}else{q=c.from(TABLE).insert({id:uuid(),user_id:u,client_request_id:uuid(),title,mode,target_period:period,target_count:goal,is_private:privateMode,is_paused:false}).select('id');}const r=await q;if(r.error)throw r.error;if(!r.data?.length)throw Error('CONFLICT');});}
+const existing=state.habits.find(h=>h.id===state.dialog?.id);
+if(existing&&(existing.mode!==mode||existing.target_period!==period||Number(existing.target_count)!==goal)){
+ if(!confirm(L('确认调整目标？过去每日次数保持不变；旧目标不会保存为历史版本，趋势按新周期重新展示。','Change this goal? Past daily logs remain unchanged. Previous goal settings are not versioned, and trends will use the new period.')))return;
+}
+if(existing?.is_private&&!privateMode){
+ if(!confirm(L('确认取消私人保护？名称、次数和趋势将直接在此模块显示，普通页面仍不会自动读取。','Turn off private masking? The title, counts and trends will be visible within Habit Control.')))return;
+}
+await write(L('习惯已保存。','Habit saved.'),async(c,u)=>{let q;if(existing){q=c.from(TABLE).update({title,mode,target_period:period,target_count:goal,is_private:privateMode,version:existing.version+1,updated_at:new Date().toISOString()}).eq('id',existing.id).eq('user_id',u).eq('version',existing.version).select('id');}else{q=c.from(TABLE).insert({id:uuid(),user_id:u,client_request_id:uuid(),title,mode,target_period:period,target_count:goal,is_private:privateMode,is_paused:false}).select('id');}const r=await q;if(r.error)throw r.error;if(!r.data?.length)throw Error('CONFLICT');});}
 async function saveLog(form){const data=new FormData(form),d=String(data.get('entry_date')),count=Number(data.get('count')),habit=state.habits.find(h=>h.id===state.dialog?.id);if(!habit||!validDay(d)||d>localDate()||d<shift(localDate(),-365)||!Number.isInteger(count)||count<0||count>24){showError(L('日期或次数无效。','Invalid date or count.'));return;}const existing=state.entries.find(e=>e.habit_id===habit.id&&e.entry_date===d);await write(L('记录已保存。','Entry saved.'),async(c,u)=>{let q;if(existing){q=c.from(LOGS).update({count,version:existing.version+1,updated_at:new Date().toISOString()}).eq('id',existing.id).eq('user_id',u).eq('version',existing.version).select('id');}else{q=c.from(LOGS).insert({id:uuid(),user_id:u,habit_id:habit.id,entry_date:d,count,client_request_id:uuid()}).select('id');}const r=await q;if(r.error)throw r.error;if(!r.data?.length)throw Error('CONFLICT');});}
-async function togglePause(h){await write(L('状态已更新。','Status updated.'),async(c,u)=>{const r=await c.from(TABLE).update({is_paused:!h.is_paused,version:h.version+1,updated_at:new Date().toISOString()}).eq('id',h.id).eq('user_id',u).eq('version',h.version).select('id');if(r.error)throw r.error;if(!r.data?.length)throw Error('CONFLICT');});}
-async function deleteHabit(h){if(!confirm(L('确定删除这项习惯及其全部记录吗？此操作不可撤销。','Delete this habit and all its history? This cannot be undone.')))return;await write(L('习惯及关联记录已删除。','Habit and its entries deleted.'),async(c,u)=>{const r=await c.from(TABLE).delete().eq('id',h.id).eq('user_id',u).eq('version',h.version).select('id');if(r.error)throw r.error;if(!r.data?.length)throw Error('CONFLICT');});}
+async function togglePause(h){if(privateMasked(h))return;await write(L('状态已更新。','Status updated.'),async(c,u)=>{const r=await c.from(TABLE).update({is_paused:!h.is_paused,version:h.version+1,updated_at:new Date().toISOString()}).eq('id',h.id).eq('user_id',u).eq('version',h.version).select('id');if(r.error)throw r.error;if(!r.data?.length)throw Error('CONFLICT');});}
+async function deleteHabit(h){if(privateMasked(h))return;if(!confirm(L('确定删除这项习惯及其全部记录吗？此操作不可撤销。','Delete this habit and all its history? This cannot be undone.')))return;await write(L('习惯及关联记录已删除。','Habit and its entries deleted.'),async(c,u)=>{const r=await c.from(TABLE).delete().eq('id',h.id).eq('user_id',u).eq('version',h.version).select('id');if(r.error)throw r.error;if(!r.data?.length)throw Error('CONFLICT');});}
 async function deleteLog(){const d=$('lhDialogV21'),day=d?.querySelector('input[name="entry_date"]')?.value,habitId=state.dialog?.id;const entry=state.entries.find(e=>e.habit_id===habitId&&e.entry_date===day);if(!entry)return;await write(L('当天记录已删除。','Day entry deleted.'),async(c,u)=>{const r=await c.from(LOGS).delete().eq('id',entry.id).eq('user_id',u).eq('version',entry.version).select('id');if(r.error)throw r.error;if(!r.data?.length)throw Error('CONFLICT');});}
 function click(ev){const btn=ev.target.closest('[data-lh-act]');if(!btn||!($(ROOT)?.contains(btn)||$('lhDialogV21')?.contains(btn)))return;const action=btn.dataset.lhAct,id=btn.dataset.id,h=state.habits.find(x=>x.id===id);
-if(action==='close'){close();return;}if(action==='reveal'){state.reveal=!state.reveal;if(!state.reveal){stopDelay();state.expanded={};}render();return;}if(action==='reload'){load();return;}if(!available()&&!['close'].includes(action))return;
+if(action==='close'){close();return;}if(action==='reveal'){if(state.reveal)concealPrivate();else revealPrivate();return;}if(action==='reload'){load();return;}if(!available()&&!['close'].includes(action))return;if(h&&privateMasked(h)&&['record','edit','pause','delete','insights','delayStart'].includes(action))return;
 if(action==='insights'&&h&&!privateMasked(h)){state.expanded[h.id]=!state.expanded[h.id];render();return;}
 if(action==='delayStart'&&h){startDelay(h,Number(btn.dataset.min));return;}
 if(action==='delayStop'){stopDelay();render();return;}
 if(action==='pickday'){const day=btn.dataset.day;if(validDay(day)&&day<=localDate()&&day>=shift(localDate(),-365)){state.selected=day;render();}return;}if(action==='today'){state.selected=localDate();state.viewMonth=state.selected.slice(0,7);render();return;}if(action==='monthprev'||action==='monthnext'){const next=monthShift(state.viewMonth,action==='monthprev'?-1:1);if(next>=shift(localDate(),-365).slice(0,7)&&next<=localDate().slice(0,7)){state.viewMonth=next;render();}return;}if(action==='add')openHabit();else if(action==='edit'&&h)openHabit(h);else if(action==='record'&&h){openLog(h);}else if(action==='pause'&&h)togglePause(h);else if(action==='delete'&&h)deleteHabit(h);else if(action==='deleteLog')deleteLog();}
 function submit(ev){if(!['lhHabitFormV21','lhLogFormV21'].includes(ev.target?.id))return;ev.preventDefault();if(!available())return;ev.target.id==='lhHabitFormV21'?saveHabit(ev.target):saveLog(ev.target);}
 document.addEventListener('click',click);document.addEventListener('submit',submit);
+document.addEventListener('input',ev=>{if(ev.target?.closest('#lhHabitFormV21')&&['target_count'].includes(ev.target.name))updateGoalPreview();});
 document.addEventListener('change',ev=>{
+ if(ev.target?.closest('#lhHabitFormV21')&&['mode','target_period'].includes(ev.target.name))updateGoalPreview();
  if(ev.target?.id==='lhFilterV22'&&$(ROOT)?.contains(ev.target)){const value=ev.target.value;if(['all','active','paused'].includes(value)){state.filter=value;render();}return;}
  if(ev.target?.name==='entry_date'&&ev.target.closest('#lhLogFormV21')){
   const d=ev.target.value,entry=state.entries.find(e=>e.habit_id===state.dialog?.id&&e.entry_date===d);
@@ -177,12 +216,12 @@ document.addEventListener('change',ev=>{
   const del=$('lhLogFormV21')?.querySelector('[data-lh-act="deleteLog"]');if(del)del.hidden=!entry;
  }
 });
-window.addEventListener('mmhvault-language-change',()=>{if($(ROOT)){stopDelay();close();state.reveal=false;render();}});
-window.addEventListener('languagechange',()=>{if($(ROOT)){stopDelay();close();state.reveal=false;render();}});
+window.addEventListener('mmhvault-language-change',()=>{if($(ROOT)){concealPrivate();close();render();}});
+window.addEventListener('languagechange',()=>{if($(ROOT)){concealPrivate();close();render();}});
 window.addEventListener('mmhvault:config-owner-changed',forget);
 window.addEventListener('mmhvault:page-visible',ev=>{if(ev.detail?.page!=='life-planner')forget();});
 document.addEventListener('visibilitychange',()=>{if(document.hidden)forget();else if($(ROOT))window.MMHLifeHabitsV21?.mount();});
-window.addEventListener('blur',()=>{stopDelay();state.expanded={};state.reveal=false;close();if($(ROOT))render();});
+window.addEventListener('blur',()=>{concealPrivate();close();});
 window.addEventListener('focus',()=>{if($(ROOT)&&live()&&!state.busy)load();});
 window.MMHLifeHabitsV21={mount(){const host=$(ROOT);if(!host)return;if(!owner()){forget();state.error='LOGIN';render();return;}if(state.owner!==owner()||state.epoch!==epoch()){forget();state.owner=owner();state.epoch=epoch();}if(!state.loaded&&!state.busy){load();}else render();},unmount:forget};
 })();
