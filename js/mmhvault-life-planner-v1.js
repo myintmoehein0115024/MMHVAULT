@@ -117,6 +117,7 @@
   function renderEvent(o){
     const privateClass=o.is_private?' lp-private':'';
     const actions=[textButton(L('编辑','Edit'),'edit',`data-id="${o.event.id}" data-date="${o.originalDate}"`),
+      textButton(L('再次使用','Use again'),'reuse',`data-id="${o.event.id}" data-date="${o.originalDate}"`),
       textButton(o.status==='completed'?L('恢复','Reopen'):L('完成','Done'),'toggleDone',`data-id="${o.event.id}" data-date="${o.originalDate}"`),
       textButton(L('删除','Delete'),'delete',`data-id="${o.event.id}" data-date="${o.originalDate}"`)];
     return `<article class="lp-event${privateClass} lp-${safe(o.status)}"><div class="lp-event-details"><div class="lp-event-title"><span class="lp-event-dot lp-cat-${safe(o.category)}" aria-hidden="true"></span><strong>${safe(displayTitle(o))}</strong><span class="lp-status">${humanStatus(o.status)}</span></div><p>${safe(dateLabel(o.starts_on))}${o.ends_on!==o.starts_on?' → '+safe(dateLabel(o.ends_on)):''} · ${safe(timeText(o))}${o.event.repeat_frequency!=='none'?' · '+L('重复','Repeats'):''}</p></div><div class="lp-event-actions">${actions.join('')}</div></article>`;
@@ -130,6 +131,29 @@
       const outside=isMonth&&d.slice(0,7)!==state.focus.slice(0,7),selected=d===state.selected,now=d===today();
       return `<button type="button" class="lp-day ${outside?'lp-outside':''} ${selected?'lp-selected':''} ${now?'lp-today':''}" data-lp-act="selectDay" data-date="${d}" aria-label="${safe(dateLabel(d,{year:'numeric',month:'long',day:'numeric'}))} ${entries.length} ${L('项日程','events')}" aria-pressed="${selected}"><span class="lp-day-num">${Number(d.slice(-2))}</span><span class="lp-dots">${entries.slice(0,3).map(o=>`<i class="lp-event-dot lp-cat-${safe(o.category)}" aria-hidden="true"></i>`).join('')}${entries.length>3?'<b>+</b>':''}</span></button>`;
     }).join('')}</div></div>`;
+  }
+  function renderWeekRhythm(){
+    const anchor=state.selected,weekStart=shift(anchor,-((at(anchor)+6)%7));
+    const end=shift(weekStart,6);
+    const rows=state.loaded?occurrences(weekStart,end).filter(o=>o.status!=='cancelled'):[];
+    const days=[];
+    for(let n=0;n<7;n++){
+      const d=shift(weekStart,n), items=rows.filter(o=>o.starts_on<=d&&o.ends_on>=d);
+      const completed=items.filter(o=>o.status==='completed').length;
+      const todayFlag=d===today(),selected=d===state.selected;
+      const shortDate=dateLabel(d,{month:'short',day:'numeric'});
+      const weekday=dateLabel(d,{weekday:'short'});
+      days.push(`<button type="button" class="lp-week-day${todayFlag?' is-today':''}${selected?' is-selected':''}" data-lp-act="weekDay" data-date="${d}" aria-pressed="${selected}" aria-label="${safe(dateLabel(d,{weekday:'long',month:'long',day:'numeric',year:'numeric'}))}${state.loaded?' · '+items.length+' '+L('项日程','events'):''}">
+        <span class="lp-week-weekday">${safe(weekday)}</span><strong>${Number(d.slice(-2))}</strong>
+        <span class="lp-week-count">${!state.loaded?'—':items.length?items.length+' '+L('项','events'):L('休息','Free')}</span>
+        <span class="lp-week-progress" aria-hidden="true"><i style="width:${items.length?Math.round(completed/items.length*100):0}%"></i></span>
+      </button>`);
+    }
+    return `<section class="lp-week-rhythm" aria-label="${L('七天安排概览','Seven-day overview')}">
+      <div class="lp-week-heading"><div><span class="lp-focus-kicker">${L('我的一周','MY WEEK')}</span><h2>${L('这一周，稳稳向前','Make this week count')}</h2></div><span>${safe(dateLabel(weekStart))} – ${safe(dateLabel(end))}</span></div>
+      <div class="lp-week-days">${days.join('')}</div>
+      <p class="lp-week-hint">${L('点击某一天查看日程。仅显示数量与进度，不展示私人日程名称。','Select a day to open its schedule. Counts and progress never expose private titles.')}</p>
+    </section>`;
   }
   function render(){
     if(!state.ready)return;const host=$(ROOT);if(!host)return;
@@ -203,6 +227,7 @@
           ${!state.loaded?`<div class="lp-focus-empty">${L('等待云端日程','Waiting for cloud schedule')}</div>`:todayPending.length?todayPending.map(o=>`<div class="lp-focus-task"><span class="lp-event-dot lp-cat-${safe(o.category)}" aria-hidden="true"></span><div><b>${safe(displayTitle(o))}</b><small>${safe(timeText(o))}</small></div><button type="button" class="lp-focus-done" data-lp-act="toggleDone" data-id="${o.event.id}" data-date="${o.originalDate}" title="${L('标记完成','Mark done')}" aria-label="${L('完成日程','Complete event')} ${safe(displayTitle(o))}">✓</button></div>`).join(''):`<div class="lp-focus-empty">${todays.length?L('今天没有待办日程','No pending events today'):L('点击“安排今天”开始','Choose “Plan today” to begin')}</div>`}
         </div>
       </section>
+      ${renderWeekRhythm()}
       <div id="lpNoticeV1" class="lp-notice" role="status" aria-live="polite" ${state.toast?'':'hidden'}>${safe(state.toast)}</div>
       ${state.loading?`<p class="lp-alert" role="status">${L('正在安全加载私人日程…','Loading your schedule securely…')}</p>`:''}
       ${status?`<div class="lp-alert lp-alert-error" role="alert"><p>${safe(status)}</p>${textButton(L('重试连接','Retry'),'refresh')}</div>`:''}
@@ -229,11 +254,12 @@
       root.innerHTML=`<div class="lp-modal" role="dialog" aria-modal="true" aria-labelledby="lpModalTitleV1"><h2 id="lpModalTitleV1">${safe(o.title)}</h2><p>${safe(o.description)}</p><div class="lp-modal-actions">${textButton(L('返回','Back'),'closeDialog')}<button class="lp-btn lp-danger" type="button" data-lp-act="confirmDelete">${L('确认','Confirm')}</button></div></div>`;
     }else{
       const e=o.occurrence||null,base=e?.event;
-      const src=o.type==='edit'&&o.scope!=='single'&&base?{...e,...base}:e;
+      const reuse=o.reuse||null;
+      const src=reuse?{...reuse,starts_on:state.selected,ends_on:shift(state.selected,Math.max(0,dayDiff(reuse.starts_on,reuse.ends_on))),status:'scheduled',repeat_frequency:'none',repeat_interval:1,repeat_until:null}:o.type==='edit'&&o.scope!=='single'&&base?{...e,...base}:e;
       const field=(name,value)=>safe(String(value??''));
       const scope=o.scope||'series',one=scope==='single';
       const item={title:src?.title||'',notes:src?.notes||'',starts_on:src?.starts_on||state.selected,ends_on:src?.ends_on||state.selected,start_time:String(src?.start_time||'09:00').slice(0,5),end_time:String(src?.end_time||'10:00').slice(0,5),all_day:src?.all_day??false,category:src?.category||'personal',is_private:src?.is_private??false,status:src?.status||'scheduled',repeat_frequency:base?.repeat_frequency||'none',repeat_interval:base?.repeat_interval||1,repeat_until:base?.repeat_until||''};
-      root.innerHTML=`<div class="lp-modal" role="dialog" aria-modal="true" aria-labelledby="lpModalTitleV1"><div class="lp-modal-heading"><h2 id="lpModalTitleV1">${o.type==='add'?L('新建日程','New event'):one?L('修改本次日程','Edit this occurrence'):L('编辑日程','Edit event')}</h2><button class="lp-modal-x" type="button" data-lp-act="closeDialog" aria-label="${L('关闭','Close')}">×</button></div>
+      root.innerHTML=`<div class="lp-modal" role="dialog" aria-modal="true" aria-labelledby="lpModalTitleV1"><div class="lp-modal-heading"><h2 id="lpModalTitleV1">${o.type==='add'?(reuse?L('再次安排日程','Reuse this event'):L('新建日程','New event')):one?L('修改本次日程','Edit this occurrence'):L('编辑日程','Edit event')}</h2><button class="lp-modal-x" type="button" data-lp-act="closeDialog" aria-label="${L('关闭','Close')}">×</button></div>
         ${base?.repeat_frequency!=='none'&&o.type==='edit'?`<div class="lp-scope"><label><input type="radio" name="lpScopeV1" value="single" ${one?'checked':''}> ${L('仅本次','This occurrence')}</label><label><input type="radio" name="lpScopeV1" value="series" ${one?'':'checked'}> ${L('整个重复系列','Entire series')}</label></div>`:''}
         <form id="lpEventFormV1" novalidate><label>${L('日程名称','Title')}<input required name="title" maxlength="120" autocomplete="off" value="${field('title',item.title)}"></label>
         <div class="lp-form-row"><label>${L('开始日期','Start date')}<input required type="date" name="starts_on" value="${item.starts_on}"></label><label>${L('结束日期','End date')}<input required type="date" name="ends_on" value="${item.ends_on}"></label></div>
@@ -257,6 +283,11 @@
   function openEditor(type,id,date,scope='series'){
     if(!state.loaded)return;
     if(type==='add'){state.dialog={type:'add'};drawDialog();return;}
+    if(type==='reuse'){
+      const e=state.events.find(x=>x.id===id&&owns(x));if(!e)return;
+      const original=date||e.starts_on;const ex=state.exceptions.find(x=>x.event_id===id&&x.occurrence_date===original);
+      state.dialog={type:'add',reuse:buildOccurrence(e,original,ex)};drawDialog();return;
+    }
     const e=state.events.find(x=>x.id===id&&owns(x));if(!e)return;
     const original=date||e.starts_on;
     const ex=state.exceptions.find(x=>x.event_id===id&&x.occurrence_date===original);
@@ -299,6 +330,10 @@
         (values.starts_on!==base.starts_on||values.ends_on!==base.ends_on||values.repeat_frequency!==base.repeat_frequency||values.repeat_interval!==base.repeat_interval||values.repeat_until!==base.repeat_until)){
         if(err){err.hidden=false;err.textContent=L('本系列已有单次修改。请先删除并重建系列，或只修改名称、备注等信息，以免改变历史发生日期。','This series has individual overrides. To protect their dates, keep the start/end and repeat rules unchanged or create a new series.');}return;
       }
+    }
+    if(snapshot.type==='add'||snapshot.scope==='single'){
+      const fingerprint=JSON.stringify(values);
+      if(snapshot.clientPayload!==fingerprint){snapshot.clientPayload=fingerprint;snapshot.clientRequestId=key();}
     }
     state.saving=true;const requestId=snapshot.clientRequestId||(snapshot.clientRequestId=key());const button=form.querySelector('button[type="submit"]');if(button)button.disabled=true;
     try{
@@ -374,6 +409,8 @@
     if(act==='closeDialog'){closeDialog();return;}
     if(act==='add'){if(btn.classList.contains('lp-focus-create'))state.selected=today();openEditor('add');return;}
     if(act==='edit'){const e=state.events.find(x=>x.id===id);openEditor('edit',id,date,e?.repeat_frequency==='none'?'series':'single');return;}
+    if(act==='reuse'){openEditor('reuse',id,date);return;}
+    if(act==='weekDay'&&jsDate(date)){state.selected=state.focus=date;state.view='day';render();return;}
     if(act==='toggleDone'){const e=state.events.find(x=>x.id===id&&owns(x));if(e){const ex=state.exceptions.find(x=>x.event_id===id&&x.occurrence_date===date);const o=buildOccurrence(e,date,ex);mutateOccurrence(id,date,o.status==='completed'?'scheduled':'completed');}return;}
     if(act==='delete'){askDelete(id,date);return;}
     if(act==='confirmDelete'){deleteSeries();return;}
