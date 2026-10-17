@@ -10845,7 +10845,7 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
 </style>
 
 <link rel="stylesheet" href="css/mmhvault-forecast-v1.css?v=1.3.0"/>
-<link rel="stylesheet" href="css/mmhvault-life-planner-v1.css?v=1.0.0"/>
+<link rel="stylesheet" href="css/mmhvault-life-planner-v1.css?v=1.1.0"/>
 </head>
 <!-- MMHVAULT V4.3.6 · iOS JSON import bridge + V4.3.0 Dashboard report relocation + Transaction receipt center + Invest Add precision -->
 <body>
@@ -29102,6 +29102,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     const b=iconButton(page,icon,label);
     b.onclick=e=>{
       e.preventDefault();e.stopPropagation();
+      if(page==='life-planner')window.dispatchEvent(new CustomEvent('mmhvault:life-planner-home'));
       if(typeof window.setPage==='function')window.setPage(page);
       close();syncActive();
     };
@@ -29294,7 +29295,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     // A fixed max-height keeps every More option reachable on short displays.
     const available=Math.max(200,window.innerHeight-safe*2);
     menu.style.setProperty('max-height',available+'px','important');
-    const actualHeight=Math.min(menu.scrollHeight,available);
+    const actualHeight=Math.min(menu.getBoundingClientRect().height,available);
     const top=Math.max(safe,Math.min(r.top-26,window.innerHeight-safe-actualHeight));
     menu.style.setProperty('top',top+'px','important');
   }
@@ -33029,7 +33030,7 @@ body.light .mmh-notify-metric-v125>strong{color:#18384f}
 @media(max-width:560px){.mmh-notify-metrics-v125{grid-template-columns:1fr}.mmh-notify-metric-v125{padding:10px 11px}.mmh-notify-metric-v125>strong{font-size:12.5px}}
 </style>
 <script src="js/mmhvault-forecast-v1.js?v=1.3.0"></script>
-<script defer src="js/mmhvault-life-planner-v1.js?v=1.0.0"></script>
+<script defer src="js/mmhvault-life-planner-v1.js?v=1.1.0"></script>
 <!-- V2.5: NAVIGATION + SETTINGS PRESENTATION ONLY. No finance formulas changed. -->
 <style id="mmhvault-v25-nav-settings-layout">
 /* Keep the More popover above every dashboard card, without cropping entries. */
@@ -33060,6 +33061,32 @@ html body.mmh-workspace-active #moreNavMenu.more-nav-menu{
   html body.mmh-workspace-active #moreNavMenu.more-nav-menu{
     overflow-x:hidden!important;overflow-y:auto!important;
     max-height:min(64dvh,550px)!important;
+  }
+}
+/* Phase 1 UI polish: More menu follows available viewport height, not the old fixed 452px frame.
+   Header stays visible; only the list scrolls when the entire menu cannot fit. */
+html body.mmh-workspace-active #moreNavMenu.more-nav-menu{
+  height:auto!important;min-height:0!important;overflow:hidden!important;
+  max-height:calc(100dvh - 24px)!important;
+}
+#moreNavMenu .mmh-more-stage-v153{height:auto!important;min-height:0!important;max-height:calc(100dvh - 26px)!important;overflow:hidden!important}
+#moreNavMenu .mmh-more-view-v153{height:auto!important;min-height:0!important;max-height:calc(100dvh - 26px)!important;overflow:hidden!important}
+#moreNavMenu .mmh-more-view-head-v153{flex-shrink:0!important}
+#moreNavMenu .mmh-more-list-v153{
+  flex:1 1 auto!important;min-height:0!important;overflow-y:auto!important;overflow-x:hidden!important;
+  overscroll-behavior:contain!important;scrollbar-width:thin!important;
+  scrollbar-color:#557d98 transparent!important;padding-right:3px!important;
+  -webkit-overflow-scrolling:touch;
+}
+#moreNavMenu .mmh-more-list-v153::-webkit-scrollbar{width:5px}
+#moreNavMenu .mmh-more-list-v153::-webkit-scrollbar-thumb{background:#557d98;border-radius:10px}
+#moreNavMenu .mmh-more-item-v153{flex-shrink:0!important}
+@media(max-width:1099px){
+  html body.mmh-workspace-active #moreNavMenu.more-nav-menu{
+    max-height:min(74dvh,calc(100dvh - 117px))!important;
+  }
+  #moreNavMenu .mmh-more-stage-v153,#moreNavMenu .mmh-more-view-v153{
+    max-height:min(74dvh,calc(100dvh - 117px))!important;
   }
 }
 /* Maintain a coherent Settings grid without changing existing non-pet functionality. */

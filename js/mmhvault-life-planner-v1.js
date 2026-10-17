@@ -26,11 +26,11 @@
   const cloud=()=>{try{return typeof db!=='undefined'&&db?.from?db:null;}catch(_){return null;}};
   const active=()=>!!$(PAGE)?.classList.contains('active');
   const CHOICES={work:['工作','Work'],personal:['个人','Personal'],study:['学习','Study'],health:['健康','Health'],important:['重要','Important']};
-  const state={owner:'',epoch:0,events:[],exceptions:[],loaded:false,loading:false,saving:false,view:'month',focus:today(),selected:today(),privateVisible:false,dialog:null,request:0,ready:false,error:'',toast:''};
+  const state={owner:'',epoch:0,events:[],exceptions:[],loaded:false,loading:false,saving:false,view:'month',section:'home',focus:today(),selected:today(),privateVisible:false,dialog:null,request:0,ready:false,error:'',toast:''};
 
   function sessionValid(owner,epoch){return owner&&owner===ownerNow()&&epoch===epochNow();}
   function owns(record){return record&&record.user_id===state.owner;}
-  function reset(){state.request++;state.events=[];state.exceptions=[];state.loaded=false;state.loading=false;state.saving=false;state.error='';state.toast='';state.privateVisible=false;state.dialog=null;state.owner=ownerNow();state.epoch=epochNow();closeDialog();render();}
+  function reset(){state.request++;state.events=[];state.exceptions=[];state.loaded=false;state.loading=false;state.saving=false;state.error='';state.toast='';state.privateVisible=false;state.section='home';state.dialog=null;state.owner=ownerNow();state.epoch=epochNow();closeDialog();render();}
   function parseMissing(error){const code=String(error?.code||'');const msg=String(error?.message||'');return /42P01|PGRST205|PGRST116/i.test(code)||/could not find the table|does not exist|schema cache/i.test(msg);}
   function notice(message){state.toast=message;const el=$('lpNoticeV1');if(el){el.textContent=message;el.hidden=false;} }
   async function guardedUser(){const c=cloud(),owner=ownerNow();if(!c||!owner)throw Error('LOGIN');const r=await c.auth.getUser();if(r.error||r.data?.user?.id!==owner)throw Error('LOGIN');if(!sessionValid(owner,epochNow()))throw Error('CHANGED');return owner;}
@@ -123,6 +123,34 @@
   }
   function render(){
     if(!state.ready)return;const host=$(ROOT);if(!host)return;
+    // Two-level Life Planner: the hub and each individual module never share a screen.
+    // Only My Schedule has a live editor in Phase 1. Other modules are safe placeholders.
+    const modules=[
+      {id:'schedule',symbol:'▦',zh:'我的日程',en:'My Schedule',descZh:'日历、任务与重复日程',descEn:'Calendar, tasks and recurring events',available:true},
+      {id:'habit',symbol:'◈',zh:'习惯管理',en:'Habit Control',descZh:'私人习惯与频率目标',descEn:'Private habits and frequency goals'},
+      {id:'spending',symbol:'◉',zh:'消费控制',en:'Spending Control',descZh:'自由支配预算与次数管理',descEn:'Discretionary spending and budgets'},
+      {id:'fund',symbol:'◇',zh:'愿望储蓄',en:'Wish Fund',descZh:'自由基金与指定愿望',descEn:'Free funds and savings wishes'},
+      {id:'goals',symbol:'◎',zh:'长期目标',en:'My Goals',descZh:'目标、里程碑和成长进度',descEn:'Goals, milestones and progress'},
+      {id:'insights',symbol:'▥',zh:'生活分析',en:'Life Insights',descZh:'日程与生活趋势分析',descEn:'Schedule and life trends'}
+    ];
+    if(state.section==='home'){
+      host.innerHTML=`<div class="lp-shell lp-hub-shell">
+        <header class="lp-hero"><div><div class="lp-eyebrow">MMHVAULT / LIFE PLANNER</div><h1>${L('生活规划','Life Planner')}</h1><p>${L('生活与财务，分开记录、安心规划。请选择要进入的模块。','Organize your life separately from finances. Choose a module to get started.')}</p></div><div class="lp-hero-actions">${textButton(L('返回 Dashboard','Back to Dashboard'),'dashboard')}</div></header>
+        <div class="lp-hub-head"><div><span class="lp-eyebrow">YOUR WORKSPACE</span><h2>${L('我的生活管理','My Life Management')}</h2><p>${L('选择一个模块进入独立页面；其余功能将按阶段开放。','Open a module in its own workspace. Others will arrive in later phases.')}</p></div></div>
+        <nav class="lp-hub-grid" aria-label="${L('生活规划模块','Life Planner modules')}">
+          ${modules.map(item=>`<button type="button" data-lp-act="openModule" data-module="${item.id}" class="lp-hub-card ${item.available?'lp-hub-available':'lp-hub-future'}"><span class="lp-hub-card-icon" aria-hidden="true">${item.symbol}</span><span class="lp-hub-card-copy"><strong>${safe(L(item.zh,item.en))}</strong><small>${safe(L(item.descZh,item.descEn))}</small></span><span class="lp-hub-card-status">${item.available?L('进入 ›','Open ›'):L('即将推出','Coming later')}</span></button>`).join('')}
+        </nav><p class="lp-hub-footnote">${L('私人习惯及消费明细不会在此首页展示。','Private habits and spending details are not displayed on this overview.')}</p>
+      </div><div id="lpOverlayV1" class="lp-overlay" hidden></div>`;
+      return;
+    }
+    if(state.section!=='schedule'){
+      const item=modules.find(x=>x.id===state.section)||modules[0];
+      host.innerHTML=`<div class="lp-shell lp-module-placeholder">
+        <div class="lp-subnav">${textButton('← '+L('返回 Life Planner','Back to Life Planner'),'home')}</div>
+        <section class="lp-coming-panel"><div class="lp-coming-icon" aria-hidden="true">${item.symbol}</div><span class="lp-eyebrow">LIFE PLANNER / ${safe(L('后续阶段','FUTURE PHASE'))}</span><h1>${safe(L(item.zh,item.en))}</h1><p>${safe(L(item.descZh,item.descEn))}</p><div class="lp-coming-badge">${L('功能开发中 · 尚未启用','Coming later · Not enabled yet')}</div>${textButton(L('返回全部模块','Back to all modules'),'home')}</section>
+      </div><div id="lpOverlayV1" class="lp-overlay" hidden></div>`;
+      return;
+    }
     const m=jsDate(state.focus)||new Date();const range=visibleRange();const rows=state.loaded?occurrences(range.start,range.end):[];
     const dayRows=state.loaded?occurrences(state.selected,state.selected):[];
     const weekStart=shift(today(),-((at(today())+6)%7));const thisWeek=state.loaded?occurrences(weekStart,shift(weekStart,6)).filter(o=>o.status==='completed'):[];
@@ -132,10 +160,9 @@
       state.error==='LOGIN'?L('请重新登录以访问日程。','Sign in again to access your schedule.'):
       state.error==='LIMIT'?L('记录数量超出当前版本上限，请导出或分批处理后重试。','Too many records for this version. Reduce or export records before retrying.'):
       state.error?L('云端日程读取失败。请检查网络、权限和 SQL 部署状态，不能在未核实权限时写入。','Could not load cloud schedule. Check network, permissions and SQL deployment; writes are disabled.'):'';
-    const future=[['habit',L('Habit Control','Habit Control')],['spending',L('Spending Control','Spending Control')],['fund',L('Wish Fund','Wish Fund')],['goals',L('My Goals','My Goals')],['insights',L('Life Insights','Life Insights')]];
-    host.innerHTML=`<div class="lp-shell">
-      <header class="lp-hero"><div><div class="lp-eyebrow">MMHVAULT / LIFE PLANNER · PHASE 1</div><h1>${L('生活规划','Life Planner')}</h1><p>${L('让日程与财务各自清晰，独立管理你的每一天。','Organize your daily life, separately from financial records.')}</p></div><div class="lp-hero-actions">${textButton(L('返回 Dashboard','Back to Dashboard'),'dashboard')}</div></header>
-      <div class="lp-section-tabs"><div class="lp-tab-current">▦ ${L('日程管理','My Schedule')}</div>${future.map(([,name])=>`<div class="lp-tab-later" title="${L('后续阶段','Future phase')}">${safe(name)}<small>${L('即将推出','Coming later')}</small></div>`).join('')}</div>
+    host.innerHTML=`<div class="lp-shell lp-schedule-shell">
+      <div class="lp-subnav">${textButton('← '+L('返回 Life Planner','Back to Life Planner'),'home')}<span>Life Planner <span aria-hidden="true">›</span> ${L('我的日程','My Schedule')}</span></div>
+      <header class="lp-hero lp-schedule-hero"><div><div class="lp-eyebrow">LIFE PLANNER / MY SCHEDULE</div><h1>${L('我的日程','My Schedule')}</h1><p>${L('按天、周、月管理日程；独立于财务数据。','Plan your days, weeks and months separately from financial records.')}</p></div></header>
       <div class="lp-summary"><div class="lp-summary-card"><small>${L('今天','Today')}</small><b>${state.loaded?occurrences(today(),today()).filter(x=>x.status!=='cancelled').length:'—'}</b><span>${L('项日程','events')}</span></div><div class="lp-summary-card"><small>${L('本周已完成','Completed this week')}</small><b>${state.loaded?thisWeek.length:'—'}</b><span>${L('项日程','events')}</span></div><div class="lp-summary-card"><small>${L('数据存储','Storage')}</small><b>${state.loading?L('读取中','Loading'):state.error?L('未连接','Unavailable'):state.loaded?L('云端','Cloud'):L('待连接','Waiting')}</b><span>${L('独立于财务账本','No finance writes')}</span></div></div>
       <div id="lpNoticeV1" class="lp-notice" role="status" aria-live="polite" ${state.toast?'':'hidden'}>${safe(state.toast)}</div>
       ${state.loading?`<p class="lp-alert" role="status">${L('正在安全加载私人日程…','Loading your schedule securely…')}</p>`:''}
@@ -291,7 +318,15 @@
     finally{state.saving=false;}
   }
   function onClick(event){const btn=event.target.closest('[data-lp-act]');if(!btn||!$(ROOT)?.contains(btn))return;const act=btn.dataset.lpAct,id=btn.dataset.id,date=btn.dataset.date;
-    if(act==='dashboard'){closeDialog();window.setPage?.('dashboard');return;}
+    if(act==='dashboard'){closeDialog();state.section='home';window.setPage?.('dashboard');return;}
+    if(act==='home'){closeDialog();state.privateVisible=false;state.section='home';render();return;}
+    if(act==='openModule'){
+      const target=btn.dataset.module;
+      if(!['schedule','habit','spending','fund','goals','insights'].includes(target))return;
+      closeDialog();state.privateVisible=false;state.section=target;render();
+      if(target==='schedule'&&!state.loaded&&!state.loading)load();
+      return;
+    }
     if(act==='closeDialog'){closeDialog();return;}
     if(act==='add'){openEditor('add');return;}
     if(act==='edit'){const e=state.events.find(x=>x.id===id);openEditor('edit',id,date,e?.repeat_frequency==='none'?'series':'single');return;}
@@ -325,6 +360,7 @@
         else if(!ev.shiftKey&&document.activeElement===last){ev.preventDefault();first.focus();}
       }
     });
+    window.addEventListener('mmhvault:life-planner-home',()=>{closeDialog();state.privateVisible=false;state.section='home';if(active())render();});
     window.addEventListener('mmhvault:page-visible',e=>{
       if(e?.detail?.page===PAGE){if(ownerNow()!==state.owner||epochNow()!==state.epoch)reset();if(!state.loaded&&!state.loading)load();else render();}
       else if(state.dialog||state.privateVisible){closeDialog();state.privateVisible=false;}
