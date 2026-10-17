@@ -26,11 +26,11 @@
   const cloud=()=>{try{return typeof db!=='undefined'&&db?.from?db:null;}catch(_){return null;}};
   const active=()=>!!$(PAGE)?.classList.contains('active');
   const CHOICES={work:['工作','Work'],personal:['个人','Personal'],study:['学习','Study'],health:['健康','Health'],important:['重要','Important']};
-  const state={owner:'',epoch:0,events:[],exceptions:[],loaded:false,loading:false,saving:false,view:'month',section:'home',focus:today(),selected:today(),privateVisible:false,dialog:null,request:0,ready:false,error:'',toast:''};
+  const state={owner:'',epoch:0,events:[],exceptions:[],loaded:false,loading:false,saving:false,view:'month',section:'home',focus:today(),selected:today(),privateVisible:false,categoryFilter:'all',statusFilter:'all',search:'',dialog:null,request:0,ready:false,error:'',toast:''};
 
   function sessionValid(owner,epoch){return owner&&owner===ownerNow()&&epoch===epochNow();}
   function owns(record){return record&&record.user_id===state.owner;}
-  function reset(){state.request++;state.events=[];state.exceptions=[];state.loaded=false;state.loading=false;state.saving=false;state.error='';state.toast='';state.privateVisible=false;state.section='home';state.dialog=null;state.owner=ownerNow();state.epoch=epochNow();closeDialog();render();}
+  function reset(){state.request++;state.events=[];state.exceptions=[];state.loaded=false;state.loading=false;state.saving=false;state.error='';state.toast='';state.privateVisible=false;state.categoryFilter='all';state.statusFilter='all';state.search='';state.section='home';state.dialog=null;state.owner=ownerNow();state.epoch=epochNow();closeDialog();render();}
   function parseMissing(error){const code=String(error?.code||'');const msg=String(error?.message||'');return /42P01|PGRST205|PGRST116/i.test(code)||/could not find the table|does not exist|schema cache/i.test(msg);}
   function notice(message){state.toast=message;const el=$('lpNoticeV1');if(el){el.textContent=message;el.hidden=false;} }
   async function guardedUser(){const c=cloud(),owner=ownerNow();if(!c||!owner)throw Error('LOGIN');const r=await c.auth.getUser();if(r.error||r.data?.user?.id!==owner)throw Error('LOGIN');if(!sessionValid(owner,epochNow()))throw Error('CHANGED');return owner;}
@@ -100,6 +100,16 @@
     return result;
   }
   function displayTitle(o){return o.is_private&&!state.privateVisible?L('私人日程','Private event'):o.title;}
+  // Search private contents only when the user explicitly reveals private titles in this session.
+  // Never persist search/filter state or send it to financial analytics and AI Chat.
+  function matchesFilter(o){
+    if(state.categoryFilter!=='all'&&o.category!==state.categoryFilter)return false;
+    if(state.statusFilter!=='all'&&o.status!==state.statusFilter)return false;
+    const q=state.search.trim().toLocaleLowerCase();
+    if(!q)return true;
+    if(o.is_private&&!state.privateVisible)return false;
+    return `${o.title||''} ${o.notes||''}`.toLocaleLowerCase().includes(q);
+  }
   function timeText(o){return o.all_day?L('全天','All day'):(String(o.start_time||'').slice(0,5)+' – '+String(o.end_time||'').slice(0,5));}
   function humanStatus(s){return s==='completed'?L('已完成','Completed'):s==='cancelled'?L('已取消','Cancelled'):L('待进行','Scheduled');}
   function kindName(s){return CHOICES[s]?.[isZh()?0:1]||L('个人','Personal');}
@@ -166,10 +176,14 @@
       </div><div id="lpOverlayV1" class="lp-overlay" hidden></div>`;
       return;
     }
-    const m=jsDate(state.focus)||new Date();const range=visibleRange();const rows=state.loaded?occurrences(range.start,range.end):[];
-    const dayRows=state.loaded?occurrences(state.selected,state.selected):[];
+    const m=jsDate(state.focus)||new Date();const range=visibleRange();const rows=state.loaded?occurrences(range.start,range.end).filter(matchesFilter):[];
+    const dayRows=state.loaded?occurrences(state.selected,state.selected).filter(matchesFilter):[];
     const weekStart=shift(today(),-((at(today())+6)%7));const thisWeek=state.loaded?occurrences(weekStart,shift(weekStart,6)).filter(o=>o.status==='completed'):[];
-    const upcoming=state.loaded?occurrences(today(),shift(today(),30)).filter(o=>o.status==='scheduled').slice(0,5):[];
+    const upcoming=state.loaded?occurrences(today(),shift(today(),30)).filter(o=>o.status==='scheduled'&&matchesFilter(o)).slice(0,5):[];
+    const todays=state.loaded?occurrences(today(),today()).filter(o=>o.status!=='cancelled'):[];
+    const dailyDone=todays.filter(o=>o.status==='completed').length;
+    const dailyPercent=todays.length?Math.round(100*dailyDone/todays.length):0;
+    const todayPending=todays.filter(o=>o.status==='scheduled').slice(0,4);
     const focusLabel=state.view==='month'?m.toLocaleDateString(locale(),{month:'long',year:'numeric'}):state.view==='week'?`${dateLabel(range.start)} – ${dateLabel(range.end)}`:dateLabel(state.focus,{year:'numeric',month:'long',day:'numeric'});
     const status=state.error==='MIGRATION'?L('新日程数据库尚未部署，或表不在可访问的 schema 中。请先审核独立 SQL 文件，再由你手动执行及验证 RLS。不会在本地临时保存日程。','Schedule database is not deployed or not accessible. Review and run the separate migration and verify RLS first. No insecure local fallback is used.'):
       state.error==='LOGIN'?L('请重新登录以访问日程。','Sign in again to access your schedule.'):
@@ -178,15 +192,30 @@
     host.innerHTML=`<div class="lp-shell lp-schedule-shell">
       <div class="lp-subnav">${textButton('← '+L('返回 Life Planner','Back to Life Planner'),'home')}<span>Life Planner <span aria-hidden="true">›</span> ${L('我的日程','My Schedule')}</span></div>
       <header class="lp-hero lp-schedule-hero"><div><div class="lp-eyebrow">LIFE PLANNER / MY SCHEDULE</div><h1>${L('我的日程','My Schedule')}</h1><p>${L('按天、周、月管理日程；独立于财务数据。','Plan your days, weeks and months separately from financial records.')}</p></div></header>
-      <div class="lp-summary"><div class="lp-summary-card"><small>${L('今天','Today')}</small><b>${state.loaded?occurrences(today(),today()).filter(x=>x.status!=='cancelled').length:'—'}</b><span>${L('项日程','events')}</span></div><div class="lp-summary-card"><small>${L('本周已完成','Completed this week')}</small><b>${state.loaded?thisWeek.length:'—'}</b><span>${L('项日程','events')}</span></div><div class="lp-summary-card"><small>${L('数据存储','Storage')}</small><b>${state.loading?L('读取中','Loading'):state.error?L('未连接','Unavailable'):state.loaded?L('云端','Cloud'):L('待连接','Waiting')}</b><span>${L('独立于财务账本','No finance writes')}</span></div></div>
+      <div class="lp-summary"><div class="lp-summary-card"><small>${L('今天','Today')}</small><b>${state.loaded?todays.length:'—'}</b><span>${L('项日程','events')}</span></div><div class="lp-summary-card"><small>${L('本周已完成','Completed this week')}</small><b>${state.loaded?thisWeek.length:'—'}</b><span>${L('项日程','events')}</span></div><div class="lp-summary-card"><small>${L('数据存储','Storage')}</small><b>${state.loading?L('读取中','Loading'):state.error?L('未连接','Unavailable'):state.loaded?L('云端','Cloud'):L('待连接','Waiting')}</b><span>${L('独立于财务账本','No finance writes')}</span></div></div>
+      <section class="lp-daily-focus" aria-label="${L('今日重点','Today’s focus')}">
+        <div class="lp-focus-intro"><span class="lp-focus-kicker">✦ ${L('今天，也值得认真对待','A FRESH DAY, A FRESH START')}</span><h2>${L('今天的重点','Today’s focus')}</h2>
+          <p>${!state.loaded?L('同步日程后，在这里查看今天的安排。','Your daily plan appears here after your schedule loads.'):todays.length===0?L('今天还没有安排，为自己安排一件有意义的小事吧。','Nothing planned yet. Make room for one meaningful thing today.'):dailyDone===todays.length?L('今天的日程已经完成，做得好！','All planned events are done. Nice work!'):L('按自己的节奏，一件一件完成就好。','One thing at a time. Keep your own pace.')}</p>
+          <button type="button" class="lp-btn lp-focus-create" data-lp-act="add" ${!state.loaded?'disabled':''}>+ ${L('安排今天','Plan today')}</button>
+        </div>
+        <div class="lp-focus-meter" role="progressbar" aria-label="${L('今日完成率','Today completion rate')}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${dailyPercent}" style="--lp-focus-progress:${dailyPercent}%"><div><strong>${state.loaded?dailyPercent+'%':'—'}</strong><small>${state.loaded?`${dailyDone} / ${todays.length}`:L('同步中','Syncing')}</small></div></div>
+        <div class="lp-focus-tasks"><span class="lp-focus-list-title">${L('接下来','Coming up today')}</span>
+          ${!state.loaded?`<div class="lp-focus-empty">${L('等待云端日程','Waiting for cloud schedule')}</div>`:todayPending.length?todayPending.map(o=>`<div class="lp-focus-task"><span class="lp-event-dot lp-cat-${safe(o.category)}" aria-hidden="true"></span><div><b>${safe(displayTitle(o))}</b><small>${safe(timeText(o))}</small></div><button type="button" class="lp-focus-done" data-lp-act="toggleDone" data-id="${o.event.id}" data-date="${o.originalDate}" title="${L('标记完成','Mark done')}" aria-label="${L('完成日程','Complete event')} ${safe(displayTitle(o))}">✓</button></div>`).join(''):`<div class="lp-focus-empty">${todays.length?L('今天没有待办日程','No pending events today'):L('点击“安排今天”开始','Choose “Plan today” to begin')}</div>`}
+        </div>
+      </section>
       <div id="lpNoticeV1" class="lp-notice" role="status" aria-live="polite" ${state.toast?'':'hidden'}>${safe(state.toast)}</div>
       ${state.loading?`<p class="lp-alert" role="status">${L('正在安全加载私人日程…','Loading your schedule securely…')}</p>`:''}
       ${status?`<div class="lp-alert lp-alert-error" role="alert"><p>${safe(status)}</p>${textButton(L('重试连接','Retry'),'refresh')}</div>`:''}
       <div class="lp-workspace"><section class="lp-panel lp-main"><div class="lp-panel-top"><div><span class="lp-eyebrow">MY SCHEDULE</span><h2>${L('我的日程','My Schedule')}</h2></div><div class="lp-panel-actions">${textButton(L('今天','Today'),'today')}${textButton(L('刷新','Refresh'),'refresh')}<button class="lp-btn lp-primary" data-lp-act="add" type="button" ${!state.loaded?'disabled':''}>+ ${L('新建日程','New event')}</button></div></div>
-      <div class="lp-calendar-header"><div class="lp-range"><button type="button" data-lp-act="prev" aria-label="${L('上一时间段','Previous period')}">‹</button><strong>${safe(focusLabel)}</strong><button type="button" data-lp-act="next" aria-label="${L('下一时间段','Next period')}">›</button></div><div class="lp-view-toggle">${['day','week','month'].map(v=>`<button type="button" class="${state.view===v?'is-active':''}" aria-pressed="${state.view===v}" data-lp-act="view" data-view="${v}">${v==='day'?L('日','Day'):v==='week'?L('周','Week'):L('月','Month')}</button>`).join('')}</div></div>
+      <div class="lp-calendar-header"><div class="lp-range"><button type="button" data-lp-act="prev" aria-label="${L('上一时间段','Previous period')}">‹</button><strong>${safe(focusLabel)}</strong><button type="button" data-lp-act="next" aria-label="${L('下一时间段','Next period')}">›</button></div><label class="lp-date-jump">${L('跳转日期','Go to date')} <input id="lpJumpDateV15" type="date" value="${safe(state.focus)}" aria-label="${L('选择日历日期','Choose calendar date')}"></label><div class="lp-view-toggle">${['day','week','month'].map(v=>`<button type="button" class="${state.view===v?'is-active':''}" aria-pressed="${state.view===v}" data-lp-act="view" data-view="${v}">${v==='day'?L('日','Day'):v==='week'?L('周','Week'):L('月','Month')}</button>`).join('')}</div></div>
       ${renderCalendar(rows,range)}
       <div class="lp-list-head"><h3>${safe(dateLabel(state.selected,{weekday:'long',year:'numeric',month:'long',day:'numeric'}))}</h3><div>${textButton(state.privateVisible?L('隐藏私人名称','Hide private names'):L('显示私人名称','Show private names'),'private')}${textButton(L('新建','Add'),'add',!state.loaded?'disabled':'')}</div></div>
-      ${state.loaded?(dayRows.length?`<div class="lp-event-list">${dayRows.map(renderEvent).join('')}</div>`:`<div class="lp-empty">${L('当天没有日程。','No events on this day.')}</div>`):`<div class="lp-empty">${L('连接经过验证的私有日程数据库后可查看与添加。','Connect a verified private schedule database to view and add events.')}</div>`}</section>
+      <div class="lp-filters" role="group" aria-label="${L('查找和筛选日程','Search and filter events')}">
+        <label class="lp-filter-search"><span>${L('搜索日程','Search events')}</span><input id="lpSearchV15" type="search" maxlength="120" autocomplete="off" spellcheck="false" placeholder="${L('搜索名称或备注','Search title or notes')}" value="${safe(state.search)}"></label>
+        <label><span>${L('分类','Category')}</span><select id="lpCategoryFilterV15"><option value="all">${L('全部分类','All categories')}</option>${Object.entries(CHOICES).map(([id,names])=>`<option value="${id}" ${state.categoryFilter===id?'selected':''}>${safe(names[isZh()?0:1])}</option>`).join('')}</select></label>
+        <label><span>${L('状态','Status')}</span><select id="lpStatusFilterV15">${[['all',L('全部状态','All statuses')],['scheduled',L('待进行','Scheduled')],['completed',L('已完成','Completed')],['cancelled',L('已取消','Cancelled')]].map(([id,n])=>`<option value="${id}" ${state.statusFilter===id?'selected':''}>${safe(n)}</option>`).join('')}</select></label>
+      </div>
+      ${state.loaded?(dayRows.length?`<div class="lp-event-list">${dayRows.map(renderEvent).join('')}</div>`:`<div class="lp-empty">${state.search||state.categoryFilter!=='all'||state.statusFilter!=='all'?L('没有符合筛选条件的日程。','No events match these filters.'):L('当天没有日程。','No events on this day.')}</div>`):`<div class="lp-empty">${L('连接经过验证的私有日程数据库后可查看与添加。','Connect a verified private schedule database to view and add events.')}</div>`}</section>
       <aside class="lp-panel lp-side"><h2>${L('未来 30 天','Next 30 days')}</h2><p class="lp-side-sub">${L('仅在此页面显示，私人名称默认隐藏。','Only shown here. Private names are hidden by default.')}</p>${state.loaded?(upcoming.length?`<div class="lp-upcoming">${upcoming.map(o=>`<button type="button" data-lp-act="jump" data-date="${o.starts_on}"><small>${safe(dateLabel(o.starts_on))}</small><b>${safe(displayTitle(o))}</b><span>${safe(timeText(o))}</span></button>`).join('')}</div>`:`<p class="lp-empty">${L('暂无近期日程','No upcoming events')}</p>`):`<p class="lp-empty">${L('暂无可用的云端日程数据','Cloud schedule unavailable')}</p>`}
       <div class="lp-private-note">◈ ${L('私人事件不会加入普通 Dashboard、财务分析、AI Chat 或推送通知。界面隐藏不等同于数据库加密，请验证 RLS。','Private events are not sent to the regular Dashboard, financial insights, AI Chat or push. UI hiding is not encryption: verify RLS.')}</div></aside></div>
     </div><div id="lpOverlayV1" class="lp-overlay" hidden></div>`;
@@ -334,7 +363,7 @@
   }
   function onClick(event){const btn=event.target.closest('[data-lp-act]');if(!btn||!$(ROOT)?.contains(btn))return;const act=btn.dataset.lpAct,id=btn.dataset.id,date=btn.dataset.date;
     if(act==='dashboard'){closeDialog();state.section='home';window.setPage?.('dashboard');return;}
-    if(act==='home'){closeDialog();state.privateVisible=false;state.section='home';render();return;}
+    if(act==='home'){closeDialog();state.privateVisible=false;state.search='';state.categoryFilter='all';state.statusFilter='all';state.section='home';render();return;}
     if(act==='openModule'){
       const target=btn.dataset.module;
       if(!['schedule','habit','spending','fund','goals','insights'].includes(target))return;
@@ -343,9 +372,9 @@
       return;
     }
     if(act==='closeDialog'){closeDialog();return;}
-    if(act==='add'){openEditor('add');return;}
+    if(act==='add'){if(btn.classList.contains('lp-focus-create'))state.selected=today();openEditor('add');return;}
     if(act==='edit'){const e=state.events.find(x=>x.id===id);openEditor('edit',id,date,e?.repeat_frequency==='none'?'series':'single');return;}
-    if(act==='toggleDone'){const o=occurrences(date,date).find(x=>x.event.id===id&&x.originalDate===date);if(o)mutateOccurrence(id,date,o.status==='completed'?'scheduled':'completed');return;}
+    if(act==='toggleDone'){const e=state.events.find(x=>x.id===id&&owns(x));if(e){const ex=state.exceptions.find(x=>x.event_id===id&&x.occurrence_date===date);const o=buildOccurrence(e,date,ex);mutateOccurrence(id,date,o.status==='completed'?'scheduled':'completed');}return;}
     if(act==='delete'){askDelete(id,date);return;}
     if(act==='confirmDelete'){deleteSeries();return;}
     if(act==='cancelOccurrence'){const o=state.dialog;closeDialog();if(o)mutateOccurrence(o.id,o.date,'cancelled');return;}
@@ -364,6 +393,18 @@
   function init(){
     const host=$(ROOT);if(!host)return;state.ready=true;state.owner=ownerNow();state.epoch=epochNow();render();
     host.addEventListener('click',onClick);
+    host.addEventListener('input',ev=>{
+      if(ev.target?.id!=='lpSearchV15')return;
+      const start=ev.target.selectionStart,end=ev.target.selectionEnd;
+      state.search=String(ev.target.value||'').slice(0,120);render();
+      const input=$('lpSearchV15');if(input){input.focus({preventScroll:true});try{input.setSelectionRange(start,end);}catch(_){/* unsupported input type */}}
+    });
+    host.addEventListener('change',ev=>{
+      const id=ev.target?.id,value=ev.target?.value;
+      if(id==='lpCategoryFilterV15'&&(value==='all'||Object.prototype.hasOwnProperty.call(CHOICES,value))){state.categoryFilter=value;render();}
+      if(id==='lpStatusFilterV15'&&['all','scheduled','completed','cancelled'].includes(value)){state.statusFilter=value;render();}
+      if(id==='lpJumpDateV15'&&jsDate(value)){state.focus=state.selected=value;render();}
+    });
     host.addEventListener('keydown',ev=>{
       if(!state.dialog)return;
       if(ev.key==='Escape'){ev.preventDefault();closeDialog();return;}
@@ -378,7 +419,7 @@
     window.addEventListener('mmhvault:life-planner-home',()=>{closeDialog();state.privateVisible=false;state.section='home';if(active())render();});
     window.addEventListener('mmhvault:page-visible',e=>{
       if(e?.detail?.page===PAGE){if(ownerNow()!==state.owner||epochNow()!==state.epoch)reset();if(!state.loaded&&!state.loading)load();else render();}
-      else if(state.dialog||state.privateVisible){closeDialog();state.privateVisible=false;}
+      else {if(state.dialog)closeDialog();state.privateVisible=false;state.search='';state.categoryFilter='all';state.statusFilter='all';}
     });
     window.addEventListener('mmhvault:config-owner-changed',reset);
     for(const n of ['mmhvault-language-change','languagechange'])window.addEventListener(n,()=>{if(state.ready)render();});

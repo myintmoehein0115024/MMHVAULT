@@ -372,3 +372,34 @@
 #life-planner .lp-modal .lp-scope{background:#f6efe3!important;border:1px solid #e6d7c3!important;}
 #life-planner .lp-modal .lp-form-error{background:#fff1ec!important;color:#9b3e37!important;border-color:#d99c8d!important;}
 #life-planner .lp-notice{background:#e9f2e7!important;color:#366e4d!important;border:1px solid #d2dfce!important;}
+
+/* Phase 1.5 — Daily Focus: real responsive controls, scoped only to Life Planner. */
+#life-planner .lp-daily-focus{display:grid;grid-template-columns:minmax(0,1fr) 110px minmax(190px,1.1fr);gap:17px;align-items:center;padding:22px 23px;margin:0 0 17px;border:1px solid #e9d1ab;border-radius:19px;background:linear-gradient(108deg,#fff1dc 0%,#f4f5e9 64%,#edf3e7 100%);box-shadow:0 5px 21px rgba(73,53,30,.055);color:#304439;}
+#life-planner .lp-focus-intro{min-width:0;}
+#life-planner .lp-focus-kicker{font-size:10px;letter-spacing:.08em;font-weight:800;color:#b07e40;}
+#life-planner .lp-focus-intro h2{font-family:Georgia,'Times New Roman',serif!important;color:#304438!important;font-size:27px!important;line-height:1.15!important;margin:9px 0 8px!important;}
+#life-planner .lp-focus-intro p{font-size:12px!important;color:#69796a!important;line-height:1.6!important;margin:0 0 12px!important;}
+#life-planner .lp-focus-create{min-height:36px;font-size:11px!important;background:#dba761!important;border:1px solid #c58b48!important;color:#2d3329!important;}
+#life-planner .lp-focus-meter{--lp-focus-progress:0%;width:108px;height:108px;border-radius:50%;padding:9px;background:conic-gradient(#71a27b var(--lp-focus-progress),#e4e8da var(--lp-focus-progress));display:grid;place-items:center;justify-self:center;}
+#life-planner .lp-focus-meter>div{background:#fffaf0;width:100%;height:100%;border-radius:50%;display:flex;justify-content:center;align-items:center;flex-direction:column;gap:1px;}
+#life-planner .lp-focus-meter strong{font-size:22px;color:#396e4c;line-height:1.15;font-weight:800;}
+#life-planner .lp-focus-meter small{font-size:10px;color:#849283;}
+#life-planner .lp-focus-tasks{min-width:0;display:grid;gap:7px;}
+#life-planner .lp-focus-list-title{font-size:11px;font-weight:800;color:#5e6d5d;}
+#life-planner .lp-focus-task{display:flex;gap:9px;align-items:center;min-width:0;background:rgba(255,255,255,.74);padding:7px 9px;border-radius:10px;border:1px solid #e4e6d9;}
+#life-planner .lp-focus-task>div{min-width:0;flex:1;display:flex;flex-direction:column;gap:2px;}
+#life-planner .lp-focus-task b{overflow-wrap:anywhere;line-height:1.25;font-size:11px;color:#425549;}
+#life-planner .lp-focus-task small{font-size:10px;color:#8c998c;}
+#life-planner .lp-focus-done{border:1px solid #c4ddc6;background:#e9f3e8;border-radius:9px;min-width:36px;min-height:36px;color:#3e8156;font-weight:900;flex:none;}
+#life-planner .lp-focus-done:hover{background:#d1e8d2;}
+#life-planner .lp-focus-empty{background:rgba(255,255,255,.62);padding:18px 12px;border-radius:12px;text-align:center;color:#829080;font-size:11px;line-height:1.6;}
+#life-planner .lp-date-jump{font-size:10px;color:#627668;font-weight:800;display:flex;gap:7px;align-items:center;}
+#life-planner .lp-date-jump input{box-sizing:border-box;min-width:0;width:138px;max-width:100%;padding:8px;border-radius:9px;min-height:36px;background:#fffcf5;color:#344f3f;border:1px solid #ddcdb3;font-size:11px;color-scheme:light;}
+#life-planner .lp-filters{display:grid;grid-template-columns:minmax(140px,1.5fr) repeat(2,minmax(100px,1fr));gap:9px;margin:0 0 12px;padding:12px;background:#f8f4eb;border:1px solid #eae1d5;border-radius:12px;}
+#life-planner .lp-filters label{display:flex;flex-direction:column;gap:5px;min-width:0;color:#697a6e;font-size:10px;font-weight:800;}
+#life-planner .lp-filters :is(input,select){max-width:100%;min-width:0;width:100%;height:38px;background:#fffdfa;color:#35473a;border:1px solid #dcdacb;border-radius:9px;padding:7px 9px;font-size:12px;color-scheme:light;}
+#life-planner .lp-filters :is(input,select):focus-visible,#life-planner .lp-date-jump input:focus-visible{outline:2px solid #b2804c;outline-offset:2px;}
+@container(max-width:850px){#life-planner .lp-daily-focus{grid-template-columns:minmax(0,1fr) 95px;}.lp-focus-tasks{grid-column:1 / -1;}#life-planner .lp-focus-meter{width:93px;height:93px;}}
+@media(max-width:700px){#life-planner .lp-daily-focus{padding:17px 14px;gap:11px;grid-template-columns:minmax(0,1fr) 88px;}#life-planner .lp-focus-meter{width:83px;height:83px;padding:7px;}#life-planner .lp-focus-meter strong{font-size:17px;}#life-planner .lp-focus-intro h2{font-size:23px!important;}#life-planner .lp-calendar-header{gap:10px;}#life-planner .lp-date-jump{flex-wrap:wrap;}#life-planner .lp-filters{grid-template-columns:repeat(2,minmax(0,1fr));padding:9px;gap:8px;}#life-planner .lp-filter-search{grid-column:1 / -1;}}
+@media(max-width:380px){#life-planner .lp-daily-focus{grid-template-columns:minmax(0,1fr) 70px;}#life-planner .lp-focus-meter{width:69px;height:69px;padding:5px;}#life-planner .lp-focus-meter strong{font-size:14px;}#life-planner .lp-focus-meter small{font-size:8px;}#life-planner .lp-focus-intro h2{font-size:21px!important;}#life-planner .lp-date-jump input{width:134px;}#life-planner .lp-filters :is(input,select){font-size:11px;}}
+@media(prefers-reduced-motion:reduce){#life-planner .lp-focus-done{transition:none;}}
