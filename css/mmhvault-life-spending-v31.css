@@ -1,4 +1,4 @@
-/* MMHVAULT Life Planner Phase 3.1. Scoped to Spending Control only. */
+/* MMHVAULT Life Planner Phase 3.2. Scoped to Spending Control only. */
 #life-planner .ls-shell,#life-planner .ls-shell *{box-sizing:border-box;min-width:0}
 #life-planner .lp-spending-host{width:min(1160px,100%);max-width:100%;min-width:0}
 #life-planner .ls-shell{background:linear-gradient(145deg,#fffaf2,#f5f8f0);border:1px solid #ebdbbc;border-radius:24px;box-shadow:0 16px 46px #172e2310;padding:clamp(15px,2.5vw,26px);color:#254233;overflow:hidden}
@@ -65,3 +65,8 @@
 @media(max-width:900px){#life-planner .ls-grid{grid-template-columns:1fr}}
 @media(max-width:550px){#life-planner .ls-shell{border-radius:16px;padding:13px}#life-planner .ls-toolbar{align-items:stretch}#life-planner .ls-toolbar-actions{width:100%}#life-planner .ls-toolbar-actions>button{flex:1}#life-planner .ls-toolbar label{flex:1}#life-planner .ls-toolbar input{max-width:100%}#life-planner .ls-privacy{align-items:stretch;flex-direction:column}#life-planner .ls-metrics{grid-template-columns:1fr 1fr}#life-planner .ls-metrics div:last-child{grid-column:1/-1}.ls-dialog .ls-form-grid{grid-template-columns:1fr}.ls-dialog .ls-entry-row{align-items:stretch;flex-direction:column}.ls-dialog .ls-dialog-footer button{flex:1}}
 #life-planner .ls-warning{font-size:11px;line-height:1.55;padding:8px 10px;background:#fff3dd;border:1px solid #e7c9a0;border-radius:9px;color:#8f6533;margin:10px 0}
+
+/* Phase 3.2 - links: reuse the existing secure modal and calm lifestyle cards. */
+#life-planner .ls-card-actions [data-ls-act="link"]{background:#e8f0e5;border-color:#a8c9aa;color:#29583b}
+#life-planner .ls-card-actions [data-ls-act="links"]{background:#fbf2e1;border-color:#d8c29f}
+.ls-dialog select[name="transaction_id"]{max-width:100%}
