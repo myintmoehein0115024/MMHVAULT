@@ -1,4 +1,4 @@
-/* MMHVAULT Life Planner · Phase 2.2 / Habit Journal
+/* MMHVAULT Life Planner · Phase 2.3 / Habit Insights & Pause
  * Deliberately separate from finance, notification, AI Chat and analytics.
  * No localStorage, sessionStorage, offline seed, third-party requests or global habit data.
  * Requires independently reviewed RLS schema. Do not persist sensitive data before migration.
@@ -21,9 +21,11 @@ const shift=(day,n)=>{const d=new Date(day+'T12:00:00');d.setDate(d.getDate()+n)
 const validDay=v=>/^\d{4}-\d\d-\d\d$/.test(v)&&date(new Date(v+'T12:00:00'))===v;
 const modes={reduce:['减少频率','Reduce'],build:['培养习惯','Build'],maintain:['维持习惯','Maintain']};
 const periods={day:['每天','Daily'],week:['每周','Weekly'],month:['每月','Monthly']};
-const state={owner:'',epoch:0,token:0,habits:[],entries:[],loaded:false,busy:false,error:'',reveal:false,selected:localDate(),viewMonth:localDate().slice(0,7),filter:'all',dialog:null,notice:''};
+const state={owner:'',epoch:0,token:0,habits:[],entries:[],loaded:false,busy:false,error:'',reveal:false,selected:localDate(),viewMonth:localDate().slice(0,7),filter:'all',dialog:null,notice:'',expanded:{},delay:null};
 const live=()=>state.owner&&state.owner===owner()&&state.epoch===epoch()&&$(ROOT)&&document.getElementById('life-planner')?.classList.contains('active')&&!document.hidden;
-function forget(){state.token++;state.habits=[];state.entries=[];state.loaded=false;state.busy=false;state.error='';state.reveal=false;state.dialog=null;state.notice='';state.selected=localDate();state.viewMonth=localDate().slice(0,7);state.filter='all';const d=$('lhDialogV21');if(d){d.close?.();d.remove();}const root=$(ROOT);if(root)root.replaceChildren();}
+let delayTimer=null;
+function stopDelay(){if(delayTimer!==null){clearInterval(delayTimer);delayTimer=null;}state.delay=null;}
+function forget(){stopDelay();state.expanded={};state.token++;state.habits=[];state.entries=[];state.loaded=false;state.busy=false;state.error='';state.reveal=false;state.dialog=null;state.notice='';state.selected=localDate();state.viewMonth=localDate().slice(0,7);state.filter='all';const d=$('lhDialogV21');if(d){d.close?.();d.remove();}const root=$(ROOT);if(root)root.replaceChildren();}
 function available(){return state.loaded&&!state.busy&&live();}
 async function auth(){const c=client();if(!c||!live())throw Error('LOGIN');const result=await c.auth.getUser();if(result.error||result.data?.user?.id!==state.owner||!live())throw Error('LOGIN');return c;}
 function errorKind(e){const t=String(e?.message||''),code=String(e?.code||'');return /42P01|PGRST205|schema cache|does not exist|could not find the table/i.test(code+' '+t)?'MIGRATION':'CONNECT';}
@@ -33,13 +35,63 @@ if(h.error)throw h.error;if(!live()||token!==state.token)return;
 const e=await c.from(LOGS).select('*').eq('user_id',u).gte('entry_date',shift(localDate(),-365)).order('entry_date',{ascending:false}).limit(5000);
 if(e.error)throw e.error;if(!live()||token!==state.token)return;
 state.habits=(h.data||[]).filter(x=>x.user_id===u);state.entries=(e.data||[]).filter(x=>x.user_id===u);
-state.loaded=true;if((h.data||[]).length>=500||(e.data||[]).length>=5000)state.notice=L('记录数量达到本版读取上限，仅展示部分内容。','Showing partial history due to the current read limit.');
+state.loaded=true;if(state.delay&&!state.habits.some(h=>h.id===state.delay.habitId&&!h.is_paused&&h.mode==='reduce'))stopDelay();if((h.data||[]).length>=500||(e.data||[]).length>=5000)state.notice=L('记录数量达到本版读取上限，仅展示部分内容。','Showing partial history due to the current read limit.');
 }catch(err){if(live()&&token===state.token){state.loaded=false;state.error=errorKind(err);state.habits=[];state.entries=[];}}
 finally{if(live()&&token===state.token){state.busy=false;render();}}
 }
 function periodRange(period,day){const d=new Date(day+'T12:00:00');if(period==='month')return [date(new Date(d.getFullYear(),d.getMonth(),1)),date(new Date(d.getFullYear(),d.getMonth()+1,0))];if(period==='week'){const start=shift(day,-((d.getDay()+6)%7));return [start,shift(start,6)];}return [day,day];}
 function sums(h){const [a,b]=periodRange(h.target_period,localDate());const items=state.entries.filter(e=>e.habit_id===h.id&&e.entry_date>=a&&e.entry_date<=b);const num=items.reduce((n,e)=>n+Number(e.count||0),0);return {num,days:items.length,range:[a,b]};}
 function title(h){return h.is_private&&!state.reveal?L('私人习惯','Private habit'):h.title;}
+// Trends are computed from explicitly recorded days; a missing entry is not treated as zero.
+function previousPeriodStart(kind,now,offset){
+ const d=new Date(now+'T12:00:00');
+ if(kind==='day')return shift(now,-offset);
+ if(kind==='week')return shift(periodRange('week',now)[0],-7*offset);
+ return monthDate(d.getFullYear(),d.getMonth()-offset)+'-01';
+}
+function fourPeriodStats(h){
+ const now=localDate();return [3,2,1,0].map(offset=>{
+  const start=previousPeriodStart(h.target_period,now,offset);
+  const [a,b]=periodRange(h.target_period,start);
+  const end=b>now?now:b;
+  const recorded=state.entries.filter(e=>e.habit_id===h.id&&e.entry_date>=a&&e.entry_date<=end);
+  const total=recorded.reduce((sum,e)=>sum+Number(e.count||0),0);
+  const label=h.target_period==='day'?start.slice(5):h.target_period==='month'?start.slice(0,7):`${a.slice(5)}–${b.slice(5)}`;
+  return {label,total,days:recorded.length,partial:b>now};
+ });
+}
+function insights(h){
+ const rows=fourPeriodStats(h),max=Math.max(1,...rows.map(r=>r.total));
+ return `<section class="lh-insights" aria-label="${L('四周期趋势','Four-period frequency trend')}">
+ <div class="lh-insights-top"><strong>${L('最近四个目标周期','Last four goal periods')}</strong><small>${L('缺失记录不等于零次','Missing records are not zero')}</small></div>
+ <div class="lh-period-bars">${rows.map((r,i)=>`<div class="lh-period-line"><span class="lh-period-label">${esc(r.label)}${r.partial?' · '+L('本期','Current'):''}</span><div class="lh-period-track" aria-hidden="true"><i style="width:${Math.round(r.total/max*100)}%"></i></div><span class="lh-period-number">${r.days?`${r.total} ${L('次','times')}`:L('无记录','No entry')}</span></div>`).join('')}</div>
+ <p>${L('每个柱条只表示已填写记录的合计，不代表没有记录的日子发生了零次，也不用于评分。','Bars show the total of logged entries only. Unlogged days are unknown, not zero; this is not a score.')}</p>
+ </section>`;
+}
+function renderDelay(h){
+ const item=state.delay?.habitId===h.id?state.delay:null;
+ if(!item)return `<section class="lh-pause-tool"><div><strong>◷ ${L('轻柔暂停','Gentle pause')}</strong><p>${L('如果此刻想推迟一次冲动，可以自愿给自己留几分钟。不计分，不记录。','When you want to pause an urge, give yourself a few minutes. No score or recording.')}</p></div><div class="lh-pause-buttons">${[5,10,15].map(n=>`<button type="button" data-lh-act="delayStart" data-id="${h.id}" data-min="${n}">${n} ${L('分钟','min')}</button>`).join('')}</div></section>`;
+ const seconds=Math.max(0,Math.ceil((item.deadline-Date.now())/1000));
+ const finished=seconds===0;
+ return `<section class="lh-pause-tool lh-pause-active" data-lh-delay-id="${h.id}">
+ <div><strong>◷ ${L('给自己一点空间','A moment for yourself')}</strong><p>${finished?L('时间到了。接下来怎么做，由你自己决定。','The time is up. Your next step is your choice.'):L('可以喝点水、起身走走或轻松呼吸。随时可以结束。','Try water, a short walk, or a comfortable breath. You can stop anytime.')}</p></div>
+ <div class="lh-pause-running"><span class="lh-pause-clock" aria-label="${L('剩余时间','Remaining time')}">${String(Math.floor(seconds/60)).padStart(2,'0')}:${String(seconds%60).padStart(2,'0')}</span><button type="button" data-lh-act="delayStop" data-id="${h.id}">${L('结束暂停','End pause')}</button></div></section>`;
+}
+function refreshDelay(){
+ const item=state.delay;
+ if(!item)return;
+ if(!live()||state.busy||!state.loaded||!state.habits.some(h=>h.id===item.habitId&&!h.is_paused&&h.mode==='reduce'&&!privateMasked(h))){stopDelay();return;}
+ const node=document.querySelector('[data-lh-delay-id] .lh-pause-clock');
+ const remaining=Math.max(0,Math.ceil((item.deadline-Date.now())/1000));
+ if(node)node.textContent=`${String(Math.floor(remaining/60)).padStart(2,'0')}:${String(remaining%60).padStart(2,'0')}`;
+ if(remaining===0){if(delayTimer!==null){clearInterval(delayTimer);delayTimer=null;}render();}
+}
+function startDelay(h,minutes){
+ if(!available()||h.mode!=='reduce'||h.is_paused||privateMasked(h)||![5,10,15].includes(minutes))return;
+ stopDelay();state.delay={habitId:h.id,deadline:Date.now()+minutes*60000};
+ delayTimer=setInterval(refreshDelay,1000);render();
+}
+
 function trend(h){const last=Array.from({length:7},(_,i)=>shift(localDate(),i-6));return `<div class="lh-trend">${last.map(d=>{const row=state.entries.find(e=>e.habit_id===h.id&&e.entry_date===d);return `<div class="lh-trend-day" title="${esc(d)}" aria-label="${esc(d)} ${row?esc(L('记录','Recorded')):esc(L('未记录','Not recorded'))}"><span class="${row?'lh-recorded':''}" style="--lh-count:${Math.min(1,Number(row?.count||0)/4)}"></span><small>${d.slice(-2)}</small></div>`;}).join('')}</div>`;}
 function privateMasked(h){return !!(h.is_private&&!state.reveal);}
 function countFor(h,d){return state.entries.find(e=>e.habit_id===h.id&&e.entry_date===d);}
@@ -65,12 +117,16 @@ const target=Number(h.target_count)||0,progress=Math.min(100,Math.round(p.num/Ma
 const label=h.mode==='reduce'?L('参考上限','Suggested limit'):L('个人目标','Personal goal');
 const progressLabel=h.mode==='reduce'?`${L('本周期已记录','Recorded this period')} ${p.num} / ${target} ${L('次（自定参考）','times (personal guide)')}`:`${L('本周期进度','This period')} ${p.num} / ${target} ${L('次','times')}`;
 const period=esc(periods[h.target_period]?.[isZh()?0:1]||h.target_period);
+const expanded=!!state.expanded[h.id];
 return `<article class="lh-card ${h.is_paused?'lh-paused':''}" data-lh-card-id="${h.id}">
   <div class="lh-card-top"><span class="lh-mode">${masked?L('隐私已保护','Private'):esc(modes[h.mode]?.[isZh()?0:1]||h.mode)}</span><span class="lh-private-flag">${h.is_private?'◈ '+L('私人','Private'):L('普通','Regular')}</span></div>
   <h3>${esc(title(h))}</h3><p class="lh-card-hint">${masked?L('目标与记录已隐藏','Goal and activity hidden'):period+' · '+label+' '+target+' '+L('次','times')}${h.is_paused?' · '+L('已暂停','Paused'):''}</p>
   ${masked?`<div class="lh-hidden-activity" aria-label="${L('私人统计已隐藏','Private statistics hidden')}"><span>•••</span><small>${L('统计、次数与趋势仅在临时显示后可见','Counts, progress and trends require temporary reveal')}</small></div>`:`<div class="lh-number"><strong>${p.num}</strong><small>${L('本周期次数','times this period')} · ${p.days} ${L('个有记录的日期','recorded days')}</small></div>
   <div class="lh-goal-progress"><p>${esc(progressLabel)}</p>${h.mode==='reduce'?`<div class="lh-guide-line">${L('观察变化，不作成绩评判。','Observe gently; no score or penalty.')}</div>`:`<div class="lh-progress-track" role="progressbar" aria-label="${L('自定目标进度','Personal target progress')}" aria-valuenow="${progress}" aria-valuemin="0" aria-valuemax="100"><span style="width:${progress}%"></span></div>`}</div>
   ${trend(h)}
+  <button type="button" class="lh-insights-toggle" data-lh-act="insights" data-id="${h.id}" aria-expanded="${expanded}" ${!available()?'disabled':''}>${expanded?L('收起趋势','Hide trends'):L('查看四周期趋势','View four-period trends')} <span aria-hidden="true">${expanded?'⌃':'⌄'}</span></button>
+  ${expanded?insights(h):''}
+  ${h.mode==='reduce'&&!h.is_paused?renderDelay(h):''}
   <p class="lh-chosen-entry">${esc(state.selected)} · ${selectedEntry?`${L('已记录','Recorded')} ${Number(selectedEntry.count)} ${L('次','times')}`:L('未记录（不等于零）','No entry (not zero)')}</p>`}
   <div class="lh-actions"><button data-lh-act="record" data-id="${h.id}" type="button" ${!available()?'disabled':''}>${L('记录选中日期','Log selected day')}</button><button data-lh-act="edit" data-id="${h.id}" type="button" ${!available()?'disabled':''}>${L('编辑','Edit')}</button><button data-lh-act="pause" data-id="${h.id}" type="button" ${!available()?'disabled':''}>${h.is_paused?L('恢复','Resume'):L('暂停','Pause')}</button><button data-lh-act="delete" data-id="${h.id}" type="button" ${!available()?'disabled':''}>${L('删除','Delete')}</button></div>
 </article>`;}
@@ -106,7 +162,10 @@ async function togglePause(h){await write(L('状态已更新。','Status updated
 async function deleteHabit(h){if(!confirm(L('确定删除这项习惯及其全部记录吗？此操作不可撤销。','Delete this habit and all its history? This cannot be undone.')))return;await write(L('习惯及关联记录已删除。','Habit and its entries deleted.'),async(c,u)=>{const r=await c.from(TABLE).delete().eq('id',h.id).eq('user_id',u).eq('version',h.version).select('id');if(r.error)throw r.error;if(!r.data?.length)throw Error('CONFLICT');});}
 async function deleteLog(){const d=$('lhDialogV21'),day=d?.querySelector('input[name="entry_date"]')?.value,habitId=state.dialog?.id;const entry=state.entries.find(e=>e.habit_id===habitId&&e.entry_date===day);if(!entry)return;await write(L('当天记录已删除。','Day entry deleted.'),async(c,u)=>{const r=await c.from(LOGS).delete().eq('id',entry.id).eq('user_id',u).eq('version',entry.version).select('id');if(r.error)throw r.error;if(!r.data?.length)throw Error('CONFLICT');});}
 function click(ev){const btn=ev.target.closest('[data-lh-act]');if(!btn||!($(ROOT)?.contains(btn)||$('lhDialogV21')?.contains(btn)))return;const action=btn.dataset.lhAct,id=btn.dataset.id,h=state.habits.find(x=>x.id===id);
-if(action==='close'){close();return;}if(action==='reveal'){state.reveal=!state.reveal;render();return;}if(action==='reload'){load();return;}if(!available()&&!['close'].includes(action))return;
+if(action==='close'){close();return;}if(action==='reveal'){state.reveal=!state.reveal;if(!state.reveal){stopDelay();state.expanded={};}render();return;}if(action==='reload'){load();return;}if(!available()&&!['close'].includes(action))return;
+if(action==='insights'&&h&&!privateMasked(h)){state.expanded[h.id]=!state.expanded[h.id];render();return;}
+if(action==='delayStart'&&h){startDelay(h,Number(btn.dataset.min));return;}
+if(action==='delayStop'){stopDelay();render();return;}
 if(action==='pickday'){const day=btn.dataset.day;if(validDay(day)&&day<=localDate()&&day>=shift(localDate(),-365)){state.selected=day;render();}return;}if(action==='today'){state.selected=localDate();state.viewMonth=state.selected.slice(0,7);render();return;}if(action==='monthprev'||action==='monthnext'){const next=monthShift(state.viewMonth,action==='monthprev'?-1:1);if(next>=shift(localDate(),-365).slice(0,7)&&next<=localDate().slice(0,7)){state.viewMonth=next;render();}return;}if(action==='add')openHabit();else if(action==='edit'&&h)openHabit(h);else if(action==='record'&&h){openLog(h);}else if(action==='pause'&&h)togglePause(h);else if(action==='delete'&&h)deleteHabit(h);else if(action==='deleteLog')deleteLog();}
 function submit(ev){if(!['lhHabitFormV21','lhLogFormV21'].includes(ev.target?.id))return;ev.preventDefault();if(!available())return;ev.target.id==='lhHabitFormV21'?saveHabit(ev.target):saveLog(ev.target);}
 document.addEventListener('click',click);document.addEventListener('submit',submit);
@@ -118,12 +177,12 @@ document.addEventListener('change',ev=>{
   const del=$('lhLogFormV21')?.querySelector('[data-lh-act="deleteLog"]');if(del)del.hidden=!entry;
  }
 });
-window.addEventListener('mmhvault-language-change',()=>{if($(ROOT)){close();state.reveal=false;render();}});
-window.addEventListener('languagechange',()=>{if($(ROOT)){close();state.reveal=false;render();}});
+window.addEventListener('mmhvault-language-change',()=>{if($(ROOT)){stopDelay();close();state.reveal=false;render();}});
+window.addEventListener('languagechange',()=>{if($(ROOT)){stopDelay();close();state.reveal=false;render();}});
 window.addEventListener('mmhvault:config-owner-changed',forget);
 window.addEventListener('mmhvault:page-visible',ev=>{if(ev.detail?.page!=='life-planner')forget();});
 document.addEventListener('visibilitychange',()=>{if(document.hidden)forget();else if($(ROOT))window.MMHLifeHabitsV21?.mount();});
-window.addEventListener('blur',()=>{state.reveal=false;close();if($(ROOT))render();});
+window.addEventListener('blur',()=>{stopDelay();state.expanded={};state.reveal=false;close();if($(ROOT))render();});
 window.addEventListener('focus',()=>{if($(ROOT)&&live()&&!state.busy)load();});
 window.MMHLifeHabitsV21={mount(){const host=$(ROOT);if(!host)return;if(!owner()){forget();state.error='LOGIN';render();return;}if(state.owner!==owner()||state.epoch!==epoch()){forget();state.owner=owner();state.epoch=epoch();}if(!state.loaded&&!state.busy){load();}else render();},unmount:forget};
 })();
