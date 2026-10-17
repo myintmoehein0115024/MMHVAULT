@@ -135,3 +135,13 @@
 .lh-dialog .lh-goal-review p{margin:0;font-size:13px;color:#365945;font-weight:700;line-height:1.5;overflow-wrap:anywhere;}
 .lh-dialog .lh-goal-review small{font-size:11px;line-height:1.6;color:#607461;}
 @media(max-width:560px){#life-planner .lh-reveal-controls{width:100%;align-items:stretch;}#life-planner .lh-reveal-controls small{text-align:left;max-width:none;}#life-planner .lh-reveal-controls button{white-space:normal;}}
+
+
+/* Phase 2.5 — deliberate zero logging and compact selected-day navigation. */
+#life-planner .lh-day-shortcuts{display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
+#life-planner .lh-day-shortcuts button{min-height:34px;padding:6px 11px;border-color:#c4d8c1;background:#fffdf7;font-size:11px;}
+.lh-dialog .lh-log-status{border:1px solid #d8e5d1;background:#f0f7ed;border-radius:11px;padding:11px 13px;font-size:12px;font-weight:750;color:#41624b;line-height:1.5;}
+.lh-dialog .lh-log-zero-row{display:flex;align-items:center;gap:12px;flex-wrap:wrap;}
+.lh-dialog .lh-log-zero-row button{min-height:38px;padding:9px 12px;border:1px solid #bbd0b7;background:#eef6e9;color:#31583c;border-radius:9px;font:inherit;font-size:12px;font-weight:750;cursor:pointer;}
+.lh-dialog .lh-log-zero-row small{flex:1;min-width:150px;color:#6b806b;line-height:1.65;font-size:11px;}
+@media(max-width:560px){#life-planner .lh-day-shortcuts{width:100%;}#life-planner .lh-day-shortcuts button{flex:1;} .lh-dialog .lh-log-zero-row{align-items:stretch;flex-direction:column;gap:6px;} .lh-dialog .lh-log-zero-row small{min-width:0;}}

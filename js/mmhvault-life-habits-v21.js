@@ -1,4 +1,4 @@
-/* MMHVAULT Life Planner · Phase 2.4 / Privacy & Goal Review
+/* MMHVAULT Life Planner · Phase 2.5 / Safer Daily Journal
  * Deliberately separate from finance, notification, AI Chat and analytics.
  * No localStorage, sessionStorage, offline seed, third-party requests or global habit data.
  * Requires independently reviewed RLS schema. Do not persist sensitive data before migration.
@@ -107,6 +107,18 @@ function startDelay(h,minutes){
 function trend(h){const last=Array.from({length:7},(_,i)=>shift(localDate(),i-6));return `<div class="lh-trend">${last.map(d=>{const row=state.entries.find(e=>e.habit_id===h.id&&e.entry_date===d);return `<div class="lh-trend-day" title="${esc(d)}" aria-label="${esc(d)} ${row?esc(L('记录','Recorded')):esc(L('未记录','Not recorded'))}"><span class="${row?'lh-recorded':''}" style="--lh-count:${Math.min(1,Number(row?.count||0)/4)}"></span><small>${d.slice(-2)}</small></div>`;}).join('')}</div>`;}
 function privateMasked(h){return !!(h.is_private&&!state.reveal);}
 function countFor(h,d){return state.entries.find(e=>e.habit_id===h.id&&e.entry_date===d);}
+function chooseDay(day){
+ if(!validDay(day)||day>localDate()||day<shift(localDate(),-365))return false;
+ state.selected=day;
+ state.viewMonth=day.slice(0,7);
+ render();
+ return true;
+}
+function logSummary(h,day){
+ const row=countFor(h,day);
+ return row?`${L('已有记录：','Existing record: ')}${Number(row.count)} ${L('次','times')}`:L('此日期尚无记录。留空不是零次。','No entry for this date. Blank is not zero.');
+}
+
 function monthDate(year,month){const d=new Date(year,month,1,12);return date(d).slice(0,7);}
 function monthShift(ym,delta){const [y,m]=ym.split('-').map(Number);return monthDate(y,m-1+delta);}
 function monthName(ym){const [y,m]=ym.split('-').map(Number);return isZh()?`${y}年${m}月`:new Intl.DateTimeFormat('en',{month:'long',year:'numeric'}).format(new Date(y,m-1,2,12));}
@@ -123,7 +135,7 @@ const cells=Array.from({length:Math.ceil((days+offset)/7)*7},(_,i)=>{
 const lower=ym<=oldest.slice(0,7),upper=ym>=today.slice(0,7);
 return `<section class="lh-journal" aria-label="${L('习惯记录日历','Habit journal calendar')}"><div class="lh-journal-top"><div><span class="lh-eyebrow">HABIT JOURNAL</span><h2>${L('每一天，都值得记录','Your days, your pace')}</h2><p>${L('点选日期，再为任何习惯补记或调整次数。没有记录的日子不会算成零。','Choose a date, then log or adjust a habit. Unrecorded days are never treated as zero.')}</p></div><div class="lh-calendar-nav"><button type="button" data-lh-act="monthprev" aria-label="${L('上个月','Previous month')}" ${lower?'disabled':''}>‹</button><strong>${esc(monthName(ym))}</strong><button type="button" data-lh-act="monthnext" aria-label="${L('下个月','Next month')}" ${upper?'disabled':''}>›</button><button type="button" data-lh-act="today">${L('今天','Today')}</button></div></div>
 <div class="lh-calendar-wrap"><div class="lh-calendar-grid lh-calendar-head">${dayNames.map(x=>`<span>${x}</span>`).join('')}</div><div class="lh-calendar-grid">${cells}</div></div>
-<div class="lh-day-summary"><span>◷ ${L('当前选择','Selected')}: <strong>${esc(state.selected)}</strong></span><span>${state.reveal?L('已临时显示私人记录','Private activity temporarily visible'):L('私人记录默认不显示数量','Private activity hidden by default')}</span></div></section>`;}
+<div class="lh-day-summary"><span>◷ ${L('当前选择','Selected')}: <strong>${esc(state.selected)}</strong></span><div class="lh-day-shortcuts"><button type="button" data-lh-act="dayprev" ${state.selected<=oldest?'disabled':''} aria-label="${L('前一天','Previous day')}">‹ ${L('前一天','Previous')}</button><button type="button" data-lh-act="daynext" ${state.selected>=today?'disabled':''} aria-label="${L('后一天','Next day')}">${L('后一天','Next')} ›</button></div><span>${state.reveal?L('已临时显示私人记录','Private activity temporarily visible'):L('私人记录默认不显示数量','Private activity hidden by default')}</span></div></section>`;}
 function card(h){const p=sums(h),masked=privateMasked(h),selectedEntry=countFor(h,state.selected);
 const target=Number(h.target_count)||0,progress=Math.min(100,Math.round(p.num/Math.max(1,target)*100));
 const label=h.mode==='reduce'?L('参考上限','Suggested limit'):L('个人目标','Personal goal');
@@ -182,11 +194,24 @@ function updateGoalPreview(){
   ?`${freq} · ${label} · ${L('已记录','Logged')} ${count} ${L('次','times')} / ${L('新目标','new target')} ${target} ${L('次','times')} · ${logged.length} ${L('个有记录的日期','recorded dates')}`
   :`${freq} · ${label} · ${L('初始目标','Starting target')} ${target} ${L('次','times')}`;
 }
-function openLog(h){if(!available()||privateMasked(h))return;state.dialog={type:'log',id:h.id};const current=state.entries.find(e=>e.habit_id===h.id&&e.entry_date===state.selected);modal(`<form id="lhLogFormV21" method="dialog"><div class="lh-dialog-top"><span class="lh-eyebrow">HABIT CONTROL</span><h2>${L('记录次数','Record occurrences')}</h2><button type="button" data-lh-act="close">×</button></div><div class="lh-dialog-body"><p class="lh-modal-note">${esc(title(h))} · ${L('按自己真实记录的次数填写，零次也可以主动记录。','Record only what actually happened; you may explicitly log zero.')}</p><label>${L('日期','Date')}<input type="date" name="entry_date" required value="${esc(state.selected)}" min="${shift(localDate(),-365)}" max="${localDate()}"></label><label>${L('当天次数','Count on this date')}<input type="number" name="count" required min="0" max="24" step="1" value="${current?Number(current.count):0}"></label><p class="lh-modal-note">${L('缺失记录并不代表零次。编辑同一天的记录不会重复计数。','A missing entry is not counted as zero. Updating a day does not duplicate it.')}</p><p id="lhErrorV21" class="lh-form-error" role="alert" hidden></p></div><div class="lh-dialog-actions"><button type="button" data-lh-act="deleteLog" data-id="${h.id}" class="lh-danger" ${current?'':'hidden'}>${L('删除当天记录','Delete day entry')}</button><button type="button" data-lh-act="close">${L('取消','Cancel')}</button><button class="lh-accent" type="submit">${L('保存记录','Save')}</button></div></form>`);}
+function openLog(h){
+ if(!available()||privateMasked(h))return;
+ state.dialog={type:'log',id:h.id};
+ const current=countFor(h,state.selected);
+ const recordText=logSummary(h,state.selected);
+ modal(`<form id="lhLogFormV21" method="dialog"><div class="lh-dialog-top"><span class="lh-eyebrow">HABIT CONTROL</span><h2>${L('记录次数','Record occurrences')}</h2><button type="button" data-lh-act="close" aria-label="${L('关闭','Close')}">×</button></div><div class="lh-dialog-body"><p class="lh-modal-note">${esc(title(h))} · ${L('只填写真实发生的次数，记录零次也需要主动选择。','Enter only actual occurrences; recording zero is an intentional choice.')}</p>
+ <label>${L('日期','Date')}<input type="date" name="entry_date" required value="${esc(state.selected)}" min="${shift(localDate(),-365)}" max="${localDate()}"></label>
+ <div class="lh-log-status" id="lhLogDayStatusV25" role="status" aria-live="polite">${esc(recordText)}</div>
+ <label>${L('当天次数','Count on this date')}<input type="number" name="count" required min="0" max="24" step="1" inputmode="numeric" placeholder="${L('输入 0～24（可主动记录 0）','Enter 0–24 (zero is valid)')}" value="${current?Number(current.count):''}"></label>
+ <div class="lh-log-zero-row"><button type="button" data-lh-act="chooseZero">${L('主动填写 0 次','Set zero intentionally')}</button><small>${L('尚无记录时不自动填写零次，也不会自动保存。','Unlogged dates remain blank. This button only fills the field; it does not save.')}</small></div>
+ <p class="lh-modal-note">${L('如果这天没有填写记录，就保留为空；这与明确记录 0 次不同。','Leave the day unlogged if you do not know the count. A missing entry is different from logging zero.')}</p>
+ <p id="lhErrorV21" class="lh-form-error" role="alert" hidden></p></div><div class="lh-dialog-actions"><button type="button" data-lh-act="deleteLog" data-id="${h.id}" class="lh-danger" ${current?'':'hidden'}>${L('删除当天记录','Delete day entry')}</button><button type="button" data-lh-act="close">${L('取消','Cancel')}</button><button class="lh-accent" type="submit">${L('保存记录','Save')}</button></div></form>`);
+}
 function showError(message){const el=$('lhErrorV21');if(el){el.textContent=message;el.hidden=false;}}
 async function write(kind,fn){if(state.busy||!live())return;state.busy=true;const token=++state.token,u=state.owner,e=state.epoch;try{const c=await auth();await fn(c,u);if(state.owner!==u||state.epoch!==e||token!==state.token)return;close();state.notice=kind;state.busy=false;await load();}catch(err){if(token!==state.token||!live())return;state.busy=false;const msg=err.message==='CONFLICT'?L('这条记录已被其他设备更新，请刷新重试。','This record changed elsewhere. Refresh and retry.'):L('保存失败。请检查网络与权限后重试。','Save failed. Check connection and access permissions.');if($('lhDialogV21'))showError(msg);else{state.notice=msg;render();}}}
 async function saveHabit(form){const data=new FormData(form),title=String(data.get('title')||'').trim(),mode=String(data.get('mode')),period=String(data.get('target_period')),goal=Number(data.get('target_count')),privateMode=data.has('is_private');if(!title||title.length>100||!(mode in modes)||!(period in periods)||!Number.isInteger(goal)||goal<0||goal>500){showError(L('请填写有效的名称与目标。','Enter a valid name and target.'));return;}
 const existing=state.habits.find(h=>h.id===state.dialog?.id);
+if(existing&&privateMasked(existing))return;
 if(existing&&(existing.mode!==mode||existing.target_period!==period||Number(existing.target_count)!==goal)){
  if(!confirm(L('确认调整目标？过去每日次数保持不变；旧目标不会保存为历史版本，趋势按新周期重新展示。','Change this goal? Past daily logs remain unchanged. Previous goal settings are not versioned, and trends will use the new period.')))return;
 }
@@ -194,7 +219,7 @@ if(existing?.is_private&&!privateMode){
  if(!confirm(L('确认取消私人保护？名称、次数和趋势将直接在此模块显示，普通页面仍不会自动读取。','Turn off private masking? The title, counts and trends will be visible within Habit Control.')))return;
 }
 await write(L('习惯已保存。','Habit saved.'),async(c,u)=>{let q;if(existing){q=c.from(TABLE).update({title,mode,target_period:period,target_count:goal,is_private:privateMode,version:existing.version+1,updated_at:new Date().toISOString()}).eq('id',existing.id).eq('user_id',u).eq('version',existing.version).select('id');}else{q=c.from(TABLE).insert({id:uuid(),user_id:u,client_request_id:uuid(),title,mode,target_period:period,target_count:goal,is_private:privateMode,is_paused:false}).select('id');}const r=await q;if(r.error)throw r.error;if(!r.data?.length)throw Error('CONFLICT');});}
-async function saveLog(form){const data=new FormData(form),d=String(data.get('entry_date')),count=Number(data.get('count')),habit=state.habits.find(h=>h.id===state.dialog?.id);if(!habit||!validDay(d)||d>localDate()||d<shift(localDate(),-365)||!Number.isInteger(count)||count<0||count>24){showError(L('日期或次数无效。','Invalid date or count.'));return;}const existing=state.entries.find(e=>e.habit_id===habit.id&&e.entry_date===d);await write(L('记录已保存。','Entry saved.'),async(c,u)=>{let q;if(existing){q=c.from(LOGS).update({count,version:existing.version+1,updated_at:new Date().toISOString()}).eq('id',existing.id).eq('user_id',u).eq('version',existing.version).select('id');}else{q=c.from(LOGS).insert({id:uuid(),user_id:u,habit_id:habit.id,entry_date:d,count,client_request_id:uuid()}).select('id');}const r=await q;if(r.error)throw r.error;if(!r.data?.length)throw Error('CONFLICT');});}
+async function saveLog(form){const data=new FormData(form),d=String(data.get('entry_date')),rawCount=String(data.get('count')??'').trim(),count=Number(rawCount),habit=state.habits.find(h=>h.id===state.dialog?.id);if(!habit||privateMasked(habit)||!validDay(d)||d>localDate()||d<shift(localDate(),-365)||rawCount===''||!Number.isInteger(count)||count<0||count>24){showError(L('日期或次数无效。','Invalid date or count.'));return;}const existing=state.entries.find(e=>e.habit_id===habit.id&&e.entry_date===d);await write(L('记录已保存。','Entry saved.'),async(c,u)=>{let q;if(existing){q=c.from(LOGS).update({count,version:existing.version+1,updated_at:new Date().toISOString()}).eq('id',existing.id).eq('user_id',u).eq('version',existing.version).select('id');}else{q=c.from(LOGS).insert({id:uuid(),user_id:u,habit_id:habit.id,entry_date:d,count,client_request_id:uuid()}).select('id');}const r=await q;if(r.error)throw r.error;if(!r.data?.length)throw Error('CONFLICT');});}
 async function togglePause(h){if(privateMasked(h))return;await write(L('状态已更新。','Status updated.'),async(c,u)=>{const r=await c.from(TABLE).update({is_paused:!h.is_paused,version:h.version+1,updated_at:new Date().toISOString()}).eq('id',h.id).eq('user_id',u).eq('version',h.version).select('id');if(r.error)throw r.error;if(!r.data?.length)throw Error('CONFLICT');});}
 async function deleteHabit(h){if(privateMasked(h))return;if(!confirm(L('确定删除这项习惯及其全部记录吗？此操作不可撤销。','Delete this habit and all its history? This cannot be undone.')))return;await write(L('习惯及关联记录已删除。','Habit and its entries deleted.'),async(c,u)=>{const r=await c.from(TABLE).delete().eq('id',h.id).eq('user_id',u).eq('version',h.version).select('id');if(r.error)throw r.error;if(!r.data?.length)throw Error('CONFLICT');});}
 async function deleteLog(){const d=$('lhDialogV21'),day=d?.querySelector('input[name="entry_date"]')?.value,habitId=state.dialog?.id;const entry=state.entries.find(e=>e.habit_id===habitId&&e.entry_date===day);if(!entry)return;await write(L('当天记录已删除。','Day entry deleted.'),async(c,u)=>{const r=await c.from(LOGS).delete().eq('id',entry.id).eq('user_id',u).eq('version',entry.version).select('id');if(r.error)throw r.error;if(!r.data?.length)throw Error('CONFLICT');});}
@@ -203,7 +228,9 @@ if(action==='close'){close();return;}if(action==='reveal'){if(state.reveal)conce
 if(action==='insights'&&h&&!privateMasked(h)){state.expanded[h.id]=!state.expanded[h.id];render();return;}
 if(action==='delayStart'&&h){startDelay(h,Number(btn.dataset.min));return;}
 if(action==='delayStop'){stopDelay();render();return;}
-if(action==='pickday'){const day=btn.dataset.day;if(validDay(day)&&day<=localDate()&&day>=shift(localDate(),-365)){state.selected=day;render();}return;}if(action==='today'){state.selected=localDate();state.viewMonth=state.selected.slice(0,7);render();return;}if(action==='monthprev'||action==='monthnext'){const next=monthShift(state.viewMonth,action==='monthprev'?-1:1);if(next>=shift(localDate(),-365).slice(0,7)&&next<=localDate().slice(0,7)){state.viewMonth=next;render();}return;}if(action==='add')openHabit();else if(action==='edit'&&h)openHabit(h);else if(action==='record'&&h){openLog(h);}else if(action==='pause'&&h)togglePause(h);else if(action==='delete'&&h)deleteHabit(h);else if(action==='deleteLog')deleteLog();}
+if(action==='chooseZero'&&state.dialog?.type==='log'){const n=$('lhLogFormV21')?.querySelector('input[name="count"]');if(n){n.value='0';n.focus({preventScroll:true});}return;}
+if(action==='dayprev'||action==='daynext'){chooseDay(shift(state.selected,action==='dayprev'?-1:1));return;}
+if(action==='pickday'){chooseDay(btn.dataset.day);return;}if(action==='today'){state.selected=localDate();state.viewMonth=state.selected.slice(0,7);render();return;}if(action==='monthprev'||action==='monthnext'){const next=monthShift(state.viewMonth,action==='monthprev'?-1:1);if(next>=shift(localDate(),-365).slice(0,7)&&next<=localDate().slice(0,7)){state.viewMonth=next;render();}return;}if(action==='add')openHabit();else if(action==='edit'&&h)openHabit(h);else if(action==='record'&&h){openLog(h);}else if(action==='pause'&&h)togglePause(h);else if(action==='delete'&&h)deleteHabit(h);else if(action==='deleteLog')deleteLog();}
 function submit(ev){if(!['lhHabitFormV21','lhLogFormV21'].includes(ev.target?.id))return;ev.preventDefault();if(!available())return;ev.target.id==='lhHabitFormV21'?saveHabit(ev.target):saveLog(ev.target);}
 document.addEventListener('click',click);document.addEventListener('submit',submit);
 document.addEventListener('input',ev=>{if(ev.target?.closest('#lhHabitFormV21')&&['target_count'].includes(ev.target.name))updateGoalPreview();});
@@ -212,7 +239,8 @@ document.addEventListener('change',ev=>{
  if(ev.target?.id==='lhFilterV22'&&$(ROOT)?.contains(ev.target)){const value=ev.target.value;if(['all','active','paused'].includes(value)){state.filter=value;render();}return;}
  if(ev.target?.name==='entry_date'&&ev.target.closest('#lhLogFormV21')){
   const d=ev.target.value,entry=state.entries.find(e=>e.habit_id===state.dialog?.id&&e.entry_date===d);
-  const input=$('lhLogFormV21')?.querySelector('input[name="count"]');if(input)input.value=String(Number(entry?.count??0));
+  const input=$('lhLogFormV21')?.querySelector('input[name="count"]');if(input)input.value=entry?String(Number(entry.count)):'';
+  const status=$('lhLogDayStatusV25');if(status){const habit=state.habits.find(h=>h.id===state.dialog?.id);status.textContent=habit?logSummary(habit,d):'';}
   const del=$('lhLogFormV21')?.querySelector('[data-lh-act="deleteLog"]');if(del)del.hidden=!entry;
  }
 });
