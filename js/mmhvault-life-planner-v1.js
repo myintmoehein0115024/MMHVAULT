@@ -306,7 +306,7 @@
             ${item.available?'':`<span class="lp-hub-soon">${L('即将推出','Coming soon')}</span>`}
           </button>`).join('')}
         </nav><p class="lp-hub-footnote"><span aria-hidden="true">✦</span> ${L('保持自己的节奏。私人习惯及消费明细不会在此首页展示。','Grow at your own pace. Private habits and spending details are not shown on this overview.')}</p>
-      </div><div id="lpOverlayV1" class="lp-overlay" hidden></div>`;
+      </div>`;
       return;
     }
     if(state.section!=='schedule'){
@@ -314,7 +314,7 @@
       host.innerHTML=`<div class="lp-shell lp-module-placeholder">
         <div class="lp-subnav">${textButton('← '+L('返回 Life Planner','Back to Life Planner'),'home')}</div>
         <section class="lp-coming-panel"><div class="lp-coming-icon" aria-hidden="true">${item.symbol}</div><span class="lp-eyebrow">LIFE PLANNER / ${safe(L('后续阶段','FUTURE PHASE'))}</span><h1>${safe(L(item.zh,item.en))}</h1><p>${safe(L(item.descZh,item.descEn))}</p><div class="lp-coming-badge">${L('功能开发中 · 尚未启用','Coming later · Not enabled yet')}</div>${textButton(L('返回全部模块','Back to all modules'),'home')}</section>
-      </div><div id="lpOverlayV1" class="lp-overlay" hidden></div>`;
+      </div>`;
       return;
     }
     const m=jsDate(state.focus)||new Date();const range=visibleRange();const rows=state.loaded?occurrences(range.start,range.end).filter(matchesFilter):[];
@@ -361,13 +361,21 @@
       ${state.loaded?(dayRows.length?`<div class="lp-event-list">${dayRows.map(renderEvent).join('')}</div>`:`<div class="lp-empty">${state.search||state.categoryFilter!=='all'||state.statusFilter!=='all'?L('没有符合筛选条件的日程。','No events match these filters.'):L('当天没有日程。','No events on this day.')}</div>`):`<div class="lp-empty">${L('连接经过验证的私有日程数据库后可查看与添加。','Connect a verified private schedule database to view and add events.')}</div>`}</section>
       <aside class="lp-panel lp-side"><h2>${L('未来 30 天','Next 30 days')}</h2><p class="lp-side-sub">${L('仅在此页面显示，私人名称默认隐藏。','Only shown here. Private names are hidden by default.')}</p>${state.loaded?(upcoming.length?`<div class="lp-upcoming">${upcoming.map(o=>`<button type="button" data-lp-act="jump" data-date="${o.starts_on}"><small>${safe(dateLabel(o.starts_on))}</small><b>${safe(displayTitle(o))}</b><span>${safe(timeText(o))}</span></button>`).join('')}</div>`:`<p class="lp-empty">${L('暂无近期日程','No upcoming events')}</p>`):`<p class="lp-empty">${L('暂无可用的云端日程数据','Cloud schedule unavailable')}</p>`}
       <div class="lp-private-note">◈ ${L('私人事件不会加入普通 Dashboard、财务分析、AI Chat 或推送通知。界面隐藏不等同于数据库加密，请验证 RLS。','Private events are not sent to the regular Dashboard, financial insights, AI Chat or push. UI hiding is not encryption: verify RLS.')}</div></aside></div>
-    </div><div id="lpOverlayV1" class="lp-overlay" hidden></div>`;
+    </div>`;
     if(state.dialog)drawDialog();
   }
-  function closeDialog(){state.dialog=null;const el=$('lpOverlayV1');if(el){el.hidden=true;el.replaceChildren();}}
+  // Portal out of the financial app's backdrop-filtered .page container. CSS filters
+  // create fixed-position containing blocks and clip otherwise fullscreen dialogs.
+  function dialogLayer(){
+    let el=$('lpOverlayV1');
+    if(!el){el=document.createElement('div');el.id='lpOverlayV1';el.className='lp-overlay lp-portal-overlay';el.hidden=true;document.body.appendChild(el);}
+    return el;
+  }
+  function closeDialog(){state.dialog=null;const el=$('lpOverlayV1');if(el){el.hidden=true;el.replaceChildren();}document.documentElement.classList.remove('lp-dialog-open');}
+
   function drawDialog(){
-    const o=state.dialog,root=$('lpOverlayV1');if(!o||!root)return;
-    root.hidden=false;
+    const o=state.dialog,root=dialogLayer();if(!o||!root)return;
+    root.hidden=false;document.documentElement.classList.add('lp-dialog-open');
     if(o.type==='reminder'){
       const e=state.events.find(x=>x.id===o.eventId&&owns(x));if(!e||!state.remindersReady){closeDialog();return;}
       const existing=state.reminders.find(x=>x.event_id===e.id);
@@ -389,22 +397,38 @@
       const field=(name,value)=>safe(String(value??''));
       const scope=o.scope||'series',one=scope==='single';
       const item={title:src?.title||'',notes:src?.notes||'',starts_on:src?.starts_on||state.selected,ends_on:src?.ends_on||state.selected,start_time:String(src?.start_time||'09:00').slice(0,5),end_time:String(src?.end_time||'10:00').slice(0,5),all_day:src?.all_day??false,category:src?.category||'personal',is_private:src?.is_private??false,status:src?.status||'scheduled',repeat_frequency:base?.repeat_frequency||'none',repeat_interval:base?.repeat_interval||1,repeat_until:base?.repeat_until||''};
-      root.innerHTML=`<div class="lp-modal" role="dialog" aria-modal="true" aria-labelledby="lpModalTitleV1"><div class="lp-modal-heading"><h2 id="lpModalTitleV1">${o.type==='add'?(reuse?L('再次安排日程','Reuse this event'):L('新建日程','New event')):one?L('修改本次日程','Edit this occurrence'):L('编辑日程','Edit event')}</h2><button class="lp-modal-x" type="button" data-lp-act="closeDialog" aria-label="${L('关闭','Close')}">×</button></div>
-        ${base?.repeat_frequency!=='none'&&o.type==='edit'?`<div class="lp-scope"><label><input type="radio" name="lpScopeV1" value="single" ${one?'checked':''}> ${L('仅本次','This occurrence')}</label><label><input type="radio" name="lpScopeV1" value="series" ${one?'':'checked'}> ${L('整个重复系列','Entire series')}</label></div>`:''}
-        <form id="lpEventFormV1" novalidate><label>${L('日程名称','Title')}<input required name="title" maxlength="120" autocomplete="off" value="${field('title',item.title)}"></label>
-        <div class="lp-form-row"><label>${L('开始日期','Start date')}<input required type="date" name="starts_on" value="${item.starts_on}"></label><label>${L('结束日期','End date')}<input required type="date" name="ends_on" value="${item.ends_on}"></label></div>
-        <label class="lp-check"><input type="checkbox" name="all_day" ${item.all_day?'checked':''}>${L('全天事件','All-day event')}</label>
-        <div class="lp-form-row" id="lpTimeRowV1"><label>${L('开始时间','Start time')}<input type="time" name="start_time" value="${item.start_time}"></label><label>${L('结束时间','End time')}<input type="time" name="end_time" value="${item.end_time}"></label></div>
-        <div class="lp-form-row"><label>${L('分类','Category')}<select name="category">${Object.entries(CHOICES).map(([id,names])=>`<option value="${id}" ${item.category===id?'selected':''}>${safe(names[isZh()?0:1])}</option>`).join('')}</select></label><label>${L('状态','Status')}<select name="status">${['scheduled','completed','cancelled'].map(x=>`<option value="${x}" ${item.status===x?'selected':''}>${humanStatus(x)}</option>`).join('')}</select></label></div>
-        <label class="lp-check"><input type="checkbox" name="is_private" ${item.is_private?'checked':''}>${L('私人日程（概览默认隐藏名称）','Private (hide title in overviews)')}</label>
-        <div id="lpRepeatFieldsV1" ${one?'hidden':''}><div class="lp-form-row"><label>${L('重复','Repeat')}<select name="repeat_frequency">${[['none',L('不重复','Never')],['daily',L('每天','Daily')],['weekly',L('每周','Weekly')],['monthly',L('每月','Monthly')]].map(([v,n])=>`<option value="${v}" ${item.repeat_frequency===v?'selected':''}>${safe(n)}</option>`).join('')}</select></label><label>${L('间隔（次数）','Every N periods')}<input type="number" name="repeat_interval" min="1" max="52" step="1" value="${item.repeat_interval}"></label></div><label>${L('重复截止（可选）','Repeat until (optional)')}<input type="date" name="repeat_until" value="${item.repeat_until}"></label></div>
-        <label>${L('备注','Notes')}<textarea name="notes" maxlength="2000" rows="3">${safe(item.notes)}</textarea></label>
-        <p class="lp-modal-hint">${L('时区：','Timezone: ')}${safe(base?.timezone||tz())} · ${L('重复事件按创建时区的本地日期计算。','Recurring dates use the original event timezone.')}</p>
-        <p id="lpFormErrorV1" class="lp-form-error" role="alert" hidden></p>
-        <div class="lp-modal-actions"><button type="button" class="lp-btn" data-lp-act="closeDialog">${L('取消','Cancel')}</button><button type="submit" class="lp-btn lp-primary" ${state.saving?'disabled':''}>${state.saving?L('保存中','Saving'):L('保存日程','Save event')}</button></div></form></div>`;
+      root.innerHTML=`<div class="lp-modal lp-event-dialog" role="dialog" aria-modal="true" aria-labelledby="lpModalTitleV1" aria-describedby="lpModalSubV18">
+        <div class="lp-modal-heading"><div><span class="lp-modal-eyebrow">LIFE PLANNER · MY SCHEDULE</span><h2 id="lpModalTitleV1">${o.type==='add'?(reuse?L('再次安排日程','Reuse this event'):L('新建日程','New event')):one?L('修改本次日程','Edit this occurrence'):L('编辑日程','Edit event')}</h2><p id="lpModalSubV18">${L('把日常安排得更从容。','Make a little room for what matters today.')}</p></div><button class="lp-modal-x" type="button" data-lp-act="closeDialog" aria-label="${L('关闭','Close')}">×</button></div>
+        <form id="lpEventFormV1" novalidate>
+          <div class="lp-modal-body" tabindex="-1">
+            ${base?.repeat_frequency!=='none'&&o.type==='edit'?`<div class="lp-scope"><label><input type="radio" name="lpScopeV1" value="single" ${one?'checked':''}> ${L('仅本次','This occurrence')}</label><label><input type="radio" name="lpScopeV1" value="series" ${one?'':'checked'}> ${L('整个重复系列','Entire series')}</label></div>`:''}
+            <section class="lp-form-section"><div class="lp-form-section-heading"><span>01</span><div><strong>${L('基本信息','The essentials')}</strong><small>${L('日程名称与分类','What are you planning?')}</small></div></div>
+              <label>${L('日程名称','Title')}<input required name="title" maxlength="120" autocomplete="off" placeholder="${L('例如：晨间阅读、学习计划…','e.g. Morning reading, study plan…')}" value="${field('title',item.title)}"></label>
+              <div class="lp-form-row"><label>${L('分类','Category')}<select name="category">${Object.entries(CHOICES).map(([id,names])=>`<option value="${id}" ${item.category===id?'selected':''}>${safe(names[isZh()?0:1])}</option>`).join('')}</select></label><label>${L('状态','Status')}<select name="status">${['scheduled','completed','cancelled'].map(x=>`<option value="${x}" ${item.status===x?'selected':''}>${humanStatus(x)}</option>`).join('')}</select></label></div>
+              <label class="lp-check lp-privacy-option"><input type="checkbox" name="is_private" ${item.is_private?'checked':''}><span><strong>${L('私人日程','Private event')}</strong><small>${L('在概览中隐藏名称；不向普通通知展示私人详情','Hide the title in overviews; no private details in ordinary alerts')}</small></span></label>
+            </section>
+            <section class="lp-form-section"><div class="lp-form-section-heading"><span>02</span><div><strong>${L('日期与时间','Date & time')}</strong><small>${L('安排适合自己的节奏','Find a time that works for you')}</small></div></div>
+              <div class="lp-form-row"><label>${L('开始日期','Start date')}<input required type="date" name="starts_on" value="${item.starts_on}"></label><label>${L('结束日期','End date')}<input required type="date" name="ends_on" value="${item.ends_on}"></label></div>
+              <label class="lp-check lp-allday-option"><input type="checkbox" name="all_day" ${item.all_day?'checked':''}><span>${L('全天事件','All-day event')}</span></label>
+              <div class="lp-form-row" id="lpTimeRowV1"><label>${L('开始时间','Start time')}<input type="time" name="start_time" value="${item.start_time}"></label><label>${L('结束时间','End time')}<input type="time" name="end_time" value="${item.end_time}"></label></div>
+            </section>
+            <section class="lp-form-section" id="lpRepeatFieldsV1" ${one?'hidden':''}><div class="lp-form-section-heading"><span>03</span><div><strong>${L('重复安排','Repeat')}</strong><small>${L('让经常做的事更轻松','Make routines easier to manage')}</small></div></div>
+              <div class="lp-form-row"><label>${L('重复','Repeat')}<select name="repeat_frequency">${[['none',L('不重复','Never')],['daily',L('每天','Daily')],['weekly',L('每周','Weekly')],['monthly',L('每月','Monthly')]].map(([v,n])=>`<option value="${v}" ${item.repeat_frequency===v?'selected':''}>${safe(n)}</option>`).join('')}</select></label><label class="lp-repeat-detail">${L('间隔（次数）','Every N periods')}<input type="number" name="repeat_interval" min="1" max="52" step="1" value="${item.repeat_interval}"></label></div>
+              <label class="lp-repeat-detail">${L('重复截止（可选）','Repeat until (optional)')}<input type="date" name="repeat_until" value="${item.repeat_until}"></label>
+            </section>
+            <section class="lp-form-section"><div class="lp-form-section-heading"><span>04</span><div><strong>${L('温柔提醒与备注','Reminders & notes')}</strong><small>${L('保留想记住的小细节','Keep the little details')}</small></div></div>
+              <p class="lp-form-reminder-tip">♧ ${L('保存后可在日程卡片中选择「提醒」。此处不会自动开启通知。','After saving, choose Reminder on the event card. Notifications are never enabled automatically.')}</p>
+              <label>${L('备注（可选）','Notes (optional)')}<textarea name="notes" maxlength="2000" rows="3" placeholder="${L('记录想法或准备事项…','Thoughts, preparation or anything to remember…')}">${safe(item.notes)}</textarea></label>
+              <p class="lp-modal-hint">${L('时区：','Timezone: ')}${safe(base?.timezone||tz())} · ${L('重复事件按创建时区的本地日期计算。','Recurring dates use the original event timezone.')}</p>
+            </section>
+          </div>
+          <div class="lp-modal-actions lp-modal-footer"><p id="lpFormErrorV1" class="lp-form-error" role="alert" hidden></p><div class="lp-modal-actions-row"><button type="button" class="lp-btn" data-lp-act="closeDialog">${L('取消','Cancel')}</button><button type="submit" class="lp-btn lp-primary" ${state.saving?'disabled':''}>${state.saving?L('保存中','Saving'):L('保存日程','Save event')}</button></div></div>
+        </form></div>`;
       const form=$('lpEventFormV1');form?.addEventListener('submit',saveEvent);
       form?.elements.all_day.addEventListener('change',()=>{$('lpTimeRowV1').hidden=form.elements.all_day.checked;});
       $('lpTimeRowV1').hidden=!!item.all_day;
+      const updateRepeatDetails=()=>{const show=form.elements.repeat_frequency.value!=='none';form.querySelectorAll('.lp-repeat-detail').forEach(el=>el.hidden=!show);};
+      form.elements.repeat_frequency.addEventListener('change',updateRepeatDetails);updateRepeatDetails();
       root.querySelectorAll('input[name="lpScopeV1"]').forEach(x=>x.addEventListener('change',()=>{if(state.dialog){state.dialog.scope=x.value;drawDialog();}}));
     }
     // Keep focus inside the overlay; Escape closes without discarding saved records.
@@ -526,7 +550,7 @@
     catch(_){if(sessionValid(owner,epoch))notice(L('删除失败，请刷新后重试。','Delete failed. Refresh and retry.'));}
     finally{state.saving=false;}
   }
-  function onClick(event){const btn=event.target.closest('[data-lp-act]');if(!btn||!$(ROOT)?.contains(btn))return;const act=btn.dataset.lpAct,id=btn.dataset.id,date=btn.dataset.date;
+  function onClick(event){const btn=event.target.closest('[data-lp-act]');if(!btn||(!$(ROOT)?.contains(btn)&&!$('lpOverlayV1')?.contains(btn)))return;const act=btn.dataset.lpAct,id=btn.dataset.id,date=btn.dataset.date;
     if(act==='dashboard'){closeDialog();state.section='home';window.setPage?.('dashboard');return;}
     if(act==='home'){closeDialog();state.privateVisible=false;state.search='';state.categoryFilter='all';state.statusFilter='all';state.section='home';render();return;}
     if(act==='openModule'){
@@ -562,6 +586,7 @@
   function init(){
     const host=$(ROOT);if(!host)return;state.ready=true;state.owner=ownerNow();state.epoch=epochNow();render();
     host.addEventListener('click',onClick);
+    const portal=dialogLayer();portal.addEventListener('click',onClick);
     host.addEventListener('input',ev=>{
       if(ev.target?.id!=='lpSearchV15')return;
       const start=ev.target.selectionStart,end=ev.target.selectionEnd;
@@ -574,7 +599,7 @@
       if(id==='lpStatusFilterV15'&&['all','scheduled','completed','cancelled'].includes(value)){state.statusFilter=value;render();}
       if(id==='lpJumpDateV15'&&jsDate(value)){state.focus=state.selected=value;render();}
     });
-    host.addEventListener('keydown',ev=>{
+    const handleDialogKeydown=ev=>{
       if(!state.dialog)return;
       if(ev.key==='Escape'){ev.preventDefault();closeDialog();return;}
       if(ev.key==='Tab'){
@@ -584,7 +609,8 @@
         if(ev.shiftKey&&document.activeElement===first){ev.preventDefault();last.focus();}
         else if(!ev.shiftKey&&document.activeElement===last){ev.preventDefault();first.focus();}
       }
-    });
+    };
+    host.addEventListener('keydown',handleDialogKeydown);portal.addEventListener('keydown',handleDialogKeydown);
     window.addEventListener('mmhvault:life-planner-home',()=>{closeDialog();state.privateVisible=false;state.section='home';if(active())render();});
     window.addEventListener('mmhvault:page-visible',e=>{
       if(e?.detail?.page===PAGE){if(ownerNow()!==state.owner||epochNow()!==state.epoch)reset();if(!state.loaded&&!state.loading)load();else render();}

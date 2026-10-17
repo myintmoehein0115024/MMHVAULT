@@ -1,0 +1,106 @@
+/* MMHVAULT Life Planner — Phase 1.8 dialog portal.
+   Only the standalone overlay mounted under document.body is styled here.
+   Fixes fixed-position clipping by the finance app's backdrop-filtered .page. */
+html.lp-dialog-open {overflow:hidden!important;}
+#lpOverlayV1,#lpOverlayV1 *,#lpOverlayV1 *::before,#lpOverlayV1 *::after {box-sizing:border-box;}
+#lpOverlayV1[hidden],#lpOverlayV1 [hidden]{display:none!important;}
+#lpOverlayV1.lp-portal-overlay {
+  position:fixed!important;inset:0!important;z-index:2147483000!important;
+  width:100vw;max-width:100vw;height:100vh;height:100dvh;max-height:100dvh;
+  padding:clamp(10px,2vh,20px) max(12px,env(safe-area-inset-right,0px))
+      clamp(10px,2vh,20px) max(12px,env(safe-area-inset-left,0px));
+  padding-top:max(10px,env(safe-area-inset-top,0px));
+  padding-bottom:max(10px,env(safe-area-inset-bottom,0px));
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(7,18,26,.72);-webkit-backdrop-filter:blur(7px);backdrop-filter:blur(7px);
+  overflow:hidden;overscroll-behavior:contain;
+  color:#30473b;font-family:inherit;line-height:1.48;
+}
+#lpOverlayV1 .lp-modal {
+  width:min(680px,100%);max-width:100%;max-height:100%;min-width:0;min-height:0;
+  display:flex;flex-direction:column;overflow:hidden;
+  background:#fffaf2;border:1px solid #e8d9c6;border-radius:22px;
+  box-shadow:0 30px 100px rgba(0,0,0,.32);color:#2d4235;padding:0;
+}
+#lpOverlayV1 .lp-event-dialog {height:min(760px,100%);}
+#lpOverlayV1 .lp-modal-heading {
+  display:flex;align-items:flex-start;justify-content:space-between;gap:16px;
+  padding:21px 25px 17px;flex:0 0 auto;
+  background:linear-gradient(108deg,#fff4e2,#fffaf2 75%);
+  border-bottom:1px solid #edddc7;
+}
+#lpOverlayV1 .lp-modal-eyebrow {display:block;font-size:10px;font-weight:850;letter-spacing:.13em;color:#b77d38;margin-bottom:7px;}
+#lpOverlayV1 .lp-modal-heading h2,#lpOverlayV1 .lp-modal h2{margin:0;color:#304638;font:700 clamp(22px,2.3vw,29px)/1.2 Georgia,'Times New Roman',serif;letter-spacing:-.02em;}
+#lpOverlayV1 .lp-modal-heading p{margin:5px 0 0;color:#788675;font-size:12px;line-height:1.5;}
+#lpOverlayV1 .lp-modal-x {display:grid;place-items:center;flex:0 0 37px;width:37px;height:37px;min-height:37px;border:1px solid #e3d5c2;border-radius:12px;background:#fffaf2;color:#556a5c;font-size:24px;font-weight:400;cursor:pointer;}
+#lpOverlayV1 .lp-modal-x:hover{background:#f4eadd;}
+#lpOverlayV1 form {display:flex;flex-direction:column;flex:1 1 auto;min-height:0;margin:0;gap:0;}
+#lpOverlayV1 .lp-modal-body {flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:20px 25px 18px;scrollbar-color:#d2baa2 transparent;scrollbar-width:thin;}
+#lpOverlayV1 .lp-form-section {padding:18px 18px 17px;border:1px solid #eae2d7;border-radius:16px;background:#fffcf8;margin-bottom:14px;display:flex;flex-direction:column;gap:12px;}
+#lpOverlayV1 .lp-form-section:last-child{margin-bottom:0;}
+#lpOverlayV1 .lp-form-section-heading{display:flex;align-items:center;gap:12px;margin-bottom:1px;}
+#lpOverlayV1 .lp-form-section-heading>span{display:grid;place-items:center;flex:0 0 31px;width:31px;height:31px;border-radius:10px;background:#eaf0e6;color:#5b8a65;font-size:12px;font-weight:800;}
+#lpOverlayV1 .lp-form-section-heading>div{min-width:0;display:flex;flex-direction:column;gap:1px;}
+#lpOverlayV1 .lp-form-section-heading strong{font-size:15px;color:#344c3b;font-weight:800;}
+#lpOverlayV1 .lp-form-section-heading small{font-size:11px;color:#829180;}
+#lpOverlayV1 form label:not(.lp-check),#lpOverlayV1 .lp-form-row label{display:flex;flex-direction:column;align-items:stretch;min-width:0;gap:6px;color:#526b59;font-size:12px;font-weight:720;}
+#lpOverlayV1 .lp-form-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;min-width:0;}
+#lpOverlayV1 :is(input:not([type='checkbox']):not([type='radio']),select,textarea){
+ display:block;min-width:0;width:100%;max-width:100%;min-height:43px;padding:10px 12px;
+ border:1px solid #ded9cb;border-radius:11px;background:white;color:#2a4134;
+ font:inherit;font-size:14px;outline-offset:2px;color-scheme:light;
+}
+#lpOverlayV1 :is(input:not([type='checkbox']):not([type='radio']),select,textarea):focus{border-color:#80aa89;outline:2px solid rgba(100,155,112,.17);}
+#lpOverlayV1 :is(input,select,textarea)::placeholder{color:#acb3a7;opacity:1;}
+#lpOverlayV1 textarea{resize:vertical;min-height:83px;max-height:180px;}
+#lpOverlayV1 .lp-check,#lpOverlayV1 .lp-scope label{display:flex;align-items:center;gap:10px;color:#496353;font-size:12px;font-weight:650;line-height:1.5;}
+#lpOverlayV1 .lp-check input,#lpOverlayV1 .lp-scope input{width:18px;height:18px;min-width:18px;min-height:18px;flex:0 0 18px;accent-color:#5c986e;margin:0;}
+#lpOverlayV1 .lp-privacy-option{align-items:flex-start;background:#f1f5ee;border:1px solid #dde9d9;border-radius:12px;padding:12px;}
+#lpOverlayV1 .lp-privacy-option>span{display:flex;flex-direction:column;gap:3px;min-width:0;}
+#lpOverlayV1 .lp-privacy-option strong{font-size:12px;font-weight:770;color:#3b6046;}
+#lpOverlayV1 .lp-privacy-option small{font-size:11px;font-weight:450;color:#748975;line-height:1.5;}
+#lpOverlayV1 .lp-allday-option{padding:2px 0;}
+#lpOverlayV1 .lp-scope{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:16px;padding:12px 15px;border:1px solid #e9d9c4;border-radius:12px;background:#f7eee2;}
+#lpOverlayV1 .lp-form-reminder-tip{margin:0!important;color:#697d6b!important;line-height:1.6!important;font-size:11px!important;background:#f1f5e9;border:1px solid #e0e6d5;padding:11px 12px;border-radius:10px;}
+#lpOverlayV1 .lp-modal-hint{margin:0;font-size:11px!important;color:#819080!important;line-height:1.6;overflow-wrap:anywhere;}
+#lpOverlayV1 .lp-modal-actions.lp-modal-footer{display:flex;flex-direction:column;gap:9px;flex:0 0 auto;margin:0;padding:14px 25px max(14px,env(safe-area-inset-bottom,0px));border-top:1px solid #e9dccb;background:#fffaf2;box-shadow:0 -8px 18px rgba(67,50,32,.045);}
+#lpOverlayV1 .lp-modal-actions-row{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap;}
+#lpOverlayV1 .lp-btn {appearance:none;border:1px solid #ddcfbc;background:#fff8ed;color:#435d49;border-radius:11px;padding:10px 17px;min-height:43px;line-height:1.3;font-weight:750;font-size:13px;cursor:pointer;transition:background .15s ease,border-color .15s ease;}
+#lpOverlayV1 .lp-btn:hover{background:#f7eddf;}
+#lpOverlayV1 .lp-btn.lp-primary{background:#ddb271;border-color:#d7aa65;color:#273f2c;min-width:125px;}
+#lpOverlayV1 .lp-btn.lp-primary:hover{background:#e7bd7f;}
+#lpOverlayV1 .lp-btn.lp-danger{background:#9f534c;color:white;border-color:#9f534c;}
+#lpOverlayV1 .lp-btn:disabled{opacity:.5;cursor:wait;}
+#lpOverlayV1 .lp-form-error{margin:0!important;border:1px solid #dfa18e;background:#fff0eb;color:#993d35!important;border-radius:10px;padding:9px 12px;font-size:12px!important;line-height:1.4;}
+/* Reminder & delete dialogs have a compact but scroll-safe structure. */
+#lpOverlayV1 .lp-modal:not(.lp-event-dialog){padding:20px 23px;overflow-y:auto;}
+#lpOverlayV1 .lp-modal:not(.lp-event-dialog) .lp-modal-heading{padding:0 0 14px;background:transparent;border-bottom:1px solid #edddc7;margin-bottom:15px;}
+#lpOverlayV1 .lp-modal:not(.lp-event-dialog)>p{color:#657865!important;font-size:12px!important;line-height:1.7;margin:0 0 14px;}
+#lpOverlayV1 .lp-modal:not(.lp-event-dialog) form {flex:0 0 auto;overflow:visible;gap:12px;}
+#lpOverlayV1 .lp-modal:not(.lp-event-dialog) form label{display:flex;flex-direction:column;gap:7px;color:#526b59;font-size:12px;font-weight:750;}
+#lpOverlayV1 .lp-modal:not(.lp-event-dialog) .lp-modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:12px;flex-wrap:wrap;}
+#lpOverlayV1 .lp-reminder-dialog{width:min(510px,100%);}
+#lpOverlayV1 .lp-reminder-dialog form .lp-reminder-offset[hidden]{display:none!important;}
+@media(max-width:600px){
+ #lpOverlayV1.lp-portal-overlay{padding:8px 9px max(8px,env(safe-area-inset-bottom,0px));}
+ #lpOverlayV1 .lp-modal{width:100%;border-radius:17px;}
+ #lpOverlayV1 .lp-event-dialog{height:100%;}
+ #lpOverlayV1 .lp-modal-heading{padding:15px 16px 13px;}
+ #lpOverlayV1 .lp-modal-heading h2{font-size:24px;}
+ #lpOverlayV1 .lp-modal-body{padding:13px 13px 15px;}
+ #lpOverlayV1 .lp-form-section{padding:14px 12px;gap:11px;margin-bottom:10px;border-radius:13px;}
+ #lpOverlayV1 .lp-modal-actions.lp-modal-footer{padding:11px 13px max(11px,env(safe-area-inset-bottom,0px));}
+ #lpOverlayV1 :is(input:not([type='checkbox']):not([type='radio']),select,textarea){font-size:16px;}
+ #lpOverlayV1 .lp-modal:not(.lp-event-dialog){padding:16px;}
+}
+@media(max-width:440px){
+ #lpOverlayV1 .lp-form-row{grid-template-columns:1fr;gap:10px;}
+ #lpOverlayV1 .lp-modal-actions-row .lp-btn{flex:1 1 0;}
+ #lpOverlayV1 .lp-modal-heading h2{font-size:22px;}
+}
+@media(max-height:550px){
+ #lpOverlayV1 .lp-modal-heading{padding-top:11px;padding-bottom:10px;}
+ #lpOverlayV1 .lp-modal-heading p{display:none;}
+ #lpOverlayV1 .lp-modal-actions.lp-modal-footer{padding-top:9px;padding-bottom:9px;}
+}
+@media(prefers-reduced-motion:reduce){#lpOverlayV1 .lp-btn{transition:none;}}
