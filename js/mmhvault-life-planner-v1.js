@@ -126,20 +126,35 @@
     // Two-level Life Planner: the hub and each individual module never share a screen.
     // Only My Schedule has a live editor in Phase 1. Other modules are safe placeholders.
     const modules=[
-      {id:'schedule',symbol:'▦',zh:'我的日程',en:'My Schedule',descZh:'日历、任务与重复日程',descEn:'Calendar, tasks and recurring events',available:true},
-      {id:'habit',symbol:'◈',zh:'习惯管理',en:'Habit Control',descZh:'私人习惯与频率目标',descEn:'Private habits and frequency goals'},
-      {id:'spending',symbol:'◉',zh:'消费控制',en:'Spending Control',descZh:'自由支配预算与次数管理',descEn:'Discretionary spending and budgets'},
-      {id:'fund',symbol:'◇',zh:'愿望储蓄',en:'Wish Fund',descZh:'自由基金与指定愿望',descEn:'Free funds and savings wishes'},
-      {id:'goals',symbol:'◎',zh:'长期目标',en:'My Goals',descZh:'目标、里程碑和成长进度',descEn:'Goals, milestones and progress'},
-      {id:'insights',symbol:'▥',zh:'生活分析',en:'Life Insights',descZh:'日程与生活趋势分析',descEn:'Schedule and life trends'}
+      {id:'schedule',symbol:'▦',art:'schedule',zh:'我的日程',en:'My Schedule',descZh:'安排每天的计划，开启充实的一天。',descEn:'Plan your days, stay organized and grow.',available:true},
+      {id:'habit',symbol:'✓',art:'habit',zh:'习惯管理',en:'Habit Control',descZh:'循序渐进，培养更好的自己。',descEn:'Build good habits, one small step at a time.'},
+      {id:'spending',symbol:'▣',art:'spending',zh:'消费控制',en:'Spending Control',descZh:'理性消费，让生活更有余裕。',descEn:'Spend mindfully and make room for what matters.'},
+      {id:'fund',symbol:'♡',art:'fund',zh:'愿望储蓄',en:'Wish Fund',descZh:'为喜欢的生活和梦想存下希望。',descEn:'Set money aside for the things you love.'},
+      {id:'goals',symbol:'◎',art:'goals',zh:'长期目标',en:'My Goals',descZh:'把梦想分成一步步可实现的目标。',descEn:'Turn big dreams into small, clear steps.'},
+      {id:'insights',symbol:'▥',art:'insights',zh:'生活分析',en:'Life Insights',descZh:'记录进步，发现生活的美好变化。',descEn:'Reflect on your progress and keep growing.'}
     ];
     if(state.section==='home'){
       host.innerHTML=`<div class="lp-shell lp-hub-shell">
-        <header class="lp-hero"><div><div class="lp-eyebrow">MMHVAULT / LIFE PLANNER</div><h1>${L('生活规划','Life Planner')}</h1><p>${L('生活与财务，分开记录、安心规划。请选择要进入的模块。','Organize your life separately from finances. Choose a module to get started.')}</p></div><div class="lp-hero-actions">${textButton(L('返回 Dashboard','Back to Dashboard'),'dashboard')}</div></header>
-        <div class="lp-hub-head"><div><span class="lp-eyebrow">YOUR WORKSPACE</span><h2>${L('我的生活管理','My Life Management')}</h2><p>${L('选择一个模块进入独立页面；其余功能将按阶段开放。','Open a module in its own workspace. Others will arrive in later phases.')}</p></div></div>
+        <header class="lp-hero lp-lifestyle-hero"><div class="lp-lifestyle-copy">
+          <div class="lp-eyebrow">MMHVAULT / LIFE PLANNER</div>
+          <h1>${L('生活规划','Life Planner')}</h1>
+          <p>${L('认真规划每一天，培养好习惯，朝着自己的目标一步步前进。','Organize your daily life, build better habits, reach your goals and create the life you love.')}</p>
+          <div class="lp-mantra">${L('让今天，变得更有意义。','Make today meaningful.')}</div>
+          <div class="lp-lifestyle-promises" aria-label="${L('生活成长方向','Ways to grow')}">
+            <span><i aria-hidden="true">✿</i><b>${L('更好的习惯','Better Habits')}</b><small>${L('一点一滴的改变','Small steps, big changes')}</small></span>
+            <span><i aria-hidden="true">◎</i><b>${L('更清晰的目标','Clear Goals')}</b><small>${L('把梦想变成计划','Turn dreams into plans')}</small></span>
+            <span><i aria-hidden="true">✦</i><b>${L('更好的自己','A Brighter You')}</b><small>${L('自在、充实、有方向','More freedom, happier life')}</small></span>
+          </div>
+        </div><div class="lp-lifestyle-photo" aria-hidden="true"></div></header>
         <nav class="lp-hub-grid" aria-label="${L('生活规划模块','Life Planner modules')}">
-          ${modules.map(item=>`<button type="button" data-lp-act="openModule" data-module="${item.id}" class="lp-hub-card ${item.available?'lp-hub-available':'lp-hub-future'}"><span class="lp-hub-card-icon" aria-hidden="true">${item.symbol}</span><span class="lp-hub-card-copy"><strong>${safe(L(item.zh,item.en))}</strong><small>${safe(L(item.descZh,item.descEn))}</small></span><span class="lp-hub-card-status">${item.available?L('进入 ›','Open ›'):L('即将推出','Coming later')}</span></button>`).join('')}
-        </nav><p class="lp-hub-footnote">${L('私人习惯及消费明细不会在此首页展示。','Private habits and spending details are not displayed on this overview.')}</p>
+          ${modules.map(item=>`<button type="button" data-lp-act="openModule" data-module="${item.id}" class="lp-hub-card lp-tone-${item.art} ${item.available?'lp-hub-available':'lp-hub-future'}" aria-label="${safe(L(item.zh,item.en))}${item.available?'':L('，即将开放',', coming later')}">
+            <span class="lp-hub-art" aria-hidden="true"></span>
+            <span class="lp-hub-card-icon" aria-hidden="true">${item.symbol}</span>
+            <span class="lp-hub-card-copy"><strong>${safe(L(item.zh,item.en))}</strong><small>${safe(L(item.descZh,item.descEn))}</small></span>
+            <span class="lp-hub-card-status">${item.available?L('开启今天 ↗','Open schedule ↗'):L('了解计划 ↗','Explore preview ↗')}</span>
+            ${item.available?'':`<span class="lp-hub-soon">${L('即将推出','Coming soon')}</span>`}
+          </button>`).join('')}
+        </nav><p class="lp-hub-footnote"><span aria-hidden="true">✦</span> ${L('保持自己的节奏。私人习惯及消费明细不会在此首页展示。','Grow at your own pace. Private habits and spending details are not shown on this overview.')}</p>
       </div><div id="lpOverlayV1" class="lp-overlay" hidden></div>`;
       return;
     }
