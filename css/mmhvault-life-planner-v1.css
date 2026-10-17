@@ -436,3 +436,21 @@
  #life-planner .lp-week-day strong{font-size:15px;}
 }
 @media(prefers-reduced-motion:reduce){#life-planner .lp-week-day{transition:none!important;}}
+
+/* Phase 1.7 — reminder controls, separate from existing finance push and nav styles. */
+#life-planner .lp-reminder-panel{display:flex;align-items:center;gap:16px;margin:0 0 18px;padding:19px 20px;border-radius:17px;border:1px solid #e1d9c8;background:linear-gradient(104deg,#f5efe2 0%,#ecf2e8 100%);box-shadow:0 5px 18px rgba(71,66,51,.04);color:#344b3c;}
+#life-planner .lp-reminder-symbol{display:grid;place-items:center;flex:0 0 45px;width:45px;height:45px;border-radius:15px;font-size:27px;color:#946829;background:#fff5df;border:1px solid #e7d6b4;}
+#life-planner .lp-reminder-copy{min-width:0;flex:1;}
+#life-planner .lp-reminder-copy h2{margin:4px 0 6px!important;font:700 clamp(19px,2vw,24px)/1.25 Georgia,'Times New Roman',serif!important;color:#344b3c!important;}
+#life-planner .lp-reminder-copy p{margin:0 0 5px!important;color:#4e6355!important;font-size:12px!important;line-height:1.55!important;}
+#life-planner .lp-reminder-copy small{display:block;font-size:10px;color:#738277;line-height:1.5;}
+#life-planner .lp-reminder-enable{flex:0 0 auto;max-width:230px;min-height:41px!important;border-color:#bdcbb9!important;background:#f7fff6!important;color:#35664b!important;white-space:normal;}
+#life-planner .lp-reminder-enable:disabled{opacity:.65!important;cursor:default;}
+#life-planner .lp-reminder-dialog{width:min(510px,100%);}
+#life-planner .lp-reminder-dialog form .lp-reminder-offset[hidden]{display:none!important;}
+#life-planner .lp-reminder-dialog p.lp-modal-hint{line-height:1.5!important;}
+#life-planner .lp-event-actions [data-lp-act="editReminder"]{background:#fbf1d8!important;color:#8b6228!important;border:1px solid #ddceaf!important;}
+#life-planner .lp-event-actions [data-lp-act="editReminder"]:disabled{opacity:.48!important;}
+@media(max-width:800px){#life-planner .lp-reminder-panel{flex-wrap:wrap;padding:16px;gap:12px;}#life-planner .lp-reminder-enable{margin-left:57px;max-width:calc(100% - 57px);}}
+@media(max-width:480px){#life-planner .lp-reminder-panel{padding:14px;gap:9px;}#life-planner .lp-reminder-symbol{width:38px;height:38px;flex-basis:38px;font-size:22px;}#life-planner .lp-reminder-enable{width:100%;margin-left:0;max-width:100%;}#life-planner .lp-reminder-copy h2{font-size:20px!important;}#life-planner .lp-reminder-copy p{font-size:11px!important;}}
+@media(prefers-reduced-motion:reduce){#life-planner .lp-reminder-panel *{transition:none!important;}}

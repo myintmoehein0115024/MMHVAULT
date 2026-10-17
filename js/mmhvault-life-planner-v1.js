@@ -26,11 +26,11 @@
   const cloud=()=>{try{return typeof db!=='undefined'&&db?.from?db:null;}catch(_){return null;}};
   const active=()=>!!$(PAGE)?.classList.contains('active');
   const CHOICES={work:['工作','Work'],personal:['个人','Personal'],study:['学习','Study'],health:['健康','Health'],important:['重要','Important']};
-  const state={owner:'',epoch:0,events:[],exceptions:[],loaded:false,loading:false,saving:false,view:'month',section:'home',focus:today(),selected:today(),privateVisible:false,categoryFilter:'all',statusFilter:'all',search:'',dialog:null,request:0,ready:false,error:'',toast:''};
+  const state={owner:'',epoch:0,events:[],exceptions:[],reminders:[],remindersReady:false,reminderError:'',reminderChecking:false,browserReminderOptIn:false,loaded:false,loading:false,saving:false,view:'month',section:'home',focus:today(),selected:today(),privateVisible:false,categoryFilter:'all',statusFilter:'all',search:'',dialog:null,request:0,ready:false,error:'',toast:''};
 
   function sessionValid(owner,epoch){return owner&&owner===ownerNow()&&epoch===epochNow();}
   function owns(record){return record&&record.user_id===state.owner;}
-  function reset(){state.request++;state.events=[];state.exceptions=[];state.loaded=false;state.loading=false;state.saving=false;state.error='';state.toast='';state.privateVisible=false;state.categoryFilter='all';state.statusFilter='all';state.search='';state.section='home';state.dialog=null;state.owner=ownerNow();state.epoch=epochNow();closeDialog();render();}
+  function reset(){state.request++;state.events=[];state.exceptions=[];state.reminders=[];state.remindersReady=false;state.reminderError='';state.reminderChecking=false;state.browserReminderOptIn=false;state.loaded=false;state.loading=false;state.saving=false;state.error='';state.toast='';state.privateVisible=false;state.categoryFilter='all';state.statusFilter='all';state.search='';state.section='home';state.dialog=null;state.owner=ownerNow();state.epoch=epochNow();closeDialog();render();}
   function parseMissing(error){const code=String(error?.code||'');const msg=String(error?.message||'');return /42P01|PGRST205|PGRST116/i.test(code)||/could not find the table|does not exist|schema cache/i.test(msg);}
   function notice(message){state.toast=message;const el=$('lpNoticeV1');if(el){el.textContent=message;el.hidden=false;} }
   async function guardedUser(){const c=cloud(),owner=ownerNow();if(!c||!owner)throw Error('LOGIN');const r=await c.auth.getUser();if(r.error||r.data?.user?.id!==owner)throw Error('LOGIN');if(!sessionValid(owner,epochNow()))throw Error('CHANGED');return owner;}
@@ -50,12 +50,23 @@
       if(!sessionValid(owner,epoch)||token!==state.request)return;
       state.events=events.filter(e=>e.user_id===owner);
       state.exceptions=exceptions.filter(e=>e.user_id===owner);
+      // Reminders are optional and do not block My Schedule before their separate RLS migration.
+      state.reminders=[];state.remindersReady=false;state.reminderError='';
+      try{
+        const reminders=await paginate('life_schedule_reminder_settings',owner,'created_at');
+        if(!sessionValid(owner,epoch)||token!==state.request)return;
+        state.reminders=reminders.filter(e=>e.user_id===owner);
+        state.remindersReady=true;
+      }catch(reminderErr){
+        if(!sessionValid(owner,epoch)||token!==state.request)return;
+        state.reminderError=parseMissing(reminderErr)?'MIGRATION':'CONNECT';
+      }
       state.loaded=true;
     }catch(err){
       if(!sessionValid(owner,epoch)||token!==state.request)return;
-      state.loaded=false;state.events=[];state.exceptions=[];
+      state.loaded=false;state.events=[];state.exceptions=[];state.reminders=[];state.remindersReady=false;state.reminderError='CONNECT';
       state.error=parseMissing(err)?'MIGRATION':err.message==='LOGIN'?'LOGIN':err.message==='TOO_MANY'?'LIMIT':'CONNECT';
-    }finally{if(token===state.request&&sessionValid(owner,epoch)){state.loading=false;render();}}
+    }finally{if(token===state.request&&sessionValid(owner,epoch)){state.loading=false;render();if(state.loaded&&state.remindersReady)queueMicrotask(checkDueReminders);}}
   }
   function monthRange(focus){const d=jsDate(focus)||new Date();const start=new Date(d.getFullYear(),d.getMonth(),1);const offset=(start.getDay()+6)%7;start.setDate(start.getDate()-offset);return {start:fmtDate(start),end:shift(fmtDate(start),41)};}
   function visibleRange(){if(state.view==='day')return {start:state.focus,end:state.focus};if(state.view==='week'){const x=at(state.focus);const begin=shift(state.focus,-((x+6)%7));return {start:begin,end:shift(begin,6)};}return monthRange(state.focus);}
@@ -114,13 +125,119 @@
   function humanStatus(s){return s==='completed'?L('已完成','Completed'):s==='cancelled'?L('已取消','Cancelled'):L('待进行','Scheduled');}
   function kindName(s){return CHOICES[s]?.[isZh()?0:1]||L('个人','Personal');}
   function textButton(label,act,extra=''){return `<button class="lp-btn" type="button" data-lp-act="${act}" ${extra}>${safe(label)}</button>`;}
+  // Phase 1.7: separate, opt-in in-page reminders. NO existing financial push/cron edits.
+  function reminderLabel(id){
+    const row=state.remindersReady&&state.reminders.find(r=>r.event_id===id);
+    if(!row||row.mode==='off')return '';
+    return ' · '+(row.mode==='day'?L('当天提醒','Same-day reminder'):L('提前提醒','Advance reminder'));
+  }
+  function renderReminderSettingsPanel(){
+    const enabled=state.reminders.filter(r=>r.mode!=='off').length;
+    const missing=state.reminderError==='MIGRATION';
+    const body=!state.loaded?L('连接云端日程后可设置。','Available after your schedule loads.'):
+      missing?L('提醒专用数据表尚未部署。本轮独立 SQL 需先审核并获得授权。日程功能仍正常。','Reminder tables are not installed. Review and approve the separate SQL first; your schedule continues working.'):
+      state.reminderError?L('提醒数据读取失败；请检查权限与网络。日程仍可使用。','Reminder settings could not load. Check network and permissions; your schedule is still available.'):
+      L('已为 '+enabled+' 项日程设置提醒。点击具体日程的「提醒」即可更改。','Reminders enabled on '+enabled+' events. Choose “Reminder” on any event to change it.');
+    const browserLabel=state.browserReminderOptIn?L('此标签页已允许系统提示','System alerts enabled this session'):L('允许系统提示（可选）','Enable system alerts (optional)');
+    return `<section class="lp-reminder-panel" aria-label="${L('日程提醒','Schedule reminders')}">
+      <div class="lp-reminder-symbol" aria-hidden="true">♧</div><div class="lp-reminder-copy"><div class="lp-focus-kicker">${L('温柔提醒','GENTLE REMINDERS')}</div><h2>${L('别忘了今天的小计划','A little nudge at the right time')}</h2><p>${safe(body)}</p><small>${L('提醒仅在登录、网页打开且此日程页可用时检查；关闭网页后不保证提醒。不会加入财务通知或 AI Chat。','Checks occur only when signed in with this schedule page open. No guaranteed reminders after closing the page. Finance alerts and AI Chat remain separate.')}</small></div>
+      <button type="button" class="lp-btn lp-reminder-enable" data-lp-act="browserReminder" ${!state.remindersReady||state.browserReminderOptIn?'disabled':''}>${safe(browserLabel)}</button>
+    </section>`;
+  }
+  function eventWallInstant(date,time,timezone){
+    const d=jsDate(date);if(!d||!/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(time))return null;
+    try{
+      const fmt=new Intl.DateTimeFormat('en-GB',{timeZone:timezone,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'});
+      const [y,m,day]=date.split('-').map(Number),[hr,min]=time.split(':').map(Number),want=Date.UTC(y,m-1,day,hr,min);
+      let ms=want;
+      for(let n=0;n<6;n++){
+        const parts=Object.fromEntries(fmt.formatToParts(new Date(ms)).filter(x=>x.type!=='literal').map(x=>[x.type,Number(x.value)]));
+        const obtained=Date.UTC(parts.year,parts.month-1,parts.day,parts.hour%24,parts.minute);
+        const delta=want-obtained;
+        if(delta===0)return ms;
+        ms+=delta;
+      }
+      return null; // DST nonexistent local wall-time: do not invent a time.
+    }catch(_){return null;}
+  }
+  function reminderDueTime(o,rule){
+    if(!rule||rule.mode==='off'||o.status!=='scheduled')return null;
+    const timezone=o.timezone||'UTC';
+    const base=o.all_day?'09:00':String(o.start_time||'').slice(0,5);
+    if(rule.mode==='day'){
+      const atNine=eventWallInstant(o.starts_on,'09:00',timezone);
+      const atStart=eventWallInstant(o.starts_on,base,timezone);
+      return o.all_day?atNine:(atNine!==null&&atStart!==null?Math.min(atNine,atStart):null);
+    }
+    const start=eventWallInstant(o.starts_on,base,timezone);
+    const minutes=Number(rule.minutes_before);
+    return start!==null&&[5,15,30,60,1440].includes(minutes)?start-minutes*60000:null;
+  }
+  async function saveReminder(ev){
+    ev.preventDefault();if(!state.loaded||!state.remindersReady||state.saving||state.dialog?.type!=='reminder')return;
+    const owner=state.owner,epoch=state.epoch,id=state.dialog.eventId,form=ev.currentTarget;
+    const mode=String(form.elements.mode.value),minutes=Number(form.elements.minutes_before.value);
+    if(!['off','day','before'].includes(mode)||![5,15,30,60,1440].includes(minutes))return;
+    const row=state.reminders.find(r=>r.event_id===id);
+    state.saving=true;const button=form.querySelector('button[type=submit]');if(button)button.disabled=true;
+    try{
+      await guardedUser();if(!sessionValid(owner,epoch))return;
+      const c=cloud();let r;
+      if(row){r=await c.from('life_schedule_reminder_settings').update({mode,minutes_before:minutes,version:Number(row.version)+1,updated_at:new Date().toISOString()}).eq('id',row.id).eq('user_id',owner).eq('version',row.version).select('id');}
+      else {r=await c.from('life_schedule_reminder_settings').insert({user_id:owner,event_id:id,mode,minutes_before:minutes}).select('id');}
+      if(!sessionValid(owner,epoch))return;
+      if(r.error||!r.data?.length)throw Error('CONFLICT');
+      closeDialog();notice(L('提醒设置已保存。','Reminder settings saved.'));await load();
+    }catch(_){if(sessionValid(owner,epoch)){const error=$('lpFormErrorV1');if(error){error.textContent=L('保存失败或其他设备已修改，请刷新再试。','Save failed or settings changed on another device. Refresh and retry.');error.hidden=false;}}}
+    finally{state.saving=false;if(sessionValid(owner,epoch)){const btn=$('lpReminderFormV17 button[type=submit]');if(btn)btn.disabled=false;}}
+  }
+  async function enableBrowserReminders(){
+    if(!state.remindersReady||state.browserReminderOptIn)return;
+    // Only called by direct user click; a finance push permission alone is not life-planner consent.
+    if(!('Notification' in window)||!window.isSecureContext){notice(L('此浏览器无法提供系统提示，但仍可使用页面内提醒。','System alerts are unavailable; in-page reminders still work.'));return;}
+    try{
+      const allowed=await Notification.requestPermission();
+      if(allowed==='granted')state.browserReminderOptIn=true;
+      notice(allowed==='granted'?L('本次网页会话已开启系统提示。','System alerts enabled for this session.'):L('未开启系统提示；页面内提醒仍可用。','System alerts not enabled. In-page reminders still work.'));
+      render();
+    }catch(_){notice(L('无法开启系统提示；页面内提醒仍可用。','System alerts unavailable; in-page reminders still work.'));}
+  }
+  async function checkDueReminders(){
+    if(state.reminderChecking||state.loading||state.saving||!state.loaded||!state.remindersReady||!active()||state.section!=='schedule'||document.hidden)return;
+    const owner=state.owner,epoch=state.epoch;
+    if(!sessionValid(owner,epoch))return;
+    state.reminderChecking=true;
+    try{
+      const rules=new Map(state.reminders.filter(r=>r.mode!=='off').map(r=>[r.event_id,r]));
+      if(!rules.size)return;
+      const now=Date.now(),rows=occurrences(shift(today(),-2),shift(today(),2));
+      await guardedUser();if(!sessionValid(owner,epoch))return;
+      for(const o of rows){
+        if(!sessionValid(owner,epoch)||document.hidden||state.section!=='schedule')break;
+        const rule=rules.get(o.event.id);if(!rule)continue;
+        const due=reminderDueTime(o,rule);
+        if(due===null||now<due||now-due>60*60000)continue; // Ignore stale reminders older than one hour.
+        const r=await cloud().from('life_schedule_reminder_receipts').insert({user_id:owner,event_id:o.event.id,occurrence_date:o.originalDate,setting_version:Number(rule.version)}).select('id');
+        if(!sessionValid(owner,epoch))break;
+        if(r.error){if(String(r.error.code)==='23505')continue;break;}
+        if(!r.data?.length)continue;
+        const message=L('现在有一项日程需要关注，前往我的日程查看。','A scheduled event needs your attention. Open My Schedule for details.');
+        notice(message); // No private title or event metadata in toast.
+        if(state.browserReminderOptIn&&'Notification' in window&&Notification.permission==='granted'){
+          try{new Notification('MMHVAULT · Life Planner',{body:message,tag:'mmhvault-life-generic',renotify:false});}catch(_){/* in-page fallback */}
+        }
+      }
+    }catch(_){/* fail closed; no sensitive detail in console or external telemetry */}
+    finally{state.reminderChecking=false;}
+  }
   function renderEvent(o){
     const privateClass=o.is_private?' lp-private':'';
     const actions=[textButton(L('编辑','Edit'),'edit',`data-id="${o.event.id}" data-date="${o.originalDate}"`),
       textButton(L('再次使用','Use again'),'reuse',`data-id="${o.event.id}" data-date="${o.originalDate}"`),
+      textButton(L('提醒','Reminder'),'editReminder',`data-id="${o.event.id}" ${state.remindersReady?'':'disabled title="'+L('提醒数据库未准备好','Reminder database not ready')+'"'}`),
       textButton(o.status==='completed'?L('恢复','Reopen'):L('完成','Done'),'toggleDone',`data-id="${o.event.id}" data-date="${o.originalDate}"`),
       textButton(L('删除','Delete'),'delete',`data-id="${o.event.id}" data-date="${o.originalDate}"`)];
-    return `<article class="lp-event${privateClass} lp-${safe(o.status)}"><div class="lp-event-details"><div class="lp-event-title"><span class="lp-event-dot lp-cat-${safe(o.category)}" aria-hidden="true"></span><strong>${safe(displayTitle(o))}</strong><span class="lp-status">${humanStatus(o.status)}</span></div><p>${safe(dateLabel(o.starts_on))}${o.ends_on!==o.starts_on?' → '+safe(dateLabel(o.ends_on)):''} · ${safe(timeText(o))}${o.event.repeat_frequency!=='none'?' · '+L('重复','Repeats'):''}</p></div><div class="lp-event-actions">${actions.join('')}</div></article>`;
+    return `<article class="lp-event${privateClass} lp-${safe(o.status)}"><div class="lp-event-details"><div class="lp-event-title"><span class="lp-event-dot lp-cat-${safe(o.category)}" aria-hidden="true"></span><strong>${safe(displayTitle(o))}</strong><span class="lp-status">${humanStatus(o.status)}</span></div><p>${safe(dateLabel(o.starts_on))}${o.ends_on!==o.starts_on?' → '+safe(dateLabel(o.ends_on)):''} · ${safe(timeText(o))}${o.event.repeat_frequency!=='none'?' · '+L('重复','Repeats'):''}${reminderLabel(o.event.id)}</p></div><div class="lp-event-actions">${actions.join('')}</div></article>`;
   }
   function renderCalendar(rows,range){
     const weekDay=[L('周一','Mon'),L('周二','Tue'),L('周三','Wed'),L('周四','Thu'),L('周五','Fri'),L('周六','Sat'),L('周日','Sun')];
@@ -228,6 +345,7 @@
         </div>
       </section>
       ${renderWeekRhythm()}
+      ${renderReminderSettingsPanel()}
       <div id="lpNoticeV1" class="lp-notice" role="status" aria-live="polite" ${state.toast?'':'hidden'}>${safe(state.toast)}</div>
       ${state.loading?`<p class="lp-alert" role="status">${L('正在安全加载私人日程…','Loading your schedule securely…')}</p>`:''}
       ${status?`<div class="lp-alert lp-alert-error" role="alert"><p>${safe(status)}</p>${textButton(L('重试连接','Retry'),'refresh')}</div>`:''}
@@ -250,7 +368,19 @@
   function drawDialog(){
     const o=state.dialog,root=$('lpOverlayV1');if(!o||!root)return;
     root.hidden=false;
-    if(o.type==='confirm'){
+    if(o.type==='reminder'){
+      const e=state.events.find(x=>x.id===o.eventId&&owns(x));if(!e||!state.remindersReady){closeDialog();return;}
+      const existing=state.reminders.find(x=>x.event_id===e.id);
+      const mode=existing?.mode||'off',minutes=Number(existing?.minutes_before||15);
+      root.innerHTML=`<div class="lp-modal lp-reminder-dialog" role="dialog" aria-modal="true" aria-labelledby="lpModalTitleV1"><div class="lp-modal-heading"><h2 id="lpModalTitleV1">${L('日程提醒设置','Event reminder settings')}</h2><button class="lp-modal-x" type="button" data-lp-act="closeDialog" aria-label="${L('关闭','Close')}">×</button></div>
+        <p>${L('仅为当前日程系列设置提醒，重复日程的每次发生均适用。','Settings apply to this event and every occurrence in its recurring series.')}</p>
+        <form id="lpReminderFormV17"><label>${L('提醒方式','When to remind')}<select name="mode"><option value="off" ${mode==='off'?'selected':''}>${L('不提醒','Off')}</option><option value="day" ${mode==='day'?'selected':''}>${L('当天提醒（通常上午 9 点；早于 9 点的日程按开始时）','Same day (usually 9 AM, earlier events at their start time)')}</option><option value="before" ${mode==='before'?'selected':''}>${L('提前提醒','Before event')}</option></select></label>
+        <label class="lp-reminder-offset">${L('提前多久','How early')}<select name="minutes_before">${[[5,L('5 分钟','5 minutes')],[15,L('15 分钟','15 minutes')],[30,L('30 分钟','30 minutes')],[60,L('1 小时','1 hour')],[1440,L('1 天','1 day')]].map(([n,label])=>`<option value="${n}" ${minutes===n?'selected':''}>${safe(label)}</option>`).join('')}</select></label>
+        <p class="lp-modal-hint">${L('使用日程原时区；全天日程按上午 9 点计算。仅网页打开期间可提醒，私人日程不会显示标题。','Uses event timezone; all-day events use 9 AM. Works only while the page is open; private event titles are never shown in reminders.')}</p>
+        <p id="lpFormErrorV1" class="lp-form-error" role="alert" hidden></p><div class="lp-modal-actions"><button type="button" class="lp-btn" data-lp-act="closeDialog">${L('取消','Cancel')}</button><button type="submit" class="lp-btn lp-primary">${L('保存提醒','Save reminder')}</button></div></form></div>`;
+      $('lpReminderFormV17')?.addEventListener('submit',saveReminder);
+      const rForm=$('lpReminderFormV17');const update=()=>{const el=rForm.querySelector('.lp-reminder-offset');el.hidden=rForm.elements.mode.value!=='before';};rForm.elements.mode.addEventListener('change',update);update();
+    }else if(o.type==='confirm'){
       root.innerHTML=`<div class="lp-modal" role="dialog" aria-modal="true" aria-labelledby="lpModalTitleV1"><h2 id="lpModalTitleV1">${safe(o.title)}</h2><p>${safe(o.description)}</p><div class="lp-modal-actions">${textButton(L('返回','Back'),'closeDialog')}<button class="lp-btn lp-danger" type="button" data-lp-act="confirmDelete">${L('确认','Confirm')}</button></div></div>`;
     }else{
       const e=o.occurrence||null,base=e?.event;
@@ -410,6 +540,8 @@
     if(act==='add'){if(btn.classList.contains('lp-focus-create'))state.selected=today();openEditor('add');return;}
     if(act==='edit'){const e=state.events.find(x=>x.id===id);openEditor('edit',id,date,e?.repeat_frequency==='none'?'series':'single');return;}
     if(act==='reuse'){openEditor('reuse',id,date);return;}
+    if(act==='editReminder'){if(state.remindersReady&&state.events.some(e=>e.id===id&&owns(e))){state.dialog={type:'reminder',eventId:id};drawDialog();}return;}
+    if(act==='browserReminder'){enableBrowserReminders();return;}
     if(act==='weekDay'&&jsDate(date)){state.selected=state.focus=date;state.view='day';render();return;}
     if(act==='toggleDone'){const e=state.events.find(x=>x.id===id&&owns(x));if(e){const ex=state.exceptions.find(x=>x.event_id===id&&x.occurrence_date===date);const o=buildOccurrence(e,date,ex);mutateOccurrence(id,date,o.status==='completed'?'scheduled':'completed');}return;}
     if(act==='delete'){askDelete(id,date);return;}
@@ -461,6 +593,8 @@
     window.addEventListener('mmhvault:config-owner-changed',reset);
     for(const n of ['mmhvault-language-change','languagechange'])window.addEventListener(n,()=>{if(state.ready)render();});
     document.addEventListener('visibilitychange',()=>{if(document.hidden){state.privateVisible=false;closeDialog();}else if(active())load();});
+    // No background scheduling promise: browsers may throttle or suspend this timer.
+    setInterval(()=>{if(!document.hidden&&active()&&state.section==='schedule')checkDueReminders();},60000);
     window.addEventListener('focus',()=>{if(active()&&!state.saving&&!state.loading)load();},{passive:true});
     try{cloud()?.auth.onAuthStateChange((_e,s)=>{setTimeout(()=>{if((s?.user?.id||'')!==state.owner){reset();if(active()&&ownerNow())load();}},0);});}catch(_){/* no auth client */}
     if(active())load();
