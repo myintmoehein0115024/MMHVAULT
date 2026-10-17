@@ -1,4 +1,4 @@
-/* MMHVAULT Life Planner · Phase 2.5 / Safer Daily Journal
+/* MMHVAULT Life Planner · Phase 2.6 / Resilient Writes & Privacy QA
  * Deliberately separate from finance, notification, AI Chat and analytics.
  * No localStorage, sessionStorage, offline seed, third-party requests or global habit data.
  * Requires independently reviewed RLS schema. Do not persist sensitive data before migration.
@@ -170,7 +170,7 @@ ${state.loaded?(visible.length?`<div class="lh-grid">${visible.map(card).join(''
 function options(obj,selected){return Object.entries(obj).map(([id,n])=>`<option value="${id}" ${selected===id?'selected':''}>${esc(n[isZh()?0:1])}</option>`).join('');}
 function modal(html){const old=$('lhDialogV21');if(old)old.remove();const d=document.createElement('dialog');d.id='lhDialogV21';d.className='lh-dialog';d.innerHTML=html;document.body.appendChild(d);d.addEventListener('close',()=>{if(state.dialog){state.dialog=null;}d.remove();});d.showModal();const input=d.querySelector('input:not([type=checkbox])');input?.focus({preventScroll:true});}
 function close(){const d=$('lhDialogV21');d?.close();state.dialog=null;}
-function openHabit(h){if(!available()||(h&&privateMasked(h)))return;state.dialog={type:'habit',id:h?.id||null};modal(`<form id="lhHabitFormV21" method="dialog"><div class="lh-dialog-top"><span class="lh-eyebrow">HABIT CONTROL</span><h2>${h?L('编辑习惯','Edit habit'):L('创建习惯','New habit')}</h2><button type="button" data-lh-act="close" aria-label="${L('关闭','Close')}">×</button></div><div class="lh-dialog-body">
+function openHabit(h){if(!available()||(h&&privateMasked(h)))return;state.dialog={type:'habit',id:h?.id||null,clientRequestId:h?null:uuid()};modal(`<form id="lhHabitFormV21" method="dialog"><div class="lh-dialog-top"><span class="lh-eyebrow">HABIT CONTROL</span><h2>${h?L('编辑习惯','Edit habit'):L('创建习惯','New habit')}</h2><button type="button" data-lh-act="close" aria-label="${L('关闭','Close')}">×</button></div><div class="lh-dialog-body">
 <label>${L('习惯名称','Habit name')}<input name="title" required maxlength="100" autocomplete="off" value="${esc(h?.title||'')}" placeholder="${L('自己填写，默认保密','Your own private title')}"></label>
 <div class="lh-form-grid"><label>${L('管理方式','Goal type')}<select name="mode">${options(modes,h?.mode||'build')}</select></label><label>${L('目标周期','Goal period')}<select name="target_period">${options(periods,h?.target_period||'week')}</select></label></div>
 <label>${L('参考次数目标','Frequency target')}<input type="number" name="target_count" min="0" max="500" step="1" required value="${Number(h?.target_count??3)}"></label>
@@ -196,7 +196,7 @@ function updateGoalPreview(){
 }
 function openLog(h){
  if(!available()||privateMasked(h))return;
- state.dialog={type:'log',id:h.id};
+ state.dialog={type:'log',id:h.id,clientRequests:{}};
  const current=countFor(h,state.selected);
  const recordText=logSummary(h,state.selected);
  modal(`<form id="lhLogFormV21" method="dialog"><div class="lh-dialog-top"><span class="lh-eyebrow">HABIT CONTROL</span><h2>${L('记录次数','Record occurrences')}</h2><button type="button" data-lh-act="close" aria-label="${L('关闭','Close')}">×</button></div><div class="lh-dialog-body"><p class="lh-modal-note">${esc(title(h))} · ${L('只填写真实发生的次数，记录零次也需要主动选择。','Enter only actual occurrences; recording zero is an intentional choice.')}</p>
@@ -207,8 +207,31 @@ function openLog(h){
  <p class="lh-modal-note">${L('如果这天没有填写记录，就保留为空；这与明确记录 0 次不同。','Leave the day unlogged if you do not know the count. A missing entry is different from logging zero.')}</p>
  <p id="lhErrorV21" class="lh-form-error" role="alert" hidden></p></div><div class="lh-dialog-actions"><button type="button" data-lh-act="deleteLog" data-id="${h.id}" class="lh-danger" ${current?'':'hidden'}>${L('删除当天记录','Delete day entry')}</button><button type="button" data-lh-act="close">${L('取消','Cancel')}</button><button class="lh-accent" type="submit">${L('保存记录','Save')}</button></div></form>`);
 }
+// New-record retry uses the SAME request key while this editor stays open.
+// PostgREST may have committed a write even when the browser lost its response.
+// Only treat a lost response as success when an authenticated, owner-scoped read
+// confirms the exact request key; never create a second record with a fresh key.
+async function committedByRequest(c,table,u,requestId){
+ if(!requestId||!live())return false;
+ try{
+  const r=await c.from(table).select('id').eq('user_id',u).eq('client_request_id',requestId).limit(1);
+  return !r.error&&Array.isArray(r.data)&&r.data.length===1&&live();
+ }catch(_){return false;}
+}
+async function verifiedInsert(c,table,u,payload){
+ try{
+  const r=await c.from(table).insert(payload).select('id');
+  if(!r.error&&Array.isArray(r.data)&&r.data.length===1)return;
+  if(await committedByRequest(c,table,u,payload.client_request_id))return;
+  if(r.error?.code==='23505')throw Error('CONFLICT');
+  throw r.error||Error('UNKNOWN_WRITE');
+ }catch(err){
+  if(await committedByRequest(c,table,u,payload.client_request_id))return;
+  throw err;
+ }
+}
 function showError(message){const el=$('lhErrorV21');if(el){el.textContent=message;el.hidden=false;}}
-async function write(kind,fn){if(state.busy||!live())return;state.busy=true;const token=++state.token,u=state.owner,e=state.epoch;try{const c=await auth();await fn(c,u);if(state.owner!==u||state.epoch!==e||token!==state.token)return;close();state.notice=kind;state.busy=false;await load();}catch(err){if(token!==state.token||!live())return;state.busy=false;const msg=err.message==='CONFLICT'?L('这条记录已被其他设备更新，请刷新重试。','This record changed elsewhere. Refresh and retry.'):L('保存失败。请检查网络与权限后重试。','Save failed. Check connection and access permissions.');if($('lhDialogV21'))showError(msg);else{state.notice=msg;render();}}}
+async function write(kind,fn){if(state.busy||!live())return;state.busy=true;const token=++state.token,u=state.owner,e=state.epoch;try{const c=await auth();await fn(c,u);if(state.owner!==u||state.epoch!==e||token!==state.token)return;close();state.notice=kind;state.busy=false;await load();}catch(err){if(token!==state.token||!live())return;state.busy=false;const msg=err.message==='RETRY_PAYLOAD_CHANGED'?L('前一次提交结果尚未确认。请恢复原值并重试，或取消后刷新云端记录再修改。','Previous save is unconfirmed. Retry the same values, or cancel and refresh cloud data before changing them.'):err.message==='CONFLICT'?L('这条记录已被其他设备更新，请取消编辑并刷新后重试。','This record changed elsewhere. Cancel editing and refresh before retrying.'):L('保存状态尚未确认。请保持原值重试，或取消后刷新云端记录；不要重复新建。','Save status is unconfirmed. Retry unchanged values, or cancel and refresh cloud data; avoid creating duplicates.');if($('lhDialogV21'))showError(msg);else{state.notice=msg;render();}}}
 async function saveHabit(form){const data=new FormData(form),title=String(data.get('title')||'').trim(),mode=String(data.get('mode')),period=String(data.get('target_period')),goal=Number(data.get('target_count')),privateMode=data.has('is_private');if(!title||title.length>100||!(mode in modes)||!(period in periods)||!Number.isInteger(goal)||goal<0||goal>500){showError(L('请填写有效的名称与目标。','Enter a valid name and target.'));return;}
 const existing=state.habits.find(h=>h.id===state.dialog?.id);
 if(existing&&privateMasked(existing))return;
@@ -218,8 +241,25 @@ if(existing&&(existing.mode!==mode||existing.target_period!==period||Number(exis
 if(existing?.is_private&&!privateMode){
  if(!confirm(L('确认取消私人保护？名称、次数和趋势将直接在此模块显示，普通页面仍不会自动读取。','Turn off private masking? The title, counts and trends will be visible within Habit Control.')))return;
 }
-await write(L('习惯已保存。','Habit saved.'),async(c,u)=>{let q;if(existing){q=c.from(TABLE).update({title,mode,target_period:period,target_count:goal,is_private:privateMode,version:existing.version+1,updated_at:new Date().toISOString()}).eq('id',existing.id).eq('user_id',u).eq('version',existing.version).select('id');}else{q=c.from(TABLE).insert({id:uuid(),user_id:u,client_request_id:uuid(),title,mode,target_period:period,target_count:goal,is_private:privateMode,is_paused:false}).select('id');}const r=await q;if(r.error)throw r.error;if(!r.data?.length)throw Error('CONFLICT');});}
-async function saveLog(form){const data=new FormData(form),d=String(data.get('entry_date')),rawCount=String(data.get('count')??'').trim(),count=Number(rawCount),habit=state.habits.find(h=>h.id===state.dialog?.id);if(!habit||privateMasked(habit)||!validDay(d)||d>localDate()||d<shift(localDate(),-365)||rawCount===''||!Number.isInteger(count)||count<0||count>24){showError(L('日期或次数无效。','Invalid date or count.'));return;}const existing=state.entries.find(e=>e.habit_id===habit.id&&e.entry_date===d);await write(L('记录已保存。','Entry saved.'),async(c,u)=>{let q;if(existing){q=c.from(LOGS).update({count,version:existing.version+1,updated_at:new Date().toISOString()}).eq('id',existing.id).eq('user_id',u).eq('version',existing.version).select('id');}else{q=c.from(LOGS).insert({id:uuid(),user_id:u,habit_id:habit.id,entry_date:d,count,client_request_id:uuid()}).select('id');}const r=await q;if(r.error)throw r.error;if(!r.data?.length)throw Error('CONFLICT');});}
+await write(L('习惯已保存。','Habit saved.'),async(c,u)=>{let q;if(existing){q=c.from(TABLE).update({title,mode,target_period:period,target_count:goal,is_private:privateMode,version:existing.version+1,updated_at:new Date().toISOString()}).eq('id',existing.id).eq('user_id',u).eq('version',existing.version).select('id');}else{
+ const requestId=state.dialog?.clientRequestId;
+ if(!requestId)throw Error('CONFLICT');
+ const signature=JSON.stringify([title,mode,period,goal,privateMode]);
+ if(state.dialog.requestFingerprint&&state.dialog.requestFingerprint!==signature)throw Error('RETRY_PAYLOAD_CHANGED');
+ state.dialog.requestFingerprint=signature;
+ await verifiedInsert(c,TABLE,u,{id:uuid(),user_id:u,client_request_id:requestId,title,mode,target_period:period,target_count:goal,is_private:privateMode,is_paused:false});
+ return;
+ }const r=await q;if(r.error)throw r.error;if(!r.data?.length)throw Error('CONFLICT');});}
+async function saveLog(form){const data=new FormData(form),d=String(data.get('entry_date')),rawCount=String(data.get('count')??'').trim(),count=Number(rawCount),habit=state.habits.find(h=>h.id===state.dialog?.id);if(!habit||privateMasked(habit)||!validDay(d)||d>localDate()||d<shift(localDate(),-365)||rawCount===''||!Number.isInteger(count)||count<0||count>24){showError(L('日期或次数无效。','Invalid date or count.'));return;}const existing=state.entries.find(e=>e.habit_id===habit.id&&e.entry_date===d);await write(L('记录已保存。','Entry saved.'),async(c,u)=>{let q;if(existing){q=c.from(LOGS).update({count,version:existing.version+1,updated_at:new Date().toISOString()}).eq('id',existing.id).eq('user_id',u).eq('version',existing.version).select('id');}else{
+ const requests=state.dialog?.clientRequests;
+ if(!requests)throw Error('CONFLICT');
+ const prior=requests[d];
+ if(prior&&prior.count!==count)throw Error('RETRY_PAYLOAD_CHANGED');
+ const requestId=prior?.id||uuid();
+ requests[d]={id:requestId,count};
+ await verifiedInsert(c,LOGS,u,{id:uuid(),user_id:u,habit_id:habit.id,entry_date:d,count,client_request_id:requestId});
+ return;
+ }const r=await q;if(r.error)throw r.error;if(!r.data?.length)throw Error('CONFLICT');});}
 async function togglePause(h){if(privateMasked(h))return;await write(L('状态已更新。','Status updated.'),async(c,u)=>{const r=await c.from(TABLE).update({is_paused:!h.is_paused,version:h.version+1,updated_at:new Date().toISOString()}).eq('id',h.id).eq('user_id',u).eq('version',h.version).select('id');if(r.error)throw r.error;if(!r.data?.length)throw Error('CONFLICT');});}
 async function deleteHabit(h){if(privateMasked(h))return;if(!confirm(L('确定删除这项习惯及其全部记录吗？此操作不可撤销。','Delete this habit and all its history? This cannot be undone.')))return;await write(L('习惯及关联记录已删除。','Habit and its entries deleted.'),async(c,u)=>{const r=await c.from(TABLE).delete().eq('id',h.id).eq('user_id',u).eq('version',h.version).select('id');if(r.error)throw r.error;if(!r.data?.length)throw Error('CONFLICT');});}
 async function deleteLog(){const d=$('lhDialogV21'),day=d?.querySelector('input[name="entry_date"]')?.value,habitId=state.dialog?.id;const entry=state.entries.find(e=>e.habit_id===habitId&&e.entry_date===day);if(!entry)return;await write(L('当天记录已删除。','Day entry deleted.'),async(c,u)=>{const r=await c.from(LOGS).delete().eq('id',entry.id).eq('user_id',u).eq('version',entry.version).select('id');if(r.error)throw r.error;if(!r.data?.length)throw Error('CONFLICT');});}
