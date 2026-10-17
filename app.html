@@ -29139,9 +29139,12 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     return b;
   }
   function morePageButton(){
-    const b=iconButton('', '⋯','More');
+    const lang=localStorage.getItem('mmhvault_language_v3363')==='zh';
+    const b=iconButton('', '◈',lang?'财务规划':'Financial Planning');
     b.classList.add('mmh-more-page-switch-v153');
-    b.querySelector('.mmh-more-copy-v153').innerHTML='<b>More</b><small>Budget · Goals · Forecast</small>';
+    b.querySelector('.mmh-more-copy-v153').innerHTML=lang
+      ?'<b>财务规划</b><small>预算 · 目标 · 预测</small>'
+      :'<b>Financial Planning</b><small>Budget · Goals · Forecast</small>';
     b.onclick=e=>{e.preventDefault();e.stopPropagation();switchView('extra',1)};
     return b;
   }
@@ -29156,9 +29159,10 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     const h=document.createElement('div');h.className='mmh-more-view-head-v153';
     if(page==='extra')h.append(backButton());
     const copy=document.createElement('div');copy.className='mmh-more-view-title-v153';
+    const zh=localStorage.getItem('mmhvault_language_v3363')==='zh';
     copy.innerHTML=page==='extra'
-      ?'<span>MORE TOOLS</span><strong>Planning & automation</strong><small>Budget, goals, future assets and recurring activity</small>'
-      :'<span>MORE</span><strong>Workspace tools</strong><small>Analysis, reports and application controls</small>';
+      ?(zh?'<span>PLANNING</span><strong>财务规划</strong>':'<span>PLANNING</span><strong>Financial Planning</strong>')
+      :(zh?'<span>MORE</span><strong>工作区工具</strong>':'<span>MORE</span><strong>Workspace tools</strong>');
     h.append(copy);
     return h;
   }
@@ -29168,6 +29172,11 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     wrap.dataset.moreView=page;
     wrap.append(headerFor(page));
     const list=document.createElement('div');list.className='mmh-more-list-v153';
+    list.setAttribute('role','group');
+    list.setAttribute('aria-label',localStorage.getItem('mmhvault_language_v3363')==='zh'
+      ?(page==='extra'?'财务规划工具':'工作区工具')
+      :(page==='extra'?'Financial Planning tools':'Workspace tools'));
+    list.tabIndex=0;
     if(page==='main'){
       [
         ['exchange','⇄','Exchange'],
@@ -29269,6 +29278,11 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       if(token!==adminEpoch)return;
       b.hidden=!!error||data!==true;
     }catch(_){if(token===adminEpoch)b.hidden=true}
+    // An asynchronous admin check may change the menu's natural height.
+    // Re-anchor the open desktop popover so its bottom never crosses the viewport.
+    if(token===adminEpoch&&menu?.classList.contains('open')&&window.innerWidth>=1100){
+      requestAnimationFrame(positionDesktop);
+    }
   }
   function replaceMore(){
     const old=$('moreNavButton');if(!old)return false;
@@ -33470,5 +33484,193 @@ html body #settings.page.active #stSettingsHomeV3 > .st-home-menu > .st-template
   }
 }
 </style>
+
+<style id="mmhvault-phase13-more-final-scroll-fix">
+/* Phase 1.3 · More menu only.
+   Authoritative last layer: the old v1.5.4 fixed frame and Phase1.1 auto-height
+   overrides had prevented the flex list from acquiring scrollable height. */
+html body.mmh-workspace-active #moreNavMenu.more-nav-menu{
+  display:block!important;
+  grid-template-columns:none!important;
+  box-sizing:border-box!important;
+  width:min(300px,calc(100vw - 24px));
+  height:min(488px,calc(100dvh - 24px))!important;
+  min-height:0!important;
+  max-height:calc(100dvh - 24px)!important;
+  padding:0!important;
+  overflow:hidden!important;
+  border-radius:17px!important;
+}
+/* Short secondary page should not have a large blank spacer. */
+html body.mmh-workspace-active #moreNavMenu.more-nav-menu[data-view-v153="extra"]{
+  height:min(283px,calc(100dvh - 24px))!important;
+}
+/* When the Administrator entry isn't available, compress the popover further. */
+@supports selector(:has(*)){
+  html body.mmh-workspace-active #moreNavMenu.more-nav-menu[data-view-v153="main"]:has(#mmhMoreAdminV570[hidden]){
+    height:min(438px,calc(100dvh - 24px))!important;
+  }
+}
+html body.mmh-workspace-active #moreNavMenu .mmh-more-stage-v153{
+  display:block!important;
+  position:relative!important;
+  box-sizing:border-box!important;
+  width:100%!important;
+  height:100%!important;
+  min-height:0!important;
+  max-height:none!important;
+  overflow:hidden!important;
+  transition:none!important;
+}
+html body.mmh-workspace-active #moreNavMenu .mmh-more-view-v153{
+  display:flex!important;
+  flex-direction:column!important;
+  position:relative;
+  box-sizing:border-box!important;
+  width:100%!important;
+  height:100%!important;
+  min-height:0!important;
+  max-height:none!important;
+  overflow:hidden!important;
+  padding:10px!important;
+}
+html body.mmh-workspace-active #moreNavMenu .mmh-more-view-head-v153{
+  display:grid!important;
+  grid-template-columns:32px minmax(0,1fr)!important;
+  align-items:center!important;
+  column-gap:9px!important;
+  flex:0 0 47px!important;
+  height:47px!important;
+  min-height:47px!important;
+  max-height:47px!important;
+  margin:0 0 7px!important;
+  padding:0 2px 7px!important;
+  border-bottom:1px solid rgba(107,162,197,.15)!important;
+}
+html body.mmh-workspace-active #moreNavMenu .mmh-more-view-v153[data-more-view="main"] .mmh-more-view-head-v153::before{
+  content:'•••'!important;
+  display:grid!important;
+  place-items:center!important;
+  width:32px!important;
+  height:32px!important;
+  border-radius:10px!important;
+  font-size:10px!important;
+}
+html body.mmh-workspace-active #moreNavMenu .mmh-more-back-v153{
+  width:32px!important;
+  height:32px!important;
+  min-width:32px!important;
+  flex:0 0 32px!important;
+  border-radius:10px!important;
+}
+html body.mmh-workspace-active #moreNavMenu .mmh-more-view-title-v153{
+  min-height:0!important;
+  gap:2px!important;
+}
+html body.mmh-workspace-active #moreNavMenu .mmh-more-view-title-v153>span{
+  margin:0!important;
+  font-size:8px!important;
+  line-height:1.1!important;
+}
+html body.mmh-workspace-active #moreNavMenu .mmh-more-view-title-v153>strong{
+  margin:0!important;
+  min-height:0!important;
+  font-size:13px!important;
+  line-height:1.22!important;
+}
+html body.mmh-workspace-active #moreNavMenu .mmh-more-view-title-v153>small{display:none!important}
+/* Only the items area scrolls. The heading never disappears. */
+html body.mmh-workspace-active #moreNavMenu .mmh-more-list-v153{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  grid-auto-rows:max-content!important;
+  align-content:start!important;
+  flex:1 1 0px!important;
+  width:100%!important;
+  min-height:0!important;
+  max-height:none!important;
+  overflow-x:hidden!important;
+  overflow-y:auto!important;
+  padding:1px 4px 3px 0!important;
+  gap:5px!important;
+  overscroll-behavior-y:contain!important;
+  touch-action:pan-y!important;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-width:thin!important;
+  scrollbar-color:#4f7288 rgba(7,26,42,.4)!important;
+}
+html body.mmh-workspace-active #moreNavMenu .mmh-more-list-v153::-webkit-scrollbar{
+  display:block!important;width:5px!important;
+}
+html body.mmh-workspace-active #moreNavMenu .mmh-more-list-v153::-webkit-scrollbar-thumb{
+  background:#496f8a!important;border-radius:999px!important;
+}
+html body.mmh-workspace-active #moreNavMenu .mmh-more-item-v153{
+  box-sizing:border-box!important;
+  grid-template-columns:32px minmax(0,1fr) 13px!important;
+  align-items:center!important;
+  flex:0 0 auto!important;
+  min-height:47px!important;
+  height:47px!important;
+  gap:9px!important;
+  margin:0!important;
+  padding:5px 9px!important;
+  border-radius:11px!important;
+}
+html body.mmh-workspace-active #moreNavMenu .mmh-more-item-v153 .mmh-more-icon-v570{
+  width:31px!important;height:31px!important;border-radius:9px!important;
+}
+html body.mmh-workspace-active #moreNavMenu .mmh-more-copy-v153 b{
+  font-size:11.5px!important;
+  line-height:1.15!important;
+}
+html body.mmh-workspace-active #moreNavMenu .mmh-more-copy-v153 small{
+  margin-top:2px!important;
+  font-size:8px!important;
+  line-height:1.15!important;
+}
+html body.mmh-workspace-active #moreNavMenu .mmh-more-chevron-v153{font-size:17px!important}
+html body.mmh-workspace-active #moreNavMenu .mmh-more-page-switch-v153{margin-top:0!important}
+/* The older secondary footer took valuable space on small screens. */
+html body.mmh-workspace-active #moreNavMenu .mmh-more-view-v153[data-more-view="extra"]::after{
+  display:none!important;content:none!important;
+}
+html body.mmh-workspace-active #moreNavMenu .mmh-more-list-v153:focus-visible{
+  outline:1px solid rgba(216,181,102,.7)!important;
+  outline-offset:-2px!important;
+  border-radius:8px!important;
+}
+@media(max-width:1099px){
+  html body.mmh-workspace-active #moreNavMenu.more-nav-menu{
+    height:min(488px,calc(100dvh - 160px))!important;
+    min-height:0!important;
+    max-height:calc(100dvh - 160px)!important;
+  }
+  html body.mmh-workspace-active #moreNavMenu.more-nav-menu[data-view-v153="extra"]{
+    height:min(283px,calc(100dvh - 160px))!important;
+  }
+  @supports selector(:has(*)){
+    html body.mmh-workspace-active #moreNavMenu.more-nav-menu[data-view-v153="main"]:has(#mmhMoreAdminV570[hidden]){
+      height:min(438px,calc(100dvh - 160px))!important;
+    }
+  }
+}
+@media(max-width:520px){
+  html body.mmh-workspace-active #moreNavMenu.more-nav-menu{
+    height:min(488px,calc(100dvh - 145px))!important;
+    max-height:calc(100dvh - 145px)!important;
+  }
+  html body.mmh-workspace-active #moreNavMenu.more-nav-menu[data-view-v153="extra"]{
+    height:min(283px,calc(100dvh - 145px))!important;
+  }
+  @supports selector(:has(*)){
+    html body.mmh-workspace-active #moreNavMenu.more-nav-menu[data-view-v153="main"]:has(#mmhMoreAdminV570[hidden]){
+      height:min(438px,calc(100dvh - 145px))!important;
+    }
+  }
+  html body.mmh-workspace-active #moreNavMenu .mmh-more-view-v153{padding:9px!important}
+}
+</style>
+
 </body>
 </html>
