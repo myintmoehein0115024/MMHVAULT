@@ -1,4 +1,4 @@
-/* MMHVAULT Life Planner Phase 3.2 / Spending Control + read-only transaction associations
+/* MMHVAULT Life Planner Phase 3.3 / Spending Insights + read-only transaction associations
  * Voluntary separate plan + manual-use ledger only; NEVER touches Transactions,
  * Accounts, Invest, Forecast, Income, Wish Fund, or financial totals.
  * No demo records, offline cache, localStorage of spending data, or third parties.
@@ -20,13 +20,13 @@ const goodDate=x=>{if(!/^\d{4}-\d\d-\d\d$/.test(x||''))return false;const d=new 
 const MONEY={USD:'$',THB:'฿',MMK:'K',RMB:'￥'};
 const money=(amount,currency)=>`${MONEY[currency]||''}${Number(amount||0).toLocaleString(isZh()?'zh-CN':'en-US',{minimumFractionDigits:2,maximumFractionDigits:2})} ${currency}`;
 const num=(v)=>{const n=Number(v);return Number.isFinite(n)?Math.round(n*100)/100:NaN;};
-const state={owner:'',epoch:0,token:0,plans:[],entries:[],links:[],sourceTx:[],txTruncated:false,month:today().slice(0,7),loaded:false,loading:false,saving:false,error:'',notice:'',reveal:false,revealUntil:0,dialog:null};
+const state={owner:'',epoch:0,token:0,plans:[],entries:[],links:[],sourceTx:[],txTruncated:false,month:today().slice(0,7),loaded:false,loading:false,saving:false,error:'',notice:'',reveal:false,revealUntil:0,dialog:null,insightPlanId:null};
 let revealTimer=null;
 const live=()=>state.owner===owner()&&state.epoch===epoch()&&!!state.owner&&!!$(ROOT)&&$('life-planner')?.classList.contains('active')&&!document.hidden;
 function clearReveal(){if(revealTimer!==null)clearTimeout(revealTimer);revealTimer=null;state.revealUntil=0;state.reveal=false;}
-function hidePrivate(){clearReveal();if(state.dialog&&state.dialog.planId&&state.plans.find(p=>p.id===state.dialog.planId)?.is_private)close();if($(ROOT))render();}
+function hidePrivate(){clearReveal();if(state.insightPlanId&&state.plans.find(p=>p.id===state.insightPlanId)?.is_private)state.insightPlanId=null;if(state.dialog&&state.dialog.planId&&state.plans.find(p=>p.id===state.dialog.planId)?.is_private)close();if($(ROOT))render();}
 function reveal(){clearReveal();state.reveal=true;state.revealUntil=Date.now()+90000;revealTimer=setTimeout(hidePrivate,90000);render();}
-function forget(){clearReveal();state.token++;state.plans=[];state.entries=[];state.links=[];state.sourceTx=[];state.txTruncated=false;state.loaded=false;state.loading=false;state.saving=false;state.notice='';state.error='';state.month=today().slice(0,7);close();const r=$(ROOT);if(r)r.replaceChildren();}
+function forget(){clearReveal();state.token++;state.plans=[];state.entries=[];state.links=[];state.sourceTx=[];state.txTruncated=false;state.loaded=false;state.loading=false;state.saving=false;state.notice='';state.error='';state.month=today().slice(0,7);state.insightPlanId=null;close();const r=$(ROOT);if(r)r.replaceChildren();}
 function missing(err){return /42P01|PGRST205|schema cache|does not exist|could not find the table/i.test(String(err?.code||'')+' '+String(err?.message||''));}
 async function auth(){const c=client();if(!c||!live())throw Error('LOGIN');const r=await c.auth.getUser();if(r.error||r.data?.user?.id!==state.owner||!live())throw Error('LOGIN');return c;}
 async function load(){if(!live()||state.loading||state.saving)return;const token=++state.token,u=state.owner;state.loading=true;state.error='';render();try{
@@ -45,10 +45,43 @@ const allowed=p=>!p.is_private||state.reveal;
 // Fail closed for unknown/renamed accounts; no FX guesses or silent conversions.
 function accountCurrency(name){try{const all=(typeof MMHVAULT_CONFIG!=='undefined'&&MMHVAULT_CONFIG?.accounts)||[];const a=all.find(x=>String(x.name||'').trim().toLowerCase()===String(name||'').trim().toLowerCase());return a?({CNY:'RMB',RMB:'RMB'}[String(a.currency||'').toUpperCase()]||String(a.currency||'').toUpperCase()):null;}catch(_){return null;}}
 function transactionAmount(t,p){if(!t||t.user_id!==state.owner||t.type!=='Expense'||t.category==='Investment'||t.category==='Data Adjustment'||(window.CATS?.Loans||[]).includes(t.category)||!t.from_account)return null;const c=accountCurrency(t.from_account);const amt=Number(t.from_amount);return c===p.currency&&Number.isFinite(amt)&&amt>0&&amt<=999999999?Math.round(amt*100)/100:null;}
-const thisMonth=(p)=>state.entries.filter(e=>e.plan_id===p.id&&e.user_id===state.owner&&e.spent_on.startsWith(state.month)&&e.currency===p.currency);
+// One source of truth for all month cards AND insights: matched manual entries count once.
+// A linked transaction is a read-only reference; an invalid reference is excluded.
 function linkDetails(p){const linked=state.links.filter(x=>x.plan_id===p.id&&x.user_id===state.owner);return linked.map(x=>{const tx=state.sourceTx.find(t=>String(t.id)===String(x.transaction_id));const amt=transactionAmount(tx,p);const e=x.matched_manual_entry_id?state.entries.find(v=>v.id===x.matched_manual_entry_id&&v.plan_id===p.id):null;const matchOk=!x.matched_manual_entry_id||(e&&tx&&e.spent_on===tx.tx_date&&Math.abs(Number(e.amount)-amt)<0.005);return {link:x,tx,amount:amt,valid:amt!==null&&!!matchOk};});}
-function totals(p){const linked=linkDetails(p);const suppressed=new Set(linked.filter(x=>x.valid&&x.link.matched_manual_entry_id).map(x=>x.link.matched_manual_entry_id));const manual=thisMonth(p).filter(x=>!suppressed.has(x.id));const verified=linked.filter(x=>x.valid&&x.tx.tx_date.startsWith(state.month));const unverified=linked.filter(x=>!x.valid);return {logs:manual,count:manual.length+verified.length,spent:Math.round((manual.reduce((n,x)=>n+Number(x.amount||0),0)+verified.reduce((n,x)=>n+x.amount,0))*100)/100,linked,verified,unverified};}
-
+function monthTotals(p,ym){const linked=linkDetails(p);
+ const suppressed=new Set(linked.filter(x=>x.valid&&x.link.matched_manual_entry_id).map(x=>x.link.matched_manual_entry_id));
+ const manual=state.entries.filter(e=>e.plan_id===p.id&&e.user_id===state.owner&&e.currency===p.currency&&e.spent_on?.startsWith(ym)&&!suppressed.has(e.id));
+ const verified=linked.filter(x=>x.valid&&x.tx.tx_date.startsWith(ym));
+ const invalid=linked.filter(x=>!x.valid);
+ // Work in integer cents: never add multiple currencies or unverified links.
+ const cents=manual.reduce((n,x)=>n+Math.round(Number(x.amount)*100),0)+verified.reduce((n,x)=>n+Math.round(x.amount*100),0);
+ return {logs:manual,count:manual.length+verified.length,spent:cents/100,linked,verified,unverified:invalid,
+  incomplete:invalid.length>0||state.txTruncated||state.entries.length>=5000||state.links.length>=5000};
+}
+function totals(p){return monthTotals(p,state.month);}
+function pastMonths(end,count){const [y,m]=end.split('-').map(Number);return Array.from({length:count},(_,i)=>{const d=new Date(Date.UTC(y,m-count+i,1));return `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,'0')}`;});}
+// Analyze a single plan ONLY. A private plan is never included unless the user reveals it.
+function renderInsights(p){if(!p||!allowed(p)||!state.loaded)return '';
+ const months=pastMonths(state.month,6),series=months.map(m=>({month:m,...monthTotals(p,m)}));
+ const current=series[series.length-1],previous=series[series.length-2],limit=Number(p.monthly_limit),useLimit=Number(p.allowed_uses);
+ const unsafe=current.incomplete,changes=current.count-previous.count,chartMax=Math.max(limit,...series.map(x=>x.spent),1);
+ const future=state.month>today().slice(0,7),beforePlan=state.month<String(p.created_at||today()).slice(0,7);
+ const headroom=Math.max(0,Math.round(limit*100)-Math.round(current.spent*100))/100;
+ const usage=limit>0?(current.spent/limit*100):null;
+ const useDelta=changes===0?L('次数与上月相同','Same number of uses as last month'):changes>0?
+  L(`比上月多 ${changes} 次`,`Up ${changes} uses from last month`):L(`比上月少 ${Math.abs(changes)} 次`,`Down ${Math.abs(changes)} uses from last month`);
+ const safeComparison=!current.incomplete&&!previous.incomplete;
+ return `<section class="ls-insights" aria-label="${L('消费分析','Spending insights')}"><div class="ls-insight-top"><div><span class="ls-kicker">${L('生活消费分析','SPENDING INSIGHTS')}</span><h2>${esc(p.name)} · ${L('最近六个月','Last six months')}</h2></div><button type="button" data-ls-act="closeInsights">${L('收起分析','Close insights')} ×</button></div>
+ <div class="ls-insight-stats"><div><small>${L('本月次数','Uses this month')}</small><strong>${current.count} / ${useLimit}</strong></div><div><small>${L('本月记录金额','Recorded this month')}</small><strong>${esc(money(current.spent,p.currency))}</strong></div><div><small>${L('预算使用比例','Budget used')}</small><strong>${usage===null?L('月度预算为 0','Zero monthly budget'):`${Math.round(usage)}%`}</strong></div></div>
+ ${unsafe?`<p class="ls-insight-caution">${L('部分交易关联或历史数据无法完整核实，趋势为已核实记录的下限；暂不提供潜在节省估算。','Some linked transactions or older data could not be fully verified. Trend is a lower bound; no potential savings estimate is shown.')}</p>`:''}
+ <div class="ls-trend-header"><h3>${L('每月金额与次数趋势','Monthly amount & frequency')}</h3><span>${esc(p.currency)} · ${L('不换算币种','No FX conversion')}</span></div>
+ <div class="ls-trend-list" role="list">${series.map(x=>{const percent=Math.max(0,Math.min(100,x.spent/chartMax*100));return `<div class="ls-trend-row" role="listitem"><span class="ls-trend-month">${esc(x.month)}</span><div class="ls-trend-track" role="img" aria-label="${esc(x.month)} ${esc(money(x.spent,p.currency))}, ${x.count} ${L('次','uses')}"><i style="width:${percent.toFixed(1)}%"></i></div><div class="ls-trend-details"><b>${esc(money(x.spent,p.currency))}</b><small>${x.count} ${L('次','uses')}</small></div></div>`;}).join('')}</div>
+ <p class="ls-insight-delta">${safeComparison?esc(useDelta):L('上月对比待核实','Previous-month comparison needs verification')}</p>
+ <div class="ls-potential"><div><strong>🌿 ${L('潜在可预留额度（非真实存款）','Potential earmark (not saved money)')}</strong>
+ <p>${future?L('所选月份尚未到来，不能计算实际结余。','The selected month is in the future; actual unspent budget is unknown.'):beforePlan?L('所选月份早于本计划创建时间，不能当成当时的预算结余。','This month predates the plan; past budget headroom cannot be inferred.'):unsafe?L('记录尚未完整核实，不能提供可信的预算剩余额度建议。','Records are incomplete; no reliable headroom estimate is available.'):L('按本计划当前月度上限减去已记录的消费计算，仅供考虑是否预留；其他未登记消费和未来消费可能影响结果。','Current monthly budget minus recorded uses only. Unlogged and future spending may change this figure.')}</p></div>
+ <strong>${future||beforePlan||unsafe?L('待核实','Not available'):esc(money(headroom,p.currency))}</strong></div>
+ <p class="ls-insight-footnote">${L('历史月份按当前目标作为参考对比，不代表当时的原始预算。未记录不等于没有实际消费。这里不会创建储蓄、转账或资产，也不会自动写入 Wish Fund。','Historical figures compare against the current plan settings, not necessarily the historical budget. No log does not prove no spending. No savings, transfers, assets, or Wish Fund entries are created.')}</p></section>`;
+}
 function badge(p){return p.is_private&&!state.reveal?L('私人分类','Private category'):p.name;}
 function summary(p){const t=totals(p),remain=Math.max(0,Number(p.monthly_limit)-t.spent),unused=Math.max(0,Number(p.monthly_limit)-t.spent);return {t,remain,unused};}
 function render(){const root=$(ROOT);if(!root)return;
@@ -64,8 +97,8 @@ function render(){const root=$(ROOT);if(!root)return;
  !state.plans.length?`<div class="ls-empty"><span>🌿</span><h3>${L('从一个小计划开始','Start with one simple plan')}</h3><p>${L('没有默认预算或记录。你决定每月多少次、多少金额。','No sample plans or records. You decide the limits and amounts.')}</p></div>`:
  `<div class="ls-grid">${state.plans.map(p=>{const open=allowed(p),a=summary(p);const display=(!p.is_private||state.reveal);const percent=display&&Number(p.monthly_limit)>0?Math.max(0,Math.min(100,a.t.spent/Number(p.monthly_limit)*100)):0;
  return `<article class="ls-card"><div class="ls-card-meta"><span>${esc(p.currency)}</span><span>${p.is_private?L('私人','Private'):L('普通','Standard')}</span></div><h3>${esc(badge(p))}</h3><div class="ls-metrics"><div><small>${L('本月使用次数','Uses this month')}</small><strong>${display?a.t.count+' / '+p.allowed_uses:'•• / ••'}</strong></div><div><small>${L('本月记录合计','Logged total')}</small><strong>${display?esc(money(a.t.spent,p.currency)):'••••'}</strong></div><div><small>${L('剩余计划金额','Remaining plan')}</small><strong>${display?esc(money(a.remain,p.currency)):'••••'}</strong></div></div><div class="ls-progress"><i style="width:${percent.toFixed(1)}%"></i></div>${display&&(a.t.count>p.allowed_uses||a.t.spent>Number(p.monthly_limit)||a.t.logs.some(e=>Number(e.amount)>Number(p.per_use_limit))||a.t.verified.some(e=>e.amount>Number(p.per_use_limit)))?`<p class="ls-warning">${L('注意：部分手动记录超过次数或金额计划。这里仅提示，不限制真实消费。','Notice: logged uses exceed a count or amount plan. This is advisory only.')}</p>`:''}<p class="ls-card-note">${display?`${L('单次上限','Per-use limit')}: ${esc(money(p.per_use_limit,p.currency))} · ${L('月度上限','Monthly limit')}: ${esc(money(p.monthly_limit,p.currency))}`:L('私人金额与次数已隐藏','Private numbers hidden')}</p>
- ${display&&a.t.unverified.length?`<p class="ls-warning">${L('有交易币种或来源无法核实，相关交易不计入合计，请刷新核查。','Some linked transactions cannot be verified and are excluded from totals. Refresh to review.')}</p>`:''}<div class="ls-card-actions">${open?`<button type="button" data-ls-act="link" data-id="${p.id}">${L('关联真实交易','Link transaction')}</button><button type="button" data-ls-act="links" data-id="${p.id}">${L('关联管理','Manage links')}</button><button type="button" data-ls-act="log" data-id="${p.id}">${L('记录一次','Record use')}</button><button type="button" data-ls-act="history" data-id="${p.id}">${L('历史','History')}</button><button type="button" data-ls-act="edit" data-id="${p.id}">${L('编辑','Edit')}</button><button type="button" data-ls-act="deletePlan" data-id="${p.id}">${L('删除计划','Delete plan')}</button>`:`<button type="button" data-ls-act="reveal">${L('解锁查看','Reveal to view')}</button>`}</div>
- </article>`;}).join('')}</div>`}
+ ${display&&a.t.unverified.length?`<p class="ls-warning">${L('有交易币种或来源无法核实，相关交易不计入合计，请刷新核查。','Some linked transactions cannot be verified and are excluded from totals. Refresh to review.')}</p>`:''}<div class="ls-card-actions">${open?`<button type="button" data-ls-act="link" data-id="${p.id}">${L('关联真实交易','Link transaction')}</button><button type="button" data-ls-act="links" data-id="${p.id}">${L('关联管理','Manage links')}</button><button type="button" data-ls-act="insights" data-id="${p.id}" aria-expanded="${state.insightPlanId===p.id}">${L('消费分析','Insights')}</button><button type="button" data-ls-act="log" data-id="${p.id}">${L('记录一次','Record use')}</button><button type="button" data-ls-act="history" data-id="${p.id}">${L('历史','History')}</button><button type="button" data-ls-act="edit" data-id="${p.id}">${L('编辑','Edit')}</button><button type="button" data-ls-act="deletePlan" data-id="${p.id}">${L('删除计划','Delete plan')}</button>`:`<button type="button" data-ls-act="reveal">${L('解锁查看','Reveal to view')}</button>`}</div>
+ </article>`;}).join('')}</div>${state.insightPlanId?renderInsights(getPlan(state.insightPlanId)):''}`}
  <section class="ls-explainer"><h3>${L('这些数字代表什么？','What do these numbers mean?')}</h3><p>${L('未使用预算只是计划额度，并不是已经存入账户的钱。关联交易只是只读引用原有 Transactions，不会创建或修改财务流水。若手动记录与关联交易是同一消费，可在关联时指定替代原手动记录，合计只算一次。','Unused budget is only a plan, not deposited savings. Links only reference Transactions read-only, without changing finances. For an existing manual log of the same purchase, choose it as a match to count the purchase once.')}</p></section>
  </div>`;
 }
@@ -141,7 +174,7 @@ async function deletePlan(id){const p=getPlan(id);if(!p||!allowed(p)||state.savi
  catch(_){if(live())showError(L('删除失败，计划可能已被其他设备修改，请刷新。','Delete failed; the plan may have changed on another device. Refresh.'));}
  finally{state.saving=false;}
 }
-function onClick(ev){const b=ev.target.closest('[data-ls-act]');if(!b||(!$(ROOT)?.contains(b)&&!$('lsDialogV31')?.contains(b)))return;const act=b.dataset.lsAct,id=b.dataset.id;if(act==='close'){close();return;}if(act==='reveal'){state.reveal?hidePrivate():reveal();return;}if(act==='refresh'){load();return;}if(act==='add'){showPlan(null);return;}if(act==='edit'){showPlan(id);return;}if(act==='link'){showLink(id);return;}if(act==='links'){showLinks(id);return;}if(act==='unlink'){unlink(id,b.dataset.plan);return;}if(act==='log'){showEntry(id);return;}if(act==='history'){showHistory(id);return;}if(act==='editEntry'){showEntry(b.dataset.plan,id);return;}if(act==='deleteEntry'){deleteEntry(id,b.dataset.plan);return;}if(act==='deletePlan'){deletePlan(id);return;}}
+function onClick(ev){const b=ev.target.closest('[data-ls-act]');if(!b||(!$(ROOT)?.contains(b)&&!$('lsDialogV31')?.contains(b)))return;const act=b.dataset.lsAct,id=b.dataset.id;if(act==='close'){close();return;}if(act==='reveal'){state.reveal?hidePrivate():reveal();return;}if(act==='refresh'){load();return;}if(act==='closeInsights'){state.insightPlanId=null;render();return;}if(act==='insights'){const p=getPlan(id);if(p&&allowed(p)){state.insightPlanId=state.insightPlanId===id?null:id;render();}return;}if(act==='add'){showPlan(null);return;}if(act==='edit'){showPlan(id);return;}if(act==='link'){showLink(id);return;}if(act==='links'){showLinks(id);return;}if(act==='unlink'){unlink(id,b.dataset.plan);return;}if(act==='log'){showEntry(id);return;}if(act==='history'){showHistory(id);return;}if(act==='editEntry'){showEntry(b.dataset.plan,id);return;}if(act==='deleteEntry'){deleteEntry(id,b.dataset.plan);return;}if(act==='deletePlan'){deletePlan(id);return;}}
 function mount(){const r=$(ROOT);if(!r)return;if(state.owner!==owner()||state.epoch!==epoch()){forget();state.owner=owner();state.epoch=epoch();}render();if(!state.loaded&&!state.loading)load();}
 function unmount(){forget();}
 function init(){document.addEventListener('click',onClick);

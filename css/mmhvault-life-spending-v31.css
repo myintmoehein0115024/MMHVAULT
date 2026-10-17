@@ -1,4 +1,4 @@
-/* MMHVAULT Life Planner Phase 3.2. Scoped to Spending Control only. */
+/* MMHVAULT Life Planner Phase 3.3. Scoped to Spending Control only. */
 #life-planner .ls-shell,#life-planner .ls-shell *{box-sizing:border-box;min-width:0}
 #life-planner .lp-spending-host{width:min(1160px,100%);max-width:100%;min-width:0}
 #life-planner .ls-shell{background:linear-gradient(145deg,#fffaf2,#f5f8f0);border:1px solid #ebdbbc;border-radius:24px;box-shadow:0 16px 46px #172e2310;padding:clamp(15px,2.5vw,26px);color:#254233;overflow:hidden}
@@ -70,3 +70,32 @@
 #life-planner .ls-card-actions [data-ls-act="link"]{background:#e8f0e5;border-color:#a8c9aa;color:#29583b}
 #life-planner .ls-card-actions [data-ls-act="links"]{background:#fbf2e1;border-color:#d8c29f}
 .ls-dialog select[name="transaction_id"]{max-width:100%}
+
+/* Phase 3.3: warm, single-currency insights. Private plan details never render while masked. */
+#life-planner .ls-insights{margin:18px 0 0;padding:clamp(16px,2.2vw,24px);border-radius:19px;background:linear-gradient(135deg,#fffcf4,#eef7ec);border:1px solid #decda9;box-shadow:0 8px 28px #52765c13}
+#life-planner .ls-insight-top{display:flex;align-items:flex-start;justify-content:space-between;gap:15px;flex-wrap:wrap}
+#life-planner .ls-insight-top h2{font:700 clamp(19px,2.1vw,26px)/1.3 Georgia,'Noto Serif SC',serif;color:#2b5038;margin:8px 0 0;overflow-wrap:anywhere}
+#life-planner .ls-insight-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:17px}
+#life-planner .ls-insight-stats>div{border-radius:12px;padding:13px;background:#ffffffbd;border:1px solid #e2ead9}
+#life-planner .ls-insight-stats small{font-size:11px;line-height:1.5;color:#687f6b;display:block}
+#life-planner .ls-insight-stats strong{display:block;margin-top:6px;font-size:clamp(14px,1.55vw,20px);color:#2f6949;overflow-wrap:anywhere}
+#life-planner .ls-trend-header{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:8px;margin:21px 0 12px}
+#life-planner .ls-trend-header h3{margin:0;font-size:15px;color:#375b42}
+#life-planner .ls-trend-header span{font-size:11px;color:#788c73}
+#life-planner .ls-trend-list{display:grid;gap:12px}
+#life-planner .ls-trend-row{display:grid;grid-template-columns:72px minmax(0,1fr) minmax(90px,160px);align-items:center;gap:11px}
+#life-planner .ls-trend-month{font-weight:750;font-size:12px;white-space:nowrap;color:#607761}
+#life-planner .ls-trend-track{height:19px;display:flex;align-items:center;background:#e7ecdf;border-radius:30px;overflow:hidden}
+#life-planner .ls-trend-track i{display:block;height:100%;min-width:0;background:linear-gradient(90deg,#c7dcb5,#6aab79);border-radius:30px;transition:width .24s ease}
+#life-planner .ls-trend-details{text-align:right;display:flex;align-items:end;flex-direction:column;gap:3px;overflow-wrap:anywhere}
+#life-planner .ls-trend-details b{font-size:12px;color:#335c41;font-weight:800}
+#life-planner .ls-trend-details small{font-size:11px;color:#758d77}
+#life-planner .ls-insight-delta{font-size:12px;font-weight:650;color:#467954;margin:16px 0 0}
+#life-planner .ls-potential{display:flex;align-items:center;justify-content:space-between;gap:13px;border:1px solid #ead6af;border-radius:13px;background:#fff1dbbd;padding:15px;margin-top:16px}
+#life-planner .ls-potential strong{font-size:13px;color:#80592f;overflow-wrap:anywhere}
+#life-planner .ls-potential>strong{font-size:17px;flex-shrink:0}
+#life-planner .ls-potential p{margin:6px 0 0;font-size:11px;line-height:1.65;color:#8a7556}
+#life-planner .ls-insight-footnote,#life-planner .ls-insight-caution{font-size:11px;line-height:1.65;color:#617e6c;margin:13px 0 0}
+#life-planner .ls-insight-caution{color:#91632a;background:#fff0d8;padding:9px 12px;border:1px solid #ead0a2;border-radius:10px}
+@media(max-width:550px){#life-planner .ls-insight-stats{grid-template-columns:1fr 1fr}#life-planner .ls-insight-stats>div:last-child{grid-column:1/-1}#life-planner .ls-trend-row{grid-template-columns:61px minmax(0,1fr) 94px;gap:6px}#life-planner .ls-trend-details b{font-size:10px}#life-planner .ls-trend-details small{font-size:10px}#life-planner .ls-potential{align-items:flex-start;flex-direction:column}#life-planner .ls-insight-top button{width:100%}}
+@media(prefers-reduced-motion:reduce){#life-planner .ls-trend-track i{transition:none}}
