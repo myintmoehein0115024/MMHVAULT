@@ -1,0 +1,67 @@
+/* MMHVAULT Life Planner Phase 3.1. Scoped to Spending Control only. */
+#life-planner .ls-shell,#life-planner .ls-shell *{box-sizing:border-box;min-width:0}
+#life-planner .lp-spending-host{width:min(1160px,100%);max-width:100%;min-width:0}
+#life-planner .ls-shell{background:linear-gradient(145deg,#fffaf2,#f5f8f0);border:1px solid #ebdbbc;border-radius:24px;box-shadow:0 16px 46px #172e2310;padding:clamp(15px,2.5vw,26px);color:#254233;overflow:hidden}
+#life-planner .ls-hero{background:linear-gradient(95deg,rgba(255,248,236,.95),rgba(240,249,236,.84)),url('../images/life-planner/hero.jpg') right center/cover;border:1px solid #eadbc2;border-radius:20px;padding:clamp(22px,4vw,40px);min-height:172px;display:flex;flex-direction:column;justify-content:center}
+#life-planner .ls-kicker{font-size:10px;font-weight:850;letter-spacing:1.8px;color:#af813f}
+#life-planner .ls-hero h1{font:700 clamp(25px,3.3vw,38px)/1.18 Georgia,'Noto Serif SC',serif;color:#284836;margin:12px 0 9px}
+#life-planner .ls-hero p{font-size:13px;line-height:1.75;color:#556e5d;max-width:650px;margin:0}
+#life-planner .ls-notice{padding:11px 14px;font-size:12px;line-height:1.65;color:#557454;background:#f1f8ed;border:1px solid #d8e4d3;border-radius:13px;margin:15px 0}
+#life-planner .ls-privacy{background:#eaf4e9;border:1px solid #caddc9;padding:15px 17px;display:flex;gap:16px;align-items:center;justify-content:space-between;border-radius:15px}
+#life-planner .ls-privacy strong{font-size:14px;color:#305d3d}
+#life-planner .ls-privacy p{font-size:12px;color:#5d7563;margin:5px 0 0;line-height:1.65;max-width:700px}
+#life-planner .ls-toolbar{display:flex;justify-content:space-between;align-items:end;gap:14px;flex-wrap:wrap;margin:23px 0 16px}
+#life-planner .ls-toolbar h2{font:700 clamp(21px,2.4vw,28px)/1.2 Georgia,'Noto Serif SC',serif;margin:6px 0 0;color:#274433}
+#life-planner .ls-toolbar-actions{display:flex;gap:8px;align-items:end;flex-wrap:wrap}
+#life-planner .ls-toolbar label{font-size:11px;font-weight:750;display:flex;flex-direction:column;gap:5px;color:#526e58}
+#life-planner .ls-toolbar input{font:inherit;font-size:12px;color:#24422f;background:#fff;border:1px solid #d8d3c4;border-radius:9px;min-height:39px;padding:7px 9px;max-width:160px}
+#life-planner .ls-shell button,.ls-dialog button{font:inherit;font-size:12px;min-height:40px;font-weight:750;border-radius:10px;border:1px solid #ccd8c8;background:#fffcf5;color:#33563d;padding:9px 12px;cursor:pointer;touch-action:manipulation}
+#life-planner .ls-shell button:focus-visible,.ls-dialog button:focus-visible{outline:3px solid #d49c46;outline-offset:2px}
+#life-planner .ls-shell button:disabled,.ls-dialog button:disabled{opacity:.5;cursor:not-allowed}
+#life-planner .ls-shell button.ls-primary,.ls-dialog button.ls-primary{background:#c89349;color:#fff;border-color:#bd8a3c}
+#life-planner .ls-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+#life-planner .ls-card{background:#fffef9;border:1px solid #e7d9c1;border-radius:19px;padding:clamp(15px,2vw,20px);box-shadow:0 7px 25px #795d3810}
+#life-planner .ls-card-meta{display:flex;justify-content:space-between;gap:9px;font-weight:700;font-size:11px;color:#729073}
+#life-planner .ls-card-meta span{border-radius:999px;background:#eaf4ea;padding:5px 9px}
+#life-planner .ls-card h3{margin:14px 0 17px;font:700 23px/1.2 Georgia,'Noto Serif SC',serif;color:#284735;overflow-wrap:anywhere}
+#life-planner .ls-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+#life-planner .ls-metrics div{background:#f6f7f0;border-radius:12px;padding:11px 8px}
+#life-planner .ls-metrics small{font-size:10px;color:#73846d;display:block;margin-bottom:7px}
+#life-planner .ls-metrics strong{font-size:clamp(12px,1.25vw,16px);color:#2f6042;overflow-wrap:anywhere;display:block}
+#life-planner .ls-progress{margin:14px 0 9px;background:#e7eadc;border-radius:999px;height:8px;overflow:hidden}
+#life-planner .ls-progress i{display:block;height:100%;background:linear-gradient(90deg,#afd7a5,#52996b);border-radius:999px}
+#life-planner .ls-card-note{font-size:11px;color:#758673;margin:0 0 15px;line-height:1.7}
+#life-planner .ls-card-actions{display:flex;flex-wrap:wrap;gap:7px}
+#life-planner .ls-card-actions button:first-child{background:#e9f3e7}
+#life-planner .ls-empty{padding:40px 15px;text-align:center;border:1px dashed #c8d9c8;border-radius:18px;background:#fffdfa;color:#5e785e}
+#life-planner .ls-empty span{font-size:36px}
+#life-planner .ls-empty h3{font:700 24px Georgia,serif;color:#355b41}
+#life-planner .ls-explainer{margin-top:18px;padding:15px 18px;background:#f5ecdc;border:1px solid #e8d6ba;border-radius:15px}
+#life-planner .ls-explainer h3{font-size:14px;color:#7d603c;margin:0 0 7px}
+#life-planner .ls-explainer p{font-size:12px;line-height:1.7;color:#816c50;margin:0}
+.ls-dialog{box-sizing:border-box;width:min(550px,calc(100vw - 20px));max-width:calc(100vw - 20px);max-height:calc(100dvh - 24px);border:1px solid #e5d4b6;background:#fffbf2;border-radius:18px;padding:0;box-shadow:0 24px 80px #0006;color:#294a36;overflow:hidden}
+.ls-dialog::backdrop{background:#04121bbd;backdrop-filter:blur(5px)}
+.ls-dialog form{display:flex;flex-direction:column;max-height:calc(100dvh - 26px);min-height:0}
+.ls-dialog .ls-dialog-header,.ls-dialog .ls-dialog-footer{flex:none;background:#fffbf2;padding:16px 19px}
+.ls-dialog .ls-dialog-header{display:flex;align-items:start;justify-content:space-between;gap:10px;border-bottom:1px solid #e9e2d2}
+.ls-dialog .ls-dialog-header small{font-size:10px;letter-spacing:1.5px;color:#b38b53;font-weight:800}
+.ls-dialog .ls-dialog-header h2{font:700 23px Georgia,'Noto Serif SC',serif;color:#34553d;margin:8px 0 0}
+.ls-dialog .ls-dialog-header button{min-height:32px;min-width:32px;border:0;background:transparent;font-size:23px;padding:2px}
+.ls-dialog .ls-dialog-body{padding:18px 19px;display:flex;flex-direction:column;gap:13px;overflow-y:auto;overscroll-behavior:contain;min-height:0;max-height:calc(100dvh - 172px)}
+.ls-dialog .ls-dialog-body label{font-size:12px;font-weight:800;color:#53705b;display:flex;flex-direction:column;gap:6px}
+.ls-dialog input,.ls-dialog textarea,.ls-dialog select{max-width:100%;width:100%;min-height:42px;border:1px solid #d7d5c8;background:white;border-radius:10px;padding:11px 12px;color:#25462f;font:inherit;font-size:14px;box-sizing:border-box}
+.ls-dialog textarea{resize:vertical}
+.ls-dialog .ls-form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ls-dialog label.ls-check{flex-direction:row;align-items:start;gap:8px;line-height:1.55}
+.ls-dialog .ls-check input{width:17px;height:17px;min-height:0;flex:none;margin:1px 0 0}
+.ls-dialog .ls-hint{font-size:11px;color:#687c66;line-height:1.7;margin:0}
+.ls-dialog .ls-error{font-size:12px;color:#a54d44;line-height:1.6;min-height:1em;margin:0}
+.ls-dialog .ls-dialog-footer{border-top:1px solid #e9e2d2;display:flex;justify-content:end;gap:9px}
+.ls-dialog .ls-entry-row{display:flex;align-items:center;justify-content:space-between;gap:11px;border:1px solid #e8e6d9;padding:12px;border-radius:12px;background:#fff}
+.ls-dialog .ls-entry-row strong,.ls-dialog .ls-entry-row small{display:block;overflow-wrap:anywhere}
+.ls-dialog .ls-entry-row small{font-size:11px;margin-top:5px;color:#869083}
+.ls-dialog .ls-entry-row>div:last-child{display:flex;gap:5px;flex-wrap:wrap}
+.ls-dialog .ls-entry-row button{min-height:36px;padding:6px 9px}
+@media(max-width:900px){#life-planner .ls-grid{grid-template-columns:1fr}}
+@media(max-width:550px){#life-planner .ls-shell{border-radius:16px;padding:13px}#life-planner .ls-toolbar{align-items:stretch}#life-planner .ls-toolbar-actions{width:100%}#life-planner .ls-toolbar-actions>button{flex:1}#life-planner .ls-toolbar label{flex:1}#life-planner .ls-toolbar input{max-width:100%}#life-planner .ls-privacy{align-items:stretch;flex-direction:column}#life-planner .ls-metrics{grid-template-columns:1fr 1fr}#life-planner .ls-metrics div:last-child{grid-column:1/-1}.ls-dialog .ls-form-grid{grid-template-columns:1fr}.ls-dialog .ls-entry-row{align-items:stretch;flex-direction:column}.ls-dialog .ls-dialog-footer button{flex:1}}
+#life-planner .ls-warning{font-size:11px;line-height:1.55;padding:8px 10px;background:#fff3dd;border:1px solid #e7c9a0;border-radius:9px;color:#8f6533;margin:10px 0}

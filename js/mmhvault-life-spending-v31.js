@@ -1,0 +1,127 @@
+/* MMHVAULT Life Planner Phase 3.1 / Spending Control
+ * Voluntary separate plan + manual-use ledger only; NEVER touches Transactions,
+ * Accounts, Invest, Forecast, Income, Wish Fund, or financial totals.
+ * No demo records, offline cache, localStorage of spending data, or third parties.
+ */
+(()=>{
+'use strict';
+if(window.MMHLifeSpendingV31)return;
+const ROOT='mmhLifeSpendingV31',PLANS='life_spending_plans',ENTRIES='life_spending_entries';
+const $=id=>document.getElementById(id);
+const owner=()=>{try{return typeof currentSessionUser!=='undefined'?currentSessionUser?.id||'':'';}catch(_){return '';}};
+const epoch=()=>Number(window.__mmhSessionEpochV1239)||0;
+const client=()=>{try{return typeof db!=='undefined'&&db?.from?db:null;}catch(_){return null;}};
+const isZh=()=>{try{return localStorage.getItem('mmhvault_language_v3363')==='zh';}catch(_){return false;}};
+const L=(a,b)=>isZh()?a:b;
+const esc=x=>String(x??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+const uuid=()=>crypto.randomUUID?.()||(()=>{const a=crypto.getRandomValues(new Uint8Array(16));a[6]=(a[6]&15)|64;a[8]=(a[8]&63)|128;const t=[...a].map(x=>x.toString(16).padStart(2,'0')).join('');return `${t.slice(0,8)}-${t.slice(8,12)}-${t.slice(12,16)}-${t.slice(16,20)}-${t.slice(20)}`;})();
+const today=()=>{const x=new Date();return `${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}-${String(x.getDate()).padStart(2,'0')}`;};
+const goodDate=x=>{if(!/^\d{4}-\d\d-\d\d$/.test(x||''))return false;const d=new Date(x+'T12:00:00');return !Number.isNaN(d.getTime())&&`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`===x;};
+const MONEY={USD:'$',THB:'฿',MMK:'K',RMB:'￥'};
+const money=(amount,currency)=>`${MONEY[currency]||''}${Number(amount||0).toLocaleString(isZh()?'zh-CN':'en-US',{minimumFractionDigits:2,maximumFractionDigits:2})} ${currency}`;
+const num=(v)=>{const n=Number(v);return Number.isFinite(n)?Math.round(n*100)/100:NaN;};
+const state={owner:'',epoch:0,token:0,plans:[],entries:[],month:today().slice(0,7),loaded:false,loading:false,saving:false,error:'',notice:'',reveal:false,revealUntil:0,dialog:null};
+let revealTimer=null;
+const live=()=>state.owner===owner()&&state.epoch===epoch()&&!!state.owner&&!!$(ROOT)&&$('life-planner')?.classList.contains('active')&&!document.hidden;
+function clearReveal(){if(revealTimer!==null)clearTimeout(revealTimer);revealTimer=null;state.revealUntil=0;state.reveal=false;}
+function hidePrivate(){clearReveal();if(state.dialog&&state.dialog.planId&&state.plans.find(p=>p.id===state.dialog.planId)?.is_private)close();if($(ROOT))render();}
+function reveal(){clearReveal();state.reveal=true;state.revealUntil=Date.now()+90000;revealTimer=setTimeout(hidePrivate,90000);render();}
+function forget(){clearReveal();state.token++;state.plans=[];state.entries=[];state.loaded=false;state.loading=false;state.saving=false;state.notice='';state.error='';state.month=today().slice(0,7);close();const r=$(ROOT);if(r)r.replaceChildren();}
+function missing(err){return /42P01|PGRST205|schema cache|does not exist|could not find the table/i.test(String(err?.code||'')+' '+String(err?.message||''));}
+async function auth(){const c=client();if(!c||!live())throw Error('LOGIN');const r=await c.auth.getUser();if(r.error||r.data?.user?.id!==state.owner||!live())throw Error('LOGIN');return c;}
+async function load(){if(!live()||state.loading||state.saving)return;const token=++state.token,u=state.owner;state.loading=true;state.error='';render();try{
+ const c=await auth();const p=await c.from(PLANS).select('*').eq('user_id',u).order('created_at',{ascending:false}).limit(500);if(p.error)throw p.error;if(!live()||state.token!==token)return;
+ const e=await c.from(ENTRIES).select('*').eq('user_id',u).order('spent_on',{ascending:false}).limit(5000);if(e.error)throw e.error;if(!live()||state.token!==token)return;
+ state.plans=(p.data||[]).filter(r=>r.user_id===u);state.entries=(e.data||[]).filter(r=>r.user_id===u);state.loaded=true;
+ if(state.plans.length>=500||state.entries.length>=5000)state.notice=L('记录达到读取上限，可能存在未显示的内容。','Read limit reached: some records may not be shown.');
+}catch(e){if(live()&&token===state.token){state.error=missing(e)?'MIGRATION':'CONNECT';state.loaded=false;state.plans=[];state.entries=[];}}
+ finally{if(live()&&token===state.token){state.loading=false;render();}}
+}
+const allowed=p=>!p.is_private||state.reveal;
+const thisMonth=(p)=>state.entries.filter(e=>e.plan_id===p.id&&e.user_id===state.owner&&e.spent_on.startsWith(state.month)&&e.currency===p.currency);
+const totals=p=>{const logs=thisMonth(p);return {logs,count:logs.length,spent:Math.round(logs.reduce((n,x)=>n+Number(x.amount||0),0)*100)/100};};
+function badge(p){return p.is_private&&!state.reveal?L('私人分类','Private category'):p.name;}
+function summary(p){const t=totals(p),remain=Math.max(0,Number(p.monthly_limit)-t.spent),unused=Math.max(0,Number(p.monthly_limit)-t.spent);return {t,remain,unused};}
+function render(){const root=$(ROOT);if(!root)return;
+ const notice=state.error==='MIGRATION'?L('Spending Control 数据表尚未配置。请先完成专用数据库迁移与权限检查；不会保存到本机。','Spending Control tables are not ready. A separate secured migration is required; nothing is stored locally.'):
+ state.error?L('无法读取云端数据。请检查网络或重新登录，不能在未确认权限时写入。','Cloud data could not load. Check connection or sign in again; editing is disabled.'):
+ state.loading?L('正在安全读取数据…','Loading protected data…'):
+ state.notice||L('独立生活预算 · 不改变账户余额或财务交易。','Separate lifestyle plans. No changes to accounts or transactions.');
+ root.innerHTML=`<div class="ls-shell"><header class="ls-hero"><span class="ls-kicker">LIFE PLANNER / ${L('消费控制','SPENDING CONTROL')}</span><h1>${L('为更重要的生活留点空间','Make room for what matters')}</h1><p>${L('规划娱乐次数与预算，温柔地观察自己的选择。这里的手工记录只是生活参考，不会自动扣除账户资金。','Plan discretionary spending and reflect on your choices. Manual entries here are lifestyle notes—not financial transactions.')}</p></header>
+ <section class="ls-notice" role="status">${esc(notice)}</section>
+ <div class="ls-privacy"><div><strong>♧ ${L('私人消费保护','Private spending protection')}</strong><p>${L('私人分类名称、金额和次数默认隐藏。主动显示 90 秒后会再次隐藏；不向财务首页、AI Chat 或系统通知分享。','Private labels, amounts and counts stay masked. Reveal for 90 seconds only; not shared with Dashboard, AI Chat or notifications.')}</p></div><button type="button" data-ls-act="reveal">${state.reveal?L('立即隐藏','Hide now'):L('临时显示（90秒）','Reveal for 90 sec')}</button></div>
+ <div class="ls-toolbar"><div><span class="ls-kicker">${L('每月生活预算','MONTHLY PLAN')}</span><h2>${esc(state.month)} ${L('我的娱乐安排','Spending plans')}</h2></div><div class="ls-toolbar-actions"><label>${L('月份','Month')} <input type="month" id="lsMonthV31" value="${state.month}" min="2000-01" max="2100-12"/></label><button type="button" data-ls-act="refresh">↻ ${L('刷新','Refresh')}</button><button class="ls-primary" type="button" data-ls-act="add" ${!state.loaded||state.loading?'disabled':''}>＋ ${L('创建预算','New plan')}</button></div></div>
+ ${!state.loaded?`<div class="ls-empty">${esc(state.error==='MIGRATION'?L('先完成数据库配置后即可使用。','Database setup required before use.'):L('加载完成后可管理生活预算。','Waiting for secure cloud data.'))}</div>`:
+ !state.plans.length?`<div class="ls-empty"><span>🌿</span><h3>${L('从一个小计划开始','Start with one simple plan')}</h3><p>${L('没有默认预算或记录。你决定每月多少次、多少金额。','No sample plans or records. You decide the limits and amounts.')}</p></div>`:
+ `<div class="ls-grid">${state.plans.map(p=>{const open=allowed(p),a=summary(p);const display=(!p.is_private||state.reveal);const percent=display&&Number(p.monthly_limit)>0?Math.max(0,Math.min(100,a.t.spent/Number(p.monthly_limit)*100)):0;
+ return `<article class="ls-card"><div class="ls-card-meta"><span>${esc(p.currency)}</span><span>${p.is_private?L('私人','Private'):L('普通','Standard')}</span></div><h3>${esc(badge(p))}</h3><div class="ls-metrics"><div><small>${L('本月手动记录','Manual uses')}</small><strong>${display?a.t.count+' / '+p.allowed_uses:'•• / ••'}</strong></div><div><small>${L('本月已记录','Logged amount')}</small><strong>${display?esc(money(a.t.spent,p.currency)):'••••'}</strong></div><div><small>${L('剩余计划金额','Remaining plan')}</small><strong>${display?esc(money(a.remain,p.currency)):'••••'}</strong></div></div><div class="ls-progress"><i style="width:${percent.toFixed(1)}%"></i></div>${display&&(a.t.count>p.allowed_uses||a.t.spent>Number(p.monthly_limit)||a.t.logs.some(e=>Number(e.amount)>Number(p.per_use_limit)))?`<p class="ls-warning">${L('注意：部分手动记录超过次数或金额计划。这里仅提示，不限制真实消费。','Notice: logged uses exceed a count or amount plan. This is advisory only.')}</p>`:''}<p class="ls-card-note">${display?`${L('单次上限','Per-use limit')}: ${esc(money(p.per_use_limit,p.currency))} · ${L('月度上限','Monthly limit')}: ${esc(money(p.monthly_limit,p.currency))}`:L('私人金额与次数已隐藏','Private numbers hidden')}</p>
+ <div class="ls-card-actions">${open?`<button type="button" data-ls-act="log" data-id="${p.id}">${L('记录一次','Record use')}</button><button type="button" data-ls-act="history" data-id="${p.id}">${L('历史','History')}</button><button type="button" data-ls-act="edit" data-id="${p.id}">${L('编辑','Edit')}</button><button type="button" data-ls-act="deletePlan" data-id="${p.id}">${L('删除计划','Delete plan')}</button>`:`<button type="button" data-ls-act="reveal">${L('解锁查看','Reveal to view')}</button>`}</div>
+ </article>`;}).join('')}</div>`}
+ <section class="ls-explainer"><h3>${L('这些数字代表什么？','What do these numbers mean?')}</h3><p>${L('未使用预算只是计划额度，并不是已经存入账户的钱。手动记录也不会自动创建 Transactions、扣除余额或增加资产；以后建立正式关联时会另行进行去重验证。','Unused budget is only a plan, not deposited savings. Manual logs do not create Transactions, subtract account balance, or increase assets. Future financial links will require duplicate checks.')}</p></section>
+ </div>`;
+}
+function getPlan(id){return state.plans.find(p=>p.id===id&&p.user_id===state.owner);}
+function dialogNode(){let d=$('lsDialogV31');if(!d){d=document.createElement('dialog');d.id='lsDialogV31';d.className='ls-dialog';document.body.appendChild(d);}return d;}
+function close(){const d=$('lsDialogV31');if(d){try{d.close();}catch(_){/* already closed */}d.remove();}state.dialog=null;state.saving=false;}
+function dialogOpen(d){const node=dialogNode();if(node.open)node.close();node.innerHTML=d;node.showModal?.();node.querySelector('input:not([type=hidden]),select,button')?.focus({preventScroll:true});}
+function showPlan(id){const p=getPlan(id);if(id&&(!p||!allowed(p)))return;state.dialog={kind:'plan',id:id||null,requestId:uuid(),snapshot:''};const isNew=!p;
+ dialogOpen(`<form method="dialog" id="lsPlanFormV31"><div class="ls-dialog-header"><div><small>${L('我的生活预算','LIFESTYLE BUDGET')}</small><h2>${isNew?L('创建娱乐预算','New spending plan'):L('编辑娱乐预算','Edit spending plan')}</h2></div><button type="button" data-ls-act="close" aria-label="Close">×</button></div>
+ <div class="ls-dialog-body"><label>${L('名称','Name')}<input name="name" maxlength="100" required value="${esc(p?.name||'')}" placeholder="${L('例如：娱乐安排','e.g. Entertainment')}"/></label>
+ <div class="ls-form-grid"><label>${L('币种','Currency')}<select name="currency" ${p?'disabled':''}>${Object.keys(MONEY).map(c=>`<option value="${c}" ${p?.currency===c?'selected':''}>${c} ${MONEY[c]}</option>`).join('')}</select></label><label>${L('每月允许次数','Uses per month')}<input name="allowed_uses" type="number" min="0" max="100" step="1" required value="${p?.allowed_uses??2}"/></label></div>
+ <div class="ls-form-grid"><label>${L('单次预算上限','Per-use budget')}<input name="per_use_limit" inputmode="decimal" type="number" min="0" max="999999999" step="0.01" required value="${p?.per_use_limit??''}"/></label><label>${L('月度总预算','Monthly budget')}<input name="monthly_limit" inputmode="decimal" type="number" min="0" max="999999999" step="0.01" required value="${p?.monthly_limit??''}"/></label></div>
+ <label class="ls-check"><input type="checkbox" name="is_private" ${p?.is_private!==false?'checked':''}/> ${L('私人分类：默认隐藏名称与统计','Private: hide name and statistics by default')}</label><p class="ls-hint">${L('本表只是预算计划，不会调用财务交易接口。','This is a plan only. It never calls a financial transaction API.')}</p><p class="ls-error" id="lsDialogErrorV31" role="alert"></p></div>
+ <div class="ls-dialog-footer"><button type="button" data-ls-act="close">${L('取消','Cancel')}</button><button type="submit" class="ls-primary">${L('保存预算','Save plan')}</button></div></form>`);
+}
+function showEntry(planId,entryId){const p=getPlan(planId);if(!p||!allowed(p))return;const e=entryId?state.entries.find(x=>x.id===entryId&&x.plan_id===planId):null;state.dialog={kind:'entry',planId,entryId:entryId||null,requestId:uuid(),snapshot:''};
+ dialogOpen(`<form method="dialog" id="lsEntryFormV31"><div class="ls-dialog-header"><div><small>${L('独立手动记录','MANUAL LIFESTYLE LOG')}</small><h2>${e?L('编辑使用记录','Edit manual use'):L('记录一次娱乐消费','Record an occasion')}</h2></div><button type="button" data-ls-act="close" aria-label="Close">×</button></div><div class="ls-dialog-body"><p class="ls-hint">${esc(p.name)} · ${esc(p.currency)} · ${L('仅保存生活记录，不会从财务账户扣款','A lifestyle note only; no financial account debit.')}</p>
+ <label>${L('发生日期','Date')}<input name="spent_on" type="date" required value="${esc(e?.spent_on||today())}"/></label><label>${L('记录金额','Amount')}<input name="amount" type="number" min="0.01" max="999999999" step="0.01" inputmode="decimal" required value="${e?.amount??''}"/></label><label>${L('备注（可留空）','Notes (optional)')}<textarea name="note" maxlength="600" rows="3">${esc(e?.note||'')}</textarea></label><p class="ls-hint">${L('记录不会同步到 Transactions，也不会增加或扣除总资产。','Not synced to Transactions or total assets.')}</p><p class="ls-error" id="lsDialogErrorV31" role="alert"></p></div><div class="ls-dialog-footer"><button type="button" data-ls-act="close">${L('取消','Cancel')}</button><button class="ls-primary" type="submit">${L('保存记录','Save use')}</button></div></form>`);
+}
+function showHistory(planId){const p=getPlan(planId);if(!p||!allowed(p))return;state.dialog={kind:'history',planId};const items=state.entries.filter(x=>x.plan_id===planId&&x.user_id===state.owner).sort((a,b)=>b.spent_on.localeCompare(a.spent_on));dialogOpen(`<div class="ls-dialog-header"><div><small>${L('仅供个人规划','PERSONAL HISTORY')}</small><h2>${esc(p.name)} · ${L('记录历史','History')}</h2></div><button type="button" data-ls-act="close">×</button></div><div class="ls-dialog-body"><p class="ls-hint">${L('手动生活记录，独立于财务账本。','Manual lifestyle logs, separate from the financial ledger.')}</p>${items.length?items.map(x=>`<div class="ls-entry-row"><div><strong>${esc(x.spent_on)} · ${esc(money(x.amount,p.currency))}</strong><small>${esc(x.note||'')}</small></div><div><button type="button" data-ls-act="editEntry" data-id="${x.id}" data-plan="${p.id}">${L('编辑','Edit')}</button><button type="button" data-ls-act="deleteEntry" data-id="${x.id}" data-plan="${p.id}">${L('删除','Delete')}</button></div></div>`).join(''):`<p class="ls-hint">${L('没有记录','No entries yet')}</p>`}</div><div class="ls-dialog-footer"><button type="button" data-ls-act="close">${L('返回','Back')}</button><button class="ls-primary" type="button" data-ls-act="log" data-id="${p.id}">${L('添加记录','Add use')}</button></div>`);}
+function showError(s){const e=$('lsDialogErrorV31');if(e)e.textContent=s;else{state.notice=s;render();}}
+function readField(form,name){return form.elements.namedItem(name);}
+async function verifyCreated(c,table,requestId){const r=await c.from(table).select('*').eq('user_id',state.owner).eq('client_request_id',requestId).maybeSingle();if(r.error)throw r.error;return r.data;}
+async function submitPlan(form){if(state.saving||!state.dialog||state.dialog.kind!=='plan'||!live()||!state.loaded)return;const u=state.owner,ep=state.epoch,d=state.dialog,p=d.id?getPlan(d.id):null;if(d.id&&(!p||!allowed(p)))return;
+ const name=readField(form,'name').value.trim(),currency=p?.currency||readField(form,'currency').value,allowed_uses=Number(readField(form,'allowed_uses').value),per_use_limit=num(readField(form,'per_use_limit').value),monthly_limit=num(readField(form,'monthly_limit').value),is_private=readField(form,'is_private').checked;
+ if(!name||name.length>100||!Object.hasOwn(MONEY,currency)||!Number.isInteger(allowed_uses)||allowed_uses<0||allowed_uses>100||![per_use_limit,monthly_limit].every(n=>Number.isFinite(n)&&n>=0&&n<=999999999)){showError(L('请检查名称、次数和预算金额。','Check the name, count and budget amounts.'));return;}
+ const data={name,currency,allowed_uses,per_use_limit,monthly_limit,is_private};const snap=JSON.stringify(data);if(d.snapshot&&d.snapshot!==snap){showError(L('上次提交结果尚未确认，请先恢复原内容并重试或刷新。','Previous save is unconfirmed. Restore the previous form values or refresh.'));return;}d.snapshot=snap;
+ state.saving=true;try{const c=await auth();let result;if(p){result=await c.from(PLANS).update({...data,version:Number(p.version)+1,updated_at:new Date().toISOString()}).eq('user_id',u).eq('id',p.id).eq('version',p.version).select('id');if(result.error)throw result.error;if(!result.data?.length)throw Error('CONFLICT');}
+ else{result=await c.from(PLANS).insert({...data,user_id:u,client_request_id:d.requestId}).select('id');if(result.error||!result.data?.length){const found=await verifyCreated(c,PLANS,d.requestId);if(!found)throw result.error||Error('UNCERTAIN');}}
+ if(!live()||state.owner!==u||state.epoch!==ep)return;close();state.notice=L('计划已保存。','Plan saved.');await load();}
+ catch(e){if(live())showError(L('保存未确认，请保持当前表单并重试，或刷新核查。','Save not confirmed. Keep this form and retry, or refresh to verify.'));}
+ finally{state.saving=false;}
+}
+async function submitEntry(form){if(state.saving||!state.dialog||state.dialog.kind!=='entry'||!live()||!state.loaded)return;const u=state.owner,ep=state.epoch,d=state.dialog,p=getPlan(d.planId);if(!p||!allowed(p))return;const e=d.entryId?state.entries.find(x=>x.id===d.entryId&&x.plan_id===p.id):null;
+ const spent_on=readField(form,'spent_on').value,amount=num(readField(form,'amount').value),note=readField(form,'note').value.trim();if(!goodDate(spent_on)||!Number.isFinite(amount)||amount<=0||amount>999999999||note.length>600){showError(L('请选择有效日期，并输入大于 0 的金额。','Choose a valid date and an amount above zero.'));return;}
+ const data={spent_on,amount,note,currency:p.currency},snap=JSON.stringify(data);if(d.snapshot&&d.snapshot!==snap){showError(L('上次保存结果尚不明确，请保留原始输入核查。','Previous save is unconfirmed. Keep the original values to verify.'));return;}d.snapshot=snap;
+ state.saving=true;try{const c=await auth();let result;if(e){result=await c.from(ENTRIES).update({...data,version:Number(e.version)+1,updated_at:new Date().toISOString()}).eq('user_id',u).eq('plan_id',p.id).eq('id',e.id).eq('version',e.version).select('id');if(result.error)throw result.error;if(!result.data?.length)throw Error('CONFLICT');}
+ else{result=await c.from(ENTRIES).insert({...data,user_id:u,plan_id:p.id,client_request_id:d.requestId}).select('id');if(result.error||!result.data?.length){const found=await verifyCreated(c,ENTRIES,d.requestId);if(!found)throw result.error||Error('UNCERTAIN');}}
+ if(!live()||state.owner!==u||state.epoch!==ep)return;close();state.notice=L('生活记录已保存，没有更改财务账本。','Manual use saved; finance ledger unchanged.');await load();}
+ catch(_){if(live())showError(L('记录保存未确认，请保留表单重试或刷新核实。','Save unconfirmed. Keep the form to retry or refresh.'));}
+ finally{state.saving=false;}
+}
+async function deleteEntry(id,planId){const p=getPlan(planId),e=state.entries.find(x=>x.id===id&&x.user_id===state.owner&&x.plan_id===planId);if(!p||!e||!allowed(p)||state.saving)return;
+ if(!window.confirm(L('只删除这条生活记录，不会删除任何财务交易。确定？','Delete only this lifestyle note (no financial transactions)?')))return;const u=state.owner,ep=state.epoch;state.saving=true;
+ try{const c=await auth(),r=await c.from(ENTRIES).delete().eq('user_id',u).eq('id',id).eq('plan_id',planId).eq('version',e.version).select('id');if(r.error||!r.data?.length)throw Error('CONFLICT');if(!live()||state.owner!==u||state.epoch!==ep)return;close();state.notice=L('记录已删除。','Manual use deleted.');await load();}
+ catch(_){if(live())showError(L('删除失败，可能已被其他设备修改，请刷新。','Delete failed; another device may have changed this record. Refresh.'));}finally{state.saving=false;}
+}
+async function deletePlan(id){const p=getPlan(id);if(!p||!allowed(p)||state.saving)return;
+ if(!window.confirm(L('确定删除此预算及其全部手动生活记录吗？这不会删除任何财务 Transactions。','Delete this plan and ALL its manual lifestyle logs? Financial Transactions are never deleted.')))return;
+ const u=state.owner,ep=state.epoch;state.saving=true;
+ try{const c=await auth(),r=await c.from(PLANS).delete().eq('user_id',u).eq('id',id).eq('version',p.version).select('id');if(r.error||!r.data?.length)throw Error('CONFLICT');if(!live()||state.owner!==u||state.epoch!==ep)return;close();state.notice=L('计划及其独立记录已删除。','Plan and its separate manual logs deleted.');await load();}
+ catch(_){if(live())showError(L('删除失败，计划可能已被其他设备修改，请刷新。','Delete failed; the plan may have changed on another device. Refresh.'));}
+ finally{state.saving=false;}
+}
+function onClick(ev){const b=ev.target.closest('[data-ls-act]');if(!b||(!$(ROOT)?.contains(b)&&!$('lsDialogV31')?.contains(b)))return;const act=b.dataset.lsAct,id=b.dataset.id;if(act==='close'){close();return;}if(act==='reveal'){state.reveal?hidePrivate():reveal();return;}if(act==='refresh'){load();return;}if(act==='add'){showPlan(null);return;}if(act==='edit'){showPlan(id);return;}if(act==='log'){showEntry(id);return;}if(act==='history'){showHistory(id);return;}if(act==='editEntry'){showEntry(b.dataset.plan,id);return;}if(act==='deleteEntry'){deleteEntry(id,b.dataset.plan);return;}if(act==='deletePlan'){deletePlan(id);return;}}
+function mount(){const r=$(ROOT);if(!r)return;if(state.owner!==owner()||state.epoch!==epoch()){forget();state.owner=owner();state.epoch=epoch();}render();if(!state.loaded&&!state.loading)load();}
+function unmount(){forget();}
+function init(){document.addEventListener('click',onClick);
+ document.addEventListener('change',e=>{if(e.target?.id==='lsMonthV31'&&/^\d{4}-(0[1-9]|1[0-2])$/.test(e.target.value)){state.month=e.target.value;render();}});
+ document.addEventListener('submit',e=>{if(e.target?.id==='lsPlanFormV31'||e.target?.id==='lsEntryFormV31'){e.preventDefault();if(e.target.id==='lsPlanFormV31')submitPlan(e.target);else submitEntry(e.target);}});
+ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&state.dialog)close();});
+ window.addEventListener('mmhvault:config-owner-changed',()=>{forget();if($(ROOT)){state.owner=owner();state.epoch=epoch();mount();}});
+ document.addEventListener('visibilitychange',()=>{if(document.hidden){forget();}else if($(ROOT))mount();});
+ for(const ev of ['mmhvault-language-change','languagechange'])window.addEventListener(ev,()=>{if($(ROOT))render();});
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+window.MMHLifeSpendingV31={mount,unmount};
+})();
