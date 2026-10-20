@@ -21,7 +21,7 @@ const goldQty=(x)=>{let q=N(x.quantity);if(!Number.isFinite(q))return NaN;const 
 const tradeDay=x=>String(x.inv_date||'').slice(0,10);
 const cashFlow=(x,q)=>{const a=Math.abs(N(x.amount)),fees=Math.abs(N(x.fee)||0)+Math.abs(N(x.other_cost)||0);return !Number.isFinite(a)?NaN:q<0?a-fees:-a-fees};
 const L={ALL:'all',CRYPTO:'crypto',GOLD:'gold'};
-let selection='all',daysView=7,selectedDay=todayLocal(),selectedSymbol='',currentOwner='',cryptoCache={at:0,key:'',prices:new Map(),missing:[]},goldRows=[],error='',inFlight=false,lastRenderToken=0;
+let selection='all',daysView=7,selectedDay=todayLocal(),selectedSymbol='',currentOwner='',cryptoCache={at:0,key:'',prices:new Map(),missing:[],sources:{}},goldRows=[],error='',inFlight=false,lastRenderToken=0;
 const priceOf=(symbol,day,now)=>{
  if(symbol==='USDT')return 1;
  if(day===todayLocal()&&now){const current=(typeof livePrices!=='undefined'?livePrices:window.livePrices)||{},status=(typeof cryptoQuoteStatusV1!=='undefined'?cryptoQuoteStatusV1:window.cryptoQuoteStatusV1||null),v=N(current[symbol]?.price);return status?.available&&Number(status.updatedAt)>0&&Date.now()-Number(status.updatedAt)<300000&&Number.isFinite(v)&&v>0?v:undefined;}
@@ -147,7 +147,7 @@ async function reloadGold(owner){if(typeof db==='undefined')return;const {data,e
 }
 async function loadCrypto(owner,force){const symbols=[...new Set(accountCrypto().map(x=>String(x.symbol||'').toUpperCase()).filter(x=>/^[A-Z0-9]{2,12}$/.test(x)))];
  const key=zoneParam()+'|'+symbols.sort().join('|');if(!force&&Date.now()-cryptoCache.at<300000&&cryptoCache.key===key)return;
- const result=new Map(),missing=[];
+ const result=new Map(),missing=[],sources={};
  await Promise.all(symbols.map(async s=>{if(s==='USDT')return;
  let success=false;
  for(const url of ['https://data-api.binance.vision/api/v3/klines','https://api.binance.com/api/v3/klines']){
@@ -155,16 +155,16 @@ async function loadCrypto(owner,force){const symbols=[...new Set(accountCrypto()
    try{response=await fetch(url+'?symbol='+encodeURIComponent(s+'USDT')+'&interval=1d&limit=65&timeZone='+encodeURIComponent(zoneParam()),{signal:ctrl.signal,cache:'no-store'});}finally{clearTimeout(timeout)}
    if(!response.ok)continue;const data=await response.json();if(!Array.isArray(data)||!data.length)continue;
    const map=new Map();for(const item of data){if(!Array.isArray(item)||item.length<5)continue;const p=N(item[4]),date=zonedKey(N(item[0]));if(/^\d{4}-\d{2}-\d{2}$/.test(date)&&p>0)map.set(date,p)}
-   if(map.size>=2){result.set(s,map);success=true;break;}
+   if(map.size>=2){result.set(s,map);sources[s]=url;success=true;break;}
   }catch(_e){}
  }
  if(!success)missing.push(s);
  }));
  if(owner!==currentOwner)return;
- cryptoCache={at:Date.now(),key,prices:result,missing};if(missing.length)error=T('部分 Crypto 历史价格不可用：','Some historical crypto quotes unavailable: ')+missing.join(', ');
+ cryptoCache={at:Date.now(),key,prices:result,missing,sources};if(missing.length)error=T('部分 Crypto 历史价格不可用：','Some historical crypto quotes unavailable: ')+missing.join(', ');
 }
-async function load(force=false){const box=base();if(!box)return;const owner=owns();if(!owner){currentOwner='';goldRows=[];cryptoCache={at:0,key:'',prices:new Map(),missing:[]};selectedSymbol='';error='';draw();return}
- if(currentOwner!==owner){currentOwner=owner;goldRows=[];cryptoCache={at:0,key:'',prices:new Map(),missing:[]};selectedSymbol='';error='';['idv1Summary','idv1Trend','idv1Breakdown','idv1History','idv1RecentGoldQuotes'].forEach(id=>{const target=el(id);if(target)target.replaceChildren();});}
+async function load(force=false){const box=base();if(!box)return;const owner=owns();if(!owner){currentOwner='';goldRows=[];cryptoCache={at:0,key:'',prices:new Map(),missing:[],sources:{}};selectedSymbol='';error='';draw();return}
+ if(currentOwner!==owner){currentOwner=owner;goldRows=[];cryptoCache={at:0,key:'',prices:new Map(),missing:[],sources:{}};selectedSymbol='';error='';['idv1Summary','idv1Trend','idv1Breakdown','idv1History','idv1RecentGoldQuotes'].forEach(id=>{const target=el(id);if(target)target.replaceChildren();});}
  const token=++lastRenderToken;
  el('idv1Status').textContent=T('正在加载历史报价…','Loading price history…');
  try{error='';await Promise.all([reloadGold(owner),loadCrypto(owner,force)]);}catch(err){error=T('历史数据加载失败，请重试。','Failed to load history; please retry.')}
@@ -191,6 +191,7 @@ function guidanceSnapshot(){
   holdings:records().filter(x=>x.user_id==null||String(x.user_id)===currentOwner).map(x=>({asset:x.asset,symbol:x.symbol,quantity:x.quantity,inv_date:x.inv_date,id:x.id})),
   goldQuotes:goldRows.map(x=>({date:x.quote_date,price:Number(x.mmk_per_kyattha),source:x.source_type})),
   quoteZone:zoneParam(),
+  quoteSources:{...cryptoCache.sources},
  };
 }
 window.mmhInvestDailyV1={dailyTotal,cryptoDaily,goldDaily,load,draw,priceOf,guidanceSnapshot};
