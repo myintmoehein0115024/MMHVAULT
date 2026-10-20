@@ -73,3 +73,15 @@ body.lf-modal-open{overflow:hidden}
 .lf-dialog .lf-account-preview{padding:12px;border:1px solid #d9e5d0;background:#f2f8ee;border-radius:11px;color:#476f55;line-height:1.6;font-size:12px;overflow-wrap:anywhere}
 .lf-dialog .lf-account-preview.lf-account-over{background:#fff2e8;border-color:#e4c29a;color:#a76130}
 #life-planner .lf-history-row small{line-height:1.7}
+
+/* Phase 4.3: auditable release / purpose-use journal */
+#life-planner .lf-fund-flow{display:flex;flex-wrap:wrap;gap:8px;margin:9px 0 14px}
+#life-planner .lf-fund-flow span{font-size:11px;color:#6e846f;border-radius:10px;background:#eff5ec;border:1px solid #dce8d9;padding:8px 10px;overflow-wrap:anywhere}
+#life-planner .lf-fund-flow b{font-weight:750;color:#476b51}
+#life-planner .lf-flow-row{align-items:flex-start}
+#life-planner .lf-flow-main{min-width:0;flex:1}
+#life-planner .lf-remains{display:inline-block;font-size:11px;font-weight:750;color:#3d7851;margin:7px 0}
+#life-planner .lf-movement-item{padding:8px 10px;margin:7px 0;background:#fff9ee;border:1px solid #e8d6b6;border-radius:9px;color:#725c3a;display:flex;flex-wrap:wrap;gap:5px 9px;justify-content:space-between;font-size:11px}
+#life-planner .lf-movement-item b{color:#8b6a34}
+#life-planner .lf-movement-item small{flex-basis:100%;color:#85745d}
+@media(max-width:520px){#life-planner .lf-fund-flow{flex-direction:column}#life-planner .lf-flow-row button{width:100%}}
