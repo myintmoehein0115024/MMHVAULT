@@ -1,0 +1,73 @@
+/* MMHVAULT Life Planner / My Goals Phase 5.1 — isolated warm lifestyle style */
+#life-planner .lg-shell{max-width:1150px;margin:0 auto;padding:24px;background:#faf6ed;border:1px solid #e7dbc5;border-radius:24px;color:#355642;box-sizing:border-box;box-shadow:0 14px 35px #171f190b}
+#life-planner .lg-shell *, .lg-dialog *{box-sizing:border-box}
+#life-planner .lg-hero{border-radius:20px;background:linear-gradient(112deg,#f7e9d1,#f3f8e9 82%);padding:25px 28px;display:flex;gap:18px;justify-content:space-between;align-items:center;border:1px solid #e5d6b8}
+#life-planner .lg-hero small{letter-spacing:2px;color:#ad8147;font-size:10px;font-weight:800}
+#life-planner .lg-hero h1{font:700 clamp(25px,3vw,38px)/1.18 Georgia,'Noto Serif SC',serif;color:#2c4b36;margin:8px 0}
+#life-planner .lg-hero p{font-size:12px;line-height:1.8;color:#617862;max-width:570px;margin:0}
+#life-planner .lg-btn,.lg-dialog button{font:700 12px/1.5 system-ui,sans-serif;min-height:40px;padding:9px 13px;border:1px solid #d7deca;border-radius:11px;background:#fffdfa;color:#42684b;cursor:pointer;touch-action:manipulation}
+#life-planner .lg-btn:hover,.lg-dialog button:hover{background:#f0f7ed}
+#life-planner button:disabled,.lg-dialog button:disabled{opacity:.52;cursor:not-allowed}
+#life-planner .lg-btn.lg-gold,.lg-dialog .lg-gold{background:#bd8950;border-color:#bd8950;color:white}
+#life-planner .lg-note{margin:14px 0;background:#edf5eb;border:1px solid #d2e0ca;border-radius:13px;padding:12px 15px;font-size:11px;color:#47734e;line-height:1.75}
+#life-planner .lg-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px;margin:16px 0}
+#life-planner .lg-stats>div{background:#fffdfa;border:1px solid #e9dfcd;border-radius:15px;padding:15px 18px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+#life-planner .lg-stats span{font-size:12px;color:#678071}#life-planner .lg-stats strong{font-size:25px;color:#3e6a48;font-family:Georgia,serif}
+#life-planner .lg-controls{display:flex;gap:16px;justify-content:space-between;align-items:center;margin:22px 0 12px}
+#life-planner .lg-controls strong{font:700 23px Georgia,'Noto Serif SC',serif;color:#30553c}
+#life-planner .lg-controls p{margin:5px 0 0;font-size:11px;color:#71826a}
+#life-planner .lg-control-actions{display:flex;flex-wrap:wrap;gap:8px}
+#life-planner .lg-reveal-info{font-size:11px;color:#946b40;background:#fff5de;border-radius:9px;padding:10px}
+#life-planner .lg-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+#life-planner .lg-card{min-width:0;background:#fffef9;border:1px solid #e6ddcb;border-radius:18px;padding:18px 19px;box-shadow:0 8px 20px #465a4010}
+#life-planner .lg-card-line{display:flex;justify-content:space-between;align-items:center;gap:8px}
+#life-planner .lg-category{color:#41704e;background:#ebf5eb;border:1px solid #d5e7d3;border-radius:20px;padding:6px 10px;font-size:10px;font-weight:750}
+#life-planner .lg-status{font-size:11px;color:#ac824a}
+#life-planner .lg-card h2{margin:17px 0 9px;color:#32543a;font:700 23px/1.3 Georgia,'Noto Serif SC',serif;overflow-wrap:anywhere}
+#life-planner .lg-description,#life-planner .lg-muted{font-size:11px;color:#7b8c78;line-height:1.7;overflow-wrap:anywhere}
+#life-planner .lg-dates{color:#668573;font-size:11px;margin-top:12px}
+#life-planner .lg-progress{height:10px;border-radius:30px;background:#e6eddf;overflow:hidden;margin-top:17px}
+#life-planner .lg-progress div{height:100%;background:linear-gradient(90deg,#92bb91,#4b936e);border-radius:30px;transition:width .2s}
+#life-planner .lg-progress-text{display:flex;justify-content:space-between;gap:9px;color:#708071;font-size:10px;margin:8px 0 17px}
+#life-planner .lg-progress-text b{color:#3a7454;font-size:14px}
+#life-planner .lg-card-actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:15px}
+#life-planner .lg-card-actions button{min-height:36px;font-size:11px;padding:8px 10px}
+#life-planner .lg-expanded{border-top:1px solid #e8eadb;margin-top:16px;padding-top:10px}
+#life-planner .lg-expanded h3{font:700 15px Georgia,'Noto Serif SC',serif;color:#446849;margin:17px 0 10px}
+#life-planner .lg-step{display:flex;align-items:center;gap:9px;padding:9px;background:#f6f9f2;border:1px solid #e6eddf;border-radius:10px;margin-bottom:7px}
+#life-planner .lg-step>div{flex:1;min-width:0;overflow-wrap:anywhere}#life-planner .lg-step strong{font-size:11px;color:#44614a;display:block}
+#life-planner .lg-step strong.is-done{text-decoration:line-through;color:#849b86}#life-planner .lg-step small{display:block;font-size:10px;color:#829380;margin-top:4px}
+#life-planner button.lg-step-toggle{padding:0;min-width:33px;min-height:33px;border-radius:50%;font-size:19px;color:#517e5b}
+#life-planner button.lg-step-edit{min-height:32px;font-size:10px}
+#life-planner .lg-update{display:flex;gap:9px;padding:9px 0;border-bottom:1px dashed #e3e5dc;font-size:11px;color:#6e8270;overflow-wrap:anywhere}
+#life-planner .lg-update b{color:#43805c}#life-planner .lg-danger{display:flex;gap:8px;margin-top:17px;flex-wrap:wrap}
+#life-planner button.lg-delete{color:#a75244;border-color:#e4bbb0}
+#life-planner .lg-filters{display:flex;gap:7px;flex-wrap:wrap;margin:11px 0 16px}
+#life-planner .lg-filters button{font-size:11px;color:#738471;padding:7px 13px;min-height:34px;border:1px solid #dae3d4;border-radius:24px;background:#f5f9f1;cursor:pointer}
+#life-planner .lg-filters button.selected{color:#fff;background:#5d8a69;border-color:#5d8a69}
+#life-planner .lg-empty{border:1px dashed #cddcc4;background:#fffdfa;text-align:center;border-radius:17px;padding:28px;font-size:13px;color:#65826a}
+#life-planner .lg-footer{font-size:11px;color:#858e7a;line-height:1.7;margin:18px 0 0}
+#life-planner .lg-error,#life-planner .lg-toast{padding:12px;border-radius:12px;margin:12px 0;font-size:12px}
+#life-planner .lg-error{background:#fcefea;color:#a14b43;border:1px solid #e8c0b9}
+#life-planner .lg-toast{background:#e7f3e6;color:#326e45;border:1px solid #c5ddc4}
+.lg-dialog{background:#fffaf2;border:1px solid #decfaf;border-radius:20px;padding:0;color:#36563d;width:min(540px,calc(100vw - 20px));max-width:calc(100vw - 20px);max-height:calc(100dvh - 20px);box-shadow:0 25px 80px #101c18a0;overflow:hidden}
+.lg-dialog::backdrop{background:#06151bcc;backdrop-filter:blur(5px)}
+.lg-dialog form{display:flex;flex-direction:column;min-height:0;max-height:calc(100dvh - 22px)}
+.lg-dialog-head,.lg-dialog-foot{padding:15px 18px;flex:none;background:#fffaf2}
+.lg-dialog-head{display:flex;justify-content:space-between;gap:14px;align-items:center;border-bottom:1px solid #e9dfcd}
+.lg-dialog-head small{font-size:10px;color:#b88d55;letter-spacing:1.5px;font-weight:850}
+.lg-dialog-head h2{font:700 22px Georgia,'Noto Serif SC',serif;color:#34553e;margin:6px 0 0}
+.lg-dialog-head button{font-size:26px;border:0;background:none;min-width:36px;padding:2px}
+.lg-dialog-scroll{padding:17px 18px;overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:13px;min-height:0}
+.lg-dialog-scroll label{display:flex;flex-direction:column;gap:7px;color:#506f55;font-size:12px;font-weight:700}
+.lg-dialog input,.lg-dialog select,.lg-dialog textarea{width:100%;padding:11px;border:1px solid #d7d8c9;border-radius:10px;min-height:43px;font:400 14px system-ui;background:white;color:#334f3c}
+.lg-dialog textarea{min-height:76px;resize:vertical}
+.lg-dialog .lg-form-cols{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.lg-dialog label.lg-checkbox{flex-direction:row;align-items:center}.lg-dialog .lg-checkbox input{min-height:18px;width:18px;flex:none}
+.lg-dialog .lg-info{background:#edf5e9;border:1px solid #d8e8d2;border-radius:12px;padding:11px;font-size:11px;color:#587a58;line-height:1.7}
+.lg-dialog .lg-warning{color:#a25446;background:#fff0e9;padding:12px;border-radius:10px;font-size:12px;line-height:1.8}
+.lg-dialog .lg-dialog-error{font-size:11px;color:#a5443b;min-height:1em;margin:0}
+.lg-dialog .lg-dialog-foot{display:flex;justify-content:flex-end;gap:10px;border-top:1px solid #e9dfcd}
+#life-planner .lg-shell button:focus-visible,.lg-dialog button:focus-visible,.lg-dialog input:focus-visible{outline:3px solid #d8aa68;outline-offset:2px}
+@media(max-width:850px){#life-planner .lg-grid{grid-template-columns:1fr}#life-planner .lg-hero{padding:21px}}
+@media(max-width:540px){#life-planner .lg-shell{padding:12px;border-radius:17px}#life-planner .lg-hero{flex-direction:column;align-items:stretch}#life-planner .lg-stats{gap:6px}#life-planner .lg-stats>div{padding:9px;flex-direction:column;align-items:flex-start}#life-planner .lg-stats strong{font-size:20px}#life-planner .lg-controls{align-items:stretch;flex-direction:column}#life-planner .lg-control-actions>*{flex:1}#life-planner .lg-card{padding:14px}#life-planner .lg-card-actions>*{flex:1}.lg-dialog .lg-form-cols{grid-template-columns:1fr}.lg-dialog .lg-dialog-foot button{flex:1}}
