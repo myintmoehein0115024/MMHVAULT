@@ -92,3 +92,9 @@ body.lf-modal-open{overflow:hidden}
 #life-planner .lf-transfer-in{background:#eef4fd;border-color:#d7e2ef;color:#416b84}
 #life-planner .lf-transfer-in b{color:#3f7864}
 @media(max-width:520px){#life-planner .lf-entry-actions{width:100%;flex-direction:column}#life-planner .lf-entry-actions button{width:100%}}
+
+/* Phase 4.5 — reversible reallocation and private manual reconciliation */
+#life-planner .lf-recon-actions{flex-basis:100%;display:flex;gap:7px;justify-content:flex-end;flex-wrap:wrap;margin-top:5px}
+#life-planner .lf-recon-actions button{min-height:34px;padding:6px 10px;background:#f8fbf1;border-color:#bfd6c4;color:#326a49;font-size:11px;overflow-wrap:anywhere}
+#life-planner .lf-recon-actions button:hover{background:#e6f1e5}
+@media(max-width:520px){#life-planner .lf-recon-actions{width:100%}#life-planner .lf-recon-actions button{width:100%}}
