@@ -1,4 +1,4 @@
-/* MMHVAULT Life Planner Phase 4.3 - auditable earmark releases and purpose-use journal.
+/* MMHVAULT Life Planner Phase 4.4 - atomic same-currency fund reallocation and transaction review.
  * This module NEVER moves money, posts transactions, credits assets or imports
  * speculative unused budgets as deposits. The figures are self-declared labels
  * on existing funds, not proof of available account balances.
@@ -6,7 +6,7 @@
 (()=>{
 'use strict';
 if(window.MMHLifeFundsV41)return;
-const ROOT='mmhLifeFundsV41',FUNDS='life_funds',ALLOC='life_fund_allocations',MOVES='life_fund_movements';
+const ROOT='mmhLifeFundsV41',FUNDS='life_funds',ALLOC='life_fund_allocations',MOVES='life_fund_movements',TRANSFERS='life_fund_transfers';
 const $=id=>document.getElementById(id);
 const owner=()=>{try{return typeof currentSessionUser!=='undefined'?currentSessionUser?.id||'':'';}catch{return ''}};
 const epoch=()=>Number(window.__mmhSessionEpochV1239)||0;
@@ -21,15 +21,16 @@ const num=x=>{if(String(x).trim()==='')return NaN;const v=Number(x);return Numbe
 const dateToday=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`};
 const isDate=s=>{if(!/^\d{4}-\d{2}-\d{2}$/.test(String(s)))return false;const d=new Date(s+'T12:00:00');return !Number.isNaN(d.getTime())&&`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`===s};
 const requestId=()=>crypto.randomUUID?.()||'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const b=crypto.getRandomValues(new Uint8Array(1))[0];return(c==='x'?b&15:(b&3)|8).toString(16)});
-const state={owner:'',epoch:0,token:0,loaded:false,loading:false,saving:false,funds:[],allocations:[],movements:[],error:'',notice:'',reveal:false,dialog:null};
+const state={owner:'',epoch:0,token:0,loaded:false,loading:false,saving:false,funds:[],allocations:[],movements:[],transfers:[],error:'',notice:'',reveal:false,dialog:null};
 let revealTimer=null;
 const active=()=>!!state.owner&&owner()===state.owner&&epoch()===state.epoch&&!!$(ROOT)&&$('life-planner')?.classList.contains('active')&&!document.hidden;
 const getFund=id=>state.funds.find(x=>x.id===id&&x.user_id===state.owner);
 const canSee=f=>!!f&&(!f.is_private||state.reveal);
+const displayFundName=id=>{const f=getFund(id);return f&&canSee(f)?esc(f.name):L('私人基金','Private fund')};
 const valid=(u,ep)=>u===state.owner&&ep===state.epoch&&active();
-function hide(){if(revealTimer!==null)clearTimeout(revealTimer);revealTimer=null;state.reveal=false;if(state.dialog?.id&&getFund(state.dialog.id)?.is_private)closeDialog();render()}
+function hide(){if(revealTimer!==null)clearTimeout(revealTimer);revealTimer=null;state.reveal=false;if(state.dialog?.kind==='transfer'||state.dialog?.id&&getFund(state.dialog.id)?.is_private)closeDialog();render()}
 function closeDialog(){state.dialog=null;const n=$('lfDialogV41');if(n){try{n.close()}catch{}n.remove()}document.body.classList.remove('lf-modal-open')}
-function forget(){if(revealTimer!==null)clearTimeout(revealTimer);revealTimer=null;state.token++;state.reveal=false;state.funds=[];state.allocations=[];state.movements=[];state.loaded=false;state.loading=false;state.saving=false;state.error='';state.notice='';closeDialog();const host=$(ROOT);if(host)host.replaceChildren()}
+function forget(){if(revealTimer!==null)clearTimeout(revealTimer);revealTimer=null;state.token++;state.reveal=false;state.funds=[];state.allocations=[];state.movements=[];state.transfers=[];state.loaded=false;state.loading=false;state.saving=false;state.error='';state.notice='';closeDialog();const host=$(ROOT);if(host)host.replaceChildren()}
 function showPrivate(){if(revealTimer!==null)clearTimeout(revealTimer);state.reveal=true;revealTimer=setTimeout(hide,90000);render()}
 function missing(e){return /42P01|PGRST205|schema cache|does not exist|could not find the table/i.test(String(e?.code||'')+' '+String(e?.message||''))}
 async function authorized(){if(!active()||!client())throw Error('AUTH');const c=client(),r=await c.auth.getUser();if(r.error||r.data?.user?.id!==state.owner||!active())throw Error('AUTH');return c}
@@ -37,9 +38,10 @@ async function load(){if(!active()||state.loading||state.saving)return;const tok
  const c=await authorized();const f=await c.from(FUNDS).select('*').eq('user_id',u).order('created_at',{ascending:false}).limit(500);if(f.error)throw f.error;if(!valid(u,ep)||token!==state.token)return;
  const a=await c.from(ALLOC).select('*').eq('user_id',u).order('allocated_on',{ascending:false}).limit(4000);if(a.error)throw a.error;if(!valid(u,ep)||token!==state.token)return;
  const m=await c.from(MOVES).select('*').eq('user_id',u).order('created_at',{ascending:false}).limit(6000);if(m.error)throw m.error;if(!valid(u,ep)||token!==state.token)return;
- if((f.data||[]).length===500||(a.data||[]).length===4000||(m.data||[]).length===6000){state.error='LIMIT';state.funds=[];state.allocations=[];state.movements=[];state.loaded=false;return}
- state.funds=(f.data||[]).filter(x=>x.user_id===u);state.allocations=(a.data||[]).filter(x=>x.user_id===u);state.movements=(m.data||[]).filter(x=>x.user_id===u);state.loaded=true;
- }catch(e){if(valid(u,ep)&&token===state.token){state.funds=[];state.allocations=[];state.movements=[];state.loaded=false;state.error=missing(e)?'MIGRATION':'CONNECT';}}
+ const t=await c.from(TRANSFERS).select('*').eq('user_id',u).order('created_at',{ascending:false}).limit(6000);if(t.error)throw t.error;if(!valid(u,ep)||token!==state.token)return;
+ if((f.data||[]).length===500||(a.data||[]).length===4000||(m.data||[]).length===6000||(t.data||[]).length===6000){state.error='LIMIT';state.funds=[];state.allocations=[];state.movements=[];state.transfers=[];state.loaded=false;return}
+ state.funds=(f.data||[]).filter(x=>x.user_id===u);state.allocations=(a.data||[]).filter(x=>x.user_id===u);state.movements=(m.data||[]).filter(x=>x.user_id===u);state.transfers=(t.data||[]).filter(x=>x.user_id===u);state.loaded=true;
+ }catch(e){if(valid(u,ep)&&token===state.token){state.funds=[];state.allocations=[];state.movements=[];state.transfers=[];state.loaded=false;state.error=missing(e)?'MIGRATION':'CONNECT';}}
  finally{if(valid(u,ep)&&token===state.token){state.loading=false;render()}}
 }
 // A source account is a user-owned planning label, NOT a debit or locked bank balance.
@@ -60,12 +62,13 @@ function accountsFor(f){
   .filter(a=>Number.isFinite(a.balance));}catch{return []}
 }
 const movementTotal=(allocationId,arr=state.movements)=>Math.round(arr.filter(x=>x.allocation_id===allocationId).reduce((v,x)=>v+Number(x.amount||0),0)*100)/100;
-const allocationRemaining=(a,mov=state.movements)=>Math.round((Number(a.amount||0)-movementTotal(a.id,mov))*100)/100;
+const transferTotal=(allocationId,arr=state.transfers)=>Math.round(arr.filter(x=>x.source_allocation_id===allocationId).reduce((v,x)=>v+Number(x.amount||0),0)*100)/100;
+const allocationRemaining=(a,mov=state.movements,trans=state.transfers)=>Math.round((Number(a.amount||0)-movementTotal(a.id,mov)-transferTotal(a.id,trans))*100)/100;
 // Only confirmed releases free source-account planning capacity.
 // Self-reported "use" is NOT proof of a posted real transaction; retain its
 // conservative hold to avoid showing potentially overstated available funds.
-const heldForAccount=(a,mov=state.movements)=>Math.round((Number(a.amount||0)-mov.filter(m=>m.allocation_id===a.id&&m.kind==='release').reduce((n,m)=>n+Number(m.amount||0),0))*100)/100;
-const assignedTo=(accountId,arr=state.allocations,mov=state.movements)=>Math.round(arr.filter(x=>x.source_account_id===accountId).reduce((v,x)=>v+heldForAccount(x,mov),0)*100)/100;
+const heldForAccount=(a,mov=state.movements,trans=state.transfers)=>Math.round((Number(a.amount||0)-mov.filter(m=>m.allocation_id===a.id&&m.kind==='release').reduce((n,m)=>n+Number(m.amount||0),0)-transferTotal(a.id,trans))*100)/100;
+const assignedTo=(accountId,arr=state.allocations,mov=state.movements,trans=state.transfers)=>Math.round(arr.filter(x=>x.source_account_id===accountId).reduce((v,x)=>v+heldForAccount(x,mov,trans),0)*100)/100;
 function accountRoom(a,allocs=state.allocations){return Math.round((a.balance-assignedTo(a.id,allocs))*100)/100}
 function accountReviewLine(e,f){
  if(!e.source_account_id)return L('旧预留：尚未关联来源账户','Legacy earmark: source not linked');
@@ -75,6 +78,16 @@ function accountReviewLine(e,f){
 const reserved=id=>Math.round(state.allocations.filter(x=>x.fund_id===id).reduce((n,x)=>n+allocationRemaining(x),0)*100)/100;
 const used=id=>Math.round(state.movements.filter(x=>x.fund_id===id&&x.kind==='use').reduce((n,x)=>n+Number(x.amount||0),0)*100)/100;
 const released=id=>Math.round(state.movements.filter(x=>x.fund_id===id&&x.kind==='release').reduce((n,x)=>n+Number(x.amount||0),0)*100)/100;
+const outgoing=id=>Math.round(state.transfers.filter(x=>x.source_fund_id===id).reduce((n,x)=>n+Number(x.amount||0),0)*100)/100;
+const incoming=id=>Math.round(state.transfers.filter(x=>x.target_fund_id===id).reduce((n,x)=>n+Number(x.amount||0),0)*100)/100;
+// An exact date, account and amount match is a candidate only, NEVER proof of payment.
+function transactionCandidates(m,a){
+ if(m.kind!=='use'||!a.source_account_id||!financeReady())return null;
+ const f=getFund(a.fund_id),account=accountsFor(f).find(x=>x.id===a.source_account_id);
+ if(!account)return null;
+ try{return transactions.filter(t=>t.user_id===state.owner&&t.type==='Expense'&&t.tx_date===m.occurred_on&&
+ t.from_account===account.name&&Math.round(Number(t.from_amount||0)*100)===Math.round(Number(m.amount||0)*100)).length}catch{return null}
+}
 
 function render(){const root=$(ROOT);if(!root)return;let info=state.error==='MIGRATION'?L('基金数据库尚未启用或不可访问。为保护数据，本功能不会改用本地缓存保存。','Fund tables are unavailable. No insecure local-storage fallback is used.'):state.error==='LIMIT'?L('记录达到安全读取上限，已暂停操作以避免显示不完整的余额。','Read limit reached; operations paused to avoid incomplete allocation totals.'):state.error==='LOGIN'?L('请先登录个人空间。','Sign in to your personal workspace.'):state.error?L('无法连接到云端数据。请检查网络后刷新。','Cloud data unavailable. Check connection and refresh.'):'',list=state.loaded?state.funds:[];
  root.innerHTML=`<section class="lf-shell"><header class="lf-head"><div><span class="lf-kicker">LIFE PLANNER / WISH FUND</span><h1>${L('为未来喜欢的生活预留一点空间','A little space for your future')}</h1><p>${L('自由基金与愿望基金，把现有资金的用途安排得更清楚。','Free funds and wish funds to label how you plan to use money you already have.')}</p></div><div class="lf-head-actions"><button data-lf-act="refresh" type="button">${L('刷新','Refresh')}</button><button class="lf-primary" data-lf-act="add" type="button" ${!state.loaded?'disabled':''}>＋ ${L('创建基金','New fund')}</button></div></header>
@@ -89,10 +102,12 @@ function card(f){const privateMask=!canSee(f),amount=reserved(f.id),goal=Number(
  return `<article class="lf-card ${privateMask?'lf-masked':''}"><div class="lf-card-top"><span class="lf-type">${f.fund_type==='free'?L('自由基金','Free Fund'):L('愿望基金','Wish Fund')}</span><span class="lf-label">${f.is_private?'🔒 '+L('私人','Private'):L('普通','Standard')}</span></div>
  <h2>${privateMask?L('私人基金','Private fund'):esc(f.name)}</h2><p class="lf-card-desc">${privateMask?L('信息已隐藏','Details are hidden'):f.fund_type==='wish'?L('为喜欢的东西认真留一份计划','Setting aside for a wish'):L('自由安排，未来再决定用途','Flexibility for later choices')}</p>
  <div class="lf-amount"><small>${L('已标记预留（非到账）','Earmarked, not deposited')}</small><strong>${privateMask?'••••':money(amount,f.currency)}</strong></div>
- <div class="lf-fund-flow"><span>${L('已释放','Released')}: <b>${privateMask?'••••':money(released(f.id),f.currency)}</b></span><span>${L('用途使用（手动声明）','Purpose use (self-reported)')}: <b>${privateMask?'••••':money(used(f.id),f.currency)}</b></span></div>
+ <div class="lf-fund-flow"><span>${L('已释放','Released')}: <b>${privateMask?'••••':money(released(f.id),f.currency)}</b></span><span>${L('转出','Reallocated out')}: <b>${privateMask?'••••':money(outgoing(f.id),f.currency)}</b></span><span>${L('转入','Reallocated in')}: <b>${privateMask?'••••':money(incoming(f.id),f.currency)}</b></span><span>${L('用途使用（手动声明）','Purpose use (self-reported)')}: <b>${privateMask?'••••':money(used(f.id),f.currency)}</b></span></div>
  ${goal>0?`<div class="lf-progress" role="progressbar" aria-label="${L('基金目标进度','Goal progress')}" aria-valuemin="0" aria-valuemax="100" ${privateMask?'':'aria-valuenow="'+ratio+'"'}><i style="width:${privateMask?0:ratio}%"></i></div><p class="lf-progress-copy">${privateMask?L('目标已隐藏','Goal hidden'):money(goal,f.currency)+' · '+ratio+'%'}</p>`:`<p class="lf-progress-copy">${privateMask?L('详情已隐藏','Details hidden'):L('自由使用，无固定金额目标','No fixed amount target')}</p>`}
  ${privateMask?`<p class="lf-muted">${L('临时显示后才能编辑或登记预留。','Reveal temporarily before viewing or editing.')}</p>`:`<div class="lf-actions"><button data-lf-act="reserve" data-id="${f.id}" type="button">＋ ${L('标记预留','Add earmark')}</button><button data-lf-act="edit" data-id="${f.id}" type="button">${L('编辑','Edit')}</button><button data-lf-act="remove" data-id="${f.id}" type="button">${L('删除基金','Delete fund')}</button></div>
- <details class="lf-history"><summary>${L('资金流水与历史','Earmarks & movement history')} (${data.length})</summary>${data.length?data.map(e=>{const remains=allocationRemaining(e),movs=state.movements.filter(m=>m.allocation_id===e.id).sort((a,b)=>b.created_at.localeCompare(a.created_at));return `<div class="lf-history-row lf-flow-row"><div class="lf-flow-main"><strong>${L('原预留','Initial earmark')}: ${money(e.amount,f.currency)}</strong><small>${esc(e.allocated_on)} · ${accountReviewLine(e,f)}${e.note?' · '+esc(e.note):''}</small><span class="lf-remains">${L('尚在预留','Still earmarked')}: ${money(remains,f.currency)}</span>${movs.map(m=>`<div class="lf-movement-item"><span>${m.kind==='release'?L('↩ 释放预留','↩ Released'):L('✓ 用途使用（非扣款）','✓ Purpose use (not a debit)')}</span><b>−${money(m.amount,f.currency)}</b><small>${esc(m.occurred_on)}${m.note?' · '+esc(m.note):''}</small></div>`).join('')}</div>${remains>0.001?`<button type="button" data-lf-act="movement" data-id="${e.id}" data-fund="${f.id}">${L('释放／使用','Release / use')}</button>`:''}</div>`}).join(''):`<p class="lf-muted">${L('尚无记录','No entries')}</p>`}</details>`}
+ <details class="lf-history"><summary>${L('资金流水与历史','Earmarks & movement history')} (${data.length})</summary>${data.length?data.map(e=>{const remains=allocationRemaining(e),movs=state.movements.filter(m=>m.allocation_id===e.id).sort((a,b)=>b.created_at.localeCompare(a.created_at));return `<div class="lf-history-row lf-flow-row"><div class="lf-flow-main"><strong>${L('原预留','Initial earmark')}: ${money(e.amount,f.currency)}</strong><small>${esc(e.allocated_on)} · ${accountReviewLine(e,f)}${e.note?' · '+esc(e.note):''}</small><span class="lf-remains">${L('尚在预留','Still earmarked')}: ${money(remains,f.currency)}</span>${movs.map(m=>`<div class="lf-movement-item"><span>${m.kind==='release'?L('↩ 释放预留','↩ Released'):L('✓ 用途使用（非扣款）','✓ Purpose use (not a debit)')}</span><b>−${money(m.amount,f.currency)}</b><small>${esc(m.occurred_on)}${m.note?' · '+esc(m.note):''}${m.kind==='use'?' · '+(transactionCandidates(m,e)===null?L('真实交易未核实','Transaction not verified'):L('同日同额候选','Same-day amount candidates')+': '+transactionCandidates(m,e)+L(' 笔（非已对账）',' (NOT reconciled)')):''}</small></div>`).join('')}
+ ${state.transfers.filter(t=>t.source_allocation_id===e.id).map(t=>`<div class="lf-movement-item lf-transfer-item"><span>↗ ${L('调配至','Moved to')} ${displayFundName(t.target_fund_id)}</span><b>−${money(t.amount,f.currency)}</b><small>${esc(t.occurred_on)}${t.note?' · '+esc(t.note):''} · ${L('仅用途调整','planning only')}</small></div>`).join('')}
+ ${state.transfers.filter(t=>t.target_allocation_id===e.id).map(t=>`<div class="lf-movement-item lf-transfer-in"><span>↙ ${L('由基金调入','Received from')} ${displayFundName(t.source_fund_id)}</span><b>＋${money(t.amount,f.currency)}</b><small>${esc(t.occurred_on)} · ${L('并未产生新资产','no new assets created')}</small></div>`).join('')}</div>${remains>0.001?`<div class="lf-entry-actions"><button type="button" data-lf-act="movement" data-id="${e.id}" data-fund="${f.id}">${L('释放／使用','Release / use')}</button>${e.source_account_id&&state.funds.some(to=>to.id!==f.id&&to.currency===f.currency)?`<button type="button" data-lf-act="transfer" data-id="${e.id}" data-fund="${f.id}">${L('调配到其他基金','Move to another fund')}</button>`:''}</div>`:''}</div>`}).join(''):`<p class="lf-muted">${L('尚无记录','No entries')}</p>`}</details>`}
  </article>`;
 }
 function dialogShell(title,body,submit,kind,id){closeDialog();const node=document.createElement('dialog');node.className='lf-dialog';node.id='lfDialogV41';node.innerHTML=`<form id="lfFormV41"><div class="lf-dialog-head"><div><small>LIFE PLANNER · WISH FUND</small><h2>${title}</h2></div><button aria-label="${L('关闭','Close')}" type="button" data-lf-act="close">×</button></div><div class="lf-dialog-body">${body}<p class="lf-error" role="alert" id="lfDialogErrorV41"></p></div><div class="lf-dialog-actions"><button type="button" data-lf-act="close">${L('取消','Cancel')}</button><button class="lf-primary" type="submit">${submit}</button></div></form>`;document.body.append(node);const request=requestId();state.dialog={kind,id,request,snapshot:null};node.addEventListener('close',()=>{node.remove();if(state.dialog?.request===request)state.dialog=null;document.body.classList.remove('lf-modal-open')});node.addEventListener('click',e=>{if(e.target===node&&!state.saving)closeDialog()});try{node.showModal()}catch{node.setAttribute('open','')}document.body.classList.add('lf-modal-open');const input=node.querySelector('input:not([type="checkbox"]),select');input?.focus({preventScroll:true})}
@@ -122,6 +137,40 @@ function movementDialog(fundId,allocationId){
  <p class="lf-hint">${L('本操作保留原预留记录与流水，可追踪释放和使用；未链接真实交易，不代表账户余额变化。','Original earmark and journal history are retained. This is not linked to an actual payment and does not change account balance.')}</p>`,L('确认登记','Confirm record'),'movement',fundId);
  if(state.dialog)state.dialog.allocationId=allocationId;
 }
+function transferDialog(fundId,allocationId){
+ const f=getFund(fundId),a=state.allocations.find(x=>x.id===allocationId&&x.fund_id===fundId);
+ if(!canSee(f)||!a||!a.source_account_id||allocationRemaining(a)<.01)return;
+ const acc=accountsFor(f).find(x=>x.id===a.source_account_id&&x.name===a.source_account_name);
+ const targets=state.funds.filter(x=>x.id!==fundId&&x.currency===f.currency&&canSee(x));
+ if(!acc||!targets.length){state.notice=L('需要来源账户仍有效、币种相同且目标基金已临时解锁。','A valid source account and an unlocked same-currency target fund are required.');render();return}
+ dialogShell(L('基金之间调配预留','Reallocate between funds'),`<div class="lf-notice">${L('这是同一份预留的用途调整，不会转账、扣款、产生收入或增加总资产；目标基金将继承同一来源账户。','This changes the purpose of the SAME earmark. No debit, transfer, income or extra assets; the destination inherits the same source account.')}</div>
+ <div class="lf-account-preview">${L('可调配金额','Available to move')}: <strong>${money(allocationRemaining(a),f.currency)}</strong><br>${L('来源账户','Source account')}: ${esc(a.source_account_name)}</div>
+ <label>${L('调配到','Move to')}<select name="target_fund_id" required>${targets.map(x=>`<option value="${esc(x.id)}">${esc(x.name)}</option>`).join('')}</select></label>
+ <label>${L('调配金额','Amount')} (${esc(f.currency)})<input name="amount" type="number" min="0.01" max="${allocationRemaining(a).toFixed(2)}" step="0.01" inputmode="decimal" required></label>
+ <label>${L('日期','Date')}<input name="occurred_on" type="date" value="${dateToday()}" required></label>
+ <label>${L('备注（可选）','Note (optional)')}<textarea name="note" maxlength="400" rows="2"></textarea></label>
+ <p class="lf-hint">${L('系统将一次性写入调配流水和目标预留；已参与调配的基金与来源记录不能直接删除，以保护历史一致性。','Transfer and destination earmark are saved atomically. Linked funds/earmarks cannot simply be deleted, preserving audit history.')}</p>`,L('确认调配','Confirm reallocation'),'transfer',fundId);
+ if(state.dialog)state.dialog.allocationId=allocationId;
+}
+async function saveTransfer(form){
+ const d=state.dialog,f=getFund(d.id),a=state.allocations.find(x=>x.id===d.allocationId&&x.fund_id===d.id);
+ const destId=form.elements.namedItem('target_fund_id').value,to=getFund(destId);
+ const amount=num(form.elements.namedItem('amount').value),occurred_on=form.elements.namedItem('occurred_on').value,note=form.elements.namedItem('note').value.trim();
+ if(!canSee(f)||!canSee(to)||!a||!a.source_account_id||f.id===destId||to.currency!==f.currency||!Number.isFinite(amount)||amount<.01||amount>allocationRemaining(a)||!isDate(occurred_on)||note.length>400){errorMsg(L('基金、金额或日期无效，请刷新核对。','Invalid fund, amount or date. Refresh and review.'));return}
+ if(!accountsFor(f).some(x=>x.id===a.source_account_id&&x.name===a.source_account_name)){errorMsg(L('来源账户已失效或财务数据过期。','Source account invalid or financial data stale.'));return}
+ const payload={source_fund_id:f.id,source_allocation_id:a.id,target_fund_id:destId,currency:f.currency,amount,occurred_on,note};
+ const snapshot=JSON.stringify(payload);
+ if(d.snapshot&&d.snapshot!==snapshot){errorMsg(L('上次请求尚未核实，请勿修改后再次提交。','Previous request is unconfirmed; do not resubmit different values.'));return}d.snapshot=snapshot;
+ const u=state.owner,ep=state.epoch;state.saving=true;
+ try{
+  const c=await authorized();
+  const r=await c.from(TRANSFERS).insert({...payload,user_id:u,client_request_id:d.request}).select('id');
+  if(r.error||!r.data?.length){const found=await verifyCreated(c,TRANSFERS,d.request);if(!found)throw r.error||Error('UNCERTAIN')}
+  if(!valid(u,ep))return;
+  closeDialog();state.notice=L('基金间预留已调配，未移动真实资金。','Earmark reallocated between funds. No real money moved.');state.saving=false;await load();
+ }catch(e){if(valid(u,ep))errorMsg(e?.code==='23514'||e?.code==='23503'?L('来源预留或目标基金已变化，请刷新重试。','Source earmark or target fund changed. Refresh and retry.'):L('提交结果未确认，请刷新核对，避免重复调配。','Submission uncertain. Refresh and verify before retrying.'))}
+ finally{state.saving=false}
+}
 async function saveMovement(form){
  const d=state.dialog,f=getFund(d.id),a=state.allocations.find(x=>x.id===d.allocationId&&x.fund_id===d.id);
  if(!canSee(f)||!a)return;
@@ -137,7 +186,9 @@ async function saveMovement(form){
   const latest=await c.from(MOVES).select('id,user_id,amount').eq('user_id',u).eq('allocation_id',a.id).limit(6000);
   if(latest.error||!Array.isArray(latest.data)||latest.data.length>=6000)throw Error('REVIEW');
   if(!valid(u,ep))return;
-  const already=Math.round(latest.data.reduce((v,x)=>v+Number(x.amount||0),0)*100)/100;
+  const latestTransfers=await c.from(TRANSFERS).select('id,amount').eq('user_id',u).eq('source_allocation_id',a.id).limit(6000);
+  if(latestTransfers.error||!Array.isArray(latestTransfers.data)||latestTransfers.data.length>=6000)throw Error('REVIEW');
+  const already=Math.round((latest.data.reduce((v,x)=>v+Number(x.amount||0),0)+latestTransfers.data.reduce((v,x)=>v+Number(x.amount||0),0))*100)/100;
   if(already+amount>Number(a.amount)+.000001)throw Error('REVIEW');
   const result=await c.from(MOVES).insert({...data,user_id:u,fund_id:f.id,allocation_id:a.id,currency:f.currency,client_request_id:d.request}).select('id');
   if(result.error||!result.data?.length){const saved=await verifyCreated(c,MOVES,d.request);if(!saved)throw result.error||Error('UNCERTAIN')}
@@ -185,18 +236,21 @@ async function saveAllocation(form){const d=state.dialog,f=getFund(d.id);if(!can
  const latest=await c.from(ALLOC).select('id,user_id,source_account_id,amount').eq('user_id',u).limit(4000);
  if(latest.error||!Array.isArray(latest.data)||latest.data.length>=4000)throw Error('REVIEW');
  if(!valid(u,ep))return;
- const latestMov=await c.from(MOVES).select('id,user_id,allocation_id,amount').eq('user_id',u).limit(6000);
+ const latestMov=await c.from(MOVES).select('id,user_id,allocation_id,amount,kind').eq('user_id',u).limit(6000);
  if(latestMov.error||!Array.isArray(latestMov.data)||latestMov.data.length>=6000)throw Error('REVIEW');
  if(!valid(u,ep))return;
+ const latestTransfers=await c.from(TRANSFERS).select('id,user_id,source_allocation_id,amount').eq('user_id',u).limit(6000);
+ if(latestTransfers.error||!Array.isArray(latestTransfers.data)||latestTransfers.data.length>=6000)throw Error('REVIEW');
+ if(!valid(u,ep))return;
  const nowAccount=accountsFor(f).find(a=>a.id===source_account_id&&a.name===account.name);
- if(!nowAccount||amount>accountRoom(nowAccount,latest.data,latestMov.data))throw Error('REVIEW');
+ if(!nowAccount||amount>Math.round((nowAccount.balance-assignedTo(nowAccount.id,latest.data,latestMov.data,latestTransfers.data))*100)/100)throw Error('REVIEW');
  const r=await c.from(ALLOC).insert({...data,user_id:u,fund_id:f.id,currency:f.currency,client_request_id:d.request}).select('id');
  if(r.error||!r.data?.length){const found=await verifyCreated(c,ALLOC,d.request);if(!found)throw r.error||Error('UNCERTAIN')}
  if(!valid(u,ep))return;closeDialog();state.notice=L('预留已登记：仅是用途分配，不是账户扣款或真正锁定资金。','Earmark recorded: a planning label, not a debit or enforceable hold.');state.saving=false;await load();
  }catch(e){if(valid(u,ep))errorMsg(e?.message==='REVIEW'?L('余额或其他基金已变化，请取消并刷新后再试。','Ledger or other earmarks changed. Cancel and refresh before retrying.'):L('结果尚未确认，请刷新检查，以免重复标记。','Save uncertain. Refresh and verify before another earmark.'))}
  finally{state.saving=false}
 }
-async function removeAllocation(id,fundId){const f=getFund(fundId),e=state.allocations.find(x=>x.id===id&&x.fund_id===fundId);if(!canSee(f)||!e||state.saving||state.movements.some(m=>m.allocation_id===id))return;
+async function removeAllocation(id,fundId){const f=getFund(fundId),e=state.allocations.find(x=>x.id===id&&x.fund_id===fundId);if(!canSee(f)||!e||state.saving||state.movements.some(m=>m.allocation_id===id)||state.transfers.some(t=>t.source_allocation_id===id||t.target_allocation_id===id))return;
  if(!window.confirm(L('仅撤销一条资金预留用途标签；不会转账或更改真实余额。确定？','Remove this earmark label? No transfer or account change occurs.')))return;
  const u=state.owner,ep=state.epoch;state.saving=true;
  try{const c=await authorized(),r=await c.from(ALLOC).delete().eq('user_id',u).eq('id',e.id).eq('fund_id',f.id).eq('version',e.version).select('id');if(r.error||!r.data?.length)throw Error('CONFLICT');if(!valid(u,ep))return;state.notice=L('预留记录已撤销。','Earmark removed.');state.saving=false;await load()}
@@ -204,6 +258,7 @@ async function removeAllocation(id,fundId){const f=getFund(fundId),e=state.alloc
  finally{state.saving=false}
 }
 async function deleteFund(id){const f=getFund(id);if(!canSee(f)||state.saving)return;
+ if(state.transfers.some(t=>t.source_fund_id===id||t.target_fund_id===id)){state.notice=L('此基金包含跨基金调配流水，为保护历史不能直接删除。','This fund has reallocation history and cannot be deleted directly.');render();return}
  if(!window.confirm(L('删除基金及其全部用途预留记录？不会删除任何财务交易或转移真实资产。','Delete this fund and ALL its earmark records? Real finances remain untouched.')))return;
  const u=state.owner,ep=state.epoch;state.saving=true;
  try{const c=await authorized(),r=await c.from(FUNDS).delete().eq('user_id',u).eq('id',id).eq('version',f.version).select('id');if(r.error||!r.data?.length)throw Error('CONFLICT');if(!valid(u,ep))return;state.notice=L('基金标签已删除。','Fund label deleted.');state.saving=false;await load()}
@@ -218,6 +273,7 @@ function click(e){const b=e.target.closest('[data-lf-act]');if(!b||(!$(ROOT)?.co
  if(act==='edit'){fundDialog(id);return}
  if(act==='reserve'){allocationDialog(id);return}
  if(act==='movement'){movementDialog(b.dataset.fund,id);return}
+ if(act==='transfer'){transferDialog(b.dataset.fund,id);return}
  if(act==='remove'){deleteFund(id);return}
  if(act==='deleteAllocation'){removeAllocation(id,b.dataset.fund);return}
 }
@@ -225,7 +281,7 @@ function init(){document.addEventListener('click',click);
  document.addEventListener('input',e=>{if(e.target?.closest?.('#lfDialogV41')&&state.dialog?.kind==='allocation')updateAccountPreview($('lfFormV41'),getFund(state.dialog.id))});
  document.addEventListener('change',e=>{if(e.target?.closest?.('#lfDialogV41')&&state.dialog?.kind==='allocation')updateAccountPreview($('lfFormV41'),getFund(state.dialog.id))});document.addEventListener('submit',e=>{if(e.target?.id!=='lfFormV41')return;e.preventDefault();if(state.saving||!state.dialog||!state.loaded||!active())return;
  if(state.dialog.id&&getFund(state.dialog.id)?.is_private&&!state.reveal){errorMsg(L('私人基金已自动隐藏，请重新打开。','Private fund locked. Reveal again.'));return}
- state.dialog.kind==='fund'?saveFund(e.target):state.dialog.kind==='movement'?saveMovement(e.target):saveAllocation(e.target);
+ state.dialog.kind==='fund'?saveFund(e.target):state.dialog.kind==='movement'?saveMovement(e.target):state.dialog.kind==='transfer'?saveTransfer(e.target):saveAllocation(e.target);
 });
  ['mmhvault:data-loaded','mmhvault:data-change','mmhvault:category-config-changed'].forEach(n=>window.addEventListener(n,()=>{if(active()&&state.loaded&&!state.saving){if(state.dialog?.kind==='allocation')closeDialog();render()}}));
  window.addEventListener('mmhvault:config-owner-changed',forget);window.addEventListener('mmhvault:page-visible',e=>{if(e?.detail?.page!=='life-planner')forget()});

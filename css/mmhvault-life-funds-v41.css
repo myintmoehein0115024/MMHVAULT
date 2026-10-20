@@ -85,3 +85,10 @@ body.lf-modal-open{overflow:hidden}
 #life-planner .lf-movement-item b{color:#8b6a34}
 #life-planner .lf-movement-item small{flex-basis:100%;color:#85745d}
 @media(max-width:520px){#life-planner .lf-fund-flow{flex-direction:column}#life-planner .lf-flow-row button{width:100%}}
+
+/* Phase 4.4 — atomic fund reallocations and read-only transaction review */
+#life-planner .lf-entry-actions{display:flex;gap:7px;flex-wrap:wrap;align-items:flex-start;justify-content:flex-end}
+#life-planner .lf-transfer-item{background:#eaf3eb;border-color:#c6ddc6;color:#355d45}
+#life-planner .lf-transfer-in{background:#eef4fd;border-color:#d7e2ef;color:#416b84}
+#life-planner .lf-transfer-in b{color:#3f7864}
+@media(max-width:520px){#life-planner .lf-entry-actions{width:100%;flex-direction:column}#life-planner .lf-entry-actions button{width:100%}}
