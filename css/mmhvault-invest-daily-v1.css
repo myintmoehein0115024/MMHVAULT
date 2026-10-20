@@ -1,0 +1,41 @@
+/* MMHVAULT Invest Daily Performance V1. No legacy Invest selectors overridden. */
+#mmhInvestDailyV1{box-sizing:border-box;max-width:100%;min-width:0;margin:14px 0 22px;padding:23px;border:1px solid rgba(111,177,218,.25);border-radius:22px;background:linear-gradient(145deg,rgba(14,32,58,.97),rgba(7,18,35,.98));color:#ecf5ff;box-shadow:0 12px 30px rgba(0,0,0,.15)}
+#mmhInvestDailyV1 *{box-sizing:border-box;min-width:0}
+#mmhInvestDailyV1 .idv1-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px}
+#mmhInvestDailyV1 .idv1-kicker{color:#f0c777;font-size:10px;font-weight:900;letter-spacing:.18em}
+#mmhInvestDailyV1 h2{font-size:24px;line-height:1.15;margin:8px 0;color:#fff}
+#mmhInvestDailyV1 .idv1-head p{color:#9bb4d0;line-height:1.65;font-size:13px;margin:0}
+#mmhInvestDailyV1 button{border:1px solid rgba(133,183,219,.24);background:rgba(14,42,67,.8);color:#dceaf9;border-radius:11px;cursor:pointer;min-height:39px;padding:9px 14px;font-size:12px;font-weight:800;transition:background .15s,border-color .15s}
+#mmhInvestDailyV1 button:hover{background:rgba(35,66,90,.95);border-color:#73b8d9}
+#mmhInvestDailyV1 button.active{border-color:#e6c17e;background:rgba(231,185,95,.16);color:#ffd389}
+#mmhInvestDailyV1 button:focus-visible,#mmhInvestDailyV1 input:focus-visible{outline:2px solid #f1d093;outline-offset:2px}
+#mmhInvestDailyV1 button:disabled{opacity:.48;cursor:wait}
+#mmhInvestDailyV1 .idv1-refresh{white-space:nowrap}
+#mmhInvestDailyV1 .idv1-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:18px 0}
+#mmhInvestDailyV1 .idv1-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,270px),1fr));gap:14px;margin-bottom:20px}
+#mmhInvestDailyV1 .idv1-summary-group{padding:14px;border:1px solid rgba(97,152,197,.24);background:rgba(6,20,40,.7);border-radius:16px}
+#mmhInvestDailyV1 .idv1-group-label{font-size:11px;font-weight:900;color:#b6cce2;letter-spacing:.1em;margin-bottom:12px}
+#mmhInvestDailyV1 .idv1-summary-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+#mmhInvestDailyV1 .idv1-stat{padding:11px 9px;border-radius:12px;background:rgba(35,61,90,.44);overflow:hidden}
+#mmhInvestDailyV1 .idv1-stat small{display:block;color:#9db5ce;font-size:11px;margin-bottom:8px}
+#mmhInvestDailyV1 .idv1-stat b{display:block;overflow-wrap:anywhere;font-size:18px;font-variant-numeric:tabular-nums}
+#mmhInvestDailyV1 .idv1-up{color:#69dfb1}#mmhInvestDailyV1 .idv1-down{color:#ff8b98}#mmhInvestDailyV1 .idv1-missing{color:#8fa7bd}
+#mmhInvestDailyV1 .idv1-controls{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-top:8px;margin-bottom:10px;flex-wrap:wrap}
+#mmhInvestDailyV1 .idv1-period{display:flex;gap:6px;flex-wrap:wrap}
+#mmhInvestDailyV1 .idv1-table-scroll{overflow-x:auto;max-width:100%;border:1px solid rgba(100,164,207,.24);border-radius:13px}
+#mmhInvestDailyV1 table{border-collapse:collapse;width:100%;min-width:320px}
+#mmhInvestDailyV1 td,#mmhInvestDailyV1 th{text-align:left;padding:12px 14px;border-bottom:1px solid rgba(123,154,186,.13);font-size:13px;font-variant-numeric:tabular-nums}
+#mmhInvestDailyV1 th{color:#a7c4da;background:rgba(26,54,82,.47);font-size:11px}
+#mmhInvestDailyV1 tr:last-child td{border-bottom:0}
+#mmhInvestDailyV1 h3{font-size:14px;margin:18px 0 11px}
+#mmhInvestDailyV1 .idv1-break-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:8px}
+#mmhInvestDailyV1 .idv1-break-card{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:12px;border:1px solid rgba(126,159,195,.2);border-radius:12px;background:rgba(29,56,83,.3);font-size:13px}
+#mmhInvestDailyV1 .idv1-gold-form{display:flex;flex-direction:column;gap:10px;margin-top:18px;background:rgba(56,46,25,.23);border:1px solid rgba(236,184,86,.25);border-radius:16px;padding:16px}
+#mmhInvestDailyV1 .idv1-gold-form strong{font-size:14px}
+#mmhInvestDailyV1 .idv1-gold-form p,#mmhInvestDailyV1 .idv1-note{font-size:12px;line-height:1.65;color:#aebed3;margin:6px 0}
+#mmhInvestDailyV1 .idv1-gold-form form{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.2fr) auto;gap:10px;align-items:end}
+#mmhInvestDailyV1 .idv1-gold-form label{display:flex;flex-direction:column;gap:7px;font-size:11px;font-weight:800;color:#b9cce0}
+#mmhInvestDailyV1 .idv1-gold-form input{width:100%;min-width:0;min-height:40px;background:#102a43;color:#fff;border:1px solid #39617c;border-radius:10px;padding:9px 11px;font:inherit;color-scheme:dark}
+#mmhInvestDailyV1 .idv1-gold-form button{background:rgba(239,196,118,.2);border-color:#c79c55;color:#ffd894}
+#mmhInvestDailyV1 .idv1-status{font-size:12px;color:#b1c8dc;margin-top:11px;min-height:15px;overflow-wrap:anywhere}
+@media(max-width:650px){#mmhInvestDailyV1{padding:15px;border-radius:16px;margin:12px 0 18px}#mmhInvestDailyV1 .idv1-head{flex-direction:column}#mmhInvestDailyV1 h2{font-size:21px}#mmhInvestDailyV1 .idv1-summary-row{gap:5px}#mmhInvestDailyV1 .idv1-stat{padding:9px 6px}#mmhInvestDailyV1 .idv1-stat b{font-size:15px}#mmhInvestDailyV1 .idv1-gold-form form{grid-template-columns:1fr}#mmhInvestDailyV1 td,#mmhInvestDailyV1 th{padding:10px}}
