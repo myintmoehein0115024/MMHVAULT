@@ -168,12 +168,30 @@ async function load(force=false){const box=base();if(!box)return;const owner=own
  const token=++lastRenderToken;
  el('idv1Status').textContent=T('正在加载历史报价…','Loading price history…');
  try{error='';await Promise.all([reloadGold(owner),loadCrypto(owner,force)]);}catch(err){error=T('历史数据加载失败，请重试。','Failed to load history; please retry.')}
- if(token===lastRenderToken&&owner===currentOwner)draw();
+ if(token===lastRenderToken&&owner===currentOwner){draw();window.dispatchEvent(new CustomEvent('mmhvault:invest-daily-ready',{detail:{owner}}));}
 }
 let timer=0;function schedule(delay=120){clearTimeout(timer);timer=setTimeout(()=>{const root=el('invest');if(root&&root.classList.contains('active'))load(false);},delay)};
 ['mmhvault:data-loaded','mmhvault:cache-restored','mmhvault:market-updated','languagechange','mmhvault-language-change'].forEach(ev=>window.addEventListener(ev,()=>schedule(350),{passive:true}));
 window.addEventListener('mmhvault:page-visible',e=>{if((e?.detail?.page||'')==='invest')schedule(100)},{passive:true});
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)schedule(500)},{passive:true});
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{base();schedule(150)},{once:true});else{base();schedule(150)}
-window.mmhInvestDailyV1={dailyTotal,cryptoDaily,goldDaily,load,draw,priceOf};
+// Read-only snapshot for isolated position-analysis UI; never returns database credentials.
+function guidanceSnapshot(){
+ const quoteStatus=(typeof cryptoQuoteStatusV1!=='undefined'?cryptoQuoteStatusV1:window.cryptoQuoteStatusV1)||{};
+ const live=(typeof livePrices!=='undefined'?livePrices:window.livePrices)||{};
+ return {
+  owner:currentOwner,
+  fetchedAt:cryptoCache.at,
+  today:todayLocal(),
+  quotedAt:Number(quoteStatus.updatedAt)||0,
+  quoteAvailable:quoteStatus.available===true,
+  quoteSource:String(quoteStatus.source||''),
+  quotes:Object.fromEntries([...cryptoCache.prices].map(([s,map])=>[s,Object.fromEntries([...map])])),
+  live:Object.fromEntries(Object.entries(live).map(([s,val])=>[s,{price:Number(val?.price)||0}])),
+  holdings:records().filter(x=>x.user_id==null||String(x.user_id)===currentOwner).map(x=>({asset:x.asset,symbol:x.symbol,quantity:x.quantity,inv_date:x.inv_date,id:x.id})),
+  goldQuotes:goldRows.map(x=>({date:x.quote_date,price:Number(x.mmk_per_kyattha),source:x.source_type})),
+  quoteZone:zoneParam(),
+ };
+}
+window.mmhInvestDailyV1={dailyTotal,cryptoDaily,goldDaily,load,draw,priceOf,guidanceSnapshot};
 })();

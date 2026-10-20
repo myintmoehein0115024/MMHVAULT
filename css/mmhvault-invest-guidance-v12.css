@@ -1,0 +1,39 @@
+/* Invest 1.2 – separate read-only observation cards; no changes to original investment UI. */
+#mmhInvestGuidanceV12{box-sizing:border-box;max-width:100%;min-width:0;margin:0 0 24px;padding:22px;border-radius:21px;border:1px solid rgba(112,165,194,.29);background:linear-gradient(145deg,#0b2236,#0a192b);color:#edf3fa;box-shadow:0 12px 28px rgba(0,0,0,.13)}
+#mmhInvestGuidanceV12 *{box-sizing:border-box;min-width:0}
+#mmhInvestGuidanceV12 .ivg12-kicker{font-weight:900;font-size:10px;letter-spacing:.16em;color:#e4bc73}
+#mmhInvestGuidanceV12 .ivg12-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+#mmhInvestGuidanceV12 h2{font-size:23px;line-height:1.22;margin:7px 0 8px}
+#mmhInvestGuidanceV12 p{font-size:12px;line-height:1.65;color:#bbcee0;margin:5px 0 0}
+#mmhInvestGuidanceV12 button,#mmhInvestGuidanceV12 select{border:1px solid #335673;border-radius:10px;min-height:39px;padding:9px 12px;color:#e6f3ff;background:#10314b;font-size:12px;font-weight:750}
+#mmhInvestGuidanceV12 button{cursor:pointer;white-space:nowrap}
+#mmhInvestGuidanceV12 button:disabled{opacity:.55;cursor:wait}
+#mmhInvestGuidanceV12 button:hover{background:#194365}
+#mmhInvestGuidanceV12 button:focus-visible,#mmhInvestGuidanceV12 select:focus-visible{outline:2px solid #eac681;outline-offset:2px}
+#mmhInvestGuidanceV12 .ivg12-tools{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;padding:13px 0 17px;margin-top:8px;border-bottom:1px solid rgba(162,192,209,.13)}
+#mmhInvestGuidanceV12 .ivg12-tools label{display:flex;align-items:center;gap:10px;color:#bcd1e1;font-weight:700;font-size:12px;flex-wrap:wrap}
+#mmhInvestGuidanceV12 .ivg12-tools>span{font-size:11px;color:#9fb9ca}
+#mmhInvestGuidanceV12 .ivg12-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr));gap:11px;padding-top:16px}
+#mmhInvestGuidanceV12 .ivg12-card{background:#102a40;border:1px solid rgba(125,173,199,.23);border-radius:15px;padding:15px;min-width:0}
+#mmhInvestGuidanceV12 .ivg12-card-head{display:flex;justify-content:space-between;align-items:center;gap:9px}
+#mmhInvestGuidanceV12 .ivg12-card-head strong{font-size:16px;letter-spacing:.025em}
+#mmhInvestGuidanceV12 .ivg12-tag{font-size:11px;white-space:normal;text-align:right;display:block;padding:6px 9px;border:1px solid #627990;background:rgba(92,119,145,.17);border-radius:20px;color:#d3e2ed}
+#mmhInvestGuidanceV12 .ivg12-trim .ivg12-tag{color:#ffd298;border-color:#a1835a;background:rgba(173,124,52,.12)}
+#mmhInvestGuidanceV12 .ivg12-add .ivg12-tag{color:#a7e0c6;border-color:#4e997c;background:rgba(72,165,124,.14)}
+#mmhInvestGuidanceV12 .ivg12-wait .ivg12-tag{color:#f4ce9b;border-color:#927046}
+#mmhInvestGuidanceV12 .ivg12-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:13px 0}
+#mmhInvestGuidanceV12 .ivg12-metrics>div{padding:9px;border:1px solid rgba(139,174,199,.13);background:#0b2035;border-radius:10px}
+#mmhInvestGuidanceV12 .ivg12-metrics small{font-size:10px;display:block;color:#9cb7cb;margin-bottom:5px}
+#mmhInvestGuidanceV12 .ivg12-metrics b{font-size:14px;overflow-wrap:anywhere;line-height:1.25;font-variant-numeric:tabular-nums}
+#mmhInvestGuidanceV12 .ivg12-card p{margin-top:10px;font-size:12px;color:#d0dded}
+#mmhInvestGuidanceV12 .ivg12-foot,#mmhInvestGuidanceV12 .ivg12-source{font-size:10px;color:#8fabbe;line-height:1.6;overflow-wrap:anywhere}
+#mmhInvestGuidanceV12 .ivg12-foot{margin-top:13px;padding-top:9px;border-top:1px solid rgba(131,176,210,.15)}
+#mmhInvestGuidanceV12 .ivg12-gold{border:1px solid rgba(223,188,112,.29);padding:13px 15px;background:rgba(167,119,45,.09);border-radius:13px;margin-top:14px}
+#mmhInvestGuidanceV12 .ivg12-gold b{font-size:13px;color:#f2d09c}
+#mmhInvestGuidanceV12 .ivg12-source{padding-top:16px}
+#mmhInvestGuidanceV12 .ivg12-caution{border-top:1px solid rgba(156,194,214,.12);padding-top:14px;margin-top:14px;font-size:11px}
+#mmhInvestGuidanceV12 .ivg12-empty{margin:13px 0;padding:15px;border-radius:12px;background:#102941;border:1px dashed #45647b}
+@media(max-width:650px){#mmhInvestGuidanceV12{padding:14px;border-radius:16px}#mmhInvestGuidanceV12 .ivg12-head{flex-direction:column}#mmhInvestGuidanceV12 h2{font-size:20px}#mmhInvestGuidanceV12 .ivg12-recheck{width:100%}#mmhInvestGuidanceV12 .ivg12-tools label{width:100%;justify-content:space-between}#mmhInvestGuidanceV12 .ivg12-tools label select{max-width:100%}#mmhInvestGuidanceV12 .ivg12-grid{grid-template-columns:minmax(0,1fr)} }
+#mmhInvestGuidanceV12 .ivg12-rules{margin-top:13px;padding:10px 13px;border:1px solid rgba(132,177,201,.22);background:rgba(25,57,80,.2);border-radius:10px}
+#mmhInvestGuidanceV12 .ivg12-rules summary{cursor:pointer;color:#b9d8e7;font-size:12px;font-weight:800}
+#mmhInvestGuidanceV12 .ivg12-rules p{color:#c1d4e3;font-size:11px;line-height:1.8}
