@@ -50,3 +50,13 @@
 #life-planner .li-shell button:focus-visible,#life-planner .li-shell select:focus-visible{outline:3px solid #b9803e;outline-offset:2px}
 @media(max-width:760px){#life-planner .li-grid{grid-template-columns:1fr}#life-planner .li-hero{border-radius:22px}#life-planner .li-module-card{padding:19px;min-height:205px}#life-planner .li-hero-decoration{right:-12%;opacity:.6}}
 @media(max-width:430px){#life-planner .li-controls{display:block}#life-planner .li-actions{margin-top:13px;align-items:stretch;display:grid;grid-template-columns:minmax(0,1fr) auto}#life-planner .li-actions select{width:100%}#life-planner .li-privacy{padding:13px}#life-planner .li-hero{padding:24px 21px}#life-planner .li-bar-track{height:57px}#life-planner .li-bars{height:98px;gap:4px}#life-planner .li-module-card{padding:16px}#life-planner .li-final-note{padding:14px}}
+
+/* 5.3 — month navigation and honest no-log chart semantics */
+#life-planner .li-bar-col.is-selected .li-bar-track{background:#e7ecda;outline:2px solid #90ad82;outline-offset:2px}
+#life-planner .li-bar-col.is-selected>span,#life-planner .li-bar-col.is-selected>b{color:#315942;font-weight:900}
+#life-planner .li-bar-col.is-unrecorded .li-bar-track{background:#f5f4ee}
+#life-planner .li-bar-col.is-unrecorded>b{color:#a9afa6}
+#life-planner .li-compare{font-size:11px;line-height:1.55;color:#758a76;margin:12px 0 2px}
+#life-planner .li-compare b{color:#3b6952}
+#life-planner .li-actions .li-month-arrow{min-width:38px;padding:9px 10px;font-size:22px;background:#fff9ec;color:#68846b}
+@media(max-width:430px){#life-planner .li-actions{grid-template-columns:35px minmax(0,1fr) 35px auto;gap:5px}#life-planner .li-actions .li-month-arrow{min-width:35px;padding:7px;font-size:19px}#life-planner .li-actions>button[data-li-action="refresh"]{padding:7px 9px}}
