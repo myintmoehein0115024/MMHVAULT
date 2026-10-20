@@ -1,4 +1,4 @@
-/* MMHVAULT Life Planner Phase 4.5 - safe reverse reallocation and manual expense reconciliation.
+/* MMHVAULT Life Planner Phase 4.6 - safe full-page read & financial consistency guard.
  * This module NEVER moves money, posts transactions, credits assets or imports
  * speculative unused budgets as deposits. The figures are self-declared labels
  * on existing funds, not proof of available account balances.
@@ -34,20 +34,65 @@ function forget(){if(revealTimer!==null)clearTimeout(revealTimer);revealTimer=nu
 function showPrivate(){if(revealTimer!==null)clearTimeout(revealTimer);state.reveal=true;revealTimer=setTimeout(hide,90000);render()}
 function missing(e){return /42P01|PGRST205|schema cache|does not exist|could not find the table/i.test(String(e?.code||'')+' '+String(e?.message||''))}
 async function authorized(){if(!active()||!client())throw Error('AUTH');const c=client(),r=await c.auth.getUser();if(r.error||r.data?.user?.id!==state.owner||!active())throw Error('AUTH');return c}
-async function load(){if(!active()||state.loading||state.saving)return;const token=++state.token,u=state.owner,ep=state.epoch;state.loading=true;state.error='';render();try{
- const c=await authorized();const f=await c.from(FUNDS).select('*').eq('user_id',u).order('created_at',{ascending:false}).limit(500);if(f.error)throw f.error;if(!valid(u,ep)||token!==state.token)return;
- const a=await c.from(ALLOC).select('*').eq('user_id',u).order('allocated_on',{ascending:false}).limit(4000);if(a.error)throw a.error;if(!valid(u,ep)||token!==state.token)return;
- const m=await c.from(MOVES).select('*').eq('user_id',u).order('created_at',{ascending:false}).limit(6000);if(m.error)throw m.error;if(!valid(u,ep)||token!==state.token)return;
- const t=await c.from(TRANSFERS).select('*').eq('user_id',u).order('created_at',{ascending:false}).limit(6000);if(t.error)throw t.error;if(!valid(u,ep)||token!==state.token)return;
- const r=await c.from(RECONS).select('*').eq('user_id',u).order('created_at',{ascending:false}).limit(2000);if(r.error)throw r.error;if(!valid(u,ep)||token!==state.token)return;
- const related={};const ids=[...new Set((r.data||[]).map(x=>Number(x.transaction_id)))];
- for(let i=0;i<ids.length;i+=80){const tx=await c.from('transactions').select('id,user_id,type,tx_date,from_account,from_amount').eq('user_id',u).in('id',ids.slice(i,i+80));if(tx.error)throw tx.error;if(!valid(u,ep)||token!==state.token)return;for(const row of tx.data||[])related[String(row.id)]=row}
- 
- if((f.data||[]).length===500||(a.data||[]).length===4000||(m.data||[]).length===6000||(t.data||[]).length===6000||(r.data||[]).length===2000){state.error='LIMIT';state.funds=[];state.allocations=[];state.movements=[];state.transfers=[];state.loaded=false;return}
- state.funds=(f.data||[]).filter(x=>x.user_id===u);state.allocations=(a.data||[]).filter(x=>x.user_id===u);state.movements=(m.data||[]).filter(x=>x.user_id===u);state.transfers=(t.data||[]).filter(x=>x.user_id===u);state.reconciliations=(r.data||[]).filter(x=>x.user_id===u);state.txById=related;state.loaded=true;
- }catch(e){if(valid(u,ep)&&token===state.token){state.funds=[];state.allocations=[];state.movements=[];state.transfers=[];state.reconciliations=[];state.txById={};state.loaded=false;state.error=missing(e)?'MIGRATION':'CONNECT';}}
- finally{if(valid(u,ep)&&token===state.token){state.loading=false;render()}}
+// Supabase/PostgREST may enforce a server row cap smaller than a client .limit(N).
+// Every planning total must be based on ALL owner-visible records, never a truncated first page.
+// With count:'exact', changed pages, a capped response, or unsupported count => fail closed.
+async function readAll(c,table,columns,u,cap,orderBy='id',filters=[]){
+ const PAGE=500,rows=[];let expected=null;const ids=new Set();
+ for(let offset=0;offset<cap;offset+=PAGE){
+  let q=c.from(table).select(columns,{count:'exact'}).eq('user_id',u);
+  for(const [key,value] of filters)q=q.eq(key,value);
+  if(orderBy!=='id')q=q.order(orderBy,{ascending:false});
+  q=q.order('id',{ascending:false});
+  const r=await q.range(offset,Math.min(offset+PAGE,cap)-1);
+  if(r.error)throw r.error;
+  if(!Array.isArray(r.data)||!Number.isSafeInteger(r.count)||r.count<0)throw Error('STALE');
+  if(expected===null)expected=r.count;
+  if(r.count!==expected)throw Error('STALE');
+  if(expected>=cap)throw Error('LIMIT');
+  if(!r.data.length&&rows.length<expected)throw Error('STALE');
+  for(const item of r.data){
+   if(!item||typeof item.id!=='string'||ids.has(item.id))throw Error('STALE');
+   ids.add(item.id);rows.push(item);
+  }
+  if(rows.length>expected)throw Error('STALE');
+  if(rows.length===expected)return rows;
+ }
+ throw Error('LIMIT');
 }
+async function load(){
+ if(!active()||state.loading||state.saving)return;
+ const token=++state.token,u=state.owner,ep=state.epoch;
+ state.loading=true;state.error='';render();
+ try{
+  const c=await authorized();
+  const f=await readAll(c,FUNDS,'*',u,500,'created_at');
+  if(!valid(u,ep)||token!==state.token)return;
+  const a=await readAll(c,ALLOC,'*',u,4000,'allocated_on');
+  if(!valid(u,ep)||token!==state.token)return;
+  const m=await readAll(c,MOVES,'*',u,6000,'created_at');
+  if(!valid(u,ep)||token!==state.token)return;
+  const t=await readAll(c,TRANSFERS,'*',u,6000,'created_at');
+  if(!valid(u,ep)||token!==state.token)return;
+  const r=await readAll(c,RECONS,'*',u,2000,'created_at');
+  if(!valid(u,ep)||token!==state.token)return;
+  const related={},txIds=[...new Set(r.map(x=>Number(x.transaction_id)))];
+  for(let i=0;i<txIds.length;i+=80){
+   const tx=await c.from('transactions').select('id,user_id,type,tx_date,from_account,from_amount').eq('user_id',u).in('id',txIds.slice(i,i+80));
+   if(tx.error)throw tx.error;
+   if(!valid(u,ep)||token!==state.token)return;
+   for(const row of tx.data||[])related[String(row.id)]=row;
+  }
+  state.funds=f;state.allocations=a;state.movements=m;state.transfers=t;state.reconciliations=r;state.txById=related;state.loaded=true;
+ }catch(e){
+  if(valid(u,ep)&&token===state.token){
+   state.funds=[];state.allocations=[];state.movements=[];state.transfers=[];
+   state.reconciliations=[];state.txById={};state.loaded=false;
+   state.error=e?.message==='LIMIT'?'LIMIT':e?.message==='STALE'?'STALE':missing(e)?'MIGRATION':'CONNECT';
+  }
+ }finally{if(valid(u,ep)&&token===state.token){state.loading=false;render()}}
+}
+
 // A source account is a user-owned planning label, NOT a debit or locked bank balance.
 // The legacy finance engine owns the balance() formula. We only read it; never alter it.
 const normCurrency=c=>String(c||'').toUpperCase()==='CNY'?'RMB':String(c||'').toUpperCase();
@@ -109,7 +154,7 @@ function reconLine(m,a){const rec=reconFor(m.id);
  return reconValid(m,a)?L('已人工关联交易 #','Manually matched to Expense #')+esc(rec.transaction_id):L('原交易已变化或不可核实；需要解除并重新对账','Linked expense changed or cannot be verified; review and unlink');
 }
 
-function render(){const root=$(ROOT);if(!root)return;let info=state.error==='MIGRATION'?L('基金数据库尚未启用或不可访问。为保护数据，本功能不会改用本地缓存保存。','Fund tables are unavailable. No insecure local-storage fallback is used.'):state.error==='LIMIT'?L('记录达到安全读取上限，已暂停操作以避免显示不完整的余额。','Read limit reached; operations paused to avoid incomplete allocation totals.'):state.error==='LOGIN'?L('请先登录个人空间。','Sign in to your personal workspace.'):state.error?L('无法连接到云端数据。请检查网络后刷新。','Cloud data unavailable. Check connection and refresh.'):'',list=state.loaded?state.funds:[];
+function render(){const root=$(ROOT);if(!root)return;let info=state.error==='MIGRATION'?L('基金数据库尚未启用或不可访问。为保护数据，本功能不会改用本地缓存保存。','Fund tables are unavailable. No insecure local-storage fallback is used.'):state.error==='LIMIT'?L('记录达到安全读取上限，已暂停操作以避免显示不完整的余额。','Read limit reached; operations paused to avoid incomplete allocation totals.'):state.error==='STALE'?L('云端记录在读取过程中发生变化或未能完整返回，已暂停额度操作。请稍后刷新。','Cloud records changed during loading or returned incompletely. Fund operations are paused. Refresh shortly.'):state.error==='LOGIN'?L('请先登录个人空间。','Sign in to your personal workspace.'):state.error?L('无法连接到云端数据。请检查网络后刷新。','Cloud data unavailable. Check connection and refresh.'):'',list=state.loaded?state.funds:[];
  root.innerHTML=`<section class="lf-shell"><header class="lf-head"><div><span class="lf-kicker">LIFE PLANNER / WISH FUND</span><h1>${L('为未来喜欢的生活预留一点空间','A little space for your future')}</h1><p>${L('自由基金与愿望基金，把现有资金的用途安排得更清楚。','Free funds and wish funds to label how you plan to use money you already have.')}</p></div><div class="lf-head-actions"><button data-lf-act="refresh" type="button">${L('刷新','Refresh')}</button><button class="lf-primary" data-lf-act="add" type="button" ${!state.loaded?'disabled':''}>＋ ${L('创建基金','New fund')}</button></div></header>
  <div class="lf-callout"><strong>◇ ${L('预留、释放和用途使用都不是银行交易','Earmark, release and purpose use are not banking transactions')}</strong><p>${L('基金只是您对现有资产的“用途标记”。增加预留不会增加总资产、收入或账户余额；释放预留与登记用途使用也不会转账或产生真实支出。使用记录只代表手动声明，实际扣款必须到 Transactions 单独记账。账户关联仅为只读参考，资金没有真正锁定。','Funds are labels on money you already own. Earmarking does not increase assets. Releasing or recording purpose use does not transfer money or create an actual expense. Real spending must be recorded in Transactions separately. Account linking is a read-only estimate, not a hold.')}</p></div>
  <div class="lf-privacy"><span>🔒 ${L('私人基金默认隐藏名称和金额，离开页面自动重新锁定。','Private fund names and figures remain masked until you reveal them.')}</span><button type="button" data-lf-act="reveal">${state.reveal?L('重新隐藏','Hide now'):L('临时显示 90 秒','Reveal for 90 seconds')}</button></div>
@@ -252,12 +297,11 @@ async function saveMovement(form){
  d.snapshot=snapshot;
  const u=state.owner,ep=state.epoch;state.saving=true;
  try{const c=await authorized();
-  const latest=await c.from(MOVES).select('id,user_id,amount').eq('user_id',u).eq('allocation_id',a.id).limit(6000);
-  if(latest.error||!Array.isArray(latest.data)||latest.data.length>=6000)throw Error('REVIEW');
+  const latest=await readAll(c,MOVES,'id,user_id,amount',u,6000,'id',[['allocation_id',a.id]]);
   if(!valid(u,ep))return;
-  const latestTransfers=await c.from(TRANSFERS).select('id,amount').eq('user_id',u).eq('source_allocation_id',a.id).limit(6000);
-  if(latestTransfers.error||!Array.isArray(latestTransfers.data)||latestTransfers.data.length>=6000)throw Error('REVIEW');
-  const already=Math.round((latest.data.reduce((v,x)=>v+Number(x.amount||0),0)+latestTransfers.data.reduce((v,x)=>v+Number(x.amount||0),0))*100)/100;
+  const latestTransfers=await readAll(c,TRANSFERS,'id,amount',u,6000,'id',[['source_allocation_id',a.id]]);
+  if(!valid(u,ep))return;
+  const already=Math.round((latest.reduce((v,x)=>v+Number(x.amount||0),0)+latestTransfers.reduce((v,x)=>v+Number(x.amount||0),0))*100)/100;
   if(already+amount>Number(a.amount)+.000001)throw Error('REVIEW');
   const result=await c.from(MOVES).insert({...data,user_id:u,fund_id:f.id,allocation_id:a.id,currency:f.currency,client_request_id:d.request}).select('id');
   if(result.error||!result.data?.length){const saved=await verifyCreated(c,MOVES,d.request);if(!saved)throw result.error||Error('UNCERTAIN')}
@@ -302,17 +346,14 @@ async function saveAllocation(form){const d=state.dialog,f=getFund(d.id);if(!can
  const c=await authorized();
  // Re-check the authoritative Life Planner rows immediately before this write, including other funds.
  // This does NOT create an atomic hold and must never be described as a bank-balance guarantee.
- const latest=await c.from(ALLOC).select('id,user_id,source_account_id,amount').eq('user_id',u).limit(4000);
- if(latest.error||!Array.isArray(latest.data)||latest.data.length>=4000)throw Error('REVIEW');
+ const latest=await readAll(c,ALLOC,'id,user_id,source_account_id,amount',u,4000);
  if(!valid(u,ep))return;
- const latestMov=await c.from(MOVES).select('id,user_id,allocation_id,amount,kind').eq('user_id',u).limit(6000);
- if(latestMov.error||!Array.isArray(latestMov.data)||latestMov.data.length>=6000)throw Error('REVIEW');
+ const latestMov=await readAll(c,MOVES,'id,user_id,allocation_id,amount,kind',u,6000);
  if(!valid(u,ep))return;
- const latestTransfers=await c.from(TRANSFERS).select('id,user_id,source_allocation_id,amount').eq('user_id',u).limit(6000);
- if(latestTransfers.error||!Array.isArray(latestTransfers.data)||latestTransfers.data.length>=6000)throw Error('REVIEW');
+ const latestTransfers=await readAll(c,TRANSFERS,'id,user_id,source_allocation_id,amount',u,6000);
  if(!valid(u,ep))return;
  const nowAccount=accountsFor(f).find(a=>a.id===source_account_id&&a.name===account.name);
- if(!nowAccount||amount>Math.round((nowAccount.balance-assignedTo(nowAccount.id,latest.data,latestMov.data,latestTransfers.data))*100)/100)throw Error('REVIEW');
+ if(!nowAccount||amount>Math.round((nowAccount.balance-assignedTo(nowAccount.id,latest,latestMov,latestTransfers))*100)/100)throw Error('REVIEW');
  const r=await c.from(ALLOC).insert({...data,user_id:u,fund_id:f.id,currency:f.currency,client_request_id:d.request}).select('id');
  if(r.error||!r.data?.length){const found=await verifyCreated(c,ALLOC,d.request);if(!found)throw r.error||Error('UNCERTAIN')}
  if(!valid(u,ep))return;closeDialog();state.notice=L('预留已登记：仅是用途分配，不是账户扣款或真正锁定资金。','Earmark recorded: a planning label, not a debit or enforceable hold.');state.saving=false;await load();
