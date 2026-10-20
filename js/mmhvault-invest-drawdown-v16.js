@@ -1,4 +1,4 @@
-/* MMHVAULT Invest 1.6: completed-day, cash-flow adjusted P/L giveback and per-coin contribution.
+/* MMHVAULT Invest 1.7: independently reconciled, completed-day Crypto USD P/L giveback.
  * Read-only, USD Crypto only. No orders, balances, financial writes, price forecasting or push.
  * This is NOT net-asset-value drawdown: inception basis is zero cumulative P/L for each selected window.
  */
@@ -50,9 +50,78 @@ function collect(n=range,target=symbol){const data=source();if(!data)return{ok:f
   if(!Array.isArray(r.parts)||r.parts.some(x=>!x.valid||!Number.isFinite(Number(x.pl))))return{ok:false,why:'parts',at:day};
   reports.push({date:day,valid:true,total:Number(r.total),parts:r.parts});
  }
- const result=compute(reports,target);if(result.ok){result.from=reports[0].date;result.to=reports.at(-1).date;result.days=n;result.quoteZone=String(raw.quoteZone||'');}
+ const validation=auditDailyLedger(reports,raw,target);
+ if(!validation.ok)return validation;
+ const result=compute(reports,target);if(result.ok){result.from=reports[0].date;result.to=reports.at(-1).date;result.days=n;result.quoteZone=String(raw.quoteZone||'');result.validation=validation;}
  return result;
 }
+
+// Phase 1.7: independent reconciliation of transaction ledger and daily close quotes.
+// Missing inputs or a DST-offset change are verification failures, NEVER inferred P/L=0.
+const checkDate=x=>{if(!/^\d{4}-\d{2}-\d{2}$/.test(String(x||'')))return false;const d=new Date(x+'T12:00:00Z');return !Number.isNaN(d.getTime())&&d.toISOString().slice(0,10)===x};
+const auditNumber=n=>{const v=Number(n);return Number.isFinite(v)?v:NaN};
+const near=(a,b)=>Math.abs(a-b)<=Math.max(.05,Math.abs(a)*1e-6,Math.abs(b)*1e-6);
+function auditDailyLedger(reports,raw,target=''){
+ const fail=(why,at)=>({ok:false,why,at});
+ const uid=owner();if(!uid||!raw||raw.owner!==uid)return fail('source');
+ if(!Array.isArray(window.investments))return fail('ledger_source');
+ if(!/^[-+]\d{2}:\d{2}$/.test(String(raw.quoteZone||'')))return fail('zone');
+ const now=new Date(),offset=now.getTimezoneOffset();
+ const today=ymd(),zoneSign=offset<=0?'+':'-',mins=Math.abs(offset),expectedZone=zoneSign+String(Math.floor(mins/60)).padStart(2,'0')+':'+String(mins%60).padStart(2,'0');
+ if(raw.quoteZone!==expectedZone)return fail('zone');
+ const coins=(window.investments||[]).filter(x=>x?.asset==='Crypto');
+ // Any mixed-owner row in the source must block rendering until the user's data finishes switching.
+ if(coins.some(x=>!x.user_id||String(x.user_id)!==uid))return fail('owner');
+ const seenIds=new Set(),book=[];
+ for(const x of coins){
+  const date=String(x.inv_date||'').slice(0,10),sym=String(x.symbol||'').trim().toUpperCase();
+  const quantity=auditNumber(x.quantity),amount=auditNumber(x.amount),fee=auditNumber(x.fee??0),other=auditNumber(x.other_cost??0);
+  if(!checkDate(date)||date>today||!/^([A-Z0-9]{2,12})$/.test(sym)||!Number.isFinite(quantity)||!quantity||!Number.isFinite(amount)||!amount||!Number.isFinite(fee)||fee<0||!Number.isFinite(other)||other<0)return fail('ledger',date);
+  if(x.id!==undefined&&x.id!==null){const id=String(x.id);if(seenIds.has(id))return fail('duplicate_ledger',date);seenIds.add(id)}
+  const sell=String(x.side||x.trade_type||'').toUpperCase()==='SELL'||quantity<0;
+  const q=sell?-Math.abs(quantity):quantity;
+  book.push({date,sym,q,flow:sell?Math.abs(amount)-fee-other:-Math.abs(amount)-fee-other});
+ }
+ if(!book.length)return fail('ledger_source');
+ const quote=(sym,date)=>{if(sym==='USDT')return 1;const v=auditNumber(raw.quotes?.[sym]?.[date]);return v>0?v:NaN};
+ let previous='';
+ for(const day of reports){
+  const date=day.date;
+  if(!checkDate(date)||date>=today||previous&&add(previous,1)!==date)return fail('date_sequence',date);
+  previous=date;
+  // Binance uses the *current* fixed UTC offset for its day bars. Historic local DST changes
+  // can mislabel trade days; do not claim verifiable results across such an interval.
+  const localDate=new Date(date+'T12:00:00'),localPrev=new Date(add(date,-1)+'T12:00:00');
+  if(localDate.getTimezoneOffset()!==offset||localPrev.getTimezoneOffset()!==offset)return fail('dst',date);
+  const bySym=new Map();
+  for(const x of book){if(target&&x.sym!==target)continue;
+   if(x.date>date)continue;
+   let row=bySym.get(x.sym);if(!row){row={q0:0,q1:0,flow:0,dayTrade:false};bySym.set(x.sym,row)}
+   row.q1+=x.q;if(x.date<date)row.q0+=x.q;
+   else{row.flow+=x.flow;row.dayTrade=true;}
+  }
+  const expected=new Map();
+  for(const [sym,row] of bySym){
+   if(Math.abs(row.q0)<1e-10&&!row.dayTrade&&Math.abs(row.q1)<1e-10)continue;
+   if(row.q0< -1e-7||row.q1< -1e-7)return fail('negative_position',date);
+   const p0=Math.abs(row.q0)>1e-10?quote(sym,add(date,-1)):0;
+   const p1=Math.abs(row.q1)>1e-10?quote(sym,date):0;
+   if(!(Number.isFinite(p0)&&Number.isFinite(p1)))return fail('quote',date);
+   expected.set(sym,row.q1*p1-row.q0*p0+row.flow);
+  }
+  if(!expected.size)return fail('no_holdings',date);
+  if(!Array.isArray(day.parts)||day.parts.length!==expected.size)return fail('audit_parts',date);
+  const partSymbols=new Set();let total=0;
+  for(const part of day.parts){
+   const sym=String(part.sym||'').trim().toUpperCase(),got=auditNumber(part.pl);
+   if(!part.valid||partSymbols.has(sym)||!expected.has(sym)||!Number.isFinite(got)||!near(got,expected.get(sym)))return fail('audit_mismatch',date);
+   partSymbols.add(sym);total+=got;
+  }
+  if(!near(total,day.total))return fail('audit_mismatch',date);
+ }
+ return {ok:true,days:reports.length,coins:target?1:new Set(book.map(x=>x.sym)).size,zone:expectedZone,checkedAt:Date.now()};
+}
+
 function riskReasons(result,snapshot){const notes=[];
  if(result.longestStreak>=3)notes.push(T(`该区间出现连续 ${result.longestStreak} 天亏损，建议重新审视整体风险承受范围。`,`The window contains a ${result.longestStreak}-day losing streak. Review your risk capacity.`));
  if(result.maxGiveback>0)notes.push(T(`阶段累计盈亏曾从高点回落 ${signed(-result.maxGiveback)}；这不是账户净值回撤率。`,`Cumulative period P/L gave back $${fmt(result.maxGiveback)} from a peak; this is not account NAV drawdown.`));
@@ -66,7 +135,7 @@ function root(){const anchor=$('mmhInvestPlansV15')||$('mmhInvestDailyV1');if(!a
  r=document.createElement('section');r.id='mmhInvestDrawdownV16';r.className='idd16-root';anchor.insertAdjacentElement('afterend',r);
  r.innerHTML=`<div class="idd16-head"><div><span class="idd16-kicker">INVEST · P/L GIVEBACK</span><h2 data-idd-heading></h2><p data-idd-subtitle></p></div><button type="button" data-idd-refresh></button></div>
  <div class="idd16-controls"><div class="idd16-pills" role="group" aria-label="Period"><button type="button" data-idd-days="7">7D</button><button type="button" data-idd-days="30">30D</button></div><label><span data-idd-scope></span><select data-idd-symbol aria-label="Crypto symbol"></select></label></div>
- <div data-idd-content aria-live="polite"></div><p data-idd-legal class="idd16-legal"></p>`;
+ <div data-idd-audit class="idd17-audit" role="status"></div><div data-idd-content aria-live="polite"></div><p data-idd-legal class="idd16-legal"></p>`;
  r.addEventListener('change',e=>{const x=e.target.closest('[data-idd-symbol]');if(x){symbol=x.value;render();}});
  r.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
   if(b.dataset.iddDays){range=Number(b.dataset.iddDays);render();}
@@ -78,7 +147,7 @@ function setText(r){r.querySelector('[data-idd-heading]').textContent=T('投资�
  r.querySelector('[data-idd-refresh]').textContent=T('更新历史行情','Refresh history');r.querySelector('[data-idd-scope]').textContent=T('分析范围','Scope');
  r.querySelector('[data-idd-legal]').textContent=T('口径：从所选区间首日的零累计盈亏开始，统计期间累计盈亏距其阶段峰值的最大和当前回落；不是“历史账户净值回撤”或收益率。历史 Crypto 价格由日线行情提供，可能受时区、交易所来源和成交日口径影响。缺少任何一天的数据会暂停整个区间分析。Gold（MMK）因手动价格、单位与汇率尚未完全核实，不参与这份 USD 风险统计。这里只做风险观察，不建议具体买卖或自动执行交易。','Method: cash-flow-adjusted cumulative P/L starts at zero on the first day of the selected window. Peak giveback is NOT portfolio NAV drawdown or return %. Crypto daily closes depend on exchange data/timezone. Any missing day disables the full-window report. Gold (MMK) is excluded pending valuation-unit and quote verification. Observational only; no trade instruction or execution.');
 }
-function statusHTML(reason,at){let note={source:T('请先登录并加载 Invest 每日行情。','Sign in and load Invest daily prices first.'),holdings:T('没有可核实的 Crypto 持仓。','No verifiable Crypto holdings.'),symbol:T('所选币种已不存在，请重新选择。','Selected coin is no longer available.'),stale:T('历史行情读取已过期或尚未完成，请更新行情。','Historic price fetch is stale or incomplete. Refresh prices.'),no_holdings:T('该区间包含没有持仓的日期，完整区间报告暂不计算。','This window includes dates without holdings; full-window analysis is withheld.'),reconcile:T('每日币种贡献与整体盈亏不一致，已停止显示。','Coin contributions did not reconcile with portfolio P/L. Analysis withheld.'),parts:T('单币种盈亏明细无法核实。','Per-coin P/L breakdown cannot be verified.') }[reason]||T('该区间存在缺失或无法核实的历史价格／交易记录。','Historical quotes or trades are missing/unverifiable in this window.');
+function statusHTML(reason,at){let note={source:T('请先登录并加载 Invest 每日行情。','Sign in and load Invest daily prices first.'),holdings:T('没有可核实的 Crypto 持仓。','No verifiable Crypto holdings.'),symbol:T('所选币种已不存在，请重新选择。','Selected coin is no longer available.'),stale:T('历史行情读取已过期或尚未完成，请更新行情。','Historic price fetch is stale or incomplete. Refresh prices.'),no_holdings:T('该区间包含没有持仓的日期，完整区间报告暂不计算。','This window includes dates without holdings; full-window analysis is withheld.'),reconcile:T('每日币种贡献与整体盈亏不一致，已停止显示。','Coin contributions did not reconcile with portfolio P/L. Analysis withheld.'),parts:T('单币种盈亏明细无法核实。','Per-coin P/L breakdown cannot be verified.'),ledger_source:T('投资交易资料还没有加载完整，无法独立对账。','Investment ledger not ready for independent reconciliation.'),ledger:T('交易日期、数量、金额或手续费存在不完整记录。','Invalid ledger date, quantity, amount or fee.'),owner:T('检测到用户数据尚未完成隔离或切换，请刷新。','Account data may still be switching; refresh.'),duplicate_ledger:T('交易记录编号出现重复，已停止统计。','Duplicate investment trade IDs detected.'),zone:T('历史日线时区与本机当前时区不一致。','Historical bar zone does not match current local zone.'),dst:T('期间存在夏令时边界变化，不能按当前固定 UTC 日线核实成交日。','Local DST transition crosses this window; fixed UTC bars cannot verify trading days.'),date_sequence:T('历史日期不连续或顺序错误。','Historical dates are not consecutive.'),audit_parts:T('各币种每日计算明细数量不一致。','Daily symbol detail count mismatch.'),audit_mismatch:T('独立交易及报价复算与显示的每日盈亏不一致。','Independent ledger/quote calculation differs from daily P/L.') }[reason]||T('该区间存在缺失或无法核实的历史价格／交易记录。','Historical quotes or trades are missing/unverifiable in this window.');
  return `<div class="idd16-empty" role="status"><strong>${T('统计待核实','Review required')}</strong><p>${esc(note)} ${at?esc(at):''}</p><small>${T('不会将缺失数据视为零，也不会据此提示补仓／减仓。','Missing data is not treated as zero and cannot drive trade guidance.')}</small></div>`;}
 function render(){const r=root();if(!r)return;setText(r);const id=++renderNo,uid=owner();if(uid!==currentOwner)clear(uid);
  const select=r.querySelector('[data-idd-symbol]'),s=source(),syms=s?symbols(s.raw):[];
@@ -86,6 +155,11 @@ function render(){const r=root();if(!r)return;setText(r);const id=++renderNo,uid
  select.innerHTML=`<option value="">${T('Crypto 全部币种','All Crypto')}</option>`+syms.map(x=>`<option value="${esc(x)}">${esc(x)}</option>`).join('');select.value=symbol;
  r.querySelectorAll('[data-idd-days]').forEach(b=>{b.classList.toggle('active',Number(b.dataset.iddDays)===range);b.setAttribute('aria-pressed',String(Number(b.dataset.iddDays)===range));});
  const result=collect(range,symbol);lastResult=result;
+ const auditLabel=r.querySelector('[data-idd-audit]');
+ auditLabel.classList.toggle('idd17-audit-ok',!!result.ok);
+ auditLabel.textContent=result.ok
+  ?T(`独立对账通过：${result.validation.days} 个完整日期 · UTC${result.validation.zone} · 已核对交易数量、买卖资金流与各币种日线报价。`,`Independent check passed: ${result.validation.days} completed dates · UTC${result.validation.zone} · trade quantities, cash flows and per-coin closes reconciled.`)
+  :T('独立对账未通过：暂停本区间盈亏与回撤统计。','Independent reconciliation incomplete: window P/L and giveback withheld.');
  const content=r.querySelector('[data-idd-content]');if(!result.ok){content.innerHTML=statusHTML(result.why,result.at);return;}
  const notes=riskReasons(result,s?.raw);
  const metrics=[
@@ -104,9 +178,9 @@ function render(){const r=root();if(!r)return;setText(r);const id=++renderNo,uid
  if(id!==renderNo)content.replaceChildren();
 }
 let timer=0;function schedule(){clearTimeout(timer);timer=setTimeout(()=>{if(!$('invest')?.classList.contains('active'))return;render();},220)}
-['mmhvault:invest-daily-ready','mmhvault:data-loaded','mmhvault:page-visible','mmhvault:config-owner-changed','languagechange','mmhvault-language-change'].forEach(x=>window.addEventListener(x,schedule,{passive:true}));
+['mmhvault:invest-daily-ready','mmhvault:data-loaded','mmhvault:page-visible','mmhvault:config-owner-changed','mmhvault:data-change','languagechange','mmhvault-language-change'].forEach(x=>window.addEventListener(x,schedule,{passive:true}));
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)schedule();},{passive:true});
 setInterval(()=>{if(!document.hidden&&$('invest')?.classList.contains('active'))schedule();},60000);
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',schedule,{once:true});else schedule();
-window.mmhInvestDrawdownV16={compute,collect,render,clear};
+window.mmhInvestDrawdownV16={compute,collect,render,clear,auditDailyLedger};
 })();

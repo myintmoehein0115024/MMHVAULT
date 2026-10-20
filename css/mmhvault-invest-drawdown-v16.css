@@ -8,3 +8,7 @@
 @media(max-width:1050px){.idd16-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.idd16-panels{grid-template-columns:1fr}}
 @media(max-width:520px){#mmhInvestDrawdownV16{padding:14px;border-radius:15px}.idd16-head{flex-direction:column;align-items:stretch;gap:12px}.idd16-head h2{font-size:19px}.idd16-head button{align-self:flex-start}.idd16-controls{align-items:stretch}.idd16-controls label{justify-content:space-between;width:100%}.idd16-controls select{flex:1;max-width:80%;min-width:0}.idd16-metric{padding:12px}.idd16-metric b{font-size:16px}.idd16-panel{padding:12px}.idd16-panels{gap:10px}}
 @media(max-width:350px){.idd16-metrics{grid-template-columns:1fr 1fr}.idd16-metric b{font-size:14px}.idd16-controls select{font-size:11px}}
+
+/* Invest 1.7 — visibly expose whether ledger/quote reconciliation passed */
+#mmhInvestDrawdownV16 .idd17-audit{background:rgba(246,166,92,.08);border:1px solid rgba(246,166,92,.28);color:#f4cb99;padding:11px 13px;border-radius:12px;line-height:1.55;font-size:12px;margin:0 0 15px;overflow-wrap:anywhere}
+#mmhInvestDrawdownV16 .idd17-audit-ok{background:rgba(108,212,168,.08);border-color:rgba(108,212,168,.32);color:#b0e9d1}
