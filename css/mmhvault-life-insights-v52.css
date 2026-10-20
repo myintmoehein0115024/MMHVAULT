@@ -1,0 +1,52 @@
+/* MMHVAULT Phase 5.2 — Life Insights. Scoped to the independent Life Planner. */
+#life-planner .li-shell{--ink:#294638;--sub:#637667;--line:#e4e8d9;--gold:#c48b4c;max-width:1130px;width:100%;margin:0 auto;padding:0 0 64px;color:var(--ink);font-family:inherit;min-width:0}
+#life-planner .li-shell *{box-sizing:border-box;min-width:0}
+#life-planner .li-hero{position:relative;overflow:hidden;padding:clamp(24px,4.5vw,51px);border-radius:28px;background:radial-gradient(circle at 87% 25%,#dceabf 0,transparent 29%),linear-gradient(130deg,#fffaf1 7%,#e8f1df 87%);border:1px solid #d9dec7;box-shadow:0 16px 38px #152c1e13}
+#life-planner .li-eyebrow,#life-planner .li-overline{font-size:11px;letter-spacing:.16em;font-weight:800;color:#b77a38;text-transform:uppercase}
+#life-planner .li-hero h1{position:relative;z-index:1;color:#304c3e;font:700 clamp(27px,4vw,49px)/1.14 Georgia,'Times New Roman',serif;letter-spacing:-.025em;margin:18px 0 10px;max-width:640px}
+#life-planner .li-hero p{position:relative;z-index:1;color:#687a64;font-size:clamp(13px,1.5vw,17px);line-height:1.65;max-width:560px;margin:0}
+#life-planner .li-hero-decoration{position:absolute;right:5%;bottom:-60px;font-size:clamp(120px,18vw,235px);line-height:1;color:#a0bd8f4a;pointer-events:none}
+#life-planner .li-privacy{display:flex;align-items:flex-start;gap:13px;margin:18px 0 26px;padding:16px 19px;border-radius:18px;background:#eef6e9;border:1px solid #d4e4cb;color:#355b45}
+#life-planner .li-privacy>span{background:#d5e8cf;border-radius:12px;display:grid;place-items:center;flex:0 0 37px;height:37px;font-size:22px}
+#life-planner .li-privacy strong{display:block;font-size:13px}
+#life-planner .li-privacy p{margin:5px 0 0;color:#697e6a;font-size:12px;line-height:1.65}
+#life-planner .li-controls{display:flex;align-items:flex-end;justify-content:space-between;gap:15px;flex-wrap:wrap;margin-bottom:16px;padding:0 5px}
+#life-planner .li-controls h2{font-size:clamp(22px,2.6vw,29px);color:#f4f1e9;margin:5px 0 0;font-family:Georgia,'Times New Roman',serif}
+#life-planner .li-actions{display:flex;align-items:end;gap:9px;flex-wrap:wrap}
+#life-planner .li-actions label{display:flex;flex-direction:column;gap:5px;color:#e3d9c3;font-size:11px;font-weight:700}
+#life-planner .li-actions select,#life-planner .li-actions button{min-height:43px;padding:9px 14px;border-radius:13px;border:1px solid #d4daca;background:#fffdf7;color:#405849;font-size:13px;font-weight:750;box-shadow:0 3px 10px #0a24150c}
+#life-planner .li-actions button{background:#e8c990;color:#4b3820;border-color:#d8b77a;cursor:pointer}
+#life-planner .li-actions button:disabled{opacity:.5;cursor:wait}
+#life-planner .li-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:17px}
+#life-planner .li-module-card{background:#fffdf7;border:1px solid #e6dfcf;border-radius:21px;padding:22px;box-shadow:0 12px 25px #0000000b;min-height:230px}
+#life-planner .li-card-top{display:flex;align-items:center;gap:12px}
+#life-planner .li-card-top small{display:block;font-size:10px;font-weight:850;letter-spacing:.11em;color:#bb9b71}
+#life-planner .li-card-top h3{margin:4px 0 0;font-size:18px;color:#34483b;letter-spacing:-.015em}
+#life-planner .li-icon{height:43px;width:43px;flex:0 0 43px;display:grid;place-items:center;border-radius:13px;background:#e2eede;color:#3d8461;font-size:21px}
+#life-planner .li-icon.spending{background:#fcf0db;color:#be8c4f}
+#life-planner .li-icon.fund{background:#f6e4d8;color:#bc8a71}
+#life-planner .li-icon.goals{background:#edf0db;color:#808d50}
+#life-planner .li-icon.schedule{background:#e9ecdb;color:#8d9f64}
+#life-planner .li-kpi{display:flex;align-items:baseline;gap:9px;margin:23px 0 10px;flex-wrap:wrap}
+#life-planner .li-kpi strong{font:700 clamp(26px,3.5vw,37px)/1.05 Georgia,'Times New Roman',serif;color:#294d3b}
+#life-planner .li-kpi small{font-size:12px;color:#7e8c7d;line-height:1.5}
+#life-planner .li-bars{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));align-items:end;gap:8px;height:105px;padding:5px 1px 0;margin-top:13px}
+#life-planner .li-bar-col{height:100%;display:flex;flex-direction:column;align-items:center;gap:4px;color:#758472;font-size:11px}
+#life-planner .li-bar-track{height:65px;width:min(100%,44px);display:flex;flex-direction:column;justify-content:flex-end;background:#f2f3e9;border-radius:7px;overflow:hidden}
+#life-planner .li-bar-track i{display:block;background:linear-gradient(#9fc18d,#70a987);border-radius:6px 6px 2px 2px;width:100%;min-height:3px}
+#life-planner .li-bar-col b{font-size:10px;font-weight:850;color:#617b67}
+#life-planner .li-bar-col span{line-height:1.2}
+#life-planner .li-warning{background:#fff1df;border-left:3px solid #ce944f;border-radius:8px;color:#8d653c;padding:11px 13px;line-height:1.55;font-size:12px;margin:17px 0 0}
+#life-planner .li-pending,#life-planner .li-chart-empty{font-size:13px;color:#9baa9a;margin:25px 0;line-height:1.5}
+#life-planner .li-secondary,#life-planner .li-quiet{border-top:1px solid #eee9dc;padding-top:12px;margin:16px 0 0;color:#7d8d7b;font-size:12px;line-height:1.55}
+#life-planner .li-money{display:grid;gap:6px;margin-top:11px}
+#life-planner .li-money>div{display:flex;align-items:center;justify-content:space-between;gap:9px;padding:9px 10px;background:#f4f5e9;border-radius:9px;font-size:12px}
+#life-planner .li-money>div b{color:#819476;font-size:11px}
+#life-planner .li-money>div span{color:#49684e;font-size:12px;font-weight:800;font-variant-numeric:tabular-nums;overflow-wrap:anywhere;text-align:right}
+#life-planner .li-final-note{display:flex;align-items:flex-start;gap:13px;background:#fcf7e9;color:#53694f;border:1px solid #e8dec5;border-radius:18px;padding:17px 19px;margin-top:20px}
+#life-planner .li-final-note>span{font-size:26px;color:#c2a46d}
+#life-planner .li-final-note p{font-size:12px;line-height:1.75;margin:0}
+#life-planner .li-final-note strong{display:block;font-size:13px;color:#576c50}
+#life-planner .li-shell button:focus-visible,#life-planner .li-shell select:focus-visible{outline:3px solid #b9803e;outline-offset:2px}
+@media(max-width:760px){#life-planner .li-grid{grid-template-columns:1fr}#life-planner .li-hero{border-radius:22px}#life-planner .li-module-card{padding:19px;min-height:205px}#life-planner .li-hero-decoration{right:-12%;opacity:.6}}
+@media(max-width:430px){#life-planner .li-controls{display:block}#life-planner .li-actions{margin-top:13px;align-items:stretch;display:grid;grid-template-columns:minmax(0,1fr) auto}#life-planner .li-actions select{width:100%}#life-planner .li-privacy{padding:13px}#life-planner .li-hero{padding:24px 21px}#life-planner .li-bar-track{height:57px}#life-planner .li-bars{height:98px;gap:4px}#life-planner .li-module-card{padding:16px}#life-planner .li-final-note{padding:14px}}
