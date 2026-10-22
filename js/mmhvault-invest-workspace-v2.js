@@ -1,4 +1,4 @@
-/* MMHVAULT Invest 2.0 — overview workspaces. Presentation/navigation only.
+/* MMHVAULT Invest 2.0.2 — lifecycle-safe overview workspaces. Presentation/navigation only.
  * Reparents existing module roots; NEVER duplicates them, requests financial data,
  * changes calculations, overrides source module events, or touches Supabase.
  */
@@ -39,7 +39,10 @@
  let active='overview',host=null,observer=null,scheduled=false;
  function build(){
   const parent=$('mmhFiveoverview');if(!parent)return false;
-  if(host&&host.isConnected)return true;
+  // The original Invest page creates #mmhFiveoverview asynchronously.
+  // If it is replaced after a legacy render, reconstruct a fresh workspace.
+  if(host&&host.isConnected){if(host.parentNode!==parent)parent.prepend(host);return true;}
+  host=null;
   host=document.createElement('div');host.id='mmhInvestWorkspaceV2';host.className='iw2-workspace';
   host.innerHTML=`
    <div class="iw2-intro"><div><span class="iw2-eyebrow">MMHVAULT / INVEST</span><h2 data-iw2-t="heading"></h2><p data-iw2-t="headingSub"></p></div></div>
@@ -87,33 +90,57 @@
  function relocate(){
   if(!build())return;
   const parent=$('mmhFiveoverview');
-  // Two legacy overview panels are the already-existing summary + holdings.
-  // Only move their existing nodes, retaining identifiers and listeners.
+  if(!parent)return;
+  // Preserve the original overview summary/holdings. Do not duplicate
+  // investment components: their listeners and private state stay intact.
   for(const el of [...parent.children]){
    if(el===host)continue;
-   const destination=TARGETS.get(el.id)||((el.classList.contains('mmh-ui-panel'))?'overview':null);
-   if(destination){const target=$('iw2-slot-'+destination);if(target&&el.parentNode!==target)target.append(el);}
+   const destination=TARGETS.get(el.id)||(el.classList.contains('mmh-ui-panel')?'overview':null);
+   if(destination){const slot=$('iw2-slot-'+destination);if(slot&&el.parentNode!==slot)slot.append(el);}
   }
+  // Legacy extensions can mount after the overview and can re-mount on
+  // data-loaded/page-visible events. Find them anywhere in Invest, not just
+  // as direct overview children, then put them back in their single slot.
   for(const [id,destination] of TARGETS){
-   const el=$(id),target=$('iw2-slot-'+destination);
-   if(el&&target&&parent.contains(el)&&el.parentNode!==target)target.append(el);
+   const el=root.querySelector('[id="'+id+'"]'),slot=$('iw2-slot-'+destination);
+   if(el&&slot&&el.parentNode!==slot)slot.append(el);
   }
   activate(active,false);
  }
- function schedule(){if(scheduled)return;scheduled=true;window.requestAnimationFrame(()=>{scheduled=false;relocate()})}
- function initialize(){if(!build())return;
-  relocate();activate('overview',false);
-  const container=$('mmhFiveoverview');
-  if(observer)observer.disconnect();
-  observer=new MutationObserver(records=>{
-   for(const change of records){
-    if(change.type!=='childList'||!change.addedNodes.length)continue;
-    if([...change.addedNodes].some(n=>n.nodeType===1 && (TARGETS.has(n.id)||(n.parentNode===container&&n.classList?.contains('mmh-ui-panel'))))){schedule();break;}
-   }
-  });
-  observer.observe(container,{childList:true,subtree:true});
+ function schedule(){
+  if(scheduled)return;
+  scheduled=true;
+  window.requestAnimationFrame(()=>{scheduled=false;relocate();});
+ }
+ function relevant(node,parent){
+  if(node.nodeType!==1)return false;
+  if(node===host||node.id==='mmhFiveoverview'||node.id==='mmhFivePages'||TARGETS.has(node.id))return true;
+  if(parent&&node.parentNode===parent&&node.classList?.contains('mmh-ui-panel'))return true;
+  // A whole investment page might be mounted/replaced in one DOM operation.
+  return !!node.querySelector?.('#mmhFiveoverview,#mmhFivePages,'+
+    [...TARGETS.keys()].map(id=>'[id="'+id+'"]').join(','));
+ }
+ function initialize(){
+  // Observe #invest BEFORE trying to build. The five-page navigation may
+  // create its overview after DOMContentLoaded, or after data becomes ready.
+  if(!observer){
+   observer=new MutationObserver(records=>{
+    const parent=$('mmhFiveoverview');
+    for(const change of records){
+     if(change.type!=='childList')continue;
+     if([...change.addedNodes,...change.removedNodes].some(n=>relevant(n,parent))){schedule();break;}
+    }
+   });
+   observer.observe(root,{childList:true,subtree:true});
+  }
+  schedule();
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',initialize,{once:true});else initialize();
- for(const event of ['languagechange','mmhvault-language-change'])window.addEventListener(event,()=>{translate();schedule()});
- window.mmhInvestWorkspaceV2={activate:(key)=>activate(key,true),relocate};
+ // Recover after any original Invest render without changing its handlers.
+ for(const event of ['mmhvault:page-visible','mmhvault:data-loaded','mmhvault:cache-restored','mmhvault:market-updated','mmhvault:invest-daily-ready','languagechange','mmhvault-language-change']){
+  window.addEventListener(event,()=>{if(event.includes('language'))translate();schedule();},{passive:true});
+ }
+ // The 5-page legacy navigation creates its sections on demand.
+ // Wrapping is unnecessary and brittle; the root observer catches creation.
+ window.mmhInvestWorkspaceV2={activate:(key)=>{schedule();window.requestAnimationFrame(()=>activate(key,true))},relocate};
 })();
