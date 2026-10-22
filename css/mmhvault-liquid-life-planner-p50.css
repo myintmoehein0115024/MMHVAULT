@@ -1,0 +1,224 @@
+/* MMHVAULT Life Planner P5.0 — Warm Liquid Glass
+ * Scoped visual treatment only. Existing data/privacy/finance calculations unchanged.
+ * Uses the existing locally hosted Life Planner artwork.
+ */
+#life-planner{
+  --lp50-glass:linear-gradient(145deg,rgba(255,250,240,.88),rgba(246,242,229,.77) 68%,rgba(234,241,234,.71));
+  --lp50-edge:rgba(255,255,255,.76);
+  --lp50-outline:rgba(191,167,132,.35);
+  --lp50-ink:#263e37;--lp50-muted:#5d7368;--lp50-gold:#b4803e;
+  --lp50-shadow:inset 0 1px 0 rgba(255,255,255,.95),0 16px 46px rgba(6,25,31,.16);
+}
+html body.mmh-workspace-active #life-planner .lp-shell{
+  max-width:1300px!important;
+  width:100%!important;
+  min-width:0!important;
+}
+/* Preserve the warm lifestyle imagery, introduce optical glass shell and soft rim lighting. */
+html body.mmh-workspace-active #life-planner .lp-hub-shell{
+  padding:16px!important;
+  border-radius:23px!important;
+  border:1px solid rgba(224,202,163,.48)!important;
+  background:linear-gradient(145deg,rgba(250,248,241,.93),rgba(235,240,235,.83))!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.9),0 24px 60px rgba(0,0,0,.16)!important;
+  backdrop-filter:blur(18px) saturate(125%)!important;
+  -webkit-backdrop-filter:blur(18px) saturate(125%)!important;
+}
+html body.mmh-workspace-active #life-planner header.lp-lifestyle-hero{
+  min-height:216px!important;
+  margin-bottom:14px!important;
+  padding:24px clamp(20px,3vw,34px)!important;
+  border-radius:20px!important;
+  border:1px solid rgba(255,255,255,.73)!important;
+  background:linear-gradient(112deg,rgba(254,251,243,.94),rgba(251,240,221,.73) 53%,rgba(236,191,125,.30))!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.96),0 12px 34px rgba(68,53,28,.12)!important;
+  backdrop-filter:blur(12px) saturate(120%)!important;
+  -webkit-backdrop-filter:blur(12px) saturate(120%)!important;
+}
+html body.mmh-workspace-active #life-planner header.lp-lifestyle-hero::before{
+  content:'';pointer-events:none;position:absolute;inset:0;border-radius:inherit;z-index:0;
+  background:linear-gradient(180deg,rgba(255,255,255,.38),rgba(255,255,255,0) 46%);
+}
+html body.mmh-workspace-active #life-planner header.lp-lifestyle-hero .lp-lifestyle-photo{
+  width:66%!important;background-position:54% center!important;
+}
+html body.mmh-workspace-active #life-planner header.lp-lifestyle-hero .lp-lifestyle-photo::before{
+  background:linear-gradient(90deg,rgba(255,251,244,1) 0%,rgba(255,251,244,.78) 35%,rgba(255,250,241,.09) 86%),linear-gradient(0deg,rgba(244,220,187,.27),transparent 50%)!important;
+}
+html body.mmh-workspace-active #life-planner header.lp-lifestyle-hero h1{
+  font-size:clamp(30px,3.5vw,49px)!important;
+  line-height:1.1!important;margin:7px 0 7px!important;
+}
+html body.mmh-workspace-active #life-planner header.lp-lifestyle-hero p{font-size:clamp(12px,1vw,14px)!important;line-height:1.55!important}
+html body.mmh-workspace-active #life-planner .lp-mantra{font-size:clamp(15px,1.65vw,20px)!important;margin-top:8px!important}
+html body.mmh-workspace-active #life-planner .lp-lifestyle-promises{margin-top:14px!important;gap:10px 18px!important}
+html body.mmh-workspace-active #life-planner .lp-lifestyle-promises>span{grid-template-columns:25px minmax(0,1fr)!important;column-gap:5px!important}
+html body.mmh-workspace-active #life-planner .lp-lifestyle-promises i{width:25px!important;height:25px!important;font-size:13px!important}
+/* Six module cards: optical rim, specular highlights, responsive density. */
+html body.mmh-workspace-active #life-planner .lp-hub-grid{gap:12px!important;grid-template-columns:repeat(3,minmax(0,1fr))!important}
+html body.mmh-workspace-active #life-planner .lp-hub-grid .lp-hub-card{
+  min-height:211px!important;padding:18px!important;
+  border:1px solid rgba(255,255,255,.91)!important;
+  border-radius:18px!important;
+  background:var(--lp50-glass)!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.94),0 10px 27px rgba(39,45,36,.13)!important;
+  backdrop-filter:blur(14px) saturate(125%)!important;
+  -webkit-backdrop-filter:blur(14px) saturate(125%)!important;
+}
+html body.mmh-workspace-active #life-planner .lp-hub-grid .lp-hub-card::before{
+  content:''!important;position:absolute;inset:0!important;pointer-events:none!important;border-radius:inherit!important;z-index:0!important;
+  background:linear-gradient(180deg,rgba(255,255,255,.31),transparent 35%),radial-gradient(circle at 91% 12%,rgba(239,199,131,.20),transparent 46%)!important;
+}
+html body.mmh-workspace-active #life-planner .lp-hub-grid .lp-hub-art{opacity:.61!important;width:64%!important}
+html body.mmh-workspace-active #life-planner .lp-hub-grid .lp-hub-card::after{
+  background:linear-gradient(90deg,rgba(255,250,240,.99) 0%,rgba(255,250,240,.90) 35%,rgba(255,250,240,.22) 83%,transparent)!important;
+}
+html body.mmh-workspace-active #life-planner .lp-hub-grid .lp-hub-card:hover{
+  border-color:rgba(226,184,103,.82)!important;
+  transform:translateY(-2px)!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.98),0 16px 33px rgba(28,47,40,.19)!important;
+}
+html body.mmh-workspace-active #life-planner .lp-hub-grid .lp-hub-card-icon{
+  width:37px!important;height:37px!important;margin-bottom:12px!important;
+  border:1px solid rgba(255,255,255,.88)!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.34),0 5px 15px rgba(41,38,27,.12)!important;
+}
+html body.mmh-workspace-active #life-planner .lp-hub-grid .lp-hub-card-copy{min-height:69px!important;gap:5px!important}
+html body.mmh-workspace-active #life-planner .lp-hub-grid .lp-hub-card-copy strong{font-size:clamp(17px,1.7vw,22px)!important}
+html body.mmh-workspace-active #life-planner .lp-hub-grid .lp-hub-card-status{
+  margin-top:8px!important;min-height:31px!important;padding:7px 10px!important;
+  background:linear-gradient(145deg,rgba(255,252,244,.80),rgba(240,223,194,.78))!important;
+  backdrop-filter:blur(8px)!important;-webkit-backdrop-filter:blur(8px)!important;
+}
+/* Module shells and panels stay warm for the personal planner while using the same glass materials. */
+html body.mmh-workspace-active #life-planner :is(.lp-schedule-shell,.lp-module-placeholder,.lh-shell,.ls-shell,.lf-shell,.lg-shell,.li-shell){
+  border-radius:22px!important;border:1px solid rgba(236,219,191,.60)!important;
+  background:linear-gradient(140deg,rgba(255,251,242,.93),rgba(241,245,238,.86))!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.92),0 18px 52px rgba(0,0,0,.16)!important;
+  backdrop-filter:blur(18px) saturate(124%)!important;
+  -webkit-backdrop-filter:blur(18px) saturate(124%)!important;
+}
+html body.mmh-workspace-active #life-planner :is(.lp-panel,.lp-summary-card,.lp-reminder-panel,.lp-week-rhythm,.lh-card,.ls-card,.ls-insights,.lf-card,.lf-callout,.lg-card,.li-module-card,.li-final-note){
+  border:1px solid rgba(203,184,153,.38)!important;
+  border-radius:17px!important;
+  background:linear-gradient(145deg,rgba(255,255,253,.88),rgba(245,247,238,.68))!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.96),0 9px 26px rgba(26,51,35,.09)!important;
+  backdrop-filter:blur(12px) saturate(122%)!important;
+  -webkit-backdrop-filter:blur(12px) saturate(122%)!important;
+}
+html body.mmh-workspace-active #life-planner :is(.lp-calendar,.lp-event,.lp-upcoming button,.lp-day,.lp-week-day,.lh-trend-day span,.ls-metrics div,.lf-amount,.lf-history-row,.lg-stats>div,.li-money>div){
+  border-color:rgba(206,191,165,.37)!important;
+  background:linear-gradient(140deg,rgba(255,255,255,.73),rgba(238,244,233,.56))!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.72)!important;
+}
+html body.mmh-workspace-active #life-planner .lp-day.lp-selected,
+html body.mmh-workspace-active #life-planner .lp-week-day.is-selected{
+  border-color:rgba(181,127,57,.64)!important;
+  background:linear-gradient(145deg,rgba(252,236,210,.84),rgba(240,245,232,.71))!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.86),0 0 0 1px rgba(181,127,57,.12)!important;
+}
+html body.mmh-workspace-active #life-planner :is(.lp-btn,.lp-view-toggle,.lh-shell button,.ls-shell button,.lf-shell button,.lg-btn,.li-actions button,.li-actions select){
+  border-radius:12px!important;border:1px solid rgba(182,163,129,.43)!important;
+  background:linear-gradient(145deg,rgba(255,254,250,.81),rgba(238,242,230,.71))!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.91)!important;
+  color:#365447!important;
+  backdrop-filter:blur(10px)!important;-webkit-backdrop-filter:blur(10px)!important;
+}
+html body.mmh-workspace-active #life-planner :is(.lp-primary,.lh-shell .lh-accent,.ls-shell button.ls-primary,.lf-shell button.lf-primary,.lg-btn.lg-gold){
+  background:linear-gradient(145deg,#f5d695,#dba859)!important;
+  color:#2f2515!important;border-color:rgba(197,144,63,.62)!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.52),0 5px 17px rgba(179,120,45,.13)!important;
+}
+html body.mmh-workspace-active #life-planner :is(input:not([type=checkbox]):not([type=radio]),select,textarea){
+  border-radius:12px!important;
+  border:1px solid rgba(173,166,145,.43)!important;
+  background:rgba(255,255,255,.78)!important;
+  color:#314b40!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.87)!important;
+}
+/* Restore deliberate privacy notice appearance; never expose masked values. */
+html body.mmh-workspace-active #life-planner :is(.lh-privacy,.ls-privacy,.lf-privacy,.li-privacy,.lp-private-note){
+  border-radius:15px!important;
+  border-color:rgba(130,165,139,.33)!important;
+  background:linear-gradient(135deg,rgba(231,242,224,.86),rgba(250,251,241,.79))!important;
+}
+/* Consistent glass modals including the separate body portal.
+ * Portal needs independent selectors because it lives outside #life-planner. */
+html body:not(.light) #lpOverlayV1.lp-portal-overlay{background:rgba(3,15,25,.73)!important;backdrop-filter:blur(8px) saturate(120%)!important;-webkit-backdrop-filter:blur(8px) saturate(120%)!important}
+html body #lpOverlayV1 .lp-modal,
+html body :is(.lh-dialog,.ls-dialog,.lf-dialog,.lg-dialog,.li-dialog){
+  border:1px solid rgba(250,250,245,.77)!important;
+  border-radius:20px!important;
+  background:linear-gradient(142deg,rgba(255,251,243,.95),rgba(242,246,237,.92))!important;
+  box-shadow:inset 0 1px 0 #fff,0 24px 75px rgba(0,0,0,.34)!important;
+  backdrop-filter:blur(20px) saturate(123%)!important;
+  -webkit-backdrop-filter:blur(20px) saturate(123%)!important;
+}
+html body #lpOverlayV1 .lp-modal-heading,
+html body #lpOverlayV1 .lp-modal-actions.lp-modal-footer,
+html body .lh-dialog :is(.lh-dialog-header,.lh-dialog-footer),
+html body .ls-dialog :is(.ls-dialog-header,.ls-dialog-footer),
+html body .lf-dialog :is(.lf-dialog-head,.lf-dialog-actions){
+  background:linear-gradient(180deg,rgba(255,255,255,.61),rgba(249,244,232,.61))!important;
+  border-color:rgba(190,169,133,.29)!important;
+  backdrop-filter:blur(12px)!important;-webkit-backdrop-filter:blur(12px)!important;
+}
+html body #lpOverlayV1 .lp-form-section{
+  border-color:rgba(208,187,155,.41)!important;
+  background:linear-gradient(140deg,rgba(255,254,250,.84),rgba(242,244,236,.79))!important;
+  box-shadow:inset 0 1px #fff!important;
+}
+html body #lpOverlayV1 :is(input:not([type=checkbox]):not([type=radio]),textarea,select){
+  border-color:rgba(186,167,136,.45)!important;border-radius:12px!important;
+  background:rgba(255,255,255,.81)!important;color:#2e463b!important;
+}
+html body #lpOverlayV1 :is(.lp-btn,.lp-modal-x){border-radius:12px!important;box-shadow:inset 0 1px rgba(255,255,255,.77)!important}
+html body #lpOverlayV1 .lp-btn.lp-primary{
+  background:linear-gradient(145deg,#f3d394,#dca95d)!important;
+  border-color:rgba(189,136,68,.64)!important;color:#362719!important;
+}
+/* Density and readability across laptop/tablet/phone. */
+@media(max-width:1050px){
+  html body.mmh-workspace-active #life-planner .lp-hub-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  html body.mmh-workspace-active #life-planner header.lp-lifestyle-hero{min-height:220px!important}
+}
+@media(max-width:650px){
+  html body.mmh-workspace-active #life-planner .lp-hub-shell{padding:10px!important;border-radius:17px!important}
+  html body.mmh-workspace-active #life-planner header.lp-lifestyle-hero{padding:19px 17px!important;min-height:207px!important;border-radius:16px!important;margin-bottom:10px!important}
+  html body.mmh-workspace-active #life-planner header.lp-lifestyle-hero h1{font-size:clamp(27px,7vw,39px)!important}
+  html body.mmh-workspace-active #life-planner header.lp-lifestyle-hero p{font-size:11px!important;line-height:1.5!important}
+  html body.mmh-workspace-active #life-planner header.lp-lifestyle-hero .lp-lifestyle-copy{width:100%!important;max-width:100%!important}
+  html body.mmh-workspace-active #life-planner header.lp-lifestyle-hero .lp-lifestyle-photo{width:100%!important;opacity:.39!important}
+  html body.mmh-workspace-active #life-planner header.lp-lifestyle-hero .lp-lifestyle-photo::before{background:linear-gradient(90deg,rgba(255,251,244,.98),rgba(255,251,244,.65))!important}
+  html body.mmh-workspace-active #life-planner .lp-mantra{font-size:16px!important}
+  html body.mmh-workspace-active #life-planner .lp-lifestyle-promises{gap:6px 12px!important;margin-top:10px!important}
+  html body.mmh-workspace-active #life-planner .lp-lifestyle-promises>span{grid-template-columns:20px minmax(0,1fr)!important}
+  html body.mmh-workspace-active #life-planner .lp-lifestyle-promises i{width:20px!important;height:20px!important;font-size:11px!important}
+  html body.mmh-workspace-active #life-planner .lp-lifestyle-promises b{font-size:9px!important}
+  html body.mmh-workspace-active #life-planner .lp-lifestyle-promises small{font-size:8px!important}
+  html body.mmh-workspace-active #life-planner .lp-hub-grid{grid-template-columns:1fr!important;gap:9px!important}
+  html body.mmh-workspace-active #life-planner .lp-hub-grid .lp-hub-card{
+    min-height:96px!important;padding:12px!important;
+    display:grid!important;grid-template-columns:38px minmax(0,1fr) auto!important;
+    grid-template-rows:auto!important;align-items:center!important;gap:9px!important;
+  }
+  html body.mmh-workspace-active #life-planner .lp-hub-grid .lp-hub-card-icon{width:36px!important;height:36px!important;margin:0!important;grid-column:1!important;grid-row:1!important}
+  html body.mmh-workspace-active #life-planner .lp-hub-grid .lp-hub-card-copy{grid-column:2!important;grid-row:1!important;max-width:none!important;min-height:0!important;flex:none!important}
+  html body.mmh-workspace-active #life-planner .lp-hub-grid .lp-hub-card-status{grid-column:3!important;grid-row:1!important;margin:0!important;max-width:81px!important;min-height:34px!important;font-size:9px!important}
+  html body.mmh-workspace-active #life-planner .lp-hub-grid .lp-hub-card-copy strong{font-size:15px!important}
+  html body.mmh-workspace-active #life-planner .lp-hub-grid .lp-hub-card-copy small{font-size:10px!important}
+  html body.mmh-workspace-active #life-planner :is(.lp-schedule-shell,.lp-module-placeholder,.lh-shell,.ls-shell,.lf-shell,.lg-shell,.li-shell){border-radius:17px!important}
+}
+@media(max-width:360px){
+ html body.mmh-workspace-active #life-planner .lp-hub-grid .lp-hub-card{grid-template-columns:34px minmax(0,1fr)!important;min-height:88px!important}
+ html body.mmh-workspace-active #life-planner .lp-hub-grid .lp-hub-card-status{grid-column:2!important;grid-row:2!important;justify-self:start!important;max-width:none!important;min-height:25px!important}
+ html body.mmh-workspace-active #life-planner .lp-hub-grid .lp-hub-card-copy{grid-column:2!important}
+}
+@media(prefers-reduced-motion:reduce){
+ html body.mmh-workspace-active #life-planner .lp-hub-grid .lp-hub-card{transition:none!important;transform:none!important}
+}
+@supports not ((backdrop-filter:blur(10px)) or (-webkit-backdrop-filter:blur(10px))){
+ html body.mmh-workspace-active #life-planner .lp-hub-shell,
+ html body.mmh-workspace-active #life-planner .lp-hub-grid .lp-hub-card,
+ html body #lpOverlayV1 .lp-modal{background:#f9f4e9!important}
+}

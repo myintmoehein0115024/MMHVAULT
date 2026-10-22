@@ -1,0 +1,39 @@
+/* Accounts P4.1 compact hero — visual-only, scoped to Accounts. */
+html body.mmh-workspace-active:not(.light) #accounts-page .ap-heading{
+  min-height:124px!important;
+  height:auto!important;
+  margin:0 0 12px!important;
+  padding:18px clamp(17px,2vw,28px)!important;
+  border-radius:20px!important;
+  gap:14px!important;
+  background-position:center 54%!important;
+}
+html body.mmh-workspace-active:not(.light) #accounts-page .ap-heading h1{
+  font-size:clamp(27px,2.55vw,40px)!important;
+  line-height:1.12!important;
+}
+html body.mmh-workspace-active:not(.light) #accounts-page .ap-heading label{
+  display:flex!important;align-items:center!important;gap:9px!important;
+  font-size:11px!important;line-height:1.25!important;
+}
+html body.mmh-workspace-active:not(.light) #accounts-page .ap-heading select{
+  min-width:140px!important;min-height:43px!important;
+}
+@media(max-width:920px){
+  html body.mmh-workspace-active:not(.light) #accounts-page .ap-heading{
+    min-height:112px!important;padding:16px 20px!important;
+  }
+}
+@media(max-width:620px){
+  html body.mmh-workspace-active:not(.light) #accounts-page .ap-heading{
+    min-height:0!important;gap:10px!important;margin:0 0 10px!important;
+    padding:15px!important;border-radius:17px!important;
+  }
+  html body.mmh-workspace-active:not(.light) #accounts-page .ap-heading h1{font-size:clamp(25px,7.8vw,34px)!important}
+  html body.mmh-workspace-active:not(.light) #accounts-page .ap-heading label{
+    display:grid!important;grid-template-columns:auto minmax(0,1fr)!important;gap:9px!important;
+  }
+  html body.mmh-workspace-active:not(.light) #accounts-page .ap-heading select{
+    width:100%!important;min-width:0!important;
+  }
+}
