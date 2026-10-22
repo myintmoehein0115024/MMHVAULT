@@ -1,0 +1,150 @@
+/* MMHVAULT — Transactions P2.3: unified shell, note/receipt spacing, mobile picker.
+ * UI only. No accounting, receipts, RLS, history or page-navigation JS changed.
+ * The shared desktop geometry is applied to every authenticated workspace page. */
+:root{--mmh-p23-line:rgba(161,210,240,.40);--mmh-p23-gold:#f4c872;--mmh-p23-bg:linear-gradient(135deg,rgba(28,72,103,.75),rgba(5,29,50,.88) 74%)}
+
+/* One authoritative geometry for all routes, including Dashboard vs Transactions.
+   High specificity beats the old route-dependent dashboard/transactions rules. */
+@media(min-width:1100px){
+ html body.mmh-workspace-active:has(#bottomNav.bottom-nav) #bottomNav.bottom-nav{
+  box-sizing:border-box!important;position:fixed!important;left:15px!important;top:14px!important;bottom:14px!important;
+  width:226px!important;height:calc(100dvh - 28px)!important;min-height:0!important;
+  padding:19px 12px 15px!important;margin:0!important;
+  border-radius:23px!important;border:1px solid rgba(155,207,240,.40)!important;
+  border-right-color:rgba(246,201,111,.69)!important;
+  background:radial-gradient(ellipse at 4% 2%,rgba(116,175,214,.20),transparent 44%),linear-gradient(148deg,rgba(9,39,65,.80),rgba(2,16,31,.89) 80%)!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.20),inset -1px 0 rgba(255,226,155,.17),0 20px 59px rgba(0,0,0,.36)!important;
+  backdrop-filter:blur(26px) saturate(148%)!important;-webkit-backdrop-filter:blur(26px) saturate(148%)!important;
+  overflow-x:hidden!important;overflow-y:auto!important;scrollbar-width:thin!important;
+ }
+ html body.mmh-workspace-active:has(#bottomNav.bottom-nav) #header{
+  box-sizing:border-box!important;position:fixed!important;top:10px!important;left:254px!important;right:15px!important;
+  width:auto!important;height:62px!important;min-height:62px!important;
+  margin:0!important;padding:8px 14px!important;border:1px solid rgba(159,209,241,.35)!important;border-radius:19px!important;
+  background:linear-gradient(135deg,rgba(35,84,116,.36),rgba(4,27,50,.73) 64%)!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.18),0 11px 32px rgba(0,0,0,.27)!important;
+  backdrop-filter:blur(24px) saturate(145%)!important;-webkit-backdrop-filter:blur(24px) saturate(145%)!important;
+ }
+ html body.mmh-workspace-active:has(#bottomNav.bottom-nav) main.wrap{
+  box-sizing:border-box!important;margin-left:0!important;
+  padding-left:265px!important;padding-right:21px!important;padding-top:91px!important;
+ }
+ html body.mmh-workspace-active:has(#bottomNav.bottom-nav) #bottomNav .mmh-sidebar-brand-v500{
+  display:flex!important;align-items:center!important;gap:9px!important;box-sizing:border-box!important;
+  min-height:82px!important;max-height:96px!important;padding:8px 8px 18px!important;margin:0 0 14px!important;
+  border-bottom:1px solid rgba(169,209,240,.13)!important;flex-shrink:0!important;
+ }
+ html body.mmh-workspace-active:has(#bottomNav.bottom-nav) #bottomNav .mmh-sidebar-brand-v500 img{
+  display:block!important;width:42px!important;height:42px!important;min-width:42px!important;flex:0 0 42px!important;object-fit:contain!important;
+ }
+ html body.mmh-workspace-active:has(#bottomNav.bottom-nav) #bottomNav .mmh-sidebar-brand-v500 strong{
+  display:block!important;font:500 16px/1.25 Georgia,'Times New Roman',serif!important;
+  letter-spacing:.13em!important;color:#f5c872!important;white-space:nowrap!important;
+ }
+ html body.mmh-workspace-active:has(#bottomNav.bottom-nav) #bottomNav .mmh-sidebar-brand-v500 small{
+  display:block!important;font-size:8px!important;letter-spacing:.11em!important;line-height:1.6!important;color:#b7cee0!important;
+ }
+ html body.mmh-workspace-active:has(#bottomNav.bottom-nav) #bottomNav>button{
+  box-sizing:border-box!important;width:100%!important;min-height:49px!important;
+  border-radius:14px!important;margin-block:2px!important;padding:10px 12px!important;
+ }
+ html body.mmh-workspace-active:has(#bottomNav.bottom-nav) #header .mmh-finance-topbar-v500{
+  box-sizing:border-box!important;min-height:44px!important;max-height:48px!important;align-items:center!important;
+ }
+}
+@media(min-width:1100px) and (max-width:1450px){
+ html body.mmh-workspace-active:has(#bottomNav.bottom-nav) #bottomNav.bottom-nav{left:12px!important;width:212px!important}
+ html body.mmh-workspace-active:has(#bottomNav.bottom-nav) #header{left:235px!important;right:12px!important}
+ html body.mmh-workspace-active:has(#bottomNav.bottom-nav) main.wrap{padding-left:243px!important;padding-right:14px!important}
+ html body.mmh-workspace-active:has(#bottomNav.bottom-nav) #bottomNav .mmh-sidebar-brand-v500 strong{font-size:14px!important;letter-spacing:.12em!important}
+ html body.mmh-workspace-active:has(#bottomNav.bottom-nav) #bottomNav .mmh-sidebar-brand-v500 img{width:37px!important;height:37px!important;min-width:37px!important;flex-basis:37px!important}
+}
+/* Shared control finish, whether the route is dashboard or transactions. */
+html body.mmh-workspace-active:has(#header) #header :is(.mmh-global-search-v500 input,.header-profile,.mmh-topbar-bell-v500,.mmh-topbar-support-v1520){
+ border:1px solid rgba(164,208,238,.40)!important;border-radius:15px!important;
+ background:linear-gradient(140deg,rgba(42,91,123,.53),rgba(4,27,48,.73))!important;
+ box-shadow:inset 0 1px rgba(255,255,255,.17),0 8px 24px rgba(0,0,0,.18)!important;
+ backdrop-filter:blur(16px) saturate(136%)!important;-webkit-backdrop-filter:blur(16px) saturate(136%)!important;
+}
+html body.mmh-workspace-active:has(#bottomNav.bottom-nav) #bottomNav>button.active{
+ border:1px solid rgba(252,207,115,.77)!important;border-radius:14px!important;
+ background:radial-gradient(circle at 0 0,rgba(255,214,126,.37),transparent 61%),linear-gradient(120deg,rgba(96,76,43,.63),rgba(10,43,67,.83))!important;
+ box-shadow:inset 0 1px rgba(255,248,222,.28),0 0 20px rgba(255,192,85,.12)!important;
+}
+/* The note label finishes before the separate receipt surface; clear breathable gap. */
+html body #editModal.open #editTxForm .mmh-edit-scroll-p22>.formgrid{row-gap:12px!important}
+html body #editModal.open #editTxForm .mmh-edit-scroll-p22>.formgrid>label.full:has(#eNote){
+ margin:0!important;padding:0!important;gap:7px!important;
+}
+html body #editModal.open #editTxForm .mmh-edit-scroll-p22>.formgrid #eNote{
+ min-height:47px!important;margin:0!important;
+}
+html body:not(#mmh-form-specificity-a):not(#mmh-form-specificity-b) #editModal.open #editTxForm .mmh-edit-scroll-p22>.receipt-upload-v3300{
+ margin:19px 0 0!important;padding:15px!important;gap:10px!important;
+}
+/* Avoid doubled vertical margins from the old compatibility wrapper. */
+html body #editModal.open #editTxForm .mmh-edit-scroll-p22>.receipt-upload-v3300.edit-receipt-box-v3303{margin-bottom:0!important}
+
+/* Mobile Transactions picker: liquid glass menu on its own layer. */
+@media(max-width:1099px){
+ html body.mmh-workspace-active #transactions>.mmh-tx-hero-v3{
+  position:relative!important;overflow:visible!important;isolation:isolate!important;
+ }
+ html body.mmh-workspace-active #transactions .mmh-tx-hero-actions-v3{position:relative!important;z-index:30!important;min-width:0!important}
+ html body.mmh-workspace-active #transactions .mmh-tx-page-picker-v3{
+  box-sizing:border-box!important;position:relative!important;z-index:31!important;max-width:100%!important;
+ }
+ html body.mmh-workspace-active #transactions .mmh-tx-page-picker-v3.open{z-index:45!important}
+ html body.mmh-workspace-active #transactions #mmhTxPageTriggerV3{
+  box-sizing:border-box!important;width:100%!important;min-height:48px!important;
+  padding:11px 15px!important;border:1px solid rgba(161,210,242,.52)!important;
+  border-radius:16px!important;color:#f3faff!important;font-size:14px!important;font-weight:650!important;
+  background:linear-gradient(112deg,rgba(65,113,145,.46),rgba(7,40,66,.70))!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.20),0 8px 24px rgba(0,0,0,.21)!important;
+  backdrop-filter:blur(19px) saturate(150%)!important;-webkit-backdrop-filter:blur(19px) saturate(150%)!important;
+ }
+ html body.mmh-workspace-active #transactions .mmh-tx-page-picker-v3.open #mmhTxPageTriggerV3{
+  border-color:rgba(250,205,118,.81)!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.22),0 0 0 2px rgba(241,184,71,.12),0 11px 28px rgba(0,0,0,.27)!important;
+ }
+ html body.mmh-workspace-active #transactions .mmh-tx-page-picker-v3>.tx-tabs-v371{
+  display:none!important;position:absolute!important;z-index:99!important;
+  top:calc(100% + 9px)!important;left:0!important;right:0!important;width:100%!important;
+  max-height:min(252px,calc(100dvh - 180px))!important;padding:8px!important;margin:0!important;
+  grid-template-columns:minmax(0,1fr)!important;gap:5px!important;
+  border:1px solid rgba(162,216,245,.45)!important;border-radius:18px!important;
+  background:radial-gradient(ellipse at 12% -20%,rgba(138,195,230,.23),transparent 57%),linear-gradient(132deg,rgba(31,69,95,.87),rgba(3,26,48,.91) 75%)!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.23),0 22px 55px rgba(0,0,0,.50),0 0 23px rgba(241,189,86,.055)!important;
+  backdrop-filter:blur(28px) saturate(150%)!important;-webkit-backdrop-filter:blur(28px) saturate(150%)!important;
+  overflow-y:auto!important;overscroll-behavior:contain!important;
+ }
+ html body.mmh-workspace-active #transactions .mmh-tx-page-picker-v3.open>.tx-tabs-v371{display:grid!important}
+ html body.mmh-workspace-active #transactions .mmh-tx-page-picker-v3 .tx-tab-v371{
+  display:flex!important;align-items:center!important;box-sizing:border-box!important;
+  min-height:47px!important;padding:11px 14px!important;white-space:normal!important;
+  border:1px solid transparent!important;border-radius:12px!important;
+  background:rgba(19,58,83,.31)!important;color:#ccdeea!important;
+  font-size:13px!important;line-height:1.35!important;
+ }
+ html body.mmh-workspace-active #transactions .mmh-tx-page-picker-v3 .tx-tab-v371.active{
+  background:linear-gradient(112deg,rgba(169,127,59,.44),rgba(30,67,91,.60))!important;
+  border-color:rgba(248,202,112,.67)!important;
+  box-shadow:inset 0 1px rgba(255,244,209,.22),0 0 18px rgba(244,179,70,.095)!important;
+  color:#fff7df!important;
+ }
+ html body.mmh-workspace-active #transactions .mmh-tx-page-picker-v3 .tx-tab-v371.active::after{color:#f9d385!important}
+ html body.mmh-workspace-active #transactions .mmh-tx-page-picker-v3 .tx-tab-v371.mmh-tx-manage-item-v3{
+  margin-top:3px!important;border-top:1px solid rgba(164,211,240,.15)!important;border-radius:11px!important;
+ }
+}
+@media(max-width:600px){
+ html body:not(#mmh-form-specificity-a):not(#mmh-form-specificity-b) #editModal.open #editTxForm .mmh-edit-scroll-p22>.receipt-upload-v3300{margin-top:14px!important;padding:12px!important}
+ html body.mmh-workspace-active #transactions #mmhTxPageTriggerV3{min-height:47px!important;font-size:13px!important}
+ html body.mmh-workspace-active #transactions .mmh-tx-page-picker-v3>.tx-tabs-v371{padding:7px!important;border-radius:16px!important}
+}
+@supports not ((backdrop-filter:blur(12px)) or (-webkit-backdrop-filter:blur(12px))){
+ html body.mmh-workspace-active #transactions .mmh-tx-page-picker-v3>.tx-tabs-v371{background:#102d49!important}
+}
+@media(prefers-reduced-motion:reduce){
+ html body.mmh-workspace-active #transactions .mmh-tx-page-picker-v3 *{transition:none!important;animation:none!important}
+}
