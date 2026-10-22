@@ -1,0 +1,164 @@
+/* MMHVAULT Accounts P4.0 — Premium Liquid Glass
+ * Visual-only. Accounts state, CRUD, currencies, wallet data, auth and calculations unchanged.
+ * Loaded after all legacy inline/linked styles. Scoped to real Accounts elements. */
+:root{--ac40-edge:rgba(153,211,251,.30);--ac40-faint:rgba(140,198,237,.16);--ac40-gold:#f3d181;--ac40-muted:#a7c2d7;--ac40-panel:linear-gradient(143deg,rgba(28,62,86,.76) 0%,rgba(9,32,53,.84) 48%,rgba(4,20,37,.91) 100%);--ac40-tile:linear-gradient(140deg,rgba(39,78,103,.51),rgba(10,37,60,.69));--ac40-elev:inset 0 1px 0 rgba(255,255,255,.16),0 18px 48px rgba(0,0,0,.27)}
+html body.mmh-workspace-active:not(.light) #accounts-page{width:100%!important;max-width:1320px!important;margin-inline:auto!important;box-sizing:border-box!important;min-width:0!important;color:#f1f8fd!important}
+/* Hero: real DOM remains interactive and live; city is an independent image resource */
+html body.mmh-workspace-active:not(.light) #accounts-page .ap-heading{
+ position:relative!important;isolation:isolate!important;min-height:176px!important;
+ margin:0 0 15px!important;padding:30px clamp(18px,2.6vw,35px)!important;
+ display:flex!important;align-items:center!important;justify-content:space-between!important;gap:20px!important;
+ border:1px solid var(--ac40-edge)!important;border-radius:24px!important;overflow:hidden!important;
+ background:linear-gradient(90deg,rgba(2,15,29,.84),rgba(4,21,37,.38) 55%,rgba(2,13,26,.66)),url('../images/mmhvault-city-glass-v2.webp') center 44%/cover no-repeat!important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.11),0 18px 42px rgba(0,0,0,.26)!important;
+ backdrop-filter:blur(10px) saturate(135%)!important;-webkit-backdrop-filter:blur(10px) saturate(135%)!important;
+}
+html body.mmh-workspace-active:not(.light) #accounts-page .ap-heading::before{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(180deg,rgba(255,255,255,.07),transparent 40%),radial-gradient(circle at 88% 4%,rgba(242,195,97,.18),transparent 28%)}
+html body.mmh-workspace-active:not(.light) #accounts-page .ap-heading>div{max-width:68%;min-width:0;position:relative;z-index:1}
+html body.mmh-workspace-active:not(.light) #accounts-page .ap-heading h1{margin:0!important;font:500 clamp(30px,3.2vw,51px)/1.09 Georgia,'Times New Roman',serif!important;letter-spacing:-.035em!important;color:#fafcff!important;text-shadow:0 3px 26px rgba(0,0,0,.55)!important}
+html body.mmh-workspace-active:not(.light) #accounts-page .ap-heading p{margin:11px 0 0!important;font-size:clamp(12px,1.05vw,15px)!important;line-height:1.5!important;color:#c2d9ed!important}
+html body.mmh-workspace-active:not(.light) #accounts-page .ap-heading label{position:relative;z-index:1;flex:0 0 auto;color:#b8cede!important;font-weight:650!important;font-size:11px!important;letter-spacing:.03em!important}
+html body.mmh-workspace-active:not(.light) #accounts-page .ap-heading select{min-width:170px!important}
+/* Account command-center shell */
+html body.mmh-workspace-active:not(.light) #accounts-page .am-shell{
+ position:relative!important;isolation:isolate!important;width:100%!important;max-width:none!important;
+ padding:clamp(12px,1.7vw,22px)!important;border:1px solid var(--ac40-edge)!important;border-radius:23px!important;
+ background:var(--ac40-panel)!important;box-shadow:var(--ac40-elev)!important;
+ backdrop-filter:blur(24px) saturate(155%)!important;-webkit-backdrop-filter:blur(24px) saturate(155%)!important;overflow:visible!important;
+}
+html body.mmh-workspace-active:not(.light) #accounts-page .am-shell::before{
+ content:'';position:absolute;inset:1px;z-index:-1;pointer-events:none;border-radius:inherit;
+ background:linear-gradient(180deg,rgba(255,255,255,.08),transparent 36%),radial-gradient(circle at 94% 0%,rgba(245,194,95,.11),transparent 27%),radial-gradient(circle at 0% 100%,rgba(80,173,231,.12),transparent 40%);
+}
+html body.mmh-workspace-active:not(.light) #accounts-page .am-page[hidden]{display:none!important}
+html body.mmh-workspace-active:not(.light) #accounts-page .am-top{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:11px!important;margin-bottom:14px!important}
+html body.mmh-workspace-active:not(.light) #accounts-page .am-top :is(b,strong){color:#f4f9ff!important;font-weight:720!important;font-size:16px!important}
+html body.mmh-workspace-active:not(.light) #accounts-page :is(.am-top button,.am-top select,.am-find input,.am-find select,.ap-heading select,.am-fields input:not([type=checkbox]),.am-fields select,.am-fields textarea,.am-actions .btn){
+ min-height:44px!important;box-sizing:border-box!important;border:1px solid rgba(164,211,243,.31)!important;border-radius:13px!important;
+ background:linear-gradient(145deg,rgba(29,67,94,.67),rgba(7,30,51,.81))!important;
+ color:#e6f4ff!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.09)!important;
+ backdrop-filter:blur(12px) saturate(130%)!important;-webkit-backdrop-filter:blur(12px) saturate(130%)!important;
+}
+html body.mmh-workspace-active:not(.light) #accounts-page :is(button,input,select):focus-visible{outline:2px solid #f5d183!important;outline-offset:2px!important}
+html body.mmh-workspace-active:not(.light) #accounts-page #amAdd,
+html body.mmh-workspace-active:not(.light) #accounts-page .am-actions .btn.primary{
+ color:#251a0a!important;font-weight:800!important;border:1px solid rgba(255,227,165,.67)!important;
+ background:linear-gradient(135deg,#f8dfa0,#ddaa54)!important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.47),0 8px 22px rgba(225,176,83,.15)!important;
+}
+/* Financial overview. No replacement or formatting of values. */
+html body.mmh-workspace-active:not(.light) #accounts-page .am-summary{
+ position:relative!important;overflow:hidden!important;margin:0 0 14px!important;padding:clamp(16px,2vw,26px)!important;
+ border-radius:20px!important;border:1px solid rgba(243,208,130,.38)!important;
+ background:radial-gradient(circle at 95% 4%,rgba(241,191,90,.20),transparent 38%),linear-gradient(133deg,rgba(39,62,76,.76),rgba(7,34,56,.87) 58%,rgba(3,22,40,.96))!important;
+ box-shadow:inset 0 1px 0 rgba(255,255,255,.17),0 15px 34px rgba(0,0,0,.19),0 0 24px rgba(238,180,75,.06)!important;
+ backdrop-filter:blur(20px) saturate(140%)!important;-webkit-backdrop-filter:blur(20px) saturate(140%)!important;
+}
+html body.mmh-workspace-active:not(.light) #accounts-page .am-summary::before{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(255,255,255,.08),transparent 34%)}
+html body.mmh-workspace-active:not(.light) #accounts-page .am-summary>.am-top{position:relative;z-index:1;gap:12px!important}
+html body.mmh-workspace-active:not(.light) #accounts-page .am-summary>.am-top span{color:#d9eaf5!important;font-size:13px!important;font-weight:720!important}
+html body.mmh-workspace-active:not(.light) #accounts-page .am-summary>strong{display:block!important;position:relative;z-index:1;font-size:clamp(27px,3.5vw,47px)!important;line-height:1.1!important;font-weight:650!important;color:#fdf5de!important;letter-spacing:-.03em!important;overflow-wrap:anywhere!important;font-variant-numeric:tabular-nums!important}
+html body.mmh-workspace-active:not(.light) #accounts-page .am-summary-grid{position:relative;z-index:1;display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px!important}
+html body.mmh-workspace-active:not(.light) #accounts-page .am-summary-grid>div{min-height:80px!important;border:1px solid var(--ac40-faint)!important;border-radius:15px!important;padding:15px 17px!important;background:var(--ac40-tile)!important;box-shadow:inset 0 1px rgba(255,255,255,.07)!important}
+html body.mmh-workspace-active:not(.light) #accounts-page .am-summary-grid b{display:block;color:#f1f8ff!important;font-size:clamp(17px,1.8vw,24px)!important;overflow-wrap:anywhere;font-variant-numeric:tabular-nums!important}
+html body.mmh-workspace-active:not(.light) #accounts-page :is(.am-help,.am-count){font-size:11px!important;line-height:1.5!important;color:var(--ac40-muted)!important}
+/* Account search and list: clear rows, glass edge on hover, original button semantics */
+html body.mmh-workspace-active:not(.light) #accounts-page .am-find{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(150px,210px)!important;gap:12px!important;margin-top:12px!important}
+html body.mmh-workspace-active:not(.light) #accounts-page .am-search-wrap{min-width:0!important}
+html body.mmh-workspace-active:not(.light) #accounts-page .am-list{display:grid!important;gap:7px!important;overflow:visible!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important}
+html body.mmh-workspace-active:not(.light) #accounts-page .am-row{
+ display:flex!important;align-items:center!important;gap:13px!important;min-width:0!important;min-height:72px!important;
+ padding:11px 15px!important;border-radius:15px!important;border:1px solid rgba(148,206,245,.19)!important;
+ background:linear-gradient(138deg,rgba(28,65,89,.53),rgba(7,32,52,.75))!important;
+ box-shadow:inset 0 1px rgba(255,255,255,.055)!important;color:#eaf5fc!important;
+ transition:border-color .18s ease,background-color .18s ease,transform .18s ease!important;
+}
+html body.mmh-workspace-active:not(.light) #accounts-page .am-row:hover{border-color:rgba(245,203,121,.48)!important;background:linear-gradient(138deg,rgba(39,78,100,.73),rgba(12,43,67,.87))!important;transform:translateY(-1px)!important}
+html body.mmh-workspace-active:not(.light) #accounts-page .am-logo{flex:0 0 44px!important;width:44px!important;height:44px!important;border-radius:13px!important;border:1px solid rgba(177,220,247,.27)!important;box-shadow:inset 0 1px rgba(255,255,255,.20),0 5px 14px rgba(0,0,0,.18)!important}
+html body.mmh-workspace-active:not(.light) #accounts-page .am-row-copy{min-width:0!important;flex:1 1 auto!important}
+html body.mmh-workspace-active:not(.light) #accounts-page .am-row-copy b{font-size:14px!important;font-weight:740!important;color:#eff9ff!important}
+html body.mmh-workspace-active:not(.light) #accounts-page .am-row-copy small{font-size:10px!important;color:#9fbcd0!important}
+html body.mmh-workspace-active:not(.light) #accounts-page .am-row-value{flex:0 1 auto!important;min-width:0!important;max-width:46%!important;color:#f5d58a!important;text-align:right!important;font-size:clamp(14px,1.42vw,21px)!important;font-weight:740!important;overflow-wrap:anywhere!important;font-variant-numeric:tabular-nums!important}
+/* Add / edit in-page states. Keep existing controls / file upload actions. */
+html body.mmh-workspace-active:not(.light) #accounts-page .am-types{display:grid!important;gap:10px!important}
+html body.mmh-workspace-active:not(.light) #accounts-page .am-types h3{color:#f3d181!important;margin:16px 0 5px!important;font-size:12px!important;letter-spacing:.08em!important;text-transform:uppercase!important}
+html body.mmh-workspace-active:not(.light) #accounts-page :is(.am-fields,.am-picker){border:1px solid rgba(162,210,241,.21)!important;border-radius:17px!important;background:linear-gradient(140deg,rgba(21,53,78,.60),rgba(7,28,48,.80))!important;box-shadow:inset 0 1px rgba(255,255,255,.07)!important;padding:15px!important}
+html body.mmh-workspace-active:not(.light) #accounts-page .am-fields label{color:#c1d8e7!important}
+html body.mmh-workspace-active:not(.light) #accounts-page .am-logo-row{align-items:center!important;gap:15px!important}
+html body.mmh-workspace-active:not(.light) #accounts-page .am-upload{display:flex!important;align-items:center!important;gap:12px!important;border:1px dashed rgba(157,209,242,.31)!important;border-radius:15px!important;padding:13px!important;background:rgba(20,61,88,.27)!important}
+html body.mmh-workspace-active:not(.light) #accounts-page .am-icons button{background:rgba(23,64,92,.44)!important;border:1px solid rgba(161,210,241,.17)!important;border-radius:12px!important}
+html body.mmh-workspace-active:not(.light) #accounts-page .am-hide{display:flex!important;align-items:center!important;gap:12px!important}
+/* Modal / details on Accounts: scoped via dynamic classes so Transaction/Invest visuals remain unchanged. */
+html body:not(.light) #mmhVaultDialogV449.show:has(.mmh-account-dialog-v148),
+html body:not(.light) #mmhVaultDialogV449.show:has(.am-dialog-editor-v136){align-items:center!important;justify-content:center!important;background:rgba(2,10,21,.77)!important}
+html body:not(.light) #mmhVaultDialogV449 .mmh-account-dialog-v148,
+html body:not(.light) #mmhVaultDialogV449 .mmh-v449-dialog:has(.am-dialog-editor-v136){
+ width:min(900px,calc(100vw - 26px))!important;max-width:900px!important;max-height:calc(100dvh - 28px)!important;
+ border:1px solid rgba(171,219,247,.37)!important;border-radius:23px!important;
+ background:linear-gradient(142deg,rgba(27,63,88,.92),rgba(7,31,51,.95) 65%,rgba(2,18,35,.97))!important;
+ box-shadow:inset 0 1px rgba(255,255,255,.17),0 28px 80px rgba(0,0,0,.48)!important;
+ backdrop-filter:blur(23px) saturate(145%)!important;-webkit-backdrop-filter:blur(23px) saturate(145%)!important;
+ overflow:hidden!important;
+}
+html body:not(.light) #mmhVaultDialogV449 :is(.mmh-account-dialog-v148,.mmh-v449-dialog:has(.am-dialog-editor-v136)) .mmh-v449-dialog-head{padding:17px 21px!important;border-bottom:1px solid rgba(163,213,244,.20)!important;background:linear-gradient(180deg,rgba(240,248,255,.09),rgba(240,248,255,.01))!important}
+html body:not(.light) #mmhVaultDialogV449 :is(.mmh-account-dialog-v148,.mmh-v449-dialog:has(.am-dialog-editor-v136)) .mmh-v449-dialog-head h3{font:500 clamp(21px,2.15vw,27px)/1.23 Georgia,'Times New Roman',serif!important;color:#fbfcff!important}
+html body:not(.light) #mmhVaultDialogV449 .mmh-account-dialog-v148 .mmh-v449-dialog-body,
+html body:not(.light) #mmhVaultDialogV449 .mmh-v449-dialog:has(.am-dialog-editor-v136) .mmh-v449-dialog-body{overflow:auto!important;min-height:0!important;max-height:calc(100dvh - 205px)!important;padding:17px 20px!important;overscroll-behavior:contain!important}
+html body:not(.light) #mmhVaultDialogV449 .mmh-account-detail-v148 :is(.mmh-tx-detail-hero-v800,.mmh-tx-detail-item-v800,.mmh-account-kpi-v148,.mmh-account-balance-card-v149,.mmh-account-section-v830,.mmh-account-wallet-token-v176,.mmh-account-actions-v148 button,.mmh-account-flow-v830>div){
+ min-width:0!important;border:1px solid rgba(160,208,240,.21)!important;border-radius:16px!important;background:var(--ac40-tile)!important;box-shadow:inset 0 1px rgba(255,255,255,.07)!important;
+}
+html body:not(.light) #mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-tx-detail-hero-v800{background:radial-gradient(circle at 90% 0%,rgba(241,194,100,.14),transparent 45%),var(--ac40-tile)!important;border-color:rgba(241,204,130,.30)!important}
+html body:not(.light) #mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-tx-detail-amount-v800{color:#f4d38d!important;overflow-wrap:anywhere!important;white-space:normal!important;text-overflow:clip!important;font-variant-numeric:tabular-nums!important}
+html body:not(.light) #mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-topgrid-v148,
+html body:not(.light) #mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-balance-grid-v149{gap:10px!important}
+html body:not(.light) #mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-balance-card-v149{overflow:visible!important}
+html body:not(.light) #mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-balance-card-v149 b{color:#f7fbff!important;white-space:normal!important;overflow-wrap:anywhere!important}
+html body:not(.light) #mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-actions-v148 button{min-height:67px!important;transition:border-color .16s ease!important}
+html body:not(.light) #mmhVaultDialogV449 .mmh-account-detail-v148 .mmh-account-actions-v148 button:hover{border-color:rgba(244,206,125,.55)!important}
+html body:not(.light) #mmhVaultDialogV449 .mmh-account-detail-v148 :is(.mmh-account-recent-list-v830,.mmh-account-wallet-token-list-v176){border-radius:14px!important;border-color:rgba(160,208,240,.17)!important;background:rgba(6,26,45,.28)!important}
+html body:not(.light) #mmhVaultDialogV449 .mmh-account-dialog-v148 .mmh-v449-dialog-actions,
+html body:not(.light) #mmhVaultDialogV449 .mmh-v449-dialog:has(.am-dialog-editor-v136) .mmh-v449-dialog-actions{position:relative!important;border-top:1px solid rgba(170,218,248,.18)!important;background:linear-gradient(180deg,rgba(37,79,103,.74),rgba(7,31,53,.97))!important;padding:13px 20px!important}
+html body:not(.light) #mmhVaultDialogV449 :is(.mmh-account-dialog-v148,.mmh-v449-dialog:has(.am-dialog-editor-v136)) .mmh-v449-dialog-actions button{border-radius:12px!important;min-height:43px!important;box-shadow:inset 0 1px rgba(255,255,255,.11)!important}
+html body:not(.light) #mmhVaultDialogV449 :is(.mmh-account-dialog-v148,.mmh-v449-dialog:has(.am-dialog-editor-v136)) .mmh-v449-dialog-actions button.primary{background:linear-gradient(135deg,#f7dfa0,#dfa955)!important;color:#21180b!important;border-color:rgba(255,220,151,.67)!important}
+html body:not(.light) #mmhVaultDialogV449 .am-dialog-editor-v136 :is(.am-fields,.am-picker){background:linear-gradient(145deg,rgba(17,49,75,.75),rgba(5,23,43,.89))!important;border:1px solid rgba(163,211,243,.21)!important;border-radius:17px!important}
+html body:not(.light) #mmhVaultDialogV449 .am-dialog-editor-v136 .am-upload{background:rgba(25,66,93,.55)!important;border:1px dashed rgba(169,213,243,.31)!important;border-radius:14px!important}
+/* Manage Accounts stand-alone overlay retains native app behavior but takes same material. */
+html body:not(.light) #mmhManageOverlayV1.open .mmh-manager-window-v1{border:1px solid rgba(171,219,247,.35)!important;border-radius:23px!important;background:linear-gradient(142deg,rgba(27,63,88,.94),rgba(7,31,51,.97) 65%)!important;box-shadow:inset 0 1px rgba(255,255,255,.16),0 28px 80px rgba(0,0,0,.48)!important;backdrop-filter:blur(20px) saturate(140%)!important;-webkit-backdrop-filter:blur(20px) saturate(140%)!important}
+html body:not(.light) #mmhManageOverlayV1 .mmh-manager-window-head-v1{background:linear-gradient(180deg,rgba(241,249,255,.09),transparent)!important;border-bottom:1px solid rgba(160,210,243,.17)!important}
+/* Compact laptop and touch-first mobile. */
+@media(max-width:920px){
+ html body.mmh-workspace-active:not(.light) #accounts-page .ap-heading{min-height:146px!important;padding:21px!important}
+ html body.mmh-workspace-active:not(.light) #accounts-page .am-summary-grid>div{min-height:67px!important}
+}
+@media(max-width:620px){
+ html body.mmh-workspace-active:not(.light) #accounts-page{padding-bottom:max(110px,calc(80px + env(safe-area-inset-bottom)))!important}
+ html body.mmh-workspace-active:not(.light) #accounts-page .ap-heading{display:flex!important;flex-direction:column!important;align-items:stretch!important;min-height:0!important;gap:13px!important;padding:19px 16px!important;border-radius:18px!important;margin-bottom:11px!important}
+ html body.mmh-workspace-active:not(.light) #accounts-page .ap-heading>div{max-width:none!important}
+ html body.mmh-workspace-active:not(.light) #accounts-page .ap-heading h1{font-size:clamp(29px,8vw,39px)!important}
+ html body.mmh-workspace-active:not(.light) #accounts-page .ap-heading label{width:100%!important;min-width:0!important}
+ html body.mmh-workspace-active:not(.light) #accounts-page .ap-heading select{width:100%!important;min-width:0!important}
+ html body.mmh-workspace-active:not(.light) #accounts-page .am-shell{padding:12px!important;border-radius:18px!important}
+ html body.mmh-workspace-active:not(.light) #accounts-page .am-top{display:grid!important;grid-template-columns:1fr 1fr!important;gap:8px!important}
+ html body.mmh-workspace-active:not(.light) #accounts-page .am-top :is(button,select){width:100%!important;min-width:0!important}
+ html body.mmh-workspace-active:not(.light) #accounts-page .am-summary{padding:15px!important;border-radius:17px!important}
+ html body.mmh-workspace-active:not(.light) #accounts-page .am-summary>.am-top{display:flex!important;justify-content:space-between!important;flex-wrap:wrap!important}
+ html body.mmh-workspace-active:not(.light) #accounts-page .am-summary>.am-top button{width:auto!important}
+ html body.mmh-workspace-active:not(.light) #accounts-page .am-summary-grid{gap:8px!important;grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ html body.mmh-workspace-active:not(.light) #accounts-page .am-summary-grid>div{padding:12px!important;min-height:60px!important}
+ html body.mmh-workspace-active:not(.light) #accounts-page .am-summary-grid b{font-size:16px!important}
+ html body.mmh-workspace-active:not(.light) #accounts-page .am-find{grid-template-columns:1fr!important;gap:8px!important}
+ html body.mmh-workspace-active:not(.light) #accounts-page .am-row{padding:10px!important;min-height:67px!important;gap:9px!important}
+ html body.mmh-workspace-active:not(.light) #accounts-page .am-logo{flex-basis:39px!important;width:39px!important;height:39px!important}
+ html body.mmh-workspace-active:not(.light) #accounts-page .am-row-value{max-width:44%!important;font-size:clamp(13px,3.8vw,17px)!important}
+ html body:not(.light) #mmhVaultDialogV449 .mmh-account-dialog-v148,
+ html body:not(.light) #mmhVaultDialogV449 .mmh-v449-dialog:has(.am-dialog-editor-v136){width:calc(100vw - 18px)!important;max-height:calc(100dvh - 18px)!important;border-radius:19px!important}
+ html body:not(.light) #mmhVaultDialogV449 :is(.mmh-account-dialog-v148,.mmh-v449-dialog:has(.am-dialog-editor-v136)) .mmh-v449-dialog-body{max-height:calc(100dvh - 185px)!important;padding:13px!important}
+ html body:not(.light) #mmhVaultDialogV449 .mmh-account-dialog-v148 .mmh-account-topgrid-v148{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:7px!important}
+ html body:not(.light) #mmhVaultDialogV449 .mmh-account-dialog-v148 .mmh-account-balance-grid-v149{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}
+ html body:not(.light) #mmhVaultDialogV449 .mmh-account-dialog-v148 .mmh-account-actions-v148{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:7px!important}
+ html body:not(.light) #mmhVaultDialogV449 .mmh-account-dialog-v148 .mmh-account-actions-v148 button{padding:9px 5px!important;min-height:60px!important}
+ html body:not(.light) #mmhVaultDialogV449 .mmh-account-dialog-v148 .mmh-v449-dialog-actions{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}
+}
+@media(max-width:350px){html body.mmh-workspace-active:not(.light) #accounts-page .am-top{grid-template-columns:1fr!important}html body:not(.light) #mmhVaultDialogV449 .mmh-account-dialog-v148 .mmh-account-balance-grid-v149{grid-template-columns:1fr!important}}
+@media(prefers-reduced-motion:reduce){html body.mmh-workspace-active:not(.light) #accounts-page .am-row{transition:none!important;transform:none!important}}
+@supports not ((backdrop-filter:blur(8px)) or (-webkit-backdrop-filter:blur(8px))){html body.mmh-workspace-active:not(.light) #accounts-page .am-shell,html body:not(.light) #mmhVaultDialogV449 .mmh-account-dialog-v148{background:#0a2640!important}}

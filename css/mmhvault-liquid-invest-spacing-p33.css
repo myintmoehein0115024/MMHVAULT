@@ -1,0 +1,17 @@
+/* Invest P3.3 micro-refinement — presentation-only spacing.
+ * Preserve the independent-scrolling edit form introduced in P3.2. */
+html body:not(.light) #editModal.open:has(#editInvForm) #editInvForm .mmh-invest-edit-scroll-p32 .formgrid{row-gap:12px!important}
+html body:not(.light) #editModal.open:has(#editInvForm) #editInvForm .mmh-invest-edit-scroll-p32 .mmh-form-section-v1{margin:8px 0 8px!important;padding:8px 0 7px!important}
+html body:not(.light) #editModal.open:has(#editInvForm) #editInvForm .receipt-upload-v3300{margin:13px 0 0!important;padding:13px 15px!important}
+html body:not(.light) #editModal.open:has(#editInvForm) #editInvForm .receipt-upload-head-v3300{margin:0 0 7px!important;padding:0 0 9px!important;gap:8px!important}
+html body:not(.light) #editModal.open:has(#editInvForm) #editInvForm .receipt-upload-v3300 .receipt-upload-badge-v3300{margin:0!important}
+html body:not(.light) #editModal.open:has(#editInvForm) #editInvForm .receipt-dropzone-v3300{min-height:67px!important;margin:7px 0 9px!important;padding:9px 12px!important}
+html body:not(.light) #editModal.open:has(#editInvForm) #editInvForm .receipt-upload-footer-v3300{margin:3px 0 0!important;gap:5px 11px!important}
+html body:not(.light) #editModal.open:has(#editInvForm) #editInvForm .receipt-manage-state-v3309{padding:7px 10px!important;margin:6px 0 0!important}
+html body:not(.light) #editModal.open:has(#editInvForm) #editInvForm .mmh-invest-edit-scroll-p32{padding-bottom:13px!important}
+@media(max-width:650px){html body:not(.light) #editModal.open:has(#editInvForm) #editInvForm .receipt-upload-v3300{padding:11px!important;margin-top:11px!important}html body:not(.light) #editModal.open:has(#editInvForm) #editInvForm .receipt-dropzone-v3300{min-height:60px!important;padding:8px!important}}
+/* Put the repeated Optional badge on the right of the real upload heading. */
+html body:not(.light) #editModal.open:has(#editInvForm) #editInvForm .receipt-upload-head-v3300{display:flex!important;flex-wrap:nowrap!important;align-items:center!important;gap:10px!important}
+html body:not(.light) #editModal.open:has(#editInvForm) #editInvForm .receipt-upload-head-v3300>div:nth-child(2){min-width:0!important;flex:1 1 auto!important}
+html body:not(.light) #editModal.open:has(#editInvForm) #editInvForm .receipt-upload-badge-v3300{margin:0 0 0 auto!important;flex:0 0 auto!important;font-size:10px!important;border-radius:99px!important;padding:4px 9px!important;background:rgba(245,196,97,.09)!important;color:#f4ce80!important;border:1px solid rgba(245,196,97,.25)!important}
+@media(max-width:360px){html body:not(.light) #editModal.open:has(#editInvForm) #editInvForm .receipt-upload-badge-v3300{font-size:9px!important;padding:3px 6px!important}}
