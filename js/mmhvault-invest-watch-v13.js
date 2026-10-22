@@ -11,7 +11,7 @@ const T=(cn,en)=>lang()?cn:en;
 const owner=()=>{try{return typeof currentSessionUser!=='undefined'?String(currentSessionUser?.id||''):''}catch(_){return ''}};
 const money=(n,asset)=>`${asset==='Gold'?'K ':'$'}${Number(n).toLocaleString(undefined,{maximumFractionDigits:asset==='Gold'?2:6})}`;
 const table='invest_price_watch_plans';
-let activeOwner='',rows=[],loaded=false,pending=false,readToken=0,editing='',formOpen=false,warning='',draftRequestId='',draftSignature='';
+let activeOwner='',rows=[],loaded=false,pending=false,readToken=0,editing='',formOpen=false,warning='',draftRequestId='',draftSignature='',readError='';
 const rowId=v=>String(v||'');
 const validSymbol=v=>/^[A-Z0-9]{2,12}$/.test(v);
 const readSnapshot=()=>window.mmhInvestDailyV1?.guidanceSnapshot?.();
@@ -46,7 +46,7 @@ function evaluate(plan,snapshot,now=Date.now()){
 }
 function snapshotMatches(){const s=readSnapshot();return s&&s.owner===activeOwner?s:null}
 function getDB(){try{return typeof db!=='undefined'?db:null}catch(_){return null}}
-function reset(next=''){readToken++;activeOwner=next;rows=[];loaded=false;pending=false;warning='';editing='';formOpen=false;draftRequestId='';draftSignature='';const root=$('mmhInvestWatchV13');if(root){root.querySelector('[data-watch-list]')?.replaceChildren();root.querySelector('[data-watch-form]')?.replaceChildren();}}
+function reset(next=''){readToken++;activeOwner=next;rows=[];loaded=false;pending=false;readError='';warning='';editing='';formOpen=false;draftRequestId='';draftSignature='';const root=$('mmhInvestWatchV13');if(root){root.querySelector('[data-watch-list]')?.replaceChildren();root.querySelector('[data-watch-form]')?.replaceChildren();}}
 function rootUI(){const anchor=$('mmhInvestGuidanceV12')||$('mmhInvestDailyV1');if(!anchor)return null;
  let root=$('mmhInvestWatchV13');if(root)return root;
  root=document.createElement('section');root.id='mmhInvestWatchV13';root.className='ivw13-root';
@@ -83,7 +83,7 @@ function explanation(s){
 function labelCondition(row){return ({price_below:T('价格低于或等于','Price at or below'),price_above:T('价格高于或等于','Price at or above'),weight_above:T('仓位占比高于或等于','Portfolio weight at or above')})[row.condition]||row.condition;}
 function renderRows(){const r=rootUI();if(!r)return;const list=r.querySelector('[data-watch-list]');
  if(!activeOwner){list.innerHTML=`<p class="ivw13-empty">${T('登录后可以保存个人关注条件。','Sign in to save your watch plans.')}</p>`;return;}
- if(!loaded){list.innerHTML=`<p class="ivw13-empty">${T('正在载入云端关注计划…','Loading saved watch plans…')}</p>`;return;}
+ if(!loaded){list.innerHTML=readError?`<div class="ivw13-empty" role="status"><p>${esc(T('云端关注计划暂时无法读取，请点击重试。','Cannot load cloud watch plans. Please retry.'))}</p><button type="button" data-watch-reload>${T('重新读取','Retry loading')}</button></div>`:`<p class="ivw13-empty">${T('正在载入云端关注计划…','Loading saved watch plans…')}</p>`;return;}
  if(!rows.length){list.innerHTML=`<p class="ivw13-empty">${T('暂未设置关注计划。可以先为一种持仓添加价格或仓位参考线。','No watch plans yet. Add a price or allocation reference for one asset.')}</p>`;return;}
  const snapshot=snapshotMatches();
  list.innerHTML=rows.map(row=>{const status=evaluate(row,snapshot),metric=status.current==null?'—':status.unit==='%'?`${status.current.toFixed(2)}%`:money(status.current,row.asset_type);const val=row.condition==='weight_above'?`${Number(row.target_value)}%`:money(row.target_value,row.asset_type);
@@ -112,13 +112,14 @@ function feedback(msg,err=false){warning=msg;const el=rootUI()?.querySelector('[
 async function confirmedSession(expected){const dbc=getDB();if(!dbc)throw Error(T('Supabase 尚不可用。','Supabase is unavailable.'));
  const {data,error}=await dbc.auth.getUser();if(error||!data?.user||String(data.user.id)!==expected||owner()!==expected)throw Error(T('登录身份已变化，请重新打开页面。','Session changed. Reopen this page.'));return dbc;
 }
-async function load(force=false){const r=rootUI();if(!r)return;const user=owner();if(user!==activeOwner)reset(user);if(!user){renderRows();return;}if(pending||(!force&&loaded))return;
- const token=++readToken;pending=true;renderRows();try{
-  const dbc=await confirmedSession(user);const {data,error}=await dbc.from(table).select('id,user_id,client_request_id,asset_type,symbol,intent,condition,target_value,currency,is_active,version,created_at').eq('user_id',user).order('created_at',{ascending:false}).limit(200);
+async function load(force=false){const r=rootUI();if(!r)return;const user=owner();if(user!==activeOwner)reset(user);if(!user){renderRows();return;}if(pending||(!force&&(loaded||readError)))return;
+ const token=++readToken;pending=true;readError='';renderRows();try{
+  const dbc=await Promise.race([confirmedSession(user),new Promise((_,reject)=>setTimeout(()=>reject(Error('session_timeout')),12000))]);
+  const {data,error}=await Promise.race([dbc.from(table).select('id,user_id,client_request_id,asset_type,symbol,intent,condition,target_value,currency,is_active,version,created_at').eq('user_id',user).order('created_at',{ascending:false}).limit(200),new Promise((_,reject)=>setTimeout(()=>reject(Error('read_timeout')),12000))]);
   if(error)throw error;if(token!==readToken||owner()!==user)return;
   if((data||[]).length>=200)throw Error(T('关注计划过多，请先整理，暂不显示不完整列表。','Too many watches to read safely. Reduce entries.'));
-  rows=(data||[]).filter(x=>x.user_id===user);loaded=true;feedback('');
- }catch(err){if(token===readToken&&owner()===user){rows=[];loaded=false;feedback(T('无法读取关注计划：','Cannot read watches: ')+String(err.message||err),true);}}
+  rows=(data||[]).filter(x=>x.user_id===user);loaded=true;readError='';feedback('');
+ }catch(err){if(token===readToken&&owner()===user){rows=[];loaded=false;readError=String(err.message||err);feedback(T('无法读取关注计划（不会影响已保存的数据）：','Could not read watches (saved data is unchanged): ')+readError,true);}}
  finally{if(token===readToken){pending=false;renderRows();if(formOpen&&!r.querySelector('[data-watch-editor]'))renderForm();}}
 }
 async function save(fd){const user=owner();if(!user||pending)return;

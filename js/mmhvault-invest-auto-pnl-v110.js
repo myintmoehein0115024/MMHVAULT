@@ -24,7 +24,7 @@ function mount(){let root=$('#mmhInvestAutoPnlV110');if(root)return root;
  const anchor=$('#mmhInvestAutoV19')||$('#mmhInvestSnapshotsV18')||$('#mmhInvestDailyV1');if(!anchor)return null;
  root=document.createElement('section');root.id='mmhInvestAutoPnlV110';root.className='iv110-root';anchor.insertAdjacentElement('afterend',root);
  root.innerHTML=`<div class="iv110-head"><div><span class="iv110-eyebrow">INVEST · VERIFIED INPUTS</span><h2 data-v110-title></h2><p data-v110-intro></p></div><button type="button" class="iv110-refresh" data-v110-refresh></button></div>
- <div class="iv110-actions"><div class="iv110-switches" role="group" aria-label="Analysis period"><button type="button" data-v110-days="7">7D</button><button type="button" data-v110-days="30">30D</button></div><span data-v110-zone></span></div><div data-v110-body></div>
+ <div class="iv110-actions"><div class="iv110-switches" role="group" aria-label="Analysis period"><button type="button" data-v110-days="7">7D</button><button type="button" data-v110-days="30">30D</button></div><span data-v110-zone></span></div><div data-v110-health class="iv110-input-health" role="status"></div><div data-v110-body></div>
  <p class="iv110-foot" data-v110-caveat></p><p class="iv110-message" data-v110-message role="status" aria-live="polite"></p>`;
  root.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
   if(b.dataset.v110Days){changeRange(Number(b.dataset.v110Days));}
@@ -40,7 +40,11 @@ function normalizeLedger(rows,owner){
   const day=String(r.inv_date||'').slice(0,10),sym=String(r.symbol||'').toUpperCase().trim();
   if(!dateValid(day)||!/^[A-Z0-9]{2,12}$/.test(sym)||sym==='USDT')return{reason:'ledger'};
   const q=Num(r.quantity),a=Num(r.amount),fee=Num(r.fee??0),other=Num(r.other_cost??0);
-  if(!Number.isFinite(q)||q===0||!Number.isFinite(a)||a<=0||!Number.isFinite(fee)||fee<0||!Number.isFinite(other)||other<0)return{reason:'ledger'};
+  if(!Number.isFinite(q)||q===0||!Number.isFinite(a)||!Number.isFinite(fee)||fee<0||!Number.isFinite(other)||other<0)return{reason:'ledger',at:day};
+  // MMHVAULT records sales as negative quantity AND negative cash amount.
+  // A non-zero signed sale is valid; zero proceeds are ambiguous and must be reviewed.
+  if(a===0)return{reason:q<0?'zero_proceeds':'zero_amount',at:day};
+  if(q>0&&a<0)return{reason:'ledger',at:day};
   const isSell=q<0;
   const signed=isSell?-Math.abs(q):q,flow=isSell?Math.abs(a)-fee-other:-Math.abs(a)-fee-other;
   list.push({day,sym,q:signed,flow,id});
@@ -52,7 +56,7 @@ function calculate(options){
  if(!owner||!settings||!Number.isInteger(Number(settings.offset_minutes)))return{ok:false,reason:'setting'};
  const offset=Number(settings.offset_minutes);if(offset< -720||offset>840||offset%15!==0)return{ok:false,reason:'zone'};
  const end=addDay(todayAtOffset(offset),-1),start=addDay(end,-days+1),previous=addDay(start,-1);
- const normalized=normalizeLedger(ledger,owner);if(!normalized.list)return {ok:false,reason:normalized.reason};
+ const normalized=normalizeLedger(ledger,owner);if(!normalized.list)return {ok:false,reason:normalized.reason,at:normalized.at||''};
  const quoteMap=new Map(),quoteErrors=new Set(),statusMap=new Map();
  for(const s of statuses){if(String(s.user_id)!==owner)return {ok:false,reason:'owner'};if(Number(s.offset_minutes)===offset)statusMap.set(s.quote_date,s);}
  for(const q of quotes){
@@ -98,7 +102,7 @@ function calculate(options){
  }
  return {ok:true,offset,from:start,to:end,verified,days,complete:verified===days,total:verified===days?total:null,reports};
 }
-function message(reason){return({pending:T('尚未完成后台采集','Waiting for scheduled capture'),incomplete:T('采集不完整','Incomplete capture'),empty:T('当天无符合条件的币种','No eligible symbols'),ledger_review:T('投资账本需要人工核对','Ledger needs review'),fetch_error:T('历史报价暂不可用','Historical quote unavailable'),capacity:T('后台采集容量限制','Capture capacity limit'),missing_quote:T('缺少必要的前后两日价格','Missing required close prices'),negative:T('交易数量导致负持仓，需核对','Negative position; review trades'),no_holdings:T('当天没有可核实持仓','No verifiable holdings'),symbols:T('币种报价不完整','Incomplete symbol coverage'),owner:T('登录账户资料不一致','Account data mismatch'),ledger:T('部分投资记录无效','Invalid investment record'),duplicate:T('投资编号重复','Duplicate investment ID'),setting:T('没有可用的自动采集设置','No capture preference found'),zone:T('采集时区无效','Invalid archive time zone'),read:T('云端历史读取失败','Could not read cloud history'),limit:T('记录超过安全读取上限','History exceeds safe read cap'),calculation:T('无法完成资金流复算','Cash-flow reconstruction failed')})[reason]||T('需要核对','Review required');}
+function message(reason){return({pending:T('尚未完成后台采集','Waiting for scheduled capture'),incomplete:T('采集不完整','Incomplete capture'),empty:T('当天无符合条件的币种','No eligible symbols'),ledger_review:T('投资账本需要人工核对','Ledger needs review'),fetch_error:T('历史报价暂不可用','Historical quote unavailable'),capacity:T('后台采集容量限制','Capture capacity limit'),missing_quote:T('缺少必要的前后两日价格','Missing required close prices'),negative:T('交易数量导致负持仓，需核对','Negative position; review trades'),no_holdings:T('当天没有可核实持仓','No verifiable holdings'),symbols:T('币种报价不完整','Incomplete symbol coverage'),owner:T('登录账户资料不一致','Account data mismatch'),ledger:T('部分投资记录无效','Invalid investment record'),duplicate:T('投资编号重复','Duplicate investment ID'),setting:T('没有可用的自动采集设置','No capture preference found'),zone:T('采集时区无效','Invalid archive time zone'),zero_proceeds:T('有一笔数量减少但成交金额为 0 的 Crypto 记录；可能是转出或漏记回款，须核对后才能计算盈亏','Crypto quantity decreases with zero recorded proceeds; this may be a transfer or missing sale proceeds and requires review'),zero_amount:T('有一笔 Crypto 投入数量增加但金额为 0，请检查记录','Crypto quantity increases but cash amount is zero; check the record'),read:T('云端历史读取失败','Could not read cloud history'),limit:T('记录超过安全读取上限','History exceeds safe read cap'),calculation:T('无法完成资金流复算','Cash-flow reconstruction failed')})[reason]||T('需要核对','Review required');}
 function render(){const root=mount();if(!root)return;
  root.querySelector('[data-v110-title]').textContent=T('自动行情 · 每日盈亏核对','Captured Quotes · Daily P/L Review');
  root.querySelector('[data-v110-intro]').textContent=T('使用自动归档的历史报价与真实买卖流水独立复算，区分已核对输入和缺失数据。','Reconstruct daily P/L from automatically archived prices and your transaction ledger; missing inputs remain unverified.');
@@ -108,11 +112,13 @@ function render(){const root=mount();if(!root)return;
  root.querySelector('[data-v110-zone]').textContent=state.settings?`UTC${zone(Number(state.settings.offset_minutes))}`:'UTC —';
  root.querySelector('[data-v110-caveat]').textContent=T('说明：以交易表中的日期、金额、数量和费用及 Binance USDT 市场日线价复算。USDT 报价被视作 USD 近似，非银行美元结算；固定时区、成交时间、部分卖出和手续费口径仍需实际交易所核对。没有自动报价的日期不算成零收益。此处不写入盈亏快照，不修改财务数据，也不触发买卖。','Uses investment ledger date, quantity, amount and fees with Binance USDT-market daily bars. USDT is treated as an approximate USD quote, not bank USD settlement. Trade timing, fixed offsets, sales and fees still require exchange reconciliation. Missing days are not zero. No snapshot writes or trades.');
  const body=root.querySelector('[data-v110-body]'),status=root.querySelector('[data-v110-message]');
+ const health=root.querySelector('[data-v110-health]');
+ if(health){const q=state.quotes.length,c=state.statuses.filter(x=>x.state==='complete').length,ledger=state.ledger.length;health.textContent=state.loaded?T(`已读取 ${ledger} 条 Crypto 记录、${q} 条历史价格、${c} 个完成采集日。报价存在不等于盈亏已核实。`,`Read ${ledger} Crypto records, ${q} archived price rows and ${c} completed capture days. Captured prices do not certify P/L.`):'';}
  status.textContent=state.error;
  if(!state.owner){body.innerHTML=`<p class="iv110-empty">${T('登录后查看自己的投资核对记录。','Sign in to see your own reports.')}</p>`;return;}
  if(!state.loaded||!state.result){body.innerHTML=`<p class="iv110-empty">${state.busy?T('正在核对交易及历史行情…','Reconciling trades and quotes…'):T('点击重新核对读取历史记录。','Select Recheck to load history.')}</p>`;return;}
  const r=state.result;
- if(!r.ok){body.innerHTML=`<p class="iv110-empty">${message(r.reason)}。${T('已暂停金额汇总。','Totals withheld.')}</p>`;return;}
+ if(!r.ok){const when=r.at?` <strong>${ESC(r.at)}</strong>`:'';body.innerHTML=`<p class="iv110-empty">${ESC(message(r.reason))}${when}。${T('请检查 Invest → History 中对应的原始记录；不自动修改投资数据。','Review the original record under Invest → History. No investment records are changed automatically.')} ${T('盈亏汇总已暂停。','P/L totals withheld.')}</p>`;return;}
  const reports=r.reports,chosen=reports.find(x=>x.date===selected)||reports[reports.length-1];if(!reports.some(x=>x.date===selected))selected=chosen.date;
  body.innerHTML=`<div class="iv110-overview"><div class="iv110-metric"><small>${T('最近完成交易日','Latest completed date')}</small><strong>${ESC(r.to)}</strong><span>${T('仅统计已结束日期','Completed dates only')}</span></div><div class="iv110-metric"><small>${T('已核对输入的日期','Dates with inputs verified')}</small><strong>${r.verified} / ${r.days}</strong><span>${T('交易流水 + 采集报价','Ledger + captured quotes')}</span></div><div class="iv110-metric"><small>${T('完整区间净盈亏','Complete-window net P/L')}</small><strong class="${r.complete&&r.total>=0?'iv110-positive':r.complete?'iv110-negative':'iv110-muted'}">${r.complete?usd(r.total):'—'}</strong><span>${r.complete?T('USD 近似，非交易所结算','Approx. USD, not exchange settlement'):T('有日期未核实，不合并金额','Missing days; total withheld')}</span></div></div>
   <div class="iv110-subhead"><h3>${T('逐日核对','Daily verification')}</h3><small>${T('点击日期查看每个币种','Select a date for per-coin results')}</small></div>
