@@ -1,0 +1,179 @@
+/* MMHVAULT — Warm Liquid Glass · Life Planner P5.1
+ * Child-module and modal convergence. Additive CSS, no JS, finance or privacy changes.
+ * Material language: warm ivory + mineral-blue glass + restrained champagne highlights.
+ */
+#life-planner{
+  --lp51-rim:rgba(255,255,255,.82);
+  --lp51-border:rgba(191,165,124,.34);
+  --lp51-shadow:0 13px 38px rgba(26,43,35,.12),inset 0 1px 0 rgba(255,255,255,.94);
+  --lp51-glass:linear-gradient(138deg,rgba(255,254,249,.89),rgba(243,246,238,.75) 68%,rgba(235,244,237,.74));
+  --lp51-control:linear-gradient(135deg,rgba(255,255,255,.92),rgba(242,243,231,.78));
+}
+/* Unlike the hero, child-module headers should not take up the whole viewport. */
+html body.mmh-workspace-active #life-planner :is(.lp-hero:not(.lp-lifestyle-hero),.lh-hero,.ls-hero,.lf-head,.lg-hero,.li-hero){
+  border:1px solid var(--lp51-rim)!important;
+  border-radius:19px!important;
+  box-shadow:var(--lp51-shadow)!important;
+  background-color:rgba(255,251,244,.80)!important;
+  backdrop-filter:blur(12px) saturate(118%)!important;
+  -webkit-backdrop-filter:blur(12px) saturate(118%)!important;
+}
+html body.mmh-workspace-active #life-planner :is(.lh-shell,.ls-shell,.lf-shell,.lg-shell,.li-shell,.lp-schedule-shell){
+  padding:clamp(13px,2vw,23px)!important;
+  min-width:0!important;
+}
+html body.mmh-workspace-active #life-planner :is(.lh-grid,.ls-grid,.lf-grid,.lg-grid,.li-grid){gap:12px!important;min-width:0!important}
+/* Material surfaces for the actual dynamically rendered inner elements. */
+html body.mmh-workspace-active #life-planner :is(
+  .lp-event,.lp-focus-task,.lp-focus-intro,.lp-daily-focus,.lp-week-rhythm,.lp-week-day,.lp-reminder-panel,.lp-upcoming,
+  .lh-insights,.lh-journal,.lh-calendar-wrap,.lh-pause-tool,.lh-day-summary,.lh-status,.lh-empty,
+  .ls-notice,.ls-empty,.ls-trend-list,.ls-trend-row,.ls-potential,.ls-explainer,.ls-insight-stats>div,
+  .lf-note,.lf-history,.lf-fund-flow,.lf-empty,.lf-account-preview,.lf-movement-item,.lf-flow-row,.lf-transfer-item,
+  .lg-empty,.lg-reveal-info,.lg-step,.lg-info,.lg-controls,.lg-note,
+  .li-compare,.li-kpi,.li-pending,.li-warning,.li-bars,.li-quiet
+){
+  min-width:0!important;
+  border:1px solid rgba(198,179,148,.30)!important;
+  border-radius:14px!important;
+  background:var(--lp51-glass)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.83),0 7px 18px rgba(32,53,40,.055)!important;
+}
+html body.mmh-workspace-active #life-planner :is(.lh-card,.ls-card,.lf-card,.lg-card,.li-module-card,.lp-panel,.lp-summary-card){
+  min-width:0!important;
+  box-shadow:var(--lp51-shadow)!important;
+  border-color:rgba(205,181,141,.39)!important;
+}
+/* Calendar, journal and progress — preserve all original semantic state colors. */
+html body.mmh-workspace-active #life-planner :is(.lp-day,.lh-calendar-day,.lh-calendar-blank,.lp-week-day){
+  border-radius:11px!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.55)!important;
+}
+html body.mmh-workspace-active #life-planner :is(.lp-day.lp-selected,.lh-calendar-day.is-selected,.lp-week-day.is-selected){
+  background:linear-gradient(145deg,rgba(247,217,164,.76),rgba(236,242,221,.83))!important;
+  border-color:rgba(189,131,56,.66)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.91),0 0 0 1px rgba(188,130,55,.12)!important;
+}
+html body.mmh-workspace-active #life-planner :is(.lp-event-actions,.lh-actions,.ls-card-actions,.lf-actions,.lg-card-actions,.li-actions){gap:8px!important;flex-wrap:wrap!important}
+/* Controls retain native input/change/submit semantics. */
+html body.mmh-workspace-active #life-planner :is(.lp-shell,.lh-shell,.ls-shell,.lf-shell,.lg-shell,.li-shell) :is(button,select,input:not([type=checkbox]):not([type=radio]),textarea){
+  max-width:100%;
+  border-radius:12px!important;
+}
+html body.mmh-workspace-active #life-planner :is(.lh-shell,.ls-shell,.lf-shell,.lg-shell,.li-shell,.lp-schedule-shell) :is(input:not([type=checkbox]):not([type=radio]),select,textarea){
+  background:var(--lp51-control)!important;
+  border:1px solid rgba(172,164,143,.43)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9)!important;
+  color:#294737!important;
+}
+html body.mmh-workspace-active #life-planner :is(.lh-shell,.ls-shell,.lf-shell,.lg-shell,.li-shell,.lp-schedule-shell) :is(button,input,textarea,select):focus-visible{
+  outline:2px solid #bb8643!important;outline-offset:2px!important;
+}
+/* Quiet but unmistakable primary and destructive actions. */
+html body.mmh-workspace-active #life-planner :is(.lp-primary,.lh-accent,.ls-primary,.lf-primary,.lg-gold){
+  background:linear-gradient(135deg,#f7dfa7,#dca95d)!important;
+  color:#332819!important;border-color:rgba(192,137,61,.54)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.66),0 6px 18px rgba(170,114,38,.15)!important;
+}
+html body.mmh-workspace-active #life-planner :is(.lh-danger,.lg-danger,.lg-delete){border-color:rgba(174,98,91,.35)!important;color:#934840!important}
+/* Apply one design system to all Life Planner portal/dialog variants on body. */
+html body #lpOverlayV1.lp-portal-overlay:not([hidden]){
+  background:rgba(4,18,28,.74)!important;
+  backdrop-filter:blur(8px) saturate(120%)!important;
+  -webkit-backdrop-filter:blur(8px) saturate(120%)!important;
+}
+html body :is(.lh-dialog,.ls-dialog,.lf-dialog,.lg-dialog)::backdrop{
+  background:rgba(4,18,28,.75)!important;
+  backdrop-filter:blur(7px)!important;
+  -webkit-backdrop-filter:blur(7px)!important;
+}
+html body :is(#lpOverlayV1 .lp-modal,.lh-dialog,.ls-dialog,.lf-dialog,.lg-dialog){
+  box-sizing:border-box!important;
+  border:1px solid rgba(255,255,255,.80)!important;
+  border-radius:21px!important;
+  background:linear-gradient(135deg,rgba(255,252,244,.96),rgba(237,244,232,.95))!important;
+  color:#2b4438!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.98),0 25px 70px rgba(0,0,0,.34)!important;
+  backdrop-filter:blur(18px) saturate(120%)!important;
+  -webkit-backdrop-filter:blur(18px) saturate(120%)!important;
+  overflow:hidden!important;
+}
+html body :is(#lpOverlayV1 .lp-modal-heading,.lh-dialog .lh-dialog-top,.ls-dialog .ls-dialog-header,.lf-dialog .lf-dialog-head,.lg-dialog .lg-dialog-head){
+  border-bottom:1px solid rgba(182,155,116,.28)!important;
+  background:linear-gradient(135deg,rgba(255,255,255,.80),rgba(247,237,215,.62))!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.91)!important;
+}
+html body :is(#lpOverlayV1 .lp-modal-actions.lp-modal-footer,.lh-dialog .lh-dialog-actions,.ls-dialog .ls-dialog-footer,.lf-dialog .lf-dialog-actions,.lg-dialog .lg-dialog-foot){
+  flex:0 0 auto!important;
+  position:relative!important;
+  z-index:1!important;
+  border-top:1px solid rgba(182,155,116,.27)!important;
+  background:linear-gradient(160deg,rgba(255,253,248,.96),rgba(238,244,233,.94))!important;
+  box-shadow:0 -8px 22px rgba(49,55,35,.055),inset 0 1px rgba(255,255,255,.9)!important;
+  backdrop-filter:blur(14px) saturate(115%)!important;
+  -webkit-backdrop-filter:blur(14px) saturate(115%)!important;
+}
+/* Never put sticky action buttons over scrollable form content. */
+html body :is(#lpOverlayV1 .lp-modal-body,.lh-dialog .lh-dialog-body,.ls-dialog .ls-dialog-body,.lf-dialog .lf-dialog-body,.lg-dialog .lg-dialog-scroll){
+  min-height:0!important;
+  overscroll-behavior:contain!important;
+  overflow-y:auto!important;
+  -webkit-overflow-scrolling:touch;
+}
+html body :is(.lh-dialog form,.ls-dialog form,.lf-dialog form,.lg-dialog form){min-height:0!important;display:flex!important;flex-direction:column!important}
+html body :is(.lh-dialog .lh-dialog-body,.ls-dialog .ls-dialog-body,.lf-dialog .lf-dialog-body,.lg-dialog .lg-dialog-scroll) :is(input:not([type=checkbox]):not([type=radio]),select,textarea),
+html body #lpOverlayV1 :is(input:not([type=checkbox]):not([type=radio]),select,textarea){
+  box-sizing:border-box!important;
+  border:1px solid rgba(170,157,132,.42)!important;
+  border-radius:12px!important;
+  background:rgba(255,255,253,.82)!important;
+  color:#2a463a!important;
+  min-width:0!important;
+  max-width:100%!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9)!important;
+}
+html body :is(.lh-dialog,.ls-dialog,.lf-dialog,.lg-dialog) :is(input,select,textarea):focus-visible,
+html body #lpOverlayV1 :is(input,select,textarea):focus-visible{outline:2px solid #b68449!important;outline-offset:1px!important}
+html body :is(.lh-dialog,.ls-dialog,.lf-dialog,.lg-dialog) :is(button,.lp-btn){
+  border-radius:12px!important;
+  min-height:42px!important;
+}
+html body :is(.lh-dialog,.ls-dialog,.lf-dialog,.lg-dialog) :is(.lh-accent,.ls-primary,.lf-primary,.lg-gold),
+html body #lpOverlayV1 .lp-btn.lp-primary{
+  background:linear-gradient(145deg,#f4d79b,#daa452)!important;
+  color:#2b261a!important;
+  border:1px solid rgba(180,120,48,.43)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.69),0 5px 15px rgba(174,118,52,.14)!important;
+}
+html body :is(.lh-dialog,.ls-dialog,.lf-dialog,.lg-dialog) :is(.lh-danger,.lg-danger,.lg-delete){color:#a34640!important;border-color:rgba(167,71,66,.33)!important}
+/* For a short confirmation, use natural-height centered <dialog>. Do not force full-height sheets. */
+html body :is(.lh-dialog,.ls-dialog,.lf-dialog,.lg-dialog){height:fit-content!important;max-height:calc(100dvh - 22px)!important;max-width:calc(100vw - 20px)!important}
+html body #lpOverlayV1 .lp-modal:not(.lp-event-dialog){height:auto!important}
+/* Neutral inline notices: no sensitive habits or potential savings surfaced on home. */
+html body.mmh-workspace-active #life-planner :is(.lh-privacy,.ls-privacy,.lf-privacy,.li-privacy,.lp-private-note){
+  background:linear-gradient(145deg,rgba(230,241,225,.86),rgba(252,249,239,.80))!important;
+  border:1px solid rgba(133,166,139,.33)!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.76)!important;
+}
+/* Mobile and narrow browser density. Keep tap targets usable. */
+@media(max-width:680px){
+  html body.mmh-workspace-active #life-planner :is(.lh-shell,.ls-shell,.lf-shell,.lg-shell,.li-shell,.lp-schedule-shell){padding:12px!important}
+  html body.mmh-workspace-active #life-planner :is(.lp-hero:not(.lp-lifestyle-hero),.lh-hero,.ls-hero,.lf-head,.lg-hero,.li-hero){border-radius:15px!important;padding:16px!important;min-height:0!important}
+  html body.mmh-workspace-active #life-planner :is(.lh-grid,.ls-grid,.lf-grid,.lg-grid,.li-grid){gap:9px!important}
+  html body.mmh-workspace-active #life-planner :is(.lh-card,.ls-card,.lf-card,.lg-card,.li-module-card,.lp-panel){padding:12px!important;border-radius:14px!important}
+  html body.mmh-workspace-active #life-planner :is(.lp-event-actions,.lh-actions,.ls-card-actions,.lf-actions,.lg-card-actions,.li-actions)>button{min-height:40px!important}
+  html body :is(.lh-dialog,.ls-dialog,.lf-dialog,.lg-dialog){border-radius:17px!important;max-height:calc(100dvh - 16px)!important}
+  html body :is(.lh-dialog .lh-form-grid,.ls-dialog .ls-form-grid,.lf-dialog .lf-form-grid,.lg-dialog .lg-form-cols){grid-template-columns:1fr!important;gap:10px!important}
+  html body :is(.lh-dialog .lh-dialog-top,.ls-dialog .ls-dialog-header,.lf-dialog .lf-dialog-head,.lg-dialog .lg-dialog-head){padding:13px 15px!important}
+  html body :is(.lh-dialog .lh-dialog-body,.ls-dialog .ls-dialog-body,.lf-dialog .lf-dialog-body,.lg-dialog .lg-dialog-scroll){padding:14px 15px!important}
+  html body :is(.lh-dialog .lh-dialog-actions,.ls-dialog .ls-dialog-footer,.lf-dialog .lf-dialog-actions,.lg-dialog .lg-dialog-foot){padding:12px 15px max(12px,env(safe-area-inset-bottom))!important;gap:8px!important}
+  html body #lpOverlayV1.lp-portal-overlay:not([hidden]){align-items:center!important;justify-content:center!important}
+  html body #lpOverlayV1 .lp-event-dialog{height:min(760px,100%)!important}
+  html body :is(.lh-dialog,.ls-dialog,.lf-dialog,.lg-dialog) :is(input:not([type=checkbox]):not([type=radio]),select,textarea){font-size:16px!important}
+}
+@media(prefers-reduced-motion:reduce){
+  html body.mmh-workspace-active #life-planner :is(.lp-shell,.lh-shell,.ls-shell,.lf-shell,.lg-shell,.li-shell) *,
+  html body :is(.lh-dialog,.ls-dialog,.lf-dialog,.lg-dialog,#lpOverlayV1) *{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+  html body :is(#lpOverlayV1 .lp-modal,.lh-dialog,.ls-dialog,.lf-dialog,.lg-dialog){background:#f7f4e9!important}
+}
