@@ -161,3 +161,99 @@ html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-donut-v63
 @media(max-width:600px){#mmhGlassToastsV2{top:auto;bottom:calc(98px + env(safe-area-inset-bottom,0px));left:10px;right:10px;max-width:none}}
 @supports not (backdrop-filter:blur(12px)){html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 :is(.pf-card-v500,.pf-kpi-v500,.pf-budget-v112),#mmhVaultDialogV449 .mmh-v449-dialog{background:#0a2239!important}}
 @media(prefers-reduced-motion:reduce){#mmhGlassToastsV2 *,#mmhPremiumDashboardV500 .pf-kpi-v500{animation:none!important;transition:none!important}}
+
+
+/* === Liquid Dashboard P1.3 refinement ===
+   Focus: stronger glass hierarchy + medium-width scaling stability. */
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 :is(.pf-kpi-v500,.pf-card-v500,.pf-budget-v112,.pf-planning-card-v117,.pf-insights-v150,.pf-quick-actions-v140){
+  isolation:isolate!important;
+}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 :is(.pf-kpi-v500,.pf-card-v500,.pf-budget-v112,.pf-planning-card-v117,.pf-insights-v150,.pf-quick-actions-v140)::before{
+  content:''!important;position:absolute!important;inset:1px 1px auto 1px!important;height:42%!important;border-radius:inherit!important;
+  background:linear-gradient(180deg,rgba(255,255,255,.15),rgba(255,255,255,.055) 28%,rgba(255,255,255,0) 82%)!important;
+  opacity:.9!important;pointer-events:none!important;z-index:0!important;
+}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 :is(.pf-kpi-v500,.pf-card-v500,.pf-budget-v112,.pf-planning-card-v117,.pf-insights-v150,.pf-quick-actions-v140)::after{
+  content:''!important;position:absolute!important;inset:auto -12% -28% 42%!important;height:62%!important;
+  background:radial-gradient(circle at center,rgba(248,193,86,.14),rgba(248,193,86,0) 62%)!important;pointer-events:none!important;
+  filter:blur(24px)!important;z-index:0!important;opacity:.85!important;
+}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 :is(.pf-kpi-v500,.pf-card-v500,.pf-budget-v112,.pf-planning-card-v117,.pf-insights-v150,.pf-quick-actions-v140)>*{position:relative!important;z-index:1!important}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-kpi-v500,
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-card-v500{
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.19),inset 0 18px 40px rgba(255,255,255,.022),inset -18px 0 40px rgba(108,177,230,.018),0 20px 50px rgba(0,0,0,.32),0 0 26px rgba(20,126,196,.05)!important;
+}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-kpi-v500:hover,
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-card-v500:hover{border-color:rgba(249,205,111,.56)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.22),inset 0 22px 48px rgba(255,255,255,.03),0 22px 60px rgba(0,0,0,.36),0 0 30px rgba(241,187,73,.11)!important}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-hero-v500{
+  border:1px solid rgba(139,191,230,.24)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 18px 46px rgba(0,0,0,.28)!important;
+  backdrop-filter:blur(14px) saturate(125%)!important;-webkit-backdrop-filter:blur(14px) saturate(125%)!important;
+}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-hero-v500::before{
+  content:''!important;position:absolute!important;inset:0!important;border-radius:inherit!important;pointer-events:none!important;
+  background:linear-gradient(180deg,rgba(255,255,255,.08),rgba(255,255,255,0) 34%),linear-gradient(90deg,rgba(3,12,24,.14),rgba(3,12,24,0) 28%,rgba(3,12,24,.1) 88%)!important;
+}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-kpi-label-v500{max-width:calc(100% - 56px)!important;line-height:1.16!important}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-kpi-value-v500{font-size:clamp(22px,2vw,34px)!important;line-height:1.02!important;text-wrap:balance!important}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-kpi-meta-v500{font-size:10px!important;line-height:1.35!important;row-gap:5px!important;column-gap:8px!important}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-card-head-v500{padding:18px 20px 0!important}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-card-head-v500 h2{font-size:clamp(18px,1.55vw,34px)!important}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-budget-v112{overflow:hidden!important}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-budget-stat-v112{padding:18px 20px!important;min-width:0!important}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-budget-stat-v112 strong{font-size:clamp(17px,1.8vw,26px)!important;line-height:1.08!important;text-wrap:balance!important}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-budget-stat-v112 small,
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-budget-head-v112 small{line-height:1.35!important}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-quick-actions-v140 .pf-quick-grid-v140{gap:12px!important}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-quick-actions-v140 .pf-quick-item-v140{min-width:0!important}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-quick-actions-v140 .pf-quick-item-v140 strong,
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-quick-actions-v140 .pf-quick-item-v140 span{overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;display:block!important}
+
+/* Refine laptop widths where the browser is not full-screen. */
+@media (min-width:1180px) and (max-width:1490px){
+  html body.mmh-workspace-active:has(#dashboard.active) #bottomNav.bottom-nav{width:212px!important;left:12px!important}
+  html body.mmh-workspace-active:has(#dashboard.active) #header{left:236px!important;right:12px!important}
+  html body.mmh-workspace-active:has(#dashboard.active) main.wrap{padding-left:244px!important;padding-right:14px!important;padding-top:90px!important}
+  html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500{gap:11px!important;max-width:1320px!important}
+  html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-hero-v500{min-height:116px!important;padding:12px 16px 16px!important}
+  html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-hero-v500 h1{font-size:clamp(26px,3vw,44px)!important}
+  html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-hero-sub-v500{font-size:clamp(12px,1.02vw,16px)!important}
+  html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-kpis-v500{gap:11px!important}
+  html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-kpi-v500{min-height:142px!important;padding:18px 14px 13px!important}
+  html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-kpi-icon-v500{width:42px!important;height:42px!important;right:12px!important;top:12px!important}
+  html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-kpi-label-v500{font-size:11px!important;max-width:calc(100% - 52px)!important}
+  html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-kpi-value-v500{margin-top:14px!important;font-size:clamp(20px,1.9vw,30px)!important}
+  html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-kpi-meta-v500{font-size:9px!important}
+  html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-card-head-v500{padding:14px 16px 0!important}
+  html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-card-head-v500 h2{font-size:clamp(17px,1.4vw,26px)!important}
+  html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-market-head-v500,
+  html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-market-row-v500{font-size:11px!important}
+  html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-trend-card-v620{grid-column:span 7!important;min-height:332px!important}
+  html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-market-card-v630{grid-column:span 5!important;min-height:332px!important}
+  html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-allocation-card-v630{grid-column:span 5!important;min-height:278px!important}
+  html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-recent-flow-v620{grid-column:span 7!important;min-height:278px!important}
+  html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-budget-v112{grid-template-columns:minmax(180px,1.2fr) repeat(4,minmax(0,1fr))!important;min-height:148px!important}
+  html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-budget-stat-v112{padding:16px 16px!important}
+  html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-budget-stat-v112 strong{font-size:clamp(16px,1.7vw,22px)!important}
+}
+
+/* Stronger tablet behavior. */
+@media (min-width:800px) and (max-width:1179px){
+  html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500{grid-template-columns:repeat(6,minmax(0,1fr))!important;gap:10px!important}
+  html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-kpis-v500{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important}
+  html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-trend-card-v620,
+  html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-market-card-v630,
+  html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-allocation-card-v630,
+  html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-recent-flow-v620{grid-column:1/-1!important}
+  html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-budget-v112{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-budget-head-v112{grid-column:1/-1!important}
+}
+
+/* Small phone polishing. */
+@media(max-width:520px){
+  html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-budget-v112{grid-template-columns:1fr!important}
+  html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-budget-stat-v112,
+  html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-budget-head-v112{padding:14px 14px!important}
+  html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-budget-stat-v112 strong{font-size:20px!important}
+  html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-quick-actions-v140 .pf-quick-grid-v140{grid-template-columns:1fr!important}
+}
