@@ -1,0 +1,45 @@
+/* Invest 2.0 — scoped, UI-only layout. Original investment cards are reparented intact. */
+#invest #mmhInvestWorkspaceV2{--iw2-line:rgba(112,170,210,.23);--iw2-muted:#a5bdcc;max-width:100%;min-width:0;display:block;box-sizing:border-box;margin:4px 0 18px}
+#invest #mmhInvestWorkspaceV2 *,#invest #mmhInvestWorkspaceV2 *::before,#invest #mmhInvestWorkspaceV2 *::after{box-sizing:border-box}
+#invest #mmhInvestWorkspaceV2 .iw2-intro{padding:20px 24px 14px;border:1px solid var(--iw2-line);border-bottom:0;border-radius:22px 22px 0 0;background:linear-gradient(135deg,rgba(15,43,65,.98),rgba(6,19,34,.97));}
+#invest #mmhInvestWorkspaceV2 .iw2-eyebrow{display:block;color:#f4c975;letter-spacing:.19em;font-weight:800;font-size:10px;margin-bottom:7px}
+#invest #mmhInvestWorkspaceV2 .iw2-intro h2{font-weight:800;font-size:clamp(20px,2.2vw,29px);line-height:1.3;margin:0 0 4px;color:#f0f6ff}
+#invest #mmhInvestWorkspaceV2 .iw2-intro p{font-size:13px;margin:0;line-height:1.6;color:var(--iw2-muted)}
+#invest #mmhInvestWorkspaceV2 .iw2-tabbar{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;padding:10px 12px 12px;background:rgba(7,25,43,.97);border:1px solid var(--iw2-line);border-top:0;border-radius:0 0 20px 20px;margin-bottom:17px}
+#invest #mmhInvestWorkspaceV2 .iw2-tab{min-width:0;min-height:50px;border:1px solid rgba(112,170,210,.21);border-radius:12px;background:#102a3f;color:#b5cddd;display:flex;align-items:center;justify-content:center;gap:10px;font-size:13px;font-weight:750;line-height:1.25;white-space:nowrap;cursor:pointer;padding:10px 8px;transition:background .17s ease,color .17s ease,border-color .17s ease,transform .17s ease}
+#invest #mmhInvestWorkspaceV2 .iw2-tab[aria-selected="true"]{background:linear-gradient(135deg,#efc882,#dba85b);border-color:#e9bf77;color:#122637;box-shadow:0 5px 14px rgba(0,0,0,.14)}
+#invest #mmhInvestWorkspaceV2 .iw2-tab:hover:not([aria-selected="true"]){border-color:rgba(234,192,118,.65);background:#193b54;color:#fff}
+#invest #mmhInvestWorkspaceV2 .iw2-tab:focus-visible,#invest #mmhInvestWorkspaceV2 [data-iw2-go]:focus-visible{outline:3px solid #f5ce83;outline-offset:2px}
+#invest #mmhInvestWorkspaceV2 .iw2-tab-mark{font-size:16px;line-height:1;flex-shrink:0}
+#invest #mmhInvestWorkspaceV2 .iw2-pane{min-width:0;max-width:100%;animation:iw2-enter .18s ease}
+#invest #mmhInvestWorkspaceV2 .iw2-pane[hidden]{display:none!important}
+#invest #mmhInvestWorkspaceV2 .iw2-section-heading{display:flex;flex-direction:column;gap:5px;margin:0 0 14px;padding:0 2px}
+#invest #mmhInvestWorkspaceV2 .iw2-section-heading h3{font-size:19px;font-weight:800;color:#eff6fc;margin:0;line-height:1.3}
+#invest #mmhInvestWorkspaceV2 .iw2-section-heading p{font-size:12px;line-height:1.6;color:var(--iw2-muted);margin:0}
+#invest #mmhInvestWorkspaceV2 .iw2-quicklinks{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:10px 0}
+#invest #mmhInvestWorkspaceV2 .iw2-quicklinks button{min-width:0;min-height:57px;display:flex;align-items:center;gap:10px;justify-content:space-between;padding:10px 13px;border:1px solid rgba(115,170,213,.29);border-radius:14px;background:linear-gradient(135deg,#102d44,#0a2136);color:#deeffa;font-size:12px;font-weight:750;cursor:pointer;text-align:left}
+#invest #mmhInvestWorkspaceV2 .iw2-quicklinks button:hover{border-color:#dbad66;background:#153650}
+#invest #mmhInvestWorkspaceV2 .iw2-link-icon{display:inline-grid;place-items:center;flex:0 0 28px;width:28px;height:28px;border-radius:9px;color:#edc67e;background:rgba(239,198,126,.1);font-size:18px}
+#invest #mmhInvestWorkspaceV2 .iw2-data-reminder{color:#b5c5d3;border-left:3px solid #d0a762;margin:12px 0 17px;padding:8px 11px;background:rgba(14,37,57,.55);border-radius:0 10px 10px 0;font-size:12px;line-height:1.55}
+#invest #mmhInvestWorkspaceV2 .iw2-content{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;min-width:0;width:100%}
+#invest #mmhInvestWorkspaceV2 .iw2-content > *{min-width:0;max-width:100%;margin-top:0!important;margin-bottom:0!important;}
+#invest #mmhInvestWorkspaceV2 .iw2-footer{color:#90abbd;text-align:center;font-size:11px;line-height:1.6;margin:22px 0 12px}
+#invest #mmhInvestWorkspaceV2 :is(.idv1-head,.ivg12-head,.ivw13-title,.is18-head,.iv19-head,.iv110-head,.iv111-head,.idd16-head){min-width:0;gap:10px}
+#invest #mmhInvestWorkspaceV2 :is([data-is18-reload],[data-iv19-refresh],[data-v110-refresh],[data-i111-refresh],[data-idd-refresh],[data-ivg-refresh]){white-space:nowrap!important;word-break:normal!important;overflow-wrap:normal!important;width:auto!important;min-width:max-content!important;max-width:100%;flex-shrink:0!important}
+@keyframes iw2-enter{from{opacity:.75;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:740px){
+ #invest #mmhInvestWorkspaceV2 .iw2-intro{padding:17px 17px 12px}
+ #invest #mmhInvestWorkspaceV2 .iw2-tabbar{display:flex;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin;padding:9px 8px 10px;gap:7px;scroll-snap-type:x proximity}
+ #invest #mmhInvestWorkspaceV2 .iw2-tab{flex:0 0 auto;min-width:106px;scroll-snap-align:start;min-height:45px;font-size:12px}
+ #invest #mmhInvestWorkspaceV2 .iw2-quicklinks{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:440px){
+ #invest #mmhInvestWorkspaceV2 .iw2-intro{padding:15px 13px 12px}
+ #invest #mmhInvestWorkspaceV2 .iw2-intro h2{font-size:21px}
+ #invest #mmhInvestWorkspaceV2 .iw2-quicklinks{grid-template-columns:minmax(0,1fr)}
+ #invest #mmhInvestWorkspaceV2 .iw2-quicklinks button{min-height:48px}
+ #invest #mmhInvestWorkspaceV2 .iw2-section-heading h3{font-size:17px}
+ #invest #mmhInvestWorkspaceV2 .iw2-content{gap:12px}
+ #invest #mmhInvestWorkspaceV2 :is(.idv1-head,.ivg12-head,.ivw13-title,.is18-head,.iv19-head,.iv110-head,.iv111-head,.idd16-head){flex-wrap:wrap}
+}
+@media(prefers-reduced-motion:reduce){#invest #mmhInvestWorkspaceV2 *{animation:none!important;transition:none!important}}
