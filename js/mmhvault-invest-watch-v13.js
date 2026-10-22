@@ -27,8 +27,8 @@ function evaluate(plan,snapshot,now=Date.now()){
  if(!snapshot?.owner||snapshot.owner!==owner())return {...base,reason:'account'};
  if(!plan.is_active)return {...base,state:'paused',reason:'paused'};
  if(plan.asset_type==='Gold'){
-  const list=(snapshot.goldQuotes||[]).filter(q=>Number(q.price)>0&&/^\d{4}-\d{2}-\d{2}$/.test(q.date)).sort((a,b)=>b.date.localeCompare(a.date));
-  return {...base,state:'manual',current:list[0]?Number(list[0].price):null,reason:'manual',observed:list[0]?.date||''};
+  // No verified automatic MMK/kyattha quote; never evaluate this threshold using manual or stale prices.
+  return {...base,state:'unknown',current:null,reason:'gold_unavailable'};
  }
  const stamped=Number(snapshot.quotedAt);
  if(snapshot.quoteAvailable!==true||!Number.isFinite(stamped)||stamped>now||now-stamped>300000)return {...base,reason:'stale'};
@@ -74,7 +74,7 @@ function statusText(s){
 function explanation(s){
  if(s.reason==='stale')return T('实时报价超过 5 分钟或不可用，暂停判断。','Live quote is unavailable or older than five minutes.');
  if(s.reason==='portfolio')return T('有持仓价格或数量无法核对，暂停仓位比例判断。','Cannot verify every position and quote.');
- if(s.reason==='manual')return T('金价来自手动记录，不自动判定条件达成，也不发送推送。','Gold quote is manually recorded; never triggers an automatic alert or push.');
+ if(s.reason==='gold_unavailable')return T('Gold 目前没有可靠的自动 MMK 历史行情，此关注条件暂不判断。','Gold has no verified automatic MMK market history; this watch condition cannot be evaluated yet.');
  if(s.reason==='quote')return T('当前币种缺少有效实时报价。','No valid current price for this asset.');
  if(s.reason==='account')return T('账户或数据源尚未完成校验。','Account or source has not been verified.');
  if(s.reason==='paused')return T('此项关注已关闭。','This watch is turned off.');
@@ -105,7 +105,7 @@ function renderForm(){const r=rootUI();if(!r)return;const f=r.querySelector('[da
  <label>${T('关注目的','Review intent')}<select name="intent"><option value="add" ${data.intent==='add'?'selected':''}>${T('补仓关注','Add review')}</option><option value="trim" ${data.intent==='trim'?'selected':''}>${T('减仓关注','Trim review')}</option></select></label>
  <label>${T('触发条件','Condition')}<select name="condition"><option value="price_below" ${data.condition==='price_below'?'selected':''}>${T('价格低于或等于','Price at/below')}</option><option value="price_above" ${data.condition==='price_above'?'selected':''}>${T('价格高于或等于','Price at/above')}</option><option value="weight_above" ${data.condition==='weight_above'?'selected':''}>${T('仓位占比高于或等于','Weight at/above')}</option></select></label>
  <label class="ivw13-wide">${T('你设置的参考阈值','Your reference threshold')} <small data-watch-unit></small><input name="target_value" inputmode="decimal" type="number" min="0.000001" max="999999999999" step="any" value="${data.target_value||''}" required></label>
- </div><p class="ivw13-hint">${T('只有页面打开且行情新鲜时，才会显示是否达到条件；Gold 的手动金价只供人工核对。不会自动买卖或后台推送。','Condition status updates only while this page is open with fresh data. Gold manual quotes are review-only. No auto-trades or background push.')}</p><div class="ivw13-form-actions"><button type="button" data-watch-cancel>${T('取消','Cancel')}</button><button class="ivw13-primary" type="submit" ${pending?'disabled':''}>${row?T('保存修改','Save changes'):T('保存关注计划','Save watch')}</button></div></form>`;
+ </div><p class="ivw13-hint">${T('仅在网页开启且 Crypto 报价新鲜时提示关注条件。Gold 缺少可信自动历史报价，暂不判断其市场条件；不会自动买卖或后台推送。','Watch conditions are checked on this page with fresh Crypto quotes. Gold market conditions cannot be verified automatically yet. No auto-trades or background push.')}</p><div class="ivw13-form-actions"><button type="button" data-watch-cancel>${T('取消','Cancel')}</button><button class="ivw13-primary" type="submit" ${pending?'disabled':''}>${row?T('保存修改','Save changes'):T('保存关注计划','Save watch')}</button></div></form>`;
  formMode();
 }
 function feedback(msg,err=false){warning=msg;const el=rootUI()?.querySelector('[data-watch-feedback]');if(el){el.textContent=msg;el.classList.toggle('ivw13-error',err);}}
@@ -153,7 +153,7 @@ async function toggle(id){const user=owner(),row=rows.find(x=>x.id===id);if(!use
 async function remove(id){const user=owner(),row=rows.find(x=>x.id===id);if(!user||!row||pending)return;if(!confirm(T('确定删除这项关注计划？不会影响投资交易。','Delete this watch? No investment trades will be changed.')))return;
  pending=true;try{const dbc=await confirmedSession(user);const {error}=await dbc.from(table).delete().eq('user_id',user).eq('id',id);if(error)throw error;loaded=false;}
  catch(err){if(owner()===user)feedback(String(err.message||err),true);}finally{pending=false;if(owner()===user)await load(true);}}
-function localize(){const r=rootUI();if(!r)return;r.querySelector('h2').textContent=T('自定义补仓／减仓关注计划','Personal Add / Trim Watch Plans');r.querySelector('[data-watch-desc]').textContent=T('为自己的仓位设置关注价位与风险参考线，只在 Invest 页面内核对。','Set your own price and allocation thresholds; check them on this Invest page.');r.querySelector('[data-watch-new]').textContent=formOpen?T('隐藏表单','Hide form'):T('+ 新增关注计划','+ Add watch');r.querySelector('.ivw13-foot').textContent=T('仅供参考：触发价不等于合适的成交价。页面关闭后不会自动扫描或推送。金价属于人工记录，不能证明市场实时达标。','For review only: a threshold does not mean a trade is appropriate. No background scans or push after closing this page. Manual Gold quotes cannot verify live market levels.');}
+function localize(){const r=rootUI();if(!r)return;r.querySelector('h2').textContent=T('自定义补仓／减仓关注计划','Personal Add / Trim Watch Plans');r.querySelector('[data-watch-desc]').textContent=T('为自己的仓位设置关注价位与风险参考线，只在 Invest 页面内核对。','Set your own price and allocation thresholds; check them on this Invest page.');r.querySelector('[data-watch-new]').textContent=formOpen?T('隐藏表单','Hide form'):T('+ 新增关注计划','+ Add watch');r.querySelector('.ivw13-foot').textContent=T('仅供参考：达到关注价不代表应该交易。Gold 暂无可信自动行情用于触发判断；网页关闭后不继续扫描或推送。','For review only: a reached price does not mean you should trade. Gold has no verified automatic quote for evaluating conditions. No scans or push after closing this page.');}
 function paint(){const r=rootUI();if(!r)return;const user=owner();if(user!==activeOwner){reset(user);if(user)load(true);}localize();renderRows();if(formOpen&&r.querySelector('[data-watch-editor]')==null)renderForm();}
 let delay=0;function schedule(){clearTimeout(delay);delay=setTimeout(()=>{const invest=$('invest');if(invest?.classList.contains('active')){paint();if(owner()&&(!loaded&&!pending))load();}},170)}
 ['mmhvault:invest-daily-ready','mmhvault:data-loaded','mmhvault:page-visible','mmhvault:config-owner-changed','languagechange','mmhvault-language-change'].forEach(n=>window.addEventListener(n,schedule,{passive:true}));

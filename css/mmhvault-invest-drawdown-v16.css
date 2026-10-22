@@ -12,3 +12,8 @@
 /* Invest 1.7 — visibly expose whether ledger/quote reconciliation passed */
 #mmhInvestDrawdownV16 .idd17-audit{background:rgba(246,166,92,.08);border:1px solid rgba(246,166,92,.28);color:#f4cb99;padding:11px 13px;border-radius:12px;line-height:1.55;font-size:12px;margin:0 0 15px;overflow-wrap:anywhere}
 #mmhInvestDrawdownV16 .idd17-audit-ok{background:rgba(108,212,168,.08);border-color:rgba(108,212,168,.32);color:#b0e9d1}
+
+/* Invest 2.0.1: concise explanation of giveback / coin contributions */
+#mmhInvestDrawdownV16 .idd16-help{margin:12px 0 5px;border:1px solid rgba(116,165,190,.24);border-radius:12px;background:rgba(13,38,58,.52);padding:9px 13px;max-width:100%}
+#mmhInvestDrawdownV16 .idd16-help summary{cursor:pointer;color:#ebc58b;font-size:12px;font-weight:700;line-height:1.6}
+#mmhInvestDrawdownV16 .idd16-help p{font-size:12px;line-height:1.75;color:#b8cedc;margin:9px 0 2px}
