@@ -214,3 +214,154 @@ html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-budget-v1
 @media(max-width:759px){
  html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-chart-v500 {height:162px!important}
 }
+
+
+/* ================================================================
+   Dashboard P1.5 targeted corrections
+   - Market Watch fixed-size tab content, no fabricated quotes
+   - Asset allocation stacked, using the actual 3 values & live ratios
+   - Dashboard shell glass and narrow-window control resilience
+   ================================================================ */
+
+/* Translucent chrome: visual-only; do not change routes, click targets, or data. */
+html body.mmh-workspace-active:has(#dashboard.active) #bottomNav.bottom-nav {
+  background:linear-gradient(155deg,rgba(20,57,82,.76) 0%,rgba(2,17,32,.87) 43%,rgba(3,16,31,.91) 100%)!important;
+  border:1px solid rgba(139,199,238,.37)!important;
+  border-right-color:rgba(248,201,115,.60)!important;
+  box-shadow:inset 1px 1px rgba(239,249,255,.16),inset -1px 0 rgba(255,202,112,.12),0 18px 55px rgba(0,0,0,.38),4px 0 33px rgba(61,145,201,.12)!important;
+  -webkit-backdrop-filter:blur(26px) saturate(155%)!important;
+  backdrop-filter:blur(26px) saturate(155%)!important;
+}
+html body.mmh-workspace-active:has(#dashboard.active) #bottomNav .mmh-sidebar-brand-v500 {
+  background:linear-gradient(140deg,rgba(162,223,255,.075),transparent 72%)!important;
+  border-radius:16px!important;
+}
+html body.mmh-workspace-active:has(#dashboard.active) #bottomNav>button.active,
+html body.mmh-workspace-active:has(#dashboard.active) #bottomNav>button[aria-current="page"] {
+  background:linear-gradient(103deg,rgba(249,189,79,.35),rgba(55,95,120,.43) 46%,rgba(11,35,54,.88))!important;
+  border-color:rgba(255,212,137,.82)!important;
+  box-shadow:inset 0 1px rgba(255,247,216,.30),0 0 26px rgba(249,183,75,.17)!important;
+}
+html body.mmh-workspace-active:has(#dashboard.active) #bottomNav .mmh-sidebar-private-v500 {
+  background:linear-gradient(135deg,rgba(38,79,105,.42),rgba(5,25,42,.81))!important;
+  border:1px solid rgba(243,198,109,.45)!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.14),0 10px 28px rgba(0,0,0,.20)!important;
+  -webkit-backdrop-filter:blur(15px) saturate(130%)!important;backdrop-filter:blur(15px) saturate(130%)!important;
+}
+html body.mmh-workspace-active:has(#dashboard.active) #header {
+  background:linear-gradient(115deg,rgba(20,56,84,.64),rgba(3,18,35,.70) 65%,rgba(24,50,72,.54))!important;
+  border:1px solid rgba(141,197,236,.28)!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.16),0 16px 42px rgba(0,0,0,.24)!important;
+  -webkit-backdrop-filter:blur(22px) saturate(150%)!important;backdrop-filter:blur(22px) saturate(150%)!important;
+}
+html body.mmh-workspace-active:has(#dashboard.active) #header .mmh-finance-topbar-v500 {min-width:0!important;max-width:100%!important}
+html body.mmh-workspace-active:has(#dashboard.active) #header .mmh-global-search-v500 {
+  min-width:0!important;max-width:545px!important;flex:1 1 260px!important;
+}
+html body.mmh-workspace-active:has(#dashboard.active) #header .mmh-global-search-v500 input {
+  min-width:0!important;text-overflow:ellipsis!important;
+  background:linear-gradient(135deg,rgba(43,92,119,.52),rgba(6,26,45,.60))!important;
+  border:1px solid rgba(171,218,244,.42)!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.17),inset 0 12px 24px rgba(113,184,218,.035),0 8px 20px rgba(0,0,0,.17)!important;
+  -webkit-backdrop-filter:blur(15px) saturate(150%)!important;backdrop-filter:blur(15px) saturate(150%)!important;
+}
+html body.mmh-workspace-active:has(#dashboard.active) #header :is(.mmh-topbar-bell-v500,.mmh-topbar-support-v1520,.header-profile,.mmh-global-search-v500 kbd) {
+  border:1px solid rgba(155,209,240,.33)!important;
+  background:linear-gradient(150deg,rgba(54,101,133,.46),rgba(4,24,43,.70))!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.16),0 8px 24px rgba(0,0,0,.15)!important;
+  -webkit-backdrop-filter:blur(14px) saturate(140%)!important;backdrop-filter:blur(14px) saturate(140%)!important;
+}
+html body.mmh-workspace-active:has(#dashboard.active) #header :is(button,input):focus-visible,
+html body.mmh-workspace-active:has(#dashboard.active) #bottomNav button:focus-visible {outline:2px solid #f3c978!important;outline-offset:2px!important}
+
+/* Fixed Market Watch dimensions: Popular/Crypto/Gold/Live only change rows.
+   Preserve actual data rows, do not repeat rows to fake height. */
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-market-card-v630 {
+  display:flex!important;flex-direction:column!important;
+  height:clamp(316px,23vw,358px)!important;
+  min-height:clamp(316px,23vw,358px)!important;
+  align-self:stretch!important;
+}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-market-card-v630 .pf-card-head-v500,
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-market-tabs-v500 {flex:0 0 auto!important}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-market-card-v630 .pf-market-v500 {
+  flex:1 1 auto!important;min-height:0!important;max-height:none!important;overflow:auto!important;
+  scrollbar-width:thin;scrollbar-color:rgba(154,205,232,.29) transparent;
+}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-market-tabs-v500 {
+  width:auto!important;min-width:0!important;display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;
+  align-items:center!important;gap:3px!important;
+}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-market-tabs-v500>button {
+  min-width:0!important;width:100%!important;max-width:100%!important;white-space:nowrap!important;
+}
+
+/* Allocation donut above, real account/investment/receivable totals below. */
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-allocation-card-v630 {
+  display:flex!important;flex-direction:column!important;min-height:0!important;height:auto!important;
+  align-self:stretch!important;
+}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-allocation-card-v630 .pf-allocation-premium-v630 {
+  display:grid!important;grid-template-columns:minmax(0,1fr)!important;
+  grid-template-rows:auto minmax(0,1fr)!important;
+  align-content:start!important;align-items:stretch!important;
+  flex:1 1 auto!important;width:100%!important;
+  gap:clamp(10px,1.0vw,14px)!important;
+  padding:clamp(9px,1.1vw,16px)!important;
+}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-allocation-card-v630 .pf-donut-wrap-v500 {
+  display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;
+  gap:3px!important;min-width:0!important;
+}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-allocation-card-v630 .pf-donut-v630 {
+  width:clamp(112px,10.1vw,154px)!important;height:clamp(112px,10.1vw,154px)!important;
+  flex:0 0 auto!important;
+}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-allocation-card-v630 .pf-allocation-health-v630 {margin-top:7px!important}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-allocation-card-v630 .pf-legend-v630 {
+  display:grid!important;grid-template-columns:minmax(0,1fr)!important;
+  grid-auto-rows:minmax(46px,1fr)!important;align-content:stretch!important;gap:7px!important;
+  width:100%!important;max-width:none!important;min-width:0!important;margin:0!important;
+}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-allocation-card-v630 .pf-allocation-row-v630 {
+  width:100%!important;min-height:44px!important;min-width:0!important;
+  padding:7px 11px!important;grid-template-columns:10px minmax(0,1fr) auto!important;
+  border:1px solid rgba(136,191,233,.25)!important;
+  border-radius:12px!important;
+  background:linear-gradient(112deg,rgba(54,103,137,.27),rgba(5,24,42,.51))!important;
+  box-shadow:inset 0 1px rgba(238,250,255,.11)!important;
+  -webkit-backdrop-filter:blur(12px)!important;backdrop-filter:blur(12px)!important;
+}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-allocation-card-v630 .pf-allocation-row-v630>span {
+  gap:3px!important;min-width:0!important;
+}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-allocation-card-v630 .pf-allocation-row-v630 em {
+  font-size:clamp(10px,.86vw,12px)!important;color:#e3ebf3!important;
+}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-allocation-card-v630 .pf-allocation-row-v630 small {
+  font-size:clamp(9px,.78vw,11px)!important;color:#b1c7d8!important;white-space:nowrap!important;
+}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-allocation-card-v630 .pf-allocation-row-v630>b {
+  font-size:clamp(10px,.9vw,12px)!important;color:#f7f8fa!important;
+}
+
+/* The three small cards should keep readable proportions on a phone. */
+@media(max-width:1099px){
+  html body.mmh-workspace-active:has(#dashboard.active) #header {border-color:rgba(156,210,239,.22)!important}
+  html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-market-card-v630 {height:320px!important;min-height:320px!important}
+}
+@media(max-width:759px){
+  html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-allocation-card-v630 .pf-allocation-premium-v630{grid-template-columns:minmax(0,1fr)!important;grid-template-rows:auto auto!important}
+  html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-allocation-card-v630 .pf-legend-v630{grid-auto-rows:minmax(49px,auto)!important}
+  html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-market-tabs-v500{overflow-x:visible!important;margin-left:10px!important;margin-right:10px!important}
+  html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-market-tabs-v500>button{min-width:0!important;padding:8px 2px!important;font-size:10px!important}
+  html body.mmh-workspace-active:has(#dashboard.active) #bottomNav.bottom-nav{border-radius:21px!important}
+}
+@supports not ((backdrop-filter:blur(10px)) or (-webkit-backdrop-filter:blur(10px))){
+  html body.mmh-workspace-active:has(#dashboard.active) #bottomNav.bottom-nav,
+  html body.mmh-workspace-active:has(#dashboard.active) #header {background:#061b30!important}
+  html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-allocation-card-v630 .pf-allocation-row-v630{background:#0d2b42!important}
+}
+@media(prefers-reduced-motion:reduce){
+  html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-allocation-card-v630 .pf-allocation-row-v630{transition:none!important}
+}
