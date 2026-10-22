@@ -11219,6 +11219,12 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
 <div class="mmh-tx-hero-copy-v3"><h1 class="mmh-hint-anchor-v195 mmh-context-title-v199" data-mmh-hint-source="next" tabindex="0">Transactions</h1><div class="sub mmh-transaction-sub-v2 mmh-context-desc-v199" data-i18n-en="Record transactions and review your history." data-i18n-zh="记录交易并查看历史记录。">Record transactions and review your history.</div></div>
 <div class="mmh-tx-hero-actions-v3"><div class="mmh-tx-page-picker-v3" id="mmhTxPagePickerV3"><button class="mmh-tx-page-trigger-v3" id="mmhTxPageTriggerV3" type="button" aria-label="选择页面：Add Transaction" aria-haspopup="menu" aria-controls="mmhTxPageOptionsV3" aria-expanded="false"><span id="mmhTxPageCurrentV3">Add Transaction</span><span class="mmh-tx-page-chevron-v3" aria-hidden="true"></span></button>
 <div aria-label="Transactions sections and category management" class="tx-tabs-v371" id="mmhTxPageOptionsV3" role="menu" aria-hidden="true"><button class="tx-tab-v371 active" id="txTabAdd" onclick="showTxTab('add')" type="button" role="menuitemradio">Add Transaction</button><button class="tx-tab-v371" id="txTabHistory" onclick="showTxTab('history')" type="button" role="menuitemradio">History</button><button class="tx-tab-v371 mmh-tx-manage-item-v3" id="mmhManageCategoriesLaunchV1" type="button" role="menuitem" onclick="mmhTxPagePickerOpenCategoriesV3()" data-i18n-en="Manage Categories" data-i18n-zh="管理分类">Manage Categories</button></div></div></div></div>
+<!-- Transactions Liquid Glass P2.0: presentation-only desktop navigation, reusing original handlers. -->
+<nav class="mmh-glass-tx-nav-v1" aria-label="Transaction workspace">
+  <button type="button" class="mmh-glass-tx-nav-item-v1 mmh-glass-tx-nav-add-v1" onclick="showTxTab('add')"><span class="mmh-glass-tx-nav-icon-v1" aria-hidden="true">＋</span><span class="mmh-glass-tx-nav-copy-v1"><strong data-i18n-en="Add Transaction" data-i18n-zh="新增交易">Add Transaction</strong><small data-i18n-en="Record income, expense or transfer" data-i18n-zh="记录收入、支出或转账">Record income, expense or transfer</small></span><span class="mmh-glass-tx-nav-chevron-v1" aria-hidden="true">↗</span></button>
+  <button type="button" class="mmh-glass-tx-nav-item-v1 mmh-glass-tx-nav-history-v1" onclick="showTxTab('history')"><span class="mmh-glass-tx-nav-icon-v1" aria-hidden="true">▤</span><span class="mmh-glass-tx-nav-copy-v1"><strong data-i18n-en="History" data-i18n-zh="交易历史">History</strong><small data-i18n-en="Review and filter your records" data-i18n-zh="查看并筛选你的记录">Review and filter your records</small></span><span class="mmh-glass-tx-nav-chevron-v1" aria-hidden="true">↗</span></button>
+  <button type="button" class="mmh-glass-tx-nav-item-v1 mmh-glass-tx-nav-manage-v1" onclick="mmhTxPagePickerOpenCategoriesV3()"><span class="mmh-glass-tx-nav-icon-v1" aria-hidden="true">⚙</span><span class="mmh-glass-tx-nav-copy-v1"><strong data-i18n-en="Manage" data-i18n-zh="管理">Manage</strong><small data-i18n-en="Categories and preferences" data-i18n-zh="分类与偏好设置">Categories and preferences</small></span><span class="mmh-glass-tx-nav-chevron-v1" aria-hidden="true">↗</span></button>
+</nav>
 <div class="tx-tab-panel-v371" id="txAddPanel"><div class="panel"><h2>Add Transaction</h2><form id="txForm"><div class="formgrid">
 <div class="mmh-form-section-v1 full"><span data-en="Basic information" data-zh="基本信息">Basic information</span></div>
 <label>Date<input id="txDate" required="" type="date"/></label>
@@ -33658,6 +33664,7 @@ html body.mmh-workspace-active #moreNavMenu .mmh-more-list-v153:focus-visible{ou
 <!-- MMHVAULT Liquid Glass v2 · loaded AFTER legacy inline styles so the premium dashboard wins the cascade. -->
 <link rel="stylesheet" href="css/mmhvault-liquid-dashboard-v2.css?v=2.1.0" data-mmh-liquid-dashboard="v2">
 <link rel="stylesheet" href="css/mmhvault-liquid-dashboard-density-v3.css?v=1.1.0" data-mmh-dashboard-density="p1.5">
+<link rel="stylesheet" href="css/mmhvault-liquid-transactions-p2.css?v=2.0.0" data-mmh-liquid-transactions="p2">
 <script src="js/mmhvault-liquid-interactions-v2.js?v=2.1.0" defer></script>
 </body>
 </html>
