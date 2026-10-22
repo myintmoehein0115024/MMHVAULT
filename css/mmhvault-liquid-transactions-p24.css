@@ -113,3 +113,16 @@
 }
 @media(max-width:355px){html body #mmhVaultDialogV449.show:has(.mmh-tx-detail-v800) .mmh-v449-dialog-actions{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
 @media(prefers-reduced-motion:reduce){.mmh-p24-account-menu *{transition:none!important;animation:none!important}}
+
+/* P6.2.2 — do not show a selectable account for a disabled amount. */
+html body.mmh-workspace-active #transactions #txForm .formgrid > label.mmh-p24-side-inactive,
+html body.mmh-workspace-active #transactions #txForm .formgrid > label.tx-field-hidden-v141 {
+ display:none!important;
+}
+@media (max-width:620px){
+ html body.mmh-workspace-active #transactions #txForm .mmh-p24-account-trigger:disabled,
+ html body.mmh-workspace-active #transactions #txForm .mmh-p24-account-trigger[aria-disabled="true"]{
+   opacity:.42!important;pointer-events:none!important;cursor:not-allowed!important;
+   filter:saturate(.65)!important;box-shadow:none!important;
+ }
+}
