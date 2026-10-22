@@ -14449,7 +14449,23 @@ if(!transactions.length){txList.innerHTML='<div class="empty">No transactions.</
 txList.innerHTML=`<table><tr><th>Date</th><th>Type</th><th>Category</th><th>From</th><th>From Amount</th><th>To</th><th>To Amount</th><th>Note</th><th></th></tr>${transactions.filter(t=>!isLinkedInvestmentTx(t)).map(t=>`<tr><td>${t.tx_date}</td><td>${t.type}</td><td>${esc(t.category)}</td><td>${esc(t.from_account||"—")}</td><td>${t.from_amount?fmt(t.from_amount):"—"}</td><td>${esc(t.to_account||"—")}</td><td>${t.to_amount?fmt(t.to_amount):"—"}</td><td>${esc(t.note)}</td><td class="icon-actions"><button class="btn" onclick="editTx(${t.id})">Edit</button><button class="btn danger" type="button" onclick="deleteTx(${t.id})">×</button></td></tr>`).join("")}</table>`;
 }
 function closeEditModal(){$('editModal').classList.remove('open');$('editModalBody').innerHTML='';}
-function openEditModal(title,body){$('editModalTitle').textContent=title;$('editModalBody').innerHTML=body;$('editModal').classList.add('open');}
+function openEditModal(title,body){
+  $('editModalTitle').textContent=title;
+  $('editModalBody').innerHTML=body;
+  $('editModal').classList.add('open');
+  // Transactions P2.2: real, non-overlapping form-body and footer regions.
+  // The action buttons stay INSIDE their original form, so native submit,
+  // async validation and existing financial logic remain unchanged.
+  const form=$('editTxForm');
+  if(form&&!form.querySelector('.mmh-edit-scroll-p22')){
+    const scroll=document.createElement('div');
+    scroll.className='mmh-edit-scroll-p22';
+    const actions=Array.from(form.children).find(node=>node.classList?.contains('actions'));
+    Array.from(form.children).forEach(node=>{if(node!==actions)scroll.appendChild(node);});
+    form.insertBefore(scroll,actions||null);
+    form.classList.add('mmh-edit-form-p22');
+  }
+}
 function txCategoryOptions(type,group){
   if(type==='Transfer')return ['Transfer'];
   if(group==='Data Adjustment')return ['Data Adjustment'];
@@ -14578,6 +14594,7 @@ function editTx(id){
           <strong>Choose a receipt</strong>
           <span>PNG, JPG, WEBP or PDF · up to 10 MB</span>
         </div>
+        <span class="mmh-receipt-cta-p22" aria-hidden="true">Browse files ↗</span>
       </label>
       <div class="receipt-upload-footer-v3300">
         <span class="receipt-secure-v3300">🔒 Stored privately in your secure cloud storage</span>
@@ -17264,6 +17281,7 @@ function bind(){
 <button aria-label="Zoom in" onclick="changeReceiptZoomV3297(.1)" type="button">＋</button>
 <button aria-label="Reset zoom" onclick="resetReceiptZoomV3297()" style="font-size:12px;width:auto;padding:0 8px" type="button">Reset</button>
 </div>
+<button id="mmhReceiptFitToggleP22" class="mmh-receipt-fit-p22" type="button" onclick="window.mmhVaultReceiptFitP22?.()" aria-pressed="false" title="Switch between fit-to-window and natural pixels">1:1</button>
 <button class="receipt-viewer-close-v3297" onclick="closeTransactionReceiptV3297()" type="button">✕ Close</button>
 </div>
 </div>
@@ -17275,6 +17293,42 @@ function bind(){
 </div>
 </div>
 </div>
+
+<script id="mmhvault-transactions-receipt-viewer-p22">
+/* View-layer only: move zoom controls into the header, allow natural-size scrolling. */
+(function(){
+  function init(){
+    const dlg=document.getElementById('receiptViewerModalV3297');
+    const actions=dlg?.querySelector('.receipt-viewer-actions-v3297');
+    const zoom=document.getElementById('receiptZoomFloatV3299');
+    if(!dlg||!actions||!zoom)return;
+    if(zoom.parentElement!==actions)actions.insertBefore(zoom,actions.firstChild);
+    const body=document.getElementById('receiptViewerBodyV3297');
+    const fit=document.getElementById('mmhReceiptFitToggleP22');
+    if(!body||!fit)return;
+    function setNative(on){
+      body.classList.toggle('mmh-receipt-native-p22',!!on);
+      fit.setAttribute('aria-pressed',String(!!on));
+      fit.textContent=on?'Fit':'1:1';
+      fit.title=on?'Fit image to window':'Show image at original pixel size';
+      if(typeof window.resetReceiptZoomV3297==='function')window.resetReceiptZoomV3297();
+      body.scrollTop=0;body.scrollLeft=0;
+    }
+    window.mmhVaultReceiptFitP22=function(){
+      if(!body.querySelector('#receiptViewerImageV3297'))return;
+      setNative(!body.classList.contains('mmh-receipt-native-p22'));
+    };
+    const observer=new MutationObserver(function(){
+      if(!body.querySelector('#receiptViewerImageV3297')){
+        body.classList.remove('mmh-receipt-native-p22');
+        fit.setAttribute('aria-pressed','false');fit.textContent='1:1';
+      }
+    });
+    observer.observe(body,{childList:true});
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+})();
+</script>
 <script id="mmhvault-v3302-history-receipt-cache">
 /* V4.3.0 · History only shows View when a receipt object exists. */
 window.mmHVaultReceiptIdsV3302 = window.mmHVaultReceiptIdsV3302 || new Set();
@@ -33730,6 +33784,7 @@ html body.mmh-workspace-active #moreNavMenu .mmh-more-list-v153:focus-visible{ou
 <link rel="stylesheet" href="css/mmhvault-liquid-dashboard-density-v3.css?v=1.1.0" data-mmh-dashboard-density="p1.5">
 <link rel="stylesheet" href="css/mmhvault-liquid-transactions-p2.css?v=2.0.0" data-mmh-liquid-transactions="p2">
 <link rel="stylesheet" href="css/mmhvault-liquid-transactions-p21.css?v=2.1.0" data-mmh-liquid-transactions="p2.1">
+<link rel="stylesheet" href="css/mmhvault-liquid-transactions-p22.css?v=2.2.0" data-mmh-liquid-transactions="p2.2">
 <script src="js/mmhvault-liquid-interactions-v2.js?v=2.1.0" defer></script>
 </body>
 </html>
