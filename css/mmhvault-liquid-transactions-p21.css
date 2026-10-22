@@ -1,0 +1,211 @@
+/* MMHVAULT Premium Liquid Glass — Transactions P2.1
+ * UI only: original ledger mutations, receipts, calendars, Supabase and dialogs retained.
+ * Manage is now an internal Transactions tab. Global shell dimensions are stable on all pages.
+ */
+:root{--mmh-glass-shell-blue:rgba(6,31,53,.78);--mmh-glass-shell-edge:rgba(150,207,244,.36);--mmh-glass-shell-gold:rgba(251,206,115,.69)}
+/* Consistent shell geometry independent of current route: Dashboard, Transactions, Invest, etc. */
+@media(min-width:1100px){
+ html body.mmh-workspace-active #bottomNav.bottom-nav,
+ html body.mmh-workspace-active:has(#transactions.active) #bottomNav.bottom-nav,
+ html body.mmh-workspace-active:has(#dashboard.active) #bottomNav.bottom-nav{
+   box-sizing:border-box!important;position:fixed!important;left:15px!important;top:14px!important;bottom:14px!important;
+   width:226px!important;height:calc(100dvh - 28px)!important;padding:22px 12px 16px!important;
+   border:1px solid var(--mmh-glass-shell-edge)!important;border-right-color:var(--mmh-glass-shell-gold)!important;border-radius:24px!important;
+   background:radial-gradient(ellipse at -20% 0,rgba(104,164,206,.2),transparent 56%),linear-gradient(142deg,rgba(11,43,67,.72),rgba(2,18,35,.85) 70%)!important;
+   box-shadow:inset 0 1px rgba(255,255,255,.21),inset -1px 0 rgba(255,216,125,.18),0 22px 60px rgba(0,0,0,.36),10px 0 31px rgba(248,181,71,.08)!important;
+   backdrop-filter:blur(28px) saturate(145%)!important;-webkit-backdrop-filter:blur(28px) saturate(145%)!important;
+   overflow-y:auto!important;scrollbar-width:thin!important;
+ }
+ html body.mmh-workspace-active #header,
+ html body.mmh-workspace-active:has(#transactions.active) #header,
+ html body.mmh-workspace-active:has(#dashboard.active) #header{
+   box-sizing:border-box!important;position:fixed!important;top:9px!important;left:254px!important;right:14px!important;
+   width:auto!important;height:62px!important;min-height:62px!important;padding:8px 13px!important;
+   border:1px solid rgba(152,205,238,.31)!important;border-radius:19px!important;
+   background:linear-gradient(135deg,rgba(36,77,106,.32),rgba(3,23,43,.70) 66%)!important;
+   box-shadow:inset 0 1px rgba(255,255,255,.21),0 12px 36px rgba(0,0,0,.27)!important;
+   backdrop-filter:blur(26px) saturate(142%)!important;-webkit-backdrop-filter:blur(26px) saturate(142%)!important;
+ }
+ html body.mmh-workspace-active main.wrap,
+ html body.mmh-workspace-active:has(#transactions.active) main.wrap,
+ html body.mmh-workspace-active:has(#dashboard.active) main.wrap{
+   box-sizing:border-box!important;padding-left:265px!important;padding-right:20px!important;padding-top:91px!important;
+ }
+}
+@media(min-width:1100px) and (max-width:1450px){
+ html body.mmh-workspace-active #bottomNav.bottom-nav,
+ html body.mmh-workspace-active:has(#transactions.active) #bottomNav.bottom-nav,
+ html body.mmh-workspace-active:has(#dashboard.active) #bottomNav.bottom-nav{left:12px!important;width:212px!important}
+ html body.mmh-workspace-active #header,
+ html body.mmh-workspace-active:has(#transactions.active) #header,
+ html body.mmh-workspace-active:has(#dashboard.active) #header{left:235px!important;right:12px!important}
+ html body.mmh-workspace-active main.wrap,
+ html body.mmh-workspace-active:has(#transactions.active) main.wrap,
+ html body.mmh-workspace-active:has(#dashboard.active) main.wrap{padding-left:243px!important;padding-right:14px!important}
+}
+html body.mmh-workspace-active #header :is(.mmh-global-search-v500 input,.header-profile,.mmh-topbar-bell-v500){
+ border:1px solid rgba(161,212,244,.35)!important;border-radius:16px!important;
+ background:linear-gradient(145deg,rgba(29,75,106,.51),rgba(4,29,53,.69))!important;
+ box-shadow:inset 0 1px rgba(255,255,255,.14),0 9px 22px rgba(0,0,0,.13)!important;
+ backdrop-filter:blur(16px) saturate(135%)!important;-webkit-backdrop-filter:blur(16px) saturate(135%)!important;
+}
+html body.mmh-workspace-active #header .mmh-global-search-v500{min-width:0!important}
+html body.mmh-workspace-active #header .mmh-global-search-v500 input{min-width:0!important;text-overflow:ellipsis!important}
+html body.mmh-workspace-active #bottomNav .mmh-sidebar-brand-v500{box-sizing:border-box!important}
+html body.mmh-workspace-active #bottomNav button.active{
+ border-color:rgba(254,207,116,.76)!important;
+ background:radial-gradient(circle at 8% 4%,rgba(246,206,136,.30),transparent 68%),linear-gradient(110deg,rgba(111,85,42,.51),rgba(15,44,67,.72))!important;
+ box-shadow:inset 0 1px rgba(255,244,204,.30),0 0 17px rgba(248,184,79,.15)!important;
+}
+/* Manage never navigates away: same hero, same Add / History / Manage nav. */
+html body.mmh-workspace-active #transactions .mmh-glass-tx-nav-manage-v1.active{
+ border-color:rgba(255,207,109,.82)!important;background:radial-gradient(circle at 0 0,rgba(241,189,84,.28),transparent 70%),linear-gradient(140deg,rgba(91,67,37,.66),rgba(12,41,65,.83))!important;
+ box-shadow:inset 0 1px rgba(255,240,205,.31),0 10px 32px rgba(0,0,0,.26),0 0 21px rgba(247,189,87,.13)!important;
+}
+html body.mmh-workspace-active #transactions #txManagePanel[hidden]{display:none!important}
+html body.mmh-workspace-active #transactions #txManagePanel{min-width:0!important;max-width:100%!important;margin:0!important}
+html body.mmh-workspace-active #transactions #txManagePanel #category-manage,
+html body.mmh-workspace-active #transactions #txManagePanel #category-manage.panel{
+ box-sizing:border-box!important;width:100%!important;max-width:none!important;min-height:0!important;margin:0!important;
+ padding:21px 24px 24px!important;border:1px solid rgba(160,208,240,.37)!important;border-radius:22px!important;
+ background:radial-gradient(circle at 10% -10%,rgba(137,191,226,.18),transparent 56%),linear-gradient(138deg,rgba(30,68,96,.63),rgba(5,25,46,.84) 72%)!important;
+ box-shadow:inset 0 1px rgba(255,255,255,.20),0 20px 49px rgba(0,0,0,.28)!important;
+ backdrop-filter:blur(23px) saturate(140%)!important;-webkit-backdrop-filter:blur(23px) saturate(140%)!important;
+}
+html body.mmh-workspace-active #transactions #category-manage .cm-heading{
+ display:flex!important;align-items:center!important;justify-content:space-between!important;min-height:62px!important;
+ padding:0 0 15px!important;margin:0 0 15px!important;border:0!important;border-bottom:1px solid rgba(173,218,245,.19)!important;
+ border-radius:0!important;background:none!important;box-shadow:none!important;backdrop-filter:none!important;
+}
+html body.mmh-workspace-active #transactions #category-manage .cm-heading h2{font:500 clamp(23px,2vw,29px)/1.2 Georgia,'Times New Roman',serif!important;color:#f4f8ff!important;margin:0 0 5px!important}
+html body.mmh-workspace-active #transactions #category-manage .cm-heading p{font:12px/1.5 system-ui,sans-serif!important;color:#a9c4d8!important;margin:0!important}
+html body.mmh-workspace-active #transactions #category-manage .mmh-manager-card-v445{
+ min-width:0!important;max-width:100%!important;border:1px solid rgba(150,203,239,.31)!important;border-radius:17px!important;
+ background:linear-gradient(145deg,rgba(29,67,92,.49),rgba(4,29,51,.70))!important;
+ box-shadow:inset 0 1px rgba(255,255,255,.16),0 10px 29px rgba(0,0,0,.16)!important;
+}
+html body.mmh-workspace-active #transactions #category-manage :is(input,select,button){box-sizing:border-box!important;max-width:100%!important}
+html body.mmh-workspace-active #transactions #category-manage .cm-filters{display:grid!important;grid-template-columns:minmax(0,1fr) minmax(150px,190px)!important;gap:10px!important}
+html body.mmh-workspace-active #transactions #category-manage .cm-filters :is(input,select){min-height:43px!important;background:rgba(7,33,55,.72)!important;border:1px solid rgba(159,203,235,.33)!important;color:#eaf4ff!important;border-radius:12px!important;padding:9px 12px!important}
+/* Compact accessible receipt chooser: text, format and Browse share one horizontal row. */
+html body.mmh-workspace-active #transactions #txForm .receipt-upload-v3300{
+ box-sizing:border-box!important;display:grid!important;grid-template-columns:1fr!important;gap:12px!important;
+ width:100%!important;max-width:100%!important;padding:18px!important;margin:10px 0 0!important;
+ border:1px solid rgba(154,207,237,.32)!important;border-radius:18px!important;
+ background:linear-gradient(140deg,rgba(35,73,97,.41),rgba(5,29,51,.62))!important;
+}
+html body.mmh-workspace-active #transactions #txForm .receipt-upload-head-v3300{display:grid!important;grid-template-columns:40px minmax(0,1fr) auto!important;gap:12px!important;align-items:center!important;margin:0!important;padding:0 0 13px!important;border-bottom:1px solid rgba(143,204,237,.17)!important}
+html body.mmh-workspace-active #transactions #txForm .receipt-upload-head-v3300>div:nth-child(2){min-width:0!important}
+html body.mmh-workspace-active #transactions #txForm .receipt-upload-icon-v3300{width:40px!important;height:40px!important;display:grid!important;place-items:center!important;border:1px solid rgba(156,212,241,.32)!important;border-radius:12px!important;background:rgba(39,86,113,.35)!important;font-size:20px!important}
+html body.mmh-workspace-active #transactions #txForm .receipt-upload-title-v3300{font-size:14px!important;line-height:1.3!important;color:#f6faff!important;font-weight:680!important}
+html body.mmh-workspace-active #transactions #txForm .receipt-upload-sub-v3300{font-size:11px!important;line-height:1.5!important;color:#a8c0d3!important}
+html body.mmh-workspace-active #transactions #txForm label.receipt-dropzone-v3300{
+ box-sizing:border-box!important;display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:flex-start!important;
+ gap:13px!important;margin:0!important;width:100%!important;max-width:none!important;min-width:0!important;
+ min-height:78px!important;padding:13px 17px!important;border:1px dashed rgba(144,206,242,.44)!important;border-radius:14px!important;
+ background:linear-gradient(120deg,rgba(20,57,83,.55),rgba(5,31,56,.58))!important;
+ color:#f1f7ff!important;cursor:pointer!important;
+}
+html body.mmh-workspace-active #transactions #txForm label.receipt-dropzone-v3300{position:relative!important;overflow:hidden!important}
+html body.mmh-workspace-active #transactions #txForm label.receipt-dropzone-v3300 input[type="file"]{
+ position:absolute!important;inset:0!important;z-index:3!important;width:100%!important;height:100%!important;
+ margin:0!important;padding:0!important;opacity:0!important;cursor:pointer!important;
+ appearance:none!important;-webkit-appearance:none!important;
+}
+html body.mmh-workspace-active #transactions #txForm label.receipt-dropzone-v3300:focus-within{outline:2px solid rgba(255,211,116,.88)!important;outline-offset:2px!important}
+html body.mmh-workspace-active #transactions #txForm .receipt-drop-icon-v3300{display:grid!important;place-items:center!important;flex:0 0 40px!important;width:40px!important;height:40px!important;font-size:23px!important;border:1px solid rgba(169,216,246,.34)!important;border-radius:12px!important;background:rgba(67,121,151,.24)!important}
+html body.mmh-workspace-active #transactions #txForm .receipt-drop-copy-v3300{flex:1!important;display:flex!important;flex-direction:column!important;gap:3px!important;min-width:0!important;text-align:left!important;align-items:flex-start!important}
+html body.mmh-workspace-active #transactions #txForm .receipt-drop-copy-v3300 strong{color:#f1f9ff!important;font-size:13px!important}
+html body.mmh-workspace-active #transactions #txForm .receipt-drop-copy-v3300 span{font-size:10px!important;color:#aac4d7!important;white-space:normal!important}
+html body.mmh-workspace-active #transactions #txForm .receipt-browse-action-v21{flex:0 0 auto!important;padding:9px 15px!important;border:1px solid rgba(254,207,117,.67)!important;border-radius:11px!important;background:linear-gradient(120deg,rgba(164,117,52,.62),rgba(105,76,43,.38))!important;box-shadow:inset 0 1px rgba(255,255,255,.22)!important;color:#ffebb9!important;font-size:12px!important;font-weight:680!important}
+html body.mmh-workspace-active #transactions #txForm .receipt-upload-footer-v3300{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:8px!important;min-width:0!important;margin:0!important;padding:0!important;flex-wrap:wrap!important;font-size:10px!important;color:#9fbdd3!important}
+html body.mmh-workspace-active #transactions #txForm .receipt-file-state-v3300{max-width:100%!important;overflow-wrap:anywhere!important}
+/* The History calendar stays a true 7-column calendar; polished glass on every day cell. */
+html body.mmh-workspace-active #transactions #txHistoryPanel .hc-shell{width:100%!important;min-width:0!important;margin:16px 0 18px!important}
+html body.mmh-workspace-active #transactions #txHistoryPanel .hc-calendar{
+ box-sizing:border-box!important;padding:16px!important;border:1px solid rgba(163,207,239,.32)!important;border-radius:18px!important;
+ background:radial-gradient(circle at 0 0,rgba(135,190,228,.10),transparent 56%),linear-gradient(140deg,rgba(22,57,79,.63),rgba(3,24,45,.72))!important;
+ box-shadow:inset 0 1px rgba(255,255,255,.14),0 12px 32px rgba(0,0,0,.15)!important;backdrop-filter:blur(12px)!important;
+}
+html body.mmh-workspace-active #transactions #txHistoryPanel .hc-grid{gap:5px!important;min-width:0!important}
+html body.mmh-workspace-active #transactions #txHistoryPanel .hc-day{
+ box-sizing:border-box!important;min-width:0!important;min-height:58px!important;border:1px solid rgba(151,208,241,.075)!important;border-radius:11px!important;
+ background:linear-gradient(155deg,rgba(55,95,124,.25),rgba(11,43,68,.30))!important;
+ box-shadow:inset 0 1px rgba(255,255,255,.045)!important;color:#e0f0fc!important;transition:border-color .16s,background .16s!important;
+}
+html body.mmh-workspace-active #transactions #txHistoryPanel .hc-day:hover{border-color:rgba(250,206,111,.55)!important;background:rgba(59,104,135,.48)!important}
+html body.mmh-workspace-active #transactions #txHistoryPanel .hc-day.hc-today{border-color:rgba(172,216,246,.80)!important}
+html body.mmh-workspace-active #transactions #txHistoryPanel .hc-day[aria-pressed="true"]{
+ border-color:rgba(255,213,120,.90)!important;background:linear-gradient(150deg,rgba(147,107,51,.85),rgba(39,70,85,.87))!important;color:#fff!important;
+ box-shadow:inset 0 1px rgba(255,244,198,.35),0 0 20px rgba(245,178,71,.13)!important;
+}
+html body.mmh-workspace-active #transactions #txHistoryPanel .hc-toolbar :is(button,input,select){
+ background:linear-gradient(140deg,rgba(31,71,99,.74),rgba(5,29,52,.82))!important;color:#e9f4fe!important;
+ border:1px solid rgba(159,202,234,.36)!important;border-radius:12px!important;box-shadow:inset 0 1px rgba(255,255,255,.10)!important;
+}
+html body.mmh-workspace-active #transactions #txHistoryPanel .hc-totals{gap:10px!important}
+html body.mmh-workspace-active #transactions #txHistoryPanel .hc-totals>div{min-width:0!important;border:1px solid rgba(139,199,236,.18)!important;border-radius:12px!important;background:rgba(9,36,59,.51)!important;padding:12px!important}
+/* Detail dialog + true edit modal: separate components with matching surface. */
+html body.mmh-workspace-active #editModal.modal-backdrop.open{
+ position:fixed!important;inset:0!important;display:flex!important;align-items:center!important;justify-content:center!important;
+ padding:clamp(10px,3vw,28px)!important;z-index:2147482900!important;background:rgba(0,8,19,.74)!important;
+ backdrop-filter:blur(19px) saturate(122%)!important;-webkit-backdrop-filter:blur(19px) saturate(122%)!important;
+}
+html body.mmh-workspace-active #editModal .modal{
+ box-sizing:border-box!important;display:flex!important;flex-direction:column!important;gap:0!important;
+ width:min(800px,calc(100vw - 28px))!important;max-width:800px!important;max-height:min(86dvh,900px)!important;
+ padding:0!important;border:1px solid rgba(251,204,111,.57)!important;border-radius:23px!important;
+ background:radial-gradient(ellipse at 5% 0,rgba(159,206,235,.22),transparent 54%),linear-gradient(138deg,rgba(27,65,90,.91),rgba(3,20,40,.96) 78%)!important;
+ box-shadow:inset 0 1px rgba(255,255,255,.24),0 30px 100px rgba(0,0,0,.6),0 0 30px rgba(239,179,68,.09)!important;
+ backdrop-filter:blur(28px) saturate(150%)!important;-webkit-backdrop-filter:blur(28px) saturate(150%)!important;overflow:hidden!important;
+}
+html body.mmh-workspace-active #editModal .toolbar{flex:0 0 auto!important;display:flex!important;align-items:center!important;justify-content:space-between!important;gap:10px!important;margin:0!important;padding:19px 23px!important;border-bottom:1px solid rgba(162,207,237,.18)!important;background:linear-gradient(180deg,rgba(255,255,255,.08),transparent)!important}
+html body.mmh-workspace-active #editModal #editModalTitle{font:500 27px/1.2 Georgia,'Times New Roman',serif!important;color:#fff!important}
+html body.mmh-workspace-active #editModal #editModalBody{flex:1 1 auto!important;min-height:0!important;overflow-y:auto!important;overscroll-behavior:contain!important;padding:20px 23px 25px!important;scrollbar-width:thin!important}
+html body.mmh-workspace-active #editModal #editTxForm .formgrid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:13px!important;min-width:0!important}
+html body.mmh-workspace-active #editModal #editTxForm .mmh-form-section-v1{grid-column:1/-1!important;border-bottom:1px solid rgba(162,206,236,.18)!important;letter-spacing:.13em!important;color:#f3cd80!important;padding:8px 0!important}
+html body.mmh-workspace-active #editModal #editTxForm label{min-width:0!important;display:flex!important;flex-direction:column!important;gap:6px!important;font-size:12px!important;color:#c8dcee!important}
+html body.mmh-workspace-active #editModal #editTxForm :is(input:not([type="file"]),select,textarea){min-width:0!important;width:100%!important;min-height:43px!important;box-sizing:border-box!important;padding:9px 12px!important;border:1px solid rgba(163,210,243,.34)!important;border-radius:12px!important;background:rgba(10,40,64,.7)!important;color:#f1f8ff!important;font-size:13px!important}
+html body.mmh-workspace-active #editModal #editTxForm .full{grid-column:1/-1!important}
+html body.mmh-workspace-active #editModal #editTxForm .receipt-upload-v3300{box-sizing:border-box!important;width:100%!important;max-width:none!important;margin-top:16px!important;padding:15px!important;border:1px solid rgba(152,209,241,.34)!important;border-radius:16px!important;background:linear-gradient(135deg,rgba(28,65,90,.51),rgba(7,34,57,.68))!important}
+html body.mmh-workspace-active #editModal #editTxForm .receipt-dropzone-v3300{width:100%!important;max-width:none!important;margin:10px 0!important;min-height:68px!important;border-radius:12px!important;border:1px dashed rgba(165,213,245,.44)!important;background:rgba(8,39,63,.63)!important}
+html body.mmh-workspace-active #editModal #editTxForm .actions{display:flex!important;flex-wrap:wrap!important;justify-content:flex-end!important;gap:10px!important;margin-top:18px!important;padding-top:14px!important;border-top:1px solid rgba(155,209,238,.17)!important}
+html body.mmh-workspace-active #editModal :is(button,.btn){min-height:40px!important;border:1px solid rgba(161,209,240,.38)!important;border-radius:11px!important;background:linear-gradient(140deg,rgba(46,84,108,.69),rgba(8,37,60,.82))!important;color:#eaf5ff!important;padding:8px 14px!important}
+html body.mmh-workspace-active #editModal .btn.primary{background:linear-gradient(130deg,#ffe4a2,#e6aa45)!important;color:#221809!important;border-color:#ffdb8e!important}
+html body.mmh-workspace-active #mmhVaultDialogV449 .mmh-v449-dialog.mmh-tx-dialog-v148{
+ width:min(690px,calc(100vw - 24px))!important;max-height:87dvh!important;border:1px solid rgba(255,207,119,.56)!important;border-radius:23px!important;
+ background:radial-gradient(circle at 0 0,rgba(175,219,245,.19),transparent 52%),linear-gradient(140deg,rgba(33,71,96,.92),rgba(3,22,41,.96))!important;
+ box-shadow:inset 0 1px rgba(255,255,255,.22),0 28px 85px rgba(0,0,0,.51)!important;backdrop-filter:blur(23px) saturate(145%)!important;-webkit-backdrop-filter:blur(23px) saturate(145%)!important;
+}
+/* Compact responsive fallbacks. */
+@media(max-width:900px){html body.mmh-workspace-active #transactions #category-manage .cm-filters{grid-template-columns:1fr!important}}
+@media(max-width:600px){
+ html body.mmh-workspace-active #transactions #txManagePanel #category-manage{padding:13px!important;border-radius:17px!important}
+ html body.mmh-workspace-active #transactions #txManagePanel .mmh-manager-grid-v445{grid-template-columns:1fr!important}
+ html body.mmh-workspace-active #transactions #txForm .receipt-upload-v3300{padding:12px!important}
+ html body.mmh-workspace-active #transactions #txForm .receipt-dropzone-v3300{gap:9px!important;padding:11px!important}
+ html body.mmh-workspace-active #transactions #txForm label.receipt-dropzone-v3300{position:relative!important;overflow:hidden!important}
+html body.mmh-workspace-active #transactions #txForm label.receipt-dropzone-v3300 input[type="file"]{
+ position:absolute!important;inset:0!important;z-index:3!important;width:100%!important;height:100%!important;
+ margin:0!important;padding:0!important;opacity:0!important;cursor:pointer!important;
+ appearance:none!important;-webkit-appearance:none!important;
+}
+html body.mmh-workspace-active #transactions #txForm label.receipt-dropzone-v3300:focus-within{outline:2px solid rgba(255,211,116,.88)!important;outline-offset:2px!important}
+html body.mmh-workspace-active #transactions #txForm .receipt-drop-icon-v3300{flex-basis:34px!important;width:34px!important;height:34px!important}
+ html body.mmh-workspace-active #transactions #txForm .receipt-browse-action-v21{padding:8px 9px!important;font-size:11px!important}
+ html body.mmh-workspace-active #transactions #txHistoryPanel .hc-calendar{padding:8px!important}
+ html body.mmh-workspace-active #transactions #txHistoryPanel .hc-grid{gap:3px!important}
+ html body.mmh-workspace-active #transactions #txHistoryPanel .hc-day{min-height:47px!important;padding:6px 2px!important;font-size:12px!important}
+ html body.mmh-workspace-active #transactions #txHistoryPanel .hc-totals{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+ html body.mmh-workspace-active #transactions #txHistoryPanel .hc-totals>div{padding:8px!important}
+ html body.mmh-workspace-active #editModal .modal{max-height:calc(100dvh - 25px)!important}
+ html body.mmh-workspace-active #editModal .toolbar{padding:12px 15px!important}
+ html body.mmh-workspace-active #editModal #editModalTitle{font-size:21px!important}
+ html body.mmh-workspace-active #editModal #editModalBody{padding:13px 14px 20px!important}
+ html body.mmh-workspace-active #editModal #editTxForm .formgrid{grid-template-columns:1fr!important}
+ html body.mmh-workspace-active #editModal #editTxForm :is(input:not([type="file"]),select){font-size:16px!important}
+}
+@supports not ((backdrop-filter:blur(8px)) or (-webkit-backdrop-filter:blur(8px))){
+ html body.mmh-workspace-active #editModal .modal,html body.mmh-workspace-active #transactions #txManagePanel #category-manage,html body.mmh-workspace-active #header{background:#0b253d!important}
+}
+@media(prefers-reduced-motion:reduce){html body.mmh-workspace-active #transactions #txHistoryPanel .hc-day{transition:none!important}}
