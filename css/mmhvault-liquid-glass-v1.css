@@ -1,0 +1,35 @@
+/* MMHVAULT Liquid Glass · Phase 1 · visual only · 2026-10-22
+   Never touches balances, controls, financial logic, auth, RLS or module mounting.
+   Appended LAST after legacy inline CSS and module styles. */
+:root{--lg-night:#031122;--lg-panel:rgba(8,29,48,.79);--lg-panel-soft:rgba(10,37,57,.69);--lg-border:rgba(153,194,220,.23);--lg-gold:#edc477;--lg-text:#edf5ff;--lg-muted:#b0c5d9;--lg-radius:19px;--lg-shadow:0 14px 40px rgba(0,6,18,.28),inset 0 1px rgba(255,255,255,.075)}
+html body.mmh-workspace-active{background:#031122!important;color:var(--lg-text);}
+html body.mmh-workspace-active::before{background:linear-gradient(90deg,rgba(1,11,23,.89) 0%,rgba(2,15,29,.58) 48%,rgba(2,13,28,.70) 100%),url('../images/mmhvault-liquid-city-v1.svg') center top/cover no-repeat!important;opacity:1!important}
+html body.mmh-workspace-active::after{background:radial-gradient(ellipse at 88% 10%,rgba(239,177,91,.11),transparent 38%),linear-gradient(to bottom,transparent 25%,rgba(2,13,27,.58) 78%)!important}
+html body.mmh-workspace-active #header,html body.mmh-workspace-active #bottomNav{border-color:var(--lg-border)!important;background:linear-gradient(140deg,rgba(11,37,59,.88),rgba(3,19,35,.86))!important;box-shadow:var(--lg-shadow)!important}
+html body.mmh-workspace-active #header .logo,html body.mmh-workspace-active .mmhvault-header-brand .logo{letter-spacing:.13em;color:var(--lg-gold)!important}
+html body.mmh-workspace-active :is(.card,.panel,.mmh-ui-panel,.pf-card-v500,.pf-trend-card-v620,.pf-market-card-v630,.pf-hero-v500,.ap-card,.lp-card){border:1px solid var(--lg-border)!important;border-radius:var(--lg-radius)!important;background:linear-gradient(145deg,rgba(19,46,69,.85),rgba(4,24,42,.84))!important;box-shadow:var(--lg-shadow)!important}
+html body.mmh-workspace-active #dashboard :is(.pf-card-v500,.pf-trend-card-v620,.pf-market-card-v630){background:linear-gradient(155deg,rgba(16,44,66,.83),rgba(4,24,44,.85))!important}
+html body.mmh-workspace-active #dashboard :is(.pf-card-v500,.pf-trend-card-v620,.pf-market-card-v630):hover{border-color:rgba(233,189,112,.38)!important}
+html body.mmh-workspace-active :is(button,.btn,input,select,textarea){font-family:inherit}
+html body.mmh-workspace-active :is(input:not([type=checkbox]):not([type=radio]),select,textarea){border-color:rgba(132,181,214,.29);border-radius:12px;background-color:rgba(7,28,47,.82);color:#f0f6fc}
+html body.mmh-workspace-active :is(button,.btn,[role=button]):focus-visible{outline:2px solid #f3ca83!important;outline-offset:3px}
+html body.mmh-workspace-active :is(.btn,button){-webkit-tap-highlight-color:transparent}
+html body.mmh-workspace-active :is(.btn,button):not(:disabled){transition:border-color .2s ease,background-color .2s ease,box-shadow .2s ease,color .2s ease}
+html body.mmh-workspace-active :is(h1,h2,h3){text-wrap:balance}
+html body.mmh-workspace-active #dashboard{isolation:isolate}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500{min-width:0}
+html body.mmh-workspace-active #dashboard :is(.pf-hero-v500,.pf-card-v500){overflow:clip}
+html body.mmh-workspace-active #dashboard :is(.pf-card-v500,.pf-trend-card-v620,.pf-market-card-v630)::before{pointer-events:none}
+html body.mmh-workspace-active #moreNavMenu.more-nav-menu{max-height:min(76dvh,750px)!important;overflow-y:auto!important;overscroll-behavior:contain;border:1px solid var(--lg-border)!important;box-shadow:0 18px 48px rgba(0,5,16,.5)!important}
+@supports ((-webkit-backdrop-filter:blur(1px)) or (backdrop-filter:blur(1px))){
+html body.mmh-workspace-active #header,html body.mmh-workspace-active #bottomNav{backdrop-filter:blur(15px) saturate(120%);-webkit-backdrop-filter:blur(15px) saturate(120%)}
+html body.mmh-workspace-active #dashboard :is(.pf-card-v500,.pf-trend-card-v620,.pf-market-card-v630){backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px)}
+}
+@media(min-width:900px){html body.mmh-workspace-active::before{background-position:center 35%!important}}
+@media(max-width:760px){
+html body.mmh-workspace-active::before{background:linear-gradient(180deg,rgba(2,13,28,.76),rgba(2,13,28,.88) 58%,#031122),url('../images/mmhvault-liquid-city-v1.svg') 55% top/auto 560px no-repeat!important}
+html body.mmh-workspace-active #dashboard :is(.pf-card-v500,.pf-trend-card-v620,.pf-market-card-v630){border-radius:16px!important}
+html body.mmh-workspace-active #bottomNav{padding-bottom:max(4px,env(safe-area-inset-bottom))!important}
+html body.mmh-workspace-active #moreNavMenu.more-nav-menu{max-height:calc(100dvh - 150px)!important}
+}
+@media(prefers-reduced-motion:reduce){html body.mmh-workspace-active *,html body.mmh-workspace-active *::before,html body.mmh-workspace-active *::after{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
