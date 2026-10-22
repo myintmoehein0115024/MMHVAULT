@@ -1,4 +1,4 @@
-/* MMHVAULT Transactions P2.4 — mobile account glass menu.
+/* MMHVAULT Transactions P6.2.2 — mobile account lock synchronization.
  * Original <select> remains authoritative; dispatches the same native change event.
  * This file contains no financial mutation or data logging. */
 (() => {
@@ -16,16 +16,39 @@
     if (focus && trigger.isConnected) trigger.focus({preventScroll:true});
   }
   function labelOf(select) {
+    if (select.disabled) return '—';
+    // A cleared, unselected native source must not visually claim that the
+    // first account was selected.  Keep the native select authoritative.
     const option = select.selectedOptions[0];
-    return option ? (option.textContent||'').trim() : (select.options[0]?.textContent||'Select account');
+    return option ? (option.textContent||'').trim() : 'Select account';
   }
   function update(select) {
+    if (!select || !select.isConnected) return;
     const trigger = select.parentElement?.querySelector('.mmh-p24-account-trigger');
-    if (trigger) trigger.querySelector('.mmh-p24-account-name').textContent=labelOf(select);
+    const locked = !!select.disabled;
+    if (trigger) {
+      trigger.querySelector('.mmh-p24-account-name').textContent=labelOf(select);
+      trigger.disabled=locked;
+      trigger.tabIndex=locked?-1:0;
+      trigger.setAttribute('aria-disabled',String(locked));
+      if(locked && current?.select===select)close();
+    }
+    const accountLabel=select.closest('label');
+    const amountId=select.id==='fromAccount'?'fromAmount':select.id==='toAccount'?'toAmount':null;
+    const amountLabel=amountId ? document.getElementById(amountId)?.closest('label') : null;
+    // Both sides of the one-sided transaction are a single UI decision:
+    // Income -> Deposit to, Expense -> Pay from, Transfer -> both.
+    // The source controls and financial rules remain unchanged.
+    [accountLabel,amountLabel].forEach(label=>{
+      if(!label)return;
+      label.classList.toggle('mmh-p24-side-inactive',locked);
+      if(locked)label.setAttribute('aria-hidden','true');
+      else if(!label.classList.contains('tx-field-hidden-v141'))label.removeAttribute('aria-hidden');
+    });
   }
   function open(select,trigger) {
     close();
-    if (!mobile.matches) return;
+    if (!mobile.matches || select.disabled || trigger.disabled) return;
     const menu=document.createElement('div');
     menu.className='mmh-p24-account-menu';
     menu.setAttribute('role','listbox');
@@ -48,7 +71,7 @@
       b.addEventListener('click',(event)=>{
         event.preventDefault();
         event.stopPropagation();
-        if (option.disabled) return;
+        if (select.disabled || trigger.disabled || option.disabled) {close();return;}
         const changed=select.selectedIndex!==index;
         select.selectedIndex=index;
         if (changed) {
@@ -96,16 +119,24 @@
     btn.setAttribute('aria-label','Select account');
     btn.setAttribute('aria-haspopup','listbox');
     btn.setAttribute('aria-expanded','false');
+    btn.setAttribute('aria-disabled',String(!!select.disabled));
     const name=document.createElement('span');name.className='mmh-p24-account-name';
     const chevron=document.createElement('span');chevron.className='mmh-p24-account-chevron';chevron.textContent='⌄';chevron.setAttribute('aria-hidden','true');
     btn.append(name,chevron);wrap.appendChild(btn);
     update(select);
     btn.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();if(current?.select===select){close();return;}open(select,btn);});
     select.addEventListener('change',()=>update(select));
+    // Native updateAccountLocks() writes the disabled property. The observer
+    // mirrors it to the visual trigger, not just the selected text.
     new MutationObserver(()=>update(select)).observe(select,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:['selected','disabled']});
   }
   function init() {
     ids.forEach(id=>install(document.getElementById(id)));
+    // Update once more after the other transaction initializers have run.
+    // This is idempotent and touches only the visible picker state.
+    window.requestAnimationFrame?.(()=>ids.forEach(id=>{
+      const select=document.getElementById(id);if(select)update(select);
+    }));
     document.addEventListener('click',e=>{if(current&&!current.menu.contains(e.target)&&!current.trigger.contains(e.target))close();});
     document.addEventListener('keydown',e=>{
       if(!current)return;
