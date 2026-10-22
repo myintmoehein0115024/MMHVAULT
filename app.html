@@ -24456,7 +24456,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
 <!-- MMHVAULT v4.7.2 · Dashboard Desktop 2x2 Snapshot. Desktop only; mobile/tablet unchanged. -->
 
 
-<!-- MMHVAULT V4.3.0 · Transaction Cascade Hotfix -->
+<!-- MMHVAULT V4.3.0 · Transaction Cascade Hotfix · P6.2.1 mobile select node stability -->
 <script id="mmhvault-v34430-transaction-cascade-hotfix">
 (function(){
   'use strict';
@@ -24492,20 +24492,28 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
     const old=$(id);
     if(!old)return null;
     const current=preferred!==undefined?String(preferred):String(old.value||'');
-    const clone=old.cloneNode(false);
-    clone.id=id;
-    clone.name=old.name;
-    clone.className=old.className;
-    clone.disabled=old.disabled;
-    clone.required=old.required;
-    values.forEach(v=>{
+    // P2.5 mobile glass pickers keep a reference to their native select.
+    // Replacing that node leaves the picker reading an orphaned select, which
+    // shows Income choices even after switching to Expense. Preserve enhanced
+    // selects in place; the native select remains the single source of truth.
+    const enhanced=old.dataset.mmhP25Enhanced==='1'||!!old.closest('.mmh-p25-picker-shell');
+    const target=enhanced?old:old.cloneNode(false);
+    if(!enhanced){
+      target.id=id;
+      target.name=old.name;
+      target.className=old.className;
+      target.disabled=old.disabled;
+      target.required=old.required;
+    }
+    const options=values.map(v=>{
       const o=document.createElement('option');
       o.value=v;o.textContent=v;
-      clone.appendChild(o);
+      return o;
     });
-    clone.value=values.includes(current)?current:(values[0]||'');
-    old.replaceWith(clone);
-    return clone;
+    target.replaceChildren(...options);
+    target.value=values.includes(current)?current:(values[0]||'');
+    if(!enhanced)old.replaceWith(target);
+    return target;
   }
 
   function categoriesFor(type,group){
@@ -24542,17 +24550,26 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,.btn:focus-visib
       applyLocks();
     };
 
-    type.addEventListener('change',()=>{
-      const t=$('txType').value;
-      const currentGroup=$('txGroup')?.value||'';
-      const allowed=GROUPS[t]||GROUPS.Income;
-      const nextGroup=allowed.includes(currentGroup)?currentGroup:allowed[0];
-      const newGroup=replaceSelect('txGroup',allowed,nextGroup);
-      newGroup.disabled=t==='Transfer';
-      newGroup.addEventListener('change',()=>refreshCategory());
-      refreshCategory();
-    });
-    group.addEventListener('change',()=>refreshCategory());
+    if(type.dataset.mmhV34430CascadeBound!=='1'){
+      type.dataset.mmhV34430CascadeBound='1';
+      type.addEventListener('change',()=>{
+        const t=$('txType').value;
+        const currentGroup=$('txGroup')?.value||'';
+        const allowed=GROUPS[t]||GROUPS.Income;
+        const nextGroup=allowed.includes(currentGroup)?currentGroup:allowed[0];
+        const newGroup=replaceSelect('txGroup',allowed,nextGroup);
+        newGroup.disabled=t==='Transfer';
+        if(newGroup.dataset.mmhV34430GroupBound!=='1'){
+          newGroup.dataset.mmhV34430GroupBound='1';
+          newGroup.addEventListener('change',()=>refreshCategory());
+        }
+        refreshCategory();
+      });
+    }
+    if(group.dataset.mmhV34430GroupBound!=='1'){
+      group.dataset.mmhV34430GroupBound='1';
+      group.addEventListener('change',()=>refreshCategory());
+    }
     applyLocks();
   }
 
