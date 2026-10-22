@@ -13212,15 +13212,17 @@ function mmhVaultOpenDialogV449({title,message='',body='',actions=[],dialogClass
     b.type='button';
     b.textContent=x.label||'OK';
     if(x.className)b.className=x.className;
+    const hasValue=Object.prototype.hasOwnProperty.call(x,'value');
     b.onclick=async()=>{
       if(b.dataset.busy==='1')return;
       b.dataset.busy='1';
       try{
-        const r=x.onClick?x.onClick():true;
+        const fallbackValue=hasValue?x.value:true;
+        const r=x.onClick?x.onClick():fallbackValue;
         if(r&&typeof r.then==='function'){
           const resolved=await r;
-          if(resolved!==false)mmhVaultResolveDialogV449(resolved);
-        }else if(r!==false){
+          if(resolved!==false||hasValue)mmhVaultResolveDialogV449(resolved);
+        }else if(r!==false||hasValue){
           mmhVaultResolveDialogV449(r);
         }
       }catch(err){
@@ -23053,7 +23055,7 @@ button[data-mmh-busy="1"],.btn[data-mmh-busy="1"]{position:relative;cursor:wait!
   async function dialog({title='MMHVAULT',message='',details='',type='info',confirmLabel='Close',cancelLabel='',danger=false}={}){
     const msg=asText(message),body=details?'<div class="mmh-v449-dialog-note">'+String(details).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))+'</div>':'';
     if(typeof window.mmhVaultOpenDialogV449==='function'){
-      const actions=[];if(cancelLabel)actions.push({label:cancelLabel,onClick:()=>false});actions.push({label:confirmLabel,className:danger?'danger':'primary',onClick:()=>true});
+      const actions=[];if(cancelLabel)actions.push({label:cancelLabel,value:false});actions.push({label:confirmLabel,className:danger?'danger':'primary',onClick:()=>true});
       return !!(await window.mmhVaultOpenDialogV449({title,message:msg,body,actions}));
     }
     toast(msg||details,{title,type:type==='danger'?'error':type,duration:4200});return !cancelLabel;
@@ -33799,7 +33801,7 @@ html body.mmh-workspace-active #moreNavMenu .mmh-more-list-v153:focus-visible{ou
 <link rel="stylesheet" href="css/mmhvault-liquid-life-planner-p50.css?v=5.0.0" data-mmh-life-glass="p5.0">
 <link rel="stylesheet" href="css/mmhvault-liquid-life-planner-p51.css?v=5.1.0" data-mmh-life-glass="p5.1">
 <link rel="stylesheet" href="css/mmhvault-liquid-more-settings-p60.css?v=6.0.0" data-mmh-liquid-more-settings="p6.0">
-<link rel="stylesheet" href="css/mmhvault-liquid-settings-p61.css?v=6.1.0" data-mmh-liquid-settings="p6.1">
+<link rel="stylesheet" href="css/mmhvault-liquid-settings-p62.css?v=6.2.0" data-mmh-liquid-settings="p6.2">
 <script defer src="js/mmhvault-liquid-invest-p32.js?v=3.2.0" data-mmh-liquid-invest="p3.2"></script>
 <script src="js/mmhvault-liquid-interactions-v2.js?v=2.1.0" defer></script>
 </body>
