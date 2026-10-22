@@ -1,0 +1,115 @@
+/* MMHVAULT — Transactions P2.4 / Mobile interaction refinement.
+   Visual enhancement, no changes to transaction math or persistence. */
+
+/* Compact transaction kind selector without making touch targets too small. */
+@media (max-width: 620px) {
+ html body.mmh-workspace-active #transactions #txSmartV141.tx-smart-v141 {
+   padding:12px!important; margin:6px 0 12px!important;
+   border-radius:17px!important; border:1px solid rgba(171,213,242,.44)!important;
+   background:radial-gradient(ellipse at 2% 0%,rgba(97,161,202,.22),transparent 58%),linear-gradient(145deg,rgba(31,78,109,.72),rgba(4,28,49,.83))!important;
+   box-shadow:inset 0 1px rgba(255,255,255,.19),0 13px 34px rgba(0,0,0,.19)!important;
+   -webkit-backdrop-filter:blur(18px) saturate(136%)!important;backdrop-filter:blur(18px) saturate(136%)!important;
+ }
+ html body.mmh-workspace-active #transactions #txSmartV141 .tx-smart-head-v141 {margin-bottom:9px!important}
+ html body.mmh-workspace-active #transactions #txSmartV141 .tx-smart-head-v141 span {font-size:10px!important;color:#f4c872!important}
+ html body.mmh-workspace-active #transactions #txSmartV141 .tx-smart-head-v141 small {font-size:10px!important;line-height:1.35!important;color:#a5c3d9!important}
+ html body.mmh-workspace-active #transactions #txSmartV141 .tx-kind-grid-v141 {grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:6px!important}
+ html body.mmh-workspace-active #transactions #txSmartV141 .tx-kind-grid-v141>button {
+   display:flex!important;min-height:46px!important;gap:5px!important;justify-content:center!important;
+   padding:7px 3px!important;font-size:10px!important;font-weight:700!important;line-height:1.2!important;
+   border:1px solid rgba(155,206,239,.24)!important;border-radius:11px!important;
+   background:linear-gradient(150deg,rgba(27,75,105,.54),rgba(5,29,50,.64))!important;
+   box-shadow:inset 0 1px rgba(255,255,255,.09)!important;
+   white-space:nowrap!important;
+ }
+ html body.mmh-workspace-active #transactions #txSmartV141 .tx-kind-grid-v141>button i {width:19px!important;height:19px!important;flex:0 0 19px!important;font-size:11px!important;border-radius:6px!important}
+ html body.mmh-workspace-active #transactions #txSmartV141 .tx-kind-grid-v141>button.active {
+   border-color:rgba(255,211,121,.77)!important;
+   background:linear-gradient(130deg,rgba(181,128,42,.37),rgba(24,65,90,.74))!important;
+   box-shadow:inset 0 1px rgba(255,244,213,.22),0 0 15px rgba(249,198,97,.10)!important;
+ }
+ html body.mmh-workspace-active #transactions #txSmartV141 .tx-direction-wrap-v141 {
+   grid-template-columns:1fr!important;gap:5px!important;margin-top:9px!important;padding-top:9px!important;
+ }
+ html body.mmh-workspace-active #transactions #txSmartV141 .tx-direction-title-v141{font-size:9px!important}
+ html body.mmh-workspace-active #transactions #txSmartV141 .tx-direction-grid-v141>button{min-height:42px!important;font-size:10px!important;border:1px solid rgba(154,201,229,.3)!important;border-radius:10px!important}
+ html body.mmh-workspace-active #transactions #txSmartV141 .tx-smart-note-v141 {min-height:0!important;margin-top:7px!important;font-size:10px!important;line-height:1.35!important}
+
+ /* In-page account picker. Preserve native select values and change listeners. */
+ html body.mmh-workspace-active #transactions #txForm .mmh-p24-account-wrap{display:block;position:relative;width:100%;min-width:0;margin-top:5px}
+ html body.mmh-workspace-active #transactions #txForm .mmh-p24-account-wrap>select.mmh-p24-native{position:absolute!important;left:0!important;top:0!important;width:1px!important;height:1px!important;min-height:0!important;opacity:0!important;pointer-events:none!important;margin:0!important;padding:0!important;border:0!important}
+ html body.mmh-workspace-active #transactions #txForm button.mmh-p24-account-trigger{
+   display:flex!important;align-items:center!important;justify-content:space-between!important;gap:12px!important;width:100%!important;min-width:0!important;
+   min-height:48px!important;padding:10px 14px!important;border:1px solid rgba(153,207,239,.43)!important;
+   border-radius:13px!important;background:linear-gradient(138deg,rgba(43,91,123,.52),rgba(8,40,64,.77))!important;
+   color:#f0f7ff!important;font:600 16px/1.35 system-ui,-apple-system,sans-serif!important;text-align:left!important;
+   box-shadow:inset 0 1px rgba(255,255,255,.15)!important;
+   -webkit-backdrop-filter:blur(15px) saturate(142%)!important;backdrop-filter:blur(15px) saturate(142%)!important;
+ }
+ html body.mmh-workspace-active #transactions #txForm .mmh-p24-account-trigger[aria-expanded=true]{border-color:rgba(247,200,103,.89)!important;box-shadow:inset 0 1px rgba(255,255,255,.22),0 0 0 2px rgba(246,198,105,.14)!important}
+ html body.mmh-workspace-active #transactions #txForm .mmh-p24-account-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+ html body.mmh-workspace-active #transactions #txForm .mmh-p24-account-chevron{flex:0 0 auto;font-size:16px;color:#d6ebfb}
+}
+@media (max-width:360px){
+ html body.mmh-workspace-active #transactions #txSmartV141 .tx-kind-grid-v141>button{gap:2px!important;font-size:9px!important}
+ html body.mmh-workspace-active #transactions #txSmartV141 .tx-kind-grid-v141>button i{width:17px!important;height:17px!important;flex-basis:17px!important}
+}
+@media (min-width:621px){
+ #transactions .mmh-p24-account-wrap{display:contents!important}
+ #transactions .mmh-p24-account-wrap>button.mmh-p24-account-trigger{display:none!important}
+}
+.mmh-p24-account-menu {
+ position:fixed;z-index:2147483000;box-sizing:border-box;display:grid;gap:5px;padding:8px;
+ max-height:min(320px,calc(100dvh - 100px));overflow-y:auto;overscroll-behavior:contain;
+ border:1px solid rgba(169,217,246,.53);border-radius:17px;
+ background:radial-gradient(ellipse at 20% -20%,rgba(134,201,235,.26),transparent 60%),linear-gradient(142deg,rgba(25,64,93,.96),rgba(3,24,46,.97));
+ color:#eff9ff;box-shadow:inset 0 1px rgba(255,255,255,.21),0 22px 64px rgba(0,0,0,.55),0 0 22px rgba(248,188,71,.06);
+ backdrop-filter:blur(26px) saturate(140%);-webkit-backdrop-filter:blur(26px) saturate(140%);
+}
+.mmh-p24-account-menu button{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-height:44px;padding:10px 12px;border:1px solid transparent;border-radius:11px;background:rgba(36,83,111,.32);color:#ebf5fc;text-align:left;font:600 14px/1.3 system-ui,-apple-system,sans-serif;cursor:pointer;overflow-wrap:anywhere}
+.mmh-p24-account-menu button[aria-selected=true]{border-color:rgba(255,210,123,.66);background:linear-gradient(110deg,rgba(168,122,50,.4),rgba(24,64,92,.7));color:#ffe7b2}
+.mmh-p24-account-menu button:focus-visible{outline:2px solid #ffcf73;outline-offset:0}
+.mmh-p24-account-menu button[disabled]{opacity:.48;cursor:not-allowed}
+.mmh-p24-account-menu .mmh-p24-check{color:#ffd782;font-weight:800}
+
+/* Small transaction confirmations should open at the visual center, not the bottom.
+   Tall detail dialogs may scroll internally and stay within the safe viewport. */
+@media(max-width:699px){
+ html body #mmhVaultDialogV449.show{
+   display:flex!important;align-items:center!important;justify-content:center!important;
+   box-sizing:border-box!important;
+   padding:max(12px,env(safe-area-inset-top,0px)) 12px max(12px,env(safe-area-inset-bottom,0px))!important;
+   background:rgba(1,9,22,.72)!important;
+   backdrop-filter:blur(17px) saturate(125%)!important;
+   -webkit-backdrop-filter:blur(17px) saturate(125%)!important;
+ }
+ html body #mmhVaultDialogV449.show .mmh-v449-dialog {
+   box-sizing:border-box!important;flex:0 1 auto!important;
+   width:min(420px,100%)!important;max-width:420px!important;
+   max-height:calc(100dvh - 30px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))!important;
+   margin:auto!important;border-radius:21px!important;
+   border:1px solid rgba(253,208,118,.58)!important;
+   background:radial-gradient(ellipse at 8% -10%,rgba(123,194,236,.23),transparent 54%),linear-gradient(140deg,rgba(27,66,96,.95),rgba(3,21,40,.97) 80%)!important;
+   box-shadow:inset 0 1px rgba(255,255,255,.22),0 24px 75px rgba(0,0,0,.52)!important;
+   overflow:hidden!important;
+   backdrop-filter:blur(25px) saturate(140%)!important;-webkit-backdrop-filter:blur(25px) saturate(140%)!important;
+ }
+ html body #mmhVaultDialogV449.show .mmh-v449-dialog-head{flex:0 0 auto!important;padding:17px 17px 8px!important}
+ html body #mmhVaultDialogV449.show .mmh-v449-dialog-head h3{font-size:21px!important;line-height:1.22!important}
+ html body #mmhVaultDialogV449.show .mmh-v449-dialog-body{min-height:0!important;flex:0 1 auto!important;overflow-y:auto!important;overscroll-behavior:contain!important;padding:10px 17px 15px!important}
+ html body #mmhVaultDialogV449.show .mmh-v449-dialog-actions{
+   position:relative!important;bottom:auto!important;flex:0 0 auto!important;
+   display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important;
+   padding:13px 15px calc(13px + env(safe-area-inset-bottom,0px))!important;
+   border-top:1px solid rgba(174,214,240,.21)!important;
+   background:linear-gradient(105deg,rgba(48,92,119,.24),rgba(6,29,50,.67))!important;
+   backdrop-filter:blur(14px)!important;-webkit-backdrop-filter:blur(14px)!important;
+ }
+ html body #mmhVaultDialogV449.show .mmh-v449-dialog-actions>button{min-height:45px!important;width:100%!important;min-width:0!important;flex:0 1 auto!important;border-radius:12px!important;font-size:12px!important}
+ html body #mmhVaultDialogV449.show .mmh-v449-dialog-actions>button:last-child:nth-child(odd){grid-column:1/-1}
+ /* Detail view frequently has three commands; place them on one tidy row at 393px. */
+ html body #mmhVaultDialogV449.show:has(.mmh-tx-detail-v800) .mmh-v449-dialog-actions{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+ html body #mmhVaultDialogV449.show:has(.mmh-tx-detail-v800) .mmh-v449-dialog-actions>button{grid-column:auto!important;font-size:11px!important;padding:7px 3px!important;min-height:43px!important}
+}
+@media(max-width:355px){html body #mmhVaultDialogV449.show:has(.mmh-tx-detail-v800) .mmh-v449-dialog-actions{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+@media(prefers-reduced-motion:reduce){.mmh-p24-account-menu *{transition:none!important;animation:none!important}}
