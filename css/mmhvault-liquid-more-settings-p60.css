@@ -1,0 +1,242 @@
+/* MMHVAULT P6.0 — More + Settings Liquid Glass
+   Presentation only; preserves existing settings routing, cloud writes and More switching. */
+html body.mmh-workspace-active:not(.light){
+  --ms60-ink:#e9f5ff;--ms60-muted:#a9c1d4;--ms60-gold:#eec77b;
+  --ms60-line:rgba(165,215,248,.21);
+  --ms60-bg:linear-gradient(137deg,rgba(21,53,78,.78),rgba(8,28,47,.84) 54%,rgba(4,18,33,.91));
+  --ms60-sub:linear-gradient(145deg,rgba(23,56,81,.63),rgba(8,30,49,.76));
+  --ms60-shadow:inset 0 1px 0 rgba(255,255,255,.13),0 20px 52px rgba(0,0,0,.25);
+}
+/* More: maintain the existing size, menu stages, navigation and inner scroller. */
+html body.mmh-workspace-active:not(.light) #moreNavMenu.more-nav-menu{
+  background:linear-gradient(160deg,rgba(23,53,78,.89),rgba(5,23,42,.95) 64%)!important;
+  border-color:rgba(180,218,245,.29)!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.17),0 24px 64px rgba(0,0,0,.38),0 0 0 1px rgba(217,181,103,.04)!important;
+  backdrop-filter:blur(26px) saturate(160%)!important;
+  -webkit-backdrop-filter:blur(26px) saturate(160%)!important;
+  isolation:isolate!important;
+}
+html body.mmh-workspace-active:not(.light) #moreNavMenu .mmh-more-view-v153{
+  background:linear-gradient(165deg,rgba(232,246,255,.065),transparent 38%)!important;
+}
+html body.mmh-workspace-active:not(.light) #moreNavMenu .mmh-more-view-head-v153{
+  border-bottom-color:rgba(178,215,242,.19)!important;
+}
+html body.mmh-workspace-active:not(.light) #moreNavMenu .mmh-more-view-title-v153 strong{color:#f4f8fd!important}
+html body.mmh-workspace-active:not(.light) #moreNavMenu .mmh-more-view-title-v153>span{color:var(--ms60-gold)!important}
+html body.mmh-workspace-active:not(.light) #moreNavMenu .mmh-more-list-v153{
+  overscroll-behavior:contain!important;scrollbar-color:rgba(146,185,214,.52) transparent!important;
+}
+html body.mmh-workspace-active:not(.light) #moreNavMenu .mmh-more-item-v153{
+  border-color:rgba(164,205,234,.17)!important;
+  background:linear-gradient(135deg,rgba(52,99,133,.29),rgba(11,40,63,.53))!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.055)!important;
+}
+html body.mmh-workspace-active:not(.light) #moreNavMenu .mmh-more-item-v153:is(:hover,:focus-visible,.active){
+  border-color:rgba(246,205,124,.55)!important;
+  background:linear-gradient(120deg,rgba(220,175,88,.23),rgba(26,65,88,.56))!important;
+  box-shadow:inset 0 1px 0 rgba(255,247,218,.11),0 5px 18px rgba(0,0,0,.16)!important;
+}
+html body.mmh-workspace-active:not(.light) #moreNavMenu .mmh-more-item-v153[data-more-page="life-planner"]:not(.active){
+  border-color:rgba(164,205,234,.17)!important;background:linear-gradient(135deg,rgba(52,99,133,.29),rgba(11,40,63,.53))!important;
+}
+html body.mmh-workspace-active:not(.light) #moreNavMenu .mmh-more-icon-v570,
+html body.mmh-workspace-active:not(.light) #moreNavMenu .mmh-more-back-v153{
+  border:1px solid rgba(180,218,245,.22)!important;
+  background:linear-gradient(145deg,rgba(114,177,220,.18),rgba(36,93,131,.12))!important;
+}
+/* Settings canvas: same restrained hierarchy as Invest/Transactions. */
+html body.mmh-workspace-active:not(.light) #settings.page.active{
+  width:100%!important;max-width:1200px!important;min-width:0!important;
+  margin:0 auto!important;box-sizing:border-box!important;padding:0 0 76px!important;
+  --st-bg:rgba(10,32,52,.76)!important;
+  --st-border:rgba(165,215,248,.23)!important;
+  --st-muted:var(--ms60-muted)!important;
+  --st-gold:var(--ms60-gold)!important;
+}
+html body.mmh-workspace-active:not(.light) #settings.page.active > h1{
+  font-family:Georgia,'Times New Roman',serif!important;
+  color:#f7f9fd!important;font-size:clamp(29px,3vw,42px)!important;
+  line-height:1.12!important;letter-spacing:-.02em!important;margin:8px 0 5px!important;
+}
+html body.mmh-workspace-active:not(.light) #settings.page.active > .sub{
+  color:var(--ms60-muted)!important;font-size:13px!important;line-height:1.5!important;margin-bottom:18px!important;
+}
+/* Real panels, home profile, dynamic groups and sub-pages. */
+html body.mmh-workspace-active:not(.light) #settings :is(
+  #stSettingsHomeV3 > #settingsPanelAccountV371 > .panel,
+  #stSettingsHomeV3 > .st-home-menu > .st-template-group,
+  .st-page .panel,
+  .st-page .st-rows,
+  .st-page .st-detail,
+  .st-page .account-security-card-v379,
+  .st-page .account-center-card-v375,
+  .fb-panel,
+  .fb-record,
+  .restore-center-v383,
+  .excel-import-v318,
+  .data-center-safety-card-v380,
+  .system-status-card-v313,
+  .mmh-birthday-settings-v34216
+){
+  position:relative!important;
+  min-width:0!important;
+  background:var(--ms60-bg)!important;
+  border:1px solid var(--ms60-line)!important;
+  border-radius:18px!important;
+  box-shadow:var(--ms60-shadow)!important;
+  backdrop-filter:blur(17px) saturate(145%)!important;
+  -webkit-backdrop-filter:blur(17px) saturate(145%)!important;
+}
+/* Keep the existing Settings Home responsive grid, only refine spacing. */
+html body.mmh-workspace-active:not(.light) #settings #stSettingsHomeV3:not([hidden]){gap:14px!important}
+html body.mmh-workspace-active:not(.light) #settings #stSettingsHomeV3 > #settingsPanelAccountV371 > .panel{
+  padding:16px 20px!important;border-radius:18px!important;
+  background:linear-gradient(118deg,rgba(25,58,84,.84),rgba(7,26,45,.90))!important;
+}
+html body.mmh-workspace-active:not(.light) #settings #stSettingsHomeV3 > #settingsPanelAccountV371 .st-stats{
+  background:linear-gradient(145deg,rgba(121,183,220,.115),rgba(8,28,48,.28))!important;
+  border-color:rgba(175,215,241,.20)!important;
+}
+html body.mmh-workspace-active:not(.light) #settings #stSettingsHomeV3 > #settingsPanelAccountV371 .st-stats b{
+  color:#f4cf83!important;font-variant-numeric:tabular-nums!important;
+}
+html body.mmh-workspace-active:not(.light) #settings #stSettingsHomeV3 .account-center-avatar-v375{
+  border:1px solid rgba(246,204,116,.50)!important;
+  background:linear-gradient(145deg,rgba(211,169,89,.17),rgba(42,93,136,.40))!important;
+  box-shadow:0 0 0 4px rgba(116,179,217,.08),0 8px 22px rgba(0,0,0,.19)!important;
+}
+html body.mmh-workspace-active:not(.light) #settings #stSettingsHomeV3 .st-profile-link{
+  border:1px solid rgba(240,199,114,.42)!important;
+  background:linear-gradient(145deg,rgba(232,185,92,.25),rgba(36,73,94,.52))!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.10)!important;
+  color:#f3e6cb!important;border-radius:12px!important;
+}
+html body.mmh-workspace-active:not(.light) #settings #stSettingsHomeV3 > .st-home-menu{
+  gap:14px!important;background:transparent!important;
+}
+html body.mmh-workspace-active:not(.light) #settings #stSettingsHomeV3 > .st-home-menu > .st-template-group{
+  padding:7px!important;overflow:hidden!important;
+}
+html body.mmh-workspace-active:not(.light) #settings #stSettingsHomeV3 > .st-home-menu > .st-template-group > h3{
+  color:#eec77b!important;letter-spacing:.13em!important;font-size:10px!important;padding:10px 12px!important;
+}
+html body.mmh-workspace-active:not(.light) #settings #stSettingsHomeV3 .st-home-menu > .st-template-group > :is(.st-nav,.fb-nav,.cs-entry-v1518){
+  min-width:0!important;border-top-color:rgba(163,211,241,.13)!important;
+  border-radius:11px!important;padding:10px 12px!important;
+  transition:background .18s ease,border-color .18s ease,transform .18s ease!important;
+}
+html body.mmh-workspace-active:not(.light) #settings #stSettingsHomeV3 .st-home-menu > .st-template-group > :is(.st-nav,.fb-nav,.cs-entry-v1518):is(:hover,:focus-visible){
+  background:linear-gradient(105deg,rgba(123,190,235,.15),rgba(236,196,113,.10))!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.045)!important;
+  transform:translateX(2px)!important;
+}
+html body.mmh-workspace-active:not(.light) #settings .st-template-nav-copy .st-nav-name{color:#eef7fd!important;font-size:13px!important}
+html body.mmh-workspace-active:not(.light) #settings .st-template-nav-copy small{color:#a1b9ca!important;font-size:11px!important}
+html body.mmh-workspace-active:not(.light) #settings .st-template-group .st-icon{
+  color:#f3d58e!important;background:linear-gradient(145deg,rgba(225,184,95,.23),rgba(73,126,164,.18))!important;
+  border:1px solid rgba(229,191,114,.19)!important;border-radius:10px!important;
+}
+/* Subpages: avoid over-sized fields/cards, keep all controls visible. */
+html body.mmh-workspace-active:not(.light) #settings .st-page:not([hidden]){
+  width:100%!important;max-width:1100px!important;min-width:0!important;
+}
+html body.mmh-workspace-active:not(.light) #settings .st-page-head{
+  display:flex!important;align-items:center!important;gap:12px!important;flex-wrap:wrap!important;
+  margin:4px 0 16px!important;
+}
+html body.mmh-workspace-active:not(.light) #settings .st-back{
+  flex-shrink:0!important;border-radius:12px!important;
+  background:linear-gradient(140deg,rgba(48,92,125,.55),rgba(6,28,48,.83))!important;
+  border:1px solid rgba(165,215,248,.28)!important;box-shadow:inset 0 1px rgba(255,255,255,.08)!important;
+}
+html body.mmh-workspace-active:not(.light) #settings .st-page .st-row{
+  min-width:0!important;border-bottom-color:rgba(166,208,238,.14)!important;
+  background:transparent!important;
+}
+html body.mmh-workspace-active:not(.light) #settings .st-page .st-row:last-child{border-bottom-color:transparent!important}
+html body.mmh-workspace-active:not(.light) #settings .st-page .st-row:is(:hover,:focus-within){background:rgba(130,194,229,.075)!important}
+html body.mmh-workspace-active:not(.light) #settings .st-page .st-icon{
+  border:1px solid rgba(165,215,248,.20)!important;
+  background:rgba(108,174,218,.18)!important;color:#d9edfa!important;border-radius:10px!important;
+}
+html body.mmh-workspace-active:not(.light) #settings .st-page :is(
+  input:not([type=checkbox]):not([type=radio]):not([type=file]),
+  select,textarea
+){
+  min-width:0!important;max-width:100%!important;
+  background:linear-gradient(145deg,rgba(28,63,90,.61),rgba(9,30,51,.83))!important;
+  border:1px solid rgba(165,215,248,.27)!important;
+  border-radius:11px!important;color:#e9f5ff!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.06)!important;
+}
+html body.mmh-workspace-active:not(.light) #settings .st-page .st-row select{
+  flex:0 1 auto!important;width:auto!important;max-width:min(56%,270px)!important;
+  padding:6px 26px 6px 12px!important;
+}
+html body.mmh-workspace-active:not(.light) #settings .st-page :is(input,select,textarea,button,summary):focus-visible,
+html body.mmh-workspace-active:not(.light) #moreNavMenu :is(button,[tabindex]):focus-visible{
+  outline:2px solid rgba(241,203,125,.85)!important;outline-offset:2px!important;
+}
+html body.mmh-workspace-active:not(.light) #settings .st-page :is(.btn,.security-actions-v379 button,.actions button,.fb-panel button){
+  min-height:42px!important;
+  border:1px solid rgba(171,214,245,.28)!important;
+  border-radius:11px!important;
+  background:linear-gradient(140deg,rgba(38,83,116,.66),rgba(9,33,55,.87))!important;
+  color:#edf7ff!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.07)!important;
+}
+html body.mmh-workspace-active:not(.light) #settings .st-page :is(.btn.primary,button.primary,#fbSubmitV14){
+  color:#241b0c!important;border-color:rgba(255,226,170,.53)!important;
+  background:linear-gradient(135deg,#f9db92,#dbaa52)!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.36),0 8px 24px rgba(216,166,75,.13)!important;
+}
+html body.mmh-workspace-active:not(.light) #settings .st-page :is(.btn.danger,button.danger){
+  color:#ffdbdf!important;border-color:rgba(255,143,168,.38)!important;
+  background:linear-gradient(135deg,rgba(118,35,53,.66),rgba(48,19,36,.78))!important;
+}
+html body.mmh-workspace-active:not(.light) #settings :is(.data-center-stat-v380,.data-center-status-v380,.restore-stat-v383,.system-status-card-v313,.security-password-form-v379,.account-security-card-v379,.fb-record,.backup-history-list-v381>*,.excel-dropzone-v318){
+  border:1px solid rgba(165,215,248,.18)!important;
+  background:var(--ms60-sub)!important;
+  border-radius:13px!important;box-shadow:inset 0 1px rgba(255,255,255,.07)!important;
+}
+html body.mmh-workspace-active:not(.light) #settings :is(.excel-dropzone-v318,.mmh-photo-trigger-v1){
+  border:1px dashed rgba(238,199,123,.43)!important;
+  background:linear-gradient(130deg,rgba(29,67,97,.59),rgba(10,30,48,.79))!important;
+  border-radius:13px!important;
+}
+html body.mmh-workspace-active:not(.light) #settings :is(.fb-record,.fb-reply,.fb-text,.restore-file-v383,.restore-note-v383,.data-center-note-v380){overflow-wrap:anywhere!important}
+/* Notification floating panel follows the same glass language; no behavior changes. */
+html body.mmh-workspace-active:not(.light) #mmhNotifyPopoverV560{
+  border:1px solid rgba(165,215,248,.30)!important;
+  border-radius:18px!important;
+  background:linear-gradient(150deg,rgba(22,56,83,.93),rgba(5,24,42,.96))!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.13),0 22px 55px rgba(0,0,0,.37)!important;
+  backdrop-filter:blur(23px) saturate(150%)!important;
+  -webkit-backdrop-filter:blur(23px) saturate(150%)!important;
+}
+/* Legibility / safe fallbacks and media. */
+@supports not ((backdrop-filter:blur(2px)) or (-webkit-backdrop-filter:blur(2px))){
+  html body.mmh-workspace-active:not(.light) #moreNavMenu.more-nav-menu,
+  html body.mmh-workspace-active:not(.light) #settings .st-template-group,
+  html body.mmh-workspace-active:not(.light) #mmhNotifyPopoverV560{background:#0b2940!important}
+}
+@media(min-width:701px) and (max-width:1050px){
+ html body.mmh-workspace-active:not(.light) #settings #stSettingsHomeV3 > .st-home-menu{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px!important}
+}
+@media(max-width:700px){
+  html body.mmh-workspace-active:not(.light) #settings.page.active{padding:0 2px 100px!important}
+  html body.mmh-workspace-active:not(.light) #settings.page.active>h1{font-size:30px!important}
+  html body.mmh-workspace-active:not(.light) #settings #stSettingsHomeV3 > #settingsPanelAccountV371 > .panel{padding:14px!important}
+  html body.mmh-workspace-active:not(.light) #settings #stSettingsHomeV3 > .st-home-menu{grid-template-columns:minmax(0,1fr)!important;gap:11px!important}
+  html body.mmh-workspace-active:not(.light) #settings #stSettingsHomeV3 .st-home-menu > .st-template-group > :is(.st-nav,.fb-nav,.cs-entry-v1518){min-height:57px!important;padding:9px 11px!important}
+  html body.mmh-workspace-active:not(.light) #settings .st-page .st-row{gap:10px!important;padding:11px 12px!important}
+  html body.mmh-workspace-active:not(.light) #settings .st-page .st-row select{max-width:59%!important}
+  html body.mmh-workspace-active:not(.light) #settings .st-page :is(input:not([type=checkbox]):not([type=radio]):not([type=file]),select,textarea){font-size:16px!important}
+  html body.mmh-workspace-active:not(.light) #settings :is(.st-page .panel,.st-page .st-detail){padding:14px!important;border-radius:16px!important}
+  html body.mmh-workspace-active:not(.light) #moreNavMenu.more-nav-menu{border-radius:18px!important}
+}
+@media(prefers-reduced-motion:reduce){
+  html body.mmh-workspace-active #moreNavMenu .mmh-more-item-v153,
+  html body.mmh-workspace-active #settings .st-home-menu :is(.st-nav,.fb-nav,.cs-entry-v1518){transition:none!important;transform:none!important}
+}
