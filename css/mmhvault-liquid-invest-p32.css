@@ -1,0 +1,199 @@
+/* MMHVAULT — Invest P3.2 · One Glass System (Transaction visual parity).
+   The investment form layout is scoped to #editInvForm and marked only by its mount JS.
+   No finance/business event listeners or Supabase values are changed. */
+:root{--mmh-p32-border:rgba(177,219,245,.39);--mmh-p32-gold:rgba(245,201,118,.6)}
+/* True 3-part investment edit dialog: stationary header, independent form scroller, stationary footer. */
+html body:not(.light) #editModal.open:has(#editInvForm){
+  display:flex!important;align-items:center!important;justify-content:center!important;
+  padding:clamp(8px,2.3vw,27px)!important;
+  background:rgba(1,9,21,.76)!important;
+  backdrop-filter:blur(20px) saturate(128%)!important;
+  -webkit-backdrop-filter:blur(20px) saturate(128%)!important;
+}
+html body:not(.light) #editModal.open:has(#editInvForm)>.modal{
+  box-sizing:border-box!important;display:flex!important;flex-direction:column!important;
+  width:min(900px,100%)!important;max-width:900px!important;
+  height:min(830px,calc(100dvh - 36px))!important;max-height:calc(100dvh - 16px)!important;
+  margin:0!important;padding:0!important;overflow:hidden!important;
+  position:relative!important;isolation:isolate!important;border-radius:23px!important;
+  border:1px solid rgba(245,201,118,.52)!important;
+  background:radial-gradient(circle at 10% -6%,rgba(149,207,238,.23),transparent 43%),linear-gradient(140deg,rgba(28,65,91,.92),rgba(3,23,41,.97) 78%)!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.24),0 28px 95px rgba(0,0,0,.55),0 0 34px rgba(248,185,66,.075)!important;
+  backdrop-filter:blur(26px) saturate(145%)!important;
+  -webkit-backdrop-filter:blur(26px) saturate(145%)!important;
+}
+html body:not(.light) #editModal.open:has(#editInvForm)>.modal>.toolbar{
+  position:relative!important;z-index:2!important;flex:0 0 auto!important;
+  min-height:72px!important;box-sizing:border-box!important;margin:0!important;
+  padding:16px 24px!important;
+  background:linear-gradient(180deg,rgba(235,248,255,.12),rgba(235,248,255,.012))!important;
+  border-bottom:1px solid rgba(178,219,245,.24)!important;
+}
+html body:not(.light) #editModal.open:has(#editInvForm) #editModalBody{
+  flex:1 1 auto!important;min-height:0!important;box-sizing:border-box!important;
+  padding:0!important;margin:0!important;overflow:hidden!important;
+  scrollbar-gutter:auto!important;background:transparent!important;
+}
+html body:not(.light) #editModal.open form#editInvForm.mmh-invest-edit-p32{
+  height:100%!important;min-height:0!important;max-height:100%!important;width:100%!important;
+  display:flex!important;flex-direction:column!important;margin:0!important;padding:0!important;
+}
+html body:not(.light) #editModal.open #editInvForm .mmh-invest-edit-scroll-p32{
+  box-sizing:border-box!important;flex:1 1 auto!important;min-height:0!important;
+  overflow-y:auto!important;overflow-x:hidden!important;overscroll-behavior:contain!important;
+  -webkit-overflow-scrolling:touch!important;padding:21px 24px 18px!important;
+  scrollbar-width:thin!important;scrollbar-color:rgba(151,202,232,.5) transparent!important;
+}
+html body:not(.light) #editModal.open #editInvForm .mmh-invest-edit-scroll-p32 .formgrid{gap:14px 18px!important}
+html body:not(.light) #editModal.open #editInvForm .mmh-invest-edit-scroll-p32 .mmh-form-section-v1{
+  margin-top:12px!important;padding:10px 0 8px!important;
+  border-bottom:1px solid rgba(177,219,245,.2)!important;color:#f4ca70!important;
+}
+html body:not(.light) #editModal.open #editInvForm.mmh-invest-edit-p32>.actions{
+  position:relative!important;inset:auto!important;bottom:auto!important;z-index:3!important;
+  display:flex!important;flex:0 0 auto!important;justify-content:flex-end!important;align-items:center!important;
+  gap:12px!important;margin:0!important;
+  padding:17px 24px max(18px,env(safe-area-inset-bottom))!important;
+  border-top:1px solid rgba(176,215,238,.24)!important;
+  background:linear-gradient(180deg,rgba(37,78,103,.90),rgba(7,31,54,.97))!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.12)!important;
+  backdrop-filter:blur(18px) saturate(140%)!important;-webkit-backdrop-filter:blur(18px) saturate(140%)!important;
+}
+html body:not(.light) #editModal.open #editInvForm.mmh-invest-edit-p32>.actions .btn{
+  min-width:120px!important;min-height:46px!important;max-width:none!important;flex:0 0 auto!important;
+  box-sizing:border-box!important;margin:0!important;padding:10px 21px!important;
+  border-radius:12px!important;
+  background:linear-gradient(145deg,rgba(49,99,126,.68),rgba(9,41,65,.86))!important;
+  border:1px solid rgba(178,214,240,.42)!important;color:#ecf6fc!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.12)!important;
+}
+html body:not(.light) #editModal.open #editInvForm.mmh-invest-edit-p32>.actions .btn.primary{
+  background:linear-gradient(125deg,#ffe6a8,#dfaa4d)!important;
+  color:#201707!important;border:1px solid rgba(255,226,164,.97)!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.42),0 4px 22px rgba(242,184,67,.17)!important;
+}
+/* Harmonize investment receipt with the Transaction edit dialog. */
+html body:not(.light) #editModal.open #editInvForm .receipt-upload-v3300{
+  margin:17px 0 0!important;padding:16px!important;border-radius:17px!important;
+  border:1px solid rgba(170,214,243,.31)!important;
+  background:linear-gradient(145deg,rgba(26,65,94,.48),rgba(8,35,57,.70))!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.07)!important;
+}
+html body:not(.light) #editModal.open #editInvForm .receipt-dropzone-v3300{
+  position:relative!important;display:flex!important;flex-direction:row!important;align-items:center!important;
+  gap:12px!important;justify-content:flex-start!important;text-align:left!important;
+  min-height:74px!important;margin:10px 0!important;padding:12px 15px!important;
+  width:100%!important;box-sizing:border-box!important;border-radius:13px!important;
+  border:1px dashed rgba(157,211,241,.46)!important;
+  background:linear-gradient(120deg,rgba(7,40,67,.65),rgba(26,66,91,.34))!important;
+  cursor:pointer!important;
+}
+html body:not(.light) #editModal.open #editInvForm .receipt-dropzone-v3300 input[type=file]{display:none!important}
+html body:not(.light) #editModal.open #editInvForm .receipt-drop-icon-v3300{
+  flex:0 0 40px!important;width:40px!important;height:40px!important;
+  display:grid!important;place-items:center!important;font-size:21px!important;
+  background:rgba(57,117,151,.30)!important;border:1px solid rgba(159,207,240,.35)!important;
+  border-radius:11px!important;color:#eef8ff!important;
+}
+html body:not(.light) #editModal.open #editInvForm .receipt-drop-copy-v3300{
+  flex:1 1 auto!important;min-width:0!important;display:flex!important;flex-direction:column!important;
+  gap:4px!important;text-align:left!important;align-items:flex-start!important;
+}
+html body:not(.light) #editModal.open #editInvForm .receipt-drop-copy-v3300 :is(strong,span){max-width:100%!important;white-space:normal!important;overflow-wrap:anywhere!important}
+html body:not(.light) #editModal.open #editInvForm .mmh-invest-receipt-cta-p32{
+  flex:0 0 auto!important;white-space:nowrap!important;font-size:11px!important;font-weight:700!important;
+  padding:9px 12px!important;border:1px solid rgba(249,202,116,.64)!important;
+  border-radius:10px!important;background:linear-gradient(140deg,rgba(149,112,48,.65),rgba(86,66,34,.37))!important;
+  color:#ffe3a5!important;
+}
+html body:not(.light) #editModal.open #editInvForm .receipt-upload-footer-v3300{
+  display:flex!important;align-items:flex-start!important;justify-content:space-between!important;
+  flex-wrap:wrap!important;gap:7px 12px!important;margin:0!important;color:#aec9db!important;
+}
+html body:not(.light) #editModal.open #editInvForm .receipt-upload-footer-v3300 span{min-width:0!important;overflow-wrap:anywhere!important;white-space:normal!important}
+/* Delete Investment: same modal footprint, header/body/footer and red destructive action as Transaction. */
+html body:not(.light) #mmhVaultDialogV449.show.mmh-invest-confirm-p32{
+  display:flex!important;align-items:center!important;justify-content:center!important;
+  padding:clamp(10px,2.6vw,28px)!important;
+  background:rgba(1,10,22,.78)!important;
+  backdrop-filter:blur(18px) saturate(130%)!important;
+  -webkit-backdrop-filter:blur(18px) saturate(130%)!important;
+}
+html body:not(.light) #mmhVaultDialogV449.mmh-invest-confirm-p32 .mmh-v449-dialog{
+  box-sizing:border-box!important;width:min(500px,100%)!important;max-width:500px!important;
+  border-radius:23px!important;border:1px solid rgba(175,215,242,.45)!important;
+  background:radial-gradient(circle at 6% -8%,rgba(118,180,218,.23),transparent 46%),linear-gradient(140deg,rgba(24,62,87,.92),rgba(3,24,43,.96))!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.2),0 28px 85px rgba(0,0,0,.5)!important;
+  backdrop-filter:blur(22px) saturate(145%)!important;
+  -webkit-backdrop-filter:blur(22px) saturate(145%)!important;
+}
+html body:not(.light) #mmhVaultDialogV449.mmh-invest-confirm-p32 .mmh-v449-dialog-head{
+  padding:18px 23px 14px!important;background:linear-gradient(180deg,rgba(235,246,255,.10),transparent)!important;
+  border-bottom:1px solid rgba(178,219,245,.21)!important;
+}
+html body:not(.light) #mmhVaultDialogV449.mmh-invest-confirm-p32 .mmh-v449-dialog-head h3{
+  font:500 clamp(20px,2vw,26px)/1.25 Georgia,'Times New Roman',serif!important;color:#f7fbff!important;
+}
+html body:not(.light) #mmhVaultDialogV449.mmh-invest-confirm-p32 .mmh-v449-dialog-body{padding:13px 23px 17px!important;color:#b4cbdc!important}
+html body:not(.light) #mmhVaultDialogV449.mmh-invest-confirm-p32 .mmh-v449-dialog-note{
+  border-radius:13px!important;border:1px solid rgba(157,210,245,.20)!important;
+  padding:13px!important;background:linear-gradient(145deg,rgba(26,66,96,.37),rgba(5,27,49,.53))!important;
+}
+html body:not(.light) #mmhVaultDialogV449.mmh-invest-confirm-p32 .mmh-v449-dialog-actions{
+  display:flex!important;flex-wrap:wrap!important;justify-content:flex-end!important;gap:10px!important;
+  padding:14px 23px!important;border-top:1px solid rgba(171,216,242,.20)!important;
+  background:linear-gradient(180deg,rgba(31,71,99,.54),rgba(6,28,50,.91))!important;
+}
+html body:not(.light) #mmhVaultDialogV449.mmh-invest-confirm-p32 .mmh-v449-dialog-actions button{
+  min-height:44px!important;min-width:115px!important;border-radius:12px!important;
+  background:linear-gradient(145deg,rgba(44,90,119,.64),rgba(6,32,56,.85))!important;
+  border:1px solid rgba(175,216,241,.32)!important;color:#eaf5fc!important;
+}
+html body:not(.light) #mmhVaultDialogV449.mmh-invest-confirm-p32 .mmh-v449-dialog-actions button.danger{
+  background:linear-gradient(145deg,rgba(124,38,58,.82),rgba(72,20,37,.94))!important;
+  border-color:rgba(239,128,153,.46)!important;color:#fff0f4!important;
+}
+/* Secondary native Investment History deletion dialog — also matches this system. */
+html body:not(.light) dialog.mmh-history-edit.mmh-history-confirm{
+  box-sizing:border-box!important;width:min(500px,calc(100vw - 24px))!important;
+  max-width:500px!important;max-height:calc(100dvh - 24px)!important;
+  padding:0!important;border-radius:23px!important;
+  border:1px solid rgba(175,215,242,.45)!important;
+  background:linear-gradient(140deg,rgba(24,62,87,.96),rgba(3,24,43,.98))!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.2),0 28px 85px rgba(0,0,0,.5)!important;
+  color:#f4fbff!important;overflow:hidden!important;
+}
+html body:not(.light) dialog.mmh-history-edit.mmh-history-confirm::backdrop{background:rgba(1,10,22,.78)!important;backdrop-filter:blur(18px)!important;-webkit-backdrop-filter:blur(18px)!important}
+html body:not(.light) dialog.mmh-history-confirm .mmh-history-confirm-body{display:flex!important;flex-direction:column!important;gap:0!important}
+html body:not(.light) dialog.mmh-history-confirm h2{font:500 clamp(20px,2vw,26px)/1.25 Georgia,'Times New Roman',serif!important;margin:0!important;padding:18px 23px 14px!important;border-bottom:1px solid rgba(178,219,245,.21)!important}
+html body:not(.light) dialog.mmh-history-confirm p{margin:0!important;padding:17px 23px!important;color:#b4cbdc!important}
+html body:not(.light) dialog.mmh-history-confirm [data-error]:not([hidden]){margin:0 23px 12px!important;white-space:pre-wrap!important}
+html body:not(.light) dialog.mmh-history-confirm .mmh-history-dialog-actions{margin:0!important;padding:14px 23px!important;border-top:1px solid rgba(171,216,242,.20)!important;background:linear-gradient(180deg,rgba(31,71,99,.54),rgba(6,28,50,.91))!important}
+html body:not(.light) dialog.mmh-history-confirm .mmh-history-dialog-actions button{
+  min-height:44px!important;border-radius:12px!important;
+  background:linear-gradient(145deg,rgba(44,90,119,.64),rgba(6,32,56,.85))!important;border:1px solid rgba(175,216,241,.32)!important;color:#eaf5fc!important;
+}
+html body:not(.light) dialog.mmh-history-confirm .mmh-history-dialog-actions [data-confirm]{background:linear-gradient(145deg,rgba(124,38,58,.82),rgba(72,20,37,.94))!important;border-color:rgba(239,128,153,.46)!important;color:#fff0f4!important}
+@media(max-width:650px){
+ html body:not(.light) #editModal.open:has(#editInvForm){padding:8px!important}
+ html body:not(.light) #editModal.open:has(#editInvForm)>.modal{width:100%!important;height:calc(100dvh - 16px)!important;max-height:calc(100dvh - 16px)!important;border-radius:19px!important}
+ html body:not(.light) #editModal.open:has(#editInvForm)>.modal>.toolbar{min-height:59px!important;padding:12px 14px!important}
+ html body:not(.light) #editModal.open #editInvForm .mmh-invest-edit-scroll-p32{padding:14px 13px 12px!important}
+ html body:not(.light) #editModal.open #editInvForm.mmh-invest-edit-p32>.actions{padding:12px 13px max(13px,env(safe-area-inset-bottom))!important;gap:9px!important}
+ html body:not(.light) #editModal.open #editInvForm.mmh-invest-edit-p32>.actions .btn{flex:1 1 0!important;min-width:0!important;padding:10px 12px!important}
+ html body:not(.light) #editModal.open #editInvForm .receipt-upload-v3300{padding:12px!important}
+ html body:not(.light) #editModal.open #editInvForm .receipt-dropzone-v3300{gap:9px!important;padding:10px!important}
+ html body:not(.light) #editModal.open #editInvForm .receipt-drop-icon-v3300{flex-basis:32px!important;width:32px!important;height:32px!important}
+ html body:not(.light) #editModal.open #editInvForm .mmh-invest-receipt-cta-p32{padding:7px!important;font-size:10px!important}
+ html body:not(.light) #mmhVaultDialogV449.mmh-invest-confirm-p32 .mmh-v449-dialog-actions{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;padding:12px 14px!important}
+ html body:not(.light) #mmhVaultDialogV449.mmh-invest-confirm-p32 .mmh-v449-dialog-actions button{min-width:0!important;width:100%!important}
+}
+@media(max-width:360px){html body:not(.light) #editModal.open #editInvForm .mmh-invest-receipt-cta-p32{display:none!important}}
+@supports not ((backdrop-filter:blur(8px)) or (-webkit-backdrop-filter:blur(8px))){
+ html body:not(.light) #editModal.open:has(#editInvForm)>.modal,
+ html body:not(.light) #mmhVaultDialogV449.mmh-invest-confirm-p32 .mmh-v449-dialog{background:#0b253e!important}
+}
+@media(prefers-reduced-motion:reduce){
+ html body:not(.light) #editModal.open:has(#editInvForm) *,
+ html body:not(.light) #mmhVaultDialogV449.mmh-invest-confirm-p32 *{transition:none!important;animation:none!important}
+}
