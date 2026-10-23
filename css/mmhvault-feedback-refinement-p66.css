@@ -1,0 +1,178 @@
+/* MMHVAULT Feedback Center P6.6 — centered premium workspace, visibility repair.
+   Incremental PRESENTATION patch over P6.5. Original feedback form, uploads,
+   stars, pagination, history loading and Settings routing remain untouched. */
+
+/* Remove the redundant Account / Appearance / Data & Backup category strip
+   visually on Settings, WITHOUT removing its nodes/event handlers. The Settings
+   home cards remain the intended navigation to the same destinations. */
+html body #settings > .settings-tabs-v371,
+html body.mmh-workspace-active #settings.page.active > .settings-tabs-v371,
+html body.mmh-workspace-active:not(.light) #settings.page.active > .settings-tabs-v371 {
+  display:none!important; visibility:hidden!important; height:0!important;
+  margin:0!important; padding:0!important; border:0!important;
+}
+
+/* A single centered frame shared by header, feedback tabs and the active pane. */
+html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_feedback.mmh-feedback-premium-p65:not([hidden]){
+  width:min(100%,1080px)!important;max-width:1080px!important;
+  margin:0 auto!important;padding:0 0 56px!important;
+  grid-template-columns:minmax(0,1.64fr) minmax(274px,.86fr)!important;
+  gap:14px!important; align-items:start!important;
+  box-sizing:border-box!important;
+}
+html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_feedback.mmh-feedback-premium-p65 > .st-page-head{
+  grid-column:1/-1!important; min-height:88px!important; padding:17px 20px!important;
+  border-radius:18px!important;
+  background:linear-gradient(116deg,rgba(22,59,87,.79),rgba(7,28,50,.88) 62%,rgba(21,47,67,.53))!important;
+  border:1px solid rgba(169,218,248,.31)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.15),0 15px 34px rgba(0,7,19,.20)!important;
+}
+html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_feedback.mmh-feedback-premium-p65 > .st-page-head::after{
+  content:none!important;
+}
+html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_feedback.mmh-feedback-premium-p65 > .mmh-fb-tabs-p63{
+  grid-column:1/-1!important; margin:0!important; padding:4px!important;
+  min-height:58px!important;border-radius:17px!important;
+  background:linear-gradient(136deg,rgba(22,65,96,.73),rgba(4,25,48,.82))!important;
+}
+html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_feedback.mmh-feedback-premium-p65 .mmh-fb-tabs-p63>button{
+  min-height:50px!important;border-radius:12px!important;
+}
+html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_feedback.mmh-feedback-premium-p65 .mmh-fb-tabs-p63>button[aria-selected="true"]{
+  background:linear-gradient(120deg,rgba(222,172,76,.38),rgba(31,66,85,.70))!important;
+  border-color:rgba(250,204,112,.61)!important;
+  color:#fff0ca!important;
+  box-shadow:inset 0 1px 0 rgba(255,243,210,.30),0 3px 18px rgba(223,166,67,.14)!important;
+}
+
+/* P6.3 and P6.5 gave normal panels display:block !important with a stronger
+   selector than their later hide rule. Match their FULL specificity here. */
+html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_feedback.mmh-feedback-premium-p65[data-mmh-feedback-view="compose"] > .fb-my-panel-v136,
+html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_feedback.mmh-feedback-premium-p65[data-mmh-feedback-view="history"] > .fb-compose-v136,
+html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_feedback.mmh-feedback-premium-p65[data-mmh-feedback-view="history"] > .mmh-fb65-aside{
+  display:none!important; visibility:hidden!important;
+}
+/* Ensure native hidden attribute wins independently of language/theme. */
+html body #settings.page.active #stPage_feedback[hidden]{display:none!important}
+html body #settings.page.active #stPage_feedback .fb-my-body-v136[hidden]{display:none!important}
+
+/* Main form and the illustrated guidance are ONE designed row, not a
+   narrow floating form with a detached wide empty column. */
+html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_feedback.mmh-feedback-premium-p65 > .fb-compose-v136{
+  grid-column:1!important; grid-row:auto!important; align-self:start!important;
+  padding:20px!important;margin:0!important; border-radius:19px!important;
+  background:linear-gradient(155deg,rgba(16,66,100,.84),rgba(4,36,64,.94) 55%,rgba(1,23,43,.96))!important;
+  border:1px solid rgba(161,213,248,.34)!important;
+  box-shadow:inset 0 1px 0 rgba(251,254,255,.16),0 16px 38px rgba(0,5,22,.26)!important;
+}
+html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_feedback.mmh-feedback-premium-p65 > .mmh-fb65-aside{
+  grid-column:2!important;grid-row:auto!important;align-self:start!important;
+  border-radius:19px!important;
+  background:linear-gradient(152deg,rgba(24,66,95,.88),rgba(4,26,48,.94))!important;
+  border-color:rgba(161,213,248,.32)!important;
+}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .mmh-fb65-step-title{
+  padding-bottom:3px!important;
+}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback #fbFormV14{gap:14px!important}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .mmh-fb65-step{gap:8px!important}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .mmh-fb65-step:not(:first-child){
+  padding-top:13px!important; border-top:1px solid rgba(144,207,246,.15)!important;
+}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .mmh-fb65-rating .fb-star-v15{
+  background:linear-gradient(155deg,rgba(24,74,108,.82),rgba(6,38,63,.92))!important;
+  border-color:rgba(148,211,249,.38)!important;
+  transition:transform .16s ease,border-color .16s ease,box-shadow .16s ease!important;
+}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .mmh-fb65-rating .fb-star-v15:is(:hover,:focus-visible){
+  transform:translateY(-2px)!important;border-color:rgba(250,203,112,.80)!important;
+  box-shadow:0 6px 20px rgba(209,161,81,.15)!important;
+}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .fb-photo-drop-v15{
+  border-radius:13px!important;min-height:82px!important;
+  background:linear-gradient(128deg,rgba(17,69,106,.57),rgba(5,37,68,.79))!important;
+  border:1px dashed rgba(167,216,243,.53)!important;
+}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .fb-photo-drop-v15:focus-within{
+  outline:2px solid rgba(247,200,106,.8)!important;outline-offset:2px!important;
+}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .fb-photo-preview-v15{
+  display:flex!important;flex-wrap:wrap!important;gap:9px!important;
+}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .mmh-fb65-form-footer{
+  border-top:1px solid rgba(150,210,244,.18)!important;
+  padding-top:12px!important;gap:12px!important;
+}
+
+/* History is not a second page beneath Submit. It is the second TAB and uses
+   a single wide premium ticket list; pagination follows the last ticket. */
+html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_feedback.mmh-feedback-premium-p65[data-mmh-feedback-view="history"]{
+  grid-template-columns:minmax(0,1fr)!important;
+}
+html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_feedback.mmh-feedback-premium-p65[data-mmh-feedback-view="history"] > .fb-my-panel-v136{
+  display:block!important; grid-column:1/-1!important;
+  width:100%!important; max-width:none!important; margin:0!important;
+  padding:20px!important; border-radius:19px!important;
+  box-sizing:border-box!important;
+  border:1px solid rgba(161,211,245,.32)!important;
+  background:linear-gradient(150deg,rgba(17,63,94,.88),rgba(3,28,52,.96))!important;
+}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .fb-my-head-v136{
+  margin:0 0 14px!important;padding:0 0 12px!important;
+  border-bottom:1px solid rgba(149,209,247,.18)!important;
+}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback #fbListV14 .fb-record{
+  border-radius:13px!important;margin:0 0 9px!important;
+  border:1px solid rgba(158,214,245,.22)!important;
+  background:linear-gradient(120deg,rgba(28,72,104,.66),rgba(7,34,58,.82))!important;
+}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .fb-record summary{padding:6px 10px!important}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .fb-pagination{
+  position:static!important;display:flex!important;
+  justify-content:center!important;align-items:center!important;
+  gap:12px!important;margin:12px 0 0!important;padding:14px 0 0!important;
+  border-top:1px solid rgba(153,212,245,.17)!important;
+  transform:none!important;
+}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .fb-pagination :is(button,small){
+  margin:0!important;min-height:38px!important;
+}
+
+@media (max-width:1030px){
+ html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_feedback.mmh-feedback-premium-p65:not([hidden]){
+  max-width:800px!important; grid-template-columns:minmax(0,1fr)!important;
+ }
+ html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_feedback.mmh-feedback-premium-p65 > .fb-compose-v136,
+ html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_feedback.mmh-feedback-premium-p65 > .mmh-fb65-aside{grid-column:1!important}
+ html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_feedback.mmh-feedback-premium-p65 > .mmh-fb65-aside{
+  display:grid!important;grid-template-columns:minmax(0,.7fr) minmax(0,1fr)!important;
+ }
+ html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_feedback.mmh-feedback-premium-p65[data-mmh-feedback-view="history"] > .mmh-fb65-aside{display:none!important}
+}
+@media (max-width:600px){
+ html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_feedback.mmh-feedback-premium-p65:not([hidden]){
+  width:100%!important;max-width:100%!important;padding:0 2px 108px!important;
+  gap:10px!important;
+ }
+ html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_feedback.mmh-feedback-premium-p65 > .st-page-head{
+  min-height:0!important;padding:12px!important;gap:9px!important;
+ }
+ html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_feedback.mmh-feedback-premium-p65 > .fb-compose-v136{
+  padding:14px!important;
+ }
+ html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_feedback.mmh-feedback-premium-p65 > .mmh-fb65-aside{
+  display:block!important;
+ }
+ html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_feedback.mmh-feedback-premium-p65[data-mmh-feedback-view="history"] > .mmh-fb65-aside{
+  display:none!important;
+ }
+ html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_feedback.mmh-feedback-premium-p65 .fb-pagination{flex-wrap:wrap!important}
+}
+@media (prefers-reduced-motion:reduce){
+ html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .fb-star-v15{transition:none!important;transform:none!important}
+}
+
+/* Keep the Back control a single compact touch target on narrow screens. */
+html body.mmh-workspace-active #settings.page.active #stPage_feedback .st-page-head .st-back{
+ white-space:nowrap!important;flex-shrink:0!important;min-width:67px!important;
+}
