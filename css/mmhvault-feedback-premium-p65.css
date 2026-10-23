@@ -1,0 +1,255 @@
+/* MMHVAULT Feedback Center Premium Liquid Glass P6.5
+ * Visual enhancement of real existing Feedback form/history. CSS only.
+ * Centered like other Settings child views. No fake data or changed business logic. */
+
+/* The old Account/Appearance/Data & Backup tabs are redundant with Settings home entries.
+   Keep their underlying functions; only hide the duplicate strip. */
+html body.mmh-workspace-active #settings.page.active .settings-tabs-v371{display:none!important}
+
+html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_feedback.mmh-feedback-premium-p65:not([hidden]){
+ width:min(100%,1120px)!important; max-width:1120px!important; margin:0 auto!important;
+ min-width:0!important; display:grid!important;
+ grid-template-columns:minmax(0,1.65fr) minmax(290px,.92fr)!important;
+ column-gap:16px!important; row-gap:14px!important;
+ align-items:start!important; justify-items:stretch!important; align-content:start!important;
+ --fb65-blue:#0a2b47;--fb65-gold:#f2ca75;--fb65-border:rgba(156,211,245,.33);
+}
+html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_feedback.mmh-feedback-premium-p65>.st-page-head{
+ grid-column:1/-1!important; width:100%!important; max-width:none!important;
+ display:flex!important;gap:16px!important;align-items:flex-start!important;
+ min-height:106px!important; margin:0!important;padding:18px 21px!important;
+ background:linear-gradient(116deg,rgba(22,57,85,.72),rgba(7,27,49,.82) 62%,rgba(16,37,55,.58))!important;
+ border:1px solid rgba(152,209,245,.25)!important;border-radius:19px!important;
+ box-shadow:inset 0 1px rgba(255,255,255,.14),0 13px 30px rgba(0,0,0,.19)!important;
+}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .mmh-fb65-head-copy{display:flex;flex-direction:column;gap:3px;min-width:0}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .mmh-fb65-head-copy h2{font-size:clamp(25px,2.6vw,33px)!important;line-height:1.14!important}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .mmh-fb65-head-kicker{font-size:13px;color:#e9f4fc;font-weight:680}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .mmh-fb65-head-description{font-size:12px;line-height:1.5;color:#acc8dc;margin:0;max-width:650px}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .st-page-head .st-back{min-height:38px!important;padding:8px 13px!important;margin-top:3px!important}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .mmh-fb-tabs-p63{
+ grid-column:1/-1!important;margin:0!important;min-width:0!important;padding:5px!important;
+ background:linear-gradient(136deg,rgba(20,63,95,.75),rgba(6,29,51,.79))!important;
+ border-color:var(--fb65-border)!important;border-radius:17px!important;
+}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .mmh-fb-tabs-p63>button{
+ position:relative!important;min-height:57px!important;gap:12px!important;
+ font-size:13px!important;letter-spacing:.01em!important;justify-content:center!important;
+}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .mmh-fb-tabs-p63>button::before{
+ content:attr(data-icon);width:30px;height:30px;display:grid;place-items:center;
+ border-radius:10px;border:1px solid rgba(151,210,249,.2);
+ background:rgba(15,59,90,.68);color:#bce6ff;font-size:17px;
+}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .mmh-fb-tabs-p63>button[aria-selected=true]::before{
+ border-color:rgba(255,213,131,.32);color:#ffe3a2;background:rgba(251,194,78,.13)
+}
+
+html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_feedback.mmh-feedback-premium-p65>.fb-compose-v136{
+ grid-column:1!important;grid-row:auto!important;min-width:0!important;max-width:none!important;
+ display:block!important;width:100%!important;margin:0!important;padding:22px!important;
+ border-radius:20px!important;border:1px solid rgba(137,204,248,.31)!important;
+ background:linear-gradient(158deg,rgba(14,65,100,.81) 0%,rgba(6,37,65,.94) 35%,rgba(1,23,43,.95) 100%)!important;
+ box-shadow:inset 0 1px rgba(245,253,255,.15),0 18px 45px rgba(0,0,0,.28),0 0 0 1px rgba(44,119,170,.07)!important;
+ backdrop-filter:blur(22px) saturate(145%)!important;
+ -webkit-backdrop-filter:blur(22px) saturate(145%)!important;
+}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .fb-compose-v136 .fb-heading{
+ padding:0 0 14px!important;margin:0 0 12px!important;min-height:0!important;
+ border-bottom:1px solid rgba(173,223,255,.13)!important;
+}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .fb-compose-v136 .fb-heading h3{font-size:18px!important;letter-spacing:-.01em}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .fb-compose-v136 .fb-heading .fb-note{
+ font-size:11px!important;margin:5px 0 0!important;line-height:1.45!important;color:#aac7db!important;
+}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback #fbFormV14{min-width:0!important;display:flex!important;flex-direction:column!important;gap:17px!important}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .mmh-fb65-step{min-width:0!important;display:flex!important;flex-direction:column!important;gap:9px!important}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .mmh-fb65-step-title{display:flex;gap:11px;align-items:center;min-width:0}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .mmh-fb65-step-no{
+ display:grid;place-items:center;flex:none;width:34px;height:34px;border-radius:50%;
+ font-size:17px;font-weight:750;color:#e8f7ff;border:1px solid rgba(175,223,252,.48);
+ background:linear-gradient(155deg,#3a87bb,#154568);box-shadow:inset 0 1px rgba(255,255,255,.22),0 5px 12px rgba(0,0,0,.2);
+}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .mmh-fb65-step-title strong{display:block;font-size:14px;line-height:1.3;color:#f5f9ff}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .mmh-fb65-step-title small{display:block;font-size:11px;line-height:1.5;color:#9dbdd6}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .fb-fields{gap:12px!important;grid-template-columns:minmax(0,.88fr) minmax(0,1.4fr)!important}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .fb-fields label,html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .fb-body-label{position:relative;min-width:0!important;display:block!important;margin:0!important;}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback :is(.fb-fields,.fb-body-label)>label>span,
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .fb-body-label>span{font-size:11px!important;letter-spacing:.01em!important;color:#bddef2!important;font-weight:650!important;text-transform:none!important}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback :is(#fbTitleV14,#fbTypeV14,#fbBodyV14){
+ font:500 13px/1.5 system-ui,-apple-system,sans-serif!important;color:#f1f7fe!important;
+ padding:11px 13px!important;margin:6px 0 0!important;border-radius:10px!important;
+ border:1px solid rgba(134,206,251,.30)!important;
+ background:linear-gradient(145deg,rgba(20,68,101,.66),rgba(4,39,66,.86))!important;
+ box-shadow:inset 0 1px rgba(255,255,255,.05)!important;min-height:44px!important;
+}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback :is(#fbTitleV14,#fbTypeV14,#fbBodyV14)::placeholder{color:#8aa9c3!important;opacity:1}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback #fbBodyV14{min-height:112px!important;resize:vertical!important}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .mmh-fb65-count{display:block;text-align:right;margin:2px 0 0;color:#90b5d0;font-size:10px;font-variant-numeric:tabular-nums}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .mmh-fb65-rating .fb-rating-v15{
+ margin:0!important;padding:0!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;backdrop-filter:none!important;}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .mmh-fb65-rating .fb-rating-label-v15{display:none!important}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .mmh-fb65-rating .fb-stars-v15{
+ display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:8px!important;margin:0!important;
+}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .mmh-fb65-rating .fb-star-v15{
+ position:relative!important;width:100%!important;min-width:0!important;height:66px!important;
+ padding:7px 4px 20px!important;font-size:27px!important;font-weight:500!important;
+ border-radius:11px!important;background:linear-gradient(145deg,rgba(18,71,103,.78),rgba(5,34,56,.93))!important;
+ border:1px solid rgba(138,210,251,.29)!important;color:#d6efff!important;
+ text-shadow:0 1px 10px rgba(54,132,200,.22)!important;
+ display:grid!important;place-items:center!important;
+}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .mmh-fb65-rating .fb-star-v15::after{
+ content:'';position:absolute;bottom:5px;left:1px;right:1px;font:500 10px/1.2 system-ui,sans-serif;color:#bbd6e6;text-shadow:none;
+}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .fb-star-v15[data-value="1"]::after{content:'Very poor'}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .fb-star-v15[data-value="2"]::after{content:'Poor'}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .fb-star-v15[data-value="3"]::after{content:'Average'}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .fb-star-v15[data-value="4"]::after{content:'Good'}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .fb-star-v15[data-value="5"]::after{content:'Excellent'}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback[data-fb65-lang="zh"] .fb-star-v15[data-value="1"]::after{content:'很差'}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback[data-fb65-lang="zh"] .fb-star-v15[data-value="2"]::after{content:'较差'}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback[data-fb65-lang="zh"] .fb-star-v15[data-value="3"]::after{content:'一般'}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback[data-fb65-lang="zh"] .fb-star-v15[data-value="4"]::after{content:'良好'}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback[data-fb65-lang="zh"] .fb-star-v15[data-value="5"]::after{content:'优秀'}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .fb-star-v15.on{
+ color:#f9ce68!important;border-color:rgba(255,210,113,.72)!important;
+ background:linear-gradient(140deg,rgba(164,119,45,.48),rgba(16,58,76,.93))!important;
+ box-shadow:0 0 17px rgba(242,189,86,.13),inset 0 1px rgba(255,236,192,.20)!important;
+}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .fb-star-v15.on::after{color:#ffdf96!important}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .fb-rating-helper-v15{font-size:11px!important;display:block!important;margin:4px 0 0!important}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .mmh-fb65-photos .fb-photo-v15{
+ margin:0!important;padding:0!important;background:transparent!important;border:0!important;
+}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .fb-photo-v15>label:first-child{display:none!important}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .fb-photo-drop-v15{
+ border-radius:13px!important;background:linear-gradient(145deg,rgba(10,52,83,.61),rgba(4,31,56,.75))!important;
+ border:1px dashed rgba(148,214,255,.50)!important;margin:0!important;padding:12px!important;
+ min-height:74px!important;display:flex!important;align-items:center!important;
+}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .fb-photo-drop-v15:hover{border-color:rgba(248,208,126,.72)!important}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .fb-photo-drop-inner-v15{min-height:50px!important}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .fb-photo-icon-v15{
+ height:47px!important;width:47px!important;flex:0 0 47px!important;
+ display:grid;place-items:center;border-radius:12px!important;color:#d5ecfb!important;font-size:22px!important;
+}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .fb-photo-copy-v15 strong{font-size:12px!important}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .fb-photo-copy-v15 small{font-size:11px!important}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .fb-photo-v15 .fb-note{font-size:10px!important;margin-top:7px!important;display:block!important}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback #fbPhotoSelectedV15{font-size:10px!important;margin-top:5px!important;line-height:1.5!important}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .fb-photo-preview-v15{
+ display:grid!important;grid-template-columns:repeat(auto-fill,minmax(80px,88px))!important;gap:8px!important;
+}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .fb-photo-thumb-v15{position:relative!important;min-width:0}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .fb-photo-preview-v15 img{width:88px!important;height:78px!important;object-fit:cover!important}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .mmh-fb65-remove{
+ position:absolute;top:3px;right:3px;min-width:25px!important;min-height:25px!important;
+ width:25px!important;height:25px!important;padding:0!important;line-height:1!important;
+ display:grid;place-items:center;border-radius:8px!important;background:rgba(5,26,43,.88)!important;
+ border:1px solid rgba(185,227,255,.42)!important;color:white!important;font-size:18px!important;z-index:2;
+}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .mmh-fb65-form-footer{display:flex!important;flex-direction:column!important;gap:12px!important;border-top:1px solid rgba(148,210,251,.15);padding-top:12px}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .mmh-fb65-form-footer>.fb-note{font-size:10px!important;margin:0!important}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .mmh-fb65-footer-actions{display:flex;gap:9px;justify-content:flex-end;align-items:center}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .mmh-fb65-clear{background:linear-gradient(145deg,#1c496a,#08263e)!important;border:1px solid rgba(145,209,248,.32)!important;color:#e4f3ff!important;min-height:43px!important;min-width:90px}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback #fbSubmitV14{
+ min-height:43px!important;min-width:160px!important;margin:0!important;
+ border:1px solid rgba(255,223,163,.82)!important;
+ border-radius:12px!important;background:linear-gradient(130deg,#ffe7a5,#e6ac46)!important;
+ box-shadow:inset 0 1px rgba(255,255,255,.35),0 5px 14px rgba(225,152,46,.20)!important;
+ color:#2a220e!important;font-weight:750!important;
+}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback #fbMsgV14{margin-top:11px!important}
+
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .mmh-fb65-aside{
+ grid-column:2!important;min-width:0;width:100%!important;overflow:hidden;
+ border:1px solid rgba(135,200,246,.33);border-radius:20px;
+ background:linear-gradient(152deg,rgba(20,70,101,.81),rgba(4,28,51,.94) 50%,rgba(1,19,37,.96));
+ box-shadow:inset 0 1px rgba(255,255,255,.14),0 16px 43px rgba(0,0,0,.26);
+ backdrop-filter:blur(20px) saturate(145%);-webkit-backdrop-filter:blur(20px) saturate(145%);
+}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .mmh-fb65-art{
+ height:185px;background:
+ linear-gradient(180deg,transparent 67%,rgba(5,25,45,.88)),
+ url('../assets/feedback-glass-art-p65.webp') center/cover no-repeat;
+ border-bottom:1px solid rgba(138,202,239,.20);}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .mmh-fb65-aside-inner{padding:17px 18px 19px}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .mmh-fb65-aside-title{font-size:16px!important;line-height:1.32;margin:0 0 7px;color:#f3f9ff}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .mmh-fb65-aside-intro{color:#b4ccdf;font-size:12px;line-height:1.55;margin:0 0 13px}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .mmh-fb65-guide{display:grid;gap:7px}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .mmh-fb65-guide-row{
+ min-width:0;display:flex;align-items:center;gap:11px;padding:10px 12px;
+ border:1px solid rgba(146,209,247,.24);border-radius:12px;
+ background:linear-gradient(145deg,rgba(29,74,104,.69),rgba(7,35,61,.84));
+}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .mmh-fb65-guide-icon{flex:0 0 36px;width:36px;height:36px;display:grid;place-items:center;background:linear-gradient(140deg,rgba(224,167,64,.42),rgba(49,75,80,.52));color:#f8d47d;border:1px solid rgba(255,212,128,.37);border-radius:11px;font-size:18px}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .mmh-fb65-guide-row strong{display:block;font-size:12px!important;color:#eff7fd;line-height:1.4}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .mmh-fb65-guide-row small{display:block;color:#a7c4d7;font-size:10px!important;line-height:1.5}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .mmh-fb65-help{display:flex;gap:5px;flex-direction:column;padding:12px 14px;margin:15px 0 0;border:1px solid rgba(147,206,245,.25);border-radius:13px;background:rgba(19,59,87,.56)}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .mmh-fb65-help strong{color:#eff9ff;font-size:12px}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .mmh-fb65-help span{color:#b4d0e1;font-size:11px;line-height:1.55}
+
+html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_feedback.mmh-feedback-premium-p65>.fb-my-panel-v136{
+ grid-column:1/-1!important;margin:0!important;width:100%!important;max-width:none!important;
+ padding:20px!important;background:linear-gradient(155deg,rgba(16,65,96,.88),rgba(3,29,50,.94))!important;
+ border-color:rgba(163,211,244,.29)!important;}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback[data-mmh-feedback-view=compose]>.fb-my-panel-v136{display:none!important}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback[data-mmh-feedback-view=history]>.fb-compose-v136,
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback[data-mmh-feedback-view=history]>.mmh-fb65-aside{display:none!important}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .fb-my-toggle-v136{display:none!important}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .fb-my-body-v136{padding:0!important;border:0!important;background:none!important}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .fb-pagination{position:static!important;inset:auto!important;display:flex!important;gap:10px!important;justify-content:center!important;margin-top:15px!important;padding-top:12px!important}
+
+@media(max-width:1000px){
+ html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_feedback.mmh-feedback-premium-p65:not([hidden]){grid-template-columns:minmax(0,1fr)!important;max-width:780px!important}
+ html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .mmh-fb65-aside,
+ html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .fb-compose-v136{grid-column:1!important}
+ html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .mmh-fb65-aside{display:grid;grid-template-columns:minmax(180px,.75fr) 1fr}
+ html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .mmh-fb65-art{height:100%;min-height:220px;border-bottom:0;border-right:1px solid rgba(138,202,239,.2)}
+}
+@media(max-width:600px){
+ html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_feedback.mmh-feedback-premium-p65:not([hidden]){max-width:100%!important;gap:10px!important;padding:0 2px 120px!important}
+ html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_feedback.mmh-feedback-premium-p65>.st-page-head{min-height:0!important;padding:14px!important;gap:10px!important}
+ html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .mmh-fb65-head-copy h2{font-size:23px!important}
+ html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .mmh-fb65-head-description{font-size:11px}
+ html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .mmh-fb-tabs-p63>button{min-height:49px!important;padding:6px!important;font-size:12px!important;gap:6px!important}
+ html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .mmh-fb-tabs-p63>button:before{width:25px;height:25px;font-size:15px}
+ html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_feedback.mmh-feedback-premium-p65>.fb-compose-v136{padding:15px!important}
+ html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .fb-fields{grid-template-columns:minmax(0,1fr)!important;gap:8px!important}
+ html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .mmh-fb65-rating .fb-stars-v15{gap:4px!important}
+ html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .mmh-fb65-rating .fb-star-v15{height:58px!important;font-size:22px!important;padding:5px 3px 17px!important}
+ html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .mmh-fb65-rating .fb-star-v15:after{font-size:9px}
+ html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .mmh-fb65-aside{display:block!important}
+ html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .mmh-fb65-art{height:148px!important;min-height:0!important}
+ html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .mmh-fb65-footer-actions{display:grid!important;grid-template-columns:minmax(0,.7fr) minmax(0,1.3fr)}
+ html body.mmh-workspace-active:not(.light) #settings #stPage_feedback :is(.mmh-fb65-clear,#fbSubmitV14){width:100%!important;min-width:0!important}
+ html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .mmh-fb65-guide{gap:6px}
+}
+@media(max-width:365px){
+ html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .mmh-fb65-rating .fb-star-v15:after{font-size:8px}
+ html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .mmh-fb65-head-copy h2{font-size:20px!important}
+ html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .mmh-fb-tabs-p63>button{font-size:10px!important}
+}
+@media(prefers-reduced-motion:reduce){html body #settings #stPage_feedback *{scroll-behavior:auto!important;animation:none!important;transition:none!important}}
+@supports not ((backdrop-filter:blur(2px)) or (-webkit-backdrop-filter:blur(2px))){
+ html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .fb-compose-v136,html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .mmh-fb65-aside{background:#0a2b47!important}
+}
+
+/* P6.5 final density corrections and always-invisible native upload input. */
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .fb-compose-v136>.fb-heading{display:none!important}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .fb-photo-drop-v15{position:relative!important;overflow:hidden!important;cursor:pointer!important}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .fb-photo-input-v15{
+ position:absolute!important;inset:0!important;width:100%!important;height:100%!important;
+ display:block!important;margin:0!important;padding:0!important;opacity:0!important;z-index:3!important;cursor:pointer!important;
+}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .fb-photo-drop-inner-v15{display:flex!important;align-items:center!important;gap:12px!important;width:100%!important;min-width:0!important;pointer-events:none!important}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .fb-photo-copy-v15{flex:1!important;min-width:0!important;display:flex!important;flex-direction:column!important;gap:3px!important}
+html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .fb-photo-copy-v15 strong,html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .fb-photo-copy-v15 small{display:block!important;margin:0!important;overflow-wrap:anywhere!important;line-height:1.4!important}
+@media(max-width:600px){
+ html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .mmh-fb65-guide,
+ html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .mmh-fb65-help{display:none!important}
+ html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .mmh-fb65-aside-inner{padding:13px 15px!important}
+ html body.mmh-workspace-active:not(.light) #settings #stPage_feedback .mmh-fb65-art{height:128px!important}
+}
