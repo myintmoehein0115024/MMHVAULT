@@ -1,0 +1,200 @@
+/* MMHVAULT P9.10 — Budget center / Liquid Glass financial design.
+   Visual-only stylesheet. No Supabase, category, transaction or budget formulas modified. */
+html body.mmh-workspace-active #budget{
+  --b910-gold:#f4c969;--b910-text:#eff7ff;--b910-muted:#a0bcce;
+  --b910-border:rgba(148,198,226,.34);
+  --b910-surface:linear-gradient(145deg,rgba(76,121,154,.39) 0%,rgba(21,55,79,.78) 38%,rgba(4,24,42,.91) 100%);
+  --b910-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 14px 33px rgba(0,9,24,.24);
+  max-width:1280px!important;width:100%!important;min-width:0!important;margin-inline:auto!important;
+  color:var(--b910-text);isolation:isolate;
+}
+html body.mmh-workspace-active #budget *,html body.mmh-workspace-active #budget *::before,html body.mmh-workspace-active #budget *::after{box-sizing:border-box}
+html body.mmh-workspace-active #budget .budget-shell-v110{
+  max-width:100%!important;width:100%!important;min-width:0!important;display:grid!important;
+  grid-template-columns:minmax(0,1fr)!important;gap:13px!important;padding:8px 0 37px!important;
+}
+html body.mmh-workspace-active #budget .budget-shell-v110>*{grid-column:1/-1;min-width:0;max-width:100%;}
+/* Narrow, cinematic header: same horizon and optical scale as Forecast/Financial Report. */
+html body.mmh-workspace-active:not(.light) #budget .budget-head-v110{
+  position:relative!important;display:flex!important;flex-wrap:nowrap!important;align-items:center!important;justify-content:space-between!important;
+  gap:20px!important;min-height:145px!important;padding:22px 25px!important;margin:0!important;
+  border:1px solid rgba(166,202,227,.34)!important;border-radius:21px!important;overflow:hidden;
+  background:linear-gradient(90deg,rgba(3,18,33,.90),rgba(6,23,42,.67) 53%,rgba(6,24,43,.52)),url('../images/mmhvault-city-glass-v2.webp') center 53% / cover no-repeat!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.18),inset 0 -1px 0 rgba(89,154,191,.15),0 14px 35px rgba(0,8,23,.22)!important;
+}
+html body.mmh-workspace-active #budget .budget-head-v110>div:first-child{flex:1 1 auto;min-width:0;position:relative;z-index:1}
+html body.mmh-workspace-active #budget .budget-eyebrow-v110{color:var(--b910-gold)!important;font-size:10px!important;letter-spacing:.22em!important;font-weight:850!important}
+html body.mmh-workspace-active #budget .budget-head-v110 h1{
+  color:#fff!important;font-family:Georgia,'Times New Roman',serif!important;font-size:clamp(27px,2.7vw,38px)!important;
+  font-weight:500!important;letter-spacing:-.025em!important;line-height:1.14!important;margin:7px 0 7px!important;
+}
+html body.mmh-workspace-active #budget .budget-head-v110 p{font-size:11px!important;line-height:1.52!important;color:#b0cad9!important;max-width:510px}
+html body.mmh-workspace-active #budget .budget-controls-v110{
+  flex:0 1 370px;display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  align-items:end!important;gap:9px!important;width:auto!important;min-width:0;position:relative;z-index:1;
+}
+html body.mmh-workspace-active #budget .budget-controls-v110 label{
+  display:grid!important;min-width:0!important;gap:7px!important;color:#c1d8e8!important;font-size:10px!important;
+  font-weight:750!important;letter-spacing:.06em!important;
+}
+html body.mmh-workspace-active:not(.light) #budget .budget-controls-v110 :is(input,select){
+  min-width:0!important;width:100%!important;max-width:100%!important;min-height:43px!important;
+  color:#f5faff!important;border:1px solid rgba(158,201,228,.42)!important;border-radius:11px!important;
+  background:linear-gradient(130deg,rgba(48,92,123,.79),rgba(4,28,49,.93))!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12)!important;padding:10px 11px!important;
+  font-size:12px!important;color-scheme:dark;
+}
+html body.mmh-workspace-active #budget :is(input,select,button):focus-visible{outline:2px solid var(--b910-gold)!important;outline-offset:2px!important}
+/* KPI row keeps the true figures; 2x2 on phones, never a 4-high column. */
+html body.mmh-workspace-active #budget .budget-kpis-v110{
+  display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:11px!important;
+}
+html body.mmh-workspace-active:not(.light) #budget .budget-kpi-v110{
+  position:relative;display:flex!important;flex-direction:column!important;min-width:0!important;
+  min-height:126px!important;height:auto!important;padding:15px 17px!important;
+  border-radius:17px!important;border:1px solid rgba(140,192,226,.35)!important;border-top:1px solid rgba(199,230,246,.55)!important;
+  background:linear-gradient(145deg,rgba(94,136,161,.34),rgba(20,57,83,.80) 48%,rgba(5,26,44,.96))!important;
+  box-shadow:var(--b910-shadow)!important;
+}
+html body.mmh-workspace-active:not(.light) #budget .budget-kpi-v110:nth-child(1){border-color:rgba(242,196,103,.55)!important;background:linear-gradient(130deg,rgba(134,105,60,.35),rgba(19,53,79,.84) 52%,rgba(6,28,47,.96))!important}
+html body.mmh-workspace-active #budget .budget-kpi-v110>span{
+  font-size:10px!important;letter-spacing:.11em!important;font-weight:800!important;color:#b5cddd!important;
+}
+html body.mmh-workspace-active #budget .budget-kpi-v110>strong{
+  font-family:Georgia,'Times New Roman',serif!important;font-size:clamp(20px,2vw,29px)!important;font-weight:650!important;
+  line-height:1.14!important;letter-spacing:-.02em!important;margin:13px 0 7px!important;
+  color:#f5f9ff;overflow-wrap:anywhere;word-break:normal;font-variant-numeric:tabular-nums;
+}
+html body.mmh-workspace-active #budget .budget-kpi-v110>strong.good{color:#71e3b9!important}
+html body.mmh-workspace-active #budget .budget-kpi-v110>strong.warn{color:#ffd783!important}
+html body.mmh-workspace-active #budget .budget-kpi-v110>strong.over{color:#ff9cac!important}
+html body.mmh-workspace-active #budget .budget-kpi-v110>small{margin-top:auto!important;font-size:10px!important;line-height:1.4!important;color:#95b0c4!important}
+/* Main monthly form and category section: one consistent transparent material. */
+html body.mmh-workspace-active:not(.light) #budget .budget-panel-v110{
+  min-width:0!important;padding:19px 21px!important;margin:0!important;position:relative;
+  border:1px solid var(--b910-border)!important;border-radius:20px!important;
+  background:var(--b910-surface)!important;box-shadow:var(--b910-shadow)!important;
+  backdrop-filter:blur(14px) saturate(125%);-webkit-backdrop-filter:blur(14px) saturate(125%);
+}
+html body.mmh-workspace-active #budget .budget-panel-head-v110{
+  margin-bottom:16px!important;display:flex!important;align-items:flex-start!important;justify-content:space-between!important;
+  gap:12px!important;flex-wrap:wrap!important;
+}
+html body.mmh-workspace-active #budget .budget-panel-head-v110>div{min-width:0;flex:1 1 210px}
+html body.mmh-workspace-active #budget .budget-panel-head-v110 h2{
+  font-family:Georgia,'Times New Roman',serif!important;color:#f7f9ff!important;
+  font-size:clamp(19px,1.8vw,24px)!important;font-weight:550!important;line-height:1.2!important;margin:0 0 7px!important;
+}
+html body.mmh-workspace-active #budget .budget-panel-head-v110 p{font-size:11px!important;color:#a5c0d2!important;line-height:1.5!important}
+html body.mmh-workspace-active #budget :is(.budget-status-pill-v110,.budget-category-count-v110){
+  border-radius:999px!important;border:1px solid rgba(176,205,225,.36)!important;
+  color:#d5ecf8!important;background:linear-gradient(120deg,rgba(62,105,135,.5),rgba(6,37,58,.7))!important;
+  padding:7px 12px!important;font-size:10px!important;white-space:nowrap;
+}
+html body.mmh-workspace-active #budget .budget-status-pill-v110.watch{color:#ffde9a!important;border-color:rgba(245,198,108,.5)!important}
+html body.mmh-workspace-active #budget .budget-status-pill-v110.over{color:#ffacb7!important;border-color:rgba(244,131,149,.5)!important}
+html body.mmh-workspace-active #budget .budget-month-form-v110{
+  grid-template-columns:minmax(0,1fr) auto!important;gap:12px!important;align-items:end!important;min-width:0;
+}
+html body.mmh-workspace-active #budget .budget-month-form-v110>label{min-width:0;gap:7px!important;color:#c0d6e5!important;font-size:11px!important}
+html body.mmh-workspace-active:not(.light) #budget .budget-money-input-v110{
+  grid-template-columns:48px minmax(0,1fr)!important;min-width:0;border-radius:12px!important;
+  background:linear-gradient(130deg,rgba(30,73,102,.8),rgba(5,32,54,.88))!important;
+  border:1px solid rgba(154,200,228,.42)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.11)!important;
+}
+html body.mmh-workspace-active #budget .budget-money-input-v110:focus-within,html body.mmh-workspace-active #budget .budget-category-input-v110:focus-within{border-color:#f2ca77!important;box-shadow:0 0 0 2px rgba(241,198,107,.15),inset 0 1px 0 rgba(255,255,255,.09)!important}
+html body.mmh-workspace-active #budget .budget-money-input-v110>b{min-height:47px!important;color:#ffd881!important;font-size:16px!important;border-color:rgba(151,191,216,.25)!important}
+html body.mmh-workspace-active #budget .budget-money-input-v110 input{min-height:47px!important;font-size:17px!important;min-width:0!important;font-variant-numeric:tabular-nums}
+html body.mmh-workspace-active #budget .budget-actions-v110{display:flex!important;align-items:end;gap:9px!important;min-width:0;flex-wrap:nowrap}
+html body.mmh-workspace-active:not(.light) #budget .budget-actions-v110 .btn{
+  min-height:47px!important;border-radius:11px!important;padding:10px 15px!important;font-weight:750!important;
+  border:1px solid rgba(154,199,223,.44)!important;color:#eaf6fe!important;
+  background:linear-gradient(135deg,rgba(71,123,154,.54),rgba(12,52,78,.83))!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.14)!important;white-space:nowrap;
+}
+html body.mmh-workspace-active:not(.light) #budget .budget-actions-v110 .btn.primary{
+  border-color:rgba(255,218,131,.72)!important;color:#192536!important;
+  background:linear-gradient(115deg,#ffe2a1,#e8b453)!important;box-shadow:0 7px 23px rgba(217,164,66,.16)!important;
+}
+html body.mmh-workspace-active #budget .budget-actions-v110 .btn:hover{filter:brightness(1.08)}
+html body.mmh-workspace-active #budget .budget-progress-track-v110{height:9px!important;margin-top:18px!important;border-radius:999px!important;background:rgba(5,29,49,.77)!important;border-color:rgba(139,183,214,.18)!important}
+html body.mmh-workspace-active #budget .budget-progress-track-v110>span{background:linear-gradient(90deg,#f4c56b,#5dd7be)!important}
+html body.mmh-workspace-active #budget .budget-progress-track-v110.watch>span{background:linear-gradient(90deg,#f1b457,#f4d983)!important}
+html body.mmh-workspace-active #budget .budget-progress-track-v110.over>span{background:linear-gradient(90deg,#efb365,#f17c92)!important}
+html body.mmh-workspace-active #budget .budget-progress-meta-v110{font-size:11px!important;line-height:1.5!important;color:#b3cad9!important}
+html body.mmh-workspace-active:not(.light) #budget .budget-alert-v110{border-radius:11px!important;background:rgba(85,71,39,.32)!important;color:#ffe0ab!important}
+/* Categories can be very long. Show compact equal rows on desktop. */
+html body.mmh-workspace-active #budget .budget-category-list-v110{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important;min-width:0}
+html body.mmh-workspace-active:not(.light) #budget .budget-category-row-v110{
+  min-width:0!important;display:grid!important;grid-template-columns:minmax(0,1fr) minmax(112px,145px)!important;
+  align-items:center!important;gap:11px 13px!important;padding:13px 14px!important;
+  border-radius:13px!important;border:1px solid rgba(137,187,217,.29)!important;
+  background:linear-gradient(132deg,rgba(50,94,124,.35),rgba(6,30,52,.75))!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.085)!important;
+}
+html body.mmh-workspace-active #budget .budget-category-copy-v110{min-width:0}
+html body.mmh-workspace-active #budget .budget-category-name-v110{display:flex;align-items:center;flex-wrap:wrap;gap:7px;font-size:13px!important;color:#f1f7ff!important;overflow-wrap:anywhere}
+html body.mmh-workspace-active #budget .budget-category-meta-v110{margin-top:7px!important;gap:4px 10px!important;font-size:10px!important;line-height:1.45;color:#a7bfd1!important}
+html body.mmh-workspace-active #budget .budget-category-meta-v110 b{color:#f2f7fb!important}
+html body.mmh-workspace-active:not(.light) #budget .budget-category-input-v110{
+  grid-template-columns:32px minmax(0,1fr)!important;min-width:0;border:1px solid rgba(144,191,220,.37)!important;
+  border-radius:10px!important;background:linear-gradient(145deg,rgba(23,63,90,.79),rgba(7,31,54,.88))!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.08)!important;
+}
+html body.mmh-workspace-active #budget .budget-category-input-v110>span{min-height:40px!important;color:#ffda8d!important}
+html body.mmh-workspace-active #budget .budget-category-input-v110 input{min-height:40px!important;min-width:0!important;font-variant-numeric:tabular-nums}
+html body.mmh-workspace-active #budget .budget-category-bar-v110{grid-column:1/-1!important;height:6px!important;background:rgba(7,32,53,.81)!important;border:1px solid rgba(133,185,216,.09)!important}
+html body.mmh-workspace-active #budget .budget-category-bar-v110 span{background:linear-gradient(90deg,#efc56c,#64d9bc)!important}
+html body.mmh-workspace-active #budget .budget-category-row-v110.watch .budget-category-bar-v110 span{background:linear-gradient(90deg,#ffb978,#ffd47f)!important}
+html body.mmh-workspace-active #budget .budget-category-row-v110.over .budget-category-bar-v110 span{background:linear-gradient(90deg,#f6b468,#ff8da5)!important}
+html body.mmh-workspace-active #budget .budget-empty-v110{border-color:rgba(152,195,222,.37)!important;border-radius:13px!important;background:rgba(11,43,68,.52)!important;color:#c2d4e0!important}
+html body.mmh-workspace-active #budget .budget-method-v110{font-size:10px!important;line-height:1.55!important;color:#9cb6c8!important;margin:2px 3px!important}
+/* Keep light theme workable without forcing the dark palette. */
+html body.mmh-workspace-active.light #budget{--b910-text:#284960;--b910-gold:#956719}
+html body.mmh-workspace-active.light #budget .budget-head-v110 h1{color:#27475e!important}
+@media(max-width:1050px){
+ html body.mmh-workspace-active #budget .budget-kpis-v110{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ html body.mmh-workspace-active #budget .budget-category-list-v110{grid-template-columns:1fr!important}
+}
+@media(max-width:760px){
+ html body.mmh-workspace-active #budget .budget-head-v110{flex-direction:column!important;align-items:stretch!important;justify-content:flex-start!important;gap:13px!important;min-height:0!important;padding:17px 17px!important}
+ html body.mmh-workspace-active #budget .budget-controls-v110{flex:none!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;width:100%!important}
+ html body.mmh-workspace-active #budget .budget-panel-v110{padding:15px!important;border-radius:16px!important}
+ html body.mmh-workspace-active #budget .budget-month-form-v110{grid-template-columns:minmax(0,1fr)!important}
+ html body.mmh-workspace-active #budget .budget-actions-v110{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}
+ html body.mmh-workspace-active #budget .budget-actions-v110 .btn{min-width:0;width:100%!important}
+ html body.mmh-workspace-active #budget .budget-progress-meta-v110{display:flex!important;flex-wrap:wrap!important;gap:5px 14px!important}
+}
+@media(max-width:520px){
+ html body.mmh-workspace-active #budget .budget-shell-v110{gap:10px!important;padding:5px 0 calc(104px + env(safe-area-inset-bottom,0px))!important}
+ html body.mmh-workspace-active:not(.light) #budget .budget-head-v110{padding:17px 14px!important;border-radius:17px!important}
+ html body.mmh-workspace-active #budget .budget-head-v110 h1{font-size:29px!important}
+ html body.mmh-workspace-active #budget .budget-head-v110 p{font-size:10px!important}
+ html body.mmh-workspace-active #budget .budget-controls-v110{gap:8px!important}
+ html body.mmh-workspace-active #budget .budget-controls-v110 label{font-size:9px!important}
+ html body.mmh-workspace-active #budget .budget-controls-v110 :is(input,select){font-size:12px!important;min-height:41px!important}
+ html body.mmh-workspace-active #budget .budget-kpis-v110{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}
+ html body.mmh-workspace-active:not(.light) #budget .budget-kpi-v110{min-height:102px!important;padding:12px 11px!important;border-radius:14px!important}
+ html body.mmh-workspace-active #budget .budget-kpi-v110>span{font-size:8.5px!important;letter-spacing:.045em!important}
+ html body.mmh-workspace-active #budget .budget-kpi-v110>strong{font-size:clamp(17px,4.8vw,21px)!important;margin:9px 0 6px!important;line-height:1.18!important}
+ html body.mmh-workspace-active #budget .budget-kpi-v110>small{font-size:9px!important}
+ html body.mmh-workspace-active:not(.light) #budget .budget-panel-v110{padding:14px!important;border-radius:16px!important}
+ html body.mmh-workspace-active #budget .budget-panel-head-v110{gap:9px!important;margin-bottom:13px!important}
+ html body.mmh-workspace-active #budget .budget-panel-head-v110 h2{font-size:21px!important}
+ html body.mmh-workspace-active #budget .budget-panel-head-v110 p{font-size:10px!important}
+ html body.mmh-workspace-active:not(.light) #budget .budget-category-row-v110{grid-template-columns:minmax(0,1fr) minmax(95px,125px)!important;padding:11px!important;gap:9px!important}
+ html body.mmh-workspace-active #budget .budget-category-name-v110{font-size:12px!important}
+ html body.mmh-workspace-active #budget .budget-category-meta-v110{font-size:9px!important}
+ html body.mmh-workspace-active #budget .budget-category-input-v110{grid-template-columns:25px minmax(0,1fr)!important}
+ html body.mmh-workspace-active #budget .budget-category-input-v110 input{font-size:12px!important;padding:7px 6px!important}
+ html body.mmh-workspace-active #budget .budget-category-input-v110>span{font-size:11px!important}
+}
+@media(max-width:349px){
+ html body.mmh-workspace-active #budget .budget-controls-v110{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ html body.mmh-workspace-active #budget .budget-controls-v110 :is(input,select){padding:7px 5px!important;font-size:11px!important}
+ html body.mmh-workspace-active #budget .budget-kpi-v110>strong{font-size:16px!important}
+ html body.mmh-workspace-active #budget .budget-category-row-v110{grid-template-columns:minmax(0,1fr) minmax(80px,98px)!important;gap:6px!important}
+ html body.mmh-workspace-active #budget .budget-category-input-v110{grid-template-columns:21px minmax(0,1fr)!important}
+}
+@media(prefers-reduced-motion:reduce){html body.mmh-workspace-active #budget .budget-progress-track-v110>span{transition:none!important}}
