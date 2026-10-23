@@ -1,0 +1,247 @@
+/* MMHVAULT · Reports P9.0 · scoped presentation only.
+   Does not touch report rendering, conversion, historical semantics or export. */
+html body.mmh-workspace-active:not(.light) #reports.page.active {
+  --rpt-gold:#ecc271;--rpt-ice:#dceaf7;--rpt-muted:#9db7cd;
+  --rpt-line:rgba(143,199,237,.27);
+  --rpt-surface:linear-gradient(149deg,rgba(29,66,94,.76),rgba(6,24,45,.88) 50%,rgba(3,16,33,.94));
+  max-width:100%!important;min-width:0!important;padding:0 0 var(--mmh-page-bottom,120px)!important;
+  background:none!important; color:var(--rpt-ice);
+}
+html body.mmh-workspace-active:not(.light) #reports .report-shell-v115{
+  display:grid!important;gap:15px!important;width:min(100%,1350px)!important;
+  max-width:1350px!important;margin:0 auto!important;min-width:0!important;
+}
+html body.mmh-workspace-active:not(.light) #reports .report-shell-v115 > *{min-width:0!important}
+/* Compact scenic workspace header, matching Dashboard/Analyze scale. */
+html body.mmh-workspace-active:not(.light) #reports .report-head-v115{
+  isolation:isolate;position:relative!important;overflow:hidden!important;
+  display:flex!important;align-items:center!important;justify-content:space-between!important;
+  flex-wrap:wrap!important;gap:15px 26px!important;min-height:156px!important;
+  padding:25px 28px!important;margin:0!important;border-radius:24px!important;
+  border:1px solid rgba(151,200,232,.33)!important;
+  background:linear-gradient(93deg,rgba(3,16,33,.96) 0%,rgba(3,17,34,.83) 42%,rgba(6,26,45,.38) 100%),url('../images/mmhvault-city-glass-v2.webp') center 54%/cover no-repeat!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.16),0 16px 34px rgba(0,4,15,.25),inset 0 -15px 30px rgba(3,19,36,.36)!important;
+}
+html body.mmh-workspace-active:not(.light) #reports .report-head-v115:before{
+  content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+  background:radial-gradient(ellipse at 87% -5%,rgba(249,197,103,.20),transparent 45%),linear-gradient(180deg,rgba(180,217,248,.10),transparent 29%);
+}
+html body.mmh-workspace-active:not(.light) #reports .report-head-v115:after{
+  content:"";position:absolute;inset:0 0 auto;height:1px;pointer-events:none;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.55),rgba(235,185,93,.50),transparent);
+}
+html body.mmh-workspace-active:not(.light) #reports .report-head-v115>div:first-child{min-width:0;flex:1 1 350px;max-width:750px;position:relative;z-index:1}
+html body.mmh-workspace-active:not(.light) #reports .report-eyebrow-v115{
+  color:var(--rpt-gold)!important;font-size:10px!important;letter-spacing:.22em!important;margin-bottom:10px!important;
+}
+html body.mmh-workspace-active:not(.light) #reports .report-head-v115 h1{
+  color:#fff8e9!important;font:400 clamp(30px,2.75vw,43px)/1.06 Georgia,'Times New Roman',serif!important;
+  letter-spacing:-.035em!important;text-wrap:balance;
+}
+html body.mmh-workspace-active:not(.light) #reports .report-head-v115 p{
+  color:#c1d8eb!important;font-size:12px!important;line-height:1.55!important;max-width:630px!important;
+}
+html body.mmh-workspace-active:not(.light) #reports .report-controls-v115{
+  min-width:0!important;display:flex!important;gap:9px!important;align-items:end!important;justify-content:flex-end!important;
+  flex:0 1 auto;position:relative;z-index:2;
+}
+html body.mmh-workspace-active:not(.light) #reports .report-controls-v115 label{
+  display:grid;gap:7px;font-size:10px!important;color:#c1d4e5!important;letter-spacing:.07em!important;
+}
+html body.mmh-workspace-active:not(.light) #reports .report-controls-v115 :is(input,select){
+  color:#f5f8ff!important;background:linear-gradient(155deg,rgba(28,60,85,.81),rgba(7,29,54,.84))!important;
+  min-height:44px!important;min-width:0!important;border:1px solid rgba(144,197,229,.40)!important;
+  border-radius:12px!important;padding:9px 11px!important;font-size:13px!important;line-height:1.4!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.10),0 4px 12px rgba(0,6,20,.14)!important;
+}
+html body.mmh-workspace-active:not(.light) #reports .report-controls-v115 :is(input,select):focus-visible{
+  outline:2px solid var(--rpt-gold)!important;outline-offset:2px!important;
+}
+html body.mmh-workspace-active:not(.light) #reports .report-controls-v115 input{width:158px!important;max-width:100%!important}
+html body.mmh-workspace-active:not(.light) #reports .report-controls-v115 select{width:120px!important;max-width:100%!important}
+/* Real KPI blocks. Make financial amounts readable at narrower widths. */
+html body.mmh-workspace-active:not(.light) #reports .report-kpis-v115{
+  display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:12px!important;
+}
+html body.mmh-workspace-active:not(.light) #reports .report-kpi-v115{
+  position:relative;overflow:hidden;min-height:129px!important;padding:18px 19px!important;
+  border-radius:19px!important;border:1px solid rgba(139,190,229,.29)!important;
+  background:var(--rpt-surface)!important;
+  box-shadow:inset 0 1px rgba(244,250,255,.18),inset 0 -1px rgba(29,84,129,.27),0 14px 30px rgba(1,9,27,.22)!important;
+}
+html body.mmh-workspace-active:not(.light) #reports .report-kpi-v115:before{
+  content:"";pointer-events:none;position:absolute;inset:0 0 auto;height:36%;
+  background:linear-gradient(165deg,rgba(255,255,255,.11),transparent 78%);
+}
+html body.mmh-workspace-active:not(.light) #reports .report-kpi-v115:after{
+  content:"";position:absolute;top:0;left:18px;right:18px;height:2px;pointer-events:none;
+  background:linear-gradient(90deg,transparent,rgba(239,190,111,.64),transparent);
+}
+html body.mmh-workspace-active:not(.light) #reports .report-kpi-v115:is(.income,.remaining){border-color:rgba(83,195,172,.26)!important}
+html body.mmh-workspace-active:not(.light) #reports .report-kpi-v115:is(.expense,.personal){border-color:rgba(234,151,146,.24)!important}
+html body.mmh-workspace-active:not(.light) #reports .report-kpi-v115>span{
+  font-size:11px!important;line-height:1.4!important;letter-spacing:.09em!important;color:#b9cfe0!important;
+}
+html body.mmh-workspace-active:not(.light) #reports .report-kpi-v115>strong{
+  margin-top:14px!important;display:block!important;font-size:clamp(20px,2vw,29px)!important;
+  line-height:1.15!important;overflow:visible!important;white-space:normal!important;
+  text-overflow:clip!important;overflow-wrap:anywhere!important;letter-spacing:-.018em!important;
+  font-variant-numeric:tabular-nums;
+}
+html body.mmh-workspace-active:not(.light) #reports .report-kpi-v115>small{
+  display:block!important;font-size:10px!important;line-height:1.45!important;color:#97b4cc!important;margin-top:8px!important;
+}
+/* Cards, internal data and glass strokes. */
+html body.mmh-workspace-active:not(.light) #reports .report-grid-v115{
+  grid-template-columns:minmax(0,1.12fr) minmax(0,.88fr)!important;gap:13px!important;align-items:stretch!important;
+}
+html body.mmh-workspace-active:not(.light) #reports .report-panel-v115{
+  position:relative;isolation:isolate;overflow:hidden;padding:20px 21px!important;
+  min-width:0;border-radius:20px!important;border:1px solid rgba(140,195,237,.29)!important;
+  background:linear-gradient(145deg,rgba(26,62,91,.79),rgba(8,29,53,.86) 53%,rgba(4,20,40,.94))!important;
+  box-shadow:inset 0 1px rgba(253,253,255,.14),inset 0 -1px rgba(105,165,205,.12),0 16px 32px rgba(1,9,25,.20)!important;
+}
+html body.mmh-workspace-active:not(.light) #reports .report-panel-v115:before{
+  content:"";z-index:-1;pointer-events:none;position:absolute;inset:0 0 auto;height:36%;
+  background:linear-gradient(166deg,rgba(255,255,255,.07),transparent 81%);
+}
+html body.mmh-workspace-active:not(.light) #reports .report-panel-head-v115{gap:10px!important;margin-bottom:17px!important;align-items:center!important;flex-wrap:wrap!important}
+html body.mmh-workspace-active:not(.light) #reports .report-panel-head-v115 h2{
+  font-size:clamp(16px,1.45vw,19px)!important;line-height:1.25!important;color:#fff9ee!important;
+  letter-spacing:-.018em!important;font-weight:650!important;
+}
+html body.mmh-workspace-active:not(.light) #reports .report-panel-head-v115 p{
+  color:#a4bed1!important;font-size:11px!important;line-height:1.5!important;margin-top:6px!important;
+}
+html body.mmh-workspace-active:not(.light) #reports .report-summary-line-v115{
+  padding:8px 0!important;font-size:12px!important;line-height:1.55!important;color:#d3e4ee!important;
+  border-bottom:1px solid rgba(136,190,226,.09)!important;
+}
+html body.mmh-workspace-active:not(.light) #reports .report-summary-line-v115:last-child{border-bottom:0!important}
+html body.mmh-workspace-active:not(.light) #reports .report-mini-v115{
+  padding:15px 14px!important;border:1px solid rgba(121,185,233,.24)!important;
+  border-radius:14px!important;
+  background:linear-gradient(158deg,rgba(34,76,105,.59),rgba(9,33,60,.63))!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.07);
+}
+html body.mmh-workspace-active:not(.light) #reports .report-mini-v115 span{
+  font-size:10px!important;color:#a5bfd2!important;line-height:1.4!important;
+}
+html body.mmh-workspace-active:not(.light) #reports .report-mini-v115 b{
+  margin-top:7px!important;font-size:clamp(13px,1.32vw,17px)!important;line-height:1.26!important;
+  color:#eef5fa!important;overflow-wrap:anywhere;
+}
+html body.mmh-workspace-active:not(.light) #reports :is(.report-budget-v115,.report-snapshot-v115,.report-invest-v115){gap:9px!important}
+html body.mmh-workspace-active:not(.light) #reports :is(.report-budget-v115,.report-snapshot-v115){grid-template-columns:repeat(4,minmax(0,1fr))!important}
+/* Budget lives in a half-width panel: 2 × 2 avoids clipping long monetary values. */
+html body.mmh-workspace-active:not(.light) #reports #reportBudgetV115 .report-budget-v115{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+html body.mmh-workspace-active:not(.light) #reports .report-invest-v115{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+html body.mmh-workspace-active:not(.light) #reports .report-progress-v115{height:9px!important;margin-top:16px!important;background:rgba(2,18,37,.89)!important}
+html body.mmh-workspace-active:not(.light) #reports .report-compare-row-v115{
+  font-size:11px!important;gap:10px!important;padding:12px 0!important;
+  grid-template-columns:minmax(84px,1.1fr) repeat(2,minmax(75px,1fr)) minmax(65px,.72fr)!important;
+  border-color:rgba(137,185,218,.16)!important;
+}
+html body.mmh-workspace-active:not(.light) #reports .report-compare-row-v115 b{font-size:11px!important;overflow-wrap:anywhere}
+html body.mmh-workspace-active:not(.light) #reports .report-compare-row-v115 span{color:#b7cddc!important}
+html body.mmh-workspace-active:not(.light) #reports .report-category-v115{
+  padding:9px 8px!important;border-radius:12px!important;gap:12px!important;
+  background:rgba(11,40,67,.35)!important;border:1px solid rgba(127,183,225,.11)!important;
+}
+html body.mmh-workspace-active:not(.light) #reports .report-rank-v115{
+  border-radius:10px!important;background:linear-gradient(140deg,rgba(191,144,67,.30),rgba(30,61,93,.66))!important;
+  border-color:rgba(235,188,103,.34)!important;color:#f7d792!important;font-size:11px!important;
+}
+html body.mmh-workspace-active:not(.light) #reports .report-category-row-v115 b{font-size:12px!important;color:#f2f7fc!important}
+html body.mmh-workspace-active:not(.light) #reports .report-category-row-v115 small{font-size:10px!important;color:#a4bdce!important}
+html body.mmh-workspace-active:not(.light) #reports .report-category-amount-v115{font-size:11px!important;color:#eff6fd!important}
+html body.mmh-workspace-active:not(.light) #reports .report-goal-row-v115{
+  border-color:rgba(143,193,227,.13)!important;padding:12px 0!important;
+}
+html body.mmh-workspace-active:not(.light) #reports .report-goal-row-v115 b,
+html body.mmh-workspace-active:not(.light) #reports .report-goal-row-v115 strong{font-size:12px!important}
+html body.mmh-workspace-active:not(.light) #reports .report-goal-row-v115 small{font-size:10px!important}
+html body.mmh-workspace-active:not(.light) #reports .report-pill-v115{
+  font-size:10px!important;padding:6px 10px!important;border-radius:999px!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.1)!important;
+}
+html body.mmh-workspace-active:not(.light) #reports .report-method-v115{
+  padding:13px 15px!important;border:1px solid rgba(143,193,227,.16)!important;
+  border-radius:13px!important;font-size:11px!important;line-height:1.65!important;
+  background:rgba(4,23,44,.64)!important;color:#a8bfd2!important;
+}
+html body.mmh-workspace-active:not(.light) #reports .report-empty-v115{
+  padding:24px!important;border-radius:14px!important;
+  font-size:12px!important;color:#a8c1d4!important;
+  background:rgba(7,30,54,.57)!important;
+}
+/* Keep real export/utility buttons, improve hit areas. */
+html body.mmh-workspace-active:not(.light) #reports :is(.report-panel-v115,.report-head-v115) .btn{
+  min-height:41px!important;padding:8px 13px!important;border-radius:12px!important;
+  border:1px solid rgba(136,199,238,.30)!important;
+  background:linear-gradient(150deg,rgba(37,77,106,.85),rgba(10,32,57,.89))!important;
+  box-shadow:inset 0 1px rgba(246,250,255,.11)!important;color:#ebf4ff!important;
+}
+html body.mmh-workspace-active:not(.light) #reports .report-export-actions-v116 .export-pdf-v116{
+  color:#ffe2a0!important;border-color:rgba(242,186,99,.62)!important;
+  background:linear-gradient(140deg,rgba(163,108,32,.34),rgba(14,43,67,.86))!important;
+}
+html body.mmh-workspace-active:not(.light) #reports .report-export-actions-v116 .btn{
+  min-height:44px!important;font-size:11px!important;white-space:normal!important;
+}
+html body.mmh-workspace-active:not(.light) #reports :is(.report-goal-row-v115,.report-category-v115):focus-visible,
+html body.mmh-workspace-active:not(.light) #reports .btn:focus-visible{
+  outline:2px solid var(--rpt-gold)!important;outline-offset:3px!important;
+}
+@supports ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+ html body.mmh-workspace-active:not(.light) #reports :is(.report-panel-v115,.report-kpi-v115){-webkit-backdrop-filter:blur(13px) saturate(1.22);backdrop-filter:blur(13px) saturate(1.22)}
+}
+/* Make the report fluent on laptops, tablets, and small phones. */
+@media(max-width:1180px){
+ html body.mmh-workspace-active:not(.light) #reports .report-grid-v115{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important}
+ html body.mmh-workspace-active:not(.light) #reports .report-kpi-v115{padding:16px 14px!important}
+ html body.mmh-workspace-active:not(.light) #reports .report-mini-v115{padding:12px 10px!important}
+}
+@media(max-width:980px){
+ html body.mmh-workspace-active:not(.light) #reports .report-kpis-v115{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ html body.mmh-workspace-active:not(.light) #reports .report-grid-v115{grid-template-columns:minmax(0,1fr)!important}
+ html body.mmh-workspace-active:not(.light) #reports .report-head-v115{min-height:140px!important;padding:20px!important}
+ html body.mmh-workspace-active:not(.light) #reports .report-kpi-v115>strong{font-size:clamp(21px,3vw,29px)!important}
+}
+@media(max-width:600px){
+ html body.mmh-workspace-active:not(.light) #reports .report-shell-v115{gap:10px!important}
+ html body.mmh-workspace-active:not(.light) #reports .report-head-v115{min-height:0!important;padding:18px 15px!important;border-radius:17px!important;gap:14px!important}
+ html body.mmh-workspace-active:not(.light) #reports .report-head-v115 h1{font-size:30px!important}
+ html body.mmh-workspace-active:not(.light) #reports .report-head-v115 p{font-size:11px!important}
+ html body.mmh-workspace-active:not(.light) #reports .report-controls-v115{justify-content:stretch!important;flex:1 1 100%!important;width:100%!important;gap:8px!important}
+ html body.mmh-workspace-active:not(.light) #reports .report-controls-v115 label{flex:1 1 0!important;min-width:0!important}
+ html body.mmh-workspace-active:not(.light) #reports .report-controls-v115 :is(input,select){width:100%!important;min-width:0!important;font-size:14px!important;min-height:44px!important}
+ html body.mmh-workspace-active:not(.light) #reports .report-export-actions-v116{flex:1 1 100%!important;width:100%!important}
+ html body.mmh-workspace-active:not(.light) #reports .report-kpis-v115{gap:9px!important}
+ html body.mmh-workspace-active:not(.light) #reports .report-kpi-v115{min-height:112px!important;border-radius:16px!important;padding:14px 12px!important}
+ html body.mmh-workspace-active:not(.light) #reports .report-kpi-v115>span{font-size:10px!important;letter-spacing:.02em!important}
+ html body.mmh-workspace-active:not(.light) #reports .report-kpi-v115>strong{font-size:clamp(18px,5.2vw,24px)!important;margin-top:9px!important}
+ html body.mmh-workspace-active:not(.light) #reports .report-kpi-v115>small{font-size:9px!important;margin-top:7px!important}
+ html body.mmh-workspace-active:not(.light) #reports .report-panel-v115{border-radius:17px!important;padding:15px 13px!important}
+ html body.mmh-workspace-active:not(.light) #reports :is(.report-budget-v115,.report-snapshot-v115,.report-invest-v115){grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ html body.mmh-workspace-active:not(.light) #reports .report-mini-v115{min-width:0;padding:12px!important}
+ html body.mmh-workspace-active:not(.light) #reports .report-mini-v115 b{font-size:14px!important}
+ html body.mmh-workspace-active:not(.light) #reports .report-compare-row-v115{grid-template-columns:minmax(75px,1.4fr) minmax(64px,1fr) minmax(64px,1fr) minmax(48px,.7fr)!important;gap:5px!important;font-size:9px!important}
+ html body.mmh-workspace-active:not(.light) #reports .report-compare-row-v115 b{font-size:9px!important}
+ html body.mmh-workspace-active:not(.light) #reports .report-category-v115{grid-template-columns:26px minmax(0,1fr) auto!important;gap:7px!important}
+ html body.mmh-workspace-active:not(.light) #reports .report-category-row-v115{flex-wrap:wrap!important;gap:2px 7px!important}
+ html body.mmh-workspace-active:not(.light) #reports .report-panel-head-v115{margin-bottom:12px!important}
+ html body.mmh-workspace-active:not(.light) #reports .report-panel-head-v115 h2{font-size:17px!important}
+ html body.mmh-workspace-active:not(.light) #reports .report-method-v115{font-size:10px!important;padding:12px!important}
+}
+@media(max-width:350px){
+ html body.mmh-workspace-active:not(.light) #reports .report-head-v115 h1{font-size:27px!important}
+ html body.mmh-workspace-active:not(.light) #reports .report-kpi-v115>strong{font-size:18px!important}
+ html body.mmh-workspace-active:not(.light) #reports .report-panel-v115{padding:13px 10px!important}
+}
+@media(prefers-reduced-motion:reduce){
+ html body.mmh-workspace-active:not(.light) #reports *,html body.mmh-workspace-active:not(.light) #reports *:before{animation:none!important;transition:none!important}
+}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){
+ html body.mmh-workspace-active:not(.light) #reports :is(.report-panel-v115,.report-kpi-v115){background:linear-gradient(149deg,#173b58,#071b31)!important}
+}
