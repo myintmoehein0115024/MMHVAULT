@@ -1,0 +1,191 @@
+/* MMHVAULT P9.1 | Exchange, Asia reference rates, Reports refinement.
+   Visual-only stylesheet. Existing financial calculations, prices, saved rates,
+   reports, exports and DOM event handlers remain authoritative. */
+html body.mmh-workspace-active:not(.light) #exchange,
+html body.mmh-workspace-active:not(.light) #reports { --p91-gold:#f3cc79; --p91-stroke:rgba(178,220,250,.32); --p91-soft:#aec8dc; }
+/* Structural insurance: do not allow long numerical strings or grid children to force
+   the document wider than the actual workspace. */
+html body.mmh-workspace-active #exchange.page.active,
+html body.mmh-workspace-active #reports.page.active { min-width:0!important; max-width:100%!important; }
+html body.mmh-workspace-active #exchange.page.active :is(.exchange-converter-panel,.ex-rate-editor,.ex-convert-side,.ex-target,.ex-currency-cards,.ex-currency-card,.formgrid,.toolbar),
+html body.mmh-workspace-active #reports.page.active :is(.report-head-v115,.report-controls-v115,.report-export-actions-v116){min-width:0!important;box-sizing:border-box!important}
+/* Exchange uses the same restrained city-glass hero as the rest of the workspace. */
+html body.mmh-workspace-active:not(.light) #exchange.page.active > .ex-template-head {
+  min-height:128px!important; padding:20px 24px!important; gap:18px!important;
+  background:linear-gradient(90deg,rgba(3,20,39,.95),rgba(3,22,42,.78) 56%,rgba(4,26,45,.27)),url('../images/mmhvault-city-glass-v2.webp') center 45% / cover no-repeat!important;
+  border-color:rgba(186,221,244,.40)!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.25),inset 0 -1px rgba(255,255,255,.06),0 18px 35px rgba(0,7,22,.23)!important;
+}
+html body.mmh-workspace-active:not(.light) #exchange .ex-brand h1{font-size:clamp(26px,2.7vw,39px)!important;line-height:1.13!important;overflow-wrap:normal!important}
+html body.mmh-workspace-active:not(.light) #exchange .ex-brand p{max-width:490px!important;color:#c9dfec!important}
+/* Desktop KPI cards can shrink at actual content width without letting a rate
+   collide with a currency logo. No artificial price charts or rate movement. */
+html body.mmh-workspace-active:not(.light) #exchange.page.active .ex-currency-cards{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:10px!important;width:100%!important}
+html body.mmh-workspace-active:not(.light) #exchange.page.active .ex-currency-card {min-width:0!important;gap:9px!important;padding:15px 12px!important;min-height:102px!important;align-items:center!important;}
+html body.mmh-workspace-active:not(.light) #exchange.page.active .ex-currency-card > div:not(.ex-currency-logo){min-width:0!important;flex:1 1 auto!important}
+html body.mmh-workspace-active:not(.light) #exchange.page.active .ex-currency-card strong{font:600 clamp(18px,1.9vw,28px)/1.16 Georgia,'Times New Roman',serif!important;white-space:nowrap!important;letter-spacing:-.028em!important;overflow:visible!important}
+html body.mmh-workspace-active:not(.light) #exchange.page.active .ex-currency-card small{font-size:10px!important;line-height:1.3!important;overflow-wrap:normal!important}
+html body.mmh-workspace-active:not(.light) #exchange.page.active .ex-currency-logo{flex:0 0 41px!important;width:41px!important;height:41px!important}
+/* Stable panel columns; the actual saved USD reference-rate fields remain editable. */
+html body.mmh-workspace-active:not(.light) #exchange.page.active > .exchange-converter-panel,
+html body.mmh-workspace-active:not(.light) #exchange.page.active > .ex-rate-editor{min-height:0!important;padding:18px!important;align-self:stretch!important}
+html body.mmh-workspace-active:not(.light) #exchange.page.active > .exchange-converter-panel{container: exchangePanel / inline-size;}
+html body.mmh-workspace-active:not(.light) #exchange.page.active .exchange-converter-grid{
+ display:grid!important;grid-template-columns:minmax(0,1fr) 46px minmax(0,1fr)!important;column-gap:8px!important;row-gap:8px!important;align-items:stretch!important;width:100%!important;
+}
+html body.mmh-workspace-active:not(.light) #exchange.page.active .ex-convert-side{min-width:0!important;padding:12px!important;gap:10px!important;border-radius:15px!important}
+html body.mmh-workspace-active:not(.light) #exchange.page.active .ex-convert-side label{min-width:0!important}
+html body.mmh-workspace-active:not(.light) #exchange.page.active .ex-convert-side :is(input,select){width:100%!important;min-width:0!important;max-width:100%!important}
+html body.mmh-workspace-active:not(.light) #exchange.page.active .ex-swap{width:45px!important;min-width:45px!important;height:45px!important;align-self:center!important;border-radius:50%!important;margin:0!important;transform:none!important;padding:0!important}
+html body.mmh-workspace-active:not(.light) #exchange.page.active #exchangeConverterResult{width:100%!important;min-width:0!important;min-height:114px!important;padding:12px!important;display:flex!important;justify-content:center!important;overflow:hidden!important}
+html body.mmh-workspace-active:not(.light) #exchange.page.active #exchangeConverterResult .value{display:block!important;font-size:clamp(21px,2.3vw,31px)!important;line-height:1.1!important;letter-spacing:-.04em!important;white-space:normal!important;overflow-wrap:anywhere!important;word-break:normal!important;max-width:100%!important}
+/* Four controls in a narrow panel are the source of the screenshot clipping.
+   Use two well-proportioned columns instead, regardless of outer viewport width. */
+html body.mmh-workspace-active:not(.light) #exchange.page.active > .ex-rate-editor .formgrid{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;align-items:stretch!important;gap:12px!important;width:100%!important}
+html body.mmh-workspace-active:not(.light) #exchange.page.active > .ex-rate-editor .formgrid > *{grid-column:auto!important;min-width:0!important;max-width:100%!important}
+html body.mmh-workspace-active:not(.light) #exchange.page.active > .ex-rate-editor .formgrid label{display:flex!important;flex-direction:column!important;justify-content:flex-end!important;align-items:stretch!important;min-width:0!important;gap:8px!important;overflow-wrap:normal!important;white-space:normal!important}
+html body.mmh-workspace-active:not(.light) #exchange.page.active > .ex-rate-editor .formgrid label input{min-width:0!important;width:100%!important;max-width:100%!important;height:46px!important;font-variant-numeric:tabular-nums!important}
+html body.mmh-workspace-active:not(.light) #exchange.page.active > .ex-rate-editor .formgrid .ex-save{grid-column:2!important;align-self:end!important;min-width:0!important;width:100%!important}
+html body.mmh-workspace-active:not(.light) #exchange.page.active > .ex-rate-editor .formgrid .ex-save .btn{display:block!important;width:100%!important;min-width:0!important;min-height:46px!important;max-width:100%!important;padding:9px 8px!important;white-space:normal!important}
+html body.mmh-workspace-active:not(.light) #exchange.page.active .ex-rate-editor .toolbar{margin-bottom:16px!important;}
+html body.mmh-workspace-active:not(.light) #exchange.page.active .ex-rate-editor .toolbar h2{line-height:1.18!important}
+/* Asia summary is a useful action footer even at laptop widths. */
+html body.mmh-workspace-active:not(.light) #exchange.page.active #exAsiaSummaryV130{grid-template-columns:minmax(200px,.95fr) minmax(0,1.3fr) auto!important;gap:12px!important;min-width:0!important}
+html body.mmh-workspace-active:not(.light) #exchange.page.active #exAsiaSummaryV130 .ex-asia-preview-v130{min-width:0!important}
+html body.mmh-workspace-active:not(.light) #exchange.page.active #exAsiaSummaryV130 .ex-asia-mini-v130{min-width:0!important;overflow:hidden!important}
+html body.mmh-workspace-active:not(.light) #exchange.page.active #exAsiaSummaryV130 .ex-asia-mini-v130 b{font-size:clamp(12px,1vw,16px)!important;overflow:hidden!important;text-overflow:ellipsis!important;white-space:nowrap!important;display:block!important}
+/* Asia market: premium interface, but NOT fake live trends or fake statistics. */
+html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10.ex-asia-page-v130.page {max-width:100%!important;min-width:0!important;gap:13px!important;}
+html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-page-top-v130{display:flex!important;align-items:center!important;justify-content:space-between!important;min-width:0!important;margin:0 0 4px!important}
+html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-page-top-v130 span{font-size:10px!important;font-weight:800!important;letter-spacing:.2em!important;color:#d4b777!important}
+html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-head{
+ position:relative!important;min-width:0!important;min-height:127px!important;display:flex!important;align-items:center!important;justify-content:space-between!important;gap:12px!important;padding:22px 24px!important;overflow:hidden!important;
+ background:linear-gradient(100deg,rgba(5,23,44,.96),rgba(4,25,45,.73) 63%,rgba(6,33,57,.22)),url('../images/mmhvault-city-glass-v2.webp') center 50% / cover no-repeat!important;
+ border:1px solid rgba(171,217,249,.39)!important;border-radius:22px!important;box-shadow:inset 0 1px rgba(255,255,255,.22),0 17px 34px rgba(0,8,24,.18)!important;
+}
+html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-head > div{min-width:0!important}
+html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-head h3{font:400 clamp(27px,2.8vw,41px)/1.15 Georgia,serif!important;letter-spacing:-.03em!important;color:#fff3e1!important;margin:0 0 7px!important}
+html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-head p{font-size:12px!important;line-height:1.4!important;color:#d1e1ed!important}
+html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-head button,
+html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-page-top-v130 button{flex-shrink:0!important;min-height:42px!important;padding:10px 15px!important;border-radius:12px!important;color:#f1f8ff!important;border:1px solid rgba(165,215,248,.38)!important;background:linear-gradient(150deg,rgba(39,80,111,.78),rgba(8,29,51,.92))!important}
+html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-controls{display:grid!important;grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr)!important;gap:12px!important;align-items:end!important;padding:17px!important;min-width:0!important;border:1px solid rgba(167,210,244,.34)!important;border-radius:18px!important;background:linear-gradient(145deg,rgba(34,73,103,.75),rgba(7,28,51,.86))!important;box-shadow:inset 0 1px rgba(255,255,255,.15)!important}
+html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-controls label{min-width:0!important;font-size:12px!important;line-height:1.4!important;color:#d1e3f2!important;font-weight:650!important}
+html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-controls :is(input,select){height:45px!important;width:100%!important;min-width:0!important;border-radius:12px!important;background:rgba(2,19,38,.72)!important;color:#f2f7ff!important;border:1px solid rgba(157,210,245,.31)!important}
+html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-quick{display:flex!important;align-items:center!important;flex-wrap:wrap!important;gap:8px!important;margin:0!important}
+html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-quick button{border:1px solid rgba(165,207,236,.3)!important;border-radius:999px!important;min-height:36px!important;padding:7px 15px!important;background:linear-gradient(140deg,rgba(36,74,103,.79),rgba(7,30,50,.91))!important;color:#dbe9f5!important;box-shadow:inset 0 1px rgba(255,255,255,.1)!important}
+html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-quick button:is(.active,[aria-pressed="true"]){color:#ffe4ab!important;border-color:rgba(244,203,118,.73)!important;background:linear-gradient(120deg,rgba(150,104,42,.43),rgba(17,52,78,.87))!important}
+html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-list{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:11px!important;max-height:none!important;overflow:visible!important;min-width:0!important}
+html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-row{min-width:0!important;min-height:116px!important;display:grid!important;grid-template-columns:auto minmax(0,1fr)!important;grid-template-rows:auto 1fr!important;align-items:start!important;gap:9px 11px!important;padding:16px!important;border:1px solid rgba(151,203,240,.34)!important;border-radius:18px!important;background:linear-gradient(145deg,rgba(42,89,122,.69),rgba(6,31,56,.89) 61%,rgba(2,21,41,.94))!important;box-shadow:inset 0 1px rgba(255,255,255,.14),0 13px 25px rgba(2,10,28,.16)!important;overflow:hidden!important}
+html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-flag{grid-column:1!important;grid-row:1!important;align-self:center!important}
+html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-name{min-width:0!important;grid-column:2!important;grid-row:1!important;line-height:1.3!important;color:#eaf5ff!important}
+html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-name b{font-size:13px!important;color:#f1f6fc!important}
+html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-name small{font-size:10px!important;color:#a9c9dd!important}
+html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-value{grid-column:1/-1!important;grid-row:2!important;min-width:0!important;text-align:left!important;align-self:end!important;display:flex!important;flex-direction:column!important;align-items:flex-start!important;gap:6px!important}
+html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-value strong{font:600 clamp(19px,1.7vw,25px)/1.1 Georgia,serif!important;letter-spacing:-.015em!important;color:#e5f3ff!important;font-variant-numeric:tabular-nums!important;overflow-wrap:anywhere!important;max-width:100%!important}
+html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-value small{font-size:10px!important;line-height:1.5!important;color:#a9c9dc!important;text-align:left!important;overflow-wrap:anywhere!important}
+html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 :is(.asia-disclaimer,.asia-saved){border:1px solid rgba(153,204,236,.19)!important;border-radius:14px!important;background:rgba(8,31,53,.62)!important;padding:13px 16px!important;line-height:1.55!important;color:#b7cfe0!important}
+html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 #asiaStatusV10{font-size:11px!important;line-height:1.4!important;color:#bad3e7!important;min-height:0!important;margin:2px 0!important}
+/* Financial Report: smaller hero, sensible selection/export group, coherent spacing. */
+html body.mmh-workspace-active:not(.light) #reports.page.active .report-head-v115{
+ display:flex!important;flex-wrap:wrap!important;justify-content:space-between!important;align-items:center!important;gap:13px 18px!important;min-height:129px!important;padding:19px 22px!important;border-radius:21px!important;
+ background:linear-gradient(91deg,rgba(3,20,40,.95),rgba(3,21,42,.79) 58%,rgba(7,34,51,.28)),url('../images/mmhvault-city-glass-v2.webp') center 46% / cover no-repeat!important;
+ border-color:rgba(177,216,248,.37)!important;box-shadow:inset 0 1px rgba(255,255,255,.22),0 14px 32px rgba(0,6,23,.21)!important;
+}
+html body.mmh-workspace-active:not(.light) #reports.page.active .report-head-v115 > div:first-child{flex:1 1 280px!important;max-width:none!important;min-width:0!important}
+html body.mmh-workspace-active:not(.light) #reports.page.active .report-head-v115 h1{font-size:clamp(28px,2.6vw,40px)!important;line-height:1.08!important;margin:4px 0 0!important;overflow-wrap:normal!important}
+html body.mmh-workspace-active:not(.light) #reports.page.active .report-head-v115 p{font-size:11px!important;margin:6px 0 0!important;color:#bcd7e9!important;max-width:400px!important}
+html body.mmh-workspace-active:not(.light) #reports.page.active .report-controls-v115{display:flex!important;flex:0 1 auto!important;flex-wrap:nowrap!important;align-items:end!important;gap:9px!important;justify-content:flex-end!important;margin:0!important;min-width:0!important}
+html body.mmh-workspace-active:not(.light) #reports.page.active .report-controls-v115 label{display:flex!important;flex-direction:column!important;gap:6px!important;min-width:0!important;margin:0!important;font-size:10px!important;letter-spacing:.06em!important}
+html body.mmh-workspace-active:not(.light) #reports.page.active .report-controls-v115 input{width:152px!important;min-width:0!important;height:43px!important}
+html body.mmh-workspace-active:not(.light) #reports.page.active .report-controls-v115 select{width:115px!important;min-width:0!important;height:43px!important}
+html body.mmh-workspace-active:not(.light) #reports.page.active .report-export-actions-v116{display:flex!important;flex:0 1 auto!important;align-items:end!important;justify-content:flex-end!important;gap:8px!important;margin:0!important;width:auto!important;min-width:0!important;align-self:center!important}
+html body.mmh-workspace-active:not(.light) #reports.page.active .report-export-actions-v116 .btn{height:43px!important;min-height:43px!important;max-width:100%!important;width:auto!important;min-width:0!important;padding:10px 13px!important;font-size:11px!important;white-space:nowrap!important;border-radius:12px!important}
+html body.mmh-workspace-active:not(.light) #reports.page.active .report-kpis-v115{margin-top:0!important}
+/* On landscape tablet / small laptop, full-width data controls do not squeeze the header. */
+@media(min-width:1100px) and (max-width:1399px){
+ html body.mmh-workspace-active:not(.light) #exchange.page.active > .exchange-converter-panel{grid-column:1/-1!important;grid-row:auto!important}
+ html body.mmh-workspace-active:not(.light) #exchange.page.active > .ex-rate-editor{grid-column:1/-1!important;grid-row:auto!important}
+ html body.mmh-workspace-active:not(.light) #exchange.page.active > #exAsiaSummaryV130{grid-row:auto!important}
+ html body.mmh-workspace-active:not(.light) #reports.page.active .report-head-v115 > div:first-child{flex-basis:100%!important}
+ html body.mmh-workspace-active:not(.light) #reports.page.active .report-controls-v115{justify-content:flex-start!important}
+}
+@media(max-width:1099px){
+ html body.mmh-workspace-active:not(.light) #exchange.page.active > .exchange-converter-panel,
+ html body.mmh-workspace-active:not(.light) #exchange.page.active > .ex-rate-editor,
+ html body.mmh-workspace-active:not(.light) #exchange.page.active > #exAsiaSummaryV130{grid-column:1/-1!important;grid-row:auto!important}
+ html body.mmh-workspace-active:not(.light) #exchange.page.active > .ex-rate-editor .formgrid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ html body.mmh-workspace-active:not(.light) #exchange.page.active #exAsiaSummaryV130{grid-template-columns:1fr!important;gap:12px!important}
+ html body.mmh-workspace-active:not(.light) #reports.page.active .report-head-v115 > div:first-child{flex-basis:100%!important}
+ html body.mmh-workspace-active:not(.light) #reports.page.active .report-export-actions-v116{margin-left:0!important}
+}
+/* Real converter panel width is a better breakpoint than the entire monitor width. */
+@container exchangePanel (max-width:530px){
+ html body.mmh-workspace-active:not(.light) #exchange.page.active .exchange-converter-grid{grid-template-columns:minmax(0,1fr)!important;}
+ html body.mmh-workspace-active:not(.light) #exchange.page.active .ex-swap{grid-column:1!important;margin:0 auto!important;transform:rotate(90deg)!important;width:42px!important;min-width:42px!important;height:42px!important}
+}
+@media(max-width:850px){
+ html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-list{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-head{min-height:110px!important;padding:18px!important}
+ html body.mmh-workspace-active:not(.light) #reports.page.active .report-head-v115{padding:17px 19px!important;min-height:0!important}
+}
+@media(max-width:699px){
+ html body.mmh-workspace-active:not(.light) #exchange.page.active > .ex-template-head{padding:16px!important;min-height:100px!important}
+ html body.mmh-workspace-active:not(.light) #exchange.page.active > .ex-currency-cards{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}
+ html body.mmh-workspace-active:not(.light) #exchange.page.active .ex-currency-card{min-height:89px!important;padding:12px 10px!important}
+ html body.mmh-workspace-active:not(.light) #exchange.page.active .ex-currency-card strong{font-size:clamp(18px,4.4vw,24px)!important}
+ html body.mmh-workspace-active:not(.light) #exchange.page.active > :is(.exchange-converter-panel,.ex-rate-editor){padding:14px!important}
+ html body.mmh-workspace-active:not(.light) #exchange.page.active #exAsiaSummaryV130{grid-template-columns:1fr!important;padding:13px!important}
+ html body.mmh-workspace-active:not(.light) #exchange.page.active #exAsiaSummaryV130 .ex-asia-preview-v130{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+ html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-controls{grid-template-columns:1fr!important;padding:13px!important}
+ html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-head{padding:16px!important;min-height:0!important;flex-wrap:wrap!important;border-radius:17px!important}
+ html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-head h3{font-size:27px!important}
+ html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-list{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important}
+ html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-row{min-height:105px!important;padding:12px!important;border-radius:14px!important}
+ html body.mmh-workspace-active:not(.light) #reports.page.active .report-head-v115{padding:16px!important;gap:12px!important;border-radius:17px!important}
+ html body.mmh-workspace-active:not(.light) #reports.page.active .report-head-v115>div:first-child{flex:1 1 100%!important}
+ html body.mmh-workspace-active:not(.light) #reports.page.active .report-controls-v115{flex:1 1 100%!important;width:100%!important;display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important;justify-content:stretch!important}
+ html body.mmh-workspace-active:not(.light) #reports.page.active .report-controls-v115 label{min-width:0!important;flex:initial!important}
+ html body.mmh-workspace-active:not(.light) #reports.page.active .report-controls-v115 :is(input,select){width:100%!important;max-width:100%!important;height:43px!important}
+ html body.mmh-workspace-active:not(.light) #reports.page.active .report-export-actions-v116{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;width:100%!important;flex:1 1 100%!important;gap:8px!important}
+ html body.mmh-workspace-active:not(.light) #reports.page.active .report-export-actions-v116 .btn{width:100%!important;white-space:normal!important;min-height:44px!important}
+}
+@media(max-width:470px){
+ html body.mmh-workspace-active:not(.light) #exchange.page.active > .ex-rate-editor .formgrid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}
+ html body.mmh-workspace-active:not(.light) #exchange.page.active #exchangeConverterResult .value{font-size:clamp(23px,6.3vw,29px)!important}
+ html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-list{grid-template-columns:1fr!important}
+ html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-row{min-height:98px!important;grid-template-rows:auto 1fr!important}
+ html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-value strong{font-size:24px!important}
+}
+@media(max-width:359px){
+ html body.mmh-workspace-active:not(.light) #exchange.page.active .ex-currency-logo{flex-basis:32px!important;width:32px!important;height:32px!important}
+ html body.mmh-workspace-active:not(.light) #exchange.page.active .ex-currency-card strong{font-size:17px!important}
+ html body.mmh-workspace-active:not(.light) #exchange.page.active > .ex-rate-editor .formgrid{grid-template-columns:minmax(0,1fr)!important}
+ html body.mmh-workspace-active:not(.light) #exchange.page.active > .ex-rate-editor .formgrid .ex-save{grid-column:1!important}
+ html body.mmh-workspace-active:not(.light) #reports.page.active .report-head-v115 h1{font-size:27px!important}
+}
+@supports not ((backdrop-filter:blur(2px)) or (-webkit-backdrop-filter:blur(2px))){
+ html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 :is(.asia-head,.asia-controls,.asia-row){background-color:#0c2d47!important}
+}
+@media(prefers-reduced-motion:reduce){
+ html body.mmh-workspace-active:not(.light) #exchange :is(.ex-currency-card,.asia-row),html body.mmh-workspace-active:not(.light) #reports .report-head-v115{animation:none!important;transition:none!important}
+}
+/* P9.1 final specificity correction: a legacy mobile formgrid rule has a
+   main.wrap > #exchange selector and must not collapse the first rate column. */
+html body.mmh-workspace-active:not(.light) main.wrap > #exchange.page.active > .ex-rate-editor .formgrid{
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+}
+@media(max-width:900px){
+ html body.mmh-workspace-active:not(.light) main.wrap > #exchange.page.active > .exchange-converter-panel .exchange-converter-grid{
+   display:grid!important;grid-template-columns:minmax(0,1fr)!important;grid-template-rows:auto!important;grid-auto-flow:row!important;gap:10px!important;height:auto!important;
+ }
+ html body.mmh-workspace-active:not(.light) main.wrap > #exchange.page.active > .exchange-converter-panel .exchange-converter-grid > .ex-convert-side,
+ html body.mmh-workspace-active:not(.light) main.wrap > #exchange.page.active > .exchange-converter-panel .exchange-converter-grid > .ex-target{
+  grid-column:1!important;grid-row:auto!important;min-height:0!important;height:auto!important;
+ }
+ html body.mmh-workspace-active:not(.light) main.wrap > #exchange.page.active > .exchange-converter-panel .exchange-converter-grid > .ex-swap{
+  grid-column:1!important;grid-row:auto!important;justify-self:center!important;margin:0 auto!important;transform:rotate(90deg)!important;
+ }
+}
+@media(max-width:359px){
+ html body.mmh-workspace-active:not(.light) main.wrap > #exchange.page.active > .ex-rate-editor .formgrid{grid-template-columns:minmax(0,1fr)!important}
+}
