@@ -354,7 +354,7 @@
  }
  function numericInput(input){
   const raw=input.value.trim(),num=val(raw);
-  if(raw!==''&&num===null){input.setCustomValidity(tr('Enter a valid nonnegative number.','请输入有效的非负数字。'));input.reportValidity();return}
+  if(raw!==''&&num===null){input.setCustomValidity(tr('Enter a valid nonnegative number.','请输入有效的非负数字。'));input.focus({preventScroll:true});window.mmhVaultMessageV740?.(tr('Enter a valid nonnegative number.','请输入有效的非负数字。'),tr('Invalid amount','金额有误'));return}
   input.setCustomValidity('');
   if(input.dataset.fcBase){const k=input.dataset.fcBase;if(!FIELD[k]?.base)return;state.base[k]=raw===''?FIELD[k].def:num;if(k==='salary')state.salaryConfigured=raw!==''&&num>0}
   else if(input.dataset.fcMonth){const d=input.dataset.fcMonth,k=input.dataset.fcField;if(!validMonth(d)||!FIELD[k])return;const m=state.months[d]||(state.months[d]={});if(raw==='')delete m[k];else m[k]=num;if(!Object.keys(m).length)delete state.months[d];if(k==='salary'&&raw!==''&&num>0)state.salaryConfigured=true}
@@ -378,7 +378,7 @@
   }
   if(node instanceof HTMLInputElement&&node.id==='fc-end'){
    if(!validMonth(node.value))return;const first=startKey(),max=shift(first,239);
-   if(node.value<first||node.value>max){node.setCustomValidity(tr('Choose a month within the next 240 months.','请选择未来240个月内的年月。'));node.reportValidity();return}
+   if(node.value<first||node.value>max){node.setCustomValidity(tr('Choose a month within the next 240 months.','请选择未来240个月内的年月。'));node.focus({preventScroll:true});window.mmhVaultMessageV740?.(tr('Choose a month within the next 240 months.','请选择未来240个月内的年月。'),tr('Invalid month','月份有误'));return}
    node.setCustomValidity('');state.end=node.value;save();layout();return;
   }
  }
@@ -399,7 +399,7 @@
    const from=state.baseCurrencies[key],old=state.base[key];
    if(from===to){closeCurrencyMenus();return}
    const next=convert(old,from,to,before);
-   if(!Number.isFinite(next)){closeCurrencyMenus();window.alert(tr('Set valid currency rates before switching.','切换币种之前，请先填写有效汇率。'));return}
+   if(!Number.isFinite(next)){closeCurrencyMenus();window.mmhVaultMessageV740?.(tr('Set valid currency rates before switching.','切换币种之前，请先填写有效汇率。'),tr('Currency rates','汇率提示'));return}
    state.base[key]=Number(next.toFixed(2));state.baseCurrencies[key]=to;
   }else{
    if(!validMonth(monthDate))return;
@@ -409,7 +409,7 @@
    const own=state.months[monthDate]||{};
    const old=Object.prototype.hasOwnProperty.call(own,key)?own[key]:(f.base?state.base[key]:0);
    const next=convert(old,oldCcy,to,before);
-   if(!Number.isFinite(next)){closeCurrencyMenus();window.alert(tr('Set valid currency rates before switching.','切换币种之前，请先填写有效汇率。'));return}
+   if(!Number.isFinite(next)){closeCurrencyMenus();window.mmhVaultMessageV740?.(tr('Set valid currency rates before switching.','切换币种之前，请先填写有效汇率。'),tr('Currency rates','汇率提示'));return}
    const m=state.months[monthDate]||(state.months[monthDate]={});m[key]=Number(next.toFixed(2));
    ccys[key]=to;
   }
@@ -418,7 +418,7 @@
   const selector=baseKey?`[data-fc-base-ccy="${key}"] .fc-currency-trigger`:`[data-fc-month-ccy="${monthDate}"][data-fc-ccy-field="${key}"] .fc-currency-trigger`;
   el(ROOT)?.querySelector(selector)?.focus({preventScroll:true});
  }
- function onClick(e){
+ async function onClick(e){
   const root=el(ROOT),btn=e.target.closest('button');
   if(!btn||!root?.contains(btn))return;
   if(btn.hasAttribute('data-fc-toggle-currency')){
@@ -439,7 +439,7 @@
   if(action==='refresh'){updateOutputs();return}
   if(action==='export'){exportCSV();return}
   if(action==='reset'){
-   if(!window.confirm(tr('Reset local forecast settings for this account? Real transactions remain unchanged.','确定重置当前账户在本浏览器的预测设置吗？不会改变真实交易。')))return;
+   if(typeof window.mmhVaultConfirmV740!=='function'||!(await window.mmhVaultConfirmV740(tr('Reset local forecast settings for this account? Real transactions remain unchanged.','确定重置当前账户在本浏览器的预测设置吗？不会改变真实交易。'),tr('Reset forecast','重置资产预测'))))return;
    state=defaultState();save();layout();
   }
  }
