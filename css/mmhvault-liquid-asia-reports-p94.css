@@ -1,0 +1,337 @@
+/* MMHVAULT P9.4 — Asia Market premium command deck + four mathematically equal report controls.
+   Visual / structural wrapper only. The original interactive elements, IDs, and JS handlers are untouched.
+   P9.4 replaces P9.3 so moved Asia view inherits its entire theme. */
+
+/* Asia: one coherent high-end command deck instead of four separate stacked cards. */
+html body.mmh-workspace-active:not(.light) #exAsiaV10.ex-asia-page-v130 {
+  gap: 13px !important;
+}
+html body.mmh-workspace-active:not(.light) #exAsiaV10 .mmh-asia-command-p93 {
+  position: relative !important;
+  display: grid !important;
+  grid-template-columns: repeat(12,minmax(0,1fr)) !important;
+  align-items: center !important;
+  gap: 0 13px !important;
+  margin: 0 0 14px !important;
+  padding: 15px 20px 17px !important;
+  isolation: isolate !important;
+  overflow: hidden !important;
+  min-width: 0 !important;
+  border: 1px solid rgba(160,208,241,.40) !important;
+  border-radius: 21px !important;
+  background:
+    linear-gradient(110deg,rgba(5,21,39,.92) 0%,rgba(5,26,48,.86) 45%,rgba(8,36,59,.49) 100%),
+    url('../images/mmhvault-city-glass-v2.webp') center 43%/cover no-repeat !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.24),inset 0 -1px 0 rgba(120,189,228,.11),0 20px 50px rgba(0,9,23,.23) !important;
+  backdrop-filter: blur(24px) saturate(145%) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(145%) !important;
+}
+html body.mmh-workspace-active:not(.light) #exAsiaV10 .mmh-asia-command-p93::before {
+  content:"";position:absolute;inset:0 0 auto;height:2px;pointer-events:none;z-index:1;
+  background:linear-gradient(90deg,rgba(241,194,106,.80),rgba(118,200,250,.67) 39%,transparent 78%);
+}
+html body.mmh-workspace-active:not(.light) #exAsiaV10 .mmh-asia-command-p93::after {
+  content:"";position:absolute;right:-70px;top:-100px;width:370px;height:260px;pointer-events:none;z-index:-1;
+  background:radial-gradient(ellipse,rgba(240,183,94,.13),rgba(46,150,230,.06) 42%,transparent 68%);
+}
+html body.mmh-workspace-active:not(.light) #exAsiaV10 .mmh-asia-command-p93 .asia-page-top-v130 {
+  grid-column:1/-1 !important; width:100% !important; margin:0 0 15px !important;
+  padding:0 0 12px !important; border:0 !important;
+  border-bottom:1px solid rgba(166,216,244,.19) !important;
+  min-height:36px !important; align-items:center !important;
+}
+html body.mmh-workspace-active:not(.light) #exAsiaV10 .mmh-asia-command-p93 #asiaBackV130 {
+  min-height:35px!important; padding:7px 12px!important;
+  border:1px solid rgba(161,214,248,.35)!important;border-radius:10px!important;
+  background:linear-gradient(155deg,rgba(41,89,123,.64),rgba(9,31,51,.74))!important;
+  color:#f0f7ff!important;
+}
+html body.mmh-workspace-active:not(.light) #exAsiaV10 .mmh-asia-command-p93 .asia-page-top-v130 > span {
+  font:700 10px/1.2 system-ui,sans-serif!important; letter-spacing:.18em!important;
+  color:#f5ca76!important;
+}
+html body.mmh-workspace-active:not(.light) #exAsiaV10 .mmh-asia-command-p93 .asia-head {
+  grid-column:1/-1 !important; min-height:0 !important; margin:0 !important; padding:0 !important;
+  width:100% !important; display:flex !important; flex-direction:row !important; flex-wrap:nowrap !important;
+  gap:16px !important; align-items:center !important; justify-content:space-between !important;
+  background:none!important; border:0!important; border-radius:0!important;
+  box-shadow:none!important; backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+}
+html body.mmh-workspace-active:not(.light) #exAsiaV10 .mmh-asia-command-p93 .asia-head > div {
+  min-width:0!important; flex:1 1 auto!important; display:block!important; width:auto!important;
+}
+html body.mmh-workspace-active:not(.light) #exAsiaV10 .mmh-asia-command-p93 .asia-head h3 {
+  margin:0 0 7px!important;
+  font:400 clamp(28px,2.8vw,40px)/1.07 Georgia,'Times New Roman',serif!important;
+  color:#fff2dd!important;letter-spacing:-.035em!important;word-break:normal!important;
+}
+html body.mmh-workspace-active:not(.light) #exAsiaV10 .mmh-asia-command-p93 .asia-head p {
+  color:#c3d7e8!important;font-size:12px!important;line-height:1.4!important;margin:0!important;
+}
+html body.mmh-workspace-active:not(.light) #exAsiaV10 .mmh-asia-command-p93 #asiaRefreshV10 {
+  flex:0 0 auto!important;align-self:center!important;width:auto!important;
+  min-width:112px!important;height:42px!important;min-height:42px!important;
+  background:linear-gradient(122deg,rgba(242,194,100,.27),rgba(29,63,87,.60))!important;
+  color:#ffe0a2!important;font-weight:750!important;font-size:12px!important;
+  border:1px solid rgba(244,201,114,.65)!important;border-radius:12px!important;
+  box-shadow:inset 0 1px rgba(255,246,224,.19),0 5px 17px rgba(198,153,77,.1)!important;
+}
+html body.mmh-workspace-active:not(.light) #exAsiaV10 .mmh-asia-command-p93 .asia-controls {
+  grid-column:1/-1 !important;display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  margin:20px 0 0!important;padding:14px!important;gap:13px!important;
+  width:100%!important; min-width:0!important; align-items:end!important;
+  background:linear-gradient(132deg,rgba(54,98,130,.31),rgba(4,23,42,.48))!important;
+  border:1px solid rgba(171,218,247,.29)!important;
+  border-radius:15px!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.1)!important;
+}
+html body.mmh-workspace-active:not(.light) #exAsiaV10 .mmh-asia-command-p93 .asia-controls label {
+  gap:7px!important;font-weight:650!important;color:#d9eaf4!important;
+}
+html body.mmh-workspace-active:not(.light) #exAsiaV10 .mmh-asia-command-p93 .asia-controls :is(select,input) {
+  height:43px!important;min-height:43px!important;
+  color:#f2f8ff!important;background:rgba(5,25,44,.86)!important;
+  border-color:rgba(168,217,249,.34)!important;border-radius:11px!important;
+}
+html body.mmh-workspace-active:not(.light) #exAsiaV10 .mmh-asia-command-p93 .asia-quick {
+  grid-column:1/7!important;justify-self:start!important;width:fit-content!important;max-width:100%!important;
+  margin:13px 0 0!important;padding:4px!important;gap:4px!important;
+  background:rgba(2,18,37,.42)!important;border-color:rgba(169,218,249,.24)!important;
+}
+html body.mmh-workspace-active:not(.light) #exAsiaV10 .mmh-asia-command-p93 .asia-quick button {
+  min-width:68px!important;min-height:35px!important;padding:6px 12px!important;
+  background:transparent!important;color:#bfd6e7!important;
+  border-radius:10px!important;transition:color .12s ease,background-color .12s ease!important;
+}
+html body.mmh-workspace-active:not(.light) #exAsiaV10 .mmh-asia-command-p93 .asia-quick button:is(.active,[aria-pressed="true"],.selected) {
+  color:#ffe0a4!important;background:linear-gradient(135deg,rgba(229,178,86,.44),rgba(79,99,100,.36))!important;
+  box-shadow:inset 0 0 0 1px rgba(244,198,116,.6)!important;
+}
+html body.mmh-workspace-active:not(.light) #exAsiaV10 .mmh-asia-command-p93 #asiaStatusV10 {
+  grid-column:7/-1!important;justify-self:end!important;align-self:center!important;text-align:right!important;
+  min-height:0!important;margin:13px 0 0!important;padding:0!important;
+  color:#a5c8e0!important;font-size:11px!important;line-height:1.5!important;
+}
+/* Premium rate cards with clear flag/name/number alignment (no fake rate changes). */
+html body.mmh-workspace-active:not(.light) #exAsiaV10 .asia-list {
+  display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:12px!important;margin-top:12px!important;
+}
+html body.mmh-workspace-active:not(.light) #exAsiaV10 .asia-row {
+  position:relative!important;min-height:93px!important;padding:17px 15px!important;gap:11px!important;
+  border-radius:17px!important;border:1px solid rgba(168,214,248,.35)!important;
+  background:linear-gradient(148deg,rgba(43,88,120,.72) 0%,rgba(12,44,72,.80) 41%,rgba(4,22,42,.92) 100%)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.20),0 13px 28px rgba(0,9,27,.19)!important;
+  backdrop-filter:blur(17px) saturate(135%)!important;-webkit-backdrop-filter:blur(17px) saturate(135%)!important;
+}
+html body.mmh-workspace-active:not(.light) #exAsiaV10 .asia-row::before {
+  content:"";position:absolute;left:15px;right:15px;top:0;height:1px;
+  background:linear-gradient(90deg,rgba(232,190,109,.62),rgba(142,201,243,.32),transparent);
+}
+html body.mmh-workspace-active:not(.light) #exAsiaV10 .asia-flag {
+  font-size:24px!important;display:grid!important;place-items:center!important;
+  width:35px!important;height:35px!important;min-width:35px!important;
+  border-radius:10px!important;background:rgba(122,185,222,.12)!important;
+  box-shadow:inset 0 0 0 1px rgba(174,217,246,.18)!important;
+}
+html body.mmh-workspace-active:not(.light) #exAsiaV10 .asia-name b {font-size:13px!important;color:#f0f7ff!important}
+html body.mmh-workspace-active:not(.light) #exAsiaV10 .asia-name small {font-size:10px!important;color:#a7c7dc!important}
+html body.mmh-workspace-active:not(.light) #exAsiaV10 .asia-value {max-width:55%!important;min-width:0!important}
+html body.mmh-workspace-active:not(.light) #exAsiaV10 .asia-value strong {
+  font-size:clamp(16px,1.52vw,21px)!important;font-weight:750!important;letter-spacing:-.025em!important;
+  font-family:ui-sans-serif,system-ui,sans-serif!important;
+  line-height:1.22!important;overflow-wrap:anywhere!important;white-space:normal!important;
+}
+html body.mmh-workspace-active:not(.light) #exAsiaV10 .asia-value small {font-size:9px!important;color:#a6c5d8!important}
+html body.mmh-workspace-active:not(.light) #exAsiaV10 .asia-disclaimer {
+  padding:12px 14px!important;border:1px solid rgba(143,197,237,.23)!important;border-radius:12px!important;
+  background:rgba(9,32,51,.64)!important;line-height:1.55!important;
+}
+html body.mmh-workspace-active:not(.light) #exAsiaV10 .asia-saved {
+  padding:12px 15px!important;border-radius:13px!important;
+  border:1px solid rgba(147,207,247,.27)!important;
+  background:linear-gradient(135deg,rgba(30,71,102,.42),rgba(6,25,44,.80))!important;
+}
+/* Financial Report: exact same width for all 4 controls, 2 x 2, same gap & height. */
+html body.mmh-workspace-active:not(.light) #reports.page.active .report-head-v115 {
+  grid-template-columns:minmax(0,1fr) minmax(0,500px)!important;
+  column-gap:22px!important;row-gap:9px!important;min-height:126px!important;
+  padding:17px 22px!important;
+}
+html body.mmh-workspace-active:not(.light) #reports.page.active .report-controls-v115,
+html body.mmh-workspace-active:not(.light) #reports.page.active .report-export-actions-v116 {
+  display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  column-gap:10px!important;width:100%!important;min-width:0!important;
+  box-sizing:border-box!important;margin:0!important;padding:0!important;
+  max-width:none!important;justify-self:stretch!important;
+}
+html body.mmh-workspace-active:not(.light) #reports.page.active .report-controls-v115 {grid-row:1!important;align-self:end!important}
+html body.mmh-workspace-active:not(.light) #reports.page.active .report-export-actions-v116 {grid-row:2!important;align-self:start!important}
+html body.mmh-workspace-active:not(.light) #reports.page.active .report-controls-v115 > label {
+  display:grid!important;grid-template-rows:15px 42px!important;gap:5px!important;
+  width:100%!important;min-width:0!important;max-width:none!important;
+  font-size:10px!important;overflow:visible!important;
+}
+html body.mmh-workspace-active:not(.light) #reports.page.active .report-controls-v115 :is(input,select),
+html body.mmh-workspace-active:not(.light) #reports.page.active .report-export-actions-v116 > button {
+  display:block!important;width:100%!important;max-width:none!important;min-width:0!important;
+  height:42px!important;min-height:42px!important;box-sizing:border-box!important;
+  border-radius:11px!important;
+}
+html body.mmh-workspace-active:not(.light) #reports.page.active .report-export-actions-v116 > button {
+  display:flex!important;align-items:center!important;justify-content:center!important;
+  font-size:12px!important;padding:7px 12px!important;
+}
+html body.mmh-workspace-active:not(.light) #reports.page.active .report-head-v115 h1 {line-height:1.12!important}
+/* Relayout according to actual content column, including desktop with narrow sidebar. */
+@container p92report (max-width:860px) {
+  html body.mmh-workspace-active:not(.light) #reports.page.active .report-head-v115 {
+    grid-template-columns:minmax(0,1fr)!important;grid-template-rows:auto auto auto!important;
+  }
+  html body.mmh-workspace-active:not(.light) #reports.page.active .report-head-v115 > div:first-child {grid-column:1!important;grid-row:1!important}
+  html body.mmh-workspace-active:not(.light) #reports.page.active .report-controls-v115 {grid-column:1!important;grid-row:2!important}
+  html body.mmh-workspace-active:not(.light) #reports.page.active .report-export-actions-v116 {grid-column:1!important;grid-row:3!important}
+}
+@media (max-width:1060px) {
+  html body.mmh-workspace-active:not(.light) #reports.page.active .report-head-v115 {grid-template-columns:minmax(0,1fr)!important;grid-template-rows:auto auto auto!important}
+  html body.mmh-workspace-active:not(.light) #reports.page.active .report-head-v115 > div:first-child {grid-column:1!important;grid-row:1!important}
+  html body.mmh-workspace-active:not(.light) #reports.page.active .report-controls-v115 {grid-column:1!important;grid-row:2!important}
+  html body.mmh-workspace-active:not(.light) #reports.page.active .report-export-actions-v116 {grid-column:1!important;grid-row:3!important}
+}
+@media (max-width:850px) {
+ html body.mmh-workspace-active:not(.light) #exAsiaV10 .asia-list {grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+@media (max-width:699px) {
+ html body.mmh-workspace-active:not(.light) #exAsiaV10 .mmh-asia-command-p93 {display:grid!important;grid-template-columns:minmax(0,1fr)!important;padding:13px 14px 15px!important;gap:0!important}
+ html body.mmh-workspace-active:not(.light) #exAsiaV10 .mmh-asia-command-p93 .asia-page-top-v130,
+ html body.mmh-workspace-active:not(.light) #exAsiaV10 .mmh-asia-command-p93 .asia-head,
+ html body.mmh-workspace-active:not(.light) #exAsiaV10 .mmh-asia-command-p93 .asia-controls,
+ html body.mmh-workspace-active:not(.light) #exAsiaV10 .mmh-asia-command-p93 .asia-quick,
+ html body.mmh-workspace-active:not(.light) #exAsiaV10 .mmh-asia-command-p93 #asiaStatusV10 {grid-column:1/-1!important}
+ html body.mmh-workspace-active:not(.light) #exAsiaV10 .mmh-asia-command-p93 .asia-head {flex-direction:row!important;flex-wrap:wrap!important;align-items:center!important;gap:10px!important}
+ html body.mmh-workspace-active:not(.light) #exAsiaV10 .mmh-asia-command-p93 .asia-head h3 {font-size:clamp(23px,5.7vw,30px)!important;line-height:1.1!important}
+ html body.mmh-workspace-active:not(.light) #exAsiaV10 .mmh-asia-command-p93 .asia-head p {font-size:10px!important}
+ html body.mmh-workspace-active:not(.light) #exAsiaV10 .mmh-asia-command-p93 #asiaRefreshV10 {min-width:83px!important;min-height:38px!important;height:38px!important;align-self:center!important}
+ html body.mmh-workspace-active:not(.light) #exAsiaV10 .mmh-asia-command-p93 .asia-controls {grid-template-columns:minmax(0,1fr)!important;margin-top:16px!important;padding:11px!important;gap:10px!important}
+ html body.mmh-workspace-active:not(.light) #exAsiaV10 .mmh-asia-command-p93 .asia-quick {justify-self:start!important;margin-top:10px!important}
+ html body.mmh-workspace-active:not(.light) #exAsiaV10 .mmh-asia-command-p93 #asiaStatusV10 {justify-self:start!important;text-align:left!important;margin-top:8px!important}
+ html body.mmh-workspace-active:not(.light) #exAsiaV10 .asia-list {grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}
+ html body.mmh-workspace-active:not(.light) #exAsiaV10 .asia-row {padding:12px!important;min-height:83px!important;gap:7px!important}
+ html body.mmh-workspace-active:not(.light) #exAsiaV10 .asia-flag {width:30px!important;height:30px!important;min-width:30px!important;font-size:21px!important}
+ html body.mmh-workspace-active:not(.light) #exAsiaV10 .asia-value strong {font-size:clamp(14px,3vw,18px)!important}
+ html body.mmh-workspace-active:not(.light) #reports.page.active .report-head-v115 {padding:14px!important;gap:9px!important;min-height:0!important}
+}
+@media (max-width:490px) {
+ html body.mmh-workspace-active:not(.light) #exAsiaV10 .asia-list {grid-template-columns:minmax(0,1fr)!important}
+ html body.mmh-workspace-active:not(.light) #exAsiaV10 .asia-row {min-height:72px!important;padding:12px 14px!important}
+ html body.mmh-workspace-active:not(.light) #exAsiaV10 .asia-value strong {font-size:18px!important}
+ html body.mmh-workspace-active:not(.light) #reports.page.active .report-head-v115 .report-controls-v115 > label {font-size:10px!important}
+}
+@media (max-width:360px) {
+ html body.mmh-workspace-active:not(.light) #exAsiaV10 .mmh-asia-command-p93 .asia-head {flex-direction:column!important;align-items:stretch!important}
+ html body.mmh-workspace-active:not(.light) #exAsiaV10 .mmh-asia-command-p93 #asiaRefreshV10 {align-self:flex-start!important}
+ html body.mmh-workspace-active:not(.light) #reports.page.active .report-controls-v115 {grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+@media (prefers-reduced-motion:reduce) {html body.mmh-workspace-active:not(.light) #exAsiaV10 .asia-row{transition:none!important;transform:none!important}}
+
+/* P9.4: Fix core page relocation defect. The Asia view is moved to the root by
+   openMmhAsiaRatesV130(), so all styles above intentionally target #exAsiaV10
+   without requiring it to remain a descendant of #exchange. */
+html body.mmh-workspace-active:not(.light) #exAsiaV10.ex-asia-page-v130 {
+  --asia-glass-edge:rgba(174,221,255,.43);
+  --asia-glass-shine:rgba(229,249,255,.19);
+  --asia-glass-gold:rgba(255,205,129,.42);
+}
+html body.mmh-workspace-active:not(.light) #exAsiaV10.ex-asia-page-v130 .mmh-asia-command-p93 {
+  background:
+    radial-gradient(ellipse 53% 56% at 99% 1%,rgba(255,213,135,.24),transparent 85%),
+    linear-gradient(115deg,rgba(21,65,99,.66),rgba(6,34,57,.55) 54%,rgba(11,45,69,.53)),
+    url('../images/mmhvault-city-glass-v2.webp') center 38%/cover no-repeat !important;
+  border:1px solid rgba(175,221,247,.58)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.27),inset 0 -1px 0 rgba(111,182,226,.16),0 2px 0 rgba(12,38,58,.48),0 24px 64px rgba(0,7,20,.36),0 0 34px rgba(45,143,219,.10)!important;
+  backdrop-filter:blur(32px) saturate(160%)!important;
+  -webkit-backdrop-filter:blur(32px) saturate(160%)!important;
+}
+html body.mmh-workspace-active:not(.light) #exAsiaV10.ex-asia-page-v130 .mmh-asia-command-p93 .asia-controls {
+  background:linear-gradient(130deg,rgba(99,162,203,.25),rgba(19,59,87,.20) 50%,rgba(3,20,40,.52))!important;
+  border-color:rgba(196,228,255,.40)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 13px 28px rgba(2,12,25,.20)!important;
+}
+html body.mmh-workspace-active:not(.light) #exAsiaV10.ex-asia-page-v130 .asia-row {
+  background:linear-gradient(143deg,rgba(75,132,170,.61),rgba(21,61,94,.63) 46%,rgba(6,27,51,.72))!important;
+  border-color:rgba(175,216,247,.45)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.23),inset 0 -1px 0 rgba(136,204,242,.09),0 12px 30px rgba(1,9,26,.24)!important;
+  transition:border-color .18s ease,box-shadow .18s ease,background-color .18s ease!important;
+}
+@media (hover:hover){
+ html body.mmh-workspace-active:not(.light) #exAsiaV10.ex-asia-page-v130 .asia-row:hover{
+  border-color:rgba(255,212,137,.59)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.30),0 13px 32px rgba(3,15,35,.33),0 0 18px rgba(234,181,96,.08)!important;
+ }
+}
+html body.mmh-workspace-active:not(.light) #exAsiaV10.ex-asia-page-v130 .asia-disclaimer {
+  color:#bed6e8!important;background:linear-gradient(110deg,rgba(61,105,135,.25),rgba(5,25,45,.60))!important;
+}
+/* Keep native select as authoritative state, never expose its browser-owned popup.
+   This class is only applied after the replacement has initialized successfully. */
+#exAsiaV10.mmh-asia-select-ready-p94 #asiaBaseV10 {display:none!important}
+html body.mmh-workspace-active #exAsiaV10 .mmh-asia-picker-trigger-p94 {
+  display:flex!important;align-items:center!important;justify-content:space-between!important;
+  gap:12px!important;width:100%!important;min-width:0!important;
+  height:43px!important;min-height:43px!important;margin:0!important;
+  padding:0 15px!important;text-align:left!important;font:700 13px/1.35 system-ui,sans-serif!important;
+  border-radius:11px!important;border:1px solid rgba(190,227,252,.48)!important;
+  background:linear-gradient(125deg,rgba(69,120,153,.38),rgba(4,29,53,.82))!important;
+  color:#f5faff!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 7px 18px rgba(0,12,30,.13)!important;
+  cursor:pointer!important;outline-offset:3px!important;
+}
+html body.mmh-workspace-active #exAsiaV10 .mmh-asia-picker-trigger-p94:is(:focus-visible,.is-open) {
+  border-color:rgba(255,211,133,.85)!important;
+  box-shadow:inset 0 1px 0 rgba(255,250,238,.19),0 0 0 3px rgba(227,174,81,.13)!important;
+}
+#exAsiaV10 .mmh-asia-picker-label-p94 {min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#exAsiaV10 .mmh-asia-picker-chevron-p94 {margin-left:auto;color:#f2ca81;font-size:23px;line-height:1;flex:0 0 auto}
+/* Body-level popover is deliberately outside every backdrop-filter/transform/
+   overflow clipping ancestor. Viewport clamping happens in companion JS. */
+.mmh-asia-picker-veil-p94[hidden],.mmh-asia-picker-popover-p94[hidden]{display:none!important}
+.mmh-asia-picker-veil-p94{position:fixed;inset:0;z-index:2147483000;background:transparent}
+.mmh-asia-picker-popover-p94{
+  position:fixed;z-index:2147483001;box-sizing:border-box;
+  display:flex;flex-direction:column;overflow:hidden;
+  min-width:0;min-height:0;max-height:min(440px,calc(100dvh - 24px));
+  border:1px solid rgba(176,221,255,.60);border-radius:16px;
+  background:linear-gradient(146deg,rgba(46,94,128,.93),rgba(6,29,53,.98) 55%,rgba(2,17,35,.98));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 20px 70px rgba(0,5,20,.59),0 0 30px rgba(75,166,225,.20);
+  backdrop-filter:blur(28px) saturate(156%);-webkit-backdrop-filter:blur(28px) saturate(156%);
+  padding:12px;color:#ecf7ff; font-family:system-ui,-apple-system,sans-serif;
+}
+.mmh-asia-picker-popover-p94 *{box-sizing:border-box}
+.mmh-asia-picker-heading-p94{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:1px 3px 9px;color:#fff0cd;font-size:14px}
+.mmh-asia-picker-close-p94{display:grid;place-items:center;width:32px;height:32px;min-height:32px;border:1px solid rgba(165,219,248,.3);border-radius:9px;background:rgba(8,34,56,.76);color:#f4faff;font:23px/1 sans-serif;cursor:pointer}
+.mmh-asia-picker-search-p94{flex:0 0 auto;display:block;width:100%;height:43px;min-height:43px;padding:10px 12px;font-size:16px;color:#f7fbff!important;border:1px solid rgba(169,213,245,.45)!important;border-radius:10px;background:rgba(4,22,42,.73)!important;outline:none}
+.mmh-asia-picker-search-p94:focus{border-color:rgba(255,210,132,.78)!important;box-shadow:0 0 0 2px rgba(255,205,117,.14)}
+.mmh-asia-picker-search-p94::placeholder{color:#a4bed3}
+.mmh-asia-picker-list-p94{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:rgba(168,210,238,.7) transparent;padding:6px 0 0}
+.mmh-asia-picker-option-p94{display:grid;grid-template-columns:60px minmax(0,1fr) 23px;align-items:center;gap:8px;width:100%;min-height:42px;margin:2px 0;padding:7px 11px;background:transparent;color:#d8e8f5;border:1px solid transparent;border-radius:9px;text-align:left;font:13px/1.35 system-ui,sans-serif;cursor:pointer}
+.mmh-asia-picker-option-p94 strong{color:#fff5db;letter-spacing:.03em}
+.mmh-asia-picker-option-p94 span:nth-child(2){overflow-wrap:anywhere}
+.mmh-asia-picker-option-p94[aria-selected="true"]{background:linear-gradient(110deg,rgba(219,174,91,.28),rgba(64,123,167,.26));border-color:rgba(250,204,118,.74)}
+.mmh-asia-picker-option-p94[data-active="true"],.mmh-asia-picker-option-p94:hover{background:rgba(97,159,203,.25);border-color:rgba(167,214,249,.35)}
+.mmh-asia-picker-option-p94[aria-selected="true"][data-active="true"]{border-color:rgba(255,213,133,.89)}
+.mmh-asia-picker-check-p94{color:#f9cf7c;text-align:right;font-weight:900}
+.mmh-asia-picker-empty-p94{padding:22px 10px;color:#bcd0e0;text-align:center;font-size:13px}
+@media(max-width:600px){
+ .mmh-asia-picker-veil-p94{background:rgba(0,9,23,.63);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+ .mmh-asia-picker-popover-p94{left:14px!important;right:14px!important;top:50%!important;bottom:auto!important;transform:translateY(-50%);width:auto!important;max-height:min(68dvh,570px)!important;border-radius:19px;padding:12px}
+ .mmh-asia-picker-option-p94{min-height:47px}
+ html body.mmh-workspace-active:not(.light) #exAsiaV10 .mmh-asia-command-p93 {padding:13px 13px 14px!important}
+}
+@media(prefers-reduced-motion:reduce){
+ html body.mmh-workspace-active:not(.light) #exAsiaV10 .asia-row {transition:none!important}
+ .mmh-asia-picker-popover-p94{animation:none!important}
+}
+@supports not ((backdrop-filter:blur(2px)) or (-webkit-backdrop-filter:blur(2px))){
+ .mmh-asia-picker-popover-p94{background:#102e47}
+ html body.mmh-workspace-active:not(.light) #exAsiaV10 .mmh-asia-command-p93{background-color:#0d2e4a!important}
+}
