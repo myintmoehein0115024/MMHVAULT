@@ -230,3 +230,172 @@ body.light #forecast .fc-day-main,body.light #forecast .fc-day-info>div,body.lig
 /* Prevent the month-specific salary editor from collapsing into a tiny numeric box on desktop. */
 @media(min-width:601px){#forecast .fc-day-edit-control{flex:0 1 auto;min-width:min(365px,100%)}#forecast .fc-day-edit-control .fc-field{flex:1 1 235px;width:235px;min-width:190px}#forecast .fc-day-edit-control .fc-day-reset{flex-shrink:0}}
 @media(max-width:600px){#forecast .fc-day-edit-control{min-width:0}#forecast .fc-day-edit-control .fc-field{width:100%;min-width:0}#forecast .fc-day-edit-control .fc-money-pair{min-width:0}}
+
+/* MMHVAULT P9.5 — Canonical Forecast + Dashboard Daily Progress responsive geometry.
+   Visual only. Does not alter any model, ledger, currency, or stored plan. */
+html body.mmh-workspace-active #forecast.page,
+html body.mmh-workspace-active #forecast #mmhForecastRootV1{
+  box-sizing:border-box!important;
+  inline-size:100%!important;
+  min-inline-size:0!important;
+  max-inline-size:100%!important;
+}
+html body.mmh-workspace-active #forecast #mmhForecastRootV1 .fc-wrap{
+  box-sizing:border-box!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  grid-auto-flow:row!important;
+  inline-size:100%!important;
+  min-inline-size:0!important;
+  max-inline-size:100%!important;
+  gap:clamp(10px,1.35vw,16px)!important;
+  padding:10px 0 30px!important;
+}
+html body.mmh-workspace-active #forecast #mmhForecastRootV1 .fc-wrap > *{
+  box-sizing:border-box!important;
+  grid-column:1 / -1!important;
+  min-width:0!important;
+  max-width:100%!important;
+  width:100%!important;
+}
+/* The salary mini is a full-width Dashboard sibling, never a one-track grid item. */
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 > :is(.pf-hero-v500,.pf-kpis-v500,#mmhDailyDashboardV13,.pf-main-grid-v500,.pf-bottom-grid-v500,.pf-quick-actions-v140,.pf-budget-v112,.pf-planning-v117,.pf-insights-v150){
+  grid-column:1 / -1!important;
+  min-width:0!important;
+  max-width:100%!important;
+  width:100%!important;
+}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 > #mmhDailyDashboardV13.mmh-daily-mini-v13{
+  display:block!important;
+  position:relative!important;
+  box-sizing:border-box!important;
+  width:100%!important;
+  min-width:0!important;
+  max-width:100%!important;
+  justify-self:stretch!important;
+  align-self:stretch!important;
+  margin:12px 0 14px!important;
+  padding:16px 18px!important;
+  overflow:hidden!important;
+  border-radius:19px!important;
+  border:1px solid rgba(239,195,112,.38)!important;
+  background:radial-gradient(ellipse at 97% 0%,rgba(241,183,79,.10),transparent 47%),linear-gradient(125deg,rgba(23,54,75,.86),rgba(8,30,49,.94))!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.15),inset 0 -1px 0 rgba(90,175,212,.09),0 15px 34px rgba(0,8,20,.21)!important;
+}
+#dashboard #mmhDailyDashboardV13,
+#dashboard #mmhDailyDashboardV13 :is(.mmh-daily-mini-top,.mmh-daily-mini-main,.mmh-daily-mini-bottom){
+  min-width:0!important;
+  max-width:100%!important;
+}
+#dashboard #mmhDailyDashboardV13 .mmh-daily-mini-top > div:first-child{
+  flex:1 1 235px!important;
+  min-width:0!important;
+  max-width:100%!important;
+}
+#dashboard #mmhDailyDashboardV13 .mmh-daily-mini-top :is(h2,p),
+#dashboard #mmhDailyDashboardV13 .mmh-daily-mini-top button{
+  writing-mode:horizontal-tb!important;
+  word-break:normal!important;
+  overflow-wrap:break-word!important;
+  white-space:normal!important;
+}
+#dashboard #mmhDailyDashboardV13 .mmh-daily-mini-main > div:first-child,
+#dashboard #mmhDailyDashboardV13 .mmh-daily-mini-main > div:first-child > strong{
+  min-width:0!important;
+  max-width:100%!important;
+}
+
+/* Same premium finance glass as Dashboard, but with readable opacity behind numbers. */
+html body.mmh-workspace-active:not(.light) #forecast .fc-head{
+  padding:17px 20px 18px!important;
+  border:1px solid rgba(149,193,222,.25)!important;
+  border-radius:20px!important;
+  background:linear-gradient(100deg,rgba(5,19,35,.90),rgba(8,28,48,.60)),url('../images/mmhvault-city-glass-v2.webp') center 45%/cover no-repeat!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 15px 35px rgba(0,8,22,.14)!important;
+}
+html body.mmh-workspace-active:not(.light) #forecast .fc-head h1{
+  font-family:Georgia,'Times New Roman',serif!important;
+  font-weight:650!important;
+  letter-spacing:-.025em!important;
+  color:#f6f8fc!important;
+}
+html body.mmh-workspace-active:not(.light) #forecast .fc-panel,
+html body.mmh-workspace-active:not(.light) #forecast .fc-stat{
+  background:linear-gradient(145deg,rgba(37,77,106,.64),rgba(7,30,49,.87) 46%,rgba(5,21,36,.90))!important;
+  border-color:rgba(134,193,229,.30)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12),inset 0 -1px 0 rgba(89,155,195,.05),0 16px 35px rgba(0,10,26,.13)!important;
+}
+html body.mmh-workspace-active:not(.light) #forecast .fc-month,
+html body.mmh-workspace-active:not(.light) #forecast .fc-breakdown > div{
+  background:linear-gradient(145deg,rgba(25,63,90,.60),rgba(7,28,45,.85))!important;
+  border-color:rgba(106,168,211,.27)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.07)!important;
+}
+html body.mmh-workspace-active:not(.light) #forecast :is(.fc-money-pair,input[type='month'],input[type='number']){
+  border-color:rgba(109,174,219,.37)!important;
+}
+html body.mmh-workspace-active:not(.light) #forecast .fc-btn:not(.alt){
+  background:linear-gradient(135deg,rgba(64,112,145,.85),rgba(23,64,94,.91))!important;
+  border-color:rgba(131,190,228,.40)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12)!important;
+}
+html body.mmh-workspace-active #forecast .fc-panel,
+html body.mmh-workspace-active #forecast .fc-stat,
+html body.mmh-workspace-active #forecast .fc-month,
+html body.mmh-workspace-active #forecast .fc-month-fields,
+html body.mmh-workspace-active #forecast .fc-day-panel,
+html body.mmh-workspace-active #forecast .fc-day-head,
+html body.mmh-workspace-active #forecast .fc-day-content{
+  min-width:0!important;
+  max-width:100%!important;
+}
+html body.mmh-workspace-active #forecast .fc-month summary,
+html body.mmh-workspace-active #forecast .fc-month summary > *{
+  min-width:0!important;
+}
+@media(min-width:900px){
+  html body.mmh-workspace-active:not(.light) #forecast .fc-panel{backdrop-filter:blur(9px) saturate(118%);-webkit-backdrop-filter:blur(9px) saturate(118%)}
+}
+@media(max-width:700px){
+  html body.mmh-workspace-active #forecast .fc-wrap{gap:10px!important;padding:3px 0 calc(110px + env(safe-area-inset-bottom,0px))!important}
+  html body.mmh-workspace-active #forecast .fc-head{margin:0!important;padding:13px 14px!important}
+  html body.mmh-workspace-active #forecast .fc-head h1{font-size:clamp(23px,6vw,30px)!important}
+  html body.mmh-workspace-active #forecast .fc-panel{padding:13px!important;border-radius:17px!important}
+  html body.mmh-workspace-active #forecast .fc-stats{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important}
+  html body.mmh-workspace-active #forecast .fc-stat{padding:12px!important;border-radius:13px!important}
+  html body.mmh-workspace-active #forecast .fc-stat strong{font-size:clamp(15px,4.7vw,20px)!important;line-height:1.15!important}
+  html body.mmh-workspace-active #forecast .fc-day-content{display:grid!important;grid-template-columns:minmax(0,1fr)!important;justify-items:stretch!important}
+  html body.mmh-workspace-active #forecast .fc-day-gauge{grid-column:1!important;justify-self:center!important}
+  html body.mmh-workspace-active #forecast .fc-day-main,
+  html body.mmh-workspace-active #forecast .fc-day-info{grid-column:1!important;width:100%!important}
+  html body.mmh-workspace-active #forecast .fc-day-info{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  html body.mmh-workspace-active #forecast .fc-day-edit-control{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:8px!important}
+  html body.mmh-workspace-active #forecast .fc-day-edit-control .fc-field,
+  html body.mmh-workspace-active #forecast .fc-day-edit-control .fc-day-reset{width:100%!important}
+  html body.mmh-workspace-active #forecast .fc-day-milestones{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  html body.mmh-workspace-active #forecast .fc-breakdown{grid-template-columns:minmax(0,1fr)!important}
+  html body.mmh-workspace-active #forecast .fc-controls{grid-template-columns:minmax(0,1fr)!important}
+  html body.mmh-workspace-active #forecast .fc-month-fields{grid-template-columns:minmax(0,1fr)!important}
+  html body.mmh-workspace-active #forecast .fc-fx-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 > #mmhDailyDashboardV13.mmh-daily-mini-v13{padding:13px 14px!important;margin:10px 0 12px!important}
+  #dashboard #mmhDailyDashboardV13 .mmh-daily-mini-top{display:flex!important;flex-direction:column!important;align-items:stretch!important;gap:10px!important}
+  #dashboard #mmhDailyDashboardV13 .mmh-daily-mini-top > div:first-child{flex:0 1 auto!important;min-width:0!important;width:100%!important}
+  #dashboard #mmhDailyDashboardV13 .mmh-daily-mini-top h2{font-size:17px!important;line-height:1.36!important;max-width:100%!important}
+  #dashboard #mmhDailyDashboardV13 .mmh-daily-mini-top button{align-self:flex-start!important;max-width:100%!important}
+  #dashboard #mmhDailyDashboardV13 .mmh-daily-mini-main{display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;gap:10px!important;align-items:end!important}
+  #dashboard #mmhDailyDashboardV13 .mmh-daily-mini-main > div:first-child strong{font-size:clamp(22px,7vw,28px)!important}
+  #dashboard #mmhDailyDashboardV13 .mmh-daily-mini-pct strong{font-size:21px!important}
+}
+@media(max-width:365px){
+  html body.mmh-workspace-active #forecast .fc-fx-grid{grid-template-columns:minmax(0,1fr)!important}
+  html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 > #mmhDailyDashboardV13.mmh-daily-mini-v13{padding:12px!important}
+  #dashboard #mmhDailyDashboardV13 .mmh-daily-mini-main{grid-template-columns:minmax(0,1fr)!important}
+  #dashboard #mmhDailyDashboardV13 .mmh-daily-mini-pct{text-align:left!important}
+}
+@supports not ((-webkit-backdrop-filter:blur(2px)) or (backdrop-filter:blur(2px))){
+  html body.mmh-workspace-active:not(.light) #forecast .fc-panel{background:rgba(8,26,43,.97)!important}
+}
+@media(prefers-reduced-motion:reduce){
+  #dashboard #mmhDailyDashboardV13 *,
+  #forecast *{transition:none!important;animation:none!important}
+}
