@@ -1,0 +1,445 @@
+/* MMHVAULT — Premium Liquid Glass P9.2
+   Scope: Asia reference rates and Financial Report headers / interaction surfaces.
+   Visual-only: does not change quote sources, exchange-rate values, calculations,
+   currency selection, report generation, exports or their event listeners.
+   Load after P9.1 so these refinements have one clear source of truth. */
+
+html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10,
+html body.mmh-workspace-active:not(.light) #reports.page.active {
+  --p92-ink: #e9f4ff;
+  --p92-sub: #a8c4d9;
+  --p92-gold: #f3c970;
+  --p92-edge: rgba(171, 218, 251, .34);
+  --p92-glass: linear-gradient(135deg, rgba(39, 80, 111, .71), rgba(8, 29, 50, .79) 61%, rgba(6, 25, 45, .85));
+}
+
+/* ========== ASIA MARKET DETAIL ========== */
+html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10.ex-asia-page-v130.page {
+  width: min(100%, 1320px) !important;
+  max-width: 100% !important;
+  margin-inline: auto !important;
+  min-width: 0 !important;
+  gap: 10px !important;
+}
+html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-page-top-v130 {
+  display: flex !important;
+  min-height: 0 !important;
+  height: auto !important;
+  margin: 0 !important;
+  padding: 0 2px 3px !important;
+  align-items: center !important;
+  border: 0 !important;
+}
+html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-page-top-v130 button {
+  padding: 8px 13px !important;
+  min-height: 36px !important;
+  border-radius: 11px !important;
+}
+html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-page-top-v130 span {
+  color: rgba(242, 207, 143, .9) !important;
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  letter-spacing: .17em !important;
+  text-transform: uppercase !important;
+}
+html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-head {
+  display: flex !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 18px !important;
+  min-height: 88px !important;
+  height: auto !important;
+  margin: 0 !important;
+  padding: 14px 20px !important;
+  border: 1px solid rgba(182, 224, 251, .40) !important;
+  border-radius: 19px !important;
+  background:
+    linear-gradient(93deg, rgba(5, 22, 43, .96) 0%, rgba(5, 24, 44, .91) 55%, rgba(11, 36, 57, .55) 100%),
+    url('../images/mmhvault-city-glass-v2.webp') center 52% / cover no-repeat !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.25), inset 0 -1px rgba(255,255,255,.06), 0 12px 28px rgba(0, 8, 20, .19) !important;
+  backdrop-filter: blur(14px) saturate(125%) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(125%) !important;
+}
+html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-head > div {
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+}
+html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-head h3 {
+  font: 400 clamp(25px, 2.35vw, 35px)/1.1 Georgia, 'Times New Roman', serif !important;
+  letter-spacing: -.03em !important;
+  color: #fff0d5 !important;
+  margin: 0 0 4px !important;
+}
+html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-head p {
+  color: #c6dae8 !important;
+  margin: 0 !important;
+  line-height: 1.35 !important;
+  font-size: 11px !important;
+}
+html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 #asiaRefreshV10 {
+  min-height: 39px !important;
+  padding: 7px 15px !important;
+  flex: 0 0 auto !important;
+  align-self: center !important;
+  border-radius: 12px !important;
+  color: #ffe2a4 !important;
+  font-weight: 750 !important;
+  border: 1px solid rgba(244, 204, 122, .52) !important;
+  background: linear-gradient(145deg, rgba(108, 83, 45, .53), rgba(22, 48, 69, .79)) !important;
+  box-shadow: inset 0 1px rgba(255,255,255,.22), 0 3px 15px rgba(239, 182, 80, .09) !important;
+}
+html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-controls {
+  display: grid !important;
+  grid-template-columns: minmax(0, .86fr) minmax(0, 1.14fr) !important;
+  min-height: 0 !important;
+  align-items: end !important;
+  gap: 12px !important;
+  padding: 14px 16px !important;
+  margin: 0 !important;
+  border: 1px solid rgba(178, 220, 251, .35) !important;
+  border-radius: 18px !important;
+  background: var(--p92-glass) !important;
+  box-shadow: inset 0 1px rgba(255,255,255,.22), 0 12px 24px rgba(0,8,22,.12) !important;
+  backdrop-filter: blur(16px) saturate(130%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(130%) !important;
+}
+html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-controls label {
+  min-width: 0 !important;
+  display: grid !important;
+  gap: 6px !important;
+  font-size: 11px !important;
+  color: #bcd5e5 !important;
+  letter-spacing: .015em !important;
+}
+html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-controls :is(select,input) {
+  min-width: 0 !important;
+  width: 100% !important;
+  height: 43px !important;
+  border-radius: 11px !important;
+  color: #ecf6ff !important;
+  background: linear-gradient(120deg, rgba(5, 23, 41, .94), rgba(14, 45, 70, .83)) !important;
+  border: 1px solid rgba(173,216,246,.32) !important;
+  box-shadow: inset 0 1px rgba(255,255,255,.07) !important;
+}
+html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-quick {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  width: fit-content !important;
+  max-width: 100% !important;
+  padding: 4px !important;
+  gap: 5px !important;
+  border: 1px solid rgba(166,214,247,.27) !important;
+  border-radius: 13px !important;
+  background: rgba(8,29,49,.68) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+}
+html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-quick button {
+  min-height: 33px !important;
+  padding: 6px 15px !important;
+  border-radius: 10px !important;
+  box-shadow: none !important;
+}
+html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 #asiaStatusV10 {
+  margin: 0 !important;
+  color: var(--p92-sub) !important;
+  font-size: 11px !important;
+  line-height: 1.35 !important;
+}
+html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-list {
+  display: grid !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+  max-height: none !important;
+  overflow: visible !important;
+  min-width: 0 !important;
+}
+html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-row {
+  display: flex !important;
+  align-items: center !important;
+  min-width: 0 !important;
+  gap: 10px !important;
+  min-height: 80px !important;
+  padding: 13px 14px !important;
+  border: 1px solid rgba(165,214,249,.27) !important;
+  border-radius: 15px !important;
+  background: linear-gradient(144deg, rgba(36, 76, 107, .6), rgba(5, 26, 47, .86) 61%, rgba(6, 23, 41, .94)) !important;
+  box-shadow: inset 0 1px rgba(255,255,255,.15), 0 9px 17px rgba(0,8,23,.13) !important;
+  backdrop-filter: blur(12px) saturate(130%) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(130%) !important;
+  transition: border-color .18s ease, background-color .18s ease, transform .18s ease !important;
+}
+html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-row:hover {
+  border-color: rgba(244, 205, 126, .55) !important;
+  transform: translateY(-1px) !important;
+}
+html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-flag {
+  flex: 0 0 auto !important;
+  font-size: 23px !important;
+}
+html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-name {
+  min-width: 0 !important;
+  flex: 1 1 auto !important;
+}
+html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-name b {
+  display: block !important;
+  color: #f1f8ff !important;
+  font-size: 12px !important;
+  line-height: 1.24 !important;
+}
+html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-name small {
+  font-size: 10px !important;
+  color: #aac5d9 !important;
+  line-height: 1.3 !important;
+}
+html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-value {
+  flex: 0 1 auto !important;
+  min-width: 0 !important;
+  max-width: 52% !important;
+  text-align: right !important;
+}
+html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-value strong {
+  display: block !important;
+  font-size: clamp(15px, 1.45vw, 22px) !important;
+  line-height: 1.2 !important;
+  letter-spacing: -.02em !important;
+  white-space: nowrap !important;
+  overflow-wrap: normal !important;
+  color: #e8f5ff !important;
+  font-variant-numeric: tabular-nums !important;
+}
+html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-value small {
+  font-size: 9px !important;
+  color: #91afc6 !important;
+}
+html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-disclaimer {
+  border-top: 1px solid rgba(157,208,244,.17) !important;
+  padding-top: 12px !important;
+  color: #acc8da !important;
+}
+
+/* ========== FINANCIAL REPORT HEADER ========== */
+html body.mmh-workspace-active:not(.light) #reports.page.active > .report-shell-v115 {
+  container: p92report / inline-size;
+  min-width: 0 !important;
+}
+html body.mmh-workspace-active:not(.light) #reports.page.active .report-head-v115 {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) minmax(296px, 408px) !important;
+  grid-template-rows: auto auto !important;
+  align-items: center !important;
+  justify-items: stretch !important;
+  gap: 9px 18px !important;
+  padding: 16px 20px !important;
+  min-height: 116px !important;
+  height: auto !important;
+  margin: 0 0 12px !important;
+  border-radius: 19px !important;
+  border: 1px solid rgba(183,220,248,.4) !important;
+  background:
+    linear-gradient(100deg,rgba(4,21,41,.97),rgba(7,29,49,.87) 61%,rgba(10,38,58,.42)),
+    url('../images/mmhvault-city-glass-v2.webp') center 49% / cover no-repeat !important;
+  box-shadow: inset 0 1px rgba(255,255,255,.25), 0 12px 29px rgba(0,8,23,.20) !important;
+  backdrop-filter: blur(14px) saturate(125%) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(125%) !important;
+}
+html body.mmh-workspace-active:not(.light) #reports.page.active .report-head-v115 > div:first-child {
+  grid-column: 1 !important;
+  grid-row: 1 / 3 !important;
+  align-self: center !important;
+  min-width: 0 !important;
+  width: auto !important;
+  flex-basis: auto !important;
+}
+html body.mmh-workspace-active:not(.light) #reports.page.active .report-eyebrow-v115 {
+  letter-spacing: .18em !important;
+  font-size: 10px !important;
+  color: #f6ce77 !important;
+  margin-bottom: 6px !important;
+}
+html body.mmh-workspace-active:not(.light) #reports.page.active .report-head-v115 h1 {
+  font: 400 clamp(26px, 2.65vw, 38px)/1.12 Georgia, 'Times New Roman', serif !important;
+  letter-spacing: -.03em !important;
+  color: #fff4de !important;
+  margin: 0 !important;
+  white-space: normal !important;
+}
+html body.mmh-workspace-active:not(.light) #reports.page.active .report-head-v115 > div:first-child > p {
+  margin: 6px 0 0 !important;
+  max-width: 410px !important;
+  color: #bdd6e7 !important;
+  font-size: 11px !important;
+  line-height: 1.4 !important;
+}
+html body.mmh-workspace-active:not(.light) #reports.page.active .report-controls-v115 {
+  grid-column: 2 !important;
+  grid-row: 1 !important;
+  min-width: 0 !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  align-self: end !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, .85fr) !important;
+  gap: 8px !important;
+}
+html body.mmh-workspace-active:not(.light) #reports.page.active .report-controls-v115 label {
+  min-width: 0 !important;
+  width: 100% !important;
+  display: grid !important;
+  grid-template-rows: auto 40px !important;
+  gap: 5px !important;
+  font-size: 10px !important;
+  letter-spacing: .055em !important;
+  color: #bed5e7 !important;
+}
+html body.mmh-workspace-active:not(.light) #reports.page.active .report-controls-v115 :is(select,input) {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  height: 40px !important;
+  padding-inline: 11px !important;
+  border-radius: 10px !important;
+  background: rgba(8,31,52,.87) !important;
+  border: 1px solid rgba(164,213,246,.35) !important;
+  box-shadow: inset 0 1px rgba(255,255,255,.1) !important;
+  color: #eff7ff !important;
+  box-sizing: border-box !important;
+}
+html body.mmh-workspace-active:not(.light) #reports.page.active .report-export-actions-v116 {
+  grid-column: 2 !important;
+  grid-row: 2 !important;
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  align-self: start !important;
+  justify-self: stretch !important;
+}
+html body.mmh-workspace-active:not(.light) #reports.page.active .report-export-actions-v116 .btn {
+  width: 100% !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+  height: 40px !important;
+  min-height: 40px !important;
+  white-space: nowrap !important;
+  border-radius: 11px !important;
+  padding: 8px 10px !important;
+  font-size: 11px !important;
+  letter-spacing: 0 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  box-sizing: border-box !important;
+}
+html body.mmh-workspace-active:not(.light) #reports.page.active .report-export-actions-v116 .export-pdf-v116 {
+  border-color: rgba(246, 204, 123, .56) !important;
+  color: #ffdfa0 !important;
+  background: linear-gradient(145deg, rgba(98,76,43,.43), rgba(8,31,54,.84)) !important;
+}
+
+/* Actual content width, not only browser width, controls the 2-column layout. */
+@container p92report (max-width: 890px) {
+  .report-head-v115 {
+    grid-template-columns: minmax(0,1fr) !important;
+    grid-template-rows: auto auto auto !important;
+    gap: 10px !important;
+  }
+  .report-head-v115 > div:first-child {
+    grid-column: 1 !important;
+    grid-row: 1 !important;
+  }
+  .report-head-v115 .report-controls-v115 {
+    grid-column: 1 !important;
+    grid-row: 2 !important;
+  }
+  .report-head-v115 .report-export-actions-v116 {
+    grid-column: 1 !important;
+    grid-row: 3 !important;
+  }
+}
+@media (max-width: 1060px) {
+  html body.mmh-workspace-active:not(.light) #reports.page.active .report-head-v115 {
+    grid-template-columns: minmax(0,1fr) !important;
+    grid-template-rows: auto auto auto !important;
+  }
+  html body.mmh-workspace-active:not(.light) #reports.page.active .report-head-v115 > div:first-child,
+  html body.mmh-workspace-active:not(.light) #reports.page.active .report-controls-v115,
+  html body.mmh-workspace-active:not(.light) #reports.page.active .report-export-actions-v116 {
+    grid-column: 1 !important;
+    grid-row: auto !important;
+  }
+}
+@media (max-width: 850px) {
+  html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-list {
+    grid-template-columns: repeat(2,minmax(0,1fr)) !important;
+  }
+  html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-row {
+    min-height: 79px !important;
+  }
+}
+@media (max-width: 699px) {
+  html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-page-top-v130 {padding-bottom: 2px !important}
+  html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-head {
+    min-height: 0 !important;
+    padding: 14px 15px !important;
+    gap: 11px !important;
+  }
+  html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-head h3 {font-size: clamp(23px,6vw,29px) !important}
+  html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-head p {font-size: 10px !important}
+  html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 #asiaRefreshV10 {padding: 7px 10px !important;min-height:36px !important;font-size:11px !important}
+  html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-controls {grid-template-columns:minmax(0,1fr) !important; padding:12px !important; gap:9px !important}
+  html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-list {grid-template-columns:repeat(2,minmax(0,1fr)) !important;gap:8px !important}
+  html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-row {min-height:86px !important; padding:11px !important}
+  html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-value strong {font-size:clamp(13px,3.5vw,17px) !important}
+  html body.mmh-workspace-active:not(.light) #reports.page.active .report-head-v115 {padding: 14px !important;min-height:0 !important; gap:10px !important}
+  html body.mmh-workspace-active:not(.light) #reports.page.active .report-head-v115 > div:first-child > p {font-size:10px !important}
+  html body.mmh-workspace-active:not(.light) #reports.page.active .report-controls-v115,
+  html body.mmh-workspace-active:not(.light) #reports.page.active .report-export-actions-v116 {gap:7px !important}
+}
+@media (max-width: 480px) {
+  html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-list {grid-template-columns:minmax(0,1fr) !important}
+  html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-row {min-height:70px !important}
+  html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-value strong {font-size: 18px !important}
+  html body.mmh-workspace-active:not(.light) #reports.page.active .report-head-v115 h1 {font-size: 27px !important}
+  html body.mmh-workspace-active:not(.light) #reports.page.active .report-export-actions-v116 .btn {white-space: normal !important;line-height: 1.15 !important;min-height:43px !important;height:43px !important}
+}
+@media (max-width: 360px) {
+  html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-head {flex-wrap:wrap !important}
+  html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 #asiaRefreshV10 {margin-left:auto !important}
+  html body.mmh-workspace-active:not(.light) #reports.page.active .report-controls-v115 {grid-template-columns:minmax(0,1fr) !important}
+  html body.mmh-workspace-active:not(.light) #reports.page.active .report-export-actions-v116 .btn {font-size:10px !important}
+}
+@supports not ((backdrop-filter:blur(2px)) or (-webkit-backdrop-filter:blur(2px))) {
+  html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 :is(.asia-head,.asia-controls,.asia-row),
+  html body.mmh-workspace-active:not(.light) #reports.page.active .report-head-v115 {background-color:#0a2941 !important}
+}
+@media (prefers-reduced-motion: reduce) {
+  html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10 .asia-row {transition:none !important;transform:none !important}
+}
+/* Small-screen guard: legacy full-width button rules must not squeeze the heading
+   into a single-character column. Keep title and Refresh on their own rows. */
+@media (max-width:699px) {
+ html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10.ex-asia-page-v130 .asia-head {
+   display:flex!important; flex-direction:column!important; flex-wrap:nowrap!important;
+   align-items:stretch!important; justify-content:center!important;
+ }
+ html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10.ex-asia-page-v130 .asia-head > div {
+   display:block!important; width:100%!important; max-width:100%!important;
+   flex:0 0 auto!important; min-width:0!important;
+ }
+ html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10.ex-asia-page-v130 .asia-head h3 {
+   display:block!important; width:100%!important; max-width:100%!important;
+   overflow-wrap:normal!important; word-break:normal!important;
+ }
+ html body.mmh-workspace-active:not(.light) #exchange #exAsiaV10.ex-asia-page-v130 #asiaRefreshV10 {
+   width:auto!important;max-width:100%!important;align-self:flex-end!important;
+   flex:0 0 auto!important;
+ }
+}
