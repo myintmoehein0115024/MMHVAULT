@@ -27,7 +27,7 @@ html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500{display:grid!
 html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500>*{min-width:0!important;margin:0!important}
 html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500>.pf-main-grid-v500,
 html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500>.pf-bottom-grid-v500{display:contents!important}
-html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-hero-v500{grid-column:1/-1!important;order:1!important;position:relative!important;display:flex!important;align-items:flex-end!important;min-height:124px!important;padding:13px 20px 17px!important;border:0!important;border-radius:20px!important;background:linear-gradient(90deg,rgba(2,12,25,.80),rgba(2,14,29,.12) 97%),url('../images/mmhvault-city-glass-v2.webp') center 42% / cover no-repeat!important;box-shadow:none!important;overflow:hidden!important}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-hero-v500{grid-column:1/-1!important;order:-30!important;position:relative!important;display:flex!important;align-items:flex-end!important;min-height:124px!important;padding:13px 20px 17px!important;border:0!important;border-radius:20px!important;background:linear-gradient(90deg,rgba(2,12,25,.80),rgba(2,14,29,.12) 97%),url('../images/mmhvault-city-glass-v2.webp') center 42% / cover no-repeat!important;box-shadow:none!important;overflow:hidden!important}
 html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-hero-v500::after{display:none!important}
 html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-eyebrow-v500{color:#e5bc68!important;letter-spacing:.28em!important;font-size:10px!important}
 html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-hero-v500 h1{margin:7px 0!important;font-family:Georgia,'Times New Roman',serif!important;font-size:clamp(29px,3.1vw,50px)!important;line-height:1.05!important;font-weight:500!important;letter-spacing:-.025em!important;color:#fff!important;text-shadow:0 3px 18px rgba(0,0,0,.5)}
@@ -35,7 +35,7 @@ html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-name-v500
 html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-hero-sub-v500{font-family:Georgia,'Times New Roman',serif!important;font-size:clamp(13px,1.2vw,18px)!important;color:#c5deed!important;line-height:1.45!important}
 html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-hero-meta-v670{max-width:250px!important;align-self:flex-end!important}
 html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-hero-date-v500{background:rgba(2,13,26,.50)!important;border:1px solid rgba(206,179,128,.22)!important;border-radius:13px!important;backdrop-filter:blur(10px)!important;-webkit-backdrop-filter:blur(10px)!important;color:#b8cde0!important}
-html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-kpis-v500{grid-column:1/-1!important;order:2!important;display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:13px!important;margin:0!important}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-kpis-v500{grid-column:1/-1!important;order:-29!important;display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:13px!important;margin:0!important}
 /* Visual hierarchy: cool edge reflection + glass layers + selective warm border. */
 html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 :is(.pf-kpi-v500,.pf-card-v500,.pf-budget-v112,.pf-planning-card-v117,.pf-insights-v150,.pf-quick-actions-v140){position:relative!important;min-width:0!important;overflow:hidden!important;border:1px solid var(--lg2-edge)!important;border-radius:19px!important;background:radial-gradient(circle at 93% -15%,rgba(90,158,213,.17),transparent 38%),var(--lg2-glass)!important;box-shadow:inset 0 1px 0 rgba(235,248,255,.19),inset 1px 0 0 rgba(145,210,244,.035),0 14px 42px rgba(0,0,0,.27),0 0 18px rgba(19,128,193,.035)!important;backdrop-filter:blur(20px) saturate(130%)!important;-webkit-backdrop-filter:blur(20px) saturate(130%)!important;color:var(--lg2-txt)!important}
 html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-kpi-v500{min-height:151px!important;padding:21px 17px 15px!important;transition:border-color .2s ease,box-shadow .2s ease!important}
@@ -257,3 +257,11 @@ html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-quick-act
   html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-budget-stat-v112 strong{font-size:20px!important}
   html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 .pf-quick-actions-v140 .pf-quick-grid-v140{grid-template-columns:1fr!important}
 }
+
+/* P9.7 · CANONICAL dashboard sort order (loaded AFTER Forecast P9.6).
+   Previously this stylesheet reset hero=1/kpis=2 after Forecast had set
+   salary=-28, causing Daily Progress to render before Welcome.
+   Grid/flex computed order now agrees with P9.6's DOM insertion order. */
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 > .pf-hero-v500{order:-30!important}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 > .pf-kpis-v500{order:-29!important}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 > #mmhDailyDashboardV13.mmh-daily-mini-v13{order:-28!important;grid-column:1/-1!important}
