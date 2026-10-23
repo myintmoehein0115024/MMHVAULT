@@ -1,0 +1,366 @@
+/* MMHVAULT — Premium Liquid Glass / Settings P6.4
+   Continuation of P6.3: unified secondary settings panels, security,
+   appearance, backup/data tools, notification and live-support composition.
+   VISUAL ONLY. Existing form controls and event handlers are retained. */
+
+html body.mmh-workspace-active:not(.light) #settings.page.active {
+  --st64-ink: #ebf6ff;
+  --st64-dim: #a9c1d5;
+  --st64-line: rgba(178,220,247,.24);
+  --st64-innerline: rgba(170,216,242,.15);
+  --st64-panel: linear-gradient(152deg,rgba(31,67,91,.70),rgba(7,29,50,.83) 57%,rgba(4,22,40,.90));
+  --st64-inset: linear-gradient(140deg,rgba(29,66,93,.62),rgba(8,31,51,.77));
+  --st64-gold: #f4cc77;
+  color: var(--st64-ink) !important;
+}
+/* Same reading column and measured space throughout Settings: existing P6.3
+   profile and feedback geometry remains the authority for those two pages. */
+html body.mmh-workspace-active:not(.light) #settings.page.active :is(
+  .st-page:not([hidden]):not(#stPage_profile):not(#stPage_feedback),
+  #settingsPanelAccountV371:not([style*="display: none"]),
+  #settingsPanelAppearanceV371:not([style*="display: none"]),
+  #settingsPanelDataV371:not([style*="display: none"])
+){
+  width:100%!important;
+  max-width:920px!important;
+  min-width:0!important;
+  margin-left:auto!important;
+  margin-right:auto!important;
+  box-sizing:border-box!important;
+}
+/* Explicitly restore natural block flow in setting panels; legacy grid rules
+   created disjointed left/right boxes on shorter screens. */
+html body.mmh-workspace-active:not(.light) #settings.page.active :is(
+  #settingsPanelAccountV371,#settingsPanelAppearanceV371,#settingsPanelDataV371
+){
+  grid-template-columns:minmax(0,1fr)!important;
+  gap:14px!important;
+}
+html body.mmh-workspace-active:not(.light) #settings.page.active :is(
+  #settingsPanelAccountV371,#settingsPanelAppearanceV371,#settingsPanelDataV371
+)>.panel,
+html body.mmh-workspace-active:not(.light) #settings.page.active :is(
+  .st-page:not([hidden]):not(#stPage_profile):not(#stPage_feedback)>.panel,
+  .st-page:not([hidden]):not(#stPage_profile):not(#stPage_feedback)>.st-group
+){
+  box-sizing:border-box!important;
+  min-width:0!important;
+  width:100%!important;
+  margin:0 0 14px!important;
+  padding:21px 23px!important;
+  border:1px solid var(--st64-line)!important;
+  border-radius:20px!important;
+  background:var(--st64-panel)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.10),0 18px 40px rgba(0,0,0,.18)!important;
+  backdrop-filter:blur(18px) saturate(138%)!important;
+  -webkit-backdrop-filter:blur(18px) saturate(138%)!important;
+}
+html body.mmh-workspace-active:not(.light) #settings.page.active :is(
+  #settingsPanelAccountV371,#settingsPanelAppearanceV371,#settingsPanelDataV371
+)>.panel>.toolbar{
+  margin-bottom:16px!important;
+  padding:0 0 14px!important;
+  border-bottom:1px solid var(--st64-innerline)!important;
+  background:none!important;
+  gap:12px!important;
+}
+html body.mmh-workspace-active:not(.light) #settings.page.active :is(
+  #settingsPanelAccountV371,#settingsPanelAppearanceV371,#settingsPanelDataV371
+)>.panel :is(h2,h3){
+  margin-top:0!important;
+  color:#eff7ff!important;
+  letter-spacing:-.02em!important;
+}
+/* App-level settings navigation: single quiet selector instead of a visual tab bar with multiple skins. */
+html body.mmh-workspace-active:not(.light) #settings.page.active .settings-tabs-v371{
+  width:100%!important;
+  max-width:920px!important;
+  margin:0 auto 16px!important;
+  padding:5px!important;
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:6px!important;
+  border:1px solid var(--st64-line)!important;
+  border-radius:17px!important;
+  background:var(--st64-inset)!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.11)!important;
+  backdrop-filter:blur(18px) saturate(140%)!important;
+  -webkit-backdrop-filter:blur(18px) saturate(140%)!important;
+}
+html body.mmh-workspace-active:not(.light) #settings.page.active .settings-tabs-v371 .settings-tab-v371{
+  min-width:0!important;min-height:45px!important;
+  padding:9px 12px!important;border-radius:12px!important;
+  border:1px solid transparent!important;background:transparent!important;
+  box-shadow:none!important;color:var(--st64-dim)!important;
+  text-overflow:ellipsis!important;overflow:hidden!important;white-space:nowrap!important;
+}
+html body.mmh-workspace-active:not(.light) #settings.page.active .settings-tabs-v371 .settings-tab-v371[aria-selected="true"]{
+  color:#ffe5ad!important;background:linear-gradient(120deg,rgba(248,194,98,.23),rgba(22,58,82,.72))!important;
+  border-color:rgba(242,197,108,.50)!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.14),0 6px 16px rgba(0,0,0,.15)!important;
+}
+/* Security: Password and Phone receive matching components. Avoid nested tall
+   borders and create deliberate separation between the action groups. */
+html body.mmh-workspace-active:not(.light) #settings.page.active .account-security-grid-v379{
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:15px!important;
+  align-items:stretch!important;
+  border:0!important;background:transparent!important;
+}
+html body.mmh-workspace-active:not(.light) #settings.page.active .account-security-card-v379{
+  min-width:0!important;
+  padding:19px!important;margin:0!important;
+  border:1px solid var(--st64-innerline)!important;
+  border-radius:17px!important;
+  background:var(--st64-inset)!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.07)!important;
+}
+html body.mmh-workspace-active:not(.light) #settings.page.active .account-security-card-v379>h3{
+  margin:0 0 11px!important;padding:0 0 11px!important;
+  border-bottom:1px solid var(--st64-innerline)!important;
+  font-size:15px!important;color:#f7e1b0!important;
+}
+html body.mmh-workspace-active:not(.light) #settings.page.active .security-password-form-v379{
+  display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:14px!important;
+  margin:15px 0!important;padding:0!important;border:0!important;
+  background:transparent!important;box-shadow:none!important;
+}
+html body.mmh-workspace-active:not(.light) #settings.page.active .security-password-form-v379 .full{
+  grid-column:1/-1!important;
+}
+html body.mmh-workspace-active:not(.light) #settings.page.active :is(.security-password-form-v379,.mmh-phone-grid-v1531) label{
+  min-width:0!important;display:grid!important;gap:7px!important;
+  font-size:12px!important;font-weight:600!important;
+}
+html body.mmh-workspace-active:not(.light) #settings.page.active .account-security-card-v379 :is(input,select){
+  width:100%!important;min-height:46px!important;
+}
+html body.mmh-workspace-active:not(.light) #settings.page.active .security-actions-v379,
+html body.mmh-workspace-active:not(.light) #settings.page.active .mmh-session-actions-v1 .security-actions-v379{
+  display:flex!important;flex-wrap:wrap!important;gap:9px!important;
+  margin:12px 0 0!important;
+}
+html body.mmh-workspace-active:not(.light) #settings.page.active .mmh-session-actions-v1{
+  margin-top:18px!important;padding-top:16px!important;
+  border-top:1px solid var(--st64-innerline)!important;
+}
+html body.mmh-workspace-active:not(.light) #settings.page.active :is(.security-password-note-v379,.security-result-v379){
+  margin-top:11px!important;line-height:1.55!important;
+  color:var(--st64-dim)!important;
+}
+html body.mmh-workspace-active:not(.light) #settings.page.active .mmh-phone-grid-v1531{
+  display:grid!important;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr)!important;
+  gap:12px!important;align-items:start!important;
+}
+html body.mmh-workspace-active:not(.light) #settings.page.active .mmh-phone-linked-v1531{
+  padding:12px 13px!important;border:1px solid var(--st64-innerline)!important;
+  border-radius:12px!important;background:rgba(3,20,36,.30)!important;
+}
+/* Appearance: each choice uses the same active glass color and comfortable touch area. */
+html body.mmh-workspace-active:not(.light) #settings.page.active .language-options-v3363,
+html body.mmh-workspace-active:not(.light) #settings.page.active .theme-options{
+  display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:12px!important;margin:12px 0 0!important;
+}
+html body.mmh-workspace-active:not(.light) #settings.page.active :is(.language-choice-v3363,.theme-choice){
+  min-width:0!important;min-height:65px!important;
+  display:flex!important;align-items:center!important;gap:12px!important;
+  padding:13px 16px!important;
+  border:1px solid var(--st64-line)!important;
+  border-radius:15px!important;
+  background:var(--st64-inset)!important;
+  color:var(--st64-ink)!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.08)!important;
+}
+html body.mmh-workspace-active:not(.light) #settings.page.active :is(.language-choice-v3363.active,.language-choice-v3363[aria-pressed="true"],.theme-choice:has(input:checked)){
+  border-color:rgba(244,204,119,.58)!important;
+  background:linear-gradient(135deg,rgba(231,183,88,.17),rgba(11,41,63,.78))!important;
+  box-shadow:0 0 0 1px rgba(231,183,88,.07),inset 0 1px rgba(255,255,255,.12)!important;
+}
+html body.mmh-workspace-active:not(.light) #settings.page.active :is(.app-icon-preview,.pwa-row){
+  border-radius:15px!important;
+}
+/* Backup / data management: compact stats, clear blocks, neutral backup controls
+   and intentionally cautious danger-zone treatment. */
+html body.mmh-workspace-active:not(.light) #settings.page.active :is(
+  .data-center-grid-v380,.system-status-grid-v313
+){
+  display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:12px!important;
+}
+html body.mmh-workspace-active:not(.light) #settings.page.active :is(
+  .data-center-stat-v380,.system-status-card-v313,.data-center-safety-card-v380,
+  .backup-history-list-v381>*,.restore-stat-v383
+){
+  min-width:0!important;
+  padding:15px!important;
+  border:1px solid var(--st64-innerline)!important;
+  border-radius:15px!important;
+  background:var(--st64-inset)!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.06)!important;
+}
+html body.mmh-workspace-active:not(.light) #settings.page.active :is(
+  .data-center-actions-v380,.system-status-actions-v313,.backup-history-head-v381,
+  .excel-import-footer-v318,.excel-import-footer-v318 .actions
+){
+  display:flex!important;flex-wrap:wrap!important;align-items:center!important;
+  gap:10px!important;
+}
+html body.mmh-workspace-active:not(.light) #settings.page.active :is(
+  .data-center-actions-v380,.system-status-actions-v313
+){margin:17px 0 0!important;}
+html body.mmh-workspace-active:not(.light) #settings.page.active :is(
+  .excel-dropzone-v318,.restore-file-v383,.mmh-native-file-picker-v433
+){
+  box-sizing:border-box!important;
+  min-height:64px!important;
+  border:1px dashed rgba(169,215,244,.30)!important;
+  border-radius:15px!important;
+  background:var(--st64-inset)!important;
+  color:var(--st64-ink)!important;
+}
+html body.mmh-workspace-active:not(.light) #settings.page.active .excel-dropzone-v318{
+  display:flex!important;flex-direction:column!important;
+  justify-content:center!important;align-items:center!important;
+  padding:17px!important;text-align:center!important;
+}
+html body.mmh-workspace-active:not(.light) #settings.page.active .data-center-danger-v380{
+  border-color:rgba(235,123,147,.29)!important;
+  background:linear-gradient(145deg,rgba(64,31,47,.55),rgba(8,25,43,.86))!important;
+}
+/* Low-noise rows on preferences and notifications, without changing input semantics. */
+html body.mmh-workspace-active:not(.light) #settings.page.active :is(
+  .st-rows .st-row,.st-rows>label,.notification-row-v2,.notification-toggle-row-v2
+){
+  box-sizing:border-box!important;min-width:0!important;
+  padding:12px 14px!important;
+  border-radius:13px!important;
+  border:1px solid var(--st64-innerline)!important;
+  background:rgba(18,48,71,.40)!important;
+  min-height:52px!important;
+}
+/* Live support: same 920px reading column, shorter empty area and measured composer. */
+html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_supportV1518 .cs-panel-v1518{
+  width:100%!important;margin:0!important;max-width:none!important;
+  border-color:var(--st64-line)!important;
+  border-radius:20px!important;
+  background:var(--st64-panel)!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.11),0 18px 42px rgba(0,0,0,.20)!important;
+  overflow:hidden!important;
+}
+html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_supportV1518 .cs-head-v1518{
+  padding:15px 18px!important;
+  border-bottom:1px solid var(--st64-innerline)!important;
+  background:rgba(25,62,88,.30)!important;
+}
+html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_supportV1518 .cs-thread-v1518{
+  min-height:260px!important;
+  max-height:min(48vh,500px)!important;
+  padding:18px!important;
+  background:radial-gradient(circle at 80% 0,rgba(135,195,229,.07),transparent 36%),rgba(3,22,40,.25)!important;
+}
+html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_supportV1518 .cs-compose-v1518{
+  padding:13px 17px 15px!important;
+  background:linear-gradient(140deg,rgba(32,69,92,.49),rgba(7,27,46,.75))!important;
+  border-top:1px solid var(--st64-innerline)!important;
+}
+html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_supportV1518 .cs-compose-v1518 textarea{
+  min-height:76px!important;max-height:165px!important;
+  width:100%!important;box-sizing:border-box!important;
+  border-radius:13px!important;
+}
+html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_supportV1518 .cs-compose-bottom-v1518{
+  margin-top:11px!important;padding:0!important;
+  display:flex!important;justify-content:space-between!important;align-items:center!important;
+  gap:12px!important;
+}
+@media(max-width:950px){
+ html body.mmh-workspace-active:not(.light) #settings.page.active .account-security-grid-v379{
+   grid-template-columns:minmax(0,1fr)!important;
+ }
+}
+@media(max-width:700px){
+ html body.mmh-workspace-active:not(.light) #settings.page.active :is(
+   #settingsPanelAccountV371,#settingsPanelAppearanceV371,#settingsPanelDataV371
+ )>.panel,
+ html body.mmh-workspace-active:not(.light) #settings.page.active :is(
+   .st-page:not([hidden]):not(#stPage_profile):not(#stPage_feedback)>.panel,
+   .st-page:not([hidden]):not(#stPage_profile):not(#stPage_feedback)>.st-group
+ ){padding:15px!important;border-radius:17px!important;}
+ html body.mmh-workspace-active:not(.light) #settings.page.active .settings-tabs-v371 .settings-tab-v371{
+   min-height:43px!important;padding:8px 6px!important;font-size:12px!important;
+ }
+ html body.mmh-workspace-active:not(.light) #settings.page.active .account-security-card-v379{
+   padding:14px!important;
+ }
+ html body.mmh-workspace-active:not(.light) #settings.page.active .security-password-form-v379,
+ html body.mmh-workspace-active:not(.light) #settings.page.active .mmh-phone-grid-v1531,
+ html body.mmh-workspace-active:not(.light) #settings.page.active .language-options-v3363,
+ html body.mmh-workspace-active:not(.light) #settings.page.active .theme-options{
+   grid-template-columns:minmax(0,1fr)!important;
+ }
+ html body.mmh-workspace-active:not(.light) #settings.page.active :is(.data-center-grid-v380,.system-status-grid-v313){
+   grid-template-columns:repeat(2,minmax(0,1fr))!important;
+ }
+ html body.mmh-workspace-active:not(.light) #settings.page.active :is(.data-center-stat-v380,.system-status-card-v313){
+   padding:11px!important;
+ }
+ html body.mmh-workspace-active:not(.light) #settings.page.active :is(.data-center-actions-v380,.system-status-actions-v313){
+   align-items:stretch!important;
+ }
+ html body.mmh-workspace-active:not(.light) #settings.page.active :is(.data-center-actions-v380,.system-status-actions-v313)>.btn{
+   flex:1 1 140px!important;
+ }
+ html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_supportV1518 .cs-thread-v1518{
+   min-height:210px!important;max-height:38vh!important;padding:12px!important;
+ }
+ html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_supportV1518 .cs-compose-v1518{
+   padding:12px!important;
+ }
+}
+@media(max-width:370px){
+ html body.mmh-workspace-active:not(.light) #settings.page.active .settings-tabs-v371 .settings-tab-v371{
+   font-size:11px!important;
+ }
+ html body.mmh-workspace-active:not(.light) #settings.page.active :is(.data-center-grid-v380,.system-status-grid-v313){
+   grid-template-columns:minmax(0,1fr)!important;
+ }
+}
+@supports not ((backdrop-filter:blur(2px)) or (-webkit-backdrop-filter:blur(2px))){
+ html body.mmh-workspace-active:not(.light) #settings.page.active :is(
+   .settings-tabs-v371,.account-security-card-v379,.data-center-stat-v380,
+   .system-status-card-v313,.cs-panel-v1518
+ ){background:#12324c!important;}
+}
+@media(prefers-reduced-motion:reduce){
+ html body.mmh-workspace-active:not(.light) #settings.page.active :is(button,.btn,input,select,textarea){
+   transition:none!important;animation:none!important;
+ }
+}
+/* Guard the decorative city layer from creating a 2px mobile scroll width. */
+@media(max-width:700px){
+ html body.mmh-workspace-active:not(.light) #settings.page.active::before{
+   left:0!important;right:0!important;width:auto!important;
+ }
+}
+/* Small native radio indicator, not an oversized glowing orb. */
+html body.mmh-workspace-active:not(.light) #settings.page.active .theme-choice input[type="radio"]{
+  appearance:none!important;-webkit-appearance:none!important;
+  width:20px!important;height:20px!important;min-width:20px!important;
+  min-height:20px!important;max-width:20px!important;max-height:20px!important;
+  margin:0!important;padding:0!important;flex:0 0 20px!important;
+  border:2px solid rgba(167,211,241,.60)!important;
+  border-radius:50%!important;
+  background:rgba(4,19,36,.55)!important;
+  box-shadow:inset 0 1px 2px rgba(0,0,0,.25)!important;
+  position:relative!important;
+}
+html body.mmh-workspace-active:not(.light) #settings.page.active .theme-choice input[type="radio"]:checked{
+  border-color:#f4cc77!important;
+  background:radial-gradient(circle at center,#f4cc77 0 5px,transparent 5.5px)!important;
+}
+html body.mmh-workspace-active:not(.light) #settings.page.active .theme-choice input[type="radio"]:focus-visible{
+  outline:2px solid #f4cc77!important;outline-offset:3px!important;
+}
