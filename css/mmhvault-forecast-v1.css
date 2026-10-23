@@ -399,3 +399,11 @@ html body.mmh-workspace-active #forecast .fc-month summary > *{
   #dashboard #mmhDailyDashboardV13 *,
   #forecast *{transition:none!important;animation:none!important}
 }
+
+
+/* P9.6 · Dashboard hierarchy guard
+   Welcome > overview KPIs > daily salary progress > the rest of Dashboard.
+   `order` covers a grid/flex host, while JS corrects DOM order on block hosts. */
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 > .pf-hero-v500{order:-30!important}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 > .pf-kpis-v500{order:-29!important}
+html body.mmh-workspace-active #dashboard #mmhPremiumDashboardV500 > #mmhDailyDashboardV13.mmh-daily-mini-v13{order:-28!important}

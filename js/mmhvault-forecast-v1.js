@@ -1,4 +1,4 @@
-/* MMHVAULT · Future Asset Forecast v1.4.0 · Conditional Dashboard Cards
+/* MMHVAULT · Future Asset Forecast v1.4.1 · Dashboard Order Guard
  * Owner-scoped, locally stored what-if estimates. Never writes ledger, investments, FX or Supabase.
  */
 (()=>{'use strict';
@@ -211,11 +211,18 @@
   const bar=el('mmhDailyDashBarV13');if(bar)bar.style.width=`${d.pct}%`;
  }
  function mountDashboardDaily(){
+  // P9.6: The greeting MUST stay first. Keep the finance KPIs second and
+  // mount Daily Progress third, even after Dashboard re-renders or restores.
   const card=el('mmhDailyDashboardV13');
   if(!salaryIsConfigured()){card?.remove();return}
   const host=el('mmhPremiumDashboardV500');if(!host)return;
-  const kpis=host.querySelector('.pf-kpis-v500');if(!kpis)return;
+  const hero=host.querySelector(':scope > .pf-hero-v500');
+  const kpis=host.querySelector(':scope > .pf-kpis-v500');
+  if(!hero||!kpis)return; // The Dashboard may be between render passes.
+  if(host.firstElementChild!==hero)host.prepend(hero);
+  if(hero.nextElementSibling!==kpis)hero.after(kpis);
   if(!card)kpis.insertAdjacentHTML('afterend',dashboardDailyHTML());
+  else if(kpis.nextElementSibling!==card)kpis.after(card);
   updateDashboardDaily();
  }
  let dashboardObserver=null;
