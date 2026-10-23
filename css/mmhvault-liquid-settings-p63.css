@@ -1,0 +1,263 @@
+/* MMHVAULT Settings P6.3 · profile + feedback spatial unification
+ * Presentation only. User data, form actions, RPC, transaction logic untouched.
+ * Loaded after Settings P6.2 and prior app styles.
+ */
+
+/* One centered column for both Profile and Feedback, including the page header. */
+html body.mmh-workspace-active:not(.light) #settings.page.active :is(#stPage_profile,#stPage_feedback):not([hidden]) {
+  width:100%!important;
+  max-width:860px!important;
+  min-width:0!important;
+  margin:0 auto!important;
+  box-sizing:border-box!important;
+}
+html body.mmh-workspace-active:not(.light) #settings.page.active :is(#stPage_profile,#stPage_feedback):not([hidden])>.st-page-head {
+  width:100%!important;
+  max-width:none!important;
+  margin:0 0 14px!important;
+  min-height:78px!important;
+  padding:16px 20px!important;
+}
+
+/* Edit Profile: two peer fields, same height, calm spacing, no inflated upload tile. */
+html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_profile #mmhProfileFormV1 {
+  width:100%!important;
+  max-width:none!important;
+  display:grid!important;
+  grid-template-columns:repeat(2,minmax(0,1fr))!important;
+  gap:16px 18px!important;
+  min-height:0!important;
+  align-items:start!important;
+  padding:22px!important;
+  margin:0!important;
+  border-radius:20px!important;
+  background:linear-gradient(150deg,rgba(27,64,91,.65),rgba(6,26,45,.83))!important;
+  border:1px solid rgba(181,219,245,.23)!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.11),0 18px 40px rgba(0,0,0,.18)!important;
+}
+html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_profile #mmhProfileFormV1 :is(.mmh-profile-name-v1,.mmh-profile-photo-v1) {
+  display:flex!important;
+  flex-direction:column!important;
+  gap:9px!important;
+  min-width:0!important;
+  margin:0!important;
+  align-items:stretch!important;
+  align-self:start!important;
+}
+html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_profile #mmhProfileFormV1 :is(.mmh-profile-name-v1,.mmh-profile-photo-v1)>span:first-child {
+  font-size:12px!important;
+  color:#b9cee0!important;
+  font-weight:600!important;
+  letter-spacing:.02em!important;
+  line-height:18px!important;
+  margin:0!important;
+}
+html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_profile #mmhProfileNameV1,
+html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_profile #mmhProfilePickV1 {
+  width:100%!important;
+  height:52px!important;
+  min-height:52px!important;
+  max-height:52px!important;
+  padding:0 15px!important;
+  margin:0!important;
+  border:1px solid rgba(161,213,248,.32)!important;
+  border-radius:13px!important;
+  color:#eff7ff!important;
+  font:600 14px/1.25 system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif!important;
+  background:linear-gradient(140deg,rgba(32,74,103,.56),rgba(8,34,55,.73))!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.095),0 5px 15px rgba(0,0,0,.07)!important;
+  box-sizing:border-box!important;
+}
+html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_profile #mmhProfilePickV1 {
+  display:flex!important;
+  justify-content:flex-start!important;
+  align-items:center!important;
+  gap:12px!important;
+  cursor:pointer!important;
+  border-style:solid!important;
+}
+html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_profile #mmhProfilePickV1>span{
+  flex:none!important;
+  display:grid!important;
+  place-items:center!important;
+  height:27px!important;
+  width:27px!important;
+  border-radius:8px!important;
+  background:rgba(151,209,255,.13)!important;
+  font-size:20px!important;
+  line-height:1!important;
+}
+html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_profile #mmhProfileFileNameV1 {
+  font-size:11px!important;
+  color:#9eb6c9!important;
+  line-height:1.4!important;
+  margin:0!important;
+  min-height:0!important;
+  overflow-wrap:anywhere!important;
+}
+html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_profile #mmhProfileSaveV1 {
+  grid-column:1 / -1!important;
+  justify-self:end!important;
+  align-self:end!important;
+  width:auto!important;
+  min-width:156px!important;
+  min-height:45px!important;
+  margin:0!important;
+  padding:10px 20px!important;
+  border-radius:13px!important;
+}
+html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_profile #mmhProfileResultV1 {
+  grid-column:1/-1!important;
+  margin:0!important;
+}
+
+/* Feedback becomes a focused, SINGLE work area. The second panel is selected
+   through tabs, rather than being stranded at the side of a tall form. */
+html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_feedback:not([hidden]) {
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  gap:0!important;
+  justify-items:stretch!important;
+  align-content:start!important;
+}
+html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_feedback>.fb-panel {
+  width:100%!important;
+  min-width:0!important;
+  max-width:none!important;
+  min-height:0!important;
+  margin:0!important;
+  box-sizing:border-box!important;
+  padding:24px!important;
+  border-radius:20px!important;
+  background:linear-gradient(145deg,rgba(27,64,92,.70),rgba(6,27,45,.87))!important;
+  border:1px solid rgba(181,219,245,.24)!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.11),0 18px 40px rgba(0,0,0,.21)!important;
+}
+html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_feedback>.fb-my-panel-v136 {
+  position:static!important;
+  top:auto!important;
+}
+html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_feedback>.fb-my-panel-v136>.fb-my-toggle-v136 {
+  display:none!important; /* tabs below replace this visual toggle; JS still clicks the original */
+}
+html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_feedback>.fb-my-panel-v136>.fb-my-body-v136 {
+  padding:0!important;
+  margin:0!important;
+  border:0!important;
+  background:transparent!important;
+}
+html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_feedback[data-mmh-feedback-view="compose"]>.fb-my-panel-v136,
+html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_feedback[data-mmh-feedback-view="history"]>.fb-compose-v136 {
+  display:none!important;
+}
+/* Do not hide either pane if enhancement JS is not loaded. */
+html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_feedback:not([data-mmh-feedback-view])>.fb-panel+ .fb-panel {
+  margin-top:16px!important;
+}
+html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_feedback .mmh-fb-tabs-p63 {
+  display:grid!important;
+  grid-template-columns:1fr 1fr!important;
+  padding:5px!important;
+  margin:0 0 14px!important;
+  gap:6px!important;
+  border-radius:16px!important;
+  background:linear-gradient(130deg,rgba(27,63,91,.7),rgba(8,29,48,.80))!important;
+  border:1px solid rgba(164,211,241,.25)!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.10)!important;
+  backdrop-filter:blur(18px) saturate(140%)!important;
+  -webkit-backdrop-filter:blur(18px) saturate(140%)!important;
+}
+html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_feedback .mmh-fb-tabs-p63>button {
+  min-width:0!important;
+  min-height:47px!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  border-radius:12px!important;
+  padding:9px 12px!important;
+  border:1px solid transparent!important;
+  color:#b3c9da!important;
+  font-weight:650!important;
+  font-size:13px!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  cursor:pointer!important;
+}
+html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_feedback .mmh-fb-tabs-p63>button[aria-selected="true"] {
+  color:#ffe5a6!important;
+  background:linear-gradient(130deg,rgba(241,192,95,.27),rgba(21,55,79,.82))!important;
+  border:1px solid rgba(243,198,108,.54)!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.17),0 6px 18px rgba(0,0,0,.18)!important;
+}
+html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_feedback .fb-heading {
+  margin-bottom:18px!important;
+}
+html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_feedback .fb-fields {
+  grid-template-columns:minmax(0,0.8fr) minmax(0,1.55fr)!important;
+  gap:14px!important;
+}
+html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_feedback .fb-my-head-v136 {
+  display:flex!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  margin:0 0 15px!important;
+  padding:0 0 12px!important;
+  border-bottom:1px solid rgba(177,217,245,.15)!important;
+}
+html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_feedback #fbListV14 {
+  display:grid!important;
+  gap:10px!important;
+  min-width:0!important;
+}
+html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_feedback .fb-record {
+  margin:0!important;
+  padding:5px 14px!important;
+  border-radius:15px!important;
+  border:1px solid rgba(168,210,240,.19)!important;
+  background:linear-gradient(145deg,rgba(25,58,84,.60),rgba(7,30,49,.84))!important;
+}
+html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_feedback .fb-pagination {
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  flex-wrap:wrap!important;
+  gap:12px!important;
+  position:static!important;
+  inset:auto!important;
+  bottom:auto!important;
+  width:100%!important;
+  padding:16px 0 0!important;
+  margin:16px 0 0!important;
+  border-top:1px solid rgba(177,217,245,.16)!important;
+  background:transparent!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+  box-shadow:none!important;
+}
+html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_feedback .fb-pagination :is(button,small) {
+  position:static!important;
+  margin:0!important;
+}
+html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_feedback .fb-pagination small {
+  min-width:75px!important;
+  text-align:center!important;
+  color:#b6cddd!important;
+}
+
+@media(max-width:720px) {
+  html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_profile #mmhProfileFormV1 {
+    grid-template-columns:1fr!important;
+    padding:16px!important;
+    gap:16px!important;
+  }
+  html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_profile #mmhProfileSaveV1 {grid-column:1!important;justify-self:stretch!important;width:100%!important;}
+  html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_feedback>.fb-panel {padding:17px!important;}
+  html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_feedback .fb-fields {grid-template-columns:1fr!important;}
+  html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_feedback .mmh-fb-tabs-p63>button {min-height:46px!important;}
+}
+@supports not ((backdrop-filter:blur(2px)) or (-webkit-backdrop-filter:blur(2px))) {
+ html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_feedback :is(.mmh-fb-tabs-p63,.fb-panel) {background:#0b2943!important;}
+}
+@media(prefers-reduced-motion:reduce) {
+ html body.mmh-workspace-active:not(.light) #settings.page.active #stPage_feedback :is(button,.fb-record) {transition:none!important;}
+}
