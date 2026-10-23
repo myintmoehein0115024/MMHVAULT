@@ -1,0 +1,200 @@
+/* MMHVAULT — Cash Flow Analyze P7.1 | Premium glass layer.
+   Scoped to the EXISTING #cashflow-analyze view; original Analyze #analyze P7.0 kept.
+   The background is an existing local WebP and all data remain DOM-powered. */
+html body.mmh-workspace-active #cashflow-analyze {
+  --cf71-gold:#f5cc75;
+  --cf71-ice:#bde6ff;
+  --cf71-line:rgba(179,218,244,.36);
+  --cf71-glass:linear-gradient(135deg,rgba(42,90,122,.65) 0%,rgba(15,49,76,.77) 19%,rgba(8,29,52,.83) 63%,rgba(8,28,46,.86) 100%);
+  --cf71-inset:inset 0 1px 0 rgba(250,254,255,.20),inset 0 -1px 0 rgba(8,21,38,.32),0 18px 35px rgba(0,5,19,.15);
+  color:#eef6ff!important;
+  isolation:isolate;
+  min-width:0;
+}
+html body.mmh-workspace-active #cashflow-analyze *,html body.mmh-workspace-active #cashflow-analyze *::before,html body.mmh-workspace-active #cashflow-analyze *::after{box-sizing:border-box}
+html body.mmh-workspace-active #cashflow-analyze .cfa-shell{max-width:1480px!important;margin:0 auto!important;min-width:0!important}
+/* The prior P7.0 styled #analyze, not #cashflow-analyze. Style the real heading. */
+html body.mmh-workspace-active #cashflow-analyze .cfa-head{
+  position:relative!important;isolation:isolate!important;
+  min-height:146px!important;
+  padding:25px 28px!important;margin-bottom:10px!important;
+  display:flex!important;align-items:center!important;justify-content:space-between!important;
+  gap:18px 24px!important;
+  border:1px solid rgba(197,230,255,.39)!important;
+  border-radius:23px!important;
+  background:
+    linear-gradient(100deg,rgba(5,24,46,.92) 0%,rgba(7,30,54,.86) 48%,rgba(7,28,45,.40) 100%),
+    url('../images/mmhvault-city-glass-v2.webp') center 47%/cover no-repeat!important;
+  box-shadow:inset 0 1px rgba(255,255,255,.24),0 1px 0 rgba(251,208,126,.12),0 23px 50px rgba(0,6,19,.28)!important;
+  -webkit-backdrop-filter:blur(16px) saturate(125%)!important;
+  backdrop-filter:blur(16px) saturate(125%)!important;
+  overflow:hidden!important;
+}
+html body.mmh-workspace-active #cashflow-analyze .cfa-head::after{
+  content:""!important;display:block!important;position:absolute!important;
+  inset:0!important;border-radius:inherit!important;pointer-events:none!important;
+  background:linear-gradient(165deg,rgba(235,249,255,.20),transparent 23%,transparent 72%,rgba(247,192,87,.12))!important;
+  border-top:1px solid rgba(255,255,255,.12)!important;
+  z-index:0!important;
+}
+html body.mmh-workspace-active #cashflow-analyze .cfa-head>*{position:relative!important;z-index:1!important;min-width:0}
+html body.mmh-workspace-active #cashflow-analyze .cfa-eyebrow{
+  color:var(--cf71-gold)!important;letter-spacing:.20em!important;font-size:10px!important;
+  text-shadow:0 0 13px rgba(239,193,97,.3)!important;
+}
+html body.mmh-workspace-active #cashflow-analyze .cfa-head h1{
+  color:#fff8ec!important;font-family:Georgia,'Times New Roman',serif!important;
+  font-weight:500!important;font-size:clamp(29px,3vw,43px)!important;
+  letter-spacing:-.035em!important;text-shadow:0 2px 18px rgba(1,6,20,.4)!important;
+  margin:7px 0 7px!important;
+}
+html body.mmh-workspace-active #cashflow-analyze .cfa-head p{font-size:12.5px!important;color:#d2e1ef!important;max-width:520px}
+html body.mmh-workspace-active #cashflow-analyze .cfa-controls{gap:9px!important;max-width:510px!important;justify-content:flex-end!important;align-items:end!important;flex:0 1 auto!important}
+html body.mmh-workspace-active #cashflow-analyze .cfa-controls label{color:#c9ddea!important;font-size:11px!important;font-weight:730!important}
+html body.mmh-workspace-active #cashflow-analyze .cfa-controls :is(select,input){
+  width:135px!important;min-height:44px!important;
+  background:linear-gradient(152deg,rgba(56,103,138,.60),rgba(8,35,61,.83))!important;
+  border:1px solid rgba(187,227,252,.40)!important;
+  border-radius:12px!important;
+  color:#f1f8ff!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.15),0 7px 18px rgba(0,7,24,.15)!important;
+  font-size:12px!important;letter-spacing:.015em!important;
+  -webkit-backdrop-filter:blur(13px)!important;backdrop-filter:blur(13px)!important;
+}
+html body.mmh-workspace-active #cashflow-analyze .cfa-controls :is(select,input):focus-visible{outline:2px solid var(--cf71-gold)!important;outline-offset:2px!important}
+html body.mmh-workspace-active #cashflow-analyze .cfa-period-label{padding:17px 4px 12px!important;font-size:13px!important;color:#f6d996!important;font-weight:700!important;letter-spacing:.04em!important}
+/* Larger glass reflections at the top with cool lower layers (no decorative fake data). */
+html body.mmh-workspace-active #cashflow-analyze :is(.cfa-card,.cfa-mini-card,.cfa-panel){
+  position:relative!important;
+  border:1px solid var(--cf71-line)!important;
+  border-radius:20px!important;
+  background:var(--cf71-glass)!important;
+  box-shadow:var(--cf71-inset)!important;
+  -webkit-backdrop-filter:blur(18px) saturate(160%)!important;
+  backdrop-filter:blur(18px) saturate(160%)!important;
+}
+html body.mmh-workspace-active #cashflow-analyze .cfa-card{
+  min-height:144px!important;padding:19px 19px 17px!important;
+  overflow:hidden!important;
+  border-top:1px solid rgba(216,238,255,.50)!important;
+}
+html body.mmh-workspace-active #cashflow-analyze .cfa-card::after{
+  content:""!important;display:block!important;position:absolute!important;
+  width:160px!important;height:140px!important;right:-46px!important;bottom:-90px!important;
+  border-radius:100%!important;filter:blur(14px)!important;
+  background:radial-gradient(circle,rgba(243,194,92,.24),transparent 70%)!important;
+  z-index:0!important;pointer-events:none!important;
+}
+html body.mmh-workspace-active #cashflow-analyze .cfa-card>*{position:relative!important;z-index:1!important}
+html body.mmh-workspace-active #cashflow-analyze .cfa-card.cfa-income{border-left:3px solid #5dcff6!important}
+html body.mmh-workspace-active #cashflow-analyze .cfa-card.cfa-expense{border-left:3px solid #f088a6!important}
+html body.mmh-workspace-active #cashflow-analyze .cfa-card.cfa-personal{border-left:3px solid #bba5ff!important}
+html body.mmh-workspace-active #cashflow-analyze .cfa-card.cfa-remaining{border-left:3px solid #56ddad!important;background:linear-gradient(143deg,rgba(24,86,92,.69),rgba(10,49,61,.79) 40%,rgba(5,33,47,.90))!important}
+html body.mmh-workspace-active #cashflow-analyze .cfa-card>span{font-size:10px!important;color:#bfd1e2!important;font-weight:790!important;letter-spacing:.105em!important}
+html body.mmh-workspace-active #cashflow-analyze .cfa-card>strong{margin:13px 0 8px!important;font-weight:640!important;color:#f7f9ff!important;font-size:clamp(25px,2.35vw,34px)!important;letter-spacing:-.028em!important}
+html body.mmh-workspace-active #cashflow-analyze .cfa-remaining>strong{color:#68e4b9!important}
+html body.mmh-workspace-active #cashflow-analyze .cfa-card>small{font-size:11px!important;color:#aec8dc!important}
+html body.mmh-workspace-active #cashflow-analyze .cfa-kpis{gap:12px!important}
+html body.mmh-workspace-active #cashflow-analyze .cfa-efficiency-kpis{gap:12px!important;margin-top:12px!important}
+html body.mmh-workspace-active #cashflow-analyze .cfa-mini-card{
+  border-radius:17px!important;border-left:2px solid #6cdbb3!important;
+  min-height:84px!important;padding:14px 17px!important;
+}
+html body.mmh-workspace-active #cashflow-analyze .cfa-mini-card.cfa-daily-spend{border-left-color:var(--cf71-gold)!important}
+html body.mmh-workspace-active #cashflow-analyze .cfa-mini-card>span{color:#c7dbee!important;letter-spacing:.09em!important}
+html body.mmh-workspace-active #cashflow-analyze .cfa-mini-card>strong{font-size:clamp(19px,2.2vw,28px)!important;color:#e9f7ff!important}
+html body.mmh-workspace-active #cashflow-analyze .cfa-mini-card.cfa-savings-rate>strong{color:#6de0b5!important}
+html body.mmh-workspace-active #cashflow-analyze .cfa-mini-card>small{color:#9cb9cf!important;font-size:10.5px!important}
+html body.mmh-workspace-active #cashflow-analyze .cfa-detail-grid{gap:13px!important;margin-top:14px!important}
+html body.mmh-workspace-active #cashflow-analyze .cfa-panel{padding:21px 21px 22px!important;overflow:hidden!important}
+html body.mmh-workspace-active #cashflow-analyze .cfa-panel-head{padding-bottom:12px!important;margin-bottom:15px!important;border-bottom:1px solid rgba(179,219,245,.15)!important}
+html body.mmh-workspace-active #cashflow-analyze .cfa-panel h2{
+  font-family:Georgia,'Times New Roman',serif!important;font-size:clamp(19px,1.65vw,24px)!important;
+  font-weight:520!important;letter-spacing:-.018em!important;color:#f4f7fe!important;
+}
+html body.mmh-workspace-active #cashflow-analyze .cfa-panel-head p{color:#adc3d5!important;font-size:11.5px!important}
+html body.mmh-workspace-active #cashflow-analyze .cfa-badge{
+  border:1px solid rgba(247,206,127,.39)!important;border-radius:999px!important;
+  color:#f6d391!important;background:rgba(223,175,76,.11)!important;
+  box-shadow:inset 0 1px 0 rgba(255,245,215,.08)!important;
+}
+html body.mmh-workspace-active #cashflow-analyze .cfa-budget-cloud-action-v112{
+  border:1px solid rgba(167,207,237,.28)!important;border-radius:15px!important;
+  padding:12px 14px!important;
+  background:linear-gradient(130deg,rgba(31,81,110,.49),rgba(7,35,60,.74))!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.08)!important;
+}
+html body.mmh-workspace-active #cashflow-analyze .cfa-budget-comparison>div{
+  background:linear-gradient(145deg,rgba(57,107,139,.40),rgba(10,37,61,.74))!important;
+  border:1px solid rgba(171,214,244,.25)!important;border-radius:13px!important;
+  padding:13px!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.08)!important;
+}
+html body.mmh-workspace-active #cashflow-analyze .cfa-budget-comparison b{color:#f1f7ff!important;font-size:clamp(16px,1.45vw,19px)!important}
+html body.mmh-workspace-active #cashflow-analyze .cfa-progress{background:rgba(0,14,31,.70)!important;box-shadow:inset 0 1px 4px rgba(0,4,15,.5)!important;height:10px!important}
+html body.mmh-workspace-active #cashflow-analyze .cfa-progress span{background:linear-gradient(90deg,#4aaeed,#64c8ef 63%,#f3c86c)!important;box-shadow:0 0 14px rgba(109,196,244,.25)!important}
+html body.mmh-workspace-active #cashflow-analyze .cfa-breakdown-group{padding:12px 0!important;border-top-color:rgba(178,219,244,.18)!important}
+html body.mmh-workspace-active #cashflow-analyze .cfa-breakdown-title{color:#f2f8ff!important;font-size:13px!important}
+html body.mmh-workspace-active #cashflow-analyze .cfa-breakdown-row{color:#c2d3e2!important;padding:6px 0!important}
+html body.mmh-workspace-active #cashflow-analyze .cfa-breakdown-rate{background:rgba(94,174,221,.14)!important;border-color:rgba(139,202,236,.30)!important}
+html body.mmh-workspace-active #cashflow-analyze .cfa-trend-panel{margin-top:15px!important}
+html body.mmh-workspace-active #cashflow-analyze .cfa-trend{align-items:end!important;min-height:164px!important;
+  padding:13px 8px 0!important;
+  border-radius:12px!important;
+  background:repeating-linear-gradient(to top,transparent 0 34px,rgba(166,208,240,.09) 35px 36px)!important;
+}
+html body.mmh-workspace-active #cashflow-analyze .cfa-trend-bars{height:112px!important;align-items:end!important}
+html body.mmh-workspace-active #cashflow-analyze .cfa-trend-bars i{width:11px!important;border-radius:5px 5px 1px 1px!important;
+  background:linear-gradient(180deg,#84deff,#286eae)!important;box-shadow:0 0 10px rgba(69,171,235,.12)!important}
+html body.mmh-workspace-active #cashflow-analyze .cfa-trend-bars i:last-child{background:linear-gradient(180deg,#ffa1ac,#b94d80)!important}
+html body.mmh-workspace-active #cashflow-analyze .cfa-records-panel{margin-top:15px!important}
+html body.mmh-workspace-active #cashflow-analyze .cfa-records-scroll{border:1px solid rgba(168,211,239,.28)!important;background:rgba(3,22,42,.39)!important;border-radius:15px!important}
+html body.mmh-workspace-active #cashflow-analyze .cfa-records-scroll th{background:#173753!important;color:#d9eaf9!important;font-size:10px!important}
+html body.mmh-workspace-active #cashflow-analyze .cfa-records-scroll td{color:#d4e4f4!important;font-size:12px!important}
+html body.mmh-workspace-active #cashflow-analyze .cfa-records-scroll tr:nth-child(even){background:rgba(43,101,139,.14)!important}
+html body.mmh-workspace-active #cashflow-analyze .cfa-records-scroll tr:hover td{background:rgba(65,137,177,.16)!important}
+html body.mmh-workspace-active #cashflow-analyze .cfa-method{color:#9fb5c8!important;font-size:11px!important;line-height:1.6!important;padding-bottom:15px!important}
+html body.mmh-workspace-active #cashflow-analyze button.btn{
+  background:linear-gradient(145deg,rgba(51,106,137,.67),rgba(12,46,75,.88))!important;
+  border:1px solid rgba(172,214,246,.35)!important;border-radius:12px!important;
+  color:#eef8ff!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.14)!important;
+}
+html body.mmh-workspace-active #cashflow-analyze button.btn:hover{border-color:rgba(249,208,133,.67)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 7px 20px rgba(1,6,20,.24)!important}
+@media(max-width:1050px){
+ html body.mmh-workspace-active #cashflow-analyze .cfa-head{min-height:0!important;padding:22px!important;flex-wrap:wrap!important}
+ html body.mmh-workspace-active #cashflow-analyze .cfa-controls{max-width:none!important;flex:1 1 100%!important;justify-content:flex-start!important}
+ html body.mmh-workspace-active #cashflow-analyze .cfa-controls label{flex:1 1 130px!important;min-width:0!important}
+ html body.mmh-workspace-active #cashflow-analyze .cfa-controls :is(select,input){width:100%!important}
+}
+@media(max-width:700px){
+ html body.mmh-workspace-active #cashflow-analyze .cfa-head{padding:18px 15px!important;border-radius:18px!important}
+ html body.mmh-workspace-active #cashflow-analyze .cfa-head h1{font-size:clamp(27px,7.3vw,35px)!important}
+ html body.mmh-workspace-active #cashflow-analyze .cfa-kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important}
+ html body.mmh-workspace-active #cashflow-analyze .cfa-card{min-height:126px!important;padding:13px!important;border-radius:16px!important}
+ html body.mmh-workspace-active #cashflow-analyze .cfa-card>strong{font-size:clamp(21px,5vw,28px)!important;margin:11px 0 6px!important}
+ html body.mmh-workspace-active #cashflow-analyze .cfa-efficiency-kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:9px!important}
+ html body.mmh-workspace-active #cashflow-analyze .cfa-mini-card{padding:12px!important;min-height:96px!important;display:flex!important;flex-direction:column!important;align-items:flex-start!important;justify-content:space-between!important;gap:6px!important}
+ html body.mmh-workspace-active #cashflow-analyze .cfa-mini-card>strong{font-size:clamp(18px,4vw,23px)!important;white-space:normal!important;overflow-wrap:anywhere!important}
+ html body.mmh-workspace-active #cashflow-analyze .cfa-detail-grid{grid-template-columns:1fr!important;gap:11px!important}
+ html body.mmh-workspace-active #cashflow-analyze .cfa-panel{padding:16px!important;border-radius:18px!important}
+ html body.mmh-workspace-active #cashflow-analyze .cfa-trend-bars i{width:6px!important}
+ html body.mmh-workspace-active #cashflow-analyze .cfa-breakdown-value{white-space:normal!important;text-align:right}
+}
+@media(max-width:420px){
+ html body.mmh-workspace-active #cashflow-analyze .cfa-head{gap:13px!important;padding:15px 13px!important}
+ html body.mmh-workspace-active #cashflow-analyze .cfa-head p{font-size:11px!important}
+ html body.mmh-workspace-active #cashflow-analyze .cfa-controls{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;width:100%!important;gap:8px!important}
+ html body.mmh-workspace-active #cashflow-analyze .cfa-controls label{min-width:0!important}
+ html body.mmh-workspace-active #cashflow-analyze .cfa-controls #cfaMonthWrap,html body.mmh-workspace-active #cashflow-analyze .cfa-controls #cfaYearWrap{grid-column:1/-1!important}
+ html body.mmh-workspace-active #cashflow-analyze .cfa-card{min-height:123px!important;padding:12px!important}
+ html body.mmh-workspace-active #cashflow-analyze .cfa-card>strong{font-size:clamp(18px,5vw,23px)!important}
+ html body.mmh-workspace-active #cashflow-analyze .cfa-mini-card{padding:11px!important;border-radius:15px!important}
+ html body.mmh-workspace-active #cashflow-analyze .cfa-mini-card>strong{font-size:clamp(16px,4.4vw,20px)!important}
+ html body.mmh-workspace-active #cashflow-analyze .cfa-mini-card>small{font-size:9.5px!important}
+ html body.mmh-workspace-active #cashflow-analyze .cfa-budget-comparison{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ html body.mmh-workspace-active #cashflow-analyze .cfa-budget-comparison>div:last-child{grid-column:1/-1!important}
+ html body.mmh-workspace-active #cashflow-analyze .cfa-panel h2{font-size:19px!important}
+ html body.mmh-workspace-active #cashflow-analyze .cfa-trend{gap:4px!important}
+ html body.mmh-workspace-active #cashflow-analyze .cfa-records-scroll table{min-width:605px!important}
+}
+@media(prefers-reduced-motion:reduce){html body.mmh-workspace-active #cashflow-analyze *,html body.mmh-workspace-active #cashflow-analyze *::before,html body.mmh-workspace-active #cashflow-analyze *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+@supports not ((backdrop-filter:blur(5px)) or (-webkit-backdrop-filter:blur(5px))){html body.mmh-workspace-active #cashflow-analyze :is(.cfa-card,.cfa-panel,.cfa-mini-card){background:#0e2e48!important}}

@@ -26826,7 +26826,24 @@ html,body{max-width:100%;overflow-x:clip}
     const year=$('cfaYear'),now=new Date().getFullYear();
     year.innerHTML=Array.from({length:Math.max(7,now-2019+2)},(_,i)=>`<option value="${now+1-i}">${now+1-i}</option>`).join('');
     $('cfaMonth').value=state.month;year.value=String(state.year);
-    $('cfaCurrency').addEventListener('change',e=>{state.currency=['USD','THB','MMK','CNY'].includes(e.target.value)?e.target.value:'USD';render()});
+    // P7.1: use the existing per-user display preferences instead of a temporary-only currency.
+    const allowedCurrency=['USD','THB','MMK','CNY'];
+    const currencyPrefKey=()=> 'mmhvault_settings_display_v2_'+(currentSessionUser?.id||'guest');
+    try{
+      const stored=JSON.parse(localStorage.getItem(currencyPrefKey())||'{}');
+      if(allowedCurrency.includes(stored.currency))state.currency=stored.currency;
+    }catch(_e){}
+    $('cfaCurrency').value=state.currency;
+    $('cfaCurrency').addEventListener('change',e=>{
+      state.currency=allowedCurrency.includes(e.target.value)?e.target.value:'USD';
+      try{
+        const key=currencyPrefKey();
+        const stored=JSON.parse(localStorage.getItem(key)||'{}');
+        localStorage.setItem(key,JSON.stringify({...stored,currency:state.currency}));
+      }catch(_e){}
+      window.mmhSettingsSyncCashflowCurrencyV71?.(state.currency);
+      render();
+    });
     $('cfaMode').addEventListener('change',e=>{state.mode=e.target.value==='year'?'year':'month';$('cfaMonthWrap').hidden=state.mode!=='month';$('cfaYearWrap').hidden=state.mode!=='year';periodChanged()});
     $('cfaMonth').addEventListener('change',e=>{if(/^\d{4}-(0[1-9]|1[0-2])$/.test(e.target.value))state.month=e.target.value;periodChanged()});
     year.addEventListener('change',e=>{state.year=Number(e.target.value)||now;periodChanged()});
@@ -26980,6 +26997,13 @@ const prefOwner=()=>currentSessionUser?.id||'guest';
 const prefKey=(id=prefOwner())=>baseKey+'_'+id;
 function readPrefs(){const id=prefOwner();let raw=lsGet(prefKey(id));if(!raw){const legacy=lsGet(baseKey),claimed=lsGet(baseKey+'_legacy_owner');if(legacy&&(id==='guest'||!claimed||claimed===id)){raw=legacy;if(id!=='guest'){lsSet(prefKey(id),legacy);lsSet(baseKey+'_legacy_owner',id)}}}try{return {...defaults,...JSON.parse(raw||'{}')}}catch(_){return {...defaults}}}
 let prefs=readPrefs();window.mmhSettingsDisplayPrefsV1237=()=>({...prefs});
+// P7.1: keep the in-memory Settings form aligned with a direct Analyze currency selection.
+window.mmhSettingsSyncCashflowCurrencyV71=code=>{
+  if(!['USD','THB','MMK','CNY'].includes(code))return;
+  prefs.currency=code;
+  const select=document.getElementById('stPref_currency');
+  if(select&&select.value!==code)select.value=code;
+};
 const media=matchMedia('(prefers-color-scheme: light)');
 window.mmhSettingsNumberV2=v=>Number(v||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
 function apply(){applyTheme(prefs.theme==='system'?(media.matches?'light':'dark'):prefs.theme);document.body.classList.toggle('st-overview-compact',prefs.overview==='compact');document.body.classList.toggle('st-budget-compact',prefs.budget==='compact');}
@@ -27022,7 +27046,7 @@ window.mmhOpenSettingsSectionV3=go;
 root.addEventListener('keydown',e=>{if(e.key==='Escape'&&root.classList.contains('st-in-subpage')){e.preventDefault();back()}});
 
 window.mmhSettingsRefreshDefaultsV4=refreshDefaults;apply();stats();refreshDefaults();if($('cfaCurrency')){$('cfaCurrency').value=prefs.currency;$('cfaCurrency').dispatchEvent(new Event('change',{bubbles:true}))}
-root.addEventListener('click',stats);root.addEventListener('focusin',e=>{if(e.target.tagName!=='SELECT')refreshDefaults()});document.addEventListener('change',e=>{if(['txType','txGroup'].includes(e.target.id))setTimeout(applyTxDefault,0)});['mmhvault:data-loaded','mmhvault:cache-restored','mmhvault:category-config-changed'].forEach(ev=>window.addEventListener(ev,()=>{stats();refreshDefaults()}));window.addEventListener('mmhvault:config-owner-changed',()=>{prefs=readPrefs();syncPrefControls();apply();stats();refreshDefaults();window.mmhvaultForceRenderAllV34421?.('settings-owner-change');window.mmhRenderCashflowAnalyzeV1?.()});
+root.addEventListener('click',stats);root.addEventListener('focusin',e=>{if(e.target.tagName!=='SELECT')refreshDefaults()});document.addEventListener('change',e=>{if(['txType','txGroup'].includes(e.target.id))setTimeout(applyTxDefault,0)});['mmhvault:data-loaded','mmhvault:cache-restored','mmhvault:category-config-changed'].forEach(ev=>window.addEventListener(ev,()=>{stats();refreshDefaults()}));window.addEventListener('mmhvault:config-owner-changed',()=>{prefs=readPrefs();syncPrefControls();const cashflowCurrency=$('cfaCurrency');if(cashflowCurrency){cashflowCurrency.value=prefs.currency;cashflowCurrency.dispatchEvent(new Event('change',{bubbles:true}))}apply();stats();refreshDefaults();window.mmhvaultForceRenderAllV34421?.('settings-owner-change');window.mmhRenderCashflowAnalyzeV1?.()});
 }
 media.addEventListener('change',()=>{if(prefs.theme==='system')apply()});if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
@@ -33826,6 +33850,7 @@ html body.mmh-workspace-active #moreNavMenu .mmh-more-list-v153:focus-visible{ou
 <script defer src="js/mmhvault-feedback-premium-p65.js?v=6.5.0"></script>
 <link rel="stylesheet" href="css/mmhvault-feedback-refinement-p66.css?v=6.6.0" data-mmh-feedback-patch="p6.6">
 <link rel="stylesheet" href="css/mmhvault-liquid-analyze-p70.css?v=7.0.0" data-mmh-liquid-analyze="p7.0">
+<link rel="stylesheet" href="css/mmhvault-liquid-cashflow-p71.css?v=7.1.0" data-mmh-liquid-cashflow="p7.1">
 <script defer src="js/mmhvault-liquid-invest-p32.js?v=3.2.0" data-mmh-liquid-invest="p3.2"></script>
 <script src="js/mmhvault-liquid-interactions-v2.js?v=2.1.0" defer></script>
 </body>
