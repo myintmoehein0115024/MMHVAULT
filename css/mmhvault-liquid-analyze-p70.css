@@ -1,0 +1,302 @@
+/* MMHVAULT · Analyze P7.0 — premium financial liquid-glass layer.
+   Visual-only, scoped to #analyze. Does not alter tab rendering, financial calculations,
+   data selectors, chart JavaScript, user security or stored records. */
+#analyze {
+  --an70-gold:#f4c86e;
+  --an70-ice:#c6e0f6;
+  --an70-line:rgba(157,210,244,.25);
+  --an70-panel:linear-gradient(150deg,rgba(24,67,96,.78) 0%,rgba(7,32,55,.90) 58%,rgba(3,21,41,.96) 100%);
+  --an70-soft:linear-gradient(145deg,rgba(39,91,124,.46),rgba(8,36,61,.69));
+  position:relative;
+  isolation:isolate;
+  min-width:0;
+  max-width:100%;
+  color:#eaf4ff;
+  padding-bottom:42px;
+}
+#analyze *,#analyze *::before,#analyze *::after {box-sizing:border-box}
+#analyze::before {
+  z-index:-1;
+  inset:0 -16px auto;
+  height:420px;
+  background:radial-gradient(circle at 80% 25%,rgba(234,180,73,.09),transparent 41%),
+             radial-gradient(circle at 18% 40%,rgba(68,146,218,.14),transparent 54%);
+  pointer-events:none;
+}
+/* A real HTML header with a LOCAL scenic layer; never a screenshot substituted for UI. */
+#analyze > .analyze-period-bar {
+  position:relative;
+  isolation:isolate;
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  justify-content:space-between;
+  gap:18px 22px;
+  margin:0 0 16px;
+  padding:24px 25px;
+  min-height:158px;
+  overflow:visible;
+  border:1px solid rgba(164,214,244,.28);
+  border-radius:23px;
+  background:linear-gradient(100deg,rgba(5,24,45,.94) 0%,rgba(5,23,43,.80) 47%,rgba(9,27,44,.48) 100%),
+             url('../images/mmhvault-city-glass-v2.webp') center 43%/cover no-repeat;
+  box-shadow:inset 0 1px 0 rgba(243,250,255,.13),0 22px 45px rgba(0,8,24,.21);
+  -webkit-backdrop-filter:blur(16px) saturate(130%);
+  backdrop-filter:blur(16px) saturate(130%);
+}
+#analyze > .analyze-period-bar::after {
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius:inherit;
+  pointer-events:none;
+  background:linear-gradient(164deg,rgba(226,245,255,.11) 0%,transparent 26%,transparent 73%,rgba(255,200,94,.055));
+  z-index:-1;
+}
+#analyze .mmh-analyze-title-v1 {min-width:0;flex:1 1 230px;align-self:center}
+#analyze .mmh-analyze-title-v1 h1,
+#analyze .analyze-period-bar h1{
+  margin:0 0 6px;
+  color:#fff5e5;
+  font-family:Georgia,'Times New Roman',serif;
+  font-size:clamp(29px,3.15vw,43px);
+  line-height:1.12;
+  font-weight:500;
+  letter-spacing:-.025em;
+  text-shadow:0 2px 14px rgba(0,0,0,.2);
+}
+#analyze .mmh-analyze-title-v1 .sub{font-size:13px;line-height:1.5;color:#b9cfe3;max-width:420px}
+#analyze .mmh-analyze-header-controls-v1 {
+  display:flex;
+  align-items:flex-end;
+  justify-content:flex-end;
+  gap:10px;
+  flex:1 1 465px;
+  min-width:0;
+  flex-wrap:wrap;
+}
+#analyze .mmh-analyze-page-picker-v1{position:relative;min-width:190px;flex:1 1 200px;max-width:280px;z-index:11}
+#analyze .mmh-analyze-control-label-v1{display:block;margin:0 0 7px;color:#b8cadc;font-size:11px;font-weight:750;letter-spacing:.075em;text-transform:uppercase}
+#analyze .period-controls-v37{display:flex;gap:9px;align-items:end;justify-content:flex-end;min-width:0;margin:0}
+#analyze .period-controls-v37 label{display:grid;gap:7px;min-width:104px;color:#b7cede;font-size:11px;font-weight:700}
+#analyze :is(.mmh-analyze-page-trigger-v1,.period-controls-v37 select){
+  width:100%;min-height:45px;margin:0;
+  border:1px solid rgba(173,218,244,.32);
+  border-radius:13px;
+  background:linear-gradient(140deg,rgba(31,77,108,.89),rgba(6,29,53,.95));
+  color:#f2f7fe;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.115),0 7px 18px rgba(0,6,20,.12);
+  padding:9px 13px;
+  font-size:13px;font-weight:650;
+  outline-offset:3px;
+}
+#analyze :is(.mmh-analyze-page-trigger-v1,.period-controls-v37 select):focus-visible {
+  outline:2px solid var(--an70-gold);
+}
+/* Picker options are shown by existing JS; never change its visibility logic. */
+#analyze #mmhAnalyzePageOptionsV1 {
+  z-index:31;
+  max-height:min(62vh,380px);
+  overflow-y:auto;
+  border:1px solid rgba(171,216,245,.34);
+  border-radius:15px;
+  padding:7px;
+  background:linear-gradient(155deg,rgba(18,55,83,.97),rgba(4,24,46,.985));
+  -webkit-backdrop-filter:blur(25px) saturate(140%);
+  backdrop-filter:blur(25px) saturate(140%);
+  box-shadow:0 23px 58px rgba(0,5,20,.40),inset 0 1px 0 rgba(255,255,255,.14);
+}
+#analyze #mmhAnalyzePageOptionsV1 .analyze-tab-v371 {
+  color:#cbdcf0;min-height:40px;
+  border-radius:10px;
+  font-size:12px;
+  font-weight:700;
+}
+#analyze #mmhAnalyzePageOptionsV1 .analyze-tab-v371.active,
+#analyze #mmhAnalyzePageOptionsV1 .analyze-tab-v371[aria-selected="true"] {
+  color:#fff0c5;
+  border-color:rgba(249,207,120,.54);
+  background:linear-gradient(115deg,rgba(237,186,86,.28),rgba(35,83,110,.58));
+  box-shadow:inset 0 1px 0 rgba(255,246,223,.15);
+}
+/* Main modules: same glass edge, radius and elevation as other premium workspaces. */
+#analyze .analyze-tab-panel-v371 {min-width:0;max-width:100%}
+#analyze .analyze-tab-panel-v371 > .panel,
+#analyze .analyze-tab-panel-v371 > .financial-intelligence-v314,
+#analyze .analyze-tab-panel-v371 > .mmh-insights-grid-v340 > .panel,
+#analyze .analyze-tab-panel-v371 > .mmh-insights-grid-v340 .panel,
+#analyze .analyze-tab-panel-v371 > .panel:not([style*="display:none"]){
+  border:1px solid var(--an70-line);
+  border-radius:20px;
+  background:var(--an70-panel);
+  -webkit-backdrop-filter:blur(17px) saturate(135%);
+  backdrop-filter:blur(17px) saturate(135%);
+  box-shadow:inset 0 1px 0 rgba(240,253,255,.12),0 15px 33px rgba(0,5,21,.17);
+  overflow:hidden;
+  margin-top:13px;
+}
+#analyze .analyze-tab-panel-v371 .toolbar{
+  align-items:center;gap:10px 14px;
+  flex-wrap:wrap;
+}
+#analyze .analyze-tab-panel-v371 .toolbar h2,
+#analyze .fi314-head h2 {
+  color:#f4f7fd;
+  font-size:clamp(18px,1.65vw,23px);
+  line-height:1.2;
+  font-family:Georgia,'Times New Roman',serif;
+  font-weight:500;
+  letter-spacing:-.01em;
+}
+#analyze .analyze-tab-panel-v371 .toolbar .sub,
+#analyze .analyze-tab-panel-v371 .small {color:#a6bfd6;line-height:1.5}
+#analyze .analyze-tab-panel-v371 .pill {
+  color:#f2d39a;
+  background:rgba(222,178,85,.12);
+  border:1px solid rgba(243,198,108,.35);
+  border-radius:99px;
+  font-size:11px;
+  white-space:normal;
+  max-width:100%;
+}
+#analyze .overview-snapshot-grid-v371,
+#analyze .networth-analyze-summary-v371 {gap:12px}
+#analyze :is(.overview-snapshot-card-v371,.networth-analyze-card-v371,.fin-health-card,.fin-health-score-main,.fin-health-breakdown-v371,.cashflow-card-v371,.rf-stat-v34226,.monthly-cell,.fi314-card,.wealth-rule-card-v326,.expense-control-summary .stat){
+  min-width:0;
+  border:1px solid rgba(165,214,242,.23);
+  border-radius:15px;
+  background:var(--an70-soft);
+  box-shadow:inset 0 1px 0 rgba(232,249,255,.08);
+}
+#analyze :is(.overview-snapshot-card-v371,.networth-analyze-card-v371,.fin-health-card,.cashflow-card-v371,.rf-stat-v34226,.wealth-rule-card-v326){padding:15px}
+#analyze :is(.overview-snapshot-card-v371,.networth-analyze-card-v371,.cashflow-card-v371,.rf-stat-v34226) .value{
+  color:#f7f8fc;
+  font-size:clamp(20px,2vw,28px);
+  font-variant-numeric:tabular-nums;
+  line-height:1.24;
+  overflow-wrap:anywhere;
+}
+#analyze :is(.overview-snapshot-card-v371,.networth-analyze-card-v371,.cashflow-card-v371,.rf-stat-v34226) .label{
+  color:#b9cfe1;
+  font-size:11px;
+  font-weight:700;
+}
+#analyze .financial-intelligence-v314 {padding:0}
+#analyze .fi314-head {padding:17px 19px 13px;border-bottom:1px solid rgba(150,204,234,.17)}
+#analyze .fi314-body {padding:16px 19px 20px}
+#analyze .fi314-badge {background:rgba(12,41,70,.74);border-color:rgba(162,215,242,.3);color:#dbe9f7}
+#analyze :is(.fi314-grid,.mmh-insights-grid-v340,.analyze-extra){min-width:0;gap:13px}
+#analyze :is(.analyze-table,.month-compare-v37,.savings-trend-wrap,#financialHealthV371,#financialDecisionCenterV325,#dashboardExpenseControl,#personalExpenseAnalysisV371){min-width:0;max-width:100%}
+#analyze .analyze-table {overflow:auto hidden;scrollbar-width:thin}
+#analyze .analyze-table table {
+  width:100%;border-collapse:separate;
+  border-spacing:0;border:1px solid rgba(163,213,244,.18);border-radius:13px;
+  background:rgba(3,21,40,.46);overflow:hidden;
+}
+#analyze .analyze-table th{
+  color:#cadcf0;background:rgba(74,128,160,.16);
+  text-transform:uppercase;letter-spacing:.065em;font-size:10px;
+}
+#analyze .analyze-table td,#analyze .analyze-table th{padding:11px 12px;border-bottom-color:rgba(143,206,240,.11)}
+#analyze .analyze-table tbody tr:hover td{background:rgba(108,170,213,.08)}
+#analyze :is(.rf-bar-v34226,.expense-control-panel,.expense-command-divider-v1){border-color:rgba(157,211,242,.17)}
+#analyze .wealth-rule-grid-v326{gap:12px}
+#analyze .wealth-rule-input input {
+  background:rgba(6,31,54,.82);color:#f1f6fd;
+  border:1px solid rgba(167,212,242,.33);border-radius:11px;
+  min-height:44px;
+}
+#analyze .wealth-rule-actions-v326{gap:9px;flex-wrap:wrap}
+#analyze :is(button,select,input){transition:border-color .2s ease,box-shadow .2s ease,background-color .2s ease}
+#analyze .wealth-rule-actions-v326 .btn.primary{
+  color:#161b26;
+  background:linear-gradient(115deg,#ffe29c,#e9b34f);
+  border-color:#eac372;
+  box-shadow:0 6px 20px rgba(234,173,60,.13);
+}
+#analyze .wealth-rule-actions-v326 .btn:not(.primary){background:rgba(15,53,78,.82);border:1px solid rgba(162,211,242,.30);color:#deefff}
+/* Breakpoints scale proportions, not just stack huge cards. */
+@media(max-width:1100px){
+ #analyze > .analyze-period-bar{min-height:144px;padding:20px 19px}
+ #analyze .mmh-analyze-header-controls-v1{justify-content:flex-start}
+ #analyze .mmh-analyze-page-picker-v1{max-width:none;flex:1 1 215px}
+ #analyze .period-controls-v37{flex:1 1 250px;justify-content:stretch}
+ #analyze .period-controls-v37 label{flex:1;min-width:0}
+}
+@media(max-width:740px){
+ #analyze > .analyze-period-bar{padding:18px 16px;gap:13px;min-height:0;border-radius:19px}
+ #analyze .mmh-analyze-title-v1{flex:1 1 100%}
+ #analyze .analyze-period-bar h1{font-size:clamp(28px,7vw,35px)}
+ #analyze .mmh-analyze-header-controls-v1{flex:1 1 100%;gap:9px}
+ #analyze .mmh-analyze-page-picker-v1{flex:1 1 100%;max-width:none}
+ #analyze .period-controls-v37{flex:1 1 100%;gap:9px}
+ #analyze .period-controls-v37 label{min-width:0}
+ #analyze #mmhAnalyzePageOptionsV1{max-height:min(54dvh,330px)}
+ #analyze .analyze-tab-panel-v371>.panel,#analyze .analyze-tab-panel-v371>.financial-intelligence-v314{border-radius:17px}
+ #analyze .analyze-tab-panel-v371 .toolbar h2{font-size:20px}
+ #analyze .fi314-head{padding:15px 14px 11px}
+ #analyze .fi314-body{padding:13px 14px 17px}
+ #analyze .analyze-extra{grid-template-columns:minmax(0,1fr)!important}
+ #analyze :is(.overview-snapshot-grid-v371,.networth-analyze-summary-v371,.remaining-funds-grid-v34226){grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:440px){
+ #analyze{padding-bottom:95px}
+ #analyze > .analyze-period-bar{padding:14px 13px;gap:11px;border-radius:17px}
+ #analyze .mmh-analyze-title-v1 .sub{font-size:11.5px}
+ #analyze .mmh-analyze-control-label-v1{margin-bottom:5px}
+ #analyze :is(.mmh-analyze-page-trigger-v1,.period-controls-v37 select){min-height:42px;font-size:12px}
+ #analyze .analyze-tab-panel-v371>.panel{margin-top:11px}
+ #analyze .overview-snapshot-grid-v371{gap:8px}
+ #analyze .overview-snapshot-card-v371{padding:10px!important;border-radius:12px}
+ #analyze .overview-snapshot-card-v371 .value{font-size:clamp(15px,4.3vw,20px);line-height:1.23;letter-spacing:-.03em}
+ #analyze .overview-snapshot-card-v371 .label{font-size:10px}
+ #analyze .networth-analyze-summary-v371,.remaining-funds-grid-v34226{grid-template-columns:minmax(0,1fr)}
+ #analyze .analyze-tab-panel-v371 .toolbar h2{font-size:18px}
+ #analyze .analyze-tab-panel-v371 .pill{font-size:10px}
+ #analyze .analyze-table td,#analyze .analyze-table th{padding:10px 9px;font-size:11px}
+ #analyze .wealth-rule-grid-v326{grid-template-columns:1fr}
+}
+@media(prefers-reduced-motion:reduce){#analyze *,#analyze *::before,#analyze *::after{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
+@supports not ((backdrop-filter:blur(10px)) or (-webkit-backdrop-filter:blur(10px))){
+ #analyze > .analyze-period-bar{background-color:#081e33}
+ #analyze .analyze-tab-panel-v371>.panel,#analyze #mmhAnalyzePageOptionsV1{background:#0a2a45}
+}
+/* Specificity bridge: legacy workspace selectors are stronger than the generic
+   Analyze selectors, so lock the key material layers without touching routing. */
+html body.mmh-workspace-active #analyze.page.active > .analyze-period-bar {
+  background-image:linear-gradient(100deg,rgba(5,24,45,.94) 0%,rgba(5,23,43,.80) 48%,rgba(9,27,44,.48) 100%),url('../images/mmhvault-city-glass-v2.webp')!important;
+  background-position:center,center 43%!important;
+  background-size:cover,cover!important;
+  border-color:rgba(172,216,243,.36)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.19),0 22px 45px rgba(0,8,24,.23)!important;
+}
+html body.mmh-workspace-active #analyze .analyze-tab-panel-v371>.panel,
+html body.mmh-workspace-active #analyze .analyze-tab-panel-v371 .financial-intelligence-v314 {
+  background:var(--an70-panel)!important;
+  border-color:rgba(172,215,245,.28)!important;
+  box-shadow:inset 0 1px 0 rgba(245,253,255,.12),0 16px 34px rgba(0,6,23,.2)!important;
+}
+html body.mmh-workspace-active #analyze :is(.overview-snapshot-card-v371,.networth-analyze-card-v371,.cashflow-card-v371,.rf-stat-v34226,.fi314-card,.fin-health-card,.wealth-rule-card-v326) {
+  background:var(--an70-soft)!important;
+  border-color:rgba(171,216,245,.27)!important;
+}
+html body.mmh-workspace-active #analyze #mmhAnalyzePageOptionsV1 {
+  position:absolute!important;
+  top:calc(100% + 7px)!important;
+  left:0!important;
+  right:0!important;
+  margin:0!important;
+  width:100%!important;
+  max-width:100%!important;
+  z-index:100!important;
+  overflow-x:hidden!important;
+}
+html body.mmh-workspace-active #analyze #mmhAnalyzePageOptionsV1 .analyze-tab-v371 {
+  display:block!important;
+  width:100%!important;
+  text-align:left!important;
+  white-space:normal!important;
+}
+/* Keep the open Analyze section picker above the result cards. */
+html body.mmh-workspace-active #analyze.page.active > .analyze-period-bar {z-index:20!important;overflow:visible!important}
+html body.mmh-workspace-active #analyze.page.active > .analyze-tab-panel-v371 {position:relative;z-index:1}
