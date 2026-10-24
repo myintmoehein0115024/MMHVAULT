@@ -1,0 +1,326 @@
+/* MMHVAULT P9.11 — Financial Goals, Liquid Glass.
+   Scoped visual / responsive update; Goals V113 database and business logic untouched. */
+html body.mmh-workspace-active #goals{
+  --g911-gold:#f5c66c;--g911-ink:#f3f9ff;--g911-mute:#adc7d9;
+  --g911-edge:rgba(150,196,225,.35);
+  --g911-surface:linear-gradient(142deg,rgba(79,124,151,.39) 0%,rgba(18,55,80,.83) 42%,rgba(4,25,44,.94) 100%);
+  --g911-shadow:inset 0 1px 0 rgba(247,252,255,.17),0 16px 34px rgba(0,9,24,.23);
+  display:block!important;width:100%!important;max-width:1280px!important;min-width:0!important;
+  margin:0 auto!important;isolation:isolate;color:var(--g911-ink);
+}
+html body.mmh-workspace-active #goals *,html body.mmh-workspace-active #goals *::before,html body.mmh-workspace-active #goals *::after{box-sizing:border-box}
+html body.mmh-workspace-active #goals .goals-shell-v113{
+  display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:14px!important;
+  width:100%!important;max-width:100%!important;min-width:0!important;padding:8px 0 36px!important;margin:0!important;
+}
+html body.mmh-workspace-active #goals .goals-shell-v113>*{min-width:0;max-width:100%;grid-column:1/-1}
+/* High-contrast cinematic skyline, aligned to Budget/Report headers. */
+html body.mmh-workspace-active:not(.light) #goals .goals-head-v113{
+  position:relative!important;display:flex!important;align-items:center!important;justify-content:space-between!important;
+  flex-direction:row!important;flex-wrap:nowrap!important;gap:22px!important;min-height:145px!important;
+  padding:22px 25px!important;margin:0!important;border-radius:21px!important;overflow:hidden!important;
+  border:1px solid rgba(175,208,233,.38)!important;
+  background:linear-gradient(92deg,rgba(3,19,34,.95) 0%,rgba(4,24,41,.84) 52%,rgba(4,24,42,.51) 100%),url('../images/mmhvault-city-glass-v2.webp') center 52% / cover no-repeat!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.19),inset 0 -1px 0 rgba(96,164,204,.13),0 14px 35px rgba(0,9,24,.23)!important;
+}
+html body.mmh-workspace-active #goals .goals-head-v113::after{
+  content:'';position:absolute;right:-47px;top:-58px;width:230px;height:230px;pointer-events:none;border-radius:50%;
+  border:1px solid rgba(250,196,92,.45);box-shadow:0 0 24px rgba(250,196,92,.07);opacity:.62;
+}
+html body.mmh-workspace-active #goals .goals-head-v113>div{min-width:0;flex:1 1 auto;position:relative;z-index:1}
+html body.mmh-workspace-active #goals .goals-eyebrow-v113{
+  color:var(--g911-gold)!important;font-size:10px!important;font-weight:900!important;letter-spacing:.2em!important;
+}
+html body.mmh-workspace-active #goals .goals-head-v113 h1{
+  margin:8px 0 8px!important;font:500 clamp(27px,2.9vw,38px)/1.12 Georgia,'Times New Roman',serif!important;
+  letter-spacing:-.027em!important;color:#fff!important;overflow-wrap:anywhere;
+}
+html body.mmh-workspace-active #goals .goals-head-v113 p{
+  max-width:520px!important;margin:0!important;font-size:11px!important;line-height:1.55!important;color:#afc9d8!important;
+}
+html body.mmh-workspace-active #goals .goals-head-v113>.btn{
+  position:relative;z-index:1;flex:0 0 auto!important;align-self:center!important;width:auto!important;
+  min-height:46px!important;padding:10px 20px!important;border-radius:12px!important;
+  border:1px solid rgba(255,221,151,.79)!important;background:linear-gradient(115deg,#ffdfa0,#e9b653)!important;
+  color:#20212b!important;font-size:12px!important;font-weight:850!important;box-shadow:0 10px 25px rgba(237,179,68,.20)!important;
+  white-space:nowrap!important;
+}
+html body.mmh-workspace-active #goals :is(button,input,select,textarea):focus-visible{
+  outline:2px solid var(--g911-gold)!important;outline-offset:2px!important;
+}
+html body.mmh-workspace-active #goals button:not(:disabled){transition:filter .18s ease,transform .18s ease,border-color .18s ease}
+html body.mmh-workspace-active #goals button:not(:disabled):hover{filter:brightness(1.1)}
+/* Four true KPI values: stable heights and readable figures across breakpoints. */
+html body.mmh-workspace-active #goals .goals-kpis-v113{
+  display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:11px!important;width:100%!important;
+}
+html body.mmh-workspace-active:not(.light) #goals .goals-kpis-v113 article{
+  position:relative;display:flex!important;flex-direction:column!important;min-width:0!important;min-height:121px!important;
+  padding:16px 17px!important;border:1px solid var(--g911-edge)!important;
+  border-top:1px solid rgba(216,239,250,.49)!important;border-radius:17px!important;
+  background:linear-gradient(141deg,rgba(88,134,159,.36),rgba(17,55,81,.82) 45%,rgba(4,27,45,.94))!important;
+  box-shadow:var(--g911-shadow)!important;backdrop-filter:blur(12px) saturate(120%);-webkit-backdrop-filter:blur(12px) saturate(120%);
+}
+html body.mmh-workspace-active:not(.light) #goals .goals-kpis-v113 article:first-child{
+  border-color:rgba(246,203,114,.58)!important;
+  background:linear-gradient(138deg,rgba(123,107,69,.38),rgba(23,60,81,.81) 47%,rgba(6,26,45,.94))!important;
+}
+html body.mmh-workspace-active #goals .goals-kpis-v113 span{
+  font-size:9px!important;letter-spacing:.11em!important;color:#b2cbdb!important;font-weight:800!important;
+}
+html body.mmh-workspace-active #goals .goals-kpis-v113 strong{
+  margin:12px 0 6px!important;color:#f5f9fd!important;font:600 clamp(19px,2vw,27px)/1.17 Georgia,'Times New Roman',serif!important;
+  letter-spacing:-.025em!important;white-space:normal!important;overflow-wrap:anywhere!important;text-overflow:clip!important;
+  font-variant-numeric:tabular-nums;
+}
+html body.mmh-workspace-active #goals .goals-kpis-v113 article:nth-child(2) strong{color:#68e1be!important}
+html body.mmh-workspace-active #goals .goals-kpis-v113 small{
+  margin-top:auto!important;color:#9ab6c9!important;font-size:10px!important;line-height:1.4!important;
+  overflow-wrap:anywhere;
+}
+/* Main panels and goal editor share the same material. */
+html body.mmh-workspace-active:not(.light) #goals .goals-panel-v113{
+  position:relative!important;min-width:0!important;margin:0!important;padding:20px 22px!important;border-radius:20px!important;
+  border:1px solid var(--g911-edge)!important;border-top-color:rgba(221,238,249,.50)!important;
+  background:var(--g911-surface)!important;box-shadow:var(--g911-shadow)!important;
+  backdrop-filter:blur(15px) saturate(128%);-webkit-backdrop-filter:blur(15px) saturate(128%);
+}
+html body.mmh-workspace-active #goals #goalFormPanelV113[hidden]{display:none!important}
+html body.mmh-workspace-active #goals .goals-panel-head-v113{
+  display:flex!important;align-items:center!important;justify-content:space-between!important;flex-wrap:wrap!important;
+  gap:12px 16px!important;margin:0 0 17px!important;padding-bottom:14px!important;
+  border-bottom:1px solid rgba(159,206,233,.19)!important;
+}
+html body.mmh-workspace-active #goals .goals-panel-head-v113>div:first-child{min-width:0;flex:1 1 230px}
+html body.mmh-workspace-active #goals .goals-panel-head-v113 h2{
+  color:#f8fbff!important;font:550 clamp(19px,2vw,25px)/1.18 Georgia,'Times New Roman',serif!important;
+  letter-spacing:-.025em!important;margin:0 0 6px!important;
+}
+html body.mmh-workspace-active #goals .goals-panel-head-v113 p{
+  color:#9ebacd!important;font-size:11px!important;line-height:1.47!important;margin:0!important;
+}
+html body.mmh-workspace-active:not(.light) #goals .goals-panel-head-v113>.btn,
+html body.mmh-workspace-active:not(.light) #goals .goal-card-actions-v113 .btn,
+html body.mmh-workspace-active:not(.light) #goals .goal-form-actions-v113 .btn{
+  color:#ecf7ff!important;background:linear-gradient(145deg,rgba(63,112,143,.67),rgba(8,43,67,.90))!important;
+  border:1px solid rgba(152,197,226,.44)!important;border-radius:11px!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.13)!important;
+  min-height:39px!important;padding:9px 14px!important;font-size:11px!important;font-weight:750!important;
+}
+html body.mmh-workspace-active:not(.light) #goals .goal-form-actions-v113 .btn.primary{
+  color:#182637!important;border-color:rgba(255,218,131,.79)!important;
+  background:linear-gradient(115deg,#ffe2a1,#e9b655)!important;box-shadow:0 7px 20px rgba(223,167,66,.17)!important;
+}
+html body.mmh-workspace-active:not(.light) #goals .goal-card-actions-v113 .btn.danger{
+  color:#ffb4bf!important;border-color:rgba(235,129,146,.39)!important;
+  background:linear-gradient(130deg,rgba(102,42,64,.40),rgba(37,27,48,.65))!important;
+}
+html body.mmh-workspace-active #goals .goal-form-grid-v113{
+  display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:14px 13px!important;min-width:0!important;
+}
+html body.mmh-workspace-active #goals .goal-form-grid-v113 label{
+  min-width:0!important;display:flex!important;flex-direction:column!important;gap:8px!important;
+  color:#bfd5e5!important;font-size:10px!important;font-weight:800!important;letter-spacing:.055em!important;
+}
+html body.mmh-workspace-active:not(.light) #goals .goal-form-grid-v113 :is(input,select,textarea){
+  width:100%!important;max-width:100%!important;min-width:0!important;min-height:46px!important;padding:11px 12px!important;
+  border:1px solid rgba(150,196,223,.38)!important;border-radius:12px!important;
+  color:#f3faff!important;background:linear-gradient(130deg,rgba(47,92,121,.50),rgba(3,28,48,.91))!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12)!important;font-size:13px!important;line-height:1.3!important;
+  color-scheme:dark;outline:0!important;
+}
+html body.mmh-workspace-active:not(.light) #goals .goal-form-grid-v113 :is(input,select,textarea):focus{
+  border-color:rgba(247,201,107,.89)!important;box-shadow:0 0 0 3px rgba(236,185,86,.17),inset 0 1px 0 rgba(255,255,255,.11)!important;
+}
+html body.mmh-workspace-active #goals .goal-form-grid-v113 textarea{resize:vertical!important;min-height:96px!important;max-width:100%!important}
+html body.mmh-workspace-active #goals .goal-note-v113{grid-column:1/-1!important}
+html body.mmh-workspace-active #goals .goal-form-actions-v113{
+  display:flex!important;flex-wrap:wrap!important;align-items:center!important;justify-content:flex-end!important;
+  gap:9px!important;padding-top:16px!important;margin-top:17px!important;border-top:1px solid rgba(159,206,233,.2)!important;
+}
+/* Fixed-height, touch-friendly status filter (4 tabs on any narrow screen). */
+html body.mmh-workspace-active #goals .goal-filters-v113{
+  display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:5px!important;
+  padding:5px!important;border:1px solid rgba(145,195,228,.33)!important;border-radius:13px!important;
+  background:linear-gradient(130deg,rgba(17,58,85,.73),rgba(3,28,48,.73))!important;
+  min-width:0!important;max-width:100%!important;
+}
+html body.mmh-workspace-active:not(.light) #goals .goal-filters-v113 button{
+  width:100%!important;min-width:0!important;min-height:36px!important;padding:7px 9px!important;
+  border:1px solid transparent!important;border-radius:9px!important;background:transparent!important;
+  color:#a7c2d5!important;font-size:10px!important;font-weight:750!important;white-space:nowrap;
+}
+html body.mmh-workspace-active:not(.light) #goals .goal-filters-v113 button.active{
+  color:#ffe0a0!important;border-color:rgba(248,200,108,.80)!important;
+  background:linear-gradient(130deg,rgba(175,131,66,.56),rgba(46,67,77,.7))!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 0 15px rgba(221,165,63,.13)!important;
+}
+/* Goal portfolio cards, true progress and schedule data. */
+html body.mmh-workspace-active #goals .goal-list-v113{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:12px!important;min-width:0!important}
+html body.mmh-workspace-active:not(.light) #goals .goal-card-v113{
+  min-width:0!important;display:flex!important;flex-direction:column!important;
+  padding:16px 17px!important;border:1px solid rgba(150,197,225,.33)!important;
+  border-top:1px solid rgba(210,233,247,.49)!important;border-radius:16px!important;
+  background:linear-gradient(136deg,rgba(82,126,153,.34),rgba(19,55,81,.79) 45%,rgba(4,26,45,.95))!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.15),0 12px 30px rgba(0,10,24,.17)!important;
+}
+html body.mmh-workspace-active:not(.light) #goals .goal-card-v113.completed{border-color:rgba(90,221,178,.46)!important}
+html body.mmh-workspace-active #goals .goal-card-head-v113{gap:9px!important;min-width:0!important}
+html body.mmh-workspace-active #goals .goal-card-title-v113{align-items:center!important;min-width:0!important}
+html body.mmh-workspace-active:not(.light) #goals .goal-icon-v113{
+  width:40px!important;height:40px!important;flex:0 0 40px!important;border-radius:12px!important;
+  border:1px solid rgba(247,194,104,.39)!important;background:linear-gradient(135deg,rgba(198,152,71,.33),rgba(25,67,89,.8))!important;
+  font-size:19px!important;color:#ffda8c!important;
+}
+html body.mmh-workspace-active #goals .goal-card-title-v113 h3{color:#fff!important;font-size:15px!important;line-height:1.3!important;font-weight:750!important}
+html body.mmh-workspace-active #goals .goal-card-title-v113 p{color:#a9c4d7!important;font-size:10px!important;line-height:1.4!important}
+html body.mmh-workspace-active:not(.light) #goals .goal-status-v113{
+  color:#c6e9f8!important;font-size:9px!important;padding:5px 9px!important;
+  border:1px solid rgba(128,198,235,.43)!important;background:rgba(28,84,121,.41)!important;
+}
+html body.mmh-workspace-active:not(.light) #goals .goal-card-v113.completed .goal-status-v113{
+  color:#75e5b5!important;border-color:rgba(111,221,169,.40)!important;background:rgba(35,106,80,.27)!important;
+}
+html body.mmh-workspace-active #goals .goal-amount-v113{align-items:baseline!important;gap:9px!important;margin-top:15px!important;flex-wrap:wrap!important}
+html body.mmh-workspace-active #goals .goal-amount-v113 strong{
+  color:#ffdc95!important;font:600 clamp(19px,2vw,25px)/1.2 Georgia,'Times New Roman',serif!important;
+  letter-spacing:-.015em!important;font-variant-numeric:tabular-nums;overflow-wrap:anywhere;
+}
+html body.mmh-workspace-active #goals .goal-amount-v113 span{color:#a9c2d4!important;font-size:11px!important;overflow-wrap:anywhere}
+html body.mmh-workspace-active #goals .goal-track-v113{
+  height:9px!important;margin-top:12px!important;border-radius:99px!important;
+  border:1px solid rgba(119,165,202,.14)!important;background:rgba(4,27,46,.76)!important;overflow:hidden!important;
+}
+html body.mmh-workspace-active #goals .goal-track-v113 i{
+  height:100%!important;border-radius:99px!important;background:linear-gradient(90deg,#f2bc5d,#66d8bc)!important;
+  box-shadow:0 0 14px rgba(240,189,85,.16)!important;
+}
+html body.mmh-workspace-active #goals .goal-meta-grid-v113{
+  display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:7px!important;margin-top:12px!important;
+}
+html body.mmh-workspace-active:not(.light) #goals .goal-meta-grid-v113>div{
+  min-width:0!important;padding:10px!important;border-radius:10px!important;
+  border:1px solid rgba(152,200,226,.23)!important;background:linear-gradient(145deg,rgba(42,87,115,.35),rgba(6,32,52,.72))!important;
+}
+html body.mmh-workspace-active #goals .goal-meta-grid-v113 span{color:#9eb9cc!important;font-size:9px!important;line-height:1.3!important}
+html body.mmh-workspace-active #goals .goal-meta-grid-v113 b{
+  margin-top:7px!important;color:#eff7ff!important;font-size:11px!important;line-height:1.38!important;
+  white-space:normal!important;text-overflow:clip!important;overflow-wrap:anywhere!important;word-break:normal!important;
+}
+html body.mmh-workspace-active #goals .goal-card-actions-v113{
+  display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:7px!important;
+  margin-top:auto!important;padding-top:14px!important;
+}
+html body.mmh-workspace-active #goals .goal-card-actions-v113:has([data-goal-delete]){grid-template-columns:repeat(4,minmax(0,1fr))!important}
+html body.mmh-workspace-active #goals .goal-card-actions-v113 .btn{width:100%!important;min-width:0!important;min-height:38px!important;padding:8px 6px!important;font-size:10px!important}
+html body.mmh-workspace-active:not(.light) #goals .goal-empty-v113{
+  padding:32px 18px!important;border-radius:15px!important;border:1px dashed rgba(186,214,234,.36)!important;
+  background:linear-gradient(140deg,rgba(51,100,134,.22),rgba(5,32,54,.6))!important;
+  color:#b1ccdc!important;font-size:12px!important;line-height:1.6!important;
+}
+html body.mmh-workspace-active #goals .goals-method-v113{
+  margin:1px 4px!important;color:#8daec4!important;font-size:10px!important;line-height:1.55!important;
+}
+/* Existing first-party goal detail dialog: glass without changing dialog engine. */
+html body.mmh-workspace-active:not(.light) #mmhVaultDialogV449 .mmh-goal-dialog-v149{
+  width:min(680px,calc(100vw - 28px))!important;max-height:min(88dvh,850px)!important;
+  border:1px solid rgba(180,214,237,.48)!important;border-radius:21px!important;
+  background:linear-gradient(140deg,rgba(77,117,147,.85),rgba(11,46,73,.95) 35%,rgba(4,25,43,.98))!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.17),0 26px 78px rgba(0,9,24,.51)!important;
+  backdrop-filter:blur(24px) saturate(130%);-webkit-backdrop-filter:blur(24px) saturate(130%);
+}
+html body.mmh-workspace-active:not(.light) #mmhVaultDialogV449 .mmh-goal-dialog-v149 .mmh-v449-dialog-head{
+  padding:18px 22px 13px!important;background:linear-gradient(95deg,rgba(163,193,213,.13),rgba(7,37,61,.23))!important;
+  border-bottom:1px solid rgba(149,199,228,.24)!important;
+}
+html body.mmh-workspace-active #mmhVaultDialogV449 .mmh-goal-dialog-v149 .mmh-v449-dialog-head h3{
+  color:#fff!important;font:500 clamp(22px,3.5vw,29px)/1.2 Georgia,'Times New Roman',serif!important;overflow-wrap:anywhere;
+}
+html body.mmh-workspace-active #mmhVaultDialogV449 .mmh-goal-dialog-v149 .goal-detail-v113{gap:12px!important}
+html body.mmh-workspace-active:not(.light) #mmhVaultDialogV449 .mmh-goal-dialog-v149 .goal-detail-hero-v113{
+  background:linear-gradient(128deg,rgba(143,122,74,.30),rgba(16,63,90,.58))!important;
+  border:1px solid rgba(236,202,139,.35)!important;border-radius:12px!important;
+}
+html body.mmh-workspace-active #mmhVaultDialogV449 .mmh-goal-dialog-v149 .goal-detail-hero-v113 strong{
+  color:#ffe0a0!important;font:600 clamp(19px,4vw,27px)/1.22 Georgia,'Times New Roman',serif!important;overflow-wrap:anywhere;
+}
+html body.mmh-workspace-active #mmhVaultDialogV449 .mmh-goal-dialog-v149 .goal-detail-grid-v113{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}
+html body.mmh-workspace-active:not(.light) #mmhVaultDialogV449 .mmh-goal-dialog-v149 .goal-detail-grid-v113>div,
+html body.mmh-workspace-active:not(.light) #mmhVaultDialogV449 .mmh-goal-dialog-v149 .goal-detail-note-v113{
+  background:linear-gradient(130deg,rgba(47,91,120,.33),rgba(5,34,56,.68))!important;
+  border:1px solid rgba(153,200,228,.26)!important;border-radius:11px!important;
+}
+html body.mmh-workspace-active #mmhVaultDialogV449 .mmh-goal-dialog-v149 .goal-detail-grid-v113 b{
+  white-space:normal!important;overflow-wrap:anywhere!important;color:#f1f9ff!important;font-size:12px!important;
+}
+html body.mmh-workspace-active #mmhVaultDialogV449 .mmh-goal-dialog-v149 .goal-track-v113{
+  height:9px!important;background:rgba(5,31,50,.81)!important;border-radius:99px!important;overflow:hidden!important;
+}
+html body.mmh-workspace-active #mmhVaultDialogV449 .mmh-goal-dialog-v149 .goal-track-v113 i{background:linear-gradient(90deg,#f2bd62,#64d7ba)!important}
+html body.mmh-workspace-active #mmhVaultDialogV449 .mmh-goal-dialog-v149 .mmh-planning-actions-v149{gap:8px!important}
+/* Responsive density: no clipped money and no giant empty cards. */
+@media(max-width:1050px){
+ html body.mmh-workspace-active #goals .goals-kpis-v113{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ html body.mmh-workspace-active #goals .goal-form-grid-v113{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ html body.mmh-workspace-active #goals .goal-list-v113{grid-template-columns:1fr!important}
+}
+@media(max-width:700px){
+ html body.mmh-workspace-active #goals{padding-bottom:calc(95px + env(safe-area-inset-bottom,0px))!important}
+ html body.mmh-workspace-active #goals .goals-shell-v113{gap:11px!important;padding-top:7px!important}
+ html body.mmh-workspace-active:not(.light) #goals .goals-head-v113{
+  flex-wrap:wrap!important;gap:12px!important;min-height:137px!important;padding:17px 16px!important;border-radius:17px!important;
+  background-position:center!important;
+ }
+ html body.mmh-workspace-active #goals .goals-head-v113 h1{font-size:clamp(25px,7vw,31px)!important;margin:5px 0 6px!important}
+ html body.mmh-workspace-active #goals .goals-head-v113 p{font-size:10px!important}
+ html body.mmh-workspace-active #goals .goals-head-v113>.btn{min-height:37px!important;padding:8px 13px!important;margin-left:0!important;font-size:11px!important}
+ html body.mmh-workspace-active #goals .goals-kpis-v113{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:8px!important}
+ html body.mmh-workspace-active:not(.light) #goals .goals-kpis-v113 article{padding:12px!important;min-height:106px!important;border-radius:14px!important}
+ html body.mmh-workspace-active #goals .goals-kpis-v113 span{font-size:8px!important}
+ html body.mmh-workspace-active #goals .goals-kpis-v113 strong{font-size:clamp(18px,5.5vw,24px)!important;margin:10px 0 5px!important}
+ html body.mmh-workspace-active #goals .goals-kpis-v113 small{font-size:9px!important}
+ html body.mmh-workspace-active:not(.light) #goals .goals-panel-v113{padding:14px!important;border-radius:16px!important}
+ html body.mmh-workspace-active #goals .goal-form-grid-v113{grid-template-columns:1fr!important;gap:12px!important}
+ html body.mmh-workspace-active #goals .goal-note-v113{grid-column:1!important}
+ html body.mmh-workspace-active #goals .goals-list-head-v113{flex-direction:column!important;align-items:stretch!important}
+ html body.mmh-workspace-active #goals .goals-list-head-v113>div:first-child{flex:0 1 auto!important;width:100%!important;min-height:0!important}
+ html body.mmh-workspace-active #goals .goal-filters-v113{width:100%!important}
+ html body.mmh-workspace-active #goals .goal-list-v113{gap:9px!important}
+ html body.mmh-workspace-active:not(.light) #goals .goal-card-v113{padding:13px!important;border-radius:14px!important}
+ html body.mmh-workspace-active #goals .goal-meta-grid-v113{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:5px!important}
+ html body.mmh-workspace-active:not(.light) #goals .goal-meta-grid-v113>div{padding:8px 6px!important}
+ html body.mmh-workspace-active #goals .goal-meta-grid-v113 span{font-size:8px!important}
+ html body.mmh-workspace-active #goals .goal-meta-grid-v113 b{font-size:10px!important}
+ html body.mmh-workspace-active #goals .goal-card-actions-v113{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+ html body.mmh-workspace-active #goals .goal-card-actions-v113:has([data-goal-delete]){grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ html body.mmh-workspace-active #goals .goal-card-actions-v113 .btn{font-size:10px!important}
+ html body.mmh-workspace-active #mmhVaultDialogV449 .mmh-goal-dialog-v149 .goal-detail-grid-v113{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+@media(max-width:359px){
+ html body.mmh-workspace-active #goals .goal-filters-v113 button{font-size:9px!important;padding:6px 3px!important}
+ html body.mmh-workspace-active #goals .goal-amount-v113 strong{font-size:19px!important}
+ html body.mmh-workspace-active #goals .goal-meta-grid-v113{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+ html body.mmh-workspace-active #goals .goal-meta-grid-v113>div:last-child{grid-column:1/-1}
+}
+@media(prefers-reduced-motion:reduce){html body.mmh-workspace-active #goals button{transition:none!important}}
+/* Light appearance: do not inject dark glass over the configured light theme. */
+html body.mmh-workspace-active.light #goals .goals-head-v113{
+  background:linear-gradient(100deg,rgba(232,241,248,.94),rgba(202,224,240,.73)),url('../images/mmhvault-city-glass-v2.webp') center / cover!important;
+  border:1px solid rgba(83,132,161,.28)!important;border-radius:20px!important;padding:23px!important;
+}
+html body.mmh-workspace-active.light #goals :is(.goals-kpis-v113 article,.goals-panel-v113,.goal-card-v113){
+  border:1px solid rgba(96,149,180,.27)!important;background:linear-gradient(130deg,rgba(240,248,253,.88),rgba(201,224,238,.78))!important;
+  box-shadow:0 14px 29px rgba(28,67,91,.09)!important;
+}
+
+html body.mmh-workspace-active.light #goals .goals-head-v113 h1,
+html body.mmh-workspace-active.light #goals .goals-kpis-v113 strong,
+html body.mmh-workspace-active.light #goals .goals-panel-head-v113 h2,
+html body.mmh-workspace-active.light #goals .goal-card-title-v113 h3{color:#133b57!important}
+html body.mmh-workspace-active.light #goals .goals-head-v113 p,
+html body.mmh-workspace-active.light #goals .goals-kpis-v113 small,
+html body.mmh-workspace-active.light #goals .goals-panel-head-v113 p,
+html body.mmh-workspace-active.light #goals .goal-card-title-v113 p{color:#315e77!important}
+html body.mmh-workspace-active.light #goals .goal-amount-v113 strong{color:#976127!important}
+html body.mmh-workspace-active.light #goals .goal-amount-v113 span{color:#42667d!important}
+html body.mmh-workspace-active.light #goals .goal-meta-grid-v113 b{color:#183b53!important}
