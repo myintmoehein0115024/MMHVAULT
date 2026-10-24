@@ -26710,6 +26710,43 @@ html,body{max-width:100%;overflow-x:clip}
   const safe=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const monthKey=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`};
   const state={mode:'month',month:monthKey(),year:new Date().getFullYear(),currency:'USD',budget:null,budgetKey:'',budgetLoading:false,budgetRequest:0};
+  // P9.18: Analyze currency is durable per signed-in account, independent of boot order.
+  // RMB is represented by its ISO currency code CNY throughout the existing app.
+  const cashflowCurrenciesV918=['USD','THB','MMK','CNY'];
+  const currencyOwnerV918=()=>currentSessionUser?.id||'guest';
+  const analyzeCurrencyKeyV918=()=> 'mmhvault_analyze_currency_v918_'+currencyOwnerV918();
+  const settingsCurrencyKeyV918=()=> 'mmhvault_settings_display_v2_'+currencyOwnerV918();
+  const validCurrencyV918=c=>cashflowCurrenciesV918.includes(c)?c:null;
+  function readCurrencyV918(){
+    try{
+      const chosen=validCurrencyV918(localStorage.getItem(analyzeCurrencyKeyV918()));
+      if(chosen)return chosen;
+      const settings=JSON.parse(localStorage.getItem(settingsCurrencyKeyV918())||'{}');
+      const legacy=validCurrencyV918(settings?.currency);
+      if(legacy)return legacy;
+    }catch(_e){}
+    return 'USD';
+  }
+  function restoreCurrencyV918(){
+    state.currency=readCurrencyV918();
+    const select=$('cfaCurrency');if(select)select.value=state.currency;
+    window.mmhSettingsSyncCashflowCurrencyV71?.(state.currency);
+    // Recalculate labels/amounts immediately, including when auth restores an inactive page.
+    if($('cashflow-analyze'))render();
+  }
+  function saveCurrencyV918(code){
+    state.currency=validCurrencyV918(code)||'USD';
+    try{
+      localStorage.setItem(analyzeCurrencyKeyV918(),state.currency);
+      // Keep the existing Settings default synchronized without overwriting unrelated prefs.
+      const key=settingsCurrencyKeyV918();
+      const stored=JSON.parse(localStorage.getItem(key)||'{}');
+      localStorage.setItem(key,JSON.stringify({...(stored&&typeof stored==='object'&&!Array.isArray(stored)?stored:{}),currency:state.currency}));
+    }catch(_e){}
+    window.mmhSettingsSyncCashflowCurrencyV71?.(state.currency);
+  }
+  window.mmhRestoreAnalyzeCurrencyV918=restoreCurrencyV918;
+
   function context(){const key=state.mode==='month'?state.month:String(state.year);return {key};}
   function budgetContextKey(){return `${currentSessionUser?.id||'guest'}:${state.mode}:${context().key}`}
   function budgetAmountUsd(row){const rate=currencyRate(row?.currency);return rate>0?Math.max(0,num(row?.monthly_amount))/rate:0}
@@ -26826,24 +26863,10 @@ html,body{max-width:100%;overflow-x:clip}
     const year=$('cfaYear'),now=new Date().getFullYear();
     year.innerHTML=Array.from({length:Math.max(7,now-2019+2)},(_,i)=>`<option value="${now+1-i}">${now+1-i}</option>`).join('');
     $('cfaMonth').value=state.month;year.value=String(state.year);
-    // P7.1: use the existing per-user display preferences instead of a temporary-only currency.
-    const allowedCurrency=['USD','THB','MMK','CNY'];
-    const currencyPrefKey=()=> 'mmhvault_settings_display_v2_'+(currentSessionUser?.id||'guest');
-    try{
-      const stored=JSON.parse(localStorage.getItem(currencyPrefKey())||'{}');
-      if(allowedCurrency.includes(stored.currency))state.currency=stored.currency;
-    }catch(_e){}
-    $('cfaCurrency').value=state.currency;
-    $('cfaCurrency').addEventListener('change',e=>{
-      state.currency=allowedCurrency.includes(e.target.value)?e.target.value:'USD';
-      try{
-        const key=currencyPrefKey();
-        const stored=JSON.parse(localStorage.getItem(key)||'{}');
-        localStorage.setItem(key,JSON.stringify({...stored,currency:state.currency}));
-      }catch(_e){}
-      window.mmhSettingsSyncCashflowCurrencyV71?.(state.currency);
-      render();
-    });
+    restoreCurrencyV918();
+    $('cfaCurrency').addEventListener('change',e=>{saveCurrencyV918(e.target.value);render()});
+    // Authentication can finish after DOMContentLoaded: restore the new account's choice.
+    window.addEventListener('mmhvault:config-owner-changed',restoreCurrencyV918);
     $('cfaMode').addEventListener('change',e=>{state.mode=e.target.value==='year'?'year':'month';$('cfaMonthWrap').hidden=state.mode!=='month';$('cfaYearWrap').hidden=state.mode!=='year';periodChanged()});
     $('cfaMonth').addEventListener('change',e=>{if(/^\d{4}-(0[1-9]|1[0-2])$/.test(e.target.value))state.month=e.target.value;periodChanged()});
     year.addEventListener('change',e=>{state.year=Number(e.target.value)||now;periodChanged()});
@@ -27045,8 +27068,8 @@ for(const [i,d] of [...root.querySelectorAll('.st-detail')].sort((a,b)=>['Passwo
 window.mmhOpenSettingsSectionV3=go;
 root.addEventListener('keydown',e=>{if(e.key==='Escape'&&root.classList.contains('st-in-subpage')){e.preventDefault();back()}});
 
-window.mmhSettingsRefreshDefaultsV4=refreshDefaults;apply();stats();refreshDefaults();if($('cfaCurrency')){$('cfaCurrency').value=prefs.currency;$('cfaCurrency').dispatchEvent(new Event('change',{bubbles:true}))}
-root.addEventListener('click',stats);root.addEventListener('focusin',e=>{if(e.target.tagName!=='SELECT')refreshDefaults()});document.addEventListener('change',e=>{if(['txType','txGroup'].includes(e.target.id))setTimeout(applyTxDefault,0)});['mmhvault:data-loaded','mmhvault:cache-restored','mmhvault:category-config-changed'].forEach(ev=>window.addEventListener(ev,()=>{stats();refreshDefaults()}));window.addEventListener('mmhvault:config-owner-changed',()=>{prefs=readPrefs();syncPrefControls();const cashflowCurrency=$('cfaCurrency');if(cashflowCurrency){cashflowCurrency.value=prefs.currency;cashflowCurrency.dispatchEvent(new Event('change',{bubbles:true}))}apply();stats();refreshDefaults();window.mmhvaultForceRenderAllV34421?.('settings-owner-change');window.mmhRenderCashflowAnalyzeV1?.()});
+window.mmhSettingsRefreshDefaultsV4=refreshDefaults;apply();stats();refreshDefaults();window.mmhRestoreAnalyzeCurrencyV918?.()
+root.addEventListener('click',stats);root.addEventListener('focusin',e=>{if(e.target.tagName!=='SELECT')refreshDefaults()});document.addEventListener('change',e=>{if(['txType','txGroup'].includes(e.target.id))setTimeout(applyTxDefault,0)});['mmhvault:data-loaded','mmhvault:cache-restored','mmhvault:category-config-changed'].forEach(ev=>window.addEventListener(ev,()=>{stats();refreshDefaults()}));window.addEventListener('mmhvault:config-owner-changed',()=>{prefs=readPrefs();syncPrefControls();window.mmhRestoreAnalyzeCurrencyV918?.();apply();stats();refreshDefaults();window.mmhvaultForceRenderAllV34421?.('settings-owner-change');window.mmhRenderCashflowAnalyzeV1?.()});
 }
 media.addEventListener('change',()=>{if(prefs.theme==='system')apply()});if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
