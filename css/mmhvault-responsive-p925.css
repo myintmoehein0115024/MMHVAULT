@@ -1,0 +1,134 @@
+/* MMHVAULT P9.25 — Responsive navigation and viewport safe-area refinement.
+ * Cumulative after P9.24. CSS only: no data, authorization, route or event changes.
+ * Scope all positioning to the signed-in workspace. Keep 1100px+ sidebar intact.
+ */
+@media (max-width:1099px){
+  /* Older v152/v153 rules mix viewport widths with left/right anchoring.
+     Center against the layout viewport, including when a scrollbar is visible. */
+  html body.mmh-workspace-active #bottomNav.bottom-nav{
+    box-sizing:border-box!important;
+    position:fixed!important;
+    left:50%!important;
+    right:auto!important;
+    transform:translateX(-50%)!important;
+    width:min(650px,calc(100% - 16px))!important;
+    max-width:calc(100% - 16px)!important;
+    display:grid!important;
+    grid-template-columns:repeat(5,minmax(0,1fr))!important;
+    align-items:stretch!important;
+    justify-content:stretch!important;
+    gap:clamp(2px,.65vw,5px)!important;
+    padding:clamp(5px,.8vw,8px)!important;
+    bottom:max(8px,env(safe-area-inset-bottom,0px))!important;
+    overflow:hidden!important;
+  }
+  html body.mmh-workspace-active #bottomNav.bottom-nav>button{
+    box-sizing:border-box!important;
+    width:auto!important;
+    max-width:100%!important;
+    min-width:0!important;
+    flex:1 1 0!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    justify-content:center!important;
+    white-space:normal!important;
+    gap:3px!important;
+  }
+  /* Never silently truncate a destination, especially Transactions / Chinese. */
+  html body.mmh-workspace-active #bottomNav.bottom-nav>button>span{
+    display:block!important;
+    box-sizing:border-box!important;
+    width:100%!important;
+    max-width:100%!important;
+    min-width:0!important;
+    white-space:normal!important;
+    overflow:visible!important;
+    text-overflow:clip!important;
+    overflow-wrap:anywhere!important;
+    word-break:normal!important;
+    text-align:center!important;
+    line-height:1.13!important;
+    letter-spacing:-.022em!important;
+  }
+  html body.mmh-workspace-active #bottomNav.bottom-nav>button .mmh-nav-icon{
+    flex-shrink:0!important;
+  }
+  /* More is a floating app menu, not a sheet pushed under the fixed rail. */
+  html body.mmh-workspace-active #moreNavMenu.more-nav-menu{
+    max-width:calc(100vw - 16px)!important;
+    box-sizing:border-box!important;
+  }
+}
+@media (max-width:699px){
+  /* Previous rules reserved space both on .wrap and the active section; avoid
+     doubling the empty area while keeping the 5-button rail clear. */
+  html body.mmh-workspace-active main.wrap{
+    padding-bottom:calc(12px + env(safe-area-inset-bottom,0px))!important;
+  }
+  html body.mmh-workspace-active main.wrap>section.page.active{
+    min-width:0!important;
+    padding-bottom:calc(82px + env(safe-area-inset-bottom,0px))!important;
+  }
+  html body.mmh-workspace-active #bottomNav.bottom-nav{
+    min-height:68px!important;
+    border-radius:19px!important;
+  }
+  html body.mmh-workspace-active #bottomNav.bottom-nav>button{
+    min-height:56px!important;
+    padding:5px 2px!important;
+  }
+  html body.mmh-workspace-active #bottomNav.bottom-nav>button>span{
+    font-size:10px!important;
+  }
+  /* Prevent placeholder/form rows from keeping a desktop min-content width. */
+  html body.mmh-workspace-active main.wrap>section.page.active :is(.toolbar,.actions,.formgrid,.grid,.panel,.card){min-width:0}
+  html body.mmh-workspace-active main.wrap>section.page.active :is(input,select,textarea){max-width:100%;min-width:0}
+}
+@media (max-width:360px){
+  html body.mmh-workspace-active #bottomNav.bottom-nav>button>span{
+    font-size:9.6px!important;
+    line-height:1.1!important;
+    text-wrap:balance!important;
+    letter-spacing:-.035em!important;
+  }
+  html body.mmh-workspace-active #bottomNav.bottom-nav>button .mmh-nav-icon{
+    font-size:17px!important;
+  }
+}
+@media (min-width:700px) and (max-width:1099px){
+  html body.mmh-workspace-active #bottomNav.bottom-nav>button>span{
+    font-size:11px!important;
+  }
+  html body.mmh-workspace-active main.wrap{
+    padding-bottom:calc(96px + env(safe-area-inset-bottom,0px))!important;
+  }
+}
+@media (max-width:1099px) and (max-height:540px){
+  /* Landscape phones/small laptop windows: preserve more useful vertical room. */
+  html body.mmh-workspace-active #bottomNav.bottom-nav{
+    padding:4px!important;
+    min-height:57px!important;
+  }
+  html body.mmh-workspace-active #bottomNav.bottom-nav>button{
+    min-height:48px!important;
+    padding:3px 2px!important;
+  }
+  html body.mmh-workspace-active #bottomNav.bottom-nav>button .mmh-nav-icon{
+    height:17px!important;
+    flex-basis:17px!important;
+    font-size:16px!important;
+  }
+}
+/* Transactions has an additional legacy 110px section gutter *inside* the
+   workspace gutter. Remove the duplication without touching the form footer. */
+@media (max-width:699px){
+  html body.mmh-workspace-active main.wrap>#transactions.page.active{
+    padding-bottom:calc(80px + env(safe-area-inset-bottom,0px))!important;
+  }
+}
+@media (min-width:700px) and (max-width:1099px){
+  html body.mmh-workspace-active main.wrap>#transactions.page.active{
+    padding-bottom:24px!important;
+  }
+}
