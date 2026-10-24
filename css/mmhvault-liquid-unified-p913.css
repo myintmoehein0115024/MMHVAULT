@@ -1,0 +1,184 @@
+/* MMHVAULT P9.13 — unified visual system (additive CSS only)
+   Source baseline P9.12. No JS handlers, authentication, finance formulas,
+   cloud persistence, hidden state or transaction generation are altered.
+   Existing page-specific P2–P9.12 CSS remains authoritative for layout. */
+html body.mmh-workspace-active:not(.light){
+  --p913-glass-top:rgba(83,132,164,.33);
+  --p913-glass-middle:rgba(18,57,84,.79);
+  --p913-glass-deep:rgba(4,25,44,.94);
+  --p913-glass:linear-gradient(148deg,var(--p913-glass-top),var(--p913-glass-middle) 47%,var(--p913-glass-deep));
+  --p913-input:linear-gradient(125deg,rgba(41,91,123,.52),rgba(5,30,52,.88));
+  --p913-line:rgba(163,206,237,.35);
+  --p913-line-soft:rgba(164,208,233,.17);
+  --p913-text:#edf7ff;
+  --p913-muted:#abc7da;
+  --p913-gold:#f3c56e;
+  --p913-corner:19px;
+  --p913-shadow:inset 0 1px 0 rgba(248,253,255,.14),0 16px 38px rgba(0,8,24,.22);
+}
+/* A single compact glass rail & topbar, with consistent active state. */
+html body.mmh-workspace-active:not(.light) :is(#header,#bottomNav.bottom-nav){
+  border-color:var(--p913-line)!important;
+  background:linear-gradient(142deg,rgba(51,103,138,.30),rgba(7,31,53,.91) 50%,rgba(2,19,36,.95))!important;
+  box-shadow:var(--p913-shadow)!important;
+  -webkit-backdrop-filter:blur(20px) saturate(136%)!important;
+  backdrop-filter:blur(20px) saturate(136%)!important;
+}
+html body.mmh-workspace-active:not(.light) #bottomNav :is(.mmh-sidebar-brand-v500,.mmh-sidebar-private-v500){
+  border-color:rgba(186,219,239,.22)!important;
+}
+html body.mmh-workspace-active:not(.light) #bottomNav>button.active,
+html body.mmh-workspace-active:not(.light) #bottomNav>button[aria-current=page]{
+  border-color:rgba(247,206,129,.78)!important;
+  background:linear-gradient(120deg,rgba(199,157,80,.57),rgba(31,68,93,.82))!important;
+  color:#fff9eb!important;
+  box-shadow:inset 0 1px 0 rgba(255,241,210,.23),0 6px 18px rgba(226,169,67,.12)!important;
+}
+html body.mmh-workspace-active:not(.light) #moreNavMenu.more-nav-menu{
+  border-color:var(--p913-line)!important;
+  background:linear-gradient(137deg,rgba(56,104,133,.90),rgba(8,35,59,.97) 38%,rgba(2,21,39,.99))!important;
+  box-shadow:0 22px 62px rgba(0,7,22,.48),inset 0 1px 0 rgba(249,255,255,.15)!important;
+}
+/* Common financial containers—do not force heights, columns, or positioning. */
+html body.mmh-workspace-active:not(.light) :is(
+ #settings .st-group,
+ #settings .st-page>.panel,
+ #settings .settings-panel-v371>.panel,
+ #transactions .tx-tab-panel-v371>.panel,
+ #exchange .exchange-converter-panel,
+ #exchange .exchange-rates-panel,
+ #reports .report-panel-v115,
+ #cashflow-analyze .panel,
+ #invest .v371-card,
+ #accounts-page .ap-card
+){
+  min-width:0;
+  border-color:var(--p913-line)!important;
+  border-radius:var(--p913-corner)!important;
+  background:var(--p913-glass)!important;
+  box-shadow:var(--p913-shadow)!important;
+  -webkit-backdrop-filter:blur(17px) saturate(133%);
+  backdrop-filter:blur(17px) saturate(133%);
+}
+/* Hero dimensions match across secondary pages; no forced empty space. */
+html body.mmh-workspace-active:not(.light) :is(
+ #transactions>.mmh-tx-hero-v3,
+ #accounts-page>.ap-heading,
+ #invest>.toolbar.v371-head,
+ #exchange>.ex-template-head,
+ #reports .report-head-v115,
+ #goals .goals-head-v113,
+ #recurring .recurring-head-v114
+){
+  box-sizing:border-box!important;
+  min-width:0!important;
+  border-radius:21px!important;
+  border-color:rgba(172,210,237,.37)!important;
+  box-shadow:inset 0 1px 0 rgba(249,255,255,.16),0 13px 34px rgba(0,8,21,.22)!important;
+}
+/* Shared numeric display: prevent long currency values from escaping cards. */
+html body.mmh-workspace-active:not(.light) :is(
+ .report-kpis-v115,.goals-kpis-v113,.recurring-kpis-v114,.ap-summary-grid,
+ .pf-kpis-v500,.ex-currency-cards
+)>*{min-width:0}
+html body.mmh-workspace-active:not(.light) :is(
+ .report-kpis-v115 strong,.goals-kpis-v113 strong,.recurring-kpis-v114 strong,
+ .ap-summary-net,.ex-currency-cards strong
+){font-variant-numeric:tabular-nums;overflow-wrap:anywhere;word-break:normal}
+/* Unified form material and readable labels, retaining each module's own sizing. */
+html body.mmh-workspace-active:not(.light) :is(#settings,#transactions,#invest,#accounts-page,#exchange,#exAsiaV10,#reports,#cashflow-analyze,#budget,#goals,#recurring) :is(input:not([type=radio]):not([type=checkbox]):not([type=range]):not([type=file]),select,textarea){
+  border-color:rgba(151,198,224,.39)!important;
+  border-radius:12px!important;
+  background:var(--p913-input)!important;
+  color:var(--p913-text)!important;
+  box-shadow:inset 0 1px 0 rgba(249,255,255,.11)!important;
+  min-width:0;
+  max-width:100%;
+  color-scheme:dark;
+}
+html body.mmh-workspace-active:not(.light) :is(#settings,#transactions,#invest,#accounts-page,#exchange,#exAsiaV10,#reports,#cashflow-analyze,#budget,#goals,#recurring) :is(input,textarea)::placeholder{color:#90aabd!important;opacity:1}
+html body.mmh-workspace-active :is(input,textarea,select,button,[role=button]):focus-visible{
+  outline:2px solid var(--p913-gold,#f3c56e)!important;
+  outline-offset:2px!important;
+}
+html body.mmh-workspace-active :is(input,textarea,select,button,[role=button]){-webkit-tap-highlight-color:transparent}
+html body.mmh-workspace-active :is(input,textarea,select)[disabled]{cursor:not-allowed!important;opacity:.56!important}
+/* Buttons: the visual language is consistent, but retain existing semantic hues. */
+html body.mmh-workspace-active:not(.light) :is(#settings,#transactions,#invest,#accounts-page,#exchange,#exAsiaV10,#reports,#cashflow-analyze,#budget,#goals,#recurring) .btn:not(.danger):not(.primary):not(.active):not([aria-pressed="true"]):not([aria-selected="true"]){
+  border-radius:11px!important;
+  border-color:rgba(157,203,230,.41)!important;
+  background:linear-gradient(138deg,rgba(61,112,145,.57),rgba(8,38,62,.90))!important;
+  color:#e8f5ff!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12)!important;
+}
+html body.mmh-workspace-active:not(.light) :is(#settings,#transactions,#invest,#accounts-page,#exchange,#exAsiaV10,#reports,#cashflow-analyze,#budget,#goals,#recurring) .btn.primary{
+  border-radius:11px!important;
+  border-color:rgba(255,225,152,.8)!important;
+  background:linear-gradient(119deg,#ffe2a3,#eab65b)!important;
+  color:#1d2a38!important;
+  box-shadow:0 7px 17px rgba(237,180,77,.17)!important;
+}
+/* Consistent app-owned edit, alert, image-viewer surfaces (no native JS dialogs). */
+html body.mmh-workspace-active:not(.light) #editModal.open{
+  background:rgba(2,12,27,.72)!important;
+  -webkit-backdrop-filter:blur(9px) saturate(118%)!important;
+  backdrop-filter:blur(9px) saturate(118%)!important;
+}
+html body.mmh-workspace-active:not(.light) #editModal.open>.modal{
+  border:1px solid rgba(184,219,240,.42)!important;
+  border-radius:20px!important;
+  background:linear-gradient(145deg,rgba(56,100,129,.93),rgba(11,42,68,.98) 43%,rgba(4,25,45,.99))!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 32px 90px rgba(0,4,16,.49)!important;
+}
+html body.mmh-workspace-active:not(.light) #editModal.open>.modal>.toolbar{
+  border-bottom:1px solid var(--p913-line-soft)!important;
+  background:linear-gradient(118deg,rgba(169,206,229,.14),rgba(15,47,75,.18))!important;
+}
+html body.mmh-workspace-active:not(.light) #editModalBody form>.actions{
+  border-top:1px solid rgba(168,208,231,.26)!important;
+  background:linear-gradient(180deg,rgba(9,40,65,.91),rgba(5,27,48,.98))!important;
+  -webkit-backdrop-filter:blur(16px)!important;
+  backdrop-filter:blur(16px)!important;
+}
+html body.mmh-workspace-active:not(.light) #editModal .btn{
+  border:1px solid rgba(152,203,231,.43)!important;
+  border-radius:11px!important;
+  background:linear-gradient(135deg,rgba(63,115,146,.65),rgba(11,43,68,.92))!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12)!important;
+  color:var(--p913-text)!important;
+}
+html body.mmh-workspace-active:not(.light) #editModal .btn.primary{
+  color:#15283a!important;background:linear-gradient(120deg,#ffe1a1,#e9b75c)!important;
+  border-color:rgba(255,226,157,.73)!important;
+}
+html body.mmh-workspace-active:not(.light) #editModalBody :is(input:not([type=file]),select,textarea){
+  border-color:rgba(156,205,233,.40)!important;background:var(--p913-input)!important;color:var(--p913-text)!important;
+}
+html body.mmh-workspace-active:not(.light) #editModalBody :is(.receipt-upload-v3300,.receipt-dropzone-v3300){
+  border-color:rgba(161,207,230,.35)!important;
+  background:linear-gradient(134deg,rgba(56,104,137,.42),rgba(6,32,55,.83))!important;
+  border-radius:14px!important;
+}
+html body.mmh-workspace-active:not(.light) #mmhVaultDialogV449 .mmh-v449-dialog,
+html body.mmh-workspace-active:not(.light) .receipt-viewer-dialog-v3297{
+  border:1px solid var(--p913-line)!important;
+  border-radius:19px!important;
+  background:var(--p913-glass)!important;
+  box-shadow:0 22px 74px rgba(0,6,23,.5),inset 0 1px 0 rgba(255,255,255,.15)!important;
+  -webkit-backdrop-filter:blur(19px) saturate(132%);
+  backdrop-filter:blur(19px) saturate(132%);
+}
+/* Small viewport: narrow cards, no accidental horizontal scrolling or oversized dialogs. */
+@media(max-width:700px){
+  html body.mmh-workspace-active main.wrap>.page{max-width:100%;min-width:0}
+  html body.mmh-workspace-active:not(.light) :is(#transactions>.mmh-tx-hero-v3,#invest>.toolbar.v371-head,#exchange>.ex-template-head,#reports .report-head-v115,#goals .goals-head-v113,#recurring .recurring-head-v114){border-radius:16px!important}
+  html body.mmh-workspace-active:not(.light) #editModal.open{padding:8px!important}
+  html body.mmh-workspace-active:not(.light) #editModal.open>.modal{border-radius:16px!important;max-width:100%!important}
+  html body.mmh-workspace-active:not(.light) #editModalBody{scrollbar-gutter:auto!important}
+  html body.mmh-workspace-active:not(.light) #editModalBody form>.actions{padding-bottom:max(14px,env(safe-area-inset-bottom))!important}
+  html body.mmh-workspace-active:not(.light) #bottomNav.bottom-nav{border-radius:21px!important}
+  html body.mmh-workspace-active:not(.light) #moreNavMenu.more-nav-menu{max-height:min(70dvh,560px)!important}
+}
+@media(prefers-reduced-motion:reduce){
+  html body.mmh-workspace-active #editModal :is(.modal,.btn),html body.mmh-workspace-active #moreNavMenu{transition:none!important}
+}
