@@ -1,0 +1,199 @@
+/* MMHVAULT P9.24 — shared dialog geometry + premium-glass tokens.
+   Scope: existing app-owned overlays only. No JS, login, finance or storage changes.
+   Added LAST in app.html so this is a single, reversible compatibility layer.
+   Intentionally preserves existing specialized transaction/account detail layouts. */
+html body.mmh-workspace-active {
+  --p924-veil:rgba(2,10,23,.87);
+  --p924-panel:radial-gradient(ellipse at 10% 0%,rgba(118,171,207,.19),transparent 52%),linear-gradient(145deg,rgba(20,49,76,.985),rgba(6,21,39,.995) 78%);
+  --p924-line:rgba(165,201,224,.35);
+  --p924-soft-line:rgba(157,202,226,.17);
+  --p924-head:linear-gradient(110deg,rgba(121,166,201,.14),rgba(10,38,63,.20));
+  --p924-foot:linear-gradient(150deg,rgba(27,63,89,.94),rgba(6,26,45,.98));
+  --p924-control:rgba(6,27,48,.89);
+  --p924-ink:#eff7ff;
+  --p924-muted:#b4cadd;
+  --p924-gold:#f2cd86;
+  --p924-radius:20px;
+  --p924-shadow:0 25px 82px rgba(0,4,16,.53),inset 0 1px 0 rgba(255,255,255,.14);
+}
+/* Shared overlay positioning. Fixed portal order and z-index remain unchanged. */
+html body.mmh-workspace-active :is(#editModal.open,#mmhVaultDialogV449.show,#mmhManageOverlayV1.open,#receiptViewerModalV3297.show){
+  box-sizing:border-box!important;
+  align-items:center!important;
+  justify-content:center!important;
+  padding:max(12px,env(safe-area-inset-top,0px)) max(12px,env(safe-area-inset-right,0px)) max(12px,env(safe-area-inset-bottom,0px)) max(12px,env(safe-area-inset-left,0px))!important;
+  overflow:hidden!important;
+  overscroll-behavior:contain!important;
+}
+html body.mmh-workspace-active:not(.light) :is(#editModal.open,#mmhVaultDialogV449.show,#mmhManageOverlayV1.open,#receiptViewerModalV3297.show){
+  background:var(--p924-veil)!important;
+}
+/* Edit transaction / investment: preserve native form submission and the P2.2 fixed footer. */
+html body.mmh-workspace-active #editModal.open>.modal{
+  box-sizing:border-box!important;
+  width:min(820px,100%)!important;
+  max-width:100%!important;
+  height:auto!important;
+  min-height:0!important;
+  max-height:calc(100dvh - 32px)!important;
+  margin:0!important;
+  padding:0!important;
+  display:flex!important;
+  flex-direction:column!important;
+  overflow:hidden!important;
+  border-radius:var(--p924-radius)!important;
+}
+/* Only genuinely long editing forms take a tall canvas; simple messages stay centered/compact. */
+html body.mmh-workspace-active #editModal.open>.modal:has(#editTxForm),
+html body.mmh-workspace-active #editModal.open>.modal:has(#editInvForm){
+  height:min(746px,calc(100dvh - 32px))!important;
+}
+html body.mmh-workspace-active:not(.light) #editModal.open>.modal,
+html body.mmh-workspace-active:not(.light) #mmhVaultDialogV449.show>.mmh-v449-dialog,
+html body.mmh-workspace-active:not(.light) #mmhManageOverlayV1.open>.mmh-manager-window-v1,
+html body.mmh-workspace-active:not(.light) #receiptViewerModalV3297.show>.receipt-viewer-dialog-v3297{
+  border:1px solid var(--p924-line)!important;
+  background:var(--p924-panel)!important;
+  color:var(--p924-ink)!important;
+  box-shadow:var(--p924-shadow)!important;
+}
+html body.mmh-workspace-active #editModal.open>.modal>.toolbar{
+  box-sizing:border-box!important;
+  position:relative!important;
+  flex:0 0 auto!important;
+  margin:0!important;
+  padding:15px clamp(14px,3vw,22px)!important;
+  z-index:2!important;
+  border-bottom:1px solid var(--p924-soft-line)!important;
+}
+html body.mmh-workspace-active:not(.light) #editModal.open>.modal>.toolbar,
+html body.mmh-workspace-active:not(.light) #mmhVaultDialogV449 .mmh-v449-dialog-head,
+html body.mmh-workspace-active:not(.light) #mmhManageOverlayV1 .mmh-manager-window-head-v1,
+html body.mmh-workspace-active:not(.light) #receiptViewerModalV3297 .receipt-viewer-head-v3297{
+  background:var(--p924-head)!important;
+  border-bottom-color:var(--p924-soft-line)!important;
+}
+html body.mmh-workspace-active #editModal.open #editModalBody{
+  box-sizing:border-box!important;
+  flex:1 1 auto!important;
+  min-height:0!important;
+  min-width:0!important;
+  max-width:100%!important;
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  overscroll-behavior:contain!important;
+  -webkit-overflow-scrolling:touch;
+  scrollbar-gutter:auto!important;
+}
+/* The transaction editor uses a nested scroll region; keep its real footer outside it. */
+html body.mmh-workspace-active #editModal.open:has(#editTxForm) #editModalBody{overflow:hidden!important;padding:0!important;}
+html body.mmh-workspace-active #editModal.open #editTxForm.mmh-edit-form-p22{height:100%!important;min-height:0!important;}
+html body.mmh-workspace-active #editModal.open #editTxForm .mmh-edit-scroll-p22{min-height:0!important;overflow-y:auto!important;}
+html body.mmh-workspace-active #editModal.open #editInvForm{min-height:0!important;}
+html body.mmh-workspace-active #editModal.open #editInvForm>.actions{z-index:2!important;}
+html body.mmh-workspace-active:not(.light) #editModal.open :is(#editTxForm.mmh-edit-form-p22>.actions,#editInvForm>.actions){
+  background:var(--p924-foot)!important;
+  border-top-color:var(--p924-soft-line)!important;
+}
+/* The shared confirm/detail dialog has its own head/body/footer. */
+html body.mmh-workspace-active #mmhVaultDialogV449.show>.mmh-v449-dialog{
+  box-sizing:border-box!important;
+  height:auto!important;
+  min-height:0!important;
+  max-height:calc(100dvh - 32px)!important;
+  display:flex!important;
+  flex-direction:column!important;
+  overflow:hidden!important;
+  border-radius:var(--p924-radius)!important;
+}
+html body.mmh-workspace-active #mmhVaultDialogV449 .mmh-v449-dialog-head,
+html body.mmh-workspace-active #mmhVaultDialogV449 .mmh-v449-dialog-actions{flex:0 0 auto!important;min-width:0!important;}
+html body.mmh-workspace-active #mmhVaultDialogV449 .mmh-v449-dialog-body{
+  box-sizing:border-box!important;flex:0 1 auto!important;min-height:0!important;min-width:0!important;
+  overflow-y:auto!important;overflow-x:hidden!important;overscroll-behavior:contain!important;
+  -webkit-overflow-scrolling:touch;
+}
+html body.mmh-workspace-active:not(.light) #mmhVaultDialogV449 .mmh-v449-dialog-actions{
+  background:var(--p924-foot)!important;border-top-color:var(--p924-soft-line)!important;
+}
+/* Manage categories/accounts: retain existing manager route, sticky header and scrolling. */
+html body.mmh-workspace-active #mmhManageOverlayV1.open>.mmh-manager-window-v1{
+  box-sizing:border-box!important;max-width:100%!important;
+  max-height:calc(100dvh - 32px)!important;min-height:0!important;
+  overflow-y:auto!important;overflow-x:hidden!important;
+  overscroll-behavior:contain!important;border-radius:var(--p924-radius)!important;
+}
+/* Receipts keep an image-sized viewport, but not the previous 94vh phone sheet. */
+html body.mmh-workspace-active #receiptViewerModalV3297.show>.receipt-viewer-dialog-v3297{
+  box-sizing:border-box!important;max-width:100%!important;
+  height:min(760px,calc(100dvh - 32px))!important;
+  max-height:calc(100dvh - 32px)!important;
+  min-height:0!important;border-radius:var(--p924-radius)!important;
+}
+html body.mmh-workspace-active #receiptViewerModalV3297 .receipt-viewer-body-v3297{min-height:0!important;}
+/* Harmonize controls in the existing finance overlays, not the underlying pages. */
+html body.mmh-workspace-active:not(.light) :is(#editModal.open,#mmhVaultDialogV449.show,#mmhManageOverlayV1.open) :is(input:not([type=checkbox]):not([type=radio]):not([type=file]),select,textarea){
+  box-sizing:border-box!important;max-width:100%!important;min-width:0!important;
+  color:var(--p924-ink)!important;background:var(--p924-control)!important;
+  border-color:var(--p924-line)!important;border-radius:11px!important;
+  color-scheme:dark;
+}
+html body.mmh-workspace-active:not(.light) #mmhVaultDialogV449 .mmh-v449-dialog-head h3{color:var(--p924-ink)!important;}
+html body.mmh-workspace-active:not(.light) #mmhVaultDialogV449 .mmh-v449-dialog-head p{color:var(--p924-muted)!important;}
+html body.mmh-workspace-active :is(#editModal.open,#mmhVaultDialogV449.show,#mmhManageOverlayV1.open,#receiptViewerModalV3297.show) :is(button,input,textarea,select):focus-visible{
+  outline:2px solid var(--p924-gold)!important;outline-offset:2px!important;
+}
+/* Life Planner has intentional warm tones; align modal frame geometry without
+   recoloring sensitive habit forms, labels, or data-entry semantics. */
+html body #lpOverlayV1.lp-portal-overlay:not([hidden]){align-items:center!important;justify-content:center!important;}
+html body #lpOverlayV1 .lp-modal,
+html body :is(dialog.lh-dialog,dialog.ls-dialog,dialog.lf-dialog,dialog.lg-dialog,dialog.li-dialog){
+  box-sizing:border-box!important;min-width:0!important;
+  max-width:calc(100vw - 24px)!important;
+  max-height:calc(100dvh - 24px)!important;
+  border-radius:var(--p924-radius)!important;
+  box-shadow:0 26px 80px rgba(0,7,17,.36),inset 0 1px 0 rgba(255,255,255,.18)!important;
+}
+/* High-priority phone corrections override legacy align-items:flex-end and 100dvh.
+   Keep overlay opaque on first frame to avoid Safari's transient pale blur flash. */
+@media(max-width:699px){
+  html body.mmh-workspace-active :is(#editModal.open,#mmhVaultDialogV449.show,#mmhManageOverlayV1.open,#receiptViewerModalV3297.show){
+    align-items:center!important;justify-content:center!important;
+    padding:max(10px,env(safe-area-inset-top,0px)) max(10px,env(safe-area-inset-right,0px)) max(10px,env(safe-area-inset-bottom,0px)) max(10px,env(safe-area-inset-left,0px))!important;
+    -webkit-backdrop-filter:none!important;backdrop-filter:none!important;
+  }
+  html body.mmh-workspace-active:not(.light) :is(#editModal.open,#mmhVaultDialogV449.show,#mmhManageOverlayV1.open,#receiptViewerModalV3297.show){background:var(--p924-veil)!important;}
+  html body.mmh-workspace-active #editModal.open>.modal{
+    width:100%!important;max-width:100%!important;height:auto!important;
+    max-height:calc(100dvh - 24px)!important;border-radius:17px!important;
+  }
+  html body.mmh-workspace-active #editModal.open>.modal:has(#editTxForm),
+  html body.mmh-workspace-active #editModal.open>.modal:has(#editInvForm){
+    height:min(746px,calc(100dvh - 24px))!important;
+  }
+  html body.mmh-workspace-active #mmhVaultDialogV449.show>.mmh-v449-dialog{
+    width:100%!important;max-width:100%!important;max-height:calc(100dvh - 24px)!important;
+    border-radius:17px!important;
+  }
+  html body.mmh-workspace-active #mmhManageOverlayV1.open>.mmh-manager-window-v1{
+    max-height:calc(100dvh - 24px)!important;border-radius:17px!important;
+  }
+  html body.mmh-workspace-active #receiptViewerModalV3297.show>.receipt-viewer-dialog-v3297{
+    width:100%!important;height:min(690px,calc(100dvh - 24px))!important;
+    max-height:calc(100dvh - 24px)!important;border-radius:17px!important;
+  }
+  html body.mmh-workspace-active :is(#editModal.open,#mmhVaultDialogV449.show,#mmhManageOverlayV1.open) :is(input:not([type=checkbox]):not([type=radio]):not([type=file]),select,textarea){font-size:16px!important;}
+  html body.mmh-workspace-active :is(#editModal.open,#mmhVaultDialogV449.show,#mmhManageOverlayV1.open) :is(button,.btn){min-height:44px;}
+  html body.mmh-workspace-active #mmhVaultDialogV449 .mmh-v449-dialog-actions{min-width:0!important;gap:8px!important;}
+  html body.mmh-workspace-active #mmhVaultDialogV449 .mmh-v449-dialog-actions>button{min-width:0!important;max-width:100%!important;}
+  html body #lpOverlayV1 .lp-modal,html body :is(dialog.lh-dialog,dialog.ls-dialog,dialog.lf-dialog,dialog.lg-dialog,dialog.li-dialog){
+    max-height:calc(100dvh - 20px)!important;border-radius:17px!important;
+  }
+}
+@media(max-width:380px){
+  html body.mmh-workspace-active #mmhVaultDialogV449 .mmh-v449-dialog-actions{grid-template-columns:minmax(0,1fr)!important;}
+  html body.mmh-workspace-active #receiptViewerModalV3297 .receipt-viewer-head-v3297{gap:7px!important;flex-wrap:wrap!important;}
+}
+@media(prefers-reduced-motion:reduce){
+  html body.mmh-workspace-active :is(#editModal.open>.modal,#mmhVaultDialogV449.show>.mmh-v449-dialog,#mmhManageOverlayV1.open>.mmh-manager-window-v1,#receiptViewerModalV3297.show>.receipt-viewer-dialog-v3297){animation:none!important;transition:none!important;}
+}
