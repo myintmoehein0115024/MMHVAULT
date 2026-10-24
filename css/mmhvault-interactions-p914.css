@@ -34,3 +34,13 @@ html body.light .mmh-asia-picker-dialog-p914 .mmh-asia-picker-option-p914[aria-p
 html body.light .mmh-asia-picker-dialog-p914 h3{color:#17344a}
 html body.light .mmh-asia-picker-dialog-p914 .mmh-asia-picker-search-p914{color:#12314b;background:#f7fbfe;color-scheme:light}
 @media(prefers-reduced-motion:reduce){html body .mmh-asia-picker-dialog-p914 *{scroll-behavior:auto!important;transition:none!important}}
+
+/* P9.15 compatibility: the underlying select is a data model, not a visible control. */
+html body #exAsiaV10 #asiaBaseV10.mmh-asia-native-select-p914{display:none!important;position:absolute!important;width:0!important;height:0!important;min-height:0!important;padding:0!important;margin:0!important;border:0!important;visibility:hidden!important;}
+html body #exAsiaV10 .asia-controls{align-items:end!important;}
+html body #exAsiaV10 .asia-controls>.mmh-asia-picker-field-p914,
+html body #exAsiaV10 .asia-controls>label{display:flex;flex-direction:column;gap:6px;min-width:0;min-height:0;}
+html body #exAsiaV10 .asia-controls>.mmh-asia-picker-field-p914>span,
+html body #exAsiaV10 .asia-controls>label>span{margin:0!important;line-height:1.35!important;}
+html body #exAsiaV10 .mmh-asia-picker-trigger-p914,
+html body #exAsiaV10 .asia-controls>label>input{min-height:48px!important;height:48px!important;box-sizing:border-box!important;}

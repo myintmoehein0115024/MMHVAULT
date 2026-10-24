@@ -19,6 +19,7 @@
     if (caption) caption.id = 'mmhAsiaPickerCaptionP914';
     select.dataset.p914Enhanced = '1';
     select.classList.add('mmh-asia-native-select-p914');
+    select.style.setProperty('display', 'none', 'important');
     select.tabIndex = -1;
     select.setAttribute('aria-hidden', 'true');
 
@@ -105,6 +106,7 @@
         console.warn('[MMHVAULT] Currency picker fallback:', error);
         // If showModal fails, keep the native selector usable.
         select.classList.remove('mmh-asia-native-select-p914');
+        select.style.removeProperty('display');
         select.removeAttribute('aria-hidden');
         select.tabIndex = 0;
         trigger.hidden = true;
