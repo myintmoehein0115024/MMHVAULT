@@ -257,14 +257,16 @@ const SUPABASE_URL='https://vrypucmyrztxgiqhjspd.supabase.co';
 const SUPABASE_KEY='sb_publishable_H38v4XbO0ARnSJToD42wGg_27-SZ3Ao';
 // The recovery hint is preserved before the Auth SDK consumes the callback URL.
 const recoveryLinkHintV943=new URLSearchParams(location.search).get('recovery')==='1';
-const recoveryTokenHintV943=(()=>{const q=new URLSearchParams(location.search);const h=new URLSearchParams(location.hash.slice(1));return q.has('code')||q.has('token_hash')||h.get('type')==='recovery'||(h.has('access_token')&&h.has('refresh_token'))})();
+// P9.44: URLs are only navigation hints; never treat them as authorization.
+const recoveryCallbackPendingV944=recoveryLinkHintV943||new URLSearchParams(location.hash.slice(1)).get('type')==='recovery';
 const db=window.supabase?supabase.createClient(SUPABASE_URL,SUPABASE_KEY):null;
 const statusEl=document.getElementById('status'); const tabs=[...document.querySelectorAll('.tab')], forms=[...document.querySelectorAll('.form')];
-let recoveryModeV943=recoveryLinkHintV943&&recoveryTokenHintV943, recoveryCompletedV943=false;
+let recoveryModeV943=false, recoveryCompletedV943=false;
+let recoveryVerifiedV944=false, recoveryUserIdV944=null;
 const authTabsV943=document.getElementById('authTabs');
 function recoveryRedirectUrlV943(){const u=new URL('login.html',location.href);u.searchParams.set('recovery','1');return u.toString()}
 function showRecoveryV943(){
-  if(recoveryCompletedV943)return;
+  if(recoveryCompletedV943||!recoveryVerifiedV944)return;
   recoveryModeV943=true;
   authTabsV943.hidden=true;
   forms.forEach(f=>f.classList.toggle('active',f.id==='recovery'));
@@ -274,9 +276,21 @@ function showRecoveryV943(){
   msg('');
 }
 function recoverableCallbackV943(event,session){
-  if(event==='PASSWORD_RECOVERY'){recoveryModeV943=true;if(session)showRecoveryV943();return true}
-  if(recoveryModeV943){if(session)showRecoveryV943();return true}
-  return false;
+  // Only Supabase Auth's authenticated password-recovery event unlocks the form.
+  // SIGNED_IN and INITIAL_SESSION (even with ?recovery=1) are not sufficient.
+  if(event==='PASSWORD_RECOVERY'){
+    if(session&&session.user&&session.user.id){
+      recoveryVerifiedV944=true;
+      recoveryUserIdV944=session.user.id;
+      showRecoveryV943();
+    }else if(recoveryCallbackPendingV944){
+      msg('This recovery link is invalid or has expired. Request a new email from the Sign In page.','err');
+    }
+    return true;
+  }
+  // A recovery callback may also begin with INITIAL_SESSION for a previously
+  // signed-in user. Never auto-redirect that user until the SDK finishes.
+  return recoveryCallbackPendingV944||recoveryModeV943;
 }
 function isZhV1531(){return window.getMMHVAULTLanguage&&window.getMMHVAULTLanguage()==='zh'}
 function msg(text,type=''){statusEl.textContent=window.translateMMHVAULTMessage?window.translateMMHVAULTMessage(text):text;statusEl.className='status '+type}
@@ -284,7 +298,7 @@ function nextTargetV160(){return new URLSearchParams(location.search).get('next'
 function appUrl(){return new URL(nextTargetV160(),location.href).toString()}
 function loginCallbackUrlV160(){const u=new URL('login.html',location.href);if(nextTargetV160()==='business.html')u.searchParams.set('next','business.html');return u.toString()}
 function openForm(id){
-  if(recoveryModeV943&&document.getElementById('recovery').classList.contains('active'))return;
+  if(recoveryVerifiedV944&&document.getElementById('recovery').classList.contains('active'))return;
   const currentForm=id==='signup'?'signup':'signin';tabs.forEach(t=>t.classList.toggle('active',t.dataset.target===currentForm));forms.forEach(f=>f.classList.toggle('active',f.id===currentForm));msg('');if(window.applyMMHVAULTLanguage)window.applyMMHVAULTLanguage();
 }
 tabs.forEach(t=>t.onclick=()=>openForm(t.dataset.target));document.querySelectorAll('[data-switch]').forEach(b=>b.onclick=()=>openForm(b.dataset.switch));document.querySelectorAll('.eye').forEach(b=>b.onclick=()=>{const i=b.parentElement.querySelector('input');const show=i.type==='password';i.type=show?'text':'password';const zh=isZhV1531();b.textContent=zh?(show?'隐藏':'显示'):(show?'Hide':'Show')});
@@ -296,7 +310,7 @@ document.getElementById('forgotBtn').onclick=async e=>{e.preventDefault();const 
 // Password recovery must not redirect an authenticated recovery session to app.html.
 document.getElementById('recovery').addEventListener('submit',async e=>{
   e.preventDefault();
-  if(!recoveryModeV943||recoveryCompletedV943){msg('This recovery link is invalid or has expired. Request a new email from the Sign In page.','err');return}
+  if(!recoveryVerifiedV944||!recoveryModeV943||recoveryCompletedV943){msg('This recovery link is invalid or has expired. Request a new email from the Sign In page.','err');return}
   const password=document.getElementById('recoveryPassword').value;
   const confirm=document.getElementById('recoveryConfirm').value;
   if(password.length<10){msg('Please use at least 10 characters.','err');return}
@@ -306,10 +320,16 @@ document.getElementById('recovery').addEventListener('submit',async e=>{
   msg('Updating password…');
   try{
     const {data:sessionData,error:sessionError}=await db.auth.getSession();
-    if(sessionError||!sessionData?.session)throw sessionError||new Error('recovery_session_missing');
+    if(sessionError||!sessionData?.session||sessionData.session.user?.id!==recoveryUserIdV944)throw sessionError||new Error('recovery_session_missing');
+    // getUser verifies the current access token with Supabase Auth; getSession alone
+    // can return stale or locally modified storage, so it cannot be the sole check.
+    const {data:userData,error:userError}=await db.auth.getUser();
+    if(userError||!userData?.user?.id||userData.user.id!==recoveryUserIdV944)throw userError||new Error('recovery_identity_mismatch');
     const {error}=await db.auth.updateUser({password});
     if(error)throw error;
     recoveryCompletedV943=true;
+    // A completed one-time recovery cannot be replayed by reloading the URL.
+    try{const u=new URL('login.html',location.href);history.replaceState(null,'',u.pathname+u.search)}catch(_){}
     msg('Password updated. Sign in again with your new password.','ok');
     document.getElementById('recoveryPassword').value='';
     document.getElementById('recoveryConfirm').value='';
@@ -326,17 +346,28 @@ document.getElementById('recoveryBack').addEventListener('click',async e=>{
   location.assign(u.toString());
 });
 window.MMHVAULT_LOGIN_REDIRECT_V160={version:'1.6.0',businessReturn:true};
-window.MMHVAULT_AUTH_RECOVERY_V943={version:'9.43',sameLoginCallback:true,requiresRecoverySession:true};
+window.MMHVAULT_AUTH_RECOVERY_V943={version:'9.44',sameLoginCallback:true,requiresRecoveryEvent:true,requiresVerifiedUser:true};
 if(db){
   db.auth.onAuthStateChange((event,session)=>{
     if(recoverableCallbackV943(event,session))return;
     if(!recoveryCompletedV943&&session&&(event==='SIGNED_IN'||event==='INITIAL_SESSION'))location.replace(appUrl());
   });
+  if(recoveryCallbackPendingV944){
+    msg('Checking password recovery link…');
+    // Do not mistake a persisted normal session for a recovery session.
+    // A slow PASSWORD_RECOVERY event can still replace this warning later.
+    setTimeout(()=>{
+      if(!recoveryVerifiedV944&&!recoveryCompletedV943)
+        msg('This recovery link is invalid or has expired. Request a new email from the Sign In page.','err');
+    },5000);
+  }
   db.auth.getSession().then(({data,error})=>{
-    if(recoveryModeV943){if(!error&&data?.session)showRecoveryV943();else msg('This recovery link is invalid or has expired. Request a new email from the Sign In page.','err');return}
-    if(recoveryLinkHintV943){msg('This recovery link is invalid or has expired. Request a new email from the Sign In page.','err');return}
-    if(data?.session)location.replace(appUrl());
-  }).catch(()=>{if(recoveryModeV943)msg('This recovery link is invalid or has expired. Request a new email from the Sign In page.','err')});
-}else if(recoveryModeV943)msg('Authentication service is unavailable.','err');
+    if(recoveryCallbackPendingV944||recoveryModeV943)return;
+    if(!error&&data?.session)location.replace(appUrl());
+  }).catch(()=>{
+    if(recoveryCallbackPendingV944&&!recoveryVerifiedV944)
+      msg('This recovery link is invalid or has expired. Request a new email from the Sign In page.','err');
+  });
+}else if(recoveryCallbackPendingV944)msg('Authentication service is unavailable.','err');
 </script>
 </body></html>
