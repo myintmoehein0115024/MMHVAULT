@@ -1,0 +1,36 @@
+/* MMHVAULT P9.14 — isolated Asia selector material; no financial/route overrides. */
+#exAsiaV10 .mmh-asia-picker-field-p914{position:relative;min-width:0;display:flex;flex-direction:column;gap:6px}
+#exAsiaV10 .mmh-asia-picker-field-p914>span{display:block;color:#a9c9dd;font-size:12px;font-weight:700}
+#exAsiaV10 .mmh-asia-native-select-p914{position:absolute!important;width:1px!important;height:1px!important;min-height:0!important;padding:0!important;margin:0!important;opacity:0!important;pointer-events:none!important;clip-path:inset(50%)!important;overflow:hidden!important}
+html body #exAsiaV10 .mmh-asia-picker-trigger-p914{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-width:0;min-height:46px;padding:10px 15px!important;text-align:left;font:inherit;font-weight:650;font-size:14px;color:#eaf7ff;background:linear-gradient(126deg,rgba(56,104,139,.68),rgba(6,32,55,.92))!important;border:1px solid rgba(159,210,237,.52)!important;border-radius:12px!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.13),0 6px 18px rgba(0,7,25,.14)}
+#exAsiaV10 #mmhAsiaPickerValueP914{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#exAsiaV10 .mmh-asia-picker-arrow-p914{flex:none;font-size:21px;color:#f5c976}
+html body #exAsiaV10 .mmh-asia-picker-trigger-p914:hover{border-color:rgba(244,199,109,.82)!important}
+html body #exAsiaV10 .mmh-asia-picker-trigger-p914:focus-visible{outline:2px solid #f4ca77!important;outline-offset:2px}
+html body .mmh-asia-picker-dialog-p914{position:fixed;inset:0;margin:auto;width:min(520px,calc(100vw - 28px));max-width:none;max-height:min(78dvh,650px);height:min(78dvh,650px);padding:0;border:1px solid rgba(174,214,238,.48);border-radius:21px;overflow:hidden;color:#eaf5ff;background:linear-gradient(145deg,rgba(72,121,152,.97),rgba(13,49,75,.985) 28%,rgba(4,26,48,.99) 85%);box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 40px 100px rgba(0,6,20,.58);-webkit-backdrop-filter:blur(22px) saturate(135%);backdrop-filter:blur(22px) saturate(135%)}
+html body .mmh-asia-picker-dialog-p914:not([open]){display:none}
+html body .mmh-asia-picker-dialog-p914[open]{display:flex;flex-direction:column}
+html body .mmh-asia-picker-dialog-p914::backdrop{background:rgba(1,12,27,.76);-webkit-backdrop-filter:blur(9px);backdrop-filter:blur(9px)}
+.mmh-asia-picker-shell-p914{display:flex;flex-direction:column;min-height:0;height:100%;width:100%}
+.mmh-asia-picker-head-p914{flex:none;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:21px 20px 15px;border-bottom:1px solid rgba(179,221,240,.22);background:linear-gradient(120deg,rgba(190,220,239,.12),transparent)}
+.mmh-asia-picker-head-p914 h3{font-size:20px;font-weight:750;margin:5px 0 0;color:#fff;line-height:1.3}
+.mmh-asia-picker-eyebrow-p914{color:#f5c975;letter-spacing:.16em;font-size:10px;font-weight:850}
+html body .mmh-asia-picker-dialog-p914 .mmh-asia-picker-close-p914{width:40px;min-width:40px;height:40px;min-height:40px;border:1px solid rgba(157,210,235,.35);border-radius:12px;color:#e6f5ff;background:rgba(8,35,60,.67);font-size:17px;cursor:pointer}
+.mmh-asia-picker-search-wrap-p914{flex:none;padding:15px 20px 10px}
+html body .mmh-asia-picker-dialog-p914 .mmh-asia-picker-search-p914{display:block;width:100%;min-width:0;height:45px;box-sizing:border-box;border:1px solid rgba(167,206,235,.39);border-radius:12px;padding:0 13px;font:inherit;font-size:15px;background:rgba(2,25,45,.75);color:#fff;color-scheme:dark;outline-offset:2px}
+.mmh-asia-picker-search-p914:focus-visible{outline:2px solid #f1c772}
+.mmh-asia-picker-options-p914{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:3px 14px 10px;scrollbar-color:rgba(138,191,222,.6) transparent;scrollbar-width:thin}
+html body .mmh-asia-picker-option-p914{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;min-height:44px;margin:3px 0;padding:10px 14px;border:1px solid transparent;border-radius:12px;background:rgba(14,50,76,.38);color:#e3f2fe;font:inherit;font-size:14px;text-align:left;cursor:pointer}
+html body .mmh-asia-picker-option-p914:hover,html body .mmh-asia-picker-option-p914:focus-visible{background:rgba(76,135,170,.42);border-color:rgba(170,211,235,.48);outline:none}
+html body .mmh-asia-picker-option-p914[aria-pressed=true]{border-color:rgba(244,204,125,.75);background:linear-gradient(120deg,rgba(203,161,77,.28),rgba(26,69,96,.66));color:#ffdf9a}
+.mmh-asia-picker-option-label-p914{min-width:0;overflow-wrap:anywhere;font-weight:600}
+.mmh-asia-picker-check-p914{flex:none;color:#f5ca78;font-size:19px;font-weight:800}
+.mmh-asia-picker-foot-p914{flex:none;padding:12px 20px max(14px,env(safe-area-inset-bottom));border-top:1px solid rgba(166,202,227,.21);color:#9cc3dc;font-size:11px;text-align:center;background:rgba(2,19,37,.30)}
+.mmh-asia-picker-empty-p914{margin:25px 10px;text-align:center;color:#bad1e5;font-size:14px}
+@media(max-width:700px){html body .mmh-asia-picker-dialog-p914{width:calc(100vw - 24px);height:min(75dvh,630px);max-height:calc(100dvh - 40px);border-radius:18px}.mmh-asia-picker-head-p914{padding:18px 15px 13px}.mmh-asia-picker-search-wrap-p914{padding:12px 15px 9px}.mmh-asia-picker-options-p914{padding:2px 9px 9px}html body .mmh-asia-picker-option-p914{min-height:48px;font-size:14px}}
+html body.light .mmh-asia-picker-dialog-p914{background:linear-gradient(135deg,#e9f3f9,#c9e2f2);color:#16324c;border-color:rgba(52,102,136,.4)}
+html body.light .mmh-asia-picker-dialog-p914 .mmh-asia-picker-option-p914{background:rgba(255,255,255,.52);color:#173c5a}
+html body.light .mmh-asia-picker-dialog-p914 .mmh-asia-picker-option-p914[aria-pressed=true]{background:#f8e5bd;color:#4a3713}
+html body.light .mmh-asia-picker-dialog-p914 h3{color:#17344a}
+html body.light .mmh-asia-picker-dialog-p914 .mmh-asia-picker-search-p914{color:#12314b;background:#f7fbfe;color-scheme:light}
+@media(prefers-reduced-motion:reduce){html body .mmh-asia-picker-dialog-p914 *{scroll-behavior:auto!important;transition:none!important}}
