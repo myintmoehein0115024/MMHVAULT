@@ -137,6 +137,12 @@ footer{width:min(1240px,calc(100% - 48px));margin:0 auto;}
   .shell>.site-header .menu-toggle{width:38px;height:38px;flex:0 0 38px;border-radius:12px}
   .shell>.site-header .menu-toggle span{width:18px}
 }
+/* P9.43: password recovery stays in the same secure access panel. */
+.tabs[hidden]{display:none!important}
+.recovery-hint{color:#b8c8d5;font-size:12px;line-height:1.65;margin:0 0 18px;padding:13px 14px;border:1px solid rgba(115,217,255,.18);background:rgba(7,23,37,.56);border-radius:14px}
+.recovery-back{display:block;text-align:center;margin:16px auto 0;color:var(--gold2);font-size:12px;font-weight:800;text-decoration:none}
+.recovery-back:hover{text-decoration:underline}
+@media(max-width:520px){.recovery-hint{font-size:11px;padding:12px}}
 </style>
 </head>
 <body>
@@ -151,14 +157,23 @@ footer{width:min(1240px,calc(100% - 48px));margin:0 auto;}
 </header>
 <main><section class="access">
 <div class="kicker">SECURE ACCESS · VERSION 4.0</div><h1 id="title">Welcome Back</h1><p class="sub" id="subtitle">Access your private MMHVAULT workspace</p><div class="auth-trust-note"><b>Security notice</b><span>Authentication is handled by Supabase Auth. Google sign-in opens Google OAuth. MMHVAULT never asks for bank PINs, card numbers, crypto seed phrases or passwords for external financial services.</span><a href="security.html">How sign-in works</a></div>
-<div class="tabs"><button class="tab active" type="button" data-target="signin">🔒 Sign In</button><button class="tab" type="button" data-target="signup">✦ Sign Up</button></div>
+<div class="tabs" id="authTabs"><button class="tab active" type="button" data-target="signin">🔒 Sign In</button><button class="tab" type="button" data-target="signup">✦ Sign Up</button></div>
 <form class="form active" id="signin">
 <div class="auth-email-flow"><label>Email</label><div class="field"><input id="signinEmail" type="email" autocomplete="username" inputmode="email" required placeholder="Email address"></div><label>Password</label><div class="field"><input id="signinPassword" type="password" autocomplete="current-password" required placeholder="Password"><button class="eye" type="button">Show</button></div><div class="row"><label class="remember"><input type="checkbox" checked> Remember me</label><a class="forgot" href="#" id="forgotBtn">Forgot password?</a></div><button class="primary" type="submit">Sign In &nbsp; →</button></div>
 <div class="divider">or continue with</div><button class="google" id="googleSignIn" type="button" aria-describedby="googleAuthNoteSignIn"><svg viewBox="0 0 24 24"><path fill="#4285F4" d="M21.8 12.23c0-.7-.06-1.37-.18-2.02H12v3.82h5.5a4.7 4.7 0 0 1-2.04 3.08v2.54h3.3c1.93-1.78 3.04-4.4 3.04-7.42z"/><path fill="#34A853" d="M12 22c2.76 0 5.08-.91 6.77-2.35l-3.3-2.54c-.91.61-2.08.97-3.47.97-2.66 0-4.92-1.8-5.73-4.22H2.86v2.62A10.22 10.22 0 0 0 12 22z"/><path fill="#FBBC05" d="M6.27 13.86A6.15 6.15 0 0 1 5.95 12c0-.65.11-1.28.32-1.86V7.52H2.86A10.2 10.2 0 0 0 1.78 12c0 1.64.39 3.2 1.08 4.48l3.41-2.62z"/><path fill="#EA4335" d="M12 5.92c1.5 0 2.84.52 3.9 1.53l2.93-2.93C17.07 2.88 14.76 2 12 2a10.22 10.22 0 0 0-9.14 5.52l3.41 2.62C7.08 7.72 9.34 5.92 12 5.92z"/></svg>Sign in with Google</button><div class="oauth-note" id="googleAuthNoteSignIn">You will be redirected to Google through Supabase OAuth. MMHVAULT does not receive your Google password.</div><p class="switch">Don't have an account? <button type="button" data-switch="signup">Sign Up</button></p></form>
 <form class="form" id="signup"><label>Full name</label><div class="field"><input id="signupName" type="text" autocomplete="name" required placeholder="Your name"></div>
 <div class="auth-email-flow"><label>Email</label><div class="field"><input id="signupEmail" type="email" autocomplete="email" inputmode="email" required placeholder="Email address"></div><label>Create password</label><div class="field"><input id="signupPassword" type="password" autocomplete="new-password" minlength="6" required placeholder="Create a password"><button class="eye" type="button">Show</button></div><div class="row"><label class="remember"><input id="terms" type="checkbox"> I agree to the <a href="terms.html" target="_blank" rel="noopener">terms</a> and <a href="privacy.html" target="_blank" rel="noopener">privacy notice</a></label></div><button class="primary" type="submit">Create Account &nbsp; →</button></div>
 <div class="divider">or continue with</div><button class="google" id="googleSignUp" type="button" aria-describedby="googleAuthNoteSignUp"><svg viewBox="0 0 24 24"><path fill="#4285F4" d="M21.8 12.23c0-.7-.06-1.37-.18-2.02H12v3.82h5.5a4.7 4.7 0 0 1-2.04 3.08v2.54h3.3c1.93-1.78 3.04-4.4 3.04-7.42z"/><path fill="#34A853" d="M12 22c2.76 0 5.08-.91 6.77-2.35l-3.3-2.54c-.91.61-2.08.97-3.47.97-2.66 0-4.92-1.8-5.73-4.22H2.86v2.62A10.22 10.22 0 0 0 12 22z"/><path fill="#FBBC05" d="M6.27 13.86A6.15 6.15 0 0 1 5.95 12c0-.65.11-1.28.32-1.86V7.52H2.86A10.2 10.2 0 0 0 1.78 12c0 1.64.39 3.2 1.08 4.48l3.41-2.62z"/><path fill="#EA4335" d="M12 5.92c1.5 0 2.84.52 3.9 1.53l2.93-2.93C17.07 2.88 14.76 2 12 2a10.22 10.22 0 0 0-9.14 5.52l3.41 2.62C7.08 7.72 9.34 5.92 12 5.92z"/></svg>Sign up with Google</button><div class="oauth-note" id="googleAuthNoteSignUp">You will be redirected to Google through Supabase OAuth. MMHVAULT does not receive your Google password.</div><p class="switch">Already have an account? <button type="button" data-switch="signin">Sign In</button></p></form>
-<div id="status" class="status"></div></section></main>
+<form class="form" id="recovery" autocomplete="off">
+  <p class="recovery-hint" id="recoveryHelp">Choose a new password for your MMHVAULT account. This form is available only after opening a password recovery link from your email.</p>
+  <label for="recoveryPassword">New password</label>
+  <div class="field"><input id="recoveryPassword" type="password" autocomplete="new-password" minlength="10" required placeholder="At least 10 characters"><button class="eye" type="button">Show</button></div>
+  <label for="recoveryConfirm">Confirm new password</label>
+  <div class="field"><input id="recoveryConfirm" type="password" autocomplete="new-password" minlength="10" required placeholder="Enter the password again"><button class="eye" type="button">Show</button></div>
+  <button class="primary" type="submit" id="recoverySave">Update Password</button>
+  <a class="recovery-back" id="recoveryBack" href="login.html">Return to Sign In</a>
+</form>
+<div id="status" class="status" role="status" aria-live="polite"></div></section></main>
 <footer><span>© 2026 <b style="color:var(--gold)">MMHVAULT</b> · Version 4.0</span><span><a href="index.html">Home</a> · <a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a> · <a href="security.html">Security</a></span></footer>
 </div>
 <script>
@@ -169,7 +184,7 @@ footer{width:min(1240px,calc(100% - 48px));margin:0 auto;}
     'PERSONAL WEALTH INTELLIGENCE · VERSION 4.3.0':'个人财富智能 · 版本 4.3.0',
     'SECURE ACCESS · VERSION 4.0':'安全访问 · 版本 4.0','Welcome Back':'欢迎回来','Access your private MMHVAULT workspace':'进入你的私密 MMHVAULT 工作空间','Create Your Vault':'创建你的 Vault','Start your private wealth workspace':'开始你的私人财富工作空间',
     '🔒 Sign In':'🔒 登录','✦ Sign Up':'✦ 注册','Email':'邮箱','Email address':'邮箱地址','Password':'密码','Show':'显示','Hide':'隐藏','Remember me':'记住我','Forgot password?':'忘记密码？','or continue with':'或使用以下方式继续','Continue with Google':'使用 Google 继续','Sign in with Google':'使用 Google 登录','Sign up with Google':'使用 Google 注册','Security':'安全',"Don't have an account?":'还没有账户？','Sign Up':'注册','Full name':'姓名','Your name':'你的姓名','Create password':'创建密码','Create a password':'创建密码','I agree to the terms':'我同意相关条款','Create Account':'创建账户','Already have an account?':'已经有账户？','Private · Intelligent · Built Around You':'私密 · 智能 · 围绕你而建','© 2026 MMHVAULT · Version 4.0':'© 2026 MMHVAULT · 版本 4.0','· Version 4.0':'· 版本 4.0','Version 4.0':'版本 4.0','MMHVAULT logo':'MMHVAULT 标志','Menu':'菜单',
-    'Signing in…':'正在登录…','Authentication service is unavailable.':'身份验证服务暂不可用。','Authentication service is unavailable. Please refresh.':'身份验证服务暂不可用，请刷新页面。','Incorrect email or password.':'邮箱或密码错误。','Opening Google sign-in…':'正在打开 Google 登录…','Unable to sign in with Google.':'无法使用 Google 登录。','Creating your account…':'正在创建账户…','Please agree to the terms.':'请同意相关条款。','Account created. Please check your email to confirm your account.':'账户已创建，请检查邮箱完成确认。','Enter your email first, then try again.':'请先输入邮箱，然后重试。','Sending reset email…':'正在发送密码重置邮件…','Password reset email sent. Please check your inbox.':'密码重置邮件已发送，请检查收件箱。','Email not confirmed':'邮箱尚未完成验证。','User already registered':'该邮箱已经注册。','Password should be at least 6 characters.':'密码至少需要 6 个字符。','Unable to validate email address: invalid format':'邮箱格式无效。','Email rate limit exceeded':'邮件发送频率已达到限制，请稍后再试。','For security purposes, you can only request this once every 60 seconds.':'出于安全原因，每 60 秒只能请求一次。','Email address is invalid':'邮箱地址无效。','Password is too weak':'密码强度不足。'
+    'Signing in…':'正在登录…','Authentication service is unavailable.':'身份验证服务暂不可用。','Authentication service is unavailable. Please refresh.':'身份验证服务暂不可用，请刷新页面。','Incorrect email or password.':'邮箱或密码错误。','Opening Google sign-in…':'正在打开 Google 登录…','Unable to sign in with Google.':'无法使用 Google 登录。','Creating your account…':'正在创建账户…','Please agree to the terms.':'请同意相关条款。','Account created. Please check your email to confirm your account.':'账户已创建，请检查邮箱完成确认。','Enter your email first, then try again.':'请先输入邮箱，然后重试。','Sending reset email…':'正在发送密码重置邮件…','Password reset email sent. Please check your inbox.':'密码重置邮件已发送，请检查收件箱。','Email not confirmed':'邮箱尚未完成验证。','User already registered':'该邮箱已经注册。','Password should be at least 6 characters.':'密码至少需要 6 个字符。','Choose a new password for your MMHVAULT account. This form is available only after opening a password recovery link from your email.':'请为 MMHVAULT 账户设置新密码。只有打开邮箱中的密码重置链接后，才能使用此表单。','New password':'新密码','Confirm new password':'确认新密码','At least 10 characters':'至少 10 个字符','Enter the password again':'再次输入新密码','Update Password':'更新密码','Return to Sign In':'返回登录','Reset Your Password':'重置您的密码','Choose a secure new password':'请设置安全的新密码','Checking password recovery link…':'正在验证密码重置链接…','This recovery link is invalid or has expired. Request a new email from the Sign In page.':'此密码重置链接无效或已过期，请返回登录页重新申请邮件。','Passwords do not match.':'两次输入的密码不一致。','Please use at least 10 characters.':'新密码至少需要 10 个字符。','Updating password…':'正在更新密码…','Password updated. Sign in again with your new password.':'密码已更新，请使用新密码重新登录。','Unable to update password. Request a fresh recovery email.':'无法更新密码，请重新申请密码重置邮件。','Unable to validate email address: invalid format':'邮箱格式无效。','Email rate limit exceeded':'邮件发送频率已达到限制，请稍后再试。','For security purposes, you can only request this once every 60 seconds.':'出于安全原因，每 60 秒只能请求一次。','Email address is invalid':'邮箱地址无效。','Password is too weak':'密码强度不足。'
   };
   const buttons=[...document.querySelectorAll('.mmh-lang-switcher button[data-lang]')];
   const title=document.getElementById('title'), subtitle=document.getElementById('subtitle');
@@ -198,8 +213,10 @@ footer{width:min(1240px,calc(100% - 48px));margin:0 auto;}
   function updateDynamicControls(){
     const signin=document.querySelector('#signin .primary');
     const signup=document.querySelector('#signup .primary');
+    const recovery=document.getElementById('recoverySave');
     if(signin) signin.textContent=zh()?'登录  →':'Sign In  →';
     if(signup) signup.textContent=zh()?'创建账户  →':'Create Account  →';
+    if(recovery) recovery.textContent=zh()?'更新密码':'Update Password';
     document.querySelectorAll('.eye').forEach(btn=>{
       const input=btn.parentElement && btn.parentElement.querySelector('input');
       const visible=input && input.type==='text';
@@ -210,10 +227,11 @@ footer{width:min(1240px,calc(100% - 48px));margin:0 auto;}
     textNodes.forEach(o=>{o.node.nodeValue=o.lead+tr(o.key)+o.trail;});
     placeholders.forEach(o=>o.el.setAttribute('placeholder',tr(o.key)));
     attrs.forEach(o=>o.el.setAttribute(o.a,tr(o.key)));
-    const activeForm=(document.querySelector('.form.active')||{}).id==='signup'?'signup':'signin';
-    if(title) title.textContent=zh()?(activeForm==='signup'?'创建你的 Vault':'欢迎回来'):(activeForm==='signup'?'Create Your Vault':'Welcome Back');
+    const formId=(document.querySelector('.form.active')||{}).id;
+    const activeForm=formId==='recovery'?'recovery':formId==='signup'?'signup':'signin';
+    if(title) title.textContent=zh()?(activeForm==='recovery'?'重置您的密码':activeForm==='signup'?'创建你的 Vault':'欢迎回来'):(activeForm==='recovery'?'Reset Your Password':activeForm==='signup'?'Create Your Vault':'Welcome Back');
     if(subtitle){
-      subtitle.textContent=zh()?(activeForm==='signup'?'开始你的私人财富工作空间':'进入你的私密 MMHVAULT 工作空间'):(activeForm==='signup'?'Start your private wealth workspace':'Access your private MMHVAULT workspace');
+      subtitle.textContent=zh()?(activeForm==='recovery'?'请设置安全的新密码':activeForm==='signup'?'开始你的私人财富工作空间':'进入你的私密 MMHVAULT 工作空间'):(activeForm==='recovery'?'Choose a secure new password':activeForm==='signup'?'Start your private wealth workspace':'Access your private MMHVAULT workspace');
     }
     updateDynamicControls();
     document.documentElement.lang=zh()?'zh-CN':'en';
@@ -237,14 +255,36 @@ footer{width:min(1240px,calc(100% - 48px));margin:0 auto;}
 <script>
 const SUPABASE_URL='https://vrypucmyrztxgiqhjspd.supabase.co';
 const SUPABASE_KEY='sb_publishable_H38v4XbO0ARnSJToD42wGg_27-SZ3Ao';
+// The recovery hint is preserved before the Auth SDK consumes the callback URL.
+const recoveryLinkHintV943=new URLSearchParams(location.search).get('recovery')==='1';
+const recoveryTokenHintV943=(()=>{const q=new URLSearchParams(location.search);const h=new URLSearchParams(location.hash.slice(1));return q.has('code')||q.has('token_hash')||h.get('type')==='recovery'||(h.has('access_token')&&h.has('refresh_token'))})();
 const db=window.supabase?supabase.createClient(SUPABASE_URL,SUPABASE_KEY):null;
 const statusEl=document.getElementById('status'); const tabs=[...document.querySelectorAll('.tab')], forms=[...document.querySelectorAll('.form')];
+let recoveryModeV943=recoveryLinkHintV943&&recoveryTokenHintV943, recoveryCompletedV943=false;
+const authTabsV943=document.getElementById('authTabs');
+function recoveryRedirectUrlV943(){const u=new URL('login.html',location.href);u.searchParams.set('recovery','1');return u.toString()}
+function showRecoveryV943(){
+  if(recoveryCompletedV943)return;
+  recoveryModeV943=true;
+  authTabsV943.hidden=true;
+  forms.forEach(f=>f.classList.toggle('active',f.id==='recovery'));
+  if(window.applyMMHVAULTLanguage)window.applyMMHVAULTLanguage();
+  // Never leave an access token or recovery token visible in the address bar.
+  try{const u=new URL(location.href);u.hash='';u.searchParams.delete('code');u.searchParams.delete('token_hash');u.searchParams.delete('access_token');u.searchParams.delete('refresh_token');history.replaceState(null,'',u.pathname+u.search)}catch(_){}
+  msg('');
+}
+function recoverableCallbackV943(event,session){
+  if(event==='PASSWORD_RECOVERY'){recoveryModeV943=true;if(session)showRecoveryV943();return true}
+  if(recoveryModeV943){if(session)showRecoveryV943();return true}
+  return false;
+}
 function isZhV1531(){return window.getMMHVAULTLanguage&&window.getMMHVAULTLanguage()==='zh'}
 function msg(text,type=''){statusEl.textContent=window.translateMMHVAULTMessage?window.translateMMHVAULTMessage(text):text;statusEl.className='status '+type}
 function nextTargetV160(){return new URLSearchParams(location.search).get('next')==='business.html'?'business.html':'app.html'}
 function appUrl(){return new URL(nextTargetV160(),location.href).toString()}
 function loginCallbackUrlV160(){const u=new URL('login.html',location.href);if(nextTargetV160()==='business.html')u.searchParams.set('next','business.html');return u.toString()}
 function openForm(id){
+  if(recoveryModeV943&&document.getElementById('recovery').classList.contains('active'))return;
   const currentForm=id==='signup'?'signup':'signin';tabs.forEach(t=>t.classList.toggle('active',t.dataset.target===currentForm));forms.forEach(f=>f.classList.toggle('active',f.id===currentForm));msg('');if(window.applyMMHVAULTLanguage)window.applyMMHVAULTLanguage();
 }
 tabs.forEach(t=>t.onclick=()=>openForm(t.dataset.target));document.querySelectorAll('[data-switch]').forEach(b=>b.onclick=()=>openForm(b.dataset.switch));document.querySelectorAll('.eye').forEach(b=>b.onclick=()=>{const i=b.parentElement.querySelector('input');const show=i.type==='password';i.type=show?'text':'password';const zh=isZhV1531();b.textContent=zh?(show?'隐藏':'显示'):(show?'Hide':'Show')});
@@ -252,8 +292,51 @@ async function googleLogin(btn){if(!db){msg('Authentication service is unavailab
 ['googleSignIn','googleSignUp'].forEach(id=>document.getElementById(id).onclick=()=>googleLogin(document.getElementById(id)));
 document.getElementById('signin').addEventListener('submit',async e=>{e.preventDefault();if(!db){msg('Authentication service is unavailable.','err');return}const email=signinEmail.value.trim(),password=signinPassword.value;msg('Signing in…');const {data,error}=await db.auth.signInWithPassword({email,password});if(error){msg(error.message==='Invalid login credentials'?'Incorrect email or password.':error.message,'err');return}if(data.session)location.replace(appUrl())});
 document.getElementById('signup').addEventListener('submit',async e=>{e.preventDefault();if(!db){msg('Authentication service is unavailable.','err');return}if(!terms.checked){msg('Please agree to the terms.','err');return}msg('Creating your account…');const {data,error}=await db.auth.signUp({email:signupEmail.value.trim(),password:signupPassword.value,options:{data:{full_name:signupName.value.trim()}}});if(error){msg(error.message,'err');return}if(data.session)location.replace(appUrl());else msg('Account created. Please check your email to confirm your account.','ok')});
-document.getElementById('forgotBtn').onclick=async e=>{e.preventDefault();const email=signinEmail.value.trim();if(!email){msg('Enter your email first, then try again.','err');return}if(!db){msg('Authentication service is unavailable.','err');return}msg('Sending reset email…');const {error}=await db.auth.resetPasswordForEmail(email,{redirectTo:loginCallbackUrlV160()});msg(error?error.message:'Password reset email sent. Please check your inbox.',error?'err':'ok')};
+document.getElementById('forgotBtn').onclick=async e=>{e.preventDefault();const email=signinEmail.value.trim();if(!email){msg('Enter your email first, then try again.','err');return}if(!db){msg('Authentication service is unavailable.','err');return}msg('Sending reset email…');const {error}=await db.auth.resetPasswordForEmail(email,{redirectTo:recoveryRedirectUrlV943()});msg(error?error.message:'Password reset email sent. Please check your inbox.',error?'err':'ok')};
+// Password recovery must not redirect an authenticated recovery session to app.html.
+document.getElementById('recovery').addEventListener('submit',async e=>{
+  e.preventDefault();
+  if(!recoveryModeV943||recoveryCompletedV943){msg('This recovery link is invalid or has expired. Request a new email from the Sign In page.','err');return}
+  const password=document.getElementById('recoveryPassword').value;
+  const confirm=document.getElementById('recoveryConfirm').value;
+  if(password.length<10){msg('Please use at least 10 characters.','err');return}
+  if(password!==confirm){msg('Passwords do not match.','err');return}
+  if(!db){msg('Authentication service is unavailable.','err');return}
+  const btn=document.getElementById('recoverySave');btn.disabled=true;
+  msg('Updating password…');
+  try{
+    const {data:sessionData,error:sessionError}=await db.auth.getSession();
+    if(sessionError||!sessionData?.session)throw sessionError||new Error('recovery_session_missing');
+    const {error}=await db.auth.updateUser({password});
+    if(error)throw error;
+    recoveryCompletedV943=true;
+    msg('Password updated. Sign in again with your new password.','ok');
+    document.getElementById('recoveryPassword').value='';
+    document.getElementById('recoveryConfirm').value='';
+    // Local sign-out only; do not revoke trusted sessions on other devices.
+    try{await db.auth.signOut({scope:'local'})}catch(_){ }
+  }catch(_){btn.disabled=false;msg('Unable to update password. Request a fresh recovery email.','err')}
+});
+document.getElementById('recoveryBack').addEventListener('click',async e=>{
+  if(!recoveryModeV943)return;
+  e.preventDefault();
+  // Leaving recovery never promotes a pending session into a trusted device.
+  if(db){try{await db.auth.signOut({scope:'local'})}catch(_){ }}
+  const u=new URL('login.html',location.href);
+  location.assign(u.toString());
+});
 window.MMHVAULT_LOGIN_REDIRECT_V160={version:'1.6.0',businessReturn:true};
-if(db){db.auth.getSession().then(({data})=>{if(data.session)location.replace(appUrl())}).catch(()=>{});db.auth.onAuthStateChange((event,session)=>{if(session&&(event==='SIGNED_IN'||event==='INITIAL_SESSION'))location.replace(appUrl())})}
+window.MMHVAULT_AUTH_RECOVERY_V943={version:'9.43',sameLoginCallback:true,requiresRecoverySession:true};
+if(db){
+  db.auth.onAuthStateChange((event,session)=>{
+    if(recoverableCallbackV943(event,session))return;
+    if(!recoveryCompletedV943&&session&&(event==='SIGNED_IN'||event==='INITIAL_SESSION'))location.replace(appUrl());
+  });
+  db.auth.getSession().then(({data,error})=>{
+    if(recoveryModeV943){if(!error&&data?.session)showRecoveryV943();else msg('This recovery link is invalid or has expired. Request a new email from the Sign In page.','err');return}
+    if(recoveryLinkHintV943){msg('This recovery link is invalid or has expired. Request a new email from the Sign In page.','err');return}
+    if(data?.session)location.replace(appUrl());
+  }).catch(()=>{if(recoveryModeV943)msg('This recovery link is invalid or has expired. Request a new email from the Sign In page.','err')});
+}else if(recoveryModeV943)msg('Authentication service is unavailable.','err');
 </script>
 </body></html>
