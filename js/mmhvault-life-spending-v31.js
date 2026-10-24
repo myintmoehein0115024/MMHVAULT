@@ -136,7 +136,7 @@ async function submitLink(form){if(state.saving||state.dialog?.kind!=='link'||!l
  const u=state.owner,ep=state.epoch;state.saving=true;try{const c=await auth();const payload={user_id:u,plan_id:p.id,currency:p.currency,transaction_id:id,matched_manual_entry_id:manualId,client_request_id:d.requestId};const r=await c.from(LINKS).insert(payload).select('id');if(r.error||!r.data?.length){const found=await verifyCreated(c,LINKS,d.requestId);if(!found)throw r.error||Error('UNCERTAIN');}if(!live()||state.owner!==u||state.epoch!==ep)return;close();state.notice=L('交易关联已保存，财务账本没有被修改。','Linked successfully; finance ledger unchanged.');await load();}
  catch(_){if(live())showError(L('关联未确认，可能发生重复或权限冲突。请刷新核查后重试。','Link unconfirmed; refresh to verify before retrying.'));}finally{state.saving=false;}}
 async function unlink(id,planId){const p=getPlan(planId),row=state.links.find(x=>x.id===id&&x.plan_id===planId&&x.user_id===state.owner);if(!p||!row||!allowed(p)||state.saving)return;
- if(!window.confirm(L('只取消生活预算关联，原始财务交易不会删除。确定？','Unlink this lifestyle reference only? The financial transaction will remain.')))return;const u=state.owner,ep=state.epoch;state.saving=true;
+ if(!(await window.mmhVaultConfirmV740?.(L('只取消生活预算关联，原始财务交易不会删除。确定？','Unlink this lifestyle reference only? The financial transaction will remain.'))))return;const u=state.owner,ep=state.epoch;state.saving=true;
  try{const c=await auth(),r=await c.from(LINKS).delete().eq('user_id',u).eq('id',id).eq('plan_id',planId).select('id');if(r.error||!r.data?.length)throw Error('CONFLICT');if(!live()||state.owner!==u||state.epoch!==ep)return;close();state.notice=L('已取消关联。财务交易没有变化。','Unlinked. Finance transaction unchanged.');await load();}
  catch(_){if(live())showError(L('取消失败，请刷新后重试。','Unlink failed. Refresh and retry.'));}finally{state.saving=false;}}
 function showError(s){const e=$('lsDialogErrorV31');if(e)e.textContent=s;else{state.notice=s;render();}}
@@ -163,12 +163,12 @@ async function submitEntry(form){if(state.saving||!state.dialog||state.dialog.ki
 }
 async function deleteEntry(id,planId){const p=getPlan(planId),e=state.entries.find(x=>x.id===id&&x.user_id===state.owner&&x.plan_id===planId);if(!p||!e||!allowed(p)||state.saving)return;
  if(state.links.some(x=>x.matched_manual_entry_id===e.id)){state.notice=L('此手动记录关联了真实交易，请先取消关联。','This manual entry is matched to a transaction; unlink first.');render();return;}
- if(!window.confirm(L('只删除这条生活记录，不会删除任何财务交易。确定？','Delete only this lifestyle note (no financial transactions)?')))return;const u=state.owner,ep=state.epoch;state.saving=true;
+ if(!(await window.mmhVaultConfirmV740?.(L('只删除这条生活记录，不会删除任何财务交易。确定？','Delete only this lifestyle note (no financial transactions)?'))))return;const u=state.owner,ep=state.epoch;state.saving=true;
  try{const c=await auth(),r=await c.from(ENTRIES).delete().eq('user_id',u).eq('id',id).eq('plan_id',planId).eq('version',e.version).select('id');if(r.error||!r.data?.length)throw Error('CONFLICT');if(!live()||state.owner!==u||state.epoch!==ep)return;close();state.notice=L('记录已删除。','Manual use deleted.');await load();}
  catch(_){if(live())showError(L('删除失败，可能已被其他设备修改，请刷新。','Delete failed; another device may have changed this record. Refresh.'));}finally{state.saving=false;}
 }
 async function deletePlan(id){const p=getPlan(id);if(!p||!allowed(p)||state.saving)return;
- if(!window.confirm(L('确定删除此预算及其全部手动生活记录吗？这不会删除任何财务 Transactions。','Delete this plan and ALL its manual lifestyle logs? Financial Transactions are never deleted.')))return;
+ if(!(await window.mmhVaultConfirmV740?.(L('确定删除此预算及其全部手动生活记录吗？这不会删除任何财务 Transactions。','Delete this plan and ALL its manual lifestyle logs? Financial Transactions are never deleted.'))))return;
  const u=state.owner,ep=state.epoch;state.saving=true;
  try{const c=await auth(),r=await c.from(PLANS).delete().eq('user_id',u).eq('id',id).eq('version',p.version).select('id');if(r.error||!r.data?.length)throw Error('CONFLICT');if(!live()||state.owner!==u||state.epoch!==ep)return;close();state.notice=L('计划及其独立记录已删除。','Plan and its separate manual logs deleted.');await load();}
  catch(_){if(live())showError(L('删除失败，计划可能已被其他设备修改，请刷新。','Delete failed; the plan may have changed on another device. Refresh.'));}

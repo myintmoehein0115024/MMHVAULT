@@ -236,10 +236,10 @@ async function saveHabit(form){const data=new FormData(form),title=String(data.g
 const existing=state.habits.find(h=>h.id===state.dialog?.id);
 if(existing&&privateMasked(existing))return;
 if(existing&&(existing.mode!==mode||existing.target_period!==period||Number(existing.target_count)!==goal)){
- if(!confirm(L('确认调整目标？过去每日次数保持不变；旧目标不会保存为历史版本，趋势按新周期重新展示。','Change this goal? Past daily logs remain unchanged. Previous goal settings are not versioned, and trends will use the new period.')))return;
+ if(!(await window.mmhVaultConfirmV740?.(L('确认调整目标？过去每日次数保持不变；旧目标不会保存为历史版本，趋势按新周期重新展示。','Change this goal? Past daily logs remain unchanged. Previous goal settings are not versioned, and trends will use the new period.'))))return;
 }
 if(existing?.is_private&&!privateMode){
- if(!confirm(L('确认取消私人保护？名称、次数和趋势将直接在此模块显示，普通页面仍不会自动读取。','Turn off private masking? The title, counts and trends will be visible within Habit Control.')))return;
+ if(!(await window.mmhVaultConfirmV740?.(L('确认取消私人保护？名称、次数和趋势将直接在此模块显示，普通页面仍不会自动读取。','Turn off private masking? The title, counts and trends will be visible within Habit Control.'))))return;
 }
 await write(L('习惯已保存。','Habit saved.'),async(c,u)=>{let q;if(existing){q=c.from(TABLE).update({title,mode,target_period:period,target_count:goal,is_private:privateMode,version:existing.version+1,updated_at:new Date().toISOString()}).eq('id',existing.id).eq('user_id',u).eq('version',existing.version).select('id');}else{
  const requestId=state.dialog?.clientRequestId;
@@ -261,7 +261,7 @@ async function saveLog(form){const data=new FormData(form),d=String(data.get('en
  return;
  }const r=await q;if(r.error)throw r.error;if(!r.data?.length)throw Error('CONFLICT');});}
 async function togglePause(h){if(privateMasked(h))return;await write(L('状态已更新。','Status updated.'),async(c,u)=>{const r=await c.from(TABLE).update({is_paused:!h.is_paused,version:h.version+1,updated_at:new Date().toISOString()}).eq('id',h.id).eq('user_id',u).eq('version',h.version).select('id');if(r.error)throw r.error;if(!r.data?.length)throw Error('CONFLICT');});}
-async function deleteHabit(h){if(privateMasked(h))return;if(!confirm(L('确定删除这项习惯及其全部记录吗？此操作不可撤销。','Delete this habit and all its history? This cannot be undone.')))return;await write(L('习惯及关联记录已删除。','Habit and its entries deleted.'),async(c,u)=>{const r=await c.from(TABLE).delete().eq('id',h.id).eq('user_id',u).eq('version',h.version).select('id');if(r.error)throw r.error;if(!r.data?.length)throw Error('CONFLICT');});}
+async function deleteHabit(h){if(privateMasked(h))return;if(!(await window.mmhVaultConfirmV740?.(L('确定删除这项习惯及其全部记录吗？此操作不可撤销。','Delete this habit and all its history? This cannot be undone.'))))return;await write(L('习惯及关联记录已删除。','Habit and its entries deleted.'),async(c,u)=>{const r=await c.from(TABLE).delete().eq('id',h.id).eq('user_id',u).eq('version',h.version).select('id');if(r.error)throw r.error;if(!r.data?.length)throw Error('CONFLICT');});}
 async function deleteLog(){const d=$('lhDialogV21'),day=d?.querySelector('input[name="entry_date"]')?.value,habitId=state.dialog?.id;const entry=state.entries.find(e=>e.habit_id===habitId&&e.entry_date===day);if(!entry)return;await write(L('当天记录已删除。','Day entry deleted.'),async(c,u)=>{const r=await c.from(LOGS).delete().eq('id',entry.id).eq('user_id',u).eq('version',entry.version).select('id');if(r.error)throw r.error;if(!r.data?.length)throw Error('CONFLICT');});}
 function click(ev){const btn=ev.target.closest('[data-lh-act]');if(!btn||!($(ROOT)?.contains(btn)||$('lhDialogV21')?.contains(btn)))return;const action=btn.dataset.lhAct,id=btn.dataset.id,h=state.habits.find(x=>x.id===id);
 if(action==='close'){close();return;}if(action==='reveal'){if(state.reveal)concealPrivate();else revealPrivate();return;}if(action==='reload'){load();return;}if(!available()&&!['close'].includes(action))return;if(h&&privateMasked(h)&&['record','edit','pause','delete','insights','delayStart'].includes(action))return;

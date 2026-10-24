@@ -277,7 +277,7 @@ async function saveReconcile(form){
 async function unlinkReconcile(fundId,movementId){
  const f=getFund(fundId),m=state.movements.find(x=>x.id===movementId&&x.fund_id===fundId&&x.kind==='use'),r=m&&reconFor(m.id);
  if(!canSee(f)||!r||state.saving)return;
- if(!window.confirm(L('解除人工交易关联？用途使用和原始财务交易都将保留。','Unlink the manual Expense match? Both source records remain untouched.')))return;
+ if(!(await window.mmhVaultConfirmV740?.(L('解除人工交易关联？用途使用和原始财务交易都将保留。','Unlink the manual Expense match? Both source records remain untouched.'))))return;
  const u=state.owner,ep=state.epoch;state.saving=true;
  try{const c=await authorized(),x=await c.from(RECONS).delete().eq('user_id',u).eq('id',r.id).select('id');
  if(x.error||!x.data?.length)throw x.error||Error('REVIEW');
@@ -324,7 +324,7 @@ async function saveFund(form){const d=state.dialog,id=d.id,f=id?getFund(id):null
  const name=form.elements.namedItem('name').value.trim(),fund_type=f?.fund_type||form.elements.namedItem('fund_type').value,currencyCode=f?.currency||form.elements.namedItem('currency').value;
  const rawGoal=form.elements.namedItem('goal_amount').value.trim(),goal_amount=rawGoal===''?null:num(rawGoal),monthly_plan=num(form.elements.namedItem('monthly_plan').value),is_private=form.elements.namedItem('is_private').checked;
  if(!name||name.length>100||!['wish','free'].includes(fund_type)||!currency(currencyCode)||goal_amount!==null&&(!Number.isFinite(goal_amount)||goal_amount<=0||goal_amount>999999999)||!Number.isFinite(monthly_plan)||monthly_plan<0||monthly_plan>999999999){errorMsg(L('请检查名称、目标和金额。','Check name and amounts.'));return}
- if(f&&f.is_private&&!is_private&&!window.confirm(L('取消私人隐藏后，基金名称和金额会在该模块中直接显示。确定？','Making this fund public to your workspace reveals its name and amounts. Continue?')))return;
+ if(f&&f.is_private&&!is_private&&!(await window.mmhVaultConfirmV740?.(L('取消私人隐藏后，基金名称和金额会在该模块中直接显示。确定？','Making this fund public to your workspace reveals its name and amounts. Continue?'))))return;
  const data={name,fund_type,currency:currencyCode,goal_amount,monthly_plan,is_private},snapshot=JSON.stringify(data);
  if(d.snapshot&&d.snapshot!==snapshot){errorMsg(L('前次提交结果未确认；请刷新核实后再修改内容。','Unconfirmed prior save. Refresh before changing the form.'));return}d.snapshot=snapshot;
  const u=state.owner,ep=state.epoch;state.saving=true;
@@ -361,7 +361,7 @@ async function saveAllocation(form){const d=state.dialog,f=getFund(d.id);if(!can
  finally{state.saving=false}
 }
 async function removeAllocation(id,fundId){const f=getFund(fundId),e=state.allocations.find(x=>x.id===id&&x.fund_id===fundId);if(!canSee(f)||!e||state.saving||state.movements.some(m=>m.allocation_id===id)||state.transfers.some(t=>t.source_allocation_id===id||t.target_allocation_id===id))return;
- if(!window.confirm(L('仅撤销一条资金预留用途标签；不会转账或更改真实余额。确定？','Remove this earmark label? No transfer or account change occurs.')))return;
+ if(!(await window.mmhVaultConfirmV740?.(L('仅撤销一条资金预留用途标签；不会转账或更改真实余额。确定？','Remove this earmark label? No transfer or account change occurs.'))))return;
  const u=state.owner,ep=state.epoch;state.saving=true;
  try{const c=await authorized(),r=await c.from(ALLOC).delete().eq('user_id',u).eq('id',e.id).eq('fund_id',f.id).eq('version',e.version).select('id');if(r.error||!r.data?.length)throw Error('CONFLICT');if(!valid(u,ep))return;state.notice=L('预留记录已撤销。','Earmark removed.');state.saving=false;await load()}
  catch{if(valid(u,ep)){state.notice=L('操作未确认，请刷新核查。','Operation uncertain; refresh and verify.');render()}}
@@ -369,7 +369,7 @@ async function removeAllocation(id,fundId){const f=getFund(fundId),e=state.alloc
 }
 async function deleteFund(id){const f=getFund(id);if(!canSee(f)||state.saving)return;
  if(state.transfers.some(t=>t.source_fund_id===id||t.target_fund_id===id)){state.notice=L('此基金包含跨基金调配流水，为保护历史不能直接删除。','This fund has reallocation history and cannot be deleted directly.');render();return}
- if(!window.confirm(L('删除基金及其全部用途预留记录？不会删除任何财务交易或转移真实资产。','Delete this fund and ALL its earmark records? Real finances remain untouched.')))return;
+ if(!(await window.mmhVaultConfirmV740?.(L('删除基金及其全部用途预留记录？不会删除任何财务交易或转移真实资产。','Delete this fund and ALL its earmark records? Real finances remain untouched.'))))return;
  const u=state.owner,ep=state.epoch;state.saving=true;
  try{const c=await authorized(),r=await c.from(FUNDS).delete().eq('user_id',u).eq('id',id).eq('version',f.version).select('id');if(r.error||!r.data?.length)throw Error('CONFLICT');if(!valid(u,ep))return;state.notice=L('基金标签已删除。','Fund label deleted.');state.saving=false;await load()}
  catch{if(valid(u,ep)){state.notice=L('删除未确认，请刷新核查。','Delete uncertain; refresh and verify.');render()}}

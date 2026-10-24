@@ -1,0 +1,17 @@
+/* P9.28 — Settings / Feedback / Life Planner interaction clarity. No changes to financial data. */
+html body #settings #stPage_feedback #fbSubmitV14[disabled]{opacity:.64!important;cursor:progress!important;pointer-events:none!important;filter:saturate(.82)!important}
+html body #settings #stPage_feedback .fb-photo-thumb-v15{position:relative;isolation:isolate;min-width:0}
+html body #settings #stPage_feedback .fb-photo-thumb-v15 img{display:block;max-width:100%;object-fit:cover}
+html body #settings #stPage_feedback .mmh-fb65-remove{min-height:30px;min-width:30px;touch-action:manipulation}
+html body #settings #stPage_feedback #fbMsgV14:not(:empty){overflow-wrap:anywhere;line-height:1.5}
+html body #settings #stPage_feedback button:focus-visible,
+html body #settings .st-template-nav:focus-visible,
+html body #life-planner button:focus-visible,
+html body #lpOverlayV1 button:focus-visible,
+html body :is(.lh-dialog,.ls-dialog,.lf-dialog,.lg-dialog) button:focus-visible{outline:2px solid #e7bc69!important;outline-offset:2px!important}
+@media(max-width:600px){
+ html body #settings #stPage_feedback #fbMsgV14{max-width:100%;font-size:12px}
+ html body #settings #stPage_feedback .fb-photo-preview-v15{max-width:100%;min-width:0}
+ html body #settings #stPage_feedback .fb-photo-thumb-v15{max-width:min(100%,140px)}
+}
+@media(prefers-reduced-motion:reduce){html body #settings #stPage_feedback .mmh-fb65-remove{transition:none!important}}

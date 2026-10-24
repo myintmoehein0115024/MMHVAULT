@@ -21783,7 +21783,7 @@ body.light #settings .fb-photo-copy-v15 strong{color:#244058}
 body.light #settings .fb-photo-copy-v15 small,#settings .fb-photo-selected-v15{color:#6e859a}
 </style>
 <script id="mmhvault-feedback-notices-v15-script">
-(()=>{'use strict';const tr=(en,zh)=>(localStorage.getItem('mmhvault_language_v3363')||'en')==='zh'?zh:en,$=id=>document.getElementById(id);let rating=0;
+(()=>{'use strict';const tr=(en,zh)=>(localStorage.getItem('mmhvault_language_v3363')||'en')==='zh'?zh:en,$=id=>document.getElementById(id);let rating=0,feedbackBusyV928=false;
 function renderStars(stars,value){[...stars.querySelectorAll('.fb-star-v15')].forEach(btn=>{const on=Number(btn.dataset.value)<=value;btn.classList.toggle('on',on);btn.textContent=on?'★':'☆';btn.setAttribute('aria-checked',String(Number(btn.dataset.value)===value));btn.setAttribute('aria-pressed',String(on))});const helper=$('fbRatingHelperV15');if(helper)helper.textContent=value?tr('Selected: ','已选择：')+value+'/5':tr('Tap a star to rate your experience.','点击星星为本次体验评分。')}
 function renderPhotoSelection(files){const selected=$('fbPhotoSelectedV15'),box=$('fbPhotoPreviewV15');if(!selected||!box)return;selected.textContent=files.length?files.map((f,i)=>`${i+1}. ${f.name}`).join(' · '):tr('No photos selected.','尚未选择照片。');box.replaceChildren();files.forEach((f,i)=>{const wrap=document.createElement('div');wrap.className='fb-photo-thumb-v15';const img=document.createElement('img');img.src=URL.createObjectURL(f);img.onload=()=>URL.revokeObjectURL(img.src);img.alt=f.name;const badge=document.createElement('span');badge.className='fb-photo-index-v15';badge.textContent=String(i+1);wrap.append(img,badge);box.append(wrap)})}
 function addFeedbackExtras(){const form=$('fbFormV14');if(!form||$('fbRatingV15'))return;const body=form.querySelector('.fb-body-label');const note=form.querySelector('.fb-note');const rate=document.createElement('div');rate.className='fb-rating-v15';rate.innerHTML='<label class="fb-rating-label-v15"><span data-en="Review rating" data-zh="评分">Review rating</span></label><div class="fb-stars-v15" id="fbRatingV15" role="radiogroup" aria-label="Review rating"></div><small class="fb-note fb-rating-helper-v15" id="fbRatingHelperV15">'+tr('Tap a star to rate your experience.','点击星星为本次体验评分。')+'</small>';
@@ -21813,42 +21813,76 @@ input.addEventListener('change',()=>{
   if(files.some(f=>f.size>3145728)){mmhVaultNoticeV930(tr('Each photo must be 3 MB or smaller.','每张照片不能超过 3 MB。'));input.value='';files=[]}
   renderPhotoSelection(files.slice(0,3));
 });
+// P9.28: synchronous lock prevents double clicks while auth.getUser() is pending.
 form.addEventListener('submit',async e=>{
   e.preventDefault();
   e.stopImmediatePropagation();
-  const {data:{user}}=await db.auth.getUser();
-  if(!user)return;const submitOwner=user.id;
-  const title=$('fbTitleV14').value.trim(),bodyText=$('fbBodyV14').value.trim(),category=$('fbTypeV14').value,files=[...(input.files||[])].slice(0,3);
-  if(!title||!bodyText){$('fbMsgV14').textContent=tr('Please enter a title and description.','请填写标题和描述。');return}
-  if(!rating){$('fbMsgV14').textContent=tr('Please select a review rating.','请选择评分。');return}
-  if(files.length>3||files.some(f=>f.size>3145728)){$('fbMsgV14').textContent=tr('Please check the photo limits.','请检查照片数量和大小。');return}
+  if(feedbackBusyV928)return;
+  feedbackBusyV928=true;
   const btn=$('fbSubmitV14');
-  btn.disabled=true;
-  $('fbMsgV14').textContent=tr('Uploading and submitting…','正在上传并提交…');
+  btn.disabled=true;btn.setAttribute('aria-busy','true');
+  const status=$('fbMsgV14');
   const paths=[];
+  let rpcAttempted=false,submitted=false,submitOwner='';
+  const inform=text=>{if(status)status.textContent=text;};
   try{
+    const title=$('fbTitleV14').value.trim(),bodyText=$('fbBodyV14').value.trim(),category=$('fbTypeV14').value;
+    const files=[...(input.files||[])];
+    if(!title||!bodyText){inform(tr('Please enter a title and description.','请填写标题和描述。'));return;}
+    if(!rating){inform(tr('Please select a review rating.','请选择评分。'));return;}
+    const types={'image/jpeg':'jpg','image/png':'png','image/webp':'webp'};
+    if(files.length>3||files.some(f=>f.size>3145728||!types[f.type])){
+      inform(tr('Use up to 3 JPG, PNG or WEBP photos (3 MB each).','最多上传 3 张 JPG、PNG 或 WEBP 图片，每张不超过 3 MB。'));return;
+    }
+    const authResult=await db.auth.getUser();
+    const user=authResult?.data?.user;
+    if(authResult?.error||!user?.id){inform(tr('Please sign in and try again.','请重新登录后重试。'));return;}
+    submitOwner=user.id;
+    inform(tr('Uploading and submitting…','正在上传并提交…'));
     for(const f of files){
-      const ext=(f.name.split('.').pop()||'jpg').toLowerCase().replace(/[^a-z0-9]/g,'');
-      const path=user.id+'/'+crypto.randomUUID()+'.'+ext;
+      const path=submitOwner+'/'+crypto.randomUUID()+'.'+types[f.type];
       const {error}=await db.storage.from('mmh-feedback').upload(path,f,{contentType:f.type,upsert:false});
       if(error)throw error;
-      paths.push(path)
+      paths.push(path);
     }
-    const {data:{user:stillUser}}=await db.auth.getUser();if(stillUser?.id!==submitOwner)throw new Error('Session changed while submitting feedback.');
+    const again=await db.auth.getUser();
+    if(again?.error||again?.data?.user?.id!==submitOwner)throw Error('OWNER_CHANGED');
+    // From this point the network may return an ambiguous error AFTER server-side commit.
+    // Never delete photos once submission was attempted: they might belong to a saved feedback.
+    rpcAttempted=true;
     const {error}=await db.rpc('mmh_feedback_extras',{p_action:'submit',p_data:{request_id:crypto.randomUUID(),category,title,body:bodyText,rating,photos:paths}});
     if(error)throw error;
+    submitted=true;
+    // A successful RPC must never be presented as a failed or uncertain submission.
+    const after=await db.auth.getUser().catch(()=>null);
+    if(after?.data?.user?.id!==submitOwner){
+      if(!after?.data?.user?.id)inform(tr('Feedback saved. Refresh My feedback to view it.','反馈已保存，请刷新“我的反馈”查看。'));
+      return; // do not reset another user's form
+    }
     form.reset();
     rating=0;
     renderStars(stars,0);
     renderPhotoSelection([]);
-    $('fbMsgV14').textContent=tr('Feedback submitted. Thank you for your review.','反馈已提交，感谢您的评价。');
-    window.setTimeout(()=>{const toggle=$('fbMyToggleV136');if(toggle&&toggle.getAttribute('aria-expanded')!=='true')toggle.click();else $('fbRefreshV14')?.click();},0);
+    inform(tr('Feedback submitted. Thank you for your review.','反馈已提交，感谢您的评价。'));
+    window.setTimeout(()=>{if(!document.getElementById('stPage_feedback')?.hidden){
+      const toggle=$('fbMyToggleV136');
+      if(toggle&&toggle.getAttribute('aria-expanded')!=='true')toggle.click();else $('fbRefreshV14')?.click();
+    }},0);
   }catch(err){
-    $('fbMsgV14').textContent=tr('Submission failed. Please retry.','提交失败，请重试。');
-    console.error(err)
-  }finally{btn.disabled=false}
-  
-  }, {capture:true});
+    // Safe cleanup ONLY before RPC begins, when photos cannot be referenced by a submitted row.
+    if(!rpcAttempted&&paths.length){try{await db.storage.from('mmh-feedback').remove(paths);}catch(_){}}
+    if(!submitted){
+      const now=await db.auth.getUser().catch(()=>null);
+      if(!submitOwner||now?.data?.user?.id===submitOwner){
+        inform(rpcAttempted?tr('Submission status uncertain. Check My feedback before retrying.','提交结果尚未确认，请先查看“我的反馈”，避免重复提交。'):tr('Submission failed. Please retry.','提交失败，请重试。'));
+      }
+    }
+    console.warn('[MMHVAULT] Feedback submission was not confirmed.',err);
+  }finally{
+    feedbackBusyV928=false;
+    btn.disabled=false;btn.removeAttribute('aria-busy');
+  }
+}, {capture:true});
  if(note)note.before(photo);
  renderStars(stars,0);
 }
@@ -33948,5 +33982,7 @@ html body #exAsiaV10 #asiaBaseV10.mmh-asia-native-select-p914{display:none!impor
 <link rel="stylesheet" href="css/mmhvault-responsive-p925.css?v=9.25.0" data-mmh-responsive="p9.25">
 <!-- P9.27: Report/FX scoped responsive polish and truthful unavailable states. -->
 <link rel="stylesheet" href="css/mmhvault-core-analytics-p927.css?v=9.27.0" data-mmh-finance-analytics="p9.27">
+<!-- P9.28: scoped Settings, Feedback Center and Life Planner interaction polish. -->
+<link rel="stylesheet" href="css/mmhvault-settings-life-p928.css?v=9.28.0" data-mmh-settings-life="p9.28">
 </body>
 </html>
