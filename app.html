@@ -17100,31 +17100,39 @@ function renderRates(){
   }
   renderExchangeConverter();
 }
-function exchangeCurrencyToMMK(currency){
-  const c=String(currency||'').toUpperCase();
-  const mmk=Number(rates?.usd_mmk)||0;
-  if(c==='MMK')return 1;
-  if(c==='USD')return mmk;
-  if(c==='THB')return (Number(rates?.usd_thb)||0)>0?mmk/Number(rates.usd_thb):0;
-  if(c==='CNY')return (Number(rates?.usd_cny)||0)>0?mmk/Number(rates.usd_cny):0;
-  return 0;
+// P9.27: one USD equals the saved amount of each selected currency.
+// Only the two involved currency reference rates are required.
+function exchangeCurrencyUSDRateV927(currency){
+  const code=String(currency||'').toUpperCase();
+  if(code==='USD')return 1;
+  const key={MMK:'usd_mmk',THB:'usd_thb',CNY:'usd_cny'}[code];
+  const value=key?Number(rates?.[key]):NaN;
+  return Number.isFinite(value)&&value>0?value:0;
 }
 function renderExchangeConverter(){
   const wrap=$('exchangeConverterResult');
   if(!wrap)return;
-  const amount=Math.max(0,Number($('exchangeAmount')?.value||0));
+  const amount=Number($('exchangeAmount')?.value||0);
   const from=$('exchangeFrom')?.value||'USD';
   const to=$('exchangeTo')?.value||'MMK';
-  const fromRate=exchangeCurrencyToMMK(from);
-  const toRate=exchangeCurrencyToMMK(to);
+  const zh=(()=>{try{return localStorage.getItem('mmhvault_language_v3363')==='zh';}catch(_){return document.documentElement.lang?.startsWith('zh')}})();
+  const tr=(en,cn)=>zh?cn:en;
+  if(!Number.isFinite(amount)||amount<0){
+    wrap.innerHTML=`<div class="label">${tr('Invalid amount','金额无效')}</div><div class="meta">${tr('Enter a valid amount of zero or more.','请输入大于或等于零的有效金额。')}</div>`;
+    return;
+  }
+  const fromRate=exchangeCurrencyUSDRateV927(from);
+  const toRate=exchangeCurrencyUSDRateV927(to);
   if(!fromRate||!toRate){
-    wrap.innerHTML='<div class="label">Conversion unavailable</div><div class="meta">Please save valid USD exchange rates first.</div>';
+    wrap.innerHTML=`<div class="label">${tr('Conversion unavailable','暂时无法换算')}</div><div class="meta">${tr('Save the USD reference rates required for these two currencies.','请先保存这两种币种所需的美元基准汇率。')}</div>`;
     return;
   }
   const symbol=code=>({USD:'$',THB:'฿',MMK:'K',CNY:'￥'}[code]||code);
-  const result=amount*fromRate/toRate;
-  const rateOne=fromRate/toRate;
-  wrap.innerHTML=`<div class="label">Converted Amount</div><div class="value">${symbol(to)} ${result.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</div><div class="meta">${symbol(from)} 1 = ${symbol(to)} ${rateOne.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</div>`;
+  // Cross rate: (units of target per USD) / (units of source per USD).
+  const rateOne=toRate/fromRate;
+  const result=amount*rateOne;
+  const fmt=v=>Number.isFinite(v)?v.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2}):'—';
+  wrap.innerHTML=`<div class="label">${tr('Converted Amount','换算金额')}</div><div class="value">${symbol(to)} ${fmt(result)}</div><div class="meta">${symbol(from)} 1 = ${symbol(to)} ${fmt(rateOne)}</div>`;
 }
 function swapExchangeCurrencies(){
   const from=$('exchangeFrom'),to=$('exchangeTo');
@@ -24079,6 +24087,9 @@ body.light #reports .report-mini-v115{background:#f3f8fb;border-color:#cfdee9}bo
 (function(){
   if(window.__MMHVAULT_REPORT_V115)return;window.__MMHVAULT_REPORT_V115=true;
   const byId=id=>document.getElementById(id), num=v=>{const x=Number(v);return Number.isFinite(x)?x:0}, symbols={USD:'$',THB:'฿',MMK:'K',CNY:'￥'};
+  // Safe text inside report HTML and data-* attributes without changing user-entered names.
+  const safeTextV927=v=>String(v??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  const trV927=(en,cn)=>{try{return localStorage.getItem('mmhvault_language_v3363')==='zh'?cn:en}catch(_){return en}};
   const state={month:'',currency:'USD',budget:null,goals:[],recurring:[],loading:false,request:0,loadTimer:0,pendingLoad:false,pendingForce:false,cloudDirty:true,lastCloudKey:'',lastCloudAt:0};
   const currentMonth=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`};
   const shiftMonth=(key,delta)=>{const [y,m]=String(key).split('-').map(Number),d=new Date(y,m-1+delta,1);return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`};
@@ -24098,8 +24109,8 @@ body.light #reports .report-mini-v115{background:#f3f8fb;border-color:#cfdee9}bo
   function investmentSnapshot(key){let monthly=0;for(const x of (Array.isArray(window.investments)?window.investments:investments||[])){if(String(x.inv_date||x.date||'').slice(0,7)!==key)continue;const side=String(x.side||x.trade_type||'BUY').toUpperCase();if(side==='SELL')continue;const cost=num(x.amount)+num(x.fee)+num(x.other_cost);monthly+=x.asset==='Crypto'?cost:(num((typeof rates!=='undefined'?rates:window.rates)?.usd_mmk)>0?cost/num((typeof rates!=='undefined'?rates:window.rates).usd_mmk):0)}let value=0,basis=0;try{value=num(typeof window.mmhDashboardHeldInvestmentUSD==='function'?window.mmhDashboardHeldInvestmentUSD():(typeof mmhvaultInvestmentValueUSD==='function'?mmhvaultInvestmentValueUSD():0));basis=num(typeof mmhvaultInvestmentCostUSD==='function'?mmhvaultInvestmentCostUSD():0)}catch(_e){}return{monthly,value,basis,pl:value-basis,returnPct:basis?(value-basis)/basis*100:0}}
   function goalSnapshot(){const active=state.goals.filter(g=>g.status==='active'),completed=state.goals.filter(g=>g.status==='completed');let target=0,current=0;for(const g of active){const f=fx(g.currency);if(!(f>0))continue;target+=num(g.target_amount)/f;current+=num(g.current_amount)/f}const progress=target?Math.min(100,Math.max(0,current/target*100)):0;return{active,completed,target,current,progress}}
   function recurringSnapshot(){const today=new Date();today.setHours(0,0,0,0);let overdue=0,dueMonth=0,paused=0;for(const r of state.recurring){if(r.status==='paused'){paused++;continue}const d=new Date(String(r.next_due_date)+'T00:00:00');if(!Number.isFinite(d.getTime()))continue;if(d<today)overdue++;if(String(r.next_due_date||'').slice(0,7)===state.month)dueMonth++}return{overdue,dueMonth,paused,active:state.recurring.filter(r=>r.status==='active').length}}
-  function budgetSnapshot(m){const b=state.budget;if(!b||num(b.monthly_amount)<=0)return{set:false,budget:0,spent:m.individual,remaining:0,usage:0,level:'good',sourceCurrency:null};const f=fx(b.currency);const usd=f>0?num(b.monthly_amount)/f:0,usage=usd?m.individual/usd*100:0;return{set:true,budget:usd,spent:m.individual,remaining:usd-m.individual,usage,level:usage>=100?'over':usage>=80?'watch':'good',sourceCurrency:b.currency}}
-  function topCategories(m){return Object.entries(m.cats).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([k,v])=>{const [group,cat]=k.split('|');return{group,cat,value:v,pct:m.total?v/m.total*100:0}})}
+  function budgetSnapshot(m){const b=state.budget;if(!b||num(b.monthly_amount)<=0)return{set:false,budget:0,spent:m.individual,remaining:0,usage:0,level:'good',sourceCurrency:null};const f=fx(b.currency);if(!(f>0))return{set:true,unavailable:true,budget:null,spent:m.individual,remaining:null,usage:null,level:'watch',sourceCurrency:b.currency};const usd=num(b.monthly_amount)/f,usage=usd?m.individual/usd*100:0;return{set:true,unavailable:false,budget:usd,spent:m.individual,remaining:usd-m.individual,usage,level:usage>=100?'over':usage>=80?'watch':'good',sourceCurrency:b.currency}}
+  function topCategories(m){return Object.entries(m.cats).sort((a,b)=>b[1]-a[1]).slice(0,5).map(([k,v])=>{const cut=k.indexOf('|');const group=k.slice(0,cut),cat=k.slice(cut+1);return{group,cat,value:v,pct:m.total?v/m.total*100:0}})}
   function ensureMarkup(){
     const page=byId('reports');
     if(!page)return false;
@@ -24125,16 +24136,16 @@ body.light #reports .report-mini-v115{background:#f3f8fb;border-color:#cfdee9}bo
     });
     return true;
   }
-  function render(){const page=byId('reports');if(!page?.classList.contains('active'))return;const cur=monthData(state.month),prev=monthData(shiftMonth(state.month,-1)),b=budgetSnapshot(cur),wealth=currentWealth(),inv=investmentSnapshot(state.month),goals=goalSnapshot(),rec=recurringSnapshot(),tops=topCategories(cur),F=v=>money(usdTo(v));
+  function render(){const page=byId('reports');if(!page?.classList.contains('active'))return;const cur=monthData(state.month),prev=monthData(shiftMonth(state.month,-1)),b=budgetSnapshot(cur),wealth=currentWealth(),inv=investmentSnapshot(state.month),goals=goalSnapshot(),rec=recurringSnapshot(),tops=topCategories(cur),F=v=>fx(state.currency)>0?money(usdTo(v)):'—';
     byId('reportKpisV115').innerHTML=`<article class="report-kpi-v115 income"><span>Income</span><strong>${F(cur.income)}</strong><small>Ordinary income · ${state.month}</small></article><article class="report-kpi-v115 expense"><span>Individual Expense</span><strong>${F(cur.individual)}</strong><small>Average daily ${F(cur.avg)} · ${cur.days||0} day(s)</small></article><article class="report-kpi-v115 personal"><span>Personal</span><strong>${F(cur.personal)}</strong><small>Family / personal spending</small></article><article class="report-kpi-v115 remaining"><span>Remaining</span><strong>${F(cur.remaining)}</strong><small>Savings rate ${cur.rate.toFixed(2)}%</small></article>`;
-    const spendDelta=deltaText(cur.total,prev.total),incomeDelta=deltaText(cur.income,prev.income);let status='Positive cash flow',statusClass='good';if(cur.remaining<0){status='Negative cash flow';statusClass='over'}else if(b.set&&b.usage>=100){status='Over budget';statusClass='over'}else if(b.set&&b.usage>=80){status='Budget watch';statusClass='watch'}else if(!cur.income&&!cur.total){status='No activity';statusClass=''}byId('reportStatusV115').textContent=status;byId('reportStatusV115').className='report-pill-v115 '+statusClass;byId('reportSummarySubV115').textContent=`${state.month} · ${cur.count} ordinary income/spending record(s)`;
-    const summary=[];summary.push({c:cur.remaining>=0?'good':'over',t:`Savings rate is ${cur.rate.toFixed(2)}%, with ${F(cur.remaining)} remaining after Individual Expense and Personal spending.`});summary.push({c:spendDelta.cls==='neg'?'good':spendDelta.cls==='pos'?'watch':'',t:prev.total>0?`Total spending is ${spendDelta.txt} versus the previous month (${F(cur.total)} vs ${F(prev.total)}).`:`Previous-month spending is not available for a percentage comparison.`});summary.push({c:b.set?(b.level==='over'?'over':b.level==='watch'?'watch':'good'):'',t:b.set?`Budget utilization is ${b.usage.toFixed(2)}%: ${F(b.spent)} spent against ${F(b.budget)}.`:`No Cloud Budget is set for ${state.month}.`});summary.push({c:rec.overdue?'watch':'good',t:`Goals: ${goals.active.length} active, ${goals.completed.length} completed. Recurring: ${rec.overdue} overdue and ${rec.dueMonth} currently scheduled in ${state.month}.`});byId('reportSummaryV115').innerHTML=summary.map(x=>`<div class="report-summary-line-v115 ${x.c}"><i></i><span>${x.t}</span></div>`).join('');
-    if(!b.set)byId('reportBudgetV115').innerHTML='<div class="report-empty-v115">No budget is set for this month. Open Budget to add a monthly limit.</div>';else{byId('reportBudgetV115').innerHTML=`<div class="report-budget-v115"><div class="report-mini-v115"><span>Budget</span><b>${F(b.budget)}</b></div><div class="report-mini-v115"><span>Spent</span><b>${F(b.spent)}</b></div><div class="report-mini-v115"><span>Remaining</span><b>${F(b.remaining)}</b></div><div class="report-mini-v115"><span>Usage</span><b>${b.usage.toFixed(2)}%</b></div></div><div class="report-progress-v115 ${b.level}"><i style="width:${Math.min(100,Math.max(0,b.usage)).toFixed(2)}%"></i></div>`}
+    const spendDelta=deltaText(cur.total,prev.total),incomeDelta=deltaText(cur.income,prev.income);let status='Positive cash flow',statusClass='good';if(cur.remaining<0){status='Negative cash flow';statusClass='over'}else if(b.set&&b.unavailable){status=trV927('Budget rate unavailable','预算汇率不可用');statusClass='watch'}else if(b.set&&b.usage>=100){status='Over budget';statusClass='over'}else if(b.set&&b.usage>=80){status='Budget watch';statusClass='watch'}else if(!cur.income&&!cur.total){status='No activity';statusClass=''}byId('reportStatusV115').textContent=status;byId('reportStatusV115').className='report-pill-v115 '+statusClass;byId('reportSummarySubV115').textContent=`${state.month} · ${cur.count} ordinary income/spending record(s)`;
+    const summary=[];if(!(fx(state.currency)>0))summary.push({c:'watch',t:trV927('Amounts in the selected display currency are unavailable until its USD reference rate is saved. The underlying USD totals remain unchanged.','缺少所选显示币种的美元基准汇率，暂无法显示换算金额。原始美元统计保持不变。')});summary.push({c:cur.remaining>=0?'good':'over',t:`Savings rate is ${cur.rate.toFixed(2)}%, with ${F(cur.remaining)} remaining after Individual Expense and Personal spending.`});summary.push({c:spendDelta.cls==='neg'?'good':spendDelta.cls==='pos'?'watch':'',t:prev.total>0?`Total spending is ${spendDelta.txt} versus the previous month (${F(cur.total)} vs ${F(prev.total)}).`:`Previous-month spending is not available for a percentage comparison.`});summary.push({c:b.set?(b.level==='over'?'over':b.level==='watch'?'watch':'good'):'',t:b.set?(b.unavailable?trV927('Budget conversion is unavailable. Save a valid USD reference rate; your saved budget was not changed.','预算汇率换算不可用。请保存有效的美元参考汇率；已保存预算未被更改。'):`Budget utilization is ${b.usage.toFixed(2)}%: ${F(b.spent)} spent against ${F(b.budget)}.`):`No Cloud Budget is set for ${state.month}.`});summary.push({c:rec.overdue?'watch':'good',t:`Goals: ${goals.active.length} active, ${goals.completed.length} completed. Recurring: ${rec.overdue} overdue and ${rec.dueMonth} currently scheduled in ${state.month}.`});byId('reportSummaryV115').innerHTML=summary.map(x=>`<div class="report-summary-line-v115 ${x.c}"><i></i><span>${x.t}</span></div>`).join('');
+    if(!b.set)byId('reportBudgetV115').innerHTML='<div class="report-empty-v115">No budget is set for this month. Open Budget to add a monthly limit.</div>';else if(b.unavailable){byId('reportBudgetV115').innerHTML='<div class="report-empty-v115 report-unavailable-v927">'+trV927('Budget amount unavailable: missing currency rate. Your saved budget remains intact.','预算金额无法显示：缺少对应币种汇率。已保存预算保持不变。')+'</div>'}else{byId('reportBudgetV115').innerHTML=`<div class="report-budget-v115"><div class="report-mini-v115"><span>Budget</span><b>${F(b.budget)}</b></div><div class="report-mini-v115"><span>Spent</span><b>${F(b.spent)}</b></div><div class="report-mini-v115"><span>Remaining</span><b>${F(b.remaining)}</b></div><div class="report-mini-v115"><span>Usage</span><b>${b.usage.toFixed(2)}%</b></div></div><div class="report-progress-v115 ${b.level}"><i style="width:${Math.min(100,Math.max(0,b.usage)).toFixed(2)}%"></i></div>`}
     const rows=[['Income',cur.income,prev.income,incomeDelta],['Total spending',cur.total,prev.total,spendDelta],['Individual Expense',cur.individual,prev.individual,deltaText(cur.individual,prev.individual)],['Savings Rate',cur.rate,prev.rate,deltaText(cur.rate,prev.rate,true)]];byId('reportCompareV115').innerHTML=rows.map(([name,a,p,d])=>`<div class="report-compare-row-v115"><span>${name}</span><b>${name==='Savings Rate'?a.toFixed(2)+'%':F(a)}</b><b>${name==='Savings Rate'?p.toFixed(2)+'%':F(p)}</b><em class="${d.cls}">${d.txt}</em></div>`).join('');
-    byId('reportCategoriesV115').innerHTML=tops.length?tops.map((x,i)=>`<button type="button" class="report-category-v115 report-category-action-v149" data-report-category-v149="${String(x.cat).replace(/[<&>"']/g,'')}"><div class="report-rank-v115">${i+1}</div><div class="report-category-main-v115"><div class="report-category-row-v115"><b>${String(x.cat).replace(/[<>&]/g,'')}</b><small>${x.group} · ${x.pct.toFixed(2)}%</small></div><div class="report-category-bar-v115"><i style="width:${Math.min(100,x.pct).toFixed(2)}%"></i></div></div><div class="report-category-amount-v115">${F(x.value)}</div></button>`).join(''):'<div class="report-empty-v115">No Individual or Personal expenses recorded for this month.</div>';
+    byId('reportCategoriesV115').innerHTML=tops.length?tops.map((x,i)=>`<button type="button" class="report-category-v115 report-category-action-v149" data-report-category-v149="${safeTextV927(x.cat)}"><div class="report-rank-v115">${i+1}</div><div class="report-category-main-v115"><div class="report-category-row-v115"><b>${safeTextV927(x.cat)}</b><small>${x.group} · ${x.pct.toFixed(2)}%</small></div><div class="report-category-bar-v115"><i style="width:${Math.min(100,x.pct).toFixed(2)}%"></i></div></div><div class="report-category-amount-v115">${F(x.value)}</div></button>`).join(''):'<div class="report-empty-v115">No Individual or Personal expenses recorded for this month.</div>';
     byId('reportWealthV115').innerHTML=`<div class="report-mini-v115"><span>Total Balance</span><b>${F(wealth.total)}</b></div><div class="report-mini-v115"><span>Cash</span><b>${F(wealth.cash)}</b></div><div class="report-mini-v115"><span>Investments</span><b>${F(wealth.invest)}</b></div><div class="report-mini-v115"><span>Loan Receivable</span><b>${F(wealth.recv)}</b></div>`;
     byId('reportInvestV115').innerHTML=`<div class="report-mini-v115"><span>Recorded this month</span><b>${F(inv.monthly)}</b></div><div class="report-mini-v115"><span>Current value</span><b>${F(inv.value)}</b></div><div class="report-mini-v115"><span>Current P/L</span><b style="color:${inv.pl>=0?'#55d9a5':'#ff889b'}">${inv.pl>=0?'+':''}${F(inv.pl)} · ${inv.returnPct.toFixed(2)}%</b></div>`;
-    if(!goals.active.length)byId('reportGoalsV115').innerHTML='<div class="report-empty-v115">No active financial goals.</div>';else byId('reportGoalsV115').innerHTML=goals.active.slice(0,4).map(g=>{const f=fx(g.currency),target=f>0?num(g.target_amount)/f:0,current=f>0?num(g.current_amount)/f:0,p=target?Math.min(100,Math.max(0,current/target*100)):0;return`<button type="button" class="report-goal-row-v115 report-goal-action-v149" data-report-goal-v149="${g.id}"><div><b>${String(g.name||'Goal').replace(/[<>&]/g,'')}</b><small>${F(current)} of ${F(target)}${g.target_date?' · '+g.target_date:''}</small><div class="report-goal-progress-v115"><i style="width:${p.toFixed(2)}%"></i></div></div><strong>${p.toFixed(2)}%</strong></button>`}).join('')+(goals.active.length>4?`<div class="report-method-v115">+ ${goals.active.length-4} more active goal(s)</div>`:'');
+    if(!goals.active.length)byId('reportGoalsV115').innerHTML='<div class="report-empty-v115">No active financial goals.</div>';else byId('reportGoalsV115').innerHTML=goals.active.slice(0,4).map(g=>{const f=fx(g.currency),target=f>0?num(g.target_amount)/f:0,current=f>0?num(g.current_amount)/f:0,p=target?Math.min(100,Math.max(0,current/target*100)):0;return`<button type="button" class="report-goal-row-v115 report-goal-action-v149" data-report-goal-v149="${safeTextV927(g.id)}"><div><b>${safeTextV927(g.name||'Goal')}</b><small>${F(current)} of ${F(target)}${g.target_date?' · '+safeTextV927(g.target_date):''}</small><div class="report-goal-progress-v115"><i style="width:${p.toFixed(2)}%"></i></div></div><strong>${p.toFixed(2)}%</strong></button>`}).join('')+(goals.active.length>4?`<div class="report-method-v115">+ ${goals.active.length-4} more active goal(s)</div>`:'');
     byId('reportRecurringV115').innerHTML=`<div class="report-mini-v115"><span>Active schedules</span><b>${rec.active}</b></div><div class="report-mini-v115"><span>Due in selected month</span><b>${rec.dueMonth}</b></div><div class="report-mini-v115"><span>Overdue now</span><b style="color:${rec.overdue?'#ff889b':'#55d9a5'}">${rec.overdue}</b></div><div class="report-mini-v115"><span>Paused</span><b>${rec.paused}</b></div>`;
     window.MMHReportExportV116?.install();window.mmhRenderReportSignalsV191?.();
   }
@@ -33935,5 +33946,7 @@ html body #exAsiaV10 #asiaBaseV10.mmh-asia-native-select-p914{display:none!impor
 <link rel="stylesheet" href="css/mmhvault-premium-dialogs-p924.css?v=9.24.0" data-mmh-dialog-consistency="p9.24">
 <!-- P9.25: Responsive nav, safe-area and last-action clearance; cumulative after P9.24. -->
 <link rel="stylesheet" href="css/mmhvault-responsive-p925.css?v=9.25.0" data-mmh-responsive="p9.25">
+<!-- P9.27: Report/FX scoped responsive polish and truthful unavailable states. -->
+<link rel="stylesheet" href="css/mmhvault-core-analytics-p927.css?v=9.27.0" data-mmh-finance-analytics="p9.27">
 </body>
 </html>

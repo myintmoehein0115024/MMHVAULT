@@ -1,0 +1,39 @@
+/* MMHVAULT P9.27 — Analyze / Exchange / Financial Report final visual alignment.
+   Scoped presentation layer; no finance calculations, authentication or database writes. */
+html body.mmh-workspace-active #reports.page.active,
+html body.mmh-workspace-active #exchange.page.active,
+html body.mmh-workspace-active #analyze.page.active{min-width:0;max-width:100%;box-sizing:border-box}
+html body.mmh-workspace-active #reports.page.active .report-shell-v115{min-width:0;max-width:100%;gap:clamp(10px,1.1vw,16px)}
+html body.mmh-workspace-active #reports.page.active .report-kpi-v115,
+html body.mmh-workspace-active #reports.page.active .report-panel-v115{
+  min-width:0;
+  border-color:rgba(172,211,239,.31);
+  background:linear-gradient(145deg,rgba(26,70,101,.70),rgba(7,27,49,.90) 55%,rgba(4,22,41,.94));
+  box-shadow:inset 0 1px 0 rgba(242,251,255,.13),0 15px 35px rgba(0,6,22,.16);
+  -webkit-backdrop-filter:blur(15px) saturate(127%);
+  backdrop-filter:blur(15px) saturate(127%);
+}
+html body.mmh-workspace-active #reports .report-kpi-v115>span{font-size:clamp(10px,.78vw,12px);line-height:1.35;letter-spacing:.045em;color:#b5cfdf}
+html body.mmh-workspace-active #reports .report-kpi-v115>strong{font-size:clamp(19px,1.85vw,29px);line-height:1.2;letter-spacing:-.022em}
+html body.mmh-workspace-active #reports .report-kpi-v115>small{font-size:clamp(10px,.72vw,12px);color:#acc3d4;line-height:1.45}
+html body.mmh-workspace-active #reports .report-panel-head-v115 h2{font-size:clamp(16px,1.2vw,20px);color:#f5eddb}
+html body.mmh-workspace-active #reports :is(.report-category-v115,.report-goal-row-v115){min-width:0}
+html body.mmh-workspace-active #reports .report-unavailable-v927{color:#f8d594;border:1px solid rgba(230,187,96,.35);border-radius:12px;background:rgba(160,103,31,.09);padding:14px;line-height:1.55}
+html body.mmh-workspace-active #exchange.page.active .exchange-converter-result .value{overflow-wrap:anywhere;word-break:normal;font-variant-numeric:tabular-nums}
+html body.mmh-workspace-active #exchange.page.active .exchange-converter-result .meta{overflow-wrap:anywhere;line-height:1.5}
+@media(max-width:1023px){
+  html body.mmh-workspace-active #reports.page.active .report-kpis-v115{grid-template-columns:repeat(2,minmax(0,1fr))}
+  html body.mmh-workspace-active #reports.page.active .report-grid-v115{grid-template-columns:minmax(0,1fr)}
+  html body.mmh-workspace-active #reports .report-kpi-v115>strong{font-size:clamp(20px,3vw,26px)}
+}
+@media(max-width:620px){
+  html body.mmh-workspace-active #reports.page.active .report-head-v115{flex-wrap:wrap;gap:12px}
+  html body.mmh-workspace-active #reports.page.active .report-head-v115 h1{font-size:clamp(24px,6vw,29px)}
+  html body.mmh-workspace-active #reports.page.active .report-controls-v115{width:100%;justify-content:stretch;gap:9px}
+  html body.mmh-workspace-active #reports.page.active .report-controls-v115 label{min-width:0;flex:1 1 130px}
+  html body.mmh-workspace-active #reports.page.active .report-kpis-v115{gap:9px}
+  html body.mmh-workspace-active #reports.page.active .report-kpi-v115{padding:12px}
+  html body.mmh-workspace-active #reports .report-kpi-v115>strong{font-size:clamp(17px,4.8vw,23px)}
+  html body.mmh-workspace-active #reports .report-kpi-v115>small{font-size:10px}
+  html body.mmh-workspace-active #reports.page.active .report-panel-v115{padding:clamp(11px,3.3vw,16px)}
+}
