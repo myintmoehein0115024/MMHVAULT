@@ -16616,22 +16616,41 @@ setTimeout(()=>setAccountsCategoriesTabV445(localStorage.getItem('mmhvault_accou
 
 
 /* V4.3.0 Account Security */
+// P9.53: never destroy the email-password form when switching sign-in providers.
+let mmhPasswordFormOwnerV953='';
 function refreshAccountSecurityV379(user){
-  if(!user)return;
   window.mmhUpdateEmailResetCardV952?.(user);
-  const p=getUserDisplayProfile(user);
-  const providers=(user.identities||[]).map(x=>x.provider);
-  const pwdPanel=$('passwordPanelV379'), title=$('passwordTitleV379');
-  if(pwdPanel&&title){
-    if(!providers.includes('email')){
-      title.textContent='Password';
-      const label=providers.includes('google')?'Google':providers.includes('phone')||p.phone?'legacy account':'passwordless';
-      pwdPanel.innerHTML=`<div class="desc">This account uses ${label} sign-in. Password management is not available for this sign-in method.</div>`;
-    }else{
-      title.textContent='Password';
-    }
+  const providers=(user?.identities||[]).map(identity=>identity.provider);
+  const panel=$('passwordPanelV379'),title=$('passwordTitleV379');
+  if(!panel||!title)return;
+  const hasEmail=providers.includes('email');
+  const ownerKey=(user?.id||'')+'|'+(user?.email||'');
+  const switchedOwner=mmhPasswordFormOwnerV953!==ownerKey;
+  if(switchedOwner)mmhPasswordFormOwnerV953=ownerKey;
+  let hint=$('mmhPasswordProviderHintV953');
+  if(!hint){
+    hint=document.createElement('div');
+    hint.id='mmhPasswordProviderHintV953';
+    hint.className='desc';
+    hint.setAttribute('role','status');
+    panel.insertAdjacentElement('afterend',hint);
   }
+  if(!hasEmail||switchedOwner){
+    for(const id of ['securityCurrentPasswordV379','securityNewPasswordV379','securityConfirmPasswordV379']){
+      const input=$(id);if(input)input.value='';
+    }
+    const output=$('securityPasswordResultV379');if(output)output.textContent='';
+  }
+  panel.style.display=hasEmail?'':'none';
+  hint.style.display=hasEmail?'none':'';
+  const zh=(document.documentElement.lang||'').toLowerCase().startsWith('zh');
+  hint.textContent=zh
+    ?'此账户仅使用 Google 登录时，请通过 Google 管理密码。若已绑定邮箱密码，切换到邮箱账号后可使用左侧表单。'
+    :'Google-only accounts manage passwords with Google. The email-password form returns when you switch to an eligible email account.';
+  title.textContent=zh?'密码':'Password';
 }
+window.addEventListener('mmhvault-language-change',()=>refreshAccountSecurityV379(currentSessionUser));
+window.addEventListener('languagechange',()=>refreshAccountSecurityV379(currentSessionUser));
 
 const _applyUserProfileV379=applyUserProfile;
 applyUserProfile=function(user){
@@ -34047,7 +34066,7 @@ html body #exAsiaV10 #asiaBaseV10.mmh-asia-native-select-p914{display:none!impor
 <!-- P9.28: scoped Settings, Feedback Center and Life Planner interaction polish. -->
 <link rel="stylesheet" href="css/mmhvault-settings-life-p928.css?v=9.28.0" data-mmh-settings-life="p9.28">
 
-<!-- P9.52: Password & devices — email reset in the formerly empty right column. -->
+<!-- P9.53: Password & devices — provider switch restore + owner-scoped reset cooldown. -->
 <style id="mmhvault-email-recovery-v952">
 html body #settings.page.active .account-security-grid-v379{
   display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:14px!important;align-items:stretch!important;
@@ -34086,71 +34105,88 @@ body.light #settings.page.active .mmh-email-reset-destination-v952{background:rg
 }
 @media(max-width:540px){html body #settings.page.active .account-security-grid-v379{gap:12px!important}html body #settings.page.active .mmh-email-reset-card-v952{padding:15px!important}}
 </style>
-<script id="mmhvault-email-recovery-v952-script">
+<script id="mmhvault-email-recovery-v953-script">
 (function(){
   'use strict';
   const byId=id=>document.getElementById(id);
-  const copy=(zh,en)=>document.documentElement.lang.toLowerCase().startsWith('zh')?zh:en;
-  let busy=false,ownerId='',cooldownUntil=0,statusEn='',statusZh='',statusKind='';
+  const copy=(zh,en)=>(document.documentElement.lang||'').toLowerCase().startsWith('zh')?zh:en;
   const button=()=>byId('mmhEmailResetSendV952');
   const currentUser=()=>{try{return typeof currentSessionUser!=='undefined'?currentSessionUser:null}catch(_){return null}};
-  const isEmailAccount=user=>!!(user&&user.id&&user.email&&(user.identities||[]).some(i=>i.provider==='email'));
+  const isEmailAccount=u=>!!(u?.id&&u?.email&&(u.identities||[]).some(i=>i.provider==='email'));
+  let ownerId='',ownerEmail='',epoch=0,activeRequest=null,cooldownUntil=0,tick=null;
+  const cooldownByOwner=new Map();
+  let statusEn='',statusZh='',statusKind='';
   function showStatus(zh='',en='',kind=''){
     statusZh=zh;statusEn=en;statusKind=kind;
-    const el=byId('mmhEmailResetStatusV952');if(el){el.textContent=copy(zh,en);el.dataset.kind=kind;}
+    const node=byId('mmhEmailResetStatusV952');if(node){node.textContent=copy(zh,en);node.dataset.kind=kind;}
   }
+  function stopTick(){if(tick!==null){clearTimeout(tick);tick=null;}}
   function paint(){
     document.querySelectorAll('#mmhEmailResetCardV952 [data-p952-en]').forEach(el=>{
       el.textContent=copy(el.dataset.p952Zh,el.dataset.p952En);
     });
-    const status=byId('mmhEmailResetStatusV952');if(status){status.textContent=copy(statusZh,statusEn);status.dataset.kind=statusKind;}
+    const st=byId('mmhEmailResetStatusV952');if(st){st.textContent=copy(statusZh,statusEn);st.dataset.kind=statusKind;}
+    const remain=Math.max(0,Math.ceil((cooldownUntil-Date.now())/1000));
+    const caption=button()?.querySelector('[data-p952-en]');
+    if(caption&&remain)caption.textContent=copy(`请 ${remain} 秒后重发`,`Resend in ${remain}s`);
   }
   function update(user){
-    const id=user?.id||'';
-    if(id!==ownerId){ownerId=id;cooldownUntil=0;showStatus();}
-    const addr=byId('mmhEmailResetAddressV952');if(addr)addr.textContent=user?.email||'—';
-    const btn=button();
-    const eligible=isEmailAccount(user);
-    if(btn)btn.disabled=!eligible||busy||Date.now()<cooldownUntil;
-    if(user&& !eligible && !busy){
-      showStatus('当前账户不支持邮箱密码恢复。',
-                 'Email password recovery is unavailable for this sign-in method.','');
-    }else if(eligible && statusEn==='Email password recovery is unavailable for this sign-in method.')showStatus();
+    // A stale auth event must not display another account's email or enable the button.
+    const local=currentUser();
+    const safe=!!user?.id&&!!local?.id&&user.id===local.id&&user.email===local.email?user:null;
+    const id=safe?.id||'',email=safe?.email||'';
+    if(id!==ownerId||email!==ownerEmail){
+      ownerId=id;ownerEmail=email;++epoch;activeRequest=null;cooldownUntil=cooldownByOwner.get(id+'|'+email)||0;stopTick();showStatus();
+    }
+    const addr=byId('mmhEmailResetAddressV952');if(addr)addr.textContent=email||'—';
+    const eligible=isEmailAccount(safe);
+    const remain=Math.max(0,Math.ceil((cooldownUntil-Date.now())/1000));
+    const btn=button();if(btn)btn.disabled=!eligible||!!activeRequest||remain>0;
+    if(safe&&!eligible&&!activeRequest){
+      showStatus('当前账户不支持邮箱密码恢复。','Email password recovery is unavailable for this sign-in method.','');
+    }else if(eligible&&statusEn==='Email password recovery is unavailable for this sign-in method.')showStatus();
     paint();
+    if(remain>0&&tick===null){
+      const ownEpoch=epoch;
+      tick=setTimeout(()=>{tick=null;if(epoch===ownEpoch)update(currentUser());},1000);
+    }
   }
   async function send(){
-    if(busy||Date.now()<cooldownUntil)return;
     const snapshot=currentUser();
-    if(!isEmailAccount(snapshot)){
-      showStatus('当前账户不支持邮箱密码恢复。','Email password recovery is unavailable for this sign-in method.','error');return;
+    // Never trust a stale UI enabled state or a previous owner's cooldown.
+    if(activeRequest||Date.now()<cooldownUntil)return;
+    if(!snapshot?.id||snapshot.id!==ownerId||snapshot.email!==ownerEmail||!isEmailAccount(snapshot)){
+      update(snapshot);
+      showStatus('请重新核实当前登录账户。','Please recheck your current signed-in account.','error');return;
     }
     if(!navigator.onLine){showStatus('目前处于离线状态，请联网后重试。','You are offline. Reconnect and try again.','error');return;}
-    const fromOwner=snapshot.id, fromEmail=snapshot.email;
-    busy=true;update(snapshot);
+    const fromOwner=snapshot.id,fromEmail=snapshot.email;
+    const token={owner:fromOwner,email:fromEmail,epoch};
+    activeRequest=token;update(snapshot);
     showStatus('正在核实登录状态…','Verifying your session…','');
+    const same=()=>activeRequest===token&&epoch===token.epoch&&ownerId===fromOwner&&ownerEmail===fromEmail&&currentUser()?.id===fromOwner&&currentUser()?.email===fromEmail;
     try{
       if(typeof db==='undefined'||!db?.auth?.getUser||!db.auth.resetPasswordForEmail)throw new Error('auth_unavailable');
       const verified=await db.auth.getUser();
-      if(verified.error||verified.data?.user?.id!==fromOwner||currentUser()?.id!==fromOwner||verified.data?.user?.email!==fromEmail)throw new Error('session_changed');
+      if(!same())return;
+      if(verified.error||verified.data?.user?.id!==fromOwner||verified.data?.user?.email!==fromEmail)throw new Error('session_changed');
       if(!isEmailAccount(verified.data.user))throw new Error('no_email_password');
       const redirectTo=new URL('login.html?recovery=1',location.href).href;
       const response=await db.auth.resetPasswordForEmail(fromEmail,{redirectTo});
-      if(currentUser()?.id!==fromOwner||currentUser()?.email!==fromEmail)return;
+      if(!same())return;
       if(response?.error)throw response.error;
       cooldownUntil=Date.now()+60000;
-      showStatus('已提交重置邮件申请。请检查收件箱和垃圾邮件，点击链接后设置新密码。',
-        'Reset email requested. Check your inbox and spam folder, then open the link to set a new password.','ok');
-      setTimeout(()=>{if(currentUser()?.id===fromOwner)update(currentUser());},60500);
-    }catch(err){
-      if(currentUser()?.id!==fromOwner)return;
-      const sessionFail=err?.message==='session_changed';
-      const unavailable=err?.message==='auth_unavailable';
-      const unsupported=err?.message==='no_email_password';
+      cooldownByOwner.set(fromOwner+'|'+fromEmail,cooldownUntil);
+      showStatus('重置邮件申请已提交。请查看收件箱和垃圾邮件，通过链接设置新密码。',
+        'Reset email requested. Check your inbox and spam folder, then use the link to set a new password.','ok');
+    }catch(error){
+      if(!same())return;
+      const reason=error?.message;
       showStatus(
-        sessionFail?'登录账户已变化，请重新进入设置。':unavailable?'认证服务暂不可用，请稍后再试。':unsupported?'请使用邮箱密码账户进行重置。':'发送失败，请检查网络或稍后再试。',
-        sessionFail?'Your signed-in account changed. Reopen Settings.':unavailable?'Authentication is unavailable. Try again later.':unsupported?'This account does not have an email-password sign-in.':'Unable to request reset. Check your network or try later.','error');
+        reason==='session_changed'?'登录账户发生变化，请重新登录。':reason==='auth_unavailable'?'认证服务暂不可用，请稍后再试。':reason==='no_email_password'?'当前登录方式不支持邮箱密码重置。':'发送失败，请检查网络或稍后重试。',
+        reason==='session_changed'?'Your session changed. Please sign in again.':reason==='auth_unavailable'?'Authentication is unavailable. Try again later.':reason==='no_email_password'?'Email password reset is unavailable for this account.':'Unable to request reset. Check your network or try later.','error');
     }finally{
-      busy=false;update(currentUser());
+      if(activeRequest===token){activeRequest=null;update(currentUser());}
     }
   }
   window.mmhUpdateEmailResetCardV952=update;
@@ -34158,7 +34194,7 @@ body.light #settings.page.active .mmh-email-reset-destination-v952{background:rg
   window.addEventListener('mmhvault-language-change',paint);
   window.addEventListener('languagechange',paint);
   try{db?.auth?.onAuthStateChange?.((_event,session)=>{update(session?.user||null);});}catch(_e){}
-  if(currentUser())update(currentUser());else paint();
+  update(currentUser());
 })();
 </script>
 
