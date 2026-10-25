@@ -1,0 +1,76 @@
+/* MMHVAULT P9.54 — Numeric responsive layout, no financial-calculation changes.
+ * Loaded last to correct older overflow-wrap:anywhere / fixed-size overrides.
+ * Keep words and notes free to wrap; currency values must not break within a number.
+ */
+:root{--mmh-p954-money-min:11px}
+/* Cashflow / Cloud Budget — root cause of THB -> MMK wrapping. */
+html body #cashflow-analyze .cfa-budget-comparison{min-width:0;container-type:inline-size}
+html body #cashflow-analyze .cfa-budget-comparison>div{min-width:0!important;max-width:100%;box-sizing:border-box}
+html body #cashflow-analyze .cfa-budget-comparison b,
+html body #cashflow-analyze .cfa-card>strong,
+html body #cashflow-analyze .cfa-mini-card>strong,
+html body #cashflow-analyze .cfa-breakdown-value b,
+html body #cashflow-analyze .cfa-breakdown-value{
+  white-space:nowrap!important;word-break:normal!important;overflow-wrap:normal!important;hyphens:none!important;
+  text-overflow:clip!important;font-variant-numeric:tabular-nums lining-nums;
+}
+html body #cashflow-analyze .cfa-budget-comparison b{display:block!important;max-width:100%;min-width:0;line-height:1.2!important;letter-spacing:-.025em}
+html body #cashflow-analyze .cfa-budget-comparison>div>span{display:block;line-height:1.35;overflow-wrap:break-word}
+html body #cashflow-analyze .cfa-breakdown-title,
+html body #cashflow-analyze .cfa-breakdown-row{min-width:0;align-items:center;gap:6px}
+html body #cashflow-analyze .cfa-breakdown-title>span:first-child,
+html body #cashflow-analyze .cfa-breakdown-row>span:first-child{flex:1 1 auto;min-width:0;overflow-wrap:break-word}
+html body #cashflow-analyze .cfa-breakdown-value{min-width:0;max-width:76%;flex:0 1 auto;gap:5px}
+html body #cashflow-analyze .cfa-breakdown-value>b{min-width:0;flex:0 1 auto}
+html body #cashflow-analyze .cfa-breakdown-value>.cfa-breakdown-rate{flex:0 0 auto}
+html body #cashflow-analyze .cfa-card>strong{display:block;max-width:100%;min-width:0}
+/* Reflow the three budget amounts ONLY when they cannot fit at readable minimum.
+   Small/portrait screens keep each full amount as a single row. */
+html body #cashflow-analyze .cfa-budget-comparison.mmh-p954-expanded{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+html body #cashflow-analyze .cfa-budget-comparison.mmh-p954-expanded>div:last-child{grid-column:1/-1}
+@media (max-width:490px){
+  html body #cashflow-analyze .cfa-budget-comparison.mmh-p954-expanded{grid-template-columns:1fr!important}
+  html body #cashflow-analyze .cfa-budget-comparison.mmh-p954-expanded>div:last-child{grid-column:auto}
+  html body #cashflow-analyze .cfa-breakdown-value{max-width:79%}
+}
+/* Constrain grid children instead of hiding currency digits. */
+html body #cashflow-analyze :is(.cfa-panel,.cfa-detail-grid,.cfa-kpis,.cfa-efficiency-kpis,.cfa-mini-card,.cfa-card){min-width:0}
+/* Financial Report: older responsive CSS explicitly reverted to white-space:normal. */
+html body #reports :is(.report-kpi-v115>strong,.report-mini-v115 b,.report-compare-row-v115>b,.report-category-amount-v115,.report-category-row-v115 b,.report-goal-row-v115 b),
+html body #dashboard :is(.mmh-networth-value,.mmh-command-stat b,.mmh-history-amount-summary,.mmh-mini-metrics b),
+html body #accounts-page :is(.am-summary>strong,.am-summary-grid b,.am-row-value),
+html body #transactions :is(.tx-mobile-amount-v371,.mmh-history-amount-summary),
+html body #invest :is(.mmh-ui-kpi strong,.mmh-overview-field b),
+html body #exchange .exchange-converter-result .value,
+html body :is(#settings,#cashflow-analyze,#analyze,#budget,#reports,#dashboard,#transactions,#invest,#accounts-page,#exchange) .mmh-money-fit-p954{
+ white-space:nowrap!important;overflow-wrap:normal!important;word-break:normal!important;hyphens:none!important;
+ text-overflow:clip!important;font-variant-numeric:tabular-nums lining-nums!important;
+}
+html body #reports :is(.report-kpi-v115,.report-grid-v115,.report-compare-row-v115),
+html body #dashboard :is(.mmh-networth-card,.mmh-command-stat),
+html body #accounts-page :is(.account-card,.am-row),
+html body #invest :is(.mmh-ui-kpi,.mmh-overview-field){min-width:0}
+/* Respect available space: four report KPIs become two on midsize panes and one on narrow panes. */
+html body #reports .report-kpis-v115{grid-template-columns:repeat(auto-fit,minmax(min(100%,195px),1fr))!important}
+html body #reports .report-kpi-v115>strong{max-width:100%;overflow:visible!important;white-space:nowrap!important;overflow-wrap:normal!important;word-break:normal!important}
+/* Numeric fitting class is applied only to verified monetary/percent outputs, never inputs, labels or notes. */
+html body .mmh-money-fit-p954{white-space:nowrap!important;word-break:normal!important;overflow-wrap:normal!important;hyphens:none!important;font-variant-numeric:tabular-nums lining-nums!important;letter-spacing:-.025em!important;max-width:100%;}
+/* Business workspace: retain responsive cards rather than compressing fixed-width columns. */
+html body.mmh-p954-business :is(.kpi,.metric,.reorder-metric,.detail-item,.analytics-row,.activity-row){min-width:0}
+html body.mmh-p954-business :is(.kpi b,.metric b,.statement-balance,.activity-amount,.reorder-metric b,.num){white-space:nowrap!important;word-break:normal!important;overflow-wrap:normal!important;font-variant-numeric:tabular-nums}
+@media(max-width:650px){
+  html body.mmh-p954-business .kpis{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  html body.mmh-p954-business .kpi{min-width:0;padding:12px 9px}
+}
+@media(max-width:350px){html body.mmh-p954-business .kpis{grid-template-columns:1fr!important}}
+
+/* Override the legacy report mobile !important white-space:normal rule (same selector depth). */
+html body #reports.page > .report-shell-v115 .report-kpi-v115 > strong.mmh-money-fit-p954{
+ white-space:nowrap!important;word-break:normal!important;overflow-wrap:normal!important;hyphens:none!important;
+ overflow:visible!important;text-overflow:clip!important;
+}
+@media(max-width:520px){
+ html body #cashflow-analyze .cfa-breakdown-title,
+ html body #cashflow-analyze .cfa-breakdown-row{display:grid!important;grid-template-columns:minmax(0,1fr);gap:3px!important;align-items:center}
+ html body #cashflow-analyze .cfa-breakdown-value{max-width:100%;justify-self:end}
+}
