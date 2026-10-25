@@ -12797,6 +12797,34 @@ function mmhvaultFinishAuthBootV3285(session){
     location.replace('index.html');
   }
 }
+/* P9.47: prevent previously rendered account data, including Life Planner subpages,
+   from being exposed during identity changes or Auth verification failures. */
+let mmhP947AuthGateTicket=0;
+function mmhP947GuardV947(phase='switch'){
+  let layer=document.getElementById('mmhP947AccountGuard');
+  if(!layer){
+    layer=document.createElement('div');
+    layer.id='mmhP947AccountGuard';
+    layer.setAttribute('role','status');layer.setAttribute('aria-live','polite');
+    layer.style.cssText='position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;padding:24px;background:#050d17;color:#eaf3fa;font:14px/1.6 system-ui,sans-serif;text-align:center;';
+    const card=document.createElement('div');
+    card.style.cssText='max-width:430px;width:100%;border:1px solid #52657a;border-radius:18px;padding:24px 20px;background:#0b1c2b;box-shadow:0 20px 60px #0008;';
+    const title=document.createElement('strong'); title.id='mmhP947AccountGuardTitle';
+    title.style.cssText='display:block;font-size:17px;margin-bottom:8px;color:#ffe1a4;';
+    const info=document.createElement('div');info.id='mmhP947AccountGuardInfo';
+    const retry=document.createElement('button');retry.type='button';retry.id='mmhP947AccountGuardRetry';
+    retry.style.cssText='margin-top:18px;padding:10px 18px;border:1px solid #697f96;border-radius:10px;background:#17334c;color:#fff;cursor:pointer;';
+    retry.addEventListener('click',()=>location.reload());card.append(title,info,retry);layer.appendChild(card);document.body.appendChild(layer);
+  }
+  const zh=(document.documentElement.lang||'').toLowerCase().startsWith('zh')||localStorage.getItem('mmhvault_language_v3363')==='zh';
+  const failed=phase==='error';
+  document.getElementById('mmhP947AccountGuardTitle').textContent=zh?(failed?'登录身份校验失败':'正在保护账户数据'):(failed?'Sign-in verification failed':'Protecting your private data');
+  document.getElementById('mmhP947AccountGuardInfo').textContent=zh?(failed?'无法确认当前账号，数据已隐藏。请检查网络并刷新页面。':'正在核实新账号并重新读取云端记录，完成前不会显示上一个账号的内容。'):(failed?'Your account could not be verified. Data remains hidden. Check your network and refresh.':'Verifying the new account and loading cloud data before showing any account content.');
+  const retry=document.getElementById('mmhP947AccountGuardRetry');
+  retry.textContent=zh?'重新连接':'Retry';retry.hidden=!failed;
+  layer.hidden=false;layer.style.display='flex';
+}
+function mmhP947UnlockV947(){const layer=document.getElementById('mmhP947AccountGuard');if(layer){layer.hidden=true;layer.style.display='none';}}
 let mmhvaultAuthRedirectingV1239=false;
 db.auth.onAuthStateChange((event,session)=>{
   if(event==='INITIAL_SESSION'){mmhvaultFinishAuthBootV3285(session);return;}
@@ -12804,21 +12832,22 @@ db.auth.onAuthStateChange((event,session)=>{
     const liveOwner=currentSessionUser?.id||'';
     const nextOwner=session.user.id;
     if(liveOwner&&liveOwner!==nextOwner){
-      Promise.resolve().then(()=>{
-        if(typeof window.mmhVaultSwitchSessionV1239==='function')return window.mmhVaultSwitchSessionV1239(session);
-        applyUserProfile(session.user);activeEnterUserId='';return enter(session);
-      }).catch(err=>console.error('MMHVAULT account switch failed',err));
+      // Lock synchronously: Reacting in a later microtask leaves the old DOM visible.
+      mmhP947GuardV947('switch');
+      Promise.resolve().then(()=>window.mmhVaultSwitchSessionV1239(session))
+        .catch(err=>{console.error('MMHVAULT account switch failed',err);mmhP947GuardV947('error');});
       return;
     }
     if(liveOwner===nextOwner){
       try{applyUserProfile(session.user);}catch(err){console.warn('MMHVAULT session profile refresh skipped',err);}
       return;
     }
-    if(mmhvaultAuthBootSettledV3285){Promise.resolve().then(()=>enter(session)).catch(err=>console.error('MMHVAULT session resume failed',err));}
+    if(mmhvaultAuthBootSettledV3285){mmhP947GuardV947('switch');Promise.resolve().then(()=>window.mmhVaultSwitchSessionV1239(session)).catch(err=>{console.error('MMHVAULT session resume failed',err);mmhP947GuardV947('error');});}
     return;
   }
   if(mmhvaultAuthRedirectingV1239)return;
   mmhvaultAuthRedirectingV1239=true;
+  ++mmhP947AuthGateTicket;mmhP947GuardV947('switch');
   Promise.resolve().then(()=>{
     if(typeof window.mmhVaultSignOutCleanupV1239==='function')return window.mmhVaultSignOutCleanupV1239('auth-signed-out');
     try{applyUserProfile(null);}catch(_e){}
@@ -14062,14 +14091,32 @@ window.mmhVaultSignOutCleanupV1239=function(reason='signed-out'){
   location.replace('login.html');
 };
 window.mmhVaultSwitchSessionV1239=async function(session){
-  if(!session?.user?.id)return;
-  const nextOwner=session.user.id;
-  mmhVaultDisposeRealtimeV1239('ACCOUNT_SWITCH');
-  activeEnterUserId='';
-  applyUserProfile(session.user);
-  mmhVaultResetDataLifecycleV1239('account-switch');
-  if(currentSessionUser?.id!==nextOwner)return;
-  await enter(session);
+  if(!session?.user?.id)return {ok:false};
+  const nextOwner=session.user.id,ticket=++mmhP947AuthGateTicket;
+  mmhP947GuardV947('switch');
+  try{
+    const {data:remote,error:remoteError}=await db.auth.getUser();
+    if(ticket!==mmhP947AuthGateTicket)return {ok:false,superseded:true};
+    if(remoteError||remote?.user?.id!==nextOwner)throw remoteError||Error('Account identity mismatch');
+    const {data:cache,error:cacheError}=await db.auth.getSession();
+    if(ticket!==mmhP947AuthGateTicket)return {ok:false,superseded:true};
+    if(cacheError||cache?.session?.user?.id!==nextOwner)throw cacheError||Error('Account session changed');
+    mmhVaultDisposeRealtimeV1239('ACCOUNT_SWITCH');
+    activeEnterUserId='';
+    applyUserProfile(remote.user);
+    mmhVaultResetDataLifecycleV1239('account-switch');
+    if(currentSessionUser?.id!==nextOwner)throw Error('Account changed before load');
+    await enter({...session,user:remote.user});
+    if(ticket!==mmhP947AuthGateTicket)return {ok:false,superseded:true};
+    if(currentSessionUser?.id!==nextOwner)throw Error('Account changed during cloud load');
+    // A failed or stale cloud load is not proof that the new owner's data is ready.
+    if(!(Number(window.__mmhLastCloudLoadAtV1235)>0))throw Error('Cloud data did not finish loading');
+    mmhP947UnlockV947();
+    return {ok:true};
+  }catch(err){
+    if(ticket===mmhP947AuthGateTicket){console.warn('Account switch is blocked until verification succeeds',err);mmhP947GuardV947('error');}
+    return {ok:false,error:err};
+  }
 };
 async function mmhVaultReconcileSessionV1239(reason='resume',opts={}){
   if(mmhVaultSessionCheckPromiseV1239)return mmhVaultSessionCheckPromiseV1239;
@@ -14080,9 +14127,18 @@ async function mmhVaultReconcileSessionV1239(reason='resume',opts={}){
       const session=result.data?.session||null;
       if(!session?.user?.id){window.mmhVaultSignOutCleanupV1239('session-missing');return {ok:false};}
       const owner=session.user.id;
-      if(currentSessionUser?.id&&currentSessionUser.id!==owner){await window.mmhVaultSwitchSessionV1239(session);return {ok:true,switched:true};}
-      if(!currentSessionUser){await enter(session);return {ok:true,resumed:true};}
-      applyUserProfile(session.user);
+      if(currentSessionUser?.id&&currentSessionUser.id!==owner){
+        const switched=await window.mmhVaultSwitchSessionV1239(session);
+        return {ok:!!switched?.ok,switched:!!switched?.ok};
+      }
+      if(navigator.onLine===false)return {ok:false,offline:true};
+      const {data:verified,error:verifyError}=await db.auth.getUser();
+      if(verifyError||verified?.user?.id!==owner){mmhP947GuardV947('error');return {ok:false,identityUnverified:true};}
+      if(!currentSessionUser){
+        const entered=await window.mmhVaultSwitchSessionV1239({...session,user:verified.user});
+        return {ok:!!entered?.ok,resumed:!!entered?.ok};
+      }
+      applyUserProfile(verified.user);
       if(navigator.onLine!==false&&(opts.forceRealtime||!realtimeReady||realtimeChannelOwnerV1235!==owner))subscribeRealtime({force:true,reason});
       const staleFor=Date.now()-Number(window.__mmhLastCloudLoadAtV1235||0);
       if(opts.refreshData&&(!Number.isFinite(staleFor)||staleFor>15000))await window.loadAll?.({force:true});
