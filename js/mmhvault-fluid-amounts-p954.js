@@ -87,11 +87,23 @@
     el.style.setProperty('font-size',`${Math.max(min,result).toFixed(2)}px`,'important');
     const tooWide=widthAt(el,min,text)>space+1;
     el.dataset.mmhFitOverflow=tooWide?'1':'0';
-    if(el.matches('#cashflow-analyze .cfa-budget-comparison b')){
+    if(tooWide&&el.matches('#cashflow-analyze .cfa-budget-comparison b')){
       const grid=el.closest('.cfa-budget-comparison');
-      if(grid&&tooWide&&!grid.classList.contains('mmh-p954-expanded')){
-        grid.classList.add('mmh-p954-expanded');
-        grid.querySelectorAll('b').forEach(x=>pending.add(x));
+      if(grid){
+        const klass=!grid.classList.contains('mmh-p954-expanded')
+          ?'mmh-p954-expanded':'mmh-p955-single-column';
+        if(!grid.classList.contains(klass)){
+          grid.classList.add(klass);
+          grid.querySelectorAll('b').forEach(x=>pending.add(x));
+          plan();
+        }
+      }
+    }
+    if(tooWide&&el.matches('#reports .report-kpi-v115>strong')){
+      const grid=el.closest('.report-kpis-v115');
+      if(grid&&!grid.classList.contains('mmh-p955-single-column')){
+        grid.classList.add('mmh-p955-single-column');
+        grid.querySelectorAll('.report-kpi-v115>strong').forEach(x=>pending.add(x));
         plan();
       }
     }
@@ -117,10 +129,29 @@
   function start(){if(document.body?.classList.contains('business-app'))document.body.classList.add('mmh-p954-business');
     if(document.querySelector('.business-shell,.business-app,#businessDashboard'))document.body.classList.add('mmh-p954-business');
     scan(document);
+    function resetValueLayout(el){
+      if(!el?.matches?.(SELECTORS))return;
+      const budget=el.closest('.cfa-budget-comparison');
+      if(budget)budget.classList.remove('mmh-p954-expanded','mmh-p955-single-column');
+      const report=el.closest('.report-kpis-v115');
+      if(report)report.classList.remove('mmh-p955-single-column');
+      pending.add(el);
+      if(budget)budget.querySelectorAll('b').forEach(x=>pending.add(x));
+      if(report)report.querySelectorAll('.report-kpi-v115>strong').forEach(x=>pending.add(x));
+    }
     const observer=new MutationObserver(records=>{
       for(const m of records){
-        if(m.type==='characterData'){let p=m.target.parentElement;while(p&&p!==document.body&&!p.matches?.(SELECTORS))p=p.parentElement;if(p?.matches?.(SELECTORS))pending.add(p)}
-        else for(const n of m.addedNodes){if(n.nodeType===1)scan(n);else if(n.nodeType===3&&n.parentElement?.matches?.(SELECTORS))pending.add(n.parentElement)}
+        if(m.type==='characterData'){
+          let p=m.target.parentElement;
+          while(p&&p!==document.body&&!p.matches?.(SELECTORS))p=p.parentElement;
+          if(p?.matches?.(SELECTORS))resetValueLayout(p);
+        }else{
+          if(m.target.matches?.(SELECTORS))resetValueLayout(m.target);
+          for(const n of m.addedNodes){
+            if(n.nodeType===1)scan(n);
+            else if(n.nodeType===3&&n.parentElement?.matches?.(SELECTORS))resetValueLayout(n.parentElement);
+          }
+        }
       }
       plan();
     });
@@ -128,7 +159,12 @@
     // Inactive pages have display:none: refit existing amounts when a route becomes visible.
     const routeObserver=new MutationObserver(records=>{for(const m of records){if(m.target.classList.contains('active')||getComputedStyle(m.target).display!=='none')scan(m.target)}});
     document.querySelectorAll('.page').forEach(page=>routeObserver.observe(page,{attributes:true,attributeFilter:['class','hidden']}));
-    const rescan=()=>{for(const el of tracked){if(el.isConnected)pending.add(el);else tracked.delete(el)}scan(document);plan()};
+    const rescan=()=>{
+      document.querySelectorAll('.cfa-budget-comparison.mmh-p954-expanded,.cfa-budget-comparison.mmh-p955-single-column,.report-kpis-v115.mmh-p955-single-column')
+        .forEach(grid=>grid.classList.remove('mmh-p954-expanded','mmh-p955-single-column'));
+      for(const el of tracked){if(el.isConnected)pending.add(el);else tracked.delete(el)}
+      scan(document);plan();
+    };
     window.addEventListener('resize',rescan,{passive:true});
     window.addEventListener('orientationchange',rescan,{passive:true});
     window.addEventListener('mmhvault-language-change',rescan);

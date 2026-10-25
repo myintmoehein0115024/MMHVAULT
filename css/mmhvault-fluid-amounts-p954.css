@@ -74,3 +74,28 @@ html body #reports.page > .report-shell-v115 .report-kpi-v115 > strong.mmh-money
  html body #cashflow-analyze .cfa-breakdown-row{display:grid!important;grid-template-columns:minmax(0,1fr);gap:3px!important;align-items:center}
  html body #cashflow-analyze .cfa-breakdown-value{max-width:100%;justify-self:end}
 }
+
+/* P9.55: when the minimum legible monetary font cannot fit a dense 2/4-column
+   grid, prefer a full-width card; don't truncate digits or alter amounts. */
+html body #reports .report-kpis-v115.mmh-p955-single-column{
+  grid-template-columns:minmax(0,1fr)!important;
+}
+html body #cashflow-analyze .cfa-budget-comparison.mmh-p955-single-column{
+  grid-template-columns:minmax(0,1fr)!important;
+}
+html body #cashflow-analyze .cfa-budget-comparison.mmh-p955-single-column>div{
+  grid-column:auto!important;
+}
+/* Unusually long currency strings are scrollable inside their own read-only
+   value, rather than being clipped or forcing document-level horizontal scroll. */
+html body #reports .report-kpi-v115>strong.mmh-money-fit-p954[data-mmh-fit-overflow="1"],
+html body #cashflow-analyze .cfa-budget-comparison b.mmh-money-fit-p954[data-mmh-fit-overflow="1"]{
+  display:block!important;max-width:100%!important;min-width:0!important;
+  overflow-x:auto!important;overflow-y:hidden!important;
+  white-space:nowrap!important;text-overflow:clip!important;
+  scrollbar-width:thin;overscroll-behavior-inline:contain;
+}
+/* More specific than the legacy report KPI overflow:visible!important selector. */
+html body #reports.page > .report-shell-v115 .report-kpi-v115 > strong.mmh-money-fit-p954[data-mmh-fit-overflow="1"]{
+  overflow-x:auto!important;overflow-y:hidden!important;max-width:100%!important;
+}
