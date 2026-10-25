@@ -12783,7 +12783,12 @@ function mmhvaultFinishAuthBootV3285(session){
   mmhvaultAuthBootSettledV3285=true;
   if(mmhvaultAuthBootTimerV3285)clearTimeout(mmhvaultAuthBootTimerV3285);
   if(session){
-    Promise.resolve().then(()=>enter(session)).catch(err=>{
+    Promise.resolve().then(async()=>{
+      const {data:verified,error:verifyError}=await db.auth.getUser();
+      if(verifyError||!verified?.user?.id||verified.user.id!==session.user?.id)
+        throw verifyError||new Error('initial_auth_session_mismatch');
+      return enter({...session,user:verified.user});
+    }).catch(err=>{
       console.error('MMHVAULT app startup failed',err);
       const g=document.getElementById('mmhvaultAppBootGuardV3282');
       if(g)g.innerHTML='<div style="max-width:480px;border:1px solid rgba(255,112,112,.28);border-radius:18px;padding:24px 22px;background:rgba(42,16,32,.94);font-family:Arial,sans-serif;text-align:center;"><div style="font-size:18px;font-weight:800;color:#fff;">MMHVAULT could not finish starting</div><div style="margin-top:8px;color:#ffb7b7;font-size:13px;line-height:1.5;">The app loaded, but one startup component failed. Your cloud data has not been changed.</div><button type="button" style="margin-top:16px;padding:10px 16px;border-radius:10px;border:1px solid rgba(90,190,255,.35);background:#102a49;color:#fff;font-weight:700;cursor:pointer;" onclick="location.reload()">Refresh</button></div>';
