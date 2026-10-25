@@ -1,0 +1,81 @@
+/* MMHVAULT P9.58 — shared financial dialog on phones/tablets and short viewports.
+   Scoped to #mmhVaultDialogV449: no auth, RLS, balance, transaction or
+   Life Planner data/model changes. Loaded AFTER the v9.57 modal CSS. */
+@media (max-width:820px), (max-height:600px) {
+  html body #mmhVaultDialogV449.show {
+    box-sizing:border-box!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    padding:max(10px,env(safe-area-inset-top,0px)) 10px max(10px,env(safe-area-inset-bottom,0px))!important;
+    overflow:hidden!important;
+    overscroll-behavior:contain;
+  }
+  html body #mmhVaultDialogV449.show > .mmh-v449-dialog {
+    box-sizing:border-box!important;
+    width:min(100%,560px)!important;
+    min-width:0!important;
+    min-height:0!important;
+    height:auto!important;
+    max-height:calc(100dvh - 20px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))!important;
+    display:flex!important;
+    flex-direction:column!important;
+    margin:auto!important;
+    border-radius:18px!important;
+    overflow:hidden!important;
+  }
+  html body #mmhVaultDialogV449.show .mmh-v449-dialog-head {
+    flex:0 0 auto!important;
+    min-width:0!important;
+    padding:12px 14px 9px!important;
+  }
+  html body #mmhVaultDialogV449.show .mmh-v449-dialog-head :is(h3,p) {
+    min-width:0!important;
+    max-width:100%!important;
+    overflow-wrap:break-word;
+    word-break:normal;
+  }
+  html body #mmhVaultDialogV449.show .mmh-v449-dialog-body {
+    min-width:0!important;
+    min-height:0!important;
+    flex:1 1 auto!important;
+    overflow-x:hidden!important;
+    overflow-y:auto!important;
+    -webkit-overflow-scrolling:touch;
+    overscroll-behavior:contain;
+    scroll-padding-block-end:20px;
+    padding-bottom:max(12px,env(safe-area-inset-bottom,0px))!important;
+  }
+  html body #mmhVaultDialogV449.show .mmh-v449-dialog-body :is(input:not([type=checkbox]):not([type=radio]),select,textarea) {
+    box-sizing:border-box!important;
+    max-width:100%!important;
+    min-width:0!important;
+    font-size:16px!important;
+    scroll-margin-block-end:16px;
+  }
+  html body #mmhVaultDialogV449.show .mmh-v449-dialog-actions {
+    flex:0 0 auto!important;
+    position:relative!important;
+    min-width:0!important;
+    max-width:100%!important;
+    display:flex!important;
+    flex-wrap:wrap!important;
+    gap:8px!important;
+    padding:10px 14px max(10px,env(safe-area-inset-bottom,0px))!important;
+    background:rgba(6,20,36,.98)!important;
+    border-top:1px solid rgba(96,154,199,.16)!important;
+  }
+  html body #mmhVaultDialogV449.show .mmh-v449-dialog-actions > button {
+    min-width:0!important;
+    max-width:100%!important;
+    min-height:44px!important;
+    white-space:normal!important;
+    overflow-wrap:break-word;
+  }
+}
+@media (max-width:380px) {
+  html body #mmhVaultDialogV449.show .mmh-v449-dialog-actions > button {
+    flex:1 1 100%!important;
+    width:100%!important;
+  }
+}
