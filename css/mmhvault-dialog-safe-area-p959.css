@@ -1,0 +1,163 @@
+/* MMHVAULT P9.59 — focused short-screen dialogs.
+ * Safe to remove: no auth, finance formulas, data changes or event handlers.
+ * Targets onboarding, receipt viewer, and Business confirmation only.
+ */
+@media (max-width:820px), (max-height:650px) {
+  /* The historic Business mobile rule bottom-docks this confirmation.
+     Short screens can crop the entire heading offscreen. */
+  html body.mmh-p954-business #mmhConfirmBackdrop.mmh-confirm-backdrop:not([hidden]) {
+    box-sizing:border-box!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    padding:max(10px,env(safe-area-inset-top,0px)) 10px max(10px,env(safe-area-inset-bottom,0px))!important;
+    overflow:hidden!important;
+    overscroll-behavior:contain;
+  }
+  html body.mmh-p954-business #mmhConfirmBackdrop:not([hidden]) > .mmh-confirm {
+    box-sizing:border-box!important;
+    width:min(100%,440px)!important;
+    min-width:0!important;
+    max-height:calc(100dvh - 20px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))!important;
+    min-height:0!important;
+    margin:auto!important;
+    display:flex!important;
+    flex-direction:column!important;
+    overflow:hidden!important;
+    border-radius:18px!important;
+  }
+  html body.mmh-p954-business #mmhConfirmBackdrop .mmh-confirm-head {
+    flex:0 0 auto!important;
+    min-width:0!important;
+    padding:13px 15px 9px!important;
+  }
+  html body.mmh-p954-business #mmhConfirmBackdrop .mmh-confirm-copy {
+    min-width:0!important;
+    overflow-wrap:break-word;
+  }
+  html body.mmh-p954-business #mmhConfirmBackdrop .mmh-confirm-body {
+    flex:1 1 auto!important;
+    min-height:0!important;
+    overflow-y:auto!important;
+    overflow-x:hidden!important;
+    overscroll-behavior:contain;
+    -webkit-overflow-scrolling:touch;
+    overflow-wrap:break-word;
+    padding:8px 15px 14px!important;
+  }
+  html body.mmh-p954-business #mmhConfirmBackdrop .mmh-confirm-actions {
+    flex:0 0 auto!important;
+    display:flex!important;
+    flex-wrap:wrap!important;
+    gap:8px!important;
+    padding:10px 15px max(12px,env(safe-area-inset-bottom,0px))!important;
+  }
+  html body.mmh-p954-business #mmhConfirmBackdrop .mmh-confirm-actions > button {
+    flex:1 1 105px!important;
+    min-height:44px!important;
+    min-width:0!important;
+    max-width:100%!important;
+    white-space:normal!important;
+    overflow-wrap:break-word;
+  }
+  /* Welcome wizard may exceed the viewport on a small phone/landscape. */
+  html body #gettingStarted.getting-started-backdrop.open {
+    box-sizing:border-box!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    padding:max(8px,env(safe-area-inset-top,0px)) 10px max(8px,env(safe-area-inset-bottom,0px))!important;
+    overflow:hidden!important;
+  }
+  html body #gettingStarted.open > .getting-started-card {
+    box-sizing:border-box!important;
+    width:min(100%,560px)!important;
+    min-width:0!important;
+    min-height:0!important;
+    height:auto!important;
+    max-height:calc(100dvh - 16px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))!important;
+    margin:auto!important;
+    display:flex!important;
+    flex-direction:column!important;
+    overflow:hidden!important;
+  }
+  html body #gettingStarted.open :is(.gs-head,.gs-progress) {flex:0 0 auto!important;min-width:0!important;}
+  html body #gettingStarted.open .gs-head {gap:8px!important;padding:12px 13px 9px!important;}
+  html body #gettingStarted.open .gs-head > div:nth-child(2) {min-width:0!important;flex:1 1 auto!important;}
+  html body #gettingStarted.open .gs-head :is(h2,.sub){overflow-wrap:break-word;}
+  html body #gettingStarted.open .gs-badge{width:38px;height:38px;flex-basis:38px;}
+  html body #gettingStarted.open .gs-progress{padding:0 13px 9px!important;}
+  html body #gettingStarted.open .gs-body{
+    min-height:0!important;
+    flex:1 1 auto!important;
+    overflow-x:hidden!important;
+    overflow-y:auto!important;
+    overscroll-behavior:contain;
+    -webkit-overflow-scrolling:touch;
+    padding:4px 13px max(12px,env(safe-area-inset-bottom,0px))!important;
+  }
+  html body #gettingStarted.open .gs-check{min-width:0!important;overflow-wrap:break-word;}
+  html body #gettingStarted.open .gs-actions{
+    position:sticky!important;
+    bottom:0!important;
+    z-index:1!important;
+    min-width:0!important;
+    flex-wrap:wrap!important;
+    padding:10px 0 2px!important;
+    background:linear-gradient(180deg,rgba(10,21,46,.94),#0c1930)!important;
+  }
+  html body #gettingStarted.open .gs-actions .right{min-width:0!important;flex-wrap:wrap!important;}
+  html body #gettingStarted.open :is(.gs-close,.gs-actions button){min-height:40px!important;max-width:100%!important;white-space:normal!important;}
+  /* Receipt preview should keep the Close action visible as zoom controls wrap. */
+  html body #receiptViewerModalV3297.show{
+    box-sizing:border-box!important;
+    padding:max(8px,env(safe-area-inset-top,0px)) 8px max(8px,env(safe-area-inset-bottom,0px))!important;
+  }
+  html body #receiptViewerModalV3297.show > .receipt-viewer-dialog-v3297{
+    box-sizing:border-box!important;
+    width:min(100%,1180px)!important;
+    min-width:0!important;
+    min-height:0!important;
+    height:min(90dvh,820px)!important;
+    max-height:calc(100dvh - 16px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))!important;
+    margin:auto!important;
+  }
+  html body #receiptViewerModalV3297.show .receipt-viewer-head-v3297{
+    flex:0 0 auto!important;
+    min-width:0!important;
+    flex-wrap:wrap!important;
+    gap:7px!important;
+    padding:9px 11px!important;
+  }
+  html body #receiptViewerModalV3297.show .receipt-viewer-title-v3297{
+    min-width:0!important;
+    flex:1 1 120px;
+    overflow-wrap:break-word;
+  }
+  html body #receiptViewerModalV3297.show .receipt-viewer-actions-v3297{
+    flex:1 1 auto!important;
+    min-width:0!important;
+    max-width:100%!important;
+    flex-wrap:wrap!important;
+    gap:5px!important;
+  }
+  html body #receiptViewerModalV3297.show .receipt-viewer-zoom-v3297{
+    max-width:100%!important;
+    flex-wrap:wrap!important;
+  }
+  html body #receiptViewerModalV3297.show .receipt-viewer-close-v3297{
+    min-height:40px!important;
+    flex:0 0 auto!important;
+    margin-left:auto!important;
+    white-space:normal!important;
+  }
+  html body #receiptViewerModalV3297.show .receipt-viewer-body-v3297{
+    min-height:0!important;
+    flex:1 1 auto!important;
+    overscroll-behavior:contain;
+  }
+}
+@media(max-width:360px) {
+  html body.mmh-p954-business #mmhConfirmBackdrop .mmh-confirm-actions > button{flex-basis:100%!important;}
+  html body #gettingStarted.open .gs-actions .right{width:100%!important;}
+}
