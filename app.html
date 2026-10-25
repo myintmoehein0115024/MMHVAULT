@@ -4,6 +4,49 @@
 <head>
 <meta name="robots" content="noindex,nofollow,noarchive">
 <meta charset="utf-8"/>
+<!-- P9.60: Close transient popovers before hard-refresh and present one calm boot surface. -->
+<style id="mmhvault-p960-quiet-refresh">
+html.mmh-p960-quiet-loading body #moreNavMenu#moreNavMenu#moreNavMenu,
+html.mmh-p960-quiet-loading body #mmhNotifyPopoverV560#mmhNotifyPopoverV560,
+html.mmh-p960-quiet-loading body #gettingStarted#gettingStarted,
+html.mmh-p960-quiet-loading body #welcomeScreen#welcomeScreen{
+  display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important;
+}
+html.mmh-p960-quiet-loading body #dataLoadOverlayV384.show{
+  position:fixed!important;inset:0!important;z-index:30020!important;display:flex!important;
+  background:radial-gradient(ellipse at 54% 15%,#142e48 0%,#091729 43%,#030915 100%)!important;
+  -webkit-backdrop-filter:none!important;backdrop-filter:none!important;pointer-events:auto!important;
+}
+html.mmh-p960-quiet-loading body #dataLoadOverlayV384.show .data-load-card-v384{
+  width:min(360px,calc(100vw - 44px))!important;max-width:100%!important;padding:26px 24px!important;
+  border:1px solid rgba(194,166,94,.3)!important;border-radius:23px!important;
+  background:linear-gradient(145deg,rgba(21,54,77,.95),rgba(5,21,40,.98))!important;
+  box-shadow:0 26px 76px rgba(0,0,0,.38),inset 0 1px rgba(255,255,255,.08)!important;
+  text-align:center!important;
+}
+html.mmh-p960-quiet-loading body #dataLoadOverlayV384.show .data-load-card-v384::before{
+  content:'MMHVAULT';display:block!important;margin:0 auto 13px;color:#edc570!important;
+  font-family:Georgia,serif;font-size:20px;font-weight:700;letter-spacing:.13em;
+}
+html.mmh-p960-quiet-loading body #dataLoadOverlayV384.show .data-load-title-v384{font-size:14px!important;line-height:1.5!important;}
+html.mmh-p960-quiet-loading body #dataLoadOverlayV384.show .data-load-sub-v384{font-size:11px!important;opacity:.76!important;}
+@media(prefers-reduced-motion:reduce){html.mmh-p960-quiet-loading body #dataLoadOverlayV384.show *,html.mmh-p960-quiet-loading body #dataLoadOverlayV384.show *::before{animation:none!important;transition:none!important}}
+</style>
+<script id="mmhvault-p960-refresh-lifecycle">
+(()=>{'use strict';
+  document.documentElement.classList.add('mmh-p960-quiet-loading');
+  const clearTransient=()=>{
+    const more=document.getElementById('moreNavMenu');
+    if(more){more.classList.remove('open','mmh-more-open-v153','mmh-more-transition-v153','forward-v153','backward-v153');more.setAttribute('aria-hidden','true')}
+    const trigger=document.getElementById('moreNavButton');if(trigger)trigger.setAttribute('aria-expanded','false');
+    const notice=document.getElementById('mmhNotifyPopoverV560');if(notice)notice.classList.remove('open');
+  };
+  window.addEventListener('pagehide',clearTransient,{capture:true});
+  window.addEventListener('beforeunload',clearTransient,{capture:true});
+  window.mmhP960CloseTransient=clearTransient;
+})();
+</script>
+
 <meta content="width=device-width,initial-scale=1,viewport-fit=cover" name="viewport"/>
 <link href="images/icon-512.png" rel="icon" sizes="512x512" type="image/png"/>
 <link href="images/icon-192.png" rel="apple-touch-icon" sizes="192x192"/>
@@ -13966,7 +14009,15 @@ if(toOff){$("toAccount").value="";$("toAmount").value="";}
 let loadAllPromiseV384=null;
 let loadAllPromiseOwnerV1239='',loadAllPromiseEpochV1239=-1;
 let lastLoadErrorV384="";
-function setDataLoadingV384(show,sub="Syncing your private cloud records."){const el=$("dataLoadOverlayV384"),txt=$("dataLoadSubV384");if(txt)txt.textContent=sub;if(el){el.classList.toggle("show",!!show);el.setAttribute("aria-hidden",show?"false":"true");}}
+function setDataLoadingV384(show,sub="Syncing your private cloud records."){
+  // P9.60: Loading may begin while the More menu is still expanded from a previous view.
+  // Close transient menus before showing a single, uncluttered loading surface.
+  if(show){try{window.mmhP960CloseTransient?.()}catch(_e){}}
+  document.documentElement.classList.toggle('mmh-p960-quiet-loading',!!show && !/^Refreshing /i.test(sub));
+  const el=$("dataLoadOverlayV384"),txt=$("dataLoadSubV384");
+  if(txt)txt.textContent=sub;
+  if(el){el.classList.toggle("show",!!show);el.setAttribute("aria-hidden",show?"false":"true");}
+}
 function setDataErrorV384(message=""){lastLoadErrorV384=message||"";const box=$("dataErrorBannerV384"),msg=$("dataErrorMsgV384");if(msg)msg.textContent=message||"";if(box)box.classList.toggle("show",!!message);}
 function retryLoadAllV384(){setDataErrorV384("");return loadAll({force:true});}
 async function loadAll(opts={}){
