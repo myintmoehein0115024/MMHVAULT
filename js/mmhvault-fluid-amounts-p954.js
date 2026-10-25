@@ -85,7 +85,11 @@
       }
     }
     el.style.setProperty('font-size',`${Math.max(min,result).toFixed(2)}px`,'important');
-    const tooWide=widthAt(el,min,text)>space+1;
+    // P9.56: font-canvas estimates can differ from actual glyph layout by
+    // 1–3 CSS px (especially tabular digits on Chromium/WebKit).  Inspect the
+    // painted element after applying the font size; no amount may be clipped.
+    const measuredOverflow=el.clientWidth>0&&el.scrollWidth>el.clientWidth+0.5;
+    const tooWide=widthAt(el,min,text)>space+1||measuredOverflow;
     el.dataset.mmhFitOverflow=tooWide?'1':'0';
     if(tooWide&&el.matches('#cashflow-analyze .cfa-budget-comparison b')){
       const grid=el.closest('.cfa-budget-comparison');

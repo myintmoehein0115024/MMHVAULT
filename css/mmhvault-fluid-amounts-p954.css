@@ -99,3 +99,69 @@ html body #cashflow-analyze .cfa-budget-comparison b.mmh-money-fit-p954[data-mmh
 html body #reports.page > .report-shell-v115 .report-kpi-v115 > strong.mmh-money-fit-p954[data-mmh-fit-overflow="1"]{
   overflow-x:auto!important;overflow-y:hidden!important;max-width:100%!important;
 }
+
+
+/* P9.56 — Responsive action areas and mobile keyboard safety.
+   Scoped to known MMHVAULT page structures. No data/number formatting changes. */
+@media (max-width: 680px) {
+  html body #reports .report-panel-head-v115,
+  html body #cashflow-analyze .cfa-head,
+  html body #invest .toolbar.v371-head {
+    min-width:0;flex-wrap:wrap!important;gap:10px!important;
+  }
+  html body #reports .report-panel-head-v115>div:first-child {
+    min-width:0;flex:1 1 170px;
+  }
+  html body #reports .report-panel-head-v115 :is(h2,p) {
+    max-width:100%;overflow-wrap:break-word;word-break:normal;
+  }
+  html body #reports .report-actions-v115,
+  html body #cashflow-analyze .cfa-controls,
+  html body #budget .budget-actions-v110,
+  html body #settings .security-actions-v379,
+  html body #transactions .mmh-tx-hero-actions-v3,
+  html body #exchange .ex-asia-summary-actions-v130 {
+    min-width:0;max-width:100%;flex-wrap:wrap;
+  }
+  html body #reports .report-panel-head-v115 .btn,
+  html body #budget .budget-actions-v110 .btn,
+  html body #settings .security-actions-v379 .btn,
+  html body #exchange .ex-asia-summary-actions-v130 .btn {
+    max-width:100%;white-space:normal;overflow-wrap:break-word;
+  }
+  html body #reports .report-controls-v115 :is(input,select),
+  html body #cashflow-analyze .cfa-controls :is(input,select) {
+    max-width:100%;min-width:0;box-sizing:border-box;
+  }
+}
+@media (max-width: 420px) {
+  html body #reports .report-panel-head-v115>.report-actions-v115 {
+    flex:1 1 100%;width:100%;
+  }
+  html body #reports .report-panel-head-v115>.report-actions-v115>.btn {
+    width:100%;
+  }
+}
+/* iOS Safari focuses inputs below 16px by zooming the viewport.  On touch
+   devices keep inputs readable without changing desktop typography. */
+@media (max-width: 767px) and (pointer: coarse) {
+  html body :is(#reports,#transactions,#invest,#accounts-page,#settings,#cashflow-analyze,#exchange,#budget,#analyze,#life-planner)
+    :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="hidden"]),select,textarea) {
+      font-size:16px!important;
+  }
+  html body.mmh-p954-business
+    :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="hidden"]),select,textarea) {
+      font-size:16px!important;
+  }
+}
+
+/* P9.56: legacy workspace theme has greater specificity than the previous
+   reflow class; explicitly make one-column layout WIN in active workspaces. */
+html body.mmh-workspace-active #reports .report-kpis-v115.mmh-p955-single-column,
+html body #reports.page > .report-shell-v115 .report-kpis-v115.mmh-p955-single-column {
+  grid-template-columns:minmax(0,1fr)!important;
+}
+html body.mmh-workspace-active #cashflow-analyze .cfa-budget-comparison.mmh-p955-single-column,
+html body #cashflow-analyze .cfa-budget-comparison.mmh-p955-single-column {
+  grid-template-columns:minmax(0,1fr)!important;
+}
