@@ -13750,21 +13750,27 @@ function applyUserProfile(user){
 }
 
 async function loadCustomerId(user){
-  currentCustomerId="";
-  if(!user){applyUserProfile(null);return;}
+  // P9.48: late responses from a previous owner must never update the new profile.
+  if(!user?.id||currentSessionUser?.id!==user.id)return;
+  const owner=user.id,epoch=Number(window.__mmhSessionEpochV1239)||0;
+  const belongsToCurrent=()=>currentSessionUser?.id===owner&&Number(window.__mmhSessionEpochV1239||0)===epoch;
   const setText=(id,v)=>{const el=$(id);if(el)el.textContent=v;};
+  currentCustomerId="";
   setText("accountUserIdV372","Loading…");
   try{
-    const r=await db.from("customer_profiles").select("customer_no").eq("user_id",user.id).maybeSingle();
+    const r=await db.from("customer_profiles").select("customer_no").eq("user_id",owner).maybeSingle();
+    if(!belongsToCurrent())return;
     if(r.error)throw r.error;
     const n=Number(r.data?.customer_no);
     currentCustomerId=Number.isInteger(n)&&n>0?`MF${String(n).padStart(4,"0")}`:"";
     setText("accountUserIdV372",currentCustomerId||"MF----");
-    if(currentSessionUser) applyUserProfile(currentSessionUser);
+    applyUserProfile(currentSessionUser);
   }catch(err){
+    if(!belongsToCurrent())return;
     console.error("Unable to load customer ID",err);
+    currentCustomerId="";
     setText("accountUserIdV372","MF----");
-    if(currentSessionUser) applyUserProfile(currentSessionUser);
+    applyUserProfile(currentSessionUser);
   }
 }
 async function signInWithGoogle(){
@@ -13834,8 +13840,9 @@ async function enter(session){
     const se=$("settingsEmail"); if(se) se.textContent=currentUserEmail;
     const shouldWelcome=sessionStorage.getItem("myfinance_show_welcome")==="1";
     if(shouldWelcome){sessionStorage.removeItem("myfinance_show_welcome");showWelcome();}
-    await loadAll();
-    if(currentSessionUser?.id!==enterOwner||Number(window.__mmhSessionEpochV1239)!==enterEpoch)return;
+    const cloudLoad=await loadAll();
+    if(currentSessionUser?.id!==enterOwner||Number(window.__mmhSessionEpochV1239)!==enterEpoch)return {ok:false,superseded:true};
+    if(cloudLoad?.ok!==true)return {ok:false,cloudUnavailable:true};
     // Restore the user's preferred transaction sub-tab without navigating away.
     restoreTxTab();
     // v1.3.6: preserve the current workspace page across a hard refresh.
@@ -13848,6 +13855,7 @@ async function enter(session){
     }
     subscribeRealtime();
     window.setTimeout(()=>openGettingStarted(session.user),250);
+    return {ok:true};
   } finally {
     activeEnterUserId="";
   }
@@ -13968,7 +13976,7 @@ async function loadAll(opts={}){
       if(b.error){console.error("Investments load failed",b.error);hardErrors.push("Investments: "+b.error.message);}
       if(w.error)hardErrors.push("Wallet movements: "+w.error.message);if(c.error)hardErrors.push("Custom investments: "+c.error.message);
       if(hardErrors.length)throw new Error(hardErrors.join(" "));
-      if((a.data||[]).some(x=>x.user_id!==loadOwner)||(b.data||[]).some(x=>x.user_id!==loadOwner)||(c.data||[]).some(x=>x.user_id!==loadOwner))throw Error('Unexpected record owner');
+      if((a.data||[]).some(x=>x.user_id!==loadOwner)||(b.data||[]).some(x=>x.user_id!==loadOwner)||(c.data||[]).some(x=>x.user_id!==loadOwner)||(w.data||[]).some(x=>x.user_id!==loadOwner)||(r.data&&r.data.user_id!==loadOwner))throw Error('Unexpected record owner');
       transactions=a.data||[];investments=b.data||[];window.transactions=transactions;window.investments=investments;window.mmhWalletMovementsV174=w.data||[];window.mmhWalletDataOwnerV191=loadOwner;window.mmhCustomInvestRecords=c.data||[];window.mmhCustomInvestLoaded=true;
       mmhVaultRecoverOwnedLegacyConfigV1(loadOwner);
       window.mmhGoldFxReadyV1=!r.error&&!!r.data;
@@ -14106,8 +14114,9 @@ window.mmhVaultSwitchSessionV1239=async function(session){
     applyUserProfile(remote.user);
     mmhVaultResetDataLifecycleV1239('account-switch');
     if(currentSessionUser?.id!==nextOwner)throw Error('Account changed before load');
-    await enter({...session,user:remote.user});
+    const entered=await enter({...session,user:remote.user});
     if(ticket!==mmhP947AuthGateTicket)return {ok:false,superseded:true};
+    if(entered?.ok!==true)throw Error('Account cloud data was not verified');
     if(currentSessionUser?.id!==nextOwner)throw Error('Account changed during cloud load');
     // A failed or stale cloud load is not proof that the new owner's data is ready.
     if(!(Number(window.__mmhLastCloudLoadAtV1235)>0))throw Error('Cloud data did not finish loading');
@@ -14121,29 +14130,50 @@ window.mmhVaultSwitchSessionV1239=async function(session){
 async function mmhVaultReconcileSessionV1239(reason='resume',opts={}){
   if(mmhVaultSessionCheckPromiseV1239)return mmhVaultSessionCheckPromiseV1239;
   const run=(async()=>{
+    const startTicket=mmhP947AuthGateTicket;
+    const startEpoch=Number(window.__mmhSessionEpochV1239)||0;
     try{
       const result=await db.auth.getSession();
+      // An Auth event may have started a more recent account switch while this was pending.
+      if(startTicket!==mmhP947AuthGateTicket||startEpoch!==(Number(window.__mmhSessionEpochV1239)||0))return {ok:false,superseded:true};
       if(result.error)throw result.error;
       const session=result.data?.session||null;
-      if(!session?.user?.id){window.mmhVaultSignOutCleanupV1239('session-missing');return {ok:false};}
+      if(!session?.user?.id){
+        if(navigator.onLine===false){mmhP947GuardV947('error');return {ok:false,offline:true};}
+        mmhP947GuardV947('switch');window.mmhVaultSignOutCleanupV1239('session-missing');return {ok:false};
+      }
       const owner=session.user.id;
       if(currentSessionUser?.id&&currentSessionUser.id!==owner){
+        mmhP947GuardV947('switch');
         const switched=await window.mmhVaultSwitchSessionV1239(session);
         return {ok:!!switched?.ok,switched:!!switched?.ok};
       }
       if(navigator.onLine===false)return {ok:false,offline:true};
       const {data:verified,error:verifyError}=await db.auth.getUser();
+      if(startTicket!==mmhP947AuthGateTicket||startEpoch!==(Number(window.__mmhSessionEpochV1239)||0))return {ok:false,superseded:true};
       if(verifyError||verified?.user?.id!==owner){mmhP947GuardV947('error');return {ok:false,identityUnverified:true};}
       if(!currentSessionUser){
         const entered=await window.mmhVaultSwitchSessionV1239({...session,user:verified.user});
         return {ok:!!entered?.ok,resumed:!!entered?.ok};
       }
+      if(currentSessionUser.id!==owner)return {ok:false,superseded:true};
+      const mask=document.getElementById('mmhP947AccountGuard');
+      const masked=!!mask&&!mask.hidden&&mask.style.display!=='none';
+      const staleFor=Date.now()-Number(window.__mmhLastCloudLoadAtV1235||0);
+      const needsCloud=masked||(opts.refreshData&&(!Number.isFinite(staleFor)||staleFor>15000));
+      if(needsCloud){
+        const cloud=await window.loadAll?.({force:true});
+        if(startTicket!==mmhP947AuthGateTicket||startEpoch!==(Number(window.__mmhSessionEpochV1239)||0)||currentSessionUser?.id!==owner)return {ok:false,superseded:true};
+        if(cloud?.ok!==true){if(masked)mmhP947GuardV947('error');return {ok:false,cloudUnavailable:true};}
+      }
       applyUserProfile(verified.user);
       if(navigator.onLine!==false&&(opts.forceRealtime||!realtimeReady||realtimeChannelOwnerV1235!==owner))subscribeRealtime({force:true,reason});
-      const staleFor=Date.now()-Number(window.__mmhLastCloudLoadAtV1235||0);
-      if(opts.refreshData&&(!Number.isFinite(staleFor)||staleFor>15000))await window.loadAll?.({force:true});
+      if(masked)mmhP947UnlockV947();
       return {ok:true};
-    }catch(err){console.warn('MMHVAULT session reconcile skipped',reason,err);return {ok:false,error:err};}
+    }catch(err){
+      if(startTicket===mmhP947AuthGateTicket){mmhP947GuardV947('error');console.warn('MMHVAULT session reconcile failed',reason,err);}
+      return {ok:false,error:err};
+    }
   })();
   mmhVaultSessionCheckPromiseV1239=run;
   try{return await run;}finally{if(mmhVaultSessionCheckPromiseV1239===run)mmhVaultSessionCheckPromiseV1239=null;}
