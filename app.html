@@ -12486,6 +12486,25 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
 </div>
 <div class="mmh-session-actions-v1"><div class="security-actions-v379"><button class="btn" onclick="signOutOtherSessionsV379()" type="button">Sign out other devices</button><button class="btn danger" onclick="signOutAllSessionsV379()" type="button">Sign out all devices</button></div><div class="security-password-note-v379">Signing out other devices keeps this device signed in. “Sign out all devices” also signs out this device.</div></div>
 </div>
+<!-- P9.52: email recovery is a separate self-service card, never a phone-OTP path. -->
+<div class="account-security-card-v379 mmh-email-reset-card-v952" id="mmhEmailResetCardV952">
+  <div class="mmh-email-reset-top-v952"><span class="mmh-email-reset-icon-v952" aria-hidden="true">✉</span><span class="mmh-email-reset-kicker-v952" data-p952-en="ACCOUNT RECOVERY" data-p952-zh="账户恢复">ACCOUNT RECOVERY</span></div>
+  <h3 data-p952-en="Reset password by email" data-p952-zh="通过邮箱重置密码">Reset password by email</h3>
+  <p class="mmh-email-reset-desc-v952" data-p952-en="Forgot your current password? Request a secure recovery link for this account." data-p952-zh="忘记当前密码？可以向此账户的邮箱发送安全重置链接。">Forgot your current password? Request a secure recovery link for this account.</p>
+  <div class="mmh-email-reset-destination-v952">
+    <span data-p952-en="Your account email" data-p952-zh="当前账户邮箱">Your account email</span>
+    <strong id="mmhEmailResetAddressV952">—</strong>
+    <small data-p952-en="This address is taken from your signed-in account and cannot be edited here." data-p952-zh="地址读取自当前登录账户，不能在此处手动更改。">This address is taken from your signed-in account and cannot be edited here.</small>
+  </div>
+  <button class="btn primary mmh-email-reset-send-v952" id="mmhEmailResetSendV952" type="button" disabled><span data-p952-en="Send reset email" data-p952-zh="发送重置邮件">Send reset email</span></button>
+  <p id="mmhEmailResetStatusV952" class="mmh-email-reset-status-v952" role="status" aria-live="polite" aria-atomic="true"></p>
+  <div class="mmh-email-reset-steps-v952">
+    <div><b>01</b><span data-p952-en="Request an email from this page" data-p952-zh="在这里申请重置邮件">Request an email from this page</span></div>
+    <div><b>02</b><span data-p952-en="Open the secure link in your inbox" data-p952-zh="打开邮箱中的安全链接">Open the secure link in your inbox</span></div>
+    <div><b>03</b><span data-p952-en="Set a new password on the login page" data-p952-zh="在登录页设置新密码">Set a new password on the login page</span></div>
+  </div>
+  <p class="mmh-email-reset-tip-v952" data-p952-en="This sends a link; it does not change your password until you complete the email verification. Google-only accounts manage passwords with Google." data-p952-zh="发送邮件不会立刻修改密码；必须通过邮箱链接完成验证。仅使用 Google 登录的账户请前往 Google 管理密码。">This sends a link; it does not change your password until you complete the email verification. Google-only accounts manage passwords with Google.</p>
+</div>
 </div>
 </div>
 <div class="panel mmh-birthday-settings-v34216" id="mmhBirthdaySettingsV34215">
@@ -16599,6 +16618,7 @@ setTimeout(()=>setAccountsCategoriesTabV445(localStorage.getItem('mmhvault_accou
 /* V4.3.0 Account Security */
 function refreshAccountSecurityV379(user){
   if(!user)return;
+  window.mmhUpdateEmailResetCardV952?.(user);
   const p=getUserDisplayProfile(user);
   const providers=(user.identities||[]).map(x=>x.provider);
   const pwdPanel=$('passwordPanelV379'), title=$('passwordTitleV379');
@@ -34026,5 +34046,121 @@ html body #exAsiaV10 #asiaBaseV10.mmh-asia-native-select-p914{display:none!impor
 <link rel="stylesheet" href="css/mmhvault-core-analytics-p927.css?v=9.27.0" data-mmh-finance-analytics="p9.27">
 <!-- P9.28: scoped Settings, Feedback Center and Life Planner interaction polish. -->
 <link rel="stylesheet" href="css/mmhvault-settings-life-p928.css?v=9.28.0" data-mmh-settings-life="p9.28">
+
+<!-- P9.52: Password & devices — email reset in the formerly empty right column. -->
+<style id="mmhvault-email-recovery-v952">
+html body #settings.page.active .account-security-grid-v379{
+  display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:14px!important;align-items:stretch!important;
+}
+html body #settings.page.active .account-security-grid-v379 > .account-security-card-v379{min-width:0!important;max-width:none!important;margin:0!important;box-sizing:border-box!important}
+html body #settings.page.active .account-security-grid-v379 > .mmh-email-reset-card-v952{
+  display:flex!important;flex-direction:column;gap:0;padding:18px!important;border:1px solid rgba(131,179,220,.27)!important;
+  border-radius:16px!important;background:linear-gradient(155deg,rgba(22,57,88,.74),rgba(5,26,44,.78) 64%,rgba(12,33,49,.84))!important;
+  box-shadow:inset 0 1px 0 rgba(199,228,251,.09)!important;min-height:0!important;
+}
+html body #settings.page.active .mmh-email-reset-top-v952{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+html body #settings.page.active .mmh-email-reset-icon-v952{width:39px;height:39px;display:grid;place-items:center;font-size:20px;color:#e6c984;background:rgba(232,189,107,.10);border:1px solid rgba(230,197,131,.34);border-radius:12px}
+html body #settings.page.active .mmh-email-reset-kicker-v952{color:#e4c783;font-weight:750;letter-spacing:1.5px;font-size:10px}
+html body #settings.page.active .mmh-email-reset-card-v952 h3{font-size:18px!important;line-height:1.3;margin:0 0 7px!important;color:#f1f6ff}
+html body #settings.page.active .mmh-email-reset-desc-v952{font-size:12px;line-height:1.65;margin:0 0 18px;color:#bed0dd}
+html body #settings.page.active .mmh-email-reset-destination-v952{display:grid;gap:7px;border:1px solid rgba(132,170,206,.21);background:rgba(4,22,38,.41);border-radius:12px;padding:14px;margin-bottom:16px}
+html body #settings.page.active .mmh-email-reset-destination-v952 span{font-size:11px;font-weight:650;color:#e6ca8c}
+html body #settings.page.active .mmh-email-reset-destination-v952 strong{font-size:12px;line-height:1.5;color:#f1f6ff;overflow-wrap:anywhere}
+html body #settings.page.active .mmh-email-reset-destination-v952 small{font-size:10px;color:#a8bdce;line-height:1.45}
+html body #settings.page.active #mmhEmailResetSendV952{width:100%;min-height:42px!important;font-size:12px!important;font-weight:750!important;cursor:pointer}
+html body #settings.page.active #mmhEmailResetSendV952:disabled{opacity:.58;cursor:not-allowed!important}
+html body #settings.page.active .mmh-email-reset-status-v952{min-height:18px;line-height:1.5;color:#acc7df;font-size:11px;margin:9px 0 4px;overflow-wrap:anywhere}
+html body #settings.page.active .mmh-email-reset-status-v952[data-kind="ok"]{color:#83d8b6}
+html body #settings.page.active .mmh-email-reset-status-v952[data-kind="error"]{color:#ffb6b6}
+html body #settings.page.active .mmh-email-reset-steps-v952{margin-top:10px;border-top:1px solid rgba(132,170,206,.2);padding-top:14px;display:grid;gap:11px}
+html body #settings.page.active .mmh-email-reset-steps-v952>div{display:flex;align-items:flex-start;gap:10px;font-size:11px;line-height:1.5;color:#bdcfdd}
+html body #settings.page.active .mmh-email-reset-steps-v952 b{flex:none;min-width:29px;color:#e3c583;font-size:11px}
+html body #settings.page.active .mmh-email-reset-tip-v952{border-top:1px solid rgba(132,170,206,.20);margin:15px 0 0;padding-top:14px;color:#a2b7c7;font-size:10px;line-height:1.65}
+body.light #settings.page.active .mmh-email-reset-card-v952{background:linear-gradient(145deg,#f5fbff,#e9f4fb)!important;border-color:#bfd3e1!important}
+body.light #settings.page.active .mmh-email-reset-card-v952 h3,body.light #settings.page.active .mmh-email-reset-destination-v952 strong{color:#163e5b}
+body.light #settings.page.active .mmh-email-reset-desc-v952,body.light #settings.page.active .mmh-email-reset-steps-v952>div,body.light #settings.page.active .mmh-email-reset-destination-v952 small,body.light #settings.page.active .mmh-email-reset-tip-v952{color:#4e708a}
+body.light #settings.page.active .mmh-email-reset-destination-v952{background:rgba(255,255,255,.75);border-color:#c3d7e6}
+@media(max-width:1000px){
+  html body #settings.page.active .account-security-grid-v379{grid-template-columns:minmax(0,1fr)!important}
+  html body #settings.page.active .mmh-email-reset-card-v952{padding:17px!important}
+}
+@media(max-width:540px){html body #settings.page.active .account-security-grid-v379{gap:12px!important}html body #settings.page.active .mmh-email-reset-card-v952{padding:15px!important}}
+</style>
+<script id="mmhvault-email-recovery-v952-script">
+(function(){
+  'use strict';
+  const byId=id=>document.getElementById(id);
+  const copy=(zh,en)=>document.documentElement.lang.toLowerCase().startsWith('zh')?zh:en;
+  let busy=false,ownerId='',cooldownUntil=0,statusEn='',statusZh='',statusKind='';
+  const button=()=>byId('mmhEmailResetSendV952');
+  const currentUser=()=>{try{return typeof currentSessionUser!=='undefined'?currentSessionUser:null}catch(_){return null}};
+  const isEmailAccount=user=>!!(user&&user.id&&user.email&&(user.identities||[]).some(i=>i.provider==='email'));
+  function showStatus(zh='',en='',kind=''){
+    statusZh=zh;statusEn=en;statusKind=kind;
+    const el=byId('mmhEmailResetStatusV952');if(el){el.textContent=copy(zh,en);el.dataset.kind=kind;}
+  }
+  function paint(){
+    document.querySelectorAll('#mmhEmailResetCardV952 [data-p952-en]').forEach(el=>{
+      el.textContent=copy(el.dataset.p952Zh,el.dataset.p952En);
+    });
+    const status=byId('mmhEmailResetStatusV952');if(status){status.textContent=copy(statusZh,statusEn);status.dataset.kind=statusKind;}
+  }
+  function update(user){
+    const id=user?.id||'';
+    if(id!==ownerId){ownerId=id;cooldownUntil=0;showStatus();}
+    const addr=byId('mmhEmailResetAddressV952');if(addr)addr.textContent=user?.email||'—';
+    const btn=button();
+    const eligible=isEmailAccount(user);
+    if(btn)btn.disabled=!eligible||busy||Date.now()<cooldownUntil;
+    if(user&& !eligible && !busy){
+      showStatus('当前账户不支持邮箱密码恢复。',
+                 'Email password recovery is unavailable for this sign-in method.','');
+    }else if(eligible && statusEn==='Email password recovery is unavailable for this sign-in method.')showStatus();
+    paint();
+  }
+  async function send(){
+    if(busy||Date.now()<cooldownUntil)return;
+    const snapshot=currentUser();
+    if(!isEmailAccount(snapshot)){
+      showStatus('当前账户不支持邮箱密码恢复。','Email password recovery is unavailable for this sign-in method.','error');return;
+    }
+    if(!navigator.onLine){showStatus('目前处于离线状态，请联网后重试。','You are offline. Reconnect and try again.','error');return;}
+    const fromOwner=snapshot.id, fromEmail=snapshot.email;
+    busy=true;update(snapshot);
+    showStatus('正在核实登录状态…','Verifying your session…','');
+    try{
+      if(typeof db==='undefined'||!db?.auth?.getUser||!db.auth.resetPasswordForEmail)throw new Error('auth_unavailable');
+      const verified=await db.auth.getUser();
+      if(verified.error||verified.data?.user?.id!==fromOwner||currentUser()?.id!==fromOwner||verified.data?.user?.email!==fromEmail)throw new Error('session_changed');
+      if(!isEmailAccount(verified.data.user))throw new Error('no_email_password');
+      const redirectTo=new URL('login.html?recovery=1',location.href).href;
+      const response=await db.auth.resetPasswordForEmail(fromEmail,{redirectTo});
+      if(currentUser()?.id!==fromOwner||currentUser()?.email!==fromEmail)return;
+      if(response?.error)throw response.error;
+      cooldownUntil=Date.now()+60000;
+      showStatus('已提交重置邮件申请。请检查收件箱和垃圾邮件，点击链接后设置新密码。',
+        'Reset email requested. Check your inbox and spam folder, then open the link to set a new password.','ok');
+      setTimeout(()=>{if(currentUser()?.id===fromOwner)update(currentUser());},60500);
+    }catch(err){
+      if(currentUser()?.id!==fromOwner)return;
+      const sessionFail=err?.message==='session_changed';
+      const unavailable=err?.message==='auth_unavailable';
+      const unsupported=err?.message==='no_email_password';
+      showStatus(
+        sessionFail?'登录账户已变化，请重新进入设置。':unavailable?'认证服务暂不可用，请稍后再试。':unsupported?'请使用邮箱密码账户进行重置。':'发送失败，请检查网络或稍后再试。',
+        sessionFail?'Your signed-in account changed. Reopen Settings.':unavailable?'Authentication is unavailable. Try again later.':unsupported?'This account does not have an email-password sign-in.':'Unable to request reset. Check your network or try later.','error');
+    }finally{
+      busy=false;update(currentUser());
+    }
+  }
+  window.mmhUpdateEmailResetCardV952=update;
+  const btn=button();if(btn)btn.addEventListener('click',send);
+  window.addEventListener('mmhvault-language-change',paint);
+  window.addEventListener('languagechange',paint);
+  try{db?.auth?.onAuthStateChange?.((_event,session)=>{update(session?.user||null);});}catch(_e){}
+  if(currentUser())update(currentUser());else paint();
+})();
+</script>
+
 </body>
 </html>
