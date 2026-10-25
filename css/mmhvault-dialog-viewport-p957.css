@@ -1,0 +1,144 @@
+/* MMHVAULT P9.57 — focused mobile / tablet dialog layout hardening.
+   CSS-only: no changes to auth, balances, business data, validation or submit handlers.
+   Use dynamic viewport units for reduced visual viewport (soft keyboard/landscape).
+*/
+@media (max-width: 767px), (max-height: 600px) {
+  /* Transaction/invest edit dialog is reused across finance workspaces.
+     Keep the heading in view; scroll ONLY the body of the editor. */
+  html body #editModal.modal-backdrop.open {
+    box-sizing:border-box!important;
+    align-items:center!important;
+    justify-content:center!important;
+    padding:max(8px,env(safe-area-inset-top,0px)) 10px max(8px,env(safe-area-inset-bottom,0px))!important;
+    overflow:hidden!important;
+    overscroll-behavior:contain;
+  }
+  html body #editModal.modal-backdrop.open > .modal {
+    box-sizing:border-box!important;
+    width:min(100%,760px)!important;
+    height:auto!important;
+    max-height:calc(100dvh - 20px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))!important;
+    min-height:0!important;
+    margin:auto!important;
+    display:flex!important;
+    flex-direction:column!important;
+    overflow:hidden!important;
+    border-radius:18px!important;
+  }
+  html body #editModal.modal-backdrop.open > .modal > .toolbar {
+    position:relative!important;
+    z-index:1;
+    flex:0 0 auto!important;
+    min-width:0!important;
+    flex-wrap:wrap!important;
+    gap:8px!important;
+    padding:12px 14px!important;
+  }
+  html body #editModal.modal-backdrop.open .modal-title,
+  html body #editModal.modal-backdrop.open > .modal > .toolbar > div:first-child {
+    min-width:0!important;
+    overflow-wrap:break-word;
+    word-break:normal;
+    font-size:clamp(16px,4.6vw,22px)!important;
+  }
+  html body #editModal.modal-backdrop.open > .modal > #editModalBody {
+    min-height:0!important;
+    flex:1 1 auto!important;
+    overflow-x:hidden!important;
+    overflow-y:auto!important;
+    overscroll-behavior:contain;
+    -webkit-overflow-scrolling:touch;
+    scroll-padding-block:16px 70px;
+    padding-bottom:max(10px,env(safe-area-inset-bottom,0px));
+  }
+  html body #editModal.modal-backdrop.open #editModalBody :is(.actions,.form-actions) {
+    min-width:0;
+    max-width:100%;
+    display:flex;
+    flex-wrap:wrap!important;
+    gap:8px;
+  }
+  html body #editModal.modal-backdrop.open #editModalBody :is(button,.btn) {
+    max-width:100%;
+    white-space:normal;
+    overflow-wrap:break-word;
+  }
+  html body #editModal.modal-backdrop.open :is(input:not([type="checkbox"]):not([type="radio"]),select,textarea) {
+    font-size:16px!important;
+    min-width:0;
+    max-width:100%;
+    box-sizing:border-box;
+  }
+  /* Business v1 mobile breakpoint used align-items:flex-end and square
+     bottom corners; center it and preserve breathing room for safe areas. */
+  html body.mmh-p954-business #modalBackdrop.modal-backdrop:not([hidden]) {
+    box-sizing:border-box!important;
+    align-items:center!important;
+    justify-content:center!important;
+    padding:max(10px,env(safe-area-inset-top,0px)) 10px max(10px,env(safe-area-inset-bottom,0px))!important;
+    overflow:hidden!important;
+    overscroll-behavior:contain;
+  }
+  html body.mmh-p954-business #modalBackdrop > .modal {
+    box-sizing:border-box!important;
+    width:min(100%,720px)!important;
+    min-width:0!important;
+    max-height:calc(100dvh - 20px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px))!important;
+    margin:auto!important;
+    overflow-y:auto!important;
+    overflow-x:hidden!important;
+    overscroll-behavior:contain;
+    -webkit-overflow-scrolling:touch;
+    scroll-padding-bottom:85px;
+    border-radius:18px!important;
+  }
+  html body.mmh-p954-business #modalBackdrop .modal-head {
+    position:sticky;
+    top:0;
+    z-index:2;
+    min-width:0;
+    background:#0c2235;
+  }
+  html body.mmh-p954-business #modalBackdrop .modal-head > div:first-child {
+    min-width:0;
+    flex:1 1 auto;
+  }
+  html body.mmh-p954-business #modalBackdrop .modal-head :is(h3,p) {
+    max-width:100%;
+    overflow-wrap:break-word;
+    word-break:normal;
+  }
+  html body.mmh-p954-business #modalBackdrop .form-grid > * {min-width:0;}
+  html body.mmh-p954-business #modalBackdrop :is(input:not([type="checkbox"]):not([type="radio"]),select,textarea) {
+    font-size:16px!important;
+    box-sizing:border-box;
+    max-width:100%;
+  }
+  html body.mmh-p954-business #modalBackdrop .form-actions {
+    min-width:0;
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    justify-content:flex-end;
+  }
+  html body.mmh-p954-business #modalBackdrop .form-actions :is(button,.btn) {
+    max-width:100%;
+    white-space:normal;
+    overflow-wrap:break-word;
+    min-height:42px;
+  }
+  /* Life Planner already uses a body portal and fixed footer.
+     Fix long bilingual event titles without changing its warm theme. */
+  #lpOverlayV1.lp-portal-overlay .lp-modal-heading > div:first-child {min-width:0;flex:1 1 auto;}
+  #lpOverlayV1.lp-portal-overlay .lp-modal-heading :is(h2,p) {
+    min-width:0;max-width:100%;
+    overflow-wrap:break-word;
+    word-break:normal;
+  }
+  #lpOverlayV1.lp-portal-overlay .lp-modal-actions-row {min-width:0;flex-wrap:wrap;}
+  #lpOverlayV1.lp-portal-overlay .lp-modal-actions-row .lp-btn {max-width:100%;white-space:normal;overflow-wrap:break-word;}
+}
+@media (max-width: 390px) {
+  html body.mmh-p954-business #modalBackdrop .form-actions > :is(button,.btn) {flex:1 1 42%;}
+  html body #editModal.modal-backdrop.open #editModalBody .actions > :is(button,.btn) {flex:1 1 45%;}
+}
