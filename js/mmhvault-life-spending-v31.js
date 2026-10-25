@@ -134,11 +134,11 @@ async function submitLink(form){if(state.saving||state.dialog?.kind!=='link'||!l
  if(manualId){const e=state.entries.find(x=>x.id===manualId&&x.plan_id===p.id&&x.currency===p.currency);if(!e||e.spent_on!==tx.tx_date||Math.abs(Number(e.amount)-amount)>=0.005){showError(L('只能选择与交易日期和金额一致的手动记录。','Manual match must have the same date and amount.'));return;}}
  const snap=JSON.stringify([id,manualId]);if(d.snapshot&&d.snapshot!==snap){showError(L('上次提交结果未确认，不能更换交易重新提交；请刷新核查。','Previous result uncertain; refresh before changing this link.'));return;}d.snapshot=snap;
  const u=state.owner,ep=state.epoch;state.saving=true;try{const c=await auth();const payload={user_id:u,plan_id:p.id,currency:p.currency,transaction_id:id,matched_manual_entry_id:manualId,client_request_id:d.requestId};const r=await c.from(LINKS).insert(payload).select('id');if(r.error||!r.data?.length){const found=await verifyCreated(c,LINKS,d.requestId);if(!found)throw r.error||Error('UNCERTAIN');}if(!live()||state.owner!==u||state.epoch!==ep)return;close();state.notice=L('交易关联已保存，财务账本没有被修改。','Linked successfully; finance ledger unchanged.');await load();}
- catch(_){if(live())showError(L('关联未确认，可能发生重复或权限冲突。请刷新核查后重试。','Link unconfirmed; refresh to verify before retrying.'));}finally{state.saving=false;}}
+ catch(_){if(live()&&state.owner===u&&state.epoch===ep)showError(L('关联未确认，可能发生重复或权限冲突。请刷新核查后重试。','Link unconfirmed; refresh to verify before retrying.'));}finally{if(live()&&state.owner===u&&state.epoch===ep)state.saving=false;}}
 async function unlink(id,planId){const p=getPlan(planId),row=state.links.find(x=>x.id===id&&x.plan_id===planId&&x.user_id===state.owner);if(!p||!row||!allowed(p)||state.saving)return;
- if(!(await window.mmhVaultConfirmV740?.(L('只取消生活预算关联，原始财务交易不会删除。确定？','Unlink this lifestyle reference only? The financial transaction will remain.'))))return;const u=state.owner,ep=state.epoch;state.saving=true;
+ if(!window.confirm(L('只取消生活预算关联，原始财务交易不会删除。确定？','Unlink this lifestyle reference only? The financial transaction will remain.')))return;const u=state.owner,ep=state.epoch;state.saving=true;
  try{const c=await auth(),r=await c.from(LINKS).delete().eq('user_id',u).eq('id',id).eq('plan_id',planId).select('id');if(r.error||!r.data?.length)throw Error('CONFLICT');if(!live()||state.owner!==u||state.epoch!==ep)return;close();state.notice=L('已取消关联。财务交易没有变化。','Unlinked. Finance transaction unchanged.');await load();}
- catch(_){if(live())showError(L('取消失败，请刷新后重试。','Unlink failed. Refresh and retry.'));}finally{state.saving=false;}}
+ catch(_){if(live()&&state.owner===u&&state.epoch===ep)showError(L('取消失败，请刷新后重试。','Unlink failed. Refresh and retry.'));}finally{if(live()&&state.owner===u&&state.epoch===ep)state.saving=false;}}
 function showError(s){const e=$('lsDialogErrorV31');if(e)e.textContent=s;else{state.notice=s;render();}}
 function readField(form,name){return form.elements.namedItem(name);}
 async function verifyCreated(c,table,requestId){const r=await c.from(table).select('*').eq('user_id',state.owner).eq('client_request_id',requestId).maybeSingle();if(r.error)throw r.error;return r.data;}
@@ -149,8 +149,8 @@ async function submitPlan(form){if(state.saving||!state.dialog||state.dialog.kin
  state.saving=true;try{const c=await auth();let result;if(p){result=await c.from(PLANS).update({...data,version:Number(p.version)+1,updated_at:new Date().toISOString()}).eq('user_id',u).eq('id',p.id).eq('version',p.version).select('id');if(result.error)throw result.error;if(!result.data?.length)throw Error('CONFLICT');}
  else{result=await c.from(PLANS).insert({...data,user_id:u,client_request_id:d.requestId}).select('id');if(result.error||!result.data?.length){const found=await verifyCreated(c,PLANS,d.requestId);if(!found)throw result.error||Error('UNCERTAIN');}}
  if(!live()||state.owner!==u||state.epoch!==ep)return;close();state.notice=L('计划已保存。','Plan saved.');await load();}
- catch(e){if(live())showError(L('保存未确认，请保持当前表单并重试，或刷新核查。','Save not confirmed. Keep this form and retry, or refresh to verify.'));}
- finally{state.saving=false;}
+ catch(e){if(live()&&state.owner===u&&state.epoch===ep)showError(L('保存未确认，请保持当前表单并重试，或刷新核查。','Save not confirmed. Keep this form and retry, or refresh to verify.'));}
+ finally{if(live()&&state.owner===u&&state.epoch===ep)state.saving=false;}
 }
 async function submitEntry(form){if(state.saving||!state.dialog||state.dialog.kind!=='entry'||!live()||!state.loaded)return;const u=state.owner,ep=state.epoch,d=state.dialog,p=getPlan(d.planId);if(!p||!allowed(p))return;const e=d.entryId?state.entries.find(x=>x.id===d.entryId&&x.plan_id===p.id):null;
  const spent_on=readField(form,'spent_on').value,amount=num(readField(form,'amount').value),note=readField(form,'note').value.trim();if(!goodDate(spent_on)||!Number.isFinite(amount)||amount<=0||amount>999999999||note.length>600){showError(L('请选择有效日期，并输入大于 0 的金额。','Choose a valid date and an amount above zero.'));return;}
@@ -158,21 +158,21 @@ async function submitEntry(form){if(state.saving||!state.dialog||state.dialog.ki
  state.saving=true;try{const c=await auth();let result;if(e){result=await c.from(ENTRIES).update({...data,version:Number(e.version)+1,updated_at:new Date().toISOString()}).eq('user_id',u).eq('plan_id',p.id).eq('id',e.id).eq('version',e.version).select('id');if(result.error)throw result.error;if(!result.data?.length)throw Error('CONFLICT');}
  else{result=await c.from(ENTRIES).insert({...data,user_id:u,plan_id:p.id,client_request_id:d.requestId}).select('id');if(result.error||!result.data?.length){const found=await verifyCreated(c,ENTRIES,d.requestId);if(!found)throw result.error||Error('UNCERTAIN');}}
  if(!live()||state.owner!==u||state.epoch!==ep)return;close();state.notice=L('生活记录已保存，没有更改财务账本。','Manual use saved; finance ledger unchanged.');await load();}
- catch(_){if(live())showError(L('记录保存未确认，请保留表单重试或刷新核实。','Save unconfirmed. Keep the form to retry or refresh.'));}
- finally{state.saving=false;}
+ catch(_){if(live()&&state.owner===u&&state.epoch===ep)showError(L('记录保存未确认，请保留表单重试或刷新核实。','Save unconfirmed. Keep the form to retry or refresh.'));}
+ finally{if(live()&&state.owner===u&&state.epoch===ep)state.saving=false;}
 }
 async function deleteEntry(id,planId){const p=getPlan(planId),e=state.entries.find(x=>x.id===id&&x.user_id===state.owner&&x.plan_id===planId);if(!p||!e||!allowed(p)||state.saving)return;
  if(state.links.some(x=>x.matched_manual_entry_id===e.id)){state.notice=L('此手动记录关联了真实交易，请先取消关联。','This manual entry is matched to a transaction; unlink first.');render();return;}
- if(!(await window.mmhVaultConfirmV740?.(L('只删除这条生活记录，不会删除任何财务交易。确定？','Delete only this lifestyle note (no financial transactions)?'))))return;const u=state.owner,ep=state.epoch;state.saving=true;
+ if(!window.confirm(L('只删除这条生活记录，不会删除任何财务交易。确定？','Delete only this lifestyle note (no financial transactions)?')))return;const u=state.owner,ep=state.epoch;state.saving=true;
  try{const c=await auth(),r=await c.from(ENTRIES).delete().eq('user_id',u).eq('id',id).eq('plan_id',planId).eq('version',e.version).select('id');if(r.error||!r.data?.length)throw Error('CONFLICT');if(!live()||state.owner!==u||state.epoch!==ep)return;close();state.notice=L('记录已删除。','Manual use deleted.');await load();}
- catch(_){if(live())showError(L('删除失败，可能已被其他设备修改，请刷新。','Delete failed; another device may have changed this record. Refresh.'));}finally{state.saving=false;}
+ catch(_){if(live()&&state.owner===u&&state.epoch===ep)showError(L('删除失败，可能已被其他设备修改，请刷新。','Delete failed; another device may have changed this record. Refresh.'));}finally{if(live()&&state.owner===u&&state.epoch===ep)state.saving=false;}
 }
 async function deletePlan(id){const p=getPlan(id);if(!p||!allowed(p)||state.saving)return;
- if(!(await window.mmhVaultConfirmV740?.(L('确定删除此预算及其全部手动生活记录吗？这不会删除任何财务 Transactions。','Delete this plan and ALL its manual lifestyle logs? Financial Transactions are never deleted.'))))return;
+ if(!window.confirm(L('确定删除此预算及其全部手动生活记录吗？这不会删除任何财务 Transactions。','Delete this plan and ALL its manual lifestyle logs? Financial Transactions are never deleted.')))return;
  const u=state.owner,ep=state.epoch;state.saving=true;
  try{const c=await auth(),r=await c.from(PLANS).delete().eq('user_id',u).eq('id',id).eq('version',p.version).select('id');if(r.error||!r.data?.length)throw Error('CONFLICT');if(!live()||state.owner!==u||state.epoch!==ep)return;close();state.notice=L('计划及其独立记录已删除。','Plan and its separate manual logs deleted.');await load();}
- catch(_){if(live())showError(L('删除失败，计划可能已被其他设备修改，请刷新。','Delete failed; the plan may have changed on another device. Refresh.'));}
- finally{state.saving=false;}
+ catch(_){if(live()&&state.owner===u&&state.epoch===ep)showError(L('删除失败，计划可能已被其他设备修改，请刷新。','Delete failed; the plan may have changed on another device. Refresh.'));}
+ finally{if(live()&&state.owner===u&&state.epoch===ep)state.saving=false;}
 }
 function onClick(ev){const b=ev.target.closest('[data-ls-act]');if(!b||(!$(ROOT)?.contains(b)&&!$('lsDialogV31')?.contains(b)))return;const act=b.dataset.lsAct,id=b.dataset.id;if(act==='close'){close();return;}if(act==='reveal'){state.reveal?hidePrivate():reveal();return;}if(act==='refresh'){load();return;}if(act==='closeInsights'){state.insightPlanId=null;render();return;}if(act==='insights'){const p=getPlan(id);if(p&&allowed(p)){state.insightPlanId=state.insightPlanId===id?null:id;render();}return;}if(act==='add'){showPlan(null);return;}if(act==='edit'){showPlan(id);return;}if(act==='link'){showLink(id);return;}if(act==='links'){showLinks(id);return;}if(act==='unlink'){unlink(id,b.dataset.plan);return;}if(act==='log'){showEntry(id);return;}if(act==='history'){showHistory(id);return;}if(act==='editEntry'){showEntry(b.dataset.plan,id);return;}if(act==='deleteEntry'){deleteEntry(id,b.dataset.plan);return;}if(act==='deletePlan'){deletePlan(id);return;}}
 function mount(){const r=$(ROOT);if(!r)return;if(state.owner!==owner()||state.epoch!==epoch()){forget();state.owner=owner();state.epoch=epoch();}render();if(!state.loaded&&!state.loading)load();}

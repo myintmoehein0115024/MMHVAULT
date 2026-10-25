@@ -236,7 +236,7 @@ async function saveTransfer(form){
   if(!valid(u,ep))return;
   closeDialog();state.notice=L('基金间预留已调配，未移动真实资金。','Earmark reallocated between funds. No real money moved.');state.saving=false;await load();
  }catch(e){if(valid(u,ep))errorMsg(e?.code==='23514'||e?.code==='23503'?L('来源预留或目标基金已变化，请刷新重试。','Source earmark or target fund changed. Refresh and retry.'):L('提交结果未确认，请刷新核对，避免重复调配。','Submission uncertain. Refresh and verify before retrying.'))}
- finally{state.saving=false}
+ finally{if(valid(u,ep))state.saving=false}
 }
 async function reconcileDialog(fundId,movementId){
  const f=getFund(fundId),m=state.movements.find(x=>x.id===movementId&&x.fund_id===fundId&&x.kind==='use');
@@ -272,18 +272,18 @@ async function saveReconcile(form){
   if(res.error||!res.data?.length){const found=await verifyCreated(c,RECONS,d.request);if(!found)throw res.error||Error('UNCERTAIN')}
   if(!valid(u,ep))return;closeDialog();state.notice=L('已建立人工交易关联；不会改变财务记录或释放预留额度。','Manual Expense match saved. No finance changes or hold release.');state.saving=false;await load();
  }catch(e){if(valid(u,ep))errorMsg(e?.code==='23505'?L('此交易或用途使用已经关联其他记录。','This Expense or purpose use is already matched.'):e?.message==='REVIEW'?L('原交易数据已变化，请重新核对。','The original Expense has changed. Review again.'):L('关联未确认，请刷新检查。','Match uncertain. Refresh before retrying.'))}
- finally{state.saving=false}
+ finally{if(valid(u,ep))state.saving=false}
 }
 async function unlinkReconcile(fundId,movementId){
  const f=getFund(fundId),m=state.movements.find(x=>x.id===movementId&&x.fund_id===fundId&&x.kind==='use'),r=m&&reconFor(m.id);
  if(!canSee(f)||!r||state.saving)return;
- if(!(await window.mmhVaultConfirmV740?.(L('解除人工交易关联？用途使用和原始财务交易都将保留。','Unlink the manual Expense match? Both source records remain untouched.'))))return;
+ if(!window.confirm(L('解除人工交易关联？用途使用和原始财务交易都将保留。','Unlink the manual Expense match? Both source records remain untouched.')))return;
  const u=state.owner,ep=state.epoch;state.saving=true;
  try{const c=await authorized(),x=await c.from(RECONS).delete().eq('user_id',u).eq('id',r.id).select('id');
  if(x.error||!x.data?.length)throw x.error||Error('REVIEW');
  if(!valid(u,ep))return;state.saving=false;state.notice=L('人工关联已解除，规划与财务原记录仍保留。','Manual match removed; source records are unchanged.');await load();
  }catch{if(valid(u,ep)){state.notice=L('解除关联尚未确认，请刷新核对。','Unlink uncertain. Refresh to verify.');render()}}
- finally{state.saving=false}
+ finally{if(valid(u,ep))state.saving=false}
 }
 async function saveMovement(form){
  const d=state.dialog,f=getFund(d.id),a=state.allocations.find(x=>x.id===d.allocationId&&x.fund_id===d.id);
@@ -308,7 +308,7 @@ async function saveMovement(form){
   if(!valid(u,ep))return;
   closeDialog();state.notice=L('基金流水已记录。没有修改真实账户余额。','Fund journal saved. Real account balances were not changed.');state.saving=false;await load();
  }catch(e){if(valid(u,ep))errorMsg(e?.code==='23514'||e?.message==='REVIEW'?L('可处理额度已变化，请刷新后再试。','Remaining earmark has changed. Refresh before retrying.'):L('保存未确认，请刷新核对，避免重复提交。','Save uncertain. Refresh to verify before resubmitting.'))}
- finally{state.saving=false}
+ finally{if(valid(u,ep))state.saving=false}
 }
 function updateAccountPreview(form,f){
  if(!form||!f)return;const preview=$('lfAccountPreviewV42');if(!preview)return;
@@ -324,7 +324,7 @@ async function saveFund(form){const d=state.dialog,id=d.id,f=id?getFund(id):null
  const name=form.elements.namedItem('name').value.trim(),fund_type=f?.fund_type||form.elements.namedItem('fund_type').value,currencyCode=f?.currency||form.elements.namedItem('currency').value;
  const rawGoal=form.elements.namedItem('goal_amount').value.trim(),goal_amount=rawGoal===''?null:num(rawGoal),monthly_plan=num(form.elements.namedItem('monthly_plan').value),is_private=form.elements.namedItem('is_private').checked;
  if(!name||name.length>100||!['wish','free'].includes(fund_type)||!currency(currencyCode)||goal_amount!==null&&(!Number.isFinite(goal_amount)||goal_amount<=0||goal_amount>999999999)||!Number.isFinite(monthly_plan)||monthly_plan<0||monthly_plan>999999999){errorMsg(L('请检查名称、目标和金额。','Check name and amounts.'));return}
- if(f&&f.is_private&&!is_private&&!(await window.mmhVaultConfirmV740?.(L('取消私人隐藏后，基金名称和金额会在该模块中直接显示。确定？','Making this fund public to your workspace reveals its name and amounts. Continue?'))))return;
+ if(f&&f.is_private&&!is_private&&!window.confirm(L('取消私人隐藏后，基金名称和金额会在该模块中直接显示。确定？','Making this fund public to your workspace reveals its name and amounts. Continue?')))return;
  const data={name,fund_type,currency:currencyCode,goal_amount,monthly_plan,is_private},snapshot=JSON.stringify(data);
  if(d.snapshot&&d.snapshot!==snapshot){errorMsg(L('前次提交结果未确认；请刷新核实后再修改内容。','Unconfirmed prior save. Refresh before changing the form.'));return}d.snapshot=snapshot;
  const u=state.owner,ep=state.epoch;state.saving=true;
@@ -332,7 +332,7 @@ async function saveFund(form){const d=state.dialog,id=d.id,f=id?getFund(id):null
  else{r=await c.from(FUNDS).insert({...data,user_id:u,client_request_id:d.request}).select('id');if(r.error||!r.data?.length){const found=await verifyCreated(c,FUNDS,d.request);if(!found)throw r.error||Error('UNCERTAIN')}}
  if(!valid(u,ep))return;closeDialog();state.notice=L('基金用途标签已保存。','Fund label saved.');state.saving=false;await load()}
  catch{if(valid(u,ep))errorMsg(L('保存未确认，请保留当前表单并刷新核对。','Save not confirmed; keep this form and refresh to verify.'))}
- finally{state.saving=false}
+ finally{if(valid(u,ep))state.saving=false}
 }
 async function saveAllocation(form){const d=state.dialog,f=getFund(d.id);if(!canSee(f))return;
  const amount=num(form.elements.namedItem('amount').value),allocated_on=form.elements.namedItem('allocated_on').value,note=form.elements.namedItem('note').value.trim(),source_account_id=String(form.elements.namedItem('source_account_id').value);
@@ -358,22 +358,22 @@ async function saveAllocation(form){const d=state.dialog,f=getFund(d.id);if(!can
  if(r.error||!r.data?.length){const found=await verifyCreated(c,ALLOC,d.request);if(!found)throw r.error||Error('UNCERTAIN')}
  if(!valid(u,ep))return;closeDialog();state.notice=L('预留已登记：仅是用途分配，不是账户扣款或真正锁定资金。','Earmark recorded: a planning label, not a debit or enforceable hold.');state.saving=false;await load();
  }catch(e){if(valid(u,ep))errorMsg(e?.message==='REVIEW'?L('余额或其他基金已变化，请取消并刷新后再试。','Ledger or other earmarks changed. Cancel and refresh before retrying.'):L('结果尚未确认，请刷新检查，以免重复标记。','Save uncertain. Refresh and verify before another earmark.'))}
- finally{state.saving=false}
+ finally{if(valid(u,ep))state.saving=false}
 }
 async function removeAllocation(id,fundId){const f=getFund(fundId),e=state.allocations.find(x=>x.id===id&&x.fund_id===fundId);if(!canSee(f)||!e||state.saving||state.movements.some(m=>m.allocation_id===id)||state.transfers.some(t=>t.source_allocation_id===id||t.target_allocation_id===id))return;
- if(!(await window.mmhVaultConfirmV740?.(L('仅撤销一条资金预留用途标签；不会转账或更改真实余额。确定？','Remove this earmark label? No transfer or account change occurs.'))))return;
+ if(!window.confirm(L('仅撤销一条资金预留用途标签；不会转账或更改真实余额。确定？','Remove this earmark label? No transfer or account change occurs.')))return;
  const u=state.owner,ep=state.epoch;state.saving=true;
  try{const c=await authorized(),r=await c.from(ALLOC).delete().eq('user_id',u).eq('id',e.id).eq('fund_id',f.id).eq('version',e.version).select('id');if(r.error||!r.data?.length)throw Error('CONFLICT');if(!valid(u,ep))return;state.notice=L('预留记录已撤销。','Earmark removed.');state.saving=false;await load()}
  catch{if(valid(u,ep)){state.notice=L('操作未确认，请刷新核查。','Operation uncertain; refresh and verify.');render()}}
- finally{state.saving=false}
+ finally{if(valid(u,ep))state.saving=false}
 }
 async function deleteFund(id){const f=getFund(id);if(!canSee(f)||state.saving)return;
  if(state.transfers.some(t=>t.source_fund_id===id||t.target_fund_id===id)){state.notice=L('此基金包含跨基金调配流水，为保护历史不能直接删除。','This fund has reallocation history and cannot be deleted directly.');render();return}
- if(!(await window.mmhVaultConfirmV740?.(L('删除基金及其全部用途预留记录？不会删除任何财务交易或转移真实资产。','Delete this fund and ALL its earmark records? Real finances remain untouched.'))))return;
+ if(!window.confirm(L('删除基金及其全部用途预留记录？不会删除任何财务交易或转移真实资产。','Delete this fund and ALL its earmark records? Real finances remain untouched.')))return;
  const u=state.owner,ep=state.epoch;state.saving=true;
  try{const c=await authorized(),r=await c.from(FUNDS).delete().eq('user_id',u).eq('id',id).eq('version',f.version).select('id');if(r.error||!r.data?.length)throw Error('CONFLICT');if(!valid(u,ep))return;state.notice=L('基金标签已删除。','Fund label deleted.');state.saving=false;await load()}
  catch{if(valid(u,ep)){state.notice=L('删除未确认，请刷新核查。','Delete uncertain; refresh and verify.');render()}}
- finally{state.saving=false}
+ finally{if(valid(u,ep))state.saving=false}
 }
 function click(e){const b=e.target.closest('[data-lf-act]');if(!b||(!$(ROOT)?.contains(b)&&!$('lfDialogV41')?.contains(b)))return;const act=b.dataset.lfAct,id=b.dataset.id;
  if(act==='close'){if(!state.saving)closeDialog();return}

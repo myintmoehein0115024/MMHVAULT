@@ -189,7 +189,7 @@
       if(r.error||!r.data?.length)throw Error('CONFLICT');
       closeDialog();notice(L('提醒设置已保存。','Reminder settings saved.'));await load();
     }catch(_){if(sessionValid(owner,epoch)){const error=$('lpFormErrorV1');if(error){error.textContent=L('保存失败或其他设备已修改，请刷新再试。','Save failed or settings changed on another device. Refresh and retry.');error.hidden=false;}}}
-    finally{state.saving=false;if(sessionValid(owner,epoch)){const btn=$('lpReminderFormV17 button[type=submit]');if(btn)btn.disabled=false;}}
+    finally{if(sessionValid(owner,epoch)&&state.owner===owner&&state.epoch===epoch)state.saving=false;if(sessionValid(owner,epoch)){const btn=$('lpReminderFormV17 button[type=submit]');if(btn)btn.disabled=false;}}
   }
   async function enableBrowserReminders(){
     if(!state.remindersReady||state.browserReminderOptIn)return;
@@ -228,7 +228,7 @@
         }
       }
     }catch(_){/* fail closed; no sensitive detail in console or external telemetry */}
-    finally{state.reminderChecking=false;}
+    finally{if(sessionValid(owner,epoch)&&state.owner===owner&&state.epoch===epoch)state.reminderChecking=false;}
   }
   function renderEvent(o){
     const privateClass=o.is_private?' lp-private':'';
@@ -544,7 +544,7 @@
         const s=error.message==='CONFLICT'?L('此记录已在其他设备被修改，请刷新后重试。','This record changed on another device. Refresh and retry.'):L('保存失败。请检查网络、数据库权限，或刷新后重试。','Could not save. Check connection and permissions, or refresh before retrying.');
         const target=$('lpFormErrorV1');if(target){target.hidden=false;target.textContent=s;}else notice(s);
       }
-    }finally{state.saving=false;if(sessionValid(owner,epoch)){const b=$('lpEventFormV1 button[type="submit"]');if(b)b.disabled=false;}}
+    }finally{if(sessionValid(owner,epoch)&&state.owner===owner&&state.epoch===epoch)state.saving=false;if(sessionValid(owner,epoch)){const b=$('lpEventFormV1 button[type="submit"]');if(b)b.disabled=false;}}
   }
   function askDelete(id,date){
     const e=state.events.find(x=>x.id===id&&owns(x));if(!e)return;
@@ -572,12 +572,12 @@
       if(r.error)throw r.error;if(!r.data?.length)throw Error('CONFLICT');
       closeDialog();notice(L('已更新日程状态。','Event status updated.'));await load();
     }catch(_){if(sessionValid(owner,epoch))notice(L('操作失败：数据可能已在其他设备更新，请刷新。','Update failed. The event may have changed on another device. Refresh and try again.'));}
-    finally{state.saving=false;}
+    finally{if(sessionValid(owner,epoch)&&state.owner===owner&&state.epoch===epoch)state.saving=false;}
   }
   async function deleteSeries(){const o=state.dialog;if(!o||state.saving)return;const owner=state.owner,epoch=state.epoch;state.saving=true;
     try{await guardedUser();if(!sessionValid(owner,epoch))return;const r=await cloud().from('life_schedule_events').delete().eq('user_id',owner).eq('id',o.id).eq('version',state.events.find(x=>x.id===o.id)?.version||-1).select('id');if(!sessionValid(owner,epoch))return;if(r.error||!r.data?.length)throw Error('DELETE');closeDialog();notice(L('已删除日程。','Event deleted.'));await load();}
     catch(_){if(sessionValid(owner,epoch))notice(L('删除失败，请刷新后重试。','Delete failed. Refresh and retry.'));}
-    finally{state.saving=false;}
+    finally{if(sessionValid(owner,epoch)&&state.owner===owner&&state.epoch===epoch)state.saving=false;}
   }
   function onClick(event){const btn=event.target.closest('[data-lp-act]');if(!btn||(!$(ROOT)?.contains(btn)&&!$('lpOverlayV1')?.contains(btn)))return;const act=btn.dataset.lpAct,id=btn.dataset.id,date=btn.dataset.date;
     if(act==='dashboard'){closeDialog();state.section='home';window.setPage?.('dashboard');return;}
@@ -645,7 +645,7 @@
       if(e?.detail?.page===PAGE){if(ownerNow()!==state.owner||epochNow()!==state.epoch)reset();if(!state.loaded&&!state.loading)load();else render();}
       else {window.MMHLifeSpendingV31?.unmount();window.MMHLifeHabitsV21?.unmount();window.MMHLifeFundsV41?.unmount();window.MMHLifeGoalsV51?.unmount();window.MMHLifeInsightsV52?.unmount();if(state.dialog)closeDialog();state.privateVisible=false;state.search='';state.categoryFilter='all';state.statusFilter='all';}
     });
-    window.addEventListener('mmhvault:config-owner-changed',reset);
+    window.addEventListener('mmhvault:config-owner-changed',()=>{reset();if(active()&&ownerNow())load();});
     for(const n of ['mmhvault-language-change','languagechange'])window.addEventListener(n,()=>{if(state.ready)render();});
     document.addEventListener('visibilitychange',()=>{if(document.hidden){window.MMHLifeSpendingV31?.unmount();window.MMHLifeHabitsV21?.unmount();window.MMHLifeFundsV41?.unmount();window.MMHLifeGoalsV51?.unmount();window.MMHLifeInsightsV52?.unmount();state.privateVisible=false;closeDialog();}else if(active())load();});
     // No background scheduling promise: browsers may throttle or suspend this timer.
