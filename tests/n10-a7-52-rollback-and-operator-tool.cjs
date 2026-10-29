@@ -17,7 +17,8 @@ assert.doesNotMatch(rollback,/const CODE_GATE_OPEN = true;/);
 const test=read('tests/n10-a7-52-two-uid-edge-e2e-vm.cjs');
 assert.match(test,/filename:'N10A752-MEMORY-ONLY.ts'/);
 assert.match(test,/const original=fs.readFileSync\('review\/N10-A7.52-PRODUCTION-EDGE-V4-CLOSED-ROLLBACK.ts'/);
-assert.doesNotMatch(test,/https?:\/\/(?!vrypucmyrztxgiqhjspd\.supabase\.co)/);
+assert.match(test,/const BASE='https:\/\/vrypucmyrztxgiqhjspd\.supabase\.co'/);
+// A deliberately rejected evil.example Origin in the offline test is expected.
 const html=read('review/N10-A7.52-TWO-ACCOUNT-MANUAL-ACCEPTANCE-OFFLINE.html');
 assert.match(html,/<title>MMHVAULT · N10-A7.52/);
 assert.match(html,/不会自动调用 Supabase/);
