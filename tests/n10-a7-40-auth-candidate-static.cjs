@@ -3,6 +3,9 @@
 const fs=require('node:fs'),crypto=require('node:crypto'),assert=require('node:assert/strict');
 const app=fs.readFileSync('app.html'),login=fs.readFileSync('login.html','utf8');
 const client=fs.readFileSync('js/mmhvault-n10-a7-40-username.js','utf8');
+const bind=fs.readFileSync('js/mmhvault-n10-a7-41-bind.js','utf8');
+const setup=fs.readFileSync('username-setup.html','utf8');
+const edge=fs.readFileSync('review/N10-A7.40-PRODUCTION-EDGE-CANDIDATE-NEVER-DEPLOY.ts','utf8');
 const gitBlobSha=b=>crypto.createHash('sha1').update(Buffer.from('blob '+b.length+'\0')).update(b).digest('hex');
 const checks={
  app_exact_production_baseline:()=>assert.equal(gitBlobSha(app),'4abf71a70ad3c1f3388de2418e219ab13ba2d330'),
@@ -20,6 +23,14 @@ const checks={
  uid_consistency:()=>{assert.match(client,/db\.auth\.getUser\(\)/);assert.match(client,/db\.auth\.getSession\(\)/);},
  no_raw_browser_alert:()=>assert.doesNotMatch(client,/\balert\s*\(/),
  no_username_password_logging:()=>assert.doesNotMatch(client,/console\.(?:log|info|warn|error)\s*\(/),
+ username_setup_discoverable:()=>assert.match(login,/href="username-setup\.html"/),
+ username_setup_redirect_allowlisted:()=>assert.match(login,/next==='username-setup\.html'/),
+ uid_handoff_mutex:()=>{assert.match(login,/MMHVAULT_N10_A741_USERNAME_HANDOFF/);assert.match(client,/if\(!navigated\)throw Error/);},
+ bind_page_isolated:()=>assert.match(setup,/mmhvault-n10-a7-41-bind\.js/),
+ bind_frontend_closed:()=>{assert.match(bind,/const ENABLED=false;/);assert.match(bind,/const SITE_KEY='';/);},
+ bind_verifies_remote_uid:()=>{assert.match(bind,/client\.auth\.getUser\(\)/);assert.match(bind,/client\.auth\.getSession\(\)/);},
+ edge_remains_closed:()=>{assert.match(edge,/const CODE_GATE_OPEN = false;/);assert.match(edge,/N10A740_PRODUCTION_ENABLED/);},
+ edge_public_status_no_secret_presence:()=>assert.doesNotMatch(edge,/prerequisites_present:/),
  };
 for(const [name,fn] of Object.entries(checks)){fn();process.stdout.write('PASS '+name+'\n');}
 console.log('N10-A7.40 static checks completed:',Object.keys(checks).length);
