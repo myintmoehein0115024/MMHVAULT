@@ -229,12 +229,6 @@
     mountCaptcha(k);renderLocked();
   }
   function start(){
-    // The locked display module registers first. Restore truthful QA status
-    // after its language toggle when, and only when, testing is authorized.
-    // This controls presentation only, never authorization.
-    node('langToggle')?.addEventListener('click',()=>{
-      if(active())showApprovedClientMode();
-    });
     for(const k of slots){
       node('qa54bBind'+k)?.addEventListener('click',()=>void perform(k,'bind'));
       node('qa54bLogin'+k)?.addEventListener('click',()=>void perform(k,'login'));
