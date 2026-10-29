@@ -17,8 +17,8 @@ const checks={
   app_byte_identical_to_production:()=>assert.equal(blobSha(app),'4abf71a70ad3c1f3388de2418e219ab13ba2d330'),
   username_client_gate_closed:()=>assert.match(front,/const ENABLED=false;/),
   binding_client_gate_closed:()=>assert.match(binding,/const ENABLED=false;/),
-  username_no_turnstile_site_key:()=>assert.match(front,/const TURNSTILE_SITE_KEY='';/),
-  binding_no_turnstile_site_key:()=>assert.match(binding,/const SITE_KEY='';/),
+  username_public_turnstile_key_locked:()=>assert.match(front,/const TURNSTILE_SITE_KEY='0x4AAAAAAFrRIiFC7KoLQn2q';/),
+  binding_public_turnstile_key_locked:()=>assert.match(binding,/const SITE_KEY='0x4AAAAAAFrRIiFC7KoLQn2q';/),
   edge_gate_closed:()=>assert.match(edge,/const CODE_GATE_OPEN = false;/),
   edge_utc_window_expired:()=>{
     assert.match(edge,/const WINDOW_START_UTC = '1970-01-01T00:00:00\.000Z';/);
