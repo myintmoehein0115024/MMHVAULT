@@ -24,7 +24,7 @@
   const slots = ['A', 'B'];
   let mainClient = null, verifier = null;
   const record = Object.fromEntries(slots.map(k => [k, {
-    busy:false, token:'', widgetId:null, boundUid:null, lastOperation:null
+    busy:false, token:'', widgetId:null, mode:'bind', boundUid:null, lastOperation:null
   }]));
 
   function say(k, zh, en) {
@@ -35,13 +35,15 @@
     for (const k of slots) {
       const field = node('qa54bName'+k), pass = node('qa54bPassword'+k);
       const bind = node('qa54bBind'+k), login = node('qa54bLogin'+k);
+      const selector=node('qa54bMode'+k);
       const captcha = node('qa54bCaptcha'+k);
       if(!field || !pass || !bind || !login || !captcha) continue;
       const allowed=active() && !record[k].busy;
       field.disabled=!allowed;field.readOnly=!allowed;
       pass.disabled=!allowed;pass.readOnly=!allowed;
-      bind.disabled=!allowed || !record[k].token;
-      login.disabled=!allowed || !record[k].token || !record[k].boundUid;
+      if(selector)selector.disabled=!allowed;
+      bind.disabled=!allowed || record[k].mode!=='bind' || !record[k].token;
+      login.disabled=!allowed || record[k].mode!=='login' || !record[k].token || !record[k].boundUid;
       captcha.hidden=!allowed;
       if(!allowed){pass.value='';record[k].token='';}
       if(!active())say(k,'🔒 尚未获批真实测试 · 无请求','🔒 Live QA not authorized · No requests');
@@ -108,7 +110,7 @@
   }
   async function perform(k,action) {
     const r=record[k],name=node('qa54bName'+k),pass=node('qa54bPassword'+k);
-    if(!active() || r.busy || !r.token || !name || !pass) {renderLocked();return;}
+    if(!active() || r.busy || r.mode!==action || !r.token || !name || !pass) {renderLocked();return;}
     const username=name.value.trim().toLowerCase();
     let password=pass.value,token=r.token;
     if(!USERNAME.test(username) || password.length<6 || password.length>128) {
@@ -162,19 +164,28 @@
     if(!slot)return;
     const r=record[k];
     r.widgetId=window.turnstile.render(slot,{
-      sitekey:SITE_KEY,theme:'dark',action:'mmh_n10a740_bind',
+      sitekey:SITE_KEY,theme:'dark',
+      action:r.mode==='login'?'mmh_n10a740_login':'mmh_n10a740_bind',
       callback:t=>{r.token=typeof t==='string'?t:'';renderLocked();},
       'expired-callback':()=>{r.token='';renderLocked();},
       'error-callback':()=>{r.token='';renderLocked();}
     });
-    // Login uses a DIFFERENT Turnstile action; a future separately authorized
-    // UI release must support swapping/re-rendering action per operation.
+  }
+  function changeMode(k,mode){
+    if(!active() || record[k].busy || !['bind','login'].includes(mode))return;
+    const r=record[k];r.mode=mode;r.token='';
+    if(r.widgetId!==null) {
+      if(window.turnstile?.remove)try{window.turnstile.remove(r.widgetId);}catch{}
+      r.widgetId=null;
+    }
+    mountCaptcha(k);renderLocked();
   }
   function start(){
     for(const k of slots){
       node('qa54bBind'+k)?.addEventListener('click',()=>void perform(k,'bind'));
       node('qa54bLogin'+k)?.addEventListener('click',()=>void perform(k,'login'));
-      node('qa54bName'+k)?.addEventListener('input',()=>{record[k].boundUid=null;});
+      node('qa54bName'+k)?.addEventListener('input',()=>{record[k].boundUid=null;renderLocked();});
+      node('qa54bMode'+k)?.addEventListener('change',e=>changeMode(k,e?.target?.value||node('qa54bMode'+k)?.value));
     }
     // Closed candidate must not load SDK, render Turnstile, fetch, or read sessions.
     if(active()) for(const k of slots)mountCaptcha(k);
