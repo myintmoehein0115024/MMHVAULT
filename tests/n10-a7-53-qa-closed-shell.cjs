@@ -3,8 +3,10 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const html=fs.readFileSync('n10-a7-53-qa.html','utf8'),js=fs.readFileSync('js/mmhvault-n10-a7-53-qa.js','utf8');
 assert.match(html,/name="robots" content="noindex,nofollow,noarchive,nosnippet,noimageindex"/);
-assert.match(html,/Content-Security-Policy[^>]*connect-src 'none'/);
-assert.match(html,/script-src 'self'/);
+assert.match(html,/Content-Security-Policy[^>]*connect-src 'self' https:\/\/vrypucmyrztxgiqhjspd\.supabase\.co https:\/\/challenges\.cloudflare\.com/);
+assert.match(html,/script-src 'self' https:\/\/cdn\.jsdelivr\.net https:\/\/challenges\.cloudflare\.com/);
+assert.match(html,/frame-src https:\/\/challenges\.cloudflare\.com/);
+assert.doesNotMatch(html,/script-src[^;]*\*|connect-src[^;]*\*/);
 assert.match(html,/form-action 'none'/);
 assert.match(html,/script src="\.\/js\/mmhvault-n10-a7-53-qa\.js" defer/);
 assert.equal((html.match(/<select /g)||[]).length,8); // 6 readiness selectors + 2 disabled operation selectors
