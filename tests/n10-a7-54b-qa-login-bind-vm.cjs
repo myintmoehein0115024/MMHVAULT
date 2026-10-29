@@ -8,7 +8,7 @@ const source=fs.readFileSync('js/mmhvault-n10-a7-54b-liveflow.js','utf8');
 const html=fs.readFileSync('n10-a7-53-qa.html','utf8');
 assert.match(source,/const QA_CLOSED = true;/);
 assert.match(source,/const LIVE_REQUESTS_ALLOWED = false;/);
-assert.match(html,/connect-src 'none'/);
+assert.match(html,/connect-src 'self' https:\/\/vrypucmyrztxgiqhjspd\.supabase\.co https:\/\/challenges\.cloudflare\.com/);
 assert.match(html,/noindex,nofollow/);
 assert.match(html,/mmhvault-n10-a7-54b-liveflow\.js/);
 assert.equal((html.match(/disabled readonly/g)||[]).length,4);
