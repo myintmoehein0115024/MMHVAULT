@@ -41,8 +41,12 @@
     if(help)help.textContent=tr('通过邮箱重置密码','Reset password by email');
     const helpPara=form.querySelector('.mmh-a740-help');
     if(helpPara&&help)helpPara.firstChild.textContent=tr('忘记密码？ ','Forgot your password? ');
-    submit.disabled=pending||!safeReady()||!token;
-    if(!safeReady())setStatus('用户名登录将在安全集成完成后开放。','Username sign-in will be available after secure integration.');
+    const available=safeReady();
+    user.disabled=pending||!available;
+    pass.disabled=pending||!available;
+    if(!available){pass.value='';token='';captcha.hidden=true;}
+    submit.disabled=pending||!available||!token;
+    if(!available)setStatus('用户名登录将在安全集成完成后开放。','Username sign-in will be available after secure integration.');
   }
   function resetChallenge(){
     token='';
