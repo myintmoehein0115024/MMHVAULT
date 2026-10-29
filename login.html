@@ -434,6 +434,7 @@ window.MMHVAULT_AUTH_NAVIGATION_V946={version:'9.46',verifyUserBeforeRedirect:tr
 if(db){
   db.auth.onAuthStateChange((event,session)=>{
     if(recoverableCallbackV943(event,session))return;
+    if(window.MMHVAULT_N10_A741_USERNAME_HANDOFF===true && event==='SIGNED_IN')return;
     if(authCallbackPendingV945){
       if(authReturnErrorV945||callbackTimedOutV946)return;
       if(event==='SIGNED_IN'&&session?.user?.id&&!authCallbackFinishedV945){
