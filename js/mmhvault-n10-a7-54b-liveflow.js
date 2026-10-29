@@ -53,6 +53,7 @@
       if(!window.turnstile?.render)await loadScript(TURNSTILE_URL);
       if(!active())throw Error('dependency_not_ready');
       for(const k of slots)mountCaptcha(k);
+      showApprovedClientMode();
       renderLocked();
     })().catch(()=>{
       renderLocked();
@@ -68,6 +69,16 @@
     const status = node('qa54bStatus'+k);
     if(status) status.textContent = loc(zh,en);
   }
+  function showApprovedClientMode() {
+    // DISPLAY ONLY. This never claims the backend is ready or that real login
+    // has succeeded, and cannot change any Edge/production gate.
+    if(!active())return;
+    const badge=node('badge'),mode=node('portalMode'),backend=node('qa54cBackendStat');
+    if(badge)badge.textContent='N10-A7.54 · QA CLIENT ENABLED';
+    if(mode)mode.textContent='QA BROWSER READY · SERVER GATES REQUIRED';
+    if(backend)backend.textContent=loc('仅提交时请求 · 服务端仍独立校验','Only on submit · Server checks independently');
+  }
+
   function renderLocked() {
     for (const k of slots) {
       const field = node('qa54bName'+k), pass = node('qa54bPassword'+k);
