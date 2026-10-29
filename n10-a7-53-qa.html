@@ -8,7 +8,7 @@
 <meta name="referrer" content="no-referrer">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'unsafe-inline'; connect-src 'none'; img-src 'none'; font-src 'none'; media-src 'none'; worker-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'">
 <meta name="theme-color" content="#08121e">
-<title>MMHVAULT · N10-A7.54-A 双账户 QA 准备入口（关闭）</title>
+<title>MMHVAULT · N10-A7.54-B 双账户 QA 候选（关闭）</title>
 <style>
 :root{color-scheme:dark;--bg:#08121e;--glass:#142338bd;--line:#50617a65;--gold:#e7c07a;--cream:#ffedca;--txt:#eff4f8;--muted:#adbdce;--blue:#b1d9ff;--good:#8edbb9;--bad:#faaba1}
 *{box-sizing:border-box}
@@ -61,6 +61,7 @@ code{color:#f3d69d;font-size:12px;overflow-wrap:anywhere}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{transition:none!important}}
 </style>
 <script src="./js/mmhvault-n10-a7-53-qa.js" defer></script>
+<script src="./js/mmhvault-n10-a7-54b-liveflow.js" defer></script>
 </head>
 <body>
 <main>
@@ -78,23 +79,37 @@ code{color:#f3d69d;font-size:12px;overflow-wrap:anywhere}
 <h2 class="sectionTitle" data-zh="双账户流程（未开放）" data-en="Two-account flows (locked)">双账户流程（未开放）</h2>
 <div class="grid">
 <section class="box account" aria-labelledby="titleA"><div class="accountHead"><div class="avatar">A</div><div><h3 id="titleA" data-zh="测试账户 A" data-en="Test account A">测试账户 A</h3><small data-zh="现有独立 Supabase 用户 · 无身份信息读取" data-en="Separate existing Supabase user · No identity read">现有独立 Supabase 用户 · 无身份信息读取</small></div></div><div class="state" data-zh="状态：准备完成 · 未绑定 · 未登录测试" data-en="Status: Prepared · No binding or login test">状态：准备完成 · 未绑定 · 未登录测试</div>
-<div class="stage" data-zh="N10-A7.54-A：已准备好输入区域，但仍是只读预览。用户名登录和绑定均未开放。" data-en="N10-A7.54-A: Input fields are staged as disabled preview only. Binding and login are unavailable.">N10-A7.54-A：已准备好输入区域，但仍是只读预览。用户名登录和绑定均未开放。</div>
+<div class="stage" data-zh="N10-A7.54-B：已准备好独立的绑定与登录测试区域，但仍是只读预览。用户名登录和绑定均未开放。" data-en="N10-A7.54-B: Independent bind/login UI is staged as disabled preview only. Binding and login are unavailable.">N10-A7.54-B：已准备好独立的绑定与登录测试区域，但仍是只读预览。用户名登录和绑定均未开放。</div>
 <div class="qaFields" aria-label="QA A · Disabled preview">
-<label class="qaField"><span data-zh="测试用户名（当前禁用）" data-en="Test username (disabled)">测试用户名（当前禁用）</span><input type="text" disabled readonly autocomplete="off" spellcheck="false" maxlength="20" aria-label="QA A username locked" placeholder="4–20 characters"></label>
-<label class="qaField"><span data-zh="当前账户密码（当前禁用）" data-en="Account password (disabled)">当前账户密码（当前禁用）</span><input type="password" disabled readonly autocomplete="off" aria-label="QA A password locked" placeholder="••••••••"></label></div>
+<label class="qaField"><span data-zh="测试用户名（当前禁用）" data-en="Test username (disabled)">测试用户名（当前禁用）</span><input type="text" disabled readonly autocomplete="off" spellcheck="false" maxlength="20" id="qa54bNameA" aria-label="QA A username locked" placeholder="4–20 characters"></label>
+<label class="qaField"><span data-zh="当前账户密码（当前禁用）" data-en="Account password (disabled)">当前账户密码（当前禁用）</span><input type="password" disabled readonly autocomplete="off" id="qa54bPasswordA" aria-label="QA A password locked" placeholder="••••••••"></label></div>
+<div class="qaField" style="margin-bottom:11px"><span data-zh="测试操作模式（仍禁用）" data-en="QA operation mode (disabled)">测试操作模式（仍禁用）</span>
+<select id="qa54bModeA" disabled aria-label="QA A test operation" style="padding:10px;border:1px solid #536782;border-radius:10px;background:#132438;color:#8498ab">
+<option value="bind">绑定用户名 / Bind</option><option value="login">用户名登录 / Login</option></select></div>
+<div id="qa54bCaptchaA" hidden aria-hidden="true"></div>
 <ol class="qaSteps"><li data-zh="未来测试：在A独立会话内完成邮箱登录" data-en="Future test: sign in to account A in its own browser session">未来测试：在A独立会话内完成邮箱登录</li>
 <li data-zh="未来测试：绑定用户名并检查 UID 保持不变" data-en="Future test: bind alias and verify UID is unchanged">未来测试：绑定用户名并检查 UID 保持不变</li>
 <li data-zh="未来测试：用用户名登录并验证账户隔离" data-en="Future test: sign in with alias and verify account isolation">未来测试：用用户名登录并验证账户隔离</li></ol>
-<p class="qaStatus" data-zh="🔒 尚无任何真实测试请求" data-en="🔒 No live test request has been made">🔒 尚无任何真实测试请求</p><button disabled class="disabledAction" type="button" data-zh="🔒 用户名绑定及登录暂不可用" data-en="🔒 Username bind & login unavailable">🔒 用户名绑定及登录暂不可用</button><div class="small" data-zh="不会请求密码、验证码或 JWT。" data-en="Never requests password, CAPTCHA or JWT.">不会请求密码、验证码或 JWT。</div></section>
+<p class="qaStatus" data-zh="🔒 尚无任何真实测试请求" data-en="🔒 No live test request has been made">🔒 尚无任何真实测试请求</p><div class="qaFields">
+<button disabled id="qa54bBindA" class="disabledAction" type="button" data-zh="🔒 绑定用户名（暂不可用）" data-en="🔒 Bind username (locked)">🔒 绑定用户名（暂不可用）</button>
+<button disabled id="qa54bLoginA" class="disabledAction" type="button" data-zh="🔒 用户名登录（暂不可用）" data-en="🔒 Username login (locked)">🔒 用户名登录（暂不可用）</button></div>
+<p id="qa54bStatusA" class="qaStatus" role="status" aria-live="polite">🔒 尚未获批真实测试 · 无请求</p><div class="small" data-zh="不会请求密码、验证码或 JWT。" data-en="Never requests password, CAPTCHA or JWT.">不会请求密码、验证码或 JWT。</div></section>
 <section class="box account" aria-labelledby="titleB"><div class="accountHead"><div class="avatar">B</div><div><h3 id="titleB" data-zh="测试账户 B" data-en="Test account B">测试账户 B</h3><small data-zh="与 A 严格隔离 · 无账户数据读取" data-en="Strictly separate from A · No account data read">与 A 严格隔离 · 无账户数据读取</small></div></div><div class="state" data-zh="状态：准备完成 · 未绑定 · 未登录测试" data-en="Status: Prepared · No binding or login test">状态：准备完成 · 未绑定 · 未登录测试</div>
-<div class="stage" data-zh="N10-A7.54-A：已准备好输入区域，但仍是只读预览。用户名登录和绑定均未开放。" data-en="N10-A7.54-A: Input fields are staged as disabled preview only. Binding and login are unavailable.">N10-A7.54-A：已准备好输入区域，但仍是只读预览。用户名登录和绑定均未开放。</div>
+<div class="stage" data-zh="N10-A7.54-B：已准备好独立的绑定与登录测试区域，但仍是只读预览。用户名登录和绑定均未开放。" data-en="N10-A7.54-B: Independent bind/login UI is staged as disabled preview only. Binding and login are unavailable.">N10-A7.54-B：已准备好独立的绑定与登录测试区域，但仍是只读预览。用户名登录和绑定均未开放。</div>
 <div class="qaFields" aria-label="QA B · Disabled preview">
-<label class="qaField"><span data-zh="测试用户名（当前禁用）" data-en="Test username (disabled)">测试用户名（当前禁用）</span><input type="text" disabled readonly autocomplete="off" spellcheck="false" maxlength="20" aria-label="QA B username locked" placeholder="4–20 characters"></label>
-<label class="qaField"><span data-zh="当前账户密码（当前禁用）" data-en="Account password (disabled)">当前账户密码（当前禁用）</span><input type="password" disabled readonly autocomplete="off" aria-label="QA B password locked" placeholder="••••••••"></label></div>
+<label class="qaField"><span data-zh="测试用户名（当前禁用）" data-en="Test username (disabled)">测试用户名（当前禁用）</span><input type="text" disabled readonly autocomplete="off" spellcheck="false" maxlength="20" id="qa54bNameB" aria-label="QA B username locked" placeholder="4–20 characters"></label>
+<label class="qaField"><span data-zh="当前账户密码（当前禁用）" data-en="Account password (disabled)">当前账户密码（当前禁用）</span><input type="password" disabled readonly autocomplete="off" id="qa54bPasswordB" aria-label="QA B password locked" placeholder="••••••••"></label></div>
+<div class="qaField" style="margin-bottom:11px"><span data-zh="测试操作模式（仍禁用）" data-en="QA operation mode (disabled)">测试操作模式（仍禁用）</span>
+<select id="qa54bModeB" disabled aria-label="QA B test operation" style="padding:10px;border:1px solid #536782;border-radius:10px;background:#132438;color:#8498ab">
+<option value="bind">绑定用户名 / Bind</option><option value="login">用户名登录 / Login</option></select></div>
+<div id="qa54bCaptchaB" hidden aria-hidden="true"></div>
 <ol class="qaSteps"><li data-zh="未来测试：在B独立会话内完成邮箱登录" data-en="Future test: sign in to account B in its own browser session">未来测试：在B独立会话内完成邮箱登录</li>
 <li data-zh="未来测试：绑定用户名并检查 UID 保持不变" data-en="Future test: bind alias and verify UID is unchanged">未来测试：绑定用户名并检查 UID 保持不变</li>
 <li data-zh="未来测试：用用户名登录并验证账户隔离" data-en="Future test: sign in with alias and verify account isolation">未来测试：用用户名登录并验证账户隔离</li></ol>
-<p class="qaStatus" data-zh="🔒 尚无任何真实测试请求" data-en="🔒 No live test request has been made">🔒 尚无任何真实测试请求</p><button disabled class="disabledAction" type="button" data-zh="🔒 用户名绑定及登录暂不可用" data-en="🔒 Username bind & login unavailable">🔒 用户名绑定及登录暂不可用</button><div class="small" data-zh="不会请求密码、验证码或 JWT。" data-en="Never requests password, CAPTCHA or JWT.">不会请求密码、验证码或 JWT。</div></section>
+<p class="qaStatus" data-zh="🔒 尚无任何真实测试请求" data-en="🔒 No live test request has been made">🔒 尚无任何真实测试请求</p><div class="qaFields">
+<button disabled id="qa54bBindB" class="disabledAction" type="button" data-zh="🔒 绑定用户名（暂不可用）" data-en="🔒 Bind username (locked)">🔒 绑定用户名（暂不可用）</button>
+<button disabled id="qa54bLoginB" class="disabledAction" type="button" data-zh="🔒 用户名登录（暂不可用）" data-en="🔒 Username login (locked)">🔒 用户名登录（暂不可用）</button></div>
+<p id="qa54bStatusB" class="qaStatus" role="status" aria-live="polite">🔒 尚未获批真实测试 · 无请求</p><div class="small" data-zh="不会请求密码、验证码或 JWT。" data-en="Never requests password, CAPTCHA or JWT.">不会请求密码、验证码或 JWT。</div></section>
 </div>
 <h2 class="sectionTitle" data-zh="正式测试前 · 手动准备清单" data-en="Before the live test · Manual readiness checklist">正式测试前 · 手动准备清单</h2>
 <section class="box steps"><div class="progress"><span id="progressText">0 / 6 项已标记</span><strong id="progressNote">仅供记录</strong></div><div class="bar" aria-hidden="true"><div class="fill" id="progressFill"></div></div>
