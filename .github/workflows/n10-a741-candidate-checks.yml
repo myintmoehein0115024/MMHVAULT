@@ -40,3 +40,35 @@ jobs:
         run: node tests/n10-a7-42-edge-security-vm.cjs
       - name: N10-A7.43 release guard - verify CLOSED, never deploy
         run: node tests/n10-a7-43-release-no-go-guard.cjs
+
+  postgres-contracts:
+    name: Disposable PostgreSQL 17 schema, RLS and concurrency contracts
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: ci_only_test_password
+          POSTGRES_DB: mmhvault_ci_only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mmhvault_ci_only"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 12
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: '5432'
+      PGUSER: postgres
+      PGPASSWORD: ci_only_test_password
+      PGDATABASE: mmhvault_ci_only
+    steps:
+      - name: Checkout isolated candidate
+        uses: actions/checkout@v4
+      - name: Ensure PostgreSQL client is installed
+        run: command -v psql || (sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client)
+      - name: Test real SQL unique constraints, privileges, and concurrent throttle on disposable database
+        run: bash tests/n10-a7-44-postgres-contract.sh
