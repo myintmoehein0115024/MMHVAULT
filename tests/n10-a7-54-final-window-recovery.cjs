@@ -4,7 +4,8 @@
 'use strict';
 const fs=require('node:fs'),assert=require('node:assert/strict'),vm=require('node:vm'),crypto=require('node:crypto');
 const read=p=>fs.readFileSync(p,'utf8');
-const originalClient=read('js/mmhvault-n10-a7-54b-liveflow.js');
+const originalClient=read('review/N10-A7.54D-QA-LANG-INTEROP-PROPOSED-NOT-DEPLOYED.js');
+const historicalCandidate=read('js/mmhvault-n10-a7-54b-liveflow.js');
 const candidateClient=read('review/N10-A7.54-FINAL-0245-0255-CLIENT-NOT-LIVE.js');
 const originalEdge=read('review/N10-A7.54-CLOSED-UID-HEALTH-PREDEPLOY.ts');
 const candidateEdge=read('review/N10-A7.54-FINAL-0245-0255-EDGE-NOT-LIVE.ts');
@@ -15,7 +16,8 @@ const expect={html:'5e0b127b2253cb02f00ae8b61cb17a06709c050a',
   flow:'25ea63c6b9a65a1f53c13c9b83713e97d594741b'};
 assert.equal(sha1(html),expect.html);
 assert.equal(sha1(oldUI),expect.oldUI);
-assert.equal(sha1(originalClient),expect.flow);
+assert.equal(sha1(originalClient),expect.flow,'current production main rollback blob');
+assert.equal(sha1(historicalCandidate),'3d2609b08e289939867a33587abb7841e33e828b','older candidate baseline must remain unchanged');
 assert.match(originalClient,/const QA_CLOSED = true;/);
 assert.match(originalClient,/const LIVE_REQUESTS_ALLOWED = false;/);
 assert.match(oldUI,/const QA_CLOSED = true;/);
