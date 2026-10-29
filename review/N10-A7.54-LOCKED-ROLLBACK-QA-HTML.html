@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow,noarchive,nosnippet,noimageindex">
+<meta name="googlebot" content="noindex,nofollow,noarchive,nosnippet">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdn.jsdelivr.net https://challenges.cloudflare.com; style-src 'unsafe-inline'; connect-src 'self' https://vrypucmyrztxgiqhjspd.supabase.co https://challenges.cloudflare.com; img-src 'self' data: https://challenges.cloudflare.com; font-src 'none'; media-src 'none'; worker-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src https://challenges.cloudflare.com; upgrade-insecure-requests">
+<meta name="theme-color" content="#08121e">
+<title>MMHVAULT · N10-A7.54-C 双账户 QA 整合候选（关闭）</title>
+<style>
+:root{color-scheme:dark;--bg:#08121e;--glass:#142338bd;--line:#50617a65;--gold:#e7c07a;--cream:#ffedca;--txt:#eff4f8;--muted:#adbdce;--blue:#b1d9ff;--good:#8edbb9;--bad:#faaba1}
+*{box-sizing:border-box}
+body{margin:0;min-height:100svh;background:radial-gradient(ellipse at 90% -8%,#24425a9a,transparent 45%),radial-gradient(ellipse at 15% 80%,#153250a1,transparent 45%),linear-gradient(140deg,#050c17,#0c1a2b 62%,#060f19);color:var(--txt);font:14px/1.65 -apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;letter-spacing:.002em}
+main{width:min(1090px,100%);margin:0 auto;padding:clamp(14px,4vw,42px)}
+.box{border:1px solid var(--line);border-radius:22px;background:var(--glass);box-shadow:0 24px 60px #0004,inset 0 1px #ffffff15;backdrop-filter:blur(16px)}
+header{padding:clamp(21px,4vw,35px)}
+.brand{font-weight:750;letter-spacing:.22em;font-size:12px;color:var(--gold)}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.pill{border-radius:999px;border:1px solid #96753caa;background:#382e1b9c;color:var(--cream);font-size:11px;font-weight:700;padding:6px 12px}
+button{font:inherit;cursor:pointer}
+.lang{border:1px solid #536982;border-radius:11px;background:#172c43;color:var(--blue);padding:7px 12px;font-weight:650}
+h1{margin:20px 0 10px;font:500 clamp(27px,5vw,43px)/1.22 Georgia,'Times New Roman',serif;letter-spacing:-.035em;max-width:790px}
+.lead{max-width:750px;color:var(--muted);font-size:clamp(13px,1.8vw,15px)}
+.guard{margin-top:22px;padding:14px 17px;border:1px solid #b58a4999;border-radius:13px;color:#ffdfac;background:#3a2b1770;display:flex;gap:12px;align-items:start}
+.guard strong{font-weight:750}
+.sectionTitle{font:500 22px Georgia,serif;margin:27px 0 13px}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:21px}
+.stat{padding:16px 19px;background:#0b1829a6;border:1px solid #455d7554;border-radius:15px;min-width:0}
+.statTitle{color:var(--muted);font-size:11px;letter-spacing:.09em;text-transform:uppercase}
+.statValue{margin-top:5px;font-size:15px;font-weight:700;color:var(--cream)}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:15px}
+.account{padding:22px;min-width:0;position:relative;overflow:hidden}
+.account:before{content:'';height:1px;width:75%;position:absolute;top:0;left:0;background:linear-gradient(to right,var(--gold),transparent)}
+.accountHead{display:flex;gap:13px;align-items:center;margin-bottom:19px}
+.avatar{width:42px;height:42px;border-radius:12px;background:linear-gradient(130deg,#95743a,#302c22);display:grid;place-items:center;font:700 19px Georgia,serif;color:#ffeba9}
+.account h3{margin:0;font-size:17px;line-height:1.3}.account small{color:var(--muted)}
+.state{margin:9px 0 17px;color:var(--muted);font-size:13px}
+.disabledAction{width:100%;text-align:center;border-radius:12px;padding:12px;background:#243245;color:#8293a9;border:1px solid #485a72;opacity:.77;cursor:not-allowed;font-weight:700}
+.small{color:var(--muted);font-size:12px;margin-top:12px}
+.qaFields{display:grid;grid-template-columns:1fr;gap:10px;margin:14px 0 15px}
+.qaField{display:flex;flex-direction:column;gap:5px;min-width:0}
+.qaField>span{font-size:12px;color:var(--muted)}
+.qaField input{width:100%;min-width:0;border-radius:10px;border:1px solid #536782;background:#132438;color:#8498ab;padding:11px 12px;font:inherit;opacity:.75;cursor:not-allowed}
+.qaField input::placeholder{color:#8498ab}
+.stage{margin:13px 0;padding:11px 12px;border:1px solid #6c573b;border-radius:12px;background:#322b1b69;color:var(--cream);font-size:12px}
+.qaSteps{margin:0;padding-left:21px;color:var(--muted);font-size:12px}
+.qaSteps li{margin:4px 0}
+.qaStatus{font-size:12px;color:var(--gold);font-weight:700}
+@media(min-width:681px){.qaFields{grid-template-columns:1fr 1fr}}
+.steps{padding:20px 23px}.step{display:flex;gap:12px;justify-content:space-between;align-items:center;border-bottom:1px solid #ffffff14;padding:13px 0}
+.step:last-child{border-bottom:0}.stepText{flex:1;color:var(--txt)}
+.step select{font:inherit;color:#e8ecf2;padding:8px 11px;background:#172a40;border:1px solid #526d89;border-radius:11px;min-width:103px}
+.step select:focus-visible,.lang:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.progress{display:flex;justify-content:space-between;align-items:center;gap:12px;color:var(--muted);font-size:12px}
+.bar{height:7px;background:#283d56;border-radius:30px;overflow:hidden;margin:12px 0 0}.fill{width:0;height:100%;background:linear-gradient(to right,#b99452,#efdc9f);transition:width .15s ease}
+footer{margin-top:23px;padding:16px 2px 35px;color:var(--muted);font-size:12px}
+code{color:#f3d69d;font-size:12px;overflow-wrap:anywhere}
+@media(max-width:680px){.stats{grid-template-columns:1fr}.grid{grid-template-columns:1fr}.step{align-items:flex-start}.step select{min-width:99px}.stat{padding:13px 15px}.sectionTitle{font-size:20px}h1{margin-top:15px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{transition:none!important}}
+</style>
+<script src="./js/mmhvault-n10-a7-53-qa.js" defer></script>
+<script src="./js/mmhvault-n10-a7-54b-liveflow.js" defer></script>
+</head>
+<body>
+<main>
+<header class="box">
+<div class="top"><div class="brand">MMHVAULT · PERSONAL FINANCE &amp; WEALTH</div><div class="top"><span class="pill" id="badge">N10-A7.53 · LOCKED</span><button id="langToggle" class="lang" type="button" aria-label="切换中文和英文">中文 / EN</button></div></div>
+<h1 data-zh="双账户登录 · 安全验收入口" data-en="Two-account login · Secure QA portal">双账户登录 · 安全验收入口</h1>
+<p class="lead" data-zh="这是独立、隔离的生产同源 QA 预览页，不是正式登录页。现阶段只允许查看测试计划与在当前页面标记准备工作，绝不会发起用户名绑定或登录。" data-en="An isolated same-origin production QA preview, not the live sign-in page. This page only shows the planned checks and local review markers. It will not initiate username binding or login.">这是独立、隔离的生产同源 QA 预览页，不是正式登录页。现阶段只允许查看测试计划与在当前页面标记准备工作，绝不会发起用户名绑定或登录。</p>
+<div class="guard" role="status"><span aria-hidden="true">🔒</span><div><strong data-zh="生产用户名登录仍然关闭" data-en="Production username sign-in remains disabled">生产用户名登录仍然关闭</strong><div data-zh="前端与后端测试开关未开放。双重代码开关仍关闭：不加载认证 SDK 或验证码，也不发起任何测试网络请求。CSP 只预留经过审核的必要来源，真实操作必须另行批准。必须另行授权后才能开展真实双账户测试。" data-en="Frontend and backend testing gates remain closed. Both code gates remain closed: no Auth SDK, CAPTCHA or test network requests are made. CSP only reserves approved sources; real testing requires separate authorization. Actual two-account testing requires new explicit authorization.">前端与后端测试开关未开放。页面禁止所有网络连接、不加载身份认证 SDK、不收集密码或令牌。必须另行授权后才能开展真实双账户测试。</div></div></div>
+<div class="stats">
+<div class="stat"><div class="statTitle" data-zh="页面模式" data-en="Portal mode">页面模式</div><div class="statValue" id="portalMode">双重关闭 / LOCKED</div></div>
+<div class="stat"><div class="statTitle" data-zh="后端用户名操作" data-en="Backend username actions">后端用户名操作</div><div class="statValue" id="qa54cBackendStat" data-zh="未连接 · 不发送请求" data-en="Disconnected · No requests">未连接 · 不发送请求</div></div>
+<div class="stat"><div class="statTitle" data-zh="预计测试对象" data-en="Future test subjects">预计测试对象</div><div class="statValue" data-zh="A 与 B · 尚未测试" data-en="A & B · Not tested">A 与 B · 尚未测试</div></div>
+</div>
+</header>
+<h2 class="sectionTitle" data-zh="双账户流程（未开放）" data-en="Two-account flows (locked)">双账户流程（未开放）</h2>
+<div class="grid">
+<section class="box account" aria-labelledby="titleA"><div class="accountHead"><div class="avatar">A</div><div><h3 id="titleA" data-zh="测试账户 A" data-en="Test account A">测试账户 A</h3><small data-zh="现有独立 Supabase 用户 · 无身份信息读取" data-en="Separate existing Supabase user · No identity read">现有独立 Supabase 用户 · 无身份信息读取</small></div></div><div class="state" data-zh="状态：准备完成 · 未绑定 · 未登录测试" data-en="Status: Prepared · No binding or login test">状态：准备完成 · 未绑定 · 未登录测试</div>
+<div class="stage" data-zh="N10-A7.54-C：已完成 SDK 与验证码来源整合，测试区域仍为锁定预览，但仍是只读预览。用户名登录和绑定均未开放。" data-en="N10-A7.54-C: SDK and Turnstile sources are integrated, but all test controls remain locked as disabled preview only. Binding and login are unavailable.">N10-A7.54-B：已准备好独立的绑定与登录测试区域，但仍是只读预览。用户名登录和绑定均未开放。</div>
+<div class="qaFields" aria-label="QA A · Disabled preview">
+<label class="qaField"><span data-zh="测试用户名（当前禁用）" data-en="Test username (disabled)">测试用户名（当前禁用）</span><input type="text" disabled readonly autocomplete="off" spellcheck="false" maxlength="20" id="qa54bNameA" aria-label="QA A username locked" placeholder="4–20 characters"></label>
+<label class="qaField"><span data-zh="当前账户密码（当前禁用）" data-en="Account password (disabled)">当前账户密码（当前禁用）</span><input type="password" disabled readonly autocomplete="off" id="qa54bPasswordA" aria-label="QA A password locked" placeholder="••••••••"></label></div>
+<div class="qaField" style="margin-bottom:11px"><span data-zh="测试操作模式（仍禁用）" data-en="QA operation mode (disabled)">测试操作模式（仍禁用）</span>
+<select id="qa54bModeA" disabled aria-label="QA A test operation" style="padding:10px;border:1px solid #536782;border-radius:10px;background:#132438;color:#8498ab">
+<option value="bind">绑定用户名 / Bind</option><option value="login">用户名登录 / Login</option></select></div>
+<div id="qa54bCaptchaA" hidden aria-hidden="true"></div>
+<ol class="qaSteps"><li data-zh="未来测试：在A独立会话内完成邮箱登录" data-en="Future test: sign in to account A in its own browser session">未来测试：在A独立会话内完成邮箱登录</li>
+<li data-zh="未来测试：绑定用户名并检查 UID 保持不变" data-en="Future test: bind alias and verify UID is unchanged">未来测试：绑定用户名并检查 UID 保持不变</li>
+<li data-zh="未来测试：用用户名登录并验证账户隔离" data-en="Future test: sign in with alias and verify account isolation">未来测试：用用户名登录并验证账户隔离</li></ol>
+<p class="qaStatus" data-zh="🔒 尚无任何真实测试请求" data-en="🔒 No live test request has been made">🔒 尚无任何真实测试请求</p><div class="qaFields">
+<button disabled id="qa54bBindA" class="disabledAction" type="button" data-zh="🔒 绑定用户名（暂不可用）" data-en="🔒 Bind username (locked)">🔒 绑定用户名（暂不可用）</button>
+<button disabled id="qa54bLoginA" class="disabledAction" type="button" data-zh="🔒 用户名登录（暂不可用）" data-en="🔒 Username login (locked)">🔒 用户名登录（暂不可用）</button></div>
+<p id="qa54bStatusA" class="qaStatus" role="status" aria-live="polite">🔒 尚未获批真实测试 · 无请求</p><div class="small" data-zh="不会请求密码、验证码或 JWT。" data-en="Never requests password, CAPTCHA or JWT.">不会请求密码、验证码或 JWT。</div></section>
+<section class="box account" aria-labelledby="titleB"><div class="accountHead"><div class="avatar">B</div><div><h3 id="titleB" data-zh="测试账户 B" data-en="Test account B">测试账户 B</h3><small data-zh="与 A 严格隔离 · 无账户数据读取" data-en="Strictly separate from A · No account data read">与 A 严格隔离 · 无账户数据读取</small></div></div><div class="state" data-zh="状态：准备完成 · 未绑定 · 未登录测试" data-en="Status: Prepared · No binding or login test">状态：准备完成 · 未绑定 · 未登录测试</div>
+<div class="stage" data-zh="N10-A7.54-B：已准备好独立的绑定与登录测试区域，但仍是只读预览。用户名登录和绑定均未开放。" data-en="N10-A7.54-B: Independent bind/login UI is staged as disabled preview only. Binding and login are unavailable.">N10-A7.54-B：已准备好独立的绑定与登录测试区域，但仍是只读预览。用户名登录和绑定均未开放。</div>
+<div class="qaFields" aria-label="QA B · Disabled preview">
+<label class="qaField"><span data-zh="测试用户名（当前禁用）" data-en="Test username (disabled)">测试用户名（当前禁用）</span><input type="text" disabled readonly autocomplete="off" spellcheck="false" maxlength="20" id="qa54bNameB" aria-label="QA B username locked" placeholder="4–20 characters"></label>
+<label class="qaField"><span data-zh="当前账户密码（当前禁用）" data-en="Account password (disabled)">当前账户密码（当前禁用）</span><input type="password" disabled readonly autocomplete="off" id="qa54bPasswordB" aria-label="QA B password locked" placeholder="••••••••"></label></div>
+<div class="qaField" style="margin-bottom:11px"><span data-zh="测试操作模式（仍禁用）" data-en="QA operation mode (disabled)">测试操作模式（仍禁用）</span>
+<select id="qa54bModeB" disabled aria-label="QA B test operation" style="padding:10px;border:1px solid #536782;border-radius:10px;background:#132438;color:#8498ab">
+<option value="bind">绑定用户名 / Bind</option><option value="login">用户名登录 / Login</option></select></div>
+<div id="qa54bCaptchaB" hidden aria-hidden="true"></div>
+<ol class="qaSteps"><li data-zh="未来测试：在B独立会话内完成邮箱登录" data-en="Future test: sign in to account B in its own browser session">未来测试：在B独立会话内完成邮箱登录</li>
+<li data-zh="未来测试：绑定用户名并检查 UID 保持不变" data-en="Future test: bind alias and verify UID is unchanged">未来测试：绑定用户名并检查 UID 保持不变</li>
+<li data-zh="未来测试：用用户名登录并验证账户隔离" data-en="Future test: sign in with alias and verify account isolation">未来测试：用用户名登录并验证账户隔离</li></ol>
+<p class="qaStatus" data-zh="🔒 尚无任何真实测试请求" data-en="🔒 No live test request has been made">🔒 尚无任何真实测试请求</p><div class="qaFields">
+<button disabled id="qa54bBindB" class="disabledAction" type="button" data-zh="🔒 绑定用户名（暂不可用）" data-en="🔒 Bind username (locked)">🔒 绑定用户名（暂不可用）</button>
+<button disabled id="qa54bLoginB" class="disabledAction" type="button" data-zh="🔒 用户名登录（暂不可用）" data-en="🔒 Username login (locked)">🔒 用户名登录（暂不可用）</button></div>
+<p id="qa54bStatusB" class="qaStatus" role="status" aria-live="polite">🔒 尚未获批真实测试 · 无请求</p><div class="small" data-zh="不会请求密码、验证码或 JWT。" data-en="Never requests password, CAPTCHA or JWT.">不会请求密码、验证码或 JWT。</div></section>
+</div>
+<h2 class="sectionTitle" data-zh="正式测试前 · 手动准备清单" data-en="Before the live test · Manual readiness checklist">正式测试前 · 手动准备清单</h2>
+<section class="box steps"><div class="progress"><span id="progressText">0 / 6 项已标记</span><strong id="progressNote">仅供记录</strong></div><div class="bar" aria-hidden="true"><div class="fill" id="progressFill"></div></div>
+<div id="checklist">
+<div class="step"><span class="stepText" data-zh="确认 A、B 账户持有人同意真实测试" data-en="Confirm both A and B account owners consent to testing">确认 A、B 账户持有人同意真实测试</span><select aria-label="测试准备 1" data-index="0"><option value="pending">未检查</option><option value="yes">已确认</option><option value="no">未通过</option></select></div>
+<div class="step"><span class="stepText" data-zh="独立浏览器会话、不同 UID，且邮箱已验证" data-en="Independent sessions, different UIDs and verified emails">独立浏览器会话、不同 UID，且邮箱已验证</span><select aria-label="测试准备 2" data-index="1"><option value="pending">未检查</option><option value="yes">已确认</option><option value="no">未通过</option></select></div>
+<div class="step"><span class="stepText" data-zh="N10-A7.51 管理员健康检查结果通过" data-en="N10-A7.51 administrator health check passed">N10-A7.51 管理员健康检查结果通过</span><select aria-label="测试准备 3" data-index="2"><option value="pending">未检查</option><option value="yes">已确认</option><option value="no">未通过</option></select></div>
+<div class="step"><span class="stepText" data-zh="测试窗口、回滚与停止条件获得单独批准" data-en="Separate approval for test window, rollback and stop conditions">测试窗口、回滚与停止条件获得单独批准</span><select aria-label="测试准备 4" data-index="3"><option value="pending">未检查</option><option value="yes">已确认</option><option value="no">未通过</option></select></div>
+<div class="step"><span class="stepText" data-zh="可恢复 Edge v4 关闭源码和 verify_jwt=true" data-en="Can restore closed Edge v4 and verify_jwt=true">可恢复 Edge v4 关闭源码和 verify_jwt=true</span><select aria-label="测试准备 5" data-index="4"><option value="pending">未检查</option><option value="yes">已确认</option><option value="no">未通过</option></select></div>
+<div class="step"><span class="stepText" data-zh="明确不会修改既有账户、投资与财务业务记录" data-en="No changes to existing account, investing or finance records">明确不会修改既有账户、投资与财务业务记录</span><select aria-label="测试准备 6" data-index="5"><option value="pending">未检查</option><option value="yes">已确认</option><option value="no">未通过</option></select></div>
+</div><p class="small" data-zh="这些选项只在当前页面内存中更新，刷新即清除；即使全部勾选，也不会解锁登录。" data-en="These markers exist only in current-page memory and reset on refresh. Completing them never unlocks login.">这些选项只在当前页面内存中更新，刷新即清除；即使全部勾选，也不会解锁登录。</p></section>
+<footer><div data-zh="N10-A7.54-C · 候选安全整合版 · 输入区仍锁定 · 不连接 Supabase · 不收集用户资料 · 不包含私钥 · 不影响现有正式网页" data-en="N10-A7.54-C · Integrated but locked · No Supabase connection · No user data collected · No secrets · Existing production pages unchanged">N10-A7.53 · 安全锁定版 · 不连接 Supabase · 不收集用户资料 · 不包含私钥 · 不影响现有正式网页</div><div><code id="hostReadout">Host: —</code></div></footer>
+</main></body></html>
