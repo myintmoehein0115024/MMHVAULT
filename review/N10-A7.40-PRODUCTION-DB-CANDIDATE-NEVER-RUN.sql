@@ -28,10 +28,12 @@ ALTER TABLE public.mmh_n10a740_attempt_buckets ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON TABLE public.mmh_n10a740_attempt_buckets FROM PUBLIC, anon, authenticated;
 GRANT SELECT, INSERT, UPDATE ON TABLE public.mmh_n10a740_attempt_buckets TO service_role;
 
+-- SECURITY INVOKER is sufficient: only server role has RPC EXECUTE and
+-- table INSERT/UPDATE privileges; no anonymous elevation via definer.
 CREATE OR REPLACE FUNCTION public.mmh_n10a740_take_attempt(
  p_key text, p_limit integer, p_window_seconds integer
 ) RETURNS boolean
-LANGUAGE plpgsql SECURITY DEFINER
+LANGUAGE plpgsql SECURITY INVOKER
 SET search_path = pg_catalog
 AS $fn$
 DECLARE v_count integer;
