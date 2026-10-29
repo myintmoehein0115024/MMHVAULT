@@ -1,0 +1,24 @@
+{
+  "id": "/pwa-icon-diagnostic-20261030/",
+  "name": "MMHVAULT Icon Diagnostic 20261030",
+  "short_name": "Icon Test 30",
+  "start_url": "/pwa-icon-diagnostic-20261030/test.html",
+  "scope": "/pwa-icon-diagnostic-20261030/",
+  "display": "standalone",
+  "background_color": "#06111f",
+  "theme_color": "#06111f",
+  "icons": [
+    {
+      "src": "./diag-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./diag-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
