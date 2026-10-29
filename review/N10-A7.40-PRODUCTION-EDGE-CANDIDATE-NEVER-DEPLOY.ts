@@ -234,14 +234,13 @@ async function handle(request) {
     if(!data || typeof data!=='object' || Array.isArray(data)) throw Error('invalid');
   } catch {return respond(origin,400,'bad_json');}
   if(data.action==='preflight') return respond(origin,200,'preflight_ok',{
-    enabled:ready(),scope:'production_candidate_disabled',version:'N10-A7.40',registration_enabled:false,
-    prerequisites_present:configured()
+    enabled:ready(),scope:'production_candidate_disabled',version:'N10-A7.41',registration_enabled:false
   });
   if(!['login','bind'].includes(data.action)) return respond(origin,400,'unsupported_action');
   if(!ready()) return respond(origin,503,'n10a740_disabled');
   const username=nameKey(data.username);
   const password=data.password;
-  if(!username || typeof password!=='string' || password.length<1 || password.length>1024)
+  if(!username || typeof password!=='string' || password.length<1 || password.length>128)
     return respond(origin,401,'invalid_credentials');
   let issued=null,handoff=false;
   try {
