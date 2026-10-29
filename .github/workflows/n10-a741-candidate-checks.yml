@@ -35,6 +35,7 @@ jobs:
           node --check tests/n10-a7-52-rollback-and-operator-tool.cjs
           node --check js/mmhvault-n10-a7-53-qa.js
           node --check tests/n10-a7-53-qa-closed-shell.cjs
+          node --check tests/n10-a7-54-dual-uid-window-candidate-vm.cjs
       - name: Verify unchanged app, closed gates, auth paths, and RLS review constraints
         run: node tests/n10-a7-40-auth-candidate-static.cjs
       - name: Verify locked username UI without network calls
@@ -59,6 +60,8 @@ jobs:
         run: node tests/n10-a7-52-rollback-and-operator-tool.cjs
       - name: N10-A7.53 QA main-release locked shell content-security and mobile-local controls
         run: node tests/n10-a7-53-qa-closed-shell.cjs
+      - name: N10-A7.54 proposed UID allowlist fail-closed, A/B-only offline security
+        run: node tests/n10-a7-54-dual-uid-window-candidate-vm.cjs
 
   postgres-contracts:
     name: Disposable PostgreSQL 17 schema, RLS and concurrency contracts
