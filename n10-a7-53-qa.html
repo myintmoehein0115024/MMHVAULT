@@ -6,9 +6,9 @@
 <meta name="robots" content="noindex,nofollow,noarchive,nosnippet,noimageindex">
 <meta name="googlebot" content="noindex,nofollow,noarchive,nosnippet">
 <meta name="referrer" content="no-referrer">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'unsafe-inline'; connect-src 'none'; img-src 'none'; font-src 'none'; media-src 'none'; worker-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdn.jsdelivr.net https://challenges.cloudflare.com; style-src 'unsafe-inline'; connect-src 'self' https://vrypucmyrztxgiqhjspd.supabase.co https://challenges.cloudflare.com; img-src 'self' data: https://challenges.cloudflare.com; font-src 'none'; media-src 'none'; worker-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src https://challenges.cloudflare.com; upgrade-insecure-requests">
 <meta name="theme-color" content="#08121e">
-<title>MMHVAULT · N10-A7.54-B 双账户 QA 候选（关闭）</title>
+<title>MMHVAULT · N10-A7.54-C 双账户 QA 整合候选（关闭）</title>
 <style>
 :root{color-scheme:dark;--bg:#08121e;--glass:#142338bd;--line:#50617a65;--gold:#e7c07a;--cream:#ffedca;--txt:#eff4f8;--muted:#adbdce;--blue:#b1d9ff;--good:#8edbb9;--bad:#faaba1}
 *{box-sizing:border-box}
@@ -69,9 +69,9 @@ code{color:#f3d69d;font-size:12px;overflow-wrap:anywhere}
 <div class="top"><div class="brand">MMHVAULT · PERSONAL FINANCE &amp; WEALTH</div><div class="top"><span class="pill" id="badge">N10-A7.53 · LOCKED</span><button id="langToggle" class="lang" type="button" aria-label="切换中文和英文">中文 / EN</button></div></div>
 <h1 data-zh="双账户登录 · 安全验收入口" data-en="Two-account login · Secure QA portal">双账户登录 · 安全验收入口</h1>
 <p class="lead" data-zh="这是独立、隔离的生产同源 QA 预览页，不是正式登录页。现阶段只允许查看测试计划与在当前页面标记准备工作，绝不会发起用户名绑定或登录。" data-en="An isolated same-origin production QA preview, not the live sign-in page. This page only shows the planned checks and local review markers. It will not initiate username binding or login.">这是独立、隔离的生产同源 QA 预览页，不是正式登录页。现阶段只允许查看测试计划与在当前页面标记准备工作，绝不会发起用户名绑定或登录。</p>
-<div class="guard" role="status"><span aria-hidden="true">🔒</span><div><strong data-zh="生产用户名登录仍然关闭" data-en="Production username sign-in remains disabled">生产用户名登录仍然关闭</strong><div data-zh="前端与后端测试开关未开放。页面禁止所有网络连接，测试输入框均已禁用，不加载身份认证 SDK、不收集密码或令牌。必须另行授权后才能开展真实双账户测试。" data-en="Frontend and backend testing gates remain closed. All network connections are blocked; input fields are disabled, no Auth SDK loads and no credentials are collected. Actual two-account testing requires new explicit authorization.">前端与后端测试开关未开放。页面禁止所有网络连接、不加载身份认证 SDK、不收集密码或令牌。必须另行授权后才能开展真实双账户测试。</div></div></div>
+<div class="guard" role="status"><span aria-hidden="true">🔒</span><div><strong data-zh="生产用户名登录仍然关闭" data-en="Production username sign-in remains disabled">生产用户名登录仍然关闭</strong><div data-zh="前端与后端测试开关未开放。双重代码开关仍关闭：不加载认证 SDK 或验证码，也不发起任何测试网络请求。CSP 只预留经过审核的必要来源，真实操作必须另行批准。必须另行授权后才能开展真实双账户测试。" data-en="Frontend and backend testing gates remain closed. Both code gates remain closed: no Auth SDK, CAPTCHA or test network requests are made. CSP only reserves approved sources; real testing requires separate authorization. Actual two-account testing requires new explicit authorization.">前端与后端测试开关未开放。页面禁止所有网络连接、不加载身份认证 SDK、不收集密码或令牌。必须另行授权后才能开展真实双账户测试。</div></div></div>
 <div class="stats">
-<div class="stat"><div class="statTitle" data-zh="页面模式" data-en="Portal mode">页面模式</div><div class="statValue" id="portalMode">硬关闭 / LOCAL ONLY</div></div>
+<div class="stat"><div class="statTitle" data-zh="页面模式" data-en="Portal mode">页面模式</div><div class="statValue" id="portalMode">双重关闭 / LOCKED</div></div>
 <div class="stat"><div class="statTitle" data-zh="后端用户名操作" data-en="Backend username actions">后端用户名操作</div><div class="statValue" data-zh="未连接 · 不发送请求" data-en="Disconnected · No requests">未连接 · 不发送请求</div></div>
 <div class="stat"><div class="statTitle" data-zh="预计测试对象" data-en="Future test subjects">预计测试对象</div><div class="statValue" data-zh="A 与 B · 尚未测试" data-en="A & B · Not tested">A 与 B · 尚未测试</div></div>
 </div>
@@ -79,7 +79,7 @@ code{color:#f3d69d;font-size:12px;overflow-wrap:anywhere}
 <h2 class="sectionTitle" data-zh="双账户流程（未开放）" data-en="Two-account flows (locked)">双账户流程（未开放）</h2>
 <div class="grid">
 <section class="box account" aria-labelledby="titleA"><div class="accountHead"><div class="avatar">A</div><div><h3 id="titleA" data-zh="测试账户 A" data-en="Test account A">测试账户 A</h3><small data-zh="现有独立 Supabase 用户 · 无身份信息读取" data-en="Separate existing Supabase user · No identity read">现有独立 Supabase 用户 · 无身份信息读取</small></div></div><div class="state" data-zh="状态：准备完成 · 未绑定 · 未登录测试" data-en="Status: Prepared · No binding or login test">状态：准备完成 · 未绑定 · 未登录测试</div>
-<div class="stage" data-zh="N10-A7.54-B：已准备好独立的绑定与登录测试区域，但仍是只读预览。用户名登录和绑定均未开放。" data-en="N10-A7.54-B: Independent bind/login UI is staged as disabled preview only. Binding and login are unavailable.">N10-A7.54-B：已准备好独立的绑定与登录测试区域，但仍是只读预览。用户名登录和绑定均未开放。</div>
+<div class="stage" data-zh="N10-A7.54-C：已完成 SDK 与验证码来源整合，测试区域仍为锁定预览，但仍是只读预览。用户名登录和绑定均未开放。" data-en="N10-A7.54-C: SDK and Turnstile sources are integrated, but all test controls remain locked as disabled preview only. Binding and login are unavailable.">N10-A7.54-B：已准备好独立的绑定与登录测试区域，但仍是只读预览。用户名登录和绑定均未开放。</div>
 <div class="qaFields" aria-label="QA A · Disabled preview">
 <label class="qaField"><span data-zh="测试用户名（当前禁用）" data-en="Test username (disabled)">测试用户名（当前禁用）</span><input type="text" disabled readonly autocomplete="off" spellcheck="false" maxlength="20" id="qa54bNameA" aria-label="QA A username locked" placeholder="4–20 characters"></label>
 <label class="qaField"><span data-zh="当前账户密码（当前禁用）" data-en="Account password (disabled)">当前账户密码（当前禁用）</span><input type="password" disabled readonly autocomplete="off" id="qa54bPasswordA" aria-label="QA A password locked" placeholder="••••••••"></label></div>
@@ -121,5 +121,5 @@ code{color:#f3d69d;font-size:12px;overflow-wrap:anywhere}
 <div class="step"><span class="stepText" data-zh="可恢复 Edge v4 关闭源码和 verify_jwt=true" data-en="Can restore closed Edge v4 and verify_jwt=true">可恢复 Edge v4 关闭源码和 verify_jwt=true</span><select aria-label="测试准备 5" data-index="4"><option value="pending">未检查</option><option value="yes">已确认</option><option value="no">未通过</option></select></div>
 <div class="step"><span class="stepText" data-zh="明确不会修改既有账户、投资与财务业务记录" data-en="No changes to existing account, investing or finance records">明确不会修改既有账户、投资与财务业务记录</span><select aria-label="测试准备 6" data-index="5"><option value="pending">未检查</option><option value="yes">已确认</option><option value="no">未通过</option></select></div>
 </div><p class="small" data-zh="这些选项只在当前页面内存中更新，刷新即清除；即使全部勾选，也不会解锁登录。" data-en="These markers exist only in current-page memory and reset on refresh. Completing them never unlocks login.">这些选项只在当前页面内存中更新，刷新即清除；即使全部勾选，也不会解锁登录。</p></section>
-<footer><div data-zh="N10-A7.54-A · 受控测试准备版 · 输入区仍锁定 · 不连接 Supabase · 不收集用户资料 · 不包含私钥 · 不影响现有正式网页" data-en="N10-A7.54-A · Prepared but locked · No Supabase connection · No user data collected · No secrets · Existing production pages unchanged">N10-A7.53 · 安全锁定版 · 不连接 Supabase · 不收集用户资料 · 不包含私钥 · 不影响现有正式网页</div><div><code id="hostReadout">Host: —</code></div></footer>
+<footer><div data-zh="N10-A7.54-C · 候选安全整合版 · 输入区仍锁定 · 不连接 Supabase · 不收集用户资料 · 不包含私钥 · 不影响现有正式网页" data-en="N10-A7.54-C · Integrated but locked · No Supabase connection · No user data collected · No secrets · Existing production pages unchanged">N10-A7.53 · 安全锁定版 · 不连接 Supabase · 不收集用户资料 · 不包含私钥 · 不影响现有正式网页</div><div><code id="hostReadout">Host: —</code></div></footer>
 </main></body></html>
