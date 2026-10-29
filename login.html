@@ -163,8 +163,27 @@ footer{width:min(1240px,calc(100% - 48px));margin:0 auto;}
 <div class="kicker">SECURE ACCESS · VERSION 4.0</div><h1 id="title">Welcome Back</h1><p class="sub" id="subtitle">Access your private MMHVAULT workspace</p><div class="auth-trust-note"><b>Security notice</b><span>Authentication is handled by Supabase Auth. Google sign-in opens Google OAuth. MMHVAULT never asks for bank PINs, card numbers, crypto seed phrases or passwords for external financial services.</span><a href="security.html">How sign-in works</a></div>
 <div class="tabs" id="authTabs"><button class="tab active" type="button" data-target="signin">🔒 Sign In</button><button class="tab" type="button" data-target="signup">✦ Sign Up</button></div>
 <form class="form active" id="signin">
+<div class="mmh-a740-method-switch" role="group" aria-label="Sign-in method">
+  <button type="button" data-mmh-a740-method="email" aria-pressed="true">Email</button>
+  <button type="button" data-mmh-a740-method="username" aria-pressed="false">Username</button>
+</div>
+
 <div class="auth-email-flow"><label>Email</label><div class="field"><input id="signinEmail" type="email" autocomplete="username" inputmode="email" required placeholder="Email address"></div><label>Password</label><div class="field"><input id="signinPassword" type="password" autocomplete="current-password" required placeholder="Password"><button class="eye" type="button">Show</button></div><div class="row"><label class="remember"><input type="checkbox" checked> Remember me</label><a class="forgot" href="#" id="forgotBtn">Forgot password?</a></div><button class="primary" type="submit">Sign In &nbsp; →</button></div>
 <div class="divider">or continue with</div><button class="google" id="googleSignIn" type="button" aria-describedby="googleAuthNoteSignIn"><svg viewBox="0 0 24 24"><path fill="#4285F4" d="M21.8 12.23c0-.7-.06-1.37-.18-2.02H12v3.82h5.5a4.7 4.7 0 0 1-2.04 3.08v2.54h3.3c1.93-1.78 3.04-4.4 3.04-7.42z"/><path fill="#34A853" d="M12 22c2.76 0 5.08-.91 6.77-2.35l-3.3-2.54c-.91.61-2.08.97-3.47.97-2.66 0-4.92-1.8-5.73-4.22H2.86v2.62A10.22 10.22 0 0 0 12 22z"/><path fill="#FBBC05" d="M6.27 13.86A6.15 6.15 0 0 1 5.95 12c0-.65.11-1.28.32-1.86V7.52H2.86A10.2 10.2 0 0 0 1.78 12c0 1.64.39 3.2 1.08 4.48l3.41-2.62z"/><path fill="#EA4335" d="M12 5.92c1.5 0 2.84.52 3.9 1.53l2.93-2.93C17.07 2.88 14.76 2 12 2a10.22 10.22 0 0 0-9.14 5.52l3.41 2.62C7.08 7.72 9.34 5.92 12 5.92z"/></svg>Sign in with Google</button><div class="oauth-note" id="googleAuthNoteSignIn">You will be redirected to Google through Supabase OAuth. MMHVAULT does not receive your Google password.</div><p class="switch">Don't have an account? <button type="button" data-switch="signup">Sign Up</button></p></form>
+<form class="form" id="usernameSignIn" autocomplete="off" novalidate>
+  <div class="mmh-a740-method-switch" role="group" aria-label="Sign-in method">
+    <button type="button" data-mmh-a740-method="email" aria-pressed="false">Email</button>
+    <button type="button" data-mmh-a740-method="username" aria-pressed="true">Username</button>
+  </div>
+  <label for="mmhA740Username">Username</label>
+  <div class="field"><input id="mmhA740Username" type="text" autocomplete="username" spellcheck="false" autocapitalize="none" maxlength="20" pattern="[a-z][a-z0-9_]{3,19}" placeholder="Your username" required></div>
+  <label for="mmhA740Password">Password</label>
+  <div class="field"><input id="mmhA740Password" type="password" autocomplete="current-password" maxlength="128" placeholder="Password" required></div>
+  <div id="mmhA740Captcha" class="mmh-a740-captcha" hidden></div>
+  <button id="mmhA740Submit" class="primary" type="submit" disabled>Sign In</button>
+  <p id="mmhA740Status" class="mmh-a740-status" role="status" aria-live="polite"></p>
+  <p class="mmh-a740-help">Forgot your password? <button type="button" id="mmhA740Forgot">Use email recovery</button></p>
+</form>
 <form class="form" id="signup"><label>Full name</label><div class="field"><input id="signupName" type="text" autocomplete="name" required placeholder="Your name"></div>
 <div class="auth-email-flow"><label>Email</label><div class="field"><input id="signupEmail" type="email" autocomplete="email" inputmode="email" required placeholder="Email address"></div><label>Create password</label><div class="field"><input id="signupPassword" type="password" autocomplete="new-password" minlength="6" required placeholder="Create a password"><button class="eye" type="button">Show</button></div><div class="row"><label class="remember"><input id="terms" type="checkbox"> I agree to the <a href="terms.html" target="_blank" rel="noopener">terms</a> and <a href="privacy.html" target="_blank" rel="noopener">privacy notice</a></label></div><button class="primary" type="submit">Create Account &nbsp; →</button></div>
 <div class="divider">or continue with</div><button class="google" id="googleSignUp" type="button" aria-describedby="googleAuthNoteSignUp"><svg viewBox="0 0 24 24"><path fill="#4285F4" d="M21.8 12.23c0-.7-.06-1.37-.18-2.02H12v3.82h5.5a4.7 4.7 0 0 1-2.04 3.08v2.54h3.3c1.93-1.78 3.04-4.4 3.04-7.42z"/><path fill="#34A853" d="M12 22c2.76 0 5.08-.91 6.77-2.35l-3.3-2.54c-.91.61-2.08.97-3.47.97-2.66 0-4.92-1.8-5.73-4.22H2.86v2.62A10.22 10.22 0 0 0 12 22z"/><path fill="#FBBC05" d="M6.27 13.86A6.15 6.15 0 0 1 5.95 12c0-.65.11-1.28.32-1.86V7.52H2.86A10.2 10.2 0 0 0 1.78 12c0 1.64.39 3.2 1.08 4.48l3.41-2.62z"/><path fill="#EA4335" d="M12 5.92c1.5 0 2.84.52 3.9 1.53l2.93-2.93C17.07 2.88 14.76 2 12 2a10.22 10.22 0 0 0-9.14 5.52l3.41 2.62C7.08 7.72 9.34 5.92 12 5.92z"/></svg>Sign up with Google</button><div class="oauth-note" id="googleAuthNoteSignUp">You will be redirected to Google through Supabase OAuth. MMHVAULT does not receive your Google password.</div><p class="switch">Already have an account? <button type="button" data-switch="signin">Sign In</button></p></form>
@@ -462,4 +481,17 @@ if(db){
   });
 }else if(recoveryCallbackPendingV944)msg('Authentication service is unavailable.','err');
 </script>
+<style id="mmh-a740-method-styles">
+.mmh-a740-method-switch{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;margin:0 0 16px;padding:4px;border-radius:14px;background:rgba(3,12,22,.58);border:1px solid rgba(170,190,211,.18)}
+.mmh-a740-method-switch button{border:0;border-radius:10px;background:transparent;color:#aebcce;padding:11px 8px;font:700 13px/1.3 inherit;cursor:pointer}
+.mmh-a740-method-switch button[aria-pressed="true"]{background:rgba(242,201,104,.14);color:#ffe7ad;box-shadow:inset 0 -2px #e9bd5b}
+.mmh-a740-captcha{min-height:66px;margin:15px auto;display:flex;justify-content:center}
+.mmh-a740-captcha[hidden]{display:none}
+.mmh-a740-status{font-size:12px;line-height:1.5;min-height:34px;text-align:center;color:#aab9c9;margin:10px 0}
+.mmh-a740-help{text-align:center;font-size:12px;line-height:1.5;color:#9fb0c1;margin:14px 0 0}
+.mmh-a740-help button{border:0;background:none;color:#f2c968;font:inherit;font-weight:800;cursor:pointer}
+#usernameSignIn .primary:disabled{opacity:.5;cursor:not-allowed}
+@media(max-width:520px){.mmh-a740-method-switch button{padding:10px 5px;font-size:12px}}
+</style>
+<script src="./js/mmhvault-n10-a7-40-username.js"></script>
 </body></html>
