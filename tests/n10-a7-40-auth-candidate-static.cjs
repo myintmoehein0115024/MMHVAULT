@@ -28,7 +28,7 @@ const checks={
  username_setup_redirect_allowlisted:()=>assert.match(login,/next==='username-setup\.html'/),
  uid_handoff_mutex:()=>{assert.match(login,/MMHVAULT_N10_A741_USERNAME_HANDOFF/);assert.match(client,/if\(!navigated\)throw Error/);},
  bind_page_isolated:()=>assert.match(setup,/mmhvault-n10-a7-41-bind\.js/),
- bind_frontend_closed:()=>{assert.match(bind,/const ENABLED=false;/);assert.match(bind,/const SITE_KEY='';/);},
+ bind_frontend_closed:()=>{assert.match(bind,/const ENABLED=false;/);assert.match(bind,/const SITE_KEY='0x4AAAAAAFrRIiFC7KoLQn2q';/);},
  bind_verifies_remote_uid:()=>{assert.match(bind,/client\.auth\.getUser\(\)/);assert.match(bind,/client\.auth\.getSession\(\)/);},
  edge_remains_closed:()=>{assert.match(edge,/const CODE_GATE_OPEN = false;/);assert.match(edge,/N10A740_PRODUCTION_ENABLED/);},
  edge_public_status_no_secret_presence:()=>assert.doesNotMatch(edge,/prerequisites_present:/),
