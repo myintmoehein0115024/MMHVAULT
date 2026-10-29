@@ -1,11 +1,11 @@
 /* N10-A7.41: Username binding mock regression (zero real network or credentials).
- * In-memory fixture only; production source remains ENABLED=false and SITE_KEY=''.
+ * In-memory fixture only; production source remains ENABLED=false; its site key is PUBLIC.
  */
 'use strict';
 const fs=require('node:fs'),assert=require('node:assert/strict');
 const source=fs.readFileSync('js/mmhvault-n10-a7-41-bind.js','utf8');
 assert.match(source,/const ENABLED=false;/);
-assert.match(source,/const SITE_KEY='';/);
+assert.match(source,/const SITE_KEY='0x4AAAAAAFrRIiFC7KoLQn2q';/);
 assert.match(source,/client\.auth\.getUser\(\)/);
 assert.match(source,/client\.auth\.getSession\(\)/);
 assert.doesNotMatch(source,/ldivswlhtgmznzwhzsoi|sb_secret_|SUPABASE_SERVICE_ROLE_KEY/);
