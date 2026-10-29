@@ -6,7 +6,7 @@
   const ENABLED=false; // release gate; NEVER enable before production approval
   const PROJECT_ORIGIN='https://vrypucmyrztxgiqhjspd.supabase.co';
   const EDGE_URL=PROJECT_ORIGIN+'/functions/v1/mmh-n10-a740-username';
-  const TURNSTILE_SITE_KEY=''; // public production-only key, intentionally not configured
+  const TURNSTILE_SITE_KEY='0x4AAAAAAFrRIiFC7KoLQn2q'; // public key only; ENABLED=false until separate approval
   const ID_PATTERN=/^[a-z][a-z0-9_]{3,19}$/;
   const $=id=>document.getElementById(id);
   const form=$('usernameSignIn'),email=$('signin'),user=$('mmhA740Username'),pass=$('mmhA740Password');
