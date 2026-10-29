@@ -1,4 +1,4 @@
-/* MMHVAULT N10-A7.54-B — CANDIDATE / NO PRODUCTION RELEASE
+/* MMHVAULT N10-A7.54-C — CANDIDATE / NO PRODUCTION RELEASE
  * The QA page and this client are permanently inert in this review stage.
  * Switching either lock requires a SEPARATELY approved, time-scoped release.
  * No usernames, UIDs or secrets are embedded; only PUBLIC API/site keys.
@@ -13,16 +13,53 @@
   const SITE_KEY = '0x4AAAAAAFrRIiFC7KoLQn2q';
   const USERNAME = /^[a-z][a-z0-9_]{3,19}$/;
   const REQ_TIMEOUT_MS = 12000;
+  // The SDK version is pinned, matching the existing production login page.
+  // These third-party scripts are loaded ONLY after BOTH closed gates are
+  // explicitly changed during a separately approved test-window release.
+  const SDK_URL = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/dist/umd/supabase.js';
+  const TURNSTILE_URL = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+  const originReady = () => location.protocol==='https:' && location.hostname==='mmhvault.com';
+  const releaseApproved = () => QA_CLOSED===false && LIVE_REQUESTS_ALLOWED===true && originReady();
   const node = id => document.getElementById(id);
-  const active = () => QA_CLOSED === false && LIVE_REQUESTS_ALLOWED === true &&
-    location.protocol === 'https:' && location.hostname === 'mmhvault.com' &&
+  const active = () => releaseApproved() &&
     window.supabase && typeof window.supabase.createClient === 'function' &&
     window.turnstile && typeof window.turnstile.render === 'function' &&
     typeof PUBLIC_KEY === 'string' && PUBLIC_KEY.startsWith('sb_publishable_') &&
     SITE_KEY.startsWith('0x');
   const loc = (zh, en) => document.documentElement.lang === 'en' ? en : zh;
   const slots = ['A', 'B'];
-  let mainClient = null, verifier = null;
+  let mainClient = null, verifier = null, dependencyPromise = null;
+  function loadScript(url) {
+    if(!releaseApproved() || typeof document.createElement!=='function' || !document.head)
+      return Promise.reject(Error('gate_closed'));
+    // All URLs are immutable literals, not assembled from UI or query strings.
+    if(url!==SDK_URL && url!==TURNSTILE_URL)
+      return Promise.reject(Error('script_not_allowlisted'));
+    return new Promise((resolve,reject)=>{
+      const tag=document.createElement('script');
+      tag.src=url;tag.async=true;tag.referrerPolicy='no-referrer';
+      tag.crossOrigin='anonymous';
+      tag.onload=()=>{tag.onload=null;tag.onerror=null;resolve();};
+      tag.onerror=()=>{tag.onload=null;tag.onerror=null;reject(Error('dependency_unavailable'));};
+      document.head.appendChild(tag);
+    });
+  }
+  async function initializeDependencies() {
+    if(!releaseApproved())return;
+    if(dependencyPromise)return dependencyPromise;
+    dependencyPromise=(async()=>{
+      if(!window.supabase?.createClient)await loadScript(SDK_URL);
+      if(!releaseApproved())throw Error('gate_closed');
+      if(!window.turnstile?.render)await loadScript(TURNSTILE_URL);
+      if(!active())throw Error('dependency_not_ready');
+      for(const k of slots)mountCaptcha(k);
+      renderLocked();
+    })().catch(()=>{
+      renderLocked();
+      for(const k of slots)say(k,'无法加载经批准的测试组件，请停止测试','Approved QA dependencies unavailable; stop testing');
+    });
+    return dependencyPromise;
+  }
   const record = Object.fromEntries(slots.map(k => [k, {
     busy:false, token:'', widgetId:null, mode:'bind', boundUid:null, lastOperation:null
   }]));
@@ -188,8 +225,9 @@
       node('qa54bMode'+k)?.addEventListener('change',e=>changeMode(k,e?.target?.value||node('qa54bMode'+k)?.value));
     }
     // Closed candidate must not load SDK, render Turnstile, fetch, or read sessions.
-    if(active()) for(const k of slots)mountCaptcha(k);
     renderLocked();
+    // A closed candidate NEVER inserts remote scripts, not even Turnstile.
+    if(releaseApproved())void initializeDependencies();
   }
   window.addEventListener('pagehide',()=>{
     for(const k of slots) {const pass=node('qa54bPassword'+k);if(pass)pass.value='';record[k].token='';}
