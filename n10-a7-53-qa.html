@@ -8,7 +8,7 @@
 <meta name="referrer" content="no-referrer">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'unsafe-inline'; connect-src 'none'; img-src 'none'; font-src 'none'; media-src 'none'; worker-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'; frame-src 'none'">
 <meta name="theme-color" content="#08121e">
-<title>MMHVAULT · N10-A7.53 安全 QA 入口（关闭）</title>
+<title>MMHVAULT · N10-A7.54-A 双账户 QA 准备入口（关闭）</title>
 <style>
 :root{color-scheme:dark;--bg:#08121e;--glass:#142338bd;--line:#50617a65;--gold:#e7c07a;--cream:#ffedca;--txt:#eff4f8;--muted:#adbdce;--blue:#b1d9ff;--good:#8edbb9;--bad:#faaba1}
 *{box-sizing:border-box}
@@ -39,6 +39,16 @@ h1{margin:20px 0 10px;font:500 clamp(27px,5vw,43px)/1.22 Georgia,'Times New Roma
 .state{margin:9px 0 17px;color:var(--muted);font-size:13px}
 .disabledAction{width:100%;text-align:center;border-radius:12px;padding:12px;background:#243245;color:#8293a9;border:1px solid #485a72;opacity:.77;cursor:not-allowed;font-weight:700}
 .small{color:var(--muted);font-size:12px;margin-top:12px}
+.qaFields{display:grid;grid-template-columns:1fr;gap:10px;margin:14px 0 15px}
+.qaField{display:flex;flex-direction:column;gap:5px;min-width:0}
+.qaField>span{font-size:12px;color:var(--muted)}
+.qaField input{width:100%;min-width:0;border-radius:10px;border:1px solid #536782;background:#132438;color:#8498ab;padding:11px 12px;font:inherit;opacity:.75;cursor:not-allowed}
+.qaField input::placeholder{color:#8498ab}
+.stage{margin:13px 0;padding:11px 12px;border:1px solid #6c573b;border-radius:12px;background:#322b1b69;color:var(--cream);font-size:12px}
+.qaSteps{margin:0;padding-left:21px;color:var(--muted);font-size:12px}
+.qaSteps li{margin:4px 0}
+.qaStatus{font-size:12px;color:var(--gold);font-weight:700}
+@media(min-width:681px){.qaFields{grid-template-columns:1fr 1fr}}
 .steps{padding:20px 23px}.step{display:flex;gap:12px;justify-content:space-between;align-items:center;border-bottom:1px solid #ffffff14;padding:13px 0}
 .step:last-child{border-bottom:0}.stepText{flex:1;color:var(--txt)}
 .step select{font:inherit;color:#e8ecf2;padding:8px 11px;background:#172a40;border:1px solid #526d89;border-radius:11px;min-width:103px}
@@ -58,7 +68,7 @@ code{color:#f3d69d;font-size:12px;overflow-wrap:anywhere}
 <div class="top"><div class="brand">MMHVAULT · PERSONAL FINANCE &amp; WEALTH</div><div class="top"><span class="pill" id="badge">N10-A7.53 · LOCKED</span><button id="langToggle" class="lang" type="button" aria-label="切换中文和英文">中文 / EN</button></div></div>
 <h1 data-zh="双账户登录 · 安全验收入口" data-en="Two-account login · Secure QA portal">双账户登录 · 安全验收入口</h1>
 <p class="lead" data-zh="这是独立、隔离的生产同源 QA 预览页，不是正式登录页。现阶段只允许查看测试计划与在当前页面标记准备工作，绝不会发起用户名绑定或登录。" data-en="An isolated same-origin production QA preview, not the live sign-in page. This page only shows the planned checks and local review markers. It will not initiate username binding or login.">这是独立、隔离的生产同源 QA 预览页，不是正式登录页。现阶段只允许查看测试计划与在当前页面标记准备工作，绝不会发起用户名绑定或登录。</p>
-<div class="guard" role="status"><span aria-hidden="true">🔒</span><div><strong data-zh="生产用户名登录仍然关闭" data-en="Production username sign-in remains disabled">生产用户名登录仍然关闭</strong><div data-zh="前端与后端测试开关未开放。页面禁止所有网络连接、不加载身份认证 SDK、不收集密码或令牌。必须另行授权后才能开展真实双账户测试。" data-en="Frontend and backend testing gates remain closed. All network connections are blocked; no Auth SDK loads and no credentials are collected. Actual two-account testing requires new explicit authorization.">前端与后端测试开关未开放。页面禁止所有网络连接、不加载身份认证 SDK、不收集密码或令牌。必须另行授权后才能开展真实双账户测试。</div></div></div>
+<div class="guard" role="status"><span aria-hidden="true">🔒</span><div><strong data-zh="生产用户名登录仍然关闭" data-en="Production username sign-in remains disabled">生产用户名登录仍然关闭</strong><div data-zh="前端与后端测试开关未开放。页面禁止所有网络连接，测试输入框均已禁用，不加载身份认证 SDK、不收集密码或令牌。必须另行授权后才能开展真实双账户测试。" data-en="Frontend and backend testing gates remain closed. All network connections are blocked; input fields are disabled, no Auth SDK loads and no credentials are collected. Actual two-account testing requires new explicit authorization.">前端与后端测试开关未开放。页面禁止所有网络连接、不加载身份认证 SDK、不收集密码或令牌。必须另行授权后才能开展真实双账户测试。</div></div></div>
 <div class="stats">
 <div class="stat"><div class="statTitle" data-zh="页面模式" data-en="Portal mode">页面模式</div><div class="statValue" id="portalMode">硬关闭 / LOCAL ONLY</div></div>
 <div class="stat"><div class="statTitle" data-zh="后端用户名操作" data-en="Backend username actions">后端用户名操作</div><div class="statValue" data-zh="未连接 · 不发送请求" data-en="Disconnected · No requests">未连接 · 不发送请求</div></div>
@@ -67,8 +77,24 @@ code{color:#f3d69d;font-size:12px;overflow-wrap:anywhere}
 </header>
 <h2 class="sectionTitle" data-zh="双账户流程（未开放）" data-en="Two-account flows (locked)">双账户流程（未开放）</h2>
 <div class="grid">
-<section class="box account" aria-labelledby="titleA"><div class="accountHead"><div class="avatar">A</div><div><h3 id="titleA" data-zh="测试账户 A" data-en="Test account A">测试账户 A</h3><small data-zh="现有独立 Supabase 用户 · 无身份信息读取" data-en="Separate existing Supabase user · No identity read">现有独立 Supabase 用户 · 无身份信息读取</small></div></div><div class="state" data-zh="状态：未开始 · 未绑定 · 未登录测试" data-en="Status: Not started · No binding or login test">状态：未开始 · 未绑定 · 未登录测试</div><button disabled class="disabledAction" type="button" data-zh="🔒 用户名绑定及登录暂不可用" data-en="🔒 Username bind & login unavailable">🔒 用户名绑定及登录暂不可用</button><div class="small" data-zh="不会请求密码、验证码或 JWT。" data-en="Never requests password, CAPTCHA or JWT.">不会请求密码、验证码或 JWT。</div></section>
-<section class="box account" aria-labelledby="titleB"><div class="accountHead"><div class="avatar">B</div><div><h3 id="titleB" data-zh="测试账户 B" data-en="Test account B">测试账户 B</h3><small data-zh="与 A 严格隔离 · 无账户数据读取" data-en="Strictly separate from A · No account data read">与 A 严格隔离 · 无账户数据读取</small></div></div><div class="state" data-zh="状态：未开始 · 未绑定 · 未登录测试" data-en="Status: Not started · No binding or login test">状态：未开始 · 未绑定 · 未登录测试</div><button disabled class="disabledAction" type="button" data-zh="🔒 用户名绑定及登录暂不可用" data-en="🔒 Username bind & login unavailable">🔒 用户名绑定及登录暂不可用</button><div class="small" data-zh="不会请求密码、验证码或 JWT。" data-en="Never requests password, CAPTCHA or JWT.">不会请求密码、验证码或 JWT。</div></section>
+<section class="box account" aria-labelledby="titleA"><div class="accountHead"><div class="avatar">A</div><div><h3 id="titleA" data-zh="测试账户 A" data-en="Test account A">测试账户 A</h3><small data-zh="现有独立 Supabase 用户 · 无身份信息读取" data-en="Separate existing Supabase user · No identity read">现有独立 Supabase 用户 · 无身份信息读取</small></div></div><div class="state" data-zh="状态：准备完成 · 未绑定 · 未登录测试" data-en="Status: Prepared · No binding or login test">状态：准备完成 · 未绑定 · 未登录测试</div>
+<div class="stage" data-zh="N10-A7.54-A：已准备好输入区域，但仍是只读预览。用户名登录和绑定均未开放。" data-en="N10-A7.54-A: Input fields are staged as disabled preview only. Binding and login are unavailable.">N10-A7.54-A：已准备好输入区域，但仍是只读预览。用户名登录和绑定均未开放。</div>
+<div class="qaFields" aria-label="QA A · Disabled preview">
+<label class="qaField"><span data-zh="测试用户名（当前禁用）" data-en="Test username (disabled)">测试用户名（当前禁用）</span><input type="text" disabled readonly autocomplete="off" spellcheck="false" maxlength="20" aria-label="QA A username locked" placeholder="4–20 characters"></label>
+<label class="qaField"><span data-zh="当前账户密码（当前禁用）" data-en="Account password (disabled)">当前账户密码（当前禁用）</span><input type="password" disabled readonly autocomplete="off" aria-label="QA A password locked" placeholder="••••••••"></label></div>
+<ol class="qaSteps"><li data-zh="未来测试：在A独立会话内完成邮箱登录" data-en="Future test: sign in to account A in its own browser session">未来测试：在A独立会话内完成邮箱登录</li>
+<li data-zh="未来测试：绑定用户名并检查 UID 保持不变" data-en="Future test: bind alias and verify UID is unchanged">未来测试：绑定用户名并检查 UID 保持不变</li>
+<li data-zh="未来测试：用用户名登录并验证账户隔离" data-en="Future test: sign in with alias and verify account isolation">未来测试：用用户名登录并验证账户隔离</li></ol>
+<p class="qaStatus" data-zh="🔒 尚无任何真实测试请求" data-en="🔒 No live test request has been made">🔒 尚无任何真实测试请求</p><button disabled class="disabledAction" type="button" data-zh="🔒 用户名绑定及登录暂不可用" data-en="🔒 Username bind & login unavailable">🔒 用户名绑定及登录暂不可用</button><div class="small" data-zh="不会请求密码、验证码或 JWT。" data-en="Never requests password, CAPTCHA or JWT.">不会请求密码、验证码或 JWT。</div></section>
+<section class="box account" aria-labelledby="titleB"><div class="accountHead"><div class="avatar">B</div><div><h3 id="titleB" data-zh="测试账户 B" data-en="Test account B">测试账户 B</h3><small data-zh="与 A 严格隔离 · 无账户数据读取" data-en="Strictly separate from A · No account data read">与 A 严格隔离 · 无账户数据读取</small></div></div><div class="state" data-zh="状态：准备完成 · 未绑定 · 未登录测试" data-en="Status: Prepared · No binding or login test">状态：准备完成 · 未绑定 · 未登录测试</div>
+<div class="stage" data-zh="N10-A7.54-A：已准备好输入区域，但仍是只读预览。用户名登录和绑定均未开放。" data-en="N10-A7.54-A: Input fields are staged as disabled preview only. Binding and login are unavailable.">N10-A7.54-A：已准备好输入区域，但仍是只读预览。用户名登录和绑定均未开放。</div>
+<div class="qaFields" aria-label="QA B · Disabled preview">
+<label class="qaField"><span data-zh="测试用户名（当前禁用）" data-en="Test username (disabled)">测试用户名（当前禁用）</span><input type="text" disabled readonly autocomplete="off" spellcheck="false" maxlength="20" aria-label="QA B username locked" placeholder="4–20 characters"></label>
+<label class="qaField"><span data-zh="当前账户密码（当前禁用）" data-en="Account password (disabled)">当前账户密码（当前禁用）</span><input type="password" disabled readonly autocomplete="off" aria-label="QA B password locked" placeholder="••••••••"></label></div>
+<ol class="qaSteps"><li data-zh="未来测试：在B独立会话内完成邮箱登录" data-en="Future test: sign in to account B in its own browser session">未来测试：在B独立会话内完成邮箱登录</li>
+<li data-zh="未来测试：绑定用户名并检查 UID 保持不变" data-en="Future test: bind alias and verify UID is unchanged">未来测试：绑定用户名并检查 UID 保持不变</li>
+<li data-zh="未来测试：用用户名登录并验证账户隔离" data-en="Future test: sign in with alias and verify account isolation">未来测试：用用户名登录并验证账户隔离</li></ol>
+<p class="qaStatus" data-zh="🔒 尚无任何真实测试请求" data-en="🔒 No live test request has been made">🔒 尚无任何真实测试请求</p><button disabled class="disabledAction" type="button" data-zh="🔒 用户名绑定及登录暂不可用" data-en="🔒 Username bind & login unavailable">🔒 用户名绑定及登录暂不可用</button><div class="small" data-zh="不会请求密码、验证码或 JWT。" data-en="Never requests password, CAPTCHA or JWT.">不会请求密码、验证码或 JWT。</div></section>
 </div>
 <h2 class="sectionTitle" data-zh="正式测试前 · 手动准备清单" data-en="Before the live test · Manual readiness checklist">正式测试前 · 手动准备清单</h2>
 <section class="box steps"><div class="progress"><span id="progressText">0 / 6 项已标记</span><strong id="progressNote">仅供记录</strong></div><div class="bar" aria-hidden="true"><div class="fill" id="progressFill"></div></div>
@@ -80,5 +106,5 @@ code{color:#f3d69d;font-size:12px;overflow-wrap:anywhere}
 <div class="step"><span class="stepText" data-zh="可恢复 Edge v4 关闭源码和 verify_jwt=true" data-en="Can restore closed Edge v4 and verify_jwt=true">可恢复 Edge v4 关闭源码和 verify_jwt=true</span><select aria-label="测试准备 5" data-index="4"><option value="pending">未检查</option><option value="yes">已确认</option><option value="no">未通过</option></select></div>
 <div class="step"><span class="stepText" data-zh="明确不会修改既有账户、投资与财务业务记录" data-en="No changes to existing account, investing or finance records">明确不会修改既有账户、投资与财务业务记录</span><select aria-label="测试准备 6" data-index="5"><option value="pending">未检查</option><option value="yes">已确认</option><option value="no">未通过</option></select></div>
 </div><p class="small" data-zh="这些选项只在当前页面内存中更新，刷新即清除；即使全部勾选，也不会解锁登录。" data-en="These markers exist only in current-page memory and reset on refresh. Completing them never unlocks login.">这些选项只在当前页面内存中更新，刷新即清除；即使全部勾选，也不会解锁登录。</p></section>
-<footer><div data-zh="N10-A7.53 · 安全锁定版 · 不连接 Supabase · 不收集用户资料 · 不包含私钥 · 不影响现有正式网页" data-en="N10-A7.53 · Hard-locked · No Supabase connection · No user data collected · No secrets · Existing production pages unchanged">N10-A7.53 · 安全锁定版 · 不连接 Supabase · 不收集用户资料 · 不包含私钥 · 不影响现有正式网页</div><div><code id="hostReadout">Host: —</code></div></footer>
+<footer><div data-zh="N10-A7.54-A · 受控测试准备版 · 输入区仍锁定 · 不连接 Supabase · 不收集用户资料 · 不包含私钥 · 不影响现有正式网页" data-en="N10-A7.54-A · Prepared but locked · No Supabase connection · No user data collected · No secrets · Existing production pages unchanged">N10-A7.53 · 安全锁定版 · 不连接 Supabase · 不收集用户资料 · 不包含私钥 · 不影响现有正式网页</div><div><code id="hostReadout">Host: —</code></div></footer>
 </main></body></html>
