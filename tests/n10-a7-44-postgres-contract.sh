@@ -22,4 +22,8 @@ COUNT="$(psql -X -qAt -v ON_ERROR_STOP=1 -c "SELECT attempt_count FROM public.mm
 if [ "$COUNT" != "12" ]; then
   echo "Atomic concurrency failure: expected 12, observed: $COUNT" >&2; exit 1
 fi
-echo "PASS N10-A7.44 PostgreSQL 17: real constraints, service-only RPC, RLS enabled, unique username/UID and 12 concurrent limiter calls."
+# Restore 8 exact policy predicates from production pg_policies metadata;
+# test with two entirely fake UIDs in this same disposable CI database.
+psql -X -v ON_ERROR_STOP=1 -f tests/n10-a7-44-production-policy-snapshot.sql
+psql -X -v ON_ERROR_STOP=1 -f tests/n10-a7-44-cross-uid-rls.sql
+echo "PASS N10-A7.44 PostgreSQL 17: real constraints, service-only RPC, RLS enabled, unique username/UID and 12 concurrent limiter calls and 8 cross-UID RLS policy fixtures."
