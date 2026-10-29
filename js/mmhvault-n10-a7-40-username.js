@@ -37,6 +37,8 @@
     }
     user.placeholder=tr('输入用户名','Your username');pass.placeholder=tr('输入密码','Password');
     submit.textContent=pending?tr('正在验证…','Verifying…'):tr('登录','Sign In');
+    const setup=$('mmhA741SetupLink');
+    if(setup)setup.textContent=tr('绑定现有账户的用户名','Link username to an existing account');
     const help=$('mmhA740Forgot');
     if(help)help.textContent=tr('通过邮箱重置密码','Reset password by email');
     const helpPara=form.querySelector('.mmh-a740-help');
