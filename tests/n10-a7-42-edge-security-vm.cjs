@@ -113,7 +113,7 @@ function backend({enabled=true,alias='testuser',grantUid=UID1,confirmed=true}={}
         'const WINDOW_END_UTC = '+JSON.stringify(end)+';');
   }
   vm.runInNewContext(source,{
-    Deno:{env:{get:fixture(enabled)},serve:fn=>{handler=fn}},
+    Deno:{env:fixture(enabled),serve:fn=>{handler=fn}},
     fetch,Request,Response,URL,URLSearchParams,TextEncoder,TextDecoder,AbortSignal,
     crypto:webcrypto,Uint8Array,Date,Set,Error,Number,String,Array,JSON,RegExp
   },{timeout:2000,filename:'CANDIDATE-VM-ONLY.ts'});
@@ -184,10 +184,12 @@ function backend({enabled=true,alias='testuser',grantUid=UID1,confirmed=true}={}
     assert.equal(good.body.code,'bind_success');
     assert.equal(c.aliases.get('testuser'),UID1);
     assert.equal(c.events.logouts,1,'Temporary password proof must be revoked after bind');
-    const collision=await c.send({action:'bind',username:'testuser',captcha_token:'bind.a00000000000000000002',
+    assert.equal(c.events.bindings,1);
+    const other=backend({alias:'testuser',grantUid:UID2});
+    const collision=await other.send({action:'bind',username:'testuser',captcha_token:'bind.a00000000000000000002',
       authorization:'Bearer mock-user-'+UID2});
     assert.equal(collision.status,409,'Other UID cannot claim same name');
-    assert.equal(c.events.bindings,1);}
+    assert.equal(other.events.bindings,0);}
   {const c=backend({alias:null,grantUid:UID2});
     const fail=await c.send({action:'bind',username:'testuser',captcha_token:'bind.a00000000000000000001',
       authorization:'Bearer mock-user-'+UID1});
