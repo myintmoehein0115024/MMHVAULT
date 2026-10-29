@@ -255,7 +255,7 @@ async function handle(request) {
   // again by Auth /user, and permitted by mmh_admin.members via mmh_is_admin().
   // Response body is a bare JSON boolean, with no secret/key names or values.
   if(data.action==='configuration_health') {
-    const bearer=/^Bearer\\s+([^\\s]+)$/i.exec(request.headers.get('Authorization')||'')?.[1]||'';
+    const bearer=/^Bearer\s+([^\s]+)$/i.exec(request.headers.get('Authorization')||'')?.[1]||'';
     if(!bearer || bearer.length>8192) return respond(origin,403,'not_authorized');
     try {
       if(!await verifiedAdmin(bearer)) return respond(origin,403,'not_authorized');
