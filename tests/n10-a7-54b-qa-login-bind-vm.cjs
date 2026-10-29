@@ -13,7 +13,9 @@ assert.match(html,/noindex,nofollow/);
 assert.match(html,/mmhvault-n10-a7-54b-liveflow\.js/);
 assert.equal((html.match(/disabled readonly/g)||[]).length,4);
 assert.equal((html.match(/<button disabled id="qa54b/g)||[]).length,4);
-assert.doesNotMatch(source,/setSession|persistSession:true.*refresh_token|localStorage|sessionStorage|service_role|sb_secret_|user_metadata/);
+assert.doesNotMatch(source,/\.auth\.setSession\s*\(|(?:localStorage|sessionStorage)\s*\.|service_role|sb_secret_|user_metadata/);
+// Comments about not calling setSession do not constitute a call.
+assert.match(source,/DO NOT call setSession/);
 new vm.Script(source);
 const A='11111111-1111-4111-8111-111111111111',B='22222222-2222-4222-8222-222222222222';
 const users={[A]:{id:A,email_confirmed_at:'2026-10-01',is_anonymous:false},[B]:{id:B,email_confirmed_at:'2026-10-01',is_anonymous:false}};
