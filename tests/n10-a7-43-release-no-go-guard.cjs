@@ -50,7 +50,9 @@ const checks={
     assert.equal(commands.length,4);
     for(const sql of commands){
       assert.match(sql,/^SELECT\b/i);
-      assert.doesNotMatch(sql,/\b(?:CREATE|ALTER|DROP|TRUNCATE|DELETE|UPDATE|INSERT|GRANT|REVOKE|DO|CALL|EXECUTE|COPY)\b/i);
+      // Ignore SQL string literals (e.g. policy metadata p.cmd='UPDATE').
+      const withoutLiterals=sql.replace(/'(?:''|[^'])*'/g,"''");
+      assert.doesNotMatch(withoutLiterals,/\b(?:CREATE|ALTER|DROP|TRUNCATE|DELETE|UPDATE|INSERT|GRANT|REVOKE|DO|CALL|EXECUTE|COPY)\b/i);
     }
   }
 };
