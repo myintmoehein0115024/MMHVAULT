@@ -6,7 +6,7 @@
 const fs=require('node:fs'),assert=require('node:assert/strict');
 const original=fs.readFileSync('js/mmhvault-n10-a7-40-username.js','utf8');
 assert.match(original,/const ENABLED=false;/);
-assert.match(original,/const TURNSTILE_SITE_KEY='';/);
+assert.match(original,/const TURNSTILE_SITE_KEY='0x4AAAAAAFrRIiFC7KoLQn2q';/);
 assert.match(original,/window\.MMHVAULT_N10_A741_USERNAME_HANDOFF=true/);
 function node(id,active=false){
  const handlers={},states=new Set(active?['active']:[]);
