@@ -196,7 +196,7 @@ function backend({enabled=true,alias='testuser',grantUid=UID1,confirmed=true}={}
     assert.equal(fail.status,401,'Mismatched password proof must reject binding');
     assert.equal(c.events.bindings,0);
     assert.equal(c.events.logouts,1);}
-  {const c=backend({alias:null});
+  {const c=backend();
     for(let i=0;i<8;i++){
       const fail=await c.send({username:'testuser',password:'wrong-password',
         captcha_token:'login.unique-token-0000000'+String(i).padStart(5,'0')});
