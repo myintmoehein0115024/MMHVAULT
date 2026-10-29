@@ -3,7 +3,7 @@
  */
 (()=>{'use strict';
   const ENABLED=false; // never enable without independent production deployment approval
-  const SITE_KEY=''; // public production Turnstile key only, not configured
+  const SITE_KEY='0x4AAAAAAFrRIiFC7KoLQn2q'; // public production widget only; ENABLED=false
   const ORIGIN='https://vrypucmyrztxgiqhjspd.supabase.co';
   const API=ORIGIN+'/functions/v1/mmh-n10-a740-username';
   const NAME=/^[a-z][a-z0-9_]{3,19}$/;
