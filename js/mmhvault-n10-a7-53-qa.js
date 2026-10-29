@@ -1,11 +1,11 @@
-/* MMHVAULT N10-A7.53 — production same-origin QA SHELL ONLY.
+/* MMHVAULT N10-A7.54-A — production same-origin QA STAGED & HARD-CLOSED.
  * SECURITY CONTRACT: no imports, no network, no credentials, no login/bind APIs.
  * A new, separately approved release is mandatory before any real A/B testing.
  */
 (()=>{
   'use strict';
   const QA_CLOSED = true; // DO NOT CHANGE without separate explicit live-test authorization
-  const BACKEND_REQUESTS_ALLOWED = false; // DO NOT CHANGE in N10-A7.53
+  const BACKEND_REQUESTS_ALLOWED = false; // DO NOT CHANGE in N10-A7.54-A
   const ALLOWED_HOST = 'mmhvault.com';
   const doc=document;
   const id=name=>doc.getElementById(name);
@@ -30,7 +30,7 @@
     id('progressFill').style.width=entries.length?(checked/entries.length*100)+'%':'0%';
   }
   function init(){
-    id('badge').textContent='N10-A7.53 · LOCKED';
+    id('badge').textContent='N10-A7.54-A · LOCKED';
     id('hostReadout').textContent=allowedHost?'Host: mmhvault.com · origin verified':'Host: not on mmhvault.com · preview only';
     id('portalMode').textContent=allowedHost?'硬关闭 / NO NETWORK':'站点外预览 / CLOSED';
     id('langToggle').addEventListener('click',()=>{
@@ -40,7 +40,13 @@
     for(const sel of doc.querySelectorAll('#checklist select'))sel.addEventListener('change',updateProgress);
     // These gates are constants, not controlled by localStorage, URL, cookies,
     // button clicks, checklist completion or browser user data.
-    if(!QA_CLOSED || BACKEND_REQUESTS_ALLOWED)throw new Error('N10-A7.53 invalid hard-lock configuration');
+    if(!QA_CLOSED || BACKEND_REQUESTS_ALLOWED)throw new Error('N10-A7.54-A invalid hard-lock configuration');
+    // Staged placeholders never collect real passwords/usernames, even if
+    // their disabled attribute is accidentally missing from HTML.
+    for(const el of doc.querySelectorAll('.qaFields input')){
+      el.value='';el.disabled=true;el.readOnly=true;
+    }
+    for(const btn of doc.querySelectorAll('button.disabledAction'))btn.disabled=true;
     setLanguage('zh');
   }
   if(doc.readyState==='loading')doc.addEventListener('DOMContentLoaded',init,{once:true});
