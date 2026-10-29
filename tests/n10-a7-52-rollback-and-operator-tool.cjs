@@ -37,7 +37,7 @@ assert.doesNotMatch(script,/eval\(|new Function|fetch\(|import\s*\(|serviceWorke
 const qs=JSON.parse(script.match(/const phases=(\[[^;]+\]);\nconst container/)[1]);
 assert.equal(qs.length,4);
 assert.equal(qs.reduce((n,section)=>n+section.items.length,0),24);
-assert.equal(qs.some(x=>x.name.includes('回滚')),true);
+assert.equal(qs.some(x=>x.key==='rollback' && x.name.includes('强制关闭') && x.items.some(y=>y.includes('回滚'))),true);
 assert.ok(qs.flatMap(x=>x.items).some(s=>s.includes('限流')));
 assert.ok(qs.flatMap(x=>x.items).some(s=>s.includes('B')));
 console.log('PASS N10-A7.52 rollback byte-equality, shut gates, 24-item offline tool, private-data and no-network checks. Snapshot SHA-256: '+snapSha.slice(0,12)+'…');
