@@ -26,6 +26,7 @@ jobs:
           node --check tests/n10-a7-40-locked-ui-smoke.cjs
           node --check tests/n10-a7-41-username-handoff-mock.cjs
           node --check tests/n10-a7-41-username-bind-mock.cjs
+          node --check tests/n10-a7-42-edge-security-vm.cjs
       - name: Verify unchanged app, closed gates, auth paths, and RLS review constraints
         run: node tests/n10-a7-40-auth-candidate-static.cjs
       - name: Verify locked username UI without network calls
@@ -34,3 +35,5 @@ jobs:
         run: node tests/n10-a7-41-username-handoff-mock.cjs
       - name: Verify username binding paths using mocks
         run: node tests/n10-a7-41-username-bind-mock.cjs
+      - name: N10-A7.42 mock Edge security and single-use captcha controls
+        run: node tests/n10-a7-42-edge-security-vm.cjs
