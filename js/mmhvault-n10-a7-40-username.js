@@ -20,7 +20,7 @@
     return ENABLED===true && !!TURNSTILE_SITE_KEY &&
       /^0x[A-Za-z0-9]+$/.test(TURNSTILE_SITE_KEY) &&
       location.protocol==='https:' &&
-      (location.hostname==='mmhvault.com'||location.hostname==='www.mmhvault.com') &&
+      location.hostname==='mmhvault.com' &&
       typeof db!=='undefined' && !!db?.auth?.setSession &&
       typeof SUPABASE_URL!=='undefined' && SUPABASE_URL===PROJECT_ORIGIN &&
       EDGE_URL.startsWith(PROJECT_ORIGIN+'/functions/v1/');
@@ -108,19 +108,24 @@
       const body=await response.json().catch(()=>null);
       if(!response.ok||body?.code!=='login_success'||!body?.access_token||!body?.refresh_token)
         throw Error('login_denied');
+      // Suppress the legacy SIGNED_IN auto-redirect while this handler verifies UID.
+      // Otherwise both paths can race and treat a valid login as a failed redirect.
+      window.MMHVAULT_N10_A741_USERNAME_HANDOFF=true;
+      handedOff=true;
       const assigned=await db.auth.setSession({access_token:body.access_token,refresh_token:body.refresh_token});
       if(assigned.error||!assigned.data?.user?.id)throw Error('session_invalid');
-      handedOff=true;
       const uid=assigned.data.user.id;
       const remote=await db.auth.getUser();
       const cached=await db.auth.getSession();
       if(remote.error||remote.data?.user?.id!==uid||cached.error||cached.data?.session?.user?.id!==uid)
         throw Error('identity_mismatch');
-      await verifiedRedirectV946(uid); // existing verified login->app.html path
+      const navigated=await verifiedRedirectV946(uid); // existing verified login->app.html path
+      if(!navigated)throw Error('verified_navigation_not_completed');
     }catch(_){
       if(handedOff){try{await db.auth.signOut({scope:'local'})}catch(__){}}
       setStatus('登录未完成，请重试。','Could not sign in. Please try again.');
     }finally{
+      window.MMHVAULT_N10_A741_USERNAME_HANDOFF=false;
       clearTimeout(timer);pending=false;resetChallenge();
     }
   });
