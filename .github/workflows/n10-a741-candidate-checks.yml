@@ -31,6 +31,7 @@ jobs:
           node --check tests/n10-a7-46-auth-redirect-contract.cjs
           node --check tests/n10-a7-49-secret-readiness-vm.cjs
           node --check tests/n10-a7-50-admin-health-vm.cjs
+          node --check tests/n10-a7-52-two-uid-edge-e2e-vm.cjs
       - name: Verify unchanged app, closed gates, auth paths, and RLS review constraints
         run: node tests/n10-a7-40-auth-candidate-static.cjs
       - name: Verify locked username UI without network calls
@@ -49,6 +50,8 @@ jobs:
         run: node tests/n10-a7-49-secret-readiness-vm.cjs
       - name: N10-A7.50 admin-only boolean health and legacy login lock regression
         run: node tests/n10-a7-50-admin-health-vm.cjs
+      - name: N10-A7.52 exact production v4 offline two-account bind, login and rollback safety
+        run: node tests/n10-a7-52-two-uid-edge-e2e-vm.cjs
 
   postgres-contracts:
     name: Disposable PostgreSQL 17 schema, RLS and concurrency contracts
