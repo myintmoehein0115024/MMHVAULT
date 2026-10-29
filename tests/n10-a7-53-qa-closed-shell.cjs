@@ -7,7 +7,7 @@ assert.match(html,/Content-Security-Policy[^>]*connect-src 'none'/);
 assert.match(html,/script-src 'self'/);
 assert.match(html,/form-action 'none'/);
 assert.match(html,/script src="\.\/js\/mmhvault-n10-a7-53-qa\.js" defer/);
-assert.equal((html.match(/<select /g)||[]).length,6);
+assert.equal((html.match(/<select /g)||[]).length,8); // 6 readiness selectors + 2 disabled operation selectors
 assert.equal((html.match(/<button disabled id="qa54b(?:Bind|Login)[AB]" class="disabledAction"/g)||[]).length,4);
 assert.equal((html.match(/<select id="qa54bMode[AB]" disabled/g)||[]).length,2);
 assert.equal((html.match(/<div id="qa54bCaptcha[AB]" hidden/g)||[]).length,2);
