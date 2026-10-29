@@ -16,7 +16,7 @@ label{display:block;font-weight:600;font-size:13px;margin:16px 0 8px}
 input{width:100%;border:1px solid #39516a;border-radius:13px;background:rgba(3,12,22,.85);color:#fff;font:inherit;padding:14px;min-width:0}
 input:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 input:disabled{opacity:.5}.hint{color:var(--muted);font-size:12px;line-height:1.5;margin-top:7px}
-button.primary{width:100%;margin-top:20px;border:1px solid #dec27d;border-radius:13px;background:linear-gradient(110deg,#d2a74e,#f5da9d);color:#18212d;font:700 15px inherit;padding:14px;cursor:pointer}
+button.primary{width:100%;margin-top:20px;border:1px solid #dec27d;border-radius:13px;background:linear-gradient(110deg,#d2a74e,#f5da9d);color:#18212d;font-size:15px;font-weight:700;font-family:inherit;padding:14px;cursor:pointer}
 button.primary:disabled{opacity:.47;cursor:not-allowed}
 .status{min-height:2.7em;margin:16px 0 0;color:#eecb81;line-height:1.55;font-size:13px}
 .links{display:flex;flex-wrap:wrap;gap:18px;margin-top:18px;font-size:13px}.links a{color:#a8d9fa;text-decoration:none}
@@ -38,7 +38,7 @@ button.primary:disabled{opacity:.47;cursor:not-allowed}
 <button class="primary" id="mmhA741BindSubmit" type="submit" disabled>Link username</button>
 <p class="status" id="mmhA741BindStatus" role="status" aria-live="polite">Username setup is not open yet.</p>
 </form>
-<nav class="links"><a href="app.html" id="mmhA741Back">Back to dashboard</a><a href="login.html" id="mmhA741Recovery">Email recovery / sign in</a></nav>
+<nav class="links"><a href="app.html" id="mmhA741Back">Back to dashboard</a><a href="login.html?next=username-setup.html" id="mmhA741Recovery">Email recovery / sign in</a></nav>
 </main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/dist/umd/supabase.js"></script>
 <script>const MMH_A741_PROJECT='https://vrypucmyrztxgiqhjspd.supabase.co',MMH_A741_PUBLISHABLE='sb_publishable_H38v4XbO0ARnSJToD42wGg_27-SZ3Ao';</script>
