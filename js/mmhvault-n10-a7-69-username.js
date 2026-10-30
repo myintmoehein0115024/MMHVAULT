@@ -80,7 +80,8 @@ async function handoff(body,expected){
   if(s.error||s.data?.user?.id!==expected||s.data?.session?.user?.id!==expected)throw Error('session_unavailable');
   const remote=await db.auth.getUser();const cache=await db.auth.getSession();
   if(remote.error||remote.data?.user?.id!==expected||cache.error||cache.data?.session?.user?.id!==expected)throw Error('session_not_verified');
-  await verifiedRedirectV946(expected);
+  const navigated=await verifiedRedirectV946(expected);
+  if(navigated!==true)throw Error('verified_redirect_failed');
  }catch(e){window.MMHVAULT_N10_A741_USERNAME_HANDOFF=false;try{await db.auth.signOut({scope:'local'})}catch(_){}throw e}
 }
 signup.addEventListener('submit',async e=>{
