@@ -511,9 +511,12 @@ async function mmhShowMfaChallengeV783(uid){
    const {error:ve}=await db.auth.mfa.verify({factorId:factor.id,challengeId:challenge.id,code:value});if(ve)throw ve;
    const {data:level,error:ae}=await db.auth.mfa.getAuthenticatorAssuranceLevel();
    if(ae||level?.currentLevel!=='aal2')throw ae||Error('incomplete_verification');
+   // Keep the MFA sheet in place until the verified navigation is accepted.
+   // A redirect failure must never leave an AAL2 session on an unlocked sign-in page.
+   const redirected=await verifiedRedirectV946(uid);
+   if(redirected!==true)throw Error('verified_redirect_failed');
    layer.dataset.owner='';layer.dataset.open='false';layer.hidden=true;
    document.body.classList.remove('mmh-n10-modal-lock');
-   await verifiedRedirectV946(uid);
   }catch(_){status.textContent=tr('验证失败，请输入验证器中的新验证码。','Verification failed. Try a fresh code from your authenticator.');}
   finally{code.value='';fresh.disabled=false;if(layer.dataset.open==='true')code.focus();}
  };
