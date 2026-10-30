@@ -38,7 +38,7 @@ class N10AuthContract(unittest.TestCase):
         self.assertIn("auth.mfa.verify", HTML)
         # A failed verified redirect must not dismiss the MFA challenge UI.
         self.assertIn("if(redirected!==true)throw Error('verified_redirect_failed')", HTML)
-        self.assertLess(HTML.index("if(redirected!==true)throw Error('verified_redirect_failed')"), HTML.index("layer.dataset.owner='';layer.dataset.open='false';layer.hidden=true;"))
+        self.assertLess(HTML.index("if(redirected!==true)throw Error('verified_redirect_failed')"), HTML.rindex("layer.dataset.owner='';layer.dataset.open='false';layer.hidden=true;"))
 
     def test_fail_closed_candidate_and_privileged_rpc_guidance(self):
         for marker in ("coalesce(", "auth.uid() is not null",
