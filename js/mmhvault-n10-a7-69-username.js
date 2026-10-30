@@ -126,6 +126,7 @@ function updateRecoveryLanguage(){
 }
 
 function closeRecoveryLogin(){
+ if(loading){showStatus(tr('正在核验，请完成当前操作后再关闭。','Verification in progress. Finish the current request before closing.'),ustatus);return;}
  recoveryLoginOverlay.classList.remove('is-open');
  document.body.classList.remove('mmh-n10-modal-lock');
  inputWords.forEach(el=>el.value='');
@@ -135,6 +136,7 @@ function closeRecoveryLogin(){
  smartInput?.focus();
 }
 function showRecoveryLogin(){
+ if(loading)return;
  updateRecoveryLanguage();
  // Make the dialog visible before rendering the security challenge.
  // Rendering an invisible widget inside a display:none ancestor can fail
@@ -142,6 +144,7 @@ function showRecoveryLogin(){
  recoveryLoginOverlay.classList.add('is-open');
  document.body.classList.add('mmh-n10-modal-lock');
  openForm('usernameSignIn');
+ updateRecoveryLanguage();
  chooseMode('phrase');
  resetCaptcha();
  setTimeout(loadCaptcha,0);
@@ -302,13 +305,13 @@ smartInput?.addEventListener('input',()=>{if(!smartForm.classList.contains('acti
 smartForm?.addEventListener('submit',async e=>{
  if(!smartUsername())return;e.preventDefault();e.stopImmediatePropagation();smartStatus.hidden=false;
  const username=smartInput.value.trim().toLowerCase(),password=smartPassword.value;
- if(!USER_RX.test(username)){showStatus('Enter a valid username.',smartStatus);return;}
- if(!enabled){showStatus('Username sign-in is currently unavailable.',smartStatus);return;}
- if(password.length<6||password.length>20){showStatus('Password must be 6–20 characters.',smartStatus);return;}
- if(!captchaToken){loadCaptcha();showStatus('Complete security verification and retry.',smartStatus);return;}
+ if(!USER_RX.test(username)){showStatus(tr('请输入有效用户名。','Enter a valid username.'),smartStatus);return;}
+ if(!enabled){showStatus(tr('用户名登录暂时不可用。','Username sign-in is currently unavailable.'),smartStatus);return;}
+ if(password.length<6||password.length>20){showStatus(tr('密码长度须为6至20个字符。','Password must be 6–20 characters.'),smartStatus);return;}
+ if(!captchaToken){loadCaptcha();showStatus(tr('请完成安全验证后重试。','Complete security verification and retry.'),smartStatus);return;}
  if(loading)return;
  loading=true;const btn=smartForm.querySelector('button[type="submit"]');btn.disabled=true;
- try{showStatus('Signing in…',smartStatus);const r=await request({action:'login',username,password,captcha_token:captchaToken});
+ try{showStatus(tr('正在安全登录…','Signing in securely…'),smartStatus);const r=await request({action:'login',username,password,captcha_token:captchaToken});
  if(!r.response.ok||r.body?.code!=='login_success')throw Error(r.body?.code||'login_failed');smartPassword.value='';await handoff(r.body,r.body.user_id);}
  catch(err){showStatus(safeAuthError(err),smartStatus);}
  finally{loading=false;btn.disabled=false;resetCaptcha();loadCaptcha();}
