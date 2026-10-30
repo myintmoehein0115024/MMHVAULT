@@ -177,7 +177,7 @@ footer{width:min(1240px,calc(100% - 48px));margin:0 auto;}
     <button type="button" data-mmh-a740-method="username" aria-pressed="true">Username</button>
   </div>
   <label for="mmhA740Username">Username</label>
-  <div class="field"><input id="mmhA740Username" type="text" autocomplete="username" spellcheck="false" autocapitalize="none" maxlength="20" pattern="[a-z][a-z0-9_]{3,19}" placeholder="Your username" required></div>
+  <div class="field"><input id="mmhA740Username" type="text" autocomplete="username" spellcheck="false" autocapitalize="none" maxlength="20" pattern="[a-z][a-z0-9_]{3,19}" placeholder="qa_test001 (pilot only)" required></div>
   <div class="mmh-a769-modes" role="group" aria-label="Username login method">
   <button type="button" data-mmh-a769-login-mode="password" aria-pressed="true">Password</button>
   <button type="button" data-mmh-a769-login-mode="phrase" aria-pressed="false">10-word recovery key</button>
@@ -209,8 +209,8 @@ footer{width:min(1240px,calc(100% - 48px));margin:0 auto;}
   <button type="button" data-mmh-a756-signup-method="username" aria-pressed="true">Username</button>
 </div>
 <label for="mmhA756Name">Username</label>
-<div class="field"><input id="mmhA756Name" type="text" autocomplete="username" spellcheck="false" autocapitalize="none" minlength="4" maxlength="20" pattern="[a-z][a-z0-9_]{3,19}" required placeholder="Choose a username"></div>
-<p class="mmh-a740-guidance">4–20 characters · Start with a lowercase letter, then letters, numbers or underscore.</p>
+<div class="field"><input id="mmhA756Name" type="text" autocomplete="username" spellcheck="false" autocapitalize="none" minlength="7" maxlength="20" pattern="qa_[a-z0-9_]{3,16}" required placeholder="qa_test001" aria-describedby="mmhA769PilotHint"></div>
+<p id="mmhA769PilotHint" class="mmh-a769-info" role="note">当前仅开放 qa_ 开头的测试用户名，例如 qa_test001。正式普通用户名仍待验收。 / Pilot: qa_ usernames only.</p>
 <label for="mmhA756Password">Create password</label>
 <div class="field"><input id="mmhA756Password" type="password" autocomplete="new-password" minlength="6" maxlength="20" required placeholder="Create a password"><button type="button" class="eye">Show</button></div>
 <label for="mmhA756Confirm">Confirm password</label>
@@ -573,5 +573,5 @@ if(db){
 @media(max-width:420px){.mmh-a769-words,.mmh-a769-word-inputs{grid-template-columns:1fr 1fr}.mmh-a769-actions{grid-template-columns:1fr 1fr}.mmh-a769-modes button{font-size:11px}}
 </style>
 <script src="./js/vendor/qrcode-1.0.0.min.js"></script>
-<script src="./js/mmhvault-n10-a7-69-username.js?v=10.769.2"></script>
+<script src="./js/mmhvault-n10-a7-69-username.js?v=10.769.3"></script>
 </body></html>
