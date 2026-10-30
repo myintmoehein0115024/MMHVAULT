@@ -177,7 +177,7 @@ footer{width:min(1240px,calc(100% - 48px));margin:0 auto;}
     <button type="button" data-mmh-a740-method="username" aria-pressed="true">Username</button>
   </div>
   <label for="mmhA740Username">Username</label>
-  <div class="field"><input id="mmhA740Username" type="text" autocomplete="username" spellcheck="false" autocapitalize="none" maxlength="20" pattern="[a-z][a-z0-9_]{3,19}" placeholder="qa_test001" required></div><p class="mmh-a780-pilot">Sign in with a linked username or your username-only account. New username-only registrations are still in limited testing.</p>
+  <div class="field"><input id="mmhA740Username" type="text" autocomplete="username" spellcheck="false" autocapitalize="none" maxlength="20" pattern="[a-z][a-z0-9_]{3,19}" placeholder="qa_test001" required></div><p class="mmh-a780-pilot">You can sign in with a linked username or a username-only account.</p>
   <div class="mmh-a769-modes" role="group" aria-label="Username login method">
   <button type="button" data-mmh-a769-login-mode="password" aria-pressed="true">Password</button>
   <button type="button" data-mmh-a769-login-mode="phrase" aria-pressed="false">10-word recovery key</button>
@@ -214,8 +214,8 @@ footer{width:min(1240px,calc(100% - 48px));margin:0 auto;}
   <button type="button" data-mmh-a756-signup-method="username" aria-pressed="true">Username</button>
 </div>
 <label for="mmhA756Name">Username</label>
-<div class="field"><input id="mmhA756Name" type="text" autocomplete="username" spellcheck="false" autocapitalize="none" minlength="7" maxlength="20" pattern="qa_[a-z0-9_]{3,16}" required placeholder="qa_test001" aria-describedby="mmhA769PilotHint"></div>
-<p id="mmhA769PilotHint" class="mmh-a769-info" role="note">当前仅开放 qa_ 开头的测试用户名，例如 qa_test001。正式普通用户名仍待验收。 / Pilot: qa_ usernames only.</p>
+<div class="field"><input id="mmhA756Name" type="text" autocomplete="username" spellcheck="false" autocapitalize="none" minlength="4" maxlength="20" pattern="[a-z][a-z0-9_]{3,19}" required placeholder="Choose a username" aria-describedby="mmhA769PilotHint"></div>
+<p id="mmhA769PilotHint" class="mmh-a769-info" role="note">用户名现在可自由选择。首批限量开放 3 个独立用户名账户，需安全备份 10 个恢复词。 / Limited initial release: 3 username-only accounts.</p>
 <label for="mmhA756Password">Create password</label>
 <div class="field"><input id="mmhA756Password" type="password" autocomplete="new-password" minlength="6" maxlength="20" required placeholder="Create a password"><button type="button" class="eye">Show</button></div>
 <label for="mmhA756Confirm">Confirm password</label>
@@ -670,5 +670,5 @@ main{padding:32px 18px 45px}
 @media(prefers-reduced-motion:reduce){.form.active{animation:none}.mmh-a780-security-icon::after{animation:none!important}#authTabs .tab,.form .primary{transition:none!important}}
 </style>
 <script src="./js/vendor/qrcode-1.0.0.min.js"></script>
-<script src="./js/mmhvault-n10-a7-69-username.js?v=10.781.1"></script>
+<script src="./js/mmhvault-n10-a7-69-username.js?v=10.782.1"></script>
 </body></html>
