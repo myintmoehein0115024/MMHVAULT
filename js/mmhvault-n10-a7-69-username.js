@@ -16,7 +16,25 @@ const tr=(zh,en)=>window.getMMHVAULTLanguage?.()==='zh'?zh:en;
 let pilotOnly=false,enabled=false,loading=false,selected='password',prepared=null,captchaWidget=null,captchaArea=null,captchaAction='',captchaToken='';
 const inputWords=Array.from(phraseArea?.querySelectorAll('input[data-a769-word]')||[]);
 function showStatus(t,el){if(el)el.textContent=t;}
-function resetCaptcha(){captchaToken='';if(captchaWidget!==null&&typeof turnstile!=='undefined'){try{turnstile.remove(captchaWidget)}catch(_){}}captchaWidget=null;captchaArea=null;captchaAction='';}
+/* First-party feedback only. The backend verifies each challenge token. */
+function activeSecurityBox(){
+  if(signup.classList.contains('active'))return $('mmhA780SignupSecurity');
+  if(login.classList.contains('active'))return $('mmhA780SigninSecurity');
+  return null;
+}
+function securityState(kind){
+  const box=activeSecurityBox();if(!box)return;
+  box.dataset.state=kind;
+  const el=box.querySelector('[data-mmh-security-text]');if(!el)return;
+  const values={
+    checking:tr('正在进行安全检查…','Checking connection security…'),
+    ready:tr('浏览器检查已就绪 · 提交时继续核验','Browser check ready · Final verification on submit'),
+    error:tr('安全检查暂未完成，请重新尝试','Security check incomplete. Please retry.'),
+    idle:tr('安全检查将在此自动进行','A security check will run automatically.')
+  };
+  el.textContent=values[kind]||values.idle;
+}
+function resetCaptcha(){captchaToken='';if(captchaWidget!==null&&typeof turnstile!=='undefined'){try{turnstile.remove(captchaWidget)}catch(_){}}captchaWidget=null;captchaArea=null;captchaAction='';securityState(enabled?'checking':'idle');}
 function action(){const active=signup.classList.contains('active')?'prepare_signup':selected==='phrase'?'phrase_login':'login';return active;}
 function loadCaptcha(){
   if(!enabled)return;
@@ -25,14 +43,19 @@ function loadCaptcha(){
   const target=signup.classList.contains('active')?captchaRegister:captchaLogin;
   const next=action();
   if(captchaWidget!==null&&captchaArea===target&&captchaAction===next)return;
-  resetCaptcha();captchaArea=target;captchaAction=next;
+  resetCaptcha();captchaArea=target;captchaAction=next;securityState('checking');
   if(typeof turnstile==='undefined')return;
-  try{target.hidden=false;captchaWidget=turnstile.render(target,{sitekey:SITEKEY,theme:'dark',action:'mmh_n10a769_'+next,
-    callback:v=>{captchaToken=v},'expired-callback':()=>{captchaToken=''},'error-callback':()=>{captchaToken=''}});}
-  catch(e){showStatus(tr('人机验证加载失败，请刷新。','Verification failed to load. Refresh the page.'),signup.classList.contains('active')?sstatus:ustatus);}
+  // An Invisible widget has no branding footprint; the Siteverify backend remains required.
+  try{target.hidden=false;captchaWidget=turnstile.render(target,{
+    sitekey:SITEKEY,theme:'dark',appearance:'interaction-only',action:'mmh_n10a769_'+next,
+    callback:v=>{captchaToken=v;securityState('ready');},
+    'expired-callback':()=>{captchaToken='';securityState('error');},
+    'error-callback':()=>{captchaToken='';securityState('error');}
+  });}
+  catch(e){securityState('error');}
 }
 function asyncLoadCaptcha(){if(document.querySelector('script[data-a769-turnstile]'))return;
-  const el=document.createElement('script');el.src='https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';el.async=true;el.defer=true;el.dataset.a769Turnstile='1';el.onload=loadCaptcha;document.head.append(el);
+  const el=document.createElement('script');el.src='https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';el.async=true;el.defer=true;el.dataset.a769Turnstile='1';el.onload=loadCaptcha;el.onerror=()=>securityState('error');document.head.append(el);
 }
 async function request(data){
  const ac=new AbortController(),timer=setTimeout(()=>ac.abort(),22000);
@@ -181,7 +204,14 @@ document.querySelectorAll('[data-mmh-a756-signup-method]').forEach(btn=>btn.addE
 }));
 document.querySelectorAll('[data-switch]').forEach(btn=>btn.addEventListener('click',()=>setTimeout(loadCaptcha,0)));
 document.querySelectorAll('#authTabs .tab').forEach(btn=>btn.addEventListener('click',()=>setTimeout(loadCaptcha,0)));
+document.querySelectorAll('[data-mmh-security-retry]').forEach(btn=>btn.addEventListener('click',()=>{
+ if(!enabled||loading)return;
+ resetCaptcha();loadCaptcha();
+}));
 window.addEventListener('pagehide',()=>{clearPhrase();upass.value='';spass.value='';sconfirm.value='';inputWords.forEach(x=>x.value='');});
-window.addEventListener('mmhvault-language-change',()=>{if(!enabled)setEnabled(false)});
+window.addEventListener('mmhvault-language-change',()=>{
+ if(!enabled){setEnabled(false);return;}
+ securityState(captchaToken?'ready':'checking');
+});
 chooseMode('password');void preflight();
 })();
