@@ -13415,7 +13415,7 @@ function mmhVaultEditAccountV449(id){
       }}
     ]
   });
-  setTimeout(()=>{const c=$('mmhEditAccountCurrencyV449');if(c)c.value=a.currency;const t=$('mmhEditAccountTypeV449');if(t)t.value=a.type;},0);
+  setTimeout(()=>{const c=$('mmhEditAccountCurrencyV449');if(c){c.value=a.currency;window.MMHVAULTCurrencyPickerV141?.sync(c);}const t=$('mmhEditAccountTypeV449');if(t)t.value=a.type;},0);
 }
 
 function mmhVaultCustomMessageV449(title,message){
@@ -34324,5 +34324,313 @@ body.light #settings.page.active .mmh-email-reset-destination-v952{background:rg
 <link rel="stylesheet" href="css/mmhvault-shared-dialog-mobile-p958.css?v=9.58.0" data-mmh-p958="1" />
 <!-- P9.59: short-screen onboarding / receipt / Business confirm viewport hardening -->
 <link rel="stylesheet" href="css/mmhvault-dialog-safe-area-p959.css?v=9.59.0" data-mmh-p959="1" />
+
+<style id="mmh-v141-currency-search-css">
+/* V1.4.1: Bounded, searchable currency chooser for all account editing entrypoints.
+   Retains the native select as the authoritative form value. */
+.mmh-v141-hidden-native{display:none!important}
+.mmh-v141-currency-trigger{
+  display:flex!important;align-items:center!important;justify-content:space-between!important;
+  width:100%!important;max-width:100%!important;min-width:0!important;
+  min-height:50px!important;box-sizing:border-box!important;
+  padding:12px 15px!important;border:1px solid rgba(135,191,226,.43)!important;
+  border-radius:14px!important;background:rgba(13,52,77,.78)!important;
+  color:#edf6ff!important;appearance:none!important;
+  font:inherit!important;text-align:left!important;cursor:pointer!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.055)!important;
+}
+.mmh-v141-currency-trigger:hover:not(:disabled){border-color:rgba(227,187,98,.76)!important}
+.mmh-v141-currency-trigger:focus-visible{outline:2px solid #e4ba6e!important;outline-offset:3px!important}
+.mmh-v141-currency-trigger:disabled{opacity:.58!important;cursor:not-allowed!important}
+.mmh-v141-currency-trigger .mmh-v141-currency-label{
+  min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;
+  font-size:14px;font-weight:550;line-height:1.45
+}
+.mmh-v141-currency-trigger .mmh-v141-currency-icon{flex:none;margin-left:10px;font-size:14px;opacity:.9}
+.mmh-v141-currency-layer{
+  position:fixed!important;inset:0!important;z-index:2147483600!important;
+  display:flex!important;justify-content:center!important;align-items:center!important;
+  box-sizing:border-box!important;padding:16px!important;
+  padding-top:max(16px,env(safe-area-inset-top))!important;
+  padding-bottom:max(16px,env(safe-area-inset-bottom))!important;
+  background:rgba(0,11,23,.7)!important;backdrop-filter:blur(12px)!important;
+  -webkit-backdrop-filter:blur(12px)!important
+}
+.mmh-v141-currency-layer[hidden]{display:none!important}
+.mmh-v141-currency-panel{
+  display:flex!important;flex-direction:column!important;box-sizing:border-box!important;
+  width:min(460px,100%)!important;max-width:100%!important;
+  max-height:min(650px,calc(100vh - 32px))!important;
+  max-height:min(650px,calc(100dvh - 32px))!important;
+  min-height:0!important;overflow:hidden!important;
+  border:1px solid rgba(178,212,237,.33)!important;border-radius:22px!important;
+  background:linear-gradient(155deg,rgba(19,51,79,.98),rgba(4,20,38,.99))!important;
+  box-shadow:0 24px 90px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.12)!important;
+  color:#eaf5ff!important
+}
+.mmh-v141-currency-header{
+  padding:18px 18px 12px;display:flex;gap:12px;align-items:center;justify-content:space-between
+}
+.mmh-v141-currency-title{font-weight:700;font-size:17px;letter-spacing:.01em;color:#f2f7ff}
+.mmh-v141-currency-subtitle{font-size:12px;color:#a9bfd4;margin-top:4px}
+.mmh-v141-currency-close{
+  flex:none!important;width:36px!important;height:36px!important;border-radius:11px!important;
+  background:rgba(255,255,255,.09)!important;border:1px solid rgba(255,255,255,.17)!important;
+  color:#f3f8ff!important;font-size:20px!important;cursor:pointer!important
+}
+.mmh-v141-currency-search-wrap{padding:0 18px 10px}
+.mmh-v141-currency-search{
+  box-sizing:border-box!important;display:block!important;width:100%!important;
+  height:47px!important;min-height:47px!important;
+  color:#fff!important;background:rgba(3,19,37,.76)!important;
+  border:1px solid rgba(145,194,225,.42)!important;border-radius:12px!important;
+  padding:0 14px!important;outline:none!important;
+  font:inherit!important;font-size:15px!important
+}
+.mmh-v141-currency-search:focus{border-color:#efc978!important;box-shadow:0 0 0 2px rgba(231,190,111,.17)!important}
+.mmh-v141-currency-count{padding:0 18px 9px;color:#9cb4c9;font-size:12px}
+.mmh-v141-currency-results{
+  flex:1 1 auto!important;min-height:0!important;overflow-y:auto!important;overflow-x:hidden!important;
+  overscroll-behavior:contain!important;-webkit-overflow-scrolling:touch!important;
+  padding:0 10px 16px!important
+}
+.mmh-v141-currency-group{
+  padding:12px 12px 5px;font-size:11px;font-weight:750;
+  color:#e7bc6c;letter-spacing:.03em;text-transform:none
+}
+.mmh-v141-currency-item{
+  width:100%!important;min-height:45px!important;
+  display:flex!important;gap:10px!important;align-items:center!important;
+  text-align:left!important;box-sizing:border-box!important;
+  padding:9px 12px!important;margin:2px 0!important;border-radius:11px!important;
+  border:1px solid transparent!important;background:transparent!important;
+  color:#e3f0fb!important;font:inherit!important;font-size:13px!important;
+  cursor:pointer!important;white-space:normal!important;word-break:break-word!important
+}
+.mmh-v141-currency-item:hover,.mmh-v141-currency-item:focus-visible{
+  outline:none!important;background:rgba(91,155,194,.24)!important;
+  border-color:rgba(142,194,226,.5)!important
+}
+.mmh-v141-currency-item[aria-selected="true"]{
+  background:rgba(225,177,81,.14)!important;
+  border-color:rgba(237,193,102,.46)!important
+}
+.mmh-v141-currency-item .mmh-v141-code{font-weight:750;color:#f6d494;min-width:34px;flex:none}
+.mmh-v141-currency-item .mmh-v141-name{min-width:0;line-height:1.4}
+.mmh-v141-currency-item .mmh-v141-check{margin-left:auto;color:#f2c779;font-weight:bold}
+.mmh-v141-currency-empty{padding:28px 12px;text-align:center;color:#b9cad9;font-size:14px}
+@media(max-width:520px){
+  .mmh-v141-currency-layer{padding:10px!important}
+  .mmh-v141-currency-panel{border-radius:17px!important;max-height:calc(100dvh - 20px)!important}
+  .mmh-v141-currency-item{font-size:13px!important;min-height:48px!important}
+}
+</style>
+
+<script id="mmh-v141-currency-search-js">
+(function(){
+  'use strict';
+  if(window.MMHVAULTCurrencyPickerV141)return;
+  const targetSelector='#amNewCurrency, #mmhNewAccountCurrencyV445, #mmhEditAccountCurrencyV449';
+  let activeSelect=null, activeTrigger=null, layer=null, search=null, list=null, count=null;
+  let previousBodyOverflow=null;
+  const enhanced=new WeakSet();
+  const selectCode=el=>String(el&&el.value||'').toUpperCase();
+  function getCurrentOption(el){
+    return Array.from(el.options||[]).find(o=>o.value===el.value)||null;
+  }
+  function sync(el){
+    if(!el)return;
+    const trigger=el._mmhCurrencyTriggerV141;
+    if(!trigger||!trigger.isConnected)return;
+    const option=getCurrentOption(el);
+    const value=option?option.textContent.trim():(el.value||'Select currency · 选择币种');
+    const label=trigger.querySelector('.mmh-v141-currency-label');
+    if(label)label.textContent=value;
+    trigger.setAttribute('aria-label','Select currency / 选择币种: '+value);
+    trigger.title=value;
+    trigger.disabled=!!el.disabled;
+  }
+  function enhance(el){
+    if(!el||enhanced.has(el))return;
+    enhanced.add(el);
+    el.classList.add('mmh-v141-hidden-native');
+    el.tabIndex=-1;
+    // Preserve the actual select.value read by the finance and cloud-sync code.
+    const button=document.createElement('button');
+    button.type='button';button.className='mmh-v141-currency-trigger';
+    button.setAttribute('aria-haspopup','dialog');
+    button.setAttribute('aria-expanded','false');
+    const label=document.createElement('span');
+    label.className='mmh-v141-currency-label';
+    const arrow=document.createElement('span');
+    arrow.className='mmh-v141-currency-icon';arrow.textContent='⌄';
+    button.append(label,arrow);
+    el.parentNode.insertBefore(button,el.nextSibling);
+    el._mmhCurrencyTriggerV141=button;
+    sync(el);
+    el.addEventListener('change',()=>sync(el));
+    button.addEventListener('click',()=>{if(!el.disabled)open(el,button)});
+    // Some edit flows set .value after inserting their dialog.
+    setTimeout(()=>sync(el),0);
+    setTimeout(()=>sync(el),80);
+  }
+  function scan(root){
+    if(!root)return;
+    if(root.nodeType===1&&root.matches&&root.matches(targetSelector))enhance(root);
+    if(root.querySelectorAll)root.querySelectorAll(targetSelector).forEach(enhance);
+  }
+  function make(tag,className,text){
+    const el=document.createElement(tag);
+    if(className)el.className=className;
+    if(text!==undefined)el.textContent=text;
+    return el;
+  }
+  function ensureLayer(){
+    if(layer)return;
+    layer=make('div','mmh-v141-currency-layer');
+    layer.hidden=true;
+    layer.setAttribute('role','presentation');
+    const panel=make('section','mmh-v141-currency-panel');
+    panel.setAttribute('role','dialog');
+    panel.setAttribute('aria-modal','true');
+    panel.setAttribute('aria-label','Search currency · 搜索币种');
+    const header=make('div','mmh-v141-currency-header');
+    const titles=make('div');
+    titles.append(make('div','mmh-v141-currency-title','Select currency · 选择币种'));
+    titles.append(make('div','mmh-v141-currency-subtitle','Search by country, name or code · 按国家、名称或代码搜索'));
+    const closeButton=make('button','mmh-v141-currency-close','×');
+    closeButton.type='button';closeButton.setAttribute('aria-label','Close currency search');
+    closeButton.addEventListener('click',close);
+    header.append(titles,closeButton);
+    const searchWrap=make('div','mmh-v141-currency-search-wrap');
+    search=make('input','mmh-v141-currency-search');
+    search.type='search';search.autocomplete='off';search.spellcheck=false;
+    search.placeholder='🔎 Search: AMD / Armenia / 亚美尼亚';
+    search.setAttribute('aria-label','Search currencies / 搜索币种');
+    searchWrap.append(search);
+    count=make('div','mmh-v141-currency-count');
+    list=make('div','mmh-v141-currency-results');
+    list.setAttribute('role','listbox');list.setAttribute('aria-label','Currency options');
+    panel.append(header,searchWrap,count,list);layer.append(panel);
+    document.body.append(layer);
+    layer.addEventListener('pointerdown',e=>{if(e.target===layer)close()});
+    search.addEventListener('input',render);
+    layer.addEventListener('keydown',e=>{
+      if(e.key==='Escape'){e.preventDefault();close();return}
+      if(e.key==='Tab'){
+        const nodes=[closeButton,search,...list.querySelectorAll('button:not([disabled])')];
+        const focusable=nodes.filter(x=>x.offsetParent!==null);
+        if(!focusable.length)return;
+        const i=focusable.indexOf(document.activeElement);
+        if(e.shiftKey&&(i===0||i<0)){e.preventDefault();focusable[focusable.length-1].focus()}
+        else if(!e.shiftKey&&i===focusable.length-1){e.preventDefault();focusable[0].focus()}
+        return;
+      }
+      if(e.key==='ArrowDown'||e.key==='ArrowUp'){
+        const options=[...list.querySelectorAll('button.mmh-v141-currency-item')];
+        if(!options.length)return;
+        const index=options.indexOf(document.activeElement);
+        if(e.target===search||index>=0){
+          e.preventDefault();
+          const next=e.key==='ArrowDown'?(index<0?0:Math.min(index+1,options.length-1)):(index<0?options.length-1:Math.max(index-1,0));
+          options[next].focus();options[next].scrollIntoView({block:'nearest'});
+        }
+      }
+      if(e.key==='Enter'&&e.target===search){
+        const first=list.querySelector('button.mmh-v141-currency-item');
+        if(first){e.preventDefault();first.click()}
+      }
+    });
+  }
+  function optionsByGroup(el){
+    const output=[];
+    for(const child of el.children){
+      if(child.tagName==='OPTGROUP'){
+        const items=[...child.querySelectorAll('option')].map(o=>({code:o.value,name:o.textContent.trim()}));
+        output.push({label:child.label||'Currencies',items});
+      }else if(child.tagName==='OPTION'){
+        let group=output[output.length-1];
+        if(!group||group.label!=='Other currencies'){
+          group={label:'Other currencies',items:[]};output.push(group);
+        }
+        group.items.push({code:child.value,name:child.textContent.trim()});
+      }
+    }
+    return output;
+  }
+  function render(){
+    if(!activeSelect||!list)return;
+    const query=String(search.value||'').trim().toLocaleLowerCase();
+    const fragments=document.createDocumentFragment();
+    let matches=0;
+    for(const group of optionsByGroup(activeSelect)){
+      const selected=group.items.filter(item=>(item.code+' '+item.name+' '+group.label).toLocaleLowerCase().includes(query));
+      if(!selected.length)continue;
+      fragments.append(make('div','mmh-v141-currency-group',group.label));
+      for(const item of selected){
+        matches++;
+        const button=make('button','mmh-v141-currency-item');
+        button.type='button';button.setAttribute('role','option');
+        button.setAttribute('aria-selected',String(item.code===selectCode(activeSelect)));
+        button.append(make('span','mmh-v141-code',item.code));
+        let name=item.name;
+        if(name.toUpperCase().startsWith(item.code.toUpperCase()))name=name.slice(item.code.length).replace(/^[ ·-]+/,'');
+        button.append(make('span','mmh-v141-name',name));
+        if(item.code===selectCode(activeSelect))button.append(make('span','mmh-v141-check','✓'));
+        button.addEventListener('click',()=>{
+          const target=activeSelect;
+          if(!target||target.disabled)return close();
+          target.value=item.code;
+          target.dispatchEvent(new Event('input',{bubbles:true}));
+          target.dispatchEvent(new Event('change',{bubbles:true}));
+          sync(target);close();
+        });
+        fragments.append(button);
+      }
+    }
+    list.replaceChildren(fragments);
+    count.textContent=matches+' currencies · '+matches+' 种可选币种';
+    if(!matches)list.append(make('p','mmh-v141-currency-empty','No matching currency · 未找到对应币种'));
+    list.scrollTop=0;
+  }
+  function open(el,trigger){
+    if(!el||el.disabled)return;
+    if(activeSelect)close();
+    ensureLayer();
+    activeSelect=el;activeTrigger=trigger;
+    previousBodyOverflow=document.body.style.overflow;
+    document.body.style.overflow='hidden';
+    layer.hidden=false;trigger.setAttribute('aria-expanded','true');
+    search.value='';render();search.focus({preventScroll:true});
+  }
+  function close(){
+    if(!activeSelect)return;
+    const target=activeTrigger;
+    activeSelect=null;activeTrigger=null;
+    if(layer)layer.hidden=true;
+    document.body.style.overflow=previousBodyOverflow===null?'':previousBodyOverflow;
+    previousBodyOverflow=null;
+    if(target){target.setAttribute('aria-expanded','false');if(target.isConnected)target.focus({preventScroll:true})}
+  }
+  function boot(){
+    scan(document);
+    new MutationObserver(changes=>{
+      for(const change of changes){
+        for(const node of change.addedNodes){
+          if(node.nodeType===1)scan(node);
+        }
+      }
+    }).observe(document.body,{childList:true,subtree:true});
+    window.addEventListener('pagehide',close);
+    window.addEventListener('popstate',close);
+  }
+  window.MMHVAULTCurrencyPickerV141={sync:identifier=>{
+    const el=typeof identifier==='string'?document.getElementById(identifier):identifier;
+    if(el){enhance(el);sync(el)}
+  },close};
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});
+  else boot();
+})();
+</script>
 </body>
 </html>
