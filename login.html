@@ -149,7 +149,7 @@ footer{width:min(1240px,calc(100% - 48px));margin:0 auto;}
 @media(max-width:520px){.recovery-hint{font-size:11px;padding:12px}}
 </style>
 <style id="n10-phase2">body .access{background:linear-gradient(145deg,rgba(5,18,34,.93),rgba(3,13,25,.89));border:1px solid rgba(239,194,114,.30);border-radius:26px;box-shadow:0 25px 90px rgba(0,0,0,.42);backdrop-filter:blur(25px);-webkit-backdrop-filter:blur(25px)}body .access .primary{background:linear-gradient(115deg,#c99b54,#f5d18c,#e0ac60);color:#111921}body .access .field{background:rgba(7,25,42,.68);border-color:rgba(178,196,211,.35)}body .access .field:focus-within{border-color:#eac17a}#signin .mmh-a740-method-switch{display:none!important}#smartRecovery{background:none;border:none;color:#ebc583;text-decoration:underline;cursor:pointer}#signin .row{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}#smartStatus[hidden],#mmhSmartCaptchaRetry[hidden]{display:none!important}#mmhSmartCaptchaRetry{display:block;margin:3px 0 12px;padding:8px 11px;border:1px solid rgba(230,187,113,.38);border-radius:10px;background:rgba(8,28,45,.72);color:#efd09d;cursor:pointer;font-size:12px}@media(max-width:600px){body .access{border-radius:20px}#smartRecovery{font-size:12px}}</style><style id="n10-recovery-modal-css">
-#mmhN10RecoveryDialog{position:fixed;inset:0;z-index:99999;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(1,8,17,.78);backdrop-filter:blur(15px);-webkit-backdrop-filter:blur(15px)}
+#mmhN10RecoveryDialog{position:fixed;inset:0;z-index:99999;display:none;align-items:center;justify-content:center;padding:max(14px,env(safe-area-inset-top)) 14px max(14px,env(safe-area-inset-bottom));overscroll-behavior:contain;background:rgba(1,8,17,.78);backdrop-filter:blur(15px);-webkit-backdrop-filter:blur(15px)}
 #mmhN10RecoveryDialog.mmh-open{display:flex}
 #mmhN10RecoveryPanel{width:min(490px,100%);max-height:min(90dvh,850px);overflow-y:auto;overscroll-behavior:contain;border-radius:23px;padding:23px;background:linear-gradient(145deg,rgba(8,26,44,.98),rgba(3,15,30,.98));border:1px solid rgba(239,193,110,.39);box-shadow:0 24px 85px rgba(0,0,0,.68),inset 0 1px rgba(255,255,255,.12);color:#e9eff4}
 #mmhN10RecoveryPanel #mmhA769Backup{display:block!important}
@@ -168,7 +168,7 @@ footer{width:min(1240px,calc(100% - 48px));margin:0 auto;}
 body.mmh-n10-modal-lock{overflow:hidden}
 @media(max-width:560px){#mmhN10RecoveryPanel{padding:17px 14px;max-height:94dvh}#mmhN10RecoveryPanel .mmh-a769-words{gap:5px}}
 </style><style id="mmh-n10-recovery-signin-css">
-#mmhN10RecoveryLoginOverlay{position:fixed;inset:0;z-index:100002;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(2,8,17,.82);backdrop-filter:blur(15px);-webkit-backdrop-filter:blur(15px)}
+#mmhN10RecoveryLoginOverlay{position:fixed;inset:0;z-index:100002;display:none;align-items:center;justify-content:center;padding:max(14px,env(safe-area-inset-top)) 14px max(14px,env(safe-area-inset-bottom));overscroll-behavior:contain;background:rgba(2,8,17,.82);backdrop-filter:blur(15px);-webkit-backdrop-filter:blur(15px)}
 #mmhN10RecoveryLoginOverlay.is-open{display:flex}
 #mmhN10RecoveryLoginPanel{width:min(495px,100%);max-height:min(94dvh,850px);overflow-y:auto;overscroll-behavior:contain;padding:24px;border-radius:24px;background:linear-gradient(145deg,rgba(8,27,45,.98),rgba(3,14,29,.98));border:1px solid rgba(238,194,113,.36);box-shadow:0 30px 90px rgba(0,0,0,.65);color:#e9eff4}
 #mmhN10RecoveryLoginPanel #usernameSignIn{display:block!important;animation:none}
@@ -202,7 +202,7 @@ body.mmh-n10-modal-lock{overflow:hidden}
 #mmhMfaDialogV783 #mmhMfaSignOutV783{display:block;margin:13px auto 0;padding:9px;background:none;border:0;color:#b5c3cd;cursor:pointer;font-size:12px}
 #mmhMfaDialogV783 button:focus-visible{outline:2px solid #f4d49e;outline-offset:3px}
 #mmhMfaDialogV783 .n10-mfa-footnote{text-align:center;font-size:11px;color:#8fa4b6;border-top:1px solid rgba(171,197,216,.13);margin-top:17px;padding-top:16px}
-#mmhN10RecoveryLoginOverlay,#mmhN10RecoveryOverlay{background:rgba(2,8,19,.86)!important;backdrop-filter:blur(19px);-webkit-backdrop-filter:blur(19px)}
+#mmhN10RecoveryLoginOverlay,#mmhN10RecoveryDialog{background:rgba(2,8,19,.86)!important;backdrop-filter:blur(19px);-webkit-backdrop-filter:blur(19px)}
 #mmhN10RecoveryLoginPanel,#mmhN10RecoveryPanel{border-color:rgba(239,203,139,.39)!important;box-shadow:0 35px 115px rgba(0,0,0,.75),inset 0 1px rgba(255,255,255,.1)!important}
 @media(max-width:480px){#mmhMfaDialogV783 .n10-mfa-sheet{padding:23px 20px;border-radius:21px}#mmhMfaDialogV783 [data-mfa-code]{letter-spacing:.17em}}
 @media(prefers-reduced-motion:no-preference){#mmhMfaDialogV783[data-open="true"] .n10-mfa-sheet{animation:n10MfaIn .22s ease-out both}@keyframes n10MfaIn{from{opacity:.55;transform:translateY(12px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}}
