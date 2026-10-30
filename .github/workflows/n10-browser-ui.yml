@@ -1,0 +1,44 @@
+name: N10 Browser UI Regression
+on:
+  pull_request:
+    paths:
+      - 'login.html'
+      - 'js/mmhvault-n10-a7-69-username.js'
+      - 'tests/n10_browser_ui.spec.cjs'
+      - '.github/workflows/n10-browser-ui.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  responsive-dialogs:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install pinned Chromium test runner
+        run: |
+          npm install --no-save --ignore-scripts @playwright/test@1.64.1
+          npx playwright install --with-deps chromium
+      - name: Serve repository locally (no production deployment)
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 > /tmp/n10-local-web.log 2>&1 &
+          for i in $(seq 1 20); do
+            if curl --fail --silent --head http://127.0.0.1:8765/login.html > /dev/null; then exit 0; fi
+            sleep 1
+          done
+          echo "Local server did not start"
+          exit 1
+      - name: Test dialogs on phone and desktop with mocked Auth
+        run: npx playwright test tests/n10_browser_ui.spec.cjs --reporter=line --workers=1
+      - name: Upload failure screenshots and traces
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: n10-ui-test-evidence
+          path: |
+            test-results/
+            playwright-report/
+          if-no-files-found: ignore
