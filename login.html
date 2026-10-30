@@ -185,10 +185,36 @@ footer{width:min(1240px,calc(100% - 48px));margin:0 auto;}
   <p id="mmhA740Status" class="mmh-a740-status" role="status" aria-live="polite">Username sign-in is not enabled yet.</p>
   <p class="mmh-a740-help">Forgot your password? <button type="button" id="mmhA740Forgot">Use email recovery</button></p>
   <p class="mmh-a740-help"><a id="mmhA741SetupLink" href="username-setup.html">Link a username to an existing account</a></p>
+  <p class="mmh-a740-help"><button type="button" data-switch="usernameSignUp">Create a username account</button></p>
 </form>
-<form class="form" id="signup"><label>Full name</label><div class="field"><input id="signupName" type="text" autocomplete="name" required placeholder="Your name"></div>
+<form class="form" id="signup">
+<div class="mmh-a740-method-switch" role="group" aria-label="Sign-up method">
+  <button type="button" data-mmh-a756-signup-method="email" aria-pressed="true">Email</button>
+  <button type="button" data-mmh-a756-signup-method="username" aria-pressed="false">Username</button>
+</div>
+<label>Full name</label><div class="field"><input id="signupName" type="text" autocomplete="name" required placeholder="Your name"></div>
 <div class="auth-email-flow"><label>Email</label><div class="field"><input id="signupEmail" type="email" autocomplete="email" inputmode="email" required placeholder="Email address"></div><label>Create password</label><div class="field"><input id="signupPassword" type="password" autocomplete="new-password" minlength="6" maxlength="20" required placeholder="Create a password"><button class="eye" type="button">Show</button></div><div class="row"><label class="remember"><input id="terms" type="checkbox"> I agree to the <a href="terms.html" target="_blank" rel="noopener">terms</a> and <a href="privacy.html" target="_blank" rel="noopener">privacy notice</a></label></div><button class="primary" type="submit">Create Account &nbsp; →</button></div>
 <div class="divider">or continue with</div><button class="google" id="googleSignUp" type="button" aria-describedby="googleAuthNoteSignUp"><svg viewBox="0 0 24 24"><path fill="#4285F4" d="M21.8 12.23c0-.7-.06-1.37-.18-2.02H12v3.82h5.5a4.7 4.7 0 0 1-2.04 3.08v2.54h3.3c1.93-1.78 3.04-4.4 3.04-7.42z"/><path fill="#34A853" d="M12 22c2.76 0 5.08-.91 6.77-2.35l-3.3-2.54c-.91.61-2.08.97-3.47.97-2.66 0-4.92-1.8-5.73-4.22H2.86v2.62A10.22 10.22 0 0 0 12 22z"/><path fill="#FBBC05" d="M6.27 13.86A6.15 6.15 0 0 1 5.95 12c0-.65.11-1.28.32-1.86V7.52H2.86A10.2 10.2 0 0 0 1.78 12c0 1.64.39 3.2 1.08 4.48l3.41-2.62z"/><path fill="#EA4335" d="M12 5.92c1.5 0 2.84.52 3.9 1.53l2.93-2.93C17.07 2.88 14.76 2 12 2a10.22 10.22 0 0 0-9.14 5.52l3.41 2.62C7.08 7.72 9.34 5.92 12 5.92z"/></svg>Sign up with Google</button><div class="oauth-note" id="googleAuthNoteSignUp">You will be redirected to Google through Supabase OAuth. MMHVAULT does not receive your Google password.</div><p class="switch">Already have an account? <button type="button" data-switch="signin">Sign In</button></p></form>
+<form class="form" id="usernameSignUp" autocomplete="off" novalidate>
+<div class="mmh-a740-method-switch" role="group" aria-label="Sign-up method">
+  <button type="button" data-mmh-a756-signup-method="email" aria-pressed="false">Email</button>
+  <button type="button" data-mmh-a756-signup-method="username" aria-pressed="true">Username</button>
+</div>
+<label for="mmhA756Name">Username</label>
+<div class="field"><input id="mmhA756Name" type="text" autocomplete="username" spellcheck="false" autocapitalize="none" minlength="4" maxlength="20" pattern="[a-z][a-z0-9_]{3,19}" required placeholder="Choose a username"></div>
+<p class="mmh-a740-guidance">4–20 characters · Start with a lowercase letter, then letters, numbers or underscore.</p>
+<label for="mmhA756Password">Create password</label>
+<div class="field"><input id="mmhA756Password" type="password" autocomplete="new-password" minlength="6" maxlength="20" required placeholder="Create a password"><button type="button" class="eye">Show</button></div>
+<label for="mmhA756Confirm">Confirm password</label>
+<div class="field"><input id="mmhA756Confirm" type="password" autocomplete="new-password" minlength="6" maxlength="20" required placeholder="Confirm password"><button type="button" class="eye">Show</button></div>
+<label for="mmhA756Recovery">Recovery email (recommended)</label>
+<div class="field"><input id="mmhA756Recovery" type="email" autocomplete="email" inputmode="email" placeholder="Email for account recovery"></div>
+<p class="mmh-a740-guidance">Without a verified recovery method, you may not be able to reset your password.</p>
+<div class="row"><label class="remember"><input type="checkbox" id="mmhA756Terms"> I agree to the <a href="terms.html" target="_blank" rel="noopener">terms</a> and <a href="privacy.html" target="_blank" rel="noopener">privacy notice</a></label></div>
+<button class="primary" type="submit" id="mmhA756Submit" disabled>Create Username Account</button>
+<p class="mmh-a740-status" id="mmhA756Status" role="status" aria-live="polite">Username-only registration is not available yet. Email registration remains available.</p>
+<p class="switch"><button type="button" data-switch="signup">Use email sign-up instead</button></p>
+</form>
 <form class="form" id="recovery" autocomplete="off">
   <p class="recovery-hint" id="recoveryHelp">Choose a new password for your MMHVAULT account. This form is available only after opening a password recovery link from your email.</p>
   <label for="recoveryPassword">New password</label>
@@ -208,7 +234,7 @@ footer{width:min(1240px,calc(100% - 48px));margin:0 auto;}
     'Home':'首页','Features':'功能','Security':'安全','Experience':'体验','About':'关于','Login':'登录',
     'PERSONAL WEALTH INTELLIGENCE · VERSION 4.3.0':'个人财富智能 · 版本 4.3.0',
     'SECURE ACCESS · VERSION 4.0':'安全访问 · 版本 4.0','Welcome Back':'欢迎回来','Access your private MMHVAULT workspace':'进入你的私密 MMHVAULT 工作空间','Create Your Vault':'创建你的 Vault','Start your private wealth workspace':'开始你的私人财富工作空间',
-    '🔒 Sign In':'🔒 登录','✦ Sign Up':'✦ 注册','Sign-in method':'登录方式','Username':'用户名','Your username':'输入用户名','4–20 characters · Only lowercase letters, numbers and underscore.':'4–20 个字符 · 仅限小写字母、数字及下划线。','Username sign-in is not enabled yet.':'用户名登录尚未开放。','Email':'邮箱','Email address':'邮箱地址','Password':'密码','Show':'显示','Hide':'隐藏','Remember me':'记住我','Forgot password?':'忘记密码？','or continue with':'或使用以下方式继续','Continue with Google':'使用 Google 继续','Sign in with Google':'使用 Google 登录','Sign up with Google':'使用 Google 注册','Security':'安全',"Don't have an account?":'还没有账户？','Sign Up':'注册','Full name':'姓名','Your name':'你的姓名','Create password':'创建密码','Create a password':'创建密码','I agree to the terms':'我同意相关条款','Create Account':'创建账户','Already have an account?':'已经有账户？','Private · Intelligent · Built Around You':'私密 · 智能 · 围绕你而建','© 2026 MMHVAULT · Version 4.0':'© 2026 MMHVAULT · 版本 4.0','· Version 4.0':'· 版本 4.0','Version 4.0':'版本 4.0','MMHVAULT logo':'MMHVAULT 标志','Menu':'菜单',
+    '🔒 Sign In':'🔒 登录','✦ Sign Up':'✦ 注册','Sign-in method':'登录方式','Sign-up method':'注册方式','Username':'用户名','Your username':'输入用户名','4–20 characters · Only lowercase letters, numbers and underscore.':'4–20 个字符 · 仅限小写字母、数字及下划线。','Username sign-in is not enabled yet.':'用户名登录尚未开放。','Create a username account':'创建用户名账户','Create Username Account':'创建用户名账户','Choose a username':'设置用户名','Confirm password':'确认密码','Recovery email (recommended)':'恢复邮箱（推荐）','Email for account recovery':'用于找回账户的邮箱','4–20 characters · Start with a lowercase letter, then letters, numbers or underscore.':'4–20 个字符，以小写字母开头，可使用数字和下划线。','Without a verified recovery method, you may not be able to reset your password.':'没有经过验证的找回方式，忘记密码后可能无法恢复账户。','Username-only registration is not available yet. Email registration remains available.':'用户名独立注册尚未开放，目前可使用邮箱注册。','Use email sign-up instead':'改用邮箱注册','Email':'邮箱','Email address':'邮箱地址','Password':'密码','Show':'显示','Hide':'隐藏','Remember me':'记住我','Forgot password?':'忘记密码？','or continue with':'或使用以下方式继续','Continue with Google':'使用 Google 继续','Sign in with Google':'使用 Google 登录','Sign up with Google':'使用 Google 注册','Security':'安全',"Don't have an account?":'还没有账户？','Sign Up':'注册','Full name':'姓名','Your name':'你的姓名','Create password':'创建密码','Create a password':'创建密码','I agree to the terms':'我同意相关条款','Create Account':'创建账户','Already have an account?':'已经有账户？','Private · Intelligent · Built Around You':'私密 · 智能 · 围绕你而建','© 2026 MMHVAULT · Version 4.0':'© 2026 MMHVAULT · 版本 4.0','· Version 4.0':'· 版本 4.0','Version 4.0':'版本 4.0','MMHVAULT logo':'MMHVAULT 标志','Menu':'菜单',
     'Signing in…':'正在登录…','Authentication service is unavailable.':'身份验证服务暂不可用。','Authentication service is unavailable. Please refresh.':'身份验证服务暂不可用，请刷新页面。','Incorrect email or password.':'邮箱或密码错误。','Opening Google sign-in…':'正在打开 Google 登录…','Unable to sign in with Google.':'无法使用 Google 登录。','Creating your account…':'正在创建账户…','Please agree to the terms.':'请同意相关条款。','Account created. Please check your email to confirm your account.':'账户已创建，请检查邮箱完成确认。','Enter your email first, then try again.':'请先输入邮箱，然后重试。','Sending reset email…':'正在发送密码重置邮件…','Password reset email sent. Please check your inbox.':'密码重置邮件已发送，请检查收件箱。','Email not confirmed':'邮箱尚未完成验证。','User already registered':'该邮箱已经注册。','Password should be at least 6 characters.':'密码至少需要 6 个字符。','Choose a new password for your MMHVAULT account. This form is available only after opening a password recovery link from your email.':'请为 MMHVAULT 账户设置新密码。只有打开邮箱中的密码重置链接后，才能使用此表单。','New password':'新密码','Confirm new password':'确认新密码','At least 10 characters':'至少 10 个字符','Enter the password again':'再次输入新密码','Update Password':'更新密码','Return to Sign In':'返回登录','Reset Your Password':'重置您的密码','Choose a secure new password':'请设置安全的新密码','Checking password recovery link…':'正在验证密码重置链接…','This recovery link is invalid or has expired. Request a new email from the Sign In page.':'此密码重置链接无效或已过期，请返回登录页重新申请邮件。','Passwords do not match.':'两次输入的密码不一致。','Please use at least 10 characters.':'新密码至少需要 10 个字符。','Updating password…':'正在更新密码…','Password updated. Sign in again with your new password.':'密码已更新，请使用新密码重新登录。','Unable to update password. Request a fresh recovery email.':'无法更新密码，请重新申请密码重置邮件。','Unable to validate email address: invalid format':'邮箱格式无效。','Email rate limit exceeded':'邮件发送频率已达到限制，请稍后再试。','For security purposes, you can only request this once every 60 seconds.':'出于安全原因，每 60 秒只能请求一次。','Email address is invalid':'邮箱地址无效。','Password is too weak':'密码强度不足。','Google sign-in was cancelled or could not be completed. Please try again.':'Google 登录被取消或未能完成，请重试。','Verifying sign-in callback…':'正在核实登录回调…','Unable to verify this sign-in. Please sign in again.':'无法验证本次登录，请重新登录。'
   };
   const buttons=[...document.querySelectorAll('.mmh-lang-switcher button[data-lang]')];
@@ -238,9 +264,11 @@ footer{width:min(1240px,calc(100% - 48px));margin:0 auto;}
   function updateDynamicControls(){
     const signin=document.querySelector('#signin .primary');
     const signup=document.querySelector('#signup .primary');
+    const usernameSignup=document.querySelector('#usernameSignUp .primary');
     const recovery=document.getElementById('recoverySave');
     if(signin) signin.textContent=zh()?'登录  →':'Sign In  →';
     if(signup) signup.textContent=zh()?'创建账户  →':'Create Account  →';
+    if(usernameSignup) usernameSignup.textContent=zh()?'创建用户名账户':'Create Username Account';
     if(recovery) recovery.textContent=zh()?'更新密码':'Update Password';
     document.querySelectorAll('.eye').forEach(btn=>{
       const input=btn.parentElement && btn.parentElement.querySelector('input');
@@ -253,10 +281,10 @@ footer{width:min(1240px,calc(100% - 48px));margin:0 auto;}
     placeholders.forEach(o=>o.el.setAttribute('placeholder',tr(o.key)));
     attrs.forEach(o=>o.el.setAttribute(o.a,tr(o.key)));
     const formId=(document.querySelector('.form.active')||{}).id;
-    const activeForm=formId==='recovery'?'recovery':formId==='signup'?'signup':'signin';
-    if(title) title.textContent=zh()?(activeForm==='recovery'?'重置您的密码':activeForm==='signup'?'创建你的 Vault':'欢迎回来'):(activeForm==='recovery'?'Reset Your Password':activeForm==='signup'?'Create Your Vault':'Welcome Back');
+    const activeForm=formId==='recovery'?'recovery':formId==='signup'?'signup':formId==='usernameSignUp'?'usernameSignUp':'signin';
+    if(title) title.textContent=zh()?(activeForm==='recovery'?'重置您的密码':activeForm==='usernameSignUp'?'创建用户名账户':activeForm==='signup'?'创建你的 Vault':'欢迎回来'):(activeForm==='recovery'?'Reset Your Password':activeForm==='usernameSignUp'?'Create Username Account':activeForm==='signup'?'Create Your Vault':'Welcome Back');
     if(subtitle){
-      subtitle.textContent=zh()?(activeForm==='recovery'?'请设置安全的新密码':activeForm==='signup'?'开始你的私人财富工作空间':'进入你的私密 MMHVAULT 工作空间'):(activeForm==='recovery'?'Choose a secure new password':activeForm==='signup'?'Start your private wealth workspace':'Access your private MMHVAULT workspace');
+      subtitle.textContent=zh()?(activeForm==='recovery'?'请设置安全的新密码':activeForm==='usernameSignUp'?'创建独立用户名账户':'开始你的私人财富工作空间'):(activeForm==='recovery'?'Choose a secure new password':activeForm==='usernameSignUp'?'Create your username-based account':'Start your private wealth workspace');
     }
     updateDynamicControls();
     document.documentElement.lang=zh()?'zh-CN':'en';
@@ -358,7 +386,11 @@ async function verifiedRedirectV946(expectedUserId){
 }
 function openForm(id){
   if(recoveryVerifiedV944&&document.getElementById('recovery').classList.contains('active'))return;
-  const currentForm=id==='signup'?'signup':'signin';tabs.forEach(t=>t.classList.toggle('active',t.dataset.target===currentForm));forms.forEach(f=>f.classList.toggle('active',f.id===currentForm));msg('');if(window.applyMMHVAULTLanguage)window.applyMMHVAULTLanguage();
+  const currentForm=id==='usernameSignUp'?'usernameSignUp':id==='signup'?'signup':'signin';
+  const mainTab=currentForm==='usernameSignUp'?'signup':currentForm;
+  tabs.forEach(t=>t.classList.toggle('active',t.dataset.target===mainTab));
+  forms.forEach(f=>f.classList.toggle('active',f.id===currentForm));
+  msg('');if(window.applyMMHVAULTLanguage)window.applyMMHVAULTLanguage();
 }
 tabs.forEach(t=>t.onclick=()=>openForm(t.dataset.target));document.querySelectorAll('[data-switch]').forEach(b=>b.onclick=()=>openForm(b.dataset.switch));document.querySelectorAll('.eye').forEach(b=>b.onclick=()=>{const i=b.parentElement.querySelector('input');const show=i.type==='password';i.type=show?'text':'password';const zh=isZhV1531();b.textContent=zh?(show?'隐藏':'显示'):(show?'Hide':'Show')});
 async function googleLogin(btn){if(!db){msg('Authentication service is unavailable. Please refresh.','err');return}btn.disabled=true;msg('Opening Google sign-in…');try{const {error}=await db.auth.signInWithOAuth({provider:'google',options:{redirectTo:loginCallbackUrlV160()}});if(error)throw error}catch(e){console.error(e);msg(e.message||'Unable to sign in with Google.','err');btn.disabled=false}}
@@ -499,4 +531,5 @@ if(db){
 @media(max-width:520px){.mmh-a740-method-switch button{padding:10px 5px;font-size:12px}}
 </style>
 <script src="./js/mmhvault-n10-a7-40-username.js"></script>
+<script src="./js/mmhvault-n10-a7-56-username-signup.js"></script>
 </body></html>
