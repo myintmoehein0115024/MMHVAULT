@@ -141,6 +141,7 @@ function showRecoveryLogin(){
  // Make the dialog visible before rendering the security challenge.
  // Rendering an invisible widget inside a display:none ancestor can fail
  // and prevent the username-only recovery flow from being submitted.
+ recoveryLoginOverlay.setAttribute('aria-label',tr('使用恢复密钥登录','Use Recovery Key'));
  recoveryLoginOverlay.classList.add('is-open');
  document.body.classList.add('mmh-n10-modal-lock');
  openForm('usernameSignIn');
@@ -172,10 +173,22 @@ recoveryPanel.appendChild(backup);
 const modalConfirm=$('mmhA769ModalConfirm');
 const recoveryNotice=document.createElement('p');recoveryNotice.id='mmhN10RecoveryNotice';recoveryNotice.setAttribute('role','status');recoveryNotice.setAttribute('aria-live','polite');recoveryNotice.style.cssText='margin:12px 0;color:#f4d5a2;font-size:12px;line-height:1.55';recoveryPanel.appendChild(recoveryNotice);
 function noticeRecovery(message){recoveryNotice.textContent=message;}
-function closeRecoveryModal(){recoveryHost.classList.remove('mmh-open');document.body.classList.remove('mmh-n10-modal-lock');}
-function openRecoveryModal(){recoveryHost.classList.add('mmh-open');document.body.classList.add('mmh-n10-modal-lock');($('mmhA769Copy')||backupAgree)?.focus();}
+let restoreRecoveryFocus=null;
+function closeRecoveryModal(){
+ recoveryHost.classList.remove('mmh-open');
+ document.body.classList.remove('mmh-n10-modal-lock');
+ if(restoreRecoveryFocus?.isConnected&&restoreRecoveryFocus.getClientRects().length)restoreRecoveryFocus.focus();
+ restoreRecoveryFocus=null;
+}
+function openRecoveryModal(){
+ if(!recoveryHost.classList.contains('mmh-open'))restoreRecoveryFocus=document.activeElement;
+ recoveryHost.setAttribute('aria-label',tr('您的永久恢复密钥','Your permanent recovery key'));
+ recoveryHost.classList.add('mmh-open');
+ document.body.classList.add('mmh-n10-modal-lock');
+ ($('mmhA769Copy')||backupAgree)?.focus();
+}
 recoveryHost.addEventListener('keydown',event=>{
- if(event.key==='Escape'){event.preventDefault();if(loading){noticeRecovery(tr('账户操作正在进行中，请不要关闭恢复密钥窗口。','Account action in progress. Do not close the recovery key dialog.'));return;}$('mmhA769Cancel')?.focus();}
+ if(event.key==='Escape'){event.preventDefault();noticeRecovery(loading?tr('账户操作正在进行中，请不要关闭恢复密钥窗口。','Account action in progress. Do not close the recovery key dialog.'):tr('请先安全备份全部十词，再选择取消或完成注册。','Securely save all ten words, then choose Cancel or Complete registration.'));$('mmhA769Cancel')?.focus();return;}
  if(event.key==='Tab'){
   const available=[...recoveryPanel.querySelectorAll('button:not([disabled]),input:not([disabled]),a[href]')].filter(el=>el.getClientRects().length);
   if(!available.length)return;
