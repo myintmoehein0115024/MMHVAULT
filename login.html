@@ -205,8 +205,8 @@ footer{width:min(1240px,calc(100% - 48px));margin:0 auto;}
   <button type="button" data-mmh-a756-signup-method="email" aria-pressed="true">Email</button>
   <button type="button" data-mmh-a756-signup-method="username" aria-pressed="false">Username</button>
 </div>
-<label>Full name</label><div class="field"><input id="signupName" type="text" autocomplete="name" required placeholder="Your name"></div>
-<div class="auth-email-flow"><label>Email</label><div class="field"><input id="signupEmail" type="email" autocomplete="email" inputmode="email" required placeholder="Email address"></div><label>Create password</label><div class="field"><input id="signupPassword" type="password" autocomplete="new-password" minlength="6" maxlength="20" required placeholder="Create a password"><button class="eye" type="button">Show</button></div><div class="row"><label class="remember"><input id="terms" type="checkbox"> I agree to the <a href="terms.html" target="_blank" rel="noopener">terms</a> and <a href="privacy.html" target="_blank" rel="noopener">privacy notice</a></label></div><button class="primary" type="submit">Create Account &nbsp; →</button></div>
+<input id="signupName" type="hidden" value="">
+<div class="auth-email-flow"><label>Email</label><div class="field"><input id="signupEmail" type="email" autocomplete="email" inputmode="email" required placeholder="Email address"></div><label>Create password</label><div class="field"><input id="signupPassword" type="password" autocomplete="new-password" minlength="6" maxlength="20" required placeholder="Create a password"><button class="eye" type="button">Show</button></div><label>Confirm password</label><div class="field"><input id="signupConfirmPassword" type="password" autocomplete="new-password" minlength="6" maxlength="20" required placeholder="Confirm password"><button class="eye" type="button">Show</button></div><div class="row"><label class="remember"><input id="terms" type="checkbox"> I agree to the <a href="terms.html" target="_blank" rel="noopener">terms</a> and <a href="privacy.html" target="_blank" rel="noopener">privacy notice</a></label></div><button class="primary" type="submit">Create Account &nbsp; →</button></div>
 <div class="divider">or continue with</div><button class="google" id="googleSignUp" type="button" aria-describedby="googleAuthNoteSignUp"><svg viewBox="0 0 24 24"><path fill="#4285F4" d="M21.8 12.23c0-.7-.06-1.37-.18-2.02H12v3.82h5.5a4.7 4.7 0 0 1-2.04 3.08v2.54h3.3c1.93-1.78 3.04-4.4 3.04-7.42z"/><path fill="#34A853" d="M12 22c2.76 0 5.08-.91 6.77-2.35l-3.3-2.54c-.91.61-2.08.97-3.47.97-2.66 0-4.92-1.8-5.73-4.22H2.86v2.62A10.22 10.22 0 0 0 12 22z"/><path fill="#FBBC05" d="M6.27 13.86A6.15 6.15 0 0 1 5.95 12c0-.65.11-1.28.32-1.86V7.52H2.86A10.2 10.2 0 0 0 1.78 12c0 1.64.39 3.2 1.08 4.48l3.41-2.62z"/><path fill="#EA4335" d="M12 5.92c1.5 0 2.84.52 3.9 1.53l2.93-2.93C17.07 2.88 14.76 2 12 2a10.22 10.22 0 0 0-9.14 5.52l3.41 2.62C7.08 7.72 9.34 5.92 12 5.92z"/></svg>Sign up with Google</button><div class="oauth-note" id="googleAuthNoteSignUp">You will be redirected to Google through Supabase OAuth. MMHVAULT does not receive your Google password.</div><p class="switch">Already have an account? <button type="button" data-switch="signin">Sign In</button></p></form>
 <form class="form" id="usernameSignUp" autocomplete="off" novalidate>
 <div class="mmh-a740-method-switch" role="group" aria-label="Sign-up method">
@@ -480,12 +480,13 @@ document.getElementById('signin').addEventListener('submit',async e=>{
 document.getElementById('signup').addEventListener('submit',async e=>{
   e.preventDefault();const btn=document.querySelector('#signup .primary');if(btn.disabled)return;
   if(!db){msg('Authentication service is unavailable.','err');return}
+  if(signupPassword.value!==document.getElementById('signupConfirmPassword').value){msg('Passwords do not match.','err');return}
   if(!terms.checked){msg('Please agree to the terms.','err');return}
   btn.disabled=true;msg('Creating your account…');
   try{
     const {data,error}=await db.auth.signUp({email:signupEmail.value.trim(),password:signupPassword.value,options:{data:{full_name:signupName.value.trim()},emailRedirectTo:loginCallbackUrlV160()}});
     if(error)throw error;
-    signupPassword.value='';
+    signupPassword.value='';document.getElementById('signupConfirmPassword').value='';
     if(data?.session){await verifiedRedirectV946(data.session.user?.id);return}
     msg('Account created. Please check your email to confirm your account.','ok');
   }catch(error){msg(error?.message||'Authentication service is unavailable.','err')}
@@ -719,5 +720,5 @@ main{padding:32px 18px 45px}
 @media(prefers-reduced-motion:reduce){.form.active{animation:none}.mmh-a780-security-icon::after{animation:none!important}#authTabs .tab,.form .primary{transition:none!important}}
 </style>
 <script src="./js/vendor/qrcode-1.0.0.min.js"></script>
-<script src="./js/mmhvault-n10-a7-69-username.js?v=10.782.1"></script>
+<script src="./js/mmhvault-n10-a7-69-username.js?v=n10-phase2-20261030"></script>
 </body></html>
