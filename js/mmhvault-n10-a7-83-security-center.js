@@ -108,7 +108,9 @@ $('mmhA783KeySaveQr').addEventListener('click',()=>{
  const a=document.createElement('a');a.href=src;a.download='MMHVAULT-Private-Recovery-QR.png';document.body.append(a);a.click();a.remove();
 });
 $('mmhA783TotpStart').addEventListener('click',async()=>{
- if(busy)return;busy=true;
+ if(busy)return;
+ if(!$('mmhA783TotpConsent')?.checked){status('Please confirm that you understand the backup requirements before enabling two-step verification.');return}
+ busy=true;
  try{
   await verifiedUser();
   const existing=await client().auth.mfa.listFactors();
