@@ -2,7 +2,7 @@
 <html lang="en"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow,noarchive"><meta name="theme-color" content="#07101b">
-<title>MMHVAULT · Username Setup (Closed Candidate)</title>
+<title>MMHVAULT · Link Username</title><link rel="icon" href="images/mmhvault-logo-transparent.png">
 <style>
 :root{color-scheme:dark;--gold:#eecb81;--muted:#acb8c7;--line:rgba(239,202,125,.25)}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,Inter,system-ui,sans-serif}
@@ -22,6 +22,24 @@ button.primary:disabled{opacity:.47;cursor:not-allowed}
 .links{display:flex;flex-wrap:wrap;gap:18px;margin-top:18px;font-size:13px}.links a{color:#a8d9fa;text-decoration:none}
 #mmhA741BindCaptcha{min-height:0;margin-top:15px}#mmhA741BindCaptcha[hidden]{display:none}
 @media(max-width:430px){body{padding:12px}main{margin:22px auto;padding:21px;border-radius:20px}.header{align-items:flex-start}}
+</style>
+<style id="mmh-a781-bind-liquid-glass">
+body{background:#04111e url('images/mmhvault-auth-bg.png') center / cover fixed no-repeat;padding:clamp(12px,3vw,30px)}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;background:linear-gradient(110deg,rgba(2,10,19,.87),rgba(6,20,35,.63),rgba(3,11,20,.85))}
+main{position:relative;z-index:1;max-width:515px;margin:clamp(20px,7vh,80px) auto 36px;padding:clamp(22px,4vw,35px);border:1px solid rgba(225,186,118,.32);border-radius:26px;background:linear-gradient(145deg,rgba(17,35,55,.92),rgba(5,19,34,.96));box-shadow:0 28px 92px rgba(0,0,0,.54),inset 0 1px rgba(255,255,255,.08);backdrop-filter:blur(26px) saturate(1.25);-webkit-backdrop-filter:blur(26px) saturate(1.25)}
+.brand{font-size:14px;letter-spacing:.16em;color:#f3d39c}
+.lang{border-color:rgba(237,199,130,.3);background:rgba(20,44,60,.45);color:#f4e0ba}
+h1{font-size:clamp(26px,5vw,34px);line-height:1.25;margin:25px 0 9px;letter-spacing:-.04em}
+.info{font-size:13px;color:#abc0d0;margin-bottom:23px}
+label{font-size:12px;color:#bdccda}
+input{background:rgba(3,16,29,.8);border:1px solid rgba(126,163,189,.35);border-radius:13px;padding:14px 15px}
+input:focus-visible{outline:2px solid #e6bd7b;outline-offset:2px}
+.hint{font-size:11px;color:#95acbf;line-height:1.65}
+button.primary{border:0;border-radius:14px;background:linear-gradient(120deg,#cda362,#ffe1a1 52%,#d6aa61);color:#182332;min-height:51px;font-size:14px;font-weight:800;box-shadow:0 9px 28px rgba(218,164,83,.15)}
+.status{padding:12px 14px;min-height:48px;background:rgba(13,39,54,.5);border:1px solid rgba(129,173,183,.19);border-radius:12px;font-size:12px;color:#f5d5a0}
+.links{margin-top:20px}.links a{color:#eed09a;font-size:12px}
+#mmhA741BindCaptcha{height:0;min-height:0;margin:0;overflow:visible}
+@media(max-width:430px){main{margin:20px auto 26px;padding:22px 19px;border-radius:22px}h1{font-size:25px}}
 </style></head>
 <body>
 <main><div class="header"><div class="brand">MMHVAULT</div><button type="button" id="mmhA741Language" class="lang" aria-label="Switch language">中文 / EN</button></div>
@@ -36,11 +54,11 @@ button.primary:disabled{opacity:.47;cursor:not-allowed}
 <p class="hint" id="mmhA741PasswordHint">Never share your password. Google-only accounts may need to set a password through verified email recovery first.</p>
 <div id="mmhA741BindCaptcha" hidden></div>
 <button class="primary" id="mmhA741BindSubmit" type="submit" disabled>Link username</button>
-<p class="status" id="mmhA741BindStatus" role="status" aria-live="polite">Username setup is not open yet.</p>
+<p class="status" id="mmhA741BindStatus" role="status" aria-live="polite">Checking your session and secure username linking…</p>
 </form>
-<nav class="links"><a href="app.html" id="mmhA741Back">Back to dashboard</a><a href="login.html?next=username-setup.html" id="mmhA741Recovery">Email recovery / sign in</a></nav>
+<nav class="links"><a href="app.html" id="mmhA741Back">Back to dashboard</a><a href="login.html?next=username-setup.html" id="mmhA741Recovery">Email sign-in / password recovery</a></nav>
 </main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/dist/umd/supabase.js"></script>
 <script>const MMH_A741_PROJECT='https://vrypucmyrztxgiqhjspd.supabase.co',MMH_A741_PUBLISHABLE='sb_publishable_H38v4XbO0ARnSJToD42wGg_27-SZ3Ao';</script>
-<script src="./js/mmhvault-n10-a7-41-bind.js"></script>
+<script src="./js/mmhvault-n10-a7-41-bind.js?v=10.781.2"></script>
 </body></html>
