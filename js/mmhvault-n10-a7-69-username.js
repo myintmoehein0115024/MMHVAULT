@@ -91,7 +91,31 @@ async function preflight(){
  try{const x=await request({action:'preflight'});pilotOnly=x.body?.qa_only===true;setEnabled(x.response.ok&&x.body?.production===true&&x.body?.enabled===true);}
  catch{setEnabled(false);}
 }
-function clearPhrase(){if(prepared){prepared.phrase.fill('');prepared=null}wordsPanel?.replaceChildren();qr?.replaceChildren();backupAgree.checked=false;backup.classList.add('mmh-a769-hidden');}
+const recoveryHost=document.createElement('div');
+recoveryHost.id='mmhN10RecoveryDialog';
+recoveryHost.setAttribute('role','dialog');
+recoveryHost.setAttribute('aria-modal','true');
+recoveryHost.setAttribute('aria-label','Your recovery key');
+const recoveryPanel=document.createElement('div');
+recoveryPanel.id='mmhN10RecoveryPanel';
+recoveryHost.appendChild(recoveryPanel);
+document.body.appendChild(recoveryHost);
+recoveryPanel.appendChild(backup);
+const modalConfirm=$('mmhA769ModalConfirm');
+function closeRecoveryModal(){recoveryHost.classList.remove('mmh-open');document.body.classList.remove('mmh-n10-modal-lock');}
+function openRecoveryModal(){recoveryHost.classList.add('mmh-open');document.body.classList.add('mmh-n10-modal-lock');modalConfirm?.focus();}
+recoveryHost.addEventListener('keydown',event=>{
+ if(event.key==='Escape'){event.preventDefault();$('mmhA769Cancel')?.focus();}
+ if(event.key==='Tab'){
+  const available=[...recoveryPanel.querySelectorAll('button:not([disabled]),input:not([disabled]),a[href]')].filter(el=>el.getClientRects().length);
+  if(!available.length)return;
+  const first=available[0],last=available[available.length-1];
+  if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}
+  else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}
+ }
+});
+modalConfirm?.addEventListener('click',()=>{if(!backupAgree.checked||!prepared||loading)return;signup.requestSubmit();});
+function clearPhrase(){if(prepared){prepared.phrase.fill('');prepared=null}wordsPanel?.replaceChildren();qr?.replaceChildren();backupAgree.checked=false;backup.classList.add('mmh-a769-hidden');closeRecoveryModal();}
 function viewBackup(){
  if(!prepared||!wordsPanel||!qr)return;
  wordsPanel.replaceChildren();
@@ -100,11 +124,11 @@ function viewBackup(){
  try{if(typeof QRCode==='function')new QRCode(qr,{text:'MMHVAULT-RECOVERY-V1\nUSERNAME:'+prepared.username+'\nPHRASE:'+prepared.phrase.join(' '),width:206,height:206,colorDark:'#000',colorLight:'#fff',correctLevel:QRCode.CorrectLevel.L});
  else qr.textContent=tr('二维码组件暂不可用，请手动备份单词。','QR component unavailable; back up the words manually.');}
  catch{qr.textContent=tr('二维码生成失败，请手动保存十词。','Could not create QR. Write down the ten words.')}
- backup.classList.remove('mmh-a769-hidden');
+ backup.classList.remove('mmh-a769-hidden');openRecoveryModal();
  showStatus(tr('先保存全部 10 个词和二维码，再完成注册。','Save all ten words and the QR code before completing registration.'),sstatus);
- sbutton.textContent=tr('完成备份并创建账户','Confirm backup & create account');sbutton.disabled=true;
+ sbutton.textContent=tr('完成备份并创建账户','Confirm backup & create account');sbutton.disabled=true;if(modalConfirm)modalConfirm.disabled=true;
 }
-function updateSignupState(){if(!enabled||loading){sbutton.disabled=true;return}sbutton.disabled=!!prepared&&!backupAgree.checked}
+function updateSignupState(){const blocked=!enabled||loading||(!!prepared&&!backupAgree.checked);sbutton.disabled=blocked;if(modalConfirm)modalConfirm.disabled=blocked||!prepared;}
 backupAgree?.addEventListener('change',updateSignupState);
 $('mmhA769Copy')?.addEventListener('click',async()=>{
  if(!prepared)return;try{await navigator.clipboard.writeText(prepared.phrase.join(' '));showStatus(tr('已复制十词。剪贴板可能被其他应用读取。','Words copied. Other apps may access your clipboard.'),sstatus)}catch{showStatus(tr('复制失败，请手动记录。','Copy failed; please write down the words.'),sstatus)}
@@ -163,7 +187,7 @@ signup.addEventListener('submit',async e=>{
    showStatus(tr('账户已创建，正在核实登录身份…','Account created; verifying sign-in…'),sstatus);
    await handoff(r.body,expected);
   }
- }catch(err){showStatus(tr('操作未完成：','Not completed: ')+(err?.message||'network_unavailable'),sstatus);if(!prepared){resetCaptcha();loadCaptcha()}}
+ }catch(err){showStatus(tr('操作未完成：','Not completed: ')+(err?.message||'network_unavailable'),sstatus);if(prepared){openRecoveryModal();}else{resetCaptcha();loadCaptcha()}}
  finally{loading=false;updateSignupState()}
 },true);
 function chooseMode(mode){
