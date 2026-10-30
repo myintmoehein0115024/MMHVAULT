@@ -75,7 +75,10 @@
       catch(_){hasVerifiedSession=false;}
     }
     paint();
-    if(serverReady)void challenge();
+    if(safeReady()){
+      message('验证已完成。请选择一个新的用户名，并输入当前邮箱账户密码进行绑定。','Ready. Choose a username and enter the current password for your email account.');
+      void challenge();
+    }
   }
   async function verifiedSession(){
     if(!client)client=window.supabase.createClient(MMH_A741_PROJECT,MMH_A741_PUBLISHABLE);
