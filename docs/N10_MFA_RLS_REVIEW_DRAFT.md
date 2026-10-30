@@ -105,3 +105,15 @@ For production, the rollback must be generated from and reconciled with the **re
 Official references:
 - https://supabase.com/docs/guides/auth/auth-mfa
 - https://www.postgresql.org/docs/current/sql-createpolicy.html
+
+
+## Extended read-only access-surface inventory — 2026-10-30
+
+The catalog audit found **64 public tables**, one public view, 64 public functions, and 11 storage.objects policies. All 64 public tables have RLS enabled; the 210 policies cover 59 of them (RLS tables without permissive policies default to deny).
+
+- Public view `investment_catalog_legacy_map` has `security_invoker=true`; both anon and authenticated possess SELECT grants. Classify its contents before imposing an MFA gate.
+- Public functions: 10 SECURITY DEFINER; 35 callable by authenticated, including **one SECURITY DEFINER authenticated function**: `mmh_delete_crypto_wallet_movement_v4(p_id uuid)`. Its owner and body require review; privileged code may bypass ordinary RLS. Never test deletion on real wallets.
+- Storage contains 11 policies for buckets `receipts`, `mmh-feedback`, `mmh-business-assets`. Existing storage policies use UID/path/admin checks, not explicit MFA AAL checks; MFA-enrolled AAL1 access must be negatively tested there too.
+- An internal read-only MFA factor check must not leak factors and must reject missing UID. Ordinary authenticated role cannot SELECT auth.mfa_factors directly.
+
+Mandatory synthetic-only staging matrix: MFA enrolled AAL1 deny, AAL2 allow, unenrolled AAL1 allow, wrong UID deny; exercise direct table REST read/write, storage upload/download/delete, the privileged crypto wallet RPC, the invoker view, expired JWT, TOTP enrollment/removal and the 10-word recovery login. Classify shared public catalog data separately. Keep current owner policies and all production data unchanged until separate explicit authorization and rollback rehearsal.
