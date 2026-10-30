@@ -28,7 +28,7 @@ class N10AuthContract(unittest.TestCase):
                        "chooseMode('phrase')", "closeRecoveryLogin()",
                        "mmhN10RecoveryClose"):
             self.assertIn(marker, JS)
-        self.assertIn('role="dialog"', JS)
+        self.assertIn("setAttribute('role','dialog')", JS)
 
     def test_mfa_challenge_and_aal2_handoff(self):
         for marker in ("mmhMfaDialogV783", "getAuthenticatorAssuranceLevel",
