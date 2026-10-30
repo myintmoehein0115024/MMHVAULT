@@ -175,7 +175,7 @@ function noticeRecovery(message){recoveryNotice.textContent=message;}
 function closeRecoveryModal(){recoveryHost.classList.remove('mmh-open');document.body.classList.remove('mmh-n10-modal-lock');}
 function openRecoveryModal(){recoveryHost.classList.add('mmh-open');document.body.classList.add('mmh-n10-modal-lock');($('mmhA769Copy')||backupAgree)?.focus();}
 recoveryHost.addEventListener('keydown',event=>{
- if(event.key==='Escape'){event.preventDefault();$('mmhA769Cancel')?.focus();}
+ if(event.key==='Escape'){event.preventDefault();if(loading){noticeRecovery(tr('账户操作正在进行中，请不要关闭恢复密钥窗口。','Account action in progress. Do not close the recovery key dialog.'));return;}$('mmhA769Cancel')?.focus();}
  if(event.key==='Tab'){
   const available=[...recoveryPanel.querySelectorAll('button:not([disabled]),input:not([disabled]),a[href]')].filter(el=>el.getClientRects().length);
   if(!available.length)return;
@@ -184,7 +184,7 @@ recoveryHost.addEventListener('keydown',event=>{
   else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}
  }
 });
-modalConfirm?.addEventListener('click',()=>{if(!backupAgree.checked||!prepared||loading)return;signup.requestSubmit();});
+modalConfirm?.addEventListener('click',()=>{if(!backupAgree.checked||!prepared||loading||accountCreated||signupOutcomeUncertain)return;signup.requestSubmit();});
 function clearPhrase(){if(prepared){prepared.phrase.fill('');prepared=null}accountCreated=false;signupOutcomeUncertain=false;noticeRecovery('');if(modalConfirm){modalConfirm.hidden=false;modalConfirm.disabled=true;}const leave=$('mmhA769Cancel');if(leave)leave.textContent=tr('取消并重新生成','Cancel and generate again');wordsPanel?.replaceChildren();qr?.replaceChildren();backupAgree.checked=false;backup.classList.add('mmh-a769-hidden');closeRecoveryModal();}
 function viewBackup(){
  if(!prepared||!wordsPanel||!qr)return;
@@ -207,7 +207,7 @@ $('mmhA769SaveQr')?.addEventListener('click',()=>{
  const c=qr.querySelector('canvas'),img=qr.querySelector('img'),data=c?.toDataURL('image/png')||img?.src;
  if(!data)return;const a=document.createElement('a');a.href=data;a.download='MMHVAULT-Private-Recovery-Key.png';document.body.append(a);a.click();a.remove();
 });
-$('mmhA769Cancel')?.addEventListener('click',()=>{if(accountCreated||signupOutcomeUncertain){if(!backupAgree.checked){noticeRecovery(tr('请先确认已安全保存恢复词。','Confirm that you have saved your recovery words first.'));return;}const username=prepared?.username||'';clearPhrase();spass.value='';sconfirm.value='';smartInput.value=username;openForm('signin');smartStatus.hidden=true;resetCaptcha();loadCaptcha();smartPassword.focus();return;}clearPhrase();sbutton.textContent=tr('生成十词并开始备份','Generate recovery key');sbutton.disabled=!enabled;showStatus(tr('注册已取消。用户名预留约 30 分钟自动释放。','Cancelled. Username reservation expires in about 30 minutes.'),sstatus);loadCaptcha()});
+$('mmhA769Cancel')?.addEventListener('click',()=>{if(loading){noticeRecovery(tr('正在确认账户操作，请稍后再选择返回登录。','Account request is in progress. Do not leave until the request finishes.'));return;}if(accountCreated||signupOutcomeUncertain){if(!backupAgree.checked){noticeRecovery(tr('请先确认已安全保存恢复词。','Confirm that you have saved your recovery words first.'));return;}const username=prepared?.username||'';clearPhrase();spass.value='';sconfirm.value='';smartInput.value=username;openForm('signin');smartStatus.hidden=true;resetCaptcha();loadCaptcha();smartPassword.focus();return;}clearPhrase();sbutton.textContent=tr('生成十词并开始备份','Generate recovery key');sbutton.disabled=!enabled;showStatus(tr('注册已取消。用户名预留约 30 分钟自动释放。','Cancelled. Username reservation expires in about 30 minutes.'),sstatus);loadCaptcha()});
 async function handoff(body,expected){
  if(!db||!body?.access_token||!body?.refresh_token||!body?.user_id||body.user_id!==expected)throw Error('identity_not_verified');
  window.MMHVAULT_N10_A741_USERNAME_HANDOFF=true;
