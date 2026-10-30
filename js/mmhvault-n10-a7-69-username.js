@@ -248,7 +248,7 @@ signup.addEventListener('submit',async e=>{
  }
  if(!USER_RX.test(username)){showStatus(tr('用户名须为 4–20 位：小写字母开头，只能使用小写字母、数字或下划线。','Username must be 4–20 characters, start with a lowercase letter, and contain only lowercase letters, numbers or underscores.'),sstatus);sname.focus();return}
  if(pilotOnly&&!PILOT_RX.test(username)){showStatus(tr('当前是生产测试阶段，用户名必须以 qa_ 开头，例如 qa_test001。普通用户名暂未开放。','Production pilot: username must start with qa_, for example qa_test001. Regular usernames are not open yet.'),sstatus);sname.focus();return}
- if(pwd.length<6||pwd.length>20){showStatus(tr('测试密码须为 6–20 个字符。','Test password must be 6–20 characters.'),sstatus);spass.focus();return}
+ if(pwd.length<6||pwd.length>20){showStatus(tr('密码须为 6–20 个字符。','Password must be 6–20 characters.'),sstatus);spass.focus();return}
  if(pwd!==sconfirm.value){showStatus(tr('两次密码不一致，请重新检查确认密码。','Passwords do not match. Check the confirmation password.'),sstatus);sconfirm.focus();return}
  if(!terms.checked){showStatus(tr('请先同意使用条款及隐私声明。','Agree to the terms and privacy notice first.'),sstatus);return}
  if(!prepared&&!captchaToken){showStatus(tr('请先完成人机验证。','Complete the human verification first.'),sstatus);return}
