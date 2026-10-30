@@ -85,6 +85,22 @@ class N10AuthContract(unittest.TestCase):
         self.assertIn("mmh_n10_mfa_required", rollback)
         self.assertIn("Intentionally retain the helper", rollback)
 
+    def test_storage_and_privileged_rpc_candidates(self):
+        storage = (ROOT / "docs/sql/n10_mfa_storage_policy_candidate_NOT_FOR_DEPLOYMENT.sql").read_text(encoding="utf-8")
+        wallet = (ROOT / "docs/sql/n10_mfa_wallet_rpc_candidate_NOT_FOR_DEPLOYMENT.sql").read_text(encoding="utf-8")
+        for name in ('receipts', 'mmh-feedback', 'mmh-business-assets'):
+            self.assertIn(name, storage)
+        self.assertIn("AS RESTRICTIVE FOR ALL TO authenticated", storage)
+        self.assertIn("mmh_n10_security.mfa_access_ok()", storage)
+        self.assertIn("public IS TRUE", storage)
+        self.assertIn("mmh_delete_crypto_wallet_movement_v4(p_id uuid)", wallet)
+        self.assertIn("SET search_path = ''", wallet)
+        self.assertIn("IF NOT COALESCE(mmh_n10_security.mfa_access_ok(), false)", wallet)
+        self.assertLess(wallet.index("IF NOT COALESCE("), wallet.index("SELECT * INTO r"))
+        self.assertIn("m.user_id=u", wallet)
+        for table in ("public.investments", "public.transactions"):
+            self.assertIn(table, wallet)
+
     def test_no_new_production_server_changes(self):
         # The workflow never deploys or migrates production resources.
         workflow = (ROOT / ".github/workflows/n10-auth-static-check.yml").read_text(encoding="utf-8")
