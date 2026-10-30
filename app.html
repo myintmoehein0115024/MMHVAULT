@@ -12544,7 +12544,8 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
     <p id="mmhA783RecoveryStatus">Your permanent recovery key is verified, not stored as readable words.</p>
     <p class="mmh-a783-note">For your protection, the original ten words cannot be retrieved from their secure verifier. Enter the words you saved to verify them and re-create your QR code locally.</p>
     <label class="mmh-a783-label" for="mmhA783Phrase">Your saved 10 words, in the original order</label>
-    <textarea id="mmhA783Phrase" rows="2" maxlength="240" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="word1 word2 word3 … word10"></textarea>
+    <div class="mmh-a789-phrase-field"><input id="mmhA783Phrase" type="password" maxlength="240" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="word1 word2 word3 … word10" aria-describedby="mmhA783PhrasePrivacy"><button type="button" id="mmhA783PhraseToggle" class="mmh-a783-mini" aria-pressed="false">Show words</button></div>
+    <p class="mmh-a783-note" id="mmhA783PhrasePrivacy">Recovery words stay hidden while typing. Show only in private.</p>
     <button type="button" class="btn mmh-a783-btn" id="mmhA783KeyVerify">Verify saved words</button>
     <div id="mmhA783KeyDisplay" hidden>
       <div id="mmhA783KeyWords" class="mmh-a783-words"></div>
@@ -34797,6 +34798,13 @@ html body #settings.page.active #stPage_security #mmhA783SecurityCenter .mmh-a78
 @media(max-width:900px){html body #settings.page.active #stPage_security .account-security-grid-v379,html body #settings.page.active #stPage_security .account-security-grid-v379 > #mmhA783SecurityCenter{grid-template-columns:minmax(0,1fr)!important}}
 @media(max-width:550px){html body #settings.page.active #stPage_security .account-security-grid-v379 > .account-security-card-v379{padding:13px!important}}
 </style>
-<script src="js/mmhvault-n10-a7-83-security-center.js?v=10.785.0"></script>
+<style id="mmh-a789-phrase-privacy">
+#settings #mmhA783SecurityCenter .mmh-a789-phrase-field{display:flex;align-items:center;gap:8px;min-width:0}
+#settings #mmhA783SecurityCenter .mmh-a789-phrase-field input{flex:1;min-width:0;width:100%;font-family:inherit;letter-spacing:.01em}
+#settings #mmhA783SecurityCenter .mmh-a789-phrase-field button{flex:0 0 auto;min-height:38px;white-space:nowrap}
+#settings #mmhA783SecurityCenter #mmhA783PhrasePrivacy{margin:8px 0 12px;font-size:11px}
+@media(max-width:440px){#settings #mmhA783SecurityCenter .mmh-a789-phrase-field{flex-direction:column;align-items:stretch}#settings #mmhA783SecurityCenter .mmh-a789-phrase-field button{align-self:flex-end}}
+</style>
+<script src="js/mmhvault-n10-a7-83-security-center.js?v=10.789.0"></script>
 </body>
 </html>
