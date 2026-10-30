@@ -12566,8 +12566,8 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
     <button type="button" class="btn mmh-a783-btn" id="mmhA783TotpStart">Set up Authenticator</button>
     <div id="mmhA783TotpSetup" hidden>
       <p class="mmh-a783-note">Scan the QR with Google Authenticator or a compatible app. Do not share this QR or setup secret.</p>
-      <img id="mmhA783TotpQr" alt="Authenticator setup QR" width="188" height="188" class="mmh-a783-totp-qr">
-      <div class="mmh-a783-secret"><span>Manual setup key</span><code id="mmhA783TotpSecret"></code></div>
+      <div id="mmhA783TotpQr" role="img" aria-label="Authenticator QR" class="mmh-a783-totp-qr"></div>
+      <div class="mmh-a783-secret"><button type="button" class="mmh-a783-mini" id="mmhA783KeyReveal">Show setup key</button><code id="mmhA783TotpSecret" hidden></code></div>
       <label for="mmhA783TotpCode" class="mmh-a783-label">Six-digit code</label>
       <input id="mmhA783TotpCode" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" placeholder="000000">
       <div class="mmh-a783-actions"><button type="button" id="mmhA783TotpConfirm" class="btn primary">Verify & enable</button><button type="button" id="mmhA783TotpCancel" class="btn">Cancel</button></div>
@@ -34758,6 +34758,33 @@ html body[data-mmh-username-only="true"] #settings.page.active .account-security
 </style>
 
 <script src="js/vendor/qrcode-1.0.0.min.js"></script>
-<script src="js/mmhvault-n10-a7-83-security-center.js?v=10.783.4"></script>
+<style id="mmh-a785-security-layout">
+/* N10-A7.85: scoped to existing runtime Security page; navigation DOM unchanged. */
+html body #settings.page.active #stPage_security .account-security-grid-v379{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:14px!important;align-items:start!important}
+html body #settings.page.active #stPage_security .account-security-grid-v379 > .account-security-card-v379{margin:0!important;min-width:0!important;max-width:none!important;box-sizing:border-box!important;padding:17px!important;border-radius:16px!important;border:1px solid rgba(142,176,210,.28)!important;background:linear-gradient(145deg,rgba(12,43,68,.82),rgba(4,20,40,.85))!important}
+html body #settings.page.active #stPage_security .account-security-grid-v379 > #mmhA783SecurityCenter{order:0!important;grid-column:1/-1!important;display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:11px!important}
+html body #settings.page.active #stPage_security #mmhA783SecurityCenter > :not(.mmh-a783-section){grid-column:1/-1!important}
+html body #settings.page.active #stPage_security #mmhA783SecurityCenter .mmh-a783-section{display:block!important;min-width:0!important;margin:0!important;padding:0!important;box-sizing:border-box!important;border:1px solid rgba(141,179,210,.22)!important;border-radius:12px!important;background:rgba(4,25,42,.56)!important}
+html body #settings.page.active #stPage_security #mmhA783SecurityCenter .mmh-a783-section[hidden]{display:none!important}
+html body #settings.page.active #stPage_security #mmhA783SecurityCenter .mmh-a783-section:not(.mmh-a785-open) > :not(.mmh-a783-title){display:none!important}
+html body #settings.page.active #stPage_security #mmhA783SecurityCenter .mmh-a785-open{grid-column:1/-1!important;border-color:rgba(220,187,125,.42)!important}
+html body #settings.page.active #stPage_security #mmhA783SecurityCenter .mmh-a783-title{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:9px!important;cursor:pointer!important;position:relative!important;padding:15px 32px 15px 13px!important;flex-wrap:wrap!important}
+html body #settings.page.active #stPage_security #mmhA783SecurityCenter .mmh-a783-title::after{content:'⌄';position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:18px;color:#f2cc8c}
+html body #settings.page.active #stPage_security #mmhA783SecurityCenter .mmh-a785-open .mmh-a783-title::after{content:'⌃'}
+html body #settings.page.active #stPage_security #mmhA783SecurityCenter .mmh-a783-title:focus-visible{outline:2px solid #eacc8f;outline-offset:-3px;border-radius:12px}
+html body #settings.page.active #stPage_security #mmhA783SecurityCenter .mmh-a785-open > :not(.mmh-a783-title){margin-left:13px!important;margin-right:13px!important}
+html body #settings.page.active #stPage_security #mmhA783SecurityCenter .mmh-a785-open > :last-child{margin-bottom:14px!important}
+html body #settings.page.active #stPage_security .account-security-grid-v379 > .account-security-card-v379:not(#mmhA783SecurityCenter):not(#mmhEmailResetCardV952){order:1!important;grid-column:auto!important}
+html body #settings.page.active #stPage_security .account-security-grid-v379 > #mmhEmailResetCardV952{order:2!important;grid-column:auto!important;align-self:start!important}
+html body #settings.page.active #stPage_security #mmhA783SecurityCenter input#mmhA783TotpConsent{appearance:auto!important;position:static!important;display:inline-block!important;transform:none!important;min-width:16px!important;max-width:16px!important;width:16px!important;min-height:16px!important;max-height:16px!important;height:16px!important;margin:0 8px 0 0!important;padding:0!important;accent-color:#edc787!important}
+html body #settings.page.active #stPage_security #mmhA783TotpQr{display:flex!important;align-items:center!important;justify-content:center!important;box-sizing:border-box!important;background:#fff!important;border-radius:12px!important;padding:10px!important;margin:14px auto!important;min-height:208px!important;width:208px!important;max-width:100%!important}
+html body #settings.page.active #stPage_security #mmhA783TotpQr img,html body #settings.page.active #stPage_security #mmhA783TotpQr canvas{width:188px!important;height:188px!important;max-width:100%!important}
+html body #settings.page.active #stPage_security #mmhA783TotpSecret[hidden]{display:none!important}
+html body #settings.page.active #stPage_security #mmhA783SecurityCenter h3{margin:0!important}
+html body #settings.page.active #stPage_security #mmhA783SecurityCenter .mmh-a783-intro{margin:0 0 8px!important}
+@media(max-width:900px){html body #settings.page.active #stPage_security .account-security-grid-v379,html body #settings.page.active #stPage_security .account-security-grid-v379 > #mmhA783SecurityCenter{grid-template-columns:minmax(0,1fr)!important}}
+@media(max-width:550px){html body #settings.page.active #stPage_security .account-security-grid-v379 > .account-security-card-v379{padding:13px!important}}
+</style>
+<script src="js/mmhvault-n10-a7-83-security-center.js?v=10.785.0"></script>
 </body>
 </html>
