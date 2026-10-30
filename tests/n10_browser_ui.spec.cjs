@@ -97,7 +97,7 @@ for (const viewport of [{width:390,height:844},{width:1440,height:900}]) {
     await page.setViewportSize(viewport);
     await openLocalPage(page);
     await page.locator('#authTabs [data-target="signup"]').click();
-    await page.locator('[data-mmh-a756-signup-method="username"]').click();
+    await page.locator('#signup [data-mmh-a756-signup-method="username"]').click();
     await page.locator('#mmhA756Name').fill('qa_visualtest');
     await page.locator('#mmhA756Password').fill('visualpass123');
     await page.locator('#mmhA756Confirm').fill('visualpass123');
