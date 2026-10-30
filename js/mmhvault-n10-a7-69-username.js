@@ -92,6 +92,40 @@ async function preflight(){
  try{const x=await request({action:'preflight'});pilotOnly=x.body?.qa_only===true;setEnabled(x.response.ok&&x.body?.production===true&&x.body?.enabled===true);}
  catch{setEnabled(false);}
 }
+const recoveryLoginOverlay=document.createElement('div');
+recoveryLoginOverlay.id='mmhN10RecoveryLoginOverlay';
+recoveryLoginOverlay.setAttribute('role','dialog');
+recoveryLoginOverlay.setAttribute('aria-modal','true');
+recoveryLoginOverlay.setAttribute('aria-label','Use Recovery Key');
+const recoveryLoginPanel=document.createElement('div');recoveryLoginPanel.id='mmhN10RecoveryLoginPanel';
+recoveryLoginPanel.innerHTML='<div class="mmh-n10-recovery-heading"><div><strong>Use Recovery Key</strong><p>Enter your username and ten words in their original order.</p></div><button id="mmhN10RecoveryClose" type="button" aria-label="Close recovery">✕</button></div>';
+recoveryLoginPanel.appendChild(login);recoveryLoginOverlay.appendChild(recoveryLoginPanel);document.body.appendChild(recoveryLoginOverlay);
+function closeRecoveryLogin(){
+ recoveryLoginOverlay.classList.remove('is-open');
+ document.body.classList.remove('mmh-n10-modal-lock');
+ inputWords.forEach(el=>el.value='');
+ upass.value='';
+ openForm('signin');
+ resetCaptcha();
+ smartInput?.focus();
+}
+function showRecoveryLogin(){
+ openForm('usernameSignIn');
+ chooseMode('phrase');
+ recoveryLoginOverlay.classList.add('is-open');
+ document.body.classList.add('mmh-n10-modal-lock');
+ setTimeout(loadCaptcha,0);
+ uname.focus();
+}
+$('mmhN10RecoveryClose')?.addEventListener('click',closeRecoveryLogin);
+recoveryLoginOverlay.addEventListener('keydown',event=>{
+ if(event.key==='Escape'){event.preventDefault();closeRecoveryLogin();return}
+ if(event.key!=='Tab')return;
+ const focusable=[...recoveryLoginPanel.querySelectorAll('button:not([disabled]),input:not([disabled]),a[href]')].filter(el=>el.getClientRects().length);
+ if(!focusable.length)return;
+ if(event.shiftKey&&document.activeElement===focusable[0]){event.preventDefault();focusable[focusable.length-1].focus()}
+ else if(!event.shiftKey&&document.activeElement===focusable[focusable.length-1]){event.preventDefault();focusable[0].focus()}
+});
 const recoveryHost=document.createElement('div');
 recoveryHost.id='mmhN10RecoveryDialog';
 recoveryHost.setAttribute('role','dialog');
@@ -249,7 +283,7 @@ smartForm?.addEventListener('submit',async e=>{
  catch(_){showStatus('Sign-in failed. Check your details or connection.',smartStatus);}
  finally{loading=false;btn.disabled=false;resetCaptcha();loadCaptcha();}
 },true);
-$('smartRecovery')?.addEventListener('click',()=>{uname.value=smartUsername()?smartInput.value.trim().toLowerCase():'';openForm('usernameSignIn');chooseMode('phrase');setTimeout(loadCaptcha,0);});
+$('smartRecovery')?.addEventListener('click',()=>{uname.value=smartUsername()?smartInput.value.trim().toLowerCase():'';showRecoveryLogin();});
 // Old username scripts are removed from the HTML. Method switching remains contained here.
 document.querySelectorAll('[data-mmh-a740-method]').forEach(btn=>btn.addEventListener('click',()=>{
  if(btn.dataset.mmhA740Method==='email')openForm('signin');else openForm('usernameSignIn');
