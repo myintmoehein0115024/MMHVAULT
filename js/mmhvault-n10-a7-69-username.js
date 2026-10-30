@@ -13,7 +13,7 @@ const backup=$('mmhA769Backup'),wordsPanel=$('mmhA769WordGrid'),qr=$('mmhA769Qr'
 const modeButtons=[...document.querySelectorAll('[data-mmh-a769-login-mode]')],phraseArea=$('mmhA769PhraseArea'),passArea=$('mmhA769PassArea');
 if(!signup||!login||!backup||!sbutton||!ubutton||!captchaRegister||!captchaLogin)return;
 const tr=(zh,en)=>window.getMMHVAULTLanguage?.()==='zh'?zh:en;
-let pilotOnly=false,enabled=false,loading=false,selected='password',prepared=null,captchaWidget=null,captchaArea=null,captchaAction='',captchaToken='';
+let pilotOnly=false,enabled=false,loading=false,selected='password',prepared=null,accountCreated=false,captchaWidget=null,captchaArea=null,captchaAction='',captchaToken='';
 const inputWords=Array.from(phraseArea?.querySelectorAll('input[data-a769-word]')||[]);
 function showStatus(t,el){if(el)el.textContent=t;}
 /* First-party feedback only. The backend verifies each challenge token. */
@@ -67,6 +67,7 @@ function asyncLoadCaptcha(){if(document.querySelector('script[data-a769-turnstil
 async function request(data){
  const ac=new AbortController(),timer=setTimeout(()=>ac.abort(),22000);
  try{const response=await fetch(API,{method:'POST',credentials:'omit',cache:'no-store',referrerPolicy:'no-referrer',mode:'cors',headers:{'Content-Type':'application/json'},signal:ac.signal,body:JSON.stringify(data)});let body;try{body=await response.json()}catch{body={code:'invalid_response'}}return {response,body};}
+ catch(error){if(error?.name==='AbortError')throw new Error('request_timeout');if(typeof navigator!=='undefined'&&navigator.onLine===false)throw new Error('offline');throw new Error('connection_unavailable');}
  finally{clearTimeout(timer);}
 }
 function setEnabled(on){
@@ -115,7 +116,7 @@ recoveryHost.addEventListener('keydown',event=>{
  }
 });
 modalConfirm?.addEventListener('click',()=>{if(!backupAgree.checked||!prepared||loading)return;signup.requestSubmit();});
-function clearPhrase(){if(prepared){prepared.phrase.fill('');prepared=null}wordsPanel?.replaceChildren();qr?.replaceChildren();backupAgree.checked=false;backup.classList.add('mmh-a769-hidden');closeRecoveryModal();}
+function clearPhrase(){if(prepared){prepared.phrase.fill('');prepared=null}accountCreated=false;wordsPanel?.replaceChildren();qr?.replaceChildren();backupAgree.checked=false;backup.classList.add('mmh-a769-hidden');closeRecoveryModal();}
 function viewBackup(){
  if(!prepared||!wordsPanel||!qr)return;
  wordsPanel.replaceChildren();
@@ -137,7 +138,7 @@ $('mmhA769SaveQr')?.addEventListener('click',()=>{
  const c=qr.querySelector('canvas'),img=qr.querySelector('img'),data=c?.toDataURL('image/png')||img?.src;
  if(!data)return;const a=document.createElement('a');a.href=data;a.download='MMHVAULT-Private-Recovery-Key.png';document.body.append(a);a.click();a.remove();
 });
-$('mmhA769Cancel')?.addEventListener('click',()=>{clearPhrase();sbutton.textContent=tr('生成十词并开始备份','Generate recovery key');sbutton.disabled=!enabled;showStatus(tr('注册已取消。用户名预留约 30 分钟自动释放。','Cancelled. Username reservation expires in about 30 minutes.'),sstatus);loadCaptcha()});
+$('mmhA769Cancel')?.addEventListener('click',()=>{if(accountCreated){showStatus(tr('账户已创建，请先保存恢复词。','Your account exists. Save the recovery words first.'),sstatus);return;}clearPhrase();sbutton.textContent=tr('生成十词并开始备份','Generate recovery key');sbutton.disabled=!enabled;showStatus(tr('注册已取消。用户名预留约 30 分钟自动释放。','Cancelled. Username reservation expires in about 30 minutes.'),sstatus);loadCaptcha()});
 async function handoff(body,expected){
  if(!db||!body?.access_token||!body?.refresh_token||!body?.user_id||body.user_id!==expected)throw Error('identity_not_verified');
  window.MMHVAULT_N10_A741_USERNAME_HANDOFF=true;
@@ -147,7 +148,9 @@ async function handoff(body,expected){
   const remote=await db.auth.getUser();const cache=await db.auth.getSession();
   if(remote.error||remote.data?.user?.id!==expected||cache.error||cache.data?.session?.user?.id!==expected)throw Error('session_not_verified');
   const navigated=await verifiedRedirectV946(expected);
-  if(navigated!==true)throw Error('verified_redirect_failed');
+  const mfaLayer=document.getElementById('mmhMfaDialogV783');
+  const mfaPending=mfaLayer?.dataset.owner===expected&&mfaLayer.style.display==='grid';
+  if(navigated!==true&&!mfaPending)throw Error('verified_redirect_failed');
  }catch(e){window.MMHVAULT_N10_A741_USERNAME_HANDOFF=false;try{await db.auth.signOut({scope:'local'})}catch(_){}throw e}
 }
 signup.addEventListener('submit',async e=>{
@@ -167,6 +170,7 @@ signup.addEventListener('submit',async e=>{
  if(pwd!==sconfirm.value){showStatus(tr('两次密码不一致，请重新检查确认密码。','Passwords do not match. Check the confirmation password.'),sstatus);sconfirm.focus();return}
  if(!terms.checked){showStatus(tr('请先同意使用条款及隐私声明。','Agree to the terms and privacy notice first.'),sstatus);return}
  if(!prepared&&!captchaToken){showStatus(tr('请先完成人机验证。','Complete the human verification first.'),sstatus);return}
+ if(accountCreated){showStatus(tr('账户已创建，请返回登录页面。','Account already created. Return to sign in.'),sstatus);return;}
  if(prepared&&(prepared.username!==username||!backupAgree.checked)){showStatus(tr('用户名已变化或未确认备份，请重新开始注册。','Username changed or backup not confirmed. Restart the process.'),sstatus);return}
  loading=true;sbutton.disabled=true;
  try{
@@ -181,13 +185,14 @@ signup.addEventListener('submit',async e=>{
    const r=await request({action:'signup',username,password:pwd,ticket:prepared.ticket,phrase:prepared.phrase.join(' ')});
    if(!r.response.ok||r.body?.code!=='signup_success')throw Error(r.body?.code||'signup_failed');
    const expected=r.body.user_id;
-   // Never replace the displayed key with a different key after registration.
-   const keyWasSaved=backupAgree.checked;clearPhrase();spass.value='';sconfirm.value='';
-   if(!keyWasSaved)throw Error('backup_not_saved');
+   // A confirmed account can survive a failed redirect; keep the recovery words
+   // in memory until the sign-in handoff has succeeded.
+   accountCreated=true;
    showStatus(tr('账户已创建，正在核实登录身份…','Account created; verifying sign-in…'),sstatus);
    await handoff(r.body,expected);
+   clearPhrase();spass.value='';sconfirm.value='';
   }
- }catch(err){showStatus(tr('操作未完成：','Not completed: ')+(err?.message||'network_unavailable'),sstatus);if(prepared){openRecoveryModal();}else{resetCaptcha();loadCaptcha()}}
+ }catch(err){showStatus(accountCreated?tr('账户已创建，但自动登录尚未完成。请妥善保管恢复词，然后使用用户名登录。','Account created, but sign-in did not complete. Save your recovery words and sign in with your username.'):tr('操作未完成，请检查网络后重试。','Operation not completed. Check your connection and retry.'),sstatus);if(prepared){openRecoveryModal();}else{resetCaptcha();loadCaptcha()}}
  finally{loading=false;updateSignupState()}
 },true);
 function chooseMode(mode){
@@ -223,7 +228,7 @@ login.addEventListener('submit',async e=>{
    if(!r.response.ok||!['login_success','phrase_login_success'].includes(r.body?.code))throw Error(r.body?.code||'login_failed');
    upass.value='';inputWords.forEach(el=>el.value='');
    await handoff(r.body,r.body.user_id);
- }catch(err){showStatus(tr('登录未成功：','Sign in unsuccessful: ')+(err?.message||'network_unavailable'),ustatus)}
+ }catch(err){showStatus(tr('登录未成功，请核对账户信息或网络连接。','Unable to sign in. Check your credentials or connection.'),ustatus)}
  finally{loading=false;ubutton.disabled=!enabled;resetCaptcha();loadCaptcha();}
 },true);
 smartInput?.addEventListener('input',()=>{if(!smartForm.classList.contains('active'))return;smartStatus.hidden=true;if(smartUsername()&&enabled)loadCaptcha();else if(captchaArea===smartCaptcha)resetCaptcha();});
