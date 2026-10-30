@@ -66,6 +66,17 @@ async function assertWithinViewport(page, selector, viewportWidth) {
 }
 
 for (const viewport of [{width:390,height:844},{width:1440,height:900}]) {
+  test('one clean unified sign-in method: ' + viewport.width, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    await openLocalPage(page);
+    await expect(page.locator('#signinEmail')).toBeVisible();
+    await expect(page.locator('#signin .mmh-a740-method-switch')).toHaveCount(0);
+    await expect(page.locator('#signin #signinPassword')).toBeVisible();
+    await expect(page.locator('#signin #smartRecovery')).toBeVisible();
+    await expect(page.locator('#signin #googleSignIn')).toBeVisible();
+    await assertWithinViewport(page,'#signin .auth-email-flow',viewport.width);
+  });
+
   test('recovery login dialog is responsive: ' + viewport.width, async ({ page }) => {
     await page.setViewportSize(viewport);
     await openLocalPage(page);
