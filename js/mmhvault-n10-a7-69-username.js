@@ -35,7 +35,7 @@ function securityState(kind){
   el.textContent=values[kind]||values.idle;
 }
 function resetCaptcha(){captchaToken='';if(captchaWidget!==null&&typeof turnstile!=='undefined'){try{turnstile.remove(captchaWidget)}catch(_){}}captchaWidget=null;captchaArea=null;captchaAction='';securityState(enabled?'checking':'idle');}
-function smartUsername(){const v=smartInput?.value.trim()||'';return v!==''&&!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(v)}
+function smartUsername(){const v=smartInput?.value.trim()||'';return v!==''&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)}
 function action(){return signup.classList.contains('active')?'prepare_signup':smartForm.classList.contains('active')?'login':selected==='phrase'?'phrase_login':'login';}
 function loadCaptcha(){
   if(!enabled)return;
