@@ -12529,6 +12529,57 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
 </div>
 <div class="mmh-session-actions-v1"><div class="security-actions-v379"><button class="btn" onclick="signOutOtherSessionsV379()" type="button">Sign out other devices</button><button class="btn danger" onclick="signOutAllSessionsV379()" type="button">Sign out all devices</button></div><div class="security-password-note-v379">Signing out other devices keeps this device signed in. “Sign out all devices” also signs out this device.</div></div>
 </div>
+<!-- N10-A7.83: Owner-only account security controls, within Settings > Password & devices. -->
+<div id="mmhA783SecurityCenter" class="account-security-card-v379 mmh-a783-account-card">
+  <div class="mmh-a783-header"><span>ACCOUNT SECURITY</span><button type="button" id="mmhA783Refresh" class="mmh-a783-mini">Refresh</button></div>
+  <h3>Login methods & recovery</h3>
+  <p class="mmh-a783-intro">Manage your existing account without creating a second wallet or transferring finance records.</p>
+  <section class="mmh-a783-section">
+    <div class="mmh-a783-title"><b>Username</b><strong id="mmhA783UsernameStatus">Loading…</strong></div>
+    <p>Existing email users can add a username and continue using their original password and data.</p>
+    <button type="button" id="mmhA783BindUsername" class="btn mmh-a783-btn" hidden>Link a username</button>
+  </section>
+  <section class="mmh-a783-section" id="mmhA783Recovery" hidden>
+    <div class="mmh-a783-title"><b>Permanent recovery key</b><strong>10 words</strong></div>
+    <p id="mmhA783RecoveryStatus">Your permanent recovery key is verified, not stored as readable words.</p>
+    <p class="mmh-a783-note">For your protection, the original ten words cannot be retrieved from their secure verifier. Enter the words you saved to verify them and re-create your QR code locally.</p>
+    <label class="mmh-a783-label" for="mmhA783Phrase">Your saved 10 words, in the original order</label>
+    <textarea id="mmhA783Phrase" rows="2" maxlength="240" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="word1 word2 word3 … word10"></textarea>
+    <button type="button" class="btn mmh-a783-btn" id="mmhA783KeyVerify">Verify saved words</button>
+    <div id="mmhA783KeyDisplay" hidden>
+      <div id="mmhA783KeyWords" class="mmh-a783-words"></div>
+      <div id="mmhA783KeyQr" class="mmh-a783-qr"></div>
+      <div class="mmh-a783-actions"><button type="button" class="btn" id="mmhA783KeySaveQr">Save my QR</button><button type="button" class="btn" id="mmhA783KeyHide">Hide key</button></div>
+      <p class="mmh-a783-note">This backup view automatically closes after one minute. Anyone with these words can log in.</p>
+    </div>
+  </section>
+  <section class="mmh-a783-section">
+    <div class="mmh-a783-title"><b>Google account</b><strong id="mmhA783GoogleStatus">Checking…</strong></div>
+    <p>Link Google to this same account. Linking does not transfer assets or create a new finance UID.</p>
+    <button type="button" class="btn mmh-a783-btn" id="mmhA783LinkGoogle">Connect Google</button>
+  </section>
+  <section class="mmh-a783-section">
+    <div class="mmh-a783-title"><b>Authenticator · Two-step verification</b><strong id="mmhA783TotpStatus">Checking…</strong></div>
+    <p id="mmhA783TotpHelp">Use a time-based six-digit code for additional protection during sign-in.</p>
+    <button type="button" class="btn mmh-a783-btn" id="mmhA783TotpStart">Set up Authenticator</button>
+    <div id="mmhA783TotpSetup" hidden>
+      <p class="mmh-a783-note">Scan the QR with Google Authenticator or a compatible app. Do not share this QR or setup secret.</p>
+      <img id="mmhA783TotpQr" alt="Authenticator setup QR" width="188" height="188" class="mmh-a783-totp-qr">
+      <div class="mmh-a783-secret"><span>Manual setup key</span><code id="mmhA783TotpSecret"></code></div>
+      <label for="mmhA783TotpCode" class="mmh-a783-label">Six-digit code</label>
+      <input id="mmhA783TotpCode" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" placeholder="000000">
+      <div class="mmh-a783-actions"><button type="button" id="mmhA783TotpConfirm" class="btn primary">Verify & enable</button><button type="button" id="mmhA783TotpCancel" class="btn">Cancel</button></div>
+    </div>
+    <button type="button" id="mmhA783TotpRemove" class="btn mmh-a783-btn" hidden>Remove authenticator</button>
+    <div id="mmhA783TotpRemoveConfirm" hidden>
+      <p class="mmh-a783-note">Removing the last factor reduces account protection. Type REMOVE to confirm.</p>
+      <input type="text" id="mmhA783TotpRemoveText" placeholder="REMOVE" autocomplete="off">
+      <button type="button" id="mmhA783TotpRemoveNow" class="btn">Confirm removal</button>
+    </div>
+  </section>
+  <p id="mmhA783Status" class="mmh-a783-status" role="status" aria-live="polite">Sign in to manage account security.</p>
+</div>
+
 <!-- P9.52: email recovery is a separate self-service card, never a phone-OTP path. -->
 <div class="account-security-card-v379 mmh-email-reset-card-v952" id="mmhEmailResetCardV952">
   <div class="mmh-email-reset-top-v952"><span class="mmh-email-reset-icon-v952" aria-hidden="true">✉</span><span class="mmh-email-reset-kicker-v952" data-p952-en="ACCOUNT RECOVERY" data-p952-zh="账户恢复">ACCOUNT RECOVERY</span></div>
@@ -34673,5 +34724,37 @@ html body[data-mmh-username-only="true"] #settings.page.active .account-security
   else boot();
 })();
 </script>
+
+<style id="mmh-a783-account-security-style">
+#settings .mmh-a783-account-card{grid-column:1/-1;min-width:0;padding:20px;border:1px solid rgba(227,185,117,.29);background:linear-gradient(125deg,rgba(15,37,60,.71),rgba(8,21,42,.77));border-radius:18px}
+#settings .mmh-a783-header{display:flex;align-items:center;justify-content:space-between;color:#f0c981;font-weight:800;letter-spacing:.12em;font-size:10px}
+#settings .mmh-a783-account-card h3{margin:11px 0;color:#f6f6f2;font-size:19px}
+#settings .mmh-a783-intro,#settings .mmh-a783-section p{font-size:12px;line-height:1.65;color:#acbdce;margin:6px 0 12px}
+#settings .mmh-a783-section{padding:15px 0;border-top:1px solid rgba(142,177,190,.18)}
+#settings .mmh-a783-title{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+#settings .mmh-a783-title b{font-size:14px;color:#eaf5ff}
+#settings .mmh-a783-title strong{font-size:11px;font-weight:800;color:#f2d499;overflow-wrap:anywhere}
+#settings .mmh-a783-note{padding:10px 12px;background:rgba(212,169,93,.08);border:1px solid rgba(235,196,124,.2);border-radius:10px;color:#d4c09a!important}
+#settings .mmh-a783-account-card [hidden]{display:none!important}
+#settings .mmh-a783-mini{font-size:11px;padding:7px 10px;border:1px solid rgba(226,191,123,.33);border-radius:10px;color:#f0d399;background:rgba(17,44,61,.5);cursor:pointer}
+#settings .mmh-a783-btn{padding:10px 15px;min-height:38px;font-size:12px;border:1px solid rgba(213,180,124,.38);border-radius:10px;background:rgba(27,56,74,.62);color:#f6d89f}
+#settings .mmh-a783-btn:disabled{opacity:.55}
+#settings .mmh-a783-label{display:block;font-weight:750;font-size:11px;color:#c2d1de;margin:12px 0 6px}
+#settings .mmh-a783-account-card input,#settings .mmh-a783-account-card textarea{display:block;width:100%;min-width:0;box-sizing:border-box;max-width:100%;color:#edf4fd;background:rgba(2,19,33,.78);border:1px solid rgba(139,177,198,.38);border-radius:11px;padding:11px 13px;font-size:13px}
+#settings .mmh-a783-words{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin:14px 0}
+#settings .mmh-a783-word{border:1px solid rgba(224,190,120,.27);padding:9px;border-radius:9px;background:rgba(12,37,58,.75);font-size:12px;color:#f8dca8}
+#settings .mmh-a783-qr{width:max-content;max-width:100%;padding:10px;margin:15px auto;background:#fff;border-radius:12px}
+#settings .mmh-a783-qr img,#settings .mmh-a783-qr canvas{max-width:100%;height:auto}
+#settings .mmh-a783-totp-qr{display:block;background:white;padding:9px;border-radius:10px;max-width:100%;height:auto;margin:12px auto}
+#settings .mmh-a783-secret{font-size:11px;color:#b7cbdf;word-break:break-all;margin:12px 0}
+#settings .mmh-a783-secret code{display:block;margin-top:6px;padding:9px;border:1px solid rgba(154,183,194,.3);border-radius:8px;color:#f3d5a5}
+#settings .mmh-a783-actions{display:flex;flex-wrap:wrap;gap:9px;margin:12px 0}
+#settings .mmh-a783-actions .btn{font-size:12px}
+#settings .mmh-a783-status{font-size:12px;line-height:1.6;color:#efd094;margin:12px 0 0}
+@media(max-width:530px){#settings .mmh-a783-account-card{padding:15px}#settings .mmh-a783-words{gap:5px}#settings .mmh-a783-title strong{max-width:100%}}
+</style>
+
+<script src="js/vendor/qrcode-1.0.0.min.js"></script>
+<script src="js/mmhvault-n10-a7-83-security-center.js?v=10.783.1"></script>
 </body>
 </html>
