@@ -1,21 +1,19 @@
-/* N10-A7.41: REVIEW-ONLY linked username setup, deliberately hard-disabled.
- * Supabase UID, current password, captcha are all mandatory. No Staging refs.
- */
+/* N10-A7.81: Production username binding for an already verified email account. */
 (()=>{'use strict';
-  const ENABLED=false; // never enable without independent production deployment approval
-  const SITE_KEY='0x4AAAAAAFrRIiFC7KoLQn2q'; // public production widget only; ENABLED=false
+  const ENABLED=true; // Dedicated N10-A7.81 binding endpoint verifies current account ownership
+  const SITE_KEY='0x4AAAAAAFrRIiFC7KoLQn2q'; // public site key, private key remains server-side
   const ORIGIN='https://vrypucmyrztxgiqhjspd.supabase.co';
-  const API=ORIGIN+'/functions/v1/mmh-n10-a740-username';
+  const API=ORIGIN+'/functions/v1/mmh-n10a781-bind';
   const NAME=/^[a-z][a-z0-9_]{3,19}$/;
   const node=id=>document.getElementById(id);
   const form=node('mmhA741BindForm'),username=node('mmhA741Name'),password=node('mmhA741Password');
   const submit=node('mmhA741BindSubmit'),status=node('mmhA741BindStatus'),captcha=node('mmhA741BindCaptcha');
   if(!form||!username||!password||!submit||!status||!captcha)return;
   let lang=localStorage.getItem('mmhvault-language')==='zh'?'zh':'en';
-  let client=null,busy=false,token='',captchaId=null,loading=null,completed=false;
+  let client=null,busy=false,token='',captchaId=null,loading=null,completed=false,serverReady=false,hasVerifiedSession=false;
   const tr=(zh,en)=>lang==='zh'?zh:en;
   function message(zh,en){status.textContent=tr(zh,en);}
-  function safeReady(){return ENABLED===true && /^0x[A-Za-z0-9]+$/.test(SITE_KEY) &&
+  function safeReady(){return ENABLED===true && serverReady && /^0x[A-Za-z0-9]+$/.test(SITE_KEY) &&
     location.protocol==='https:' && location.hostname==='mmhvault.com' &&
     window.supabase?.createClient && MMH_A741_PROJECT===ORIGIN &&
     typeof MMH_A741_PUBLISHABLE==='string' && MMH_A741_PUBLISHABLE.startsWith('sb_publishable_');}
@@ -40,7 +38,7 @@
     password.disabled=busy||completed||!ready;
     if(!ready){password.value='';token='';captcha.hidden=true;}
     submit.disabled=busy||completed||!ready||!token;
-    if(!ready)message('用户名绑定功能尚未正式开放。','Username setup is not open yet.');
+    if(!ready)message('正在验证账户与绑定服务。如未登录，请先使用邮箱登录。','Checking account and linking service. Sign in by email first if needed.');
   }
   function clearChallenge(){token='';if(captchaId!==null&&window.turnstile?.reset)try{window.turnstile.reset(captchaId)}catch(_){};paint();}
   async function challenge(){
@@ -60,11 +58,20 @@
       await loading;if(!safeReady()||completed)return;
       captcha.hidden=false;
       captchaId=window.turnstile.render(captcha,{sitekey:SITE_KEY,theme:'dark',
-        action:'mmh_n10a740_bind',
+        action:'mmh_n10a781_bind',appearance:'interaction-only',
         callback:t=>{token=typeof t==='string'?t:'';paint()},
         'expired-callback':()=>{token='';paint()},
         'error-callback':()=>{token='';paint()}});
     }catch(_){message('验证码暂不可用。','Verification unavailable.')}
+  }
+  async function preflight(){
+    try{
+      const r=await fetch(API,{method:'POST',credentials:'omit',cache:'no-store',referrerPolicy:'no-referrer',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:'preflight'})});
+      const j=await r.json();
+      serverReady=r.ok&&j?.enabled===true&&j?.username_linking===true;
+    }catch(_){serverReady=false}
+    paint();
+    if(serverReady)void challenge();
   }
   async function verifiedSession(){
     if(!client)client=window.supabase.createClient(MMH_A741_PROJECT,MMH_A741_PUBLISHABLE);
@@ -99,6 +106,8 @@
         return;
       }
       if(response.status===409){message('此用户名不可用或当前账户已绑定。','Username unavailable or this account is already linked.');return;}
+      if(response.status===401){message('请先登录已验证的邮箱账户，并确认填写的是当前账户密码。','Sign in to your verified email account and check the current password.');return;}
+      if(response.status===429){message('安全检查次数过多，请稍后再试。','Too many attempts. Try again later.');return;}
       throw Error('bind_failed');
     }catch(_){message('绑定未完成，请重新验证账户后再试。','Could not link username. Please verify your account and try again.');}
     finally{clearTimeout(timer);busy=false;clearChallenge();}
@@ -109,5 +118,5 @@
   });
   window.addEventListener('pagehide',()=>{password.value='';token='';});
   paint();
-  if(safeReady())void challenge();
+  void preflight();
 })();
