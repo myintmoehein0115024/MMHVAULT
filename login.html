@@ -160,6 +160,8 @@ footer{width:min(1240px,calc(100% - 48px));margin:0 auto;}
 #mmhN10RecoveryPanel .mmh-a769-actions button{flex:1;min-width:135px}
 #mmhN10RecoveryPanel #mmhA769ModalConfirm{display:block;width:100%;margin-top:14px}
 #mmhN10RecoveryPanel #mmhA769ModalConfirm:disabled{opacity:.45;cursor:not-allowed}
+#mmhN10RecoveryPanel #mmhA769ModalConfirm[hidden]{display:none!important}
+#mmhN10RecoveryPanel button:focus-visible,#mmhN10RecoveryLoginPanel button:focus-visible,#mmhN10RecoveryLoginPanel input:focus-visible{outline:2px solid #efd19b;outline-offset:3px}
 #mmhN10RecoveryPanel #mmhA769Cancel{margin-top:10px}
 #mmhN10RecoveryPanel .mmh-a769-agree{display:flex;align-items:flex-start;gap:8px;margin-top:15px}
 #mmhN10RecoveryPanel .mmh-a769-agree input{flex-shrink:0}
@@ -172,6 +174,9 @@ body.mmh-n10-modal-lock{overflow:hidden}
 #mmhN10RecoveryLoginPanel #usernameSignIn{display:block!important;animation:none}
 #mmhN10RecoveryLoginPanel .mmh-a740-method-switch,#mmhN10RecoveryLoginPanel .mmh-a769-modes,#mmhN10RecoveryLoginPanel .mmh-a780-pilot,#mmhN10RecoveryLoginPanel .mmh-a740-help,#mmhN10RecoveryLoginPanel #mmhA769PassArea{display:none!important}
 #mmhN10RecoveryLoginPanel #mmhA769PhraseArea{display:block!important}
+#mmhN10RecoveryLoginPanel #mmhA740Captcha{overflow:visible!important}
+#mmhN10RecoveryLoginPanel #mmhA769QrFileBtn{max-width:100%;white-space:normal}
+#mmhN10RecoveryLoginPanel .mmh-a769-word-inputs label{min-width:0;overflow-wrap:anywhere}
 #mmhN10RecoveryLoginPanel .mmh-a769-word-inputs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
 #mmhN10RecoveryLoginPanel .mmh-a769-word-inputs input{width:100%;min-width:0}
 #mmhN10RecoveryLoginPanel .mmh-n10-recovery-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:15px}
@@ -783,5 +788,5 @@ main{padding:32px 18px 45px}
 @media(prefers-reduced-motion:reduce){.form.active{animation:none}.mmh-a780-security-icon::after{animation:none!important}#authTabs .tab,.form .primary{transition:none!important}}
 </style>
 <script src="./js/vendor/qrcode-1.0.0.min.js"></script>
-<script src="./js/mmhvault-n10-a7-69-username.js?v=n10-phase6a-20261030"></script>
+<script src="./js/mmhvault-n10-a7-69-username.js?v=n10-batch1-20261030"></script>
 </body></html>
