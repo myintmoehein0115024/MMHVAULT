@@ -16,6 +16,17 @@ const tr=(zh,en)=>window.getMMHVAULTLanguage?.()==='zh'?zh:en;
 let pilotOnly=false,enabled=false,loading=false,selected='password',prepared=null,accountCreated=false,captchaWidget=null,captchaArea=null,captchaAction='',captchaToken='';
 const inputWords=Array.from(phraseArea?.querySelectorAll('input[data-a769-word]')||[]);
 function showStatus(t,el){if(el)el.textContent=t;}
+function safeAuthError(error){
+ const key=String(error?.message||error||'').toLowerCase();
+ if(key==='offline')return tr('设备没有网络连接，请重新连接后再试。','You appear to be offline. Reconnect and try again.');
+ if(key==='request_timeout')return tr('连接超时，请检查网络后重试。','Connection timed out. Check your network and retry.');
+ if(key==='connection_unavailable'||key==='invalid_response')return tr('暂时无法连接认证服务，请稍后重试。','Cannot reach the sign-in service. Please retry later.');
+ if(key==='too_many_attempts'||key==='registration_rate_limited'||key==='captcha_replay')return tr('操作过于频繁，请稍后再试。','Too many attempts. Try again later.');
+ if(key==='captcha_invalid'||key==='verification_required')return tr('安全验证未完成，请重新验证。','Security verification was not completed. Try again.');
+ if(key==='username_unavailable')return tr('当前用户名不可使用，请选择其他用户名。','This username cannot be used. Choose another.');
+ if(key==='registration_not_released'||key==='staging_unavailable'||key==='auth_unavailable')return tr('认证服务暂时不可用，请稍后重试。','Authentication service is temporarily unavailable.');
+ return tr('无法完成操作，请检查输入或网络后重试。','Unable to complete the request. Check your details or connection and retry.');
+}
 /* First-party feedback only. The backend verifies each challenge token. */
 function activeSecurityBox(){
   if(signup.classList.contains('active'))return $('mmhA780SignupSecurity');
@@ -265,7 +276,7 @@ login.addEventListener('submit',async e=>{
    if(!r.response.ok||!['login_success','phrase_login_success'].includes(r.body?.code))throw Error(r.body?.code||'login_failed');
    upass.value='';inputWords.forEach(el=>el.value='');
    await handoff(r.body,r.body.user_id);
- }catch(err){showStatus(tr('登录未成功，请核对账户信息或网络连接。','Unable to sign in. Check your credentials or connection.'),ustatus)}
+ }catch(err){showStatus(safeAuthError(err),ustatus)}
  finally{loading=false;ubutton.disabled=!enabled;resetCaptcha();loadCaptcha();}
 },true);
 smartInput?.addEventListener('input',()=>{if(!smartForm.classList.contains('active'))return;smartStatus.hidden=true;if(smartUsername()&&enabled)loadCaptcha();else if(captchaArea===smartCaptcha)resetCaptcha();});
@@ -279,8 +290,8 @@ smartForm?.addEventListener('submit',async e=>{
  if(loading)return;
  loading=true;const btn=smartForm.querySelector('button[type="submit"]');btn.disabled=true;
  try{showStatus('Signing in…',smartStatus);const r=await request({action:'login',username,password,captcha_token:captchaToken});
- if(!r.response.ok||r.body?.code!=='login_success')throw Error('failed');smartPassword.value='';await handoff(r.body,r.body.user_id);}
- catch(_){showStatus('Sign-in failed. Check your details or connection.',smartStatus);}
+ if(!r.response.ok||r.body?.code!=='login_success')throw Error(r.body?.code||'login_failed');smartPassword.value='';await handoff(r.body,r.body.user_id);}
+ catch(err){showStatus(safeAuthError(err),smartStatus);}
  finally{loading=false;btn.disabled=false;resetCaptcha();loadCaptcha();}
 },true);
 $('smartRecovery')?.addEventListener('click',()=>{uname.value=smartUsername()?smartInput.value.trim().toLowerCase():'';showRecoveryLogin();});
