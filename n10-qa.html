@@ -60,6 +60,15 @@ button.link{background:none;border:0;color:var(--gold);padding:0;cursor:pointer;
 <button class="primary" id="registerButton" type="submit" disabled>Generate recovery key · 生成十词</button>
 <button class="secondary" type="button" id="cancelBackup" hidden>Cancel backup · 取消</button>
 </form>
+<div id="mfaSetup" hidden>
+<div class="notice"><strong>测试账户 TOTP 绑定：</strong>只允许新建的用户名测试账户使用，不能用于正式财务账户。完成后，该账户后续登录将要求二次验证。请将绑定二维码视作密码，勿截图发送给任何人。</div>
+<div class="actions"><button class="secondary" type="button" id="enrollMfa">Bind Authenticator · 绑定验证器</button></div>
+<div id="mfaEnrollPanel" hidden>
+<p class="help">使用手机上的验证器扫描下方二维码，输入六位动态验证码完成绑定。Scan this QR with an authenticator app, then verify a six-digit code.</p>
+<img id="mfaEnrollQr" alt="Private authenticator enrollment QR — do not share" width="190" height="190" style="display:block;max-width:100%;height:auto;border-radius:12px;padding:9px;background:white" referrerpolicy="no-referrer">
+<label for="mfaEnrollCode">Authenticator code · 六位验证码</label><input id="mfaEnrollCode" inputmode="numeric" maxlength="6" autocomplete="one-time-code" pattern="[0-9]{6}" type="text">
+<div class="actions"><button class="primary" type="button" id="finishMfaEnroll">Confirm and enable MFA · 确认启用</button><button class="secondary" type="button" id="cancelMfaEnroll">Cancel setup · 取消绑定</button></div>
+</div></div>
 <div id="qaMfa" hidden><strong>Two-factor verification · 二次验证</strong><p class="help">此账号需要 Authenticator 验证。验证码只用于身份验证，不访问财务数据。</p><label for="mfaCode">Six-digit code · 六位动态码</label><input id="mfaCode" inputmode="numeric" maxlength="6" pattern="[0-9]{6}" autocomplete="off"><div class="actions"><button type="button" class="primary" id="verifyMfa">Verify MFA · 验证</button><button type="button" class="secondary" id="cancelMfa">Sign out · 退出</button></div></div>
 <div id="status" role="status" aria-live="polite">Initializing isolated authentication client…</div>
 <div class="actions"><button class="secondary" id="qaLogout" type="button" hidden>Sign out test session · 退出测试会话</button><button type="button" class="secondary" id="resetQA">Clear form · 清空表单</button></div>
@@ -75,7 +84,7 @@ const EDGE=URL_AUTH+'/functions/v1/mmh-n10a769-username';
 const SITEKEY='0x4AAAAAAFrRIiFC7KoLQn2q';
 const $=id=>document.getElementById(id),emailRx=/^[^\s@]+@[^\s@]+\.[^\s@]+$/,userRx=/^[a-z][a-z0-9_]{3,19}$/;
 const qaDb=window.supabase?.createClient(URL_AUTH,PUBLISHABLE_KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false,storageKey:'mmhvault-n10-qa-isolated'}});
-let enabled=false,pilotOnly=false,busy=false,mode='signin',recover=false,captchaId=null,captchaToken='',captchaFor='',prepared=null,created=false,uncertain=false,expectedUid='',pendingUid='';
+let enabled=false,pilotOnly=false,busy=false,mode='signin',recover=false,captchaId=null,captchaToken='',captchaFor='',prepared=null,created=false,uncertain=false,expectedUid='',pendingUid='',mfaEnrollFactorId='',qaLoginMethod='';
 const status=text=>{$('status').textContent=String(text||'')};
 function errorText(e){const s=String(e?.message||e||'');if(s==='offline')return '网络未连接 / Offline';if(s==='timeout')return '连接超时 / Request timed out';if(s==='connection')return '网络无法连接认证服务 / Connection unavailable';if(s==='invalid_credentials'||s==='login_failed')return '账号或凭证不正确 / Invalid credentials';if(s==='captcha_invalid'||s==='verification_required')return '安全验证失败，请重新验证 / Verification required';if(s==='registration_not_released')return '账号注册当前受限制 / Registration not released';if(s==='too_many_attempts'||s==='registration_rate_limited')return '请求过于频繁，请稍后重试 / Too many attempts';return '操作未完成，请检查输入及网络 / Operation not completed';}
 function show(el,on){$(el).hidden=!on}
@@ -85,11 +94,12 @@ function captchaTarget(){return mode==='register'?'captchaRegister':'captchaSign
 function renderCaptcha(){resetCaptcha();if(!enabled||!window.turnstile)return;const action=currentAction();const target=$(captchaTarget());captchaFor=action;try{captchaId=turnstile.render(target,{sitekey:SITEKEY,theme:'dark',appearance:'interaction-only',action:'mmh_n10a769_'+action,callback:token=>{captchaToken=token},'expired-callback':()=>captchaToken='','error-callback':()=>status('安全验证组件异常，请刷新页面 / Security check failed')})}catch(_){status('验证组件暂不可用 / Security check unavailable')}}
 function setBusy(on){busy=on;$('signButton').disabled=on||!qaDb;$('registerButton').disabled=on||!qaDb||!enabled||uncertain||created;$('tabSign').disabled=on;$('tabRegister').disabled=on;$('cancelBackup').disabled=on}
 async function request(data){const controller=new AbortController(),id=setTimeout(()=>controller.abort(),22000);try{const response=await fetch(EDGE,{method:'POST',headers:{'content-type':'application/json'},credentials:'omit',mode:'cors',cache:'no-store',referrerPolicy:'no-referrer',body:JSON.stringify(data),signal:controller.signal});let body;try{body=await response.json()}catch{body={code:'invalid_response'}}return {response,body}}catch(e){if(e.name==='AbortError')throw Error('timeout');if(navigator.onLine===false)throw Error('offline');throw Error('connection')}finally{clearTimeout(id)}}
+function clearMfaEnroll(){mfaEnrollFactorId='';$('mfaEnrollQr').removeAttribute('src');$('mfaEnrollCode').value='';show('mfaEnrollPanel',false);show('mfaSetup',false)}
 function resetBackup(){if(prepared){prepared.phrase.fill('');prepared=null}created=false;uncertain=false;$('words').replaceChildren();$('saved').checked=false;show('backupArea',false);show('cancelBackup',false);$('registerButton').textContent='Generate recovery key · 生成十词'}
-function switchMode(next){if(busy)return;if(prepared&&(!(created||uncertain)||!$('saved').checked)){status('十词备份未完成。请先安全保存；如还未创建账号，可点击取消备份。 / Secure the recovery words before switching.');return;}resetBackup();mode=next;show('signForm',next==='signin');show('registerForm',next==='register');$('tabSign').setAttribute('aria-selected',String(next==='signin'));$('tabRegister').setAttribute('aria-selected',String(next==='register'));show('qaMfa',false);renderCaptcha();status(next==='register'?'Test registration requires a new test account and real backup.':'Use only controlled test credentials.')}
+function switchMode(next){if(busy)return;clearMfaEnroll();if(prepared&&(!(created||uncertain)||!$('saved').checked)){status('十词备份未完成。请先安全保存；如还未创建账号，可点击取消备份。 / Secure the recovery words before switching.');return;}resetBackup();mode=next;show('signForm',next==='signin');show('registerForm',next==='register');$('tabSign').setAttribute('aria-selected',String(next==='signin'));$('tabRegister').setAttribute('aria-selected',String(next==='register'));show('qaMfa',false);renderCaptcha();status(next==='register'?'Test registration requires a new test account and real backup.':'Use only controlled test credentials.')}
 function showBackup(){show('backupArea',true);show('cancelBackup',true);$('words').replaceChildren();prepared.phrase.forEach((w,i)=>{const s=document.createElement('span');s.textContent=String(i+1).padStart(2,'0')+'. '+w;$('words').append(s)});$('registerButton').textContent='Confirm saved backup & create test account';status('请先安全保存十词，再勾选已保存 / Save ten words securely before confirming.')}
-async function verifyResult(session,uid,method){if(!qaDb||!session?.access_token||!session?.refresh_token||!uid)throw Error('invalid_session');const saved=await qaDb.auth.setSession({access_token:session.access_token,refresh_token:session.refresh_token});if(saved.error||saved.data?.user?.id!==uid)throw Error('session_not_verified');const remote=await qaDb.auth.getUser();if(remote.error||remote.data?.user?.id!==uid)throw Error('identity_not_verified');expectedUid=uid;await checkMfa(uid,method)}
-async function checkMfa(uid,method){const level=await qaDb.auth.mfa.getAuthenticatorAssuranceLevel();if(level.error||!level.data)throw Error('mfa_unavailable');pendingUid=uid;show('qaLogout',true);if(level.data.nextLevel==='aal2'&&level.data.currentLevel!=='aal2'){show('qaMfa',true);status('Step 1 PASS ('+method+'): UID verified. MFA challenge required (AAL1). No financial API calls made.')}else{show('qaMfa',false);status('PASS: '+method+' verified. AAL '+level.data.currentLevel+'. No financial API calls. Sign out when finished.');}}
+async function verifyResult(session,uid,method){if(!qaDb||!session?.access_token||!session?.refresh_token||!uid)throw Error('invalid_session');const saved=await qaDb.auth.setSession({access_token:session.access_token,refresh_token:session.refresh_token});if(saved.error||saved.data?.user?.id!==uid)throw Error('session_not_verified');const remote=await qaDb.auth.getUser();if(remote.error||remote.data?.user?.id!==uid)throw Error('identity_not_verified');expectedUid=uid;qaLoginMethod=method;await checkMfa(uid,method)}
+async function checkMfa(uid,method){const userCheck=await qaDb.auth.getUser();const isDedicatedTest=!!userCheck.data?.user?.email&&userCheck.data.user.email.endsWith('@no-mail.mmhvault.invalid');if(userCheck.error||userCheck.data?.user?.id!==uid)throw Error('identity_not_verified');clearMfaEnroll();const level=await qaDb.auth.mfa.getAuthenticatorAssuranceLevel();if(level.error||!level.data)throw Error('mfa_unavailable');pendingUid=uid;show('qaLogout',true);show('mfaSetup',isDedicatedTest&&level.data.nextLevel==='aal1');if(level.data.nextLevel='aal2'&&level.data.currentLevel!=='aal2'){show('qaMfa',true);status('Step 1 PASS ('+method+'): UID verified. MFA challenge required (AAL1). No financial API calls made.')}else{show('qaMfa',false);status('PASS: '+method+' verified. AAL '+level.data.currentLevel+'. No financial API calls. Sign out when finished.');}}
 async function preflight(){if(!qaDb){status('Authentication SDK did not load. Reload and check your connection.');return}try{const {response,body}=await request({action:'preflight'});enabled=response.ok&&body?.production===true&&body?.enabled===true;pilotOnly=body?.qa_only===true;status(enabled?'QA ready. Username '+(pilotOnly?'pilot qa_ restriction enabled.':'service available.')+' Do not use real financial credentials.':'Username service is unavailable; email authentication testing is still possible.')}catch(e){status('Username preflight unavailable. Email test can still be attempted. '+errorText(e))}finally{setBusy(false);if(enabled)renderCaptcha();}}
 $('tabSign').addEventListener('click',()=>switchMode('signin'));$('tabRegister').addEventListener('click',()=>switchMode('register'));
 $('toggleRecovery').addEventListener('click',()=>{recover=!recover;show('recoverySection',recover);$('password').required=!recover;$('toggleRecovery').textContent=recover?'Use password · 使用密码':'Use Recovery Key · 使用恢复密钥';renderCaptcha();status(recover?'Recovery requires a username and ten original words.':'Password sign-in selected.')});
@@ -97,7 +107,59 @@ $('signForm').addEventListener('submit',async e=>{e.preventDefault();if(busy)ret
 $('registerForm').addEventListener('submit',async e=>{e.preventDefault();if(busy||uncertain||created)return;if(!enabled){status('Username signup currently unavailable.');return}const username=$('newUsername').value.trim().toLowerCase(),password=$('newPassword').value;if(!userRx.test(username)||pilotOnly&&!/^qa_[a-z0-9_]{3,16}$/.test(username)){status('Please use a valid '+(pilotOnly?'qa_ test ':'')+'username.');return}if(password.length<6||password.length>20||password!==$('confirmPassword').value){status('Passwords must match, with 6–20 characters.');return}if(!$('consent').checked){status('Please explicitly consent to creating a test account.');return}if(!prepared&&!captchaToken){status('Complete security verification first.');renderCaptcha();return}if(prepared&&!$('saved').checked){status('Confirm that you securely saved all ten words.');return}setBusy(true);try{if(!prepared){const r=await request({action:'prepare_signup',username,captcha_token:captchaToken});if(!r.response.ok||r.body?.code!=='phrase_prepared'||r.body.recovery_words?.length!==10)throw Error(r.body?.code||'prepare_failed');prepared={username,ticket:r.body.ticket,phrase:[...r.body.recovery_words]};showBackup()}else{let r;try{r=await request({action:'signup',username,password,ticket:prepared.ticket,phrase:prepared.phrase.join(' ')})}catch(e){uncertain=true;throw e}if(r.response.status>=500||r.body?.code==='invalid_response'){uncertain=true;throw Error('connection')}if(!r.response.ok||r.body?.code!=='signup_success')throw Error(r.body?.code||'signup_failed');created=true;status('Test account created. Keep your recovery words. You may sign in separately.');$('registerButton').disabled=true;$('registerButton').textContent='Created · 已创建';$('newPassword').value='';$('confirmPassword').value='';}}catch(e){status((uncertain?'Registration result uncertain — do not retry. Save your words, then try username sign-in. ':'')+errorText(e))}finally{setBusy(false)}});
 $('cancelBackup').addEventListener('click',()=>{if(busy)return;if(uncertain||created){status('Result may already be committed. Save the ten words and sign in before clearing this page.');return}resetBackup();renderCaptcha();status('Backup preparation cancelled. Reservation expires automatically.')});
 $('verifyMfa').addEventListener('click',async()=>{const code=$('mfaCode').value.trim();if(!/^\d{6}$/.test(code)){status('Enter six digits.');return}if(!pendingUid||busy)return;setBusy(true);try{const u=await qaDb.auth.getUser();if(u.error||u.data?.user?.id!==pendingUid)throw Error('identity_mismatch');const f=await qaDb.auth.mfa.listFactors();if(f.error)throw f.error;const factor=(f.data?.totp||[]).find(t=>t.status==='verified');if(!factor)throw Error('verified_factor_missing');const c=await qaDb.auth.mfa.challenge({factorId:factor.id});if(c.error)throw c.error;const v=await qaDb.auth.mfa.verify({factorId:factor.id,challengeId:c.data.id,code});if(v.error)throw v.error;const l=await qaDb.auth.mfa.getAuthenticatorAssuranceLevel();if(l.error||l.data?.currentLevel!=='aal2')throw Error('verification_failed');show('qaMfa',false);$('mfaCode').value='';status('PASS: MFA verified at AAL2. No financial data queried.')}catch(e){status(errorText(e))}finally{setBusy(false)}});
-async function logout(){if(qaDb)try{await qaDb.auth.signOut({scope:'local'})}catch(_){}expectedUid='';pendingUid='';show('qaMfa',false);show('qaLogout',false);$('password').value='';$('recoveryWords').value='';status('Isolated test session signed out.');}
+async function logout(){if(qaDb)try{await qaDb.auth.signOut({scope:'local'})}catch(_){}expectedUid='';pendingUid='';clearMfaEnroll();show('qaMfa',false);show('qaLogout',false);$('password').value='';$('recoveryWords').value='';status('Isolated test session signed out.');}
+
+$('enrollMfa').addEventListener('click',async()=>{
+ if(busy||!qaDb||!expectedUid)return;
+ const user=await qaDb.auth.getUser();
+ if(user.error||user.data?.user?.id!==expectedUid||!String(user.data?.user?.email||'').endsWith('@no-mail.mmhvault.invalid')){status('MFA setup is restricted to a username-only test account.');return}
+ if(!confirm('This will enroll an authenticator on the signed-in TEST account. Future logins will require a six-digit code. Continue? / 将为当前测试账户启用二次验证，未来登录需要动态验证码。确定继续？'))return;
+ setBusy(true);
+ try{
+  const factors=await qaDb.auth.mfa.listFactors();
+  if(factors.error)throw factors.error;
+  if((factors.data?.totp||[]).some(f=>f.status==='verified')){status('A verified TOTP factor is already registered for this test account.');return}
+  const {data,error}=await qaDb.auth.mfa.enroll({factorType:'totp',friendlyName:'MMHVAULT-N10-QA'});
+  if(error||!data?.id||!data?.totp?.qr_code)throw error||Error('enroll_unavailable');
+  mfaEnrollFactorId=data.id;
+  const qr=data.totp.qr_code;
+  if(!/^data:image\/svg\+xml[;,]/.test(qr))throw Error('unexpected_qr_format');
+  $('mfaEnrollQr').src=qr;
+  show('mfaEnrollPanel',true);
+  status('Scan the private QR on screen with your authenticator. Do not share it. Enter a six-digit code to finish.');
+ }catch(e){status('Could not start test-account MFA enrollment. '+errorText(e))}
+ finally{setBusy(false)}
+});
+$('cancelMfaEnroll').addEventListener('click',async()=>{
+ if(busy)return;
+ const factorId=mfaEnrollFactorId;
+ if(factorId){setBusy(true);try{await qaDb.auth.mfa.unenroll({factorId})}catch(_){}finally{setBusy(false)}}
+ clearMfaEnroll();
+ const level=await qaDb.auth.mfa.getAuthenticatorAssuranceLevel();
+ if(!level.error&&level.data?.nextLevel==='aal1')show('mfaSetup',true);
+ status('MFA setup cancelled. No verified authenticator has been enabled.');
+});
+$('finishMfaEnroll').addEventListener('click',async()=>{
+ const code=$('mfaEnrollCode').value.trim();
+ if(busy||!mfaEnrollFactorId||!expectedUid)return;
+ if(!/^\d{6}$/.test(code)){status('Enter exactly six digits from your authenticator.');return}
+ setBusy(true);
+ try{
+  const user=await qaDb.auth.getUser();
+  if(user.error||user.data?.user?.id!==expectedUid||!String(user.data?.user?.email||'').endsWith('@no-mail.mmhvault.invalid'))throw Error('identity_changed');
+  const challenge=await qaDb.auth.mfa.challenge({factorId:mfaEnrollFactorId});
+  if(challenge.error||!challenge.data?.id)throw challenge.error||Error('challenge_failed');
+  const result=await qaDb.auth.mfa.verify({factorId:mfaEnrollFactorId,challengeId:challenge.data.id,code});
+  if(result.error)throw result.error;
+  const aal=await qaDb.auth.mfa.getAuthenticatorAssuranceLevel();
+  if(aal.error||aal.data?.currentLevel!=='aal2')throw Error('mfa_not_elevated');
+  clearMfaEnroll();
+  show('qaMfa',false);
+  status('PASS: TEST ACCOUNT TOTP ENROLLMENT + MFA AAL2 verified. No financial API requests were made. Sign out and sign back in to test the challenge.');
+ }catch(e){status('MFA confirmation failed. Check the current six-digit code and retry. '+errorText(e))}
+ finally{setBusy(false)}
+});
+
 $('qaLogout').addEventListener('click',logout);$('cancelMfa').addEventListener('click',logout);
 $('resetQA').addEventListener('click',()=>{if(busy)return;if(prepared){status('Save the ten recovery words first, then cancel the backup explicitly.');return}['identifier','password','recoveryWords','newUsername','newPassword','confirmPassword','mfaCode'].forEach(id=>$(id).value='');status('Inputs cleared.');});
 window.addEventListener('pagehide',()=>{['password','recoveryWords','newPassword','confirmPassword','mfaCode'].forEach(id=>$(id).value='');if(prepared)prepared.phrase.fill('')});
