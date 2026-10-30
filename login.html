@@ -637,6 +637,8 @@ main{padding:32px 18px 45px}
 }
 .mmh-a780-security-icon{flex:0 0 21px;width:21px;height:21px;border:1px solid rgba(130,178,177,.34);border-radius:7px;display:grid;place-items:center;font-size:12px;color:#b9e1d4;background:rgba(91,142,133,.12)}
 .mmh-a780-security-icon::after{content:"…"}
+.mmh-a780-security[data-state="checking"] .mmh-a780-security-icon::after{content:"";width:9px;height:9px;border:2px solid rgba(174,218,202,.24);border-top-color:#b7dfc8;border-radius:50%;animation:mmh-a780-spin .9s linear infinite}
+@keyframes mmh-a780-spin{to{transform:rotate(360deg)}}
 .mmh-a780-security[data-state="ready"]{border-color:rgba(124,211,172,.32);color:#c5dfd2;background:linear-gradient(110deg,rgba(27,72,64,.30),rgba(10,39,48,.24))}
 .mmh-a780-security[data-state="ready"] .mmh-a780-security-icon::after{content:"✓";font-weight:800}
 .mmh-a780-security[data-state="error"]{border-color:rgba(230,162,119,.32);color:#f5c6af}
@@ -665,8 +667,8 @@ main{padding:32px 18px 45px}
  .mmh-a780-security{padding:9px 9px;min-height:44px}
  .form .primary{height:50px!important}
 }
-@media(prefers-reduced-motion:reduce){.form.active{animation:none}#authTabs .tab,.form .primary{transition:none!important}}
+@media(prefers-reduced-motion:reduce){.form.active{animation:none}.mmh-a780-security-icon::after{animation:none!important}#authTabs .tab,.form .primary{transition:none!important}}
 </style>
 <script src="./js/vendor/qrcode-1.0.0.min.js"></script>
-<script src="./js/mmhvault-n10-a7-69-username.js?v=10.780.1"></script>
+<script src="./js/mmhvault-n10-a7-69-username.js?v=10.780.2"></script>
 </body></html>
