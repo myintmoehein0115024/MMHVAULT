@@ -74,15 +74,16 @@ function setEnabled(on){
  // in a banner that may be outside the mobile viewport.
  if(pilotOnly){
    sname.placeholder='qa_example001';
-   uname.placeholder='qa_example001';
+   // Existing email-account users may link an ordinary username; only new
+   // username-only account registrations remain inside the qa_ pilot.
    sname.setAttribute('pattern','qa_[a-z0-9_]{3,16}');
-   uname.setAttribute('pattern','qa_[a-z0-9_]{3,16}');
+   uname.setAttribute('pattern','[a-z][a-z0-9_]{3,19}');
    const hint=$('mmhA769PilotHint');
    if(hint)hint.textContent=tr('当前仅开放 qa_ 开头的测试用户名，例如 qa_test001；其他用户名尚未开放。','Pilot only: usernames must start with qa_, for example qa_test001. Other names are not released yet.');
  }
  if(!on){showStatus(tr('用户名注册正在进行正式安全验收，暂时未开放。','Username signup is under final security acceptance.'),sstatus);showStatus(tr('用户名登录尚未正式开放，原邮箱及 Google 登录照常使用。','Username login is not released. Email and Google login still work.'),ustatus);return}
  showStatus(pilotOnly?tr('受限生产验收：仅允许 qa_ 开头的测试用户名。请使用测试密码，不要使用现有账户密码。','Limited production pilot: use a qa_ test username and a separate test password.'):tr('请输入用户名及密码，然后完成人机验证。','Enter your username and password, then complete the verification.'),sstatus);
- showStatus(tr('可用用户名密码或永久十词登录。','Sign in with your password or permanent ten-word key.'),ustatus);
+ showStatus(tr('可使用用户名和密码登录。独立用户名账户也支持永久十词。','Sign in using your username and password. Username-only accounts also support their permanent ten-word key.'),ustatus);
  asyncLoadCaptcha();loadCaptcha();
 }
 async function preflight(){
@@ -187,7 +188,7 @@ $('mmhA740Forgot')?.addEventListener('click',e=>{e.preventDefault();chooseMode('
 login.addEventListener('submit',async e=>{
  e.preventDefault();e.stopImmediatePropagation();if(loading||!enabled)return;
  const username=uname.value.trim().toLowerCase();
- if(!USER_RX.test(username)||(pilotOnly&&!PILOT_RX.test(username))){showStatus(tr('生产测试阶段只允许 qa_ 开头的用户名。','The production pilot only accepts qa_ usernames.'),ustatus);return}
+ if(!USER_RX.test(username)){showStatus(tr('用户名格式不正确，请输入 4–20 个小写字母、数字或下划线。','Enter a 4–20 character username using lowercase letters, numbers or underscores.'),ustatus);return}
  if(!captchaToken){showStatus(tr('请完成人机验证。','Complete the human verification.'),ustatus);return}
  const body=selected==='phrase'?{phrase:inputWords.map(x=>x.value.trim().toLowerCase()).join(' ')}:{password:upass.value};
  if(selected==='password'&&(body.password.length<6||body.password.length>20)){showStatus(tr('请输入 6–20 位密码。','Password must be 6–20 characters.'),ustatus);return}
