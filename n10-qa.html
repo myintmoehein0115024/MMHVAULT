@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow,noarchive"><meta name="referrer" content="no-referrer"><meta name="theme-color" content="#061421">
+<title>MMHVAULT · N10 Isolated Authentication QA</title>
+<style>
+:root{color-scheme:dark;--gold:#e5bf78;--ink:#edf3f7;--muted:#9aabbc;--bg:#06101c;--line:#c9a66840}
+*{box-sizing:border-box}body{margin:0;min-height:100svh;background:radial-gradient(circle at 90% 15%,#1a3b52 0,transparent 40%),radial-gradient(circle at 5% 100%,#65502c22 0,transparent 30%),#06101c;color:var(--ink);font:15px/1.6 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+body:before{content:"ISOLATED AUTHENTICATION QA · NOT THE LIVE SIGN-IN";display:block;text-align:center;letter-spacing:.12em;font-size:10px;font-weight:800;padding:10px 12px;color:#0a1826;background:linear-gradient(90deg,#987848,#e8cc8a,#987848)}
+main{max-width:580px;margin:0 auto;padding:24px 18px 60px}
+header{text-align:center;margin-bottom:22px}header small{display:block;letter-spacing:.25em;color:var(--gold);font-size:11px;font-weight:750}h1{font-size:clamp(27px,5vw,36px);line-height:1.13;margin:12px 0 8px;letter-spacing:-.04em}header p,.help{color:var(--muted);font-size:13px}
+.panel{border:1px solid var(--line);border-radius:25px;padding:26px 27px;background:linear-gradient(150deg,#11263bbf,#081723e8);box-shadow:0 24px 95px #0007,inset 0 1px 0 #ffffff10;backdrop-filter:blur(22px)}
+.tabs{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:22px;padding:5px;background:#071421;border-radius:13px}
+button{font:inherit}button.tab{padding:10px;border:0;border-radius:10px;color:#9daeba;background:none;cursor:pointer}button.tab[aria-selected=true]{background:#e5bf7826;color:#ffe5b1;box-shadow:inset 0 0 0 1px #e5bf7866}
+label{display:block;color:#dfe7ef;font-size:12px;font-weight:650;margin:15px 0 6px}
+input:not([type=checkbox]),select{display:block;width:100%;min-width:0;background:#061626;border:1px solid #b2bfcc3c;color:#f6f6f6;border-radius:12px;padding:13px 14px;font:inherit;outline:0}
+input:focus{border-color:var(--gold);box-shadow:0 0 0 3px #daba7830}button:focus-visible{outline:2px solid #f5d59b;outline-offset:3px}
+.primary{margin-top:19px;width:100%;padding:13px;border-radius:12px;border:1px solid #eed19a;background:linear-gradient(135deg,#f4dca8,#cba76b);font-weight:800;color:#112237;cursor:pointer}
+.primary:disabled,button:disabled{opacity:.5;cursor:not-allowed}
+.secondary{padding:9px 12px;border-radius:10px;background:#192c3e;color:#edd09f;border:1px solid #daba7866;cursor:pointer}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:13px}
+.notice{font-size:12px;color:#e4c894;border:1px solid #daba7844;border-radius:11px;background:#ac8b3812;padding:12px 14px;margin:14px 0}
+#status{margin:20px 0 0;padding:11px 13px;background:#071724;border:1px solid #ffffff1f;color:#f0d6a1;border-radius:12px;font-size:12px;white-space:pre-wrap;overflow-wrap:anywhere}
+#status:empty{display:none}.hidden,[hidden]{display:none!important}
+#words{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}#words span{padding:9px 11px;border:1px solid #ffffff29;background:#061626;border-radius:9px;font-size:12px;overflow-wrap:anywhere}
+.check{display:flex;gap:10px;align-items:flex-start;font-size:12px;color:#f0dfc0;line-height:1.55}.check input{margin-top:4px}
+footer{margin:23px auto;text-align:center;color:#8294a6;font-size:11px}footer a{color:#e6c58f}
+#challengeWrap{padding:8px 0 0;min-height:10px}
+#qaMfa{border:1px solid var(--line);border-radius:18px;padding:18px;margin:16px 0;background:#152c3c}
+button.link{background:none;border:0;color:var(--gold);padding:0;cursor:pointer;text-decoration:underline;font-size:12px}
+@media(max-width:440px){main{padding:20px 12px 48px}.panel{padding:21px 17px;border-radius:19px}h1{font-size:30px}body:before{font-size:9px;letter-spacing:.06em}}
+</style>
+</head>
+<body>
+<main>
+<header><small>MMHVAULT · N10 SECURE QA</small><h1>Authentication Acceptance</h1><p>独立真实认证验收 · 仅使用您控制的测试账号</p></header>
+<div class="panel">
+<div class="notice"><strong>安全范围：</strong>这个页面只测试身份验证，不读取或修改财务数据，不自动进入正式 App。请勿用正式财务账号测试。注册会真实创建测试账号，只有手动确认才会执行。</div>
+<div class="tabs" role="tablist" aria-label="QA authentication mode">
+<button type="button" id="tabSign" class="tab" role="tab" aria-selected="true">Sign In · 登录</button>
+<button type="button" id="tabRegister" class="tab" role="tab" aria-selected="false">Sign Up · 注册</button>
+</div>
+<form id="signForm" autocomplete="off">
+<label for="identifier">Email or Username · 邮箱或用户名</label><input id="identifier" type="text" spellcheck="false" autocapitalize="none" autocomplete="off" required maxlength="200" placeholder="qa_example / test@example.com">
+<label for="password">Password · 密码</label><input id="password" type="password" autocomplete="off" required minlength="6" maxlength="20" placeholder="6–20 characters">
+<div class="actions"><button class="link" id="toggleRecovery" type="button">Use Recovery Key · 使用恢复密钥</button></div>
+<div id="recoverySection" hidden><label for="recoveryWords">Ten recovery words · 按原顺序输入十词</label><input id="recoveryWords" type="text" autocomplete="off" spellcheck="false" placeholder="word1 word2 ... word10"><div class="help">仅用于测试账户。恢复登录不会重置密码。</div></div>
+<div id="challengeWrap"><div id="captchaSign"></div></div>
+<button class="primary" id="signButton" type="submit" disabled>Validate sign-in · 测试登录</button>
+</form>
+<form id="registerForm" autocomplete="off" hidden>
+<div class="notice">注册是真实操作，只允许使用专用测试用户名和与正式账户不同的密码。不要在生产环境大量创建账号。</div>
+<label for="newUsername">Test username · 测试用户名</label><input id="newUsername" type="text" required minlength="4" maxlength="20" pattern="[a-z][a-z0-9_]{3,19}" autocapitalize="none" autocomplete="off" spellcheck="false" placeholder="qa_test001">
+<label for="newPassword">Password · 测试密码</label><input id="newPassword" type="password" required minlength="6" maxlength="20" autocomplete="off">
+<label for="confirmPassword">Confirm password · 确认密码</label><input id="confirmPassword" type="password" required minlength="6" maxlength="20" autocomplete="off">
+<label class="check"><input id="consent" type="checkbox"> 我明确同意创建专用测试账户，并已准备安全保存十词恢复密钥。</label>
+<div id="captchaRegister"></div>
+<div id="backupArea" hidden><h3>Recovery key · 恢复密钥</h3><div class="notice">这是真实恢复密钥，请勿截图上传聊天。请离线安全保存十个词，之后才能完成注册。</div><div id="words"></div><label class="check"><input id="saved" type="checkbox"> 我已经在安全位置保存全部十词，准备提交创建账户。</label></div>
+<button class="primary" id="registerButton" type="submit" disabled>Generate recovery key · 生成十词</button>
+<button class="secondary" type="button" id="cancelBackup" hidden>Cancel backup · 取消</button>
+</form>
+<div id="qaMfa" hidden><strong>Two-factor verification · 二次验证</strong><p class="help">此账号需要 Authenticator 验证。验证码只用于身份验证，不访问财务数据。</p><label for="mfaCode">Six-digit code · 六位动态码</label><input id="mfaCode" inputmode="numeric" maxlength="6" pattern="[0-9]{6}" autocomplete="off"><div class="actions"><button type="button" class="primary" id="verifyMfa">Verify MFA · 验证</button><button type="button" class="secondary" id="cancelMfa">Sign out · 退出</button></div></div>
+<div id="status" role="status" aria-live="polite">Initializing isolated authentication client…</div>
+<div class="actions"><button class="secondary" id="qaLogout" type="button" hidden>Sign out test session · 退出测试会话</button><button type="button" class="secondary" id="resetQA">Clear form · 清空表单</button></div>
+</div>
+<footer>QA page only · No automatic redirect · <a href="login.html">Return to official sign-in</a></footer>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/dist/umd/supabase.js"></script>
+<script>
+(()=>{'use strict';
+const URL_AUTH='https://vrypucmyrztxgiqhjspd.supabase.co';
+const PUBLISHABLE_KEY='sb_publishable_H38v4XbO0ARnSJToD42wGg_27-SZ3Ao';
+const EDGE=URL_AUTH+'/functions/v1/mmh-n10a769-username';
+const SITEKEY='0x4AAAAAAFrRIiFC7KoLQn2q';
+const $=id=>document.getElementById(id),emailRx=/^[^\s@]+@[^\s@]+\.[^\s@]+$/,userRx=/^[a-z][a-z0-9_]{3,19}$/;
+const qaDb=window.supabase?.createClient(URL_AUTH,PUBLISHABLE_KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false,storageKey:'mmhvault-n10-qa-isolated'}});
+let enabled=false,pilotOnly=false,busy=false,mode='signin',recover=false,captchaId=null,captchaToken='',captchaFor='',prepared=null,created=false,uncertain=false,expectedUid='',pendingUid='';
+const status=text=>{$('status').textContent=String(text||'')};
+function errorText(e){const s=String(e?.message||e||'');if(s==='offline')return '网络未连接 / Offline';if(s==='timeout')return '连接超时 / Request timed out';if(s==='connection')return '网络无法连接认证服务 / Connection unavailable';if(s==='invalid_credentials'||s==='login_failed')return '账号或凭证不正确 / Invalid credentials';if(s==='captcha_invalid'||s==='verification_required')return '安全验证失败，请重新验证 / Verification required';if(s==='registration_not_released')return '账号注册当前受限制 / Registration not released';if(s==='too_many_attempts'||s==='registration_rate_limited')return '请求过于频繁，请稍后重试 / Too many attempts';return '操作未完成，请检查输入及网络 / Operation not completed';}
+function show(el,on){$(el).hidden=!on}
+function resetCaptcha(){captchaToken='';if(captchaId!==null&&window.turnstile){try{turnstile.remove(captchaId)}catch(_){}}captchaId=null;captchaFor=''}
+function currentAction(){return mode==='register'?'prepare_signup':recover?'phrase_login':'login'}
+function captchaTarget(){return mode==='register'?'captchaRegister':'captchaSign'}
+function renderCaptcha(){resetCaptcha();if(!enabled||!window.turnstile)return;const action=currentAction();const target=$(captchaTarget());captchaFor=action;try{captchaId=turnstile.render(target,{sitekey:SITEKEY,theme:'dark',appearance:'interaction-only',action:'mmh_n10a769_'+action,callback:token=>{captchaToken=token},'expired-callback':()=>captchaToken='','error-callback':()=>status('安全验证组件异常，请刷新页面 / Security check failed')})}catch(_){status('验证组件暂不可用 / Security check unavailable')}}
+function setBusy(on){busy=on;$('signButton').disabled=on||!qaDb||!enabled;$('registerButton').disabled=on||!qaDb||!enabled||uncertain||created;$('tabSign').disabled=on;$('tabRegister').disabled=on;$('cancelBackup').disabled=on}
+async function request(data){const controller=new AbortController(),id=setTimeout(()=>controller.abort(),22000);try{const response=await fetch(EDGE,{method:'POST',headers:{'content-type':'application/json'},credentials:'omit',mode:'cors',cache:'no-store',referrerPolicy:'no-referrer',body:JSON.stringify(data),signal:controller.signal});let body;try{body=await response.json()}catch{body={code:'invalid_response'}}return {response,body}}catch(e){if(e.name==='AbortError')throw Error('timeout');if(navigator.onLine===false)throw Error('offline');throw Error('connection')}finally{clearTimeout(id)}}
+function resetBackup(){if(prepared){prepared.phrase.fill('');prepared=null}created=false;uncertain=false;$('words').replaceChildren();$('saved').checked=false;show('backupArea',false);show('cancelBackup',false);$('registerButton').textContent='Generate recovery key · 生成十词'}
+function switchMode(next){if(busy)return;resetBackup();mode=next;show('signForm',next==='signin');show('registerForm',next==='register');$('tabSign').setAttribute('aria-selected',String(next==='signin'));$('tabRegister').setAttribute('aria-selected',String(next==='register'));show('qaMfa',false);renderCaptcha();status(next==='register'?'Test registration requires a new test account and real backup.':'Use only controlled test credentials.')}
+function showBackup(){show('backupArea',true);show('cancelBackup',true);$('words').replaceChildren();prepared.phrase.forEach((w,i)=>{const s=document.createElement('span');s.textContent=String(i+1).padStart(2,'0')+'. '+w;$('words').append(s)});$('registerButton').textContent='Confirm saved backup & create test account';status('请先安全保存十词，再勾选已保存 / Save ten words securely before confirming.')}
+async function verifyResult(session,uid){if(!qaDb||!session?.access_token||!session?.refresh_token||!uid)throw Error('invalid_session');const saved=await qaDb.auth.setSession({access_token:session.access_token,refresh_token:session.refresh_token});if(saved.error||saved.data?.user?.id!==uid)throw Error('session_not_verified');const remote=await qaDb.auth.getUser();if(remote.error||remote.data?.user?.id!==uid)throw Error('identity_not_verified');expectedUid=uid;await checkMfa(uid)}
+async function checkMfa(uid){const level=await qaDb.auth.mfa.getAuthenticatorAssuranceLevel();if(level.error||!level.data)throw Error('mfa_unavailable');pendingUid=uid;show('qaLogout',true);if(level.data.nextLevel==='aal2'&&level.data.currentLevel!=='aal2'){show('qaMfa',true);status('UID verified. MFA challenge required (AAL1). No financial API calls made.')}else{show('qaMfa',false);status('PASS: Auth identity verified. AAL '+level.data.currentLevel+'. No financial API calls. Sign out when finished.');}}
+async function preflight(){if(!qaDb){status('Authentication SDK did not load. Reload and check your connection.');return}try{const {response,body}=await request({action:'preflight'});enabled=response.ok&&body?.production===true&&body?.enabled===true;pilotOnly=body?.qa_only===true;status(enabled?'QA ready. Username '+(pilotOnly?'pilot qa_ restriction enabled.':'service available.')+' Do not use real financial credentials.':'Username service is unavailable; email authentication testing is still possible.')}catch(e){status('Username preflight unavailable. Email test can still be attempted. '+errorText(e))}finally{setBusy(false);if(enabled)renderCaptcha();}}
+$('tabSign').addEventListener('click',()=>switchMode('signin'));$('tabRegister').addEventListener('click',()=>switchMode('register'));
+$('toggleRecovery').addEventListener('click',()=>{recover=!recover;show('recoverySection',recover);$('password').required=!recover;$('toggleRecovery').textContent=recover?'Use password · 使用密码':'Use Recovery Key · 使用恢复密钥';renderCaptcha();status(recover?'Recovery requires a username and ten original words.':'Password sign-in selected.')});
+$('signForm').addEventListener('submit',async e=>{e.preventDefault();if(busy)return;const id=$('identifier').value.trim().toLowerCase(),password=$('password').value,usingEmail=emailRx.test(id);if(!usingEmail&&!userRx.test(id)){status('Enter a valid email or username.');return}if(recover&&usingEmail){status('Recovery words require a username, not email.');return}if(!usingEmail&&!enabled){status('Username service is unavailable.');return}if(!recover&&(password.length<6||password.length>20)){status('Password must be 6–20 characters.');return}if((recover||!usingEmail)&&!captchaToken){status('Complete the browser security check first.');renderCaptcha();return}setBusy(true);try{if(usingEmail){const {data,error}=await qaDb.auth.signInWithPassword({email:id,password});if(error||!data?.session)throw error||Error('login_failed');await verifyResult(data.session,data.user.id)}else{const words=$('recoveryWords').value.trim().toLowerCase().split(/\s+/).filter(Boolean);if(recover&&words.length!==10)throw Error('Invalid recovery word count');const payload=recover?{action:'phrase_login',username:id,phrase:words.join(' '),captcha_token:captchaToken}:{action:'login',username:id,password,captcha_token:captchaToken};const r=await request(payload);if(!r.response.ok||r.body?.code!==(recover?'phrase_login_success':'login_success'))throw Error(r.body?.code||'login_failed');await verifyResult({access_token:r.body.access_token,refresh_token:r.body.refresh_token},r.body.user_id)}$('password').value='';$('recoveryWords').value=''}catch(e){status(errorText(e))}finally{setBusy(false);resetCaptcha();if(enabled)renderCaptcha()}});
+$('registerForm').addEventListener('submit',async e=>{e.preventDefault();if(busy||uncertain||created)return;if(!enabled){status('Username signup currently unavailable.');return}const username=$('newUsername').value.trim().toLowerCase(),password=$('newPassword').value;if(!userRx.test(username)||pilotOnly&&!/^qa_[a-z0-9_]{3,16}$/.test(username)){status('Please use a valid '+(pilotOnly?'qa_ test ':'')+'username.');return}if(password.length<6||password.length>20||password!==$('confirmPassword').value){status('Passwords must match, with 6–20 characters.');return}if(!$('consent').checked){status('Please explicitly consent to creating a test account.');return}if(!prepared&&!captchaToken){status('Complete security verification first.');renderCaptcha();return}if(prepared&&!$('saved').checked){status('Confirm that you securely saved all ten words.');return}setBusy(true);try{if(!prepared){const r=await request({action:'prepare_signup',username,captcha_token:captchaToken});if(!r.response.ok||r.body?.code!=='phrase_prepared'||r.body.recovery_words?.length!==10)throw Error(r.body?.code||'prepare_failed');prepared={username,ticket:r.body.ticket,phrase:[...r.body.recovery_words]};showBackup()}else{let r;try{r=await request({action:'signup',username,password,ticket:prepared.ticket,phrase:prepared.phrase.join(' ')})}catch(e){uncertain=true;throw e}if(r.response.status>=500||r.body?.code==='invalid_response'){uncertain=true;throw Error('connection')}if(!r.response.ok||r.body?.code!=='signup_success')throw Error(r.body?.code||'signup_failed');created=true;status('Test account created. Keep your recovery words. You may sign in separately.');$('registerButton').disabled=true;$('registerButton').textContent='Created · 已创建';$('newPassword').value='';$('confirmPassword').value='';}}catch(e){status((uncertain?'Registration result uncertain — do not retry. Save your words, then try username sign-in. ':'')+errorText(e))}finally{setBusy(false)}});
+$('cancelBackup').addEventListener('click',()=>{if(busy)return;if(uncertain||created){status('Result may already be committed. Save the ten words and sign in before clearing this page.');return}resetBackup();renderCaptcha();status('Backup preparation cancelled. Reservation expires automatically.')});
+$('verifyMfa').addEventListener('click',async()=>{const code=$('mfaCode').value.trim();if(!/^\d{6}$/.test(code)){status('Enter six digits.');return}if(!pendingUid||busy)return;setBusy(true);try{const u=await qaDb.auth.getUser();if(u.error||u.data?.user?.id!==pendingUid)throw Error('identity_mismatch');const f=await qaDb.auth.mfa.listFactors();if(f.error)throw f.error;const factor=(f.data?.totp||[]).find(t=>t.status==='verified');if(!factor)throw Error('verified_factor_missing');const c=await qaDb.auth.mfa.challenge({factorId:factor.id});if(c.error)throw c.error;const v=await qaDb.auth.mfa.verify({factorId:factor.id,challengeId:c.data.id,code});if(v.error)throw v.error;const l=await qaDb.auth.mfa.getAuthenticatorAssuranceLevel();if(l.error||l.data?.currentLevel!=='aal2')throw Error('verification_failed');show('qaMfa',false);$('mfaCode').value='';status('PASS: MFA verified at AAL2. No financial data queried.')}catch(e){status(errorText(e))}finally{setBusy(false)}});
+async function logout(){if(qaDb)try{await qaDb.auth.signOut({scope:'local'})}catch(_){}expectedUid='';pendingUid='';show('qaMfa',false);show('qaLogout',false);$('password').value='';$('recoveryWords').value='';status('Isolated test session signed out.');}
+$('qaLogout').addEventListener('click',logout);$('cancelMfa').addEventListener('click',logout);
+$('resetQA').addEventListener('click',()=>{if(busy)return;if(prepared){status('Save the ten recovery words first, then cancel the backup explicitly.');return}['identifier','password','recoveryWords','newUsername','newPassword','confirmPassword','mfaCode'].forEach(id=>$(id).value='');status('Inputs cleared.');});
+window.addEventListener('pagehide',()=>{['password','recoveryWords','newPassword','confirmPassword','mfaCode'].forEach(id=>$(id).value='');if(prepared)prepared.phrase.fill('')});
+setBusy(false);void preflight();
+})();
+</script>
+<script async defer src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" onload="window.dispatchEvent(new Event('n10qa-captcha-ready'))"></script>
+<script>window.addEventListener('n10qa-captcha-ready',()=>{document.querySelector('#resetQA')?.click();});</script>
+</body></html>
