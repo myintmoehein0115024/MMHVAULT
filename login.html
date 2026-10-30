@@ -162,7 +162,7 @@ footer{width:min(1240px,calc(100% - 48px));margin:0 auto;}
 <main><section class="access">
 <div class="kicker">SECURE ACCESS · VERSION 4.0</div><h1 id="title">Welcome Back</h1><p class="sub" id="subtitle">Access your private MMHVAULT workspace</p><div class="auth-trust-note"><b>Security notice</b><span>Authentication is handled by Supabase Auth. Google sign-in opens Google OAuth. MMHVAULT never asks for bank PINs, card numbers, crypto seed phrases or passwords for external financial services.</span><a href="security.html">How sign-in works</a></div>
 <div class="tabs" id="authTabs"><button class="tab active" type="button" data-target="signin">🔒 Sign In</button><button class="tab" type="button" data-target="signup">✦ Sign Up</button></div>
-<div id="mmh-a764-preview-banner" style="margin:0 0 18px;padding:12px 15px;border:1px solid rgba(238,197,111,.46);border-radius:13px;background:rgba(48,34,17,.37);font-size:12px;line-height:1.6;color:#dfe9f3"><strong style="color:#ffe4a9">NEW · 用户名注册 + 永久十词恢复</strong><span style="display:block">可在正式网站体验完整界面及操作（仅演示，不创建账户）。</span><a href="./username-preview.html" style="display:inline-block;margin-top:7px;color:#ffe2a3;font-weight:800">立即体验 / Try interactive demo →</a><div style="display:flex;flex-wrap:wrap;gap:12px;margin-top:9px"><a href="./username-staging.html" style="color:#ffe2a3;font-weight:800">真实 Staging 注册/十词登录测试（不接入财务数据）</a></div></div>
+<div id="mmh-a764-preview-banner" class="mmh-a769-banner"><strong>Username + permanent ten-word recovery</strong><span>Secure production integration is underway. Email and Google login remain available. <a href="username-staging.html">View completed isolated authentication test</a>.</span></div>
 <form class="form active" id="signin">
 <div class="mmh-a740-method-switch" role="group" aria-label="Sign-in method">
   <button type="button" data-mmh-a740-method="email" aria-pressed="true">Email</button>
@@ -178,13 +178,20 @@ footer{width:min(1240px,calc(100% - 48px));margin:0 auto;}
   </div>
   <label for="mmhA740Username">Username</label>
   <div class="field"><input id="mmhA740Username" type="text" autocomplete="username" spellcheck="false" autocapitalize="none" maxlength="20" pattern="[a-z][a-z0-9_]{3,19}" placeholder="Your username" required></div>
-  <label for="mmhA740Password">Password</label>
-  <div class="field"><input id="mmhA740Password" type="password" autocomplete="current-password" maxlength="128" placeholder="Password" required><button class="eye" type="button" aria-label="Show password">Show</button></div>
-  <p class="mmh-a740-guidance">4–20 characters · Only lowercase letters, numbers and underscore.</p>
+  <div class="mmh-a769-modes" role="group" aria-label="Username login method">
+  <button type="button" data-mmh-a769-login-mode="password" aria-pressed="true">Password</button>
+  <button type="button" data-mmh-a769-login-mode="phrase" aria-pressed="false">10-word recovery key</button>
+  </div>
+  <div id="mmhA769PassArea"><label for="mmhA740Password">Password</label>
+  <div class="field"><input id="mmhA740Password" type="password" autocomplete="current-password" maxlength="20" placeholder="Password" required><button class="eye" type="button" aria-label="Show password">Show</button></div></div>
+  <div id="mmhA769PhraseArea" class="mmh-a769-hidden"><p class="mmh-a740-guidance">Enter all ten words in the exact original order.</p>
+  <div class="mmh-a769-word-inputs"><label>01<input data-a769-word="0" type="text" maxlength="13" autocomplete="off" autocapitalize="none" spellcheck="false"></label><label>02<input data-a769-word="1" type="text" maxlength="13" autocomplete="off" autocapitalize="none" spellcheck="false"></label><label>03<input data-a769-word="2" type="text" maxlength="13" autocomplete="off" autocapitalize="none" spellcheck="false"></label><label>04<input data-a769-word="3" type="text" maxlength="13" autocomplete="off" autocapitalize="none" spellcheck="false"></label><label>05<input data-a769-word="4" type="text" maxlength="13" autocomplete="off" autocapitalize="none" spellcheck="false"></label><label>06<input data-a769-word="5" type="text" maxlength="13" autocomplete="off" autocapitalize="none" spellcheck="false"></label><label>07<input data-a769-word="6" type="text" maxlength="13" autocomplete="off" autocapitalize="none" spellcheck="false"></label><label>08<input data-a769-word="7" type="text" maxlength="13" autocomplete="off" autocapitalize="none" spellcheck="false"></label><label>09<input data-a769-word="8" type="text" maxlength="13" autocomplete="off" autocapitalize="none" spellcheck="false"></label><label>10<input data-a769-word="9" type="text" maxlength="13" autocomplete="off" autocapitalize="none" spellcheck="false"></label></div>
+  <input id="mmhA769QrFile" type="file" accept="image/png,image/jpeg,image/webp" hidden><button id="mmhA769QrFileBtn" class="mmh-a769-small-btn" type="button">Read saved recovery QR image</button></div>
+  <p class="mmh-a740-guidance">Username: 4–20 lowercase letters, numbers and underscores. Password: 6–20 characters.</p>
   <div id="mmhA740Captcha" class="mmh-a740-captcha" hidden></div>
   <button id="mmhA740Submit" class="primary" type="submit" disabled>Sign In</button>
-  <p id="mmhA740Status" class="mmh-a740-status" role="status" aria-live="polite">Username sign-in is not enabled yet.</p>
-  <p class="mmh-a740-help">Forgot your password? <button type="button" id="mmhA740Forgot">Use email recovery</button></p>
+  <p id="mmhA740Status" class="mmh-a740-status" role="status" aria-live="polite">Checking secure username sign-in service…</p>
+  <p class="mmh-a740-help">Forgot your password? <button type="button" id="mmhA740Forgot">Use permanent 10-word recovery</button></p>
   <p class="mmh-a740-help"><a id="mmhA741SetupLink" href="username-setup.html">Link a username to an existing account</a></p>
   <p class="mmh-a740-help"><button type="button" data-switch="usernameSignUp">Create a username account</button></p>
 </form>
@@ -208,12 +215,20 @@ footer{width:min(1240px,calc(100% - 48px));margin:0 auto;}
 <div class="field"><input id="mmhA756Password" type="password" autocomplete="new-password" minlength="6" maxlength="20" required placeholder="Create a password"><button type="button" class="eye">Show</button></div>
 <label for="mmhA756Confirm">Confirm password</label>
 <div class="field"><input id="mmhA756Confirm" type="password" autocomplete="new-password" minlength="6" maxlength="20" required placeholder="Confirm password"><button type="button" class="eye">Show</button></div>
-<label for="mmhA756Recovery">Recovery email (recommended)</label>
-<div class="field"><input id="mmhA756Recovery" type="email" autocomplete="email" inputmode="email" placeholder="Email for account recovery"></div>
-<p class="mmh-a740-guidance">Without a verified recovery method, you may not be able to reset your password.</p>
+<p class="mmh-a769-info">No email required. Registration creates a permanent 10-word recovery key and QR code. Save both before completing account creation. Anyone holding that key can log in to your account.</p>
+<div id="mmhA769Captcha" class="mmh-a740-captcha" hidden></div>
+<div id="mmhA769Backup" class="mmh-a769-hidden">
+  <h3 class="mmh-a769-heading">Your permanent recovery key</h3>
+  <p class="mmh-a740-guidance">Keep all ten words in their original order. This key and its QR code do not expire automatically.</p>
+  <div id="mmhA769WordGrid" class="mmh-a769-words"></div>
+  <div id="mmhA769Qr" class="mmh-a769-qr"></div>
+  <div class="mmh-a769-actions"><button type="button" id="mmhA769Copy">Copy ten words</button><button type="button" id="mmhA769SaveQr">Save recovery QR</button></div>
+  <label class="mmh-a769-agree"><input type="checkbox" id="mmhA769BackupAgree"> I have saved all ten words and the recovery QR code safely.</label>
+  <button type="button" id="mmhA769Cancel" class="mmh-a769-small-btn">Cancel and generate again</button>
+</div>
 <div class="row"><label class="remember"><input type="checkbox" id="mmhA756Terms"> I agree to the <a href="terms.html" target="_blank" rel="noopener">terms</a> and <a href="privacy.html" target="_blank" rel="noopener">privacy notice</a></label></div>
-<button class="primary" type="submit" id="mmhA756Submit" disabled>Create Username Account</button>
-<p class="mmh-a740-status" id="mmhA756Status" role="status" aria-live="polite">Username-only registration is not available yet. Email registration remains available.</p>
+<button class="primary" type="submit" id="mmhA756Submit" disabled>Generate recovery key</button>
+<p class="mmh-a740-status" id="mmhA756Status" role="status" aria-live="polite">Checking secure username registration service…</p>
 <p class="switch"><button type="button" data-switch="signup">Use email sign-up instead</button></p>
 </form>
 <form class="form" id="recovery" autocomplete="off">
@@ -387,8 +402,8 @@ async function verifiedRedirectV946(expectedUserId){
 }
 function openForm(id){
   if(recoveryVerifiedV944&&document.getElementById('recovery').classList.contains('active'))return;
-  const currentForm=id==='usernameSignUp'?'usernameSignUp':id==='signup'?'signup':'signin';
-  const mainTab=currentForm==='usernameSignUp'?'signup':currentForm;
+  const currentForm=id==='usernameSignUp'?'usernameSignUp':id==='usernameSignIn'?'usernameSignIn':id==='signup'?'signup':'signin';
+  const mainTab=currentForm==='usernameSignUp'?'signup':currentForm==='usernameSignIn'?'signin':currentForm;
   tabs.forEach(t=>t.classList.toggle('active',t.dataset.target===mainTab));
   forms.forEach(f=>f.classList.toggle('active',f.id===currentForm));
   msg('');if(window.applyMMHVAULTLanguage)window.applyMMHVAULTLanguage();
@@ -531,6 +546,32 @@ if(db){
 #signin .row{justify-content:flex-end}
 @media(max-width:520px){.mmh-a740-method-switch button{padding:10px 5px;font-size:12px}}
 </style>
-<script src="./js/mmhvault-n10-a7-40-username.js"></script>
-<script src="./js/mmhvault-n10-a7-56-username-signup.js"></script>
+
+<style id="mmh-a769-username-production-style">
+.mmh-a769-banner{margin:0 0 16px;padding:12px 15px;border:1px solid rgba(238,197,111,.35);border-radius:13px;background:rgba(48,34,17,.22);font-size:12px;line-height:1.6;color:#bfccdb}
+.mmh-a769-banner strong{display:block;color:#f8d99c}
+.mmh-a769-banner a{color:#ffdaa3}
+.mmh-a769-hidden{display:none!important}
+.mmh-a769-modes{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:0 0 14px}
+.mmh-a769-modes button{font:700 12px/1.35 inherit;border:1px solid rgba(126,163,186,.27);background:rgba(7,25,40,.85);color:#c8d7e6;border-radius:11px;padding:11px 9px;cursor:pointer}
+.mmh-a769-modes button[aria-pressed="true"]{border-color:#e2bb6f;color:#ffe6b2;background:rgba(183,139,58,.19)}
+.mmh-a769-word-inputs,.mmh-a769-words{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.mmh-a769-word-inputs label{font:12px/1.4 ui-monospace,monospace;margin:0;color:#bdcddb}
+.mmh-a769-word-inputs input{width:100%;min-width:0;box-sizing:border-box;background:#051928;border:1px solid #557991;border-radius:11px;padding:10px;color:#f8fbff;font:13px ui-monospace,monospace;margin:5px 0}
+.mmh-a769-info{padding:13px 14px;color:#f0dcb8;background:rgba(179,141,74,.08);border:1px solid rgba(208,168,96,.28);border-radius:13px;font-size:12px;line-height:1.65}
+.mmh-a769-heading{font-size:18px;color:#f7dfaf;margin:14px 0 5px}
+.mmh-a769-words{margin:12px 0}
+.mmh-a769-word{min-width:0;padding:9px;border-radius:10px;background:rgba(18,54,73,.55);border:1px solid rgba(132,170,198,.28);color:#ffe1ac;font-size:13px;font-weight:750;overflow-wrap:anywhere}
+.mmh-a769-word small{margin-right:7px;color:#a1b6c6}
+.mmh-a769-qr{background:#fff;margin:15px auto;border-radius:12px;padding:10px;width:max-content;max-width:100%}
+.mmh-a769-qr canvas,.mmh-a769-qr img{max-width:100%;height:auto}
+.mmh-a769-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mmh-a769-actions button,.mmh-a769-small-btn{font:700 12px/1.4 inherit;color:#edd49d;background:rgba(24,60,81,.68);border:1px solid rgba(139,175,196,.38);border-radius:11px;padding:11px;cursor:pointer}
+.mmh-a769-small-btn{display:block;margin:12px 0}
+.mmh-a769-agree{display:flex;align-items:flex-start;gap:10px;font-size:12px;color:#e9e0ca;line-height:1.6;margin:14px 0}
+.mmh-a769-agree input{margin-top:4px}
+@media(max-width:420px){.mmh-a769-words,.mmh-a769-word-inputs{grid-template-columns:1fr 1fr}.mmh-a769-actions{grid-template-columns:1fr 1fr}.mmh-a769-modes button{font-size:11px}}
+</style>
+<script src="./js/vendor/qrcode-1.0.0.min.js"></script>
+<script src="./js/mmhvault-n10-a7-69-username.js?v=10.769.0"></script>
 </body></html>
