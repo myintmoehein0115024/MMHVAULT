@@ -6,6 +6,7 @@
 const $=id=>document.getElementById(id),API='https://vrypucmyrztxgiqhjspd.supabase.co/functions/v1/mmh-n10a769-username';
 const SITEKEY='0x4AAAAAAFrRIiFC7KoLQn2q'; // Cloudflare public site key only
 const USER_RX=/^[a-z][a-z0-9_]{3,19}$/;
+const PILOT_RX=/^qa_[a-z0-9_]{3,16}$/;
 const signup=$('usernameSignUp'),login=$('usernameSignIn'),sname=$('mmhA756Name'),spass=$('mmhA756Password'),sconfirm=$('mmhA756Confirm'),terms=$('mmhA756Terms');
 const sbutton=$('mmhA756Submit'),sstatus=$('mmhA756Status'),uname=$('mmhA740Username'),upass=$('mmhA740Password'),ubutton=$('mmhA740Submit'),ustatus=$('mmhA740Status');
 const backup=$('mmhA769Backup'),wordsPanel=$('mmhA769WordGrid'),qr=$('mmhA769Qr'),backupAgree=$('mmhA769BackupAgree'),captchaRegister=$('mmhA769Captcha'),captchaLogin=$('mmhA740Captcha');
@@ -40,6 +41,16 @@ async function request(data){
 }
 function setEnabled(on){
  enabled=on;sbutton.disabled=!on;ubutton.disabled=!on;
+ // Make the limited pilot restriction visible beside the field itself, not only
+ // in a banner that may be outside the mobile viewport.
+ if(pilotOnly){
+   sname.placeholder='qa_example001';
+   uname.placeholder='qa_example001';
+   sname.setAttribute('pattern','qa_[a-z0-9_]{3,16}');
+   uname.setAttribute('pattern','qa_[a-z0-9_]{3,16}');
+   const hint=$('mmhA769PilotHint');
+   if(hint)hint.textContent=tr('当前仅开放 qa_ 开头的测试用户名，例如 qa_test001；其他用户名尚未开放。','Pilot only: usernames must start with qa_, for example qa_test001. Other names are not released yet.');
+ }
  if(!on){showStatus(tr('用户名注册正在进行正式安全验收，暂时未开放。','Username signup is under final security acceptance.'),sstatus);showStatus(tr('用户名登录尚未正式开放，原邮箱及 Google 登录照常使用。','Username login is not released. Email and Google login still work.'),ustatus);return}
  showStatus(pilotOnly?tr('受限生产验收：仅允许 qa_ 开头的测试用户名。请使用测试密码，不要使用现有账户密码。','Limited production pilot: use a qa_ test username and a separate test password.'):tr('请输入用户名及密码，然后完成人机验证。','Enter your username and password, then complete the verification.'),sstatus);
  showStatus(tr('可用用户名密码或永久十词登录。','Sign in with your password or permanent ten-word key.'),ustatus);
@@ -87,7 +98,18 @@ async function handoff(body,expected){
 signup.addEventListener('submit',async e=>{
  e.preventDefault();e.stopImmediatePropagation();if(loading||!enabled)return;
  const username=sname.value.trim().toLowerCase(),pwd=spass.value;
- if(!USER_RX.test(username)||(pilotOnly&&!/^qa_[a-z0-9_]{3,16}$/.test(username))||pwd.length<6||pwd.length>20||pwd!==sconfirm.value){showStatus(tr('用户名或密码格式不正确，或两次密码不一致。','Check username, password length (6–20), and confirmation.'),sstatus);return}
+ // Conceal visible password fields once the user submits, including validation failures.
+ for(const field of [spass,sconfirm]){
+   if(field.type==='text'){
+     field.type='password';
+     const eye=field.parentElement?.querySelector('.eye');
+     if(eye)eye.textContent=tr('显示','Show');
+   }
+ }
+ if(!USER_RX.test(username)){showStatus(tr('用户名须为 4–20 位：小写字母开头，只能使用小写字母、数字或下划线。','Username must be 4–20 characters, start with a lowercase letter, and contain only lowercase letters, numbers or underscores.'),sstatus);sname.focus();return}
+ if(pilotOnly&&!PILOT_RX.test(username)){showStatus(tr('当前是生产测试阶段，用户名必须以 qa_ 开头，例如 qa_test001。普通用户名暂未开放。','Production pilot: username must start with qa_, for example qa_test001. Regular usernames are not open yet.'),sstatus);sname.focus();return}
+ if(pwd.length<6||pwd.length>20){showStatus(tr('测试密码须为 6–20 个字符。','Test password must be 6–20 characters.'),sstatus);spass.focus();return}
+ if(pwd!==sconfirm.value){showStatus(tr('两次密码不一致，请重新检查确认密码。','Passwords do not match. Check the confirmation password.'),sstatus);sconfirm.focus();return}
  if(!terms.checked){showStatus(tr('请先同意使用条款及隐私声明。','Agree to the terms and privacy notice first.'),sstatus);return}
  if(!prepared&&!captchaToken){showStatus(tr('请先完成人机验证。','Complete the human verification first.'),sstatus);return}
  if(prepared&&(prepared.username!==username||!backupAgree.checked)){showStatus(tr('用户名已变化或未确认备份，请重新开始注册。','Username changed or backup not confirmed. Restart the process.'),sstatus);return}
@@ -136,7 +158,7 @@ $('mmhA740Forgot')?.addEventListener('click',e=>{e.preventDefault();chooseMode('
 login.addEventListener('submit',async e=>{
  e.preventDefault();e.stopImmediatePropagation();if(loading||!enabled)return;
  const username=uname.value.trim().toLowerCase();
- if(!USER_RX.test(username)||(pilotOnly&&!/^qa_[a-z0-9_]{3,16}$/.test(username))){showStatus(tr('测试阶段请使用 qa_ 开头的用户名。','Use a qa_ username for the production pilot.'),ustatus);return}
+ if(!USER_RX.test(username)||(pilotOnly&&!PILOT_RX.test(username))){showStatus(tr('生产测试阶段只允许 qa_ 开头的用户名。','The production pilot only accepts qa_ usernames.'),ustatus);return}
  if(!captchaToken){showStatus(tr('请完成人机验证。','Complete the human verification.'),ustatus);return}
  const body=selected==='phrase'?{phrase:inputWords.map(x=>x.value.trim().toLowerCase()).join(' ')}:{password:upass.value};
  if(selected==='password'&&(body.password.length<6||body.password.length>20)){showStatus(tr('请输入 6–20 位密码。','Password must be 6–20 characters.'),ustatus);return}
