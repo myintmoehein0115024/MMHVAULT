@@ -12927,7 +12927,7 @@ mmhvaultAuthBootTimerV3285=setTimeout(()=>{
    their original text values so historical data is never rewritten by this manager.
 */
 const MMHVAULT_DEFAULT_ACCOUNTS=[
-  {id:'acc_bath',name:'Bath',currency:'THB',type:'cash',active:true,builtin:true},
+  {id:'acc_bath',name:'Baht',currency:'THB',type:'cash',active:true,builtin:true},
   {id:'acc_truemoney',name:'TrueMoney',currency:'THB',type:'wallet',active:true,builtin:true},
   {id:'acc_okx',name:'OKX',currency:'USD',type:'crypto',active:true,builtin:true},
   {id:'acc_bybit',name:'ByBit',currency:'USD',type:'crypto',active:true,builtin:true},
@@ -12991,7 +12991,7 @@ function mmhVaultReadConfig(owner=MMHVAULT_CONFIG_OWNER){
     const raw=localStorage.getItem(storageKey); if(!raw)return fallback;
     const x=JSON.parse(raw);
     if(!x||typeof x!=='object'||Array.isArray(x)||(x.ownerId&&x.ownerId!==owner))return fallback;
-    const accounts=Array.isArray(x.accounts)?x.accounts.filter(a=>a&&a.name).map(a=>({id:String(a.id||('acc_'+Date.now()+Math.random().toString(36).slice(2,7))),name:String(a.name).trim(),currency:['MMK','THB','USD','CNY'].includes(a.currency)?a.currency:'MMK',type:String(a.type||'other'),active:a.active!==false,builtin:!!a.builtin})):fallback.accounts;
+    const accounts=Array.isArray(x.accounts)?x.accounts.filter(a=>a&&a.name).map(a=>({id:String(a.id||('acc_'+Date.now()+Math.random().toString(36).slice(2,7))),name:String(a.id||'')==='acc_bath'?'Baht':String(a.name).trim(),currency:['MMK','THB','USD','CNY'].includes(a.currency)?a.currency:'MMK',type:String(a.type||'other'),active:a.active!==false,builtin:!!a.builtin})):fallback.accounts;
     const categories={};
     for(const [k,base] of Object.entries(MMHVAULT_DEFAULT_CATEGORIES)) categories[k]=Array.isArray(x.categories?.[k])?x.categories[k].map(String).map(v=>v.trim()).filter(Boolean):[...base];
     const archivedCategories=(x.archivedCategories&&typeof x.archivedCategories==='object')?x.archivedCategories:{};
@@ -13015,7 +13015,7 @@ function mmhVaultPersistConfig(){
 function mmhVaultBackupConfigSnapshotV1236(owner=MMHVAULT_CONFIG_OWNER){
   if(!owner||owner!==MMHVAULT_CONFIG_OWNER||owner!==currentSessionUser?.id)return null;
   const accounts=(MMHVAULT_CONFIG?.accounts||[]).filter(a=>a&&a.name).map(a=>({
-    id:String(a.id||''),name:String(a.name).trim(),currency:['MMK','THB','USD','CNY'].includes(a.currency)?a.currency:'MMK',
+    id:String(a.id||''),name:String(a.id||'')==='acc_bath'?'Baht':String(a.name).trim(),currency:['MMK','THB','USD','CNY'].includes(a.currency)?a.currency:'MMK',
     type:String(a.type||'other'),active:a.active!==false,builtin:!!a.builtin
   }));
   const categories={},archivedCategories={};
@@ -13163,9 +13163,11 @@ function mmhVaultRecoverOwnedLegacyConfigV1(owner){
   const ownTx=(transactions||[]).filter(t=>t.user_id===owner),ownInv=(investments||[]).filter(t=>t.user_id===owner);
   const names=new Set(ownTx.flatMap(t=>[t.from_account,t.to_account]).concat(ownInv.map(t=>t.source_account)).filter(Boolean));
   for(const name of names){
-    if(MMHVAULT_CONFIG.accounts.some(a=>a.name===name))continue;
-    const base=MMHVAULT_DEFAULT_ACCOUNTS.find(a=>a.name===name);
-    // Unknown currency/type cannot be safely inferred from account name. Never guess financial metadata.
+    const key=String(name).trim().toLowerCase();
+    const bahtAlias=key==='baht'||key==='bath';
+    if(MMHVAULT_CONFIG.accounts.some(a=>a.name===name||(bahtAlias&&a.id==='acc_bath')))continue;
+    const base=MMHVAULT_DEFAULT_ACCOUNTS.find(a=>a.name===name||(bahtAlias&&a.id==='acc_bath'));
+    // Recover only known account metadata. Never infer currencies for unknown names.
     if(base)MMHVAULT_CONFIG.accounts.push({...base});
   }
   // Category text is recovered exclusively from this owner's records. Expense-family groups
@@ -13195,8 +13197,14 @@ function mmhVaultRebuildConfigArrays(){
   window.ACC=ACC; window.CATS=CATS;
 }
 function mmhVaultAccountMeta(name){
-  const found=MMHVAULT_CONFIG.accounts.find(a=>a.name===name);
-  return found||{id:'legacy_'+String(name),name:String(name),currency:'MMK',type:'other',active:true,builtin:false};
+  // Account IDs remain stable; historical transactions use the display name "Baht".
+  // Older builds called the same built-in THB cash account "Bath".
+  const key=String(name||'').trim().toLowerCase();
+  const bahtAlias=key==='baht'||key==='bath';
+  const matches=a=>String(a?.name||'').trim().toLowerCase()===key||(bahtAlias&&a?.id==='acc_bath');
+  const found=(MMHVAULT_CONFIG.accounts||[]).find(matches);
+  const builtin=MMHVAULT_DEFAULT_ACCOUNTS.find(matches);
+  return found||builtin||{id:'legacy_'+String(name),name:String(name),currency:'MMK',type:'other',active:true,builtin:false};
 }
 function mmhVaultAllAccountNames(){
   const out=[...ACC];
@@ -22074,7 +22082,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   function localEnvelope(owner){try{const raw=localStorage.getItem(mmhVaultConfigKey(owner));const x=raw?JSON.parse(raw):null;return x&&typeof x==='object'&&!Array.isArray(x)?x:null}catch(_){return null}}
   function safeConfig(source){
     const x=source&&typeof source==='object'&&!Array.isArray(source)?source:{};
-    const accounts=Array.isArray(x.accounts)?x.accounts.filter(a=>a&&String(a.name||'').trim()).map(a=>({id:String(a.id||('acc_'+Date.now()+Math.random().toString(36).slice(2,7))),name:String(a.name).trim(),currency:['MMK','THB','USD','CNY'].includes(String(a.currency||'').toUpperCase())?String(a.currency).toUpperCase():'MMK',type:String(a.type||'other'),active:a.active!==false,builtin:!!a.builtin})):[];
+    const accounts=Array.isArray(x.accounts)?x.accounts.filter(a=>a&&String(a.name||'').trim()).map(a=>({id:String(a.id||('acc_'+Date.now()+Math.random().toString(36).slice(2,7))),name:String(a.id||'')==='acc_bath'?'Baht':String(a.name).trim(),currency:['MMK','THB','USD','CNY'].includes(String(a.currency||'').toUpperCase())?String(a.currency).toUpperCase():'MMK',type:String(a.type||'other'),active:a.active!==false,builtin:!!a.builtin})):[];
     const categories={},archivedCategories={};
     for(const [group,base] of Object.entries(MMHVAULT_DEFAULT_CATEGORIES||{})){
       categories[group]=(Array.isArray(x.categories?.[group])?x.categories[group]:base).map(String).map(v=>v.trim()).filter(Boolean);
@@ -22089,18 +22097,62 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     try{mmhVaultCloseDialogV449();window.mmhCloseManagerV1?.();mmhVaultRefreshAccountSelectors();mmhVaultRefreshTransactionConfigV445?.();mmhVaultRenderManager();mmhVaultRefreshDashboardAccountOverviewV449();}catch(_e){}
     window.dispatchEvent(new CustomEvent('mmhvault:config-cloud-synced',{detail:{userId:owner,source:'cloud'}}));return true;
   }
-  async function upload(owner,stamp){
-    if(uid()!==owner||MMHVAULT_CONFIG_OWNER!==owner)return false;const config=safeConfig(MMHVAULT_CONFIG),updatedAt=stamp||new Date().toISOString();writeLocal(owner,config,updatedAt);
-    const row={user_id:owner,config,language:lang(),timezone:tz(),updated_at:updatedAt};const {error}=await db.from('personal_configuration').upsert(row,{onConflict:'user_id'});if(error)throw error;return true;
+  function sameAccount(a,b){
+    const aId=String(a?.id||''),bId=String(b?.id||'');
+    if(aId&&bId&&aId===bId)return true;
+    const aName=String(a?.name||'').trim().toLowerCase(),bName=String(b?.name||'').trim().toLowerCase();
+    return !!aName&&!!bName&&(aName===bName||(['baht','bath'].includes(aName)&&['baht','bath'].includes(bName)));
+  }
+  async function preserveUsedCloudAccounts(owner,cloud){
+    // An owner-scoped local account list may be incomplete on a new/incognito device.
+    // Keep configured accounts with historical transactions; do not restore unrelated deleted accounts.
+    const local=safeConfig(MMHVAULT_CONFIG),remote=safeConfig(cloud?.config);
+    const missing=remote.accounts.filter(a=>!local.accounts.some(b=>sameAccount(a,b)));
+    if(!missing.length)return true;
+    const result=await db.from('transactions').select('from_account,to_account').eq('user_id',owner);
+    if(result.error)throw result.error;
+    if(uid()!==owner||MMHVAULT_CONFIG_OWNER!==owner)return false;
+    const referenced=new Set((result.data||[]).flatMap(t=>[t.from_account,t.to_account]).filter(Boolean).map(v=>String(v).trim().toLowerCase()));
+    const protectedAccounts=missing.filter(a=>a.id==='acc_bath'||referenced.has(String(a.name).trim().toLowerCase()));
+    if(protectedAccounts.length){
+      MMHVAULT_CONFIG.accounts=[...local.accounts,...protectedAccounts];
+      mmhVaultRebuildConfigArrays();
+      try{mmhVaultRefreshAccountSelectors();mmhVaultRefreshDashboardAccountOverviewV449()}catch(_e){}
+      console.warn('[MMHVAULT] Cloud sync preserved historical accounts:',protectedAccounts.map(a=>a.name));
+    }
+    return true;
+  }
+  async function upload(owner,stamp,cloud=null){
+    if(uid()!==owner||MMHVAULT_CONFIG_OWNER!==owner)return false;
+    const config=safeConfig(MMHVAULT_CONFIG),updatedAt=stamp||new Date().toISOString();
+    const row={user_id:owner,config,language:lang(),timezone:tz(),updated_at:updatedAt};
+    // Compare-and-swap: a second session must not overwrite a newer cloud configuration.
+    if(cloud){
+      const {data,error}=await db.from('personal_configuration').update(row).eq('user_id',owner).eq('updated_at',cloud.updated_at).select('updated_at').maybeSingle();
+      if(error)throw error;
+      if(!data){pending=true;console.warn('[MMHVAULT] Config changed remotely; retrying safely.');return false;}
+    }else{
+      const {error}=await db.from('personal_configuration').insert(row);
+      if(error){pending=true;throw error;}
+    }
+    if(uid()!==owner||MMHVAULT_CONFIG_OWNER!==owner)return false;
+    writeLocal(owner,config,updatedAt);
+    return true;
   }
   async function syncNow(forceUpload=false){
     const owner=uid();if(!owner||typeof db==='undefined'||MMHVAULT_CONFIG_OWNER!==owner)return false;if(busy){pending=true;return false}busy=true;lastOwner=owner;
     try{
       const local=localEnvelope(owner),localStamp=parseTime(local?.updatedAt);const {data:cloud,error}=await db.from('personal_configuration').select('user_id,config,language,timezone,updated_at').eq('user_id',owner).maybeSingle();if(error)throw error;if(uid()!==owner||MMHVAULT_CONFIG_OWNER!==owner)return false;
-      if(!cloud){await upload(owner,new Date().toISOString());return true}
+      if(!cloud)return await upload(owner,new Date().toISOString());
       const cloudStamp=parseTime(cloud.updated_at);
-      if(forceUpload||localStamp>cloudStamp+500){await upload(owner,local?.updatedAt||new Date().toISOString());return true}
+      if(forceUpload||localStamp>cloudStamp+500){
+        if(!(await preserveUsedCloudAccounts(owner,cloud)))return false;
+        return await upload(owner,local?.updatedAt||new Date().toISOString(),cloud);
+      }
       if(cloudStamp>localStamp+500&&cloud.config&&typeof cloud.config==='object'){applyCloud(owner,cloud.config,cloud.updated_at);return true}
+      // Equal timestamps still require the remote account list to be complete on this device.
+      const remote=safeConfig(cloud.config),onDevice=safeConfig(local);
+      if(remote.accounts.some(a=>!onDevice.accounts.some(b=>sameAccount(a,b)))&&cloudStamp>=localStamp){applyCloud(owner,cloud.config,cloud.updated_at);return true}
       const needsMeta=String(cloud.language||'')!==lang()||String(cloud.timezone||'')!==tz();if(needsMeta){const {error:metaError}=await db.from('personal_configuration').update({language:lang(),timezone:tz()}).eq('user_id',owner);if(metaError)throw metaError}
       return true;
     }catch(err){if(uid()===owner)console.warn('[MMHVAULT] Personal config cloud sync failed',err);return false}
