@@ -397,6 +397,32 @@ function msg(text,type=''){statusEl.textContent=window.translateMMHVAULTMessage?
 function nextTargetV160(){const next=new URLSearchParams(location.search).get('next');return next==='business.html'||next==='username-setup.html'?next:'app.html'}
 function appUrl(){return new URL(nextTargetV160(),location.href).toString()}
 function loginCallbackUrlV160(){const u=new URL('login.html',location.href);if(nextTargetV160()!=='app.html')u.searchParams.set('next',nextTargetV160());return u.toString()}
+async function mmhShowMfaChallengeV783(uid){
+ const layer=document.getElementById('mmhMfaDialogV783');if(!layer||!uid)throw Error('mfa_dialog_unavailable');
+ if(layer.dataset.owner===uid&&layer.style.display==='grid')return true;
+ layer.dataset.owner=uid;layer.hidden=false;layer.style.display='grid';
+ const status=layer.querySelector('[data-mfa-status]'),code=layer.querySelector('[data-mfa-code]'),submit=layer.querySelector('[data-mfa-submit]');
+ status.textContent='Enter the six-digit code from your authenticator app.';code.value='';
+ const fresh=submit.cloneNode(true);submit.replaceWith(fresh);
+ fresh.onclick=async()=>{
+  const value=code.value.trim();if(!/^\d{6}$/.test(value)){status.textContent='Enter a six-digit code.';return}
+  fresh.disabled=true;status.textContent='Verifying…';
+  try{
+   const {data:user,error:ue}=await db.auth.getUser();if(ue||user?.user?.id!==uid)throw Error('identity_changed');
+   const {data:list,error:le}=await db.auth.mfa.listFactors();if(le)throw le;
+   const factor=(list?.totp||[]).find(x=>x.status==='verified');if(!factor)throw Error('No verified factor');
+   const {data:challenge,error:ce}=await db.auth.mfa.challenge({factorId:factor.id});
+   if(ce||!challenge?.id)throw ce||Error('challenge_failed');
+   const {error:ve}=await db.auth.mfa.verify({factorId:factor.id,challengeId:challenge.id,code:value});if(ve)throw ve;
+   const {data:level,error:ae}=await db.auth.mfa.getAuthenticatorAssuranceLevel();
+   if(ae||level?.currentLevel!=='aal2')throw ae||Error('incomplete_verification');
+   layer.dataset.owner='';layer.hidden=true;layer.style.display='none';
+   await verifiedRedirectV946(uid);
+  }catch(_){status.textContent='Verification failed. Try a new code from your authenticator.';}
+  finally{code.value='';fresh.disabled=false;}
+ };
+ code.focus();return true;
+}
 async function verifiedRedirectV946(expectedUserId){
   if(!db||!expectedUserId||verifiedRedirectInFlightV946||recoveryCallbackPendingV944||recoveryModeV943||recoveryCompletedV943)return false;
   verifiedRedirectInFlightV946=true;
@@ -406,6 +432,13 @@ async function verifiedRedirectV946(expectedUserId){
     const {data:cached,error:cacheError}=await db.auth.getSession();
     if(cacheError||cached?.session?.user?.id!==expectedUserId)throw cacheError||new Error('session_changed_during_verification');
     if(recoveryCallbackPendingV944||recoveryModeV943||recoveryCompletedV943){verifiedRedirectInFlightV946=false;return false}
+    const assurance=await db.auth.mfa.getAuthenticatorAssuranceLevel();
+    if(assurance.error||!assurance.data)throw assurance.error||Error('mfa_unavailable');
+    if(assurance.data.nextLevel==='aal2'&&assurance.data.currentLevel!=='aal2'){
+      verifiedRedirectInFlightV946=false;
+      await mmhShowMfaChallengeV783(expectedUserId);
+      return false;
+    }
     location.replace(appUrl());
     return true;
   }catch(_){
@@ -546,6 +579,16 @@ if(db){
   });
 }else if(recoveryCallbackPendingV944)msg('Authentication service is unavailable.','err');
 </script>
+<div id="mmhMfaDialogV783" role="dialog" aria-modal="true" aria-labelledby="mmhMfaTitleV783" hidden style="display:none;position:fixed;z-index:999999;inset:0;background:rgba(0,8,19,.96);place-items:center;padding:20px">
+ <div style="width:min(430px,100%);padding:30px 25px;background:linear-gradient(150deg,#122d43,#061827);color:#edf5ff;border:1px solid rgba(226,191,115,.44);border-radius:23px;box-shadow:0 25px 95px #000b">
+ <div style="color:#f6d698;font-size:12px;font-weight:800;letter-spacing:.15em">MMHVAULT · ACCOUNT PROTECTION</div>
+ <h2 id="mmhMfaTitleV783" style="font-size:25px;margin:14px 0 9px">Two-step verification</h2>
+ <p data-mfa-status style="color:#bacbda;font-size:13px">Enter the six-digit code from your authenticator app.</p>
+ <label for="mmhMfaCodeV783" style="display:block;color:#b7c9d8;font-size:12px;margin:17px 0 7px">Authenticator code</label>
+ <input id="mmhMfaCodeV783" data-mfa-code type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" placeholder="000000" style="width:100%;box-sizing:border-box;font-size:21px;text-align:center;letter-spacing:.18em;padding:13px;border:1px solid #67849a;background:#061523;color:white;border-radius:12px">
+ <button data-mfa-submit type="button" style="width:100%;margin-top:16px;padding:14px;border:0;border-radius:13px;background:linear-gradient(120deg,#cda461,#ffdfa0);color:#142134;font-weight:850;cursor:pointer">Verify & continue</button>
+ <a href="login.html?mfa=1" style="display:block;margin:13px auto 0;text-align:center;color:#b9c6d7">Back to sign-in</a>
+ </div></div>
 <style id="mmh-a740-method-styles">
 .mmh-a740-method-switch{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;margin:0 0 16px;padding:4px;border-radius:14px;background:rgba(3,12,22,.58);border:1px solid rgba(170,190,211,.18)}
 .mmh-a740-method-switch button{border:0;border-radius:10px;background:transparent;color:#aebcce;padding:11px 8px;font-size:13px;font-weight:700;line-height:1.3;font-family:inherit;cursor:pointer}
