@@ -12,7 +12,7 @@ const backup=$('mmhA769Backup'),wordsPanel=$('mmhA769WordGrid'),qr=$('mmhA769Qr'
 const modeButtons=[...document.querySelectorAll('[data-mmh-a769-login-mode]')],phraseArea=$('mmhA769PhraseArea'),passArea=$('mmhA769PassArea');
 if(!signup||!login||!backup||!sbutton||!ubutton||!captchaRegister||!captchaLogin)return;
 const tr=(zh,en)=>window.getMMHVAULTLanguage?.()==='zh'?zh:en;
-let enabled=false,loading=false,selected='password',prepared=null,captchaWidget=null,captchaArea=null,captchaAction='',captchaToken='';
+let pilotOnly=false,enabled=false,loading=false,selected='password',prepared=null,captchaWidget=null,captchaArea=null,captchaAction='',captchaToken='';
 const inputWords=Array.from(phraseArea?.querySelectorAll('input[data-a769-word]')||[]);
 function showStatus(t,el){if(el)el.textContent=t;}
 function resetCaptcha(){captchaToken='';if(captchaWidget!==null&&typeof turnstile!=='undefined'){try{turnstile.remove(captchaWidget)}catch(_){}}captchaWidget=null;captchaArea=null;captchaAction='';}
@@ -39,12 +39,12 @@ async function request(data){
 function setEnabled(on){
  enabled=on;sbutton.disabled=!on;ubutton.disabled=!on;
  if(!on){showStatus(tr('用户名注册正在进行正式安全验收，暂时未开放。','Username signup is under final security acceptance.'),sstatus);showStatus(tr('用户名登录尚未正式开放，原邮箱及 Google 登录照常使用。','Username login is not released. Email and Google login still work.'),ustatus);return}
- showStatus(tr('请输入用户名及密码，然后完成人机验证。','Enter your username and password, then complete the verification.'),sstatus);
+ showStatus(pilotOnly?tr('受限生产验收：仅允许 qa_ 开头的测试用户名。请使用测试密码，不要使用现有账户密码。','Limited production pilot: use a qa_ test username and a separate test password.'):tr('请输入用户名及密码，然后完成人机验证。','Enter your username and password, then complete the verification.'),sstatus);
  showStatus(tr('可用用户名密码或永久十词登录。','Sign in with your password or permanent ten-word key.'),ustatus);
  asyncLoadCaptcha();loadCaptcha();
 }
 async function preflight(){
- try{const x=await request({action:'preflight'});setEnabled(x.response.ok&&x.body?.production===true&&x.body?.enabled===true);}
+ try{const x=await request({action:'preflight'});pilotOnly=x.body?.qa_only===true;setEnabled(x.response.ok&&x.body?.production===true&&x.body?.enabled===true);}
  catch{setEnabled(false);}
 }
 function clearPhrase(){if(prepared){prepared.phrase.fill('');prepared=null}wordsPanel?.replaceChildren();qr?.replaceChildren();backupAgree.checked=false;backup.classList.add('mmh-a769-hidden');}
@@ -84,7 +84,7 @@ async function handoff(body,expected){
 signup.addEventListener('submit',async e=>{
  e.preventDefault();e.stopImmediatePropagation();if(loading||!enabled)return;
  const username=sname.value.trim().toLowerCase(),pwd=spass.value;
- if(!USER_RX.test(username)||pwd.length<6||pwd.length>20||pwd!==sconfirm.value){showStatus(tr('用户名或密码格式不正确，或两次密码不一致。','Check username, password length (6–20), and confirmation.'),sstatus);return}
+ if(!USER_RX.test(username)||(pilotOnly&&!/^qa_[a-z0-9_]{3,16}$/.test(username))||pwd.length<6||pwd.length>20||pwd!==sconfirm.value){showStatus(tr('用户名或密码格式不正确，或两次密码不一致。','Check username, password length (6–20), and confirmation.'),sstatus);return}
  if(!terms.checked){showStatus(tr('请先同意使用条款及隐私声明。','Agree to the terms and privacy notice first.'),sstatus);return}
  if(!prepared&&!captchaToken){showStatus(tr('请先完成人机验证。','Complete the human verification first.'),sstatus);return}
  if(prepared&&(prepared.username!==username||!backupAgree.checked)){showStatus(tr('用户名已变化或未确认备份，请重新开始注册。','Username changed or backup not confirmed. Restart the process.'),sstatus);return}
@@ -133,7 +133,7 @@ $('mmhA740Forgot')?.addEventListener('click',e=>{e.preventDefault();chooseMode('
 login.addEventListener('submit',async e=>{
  e.preventDefault();e.stopImmediatePropagation();if(loading||!enabled)return;
  const username=uname.value.trim().toLowerCase();
- if(!USER_RX.test(username)){showStatus(tr('用户名格式不正确。','Invalid username.'),ustatus);return}
+ if(!USER_RX.test(username)||(pilotOnly&&!/^qa_[a-z0-9_]{3,16}$/.test(username))){showStatus(tr('测试阶段请使用 qa_ 开头的用户名。','Use a qa_ username for the production pilot.'),ustatus);return}
  if(!captchaToken){showStatus(tr('请完成人机验证。','Complete the human verification.'),ustatus);return}
  const body=selected==='phrase'?{phrase:inputWords.map(x=>x.value.trim().toLowerCase()).join(' ')}:{password:upass.value};
  if(selected==='password'&&(body.password.length<6||body.password.length>20)){showStatus(tr('请输入 6–20 位密码。','Password must be 6–20 characters.'),ustatus);return}
