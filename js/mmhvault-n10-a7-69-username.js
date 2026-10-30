@@ -168,7 +168,7 @@ recoveryHost.addEventListener('keydown',event=>{
  }
 });
 modalConfirm?.addEventListener('click',()=>{if(!backupAgree.checked||!prepared||loading)return;signup.requestSubmit();});
-function clearPhrase(){if(prepared){prepared.phrase.fill('');prepared=null}accountCreated=false;noticeRecovery('');const leave=$('mmhA769Cancel');if(leave)leave.textContent=tr('取消并重新生成','Cancel and generate again');wordsPanel?.replaceChildren();qr?.replaceChildren();backupAgree.checked=false;backup.classList.add('mmh-a769-hidden');closeRecoveryModal();}
+function clearPhrase(){if(prepared){prepared.phrase.fill('');prepared=null}accountCreated=false;noticeRecovery('');if(modalConfirm){modalConfirm.hidden=false;modalConfirm.disabled=true;}const leave=$('mmhA769Cancel');if(leave)leave.textContent=tr('取消并重新生成','Cancel and generate again');wordsPanel?.replaceChildren();qr?.replaceChildren();backupAgree.checked=false;backup.classList.add('mmh-a769-hidden');closeRecoveryModal();}
 function viewBackup(){
  if(!prepared||!wordsPanel||!qr)return;
  wordsPanel.replaceChildren();
@@ -181,7 +181,7 @@ function viewBackup(){
  showStatus(tr('先保存全部 10 个词和二维码，再完成注册。','Save all ten words and the QR code before completing registration.'),sstatus);
  sbutton.textContent=tr('完成备份并创建账户','Confirm backup & create account');sbutton.disabled=true;if(modalConfirm)modalConfirm.disabled=true;
 }
-function updateSignupState(){const blocked=!enabled||loading||(!!prepared&&!backupAgree.checked);sbutton.disabled=blocked;if(modalConfirm)modalConfirm.disabled=blocked||!prepared;}
+function updateSignupState(){const blocked=!enabled||loading||accountCreated||(!!prepared&&!backupAgree.checked);sbutton.disabled=blocked;if(modalConfirm){modalConfirm.hidden=accountCreated;modalConfirm.disabled=blocked||!prepared;}}
 backupAgree?.addEventListener('change',updateSignupState);
 $('mmhA769Copy')?.addEventListener('click',async()=>{
  if(!prepared)return;try{await navigator.clipboard.writeText(prepared.phrase.join(' '));showStatus(tr('已复制十词。剪贴板可能被其他应用读取。','Words copied. Other apps may access your clipboard.'),sstatus)}catch{showStatus(tr('复制失败，请手动记录。','Copy failed; please write down the words.'),sstatus)}
@@ -190,7 +190,7 @@ $('mmhA769SaveQr')?.addEventListener('click',()=>{
  const c=qr.querySelector('canvas'),img=qr.querySelector('img'),data=c?.toDataURL('image/png')||img?.src;
  if(!data)return;const a=document.createElement('a');a.href=data;a.download='MMHVAULT-Private-Recovery-Key.png';document.body.append(a);a.click();a.remove();
 });
-$('mmhA769Cancel')?.addEventListener('click',()=>{if(accountCreated){if(!backupAgree.checked){noticeRecovery(tr('请先确认已安全保存恢复词。','Confirm that you have saved your recovery words first.'));return;}const username=prepared?.username||'';clearPhrase();spass.value='';sconfirm.value='';uname.value=username;openForm('usernameSignIn');loadCaptcha();return;}clearPhrase();sbutton.textContent=tr('生成十词并开始备份','Generate recovery key');sbutton.disabled=!enabled;showStatus(tr('注册已取消。用户名预留约 30 分钟自动释放。','Cancelled. Username reservation expires in about 30 minutes.'),sstatus);loadCaptcha()});
+$('mmhA769Cancel')?.addEventListener('click',()=>{if(accountCreated){if(!backupAgree.checked){noticeRecovery(tr('请先确认已安全保存恢复词。','Confirm that you have saved your recovery words first.'));return;}const username=prepared?.username||'';clearPhrase();spass.value='';sconfirm.value='';smartInput.value=username;openForm('signin');smartStatus.hidden=true;resetCaptcha();loadCaptcha();smartPassword.focus();return;}clearPhrase();sbutton.textContent=tr('生成十词并开始备份','Generate recovery key');sbutton.disabled=!enabled;showStatus(tr('注册已取消。用户名预留约 30 分钟自动释放。','Cancelled. Username reservation expires in about 30 minutes.'),sstatus);loadCaptcha()});
 async function handoff(body,expected){
  if(!db||!body?.access_token||!body?.refresh_token||!body?.user_id||body.user_id!==expected)throw Error('identity_not_verified');
  window.MMHVAULT_N10_A741_USERNAME_HANDOFF=true;
@@ -240,7 +240,7 @@ signup.addEventListener('submit',async e=>{
    // A confirmed account can survive a failed redirect; keep the recovery words
    // in memory until the sign-in handoff has succeeded.
    accountCreated=true;
-   const leave=$('mmhA769Cancel');if(leave)leave.textContent=tr('已保存，返回登录','I saved it — Return to Sign In');
+   const leave=$('mmhA769Cancel');if(leave)leave.textContent=tr('已保存，返回登录','I saved it — Return to Sign In');if(modalConfirm)modalConfirm.hidden=true;
    showStatus(tr('账户已创建，正在核实登录身份…','Account created; verifying sign-in…'),sstatus);
    await handoff(r.body,expected);
    clearPhrase();spass.value='';sconfirm.value='';
