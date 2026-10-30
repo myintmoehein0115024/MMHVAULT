@@ -34760,6 +34760,18 @@ html body[data-mmh-username-only="true"] #settings.page.active .account-security
 <script src="js/vendor/qrcode-1.0.0.min.js"></script>
 <style id="mmh-a785-security-layout">
 /* N10-A7.85: scoped to existing runtime Security page; navigation DOM unchanged. */
+/* N10-A7.86: The persistent workspace toolbar overlaps the dynamic subpage title
+   on desktop when the in-app router resets scroll to zero. Scope correction to
+   the Security subpage only; do not change Settings navigation or page trees. */
+html body #settings.page.active #stPage_security:not([hidden]) {
+  padding-top: max(74px, env(safe-area-inset-top, 0px)) !important;
+  scroll-margin-top: 84px;
+}
+@media (max-width: 650px) {
+  html body #settings.page.active #stPage_security:not([hidden]) {
+    padding-top: max(76px, env(safe-area-inset-top, 0px)) !important;
+  }
+}
 html body #settings.page.active #stPage_security .account-security-grid-v379{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:14px!important;align-items:start!important}
 html body #settings.page.active #stPage_security .account-security-grid-v379 > .account-security-card-v379{margin:0!important;min-width:0!important;max-width:none!important;box-sizing:border-box!important;padding:17px!important;border-radius:16px!important;border:1px solid rgba(142,176,210,.28)!important;background:linear-gradient(145deg,rgba(12,43,68,.82),rgba(4,20,40,.85))!important}
 html body #settings.page.active #stPage_security .account-security-grid-v379 > #mmhA783SecurityCenter{order:0!important;grid-column:1/-1!important;display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:11px!important}
