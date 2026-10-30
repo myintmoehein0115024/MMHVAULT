@@ -19,6 +19,8 @@ function resetCaptcha(){captchaToken='';if(captchaWidget!==null&&typeof turnstil
 function action(){const active=signup.classList.contains('active')?'prepare_signup':selected==='phrase'?'phrase_login':'login';return active;}
 function loadCaptcha(){
   if(!enabled)return;
+  // Turnstile cannot reliably render inside the hidden Email form's sibling.
+  if(!signup.classList.contains('active')&&!login.classList.contains('active')){resetCaptcha();return;}
   const target=signup.classList.contains('active')?captchaRegister:captchaLogin;
   const next=action();
   if(captchaWidget!==null&&captchaArea===target&&captchaAction===next)return;
