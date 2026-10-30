@@ -130,7 +130,7 @@ class N10AuthContract(unittest.TestCase):
         helper = (root / "mmh-financial-assistant/mfa-assurance.mjs").read_text(encoding="utf-8")
         self.assertIn('nextLevel === null || nextLevel === "aal1" || nextLevel === "aal2"', helper)
         self.assertIn('authHasVerifiedFactor === true', helper)
-        self.assertIn('currentLevel !== null', helper)
+        self.assertIn('currentLevel === null && nextLevel === null', helper)
         self.assertIn('return "unavailable"', helper)
         self.assertLess(ai.index("MFA_REQUIRED"), ai.index("let body: any"))
         self.assertLess(ai.index("MFA_REQUIRED"), ai.index("const transactions = await readRows("))
