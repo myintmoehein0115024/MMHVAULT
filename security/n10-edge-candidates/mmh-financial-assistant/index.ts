@@ -1,5 +1,6 @@
 // N10 review candidate. Not deployed. Requires staging signed-token tests.
 import { createClient } from "npm:@supabase/supabase-js@2.57.4";
+import { evaluateMfaAssurance } from "./mfa-assurance.mjs";
 // MMHVAULT Financial Assistant · secure read-only Supabase Edge Function
 // Required secret: OPENAI_API_KEY
 // Optional secret: OPENAI_MODEL (defaults to gpt-6-luna)
@@ -115,19 +116,12 @@ Deno.serve(async (req) => {
     const jwt = authHeader.slice("Bearer ".length).trim();
     const { data: assurance, error: assuranceError } =
       await verifier.auth.mfa.getAuthenticatorAssuranceLevel(jwt);
-    // Legacy Supabase JWTs can omit the AAL claim, producing null.
-    // null is effectively AAL1: deny if the account has a verified factor,
-    // but do not lock out otherwise valid users without MFA enrollment.
-    const validAal = (level: unknown) =>
-      level === null || level === "aal1" || level === "aal2";
-    if (assuranceError || !assurance ||
-        !validAal(assurance.currentLevel) ||
-        !validAal(assurance.nextLevel)) {
-      return json({ code: "MFA_CHECK_UNAVAILABLE" }, 503);
-    }
-    if (assurance.nextLevel === "aal2" && assurance.currentLevel !== "aal2") {
-      return json({ code: "MFA_REQUIRED" }, 403);
-    }
+    // An absent or malformed nextLevel is never proof that MFA is optional.
+    // This is stricter than simply accepting null for both assurance fields.
+    if (assuranceError) return json({ code: "MFA_CHECK_UNAVAILABLE" }, 503);
+    const decision = evaluateMfaAssurance(assurance);
+    if (decision === "unavailable") return json({ code: "MFA_CHECK_UNAVAILABLE" }, 503);
+    if (decision === "required") return json({ code: "MFA_REQUIRED" }, 403);
   } catch (_) {
     return json({ code: "MFA_CHECK_UNAVAILABLE" }, 503);
   }
