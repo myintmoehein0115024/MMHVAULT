@@ -69,6 +69,22 @@ class N10AuthContract(unittest.TestCase):
         self.assertIn("captcha_token:captchaToken", JS)
         self.assertIn("credentials:'omit'", JS)
 
+    def test_public_mfa_policy_inventory_and_safe_rollback(self):
+        migration = (ROOT / "docs/sql/n10_mfa_public_policy_candidate_NOT_FOR_DEPLOYMENT.sql").read_text(encoding="utf-8")
+        rollback = (ROOT / "docs/sql/n10_mfa_policy_rollback_CANDIDATE.sql").read_text(encoding="utf-8")
+        targets = re.findall(r"^    '([a-z0-9_]+)'[,]?$", migration, flags=re.MULTILINE)
+        self.assertEqual(len(targets), 59)
+        self.assertEqual(len(set(targets)), 59)
+        self.assertIn("transactions", targets)
+        self.assertIn("crypto_wallet_movements", targets)
+        self.assertIn("life_habit_entries", targets)
+        self.assertIn("business_accounts", targets)
+        self.assertNotIn("mmh_n10a769_recovery_phrases", targets)
+        self.assertIn("AS RESTRICTIVE FOR ALL TO authenticated", migration)
+        self.assertIn("coalesce(", migration.lower())
+        self.assertIn("mmh_n10_mfa_required", rollback)
+        self.assertIn("Intentionally retain the helper", rollback)
+
     def test_no_new_production_server_changes(self):
         # The workflow never deploys or migrates production resources.
         workflow = (ROOT / ".github/workflows/n10-auth-static-check.yml").read_text(encoding="utf-8")
