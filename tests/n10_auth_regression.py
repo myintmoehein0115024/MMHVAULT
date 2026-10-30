@@ -84,6 +84,13 @@ class N10AuthContract(unittest.TestCase):
         self.assertIn("coalesce(", migration.lower())
         self.assertIn("mmh_n10_mfa_required", rollback)
         self.assertIn("Intentionally retain the helper", rollback)
+        self.assertIn("unexpected_tables", migration)
+        self.assertIn("NOT c.relrowsecurity", migration)
+        self.assertIn("c.relname <> ALL(protected_tables)", migration)
+        self.assertIn("N10 unreviewed public table inventory", migration)
+        self.assertIn("MMHVAULT-N10-MFA-RESTRICTIVE-V1", migration)
+        self.assertIn("obj_description(p.oid, 'pg_policy')", rollback)
+        self.assertIn("MMHVAULT-N10-MFA-RESTRICTIVE-V1", rollback)
 
     def test_storage_and_privileged_rpc_candidates(self):
         storage = (ROOT / "docs/sql/n10_mfa_storage_policy_candidate_NOT_FOR_DEPLOYMENT.sql").read_text(encoding="utf-8")
