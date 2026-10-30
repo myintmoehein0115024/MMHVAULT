@@ -305,8 +305,14 @@ login.addEventListener('submit',async e=>{
  e.preventDefault();e.stopImmediatePropagation();if(loading||!enabled)return;
  const username=uname.value.trim().toLowerCase();
  if(!USER_RX.test(username)){showStatus(tr('用户名格式不正确，请输入 4–20 个小写字母、数字或下划线。','Enter a 4–20 character username using lowercase letters, numbers or underscores.'),ustatus);return}
+ const recoveryWords=selected==='phrase'?inputWords.map(x=>x.value.trim().toLowerCase()):null;
+ if(recoveryWords&&(recoveryWords.length!==10||!recoveryWords.every(w=>/^[a-z]+$/.test(w)))){
+  showStatus(tr('请输入完整的十个英文恢复词，并保持原始顺序。','Enter all ten English recovery words in their original order.'),ustatus);
+  (inputWords.find(x=>!/^[a-z]+$/.test(x.value.trim().toLowerCase()))||inputWords[0])?.focus();
+  return;
+ }
  if(!captchaToken){showStatus(tr('请完成人机验证。','Complete the human verification.'),ustatus);return}
- const body=selected==='phrase'?{phrase:inputWords.map(x=>x.value.trim().toLowerCase()).join(' ')}:{password:upass.value};
+ const body=recoveryWords?{phrase:recoveryWords.join(' ')}:{password:upass.value};
  if(selected==='password'&&(body.password.length<6||body.password.length>20)){showStatus(tr('请输入 6–20 位密码。','Password must be 6–20 characters.'),ustatus);return}
  loading=true;ubutton.disabled=true;
  try{showStatus(tr('正在核实身份…','Verifying your identity…'),ustatus);
