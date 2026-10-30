@@ -1,0 +1,32 @@
+name: N10-A7.55 Triple Login UI Safe Candidate
+on:
+  push:
+    branches:
+      - n10-a7-55-triple-login-ui-safe
+permissions:
+  contents: read
+jobs:
+  offline-login-ui:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax and zero-network safety
+        run: |
+          node --check js/mmhvault-n10-a7-40-username.js
+          node --check js/mmhvault-n10-a7-41-bind.js
+          node --check tests/n10-a7-55-triple-login-ui-safe.cjs
+          node --check tests/n10-a7-40-locked-ui-smoke.cjs
+          node --check tests/n10-a7-41-username-handoff-mock.cjs
+          node --check tests/n10-a7-41-username-bind-mock.cjs
+      - name: Triple login markup, same UID, UI gate off
+        run: node tests/n10-a7-55-triple-login-ui-safe.cjs
+      - name: Closed username browser UI mock
+        run: node tests/n10-a7-40-locked-ui-smoke.cjs
+      - name: Auth handoff and UID mismatch mock
+        run: node tests/n10-a7-41-username-handoff-mock.cjs
+      - name: Username bind and rejection mock
+        run: node tests/n10-a7-41-username-bind-mock.cjs
