@@ -501,7 +501,7 @@ async function mmhShowMfaChallengeV783(uid){
   location.replace('login.html');
  };
  fresh.onclick=async()=>{
-  const value=code.value.trim();if(!/^\\d{6}$/.test(value)){status.textContent=tr('请输入完整的六位验证码。','Enter all six digits.');code.focus();return}
+  const value=code.value.trim();if(!/^\d{6}$/.test(value)){status.textContent=tr('请输入完整的六位验证码。','Enter all six digits.');code.focus();return}
   fresh.disabled=true;status.textContent=tr('正在核验身份…','Verifying identity…');
   try{
    const {data:user,error:ue}=await db.auth.getUser();if(ue||user?.user?.id!==uid)throw Error('identity_changed');
