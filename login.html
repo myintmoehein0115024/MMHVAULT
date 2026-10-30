@@ -428,6 +428,19 @@ function recoverableCallbackV943(event,session){
 }
 function isZhV1531(){return window.getMMHVAULTLanguage&&window.getMMHVAULTLanguage()==='zh'}
 function msg(text,type=''){statusEl.textContent=window.translateMMHVAULTMessage?window.translateMMHVAULTMessage(text):text;statusEl.className='status '+type}
+function safeAccountMessage(error,context){
+ const zh=typeof isZhV1531==='function'&&isZhV1531();
+ const raw=String(error?.message||'').toLowerCase();
+ const offline=typeof navigator!=='undefined'&&navigator.onLine===false;
+ const timeout=error?.name==='AbortError'||/timeout|timed out/.test(raw);
+ if(offline)return zh?'当前没有网络连接。请连接网络后重试。':'You appear to be offline. Reconnect and try again.';
+ if(timeout)return zh?'请求超时。请检查网络后重试。':'Request timed out. Check your connection and retry.';
+ if(/429|rate limit|too many requests/.test(raw))return zh?'请求过于频繁。请稍后重试。':'Too many requests. Please try again later.';
+ if(context==='signin')return zh?'无法登录。请检查登录信息后重试。':'Unable to sign in. Check your credentials and try again.';
+ if(context==='signup')return zh?'无法完成注册，请检查输入信息或稍后重试。':'Unable to complete registration. Check your information or retry later.';
+ if(context==='google')return zh?'无法继续 Google 登录。请稍后重试。':'Unable to continue with Google sign-in. Please try again.';
+ return zh?'账户服务暂时不可用，请稍后重试。':'Account service temporarily unavailable. Please try again.';
+}
 function nextTargetV160(){const next=new URLSearchParams(location.search).get('next');return next==='business.html'||next==='username-setup.html'?next:'app.html'}
 function appUrl(){return new URL(nextTargetV160(),location.href).toString()}
 function loginCallbackUrlV160(){const u=new URL('login.html',location.href);if(nextTargetV160()!=='app.html')u.searchParams.set('next',nextTargetV160());return u.toString()}
@@ -496,7 +509,7 @@ function openForm(id){
   msg('');if(window.applyMMHVAULTLanguage)window.applyMMHVAULTLanguage();
 }
 tabs.forEach(t=>t.onclick=()=>openForm(t.dataset.target));document.querySelectorAll('[data-switch]').forEach(b=>b.onclick=()=>openForm(b.dataset.switch));document.querySelectorAll('.eye').forEach(b=>b.onclick=()=>{const i=b.parentElement.querySelector('input');const show=i.type==='password';i.type=show?'text':'password';const zh=isZhV1531();b.textContent=zh?(show?'隐藏':'显示'):(show?'Hide':'Show')});
-async function googleLogin(btn){if(!db){msg('Authentication service is unavailable. Please refresh.','err');return}btn.disabled=true;msg('Opening Google sign-in…');try{const {error}=await db.auth.signInWithOAuth({provider:'google',options:{redirectTo:loginCallbackUrlV160()}});if(error)throw error}catch(e){console.error(e);msg(e.message||'Unable to sign in with Google.','err');btn.disabled=false}}
+async function googleLogin(btn){if(!db){msg('Authentication service is unavailable. Please refresh.','err');return}btn.disabled=true;msg('Opening Google sign-in…');try{const {error}=await db.auth.signInWithOAuth({provider:'google',options:{redirectTo:loginCallbackUrlV160()}});if(error)throw error}catch(e){msg(safeAccountMessage(e,'google'),'err');btn.disabled=false}}
 ['googleSignIn','googleSignUp'].forEach(id=>document.getElementById(id).onclick=()=>googleLogin(document.getElementById(id)));
 document.getElementById('signin').addEventListener('submit',async e=>{
   e.preventDefault();const btn=document.querySelector('#signin .primary');if(btn.disabled)return;
@@ -511,7 +524,7 @@ document.getElementById('signin').addEventListener('submit',async e=>{
     if(error)throw error;
     if(data?.session){signinPassword.value='';await verifiedRedirectV946(data.session.user?.id);return}
     msg('Unable to verify this sign-in. Please sign in again.','err');
-  }catch(error){msg(error?.message==='Invalid login credentials'?'Incorrect email or password.':error?.message||'Unable to verify this sign-in. Please sign in again.','err')}
+  }catch(error){msg(safeAccountMessage(error,'signin'),'err')}
   finally{btn.disabled=false}
 });
 document.getElementById('signup').addEventListener('submit',async e=>{
@@ -526,7 +539,7 @@ document.getElementById('signup').addEventListener('submit',async e=>{
     signupPassword.value='';document.getElementById('signupConfirmPassword').value='';
     if(data?.session){await verifiedRedirectV946(data.session.user?.id);return}
     msg('Account created. Please check your email to confirm your account.','ok');
-  }catch(error){msg(error?.message||'Authentication service is unavailable.','err')}
+  }catch(error){msg(safeAccountMessage(error,'signup'),'err')}
   finally{btn.disabled=false}
 });
 document.getElementById('forgotBtn').onclick=async e=>{
@@ -770,5 +783,5 @@ main{padding:32px 18px 45px}
 @media(prefers-reduced-motion:reduce){.form.active{animation:none}.mmh-a780-security-icon::after{animation:none!important}#authTabs .tab,.form .primary{transition:none!important}}
 </style>
 <script src="./js/vendor/qrcode-1.0.0.min.js"></script>
-<script src="./js/mmhvault-n10-a7-69-username.js?v=n10-phase5-20261030"></script>
+<script src="./js/mmhvault-n10-a7-69-username.js?v=n10-phase6-20261030"></script>
 </body></html>
