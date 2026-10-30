@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#06111f">
 <meta name="robots" content="noindex,nofollow,noarchive">
-<meta name="description" content="MMHVAULT secure sign-in. Authentication is handled by Supabase Auth; MMHVAULT never asks for bank PINs, card numbers or crypto recovery phrases.">
+<meta name="description" content="MMHVAULT private finance secure sign-in. Protect your account using your email, password, username or account recovery key.">
 <title>MMHVAULT — Secure Access · Version 4.0</title>
 <link rel="icon" type="image/png" href="images/mmhvault-logo-transparent.png">
 <link rel="shortcut icon" type="image/png" href="images/mmhvault-logo-transparent.png">
@@ -160,9 +160,9 @@ footer{width:min(1240px,calc(100% - 48px));margin:0 auto;}
 <a class="btn ghost header-login" href="security.html">Security</a>
 </header>
 <main><section class="access">
-<div class="kicker">SECURE ACCESS · VERSION 4.0</div><h1 id="title">Welcome Back</h1><p class="sub" id="subtitle">Access your private MMHVAULT workspace</p><div class="auth-trust-note"><b>Security notice</b><span>Authentication is handled by Supabase Auth. Google sign-in opens Google OAuth. MMHVAULT never asks for bank PINs, card numbers, crypto seed phrases or passwords for external financial services.</span><a href="security.html">How sign-in works</a></div>
+<div class="kicker">PRIVATE WEALTH · SECURE ACCESS</div><h1 id="title">Welcome Back</h1><p class="sub" id="subtitle">Access your private MMHVAULT workspace</p><div class="auth-trust-note"><b>Protected sign-in</b><span>Your MMHVAULT credentials are checked securely. Never share your password, recovery words or QR code.</span><a href="security.html">Security details</a></div>
 <div class="tabs" id="authTabs"><button class="tab active" type="button" data-target="signin">🔒 Sign In</button><button class="tab" type="button" data-target="signup">✦ Sign Up</button></div>
-<div id="mmh-a764-preview-banner" class="mmh-a769-banner"><strong>生产试运行 · Username + 永久十词恢复</strong><span>目前仅限最多 3 个以 <b>qa_</b> 开头的测试用户名。创建的是正式 Supabase 账户，请使用全新测试密码并妥善保存 10 词和二维码。邮箱与 Google 登录保持不变。</span></div>
+
 <form class="form active" id="signin">
 <div class="mmh-a740-method-switch" role="group" aria-label="Sign-in method">
   <button type="button" data-mmh-a740-method="email" aria-pressed="true">Email</button>
@@ -177,7 +177,7 @@ footer{width:min(1240px,calc(100% - 48px));margin:0 auto;}
     <button type="button" data-mmh-a740-method="username" aria-pressed="true">Username</button>
   </div>
   <label for="mmhA740Username">Username</label>
-  <div class="field"><input id="mmhA740Username" type="text" autocomplete="username" spellcheck="false" autocapitalize="none" maxlength="20" pattern="[a-z][a-z0-9_]{3,19}" placeholder="qa_test001 (pilot only)" required></div>
+  <div class="field"><input id="mmhA740Username" type="text" autocomplete="username" spellcheck="false" autocapitalize="none" maxlength="20" pattern="[a-z][a-z0-9_]{3,19}" placeholder="qa_test001" required></div><p class="mmh-a780-pilot">Limited access: test usernames start with <b>qa_</b>.</p>
   <div class="mmh-a769-modes" role="group" aria-label="Username login method">
   <button type="button" data-mmh-a769-login-mode="password" aria-pressed="true">Password</button>
   <button type="button" data-mmh-a769-login-mode="phrase" aria-pressed="false">10-word recovery key</button>
@@ -189,6 +189,11 @@ footer{width:min(1240px,calc(100% - 48px));margin:0 auto;}
   <input id="mmhA769QrFile" type="file" accept="image/png,image/jpeg,image/webp" hidden><button id="mmhA769QrFileBtn" class="mmh-a769-small-btn" type="button">Read saved recovery QR image</button></div>
   <p class="mmh-a740-guidance">Username: 4–20 lowercase letters, numbers and underscores. Password: 6–20 characters.</p>
   <div id="mmhA740Captcha" class="mmh-a740-captcha" hidden></div>
+<div class="mmh-a780-security" id="mmhA780SigninSecurity" data-state="checking" role="status" aria-live="polite">
+ <span class="mmh-a780-security-icon" aria-hidden="true"></span>
+ <span data-mmh-security-text>Checking connection security…</span>
+ <button class="mmh-a780-security-retry" data-mmh-security-retry type="button" aria-label="Repeat security check">Retry</button>
+</div>
   <button id="mmhA740Submit" class="primary" type="submit" disabled>Sign In</button>
   <p id="mmhA740Status" class="mmh-a740-status" role="status" aria-live="polite">Checking secure username sign-in service…</p>
   <p class="mmh-a740-help">Forgot your password? <button type="button" id="mmhA740Forgot">Use permanent 10-word recovery</button></p>
@@ -217,6 +222,11 @@ footer{width:min(1240px,calc(100% - 48px));margin:0 auto;}
 <div class="field"><input id="mmhA756Confirm" type="password" autocomplete="new-password" minlength="6" maxlength="20" required placeholder="Confirm password"><button type="button" class="eye">Show</button></div>
 <p class="mmh-a769-info">No email required. Registration creates a permanent 10-word recovery key and QR code. Save both before completing account creation. Anyone holding that key can log in to your account.</p>
 <div id="mmhA769Captcha" class="mmh-a740-captcha" hidden></div>
+<div class="mmh-a780-security" id="mmhA780SignupSecurity" data-state="checking" role="status" aria-live="polite">
+ <span class="mmh-a780-security-icon" aria-hidden="true"></span>
+ <span data-mmh-security-text>Checking connection security…</span>
+ <button class="mmh-a780-security-retry" data-mmh-security-retry type="button" aria-label="Repeat security check">Retry</button>
+</div>
 <div id="mmhA769Backup" class="mmh-a769-hidden">
   <h3 class="mmh-a769-heading">Your permanent recovery key</h3>
   <p class="mmh-a740-guidance">Keep all ten words in their original order. This key and its QR code do not expire automatically.</p>
@@ -249,7 +259,7 @@ footer{width:min(1240px,calc(100% - 48px));margin:0 auto;}
   const T={
     'Home':'首页','Features':'功能','Security':'安全','Experience':'体验','About':'关于','Login':'登录',
     'PERSONAL WEALTH INTELLIGENCE · VERSION 4.3.0':'个人财富智能 · 版本 4.3.0',
-    'SECURE ACCESS · VERSION 4.0':'安全访问 · 版本 4.0','Welcome Back':'欢迎回来','Access your private MMHVAULT workspace':'进入你的私密 MMHVAULT 工作空间','Create Your Vault':'创建你的 Vault','Start your private wealth workspace':'开始你的私人财富工作空间',
+    'SECURE ACCESS · VERSION 4.0':'安全访问 · 版本 4.0','PRIVATE WEALTH · SECURE ACCESS':'私人财富 · 安全访问','Protected sign-in':'安全登录保护','Your MMHVAULT credentials are checked securely. Never share your password, recovery words or QR code.':'系统会安全核验您的登录凭证。请勿分享密码、恢复词组或二维码。','Security details':'安全说明','Limited access: test usernames start with':'当前测试用户名以','Retry':'重试','Checking connection security…':'正在进行安全检查…','Welcome Back':'欢迎回来','Access your private MMHVAULT workspace':'进入你的私密 MMHVAULT 工作空间','Create Your Vault':'创建你的 Vault','Start your private wealth workspace':'开始你的私人财富工作空间',
     '🔒 Sign In':'🔒 登录','✦ Sign Up':'✦ 注册','Sign-in method':'登录方式','Sign-up method':'注册方式','Username':'用户名','Your username':'输入用户名','4–20 characters · Only lowercase letters, numbers and underscore.':'4–20 个字符 · 仅限小写字母、数字及下划线。','Username sign-in is not enabled yet.':'用户名登录尚未开放。','Create a username account':'创建用户名账户','Create Username Account':'创建用户名账户','Choose a username':'设置用户名','Confirm password':'确认密码','Recovery email (recommended)':'恢复邮箱（推荐）','Email for account recovery':'用于找回账户的邮箱','4–20 characters · Start with a lowercase letter, then letters, numbers or underscore.':'4–20 个字符，以小写字母开头，可使用数字和下划线。','Without a verified recovery method, you may not be able to reset your password.':'没有经过验证的找回方式，忘记密码后可能无法恢复账户。','Username-only registration is not available yet. Email registration remains available.':'用户名独立注册尚未开放，目前可使用邮箱注册。','Use email sign-up instead':'改用邮箱注册','Email':'邮箱','Email address':'邮箱地址','Password':'密码','Show':'显示','Hide':'隐藏','Remember me':'记住我','Forgot password?':'忘记密码？','or continue with':'或使用以下方式继续','Continue with Google':'使用 Google 继续','Sign in with Google':'使用 Google 登录','Sign up with Google':'使用 Google 注册','Security':'安全',"Don't have an account?":'还没有账户？','Sign Up':'注册','Full name':'姓名','Your name':'你的姓名','Create password':'创建密码','Create a password':'创建密码','I agree to the terms':'我同意相关条款','Create Account':'创建账户','Already have an account?':'已经有账户？','Private · Intelligent · Built Around You':'私密 · 智能 · 围绕你而建','© 2026 MMHVAULT · Version 4.0':'© 2026 MMHVAULT · 版本 4.0','· Version 4.0':'· 版本 4.0','Version 4.0':'版本 4.0','MMHVAULT logo':'MMHVAULT 标志','Menu':'菜单',
     'Signing in…':'正在登录…','Authentication service is unavailable.':'身份验证服务暂不可用。','Authentication service is unavailable. Please refresh.':'身份验证服务暂不可用，请刷新页面。','Incorrect email or password.':'邮箱或密码错误。','Opening Google sign-in…':'正在打开 Google 登录…','Unable to sign in with Google.':'无法使用 Google 登录。','Creating your account…':'正在创建账户…','Please agree to the terms.':'请同意相关条款。','Account created. Please check your email to confirm your account.':'账户已创建，请检查邮箱完成确认。','Enter your email first, then try again.':'请先输入邮箱，然后重试。','Sending reset email…':'正在发送密码重置邮件…','Password reset email sent. Please check your inbox.':'密码重置邮件已发送，请检查收件箱。','Email not confirmed':'邮箱尚未完成验证。','User already registered':'该邮箱已经注册。','Password should be at least 6 characters.':'密码至少需要 6 个字符。','Choose a new password for your MMHVAULT account. This form is available only after opening a password recovery link from your email.':'请为 MMHVAULT 账户设置新密码。只有打开邮箱中的密码重置链接后，才能使用此表单。','New password':'新密码','Confirm new password':'确认新密码','At least 10 characters':'至少 10 个字符','Enter the password again':'再次输入新密码','Update Password':'更新密码','Return to Sign In':'返回登录','Reset Your Password':'重置您的密码','Choose a secure new password':'请设置安全的新密码','Checking password recovery link…':'正在验证密码重置链接…','This recovery link is invalid or has expired. Request a new email from the Sign In page.':'此密码重置链接无效或已过期，请返回登录页重新申请邮件。','Passwords do not match.':'两次输入的密码不一致。','Please use at least 10 characters.':'新密码至少需要 10 个字符。','Updating password…':'正在更新密码…','Password updated. Sign in again with your new password.':'密码已更新，请使用新密码重新登录。','Unable to update password. Request a fresh recovery email.':'无法更新密码，请重新申请密码重置邮件。','Unable to validate email address: invalid format':'邮箱格式无效。','Email rate limit exceeded':'邮件发送频率已达到限制，请稍后再试。','For security purposes, you can only request this once every 60 seconds.':'出于安全原因，每 60 秒只能请求一次。','Email address is invalid':'邮箱地址无效。','Password is too weak':'密码强度不足。','Google sign-in was cancelled or could not be completed. Please try again.':'Google 登录被取消或未能完成，请重试。','Verifying sign-in callback…':'正在核实登录回调…','Unable to verify this sign-in. Please sign in again.':'无法验证本次登录，请重新登录。'
   };
@@ -314,6 +324,7 @@ footer{width:min(1240px,calc(100% - 48px));margin:0 auto;}
     currentLang=lang==='zh'?'zh':'en';
     if(save) localStorage.setItem('mmhvault-language',currentLang);
     renderLanguage();
+    window.dispatchEvent(new Event('mmhvault-language-change'));
   }
   window.getMMHVAULTLanguage=()=>currentLang;
   window.translateMMHVAULTMessage=translatedError;
@@ -575,6 +586,87 @@ if(db){
 .mmh-a769-agree input{margin-top:4px}
 @media(max-width:420px){.mmh-a769-words,.mmh-a769-word-inputs{grid-template-columns:1fr 1fr}.mmh-a769-actions{grid-template-columns:1fr 1fr}.mmh-a769-modes button{font-size:11px}}
 </style>
+
+<style id="mmh-a780-premium-access">
+:root{--bg:#050d18;--gold:#e8bc70;--gold2:#ffe1ac;--text:#f6f6f3;--muted:#9babbc}
+.bg{background:linear-gradient(110deg,rgba(2,9,18,.80),rgba(4,15,27,.42) 48%,rgba(2,10,18,.77)),url('images/mmhvault-auth-bg.png') center/cover no-repeat}
+.bg:before{background:radial-gradient(circle at 72% 20%,rgba(88,151,191,.12),transparent 37%),radial-gradient(circle at 26% 80%,rgba(214,169,93,.10),transparent 30%);mix-blend-mode:normal}
+.gridfx{opacity:.16}.glow{opacity:.55}
+main{padding:32px 18px 45px}
+.access{
+ position:relative;overflow:hidden;width:min(506px,calc(100vw - 36px));max-width:506px;
+ padding:31px 32px 28px;border-radius:27px;
+ background:linear-gradient(145deg,rgba(17,34,53,.89) 0%,rgba(8,24,42,.94) 50%,rgba(4,17,31,.97) 100%);
+ border:1px solid rgba(222,189,124,.25);
+ box-shadow:0 26px 90px rgba(0,0,0,.52),inset 0 1px rgba(255,255,255,.085),0 0 44px rgba(29,83,128,.12);
+ backdrop-filter:blur(27px) saturate(1.35);-webkit-backdrop-filter:blur(27px) saturate(1.35);
+}
+.access::before{content:"";position:absolute;pointer-events:none;top:0;left:18%;right:18%;height:1px;background:linear-gradient(90deg,transparent,rgba(255,222,157,.70),transparent)}
+.kicker{font-size:10px;letter-spacing:.24em;font-weight:800;margin-bottom:12px;color:#efca88;text-shadow:none}
+.access h1{font-size:clamp(27px,4vw,33px);letter-spacing:-.042em;color:#f7f7f5;text-shadow:none;font-weight:770}
+.access .sub{font-size:12px;line-height:1.5;color:#9dafbf;margin:8px 0 20px}
+.auth-trust-note{margin:0 0 19px;padding:11px 13px 11px 40px;position:relative;display:flex;align-items:center;gap:5px 9px;flex-wrap:wrap;background:rgba(11,40,56,.46);border:1px solid rgba(121,182,194,.23);border-radius:13px;font-size:11px;line-height:1.5;color:#adbac7}
+.auth-trust-note::before{content:"✓";position:absolute;left:14px;top:12px;display:grid;place-items:center;width:18px;height:18px;border-radius:6px;color:#a9e9ca;border:1px solid rgba(132,212,176,.26);background:rgba(82,158,121,.12);font-size:12px;font-weight:800}
+.auth-trust-note b{margin:0;color:#d5e9db;font-size:11px}
+.auth-trust-note span{display:block;flex-basis:100%;font-size:10.5px;color:#9bb4be}
+.auth-trust-note a{font-size:10.5px;font-weight:750;white-space:nowrap;color:#e8c989}
+#authTabs{border-radius:16px;padding:4px;margin:0 0 18px;background:rgba(2,12,24,.56);border:1px solid rgba(137,168,188,.2)}
+#authTabs .tab{border-radius:12px;min-height:47px;font-size:13px;font-weight:760;transition:background .2s ease,color .2s ease}
+#authTabs .tab.active{background:linear-gradient(120deg,rgba(209,167,92,.22),rgba(226,184,102,.09));color:#ffe1aa;border-color:rgba(226,184,102,.40);box-shadow:inset 0 -2px rgba(233,191,116,.8)}
+.mmh-a740-method-switch{border-radius:13px!important;margin-bottom:18px!important;padding:4px!important;background:rgba(3,16,29,.49)!important}
+.mmh-a740-method-switch button{font-weight:780!important;padding:10px 8px!important;border-radius:9px!important}
+.mmh-a740-method-switch button[aria-pressed="true"]{background:rgba(237,195,110,.14)!important;color:#f9d99b!important}
+.form label{color:#b9c9d4;font-size:11px;font-weight:730;letter-spacing:.01em;margin:12px 0 7px}
+.field input{height:52px!important;padding:0 16px!important;border:1px solid rgba(119,163,188,.34)!important;border-radius:13px!important;background:rgba(2,17,30,.70)!important;color:#edf5fb!important;box-shadow:inset 0 1px 4px rgba(0,0,0,.09)}
+.field input::placeholder{color:#7790a5!important;opacity:.95}
+.field input:focus{outline:none!important;border-color:rgba(232,190,112,.82)!important;box-shadow:0 0 0 3px rgba(232,190,112,.11)!important}
+.field .eye{font-weight:800;color:#efc878;font-size:12px}
+.mmh-a769-modes{margin:13px 0 13px!important;gap:8px}
+.mmh-a769-modes button{min-width:0!important;border-radius:11px!important;background:rgba(7,25,41,.58)!important;padding:11px 7px!important;font-size:11.5px!important}
+.mmh-a769-modes button[aria-pressed=true]{border-color:rgba(232,190,112,.64)!important;background:rgba(214,169,88,.17)!important;color:#ffe2a6!important}
+.mmh-a780-pilot{font-size:10.5px;line-height:1.55;color:#b6a77d;margin:5px 2px 10px}
+.mmh-a780-pilot b{color:#ffe2a8}
+.mmh-a740-guidance{font-size:10.5px;color:#8da5b9;margin:6px 2px 10px;line-height:1.6}
+#mmhA769PilotHint{font-size:11px!important;color:#d9b981!important;background:rgba(208,164,92,.07)!important;border-color:rgba(217,178,108,.23)!important;border-radius:12px!important;padding:10px 12px!important}
+.mmh-a769-info{border-radius:12px!important;font-size:11px!important;line-height:1.65!important;color:#d4c3a6!important}
+.mmh-a740-captcha{min-height:0!important;height:0!important;margin:0!important;padding:0!important;border:0!important;overflow:visible}
+.mmh-a780-security{
+ display:flex;align-items:center;gap:9px;min-height:46px;padding:10px 11px;margin:13px 0 14px;
+ border:1px solid rgba(133,171,181,.26);background:linear-gradient(110deg,rgba(17,46,55,.43),rgba(15,36,49,.22));border-radius:12px;
+ color:#b3c7d0;font-size:10.5px;line-height:1.4
+}
+.mmh-a780-security-icon{flex:0 0 21px;width:21px;height:21px;border:1px solid rgba(130,178,177,.34);border-radius:7px;display:grid;place-items:center;font-size:12px;color:#b9e1d4;background:rgba(91,142,133,.12)}
+.mmh-a780-security-icon::after{content:"…"}
+.mmh-a780-security[data-state="ready"]{border-color:rgba(124,211,172,.32);color:#c5dfd2;background:linear-gradient(110deg,rgba(27,72,64,.30),rgba(10,39,48,.24))}
+.mmh-a780-security[data-state="ready"] .mmh-a780-security-icon::after{content:"✓";font-weight:800}
+.mmh-a780-security[data-state="error"]{border-color:rgba(230,162,119,.32);color:#f5c6af}
+.mmh-a780-security[data-state="error"] .mmh-a780-security-icon::after{content:"!";font-weight:800}
+.mmh-a780-security [data-mmh-security-text]{min-width:0;flex:1}
+.mmh-a780-security-retry{flex:0 0 auto;appearance:none;border:0;background:transparent;color:#e9c98e;text-decoration:underline;text-underline-offset:3px;font:750 10.5px/1.2 inherit;cursor:pointer;padding:6px}
+.mmh-a780-security-retry:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.form .primary{margin-top:4px!important;height:53px!important;border-radius:14px!important;font-weight:800!important;font-size:13.5px!important;letter-spacing:.01em!important;background:linear-gradient(118deg,#cda25b,#ffdf9a 50%,#d7ad62)!important;box-shadow:0 10px 32px rgba(200,153,68,.16)!important}
+.form .primary:hover{filter:brightness(1.07)}
+.form .primary:disabled{opacity:.52;filter:saturate(.5);cursor:not-allowed}
+.mmh-a740-status{font-size:10.5px!important;min-height:22px!important;margin:10px 0!important;color:#98afbf!important}
+.mmh-a740-help{font-size:11px;margin:13px 0 0!important;color:#99aebf}
+.mmh-a740-help button,.form .switch button{color:#eed092!important}
+.mmh-a769-words{gap:8px!important}
+.mmh-a769-word{border-color:rgba(219,183,120,.32)!important;background:rgba(23,48,65,.73)!important;border-radius:10px!important}
+.mmh-a769-qr{box-shadow:0 14px 40px rgba(0,0,0,.25)}
+#status{font-size:11px;color:#ebc58e}
+.mmh-a769-word-inputs input{border-color:rgba(128,164,183,.38)!important}
+@media(max-width:560px){
+ main{padding:18px 10px 34px}
+ .access{width:calc(100vw - 20px);padding:24px 17px 20px;border-radius:21px}
+ .auth-trust-note{padding:10px 11px 10px 36px}
+ .auth-trust-note::before{left:11px;top:11px}
+ #authTabs .tab{min-height:44px}
+ .mmh-a769-word-inputs{gap:7px}
+ .mmh-a780-security{padding:9px 9px;min-height:44px}
+ .form .primary{height:50px!important}
+}
+@media(prefers-reduced-motion:reduce){.form.active{animation:none}#authTabs .tab,.form .primary{transition:none!important}}
+</style>
 <script src="./js/vendor/qrcode-1.0.0.min.js"></script>
-<script src="./js/mmhvault-n10-a7-69-username.js?v=10.769.4"></script>
+<script src="./js/mmhvault-n10-a7-69-username.js?v=10.780.1"></script>
 </body></html>
