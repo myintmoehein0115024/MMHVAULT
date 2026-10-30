@@ -486,6 +486,9 @@ document.getElementById('signin').addEventListener('submit',async e=>{
   e.preventDefault();const btn=document.querySelector('#signin .primary');if(btn.disabled)return;
   if(!db){msg('Authentication service is unavailable.','err');return}
   const email=signinEmail.value.trim(),password=signinPassword.value;
+  // A username is handled by the dedicated server-verified handler in capture phase.
+  // Reject malformed email input instead of sending it to the email-only endpoint.
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){msg('Enter a valid email address or username.','err');return}
   btn.disabled=true;msg('Signing in…');
   try{
     const {data,error}=await db.auth.signInWithPassword({email,password});
@@ -510,7 +513,20 @@ document.getElementById('signup').addEventListener('submit',async e=>{
   }catch(error){msg(error?.message||'Authentication service is unavailable.','err')}
   finally{btn.disabled=false}
 });
-document.getElementById('forgotBtn').onclick=async e=>{e.preventDefault();const email=signinEmail.value.trim();if(!email){msg('Enter your email first, then try again.','err');return}if(!db){msg('Authentication service is unavailable.','err');return}msg('Sending reset email…');const {error}=await db.auth.resetPasswordForEmail(email,{redirectTo:recoveryRedirectUrlV943()});msg(error?error.message:'Password reset email sent. Please check your inbox.',error?'err':'ok')};
+document.getElementById('forgotBtn').onclick=async e=>{
+ e.preventDefault();
+ const email=signinEmail.value.trim();
+ if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){msg('Enter your email address to request a reset link, or choose Use Recovery Key for a username-only account.','err');return}
+ if(!db){msg('Account service temporarily unavailable.','err');return}
+ msg('Sending password reset request…');
+ try{
+  const {error}=await db.auth.resetPasswordForEmail(email,{redirectTo:recoveryRedirectUrlV943()});
+  if(error)throw error;
+  msg('If this address is eligible, password reset instructions will be sent.','ok');
+ }catch(error){
+  msg(navigator.onLine===false?'You are offline. Reconnect and try again.':error?.name==='AbortError'?'Request timed out. Retry when your connection is stable.':'Password reset request could not be completed. Try again later.','err');
+ }
+};
 // Password recovery must not redirect an authenticated recovery session to app.html.
 document.getElementById('recovery').addEventListener('submit',async e=>{
   e.preventDefault();
@@ -738,5 +754,5 @@ main{padding:32px 18px 45px}
 @media(prefers-reduced-motion:reduce){.form.active{animation:none}.mmh-a780-security-icon::after{animation:none!important}#authTabs .tab,.form .primary{transition:none!important}}
 </style>
 <script src="./js/vendor/qrcode-1.0.0.min.js"></script>
-<script src="./js/mmhvault-n10-a7-69-username.js?v=n10-phase3-20261030"></script>
+<script src="./js/mmhvault-n10-a7-69-username.js?v=n10-phase4-20261030"></script>
 </body></html>
