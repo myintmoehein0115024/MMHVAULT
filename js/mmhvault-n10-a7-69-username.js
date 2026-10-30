@@ -14,7 +14,7 @@ const modeButtons=[...document.querySelectorAll('[data-mmh-a769-login-mode]')],p
 if(!signup||!login||!backup||!sbutton||!ubutton||!captchaRegister||!captchaLogin)return;
 const tr=(zh,en)=>window.getMMHVAULTLanguage?.()==='zh'?zh:en;
 let pilotOnly=false,enabled=false,loading=false,selected='password',prepared=null,accountCreated=false,captchaWidget=null,captchaArea=null,captchaAction='',captchaToken='';
-const inputWords=Array.from(phraseArea?.querySelectorAll('input[data-a769-word]')||[]);
+const inputWords=Array.from(phraseArea?.querySelectorAll('input[data-a769-word]')||[]);const smartRetry=$('mmhSmartCaptchaRetry');
 function showStatus(t,el){if(el)el.textContent=t;}
 function safeAuthError(error){
  const key=String(error?.message||error||'').toLowerCase();
@@ -45,7 +45,7 @@ function securityState(kind){
   };
   el.textContent=values[kind]||values.idle;
 }
-function resetCaptcha(){captchaToken='';if(captchaWidget!==null&&typeof turnstile!=='undefined'){try{turnstile.remove(captchaWidget)}catch(_){}}captchaWidget=null;captchaArea=null;captchaAction='';securityState(enabled?'checking':'idle');}
+function resetCaptcha(){if(smartRetry)smartRetry.hidden=true;captchaToken='';if(captchaWidget!==null&&typeof turnstile!=='undefined'){try{turnstile.remove(captchaWidget)}catch(_){}}captchaWidget=null;captchaArea=null;captchaAction='';securityState(enabled?'checking':'idle');}
 function smartUsername(){const v=smartInput?.value.trim()||'';return v!==''&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)}
 function action(){return signup.classList.contains('active')?'prepare_signup':smartForm.classList.contains('active')?'login':selected==='phrase'?'phrase_login':'login';}
 function loadCaptcha(){
@@ -60,18 +60,19 @@ function loadCaptcha(){
   // An Invisible widget has no branding footprint; the Siteverify backend remains required.
   try{target.hidden=false;captchaWidget=turnstile.render(target,{
     sitekey:SITEKEY,theme:'dark',appearance:'interaction-only',action:'mmh_n10a769_'+next,
-    callback:v=>{captchaToken=v;securityState('ready');},
-    'expired-callback':()=>{captchaToken='';securityState('error');},
-    'error-callback':()=>{captchaToken='';securityState('error');}
+    callback:v=>{captchaToken=v;if(smartRetry)smartRetry.hidden=true;securityState('ready');},
+    'expired-callback':()=>{captchaToken='';if(captchaArea===smartCaptcha&&smartRetry)smartRetry.hidden=false;securityState('error');},
+    'error-callback':()=>{captchaToken='';if(captchaArea===smartCaptcha&&smartRetry)smartRetry.hidden=false;securityState('error');}
   });
   // A browser privacy setting may block background verification. Never report
   // success without a token; instead offer a visible retry after the timeout.
   setTimeout(()=>{
-    if(enabled&&captchaArea===target&&captchaAction===next&&!captchaToken)securityState('error');
+    if(enabled&&captchaArea===target&&captchaAction===next&&!captchaToken){if(target===smartCaptcha&&smartRetry)smartRetry.hidden=false;securityState('error');}
   },12000);
   }
   catch(e){securityState('error');}
 }
+smartRetry?.addEventListener('click',()=>{resetCaptcha();loadCaptcha();});
 function asyncLoadCaptcha(){if(document.querySelector('script[data-a769-turnstile]'))return;
   const el=document.createElement('script');el.src='https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';el.async=true;el.defer=true;el.dataset.a769Turnstile='1';el.onload=loadCaptcha;el.onerror=()=>securityState('error');document.head.append(el);
 }
@@ -155,7 +156,7 @@ const modalConfirm=$('mmhA769ModalConfirm');
 const recoveryNotice=document.createElement('p');recoveryNotice.id='mmhN10RecoveryNotice';recoveryNotice.setAttribute('role','status');recoveryNotice.setAttribute('aria-live','polite');recoveryNotice.style.cssText='margin:12px 0;color:#f4d5a2;font-size:12px;line-height:1.55';recoveryPanel.appendChild(recoveryNotice);
 function noticeRecovery(message){recoveryNotice.textContent=message;}
 function closeRecoveryModal(){recoveryHost.classList.remove('mmh-open');document.body.classList.remove('mmh-n10-modal-lock');}
-function openRecoveryModal(){recoveryHost.classList.add('mmh-open');document.body.classList.add('mmh-n10-modal-lock');modalConfirm?.focus();}
+function openRecoveryModal(){recoveryHost.classList.add('mmh-open');document.body.classList.add('mmh-n10-modal-lock');($('mmhA769Copy')||backupAgree)?.focus();}
 recoveryHost.addEventListener('keydown',event=>{
  if(event.key==='Escape'){event.preventDefault();$('mmhA769Cancel')?.focus();}
  if(event.key==='Tab'){
