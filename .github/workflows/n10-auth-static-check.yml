@@ -6,6 +6,7 @@ on:
       - 'js/mmhvault-n10-a7-69-username.js'
       - '.github/workflows/n10-auth-static-check.yml'
       - 'tests/n10_auth_regression.py'
+      - 'tests/n10_edge_mfa_assurance.test.cjs'
       - 'docs/sql/n10_mfa_gate_candidate_staging_only.sql'
       - 'security/n10-edge-candidates/**'
   workflow_dispatch:
@@ -21,6 +22,8 @@ jobs:
           node-version: '22'
       - name: Check N10 regression contracts
         run: python3 -m unittest discover -s tests -p 'n10_auth_regression.py' -v
+      - name: Exercise MFA assurance decisions with Node.js
+        run: node --test tests/n10_edge_mfa_assurance.test.cjs
       - name: Parse TypeScript Edge MFA candidates (not deployed)
         run: |
           for file in security/n10-edge-candidates/*/index.ts; do
