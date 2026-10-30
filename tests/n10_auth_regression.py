@@ -115,6 +115,9 @@ class N10AuthContract(unittest.TestCase):
         self.assertLess(push.index("if (mfaRequired)"), push.index("const subs = await sql"))
         self.assertLess(push.index("MFA_REQUIRED"), push.index("from vault.decrypted_secrets"))
         self.assertIn("getAuthenticatorAssuranceLevel(jwt)", ai)
+        # Legacy valid Auth tokens without an AAL claim are AAL1, not an error.
+        self.assertIn('level === null || level === "aal1" || level === "aal2"', ai)
+        self.assertIn('assurance.nextLevel === "aal2" && assurance.currentLevel !== "aal2"', ai)
         self.assertIn('assurance.nextLevel === "aal2"', ai)
         self.assertLess(ai.index("MFA_REQUIRED"), ai.index("let body: any"))
         self.assertLess(ai.index("MFA_REQUIRED"), ai.index("const transactions = await readRows("))
