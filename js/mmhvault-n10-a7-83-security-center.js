@@ -133,7 +133,7 @@ $('mmhA783TotpConfirm').addEventListener('click',async()=>{
   const {error}=await client().auth.mfa.verify({factorId:pendingFactor,challengeId:challenge.id,code});
   if(error)throw error;
   clearMfa();status('Authenticator enabled. New sign-ins will require a six-digit code.');
-  await refresh();
+  setTimeout(()=>void refresh(),0);
  }catch(_){status('Could not verify this code. Check your device time and try a new code.');}
  finally{busy=false;$('mmhA783TotpCode').value='';}
 });
