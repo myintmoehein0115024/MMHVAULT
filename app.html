@@ -13919,6 +13919,23 @@ function showWelcome(){
 let activeEnterUserId="";
 async function enter(session){
   if(!session?.user?.id) return;
+  // N10-A7.83: AAL1 cannot enter the finance workspace if this UID enabled TOTP.
+  // This is an additional UI gate; protect high-risk backend operations separately.
+  const a783=await db.auth.mfa.getAuthenticatorAssuranceLevel();
+  if(a783.error||!a783.data)throw a783.error||new Error('mfa_status_unavailable');
+  if(a783.data.nextLevel==='aal2'&&a783.data.currentLevel!=='aal2'){
+    location.replace('login.html?mfa=1');
+    return {ok:false,mfaRequired:true};
+  }
+  const expectedLinkedUid=sessionStorage.getItem('mmh_a783_google_link_expected_uid');
+  if(expectedLinkedUid){
+    sessionStorage.removeItem('mmh_a783_google_link_expected_uid');
+    if(expectedLinkedUid!==session.user.id){
+      await db.auth.signOut({scope:'local'});
+      location.replace('login.html?link_identity_mismatch=1');
+      return {ok:false,identityMismatch:true};
+    }
+  }
   const bootGuard=$("mmhvaultAppBootGuardV3282");
   if(bootGuard)bootGuard.remove();
   if(activeEnterUserId===session.user.id) return;
