@@ -93,6 +93,76 @@ for (const viewport of [{width:390,height:844},{width:1440,height:900}]) {
     await expect(dialog.locator('[data-mfa-status]')).toContainText(/six digits|六位/);
   });
 
+
+  test('wrong MFA code never unlocks the vault: ' + viewport.width, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    await openLocalPage(page);
+    await page.evaluate(async () => {
+      const id='11111111-1111-4111-8111-111111111111';
+      db.auth.getUser=async () => ({data:{user:{id}},error:null});
+      db.auth.mfa.listFactors=async () => ({data:{totp:[{id:'fake-totp-id',status:'verified'}]},error:null});
+      db.auth.mfa.challenge=async () => ({data:{id:'fake-challenge-id'},error:null});
+      db.auth.mfa.verify=async () => ({data:null,error:new Error('invalid otp')});
+      await mmhShowMfaChallengeV783(id);
+    });
+    await page.locator('#mmhMfaCodeV783').fill('123456');
+    await page.locator('#mmhMfaDialogV783 [data-mfa-submit]').click();
+    await expect(page.locator('#mmhMfaDialogV783')).toBeVisible();
+    await expect(page.locator('#mmhMfaDialogV783')).toHaveAttribute('data-open','true');
+    await expect(page.locator('#mmhMfaDialogV783 [data-mfa-status]'))
+      .toContainText(/Verification failed|验证失败/);
+    await expect(page).toHaveURL(/\/login\.html$/);
+  });
+
+  test('post-MFA session mismatch keeps verification modal locked: ' + viewport.width, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    await openLocalPage(page);
+    await page.evaluate(async () => {
+      const id='11111111-1111-4111-8111-111111111111';
+      db.auth.getUser=async () => ({data:{user:{id}},error:null});
+      db.auth.getSession=async () => ({
+        data:{session:{user:{id:'22222222-2222-4222-8222-222222222222'}}},error:null
+      });
+      db.auth.mfa.listFactors=async () => ({data:{totp:[{id:'fake-totp-id',status:'verified'}]},error:null});
+      db.auth.mfa.challenge=async () => ({data:{id:'fake-challenge-id'},error:null});
+      db.auth.mfa.verify=async () => ({data:{},error:null});
+      db.auth.mfa.getAuthenticatorAssuranceLevel=async () => ({
+        data:{currentLevel:'aal2',nextLevel:'aal2'},error:null
+      });
+      await mmhShowMfaChallengeV783(id);
+    });
+    await page.locator('#mmhMfaCodeV783').fill('123456');
+    await page.locator('#mmhMfaDialogV783 [data-mfa-submit]').click();
+    await expect(page.locator('#mmhMfaDialogV783')).toHaveAttribute('data-open','true');
+    await expect(page.locator('#mmhMfaDialogV783')).toBeVisible();
+    await expect(page).toHaveURL(/\/login\.html$/);
+  });
+
+  test('successful MFA enters only after verified matching session: ' + viewport.width, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    await openLocalPage(page);
+    await page.route('**/app.html', route => route.fulfill({
+      status:200,contentType:'text/html',
+      body:'<!doctype html><title>Mocked vault destination</title><main>UI test only</main>'
+    }));
+    await page.evaluate(async () => {
+      const id='11111111-1111-4111-8111-111111111111';
+      db.auth.getUser=async () => ({data:{user:{id}},error:null});
+      db.auth.getSession=async () => ({data:{session:{user:{id}}},error:null});
+      db.auth.mfa.listFactors=async () => ({data:{totp:[{id:'fake-totp-id',status:'verified'}]},error:null});
+      db.auth.mfa.challenge=async () => ({data:{id:'fake-challenge-id'},error:null});
+      db.auth.mfa.verify=async () => ({data:{},error:null});
+      db.auth.mfa.getAuthenticatorAssuranceLevel=async () => ({
+        data:{currentLevel:'aal2',nextLevel:'aal2'},error:null
+      });
+      await mmhShowMfaChallengeV783(id);
+    });
+    await page.locator('#mmhMfaCodeV783').fill('123456');
+    await page.locator('#mmhMfaDialogV783 [data-mfa-submit]').click();
+    await expect(page).toHaveURL(/\/app\.html$/);
+    await expect(page.locator('main')).toHaveText('UI test only');
+  });
+
   test('ten-word signup backup dialog stays usable: ' + viewport.width, async ({ page }) => {
     await page.setViewportSize(viewport);
     await openLocalPage(page);
