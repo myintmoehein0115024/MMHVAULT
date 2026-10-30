@@ -103,6 +103,8 @@ recoveryHost.appendChild(recoveryPanel);
 document.body.appendChild(recoveryHost);
 recoveryPanel.appendChild(backup);
 const modalConfirm=$('mmhA769ModalConfirm');
+const recoveryNotice=document.createElement('p');recoveryNotice.id='mmhN10RecoveryNotice';recoveryNotice.setAttribute('role','status');recoveryNotice.setAttribute('aria-live','polite');recoveryNotice.style.cssText='margin:12px 0;color:#f4d5a2;font-size:12px;line-height:1.55';recoveryPanel.appendChild(recoveryNotice);
+function noticeRecovery(message){recoveryNotice.textContent=message;}
 function closeRecoveryModal(){recoveryHost.classList.remove('mmh-open');document.body.classList.remove('mmh-n10-modal-lock');}
 function openRecoveryModal(){recoveryHost.classList.add('mmh-open');document.body.classList.add('mmh-n10-modal-lock');modalConfirm?.focus();}
 recoveryHost.addEventListener('keydown',event=>{
@@ -116,7 +118,7 @@ recoveryHost.addEventListener('keydown',event=>{
  }
 });
 modalConfirm?.addEventListener('click',()=>{if(!backupAgree.checked||!prepared||loading)return;signup.requestSubmit();});
-function clearPhrase(){if(prepared){prepared.phrase.fill('');prepared=null}accountCreated=false;wordsPanel?.replaceChildren();qr?.replaceChildren();backupAgree.checked=false;backup.classList.add('mmh-a769-hidden');closeRecoveryModal();}
+function clearPhrase(){if(prepared){prepared.phrase.fill('');prepared=null}accountCreated=false;noticeRecovery('');const leave=$('mmhA769Cancel');if(leave)leave.textContent=tr('取消并重新生成','Cancel and generate again');wordsPanel?.replaceChildren();qr?.replaceChildren();backupAgree.checked=false;backup.classList.add('mmh-a769-hidden');closeRecoveryModal();}
 function viewBackup(){
  if(!prepared||!wordsPanel||!qr)return;
  wordsPanel.replaceChildren();
@@ -125,7 +127,7 @@ function viewBackup(){
  try{if(typeof QRCode==='function')new QRCode(qr,{text:'MMHVAULT-RECOVERY-V1\nUSERNAME:'+prepared.username+'\nPHRASE:'+prepared.phrase.join(' '),width:206,height:206,colorDark:'#000',colorLight:'#fff',correctLevel:QRCode.CorrectLevel.L});
  else qr.textContent=tr('二维码组件暂不可用，请手动备份单词。','QR component unavailable; back up the words manually.');}
  catch{qr.textContent=tr('二维码生成失败，请手动保存十词。','Could not create QR. Write down the ten words.')}
- backup.classList.remove('mmh-a769-hidden');openRecoveryModal();
+ backup.classList.remove('mmh-a769-hidden');noticeRecovery('');openRecoveryModal();
  showStatus(tr('先保存全部 10 个词和二维码，再完成注册。','Save all ten words and the QR code before completing registration.'),sstatus);
  sbutton.textContent=tr('完成备份并创建账户','Confirm backup & create account');sbutton.disabled=true;if(modalConfirm)modalConfirm.disabled=true;
 }
@@ -138,7 +140,7 @@ $('mmhA769SaveQr')?.addEventListener('click',()=>{
  const c=qr.querySelector('canvas'),img=qr.querySelector('img'),data=c?.toDataURL('image/png')||img?.src;
  if(!data)return;const a=document.createElement('a');a.href=data;a.download='MMHVAULT-Private-Recovery-Key.png';document.body.append(a);a.click();a.remove();
 });
-$('mmhA769Cancel')?.addEventListener('click',()=>{if(accountCreated){showStatus(tr('账户已创建，请先保存恢复词。','Your account exists. Save the recovery words first.'),sstatus);return;}clearPhrase();sbutton.textContent=tr('生成十词并开始备份','Generate recovery key');sbutton.disabled=!enabled;showStatus(tr('注册已取消。用户名预留约 30 分钟自动释放。','Cancelled. Username reservation expires in about 30 minutes.'),sstatus);loadCaptcha()});
+$('mmhA769Cancel')?.addEventListener('click',()=>{if(accountCreated){if(!backupAgree.checked){noticeRecovery(tr('请先确认已安全保存恢复词。','Confirm that you have saved your recovery words first.'));return;}const username=prepared?.username||'';clearPhrase();spass.value='';sconfirm.value='';uname.value=username;openForm('usernameSignIn');loadCaptcha();return;}clearPhrase();sbutton.textContent=tr('生成十词并开始备份','Generate recovery key');sbutton.disabled=!enabled;showStatus(tr('注册已取消。用户名预留约 30 分钟自动释放。','Cancelled. Username reservation expires in about 30 minutes.'),sstatus);loadCaptcha()});
 async function handoff(body,expected){
  if(!db||!body?.access_token||!body?.refresh_token||!body?.user_id||body.user_id!==expected)throw Error('identity_not_verified');
  window.MMHVAULT_N10_A741_USERNAME_HANDOFF=true;
@@ -188,11 +190,12 @@ signup.addEventListener('submit',async e=>{
    // A confirmed account can survive a failed redirect; keep the recovery words
    // in memory until the sign-in handoff has succeeded.
    accountCreated=true;
+   const leave=$('mmhA769Cancel');if(leave)leave.textContent=tr('已保存，返回登录','I saved it — Return to Sign In');
    showStatus(tr('账户已创建，正在核实登录身份…','Account created; verifying sign-in…'),sstatus);
    await handoff(r.body,expected);
    clearPhrase();spass.value='';sconfirm.value='';
   }
- }catch(err){showStatus(accountCreated?tr('账户已创建，但自动登录尚未完成。请妥善保管恢复词，然后使用用户名登录。','Account created, but sign-in did not complete. Save your recovery words and sign in with your username.'):tr('操作未完成，请检查网络后重试。','Operation not completed. Check your connection and retry.'),sstatus);if(prepared){openRecoveryModal();}else{resetCaptcha();loadCaptcha()}}
+ }catch(err){showStatus(accountCreated?tr('账户已创建，但自动登录尚未完成。请妥善保管恢复词，然后使用用户名登录。','Account created, but sign-in did not complete. Save your recovery words and sign in with your username.'):tr('操作未完成，请检查网络后重试。','Operation not completed. Check your connection and retry.'),sstatus);if(prepared){noticeRecovery(accountCreated?tr('注册已成功，但自动登录没有完成。保存恢复词后，点击“返回登录”。','Registration succeeded, but automatic sign-in did not finish. Save the recovery words, then return to Sign In.'):tr('请确认保存恢复词；如果网络断开，不要重复创建账户。','Keep your recovery words safe. If your network failed, avoid repeatedly creating an account.'));openRecoveryModal();}else{resetCaptcha();loadCaptcha()}}
  finally{loading=false;updateSignupState()}
 },true);
 function chooseMode(mode){
