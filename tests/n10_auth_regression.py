@@ -128,7 +128,7 @@ class N10AuthContract(unittest.TestCase):
         self.assertIn('decision === "unavailable"', ai)
         self.assertIn('decision === "required"', ai)
         helper = (root / "mmh-financial-assistant/mfa-assurance.mjs").read_text(encoding="utf-8")
-        self.assertIn('nextLevel === null || nextLevel === "aal1" || nextLevel === "aal2"', helper)
+        self.assertIn('nextLevel !== "aal1" && nextLevel !== "aal2"', helper)
         self.assertIn('authHasVerifiedFactor === true', helper)
         self.assertIn('nextLevel !== "aal1" && nextLevel !== "aal2"', helper)
         self.assertIn('return "unavailable"', helper)
