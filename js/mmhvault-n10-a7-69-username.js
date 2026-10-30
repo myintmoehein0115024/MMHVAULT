@@ -46,7 +46,7 @@ function securityState(kind){
   el.textContent=values[kind]||values.idle;
 }
 function resetCaptcha(){if(smartRetry)smartRetry.hidden=true;captchaToken='';if(captchaWidget!==null&&typeof turnstile!=='undefined'){try{turnstile.remove(captchaWidget)}catch(_){}}captchaWidget=null;captchaArea=null;captchaAction='';securityState(enabled?'checking':'idle');}
-function smartUsername(){const v=smartInput?.value.trim()||'';return v!==''&&!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v)}
+function smartUsername(){const v=smartInput?.value.trim()||'';return v!==''&&!v.includes('@')}
 function action(){return signup.classList.contains('active')?'prepare_signup':smartForm.classList.contains('active')?'login':selected==='phrase'?'phrase_login':'login';}
 function loadCaptcha(){
   if(!enabled)return;
@@ -231,7 +231,7 @@ async function handoff(body,expected){
   if(remote.error||remote.data?.user?.id!==expected||cache.error||cache.data?.session?.user?.id!==expected)throw Error('session_not_verified');
   const navigated=await verifiedRedirectV946(expected);
   const mfaLayer=document.getElementById('mmhMfaDialogV783');
-  const mfaPending=mfaLayer?.dataset.owner===expected&&mfaLayer.style.display==='grid';
+  const mfaPending=mfaLayer?.dataset.owner===expected&&mfaLayer.dataset.open==='true'&&!mfaLayer.hidden;
   if(navigated!==true&&!mfaPending)throw Error('verified_redirect_failed');
  }catch(e){window.MMHVAULT_N10_A741_USERNAME_HANDOFF=false;try{await db.auth.signOut({scope:'local'})}catch(_){}throw e}
 }
