@@ -5,7 +5,7 @@ const $=id=>document.getElementById(id);
 const root=$('mmhA783SecurityCenter');if(!root)return;
 const API='https://vrypucmyrztxgiqhjspd.supabase.co/functions/v1/mmh-n10a783-phrase-verify';
 
-const A783_STATIC_ZH={"ACCOUNT SECURITY":"账户安全","Refresh":"刷新","Login methods & recovery":"登录方式与账户恢复","Manage your existing account without creating a second wallet or transferring finance records.":"管理现有账户，不会创建第二个财务账户或迁移财务记录。","Username":"用户名","Existing email users can add a username and continue using their original password and data.":"邮箱用户可绑定用户名，继续使用原密码及全部原有数据。","Link a username":"绑定用户名","Permanent recovery key":"永久恢复密钥","10 words":"十个单词","Your permanent recovery key is verified, not stored as readable words.":"系统仅保存密钥校验值，不会以可读取的形式保存原始恢复词。","For your protection, the original ten words cannot be retrieved from their secure verifier. Enter the words you saved to verify them and re-create your QR code locally.":"原始恢复词无法从校验值中找回。请输入您保存的十个单词，验证后可在本机重新生成恢复二维码。","Your saved 10 words, in the original order":"请输入原有十词，顺序必须一致","Verify saved words":"验证恢复词","Save my QR":"保存二维码","Hide key":"隐藏密钥","This backup view automatically closes after one minute. Anyone with these words can log in.":"恢复词将于 60 秒后自动隐藏。持有这组恢复词的人可能使用它登录您的账户，请妥善保管。","Google account":"Google 账户","Link Google to this same account. Linking does not transfer assets or create a new finance UID.":"将 Google 账号关联到同一个账户，不会迁移资产或创建新 UID。","Connect Google":"关联 Google","Authenticator · Two-step verification":"身份验证器 · 双重验证","Use a time-based six-digit code for additional protection during sign-in.":"登录时使用动态六位验证码，进一步保护账户。","Before enabling: save a backup of your authenticator codes or setup on a second trusted device. If you lose your authenticator, the permanent 10-word key alone does not bypass the second step. Do not enable until you have a recovery plan.":"开启前，请备份验证器或配置第二台可信设备。如果丢失验证器，仅凭永久十词无法跳过第二步验证。请确认有恢复方案后再开启。","I understand this second-step recovery limitation.":"我已理解双重验证的账户恢复限制。","Set up Authenticator":"设置身份验证器","Scan the QR with Google Authenticator or a compatible app. Do not share this QR or setup secret.":"使用 Google Authenticator 或其他兼容应用扫描二维码，不要分享二维码或设置密钥。","Manual setup key":"手动设置密钥","Six-digit code":"六位动态验证码","Verify & enable":"验证并开启","Cancel":"取消","Remove authenticator":"解绑身份验证器","Removing the last factor reduces account protection. Type REMOVE to confirm.":"移除最后一个验证器将降低账户安全性。请输入 REMOVE 确认。","Confirm removal":"确认解绑","Sign in to manage account security.":"登录后即可管理账户安全。"};
+const A783_STATIC_ZH={"ACCOUNT SECURITY":"账户安全","Refresh":"刷新","Login methods & recovery":"登录方式与账户恢复","Manage your existing account without creating a second wallet or transferring finance records.":"管理现有账户，不会创建第二个财务账户或迁移财务记录。","Username":"用户名","Existing email users can add a username and continue using their original password and data.":"邮箱用户可绑定用户名，继续使用原密码及全部原有数据。","Link a username":"绑定用户名","Permanent recovery key":"永久恢复密钥","10 words":"十个单词","Your permanent recovery key is verified, not stored as readable words.":"系统仅保存密钥校验值，不会以可读取的形式保存原始恢复词。","For your protection, the original ten words cannot be retrieved from their secure verifier. Enter the words you saved to verify them and re-create your QR code locally.":"原始恢复词无法从校验值中找回。请输入您保存的十个单词，验证后可在本机重新生成恢复二维码。","Your saved 10 words, in the original order":"请输入原有十词，顺序必须一致","Verify saved words":"验证恢复词","Save my QR":"保存二维码","Hide key":"隐藏密钥","This backup view automatically closes after one minute. Anyone with these words can log in.":"恢复词将于 60 秒后自动隐藏。持有这组恢复词的人可能使用它登录您的账户，请妥善保管。","Google account":"Google 账户","Link Google to this same account. Linking does not transfer assets or create a new finance UID.":"将 Google 账号关联到同一个账户，不会迁移资产或创建新 UID。","Connect Google":"关联 Google","Authenticator · Two-step verification":"身份验证器 · 双重验证","Use a time-based six-digit code for additional protection during sign-in.":"登录时使用动态六位验证码，进一步保护账户。","Before enabling: save a backup of your authenticator codes or setup on a second trusted device. If you lose your authenticator, the permanent 10-word key alone does not bypass the second step. Do not enable until you have a recovery plan.":"开启前，请备份验证器或配置第二台可信设备。如果丢失验证器，仅凭永久十词无法跳过第二步验证。请确认有恢复方案后再开启。","I understand this second-step recovery limitation.":"我已理解双重验证的账户恢复限制。","Set up Authenticator":"设置身份验证器","Scan the QR with Google Authenticator or a compatible app. Do not share this QR or setup secret.":"使用 Google Authenticator 或其他兼容应用扫描二维码，不要分享二维码或设置密钥。","Manual setup key":"手动设置密钥","Six-digit code":"六位动态验证码","Verify & enable":"验证并开启","Cancel":"取消","Remove authenticator":"解绑身份验证器","Removing the last factor reduces account protection. Type REMOVE to confirm.":"移除最后一个验证器将降低账户安全性。请输入 REMOVE 确认。","Confirm removal":"确认解绑","Show manual setup key":"显示手动设置密钥","Hide manual setup key":"隐藏手动设置密钥","Sign in to manage account security.":"登录后即可管理账户安全。"};
 const A783_DYNAMIC_ZH={"Not linked":"未绑定","Permanent ten-word recovery is available to username-only accounts.":"永久十词恢复功能适用于纯用户名账户。","Your original 10-word key remains valid. The original words cannot be retrieved from their secure verifier.":"原始十词密钥仍然有效，但无法从安全校验值中还原原文。","Connected to this account":"已关联本账户","Not connected":"未关联","Google connected":"已关联 Google","Authenticator enabled":"已启用身份验证器","Not enabled":"未启用","Two-step verification is active for this session.":"本次会话已通过双重验证。","Verify your six-digit code at sign-in to manage this factor.":"请在登录时完成六位验证码验证后再管理此验证器。","Use Google Authenticator or another TOTP app. After binding, a six-digit code is required on new sign-ins.":"支持 Google Authenticator 等标准 TOTP 应用，绑定后登录需验证六位动态码。","Security details updated.":"安全信息已更新。","Sign in to view account security, or try again after refreshing.":"请登录后查看账户安全，或刷新页面重试。","Please sign in before linking a username.":"请先登录再绑定用户名。","Google is already connected.":"Google 已绑定。","Opening Google authorization. Your original finance account will stay the same.":"正在前往 Google 授权，原财务账户不会变更。","Unable to link Google. Account linking may require enabling identity linking in authentication settings. No finance data was changed.":"Google 关联未完成。可能需要在认证设置中开放身份关联，财务数据未被修改。","Enter your existing ten words in the original order.":"请输入原始十个单词，并保持原有顺序。","Saved words verified. Backup view will close automatically after 60 seconds.":"恢复词验证通过，60 秒后自动隐藏。","The recovery words could not be verified. Check the order.":"恢复词验证失败，请检查单词及顺序。","Please confirm that you understand the backup requirements before enabling two-step verification.":"开启双重验证前，请先确认已了解备份要求。","Already enrolled":"已经绑定","Could not start authenticator setup. Please check the account and try again.":"无法开始验证器设置，请检查账户后重试。","Scan this QR with Google Authenticator, then enter its six-digit code. Do not share this secret.":"请扫描二维码并输入六位动态码，切勿分享设置密钥。","Enter a six-digit authenticator code.":"请输入六位动态验证码。","Authenticator enabled. New sign-ins will require a six-digit code.":"验证器已启用，后续登录需要六位动态码。","Could not verify this code. Check your device time and try a new code.":"验证码无效，请检查设备时间并输入新的验证码。","Authenticator setup cancelled.":"已取消验证器设置。","To remove your authenticator, enter REMOVE below. Only the verified owner can continue.":"解绑验证器请输入 REMOVE，只有已验证的账户所有者可以继续。","Complete two-step verification before removing an authenticator.":"解绑前请先完成双重验证。","Unable to remove the authenticator.":"无法解绑验证器。","Authenticator removed.":"已解绑验证器。"};
 function a783IsZh(){return (localStorage.getItem('mmhvault_language_v3363')||document.documentElement.lang||'').toLowerCase().startsWith('zh');}
 function a783Text(en){return a783IsZh()?(A783_DYNAMIC_ZH[en]||A783_STATIC_ZH[en]||en):en;}
@@ -42,7 +42,36 @@ let owner='',busy=false,pendingFactor='',pendingSecret='',factorId='',verifiedPh
 function client(){return typeof db!=='undefined'?db:null;}
 function label(id,v){const el=$(id);if(el){el.dataset.mmhA783DynamicEn=v;el.textContent=a783Text(v);}}
 function hideKey(){verifiedPhrase='';$('mmhA783KeyDisplay').hidden=true;$('mmhA783KeyQr').replaceChildren();$('mmhA783KeyWords').replaceChildren();$('mmhA783Phrase').value='';if(clearTimer)clearTimeout(clearTimer);}
-function clearMfa(){pendingSecret='';pendingFactor='';$('mmhA783TotpSetup').hidden=true;$('mmhA783TotpQr').removeAttribute('src');$('mmhA783TotpSecret').textContent='';$('mmhA783TotpCode').value='';}
+function clearMfa(){
+ pendingSecret='';pendingFactor='';
+ $('mmhA783TotpSetup').hidden=true;
+ $('mmhA783TotpQr').replaceChildren();
+ $('mmhA783TotpSecret').textContent='';
+ $('mmhA783TotpSecret').hidden=true;
+ a783Action('mmhA783TotpRevealSecret','Show manual setup key');
+ $('mmhA783TotpCode').value='';
+}
+async function cancelPendingMfa(){
+ const id=pendingFactor;
+ clearMfa();
+ if(!id)return true;
+ try{const {error}=await client().auth.mfa.unenroll({factorId:id});return !error;}
+ catch(_){return false;}
+}
+function a783TotpImage(totp){
+ const el=$('mmhA783TotpQr');el.replaceChildren();
+ if(typeof QRCode==='function'&&/^otpauth:\/\/totp\//i.test(totp.uri||'')){
+  new QRCode(el,{text:totp.uri,width:188,height:188,colorDark:'#132335',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});
+  return;
+ }
+ // SDKs may return a full data URL or raw SVG. Never double-encode a data URL.
+ const code=totp.qr_code||'';
+ let src='';
+ if(/^data:image\/svg\+xml[,;]/i.test(code))src=code;
+ else if(/^<svg[\s>]/i.test(code.trim()))src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(code);
+ if(!src)throw Error('QR unavailable');
+ const img=document.createElement('img');img.src=src;img.alt='Authenticator setup QR';img.width=188;img.height=188;el.append(img);
+}
 function status(t){label('mmhA783Status',t)}
 function resetSensitiveState(){
  usernameOnly=false;factorId='';
@@ -158,11 +187,18 @@ $('mmhA783TotpStart').addEventListener('click',async()=>{
   await verifiedUser();
   const existing=await client().auth.mfa.listFactors();
   if(existing.error||existing.data?.totp?.some(x=>x.status==='verified'))throw Error('Already enrolled');
+  // A previous aborted setup may leave unverified factors. Rotate only these pending factors.
+  for(const factor of (existing.data?.totp||[]).filter(x=>x.status==='unverified')){
+   const removed=await client().auth.mfa.unenroll({factorId:factor.id});
+   if(removed.error)throw Error('Old pending setup must be cancelled first.');
+  }
   const {data,error}=await client().auth.mfa.enroll({factorType:'totp',friendlyName:'MMHVAULT Authenticator'});
   if(error||!data?.id||!data?.totp?.qr_code)throw error||Error('Enrollment unavailable');
   pendingFactor=data.id;pendingSecret=data.totp.secret||'';
-  $('mmhA783TotpQr').src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(data.totp.qr_code);
+  a783TotpImage(data.totp);
   $('mmhA783TotpSecret').textContent=pendingSecret;
+  $('mmhA783TotpSecret').hidden=true;
+  a783Action('mmhA783TotpRevealSecret','Show manual setup key');
   $('mmhA783TotpSetup').hidden=false;
   status('Scan this QR with Google Authenticator, then enter its six-digit code. Do not share this secret.');
  }catch(_){status('Could not start authenticator setup. Please check the account and try again.');}
@@ -182,10 +218,15 @@ $('mmhA783TotpConfirm').addEventListener('click',async()=>{
  }catch(_){status('Could not verify this code. Check your device time and try a new code.');}
  finally{busy=false;$('mmhA783TotpCode').value='';}
 });
+$('mmhA783TotpRevealSecret').addEventListener('click',()=>{
+ const secret=$('mmhA783TotpSecret');
+ if(!pendingFactor)return;
+ secret.hidden=!secret.hidden;
+ a783Action('mmhA783TotpRevealSecret',secret.hidden?'Show manual setup key':'Hide manual setup key');
+});
 $('mmhA783TotpCancel').addEventListener('click',async()=>{
- const id=pendingFactor;clearMfa();
- if(id){try{await client().auth.mfa.unenroll({factorId:id})}catch(_){}}
- status('Authenticator setup cancelled.');
+ const ok=await cancelPendingMfa();
+ status(ok?'Authenticator setup cancelled.':'Unable to cancel pending setup. Please refresh before retrying.');
 });
 $('mmhA783TotpRemove').addEventListener('click',()=>{
  $('mmhA783TotpRemoveConfirm').hidden=false;
@@ -198,15 +239,15 @@ $('mmhA783TotpRemoveNow').addEventListener('click',async()=>{
  const {error}=await client().auth.mfa.unenroll({factorId});if(error){status('Unable to remove the authenticator.');return}
  $('mmhA783TotpRemoveText').value='';$('mmhA783TotpRemoveConfirm').hidden=true;status('Authenticator removed.');void refresh();
 });
-document.addEventListener('visibilitychange',()=>{if(document.hidden)hideKey();});
-window.addEventListener('pagehide',()=>{hideKey();clearMfa();});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){hideKey();if(pendingFactor)void cancelPendingMfa();}});
+window.addEventListener('pagehide',()=>{hideKey();if(pendingFactor)void cancelPendingMfa();else clearMfa();});
 root.closest('details')?.addEventListener('toggle',e=>{if(e.target.open)void refresh()});
 // Clear temporary recovery words and TOTP QR when navigating away from Account Settings.
-const a783Settings=$('settings'),a783AccountPanel=$('settingsPanelAccountV371');
+const a783Settings=$('settings'),a783AccountPanel=$('settingsPanelSecurityV371');
 let a783WasVisible=false;
 function a783VisibilityChanged(){
  const visible=!!(a783Settings?.classList.contains('active')&&a783AccountPanel?.style.display!=='none');
- if(a783WasVisible&&!visible){hideKey();clearMfa();}
+ if(a783WasVisible&&!visible){hideKey();if(pendingFactor)void cancelPendingMfa();else clearMfa();}
  if(!a783WasVisible&&visible)void refresh();
  a783WasVisible=visible;
 }
@@ -216,6 +257,16 @@ if(a783Settings&&a783AccountPanel){
  observer.observe(a783AccountPanel,{attributes:true,attributeFilter:['style','class']});
  a783VisibilityChanged();
 }
+root.querySelectorAll('details.mmh-a783-fold').forEach(details=>{
+ details.addEventListener('toggle',()=>{
+  if(details.open){
+   root.querySelectorAll('details.mmh-a783-fold').forEach(other=>{if(other!==details)other.open=false;});
+   return;
+  }
+  if(details.querySelector('#mmhA783KeyDisplay'))hideKey();
+  if(details.querySelector('#mmhA783TotpSetup')&&pendingFactor)void cancelPendingMfa();
+ });
+});
 a783RenderLanguage();
 if(client()){
  client().auth.onAuthStateChange((event)=>{if(['SIGNED_IN','SIGNED_OUT','TOKEN_REFRESHED'].includes(event))setTimeout(()=>{if(event==='SIGNED_OUT'){owner='';hideKey();clearMfa();resetSensitiveState();status('Sign in to manage account security.');}else void refresh()},0)});
