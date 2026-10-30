@@ -5,6 +5,8 @@ on:
       - 'login.html'
       - 'js/mmhvault-n10-a7-69-username.js'
       - '.github/workflows/n10-auth-static-check.yml'
+      - 'tests/n10_auth_regression.py'
+      - 'docs/sql/n10_mfa_gate_candidate_staging_only.sql'
   workflow_dispatch:
 jobs:
   auth-static:
@@ -16,6 +18,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Check N10 regression contracts
+        run: python3 -m unittest discover -s tests -p 'n10_auth_regression.py' -v
       - name: Check username authentication JavaScript syntax
         run: node --check js/mmhvault-n10-a7-69-username.js
       - name: Check inline login scripts and critical dialog wiring
