@@ -116,10 +116,14 @@ Deno.serve(async (req) => {
     const jwt = authHeader.slice("Bearer ".length).trim();
     const { data: assurance, error: assuranceError } =
       await verifier.auth.mfa.getAuthenticatorAssuranceLevel(jwt);
-    // An absent or malformed nextLevel is never proof that MFA is optional.
-    // This is stricter than simply accepting null for both assurance fields.
+    // MFA factors are supplied by the separately authenticated Auth user
+    // response; cross-check them with SDK assurance to prevent a stale or
+    // unsupported JWT API from mistakenly treating an enrolled user as AAL1.
+    // A valid legacy JWT with two null levels is allowed ONLY without factors.
     if (assuranceError) return json({ code: "MFA_CHECK_UNAVAILABLE" }, 503);
-    const decision = evaluateMfaAssurance(assurance);
+    const hasVerifiedFactor = Array.isArray(user.factors) &&
+      user.factors.some((factor: any) => factor?.status === "verified");
+    const decision = evaluateMfaAssurance(assurance, hasVerifiedFactor);
     if (decision === "unavailable") return json({ code: "MFA_CHECK_UNAVAILABLE" }, 503);
     if (decision === "required") return json({ code: "MFA_REQUIRED" }, 403);
   } catch (_) {
