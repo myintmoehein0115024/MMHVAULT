@@ -497,8 +497,21 @@ async function mmhShowMfaChallengeV783(uid){
  };
  if(signOut)signOut.onclick=async()=>{
   signOut.disabled=true;fresh.disabled=true;
-  try{await db.auth.signOut({scope:'local'});}catch(_){}
-  location.replace('login.html');
+  try{
+   // Never navigate away while an authenticated session might remain cached.
+   const {error:logoutError}=await db.auth.signOut({scope:'local'});
+   if(logoutError)throw logoutError;
+   const {data:afterLogout,error:sessionError}=await db.auth.getSession();
+   if(sessionError||afterLogout?.session)throw sessionError||Error('logout_not_confirmed');
+   layer.dataset.owner='';layer.dataset.open='false';layer.hidden=true;
+   document.body.classList.remove('mmh-n10-modal-lock');
+   location.replace('login.html');
+  }catch(_){
+   status.textContent=tr('无法确认安全退出，请重试。','Unable to confirm sign out. Please try again.');
+   signOut.disabled=false;fresh.disabled=false;
+   code.value='';
+   code.focus();
+  }
  };
  fresh.onclick=async()=>{
   const value=code.value.trim();if(!/^\d{6}$/.test(value)){status.textContent=tr('请输入完整的六位验证码。','Enter all six digits.');code.focus();return}
