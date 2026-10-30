@@ -13,7 +13,7 @@
   let client=null,busy=false,token='',captchaId=null,loading=null,completed=false,serverReady=false,hasVerifiedSession=false;
   const tr=(zh,en)=>lang==='zh'?zh:en;
   function message(zh,en){status.textContent=tr(zh,en);}
-  function safeReady(){return ENABLED===true && serverReady && /^0x[A-Za-z0-9]+$/.test(SITE_KEY) &&
+  function safeReady(){return ENABLED===true && serverReady && hasVerifiedSession && /^0x[A-Za-z0-9]+$/.test(SITE_KEY) &&
     location.protocol==='https:' && location.hostname==='mmhvault.com' &&
     window.supabase?.createClient && MMH_A741_PROJECT===ORIGIN &&
     typeof MMH_A741_PUBLISHABLE==='string' && MMH_A741_PUBLISHABLE.startsWith('sb_publishable_');}
@@ -38,7 +38,7 @@
     password.disabled=busy||completed||!ready;
     if(!ready){password.value='';token='';captcha.hidden=true;}
     submit.disabled=busy||completed||!ready||!token;
-    if(!ready)message('正在验证账户与绑定服务。如未登录，请先使用邮箱登录。','Checking account and linking service. Sign in by email first if needed.');
+    if(!ready)message(hasVerifiedSession?'安全服务正在检查，请稍后重试。':'请先使用已验证的邮箱账户登录，然后返回此页绑定用户名。',hasVerifiedSession?'Security service is being checked. Please retry shortly.':'Sign in with your verified email account first, then return here to link your username.');
   }
   function clearChallenge(){token='';if(captchaId!==null&&window.turnstile?.reset)try{window.turnstile.reset(captchaId)}catch(_){};paint();}
   async function challenge(){
@@ -70,6 +70,10 @@
       const j=await r.json();
       serverReady=r.ok&&j?.enabled===true&&j?.username_linking===true;
     }catch(_){serverReady=false}
+    if(serverReady){
+      try{await verifiedSession();hasVerifiedSession=true;}
+      catch(_){hasVerifiedSession=false;}
+    }
     paint();
     if(serverReady)void challenge();
   }
@@ -102,7 +106,7 @@
       const result=await response.json().catch(()=>null);
       if(response.ok&&result?.code==='bind_success'){
         completed=true;username.value=name;
-        message('用户名已绑定到当前账户。','Username linked to your current account.');
+        message('用户名已绑定到当前账户。今后可以使用用户名和原密码登录，也可以继续使用邮箱登录。','Username linked to your existing account. You can now sign in with the username and current password, or continue using email.');
         return;
       }
       if(response.status===409){message('此用户名不可用或当前账户已绑定。','Username unavailable or this account is already linked.');return;}
