@@ -16,7 +16,7 @@ test('conditional MFA gate uses fail-closed decisions', async (t) => {
     ['factor removed, old AAL2 session', {currentLevel:'aal2',nextLevel:'aal1'}, 'allowed'],
     ['missing nextLevel', {currentLevel:'aal1'}, 'unavailable'],
     ['inconsistent null nextLevel', {currentLevel:'aal1',nextLevel:null}, 'unavailable'],
-    ['legacy null current and null next with no factor', {currentLevel:null,nextLevel:null}, 'allowed'],
+    ['legacy null current and null next is ambiguous', {currentLevel:null,nextLevel:null}, 'unavailable'],
     ['missing currentLevel', {nextLevel:'aal1'}, 'unavailable'],
     ['unknown currentLevel', {currentLevel:'aal3',nextLevel:'aal2'}, 'unavailable'],
     ['unknown nextLevel', {currentLevel:'aal1',nextLevel:'aal3'}, 'unavailable'],
