@@ -79,6 +79,18 @@ for (const viewport of [{width:390,height:844},{width:1440,height:900}]) {
     await expect(overlay).not.toBeVisible();
   });
 
+  test('incomplete recovery words are rejected before network verification: ' + viewport.width, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    await openLocalPage(page);
+    await page.locator('#smartRecovery').click();
+    await page.locator('#mmhA740Username').fill('qa_visualtest');
+    await page.locator('#mmhA769PhraseArea input[data-a769-word="0"]').fill('amber');
+    await expect(page.locator('#mmhA740Submit')).toBeEnabled();
+    await page.locator('#mmhA740Submit').click();
+    await expect(page.locator('#mmhA740Status')).toContainText(/ten English recovery words|十个英文恢复词/);
+    await expect(page.locator('#mmhN10RecoveryLoginOverlay')).toBeVisible();
+  });
+
   test('MFA challenge remains isolated and accessible: ' + viewport.width, async ({ page }) => {
     await page.setViewportSize(viewport);
     await openLocalPage(page);
