@@ -94,6 +94,41 @@ for (const viewport of [{width:390,height:844},{width:1440,height:900}]) {
   });
 
 
+  test('MFA sign-out failure cannot leave the verification gate: ' + viewport.width, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    await openLocalPage(page);
+    await page.evaluate(async () => {
+      db.auth.signOut=async () => ({error:new Error('network unavailable')});
+      await mmhShowMfaChallengeV783('11111111-1111-4111-8111-111111111111');
+    });
+    await page.locator('#mmhMfaSignOutV783').click();
+    await expect(page.locator('#mmhMfaDialogV783')).toBeVisible();
+    await expect(page.locator('#mmhMfaDialogV783')).toHaveAttribute('data-open','true');
+    await expect(page.locator('#mmhMfaSignOutV783')).toBeEnabled();
+    await expect(page.locator('#mmhMfaDialogV783 [data-mfa-status]'))
+      .toContainText(/Unable to confirm sign out|无法确认安全退出/);
+    await expect(page).toHaveURL(/\\/login\\.html$/);
+  });
+
+  test('MFA sign-out must confirm session removal: ' + viewport.width, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    await openLocalPage(page);
+    await page.evaluate(async () => {
+      db.auth.signOut=async () => ({error:null});
+      db.auth.getSession=async () => ({
+        data:{session:{user:{id:'11111111-1111-4111-8111-111111111111'}}},
+        error:null
+      });
+      await mmhShowMfaChallengeV783('11111111-1111-4111-8111-111111111111');
+    });
+    await page.locator('#mmhMfaSignOutV783').click();
+    await expect(page.locator('#mmhMfaDialogV783')).toBeVisible();
+    await expect(page.locator('#mmhMfaSignOutV783')).toBeEnabled();
+    await expect(page.locator('#mmhMfaDialogV783 [data-mfa-status]'))
+      .toContainText(/Unable to confirm sign out|无法确认安全退出/);
+    await expect(page).toHaveURL(/\\/login\\.html$/);
+  });
+
   test('wrong MFA code never unlocks the vault: ' + viewport.width, async ({ page }) => {
     await page.setViewportSize(viewport);
     await openLocalPage(page);
