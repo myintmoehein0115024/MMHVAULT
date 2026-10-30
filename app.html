@@ -12561,6 +12561,8 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
   <section class="mmh-a783-section">
     <div class="mmh-a783-title"><b>Authenticator · Two-step verification</b><strong id="mmhA783TotpStatus">Checking…</strong></div>
     <p id="mmhA783TotpHelp">Use a time-based six-digit code for additional protection during sign-in.</p>
+    <p class="mmh-a783-note">Before enabling: save a backup of your authenticator codes or setup on a second trusted device. If you lose your authenticator, the permanent 10-word key alone does not bypass the second step. Do not enable until you have a recovery plan.</p>
+    <label class="mmh-a783-label"><input id="mmhA783TotpConsent" type="checkbox"> I understand this second-step recovery limitation.</label>
     <button type="button" class="btn mmh-a783-btn" id="mmhA783TotpStart">Set up Authenticator</button>
     <div id="mmhA783TotpSetup" hidden>
       <p class="mmh-a783-note">Scan the QR with Google Authenticator or a compatible app. Do not share this QR or setup secret.</p>
@@ -34755,6 +34757,6 @@ html body[data-mmh-username-only="true"] #settings.page.active .account-security
 </style>
 
 <script src="js/vendor/qrcode-1.0.0.min.js"></script>
-<script src="js/mmhvault-n10-a7-83-security-center.js?v=10.783.1"></script>
+<script src="js/mmhvault-n10-a7-83-security-center.js?v=10.783.3"></script>
 </body>
 </html>
