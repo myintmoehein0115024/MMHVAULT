@@ -404,6 +404,12 @@ async function mmhShowMfaChallengeV783(uid){
  const status=layer.querySelector('[data-mfa-status]'),code=layer.querySelector('[data-mfa-code]'),submit=layer.querySelector('[data-mfa-submit]');
  status.textContent='Enter the six-digit code from your authenticator app.';code.value='';
  const fresh=submit.cloneNode(true);submit.replaceWith(fresh);
+ const signOut=layer.querySelector('#mmhMfaSignOutV783');
+ if(signOut)signOut.onclick=async()=>{
+  signOut.disabled=true;
+  try{await db.auth.signOut({scope:'local'});}catch(_){}
+  location.replace('login.html');
+ };
  fresh.onclick=async()=>{
   const value=code.value.trim();if(!/^\d{6}$/.test(value)){status.textContent='Enter a six-digit code.';return}
   fresh.disabled=true;status.textContent='Verifying…';
@@ -587,7 +593,7 @@ if(db){
  <label for="mmhMfaCodeV783" style="display:block;color:#b7c9d8;font-size:12px;margin:17px 0 7px">Authenticator code</label>
  <input id="mmhMfaCodeV783" data-mfa-code type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" placeholder="000000" style="width:100%;box-sizing:border-box;font-size:21px;text-align:center;letter-spacing:.18em;padding:13px;border:1px solid #67849a;background:#061523;color:white;border-radius:12px">
  <button data-mfa-submit type="button" style="width:100%;margin-top:16px;padding:14px;border:0;border-radius:13px;background:linear-gradient(120deg,#cda461,#ffdfa0);color:#142134;font-weight:850;cursor:pointer">Verify & continue</button>
- <a href="login.html?mfa=1" style="display:block;margin:13px auto 0;text-align:center;color:#b9c6d7">Back to sign-in</a>
+ <button id="mmhMfaSignOutV783" type="button" style="display:block;margin:13px auto 0;padding:7px;background:none;border:0;color:#b9c6d7;cursor:pointer">Use another account / Sign out</button>
  </div></div>
 <style id="mmh-a740-method-styles">
 .mmh-a740-method-switch{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;margin:0 0 16px;padding:4px;border-radius:14px;background:rgba(3,12,22,.58);border:1px solid rgba(170,190,211,.18)}
