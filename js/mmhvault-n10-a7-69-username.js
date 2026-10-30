@@ -51,7 +51,13 @@ function loadCaptcha(){
     callback:v=>{captchaToken=v;securityState('ready');},
     'expired-callback':()=>{captchaToken='';securityState('error');},
     'error-callback':()=>{captchaToken='';securityState('error');}
-  });}
+  });
+  // A browser privacy setting may block background verification. Never report
+  // success without a token; instead offer a visible retry after the timeout.
+  setTimeout(()=>{
+    if(enabled&&captchaArea===target&&captchaAction===next&&!captchaToken)securityState('error');
+  },12000);
+  }
   catch(e){securityState('error');}
 }
 function asyncLoadCaptcha(){if(document.querySelector('script[data-a769-turnstile]'))return;
