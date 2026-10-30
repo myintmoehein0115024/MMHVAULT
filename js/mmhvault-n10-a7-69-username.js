@@ -13,7 +13,7 @@ const backup=$('mmhA769Backup'),wordsPanel=$('mmhA769WordGrid'),qr=$('mmhA769Qr'
 const modeButtons=[...document.querySelectorAll('[data-mmh-a769-login-mode]')],phraseArea=$('mmhA769PhraseArea'),passArea=$('mmhA769PassArea');
 if(!signup||!login||!backup||!sbutton||!ubutton||!captchaRegister||!captchaLogin)return;
 const tr=(zh,en)=>window.getMMHVAULTLanguage?.()==='zh'?zh:en;
-let pilotOnly=false,enabled=false,loading=false,selected='password',prepared=null,accountCreated=false,captchaWidget=null,captchaArea=null,captchaAction='',captchaToken='';
+let pilotOnly=false,enabled=false,loading=false,selected='password',prepared=null,accountCreated=false,signupOutcomeUncertain=false,captchaWidget=null,captchaArea=null,captchaAction='',captchaToken='';
 const inputWords=Array.from(phraseArea?.querySelectorAll('input[data-a769-word]')||[]);const smartRetry=$('mmhSmartCaptchaRetry');
 function showStatus(t,el){if(el)el.textContent=t;}
 function safeAuthError(error){
@@ -121,7 +121,7 @@ function updateRecoveryLanguage(){
  if(close)close.setAttribute('aria-label',tr('关闭恢复窗口','Close recovery'));
  const smartLink=$('smartRecovery');if(smartLink)smartLink.textContent=tr('使用恢复密钥','Use Recovery Key');
  if(smartRetry)smartRetry.textContent=tr('重新安全验证','Retry security check');
- if(accountCreated){const leave=$('mmhA769Cancel');if(leave)leave.textContent=tr('已保存，返回登录','I saved it — Return to Sign In');}
+ if(accountCreated||signupOutcomeUncertain){const leave=$('mmhA769Cancel');if(leave)leave.textContent=tr('已保存，返回登录','I saved it — Return to Sign In');}
  if(!accountCreated&&modalConfirm)modalConfirm.textContent=tr('确认备份并创建账户','Confirm backup & create account');
 }
 
@@ -185,7 +185,7 @@ recoveryHost.addEventListener('keydown',event=>{
  }
 });
 modalConfirm?.addEventListener('click',()=>{if(!backupAgree.checked||!prepared||loading)return;signup.requestSubmit();});
-function clearPhrase(){if(prepared){prepared.phrase.fill('');prepared=null}accountCreated=false;noticeRecovery('');if(modalConfirm){modalConfirm.hidden=false;modalConfirm.disabled=true;}const leave=$('mmhA769Cancel');if(leave)leave.textContent=tr('取消并重新生成','Cancel and generate again');wordsPanel?.replaceChildren();qr?.replaceChildren();backupAgree.checked=false;backup.classList.add('mmh-a769-hidden');closeRecoveryModal();}
+function clearPhrase(){if(prepared){prepared.phrase.fill('');prepared=null}accountCreated=false;signupOutcomeUncertain=false;noticeRecovery('');if(modalConfirm){modalConfirm.hidden=false;modalConfirm.disabled=true;}const leave=$('mmhA769Cancel');if(leave)leave.textContent=tr('取消并重新生成','Cancel and generate again');wordsPanel?.replaceChildren();qr?.replaceChildren();backupAgree.checked=false;backup.classList.add('mmh-a769-hidden');closeRecoveryModal();}
 function viewBackup(){
  if(!prepared||!wordsPanel||!qr)return;
  wordsPanel.replaceChildren();
@@ -198,7 +198,7 @@ function viewBackup(){
  showStatus(tr('先保存全部 10 个词和二维码，再完成注册。','Save all ten words and the QR code before completing registration.'),sstatus);
  sbutton.textContent=tr('完成备份并创建账户','Confirm backup & create account');sbutton.disabled=true;if(modalConfirm)modalConfirm.disabled=true;
 }
-function updateSignupState(){const blocked=!enabled||loading||accountCreated||(!!prepared&&!backupAgree.checked);sbutton.disabled=blocked;if(modalConfirm){modalConfirm.hidden=accountCreated;modalConfirm.disabled=blocked||!prepared;}}
+function updateSignupState(){const blocked=!enabled||loading||accountCreated||signupOutcomeUncertain||(!!prepared&&!backupAgree.checked);sbutton.disabled=blocked;if(modalConfirm){modalConfirm.hidden=accountCreated||signupOutcomeUncertain;modalConfirm.disabled=blocked||!prepared;}}
 backupAgree?.addEventListener('change',updateSignupState);
 $('mmhA769Copy')?.addEventListener('click',async()=>{
  if(!prepared)return;try{await navigator.clipboard.writeText(prepared.phrase.join(' '));showStatus(tr('已复制十词。剪贴板可能被其他应用读取。','Words copied. Other apps may access your clipboard.'),sstatus)}catch{showStatus(tr('复制失败，请手动记录。','Copy failed; please write down the words.'),sstatus)}
@@ -207,7 +207,7 @@ $('mmhA769SaveQr')?.addEventListener('click',()=>{
  const c=qr.querySelector('canvas'),img=qr.querySelector('img'),data=c?.toDataURL('image/png')||img?.src;
  if(!data)return;const a=document.createElement('a');a.href=data;a.download='MMHVAULT-Private-Recovery-Key.png';document.body.append(a);a.click();a.remove();
 });
-$('mmhA769Cancel')?.addEventListener('click',()=>{if(accountCreated){if(!backupAgree.checked){noticeRecovery(tr('请先确认已安全保存恢复词。','Confirm that you have saved your recovery words first.'));return;}const username=prepared?.username||'';clearPhrase();spass.value='';sconfirm.value='';smartInput.value=username;openForm('signin');smartStatus.hidden=true;resetCaptcha();loadCaptcha();smartPassword.focus();return;}clearPhrase();sbutton.textContent=tr('生成十词并开始备份','Generate recovery key');sbutton.disabled=!enabled;showStatus(tr('注册已取消。用户名预留约 30 分钟自动释放。','Cancelled. Username reservation expires in about 30 minutes.'),sstatus);loadCaptcha()});
+$('mmhA769Cancel')?.addEventListener('click',()=>{if(accountCreated||signupOutcomeUncertain){if(!backupAgree.checked){noticeRecovery(tr('请先确认已安全保存恢复词。','Confirm that you have saved your recovery words first.'));return;}const username=prepared?.username||'';clearPhrase();spass.value='';sconfirm.value='';smartInput.value=username;openForm('signin');smartStatus.hidden=true;resetCaptcha();loadCaptcha();smartPassword.focus();return;}clearPhrase();sbutton.textContent=tr('生成十词并开始备份','Generate recovery key');sbutton.disabled=!enabled;showStatus(tr('注册已取消。用户名预留约 30 分钟自动释放。','Cancelled. Username reservation expires in about 30 minutes.'),sstatus);loadCaptcha()});
 async function handoff(body,expected){
  if(!db||!body?.access_token||!body?.refresh_token||!body?.user_id||body.user_id!==expected)throw Error('identity_not_verified');
  window.MMHVAULT_N10_A741_USERNAME_HANDOFF=true;
@@ -239,7 +239,7 @@ signup.addEventListener('submit',async e=>{
  if(pwd!==sconfirm.value){showStatus(tr('两次密码不一致，请重新检查确认密码。','Passwords do not match. Check the confirmation password.'),sstatus);sconfirm.focus();return}
  if(!terms.checked){showStatus(tr('请先同意使用条款及隐私声明。','Agree to the terms and privacy notice first.'),sstatus);return}
  if(!prepared&&!captchaToken){showStatus(tr('请先完成人机验证。','Complete the human verification first.'),sstatus);return}
- if(accountCreated){showStatus(tr('账户已创建，请返回登录页面。','Account already created. Return to sign in.'),sstatus);return;}
+ if(accountCreated||signupOutcomeUncertain){showStatus(tr('注册结果尚未确认。请安全保存恢复词，然后使用用户名登录检查。','Registration result is not confirmed. Save your recovery key and try signing in with your username.'),sstatus);return;}
  if(prepared&&(prepared.username!==username||!backupAgree.checked)){showStatus(tr('用户名已变化或未确认备份，请重新开始注册。','Username changed or backup not confirmed. Restart the process.'),sstatus);return}
  loading=true;sbutton.disabled=true;
  try{
@@ -251,7 +251,10 @@ signup.addEventListener('submit',async e=>{
    viewBackup();
   }else{
    showStatus(tr('正在创建正式账户…','Creating your production account…'),sstatus);
-   const r=await request({action:'signup',username,password:pwd,ticket:prepared.ticket,phrase:prepared.phrase.join(' ')});
+   let r;
+   try{r=await request({action:'signup',username,password:pwd,ticket:prepared.ticket,phrase:prepared.phrase.join(' ')});}
+   catch(error){signupOutcomeUncertain=true;throw error;}
+   if(r.response.ok&&r.body?.code==='invalid_response'){signupOutcomeUncertain=true;throw Error('invalid_response');}
    if(!r.response.ok||r.body?.code!=='signup_success')throw Error(r.body?.code||'signup_failed');
    const expected=r.body.user_id;
    // A confirmed account can survive a failed redirect; keep the recovery words
@@ -262,7 +265,7 @@ signup.addEventListener('submit',async e=>{
    await handoff(r.body,expected);
    clearPhrase();spass.value='';sconfirm.value='';
   }
- }catch(err){showStatus(accountCreated?tr('账户已创建，但自动登录尚未完成。请妥善保管恢复词，然后使用用户名登录。','Account created, but sign-in did not complete. Save your recovery words and sign in with your username.'):tr('操作未完成，请检查网络后重试。','Operation not completed. Check your connection and retry.'),sstatus);if(prepared){noticeRecovery(accountCreated?tr('注册已成功，但自动登录没有完成。保存恢复词后，点击“返回登录”。','Registration succeeded, but automatic sign-in did not finish. Save the recovery words, then return to Sign In.'):tr('请确认保存恢复词；如果网络断开，不要重复创建账户。','Keep your recovery words safe. If your network failed, avoid repeatedly creating an account.'));openRecoveryModal();}else{resetCaptcha();loadCaptcha()}}
+ }catch(err){showStatus(accountCreated?tr('账户已创建，但自动登录尚未完成。请妥善保管恢复词，然后使用用户名登录。','Account created, but sign-in did not complete. Save your recovery words and sign in with your username.'):tr('操作未完成，请检查网络后重试。','Operation not completed. Check your connection and retry.'),sstatus);if(prepared){noticeRecovery(accountCreated?tr('注册已成功，但自动登录没有完成。保存恢复词后，点击“返回登录”。','Registration succeeded, but automatic sign-in did not finish. Save the recovery words, then return to Sign In.'):signupOutcomeUncertain?tr('网络异常导致注册结果无法确认。请先保存全部恢复词，不要再次提交注册，然后返回登录尝试。','The registration result is uncertain due to a network error. Save all recovery words, do not submit registration again, and try signing in.'):tr('请确认保存恢复词；如果网络断开，不要重复创建账户。','Keep your recovery words safe. If your network failed, avoid repeatedly creating an account.'));if(signupOutcomeUncertain){const leave=$('mmhA769Cancel');if(leave)leave.textContent=tr('已保存，返回登录','I saved it — Return to Sign In');}openRecoveryModal();}else{resetCaptcha();loadCaptcha()}}
  finally{loading=false;updateSignupState()}
 },true);
 function chooseMode(mode){
