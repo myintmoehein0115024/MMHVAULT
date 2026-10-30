@@ -34,9 +34,8 @@ DO $n10$
 DECLARE
   tbl text;
   existing_count integer;
-BEGIN
-  -- Fail closed if schema inventory changes; do not silently leave a sensitive table exposed.
-  FOREACH tbl IN ARRAY ARRAY[
+  unexpected_tables text;
+  protected_tables text[] := ARRAY[
     'budgets',
     'business_accounts',
     'business_expenses',
@@ -96,7 +95,28 @@ BEGIN
     'personal_push_subscriptions',
     'recurring_transactions',
     'transactions'
-  ] LOOP
+  ];
+BEGIN
+  -- Refuse deployment if any new public table is unprotected or lacks RLS.
+  -- Five existing auth-infrastructure tables deliberately retain deny-all RLS.
+  SELECT string_agg(c.relname, ', ' ORDER BY c.relname)
+  INTO unexpected_tables
+  FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
+  WHERE n.nspname='public' AND c.relkind IN ('r','p')
+    AND (NOT c.relrowsecurity OR (
+      c.relname <> ALL(protected_tables)
+      AND c.relname NOT IN (
+        'mmh_n10a740_attempt_buckets',
+        'mmh_n10a740_username_links',
+        'mmh_n10a769_rate_buckets',
+        'mmh_n10a769_recovery_phrases',
+        'mmh_n10a769_signup_reservations'
+      )
+    ));
+  IF unexpected_tables IS NOT NULL THEN
+    RAISE EXCEPTION 'N10 unreviewed public table inventory: %', unexpected_tables;
+  END IF;
+  FOREACH tbl IN ARRAY protected_tables LOOP
     IF NOT EXISTS (
       SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace
       WHERE n.nspname = 'public' AND c.relname = tbl
@@ -115,6 +135,10 @@ BEGIN
     EXECUTE format(
       'CREATE POLICY mmh_n10_mfa_required ON public.%I AS RESTRICTIVE FOR ALL TO authenticated USING ((select mmh_n10_security.mfa_access_ok())) WITH CHECK ((select mmh_n10_security.mfa_access_ok()))',
       tbl
+    );
+    EXECUTE format(
+      'COMMENT ON POLICY mmh_n10_mfa_required ON public.%I IS %L',
+      tbl, 'MMHVAULT-N10-MFA-RESTRICTIVE-V1'
     );
   END LOOP;
 END
