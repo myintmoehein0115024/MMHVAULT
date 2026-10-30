@@ -9,7 +9,7 @@ const USER_RX=/^[a-z][a-z0-9_]{3,19}$/;
 const PILOT_RX=/^qa_[a-z0-9_]{3,16}$/;
 const signup=$('usernameSignUp'),login=$('usernameSignIn'),sname=$('mmhA756Name'),spass=$('mmhA756Password'),sconfirm=$('mmhA756Confirm'),terms=$('mmhA756Terms');
 const sbutton=$('mmhA756Submit'),sstatus=$('mmhA756Status'),uname=$('mmhA740Username'),upass=$('mmhA740Password'),ubutton=$('mmhA740Submit'),ustatus=$('mmhA740Status');
-const backup=$('mmhA769Backup'),wordsPanel=$('mmhA769WordGrid'),qr=$('mmhA769Qr'),backupAgree=$('mmhA769BackupAgree'),captchaRegister=$('mmhA769Captcha'),captchaLogin=$('mmhA740Captcha');
+const backup=$('mmhA769Backup'),wordsPanel=$('mmhA769WordGrid'),qr=$('mmhA769Qr'),backupAgree=$('mmhA769BackupAgree'),captchaRegister=$('mmhA769Captcha'),captchaLogin=$('mmhA740Captcha'),smartCaptcha=$('smartCaptcha'),smartStatus=$('smartStatus'),smartInput=$('signinEmail'),smartPassword=$('signinPassword'),smartForm=$('signin');
 const modeButtons=[...document.querySelectorAll('[data-mmh-a769-login-mode]')],phraseArea=$('mmhA769PhraseArea'),passArea=$('mmhA769PassArea');
 if(!signup||!login||!backup||!sbutton||!ubutton||!captchaRegister||!captchaLogin)return;
 const tr=(zh,en)=>window.getMMHVAULTLanguage?.()==='zh'?zh:en;
@@ -35,12 +35,13 @@ function securityState(kind){
   el.textContent=values[kind]||values.idle;
 }
 function resetCaptcha(){captchaToken='';if(captchaWidget!==null&&typeof turnstile!=='undefined'){try{turnstile.remove(captchaWidget)}catch(_){}}captchaWidget=null;captchaArea=null;captchaAction='';securityState(enabled?'checking':'idle');}
-function action(){const active=signup.classList.contains('active')?'prepare_signup':selected==='phrase'?'phrase_login':'login';return active;}
+function smartUsername(){const v=smartInput?.value.trim()||'';return v!==''&&!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(v)}
+function action(){return signup.classList.contains('active')?'prepare_signup':smartForm.classList.contains('active')?'login':selected==='phrase'?'phrase_login':'login';}
 function loadCaptcha(){
   if(!enabled)return;
   // Turnstile cannot reliably render inside the hidden Email form's sibling.
-  if(!signup.classList.contains('active')&&!login.classList.contains('active')){resetCaptcha();return;}
-  const target=signup.classList.contains('active')?captchaRegister:captchaLogin;
+  if(!signup.classList.contains('active')&&!login.classList.contains('active')&&!(smartForm.classList.contains('active')&&smartUsername())){resetCaptcha();return;}
+  const target=signup.classList.contains('active')?captchaRegister:smartForm.classList.contains('active')?smartCaptcha:captchaLogin;
   const next=action();
   if(captchaWidget!==null&&captchaArea===target&&captchaAction===next)return;
   resetCaptcha();captchaArea=target;captchaAction=next;securityState('checking');
@@ -201,6 +202,22 @@ login.addEventListener('submit',async e=>{
  }catch(err){showStatus(tr('登录未成功：','Sign in unsuccessful: ')+(err?.message||'network_unavailable'),ustatus)}
  finally{loading=false;ubutton.disabled=!enabled;resetCaptcha();loadCaptcha();}
 },true);
+smartInput?.addEventListener('input',()=>{if(!smartForm.classList.contains('active'))return;smartStatus.hidden=true;if(smartUsername()&&enabled)loadCaptcha();else if(captchaArea===smartCaptcha)resetCaptcha();});
+smartForm?.addEventListener('submit',async e=>{
+ if(!smartUsername())return;e.preventDefault();e.stopImmediatePropagation();smartStatus.hidden=false;
+ const username=smartInput.value.trim().toLowerCase(),password=smartPassword.value;
+ if(!USER_RX.test(username)){showStatus('Enter a valid username.',smartStatus);return;}
+ if(!enabled){showStatus('Username sign-in is currently unavailable.',smartStatus);return;}
+ if(password.length<6||password.length>20){showStatus('Password must be 6–20 characters.',smartStatus);return;}
+ if(!captchaToken){loadCaptcha();showStatus('Complete security verification and retry.',smartStatus);return;}
+ if(loading)return;
+ loading=true;const btn=smartForm.querySelector('button[type="submit"]');btn.disabled=true;
+ try{showStatus('Signing in…',smartStatus);const r=await request({action:'login',username,password,captcha_token:captchaToken});
+ if(!r.response.ok||r.body?.code!=='login_success')throw Error('failed');smartPassword.value='';await handoff(r.body,r.body.user_id);}
+ catch(_){showStatus('Sign-in failed. Check your details or connection.',smartStatus);}
+ finally{loading=false;btn.disabled=false;resetCaptcha();loadCaptcha();}
+},true);
+$('smartRecovery')?.addEventListener('click',()=>{uname.value=smartUsername()?smartInput.value.trim().toLowerCase():'';openForm('usernameSignIn');chooseMode('phrase');setTimeout(loadCaptcha,0);});
 // Old username scripts are removed from the HTML. Method switching remains contained here.
 document.querySelectorAll('[data-mmh-a740-method]').forEach(btn=>btn.addEventListener('click',()=>{
  if(btn.dataset.mmhA740Method==='email')openForm('signin');else openForm('usernameSignIn');
