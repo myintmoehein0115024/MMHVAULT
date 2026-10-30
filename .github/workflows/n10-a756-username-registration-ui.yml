@@ -1,0 +1,21 @@
+name: N10-A7.56 Username Registration UI Safety
+on:
+  push:
+    branches:
+      - n10-a7-56-username-registration-safe-ui
+permissions:
+  contents: read
+jobs:
+  registration-ui:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Syntax check and closed signup mock
+        run: |
+          node --check js/mmhvault-n10-a7-56-username-signup.js
+          node --check tests/n10-a7-56-username-registration-locked-ui.cjs
+          node tests/n10-a7-56-username-registration-locked-ui.cjs
