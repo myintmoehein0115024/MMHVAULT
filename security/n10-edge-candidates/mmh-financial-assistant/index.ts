@@ -115,9 +115,14 @@ Deno.serve(async (req) => {
     const jwt = authHeader.slice("Bearer ".length).trim();
     const { data: assurance, error: assuranceError } =
       await verifier.auth.mfa.getAuthenticatorAssuranceLevel(jwt);
+    // Legacy Supabase JWTs can omit the AAL claim, producing null.
+    // null is effectively AAL1: deny if the account has a verified factor,
+    // but do not lock out otherwise valid users without MFA enrollment.
+    const validAal = (level: unknown) =>
+      level === null || level === "aal1" || level === "aal2";
     if (assuranceError || !assurance ||
-        !["aal1", "aal2"].includes(assurance.currentLevel) ||
-        !["aal1", "aal2"].includes(assurance.nextLevel)) {
+        !validAal(assurance.currentLevel) ||
+        !validAal(assurance.nextLevel)) {
       return json({ code: "MFA_CHECK_UNAVAILABLE" }, 503);
     }
     if (assurance.nextLevel === "aal2" && assurance.currentLevel !== "aal2") {
