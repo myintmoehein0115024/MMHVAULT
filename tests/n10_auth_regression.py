@@ -47,6 +47,28 @@ class N10AuthContract(unittest.TestCase):
             self.assertIn(marker, MFA_SQL)
         self.assertIn("NEVER auto-apply to production", MFA_SQL)
 
+    def test_callback_does_not_trust_cached_session(self):
+        self.assertIn("authCallbackPendingV945", HTML)
+        self.assertIn("An old INITIAL_SESSION cannot complete an OAuth callback.", HTML)
+        self.assertIn("A bad or stale code should be recoverable without a loop.", HTML)
+        self.assertIn("recoveryCallbackPendingV944", HTML)
+        self.assertIn("requiresRecoveryEvent:true", HTML)
+
+    def test_mfa_challenge_isolated_and_exit_available(self):
+        self.assertIn('aria-modal="true"', HTML)
+        self.assertIn('id="mmhMfaSignOutV783"', HTML)
+        self.assertIn("auth.signOut({scope:'local'})", HTML)
+        self.assertIn("data-mfa-code", HTML)
+        self.assertIn("if(!/^\\d{6}$/.test(value))", HTML)
+        self.assertIn("layer.dataset.open='true'", HTML)
+
+    def test_recovery_phrase_only_in_memory_client_side(self):
+        self.assertIn("prepared.phrase.fill('')", JS)
+        self.assertIn("inputWords.forEach(el=>el.value='')", JS)
+        self.assertIn("window.addEventListener('pagehide'", JS)
+        self.assertIn("captcha_token:captchaToken", JS)
+        self.assertIn("credentials:'omit'", JS)
+
     def test_no_new_production_server_changes(self):
         # The workflow never deploys or migrates production resources.
         workflow = (ROOT / ".github/workflows/n10-auth-static-check.yml").read_text(encoding="utf-8")
