@@ -148,7 +148,24 @@ footer{width:min(1240px,calc(100% - 48px));margin:0 auto;}
 .recovery-back:hover{text-decoration:underline}
 @media(max-width:520px){.recovery-hint{font-size:11px;padding:12px}}
 </style>
-<style id="n10-phase2">body .access{background:linear-gradient(145deg,rgba(5,18,34,.93),rgba(3,13,25,.89));border:1px solid rgba(239,194,114,.30);border-radius:26px;box-shadow:0 25px 90px rgba(0,0,0,.42);backdrop-filter:blur(25px);-webkit-backdrop-filter:blur(25px)}body .access .primary{background:linear-gradient(115deg,#c99b54,#f5d18c,#e0ac60);color:#111921}body .access .field{background:rgba(7,25,42,.68);border-color:rgba(178,196,211,.35)}body .access .field:focus-within{border-color:#eac17a}#signin .mmh-a740-method-switch{display:none!important}#smartRecovery{background:none;border:none;color:#ebc583;text-decoration:underline;cursor:pointer}#signin .row{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}#smartCaptcha[hidden],#smartStatus[hidden]{display:none!important}@media(max-width:600px){body .access{border-radius:20px}#smartRecovery{font-size:12px}}</style></head>
+<style id="n10-phase2">body .access{background:linear-gradient(145deg,rgba(5,18,34,.93),rgba(3,13,25,.89));border:1px solid rgba(239,194,114,.30);border-radius:26px;box-shadow:0 25px 90px rgba(0,0,0,.42);backdrop-filter:blur(25px);-webkit-backdrop-filter:blur(25px)}body .access .primary{background:linear-gradient(115deg,#c99b54,#f5d18c,#e0ac60);color:#111921}body .access .field{background:rgba(7,25,42,.68);border-color:rgba(178,196,211,.35)}body .access .field:focus-within{border-color:#eac17a}#signin .mmh-a740-method-switch{display:none!important}#smartRecovery{background:none;border:none;color:#ebc583;text-decoration:underline;cursor:pointer}#signin .row{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}#smartStatus[hidden]{display:none!important}@media(max-width:600px){body .access{border-radius:20px}#smartRecovery{font-size:12px}}</style><style id="n10-recovery-modal-css">
+#mmhN10RecoveryDialog{position:fixed;inset:0;z-index:99999;display:none;align-items:center;justify-content:center;padding:16px;background:rgba(1,8,17,.78);backdrop-filter:blur(15px);-webkit-backdrop-filter:blur(15px)}
+#mmhN10RecoveryDialog.mmh-open{display:flex}
+#mmhN10RecoveryPanel{width:min(490px,100%);max-height:min(90dvh,850px);overflow-y:auto;overscroll-behavior:contain;border-radius:23px;padding:23px;background:linear-gradient(145deg,rgba(8,26,44,.98),rgba(3,15,30,.98));border:1px solid rgba(239,193,110,.39);box-shadow:0 24px 85px rgba(0,0,0,.68),inset 0 1px rgba(255,255,255,.12);color:#e9eff4}
+#mmhN10RecoveryPanel #mmhA769Backup{display:block!important}
+#mmhN10RecoveryPanel .mmh-a769-words{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+#mmhN10RecoveryPanel .mmh-a769-word{min-width:0;overflow-wrap:anywhere}
+#mmhN10RecoveryPanel .mmh-a769-qr{margin:15px auto;max-width:230px}
+#mmhN10RecoveryPanel .mmh-a769-actions{display:flex;flex-wrap:wrap;gap:9px}
+#mmhN10RecoveryPanel .mmh-a769-actions button{flex:1;min-width:135px}
+#mmhN10RecoveryPanel #mmhA769ModalConfirm{display:block;width:100%;margin-top:14px}
+#mmhN10RecoveryPanel #mmhA769ModalConfirm:disabled{opacity:.45;cursor:not-allowed}
+#mmhN10RecoveryPanel #mmhA769Cancel{margin-top:10px}
+#mmhN10RecoveryPanel .mmh-a769-agree{display:flex;align-items:flex-start;gap:8px;margin-top:15px}
+#mmhN10RecoveryPanel .mmh-a769-agree input{flex-shrink:0}
+body.mmh-n10-modal-lock{overflow:hidden}
+@media(max-width:560px){#mmhN10RecoveryPanel{padding:17px 14px;max-height:94dvh}#mmhN10RecoveryPanel .mmh-a769-words{gap:5px}}
+</style></head>
 <body>
 <div class="bg"></div><div class="gridfx"></div><div class="glow"></div><div class="glow two"></div>
 <div class="shell">
@@ -170,7 +187,7 @@ footer{width:min(1240px,calc(100% - 48px));margin:0 auto;}
 </div>
 
 <div class="auth-email-flow"><label>Email or Username</label><div class="field"><input id="signinEmail" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" required placeholder="Email or Username"></div><label>Password</label><div class="field"><input id="signinPassword" type="password" autocomplete="current-password" required placeholder="Password"><button class="eye" type="button">Show</button></div><div class="row"><a class="forgot" href="#" id="forgotBtn">Forgot password?</a><button type="button" class="forgot" id="smartRecovery">Use Recovery Key</button></div><button class="primary" type="submit">Sign In &nbsp; →</button></div>
-<div id="smartCaptcha" hidden></div><p id="smartStatus" class="mmh-a740-status" role="status" aria-live="polite" hidden></p><div class="divider">or continue with</div><button class="google" id="googleSignIn" type="button" aria-describedby="googleAuthNoteSignIn"><svg viewBox="0 0 24 24"><path fill="#4285F4" d="M21.8 12.23c0-.7-.06-1.37-.18-2.02H12v3.82h5.5a4.7 4.7 0 0 1-2.04 3.08v2.54h3.3c1.93-1.78 3.04-4.4 3.04-7.42z"/><path fill="#34A853" d="M12 22c2.76 0 5.08-.91 6.77-2.35l-3.3-2.54c-.91.61-2.08.97-3.47.97-2.66 0-4.92-1.8-5.73-4.22H2.86v2.62A10.22 10.22 0 0 0 12 22z"/><path fill="#FBBC05" d="M6.27 13.86A6.15 6.15 0 0 1 5.95 12c0-.65.11-1.28.32-1.86V7.52H2.86A10.2 10.2 0 0 0 1.78 12c0 1.64.39 3.2 1.08 4.48l3.41-2.62z"/><path fill="#EA4335" d="M12 5.92c1.5 0 2.84.52 3.9 1.53l2.93-2.93C17.07 2.88 14.76 2 12 2a10.22 10.22 0 0 0-9.14 5.52l3.41 2.62C7.08 7.72 9.34 5.92 12 5.92z"/></svg>Sign in with Google</button><div class="oauth-note" id="googleAuthNoteSignIn">You will be redirected to Google through Supabase OAuth. MMHVAULT does not receive your Google password.</div><p class="switch">Don't have an account? <button type="button" data-switch="signup">Sign Up</button></p></form>
+<div id="smartCaptcha" class="mmh-a740-captcha"></div><p id="smartStatus" class="mmh-a740-status" role="status" aria-live="polite" hidden></p><div class="divider">or continue with</div><button class="google" id="googleSignIn" type="button" aria-describedby="googleAuthNoteSignIn"><svg viewBox="0 0 24 24"><path fill="#4285F4" d="M21.8 12.23c0-.7-.06-1.37-.18-2.02H12v3.82h5.5a4.7 4.7 0 0 1-2.04 3.08v2.54h3.3c1.93-1.78 3.04-4.4 3.04-7.42z"/><path fill="#34A853" d="M12 22c2.76 0 5.08-.91 6.77-2.35l-3.3-2.54c-.91.61-2.08.97-3.47.97-2.66 0-4.92-1.8-5.73-4.22H2.86v2.62A10.22 10.22 0 0 0 12 22z"/><path fill="#FBBC05" d="M6.27 13.86A6.15 6.15 0 0 1 5.95 12c0-.65.11-1.28.32-1.86V7.52H2.86A10.2 10.2 0 0 0 1.78 12c0 1.64.39 3.2 1.08 4.48l3.41-2.62z"/><path fill="#EA4335" d="M12 5.92c1.5 0 2.84.52 3.9 1.53l2.93-2.93C17.07 2.88 14.76 2 12 2a10.22 10.22 0 0 0-9.14 5.52l3.41 2.62C7.08 7.72 9.34 5.92 12 5.92z"/></svg>Sign in with Google</button><div class="oauth-note" id="googleAuthNoteSignIn">You will be redirected securely. MMHVAULT never receives your Google password.</div><p class="switch">Don't have an account? <button type="button" data-switch="signup">Sign Up</button></p></form>
 <form class="form" id="usernameSignIn" autocomplete="off" novalidate>
   <div class="mmh-a740-method-switch" role="group" aria-label="Sign-in method">
     <button type="button" data-mmh-a740-method="email" aria-pressed="false">Email</button>
@@ -207,7 +224,7 @@ footer{width:min(1240px,calc(100% - 48px));margin:0 auto;}
 </div>
 <input id="signupName" type="hidden" value="">
 <div class="auth-email-flow"><label>Email</label><div class="field"><input id="signupEmail" type="email" autocomplete="email" inputmode="email" required placeholder="Email address"></div><label>Create password</label><div class="field"><input id="signupPassword" type="password" autocomplete="new-password" minlength="6" maxlength="20" required placeholder="Create a password"><button class="eye" type="button">Show</button></div><label>Confirm password</label><div class="field"><input id="signupConfirmPassword" type="password" autocomplete="new-password" minlength="6" maxlength="20" required placeholder="Confirm password"><button class="eye" type="button">Show</button></div><div class="row"><label class="remember"><input id="terms" type="checkbox"> I agree to the <a href="terms.html" target="_blank" rel="noopener">terms</a> and <a href="privacy.html" target="_blank" rel="noopener">privacy notice</a></label></div><button class="primary" type="submit">Create Account &nbsp; →</button></div>
-<div class="divider">or continue with</div><button class="google" id="googleSignUp" type="button" aria-describedby="googleAuthNoteSignUp"><svg viewBox="0 0 24 24"><path fill="#4285F4" d="M21.8 12.23c0-.7-.06-1.37-.18-2.02H12v3.82h5.5a4.7 4.7 0 0 1-2.04 3.08v2.54h3.3c1.93-1.78 3.04-4.4 3.04-7.42z"/><path fill="#34A853" d="M12 22c2.76 0 5.08-.91 6.77-2.35l-3.3-2.54c-.91.61-2.08.97-3.47.97-2.66 0-4.92-1.8-5.73-4.22H2.86v2.62A10.22 10.22 0 0 0 12 22z"/><path fill="#FBBC05" d="M6.27 13.86A6.15 6.15 0 0 1 5.95 12c0-.65.11-1.28.32-1.86V7.52H2.86A10.2 10.2 0 0 0 1.78 12c0 1.64.39 3.2 1.08 4.48l3.41-2.62z"/><path fill="#EA4335" d="M12 5.92c1.5 0 2.84.52 3.9 1.53l2.93-2.93C17.07 2.88 14.76 2 12 2a10.22 10.22 0 0 0-9.14 5.52l3.41 2.62C7.08 7.72 9.34 5.92 12 5.92z"/></svg>Sign up with Google</button><div class="oauth-note" id="googleAuthNoteSignUp">You will be redirected to Google through Supabase OAuth. MMHVAULT does not receive your Google password.</div><p class="switch">Already have an account? <button type="button" data-switch="signin">Sign In</button></p></form>
+<div class="divider">or continue with</div><button class="google" id="googleSignUp" type="button" aria-describedby="googleAuthNoteSignUp"><svg viewBox="0 0 24 24"><path fill="#4285F4" d="M21.8 12.23c0-.7-.06-1.37-.18-2.02H12v3.82h5.5a4.7 4.7 0 0 1-2.04 3.08v2.54h3.3c1.93-1.78 3.04-4.4 3.04-7.42z"/><path fill="#34A853" d="M12 22c2.76 0 5.08-.91 6.77-2.35l-3.3-2.54c-.91.61-2.08.97-3.47.97-2.66 0-4.92-1.8-5.73-4.22H2.86v2.62A10.22 10.22 0 0 0 12 22z"/><path fill="#FBBC05" d="M6.27 13.86A6.15 6.15 0 0 1 5.95 12c0-.65.11-1.28.32-1.86V7.52H2.86A10.2 10.2 0 0 0 1.78 12c0 1.64.39 3.2 1.08 4.48l3.41-2.62z"/><path fill="#EA4335" d="M12 5.92c1.5 0 2.84.52 3.9 1.53l2.93-2.93C17.07 2.88 14.76 2 12 2a10.22 10.22 0 0 0-9.14 5.52l3.41 2.62C7.08 7.72 9.34 5.92 12 5.92z"/></svg>Sign up with Google</button><div class="oauth-note" id="googleAuthNoteSignUp">You will be redirected securely. MMHVAULT never receives your Google password.</div><p class="switch">Already have an account? <button type="button" data-switch="signin">Sign In</button></p></form>
 <form class="form" id="usernameSignUp" autocomplete="off" novalidate>
 <div class="mmh-a740-method-switch" role="group" aria-label="Sign-up method">
   <button type="button" data-mmh-a756-signup-method="email" aria-pressed="false">Email</button>
@@ -227,7 +244,7 @@ footer{width:min(1240px,calc(100% - 48px));margin:0 auto;}
  <span data-mmh-security-text>Checking connection security…</span>
  <button class="mmh-a780-security-retry" data-mmh-security-retry type="button" aria-label="Repeat security check">Retry</button>
 </div>
-<div id="mmhA769Backup" class="mmh-a769-hidden">
+<div id="mmhA769Backup" class="mmh-a769-hidden" aria-live="polite">
   <h3 class="mmh-a769-heading">Your permanent recovery key</h3>
   <p class="mmh-a740-guidance">Keep all ten words in their original order. This key and its QR code do not expire automatically.</p>
   <div id="mmhA769WordGrid" class="mmh-a769-words"></div>
@@ -235,6 +252,7 @@ footer{width:min(1240px,calc(100% - 48px));margin:0 auto;}
   <div class="mmh-a769-actions"><button type="button" id="mmhA769Copy">Copy ten words</button><button type="button" id="mmhA769SaveQr">Save recovery QR</button></div>
   <label class="mmh-a769-agree"><input type="checkbox" id="mmhA769BackupAgree"> I have saved all ten words and the recovery QR code safely.</label>
   <button type="button" id="mmhA769Cancel" class="mmh-a769-small-btn">Cancel and generate again</button>
+  <button type="button" id="mmhA769ModalConfirm" class="primary" disabled>Confirm backup &amp; create account</button>
 </div>
 <div class="row"><label class="remember"><input type="checkbox" id="mmhA756Terms"> I agree to the <a href="terms.html" target="_blank" rel="noopener">terms</a> and <a href="privacy.html" target="_blank" rel="noopener">privacy notice</a></label></div>
 <button class="primary" type="submit" id="mmhA756Submit" disabled>Generate recovery key</button>
@@ -720,5 +738,5 @@ main{padding:32px 18px 45px}
 @media(prefers-reduced-motion:reduce){.form.active{animation:none}.mmh-a780-security-icon::after{animation:none!important}#authTabs .tab,.form .primary{transition:none!important}}
 </style>
 <script src="./js/vendor/qrcode-1.0.0.min.js"></script>
-<script src="./js/mmhvault-n10-a7-69-username.js?v=n10-phase2-20261030"></script>
+<script src="./js/mmhvault-n10-a7-69-username.js?v=n10-phase3-20261030"></script>
 </body></html>
