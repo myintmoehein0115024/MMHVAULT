@@ -101,6 +101,24 @@ class N10AuthContract(unittest.TestCase):
         for table in ("public.investments", "public.transactions"):
             self.assertIn(table, wallet)
 
+    def test_edge_sensitive_api_candidates_require_mfa_before_access(self):
+        root = ROOT / "security/n10-edge-candidates"
+        push = (root / "mmh-push-test/index.ts").read_text(encoding="utf-8")
+        ai = (root / "mmh-financial-assistant/index.ts").read_text(encoding="utf-8")
+        for src in (push, ai):
+            self.assertIn("MFA_REQUIRED", src)
+            self.assertIn("MFA_CHECK_UNAVAILABLE", src)
+            self.assertIn("Not deployed", src)
+        self.assertIn("auth.mfa_factors", push)
+        self.assertIn("payload?.sub === user.id", push)
+        self.assertIn("payload?.aal === \"aal2\"", push)
+        self.assertLess(push.index("if (mfaRequired)"), push.index("const subs = await sql"))
+        self.assertLess(push.index("MFA_REQUIRED"), push.index("from vault.decrypted_secrets"))
+        self.assertIn("getAuthenticatorAssuranceLevel(jwt)", ai)
+        self.assertIn('assurance.nextLevel === "aal2"', ai)
+        self.assertLess(ai.index("MFA_REQUIRED"), ai.index("let body: any"))
+        self.assertLess(ai.index("MFA_REQUIRED"), ai.index("const transactions = await readRows("))
+
     def test_no_new_production_server_changes(self):
         # The workflow never deploys or migrates production resources.
         workflow = (ROOT / ".github/workflows/n10-auth-static-check.yml").read_text(encoding="utf-8")
