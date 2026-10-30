@@ -86,6 +86,8 @@
     const local=await client.auth.getSession();
     if(remote.error||local.error||!remote.data?.user?.id||
        !remote.data.user.email_confirmed_at||remote.data.user.is_anonymous||
+       remote.data.user.app_metadata?.mmhvault_auth_kind||
+       !(remote.data.user.identities||[]).some(i=>i.provider==='email')||
        !local.data?.session?.access_token||
        local.data.session.user?.id!==remote.data.user.id)throw Error('auth_missing');
     return local.data.session.access_token;
