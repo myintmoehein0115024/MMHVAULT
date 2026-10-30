@@ -107,7 +107,7 @@ for (const viewport of [{width:390,height:844},{width:1440,height:900}]) {
     await expect(page.locator('#mmhMfaSignOutV783')).toBeEnabled();
     await expect(page.locator('#mmhMfaDialogV783 [data-mfa-status]'))
       .toContainText(/Unable to confirm sign out|无法确认安全退出/);
-    await expect(page).toHaveURL(/\\/login\\.html$/);
+    await expect(page).toHaveURL(/\/login\.html$/);
   });
 
   test('MFA sign-out must confirm session removal: ' + viewport.width, async ({ page }) => {
@@ -126,7 +126,7 @@ for (const viewport of [{width:390,height:844},{width:1440,height:900}]) {
     await expect(page.locator('#mmhMfaSignOutV783')).toBeEnabled();
     await expect(page.locator('#mmhMfaDialogV783 [data-mfa-status]'))
       .toContainText(/Unable to confirm sign out|无法确认安全退出/);
-    await expect(page).toHaveURL(/\\/login\\.html$/);
+    await expect(page).toHaveURL(/\/login\.html$/);
   });
 
   test('wrong MFA code never unlocks the vault: ' + viewport.width, async ({ page }) => {
