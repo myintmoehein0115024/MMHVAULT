@@ -254,7 +254,7 @@ signup.addEventListener('submit',async e=>{
    let r;
    try{r=await request({action:'signup',username,password:pwd,ticket:prepared.ticket,phrase:prepared.phrase.join(' ')});}
    catch(error){signupOutcomeUncertain=true;throw error;}
-   if(r.response.ok&&r.body?.code==='invalid_response'){signupOutcomeUncertain=true;throw Error('invalid_response');}
+   if((r.response.status>=500)||r.body?.code==='invalid_response'){signupOutcomeUncertain=true;throw Error(r.body?.code||'connection_unavailable');}
    if(!r.response.ok||r.body?.code!=='signup_success')throw Error(r.body?.code||'signup_failed');
    const expected=r.body.user_id;
    // A confirmed account can survive a failed redirect; keep the recovery words
