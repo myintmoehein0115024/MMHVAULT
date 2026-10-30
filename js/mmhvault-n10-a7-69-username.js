@@ -112,6 +112,19 @@ recoveryLoginOverlay.setAttribute('aria-label','Use Recovery Key');
 const recoveryLoginPanel=document.createElement('div');recoveryLoginPanel.id='mmhN10RecoveryLoginPanel';
 recoveryLoginPanel.innerHTML='<div class="mmh-n10-recovery-heading"><div><strong>Use Recovery Key</strong><p>Enter your username and ten words in their original order.</p></div><button id="mmhN10RecoveryClose" type="button" aria-label="Close recovery">✕</button></div>';
 recoveryLoginPanel.appendChild(login);recoveryLoginOverlay.appendChild(recoveryLoginPanel);document.body.appendChild(recoveryLoginOverlay);
+function updateRecoveryLanguage(){
+ const heading=recoveryLoginPanel.querySelector('.mmh-n10-recovery-heading strong');
+ const detail=recoveryLoginPanel.querySelector('.mmh-n10-recovery-heading p');
+ const close=$('mmhN10RecoveryClose');
+ if(heading)heading.textContent=tr('使用恢复密钥','Use Recovery Key');
+ if(detail)detail.textContent=tr('输入用户名及按原始顺序排列的十个恢复词。','Enter your username and ten recovery words in the original order.');
+ if(close)close.setAttribute('aria-label',tr('关闭恢复窗口','Close recovery'));
+ const smartLink=$('smartRecovery');if(smartLink)smartLink.textContent=tr('使用恢复密钥','Use Recovery Key');
+ if(smartRetry)smartRetry.textContent=tr('重新安全验证','Retry security check');
+ if(accountCreated){const leave=$('mmhA769Cancel');if(leave)leave.textContent=tr('已保存，返回登录','I saved it — Return to Sign In');}
+ if(!accountCreated&&modalConfirm)modalConfirm.textContent=tr('确认备份并创建账户','Confirm backup & create account');
+}
+
 function closeRecoveryLogin(){
  recoveryLoginOverlay.classList.remove('is-open');
  document.body.classList.remove('mmh-n10-modal-lock');
@@ -122,6 +135,7 @@ function closeRecoveryLogin(){
  smartInput?.focus();
 }
 function showRecoveryLogin(){
+ updateRecoveryLanguage();
  // Make the dialog visible before rendering the security challenge.
  // Rendering an invisible widget inside a display:none ancestor can fail
  // and prevent the username-only recovery flow from being submitted.
@@ -316,8 +330,9 @@ document.querySelectorAll('[data-mmh-security-retry]').forEach(btn=>btn.addEvent
 }));
 window.addEventListener('pagehide',()=>{clearPhrase();upass.value='';spass.value='';sconfirm.value='';inputWords.forEach(x=>x.value='');});
 window.addEventListener('mmhvault-language-change',()=>{
+ updateRecoveryLanguage();
  if(!enabled){setEnabled(false);return;}
  securityState(captchaToken?'ready':'checking');
 });
-chooseMode('password');void preflight();
+updateRecoveryLanguage();chooseMode('password');void preflight();
 })();
