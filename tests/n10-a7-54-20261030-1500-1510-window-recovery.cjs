@@ -51,10 +51,10 @@ assert.doesNotMatch(candidateEdge,/N10A754_TEST_UID_A\s*=\s*['"][0-9a-f]{8}/i);
 assert.doesNotMatch(candidateEdge,/N10A754_TEST_UID_B\s*=\s*['"][0-9a-f]{8}/i);
 // Test exact allowlist windows, including end exclusive.
 const active=iso=>{const t=Date.parse(iso);return t>=Date.parse(start)&&t<Date.parse(end);};
-assert.equal(active('2026-10-29T19:44:59.999Z'),false);
+assert.equal(active('2026-10-30T07:59:59.999Z'),false);
 assert.equal(active(start),true);
-assert.equal(active('2026-10-29T19:50:00.000Z'),true);
-assert.equal(active('2026-10-29T19:54:59.999Z'),true);
+assert.equal(active('2026-10-30T08:05:00.000Z'),true);
+assert.equal(active('2026-10-30T08:09:59.999Z'),true);
 assert.equal(active(end),false);
 // Candidate is off unless operator changes *both* the browser and server
 // source gates under explicit authorization; restoring below is exact.
