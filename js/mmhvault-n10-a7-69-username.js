@@ -23,7 +23,7 @@ function safeAuthError(error){
  if(key==='connection_unavailable'||key==='invalid_response')return tr('暂时无法连接认证服务，请稍后重试。','Cannot reach the sign-in service. Please retry later.');
  if(key==='too_many_attempts'||key==='registration_rate_limited'||key==='captcha_replay')return tr('操作过于频繁，请稍后再试。','Too many attempts. Try again later.');
  if(key==='captcha_invalid'||key==='verification_required')return tr('安全验证未完成，请重新验证。','Security verification was not completed. Try again.');
- if(key==='username_unavailable')return tr('当前用户名不可使用，请选择其他用户名。','This username cannot be used. Choose another.');
+ // Never disclose account existence during sign-in; a generic message covers this code.
  if(key==='registration_not_released'||key==='staging_unavailable'||key==='auth_unavailable')return tr('认证服务暂时不可用，请稍后重试。','Authentication service is temporarily unavailable.');
  return tr('无法完成操作，请检查输入或网络后重试。','Unable to complete the request. Check your details or connection and retry.');
 }
@@ -121,10 +121,14 @@ function closeRecoveryLogin(){
  smartInput?.focus();
 }
 function showRecoveryLogin(){
- openForm('usernameSignIn');
- chooseMode('phrase');
+ // Make the dialog visible before rendering the security challenge.
+ // Rendering an invisible widget inside a display:none ancestor can fail
+ // and prevent the username-only recovery flow from being submitted.
  recoveryLoginOverlay.classList.add('is-open');
  document.body.classList.add('mmh-n10-modal-lock');
+ openForm('usernameSignIn');
+ chooseMode('phrase');
+ resetCaptcha();
  setTimeout(loadCaptcha,0);
  uname.focus();
 }
