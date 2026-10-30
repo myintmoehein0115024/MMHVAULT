@@ -1,0 +1,91 @@
+<!DOCTYPE html><html lang="zh"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><meta name="referrer" content="no-referrer"><meta name="theme-color" content="#061321"><title>MMHVAULT · 真实用户名注册测试（独立 Staging）</title><link rel="icon" href="images/mmhvault-logo-transparent.png"><style>
+:root{color-scheme:dark;--gold:#f4cd80;--text:#f1f7ff;--muted:#a7bccd;--line:#90b1c042;--bg:#0b2034}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:#03111d url("images/mmhvault-auth-bg.png") center/cover fixed;color:var(--text);font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}body:before{content:"";position:fixed;inset:0;background:linear-gradient(100deg,#031120ed,#081f30c9,#061020e9);pointer-events:none}main{position:relative;max-width:860px;margin:28px auto;padding:clamp(18px,4vw,32px);border-radius:25px;background:#071c31ee;border:1px solid #d3ac695c;box-shadow:0 20px 80px #000a;backdrop-filter:blur(24px)}
+header{display:flex;align-items:center;justify-content:space-between;gap:15px;flex-wrap:wrap}.brand{color:var(--gold);font-size:13px;font-weight:800;letter-spacing:.15em}a{color:#f8d899}h1{font-size:clamp(23px,5vw,32px);line-height:1.24;margin:16px 0 10px}h2{font-size:20px;margin:10px 0}p{font-size:13px;color:var(--muted)}strong{color:var(--gold)}
+.notice{border:1px solid #d2b27e62;background:#5a41172c;padding:12px 14px;border-radius:13px;font-size:13px;color:#ffebbd;line-height:1.6}.notice b{color:#ffdf98}
+.step{font-size:12px;color:#e8c27c;font-weight:750;margin:15px 0 7px}
+.tabs{display:flex;gap:8px;flex-wrap:wrap;margin:20px 0}.tabs button{flex:1;min-width:120px}.tabs button.active{border-color:var(--gold);background:#e4b45b2a;color:#ffe9b9}
+input,button{font:inherit}input:not([type=checkbox]){width:100%;max-width:100%;min-width:0;border:1px solid #66889e;background:#081a29;color:#fff;border-radius:12px;padding:12px 13px}input:focus-visible,button:focus-visible,a:focus-visible{outline:2px solid #f4cd80;outline-offset:3px}label{display:block;font-size:13px;font-weight:650;margin:13px 0 6px}button{padding:11px 16px;border:1px solid #6e93aa70;border-radius:12px;background:#173b54;color:#f3f6fa;cursor:pointer}button:disabled{opacity:.42;cursor:not-allowed}button.primary{background:linear-gradient(110deg,#cca45e,#ffe4ab);color:#101e2a;font-weight:800;border-color:#e8c27c}
+.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:17px}.actions button{flex:1;min-width:145px}.pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}.small{font-size:12px;color:var(--muted)}.status{color:#ffe6ac;white-space:pre-wrap;min-height:26px;font-size:13px;margin:14px 0}.word-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:15px 0}.word-item{padding:10px 12px;background:#f4fffe08;border:1px solid #8eabc55a;border-radius:11px;font-weight:750;letter-spacing:.025em}.word-item small{color:#9eb8ca;margin-right:9px}.word-inputs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}.word-inputs label{margin:0;font:12px ui-monospace,monospace;color:#b6d1e1}.word-inputs input{margin:3px 0 0;font-family:ui-monospace,monospace;font-size:13px}.qr{background:white;padding:11px;border-radius:12px;width:max-content;max-width:100%;margin:18px auto}.qr img,.qr canvas{max-width:100%;height:auto}.captcha{min-height:68px;margin:16px 0;display:flex;justify-content:center}.hidden{display:none!important}.line{height:1px;background:var(--line);margin:27px 0 15px}
+@media(max-width:600px){main{margin:9px 9px 22px}.pair{grid-template-columns:1fr}.tabs button{min-width:115px;padding:10px}.actions button{min-width:120px}.word-inputs input{padding:9px}}
+</style></head><body><main><header><div class="brand">MMHVAULT · SECURE QA</div><a href="login.html">返回正式登录 / Back</a></header>
+<h1>用户名注册与永久十词 · 真实身份测试</h1>
+<div class="notice"><b>独立 Staging 测试：</b>这里创建真正的 Supabase <b>测试账户</b>，但它不属于正式 MMHVAULT 财务数据库，不会进入正式 Dashboard。请仅使用临时测试密码，<b>不要填写您目前的真实密码，也不要使用正式账户的恢复词组</b>。仅允许以 <b>qa_</b> 开头的测试用户名。</div>
+<p>测试目标：验证真实 Supabase 注册、用户名密码登录、固定十词重复登录、身份 UID 及 RLS 数据隔离。恢复词组不会保存在本地浏览器存储中。</p>
+<p class="small">环境状态：<span id="readiness">正在检查独立认证服务…</span></p>
+<div class="tabs"><button id="registrationTab" class="active" type="button">注册并备份 · Sign Up</button><button id="loginTab" type="button">测试登录 · Sign In</button></div>
+<section id="registration"><div id="entry"><h2>第一步 · 创建测试账号</h2>
+<div class="pair"><div><label for="regUsername">测试用户名 / Username</label><input id="regUsername" type="text" autocomplete="off" spellcheck="false" maxlength="20" autocapitalize="none" placeholder="qa_mytest123"></div><div><label for="regPassword">临时密码 / Password</label><input id="regPassword" type="password" autocomplete="new-password" minlength="6" maxlength="20" placeholder="6–20 characters"></div></div>
+<label for="regConfirm">再次输入临时密码 / Confirm</label><input id="regConfirm" type="password" autocomplete="new-password" minlength="6" maxlength="20">
+<label style="display:flex;align-items:flex-start;gap:8px;margin-top:16px"><input id="terms" type="checkbox" style="margin-top:5px">我明白这是独立测试账户，并同意只使用测试信息。</label>
+<div class="actions"><button type="button" class="primary" id="prepare">生成永久十词并开始备份</button></div></div>
+<div id="backup" class="hidden"><h2>第二步 · 备份永久十词</h2>
+<p>先保存十个英文单词及其顺序，再创建测试账户。<strong>这十词和二维码代表同一把可永久重复使用的登录密钥。</strong> 不会自动过期或因为使用而作废。</p><div id="wordList" class="word-list"></div><div id="qr" class="qr"></div>
+<div class="actions"><button type="button" id="copyPhrase">复制全部十词</button><button type="button" id="saveQr">保存二维码 PNG</button></div>
+<label style="display:flex;gap:8px;align-items:flex-start"><input type="checkbox" id="saved" style="margin-top:5px">我已备份 10 个单词和二维码，理解忘记密码后仍可用原词组登录。</label>
+<div class="actions"><button type="button" class="primary" id="finish" disabled>已备份，创建真实 Staging 测试账户</button><button id="cancelBackup" type="button">取消本次注册</button></div></div>
+<div id="created" class="hidden"><h2>Staging 账号创建成功</h2><p>已在独立 Supabase 中创建真实的测试账户。现在可以用刚才设置的密码，或备份的相同十词登录测试。</p><div class="actions"><button id="tryLogin" type="button" class="primary">立即测试登录</button></div></div>
+</section>
+<section id="login" class="hidden"><h2>第三步 · 真实身份登录测试</h2>
+<label for="loginUsername">测试用户名</label><input id="loginUsername" autocomplete="off" type="text" placeholder="qa_mytest123" maxlength="20" autocapitalize="none" spellcheck="false">
+<div class="tabs"><button id="passwordTab" class="active" type="button">用户名 + 密码</button><button id="phraseTab" type="button">用户名 + 永久十词</button></div>
+<div id="passwordEntry"><label for="loginPassword">测试密码</label><input id="loginPassword" type="password" autocomplete="off" placeholder="Enter test password"></div>
+<div id="phraseEntry" class="hidden"><div class="word-inputs" id="phraseInputs"></div><p>在 01 格粘贴全部十词（以空格分隔），也可以扫描已经保存的二维码。</p><div class="actions"><button type="button" id="loadQr">从二维码图片读取</button><input id="qrFile" class="hidden" type="file" accept="image/png,image/jpeg,image/webp"></div></div>
+<div class="actions"><button type="button" id="submitLogin" class="primary">向 Staging 发起真实登录验证</button></div>
+<div id="identityStatus" class="status" aria-live="polite" role="status"></div></section>
+<div id="captcha" class="captcha"></div><div class="status" id="status" role="status" aria-live="polite"></div>
+<div class="line"></div><p>安全说明：原有邮箱、Google 登录和正式财务数据库没有连接到本测试页面。这里显示的“登录成功”是独立 Staging Auth UID 验证结果，<strong>不会自动进入正式财务账户</strong>。测试完成后请关闭本标签页。</p>
+</main><script src="js/vendor/qrcode-1.0.0.min.js"></script><script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script><script>
+(()=>{'use strict';
+const BASE='https://ldivswlhtgmznzwhzsoi.supabase.co';
+const API=BASE+'/functions/v1/mmh-n10a766-username-qa';
+const KEY='sb_publishable_LxIB8564OZD48HQ8Mfsc0A_apkgERZo';
+const WIDGET='0x4AAAAAAFq1yWQ26zasvyxh';
+const $=id=>document.getElementById(id),pattern=/^qa_[a-z0-9_]{3,16}$/;
+let ready=false,pending=false,phrase=[],ticket='',username='',password='',captchaToken='',captchaWidget=null,captchaAction='',method='password';
+const status=t=>$('status').textContent=t;
+const clearSecrets=()=>{phrase=[];ticket='';password='';$('regPassword').value='';$('regConfirm').value='';};
+async function api(data){const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),22000);try{const response=await fetch(API,{method:'POST',mode:'cors',credentials:'omit',cache:'no-store',referrerPolicy:'no-referrer',headers:{'Content-Type':'application/json',apikey:KEY},body:JSON.stringify(data),signal:controller.signal});const body=await response.json().catch(()=>null);return {ok:response.ok,status:response.status,body};}finally{clearTimeout(timer)}}
+function reg(){return !$('registration').classList.contains('hidden');}
+function tab(t){$('registration').classList.toggle('hidden',t!=='register');$('login').classList.toggle('hidden',t!=='login');$('registrationTab').classList.toggle('active',t==='register');$('loginTab').classList.toggle('active',t==='login');renderCaptcha(t==='register'?'prepare_signup':method==='password'?'login':'phrase_login');status('');}
+$('registrationTab').onclick=()=>tab('register');$('loginTab').onclick=()=>tab('login');
+function renderCaptcha(action){captchaAction=action;captchaToken='';const element=$('captcha');element.replaceChildren();if(typeof turnstile==='undefined'){setTimeout(()=>{if(captchaAction===action)renderCaptcha(action)},500);return;}if(captchaWidget!==null){try{turnstile.remove(captchaWidget)}catch{}captchaWidget=null;}try{captchaWidget=turnstile.render(element,{sitekey:WIDGET,theme:'dark',action:'mmh_n10a766_'+action,callback:v=>{captchaToken=v;},'expired-callback':()=>{captchaToken=''},'error-callback':()=>{captchaToken=''}});}catch{status('人机验证加载失败，请刷新页面。')}}
+function showWords(words){$('wordList').replaceChildren();words.forEach((w,i)=>{const b=document.createElement('div');b.className='word-item';const n=document.createElement('small');n.textContent=String(i+1).padStart(2,'0');b.append(n,document.createTextNode(w));$('wordList').append(b);});const target=$('qr');target.replaceChildren();try{const payload='MMHVAULT-RECOVERY-V1\nUSERNAME:'+username+'\nPHRASE:'+words.join(' ');new QRCode(target,{text:payload,width:226,height:226,colorDark:'#000',colorLight:'#fff',correctLevel:QRCode.CorrectLevel.L});}catch{target.textContent='二维码不可用，请按顺序保存十词。';}}
+$('prepare').onclick=async()=>{if(pending||!ready)return;const n=$('regUsername').value.trim().toLowerCase(),p=$('regPassword').value;
+ if(!pattern.test(n)){status('请输入 qa_ 开头、7–20 位的测试用户名。');return;}if(p.length<6||p.length>20||p!==$('regConfirm').value){status('测试密码应为 6–20 位，且两次填写一致。');return;}if(!$('terms').checked){status('请先确认测试条款。');return;}if(!captchaToken){status('请先完成人机验证。');return;}
+ pending=true;status('正在向独立测试服务器申请注册票据…');try{const r=await api({action:'prepare_signup',username:n,captcha_token:captchaToken});
+ if(!r.ok||r.body?.code!=='phrase_prepared'||!Array.isArray(r.body.recovery_words)||r.body.recovery_words.length!==10||typeof r.body.ticket!=='string')throw Error(r.body?.code||'prepare_failed');
+ username=n;password=p;ticket=r.body.ticket;phrase=r.body.recovery_words;$('entry').classList.add('hidden');$('backup').classList.remove('hidden');showWords(phrase);status('请先备份十词和二维码，再确认创建 Staging 账户。');
+ }catch(e){status('申请失败：'+e.message+'。如服务未就绪，请不要使用正式账户密码。');}finally{pending=false;renderCaptcha('prepare_signup')}}
+$('copyPhrase').onclick=async()=>{try{await navigator.clipboard.writeText(phrase.join(' '));status('已复制测试恢复词组，请妥善保管。');}catch{status('无法访问剪贴板，请手动记录。')}};
+$('saveQr').onclick=()=>{const canvas=$('qr').querySelector('canvas'),img=$('qr').querySelector('img');const data=canvas?.toDataURL('image/png')||img?.src;if(!data){status('没有可保存的二维码。');return;}const a=document.createElement('a');a.href=data;a.download='MMHVAULT-STAGING-PERMANENT-10-WORD-QR.png';document.body.append(a);a.click();a.remove()};
+$('saved').onchange=()=>$('finish').disabled=!$('saved').checked;
+$('cancelBackup').onclick=()=>{clearSecrets();$('wordList').replaceChildren();$('qr').replaceChildren();$('backup').classList.add('hidden');$('entry').classList.remove('hidden');$('saved').checked=false;$('finish').disabled=true;status('取消注册。预留会在约 30 分钟后自动到期。');};
+$('finish').onclick=async()=>{if(pending||!ticket||phrase.length!==10||!$('saved').checked)return;pending=true;status('正在独立 Supabase 创建真实测试账户…');$('finish').disabled=true;
+ try{const r=await api({action:'signup',username,password,ticket,phrase:phrase.join(' ')});if(!r.ok||r.body?.code!=='signup_success'||!r.body.user_id)throw Error(r.body?.code||'signup_failed');const checked=await verifySession(r.body);if(!checked)throw Error('identity_probe_failed');clearSecrets();$('wordList').replaceChildren();$('qr').replaceChildren();$('backup').classList.add('hidden');$('created').classList.remove('hidden');$('loginUsername').value=username;status('✓ 已创建真实 Staging 测试账户，并验证对应 UID 与 RLS 所有权。');}
+ catch(e){status('注册未完成：'+e.message+'。如果服务端已经创建了用户，请不要反复提交；可以先尝试用户名密码登录。');$('finish').disabled=false;}finally{pending=false;}};
+$('tryLogin').onclick=()=>tab('login');
+function loginMethod(m){method=m;$('passwordEntry').classList.toggle('hidden',m!=='password');$('phraseEntry').classList.toggle('hidden',m!=='phrase');$('passwordTab').classList.toggle('active',m==='password');$('phraseTab').classList.toggle('active',m==='phrase');$('identityStatus').textContent='';renderCaptcha(m==='password'?'login':'phrase_login');}
+$('passwordTab').onclick=()=>loginMethod('password');$('phraseTab').onclick=()=>loginMethod('phrase');
+const inputs=Array.from({length:10},(_,i)=>{const b=document.createElement('label');b.textContent=String(i+1).padStart(2,'0');const el=document.createElement('input');el.type='text';el.autocomplete='off';el.autocapitalize='none';el.spellcheck=false;el.maxLength=13;b.append(el);$('phraseInputs').append(b);return el});
+function setPhrase(text){const words=text.trim().toLowerCase().split(/\s+/);if(words.length!==10||!words.every(w=>/^[a-z]+$/.test(w)))return false;inputs.forEach((el,i)=>el.value=words[i]);return true;}
+inputs[0].addEventListener('paste',e=>{if(setPhrase(e.clipboardData?.getData('text')||'')){e.preventDefault();$('identityStatus').textContent='已按顺序填充十词。'}});
+$('loadQr').onclick=()=>$('qrFile').click();
+$('qrFile').onchange=async()=>{const file=$('qrFile').files?.[0];$('qrFile').value='';if(!file)return;if(file.size>4000000||typeof BarcodeDetector==='undefined'){$('identityStatus').textContent='浏览器不支持二维码图片识别，请手动粘贴十词。';return;}
+ try{const bmp=await createImageBitmap(file);let matches;try{matches=await new BarcodeDetector({formats:['qr_code']}).detect(bmp)}finally{bmp.close()}
+ const m=/^MMHVAULT-RECOVERY-V1\nUSERNAME:(qa_[a-z0-9_]+)\nPHRASE:([a-z ]+)$/i.exec(matches?.[0]?.rawValue||'');if(!m||!setPhrase(m[2]))throw Error('bad_qr');$('loginUsername').value=m[1];$('identityStatus').textContent='二维码已在本地识别。';}
+ catch{$('identityStatus').textContent='无法读取二维码，请手动输入十词。';}}
+async function verifySession(payload){const jwt=payload?.access_token,uid=payload?.user_id;if(typeof jwt!=='string'||typeof uid!=='string')return false;const common={apikey:KEY,Authorization:'Bearer '+jwt,Accept:'application/json'};
+ const userResp=await fetch(BASE+'/auth/v1/user',{headers:common,cache:'no-store'});const user=await userResp.json().catch(()=>null);if(!userResp.ok||user?.id!==uid)return false;
+ const probeResp=await fetch(BASE+'/rest/v1/mmh_n10a766_owner_probe?select=user_id',{headers:common,cache:'no-store'});const probe=await probeResp.json().catch(()=>null);
+ return probeResp.ok&&Array.isArray(probe)&&probe.length===1&&probe[0].user_id===uid;
+}
+$('submitLogin').onclick=async()=>{if(pending||!ready)return;const n=$('loginUsername').value.trim().toLowerCase();if(!pattern.test(n)){status('请输入 qa_ 开头的测试用户名。');return;}if(!captchaToken){status('请先完成验证码。');return;}
+ const body=method==='password'?{password:$('loginPassword').value}:{phrase:inputs.map(x=>x.value.trim().toLowerCase()).join(' ')};
+ pending=true;$('identityStatus').textContent='正在验证 Staging 身份与 RLS 所有权…';try{const r=await api({action:method==='password'?'login':'phrase_login',username:n,captcha_token:captchaToken,...body});if(!r.ok||!['login_success','phrase_login_success'].includes(r.body?.code))throw Error(r.body?.code||'login_failed');const ok=await verifySession(r.body);if(!ok)throw Error('identity_or_rls_not_confirmed');$('identityStatus').textContent='✓ 真实 Staging 登录成功！Supabase Auth UID 与 RLS 所有权检查通过。'+(method==='phrase'?' 您可以再次使用同一套永久十词。':'')+' 本次不会登录正式财务账户。';}
+ catch(e){$('identityStatus').textContent='Staging 登录未通过：'+e.message;}finally{pending=false;$('loginPassword').value='';inputs.forEach(i=>i.value='');renderCaptcha(method==='password'?'login':'phrase_login');}};
+(async()=>{try{const r=await api({action:'preflight'});ready=r.ok&&r.body?.enabled===true;$('readiness').textContent=ready?'认证服务已部署，安全配置检查通过；可以开始真实 Staging 测试。':'认证服务已部署，但运行配置尚未就绪，请不要提交测试密码。';}catch{$('readiness').textContent='连接独立认证服务失败，暂无法测试。';}
+ $('prepare').disabled=!ready;$('submitLogin').disabled=!ready;renderCaptcha('prepare_signup')})();
+window.addEventListener('pagehide',()=>{clearSecrets();inputs.forEach(el=>el.value='');$('loginPassword').value='';});
+})();
+</script></body></html>
