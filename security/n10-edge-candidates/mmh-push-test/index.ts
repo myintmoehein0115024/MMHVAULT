@@ -95,7 +95,7 @@ export default {
       // subject to the verified Auth user rather than trusting raw claims.
       let aal2 = false;
       try {
-        const bearer = /^Bearer\\s+([^\\s]+)$/i.exec(req.headers.get("Authorization") || "")?.[1] || "";
+        const bearer = /^Bearer\s+([^\s]+)$/i.exec(req.headers.get("Authorization") || "")?.[1] || "";
         const segments = bearer.split(".");
         if (segments.length === 3) {
           const payload = JSON.parse(new TextDecoder().decode(b64urlToBuffer(segments[1])));
