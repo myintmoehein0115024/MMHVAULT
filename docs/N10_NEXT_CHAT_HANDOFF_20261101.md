@@ -68,3 +68,8 @@
 - 对应 `test-candidate-contracts.mjs` 增加两项可审计的执行顺序及拒绝路径静态断言；之前 36/36 增至 **38/38**。最新代码提交 `53c5c03ae5e437e66905ffc987e7fa3e4f1342d7` 在 [Actions 41227033653](https://github.com/myintmoehein0115024/MMHVAULT/actions/runs/41227033653) **SUCCESS**，含 Deno 四文件 check、合成 MFA 14/14、UI 10/10；并非 live signed-token/Vault 证明。
 - 旧 QA adapter 包含已经删除的 A/B 合成账户 UUID，它是**历史审查样本，不得直接重新部署**。未来固定恢复服务联合验收必须另制新版本、以新账户、独立批准并保留 fail-closed 开关。已退役 410 Edge 不变。
 - 当前硬阻断仍为 `VAULT_DELETE_E2E=UNVERIFIED`、`FIXED_RECOVERY_MFA_VAULT_JOINT=UNTESTED`、PR 冲突未解决；**N10 未上线、V11 暂停**。
+
+## 2026-11-01 — 无需部署的恢复词临时授权失败清理补强
+- `security/n10-fixed-recovery-vault-candidate/username-signup-integration-NOT_DEPLOYED.ts` 的 `loginPhrase` 原先在 `verifyOtp()` 发放临时会话后、`getUser(access_token)` 身份验证失败的路径里，没有专门清理临时会话；现在使用独立 Auth 客户端的 `try/finally`：仅签名用户 UID 符合预期后 `keepSession=true` 并返回；否则尝试 `auth.signOut({scope:'local'})`。如签退过程本身发生服务端错误，依然可能需要独立的会话清理核实，不能断言后端全部吊销。该流程不改变 MFA/AAL2 的后续挑战规则。
+- 相关后端静态回归新增 1 项，从 38/38 提升至 **39/39**。最新代码 SHA `fa5a5c918d05a984ce9293e6eed653e4da8dce95` 对应 [GitHub Actions #41227265460](https://github.com/myintmoehein0115024/MMHVAULT/actions/runs/41227265460)：**SUCCESS**，14/14 合成 MFA、39/39 后端静态合同、10/10 UI 静态检查，以及 4 个候选 TS 的 Deno type-check 均成功；不是当前生产或 Staging 的真实恢复验证。
+- **绝不合并**：PR #2 继续 Draft，生产恢复开关 OFF，Vault 删除后的孤儿密钥证明 UNVERIFIED，固定恢复服务＋MFA＋Vault 联合实测 UNTESTED，`login.html` / security center 与已更新 main 的合并冲突未解，V11 继续暂停。
