@@ -13,6 +13,7 @@ const preflight=readFileSync(resolve(root,'docs/sql/n10_fixed_recovery_READ_ONLY
 const syntheticVerifier=readFileSync(resolve(root,'docs/sql/n10_fixed_recovery_verifier_SYNTHETIC_STAGING_ONLY.sql'),'utf8');
 const signup=readFileSync(resolve(here,'username-signup-integration-NOT_DEPLOYED.ts'),'utf8');
 const staging=readFileSync(resolve(here,'qa-staging-recovery-NOT_DEPLOYED.ts'),'utf8');
+const joint=readFileSync(resolve(here,'qa-joint-mfa-vault-STAGING-NOT_DEPLOYED.ts'),'utf8');
 const retired=readFileSync(resolve(here,'qa-retired-tombstone-STAGING.ts'),'utf8');
 const cases=[
  ['sensitive recovery route proves identity and password before Vault read',()=>{
@@ -87,6 +88,54 @@ const cases=[
    assert.doesNotMatch(retired,/\.rpc\(/);
  }],
 
+ ['new isolated joint QA candidate is inert and never reuses prior users',()=>{
+   assert.match(joint,/const RECOVERY_RELEASE_ENABLED=false;/);
+   assert.match(joint,/const QA_WINDOW_END_UTC='1970-01-01T00:00:00\.000Z'/);
+   assert.match(joint,/const QA_IDENTITIES=new Map<string,string>\(\[\]\);/);
+   assert.match(joint,/const ALLOWLIST_OK=QA_IDENTITIES\.size===2/);
+   assert.match(joint,/if\(!\(Date\.parse\(QA_WINDOW_END_UTC\)>Date\.now\(\)\)\)/);
+   assert.match(joint,/if\(BASE!==EXPECTED_BASE\|\|SERVICE\.length<20\|\|ANON\.length<20\|\|RATEKEY\.length<32\|\|!ALLOWLIST_OK\)/);
+   assert.match(joint,/const EXPECTED_BASE='https:\/\/ldivswlhtgmznzwhzsoi\.supabase\.co'/);
+   assert.match(joint,/const ORIGIN='https:\/\/myintmoehein0115024\.github\.io'/);
+   assert.match(joint,/N10_FIXED_RECOVERY_QA_HMAC_KEY/);
+   assert.doesNotMatch(joint,/Deno\.env\.get\('N10A740_RATE_HMAC_KEY'\)/);
+   assert.doesNotMatch(joint,/https:\/\/vrypucmyrztxgiqhjspd\.supabase\.co/);
+   assert.doesNotMatch(joint,/bbfa4e52-2ad0-4c8f-a635-6bdcd89b6990|bda2b4a3-ffab-4b00-883b-8a31bb1c6129/);
+   assert.doesNotMatch(joint,/n10-vault-qa-[ab]-20261101@no-mail\.mmhvault\.invalid/);
+   assert.match(joint,/QA_IDENTITIES\.get\(user\.id\)!==user\.email/);
+ }],
+ ['new joint QA adapter keeps live guards for MFA, session, owner and Vault',()=>{
+   assert.equal((joint.match(/await verifiedUser\(req\)/g)||[]).length,6);
+   assert.equal((joint.match(/await liveSession\(user\.id,sessionId\)/g)||[]).length,6);
+   const steps=[
+     "const authenticated=await verifiedUser(req);",
+     "const firstSessionCheck=await liveSession(user.id,sessionId);",
+     "const quotaStatus=await quota(user.id);",
+     "if(!await provePassword(user,body.password))",
+     "const refreshedAssurance=await verifiedUser(req);",
+     "if(action==='backup_existing')",
+     "if(!equal64(records.data[0].verifier,mac))",
+     "const backupAssurance=await verifiedUser(req);",
+     "const backupSessionCheck=await liveSession(user.id,sessionId);",
+     "const saved=await admin.rpc('mmh_n10_recovery_backup_put'"
+   ];
+   let last=-1;
+   for(const step of steps){
+     const i=joint.indexOf(step);assert.ok(i>last,'Missing/late joint guard: '+step);last=i;
+   }
+   const tail=[
+     "const stored=await admin.rpc('mmh_n10_recovery_backup_get'",
+     "const finalAssurance=await verifiedUser(req);",
+     "const finalSessionCheck=await liveSession(user.id,sessionId);",
+     "return out(origin,'recovery_key'"
+   ];
+   last=-1;
+   for(const step of tail){
+     const i=joint.indexOf(step);assert.ok(i>last,'Missing/late joint reveal guard: '+step);last=i;
+   }
+   assert.match(joint,/if\(finalAssurance\.state==='required'\)return out\(origin,'mfa_required',403\)/);
+   assert.match(joint,/if\(finalSessionCheck!=='active'\)return out\(origin,'session_expired',401\)/);
+ }],
  ['Staging QA adapter is disabled and hard-pinned to isolation',()=>{
    assert.match(staging,/const RECOVERY_RELEASE_ENABLED=false/);
    assert.match(staging,/const EXPECTED_BASE='https:\/\/ldivswlhtgmznzwhzsoi\.supabase\.co'/);
