@@ -89,3 +89,9 @@ Draft PR only: **do not merge until the full database and signed-token tests pas
 - Strengthened the recovery `reveal` action to check the same live Auth session **three times**, including after the asynchronous Vault read and immediately before returning plaintext words.
 - The CI workflow also now type-checks the separate **undeployed** username-signup escrow candidate; check the latest workflow run before claiming its result.
 - **Not a release**: no Staging database migration was applied; no live signed-token/password/MFA/2-user tests or Vault RPC permission/revocation tests have occurred. The draft PR must remain blocked until the authorized isolated Staging database test path is available.
+
+## CI milestone: 47 / 47 checks and both Deno type-checks now PASS
+- GitHub Actions [run 41211226327](https://github.com/myintmoehein0115024/MMHVAULT/actions/runs/41211226327) completed **SUCCESS** (2026-10-31). This checks all 47 synthetic + static cases AND Deno TypeScript compilation for both `index.ts` (recovery) and `username-signup-integration-NOT_DEPLOYED.ts` (new-user escrow).
+- The new-user signup candidate originally failed Deno strict checks. All implicit-any, nullable user/email/origin and optional token-hash typing issues were fixed in this **unreleased** branch; live production signup has not been replaced.
+- The Vault reveal candidate now checks live session status a third time **after the asynchronous secret read**, immediately before responding with plaintext. The candidate release flag remains false.
+- The remaining blocker is NOT an uncompiled program: it is the previous safety gate that blocked creation of Staging-only encrypted backup SQL objects. Never treat CI success as approval to bypass that gate, or as evidence of real signed-token or Vault database acceptance.
