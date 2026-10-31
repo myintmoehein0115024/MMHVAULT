@@ -34,5 +34,5 @@ jobs:
         with:
           deno-version: v2.x
       - name: Type-check undeployed Vault Edge candidate (NO execution)
-        run: deno check security/n10-fixed-recovery-vault-candidate/index.ts
+        run: deno check security/n10-fixed-recovery-vault-candidate/index.ts security/n10-fixed-recovery-vault-candidate/username-signup-integration-NOT_DEPLOYED.ts
 # Deliberately no Supabase or GitHub deployment, SQL writes, secrets, or live users.
