@@ -70,7 +70,7 @@ function displayTotpQr(totp){
  if(!src)throw Error('QR generation unavailable');
  const img=document.createElement('img');img.src=src;img.alt='Authenticator QR';img.width=188;img.height=188;holder.append(img);
 }
-function status(t){label('mmhA783Status',t)}
+function status(t){label('mmhA783Status',t);const open=root.querySelector('.mmh-a785-open .mmh-n10-modal-status');if(open)open.textContent=a783Text(t);}
 function resetSensitiveState(){
  usernameOnly=false;factorId='';
  $('mmhA783Recovery').hidden=true;$('mmhA783BindUsername').hidden=true;
@@ -278,15 +278,112 @@ $('mmhA783TotpRemoveNow').addEventListener('click',async()=>{
 });
 document.addEventListener('visibilitychange',()=>{if(document.hidden){hideKey();if(pendingFactor)void cancelPendingMfa();}});
 window.addEventListener('pagehide',()=>{hideKey();if(pendingFactor)void cancelPendingMfa();else clearMfa();});
-// Accordion only within the existing card, never move the parent Settings panels.
+// Modal-only interaction: keep the existing original controls in the same
+// owner-authenticated DOM subtree. Do not clone sensitive inputs or create a
+// second stateful form, and never render recovery words in the summary cards.
 const sections=[...root.querySelectorAll('.mmh-a783-section')];
-function collapse(section){section.classList.remove('mmh-a785-open');section.querySelector('.mmh-a783-title')?.setAttribute('aria-expanded','false');if(section.id==='mmhA783Recovery')hideKey();if(section.querySelector('#mmhA783TotpSetup')&&pendingFactor)void cancelPendingMfa();}
+const modalStyle=document.createElement('style');
+modalStyle.id='mmh-n10-account-security-modal-css';
+modalStyle.textContent=`
+html body #settings.page.active #stPage_security #mmhA783SecurityCenter .mmh-a783-section.mmh-a785-open{grid-column:auto!important}
+#settings #mmhA783SecurityCenter .mmh-n10-modal-overlay[hidden]{display:none!important}
+html body #settings.page.active #stPage_security #mmhA783SecurityCenter .mmh-a783-section.mmh-a785-open>.mmh-n10-modal-overlay{
+ position:fixed!important;inset:0!important;z-index:2147483000!important;
+ display:flex!important;justify-content:center!important;align-items:center!important;
+ padding:max(14px,env(safe-area-inset-top)) 12px max(14px,env(safe-area-inset-bottom))!important;
+ background:rgba(1,8,18,.83)!important;backdrop-filter:blur(18px)!important;
+ -webkit-backdrop-filter:blur(18px)!important;overflow:hidden!important}
+#settings #mmhA783SecurityCenter .mmh-n10-modal-card{
+ width:min(560px,100%)!important;max-height:min(86dvh,820px)!important;
+ overflow:hidden!important;display:flex!important;flex-direction:column!important;
+ position:relative!important;border-radius:24px!important;
+ background:linear-gradient(150deg,rgba(19,49,75,.98),rgba(3,16,31,.99))!important;
+ border:1px solid rgba(235,194,124,.44)!important;
+ box-shadow:0 32px 110px rgba(0,0,0,.68),inset 0 1px rgba(255,255,255,.07)!important}
+#settings #mmhA783SecurityCenter .mmh-n10-modal-header{
+ display:flex!important;flex-shrink:0!important;align-items:center!important;
+ justify-content:space-between!important;gap:14px!important;padding:19px 20px 13px!important;
+ border-bottom:1px solid rgba(200,211,220,.13)!important}
+#settings #mmhA783SecurityCenter .mmh-n10-modal-heading{
+ margin:0!important;font-weight:850!important;font-size:18px!important;line-height:1.3!important;
+ color:#ffe3a5!important}
+#settings #mmhA783SecurityCenter .mmh-n10-modal-close{
+ cursor:pointer!important;border:1px solid rgba(216,187,129,.35)!important;
+ border-radius:12px!important;width:38px!important;height:38px!important;flex:none!important;
+ background:rgba(10,33,52,.8)!important;color:#f7dab0!important;
+ font-size:22px!important;line-height:1!important}
+#settings #mmhA783SecurityCenter .mmh-n10-modal-scroll{
+ overflow-y:auto!important;overscroll-behavior:contain!important;
+ padding:12px 20px 20px!important;min-height:0!important;scrollbar-width:thin!important}
+#settings #mmhA783SecurityCenter .mmh-n10-modal-scroll>*{max-width:100%!important;min-width:0!important}
+#settings #mmhA783SecurityCenter .mmh-n10-modal-status{
+ flex-shrink:0!important;white-space:normal!important;padding:12px 20px 17px!important;
+ border-top:1px solid rgba(207,190,148,.14)!important;font-size:12px!important;
+ line-height:1.55!important;color:#f2cf93!important}
+#settings #mmhA783SecurityCenter .mmh-n10-modal-scroll input:not([type=checkbox]),
+#settings #mmhA783SecurityCenter .mmh-n10-modal-scroll button{max-width:100%!important}
+body.mmh-n10-account-modal-open{overflow:hidden!important}
+@media(max-width:560px){
+ #settings #mmhA783SecurityCenter .mmh-n10-modal-card{border-radius:19px!important;max-height:calc(100dvh - 24px)!important}
+ #settings #mmhA783SecurityCenter .mmh-n10-modal-header{padding:14px 15px 10px!important}
+ #settings #mmhA783SecurityCenter .mmh-n10-modal-scroll{padding:10px 15px 15px!important}
+ #settings #mmhA783SecurityCenter .mmh-n10-modal-status{padding:10px 15px 12px!important}
+ #settings #mmhA783SecurityCenter .mmh-n10-modal-heading{font-size:16px!important}
+}
+`;
+document.head.append(modalStyle);
+const modalOverlays=new Map();
+for(const section of sections){
+ const title=section.querySelector(':scope > .mmh-a783-title');if(!title)continue;
+ const overlay=document.createElement('div');overlay.className='mmh-n10-modal-overlay';overlay.hidden=true;
+ overlay.setAttribute('role','presentation');
+ const card=document.createElement('div');card.className='mmh-n10-modal-card';
+ card.setAttribute('role','dialog');card.setAttribute('aria-modal','true');
+ const header=document.createElement('div');header.className='mmh-n10-modal-header';
+ const heading=document.createElement('h4');heading.className='mmh-n10-modal-heading';
+ const close=document.createElement('button');close.type='button';close.className='mmh-n10-modal-close';
+ close.setAttribute('aria-label','Close');close.textContent='×';
+ const scroll=document.createElement('div');scroll.className='mmh-n10-modal-scroll';
+ const message=document.createElement('div');message.className='mmh-n10-modal-status';message.setAttribute('role','status');message.setAttribute('aria-live','polite');
+ for(const child of [...section.children])if(child!==title)scroll.append(child);
+ header.append(heading,close);card.append(header,scroll,message);overlay.append(card);section.append(overlay);
+ modalOverlays.set(section,{overlay,heading,close,message});
+ close.addEventListener('click',()=>collapse(section));
+ overlay.addEventListener('click',e=>{if(e.target===overlay)collapse(section)});
+}
+function collapse(section){
+ const info=modalOverlays.get(section);
+ const wasOpen=section.classList.contains('mmh-a785-open');
+ section.classList.remove('mmh-a785-open');
+ section.querySelector(':scope > .mmh-a783-title')?.setAttribute('aria-expanded','false');
+ if(info)info.overlay.hidden=true;
+ if(!sections.some(s=>s.classList.contains('mmh-a785-open')))document.body.classList.remove('mmh-n10-account-modal-open');
+ if(section.id==='mmhA783Recovery')hideKey();
+ if(section.querySelector('#mmhA783TotpSetup')&&pendingFactor)void cancelPendingMfa();
+ if(wasOpen&&section.contains(document.activeElement))section.querySelector(':scope > .mmh-a783-title')?.focus({preventScroll:true});
+}
 sections.forEach(section=>{
- const title=section.querySelector(':scope > .mmh-a783-title');if(!title)return;
- title.tabIndex=0;title.setAttribute('role','button');title.setAttribute('aria-expanded','false');
- const toggle=()=>{const opening=!section.classList.contains('mmh-a785-open');sections.forEach(other=>{if(other!==section)collapse(other)});if(opening){section.classList.add('mmh-a785-open');title.setAttribute('aria-expanded','true')}else collapse(section)};
+ const title=section.querySelector(':scope > .mmh-a783-title'),info=modalOverlays.get(section);
+ if(!title||!info)return;
+ title.tabIndex=0;title.setAttribute('role','button');title.setAttribute('aria-haspopup','dialog');title.setAttribute('aria-expanded','false');
+ const toggle=()=>{
+  const opening=!section.classList.contains('mmh-a785-open');
+  sections.forEach(other=>collapse(other));
+  if(!opening)return;
+  section.classList.add('mmh-a785-open');title.setAttribute('aria-expanded','true');
+  info.heading.textContent=title.querySelector('b')?.textContent||'Account security';
+  info.close.setAttribute('aria-label',a783IsZh()?'关闭':'Close');
+  info.message.textContent=$('mmhA783Status')?.textContent||'';
+  info.overlay.hidden=false;document.body.classList.add('mmh-n10-account-modal-open');
+  info.close.focus({preventScroll:true});
+ };
  title.addEventListener('click',toggle);
  title.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();toggle()}});
+});
+document.addEventListener('keydown',e=>{
+ if(e.key!=='Escape')return;
+ const active=sections.find(section=>section.classList.contains('mmh-a785-open'));
+ if(active){e.preventDefault();e.stopPropagation();collapse(active);}
 });
 const settingsPage=$('settings');let wasVisible=false;
 function onPageChange(){
