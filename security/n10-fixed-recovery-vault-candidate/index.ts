@@ -42,9 +42,10 @@ function equal64(a:unknown,b:unknown){
  let diff=0;for(let i=0;i<64;i++)diff|=a.charCodeAt(i)^b.charCodeAt(i);
  return diff===0;
 }
-async function quota(userId:string,action:string){
+async function quota(userId:string){
  const {data,error}=await admin.rpc('mmh_n10_recovery_take_attempt',{
-  p_bucket:await hmac('n10-fixed-recovery:'+action+':'+userId),
+  // One shared password-proof bucket for backup + reveal: never grant 5 attempts each.
+  p_bucket:await hmac('n10-fixed-recovery:secret_proof:'+userId),
   p_limit:5,p_window_seconds:900
  });
  // Fail closed if rate infrastructure is unavailable; do not return a
@@ -139,7 +140,7 @@ Deno.serve(async(req:Request)=>{
   return error||typeof data!=='boolean'?out(origin,'unavailable',503):out(origin,'backup_status',200,{backed_up:data});
  }
  if(action!=='backup_existing'&&action!=='reveal')return out(origin,'unknown_action',400);
- const quotaStatus=await quota(user.id,String(action));
+ const quotaStatus=await quota(user.id);
  if(quotaStatus==='unavailable')return out(origin,'rate_unavailable',503);
  if(quotaStatus!=='allowed')return out(origin,'too_many_attempts',429);
  if(!await provePassword(user,body.password))return out(origin,'invalid_credentials',401);
