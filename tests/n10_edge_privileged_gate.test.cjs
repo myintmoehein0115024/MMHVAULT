@@ -39,6 +39,40 @@ test('Push privileged access refuses AAL1, mismatched and expired JWTs', async t
   }
 });
 
+test('Push parses real-shaped Bearer headers only AFTER separate Auth verification', async t => {
+  const {parseVerifiedBearerClaims,evaluatePushMfa} =
+    await import(locate(base + 'mmh-push-test/mfa-push.mjs'));
+  const id='11111111-1111-4111-8111-111111111111';
+  const encode = obj => Buffer.from(JSON.stringify(obj)).toString('base64url');
+  const payload={sub:id,iss:'https://stage.supabase.co/auth/v1',
+    exp:Math.floor(Date.now()/1000)+3600,aal:'aal2'};
+  const token=encode({alg:'HS256',typ:'JWT'})+'.'+encode(payload)+'.fake-signature';
+  // The isolated parser does not verify a signature; the production caller
+  // MUST complete Supabase Auth getUser() verification before invoking it.
+  const valid=parseVerifiedBearerClaims('Bearer '+token);
+  await t.test('valid signed-token shape parses',()=>assert.deepEqual(valid,payload));
+  await t.test('parsed AAL2 enrolled passes decision',()=>assert.equal(
+    evaluatePushMfa(true,id,valid),'allowed'));
+  const rejects=[
+    '',
+    'Bearer',
+    'Bearer no-dots',
+    'Bearer '+token+' trailing',
+    'Basic '+token,
+    'Bearer '+encode({})+'.%%%.x',
+    'Bearer '+token+'.extra',
+    'Bearer '+('X'.repeat(9000)),
+  ];
+  for(const value of rejects){
+    await t.test('reject invalid header '+value.slice(0,25),()=>{
+      assert.equal(parseVerifiedBearerClaims(value),null);
+    });
+  }
+  await t.test('spacing allowed for a conventional bearer',()=>{
+    assert.deepEqual(parseVerifiedBearerClaims('Bearer\t'+token),payload);
+  });
+});
+
 test('Financial and recovery-phrase MFA decisions remain identical', async t => {
   const ai = await import(locate(base + 'mmh-financial-assistant/mfa-assurance.mjs'));
   const phrase = await import(locate(base + 'mmh-n10a783-phrase-verify/mfa-assurance.mjs'));
