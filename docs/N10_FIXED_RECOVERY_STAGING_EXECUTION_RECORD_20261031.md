@@ -150,3 +150,11 @@ Added three tests to `security/n10-fixed-recovery-vault-candidate/test-candidate
 3. Explicit Origin and POST, fail-closed release switch and exact project pin **before** any bearer-bound user authorization.
 
 Total current pure-JS source checks: **35/35 PASS** (not a real Deno/GitHub Actions run or a signed-token/live-Vault test). Changes are confined to unmerged N10 Draft PR; previously retired Staging QA and production remain untouched. The two hard release blockers are unchanged.
+
+## N10 Draft encrypted-backup precommit revalidation
+
+The candidate recovery Edge now performs a **fresh signed-user/factor assurance and server-side active-session RPC check after validating immutable ten-word HMAC and immediately before the Vault backup-put RPC**. Enrolled AAL1 is rejected with MFA required, transient Auth/factor errors fail closed, identity/session mismatches or revoked sessions are denied. This reduces a TOCTOU exposure around the asynchronous verifier read, but is **not a cross-system transactional atomicity claim**.
+
+Security-contract tests now assert this ordering, rejection branches, four signed-identity checks, and four live-session checks in code. Restricted offline source regression: **36/36 PASS**; no live Vault, signed E2E or deployed runtime test was performed.
+
+This improvement is **Draft PR source only**; production still off/unmerged, Staging retirement preserved, Vault orphan-free deletion and fixed-recovery-with-TOTP E2E still release blockers.
