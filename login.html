@@ -542,7 +542,14 @@ async function verifiedRedirectV946(expectedUserId){
     if(recoveryCallbackPendingV944||recoveryModeV943||recoveryCompletedV943){verifiedRedirectInFlightV946=false;return false}
     const assurance=await db.auth.mfa.getAuthenticatorAssuranceLevel();
     if(assurance.error||!assurance.data)throw assurance.error||Error('mfa_unavailable');
-    if(assurance.data.nextLevel==='aal2'&&assurance.data.currentLevel!=='aal2'){
+    const {currentLevel,nextLevel}=assurance.data;
+    // Auth sometimes returns a null current AAL for legacy signed tokens.
+    // But a missing or unknown NEXT AAL is never proof that MFA is optional.
+    // This must fail closed before ANY navigation to private pages.
+    if(nextLevel!=='aal1'&&nextLevel!=='aal2')throw Error('mfa_next_level_unknown');
+    if(currentLevel!==null&&currentLevel!=='aal1'&&currentLevel!=='aal2')
+      throw Error('mfa_current_level_unknown');
+    if(nextLevel==='aal2'&&currentLevel!=='aal2'){
       verifiedRedirectInFlightV946=false;
       await mmhShowMfaChallengeV783(expectedUserId);
       return false;
