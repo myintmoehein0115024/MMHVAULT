@@ -36,3 +36,13 @@ Status: **LOCKED / PREPARATION ONLY**. Approved by owner for Staging *preparatio
 
 ## Next action
 Owner creates the two new **Staging-only** Auth user fixtures through the dashboard, leaving all credentials private; then a scoped **read-only** UID/email cross-check can be carried out. No joint MFA activation or production release is authorized by completing that action.
+
+## A TOTP enrollment window 2026-11-01 — INCOMPLETE (server evidence)
+- User reported `A TOTP PASS` after using isolated test page. **Do not accept this alone as server-side success.**
+- Immediate read-only Staging verification against **only** synthetic A/B Auth and MFA factors showed:
+  - A: 1 `auth.mfa_factors` row, factor type `totp`, status **`unverified`**, 0 verified factors; one challenge was created at `2026-10-31 18:28:10 UTC`, **zero verified challenges** (`verified_at` absent).
+  - B: 0 MFA factors, 0 verified factors.
+- No TOTP values, QR seeds, passwords, tokens or encrypted Vault contents were read or disclosed. This proves a challenge was attempted; it **does not** prove TOTP enrollment/AAL2.
+- Immediately restored `QA_RELEASED=false` and `QA_WINDOW_END_UTC=1970-01-01` on isolated QA JS, adjusted locked-state tests, cache-busted the static HTML entrypoint. Commits: `327e505` (OFF), `5b2f6da` (test), `14e84f7` (fresh link). GitHub Pages build/deploy action `41229754196` should be confirmed SUCCESS before declaring static site fully redeployed. Source lock was immediate; browsers may cache an older bundle until refreshed, but approved deadline also rejects post-expiry.
+- Retired QA Edge unchanged; newly deployed `mmh-n10-qa-joint-mfa-vault-20261101` remains OFF, empty allowlist, expired deadline. No production changes.
+- Classification: `A_TOTP_ENROLLMENT=INCOMPLETE`, `JOINT_FIXED_RECOVERY_MFA_VAULT=UNTESTED`, `VAULT_DELETE_E2E=UNVERIFIED`, release BLOCKED. If a new enrollment attempt is needed, use a new explicit finite Staging-only approval. Confirm status directly from server before telling the owner it passed.
