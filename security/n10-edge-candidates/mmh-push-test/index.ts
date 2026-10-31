@@ -1,6 +1,7 @@
 // DRAFT — N10 conditional MFA review only. Not deployed.
 import * as webpush from "jsr:@negrel/webpush@0.5.0";
 import postgres from "npm:postgres@3.4.7";
+import { evaluatePushMfa } from "./mfa-push.mjs";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -90,20 +91,19 @@ export default {
     } catch (_) {
       return json({ code: "MFA_CHECK_UNAVAILABLE" }, 503);
     }
-    if (mfaRequired) {
-      // The same bearer was checked by /auth/v1/user. Match its signed JWT
-      // subject to the verified Auth user rather than trusting raw claims.
-      let aal2 = false;
-      try {
-        const bearer = /^Bearer\s+([^\s]+)$/i.exec(req.headers.get("Authorization") || "")?.[1] || "";
-        const segments = bearer.split(".");
-        if (segments.length === 3) {
-          const payload = JSON.parse(new TextDecoder().decode(b64urlToBuffer(segments[1])));
-          aal2 = payload?.sub === user.id && payload?.aal === "aal2";
-        }
-      } catch (_) { /* deny on malformed token */ }
-      if (!aal2) return json({ code: "MFA_REQUIRED" }, 403);
-    }
+    // Decode claims ONLY after Auth has verified this exact bearer above.
+    // The pure policy helper denies invalid/mismatched identities and enrolled AAL1.
+    let jwtClaims: any = null;
+    try {
+      const bearer = /^Bearer\\s+([^\\s]+)$/i.exec(req.headers.get("Authorization") || "")?.[1] || "";
+      const segments = bearer.split(".");
+      if (segments.length === 3) {
+        jwtClaims = JSON.parse(new TextDecoder().decode(b64urlToBuffer(segments[1])));
+      }
+    } catch (_) { /* invalid bearer -> reject, never fall through */ }
+    const decision = evaluatePushMfa(mfaRequired, user.id, jwtClaims);
+    if (decision === "unavailable") return json({ code: "MFA_CHECK_UNAVAILABLE" }, 503);
+    if (decision === "required") return json({ code: "MFA_REQUIRED" }, 403);
 
     const body = await req.json().catch(() => ({}));
     const endpoint = String(body?.endpoint || "").trim();
