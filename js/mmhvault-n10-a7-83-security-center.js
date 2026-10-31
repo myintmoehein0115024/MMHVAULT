@@ -381,9 +381,16 @@ sections.forEach(section=>{
  title.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();toggle()}});
 });
 document.addEventListener('keydown',e=>{
- if(e.key!=='Escape')return;
  const active=sections.find(section=>section.classList.contains('mmh-a785-open'));
- if(active){e.preventDefault();e.stopPropagation();collapse(active);}
+ if(!active)return;
+ if(e.key==='Escape'){e.preventDefault();e.stopPropagation();collapse(active);return;}
+ if(e.key!=='Tab')return;
+ const overlay=modalOverlays.get(active)?.overlay;
+ const focusable=[...(overlay?.querySelectorAll('button:not([disabled]):not([hidden]),a[href],input:not([disabled]):not([hidden]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])')||[])].filter(el=>el.getClientRects().length>0);
+ if(!focusable.length){e.preventDefault();return}
+ const first=focusable[0],last=focusable[focusable.length-1];
+ if(e.shiftKey&&(document.activeElement===first||!overlay.contains(document.activeElement))){e.preventDefault();last.focus()}
+ else if(!e.shiftKey&&(document.activeElement===last||!overlay.contains(document.activeElement))){e.preventDefault();first.focus()}
 });
 const settingsPage=$('settings');let wasVisible=false;
 function onPageChange(){
