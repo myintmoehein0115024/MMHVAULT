@@ -20,6 +20,7 @@ const cases=[
  ['fresh password required',()=>assert.match(edge,/await provePassword\(user,body\.password\)/)],
  ['three session validity checks',()=>assert.equal((edge.match(/await liveSession\(user\.id,sessionId\)/g)||[]).length,3)],
  ['rate limit uses keyed HMAC',()=>assert.match(edge,/p_bucket:await hmac\(/)],
+ ['backup and reveal share 5-attempt / 15-min bucket',()=>{assert.match(edge,/n10-fixed-recovery:secret_proof:/);assert.match(edge,/p_limit:5,p_window_seconds:900/);assert.doesNotMatch(edge,/n10-fixed-recovery:'\+action/)}],
  ['maximum request body enforced during stream',()=>assert.match(edge,/if\(total>1200\)/)],
  ['original phrase verified against immutable HMAC',()=>assert.match(edge,/equal64\(records\.data\[0\]\.verifier,mac\)/)],
  ['no direct plaintext logs',()=>assert.doesNotMatch(edge,/console\.(?:log|error)\s*\(/)],
