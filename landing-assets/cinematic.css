@@ -322,3 +322,140 @@ html[lang="my"] .report-insight .business-insight-copy strong { line-height:1.85
 @media (prefers-reduced-motion:reduce) {
   .business-insight{transition:none;}
 }
+
+
+/* ==============================================================
+   L1.7 — Hero-only image composition (isolated Landing preview)
+   Desktop: the original premium photograph is ONE unified scene.
+   Small screens: the device shot is an intentional inset photo
+   with a visible frame, never an overlapping second landscape.
+   This changes no Business, finance, language or auth behavior.
+   ============================================================== */
+@media (min-width:901px) {
+  .hero::before {
+    inset:-40px -9vw -70px;
+    background-image:
+      linear-gradient(90deg,
+        rgba(3,10,21,.88) 0%,
+        rgba(3,10,21,.81) 21%,
+        rgba(5,11,20,.66) 37%,
+        rgba(6,13,23,.29) 59%,
+        rgba(5,12,22,.08) 81%),
+      linear-gradient(180deg,
+        rgba(2,7,15,.30) 0%,
+        rgba(3,10,19,.02) 34%,
+        rgba(3,10,19,.14) 68%,
+        rgba(3,10,19,.82) 100%),
+      url("./personal-business-concept.webp");
+    background-position:center,center,center 52%;
+    background-size:cover,cover,cover;
+    background-repeat:no-repeat;
+    background-blend-mode:normal;
+    -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 78%,transparent 100%);
+    mask-image:linear-gradient(to bottom,#000 0%,#000 78%,transparent 100%);
+  }
+  .hero::after {
+    background:radial-gradient(ellipse at 70% 72%,rgba(236,165,93,.10),transparent 64%);
+    opacity:.4;
+  }
+  .hero-art { min-height:470px; pointer-events:none; }
+  /* The same picture already fills the full Hero; never overlay it again. */
+  .hero-art.is-photo-ready .hero-device-cinematic {display:none;}
+  .hero-art.is-photo-ready .hero-halo {opacity:0;}
+  .hero-art.is-photo-ready .demo-disclaimer {
+    bottom:14px;
+    right:4px;
+    max-width:270px;
+    padding:8px 13px;
+    background:rgba(3,11,20,.73);
+    text-align:center;
+  }
+  .hero-copy::before {
+    background:linear-gradient(90deg,rgba(3,11,22,.56),rgba(4,13,23,.17) 73%,transparent);
+    border-radius:18px;
+  }
+}
+@media (min-width:901px) and (max-width:1199px) {
+  .hero::before {background-position:center,center,58% 50%;}
+  .hero-art {min-height:405px;}
+  .hero-art.is-photo-ready .demo-disclaimer {right:0;}
+}
+@media (max-width:900px) {
+  .hero::before {
+    background-image:
+      linear-gradient(180deg,rgba(3,10,20,.85),rgba(4,12,23,.74) 45%,rgba(4,11,21,.86) 83%,#050e19),
+      url("./cinematic-lake.webp");
+    background-position:center,63% 46%;
+    background-size:cover,cover;
+    background-repeat:no-repeat;
+  }
+  .hero-art {
+    width:min(700px,100%);
+    min-height:clamp(280px,49vw,390px);
+    position:relative;
+    overflow:hidden;
+    padding:0;
+    border-radius:19px;
+    border:1px solid rgba(237,207,157,.46);
+    background:linear-gradient(145deg,#162a3e,#071421 75%);
+    box-shadow:0 28px 70px rgba(0,0,0,.37),inset 0 1px 0 rgba(255,243,218,.12);
+    margin:14px auto 0;
+    isolation:isolate;
+  }
+  .hero-art.is-photo-ready .hero-device-cinematic {
+    display:block;
+    position:absolute;
+    inset:0;
+    left:0;
+    top:0;
+    width:100%;
+    height:100%;
+    aspect-ratio:auto;
+    object-fit:cover;
+    object-position:58% 50%;
+    transform:none;
+    opacity:1;
+    filter:saturate(.96) contrast(1.035);
+    -webkit-mask-image:none;
+    mask-image:none;
+  }
+  .hero-art.is-photo-ready .hero-halo {opacity:0;}
+  .hero-art .demo-disclaimer,
+  .hero-art.is-photo-ready .demo-disclaimer {
+    bottom:9px;
+    right:9px;
+    max-width:calc(100% - 18px);
+    text-align:right;
+    border-color:rgba(248,221,172,.28);
+    background:rgba(4,13,24,.84);
+    font-size:9px;
+    line-height:1.5;
+  }
+}
+@media (max-width:620px) {
+  .hero::before {
+    background-image:
+      linear-gradient(180deg,
+        rgba(3,9,19,.88) 0%,
+        rgba(3,9,19,.76) 45%,
+        rgba(4,11,21,.86) 78%,
+        #050e19 100%),
+      url("./cinematic-lake.webp");
+    background-position:center,59% 50%;
+    background-size:cover,cover;
+  }
+  .hero-art {
+    min-height:clamp(196px,57vw,315px);
+    width:100%;
+    margin-top:4px;
+    border-radius:15px;
+  }
+  .hero-art.is-photo-ready .hero-device-cinematic {object-position:56% center;}
+  .hero-art .demo-disclaimer,
+  .hero-art.is-photo-ready .demo-disclaimer {font-size:8px;bottom:7px;right:7px;}
+  .hero-buttons {gap:10px;}
+}
+@media (max-width:370px) {
+  .hero-art {min-height:190px;}
+  .hero-art.is-photo-ready .hero-device-cinematic {object-position:54% center;}
+}
