@@ -18,6 +18,12 @@ const cases=[
  ['MFA assurance checked',()=>assert.match(edge,/evaluateVerifiedAuthUserMfa\(m\[1\]/)],
  ['owner restricted to username-only',()=>assert.match(edge,/mmhvault_auth_kind!=='username_only'/)],
  ['fresh password required',()=>assert.match(edge,/await provePassword\(user,body\.password\)/)],
+ ['server-managed MFA rechecked after password proof',()=>{
+   assert.equal((edge.match(/await verifiedUser\(req\)/g)||[]).length,2);
+   assert.match(edge,/refreshedAssurance\.state==='required'/);
+   assert.match(edge,/refreshedAssurance\.user\.id!==user\.id/);
+   assert.match(edge,/refreshedAssurance\.sessionId!==sessionId/);
+ }],
  ['three session validity checks',()=>assert.equal((edge.match(/await liveSession\(user\.id,sessionId\)/g)||[]).length,3)],
  ['rate limit uses keyed HMAC',()=>assert.match(edge,/p_bucket:await hmac\(/)],
  ['backup and reveal share 5-attempt / 15-min bucket',()=>{assert.match(edge,/n10-fixed-recovery:secret_proof:/);assert.match(edge,/p_limit:5,p_window_seconds:900/);assert.doesNotMatch(edge,/n10-fixed-recovery:'\+action/)}],
