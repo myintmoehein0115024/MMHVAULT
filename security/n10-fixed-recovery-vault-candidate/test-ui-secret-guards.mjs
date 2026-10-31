@@ -8,6 +8,13 @@ import {dirname,resolve} from 'node:path';
 const src=readFileSync(resolve(dirname(fileURLToPath(import.meta.url)),
   '../../js/mmhvault-n10-a7-83-security-center.js'),'utf8');
 const cases=[
+ ['draft Vault UI release remains OFF at four independent entry points',()=>{
+   assert.match(src,/const N10_FIXED_VAULT_UI_RELEASED=false;/);
+   assert.match(src,/async function vaultApi\(action,extra=\{\}\)\{\s*if\(!N10_FIXED_VAULT_UI_RELEASED\)throw Error\('vault_release_locked'\)/);
+   assert.match(src,/async function loadVaultMode\(\)\{\s*if\(!N10_FIXED_VAULT_UI_RELEASED\)\{vaultStatusMode\('unavailable'\);return;\}/);
+   assert.match(src,/mmhN10VaultBackup'\)\.addEventListener\('click',async\(\)=>\{\s*if\(!N10_FIXED_VAULT_UI_RELEASED/);
+   assert.match(src,/mmhN10VaultReveal'\)\.addEventListener\('click',async\(\)=>\{\s*if\(!N10_FIXED_VAULT_UI_RELEASED/);
+ }],
  ['all recovery views use 45s auto-hide',()=>{
    assert.equal((src.match(/clearTimer=setTimeout\(hideKey,45000\)/g)||[]).length,2);
    assert.doesNotMatch(src,/clearTimer=setTimeout\(hideKey,60000\)/);
