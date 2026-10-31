@@ -18,7 +18,7 @@ BEGIN
       pg_get_functiondef('public.mmh_delete_crypto_wallet_movement_v4(uuid)'::regprocedure))=0 THEN
     RAISE EXCEPTION 'Wallet RPC does not match an N10 MFA guarded version';
   END IF;
-END
+END;
 $guard$;
 CREATE OR REPLACE FUNCTION public.mmh_delete_crypto_wallet_movement_v4(p_id uuid)
  RETURNS boolean
@@ -55,7 +55,7 @@ begin
 
   return true;
 end;
-$function$
+$function$;
 COMMENT ON FUNCTION public.mmh_delete_crypto_wallet_movement_v4(uuid) IS NULL;
 -- CREATE OR REPLACE retains the existing function OID, owner and EXECUTE grants;
 -- separately confirm grants, owner and intended behavior after rollback.
