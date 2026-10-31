@@ -31,6 +31,13 @@ const cases=[
  ['original phrase verified against immutable HMAC',()=>assert.match(edge,/equal64\(records\.data\[0\]\.verifier,mac\)/)],
  ['no direct plaintext logs',()=>assert.doesNotMatch(edge,/console\.(?:log|error)\s*\(/)],
  ['SQL controlled transaction',()=>{assert.match(sql,/^BEGIN;/m);assert.match(sql,/^COMMIT;/m)}],
+ ['Staging migration is collision-failing first install only',()=>{
+   assert.match(sql,/^CREATE SCHEMA mmh_n10_privacy;/m);
+   assert.match(sql,/^CREATE TABLE mmh_n10_privacy.recovery_backup_index\(/m);
+   assert.doesNotMatch(sql,/\bCREATE\s+(?:OR\s+REPLACE\s+)?(?:SCHEMA|TABLE|FUNCTION)\s+IF\s+NOT\s+EXISTS\b/i);
+   assert.doesNotMatch(sql,/\bCREATE\s+OR\s+REPLACE\s+FUNCTION\b/i);
+   assert.equal((sql.match(/^CREATE FUNCTION /gm)||[]).length,6);
+ }],
  ['SQL function quotes are balanced',()=>assert.equal((sql.match(/\$\$/g)||[]).length%2,0)],
  ['SQL has no bare broken function delimiters',()=>{assert.doesNotMatch(sql,/\bAS \$(?!\$)\s*$/m);assert.doesNotMatch(sql,/^\$;\s*$/m)}],
  ['private recovery index RLS',()=>assert.match(sql,/recovery_backup_index ENABLE ROW LEVEL SECURITY/)],
