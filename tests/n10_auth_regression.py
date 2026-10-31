@@ -143,6 +143,36 @@ class N10AuthContract(unittest.TestCase):
         self.assertIn("mmh_n10_security.mfa_access_ok()", wallet)
         self.assertNotIn("mmh_n10_security.mfa_access_ok()", wallet_back.split("CREATE OR REPLACE FUNCTION", 1)[1])
 
+    def test_atomic_release_and_rollback_bundle_match_source_fragments(self):
+        root = ROOT / "docs/sql"
+        release = (root / "n10_mfa_atomic_release_NOT_FOR_DEPLOYMENT.sql").read_text(encoding="utf-8")
+        rollback = (root / "n10_mfa_atomic_rollback_NOT_FOR_DEPLOYMENT.sql").read_text(encoding="utf-8")
+        for source, paths in (
+            (release, [
+                "n10_mfa_public_policy_candidate_NOT_FOR_DEPLOYMENT.sql",
+                "n10_mfa_storage_policy_candidate_NOT_FOR_DEPLOYMENT.sql",
+                "n10_mfa_wallet_rpc_candidate_NOT_FOR_DEPLOYMENT.sql"
+            ]),
+            (rollback, [
+                "n10_mfa_wallet_rpc_rollback_CANDIDATE.sql",
+                "n10_mfa_storage_rollback_CANDIDATE.sql",
+                "n10_mfa_policy_rollback_CANDIDATE.sql"
+            ]),
+        ):
+            self.assertEqual(len(re.findall(r"^BEGIN;$", source, re.MULTILINE)), 1)
+            self.assertEqual(len(re.findall(r"^COMMIT;$", source, re.MULTILINE)), 1)
+            self.assertIn("NOT FOR DEPLOYMENT", source if source == release else source.upper().replace("NOT AUTHORIZED", "NOT FOR DEPLOYMENT"))
+            for path in paths:
+                fragment = (root / path).read_text(encoding="utf-8")
+                fragment = re.sub(r"^BEGIN;\s*$", "", fragment, flags=re.MULTILINE)
+                fragment = re.sub(r"^COMMIT;\s*$", "", fragment, flags=re.MULTILINE).strip()
+                self.assertIn(fragment, source, path)
+        self.assertIn("IF marked <> 59", rollback)
+        self.assertIn("MMHVAULT-N10-MFA-STORAGE-RESTRICTIVE-V1", rollback)
+        self.assertIn("MMHVAULT-N10-WALLET-MFA-V1", rollback)
+        workflow = (ROOT / ".github/workflows/n10-auth-static-check.yml").read_text(encoding="utf-8")
+        self.assertIn("docs/sql/n10_mfa_*.sql", workflow)
+
     def test_edge_sensitive_api_candidates_require_mfa_before_access(self):
         root = ROOT / "security/n10-edge-candidates"
         push = (root / "mmh-push-test/index.ts").read_text(encoding="utf-8")
