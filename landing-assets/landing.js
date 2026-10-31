@@ -621,6 +621,11 @@
   "appBenefitLife2": "ရည်မှန်းချက်တိုးတက်မှု",
   "appBenefitLife3": "အနာဂတ်လုပ်ဆောင်ချက် · မကြာမီ"
 });
+  // L1.12 premium Accounts demo only
+  Object.assign(strings.en,{appAccountCurrencies:'CURRENCIES',appAccountActive:'ACTIVE',appAccountSample:'ILLUSTRATIVE ACCOUNTS',appAccountCollection:'Your accounts, at a glance',appAccountEveryday:'PERSONAL · CASH',appAccountLocal:'BANK · LOCAL',appAccountSavings:'SAVINGS · RESERVE',appOriginalBalance:'ORIGINAL BALANCE'});
+  Object.assign(strings.zh,{appAccountCurrencies:'币种数量',appAccountActive:'使用中',appAccountSample:'虚构演示账户',appAccountCollection:'一眼掌握所有账户',appAccountEveryday:'个人 · 现金',appAccountLocal:'银行 · 本地',appAccountSavings:'储蓄 · 备用金',appOriginalBalance:'原币种余额'});
+  Object.assign(strings.my,{appAccountCurrencies:'ငွေကြေးအမျိုးအစား',appAccountActive:'အသုံးပြုနေ',appAccountSample:'စိတ်ကူးယဉ်အကောင့်များ',appAccountCollection:'အကောင့်များကို တစ်နေရာတည်းတွင် ကြည့်ရန်',appAccountEveryday:'ကိုယ်ပိုင် · ငွေသား',appAccountLocal:'ဘဏ် · ဒေသတွင်း',appAccountSavings:'စုဆောင်းငွေ · သီးသန့်',appOriginalBalance:'မူရင်းငွေကြေးလက်ကျန်'});
+
   const htmlKeys = new Set(['heroTitle', 'featuresTitle', 'businessHeading', 'whyTitle', 'closingTitle']);
   const storageKey = 'mmhvault.landing.language';
   const siteHeader = document.querySelector('.site-header');
@@ -712,15 +717,8 @@
       const key='appBenefit'+productCap[activeProduct]+(Number(node.dataset.appStoryBenefit)+1);
       node.setAttribute('data-i18n',key);node.textContent=dict[key]||'';
     });
-    document.querySelector('[data-app-prev]')?.setAttribute('aria-label',dict.appPrevious);
-    document.querySelector('[data-app-next]')?.setAttribute('aria-label',dict.appNext);
-    document.querySelectorAll('[data-app-thumb]').forEach(node=>
-      node.setAttribute('aria-label',dict.appThumbExplore+' '+productLabels[node.dataset.appThumb])
-    );
     const appStory = document.querySelector('.app-story');
     if (appStory) appStory.setAttribute('aria-label',dict.appStoryHighlights);
-    const appThumbnails = document.querySelector('.app-thumbnails');
-    if (appThumbnails) appThumbnails.setAttribute('aria-label',dict.appSelectHint);
     const tablist = document.querySelector('.product-tablist');
     if (tablist) tablist.setAttribute('aria-label', dict.productTablistAria);
     // Translate descriptive controls and photographic alt text without changing the fixed Hero copy.
@@ -842,83 +840,35 @@
     if (sectionMap.has(target)) markSection(target);
   }));
 
-  // L1.11: Local presentation-only six-screen App simulation.
+  // L1.12: one navigation only (left-side feature selector).
   const productTabs=[...document.querySelectorAll('[data-product-tab]')];
   const productPanels=[...document.querySelectorAll('[data-product-panel]')];
-  const productNames=productTabs.map(tab=>tab.dataset.productTab);
-  const productLabels={"dashboard":"Dashboard","transactions":"Transactions","accounts":"Accounts","invest":"Invest","analyze":"Analyze","life":"Life Planner"};
-  const productFeatureKeys={"dashboard":"featureDashboard","transactions":"featureTransactions","accounts":"featureAccounts","invest":"featureInvest","analyze":"featureAnalyze","life":"featureLife"};
+  const productNames=productTabs.map(t=>t.dataset.productTab);
+  const productLabels={dashboard:'Dashboard',transactions:'Transactions',accounts:'Accounts',invest:'Invest',analyze:'Analyze',life:'Life Planner'};
+  const productFeatureKeys={dashboard:'featureDashboard',transactions:'featureTransactions',accounts:'featureAccounts',invest:'featureInvest',analyze:'featureAnalyze',life:'featureLife'};
   const productCap={dashboard:'Dashboard',transactions:'Transactions',accounts:'Accounts',invest:'Invest',analyze:'Analyze',life:'Life'};
   let activeProduct='dashboard';
-  function selectProductView(view,moveFocus=false){
+  function selectProductView(view,focus=false){
     const name=productNames.includes(view)?view:'dashboard';
     activeProduct=name;
-    productTabs.forEach(tab=>{
-      const selected=tab.dataset.productTab===name;
-      tab.classList.toggle('is-active',selected);
-      tab.setAttribute('aria-selected',String(selected));
-      tab.tabIndex=selected?0:-1;
-      if(selected&&moveFocus)tab.focus();
-    });
-    productPanels.forEach(panel=>{panel.hidden=panel.dataset.productPanel!==name;});
-    document.querySelectorAll('[data-app-thumb]').forEach(tab=>{
-      const selected=tab.dataset.appThumb===name;
-      tab.classList.toggle('is-selected',selected);
-      tab.setAttribute('aria-pressed',String(selected));
-    });
-    document.querySelectorAll('[data-app-rail]').forEach(item=>{
-      item.classList.toggle('is-active',item.dataset.appRail===name);
-    });
-    const stage=document.querySelector('.product-stage');
-    if(stage)stage.dataset.productCurrent=name;
-    const idx=productNames.indexOf(name);
-    const index=document.querySelector('[data-app-story-index]');
-    const title=document.querySelector('[data-app-story-title]');
-    const desc=document.querySelector('[data-app-story-desc]');
-    if(index)index.textContent=String(idx+1).padStart(2,'0')+' / 06';
-    if(title)title.textContent=productLabels[name];
-    const dict=strings[currentLang];
-    if(desc){
-      const key=productFeatureKeys[name];
-      desc.setAttribute('data-i18n',key);
-      desc.textContent=dict[key]||'';
-    }
-    document.querySelectorAll('[data-app-story-benefit]').forEach(node=>{
-      const key='appBenefit'+productCap[name]+(Number(node.dataset.appStoryBenefit)+1);
-      node.setAttribute('data-i18n',key);
-      node.textContent=dict[key]||'';
-    });
-    document.querySelectorAll('.app-story-dots i').forEach((dot,i)=>dot.classList.toggle('is-active',i===idx));
+    productTabs.forEach(t=>{const yes=t.dataset.productTab===name;t.classList.toggle('is-active',yes);t.setAttribute('aria-selected',String(yes));t.tabIndex=yes?0:-1;if(yes&&focus)t.focus()});
+    productPanels.forEach(p=>{p.hidden=p.dataset.productPanel!==name});
+    const stage=document.querySelector('.product-stage');if(stage)stage.dataset.productCurrent=name;
+    const idx=document.querySelector('[data-app-story-index]');if(idx)idx.textContent=String(productNames.indexOf(name)+1).padStart(2,'0')+' / 06';
+    const title=document.querySelector('[data-app-story-title]');if(title)title.textContent=productLabels[name];
+    const dict=strings[currentLang], desc=document.querySelector('[data-app-story-desc]'),key=productFeatureKeys[name];
+    if(desc){desc.setAttribute('data-i18n',key);desc.textContent=dict[key]||''}
+    document.querySelectorAll('[data-app-story-benefit]').forEach(node=>{const k='appBenefit'+productCap[name]+(Number(node.dataset.appStoryBenefit)+1);node.setAttribute('data-i18n',k);node.textContent=dict[k]||''});
+    const pane=document.querySelector('.app-sim-content');if(pane)pane.scrollTop=0;
   }
-  productTabs.forEach((tab,index)=>{
-    tab.addEventListener('click',()=>selectProductView(tab.dataset.productTab));
-    tab.addEventListener('keydown',event=>{
-      if(!['ArrowDown','ArrowRight','ArrowUp','ArrowLeft','Home','End'].includes(event.key))return;
-      event.preventDefault();
-      const next=event.key==='Home'?0:event.key==='End'?productTabs.length-1:
-        (index+(event.key==='ArrowRight'||event.key==='ArrowDown'?1:-1)+productTabs.length)%productTabs.length;
-      selectProductView(productTabs[next].dataset.productTab,true);
-    });
-  });
-  document.querySelectorAll('[data-app-thumb]').forEach(button=>button.addEventListener('click',()=>{
-    selectProductView(button.dataset.appThumb);
-    document.querySelector('.product-stage')?.scrollIntoView({block:'start',behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
-  }));
-  const previewIndex=(offset)=>{
-    const idx=productNames.indexOf(activeProduct);
-    selectProductView(productNames[(idx+offset+productNames.length)%productNames.length]);
-  };
-  document.querySelector('[data-app-prev]')?.addEventListener('click',()=>previewIndex(-1));
-  document.querySelector('[data-app-next]')?.addEventListener('click',()=>previewIndex(1));
-  const syncProductHash=()=>{
-    const hash=window.location.hash.slice(1);
-    if(hash.startsWith('feature-')){
-      const name=hash.slice(8);
-      if(productNames.includes(name))selectProductView(name);
-    }
-  };
-  window.addEventListener('hashchange',syncProductHash);
-  syncProductHash();
+  productTabs.forEach((tab,i)=>{tab.addEventListener('click',()=>selectProductView(tab.dataset.productTab));tab.addEventListener('keydown',e=>{
+    if(!['ArrowDown','ArrowRight','ArrowUp','ArrowLeft','Home','End'].includes(e.key))return;e.preventDefault();
+    const step=(e.key==='ArrowDown'||e.key==='ArrowRight')?1:-1;
+    const next=e.key==='Home'?0:e.key==='End'?productTabs.length-1:(i+step+productTabs.length)%productTabs.length;
+    selectProductView(productTabs[next].dataset.productTab,true);
+  })});
+  const syncProductHash=()=>{const s=window.location.hash.slice(1);if(s.startsWith('feature-')&&productNames.includes(s.slice(8)))selectProductView(s.slice(8))};
+  window.addEventListener('hashchange',syncProductHash);syncProductHash();
 
   // Progressive enhancement: retain the original in-page HTML device demonstration
   // until the independent photographic asset has loaded. No authentication or network API.
