@@ -1,6 +1,7 @@
 // N10 MFA candidate — NOT DEPLOYED. Review/test separately before production.
 
 import { createClient } from 'npm:@supabase/supabase-js@2.57.4';
+import { evaluateMfaAssurance } from "./mfa-assurance.mjs";
 const BASE='https://vrypucmyrztxgiqhjspd.supabase.co',ORIGIN='https://mmhvault.com';
 const SERVICE=Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')||'';
 const RATEKEY=Deno.env.get('N10A740_RATE_HMAC_KEY')||'';
@@ -15,14 +16,9 @@ async function checkMfa(jwt:string,user:any){
  if(!verifier)return 'unavailable';
  const {data,error}=await verifier.auth.mfa.getAuthenticatorAssuranceLevel(jwt);
  if(error||!data)return 'unavailable';
- const {currentLevel,nextLevel}=data;
- if(currentLevel!==null&&currentLevel!=='aal1'&&currentLevel!=='aal2')return 'unavailable';
- if(nextLevel!=='aal1'&&nextLevel!=='aal2')return 'unavailable';
  const hasVerifiedFactor=Array.isArray(user?.factors)&&
    user.factors.some((factor:any)=>factor?.status==='verified');
- if(hasVerifiedFactor && nextLevel!=='aal2')return 'unavailable';
- if(nextLevel==='aal2'&&currentLevel!=='aal2')return 'required';
- return 'allowed';
+ return evaluateMfaAssurance(data,hasVerifiedFactor);
 }
 
 const enc=new TextEncoder();
