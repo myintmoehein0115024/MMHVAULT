@@ -152,6 +152,31 @@ const cases=[
    assert.match(src,/function clearMfa\(\)\{mfaEpoch\+=1;/);
    assert.match(src,/function mfaFlowActive\(epoch,userId\)\{/);
  }],
+ ['pending TOTP cancellation only removes same-owner unverified factor',()=>{
+   assert.match(src,/pendingFactorOwner=''/);
+   assert.match(src,/function clearMfa\(\)\{mfaEpoch\+=1;pendingSecret='';pendingFactor='';pendingFactorOwner='';/);
+   assert.match(src,/pendingFactor=data\.id;pendingFactorOwner=user\.id;pendingSecret=/);
+   const cancel=src.slice(src.indexOf('async function cancelPendingMfa(){'),src.indexOf('function displayTotpQr(',src.indexOf('async function cancelPendingMfa(){')));
+   const required=[
+     'const targetFactor=pendingFactor,targetOwner=pendingFactorOwner;',
+     'clearMfa();',
+     'if(!targetFactor)return true;',
+     'if(!targetOwner)return false;',
+     'const before=await verifiedUser();',
+     'if(before.user.id!==targetOwner||owner!==targetOwner)return false;',
+     'const found=await client().auth.mfa.listFactors();',
+     'const matches=inspectTotpFactors(found.data).pending.some(f=>f.id===targetFactor);',
+     'if(!matches)return false;',
+     'const current=await verifiedUser();',
+     'if(current.user.id!==targetOwner||owner!==targetOwner)return false;',
+     'const result=await client().auth.mfa.unenroll({factorId:targetFactor});',
+     'return !result.error;'
+   ];
+   let p=-1;for(const step of required){let n=cancel.indexOf(step,p+1);assert.ok(n>p,'missing or misordered cancellation guard: '+step);p=n;}
+   assert.doesNotMatch(cancel,/auth\.mfa\.unenroll\(\{factorId:id\}\)/);
+   assert.doesNotMatch(cancel,/status\(/);
+   assert.match(src,/if\(beforeOwner===owner&&!document.hidden\)/);
+ }],
  ['all recovery views use 45s auto-hide',()=>{
    assert.equal((src.match(/clearTimer=setTimeout\(hideKey,45000\)/g)||[]).length,2);
    assert.doesNotMatch(src,/clearTimer=setTimeout\(hideKey,60000\)/);
