@@ -2230,3 +2230,55 @@ html[lang="my"] .features-explorer.app-showcase .app-premium-account-name,html[l
 .features-explorer.app-showcase .app-premium-account-balance>span{display:none}
 }
 @media(max-width:355px){.features-explorer.app-showcase .app-premium-account-balance>strong{font-size:13px}}
+
+
+/* L1.13 – finance App stage polish: detail hierarchy, compact sample summaries */
+.features-explorer.app-showcase .app-sim-content{scrollbar-gutter:stable;scrollbar-width:thin}
+.features-explorer.app-showcase .app-page-heading{position:relative;overflow:hidden}
+.features-explorer.app-showcase .app-page-heading::after{content:"";position:absolute;inset:auto 0 0;height:1px;background:linear-gradient(90deg,transparent,rgba(253,214,151,.65),transparent);pointer-events:none}
+.features-explorer.app-showcase .app-metric{position:relative;overflow:hidden;isolation:isolate;min-height:92px;box-shadow:inset 0 1px 0 rgba(255,242,211,.10),0 8px 17px rgba(0,0,0,.095)}
+.features-explorer.app-showcase .app-metric::after{content:"";pointer-events:none;position:absolute;inset:0 0 auto;height:1px;background:linear-gradient(90deg,transparent,rgba(248,213,152,.47),transparent);opacity:.65}
+.features-explorer.app-showcase .app-metric strong{font-variant-numeric:tabular-nums;letter-spacing:-.045em}
+.features-explorer.app-showcase .app-mock-card{box-shadow:inset 0 1px 0 rgba(255,244,212,.11),0 8px 16px rgba(0,0,0,.07)}
+.features-explorer.app-showcase .app-card-head{padding-bottom:7px;border-bottom:1px solid rgba(167,194,211,.13);margin-bottom:4px}
+.features-explorer.app-showcase .app-card-head strong{line-height:1.55}
+.features-explorer.app-showcase .app-sample-divider{display:flex;align-items:center;gap:11px;margin:6px 1px 9px;color:#c9b48f;font-size:8px;font-weight:680;letter-spacing:.10em;line-height:1.6}
+.features-explorer.app-showcase .app-sample-divider-line{flex:1;height:1px;background:linear-gradient(90deg,rgba(241,201,131,.28),rgba(145,173,189,.06))}
+.features-explorer.app-showcase .app-sample-divider>span:last-child{color:#819fb0;letter-spacing:.05em;font-size:8px}
+.features-explorer.app-showcase .app-tx-detail{gap:3px}
+.features-explorer.app-showcase .app-entry-tag{display:inline-flex;align-self:flex-start;width:max-content;max-width:100%;font-style:normal;color:#bfd1dc;background:rgba(108,145,168,.11);padding:2px 5px;border:1px solid rgba(154,194,212,.22);border-radius:5px;font-size:7px;line-height:1.4;letter-spacing:.04em}
+.features-explorer.app-showcase .app-entry-tag.pay{color:#a7e0c1;border-color:rgba(141,210,168,.24);background:rgba(84,150,107,.10)}
+.features-explorer.app-showcase .app-entry-tag.daily{color:#f2d19c;border-color:rgba(235,192,132,.28);background:rgba(191,138,68,.11)}
+.features-explorer.app-showcase .app-entry-tag.travel{color:#bad6e3}
+.features-explorer.app-showcase .app-transaction-list .app-transaction-line{padding:10px 0}
+.features-explorer.app-showcase .app-page-detail-ribbon{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:10px;padding:10px 12px;border:1px solid rgba(167,196,209,.14);border-radius:8px;background:rgba(5,21,34,.53);font-size:8px;line-height:1.65;color:#92b0be;letter-spacing:.035em}
+.features-explorer.app-showcase .app-page-detail-ribbon>span:first-child{display:flex;align-items:center;gap:8px;color:#e3c698}
+.features-explorer.app-showcase .app-page-detail-ribbon i{width:5px;height:5px;flex:0 0 5px;border-radius:50%;background:#a6ddc0;box-shadow:0 0 8px rgba(122,196,152,.2)}
+.features-explorer.app-showcase .app-holdings--detailed .app-holding-row{gap:8px;margin-top:13px}
+.features-explorer.app-showcase .app-holdings--detailed .app-holding-row>i{height:5px;background:linear-gradient(90deg,#edc485 0 var(--progress),rgba(109,147,166,.28) var(--progress))}
+.features-explorer.app-showcase .app-holding-asset{display:flex;align-items:center;gap:7px;line-height:1.6;color:#cadae2}
+.features-explorer.app-showcase .app-asset-swatch{width:15px;height:15px;display:grid;place-items:center;border-radius:5px;background:linear-gradient(135deg,#e4b97a,#74583b);border:1px solid rgba(255,217,152,.25);box-shadow:inset 0 1px rgba(255,244,220,.19)}
+.features-explorer.app-showcase .app-asset-swatch--gold{background:linear-gradient(135deg,#ffe2a8,#ba8744)}
+.features-explorer.app-showcase .app-asset-swatch--other{background:linear-gradient(135deg,#afcddd,#5e829c);border-color:rgba(176,211,231,.28)}
+.features-explorer.app-showcase .app-insight-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:9px}
+.features-explorer.app-showcase .app-insight-row>div{display:flex;align-items:center;gap:9px;min-width:0;padding:12px;border:1px solid rgba(175,201,216,.2);border-radius:10px;background:linear-gradient(125deg,rgba(29,65,86,.78),rgba(8,29,47,.85))}
+.features-explorer.app-showcase .app-insight-symbol{display:grid;place-items:center;flex:0 0 28px;width:28px;height:28px;border-radius:9px;font-size:16px;color:#f6cf92;border:1px solid rgba(234,194,129,.32);background:rgba(239,184,101,.11)}
+.features-explorer.app-showcase .app-insight-row>div>span:nth-child(2){display:flex;flex-direction:column;gap:5px;min-width:0}
+.features-explorer.app-showcase .app-insight-row small{font-size:8px;line-height:1.6;color:#a5bac6}
+.features-explorer.app-showcase .app-insight-row strong{font-size:12px;line-height:1.5;color:#f1dfbf;font-weight:650}
+.features-explorer.app-showcase .app-insight-row b{color:#f6cf93;font-size:14px;margin-left:auto}
+.features-explorer.app-showcase .app-calendar-weekdays{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;margin:13px 0 3px;color:#8fa9b9;font-size:8px;line-height:1.4;text-align:center}
+.features-explorer.app-showcase .app-calendar-days{margin:5px 0 13px}
+.features-explorer.app-showcase .app-todo--focus i{background:#f0c489}
+.features-explorer.app-showcase .app-todo--walk i{background:#8dcbbf}
+.features-explorer.app-showcase .app-life-detail{border-color:rgba(237,188,104,.25)}
+html[lang="my"] .features-explorer.app-showcase .app-entry-tag,html[lang="my"] .features-explorer.app-showcase .app-page-detail-ribbon,html[lang="my"] .features-explorer.app-showcase .app-insight-row small{letter-spacing:0;line-height:1.85}
+@media(max-width:620px){
+ .features-explorer.app-showcase .app-sim-content{scrollbar-gutter:auto}
+ .features-explorer.app-showcase .app-metric{min-height:75px}
+ .features-explorer.app-showcase .app-insight-row{grid-template-columns:1fr;gap:7px}
+ .features-explorer.app-showcase .app-insight-row>div{padding:10px}
+ .features-explorer.app-showcase .app-entry-tag{font-size:7px}
+ .features-explorer.app-showcase .app-page-detail-ribbon{padding:8px 9px;font-size:8px}
+}
+@media(max-width:355px){.features-explorer.app-showcase .app-sample-divider{flex-wrap:wrap}.features-explorer.app-showcase .app-page-detail-ribbon{flex-direction:column;align-items:flex-start}}
