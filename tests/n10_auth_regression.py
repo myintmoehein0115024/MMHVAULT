@@ -264,7 +264,7 @@ class N10AuthContract(unittest.TestCase):
                       "MMHVAULT-N10-WALLET-MFA-V1"):
             self.assertIn(guard, post)
         self.assertIn("READ ONLY", post)
-        self.assertNotRegex(post, r"(?im)^\\s*(?:insert|update|delete|alter|drop|create|truncate|grant|revoke)\\s+")
+        self.assertNotRegex(post, r"(?im)^\s*(?:insert|update|delete|alter|drop|create|truncate|grant|revoke)\s+")
         self.assertIn("pg_get_expr", post)
         self.assertIn("to_regprocedure", post)
 
