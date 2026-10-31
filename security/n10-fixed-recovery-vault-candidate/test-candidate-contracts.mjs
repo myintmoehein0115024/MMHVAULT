@@ -217,6 +217,27 @@ const cases=[
    assert.match(signup,/keepSession=true;/);
    assert.match(signup,/if\(!keepSession\)\{try\{await client\.auth\.signOut\(\{scope:'local'\}\)/);
  }],
+ ['partial recovery-word grant revokes isolated session on failed signed identity verification',()=>{
+   const part=signup.slice(signup.indexOf('async function loginPhrase('),signup.indexOf('Deno.serve(',signup.indexOf('async function loginPhrase(')));
+   assert.match(part,/const client=authClient\(\);/);
+   assert.match(part,/let keepSession=false;/);
+   const before=[
+    "const {data:otp,error:otpErr}=await client.auth.verifyOtp",
+    "const {data:remote,error:remoteErr}=await client.auth.getUser(otp.session.access_token);",
+    "if(remoteErr||remote.user?.id!==user.id)throw Error('identity_mismatch');",
+    "keepSession=true;",
+    "return {uid:user.id,session:otp.session};"
+   ];
+   let prior=-1;
+   for(const check of before){
+     const i=part.indexOf(check);
+     assert.ok(i>prior,'Missing or out-of-order recovery grant check: '+check);
+     prior=i;
+   }
+   assert.match(part,/finally\{\s*\/\/ A partial one-time grant/);
+   assert.match(part,/if\(!keepSession\)\{\s*try\{await client\.auth\.signOut\(\{scope:'local'\}\);/);
+   assert.doesNotMatch(part,/console\.(log|error)\s*\(/);
+ }],
  ['failed signup cleanup quarantines before exposing account',()=>{
    assert.match(signup,/async function compensateFailedSignup\(uid:string\)/);
    assert.match(signup,/admin\.auth\.admin\.deleteUser\(uid\)/);
