@@ -61,3 +61,10 @@
 - GitHub REST `pulls/2` 在当前 PR head `7a2a103cada49dafc420f0375b8108778bbe8d30` 报告 `mergeable=false`, `mergeable_state=dirty`。分支相对当时 `main` 为 ahead 107、behind 11。
 - `main` 自 N10 建分支基线 `0d94cd34ea96eda6cc3c525534385ccb4b93bde3` 以来，登录与安全中心文件 `login.html`、`js/mmhvault-n10-a7-83-security-center.js` 都有正式更新；Draft 也修改了这两个文件，必须逐行人工整合，不能以 N10 Draft 的旧版本覆盖正式密码重置/账户安全模态功能。
 - **不进行自动 merge/rebase/force push**，不改 `main` 或 Landing 相关代码。待 N10 安全门槛全部完成并获独立批准后再解决文件冲突，然后基于最终 head 重新执行 CI/回归。
+
+## 2026-11-01 — 未部署 Staging 候选的 MFA／Session 写入前复验
+- 仅修改 `security/n10-fixed-recovery-vault-candidate/qa-staging-recovery-NOT_DEPLOYED.ts`（**仍为未部署、发布开关 OFF**），使 `backup_existing` 在原始十词 HMAC verifier 通过后、写入 Vault 前，和生产候选一致地再次验证精确 JWT 对应的 server-managed MFA factors、同一 Auth 用户/会话 ID、以及数据库中的 live session；失败按原因拒绝。
+- 合成 QA 专用 `qa_initialize` 在 verifier 写入之前，以及明文合成恢复词返回之前，分别重新验证 MFA 和 live session；并发失效时拒绝明文。注意：如果写入后、返回前吊销了会话，已建立的合成 verifier 可能需要由授权操作者按测试清理计划处置，**不得自动重置或直接复用旧 fixture**。
+- 对应 `test-candidate-contracts.mjs` 增加两项可审计的执行顺序及拒绝路径静态断言；之前 36/36 增至 **38/38**。最新代码提交 `53c5c03ae5e437e66905ffc987e7fa3e4f1342d7` 在 [Actions 41227033653](https://github.com/myintmoehein0115024/MMHVAULT/actions/runs/41227033653) **SUCCESS**，含 Deno 四文件 check、合成 MFA 14/14、UI 10/10；并非 live signed-token/Vault 证明。
+- 旧 QA adapter 包含已经删除的 A/B 合成账户 UUID，它是**历史审查样本，不得直接重新部署**。未来固定恢复服务联合验收必须另制新版本、以新账户、独立批准并保留 fail-closed 开关。已退役 410 Edge 不变。
+- 当前硬阻断仍为 `VAULT_DELETE_E2E=UNVERIFIED`、`FIXED_RECOVERY_MFA_VAULT_JOINT=UNTESTED`、PR 冲突未解决；**N10 未上线、V11 暂停**。
