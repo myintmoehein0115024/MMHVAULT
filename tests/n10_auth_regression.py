@@ -143,6 +143,49 @@ class N10AuthContract(unittest.TestCase):
         self.assertIn("mmh_n10_security.mfa_access_ok()", wallet)
         self.assertNotIn("mmh_n10_security.mfa_access_ok()", wallet_back.split("CREATE OR REPLACE FUNCTION", 1)[1])
 
+    def test_wallet_rollback_is_validly_terminated_and_stage_qa_is_isolated(self):
+        sqlroot = ROOT / "docs/sql"
+        rollback_files = [
+            "n10_mfa_wallet_rpc_rollback_CANDIDATE.sql",
+            "n10_mfa_storage_rollback_CANDIDATE.sql",
+            "n10_mfa_policy_rollback_CANDIDATE.sql",
+            "n10_mfa_atomic_rollback_NOT_FOR_DEPLOYMENT.sql",
+        ]
+        for path in rollback_files:
+            source = (sqlroot / path).read_text(encoding="utf-8")
+            # PL/pgSQL DO requires END; before the terminating dollar quote.
+            self.assertNotRegex(source, r"(?m)\\bEND[ \\t]*\\n[ \\t]*\\$[a-zA-Z0-9_]+\\$;")
+            self.assertRegex(source, r"(?m)\\bEND;[ \\t]*\\n[ \\t]*\\$[a-zA-Z0-9_]+\\$;")
+        wallet = (sqlroot / rollback_files[0]).read_text(encoding="utf-8")
+        atomic = (sqlroot / rollback_files[-1]).read_text(encoding="utf-8")
+        for source in (wallet, atomic):
+            self.assertIn("$function$;\\nCOMMENT ON FUNCTION", source)
+            self.assertNotIn("$function$\\nCOMMENT ON FUNCTION", source)
+
+        candidate = (sqlroot / "n10_mfa_wallet_rpc_candidate_NOT_FOR_DEPLOYMENT.sql").read_text(encoding="utf-8")
+        source_start = "CREATE OR REPLACE FUNCTION public.mmh_delete_crypto_wallet_movement_v4(p_id uuid)"
+        self.assertIn(source_start, candidate)
+        source_body = candidate[candidate.index(source_start):]
+        source_body = source_body[:source_body.index("$function$;") + len("$function$;")]
+        for prior, new in (
+            ("public.mmh_delete_crypto_wallet_movement_v4", "mmh_n10_wallet_qa.mmh_delete_crypto_wallet_movement_v4"),
+            ("public.crypto_wallet_movements", "mmh_n10_wallet_qa.crypto_wallet_movements"),
+            ("public.investments", "mmh_n10_wallet_qa.investments"),
+            ("public.transactions", "mmh_n10_wallet_qa.transactions"),
+            ("mmh_n10_security.mfa_access_ok()", "mmh_n10_qa_security.mfa_ok()"),
+        ):
+            source_body = source_body.replace(prior, new)
+        qa = (sqlroot / "n10_wallet_rpc_transactional_staging_qa.sql").read_text(encoding="utf-8")
+        self.assertIn(source_body, qa, "Staging must exercise the branch wallet candidate body, not a reimplementation")
+        self.assertTrue(qa.rstrip().endswith("ROLLBACK;"))
+        self.assertIn("CREATE SCHEMA mmh_n10_wallet_qa;", qa)
+        self.assertIn("CREATE TEMP TABLE n10_wallet_qa_result", qa)
+        self.assertIn("missing user identity rejected", qa)
+        self.assertIn("AAL2 foreign UID denied", qa)
+        self.assertIn("enrolled AAL1 denied", qa)
+        self.assertIn("unenrolled AAL1 owns delete", qa)
+        self.assertNotIn("DELETE FROM public.crypto_wallet_movements", qa)
+
     def test_atomic_release_and_rollback_bundle_match_source_fragments(self):
         root = ROOT / "docs/sql"
         release = (root / "n10_mfa_atomic_release_NOT_FOR_DEPLOYMENT.sql").read_text(encoding="utf-8")
