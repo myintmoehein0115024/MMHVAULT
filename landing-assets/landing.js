@@ -409,6 +409,218 @@
     detailLifeFactOne:'ဘဝအစီအစဉ် နမူနာ',detailLifeFactTwo:'မရရှိနိုင်သေးပါ'
   });
 
+
+  // L1.11 cinematic app mock: every visible app interface label is local-only sample text.
+  Object.assign(strings.en,{
+  "appExploreTitle": "EXPLORE MMHVAULT",
+  "appSelectHint": "Choose a feature to preview a realistic App screen.",
+  "appSearchMock": "Search the workspace...",
+  "appFictionBadge": "DEMO",
+  "appWorkspace": "WORKSPACE",
+  "appSimulationStatus": "PREVIEW MODE",
+  "appPreviewDisclaimer": "Fictional values · No connection to accounts",
+  "appStoryHighlights": "WHAT THIS FEATURE BRINGS",
+  "appStoryConcept": "Design demonstration only. No real account information.",
+  "appPrevious": "Previous feature",
+  "appNext": "Next feature",
+  "appThumbExplore": "Preview",
+  "appFinancialOverview": "FINANCIAL OVERVIEW",
+  "appWelcomeHeadline": "Your financial picture.",
+  "appPortfolioTrend": "PORTFOLIO TREND",
+  "appAssetAllocation": "ASSET ALLOCATION",
+  "appAssetsInvest": "Investments",
+  "appAssetsCash": "Cash",
+  "appAssetsOther": "Other",
+  "appGoals": "FINANCIAL GOALS",
+  "appEmergencyFund": "Emergency fund",
+  "appSavingsPlan": "Savings plan",
+  "appRecordsLabel": "PERSONAL RECORDS",
+  "appSearchEntries": "Search records...",
+  "appAll": "All",
+  "appAssetControl": "YOUR ACCOUNTS",
+  "appOriginalCurrency": "ORIGINAL CURRENCY",
+  "appAccountsOverview": "ACCOUNT OVERVIEW",
+  "appAccountsCount": "ACCOUNTS",
+  "appAccountBalances": "ACCOUNT BALANCES",
+  "appInvestmentOverview": "INVESTMENT OVERVIEW",
+  "appHoldingCost": "HOLDING COST",
+  "appHoldingValue": "HOLDING VALUE",
+  "appUnrealized": "UNREALIZED P/L",
+  "appPerformance": "PERFORMANCE TREND",
+  "appHoldings": "HOLDINGS PREVIEW",
+  "appFinanceAnalysis": "FINANCIAL ANALYSIS",
+  "appRemaining": "REMAINING",
+  "appSavingsRate": "SAVINGS RATE",
+  "appExpenseBreakdown": "EXPENSE BREAKDOWN",
+  "appHousing": "Housing",
+  "appFood": "Food",
+  "appTravel": "Travel",
+  "appMisc": "Other",
+  "appLifePlanning": "LIFE PLANNING CONCEPT",
+  "appLifeFuture": "A space for the life beyond money.",
+  "appFocusedWork": "Focus time",
+  "appEveningWalk": "Evening walk",
+  "appHealthHabits": "Healthy routine",
+  "appLearningGoal": "Learning goals",
+  "appBenefitDashboard1": "A complete view of your position",
+  "appBenefitDashboard2": "Cash flow and trend insights",
+  "appBenefitDashboard3": "Progress toward your goals",
+  "appBenefitTransactions1": "Organize income and expenses",
+  "appBenefitTransactions2": "Filter and review activity",
+  "appBenefitTransactions3": "Understand spending patterns",
+  "appBenefitAccounts1": "Keep accounts in one place",
+  "appBenefitAccounts2": "Respect original currencies",
+  "appBenefitAccounts3": "Clear individual balances",
+  "appBenefitInvest1": "Holdings and cost context",
+  "appBenefitInvest2": "Understand asset allocations",
+  "appBenefitInvest3": "Visualize performance trends",
+  "appBenefitAnalyze1": "Monthly income and expenses",
+  "appBenefitAnalyze2": "Compare trends over time",
+  "appBenefitAnalyze3": "Category-level insights",
+  "appBenefitLife1": "Plan schedules and routines",
+  "appBenefitLife2": "Track habits and milestones",
+  "appBenefitLife3": "Future concept · Coming Soon"
+});
+  Object.assign(strings.zh,{
+  "appExploreTitle": "探索 MMHVAULT",
+  "appSelectHint": "选择功能，查看贴近真实 App 的演示页面。",
+  "appSearchMock": "搜索工作空间…",
+  "appFictionBadge": "演示",
+  "appWorkspace": "工作空间",
+  "appSimulationStatus": "演示模式",
+  "appPreviewDisclaimer": "全部金额均为虚构 · 未连接账户",
+  "appStoryHighlights": "功能亮点",
+  "appStoryConcept": "仅为设计演示，不显示真实账户信息。",
+  "appPrevious": "上一个功能",
+  "appNext": "下一个功能",
+  "appThumbExplore": "查看",
+  "appFinancialOverview": "财务总览",
+  "appWelcomeHeadline": "您的财务全貌。",
+  "appPortfolioTrend": "资产趋势",
+  "appAssetAllocation": "资产配置",
+  "appAssetsInvest": "投资",
+  "appAssetsCash": "现金",
+  "appAssetsOther": "其他",
+  "appGoals": "财务目标",
+  "appEmergencyFund": "应急储备金",
+  "appSavingsPlan": "储蓄计划",
+  "appRecordsLabel": "个人收支记录",
+  "appSearchEntries": "搜索收支记录…",
+  "appAll": "全部",
+  "appAssetControl": "账户管理",
+  "appOriginalCurrency": "原始币种",
+  "appAccountsOverview": "账户概览",
+  "appAccountsCount": "个账户",
+  "appAccountBalances": "账户余额",
+  "appInvestmentOverview": "投资总览",
+  "appHoldingCost": "持仓成本",
+  "appHoldingValue": "持仓市值",
+  "appUnrealized": "未实现盈亏",
+  "appPerformance": "收益趋势",
+  "appHoldings": "持仓概览",
+  "appFinanceAnalysis": "财务分析",
+  "appRemaining": "结余",
+  "appSavingsRate": "储蓄率",
+  "appExpenseBreakdown": "支出分类",
+  "appHousing": "住房",
+  "appFood": "餐饮",
+  "appTravel": "出行",
+  "appMisc": "其他",
+  "appLifePlanning": "生活规划概念",
+  "appLifeFuture": "为财务以外的重要生活留出空间。",
+  "appFocusedWork": "专注工作",
+  "appEveningWalk": "晚间散步",
+  "appHealthHabits": "健康习惯",
+  "appLearningGoal": "学习目标",
+  "appBenefitDashboard1": "全面了解资产与净值",
+  "appBenefitDashboard2": "查看现金流与走势",
+  "appBenefitDashboard3": "掌握财务目标进度",
+  "appBenefitTransactions1": "集中整理收支记录",
+  "appBenefitTransactions2": "快速筛选与查看流水",
+  "appBenefitTransactions3": "了解日常消费习惯",
+  "appBenefitAccounts1": "统一管理多种账户",
+  "appBenefitAccounts2": "保留原始币种展示",
+  "appBenefitAccounts3": "清楚区分每个账户余额",
+  "appBenefitInvest1": "清晰了解本金与持仓",
+  "appBenefitInvest2": "查看投资资产配置",
+  "appBenefitInvest3": "掌握收益趋势",
+  "appBenefitAnalyze1": "分析每月收支变化",
+  "appBenefitAnalyze2": "比较不同月份趋势",
+  "appBenefitAnalyze3": "了解分类开销",
+  "appBenefitLife1": "规划日程与日常习惯",
+  "appBenefitLife2": "追踪目标与里程碑",
+  "appBenefitLife3": "未来功能 · 即将推出"
+});
+  Object.assign(strings.my,{
+  "appExploreTitle": "MMHVAULT ကို လေ့လာပါ",
+  "appSelectHint": "App ပုံစံနမူနာကို ကြည့်ရန် လုပ်ဆောင်ချက်တစ်ခု ရွေးပါ။",
+  "appSearchMock": "ရှာဖွေရန်…",
+  "appFictionBadge": "နမူနာ",
+  "appWorkspace": "အလုပ်နေရာ",
+  "appSimulationStatus": "နမူနာပြသမှု",
+  "appPreviewDisclaimer": "ငွေပမာဏအားလုံး နမူနာသာ · အကောင့်နှင့် မချိတ်ဆက်ထားပါ",
+  "appStoryHighlights": "အဓိကလုပ်ဆောင်ချက်များ",
+  "appStoryConcept": "ဒီဇိုင်းနမူနာသာ ဖြစ်ပြီး အကောင့်အစစ်၏ အချက်အလက်များ မပါဝင်ပါ။",
+  "appPrevious": "ယခင်လုပ်ဆောင်ချက်",
+  "appNext": "နောက်လုပ်ဆောင်ချက်",
+  "appThumbExplore": "ကြည့်ရှုရန်",
+  "appFinancialOverview": "ငွေကြေးအခြေအနေ",
+  "appWelcomeHeadline": "သင့်ငွေကြေးအခြေအနေ။",
+  "appPortfolioTrend": "ပိုင်ဆိုင်မှုလမ်းကြောင်း",
+  "appAssetAllocation": "ပိုင်ဆိုင်မှုခွဲဝေမှု",
+  "appAssetsInvest": "ရင်းနှီးမြှုပ်နှံမှု",
+  "appAssetsCash": "ငွေသား",
+  "appAssetsOther": "အခြား",
+  "appGoals": "ငွေကြေးရည်မှန်းချက်များ",
+  "appEmergencyFund": "အရေးပေါ်ရန်ပုံငွေ",
+  "appSavingsPlan": "စုဆောင်းငွေစီမံချက်",
+  "appRecordsLabel": "ကိုယ်ပိုင်မှတ်တမ်းများ",
+  "appSearchEntries": "မှတ်တမ်းများ ရှာဖွေရန်…",
+  "appAll": "အားလုံး",
+  "appAssetControl": "သင့်အကောင့်များ",
+  "appOriginalCurrency": "မူရင်းငွေကြေး",
+  "appAccountsOverview": "အကောင့်အကျဉ်းချုပ်",
+  "appAccountsCount": "အကောင့်များ",
+  "appAccountBalances": "အကောင့်လက်ကျန်များ",
+  "appInvestmentOverview": "ရင်းနှီးမြှုပ်နှံမှုအကျဉ်းချုပ်",
+  "appHoldingCost": "ဝယ်ယူထားသောတန်ဖိုး",
+  "appHoldingValue": "လက်ရှိတန်ဖိုး",
+  "appUnrealized": "မရောင်းရသေးသော အမြတ်/အရှုံး",
+  "appPerformance": "အကျိုးအမြတ်လမ်းကြောင်း",
+  "appHoldings": "ကိုင်ဆောင်မှုအကျဉ်းချုပ်",
+  "appFinanceAnalysis": "ငွေကြေးသုံးသပ်ချက်",
+  "appRemaining": "ကျန်ငွေ",
+  "appSavingsRate": "စုဆောင်းမှုနှုန်း",
+  "appExpenseBreakdown": "အသုံးစရိတ်ခွဲခြားမှု",
+  "appHousing": "နေအိမ်",
+  "appFood": "စားသောက်",
+  "appTravel": "သွားလာရေး",
+  "appMisc": "အခြား",
+  "appLifePlanning": "ဘဝအစီအစဉ် နမူနာ",
+  "appLifeFuture": "ငွေကြေးအပြင် အရေးကြီးသောဘဝအတွက် နေရာတစ်ခု။",
+  "appFocusedWork": "အာရုံစိုက်အလုပ်",
+  "appEveningWalk": "ညနေ လမ်းလျှောက်",
+  "appHealthHabits": "ကျန်းမာရေးအလေ့အထ",
+  "appLearningGoal": "သင်ယူရေးရည်မှန်းချက်",
+  "appBenefitDashboard1": "ပိုင်ဆိုင်မှုနှင့် စုစုပေါင်းတန်ဖိုး",
+  "appBenefitDashboard2": "ငွေစီးဆင်းမှုနှင့် လမ်းကြောင်း",
+  "appBenefitDashboard3": "ငွေကြေးပန်းတိုင် တိုးတက်မှု",
+  "appBenefitTransactions1": "ဝင်ငွေနှင့် အသုံးစရိတ် စုစည်းမှု",
+  "appBenefitTransactions2": "မှတ်တမ်းများ စစ်ထုတ်ကြည့်ရှုမှု",
+  "appBenefitTransactions3": "အသုံးစရိတ်ပုံစံ လေ့လာမှု",
+  "appBenefitAccounts1": "အကောင့်အားလုံး တစ်နေရာတည်း",
+  "appBenefitAccounts2": "မူရင်းငွေကြေးအလိုက် ပြသမှု",
+  "appBenefitAccounts3": "အကောင့်တစ်ခုချင်းစီ၏ လက်ကျန်",
+  "appBenefitInvest1": "ရင်းနှီးမြှုပ်နှံမှုကုန်ကျစရိတ်",
+  "appBenefitInvest2": "ပိုင်ဆိုင်မှုခွဲဝေမှု",
+  "appBenefitInvest3": "အကျိုးအမြတ်လမ်းကြောင်း",
+  "appBenefitAnalyze1": "လစဉ် ဝင်ငွေနှင့် အသုံးစရိတ်",
+  "appBenefitAnalyze2": "လအလိုက် နှိုင်းယှဉ်မှု",
+  "appBenefitAnalyze3": "အမျိုးအစားအလိုက် သုံးသပ်မှု",
+  "appBenefitLife1": "အချိန်ဇယားနှင့် အလေ့အထများ",
+  "appBenefitLife2": "ရည်မှန်းချက်တိုးတက်မှု",
+  "appBenefitLife3": "အနာဂတ်လုပ်ဆောင်ချက် · မကြာမီ"
+});
   const htmlKeys = new Set(['heroTitle', 'featuresTitle', 'businessHeading', 'whyTitle', 'closingTitle']);
   const storageKey = 'mmhvault.landing.language';
   const siteHeader = document.querySelector('.site-header');
@@ -488,6 +700,23 @@
       button.setAttribute('aria-pressed', String(button.dataset.lang === currentLang));
     });
     updateBusinessPreview(currentBusinessView);
+    // Keep the currently selected feature story in the new display language.
+    const storyDesc=document.querySelector('[data-app-story-desc]');
+    const storyIndex=productNames.indexOf(activeProduct);
+    if(storyDesc&&storyIndex>=0){
+      const key=productFeatureKeys[activeProduct];
+      storyDesc.setAttribute('data-i18n',key);
+      storyDesc.textContent=dict[key]||'';
+    }
+    document.querySelectorAll('[data-app-story-benefit]').forEach(node=>{
+      const key='appBenefit'+productCap[activeProduct]+(Number(node.dataset.appStoryBenefit)+1);
+      node.setAttribute('data-i18n',key);node.textContent=dict[key]||'';
+    });
+    document.querySelector('[data-app-prev]')?.setAttribute('aria-label',dict.appPrevious);
+    document.querySelector('[data-app-next]')?.setAttribute('aria-label',dict.appNext);
+    document.querySelectorAll('[data-app-thumb]').forEach(node=>
+      node.setAttribute('aria-label',dict.appThumbExplore+' '+productLabels[node.dataset.appThumb])
+    );
     const tablist = document.querySelector('.product-tablist');
     if (tablist) tablist.setAttribute('aria-label', dict.productTablistAria);
     // Translate descriptive controls and photographic alt text without changing the fixed Hero copy.
@@ -609,39 +838,79 @@
     if (sectionMap.has(target)) markSection(target);
   }));
 
-  // Product concept explorer: local-only panel switching; no app state or financial data.
-  const productTabs = [...document.querySelectorAll('[data-product-tab]')];
-  const productPanels = [...document.querySelectorAll('[data-product-panel]')];
-  const productNames = productTabs.map(tab => tab.dataset.productTab);
-  function selectProductView(view, moveFocus = false) {
-    const name = productNames.includes(view) ? view : 'dashboard';
-    productTabs.forEach(tab => {
-      const active = tab.dataset.productTab === name;
-      tab.classList.toggle('is-active', active);
-      tab.setAttribute('aria-selected', String(active));
-      tab.tabIndex = active ? 0 : -1;
-      if (active && moveFocus) tab.focus();
+  // L1.11: Local presentation-only six-screen App simulation.
+  const productTabs=[...document.querySelectorAll('[data-product-tab]')];
+  const productPanels=[...document.querySelectorAll('[data-product-panel]')];
+  const productNames=productTabs.map(tab=>tab.dataset.productTab);
+  const productLabels={"dashboard":"Dashboard","transactions":"Transactions","accounts":"Accounts","invest":"Invest","analyze":"Analyze","life":"Life Planner"};
+  const productFeatureKeys={"dashboard":"featureDashboard","transactions":"featureTransactions","accounts":"featureAccounts","invest":"featureInvest","analyze":"featureAnalyze","life":"featureLife"};
+  const productCap={dashboard:'Dashboard',transactions:'Transactions',accounts:'Accounts',invest:'Invest',analyze:'Analyze',life:'Life'};
+  let activeProduct='dashboard';
+  function selectProductView(view,moveFocus=false){
+    const name=productNames.includes(view)?view:'dashboard';
+    activeProduct=name;
+    productTabs.forEach(tab=>{
+      const selected=tab.dataset.productTab===name;
+      tab.classList.toggle('is-active',selected);
+      tab.setAttribute('aria-selected',String(selected));
+      tab.tabIndex=selected?0:-1;
+      if(selected&&moveFocus)tab.focus();
     });
-    productPanels.forEach(panel => { panel.hidden = panel.dataset.productPanel !== name; });
-    const stage = document.querySelector('.product-stage');
-    if(stage) stage.dataset.productCurrent = name;
+    productPanels.forEach(panel=>{panel.hidden=panel.dataset.productPanel!==name;});
+    document.querySelectorAll('[data-app-thumb]').forEach(tab=>{
+      const selected=tab.dataset.appThumb===name;
+      tab.classList.toggle('is-selected',selected);
+      tab.setAttribute('aria-pressed',String(selected));
+    });
+    document.querySelectorAll('[data-app-rail]').forEach(item=>{
+      item.classList.toggle('is-active',item.dataset.appRail===name);
+    });
+    const stage=document.querySelector('.product-stage');
+    if(stage)stage.dataset.productCurrent=name;
+    const idx=productNames.indexOf(name);
+    const index=document.querySelector('[data-app-story-index]');
+    const title=document.querySelector('[data-app-story-title]');
+    const desc=document.querySelector('[data-app-story-desc]');
+    if(index)index.textContent=String(idx+1).padStart(2,'0')+' / 06';
+    if(title)title.textContent=productLabels[name];
+    const dict=strings[currentLang];
+    if(desc){
+      const key=productFeatureKeys[name];
+      desc.setAttribute('data-i18n',key);
+      desc.textContent=dict[key]||'';
+    }
+    document.querySelectorAll('[data-app-story-benefit]').forEach(node=>{
+      const key='appBenefit'+productCap[name]+(Number(node.dataset.appStoryBenefit)+1);
+      node.setAttribute('data-i18n',key);
+      node.textContent=dict[key]||'';
+    });
+    document.querySelectorAll('.app-story-dots i').forEach((dot,i)=>dot.classList.toggle('is-active',i===idx));
   }
-  productTabs.forEach((tab,index) => {
-    tab.addEventListener('click', () => selectProductView(tab.dataset.productTab));
-    tab.addEventListener('keydown', event => {
-      const keys = ['ArrowDown','ArrowRight','ArrowUp','ArrowLeft','Home','End'];
-      if(!keys.includes(event.key)) return;
+  productTabs.forEach((tab,index)=>{
+    tab.addEventListener('click',()=>selectProductView(tab.dataset.productTab));
+    tab.addEventListener('keydown',event=>{
+      if(!['ArrowDown','ArrowRight','ArrowUp','ArrowLeft','Home','End'].includes(event.key))return;
       event.preventDefault();
-      const next = event.key === 'Home' ? 0 : event.key === 'End' ? productTabs.length-1
-        : (index + (event.key === 'ArrowDown'||event.key === 'ArrowRight' ? 1 : -1) + productTabs.length) % productTabs.length;
+      const next=event.key==='Home'?0:event.key==='End'?productTabs.length-1:
+        (index+(event.key==='ArrowRight'||event.key==='ArrowDown'?1:-1)+productTabs.length)%productTabs.length;
       selectProductView(productTabs[next].dataset.productTab,true);
     });
   });
-  const syncProductHash = () => {
-    const hash = window.location.hash.slice(1);
-    if(hash.startsWith('feature-')) {
-      const name = hash.slice(8);
-      if(productNames.includes(name)) selectProductView(name);
+  document.querySelectorAll('[data-app-thumb]').forEach(button=>button.addEventListener('click',()=>{
+    selectProductView(button.dataset.appThumb);
+    document.querySelector('.product-stage')?.scrollIntoView({block:'start',behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});
+  }));
+  const previewIndex=(offset)=>{
+    const idx=productNames.indexOf(activeProduct);
+    selectProductView(productNames[(idx+offset+productNames.length)%productNames.length]);
+  };
+  document.querySelector('[data-app-prev]')?.addEventListener('click',()=>previewIndex(-1));
+  document.querySelector('[data-app-next]')?.addEventListener('click',()=>previewIndex(1));
+  const syncProductHash=()=>{
+    const hash=window.location.hash.slice(1);
+    if(hash.startsWith('feature-')){
+      const name=hash.slice(8);
+      if(productNames.includes(name))selectProductView(name);
     }
   };
   window.addEventListener('hashchange',syncProductHash);
