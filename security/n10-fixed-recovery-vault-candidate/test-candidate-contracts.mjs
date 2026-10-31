@@ -10,6 +10,7 @@ const root=resolve(here,'../..');
 const edge=readFileSync(resolve(here,'index.ts'),'utf8');
 const sql=readFileSync(resolve(root,'docs/sql/n10_fixed_recovery_vault_STAGING_CANDIDATE.sql'),'utf8');
 const preflight=readFileSync(resolve(root,'docs/sql/n10_fixed_recovery_READ_ONLY_PREFLIGHT.sql'),'utf8');
+const syntheticVerifier=readFileSync(resolve(root,'docs/sql/n10_fixed_recovery_verifier_SYNTHETIC_STAGING_ONLY.sql'),'utf8');
 const signup=readFileSync(resolve(here,'username-signup-integration-NOT_DEPLOYED.ts'),'utf8');
 const cases=[
  ['recovery Edge release disabled',()=>assert.match(edge,/const RECOVERY_RELEASE_ENABLED=false/)],
@@ -55,6 +56,17 @@ const cases=[
    assert.match(signup,/a766_orphan_cleanup_failed.*manual_intervention_required/);
  }],
  ['SQL controlled transaction',()=>{assert.match(sql,/^BEGIN;/m);assert.match(sql,/^COMMIT;/m)}],
+ ['Staging synthetic verifier is isolated and data-free',()=>{
+   assert.match(syntheticVerifier,/AUTH-STAGING SYNTHETIC VERIFIER FIXTURE/);
+   assert.match(syntheticVerifier,/ldivswlhtgmznzwhzsoi/);
+   assert.match(syntheticVerifier,/^CREATE TABLE public\.mmh_n10a769_recovery_phrases \(/m);
+   assert.match(syntheticVerifier,/REFERENCES auth\.users\(id\) ON DELETE CASCADE/);
+   assert.match(syntheticVerifier,/ENABLE ROW LEVEL SECURITY/);
+   assert.match(syntheticVerifier,/REVOKE ALL ON TABLE/);
+   assert.match(syntheticVerifier,/GRANT SELECT, INSERT, DELETE ON TABLE/);
+   assert.doesNotMatch(syntheticVerifier,/^\s*(?:INSERT|UPDATE|DELETE|TRUNCATE|CREATE USER|DROP)\s/mi);
+   assert.doesNotMatch(syntheticVerifier,/CREATE TABLE IF NOT EXISTS/);
+ }],
  ['Staging migration is collision-failing first install only',()=>{
    assert.match(sql,/^CREATE SCHEMA mmh_n10_privacy;/m);
    assert.match(sql,/^CREATE TABLE mmh_n10_privacy.recovery_backup_index\(/m);
