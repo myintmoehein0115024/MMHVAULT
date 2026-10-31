@@ -220,6 +220,24 @@ class N10AuthContract(unittest.TestCase):
         self.assertIn("expires:Date.now()+4*60*1000", app)
         self.assertNotIn("expires:Date.now()+55*60*1000", app)
 
+    def test_recovery_phrase_verify_requires_mfa_when_enrolled(self):
+        # Sensitive recovery-phrase verification must not be callable on AAL1
+        # after the user voluntarily enrolls Authenticator. Never require
+        # MFA from a valid unenrolled AAL1 account.
+        source = (ROOT / "security/n10-edge-candidates/mmh-n10a783-phrase-verify/index.ts").read_text(encoding="utf-8")
+        self.assertIn("NOT DEPLOYED", source)
+        self.assertIn("getAuthenticatorAssuranceLevel(jwt)", source)
+        self.assertIn("hasVerifiedFactor && nextLevel!=='aal2'", source)
+        self.assertIn("nextLevel==='aal2'&&currentLevel!=='aal2'", source)
+        self.assertIn("mfa_state_unavailable", source)
+        self.assertIn("mfa_required", source)
+        self.assertLess(source.index("const mfaDecision=await checkMfa("),
+                        source.index("if(body?.action==='status')"))
+        self.assertLess(source.index("const mfaDecision=await checkMfa("),
+                        source.index("if(body?.action!=='verify_saved_phrase')"))
+        self.assertIn("user.app_metadata?.mmhvault_auth_kind!=='username_only'", source)
+        self.assertIn("sameHex(verifier,records[0].verifier)", source)
+
     def test_no_new_production_server_changes(self):
         # The workflow never deploys or migrates production resources.
         workflow = (ROOT / ".github/workflows/n10-auth-static-check.yml").read_text(encoding="utf-8")
