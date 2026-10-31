@@ -170,6 +170,100 @@ for (const viewport of [{width:390,height:844},{width:1440,height:900}]) {
     await expect(page).toHaveURL(/\/login\.html$/);
   });
 
+
+  test('username-only password login uses server handoff before entry: ' + viewport.width, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    await openLocalPage(page);
+    const id='11111111-1111-4111-8111-111111111111';
+    let captured=null;
+    await page.route('**/functions/v1/mmh-n10a769-username', route => {
+      captured=route.request().postDataJSON();
+      return route.fulfill({
+        status:200,contentType:'application/json',
+        body:JSON.stringify({
+          code:'login_success',
+          access_token:'synthetic-access-not-real',
+          refresh_token:'synthetic-refresh-not-real',
+          user_id:id
+        })
+      });
+    });
+    await page.route('**/app.html', route => route.fulfill({
+      status:200,contentType:'text/html',body:'<!doctype html><main>Username authenticated mock landing</main>'
+    }));
+    await page.evaluate(uid => {
+      db.auth.setSession=async()=>({
+        data:{user:{id:uid},session:{user:{id:uid}}},error:null
+      });
+      db.auth.getUser=async()=>({data:{user:{id:uid}},error:null});
+      db.auth.getSession=async()=>({data:{session:{user:{id:uid}}},error:null});
+      db.auth.mfa.getAuthenticatorAssuranceLevel=async()=>({
+        data:{currentLevel:'aal1',nextLevel:'aal1'},error:null
+      });
+    },id);
+    await page.locator('#signinEmail').fill('qa_valid_user');
+    await page.locator('#signinPassword').fill('synthetic-password');
+    await page.locator('#signin .primary').click();
+    await expect(page).toHaveURL(/\/app\.html$/);
+    await expect(page.locator('main')).toHaveText('Username authenticated mock landing');
+    expect(captured?.action).toBe('login');
+    expect(captured?.username).toBe('qa_valid_user');
+    expect(captured?.password).toBe('synthetic-password');
+    expect(typeof captured?.captcha_token).toBe('string');
+  });
+
+  test('username-only mismatched handoff stays on login: ' + viewport.width, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    await openLocalPage(page);
+    const a='11111111-1111-4111-8111-111111111111';
+    const b='22222222-2222-4222-8222-222222222222';
+    await page.route('**/functions/v1/mmh-n10a769-username', route => route.fulfill({
+      status:200,contentType:'application/json',
+      body:JSON.stringify({code:'login_success',access_token:'fake',refresh_token:'fake',user_id:a})
+    }));
+    await page.evaluate(ids => {
+      window.__localLogout=false;
+      db.auth.setSession=async()=>({
+        data:{user:{id:ids.a},session:{user:{id:ids.a}}},error:null
+      });
+      db.auth.getUser=async()=>({data:{user:{id:ids.b}},error:null});
+      db.auth.getSession=async()=>({data:{session:{user:{id:ids.a}}},error:null});
+      db.auth.signOut=async()=>{window.__localLogout=true;return {error:null};};
+      db.auth.mfa.getAuthenticatorAssuranceLevel=async()=>({
+        data:{currentLevel:'aal2',nextLevel:'aal2'},error:null
+      });
+    },{a,b});
+    await page.locator('#signinEmail').fill('qa_valid_user');
+    await page.locator('#signinPassword').fill('synthetic-password');
+    await page.locator('#signin .primary').click();
+    await expect(page.locator('#smartStatus')).toContainText(/Unable to complete|无法完成/);
+    await expect(page).toHaveURL(/\/login\.html$/);
+    expect(await page.evaluate(()=>window.__localLogout)).toBe(true);
+  });
+
+  test('password reset only sends for validated email, not bare username: ' + viewport.width, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    await openLocalPage(page);
+    await page.evaluate(() => {
+      window.__passwordReset=null;
+      db.auth.resetPasswordForEmail=async (...args)=>{
+        window.__passwordReset=args;
+        return {error:null};
+      };
+    });
+    await page.locator('#signinEmail').fill('qa_username');
+    await page.locator('#forgotBtn').click();
+    await expect(page.locator('#status')).toContainText(/Use Recovery Key|恢复密钥/);
+    expect(await page.evaluate(()=>window.__passwordReset)).toBeNull();
+    await page.locator('#signinEmail').fill('synthetic@example.test');
+    await page.locator('#forgotBtn').click();
+    await expect.poll(()=>page.evaluate(()=>window.__passwordReset)).not.toBeNull();
+    const args=await page.evaluate(()=>window.__passwordReset);
+    expect(args[0]).toBe('synthetic@example.test');
+    expect(args[1].redirectTo).toContain('recovery=1');
+    await expect(page.locator('#status')).toContainText(/reset instructions|重置/);
+  });
+
   test('one clean unified sign-in method: ' + viewport.width, async ({ page }) => {
     await page.setViewportSize(viewport);
     await openLocalPage(page);
