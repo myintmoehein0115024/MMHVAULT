@@ -15,8 +15,10 @@ export function evaluateMfaAssurance(assurance, authHasVerifiedFactor = false) {
   if (nextLevel === "aal2") {
     return currentLevel === "aal2" ? "allowed" : "required";
   }
-  // Either un-enrolled AAL1 or an old signed AAL2 JWT after unenrollment.
-  return "allowed";
+  // No verified MFA factor: accept only a fresh AAL1-level session.
+  // A stale AAL2 JWT following factor removal must not be reused for
+  // sensitive recovery-key disclosure; ask the user to reauthenticate.
+  return currentLevel === "aal1" ? "allowed" : "unavailable";
 }
 
 
