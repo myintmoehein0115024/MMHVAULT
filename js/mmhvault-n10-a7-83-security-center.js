@@ -32,7 +32,7 @@ const vaultBox=document.createElement('div');
 vaultBox.id='mmhN10VaultRecoveryControls';vaultBox.hidden=true;
 vaultBox.innerHTML='<p class="mmh-a783-note" id="mmhN10VaultInfo"></p>'
  +'<label class="mmh-a783-label" for="mmhN10VaultPassword">Confirm current password</label>'
- +'<input id="mmhN10VaultPassword" type="password" autocomplete="current-password" maxlength="128" placeholder="Current password">'
+ +'<input id="mmhN10VaultPassword" type="password" autocomplete="current-password" maxlength="20" placeholder="Current password">'
  +'<div class="mmh-a783-actions"><button type="button" class="btn" id="mmhN10VaultBackup" hidden>Secure my original 10 words</button>'
  +'<button type="button" class="btn primary" id="mmhN10VaultReveal" hidden>View original 10 words</button></div>';
 vaultRecovery?.insertBefore(vaultBox,$('mmhA783KeyDisplay'));
@@ -291,7 +291,7 @@ $('mmhA783KeyVerify').addEventListener('click',async()=>{
 });
 $('mmhN10VaultBackup').addEventListener('click',async()=>{
  if(busy||vaultMode!=='backup_needed'||!recoveryModalActive())return;
- const phrase=$('mmhA783Phrase').value.trim().toLowerCase().replace(/\\s+/g,' ');
+ const phrase=$('mmhA783Phrase').value.trim().toLowerCase().replace(/\s+/g,' ');
  const password=$('mmhN10VaultPassword').value;
  if(phrase.split(' ').length!==10||!password){status('Enter the original ten words and current password.');return;}
  const epoch=secretEpoch,userId=owner;
