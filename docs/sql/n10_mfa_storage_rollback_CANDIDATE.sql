@@ -23,7 +23,7 @@ BEGIN
   ELSE
     DROP POLICY mmh_n10_private_storage_mfa_guard ON storage.objects;
   END IF;
-END
+END;
 $n10$;
 -- The helper is retained: other N10 policies/RPCs may still call it.
 -- This SQL never deletes Storage buckets/files and does not touch permissions.
