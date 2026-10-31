@@ -81,3 +81,11 @@ Draft PR only: **do not merge until the full database and signed-token tests pas
 ### Revalidated final SQL source on GitHub
 - Verified the previous attempted dollar-quote repair had silently produced the same text because JavaScript replacement strings interpret `$$` as a special sequence. Replaced the literal function body without replacement-string interpolation, then fetched GitHub again.
 - Confirmed GitHub SQL blob `cf12b1f75c7e3198c8fd77297c71f1a41f105425` now actually contains `AS $$` and `$$;` for the live-session RPC. Static source contract checks **13/13 passed** (quote pairs, safe RPC permissions, RLS, immutable key, session double-check, password proof, release gate OFF). **This is static verification only**, not SQL migration execution or runtime testing.
+
+## Actual GitHub CI verification (2026-10-31)
+- CI workflow `.github/workflows/n10-recovery-security-offline.yml` runs only on this named review branch / PR and has `contents: read` permissions; it contains no deployment, Supabase access, SQL write, secrets, or user credentials.
+- GitHub Actions run [41210847556](https://github.com/myintmoehein0115024/MMHVAULT/actions/runs/41210847556) **SUCCESS**: all three checks executed: synthetic MFA 14/14, synthetic session claims 12/12, static SQL/Edge contracts 21/21 = **47/47** checks.
+- GitHub Actions run [41210936166](https://github.com/myintmoehein0115024/MMHVAULT/actions/runs/41210936166) **SUCCESS** including Deno 2 TypeScript compile check on the undeployed Vault Edge candidate.
+- Strengthened the recovery `reveal` action to check the same live Auth session **three times**, including after the asynchronous Vault read and immediately before returning plaintext words.
+- The CI workflow also now type-checks the separate **undeployed** username-signup escrow candidate; check the latest workflow run before claiming its result.
+- **Not a release**: no Staging database migration was applied; no live signed-token/password/MFA/2-user tests or Vault RPC permission/revocation tests have occurred. The draft PR must remain blocked until the authorized isolated Staging database test path is available.
