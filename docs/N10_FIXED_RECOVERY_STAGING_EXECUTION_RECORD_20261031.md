@@ -141,3 +141,12 @@ Backend static security contracts now include the retired 410-only endpoint (**3
 - Modified `security/n10-fixed-recovery-vault-candidate/mfa-assurance.mjs` so a **stale AAL2 JWT claim without any currently verified MFA factor** returns `unavailable` rather than being accepted for sensitive recovery-key access. Ordinary AAL1 sessions without enrolled factors stay valid; enrolled AAL1 still returns `required`, enrolled AAL2 still `allowed`.
 - Updated `test-mfa-assurance.mjs` to require that stale AAL2 state to fail closed. A local, restricted JS simulation of decoded JWT claims passed **10/10 scenarios**, including no-factor AAL1, verified-factor AAL1 denial, AAL2 allow, stale AAL2 after factor removal, expired/mismatched identity/issuer, and malformed assurance. **Not signed-JWT, Vault or live backend acceptance**.
 - Only Draft PR #2 was edited. Runtime QA remains retired, production unchanged. Exact-service MFA + Vault E2E and Vault orphan-free deletion still release blockers.
+
+## Security-order regression tests — Draft source only
+
+Added three tests to `security/n10-fixed-recovery-vault-candidate/test-candidate-contracts.mjs` covering:
+1. Identity + first live session + shared quota + fresh password proof + second live session + refreshed MFA proof **before** encrypted Vault read; final MFA and live-session checks **after** decrypt and before return.
+2. Original immutable HMAC verifier check **before** `mmh_n10_recovery_backup_put` creates or references ciphertext.
+3. Explicit Origin and POST, fail-closed release switch and exact project pin **before** any bearer-bound user authorization.
+
+Total current pure-JS source checks: **35/35 PASS** (not a real Deno/GitHub Actions run or a signed-token/live-Vault test). Changes are confined to unmerged N10 Draft PR; previously retired Staging QA and production remain untouched. The two hard release blockers are unchanged.
