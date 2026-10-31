@@ -66,6 +66,110 @@ async function assertWithinViewport(page, selector, viewportWidth) {
 }
 
 for (const viewport of [{width:390,height:844},{width:1440,height:900}]) {
+
+  test('email login cannot redirect when MFA assurance is unknown: ' + viewport.width, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    await openLocalPage(page);
+    const uid='11111111-1111-4111-8111-111111111111';
+    await page.evaluate(id => {
+      db.auth.signInWithPassword=async () => ({
+        data:{session:{user:{id}}},error:null
+      });
+      db.auth.getUser=async()=>({data:{user:{id}},error:null});
+      db.auth.getSession=async()=>({data:{session:{user:{id}}},error:null});
+      db.auth.mfa.getAuthenticatorAssuranceLevel=async()=>({
+        data:{currentLevel:'aal1',nextLevel:null},error:null
+      });
+    },uid);
+    await page.locator('#signinEmail').fill('synthetic@example.test');
+    await page.locator('#signinPassword').fill('fake-qa-only');
+    await page.locator('#signin .primary').click();
+    await expect(page.locator('#status')).toContainText(/Unable to verify|无法验证/);
+    await expect(page).toHaveURL(/\/login\.html$/);
+    await expect(page.locator('#mmhMfaDialogV783')).not.toBeVisible();
+  });
+
+  test('legacy signed-in AAL1 without MFA can continue: ' + viewport.width, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    await openLocalPage(page);
+    await page.route('**/app.html', route => route.fulfill({
+      status:200,contentType:'text/html',body:'<!doctype html><main>Fake app landing</main>'
+    }));
+    const uid='11111111-1111-4111-8111-111111111111';
+    await page.evaluate(id => {
+      db.auth.signInWithPassword=async()=>({data:{session:{user:{id}}},error:null});
+      db.auth.getUser=async()=>({data:{user:{id}},error:null});
+      db.auth.getSession=async()=>({data:{session:{user:{id}}},error:null});
+      db.auth.mfa.getAuthenticatorAssuranceLevel=async()=>({
+        data:{currentLevel:null,nextLevel:'aal1'},error:null
+      });
+    },uid);
+    await page.locator('#signinEmail').fill('synthetic@example.test');
+    await page.locator('#signinPassword').fill('fake-qa-only');
+    await page.locator('#signin .primary').click();
+    await expect(page).toHaveURL(/\/app\.html$/);
+    await expect(page.locator('main')).toContainText('Fake app landing');
+  });
+
+  test('email MFA enrolled requires separate challenge before entry: ' + viewport.width, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    await openLocalPage(page);
+    const uid='11111111-1111-4111-8111-111111111111';
+    await page.evaluate(id => {
+      db.auth.signInWithPassword=async()=>({data:{session:{user:{id}}},error:null});
+      db.auth.getUser=async()=>({data:{user:{id}},error:null});
+      db.auth.getSession=async()=>({data:{session:{user:{id}}},error:null});
+      db.auth.mfa.getAuthenticatorAssuranceLevel=async()=>({
+        data:{currentLevel:'aal1',nextLevel:'aal2'},error:null
+      });
+    },uid);
+    await page.locator('#signinEmail').fill('synthetic@example.test');
+    await page.locator('#signinPassword').fill('fake-qa-only');
+    await page.locator('#signin .primary').click();
+    await expect(page.locator('#mmhMfaDialogV783')).toBeVisible();
+    await expect(page.locator('#mmhMfaDialogV783')).toHaveAttribute('data-open','true');
+    await expect(page).toHaveURL(/\/login\.html$/);
+  });
+
+  test('two-account mismatch blocks email login navigation: ' + viewport.width, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    await openLocalPage(page);
+    const uidA='11111111-1111-4111-8111-111111111111';
+    const uidB='22222222-2222-4222-8222-222222222222';
+    await page.evaluate(ids => {
+      db.auth.signInWithPassword=async()=>({data:{session:{user:{id:ids.a}}},error:null});
+      db.auth.getUser=async()=>({data:{user:{id:ids.a}},error:null});
+      db.auth.getSession=async()=>({data:{session:{user:{id:ids.b}}},error:null});
+      db.auth.mfa.getAuthenticatorAssuranceLevel=async()=>({
+        data:{currentLevel:'aal2',nextLevel:'aal2'},error:null
+      });
+    },{a:uidA,b:uidB});
+    await page.locator('#signinEmail').fill('synthetic@example.test');
+    await page.locator('#signinPassword').fill('fake-qa-only');
+    await page.locator('#signin .primary').click();
+    await expect(page.locator('#status')).toContainText(/Unable to verify|无法验证/);
+    await expect(page).toHaveURL(/\/login\.html$/);
+  });
+
+  test('Google button uses dedicated OAuth callback and never a token shortcut: ' + viewport.width, async ({ page }) => {
+    await page.setViewportSize(viewport);
+    await openLocalPage(page);
+    await page.evaluate(() => {
+      window.__oauthArgs=null;
+      db.auth.signInWithOAuth=async args=>{
+        window.__oauthArgs=args;
+        return {data:{provider:'google'},error:null};
+      };
+    });
+    await page.locator('#googleSignIn').click();
+    await expect.poll(()=>page.evaluate(()=>window.__oauthArgs)).not.toBeNull();
+    const args=await page.evaluate(()=>window.__oauthArgs);
+    expect(args.provider).toBe('google');
+    expect(args.options.redirectTo).toMatch(/\/login\.html$/);
+    expect(args.options.redirectTo).toMatch(/^http:\/\/127\.0\.0\.1:8765/);
+    await expect(page).toHaveURL(/\/login\.html$/);
+  });
+
   test('one clean unified sign-in method: ' + viewport.width, async ({ page }) => {
     await page.setViewportSize(viewport);
     await openLocalPage(page);
