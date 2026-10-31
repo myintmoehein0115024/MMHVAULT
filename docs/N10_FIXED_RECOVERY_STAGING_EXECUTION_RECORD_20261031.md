@@ -1,6 +1,17 @@
 # N10 Fixed Recovery — Staging SQL Execution & Read-Only Acceptance Record
 
 **Date:** 2026-10-31 (UTC timestamps as recorded by Supabase)
+
+## Locked QA Edge deployment update (after the SQL migration)
+
+Following the owner's explicit approval to create two new synthetic accounts and deploy a temporary Staging-only QA service, a **new** Edge function `mmh-n10-fixed-vault-qa-locked` was deployed **only** to Staging project `ldivswlhtgmznzwhzsoi`.
+- Deployment ID `5d208de0-c91f-4c49-b55e-1aab6fa43e0b`, version 1, ACTIVE, `verify_jwt=true`.
+- It exactly matches the Draft PR's reviewed Staging adapter source (blob `8313a51480610ba27a285208a415c0b747a243b7`) and two matching MFA/session helper files; deployed contents were fetched back and compared byte-for-byte.
+- Critically, `RECOVERY_RELEASE_ENABLED=false` remains in the deployed code, the Staging project URL is exact-pinned, the allowed origin is GitHub QA only, and a separate secret plus two explicitly approved synthetic UIDs are required before runtime use. **No plaintext recovery feature is enabled.**
+- After deployment, read-only counts remained **2 older Staging-only QA accounts, 0 newly provisioned users, 0 fixed-recovery verifier rows, 0 Vault backup rows and 0 candidate-prefix Vault secrets**.
+- This connector offers Edge deployment and read-only inventory but **no Auth Admin user creation** or authenticated invocation. Do not create Auth users by directly inserting into `auth.users` via SQL or via dangerous unauthenticated creation code. Two new synthetic accounts still require a controlled Auth Admin creation or independently verified Staging QA signup; no such account creation has been claimed. User passwords, JWTs, original ten words and TOTP secrets must not appear in chat or logs.
+- **No CI/Deno live JWT QA has passed** from this deployment. Function ACTIVE means deployed, not end-to-end approved.
+- This update supersedes earlier statement below that no QA Edge had been deployed; the record is historical and preserves the exact order.
 **Scope:** MMHVAULT Auth Staging project `ldivswlhtgmznzwhzsoi` **only**.
 **Production project `vrypucmyrztxgiqhjspd`: NOT modified.**
 **Authorization:** The owner approved only a normal, auditable Staging migration attempt through the existing gate. Prior instructions to stop if blocked and not bypass via another write path were retained.
