@@ -242,6 +242,32 @@ class N10AuthContract(unittest.TestCase):
         self.assertIn("user.app_metadata?.mmhvault_auth_kind!=='username_only'", source)
         self.assertIn("sameHex(verifier,records[0].verifier)", source)
 
+    def test_readonly_postflight_matches_59_table_release_inventory(self):
+        root = ROOT / "docs/sql"
+        pre = (root / "n10_mfa_release_readonly_preflight.sql").read_text(encoding="utf-8")
+        post = (root / "n10_mfa_release_postflight_READ_ONLY.sql").read_text(encoding="utf-8")
+        def names(source):
+            expected = source.split("WITH expected(name) AS (", 1)[1].split("infra(name) AS (", 1)[0]
+            return set(re.findall(r"'([a-z0-9_]+)'", expected))
+        self.assertEqual(len(names(pre)), 59)
+        self.assertEqual(names(pre), names(post))
+        for marker in ("all_59_n10_policies_exist",
+                       "all_59_policies_restrictive_and_marked",
+                       "original_storage_owner_policies_preserved",
+                       "storage_guard_marked_and_restrictive",
+                       "wallet_privileged_mfa_guard_enabled",
+                       "wallet_anonymous_access_denied",
+                       "catalog_view_invoker_rls_preserved"):
+            self.assertIn(marker, post)
+        for guard in ("MMHVAULT-N10-MFA-RESTRICTIVE-V1",
+                      "MMHVAULT-N10-MFA-STORAGE-RESTRICTIVE-V1",
+                      "MMHVAULT-N10-WALLET-MFA-V1"):
+            self.assertIn(guard, post)
+        self.assertIn("READ ONLY", post)
+        self.assertNotRegex(post, r"(?im)^\\s*(?:insert|update|delete|alter|drop|create|truncate|grant|revoke)\\s+")
+        self.assertIn("pg_get_expr", post)
+        self.assertIn("to_regprocedure", post)
+
     def test_no_new_production_server_changes(self):
         # The workflow never deploys or migrates production resources.
         workflow = (ROOT / ".github/workflows/n10-auth-static-check.yml").read_text(encoding="utf-8")
