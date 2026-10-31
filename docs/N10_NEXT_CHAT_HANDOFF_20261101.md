@@ -1,0 +1,48 @@
+# MMHVAULT — N10 安全验收 / V11 开发交接（2026-11-01）
+
+> **用于新对话的完整接续说明（已提前准备）。** 当前仅允许继续安全审查、Draft PR 离线优化及明确获准的 Staging 验收；不得自行合并或上线。遇到对话上限，把本文件链接交给新对话即可。**禁止复制密码、JWT、TOTP、恢复十词、任何密钥或真实用户财务数据。**
+
+## 项目与仓库
+- 正式站：https://mmhvault.com
+- 正式源码：https://github.com/myintmoehein0115024/MMHVAULT
+- **N10 唯一正在审查的 Draft PR #2**：https://github.com/myintmoehein0115024/MMHVAULT/pull/2
+- N10 分支：`feature/n10-fixed-recovery-key-modal-20261031`，**Draft / unmerged**
+- Staging Auth Project：`ldivswlhtgmznzwhzsoi`；生产 Supabase Project：`vrypucmyrztxgiqhjspd`。**不可混用**。
+- QA 站仓库：https://github.com/myintmoehein0115024/MMHVAULT-Auth-QA
+- **V11 暂停**：登录/全站 UI、Accounts/Transactions 同步、多币种、PWA、Life Planner 等仅在 N10 安全上线后分阶段审查与开发。Landing 另有独立 Draft PR，不得互相覆盖。
+
+## 真实完成的 Staging QA（仅用户可控合成账户）
+1. 已签入 A/B 两个短期测试账号，各完成一次性**合成十词**生成、HMAC 原始校验、Vault 加密备份、重新验证密码和本人读取。用户截图证明。
+2. B 初始备份状态为「否」；备份后再次读取成功。B 退出后旧会话携带的 Bearer 被服务器 HTTP 401 拒绝。已登录情况下输入**错误密码**读取密钥被 HTTP 401 `invalid_credentials` 拒绝；45 秒前端自动隐藏经用户实际确认。
+3. 独立新 MFA 合成账户安装 **verified TOTP**；用户截图：AAL1 缺少动态验证 → **HTTP 403 `MFA_REQUIRED` PASS**；六位 TOTP 验证后提升 AAL2 → **HTTP 200 `MFA_ALLOWED` PASS**。**这是独立 Staging MFA 检查端点的真实授权测试，不是固定恢复密钥服务与 MFA 的联合联测**。
+4. 上述 **3 个新建合成账号全部由用户手动删除，并已通过只读 auth.users 清单查询核实不存在**。旧的 Staging 账号不应删除。
+5. 用户确认删除本轮专用的 Staging Secret `N10_FIXED_RECOVERY_QA_HMAC_KEY`（**没有可用的密钥清单工具独立核对**）。不要请求或重新生成旧 Secret。
+6. 恢复密钥临时 QA Edge `mmh-n10-fixed-vault-qa-locked` v8 已**退役**为纯 HTTP 410 `qa_retired` 代码，`verify_jwt=true`，源文件 `security/n10-fixed-recovery-vault-candidate/qa-retired-tombstone-STAGING.ts`。Edge 管理界面仍显示 ACTIVE，意味着部署存在，**不意味着备份/读取功能仍可用**。退役码不调用 Vault、Auth、数据库或 Secrets。
+7. 独立旧恢复 QA 页面 `n10-fixed-vault-qa.html` 和 MFA QA 页面 `n10-mfa-aal-qa.html` 已改为静态「测试已结束」，均不含脚本、密码或动态码输入。**不可擅自恢复旧入口。**
+8. 另外一个更早的 Staging MFA 辅助 Edge `mmh-n10-qa-edge-mfa-20261031` 有其他 QA modes，**并非纯本次专用**，为了避免破坏其他测试未删除。
+
+## 数据库清理审查 — 注意真实限制
+- Staging 只读 `pg_catalog` 已确认：
+  - `mmh_n10_privacy.recovery_backup_index.user_id` FK → `auth.users.id ON DELETE CASCADE`；
+  - `public.mmh_n10a769_recovery_phrases.user_id` FK → `auth.users.id ON DELETE CASCADE`；
+  - `mmh_n10_recovery_secret_gc` 是已启用的 `AFTER DELETE` 行级触发器；
+  - 其审查过的迁移代码删除对应 `vault.secrets` 记录。
+- **重要未通过项：** 曾尝试进行 Vault secret/index 实例清单的只读 SQL 审计，**被 OpenAI 安全检查拦截**。**不得换 SQL、换连接或换方式绕过**；不能声称实际密钥无残留或删除级联真正端到端 PASS。需待允许的安全审计机制/人工合规验证。
+- Staging 安全 Advisor：旧 `authenticated` SECURITY DEFINER QA 函数存在 WARN，但函数包含 `auth.uid()` 和服务器 MFA 校验；未贸然修改；泄露密码保护在 Staging 上仍关闭（WARN）；无策略的私有 RLS 表有 INFO。不要借此修改生产。
+- 目前代码审查和数据库结构检查属于设计/静态通过，不是生产授权。
+
+## Draft PR 安全改进进度
+- 生产候选 Edge `security/n10-fixed-recovery-vault-candidate/index.ts` **严格钉住** `EXPECTED_BASE=https://vrypucmyrztxgiqhjspd.supabase.co` 和 `ORIGIN=https://mmhvault.com`，放弃按 BASE 自动推断 origin。
+- **硬关闭** `const RECOVERY_RELEASE_ENABLED=false;`；username signup 候选也 `RELEASE_ENABLED=false`。任何上线前必须另行授权且完成失败回滚条件。
+- 新增退役端点离线检查；最近一次纯 JS 断言 **32/32 PASS**。GitHub Actions／Deno 的最新实际工作流结果**未核实**，不能声称 CI 全绿。
+- 正式的 `app.html`、`login.html`、DNS、RLS、Auth 开关、财务数据 **本轮均未改动**。不得直接合并 Draft PR #2。
+
+## 尚未完成（上线阻断项，按顺序）
+1. **Vault 清理审计：** 合法、获得明确范围授权且不绕过上述安全拦截的实际 secret orphan-free 删除验收；只读结构检查不能替代真实验收。
+2. **准确服务的 MFA + Vault 联测：** 需要另开安全测试计划，在受控 Staging、专门新合成账户和新窗口下，对**准确版本的固定恢复密钥备份／读取 Edge** 验证 AAL1 拒绝、AAL2 放行、会话吊销、错误密码、数据隔离、45 秒隐藏，且不触碰已退役旧服务。请严格先说明临时环境和回滚范围，需用户明确授权后才能部署，不能通过更改 URL 或复制 JWT 绕过。
+3. **安全检查＋正式灰度上线：** 独立 PR review、真实 CI/Deno 验证、泄露密码保护评估、明确生产范围/备份/回滚、生产单独审批。N10 合并与发布不能自动进行。V11 要在此后推进。
+
+## 用户协作风格
+- 用**简短中文**沟通，每次仅说明「已完成、下一步、还有几步」；减少重复「继续」来回，允许一轮里完成多个不需用户操作的只读/离线步骤。
+- 需要用户时**每次只布置一个明确操作**，不要求终端，不索取任何密钥/密码/验证码/十词。
+- 用户已要求**提前准备新会话指令**，不要等对话满了才写。**本文件就是准备好的交接指令**；新对话从读取此文件＋PR #2 当前状态开始，杜绝重复测试和无依据的生产操作。
