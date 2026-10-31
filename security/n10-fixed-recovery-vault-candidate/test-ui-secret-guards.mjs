@@ -71,6 +71,33 @@ const cases=[
    cursor=-1;
    for(const m of proof){const at=verifier.indexOf(m);assert.ok(at>cursor,'verification success must follow server check: '+m);cursor=at;}
  }],
+ ['MFA modal epoch invalidates delayed QR responses on close or account change',()=>{
+   const helper=src.match(/function mfaFlowActive\(epoch,userId\)\{[\s\S]*?\n\}/)?.[0];
+   assert.ok(helper,'missing MFA expiry/owner/visibility helper');
+   const ctx={owner:'synthetic-A',mfaEpoch:2,document:{hidden:false},
+     $:()=>({closest:()=>({hidden:false})})};
+   const alive=runInNewContext('('+helper+')',ctx);
+   assert.equal(alive(2,'synthetic-A'),true);
+   assert.equal(alive(1,'synthetic-A'),false);
+   assert.equal(alive(2,'synthetic-B'),false);
+   ctx.document.hidden=true;assert.equal(alive(2,'synthetic-A'),false);
+   ctx.document.hidden=false;
+   ctx.$=()=>({closest:()=>({hidden:true})});
+   assert.equal(alive(2,'synthetic-A'),false);
+   assert.match(src,/function clearMfa\(\)\{mfaEpoch\+=1;/);
+   assert.match(src,/if\(!mfaFlowActive\(epoch,user\.id\)\)\{[\s\S]*?await client\(\)\.auth\.mfa\.unenroll\(\{factorId:data\.id\}\);[\s\S]*?return;[\s\S]*?\}\s*pendingFactor=data\.id;pendingSecret=/);
+   assert.match(src,/hideKey\(\);clearMfa\(\);resetSensitiveState\(\);sections\.forEach\(collapse\)/);
+ }],
+ ['MFA validation never reports success after expired modal or switched account',()=>{
+   const handler=src.slice(src.indexOf("mmhA783TotpConfirm').addEventListener"),src.indexOf("mmhA783KeyReveal').addEventListener"));
+   assert.match(handler,/const epoch=mfaEpoch,userId=owner;/);
+   assert.match(handler,/if\(!mfaFlowActive\(epoch,userId\)\)return;/);
+   assert.match(handler,/if\(checked\.error\|\|!inspectTotpFactors\(checked\.data\)\.verified\.some\(x=>x\.id===id\)\)/);
+   const verified=handler.indexOf("if(checked.error||!inspectTotpFactors(checked.data).verified.some");
+   const finalGate=handler.indexOf("if(!mfaFlowActive(epoch,userId))return;",verified);
+   const success=handler.indexOf("clearMfa();status('Authenticator enabled.");
+   assert.ok(verified>=0&&finalGate>verified&&success>finalGate);
+ }],
  ['all recovery views use 45s auto-hide',()=>{
    assert.equal((src.match(/clearTimer=setTimeout\(hideKey,45000\)/g)||[]).length,2);
    assert.doesNotMatch(src,/clearTimer=setTimeout\(hideKey,60000\)/);
