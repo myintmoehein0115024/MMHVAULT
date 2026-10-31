@@ -38,6 +38,13 @@ const cases=[
    assert.doesNotMatch(signup,/console\.(?:log|error)\s*\([^)]*String\(e\)/);
    assert.match(signup,/catch\(_\)\{console\.error\('n10a766_service_error'\);return reply\(origin,'auth_unavailable',503\)\}\}\);/);
  }],
+ ['partial password grant revokes isolated session on failure',()=>{
+   assert.match(signup,/async function verifyPassword\(email:string,pwd:string,uid:string\)/);
+   assert.match(signup,/let keepSession=false/);
+   assert.match(signup,/if\(bad\|\|check\.user\?\.id!==uid\)return null/);
+   assert.match(signup,/keepSession=true;/);
+   assert.match(signup,/if\(!keepSession\)\{try\{await client\.auth\.signOut\(\{scope:'local'\}\)/);
+ }],
  ['failed signup cleanup quarantines before exposing account',()=>{
    assert.match(signup,/async function compensateFailedSignup\(uid:string\)/);
    assert.match(signup,/admin\.auth\.admin\.deleteUser\(uid\)/);
