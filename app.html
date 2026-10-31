@@ -34379,7 +34379,7 @@ body.light #settings.page.active .mmh-email-reset-destination-v952{background:rg
       if(!same())return;
       if(verified.error||verified.data?.user?.id!==fromOwner||verified.data?.user?.email!==fromEmail)throw new Error('session_changed');
       if(!isEmailAccount(verified.data.user))throw new Error('no_email_password');
-      const redirectTo=new URL('login.html?recovery=1',location.href).href;
+      const redirectTo=new URL('login.html',location.origin+'/').href;
       const response=await db.auth.resetPasswordForEmail(fromEmail,{redirectTo});
       if(!same())return;
       if(response?.error)throw response.error;
