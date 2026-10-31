@@ -2910,3 +2910,19 @@ html[lang="my"] .site-header #primary-nav .mobile-nav-auth-note{
 @media(prefers-reduced-motion:reduce){
   .site-header #primary-nav .mobile-nav-auth-link{transition:none}
 }
+
+/* L1.23 — Search-friendly brand explanation, without visual disruption. */
+#about .why-intro>.about-brand-context{
+  max-width:450px;
+  margin:14px 0 0;
+  padding-left:14px;
+  border-left:2px solid rgba(246,203,135,.61);
+  color:#d7c6ae;
+  font-size:12px;
+  line-height:1.85;
+  letter-spacing:.004em;
+}
+html[lang="my"] #about .why-intro>.about-brand-context{line-height:1.95;letter-spacing:0}
+@media(max-width:620px){
+  #about .why-intro>.about-brand-context{font-size:11px;padding-left:11px;line-height:1.9}
+}

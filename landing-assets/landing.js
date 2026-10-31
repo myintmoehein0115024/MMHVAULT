@@ -651,6 +651,11 @@
   Object.assign(strings.zh,{"mobileAuthHeading":"账户登录与注册","mobileRegister":"注册账户","mobileRegisterNote":"进入后选择“Sign Up”即可注册。"});
   Object.assign(strings.my,{"mobileAuthHeading":"လုံခြုံသော အကောင့်ဝင်ရောက်မှု","mobileRegister":"အကောင့်ဖွင့်ရန်","mobileRegisterNote":"အကောင့်ဖွင့်ရန် ဝင်ရောက်မှုစာမျက်နှာရှိ Sign Up ကို ရွေးပါ။"});
 
+  // L1.23 public-brand context; Life Planner remains explicitly in development.
+  Object.assign(strings.en,{aboutBrandContext:"MMHVAULT brings accounts, transactions, investments and financial insights together, with Life Planner for schedules and goals currently in development."});
+  Object.assign(strings.zh,{aboutBrandContext:"MMHVAULT 集中管理账户、交易、投资与财务分析；用于日程和个人目标的 Life Planner 正在开发中。"});
+  Object.assign(strings.my,{aboutBrandContext:"MMHVAULT တွင် အကောင့်များ၊ ငွေကြေးအဝင်အထွက်၊ ရင်းနှီးမြှုပ်နှံမှုနှင့် ငွေကြေးဆိုင်ရာ အချက်အလက်များကို တစ်နေရာတည်းတွင် စုစည်းနိုင်ပါသည်။ နေ့စဉ်အစီအစဉ်နှင့် ရည်မှန်းချက်များအတွက် Life Planner ကို ဖန်တီးနေဆဲဖြစ်ပါသည်။"});
+
   const htmlKeys = new Set(['heroTitle', 'featuresTitle', 'businessHeading', 'whyTitle', 'closingTitle']);
   const storageKey = 'mmhvault.landing.language';
   const siteHeader = document.querySelector('.site-header');
@@ -773,13 +778,12 @@
     localeMenu.setAttribute('aria-label', currentLang === 'zh' ? '语言选择' : (currentLang === 'my' ? 'ဘာသာစကား ရွေးချယ်မှု' : 'Choose language'));
     localeFlag.textContent = languageMeta[currentLang].flag;
     localeName.textContent = languageMeta[currentLang].title;
-    document.title = currentLang === 'zh'
-      ? 'MMHVAULT — 个人财务与财富管理 | 让未来更有方向'
-      : currentLang === 'my' ? 'MMHVAULT — ကိုယ်ပိုင်ငွေကြေးနှင့် ပိုင်ဆိုင်မှု စီမံခန့်ခွဲမှု' : 'MMHVAULT — Personal Finance & Wealth | Make Money Clearer';
+    // Keep brand name and official site title consistent across display languages.
+    document.title = 'MMHVAULT | Personal Finance & Life Planning';
     const desc = document.querySelector('meta[name="description"]');
-    if (desc && currentLang === 'zh') desc.setAttribute('content', 'MMHVAULT 个人财务管理平台：管理账户、收支、投资及财务分析，在更清晰的个人空间里规划未来。');
-    if (desc && currentLang === 'my') desc.setAttribute('content', 'MMHVAULT သည် အကောင့်များ၊ ဝင်ငွေ၊ အသုံးစရိတ်၊ ရင်းနှီးမြှုပ်နှံမှုနှင့် အနာဂတ်အစီအစဉ်များကို စီမံနိုင်သော ကိုယ်ပိုင်ငွေကြေးပလက်ဖောင်း ဖြစ်ပါသည်။');
-    if (desc && currentLang === 'en') desc.setAttribute('content', 'Meet MMHVAULT, a personal finance workspace for accounts, transactions, investments, financial analysis and intentional planning. Explore a calmer way to understand your money.');
+    if (desc && currentLang === 'zh') desc.setAttribute('content', 'MMHVAULT 个人财务与生活规划管理平台：管理账户、交易、投资和预算，并了解即将推出的日程与个人目标功能。');
+    if (desc && currentLang === 'my') desc.setAttribute('content', 'MMHVAULT သည် အကောင့်၊ ငွေကြေးအဝင်အထွက်၊ ရင်းနှီးမြှုပ်နှံမှုနှင့် ဘတ်ဂျက်များအတွက် ကိုယ်ပိုင်စီမံခန့်ခွဲမှုနေရာဖြစ်ပြီး ဘဝအစီအစဉ်လုပ်ဆောင်ချက်များကို ပြင်ဆင်နေပါသည်။');
+    if (desc && currentLang === 'en') desc.setAttribute('content', 'MMHVAULT is a private personal finance and life planning workspace. Manage accounts, transactions, investments and budgets; explore upcoming schedules and personal goals.');
     try { window.localStorage.setItem(storageKey, currentLang); } catch (_) {}
   }
   function closeMenu() {
