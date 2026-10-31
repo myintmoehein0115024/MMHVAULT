@@ -65,10 +65,10 @@ document.addEventListener('click',event=>{
  if(event.target.closest('.language-choice-v3363'))setTimeout(a783RenderLanguage,0);
 });
 
-let owner='',busy=false,pendingFactor='',pendingSecret='',factorId='',verifiedPhrase='',clearTimer=null,usernameOnly=false,vaultMode='unknown';
+let owner='',busy=false,pendingFactor='',pendingSecret='',factorId='',verifiedPhrase='',clearTimer=null,usernameOnly=false,vaultMode='unknown',secretEpoch=0;
 function client(){return typeof db!=='undefined'?db:null;}
 function label(id,v){const el=$(id);if(el){el.dataset.mmhA783DynamicEn=v;el.textContent=a783Text(v);}}
-function hideKey(){const field=$('mmhN10VaultPassword');if(field)field.value='';verifiedPhrase='';$('mmhA783KeyDisplay').hidden=true;$('mmhA783KeyQr').replaceChildren();$('mmhA783KeyWords').replaceChildren();$('mmhA783Phrase').value='';$('mmhA783Phrase').type='password';$('mmhA783PhraseToggle').setAttribute('aria-pressed','false');a783Action('mmhA783PhraseToggle','Show words');if(clearTimer)clearTimeout(clearTimer);}
+function hideKey(){secretEpoch+=1;const field=$('mmhN10VaultPassword');if(field)field.value='';verifiedPhrase='';$('mmhA783KeyDisplay').hidden=true;$('mmhA783KeyQr').replaceChildren();$('mmhA783KeyWords').replaceChildren();$('mmhA783Phrase').value='';$('mmhA783Phrase').type='password';$('mmhA783PhraseToggle').setAttribute('aria-pressed','false');a783Action('mmhA783PhraseToggle','Show words');if(clearTimer)clearTimeout(clearTimer);}
 function clearMfa(){pendingSecret='';pendingFactor='';if($('mmhA783TotpBackupConfirmed'))$('mmhA783TotpBackupConfirmed').checked=false;$('mmhA783TotpSetup').hidden=true;$('mmhA783TotpQr').replaceChildren();$('mmhA783TotpSecret').textContent='';$('mmhA783TotpSecret').hidden=true;$('mmhA783TotpCode').value='';a783Action('mmhA783KeyReveal','Show setup key');}
 async function cancelPendingMfa(){const id=pendingFactor;clearMfa();if(!id)return true;try{const r=await client().auth.mfa.unenroll({factorId:id});return !r.error}catch(_){return false}}
 function displayTotpQr(totp){
@@ -133,14 +133,26 @@ function vaultStatusMode(mode){
   $('mmhA783PhrasePrivacy'),$('mmhA783KeyVerify')
  ])if(el)el.hidden=ready;
 }
+function recoveryModalActive(){
+ return !document.hidden&&$('mmhA783Recovery')?.classList.contains('mmh-a785-open')===true;
+}
+function sameSecretRequest(epoch,userId){
+ return epoch===secretEpoch&&userId===owner&&recoveryModalActive();
+}
 async function loadVaultMode(){
- if(!usernameOnly)return;
+ if(!usernameOnly||!recoveryModalActive())return;
+ const epoch=secretEpoch,userId=owner;
  try{
   const r=await vaultApi('status');
+  if(!sameSecretRequest(epoch,userId))return;
   if(!r.ok||r.body?.code!=='backup_status'||typeof r.body.backed_up!=='boolean')
    throw Error('vault_unavailable');
   vaultStatusMode(r.body.backed_up?'ready':'backup_needed');
- }catch(_){vaultStatusMode('unavailable');status('Encrypted recovery-key backup is unavailable. Existing original-key verification still works.');}
+ }catch(_){
+  if(!sameSecretRequest(epoch,userId))return;
+  vaultStatusMode('unavailable');
+  status('Encrypted recovery-key backup is unavailable. Existing original-key verification still works.');
+ }
 }
 function showVaultWords(words){
  if(!Array.isArray(words)||words.length!==10||words.some(w=>typeof w!=='string'||!/^[a-z]{2,13}$/.test(w)))throw Error('bad_words');
@@ -255,11 +267,13 @@ $('mmhA783PhraseToggle').addEventListener('click',()=>{
  a783Action('mmhA783PhraseToggle',visible?'Hide words':'Show words');
 });
 $('mmhA783KeyVerify').addEventListener('click',async()=>{
- if(busy)return;const raw=$('mmhA783Phrase').value.trim().toLowerCase().replace(/\s+/g,' ');
+ if(busy||!recoveryModalActive())return;const raw=$('mmhA783Phrase').value.trim().toLowerCase().replace(/\s+/g,' ');
  if(raw.split(' ').length!==10){status('Enter your existing ten words in the original order.');return}
+ const epoch=secretEpoch,userId=owner;
  busy=true;
  try{
   const r=await api('verify_saved_phrase',{phrase:raw});
+  if(!sameSecretRequest(epoch,userId))return;
   if(!r.ok||r.body?.verified!==true)throw Error('invalid');
   verifiedPhrase=raw;hideKey();verifiedPhrase=raw;
   const list=$('mmhA783KeyWords');list.replaceChildren();
@@ -272,33 +286,37 @@ $('mmhA783KeyVerify').addEventListener('click',async()=>{
   $('mmhA783KeyDisplay').hidden=false;$('mmhA783Phrase').value='';
   clearTimer=setTimeout(hideKey,60000);
   status('Saved words verified. Backup view will close automatically after 60 seconds.');
- }catch(_){hideKey();status('The recovery words could not be verified. Check the order.');}
+ }catch(_){if(sameSecretRequest(epoch,userId)){hideKey();status('The recovery words could not be verified. Check the order.');}}
  finally{busy=false;}
 });
 $('mmhN10VaultBackup').addEventListener('click',async()=>{
- if(busy||vaultMode!=='backup_needed')return;
+ if(busy||vaultMode!=='backup_needed'||!recoveryModalActive())return;
  const phrase=$('mmhA783Phrase').value.trim().toLowerCase().replace(/\\s+/g,' ');
  const password=$('mmhN10VaultPassword').value;
  if(phrase.split(' ').length!==10||!password){status('Enter the original ten words and current password.');return;}
+ const epoch=secretEpoch,userId=owner;
  busy=true;
  try{
   const r=await vaultApi('backup_existing',{phrase,password});
+  if(!sameSecretRequest(epoch,userId))return;
   if(!r.ok||r.body?.code!=='backup_ready')throw Error('backup_error');
   hideKey();vaultStatusMode('ready');status('Your original ten words have been securely backed up without being changed.');
- }catch(_){status('Could not back up the original key. No recovery words were changed.');}
+ }catch(_){if(sameSecretRequest(epoch,userId))status('Could not back up the original key. No recovery words were changed.');}
  finally{busy=false;$('mmhN10VaultPassword').value='';}
 });
 $('mmhN10VaultReveal').addEventListener('click',async()=>{
- if(busy||vaultMode!=='ready')return;
+ if(busy||vaultMode!=='ready'||!recoveryModalActive())return;
  const password=$('mmhN10VaultPassword').value;
  if(!password){status('Enter your current password to view the fixed original key.');return;}
+ const epoch=secretEpoch,userId=owner;
  busy=true;
  try{
   const r=await vaultApi('reveal',{password});
+  if(!sameSecretRequest(epoch,userId))return;
   if(!r.ok||r.body?.code!=='recovery_key')throw Error('reveal_error');
   showVaultWords(r.body.words);
   status('Original recovery key verified. It will automatically hide after 45 seconds.');
- }catch(_){hideKey();status('Unable to unlock the recovery key. Check your password and authentication.');}
+ }catch(_){if(sameSecretRequest(epoch,userId)){hideKey();status('Unable to unlock the recovery key. Check your password and authentication.');}}
  finally{busy=false;$('mmhN10VaultPassword').value='';}
 });
 $('mmhA783KeyHide').addEventListener('click',hideKey);
