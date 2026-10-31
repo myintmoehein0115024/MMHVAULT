@@ -15,6 +15,57 @@ const signup=readFileSync(resolve(here,'username-signup-integration-NOT_DEPLOYED
 const staging=readFileSync(resolve(here,'qa-staging-recovery-NOT_DEPLOYED.ts'),'utf8');
 const retired=readFileSync(resolve(here,'qa-retired-tombstone-STAGING.ts'),'utf8');
 const cases=[
+ ['sensitive recovery route proves identity and password before Vault read',()=>{
+   const order=[
+     "const authenticated=await verifiedUser(req);",
+     "const firstSessionCheck=await liveSession(user.id,sessionId);",
+     "const quotaStatus=await quota(user.id);",
+     "if(!await provePassword(user,body.password))",
+     "const secondSessionCheck=await liveSession(user.id,sessionId);",
+     "const refreshedAssurance=await verifiedUser(req);",
+     "const stored=await admin.rpc('mmh_n10_recovery_backup_get'",
+     "const finalAssurance=await verifiedUser(req);",
+     "const finalSessionCheck=await liveSession(user.id,sessionId);",
+     "return out(origin,'recovery_key'"
+   ];
+   let prev=-1;
+   for(const item of order){
+     const next=edge.indexOf(item);
+     assert.ok(next>prev, 'Missing or out-of-order secret guard: '+item);
+     prev=next;
+   }
+ }],
+ ['sensitive original-word backup validates immutable verifier before Vault write',()=>{
+   const order=[
+     "if(!await provePassword(user,body.password))",
+     "if(action==='backup_existing')",
+     "const phrase=normalizePhrase(body.phrase);",
+     "const records=await admin.from('mmh_n10a769_recovery_phrases')",
+     "if(!equal64(records.data[0].verifier,mac))",
+     "const saved=await admin.rpc('mmh_n10_recovery_backup_put'"
+   ];
+   let prev=-1;
+   for(const item of order){
+     const next=edge.indexOf(item);
+     assert.ok(next>prev, 'Missing or out-of-order backup guard: '+item);
+     prev=next;
+   }
+ }],
+ ['all recovery requests require explicit origin, method and fail-closed release before authentication',()=>{
+   const order=[
+     "if(origin!==ORIGIN)return out(origin,'origin_denied',403);",
+     "if(req.method!=='POST')return out(origin,'method_denied',405);",
+     "if(!RECOVERY_RELEASE_ENABLED)return out(origin,'recovery_service_not_released',503);",
+     "if(BASE!==EXPECTED_BASE||SERVICE.length<20",
+     "const authenticated=await verifiedUser(req);"
+   ];
+   let prev=-1;
+   for(const item of order){
+     const next=edge.indexOf(item);
+     assert.ok(next>prev, 'Missing or out-of-order release gate: '+item);
+     prev=next;
+   }
+ }],
  ['production recovery candidate is fail-closed and pinned to the only approved project',()=>{
    assert.match(edge,/const RECOVERY_RELEASE_ENABLED=false;/);
    assert.match(edge,/const EXPECTED_BASE='https:\/\/vrypucmyrztxgiqhjspd\.supabase\.co';/);
