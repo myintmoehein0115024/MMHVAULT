@@ -15,6 +15,13 @@ const signup=readFileSync(resolve(here,'username-signup-integration-NOT_DEPLOYED
 const staging=readFileSync(resolve(here,'qa-staging-recovery-NOT_DEPLOYED.ts'),'utf8');
 const retired=readFileSync(resolve(here,'qa-retired-tombstone-STAGING.ts'),'utf8');
 const cases=[
+ ['production recovery candidate is fail-closed and pinned to the only approved project',()=>{
+   assert.match(edge,/const RECOVERY_RELEASE_ENABLED=false;/);
+   assert.match(edge,/const EXPECTED_BASE='https:\/\/vrypucmyrztxgiqhjspd\.supabase\.co';/);
+   assert.match(edge,/const ORIGIN='https:\/\/mmhvault\.com';/);
+   assert.match(edge,/if\(BASE!==EXPECTED_BASE\|\|SERVICE\.length<20/);
+   assert.doesNotMatch(edge,/BASE\.includes\('ldivswlhtgmznzwhzsoi'\)/);
+ }],
  ['retired QA service has no sensitive operations',()=>{
    assert.match(retired,/code:'qa_retired'/);
    assert.match(retired,/status:410/);
