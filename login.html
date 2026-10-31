@@ -402,6 +402,8 @@ const SUPABASE_URL='https://vrypucmyrztxgiqhjspd.supabase.co';
 const SUPABASE_KEY='sb_publishable_H38v4XbO0ARnSJToD42wGg_27-SZ3Ao';
 // The recovery hint is preserved before the Auth SDK consumes the callback URL.
 const recoveryLinkHintV943=new URLSearchParams(location.search).get('recovery')==='1';
+// A known error hint is display-only; it does not authenticate or unlock recovery.
+const recoveryFailureLandingV1031=new URLSearchParams(location.search).get('recovery_error')==='expired';
 // P9.44: URLs are only navigation hints; never treat them as authorization.
 const recoveryCallbackPendingV944=recoveryLinkHintV943||new URLSearchParams(location.hash.slice(1)).get('type')==='recovery';
 // P9.45: an OAuth/email-code callback must complete before a persisted session
@@ -426,7 +428,7 @@ const statusEl=document.getElementById('status'); const tabs=[...document.queryS
 let recoveryModeV943=false, recoveryCompletedV943=false;
 let recoveryVerifiedV944=false, recoveryUserIdV944=null;
 const authTabsV943=document.getElementById('authTabs');
-function recoveryRedirectUrlV943(){const u=new URL('login.html',location.href);u.searchParams.set('recovery','1');return u.toString()}
+function recoveryRedirectUrlV943(){return new URL('login.html',location.origin+'/').toString()}
 function showRecoveryV943(){
   if(recoveryCompletedV943||!recoveryVerifiedV944)return;
   recoveryModeV943=true;
@@ -669,6 +671,7 @@ window.MMHVAULT_AUTH_CALLBACK_V945={version:'9.45',waitForCodeExchange:true,veri
 window.MMHVAULT_AUTH_NAVIGATION_V946={version:'9.46',verifyUserBeforeRedirect:true,verifySessionConsistency:true,emailConfirmationReturn:true};
 if(db){
   db.auth.onAuthStateChange((event,session)=>{
+    if(recoveryFailureLandingV1031&&(event==='INITIAL_SESSION'||event==='SIGNED_IN'))return;
     if(recoverableCallbackV943(event,session))return;
     if(window.MMHVAULT_N10_A741_USERNAME_HANDOFF===true && event==='SIGNED_IN')return;
     if(authCallbackPendingV945){
@@ -688,6 +691,9 @@ if(db){
       setTimeout(()=>{void verifiedRedirectV946(session.user.id)},0);
     }
   });
+  if(recoveryFailureLandingV1031){
+    msg('This password reset link has expired or was already used. Request a new link from Sign In.','err');
+  }
   if(authReturnErrorV945){
     clearAuthCallbackParamsV945();
     msg('Google sign-in was cancelled or could not be completed. Please try again.','err');
@@ -710,7 +716,7 @@ if(db){
     },5000);
   }
   db.auth.getSession().then(({data,error})=>{
-    if(recoveryCallbackPendingV944||recoveryModeV943||authCallbackPendingV945)return;
+    if(recoveryFailureLandingV1031||recoveryCallbackPendingV944||recoveryModeV943||authCallbackPendingV945)return;
     if(!error&&data?.session?.user?.id)void verifiedRedirectV946(data.session.user.id);
   }).catch(()=>{
     if(recoveryCallbackPendingV944&&!recoveryVerifiedV944)
