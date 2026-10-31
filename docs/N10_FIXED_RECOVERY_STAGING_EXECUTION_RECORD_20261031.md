@@ -56,3 +56,11 @@ The original migration safety gate did **not** reject these authorized `apply_mi
 ## History note
 
 Earlier release-gate and rollback documents said the Staging schema was absent and migrations unexecuted. Those statements described the **pre-authorization state**; this execution record supersedes that status as of 2026-10-31. Do not repeat the earlier blocked status as if it were still current.
+
+## Subsequent Staging QA preparation — not a deployment
+
+Read-only account-aggregate inspection: **2** existing legacy synthetic username-only Staging users and **2** corresponding old verifier records exist; **0** new `mmh_n10a769_recovery_phrases` records were present. Old QA users use the Auth-owned `username_only_staging` kind, while the production recovery candidate requires `username_only`. Their old verifier HMAC namespace/table is different from the new Vault candidate. **No existing original words were recovered, rotated, copied or overwritten.**
+
+A separate review-only Edge candidate `security/n10-fixed-recovery-vault-candidate/qa-staging-recovery-NOT_DEPLOYED.ts` was added. It is hard-pinned to Staging project `ldivswlhtgmznzwhzsoi`, QA GitHub origin, and a pair of explicit synthetic user UUIDs; requires `qa_` usernames, `username_only_staging` Auth-owned metadata, a separate Staging HMAC key, and keeps the release flag OFF. The candidate has **not** been deployed or invoked and must not be treated as working live recovery. A new offline contract covers its isolation controls (29/29 backend static checks in a restricted source harness; NOT signed-JWT or Deno compilation).
+
+See `docs/N10_FIXED_RECOVERY_STAGING_SIGNED_JWT_QA_PLAN_20261031.md` for separate permission, account setup, session/MFA matrix and cleanup. This work did **not** create additional Auth users or recovery secrets or modify Staging SQL, production or V11.
