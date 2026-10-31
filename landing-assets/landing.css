@@ -2282,3 +2282,327 @@ html[lang="my"] .features-explorer.app-showcase .app-entry-tag,html[lang="my"] .
  .features-explorer.app-showcase .app-page-detail-ribbon{padding:8px 9px;font-size:8px}
 }
 @media(max-width:355px){.features-explorer.app-showcase .app-sample-divider{flex-wrap:wrap}.features-explorer.app-showcase .app-page-detail-ribbon{flex-direction:column;align-items:flex-start}}
+
+
+/* ===========================================================
+   L1.14 — Six-screen equal-size stage & warm champagne depth
+   Exclusively public Landing product preview, no app changes.
+   Unified left feature selector sizes, central App stage, and
+   right editorial column. Short demo pages never shrink frame.
+   =========================================================== */
+.features-explorer.app-showcase {
+  --mmh-app-demo-height: 704px;
+  --mmh-demo-gold: #f4cc90;
+  --mmh-demo-gold-light: #ffe3ae;
+}
+.features-explorer.app-showcase .product-explorer {
+  align-items: stretch;
+}
+.features-explorer.app-showcase .product-picker,
+.features-explorer.app-showcase .product-stage,
+.features-explorer.app-showcase .app-story {
+  box-sizing: border-box;
+  height: var(--mmh-app-demo-height);
+  min-height: 0;
+}
+.features-explorer.app-showcase .product-picker {
+  display: flex;
+  flex-direction: column;
+  padding: 19px 12px 16px;
+  border: 1px solid rgba(245,204,139,.52);
+  background:
+    radial-gradient(ellipse 95% 28% at 0 0,rgba(255,211,144,.17),transparent 84%),
+    linear-gradient(155deg,#132e42 0%,#071b2d 53%,#03111f 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255,243,213,.17),
+    0 24px 48px rgba(0,0,0,.25),
+    0 0 24px rgba(237,179,96,.065);
+}
+.features-explorer.app-showcase .product-picker-kicker {
+  flex: 0 0 auto;
+  margin: 2px 9px 18px;
+  color: #f6d59d;
+  text-shadow: 0 0 13px rgba(244,195,117,.22);
+}
+.features-explorer.app-showcase .product-tablist {
+  display: grid;
+  flex: 1 1 auto;
+  min-height: 0;
+  grid-template-columns: minmax(0,1fr);
+  grid-template-rows: repeat(6,minmax(0,1fr));
+  gap: 8px;
+}
+.features-explorer.app-showcase .product-tab {
+  box-sizing: border-box;
+  display: grid;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  min-height: 0;
+  grid-template-columns: 18px minmax(0,1fr) 49px;
+  align-items: center;
+  column-gap: 7px;
+  padding: 10px 8px;
+  border-radius: 12px;
+}
+.features-explorer.app-showcase .product-tab-num {
+  width: 18px;
+  flex: none;
+  font-variant-numeric: tabular-nums;
+}
+.features-explorer.app-showcase .product-tab-copy {
+  align-self: center;
+  min-width: 0;
+  gap: 5px;
+}
+.features-explorer.app-showcase .product-tab-copy strong {
+  font-size: 16px;
+  line-height: 1.24;
+  overflow-wrap: anywhere;
+}
+.features-explorer.app-showcase .product-tab-copy small {
+  font-size: 9px;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+.features-explorer.app-showcase .product-tab-chevron {
+  justify-self: end;
+  grid-column: 3;
+  color: var(--mmh-demo-gold);
+  text-shadow: 0 0 14px rgba(244,195,117,.18);
+}
+.features-explorer.app-showcase .product-tab-soon {
+  grid-column: 3;
+  justify-self: end;
+  width: 49px;
+  max-width: 49px;
+  box-sizing: border-box;
+  white-space: normal;
+  overflow-wrap: normal;
+  text-align: center;
+  font-size: 7px;
+  line-height: 1.5;
+  padding: 5px 3px;
+}
+.features-explorer.app-showcase .product-tab.is-active {
+  background:
+    radial-gradient(ellipse 100% 97% at 3% 0,rgba(255,221,159,.24),transparent 84%),
+    linear-gradient(112deg,rgba(133,93,48,.25),rgba(19,44,62,.90));
+  border-color: rgba(255,220,157,.78);
+  box-shadow:
+    inset 0 1px 0 rgba(255,245,217,.24),
+    0 0 0 1px rgba(245,195,123,.045),
+    0 0 24px rgba(241,178,91,.12);
+}
+.features-explorer.app-showcase .product-picker-foot {
+  flex: 0 0 auto;
+  margin: 0 8px;
+  padding: 17px 0 0;
+  color: #adbfcb;
+  font-size: 10px;
+  line-height: 1.7;
+}
+.features-explorer.app-showcase .product-stage {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background:
+    radial-gradient(ellipse 85% 44% at 99% 0,rgba(232,172,91,.11),transparent 77%),
+    linear-gradient(155deg,#0d293d,#061a2b 85%);
+  border-color: rgba(255,217,152,.82);
+  box-shadow:
+    inset 0 1px 0 rgba(255,247,226,.21),
+    0 0 0 3px rgba(242,182,95,.035),
+    0 0 37px rgba(243,183,92,.15),
+    0 31px 65px rgba(0,0,0,.41);
+}
+.features-explorer.app-showcase .app-sim-topbar,
+.features-explorer.app-showcase .app-sim-foot {
+  flex: 0 0 auto;
+}
+.features-explorer.app-showcase .app-sim-frame {
+  display: block;
+  flex: 1 1 auto;
+  height: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+.features-explorer.app-showcase .app-sim-content {
+  box-sizing: border-box;
+  height: 100%;
+  min-height: 0;
+  max-height: none;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(230,188,123,.55) rgba(9,32,49,.32);
+}
+.features-explorer.app-showcase .product-panel:not([hidden]) {
+  box-sizing: border-box;
+  min-height: 100%;
+}
+.features-explorer.app-showcase .app-story {
+  display: flex;
+  flex-direction: column;
+  padding: 28px 15px 20px;
+  border: 1px solid rgba(237,197,132,.29);
+  border-radius: 19px;
+  background:
+    radial-gradient(ellipse 110% 40% at 0 0,rgba(247,186,97,.17),transparent 83%),
+    linear-gradient(180deg,rgba(14,36,51,.93),rgba(5,17,29,.89));
+  box-shadow: inset 0 1px 0 rgba(255,243,221,.13),0 16px 36px rgba(0,0,0,.17);
+}
+.features-explorer.app-showcase .app-story h3 {
+  color: #ffe7bc;
+  text-shadow: 0 0 20px rgba(247,187,102,.15);
+}
+.features-explorer.app-showcase .app-story-subtitle {
+  color: #c6d5dc;
+}
+.features-explorer.app-showcase .app-story-disclaimer {
+  margin-top: auto;
+  padding-top: 18px;
+  border-top: 1px solid rgba(238,204,151,.20);
+}
+.features-explorer.app-showcase .app-page-heading {
+  border-color: rgba(239,203,144,.36);
+  background:
+    radial-gradient(ellipse 70% 85% at 98% 0,rgba(249,189,107,.13),transparent 82%),
+    linear-gradient(145deg,#173548,#0c2538);
+  box-shadow: inset 0 1px 0 rgba(255,241,216,.13);
+}
+.features-explorer.app-showcase .app-metric {
+  background:
+    radial-gradient(ellipse 95% 50% at 0 0,rgba(247,192,110,.075),transparent 86%),
+    linear-gradient(145deg,#133248,#091d30);
+  border-color: rgba(188,215,222,.29);
+}
+.features-explorer.app-showcase .app-mock-card {
+  border-color: rgba(185,212,224,.28);
+  background:
+    radial-gradient(ellipse 75% 50% at 100% 0,rgba(235,181,104,.085),transparent 82%),
+    linear-gradient(150deg,#123147,#082034);
+}
+.features-explorer.app-showcase .app-card-head {
+  color: #f3d5a6;
+}
+.features-explorer.app-showcase .app-premium-account-overview {
+  border-color: rgba(255,217,153,.72);
+  box-shadow: inset 0 1px 0 rgba(255,241,218,.20),0 0 20px rgba(232,177,96,.08),0 15px 32px rgba(0,0,0,.18);
+}
+.features-explorer.app-showcase .app-premium-account {
+  border-color: rgba(186,216,230,.32);
+  background:
+    radial-gradient(ellipse 85% 97% at 0 0,rgba(250,199,121,.095),transparent 83%),
+    linear-gradient(110deg,#193b51,#0a2336 80%);
+}
+.features-explorer.app-showcase .app-calendar-card,
+.features-explorer.app-showcase .app-habits-card {
+  border-color: rgba(238,198,137,.36);
+}
+.features-explorer.app-showcase .app-calendar-days span.selected {
+  box-shadow: inset 0 1px 0 rgba(255,237,198,.15),0 0 15px rgba(235,180,91,.11);
+}
+@media(max-width:1280px) and (min-width:1101px) {
+  .features-explorer.app-showcase .product-explorer {
+    grid-template-columns: 192px minmax(0,1fr) 166px;
+  }
+  .features-explorer.app-showcase .product-tab {
+    grid-template-columns: 17px minmax(0,1fr) 43px;
+    column-gap: 5px;
+    padding: 8px 6px;
+  }
+  .features-explorer.app-showcase .product-tab-soon {
+    width: 43px;
+    max-width: 43px;
+  }
+  .features-explorer.app-showcase .product-tab-copy strong {font-size: 14px;}
+}
+@media(max-width:1100px) {
+  .features-explorer.app-showcase .product-picker,
+  .features-explorer.app-showcase .product-stage {
+    height: var(--mmh-app-demo-height);
+  }
+  .features-explorer.app-showcase .app-story {
+    height: auto;
+    min-height: 0;
+    overflow: visible;
+    display: grid;
+  }
+}
+@media(max-width:850px) {
+  .features-explorer.app-showcase {
+    --mmh-app-demo-height: 665px;
+  }
+  .features-explorer.app-showcase .product-picker {
+    height: auto;
+    min-height: 0;
+    padding: 14px;
+  }
+  .features-explorer.app-showcase .product-tablist {
+    flex: 0 0 auto;
+    grid-template-columns: repeat(3,minmax(0,1fr));
+    grid-template-rows: repeat(2,minmax(75px,auto));
+    gap: 7px;
+  }
+  .features-explorer.app-showcase .product-tab {
+    min-height: 75px;
+    height: 100%;
+    grid-template-columns: 16px minmax(0,1fr) 38px;
+  }
+  .features-explorer.app-showcase .product-tab-soon {
+    width: 38px;max-width: 38px;
+  }
+  .features-explorer.app-showcase .product-picker-foot {
+    padding-top: 13px;
+  }
+}
+@media(max-width:620px) {
+  .features-explorer.app-showcase {
+    --mmh-app-demo-height: 625px;
+  }
+  .features-explorer.app-showcase .product-picker {
+    height: auto;
+  }
+  .features-explorer.app-showcase .product-tablist {
+    grid-template-columns: repeat(2,minmax(0,1fr));
+    grid-template-rows: repeat(3,minmax(76px,auto));
+  }
+  .features-explorer.app-showcase .product-tab {
+    min-height: 76px;
+    grid-template-columns: 14px minmax(0,1fr) 40px;
+    padding: 7px;
+    column-gap: 5px;
+  }
+  .features-explorer.app-showcase .product-tab-copy strong {
+    font-size: 14px;
+  }
+  .features-explorer.app-showcase .product-tab-soon {
+    width:40px;max-width:40px;font-size:6.5px;
+  }
+  .features-explorer.app-showcase .app-sim-frame{
+    display:block;flex:1 1 auto;height:0;min-height:0;overflow:hidden;
+  }
+  .features-explorer.app-showcase .app-sim-content{
+    box-sizing:border-box;height:100%;max-height:none;min-height:0;
+    overflow-x:hidden;overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+  .features-explorer.app-showcase .product-panel:not([hidden]){
+    min-height:100%;
+  }
+  .features-explorer.app-showcase .app-story{
+    display:block;height:auto;padding:16px;
+  }
+}
+@media(max-width:360px) {
+  .features-explorer.app-showcase .product-tab {
+    grid-template-columns:minmax(0,1fr) 37px;
+    gap:4px;
+  }
+  .features-explorer.app-showcase .product-tab-num {display:none}
+  .features-explorer.app-showcase .product-tab-soon {grid-column:2;width:37px;max-width:37px}
+  .features-explorer.app-showcase .product-tab-chevron {grid-column:2}
+  .features-explorer.app-showcase .app-premium-account-balance>strong {font-size:13px}
+}
