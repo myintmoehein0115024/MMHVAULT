@@ -37,7 +37,7 @@
     "alternateName":"MMHVAULT — Personal Finance & Wealth",
     "url":"https://mmhvault.com/",
     "description":"A personal finance and wealth planning workspace for individuals.",
-    "inLanguage":["en","zh-CN"],
+    "inLanguage":["en","zh-CN","my"],
     "publisher":{"@type":"Organization","name":"MMHVAULT","logo":{"@type":"ImageObject","url":"https://mmhvault.com/images/mmhvault-logo-transparent.png"}}
   }
   </script>
@@ -50,22 +50,30 @@
   <header class="site-header">
     <div class="container header-inner">
       <a href="#top" class="brand" aria-label="MMHVAULT home">
-        <img src="./images/mmhvault-logo-transparent.png" alt="" width="45" height="45" decoding="async">
+        <span class="brand-symbol" aria-hidden="true">M</span>
         <span class="brand-copy"><strong>MMHVAULT</strong><small>PERSONAL FINANCE &amp; WEALTH</small></span>
       </a>
       <nav class="nav" id="primary-nav" aria-label="Primary navigation">
-        <a href="#top" data-i18n="navHome">Home</a>
+        <a href="#top" aria-current="page" data-i18n="navHome">Home</a>
         <a href="#features" data-i18n="navFeatures">Features</a>
         <a href="#about" data-i18n="navAbout">About</a>
         <a href="#security" data-i18n="navSecurity">Security</a>
       </nav>
       <div class="header-actions">
-        <div class="locale-switch" role="group" aria-label="Language">
-          <button type="button" data-lang="en" aria-pressed="true" lang="en">EN</button>
-          <button type="button" data-lang="zh" aria-pressed="false" lang="zh-CN">中文</button>
-          <button type="button" data-lang="my" aria-pressed="false" lang="my">မြန်မာ</button>
+        <div class="locale-picker">
+          <button type="button" class="locale-trigger" id="locale-trigger" aria-haspopup="true" aria-expanded="false" aria-controls="locale-menu" aria-label="Select language">
+            <svg class="locale-globe" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c-3 3.2-4.5 6.2-4.5 9s1.5 6 4.5 9M12 3c3 3.2 4.5 6.2 4.5 9s-1.5 6-4.5 9"/></svg>
+            <span class="locale-active-flag" aria-hidden="true">🇬🇧</span>
+            <span class="locale-active-name">English</span>
+            <svg class="locale-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div class="locale-menu" id="locale-menu" role="group" aria-label="Choose language" hidden>
+            <button type="button" data-lang="en" aria-pressed="true" lang="en"><span aria-hidden="true">🇬🇧</span> English <span class="locale-check" aria-hidden="true">✓</span></button>
+            <button type="button" data-lang="zh" aria-pressed="false" lang="zh-CN"><span aria-hidden="true">🇨🇳</span> 中文 <span class="locale-check" aria-hidden="true">✓</span></button>
+            <button type="button" data-lang="my" aria-pressed="false" lang="my"><span aria-hidden="true">🇲🇲</span> မြန်မာ <span class="locale-check" aria-hidden="true">✓</span></button>
+          </div>
         </div>
-        <a href="./login.html" class="text-link signin-link" data-i18n="signIn">Sign In</a>
+        <a href="./login.html" class="button button-outline signin-link" data-i18n="signIn">Sign In</a>
         <a href="./login.html" class="button button-gold header-cta" data-i18n="getStarted">Get Started</a>
         <button type="button" class="menu-toggle" aria-controls="primary-nav" aria-expanded="false" aria-label="Open navigation menu">
           <span></span><span></span><span></span>
@@ -73,17 +81,17 @@
       </div>
     </div>
   </header>
-
   <main id="main">
     <section class="hero section container" aria-labelledby="hero-title">
       <div class="hero-copy">
         <div class="eyebrow"><span class="eyebrow-line"></span><span data-i18n="heroEyebrow">YOUR MONEY. YOUR DIRECTION.</span></div>
         <h1 id="hero-title">
-          <span class="hero-name">MMHVAULT<span class="hero-name-dot">.</span></span>
+          <span class="hero-name">MMHVAULT</span>
           <span class="hero-statement" data-i18n="heroTitle">A smarter, more <em>intentional</em> financial life.</span>
         </h1>
+        <p class="hero-script hero-script-zh" lang="zh-CN">让财务更清晰，让未来更有方向。</p>
+        <p class="hero-script hero-script-my" lang="my">ငွေကြေးကို ပိုမိုရှင်းလင်းစွာ သိမြင်ပြီး အနာဂတ်ကို ရည်ရွယ်ချက်ရှိရှိ စီမံပါ။</p>
         <p class="hero-lead" data-i18n="heroLead">Make sense of your accounts, spending, investments and future plans — all within one considered personal workspace.</p>
-        <p class="hero-translation" data-i18n="heroChinese">让财务更清晰，让未来更有方向。</p>
         <div class="hero-buttons">
           <a href="#features" class="button button-gold button-lg"><span data-i18n="exploreFeatures">Explore Features</span><span aria-hidden="true">↗</span></a>
           <a href="./login.html" class="button button-outline button-lg"><span data-i18n="getStarted">Get Started</span><span aria-hidden="true">→</span></a>
@@ -121,6 +129,7 @@
             </div>
           </div>
         </div>
+        <div class="laptop-base" aria-hidden="true"><span></span></div>
         <div class="phone-frame" aria-hidden="true">
           <div class="phone-island"></div>
           <div class="phone-top"><span>MMHVAULT</span><span>•••</span></div>
@@ -134,6 +143,37 @@
       </div>
     </section>
 
+
+    <section class="showcase-strip container" aria-label="Explore MMHVAULT modules">
+      <div class="showcase-grid">
+        <a href="#feature-dashboard" class="showcase-card">
+          <span class="showcase-icon" aria-hidden="true">▥</span><strong>Dashboard</strong><span data-i18n="railDashboard">Your money at a glance</span>
+          <span class="showcase-mini mini-dashboard" aria-hidden="true"><i></i><b>$24,680.50</b><em></em><em></em></span>
+        </a>
+        <a href="#feature-transactions" class="showcase-card">
+          <span class="showcase-icon" aria-hidden="true">⇄</span><strong>Transactions</strong><span data-i18n="railTransactions">Track income and expenses</span>
+          <span class="showcase-mini mini-transactions" aria-hidden="true"><i>↙</i><b>Salary</b><small>+$2,500</small><i>↗</i><b>Groceries</b><small>−$85</small></span>
+        </a>
+        <a href="#feature-accounts" class="showcase-card">
+          <span class="showcase-icon" aria-hidden="true">▤</span><strong>Accounts</strong><span data-i18n="railAccounts">All your balances together</span>
+          <span class="showcase-mini mini-accounts" aria-hidden="true"><b>USD</b><small>$8,420</small><b>THB</b><small>฿42,800</small></span>
+        </a>
+        <a href="#feature-invest" class="showcase-card">
+          <span class="showcase-icon" aria-hidden="true">◔</span><strong>Invest</strong><span data-i18n="railInvest">Understand your portfolio</span>
+          <span class="showcase-mini mini-invest" aria-hidden="true"><i></i><span><b>45%</b><small>35%</small><small>20%</small></span></span>
+        </a>
+        <a href="#feature-analyze" class="showcase-card">
+          <span class="showcase-icon" aria-hidden="true">▥</span><strong>Analyze</strong><span data-i18n="railAnalyze">Find meaningful insights</span>
+          <span class="showcase-mini mini-analyze" aria-hidden="true"><i style="height:26%"></i><i style="height:45%"></i><i style="height:58%"></i><i style="height:79%"></i><i style="height:96%"></i></span>
+        </a>
+        <a href="#feature-life" class="showcase-card">
+          <span class="showcase-icon" aria-hidden="true">▣</span><strong>Life Planner</strong><span data-i18n="railLife">Plan your next chapter</span>
+          <span class="showcase-mini mini-planner" aria-hidden="true"><b>24</b><b>25</b><b>26</b><small data-i18n="comingSoon">COMING SOON</small></span>
+        </a>
+      </div>
+      <p class="showcase-caption" data-i18n="demoDisclaimer">Illustrative interface · All amounts are fictional example data</p>
+    </section>
+
     <section class="statement-band" aria-label="Product philosophy">
       <div class="container statement-inner"><span data-i18n="bandFirst">UNDERSTAND TODAY</span><span class="band-divider">✦</span><span data-i18n="bandSecond">PLAN TOMORROW</span><span class="band-divider">✦</span><span data-i18n="bandThird">MOVE WITH PURPOSE</span></div>
     </section>
@@ -141,32 +181,32 @@
     <section class="section features-section container" id="features" aria-labelledby="features-title">
       <div class="section-heading"><div><p class="section-kicker" data-i18n="featuresEyebrow">ONE PERSONAL WORKSPACE</p><h2 id="features-title" data-i18n="featuresTitle">Everything in view.<br>Nothing out of reach.</h2></div><p data-i18n="featuresLead">From daily transactions to the bigger picture, explore the tools that help you make more informed financial decisions.</p></div>
       <div class="feature-grid">
-        <article class="feature-card feature-featured">
+        <article id="feature-dashboard" class="feature-card feature-featured">
           <div class="feature-head"><span class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="5" rx="2"/><rect x="13" y="10" width="8" height="11" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/></svg></span><span class="feature-number">01 / 06</span></div>
           <h3>Dashboard</h3><p data-i18n="featureDashboard">A considered snapshot of balances, activity and your overall financial position.</p>
           <div class="feature-visual dashboard-visual" aria-hidden="true"><div class="visual-ring"><span></span></div><div class="visual-values"><small data-i18n="visualOverview">OVERVIEW</small><b>$24,680</b><i></i><i></i><i></i></div></div>
         </article>
-        <article class="feature-card">
+        <article id="feature-transactions" class="feature-card">
           <div class="feature-head"><span class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M6 3h12v18H6zM9 8h6M9 12h6M9 16h4"/><path d="M3 6v12"/></svg></span><span class="feature-number">02 / 06</span></div>
           <h3>Transactions</h3><p data-i18n="featureTransactions">Keep your income and expenses organized with clear, searchable records.</p>
           <div class="feature-visual transaction-visual" aria-hidden="true"><div><span class="transaction-dot green">↓</span><span><span data-i18n="listIncome">Income</span><small>OCT 24</small></span><b class="positive">+$2,500</b></div><div><span class="transaction-dot">↑</span><span><span data-i18n="listEveryday">Everyday</span><small>OCT 25</small></span><b>−$85.00</b></div><div><span class="transaction-dot">↑</span><span><span data-i18n="listLiving">Living</span><small>OCT 27</small></span><b>−$42.50</b></div></div>
         </article>
-        <article class="feature-card">
+        <article id="feature-accounts" class="feature-card">
           <div class="feature-head"><span class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3" y="6" width="18" height="14" rx="3"/><path d="M3 10h18M7 3h10M7 16h4"/></svg></span><span class="feature-number">03 / 06</span></div>
           <h3>Accounts</h3><p data-i18n="featureAccounts">Bring your different accounts and currencies into a single, orderly view.</p>
           <div class="feature-visual account-visual" aria-hidden="true"><div class="account-chip"><span>USD</span><b>$8,420</b></div><div class="account-chip"><span>THB</span><b>฿42,800</b></div><div class="account-chip"><span>MMK</span><b>K 920,000</b></div></div>
         </article>
-        <article class="feature-card">
+        <article id="feature-invest" class="feature-card">
           <div class="feature-head"><span class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M3 18h18M5 15l5-5 4 3 5-8M16 5h3v3"/></svg></span><span class="feature-number">04 / 06</span></div>
           <h3>Invest</h3><p data-i18n="featureInvest">Follow your holdings and allocations in a more balanced portfolio view.</p>
           <div class="feature-visual invest-visual" aria-hidden="true"><div class="allocation-bar"><span></span><span></span><span></span></div><div class="invest-key"><span><i></i>Global</span><span><i></i>Gold</span><span><i></i>Other</span></div><small data-i18n="visualAllocation">ILLUSTRATIVE ALLOCATION</small></div>
         </article>
-        <article class="feature-card">
+        <article id="feature-analyze" class="feature-card">
           <div class="feature-head"><span class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 20V4M4 20h16M7 15l4-5 4 3 5-8"/><circle cx="11" cy="10" r="1"/></svg></span><span class="feature-number">05 / 06</span></div>
           <h3>Analyze</h3><p data-i18n="featureAnalyze">Turn financial history into useful trends, reports and context.</p>
           <div class="feature-visual analyze-visual" aria-hidden="true"><small data-i18n="visualOutlook">MONTHLY OUTLOOK</small><svg viewBox="0 0 330 82" preserveAspectRatio="none"><defs><linearGradient id="linefill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b7d7e5" stop-opacity=".18"/><stop offset="1" stop-color="#b7d7e5" stop-opacity="0"/></linearGradient></defs><path d="M0 70L40 56 78 61 120 29 162 42 207 18 252 26 292 13 330 7V82H0Z" fill="url(#linefill)"/><path d="M0 70L40 56 78 61 120 29 162 42 207 18 252 26 292 13 330 7" fill="none" stroke="#c9e8f4" stroke-width="2.5"/></svg></div>
         </article>
-        <article class="feature-card feature-soon">
+        <article id="feature-life" class="feature-card feature-soon">
           <div class="feature-head"><span class="feature-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18M8 15l2 2 5-5"/></svg></span><span class="soon-pill" data-i18n="comingSoon">COMING SOON</span></div>
           <h3>Life Planner</h3><p data-i18n="featureLife">A future home for schedules, habits, goals and a more intentional everyday life.</p>
           <div class="feature-visual planner-visual" aria-hidden="true"><span>MON</span><span>TUE</span><span>WED</span><span>THU</span><span>FRI</span><b>24</b><b>25</b><b>26</b><b>27</b><b>28</b><i></i></div>
