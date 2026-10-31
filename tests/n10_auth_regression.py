@@ -108,6 +108,41 @@ class N10AuthContract(unittest.TestCase):
         for table in ("public.investments", "public.transactions"):
             self.assertIn(table, wallet)
 
+    def test_preflight_and_all_three_rollbacks_have_exact_scopes(self):
+        sqlroot = ROOT / "docs/sql"
+        public_sql = (sqlroot / "n10_mfa_public_policy_candidate_NOT_FOR_DEPLOYMENT.sql").read_text(encoding="utf-8")
+        preflight = (sqlroot / "n10_mfa_release_readonly_preflight.sql").read_text(encoding="utf-8")
+        storage = (sqlroot / "n10_mfa_storage_policy_candidate_NOT_FOR_DEPLOYMENT.sql").read_text(encoding="utf-8")
+        storage_back = (sqlroot / "n10_mfa_storage_rollback_CANDIDATE.sql").read_text(encoding="utf-8")
+        wallet = (sqlroot / "n10_mfa_wallet_rpc_candidate_NOT_FOR_DEPLOYMENT.sql").read_text(encoding="utf-8")
+        wallet_back = (sqlroot / "n10_mfa_wallet_rpc_rollback_CANDIDATE.sql").read_text(encoding="utf-8")
+        public_targets = set(re.findall(r"^    '([a-z0-9_]+)'[,]?$", public_sql, flags=re.MULTILINE))
+        expected_in_preflight = preflight.split("WITH expected(name)",1)[1].split("infra(name)",1)[0]
+        preflight_targets = set(re.findall(r"'([a-z0-9_]+)'", expected_in_preflight))
+        self.assertEqual(len(public_targets), 59)
+        self.assertEqual(public_targets, preflight_targets)
+        for check in (
+            "protected_59_rls_ok", "infra_5_rls_ok", "all_public_tables_rls",
+            "all_three_storage_buckets_private",
+            "all_original_storage_owner_policies_present",
+            "wallet_original_owner_and_definer_ok",
+            "wallet_anon_execute_denied", "legacy_view_runs_as_invoker"
+        ):
+            self.assertIn(check, preflight)
+        self.assertIn("MMHVAULT-N10-MFA-STORAGE-RESTRICTIVE-V1", storage)
+        self.assertIn("MMHVAULT-N10-MFA-STORAGE-RESTRICTIVE-V1", storage_back)
+        self.assertIn("obj_description(p.oid,'pg_policy')", storage_back)
+        self.assertIn("DROP POLICY mmh_n10_private_storage_mfa_guard", storage_back)
+        self.assertNotIn("DELETE FROM storage.objects", storage_back)
+        self.assertIn("MMHVAULT-N10-WALLET-MFA-V1", wallet)
+        self.assertIn("MMHVAULT-N10-WALLET-MFA-V1", wallet_back)
+        self.assertIn("obj_description(p.oid,'pg_proc')", wallet_back)
+        self.assertIn("SET search_path TO 'public'", wallet_back)
+        self.assertIn("CREATE OR REPLACE FUNCTION public.mmh_delete_crypto_wallet_movement_v4", wallet_back)
+        self.assertIn("CREATE OR REPLACE FUNCTION public.mmh_delete_crypto_wallet_movement_v4", wallet)
+        self.assertIn("mmh_n10_security.mfa_access_ok()", wallet)
+        self.assertNotIn("mmh_n10_security.mfa_access_ok()", wallet_back.split("CREATE OR REPLACE FUNCTION", 1)[1])
+
     def test_edge_sensitive_api_candidates_require_mfa_before_access(self):
         root = ROOT / "security/n10-edge-candidates"
         push = (root / "mmh-push-test/index.ts").read_text(encoding="utf-8")
