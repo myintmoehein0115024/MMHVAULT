@@ -717,6 +717,10 @@
     document.querySelectorAll('[data-app-thumb]').forEach(node=>
       node.setAttribute('aria-label',dict.appThumbExplore+' '+productLabels[node.dataset.appThumb])
     );
+    const appStory = document.querySelector('.app-story');
+    if (appStory) appStory.setAttribute('aria-label',dict.appStoryHighlights);
+    const appThumbnails = document.querySelector('.app-thumbnails');
+    if (appThumbnails) appThumbnails.setAttribute('aria-label',dict.appSelectHint);
     const tablist = document.querySelector('.product-tablist');
     if (tablist) tablist.setAttribute('aria-label', dict.productTablistAria);
     // Translate descriptive controls and photographic alt text without changing the fixed Hero copy.
@@ -898,7 +902,7 @@
   });
   document.querySelectorAll('[data-app-thumb]').forEach(button=>button.addEventListener('click',()=>{
     selectProductView(button.dataset.appThumb);
-    document.querySelector('.product-stage')?.scrollIntoView({block:'start',behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});
+    document.querySelector('.product-stage')?.scrollIntoView({block:'start',behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});
   }));
   const previewIndex=(offset)=>{
     const idx=productNames.indexOf(activeProduct);
