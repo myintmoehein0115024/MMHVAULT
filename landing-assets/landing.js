@@ -111,7 +111,6 @@
       visualOverview: "总览",
       visualAllocation: "示例资产配置",
       visualOutlook: "月度趋势"
-    }
     },
     my: {
       "skip": "အဓိကအကြောင်းအရာသို့ သွားရန်",
