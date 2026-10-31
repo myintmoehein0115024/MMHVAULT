@@ -1,7 +1,7 @@
 // DRAFT — N10 conditional MFA review only. Not deployed.
 import * as webpush from "jsr:@negrel/webpush@0.5.0";
 import postgres from "npm:postgres@3.4.7";
-import { evaluatePushMfa } from "./mfa-push.mjs";
+import { evaluatePushMfa, parseVerifiedBearerClaims } from "./mfa-push.mjs";
 
 const cors = {
   "Access-Control-Allow-Origin": "*",
@@ -93,14 +93,7 @@ export default {
     }
     // Decode claims ONLY after Auth has verified this exact bearer above.
     // The pure policy helper denies invalid/mismatched identities and enrolled AAL1.
-    let jwtClaims: any = null;
-    try {
-      const bearer = /^Bearer\\s+([^\\s]+)$/i.exec(req.headers.get("Authorization") || "")?.[1] || "";
-      const segments = bearer.split(".");
-      if (segments.length === 3) {
-        jwtClaims = JSON.parse(new TextDecoder().decode(b64urlToBuffer(segments[1])));
-      }
-    } catch (_) { /* invalid bearer -> reject, never fall through */ }
+    const jwtClaims = parseVerifiedBearerClaims(req.headers.get("Authorization") || "");
     const decision = evaluatePushMfa(mfaRequired, user.id, jwtClaims);
     if (decision === "unavailable") return json({ code: "MFA_CHECK_UNAVAILABLE" }, 503);
     if (decision === "required") return json({ code: "MFA_REQUIRED" }, 403);
