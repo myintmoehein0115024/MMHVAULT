@@ -55,7 +55,8 @@ BEGIN
  END IF;
  v_secret_id := vault.create_secret(p_phrase,
    'mmh_n10_fixed_recovery_'||replace(p_user_id::text,'-',''),
-   'MMHVAULT encrypted fixed recovery phrase; owner-only API');
+   'MMHVAULT encrypted fixed recovery phrase; owner-only API',
+   NULL::uuid); -- Explicit optional key ID; matches Vault 4-arg signature.
  INSERT INTO mmh_n10_privacy.recovery_backup_index(user_id,secret_id)
  VALUES (p_user_id,v_secret_id);
  RETURN true;
