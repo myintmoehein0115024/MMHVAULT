@@ -1,5 +1,8 @@
 name: N10 recovery security - offline checks
 on:
+  push:
+    branches:
+      - 'feature/n10-fixed-recovery-key-modal-20261031'
   pull_request:
     paths:
       - 'security/n10-fixed-recovery-vault-candidate/**'
