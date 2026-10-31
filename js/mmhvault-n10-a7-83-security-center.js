@@ -67,7 +67,7 @@ document.addEventListener('click',event=>{
  if(event.target.closest('.language-choice-v3363'))setTimeout(a783RenderLanguage,0);
 });
 
-let owner='',busy=false,pendingFactor='',pendingSecret='',factorId='',verifiedPhrase='',clearTimer=null,usernameOnly=false,vaultMode='unknown',secretEpoch=0,mfaEpoch=0;
+let owner='',busy=false,pendingFactor='',pendingFactorOwner='',pendingSecret='',factorId='',verifiedPhrase='',clearTimer=null,usernameOnly=false,vaultMode='unknown',secretEpoch=0,mfaEpoch=0;
 function client(){return typeof db!=='undefined'?db:null;}
 function label(id,v){const el=$(id);if(el){el.dataset.mmhA783DynamicEn=v;el.textContent=a783Text(v);}}
 function hideKey(){secretEpoch+=1;const field=$('mmhN10VaultPassword');if(field)field.value='';verifiedPhrase='';$('mmhA783KeyDisplay').hidden=true;$('mmhA783KeyQr').replaceChildren();$('mmhA783KeyWords').replaceChildren();$('mmhA783Phrase').value='';$('mmhA783Phrase').type='password';$('mmhA783PhraseToggle').setAttribute('aria-pressed','false');a783Action('mmhA783PhraseToggle','Show words');if(clearTimer)clearTimeout(clearTimer);}
@@ -82,7 +82,7 @@ function inspectTotpFactors(data){
   unknown:allTotp.filter(f=>f.status!=='verified'&&f.status!=='unverified')
  };
 }
-function clearMfa(){mfaEpoch+=1;pendingSecret='';pendingFactor='';if($('mmhA783TotpBackupConfirmed'))$('mmhA783TotpBackupConfirmed').checked=false;$('mmhA783TotpSetup').hidden=true;$('mmhA783TotpQr').replaceChildren();$('mmhA783TotpSecret').textContent='';$('mmhA783TotpSecret').hidden=true;$('mmhA783TotpCode').value='';a783Action('mmhA783KeyReveal','Show setup key');}
+function clearMfa(){mfaEpoch+=1;pendingSecret='';pendingFactor='';pendingFactorOwner='';if($('mmhA783TotpBackupConfirmed'))$('mmhA783TotpBackupConfirmed').checked=false;$('mmhA783TotpSetup').hidden=true;$('mmhA783TotpQr').replaceChildren();$('mmhA783TotpSecret').textContent='';$('mmhA783TotpSecret').hidden=true;$('mmhA783TotpCode').value='';a783Action('mmhA783KeyReveal','Show setup key');}
 // Async MFA responses must never revive a closed modal or a changed account.
 function mfaFlowActive(epoch,userId){
  const overlay=$('mmhA783TotpStart')?.closest('.mmh-n10-modal-overlay');
@@ -95,7 +95,27 @@ function mfaRemovalActive(epoch,userId,targetFactor){
   !$('mmhA783TotpRemoveConfirm').hidden&&
   $('mmhA783TotpRemoveText').value==='REMOVE';
 }
-async function cancelPendingMfa(){const id=pendingFactor;clearMfa();if(!id)return true;try{const r=await client().auth.mfa.unenroll({factorId:id});return !r.error}catch(_){return false}}
+async function cancelPendingMfa(){
+ const targetFactor=pendingFactor,targetOwner=pendingFactorOwner;
+ // Clear the UI synchronously even if Auth calls below fail or never complete.
+ clearMfa();
+ if(!targetFactor)return true;
+ if(!targetOwner)return false;
+ try{
+  const before=await verifiedUser();
+  if(before.user.id!==targetOwner||owner!==targetOwner)return false;
+  const found=await client().auth.mfa.listFactors();
+  if(found.error||owner!==targetOwner)return false;
+  // Cancellation is permitted only for this owner's *unverified* factor.
+  // Never accidentally unenroll a verified factor on a stale response.
+  const matches=inspectTotpFactors(found.data).pending.some(f=>f.id===targetFactor);
+  if(!matches)return false;
+  const current=await verifiedUser();
+  if(current.user.id!==targetOwner||owner!==targetOwner)return false;
+  const result=await client().auth.mfa.unenroll({factorId:targetFactor});
+  return !result.error;
+ }catch(_){return false;}
+}
 function displayTotpQr(totp){
  const holder=$('mmhA783TotpQr');holder.replaceChildren();
  if(typeof QRCode==='function' && String(totp.uri||'').startsWith('otpauth://')){
@@ -390,7 +410,7 @@ $('mmhA783TotpStart').addEventListener('click',async()=>{
     await client().auth.mfa.unenroll({factorId:data.id});}catch(_){}
    return;
   }
-  pendingFactor=data.id;pendingSecret=data.totp.secret||'';
+  pendingFactor=data.id;pendingFactorOwner=user.id;pendingSecret=data.totp.secret||'';
   displayTotpQr(data.totp);
   $('mmhA783TotpSecret').hidden=true;
   $('mmhA783TotpSecret').textContent='';
@@ -436,7 +456,10 @@ $('mmhA783KeyReveal').addEventListener('click',()=>{
  a783Action('mmhA783KeyReveal',el.hidden?'Show setup key':'Hide setup key');
 });
 $('mmhA783TotpCancel').addEventListener('click',async()=>{
- const ok=await cancelPendingMfa();status(ok?'Authenticator setup cancelled.':'Unable to cancel setup; refresh before retrying.');
+ const beforeOwner=owner;
+ const ok=await cancelPendingMfa();
+ if(beforeOwner===owner&&!document.hidden)
+  status(ok?'Authenticator setup cancelled.':'Unable to confirm cancellation. A pending factor may remain; refresh before retrying.');
 });
 $('mmhA783TotpRemove').addEventListener('click',()=>{
  $('mmhA783TotpRemoveConfirm').hidden=false;
