@@ -331,6 +331,57 @@
     showcaseHabit:'နေ့စဉ်အလေ့အထများ',showcaseGoals:'ရေရှည်ရည်မှန်းချက်များ'
   });
 
+
+  // L1.9 Product Explorer: editorial interface only; values are fabricated and local.
+  Object.assign(strings.en,{
+    productPickLabel:'EXPLORE THE WORKSPACE',productChooseHint:'Select a feature to see its illustrative interface.',
+    productStageBrand:'/ PRODUCT PREVIEW',productStageStatus:'CONCEPT UI',productSectionLabel:'A CLOSER LOOK',
+    productConceptLabel:'ILLUSTRATIVE CONCEPT',productTotalBalance:'TOTAL BALANCE',
+    productMonth:'THIS MONTH',productIncome:'MONTHLY INCOME',productExpense:'MONTHLY EXPENSES',
+    productNetFlow:'NET CASH FLOW',productRecentActivity:'RECENT ACTIVITY',
+    productTransport:'Transport',productTrackNote:'One place for a clearer view of incoming and outgoing funds.',
+    productAccountOne:'EVERYDAY ACCOUNT',productAccountTwo:'LOCAL ACCOUNT',productAccountThree:'SAVINGS ACCOUNT',
+    productMultiCurrencyNote:'Different currencies are displayed individually — without misleading totals.',
+    productAllocation:'ILLUSTRATIVE ALLOCATION',productAssetGlobal:'GLOBAL MARKETS',productAssetGold:'GOLD',
+    productAssetOther:'OTHER ASSETS',productTrend:'MONTHLY CASH FLOW TREND',
+    productInsightLabel:'INSIGHT SNAPSHOT',productInsightValue:'See the bigger picture at a glance.',
+    productPlannerMonth:'YOUR WEEK AT A GLANCE',productDailyHabits:'DAILY HABITS',
+    productLongTermGoals:'LONG-TERM GOALS',productPlannerConcept:'Schedules, habits and goals — a future space to bring daily life into focus.',
+    productConceptOnly:'Concept preview. Not yet available.',productTablistAria:'Explore MMHVAULT product concepts'
+  });
+  Object.assign(strings.zh,{
+    productPickLabel:'探索财务功能',productChooseHint:'选择一个功能，体验对应的概念界面。',
+    productStageBrand:'/ 产品概念展示',productStageStatus:'概念界面',productSectionLabel:'深入了解',
+    productConceptLabel:'虚构演示界面',productTotalBalance:'账户总余额',
+    productMonth:'本月',productIncome:'本月收入',productExpense:'本月支出',
+    productNetFlow:'净现金流',productRecentActivity:'近期交易记录',
+    productTransport:'交通支出',productTrackNote:'在一个空间里清晰掌握每一笔收入与支出。',
+    productAccountOne:'日常账户',productAccountTwo:'本地账户',productAccountThree:'储蓄账户',
+    productMultiCurrencyNote:'不同币种分别展示，不进行容易误导的直接加总。',
+    productAllocation:'资产配置示例',productAssetGlobal:'全球市场',productAssetGold:'黄金',
+    productAssetOther:'其他资产',productTrend:'每月现金流趋势',
+    productInsightLabel:'分析概览',productInsightValue:'一眼看清更完整的财务图景。',
+    productPlannerMonth:'一周生活概览',productDailyHabits:'每日习惯',
+    productLongTermGoals:'长期目标',productPlannerConcept:'日程、习惯与目标——未来让日常生活更有方向的空间。',
+    productConceptOnly:'仅为概念预览，尚未上线。',productTablistAria:'浏览 MMHVAULT 产品功能概念展示'
+  });
+  Object.assign(strings.my,{
+    productPickLabel:'ငွေကြေးလုပ်ဆောင်ချက်များ',productChooseHint:'နမူနာမျက်နှာပြင်ကို ကြည့်ရန် လုပ်ဆောင်ချက်တစ်ခု ရွေးပါ။',
+    productStageBrand:'/ ထုတ်ကုန် နမူနာ',productStageStatus:'နမူနာမျက်နှာပြင်',productSectionLabel:'ပိုမိုလေ့လာရန်',
+    productConceptLabel:'စိတ်ကူးယဉ် နမူနာ',productTotalBalance:'စုစုပေါင်းလက်ကျန်',
+    productMonth:'ယခုလ',productIncome:'လစဉ်ဝင်ငွေ',productExpense:'လစဉ်အသုံးစရိတ်',
+    productNetFlow:'အသားတင်ငွေစီးဆင်းမှု',productRecentActivity:'လတ်တလောငွေဝင်ငွေထွက်',
+    productTransport:'သွားလာရေး',productTrackNote:'ဝင်ငွေနှင့် အသုံးစရိတ်ကို တစ်နေရာတည်းတွင် ရှင်းလင်းစွာ ကြည့်နိုင်ပါသည်။',
+    productAccountOne:'နေ့စဉ်အကောင့်',productAccountTwo:'ဒေသတွင်းအကောင့်',productAccountThree:'စုဆောင်းငွေအကောင့်',
+    productMultiCurrencyNote:'မတူညီသောငွေကြေးများကို မှားယွင်းစွာ မပေါင်းဘဲ သီးခြားပြသထားပါသည်။',
+    productAllocation:'ပိုင်ဆိုင်မှုခွဲဝေမှု နမူနာ',productAssetGlobal:'ကမ္ဘာ့ဈေးကွက်',productAssetGold:'ရွှေ',
+    productAssetOther:'အခြားပိုင်ဆိုင်မှု',productTrend:'လစဉ်ငွေစီးဆင်းမှုအခြေအနေ',
+    productInsightLabel:'အခြေအနေအကျဉ်းချုပ်',productInsightValue:'ငွေကြေးအခြေအနေကို ပိုမိုရှင်းလင်းစွာ မြင်နိုင်ပါသည်။',
+    productPlannerMonth:'တစ်ပတ်တာ အစီအစဉ်',productDailyHabits:'နေ့စဉ်အလေ့အထများ',
+    productLongTermGoals:'ရေရှည်ရည်မှန်းချက်များ',productPlannerConcept:'အချိန်ဇယား၊ အလေ့အထနှင့် ရည်မှန်းချက်များအတွက် အနာဂတ်နေရာ။',
+    productConceptOnly:'နမူနာသာ ဖြစ်ပြီး မရရှိနိုင်သေးပါ။',productTablistAria:'MMHVAULT ထုတ်ကုန်လုပ်ဆောင်ချက် နမူနာများ'
+  });
+
   const htmlKeys = new Set(['heroTitle', 'featuresTitle', 'businessHeading', 'whyTitle', 'closingTitle']);
   const storageKey = 'mmhvault.landing.language';
   const siteHeader = document.querySelector('.site-header');
@@ -410,6 +461,8 @@
       button.setAttribute('aria-pressed', String(button.dataset.lang === currentLang));
     });
     updateBusinessPreview(currentBusinessView);
+    const tablist = document.querySelector('.product-tablist');
+    if (tablist) tablist.setAttribute('aria-label', dict.productTablistAria);
     // Translate descriptive controls and photographic alt text without changing the fixed Hero copy.
     const businessTabbar = document.querySelector('.business-tabbar');
     const businessInsights = document.querySelector('.business-insight-grid');
@@ -528,6 +581,44 @@
     const target = link.getAttribute('href').slice(1);
     if (sectionMap.has(target)) markSection(target);
   }));
+
+  // Product concept explorer: local-only panel switching; no app state or financial data.
+  const productTabs = [...document.querySelectorAll('[data-product-tab]')];
+  const productPanels = [...document.querySelectorAll('[data-product-panel]')];
+  const productNames = productTabs.map(tab => tab.dataset.productTab);
+  function selectProductView(view, moveFocus = false) {
+    const name = productNames.includes(view) ? view : 'dashboard';
+    productTabs.forEach(tab => {
+      const active = tab.dataset.productTab === name;
+      tab.classList.toggle('is-active', active);
+      tab.setAttribute('aria-selected', String(active));
+      tab.tabIndex = active ? 0 : -1;
+      if (active && moveFocus) tab.focus();
+    });
+    productPanels.forEach(panel => { panel.hidden = panel.dataset.productPanel !== name; });
+    const stage = document.querySelector('.product-stage');
+    if(stage) stage.dataset.productCurrent = name;
+  }
+  productTabs.forEach((tab,index) => {
+    tab.addEventListener('click', () => selectProductView(tab.dataset.productTab));
+    tab.addEventListener('keydown', event => {
+      const keys = ['ArrowDown','ArrowRight','ArrowUp','ArrowLeft','Home','End'];
+      if(!keys.includes(event.key)) return;
+      event.preventDefault();
+      const next = event.key === 'Home' ? 0 : event.key === 'End' ? productTabs.length-1
+        : (index + (event.key === 'ArrowDown'||event.key === 'ArrowRight' ? 1 : -1) + productTabs.length) % productTabs.length;
+      selectProductView(productTabs[next].dataset.productTab,true);
+    });
+  });
+  const syncProductHash = () => {
+    const hash = window.location.hash.slice(1);
+    if(hash.startsWith('feature-')) {
+      const name = hash.slice(8);
+      if(productNames.includes(name)) selectProductView(name);
+    }
+  };
+  window.addEventListener('hashchange',syncProductHash);
+  syncProductHash();
 
   // Progressive enhancement: retain the original in-page HTML device demonstration
   // until the independent photographic asset has loaded. No authentication or network API.
