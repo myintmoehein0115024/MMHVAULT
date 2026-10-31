@@ -98,6 +98,50 @@ const cases=[
    const success=handler.indexOf("clearMfa();status('Authenticator enabled.");
    assert.ok(verified>=0&&finalGate>verified&&success>finalGate);
  }],
+ ['factor removal binds signed owner, target factor and visible confirmation (synthetic)',()=>{
+  const helper=src.match(/function mfaRemovalActive\(epoch,userId,targetFactor\)\{[\s\S]*?\n\}/)?.[0];
+  assert.ok(helper,'missing removal scope guard');
+  const confirm={hidden:false},textBox={value:'REMOVE'};
+  const ctx={
+   factorId:'factor-A',mfaFlowActive:()=>true,
+   $:id=>id==='mmhA783TotpRemoveConfirm'?confirm:textBox
+  };
+  const scoped=runInNewContext('('+helper+')',ctx);
+  assert.equal(scoped(7,'owner-A','factor-A'),true);
+  assert.equal(scoped(7,'owner-A','factor-B'),false);
+  ctx.factorId='factor-B';assert.equal(scoped(7,'owner-A','factor-A'),false);
+  ctx.factorId='factor-A';
+  confirm.hidden=true;assert.equal(scoped(7,'owner-A','factor-A'),false);
+  confirm.hidden=false;textBox.value='';
+  assert.equal(scoped(7,'owner-A','factor-A'),false);
+  textBox.value='REMOVE';ctx.mfaFlowActive=()=>false;
+  assert.equal(scoped(7,'owner-A','factor-A'),false);
+  const handler=src.slice(src.indexOf("mmhA783TotpRemoveNow').addEventListener"),src.indexOf("document.addEventListener('visibilitychange'"));
+  const steps=[
+   'if(busy||',
+   'const epoch=mfaEpoch,userId=owner,targetFactor=factorId',
+   'const before=await verifiedUser()',
+   'before.user.id!==userId',
+   'await client().auth.mfa.getAuthenticatorAssuranceLevel()',
+   "aal.data?.currentLevel!=='aal2'",
+   'await client().auth.mfa.listFactors()',
+   'inspectTotpFactors(factors.data).verified.some(f=>f.id===targetFactor)',
+   'const current=await verifiedUser()',
+   'current.user.id!==userId',
+   'const result=await client().auth.mfa.unenroll({factorId:targetFactor})',
+   'if(!mfaRemovalActive(epoch,userId,targetFactor))return;',
+   'if(result.error)throw result.error;',
+   "status('Authenticator removed.')"
+  ];
+  let at=-1;
+  for(const item of steps){
+   const next=handler.indexOf(item,at+1);
+   assert.ok(next>at,'missing / disordered removal gate '+item);
+   at=next;
+  }
+  assert.doesNotMatch(handler,/auth\.mfa\.unenroll\(\{factorId\}\)/);
+  assert.match(handler,/finally\{busy=false;\}/);
+ }],
  ['all recovery views use 45s auto-hide',()=>{
    assert.equal((src.match(/clearTimer=setTimeout\(hideKey,45000\)/g)||[]).length,2);
    assert.doesNotMatch(src,/clearTimer=setTimeout\(hideKey,60000\)/);
