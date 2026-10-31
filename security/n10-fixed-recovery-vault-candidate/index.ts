@@ -150,6 +150,14 @@ Deno.serve(async(req:Request)=>{
  const secondSessionCheck=await liveSession(user.id,sessionId);
  if(secondSessionCheck==='unavailable')return out(origin,'session_check_unavailable',503);
  if(secondSessionCheck!=='active')return out(origin,'session_expired',401);
+ // MFA enrollment can change in another session during password re-auth.
+ // Recheck signed bearer identity, server-managed factors and the original AAL.
+ const refreshedAssurance=await verifiedUser(req);
+ if(refreshedAssurance.state==='required')return out(origin,'mfa_required',403);
+ if(refreshedAssurance.state==='unavailable')return out(origin,'mfa_unavailable',503);
+ if(refreshedAssurance.state!=='ok'||refreshedAssurance.user.id!==user.id
+    ||refreshedAssurance.sessionId!==sessionId)
+   return out(origin,'session_expired',401);
  if(action==='backup_existing'){
   const phrase=normalizePhrase(body.phrase);
   if(!phrase)return out(origin,'invalid_recovery_key',400);
