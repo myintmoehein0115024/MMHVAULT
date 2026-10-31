@@ -15,6 +15,11 @@ They are **ready for hosted Supabase Email Templates** but are **not yet applied
 - `email-templates/password_changed.html` — MMHVAULT | Password changed
 - `email-templates/verification_method_added.html` — MMHVAULT | Security method added
 
+- `email-templates/email_changed.html` — MMHVAULT | Email address changed
+- `email-templates/sign_in_method_linked.html` — MMHVAULT | Sign-in method linked
+- `email-templates/sign_in_method_removed.html` — MMHVAULT | Sign-in method removed
+- `email-templates/verification_method_removed.html` — MMHVAULT | Security method removed
+
 ## Required installation (hosted Supabase)
 1. Open https://supabase.com/dashboard/project/vrypucmyrztxgiqhjspd/auth/templates
 2. Select the matching template (e.g. Reset password).
