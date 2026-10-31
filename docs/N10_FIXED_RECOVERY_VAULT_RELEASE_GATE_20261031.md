@@ -127,3 +127,19 @@ Draft PR only: **do not merge until the full database and signed-token tests pas
 - Rollback must clear only the authorized synthetic users and corresponding verifier records, then remove the isolated fixture table after confirmation no other objects depend on it. Never run unreviewed CASCADE DROP or modify production.
 
 **No staging or production SQL change was performed.**
+
+## 2026-10-31 — Read-only Staging advisors and migration readiness (NOT an authorization)
+
+**A separate older N10 Staging migration** (`20261028145434_mmh_n10a72_isolated_auth_schema`) is in the migration history. It is **not** the fixed 10-word Vault migration and must never be counted as Vault acceptance.
+
+Current Staging inventory (read-only): `supabase_vault` present; legacy synthetic original-phrase verifier `public.mmh_n10a769_recovery_phrases` **absent**; `mmh_n10_privacy` **absent**; `mmh_n10_recovery_backup_put/get` **absent**. Username-links table exists. The two review-only candidate migrations are:
+1. `docs/sql/n10_fixed_recovery_verifier_SYNTHETIC_STAGING_ONLY.sql` — empty, Staging-only verifier fixture with RLS and restricted ACLs.
+2. `docs/sql/n10_fixed_recovery_vault_STAGING_CANDIDATE.sql` — private index/rate bucket, Vault cleanup and service-only RPCs.
+
+**Neither migration has been executed.** These files require the previously blocked migration safety gate to be resolved through a separately authorized, auditable process. Do not try a different write tool or SQL editor to circumvent that gate. Before any approved migration, compare live object signatures/permissions and capture a rollback plan. Afterward, validate ACLs/RLS, encrypted storage, idempotence, deletion cleanup, expiry/logout, and real signed AAL1/AAL2 JWT behavior using **synthetic** identities only. The signup candidate is still production-host pinned; it is not a functioning Staging signup adapter.
+
+The Staging security advisor additionally reports a **WARN** for the pre-existing QA function `public.mmh_n10_qa_privileged_read(uuid)`, because `authenticated` has EXECUTE on a `SECURITY DEFINER` RPC. Read-only inspection confirms its definition restricts the owner to `auth.uid() = p_expected_uid` and requires `mmh_n10_qa_security.mfa_ok()`; the function does not exist in production. This does **not** establish an actual data leak, but the old QA permission surface needs an explicit retirement or acceptance decision before final security cleanup. Advisor reference: https://supabase.com/docs/guides/database/database-linter?lint=0029_authenticated_security_definer_function_executable .
+
+Staging also reports **WARN** for disabled leaked-password protection (verify plan support and safe rollout without touching production login). RLS-enabled/no-policy INFO notices refer to existing private backend-only QA tables, not to the absent Vault schema. No Staging security settings, functions, policies or Auth options were changed.
+
+**Readiness verdict:** candidate SQL and preflight documents prepared; migration blocked, no real secret/credential QA run. PR must remain Draft, release switches OFF, N10 not accepted, V11 not started.
