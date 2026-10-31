@@ -29,7 +29,24 @@ function normalizedPhrase(v:unknown){if(typeof v!=='string'||v.length>250)return
 function sameHex(a:unknown,b:unknown){if(typeof a!=='string'||typeof b!=='string'||a.length!==64||b.length!==64)return false;let d=0;for(let i=0;i<64;i++)d|=a.charCodeAt(i)^b.charCodeAt(i);return d===0;}
 async function parseBody(req:Request){const length=req.headers.get('content-length');if(length&&(Number(length)>4000||!/^\d+$/.test(length)))throw Error('size');const reader=req.body?.getReader();if(!reader)throw Error('body');let n=0;const parts=[];try{while(true){const {done,value}=await reader.read();if(done)break;n+=value.byteLength;if(n>4000){await reader.cancel();throw Error('size');}parts.push(value)}}finally{reader.releaseLock()}const bytes=new Uint8Array(n);let x=0;for(const p of parts){bytes.set(p,x);x+=p.length}const d=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes));if(!d||typeof d!=='object'||Array.isArray(d))throw Error('body');return d;}
 function authClient(){return createClient(BASE,ANON,{auth:{persistSession:false,detectSessionInUrl:false,autoRefreshToken:false}});}
-async function verifyPassword(email:string,pwd:string,uid:string){const client=authClient();const {data,error}=await client.auth.signInWithPassword({email,password:pwd});if(error||data.user?.id!==uid||!data.session)return null;const {data:check,error:bad}=await client.auth.getUser(data.session.access_token);if(bad||check.user?.id!==uid)return null;return data.session;}
+async function verifyPassword(email:string,pwd:string,uid:string){
+ const client=authClient();
+ let keepSession=false;
+ try{
+  const {data,error}=await client.auth.signInWithPassword({email,password:pwd});
+  if(error||data?.user?.id!==uid||!data.session?.access_token)return null;
+  const {data:check,error:bad}=await client.auth.getUser(data.session.access_token);
+  if(bad||check.user?.id!==uid)return null;
+  keepSession=true;
+  return data.session;
+ }catch(_){return null;}
+ finally{
+  // On a partial signup grant or mismatched owner, revoke any session
+  // the isolated client may have created. Keep only a validated session
+  // that is immediately returned to the authenticated caller.
+  if(!keepSession){try{await client.auth.signOut({scope:'local'});}catch(_){}}
+ }
+}
 async function findProductionUser(username:string,allowLinkedEmail=false){
   const {data:links,error:mapErr}=await admin.from('mmh_n10a740_username_links').select('user_id').eq('username_key',username).limit(2);
   if(mapErr||links?.length!==1)return null;
