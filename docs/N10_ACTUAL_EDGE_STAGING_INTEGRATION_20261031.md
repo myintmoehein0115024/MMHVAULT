@@ -37,3 +37,26 @@ The three deployed staging source trees are in the independent `myintmoehein0115
 In the isolated Staging QA page, login with an existing **Staging test account only**, verify six-digit TOTP, then click **05 · 验证实际 Edge · 6 项**. Expected AAL1 result is HTTP 403 and AAL2 HTTP 200 for each of the three functions. Send only the result text/screenshot, never passwords, TOTP, QR, signed tokens or recovery phrases.
 
 **Release decision remains HOLD** until real Stage 05 test, final production dependencies and explicit scoped production authorization.
+
+
+## 2026-10-31 Stage 05 failure investigation and v2 remediation
+
+The first genuine Stage 05 run returned **2/6 PASS**:
+- AI: AAL1 and AAL2 returned HTTP 503 `MFA_CHECK_UNAVAILABLE`.
+- Push: AAL1 HTTP 403 and AAL2 HTTP 200, **2/2 PASS**.
+- Phrase: AAL1 and AAL2 returned HTTP 503 `mfa_state_unavailable`.
+
+Staging logs corroborate HTTP statuses without exposing JWTs, credentials, recovery words or personal data. These failures are authorization-assurance determination failures, not evidence of unauthorized data access; both services failed closed.
+
+The AI and phrase candidates used `auth.mfa.getAuthenticatorAssuranceLevel(jwt)` inside stateless Edge workers, whereas the previously successful isolated Staging 6/6 decision harness and the Push integration relied on verified Auth user factors and JWT AAL. The SDK's assurance response could be absent or unsuitable in this flow; the original 503 did not distinguish SDK error from missing factor payload. **Exact low-level cause remains unconfirmed**; the code was revised to eliminate the redundant SDK dependency.
+
+New shared helper `evaluateVerifiedAuthUserMfa(jwt,verifiedUser,base)`, invoked **only after verifying the same bearer with Auth**, checks the JWT subject, issuer, safe future expiry and AAL against the server-validated user's verified factors. No factor inventory, mismatched UID/issuer/expiry or unknown AAL is ever interpreted as unenrolled. Enrolled AAL1 => required; enrolled AAL2 => allowed; verified unenrolled AAL1 => allowed. The prior `evaluateMfaAssurance` primitive remains unit tested.
+
+Staging QA services were redeployed:
+- `mmh-n10-qa-ai-integration-20261031` v2 ACTIVE, gateway JWT true.
+- `mmh-n10-qa-phrase-integration-20261031` v2 ACTIVE, gateway JWT false with manual Auth verification.
+- Push remains v1 ACTIVE and unchanged, with verified-factor SQL gate.
+
+The QA copies still stop **immediately after the actual candidate's authentication and MFA gate**, before any financial queries, Push send or recovery-phrase data access. Helper source is byte-identical to the feature branch. Post-change feature CI: **19/19 Python static, 38/38 assurance tests, 52/52 privileged gate tests, 36/36 responsive browser** PASS. Staging QA private objects: 0. Original four synthetic QA rows unchanged.
+
+**Status: v2 deployed but new genuine Stage 05 6/6 acceptance NOT YET RUN.** Ask for a single Stage 05 retry using the current page/session. Do not redo earlier 17 cases. This work did not modify production code, secrets, DB policies, finance data or active production Edge versions.
