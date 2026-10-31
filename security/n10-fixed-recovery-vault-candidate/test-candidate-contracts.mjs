@@ -12,7 +12,26 @@ const sql=readFileSync(resolve(root,'docs/sql/n10_fixed_recovery_vault_STAGING_C
 const preflight=readFileSync(resolve(root,'docs/sql/n10_fixed_recovery_READ_ONLY_PREFLIGHT.sql'),'utf8');
 const syntheticVerifier=readFileSync(resolve(root,'docs/sql/n10_fixed_recovery_verifier_SYNTHETIC_STAGING_ONLY.sql'),'utf8');
 const signup=readFileSync(resolve(here,'username-signup-integration-NOT_DEPLOYED.ts'),'utf8');
+const staging=readFileSync(resolve(here,'qa-staging-recovery-NOT_DEPLOYED.ts'),'utf8');
 const cases=[
+ ['Staging QA adapter is disabled and hard-pinned to isolation',()=>{
+   assert.match(staging,/const RECOVERY_RELEASE_ENABLED=false/);
+   assert.match(staging,/const EXPECTED_BASE='https:\/\/ldivswlhtgmznzwhzsoi\.supabase\.co'/);
+   assert.match(staging,/if\(BASE!==EXPECTED_BASE\|\|SERVICE\.length<20/);
+   assert.match(staging,/const ORIGIN='https:\/\/myintmoehein0115024\.github\.io'/);
+   assert.doesNotMatch(staging,/const ORIGIN=.*mmhvault\.com/);
+   assert.match(staging,/N10_FIXED_RECOVERY_QA_HMAC_KEY/);
+   assert.doesNotMatch(staging,/Deno\.env\.get\('N10A740_RATE_HMAC_KEY'\)/);
+   assert.match(staging,/N10_FIXED_RECOVERY_QA_UID_ALLOWLIST/);
+   assert.match(staging,/ALLOWED_QA_UIDS\.length===2/);
+   assert.match(staging,/new Set\(ALLOWED_QA_UIDS\)\.size===2/);
+   assert.match(staging,/!ALLOWED_QA_UIDS\.includes\(user\.id\)/);
+   assert.match(staging,/mmhvault_auth_kind!=='username_only_staging'/);
+   assert.match(staging,/user\.app_metadata\.mmhvault_username\.startsWith\('qa_'\)/);
+   assert.match(staging,/no-mail\.mmhvault\.invalid/);
+   assert.equal((staging.match(/await verifiedUser\(req\)/g)||[]).length,3);
+   assert.equal((staging.match(/await liveSession\(user\.id,sessionId\)/g)||[]).length,3);
+ }],
  ['recovery Edge release disabled',()=>assert.match(edge,/const RECOVERY_RELEASE_ENABLED=false/)],
  ['signup candidate release disabled',()=>assert.match(signup,/const RELEASE_ENABLED=false/)],
  ['verified bearer proof',()=>assert.match(edge,/admin\.auth\.getUser\(m\[1\]\)/)],
