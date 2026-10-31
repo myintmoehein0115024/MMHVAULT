@@ -34,6 +34,22 @@ const cases=[
    assert.equal((staging.match(/await verifiedUser\(req\)/g)||[]).length,3);
    assert.equal((staging.match(/await liveSession\(user\.id,sessionId\)/g)||[]).length,3);
  }],
+ ['Staging QA synthetic 10-word initialization requires authenticated proof',()=>{
+   assert.match(staging,/import \{wordlist\} from 'npm:@scure\/bip39@1\.6\.0\/wordlists\/english'/);
+   assert.match(staging,/crypto\.getRandomValues\(new Uint16Array\(10\)\)/);
+   assert.match(staging,/if\(action!=='backup_existing'&&action!=='reveal'&&action!=='qa_initialize'\)/);
+   assert.match(staging,/const quotaStatus=await quota\(user\.id\)/);
+   assert.match(staging,/if\(!await provePassword\(user,body\.password\)\)/);
+   assert.match(staging,/const refreshedAssurance=await verifiedUser\(req\)/);
+   assert.match(staging,/const prior=await admin\.from\('mmh_n10a769_recovery_phrases'\)/);
+   assert.match(staging,/if\(prior\.data\?\.length\)return out\(origin,'qa_already_initialized',409\)/);
+   assert.match(staging,/const phrase=createSyntheticPhrase\(\)/);
+   assert.match(staging,/const verifier=await hmac\('phrase:'\+user\.id\+':'\+phrase\)/);
+   assert.match(staging,/\.insert\(\{user_id:user\.id,verifier,version:1\}\)/);
+   assert.match(staging,/return out\(origin,'qa_phrase_initialized',200/);
+   assert.match(staging,/expires_in_seconds:45/);
+   assert.match(staging,/const RECOVERY_RELEASE_ENABLED=false/);
+ }],
  ['recovery Edge release disabled',()=>assert.match(edge,/const RECOVERY_RELEASE_ENABLED=false/)],
  ['signup candidate release disabled',()=>assert.match(signup,/const RELEASE_ENABLED=false/)],
  ['verified bearer proof',()=>assert.match(edge,/admin\.auth\.getUser\(m\[1\]\)/)],
