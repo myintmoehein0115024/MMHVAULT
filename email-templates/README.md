@@ -36,3 +36,12 @@ This is a branding-only change. The sending address still displays Supabase Auth
 - Keep confirmation links untouched, and disable click tracking / link rewriting in custom SMTP.
 - Preview in Gmail and mobile; HTML tables and inline styles provide broad email-client support.
 - Never claim the account was verified just because the message was delivered.
+
+## Responsive email v2 (2026-10-31)
+- All 12 template bodies are fluid-width with a 600px desktop cap and mobile-optimized widths, paddings, fonts, and action buttons at 600px and 360px.
+- The core layout uses presentation tables and inline styles so it remains legible when a mail client ignores <style> media queries; the optional media CSS enhances Gmail mobile and Apple Mail.
+- Remote logo URL is the existing public MMHVAULT asset; the actual Gmail desktop delivery was verified by the project owner before this revision.
+- Security action buttons still use the unmodified `{{ .ConfirmationURL }}`. The reauthentication code still uses `{{ .Token }}`. Each source template must be pasted into its matching Supabase Auth email template to go live.
+- **No hosted Supabase template was changed by editing GitHub files.** Owner should save and send one fresh test email from their own account after replacing the Reset Password template. Check Gmail on a phone and a desktop, plus Apple Mail if available.
+- The Gmail inbox **sender avatar is NOT controlled by these HTML templates**. A verified domain with SPF/DKIM is not sufficient for a Gmail BIMI logo. Google requires DMARC enforcement and a paid third-party VMC/CMC. Do not add BIMI DNS records or change DMARC enforcement without a separate authenticated-mail audit. Existing sending and DNS stay as-is.
+
