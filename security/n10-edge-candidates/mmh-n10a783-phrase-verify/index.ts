@@ -16,8 +16,8 @@ async function checkMfa(jwt:string,user:any){
  if(!verifier)return 'unavailable';
  const {data,error}=await verifier.auth.mfa.getAuthenticatorAssuranceLevel(jwt);
  if(error||!data)return 'unavailable';
- const hasVerifiedFactor=Array.isArray(user?.factors)&&
-   user.factors.some((factor:any)=>factor?.status==='verified');
+ if(!Array.isArray(user?.factors))return 'unavailable';
+ const hasVerifiedFactor=user.factors.some((factor:any)=>factor?.status==='verified');
  return evaluateMfaAssurance(data,hasVerifiedFactor);
 }
 
