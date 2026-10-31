@@ -5,6 +5,8 @@
 import {createClient} from 'npm:@supabase/supabase-js@2.57.4';
 import {evaluateVerifiedAuthUserMfa} from './mfa-assurance.mjs';
 const BASE=Deno.env.get('SUPABASE_URL')||'';
+// A reviewed code change alone must never enable secret disclosure.
+const RECOVERY_RELEASE_ENABLED=false; // promote only after isolated signed-token QA and release approval
 const ANON=Deno.env.get('SUPABASE_ANON_KEY')||'';
 const SERVICE=Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')||'';
 const RATEKEY=Deno.env.get('N10A740_RATE_HMAC_KEY')||'';
@@ -29,9 +31,6 @@ function normalizePhrase(v:unknown){
  return /^([a-z]{2,13} ){9}[a-z]{2,13}$/.test(normalized)?normalized:null;
 }
 function hex(bytes:Uint8Array){return Array.from(bytes,x=>x.toString(16).padStart(2,'0')).join('');}
-async function hash(value:string){
- return hex(new Uint8Array(await crypto.subtle.digest('SHA-256',enc.encode(value))));
-}
 async function hmac(value:string){
  const key=await crypto.subtle.importKey('raw',enc.encode(RATEKEY),
   {name:'HMAC',hash:'SHA-256'},false,['sign']);
@@ -44,13 +43,37 @@ function equal64(a:unknown,b:unknown){
 }
 async function quota(userId:string,action:string){
  const {data,error}=await admin.rpc('mmh_n10_recovery_take_attempt',{
-  p_bucket:await hash('n10-fixed-recovery:'+action+':'+userId),
+  p_bucket:await hmac('n10-fixed-recovery:'+action+':'+userId),
   p_limit:5,p_window_seconds:900
  });
- return !error&&data===true;
+ // Fail closed if rate infrastructure is unavailable; do not return a
+ // misleading "too many attempts" response for an infrastructure error.
+ if(error||typeof data!=='boolean')return 'unavailable';
+ return data===true?'allowed':'exceeded';
+}
+async function readBoundedJson(req:Request):Promise<Record<string,unknown>>{
+ const h=req.headers.get('content-length');
+ if(h!==null&&(!/^\d+$/.test(h)||Number(h)>1200))throw Error('oversize');
+ if(!req.body)throw Error('missing_body');
+ const reader=req.body.getReader();const chunks:Uint8Array[]=[];
+ let total=0;
+ try{
+  while(true){
+   const {done,value}=await reader.read();
+   if(done)break;
+   total+=value.byteLength;
+   if(total>1200){await reader.cancel('too_large');throw Error('oversize');}
+   chunks.push(value);
+  }
+ }finally{reader.releaseLock();}
+ const bytes=new Uint8Array(total);let pos=0;
+ for(const chunk of chunks){bytes.set(chunk,pos);pos+=chunk.byteLength;}
+ const body:unknown=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes));
+ if(!body||typeof body!=='object'||Array.isArray(body))throw Error('invalid_json');
+ return body as Record<string,unknown>;
 }
 async function provePassword(user:{id:string,email?:string|null},password:unknown){
- if(typeof password!=='string'||password.length<6||password.length>128||!user.email||!ANON)return false;
+ if(typeof password!=='string'||password.length<6||password.length>20||!user.email||!ANON)return false;
  const client=createClient(BASE,ANON,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
  try{
   const {data,error}=await client.auth.signInWithPassword({email:user.email,password});
@@ -82,19 +105,14 @@ Deno.serve(async(req:Request)=>{
  if(origin!==ORIGIN)return out(origin,'origin_denied',403);
  if(req.method==='OPTIONS')return new Response(null,{status:204,headers:out(origin,'ok').headers});
  if(req.method!=='POST')return out(origin,'method_denied',405);
+ if(!RECOVERY_RELEASE_ENABLED)return out(origin,'recovery_service_not_released',503);
  if(SERVICE.length<20||ANON.length<20||RATEKEY.length<32||!BASE.startsWith('https://'))
   return out(origin,'unavailable',503);
  if(!/^application\/json(?:\s*;|$)/i.test(req.headers.get('Content-Type')||''))
   return out(origin,'json_required',415);
- const len=Number(req.headers.get('content-length')||0);
- if(len>1200)return out(origin,'bad_request',400);
  let body:Record<string,unknown>;
- try{
-  const raw=await req.text();
-  if(raw.length>1200)return out(origin,'bad_request',400);
-  body=JSON.parse(raw);
-  if(!body||typeof body!=='object'||Array.isArray(body))throw Error('bad');
- }catch(_){return out(origin,'bad_request',400);}
+ try{body=await readBoundedJson(req)}
+ catch(_){return out(origin,'bad_request',400);}
  const authenticated=await verifiedUser(req);
  if(authenticated.state==='unauthorized')return out(origin,'sign_in_required',401);
  if(authenticated.state==='required')return out(origin,'mfa_required',403);
@@ -107,7 +125,9 @@ Deno.serve(async(req:Request)=>{
   return error||typeof data!=='boolean'?out(origin,'unavailable',503):out(origin,'backup_status',200,{backed_up:data});
  }
  if(action!=='backup_existing'&&action!=='reveal')return out(origin,'unknown_action',400);
- if(!await quota(user.id,String(action)))return out(origin,'too_many_attempts',429);
+ const quotaStatus=await quota(user.id,String(action));
+ if(quotaStatus==='unavailable')return out(origin,'rate_unavailable',503);
+ if(quotaStatus!=='allowed')return out(origin,'too_many_attempts',429);
  if(!await provePassword(user,body.password))return out(origin,'invalid_credentials',401);
  if(action==='backup_existing'){
   const phrase=normalizePhrase(body.phrase);
