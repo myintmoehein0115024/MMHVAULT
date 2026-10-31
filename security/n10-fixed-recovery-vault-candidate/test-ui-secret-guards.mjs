@@ -85,7 +85,7 @@ const cases=[
    ctx.$=()=>({closest:()=>({hidden:true})});
    assert.equal(alive(2,'synthetic-A'),false);
    assert.match(src,/function clearMfa\(\)\{mfaEpoch\+=1;/);
-   assert.match(src,/if\(!mfaFlowActive\(epoch,user\.id\)\)\{[\s\S]*?await client\(\)\.auth\.mfa\.unenroll\(\{factorId:data\.id\}\);[\s\S]*?return;[\s\S]*?\}\s*pendingFactor=data\.id;pendingSecret=/);
+   assert.match(src,/if\(!mfaFlowActive\(epoch,user\.id\)\)\{[\s\S]*?await client\(\)\.auth\.mfa\.unenroll\(\{factorId:data\.id\}\);[\s\S]*?return;[\s\S]*?\}\s*pendingFactor=data\.id;pendingFactorOwner=user\.id;pendingSecret=/);
    assert.match(src,/hideKey\(\);clearMfa\(\);resetSensitiveState\(\);sections\.forEach\(collapse\)/);
  }],
  ['MFA validation never reports success after expired modal or switched account',()=>{
