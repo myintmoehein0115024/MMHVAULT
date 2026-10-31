@@ -120,3 +120,18 @@ An independent, single-purpose Auth QA page `myintmoehein0115024/MMHVAULT-Auth-Q
 Backend static security contracts now include the retired 410-only endpoint (**31/31 assertions passed in isolated JS source harness**). GitHub offline CI checks the tombstone's Deno file too; actual Deno/GitHub Actions results for the new head were not independently confirmed here.
 
 **Remaining release blockers:** TOTP-enrolled AAL1/AAL2 signed acceptance; Vault orphan-free cleanup evidence blocked by the earlier tool safety check (must not bypass); explicit review of remaining Staging QA assets and separate production N10 authorization. Neither N10 production nor V11 has been enabled.
+
+## N10 supplemental read-only structural audit and production-project pin
+
+- Following the owner-completed synthetic A/B and TOTP QA cleanup, read-only **Staging pg_catalog metadata** independently confirmed:
+  1. `mmh_n10_privacy.mmh_n10_recovery_secret_gc` exists, is **enabled**, and is `AFTER DELETE ON mmh_n10_privacy.recovery_backup_index FOR EACH ROW`, executing `mmh_n10_privacy.cleanup_recovery_vault_secret()`.
+  2. `mmh_n10_privacy.recovery_backup_index.user_id` and `public.mmh_n10a769_recovery_phrases.user_id` both have FK `REFERENCES auth.users(id) ON DELETE CASCADE`.
+  3. The reviewed migration source for the cleanup function executes `DELETE FROM vault.secrets WHERE id=OLD.secret_id`, but the actual decryption/secret catalog after test-user removal has **NOT** been inspected and **must not** be treated as proven clean. A preceding direct sensitive Vault records query was blocked; do not route around the safety control. **Orphan-free deletion remains UNVERIFIED.**
+- Staging Supabase security advisor shows:
+  - `rls_enabled_no_policy` INFO for a set of intentional deny-by-default tables, including private recovery tables; not evidence of public access.
+  - `authenticated_security_definer_function_executable` WARN on existing `public.mmh_n10_qa_privileged_read`. Its function definition was inspected read-only: it verifies `auth.uid() = p_expected_uid` and `mmh_n10_qa_security.mfa_ok()` before returning a **boolean existence** check. It is related to older signed QA; **left unchanged** to avoid breaking other tests. Not a blanket assurance of safety.
+  - `auth_leaked_password_protection` WARN: leaked-password protection disabled in this Staging Auth project. Consult [Supabase password-security guidance](https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection) before release; Staging settings were not modified.
+- Draft-only production recovery Edge candidate `security/n10-fixed-recovery-vault-candidate/index.ts` was tightened: `EXPECTED_BASE='https://vrypucmyrztxgiqhjspd.supabase.co'` is now checked **exactly** (instead of allowing any HTTPS Supabase project with a guessed origin); `ORIGIN='https://mmhvault.com'` fixed. Separate Auth-Staging QA adapter remains independent. The candidate is still hard `RECOVERY_RELEASE_ENABLED=false`, and no deployment to production occurred.
+- Added static CI assertion enforcing this production project pin and disabled release. Restricted local pure-JS test harness re-ran **32/32 security-contract checks PASS** on the Draft's updated GitHub source; neither live GitHub Actions CI outcome nor Deno typecheck has been independently verified.
+
+**Remaining hard production N10 gates:** independently authorized proof of Vault post-user-deletion cleanup (without bypassing denied sensitive query); signed MFA AAL1-denied/AAL2-allowed tested against **the exact fixed-recovery backup/reveal service** rather than just the isolated MFA checker; release authorization and rollback readiness. Current Draft PR must not be merged before these gates.
