@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080" fill="none">
+<defs>
+ <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#020b18"/><stop offset=".35" stop-color="#101e31"/><stop offset=".64" stop-color="#282735"/><stop offset=".83" stop-color="#342c2b"/><stop offset="1" stop-color="#07111d"/></linearGradient>
+ <radialGradient id="dawn" cx="50%" cy="50%" r="50%"><stop stop-color="#fff0c6" stop-opacity=".95"/><stop offset=".13" stop-color="#ffdba5" stop-opacity=".83"/><stop offset=".32" stop-color="#daa36b" stop-opacity=".48"/><stop offset=".68" stop-color="#a27861" stop-opacity=".13"/><stop offset="1" stop-color="#8a7481" stop-opacity="0"/></radialGradient>
+ <radialGradient id="atmo" cx="50%" cy="50%" r="50%"><stop stop-color="#6d859e" stop-opacity=".36"/><stop offset="1" stop-color="#2a4465" stop-opacity="0"/></radialGradient>
+ <linearGradient id="mountainFar" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#435062"/><stop offset="1" stop-color="#152334"/></linearGradient>
+ <linearGradient id="mountainNear" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#17273a"/><stop offset="1" stop-color="#070f1c"/></linearGradient>
+ <linearGradient id="water" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#253344" stop-opacity=".93"/><stop offset=".3" stop-color="#101b2a"/><stop offset="1" stop-color="#06111e"/></linearGradient>
+ <linearGradient id="reflection" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#ffe2a8" stop-opacity=".78"/><stop offset=".55" stop-color="#e0a766" stop-opacity=".16"/><stop offset="1" stop-color="#efb76b" stop-opacity="0"/></linearGradient>
+ <linearGradient id="ring" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f9dba1" stop-opacity=".05"/><stop offset=".18" stop-color="#f2d2a1" stop-opacity=".78"/><stop offset=".34" stop-color="#fff1ce" stop-opacity=".52"/><stop offset=".57" stop-color="#d8a878" stop-opacity=".18"/><stop offset=".85" stop-color="#e9c897" stop-opacity=".56"/><stop offset="1" stop-color="#f2d1a1" stop-opacity=".04"/></linearGradient>
+ <linearGradient id="facade" x1="0" y1="0" x2=".8" y2="1"><stop stop-color="#c2c9cc" stop-opacity=".15"/><stop offset=".34" stop-color="#475262" stop-opacity=".24"/><stop offset=".82" stop-color="#111927" stop-opacity=".58"/><stop offset="1" stop-color="#0a131f" stop-opacity=".18"/></linearGradient>
+ <filter id="glow"><feGaussianBlur stdDeviation="12"/></filter>
+ <filter id="soft"><feGaussianBlur stdDeviation="36"/></filter>
+ <filter id="grain" x="0" y="0" width="100%" height="100%"><feTurbulence baseFrequency=".7" numOctaves="2" type="fractalNoise" seed="7"/><feColorMatrix type="saturate" values="0"/><feComponentTransfer><feFuncA type="linear" slope=".055"/></feComponentTransfer></filter>
+ <pattern id="streaks" width="78" height="36" patternUnits="userSpaceOnUse"><path d="M0 7H29 M45 29H70" stroke="#f3cd95" stroke-opacity=".07" stroke-width="1"/></pattern>
+</defs>
+<rect width="1920" height="1080" fill="url(#sky)"/>
+<ellipse cx="860" cy="205" rx="1150" ry="370" fill="url(#atmo)" opacity=".48"/>
+<ellipse cx="894" cy="647" rx="550" ry="345" fill="url(#dawn)"/>
+<ellipse cx="900" cy="675" rx="180" ry="58" fill="#ffe9bc" opacity=".35" filter="url(#soft)"/>
+<!-- orbital architecture: luminous sweeping dome, intentionally not a science-fiction interface -->
+<g opacity=".81">
+ <path d="M1297 -160C1086 34 995 228 977 426C960 601 1017 736 1090 822" stroke="url(#ring)" stroke-width="3.5"/>
+ <path d="M1332 -163C1098 24 1007 235 988 423C970 603 1033 735 1109 835" stroke="#e5c898" stroke-opacity=".22" stroke-width="17"/>
+ <path d="M1373 -170C1179 -6 1044 232 1029 425C1019 573 1087 754 1171 842" stroke="#f5d9aa" stroke-opacity=".16" stroke-width="1.3"/>
+ <path d="M1769 -177C1551 -10 1414 195 1424 425C1433 629 1522 748 1590 837" stroke="#f3ce9e" stroke-opacity=".13" stroke-width="1.4"/>
+ <path d="M1321 -158C1507 16 1649 240 1689 502C1719 700 1666 820 1630 880" stroke="#f2d1a1" stroke-opacity=".12" stroke-width="2"/>
+</g>
+<!-- glass premium-bank architectural fins -->
+<g>
+ <path d="M1520 -90L1805 -50L1890 892L1551 856Z" fill="url(#facade)" stroke="#e5caa8" stroke-opacity=".22" stroke-width="1.5"/>
+ <path d="M1705 -85L1791 -53L1884 896L1763 879Z" fill="#0a101b" fill-opacity=".47" stroke="#eccd9b" stroke-opacity=".10"/>
+ <path d="M1805 -72L1869 -45L1935 862L1890 858Z" fill="#1d222b" fill-opacity=".68" stroke="#eed2ac" stroke-opacity=".11"/>
+ <path d="M1555 -77L1580 856 M1646 -65L1680 865 M1752 -50L1788 884" stroke="#d8d4c0" stroke-opacity=".13"/>
+ <path d="M1531 90L1816 128 M1540 263L1836 313 M1548 450L1851 496 M1554 632L1872 663" stroke="#e5c193" stroke-opacity=".13"/>
+ <path d="M1506 -80L1546 854" stroke="#ffe0a3" stroke-opacity=".31" stroke-width="2"/>
+</g>
+<!-- distant range, three layers to evoke the template mountain lake -->
+<path d="M0 590L82 571L175 536L258 563L337 525L403 550L483 495L563 533L633 507L700 543L764 490L832 528L899 495L977 554L1039 515L1115 537L1207 505L1270 551L1372 501L1456 552L1535 519L1610 561L1680 524L1764 554L1850 506L1920 545V828H0Z" fill="#536174" fill-opacity=".55"/>
+<path d="M0 626L103 581L172 611L260 573L344 624L429 589L509 624L580 569L663 632L761 578L852 622L943 561L1030 635L1100 588L1185 633L1292 583L1355 641L1454 599L1553 651L1637 595L1745 631L1825 586L1920 620V849H0Z" fill="url(#mountainFar)"/>
+<path d="M0 683L95 635L186 659L273 611L361 662L455 622L565 671L640 621L726 685L840 628L927 676L1041 611L1135 671L1210 636L1322 691L1440 623L1551 686L1643 644L1722 682L1820 621L1920 678V891H0Z" fill="url(#mountainNear)"/>
+<!-- golden vanishing point and horizon -->
+<path d="M0 720C450 724 706 694 891 693C1154 691 1480 713 1920 719V1080H0Z" fill="url(#water)"/>
+<path d="M0 720Q608 719 891 691T1920 721" stroke="#e6b87e" stroke-opacity=".34" stroke-width="2"/>
+<ellipse cx="894" cy="711" rx="130" ry="8" fill="#fbe3b0" opacity=".72" filter="url(#glow)"/>
+<path d="M884 704L904 704L1090 1080H652Z" fill="url(#reflection)" opacity=".54"/>
+<path d="M890 703L897 703L934 1080H857Z" fill="url(#reflection)" opacity=".7"/>
+<g stroke="#ffdba7" stroke-linecap="round">
+ <path d="M756 733h274" opacity=".45" stroke-width="2"/><path d="M800 746h199" opacity=".35" stroke-width="3"/>
+ <path d="M760 764h272" opacity=".30" stroke-width="2"/><path d="M710 785h358" opacity=".22" stroke-width="4"/>
+ <path d="M828 813h159" opacity=".45" stroke-width="2"/><path d="M660 832h462" opacity=".14" stroke-width="2"/>
+ <path d="M777 865h263" opacity=".23" stroke-width="3"/><path d="M647 896h489" opacity=".13" stroke-width="4"/>
+ <path d="M851 931h136" opacity=".20" stroke-width="3"/><path d="M704 980h382" opacity=".10" stroke-width="2"/>
+</g>
+<rect y="721" width="1920" height="359" fill="url(#streaks)" opacity=".85"/>
+<!-- glass terrace foreground: restrained polished stone edge -->
+<path d="M0 902L626 875L1126 898L1920 844V1080H0Z" fill="#07111e" fill-opacity=".68"/>
+<path d="M0 904L626 876L1126 899L1920 845" stroke="#e4ba80" stroke-opacity=".25" stroke-width="2"/>
+<path d="M0 1010L721 949L1260 962L1920 904" stroke="#8192a3" stroke-opacity=".09" stroke-width="2"/>
+<rect width="1920" height="1080" filter="url(#grain)" opacity=".28"/>
+</svg>
