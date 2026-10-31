@@ -4,6 +4,8 @@
 const $=id=>document.getElementById(id);
 const root=$('mmhA783SecurityCenter');if(!root)return;
 const API='https://vrypucmyrztxgiqhjspd.supabase.co/functions/v1/mmh-n10a783-phrase-verify';
+// Candidate only: endpoint must not be used in production before Vault QA and release.
+const VAULT_API='https://vrypucmyrztxgiqhjspd.supabase.co/functions/v1/mmh-n10-fixed-recovery';
 
 // N10 signed-token staging, production RLS and owner-account login gates have passed.
 // Enrollment is optional and requires explicit loss-risk and backup acknowledgments.
@@ -14,6 +16,8 @@ const A783_DYNAMIC_ZH={"Not linked":"未绑定","Permanent ten-word recovery is 
 Object.assign(A783_STATIC_ZH,{"Show setup key":"显示设置密钥","Hide setup key":"隐藏设置密钥","I have backed up this authenticator secret securely or configured it on a second trusted device. I understand that losing it may lock me out of my account.":"我已安全备份验证器密钥，或已在第二台可信设备设置验证器。我明白丢失验证器可能导致无法登录。"});
 Object.assign(A783_STATIC_ZH,{"Show words":"显示恢复词","Hide words":"隐藏恢复词","Recovery words stay hidden while typing. Show only in private.":"输入时默认隐藏恢复词，仅在私人环境中显示。"});
 Object.assign(A783_STATIC_ZH,{"Authenticator setup is temporarily paused until recovery and finance protection checks are complete.":"账户恢复及财务数据安全验收期间，暂缓开放新的身份验证器绑定。"});
+Object.assign(A783_DYNAMIC_ZH,{"Your fixed original recovery key is securely backed up. Confirm your password to view it.":"原来的固定恢复密钥已安全加密备份。请输入当前密码查看。","One-time setup: enter your previously saved original ten words and password to protect this SAME key.":"首次设置：输入之前保存的十词及密码，为同一组密钥建立加密备份。","Encrypted recovery-key backup is unavailable. Existing original-key verification still works.":"加密密钥备份服务暂时不可用，原有恢复词验证仍可使用。","Enter the original ten words and current password.":"请输入原始十词及当前密码。","Your original ten words have been securely backed up without being changed.":"原有十词已安全加密备份，没有更换。","Could not back up the original key. No recovery words were changed.":"原始密钥备份未完成，恢复词没有被更换。","Enter your current password to view the fixed original key.":"请输入当前密码查看固定的原始密钥。","Original recovery key verified. It will automatically hide after 45 seconds.":"原始恢复密钥已解锁，45秒后自动隐藏。","Unable to unlock the recovery key. Check your password and authentication.":"无法解锁恢复密钥，请核对密码及身份验证。","This private key view automatically closes after 45 seconds. Never share these words or the QR code.":"此密钥视图45秒后自动关闭，请勿分享恢复词或二维码。"});
+Object.assign(A783_STATIC_ZH,{"Confirm current password":"验证当前密码","Secure my original 10 words":"加密备份现有十词","View original 10 words":"查看原始十词"});
 function a783IsZh(){return (localStorage.getItem('mmhvault_language_v3363')||document.documentElement.lang||'').toLowerCase().startsWith('zh');}
 function a783Text(en){return a783IsZh()?(A783_DYNAMIC_ZH[en]||A783_STATIC_ZH[en]||en):en;}
 const totpSetup=$('mmhA783TotpSetup');
@@ -23,6 +27,16 @@ if(totpSetup&&!$('mmhA783TotpBackupConfirmed')){
  backupLabel.append(backupBox,document.createTextNode(' I have backed up this authenticator secret securely or configured it on a second trusted device. I understand that losing it may lock me out of my account.'));
  const confirmButton=$('mmhA783TotpConfirm');confirmButton?.parentElement?.before(backupLabel);
 }
+// Vault UI is constructed once under the existing authenticated recovery modal.
+const vaultRecovery=$('mmhA783Recovery');
+const vaultBox=document.createElement('div');
+vaultBox.id='mmhN10VaultRecoveryControls';vaultBox.hidden=true;
+vaultBox.innerHTML='<p class="mmh-a783-note" id="mmhN10VaultInfo"></p>'
+ +'<label class="mmh-a783-label" for="mmhN10VaultPassword">Confirm current password</label>'
+ +'<input id="mmhN10VaultPassword" type="password" autocomplete="current-password" maxlength="128" placeholder="Current password">'
+ +'<div class="mmh-a783-actions"><button type="button" class="btn" id="mmhN10VaultBackup" hidden>Secure my original 10 words</button>'
+ +'<button type="button" class="btn primary" id="mmhN10VaultReveal" hidden>View original 10 words</button></div>';
+vaultRecovery?.insertBefore(vaultBox,$('mmhA783KeyDisplay'));
 const a783FixedNodes=[];
 root.querySelectorAll('h3,p,b,strong,span,button,label').forEach(el=>{
   const en=el.textContent.trim();
@@ -52,10 +66,10 @@ document.addEventListener('click',event=>{
  if(event.target.closest('.language-choice-v3363'))setTimeout(a783RenderLanguage,0);
 });
 
-let owner='',busy=false,pendingFactor='',pendingSecret='',factorId='',verifiedPhrase='',clearTimer=null,usernameOnly=false;
+let owner='',busy=false,pendingFactor='',pendingSecret='',factorId='',verifiedPhrase='',clearTimer=null,usernameOnly=false,vaultMode='unknown';
 function client(){return typeof db!=='undefined'?db:null;}
 function label(id,v){const el=$(id);if(el){el.dataset.mmhA783DynamicEn=v;el.textContent=a783Text(v);}}
-function hideKey(){verifiedPhrase='';$('mmhA783KeyDisplay').hidden=true;$('mmhA783KeyQr').replaceChildren();$('mmhA783KeyWords').replaceChildren();$('mmhA783Phrase').value='';$('mmhA783Phrase').type='password';$('mmhA783PhraseToggle').setAttribute('aria-pressed','false');a783Action('mmhA783PhraseToggle','Show words');if(clearTimer)clearTimeout(clearTimer);}
+function hideKey(){const field=$('mmhN10VaultPassword');if(field)field.value='';verifiedPhrase='';$('mmhA783KeyDisplay').hidden=true;$('mmhA783KeyQr').replaceChildren();$('mmhA783KeyWords').replaceChildren();$('mmhA783Phrase').value='';$('mmhA783Phrase').type='password';$('mmhA783PhraseToggle').setAttribute('aria-pressed','false');a783Action('mmhA783PhraseToggle','Show words');if(clearTimer)clearTimeout(clearTimer);}
 function clearMfa(){pendingSecret='';pendingFactor='';if($('mmhA783TotpBackupConfirmed'))$('mmhA783TotpBackupConfirmed').checked=false;$('mmhA783TotpSetup').hidden=true;$('mmhA783TotpQr').replaceChildren();$('mmhA783TotpSecret').textContent='';$('mmhA783TotpSecret').hidden=true;$('mmhA783TotpCode').value='';a783Action('mmhA783KeyReveal','Show setup key');}
 async function cancelPendingMfa(){const id=pendingFactor;clearMfa();if(!id)return true;try{const r=await client().auth.mfa.unenroll({factorId:id});return !r.error}catch(_){return false}}
 function displayTotpQr(totp){
@@ -94,6 +108,55 @@ async function api(action,extra={}){
  const r=await fetch(API,{method:'POST',credentials:'omit',cache:'no-store',referrerPolicy:'no-referrer',headers:{'Content-Type':'application/json',Authorization:'Bearer '+a.jwt},body:JSON.stringify({action,...extra})});
  const d=await r.json().catch(()=>({code:'unavailable'}));
  return {ok:r.ok,body:d};
+}
+
+async function vaultApi(action,extra={}){
+ const a=await verifiedUser();
+ const r=await fetch(VAULT_API,{method:'POST',cache:'no-store',credentials:'omit',
+  referrerPolicy:'no-referrer',headers:{'Content-Type':'application/json',
+  Authorization:'Bearer '+a.jwt},body:JSON.stringify({action,...extra})});
+ return {ok:r.ok,body:await r.json().catch(()=>({code:'unavailable'}))};
+}
+function vaultStatusMode(mode){
+ vaultMode=mode;
+ const ready=mode==='ready',needed=mode==='backup_needed';
+ const box=$('mmhN10VaultRecoveryControls');
+ box.hidden=!(ready||needed);
+ $('mmhN10VaultReveal').hidden=!ready;
+ $('mmhN10VaultBackup').hidden=!needed;
+ const note=$('mmhN10VaultInfo');
+ note.textContent=ready
+  ?a783Text('Your fixed original recovery key is securely backed up. Confirm your password to view it.')
+  :a783Text('One-time setup: enter your previously saved original ten words and password to protect this SAME key.');
+ for(const el of [
+  vaultRecovery.querySelector('label[for="mmhA783Phrase"]'),
+  vaultRecovery.querySelector('.mmh-a789-phrase-field'),
+  $('mmhA783PhrasePrivacy'),$('mmhA783KeyVerify')
+ ])if(el)el.hidden=ready;
+}
+async function loadVaultMode(){
+ if(!usernameOnly)return;
+ try{
+  const r=await vaultApi('status');
+  if(!r.ok||r.body?.code!=='backup_status'||typeof r.body.backed_up!=='boolean')
+   throw Error('vault_unavailable');
+  vaultStatusMode(r.body.backed_up?'ready':'backup_needed');
+ }catch(_){vaultStatusMode('unavailable');status('Encrypted recovery-key backup is unavailable. Existing original-key verification still works.');}
+}
+function showVaultWords(words){
+ if(!Array.isArray(words)||words.length!==10||words.some(w=>typeof w!=='string'||!/^[a-z]{2,13}$/.test(w)))throw Error('bad_words');
+ const raw=words.join(' ');hideKey();verifiedPhrase=raw;
+ const list=$('mmhA783KeyWords');list.replaceChildren();
+ words.forEach((w,i)=>{const el=document.createElement('div');el.className='mmh-a783-word';el.textContent=String(i+1).padStart(2,'0')+'  '+w;list.append(el)});
+ const qr=$('mmhA783KeyQr');qr.replaceChildren();
+ if(typeof QRCode==='function'){
+  const name=$('mmhA783UsernameStatus').textContent.replace(/^@/,'');
+  new QRCode(qr,{text:'MMHVAULT-RECOVERY-V1\\nUSERNAME:'+name+'\\nPHRASE:'+raw,width:186,height:186,colorDark:'#000',colorLight:'#fff',correctLevel:QRCode.CorrectLevel.L});
+ }
+ $('mmhA783KeyDisplay').hidden=false;
+ const msg=$('mmhA783KeyDisplay').querySelector('.mmh-a783-note');
+ if(msg)msg.textContent=a783Text('This private key view automatically closes after 45 seconds. Never share these words or the QR code.');
+ clearTimer=setTimeout(hideKey,45000);
 }
 async function refresh(){
  if(busy)return;
@@ -212,6 +275,32 @@ $('mmhA783KeyVerify').addEventListener('click',async()=>{
   status('Saved words verified. Backup view will close automatically after 60 seconds.');
  }catch(_){hideKey();status('The recovery words could not be verified. Check the order.');}
  finally{busy=false;}
+});
+$('mmhN10VaultBackup').addEventListener('click',async()=>{
+ if(busy||vaultMode!=='backup_needed')return;
+ const phrase=$('mmhA783Phrase').value.trim().toLowerCase().replace(/\\s+/g,' ');
+ const password=$('mmhN10VaultPassword').value;
+ if(phrase.split(' ').length!==10||!password){status('Enter the original ten words and current password.');return;}
+ busy=true;
+ try{
+  const r=await vaultApi('backup_existing',{phrase,password});
+  if(!r.ok||r.body?.code!=='backup_ready')throw Error('backup_error');
+  hideKey();vaultStatusMode('ready');status('Your original ten words have been securely backed up without being changed.');
+ }catch(_){status('Could not back up the original key. No recovery words were changed.');}
+ finally{busy=false;$('mmhN10VaultPassword').value='';}
+});
+$('mmhN10VaultReveal').addEventListener('click',async()=>{
+ if(busy||vaultMode!=='ready')return;
+ const password=$('mmhN10VaultPassword').value;
+ if(!password){status('Enter your current password to view the fixed original key.');return;}
+ busy=true;
+ try{
+  const r=await vaultApi('reveal',{password});
+  if(!r.ok||r.body?.code!=='recovery_key')throw Error('reveal_error');
+  showVaultWords(r.body.words);
+  status('Original recovery key verified. It will automatically hide after 45 seconds.');
+ }catch(_){hideKey();status('Unable to unlock the recovery key. Check your password and authentication.');}
+ finally{busy=false;$('mmhN10VaultPassword').value='';}
 });
 $('mmhA783KeyHide').addEventListener('click',hideKey);
 $('mmhA783KeySaveQr').addEventListener('click',()=>{
@@ -358,7 +447,7 @@ function collapse(section){
  section.querySelector(':scope > .mmh-a783-title')?.setAttribute('aria-expanded','false');
  if(info)info.overlay.hidden=true;
  if(!sections.some(s=>s.classList.contains('mmh-a785-open')))document.body.classList.remove('mmh-n10-account-modal-open');
- if(section.id==='mmhA783Recovery')hideKey();
+ if(section.id==='mmhA783Recovery'){hideKey();vaultStatusMode('unavailable');}
  if(section.querySelector('#mmhA783TotpSetup')&&pendingFactor)void cancelPendingMfa();
  if(wasOpen&&section.contains(document.activeElement))section.querySelector(':scope > .mmh-a783-title')?.focus({preventScroll:true});
 }
@@ -376,6 +465,7 @@ sections.forEach(section=>{
   info.message.textContent=$('mmhA783Status')?.textContent||'';
   info.overlay.hidden=false;document.body.classList.add('mmh-n10-account-modal-open');
   info.close.focus({preventScroll:true});
+  if(section.id==='mmhA783Recovery')void loadVaultMode();
  };
  title.addEventListener('click',toggle);
  title.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();toggle()}});
