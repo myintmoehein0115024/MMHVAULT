@@ -6,15 +6,16 @@
 BEGIN;
 SET LOCAL statement_timeout='30000ms';
 CREATE SCHEMA mmh_n10_release_qa;
+CREATE SCHEMA mmh_n10_release_qa_storage;
 REVOKE ALL ON SCHEMA mmh_n10_release_qa FROM PUBLIC,anon;
 GRANT USAGE ON SCHEMA mmh_n10_release_qa TO authenticated;
-CREATE TABLE mmh_n10_release_qa.buckets(id text PRIMARY KEY, public boolean NOT NULL DEFAULT false);
-INSERT INTO mmh_n10_release_qa.buckets(id,public) VALUES ('receipts',false),('mmh-feedback',false),('mmh-business-assets',false);
-CREATE TABLE mmh_n10_release_qa.objects(bucket_id text NOT NULL,name text,user_id uuid NOT NULL);
-ALTER TABLE mmh_n10_release_qa.objects ENABLE ROW LEVEL SECURITY;
-CREATE POLICY qa_object_owner ON mmh_n10_release_qa.objects
+CREATE TABLE mmh_n10_release_qa_storage.buckets(id text PRIMARY KEY, public boolean NOT NULL DEFAULT false);
+INSERT INTO mmh_n10_release_qa_storage.buckets(id,public) VALUES ('receipts',false),('mmh-feedback',false),('mmh-business-assets',false);
+CREATE TABLE mmh_n10_release_qa_storage.objects(bucket_id text NOT NULL,name text,user_id uuid NOT NULL);
+ALTER TABLE mmh_n10_release_qa_storage.objects ENABLE ROW LEVEL SECURITY;
+CREATE POLICY qa_object_owner ON mmh_n10_release_qa_storage.objects
   FOR ALL TO authenticated USING(user_id=auth.uid()) WITH CHECK (user_id=auth.uid());
-GRANT SELECT,INSERT,UPDATE,DELETE ON mmh_n10_release_qa.objects TO authenticated;
+GRANT SELECT,INSERT,UPDATE,DELETE ON mmh_n10_release_qa_storage.objects TO authenticated;
 DO $fixtures$
 DECLARE tbl text;
 BEGIN
@@ -230,19 +231,19 @@ DO $guard$
 BEGIN
   IF EXISTS (
     SELECT 1 FROM pg_policies
-    WHERE schemaname='mmh_n10_release_qa' AND tablename='objects'
+    WHERE schemaname='mmh_n10_release_qa_storage' AND tablename='objects'
       AND policyname='mmh_n10_private_storage_mfa_guard'
   ) THEN
     RAISE EXCEPTION 'MFA guard already exists; reconcile manually';
   END IF;
   IF EXISTS (
-    SELECT 1 FROM mmh_n10_release_qa.buckets
+    SELECT 1 FROM mmh_n10_release_qa_storage.buckets
     WHERE id IN ('receipts','mmh-feedback','mmh-business-assets')
       AND public IS TRUE
   ) THEN
     RAISE EXCEPTION 'One or more protected buckets are public';
   END IF;
-  IF (SELECT count(*) FROM mmh_n10_release_qa.buckets
+  IF (SELECT count(*) FROM mmh_n10_release_qa_storage.buckets
       WHERE id IN ('receipts','mmh-feedback','mmh-business-assets')) <> 3 THEN
     RAISE EXCEPTION 'N10 expected bucket inventory changed';
   END IF;
@@ -253,7 +254,7 @@ END;
 $guard$;
 
 CREATE POLICY mmh_n10_private_storage_mfa_guard
-ON mmh_n10_release_qa.objects AS RESTRICTIVE FOR ALL TO authenticated
+ON mmh_n10_release_qa_storage.objects AS RESTRICTIVE FOR ALL TO authenticated
 USING (
   bucket_id NOT IN ('receipts','mmh-feedback','mmh-business-assets')
   OR (SELECT mmh_n10_release_qa_security.mfa_access_ok())
@@ -263,7 +264,7 @@ WITH CHECK (
   OR (SELECT mmh_n10_release_qa_security.mfa_access_ok())
 );
 
-COMMENT ON POLICY mmh_n10_private_storage_mfa_guard ON mmh_n10_release_qa.objects
+COMMENT ON POLICY mmh_n10_private_storage_mfa_guard ON mmh_n10_release_qa_storage.objects
 IS 'MMHVAULT-N10-MFA-STORAGE-RESTRICTIVE-V1';
 
 -- This policy does not revoke previously issued signed URLs, bypassRLS,
@@ -368,7 +369,7 @@ BEGIN
  IF n<>59 THEN RAISE EXCEPTION 'Expected 59 restrictive release policies, got %', n; END IF;
  SELECT count(*) INTO s FROM pg_policy p JOIN pg_class c ON c.oid=p.polrelid
  JOIN pg_namespace ns ON ns.oid=c.relnamespace
- WHERE ns.nspname='mmh_n10_release_qa' AND c.relname='objects'
+ WHERE ns.nspname='mmh_n10_release_qa_storage' AND c.relname='objects'
  AND p.polname='mmh_n10_private_storage_mfa_guard'
  AND NOT p.polpermissive AND obj_description(p.oid,'pg_policy')='MMHVAULT-N10-MFA-STORAGE-RESTRICTIVE-V1';
  IF s<>1 THEN RAISE EXCEPTION 'Private attachment release guard missing'; END IF;
@@ -474,7 +475,7 @@ BEGIN
   FROM pg_policy p
   JOIN pg_class c ON c.oid=p.polrelid
   JOIN pg_namespace n ON n.oid=c.relnamespace
-  WHERE n.nspname='mmh_n10_release_qa' AND c.relname='objects'
+  WHERE n.nspname='mmh_n10_release_qa_storage' AND c.relname='objects'
     AND p.polname='mmh_n10_private_storage_mfa_guard';
 
   IF policy_oid IS NULL THEN
@@ -482,7 +483,7 @@ BEGIN
   ELSIF actual_marker IS DISTINCT FROM 'MMHVAULT-N10-MFA-STORAGE-RESTRICTIVE-V1' THEN
     RAISE EXCEPTION 'N10 Storage guard marker mismatch; refusing to remove unrelated policy';
   ELSE
-    DROP POLICY mmh_n10_private_storage_mfa_guard ON mmh_n10_release_qa.objects;
+    DROP POLICY mmh_n10_private_storage_mfa_guard ON mmh_n10_release_qa_storage.objects;
   END IF;
 END;
 $n10$;
@@ -521,13 +522,13 @@ DO $verify_rollback$
 DECLARE n integer;
 BEGIN
  SELECT count(*) INTO n FROM pg_policy p JOIN pg_class c ON c.oid=p.polrelid JOIN pg_namespace ns ON ns.oid=c.relnamespace
- WHERE ns.nspname='mmh_n10_release_qa' AND p.polname IN ('mmh_n10_mfa_required','mmh_n10_private_storage_mfa_guard');
+ WHERE ns.nspname IN ('mmh_n10_release_qa','mmh_n10_release_qa_storage') AND p.polname IN ('mmh_n10_mfa_required','mmh_n10_private_storage_mfa_guard');
  IF n<>0 THEN RAISE EXCEPTION 'Rollback left % MFA policies',n; END IF;
  IF (SELECT obj_description('mmh_n10_release_qa.mmh_delete_crypto_wallet_movement_v4(uuid)'::regprocedure,'pg_proc')) IS NOT NULL
  THEN RAISE EXCEPTION 'Wallet release marker not removed'; END IF;
  IF position('mmh_n10_release_qa_security.mfa_access_ok()' in pg_get_functiondef('mmh_n10_release_qa.mmh_delete_crypto_wallet_movement_v4(uuid)'::regprocedure))>0
  THEN RAISE EXCEPTION 'Wallet function body not restored'; END IF;
- IF (SELECT count(*) FROM pg_class c JOIN pg_namespace ns ON ns.oid=c.relnamespace WHERE ns.nspname='mmh_n10_release_qa' AND c.relkind='r')<>66
+ IF (SELECT count(*) FROM pg_class c JOIN pg_namespace ns ON ns.oid=c.relnamespace WHERE ns.nspname='mmh_n10_release_qa' AND c.relkind='r')<>64
  THEN RAISE EXCEPTION 'Isolation fixture inventory damaged'; END IF;
 END;
 $verify_rollback$;
