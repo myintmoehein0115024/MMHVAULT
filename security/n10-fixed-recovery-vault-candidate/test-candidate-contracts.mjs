@@ -30,6 +30,11 @@ const cases=[
  ['maximum request body enforced during stream',()=>assert.match(edge,/if\(total>1200\)/)],
  ['original phrase verified against immutable HMAC',()=>assert.match(edge,/equal64\(records\.data\[0\]\.verifier,mac\)/)],
  ['no direct plaintext logs',()=>assert.doesNotMatch(edge,/console\.(?:log|error)\s*\(/)],
+ ['signup exception logger contains no SDK exception payload',()=>{
+   assert.match(signup,/console\.error\('n10a766_service_error'\)/);
+   assert.doesNotMatch(signup,/console\.error\('n10a766_service_error',/);
+   assert.doesNotMatch(signup,/console\.(?:log|error)\s*\([^)]*String\(e\)/);
+ }],
  ['SQL controlled transaction',()=>{assert.match(sql,/^BEGIN;/m);assert.match(sql,/^COMMIT;/m)}],
  ['Staging migration is collision-failing first install only',()=>{
    assert.match(sql,/^CREATE SCHEMA mmh_n10_privacy;/m);
