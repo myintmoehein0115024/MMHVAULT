@@ -148,7 +148,65 @@ footer{width:min(1240px,calc(100% - 48px));margin:0 auto;}
 .recovery-back:hover{text-decoration:underline}
 @media(max-width:520px){.recovery-hint{font-size:11px;padding:12px}}
 </style>
-</head>
+<style id="n10-phase2">body .access{background:linear-gradient(145deg,rgba(5,18,34,.93),rgba(3,13,25,.89));border:1px solid rgba(239,194,114,.30);border-radius:26px;box-shadow:0 25px 90px rgba(0,0,0,.42);backdrop-filter:blur(25px);-webkit-backdrop-filter:blur(25px)}body .access .primary{background:linear-gradient(115deg,#c99b54,#f5d18c,#e0ac60);color:#111921}body .access .field{background:rgba(7,25,42,.68);border-color:rgba(178,196,211,.35)}body .access .field:focus-within{border-color:#eac17a}#signin .mmh-a740-method-switch{display:none!important}#smartRecovery{background:none;border:none;color:#ebc583;text-decoration:underline;cursor:pointer}#signin .row{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}#smartStatus[hidden],#mmhSmartCaptchaRetry[hidden]{display:none!important}#mmhSmartCaptchaRetry{display:block;margin:3px 0 12px;padding:8px 11px;border:1px solid rgba(230,187,113,.38);border-radius:10px;background:rgba(8,28,45,.72);color:#efd09d;cursor:pointer;font-size:12px}@media(max-width:600px){body .access{border-radius:20px}#smartRecovery{font-size:12px}}</style><style id="n10-recovery-modal-css">
+#mmhN10RecoveryDialog{position:fixed;inset:0;z-index:99999;display:none;align-items:center;justify-content:center;padding:max(14px,env(safe-area-inset-top)) 14px max(14px,env(safe-area-inset-bottom));overscroll-behavior:contain;background:rgba(1,8,17,.78);backdrop-filter:blur(15px);-webkit-backdrop-filter:blur(15px)}
+#mmhN10RecoveryDialog.mmh-open{display:flex}
+#mmhN10RecoveryPanel{width:min(490px,100%);max-height:min(90dvh,850px);overflow-y:auto;overscroll-behavior:contain;border-radius:23px;padding:23px;background:linear-gradient(145deg,rgba(8,26,44,.98),rgba(3,15,30,.98));border:1px solid rgba(239,193,110,.39);box-shadow:0 24px 85px rgba(0,0,0,.68),inset 0 1px rgba(255,255,255,.12);color:#e9eff4}
+#mmhN10RecoveryPanel #mmhA769Backup{display:block!important}
+#mmhN10RecoveryPanel .mmh-a769-words{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+#mmhN10RecoveryPanel .mmh-a769-word{min-width:0;overflow-wrap:anywhere}
+#mmhN10RecoveryPanel .mmh-a769-qr{margin:15px auto;max-width:230px}
+#mmhN10RecoveryPanel .mmh-a769-actions{display:flex;flex-wrap:wrap;gap:9px}
+#mmhN10RecoveryPanel .mmh-a769-actions button{flex:1;min-width:135px}
+#mmhN10RecoveryPanel #mmhA769ModalConfirm{display:block;width:100%;margin-top:14px}
+#mmhN10RecoveryPanel #mmhA769ModalConfirm:disabled{opacity:.45;cursor:not-allowed}
+#mmhN10RecoveryPanel #mmhA769ModalConfirm[hidden]{display:none!important}
+#mmhN10RecoveryPanel button:focus-visible,#mmhN10RecoveryLoginPanel button:focus-visible,#mmhN10RecoveryLoginPanel input:focus-visible{outline:2px solid #efd19b;outline-offset:3px}
+#mmhN10RecoveryPanel #mmhA769Cancel{margin-top:10px}
+#mmhN10RecoveryPanel .mmh-a769-agree{display:flex;align-items:flex-start;gap:8px;margin-top:15px}
+#mmhN10RecoveryPanel .mmh-a769-agree input{flex-shrink:0}
+body.mmh-n10-modal-lock{overflow:hidden}
+@media(max-width:560px){#mmhN10RecoveryPanel{padding:17px 14px;max-height:94dvh}#mmhN10RecoveryPanel .mmh-a769-words{gap:5px}}
+</style><style id="mmh-n10-recovery-signin-css">
+#mmhN10RecoveryLoginOverlay{position:fixed;inset:0;z-index:100002;display:none;align-items:center;justify-content:center;padding:max(14px,env(safe-area-inset-top)) 14px max(14px,env(safe-area-inset-bottom));overscroll-behavior:contain;background:rgba(2,8,17,.82);backdrop-filter:blur(15px);-webkit-backdrop-filter:blur(15px)}
+#mmhN10RecoveryLoginOverlay.is-open{display:flex}
+#mmhN10RecoveryLoginPanel{width:min(495px,100%);max-height:min(94dvh,850px);overflow-y:auto;overscroll-behavior:contain;padding:24px;border-radius:24px;background:linear-gradient(145deg,rgba(8,27,45,.98),rgba(3,14,29,.98));border:1px solid rgba(238,194,113,.36);box-shadow:0 30px 90px rgba(0,0,0,.65);color:#e9eff4}
+#mmhN10RecoveryLoginPanel #usernameSignIn{display:block!important;animation:none}
+#mmhN10RecoveryLoginPanel .mmh-a740-method-switch,#mmhN10RecoveryLoginPanel .mmh-a769-modes,#mmhN10RecoveryLoginPanel .mmh-a780-pilot,#mmhN10RecoveryLoginPanel .mmh-a740-help,#mmhN10RecoveryLoginPanel #mmhA769PassArea{display:none!important}
+#mmhN10RecoveryLoginPanel #mmhA769PhraseArea{display:block!important}
+#mmhN10RecoveryLoginPanel #mmhA740Captcha{overflow:visible!important}
+#mmhN10RecoveryLoginPanel #mmhA769QrFileBtn{max-width:100%;white-space:normal}
+#mmhN10RecoveryLoginPanel .mmh-a769-word-inputs label{min-width:0;overflow-wrap:anywhere}
+#mmhN10RecoveryLoginPanel .mmh-a769-word-inputs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+#mmhN10RecoveryLoginPanel .mmh-a769-word-inputs input{width:100%;min-width:0}
+#mmhN10RecoveryLoginPanel .mmh-n10-recovery-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:15px}
+#mmhN10RecoveryLoginPanel .mmh-n10-recovery-heading strong{font-size:20px;color:#ffe0a1}
+#mmhN10RecoveryLoginPanel .mmh-n10-recovery-heading p{font-size:12px;line-height:1.5;color:#a8bdca;margin:6px 0 0}
+#mmhN10RecoveryLoginPanel #mmhN10RecoveryClose{border:1px solid rgba(210,191,153,.36);border-radius:11px;background:rgba(18,34,49,.75);color:#e8d3ae;min-width:38px;height:38px;cursor:pointer}
+#mmhN10RecoveryLoginPanel .mmh-a740-guidance{overflow-wrap:break-word}
+@media(max-width:560px){#mmhN10RecoveryLoginPanel{padding:18px 14px;border-radius:20px}#mmhN10RecoveryLoginPanel .mmh-a769-word-inputs{gap:6px}}
+</style>
+<style id="mmh-n10-auth-isolated-sheets">
+#mmhMfaDialogV783{position:fixed!important;inset:0!important;z-index:999999!important;display:none;place-items:center;padding:max(16px,env(safe-area-inset-top)) 14px max(16px,env(safe-area-inset-bottom));background:rgba(2,8,19,.86)!important;backdrop-filter:blur(19px);-webkit-backdrop-filter:blur(19px);overscroll-behavior:contain}
+#mmhMfaDialogV783[data-open="true"]{display:grid!important}
+#mmhMfaDialogV783 .n10-mfa-sheet{width:min(440px,100%);max-height:min(91dvh,760px);overflow-y:auto;overscroll-behavior:contain;padding:clamp(21px,5vw,34px);border:1px solid rgba(239,203,139,.39);border-radius:27px;background:linear-gradient(142deg,rgba(16,39,60,.985),rgba(5,18,32,.985));box-shadow:0 35px 115px rgba(0,0,0,.75),inset 0 1px rgba(255,255,255,.1);color:#eef3f6}
+#mmhMfaDialogV783 .n10-mfa-emblem{display:grid;place-items:center;width:52px;height:52px;border-radius:17px;border:1px solid rgba(242,203,134,.49);background:linear-gradient(145deg,rgba(235,195,119,.18),rgba(247,220,157,.04));color:#f0cf93;font-size:25px;margin-bottom:20px}
+#mmhMfaDialogV783 .n10-mfa-eyebrow{font-size:10px;letter-spacing:.2em;color:#e9c788;font-weight:800}
+#mmhMfaDialogV783 h2{font-size:clamp(23px,5vw,29px);letter-spacing:-.045em;line-height:1.15;margin:10px 0 12px;color:#faf2e5}
+#mmhMfaDialogV783 [data-mfa-status]{color:#afc0cf;font-size:13px;line-height:1.65;min-height:39px;margin:0 0 16px}
+#mmhMfaDialogV783 label{display:block;font-size:12px;font-weight:700;color:#c9d6df;margin:15px 0 9px}
+#mmhMfaDialogV783 [data-mfa-code]{width:100%;font-size:25px;text-align:center;letter-spacing:.27em;padding:16px 12px;border:1px solid rgba(177,205,224,.36);background:rgba(2,13,25,.65);color:#fff4df;border-radius:14px;outline:0;font-variant-numeric:tabular-nums}
+#mmhMfaDialogV783 [data-mfa-code]:focus{border-color:#efcf94;box-shadow:0 0 0 3px rgba(241,203,133,.15)}
+#mmhMfaDialogV783 [data-mfa-submit]{display:block;width:100%;margin-top:19px;padding:15px;border:0;border-radius:13px;background:linear-gradient(120deg,#eecf94,#d0a75e);color:#112034;font-weight:850;cursor:pointer}
+#mmhMfaDialogV783 [data-mfa-submit]:disabled{opacity:.55;cursor:wait}
+#mmhMfaDialogV783 #mmhMfaSignOutV783{display:block;margin:13px auto 0;padding:9px;background:none;border:0;color:#b5c3cd;cursor:pointer;font-size:12px}
+#mmhMfaDialogV783 button:focus-visible{outline:2px solid #f4d49e;outline-offset:3px}
+#mmhMfaDialogV783 .n10-mfa-footnote{text-align:center;font-size:11px;color:#8fa4b6;border-top:1px solid rgba(171,197,216,.13);margin-top:17px;padding-top:16px}
+#mmhN10RecoveryLoginOverlay,#mmhN10RecoveryDialog{background:rgba(2,8,19,.86)!important;backdrop-filter:blur(19px);-webkit-backdrop-filter:blur(19px)}
+#mmhN10RecoveryLoginPanel,#mmhN10RecoveryPanel{border-color:rgba(239,203,139,.39)!important;box-shadow:0 35px 115px rgba(0,0,0,.75),inset 0 1px rgba(255,255,255,.1)!important}
+@media(max-width:480px){#mmhMfaDialogV783 .n10-mfa-sheet{padding:23px 20px;border-radius:21px}#mmhMfaDialogV783 [data-mfa-code]{letter-spacing:.17em}}
+@media(prefers-reduced-motion:no-preference){#mmhMfaDialogV783[data-open="true"] .n10-mfa-sheet{animation:n10MfaIn .22s ease-out both}@keyframes n10MfaIn{from{opacity:.55;transform:translateY(12px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}}
+</style></head>
 <body>
 <div class="bg"></div><div class="gridfx"></div><div class="glow"></div><div class="glow two"></div>
 <div class="shell">
@@ -164,20 +222,16 @@ footer{width:min(1240px,calc(100% - 48px));margin:0 auto;}
 <div class="tabs" id="authTabs"><button class="tab active" type="button" data-target="signin">🔒 Sign In</button><button class="tab" type="button" data-target="signup">✦ Sign Up</button></div>
 
 <form class="form active" id="signin">
-<div class="mmh-a740-method-switch" role="group" aria-label="Sign-in method">
-  <button type="button" data-mmh-a740-method="email" aria-pressed="true">Email</button>
-  <button type="button" data-mmh-a740-method="username" aria-pressed="false">Username</button>
-</div>
-
-<div class="auth-email-flow"><label>Email</label><div class="field"><input id="signinEmail" type="email" autocomplete="username" inputmode="email" required placeholder="Email address"></div><label>Password</label><div class="field"><input id="signinPassword" type="password" autocomplete="current-password" required placeholder="Password"><button class="eye" type="button">Show</button></div><div class="row"><a class="forgot" href="#" id="forgotBtn">Forgot password?</a></div><button class="primary" type="submit">Sign In &nbsp; →</button></div>
-<div class="divider">or continue with</div><button class="google" id="googleSignIn" type="button" aria-describedby="googleAuthNoteSignIn"><svg viewBox="0 0 24 24"><path fill="#4285F4" d="M21.8 12.23c0-.7-.06-1.37-.18-2.02H12v3.82h5.5a4.7 4.7 0 0 1-2.04 3.08v2.54h3.3c1.93-1.78 3.04-4.4 3.04-7.42z"/><path fill="#34A853" d="M12 22c2.76 0 5.08-.91 6.77-2.35l-3.3-2.54c-.91.61-2.08.97-3.47.97-2.66 0-4.92-1.8-5.73-4.22H2.86v2.62A10.22 10.22 0 0 0 12 22z"/><path fill="#FBBC05" d="M6.27 13.86A6.15 6.15 0 0 1 5.95 12c0-.65.11-1.28.32-1.86V7.52H2.86A10.2 10.2 0 0 0 1.78 12c0 1.64.39 3.2 1.08 4.48l3.41-2.62z"/><path fill="#EA4335" d="M12 5.92c1.5 0 2.84.52 3.9 1.53l2.93-2.93C17.07 2.88 14.76 2 12 2a10.22 10.22 0 0 0-9.14 5.52l3.41 2.62C7.08 7.72 9.34 5.92 12 5.92z"/></svg>Sign in with Google</button><div class="oauth-note" id="googleAuthNoteSignIn">You will be redirected to Google through Supabase OAuth. MMHVAULT does not receive your Google password.</div><p class="switch">Don't have an account? <button type="button" data-switch="signup">Sign Up</button></p></form>
+<!-- Unified email-or-username field: no duplicate method switch on this form. -->
+<div class="auth-email-flow"><label>Email or Username</label><div class="field"><input id="signinEmail" type="text" autocomplete="username" autocapitalize="none" spellcheck="false" required placeholder="Email or Username"></div><label>Password</label><div class="field"><input id="signinPassword" type="password" autocomplete="current-password" required placeholder="Password"><button class="eye" type="button">Show</button></div><div class="row"><a class="forgot" href="#" id="forgotBtn">Forgot password?</a><button type="button" class="forgot" id="smartRecovery">Use Recovery Key</button></div><button class="primary" type="submit">Sign In &nbsp; →</button></div>
+<div id="smartCaptcha" class="mmh-a740-captcha"></div><p id="smartStatus" class="mmh-a740-status" role="status" aria-live="polite" hidden></p><button id="mmhSmartCaptchaRetry" type="button" hidden aria-label="Retry security verification">Retry security check</button><div class="divider">or continue with</div><button class="google" id="googleSignIn" type="button" aria-describedby="googleAuthNoteSignIn"><svg viewBox="0 0 24 24"><path fill="#4285F4" d="M21.8 12.23c0-.7-.06-1.37-.18-2.02H12v3.82h5.5a4.7 4.7 0 0 1-2.04 3.08v2.54h3.3c1.93-1.78 3.04-4.4 3.04-7.42z"/><path fill="#34A853" d="M12 22c2.76 0 5.08-.91 6.77-2.35l-3.3-2.54c-.91.61-2.08.97-3.47.97-2.66 0-4.92-1.8-5.73-4.22H2.86v2.62A10.22 10.22 0 0 0 12 22z"/><path fill="#FBBC05" d="M6.27 13.86A6.15 6.15 0 0 1 5.95 12c0-.65.11-1.28.32-1.86V7.52H2.86A10.2 10.2 0 0 0 1.78 12c0 1.64.39 3.2 1.08 4.48l3.41-2.62z"/><path fill="#EA4335" d="M12 5.92c1.5 0 2.84.52 3.9 1.53l2.93-2.93C17.07 2.88 14.76 2 12 2a10.22 10.22 0 0 0-9.14 5.52l3.41 2.62C7.08 7.72 9.34 5.92 12 5.92z"/></svg>Sign in with Google</button><div class="oauth-note" id="googleAuthNoteSignIn">You will be redirected securely. MMHVAULT never receives your Google password.</div><p class="switch">Don't have an account? <button type="button" data-switch="signup">Sign Up</button></p></form>
 <form class="form" id="usernameSignIn" autocomplete="off" novalidate>
   <div class="mmh-a740-method-switch" role="group" aria-label="Sign-in method">
     <button type="button" data-mmh-a740-method="email" aria-pressed="false">Email</button>
     <button type="button" data-mmh-a740-method="username" aria-pressed="true">Username</button>
   </div>
   <label for="mmhA740Username">Username</label>
-  <div class="field"><input id="mmhA740Username" type="text" autocomplete="username" spellcheck="false" autocapitalize="none" maxlength="20" pattern="[a-z][a-z0-9_]{3,19}" placeholder="qa_test001" required></div><p class="mmh-a780-pilot">You can sign in with a linked username or a username-only account.</p>
+  <div class="field"><input id="mmhA740Username" type="text" autocomplete="username" spellcheck="false" autocapitalize="none" maxlength="20" pattern="[a-z][a-z0-9_]{3,19}" placeholder="Username" required></div><p class="mmh-a780-pilot">You can sign in with a linked username or a username-only account.</p>
   <div class="mmh-a769-modes" role="group" aria-label="Username login method">
   <button type="button" data-mmh-a769-login-mode="password" aria-pressed="true">Password</button>
   <button type="button" data-mmh-a769-login-mode="phrase" aria-pressed="false">10-word recovery key</button>
@@ -205,9 +259,9 @@ footer{width:min(1240px,calc(100% - 48px));margin:0 auto;}
   <button type="button" data-mmh-a756-signup-method="email" aria-pressed="true">Email</button>
   <button type="button" data-mmh-a756-signup-method="username" aria-pressed="false">Username</button>
 </div>
-<label>Full name</label><div class="field"><input id="signupName" type="text" autocomplete="name" required placeholder="Your name"></div>
-<div class="auth-email-flow"><label>Email</label><div class="field"><input id="signupEmail" type="email" autocomplete="email" inputmode="email" required placeholder="Email address"></div><label>Create password</label><div class="field"><input id="signupPassword" type="password" autocomplete="new-password" minlength="6" maxlength="20" required placeholder="Create a password"><button class="eye" type="button">Show</button></div><div class="row"><label class="remember"><input id="terms" type="checkbox"> I agree to the <a href="terms.html" target="_blank" rel="noopener">terms</a> and <a href="privacy.html" target="_blank" rel="noopener">privacy notice</a></label></div><button class="primary" type="submit">Create Account &nbsp; →</button></div>
-<div class="divider">or continue with</div><button class="google" id="googleSignUp" type="button" aria-describedby="googleAuthNoteSignUp"><svg viewBox="0 0 24 24"><path fill="#4285F4" d="M21.8 12.23c0-.7-.06-1.37-.18-2.02H12v3.82h5.5a4.7 4.7 0 0 1-2.04 3.08v2.54h3.3c1.93-1.78 3.04-4.4 3.04-7.42z"/><path fill="#34A853" d="M12 22c2.76 0 5.08-.91 6.77-2.35l-3.3-2.54c-.91.61-2.08.97-3.47.97-2.66 0-4.92-1.8-5.73-4.22H2.86v2.62A10.22 10.22 0 0 0 12 22z"/><path fill="#FBBC05" d="M6.27 13.86A6.15 6.15 0 0 1 5.95 12c0-.65.11-1.28.32-1.86V7.52H2.86A10.2 10.2 0 0 0 1.78 12c0 1.64.39 3.2 1.08 4.48l3.41-2.62z"/><path fill="#EA4335" d="M12 5.92c1.5 0 2.84.52 3.9 1.53l2.93-2.93C17.07 2.88 14.76 2 12 2a10.22 10.22 0 0 0-9.14 5.52l3.41 2.62C7.08 7.72 9.34 5.92 12 5.92z"/></svg>Sign up with Google</button><div class="oauth-note" id="googleAuthNoteSignUp">You will be redirected to Google through Supabase OAuth. MMHVAULT does not receive your Google password.</div><p class="switch">Already have an account? <button type="button" data-switch="signin">Sign In</button></p></form>
+<input id="signupName" type="hidden" value="">
+<div class="auth-email-flow"><label>Email</label><div class="field"><input id="signupEmail" type="email" autocomplete="email" inputmode="email" required placeholder="Email address"></div><label>Create password</label><div class="field"><input id="signupPassword" type="password" autocomplete="new-password" minlength="6" maxlength="20" required placeholder="Create a password"><button class="eye" type="button">Show</button></div><label>Confirm password</label><div class="field"><input id="signupConfirmPassword" type="password" autocomplete="new-password" minlength="6" maxlength="20" required placeholder="Confirm password"><button class="eye" type="button">Show</button></div><div class="row"><label class="remember"><input id="terms" type="checkbox"> I agree to the <a href="terms.html" target="_blank" rel="noopener">terms</a> and <a href="privacy.html" target="_blank" rel="noopener">privacy notice</a></label></div><button class="primary" type="submit">Create Account &nbsp; →</button></div>
+<div class="divider">or continue with</div><button class="google" id="googleSignUp" type="button" aria-describedby="googleAuthNoteSignUp"><svg viewBox="0 0 24 24"><path fill="#4285F4" d="M21.8 12.23c0-.7-.06-1.37-.18-2.02H12v3.82h5.5a4.7 4.7 0 0 1-2.04 3.08v2.54h3.3c1.93-1.78 3.04-4.4 3.04-7.42z"/><path fill="#34A853" d="M12 22c2.76 0 5.08-.91 6.77-2.35l-3.3-2.54c-.91.61-2.08.97-3.47.97-2.66 0-4.92-1.8-5.73-4.22H2.86v2.62A10.22 10.22 0 0 0 12 22z"/><path fill="#FBBC05" d="M6.27 13.86A6.15 6.15 0 0 1 5.95 12c0-.65.11-1.28.32-1.86V7.52H2.86A10.2 10.2 0 0 0 1.78 12c0 1.64.39 3.2 1.08 4.48l3.41-2.62z"/><path fill="#EA4335" d="M12 5.92c1.5 0 2.84.52 3.9 1.53l2.93-2.93C17.07 2.88 14.76 2 12 2a10.22 10.22 0 0 0-9.14 5.52l3.41 2.62C7.08 7.72 9.34 5.92 12 5.92z"/></svg>Sign up with Google</button><div class="oauth-note" id="googleAuthNoteSignUp">You will be redirected securely. MMHVAULT never receives your Google password.</div><p class="switch">Already have an account? <button type="button" data-switch="signin">Sign In</button></p></form>
 <form class="form" id="usernameSignUp" autocomplete="off" novalidate>
 <div class="mmh-a740-method-switch" role="group" aria-label="Sign-up method">
   <button type="button" data-mmh-a756-signup-method="email" aria-pressed="false">Email</button>
@@ -227,7 +281,7 @@ footer{width:min(1240px,calc(100% - 48px));margin:0 auto;}
  <span data-mmh-security-text>Checking connection security…</span>
  <button class="mmh-a780-security-retry" data-mmh-security-retry type="button" aria-label="Repeat security check">Retry</button>
 </div>
-<div id="mmhA769Backup" class="mmh-a769-hidden">
+<div id="mmhA769Backup" class="mmh-a769-hidden" aria-live="polite">
   <h3 class="mmh-a769-heading">Your permanent recovery key</h3>
   <p class="mmh-a740-guidance">Keep all ten words in their original order. This key and its QR code do not expire automatically.</p>
   <div id="mmhA769WordGrid" class="mmh-a769-words"></div>
@@ -235,6 +289,7 @@ footer{width:min(1240px,calc(100% - 48px));margin:0 auto;}
   <div class="mmh-a769-actions"><button type="button" id="mmhA769Copy">Copy ten words</button><button type="button" id="mmhA769SaveQr">Save recovery QR</button></div>
   <label class="mmh-a769-agree"><input type="checkbox" id="mmhA769BackupAgree"> I have saved all ten words and the recovery QR code safely.</label>
   <button type="button" id="mmhA769Cancel" class="mmh-a769-small-btn">Cancel and generate again</button>
+  <button type="button" id="mmhA769ModalConfirm" class="primary" disabled>Confirm backup &amp; create account</button>
 </div>
 <div class="row"><label class="remember"><input type="checkbox" id="mmhA756Terms"> I agree to the <a href="terms.html" target="_blank" rel="noopener">terms</a> and <a href="privacy.html" target="_blank" rel="noopener">privacy notice</a></label></div>
 <button class="primary" type="submit" id="mmhA756Submit" disabled>Generate recovery key</button>
@@ -394,38 +449,85 @@ function recoverableCallbackV943(event,session){
 }
 function isZhV1531(){return window.getMMHVAULTLanguage&&window.getMMHVAULTLanguage()==='zh'}
 function msg(text,type=''){statusEl.textContent=window.translateMMHVAULTMessage?window.translateMMHVAULTMessage(text):text;statusEl.className='status '+type}
+function safeAccountMessage(error,context){
+ const zh=typeof isZhV1531==='function'&&isZhV1531();
+ const raw=String(error?.message||'').toLowerCase();
+ const offline=typeof navigator!=='undefined'&&navigator.onLine===false;
+ const timeout=error?.name==='AbortError'||/timeout|timed out/.test(raw);
+ if(offline)return zh?'当前没有网络连接。请连接网络后重试。':'You appear to be offline. Reconnect and try again.';
+ if(timeout)return zh?'请求超时。请检查网络后重试。':'Request timed out. Check your connection and retry.';
+ if(/429|rate limit|too many requests/.test(raw))return zh?'请求过于频繁。请稍后重试。':'Too many requests. Please try again later.';
+ if(context==='signin')return zh?'无法登录。请检查登录信息后重试。':'Unable to sign in. Check your credentials and try again.';
+ if(context==='signup')return zh?'无法完成注册，请检查输入信息或稍后重试。':'Unable to complete registration. Check your information or retry later.';
+ if(context==='google')return zh?'无法继续 Google 登录。请稍后重试。':'Unable to continue with Google sign-in. Please try again.';
+ return zh?'账户服务暂时不可用，请稍后重试。':'Account service temporarily unavailable. Please try again.';
+}
 function nextTargetV160(){const next=new URLSearchParams(location.search).get('next');return next==='business.html'||next==='username-setup.html'?next:'app.html'}
 function appUrl(){return new URL(nextTargetV160(),location.href).toString()}
 function loginCallbackUrlV160(){const u=new URL('login.html',location.href);if(nextTargetV160()!=='app.html')u.searchParams.set('next',nextTargetV160());return u.toString()}
 async function mmhShowMfaChallengeV783(uid){
  const layer=document.getElementById('mmhMfaDialogV783');if(!layer||!uid)throw Error('mfa_dialog_unavailable');
- if(layer.dataset.owner===uid&&layer.style.display==='grid')return true;
- layer.dataset.owner=uid;layer.hidden=false;layer.style.display='grid';
+ if(layer.dataset.owner===uid&&layer.dataset.open==='true')return true;
+ const zh=isZhV1531();
+ const tr=(cn,en)=>zh?cn:en;
+ layer.dataset.owner=uid;layer.hidden=false;layer.dataset.open='true';
+ document.body.classList.add('mmh-n10-modal-lock');
  const status=layer.querySelector('[data-mfa-status]'),code=layer.querySelector('[data-mfa-code]'),submit=layer.querySelector('[data-mfa-submit]');
- status.textContent='Enter the six-digit code from your authenticator app.';code.value='';
+ layer.querySelector('#mmhMfaTitleV783').textContent=tr('双重身份验证','Two-step verification');
+ layer.querySelector('#mmhMfaCodeLabelV783').textContent=tr('六位动态验证码','Authenticator code');
+ submit.textContent=tr('验证并继续','Verify & continue');
+ status.textContent=tr('输入验证器应用中当前的六位动态验证码。','Enter the current six-digit code from your authenticator app.');
+ code.value='';code.disabled=false;
  const fresh=submit.cloneNode(true);submit.replaceWith(fresh);
  const signOut=layer.querySelector('#mmhMfaSignOutV783');
+ if(signOut){signOut.disabled=false;signOut.textContent=tr('使用其他账号 / 退出登录','Use another account / Sign out');}
+ layer.onkeydown=event=>{
+  if(event.key==='Escape'){event.preventDefault();status.textContent=tr('请完成二次验证，或使用下方的退出登录。','Complete verification or use Sign out below.');return}
+  if(event.key==='Enter'&&document.activeElement===code){event.preventDefault();fresh.click();return}
+  if(event.key==='Tab'){
+   const controls=[code,fresh,signOut].filter(el=>el&&!el.disabled);
+   const first=controls[0],last=controls[controls.length-1];
+   if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}
+   else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}
+  }
+ };
  if(signOut)signOut.onclick=async()=>{
-  signOut.disabled=true;
-  try{await db.auth.signOut({scope:'local'});}catch(_){}
-  location.replace('login.html');
+  signOut.disabled=true;fresh.disabled=true;
+  try{
+   // Never navigate away while an authenticated session might remain cached.
+   const {error:logoutError}=await db.auth.signOut({scope:'local'});
+   if(logoutError)throw logoutError;
+   const {data:afterLogout,error:sessionError}=await db.auth.getSession();
+   if(sessionError||afterLogout?.session)throw sessionError||Error('logout_not_confirmed');
+   layer.dataset.owner='';layer.dataset.open='false';layer.hidden=true;
+   document.body.classList.remove('mmh-n10-modal-lock');
+   location.replace('login.html');
+  }catch(_){
+   status.textContent=tr('无法确认安全退出，请重试。','Unable to confirm sign out. Please try again.');
+   signOut.disabled=false;fresh.disabled=false;
+   code.value='';
+   code.focus();
+  }
  };
  fresh.onclick=async()=>{
-  const value=code.value.trim();if(!/^\d{6}$/.test(value)){status.textContent='Enter a six-digit code.';return}
-  fresh.disabled=true;status.textContent='Verifying…';
+  const value=code.value.trim();if(!/^\d{6}$/.test(value)){status.textContent=tr('请输入完整的六位验证码。','Enter all six digits.');code.focus();return}
+  fresh.disabled=true;status.textContent=tr('正在核验身份…','Verifying identity…');
   try{
    const {data:user,error:ue}=await db.auth.getUser();if(ue||user?.user?.id!==uid)throw Error('identity_changed');
    const {data:list,error:le}=await db.auth.mfa.listFactors();if(le)throw le;
    const factor=(list?.totp||[]).find(x=>x.status==='verified');if(!factor)throw Error('No verified factor');
-   const {data:challenge,error:ce}=await db.auth.mfa.challenge({factorId:factor.id});
-   if(ce||!challenge?.id)throw ce||Error('challenge_failed');
+   const {data:challenge,error:ce}=await db.auth.mfa.challenge({factorId:factor.id});if(ce||!challenge?.id)throw ce||Error('challenge_failed');
    const {error:ve}=await db.auth.mfa.verify({factorId:factor.id,challengeId:challenge.id,code:value});if(ve)throw ve;
    const {data:level,error:ae}=await db.auth.mfa.getAuthenticatorAssuranceLevel();
    if(ae||level?.currentLevel!=='aal2')throw ae||Error('incomplete_verification');
-   layer.dataset.owner='';layer.hidden=true;layer.style.display='none';
-   await verifiedRedirectV946(uid);
-  }catch(_){status.textContent='Verification failed. Try a new code from your authenticator.';}
-  finally{code.value='';fresh.disabled=false;}
+   // Keep the MFA sheet in place until the verified navigation is accepted.
+   // A redirect failure must never leave an AAL2 session on an unlocked sign-in page.
+   const redirected=await verifiedRedirectV946(uid);
+   if(redirected!==true)throw Error('verified_redirect_failed');
+   layer.dataset.owner='';layer.dataset.open='false';layer.hidden=true;
+   document.body.classList.remove('mmh-n10-modal-lock');
+  }catch(_){status.textContent=tr('验证失败，请输入验证器中的新验证码。','Verification failed. Try a fresh code from your authenticator.');}
+  finally{code.value='';fresh.disabled=false;if(layer.dataset.open==='true')code.focus();}
  };
  code.focus();return true;
 }
@@ -440,7 +542,14 @@ async function verifiedRedirectV946(expectedUserId){
     if(recoveryCallbackPendingV944||recoveryModeV943||recoveryCompletedV943){verifiedRedirectInFlightV946=false;return false}
     const assurance=await db.auth.mfa.getAuthenticatorAssuranceLevel();
     if(assurance.error||!assurance.data)throw assurance.error||Error('mfa_unavailable');
-    if(assurance.data.nextLevel==='aal2'&&assurance.data.currentLevel!=='aal2'){
+    const {currentLevel,nextLevel}=assurance.data;
+    // Auth sometimes returns a null current AAL for legacy signed tokens.
+    // But a missing or unknown NEXT AAL is never proof that MFA is optional.
+    // This must fail closed before ANY navigation to private pages.
+    if(nextLevel!=='aal1'&&nextLevel!=='aal2')throw Error('mfa_next_level_unknown');
+    if(currentLevel!==null&&currentLevel!=='aal1'&&currentLevel!=='aal2')
+      throw Error('mfa_current_level_unknown');
+    if(nextLevel==='aal2'&&currentLevel!=='aal2'){
       verifiedRedirectInFlightV946=false;
       await mmhShowMfaChallengeV783(expectedUserId);
       return false;
@@ -462,36 +571,53 @@ function openForm(id){
   msg('');if(window.applyMMHVAULTLanguage)window.applyMMHVAULTLanguage();
 }
 tabs.forEach(t=>t.onclick=()=>openForm(t.dataset.target));document.querySelectorAll('[data-switch]').forEach(b=>b.onclick=()=>openForm(b.dataset.switch));document.querySelectorAll('.eye').forEach(b=>b.onclick=()=>{const i=b.parentElement.querySelector('input');const show=i.type==='password';i.type=show?'text':'password';const zh=isZhV1531();b.textContent=zh?(show?'隐藏':'显示'):(show?'Hide':'Show')});
-async function googleLogin(btn){if(!db){msg('Authentication service is unavailable. Please refresh.','err');return}btn.disabled=true;msg('Opening Google sign-in…');try{const {error}=await db.auth.signInWithOAuth({provider:'google',options:{redirectTo:loginCallbackUrlV160()}});if(error)throw error}catch(e){console.error(e);msg(e.message||'Unable to sign in with Google.','err');btn.disabled=false}}
+async function googleLogin(btn){if(!db){msg('Authentication service is unavailable. Please refresh.','err');return}btn.disabled=true;msg('Opening Google sign-in…');try{const {error}=await db.auth.signInWithOAuth({provider:'google',options:{redirectTo:loginCallbackUrlV160()}});if(error)throw error}catch(e){msg(safeAccountMessage(e,'google'),'err');btn.disabled=false}}
 ['googleSignIn','googleSignUp'].forEach(id=>document.getElementById(id).onclick=()=>googleLogin(document.getElementById(id)));
 document.getElementById('signin').addEventListener('submit',async e=>{
   e.preventDefault();const btn=document.querySelector('#signin .primary');if(btn.disabled)return;
   if(!db){msg('Authentication service is unavailable.','err');return}
   const email=signinEmail.value.trim(),password=signinPassword.value;
+  // A username is handled by the dedicated server-verified handler in capture phase.
+  // Reject malformed email input instead of sending it to the email-only endpoint.
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){msg('Enter a valid email address or username.','err');return}
   btn.disabled=true;msg('Signing in…');
   try{
     const {data,error}=await db.auth.signInWithPassword({email,password});
     if(error)throw error;
     if(data?.session){signinPassword.value='';await verifiedRedirectV946(data.session.user?.id);return}
     msg('Unable to verify this sign-in. Please sign in again.','err');
-  }catch(error){msg(error?.message==='Invalid login credentials'?'Incorrect email or password.':error?.message||'Unable to verify this sign-in. Please sign in again.','err')}
+  }catch(error){msg(safeAccountMessage(error,'signin'),'err')}
   finally{btn.disabled=false}
 });
 document.getElementById('signup').addEventListener('submit',async e=>{
   e.preventDefault();const btn=document.querySelector('#signup .primary');if(btn.disabled)return;
   if(!db){msg('Authentication service is unavailable.','err');return}
+  if(signupPassword.value!==document.getElementById('signupConfirmPassword').value){msg('Passwords do not match.','err');return}
   if(!terms.checked){msg('Please agree to the terms.','err');return}
   btn.disabled=true;msg('Creating your account…');
   try{
     const {data,error}=await db.auth.signUp({email:signupEmail.value.trim(),password:signupPassword.value,options:{data:{full_name:signupName.value.trim()},emailRedirectTo:loginCallbackUrlV160()}});
     if(error)throw error;
-    signupPassword.value='';
+    signupPassword.value='';document.getElementById('signupConfirmPassword').value='';
     if(data?.session){await verifiedRedirectV946(data.session.user?.id);return}
     msg('Account created. Please check your email to confirm your account.','ok');
-  }catch(error){msg(error?.message||'Authentication service is unavailable.','err')}
+  }catch(error){msg(safeAccountMessage(error,'signup'),'err')}
   finally{btn.disabled=false}
 });
-document.getElementById('forgotBtn').onclick=async e=>{e.preventDefault();const email=signinEmail.value.trim();if(!email){msg('Enter your email first, then try again.','err');return}if(!db){msg('Authentication service is unavailable.','err');return}msg('Sending reset email…');const {error}=await db.auth.resetPasswordForEmail(email,{redirectTo:recoveryRedirectUrlV943()});msg(error?error.message:'Password reset email sent. Please check your inbox.',error?'err':'ok')};
+document.getElementById('forgotBtn').onclick=async e=>{
+ e.preventDefault();
+ const email=signinEmail.value.trim();
+ if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){msg('Enter your email address to request a reset link, or choose Use Recovery Key for a username-only account.','err');return}
+ if(!db){msg('Account service temporarily unavailable.','err');return}
+ msg('Sending password reset request…');
+ try{
+  const {error}=await db.auth.resetPasswordForEmail(email,{redirectTo:recoveryRedirectUrlV943()});
+  if(error)throw error;
+  msg('If this address is eligible, password reset instructions will be sent.','ok');
+ }catch(error){
+  msg(navigator.onLine===false?'You are offline. Reconnect and try again.':error?.name==='AbortError'?'Request timed out. Retry when your connection is stable.':'Password reset request could not be completed. Try again later.','err');
+ }
+};
 // Password recovery must not redirect an authenticated recovery session to app.html.
 document.getElementById('recovery').addEventListener('submit',async e=>{
   e.preventDefault();
@@ -585,16 +711,19 @@ if(db){
   });
 }else if(recoveryCallbackPendingV944)msg('Authentication service is unavailable.','err');
 </script>
-<div id="mmhMfaDialogV783" role="dialog" aria-modal="true" aria-labelledby="mmhMfaTitleV783" hidden style="display:none;position:fixed;z-index:999999;inset:0;background:rgba(0,8,19,.96);place-items:center;padding:20px">
- <div style="width:min(430px,100%);padding:30px 25px;background:linear-gradient(150deg,#122d43,#061827);color:#edf5ff;border:1px solid rgba(226,191,115,.44);border-radius:23px;box-shadow:0 25px 95px #000b">
- <div style="color:#f6d698;font-size:12px;font-weight:800;letter-spacing:.15em">MMHVAULT · ACCOUNT PROTECTION</div>
- <h2 id="mmhMfaTitleV783" style="font-size:25px;margin:14px 0 9px">Two-step verification</h2>
- <p data-mfa-status style="color:#bacbda;font-size:13px">Enter the six-digit code from your authenticator app.</p>
- <label for="mmhMfaCodeV783" style="display:block;color:#b7c9d8;font-size:12px;margin:17px 0 7px">Authenticator code</label>
- <input id="mmhMfaCodeV783" data-mfa-code type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" placeholder="000000" style="width:100%;box-sizing:border-box;font-size:21px;text-align:center;letter-spacing:.18em;padding:13px;border:1px solid #67849a;background:#061523;color:white;border-radius:12px">
- <button data-mfa-submit type="button" style="width:100%;margin-top:16px;padding:14px;border:0;border-radius:13px;background:linear-gradient(120deg,#cda461,#ffdfa0);color:#142134;font-weight:850;cursor:pointer">Verify & continue</button>
- <button id="mmhMfaSignOutV783" type="button" style="display:block;margin:13px auto 0;padding:7px;background:none;border:0;color:#b9c6d7;cursor:pointer">Use another account / Sign out</button>
- </div></div>
+<div id="mmhMfaDialogV783" role="dialog" aria-modal="true" aria-labelledby="mmhMfaTitleV783" aria-describedby="mmhMfaSubtitleV783" hidden data-open="false">
+  <section class="n10-mfa-sheet" tabindex="-1">
+    <div class="n10-mfa-emblem" aria-hidden="true">✦</div>
+    <div class="n10-mfa-eyebrow">MMHVAULT · ACCOUNT PROTECTION</div>
+    <h2 id="mmhMfaTitleV783">Two-step verification</h2>
+    <p id="mmhMfaSubtitleV783" data-mfa-status role="status" aria-live="polite">Enter the six-digit code from your authenticator app.</p>
+    <label for="mmhMfaCodeV783" id="mmhMfaCodeLabelV783">Authenticator code</label>
+    <input id="mmhMfaCodeV783" data-mfa-code type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" placeholder="••••••">
+    <button data-mfa-submit type="button">Verify &amp; continue</button>
+    <button id="mmhMfaSignOutV783" type="button">Use another account / Sign out</button>
+    <div class="n10-mfa-footnote">PRIVATE &amp; SECURE · YOUR ACCOUNT, YOUR CONTROL</div>
+  </section>
+</div>
 <style id="mmh-a740-method-styles">
 .mmh-a740-method-switch{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;margin:0 0 16px;padding:4px;border-radius:14px;background:rgba(3,12,22,.58);border:1px solid rgba(170,190,211,.18)}
 .mmh-a740-method-switch button{border:0;border-radius:10px;background:transparent;color:#aebcce;padding:11px 8px;font-size:13px;font-weight:700;line-height:1.3;font-family:inherit;cursor:pointer}
@@ -719,5 +848,5 @@ main{padding:32px 18px 45px}
 @media(prefers-reduced-motion:reduce){.form.active{animation:none}.mmh-a780-security-icon::after{animation:none!important}#authTabs .tab,.form .primary{transition:none!important}}
 </style>
 <script src="./js/vendor/qrcode-1.0.0.min.js"></script>
-<script src="./js/mmhvault-n10-a7-69-username.js?v=10.782.1"></script>
+<script src="./js/mmhvault-n10-a7-69-username.js?v=n10-modal-integration-20261030-r2"></script>
 </body></html>
