@@ -8,6 +8,7 @@ on:
       - 'tests/n10_auth_regression.py'
       - 'tests/n10_edge_mfa_assurance.test.cjs'
       - 'docs/sql/n10_mfa_gate_candidate_staging_only.sql'
+      - 'docs/sql/n10_mfa_*.sql'
       - 'security/n10-edge-candidates/**'
   workflow_dispatch:
 jobs:
