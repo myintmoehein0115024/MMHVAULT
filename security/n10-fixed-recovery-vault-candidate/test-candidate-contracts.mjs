@@ -22,13 +22,15 @@ const cases=[
    assert.doesNotMatch(staging,/const ORIGIN=.*mmhvault\.com/);
    assert.match(staging,/N10_FIXED_RECOVERY_QA_HMAC_KEY/);
    assert.doesNotMatch(staging,/Deno\.env\.get\('N10A740_RATE_HMAC_KEY'\)/);
-   assert.match(staging,/N10_FIXED_RECOVERY_QA_UID_ALLOWLIST/);
-   assert.match(staging,/ALLOWED_QA_UIDS\.length===2/);
-   assert.match(staging,/new Set\(ALLOWED_QA_UIDS\)\.size===2/);
-   assert.match(staging,/!ALLOWED_QA_UIDS\.includes\(user\.id\)/);
-   assert.match(staging,/mmhvault_auth_kind!=='username_only_staging'/);
-   assert.match(staging,/user\.app_metadata\.mmhvault_username\.startsWith\('qa_'\)/);
-   assert.match(staging,/no-mail\.mmhvault\.invalid/);
+   assert.match(staging,/const QA_IDENTITIES=new Map<string,string>/);
+   assert.match(staging,/bbfa4e52-2ad0-4c8f-a635-6bdcd89b6990/);
+   assert.match(staging,/bda2b4a3-ffab-4b00-883b-8a31bb1c6129/);
+   assert.match(staging,/n10-vault-qa-a-20261101@no-mail\.mmhvault\.invalid/);
+   assert.match(staging,/n10-vault-qa-b-20261101@no-mail\.mmhvault\.invalid/);
+   assert.match(staging,/QA_IDENTITIES\.get\(user\.id\)!==user\.email/);
+   assert.match(staging,/!user\.email_confirmed_at/);
+   assert.match(staging,/user\.app_metadata\?\.mmhvault_auth_kind!=null/);
+   assert.doesNotMatch(staging,/N10_FIXED_RECOVERY_QA_UID_ALLOWLIST/);
    assert.equal((staging.match(/await verifiedUser\(req\)/g)||[]).length,3);
    assert.equal((staging.match(/await liveSession\(user\.id,sessionId\)/g)||[]).length,3);
  }],
