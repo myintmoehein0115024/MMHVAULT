@@ -6,13 +6,15 @@ import {createClient} from 'npm:@supabase/supabase-js@2.57.4';
 import {evaluateVerifiedAuthUserMfa} from './mfa-assurance.mjs';
 import {sessionIdFromVerifiedJwt} from './session-guard.mjs';
 const BASE=Deno.env.get('SUPABASE_URL')||'';
+// Release candidate is only valid for the explicitly approved production project.
+// The separate Auth-Staging QA adapter has its own different hard project pin.
+const EXPECTED_BASE='https://vrypucmyrztxgiqhjspd.supabase.co';
 // A reviewed code change alone must never enable secret disclosure.
 const RECOVERY_RELEASE_ENABLED=false; // promote only after isolated signed-token QA and release approval
 const ANON=Deno.env.get('SUPABASE_ANON_KEY')||'';
 const SERVICE=Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')||'';
 const RATEKEY=Deno.env.get('N10A740_RATE_HMAC_KEY')||'';
-const ORIGIN=BASE.includes('ldivswlhtgmznzwhzsoi')
- ?'https://myintmoehein0115024.github.io':'https://mmhvault.com';
+const ORIGIN='https://mmhvault.com';
 const admin=createClient(BASE||'https://invalid.supabase.co',SERVICE||'placeholder',{
  auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
 const enc=new TextEncoder();
@@ -117,7 +119,7 @@ Deno.serve(async(req:Request)=>{
  if(req.method==='OPTIONS')return new Response(null,{status:204,headers:out(origin,'ok').headers});
  if(req.method!=='POST')return out(origin,'method_denied',405);
  if(!RECOVERY_RELEASE_ENABLED)return out(origin,'recovery_service_not_released',503);
- if(SERVICE.length<20||ANON.length<20||RATEKEY.length<32||!BASE.startsWith('https://'))
+ if(BASE!==EXPECTED_BASE||SERVICE.length<20||ANON.length<20||RATEKEY.length<32)
   return out(origin,'unavailable',503);
  if(!/^application\/json(?:\s*;|$)/i.test(req.headers.get('Content-Type')||''))
   return out(origin,'json_required',415);
