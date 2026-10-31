@@ -1,6 +1,6 @@
 // MMHVAULT N10 AUTH-STAGING synthetic-only Vault QA adapter — REVIEW ONLY, NOT DEPLOYED.
 // Never replace production recovery Edge with this QA file. Exact isolated
-// project ID, QA origin, synthetic-account allowlist and OFF switch are mandatory.
+// project ID, QA origin, exact synthetic-account pair and OFF switch are mandatory.
 // Requires an audited Vault-only SQL schema, private service-role RPC grants,
 // real signed-token AAL1/AAL2 tests and an explicit production release gate.
 // No plaintext recovery words or passwords may be logged or stored by the browser.
@@ -14,9 +14,14 @@ const RECOVERY_RELEASE_ENABLED=false; // OFF. For approved Staging-only QA, neve
 const ANON=Deno.env.get('SUPABASE_ANON_KEY')||'';
 const SERVICE=Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')||'';
 const RATEKEY=Deno.env.get('N10_FIXED_RECOVERY_QA_HMAC_KEY')||'';
-const ALLOWED_QA_UIDS=(Deno.env.get('N10_FIXED_RECOVERY_QA_UID_ALLOWLIST')||'').split(',').map(s=>s.trim()).filter(Boolean);
-const UUID_QA=/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-const ALLOWLIST_OK=ALLOWED_QA_UIDS.length===2 && new Set(ALLOWED_QA_UIDS).size===2 && ALLOWED_QA_UIDS.every(s=>UUID_QA.test(s));
+// These two manually created, verified email-only users are SYNTHETIC QA identities.
+// They are not username-only accounts and have no original 10-word verifier yet.
+// This isolated adapter tests Vault/session/MFA mechanics, NOT username-only signup.
+const QA_IDENTITIES=new Map<string,string>([
+ ['bbfa4e52-2ad0-4c8f-a635-6bdcd89b6990','n10-vault-qa-a-20261101@no-mail.mmhvault.invalid'],
+ ['bda2b4a3-ffab-4b00-883b-8a31bb1c6129','n10-vault-qa-b-20261101@no-mail.mmhvault.invalid']
+]);
+const ALLOWLIST_OK=QA_IDENTITIES.size===2;
 const ORIGIN='https://myintmoehein0115024.github.io';
 // This QA service never accepts the production origin, even in configuration errors.
 const admin=createClient(BASE||'https://invalid.supabase.co',SERVICE||'placeholder',{
@@ -111,13 +116,14 @@ async function verifiedUser(req:Request){
   &&!factors.factors.some((f:any)=>f?.status==='verified'))return {state:'unavailable' as const};
  const assurance=evaluateVerifiedAuthUserMfa(m[1],{...user,factors:factors.factors},BASE);
  if(assurance!=='allowed')return {state:assurance as 'required'|'unavailable'};
- // Never include real users or reinterpret old test recovery phrases as a new key.
- if(user.app_metadata?.mmhvault_auth_kind!=='username_only_staging'
-    ||typeof user.app_metadata?.mmhvault_username!=='string'
-    ||!user.app_metadata.mmhvault_username.startsWith('qa_')
-    ||!ALLOWLIST_OK || !ALLOWED_QA_UIDS.includes(user.id)
-    ||typeof user.email!=='string'
-    ||!user.email.endsWith('@no-mail.mmhvault.invalid'))
+ // No user-editable metadata, usernames or claimed emails authorize access.
+ // Match BOTH Auth-verified UID and exact email against two preapproved fixtures.
+ // A/B have no username-only app metadata; do not change their Auth records.
+ if(!ALLOWLIST_OK
+    ||QA_IDENTITIES.get(user.id)!==user.email
+    ||!user.email_confirmed_at
+    ||user.app_metadata?.mmhvault_auth_kind!=null
+    ||user.app_metadata?.mmhvault_username!=null)
   return {state:'not_supported' as const};
  const sessionId=sessionIdFromVerifiedJwt(m[1],user.id,BASE);
  if(!sessionId)return {state:'unauthorized' as const};
@@ -139,7 +145,7 @@ Deno.serve(async(req:Request)=>{
  const authenticated=await verifiedUser(req);
  if(authenticated.state==='unauthorized')return out(origin,'sign_in_required',401);
  if(authenticated.state==='required')return out(origin,'mfa_required',403);
- if(authenticated.state==='not_supported')return out(origin,'username_only_required',403);
+ if(authenticated.state==='not_supported')return out(origin,'synthetic_qa_account_required',403);
  if(authenticated.state!=='ok')return out(origin,'mfa_unavailable',503);
  const user=authenticated.user;
  const sessionId=authenticated.sessionId;
