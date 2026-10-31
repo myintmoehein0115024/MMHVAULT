@@ -780,3 +780,243 @@ html[lang="zh-CN"] .showcase-card>strong{font-family:Georgia,"Times New Roman",s
   .showcase-card,.locale-trigger .locale-chevron{transition:none!important}
   .hero::after{filter:none;opacity:.29}
 }
+
+/* ============================================================
+   L1.3 — immutable international Hero & private-banking polish
+   Brand copy intentionally does not inherit language-specific
+   typography changes from the rest of the website.
+   ============================================================ */
+.hero-copy{
+  isolation:isolate;
+  position:relative;
+}
+.hero-copy::before{
+  content:"";
+  position:absolute;
+  z-index:-1;
+  pointer-events:none;
+  inset:-23px -24px -30px -28px;
+  background:linear-gradient(105deg,rgba(5,13,26,.50),rgba(8,17,30,.23) 58%,rgba(8,15,29,.035));
+  border-radius:19px;
+  box-shadow:inset 1px 0 0 rgba(243,211,150,.14);
+  -webkit-mask-image:linear-gradient(90deg,#000 0%,rgba(0,0,0,.8) 72%,transparent 100%);
+  mask-image:linear-gradient(90deg,#000 0%,rgba(0,0,0,.8) 72%,transparent 100%);
+}
+.hero-copy .eyebrow[data-hero-fixed]{
+  color:#f2d7ad;
+  font-size:11px;
+  font-weight:600;
+  letter-spacing:.31em;
+  text-shadow:0 2px 18px rgba(0,0,0,.40);
+  margin-bottom:13px;
+}
+.hero-copy .eyebrow .eyebrow-line{
+  display:inline-block;
+  width:21px;height:1px;
+  background:linear-gradient(90deg,#bd955d,#f8dfb6);
+  box-shadow:0 0 13px rgba(245,199,128,.38);
+}
+.hero-copy .hero-name[lang="en"]{
+  letter-spacing:-.053em;
+  line-height:1.04;
+  white-space:nowrap;
+  margin-bottom:16px;
+  filter:drop-shadow(0 9px 24px rgba(0,0,0,.30));
+}
+.hero-copy .hero-statement[lang="en"],
+html[lang="my"] .hero-copy .hero-statement[lang="en"],
+html[lang="zh-CN"] .hero-copy .hero-statement[lang="en"]{
+  font-family:Georgia,"Times New Roman",serif;
+  font-size:clamp(23px,2.23vw,34px);
+  font-weight:400;
+  line-height:1.28;
+  letter-spacing:-.022em;
+  max-width:625px;
+  color:#fff4df;
+  text-shadow:0 4px 22px rgba(0,0,0,.30);
+}
+.hero-copy .hero-statement[lang="en"] em,
+html[lang="my"] .hero-copy .hero-statement[lang="en"] em,
+html[lang="zh-CN"] .hero-copy .hero-statement[lang="en"] em{
+  font-family:Georgia,"Times New Roman",serif;
+  font-style:italic;
+  font-weight:400;
+  letter-spacing:-.022em;
+  color:#ffe0a9;
+  -webkit-text-fill-color:#ffe0a9;
+}
+.hero-static-languages{
+  display:grid;
+  gap:0;
+  margin-top:17px;
+  padding-left:16px;
+  border-left:1px solid rgba(247,206,141,.42);
+}
+.hero-static-languages .hero-script-zh,
+html[lang="my"] .hero-static-languages .hero-script-zh,
+html[lang="zh-CN"] .hero-static-languages .hero-script-zh{
+  color:#f1c987;
+  font-family:"PingFang SC","Microsoft YaHei","Noto Sans CJK SC",sans-serif;
+  font-size:clamp(16px,1.45vw,21px);
+  font-weight:430;
+  line-height:1.65;
+  letter-spacing:.01em;
+  margin:0;
+  text-shadow:0 3px 18px rgba(0,0,0,.38);
+}
+.hero-static-languages .hero-script-my,
+html[lang="my"] .hero-static-languages .hero-script-my,
+html[lang="zh-CN"] .hero-static-languages .hero-script-my{
+  color:#f3e9db;
+  font-family:"Noto Sans Myanmar","Myanmar Text","Padauk",sans-serif;
+  font-size:clamp(12px,1.13vw,16px);
+  font-weight:450;
+  line-height:2.00;
+  letter-spacing:0;
+  margin:7px 0 0;
+  max-width:575px;
+  text-shadow:0 3px 16px rgba(0,0,0,.4);
+}
+.hero-static-languages .hero-script-en,
+html[lang="my"] .hero-static-languages .hero-script-en,
+html[lang="zh-CN"] .hero-static-languages .hero-script-en{
+  color:#e4e8e9;
+  font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  font-size:clamp(12px,1.00vw,14px);
+  font-weight:400;
+  line-height:1.78;
+  letter-spacing:.005em;
+  max-width:550px;
+  margin:14px 0 0;
+  text-shadow:0 3px 16px rgba(0,0,0,.55);
+}
+.hero-copy .hero-buttons{margin-top:31px}
+.hero-copy .hero-buttons .button{
+  border-radius:999px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 11px 28px rgba(0,0,0,.18);
+}
+.hero-copy .hero-buttons .button-gold{
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.62),0 12px 31px rgba(188,122,48,.27);
+}
+.hero::before{
+  background-image:
+    linear-gradient(90deg,rgba(2,8,18,.62) 0%,rgba(3,10,20,.42) 30%,rgba(4,9,19,.12) 67%,rgba(4,9,17,.20) 100%),
+    linear-gradient(180deg,rgba(3,9,19,.27) 0%,transparent 35%,rgba(7,12,22,.03) 61%,rgba(2,7,15,.43) 94%,#040b15 100%),
+    url("./luxury-horizon.svg");
+}
+.desktop-frame{box-shadow:0 34px 100px rgba(0,0,0,.71),0 0 0 5px rgba(10,13,19,.74),0 0 40px rgba(213,163,93,.08),inset 0 1px 0 rgba(255,241,211,.16)}
+.phone-frame{box-shadow:0 27px 54px rgba(0,0,0,.84),0 0 20px rgba(226,185,128,.055),inset 0 0 0 1px rgba(249,223,182,.18)}
+.showcase-card{border-color:rgba(228,204,165,.36)}
+.showcase-card:hover{border-color:rgba(255,224,169,.8)}
+
+/* Preserve full desktop navigation on moderately sized Mac/browser windows. */
+@media(min-width:1051px) and (max-width:1200px){
+  .site-header .header-inner{
+    display:grid;
+    grid-template-columns:minmax(180px,1fr) auto minmax(285px,1fr);
+    gap:11px;
+    min-height:79px;
+  }
+  .site-header .header-inner .nav{
+    display:flex;
+    position:static;
+    flex-direction:row;
+    align-items:center;
+    justify-content:center;
+    gap:15px;
+    padding:0;
+    border:0;
+    border-radius:0;
+    box-shadow:none;
+    background:none;
+    white-space:nowrap;
+  }
+  .site-header .nav a{width:auto;padding:0;font-size:12px;min-height:42px}
+  .site-header .nav a[aria-current="page"]::after{left:0;right:0;width:auto;bottom:3px}
+  .site-header .header-actions{gap:7px}
+  .site-header .header-actions .signin-link,
+  .site-header .header-actions .header-cta{display:inline-flex;padding:9px 13px;font-size:11px;min-height:39px}
+  .site-header .locale-trigger{font-size:11px;padding:8px 9px;min-height:39px;gap:6px}
+  .site-header .brand-symbol{font-size:37px;width:39px}
+  .site-header .brand-copy strong{font-size:17px}
+  .site-header .brand-copy small{font-size:6px}
+  .site-header .menu-toggle{display:none}
+  html[lang="my"] .site-header .nav a{font-size:10px}
+}
+@media(max-width:1050px){
+  .site-header .header-inner .nav{display:none}
+  .site-header.menu-open .header-inner .nav{display:flex}
+  .site-header .menu-toggle{display:flex}
+}
+@media(min-width:841px) and (max-width:1200px){
+  .hero-copy .hero-statement[lang="en"],
+  html[lang="my"] .hero-copy .hero-statement[lang="en"],
+  html[lang="zh-CN"] .hero-copy .hero-statement[lang="en"]{font-size:clamp(22px,2.25vw,31px)}
+  .hero-static-languages .hero-script-my{font-size:13px}
+}
+@media(max-width:840px){
+  .hero-copy::before{inset:-16px -15px -22px -16px}
+  .hero-static-languages{margin-top:16px}
+  .hero-copy .hero-statement[lang="en"],
+  html[lang="my"] .hero-copy .hero-statement[lang="en"],
+  html[lang="zh-CN"] .hero-copy .hero-statement[lang="en"]{
+    font-size:clamp(24px,4.0vw,34px);
+    line-height:1.32;
+  }
+}
+@media(max-width:620px){
+  .hero-copy::before{
+    inset:-13px -7px -17px -7px;
+    border-radius:13px;
+    background:linear-gradient(100deg,rgba(6,12,23,.38),rgba(7,14,26,.06));
+    box-shadow:inset 1px 0 0 rgba(243,211,150,.08);
+  }
+  .hero-copy .eyebrow[data-hero-fixed]{
+    font-size:9px;
+    letter-spacing:.17em;
+    gap:8px;
+    margin-bottom:12px;
+  }
+  .hero-copy .eyebrow .eyebrow-line{width:15px}
+  .hero-copy .hero-name[lang="en"]{
+    letter-spacing:-.055em;
+    font-size:clamp(45px,11.4vw,70px);
+    white-space:nowrap;
+    margin-bottom:11px;
+  }
+  .hero-copy .hero-statement[lang="en"],
+  html[lang="my"] .hero-copy .hero-statement[lang="en"],
+  html[lang="zh-CN"] .hero-copy .hero-statement[lang="en"]{
+    font-size:clamp(21px,5.6vw,31px);
+    line-height:1.36;
+  }
+  .hero-static-languages{margin-top:16px;padding-left:11px}
+  .hero-static-languages .hero-script-zh,
+  html[lang="my"] .hero-static-languages .hero-script-zh,
+  html[lang="zh-CN"] .hero-static-languages .hero-script-zh{
+    font-size:clamp(14px,3.8vw,17px);
+    line-height:1.75;
+  }
+  .hero-static-languages .hero-script-my,
+  html[lang="my"] .hero-static-languages .hero-script-my,
+  html[lang="zh-CN"] .hero-static-languages .hero-script-my{
+    margin-top:8px;
+    font-size:12px;
+    line-height:2.02;
+    max-width:none;
+  }
+  .hero-static-languages .hero-script-en,
+  html[lang="my"] .hero-static-languages .hero-script-en,
+  html[lang="zh-CN"] .hero-static-languages .hero-script-en{
+    margin-top:13px;
+    font-size:12px;
+    line-height:1.8;
+  }
+  .hero-copy .hero-buttons{margin-top:22px}
+}
+@media(max-width:355px){
+  .hero-copy .hero-name[lang="en"]{font-size:43px}
+  .hero-copy .hero-statement[lang="en"],
+  html[lang="my"] .hero-copy .hero-statement[lang="en"],
+  html[lang="zh-CN"] .hero-copy .hero-statement[lang="en"]{font-size:21px}
+}
