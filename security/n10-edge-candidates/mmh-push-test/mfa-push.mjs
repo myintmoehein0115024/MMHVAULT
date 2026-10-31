@@ -8,7 +8,7 @@ export function evaluatePushMfa(factorState, verifiedUserId, claims) {
   if (!claims || typeof claims !== "object" ||
       claims.sub !== verifiedUserId ||
       !claims.iss || typeof claims.iss !== "string" ||
-      !Number.isFinite(claims.exp) || claims.exp <= 0) {
+      !Number.isSafeInteger(claims.exp) || claims.exp <= Math.floor(Date.now() / 1000)) {
     return "unavailable";
   }
   // The endpoint already validated this token against Auth; the JWT claims
