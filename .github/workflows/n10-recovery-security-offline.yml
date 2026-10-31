@@ -1,0 +1,29 @@
+name: N10 recovery security - offline checks
+on:
+  pull_request:
+    paths:
+      - 'security/n10-fixed-recovery-vault-candidate/**'
+      - 'docs/sql/n10_fixed_recovery_*.sql'
+      - '.github/workflows/n10-recovery-security-offline.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  candidate-security:
+    name: Offline recovery candidate checks (NO deployment)
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout branch (read only)
+        uses: actions/checkout@v4
+      - name: Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: MFA assurance matrix (synthetic only)
+        run: node security/n10-fixed-recovery-vault-candidate/test-mfa-assurance.mjs
+      - name: Auth session integrity matrix (synthetic only)
+        run: node security/n10-fixed-recovery-vault-candidate/test-session-guard.mjs
+      - name: Backend and SQL static security contracts
+        run: node security/n10-fixed-recovery-vault-candidate/test-candidate-contracts.mjs
+# Deliberately no Supabase or GitHub deployment, SQL writes, secrets, or live users.
