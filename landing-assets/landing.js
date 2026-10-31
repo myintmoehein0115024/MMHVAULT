@@ -327,7 +327,7 @@
     if (!event.target.closest('.locale-picker')) closeLanguage();
     if (!siteHeader.contains(event.target)) closeMenu();
   });
-  const media = window.matchMedia('(min-width: 1101px)');
+  const media = window.matchMedia('(min-width: 1201px)');
   if (typeof media.addEventListener === 'function') media.addEventListener('change', closeMenu);
   let saved = 'en';
   try { const stored = window.localStorage.getItem(storageKey); if (stored === 'zh' || stored === 'my') saved = stored; } catch (_) {}
