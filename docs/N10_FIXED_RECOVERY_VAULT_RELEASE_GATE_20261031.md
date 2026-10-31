@@ -1,6 +1,8 @@
 # N10 Fixed 10-word Recovery Key — implementation and release gate
 Date: 2026-10-31 · Development branch only, NOT a live backup service.
 
+**CURRENT STATUS (later on 2026-10-31):** The two reviewed **Staging-only SQL migrations were applied successfully** (migration versions `20261031155428` and `20261031155456`) and read-only RLS/ACL/zero-row checks passed. No synthetic accounts, decrypted-secret QA, signed-JWT tests or Edge deployments have occurred. See `docs/N10_FIXED_RECOVERY_STAGING_EXECUTION_RECORD_20261031.md`. The historical notes below describing missing Staging objects refer to **earlier preapproval inspections**, not the current database state. PR remains Draft and production release OFF.
+
 ## Owner requirement
 Each username-only account retains one fixed original ten-word key. A password prompt plus an authenticated AAL2 session (if TOTP enrolled) should allow secure re-view of the **same** phrase and locally reconstructed QR, not rotation.
 
