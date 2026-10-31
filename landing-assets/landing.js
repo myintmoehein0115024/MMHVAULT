@@ -223,6 +223,11 @@
   Object.assign(strings.en,{assetGlobal:'Global',assetGold:'Gold',assetOther:'Other'});
   Object.assign(strings.zh,{assetGlobal:'全球股票',assetGold:'黄金',assetOther:'其他'});
   Object.assign(strings.my,{assetGlobal:'ကမ္ဘာလုံးဆိုင်ရာ',assetGold:'ရွှေ',assetOther:'အခြား'});
+
+  // Public concept-only translations; no real business data is loaded.
+  Object.assign(strings.en,{"navBusiness":"Business","businessEyebrow":"A NEW PERSPECTIVE ON FINANCE","businessHeading":"Your finances.<br><em>Your ambitions.</em>","businessLead":"Personal finances today. The possibility of a dedicated workspace for your future business, presented with the same considered attention to detail.","businessStatus":"Business workspace · design concept","businessSideNote":"One visual language for the life you're building and the ventures you're imagining.","businessLabel":"FINANCIAL WORKSPACE","businessPersonal":"Personal","businessBusiness":"Business","businessPreviewOnly":"CONCEPT / DEMO","businessDemoEyebrow":"FINANCIAL PICTURE","businessDemoPeriod":"ILLUSTRATIVE MONTH","personalDemoTitle":"Personal overview","businessDemoTitle":"Business overview","personalDemoBalance":"TOTAL BALANCE","businessDemoBalance":"BUSINESS BALANCE","personalDemoDelta":"+ $2,720 fictional monthly net cash flow","businessDemoDelta":"+ $36,250 fictional monthly net cash flow","businessMetricIncome":"INCOME","businessMetricOutflow":"OUTGOINGS","personalDemoThird":"SAVINGS GOAL","businessDemoThird":"MONTHLY REVENUE","businessActivityTitle":"RECENT ACTIVITY","businessBreakdown":"ALLOCATION SNAPSHOT","personalRow1":"Monthly salary","personalRow2":"Everyday expense","personalRow3":"Savings transfer","businessRow1":"Client payment","businessRow2":"Operating expense","businessRow3":"Software subscription","businessLegend1":"Available","businessLegend2":"Invested","businessLegend3":"Reserved","businessFootnote":"Concept interface only. All figures are fictional; no actual financial or business records.","businessExplore":"Explore personal finance features"});
+  Object.assign(strings.zh,{"navBusiness":"商业财务","businessEyebrow":"探索更多财务管理可能","businessHeading":"管理个人财富，<br><em>规划事业未来。</em>","businessLead":"从个人财务管理到未来的商业财务空间，探索统一、清晰、精致的财务工作体验。商业功能目前仅为概念展示。","businessStatus":"商业工作区 · 设计概念","businessSideNote":"从个人生活到未来事业，以一致的高级视觉理解每一笔资金。","businessLabel":"财务管理工作区","businessPersonal":"个人财务","businessBusiness":"商业财务","businessPreviewOnly":"概念演示","businessDemoEyebrow":"财务概览","businessDemoPeriod":"虚构示例月份","personalDemoTitle":"个人财务总览","businessDemoTitle":"商业财务总览","personalDemoBalance":"账户总余额","businessDemoBalance":"商业资金余额","personalDemoDelta":"本月虚构净现金流 + $2,720","businessDemoDelta":"本月虚构净现金流 + $36,250","businessMetricIncome":"收入","businessMetricOutflow":"支出","personalDemoThird":"储蓄目标","businessDemoThird":"月度营业额","businessActivityTitle":"近期记录","businessBreakdown":"资金分布","personalRow1":"每月工资","personalRow2":"日常消费","personalRow3":"储蓄转账","businessRow1":"客户付款","businessRow2":"经营成本","businessRow3":"软件订阅","businessLegend1":"可用资金","businessLegend2":"投资资金","businessLegend3":"预留资金","businessFootnote":"仅为概念界面，所有金额均为虚构示例，并非真实账户或商业数据。","businessExplore":"了解个人财务功能"});
+  Object.assign(strings.my,{"navBusiness":"စီးပွားရေး","businessEyebrow":"ငွေကြေးစီမံခန့်ခွဲမှု၏ အမြင်သစ်","businessHeading":"သင့်ငွေကြေးကို စီမံပြီး<br><em>သင့်လုပ်ငန်းအတွက် အနာဂတ်ကို ပုံဖော်ပါ။</em>","businessLead":"ကိုယ်ပိုင်ငွေကြေးမှ အနာဂတ်စီးပွားရေးလုပ်ငန်းအထိ စနစ်တကျ စီမံနိုင်မည့် အကြံပြုဒီဇိုင်းကို လေ့လာပါ။ လုပ်ငန်းအတွက် လုပ်ဆောင်ချက်သည် ယခုအချိန်တွင် နမူနာသာ ဖြစ်ပါသည်။","businessStatus":"စီးပွားရေးလုပ်ငန်းနေရာ · ဒီဇိုင်းနမူနာ","businessSideNote":"သင့်ဘဝနှင့် စီးပွားရေးရည်မှန်းချက်များအတွက် တစ်သမတ်တည်းသော အမြင်။","businessLabel":"ငွေကြေးစီမံခန့်ခွဲမှု","businessPersonal":"ကိုယ်ပိုင်","businessBusiness":"စီးပွားရေး","businessPreviewOnly":"နမူနာသာ","businessDemoEyebrow":"ငွေကြေးအကျဉ်းချုပ်","businessDemoPeriod":"စိတ်ကူးယဉ် လစဉ်နမူနာ","personalDemoTitle":"ကိုယ်ပိုင်ငွေကြေးအကျဉ်းချုပ်","businessDemoTitle":"စီးပွားရေးငွေကြေးအကျဉ်းချုပ်","personalDemoBalance":"စုစုပေါင်းလက်ကျန်","businessDemoBalance":"လုပ်ငန်းငွေလက်ကျန်","personalDemoDelta":"ယခုလ နမူနာငွေဝင်ငွေထွက် + $2,720","businessDemoDelta":"ယခုလ နမူနာငွေဝင်ငွေထွက် + $36,250","businessMetricIncome":"ဝင်ငွေ","businessMetricOutflow":"အသုံးစရိတ်","personalDemoThird":"စုဆောင်းငွေရည်မှန်းချက်","businessDemoThird":"လစဉ်လုပ်ငန်းဝင်ငွေ","businessActivityTitle":"မကြာသေးမီက မှတ်တမ်းများ","businessBreakdown":"ငွေကြေးခွဲဝေမှု","personalRow1":"လစဉ်လစာ","personalRow2":"နေ့စဉ်အသုံးစရိတ်","personalRow3":"စုဆောင်းငွေလွှဲခြင်း","businessRow1":"ဖောက်သည်ငွေပေးချေမှု","businessRow2":"လုပ်ငန်းအသုံးစရိတ်","businessRow3":"ဆော့ဖ်ဝဲကြေး","businessLegend1":"အသုံးပြုနိုင်သောငွေ","businessLegend2":"ရင်းနှီးမြှုပ်နှံထားသောငွေ","businessLegend3":"သီးသန့်ထားသောငွေ","businessFootnote":"ဤနေရာသည် ဒီဇိုင်းနမူနာသာဖြစ်ပြီး ငွေပမာဏအားလုံးမှာ စိတ်ကူးယဉ်အချက်အလက်များ ဖြစ်ပါသည်။","businessExplore":"ကိုယ်ပိုင်ငွေကြေးလုပ်ဆောင်ချက်များ"});
   const htmlKeys = new Set(['heroTitle', 'featuresTitle', 'whyTitle', 'closingTitle']);
   const storageKey = 'mmhvault.landing.language';
   const siteHeader = document.querySelector('.site-header');
@@ -240,6 +245,45 @@
   };
 
   let currentLang = 'en';
+  let currentBusinessView = 'personal';
+  const businessTabs = [...document.querySelectorAll('[data-business-view]')];
+  const conceptData = {
+    personal: { balance:'$24,680.50',income:'$4,860.00',outgoing:'$2,140.00',third:'$12,000',row1:'+$2,500',row2:'−$85',row3:'−$400' },
+    business: { balance:'$366,250.00',income:'$58,900.00',outgoing:'$22,650.00',third:'$156,200',row1:'+$12,000',row2:'−$2,400',row3:'−$320' }
+  };
+  function updateBusinessPreview(view) {
+    currentBusinessView = view === 'business' ? 'business' : 'personal';
+    const prefix = currentBusinessView === 'business' ? 'business' : 'personal';
+    const dictionary = strings[currentLang];
+    businessTabs.forEach(button => {
+      const selected = button.dataset.businessView === currentBusinessView;
+      button.setAttribute('aria-pressed',String(selected));
+      button.classList.toggle('is-selected',selected);
+    });
+    document.querySelectorAll('[data-business-amount]').forEach(element => {
+      element.textContent = conceptData[currentBusinessView][element.dataset.businessAmount] || '';
+    });
+    const keyMap = {
+      title: prefix + 'DemoTitle',
+      balanceLabel: prefix + 'DemoBalance',
+      delta: prefix + 'DemoDelta',
+      thirdLabel: prefix + 'DemoThird',
+      row1: prefix + 'Row1',
+      row2: prefix + 'Row2',
+      row3: prefix + 'Row3'
+    };
+    document.querySelectorAll('[data-business-text]').forEach(element => {
+      const key = keyMap[element.dataset.businessText];
+      element.setAttribute('data-i18n',key);
+      element.textContent = dictionary[key] || '';
+    });
+    const panel = document.querySelector('.business-stage');
+    if(panel) panel.dataset.currentView = currentBusinessView;
+  }
+  businessTabs.forEach(button => button.addEventListener('click', () => {
+    updateBusinessPreview(button.dataset.businessView);
+  }));
+
 
   function applyLanguage(lang) {
     currentLang = lang === 'my' ? 'my' : (lang === 'zh' ? 'zh' : 'en');
@@ -257,6 +301,7 @@
     languageButtons.forEach(button => {
       button.setAttribute('aria-pressed', String(button.dataset.lang === currentLang));
     });
+    updateBusinessPreview(currentBusinessView);
     toggle.setAttribute('aria-label', currentLang === 'zh' ? '打开导航菜单' : (currentLang === 'my' ? 'လမ်းညွှန်မီနူး ဖွင့်ရန်' : 'Open navigation menu'));
     document.querySelector('#primary-nav').setAttribute('aria-label', currentLang === 'zh' ? '主导航' : (currentLang === 'my' ? 'အဓိကလမ်းညွှန်' : 'Primary navigation'));
     localeTrigger.setAttribute('aria-label', currentLang === 'zh' ? '选择语言' : (currentLang === 'my' ? 'ဘာသာစကား ရွေးရန်' : 'Select language'));
