@@ -135,3 +135,9 @@ Backend static security contracts now include the retired 410-only endpoint (**3
 - Added static CI assertion enforcing this production project pin and disabled release. Restricted local pure-JS test harness re-ran **32/32 security-contract checks PASS** on the Draft's updated GitHub source; neither live GitHub Actions CI outcome nor Deno typecheck has been independently verified.
 
 **Remaining hard production N10 gates:** independently authorized proof of Vault post-user-deletion cleanup (without bypassing denied sensitive query); signed MFA AAL1-denied/AAL2-allowed tested against **the exact fixed-recovery backup/reveal service** rather than just the isolated MFA checker; release authorization and rollback readiness. Current Draft PR must not be merged before these gates.
+
+## N10 Draft-only MFA stale-AAL2 fail-closed hardening
+
+- Modified `security/n10-fixed-recovery-vault-candidate/mfa-assurance.mjs` so a **stale AAL2 JWT claim without any currently verified MFA factor** returns `unavailable` rather than being accepted for sensitive recovery-key access. Ordinary AAL1 sessions without enrolled factors stay valid; enrolled AAL1 still returns `required`, enrolled AAL2 still `allowed`.
+- Updated `test-mfa-assurance.mjs` to require that stale AAL2 state to fail closed. A local, restricted JS simulation of decoded JWT claims passed **10/10 scenarios**, including no-factor AAL1, verified-factor AAL1 denial, AAL2 allow, stale AAL2 after factor removal, expired/mismatched identity/issuer, and malformed assurance. **Not signed-JWT, Vault or live backend acceptance**.
+- Only Draft PR #2 was edited. Runtime QA remains retired, production unchanged. Exact-service MFA + Vault E2E and Vault orphan-free deletion still release blockers.
