@@ -40,8 +40,13 @@ SELECT
  CASE WHEN get IS NOT NULL THEN has_function_privilege('anon',get,'EXECUTE') END AS anon_can_read_key,
  CASE WHEN get IS NOT NULL THEN has_function_privilege('authenticated',get,'EXECUTE') END AS authenticated_can_read_key,
  CASE WHEN get IS NOT NULL THEN has_function_privilege('service_role',get,'EXECUTE') END AS service_can_read_key,
+ CASE WHEN put IS NOT NULL THEN has_function_privilege('service_role',put,'EXECUTE') END AS service_can_put,
+ CASE WHEN exists_fn IS NOT NULL THEN has_function_privilege('anon',exists_fn,'EXECUTE') END AS anon_can_read_status,
+ CASE WHEN exists_fn IS NOT NULL THEN has_function_privilege('authenticated',exists_fn,'EXECUTE') END AS authenticated_can_read_status,
+ CASE WHEN exists_fn IS NOT NULL THEN has_function_privilege('service_role',exists_fn,'EXECUTE') END AS service_can_read_status,
  CASE WHEN quota IS NOT NULL THEN has_function_privilege('anon',quota,'EXECUTE') END AS anon_can_quota,
  CASE WHEN quota IS NOT NULL THEN has_function_privilege('authenticated',quota,'EXECUTE') END AS authenticated_can_quota,
+ CASE WHEN quota IS NOT NULL THEN has_function_privilege('service_role',quota,'EXECUTE') END AS service_can_quota,
  CASE WHEN session_guard IS NOT NULL THEN has_function_privilege('anon',session_guard,'EXECUTE') END AS anon_can_check_session,
  CASE WHEN session_guard IS NOT NULL THEN has_function_privilege('authenticated',session_guard,'EXECUTE') END AS authenticated_can_check_session,
  CASE WHEN session_guard IS NOT NULL THEN has_function_privilege('service_role',session_guard,'EXECUTE') END AS service_can_check_session,
@@ -52,6 +57,7 @@ FROM flags;
 -- vault_ready, vault_create_signature_ok, auth_session_expiry_column_ok, backup_index_present, rate_index_present, put/get/status/quota/session_guard:
 --   true (and a synthetic verifier present or a separately approved fixture).
 -- backup_index_rls/rate_bucket_rls true.
--- ALL anon/authenticated_* EXECUTE/USAGE fields false.
+-- ALL anon/authenticated_* EXECUTE/USAGE fields false, including backup status.
+-- put/status/quota/reveal/session service-role EXECUTE should be true.
 -- service_can_read_key and service_can_check_session true only for the dedicated privileged backend.
 -- This query never checks the contents of vault.secrets/decrypted_secrets.
