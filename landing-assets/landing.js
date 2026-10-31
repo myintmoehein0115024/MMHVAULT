@@ -247,6 +247,36 @@
     businessVisualDisclaimer:'ဒီဇိုင်းနမူနာသာ · ငွေပမာဏအားလုံးမှာ စိတ်ကူးယဉ်အချက်အလက်များ ဖြစ်ပါသည်'
   });
 
+
+  // L1.6 editorial Business/Personal report concepts. Amounts remain local fictional examples.
+  Object.assign(strings.en,{
+    personalDemoCashLabel:'NET CASH FLOW',businessDemoCashLabel:'OPERATING CASH FLOW',
+    personalDemoCashNote:'Illustrative monthly movement',businessDemoCashNote:'Revenue minus operating costs · demo',
+    personalDemoAssetLabel:'ILLUSTRATIVE ASSETS',businessDemoAssetLabel:'TOTAL BUSINESS ASSETS',
+    personalDemoAssetNote:'Example valuation only',businessDemoAssetNote:'Fictional business asset estimate',
+    businessReportLabel:'FINANCIAL REPORTS',
+    personalDemoReportTitle:'Personal report concept',businessDemoReportTitle:'Monthly business report concept',
+    businessReportNote:'Preview only · No report generated'
+  });
+  Object.assign(strings.zh,{
+    personalDemoCashLabel:'本月净现金流',businessDemoCashLabel:'经营净现金流',
+    personalDemoCashNote:'虚构月度资金变化',businessDemoCashNote:'营业收入减经营支出 · 示例',
+    personalDemoAssetLabel:'示例资产',businessDemoAssetLabel:'企业资产总览',
+    personalDemoAssetNote:'仅为虚构估值',businessDemoAssetNote:'虚构企业资产估值',
+    businessReportLabel:'财务报告',
+    personalDemoReportTitle:'个人财务报告概念',businessDemoReportTitle:'企业月度财务报告概念',
+    businessReportNote:'仅为预览 · 不生成真实报告'
+  });
+  Object.assign(strings.my,{
+    personalDemoCashLabel:'လစဉ် အသားတင်ငွေစီးဆင်းမှု',businessDemoCashLabel:'လုပ်ငန်း အသားတင်ငွေစီးဆင်းမှု',
+    personalDemoCashNote:'စိတ်ကူးယဉ် လစဉ်နမူနာ',businessDemoCashNote:'လုပ်ငန်းဝင်ငွေနှင့် အသုံးစရိတ်ကွာခြားချက် · နမူနာ',
+    personalDemoAssetLabel:'ပိုင်ဆိုင်မှု နမူနာ',businessDemoAssetLabel:'လုပ်ငန်းပိုင်ဆိုင်မှု စုစုပေါင်း',
+    personalDemoAssetNote:'နမူနာတန်ဖိုးသာ',businessDemoAssetNote:'စိတ်ကူးယဉ် ပိုင်ဆိုင်မှုတန်ဖိုး',
+    businessReportLabel:'ငွေကြေးအစီရင်ခံစာ',
+    personalDemoReportTitle:'ကိုယ်ပိုင် ငွေကြေးအစီရင်ခံစာ နမူနာ',businessDemoReportTitle:'လုပ်ငန်း လစဉ်အစီရင်ခံစာ နမူနာ',
+    businessReportNote:'ကြည့်ရှုရန် နမူနာသာ · အစီရင်ခံစာ မထုတ်ပေးပါ'
+  });
+
   const htmlKeys = new Set(['heroTitle', 'featuresTitle', 'whyTitle', 'closingTitle']);
   const storageKey = 'mmhvault.landing.language';
   const siteHeader = document.querySelector('.site-header');
@@ -267,8 +297,8 @@
   let currentBusinessView = 'personal';
   const businessTabs = [...document.querySelectorAll('[data-business-view]')];
   const conceptData = {
-    personal: { balance:'$24,680.50',income:'$4,860.00',outgoing:'$2,140.00',third:'$12,000',row1:'+$2,500',row2:'−$85',row3:'−$400' },
-    business: { balance:'$366,250.00',income:'$58,900.00',outgoing:'$22,650.00',third:'$156,200',row1:'+$12,000',row2:'−$2,400',row3:'−$320' }
+    personal: { balance:'$24,680.50',income:'$4,860.00',outgoing:'$2,140.00',third:'$12,000',cash:'$2,720.00',assets:'$42,800.00',row1:'+$2,500',row2:'−$85',row3:'−$400' },
+    business: { balance:'$366,250.00',income:'$58,900.00',outgoing:'$22,650.00',third:'$156,200',cash:'$36,250.00',assets:'$492,800.00',row1:'+$12,000',row2:'−$2,400',row3:'−$320' }
   };
   function updateBusinessPreview(view) {
     currentBusinessView = view === 'business' ? 'business' : 'personal';
@@ -287,6 +317,11 @@
       balanceLabel: prefix + 'DemoBalance',
       delta: prefix + 'DemoDelta',
       thirdLabel: prefix + 'DemoThird',
+      cashLabel: prefix + 'DemoCashLabel',
+      cashNote: prefix + 'DemoCashNote',
+      assetLabel: prefix + 'DemoAssetLabel',
+      assetNote: prefix + 'DemoAssetNote',
+      reportTitle: prefix + 'DemoReportTitle',
       row1: prefix + 'Row1',
       row2: prefix + 'Row2',
       row3: prefix + 'Row3'

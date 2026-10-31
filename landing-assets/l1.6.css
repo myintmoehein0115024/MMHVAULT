@@ -1,0 +1,140 @@
+/* L1.6 — isolated editorial polish for the photographic Landing preview.
+   Scope: landing-preview.html only. No global app, auth, PWA, or data imports. */
+.hero { overflow-x:clip; }
+.hero-art.is-photo-ready .hero-device-cinematic {
+  filter:drop-shadow(0 30px 48px rgba(0,0,0,.38)) saturate(.95) contrast(1.04);
+}
+.business-visual-frame img {
+  object-position:64% 52%;
+  filter:saturate(.96) contrast(1.045);
+}
+.business-visual-strip {
+  border-color:rgba(237,202,145,.32);
+  box-shadow:0 30px 78px rgba(0,0,0,.3),inset 0 1px 0 rgba(255,246,225,.08);
+}
+.business-visual-text {
+  background:radial-gradient(ellipse at 0% 2%,rgba(224,180,107,.08),transparent 75%);
+}
+.business-insight-grid {
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:12px;
+  margin-top:12px;
+}
+.business-insight {
+  min-width:0;
+  min-height:106px;
+  display:flex;
+  align-items:flex-start;
+  gap:13px;
+  position:relative;
+  padding:18px 17px;
+  border-radius:14px;
+  border:1px solid rgba(232,199,148,.2);
+  background:linear-gradient(136deg,rgba(28,47,64,.89),rgba(9,26,43,.93));
+  box-shadow:inset 0 1px 0 rgba(255,249,232,.05);
+}
+.business-insight-icon {
+  flex:0 0 31px;
+  display:grid;
+  place-items:center;
+  width:31px;
+  height:31px;
+  border-radius:10px;
+  background:rgba(222,181,112,.12);
+  color:#efd4a0;
+  font-size:18px;
+  border:1px solid rgba(237,206,157,.25);
+}
+.business-insight-icon.assets { color:#b5d9e5; background:rgba(123,183,209,.1); }
+.business-insight-icon.report { color:#d1bc98; }
+.business-insight-copy { flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start; }
+.business-insight-copy small {
+  color:#abc0cd;font-size:9px;font-weight:690;
+  letter-spacing:.095em;line-height:1.6;
+  overflow-wrap:anywhere;
+}
+.business-insight-copy strong {
+  margin-top:7px;
+  font-weight:600;
+  font-variant-numeric:tabular-nums;
+  font-size:clamp(16px,1.6vw,22px);
+  letter-spacing:-.045em;line-height:1.25;
+  color:#fff2dd;
+  max-width:100%;overflow-wrap:anywhere;
+}
+.business-insight-copy em {
+  display:block;
+  font-style:normal;
+  font-size:10px;
+  line-height:1.6;
+  margin-top:6px;
+  color:#9cabb8;
+  overflow-wrap:anywhere;
+}
+.report-insight { padding-right:17px; }
+.report-insight .business-insight-copy strong {
+  font-size:clamp(13px,1.2vw,16px);
+  letter-spacing:0;
+  line-height:1.45;
+}
+.insight-soon {
+  position:absolute;
+  right:12px;top:11px;
+  font-size:8px;font-weight:700;letter-spacing:.07em;
+  color:#e7c898;
+}
+.report-insight .business-insight-copy { padding-top:14px; }
+.business-stage[data-current-view="business"] .business-insight {
+  border-color:rgba(143,192,217,.23);
+  background:linear-gradient(136deg,rgba(26,48,68,.92),rgba(9,27,45,.96));
+}
+.business-stage[data-current-view="business"] .business-insight:first-child .business-insight-icon {
+  color:#afd8f0;background:rgba(120,174,217,.13);
+}
+html[lang="my"] .business-insight-copy small { letter-spacing:0;line-height:1.85;font-size:10px; }
+html[lang="my"] .business-insight-copy em {line-height:1.85; }
+html[lang="my"] .report-insight .business-insight-copy strong { line-height:1.85; }
+@media (max-width:1050px){
+  .business-insight { padding:14px 12px;gap:9px; }
+  .business-insight-icon {width:28px;height:28px;flex-basis:28px;}
+  .business-insight-copy strong {font-size:clamp(14px,1.7vw,20px);}
+}
+@media (max-width:760px){
+  .business-insight-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;}
+  .business-insight:last-child{grid-column:1/-1;min-height:94px;}
+  .business-visual-frame img{object-position:62% 50%;}
+}
+@media (max-width:620px){
+  .hero::before{
+    background-image:
+      linear-gradient(180deg,rgba(3,10,21,.83) 0%,rgba(4,10,21,.68) 48%,rgba(4,10,21,.24) 70%,#040b15 100%),
+      url("./cinematic-lake.webp");
+    background-size:cover,cover;
+    background-position:center,60% center;
+  }
+  .hero-art {min-height:clamp(245px,77vw,335px);}
+  .hero-device-cinematic {width:140%;left:-20%;top:49%;}
+  .business-visual-frame {min-height:228px;}
+  .business-visual-frame img {object-position:65% center;}
+}
+@media (max-width:520px){
+  .business-insight-grid {grid-template-columns:1fr;gap:8px;margin-top:9px;}
+  .business-insight, .business-insight:last-child {grid-column:auto;min-height:76px;padding:13px 12px;}
+  .business-insight-copy strong {font-size:18px;}
+  .report-insight .business-insight-copy strong {font-size:14px;}
+  .business-insight-copy em {font-size:10px;}
+  .business-insight-icon {width:29px;height:29px;flex-basis:29px;}
+  .business-ui-heading {flex-wrap:wrap;}
+  .business-demo-period {white-space:normal;text-align:right;}
+  .business-stat-grid{grid-template-columns:repeat(3,minmax(0,1fr));}
+  .business-activity-row {min-width:0;}
+  .business-activity-row [data-business-text]{min-width:0;overflow-wrap:anywhere;}
+}
+@media (max-width:360px){
+  .hero-device-cinematic{width:147%;left:-24%;}
+  .business-insight-copy strong{font-size:17px;}
+}
+@media (prefers-reduced-motion:reduce) {
+  .business-insight{transition:none;}
+}
