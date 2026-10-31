@@ -177,6 +177,15 @@ Deno.serve(async(req:Request)=>{
  if(stored.error)return out(origin,'unavailable',503);
  const phrase=normalizePhrase(stored.data);
  if(!phrase)return out(origin,'backup_not_ready',409);
+ // The user's MFA enrollment may change while Vault is decrypting.
+ // Recheck the same authenticated bearer and server-managed factors before
+ // releasing plaintext. Changes, missing data or a new AAL2 requirement fail closed.
+ const finalAssurance=await verifiedUser(req);
+ if(finalAssurance.state==='required')return out(origin,'mfa_required',403);
+ if(finalAssurance.state==='unavailable')return out(origin,'mfa_unavailable',503);
+ if(finalAssurance.state!=='ok'||finalAssurance.user.id!==user.id
+    ||finalAssurance.sessionId!==sessionId)
+   return out(origin,'session_expired',401);
  // Recheck after the asynchronous decrypted Vault read. This closes the
  // logout/revocation window between the earlier check and plaintext response.
  const finalSessionCheck=await liveSession(user.id,sessionId);
