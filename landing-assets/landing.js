@@ -45,7 +45,18 @@
       closingCta: 'Enter MMHVAULT', closingNote: 'Sign in or create an account using the existing access page.',
       footerLine: 'Personal finance & wealth, with intention.', footerDisclaimer: 'A personal finance tool, not a bank, broker or financial adviser.',
       privacy: 'Privacy Policy', terms: 'Terms', rights: 'All rights reserved.',
-      madeFor: 'DESIGNED FOR A MORE INTENTIONAL FINANCIAL LIFE'
+      madeFor: 'DESIGNED FOR A MORE INTENTIONAL FINANCIAL LIFE',
+      phoneAccounts: "My Accounts",
+      phoneBalance: "AVAILABLE BALANCE",
+      phoneEveryday: "Everyday Account",
+      phonePersonal: "USD · Personal",
+      phoneSavings: "Savings",
+      listIncome: "Income",
+      listEveryday: "Everyday",
+      listLiving: "Living",
+      visualOverview: "OVERVIEW",
+      visualAllocation: "ILLUSTRATIVE ALLOCATION",
+      visualOutlook: "MONTHLY OUTLOOK"
     },
     zh: {
       skip: '跳转到主要内容',
@@ -88,7 +99,102 @@
       closingCta: '进入 MMHVAULT', closingNote: '请通过现有登录页面登录，或创建新账户。',
       footerLine: '让财务管理更有方向。', footerDisclaimer: '个人财务管理工具，不属于银行、券商或持牌财务顾问服务。',
       privacy: '隐私政策', terms: '使用条款', rights: '保留所有权利。',
-      madeFor: '让每一步财务规划都更有方向'
+      madeFor: '让每一步财务规划都更有方向',
+      phoneAccounts: "我的账户",
+      phoneBalance: "可用余额",
+      phoneEveryday: "日常账户",
+      phonePersonal: "USD · 个人账户",
+      phoneSavings: "储蓄账户",
+      listIncome: "收入",
+      listEveryday: "日常消费",
+      listLiving: "生活支出",
+      visualOverview: "总览",
+      visualAllocation: "示例资产配置",
+      visualOutlook: "月度趋势"
+    }
+    },
+    my: {
+      "skip": "အဓိကအကြောင်းအရာသို့ သွားရန်",
+      "navHome": "ပင်မ",
+      "navFeatures": "လုပ်ဆောင်ချက်များ",
+      "navAbout": "အကြောင်း",
+      "navSecurity": "လုံခြုံရေး",
+      "signIn": "အကောင့်ဝင်ရန်",
+      "getStarted": "စတင်အသုံးပြုရန်",
+      "heroEyebrow": "သင့်ငွေကြေး · သင့်ဦးတည်ချက်",
+      "heroTitle": "ငွေကြေးကို ပိုမိုရှင်းလင်းစွာ သိမြင်ပြီး <em>အနာဂတ်ကို ရည်ရွယ်ချက်ရှိရှိ စီမံပါ။</em>",
+      "heroLead": "သင့်ဘဏ်အကောင့်များ၊ ဝင်ငွေ၊ အသုံးစရိတ်၊ ရင်းနှီးမြှုပ်နှံမှုများနှင့် အနာဂတ်အစီအစဉ်များကို တစ်နေရာတည်းတွင် စနစ်တကျ စီမံနိုင်ပါသည်။",
+      "heroChinese": "ငွေကြေးပိုရှင်းလင်းလေ၊ အနာဂတ်အတွက် ဦးတည်ချက် ပိုမိုကောင်းမွန်လေ။",
+      "exploreFeatures": "လုပ်ဆောင်ချက်များ ကြည့်ရန်",
+      "heroFoot": "ရှင်းလင်းလွယ်ကူမှုကို အဓိကထား၍ ဒီဇိုင်းဆွဲထားသည်။",
+      "concept": "နမူနာ UI",
+      "goodMorning": "မင်္ဂလာနံနက်ခင်းပါ",
+      "demoOverview": "သင့်ငွေကြေးအကျဉ်းချုပ်",
+      "demoBalance": "စုစုပေါင်းလက်ကျန်",
+      "demoCashflow": "ယခုလ အသားတင် ငွေဝင်ငွေထွက် + $2,720.00",
+      "demoIncome": "ဝင်ငွေ",
+      "demoExpenses": "အသုံးစရိတ်",
+      "demoTrend": "ငွေဝင်ငွေထွက် လမ်းကြောင်း",
+      "demoMonthly": "လစဉ်",
+      "demoDisclaimer": "နမူနာဒီဇိုင်းသာဖြစ်ပြီး ပြသထားသည့် ငွေပမာဏအားလုံးမှာ စိတ်ကူးယဉ်အချက်အလက်များ ဖြစ်ပါသည်",
+      "bandFirst": "ယနေ့ကို နားလည်ပါ",
+      "bandSecond": "မနက်ဖြန်အတွက် စီမံပါ",
+      "bandThird": "ရည်ရွယ်ချက်ရှိရှိ ရှေ့ဆက်ပါ",
+      "featuresEyebrow": "ကိုယ်ပိုင်ငွေကြေးစီမံခန့်ခွဲမှု နေရာတစ်ခုတည်း",
+      "featuresTitle": "အရေးကြီးသော ငွေကြေးအချက်အလက်များကို<br>တစ်နေရာတည်းတွင် ကြည့်ရှုပါ။",
+      "featuresLead": "နေ့စဉ်ငွေဝင်ငွေထွက်မှ အနာဂတ်ရည်မှန်းချက်များအထိ သင့်ငွေကြေးအခြေအနေကို ပိုမိုနားလည်စေမည့် လုပ်ဆောင်ချက်များကို လေ့လာပါ။",
+      "featureDashboard": "လက်ကျန်ငွေ၊ လှုပ်ရှားမှုများနှင့် စုစုပေါင်းငွေကြေးအခြေအနေကို ရှင်းလင်းစွာ ကြည့်ရှုပါ။",
+      "featureTransactions": "ဝင်ငွေနှင့် အသုံးစရိတ်များကို စနစ်တကျ မှတ်တမ်းတင်၊ ရှာဖွေပြီး ပြန်လည်စစ်ဆေးနိုင်ပါသည်။",
+      "featureAccounts": "မတူညီသော အကောင့်များနှင့် ငွေကြေးအမျိုးအစားများကို တစ်နေရာတည်းတွင် စီမံပါ။",
+      "featureInvest": "ရင်းနှီးမြှုပ်နှံမှုများနှင့် ပိုင်ဆိုင်မှုခွဲဝေမှုကို ပိုမိုရှင်းလင်းစွာ ကြည့်ရှုပါ။",
+      "featureAnalyze": "ငွေကြေးမှတ်တမ်းများကို ဇယားများ၊ လမ်းကြောင်းများနှင့် အစီရင်ခံစာများဖြင့် နားလည်ပါ။",
+      "comingSoon": "မကြာမီ ရရှိနိုင်မည်",
+      "featureLife": "အချိန်ဇယား၊ အလေ့အကျင့်များ၊ ရည်မှန်းချက်များနှင့် နေ့စဉ်ဘဝကို ပိုမိုစနစ်တကျ စီမံရန် အနာဂတ်လုပ်ဆောင်ချက်။",
+      "featureNote": "ပြသထားသော UI များသည် စိတ်ကူးပုံဖော်ထားသည့် နမူနာများသာဖြစ်ပြီး အကောင့်အစစ်၏ ပုံများမဟုတ်ပါ။ ငွေပမာဏအားလုံးမှာ နမူနာများဖြစ်ပါသည်။",
+      "whyEyebrow": "MMHVAULT ၏ အတွေးအခေါ်",
+      "whyTitle": "ရှင်းလင်းမှုသည်<br><em>တိတ်ဆိတ်သော အားသာချက်တစ်ခုဖြစ်သည်။</em>",
+      "whyLead": "ငွေကြေးစီမံခန့်ခွဲမှုက ရှုပ်ထွေးနေစရာ မလိုပါ။ MMHVAULT သည် အသေးစိတ်အချက်အလက်များကို စနစ်တကျ စုစည်းပြီး သင့်ရည်မှန်းချက်များကို အဓိကထားနိုင်ရန် ဒီဇိုင်းထုတ်ထားပါသည်။",
+      "benefit1Title": "ရှင်းလင်းသော ကိုယ်ပိုင်ငွေကြေးမြင်ကွင်း",
+      "benefit1Desc": "အရေးကြီးသော ကိန်းဂဏန်းများကို အနှောင့်အယှက်နည်းနည်းဖြင့် မြင်နိုင်ပါသည်။",
+      "benefit2Title": "တစ်နေရာတည်းတွင် စီမံခန့်ခွဲခြင်း",
+      "benefit2Desc": "ဆက်စပ်သော ငွေကြေးကိစ္စများကို စုစည်းထားပါသည်။",
+      "benefit3Title": "ကိုယ်ပိုင်ငွေကြေးလုံခြုံရေးနှင့် စီမံမှု",
+      "benefit3Desc": "သင့်ကိုယ်ပိုင် ငွေကြေးမှတ်တမ်းများအတွက် သီးသန့်နေရာတစ်ခု။",
+      "benefit4Title": "ရေရှည်အမြင်",
+      "benefit4Desc": "နေ့စဉ်အသုံးစရိတ်ထက် ကျော်လွန်ပြီး အနာဂတ်ရည်မှန်းချက်များကို စဉ်းစားနိုင်ပါသည်။",
+      "benefit5Title": "စက်မျိုးစုံတွင် အသုံးပြုနိုင်ခြင်း",
+      "benefit5Desc": "ဖုန်း၊ တက်ဘလက်နှင့် ကွန်ပျူတာများတွင် လိုက်ဖက်စွာ ဖော်ပြပါသည်။",
+      "benefit6Title": "အင်္ဂလိပ်၊ တရုတ်နှင့် မြန်မာ",
+      "benefit6Desc": "သင်နှစ်သက်သော ဘာသာစကားဖြင့် အသုံးပြုနိုင်ပါသည်။",
+      "securityEyebrow": "ကိုယ်ရေးလုံခြုံမှုကို အလေးထား၍ ဒီဇိုင်းထုတ်ထားသည်",
+      "securityTitle": "သင့်ငွေကြေးအချက်အလက်များအတွက် သေချာစီမံထားသော နေရာ။",
+      "securityLead": "MMHVAULT သည် အကောင့်အခြေပြု ဝင်ရောက်မှုနှင့် အသုံးပြုသူအလိုက် ခွဲခြားထားသော ဒေတာဝင်ရောက်ခွင့်ကို အသုံးပြုပါသည်။ အကောင့်ဝင်ခြင်းနှင့် ပြန်လည်ရယူခြင်းတို့ကို သီးသန့်ဝင်ရောက်မှုစာမျက်နှာတွင်သာ ဆောင်ရွက်ပါသည်။",
+      "securityPoint1": "အကောင့်အခြေပြု ဝင်ရောက်မှု",
+      "securityPoint2": "ကိုယ်ပိုင်ဒေတာ ခွဲခြားကန့်သတ်မှု",
+      "securityPoint3": "ဘဏ်လျှို့ဝှက်အချက်အလက်များ မတောင်းခံပါ",
+      "securityLearn": "လုံခြုံရေးအချက်အလက်များ ဖတ်ရန်",
+      "closingEyebrow": "အရေးကြီးသည့်အရာများအတွက် အချိန်ပေးပါ",
+      "closingTitle": "ယနေ့ငွေကြေးကို ရှင်းလင်းစွာ သိမြင်ပြီး<br><em>အနာဂတ်ကို ပိုမိုကောင်းမွန်စွာ စီမံပါ။</em>",
+      "closingLead": "သင့်လက်ရှိ ငွေကြေးအခြေအနေကို နားလည်ခြင်းက အနာဂတ်အတွက် ပထမခြေလှမ်းဖြစ်သည်။",
+      "closingCta": "MMHVAULT သို့ ဝင်ရန်",
+      "closingNote": "ရှိပြီးသား အကောင့်ဖြင့် ဝင်ရောက်ပါ၊ သို့မဟုတ် ဝင်ရောက်မှုစာမျက်နှာတွင် အကောင့်အသစ် ဖန်တီးပါ။",
+      "footerLine": "ရည်ရွယ်ချက်ရှိသော ကိုယ်ပိုင်ငွေကြေးစီမံခန့်ခွဲမှု။",
+      "footerDisclaimer": "ဤဝန်ဆောင်မှုသည် ကိုယ်ပိုင်ငွေကြေးစီမံခန့်ခွဲမှု ကိရိယာဖြစ်ပြီး ဘဏ်၊ ပွဲစား သို့မဟုတ် လိုင်စင်ရ ငွေကြေးအကြံပေးဝန်ဆောင်မှု မဟုတ်ပါ။",
+      "privacy": "ကိုယ်ရေးအချက်အလက် မူဝါဒ",
+      "terms": "အသုံးပြုမှုစည်းကမ်းချက်များ",
+      "rights": "မူပိုင်ခွင့်အားလုံးကို ထိန်းသိမ်းထားသည်။",
+      "madeFor": "ရည်ရွယ်ချက်ရှိသော ငွေကြေးဘဝအတွက် ဒီဇိုင်းထုတ်ထားသည်",
+      "phoneAccounts": "ကျွန်ုပ်၏အကောင့်များ",
+      "phoneBalance": "သုံးစွဲနိုင်သောလက်ကျန်",
+      "phoneEveryday": "နေ့စဉ်သုံးအကောင့်",
+      "phonePersonal": "USD · ကိုယ်ပိုင်",
+      "phoneSavings": "စုဆောင်းငွေ",
+      "listIncome": "ဝင်ငွေ",
+      "listEveryday": "နေ့စဉ်အသုံးစရိတ်",
+      "listLiving": "လူနေမှုအသုံးစရိတ်",
+      "visualOverview": "အကျဉ်းချုပ်",
+      "visualAllocation": "ပိုင်ဆိုင်မှုခွဲဝေမှု နမူနာ",
+      "visualOutlook": "လစဉ် ခန့်မှန်းချက်"
     }
   };
   const htmlKeys = new Set(['heroTitle', 'featuresTitle', 'whyTitle', 'closingTitle']);
@@ -100,9 +206,9 @@
   let currentLang = 'en';
 
   function applyLanguage(lang) {
-    currentLang = lang === 'zh' ? 'zh' : 'en';
+    currentLang = lang === 'my' ? 'my' : (lang === 'zh' ? 'zh' : 'en');
     const dict = strings[currentLang];
-    document.documentElement.lang = currentLang === 'zh' ? 'zh-CN' : 'en';
+    document.documentElement.lang = currentLang === 'zh' ? 'zh-CN' : (currentLang === 'my' ? 'my' : 'en');
     localeElements.forEach(node => {
       const key = node.getAttribute('data-i18n');
       const value = dict[key];
@@ -113,13 +219,15 @@
     languageButtons.forEach(button => {
       button.setAttribute('aria-pressed', String(button.dataset.lang === currentLang));
     });
-    toggle.setAttribute('aria-label', currentLang === 'zh' ? '打开导航菜单' : 'Open navigation menu');
-    document.querySelector('#primary-nav').setAttribute('aria-label', currentLang === 'zh' ? '主导航' : 'Primary navigation');
+    toggle.setAttribute('aria-label', currentLang === 'zh' ? '打开导航菜单' : (currentLang === 'my' ? 'လမ်းညွှန်မီနူး ဖွင့်ရန်' : 'Open navigation menu'));
+    document.querySelector('#primary-nav').setAttribute('aria-label', currentLang === 'zh' ? '主导航' : (currentLang === 'my' ? 'အဓိကလမ်းညွှန်' : 'Primary navigation'));
+    document.querySelector('.locale-switch').setAttribute('aria-label', currentLang === 'zh' ? '语言' : (currentLang === 'my' ? 'ဘာသာစကား' : 'Language'));
     document.title = currentLang === 'zh'
       ? 'MMHVAULT — 个人财务与财富管理 | 让未来更有方向'
-      : 'MMHVAULT — Personal Finance & Wealth | Make Money Clearer';
+      : currentLang === 'my' ? 'MMHVAULT — ကိုယ်ပိုင်ငွေကြေးနှင့် ပိုင်ဆိုင်မှု စီမံခန့်ခွဲမှု' : 'MMHVAULT — Personal Finance & Wealth | Make Money Clearer';
     const desc = document.querySelector('meta[name="description"]');
     if (desc && currentLang === 'zh') desc.setAttribute('content', 'MMHVAULT 个人财务管理平台：管理账户、收支、投资及财务分析，在更清晰的个人空间里规划未来。');
+    if (desc && currentLang === 'my') desc.setAttribute('content', 'MMHVAULT သည် အကောင့်များ၊ ဝင်ငွေ၊ အသုံးစရိတ်၊ ရင်းနှီးမြှုပ်နှံမှုနှင့် အနာဂတ်အစီအစဉ်များကို စီမံနိုင်သော ကိုယ်ပိုင်ငွေကြေးပလက်ဖောင်း ဖြစ်ပါသည်။');
     if (desc && currentLang === 'en') desc.setAttribute('content', 'Meet MMHVAULT, a personal finance workspace for accounts, transactions, investments, financial analysis and intentional planning. Explore a calmer way to understand your money.');
     try { window.localStorage.setItem(storageKey, currentLang); } catch (_) {}
   }
@@ -140,6 +248,6 @@
   const media = window.matchMedia('(min-width: 841px)');
   if (typeof media.addEventListener === 'function') media.addEventListener('change', closeMenu);
   let saved = 'en';
-  try { if (window.localStorage.getItem(storageKey) === 'zh') saved = 'zh'; } catch (_) {}
+  try { const stored = window.localStorage.getItem(storageKey); if (stored === 'zh' || stored === 'my') saved = stored; } catch (_) {}
   applyLanguage(saved);
 })();
