@@ -6,6 +6,8 @@ const root=$('mmhA783SecurityCenter');if(!root)return;
 const API='https://vrypucmyrztxgiqhjspd.supabase.co/functions/v1/mmh-n10a783-phrase-verify';
 // Candidate only — never call before the audited Vault service is deployed.
 const VAULT_API='https://vrypucmyrztxgiqhjspd.supabase.co/functions/v1/mmh-n10-fixed-recovery';
+// Draft-only second release gate. Not a substitute for the Edge server's OFF flag.
+const N10_FIXED_VAULT_UI_RELEASED=false;
 
 // N10 signed-token staging, production RLS and owner-account login gates have passed.
 // Enrollment is optional and requires explicit loss-risk and backup acknowledgments.
@@ -109,6 +111,7 @@ async function api(action,extra={}){
  return {ok:r.ok,body:d};
 }
 async function vaultApi(action,extra={}){
+ if(!N10_FIXED_VAULT_UI_RELEASED)throw Error('vault_release_locked');
  const a=await verifiedUser();
  const r=await fetch(VAULT_API,{method:'POST',cache:'no-store',credentials:'omit',
   referrerPolicy:'no-referrer',headers:{'Content-Type':'application/json',
@@ -140,6 +143,7 @@ function sameSecretRequest(epoch,userId){
  return epoch===secretEpoch&&userId===owner&&recoveryModalActive();
 }
 async function loadVaultMode(){
+ if(!N10_FIXED_VAULT_UI_RELEASED){vaultStatusMode('unavailable');return;}
  if(!usernameOnly||!recoveryModalActive())return;
  const epoch=secretEpoch,userId=owner;
  try{
@@ -290,7 +294,7 @@ $('mmhA783KeyVerify').addEventListener('click',async()=>{
  finally{busy=false;}
 });
 $('mmhN10VaultBackup').addEventListener('click',async()=>{
- if(busy||vaultMode!=='backup_needed'||!recoveryModalActive())return;
+ if(!N10_FIXED_VAULT_UI_RELEASED||busy||vaultMode!=='backup_needed'||!recoveryModalActive())return;
  const phrase=$('mmhA783Phrase').value.trim().toLowerCase().replace(/\s+/g,' ');
  const password=$('mmhN10VaultPassword').value;
  if(phrase.split(' ').length!==10||!password){status('Enter the original ten words and current password.');return;}
@@ -305,7 +309,7 @@ $('mmhN10VaultBackup').addEventListener('click',async()=>{
  finally{busy=false;$('mmhN10VaultPassword').value='';}
 });
 $('mmhN10VaultReveal').addEventListener('click',async()=>{
- if(busy||vaultMode!=='ready'||!recoveryModalActive())return;
+ if(!N10_FIXED_VAULT_UI_RELEASED||busy||vaultMode!=='ready'||!recoveryModalActive())return;
  const password=$('mmhN10VaultPassword').value;
  if(!password){status('Enter your current password to view the fixed original key.');return;}
  const epoch=secretEpoch,userId=owner;
