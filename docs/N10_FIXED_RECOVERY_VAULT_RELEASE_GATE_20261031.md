@@ -49,3 +49,14 @@ Draft PR only: **do not merge until the full database and signed-token tests pas
 - **Do not report Vault/recovery feature live or fully verified.** Database encryption, correct user-to-secret binding, server-side token verification, real MFA, wrong-password denial, rate limits, lost-original-phrase behavior, and account deletion have NOT passed Staging end-to-end QA.
 - A one-way verifier cannot restore the original words for an old account which has already lost its only saved copy; never claim a password alone can reconstruct previously unescrowed words.
 - The previous Staging SQL write was rejected by a safety gate. Do not circumvent with an alternate write interface; use an authorized, reviewable path before any sandbox migration. Keep PR in draft.
+
+## N10 safety hardening + executed synthetic QA (2026-10-31, second pass)
+- The **undeployed** Vault Edge candidate has an explicit compile-time `RECOVERY_RELEASE_ENABLED=false` gate. This is a safety default; a production release requires a separate reviewed change and end-to-end signed-JWT tests.
+- Recovery Edge JSON input is limited to **1,200 bytes while streaming**, even when content-length is missing. Invalid/oversized bodies fail closed. Password input for username-only accounts is limited to 6–20 characters.
+- Recovery throttling buckets are derived with server-side keyed HMAC, not plain SHA-256. A backend rate-infrastructure error returns `rate_unavailable` (503), not a misleading `too_many_attempts` (429).
+- Account switch and sign-out now invalidate pending recovery-key fetches synchronously, in addition to the previously added popup-close, hidden-tab and epoch/owner checks.
+- The checked-in MFA logic file and its offline synthetic test file were copied byte-for-byte into a local Node.js 22.16.0 runtime, verified against their GitHub blob SHAs (`1bbcae6ddc7ae0eb6c2e966397d44b172b53c5ac`, `1df73410f89c2f49bd3b2a40959dcebbb332ca01`), and **all 14/14 cases executed PASS**. These are NOT signed live JWT tests.
+- The read-only `docs/sql/n10_fixed_recovery_READ_ONLY_PREFLIGHT.sql` can check Vault readiness, RLS and RPC permission exposure with SELECT statements only. No recovery secrets or financial data are selected.
+- Read-only Staging inspection: `supabase_vault` exists, but encrypted-backup index, rate bucket, all four RPC functions, and original-phrase verifier do not exist. Read-only Edge inventory: `mmh-n10-fixed-recovery` is not deployed in Staging or production.
+- The separate SQL migration execution safety gate remains in force; it was NOT bypassed or retried through another write tool. No live account/password/MFA/recovery data was altered.
+- Blockers remain: approved Staging migration path, synthetic account+verifier setup, signed-JWT/multi-user/incorrect-password tests, permissions/deletion/rollback verification and separate production release authorization.
