@@ -170,6 +170,18 @@ Deno.serve(async(req:Request)=>{
    return out(origin,'unavailable',503);
   const mac=await hmac('phrase:'+user.id+':'+phrase);
   if(!equal64(records.data[0].verifier,mac))return out(origin,'invalid_recovery_key',401);
+  // The verifier read is asynchronous. A separate session could enroll MFA
+  // or revoke this session while we verify the original phrase. Fail closed
+  // by rechecking both before the encrypted Vault write.
+  const backupAssurance=await verifiedUser(req);
+  if(backupAssurance.state==='required')return out(origin,'mfa_required',403);
+  if(backupAssurance.state==='unavailable')return out(origin,'mfa_unavailable',503);
+  if(backupAssurance.state!=='ok'||backupAssurance.user.id!==user.id
+     ||backupAssurance.sessionId!==sessionId)
+    return out(origin,'session_expired',401);
+  const backupSessionCheck=await liveSession(user.id,sessionId);
+  if(backupSessionCheck==='unavailable')return out(origin,'session_check_unavailable',503);
+  if(backupSessionCheck!=='active')return out(origin,'session_expired',401);
   const saved=await admin.rpc('mmh_n10_recovery_backup_put',{p_user_id:user.id,p_phrase:phrase});
   if(saved.error||saved.data!==true)return out(origin,'backup_unavailable',503);
   return out(origin,'backup_ready');
