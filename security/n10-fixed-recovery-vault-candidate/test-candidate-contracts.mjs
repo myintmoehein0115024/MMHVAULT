@@ -13,7 +13,20 @@ const preflight=readFileSync(resolve(root,'docs/sql/n10_fixed_recovery_READ_ONLY
 const syntheticVerifier=readFileSync(resolve(root,'docs/sql/n10_fixed_recovery_verifier_SYNTHETIC_STAGING_ONLY.sql'),'utf8');
 const signup=readFileSync(resolve(here,'username-signup-integration-NOT_DEPLOYED.ts'),'utf8');
 const staging=readFileSync(resolve(here,'qa-staging-recovery-NOT_DEPLOYED.ts'),'utf8');
+const retired=readFileSync(resolve(here,'qa-retired-tombstone-STAGING.ts'),'utf8');
 const cases=[
+ ['retired QA service has no sensitive operations',()=>{
+   assert.match(retired,/code:'qa_retired'/);
+   assert.match(retired,/status:410/);
+   assert.match(retired,/Deno\.serve\(/);
+   assert.doesNotMatch(retired,/Deno\.env\.get\(/);
+   assert.doesNotMatch(retired,/createClient\(/);
+   assert.doesNotMatch(retired,/auth\.getUser\(/);
+   assert.doesNotMatch(retired,/vault\.decrypted_secrets/);
+   assert.doesNotMatch(retired,/Access-Control-Allow-Origin/);
+   assert.doesNotMatch(retired,/\.rpc\(/);
+ }],
+
  ['Staging QA adapter is disabled and hard-pinned to isolation',()=>{
    assert.match(staging,/const RECOVERY_RELEASE_ENABLED=false/);
    assert.match(staging,/const EXPECTED_BASE='https:\/\/ldivswlhtgmznzwhzsoi\.supabase\.co'/);
