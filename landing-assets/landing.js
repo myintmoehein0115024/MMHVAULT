@@ -636,6 +636,11 @@
   Object.assign(strings.zh,{"businessPerspectivePersonal":"个人财务","businessPerspectivePersonalNote":"看清当下的每一笔资金","businessPerspectiveBusiness":"未来事业","businessPerspectiveBusinessNote":"规划中的商业财务空间","businessPhotoCaption":"个人财务 × 未来商业","businessPhotoCaptionNote":"概念设计展示","businessSideNote":"以统一的高级视觉，连接今日的个人财富与未来的事业规划。"});
   Object.assign(strings.my,{"businessPerspectivePersonal":"ကိုယ်ပိုင်ငွေကြေး","businessPerspectivePersonalNote":"ယနေ့ငွေကြေးအခြေအနေကို ရှင်းလင်းစွာ","businessPerspectiveBusiness":"အနာဂတ်လုပ်ငန်း","businessPerspectiveBusinessNote":"အနာဂတ်လုပ်ငန်းအတွက် ဒီဇိုင်းနမူနာ","businessPhotoCaption":"ကိုယ်ပိုင်ငွေကြေး × အနာဂတ်လုပ်ငန်း","businessPhotoCaptionNote":"ဒီဇိုင်းနမူနာသာ","businessSideNote":"ယနေ့ ကိုယ်ပိုင်ငွေကြေးနှင့် အနာဂတ်စီးပွားရေးရည်မှန်းချက်များအတွက် တစ်သမတ်တည်းသော ဒီဇိုင်း။"});
 
+  // L1.16: Switchable illustrative Personal / future Business stage details.
+  Object.assign(strings.en,{"personalContextEyebrow":"PERSONAL FINANCIAL PICTURE","businessContextEyebrow":"BUSINESS FINANCIAL CONCEPT","personalContextTitle":"Your personal picture","personalContextNote":"A considered view of everyday finances — illustrative figures only.","personalContextState":"PERSONAL · CONCEPT","businessContextTitle":"A vision for your future business","businessContextNote":"Explore revenue, operating costs and cash flow in an illustrative workspace.","businessContextState":"BUSINESS · COMING SOON","personalDemoIncomeLabel":"INCOME","personalDemoOutgoingLabel":"EXPENSES","businessDemoIncomeLabel":"REVENUE","businessDemoOutgoingLabel":"OPERATING COSTS","businessDemoThird":"OPERATING RESERVE"});
+  Object.assign(strings.zh,{"personalContextEyebrow":"个人财务概览","businessContextEyebrow":"商业财务概念展示","personalContextTitle":"清晰掌握个人财务","personalContextNote":"通过虚构示例，更直观地了解日常收支和资金状况。","personalContextState":"个人财务 · 概念","businessContextTitle":"探索未来商业财务空间","businessContextNote":"通过概念界面了解营业收入、经营成本及现金流。","businessContextState":"商业财务 · 即将推出","personalDemoIncomeLabel":"收入","personalDemoOutgoingLabel":"支出","businessDemoIncomeLabel":"营业收入","businessDemoOutgoingLabel":"经营成本","businessDemoThird":"经营储备金"});
+  Object.assign(strings.my,{"personalContextEyebrow":"ကိုယ်ပိုင်ငွေကြေးအခြေအနေ","businessContextEyebrow":"လုပ်ငန်းငွေကြေး ဒီဇိုင်းနမူနာ","personalContextTitle":"သင့်ကိုယ်ပိုင် ငွေကြေးအခြေအနေ","personalContextNote":"နေ့စဉ်ဝင်ငွေနှင့် အသုံးစရိတ်ကို နမူနာအချက်အလက်များဖြင့် ကြည့်ရှုပါ။","personalContextState":"ကိုယ်ပိုင် · နမူနာ","businessContextTitle":"သင့်အနာဂတ်လုပ်ငန်းအတွက် အမြင်သစ်","businessContextNote":"လုပ်ငန်းဝင်ငွေ၊ လည်ပတ်စရိတ်နှင့် ငွေစီးဆင်းမှုကို နမူနာကြည့်ရှုပါ။","businessContextState":"လုပ်ငန်း · မကြာမီ","personalDemoIncomeLabel":"ဝင်ငွေ","personalDemoOutgoingLabel":"အသုံးစရိတ်","businessDemoIncomeLabel":"လုပ်ငန်းဝင်ငွေ","businessDemoOutgoingLabel":"လည်ပတ်စရိတ်","businessDemoThird":"လုပ်ငန်းအရန်ငွေ"});
+
   const htmlKeys = new Set(['heroTitle', 'featuresTitle', 'businessHeading', 'whyTitle', 'closingTitle']);
   const storageKey = 'mmhvault.landing.language';
   const siteHeader = document.querySelector('.site-header');
@@ -656,8 +661,8 @@
   let currentBusinessView = 'personal';
   const businessTabs = [...document.querySelectorAll('[data-business-view]')];
   const conceptData = {
-    personal: { balance:'$24,680.50',income:'$4,860.00',outgoing:'$2,140.00',third:'$12,000',cash:'$2,720.00',assets:'$42,800.00',row1:'+$2,500',row2:'−$85',row3:'−$400' },
-    business: { balance:'$366,250.00',income:'$58,900.00',outgoing:'$22,650.00',third:'$156,200',cash:'$36,250.00',assets:'$492,800.00',row1:'+$12,000',row2:'−$2,400',row3:'−$320' }
+    personal: { balance:'$24,680.50',income:'$4,860.00',outgoing:'$2,140.00',third:'$12,000',cash:'$2,720.00',assets:'$42,800.00',row1:'+$2,500',row2:'−$85',row3:'−$400',shares:{available:'44%',invested:'34%',reserved:'22%'} },
+    business: { balance:'$366,250.00',income:'$58,900.00',outgoing:'$22,650.00',third:'$156,200',cash:'$36,250.00',assets:'$492,800.00',row1:'+$12,000',row2:'−$2,400',row3:'−$320',shares:{available:'34%',invested:'33%',reserved:'33%'} }
   };
   function updateBusinessPreview(view) {
     currentBusinessView = view === 'business' ? 'business' : 'personal';
@@ -671,7 +676,17 @@
     document.querySelectorAll('[data-business-amount]').forEach(element => {
       element.textContent = conceptData[currentBusinessView][element.dataset.businessAmount] || '';
     });
+    document.querySelectorAll('[data-business-share]').forEach(element=>{
+      const value=conceptData[currentBusinessView].shares[element.dataset.businessShare];
+      if(value) element.textContent=value;
+    });
     const keyMap = {
+      eyebrow: prefix + 'ContextEyebrow',
+      contextTitle: prefix + 'ContextTitle',
+      contextNote: prefix + 'ContextNote',
+      contextState: prefix + 'ContextState',
+      incomeLabel: prefix + 'DemoIncomeLabel',
+      outgoingLabel: prefix + 'DemoOutgoingLabel',
       title: prefix + 'DemoTitle',
       balanceLabel: prefix + 'DemoBalance',
       delta: prefix + 'DemoDelta',

@@ -374,6 +374,11 @@
             </div>
             <span class="business-preview-only" data-i18n="businessPreviewOnly">ILLUSTRATIVE UI</span>
           </div>
+          <div class="business-mode-context" aria-live="polite" aria-atomic="true">
+            <span class="business-mode-emblem" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"><path d="M4 18V10.5l8-6 8 6V18a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2Z"/><path d="M9 20v-7h6v7"/></svg></span>
+            <div class="business-mode-context-copy"><strong data-business-text="contextTitle" data-i18n="personalContextTitle">Your personal picture</strong><small data-business-text="contextNote" data-i18n="personalContextNote">A thoughtful overview of everyday finances — illustrative values only.</small></div>
+            <span class="business-context-state" data-business-text="contextState" data-i18n="personalContextState">PERSONAL · CONCEPT</span>
+          </div>
           <div class="business-stage-body">
             <aside class="business-sidebar" aria-hidden="true">
               <span class="business-sidebar-label">MMH</span><span class="business-sidebar-dot on"></span><span class="business-sidebar-dot"></span><span class="business-sidebar-dot"></span><span class="business-sidebar-dot"></span><span class="business-sidebar-dot"></span><span class="business-sidebar-bottom"></span>
@@ -381,7 +386,7 @@
             <div class="business-ui">
               <div class="business-ui-heading">
                 <div>
-                  <span data-i18n="businessDemoEyebrow">YOUR FINANCIAL PICTURE</span>
+                  <span data-business-text="eyebrow" data-i18n="personalContextEyebrow">PERSONAL FINANCIAL PICTURE</span>
                   <h3 data-business-text="title" data-i18n="personalDemoTitle">Personal overview</h3>
                 </div>
                 <span class="business-demo-period" data-i18n="businessDemoPeriod">ILLUSTRATIVE MONTH</span>
@@ -392,11 +397,13 @@
                   <strong data-business-amount="balance">$24,680.50</strong>
                   <small><span aria-hidden="true">↗</span> <span data-business-text="delta" data-i18n="personalDemoDelta">+ $2,720 illustrative monthly net cash flow</span></small>
                 </div>
-                <div class="business-mini-chart" aria-hidden="true"><svg viewBox="0 0 450 160" preserveAspectRatio="none"><defs><linearGradient id="bizChartFill" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#e9bc77" stop-opacity=".25"/><stop offset="1" stop-color="#e9bc77" stop-opacity="0"/></linearGradient></defs><path d="M0 130C38 121 50 137 86 103S141 113 174 81S236 104 271 55S323 70 362 37S414 42 450 11L450 160H0Z" fill="url(#bizChartFill)"/><path d="M0 130C38 121 50 137 86 103S141 113 174 81S236 104 271 55S323 70 362 37S414 42 450 11" fill="none" stroke="#e9c38d" stroke-width="3" stroke-linecap="round"/></svg></div>
+                <div class="business-mini-chart" aria-hidden="true"><svg viewBox="0 0 450 160" preserveAspectRatio="none"><defs><linearGradient id="bizChartFill" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#f1cb91" stop-opacity=".32"/><stop offset="1" stop-color="#f1cb91" stop-opacity="0"/></linearGradient><linearGradient id="bizChartBusinessFill" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#a5cbdf" stop-opacity=".30"/><stop offset="1" stop-color="#a5cbdf" stop-opacity="0"/></linearGradient></defs>
+<g class="business-chart-personal"><path d="M0 130C38 121 50 137 86 103S141 113 174 81S236 104 271 55S323 70 362 37S414 42 450 11L450 160H0Z" fill="url(#bizChartFill)"/><path d="M0 130C38 121 50 137 86 103S141 113 174 81S236 104 271 55S323 70 362 37S414 42 450 11" fill="none" stroke="#f0c887" stroke-width="3" stroke-linecap="round"/></g>
+<g class="business-chart-business"><path d="M0 138C39 126 69 142 98 111S146 94 174 108S210 65 252 76S312 48 338 58S401 36 450 14L450 160H0Z" fill="url(#bizChartBusinessFill)"/><path d="M0 138C39 126 69 142 98 111S146 94 174 108S210 65 252 76S312 48 338 58S401 36 450 14" fill="none" stroke="#a5cfe1" stroke-width="3" stroke-linecap="round"/></g></svg></div>
               </div>
               <div class="business-stat-grid">
-                <div class="business-stat"><span data-i18n="businessMetricIncome">INCOME</span><strong data-business-amount="income">$4,860.00</strong><i class="stat-bar in"></i></div>
-                <div class="business-stat"><span data-i18n="businessMetricOutflow">OUTGOINGS</span><strong data-business-amount="outgoing">$2,140.00</strong><i class="stat-bar out"></i></div>
+                <div class="business-stat"><span data-business-text="incomeLabel" data-i18n="personalDemoIncomeLabel">INCOME</span><strong data-business-amount="income">$4,860.00</strong><i class="stat-bar in"></i></div>
+                <div class="business-stat"><span data-business-text="outgoingLabel" data-i18n="personalDemoOutgoingLabel">EXPENSES</span><strong data-business-amount="outgoing">$2,140.00</strong><i class="stat-bar out"></i></div>
                 <div class="business-stat"><span data-business-text="thirdLabel" data-i18n="personalDemoThird">SAVINGS GOAL</span><strong data-business-amount="third">$12,000</strong><i class="stat-bar goal"></i></div>
               </div>
 
@@ -438,7 +445,11 @@
                 <div class="business-allocation">
                   <div class="business-panel-heading"><span data-i18n="businessBreakdown">ALLOCATION SNAPSHOT</span><span>2026</span></div>
                   <div class="business-donut" aria-hidden="true"></div>
-                  <div class="business-legend"><span data-i18n="businessLegend1">Available funds</span><span data-i18n="businessLegend2">Invested</span><span data-i18n="businessLegend3">Reserved</span></div>
+                  <div class="business-legend">
+    <span class="business-legend-item"><span data-i18n="businessLegend1">Available</span><b data-business-share="available">44%</b></span>
+    <span class="business-legend-item"><span data-i18n="businessLegend2">Invested</span><b data-business-share="invested">34%</b></span>
+    <span class="business-legend-item"><span data-i18n="businessLegend3">Reserved</span><b data-business-share="reserved">22%</b></span>
+  </div>
                 </div>
               </div>
             </div>

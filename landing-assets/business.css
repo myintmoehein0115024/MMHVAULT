@@ -555,3 +555,131 @@ html[lang="my"] #business .business-photo-caption{letter-spacing:0;line-height:1
   #business .business-heading h2{font-size:34px}
   #business .business-photo-caption{max-width:92%}
 }
+
+
+/* =============================================================
+   L1.16 — Personal / future Business financial stage precision
+   All data is fictional. This targets Landing's #business only.
+   ============================================================= */
+#business .business-mode-context{
+  display:flex;align-items:center;gap:13px;
+  min-width:0;padding:14px 25px 14px 24px;
+  border-bottom:1px solid rgba(177,205,222,.18);
+  background:
+    radial-gradient(ellipse at 0 0,rgba(232,172,89,.13),transparent 65%),
+    linear-gradient(100deg,#102e43,#092238);
+}
+#business .business-mode-emblem{
+  display:grid;place-items:center;flex:0 0 36px;
+  width:36px;height:36px;border-radius:11px;
+  border:1px solid rgba(252,211,146,.56);
+  background:linear-gradient(140deg,rgba(238,182,100,.22),rgba(221,164,81,.05));
+  color:#ffdc9e;
+  box-shadow:0 0 21px rgba(242,186,107,.12);
+}
+#business .business-mode-emblem svg{width:20px;height:20px}
+#business .business-mode-context-copy{display:flex;flex-direction:column;gap:5px;min-width:0}
+#business .business-mode-context-copy strong{font-size:13px;line-height:1.45;font-weight:670;color:#fff0d7}
+#business .business-mode-context-copy small{font-size:10px;line-height:1.65;color:#aac1cf}
+#business .business-context-state{
+  margin-left:auto;flex:0 0 auto;
+  max-width:205px;
+  border:1px solid rgba(245,202,137,.38);border-radius:7px;
+  color:#f1ca8c;background:rgba(219,163,85,.10);
+  text-align:center;
+  font-size:8px;letter-spacing:.07em;line-height:1.55;padding:6px 9px;
+}
+#business .business-mini-chart{
+  position:relative;
+  filter:drop-shadow(0 7px 11px rgba(247,200,119,.06));
+}
+#business .business-chart-business{display:none}
+#business .business-chart-personal{display:block}
+#business .business-stage[data-current-view="business"] .business-chart-personal{display:none}
+#business .business-stage[data-current-view="business"] .business-chart-business{display:block}
+#business .business-stage[data-current-view="business"] .business-chart-business path:last-child{stroke:#a5cfe1}
+#business .business-stage[data-current-view="business"] .business-mode-context{
+  background:radial-gradient(ellipse at 0 0,rgba(135,192,218,.13),transparent 65%),linear-gradient(100deg,#102c43,#092138);
+}
+#business .business-stage[data-current-view="business"] .business-mode-emblem{
+  border-color:rgba(174,211,233,.45);
+  color:#c7e3f4;
+  background:linear-gradient(135deg,rgba(113,179,207,.19),rgba(106,137,167,.05));
+}
+#business .business-stage[data-current-view="business"] .business-context-state{
+  color:#ffe0ac;border-color:rgba(250,203,133,.53);
+  background:rgba(233,173,88,.13);
+}
+#business .business-stage[data-current-view="business"] .business-summary{
+  background:radial-gradient(ellipse at 75% 0,rgba(147,194,220,.16),transparent 64%),linear-gradient(112deg,#1c3c50,#0e2b42 68%,#071b2f);
+  border-color:rgba(177,211,232,.40);
+}
+#business .business-stage[data-current-view="business"] .business-summary::before{
+  background:radial-gradient(ellipse at 75% 0,rgba(170,207,224,.13),transparent 57%);
+}
+#business .business-stage[data-current-view="business"] .business-stat{
+  border-color:rgba(157,192,212,.30);
+}
+#business .business-legend{
+  display:flex;flex-direction:column;
+  justify-content:center;gap:12px;min-width:0;
+}
+#business .business-legend span::before{content:none}
+#business .business-legend .business-legend-item{
+  display:grid;grid-template-columns:8px minmax(0,1fr) auto;
+  align-items:center;gap:7px;min-width:0;
+  line-height:1.55;color:#b9cbd6;font-size:10px;
+}
+#business .business-legend .business-legend-item::before{
+  content:"";width:7px;height:7px;border-radius:50%;
+  display:block;background:#f2d49d;
+}
+#business .business-legend .business-legend-item:nth-child(2)::before{background:#78a1be}
+#business .business-legend .business-legend-item:nth-child(3)::before{background:#4c647d}
+#business .business-legend .business-legend-item>span{
+  min-width:0;overflow-wrap:anywhere;
+  font-size:10px;line-height:1.55;color:#b9cbd6;
+}
+#business .business-legend .business-legend-item b{
+  color:#ffdfac;font-size:10px;
+  font-variant-numeric:tabular-nums;white-space:nowrap;
+}
+#business .business-stage[data-current-view="business"] .business-legend .business-legend-item b{color:#c1e1f1}
+#business .business-ui-heading h3{line-height:1.4}
+#business .business-stat{box-shadow:inset 0 1px 0 rgba(255,239,211,.09)}
+#business .business-stat>span{line-height:1.65}
+#business .business-stat>strong{font-variant-numeric:tabular-nums}
+#business .business-stage[data-current-view="personal"] .business-summary{
+  border-color:rgba(247,208,145,.50);
+}
+html[lang="my"] #business .business-mode-context-copy strong,
+html[lang="my"] #business .business-mode-context-copy small,
+html[lang="my"] #business .business-context-state,
+html[lang="my"] #business .business-legend .business-legend-item>span{line-height:1.9;letter-spacing:0}
+@media(max-width:760px){
+  #business .business-mode-context{padding:12px 17px;gap:10px}
+  #business .business-mode-context-copy strong{font-size:12px}
+  #business .business-context-state{max-width:125px;font-size:7px;padding:5px 6px}
+  #business .business-legend .business-legend-item{gap:5px}
+}
+@media(max-width:520px){
+  #business .business-mode-context{align-items:flex-start;flex-wrap:wrap;padding:11px 12px;gap:8px}
+  #business .business-mode-emblem{width:30px;height:30px;flex-basis:30px}
+  #business .business-mode-emblem svg{width:18px;height:18px}
+  #business .business-mode-context-copy{flex:1;min-width:0}
+  #business .business-mode-context-copy strong{font-size:11px}
+  #business .business-mode-context-copy small{font-size:9px}
+  #business .business-context-state{margin:0 0 0 38px;max-width:none;font-size:7px}
+  #business .business-legend .business-legend-item>span{font-size:9px}
+  #business .business-legend .business-legend-item b{font-size:9px}
+  #business .business-stat>strong{font-size:clamp(11px,3.75vw,15px)}
+}
+@media(max-width:360px){
+  #business .business-legend{gap:8px}
+  #business .business-legend .business-legend-item{grid-template-columns:7px minmax(0,1fr) auto}
+  #business .business-context-state{margin-left:0}
+  #business .business-stat>strong{font-size:11px}
+}
+@media(prefers-reduced-motion:reduce){
+  #business .business-tab{transition:none!important}
+}
