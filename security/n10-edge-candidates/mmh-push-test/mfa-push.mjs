@@ -16,3 +16,23 @@ export function evaluatePushMfa(factorState, verifiedUserId, claims) {
   if (factorState && claims.aal !== "aal2") return "required";
   return "allowed";
 }
+
+// Call ONLY after the SAME bearer token was verified by Supabase Auth /user.
+// This parser does NOT verify JWT signatures; no trust should derive from it alone.
+export function parseVerifiedBearerClaims(authHeader) {
+  if (typeof authHeader !== "string") return null;
+  const bearer = /^Bearer\s+(\S+)$/i.exec(authHeader.trim())?.[1];
+  if (!bearer || bearer.length > 8192) return null;
+  const parts = bearer.split(".");
+  if (parts.length !== 3 || !parts[1] || parts[1].length > 8192) return null;
+  try {
+    const value = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+    const raw = atob(value + "=".repeat((4 - value.length % 4) % 4));
+    const data = JSON.parse(new TextDecoder().decode(
+      Uint8Array.from(raw, char => char.charCodeAt(0))
+    ));
+    return data && typeof data === "object" && !Array.isArray(data) ? data : null;
+  } catch (_) {
+    return null;
+  }
+}
