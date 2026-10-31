@@ -73,3 +73,10 @@
 - `security/n10-fixed-recovery-vault-candidate/username-signup-integration-NOT_DEPLOYED.ts` 的 `loginPhrase` 原先在 `verifyOtp()` 发放临时会话后、`getUser(access_token)` 身份验证失败的路径里，没有专门清理临时会话；现在使用独立 Auth 客户端的 `try/finally`：仅签名用户 UID 符合预期后 `keepSession=true` 并返回；否则尝试 `auth.signOut({scope:'local'})`。如签退过程本身发生服务端错误，依然可能需要独立的会话清理核实，不能断言后端全部吊销。该流程不改变 MFA/AAL2 的后续挑战规则。
 - 相关后端静态回归新增 1 项，从 38/38 提升至 **39/39**。最新代码 SHA `fa5a5c918d05a984ce9293e6eed653e4da8dce95` 对应 [GitHub Actions #41227265460](https://github.com/myintmoehein0115024/MMHVAULT/actions/runs/41227265460)：**SUCCESS**，14/14 合成 MFA、39/39 后端静态合同、10/10 UI 静态检查，以及 4 个候选 TS 的 Deno type-check 均成功；不是当前生产或 Staging 的真实恢复验证。
 - **绝不合并**：PR #2 继续 Draft，生产恢复开关 OFF，Vault 删除后的孤儿密钥证明 UNVERIFIED，固定恢复服务＋MFA＋Vault 联合实测 UNTESTED，`login.html` / security center 与已更新 main 的合并冲突未解，V11 继续暂停。
+
+## 2026-11-01 — 全新 Staging MFA+Vault 联测候选准备（**未部署，未获测试批准**）
+- 只读重新核对 Supabase 项目：Staging `ldivswlhtgmznzwhzsoi` 与生产 `vrypucmyrztxgiqhjspd` 均 `ACTIVE_HEALTHY`；旧 Staging `mmh-n10-fixed-vault-qa-locked` 仍显示 v8、`verify_jwt=true`，根据已复核源码系 HTTP 410 退役版。生产 Edge 清单没有新的 fixed recovery Vault 服务。未查询旧 Vault secret/index 敏感记录。
+- 新增 `security/n10-fixed-recovery-vault-candidate/qa-joint-mfa-vault-STAGING-NOT_DEPLOYED.ts`：继承经审查的 Staging adapter，严格 Staging 项目 + GitHub QA origin + 独立 QA HMAC、需要 Auth 验证用户的 UID 和 email 双白名单，全部 6 次 MFA + live-session 检查，包括备份写入前、秘密读取后和 QA 初始化写入/明文返回前。
+- **三重默认拒绝**：`RECOVERY_RELEASE_ENABLED=false`、`QA_IDENTITIES=new Map([])`（`ALLOWLIST_OK=false`）、`QA_WINDOW_END_UTC='1970-01-01T00:00:00.000Z'`（过期）。代码中不包含任何已删除 A/B 用户 UUID 或其邮箱。除非新授权下人工审查三项修改，否则该候选不应部署或启用。
+- 单独新增 2 个后端静态合同检查，并更新 CI 对第 5 个 TS 候选文件执行 Deno 类型检查；`2214c71f9d12a37385b887351f648d32fc2a0639` 在 [GitHub Actions #41227613147](https://github.com/myintmoehein0115024/MMHVAULT/actions/runs/41227613147) **SUCCESS**：14/14 MFA 模拟、41/41 后端静态安全合同、10/10 UI 静态检查、session 组合测试和 5 个 TS 候选 Deno check 均成功。
+- **下一步必须得到独立授权**：仅限 Staging 新建独立、专用 QA Edge、专用新合成 A/B 用户及 Secret、明确短时窗口和回滚；不得复活旧 410 Edge，不得改变 production Auth、`app.html`、`login.html`、财务数据或 Landing。实际 Vault 删除孤儿记录证明仍 UNVERIFIED，联合真实 MFA+Vault 仍 UNTESTED，N10 PR #2 Draft 冲突未解，V11 暂停。
