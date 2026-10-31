@@ -186,6 +186,56 @@ class N10AuthContract(unittest.TestCase):
         self.assertIn("unenrolled AAL1 owns delete", qa)
         self.assertNotIn("DELETE FROM public.crypto_wallet_movements", qa)
 
+
+    def test_full_atomic_release_rollback_isolated_staging_harness(self):
+        root = ROOT / "docs/sql"
+        qa = (root / "n10_atomic_release_rollback_isolated_staging_qa.sql").read_text(encoding="utf-8")
+        release = (root / "n10_mfa_atomic_release_NOT_FOR_DEPLOYMENT.sql").read_text(encoding="utf-8")
+        rollback = (root / "n10_mfa_atomic_rollback_NOT_FOR_DEPLOYMENT.sql").read_text(encoding="utf-8")
+
+        def isolate(source):
+            start = source.index("\\nBEGIN;")
+            end = source.rindex("\\nCOMMIT;")
+            self.assertLess(start, end)
+            source = source[start + 7:end].strip()
+            for old, new in (
+                ("mmh_n10_security", "mmh_n10_release_qa_security"),
+                ("public.", "mmh_n10_release_qa."),
+                ("storage.", "mmh_n10_release_qa."),
+                ("'public'", "'mmh_n10_release_qa'"),
+                ("'storage'", "'mmh_n10_release_qa'"),
+            ):
+                source = source.replace(old, new)
+            source = source.replace("mmh_n10_release_qa.buckets", "mmh_n10_release_qa_storage.buckets")
+            source = source.replace("mmh_n10_release_qa.objects", "mmh_n10_release_qa_storage.objects")
+            source = source.replace(
+                "schemaname='mmh_n10_release_qa' AND tablename='objects'",
+                "schemaname='mmh_n10_release_qa_storage' AND tablename='objects'"
+            )
+            source = source.replace(
+                "n.nspname='mmh_n10_release_qa' AND c.relname='objects'",
+                "n.nspname='mmh_n10_release_qa_storage' AND c.relname='objects'"
+            )
+            return source
+
+        self.assertIn(isolate(release), qa, "QA must embed the actual full candidate release")
+        self.assertIn(isolate(rollback).split("-- ====== ROLLBACK PART 3:")[0],
+                      qa, "QA must include the actual atomic rollback preflight and wallet/Storage")
+        self.assertRegex(qa, r"(?m)^BEGIN;$")
+        self.assertEqual(len(re.findall(r"(?m)^BEGIN;$", qa)), 1)
+        self.assertEqual(len(re.findall(r"(?m)^ROLLBACK;$", qa)), 1)
+        self.assertNotRegex(qa, r"(?m)^COMMIT;$")
+        self.assertTrue(qa.rstrip().endswith("ROLLBACK;"))
+        self.assertIn("IF n<>59 THEN", qa)
+        self.assertIn("IF s<>1 THEN", qa)
+        self.assertIn("IF w<>1 THEN", qa)
+        self.assertIn("IF n<>0 THEN", qa)
+        self.assertIn("wallet function body not restored", qa.lower())
+        self.assertIn("CREATE SCHEMA mmh_n10_release_qa_storage;", qa)
+        self.assertIn("CREATE SCHEMA mmh_n10_release_qa;", qa)
+        self.assertNotIn("ON public.", qa)
+        self.assertNotIn("ON storage.", qa)
+
     def test_atomic_release_and_rollback_bundle_match_source_fragments(self):
         root = ROOT / "docs/sql"
         release = (root / "n10_mfa_atomic_release_NOT_FOR_DEPLOYMENT.sql").read_text(encoding="utf-8")
