@@ -741,3 +741,47 @@ body{
 @media(prefers-reduced-motion:reduce){
   .hero-art.is-photo-ready .hero-device-cinematic{transition:none}
 }
+
+
+/* ================================================================
+   L1.21 — Prevent horizontal page panning in mobile device mode.
+   Verified at 393px: document scrollWidth 573px due to global
+   decorative .ambient-a/.ambient-b extending beyond viewport.
+   Contain horizontal overflow at root, remove purely decorative
+   offscreen absolute glows on handheld/tablet screens.
+   ================================================================ */
+html{
+  width:100%;
+  max-width:100%;
+  overflow-x:hidden; /* Safari fallback for browsers without clip */
+  overscroll-behavior-x:none;
+}
+@supports (overflow:clip){
+  html{overflow-x:clip}
+}
+body{
+  width:100%;
+  max-width:100%;
+  overflow-x:clip;
+}
+main{
+  max-width:100%;
+  min-width:0;
+  overflow-x:clip;
+}
+@media(max-width:1024px){
+  .ambient-a,.ambient-b{display:none}
+  .hero,.showcase-v2,.features-explorer,#business,#about,#security,.closing-section{
+    max-width:100%;
+  }
+}
+@media(max-width:620px){
+  .business-section .business-shell,
+  .features-explorer.app-showcase .product-explorer,
+  .features-explorer.app-showcase .product-picker,
+  .features-explorer.app-showcase .product-stage,
+  .features-explorer.app-showcase .app-story{
+    min-width:0;
+    max-width:100%;
+  }
+}
