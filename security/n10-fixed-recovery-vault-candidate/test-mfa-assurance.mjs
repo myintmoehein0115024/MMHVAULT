@@ -24,7 +24,7 @@ const cases=[
  ['unknown aal',()=>assert.equal(evaluateVerifiedAuthUserMfa(token('aal3'),user([factor]),project),'unavailable')],
  ['missing next aal',()=>assert.equal(evaluateMfaAssurance({currentLevel:'aal1',nextLevel:null}),'unavailable')],
  ['verified factor mismatch',()=>assert.equal(evaluateMfaAssurance({currentLevel:'aal1',nextLevel:'aal1'},true),'unavailable')],
- ['old aal2 after factor unenrolled',()=>assert.equal(evaluateVerifiedAuthUserMfa(token('aal2'),user(),project),'allowed')],
+ ['old aal2 after factor unenrolled fails closed',()=>assert.equal(evaluateVerifiedAuthUserMfa(token('aal2'),user(),project),'unavailable')],
  ['missing expiry',()=>assert.equal(evaluateVerifiedAuthUserMfa(token('aal1',{exp:undefined}),user(),project),'unavailable')],
 ];
 let failed=0;
