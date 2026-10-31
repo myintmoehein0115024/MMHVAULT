@@ -13,6 +13,23 @@ BEGIN
   IF to_regprocedure('public.mmh_delete_crypto_wallet_movement_v4(uuid)') IS NULL THEN
     RAISE EXCEPTION 'Original wallet movement RPC missing';
   END IF;
+  IF EXISTS (
+    SELECT 1 FROM pg_proc p
+    WHERE p.oid='public.mmh_delete_crypto_wallet_movement_v4(uuid)'::regprocedure
+      AND (
+        NOT p.prosecdef
+        OR pg_get_userbyid(p.proowner)<>'postgres'
+        OR obj_description(p.oid,'pg_proc') IS NOT NULL
+        OR NOT has_function_privilege('authenticated',p.oid,'EXECUTE')
+        OR has_function_privilege('anon',p.oid,'EXECUTE')
+      )
+  ) THEN
+    RAISE EXCEPTION 'Production wallet RPC ownership, grants or baseline changed';
+  END IF;
+  IF position('mmh_n10_security.mfa_access_ok()' in
+       pg_get_functiondef('public.mmh_delete_crypto_wallet_movement_v4(uuid)'::regprocedure)) > 0 THEN
+    RAISE EXCEPTION 'Wallet RPC may already contain an MFA guard; reconcile manually';
+  END IF;
 END;
 $preflight$;
 
@@ -62,6 +79,8 @@ BEGIN
   RETURN TRUE;
 END;
 $function$;
+COMMENT ON FUNCTION public.mmh_delete_crypto_wallet_movement_v4(uuid)
+IS 'MMHVAULT-N10-WALLET-MFA-V1';
 -- CREATE OR REPLACE preserves the function identity and existing EXECUTE grants.
 -- Check owner and all grants again after deployment.
 COMMIT;
