@@ -152,7 +152,7 @@ BEGIN
       tbl, 'MMHVAULT-N10-MFA-RESTRICTIVE-V1'
     );
   END LOOP;
-END
+END;
 $n10$;
 
 -- Important: service_role/BYPASSRLS and SECURITY DEFINER functions require separate guards.
