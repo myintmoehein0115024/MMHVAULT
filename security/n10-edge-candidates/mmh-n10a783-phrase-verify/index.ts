@@ -1,24 +1,18 @@
 // N10 MFA candidate — NOT DEPLOYED. Review/test separately before production.
 
 import { createClient } from 'npm:@supabase/supabase-js@2.57.4';
-import { evaluateMfaAssurance } from "./mfa-assurance.mjs";
+import { evaluateVerifiedAuthUserMfa } from "./mfa-assurance.mjs";
 const BASE='https://vrypucmyrztxgiqhjspd.supabase.co',ORIGIN='https://mmhvault.com';
 const SERVICE=Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')||'';
 const RATEKEY=Deno.env.get('N10A740_RATE_HMAC_KEY')||'';
 const admin=createClient(BASE,SERVICE||'placeholder',{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
 // N10 candidate ONLY; not deployed. Conditional MFA must guard both status
 // and phrase verification because this is a sensitive account-recovery endpoint.
-let PUBLIC='';
-try{PUBLIC=JSON.parse(Deno.env.get('SUPABASE_PUBLISHABLE_KEYS')||'{}')?.default||'';}catch(_){}
-PUBLIC=PUBLIC||Deno.env.get('SUPABASE_ANON_KEY')||'';
-const verifier=PUBLIC?createClient(BASE,PUBLIC,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}}):null;
-async function checkMfa(jwt:string,user:any){
- if(!verifier)return 'unavailable';
- const {data,error}=await verifier.auth.mfa.getAuthenticatorAssuranceLevel(jwt);
- if(error||!data)return 'unavailable';
- if(!Array.isArray(user?.factors))return 'unavailable';
- const hasVerifiedFactor=user.factors.some((factor:any)=>factor?.status==='verified');
- return evaluateMfaAssurance(data,hasVerifiedFactor);
+// The service-role Auth client has already validated this bearer in getUser.
+// Its verified factors are server-owned; SDK nextLevel can be unavailable in
+// stateless Edge calls. The helper checks JWT subject, issuer, expiry and AAL.
+function checkMfa(jwt:string,user:any){
+ return evaluateVerifiedAuthUserMfa(jwt,user,BASE);
 }
 
 const enc=new TextEncoder();
