@@ -1,10 +1,12 @@
-// MMHVAULT N10 AUTH-STAGING synthetic-only Vault QA adapter — REVIEW ONLY, NOT DEPLOYED.
+// MMHVAULT N10 AUTH-STAGING synthetic-only Vault QA adapter — DEPLOYED LOCKED/OFF.
+// File name retains NOT_DEPLOYED for historical PR continuity; no release was enabled.
 // Never replace production recovery Edge with this QA file. Exact isolated
 // project ID, QA origin, exact synthetic-account pair and OFF switch are mandatory.
 // Requires an audited Vault-only SQL schema, private service-role RPC grants,
 // real signed-token AAL1/AAL2 tests and an explicit production release gate.
 // No plaintext recovery words or passwords may be logged or stored by the browser.
 import {createClient} from 'npm:@supabase/supabase-js@2.57.4';
+import {wordlist} from 'npm:@scure/bip39@1.6.0/wordlists/english';
 import {evaluateVerifiedAuthUserMfa} from './mfa-assurance.mjs';
 import {sessionIdFromVerifiedJwt} from './session-guard.mjs';
 const EXPECTED_BASE='https://ldivswlhtgmznzwhzsoi.supabase.co';
@@ -36,6 +38,11 @@ function out(origin:string,code:string,status=200,details:Record<string,unknown>
   ...(allowed?{'Access-Control-Allow-Origin':ORIGIN,
    'Access-Control-Allow-Methods':'POST, OPTIONS',
    'Access-Control-Allow-Headers':'authorization, apikey, content-type'}:{})}});
+}
+function createSyntheticPhrase(){
+ // 65536 is exactly divisible by 2048, so each BIP39 word has equal probability.
+ const indices=crypto.getRandomValues(new Uint16Array(10));
+ return Array.from(indices,x=>wordlist[x&2047]).join(' ');
 }
 function normalizePhrase(v:unknown){
  if(typeof v!=='string'||v.length>240)return null;
@@ -157,7 +164,7 @@ Deno.serve(async(req:Request)=>{
   const {data,error}=await admin.rpc('mmh_n10_recovery_backup_exists',{p_user_id:user.id});
   return error||typeof data!=='boolean'?out(origin,'unavailable',503):out(origin,'backup_status',200,{backed_up:data});
  }
- if(action!=='backup_existing'&&action!=='reveal')return out(origin,'unknown_action',400);
+ if(action!=='backup_existing'&&action!=='reveal'&&action!=='qa_initialize')return out(origin,'unknown_action',400);
  const quotaStatus=await quota(user.id);
  if(quotaStatus==='unavailable')return out(origin,'rate_unavailable',503);
  if(quotaStatus!=='allowed')return out(origin,'too_many_attempts',429);
@@ -176,6 +183,24 @@ Deno.serve(async(req:Request)=>{
  if(refreshedAssurance.state!=='ok'||refreshedAssurance.user.id!==user.id
     ||refreshedAssurance.sessionId!==sessionId)
    return out(origin,'session_expired',401);
+ if(action==='qa_initialize'){
+  // Only the two hard-pinned confirmed synthetic accounts may call this,
+  // after signed Auth JWT, server-owned MFA, live session and current password.
+  // Unlike the production path, this prepares a new SYNTHETIC verifier.
+  // It does not reveal, import, replace or reset any historical recovery key.
+  const prior=await admin.from('mmh_n10a769_recovery_phrases')
+   .select('user_id').eq('user_id',user.id).limit(1);
+  if(prior.error)return out(origin,'unavailable',503);
+  if(prior.data?.length)return out(origin,'qa_already_initialized',409);
+  const phrase=createSyntheticPhrase();
+  const verifier=await hmac('phrase:'+user.id+':'+phrase);
+  const created=await admin.from('mmh_n10a769_recovery_phrases')
+   .insert({user_id:user.id,verifier,version:1});
+  if(created.error)return out(origin,'qa_initialize_unavailable',503);
+  return out(origin,'qa_phrase_initialized',200,{
+   words:phrase.split(' '),expires_in_seconds:45
+  });
+ }
  if(action==='backup_existing'){
   const phrase=normalizePhrase(body.phrase);
   if(!phrase)return out(origin,'invalid_recovery_key',400);
