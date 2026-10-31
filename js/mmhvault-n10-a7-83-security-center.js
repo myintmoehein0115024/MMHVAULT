@@ -151,7 +151,7 @@ function showVaultWords(words){
  const qr=$('mmhA783KeyQr');qr.replaceChildren();
  if(typeof QRCode==='function'){
   const name=$('mmhA783UsernameStatus').textContent.replace(/^@/,'');
-  new QRCode(qr,{text:'MMHVAULT-RECOVERY-V1\\nUSERNAME:'+name+'\\nPHRASE:'+raw,width:186,height:186,colorDark:'#000',colorLight:'#fff',correctLevel:QRCode.CorrectLevel.L});
+  new QRCode(qr,{text:'MMHVAULT-RECOVERY-V1\nUSERNAME:'+name+'\nPHRASE:'+raw,width:186,height:186,colorDark:'#000',colorLight:'#fff',correctLevel:QRCode.CorrectLevel.L});
  }
  $('mmhA783KeyDisplay').hidden=false;
  const msg=$('mmhA783KeyDisplay').querySelector('.mmh-a783-note');
