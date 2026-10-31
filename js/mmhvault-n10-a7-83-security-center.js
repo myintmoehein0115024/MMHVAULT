@@ -474,7 +474,7 @@ $('mmhA783TotpRemoveNow').addEventListener('click',async()=>{
    status('Authenticator removal could not be confirmed. Check the account and try again.');
  }finally{busy=false;}
 });
-document.addEventListener('visibilitychange',()=>{if(document.hidden){hideKey();if(pendingFactor)void cancelPendingMfa();}});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){hideKey();if(pendingFactor)void cancelPendingMfa();else clearMfa();}});
 window.addEventListener('pagehide',()=>{hideKey();if(pendingFactor)void cancelPendingMfa();else clearMfa();});
 // Modal-only interaction: keep the existing original controls in the same
 // owner-authenticated DOM subtree. Do not clone sensitive inputs or create a
@@ -631,7 +631,11 @@ function collapse(section){
  if(info)info.overlay.hidden=true;
  if(!sections.some(s=>s.classList.contains('mmh-a785-open')))document.body.classList.remove('mmh-n10-account-modal-open');
  if(section.id==='mmhA783Recovery'){hideKey();vaultStatusMode('unavailable');}
- if(info?.overlay.querySelector('#mmhA783TotpSetup')&&pendingFactor)void cancelPendingMfa();
+ if(info?.overlay.querySelector('#mmhA783TotpSetup')){
+  // Even while enrollment is in flight, before pendingFactor is assigned,
+  // closing this modal must invalidate the in-flight response.
+  if(pendingFactor)void cancelPendingMfa();else clearMfa();
+ }
  if(wasOpen&&info?.overlay.contains(document.activeElement))section.querySelector(':scope > .mmh-a783-title')?.focus({preventScroll:true});
 }
 sections.forEach(section=>{
