@@ -17,7 +17,7 @@ Do not use on production project `vrypucmyrztxgiqhjspd`.
 
 - Verify the database reference from the authorized Supabase project dashboard.
 - Capture a read-only `n10_fixed_recovery_READ_ONLY_PREFLIGHT.sql` result and metadata-only inventory of the five RPC signatures, private schema, tables, trigger and Vault extension.
-- Inspect schema collision/drift: a pre-existing table, unexpected trigger, conflicting RPC grant, or a non-synthetic Vault secret under the candidate prefix requires **STOP + review**; `CREATE IF NOT EXISTS` is not proof the object is safe.
+- Inspect schema collision/drift: a pre-existing schema, table, unexpected trigger, conflicting RPC grant, or a non-synthetic Vault secret under the candidate prefix requires **STOP + review**. The reviewed SQL is now deliberately a **first-install-only** transaction (`CREATE SCHEMA`, `CREATE TABLE`, `CREATE FUNCTION`), so a pre-existing object raises a collision error rather than being silently reused or overwritten. Do not bypass this using `IF NOT EXISTS` or `OR REPLACE`.
 - Review the RLS/ACL expectations against the actual database role permissions. `SECURITY DEFINER` runs with elevated privileges; only the dedicated backend service-role path may execute key RPCs.
 - Obtain a verified rollback window and backup/restore plan *before* attempting the isolated migration.
 
