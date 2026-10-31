@@ -142,6 +142,16 @@ const cases=[
   assert.doesNotMatch(handler,/auth\.mfa\.unenroll\(\{factorId\}\)/);
   assert.match(handler,/finally\{busy=false;\}/);
  }],
+ ['background / modal close invalidate in-flight enrollment without pendingFactor',()=>{
+   const visibility=src.slice(src.indexOf("document.addEventListener('visibilitychange'"),src.indexOf("window.addEventListener('pagehide'"));
+   assert.match(visibility,/if\(document\.hidden\)\{hideKey\(\);if\(pendingFactor\)void cancelPendingMfa\(\);else clearMfa\(\);/);
+   const collapse=src.slice(src.indexOf('function collapse(section){'),src.indexOf('sections.forEach(section=>',src.indexOf('function collapse(section){')));
+   assert.match(collapse,/if\(info\?\.overlay\.querySelector\('#mmhA783TotpSetup'\)\)\{/);
+   assert.match(collapse,/if\(pendingFactor\)void cancelPendingMfa\(\);else clearMfa\(\);/);
+   assert.doesNotMatch(collapse,/if\(info\?\.overlay\.querySelector\('#mmhA783TotpSetup'\)&&pendingFactor\)/);
+   assert.match(src,/function clearMfa\(\)\{mfaEpoch\+=1;/);
+   assert.match(src,/function mfaFlowActive\(epoch,userId\)\{/);
+ }],
  ['all recovery views use 45s auto-hide',()=>{
    assert.equal((src.match(/clearTimer=setTimeout\(hideKey,45000\)/g)||[]).length,2);
    assert.doesNotMatch(src,/clearTimer=setTimeout\(hideKey,60000\)/);
