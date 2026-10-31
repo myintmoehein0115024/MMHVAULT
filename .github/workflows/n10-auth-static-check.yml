@@ -11,6 +11,7 @@ on:
       - 'docs/sql/n10_mfa_gate_candidate_staging_only.sql'
       - 'docs/sql/n10_mfa_*.sql'
       - 'docs/sql/n10_wallet_rpc_transactional_staging_qa.sql'
+      - 'docs/sql/n10_atomic_release_rollback_isolated_staging_qa.sql'
       - 'security/n10-edge-candidates/**'
   workflow_dispatch:
 jobs:
