@@ -41,6 +41,9 @@ WITH CHECK (
   OR (SELECT mmh_n10_security.mfa_access_ok())
 );
 
+COMMENT ON POLICY mmh_n10_private_storage_mfa_guard ON storage.objects
+IS 'MMHVAULT-N10-MFA-STORAGE-RESTRICTIVE-V1';
+
 -- This policy does not revoke previously issued signed URLs, bypassRLS,
 -- service-role API use, or non-storage custom Edge attachment endpoints.
 -- Verify affected SELECT, INSERT, UPDATE, DELETE and upload/upsert separately.
