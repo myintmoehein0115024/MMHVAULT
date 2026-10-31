@@ -12113,7 +12113,7 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
     const gold=kind==='standard'&&Array.isArray(window.investments)&&window.investments.some(x=>x?.asset==='Gold'&&String(x.id)===String(id));
     const path=kind==='custom'?await customReceiptPath(user,id):gold?await window.mmhGoldReceiptPathV1(user.id,id):await findInvestmentReceiptPathV3304(user.id,id);
     if(!path)throw Error('No receipt was found for this investment.');
-    const r=await storage().createSignedUrl(path,3600);if(r.error||!r.data?.signedUrl)throw r.error||Error('Receipt is unavailable.');
+    const r=await storage().createSignedUrl(path,300);if(r.error||!r.data?.signedUrl)throw r.error||Error('Receipt is unavailable.');
     const modal=el('receiptViewerModalV3297'),body=el('receiptViewerBodyV3297');if(!modal||!body)throw Error('Receipt viewer is unavailable.');
     const url=r.data.signedUrl;body.replaceChildren();
     const pdf=path.toLowerCase().endsWith('.pdf'),media=document.createElement(pdf?'iframe':'img');
@@ -14617,7 +14617,7 @@ async function uploadTransactionReceiptV396(userId,txId,file){
   if(!file)return {ok:true};
   if(file.size>10*1024*1024)throw new Error('Receipt file is too large. Maximum size is 10 MB.');
   const path=receiptPathV396(userId,txId);
-  const {error}=await db.storage.from(RECEIPTS_BUCKET_V396).upload(path,file,{upsert:true,contentType:file.type||undefined,cacheControl:'3600'});
+  const {error}=await db.storage.from(RECEIPTS_BUCKET_V396).upload(path,file,{upsert:true,contentType:file.type||undefined,cacheControl:'60'});
   if(error)throw error;
   return {ok:true,path};
 }
@@ -14652,7 +14652,7 @@ async function openTransactionReceiptV396(id){
   body.innerHTML='<div class="receipt-viewer-loading-v3297">Loading receipt…</div>';
   modal.classList.add('show');
   const path=receiptPathV396(u.id,id);
-  const {data,error}=await db.storage.from(RECEIPTS_BUCKET_V396).createSignedUrl(path,3600);
+  const {data,error}=await db.storage.from(RECEIPTS_BUCKET_V396).createSignedUrl(path,300);
   if(error){closeTransactionReceiptV3297();mmhVaultNoticeV930('No receipt was found for this transaction.');return;}
   const url=data.signedUrl;
   const clean=url.split('?')[0].toLowerCase();
@@ -17684,7 +17684,7 @@ async function uploadInvestmentReceiptV3304(userId,id,file){
   await removeInvestmentReceiptV3304(userId,id);
   const bucket=typeof RECEIPTS_BUCKET_V396!=='undefined'?RECEIPTS_BUCKET_V396:'receipts';
   const path=investmentReceiptPathV3304(userId,id,file);
-  const {error}=await db.storage.from(bucket).upload(path,file,{upsert:true,contentType:file.type||undefined,cacheControl:'3600'});
+  const {error}=await db.storage.from(bucket).upload(path,file,{upsert:true,contentType:file.type||undefined,cacheControl:'60'});
   if(error)throw error;
   window.mmHVaultInvestmentReceiptIdsV3304.add(Number(id));
   return {ok:true,path};
@@ -17727,7 +17727,7 @@ async function openInvestmentReceiptV3304(id){
   const path=await findInvestmentReceiptPathV3304(u.id,id);
   if(!path){closeTransactionReceiptV3297();mmhVaultNoticeV930('No receipt was found for this investment.');return;}
   const bucket=typeof RECEIPTS_BUCKET_V396!=='undefined'?RECEIPTS_BUCKET_V396:'receipts';
-  const {data,error}=await db.storage.from(bucket).createSignedUrl(path,3600);
+  const {data,error}=await db.storage.from(bucket).createSignedUrl(path,300);
   if(error){closeTransactionReceiptV3297();mmhVaultNoticeV930('Unable to open this investment receipt.');return;}
   const url=data.signedUrl;
   const name=path.toLowerCase();
@@ -17822,7 +17822,7 @@ window.mmHVaultReplaceReceiptV3309 = async function(userId,id,file,kind){
   const path=kind==="investment"
     ? `${userId}/inv-${id}.${safeExt}`
     : `${userId}/tx-${id}`;
-  const {error}=await db.storage.from(bucket).upload(path,file,{upsert:true,contentType:file.type||undefined,cacheControl:"3600"});
+  const {error}=await db.storage.from(bucket).upload(path,file,{upsert:true,contentType:file.type||undefined,cacheControl:"60"});
   if(error)throw error;
   return path;
 };
@@ -17895,7 +17895,7 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
       if(removeError)throw removeError;
     }
     const path=receiptPathV396(userId,txId);
-    const {error}=await db.storage.from(BUCKET()).upload(path,file,{upsert:true,contentType:file.type||undefined,cacheControl:'3600'});
+    const {error}=await db.storage.from(BUCKET()).upload(path,file,{upsert:true,contentType:file.type||undefined,cacheControl:'60'});
     if(error)throw error;
     return {ok:true,path};
   };
@@ -17910,7 +17910,7 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
     const paths=await listReceiptPathsV3314(u.id,'transaction',id);
     const path=paths[0];
     if(!path){closeTransactionReceiptV3297();mmhVaultNoticeV930('No receipt was found for this transaction.');return;}
-    const {data,error}=await db.storage.from(BUCKET()).createSignedUrl(path,3600);
+    const {data,error}=await db.storage.from(BUCKET()).createSignedUrl(path,300);
     if(error){closeTransactionReceiptV3297();mmhVaultNoticeV930('No receipt was found for this transaction.');return;}
     const url=data.signedUrl;
     const clean=path.toLowerCase();
@@ -17955,7 +17955,7 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
     if(file.size>10*1024*1024)throw new Error('Receipt file is too large. Maximum size is 10 MB.');
     await removeInvestmentReceiptV3304(userId,id);
     const path=investmentReceiptPathV3304(userId,id,file);
-    const {error}=await db.storage.from(BUCKET()).upload(path,file,{upsert:true,contentType:file.type||undefined,cacheControl:'3600'});
+    const {error}=await db.storage.from(BUCKET()).upload(path,file,{upsert:true,contentType:file.type||undefined,cacheControl:'60'});
     if(error)throw error;
     window.mmHVaultInvestmentReceiptIdsV3304.add(Number(id));
     return {ok:true,path};
@@ -18032,7 +18032,7 @@ window.mmHVaultOpenManagedReceiptV3309 = async function(id,kind){
     const path=kind==='investment'
       ? `${userId}/investments/inv-${id}.${safeExt}`
       : `${userId}/transactions/tx-${id}`;
-    const {error}=await db.storage.from(BUCKET()).upload(path,file,{upsert:true,contentType:file.type||undefined,cacheControl:'3600'});
+    const {error}=await db.storage.from(BUCKET()).upload(path,file,{upsert:true,contentType:file.type||undefined,cacheControl:'60'});
     if(error)throw error;
     return path;
   };
@@ -22166,7 +22166,7 @@ async function decorateFeedback(items){
   const list=$('fbListV14');if(!list||list.closest('[hidden]'))return;const snap=window.mmhFeedbackPageStateV1237?.()||{};const owner=snap.uid||currentSessionUser?.id||'';const pageEpoch=snap.epoch,offset=Number(snap.offset||0);if(!owner)return;
   const rows=Array.isArray(items)?items:[];if(!rows.length)return;
   const cards=[...list.querySelectorAll('.fb-record')];
-  for(let i=0;i<Math.min(cards.length,rows.length);i++){const row=rows[i],card=cards[i];const now=window.mmhFeedbackPageStateV1237?.()||{};if((now.uid||currentSessionUser?.id||'')!==owner||now.epoch!==pageEpoch||Number(now.offset||0)!==offset)return;if(row.rating&&!card.querySelector('.fb-rating-show-v15')){const x=document.createElement('p');x.className='fb-note fb-rating-show-v15';x.textContent=tr('Rating: ','评分：')+'★'.repeat(row.rating)+'☆'.repeat(5-row.rating);card.append(x)}if(row.photos?.length&&!card.querySelector('.fb-admin-photos-v15')){const box=document.createElement('div');box.className='fb-admin-photos-v15';for(const path of row.photos){const fresh=window.mmhFeedbackPageStateV1237?.()||{};if((fresh.uid||currentSessionUser?.id||'')!==owner||fresh.epoch!==pageEpoch||Number(fresh.offset||0)!==offset)return;const {data:signed}=await db.storage.from('mmh-feedback').createSignedUrl(path,600);if(signed?.signedUrl){const a=document.createElement('a');a.href=signed.signedUrl;a.target='_blank';a.rel='noopener';const img=document.createElement('img');img.src=signed.signedUrl;a.append(img);box.append(a)}}card.append(box)}}
+  for(let i=0;i<Math.min(cards.length,rows.length);i++){const row=rows[i],card=cards[i];const now=window.mmhFeedbackPageStateV1237?.()||{};if((now.uid||currentSessionUser?.id||'')!==owner||now.epoch!==pageEpoch||Number(now.offset||0)!==offset)return;if(row.rating&&!card.querySelector('.fb-rating-show-v15')){const x=document.createElement('p');x.className='fb-note fb-rating-show-v15';x.textContent=tr('Rating: ','评分：')+'★'.repeat(row.rating)+'☆'.repeat(5-row.rating);card.append(x)}if(row.photos?.length&&!card.querySelector('.fb-admin-photos-v15')){const box=document.createElement('div');box.className='fb-admin-photos-v15';for(const path of row.photos){const fresh=window.mmhFeedbackPageStateV1237?.()||{};if((fresh.uid||currentSessionUser?.id||'')!==owner||fresh.epoch!==pageEpoch||Number(fresh.offset||0)!==offset)return;const {data:signed}=await db.storage.from('mmh-feedback').createSignedUrl(path,300);if(signed?.signedUrl){const a=document.createElement('a');a.href=signed.signedUrl;a.target='_blank';a.rel='noopener';const img=document.createElement('img');img.src=signed.signedUrl;a.append(img);box.append(a)}}card.append(box)}}
 }
 window.mmhDecorateFeedbackV1524=items=>{queueMicrotask(()=>decorateFeedback(items))};
 const boot=()=>{addFeedbackExtras();window.addEventListener('mmhvault:config-owner-changed',()=>{rating=0;const stars=$('fbRatingV15');if(stars)renderStars(stars,0);const input=$('fbPhotosV15');if(input)input.value='';renderPhotoSelection([])})};
@@ -27269,12 +27269,12 @@ html,body{max-width:100%;overflow-x:clip}
     const key=user.id+':'+path;
     if(cached.key===key&&cached.expires>Date.now()){paint(cached.url);return;}
     if(pending?.key===key)return;
-    const request=db.storage.from(bucket).createSignedUrl(path,3600);
+    const request=db.storage.from(bucket).createSignedUrl(path,300);
     pending={key,request};
     try{
       const {data,error}=await request;
       if(error||!data?.signedUrl)throw error||Error('Photo unavailable');
-      cached={key,url:data.signedUrl,expires:Date.now()+55*60*1000};
+      cached={key,url:data.signedUrl,expires:Date.now()+4*60*1000};
       if(currentSessionUser?.id===user.id&&currentSessionUser?.user_metadata?.mmhvault_avatar_path===path)paint(cached.url);
     }catch(err){console.warn('Profile photo could not be displayed',err);}
     finally{if(pending?.key===key)pending=null;}
@@ -32780,7 +32780,7 @@ body.light #settings .cs-panel-v1518{background:linear-gradient(160deg,#fff,#f3f
  function chooseFiles(list){const files=[...list].filter(f=>/^image\/(jpeg|png|webp)$/i.test(f.type));if(files.length>3){notice(tr('Maximum 3 photos.','最多上传 3 张照片。'));clearFiles();return}if(files.some(f=>f.size>3145728)){notice(tr('Each photo must be 3 MB or smaller.','每张照片不能超过 3 MB。'));clearFiles();return}selectedFiles=files;resetDraftRequest();renderSelectedFiles();notice(files.length?tr(`${files.length} photo(s) ready.`,`已选择 ${files.length} 张照片。`):'')}
  function notice(text){const node=$('csResultV1518');if(node)node.textContent=text||''}
  function insertEmoji(value){const ta=$('csMessageV1518');if(!ta)return;const start=ta.selectionStart??ta.value.length,end=ta.selectionEnd??start;ta.value=ta.value.slice(0,start)+value+ta.value.slice(end);resetDraftRequest();const pos=start+value.length;ta.setSelectionRange(pos,pos);ta.focus()}
- async function signedFile(file){if(!file?.path)return null;try{const {data}=await db.storage.from('mmh-feedback').createSignedUrl(file.path,600);return data?.signedUrl?{...file,url:data.signedUrl}:null}catch(_){return null}}
+ async function signedFile(file){if(!file?.path)return null;try{const {data}=await db.storage.from('mmh-feedback').createSignedUrl(file.path,300);return data?.signedUrl?{...file,url:data.signedUrl}:null}catch(_){return null}}
  async function addAttachments(files,host,token){if(!Array.isArray(files)||!files.length)return;const signed=await Promise.all(files.slice(0,4).map(signedFile));if(token!==epoch||page?.hidden)return;const box=document.createElement('div');box.className='cs-attachments-v1518';for(const file of signed){if(!file?.url)continue;const a=document.createElement('a');a.href=file.url;a.target='_blank';a.rel='noopener';const type=String(file.type||''),isImage=file.kind==='image'||type.startsWith('image/');if(isImage){const img=document.createElement('img');img.src=file.url;img.alt=file.name||tr('Attachment image','附件图片');a.append(img)}else{a.className='cs-file-chip-v1518';a.textContent='📎 '+(file.name||tr('Attachment','附件'))}box.append(a)}if(box.childElementCount)host.append(box)}
  async function addUserPhotos(row,host,token){const photos=Array.isArray(row?.photos)?row.photos:[];await addAttachments(photos.map((path,i)=>({path,name:tr(`Photo ${i+1}`,`照片 ${i+1}`),type:'image/jpeg',kind:'image'})),host,token)}
  function bubble(kind,text,meta,status){const row=document.createElement('div');row.className='cs-row-v1518 '+kind;const b=document.createElement('div');b.className='cs-bubble-v1518';if(kind==='system'){const strong=document.createElement('strong');strong.textContent=tr('MMHVAULT live support','MMHVAULT 人工客服');const p=document.createElement('p');p.textContent=text||'';b.append(strong,p)}else if(text){const p=document.createElement('p');p.textContent=text;b.append(p)}const m=document.createElement('div');m.className='cs-meta-v1518';const who=document.createElement('span');who.textContent=kind==='user'?tr('You','您'):kind==='system'?tr('System','系统'):tr('Support agent','人工客服');const time=document.createElement('span');time.textContent=meta||'';m.append(who,time);if(status&&kind==='user'){const s=document.createElement('span');s.className='cs-status-v1518';s.dataset.status=status;s.textContent=statusText(status);m.append(s)}row.append(b,m);return row}
