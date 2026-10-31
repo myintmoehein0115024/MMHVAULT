@@ -117,7 +117,7 @@ const cases=[
  }],
  ['secret response is discarded on logout and account switch',()=>{
    assert.match(src,/event==='SIGNED_OUT'\|\|\(event==='SIGNED_IN'&&owner&&session\?\.user\?\.id!==owner\)/);
-   assert.match(src,/if\(event==='SIGNED_OUT'\)owner=''/);
+   assert.match(src,/hideKey\(\);clearMfa\(\);resetSensitiveState\(\);sections\.forEach\(collapse\);\s*owner=''/);
  }],
  ['backgrounding and navigation hide the phrase',()=>{
    assert.match(src,/document\.addEventListener\('visibilitychange',[\s\S]*?if\(document\.hidden\)\{hideKey\(\)/);
