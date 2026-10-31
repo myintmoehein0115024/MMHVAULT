@@ -27,3 +27,10 @@ Date: 2026-11-01, Thailand. **READ-ONLY production comparison; NOT a merge/deplo
 4. Independent release approval, production backup/rollback readiness, real user acceptance and production-specific test criteria are still required. No V11 work or N10 production release without gates.
 
 **Conclusion:** Draft hardening CI is only an offline source check. Do not merge, deploy candidate Edge, or mark N10 general release PASS.
+
+## 2026-11-01 Draft Security Center MFA compatibility fix
+- Exact same **verified-only listFactors().totp bug** was discovered in the existing Account Security TOTP enrollment source (the bug occurs in latest main and inherited Draft). The code previously tried to delete `unverified` factors from `listFactors().totp`, which only includes verified factors; this can leave stale enrollments and trigger `mfa_factor_name_conflict`.
+- **Draft-only**, `js/mmhvault-n10-a7-83-security-center.js`, commit `bc1c3674c38260e24115b593ce472e0de10e8f83`, now uses a fail-closed `inspectTotpFactors(data)` helper that enumerates `data.all`. It only removes `unverified` TOTP factors, and rejects unexpected statuses, missing inventories and leftovers after a new read. It re-verifies the signed-in user before new enrollment, and uses a unique friendly name.
+- The Draft-only TOTP confirmation now requires **both** `currentLevel==='aal2'` from Supabase Auth and the **same factor ID** with `status==='verified'` from the Auth MFA inventory before showing `Authenticator enabled`. This is not evidence that a real MFA session passed.
+- Additional static and synthetic behavior tests in `test-ui-secret-guards.mjs` at commit `f29d857731fd952d98099e9819a0f83cd052ea01` check this ordering and the specific `all`-contains-unverified / `totp`-empty fixture. No network, passwords, OTP, secrets, Auth or Vault operations during these checks.
+- **Important:** this remains **Draft-only**; production `main` continues to retain its original TOTP UI path and is not changed by this fix. PR #2 still merge-conflicted and release BLOCKED; real test remains unavailable after the previously denied activation.
