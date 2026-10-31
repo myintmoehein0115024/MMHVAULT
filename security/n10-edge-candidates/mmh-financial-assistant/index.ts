@@ -121,7 +121,9 @@ Deno.serve(async (req) => {
     // unsupported JWT API from mistakenly treating an enrolled user as AAL1.
     // A valid legacy JWT with two null levels is allowed ONLY without factors.
     if (assuranceError) return json({ code: "MFA_CHECK_UNAVAILABLE" }, 503);
-    const hasVerifiedFactor = Array.isArray(user.factors) &&
+    // Missing factor inventory must NOT be interpreted as an unenrolled user.
+    if (!Array.isArray(user.factors)) return json({ code: "MFA_CHECK_UNAVAILABLE" }, 503);
+    const hasVerifiedFactor =
       user.factors.some((factor: any) => factor?.status === "verified");
     const decision = evaluateMfaAssurance(assurance, hasVerifiedFactor);
     if (decision === "unavailable") return json({ code: "MFA_CHECK_UNAVAILABLE" }, 503);
