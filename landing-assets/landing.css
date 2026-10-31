@@ -2606,3 +2606,148 @@ html[lang="my"] .features-explorer.app-showcase .app-entry-tag,html[lang="my"] .
   .features-explorer.app-showcase .product-tab-chevron {grid-column:2}
   .features-explorer.app-showcase .app-premium-account-balance>strong {font-size:13px}
 }
+
+
+/* =========================================================
+   L1.18 — Editorial About and Security
+   Premium navy/champagne-gold, exact About/Security scopes.
+   ========================================================= */
+#about.why-section{
+ position:relative;isolation:isolate;overflow:hidden;
+ background:radial-gradient(ellipse 68% 63% at 0 25%,rgba(230,172,95,.12),transparent 79%),radial-gradient(ellipse 55% 57% at 98% 85%,rgba(106,153,178,.11),transparent 83%),linear-gradient(145deg,#0b2132,#071725 90%);
+ border-block:1px solid rgba(239,193,123,.19);
+}
+#about .why-layout{grid-template-columns:minmax(0,.81fr) minmax(0,1.19fr);gap:clamp(32px,5vw,82px);align-items:start}
+#about .why-intro{padding-top:19px;min-width:0}
+#about .why-intro .section-kicker{color:#f5ce93;text-shadow:0 0 14px rgba(245,192,111,.15)}
+#about .why-intro h2{font:500 clamp(38px,4.2vw,63px)/1.18 Georgia,"Times New Roman",serif;letter-spacing:-.05em;color:#fff1df;margin:24px 0;text-wrap:balance}
+#about .why-intro h2 em{
+ font:italic 400 1em Georgia,"Times New Roman",serif;
+ background:linear-gradient(105deg,#e5b87c,#ffe7b4 43%,#dba15b 95%);
+ -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+ filter:drop-shadow(0 0 14px rgba(244,190,115,.14));
+}
+#about .why-intro>p:not(.section-kicker){max-width:430px;margin:20px 0;color:#b8cbd4;font-size:14px;line-height:1.95}
+#about .about-intro-divider{display:flex;align-items:center;gap:14px;margin-top:35px;color:#f5d296;font-size:23px}
+#about .about-intro-divider>span{display:grid;place-items:center;width:42px;height:42px;border-radius:12px;border:1px solid rgba(239,201,139,.43);background:linear-gradient(130deg,rgba(246,189,101,.2),rgba(9,27,42,.61));box-shadow:inset 0 1px rgba(255,242,208,.12),0 0 22px rgba(245,190,99,.065)}
+#about .about-intro-divider>i{flex:1;height:1px;background:linear-gradient(90deg,rgba(238,196,128,.44),transparent)}
+#about .why-signature{margin-top:15px;border:0;padding-top:0;color:#f5dab1;font-size:12px;line-height:1.7}
+#about .benefit-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+#about .benefit-grid article{
+ min-width:0;min-height:194px;position:relative;display:flex;flex-direction:column;justify-content:space-between;
+ padding:20px;border-radius:17px;overflow:hidden;
+ border:1px solid rgba(180,206,220,.26);
+ background:radial-gradient(ellipse at 0 0,rgba(237,184,102,.075),transparent 77%),linear-gradient(153deg,#153349,#0a2033 89%);
+ box-shadow:inset 0 1px 0 rgba(255,245,218,.105),0 12px 29px rgba(0,0,0,.12);
+ transition:transform .2s,border-color .2s,box-shadow .2s;
+}
+#about .benefit-grid article::before{content:"";position:absolute;inset:0 0 auto;height:1px;background:linear-gradient(90deg,transparent,rgba(255,223,171,.42),transparent)}
+#about .benefit-grid article.about-benefit-card--lead{
+ border-color:rgba(247,209,143,.66);
+ background:radial-gradient(ellipse 93% 80% at 0 0,rgba(244,196,119,.16),transparent 79%),linear-gradient(146deg,#1a3c51,#102b3f);
+ box-shadow:inset 0 1px 0 rgba(255,244,210,.15),0 0 19px rgba(241,171,83,.07),0 17px 35px rgba(0,0,0,.14);
+}
+#about .benefit-grid article:hover{transform:translateY(-3px);border-color:rgba(255,214,151,.57);box-shadow:inset 0 1px rgba(255,236,202,.13),0 19px 35px rgba(0,0,0,.18)}
+#about .about-benefit-top{display:flex;justify-content:space-between;align-items:start;gap:10px;margin-bottom:16px}
+#about .about-benefit-icon{
+ flex:0 0 44px;display:grid;place-items:center;width:44px;height:44px;border-radius:12px;
+ color:#fad7a0;border:1px solid rgba(241,200,135,.47);background:linear-gradient(145deg,rgba(234,178,94,.22),rgba(25,58,78,.42));
+ box-shadow:inset 0 1px rgba(255,240,212,.11),0 0 18px rgba(242,187,109,.07);
+}
+#about .about-benefit-icon svg{width:23px;height:23px;display:block}
+#about .benefit-number{font:500 12px Georgia,serif;letter-spacing:.07em;color:#ecc78c}
+#about .benefit-grid h3{margin:0 0 7px;font-size:15px;line-height:1.5;font-weight:670;color:#fff0d8}
+#about .benefit-grid p{margin:0;color:#b2c6d0;font-size:11px;line-height:1.85;max-width:320px}
+#security.security-section{padding-block:clamp(68px,7vw,110px)}
+#security .security-panel{
+ grid-template-columns:minmax(205px,.60fr) minmax(0,1.40fr);gap:clamp(22px,4vw,60px);
+ min-height:410px;padding:clamp(25px,4.6vw,64px);border-radius:24px;
+ border:1px solid rgba(244,206,144,.49);
+ background:radial-gradient(ellipse at 4% 49%,rgba(233,174,91,.13),transparent 57%),linear-gradient(125deg,#173247,#0b2438 68%,#071926);
+ box-shadow:inset 0 1px 0 rgba(255,241,212,.16),0 28px 73px rgba(0,0,0,.30),0 0 32px rgba(243,181,88,.08);
+}
+#security .security-panel::after{content:"";position:absolute;inset:0 0 auto;height:1px;background:linear-gradient(90deg,transparent,rgba(250,218,160,.65),transparent)}
+#security .security-graphic{width:240px;height:244px;max-width:100%;color:#eac48e}
+#security .orbit-outer{width:234px;height:234px;max-width:100%;border-color:rgba(238,192,121,.23)}
+#security .orbit-inner{width:184px;height:184px;max-width:84%;border-color:rgba(243,198,132,.30)}
+#security .security-shield-emblem{
+ display:grid;place-items:center;width:138px;height:138px;border-radius:36px;
+ background:linear-gradient(145deg,rgba(231,176,91,.22),rgba(8,24,41,.49) 80%);
+ border:1px solid rgba(241,202,140,.52);
+ box-shadow:inset 0 1px rgba(255,241,211,.18),0 0 36px rgba(237,177,88,.11);
+}
+#security .security-shield-emblem svg{width:99px;height:99px;filter:drop-shadow(0 0 18px rgba(226,180,108,.15))}
+#security .security-mark{position:absolute;bottom:-5px;left:50%;transform:translateX(-50%);font:500 10px Georgia,serif;letter-spacing:.12em;color:#dfbe8c;white-space:nowrap}
+#security .security-copy .section-kicker{color:#f3ce91}
+#security .security-copy h2{max-width:650px;font-size:clamp(33px,3.3vw,49px);line-height:1.24;letter-spacing:-.04em;color:#fff0d8;margin:14px 0 16px}
+#security .security-copy>p:not(.section-kicker){max-width:635px;color:#c0ccd3;font-size:13px;line-height:1.95}
+#security .security-points{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:23px 0 20px}
+#security .security-point{
+ display:flex;align-items:center;gap:9px;min-width:0;min-height:66px;padding:10px;
+ border:1px solid rgba(171,205,222,.27);border-radius:11px;
+ background:linear-gradient(146deg,rgba(24,55,75,.8),rgba(8,29,46,.88));box-shadow:inset 0 1px rgba(255,245,216,.075);
+}
+#security .security-point-icon{display:grid;place-items:center;flex:0 0 31px;width:31px;height:31px;border-radius:9px;color:#f6d29b;border:1px solid rgba(245,205,144,.37);background:rgba(229,175,96,.12)}
+#security .security-point-icon svg{display:block;width:18px;height:18px}
+#security .security-point>span:last-child{min-width:0;color:#e8ddca;font-size:10px;line-height:1.6;overflow-wrap:anywhere}
+#security .security-copy .underlined-link{border-bottom-color:rgba(247,204,139,.5);color:#ffe2b1}
+#security .security-copy .underlined-link:hover{color:#fff3d6}
+html[lang="my"] #about .why-intro h2{font-family:"Noto Sans Myanmar","Myanmar Text","Padauk",sans-serif;font-size:clamp(27px,3.5vw,46px);letter-spacing:0;line-height:1.7}
+html[lang="my"] #about .why-intro h2 em{font-family:inherit;font-style:normal;line-height:inherit}
+html[lang="my"] #about .benefit-grid h3,html[lang="my"] #about .benefit-grid p,html[lang="my"] #security .security-point>span:last-child{line-height:1.9;letter-spacing:0}
+@media(max-width:1100px){
+ #about .why-layout{grid-template-columns:minmax(0,.84fr) minmax(0,1.16fr);gap:30px}
+ #about .benefit-grid{gap:10px}
+ #about .benefit-grid article{padding:17px;min-height:187px}
+ #security .security-panel{grid-template-columns:170px minmax(0,1fr);padding:29px;gap:25px}
+ #security .security-graphic{width:170px;height:185px}
+ #security .orbit-outer{width:168px;height:168px}
+ #security .orbit-inner{width:134px;height:134px}
+ #security .security-shield-emblem{width:104px;height:104px;border-radius:28px}
+ #security .security-shield-emblem svg{width:75px;height:75px}
+ #security .security-points{grid-template-columns:1fr}
+ #security .security-point{min-height:45px;padding:8px 10px}
+}
+@media(max-width:850px){
+ #about .why-layout{grid-template-columns:1fr;gap:33px}
+ #about .why-intro{padding-top:0}
+ #about .why-intro>p:not(.section-kicker){max-width:650px}
+ #about .benefit-grid article{min-height:173px}
+ #security .security-panel{grid-template-columns:155px minmax(0,1fr);gap:18px;padding:24px}
+ #security .security-graphic{width:155px;height:160px}
+ #security .orbit-outer{width:153px;height:153px}
+ #security .orbit-inner{width:122px;height:122px}
+}
+@media(max-width:620px){
+ #about .why-intro h2{font-size:clamp(35px,8vw,46px)}
+ #about .why-intro>p:not(.section-kicker){font-size:12px}
+ #about .about-intro-divider{margin-top:22px}
+ #about .benefit-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+ #about .benefit-grid article{padding:13px;min-height:178px;border-radius:13px}
+ #about .about-benefit-top{margin-bottom:11px}
+ #about .about-benefit-icon{width:35px;height:35px;flex-basis:35px;border-radius:10px}
+ #about .about-benefit-icon svg{width:19px;height:19px}
+ #about .benefit-grid h3{font-size:12px;line-height:1.5;margin-bottom:5px}
+ #about .benefit-grid p{font-size:10px;line-height:1.8}
+ #security.security-section{padding-block:72px}
+ #security .security-panel{grid-template-columns:1fr;gap:12px;padding:20px;border-radius:20px}
+ #security .security-graphic{width:138px;height:148px;margin:0 auto}
+ #security .orbit-outer{width:134px;height:134px}
+ #security .orbit-inner{width:106px;height:106px}
+ #security .security-shield-emblem{width:88px;height:88px;border-radius:23px}
+ #security .security-shield-emblem svg{width:61px;height:61px}
+ #security .security-mark{bottom:-1px}
+ #security .security-copy h2{font-size:clamp(28px,6.7vw,37px)}
+ #security .security-copy>p:not(.section-kicker){font-size:12px}
+ #security .security-points{gap:7px;margin:16px 0}
+ #security .security-point{min-height:41px;padding:7px 8px}
+}
+@media(max-width:380px){
+ #about .benefit-grid{grid-template-columns:1fr}
+ #about .benefit-grid article{min-height:135px;padding:15px}
+ #security .security-panel{padding:17px}
+}
+@media(prefers-reduced-motion:reduce){
+ #about .benefit-grid article{transition:none}
+ #about .benefit-grid article:hover{transform:none}
+}
