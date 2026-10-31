@@ -29,6 +29,8 @@ jobs:
         run: node security/n10-fixed-recovery-vault-candidate/test-session-guard.mjs
       - name: Backend and SQL static security contracts
         run: node security/n10-fixed-recovery-vault-candidate/test-candidate-contracts.mjs
+      - name: UI secret auto-hide and stale-response guards (static only)
+        run: node security/n10-fixed-recovery-vault-candidate/test-ui-secret-guards.mjs
       - name: Install Deno for dependency and TypeScript checks
         uses: denoland/setup-deno@v2
         with:
