@@ -2,10 +2,15 @@
 -- Store each user's *existing* 10-word phrase encrypted in Supabase Vault.
 -- Never infer original words from the one-way verifier and never replace a
 -- saved phrase without a separate owner-approved migration.
+-- FIRST-INSTALL ONLY; fail closed if any namespace/table/function exists.
+-- Do not replay against a partially installed, modified or previously used
+-- schema. A collision aborts the transaction; inspect drift and prepare a
+-- separately reviewed upgrade/rollback instead of replacing objects.
+-- Previous Staging execution safety gate still applies: NOT AUTHORIZED TO RUN.
 BEGIN;
-CREATE SCHEMA IF NOT EXISTS mmh_n10_privacy;
+CREATE SCHEMA mmh_n10_privacy;
 REVOKE ALL ON SCHEMA mmh_n10_privacy FROM PUBLIC, anon, authenticated, service_role;
-CREATE TABLE IF NOT EXISTS mmh_n10_privacy.recovery_backup_index(
+CREATE TABLE mmh_n10_privacy.recovery_backup_index(
  user_id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
  secret_id uuid NOT NULL UNIQUE,
  created_at timestamptz NOT NULL DEFAULT now()
@@ -13,7 +18,7 @@ CREATE TABLE IF NOT EXISTS mmh_n10_privacy.recovery_backup_index(
 ALTER TABLE mmh_n10_privacy.recovery_backup_index ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON mmh_n10_privacy.recovery_backup_index FROM PUBLIC,anon,authenticated,service_role;
 
-CREATE TABLE IF NOT EXISTS mmh_n10_privacy.recovery_rate_bucket(
+CREATE TABLE mmh_n10_privacy.recovery_rate_bucket(
  bucket text PRIMARY KEY,
  attempts integer NOT NULL DEFAULT 0,
  reset_at timestamptz NOT NULL
@@ -21,7 +26,7 @@ CREATE TABLE IF NOT EXISTS mmh_n10_privacy.recovery_rate_bucket(
 ALTER TABLE mmh_n10_privacy.recovery_rate_bucket ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON mmh_n10_privacy.recovery_rate_bucket FROM PUBLIC,anon,authenticated,service_role;
 
-CREATE OR REPLACE FUNCTION mmh_n10_privacy.cleanup_recovery_vault_secret()
+CREATE FUNCTION mmh_n10_privacy.cleanup_recovery_vault_secret()
 RETURNS trigger LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
 BEGIN
  DELETE FROM vault.secrets WHERE id=OLD.secret_id;
@@ -32,7 +37,7 @@ REVOKE ALL ON FUNCTION mmh_n10_privacy.cleanup_recovery_vault_secret() FROM PUBL
 CREATE TRIGGER mmh_n10_recovery_secret_gc AFTER DELETE ON mmh_n10_privacy.recovery_backup_index
 FOR EACH ROW EXECUTE FUNCTION mmh_n10_privacy.cleanup_recovery_vault_secret();
 
-CREATE OR REPLACE FUNCTION public.mmh_n10_recovery_backup_put(p_user_id uuid,p_phrase text)
+CREATE FUNCTION public.mmh_n10_recovery_backup_put(p_user_id uuid,p_phrase text)
 RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
 DECLARE v_secret_id uuid; v_existing text;
 BEGIN
@@ -65,14 +70,14 @@ $$;
 REVOKE ALL ON FUNCTION public.mmh_n10_recovery_backup_put(uuid,text) FROM PUBLIC,anon,authenticated;
 GRANT EXECUTE ON FUNCTION public.mmh_n10_recovery_backup_put(uuid,text) TO service_role;
 
-CREATE OR REPLACE FUNCTION public.mmh_n10_recovery_backup_exists(p_user_id uuid)
+CREATE FUNCTION public.mmh_n10_recovery_backup_exists(p_user_id uuid)
 RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path='' AS $$
  SELECT EXISTS(SELECT 1 FROM mmh_n10_privacy.recovery_backup_index WHERE user_id=p_user_id);
 $$;
 REVOKE ALL ON FUNCTION public.mmh_n10_recovery_backup_exists(uuid) FROM PUBLIC,anon,authenticated;
 GRANT EXECUTE ON FUNCTION public.mmh_n10_recovery_backup_exists(uuid) TO service_role;
 
-CREATE OR REPLACE FUNCTION public.mmh_n10_recovery_backup_get(p_user_id uuid)
+CREATE FUNCTION public.mmh_n10_recovery_backup_get(p_user_id uuid)
 RETURNS text LANGUAGE sql STABLE SECURITY DEFINER SET search_path='' AS $$
  SELECT vault.decrypted_secrets.decrypted_secret
  FROM mmh_n10_privacy.recovery_backup_index AS idx
@@ -84,7 +89,7 @@ GRANT EXECUTE ON FUNCTION public.mmh_n10_recovery_backup_get(uuid) TO service_ro
 
 -- Read-only live-session guard: access JWTs remain cryptographically valid
 -- until expiry even after sign-out. Only the Edge service role may call this.
-CREATE OR REPLACE FUNCTION public.mmh_n10_recovery_session_active(
+CREATE FUNCTION public.mmh_n10_recovery_session_active(
  p_user_id uuid,p_session_id uuid)
 RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path='' AS $$
  SELECT EXISTS(
@@ -99,7 +104,7 @@ REVOKE ALL ON FUNCTION public.mmh_n10_recovery_session_active(uuid,uuid)
 GRANT EXECUTE ON FUNCTION public.mmh_n10_recovery_session_active(uuid,uuid)
  TO service_role;
 
-CREATE OR REPLACE FUNCTION public.mmh_n10_recovery_take_attempt(
+CREATE FUNCTION public.mmh_n10_recovery_take_attempt(
  p_bucket text,p_limit integer,p_window_seconds integer)
 RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER SET search_path='' AS $$
 DECLARE n integer;
