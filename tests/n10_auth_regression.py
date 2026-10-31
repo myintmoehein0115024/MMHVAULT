@@ -200,6 +200,26 @@ class N10AuthContract(unittest.TestCase):
         self.assertLess(ai.index("MFA_REQUIRED"), ai.index("let body: any"))
         self.assertLess(ai.index("MFA_REQUIRED"), ai.index("const transactions = await readRows("))
 
+    def test_private_storage_links_are_short_lived(self):
+        # Signed URLs act as bearer links even after local sign-out, and
+        # private object responses can also remain cached at CDN edges.
+        # This contract covers frontend-issued URLs; it cannot revoke
+        # previously issued links or rewrite old objects' cache metadata.
+        app = (ROOT / "app.html").read_text(encoding="utf-8")
+        urls = re.findall(r"\.createSignedUrl\([^\n;]{0,100}?\)", app)
+        self.assertEqual(len(urls), 8, "Review any new or removed signing path")
+        expiries = [int(value) for value in re.findall(
+            r"\.createSignedUrl\([^\n;]*?,\s*(\d+)\s*\)", app)]
+        self.assertEqual(len(expiries), 8)
+        self.assertLessEqual(max(expiries), 300)
+        self.assertEqual(min(expiries), 60)
+        caches = [int(x) for x in re.findall(
+            r"cacheControl\s*:\s*['\"](\d+)['\"]", app)]
+        self.assertEqual(len(caches), 6)
+        self.assertLessEqual(max(caches), 60)
+        self.assertIn("expires:Date.now()+4*60*1000", app)
+        self.assertNotIn("expires:Date.now()+55*60*1000", app)
+
     def test_no_new_production_server_changes(self):
         # The workflow never deploys or migrates production resources.
         workflow = (ROOT / ".github/workflows/n10-auth-static-check.yml").read_text(encoding="utf-8")
