@@ -296,6 +296,41 @@
     businessPhotoAlt:'ကိုယ်ပိုင်နှင့် လုပ်ငန်း ငွေကြေးနမူနာ ကွန်ပျူတာနှင့် ဖုန်းပုံ'
   });
 
+  // Showcase B: visual concepts only. All numbers are fictional.
+  Object.assign(strings.en,{
+    showcaseEyebrow:'THE MMHVAULT EXPERIENCE',
+    showcaseTitle:'A clearer picture of every financial decision.',
+    showcaseIntro:'Six thoughtful perspectives. One carefully considered workspace.',
+    showcaseCore:'CORE OVERVIEW',showcaseTotal:'TOTAL BALANCE',
+    showcaseThisMonth:'THIS MONTH',showcaseRecent:'RECENT ACTIVITY',
+    showcaseSalary:'Salary',showcaseGroceries:'Groceries',showcaseLiving:'Living',
+    showcaseAccountList:'MULTI-CURRENCY VIEW',showcaseAllocation:'ASSET ALLOCATION',
+    showcaseTrends:'FINANCIAL TRENDS',showcasePlanAhead:'A MORE INTENTIONAL DAY',
+    showcaseHabit:'Daily habits',showcaseGoals:'Long-term goals'
+  });
+  Object.assign(strings.zh,{
+    showcaseEyebrow:'MMHVAULT · 专属财务空间',
+    showcaseTitle:'每一项财务决策，都值得看得更清晰。',
+    showcaseIntro:'六个精心设计的视角，构成一个更从容的财务空间。',
+    showcaseCore:'核心总览',showcaseTotal:'账户总余额',
+    showcaseThisMonth:'本月',showcaseRecent:'近期收支记录',
+    showcaseSalary:'工资收入',showcaseGroceries:'日常采购',showcaseLiving:'生活开销',
+    showcaseAccountList:'多币种账户',showcaseAllocation:'资产配置',
+    showcaseTrends:'财务趋势',showcasePlanAhead:'让每一天更有方向',
+    showcaseHabit:'日常习惯',showcaseGoals:'长期目标'
+  });
+  Object.assign(strings.my,{
+    showcaseEyebrow:'MMHVAULT · ကိုယ်ပိုင်ငွေကြေးနေရာ',
+    showcaseTitle:'ငွေကြေးဆုံးဖြတ်ချက်တိုင်းကို ပိုမိုရှင်းလင်းစွာ မြင်နိုင်ရန်။',
+    showcaseIntro:'ရှုထောင့်ခြောက်မျိုးဖြင့် ငွေကြေးအခြေအနေကို စနစ်တကျ ကြည့်ရှုနိုင်ပါသည်။',
+    showcaseCore:'အဓိကခြုံငုံသုံးသပ်ချက်',showcaseTotal:'စုစုပေါင်းလက်ကျန်',
+    showcaseThisMonth:'ယခုလ',showcaseRecent:'လတ်တလော ငွေဝင်ငွေထွက်',
+    showcaseSalary:'လစာ',showcaseGroceries:'နေ့စဉ်ဈေးဝယ်',showcaseLiving:'နေထိုင်စရိတ်',
+    showcaseAccountList:'ငွေကြေးအမျိုးအစားစုံ အကောင့်များ',showcaseAllocation:'ပိုင်ဆိုင်မှုခွဲဝေမှု',
+    showcaseTrends:'ငွေကြေးလမ်းကြောင်း',showcasePlanAhead:'ပိုမိုစနစ်ကျသော နေ့စဉ်ဘဝ',
+    showcaseHabit:'နေ့စဉ်အလေ့အထများ',showcaseGoals:'ရေရှည်ရည်မှန်းချက်များ'
+  });
+
   const htmlKeys = new Set(['heroTitle', 'featuresTitle', 'businessHeading', 'whyTitle', 'closingTitle']);
   const storageKey = 'mmhvault.landing.language';
   const siteHeader = document.querySelector('.site-header');
