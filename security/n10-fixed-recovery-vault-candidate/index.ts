@@ -4,6 +4,7 @@
 // No plaintext recovery words or passwords may be logged or stored by the browser.
 import {createClient} from 'npm:@supabase/supabase-js@2.57.4';
 import {evaluateVerifiedAuthUserMfa} from './mfa-assurance.mjs';
+import {sessionIdFromVerifiedJwt} from './session-guard.mjs';
 const BASE=Deno.env.get('SUPABASE_URL')||'';
 // A reviewed code change alone must never enable secret disclosure.
 const RECOVERY_RELEASE_ENABLED=false; // promote only after isolated signed-token QA and release approval
@@ -72,6 +73,13 @@ async function readBoundedJson(req:Request):Promise<Record<string,unknown>>{
  if(!body||typeof body!=='object'||Array.isArray(body))throw Error('invalid_json');
  return body as Record<string,unknown>;
 }
+async function liveSession(userId:string,sessionId:string){
+ const {data,error}=await admin.rpc('mmh_n10_recovery_session_active',{
+  p_user_id:userId,p_session_id:sessionId
+ });
+ if(error||typeof data!=='boolean')return 'unavailable';
+ return data?'active':'revoked';
+}
 async function provePassword(user:{id:string,email?:string|null},password:unknown){
  if(typeof password!=='string'||password.length<6||password.length>20||!user.email||!ANON)return false;
  const client=createClient(BASE,ANON,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
@@ -98,7 +106,9 @@ async function verifiedUser(req:Request){
  if(assurance!=='allowed')return {state:assurance as 'required'|'unavailable'};
  if(user.app_metadata?.mmhvault_auth_kind!=='username_only')
   return {state:'not_supported' as const};
- return {state:'ok' as const,user};
+ const sessionId=sessionIdFromVerifiedJwt(m[1],user.id,BASE);
+ if(!sessionId)return {state:'unauthorized' as const};
+ return {state:'ok' as const,user,sessionId};
 }
 Deno.serve(async(req:Request)=>{
  const origin=req.headers.get('Origin')||'';
@@ -119,6 +129,10 @@ Deno.serve(async(req:Request)=>{
  if(authenticated.state==='not_supported')return out(origin,'username_only_required',403);
  if(authenticated.state!=='ok')return out(origin,'mfa_unavailable',503);
  const user=authenticated.user;
+ const sessionId=authenticated.sessionId;
+ const firstSessionCheck=await liveSession(user.id,sessionId);
+ if(firstSessionCheck==='unavailable')return out(origin,'session_check_unavailable',503);
+ if(firstSessionCheck!=='active')return out(origin,'session_expired',401);
  const action=body.action;
  if(action==='status'){
   const {data,error}=await admin.rpc('mmh_n10_recovery_backup_exists',{p_user_id:user.id});
@@ -129,6 +143,12 @@ Deno.serve(async(req:Request)=>{
  if(quotaStatus==='unavailable')return out(origin,'rate_unavailable',503);
  if(quotaStatus!=='allowed')return out(origin,'too_many_attempts',429);
  if(!await provePassword(user,body.password))return out(origin,'invalid_credentials',401);
+ // Fresh password proof alone is not enough. The JWT session could have
+ // been revoked during password verification; recheck just before escrow
+ // or plaintext disclosure.
+ const secondSessionCheck=await liveSession(user.id,sessionId);
+ if(secondSessionCheck==='unavailable')return out(origin,'session_check_unavailable',503);
+ if(secondSessionCheck!=='active')return out(origin,'session_expired',401);
  if(action==='backup_existing'){
   const phrase=normalizePhrase(body.phrase);
   if(!phrase)return out(origin,'invalid_recovery_key',400);
