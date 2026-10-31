@@ -17,14 +17,14 @@ Status: **LOCKED / PREPARATION ONLY**. Approved by owner for Staging *preparatio
 - Exact project URL pin `https://ldivswlhtgmznzwhzsoi.supabase.co`; QA origin `https://myintmoehein0115024.github.io`; dedicated `N10_FIXED_RECOVERY_QA_HMAC_KEY` binding (no secret value stored or supplied). Existing deleted QA A/B UIDs and emails are deliberately **not present**.
 - No SQL migrations, Secrets, Vault rows, RLS, shared helpers, production services, app.html, login.html, DNS or user finance records modified in this deployment.
 
-## New isolated synthetic accounts — NOT YET CREATED
-- Email A: `n10-joint-mfa-a-20261101@no-mail.mmhvault.invalid`
-- Email B: `n10-joint-mfa-b-20261101@no-mail.mmhvault.invalid`
-- Read-only lookup against exactly these two emails on Staging returned **zero matches** before account creation.
-- Auth accounts must be created using **Supabase Auth Admin API or Staging Dashboard → Authentication → Users → Add user** (not raw SQL inserts into `auth.users`; not a production app/signup).
-- Operator sets **separate unique strong passwords**, keeps passwords private, selects email-confirmed test accounts as appropriate, and **never sends passwords, JWTs, TOTP seeds, ten words, or any Secret to ChatGPT/GitHub**.
-- After creation, read-only resolve each **new** server-owned UUID to exactly one expected email. Never bind deleted legacy accounts. TOTP enrollment for A is a later independently authorized test action; no real persons' accounts.
-- The new empty allowlist and expired deadline **must not change** during preparation. Binding/expiry/release/QA activation requires its own explicit approval and rollback plan.
+## New isolated synthetic accounts — CREATED AND VERIFIED (Staging only)
+- Read-only Auth UUID/email mapping checked on project `ldivswlhtgmznzwhzsoi`, no credentials retrieved:
+  - A: `n10-joint-mfa-a-20261101@no-mail.mmhvault.invalid` → `be5ec3b7-a35f-4a53-b2b7-0ff77a01fc4f`
+  - B: `n10-joint-mfa-b-20261101@no-mail.mmhvault.invalid` → `ccefb6d3-9ad1-4e3f-9d50-d9d54e826c11`
+- Both have exactly one matching `auth.users` row, confirmed email, non-anonymous status and no unexpected `mmhvault_auth_kind` / `mmhvault_username` app metadata.
+- Read-only `auth.mfa_factors` count: A=0, B=0 verified factors; **A TOTP enrollment has not begun**. User retained both separate passwords; no password, token, TOTP or recovery phrase shared.
+- These IDs are **synthetic fixture identifiers only**, not a live allowlist. Newly deployed Staging QA Edge still has `QA_IDENTITIES=new Map([])`, `RECOVERY_RELEASE_ENABLED=false` and expired QA window. No Edge source change or MFA enrollment/verification authorization was inferred from account creation.
+- Next: separately approved setup of isolated MFA enrollment and signed AAL1/AAL2 joint QA, with current code SHA and precise window/rollback. Never reuse retired QA pages or their old test identities; the older `n10-qa.html` gates enrollment to username-only accounts and must **not** be assumed compatible with these new synthetic email-only fixtures.
 
 ## Review and authorization gates still outstanding
 - Latest pre-deploy source CI `2214c71f9d12a37385b887351f648d32fc2a0639`: [Actions run 41227613147](https://github.com/myintmoehein0115024/MMHVAULT/actions/runs/41227613147), **SUCCESS**, 14/14 synthetic MFA, 41/41 backend/static contracts, 10/10 UI static checks, five candidate TS files Deno check. Tests are **not signed E2E**.
