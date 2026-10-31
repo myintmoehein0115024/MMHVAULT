@@ -104,8 +104,8 @@ const cases=[
    assert.match(staging,/!user\.email_confirmed_at/);
    assert.match(staging,/user\.app_metadata\?\.mmhvault_auth_kind!=null/);
    assert.doesNotMatch(staging,/N10_FIXED_RECOVERY_QA_UID_ALLOWLIST/);
-   assert.equal((staging.match(/await verifiedUser\(req\)/g)||[]).length,3);
-   assert.equal((staging.match(/await liveSession\(user\.id,sessionId\)/g)||[]).length,3);
+   assert.equal((staging.match(/await verifiedUser\(req\)/g)||[]).length,6);
+   assert.equal((staging.match(/await liveSession\(user\.id,sessionId\)/g)||[]).length,6);
  }],
  ['Staging QA synthetic 10-word initialization requires authenticated proof',()=>{
    assert.match(staging,/import \{wordlist\} from 'npm:@scure\/bip39@1\.6\.0\/wordlists\/english'/);
@@ -122,6 +122,57 @@ const cases=[
    assert.match(staging,/return out\(origin,'qa_phrase_initialized',200/);
    assert.match(staging,/expires_in_seconds:45/);
    assert.match(staging,/const RECOVERY_RELEASE_ENABLED=false/);
+ }],
+ ['Staging synthetic verifier initializer revalidates MFA and session before write and disclosure',()=>{
+   const sequence=[
+     "if(action==='qa_initialize')",
+     "if(prior.data?.length)return out(origin,'qa_already_initialized',409)",
+     "const initAssurance=await verifiedUser(req);",
+     "const initSessionCheck=await liveSession(user.id,sessionId);",
+     "const phrase=createSyntheticPhrase();",
+     ".insert({user_id:user.id,verifier,version:1})",
+     "const initDisclosureAssurance=await verifiedUser(req);",
+     "const initDisclosureSessionCheck=await liveSession(user.id,sessionId);",
+     "return out(origin,'qa_phrase_initialized'"
+   ];
+   let last=-1;
+   for(const step of sequence){
+     const pos=staging.indexOf(step);
+     assert.ok(pos>last,'Synthetic secret init missing or misordered: '+step);
+     last=pos;
+   }
+   for(const prefix of ['initAssurance','initDisclosureAssurance']){
+     assert.match(staging,new RegExp(prefix+"\\.state==='required'.*mfa_required"));
+     assert.match(staging,new RegExp(prefix+"\\.state==='unavailable'.*mfa_unavailable"));
+     assert.ok(staging.includes(prefix+".user.id!==user.id"));
+     assert.ok(staging.includes(prefix+".sessionId!==sessionId"));
+   }
+   for(const check of ['initSessionCheck','initDisclosureSessionCheck']){
+     assert.match(staging,new RegExp(check+"==='unavailable'.*session_check_unavailable"));
+     assert.match(staging,new RegExp(check+"!=='active'.*session_expired"));
+   }
+ }],
+ ['Staging Vault backup revalidates MFA and live session after verifier and before write',()=>{
+   const sequence=[
+     "if(action==='backup_existing')",
+     "const records=await admin.from('mmh_n10a769_recovery_phrases')",
+     "if(!equal64(records.data[0].verifier,mac))",
+     "const backupAssurance=await verifiedUser(req);",
+     "const backupSessionCheck=await liveSession(user.id,sessionId);",
+     "const saved=await admin.rpc('mmh_n10_recovery_backup_put'"
+   ];
+   let last=-1;
+   for(const step of sequence){
+     const pos=staging.indexOf(step);
+     assert.ok(pos>last,'Staging backup missing or misordered: '+step);
+     last=pos;
+   }
+   assert.match(staging,/backupAssurance\.state==='required'.*mfa_required/);
+   assert.match(staging,/backupAssurance\.state==='unavailable'.*mfa_unavailable/);
+   assert.match(staging,/backupAssurance\.user\.id!==user\.id/);
+   assert.match(staging,/backupAssurance\.sessionId!==sessionId/);
+   assert.match(staging,/backupSessionCheck==='unavailable'.*session_check_unavailable/);
+   assert.match(staging,/backupSessionCheck!=='active'.*session_expired/);
  }],
  ['recovery Edge release disabled',()=>assert.match(edge,/const RECOVERY_RELEASE_ENABLED=false/)],
  ['signup candidate release disabled',()=>assert.match(signup,/const RELEASE_ENABLED=false/)],
