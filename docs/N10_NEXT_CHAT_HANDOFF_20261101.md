@@ -34,11 +34,13 @@
 ## Draft PR 安全改进进度
 - 生产候选 Edge `security/n10-fixed-recovery-vault-candidate/index.ts` **严格钉住** `EXPECTED_BASE=https://vrypucmyrztxgiqhjspd.supabase.co` 和 `ORIGIN=https://mmhvault.com`，放弃按 BASE 自动推断 origin。
 - **硬关闭** `const RECOVERY_RELEASE_ENABLED=false;`；username signup 候选也 `RELEASE_ENABLED=false`。任何上线前必须另行授权且完成失败回滚条件。
-- 新增退役端点离线检查；最近一次纯 JS 断言 **35/35 PASS**。GitHub Actions／Deno 的最新实际工作流结果**未核实**，不能声称 CI 全绿。
+- 新增退役端点离线检查；最近一次纯 JS 断言 **36/36 PASS**。GitHub Actions／Deno 的最新实际工作流结果**未核实**，不能声称 CI 全绿。
 - **额外 MFA 防旧令牌修复（当前 Draft）**：`security/n10-fixed-recovery-vault-candidate/mfa-assurance.mjs` 在服务器已查不到 verified 因子时，拒绝带旧 `aal2` 声明的过期状态登录令牌（返回 `unavailable`），要求使用新会话。已同步调整 `test-mfa-assurance.mjs` 的回归用例；10/10 项纯 JS 模拟 JWT 声明场景通过（**不是已签名的真实 Auth/JWT 端到端**），其余规则维持原样。
 - 正式的 `app.html`、`login.html`、DNS、RLS、Auth 开关、财务数据 **本轮均未改动**。不得直接合并 Draft PR #2。
 
 新增 **3 项静态访问顺序回归检查**：严格保持请求 Origin／Method／release gate → JWT 与 live session → 限流与密码再验证 → MFA 重检 → Vault 解密 → 再次 MFA／Session 检查 → 45 秒密钥响应的顺序；备份前必须核对原始不可变 HMAC verifier。**35/35 PASS 是源码断言，不是独立真实端到端验收。**
+
+- **Vault 写入前复验加强：** 最新 Draft 的固定恢复 Edge 在核对十词 HMAC verifier 后、调用 `mmh_n10_recovery_backup_put` 前，重新从服务器检查当前 JWT 身份/MFA 和 `auth.sessions` 会话状态，任何异常全部拒绝；该防护减少异步时间窗口，但**不构成跨 Auth 与 Vault 事务的绝对原子保证**。对应安全顺序回归已更新，总计 **36/36 静态断言 PASS**；未进行真实恢复服务的 MFA 联测。
 
 ## 尚未完成（上线阻断项，按顺序）
 1. **Vault 清理审计：** 合法、获得明确范围授权且不绕过上述安全拦截的实际 secret orphan-free 删除验收；只读结构检查不能替代真实验收。
