@@ -459,3 +459,285 @@ html[lang="my"] .report-insight .business-insight-copy strong { line-height:1.85
   .hero-art {min-height:190px;}
   .hero-art.is-photo-ready .hero-device-cinematic {object-position:54% center;}
 }
+
+
+/* ======================================================================
+   L1.20 — Brighter cinematic surfaces + responsive mobile/tablet polish
+   Scope: landing-preview.html only. No production, auth, app or user data.
+   This file loads last and safely overrides earlier dark photo overlays.
+   ====================================================================== */
+:root{
+  --bg:#0a1927;
+  --bg2:#10263a;
+  --panel:rgba(22,48,68,.79);
+  --panel-strong:rgba(16,39,59,.94);
+  --line:rgba(194,218,228,.23);
+  --line-gold:rgba(244,204,141,.38);
+  --secondary:#d3dce1;
+  --muted:#b0c0ca;
+}
+body{
+  background:
+    radial-gradient(ellipse 65% 35% at 82% 0%,rgba(212,159,86,.085),transparent 80%),
+    linear-gradient(180deg,#091c2c 0%,#0d2435 43%,#081b2a 74%,#071724 100%);
+}
+.site-header{
+  background:linear-gradient(180deg,rgba(10,27,42,.91),rgba(12,31,47,.83));
+  border-bottom-color:rgba(234,201,152,.21);
+  -webkit-backdrop-filter:blur(24px) saturate(130%);
+  backdrop-filter:blur(24px) saturate(130%);
+}
+.ambient-a{opacity:.82;filter:blur(55px)}
+.ambient-b{opacity:.72;filter:blur(58px)}
+/* The shared Hero photograph remains a single image; lift shadows
+   without losing dark contrast behind the fixed multilingual text. */
+.hero::before{
+  background-image:
+    linear-gradient(90deg,
+      rgba(7,20,34,.76) 0%,rgba(7,20,35,.64) 26%,
+      rgba(8,21,36,.25) 56%,rgba(8,21,36,.04) 91%),
+    linear-gradient(180deg,
+      rgba(5,15,26,.19),rgba(7,20,35,.02) 38%,
+      rgba(8,22,37,.10) 74%,rgba(8,22,36,.47) 100%),
+    url("./cinematic-lake.webp");
+  background-size:cover,cover,cover;
+  background-position:center,center,center 50%;
+}
+.hero::after{
+  background:radial-gradient(ellipse at 70% 65%,rgba(243,188,113,.21),rgba(138,172,194,.07) 45%,transparent 72%);
+  opacity:.65;
+}
+.hero-copy::before{
+  background:linear-gradient(90deg,rgba(8,24,39,.60),rgba(8,24,39,.13) 74%,transparent);
+}
+.hero-art.is-photo-ready .hero-device-cinematic{
+  filter:saturate(1.11) contrast(1.025) brightness(1.095) drop-shadow(0 23px 36px rgba(4,14,25,.28));
+}
+.hero-art.is-photo-ready .demo-disclaimer{
+  background:rgba(10,25,39,.83);
+  border-color:rgba(255,220,157,.35);
+}
+/* Photography should be visible, not covered by a near-black film. */
+#business.business-section{
+  background:linear-gradient(180deg,#0c2335 0%,#0e293b 47%,#0a2030 100%);
+}
+#business.business-section::before{
+  background-image:
+    linear-gradient(180deg,
+      rgba(9,23,38,.70) 0%,rgba(9,24,39,.52) 36%,
+      rgba(10,26,40,.46) 68%,rgba(9,24,38,.72) 100%),
+    radial-gradient(ellipse at 77% 36%,rgba(247,185,98,.18),transparent 62%),
+    url("./cinematic-lake.webp");
+  background-position:center,center,center 44%;
+  background-size:cover,cover,cover;
+}
+#business .business-visual-strip{
+  border-color:rgba(251,212,151,.61);
+  background:linear-gradient(139deg,#213e50,#102d41 72%,#0d293d);
+  box-shadow:inset 0 1px rgba(255,248,224,.17),0 25px 65px rgba(0,0,0,.23),0 0 27px rgba(241,182,104,.11);
+}
+#business .business-visual-frame img{
+  filter:saturate(1.15) contrast(1.035) brightness(1.14);
+}
+#business .business-visual-frame::after{
+  background:
+    linear-gradient(90deg,rgba(15,39,57,.73),rgba(14,39,57,.16) 23%,transparent 58%),
+    linear-gradient(0deg,rgba(10,27,41,.24),transparent 42%);
+}
+#business .business-visual-text{
+  background:
+    radial-gradient(ellipse at 6% 0,rgba(255,211,139,.17),transparent 78%),
+    linear-gradient(105deg,rgba(25,54,73,.63),rgba(14,40,57,.23));
+}
+#business .business-stage{
+  background:
+    radial-gradient(ellipse at 100% 0%,rgba(244,188,110,.15),transparent 68%),
+    linear-gradient(155deg,#17384e,#0b2438 76%,#091e31);
+  border-color:rgba(248,211,150,.60);
+}
+#business .business-summary{
+  background:radial-gradient(ellipse at 95% 0%,rgba(251,202,136,.17),transparent 68%),linear-gradient(130deg,#244b61,#14364d 65%,#0e2c42);
+}
+#business .business-stat,
+#business .business-allocation,
+#business .business-activity{
+  background:linear-gradient(143deg,#1a3d53,#0e2c43 88%);
+  border-color:rgba(177,211,228,.35);
+}
+/* Lighten section transitions so they feel like one editorial scene. */
+.showcase-v2 .showcase-card{
+  background:radial-gradient(ellipse at 0 0,rgba(244,190,103,.11),transparent 76%),linear-gradient(148deg,#19384d,#0c2539);
+  border-color:rgba(239,202,142,.48);
+}
+.features-explorer.app-showcase::before{
+  background:
+    linear-gradient(180deg,rgba(9,25,40,.69),rgba(10,28,44,.56) 46%,rgba(9,26,40,.78)),
+    url("./cinematic-lake.webp") center 48%/cover no-repeat;
+}
+.features-explorer.app-showcase .product-picker{
+  background:radial-gradient(ellipse at 0 0,rgba(251,211,148,.14),transparent 77%),linear-gradient(150deg,#1b3c50,#0c283f 68%,#091e31);
+  border-color:rgba(248,208,142,.58);
+}
+.features-explorer.app-showcase .product-stage{
+  background:radial-gradient(ellipse at 97% 0,rgba(243,191,119,.16),transparent 72%),linear-gradient(151deg,#173a4f,#09273c);
+  border-color:rgba(250,214,158,.78);
+}
+.features-explorer.app-showcase .app-sim-content{
+  background:radial-gradient(ellipse at 93% 0,rgba(242,186,108,.14),transparent 68%),linear-gradient(151deg,#12334a,#0a2539 81%);
+}
+.features-explorer.app-showcase .app-story{
+  background:radial-gradient(ellipse at 10% 0,rgba(245,193,118,.16),transparent 74%),linear-gradient(160deg,#1b3a4d,#0b2639 80%);
+  border-color:rgba(247,206,140,.41);
+}
+#about.why-section{
+  background:radial-gradient(ellipse at 0 25%,rgba(248,194,119,.13),transparent 78%),linear-gradient(145deg,#133148,#0c2739 83%);
+}
+#about .benefit-grid article{
+  background:radial-gradient(ellipse at 0 0,rgba(245,190,114,.12),transparent 83%),linear-gradient(150deg,#1b3b50,#112e43 85%);
+  border-color:rgba(188,215,228,.35);
+}
+#security .security-panel{
+  background:radial-gradient(ellipse at 0 49%,rgba(242,190,111,.17),transparent 65%),linear-gradient(135deg,#1d3b50,#102e43 66%,#0d2639);
+  border-color:rgba(248,208,147,.59);
+}
+.closing-section .closing-premium-panel{
+  background:radial-gradient(ellipse at 50% 15%,rgba(251,206,136,.21),transparent 77%),radial-gradient(ellipse at 100% 100%,rgba(121,170,196,.14),transparent 78%),linear-gradient(150deg,#224357,#123247 65%,#0d2638);
+  border-color:rgba(252,218,159,.65);
+}
+.site-footer{
+  background:radial-gradient(ellipse at 0 0,rgba(228,179,102,.09),transparent 77%),linear-gradient(180deg,#10283b,#0a1e2e 85%);
+}
+/* Responsive containers and safe text wrapping, without clipping
+   content or distorting illustrative App screenshots. */
+#business .business-shell,
+#business .business-intro,
+#business .business-visual-strip,
+#business .business-visual-text,
+#business .business-stage,
+#business .business-stage-body,
+#business .business-ui,
+#business .business-summary,
+#business .business-insight-grid,
+#business .business-stat-grid,
+#business .business-lower,
+#business .business-allocation{
+  min-width:0;
+  max-width:100%;
+}
+#business .business-heading h2,
+#business .business-visual-text h3,
+#business .business-visual-text p,
+#about .why-intro h2,
+#security .security-copy h2{
+  overflow-wrap:break-word;
+}
+#business .business-visual-frame img{
+  max-width:none;
+}
+@media(min-width:901px){
+  .hero::before{
+    inset:-40px -9vw -70px;
+    background-image:
+      linear-gradient(90deg,rgba(7,18,31,.77) 0%,rgba(7,18,31,.64) 24%,rgba(7,18,31,.36) 44%,rgba(7,18,31,.08) 72%,rgba(7,18,31,.02) 100%),
+      linear-gradient(180deg,rgba(6,16,30,.23),transparent 39%,rgba(6,17,28,.12) 73%,rgba(8,22,36,.55) 100%),
+      url("./personal-business-concept.webp");
+    background-size:cover,cover,cover;
+    background-position:center,center,center 51%;
+    background-repeat:no-repeat;
+    -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 82%,transparent 100%);
+    mask-image:linear-gradient(to bottom,#000 0%,#000 82%,transparent 100%);
+  }
+}
+@media(min-width:621px) and (max-width:1024px){
+  .container{width:min(var(--max),calc(100% - 44px))}
+  .header-inner{gap:12px}
+  .section{padding-block:clamp(60px,7vw,92px)}
+  .hero{gap:22px}
+  .hero::before{
+    background-image:
+      linear-gradient(180deg,rgba(8,21,35,.64),rgba(9,24,38,.37) 45%,rgba(9,24,39,.60) 100%),
+      url("./cinematic-lake.webp");
+    background-size:cover,cover;
+    background-position:center,61% 47%;
+  }
+  .hero-art{
+    max-width:100%;min-width:0;
+  }
+  .showcase-v2 .showcase-card{min-width:0}
+  .features-explorer.app-showcase .product-explorer{min-width:0}
+  .features-explorer.app-showcase .product-picker,
+  .features-explorer.app-showcase .product-stage,
+  .features-explorer.app-showcase .app-story{max-width:100%}
+  #business .business-visual-frame{min-height:260px}
+  #business .business-visual-frame img{object-position:62% 50%}
+  #business .business-stage{width:100%}
+  #about .why-layout,#security .security-panel{min-width:0}
+}
+@media(max-width:620px){
+  .container{width:calc(100% - 24px)}
+  .section{padding-block:clamp(55px,9vw,80px)}
+  .site-header .header-inner{width:calc(100% - 24px)}
+  .site-header .brand-copy{max-width:clamp(120px,42vw,205px)}
+  .site-header .brand-copy strong{font-size:clamp(12px,3.6vw,17px);letter-spacing:.07em}
+  .site-header .brand-copy small{font-size:clamp(6px,1.48vw,8px);letter-spacing:.07em}
+  .site-header .header-actions{min-width:0;gap:6px}
+  .site-header .locale-trigger{min-width:0}
+  .site-header .locale-active-name{max-width:60px;overflow:hidden;text-overflow:ellipsis}
+  .hero{min-width:0}
+  .hero::before{
+    background-image:
+      linear-gradient(180deg,rgba(8,20,34,.66) 0%,rgba(8,21,35,.49) 43%,rgba(8,23,36,.40) 76%,rgba(8,22,36,.65) 100%),
+      url("./cinematic-lake.webp");
+    background-size:cover,cover;
+    background-position:center,59% 50%;
+  }
+  .hero-copy::before{
+    background:linear-gradient(100deg,rgba(9,23,37,.57),rgba(10,25,39,.12) 89%);
+  }
+  .hero-art{
+    width:100%;min-width:0;
+    border-color:rgba(255,219,166,.61);
+    box-shadow:0 18px 50px rgba(0,0,0,.22),0 0 25px rgba(247,198,125,.085);
+  }
+  .hero-art.is-photo-ready .hero-device-cinematic{
+    filter:brightness(1.12) saturate(1.12) contrast(1.025);
+  }
+  #business.business-section::before{
+    background-image:
+      linear-gradient(180deg,rgba(9,25,40,.62),rgba(10,26,41,.44) 48%,rgba(9,23,39,.68) 100%),
+      url("./cinematic-lake.webp");
+    background-size:cover,cover;
+    background-position:center,57% 50%;
+  }
+  #business .business-shell{width:calc(100% - 24px)}
+  #business .business-intro{grid-template-columns:minmax(0,1fr)}
+  #business .business-visual-strip{grid-template-columns:minmax(0,1fr)}
+  #business .business-visual-text{padding:clamp(17px,5vw,24px)}
+  #business .business-visual-frame{min-width:0;min-height:clamp(220px,58vw,300px)}
+  #business .business-visual-frame::after{
+    background:linear-gradient(180deg,rgba(15,39,56,.52),transparent 27%),linear-gradient(0deg,rgba(10,27,41,.19),transparent 42%);
+  }
+  #business .business-photo-caption{max-width:calc(100% - 22px)}
+  #business .business-stage{width:100%;max-width:100%;min-width:0}
+  #business .business-stage-top,
+  #business .business-mode-context,
+  #business .business-ui{min-width:0}
+  #business .business-visual-text h3{font-size:clamp(23px,6.4vw,29px)}
+  .features-explorer.app-showcase .product-explorer{grid-template-columns:minmax(0,1fr)}
+  .features-explorer.app-showcase .product-stage{width:100%;max-width:100%}
+  .features-explorer.app-showcase .product-panel{min-width:0}
+  #about .benefit-grid article{min-width:0}
+  #security .security-panel{max-width:100%}
+  .closing-section .closing-premium-panel{max-width:100%}
+  .closing-section .closing-inner h2{overflow-wrap:break-word}
+  .site-footer .footer-links{min-width:0}
+}
+@media(max-width:360px){
+  .container,.site-header .header-inner,#business .business-shell{width:calc(100% - 20px)}
+  #business .business-visual-text{padding:16px}
+  .hero-art{min-height:210px}
+  .closing-section .closing-inner h2{font-size:clamp(28px,8.1vw,32px)}
+}
+@media(prefers-reduced-motion:reduce){
+  .hero-art.is-photo-ready .hero-device-cinematic{transition:none}
+}
