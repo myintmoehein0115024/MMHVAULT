@@ -120,5 +120,10 @@ SELECT
    FROM wallet) AS wallet_anon_execute_denied,
   (SELECT obj_description(oid,'pg_proc') IS NULL FROM wallet)
    AS wallet_original_unmarked,
-  (SELECT count(*) FROM pg_views WHERE schemaname='public'
-     AND viewname='investment_catalog_legacy_map')=1 AS public_legacy_view_present;
+  EXISTS (
+    SELECT 1 FROM pg_class c
+    JOIN pg_namespace n ON n.oid=c.relnamespace
+    WHERE n.nspname='public'
+      AND c.relname='investment_catalog_legacy_map' AND c.relkind='v'
+      AND 'security_invoker=true'=ANY(c.reloptions)
+  ) AS legacy_view_runs_as_invoker;
