@@ -641,6 +641,11 @@
   Object.assign(strings.zh,{"personalContextEyebrow":"个人财务概览","businessContextEyebrow":"商业财务概念展示","personalContextTitle":"清晰掌握个人财务","personalContextNote":"通过虚构示例，更直观地了解日常收支和资金状况。","personalContextState":"个人财务 · 概念","businessContextTitle":"探索未来商业财务空间","businessContextNote":"通过概念界面了解营业收入、经营成本及现金流。","businessContextState":"商业财务 · 即将推出","personalDemoIncomeLabel":"收入","personalDemoOutgoingLabel":"支出","businessDemoIncomeLabel":"营业收入","businessDemoOutgoingLabel":"经营成本","businessDemoThird":"经营储备金"});
   Object.assign(strings.my,{"personalContextEyebrow":"ကိုယ်ပိုင်ငွေကြေးအခြေအနေ","businessContextEyebrow":"လုပ်ငန်းငွေကြေး ဒီဇိုင်းနမူနာ","personalContextTitle":"သင့်ကိုယ်ပိုင် ငွေကြေးအခြေအနေ","personalContextNote":"နေ့စဉ်ဝင်ငွေနှင့် အသုံးစရိတ်ကို နမူနာအချက်အလက်များဖြင့် ကြည့်ရှုပါ။","personalContextState":"ကိုယ်ပိုင် · နမူနာ","businessContextTitle":"သင့်အနာဂတ်လုပ်ငန်းအတွက် အမြင်သစ်","businessContextNote":"လုပ်ငန်းဝင်ငွေ၊ လည်ပတ်စရိတ်နှင့် ငွေစီးဆင်းမှုကို နမူနာကြည့်ရှုပါ။","businessContextState":"လုပ်ငန်း · မကြာမီ","personalDemoIncomeLabel":"ဝင်ငွေ","personalDemoOutgoingLabel":"အသုံးစရိတ်","businessDemoIncomeLabel":"လုပ်ငန်းဝင်ငွေ","businessDemoOutgoingLabel":"လည်ပတ်စရိတ်","businessDemoThird":"လုပ်ငန်းအရန်ငွေ"});
 
+  // L1.19 Closing CTA / Footer translations only.
+  Object.assign(strings.en,{"closingExplore":"Explore the workspace","footerExploreTitle":"EXPLORE","footerTrustTitle":"INFORMATION","footerBackTop":"Back to top"});
+  Object.assign(strings.zh,{"closingExplore":"探索财务空间","footerExploreTitle":"探索 MMHVAULT","footerTrustTitle":"政策与说明","footerBackTop":"返回顶部"});
+  Object.assign(strings.my,{"closingExplore":"ငွေကြေးစီမံခန့်ခွဲမှုကို လေ့လာရန်","footerExploreTitle":"လေ့လာရန်","footerTrustTitle":"အချက်အလက်များ","footerBackTop":"အပေါ်သို့ ပြန်သွားရန်"});
+
   const htmlKeys = new Set(['heroTitle', 'featuresTitle', 'businessHeading', 'whyTitle', 'closingTitle']);
   const storageKey = 'mmhvault.landing.language';
   const siteHeader = document.querySelector('.site-header');
