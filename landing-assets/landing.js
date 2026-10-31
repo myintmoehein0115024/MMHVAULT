@@ -382,6 +382,33 @@
     productConceptOnly:'နမူနာသာ ဖြစ်ပြီး မရရှိနိုင်သေးပါ။',productTablistAria:'MMHVAULT ထုတ်ကုန်လုပ်ဆောင်ချက် နမူနာများ'
   });
 
+
+  // L1.10: compact product detail labels. Fictional illustrations only.
+  Object.assign(strings.en, {
+    detailDashFactOne:'3 SAMPLE METRICS',detailDashFactTwo:'MONTHLY SNAPSHOT',
+    detailTransactionsFactOne:'4 SAMPLE ENTRIES',detailTransactionsFactTwo:'INCOME & EXPENSES',
+    detailAccountsFactOne:'3 CURRENCIES',detailAccountsFactTwo:'INDIVIDUAL BALANCES',
+    detailInvestFactOne:'3 ASSET GROUPS',detailInvestFactTwo:'100% SAMPLE ALLOCATION',
+    detailAnalyzeFactOne:'7 DEMO MONTHS',detailAnalyzeFactTwo:'ILLUSTRATIVE TREND',
+    detailLifeFactOne:'PLANNING CONCEPT',detailLifeFactTwo:'NOT YET AVAILABLE'
+  });
+  Object.assign(strings.zh, {
+    detailDashFactOne:'3 项示例指标',detailDashFactTwo:'月度财务概览',
+    detailTransactionsFactOne:'4 条虚构记录',detailTransactionsFactTwo:'收支记录展示',
+    detailAccountsFactOne:'3 种货币',detailAccountsFactTwo:'余额分别计算',
+    detailInvestFactOne:'3 组资产分类',detailInvestFactTwo:'100% 示例配置',
+    detailAnalyzeFactOne:'7 个月度示例',detailAnalyzeFactTwo:'虚构趋势展示',
+    detailLifeFactOne:'生活规划概念',detailLifeFactTwo:'尚未上线'
+  });
+  Object.assign(strings.my, {
+    detailDashFactOne:'နမူနာညွှန်းကိန်း ၃ ခု',detailDashFactTwo:'လစဉ်အခြေအနေအကျဉ်းချုပ်',
+    detailTransactionsFactOne:'စိတ်ကူးယဉ်မှတ်တမ်း ၄ ခု',detailTransactionsFactTwo:'ဝင်ငွေနှင့် အသုံးစရိတ်',
+    detailAccountsFactOne:'ငွေကြေး ၃ မျိုး',detailAccountsFactTwo:'လက်ကျန်များကို သီးခြားပြသထားသည်',
+    detailInvestFactOne:'ပိုင်ဆိုင်မှုအုပ်စု ၃ ခု',detailInvestFactTwo:'နမူနာခွဲဝေမှု ၁၀၀%',
+    detailAnalyzeFactOne:'နမူနာ ၇ လ',detailAnalyzeFactTwo:'နမူနာလမ်းကြောင်းသာ',
+    detailLifeFactOne:'ဘဝအစီအစဉ် နမူနာ',detailLifeFactTwo:'မရရှိနိုင်သေးပါ'
+  });
+
   const htmlKeys = new Set(['heroTitle', 'featuresTitle', 'businessHeading', 'whyTitle', 'closingTitle']);
   const storageKey = 'mmhvault.landing.language';
   const siteHeader = document.querySelector('.site-header');
