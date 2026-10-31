@@ -99,7 +99,6 @@ Deno.serve(async (req) => {
   const apiKey = Deno.env.get("OPENAI_API_KEY") || "";
   const model = Deno.env.get("OPENAI_MODEL") || "gpt-6-luna";
   if (!supabaseUrl || !anonKey) return json({ error: "Supabase environment is unavailable" }, 500);
-  if (!apiKey) return json({ code: "AI_NOT_CONFIGURED", error: "Secure AI provider is not configured" }, 503);
 
   const authHeader = req.headers.get("Authorization") || "";
   if (!authHeader.startsWith("Bearer ")) return json({ error: "Authentication required" }, 401);
@@ -131,6 +130,8 @@ Deno.serve(async (req) => {
   } catch (_) {
     return json({ code: "MFA_CHECK_UNAVAILABLE" }, 503);
   }
+
+  if (!apiKey) return json({ code: "AI_NOT_CONFIGURED", error: "Secure AI provider is not configured" }, 503);
 
   let body: any;
   try { body = await req.json(); } catch { return json({ error: "Invalid JSON" }, 400); }
