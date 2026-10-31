@@ -20,7 +20,7 @@ BEGIN
     EXECUTE format('DROP POLICY mmh_n10_mfa_required ON %I.%I',
        row_record.schemaname, row_record.tablename);
   END LOOP;
-END
+END;
 $n10$;
 -- Intentionally retain the helper and schema: deployed RPC and Storage policies
 -- may still reference the function. Only remove once dependency audits pass.
