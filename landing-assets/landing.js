@@ -220,6 +220,9 @@
     railAnalyze: 'ငွေကြေးလမ်းကြောင်းကို နားလည်ပါ',
     railLife: 'အနာဂတ်ဘဝကို စီမံပါ'
   });
+  Object.assign(strings.en,{assetGlobal:'Global',assetGold:'Gold',assetOther:'Other'});
+  Object.assign(strings.zh,{assetGlobal:'全球股票',assetGold:'黄金',assetOther:'其他'});
+  Object.assign(strings.my,{assetGlobal:'ကမ္ဘာလုံးဆိုင်ရာ',assetGold:'ရွှေ',assetOther:'အခြား'});
   const htmlKeys = new Set(['heroTitle', 'featuresTitle', 'whyTitle', 'closingTitle']);
   const storageKey = 'mmhvault.landing.language';
   const siteHeader = document.querySelector('.site-header');
@@ -329,8 +332,39 @@
     if (!event.target.closest('.locale-picker')) closeLanguage();
     if (!siteHeader.contains(event.target)) closeMenu();
   });
-  const media = window.matchMedia('(min-width: 1201px)');
+  const media = window.matchMedia('(min-width: 1051px)');
   if (typeof media.addEventListener === 'function') media.addEventListener('change', closeMenu);
+
+  // Keeps the top navigation aligned with the section being viewed.
+  // Does not affect history, app navigation, tokens, or the immutable Hero.
+  const sectionLinks = [...document.querySelectorAll('#primary-nav a[href^="#"]')];
+  const sectionMap = new Map(sectionLinks.map(link => [link.getAttribute('href').slice(1), link]));
+  function markSection(id) {
+    sectionLinks.forEach(link => {
+      if (link.getAttribute('href') === '#' + id) link.setAttribute('aria-current','location');
+      else link.removeAttribute('aria-current');
+    });
+  }
+  markSection('top');
+  if ('IntersectionObserver' in window) {
+    const sections = [...document.querySelectorAll('main section[id]')];
+    const visible = new Map();
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) visible.set(entry.target.id, entry.boundingClientRect.top);
+        else visible.delete(entry.target.id);
+      });
+      const closest = [...visible].sort((a,b) => Math.abs(a[1]) - Math.abs(b[1]))[0];
+      if (closest && sectionMap.has(closest[0])) markSection(closest[0]);
+      else if (window.scrollY < 130) markSection('top');
+    }, {rootMargin:'-24% 0px -52% 0px',threshold:0});
+    sections.forEach(section => observer.observe(section));
+  }
+  sectionLinks.forEach(link => link.addEventListener('click', () => {
+    const target = link.getAttribute('href').slice(1);
+    if (sectionMap.has(target)) markSection(target);
+  }));
+
   let saved = 'en';
   try { const stored = window.localStorage.getItem(storageKey); if (stored === 'zh' || stored === 'my') saved = stored; } catch (_) {}
   applyLanguage(saved);
