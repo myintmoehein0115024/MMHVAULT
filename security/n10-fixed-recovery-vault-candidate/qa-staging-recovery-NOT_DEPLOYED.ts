@@ -192,11 +192,35 @@ Deno.serve(async(req:Request)=>{
    .select('user_id').eq('user_id',user.id).limit(1);
   if(prior.error)return out(origin,'unavailable',503);
   if(prior.data?.length)return out(origin,'qa_already_initialized',409);
+  // Revalidate synthetic-only initialization immediately before writing the
+  // verifier; Auth factors or session revocation may have changed during SELECT.
+  const initAssurance=await verifiedUser(req);
+  if(initAssurance.state==='required')return out(origin,'mfa_required',403);
+  if(initAssurance.state==='unavailable')return out(origin,'mfa_unavailable',503);
+  if(initAssurance.state!=='ok'||initAssurance.user.id!==user.id
+     ||initAssurance.sessionId!==sessionId)
+    return out(origin,'session_expired',401);
+  const initSessionCheck=await liveSession(user.id,sessionId);
+  if(initSessionCheck==='unavailable')return out(origin,'session_check_unavailable',503);
+  if(initSessionCheck!=='active')return out(origin,'session_expired',401);
   const phrase=createSyntheticPhrase();
   const verifier=await hmac('phrase:'+user.id+':'+phrase);
   const created=await admin.from('mmh_n10a769_recovery_phrases')
    .insert({user_id:user.id,verifier,version:1});
   if(created.error)return out(origin,'qa_initialize_unavailable',503);
+  // This QA-only response contains freshly created recovery words. Do not
+  // disclose them if the authenticated session or MFA state just changed.
+  // A mid-flight failure may leave an initialized synthetic verifier: require
+  // explicit synthetic-account cleanup rather than silently resetting it.
+  const initDisclosureAssurance=await verifiedUser(req);
+  if(initDisclosureAssurance.state==='required')return out(origin,'mfa_required',403);
+  if(initDisclosureAssurance.state==='unavailable')return out(origin,'mfa_unavailable',503);
+  if(initDisclosureAssurance.state!=='ok'||initDisclosureAssurance.user.id!==user.id
+     ||initDisclosureAssurance.sessionId!==sessionId)
+    return out(origin,'session_expired',401);
+  const initDisclosureSessionCheck=await liveSession(user.id,sessionId);
+  if(initDisclosureSessionCheck==='unavailable')return out(origin,'session_check_unavailable',503);
+  if(initDisclosureSessionCheck!=='active')return out(origin,'session_expired',401);
   return out(origin,'qa_phrase_initialized',200,{
    words:phrase.split(' '),expires_in_seconds:45
   });
@@ -211,6 +235,17 @@ Deno.serve(async(req:Request)=>{
    return out(origin,'unavailable',503);
   const mac=await hmac('phrase:'+user.id+':'+phrase);
   if(!equal64(records.data[0].verifier,mac))return out(origin,'invalid_recovery_key',401);
+  // Match the production candidate's precommit guard: while reading the
+  // immutable verifier, the factor enrollment or original session may change.
+  const backupAssurance=await verifiedUser(req);
+  if(backupAssurance.state==='required')return out(origin,'mfa_required',403);
+  if(backupAssurance.state==='unavailable')return out(origin,'mfa_unavailable',503);
+  if(backupAssurance.state!=='ok'||backupAssurance.user.id!==user.id
+     ||backupAssurance.sessionId!==sessionId)
+    return out(origin,'session_expired',401);
+  const backupSessionCheck=await liveSession(user.id,sessionId);
+  if(backupSessionCheck==='unavailable')return out(origin,'session_check_unavailable',503);
+  if(backupSessionCheck!=='active')return out(origin,'session_expired',401);
   const saved=await admin.rpc('mmh_n10_recovery_backup_put',{p_user_id:user.id,p_phrase:phrase});
   if(saved.error||saved.data!==true)return out(origin,'backup_unavailable',503);
   return out(origin,'backup_ready');
