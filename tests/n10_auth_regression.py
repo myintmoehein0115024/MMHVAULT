@@ -154,13 +154,13 @@ class N10AuthContract(unittest.TestCase):
         for path in rollback_files:
             source = (sqlroot / path).read_text(encoding="utf-8")
             # PL/pgSQL DO requires END; before the terminating dollar quote.
-            self.assertNotRegex(source, r"(?m)\\bEND[ \\t]*\\n[ \\t]*\\$[a-zA-Z0-9_]+\\$;")
-            self.assertRegex(source, r"(?m)\\bEND;[ \\t]*\\n[ \\t]*\\$[a-zA-Z0-9_]+\\$;")
+            self.assertNotRegex(source, r"(?m)\bEND[ \t]*\n[ \t]*\$[a-zA-Z0-9_]+\$;")
+            self.assertRegex(source, r"(?m)\bEND;[ \t]*\n[ \t]*\$[a-zA-Z0-9_]+\$;")
         wallet = (sqlroot / rollback_files[0]).read_text(encoding="utf-8")
         atomic = (sqlroot / rollback_files[-1]).read_text(encoding="utf-8")
         for source in (wallet, atomic):
-            self.assertIn("$function$;\\nCOMMENT ON FUNCTION", source)
-            self.assertNotIn("$function$\\nCOMMENT ON FUNCTION", source)
+            self.assertIn("$function$;\nCOMMENT ON FUNCTION", source)
+            self.assertNotIn("$function$\nCOMMENT ON FUNCTION", source)
 
         candidate = (sqlroot / "n10_mfa_wallet_rpc_candidate_NOT_FOR_DEPLOYMENT.sql").read_text(encoding="utf-8")
         source_start = "CREATE OR REPLACE FUNCTION public.mmh_delete_crypto_wallet_movement_v4(p_id uuid)"
