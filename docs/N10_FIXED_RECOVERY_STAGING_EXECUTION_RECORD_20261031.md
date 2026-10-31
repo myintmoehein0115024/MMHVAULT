@@ -75,3 +75,22 @@ Read-only account-aggregate inspection: **2** existing legacy synthetic username
 A separate review-only Edge candidate `security/n10-fixed-recovery-vault-candidate/qa-staging-recovery-NOT_DEPLOYED.ts` was added. It is hard-pinned to Staging project `ldivswlhtgmznzwhzsoi`, QA GitHub origin, and a pair of explicit synthetic user UUIDs; requires `qa_` usernames, `username_only_staging` Auth-owned metadata, a separate Staging HMAC key, and keeps the release flag OFF. The candidate has **not** been deployed or invoked and must not be treated as working live recovery. A new offline contract covers its isolation controls (29/29 backend static checks in a restricted source harness; NOT signed-JWT or Deno compilation).
 
 See `docs/N10_FIXED_RECOVERY_STAGING_SIGNED_JWT_QA_PLAN_20261031.md` for separate permission, account setup, session/MFA matrix and cleanup. This work did **not** create additional Auth users or recovery secrets or modify Staging SQL, production or V11.
+
+## Two confirmed QA users and locked service update (2026-10-31)
+
+After the owner manually created the two dedicated, newly generated-email synthetic users in **Auth Staging** only, a read-only Auth query confirmed:
+
+- Account A (verified email) UID: `bbfa4e52-2ad0-4c8f-a635-6bdcd89b6990`.
+- Account B (verified email) UID: `bda2b4a3-ffab-4b00-883b-8a31bb1c6129`.
+- Both have distinct Auth IDs and `email_confirmed_at` populated, are non-anonymous and intentionally have **no** username-only `app_metadata`. Their passwords were never sent to the assistant.
+- Their IDs/email are hard-pinned as an exact pair in the Staging-only QA adapter, rather than modifying Auth-owned metadata, inserting directly into `auth.users`, or reusing existing username-only legacy QA users. The adapter rejects anything except the exact UID/email combination and requires verified email plus signed JWT/MFA.
+
+The existing Staging QA Edge `mmh-n10-fixed-vault-qa-locked` was updated to **version 2**, `verify_jwt=true`, with the exact A/B bindings and **RECOVERY_RELEASE_ENABLED=false**; source verified via GitHub. A separately reviewed **new** candidate change adds `qa_initialize`, generating random 10-word synthetic verifier phrases after signed Auth, MFA, live-session and fresh password proof; it is **not yet deployed or enabled**.
+
+New independent public QA page in the independent **MMHVAULT-Auth-QA** GitHub Pages repository: `n10-fixed-vault-qa.html`. It only uses the public Staging publishable key; passwords/JWTs/words remain in memory with 45-second word expiry and no local/session storage. It offers browser-generated random 256-bit HMAC Secret copy, with no secret emitted to ChatGPT. The page is NOT a production login route and cannot unlock the QA service on its own.
+
+Updated backend **30/30 static source security-contract checks** passed in a restricted JS harness. This is not actual Deno compilation or signed-JWT/MFA/Vault end-to-end testing.
+
+**Next prerequisite:** operator sets a new, unrelated Staging-only Edge Secret named `N10_FIXED_RECOVERY_QA_HMAC_KEY` using the browser-generated random value; no production key may be used. Then review and deploy the updated initializer source while initially keeping the release switch OFF; activate only the two explicit QA accounts under a controlled test window, validate signed scenarios and promptly turn OFF and clean all synthetic records. The existing A/B users and all related records must be removed only by an authorized cleanup after tests.
+
+**No additional Auth mutations** beyond the user's own creation of A/B; no verifier rows, Vault secrets or financial records were added by this preparation work. Production stays unchanged.
