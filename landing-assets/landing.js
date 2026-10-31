@@ -243,6 +243,8 @@
     const dict = strings[currentLang];
     document.documentElement.lang = currentLang === 'zh' ? 'zh-CN' : (currentLang === 'my' ? 'my' : 'en');
     localeElements.forEach(node => {
+      // Brand hero text is permanently multilingual, never translated or replaced.
+      if (node.closest('[data-hero-fixed]')) return;
       const key = node.getAttribute('data-i18n');
       const value = dict[key];
       if (typeof value !== 'string') return;
