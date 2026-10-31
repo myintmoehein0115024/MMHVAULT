@@ -95,3 +95,15 @@ Draft PR only: **do not merge until the full database and signed-token tests pas
 - The new-user signup candidate originally failed Deno strict checks. All implicit-any, nullable user/email/origin and optional token-hash typing issues were fixed in this **unreleased** branch; live production signup has not been replaced.
 - The Vault reveal candidate now checks live session status a third time **after the asynchronous secret read**, immediately before responding with plaintext. The candidate release flag remains false.
 - The remaining blocker is NOT an uncompiled program: it is the previous safety gate that blocked creation of Staging-only encrypted backup SQL objects. Never treat CI success as approval to bypass that gate, or as evidence of real signed-token or Vault database acceptance.
+
+## October 31 — Draft-only signup failure containment and late MFA check
+
+- Corrected a **candidate TypeScript source regression** where a trailing `//` comment swallowed the `return reply(...,503)` branch of the signup catch handler. The handler now returns a generic 503 without logging raw SDK exception content. This code has not been deployed.
+- On failure after an Auth account is created, the unreleased signup candidate attempts `admin.auth.admin.deleteUser(uid)`. If Auth deletion fails, it attempts a long-term ban and deletion of that freshly-created account's username link, and emits a fixed error category plus the generated UID for authorized operator remediation. It does **not** claim that a ban alone revokes previously issued JWTs; no failed-compensation path is accepted until isolated live QA and manual orphan remediation are verified.
+- Reservation release is protected with its own error handling so a cleanup exception does not mask a successfully completed new-account signup.
+- After decrypting an escrowed phrase, the unreleased recovery Edge candidate again verifies the exact signed-bearer identity **and the current server-managed MFA factor state** before the final live-session check and plaintext response. Missing/mismatched MFA/session details fail closed.
+- Added static source contracts for both behaviors. A 16/16 focused **source-invariant inspection** of the draft GitHub files was completed; **this is not** evidence that GitHub CI, Deno compilation or live user/MFA/password tests passed.
+- Supabase documentation confirms admin `updateUserById(..., {ban_duration:'876000h'})` supports bans, but also warns that a ban is not a substitute for deleting an Auth user or checking live `session_id` for sensitive operations. Never mark orphan cleanup successful based solely on a ban.
+- The blocked Staging SQL migration remains unexecuted. The deployment feature flags remain OFF. Before any production release, test failed-signup rollback, ban/unlink fallback, orphan Vault and verifier cleanup, password/MFA concurrent enrollment, and old signed-session rejection with synthetic Staging accounts.
+
+**Operational status remains:** Draft PR, no merge, no N10 Vault release, no V11 code changes, no Staging or production database writes.
