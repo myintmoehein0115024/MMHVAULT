@@ -84,14 +84,17 @@
   <main id="main">
     <section class="hero section container" aria-labelledby="hero-title">
       <div class="hero-copy">
-        <div class="eyebrow"><span class="eyebrow-line"></span><span data-i18n="heroEyebrow">YOUR MONEY. YOUR DIRECTION.</span></div>
-        <h1 id="hero-title">
-          <span class="hero-name">MMHVAULT</span>
-          <span class="hero-statement" data-i18n="heroTitle">A smarter, more <em>intentional</em> financial life.</span>
+        <!-- L1.3: This entire brand statement is deliberately immutable in every locale. -->
+        <div class="eyebrow hero-fixed" data-hero-fixed><span class="eyebrow-line"></span><span lang="en">YOUR MONEY. YOUR DIRECTION.</span></div>
+        <h1 id="hero-title" class="hero-fixed" data-hero-fixed>
+          <span class="hero-name" lang="en">MMHVAULT</span>
+          <span class="hero-statement" lang="en">A smarter, more <em>intentional</em> financial life.</span>
         </h1>
-        <p class="hero-script hero-script-zh" lang="zh-CN">让财务更清晰，让未来更有方向。</p>
-        <p class="hero-script hero-script-my" lang="my">ငွေကြေးကို ပိုမိုရှင်းလင်းစွာ သိမြင်ပြီး အနာဂတ်ကို ရည်ရွယ်ချက်ရှိရှိ စီမံပါ။</p>
-        <p class="hero-lead" data-i18n="heroLead">Make sense of your accounts, spending, investments and future plans — all within one considered personal workspace.</p>
+        <div class="hero-static-languages hero-fixed" data-hero-fixed aria-label="MMHVAULT international brand statement">
+          <p class="hero-script hero-script-zh" lang="zh-CN">让财务更清晰，让未来更有方向。</p>
+          <p class="hero-script hero-script-my" lang="my">ငွေကြေးကို ပိုမိုရှင်းလင်းစွာ သိမြင်ပြီး အနာဂတ်ကို ရည်ရွယ်ချက်ရှိရှိ စီမံပါ။</p>
+          <p class="hero-lead hero-script-en" lang="en">Make sense of your accounts, spending, investments and future plans — all within one considered personal workspace.</p>
+        </div>
         <div class="hero-buttons">
           <a href="#features" class="button button-gold button-lg"><span data-i18n="exploreFeatures">Explore Features</span><span aria-hidden="true">↗</span></a>
           <a href="./login.html" class="button button-outline button-lg"><span data-i18n="getStarted">Get Started</span><span aria-hidden="true">→</span></a>
