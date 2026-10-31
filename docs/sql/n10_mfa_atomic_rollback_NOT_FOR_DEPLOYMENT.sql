@@ -18,7 +18,7 @@ BEGIN
  IF marked <> 59 THEN
    RAISE EXCEPTION 'Expected 59 marked N10 RLS policies for atomic rollback; observed %', marked;
  END IF;
-END
+END;
 $inventory$;
 
 -- ====== ROLLBACK PART 1: docs/sql/n10_mfa_wallet_rpc_rollback_CANDIDATE.sql ======
@@ -42,7 +42,7 @@ BEGIN
       pg_get_functiondef('public.mmh_delete_crypto_wallet_movement_v4(uuid)'::regprocedure))=0 THEN
     RAISE EXCEPTION 'Wallet RPC does not match an N10 MFA guarded version';
   END IF;
-END
+END;
 $guard$;
 CREATE OR REPLACE FUNCTION public.mmh_delete_crypto_wallet_movement_v4(p_id uuid)
  RETURNS boolean
@@ -79,7 +79,7 @@ begin
 
   return true;
 end;
-$function$
+$function$;
 COMMENT ON FUNCTION public.mmh_delete_crypto_wallet_movement_v4(uuid) IS NULL;
 -- CREATE OR REPLACE retains the existing function OID, owner and EXECUTE grants;
 -- separately confirm grants, owner and intended behavior after rollback.
@@ -110,7 +110,7 @@ BEGIN
   ELSE
     DROP POLICY mmh_n10_private_storage_mfa_guard ON storage.objects;
   END IF;
-END
+END;
 $n10$;
 -- The helper is retained: other N10 policies/RPCs may still call it.
 -- This SQL never deletes Storage buckets/files and does not touch permissions.
@@ -138,7 +138,7 @@ BEGIN
     EXECUTE format('DROP POLICY mmh_n10_mfa_required ON %I.%I',
        row_record.schemaname, row_record.tablename);
   END LOOP;
-END
+END;
 $n10$;
 -- Intentionally retain the helper and schema: deployed RPC and Storage policies
 -- may still reference the function. Only remove once dependency audits pass.
