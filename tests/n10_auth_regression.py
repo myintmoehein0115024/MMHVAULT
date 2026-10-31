@@ -194,8 +194,8 @@ class N10AuthContract(unittest.TestCase):
         rollback = (root / "n10_mfa_atomic_rollback_NOT_FOR_DEPLOYMENT.sql").read_text(encoding="utf-8")
 
         def isolate(source):
-            start = source.index("\\nBEGIN;")
-            end = source.rindex("\\nCOMMIT;")
+            start = source.index("\nBEGIN;")
+            end = source.rindex("\nCOMMIT;")
             self.assertLess(start, end)
             source = source[start + 7:end].strip()
             for old, new in (
