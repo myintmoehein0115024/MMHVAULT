@@ -94,3 +94,17 @@ Updated backend **30/30 static source security-contract checks** passed in a res
 **Next prerequisite:** operator sets a new, unrelated Staging-only Edge Secret named `N10_FIXED_RECOVERY_QA_HMAC_KEY` using the browser-generated random value; no production key may be used. Then review and deploy the updated initializer source while initially keeping the release switch OFF; activate only the two explicit QA accounts under a controlled test window, validate signed scenarios and promptly turn OFF and clean all synthetic records. The existing A/B users and all related records must be removed only by an authorized cleanup after tests.
 
 **No additional Auth mutations** beyond the user's own creation of A/B; no verifier rows, Vault secrets or financial records were added by this preparation work. Production stays unchanged.
+
+## Staging QA Secret confirmed; controlled A/B activation (2026-10-31, UTC)
+
+Owner supplied screenshots showing the randomly generated 256-bit `N10_FIXED_RECOVERY_QA_HMAC_KEY` was saved to **MMHVAULT-Auth-Staging → Edge Functions → Secrets**. No secret value was copied into the repository or chat. This was a direct owner action; the connector does not provide a read-back of the secret itself.
+
+The approved fixed-recovery Staging-only Edge function `mmh-n10-fixed-vault-qa-locked` was first redeployed as version 4 with the **`qa_initialize`** CSPRNG 10-word synthetic-only initializer but `RECOVERY_RELEASE_ENABLED=false`. The exact deployed code and component files were read back.
+
+Following the owner's earlier explicit authorization for two-account signed-JWT/Vault QA and the Secret confirmation, version **5** was deployed solely to Staging `ldivswlhtgmznzwhzsoi` using a *runtime-only* patch of the reviewed GitHub Draft QA candidate: `RECOVERY_RELEASE_ENABLED=true` plus a hard-coded absolute **expiry guard `Date.now()>=Date.parse('2026-10-31T17:05:00.000Z')`**, returning `qa_window_closed` (503) for any actions after that time. This is equivalent to **2026-11-01 00:05 Thailand time**. The GitHub Draft QA source itself remains `RECOVERY_RELEASE_ENABLED=false`; there is no production enabled flag.
+
+Read-back from Supabase verified: deployed Edge ID `5d208de0-c91f-4c49-b55e-1aab6fa43e0b`, version 5, `verify_jwt=true`; exact Staging base and QA-only GitHub origin; exact verified Auth UID + email pair for A/B; runtime true flag and automatic expiry guard present. Non-whitelisted accounts cannot pass `verifiedUser`, and password proof, live session, server-managed MFA factors and shared quota must pass. The deployment was not made to production.
+
+Read-only database counts immediately after activation: **0 new verifier rows, 0 Vault backup index rows, 0 candidate-prefix Vault secrets**. This is **not** proof of a working Vault encryption/backup flow. User must now log into A on the independent QA page and test initialization, encrypted backup, reveal and B separation. No credentials/tokens/words should be pasted into the chat.
+
+**Important remaining cleanup:** The time guard automatically blocks actions after expiry, but it does **not delete the Staging Edge function or the two synthetic Auth users.** Those need explicit verified cleanup with the authorized tools after tests; do not claim background deletion or rollback. The original production auth/financial system remains unchanged. N10 production rollout and V11 are still deferred.
