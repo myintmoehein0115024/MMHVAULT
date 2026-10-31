@@ -584,7 +584,18 @@ function onPageChange(){
 if(settingsPage){new MutationObserver(onPageChange).observe(settingsPage,{attributes:true,subtree:true,attributeFilter:['class','hidden']});if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',onPageChange,{once:true});else onPageChange();}
 a783RenderLanguage();
 if(client()){
- client().auth.onAuthStateChange((event)=>{if(['SIGNED_IN','SIGNED_OUT','TOKEN_REFRESHED'].includes(event))setTimeout(()=>{if(event==='SIGNED_OUT'){owner='';hideKey();clearMfa();resetSensitiveState();status('Sign in to manage account security.');}else void refresh()},0)});
+ client().auth.onAuthStateChange((event,session)=>{
+  // Invalidate in-flight secret responses *synchronously* on account change
+  // or sign-out, even while refresh() cannot run because a request is busy.
+  if(event==='SIGNED_OUT'||(event==='SIGNED_IN'&&owner&&session?.user?.id!==owner)){
+   hideKey();
+   if(event==='SIGNED_OUT')owner='';
+  }
+  if(['SIGNED_IN','SIGNED_OUT','TOKEN_REFRESHED'].includes(event))setTimeout(()=>{
+   if(event==='SIGNED_OUT'){clearMfa();resetSensitiveState();status('Sign in to manage account security.')}
+   else void refresh();
+  },0);
+ });
  setTimeout(refresh,400);
 }
 })();
