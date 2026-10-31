@@ -277,7 +277,26 @@
     businessReportNote:'ကြည့်ရှုရန် နမူနာသာ · အစီရင်ခံစာ မထုတ်ပေးပါ'
   });
 
-  const htmlKeys = new Set(['heroTitle', 'featuresTitle', 'whyTitle', 'closingTitle']);
+  Object.assign(strings.en,{
+    businessTabsAria:'Select illustrative Personal or Business finances',
+    businessInsightsAria:'Illustrative financial insights',
+    heroImageAlt:'Fictional MMHVAULT financial dashboard presented on a laptop and phone',
+    businessPhotoAlt:'Fictional Personal and Business financial dashboard concept shown on devices'
+  });
+  Object.assign(strings.zh,{
+    businessTabsAria:'切换个人或商业财务概念展示',
+    businessInsightsAria:'虚构财务概览指标',
+    heroImageAlt:'电脑和手机展示的虚构 MMHVAULT 财务仪表盘',
+    businessPhotoAlt:'个人及商业财务的电脑手机概念展示图'
+  });
+  Object.assign(strings.my,{
+    businessTabsAria:'ကိုယ်ပိုင် သို့မဟုတ် လုပ်ငန်း ငွေကြေးနမူနာကို ရွေးချယ်ပါ',
+    businessInsightsAria:'နမူနာ ငွေကြေးအချက်အလက်များ',
+    heroImageAlt:'လက်ပ်တော့နှင့် ဖုန်းပေါ်ရှိ MMHVAULT ငွေကြေးနမူနာ မျက်နှာပြင်',
+    businessPhotoAlt:'ကိုယ်ပိုင်နှင့် လုပ်ငန်း ငွေကြေးနမူနာ ကွန်ပျူတာနှင့် ဖုန်းပုံ'
+  });
+
+  const htmlKeys = new Set(['heroTitle', 'featuresTitle', 'businessHeading', 'whyTitle', 'closingTitle']);
   const storageKey = 'mmhvault.landing.language';
   const siteHeader = document.querySelector('.site-header');
   const toggle = document.querySelector('.menu-toggle');
@@ -356,6 +375,17 @@
       button.setAttribute('aria-pressed', String(button.dataset.lang === currentLang));
     });
     updateBusinessPreview(currentBusinessView);
+    // Translate descriptive controls and photographic alt text without changing the fixed Hero copy.
+    const businessTabbar = document.querySelector('.business-tabbar');
+    const businessInsights = document.querySelector('.business-insight-grid');
+    if (businessTabbar) businessTabbar.setAttribute('aria-label', dict.businessTabsAria);
+    if (businessInsights) businessInsights.setAttribute('aria-label', dict.businessInsightsAria);
+    const heroArt = document.querySelector('.hero-art');
+    const heroPhoto = document.querySelector('.hero-device-cinematic');
+    const businessPhoto = document.querySelector('.business-visual-frame img');
+    if (heroArt) heroArt.setAttribute('aria-label', dict.heroImageAlt);
+    if (heroPhoto) heroPhoto.setAttribute('alt', dict.heroImageAlt);
+    if (businessPhoto) businessPhoto.setAttribute('alt', dict.businessPhotoAlt);
     toggle.setAttribute('aria-label', currentLang === 'zh' ? '打开导航菜单' : (currentLang === 'my' ? 'လမ်းညွှန်မီနူး ဖွင့်ရန်' : 'Open navigation menu'));
     document.querySelector('#primary-nav').setAttribute('aria-label', currentLang === 'zh' ? '主导航' : (currentLang === 'my' ? 'အဓိကလမ်းညွှန်' : 'Primary navigation'));
     localeTrigger.setAttribute('aria-label', currentLang === 'zh' ? '选择语言' : (currentLang === 'my' ? 'ဘာသာစကား ရွေးရန်' : 'Select language'));
