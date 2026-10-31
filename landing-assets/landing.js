@@ -196,12 +196,46 @@
       "visualOutlook": "လစဉ် ခန့်မှန်းချက်"
     }
   };
+  Object.assign(strings.en, {
+    railDashboard: 'See your financial picture',
+    railTransactions: 'Follow every transaction',
+    railAccounts: 'Keep accounts organized',
+    railInvest: 'Know your portfolio',
+    railAnalyze: 'Understand your trends',
+    railLife: 'Plan the life ahead'
+  });
+  Object.assign(strings.zh, {
+    railDashboard: '一眼掌握财务全貌',
+    railTransactions: '记录每一笔收支',
+    railAccounts: '统一管理账户',
+    railInvest: '清楚了解投资组合',
+    railAnalyze: '看懂财务趋势',
+    railLife: '规划更好的生活'
+  });
+  Object.assign(strings.my, {
+    railDashboard: 'သင့်ငွေကြေးကို မြင်သာစွာ ကြည့်ပါ',
+    railTransactions: 'ငွေဝင်ငွေထွက်ကို မှတ်တမ်းတင်ပါ',
+    railAccounts: 'အကောင့်များကို စနစ်တကျ စီမံပါ',
+    railInvest: 'ရင်းနှီးမြှုပ်နှံမှုကို သိရှိပါ',
+    railAnalyze: 'ငွေကြေးလမ်းကြောင်းကို နားလည်ပါ',
+    railLife: 'အနာဂတ်ဘဝကို စီမံပါ'
+  });
   const htmlKeys = new Set(['heroTitle', 'featuresTitle', 'whyTitle', 'closingTitle']);
   const storageKey = 'mmhvault.landing.language';
   const siteHeader = document.querySelector('.site-header');
   const toggle = document.querySelector('.menu-toggle');
   const languageButtons = [...document.querySelectorAll('[data-lang]')];
   const localeElements = [...document.querySelectorAll('[data-i18n]')];
+  const localeTrigger = document.getElementById('locale-trigger');
+  const localeMenu = document.getElementById('locale-menu');
+  const localeFlag = document.querySelector('.locale-active-flag');
+  const localeName = document.querySelector('.locale-active-name');
+  const languageMeta = {
+    en: { flag: '🇬🇧', title: 'English' },
+    zh: { flag: '🇨🇳', title: '中文' },
+    my: { flag: '🇲🇲', title: 'မြန်မာ' }
+  };
+
   let currentLang = 'en';
 
   function applyLanguage(lang) {
@@ -220,7 +254,10 @@
     });
     toggle.setAttribute('aria-label', currentLang === 'zh' ? '打开导航菜单' : (currentLang === 'my' ? 'လမ်းညွှန်မီနူး ဖွင့်ရန်' : 'Open navigation menu'));
     document.querySelector('#primary-nav').setAttribute('aria-label', currentLang === 'zh' ? '主导航' : (currentLang === 'my' ? 'အဓိကလမ်းညွှန်' : 'Primary navigation'));
-    document.querySelector('.locale-switch').setAttribute('aria-label', currentLang === 'zh' ? '语言' : (currentLang === 'my' ? 'ဘာသာစကား' : 'Language'));
+    localeTrigger.setAttribute('aria-label', currentLang === 'zh' ? '选择语言' : (currentLang === 'my' ? 'ဘာသာစကား ရွေးရန်' : 'Select language'));
+    localeMenu.setAttribute('aria-label', currentLang === 'zh' ? '语言选择' : (currentLang === 'my' ? 'ဘာသာစကား ရွေးချယ်မှု' : 'Choose language'));
+    localeFlag.textContent = languageMeta[currentLang].flag;
+    localeName.textContent = languageMeta[currentLang].title;
     document.title = currentLang === 'zh'
       ? 'MMHVAULT — 个人财务与财富管理 | 让未来更有方向'
       : currentLang === 'my' ? 'MMHVAULT — ကိုယ်ပိုင်ငွေကြေးနှင့် ပိုင်ဆိုင်မှု စီမံခန့်ခွဲမှု' : 'MMHVAULT — Personal Finance & Wealth | Make Money Clearer';
@@ -234,17 +271,63 @@
     siteHeader.classList.remove('menu-open');
     toggle.setAttribute('aria-expanded', 'false');
   }
-  languageButtons.forEach(button => button.addEventListener('click', () => applyLanguage(button.dataset.lang)));
+  function closeLanguage() {
+    localeMenu.hidden = true;
+    localeTrigger.setAttribute('aria-expanded', 'false');
+  }
+  function toggleLanguage() {
+    const willOpen = localeMenu.hidden;
+    closeMenu();
+    localeMenu.hidden = !willOpen;
+    localeTrigger.setAttribute('aria-expanded', String(willOpen));
+    if (willOpen) {
+      const active = languageButtons.find(button => button.dataset.lang === currentLang);
+      if (active) active.focus();
+    }
+  }
+  languageButtons.forEach(button => button.addEventListener('click', () => {
+    applyLanguage(button.dataset.lang);
+    closeLanguage();
+    localeTrigger.focus();
+  }));
+  localeTrigger.addEventListener('click', toggleLanguage);
+  localeTrigger.addEventListener('keydown', event => {
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      if (localeMenu.hidden) toggleLanguage();
+      else languageButtons[0].focus();
+    }
+  });
+  localeMenu.addEventListener('keydown', event => {
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      event.preventDefault();
+      const index = languageButtons.indexOf(document.activeElement);
+      const next = (index + (event.key === 'ArrowDown' ? 1 : -1) + languageButtons.length) % languageButtons.length;
+      languageButtons[next].focus();
+    }
+  });
   toggle.addEventListener('click', () => {
+    closeLanguage();
     const isOpen = siteHeader.classList.toggle('menu-open');
     toggle.setAttribute('aria-expanded', String(isOpen));
   });
-  document.querySelectorAll('#primary-nav a').forEach(link => link.addEventListener('click', closeMenu));
-  document.addEventListener('keydown', event => { if (event.key === 'Escape') closeMenu(); });
+  document.querySelectorAll('#primary-nav a').forEach(link => link.addEventListener('click', () => {
+    closeMenu();
+    closeLanguage();
+  }));
+  document.addEventListener('keydown', event => {
+    if (event.key === 'Escape') {
+      const wasOpen = !localeMenu.hidden;
+      closeLanguage();
+      closeMenu();
+      if (wasOpen) localeTrigger.focus();
+    }
+  });
   document.addEventListener('click', event => {
+    if (!event.target.closest('.locale-picker')) closeLanguage();
     if (!siteHeader.contains(event.target)) closeMenu();
   });
-  const media = window.matchMedia('(min-width: 841px)');
+  const media = window.matchMedia('(min-width: 1101px)');
   if (typeof media.addEventListener === 'function') media.addEventListener('change', closeMenu);
   let saved = 'en';
   try { const stored = window.localStorage.getItem(storageKey); if (stored === 'zh' || stored === 'my') saved = stored; } catch (_) {}
