@@ -80,3 +80,9 @@
 - **三重默认拒绝**：`RECOVERY_RELEASE_ENABLED=false`、`QA_IDENTITIES=new Map([])`（`ALLOWLIST_OK=false`）、`QA_WINDOW_END_UTC='1970-01-01T00:00:00.000Z'`（过期）。代码中不包含任何已删除 A/B 用户 UUID 或其邮箱。除非新授权下人工审查三项修改，否则该候选不应部署或启用。
 - 单独新增 2 个后端静态合同检查，并更新 CI 对第 5 个 TS 候选文件执行 Deno 类型检查；`2214c71f9d12a37385b887351f648d32fc2a0639` 在 [GitHub Actions #41227613147](https://github.com/myintmoehein0115024/MMHVAULT/actions/runs/41227613147) **SUCCESS**：14/14 MFA 模拟、41/41 后端静态安全合同、10/10 UI 静态检查、session 组合测试和 5 个 TS 候选 Deno check 均成功。
 - **下一步必须得到独立授权**：仅限 Staging 新建独立、专用 QA Edge、专用新合成 A/B 用户及 Secret、明确短时窗口和回滚；不得复活旧 410 Edge，不得改变 production Auth、`app.html`、`login.html`、财务数据或 Landing。实际 Vault 删除孤儿记录证明仍 UNVERIFIED，联合真实 MFA+Vault 仍 UNTESTED，N10 PR #2 Draft 冲突未解，V11 暂停。
+
+## 2026-11-01 — 获得批准后已准备独立 Staging 联合 QA 服务（OFF）
+- 用户仅批准 **Staging 准备**，明确上线/联合实测须另行批准。独立 `mmh-n10-qa-joint-mfa-vault-20261101` 首次部署成功：Staging project `ldivswlhtgmznzwhzsoi`、Edge ID `da53e3b3-e138-45f5-990c-5eb63bc7944d`、v1、`verify_jwt=true`；ACTIVE 仅是部署状态，不是测试启用。
+- 从 GitHub `e2f6a475...` 读取候选源与 MFA/session 辅助模块部署；再次从 Supabase 独立读取部署文件和元数据，检查 **`RECOVERY_RELEASE_ENABLED=false`、QA 白名单为空、1970 期限已过期**、Staging pin、旧账号 UUID 不存在。旧 HTTP 410 退役 Edge 未触动，生产服务/SQL/用户记录未动。
+- 用 Staging `auth.users` 对**预定的新** A/B 测试邮箱做了严格等值、只读查询，确认未创建；没有读取 Vault 受限数据。当前 Supabase 连接器没有安全的 Auth Admin createUser 动作，因此避免以 SQL 直接写入 `auth.users`；接下来需要用户自行在 **Staging → Authentication → Users → Add user** 新建两个独立合成账户，不要分享密码/OTP/Token。
+- 完整审计与邮箱标识、当前阻断和回滚要求：`docs/N10_STAGING_JOINT_MFA_VAULT_LOCKED_DEPLOYMENT_20261101.md`。当用户完成账号创建，只读验证 UID/email，再按独立授权决定是否打开窗口。当前真实 `FIXED_RECOVERY_MFA_VAULT_JOINT=UNTESTED`、`VAULT_DELETE_E2E=UNVERIFIED`，PR #2 Draft 未合并，V11 暂停。
