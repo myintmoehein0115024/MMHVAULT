@@ -71,6 +71,17 @@ let owner='',busy=false,pendingFactor='',pendingSecret='',factorId='',verifiedPh
 function client(){return typeof db!=='undefined'?db:null;}
 function label(id,v){const el=$(id);if(el){el.dataset.mmhA783DynamicEn=v;el.textContent=a783Text(v);}}
 function hideKey(){secretEpoch+=1;const field=$('mmhN10VaultPassword');if(field)field.value='';verifiedPhrase='';$('mmhA783KeyDisplay').hidden=true;$('mmhA783KeyQr').replaceChildren();$('mmhA783KeyWords').replaceChildren();$('mmhA783Phrase').value='';$('mmhA783Phrase').type='password';$('mmhA783PhraseToggle').setAttribute('aria-pressed','false');a783Action('mmhA783PhraseToggle','Show words');if(clearTimer)clearTimeout(clearTimer);}
+// .totp is the verified-only subset; use .all to detect pending factors.
+function inspectTotpFactors(data){
+ if(!data||!Array.isArray(data.all))throw Error('factor_inventory_unavailable');
+ const allTotp=data.all.filter(f=>f&&f.factor_type==='totp');
+ return {
+  allTotp,
+  verified:allTotp.filter(f=>f.status==='verified'),
+  pending:allTotp.filter(f=>f.status==='unverified'),
+  unknown:allTotp.filter(f=>f.status!=='verified'&&f.status!=='unverified')
+ };
+}
 function clearMfa(){pendingSecret='';pendingFactor='';if($('mmhA783TotpBackupConfirmed'))$('mmhA783TotpBackupConfirmed').checked=false;$('mmhA783TotpSetup').hidden=true;$('mmhA783TotpQr').replaceChildren();$('mmhA783TotpSecret').textContent='';$('mmhA783TotpSecret').hidden=true;$('mmhA783TotpCode').value='';a783Action('mmhA783KeyReveal','Show setup key');}
 async function cancelPendingMfa(){const id=pendingFactor;clearMfa();if(!id)return true;try{const r=await client().auth.mfa.unenroll({factorId:id});return !r.error}catch(_){return false}}
 function displayTotpQr(totp){
@@ -336,11 +347,23 @@ $('mmhA783TotpStart').addEventListener('click',async()=>{
  if(!$('mmhA783TotpConsent')?.checked){status('Please confirm that you understand the backup requirements before enabling two-step verification.');return}
  busy=true;
  try{
-  await verifiedUser();
+  const {user}=await verifiedUser();
   const existing=await client().auth.mfa.listFactors();
-  if(existing.error||existing.data?.totp?.some(x=>x.status==='verified'))throw Error('Already enrolled');
-  for(const factor of (existing.data?.totp||[]).filter(x=>x.status==='unverified')){const r=await client().auth.mfa.unenroll({factorId:factor.id});if(r.error)throw Error('Pending factor cleanup failed');}
-  const {data,error}=await client().auth.mfa.enroll({factorType:'totp',friendlyName:'MMHVAULT Authenticator'});
+  if(existing.error)throw existing.error;
+  const before=inspectTotpFactors(existing.data);
+  if(before.verified.length||before.unknown.length)throw Error('Existing factor must be reviewed');
+  for(const factor of before.pending){
+   if(!factor.id)throw Error('Pending factor has no id');
+   const removed=await client().auth.mfa.unenroll({factorId:factor.id});
+   if(removed.error)throw Error('Pending factor cleanup failed');
+  }
+  const checked=await client().auth.mfa.listFactors();
+  if(checked.error||inspectTotpFactors(checked.data).allTotp.length!==0)
+   throw Error('Old TOTP factor still exists');
+  const afterOwner=await verifiedUser();
+  if(afterOwner.user.id!==user.id)throw Error('Account changed');
+  const name='MMHVAULT Authenticator '+crypto.randomUUID().slice(0,8);
+  const {data,error}=await client().auth.mfa.enroll({factorType:'totp',friendlyName:name});
   if(error||!data?.id||!data?.totp?.qr_code)throw error||Error('Enrollment unavailable');
   pendingFactor=data.id;pendingSecret=data.totp.secret||'';
   displayTotpQr(data.totp);
@@ -360,9 +383,16 @@ $('mmhA783TotpConfirm').addEventListener('click',async()=>{
  try{
   const {data:challenge,error:challengeError}=await client().auth.mfa.challenge({factorId:pendingFactor});
   if(challengeError||!challenge?.id)throw challengeError||Error('challenge_failed');
-  const {error}=await client().auth.mfa.verify({factorId:pendingFactor,challengeId:challenge.id,code});
+  const id=pendingFactor;
+  const {error}=await client().auth.mfa.verify({factorId:id,challengeId:challenge.id,code});
   if(error)throw error;
-  clearMfa();status('Authenticator enabled. New sign-ins will require a six-digit code.');
+  const assurance=await client().auth.mfa.getAuthenticatorAssuranceLevel();
+  if(assurance.error||assurance.data?.currentLevel!=='aal2')
+   throw Error('AAL2 not confirmed');
+  const checked=await client().auth.mfa.listFactors();
+  if(checked.error||!inspectTotpFactors(checked.data).verified.some(x=>x.id===id))
+   throw Error('Verified factor not confirmed');
+  clearMfa();status('Authenticator enabled. Verified by Auth (AAL2). New sign-ins will require a six-digit code.');
   setTimeout(()=>void refresh(),0);
  }catch(_){status('Could not verify this code. Check your device time and try a new code.');}
  finally{busy=false;$('mmhA783TotpCode').value='';}
