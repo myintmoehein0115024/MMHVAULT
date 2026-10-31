@@ -274,3 +274,284 @@ html[lang="my"] .business-activity-row{font-size:10px;line-height:1.65}
 @media(prefers-reduced-motion:reduce){
  .business-tab{transition:none!important}
 }
+
+
+/* ==========================================================
+   L1.15 — Your finances. Your ambitions. / Business editorial
+   Landing-only concept. All figures are fictional.
+   ========================================================== */
+#business.business-section {
+  padding-block:clamp(82px,8.6vw,134px) clamp(87px,9vw,132px);
+  background:linear-gradient(180deg,#06111f 0%,#0b1b2b 37%,#050f1b 100%);
+}
+#business.business-section::before {
+  background-image:
+    linear-gradient(180deg,rgba(3,11,22,.92),rgba(5,16,29,.75) 40%,rgba(4,12,22,.96) 100%),
+    radial-gradient(ellipse at 75% 33%,rgba(240,181,97,.18),transparent 55%),
+    url("./cinematic-lake.webp");
+  background-position:center,center,center 44%;
+  background-size:cover,cover,cover;
+}
+#business .business-intro{
+  display:grid;
+  grid-template-columns:minmax(0,1.30fr) minmax(270px,.70fr);
+  gap:clamp(25px,4vw,70px);
+  align-items:center;
+  margin-bottom:34px;
+}
+#business .business-heading{position:relative;min-width:0}
+#business .business-heading .section-kicker{
+  color:#f1c98a;letter-spacing:.21em;
+  text-shadow:0 0 17px rgba(233,176,86,.18);
+}
+#business .business-heading h2{
+  max-width:920px;
+  margin:17px 0 20px;
+  font:500 clamp(43px,5.1vw,78px)/1.12 Georgia,"Times New Roman",serif;
+  letter-spacing:-.055em;
+  text-wrap:balance;
+  color:#fff6e9;
+  text-shadow:0 12px 31px rgba(0,0,0,.29);
+}
+#business .business-heading h2 em{
+  display:inline-block;
+  max-width:100%;
+  font-weight:400;
+  font-style:italic;
+  color:#f3c782;
+  background:linear-gradient(108deg,#e9bb79 2%,#ffe6b1 43%,#e3a85e 89%);
+  background-clip:text;
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+  filter:drop-shadow(0 0 16px rgba(250,197,122,.16));
+}
+#business .business-intro-lead{
+  max-width:610px;
+  font-size:clamp(13px,1.12vw,16px);
+  line-height:1.85;
+  color:#c1cfda;
+}
+#business .business-pills{margin-top:22px;gap:10px}
+#business .business-status{
+  border-color:rgba(248,208,148,.42);
+  background:linear-gradient(120deg,rgba(33,57,74,.88),rgba(14,31,48,.8));
+  box-shadow:inset 0 1px 0 rgba(255,236,202,.09);
+  color:#f7d5a0;
+}
+#business .business-side-note{
+  display:flex;
+  flex-direction:column;
+  gap:11px;
+  min-width:0;
+  width:100%;
+  max-width:360px;
+  justify-self:end;
+  text-align:left;
+  padding:16px;
+  border:1px solid rgba(237,196,135,.28);
+  border-radius:22px;
+  background:
+    radial-gradient(ellipse 75% 70% at 100% 0,rgba(228,171,92,.12),transparent 78%),
+    linear-gradient(142deg,rgba(18,44,62,.87),rgba(7,23,36,.95));
+  box-shadow:inset 0 1px 0 rgba(255,245,218,.12),0 24px 53px rgba(0,0,0,.19);
+}
+#business .business-perspective{
+  display:grid;
+  grid-template-columns:26px minmax(0,1fr) auto;
+  gap:12px;
+  align-items:center;
+  min-height:80px;
+  padding:12px 11px;
+  border:1px solid rgba(184,215,228,.19);
+  border-radius:14px;
+  background:linear-gradient(125deg,rgba(21,52,74,.90),rgba(8,29,46,.81));
+  box-shadow:inset 0 1px 0 rgba(255,235,203,.08);
+}
+#business .business-perspective--personal{
+  border-color:rgba(247,211,153,.52);
+  background:
+    radial-gradient(ellipse at 0% 0%,rgba(243,188,101,.15),transparent 90%),
+    linear-gradient(120deg,#203f50,#0b263b);
+}
+#business .business-perspective-number{
+  align-self:start;
+  padding-top:4px;
+  color:#f4cd92;
+  font:500 13px/1.5 Georgia,serif;
+  font-variant-numeric:tabular-nums;
+}
+#business .business-perspective-copy{
+  display:flex;flex-direction:column;gap:6px;min-width:0;
+}
+#business .business-perspective-copy strong{
+  color:#f8e9d1;
+  font-size:14px;line-height:1.45;font-weight:650;
+}
+#business .business-perspective-copy small{
+  color:#aebfcb;
+  font-size:10px;line-height:1.7;
+}
+#business .business-perspective-symbol{
+  display:grid;place-items:center;
+  width:31px;height:31px;border-radius:50%;
+  border:1px solid rgba(253,216,151,.46);
+  color:#ffdb9a;background:rgba(230,178,104,.16);
+  box-shadow:0 0 19px rgba(241,185,99,.085);
+}
+#business .business-perspective-symbol svg{width:17px;height:17px}
+#business .business-perspective-soon{
+  max-width:88px;
+  overflow-wrap:anywhere;
+  padding:5px 7px;
+  border-radius:7px;
+  border:1px solid rgba(243,203,136,.33);
+  background:rgba(220,157,67,.09);
+  color:#efc88e;
+  font-size:8px;letter-spacing:.055em;
+  line-height:1.55;
+  text-align:center;
+}
+#business .business-side-note>p{
+  margin:2px 4px 0;
+  font-size:11px;
+  line-height:1.8;
+  color:#9ab1c0;
+}
+#business .business-visual-strip{
+  position:relative;
+  display:grid;grid-template-columns:minmax(0,.77fr) minmax(0,1.23fr);
+  min-height:315px;
+  margin:20px 0 23px;
+  border:1px solid rgba(246,209,150,.46);
+  border-radius:23px;
+  background:
+    radial-gradient(ellipse at 0 0,rgba(237,177,93,.12),transparent 68%),
+    linear-gradient(140deg,#193648,#081a2b 87%);
+  box-shadow:inset 0 1px 0 rgba(255,244,219,.16),0 34px 85px rgba(0,0,0,.31),0 0 30px rgba(231,168,77,.075);
+}
+#business .business-visual-strip::before{
+  content:"";position:absolute;z-index:2;pointer-events:none;
+  inset:0 0 auto 0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,228,181,.75) 48%,transparent);
+}
+#business .business-visual-text{
+  position:relative;
+  z-index:1;
+  padding:clamp(25px,3.1vw,48px);
+  background:
+    radial-gradient(ellipse at 0 0,rgba(229,173,92,.10),transparent 74%),
+    linear-gradient(90deg,rgba(8,27,43,.68),transparent);
+}
+#business .business-visual-text h3{
+  font-size:clamp(27px,2.6vw,39px);
+  line-height:1.22;
+  color:#fcead1;
+}
+#business .business-visual-kicker{color:#f3ca8e;line-height:1.6}
+#business .business-visual-text p{color:#b9c9d2;font-size:12px;line-height:1.8}
+#business .business-visual-foot{color:#d7b88b;margin-top:20px;line-height:1.6}
+#business .business-visual-frame{
+  position:relative;
+  min-height:315px;
+}
+#business .business-visual-frame img{
+  width:100%;height:100%;inset:0;position:absolute;
+  object-fit:cover;object-position:63% 51%;
+  filter:saturate(1.03) contrast(1.065) brightness(.92);
+}
+#business .business-visual-frame::after{
+  background:linear-gradient(90deg,#0e2638 0%,rgba(12,35,53,.43) 18%,transparent 55%),linear-gradient(0deg,rgba(4,14,26,.34),transparent 40%);
+}
+#business .business-photo-caption{
+  position:absolute;z-index:3;right:19px;bottom:17px;
+  display:grid;grid-template-columns:6px 1fr;gap:4px 9px;
+  max-width:min(84%,360px);
+  padding:11px 14px;
+  border:1px solid rgba(245,205,141,.52);
+  border-radius:11px;
+  background:linear-gradient(120deg,rgba(5,18,31,.87),rgba(15,37,53,.83));
+  box-shadow:inset 0 1px 0 rgba(255,236,199,.13),0 9px 22px rgba(0,0,0,.26);
+  color:#ffe1ad;
+  font-size:9px;line-height:1.55;letter-spacing:.08em;font-weight:700;
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+}
+#business .business-photo-caption i{width:6px;height:6px;border-radius:50%;background:#edc180;box-shadow:0 0 10px rgba(248,194,105,.27);margin-top:4px}
+#business .business-photo-caption small{grid-column:2;color:#b6c8d2;font-size:9px;letter-spacing:0;font-weight:450}
+#business .business-stage{
+  border-color:rgba(242,206,147,.48);
+  box-shadow:inset 0 1px 0 rgba(255,244,217,.15),0 34px 91px rgba(0,0,0,.40),0 0 28px rgba(233,173,85,.09);
+}
+#business .business-stage-top{background:linear-gradient(90deg,#091d2e,#122e43);border-color:rgba(242,208,153,.23)}
+#business .business-tabbar{border-color:rgba(244,205,143,.33);background:rgba(3,13,25,.78)}
+#business .business-tab.is-selected{background:linear-gradient(115deg,#ffe6b3,#e1ad67);box-shadow:inset 0 1px 0 rgba(255,248,233,.75),0 0 24px rgba(239,174,90,.26)}
+#business .business-tab:focus-visible{outline:2px solid #ffdeaa;outline-offset:3px}
+#business .business-summary{
+  border-color:rgba(241,208,150,.45);
+  background:radial-gradient(ellipse at 80% 0,rgba(245,189,105,.13),transparent 65%),linear-gradient(112deg,#243d4c,#102a40 68%,#091d2d);
+  box-shadow:inset 0 1px 0 rgba(255,244,218,.13),0 11px 29px rgba(0,0,0,.13);
+}
+#business .business-stat,#business .business-activity,#business .business-allocation{
+  background:linear-gradient(145deg,rgba(24,52,72,.92),rgba(8,27,44,.95));
+  border-color:rgba(183,205,219,.21);
+  box-shadow:inset 0 1px 0 rgba(255,241,208,.07);
+}
+#business .business-stat>strong{color:#fff0da}
+#business .business-bottom{margin-top:23px}
+html[lang="my"] #business .business-heading h2{
+  font-family:"Noto Sans Myanmar","Myanmar Text","Padauk",sans-serif;
+  font-size:clamp(28px,3.8vw,48px);
+  letter-spacing:0;
+  line-height:1.65;
+}
+html[lang="my"] #business .business-heading h2 em{font-family:inherit;font-style:normal;line-height:1.65}
+html[lang="my"] #business .business-perspective-copy strong,
+html[lang="my"] #business .business-perspective-copy small,
+html[lang="my"] #business .business-perspective-soon,
+html[lang="my"] #business .business-photo-caption{letter-spacing:0;line-height:1.85}
+@media(max-width:1100px){
+  #business .business-intro{grid-template-columns:minmax(0,1fr) minmax(245px,.66fr);gap:20px}
+  #business .business-heading h2{font-size:clamp(39px,5.3vw,61px)}
+  #business .business-side-note{padding:12px}
+  #business .business-perspective{grid-template-columns:19px minmax(0,1fr) auto;gap:7px;padding:10px 8px}
+  #business .business-perspective-copy strong{font-size:12px}
+  #business .business-perspective-copy small{font-size:9px}
+  #business .business-perspective-soon{max-width:68px;font-size:7px}
+}
+@media(max-width:760px){
+  #business .business-intro{grid-template-columns:1fr;gap:23px;align-items:start}
+  #business .business-side-note{
+    display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;
+    max-width:none;justify-self:stretch;
+  }
+  #business .business-perspective{min-height:84px}
+  #business .business-side-note>p{grid-column:1/-1;margin:2px 5px 0}
+  #business .business-heading h2{font-size:clamp(39px,7.3vw,59px)}
+  #business .business-visual-strip{grid-template-columns:1fr;min-height:0}
+  #business .business-visual-text{padding:25px 27px}
+  #business .business-visual-frame{min-height:270px}
+  #business .business-visual-frame::after{background:linear-gradient(180deg,#122b40,transparent 24%),linear-gradient(0deg,rgba(5,16,28,.41),transparent 47%)}
+}
+@media(max-width:520px){
+  #business .business-heading h2{font-size:clamp(36px,8.75vw,47px)}
+  #business .business-intro-lead{font-size:12px;line-height:1.85}
+  #business .business-side-note{padding:9px;gap:7px}
+  #business .business-perspective{grid-template-columns:1fr;gap:5px;align-content:start;min-height:108px;padding:10px}
+  #business .business-perspective-number{padding:0;font-size:10px}
+  #business .business-perspective-symbol{position:absolute;right:10px;top:10px;width:24px;height:24px}
+  #business .business-perspective{position:relative}
+  #business .business-perspective-copy strong{font-size:12px}
+  #business .business-perspective-soon{justify-self:start;max-width:100px;font-size:7px;margin-top:3px}
+  #business .business-side-note>p{font-size:10px}
+  #business .business-visual-text{padding:22px}
+  #business .business-visual-text h3{font-size:26px}
+  #business .business-visual-frame{min-height:220px}
+  #business .business-photo-caption{right:11px;bottom:11px;max-width:88%;font-size:8px;padding:8px 10px}
+  #business .business-photo-caption small{font-size:8px}
+}
+@media(max-width:360px){
+  #business .business-side-note{grid-template-columns:1fr}
+  #business .business-perspective{min-height:70px}
+  #business .business-heading h2{font-size:34px}
+  #business .business-photo-caption{max-width:92%}
+}
