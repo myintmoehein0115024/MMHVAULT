@@ -646,6 +646,11 @@
   Object.assign(strings.zh,{"closingExplore":"探索财务空间","footerExploreTitle":"探索 MMHVAULT","footerTrustTitle":"政策与说明","footerBackTop":"返回顶部"});
   Object.assign(strings.my,{"closingExplore":"ငွေကြေးစီမံခန့်ခွဲမှုကို လေ့လာရန်","footerExploreTitle":"လေ့လာရန်","footerTrustTitle":"အချက်အလက်များ","footerBackTop":"အပေါ်သို့ ပြန်သွားရန်"});
 
+  // L1.22 mobile Sign In / Sign Up entry labels; auth remains isolated.
+  Object.assign(strings.en,{"mobileAuthHeading":"SECURE ACCOUNT ACCESS","mobileRegister":"Create Account","mobileRegisterNote":"To register, select Sign Up on the access page."});
+  Object.assign(strings.zh,{"mobileAuthHeading":"账户登录与注册","mobileRegister":"注册账户","mobileRegisterNote":"进入后选择“Sign Up”即可注册。"});
+  Object.assign(strings.my,{"mobileAuthHeading":"လုံခြုံသော အကောင့်ဝင်ရောက်မှု","mobileRegister":"အကောင့်ဖွင့်ရန်","mobileRegisterNote":"အကောင့်ဖွင့်ရန် ဝင်ရောက်မှုစာမျက်နှာရှိ Sign Up ကို ရွေးပါ။"});
+
   const htmlKeys = new Set(['heroTitle', 'featuresTitle', 'businessHeading', 'whyTitle', 'closingTitle']);
   const storageKey = 'mmhvault.landing.language';
   const siteHeader = document.querySelector('.site-header');
