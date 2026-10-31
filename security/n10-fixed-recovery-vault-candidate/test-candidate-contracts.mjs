@@ -19,10 +19,12 @@ const cases=[
  ['owner restricted to username-only',()=>assert.match(edge,/mmhvault_auth_kind!=='username_only'/)],
  ['fresh password required',()=>assert.match(edge,/await provePassword\(user,body\.password\)/)],
  ['server-managed MFA rechecked after password proof',()=>{
-   assert.equal((edge.match(/await verifiedUser\(req\)/g)||[]).length,2);
+   assert.equal((edge.match(/await verifiedUser\(req\)/g)||[]).length,3);
    assert.match(edge,/refreshedAssurance\.state==='required'/);
    assert.match(edge,/refreshedAssurance\.user\.id!==user\.id/);
    assert.match(edge,/refreshedAssurance\.sessionId!==sessionId/);
+   assert.match(edge,/finalAssurance\.state==='required'/);
+   assert.match(edge,/finalAssurance\.sessionId!==sessionId/);
  }],
  ['three session validity checks',()=>assert.equal((edge.match(/await liveSession\(user\.id,sessionId\)/g)||[]).length,3)],
  ['rate limit uses keyed HMAC',()=>assert.match(edge,/p_bucket:await hmac\(/)],
@@ -34,6 +36,16 @@ const cases=[
    assert.match(signup,/console\.error\('n10a766_service_error'\)/);
    assert.doesNotMatch(signup,/console\.error\('n10a766_service_error',/);
    assert.doesNotMatch(signup,/console\.(?:log|error)\s*\([^)]*String\(e\)/);
+   assert.match(signup,/catch\(_\)\{console\.error\('n10a766_service_error'\);return reply\(origin,'auth_unavailable',503\)\}\}\);/);
+ }],
+ ['failed signup cleanup quarantines before exposing account',()=>{
+   assert.match(signup,/async function compensateFailedSignup\(uid:string\)/);
+   assert.match(signup,/admin\.auth\.admin\.deleteUser\(uid\)/);
+   assert.match(signup,/admin\.auth\.admin\.updateUserById\(uid,\{ban_duration:'876000h'\}\)/);
+   assert.match(signup,/mmh_n10a740_username_links'\)\.delete\(\)\.eq\('user_id',uid\)/);
+   assert.match(signup,/if\(!success&&uid\)await compensateFailedSignup\(uid\)/);
+   assert.match(signup,/await releaseSignupReservation\(username,ticket\)/);
+   assert.match(signup,/a766_orphan_cleanup_failed.*manual_intervention_required/);
  }],
  ['SQL controlled transaction',()=>{assert.match(sql,/^BEGIN;/m);assert.match(sql,/^COMMIT;/m)}],
  ['Staging migration is collision-failing first install only',()=>{
