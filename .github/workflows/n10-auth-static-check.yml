@@ -7,6 +7,7 @@ on:
       - '.github/workflows/n10-auth-static-check.yml'
       - 'tests/n10_auth_regression.py'
       - 'tests/n10_edge_mfa_assurance.test.cjs'
+      - 'tests/n10_edge_privileged_gate.test.cjs'
       - 'docs/sql/n10_mfa_gate_candidate_staging_only.sql'
       - 'docs/sql/n10_mfa_*.sql'
       - 'security/n10-edge-candidates/**'
@@ -25,6 +26,8 @@ jobs:
         run: python3 -m unittest discover -s tests -p 'n10_auth_regression.py' -v
       - name: Exercise MFA assurance decisions with Node.js
         run: node --test tests/n10_edge_mfa_assurance.test.cjs
+      - name: Exercise privileged Edge MFA decisions
+        run: node --test tests/n10_edge_privileged_gate.test.cjs
       - name: Parse TypeScript Edge MFA candidates (not deployed)
         run: |
           for file in security/n10-edge-candidates/*/index.ts; do
