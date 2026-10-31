@@ -174,3 +174,106 @@ img,svg{display:block;max-width:100%}
 @media(max-width:620px){.container{width:calc(100% - 32px)}.header-inner{gap:9px;min-height:70px}.brand{gap:8px}.brand img{width:37px;height:37px}.brand-copy strong{font-size:14px;letter-spacing:.1em}.brand-copy small{font-size:6px;letter-spacing:.15em}.header-actions{gap:7px}.locale-switch{padding:2px}.locale-switch button{font-size:9px;padding:6px 7px}.signin-link{display:none}.menu-toggle{height:37px;width:37px}.nav{left:16px;right:16px}.hero{padding-top:68px;padding-bottom:75px;gap:20px;min-height:0}.eyebrow,.section-kicker{font-size:9px;letter-spacing:.17em}.eyebrow{margin-bottom:22px}.hero-name{font-size:clamp(31px,9vw,45px);margin-bottom:15px}.hero-statement{font-size:clamp(39px,10.8vw,55px)}.hero-lead{font-size:13px;margin-top:23px;line-height:1.85}.hero-translation{font-size:12px}.hero-buttons{margin-top:25px}.button-lg{min-height:51px;padding:13px 17px;font-size:12px}.hero-bottom{margin-top:34px}.hero-art{padding:12px 15px 37px 0;margin-top:8px}.desktop-frame{border-radius:14px;transform:none}.window-bar{height:29px;padding:0 9px}.window-name{font-size:7px}.window-name small{font-size:6px}.window-status{font-size:6px}.desktop-content{grid-template-columns:32px minmax(0,1fr);min-height:284px}.demo-sidebar{padding:10px 6px;gap:18px}.sidebar-mark{width:20px;height:20px;font-size:12px;border-radius:6px}.demo-sidebar i{width:9px;height:9px;border-radius:3px}.sidebar-bottom{width:18px;height:18px}.demo-main{padding:12px}.demo-welcome{margin-bottom:10px}.demo-welcome small{font-size:6px}.demo-welcome strong{font-size:11px}.demo-date{font-size:6px}.balance-card{min-height:96px;padding:11px 13px;border-radius:10px}.balance-label{font-size:7px}.balance-amount{font-size:25px}.balance-amount span{font-size:15px}.balance-detail{font-size:7px}.mini-arrow{width:14px;height:14px}.demo-metrics{gap:6px;margin-top:7px}.demo-metrics>div{padding:8px 9px}.demo-metrics small{font-size:6px}.demo-metrics strong{font-size:12px}.metric-accent{height:3px;width:13px;bottom:9px;right:5px}.demo-chart{padding:8px 10px 7px;margin-top:7px}.chart-heading{font-size:8px}.chart-heading small{font-size:6px}.bar-chart{height:41px;gap:5px;margin-top:7px}.chart-months{font-size:5px}.phone-frame{width:117px;height:234px;border-width:3px;border-radius:23px;padding:23px 7px 9px;right:-5px;bottom:36px;transform:rotate(6deg)}.phone-island{width:38px;height:9px;top:6px}.phone-top{font-size:6px}.phone-title{font-size:11px;margin-top:15px}.phone-total{margin-top:7px;padding:7px 5px;border-radius:8px}.phone-total small{font-size:5px}.phone-total strong{font-size:16px}.phone-total strong span{font-size:10px}.phone-mini-card{margin-top:6px;padding:5px 3px;gap:3px}.phone-card-icon{width:12px;height:12px;flex-basis:12px;font-size:7px;border-radius:3px}.phone-mini-card>span:nth-child(2){font-size:5px}.phone-mini-card small{font-size:4px}.phone-mini-card b{font-size:5px}.phone-bottom{left:10px;right:10px;bottom:9px}.phone-bottom i{width:9px;height:3px}.demo-disclaimer{font-size:8px;right:0;bottom:0}.statement-inner{padding:16px 0;min-height:0;flex-wrap:wrap;gap:8px 13px;font-size:8px;letter-spacing:.11em}.section{padding-block:73px}.section-heading{display:block;margin-bottom:26px}.section-heading h2,.why-intro h2{font-size:clamp(35px,9vw,48px)}.section-heading>p{max-width:500px;margin:17px 0 0}.feature-grid{grid-template-columns:1fr;gap:12px}.feature-card{min-height:340px;padding:22px;border-radius:19px}.feature-card h3{margin-top:18px}.feature-visual{min-height:122px}.feature-note{text-align:left;line-height:1.6}.why-layout{gap:32px}.benefit-grid{gap:10px}.benefit-grid article{padding:17px 13px;min-height:167px}.benefit-grid h3{font-size:12px}.benefit-grid p{font-size:11px}.why-signature small{font-size:7px}.security-panel{grid-template-columns:1fr;gap:8px;padding:23px;border-radius:19px}.security-graphic,.orbit-outer{width:150px;height:150px}.orbit-inner{width:115px;height:115px}.security-graphic svg{width:80px;height:80px}.security-copy h2{font-size:34px}.closing-section{padding-top:10px;padding-bottom:76px}.closing-section h2{font-size:clamp(35px,9.5vw,50px)}.footer-main{flex-direction:column;padding:35px 0 26px;gap:25px}.footer-main nav{justify-content:flex-start;gap:14px 24px}.footer-bottom{flex-direction:column;gap:7px;padding:18px 0 23px;line-height:1.6}}
 @media(max-width:380px){.brand-copy small{display:none}.brand-copy strong{font-size:12px}.locale-switch button{padding:6px}.hero-buttons{gap:9px}.button-lg{padding-inline:12px;font-size:11px}.hero-statement{font-size:38px}.balance-amount{font-size:22px}.phone-frame{width:103px;height:221px}.phone-mini-card:last-of-type{display:none}.hero-art{padding-right:10px}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
+
+/* L1.1 — architectural atmosphere: restrained gold, glass, skyline, depth. */
+body{background:radial-gradient(ellipse at 78% 10%,#11243a 0%,#070f1b 49%,#060c16 80%)}
+.hero{position:relative;isolation:isolate}
+.hero::before{
+  content:"";position:absolute;z-index:-2;pointer-events:none;
+  inset:-70px -9vw -60px;
+  background-image:
+    linear-gradient(90deg,rgba(4,10,20,.91) 0%,rgba(5,12,23,.78) 32%,rgba(6,15,28,.46) 62%,rgba(5,12,21,.43) 100%),
+    linear-gradient(0deg,rgba(6,12,22,.88),transparent 53%,rgba(6,13,24,.37)),
+    url("../images/mmhvault-city-glass-v2.webp"),
+    url("./premium-architecture.svg");
+  background-position:center,center,center 67%,center center;
+  background-size:cover,cover,cover,cover;
+  background-repeat:no-repeat;
+  background-blend-mode:normal,normal,screen,normal;
+  -webkit-mask-image:linear-gradient(to bottom,#000 0%,#000 70%,transparent 100%);
+  mask-image:linear-gradient(to bottom,#000 0%,#000 70%,transparent 100%);
+}
+.hero::after{
+  content:"";position:absolute;z-index:-1;pointer-events:none;
+  width:min(62vw,840px);height:480px;right:-4vw;top:3%;
+  background:radial-gradient(ellipse at center,rgba(184,146,83,.16),rgba(62,98,129,.06) 48%,transparent 73%);
+  filter:blur(36px);
+}
+.desktop-frame{
+  border-color:rgba(223,207,173,.27);
+  box-shadow:0 45px 105px rgba(0,0,0,.56),0 0 0 1px rgba(240,210,152,.08),0 0 56px rgba(168,126,73,.08),inset 0 1px 0 rgba(255,255,255,.10);
+}
+.hero-name{color:#f3ddb5;text-shadow:0 5px 42px rgba(176,126,57,.15)}
+.hero-copy{filter:drop-shadow(0 5px 18px rgba(0,0,0,.16))}
+.feature-card{background:linear-gradient(150deg,rgba(31,48,65,.83),rgba(10,23,39,.91) 75%);border-color:rgba(199,207,215,.17);box-shadow:inset 0 1px 0 rgba(255,255,255,.048),0 13px 36px rgba(0,0,0,.1)}
+.feature-card::after{content:"";position:absolute;inset:0 0 auto;height:45%;background:linear-gradient(140deg,rgba(243,226,190,.055),transparent 65%);border-radius:inherit;pointer-events:none}
+.feature-card>*{position:relative;z-index:1}
+.why-section{background:radial-gradient(ellipse at 0% 50%,rgba(72,90,107,.2),transparent 45%),linear-gradient(120deg,rgba(29,45,63,.48),rgba(7,17,29,.94))}
+.security-panel{box-shadow:0 24px 75px rgba(0,0,0,.12),inset 0 1px 0 rgba(255,255,255,.08)}
+.locale-switch button[data-lang="my"]{font-family:"Noto Sans Myanmar","Myanmar Text","Padauk",var(--font);font-size:10px;letter-spacing:0;line-height:1.6}
+html[lang="my"]{font-family:"Noto Sans Myanmar","Myanmar Text","Padauk",var(--font)}
+html[lang="my"] .hero-statement{font-size:clamp(28px,3vw,48px);line-height:1.58;letter-spacing:0;max-width:640px}
+html[lang="my"] .hero-statement em,
+html[lang="my"] .why-intro em,
+html[lang="my"] .closing-section em{font-family:inherit;font-weight:650;font-style:normal;letter-spacing:0}
+html[lang="my"] .hero-name{line-height:1.08;letter-spacing:.07em}
+html[lang="my"] .hero-lead,
+html[lang="my"] .section-heading>p,
+html[lang="my"] .feature-card>p,
+html[lang="my"] .benefit-grid p,
+html[lang="my"] .security-copy>p:not(.section-kicker),
+html[lang="my"] .why-intro>p:not(.section-kicker){line-height:2.05}
+html[lang="my"] .section-heading h2,
+html[lang="my"] .why-intro h2,
+html[lang="my"] .closing-section h2{line-height:1.55;letter-spacing:0;font-size:clamp(28px,3.65vw,50px)}
+html[lang="my"] .security-copy h2{font-size:clamp(28px,2.9vw,40px);line-height:1.58;letter-spacing:0}
+html[lang="my"] .feature-card{min-height:412px}
+html[lang="my"] .benefit-grid article{min-height:196px}
+html[lang="my"] .benefit-grid h3{line-height:1.65}
+html[lang="my"] .button{white-space:normal;line-height:1.65;text-align:center}
+html[lang="my"] .header-actions .button{white-space:nowrap}
+html[lang="my"] .demo-welcome strong{font-size:14px;line-height:1.5}
+html[lang="my"] .demo-disclaimer{line-height:1.6}
+html[lang="my"] .phone-title{font-size:12px}
+html[lang="my"] .phone-mini-card>span:nth-child(2){line-height:1.7}
+@media(max-width:1160px){
+  html[lang="my"] .header-cta{display:none}
+  html[lang="my"] .nav{gap:14px}
+  html[lang="my"] .nav a{font-size:11px}
+}
+@media(max-width:840px){
+  .hero::before{inset:-35px -5vw -18px;background-position:center,center,center 72%,center}
+  html[lang="my"] .hero-statement{font-size:clamp(32px,5.2vw,47px)}
+}
+@media(max-width:620px){
+  .hero::before{inset:-25px -16px -20px;background-image:
+    linear-gradient(90deg,rgba(4,10,20,.88),rgba(5,14,26,.73)),
+    linear-gradient(0deg,rgba(6,12,22,.88),transparent 52%,rgba(6,13,24,.55)),
+    url("../images/mmhvault-city-glass-v2.webp"),
+    url("./premium-architecture.svg");
+    background-position:center,center,60% 76%,center;
+  }
+  .hero::after{width:100%;height:300px;right:0;top:28%}
+  .locale-switch button[data-lang="my"]{font-size:9px;padding:6px}
+  html[lang="my"] .hero-statement{font-size:clamp(28px,7.3vw,38px);line-height:1.65}
+  html[lang="my"] .hero-lead{font-size:12px}
+  html[lang="my"] .hero-translation{line-height:1.8;font-size:11px}
+  html[lang="my"] .hero-buttons{gap:9px}
+  html[lang="my"] .hero-buttons .button{min-width:0;flex:1 1 130px;gap:7px;padding:12px 13px}
+  html[lang="my"] .section-heading h2,
+  html[lang="my"] .why-intro h2,
+  html[lang="my"] .closing-section h2{font-size:clamp(27px,7.4vw,37px);line-height:1.55}
+  html[lang="my"] .security-copy h2{font-size:29px;line-height:1.6}
+  html[lang="my"] .feature-card{min-height:390px}
+  html[lang="my"] .benefit-grid article{min-height:204px}
+  html[lang="my"] .benefit-grid h3{font-size:12px;line-height:1.7}
+  html[lang="my"] .benefit-grid p{font-size:10px}
+  html[lang="my"] .demo-welcome strong{font-size:9px}
+  html[lang="my"] .demo-disclaimer{font-size:7px}
+}
+@media(max-width:345px){
+  .brand-copy strong{font-size:11px}
+  .locale-switch button{padding-inline:5px}
+  .locale-switch button[data-lang="my"]{font-size:8px}
+  html[lang="my"] .hero-buttons .button{font-size:10px}
+}
