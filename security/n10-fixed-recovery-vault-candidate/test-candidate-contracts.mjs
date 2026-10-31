@@ -42,6 +42,8 @@ const cases=[
      "const phrase=normalizePhrase(body.phrase);",
      "const records=await admin.from('mmh_n10a769_recovery_phrases')",
      "if(!equal64(records.data[0].verifier,mac))",
+     "const backupAssurance=await verifiedUser(req);",
+     "const backupSessionCheck=await liveSession(user.id,sessionId);",
      "const saved=await admin.rpc('mmh_n10_recovery_backup_put'"
    ];
    let prev=-1;
@@ -128,14 +130,24 @@ const cases=[
  ['owner restricted to username-only',()=>assert.match(edge,/mmhvault_auth_kind!=='username_only'/)],
  ['fresh password required',()=>assert.match(edge,/await provePassword\(user,body\.password\)/)],
  ['server-managed MFA rechecked after password proof',()=>{
-   assert.equal((edge.match(/await verifiedUser\(req\)/g)||[]).length,3);
+   assert.equal((edge.match(/await verifiedUser\(req\)/g)||[]).length,4);
    assert.match(edge,/refreshedAssurance\.state==='required'/);
    assert.match(edge,/refreshedAssurance\.user\.id!==user\.id/);
    assert.match(edge,/refreshedAssurance\.sessionId!==sessionId/);
    assert.match(edge,/finalAssurance\.state==='required'/);
    assert.match(edge,/finalAssurance\.sessionId!==sessionId/);
  }],
- ['three session validity checks',()=>assert.equal((edge.match(/await liveSession\(user\.id,sessionId\)/g)||[]).length,3)],
+ ['backup commit rechecks owner and enrolled MFA after immutable verifier',()=>{
+   assert.match(edge,/const backupAssurance=await verifiedUser\(req\)/);
+   assert.match(edge,/backupAssurance\.state==='required'.*mfa_required/);
+   assert.match(edge,/backupAssurance\.state==='unavailable'.*mfa_unavailable/);
+   assert.match(edge,/backupAssurance\.user\.id!==user\.id/);
+   assert.match(edge,/backupAssurance\.sessionId!==sessionId/);
+   assert.match(edge,/const backupSessionCheck=await liveSession\(user\.id,sessionId\)/);
+   assert.match(edge,/backupSessionCheck==='unavailable'.*session_check_unavailable/);
+   assert.match(edge,/backupSessionCheck!=='active'.*session_expired/);
+ }],
+ ['four session validity checks',()=>assert.equal((edge.match(/await liveSession\(user\.id,sessionId\)/g)||[]).length,4)],
  ['rate limit uses keyed HMAC',()=>assert.match(edge,/p_bucket:await hmac\(/)],
  ['backup and reveal share 5-attempt / 15-min bucket',()=>{assert.match(edge,/n10-fixed-recovery:secret_proof:/);assert.match(edge,/p_limit:5,p_window_seconds:900/);assert.doesNotMatch(edge,/n10-fixed-recovery:'\+action/)}],
  ['maximum request body enforced during stream',()=>assert.match(edge,/if\(total>1200\)/)],
