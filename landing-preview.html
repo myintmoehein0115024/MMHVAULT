@@ -522,32 +522,5 @@
  <span class="footer-bottom-motto" data-i18n="madeFor">DESIGNED FOR A MORE INTENTIONAL FINANCIAL LIFE</span>
  <a class="footer-back-top" href="#top"><span data-i18n="footerBackTop">Back to top</span><span aria-hidden="true">↑</span></a>
 </div></footer>
-  <!-- Temporary L1.21 mobile layout diagnostic; active only with ?mmh_layout_probe=1; remove after QA. -->
-  <script>
-  (function () {
-    if (!new URLSearchParams(location.search).has('mmh_layout_probe')) return;
-    function inspect() {
-      const w = document.documentElement.clientWidth;
-      const nodes = Array.from(document.body.querySelectorAll('*')).map(el => {
-        const box = el.getBoundingClientRect();
-        const cs = getComputedStyle(el);
-        return {
-          selector: el.id ? '#' + el.id : (el.tagName.toLowerCase() + (typeof el.className === 'string' ? '.' + el.className.trim().replace(/\s+/g,'.').slice(0,70) : '')),
-          x: Math.round(box.left), right: Math.round(box.right), width: Math.round(box.width),
-          scrollWidth: el.scrollWidth, clientWidth: el.clientWidth,
-          overflowX: cs.overflowX, position: cs.position
-        };
-      }).filter(x => x.width > 0 && ((x.right > w + 3 && x.x > -1000) || x.scrollWidth > x.clientWidth + 3))
-        .sort((a,b) => (b.scrollWidth-b.clientWidth)-(a.scrollWidth-a.clientWidth)).slice(0,36);
-      const result = {viewport: w, innerWidth, scrollX, visualWidth:window.visualViewport?.width, htmlScrollWidth:document.documentElement.scrollWidth, bodyScrollWidth:document.body.scrollWidth, offenders:nodes};
-      const target = document.getElementById('landing-layout-probe') || document.createElement('pre');
-      target.id = 'landing-layout-probe'; target.style.cssText = 'position:fixed;left:0;top:0;z-index:999999;padding:4px;max-width:90vw;max-height:100px;overflow:auto;background:#11283b;color:#e4c27f;font-size:9px;white-space:pre-wrap;overflow-wrap:anywhere';
-      target.textContent = JSON.stringify(result);
-      document.body.appendChild(target);
-    }
-    window.addEventListener('load', () => setTimeout(inspect,250), {once:true});
-    if (document.readyState === 'complete') setTimeout(inspect,250);
-  })();
-  </script>
 </body>
 </html>
