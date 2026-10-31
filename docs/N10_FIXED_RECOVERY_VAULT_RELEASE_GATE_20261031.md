@@ -115,3 +115,15 @@ Draft PR only: **do not merge until the full database and signed-token tests pas
 - **Additional integration prerequisite:** `username-signup-integration-NOT_DEPLOYED.ts` is intentionally pinned to production project `vrypucmyrztxgiqhjspd`, origin `https://mmhvault.com`, and CAPTCHA hostname `mmhvault.com`. It cannot be used as-is to validate *Staging* signup, and attempting to use production credentials or disable CAPTCHA for QA is forbidden. Develop a separately gated Staging-only deployment/test adapter with isolated QA credentials, verified QA domain/Turnstile configuration and synthetic accounts after receiving proper migration/test approvals. Production remains untouched.
 - No actual recovery Vault private schema, escrow table, rate bucket, RPC or synthetic original verifier is installed in Staging. The previously blocked Staging SQL execution gate was not retried or bypassed. All new-feature runtime release flags remain false.
 - **Stop before release:** approved Staging migration path, tested isolated signup harness, real JWT + AAL1/AAL2, actual password reauthentication, live logout/revocation, failed-Auth-delete orphan handling, Vault secret cleanup, read-only RLS/ACL inspection, and rollback rehearsal are still required.
+
+## October 31 — Isolated synthetic verifier fixture prepared, **not installed**
+
+- A read-only metadata comparison found the production legacy verifier table has `user_id uuid` referencing `auth.users` with ON DELETE CASCADE, `verifier text` (64 lowercase hex digits), `version smallint` (fixed at 1), and `created_at timestamptz`.
+- Staging currently has the username-links table and the Vault extension but **not** the original-phrase verifier table or the new private recovery schema.
+- Prepared `docs/sql/n10_fixed_recovery_verifier_SYNTHETIC_STAGING_ONLY.sql` as a deliberately separate, first-install-only, **empty** synthetic verifier fixture mirroring the production verifier's structure, strict RLS and backend-only access. It creates no users, secrets, phrases, verifiers or financial data.
+- That file is **not permission to apply a migration**. The previous SQL safety gate remains unresolved and must not be bypassed by the SQL editor, connector, branch merge or another channel. Installing this fixture or the Vault candidate requires its own explicitly approved, auditable path.
+- Synthetic verification HMACs must be created with a **Staging-only** secret from synthetic phrases after test-user approval, never copied from production. Do not reuse production `N10A740_RATE_HMAC_KEY`.
+- This fixture is for the **existing-account** recovery backup/reveal integration test, not evidence that full username-only signup is staged. The signup integration candidate remains production-host pinned and needs an isolated Staging adaptation before live QA.
+- Rollback must clear only the authorized synthetic users and corresponding verifier records, then remove the isolated fixture table after confirmation no other objects depend on it. Never run unreviewed CASCADE DROP or modify production.
+
+**No staging or production SQL change was performed.**
