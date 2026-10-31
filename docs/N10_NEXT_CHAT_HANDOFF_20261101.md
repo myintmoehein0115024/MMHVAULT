@@ -94,3 +94,13 @@
 - QA 仓库新增离线安全检查 `tests/n10_joint_mfa_locked.test.cjs` + `.github/workflows/n10-joint-mfa-locked.yml`，GitHub Actions `41228940473` SUCCESS (6/6 关闭状态安全合同 + JS parse)，**只对源码测试**，不是真实 MFA。
 - Staging 联合 Edge `mmh-n10-qa-joint-mfa-vault-20261101` v1 仍然 OFF、空白名单、1970 过期；没有执行用户 A 的 TOTP 绑定或 AAL1/AAL2 + Vault 联测；Vault 删除孤儿密钥仍 UNVERIFIED；生产未变，PR #2 仍 Draft、冲突未消，V11 暂停。
 - **后续单独批准**：只开放此专用 QA 绑定页面进行 A 的 TOTP Enrollment（限时、受控、仅 Staging，测试后恢复 LOCKED）；之后要做真实 MFA+Vault 联测还需完整审批。绝不可因为“打开网页正常”就自动把 Edge release flag 或空白名单改成开放。
+
+## 最新交接补充（2026-11-01 · 已覆盖前文过期步骤）
+- **重要：本文前面“尚未创建 A/B”“尚未打开网页”的步骤已过期，不要重新创建账户。** Staging A/B 两个合成用户均已存在并验证身份。用户成功打开过独立 MFA QA 页，确认 LOCKED；在一次明确批准的短时 A-only 绑定测试后，用户报告 PASS，但 Staging Auth 只读核验仍显示 A 的一个 TOTP 因子 **unverified**，1 challenge / **0 verified**；B 0 factors。真实 AAL2 **没有验收通过**。
+- Staging 认证只读聚合日志在对应窗口含 `mfa_factor_name_conflict` 四次、`mfa_verification_failed` 一次。主要兼容问题：`listFactors().totp` 不包含尚未验证的因子，必须从 `listFactors().all` 读取旧 `unverified` TOTP；不能凭发起 challenge、前端自报 PASS 判断绑定成功。
+- 独立 QA 仓库中已修复此列表错误、旧因子清理和复核、唯一显示名称、错误分阶段提示、验证码重试限制、页面关闭和到期处理；最新模拟 CI 11/11 PASS，仍 **`QA_RELEASED=false` + 1970 过期**。一次重启测试窗口的代码提交被安全检查拦截，**不要通过其它分支/API/用户代操作绕过阻断**。需要合法解决该门禁后，才可能再次真实测试。
+- N10 Draft PR #2 后续增加前端 `N10_FIXED_VAULT_UI_RELEASED=false`，候选 Vault 服务器发布开关也 OFF；`login.html` 在审查时 main 和 Draft 的 blob 相同；安全中心保留不合并的 Draft 专用改动，PR #2 仍 `mergeable=false`。参考 `docs/N10_PR2_MERGE_AND_RELEASE_GATES_20261101.md`。
+- Draft 安全中心相同的旧 TOTP 因子枚举缺陷已修：`inspectTotpFactors(data.all)` + 旧因子处理及重查 + 唯一名称；验证码通过后还需同因子 `verified` 及会话 AAL2 才允许报告成功。**正式 main 尚未应用这个修复**。
+- 最新 Draft 增加 `mfaEpoch`、`mfaFlowActive` 防止弹窗已关闭、标签页隐藏、退出或切换 UID 后迟到的 MFA 请求重新显示 QR／提示成功；账户切换或登出同步清除敏感 UI。回归 15/15 UI 安全合同及最新 CI `41231983225` SUCCESS。此为 **离线模拟验证，不是生产签名端到端验收**。
+- 生产环境、财务数据、正式 login/app、域名、生产 RLS/Edge 未修改。**不要合并 Draft、发布 Vault、开启联合测试或改变受限 Vault 审计权限**。真实 A MFA、AAL1/AAL2+Vault 联测和 Vault 删除证明均未完成。V11 暂停。
+- 若用户仅回复“继续”，优先进行 Draft-only / LOCKED 的离线安全检查或记录整理，简短报告进度；禁止将受阻测试擅自当作批准。用户偏好一次说明实际已完成事项、下一步与剩余大阶段，避免重复要求手工操作。
