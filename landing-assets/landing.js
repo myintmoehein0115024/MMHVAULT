@@ -914,6 +914,29 @@
     else heroPhoto.addEventListener('load', revealPhoto, {once:true});
   }
 
+  // TEMPORARY L1.21 QA diagnostic. Only runs with ?mmh_layout_probe=1.
+  if (new URLSearchParams(window.location.search).has('mmh_layout_probe')) {
+    window.setTimeout(() => {
+      const w = document.documentElement.clientWidth;
+      const nodes = Array.from(document.body.querySelectorAll('*')).map(el => {
+        const rect=el.getBoundingClientRect(),css=getComputedStyle(el);
+        return {
+          element: el.id ? '#'+el.id : el.tagName.toLowerCase()+(typeof el.className === 'string' ? '.'+el.className.trim().replace(/\\s+/g,'.').slice(0,80) : ''),
+          x:Math.round(rect.left),right:Math.round(rect.right),width:Math.round(rect.width),
+          scrollWidth:el.scrollWidth,clientWidth:el.clientWidth,
+          overflowX:css.overflowX,position:css.position
+        };
+      }).filter(x => x.width>0 && ((x.right>w+3 && x.x>-1000) || x.scrollWidth>x.clientWidth+3))
+       .sort((a,b)=>(b.scrollWidth-b.clientWidth)-(a.scrollWidth-a.clientWidth)).slice(0,38);
+      const data={viewport:w,scrollX:window.scrollX,htmlScrollWidth:document.documentElement.scrollWidth,bodyScrollWidth:document.body.scrollWidth,items:nodes};
+      const node=document.createElement('pre');
+      node.id='external-layout-probe';
+      node.style.cssText='position:fixed;top:1px;left:1px;z-index:999998;max-width:90vw;max-height:90px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;background:#11293c;color:#ffdda8;font-size:10px;';
+      node.textContent=JSON.stringify(data);
+      document.body.appendChild(node);
+    },550);
+  }
+
   let saved = 'en';
   try { const stored = window.localStorage.getItem(storageKey); if (stored === 'zh' || stored === 'my') saved = stored; } catch (_) {}
   applyLanguage(saved);
