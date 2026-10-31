@@ -29,4 +29,10 @@ jobs:
         run: node security/n10-fixed-recovery-vault-candidate/test-session-guard.mjs
       - name: Backend and SQL static security contracts
         run: node security/n10-fixed-recovery-vault-candidate/test-candidate-contracts.mjs
+      - name: Install Deno for dependency and TypeScript checks
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Type-check undeployed Vault Edge candidate (NO execution)
+        run: deno check security/n10-fixed-recovery-vault-candidate/index.ts
 # Deliberately no Supabase or GitHub deployment, SQL writes, secrets, or live users.
