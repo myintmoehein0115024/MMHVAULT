@@ -88,6 +88,13 @@ function mfaFlowActive(epoch,userId){
  const overlay=$('mmhA783TotpStart')?.closest('.mmh-n10-modal-overlay');
  return epoch===mfaEpoch&&userId===owner&&!document.hidden&&!!overlay&&!overlay.hidden;
 }
+// Removal is a destructive action: bind the target, owner and active modal.
+// Re-check after every asynchronous Auth request and before reporting success.
+function mfaRemovalActive(epoch,userId,targetFactor){
+ return mfaFlowActive(epoch,userId)&&factorId===targetFactor&&
+  !$('mmhA783TotpRemoveConfirm').hidden&&
+  $('mmhA783TotpRemoveText').value==='REMOVE';
+}
 async function cancelPendingMfa(){const id=pendingFactor;clearMfa();if(!id)return true;try{const r=await client().auth.mfa.unenroll({factorId:id});return !r.error}catch(_){return false}}
 function displayTotpQr(totp){
  const holder=$('mmhA783TotpQr');holder.replaceChildren();
@@ -436,11 +443,36 @@ $('mmhA783TotpRemove').addEventListener('click',()=>{
  status('To remove your authenticator, enter REMOVE below. Only the verified owner can continue.');
 });
 $('mmhA783TotpRemoveNow').addEventListener('click',async()=>{
- if($('mmhA783TotpRemoveText').value!=='REMOVE'||!factorId)return;
- const aal=await client().auth.mfa.getAuthenticatorAssuranceLevel();
- if(aal.error||aal.data?.currentLevel!=='aal2'){status('Complete two-step verification before removing an authenticator.');return}
- const {error}=await client().auth.mfa.unenroll({factorId});if(error){status('Unable to remove the authenticator.');return}
- $('mmhA783TotpRemoveText').value='';$('mmhA783TotpRemoveConfirm').hidden=true;status('Authenticator removed.');void refresh();
+ if(busy||$('mmhA783TotpRemoveText').value!=='REMOVE'||!factorId)return;
+ const epoch=mfaEpoch,userId=owner,targetFactor=factorId;
+ if(!mfaRemovalActive(epoch,userId,targetFactor))return;
+ busy=true;
+ try{
+  const before=await verifiedUser();
+  if(before.user.id!==userId||!mfaRemovalActive(epoch,userId,targetFactor))return;
+  const aal=await client().auth.mfa.getAuthenticatorAssuranceLevel();
+  if(!mfaRemovalActive(epoch,userId,targetFactor))return;
+  if(aal.error||aal.data?.currentLevel!=='aal2')throw Error('aal2_required');
+  // Protect against removing a replaced factor after a refresh or UID change.
+  const factors=await client().auth.mfa.listFactors();
+  if(factors.error||!inspectTotpFactors(factors.data).verified.some(f=>f.id===targetFactor))
+   throw Error('factor_missing_or_unverified');
+  if(!mfaRemovalActive(epoch,userId,targetFactor))return;
+  const current=await verifiedUser();
+  if(current.user.id!==userId||!mfaRemovalActive(epoch,userId,targetFactor))return;
+  // No await between final owner/target check and initiating the Auth operation.
+  const result=await client().auth.mfa.unenroll({factorId:targetFactor});
+  if(!mfaRemovalActive(epoch,userId,targetFactor))return;
+  if(result.error)throw result.error;
+  $('mmhA783TotpRemoveText').value='';
+  $('mmhA783TotpRemoveConfirm').hidden=true;
+  factorId='';
+  status('Authenticator removed.');
+  void refresh();
+ }catch(_){
+  if(mfaRemovalActive(epoch,userId,targetFactor))
+   status('Authenticator removal could not be confirmed. Check the account and try again.');
+ }finally{busy=false;}
 });
 document.addEventListener('visibilitychange',()=>{if(document.hidden){hideKey();if(pendingFactor)void cancelPendingMfa();}});
 window.addEventListener('pagehide',()=>{hideKey();if(pendingFactor)void cancelPendingMfa();else clearMfa();});
