@@ -56,3 +56,8 @@
 - PR #2 在基准提交 `5fc213881da334ab700b92a83018415ca4aa413e` 仍为 Draft / unmerged。最新基准 GitHub Actions [41226412163](https://github.com/myintmoehein0115024/MMHVAULT/actions/runs/41226412163) **SUCCESS**；日志明确显示 14/14 MFA 纯模拟、36/36 后端 SQL/Edge 静态合同、10/10 UI 静态合同通过，session 检查步骤成功，Deno 对四个候选 TS 文件的 type-check 成功。这只证明**上述 SHA 的离线检查**；分支新增文档后需再确认新的 head CI。
 - 增加文档 [N10_SAFE_EVIDENCE_AND_JOINT_MFA_GATE_20261101.md](./N10_SAFE_EVIDENCE_AND_JOINT_MFA_GATE_20261101.md)，规定 Vault 删除清理阻断项的合法审计证据、不可绕过前次安全拦截、准确固定恢复 Edge + TOTP 的新隔离联测、生产审批与回滚边界。
 - **状态不变：** `VAULT_DELETE_E2E=UNVERIFIED`、`FIXED_RECOVERY_MFA_VAULT_JOINT=UNTESTED`、`PRODUCTION_N10_RELEASE=BLOCKED`、`V11=PAUSED`。不能将 GitHub CI 绿色当作真实数据库删除证明。
+
+## 2026-11-01 — PR #2 与 main 合并冲突（请勿自动处理）
+- GitHub REST `pulls/2` 在当前 PR head `7a2a103cada49dafc420f0375b8108778bbe8d30` 报告 `mergeable=false`, `mergeable_state=dirty`。分支相对当时 `main` 为 ahead 107、behind 11。
+- `main` 自 N10 建分支基线 `0d94cd34ea96eda6cc3c525534385ccb4b93bde3` 以来，登录与安全中心文件 `login.html`、`js/mmhvault-n10-a7-83-security-center.js` 都有正式更新；Draft 也修改了这两个文件，必须逐行人工整合，不能以 N10 Draft 的旧版本覆盖正式密码重置/账户安全模态功能。
+- **不进行自动 merge/rebase/force push**，不改 `main` 或 Landing 相关代码。待 N10 安全门槛全部完成并获独立批准后再解决文件冲突，然后基于最终 head 重新执行 CI/回归。
