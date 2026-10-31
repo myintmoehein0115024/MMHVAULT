@@ -1,12 +1,12 @@
 # N10 — Fixed Recovery Key Staging Rollback Review (NOT EXECUTABLE)
 
-Status: **Draft PR only. No staging migration has been permitted or applied.**
+Status: **Two separately authorized Staging-only migrations were successfully applied on 2026-10-31; PR remains Draft/unmerged.** See `docs/N10_FIXED_RECOVERY_STAGING_EXECUTION_RECORD_20261031.md`.
 Target: **MMHVAULT-Auth-Staging** `ldivswlhtgmznzwhzsoi` only.
 Do not use on production project `vrypucmyrztxgiqhjspd`.
 
 ## Safety and release gates
 
-1. Previously attempted SQL migration was blocked by a safety gate. This document does **not** override that gate and is **not** permission to execute or retry it by another tool.
+1. An earlier SQL migration attempt was blocked by a safety gate. On 2026-10-31, the owner separately approved and the original Supabase migration interface accepted two reviewed Staging-only migrations. This does **not** authorize additional SQL writes, test users or production deployment.
 2. Obtain an approved, auditable Staging migration/rollback pathway and explicit operator authorization **before** any database write.
 3. Keep Draft PR #2 unmerged; `RECOVERY_RELEASE_ENABLED=false`; do not change production username signup, MFA, login, financial rows, or DNS.
 4. Never use production accounts, passwords, verifier HMAC values, ten-word phrases, decrypted Vault secrets, session tokens, or service-role credentials for Staging QA.
@@ -48,4 +48,4 @@ Do not use on production project `vrypucmyrztxgiqhjspd`.
 - `docs/sql/n10_fixed_recovery_READ_ONLY_PREFLIGHT.sql` — metadata-only privilege inspection.
 - `docs/N10_FIXED_RECOVERY_VAULT_RELEASE_GATE_20261031.md` — acceptance matrix.
 
-**No writes to Staging or production were made while authoring this review.**
+**Historical note:** This rollback checklist was first drafted before installation. The two authorized Staging schema writes were later completed; see the linked execution record. No rollback or synthetic secret-deletion rehearsal has yet occurred.
