@@ -683,3 +683,14 @@ html[lang="my"] #business .business-legend .business-legend-item>span{line-heigh
 @media(prefers-reduced-motion:reduce){
   #business .business-tab{transition:none!important}
 }
+
+
+/* L1.16.1 narrow-viewport safeguard: prevent financial amounts colliding. */
+@media(max-width:360px){
+ #business .business-stat-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+ #business .business-stat-grid .business-stat:last-child{grid-column:1/-1}
+ #business .business-stat{min-width:0;min-height:74px}
+ #business .business-stat>strong{font-size:clamp(12px,4vw,14px);white-space:nowrap}
+ #business .business-mode-context-copy{min-width:0;overflow-wrap:anywhere}
+ #business .business-legend .business-legend-item b{font-size:9px}
+}
