@@ -168,5 +168,10 @@ Deno.serve(async(req:Request)=>{
  if(stored.error)return out(origin,'unavailable',503);
  const phrase=normalizePhrase(stored.data);
  if(!phrase)return out(origin,'backup_not_ready',409);
+ // Recheck after the asynchronous decrypted Vault read. This closes the
+ // logout/revocation window between the earlier check and plaintext response.
+ const finalSessionCheck=await liveSession(user.id,sessionId);
+ if(finalSessionCheck==='unavailable')return out(origin,'session_check_unavailable',503);
+ if(finalSessionCheck!=='active')return out(origin,'session_expired',401);
  return out(origin,'recovery_key',200,{words:phrase.split(' '),expires_in_seconds:45});
 });
