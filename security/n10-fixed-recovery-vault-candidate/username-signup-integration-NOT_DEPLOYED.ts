@@ -3,7 +3,7 @@
 import { createClient } from 'npm:@supabase/supabase-js@2.57.4';
 import { wordlist } from 'npm:@scure/bip39@1.6.0/wordlists/english';
 const PROJECT='vrypucmyrztxgiqhjspd';
-const RELEASE_ENABLED=true; // restricted qa_ production pilot, max 3 accounts
+const RELEASE_ENABLED=false; // fail closed: candidate is not approved for runtime deployment
 const BASE=Deno.env.get('SUPABASE_URL')||'';
 const ORIGIN='https://mmhvault.com';
 const SITE_HOST='mmhvault.com';
