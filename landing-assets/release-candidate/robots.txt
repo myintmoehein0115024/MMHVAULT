@@ -1,0 +1,5 @@
+# MMHVAULT production robots.txt candidate
+User-agent: *
+Allow: /
+
+Sitemap: https://mmhvault.com/sitemap.xml
