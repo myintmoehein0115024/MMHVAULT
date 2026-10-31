@@ -1,0 +1,80 @@
+name: N10 Auth Static Safety Checks
+on:
+  pull_request:
+    paths:
+      - 'login.html'
+      - 'js/mmhvault-n10-a7-69-username.js'
+      - '.github/workflows/n10-auth-static-check.yml'
+      - 'tests/n10_auth_regression.py'
+      - 'tests/n10_edge_mfa_assurance.test.cjs'
+      - 'tests/n10_edge_privileged_gate.test.cjs'
+      - 'docs/sql/n10_mfa_gate_candidate_staging_only.sql'
+      - 'docs/sql/n10_mfa_*.sql'
+      - 'docs/sql/n10_wallet_rpc_transactional_staging_qa.sql'
+      - 'docs/sql/n10_atomic_release_rollback_isolated_staging_qa.sql'
+      - 'security/n10-edge-candidates/**'
+  workflow_dispatch:
+jobs:
+  auth-static:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check N10 regression contracts
+        run: python3 -m unittest discover -s tests -p 'n10_auth_regression.py' -v
+      - name: Exercise MFA assurance decisions with Node.js
+        run: node --test tests/n10_edge_mfa_assurance.test.cjs
+      - name: Exercise privileged Edge MFA decisions
+        run: node --test tests/n10_edge_privileged_gate.test.cjs
+      - name: Parse TypeScript Edge MFA candidates (not deployed)
+        run: |
+          for file in security/n10-edge-candidates/*/index.ts; do
+            npx --yes esbuild@0.25.12 "$file" --bundle --platform=neutral --format=esm --external:'*' --outfile="/tmp/$(basename "$(dirname "$file")")-check.js" --log-level=error
+          done
+      - name: Check username authentication JavaScript syntax
+        run: node --check js/mmhvault-n10-a7-69-username.js
+      - name: Check inline login scripts and critical dialog wiring
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from html.parser import HTMLParser
+          from pathlib import Path
+          import subprocess, tempfile
+          class Scripts(HTMLParser):
+              def __init__(self):
+                  super().__init__()
+                  self.active = False
+                  self.parts = []
+                  self.scripts = []
+              def handle_starttag(self, tag, attrs):
+                  if tag == 'script':
+                      a = dict(attrs)
+                      self.active = 'src' not in a and a.get('type','').lower() not in ('application/json','application/ld+json')
+                      self.parts = []
+              def handle_data(self, data):
+                  if self.active:
+                      self.parts.append(data)
+              def handle_endtag(self, tag):
+                  if tag == 'script':
+                      if self.active and ''.join(self.parts).strip():
+                          self.scripts.append(''.join(self.parts))
+                      self.active = False
+          html = Path('login.html').read_text(encoding='utf-8')
+          parser = Scripts()
+          parser.feed(html)
+          assert parser.scripts, 'No inline scripts found'
+          with tempfile.TemporaryDirectory() as d:
+              for i, script in enumerate(parser.scripts):
+                  file = Path(d)/f'inline-{i}.js'
+                  file.write_text(script,encoding='utf-8')
+                  subprocess.run(['node','--check',str(file)],check=True)
+          code = Path('js/mmhvault-n10-a7-69-username.js').read_text(encoding='utf-8')
+          required = ['mmhN10RecoveryLoginOverlay','mmhN10RecoveryDialog','mmhMfaDialogV783','verifiedRedirectV946','smartRecovery']
+          for name in required:
+              assert name in (html+code), f'Missing critical N10 integration: {name}'
+          print(f'PASS: {len(parser.scripts)} inline scripts + N10 modal integration markers')
+          PY
