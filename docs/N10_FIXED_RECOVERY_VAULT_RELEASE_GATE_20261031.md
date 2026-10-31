@@ -33,10 +33,19 @@ Each username-only account retains one fixed original ten-word key. A password p
 - Close modal, log out, navigate away or wait 45 seconds -> clear plaintext display and inputs.
 - Owner deletes account -> Vault secret cleaned up with index.
 - RLS and Vault permission audit: anon and authenticated execute privileges false; new private tables not in exposed public inventory.
-- New username signup -> Vault secret stored transactionally before account creation reported successful; failure leaves no orphan accounts or secrets.
+- New username signup -> original recovery phrase is escrowed before reporting success. **Auth account creation and Vault SQL are not one cross-system transaction**; verify compensating delete, orphan detection, and alarm paths under simulated failures before rollout.
 - Existing finance counts, transactions, receipts, RLS and DNS unchanged.
 
 ## Operational restrictions
 No production SQL, financial rows, auth account record, MFA enrollment, or live Edge function changed as part of the Vault candidate.
 Do not ask the owner to paste recovery words, passwords, TOTP setup QR or bearer tokens into chat.
 Draft PR only: **do not merge until the full database and signed-token tests pass**.
+
+## 2026-10-31 read-only safety inspection and candidate hardening
+- Staging project `ldivswlhtgmznzwhzsoi`: `supabase_vault` extension and `vault` schema are present. The `mmh_n10_privacy` private schema, `mmh_n10_recovery_backup_put/get` functions, and `mmh_n10a769_recovery_phrases` verifier table are **NOT present**. No migration was run or retried.
+- Draft UI added an epoch + owner + visible-modal guard. If a slow request returns after modal close, tab hidden, account switch, or sign-out, its phrase/status response is discarded instead of displaying in a reopened screen. Hidden/closed screens clear password and words.
+- Undeployed new-signup candidate has `RELEASE_ENABLED=false` by default. No signup switch or production Edge function was changed.
+- Offline synthetic MFA test file `security/n10-fixed-recovery-vault-candidate/test-mfa-assurance.mjs`: 14 negative/positive logical cases (expiry, issuer, UID, missing factor, AAL1 vs AAL2, anonymous user, malformed JWT). Test credentials and JWT payloads are synthetic, not valid signed tokens.
+- **Do not report Vault/recovery feature live or fully verified.** Database encryption, correct user-to-secret binding, server-side token verification, real MFA, wrong-password denial, rate limits, lost-original-phrase behavior, and account deletion have NOT passed Staging end-to-end QA.
+- A one-way verifier cannot restore the original words for an old account which has already lost its only saved copy; never claim a password alone can reconstruct previously unescrowed words.
+- The previous Staging SQL write was rejected by a safety gate. Do not circumvent with an alternate write interface; use an authorized, reviewable path before any sandbox migration. Keep PR in draft.
