@@ -86,3 +86,11 @@
 - 从 GitHub `e2f6a475...` 读取候选源与 MFA/session 辅助模块部署；再次从 Supabase 独立读取部署文件和元数据，检查 **`RECOVERY_RELEASE_ENABLED=false`、QA 白名单为空、1970 期限已过期**、Staging pin、旧账号 UUID 不存在。旧 HTTP 410 退役 Edge 未触动，生产服务/SQL/用户记录未动。
 - 用 Staging `auth.users` 对**预定的新** A/B 测试邮箱做了严格等值、只读查询，确认未创建；没有读取 Vault 受限数据。当前 Supabase 连接器没有安全的 Auth Admin createUser 动作，因此避免以 SQL 直接写入 `auth.users`；接下来需要用户自行在 **Staging → Authentication → Users → Add user** 新建两个独立合成账户，不要分享密码/OTP/Token。
 - 完整审计与邮箱标识、当前阻断和回滚要求：`docs/N10_STAGING_JOINT_MFA_VAULT_LOCKED_DEPLOYMENT_20261101.md`。当用户完成账号创建，只读验证 UID/email，再按独立授权决定是否打开窗口。当前真实 `FIXED_RECOVERY_MFA_VAULT_JOINT=UNTESTED`、`VAULT_DELETE_E2E=UNVERIFIED`，PR #2 Draft 未合并，V11 暂停。
+
+## 2026-11-01 — 独立 QA 绑定网页（已经发布，但 LOCKED）
+- 独立 QA 仓库 `myintmoehein0115024/MMHVAULT-Auth-QA` **main** 新增专用 `n10-joint-mfa-bind-20261101.html` + `n10-joint-mfa-bind-20261101.js`；严格只针对 **Staging A** (`be5ec3b7-a35f-4a53-b2b7-0ff77a01fc4f`)，不修改 MMHVAULT 正式 main 或 Landing。
+- 页面预计地址：[独立 N10 MFA 绑定页](https://myintmoehein0115024.github.io/MMHVAULT-Auth-QA/n10-joint-mfa-bind-20261101.html)。GitHub Pages 2026-11-01 已成功部署 SHA `cfa0f3869767a9d8cd0246907150db366d189c4d`，官方 deploy job 日志确认站点 URL `https://myintmoehein0115024.github.io/MMHVAULT-Auth-QA/`。尚无独立浏览器端实际打开验证，用户下一步只需打开看 LOCKED。
+- 页面双重禁用 `QA_RELEASED=false`、`QA_WINDOW_END_UTC=1970-01-01`；未授权前禁用密码和绑定。代码含 Staging URL 与 **public** `sb_publishable_` 前端 Key（不是 service key）；身份检测 Auth 服务器签名 UID、精确 email；SDK `persistSession=false`、`autoRefreshToken=false`；TOTP QR 90 秒自动隐藏，标签页隐藏及页面卸载清理；不访问 Vault/财务 API、不保存浏览器长期会话。
+- QA 仓库新增离线安全检查 `tests/n10_joint_mfa_locked.test.cjs` + `.github/workflows/n10-joint-mfa-locked.yml`，GitHub Actions `41228940473` SUCCESS (6/6 关闭状态安全合同 + JS parse)，**只对源码测试**，不是真实 MFA。
+- Staging 联合 Edge `mmh-n10-qa-joint-mfa-vault-20261101` v1 仍然 OFF、空白名单、1970 过期；没有执行用户 A 的 TOTP 绑定或 AAL1/AAL2 + Vault 联测；Vault 删除孤儿密钥仍 UNVERIFIED；生产未变，PR #2 仍 Draft、冲突未消，V11 暂停。
+- **后续单独批准**：只开放此专用 QA 绑定页面进行 A 的 TOTP Enrollment（限时、受控、仅 Staging，测试后恢复 LOCKED）；之后要做真实 MFA+Vault 联测还需完整审批。绝不可因为“打开网页正常”就自动把 Edge release flag 或空白名单改成开放。
