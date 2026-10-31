@@ -51,3 +51,8 @@
 - 用**简短中文**沟通，每次仅说明「已完成、下一步、还有几步」；减少重复「继续」来回，允许一轮里完成多个不需用户操作的只读/离线步骤。
 - 需要用户时**每次只布置一个明确操作**，不要求终端，不索取任何密钥/密码/验证码/十词。
 - 用户已要求**提前准备新会话指令**，不要等对话满了才写。**本文件就是准备好的交接指令**；新对话从读取此文件＋PR #2 当前状态开始，杜绝重复测试和无依据的生产操作。
+
+## 2026-11-01 — 新会话 GitHub 重新核实（不涉及 Staging/生产写入）
+- PR #2 在基准提交 `5fc213881da334ab700b92a83018415ca4aa413e` 仍为 Draft / unmerged。最新基准 GitHub Actions [41226412163](https://github.com/myintmoehein0115024/MMHVAULT/actions/runs/41226412163) **SUCCESS**；日志明确显示 14/14 MFA 纯模拟、36/36 后端 SQL/Edge 静态合同、10/10 UI 静态合同通过，session 检查步骤成功，Deno 对四个候选 TS 文件的 type-check 成功。这只证明**上述 SHA 的离线检查**；分支新增文档后需再确认新的 head CI。
+- 增加文档 [N10_SAFE_EVIDENCE_AND_JOINT_MFA_GATE_20261101.md](./N10_SAFE_EVIDENCE_AND_JOINT_MFA_GATE_20261101.md)，规定 Vault 删除清理阻断项的合法审计证据、不可绕过前次安全拦截、准确固定恢复 Edge + TOTP 的新隔离联测、生产审批与回滚边界。
+- **状态不变：** `VAULT_DELETE_E2E=UNVERIFIED`、`FIXED_RECOVERY_MFA_VAULT_JOINT=UNTESTED`、`PRODUCTION_N10_RELEASE=BLOCKED`、`V11=PAUSED`。不能将 GitHub CI 绿色当作真实数据库删除证明。
