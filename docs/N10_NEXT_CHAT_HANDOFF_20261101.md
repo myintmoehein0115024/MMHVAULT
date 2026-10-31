@@ -104,3 +104,9 @@
 - 最新 Draft 增加 `mfaEpoch`、`mfaFlowActive` 防止弹窗已关闭、标签页隐藏、退出或切换 UID 后迟到的 MFA 请求重新显示 QR／提示成功；账户切换或登出同步清除敏感 UI。回归 15/15 UI 安全合同及最新 CI `41231983225` SUCCESS。此为 **离线模拟验证，不是生产签名端到端验收**。
 - 生产环境、财务数据、正式 login/app、域名、生产 RLS/Edge 未修改。**不要合并 Draft、发布 Vault、开启联合测试或改变受限 Vault 审计权限**。真实 A MFA、AAL1/AAL2+Vault 联测和 Vault 删除证明均未完成。V11 暂停。
 - 若用户仅回复“继续”，优先进行 Draft-only / LOCKED 的离线安全检查或记录整理，简短报告进度；禁止将受阻测试擅自当作批准。用户偏好一次说明实际已完成事项、下一步与剩余大阶段，避免重复要求手工操作。
+
+## 2026-11-01 — PR #2 三方冲突范围已精确核对
+- 已从共同祖先 `06fa8f02d16bb04b17969af212f60f662a34819c` 对比最新 main 与 Draft；详细复核记录：`docs/N10_PR2_DETERMINISTIC_MERGE_CONFLICT_REVIEW_20261101.md`。
+- `login.html` 两分支最终 blob 完全相同，无需重复改登录页；安全中心弹窗区有两处真正不同的共同修改（关闭弹窗时的 MFA/恢复词清理；打开恢复密钥弹窗时的 Vault 模式读取），另有三处完全相同。不是所有 24 个 PR 文件都冲突。
+- 正式 main 的 Landing、App、邮件模板、站点地图等最新工作必须保留。PR #2 仍 Draft / mergeable=false，尚未真实合并或重基；不允许用旧分支整体覆盖正式 main。
+- 本次只是只读差异分析和 Draft 文档记录，**并非真实合并冲突已修复**。A MFA 仍未验证、独立 QA 仍 LOCKED、Vault 仍 OFF，真实联合验收和上线审批未完成。
