@@ -1,1 +1,86 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#06111f"><title>Security | MMHVAULT</title><meta name="description" content="Learn about MMHVAULT account security, authentication, data access controls and practical steps for using the personal finance workspace safely."><link rel="canonical" href="https://mmhvault.com/security.html"><meta property="og:type" content="website"><meta property="og:site_name" content="MMHVAULT"><meta property="og:title" content="Security | MMHVAULT"><meta property="og:description" content="Learn about MMHVAULT account security, authentication, data access controls and practical steps for using the personal finance workspace safely."><meta property="og:url" content="https://mmhvault.com/security.html"><meta property="og:image" content="https://mmhvault.com/images/mmhvault-logo-transparent.png"><meta name="twitter:card" content="summary"><link rel="icon" type="image/png" href="/images/mmhvault-logo-transparent.png"><style>:root{color-scheme:dark;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}*{box-sizing:border-box}body{margin:0;background:#05131f;color:#e9f1f5}.wrap{width:min(820px,calc(100% - 28px));margin:0 auto;padding:34px 0 54px}a{color:#82d2f2}.brand{display:flex;align-items:center;gap:10px;color:inherit;text-decoration:none;margin-bottom:34px}.brand img{width:38px;height:38px}.brand b{color:#f0cb76;letter-spacing:.08em}h1{font-size:36px;letter-spacing:-.03em}h2{margin-top:30px;font-size:19px}p,li{color:#a9bdc9;line-height:1.72;font-size:14px}.box{border:1px solid rgba(115,176,213,.2);border-radius:16px;padding:16px 18px;background:#092034}footer{border-top:1px solid rgba(115,176,213,.16);margin-top:36px;padding-top:18px;color:#718796;font-size:11px}@media(max-width:560px){h1{font-size:30px}.wrap{padding-top:22px}}</style></head><body><div class="wrap"><a class="brand" href="/"><img src="images/mmhvault-logo-transparent.png" alt="MMHVAULT logo" width="38" height="38"><b>MMHVAULT</b></a><h1>Security information</h1><p>MMHVAULT — Personal Finance &amp; Wealth · Official website: <a href="https://mmhvault.com/">mmhvault.com</a>.</p><div class="box"><p><b>MMHVAULT is a personal finance application, not a bank or payment service.</b> It does not require bank PINs, card numbers, crypto seed phrases or exchange passwords.</p></div><h2>Authentication</h2><p>Email/password and Google OAuth are processed through the configured Supabase Auth service over HTTPS. Phone OTP sign-in is no longer offered by MMHVAULT. Google OAuth redirects to Google's sign-in flow; MMHVAULT does not collect a Google account password.</p><h2>Account isolation</h2><p>Personal data is scoped to the authenticated account. Notification subscriptions and financial alerts use user-scoped access controls. The local AI assistant is read-only and does not directly modify financial records.</p><h2>Background notifications</h2><p>Web Push is optional. The dedicated Push service worker handles only push and notification-click events and does not cache the application or intercept page requests.</p><h2>If something looks wrong</h2><p>Do not bypass browser security warnings or enter credentials while a browser reports the site as unsafe. Return to the main page and verify the exact hostname before signing in.</p><footer><a href="/">Home</a> · <a href="login.html">Sign in</a> · <a href="privacy.html">Privacy</a> · <a href="terms.html">Terms</a> · <a href="security.html">Security</a></footer></div></body></html>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#06111f"><title>Security | MMHVAULT</title><meta name="description" content="Learn about MMHVAULT account security, authentication, data access controls and practical steps for using the personal finance workspace safely."><link rel="canonical" href="https://mmhvault.com/security.html"><meta property="og:type" content="website"><meta property="og:site_name" content="MMHVAULT"><meta property="og:title" content="Security | MMHVAULT"><meta property="og:description" content="Learn about MMHVAULT account security, authentication, data access controls and practical steps for using the personal finance workspace safely."><meta property="og:url" content="https://mmhvault.com/security.html"><meta property="og:image" content="https://mmhvault.com/images/mmhvault-logo-transparent.png"><meta name="twitter:card" content="summary"><link rel="icon" type="image/png" href="/images/mmhvault-logo-transparent.png"><link rel="stylesheet" href="/landing-assets/public-pages.css"><script defer src="/landing-assets/public-pages.js"></script></head>
+<body class="public-landing-page policy-page" data-policy="security">
+<a class="skip" href="#content">Skip to content</a>
+<header><div class="wrap bar">
+<a class="brand" href="/" aria-label="MMHVAULT official Landing home"><span class="brand-mark" aria-hidden="true">M</span><span class="brand-wordmark"><strong>MMHVAULT</strong><small>PERSONAL FINANCE &amp; WEALTH</small></span></a>
+<nav aria-label="Public information">
+<a href="/"><span data-en="Home" data-zh="首页" data-my="ပင်မစာမျက်နှာ">Home</span></a>
+<a href="/features/"><span data-en="Features" data-zh="产品功能" data-my="လုပ်ဆောင်ချက်များ">Features</span></a>
+<a href="/#business"><span data-en="Business" data-zh="Business" data-my="Business">Business</span></a>
+<a href="/about/"><span data-en="About" data-zh="关于" data-my="အကြောင်း">About</span></a>
+<a href="/security.html" aria-current="page"><span data-en="Security" data-zh="安全与隐私" data-my="လုံခြုံရေး">Security</span></a>
+<details class="public-nav-details">
+  <summary aria-label="Open public navigation">
+    <svg viewBox="0 0 24 24" width="19" height="19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" fill="none" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    <span data-en="Menu" data-zh="菜单" data-my="မီနူး">Menu</span>
+  </summary>
+  <div class="public-nav-panel" aria-label="Public site links">
+    <a href="/"><span data-en="Home" data-zh="首页" data-my="ပင်မစာမျက်နှာ">Home</span></a>
+    <a href="/features/"><span data-en="Features" data-zh="产品功能" data-my="လုပ်ဆောင်ချက်များ">Features</span></a>
+    <a href="/#business"><span data-en="Business" data-zh="Business" data-my="Business">Business</span></a>
+    <a href="/about/"><span data-en="About" data-zh="关于" data-my="အကြောင်း">About</span></a>
+    <a href="/security.html" aria-current="page"><span data-en="Security" data-zh="安全与隐私" data-my="လုံခြုံရေး">Security</span></a>
+    <div class="public-nav-panel-divider"></div>
+    <a href="/login.html"><span data-en="Sign In" data-zh="登录" data-my="ဝင်ရောက်ရန်">Sign In</span></a>
+    <a href="/register/"><span data-en="Create Account" data-zh="创建账户" data-my="အကောင့်ဖွင့်ရန်">Create Account</span></a>
+  </div>
+</details>
+<div class="public-locale-picker" aria-label="Choose language">
+  <button type="button" class="public-locale-trigger" id="public-locale-trigger" aria-haspopup="true" aria-expanded="false" aria-controls="public-locale-menu" aria-label="Select language">
+    <svg class="public-locale-globe" viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c-3 3.2-4.5 6.2-4.5 9s1.5 6 4.5 9M12 3c3 3.2 4.5 6.2 4.5 9s-1.5 6-4.5 9"/></svg>
+    <span class="public-locale-flag" aria-hidden="true">🇬🇧</span><span class="public-locale-name">English</span>
+    <svg class="public-locale-chevron" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+  </button>
+  <div class="public-locale-menu" id="public-locale-menu" aria-label="Available languages" hidden>
+    <button type="button" data-lang="en" aria-pressed="true" lang="en"><span aria-hidden="true">🇬🇧</span> English</button>
+    <button type="button" data-lang="zh" aria-pressed="false" lang="zh-CN"><span aria-hidden="true">🇨🇳</span> 中文</button>
+    <button type="button" data-lang="my" aria-pressed="false" lang="my"><span aria-hidden="true">🇲🇲</span> မြန်မာ</button>
+  </div>
+</div>
+<a href="/login.html" class="feature-nav-signin"><span data-en="Sign In" data-zh="登录" data-my="ဝင်ရောက်ရန်">Sign In</span></a>
+<a href="/login.html" class="feature-nav-cta"><span data-en="Get Started" data-zh="开始使用" data-my="စတင်အသုံးပြုရန်">Get Started</span></a>
+</nav>
+</div></header>
+<main id="content" class="wrap policy-main">
+<section class="policy-hero" aria-labelledby="policy-title">
+<nav class="page-breadcrumb" aria-label="Breadcrumb"><a href="/" data-en="Home" data-zh="首页" data-my="ပင်မစာမျက်နှာ">Home</a><span aria-hidden="true">/</span><span>Security</span></nav>
+<div class="policy-icon-line"><img src="/images/mmhvault-logo-transparent.png" alt="MMHVAULT logo" width="38" height="38"><span class="policy-eyebrow">MMHVAULT · PERSONAL FINANCE &amp; WEALTH</span></div>
+<h1 id="policy-title">Security information</h1>
+<p>MMHVAULT — Personal Finance &amp; Wealth · Official website: <a href="https://mmhvault.com/">mmhvault.com</a>.</p>
+</section>
+<article class="policy-card" aria-label="Security details">
+<div class="box"><p><b>MMHVAULT is a personal finance application, not a bank or payment service.</b> It does not require bank PINs, card numbers, crypto seed phrases or exchange passwords.</p></div><h2>Authentication</h2><p>Email/password and Google OAuth are processed through the configured Supabase Auth service over HTTPS. Phone OTP sign-in is no longer offered by MMHVAULT. Google OAuth redirects to Google's sign-in flow; MMHVAULT does not collect a Google account password.</p><h2>Account isolation</h2><p>Personal data is scoped to the authenticated account. Notification subscriptions and financial alerts use user-scoped access controls. The local AI assistant is read-only and does not directly modify financial records.</p><h2>Background notifications</h2><p>Web Push is optional. The dedicated Push service worker handles only push and notification-click events and does not cache the application or intercept page requests.</p><h2>If something looks wrong</h2><p>Do not bypass browser security warnings or enter credentials while a browser reports the site as unsafe. Return to the main page and verify the exact hostname before signing in.</p>
+</article>
+<nav class="policy-related" aria-label="More MMHVAULT policy information"><a href="/security.html" aria-current="page">Security</a><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a></nav>
+</main>
+<footer class="public-footer" aria-label="MMHVAULT public information footer">
+  <div class="wrap public-footer-layout">
+    <div class="public-footer-brand">
+      <a class="public-footer-wordmark" href="/" aria-label="MMHVAULT official homepage">MMHVAULT<span>.</span></a>
+      <p data-en="Personal finance &amp; wealth, with intention." data-zh="用更清晰的方式管理个人财务与财富。" data-my="ကိုယ်ပိုင်ငွေကြေးနှင့် ဓနကို ရည်ရွယ်ချက်ရှိစွာ စီမံပါ။">Personal finance &amp; wealth, with intention.</p>
+      <small data-en="A personal finance tool, not a bank, broker or financial adviser." data-zh="个人财务管理工具，并非银行、券商或投资顾问。" data-my="ဘဏ်၊ ပွဲစား သို့မဟုတ် ငွေကြေးအကြံပေး မဟုတ်ပါ။">A personal finance tool, not a bank, broker or financial adviser.</small>
+    </div>
+    <div class="public-footer-nav">
+      <div class="public-footer-group">
+        <strong data-en="EXPLORE" data-zh="探索" data-my="လေ့လာရန်">EXPLORE</strong>
+        <a href="/"><span data-en="Home" data-zh="首页" data-my="ပင်မစာမျက်နှာ">Home</span></a>
+        <a href="/features/"><span data-en="Features" data-zh="功能" data-my="လုပ်ဆောင်ချက်များ">Features</span></a>
+        <a href="/about/"><span data-en="About" data-zh="关于" data-my="အကြောင်း">About</span></a>
+        <a href="/register/"><span data-en="Create Account" data-zh="创建账户" data-my="အကောင့်ဖွင့်ရန်">Create Account</span></a>
+      </div>
+      <div class="public-footer-group">
+        <strong data-en="INFORMATION" data-zh="信息与政策" data-my="သတင်းအချက်အလက်">INFORMATION</strong>
+        <a href="/security.html"><span data-en="Security" data-zh="安全" data-my="လုံခြုံရေး">Security</span></a>
+        <a href="/privacy.html"><span data-en="Privacy Policy" data-zh="隐私政策" data-my="ကိုယ်ရေးအချက်အလက် မူဝါဒ">Privacy Policy</span></a>
+        <a href="/terms.html"><span data-en="Terms of Use" data-zh="使用条款" data-my="အသုံးပြုမှု စည်းကမ်းများ">Terms of Use</span></a>
+        <a href="/login.html"><span data-en="Sign In" data-zh="登录" data-my="ဝင်ရောက်ရန်">Sign In</span></a>
+      </div>
+    </div>
+  </div>
+  <div class="wrap public-footer-bottom">
+    <span>© 2026 MMHVAULT. All rights reserved.</span>
+    <span>DESIGNED FOR A MORE INTENTIONAL FINANCIAL LIFE</span>
+    <a href="#content"><span data-en="Back to top" data-zh="返回顶部" data-my="အပေါ်သို့ ပြန်သွားရန်">Back to top</span><span aria-hidden="true"> ↑</span></a>
+  </div>
+</footer>
+</body></html>

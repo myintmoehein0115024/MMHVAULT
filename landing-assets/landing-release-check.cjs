@@ -288,12 +288,38 @@ check('Landing priority image and below-fold concept use efficient loading',
 check('Landing ships no third-party blocking scripts or styles',
   !/<script[^>]+src=["']https?:\/\//i.test(current) &&
   !/<link[^>]+rel=["']stylesheet["'][^>]+href=["']https?:\/\//i.test(current));
-for(const page of ['privacy.html','terms.html','security.html']){
- const html=read(page);
- check(page+' points branding and Home link to canonical root',
-   html.includes('<a class="brand" href="/">') &&
-   html.includes('<footer><a href="/">Home</a>') &&
-   !html.includes('href="index.html"'));
+/* L1.12 — policy pages share the Landing design without altering any
+   substantive security/privacy/terms paragraph or disclaimer wording. */
+for(const file of ['privacy.html','terms.html','security.html']){
+ const content=read(file);
+ const earlier=source(file);
+ const oldPolicyContent=(earlier.match(/<h1>[\s\S]*?<\/h1>([\s\S]*?)<footer>/)||[])[1]||'';
+ const samePublicParagraphs=[...oldPolicyContent.matchAll(/<(?:p|h2|li|b)>[\s\S]*?<\/(?:p|h2|li|b)>/g)]
+   .map(m=>m[0]).filter(x=>!x.includes('MMHVAULT — Personal Finance'));
+ const originalTitle=(earlier.match(/<h1>([^<]*)<\/h1>/)||[])[1];
+ check(file+' original legal text unchanged and readable',
+   !!originalTitle&&content.includes('<h1 id="policy-title">'+originalTitle+'</h1>') &&
+   samePublicParagraphs.every(paragraph=>content.includes(paragraph)));
+ check(file+' uses unified Landing header, footer and canonical Home links',
+   content.includes('<body class="public-landing-page policy-page"') &&
+   content.includes('<header><div class="wrap bar">') &&
+   content.includes('class="public-nav-details"') &&
+   content.includes('class="public-footer"') &&
+   content.includes('href="/#business"') &&
+   content.includes('<a class="brand" href="/"') &&
+   content.includes('href="/security.html"') &&
+   !content.includes('href="index.html"'));
+ check(file+' has no new authentication or financial-data processing',
+   !/<form[\s>]/i.test(content) &&
+   !/supabase\.createClient|SERVICE_ROLE_KEY|fetch\s*\(/.test(content));
 }
+check('Landing links to a unified Security page and uses canonical Home destination',
+ current.includes('href="./security.html" data-i18n="navSecurity"') &&
+ current.includes('href="/" aria-current="page" data-i18n="navHome"') &&
+ current.includes('href="/" class="brand"') &&
+ !current.includes('href="#top" aria-current="page" data-i18n="navHome"'));
+check('Homepage N10 recovery and standalone guards are unchanged from main',
+ ['mmh-n10-recovery-error-route','mmh-pwa-standalone-root-bridge']
+   .every(id=>dom(id,current)===dom(id,prev)));
 
 console.log('Landing launch preflight: '+passed+'/'+passed+' PASS — no live authentication or PWA device claim.');

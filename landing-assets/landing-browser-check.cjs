@@ -67,6 +67,41 @@ async function load(page,route,failures){
      ensure(await page.locator('h1#hero-title').count()===1,width+'px single homepage H1');
      ensure(await page.locator('.hero-device-cinematic').evaluate(img=>img.complete&&img.naturalWidth>0),
        width+'px concept Hero photograph loaded');
+     if([320,393,768,1024].includes(width)){
+       await page.evaluate(()=>scrollTo({top:0,left:0,behavior:'instant'}));
+       await page.screenshot({
+         path:path.join(screenshots,'landing-firstscreen-'+width+'.png'),
+         fullPage:false,animations:'disabled'
+       });
+     }
+     if(width<=1024){
+       const clipped=await page.evaluate(()=>{
+         const selectors=[
+           '.site-header .brand','.site-header .locale-trigger','.site-header .menu-toggle',
+           '.hero .hero-name','.hero .hero-statement',
+           '.hero .hero-script-zh','.hero .hero-script-my','.hero .hero-script-en',
+           '.hero .hero-buttons'
+         ];
+         return selectors.flatMap(selector=>{
+           const el=document.querySelector(selector);
+           if(!el || getComputedStyle(el).display==='none')return [];
+           const box=el.getBoundingClientRect();
+           const range=document.createRange();
+           range.selectNodeContents(el);
+           const text=range.getBoundingClientRect();
+           const extendsPast=box.left< -4||box.right>innerWidth+4||
+             (text.width>0&&(text.left< -4||text.right>innerWidth+4));
+           const hiddenText=el.scrollWidth>el.clientWidth+5;
+           return extendsPast||hiddenText?[{
+             selector,left:Math.round(box.left),right:Math.round(box.right),
+             contentRight:Math.round(text.right),scrollWidth:el.scrollWidth,
+             clientWidth:el.clientWidth
+           }]:[];
+         });
+       });
+       ensure(clipped.length===0,
+         width+'px home branding, controls and three-language Hero stay onscreen '+JSON.stringify(clipped));
+     }
 
      // User-requested fixed multilingual Hero must not change with language.
      const immutable=await page.locator('[data-hero-fixed]').allTextContents();
@@ -108,7 +143,21 @@ async function load(page,route,failures){
        ensure(await page.locator('h1').count()===1,route+' '+width+'px has one H1');
        ensure(await page.locator('link[rel="canonical"]').count()===1,
          route+' '+width+'px canonical unique');
-       if(['/register/','/features/','/about/'].includes(route)){
+       if(['/security.html','/privacy.html','/terms.html'].includes(route)){
+         ensure(await page.locator('body.public-landing-page.policy-page').count()===1,
+           route+' inherits Landing finance brand presentation');
+         ensure(await page.locator('article.policy-card').count()===1,
+           route+' keeps legal/policy copy in a readable card');
+         ensure(await page.locator('.public-footer').count()===1,
+           route+' has the shared public footer');
+         if([393,1440].includes(width)){
+           await page.evaluate(()=>scrollTo({top:0,left:0,behavior:'instant'}));
+           await page.screenshot({path:path.join(screenshots,
+             'policy-'+route.slice(1,-5)+'-'+width+'.png'),
+             fullPage:false,animations:'disabled'});
+         }
+       }
+       if(['/register/','/features/','/about/','/security.html','/privacy.html','/terms.html'].includes(route)){
          const header=await page.evaluate(()=>{
            const bar=document.querySelector('header .bar').getBoundingClientRect();
            const brand=document.querySelector('header .brand').getBoundingClientRect();
@@ -197,7 +246,34 @@ async function load(page,route,failures){
      }
    }
 
-   const ctx=await browser.newContext({viewport:{width:393,height:852},reducedMotion:'no-preference'});
+   // L1.12 — end-to-end route consistency: public Security is a first-class
+   // branded page, Business is the Landing section, and Home does not leave #top.
+   {
+     const ctx=await browser.newContext({viewport:{width:1440,height:900},
+       reducedMotion:'reduce'});
+     const page=await ctx.newPage();
+     await page.goto(origin+'/',{waitUntil:'load'});
+     await page.locator('#primary-nav a[href="./security.html"]').click();
+     ensure(new URL(page.url()).pathname==='/security.html',
+       'Landing Security link opens the matching public Security page');
+     ensure(await page.locator('body.public-landing-page.policy-page').count()===1,
+       'Security destination shares Landing visual shell');
+     await page.locator('header .brand').click();
+     ensure(new URL(page.url()).pathname==='/' &&
+       !new URL(page.url()).hash,'Security Home returns to canonical Landing root');
+     await page.goto(origin+'/about/',{waitUntil:'load'});
+     await page.locator('header nav>a[href="/#business"]').click();
+     await page.waitForFunction(()=>window.location.hash==='#business'&&window.scrollY>150);
+     ensure(new URL(page.url()).pathname==='/'&&
+       new URL(page.url()).hash==='#business',
+       'Business from a public page opens the actual Landing Business section');
+     await page.locator('.site-header .brand').click();
+     await page.waitForFunction(()=>scrollY<60);
+     ensure(new URL(page.url()).pathname==='/'&& !new URL(page.url()).hash,
+       'Landing Home clears stale Business fragment without a page reload');
+     await ctx.close();
+   }
+      const ctx=await browser.newContext({viewport:{width:393,height:852},reducedMotion:'no-preference'});
    const page=await ctx.newPage();
    const errors=[];
    page.on('pageerror',e=>errors.push(e.message));

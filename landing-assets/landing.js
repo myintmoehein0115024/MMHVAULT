@@ -857,11 +857,38 @@
   // Keeps the top navigation aligned with the section being viewed.
   // Does not affect history, app navigation, tokens, or the immutable Hero.
   const sectionLinks = [...document.querySelectorAll('#primary-nav a[href^="#"]')];
+  const homeLink = document.querySelector('#primary-nav [data-i18n="navHome"]');
   const sectionMap = new Map(sectionLinks.map(link => [link.getAttribute('href').slice(1), link]));
   function markSection(id) {
+    if (homeLink) {
+      if (id === 'top') homeLink.setAttribute('aria-current','location');
+      else homeLink.removeAttribute('aria-current');
+    }
     sectionLinks.forEach(link => {
       if (link.getAttribute('href') === '#' + id) link.setAttribute('aria-current','location');
       else link.removeAttribute('aria-current');
+    });
+  }
+  // Home keeps a canonical "/" URL and scrolls smoothly within the already
+  // open public Landing, instead of reloading or leaving a stale #top fragment.
+  // Only ordinary left-clicks on the same public page are handled.
+  const publicHomeLinks = [homeLink, document.querySelector('.site-header .brand')].filter(Boolean);
+  for (const anchor of publicHomeLinks) {
+    anchor.addEventListener('click', event => {
+      if (event.defaultPrevented || event.button!==0 || event.metaKey || event.ctrlKey ||
+          event.altKey || event.shiftKey || anchor.getAttribute('href') !== '/') return;
+      if (location.pathname !== '/' && location.pathname !== '/index.html') return;
+      event.preventDefault();
+      closeMenu();
+      closeLanguage();
+      const prefersLessMotion = window.matchMedia &&
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      window.scrollTo({top:0,left:0,behavior:prefersLessMotion?'instant':'smooth'});
+      if (/^#(?:top|features|business|about|security|feature-[a-z-]+)$/.test(location.hash)) {
+        try {history.replaceState(history.state,'',location.pathname+location.search)}
+        catch (_) {}
+      }
+      markSection('top');
     });
   }
   markSection('top');
