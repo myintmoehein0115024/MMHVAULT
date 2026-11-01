@@ -1,0 +1,31 @@
+name: N10 MFA-only isolated compatibility (no deployment)
+on:
+  push:
+    branches:
+      - 'review/n10-mfa-only-20261101'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  offline-account-security:
+    name: N10 MFA-only account security tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - name: Checkout isolated review branch
+        uses: actions/checkout@v4
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Parse account security JavaScript
+        run: node --check js/mmhvault-n10-a7-83-security-center.js
+      - name: Run synthetic security and MFA regressions
+        run: node security/n10-mfa-only/test-mfa-isolation.mjs
+      - name: Install Playwright browser test runtime
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps chromium webkit
+      - name: Run synthetic browser smoke in Chromium and WebKit
+        run: node security/n10-mfa-only/test-browser-mfa-smoke.mjs
+# Does not deploy, access secrets, create users, modify database, or call Vault.
