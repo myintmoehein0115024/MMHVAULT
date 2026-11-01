@@ -67,7 +67,7 @@ async function load(page,route,failures){
      ensure(await page.locator('h1#hero-title').count()===1,width+'px single homepage H1');
      ensure(await page.locator('.hero-device-cinematic').evaluate(img=>img.complete&&img.naturalWidth>0),
        width+'px concept Hero photograph loaded');
-     if(width>=1051){
+     if(width>=1361){
        const header=await page.evaluate(()=>{
          const brand=document.querySelector('.site-header .brand').getBoundingClientRect();
          const nav=document.querySelector('#primary-nav').getBoundingClientRect();
@@ -84,6 +84,9 @@ async function load(page,route,failures){
          width+'px six-item desktop navigation remains one line '+JSON.stringify(header));
        ensure(await page.locator('#landing-explore > summary').isVisible(),
          width+'px Explore disclosure visible on desktop');
+     }else{
+       ensure(await page.locator('.site-header .menu-toggle').isVisible(),
+         width+'px responsive compact menu replaces overflowing six-item nav');
      }
      if([320,393,768,1024].includes(width)){
        await page.evaluate(()=>scrollTo({top:0,left:0,behavior:'instant'}));
