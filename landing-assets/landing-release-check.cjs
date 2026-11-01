@@ -40,6 +40,8 @@ check('Business + Life Planner not presented as live',current.includes('COMING S
 check('No Supabase backend code in Landing',!current.includes('supabase.createClient')&&!current.includes('SUPABASE_SERVICE_ROLE_KEY'));
 check('Current production Login remains noindex',/name="robots" content="noindex,nofollow,noarchive"/.test(read('login.html')));
 check('Actual App remains noindex',/<meta[^>]*name=["']robots["'][^>]*noindex/i.test(read('app.html').slice(0,350000)));
+check('Protected Business page remains noindex',/<meta[^>]*name=["']robots["'][^>]*noindex/i.test(read('business.html').slice(0,2000)));
+
 const names=['landing.css','business.css','cinematic.css','landing.js','luxury-horizon.svg','premium-architecture.svg','cinematic-lake.webp','personal-business-concept.webp'];
 check('All required live assets exist',names.every(f=>fs.existsSync('landing-assets/'+f)));
 check('Landing style and script links correct',['landing.css','business.css','cinematic.css','landing.js'].every(f=>current.includes('./landing-assets/'+f)));
@@ -50,7 +52,7 @@ check('Sitemap has no private app or login',!/<loc>[^<]*\/(?:app|login|n10-qa)\.
 check('PWA launcher points to secure Login',manifest.start_url==='./login.html?source=pwa&install=v2');
 check('Manifest differs only in start_url',JSON.stringify({...manifest,start_url:oldManifest.start_url})===JSON.stringify(oldManifest));
 check('Preserved old iPhone touch icon',current.includes('<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=pwa24-20261029">'));
-const allowed=new Set(['index.html','robots.txt','mmh-manifest-v2.webmanifest','landing-assets/landing-release-check.cjs','.github/workflows/landing-release-check.yml',...names.map(f=>'landing-assets/'+f)]);
+const allowed=new Set(['index.html','robots.txt','mmh-manifest-v2.webmanifest','business.html','landing-assets/landing-release-check.cjs','.github/workflows/landing-release-check.yml',...names.map(f=>'landing-assets/'+f)]);
 const diff=cp.spawnSync('git',['diff','--name-only',main+'...HEAD'],{encoding:'utf8'});
 assert.equal(diff.status,0,'git diff unsuccessful');
 const actual=diff.stdout.trim().split(/\n/).filter(Boolean);
