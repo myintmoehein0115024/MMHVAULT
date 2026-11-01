@@ -83,6 +83,12 @@ const tests=[
    'const current=await verifiedUser();','client().auth.mfa.unenroll({factorId:targetFactor})',
    "status('Authenticator removed.')"]);
  }],
+ ['verified-factor removal refreshes only after busy is released',()=>{
+  const s=between("$('mmhA783TotpRemoveNow').addEventListener('click',async()=>{","document.addEventListener('visibilitychange'");
+  assert.match(s,/status\('Authenticator removed\.'\);\s*\/\/ Run after the finally block releases busy; otherwise refresh\(\) exits\.\s*setTimeout\(\(\)=>void refresh\(\),0\);/);
+  assert.doesNotMatch(s,/status\('Authenticator removed\.'\);\s*void refresh\(\);/);
+  assert.match(src,/async function refresh\(\)\{\s*if\(busy\)return;/);
+ }],
  ['background and modal close invalidate pending enrollment without ID',()=>{
   assert.match(src,/document\.addEventListener\('visibilitychange',\(\)=>\{if\(document\.hidden\)\{hideKey\(\);if\(pendingFactor\)void cancelPendingMfa\(\);else clearMfa\(\);/);
   const s=between('function collapse(section){','sections.forEach(section=>{');
