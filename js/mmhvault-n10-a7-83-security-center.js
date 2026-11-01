@@ -4,16 +4,22 @@
 const $=id=>document.getElementById(id);
 const root=$('mmhA783SecurityCenter');if(!root)return;
 const API='https://vrypucmyrztxgiqhjspd.supabase.co/functions/v1/mmh-n10a783-phrase-verify';
+// Candidate only — never call before the audited Vault service is deployed.
+const VAULT_API='https://vrypucmyrztxgiqhjspd.supabase.co/functions/v1/mmh-n10-fixed-recovery';
+// Draft-only second release gate. Not a substitute for the Edge server's OFF flag.
+const N10_FIXED_VAULT_UI_RELEASED=false;
 
 // N10 signed-token staging, production RLS and owner-account login gates have passed.
 // Enrollment is optional and requires explicit loss-risk and backup acknowledgments.
 const N10A790_TOTP_ENROLLMENT_RELEASED=true;
 const N10A790_HOLD='Authenticator setup is temporarily paused until recovery and finance protection checks are complete.';
-const A783_STATIC_ZH={"ACCOUNT SECURITY":"账户安全","Refresh":"刷新","Login methods & recovery":"登录方式与账户恢复","Manage your existing account without creating a second wallet or transferring finance records.":"管理现有账户，不会创建第二个财务账户或迁移财务记录。","Username":"用户名","Existing email users can add a username and continue using their original password and data.":"邮箱用户可绑定用户名，继续使用原密码及全部原有数据。","Link a username":"绑定用户名","Permanent recovery key":"永久恢复密钥","10 words":"十个单词","Your permanent recovery key is verified, not stored as readable words.":"系统仅保存密钥校验值，不会以可读取的形式保存原始恢复词。","For your protection, the original ten words cannot be retrieved from their secure verifier. Enter the words you saved to verify them and re-create your QR code locally.":"原始恢复词无法从校验值中找回。请输入您保存的十个单词，验证后可在本机重新生成恢复二维码。","Your saved 10 words, in the original order":"请输入原有十词，顺序必须一致","Verify saved words":"验证恢复词","Save my QR":"保存二维码","Hide key":"隐藏密钥","This backup view automatically closes after one minute. Anyone with these words can log in.":"恢复词将于 60 秒后自动隐藏。持有这组恢复词的人可能使用它登录您的账户，请妥善保管。","Google account":"Google 账户","Link Google to this same account. Linking does not transfer assets or create a new finance UID.":"将 Google 账号关联到同一个账户，不会迁移资产或创建新 UID。","Connect Google":"关联 Google","Authenticator · Two-step verification":"身份验证器 · 双重验证","Use a time-based six-digit code for additional protection during sign-in.":"登录时使用动态六位验证码，进一步保护账户。","Before enabling: save a backup of your authenticator codes or setup on a second trusted device. If you lose your authenticator, the permanent 10-word key alone does not bypass the second step. Do not enable until you have a recovery plan.":"开启前，请备份验证器或配置第二台可信设备。如果丢失验证器，仅凭永久十词无法跳过第二步验证。请确认有恢复方案后再开启。","I understand this second-step recovery limitation.":"我已理解双重验证的账户恢复限制。","Set up Authenticator":"设置身份验证器","Scan the QR with Google Authenticator or a compatible app. Do not share this QR or setup secret.":"使用 Google Authenticator 或其他兼容应用扫描二维码，不要分享二维码或设置密钥。","Manual setup key":"手动设置密钥","Six-digit code":"六位动态验证码","Verify & enable":"验证并开启","Cancel":"取消","Remove authenticator":"解绑身份验证器","Removing the last factor reduces account protection. Type REMOVE to confirm.":"移除最后一个验证器将降低账户安全性。请输入 REMOVE 确认。","Confirm removal":"确认解绑","Sign in to manage account security.":"登录后即可管理账户安全。"};
-const A783_DYNAMIC_ZH={"Not linked":"未绑定","Permanent ten-word recovery is available to username-only accounts.":"永久十词恢复功能适用于纯用户名账户。","Your original 10-word key remains valid. The original words cannot be retrieved from their secure verifier.":"原始十词密钥仍然有效，但无法从安全校验值中还原原文。","Connected to this account":"已关联本账户","Not connected":"未关联","Google connected":"已关联 Google","Authenticator enabled":"已启用身份验证器","Not enabled":"未启用","Two-step verification is active for this session.":"本次会话已通过双重验证。","Verify your six-digit code at sign-in to manage this factor.":"请在登录时完成六位验证码验证后再管理此验证器。","Use Google Authenticator or another TOTP app. After binding, a six-digit code is required on new sign-ins.":"支持 Google Authenticator 等标准 TOTP 应用，绑定后登录需验证六位动态码。","Security details updated.":"安全信息已更新。","Sign in to view account security, or try again after refreshing.":"请登录后查看账户安全，或刷新页面重试。","Temporarily unavailable":"暂时不可用","Some security details are temporarily unavailable. Other verified controls remain usable.":"部分安全信息暂时不可用，其他已验证的功能仍可使用。","Save the authenticator secret or configure a second trusted device before enabling two-step verification.":"启用双重验证前，请安全备份验证器密钥或在第二台可信设备配置验证器。","Account session could not be verified. Please sign in again or refresh.":"账户会话验证失败，请重新登录或刷新页面。","Please sign in before linking a username.":"请先登录再绑定用户名。","Google is already connected.":"Google 已绑定。","Opening Google authorization. Your original finance account will stay the same.":"正在前往 Google 授权，原财务账户不会变更。","Unable to link Google. Account linking may require enabling identity linking in authentication settings. No finance data was changed.":"Google 关联未完成。可能需要在认证设置中开放身份关联，财务数据未被修改。","Enter your existing ten words in the original order.":"请输入原始十个单词，并保持原有顺序。","Saved words verified. Backup view will close automatically after 60 seconds.":"恢复词验证通过，60 秒后自动隐藏。","The recovery words could not be verified. Check the order.":"恢复词验证失败，请检查单词及顺序。","Please confirm that you understand the backup requirements before enabling two-step verification.":"开启双重验证前，请先确认已了解备份要求。","Already enrolled":"已经绑定","Could not start authenticator setup. Please check the account and try again.":"无法开始验证器设置，请检查账户后重试。","Scan this QR with Google Authenticator, then enter its six-digit code. Do not share this secret.":"请扫描二维码并输入六位动态码，切勿分享设置密钥。","Enter a six-digit authenticator code.":"请输入六位动态验证码。","Authenticator enabled. New sign-ins will require a six-digit code.":"验证器已启用，后续登录需要六位动态码。","Could not verify this code. Check your device time and try a new code.":"验证码无效，请检查设备时间并输入新的验证码。","Authenticator setup cancelled.":"已取消验证器设置。","To remove your authenticator, enter REMOVE below. Only the verified owner can continue.":"解绑验证器请输入 REMOVE，只有已验证的账户所有者可以继续。","Complete two-step verification before removing an authenticator.":"解绑前请先完成双重验证。","Unable to remove the authenticator.":"无法解绑验证器。","Authenticator removed.":"已解绑验证器。"};
+const A783_STATIC_ZH={"ACCOUNT SECURITY":"账户安全","Refresh":"刷新","Login methods & recovery":"登录方式与账户恢复","Manage your existing account without creating a second wallet or transferring finance records.":"管理现有账户，不会创建第二个财务账户或迁移财务记录。","Username":"用户名","Existing email users can add a username and continue using their original password and data.":"邮箱用户可绑定用户名，继续使用原密码及全部原有数据。","Link a username":"绑定用户名","Permanent recovery key":"永久恢复密钥","10 words":"十个单词","Your permanent recovery key is verified, not stored as readable words.":"系统仅保存密钥校验值，不会以可读取的形式保存原始恢复词。","For your protection, the original ten words cannot be retrieved from their secure verifier. Enter the words you saved to verify them and re-create your QR code locally.":"原始恢复词无法从校验值中找回。请输入您保存的十个单词，验证后可在本机重新生成恢复二维码。","Your saved 10 words, in the original order":"请输入原有十词，顺序必须一致","Verify saved words":"验证恢复词","Save my QR":"保存二维码","Hide key":"隐藏密钥","This private recovery-key view automatically closes after 45 seconds. Anyone with these words can log in.":"恢复词将于 45 秒后自动隐藏。持有这组恢复词的人可能使用它登录您的账户，请妥善保管。","Google account":"Google 账户","Link Google to this same account. Linking does not transfer assets or create a new finance UID.":"将 Google 账号关联到同一个账户，不会迁移资产或创建新 UID。","Connect Google":"关联 Google","Authenticator · Two-step verification":"身份验证器 · 双重验证","Use a time-based six-digit code for additional protection during sign-in.":"登录时使用动态六位验证码，进一步保护账户。","Before enabling: save a backup of your authenticator codes or setup on a second trusted device. If you lose your authenticator, the permanent 10-word key alone does not bypass the second step. Do not enable until you have a recovery plan.":"开启前，请备份验证器或配置第二台可信设备。如果丢失验证器，仅凭永久十词无法跳过第二步验证。请确认有恢复方案后再开启。","I understand this second-step recovery limitation.":"我已理解双重验证的账户恢复限制。","Set up Authenticator":"设置身份验证器","Scan the QR with Google Authenticator or a compatible app. Do not share this QR or setup secret.":"使用 Google Authenticator 或其他兼容应用扫描二维码，不要分享二维码或设置密钥。","Manual setup key":"手动设置密钥","Six-digit code":"六位动态验证码","Verify & enable":"验证并开启","Cancel":"取消","Remove authenticator":"解绑身份验证器","Removing the last factor reduces account protection. Type REMOVE to confirm.":"移除最后一个验证器将降低账户安全性。请输入 REMOVE 确认。","Confirm removal":"确认解绑","Sign in to manage account security.":"登录后即可管理账户安全。"};
+const A783_DYNAMIC_ZH={"Not linked":"未绑定","Permanent ten-word recovery is available to username-only accounts.":"永久十词恢复功能适用于纯用户名账户。","Your original 10-word key remains valid. The original words cannot be retrieved from their secure verifier.":"原始十词密钥仍然有效，但无法从安全校验值中还原原文。","Connected to this account":"已关联本账户","Not connected":"未关联","Google connected":"已关联 Google","Authenticator enabled":"已启用身份验证器","Not enabled":"未启用","Two-step verification is active for this session.":"本次会话已通过双重验证。","Verify your six-digit code at sign-in to manage this factor.":"请在登录时完成六位验证码验证后再管理此验证器。","Use Google Authenticator or another TOTP app. After binding, a six-digit code is required on new sign-ins.":"支持 Google Authenticator 等标准 TOTP 应用，绑定后登录需验证六位动态码。","Security details updated.":"安全信息已更新。","Sign in to view account security, or try again after refreshing.":"请登录后查看账户安全，或刷新页面重试。","Temporarily unavailable":"暂时不可用","Some security details are temporarily unavailable. Other verified controls remain usable.":"部分安全信息暂时不可用，其他已验证的功能仍可使用。","Save the authenticator secret or configure a second trusted device before enabling two-step verification.":"启用双重验证前，请安全备份验证器密钥或在第二台可信设备配置验证器。","Account session could not be verified. Please sign in again or refresh.":"账户会话验证失败，请重新登录或刷新页面。","Please sign in before linking a username.":"请先登录再绑定用户名。","Google is already connected.":"Google 已绑定。","Opening Google authorization. Your original finance account will stay the same.":"正在前往 Google 授权，原财务账户不会变更。","Unable to link Google. Account linking may require enabling identity linking in authentication settings. No finance data was changed.":"Google 关联未完成。可能需要在认证设置中开放身份关联，财务数据未被修改。","Enter your existing ten words in the original order.":"请输入原始十个单词，并保持原有顺序。","Saved words verified. The private view will close automatically after 45 seconds.":"恢复词验证通过，45 秒后自动隐藏。","The recovery words could not be verified. Check the order.":"恢复词验证失败，请检查单词及顺序。","Please confirm that you understand the backup requirements before enabling two-step verification.":"开启双重验证前，请先确认已了解备份要求。","Already enrolled":"已经绑定","Could not start authenticator setup. Please check the account and try again.":"无法开始验证器设置，请检查账户后重试。","Scan this QR with Google Authenticator, then enter its six-digit code. Do not share this secret.":"请扫描二维码并输入六位动态码，切勿分享设置密钥。","Enter a six-digit authenticator code.":"请输入六位动态验证码。","Authenticator enabled. New sign-ins will require a six-digit code.":"验证器已启用，后续登录需要六位动态码。","Could not verify this code. Check your device time and try a new code.":"验证码无效，请检查设备时间并输入新的验证码。","Authenticator setup cancelled.":"已取消验证器设置。","To remove your authenticator, enter REMOVE below. Only the verified owner can continue.":"解绑验证器请输入 REMOVE，只有已验证的账户所有者可以继续。","Complete two-step verification before removing an authenticator.":"解绑前请先完成双重验证。","Unable to remove the authenticator.":"无法解绑验证器。","Authenticator removed.":"已解绑验证器。"};
 Object.assign(A783_STATIC_ZH,{"Show setup key":"显示设置密钥","Hide setup key":"隐藏设置密钥","I have backed up this authenticator secret securely or configured it on a second trusted device. I understand that losing it may lock me out of my account.":"我已安全备份验证器密钥，或已在第二台可信设备设置验证器。我明白丢失验证器可能导致无法登录。"});
 Object.assign(A783_STATIC_ZH,{"Show words":"显示恢复词","Hide words":"隐藏恢复词","Recovery words stay hidden while typing. Show only in private.":"输入时默认隐藏恢复词，仅在私人环境中显示。"});
 Object.assign(A783_STATIC_ZH,{"Authenticator setup is temporarily paused until recovery and finance protection checks are complete.":"账户恢复及财务数据安全验收期间，暂缓开放新的身份验证器绑定。"});
+Object.assign(A783_DYNAMIC_ZH,{"Your fixed original recovery key is securely backed up. Confirm your password to view it.":"原来的固定恢复密钥已安全加密备份。请输入当前密码查看。","One-time setup: enter your previously saved original ten words and password to protect this SAME key.":"首次设置：输入之前保存的十词及密码，为同一组密钥建立加密备份。","Encrypted recovery-key backup is unavailable. Existing original-key verification still works.":"加密密钥备份服务暂时不可用，原有恢复词验证仍可使用。","Enter the original ten words and current password.":"请输入原始十词及当前密码。","Your original ten words have been securely backed up without being changed.":"原有十词已安全加密备份，没有更换。","Could not back up the original key. No recovery words were changed.":"原始密钥备份未完成，恢复词没有被更换。","Enter your current password to view the fixed original key.":"请输入当前密码查看固定的原始密钥。","Original recovery key verified. It will automatically hide after 45 seconds.":"原始恢复密钥已解锁，45秒后自动隐藏。","Unable to unlock the recovery key. Check your password and authentication.":"无法解锁恢复密钥，请核对密码及身份验证。","This private key view automatically closes after 45 seconds. Never share these words or the QR code.":"此密钥视图45秒后自动关闭，请勿分享恢复词或二维码。"});
+Object.assign(A783_STATIC_ZH,{"Confirm current password":"验证当前密码","Secure my original 10 words":"加密备份现有十词","View original 10 words":"查看原始十词"});
 function a783IsZh(){return (localStorage.getItem('mmhvault_language_v3363')||document.documentElement.lang||'').toLowerCase().startsWith('zh');}
 function a783Text(en){return a783IsZh()?(A783_DYNAMIC_ZH[en]||A783_STATIC_ZH[en]||en):en;}
 const totpSetup=$('mmhA783TotpSetup');
@@ -23,6 +29,15 @@ if(totpSetup&&!$('mmhA783TotpBackupConfirmed')){
  backupLabel.append(backupBox,document.createTextNode(' I have backed up this authenticator secret securely or configured it on a second trusted device. I understand that losing it may lock me out of my account.'));
  const confirmButton=$('mmhA783TotpConfirm');confirmButton?.parentElement?.before(backupLabel);
 }
+const vaultRecovery=$('mmhA783Recovery');
+const vaultBox=document.createElement('div');
+vaultBox.id='mmhN10VaultRecoveryControls';vaultBox.hidden=true;
+vaultBox.innerHTML='<p class="mmh-a783-note" id="mmhN10VaultInfo"></p>'
+ +'<label class="mmh-a783-label" for="mmhN10VaultPassword">Confirm current password</label>'
+ +'<input id="mmhN10VaultPassword" type="password" autocomplete="current-password" maxlength="20" placeholder="Current password">'
+ +'<div class="mmh-a783-actions"><button type="button" class="btn" id="mmhN10VaultBackup" hidden>Secure my original 10 words</button>'
+ +'<button type="button" class="btn primary" id="mmhN10VaultReveal" hidden>View original 10 words</button></div>';
+vaultRecovery?.insertBefore(vaultBox,$('mmhA783KeyDisplay'));
 const a783FixedNodes=[];
 root.querySelectorAll('h3,p,b,strong,span,button,label').forEach(el=>{
   const en=el.textContent.trim();
@@ -52,12 +67,55 @@ document.addEventListener('click',event=>{
  if(event.target.closest('.language-choice-v3363'))setTimeout(a783RenderLanguage,0);
 });
 
-let owner='',busy=false,pendingFactor='',pendingSecret='',factorId='',verifiedPhrase='',clearTimer=null,usernameOnly=false;
+let owner='',busy=false,pendingFactor='',pendingFactorOwner='',pendingSecret='',factorId='',verifiedPhrase='',clearTimer=null,usernameOnly=false,vaultMode='unknown',secretEpoch=0,mfaEpoch=0;
 function client(){return typeof db!=='undefined'?db:null;}
 function label(id,v){const el=$(id);if(el){el.dataset.mmhA783DynamicEn=v;el.textContent=a783Text(v);}}
-function hideKey(){verifiedPhrase='';$('mmhA783KeyDisplay').hidden=true;$('mmhA783KeyQr').replaceChildren();$('mmhA783KeyWords').replaceChildren();$('mmhA783Phrase').value='';$('mmhA783Phrase').type='password';$('mmhA783PhraseToggle').setAttribute('aria-pressed','false');a783Action('mmhA783PhraseToggle','Show words');if(clearTimer)clearTimeout(clearTimer);}
-function clearMfa(){pendingSecret='';pendingFactor='';if($('mmhA783TotpBackupConfirmed'))$('mmhA783TotpBackupConfirmed').checked=false;$('mmhA783TotpSetup').hidden=true;$('mmhA783TotpQr').replaceChildren();$('mmhA783TotpSecret').textContent='';$('mmhA783TotpSecret').hidden=true;$('mmhA783TotpCode').value='';a783Action('mmhA783KeyReveal','Show setup key');}
-async function cancelPendingMfa(){const id=pendingFactor;clearMfa();if(!id)return true;try{const r=await client().auth.mfa.unenroll({factorId:id});return !r.error}catch(_){return false}}
+function hideKey(){secretEpoch+=1;const field=$('mmhN10VaultPassword');if(field)field.value='';verifiedPhrase='';$('mmhA783KeyDisplay').hidden=true;$('mmhA783KeyQr').replaceChildren();$('mmhA783KeyWords').replaceChildren();$('mmhA783Phrase').value='';$('mmhA783Phrase').type='password';$('mmhA783PhraseToggle').setAttribute('aria-pressed','false');a783Action('mmhA783PhraseToggle','Show words');if(clearTimer)clearTimeout(clearTimer);}
+// .totp is the verified-only subset; use .all to detect pending factors.
+function inspectTotpFactors(data){
+ if(!data||!Array.isArray(data.all))throw Error('factor_inventory_unavailable');
+ const allTotp=data.all.filter(f=>f&&f.factor_type==='totp');
+ return {
+  allTotp,
+  verified:allTotp.filter(f=>f.status==='verified'),
+  pending:allTotp.filter(f=>f.status==='unverified'),
+  unknown:allTotp.filter(f=>f.status!=='verified'&&f.status!=='unverified')
+ };
+}
+function clearMfa(){mfaEpoch+=1;pendingSecret='';pendingFactor='';pendingFactorOwner='';if($('mmhA783TotpBackupConfirmed'))$('mmhA783TotpBackupConfirmed').checked=false;$('mmhA783TotpSetup').hidden=true;$('mmhA783TotpQr').replaceChildren();$('mmhA783TotpSecret').textContent='';$('mmhA783TotpSecret').hidden=true;$('mmhA783TotpCode').value='';a783Action('mmhA783KeyReveal','Show setup key');}
+// Async MFA responses must never revive a closed modal or a changed account.
+function mfaFlowActive(epoch,userId){
+ const overlay=$('mmhA783TotpStart')?.closest('.mmh-n10-modal-overlay');
+ return epoch===mfaEpoch&&userId===owner&&!document.hidden&&!!overlay&&!overlay.hidden;
+}
+// Removal is a destructive action: bind the target, owner and active modal.
+// Re-check after every asynchronous Auth request and before reporting success.
+function mfaRemovalActive(epoch,userId,targetFactor){
+ return mfaFlowActive(epoch,userId)&&factorId===targetFactor&&
+  !$('mmhA783TotpRemoveConfirm').hidden&&
+  $('mmhA783TotpRemoveText').value==='REMOVE';
+}
+async function cancelPendingMfa(){
+ const targetFactor=pendingFactor,targetOwner=pendingFactorOwner;
+ // Clear the UI synchronously even if Auth calls below fail or never complete.
+ clearMfa();
+ if(!targetFactor)return true;
+ if(!targetOwner)return false;
+ try{
+  const before=await verifiedUser();
+  if(before.user.id!==targetOwner||owner!==targetOwner)return false;
+  const found=await client().auth.mfa.listFactors();
+  if(found.error||owner!==targetOwner)return false;
+  // Cancellation is permitted only for this owner's *unverified* factor.
+  // Never accidentally unenroll a verified factor on a stale response.
+  const matches=inspectTotpFactors(found.data).pending.some(f=>f.id===targetFactor);
+  if(!matches)return false;
+  const current=await verifiedUser();
+  if(current.user.id!==targetOwner||owner!==targetOwner)return false;
+  const result=await client().auth.mfa.unenroll({factorId:targetFactor});
+  return !result.error;
+ }catch(_){return false;}
+}
 function displayTotpQr(totp){
  const holder=$('mmhA783TotpQr');holder.replaceChildren();
  if(typeof QRCode==='function' && String(totp.uri||'').startsWith('otpauth://')){
@@ -94,6 +152,69 @@ async function api(action,extra={}){
  const r=await fetch(API,{method:'POST',credentials:'omit',cache:'no-store',referrerPolicy:'no-referrer',headers:{'Content-Type':'application/json',Authorization:'Bearer '+a.jwt},body:JSON.stringify({action,...extra})});
  const d=await r.json().catch(()=>({code:'unavailable'}));
  return {ok:r.ok,body:d};
+}
+async function vaultApi(action,extra={}){
+ if(!N10_FIXED_VAULT_UI_RELEASED)throw Error('vault_release_locked');
+ const a=await verifiedUser();
+ const r=await fetch(VAULT_API,{method:'POST',cache:'no-store',credentials:'omit',
+  referrerPolicy:'no-referrer',headers:{'Content-Type':'application/json',
+  Authorization:'Bearer '+a.jwt},body:JSON.stringify({action,...extra})});
+ return {ok:r.ok,body:await r.json().catch(()=>({code:'unavailable'}))};
+}
+function vaultStatusMode(mode){
+ vaultMode=mode;
+ const ready=mode==='ready',needed=mode==='backup_needed';
+ const box=$('mmhN10VaultRecoveryControls');
+ box.hidden=!(ready||needed);
+ $('mmhN10VaultReveal').hidden=!ready;
+ $('mmhN10VaultBackup').hidden=!needed;
+ const note=$('mmhN10VaultInfo');
+ note.textContent=ready
+  ?a783Text('Your fixed original recovery key is securely backed up. Confirm your password to view it.')
+  :a783Text('One-time setup: enter your previously saved original ten words and password to protect this SAME key.');
+ const legacyNote=vaultRecovery.querySelector(':scope > p.mmh-a783-note');if(legacyNote)legacyNote.hidden=ready;
+ for(const el of [
+  vaultRecovery.querySelector('label[for="mmhA783Phrase"]'),
+  vaultRecovery.querySelector('.mmh-a789-phrase-field'),
+  $('mmhA783PhrasePrivacy'),$('mmhA783KeyVerify')
+ ])if(el)el.hidden=ready;
+}
+function recoveryModalActive(){
+ return !document.hidden&&$('mmhA783Recovery')?.classList.contains('mmh-a785-open')===true;
+}
+function sameSecretRequest(epoch,userId){
+ return epoch===secretEpoch&&userId===owner&&recoveryModalActive();
+}
+async function loadVaultMode(){
+ if(!N10_FIXED_VAULT_UI_RELEASED){vaultStatusMode('unavailable');return;}
+ if(!usernameOnly||!recoveryModalActive())return;
+ const epoch=secretEpoch,userId=owner;
+ try{
+  const r=await vaultApi('status');
+  if(!sameSecretRequest(epoch,userId))return;
+  if(!r.ok||r.body?.code!=='backup_status'||typeof r.body.backed_up!=='boolean')
+   throw Error('vault_unavailable');
+  vaultStatusMode(r.body.backed_up?'ready':'backup_needed');
+ }catch(_){
+  if(!sameSecretRequest(epoch,userId))return;
+  vaultStatusMode('unavailable');
+  status('Encrypted recovery-key backup is unavailable. Existing original-key verification still works.');
+ }
+}
+function showVaultWords(words){
+ if(!Array.isArray(words)||words.length!==10||words.some(w=>typeof w!=='string'||!/^[a-z]{2,13}$/.test(w)))throw Error('bad_words');
+ const raw=words.join(' ');hideKey();verifiedPhrase=raw;
+ const list=$('mmhA783KeyWords');list.replaceChildren();
+ words.forEach((w,i)=>{const el=document.createElement('div');el.className='mmh-a783-word';el.textContent=String(i+1).padStart(2,'0')+'  '+w;list.append(el)});
+ const qr=$('mmhA783KeyQr');qr.replaceChildren();
+ if(typeof QRCode==='function'){
+  const name=$('mmhA783UsernameStatus').textContent.replace(/^@/,'');
+  new QRCode(qr,{text:'MMHVAULT-RECOVERY-V1\nUSERNAME:'+name+'\nPHRASE:'+raw,width:186,height:186,colorDark:'#000',colorLight:'#fff',correctLevel:QRCode.CorrectLevel.L});
+ }
+ $('mmhA783KeyDisplay').hidden=false;
+ const msg=$('mmhA783KeyDisplay').querySelector('.mmh-a783-note');
+ if(msg)msg.textContent=a783Text('This private key view automatically closes after 45 seconds. Never share these words or the QR code.');
+ clearTimer=setTimeout(hideKey,45000);
 }
 async function refresh(){
  if(busy)return;
@@ -193,13 +314,15 @@ $('mmhA783PhraseToggle').addEventListener('click',()=>{
  a783Action('mmhA783PhraseToggle',visible?'Hide words':'Show words');
 });
 $('mmhA783KeyVerify').addEventListener('click',async()=>{
- if(busy)return;const raw=$('mmhA783Phrase').value.trim().toLowerCase().replace(/\s+/g,' ');
+ if(busy||!recoveryModalActive())return;const raw=$('mmhA783Phrase').value.trim().toLowerCase().replace(/\s+/g,' ');
  if(raw.split(' ').length!==10){status('Enter your existing ten words in the original order.');return}
+ const epoch=secretEpoch,userId=owner;
  busy=true;
  try{
   const r=await api('verify_saved_phrase',{phrase:raw});
+  if(!sameSecretRequest(epoch,userId))return;
   if(!r.ok||r.body?.verified!==true)throw Error('invalid');
-  verifiedPhrase=raw;hideKey();verifiedPhrase=raw;
+  hideKey();verifiedPhrase=raw;
   const list=$('mmhA783KeyWords');list.replaceChildren();
   raw.split(' ').forEach((w,i)=>{const el=document.createElement('div');el.className='mmh-a783-word';el.textContent=String(i+1).padStart(2,'0')+'  '+w;list.append(el)});
   const qr=$('mmhA783KeyQr');qr.replaceChildren();
@@ -208,10 +331,40 @@ $('mmhA783KeyVerify').addEventListener('click',async()=>{
    new QRCode(qr,{text:'MMHVAULT-RECOVERY-V1\nUSERNAME:'+name+'\nPHRASE:'+raw,width:186,height:186,colorDark:'#000',colorLight:'#fff',correctLevel:QRCode.CorrectLevel.L});
   }
   $('mmhA783KeyDisplay').hidden=false;$('mmhA783Phrase').value='';
-  clearTimer=setTimeout(hideKey,60000);
-  status('Saved words verified. Backup view will close automatically after 60 seconds.');
- }catch(_){hideKey();status('The recovery words could not be verified. Check the order.');}
+  clearTimer=setTimeout(hideKey,45000);
+  status('Saved words verified. The private view will close automatically after 45 seconds.');
+ }catch(_){if(sameSecretRequest(epoch,userId)){hideKey();status('The recovery words could not be verified. Check the order.');}}
  finally{busy=false;}
+});
+$('mmhN10VaultBackup').addEventListener('click',async()=>{
+ if(!N10_FIXED_VAULT_UI_RELEASED||busy||vaultMode!=='backup_needed'||!recoveryModalActive())return;
+ const phrase=$('mmhA783Phrase').value.trim().toLowerCase().replace(/\s+/g,' ');
+ const password=$('mmhN10VaultPassword').value;
+ if(phrase.split(' ').length!==10||!password){status('Enter the original ten words and current password.');return;}
+ const epoch=secretEpoch,userId=owner;
+ busy=true;
+ try{
+  const r=await vaultApi('backup_existing',{phrase,password});
+  if(!sameSecretRequest(epoch,userId))return;
+  if(!r.ok||r.body?.code!=='backup_ready')throw Error('backup_error');
+  hideKey();vaultStatusMode('ready');status('Your original ten words have been securely backed up without being changed.');
+ }catch(_){if(sameSecretRequest(epoch,userId))status('Could not back up the original key. No recovery words were changed.');}
+ finally{busy=false;$('mmhN10VaultPassword').value='';}
+});
+$('mmhN10VaultReveal').addEventListener('click',async()=>{
+ if(!N10_FIXED_VAULT_UI_RELEASED||busy||vaultMode!=='ready'||!recoveryModalActive())return;
+ const password=$('mmhN10VaultPassword').value;
+ if(!password){status('Enter your current password to view the fixed original key.');return;}
+ const epoch=secretEpoch,userId=owner;
+ busy=true;
+ try{
+  const r=await vaultApi('reveal',{password});
+  if(!sameSecretRequest(epoch,userId))return;
+  if(!r.ok||r.body?.code!=='recovery_key')throw Error('reveal_error');
+  showVaultWords(r.body.words);
+  status('Original recovery key verified. It will automatically hide after 45 seconds.');
+ }catch(_){if(sameSecretRequest(epoch,userId)){hideKey();status('Unable to unlock the recovery key. Check your password and authentication.');}}
+ finally{busy=false;$('mmhN10VaultPassword').value='';}
 });
 $('mmhA783KeyHide').addEventListener('click',hideKey);
 $('mmhA783KeySaveQr').addEventListener('click',()=>{
@@ -224,37 +377,77 @@ $('mmhA783TotpStart').addEventListener('click',async()=>{
  if(!N10A790_TOTP_ENROLLMENT_RELEASED){status(N10A790_HOLD);return;}
  if(busy)return;
  if(!$('mmhA783TotpConsent')?.checked){status('Please confirm that you understand the backup requirements before enabling two-step verification.');return}
+ const epoch=mfaEpoch;
  busy=true;
  try{
-  await verifiedUser();
+  const {user}=await verifiedUser();
+  if(!mfaFlowActive(epoch,user.id))return;
   const existing=await client().auth.mfa.listFactors();
-  if(existing.error||existing.data?.totp?.some(x=>x.status==='verified'))throw Error('Already enrolled');
-  for(const factor of (existing.data?.totp||[]).filter(x=>x.status==='unverified')){const r=await client().auth.mfa.unenroll({factorId:factor.id});if(r.error)throw Error('Pending factor cleanup failed');}
-  const {data,error}=await client().auth.mfa.enroll({factorType:'totp',friendlyName:'MMHVAULT Authenticator'});
+  if(existing.error)throw existing.error;
+  if(!mfaFlowActive(epoch,user.id))return;
+  const before=inspectTotpFactors(existing.data);
+  if(before.verified.length||before.unknown.length)throw Error('Existing factor must be reviewed');
+  for(const factor of before.pending){
+   if(!mfaFlowActive(epoch,user.id))return;
+   if(!factor.id)throw Error('Pending factor has no id');
+   const removed=await client().auth.mfa.unenroll({factorId:factor.id});
+   if(removed.error)throw Error('Pending factor cleanup failed');
+  }
+  if(!mfaFlowActive(epoch,user.id))return;
+  const checked=await client().auth.mfa.listFactors();
+  if(checked.error||inspectTotpFactors(checked.data).allTotp.length!==0)
+   throw Error('Old TOTP factor still exists');
+  if(!mfaFlowActive(epoch,user.id))return;
+  const afterOwner=await verifiedUser();
+  if(afterOwner.user.id!==user.id||!mfaFlowActive(epoch,user.id))return;
+  const name='MMHVAULT Authenticator '+crypto.randomUUID().slice(0,8);
+  const {data,error}=await client().auth.mfa.enroll({factorType:'totp',friendlyName:name});
   if(error||!data?.id||!data?.totp?.qr_code)throw error||Error('Enrollment unavailable');
-  pendingFactor=data.id;pendingSecret=data.totp.secret||'';
+  if(!mfaFlowActive(epoch,user.id)){
+   // The enrolling session may have navigated away. Never display stale
+   // secrets; remove the orphan only if the SAME signed-in user still owns it.
+   try{const now=await verifiedUser();if(now.user.id===user.id)
+    await client().auth.mfa.unenroll({factorId:data.id});}catch(_){}
+   return;
+  }
+  pendingFactor=data.id;pendingFactorOwner=user.id;pendingSecret=data.totp.secret||'';
   displayTotpQr(data.totp);
   $('mmhA783TotpSecret').hidden=true;
   $('mmhA783TotpSecret').textContent='';
   a783Action('mmhA783KeyReveal','Show setup key');
   $('mmhA783TotpSetup').hidden=false;
   status('Scan this QR with Google Authenticator, then enter its six-digit code. Do not share this secret.');
- }catch(_){status('Could not start authenticator setup. Please check the account and try again.');}
+ }catch(_){if(mfaFlowActive(epoch,owner))
+  status('Could not start authenticator setup. Please check the account and try again.');}
  finally{busy=false;}
 });
 $('mmhA783TotpConfirm').addEventListener('click',async()=>{
  if(busy||!pendingFactor)return;
  if(!$('mmhA783TotpBackupConfirmed')?.checked){status('Save the authenticator secret or configure a second trusted device before enabling two-step verification.');return}
  const code=$('mmhA783TotpCode').value.trim();if(!/^\d{6}$/.test(code)){status('Enter a six-digit authenticator code.');return}
+ const epoch=mfaEpoch,userId=owner;
+ if(!mfaFlowActive(epoch,userId))return;
  busy=true;
  try{
-  const {data:challenge,error:challengeError}=await client().auth.mfa.challenge({factorId:pendingFactor});
+  const id=pendingFactor;
+  const {data:challenge,error:challengeError}=await client().auth.mfa.challenge({factorId:id});
   if(challengeError||!challenge?.id)throw challengeError||Error('challenge_failed');
-  const {error}=await client().auth.mfa.verify({factorId:pendingFactor,challengeId:challenge.id,code});
+  if(!mfaFlowActive(epoch,userId))return;
+  const {error}=await client().auth.mfa.verify({factorId:id,challengeId:challenge.id,code});
   if(error)throw error;
-  clearMfa();status('Authenticator enabled. New sign-ins will require a six-digit code.');
+  if(!mfaFlowActive(epoch,userId))return;
+  const assurance=await client().auth.mfa.getAuthenticatorAssuranceLevel();
+  if(assurance.error||assurance.data?.currentLevel!=='aal2')
+   throw Error('AAL2 not confirmed');
+  if(!mfaFlowActive(epoch,userId))return;
+  const checked=await client().auth.mfa.listFactors();
+  if(checked.error||!inspectTotpFactors(checked.data).verified.some(x=>x.id===id))
+   throw Error('Verified factor not confirmed');
+  if(!mfaFlowActive(epoch,userId))return;
+  clearMfa();status('Authenticator enabled. Verified by Auth (AAL2). New sign-ins will require a six-digit code.');
   setTimeout(()=>void refresh(),0);
- }catch(_){status('Could not verify this code. Check your device time and try a new code.');}
+ }catch(_){if(mfaFlowActive(epoch,userId))
+  status('Could not verify this code. Check your device time and try a new code.');}
  finally{busy=false;$('mmhA783TotpCode').value='';}
 });
 $('mmhA783KeyReveal').addEventListener('click',()=>{
@@ -263,20 +456,48 @@ $('mmhA783KeyReveal').addEventListener('click',()=>{
  a783Action('mmhA783KeyReveal',el.hidden?'Show setup key':'Hide setup key');
 });
 $('mmhA783TotpCancel').addEventListener('click',async()=>{
- const ok=await cancelPendingMfa();status(ok?'Authenticator setup cancelled.':'Unable to cancel setup; refresh before retrying.');
+ const beforeOwner=owner;
+ const ok=await cancelPendingMfa();
+ if(beforeOwner===owner&&!document.hidden)
+  status(ok?'Authenticator setup cancelled.':'Unable to confirm cancellation. A pending factor may remain; refresh before retrying.');
 });
 $('mmhA783TotpRemove').addEventListener('click',()=>{
  $('mmhA783TotpRemoveConfirm').hidden=false;
  status('To remove your authenticator, enter REMOVE below. Only the verified owner can continue.');
 });
 $('mmhA783TotpRemoveNow').addEventListener('click',async()=>{
- if($('mmhA783TotpRemoveText').value!=='REMOVE'||!factorId)return;
- const aal=await client().auth.mfa.getAuthenticatorAssuranceLevel();
- if(aal.error||aal.data?.currentLevel!=='aal2'){status('Complete two-step verification before removing an authenticator.');return}
- const {error}=await client().auth.mfa.unenroll({factorId});if(error){status('Unable to remove the authenticator.');return}
- $('mmhA783TotpRemoveText').value='';$('mmhA783TotpRemoveConfirm').hidden=true;status('Authenticator removed.');void refresh();
+ if(busy||$('mmhA783TotpRemoveText').value!=='REMOVE'||!factorId)return;
+ const epoch=mfaEpoch,userId=owner,targetFactor=factorId;
+ if(!mfaRemovalActive(epoch,userId,targetFactor))return;
+ busy=true;
+ try{
+  const before=await verifiedUser();
+  if(before.user.id!==userId||!mfaRemovalActive(epoch,userId,targetFactor))return;
+  const aal=await client().auth.mfa.getAuthenticatorAssuranceLevel();
+  if(!mfaRemovalActive(epoch,userId,targetFactor))return;
+  if(aal.error||aal.data?.currentLevel!=='aal2')throw Error('aal2_required');
+  // Protect against removing a replaced factor after a refresh or UID change.
+  const factors=await client().auth.mfa.listFactors();
+  if(factors.error||!inspectTotpFactors(factors.data).verified.some(f=>f.id===targetFactor))
+   throw Error('factor_missing_or_unverified');
+  if(!mfaRemovalActive(epoch,userId,targetFactor))return;
+  const current=await verifiedUser();
+  if(current.user.id!==userId||!mfaRemovalActive(epoch,userId,targetFactor))return;
+  // No await between final owner/target check and initiating the Auth operation.
+  const result=await client().auth.mfa.unenroll({factorId:targetFactor});
+  if(!mfaRemovalActive(epoch,userId,targetFactor))return;
+  if(result.error)throw result.error;
+  $('mmhA783TotpRemoveText').value='';
+  $('mmhA783TotpRemoveConfirm').hidden=true;
+  factorId='';
+  status('Authenticator removed.');
+  void refresh();
+ }catch(_){
+  if(mfaRemovalActive(epoch,userId,targetFactor))
+   status('Authenticator removal could not be confirmed. Check the account and try again.');
+ }finally{busy=false;}
 });
-document.addEventListener('visibilitychange',()=>{if(document.hidden){hideKey();if(pendingFactor)void cancelPendingMfa();}});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){hideKey();if(pendingFactor)void cancelPendingMfa();else clearMfa();}});
 window.addEventListener('pagehide',()=>{hideKey();if(pendingFactor)void cancelPendingMfa();else clearMfa();});
 // Modal-only interaction: keep the existing original controls in the same
 // owner-authenticated DOM subtree. Do not clone sensitive inputs or create a
@@ -432,8 +653,12 @@ function collapse(section){
  section.querySelector(':scope > .mmh-a783-title')?.setAttribute('aria-expanded','false');
  if(info)info.overlay.hidden=true;
  if(!sections.some(s=>s.classList.contains('mmh-a785-open')))document.body.classList.remove('mmh-n10-account-modal-open');
- if(section.id==='mmhA783Recovery')hideKey();
- if(info?.overlay.querySelector('#mmhA783TotpSetup')&&pendingFactor)void cancelPendingMfa();
+ if(section.id==='mmhA783Recovery'){hideKey();vaultStatusMode('unavailable');}
+ if(info?.overlay.querySelector('#mmhA783TotpSetup')){
+  // Even while enrollment is in flight, before pendingFactor is assigned,
+  // closing this modal must invalidate the in-flight response.
+  if(pendingFactor)void cancelPendingMfa();else clearMfa();
+ }
  if(wasOpen&&info?.overlay.contains(document.activeElement))section.querySelector(':scope > .mmh-a783-title')?.focus({preventScroll:true});
 }
 sections.forEach(section=>{
@@ -450,6 +675,7 @@ sections.forEach(section=>{
   info.message.textContent=$('mmhA783Status')?.textContent||'';
   info.overlay.hidden=false;document.body.classList.add('mmh-n10-account-modal-open');
   info.close.focus({preventScroll:true});
+  if(section.id==='mmhA783Recovery')void loadVaultMode();
  };
  title.addEventListener('click',toggle);
  title.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();toggle()}});
@@ -477,7 +703,20 @@ function onPageChange(){
 if(settingsPage){new MutationObserver(onPageChange).observe(settingsPage,{attributes:true,subtree:true,attributeFilter:['class','hidden']});if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',onPageChange,{once:true});else onPageChange();}
 a783RenderLanguage();
 if(client()){
- client().auth.onAuthStateChange((event)=>{if(['SIGNED_IN','SIGNED_OUT','TOKEN_REFRESHED'].includes(event))setTimeout(()=>{if(event==='SIGNED_OUT'){owner='';hideKey();clearMfa();resetSensitiveState();status('Sign in to manage account security.');}else void refresh()},0)});
+ client().auth.onAuthStateChange((event,session)=>{
+  // Invalidate in-flight secret responses *synchronously* on account change
+  // or sign-out, even while refresh() cannot run because a request is busy.
+  if(event==='SIGNED_OUT'||(event==='SIGNED_IN'&&owner&&session?.user?.id!==owner)){
+   // Clear sensitive fields synchronously; refresh() may be busy.
+   // No asynchronous Auth request is made within the Auth callback.
+   hideKey();clearMfa();resetSensitiveState();sections.forEach(collapse);
+   owner='';
+  }
+  if(['SIGNED_IN','SIGNED_OUT','TOKEN_REFRESHED'].includes(event))setTimeout(()=>{
+   if(event==='SIGNED_OUT'){clearMfa();resetSensitiveState();status('Sign in to manage account security.')}
+   else void refresh();
+  },0);
+ });
  setTimeout(refresh,400);
 }
 })();
