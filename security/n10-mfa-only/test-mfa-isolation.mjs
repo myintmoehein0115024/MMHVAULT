@@ -101,15 +101,19 @@ const tests=[
   assert.equal(fn(5,'B'),false);
   env.document.hidden=true;assert.equal(fn(5,'A'),false);
   env.document.hidden=false;overlay.hidden=true;assert.equal(fn(5,'A'),false);
-  overlay.hidden=false;env.owner='B';assert.equal(fn(5,'A'),false);
+  overlay.hidden=false;env.$=id=>id==='mmhA783Recovery'?panel:{closest:()=>null};
+  assert.equal(fn(5,'A'),false,'missing portal must fail closed');
+  env.$=id=>id==='mmhA783Recovery'?panel:{closest:()=>overlay};
+  env.owner='B';assert.equal(fn(5,'A'),false);
  }],
  ['original key verification rejects stale response before revealing words',()=>{
   const s=between("$('mmhA783KeyVerify').addEventListener('click',async()=>{","$('mmhA783KeyHide').addEventListener('click',hideKey);");
   ordered(s,['if(busy||!owner||!recoveryRequestActive(recoveryEpoch,owner))return;',
-   'const epoch=recoveryEpoch,userId=owner;',"const r=await api('verify_saved_phrase',{phrase:raw});",
+   'hideKey();','const epoch=recoveryEpoch,userId=owner;',
+   "const r=await api('verify_saved_phrase',{phrase:raw});",
    'if(!recoveryRequestActive(epoch,userId))return;',
    "if(!r.ok||r.body?.verified!==true)throw Error('invalid');",
-   'hideKey();verifiedPhrase=raw;',
+   'verifiedPhrase=raw;',
    "$('mmhA783KeyDisplay').hidden=false;",
    'clearTimer=setTimeout(hideKey,60000);']);
   assert.match(s,/catch\(_\)\{if\(recoveryRequestActive\(epoch,userId\)\)\{/);
