@@ -152,14 +152,17 @@ async function load(page,route,failures){
            return {extra,width:innerWidth,document:document.documentElement.scrollWidth};
          });
          if(localeOverflow.extra>2){
-           const candidates=await page.evaluate(()=>[...document.querySelectorAll('body *')]
+           const candidates=await page.evaluate(()=>{
+             scrollTo({left:0,top:scrollY,behavior:'instant'});
+             return [...document.querySelectorAll('body *')]
              .map(el=>{const r=el.getBoundingClientRect();return {
                tag:el.tagName,cls:typeof el.className==='string'?el.className.slice(0,75):'',
                text:(el.textContent||'').slice(0,55),x:Math.round(r.left),right:Math.round(r.right),
                width:Math.round(r.width),overflow:getComputedStyle(el).overflowX};
              })
              .filter(x=>x.right>innerWidth+3 && x.width>8)
-             .sort((a,b)=>b.right-a.right).slice(0,14));
+             .sort((a,b)=>b.right-a.right).slice(0,22);
+           });
            console.error('PUBLIC LOCALE OVERFLOW '+route+' '+JSON.stringify(candidates));
          }
          ensure(localeOverflow.extra<=2,route+' Burmese locale has no sideways scroll '+JSON.stringify(localeOverflow));
