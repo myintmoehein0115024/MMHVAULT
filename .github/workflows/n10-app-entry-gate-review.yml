@@ -12,7 +12,7 @@ permissions:
 jobs:
   review:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 18
     steps:
       - name: Checkout review candidate (never deploy)
         uses: actions/checkout@v4
@@ -40,7 +40,14 @@ jobs:
           node --check security/n10-app-entry-guard-candidate/guard.mjs
           node --check security/n10-app-entry-guard-candidate/preview.mjs
           node --check security/n10-app-entry-guard-candidate/test-preview.mjs
+          node --check security/n10-app-entry-guard-candidate/test-browser-mask.mjs
       - name: Simulated MFA entry and unchanged finance checks
         run: node security/n10-app-entry-guard-candidate/test-preview.mjs
+      - name: Install isolated browser test runtime
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps chromium webkit
+      - name: Check desktop and mobile synthetic lock overlays (no real accounts)
+        run: node security/n10-app-entry-guard-candidate/test-browser-mask.mjs
       - name: Confirm no deployment or secrets were requested
         run: echo "Review-only checks complete. No production or Auth operation attempted."
