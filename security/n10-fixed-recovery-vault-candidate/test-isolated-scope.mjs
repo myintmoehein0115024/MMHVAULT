@@ -33,6 +33,8 @@ const approvedReviewCode=new Set([
  'index.ts',
  'mfa-assurance.mjs',
  'retire-joint-qa-edge-REVIEW_ONLY.ts',
+ 'recovery-request.mjs',
+ 'test-recovery-request.mjs',
  'session-guard.mjs',
  'test-backend-only-review.mjs',
  'test-isolated-scope.mjs',
