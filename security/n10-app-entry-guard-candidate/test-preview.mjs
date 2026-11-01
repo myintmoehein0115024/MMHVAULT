@@ -78,7 +78,7 @@ assert.doesNotMatch(patched,/\bconst a783=await db\.auth\.mfa\.getAuthenticatorA
 
 // Exercise the exact guard that would be injected, not a separate duplicate.
 const beg=patched.indexOf('async function mmhN10AssessWorkspaceMfaV1100(');
-const end=patched.indexOf('async function enter(session){',beg);
+const end=patched.indexOf('let mmhN10GateVersionV1100=0;',beg);
 assert.ok(beg>=0&&end>beg,'missing pasted helper');
 const helper=runInNewContext('('+patched.slice(beg,end).trim()+')');
 for(const [name,opts,result] of cases) {
