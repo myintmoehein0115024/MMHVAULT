@@ -75,6 +75,9 @@ export function generateAppEntryPreview(original) {
   const newReconcileStart = [
     "async function mmhVaultReconcileSessionV1239(reason='resume',opts={}){",
     '  if(mmhVaultSessionCheckPromiseV1239)return mmhVaultSessionCheckPromiseV1239;',
+    "  // Preserve pre-existing cloud mask state before adding this security mask.",
+    "  const n10ExistingMask=document.getElementById('mmhP947AccountGuard');",
+    "  const n10AlreadyMasked=!!n10ExistingMask&&!n10ExistingMask.hidden&&n10ExistingMask.style.display!=='none';",
     "  // Invalidate any older same-account check before awaiting resume.",
     "  const n10Version=++mmhN10GateVersionV1100;",
     "  // Protect already rendered account data before any async resume check.",
@@ -98,6 +101,14 @@ export function generateAppEntryPreview(original) {
     '      if(!currentSessionUser){'
   ].join('\n');
   copy=replaceExactlyOnce(copy,oldReconcileCheck,newReconcileCheck,'resume-aal-check');
+  const oldCloudReload = [
+    '      const needsCloud=masked||(opts.refreshData&&(!Number.isFinite(staleFor)||staleFor>15000));'
+  ].join('\n');
+  const newCloudReload = [
+    '      // The security-only mask must not force a full cloud reload on every focus.',
+    '      const needsCloud=n10AlreadyMasked||(opts.refreshData&&(!Number.isFinite(staleFor)||staleFor>15000));'
+  ].join('\n');
+  copy=replaceExactlyOnce(copy,oldCloudReload,newCloudReload,'resume-cloud-reload');
   const oldResumePaint = [
     '      applyUserProfile(verified.user);',
     '      if(navigator.onLine!==false&&(opts.forceRealtime||!realtimeReady||realtimeChannelOwnerV1235!==owner))subscribeRealtime({force:true,reason});',
