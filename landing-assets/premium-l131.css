@@ -498,7 +498,7 @@ body.l131 .site-header #primary-nav .nav-explore-menu>a:focus-visible{
   html[lang="my"] body.l131 .site-header #primary-nav .nav-explore>summary{font-size:10px}
   body.l131 .site-header .header-actions{gap:6px}
 }
-@media (max-width:1050px){
+@media (max-width:1360px){
   body.l131 .site-header.menu-open #primary-nav{
     max-height:calc(100dvh - 91px);overflow-y:auto;overscroll-behavior:contain;
   }
@@ -521,4 +521,40 @@ body.l131 .site-header #primary-nav .nav-explore-menu>a:focus-visible{
 }
 @media (prefers-reduced-motion:reduce){
   body.l131 .site-header #primary-nav .nav-explore>summary svg{transition:none}
+}
+
+
+/* L1.14.1 — a six-item nav must not overflow when desktop zoom reduces
+   CSS viewport width. Keep the existing one-row desktop header >= 1361px. */
+@media(max-width:1360px){
+  body.l131 .site-header .header-inner{
+    display:flex;align-items:center;justify-content:space-between;
+    grid-template-columns:none;gap:clamp(8px,2vw,18px);min-height:76px;
+  }
+  body.l131 .site-header .header-inner #primary-nav{
+    display:none;position:absolute;
+    left:clamp(12px,2.8vw,28px);right:clamp(12px,2.8vw,28px);
+    top:calc(100% + 7px);z-index:60;
+    flex-direction:column;align-items:stretch;justify-content:flex-start;
+    width:auto;max-width:none;margin:0;gap:0;
+    padding:9px;border:1px solid rgba(238,203,154,.5);
+    border-radius:17px;background:rgba(8,23,37,.985);
+    box-shadow:0 26px 60px rgba(0,9,24,.46);
+    -webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);
+    white-space:normal;overflow-wrap:anywhere;
+  }
+  body.l131 .site-header.menu-open .header-inner #primary-nav{
+    display:flex;
+  }
+  body.l131 .site-header .header-inner #primary-nav>a{
+    width:100%;min-height:45px;padding:10px 15px;font-size:13px;
+  }
+  body.l131 .site-header .header-inner #primary-nav .nav-explore>summary{
+    min-height:45px;
+  }
+  body.l131 .site-header .menu-toggle{display:flex;flex:0 0 auto}
+  body.l131 .site-header .header-actions{flex:0 0 auto;min-width:0}
+}
+@media (min-width:1361px){
+  body.l131 .site-header .menu-toggle{display:none}
 }
