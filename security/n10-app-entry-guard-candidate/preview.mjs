@@ -98,6 +98,21 @@ export function generateAppEntryPreview(original) {
     '      if(!currentSessionUser){'
   ].join('\n');
   copy=replaceExactlyOnce(copy,oldReconcileCheck,newReconcileCheck,'resume-aal-check');
+  const oldResumePaint = [
+    '      applyUserProfile(verified.user);',
+    '      if(navigator.onLine!==false&&(opts.forceRealtime||!realtimeReady||realtimeChannelOwnerV1235!==owner))subscribeRealtime({force:true,reason});',
+    '      if(masked)mmhP947UnlockV947();'
+  ].join('\n');
+  const newResumePaint = [
+    '      // Last check before painting private account UI or releasing the mask.',
+    '      if(n10Version!==mmhN10GateVersionV1100||startTicket!==mmhP947AuthGateTicket||',
+    '         startEpoch!==(Number(window.__mmhSessionEpochV1239)||0)||currentSessionUser?.id!==owner)',
+    '        return {ok:false,superseded:true};',
+    '      applyUserProfile(verified.user);',
+    '      if(navigator.onLine!==false&&(opts.forceRealtime||!realtimeReady||realtimeChannelOwnerV1235!==owner))subscribeRealtime({force:true,reason});',
+    '      if(masked)mmhP947UnlockV947();'
+  ].join('\n');
+  copy=replaceExactlyOnce(copy,oldResumePaint,newResumePaint,'resume-final-unlock');
   if (copy===original || !copy.includes("if(n10Decision!=='allow')"))
     throw Error('N10 candidate patch did not apply');
   return copy;
