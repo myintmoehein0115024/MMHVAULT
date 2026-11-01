@@ -66,6 +66,24 @@ const tests=[
   const executableSql=installedAudit.replace(/^\s*--[^\n]*$/gm,'');
   assert.doesNotMatch(executableSql,/^\s*(?:CREATE|ALTER|INSERT|UPDATE|DELETE|DROP|GRANT|REVOKE|TRUNCATE|CALL|DO)\b/gmi);
  }],
+ ['SQL + Edge require current factor bound to exact session and AAL',()=>{
+  assert.match(sql,/p_user_id uuid,p_session_id uuid,p_expected_aal text/);
+  assert.match(sql,/s\.aal::text='aal2'/);
+  assert.match(sql,/s\.factor_id IS NOT NULL/);
+  assert.match(sql,/f\.id=s\.factor_id/);
+  assert.match(sql,/f\.user_id=p_user_id/);
+  assert.match(sql,/f\.status::text='verified'/);
+  assert.match(sql,/p_expected_aal='aal1'/);
+  assert.match(sql,/NOT EXISTS \(/);
+  assert.match(sql,/s\.factor_id IS NULL/);
+  assert.match(backend,/p_expected_aal:expectedAal/);
+  assert.match(backend,/const sessionAal=authenticated\.sessionAal/);
+  assert.equal((backend.match(/await liveSession\(user\.id,sessionId,sessionAal\)/g)||[]).length,4);
+  assert.doesNotMatch(backend,/await liveSession\(user\.id,sessionId\)/);
+  assert.match(preflight,/legacy_session_guard_present/);
+  assert.match(preflight,/mmh_n10_recovery_session_active\(uuid,uuid,text\)/);
+  assert.match(preflight,/mmh_n10_recovery_session_active\(uuid,uuid\)/);
+ }],
  ['candidate excludes previously denied QA activation and production UI changes',()=>{
   assert.doesNotMatch(backend,/QA_RELEASED|QA_WINDOW_END_UTC|QA_IDENTITIES/);
   assert.doesNotMatch(backend,/N10_FIXED_VAULT_UI_RELEASED/);
