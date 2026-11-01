@@ -42,3 +42,12 @@ test('loan summary uses correct income and outflow sides',()=>{
   assert.match(app,/if\(t\.category==='Debt'&&t\.type==='Income'\)debt\+=n\(t\.to_amount\)/);
   assert.match(app,/&&t\.type==='Expense'\)paid\+=n\(t\.from_amount\)/);
 });
+
+test('only known built-in account metadata may be recovered from owned history',()=>{
+  assert.match(app,/function mmhVaultRestoreReferencedBuiltinAccountsV1\(owner\)/);
+  assert.match(app,/if\(t\?\.user_id!==owner\)continue/);
+  assert.match(app,/if\(i\?\.user_id===owner&&i\.source_account\)/);
+  assert.match(app,/const builtin=MMHVAULT_DEFAULT_ACCOUNTS\.find/);
+  assert.match(app,/if\(!builtin\)continue/);
+  assert.match(app,/mmhVaultRestoreReferencedBuiltinAccountsV1\(loadOwner\)/);
+});
