@@ -52,12 +52,55 @@ document.addEventListener('click',event=>{
  if(event.target.closest('.language-choice-v3363'))setTimeout(a783RenderLanguage,0);
 });
 
-let owner='',busy=false,pendingFactor='',pendingSecret='',factorId='',verifiedPhrase='',clearTimer=null,usernameOnly=false;
+let owner='',busy=false,pendingFactor='',pendingFactorOwner='',pendingSecret='',factorId='',verifiedPhrase='',clearTimer=null,usernameOnly=false,mfaEpoch=0;
 function client(){return typeof db!=='undefined'?db:null;}
 function label(id,v){const el=$(id);if(el){el.dataset.mmhA783DynamicEn=v;el.textContent=a783Text(v);}}
 function hideKey(){verifiedPhrase='';$('mmhA783KeyDisplay').hidden=true;$('mmhA783KeyQr').replaceChildren();$('mmhA783KeyWords').replaceChildren();$('mmhA783Phrase').value='';$('mmhA783Phrase').type='password';$('mmhA783PhraseToggle').setAttribute('aria-pressed','false');a783Action('mmhA783PhraseToggle','Show words');if(clearTimer)clearTimeout(clearTimer);}
-function clearMfa(){pendingSecret='';pendingFactor='';if($('mmhA783TotpBackupConfirmed'))$('mmhA783TotpBackupConfirmed').checked=false;$('mmhA783TotpSetup').hidden=true;$('mmhA783TotpQr').replaceChildren();$('mmhA783TotpSecret').textContent='';$('mmhA783TotpSecret').hidden=true;$('mmhA783TotpCode').value='';a783Action('mmhA783KeyReveal','Show setup key');}
-async function cancelPendingMfa(){const id=pendingFactor;clearMfa();if(!id)return true;try{const r=await client().auth.mfa.unenroll({factorId:id});return !r.error}catch(_){return false}}
+// .totp is the verified-only subset; use .all to detect pending factors.
+function inspectTotpFactors(data){
+ if(!data||!Array.isArray(data.all))throw Error('factor_inventory_unavailable');
+ const allTotp=data.all.filter(f=>f&&f.factor_type==='totp');
+ return {
+  allTotp,
+  verified:allTotp.filter(f=>f.status==='verified'),
+  pending:allTotp.filter(f=>f.status==='unverified'),
+  unknown:allTotp.filter(f=>f.status!=='verified'&&f.status!=='unverified')
+ };
+}
+function clearMfa(){mfaEpoch+=1;pendingSecret='';pendingFactor='';pendingFactorOwner='';if($('mmhA783TotpBackupConfirmed'))$('mmhA783TotpBackupConfirmed').checked=false;$('mmhA783TotpSetup').hidden=true;$('mmhA783TotpQr').replaceChildren();$('mmhA783TotpSecret').textContent='';$('mmhA783TotpSecret').hidden=true;$('mmhA783TotpCode').value='';a783Action('mmhA783KeyReveal','Show setup key');}
+// Async MFA responses must never revive a closed modal or a changed account.
+function mfaFlowActive(epoch,userId){
+ const overlay=$('mmhA783TotpStart')?.closest('.mmh-n10-modal-overlay');
+ return epoch===mfaEpoch&&userId===owner&&!document.hidden&&!!overlay&&!overlay.hidden;
+}
+// Removal is a destructive action: bind the target, owner and active modal.
+// Re-check after every asynchronous Auth request and before reporting success.
+function mfaRemovalActive(epoch,userId,targetFactor){
+ return mfaFlowActive(epoch,userId)&&factorId===targetFactor&&
+  !$('mmhA783TotpRemoveConfirm').hidden&&
+  $('mmhA783TotpRemoveText').value==='REMOVE';
+}
+async function cancelPendingMfa(){
+ const targetFactor=pendingFactor,targetOwner=pendingFactorOwner;
+ // Clear the UI synchronously even if Auth calls below fail or never complete.
+ clearMfa();
+ if(!targetFactor)return true;
+ if(!targetOwner)return false;
+ try{
+  const before=await verifiedUser();
+  if(before.user.id!==targetOwner||owner!==targetOwner)return false;
+  const found=await client().auth.mfa.listFactors();
+  if(found.error||owner!==targetOwner)return false;
+  // Cancellation is permitted only for this owner's *unverified* factor.
+  // Never accidentally unenroll a verified factor on a stale response.
+  const matches=inspectTotpFactors(found.data).pending.some(f=>f.id===targetFactor);
+  if(!matches)return false;
+  const current=await verifiedUser();
+  if(current.user.id!==targetOwner||owner!==targetOwner)return false;
+  const result=await client().auth.mfa.unenroll({factorId:targetFactor});
+  return !result.error;
+ }catch(_){return false;}
+}
 function displayTotpQr(totp){
  const holder=$('mmhA783TotpQr');holder.replaceChildren();
  if(typeof QRCode==='function' && String(totp.uri||'').startsWith('otpauth://')){
@@ -224,37 +267,77 @@ $('mmhA783TotpStart').addEventListener('click',async()=>{
  if(!N10A790_TOTP_ENROLLMENT_RELEASED){status(N10A790_HOLD);return;}
  if(busy)return;
  if(!$('mmhA783TotpConsent')?.checked){status('Please confirm that you understand the backup requirements before enabling two-step verification.');return}
+ const epoch=mfaEpoch;
  busy=true;
  try{
-  await verifiedUser();
+  const {user}=await verifiedUser();
+  if(!mfaFlowActive(epoch,user.id))return;
   const existing=await client().auth.mfa.listFactors();
-  if(existing.error||existing.data?.totp?.some(x=>x.status==='verified'))throw Error('Already enrolled');
-  for(const factor of (existing.data?.totp||[]).filter(x=>x.status==='unverified')){const r=await client().auth.mfa.unenroll({factorId:factor.id});if(r.error)throw Error('Pending factor cleanup failed');}
-  const {data,error}=await client().auth.mfa.enroll({factorType:'totp',friendlyName:'MMHVAULT Authenticator'});
+  if(existing.error)throw existing.error;
+  if(!mfaFlowActive(epoch,user.id))return;
+  const before=inspectTotpFactors(existing.data);
+  if(before.verified.length||before.unknown.length)throw Error('Existing factor must be reviewed');
+  for(const factor of before.pending){
+   if(!mfaFlowActive(epoch,user.id))return;
+   if(!factor.id)throw Error('Pending factor has no id');
+   const removed=await client().auth.mfa.unenroll({factorId:factor.id});
+   if(removed.error)throw Error('Pending factor cleanup failed');
+  }
+  if(!mfaFlowActive(epoch,user.id))return;
+  const checked=await client().auth.mfa.listFactors();
+  if(checked.error||inspectTotpFactors(checked.data).allTotp.length!==0)
+   throw Error('Old TOTP factor still exists');
+  if(!mfaFlowActive(epoch,user.id))return;
+  const afterOwner=await verifiedUser();
+  if(afterOwner.user.id!==user.id||!mfaFlowActive(epoch,user.id))return;
+  const name='MMHVAULT Authenticator '+crypto.randomUUID().slice(0,8);
+  const {data,error}=await client().auth.mfa.enroll({factorType:'totp',friendlyName:name});
   if(error||!data?.id||!data?.totp?.qr_code)throw error||Error('Enrollment unavailable');
-  pendingFactor=data.id;pendingSecret=data.totp.secret||'';
+  if(!mfaFlowActive(epoch,user.id)){
+   // The enrolling session may have navigated away. Never display stale
+   // secrets; remove the orphan only if the SAME signed-in user still owns it.
+   try{const now=await verifiedUser();if(now.user.id===user.id)
+    await client().auth.mfa.unenroll({factorId:data.id});}catch(_){}
+   return;
+  }
+  pendingFactor=data.id;pendingFactorOwner=user.id;pendingSecret=data.totp.secret||'';
   displayTotpQr(data.totp);
   $('mmhA783TotpSecret').hidden=true;
   $('mmhA783TotpSecret').textContent='';
   a783Action('mmhA783KeyReveal','Show setup key');
   $('mmhA783TotpSetup').hidden=false;
   status('Scan this QR with Google Authenticator, then enter its six-digit code. Do not share this secret.');
- }catch(_){status('Could not start authenticator setup. Please check the account and try again.');}
+ }catch(_){if(mfaFlowActive(epoch,owner))
+  status('Could not start authenticator setup. Please check the account and try again.');}
  finally{busy=false;}
 });
 $('mmhA783TotpConfirm').addEventListener('click',async()=>{
  if(busy||!pendingFactor)return;
  if(!$('mmhA783TotpBackupConfirmed')?.checked){status('Save the authenticator secret or configure a second trusted device before enabling two-step verification.');return}
  const code=$('mmhA783TotpCode').value.trim();if(!/^\d{6}$/.test(code)){status('Enter a six-digit authenticator code.');return}
+ const epoch=mfaEpoch,userId=owner;
+ if(!mfaFlowActive(epoch,userId))return;
  busy=true;
  try{
-  const {data:challenge,error:challengeError}=await client().auth.mfa.challenge({factorId:pendingFactor});
+  const id=pendingFactor;
+  const {data:challenge,error:challengeError}=await client().auth.mfa.challenge({factorId:id});
   if(challengeError||!challenge?.id)throw challengeError||Error('challenge_failed');
-  const {error}=await client().auth.mfa.verify({factorId:pendingFactor,challengeId:challenge.id,code});
+  if(!mfaFlowActive(epoch,userId))return;
+  const {error}=await client().auth.mfa.verify({factorId:id,challengeId:challenge.id,code});
   if(error)throw error;
-  clearMfa();status('Authenticator enabled. New sign-ins will require a six-digit code.');
+  if(!mfaFlowActive(epoch,userId))return;
+  const assurance=await client().auth.mfa.getAuthenticatorAssuranceLevel();
+  if(assurance.error||assurance.data?.currentLevel!=='aal2')
+   throw Error('AAL2 not confirmed');
+  if(!mfaFlowActive(epoch,userId))return;
+  const checked=await client().auth.mfa.listFactors();
+  if(checked.error||!inspectTotpFactors(checked.data).verified.some(x=>x.id===id))
+   throw Error('Verified factor not confirmed');
+  if(!mfaFlowActive(epoch,userId))return;
+  clearMfa();status('Authenticator enabled. Verified by Auth (AAL2). New sign-ins will require a six-digit code.');
   setTimeout(()=>void refresh(),0);
- }catch(_){status('Could not verify this code. Check your device time and try a new code.');}
+ }catch(_){if(mfaFlowActive(epoch,userId))
+  status('Could not verify this code. Check your device time and try a new code.');}
  finally{busy=false;$('mmhA783TotpCode').value='';}
 });
 $('mmhA783KeyReveal').addEventListener('click',()=>{
@@ -263,20 +346,48 @@ $('mmhA783KeyReveal').addEventListener('click',()=>{
  a783Action('mmhA783KeyReveal',el.hidden?'Show setup key':'Hide setup key');
 });
 $('mmhA783TotpCancel').addEventListener('click',async()=>{
- const ok=await cancelPendingMfa();status(ok?'Authenticator setup cancelled.':'Unable to cancel setup; refresh before retrying.');
+ const beforeOwner=owner;
+ const ok=await cancelPendingMfa();
+ if(beforeOwner===owner&&!document.hidden)
+  status(ok?'Authenticator setup cancelled.':'Unable to confirm cancellation. A pending factor may remain; refresh before retrying.');
 });
 $('mmhA783TotpRemove').addEventListener('click',()=>{
  $('mmhA783TotpRemoveConfirm').hidden=false;
  status('To remove your authenticator, enter REMOVE below. Only the verified owner can continue.');
 });
 $('mmhA783TotpRemoveNow').addEventListener('click',async()=>{
- if($('mmhA783TotpRemoveText').value!=='REMOVE'||!factorId)return;
- const aal=await client().auth.mfa.getAuthenticatorAssuranceLevel();
- if(aal.error||aal.data?.currentLevel!=='aal2'){status('Complete two-step verification before removing an authenticator.');return}
- const {error}=await client().auth.mfa.unenroll({factorId});if(error){status('Unable to remove the authenticator.');return}
- $('mmhA783TotpRemoveText').value='';$('mmhA783TotpRemoveConfirm').hidden=true;status('Authenticator removed.');void refresh();
+ if(busy||$('mmhA783TotpRemoveText').value!=='REMOVE'||!factorId)return;
+ const epoch=mfaEpoch,userId=owner,targetFactor=factorId;
+ if(!mfaRemovalActive(epoch,userId,targetFactor))return;
+ busy=true;
+ try{
+  const before=await verifiedUser();
+  if(before.user.id!==userId||!mfaRemovalActive(epoch,userId,targetFactor))return;
+  const aal=await client().auth.mfa.getAuthenticatorAssuranceLevel();
+  if(!mfaRemovalActive(epoch,userId,targetFactor))return;
+  if(aal.error||aal.data?.currentLevel!=='aal2')throw Error('aal2_required');
+  // Protect against removing a replaced factor after a refresh or UID change.
+  const factors=await client().auth.mfa.listFactors();
+  if(factors.error||!inspectTotpFactors(factors.data).verified.some(f=>f.id===targetFactor))
+   throw Error('factor_missing_or_unverified');
+  if(!mfaRemovalActive(epoch,userId,targetFactor))return;
+  const current=await verifiedUser();
+  if(current.user.id!==userId||!mfaRemovalActive(epoch,userId,targetFactor))return;
+  // No await between final owner/target check and initiating the Auth operation.
+  const result=await client().auth.mfa.unenroll({factorId:targetFactor});
+  if(!mfaRemovalActive(epoch,userId,targetFactor))return;
+  if(result.error)throw result.error;
+  $('mmhA783TotpRemoveText').value='';
+  $('mmhA783TotpRemoveConfirm').hidden=true;
+  factorId='';
+  status('Authenticator removed.');
+  void refresh();
+ }catch(_){
+  if(mfaRemovalActive(epoch,userId,targetFactor))
+   status('Authenticator removal could not be confirmed. Check the account and try again.');
+ }finally{busy=false;}
 });
-document.addEventListener('visibilitychange',()=>{if(document.hidden){hideKey();if(pendingFactor)void cancelPendingMfa();}});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){hideKey();if(pendingFactor)void cancelPendingMfa();else clearMfa();}});
 window.addEventListener('pagehide',()=>{hideKey();if(pendingFactor)void cancelPendingMfa();else clearMfa();});
 // Modal-only interaction: keep the existing original controls in the same
 // owner-authenticated DOM subtree. Do not clone sensitive inputs or create a
@@ -433,7 +544,10 @@ function collapse(section){
  if(info)info.overlay.hidden=true;
  if(!sections.some(s=>s.classList.contains('mmh-a785-open')))document.body.classList.remove('mmh-n10-account-modal-open');
  if(section.id==='mmhA783Recovery')hideKey();
- if(info?.overlay.querySelector('#mmhA783TotpSetup')&&pendingFactor)void cancelPendingMfa();
+ if(info?.overlay.querySelector('#mmhA783TotpSetup')){
+  // Invalidate in-flight enrollment even before the server returns factor ID.
+  if(pendingFactor)void cancelPendingMfa();else clearMfa();
+ }
  if(wasOpen&&info?.overlay.contains(document.activeElement))section.querySelector(':scope > .mmh-a783-title')?.focus({preventScroll:true});
 }
 sections.forEach(section=>{
@@ -477,7 +591,20 @@ function onPageChange(){
 if(settingsPage){new MutationObserver(onPageChange).observe(settingsPage,{attributes:true,subtree:true,attributeFilter:['class','hidden']});if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',onPageChange,{once:true});else onPageChange();}
 a783RenderLanguage();
 if(client()){
- client().auth.onAuthStateChange((event)=>{if(['SIGNED_IN','SIGNED_OUT','TOKEN_REFRESHED'].includes(event))setTimeout(()=>{if(event==='SIGNED_OUT'){owner='';hideKey();clearMfa();resetSensitiveState();status('Sign in to manage account security.');}else void refresh()},0)});
+ client().auth.onAuthStateChange((event,session)=>{
+  // Invalidate in-flight secret responses *synchronously* on account change
+  // or sign-out, even while refresh() cannot run because a request is busy.
+  if(event==='SIGNED_OUT'||(event==='SIGNED_IN'&&owner&&session?.user?.id!==owner)){
+   // Clear sensitive fields synchronously; refresh() may be busy.
+   // No asynchronous Auth request is made within the Auth callback.
+   hideKey();clearMfa();resetSensitiveState();sections.forEach(collapse);
+   owner='';
+  }
+  if(['SIGNED_IN','SIGNED_OUT','TOKEN_REFRESHED'].includes(event))setTimeout(()=>{
+   if(event==='SIGNED_OUT'){clearMfa();resetSensitiveState();status('Sign in to manage account security.')}
+   else void refresh();
+  },0);
+ });
  setTimeout(refresh,400);
 }
 })();
