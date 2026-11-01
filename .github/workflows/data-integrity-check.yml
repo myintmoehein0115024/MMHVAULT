@@ -7,6 +7,8 @@ on:
     paths:
       - app.html
       - tests/data-integrity-v1.test.mjs
+      - tests/account-auto-fx-v1.test.mjs
+      - js/mmhvault-account-reference-fx-v1.js
       - .github/workflows/data-integrity-check.yml
 permissions:
   contents: read
@@ -17,4 +19,4 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Run finance data-link regression tests
-        run: node --test tests/data-integrity-v1.test.mjs
+        run: node --test tests/*.test.mjs
