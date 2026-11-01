@@ -12,6 +12,8 @@ export function evaluateMfaAssurance(assurance, authHasVerifiedFactor = false) {
 
   // Auth's verified-factor list is a defense-in-depth cross-check when present.
   if (authHasVerifiedFactor === true && nextLevel !== "aal2") return "unavailable";
+  // AAL2 disclosure requires a server-confirmed verified factor, not only level claims.
+  if (nextLevel === "aal2" && authHasVerifiedFactor !== true) return "unavailable";
   if (nextLevel === "aal2") {
     return currentLevel === "aal2" ? "allowed" : "required";
   }
