@@ -84,6 +84,17 @@ const tests=[
   assert.match(preflight,/mmh_n10_recovery_session_active\(uuid,uuid,text\)/);
   assert.match(preflight,/mmh_n10_recovery_session_active\(uuid,uuid\)/);
  }],
+ ['rate-bucket counter saturates without integer overflow (candidate only)',()=>{
+  assert.match(sql,/attempts=CASE WHEN bucket\.reset_at<=now\(\) THEN 1\s+ELSE LEAST\(bucket\.attempts,p_limit\)\+1 END/);
+  assert.doesNotMatch(sql,/ELSE bucket\.attempts\+1 END/);
+  for(const limit of [1,5,10]){
+   for(const attempts of [0,1,limit,limit+1,2_147_483_647]){
+    const next=Math.min(attempts,limit)+1;
+    assert.ok(next>=1 && next<=limit+1 && Number.isSafeInteger(next));
+    if(attempts>=limit) assert.equal(next,limit+1);
+   }
+  }
+ }],
  ['candidate excludes previously denied QA activation and production UI changes',()=>{
   assert.doesNotMatch(backend,/QA_RELEASED|QA_WINDOW_END_UTC|QA_IDENTITIES/);
   assert.doesNotMatch(backend,/N10_FIXED_VAULT_UI_RELEASED/);
