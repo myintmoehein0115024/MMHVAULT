@@ -11,7 +11,7 @@ WITH qa_table AS (
 pol AS (
  SELECT p.polname,p.polpermissive,p.polcmd,
         pg_catalog.pg_get_expr(p.polqual,p.polrelid) AS expression,
-        (SELECT array_agg(pg_catalog.pg_get_userbyid(x))
+        (SELECT array_agg(pg_catalog.pg_get_userbyid(x)::text)
          FROM unnest(p.polroles) AS r(x)) AS roles
  FROM pg_catalog.pg_policy p
  WHERE p.polrelid='public.mmh_n10_signed_qa_entries'::regclass
