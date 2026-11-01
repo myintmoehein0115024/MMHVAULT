@@ -25,7 +25,9 @@ const approvedSql=new Set([
  'n10_installed_staging_vault_READ_ONLY_AUDIT_20261101.sql',
  'n10_staging_session_guard_V2_EMERGENCY_DISABLE_REVIEW_ONLY.sql',
  'n10_staging_session_guard_V2_UPGRADE_REVIEW_ONLY.sql',
- 'n10_staging_session_guard_V2_SYNTHETIC_READ_ONLY_TEST.sql'
+ 'n10_staging_session_guard_V2_SYNTHETIC_READ_ONLY_TEST.sql',
+ 'n10_staging_qa_rls_READ_ONLY_ASSERTIONS_20261101.sql',
+ 'n10_staging_qa_excess_dml_REVOKE_REVIEW_ONLY.sql'
 ]);
 const approvedReviewCode=new Set([
  'index.ts',
