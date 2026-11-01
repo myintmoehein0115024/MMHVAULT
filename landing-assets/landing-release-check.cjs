@@ -94,7 +94,7 @@ check('Sitemap has no private app or login',!/<loc>[^<]*\/(?:app|login|n10-qa)\.
 check('PWA launcher points to secure Login',manifest.start_url==='./login.html?source=pwa&install=v2');
 check('Manifest differs only in start_url',JSON.stringify({...manifest,start_url:oldManifest.start_url})===JSON.stringify(oldManifest));
 check('Preserved old iPhone touch icon',current.includes('<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=pwa24-20261029">'));
-const allowed=new Set(['index.html','robots.txt','mmh-manifest-v2.webmanifest','business.html','sitemap.xml','register/index.html','features/index.html','about/index.html','privacy.html','terms.html','security.html','landing-assets/public-pages.css','landing-assets/public-pages.js','landing-assets/landing-release-check.cjs','landing-assets/landing-browser-check.cjs','.github/workflows/landing-release-check.yml',...names.map(f=>'landing-assets/'+f)]);
+const allowed=new Set(['index.html','robots.txt','mmh-manifest-v2.webmanifest','business.html','sitemap.xml','register/index.html','features/index.html','about/index.html','business/index.html','privacy.html','terms.html','security.html','landing-assets/public-pages.css','landing-assets/public-pages.js','landing-assets/landing-release-check.cjs','landing-assets/landing-browser-check.cjs','.github/workflows/landing-release-check.yml',...names.map(f=>'landing-assets/'+f)]);
 const diff=cp.spawnSync('git',['diff','--name-only',main+'...HEAD'],{encoding:'utf8'});
 assert.equal(diff.status,0,'git diff unsuccessful');
 const actual=diff.stdout.trim().split(/\n/).filter(Boolean);
@@ -234,6 +234,48 @@ check('Dedicated visual branches preserve their distinct purpose',
  about.includes('not a bank, broker, payment service or financial adviser') &&
  read('features/index.html').includes('Business and Life Planner experiences are separate future concepts'));
 
+/* L1.13 — real dedicated Business landing branch; keep private app isolated. */
+const business=read('business/index.html');
+const businessHead=business.split('</head>')[0];
+const businessGraph=JSON.parse((businessHead.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)||[])[1]||'{}')['@graph'];
+check('Public Business concept has distinct canonical, truthful metadata and sitemap',
+ businessHead.includes('<title>Business Workspace Concept | MMHVAULT</title>') &&
+ businessHead.includes('<link rel="canonical" href="https://mmhvault.com/business/">') &&
+ businessHead.includes('not a live accounting service') &&
+ (businessHead.match(/rel="canonical"/g)||[]).length===1 &&
+ !/name="robots"[^>]*noindex/.test(businessHead) &&
+ publicSitemap.includes('<loc>https://mmhvault.com/business/</loc>') &&
+ Array.isArray(businessGraph) && businessGraph.some(x=>x['@type']==='WebPage'&&x.url==='https://mmhvault.com/business/') &&
+ businessGraph.some(x=>x['@type']==='BreadcrumbList'&&x.itemListElement?.[1]?.item==='https://mmhvault.com/business/'));
+check('Business public page is premium, independent and clearly preview-only',
+ business.includes('<body class="public-landing-page business-page">') &&
+ business.includes('id="business-heading"') &&
+ business.includes('class="visual feature-visual"') &&
+ business.includes('CONCEPT PREVIEW') &&
+ business.includes('not a currently available business accounting service') &&
+ business.includes('href="#business-focus"') &&
+ !business.includes('href="/#business"') &&
+ !business.includes('supabase.co') &&
+ !/<form[\s>]/i.test(business));
+check('Every public navigation uses independent Business route, never homepage hash',
+ ['about/index.html','features/index.html','register/index.html',
+  'privacy.html','terms.html','security.html','business/index.html'].every(path=>{
+    const html=read(path);
+    return html.includes('href="/business/"') &&
+      !html.includes('href="/#business"') &&
+      html.includes('href="/"') &&
+      html.includes('class="public-nav-details"');
+  }) &&
+ current.includes('href="./business/" data-i18n="navBusiness"') &&
+ !current.includes('href="#business" data-i18n="navBusiness"'));
+check('Private business.html is untouched and remains non-indexable',
+ !actual.includes('business.html') &&
+ source('business.html')===read('business.html') &&
+ /<meta name="robots" content="noindex,nofollow,noarchive"/.test(read('business.html')));
+check('Homepage auth/PWA bridge scripts unchanged',
+ ['mmh-n10-recovery-error-route','mmh-pwa-standalone-root-bridge']
+  .every(id=>dom(id,current)===dom(id,prev)));
+
 /* L1.33 — public legal pages and consistent brand icon; no auth code changes. */
 for(const page of [
  {path:'privacy.html',url:'https://mmhvault.com/privacy.html',title:'Privacy | MMHVAULT'},
@@ -293,19 +335,18 @@ check('Landing ships no third-party blocking scripts or styles',
 for(const file of ['privacy.html','terms.html','security.html']){
  const content=read(file);
  const earlier=source(file);
- const oldPolicyContent=(earlier.match(/<h1>[\s\S]*?<\/h1>([\s\S]*?)<footer>/)||[])[1]||'';
- const samePublicParagraphs=[...oldPolicyContent.matchAll(/<(?:p|h2|li|b)>[\s\S]*?<\/(?:p|h2|li|b)>/g)]
-   .map(m=>m[0]).filter(x=>!x.includes('MMHVAULT — Personal Finance'));
- const originalTitle=(earlier.match(/<h1>([^<]*)<\/h1>/)||[])[1];
+ const originalPolicyCard=(earlier.match(/<article class="policy-card"[^>]*>[\s\S]*?<\/article>/)||[])[0];
+ const currentPolicyCard=(content.match(/<article class="policy-card"[^>]*>[\s\S]*?<\/article>/)||[])[0];
+ const originalTitle=(earlier.match(/<h1[^>]*>([^<]*)<\/h1>/)||[])[1];
  check(file+' original legal text unchanged and readable',
    !!originalTitle&&content.includes('<h1 id="policy-title">'+originalTitle+'</h1>') &&
-   samePublicParagraphs.every(paragraph=>content.includes(paragraph)));
+   !!originalPolicyCard&&originalPolicyCard===currentPolicyCard);
  check(file+' uses unified Landing header, footer and canonical Home links',
    content.includes('<body class="public-landing-page policy-page"') &&
    content.includes('<header><div class="wrap bar">') &&
    content.includes('class="public-nav-details"') &&
    content.includes('class="public-footer"') &&
-   content.includes('href="/#business"') &&
+   content.includes('href="/business/"') &&
    content.includes('<a class="brand" href="/"') &&
    content.includes('href="/security.html"') &&
    !content.includes('href="index.html"'));
