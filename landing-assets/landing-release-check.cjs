@@ -74,7 +74,7 @@ check('Sitemap has no private app or login',!/<loc>[^<]*\/(?:app|login|n10-qa)\.
 check('PWA launcher points to secure Login',manifest.start_url==='./login.html?source=pwa&install=v2');
 check('Manifest differs only in start_url',JSON.stringify({...manifest,start_url:oldManifest.start_url})===JSON.stringify(oldManifest));
 check('Preserved old iPhone touch icon',current.includes('<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=pwa24-20261029">'));
-const allowed=new Set(['index.html','robots.txt','mmh-manifest-v2.webmanifest','business.html','sitemap.xml','register/index.html','features/index.html','landing-assets/public-pages.css','landing-assets/public-pages.js','landing-assets/landing-release-check.cjs','.github/workflows/landing-release-check.yml',...names.map(f=>'landing-assets/'+f)]);
+const allowed=new Set(['index.html','robots.txt','mmh-manifest-v2.webmanifest','business.html','sitemap.xml','register/index.html','features/index.html','privacy.html','terms.html','security.html','landing-assets/public-pages.css','landing-assets/public-pages.js','landing-assets/landing-release-check.cjs','.github/workflows/landing-release-check.yml',...names.map(f=>'landing-assets/'+f)]);
 const diff=cp.spawnSync('git',['diff','--name-only',main+'...HEAD'],{encoding:'utf8'});
 assert.equal(diff.status,0,'git diff unsuccessful');
 const actual=diff.stdout.trim().split(/\n/).filter(Boolean);
@@ -106,5 +106,33 @@ check('Secure Login stays noindex and untouched',!actual.includes('login.html')&
 check('Life Planner and Business are labelled future concepts',read('features/index.html').includes('Coming Soon')&&read('features/index.html').includes('future release'));
 check('Public page CSS & JS are present',fs.existsSync('landing-assets/public-pages.css')&&fs.existsSync('landing-assets/public-pages.js'));
 check('Homepage public navigation has correct EN/ZH/MY labels',['en','zh','my'].every(lang=>translationScript.includes('Object.assign(strings.'+lang+',{"sitelinkFeatures"')));
+
+/* L1.33 — public legal pages and consistent brand icon; no auth code changes. */
+for(const page of [
+ {path:'privacy.html',url:'https://mmhvault.com/privacy.html',title:'Privacy | MMHVAULT'},
+ {path:'terms.html',url:'https://mmhvault.com/terms.html',title:'Terms of Use | MMHVAULT'},
+ {path:'security.html',url:'https://mmhvault.com/security.html',title:'Security | MMHVAULT'}
+]){
+ const content=read(page.path);
+ const head=content.split('</head>')[0];
+ check(page.path+' has branded title, description and one canonical',
+   head.includes('<title>'+page.title+'</title>') &&
+   head.includes('<meta name="description" content="') &&
+   (head.match(/rel="canonical"/g)||[]).length===1 &&
+   head.includes('<link rel="canonical" href="'+page.url+'">'));
+ check(page.path+' uses correct public sharing metadata',
+   head.includes('og:site_name" content="MMHVAULT"') &&
+   head.includes('og:url" content="'+page.url+'"') &&
+   head.includes('https://mmhvault.com/images/mmhvault-logo-transparent.png'));
+ check(page.path+' avoids favicon 404 and reserves logo space',
+   head.includes('rel="icon" type="image/png" href="/images/mmhvault-logo-transparent.png"') &&
+   content.includes('alt="MMHVAULT logo" width="38" height="38"'));
+}
+for(const path of ['register/index.html','features/index.html']){
+ const head=read(path).split('</head>')[0];
+ check(path+' uses existing brand logo for favicon, not missing .ico',
+   head.includes('<link rel="icon" type="image/png" href="/images/mmhvault-logo-transparent.png">') &&
+   !head.includes('/favicon.ico'));
+}
 
 console.log('Landing launch preflight: '+passed+'/'+passed+' PASS — no live authentication or PWA device claim.');
