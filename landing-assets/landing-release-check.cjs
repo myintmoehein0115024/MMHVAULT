@@ -94,7 +94,7 @@ check('Sitemap has no private app or login',!/<loc>[^<]*\/(?:app|login|n10-qa)\.
 check('PWA launcher points to secure Login',manifest.start_url==='./login.html?source=pwa&install=v2');
 check('Manifest differs only in start_url',JSON.stringify({...manifest,start_url:oldManifest.start_url})===JSON.stringify(oldManifest));
 check('Preserved old iPhone touch icon',current.includes('<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=pwa24-20261029">'));
-const allowed=new Set(['index.html','robots.txt','mmh-manifest-v2.webmanifest','business.html','sitemap.xml','register/index.html','features/index.html','about/index.html','privacy.html','terms.html','security.html','landing-assets/public-pages.css','landing-assets/public-pages.js','landing-assets/landing-release-check.cjs','landing-assets/landing-browser-check.cjs','.github/workflows/landing-release-check.yml',...names.map(f=>'landing-assets/'+f)]);
+const allowed=new Set(['index.html','robots.txt','mmh-manifest-v2.webmanifest','business.html','sitemap.xml','register/index.html','features/index.html','about/index.html','privacy.html','terms.html','security.html','landing-assets/public-pages.css','landing-assets/public-pages.js','landing-assets/landing-release-check.cjs','landing-assets/landing-browser-check.cjs','landing-assets/landing-perf-check.cjs','.github/workflows/landing-release-check.yml',...names.map(f=>'landing-assets/'+f)]);
 const diff=cp.spawnSync('git',['diff','--name-only',main+'...HEAD'],{encoding:'utf8'});
 assert.equal(diff.status,0,'git diff unsuccessful');
 const actual=diff.stdout.trim().split(/\n/).filter(Boolean);
@@ -261,6 +261,30 @@ for(const path of ['register/index.html','features/index.html']){
    head.includes('<link rel="icon" type="image/png" href="/images/mmhvault-logo-transparent.png">') &&
    !head.includes('/favicon.ico'));
 }
+
+/* L1.11 — public-only hero image fetch prioritization.
+   Background image URLs are otherwise discovered after the CSS is parsed. */
+for(const info of [
+ {path:'about/index.html',asset:'cinematic-lake.webp'},
+ {path:'features/index.html',asset:'personal-business-concept.webp'},
+ {path:'register/index.html',asset:'personal-business-concept.webp'}
+]){
+ const html=read(info.path);
+ const head=html.split('</head>')[0];
+ check(info.path+' preloads its real above-the-fold image just once',
+   (head.match(/rel="preload" as="image"/g)||[]).length===1 &&
+   head.includes('<link rel="preload" as="image" type="image/webp" fetchpriority="high" href="/landing-assets/'+info.asset+'">') &&
+   fs.existsSync('landing-assets/'+info.asset));
+ check(info.path+' stays independently indexable and preserves its canonical',
+   (head.match(/rel="canonical"/g)||[]).length===1 &&
+   head.includes('https://mmhvault.com/'+info.path.split('/')[0]+'/') &&
+   !/name="robots"[^>]*noindex/i.test(head));
+}
+check('Lab performance probe is read-only and restricted to public static routes',
+ fs.existsSync('landing-assets/landing-perf-check.cjs') &&
+ ['/', '/about/', '/features/', '/register/'].every(r=>
+   read('landing-assets/landing-perf-check.cjs').includes(r)) &&
+ !/fetch\s*\(|supabase\.createClient|SERVICE_ROLE|send\s*\(|writeFileSync\(.+app\.html/.test(read('landing-assets/landing-perf-check.cjs')));
 
 /* L1.33 — conservative uncompressed resource budgets (not a lab speed score). */
 const publicRuntimeBudgets={
