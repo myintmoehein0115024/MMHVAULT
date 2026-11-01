@@ -1,5 +1,5 @@
 /* MMHVAULT L1.32 — Liquid Flow, presentation-only progressive enhancement.
-   Does not fetch data, access localStorage, modify auth, use pinch gestures,
+   Does not make network requests, read persistent storage, alter auth, or use pinch gestures,
    or change links and account behavior. Works with original Landing JS. */
 (() => {
   'use strict';
