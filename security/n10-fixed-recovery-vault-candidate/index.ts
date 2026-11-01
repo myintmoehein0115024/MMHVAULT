@@ -5,6 +5,7 @@
 import {createClient} from 'npm:@supabase/supabase-js@2.57.4';
 import {evaluateVerifiedAuthUserMfa} from './mfa-assurance.mjs';
 import {sessionIdFromVerifiedJwt} from './session-guard.mjs';
+import {normalizePhrase,equal64,readBoundedJson} from './recovery-request.mjs';
 const BASE=Deno.env.get('SUPABASE_URL')||'';
 // Release candidate is only valid for the explicitly approved production project.
 // The separate Auth-Staging QA adapter has its own different hard project pin.
@@ -28,21 +29,11 @@ function out(origin:string,code:string,status=200,details:Record<string,unknown>
    'Access-Control-Allow-Methods':'POST, OPTIONS',
    'Access-Control-Allow-Headers':'authorization, apikey, content-type'}:{})}});
 }
-function normalizePhrase(v:unknown){
- if(typeof v!=='string'||v.length>240)return null;
- const normalized=v.trim().toLowerCase().replace(/\s+/g,' ');
- return /^([a-z]{2,13} ){9}[a-z]{2,13}$/.test(normalized)?normalized:null;
-}
 function hex(bytes:Uint8Array){return Array.from(bytes,x=>x.toString(16).padStart(2,'0')).join('');}
 async function hmac(value:string){
  const key=await crypto.subtle.importKey('raw',enc.encode(RATEKEY),
   {name:'HMAC',hash:'SHA-256'},false,['sign']);
  return hex(new Uint8Array(await crypto.subtle.sign('HMAC',key,enc.encode('mmh-a769-prod:'+value))));
-}
-function equal64(a:unknown,b:unknown){
- if(typeof a!=='string'||typeof b!=='string'||a.length!==64||b.length!==64)return false;
- let diff=0;for(let i=0;i<64;i++)diff|=a.charCodeAt(i)^b.charCodeAt(i);
- return diff===0;
 }
 async function quota(userId:string){
  const {data,error}=await admin.rpc('mmh_n10_recovery_take_attempt',{
@@ -54,27 +45,6 @@ async function quota(userId:string){
  // misleading "too many attempts" response for an infrastructure error.
  if(error||typeof data!=='boolean')return 'unavailable';
  return data===true?'allowed':'exceeded';
-}
-async function readBoundedJson(req:Request):Promise<Record<string,unknown>>{
- const h=req.headers.get('content-length');
- if(h!==null&&(!/^\d+$/.test(h)||Number(h)>1200))throw Error('oversize');
- if(!req.body)throw Error('missing_body');
- const reader=req.body.getReader();const chunks:Uint8Array[]=[];
- let total=0;
- try{
-  while(true){
-   const {done,value}=await reader.read();
-   if(done)break;
-   total+=value.byteLength;
-   if(total>1200){await reader.cancel('too_large');throw Error('oversize');}
-   chunks.push(value);
-  }
- }finally{reader.releaseLock();}
- const bytes=new Uint8Array(total);let pos=0;
- for(const chunk of chunks){bytes.set(chunk,pos);pos+=chunk.byteLength;}
- const body:unknown=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes));
- if(!body||typeof body!=='object'||Array.isArray(body))throw Error('invalid_json');
- return body as Record<string,unknown>;
 }
 async function liveSession(userId:string,sessionId:string,expectedAal:'aal1'|'aal2'){
  // Require the database session to still have this exact assurance level
