@@ -125,6 +125,43 @@ for(const marker of [
     source.slice(i,i+1400),'finance source must not change: '+marker);
 }
 
+// Execute the exact pre-finance entry gate extracted from the full patched
+// app.html, not a handwritten duplicate. No cloud load or real data occurs.
+const entryAt=patched.indexOf('async function enter(session){');
+const entryEnd=patched.indexOf("  const expectedLinkedUid=",entryAt);
+assert.ok(entryAt>0&&entryEnd>entryAt,'missing app entry security prefix');
+const prefix=patched.slice(entryAt,entryEnd);
+assert.match(prefix,/n10Decision!=='allow'/);
+async function invokeEntry(decision,session={user:{id:uid}}) {
+  const actions=[];
+  const env={
+    db:{auth:{}},
+    mmhN10AssessWorkspaceMfaV1100:async()=>decision,
+    location:{replace:uri=>actions.push('redirect:'+uri)}
+  };
+  const check=runInNewContext('('+prefix+' return {entered:true};})',env);
+  try {
+    const result=await check(session);
+    return {result,actions};
+  }catch(e){
+    return {error:e.message,actions};
+  }
+}
+const passEntry=await invokeEntry('allow');
+assert.equal(passEntry.result.entered,true);
+assert.deepEqual(passEntry.actions,[]);
+const needFactor=await invokeEntry('challenge');
+assert.equal(needFactor.result.mfaRequired,true);
+assert.deepEqual(needFactor.actions,['redirect:login.html?mfa=1']);
+for(const response of ['deny',null,'unknown',undefined]) {
+  const blocked=await invokeEntry(response);
+  assert.match(blocked.error,/n10_app_mfa_unverified/);
+  assert.deepEqual(blocked.actions,[]);
+}
+const noOwner=await invokeEntry('allow',{user:{}});
+assert.equal(noOwner.result,undefined,'missing user must never start finance entry');
+console.log('PASS actual app entry prefix: allow, challenge, deny, bad status and missing owner');
+
 // Run the real patched same-UID branch in an isolated VM. Verify the
 // privacy mask is synchronous and only the current owner may unlock.
 const sameStart=patched.indexOf('    if(liveOwner===nextOwner){');
