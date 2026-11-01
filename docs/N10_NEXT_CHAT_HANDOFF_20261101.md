@@ -140,3 +140,9 @@
 - GitHub Actions `41277627418` **SUCCESS**：12/12 独立 MFA 源码/模拟检查，20/20 Chromium/WebKit 本地 DOM 模拟交互检查，JS 语法通过。MFA 的账户 A→B 切换、清除旧 QR、AAL2 及同 factor verified 确认均覆盖；没有任何真实 Auth 调用。
 - 专门报告位于新分支 `docs/N10_MFA_ONLY_REVIEW_CANDIDATE_20261101.md`。
 - **未发布**。2026-11-01 最新实际 Staging SQL 仍显示 A 一条 unverified TOTP、零 verified；B 零因子。旧 QA 页面 LOCKED，联合 Vault 服务 OFF，生产固定恢复 Vault 未部署，PR #2 Draft/mergeable=false。下一步需要真实 A MFA 和 Vault 的独立批准测试，再进行上线评审；不能将 32 项模拟测试误报为真实 AAL2 验收。
+
+## 2026-11-01 — MFA-only 原恢复十词迟到响应保护已完成
+- 隔离 `review/n10-mfa-only-20261101` 源码审查发现：原始十词验证接口在异步返回后，曾缺乏账户 UID、弹窗状态、后台状态和请求 epoch 二次核验，因此存在迟到响应重新显示恢复词的风险。**这是源码级风险分析，不是生产攻击已复现。**
+- 只在 MFA-only 隔离分支完成 `recoveryEpoch`、可见弹窗+同账户校验，离开页面/登出/切换账户/关闭弹窗即使服务端迟到成功也不会显示二维码/恢复词；QR 生成异常也会擦除 DOM 明文。
+- 保持原十词恢复验证和 **60 秒自动隐藏**，**未加入 Vault API/新密钥备份**。GitHub Actions `41280764187` **SUCCESS**：`14/14` 静态模拟检查和 `32/32` Chromium/WebKit 浏览器模拟用例。独立详细报告：`review/n10-mfa-only-20261101:docs/N10_MFA_ONLY_REVIEW_CANDIDATE_20261101.md`。
+- 正式 main 未改；PR #2 Draft 未合并；A 的真实 TOTP 仍未通过验证，QA LOCKED，Vault 联合测试 OFF。以上模拟 PASS 不可冒充真实 AAL2。
