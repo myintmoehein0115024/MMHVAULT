@@ -10,7 +10,7 @@ jobs:
   offline-account-security:
     name: N10 Account Security static and synthetic regression
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 18
     steps:
       - name: Checkout isolated review branch
         uses: actions/checkout@v4
@@ -22,4 +22,10 @@ jobs:
         run: node --check js/mmhvault-n10-a7-83-security-center.js
       - name: Run synthetic security and MFA regressions
         run: node security/n10-main-compat/test-ui-secret-guards.mjs
+      - name: Install Playwright browser test runtime
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps chromium webkit
+      - name: Run synthetic browser smoke in Chromium and WebKit
+        run: node security/n10-main-compat/test-browser-mfa-smoke.mjs
 # Does not deploy, access secrets, create users, modify database, or call Vault.
