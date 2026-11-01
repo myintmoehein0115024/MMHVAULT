@@ -110,3 +110,9 @@
 - `login.html` 两分支最终 blob 完全相同，无需重复改登录页；安全中心弹窗区有两处真正不同的共同修改（关闭弹窗时的 MFA/恢复词清理；打开恢复密钥弹窗时的 Vault 模式读取），另有三处完全相同。不是所有 24 个 PR 文件都冲突。
 - 正式 main 的 Landing、App、邮件模板、站点地图等最新工作必须保留。PR #2 仍 Draft / mergeable=false，尚未真实合并或重基；不允许用旧分支整体覆盖正式 main。
 - 本次只是只读差异分析和 Draft 文档记录，**并非真实合并冲突已修复**。A MFA 仍未验证、独立 QA 仍 LOCKED、Vault 仍 OFF，真实联合验收和上线审批未完成。
+
+## 2026-11-01 — 独立浏览器回归已 PASS
+- 新增从 `main` 派生的隔离审查分支 `review/n10-main-compat-20261101`；只修改 Account Security JS、增加安全测试及专用 CI；`main`、Login、Landing、财务数据仍不动。
+- 使用 Playwright 真正运行 Chromium 和 WebKit 的**本地模拟浏览器**交互：关闭弹窗后的迟到 QR、隐藏后台再返回、登出同步清理敏感内容，共 **6/6 PASS**；18/18 原有模拟静态检查 PASS。GitHub Actions `41273712831` SUCCESS。
+- 限制：模拟 DOM/虚拟账户，不是生产应用 HTML 完整 UI、iPhone Safari 实机、签名 Auth AAL2 或 Vault 端到端 QA。A TOTP 仍 unverified，QA LOCKED，Vault OFF，PR #2 Draft 未合并。
+- 新 main 有 Accounts FX 相关独立更新，候选分支当前晚一笔 main commit；正式合并审批前应针对**当时最新 main**重新做兼容回归。详见 `docs/N10_PR2_MERGE_AND_RELEASE_GATES_20261101.md`。
