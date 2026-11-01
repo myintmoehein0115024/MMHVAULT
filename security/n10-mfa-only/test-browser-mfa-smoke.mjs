@@ -464,6 +464,62 @@ try{
    assert.deepEqual(validErrors,[]);
    await validPage.close();
    console.log('PASS',name,'original 60s recovery view still displays and securely hides');
+   // A suspended or throttled 60-second timeout must not leave visible words
+   // when the document returns to focus. Advance only the SYNTHETIC clock.
+   const resumePage=await browser.newPage();
+   const resumeErrors=await ready(resumePage);
+   await resumePage.locator('#mmhA783Recovery > .mmh-a783-title').click();
+   await resumePage.locator('#mmhA783Phrase').fill('alpha bravo charlie delta echo foxtrot golf hotel india juliet');
+   await resumePage.locator('#mmhA783KeyVerify').click();
+   await resumePage.waitForFunction(()=>window.__verifyStarted===true);
+   await resumePage.evaluate(()=>window.__resolveVerify(true));
+   await resumePage.waitForFunction(()=>document.getElementById('mmhA783KeyDisplay').hidden===false);
+   const resumed=await resumePage.evaluate(()=>{
+     const realNow=Date.now;
+     try{
+       Date.now=()=>realNow()+61000;
+       window.dispatchEvent(new Event('focus'));
+       return {
+         hidden:document.getElementById('mmhA783KeyDisplay').hidden,
+         words:document.getElementById('mmhA783KeyWords').textContent,
+         qr:document.getElementById('mmhA783KeyQr').childElementCount,
+         input:document.getElementById('mmhA783Phrase').value
+       };
+     }finally{Date.now=realNow;}
+   });
+   assert.deepEqual(resumed,{hidden:true,words:'',qr:0,input:''});
+   assert.deepEqual(resumeErrors,[]);
+   await resumePage.close();
+   console.log('PASS',name,'delayed 60-second timer is enforced on foreground resume');
+
+   // Export also checks the deadline, so it is denied if a throttled timer
+   // has not fired yet and the old QR is still in the DOM.
+   const expiredPage=await browser.newPage();
+   const expiredErrors=await ready(expiredPage);
+   await expiredPage.locator('#mmhA783Recovery > .mmh-a783-title').click();
+   await expiredPage.locator('#mmhA783Phrase').fill('alpha bravo charlie delta echo foxtrot golf hotel india juliet');
+   await expiredPage.locator('#mmhA783KeyVerify').click();
+   await expiredPage.waitForFunction(()=>window.__verifyStarted===true);
+   await expiredPage.evaluate(()=>window.__resolveVerify(true));
+   await expiredPage.waitForFunction(()=>document.getElementById('mmhA783KeyDisplay').hidden===false);
+   const expiredExport=await expiredPage.evaluate(()=>{
+     document.getElementById('mmhA783KeyQr').append(document.createElement('canvas'));
+     const realNow=Date.now;
+     try{
+       Date.now=()=>realNow()+61000;
+       document.getElementById('mmhA783KeySaveQr').click();
+       return {
+         hidden:document.getElementById('mmhA783KeyDisplay').hidden,
+         words:document.getElementById('mmhA783KeyWords').textContent,
+         qr:document.getElementById('mmhA783KeyQr').childElementCount
+       };
+     }finally{Date.now=realNow;}
+   });
+   assert.deepEqual(expiredExport,{hidden:true,words:'',qr:0});
+   assert.deepEqual(expiredErrors,[]);
+   await expiredPage.close();
+   console.log('PASS',name,'QR export rejects recovery view beyond absolute 60-second deadline');
+
 
    // Rendering a QR must not leave plaintext words in hidden DOM if the
    // QR library fails synchronously after a successful backend response.
@@ -538,5 +594,5 @@ try{
    console.log('PASS',name,'factor removal refreshes displayed state after busy clears');
   }finally{await browser.close();}
  }
- console.log('38/38 isolated browser smoke checks PASS');
+ console.log('42/42 isolated browser smoke checks PASS');
 }finally{await new Promise(resolve=>server.close(resolve));}
