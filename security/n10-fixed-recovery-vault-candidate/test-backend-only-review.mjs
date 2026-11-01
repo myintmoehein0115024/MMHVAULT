@@ -23,7 +23,7 @@ const tests=[
   let index=-1;
   for(const step of steps){const next=backend.indexOf(step,index+1);assert.ok(next>index,'missing or reordered: '+step);index=next}
   assert.match(backend,/const finalAssurance=await verifiedUser\(req\)/);
-  assert.match(backend,/const finalSessionCheck=await liveSession\(user.id,sessionId\)/);
+  assert.match(backend,/const finalSessionCheck=await liveSession\(user\.id,sessionId,sessionAal\)/);
  }],
  ['existing phrase verifier is required and revalidated before escrow',()=>{
   const blocks=["const records=await admin.from('mmh_n10a769_recovery_phrases')",
