@@ -169,15 +169,21 @@ try{
    await page3.locator('#mmhA783Recovery > .mmh-a783-title').click();
    const logout=await page3.evaluate(()=>{
      document.getElementById('mmhA783Phrase').value='fake words';
+     document.getElementById('mmhA783TotpConsent').checked=true;
+     document.getElementById('mmhA783TotpRemoveText').value='REMOVE';
+     document.getElementById('mmhA783TotpRemoveConfirm').hidden=false;
           document.getElementById('mmhA783KeyWords').textContent='FAKE_WORDS';
      window.__authCallback('SIGNED_OUT',null);
      return {
        phrase:document.getElementById('mmhA783Phrase').value,
               words:document.getElementById('mmhA783KeyWords').textContent,
-       open:document.getElementById('mmhA783Recovery').classList.contains('mmh-a785-open')
+       open:document.getElementById('mmhA783Recovery').classList.contains('mmh-a785-open'),
+       consent:document.getElementById('mmhA783TotpConsent').checked,
+       removeText:document.getElementById('mmhA783TotpRemoveText').value,
+       removeConfirmHidden:document.getElementById('mmhA783TotpRemoveConfirm').hidden
      };
    });
-   assert.deepEqual(logout,{phrase:'',words:'',open:false});
+   assert.deepEqual(logout,{phrase:'',words:'',open:false,consent:false,removeText:'',removeConfirmHidden:true});
    assert.deepEqual(errors3,[]);
    await page3.close();
    console.log('PASS',name,'logout clears synthetic secret UI synchronously');
