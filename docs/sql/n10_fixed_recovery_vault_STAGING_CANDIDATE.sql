@@ -7,6 +7,9 @@
 -- schema. A collision aborts the transaction; inspect drift and prepare a
 -- separately reviewed upgrade/rollback instead of replacing objects.
 -- Previous Staging execution safety gate still applies: NOT AUTHORIZED TO RUN.
+-- Review-only: saturated quota counter at p_limit+1 avoids unbounded integer
+-- overflow. The installed Auth-Staging RPC still uses the original expression
+-- and is NOT changed by this source edit.
 BEGIN;
 CREATE SCHEMA mmh_n10_privacy;
 REVOKE ALL ON SCHEMA mmh_n10_privacy FROM PUBLIC, anon, authenticated, service_role;
@@ -138,7 +141,8 @@ BEGIN
  INSERT INTO mmh_n10_privacy.recovery_rate_bucket AS bucket(bucket,attempts,reset_at)
  VALUES (p_bucket,1,now()+make_interval(secs=>p_window_seconds))
  ON CONFLICT (bucket) DO UPDATE SET
- attempts=CASE WHEN bucket.reset_at<=now() THEN 1 ELSE bucket.attempts+1 END,
+ attempts=CASE WHEN bucket.reset_at<=now() THEN 1
+               ELSE LEAST(bucket.attempts,p_limit)+1 END,
  reset_at=CASE WHEN bucket.reset_at<=now() THEN now()+make_interval(secs=>p_window_seconds) ELSE bucket.reset_at END
  RETURNING attempts INTO n;
  RETURN n<=p_limit;
