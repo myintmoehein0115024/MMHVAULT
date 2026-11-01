@@ -62,10 +62,14 @@ check('Current production Login remains noindex',/name="robots" content="noindex
 check('Actual App remains noindex',/<meta[^>]*name=["']robots["'][^>]*noindex/i.test(read('app.html').slice(0,350000)));
 check('Protected Business page remains noindex',/<meta[^>]*name=["']robots["'][^>]*noindex/i.test(read('business.html').slice(0,2000)));
 
-const names=['landing.css','business.css','cinematic.css','landing.js','premium-l131.css','motion-l132.css','motion-l132.js','luxury-horizon.svg','premium-architecture.svg','cinematic-lake.webp','personal-business-concept.webp'];
+const names=['landing.css','business.css','cinematic.css','landing.js','premium-l131.css','explore-l114.css','motion-l132.css','motion-l132.js','luxury-horizon.svg','premium-architecture.svg','cinematic-lake.webp','personal-business-concept.webp'];
 check('All required live assets exist',names.every(f=>fs.existsSync('landing-assets/'+f)));
 check('Landing style and script links correct',['landing.css','business.css','cinematic.css','landing.js'].every(f=>current.includes('./landing-assets/'+f)));
 check('L1.31 premium layer linked and scoped', current.includes('class="l131"') && current.includes('href="./landing-assets/premium-l131.css?v=1"') && read('landing-assets/premium-l131.css').includes('body.l131 .showcase-v2'));
+check('Explore styles load after existing premium/motion layers and remain scoped',
+ current.includes('href="./landing-assets/explore-l114.css?v=1"') &&
+ read('landing-assets/explore-l114.css').includes('body.l131 .site-header #primary-nav') &&
+ !read('landing-assets/explore-l114.css').includes('body.app'));
 check('L1.32 motion assets linked from homepage',
   current.includes('href="./landing-assets/motion-l132.css?v=1"') &&
   current.includes('src="./landing-assets/motion-l132.js?v=1"'));
@@ -313,6 +317,7 @@ const publicRuntimeBudgets={
   'landing-assets/business.css':55000,
   'landing-assets/cinematic.css':40000,
   'landing-assets/premium-l131.css':20000,
+  'landing-assets/explore-l114.css':9000,
   'landing-assets/motion-l132.css':12000,
   'landing-assets/landing.js':110000,
   'landing-assets/motion-l132.js':15000,
@@ -378,7 +383,7 @@ check('Landing has five same-page primary sections and a separate Explore menu',
 check('Explore EN/ZH/MY text is present and only Landing source is modified',
  ['en','zh','my'].every(lang=>translationScript.includes('Object.assign(strings.'+lang+', {\n    navExplore:')) &&
  actual.every(x=>['index.html','landing-assets/landing.js',
-     'landing-assets/premium-l131.css','landing-assets/landing-browser-check.cjs',
+     'landing-assets/explore-l114.css','landing-assets/landing-browser-check.cjs',
      'landing-assets/landing-release-check.cjs'].includes(x)));
 check('Public SEO destinations and private routes remain byte-for-byte identical to main',
  ['about/index.html','features/index.html','business/index.html','register/index.html',
