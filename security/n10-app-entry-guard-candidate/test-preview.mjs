@@ -69,7 +69,7 @@ assert.ok(patched.length>source.length,'candidate should only add guards');
 assert.equal(source.includes('mmhN10AssessWorkspaceMfaV1100'),false,
   'app.html must remain unchanged in branch');
 assert.match(patched,/if\(n10Decision!=='allow'\)throw Error\('n10_app_mfa_unverified'\)/);
-assert.match(patched,/const n10Ticket=\+\+mmhP947AuthGateTicket/);
+assert.match(patched,/const n10Version=\+\+mmhN10GateVersionV1100/);\nassert.match(patched,/const n10Ticket=\+\+mmhP947AuthGateTicket/);
 assert.match(patched,/if\(currentSessionUser\?\.id\)mmhP947GuardV947\('switch'\)/);
 assert.match(patched,/const n10Result=await mmhN10AssessWorkspaceMfaV1100\(db\.auth,owner\)/);
 assert.match(patched,/if\(n10Result!=='allow'\)\{mmhP947GuardV947\('error'\)/);
@@ -101,12 +101,13 @@ const sameEnd=patched.indexOf('    if(mmhvaultAuthBootSettledV3285)',sameStart);
 assert.ok(sameStart>=0&&sameEnd>sameStart);
 const sameBranch=patched.slice(sameStart,sameEnd);
 assert.match(sameBranch,/mmhP947GuardV947\('switch'\)/);
-async function exerciseSameOwner(decision, invalidate=false) {
+async function exerciseSameOwner(decision, invalidate=false, invalidateVersion=false) {
   const events=[];
   let release;
   const gate=new Promise(resolve=>{release=resolve;});
   const env={
     mmhP947AuthGateTicket:0,
+    mmhN10GateVersionV1100:0,
     currentSessionUser:{id:uid},
     db:{auth:{}},
     mmhP947GuardV947:phase=>events.push('mask:'+phase),
@@ -124,6 +125,7 @@ async function exerciseSameOwner(decision, invalidate=false) {
     env.mmhP947AuthGateTicket+=1;
     env.currentSessionUser={id:other};
   }
+  if(invalidateVersion) env.mmhN10GateVersionV1100+=1;
   release(decision);
   await new Promise(setImmediate);
   return events;
@@ -136,6 +138,16 @@ assert.deepEqual(await exerciseSameOwner('deny'),
   ['mask:switch','mask:error']);
 assert.deepEqual(await exerciseSameOwner('allow',true),
   ['mask:switch'],'stale owner must not unlock');
+assert.deepEqual(await exerciseSameOwner('allow',false,true),
+  ['mask:switch'],'a newer resume check must not be overridden by old same-owner result');
+assert.deepEqual(await exerciseSameOwner('deny',false,true),
+  ['mask:switch'],'stale failed request must not overwrite the current resume mask');
+const startResume=patched.indexOf("async function mmhVaultReconcileSessionV1239(reason='resume'");
+const endResume=patched.indexOf('window.mmhVaultHandleOnlineV1239=',startResume);
+const resume=patched.slice(startResume,endResume);
+assert.ok(startResume>=0&&endResume>startResume);
+assert.match(resume,/const n10Version=\+\+mmhN10GateVersionV1100/);
+assert.match(resume,/if\(n10Version!==mmhN10GateVersionV1100\|\|startTicket!==mmhP947AuthGateTicket/);
 console.log('PASS same-owner mask, AAL2 challenge, fail-closed and stale owner races');
 
 const drift=source.replace('  const a783=await db.auth.mfa.getAuthenticatorAssuranceLevel();',
