@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {stripTypeScriptTypes} from 'node:module';
 import {runInNewContext} from 'node:vm';
+import {createHmac} from 'node:crypto';
 const backend=readFileSync('security/n10-fixed-recovery-vault-candidate/index.ts','utf8');
 const sql=readFileSync('docs/sql/n10_fixed_recovery_vault_STAGING_CANDIDATE.sql','utf8');
 const preflight=readFileSync('docs/sql/n10_fixed_recovery_READ_ONLY_PREFLIGHT.sql','utf8');
@@ -90,7 +91,129 @@ const tests=[
   assert.match(sql,/REVOKE ALL ON FUNCTION public\.mmh_n10_recovery_backup_get\(uuid\) FROM PUBLIC,anon,authenticated/);
   assert.doesNotMatch(sql,/DROP SCHEMA.*CASCADE/i);
  }],
- ['original phrase is immutable even with repeated backup requests',()=>{
+ ['live synthetic owner separation, logout and MFA mid-reveal (offline VM only)',async()=>{
+  // No live QA, SQL, accounts, endpoints, tokens or actual secrets.
+  // The TEST-ONLY string substitution enables the copied handler in a VM;
+  // the actual candidate file remains hard-OFF and is never deployed.
+  assert.match(backend,/const RECOVERY_RELEASE_ENABLED=false;/);
+  const testSource=backend.replace(
+    'const RECOVERY_RELEASE_ENABLED=false;',
+    'const RECOVERY_RELEASE_ENABLED=true; // VM-ONLY; NEVER DEPLOY'
+  ).replace(/^import[^\n]*\n/gm,'');
+  const js=stripTypeScriptTypes(testSource,{mode:'strip'});
+  const base='https://vrypucmyrztxgiqhjspd.supabase.co';
+  const key='SYNTHETIC-ONLY-KEY-123456789012345678901';
+  const phrase='alpha bravo charlie delta echo foxtrot golf hotel india juliet';
+  const originals=new Map([['A',phrase],['B','another example phrase only for fixture']]);
+  const stored=new Map(),revoked=new Set(),verifiedMfa=new Set();
+  let onReveal=null,handler=null,saveCalls=0;
+  const identity=id=>({id,email:'u-'+id+'@invalid.test',
+    is_anonymous:false,app_metadata:{mmhvault_auth_kind:'username_only'}});
+  const admin={
+   auth:{
+    getUser:async token=>({data:{user:/^mock-[AB]$/.test(token)
+      ?identity(token.slice(-1)):null},error:null}),
+    admin:{mfa:{listFactors:async({userId})=>({data:{factors:
+      verifiedMfa.has(userId)?[{id:'factor',status:'verified'}]:[]},error:null})}}
+   },
+   rpc:async(name,args)=>{
+    if(name==='mmh_n10_recovery_session_active')
+      return {data:!revoked.has(args.p_user_id)&&
+        args.p_session_id==='session-'+args.p_user_id,error:null};
+    if(name==='mmh_n10_recovery_take_attempt')return {data:true,error:null};
+    if(name==='mmh_n10_recovery_backup_exists')
+      return {data:stored.has(args.p_user_id),error:null};
+    if(name==='mmh_n10_recovery_backup_put'){
+      saveCalls++;
+      const before=stored.get(args.p_user_id);
+      if(before&&before!==args.p_phrase)return {error:{message:'immutable'}};
+      stored.set(args.p_user_id,args.p_phrase);return {data:true,error:null};
+    }
+    if(name==='mmh_n10_recovery_backup_get'){
+      if(onReveal)await onReveal();
+      return {data:stored.get(args.p_user_id)||null,error:null};
+    }
+    throw Error('unknown synthetic rpc '+name);
+   },
+   from:table=>{
+    assert.equal(table,'mmh_n10a769_recovery_phrases');
+    return {select:()=>({eq:(_field,id)=>({limit:async()=>{
+      const raw=originals.get(id);
+      const verifier=createHmac('sha256',key)
+        .update('mmh-a769-prod:phrase:'+id+':'+raw).digest('hex');
+      return {data:[{verifier,version:1}],error:null};
+    }})})};
+   }
+  };
+  const passwordClient={auth:{
+    signInWithPassword:async({email,password})=>{
+      const id=/^u-([AB])@invalid\.test$/.exec(email)?.[1];
+      if(!id||password!=='correct-password')return {data:{},error:{message:'bad'}};
+      return {data:{user:identity(id),session:{access_token:'pwd-'+id}},error:null};
+    },
+    getUser:async token=>({data:{user:/^pwd-[AB]$/.test(token)
+      ?identity(token.slice(-1)):null},error:null}),
+    signOut:async()=>({error:null})
+  }};
+  const createClient=(url,credential)=>{
+    assert.equal(url,base);
+    if(credential==='S'.repeat(24))return admin;
+    if(credential==='A'.repeat(24))return passwordClient;
+    throw Error('Unexpected client credentials in synthetic test');
+  };
+  const ctx={
+   Deno:{env:{get:name=>({
+     SUPABASE_URL:base,SUPABASE_SERVICE_ROLE_KEY:'S'.repeat(24),
+     SUPABASE_ANON_KEY:'A'.repeat(24),N10A740_RATE_HMAC_KEY:key
+   }[name]||'')},serve:fn=>{handler=fn}},
+   createClient,Response,TextEncoder,Uint8Array,crypto:globalThis.crypto,
+   evaluateVerifiedAuthUserMfa:(_token,user)=>user.factors.some(f=>f.status==='verified')
+     ?'required':'allowed',
+   sessionIdFromVerifiedJwt:(token,id)=>token==='mock-'+id?'session-'+id:null,
+   normalizePhrase:raw=>typeof raw==='string'&&raw.split(' ').length===10?raw:null,
+   equal64:(a,b)=>a===b,
+   readBoundedJson:async req=>req.json(),
+   fetch:()=>{throw Error('External fetch forbidden in synthetic test')}
+  };
+  runInNewContext(js,ctx,{timeout:3000});
+  assert.equal(typeof handler,'function');
+  const send=async(id,action,other={})=>{
+   const req=new Request('https://local.invalid/',{
+    method:'POST',headers:{Origin:'https://mmhvault.com',
+      Authorization:'Bearer mock-'+id,'Content-Type':'application/json'},
+    body:JSON.stringify({action,...other})
+   });
+   const response=await handler(req);
+   return {status:response.status,body:await response.json()};
+  };
+  assert.deepEqual((await send('A','status')).body,{code:'backup_status',backed_up:false});
+  assert.deepEqual((await send('B','status')).body,{code:'backup_status',backed_up:false});
+  const invalid=await send('A','backup_existing',{password:'wrong-password',phrase});
+  assert.equal(invalid.status,401);assert.equal(stored.size,0);
+  const good=await send('A','backup_existing',{password:'correct-password',phrase});
+  assert.equal(good.status,200);assert.equal(good.body.code,'backup_ready');
+  assert.equal(stored.get('A'),phrase);
+  const repeated=await send('A','backup_existing',{password:'correct-password',phrase});
+  assert.equal(repeated.status,200);assert.equal(stored.size,1);
+  assert.equal(saveCalls,2);
+  assert.equal((await send('B','status',{user_id:'A'})).body.backed_up,false);
+  const blocked=await send('B','reveal',{password:'correct-password',user_id:'A'});
+  assert.equal(blocked.status,409);assert.equal(blocked.body.code,'backup_not_ready');
+  assert.equal(JSON.stringify(blocked.body).includes('alpha bravo'),false);
+  const shown=await send('A','reveal',{password:'correct-password'});
+  assert.equal(shown.status,200);
+  assert.deepEqual(shown.body.words,phrase.split(' '));
+  assert.equal(shown.body.expires_in_seconds,45);
+  onReveal=async()=>revoked.add('A');
+  const afterLogout=await send('A','reveal',{password:'correct-password'});
+  assert.equal(afterLogout.status,401);
+  assert.equal(JSON.stringify(afterLogout.body).includes('words'),false);
+  revoked.clear();
+  onReveal=async()=>verifiedMfa.add('A');
+  const afterMfa=await send('A','reveal',{password:'correct-password'});
+  assert.equal(afterMfa.status,403);
+  assert.equal(JSON.stringify(afterMfa.body).includes('words'),false);
+ }],\n ['original phrase is immutable even with repeated backup requests',()=>{
   // These are source-level SQL assertions. They DO NOT execute a migration.
   const body=sql.split('CREATE FUNCTION public.mmh_n10_recovery_backup_put(')[1]?.split('CREATE FUNCTION public.mmh_n10_recovery_backup_exists(')[0];
   assert.ok(body,'missing owner-only backup RPC');
