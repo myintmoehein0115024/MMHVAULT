@@ -50,7 +50,8 @@ export function generateAppEntryPreview(original) {
   const newSameOwner = [
     '    if(liveOwner===nextOwner){',
     "      // Lock immediately on a new same-owner token; never rely on UID alone.",
-    "      const n10Version=++mmhN10GateVersionV1100;",\n    "      const n10Ticket=++mmhP947AuthGateTicket;",
+    "      const n10Version=++mmhN10GateVersionV1100;",
+    "      const n10Ticket=++mmhP947AuthGateTicket;",
     "      mmhP947GuardV947('switch');",
     '      Promise.resolve().then(async()=>{',
     '        const result=await '+helperName+'(db.auth,nextOwner);',
@@ -74,7 +75,9 @@ export function generateAppEntryPreview(original) {
   const newReconcileStart = [
     "async function mmhVaultReconcileSessionV1239(reason='resume',opts={}){",
     '  if(mmhVaultSessionCheckPromiseV1239)return mmhVaultSessionCheckPromiseV1239;',
-    "  // Invalidate any older same-account check before awaiting resume.",\n    "  const n10Version=++mmhN10GateVersionV1100;",\n    "  // Protect already rendered account data before any async resume check.",
+    "  // Invalidate any older same-account check before awaiting resume.",
+    "  const n10Version=++mmhN10GateVersionV1100;",
+    "  // Protect already rendered account data before any async resume check.",
     "  if(currentSessionUser?.id)mmhP947GuardV947('switch');",
     '  const run=(async()=>{',
     '    const startTicket=mmhP947AuthGateTicket;'
