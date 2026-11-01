@@ -44,9 +44,17 @@ function setupSynthetic(){
   window.__enrollReached=false;
   window.__unenrollCalls=[];
   window.__fetches=[];
-  window.fetch=async url=>{
+  window.__verifyStarted=false;
+  window.fetch=async (url,options={})=>{
     window.__fetches.push(String(url));
     if(!String(url).endsWith('/mmh-n10a783-phrase-verify'))throw Error('Forbidden external request');
+    const action=JSON.parse(options.body||'{}').action;
+    if(action==='verify_saved_phrase'){
+      window.__verifyStarted=true;
+      return new Promise(resolve=>{window.__resolveVerify=verified=>resolve({
+        ok:true,json:async()=>({verified})
+      });});
+    }
     return {ok:true,json:async()=>({code:'account_status',username_only:true,username:'synthetic_user'})};
   };
   const mfa={
@@ -309,7 +317,52 @@ try{
    assert.deepEqual(keyboardErrors,[]);
    await keyboard.close();
    console.log('PASS',name,'Escape closes mobile modal and releases page lock');
+
+   // Verify sensitive recovery words do not appear if the original
+   // Auth-confirmed response arrives after logout, owner switch, modal
+   // close, or a hidden/foreground transition. All responses are simulated.
+   for(const kind of ['signout','switch','close','background']){
+     const recoveryPage=await browser.newPage();
+     const recoveryErrors=await ready(recoveryPage);
+     await recoveryPage.locator('#mmhA783Recovery > .mmh-a783-title').click();
+     await recoveryPage.locator('#mmhA783Phrase').fill('alpha bravo charlie delta echo foxtrot golf hotel india juliet');
+     await recoveryPage.locator('#mmhA783KeyVerify').click();
+     await recoveryPage.waitForFunction(()=>window.__verifyStarted===true);
+     if(kind==='signout'){
+       await recoveryPage.evaluate(()=>window.__authCallback('SIGNED_OUT',null));
+     }else if(kind==='switch'){
+       await recoveryPage.evaluate(()=>{
+         window.__fakeUserId='00000000-0000-4000-8000-0000000000bb';
+         window.__authCallback('SIGNED_IN',{user:{id:window.__fakeUserId}});
+       });
+     }else if(kind==='close'){
+       await recoveryPage.locator('body > .mmh-n10-modal-overlay:not([hidden]) .mmh-n10-modal-close').click();
+     }else{
+       await recoveryPage.evaluate(()=>{
+         Object.defineProperty(document,'hidden',{configurable:true,value:true});
+         document.dispatchEvent(new Event('visibilitychange'));
+         Object.defineProperty(document,'hidden',{configurable:true,value:false});
+       });
+     }
+     await recoveryPage.evaluate(()=>window.__resolveVerify(true));
+     await recoveryPage.waitForTimeout(100);
+     const visible=await recoveryPage.evaluate(()=>({
+       display:document.getElementById('mmhA783KeyDisplay').hidden,
+       words:document.getElementById('mmhA783KeyWords').textContent,
+       raw:document.getElementById('mmhA783Phrase').value,
+       qr:document.getElementById('mmhA783KeyQr').childElementCount,
+       status:document.getElementById('mmhA783Status').textContent
+     }));
+     assert.equal(visible.display,true,'stale response reopened key view: '+kind);
+     assert.equal(visible.words,'','stale recovery words displayed: '+kind);
+     assert.equal(visible.raw,'','old input present: '+kind);
+     assert.equal(visible.qr,0,'old QR visible: '+kind);
+     assert.ok(!visible.status.includes('Saved words verified'),'false recovery success after '+kind);
+     assert.deepEqual(recoveryErrors,[]);
+     await recoveryPage.close();
+     console.log('PASS',name,'late recovery response stays hidden after '+kind);
+   }
   }finally{await browser.close();}
  }
- console.log('20/20 isolated browser smoke checks PASS');
+ console.log('28/28 isolated browser smoke checks PASS');
 }finally{await new Promise(resolve=>server.close(resolve));}
