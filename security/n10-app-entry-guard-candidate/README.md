@@ -21,3 +21,9 @@ This is a possible FRONTEND fail-open condition, NOT a proven database or backen
 6. Keep the previously platform-blocked Staging QA retirement and legacy two-argument Vault guard restricted. This branch cannot bypass those release gates.
 
 Status remains DRAFT, REVIEW ONLY, UNMERGED until all gates pass.
+
+## 2026-11-01 production read-only permission verification
+- The production DB metadata was read **without reading financial/user rows and without SQL writes**. The installed `mmh_n10_security.mfa_access_ok()` uses `auth.uid()`, authenticated server-generated JWT `aal='aal2'`, and the existence of a **verified** authenticator in `auth.mfa_factors`; no client-side claim alone establishes a verified factor. This function is SECURlTY DEFINER and its direct callers/permissions still require standard review.
+- On inspection, **59** public tables carried a policy named `mmh_n10_mfa_required`; **all 59 were RESTRICTIVE**, not permissive (so the MFA policy is AND-ed with owner policies). Examined finance tables such as `transactions`, `investments`, `custom_investments`, `budgets`, and business tables have RLS enabled. In a metadata-only sweep of **61 public user/owner-linked tables**, no table with authenticated SELECT privilege lacked the restrictive MFA policy. This is good supporting evidence of server-side defense, **not** a substitute for real signed AAL1-denial/AAL2-allow checks or a comprehensive service-role/API audit.
+- No production configuration, migration, Auth setting, RLS policy, Edge code, finance data or secrets were changed. The proposed frontend improvement remains independent and unmerged.
+- The review branch now also parses the **actual full app.html inline workspace script** after an in-memory patch. The test compares unchanged non-workspace HTML/scripts and preserves finance code; it never runs the actual production app or accesses live data.
