@@ -15,9 +15,9 @@ const tests=[
   assert.match(backend,/BASE!==EXPECTED_BASE/);
  }],
  ['no unauthenticated backup, original word access or passwordless reveal',()=>{
-  const steps=["const authenticated=await verifiedUser(req);","const firstSessionCheck=await liveSession(user.id,sessionId);",
+  const steps=["const authenticated=await verifiedUser(req);","const firstSessionCheck=await liveSession(user.id,sessionId,sessionAal);",
    "const quotaStatus=await quota(user.id);","if(!await provePassword(user,body.password))",
-   "const secondSessionCheck=await liveSession(user.id,sessionId);",
+   "const secondSessionCheck=await liveSession(user.id,sessionId,sessionAal);",
    "const refreshedAssurance=await verifiedUser(req);",
    "const stored=await admin.rpc('mmh_n10_recovery_backup_get'"];
   let index=-1;
@@ -29,7 +29,7 @@ const tests=[
   const blocks=["const records=await admin.from('mmh_n10a769_recovery_phrases')",
    "if(!equal64(records.data[0].verifier,mac))",
    "const backupAssurance=await verifiedUser(req);",
-   "const backupSessionCheck=await liveSession(user.id,sessionId);",
+   "const backupSessionCheck=await liveSession(user.id,sessionId,sessionAal);",
    "const saved=await admin.rpc('mmh_n10_recovery_backup_put'"];
   let index=-1;
   for(const step of blocks){const next=backend.indexOf(step,index+1);assert.ok(next>index,step);index=next}
