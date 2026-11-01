@@ -9,6 +9,7 @@
   <meta name="apple-mobile-web-app-title" content="MMH QA">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="manifest" href="./manifest.webmanifest">
+  <script defer src="../landing-assets/standalone-pinch-guard.js?v=l127"></script>
   <link rel="apple-touch-icon" href="../images/icon-192.png">
   <link rel="icon" type="image/png" href="../images/icon-192.png">
   <title>MMHVAULT · PWA 启动验收（独立测试）</title>
@@ -61,6 +62,7 @@
         <div><div class="label">启动入口</div><div class="value" id="entryPage">检测中…</div></div>
       </div>
       <p class="result" id="resultText" role="status" aria-live="polite">正在检查页面启动方式。</p>
+      <p class="result" id="pinchState">双指缩放：检测中…</p>
       <div class="buttons">
         <button class="button primary" type="button" id="refreshStatus">重新检测</button>
         <a class="button secondary" href="/">返回 Landing 预览</a>
@@ -95,9 +97,15 @@
       result.textContent = standalone
         ? (installedStart ? '通过：独立 App 模式 + Manifest 启动地址均已检测到。' : '已进入独立 App 模式；此设备可能使用保存的页面地址启动，请记录结果。')
         : '当前是普通浏览器模式。请从添加到主屏幕后的测试图标重新打开。';
+      document.getElementById('pinchState').textContent =
+        document.documentElement.classList.contains('mmh-standalone-pinch-guard')
+          ? '双指缩放：已限制（普通单指滚动仍可用）'
+          : '双指缩放：普通浏览器模式仍可正常缩放';
     };
     document.getElementById('refreshStatus').addEventListener('click',refresh);
     refresh();
+    // Deferred guard runs before DOMContentLoaded, after the inline status script.
+    document.addEventListener('DOMContentLoaded',refresh,{once:true});
   })();
   </script>
 </body>

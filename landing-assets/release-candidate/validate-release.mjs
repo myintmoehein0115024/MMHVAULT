@@ -79,4 +79,40 @@ check('OAuth query callback not intercepted', testBridge({ios:true,search:'?code
 check('Recovery error callback not intercepted', testBridge({ios:true,hash:'#error=access_denied&error_code=otp_expired'}) === null);
 check('Token fragments never forwarded', testBridge({displayMode:true,hash:'#access_token=secret'}) === null);
 
+
+/* L1.27 installed-only pinch-zoom guard simulated on iOS/Android. */
+const pinchScript = read('landing-assets/standalone-pinch-guard.js');
+check('Standalone pinch guard linked by preview and candidate', preview.includes('standalone-pinch-guard.js') && staged.includes('standalone-pinch-guard.js'));
+const qIndex = read('landing-assets/pwa-qa/index.html');
+const qLaunch = read('landing-assets/pwa-qa/launch.html');
+check('Independent PWA QA pages include pinch guard', qIndex.includes('standalone-pinch-guard.js') && qLaunch.includes('standalone-pinch-guard.js'));
+const simulatePinchGuard = ({android=false,ios=false}={}) => {
+  const registered = {}, classes=[], htmlStyle={},bodyStyle={};
+  const document = {
+    documentElement:{classList:{add:x=>classes.push(x)},style:htmlStyle},
+    body:{style:bodyStyle},
+    addEventListener:(name,fn,opts)=>{registered[name]={fn,opts};}
+  };
+  runInNewContext(pinchScript, {
+    document,navigator:{standalone:ios},window:{matchMedia:()=>({matches:android})}
+  },{timeout:1000});
+  return {registered,classes,htmlStyle,bodyStyle};
+};
+const normalZoom = simulatePinchGuard();
+check('Browser keeps pinch zoom and installs no blockers', normalZoom.classes.length === 0 && Object.keys(normalZoom.registered).length === 0);
+for(const platform of [{name:'iOS',ios:true},{name:'Android',android:true}]){
+  const state = simulatePinchGuard(platform);
+  check(platform.name+' standalone enables non-pinch pan style',
+    state.classes.includes('mmh-standalone-pinch-guard') && state.htmlStyle.touchAction === 'pan-x pan-y' && state.bodyStyle.touchAction === 'pan-x pan-y');
+  check(platform.name+' standalone adds non-passive pinch blockers',
+    ['gesturestart','gesturechange','touchstart','touchmove'].every(name=>state.registered[name]?.opts?.passive===false));
+  let prevented=0;
+  const event=(count)=>({cancelable:true,touches:Array(count).fill({}),preventDefault:()=>{prevented++}});
+  state.registered.touchmove.fn(event(1));
+  check(platform.name+' standalone allows one-finger scrolling', prevented===0);
+  state.registered.touchmove.fn(event(2));
+  state.registered.gesturestart.fn(event(2));
+  check(platform.name+' standalone blocks two-finger pinch events', prevented===2);
+}
+
 console.log('MMHVAULT L1.25 PRE-RELEASE: ' + count + '/' + count + ' static checks PASS (not a substitute for device/production QA).');
