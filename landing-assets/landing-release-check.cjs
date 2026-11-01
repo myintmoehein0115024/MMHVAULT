@@ -303,6 +303,13 @@ const publicRuntimeBudgets={
 for(const [file,maxBytes] of Object.entries(publicRuntimeBudgets)){
   check(file+' stays under uncompressed asset budget',fs.statSync(file).size<=maxBytes);
 }
+check('Homepage background is early-discovered and prioritized without altering auth',
+ current.includes('<link rel="preload" as="image" type="image/webp" fetchpriority="high" href="./landing-assets/cinematic-lake.webp">') &&
+ (current.match(/rel="preload" as="image"/g)||[]).length===1 &&
+ current.includes('class="hero-device-cinematic"') &&
+ current.includes('fetchpriority="high"') &&
+ dom('mmh-n10-recovery-error-route',current)===dom('mmh-n10-recovery-error-route',prev));
+
 check('Landing priority image and below-fold concept use efficient loading',
   current.includes('width="1600" height="900"') &&
   current.includes('decoding="async" fetchpriority="high"') &&
