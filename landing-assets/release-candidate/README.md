@@ -24,3 +24,12 @@ The repository `main` advanced to `d9e61e96d9ea30f1296d81594f87275179c85c3e` wit
 Run `node landing-assets/release-candidate/validate-release.mjs` from repo root to assert SEO, recovery-handler parity, login noindex, manifest diff, sitemap, robots draft, and trilingual Landing invariants. This is static validation only; the test uses the branch's checked-out root files. A fresh production main comparison **must still be repeated immediately before real cutover**; manual iPhone/Android PWA and real HTTPS/Google Search Console checks remain required.
 
 Source-of-truth reminder: `https://mmhvault.com/` is currently served by GitHub Pages (the source tree includes root CNAME `mmhvault.com`); Cloudflare Pages preview is isolated and must not become an alternative indexed root. No production settings were changed during this preparation.
+
+### L1.25 preview CI enforced
+The isolated Cloudflare Pages project `mmhvault-landing-l1-preview` now prepends:
+
+```sh
+node landing-assets/release-candidate/validate-release.mjs && node --check landing-assets/landing.js
+```
+
+before the existing preview build command. Candidate files are **not** added to the Pages output allowlist. A failing static audit blocks new preview deployment, not production. Live PWA device/OAuth recovery and production HTTP checks are separate mandatory manual go-live gates. The latest main at inspection was `d9e61e96d9ea30f1296d81594f87275179c85c3e` (account FX implementation only), and production index/login/manifest stay unchanged.
