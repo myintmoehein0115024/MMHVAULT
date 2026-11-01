@@ -11,6 +11,7 @@ const N10A790_TOTP_ENROLLMENT_RELEASED=true;
 const N10A790_HOLD='Authenticator setup is temporarily paused until recovery and finance protection checks are complete.';
 const A783_STATIC_ZH={"ACCOUNT SECURITY":"账户安全","Refresh":"刷新","Login methods & recovery":"登录方式与账户恢复","Manage your existing account without creating a second wallet or transferring finance records.":"管理现有账户，不会创建第二个财务账户或迁移财务记录。","Username":"用户名","Existing email users can add a username and continue using their original password and data.":"邮箱用户可绑定用户名，继续使用原密码及全部原有数据。","Link a username":"绑定用户名","Permanent recovery key":"永久恢复密钥","10 words":"十个单词","Your permanent recovery key is verified, not stored as readable words.":"系统仅保存密钥校验值，不会以可读取的形式保存原始恢复词。","For your protection, the original ten words cannot be retrieved from their secure verifier. Enter the words you saved to verify them and re-create your QR code locally.":"原始恢复词无法从校验值中找回。请输入您保存的十个单词，验证后可在本机重新生成恢复二维码。","Your saved 10 words, in the original order":"请输入原有十词，顺序必须一致","Verify saved words":"验证恢复词","Save my QR":"保存二维码","Hide key":"隐藏密钥","This backup view automatically closes after one minute. Anyone with these words can log in.":"恢复词将于 60 秒后自动隐藏。持有这组恢复词的人可能使用它登录您的账户，请妥善保管。","Google account":"Google 账户","Link Google to this same account. Linking does not transfer assets or create a new finance UID.":"将 Google 账号关联到同一个账户，不会迁移资产或创建新 UID。","Connect Google":"关联 Google","Authenticator · Two-step verification":"身份验证器 · 双重验证","Use a time-based six-digit code for additional protection during sign-in.":"登录时使用动态六位验证码，进一步保护账户。","Before enabling: save a backup of your authenticator codes or setup on a second trusted device. If you lose your authenticator, the permanent 10-word key alone does not bypass the second step. Do not enable until you have a recovery plan.":"开启前，请备份验证器或配置第二台可信设备。如果丢失验证器，仅凭永久十词无法跳过第二步验证。请确认有恢复方案后再开启。","I understand this second-step recovery limitation.":"我已理解双重验证的账户恢复限制。","Set up Authenticator":"设置身份验证器","Scan the QR with Google Authenticator or a compatible app. Do not share this QR or setup secret.":"使用 Google Authenticator 或其他兼容应用扫描二维码，不要分享二维码或设置密钥。","Manual setup key":"手动设置密钥","Six-digit code":"六位动态验证码","Verify & enable":"验证并开启","Cancel":"取消","Remove authenticator":"解绑身份验证器","Removing the last factor reduces account protection. Type REMOVE to confirm.":"移除最后一个验证器将降低账户安全性。请输入 REMOVE 确认。","Confirm removal":"确认解绑","Sign in to manage account security.":"登录后即可管理账户安全。"};
 const A783_DYNAMIC_ZH={"Not linked":"未绑定","Permanent ten-word recovery is available to username-only accounts.":"永久十词恢复功能适用于纯用户名账户。","Your original 10-word key remains valid. The original words cannot be retrieved from their secure verifier.":"原始十词密钥仍然有效，但无法从安全校验值中还原原文。","Connected to this account":"已关联本账户","Not connected":"未关联","Google connected":"已关联 Google","Authenticator enabled":"已启用身份验证器","Not enabled":"未启用","Two-step verification is active for this session.":"本次会话已通过双重验证。","Verify your six-digit code at sign-in to manage this factor.":"请在登录时完成六位验证码验证后再管理此验证器。","Use Google Authenticator or another TOTP app. After binding, a six-digit code is required on new sign-ins.":"支持 Google Authenticator 等标准 TOTP 应用，绑定后登录需验证六位动态码。","Security details updated.":"安全信息已更新。","Sign in to view account security, or try again after refreshing.":"请登录后查看账户安全，或刷新页面重试。","Temporarily unavailable":"暂时不可用","Some security details are temporarily unavailable. Other verified controls remain usable.":"部分安全信息暂时不可用，其他已验证的功能仍可使用。","Save the authenticator secret or configure a second trusted device before enabling two-step verification.":"启用双重验证前，请安全备份验证器密钥或在第二台可信设备配置验证器。","Account session could not be verified. Please sign in again or refresh.":"账户会话验证失败，请重新登录或刷新页面。","Please sign in before linking a username.":"请先登录再绑定用户名。","Google is already connected.":"Google 已绑定。","Opening Google authorization. Your original finance account will stay the same.":"正在前往 Google 授权，原财务账户不会变更。","Unable to link Google. Account linking may require enabling identity linking in authentication settings. No finance data was changed.":"Google 关联未完成。可能需要在认证设置中开放身份关联，财务数据未被修改。","Enter your existing ten words in the original order.":"请输入原始十个单词，并保持原有顺序。","Saved words verified. Backup view will close automatically after 60 seconds.":"恢复词验证通过，60 秒后自动隐藏。","The recovery words could not be verified. Check the order.":"恢复词验证失败，请检查单词及顺序。","Please confirm that you understand the backup requirements before enabling two-step verification.":"开启双重验证前，请先确认已了解备份要求。","Already enrolled":"已经绑定","Could not start authenticator setup. Please check the account and try again.":"无法开始验证器设置，请检查账户后重试。","Scan this QR with Google Authenticator, then enter its six-digit code. Do not share this secret.":"请扫描二维码并输入六位动态码，切勿分享设置密钥。","Enter a six-digit authenticator code.":"请输入六位动态验证码。","Authenticator enabled. New sign-ins will require a six-digit code.":"验证器已启用，后续登录需要六位动态码。","Could not verify this code. Check your device time and try a new code.":"验证码无效，请检查设备时间并输入新的验证码。","Authenticator setup cancelled.":"已取消验证器设置。","To remove your authenticator, enter REMOVE below. Only the verified owner can continue.":"解绑验证器请输入 REMOVE，只有已验证的账户所有者可以继续。","Complete two-step verification before removing an authenticator.":"解绑前请先完成双重验证。","Unable to remove the authenticator.":"无法解绑验证器。","Authenticator removed.":"已解绑验证器。"};
+Object.assign(A783_DYNAMIC_ZH,{"Verify your current authenticator before linking Google. If security status is unavailable, refresh and retry.":"关联 Google 前，请先完成当前身份验证器验证。如安全状态暂不可用，请刷新后重试。"});
 Object.assign(A783_DYNAMIC_ZH,{
  "Two-step verification is active. Keep an authenticator backup; the ten-word key cannot replace a six-digit code.":"双重验证已开启。请妥善保存验证器备份，十词密钥不能代替六位验证码。",
  "Verify your six-digit code to manage this authenticator. If your phone is lost, use your saved authenticator backup; ten words cannot unlock this step.":"请先输入六位验证码再管理验证器。如手机遗失，请使用事先保存的验证器备份；十词密钥不能跳过这一步。",
@@ -75,6 +76,15 @@ function inspectTotpFactors(data){
   pending:allTotp.filter(f=>f.status==='unverified'),
   unknown:allTotp.filter(f=>f.status!=='verified'&&f.status!=='unverified')
  };
+}
+// Fail closed before adding a login identity if AAL or server factor state
+// is missing, stale or inconsistent. The browser is not the authorization source.
+function googleIdentityLinkAllowed(assurance,inventory){
+ if(assurance?.error||inventory?.error||!Array.isArray(inventory?.data?.all))return false;
+ const current=assurance?.data?.currentLevel,next=assurance?.data?.nextLevel;
+ if((current!=='aal1'&&current!=='aal2')||(next!=='aal1'&&next!=='aal2'))return false;
+ const verified=inventory.data.all.some(f=>f?.status==='verified');
+ return verified?(current==='aal2'&&next==='aal2'):(current==='aal1'&&next==='aal1');
 }
 function clearMfa(){mfaEpoch+=1;pendingSecret='';pendingFactor='';pendingFactorOwner='';if($('mmhA783TotpConsent'))$('mmhA783TotpConsent').checked=false;if($('mmhA783TotpRemoveText'))$('mmhA783TotpRemoveText').value='';if($('mmhA783TotpRemoveConfirm'))$('mmhA783TotpRemoveConfirm').hidden=true;if($('mmhA783TotpBackupConfirmed'))$('mmhA783TotpBackupConfirmed').checked=false;$('mmhA783TotpSetup').hidden=true;$('mmhA783TotpQr').replaceChildren();$('mmhA783TotpSecret').textContent='';$('mmhA783TotpSecret').hidden=true;$('mmhA783TotpCode').value='';a783Action('mmhA783KeyReveal','Show setup key');}
 // Recovery verification must not re-display words after the owner, modal or
@@ -237,13 +247,26 @@ $('mmhA783BindUsername').addEventListener('click',async()=>{
 });
 $('mmhA783LinkGoogle').addEventListener('click',async()=>{
  if(busy)return;busy=true;
+ const epoch=authEpoch;
  try{
    const {user}=await verifiedUser();
+   if(epoch!==authEpoch||owner!==user.id)throw Error('session_changed');
    const existing=await client().auth.getUserIdentities();
    if(existing.error)throw existing.error;
+   if(epoch!==authEpoch||owner!==user.id)throw Error('session_changed');
    if((existing.data?.identities||[]).some(x=>x.provider==='google')){status('Google is already connected.');return}
    const aal=await client().auth.mfa.getAuthenticatorAssuranceLevel();
-   if(aal.error||(aal.data?.nextLevel==='aal2'&&aal.data?.currentLevel!=='aal2'))throw Error('Complete two-step verification first.');
+   const factors=await client().auth.mfa.listFactors();
+   if(epoch!==authEpoch||owner!==user.id)throw Error('session_changed');
+   if(!googleIdentityLinkAllowed(aal,factors)){
+     status('Verify your current authenticator before linking Google. If security status is unavailable, refresh and retry.');
+     return;
+   }
+   // Reverify Auth owner after the async checks. Do not link after a UID
+   // switch or token refresh using an earlier account's security results.
+   const confirmed=await verifiedUser();
+   if(epoch!==authEpoch||owner!==user.id||confirmed.user.id!==user.id)
+     throw Error('session_changed');
    sessionStorage.setItem('mmh_a783_google_link_expected_uid',user.id);
    status('Opening Google authorization. Your original finance account will stay the same.');
    const {error}=await client().auth.linkIdentity({provider:'google',options:{redirectTo:'https://mmhvault.com/app.html?google_link=1'}});
