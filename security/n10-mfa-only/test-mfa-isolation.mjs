@@ -15,6 +15,25 @@ const tests=[
   assert.doesNotMatch(src,/clearTimer=setTimeout\(hideKey,45000\)/);
   assert.match(src,/function hideKey\(\)\{recoveryEpoch\+=1;verifiedPhrase='';/);
  }],
+ ['60-second recovery window expires on focus/resume and before QR export',()=>{
+  assert.match(src,/let recoveryVisibleUntil=0;/);
+  assert.match(src,/function hideKey\(\)\{recoveryEpoch\+=1;verifiedPhrase='';recoveryVisibleUntil=0;/);
+  assert.match(src,/recoveryVisibleUntil=Date\.now\(\)\+60000;/);
+  assert.match(src,/clearTimer=setTimeout\(hideKey,60000\)/);
+  assert.match(src,/window\.addEventListener\('focus',enforceRecoveryExpiry\)/);
+  assert.match(src,/window\.addEventListener\('pageshow',enforceRecoveryExpiry\)/);
+  assert.match(src,/else enforceRecoveryExpiry\(\);\}\);/);
+  const save=between("$('mmhA783KeySaveQr').addEventListener('click',()=>{","$('mmhA783TotpStart').addEventListener('click',async()=>{");
+  ordered(save,['enforceRecoveryExpiry();','if(!verifiedPhrase||!recoveryVisibleUntil)return;']);
+  const code=src.match(/function enforceRecoveryExpiry\(\)\{[^\n]*\}/)?.[0];
+  assert.ok(code,'missing wall-clock guard');
+  let wipes=0;
+  const env={recoveryVisibleUntil:60000,Date:{now:()=>59999},hideKey:()=>{wipes++}};
+  const check=runInNewContext('('+code+')',env);
+  check();assert.equal(wipes,0);
+  env.Date.now=()=>60001;check();assert.equal(wipes,1);
+  env.recoveryVisibleUntil=0;check();assert.equal(wipes,1);
+ }],
  ['totp inventory detects unverified, verified and unknown in all',()=>{
   const code=src.match(/function inspectTotpFactors\(data\)\{[\s\S]*?\n\}/)?.[0];
   assert.ok(code,'missing helper');
