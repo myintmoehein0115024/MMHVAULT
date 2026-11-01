@@ -659,3 +659,94 @@ body.public-landing-page{
   .public-landing-page .brand-mark{font-size:33px;width:32px}
   .public-landing-page .wrap{width:calc(100% - 24px)}
 }
+
+
+/* L1.12 — Policy and security pages are first-class Landing branches.
+   Preserve the original factual legal paragraphs; style only their shells. */
+.public-landing-page.policy-page{
+  background:radial-gradient(ellipse at 7% 8%,rgba(43,96,126,.26),transparent 42%),
+   radial-gradient(ellipse at 92% 22%,rgba(206,151,83,.09),transparent 35%),
+   linear-gradient(180deg,#081a2b 0%,#0b273b 54%,#061522 100%);
+  color:#f6ead9;
+}
+.policy-page .policy-main{
+  width:min(1120px,calc(100% - 40px));
+  margin-inline:auto;
+  padding:clamp(23px,4vw,52px) 0 clamp(50px,7vw,84px);
+}
+.policy-page .policy-hero{
+  position:relative;isolation:isolate;overflow:hidden;
+  min-height:clamp(250px,26vw,330px);
+  display:flex;flex-direction:column;align-items:flex-start;justify-content:center;
+  gap:18px;padding:clamp(30px,5vw,63px);
+  border:1px solid rgba(244,207,154,.45);border-radius:26px;
+  background:
+   linear-gradient(90deg,rgba(6,24,41,.95),rgba(8,30,48,.86) 53%,rgba(9,33,51,.38)),
+   url('/landing-assets/cinematic-lake.webp') center 50%/cover no-repeat;
+  box-shadow:inset 0 1px rgba(255,244,212,.11),0 27px 57px rgba(1,15,27,.17);
+}
+.policy-page .policy-hero .page-breadcrumb{margin:0;color:#d4dddf}
+.policy-page .policy-icon-line{display:flex;align-items:center;gap:11px;flex-wrap:wrap}
+.policy-page .policy-icon-line img{width:38px;height:38px;object-fit:contain}
+.policy-page .policy-eyebrow{
+  font:750 10px/1.5 system-ui,sans-serif;letter-spacing:.19em;
+  color:#f3ca91;overflow-wrap:anywhere
+}
+.policy-page .policy-hero h1{
+  font:500 clamp(36px,5.1vw,64px)/1.1 Georgia,"Times New Roman",serif;
+  margin:0;color:#fff0d9;letter-spacing:-.035em;overflow-wrap:anywhere
+}
+.policy-page .policy-hero>p{
+  color:#c9d9df;font:400 clamp(12px,1.26vw,15px)/1.8 system-ui,sans-serif;
+  margin:0;max-width:710px
+}
+.policy-page .policy-hero>p a{color:#f6d5a6;text-underline-offset:3px}
+.policy-page .policy-card{
+  padding:clamp(22px,4.7vw,59px);
+  margin-top:25px;min-width:0;
+  background:linear-gradient(140deg,rgba(31,64,84,.74),rgba(7,28,45,.94));
+  border:1px solid rgba(241,204,153,.35);border-radius:23px;
+  box-shadow:inset 0 1px rgba(255,241,216,.07),0 22px 43px rgba(2,13,27,.13)
+}
+.policy-page .policy-card h2{
+  margin:31px 0 10px;font:600 clamp(17px,2vw,23px)/1.35 system-ui,sans-serif;
+  color:#fff0db;letter-spacing:-.012em
+}
+.policy-page .policy-card h2:first-child{margin-top:0}
+.policy-page .policy-card p,
+.policy-page .policy-card li{
+  margin:0 0 14px;color:#c3d4dc;font:400 clamp(13px,1.28vw,15px)/1.9 system-ui,sans-serif;
+  overflow-wrap:anywhere
+}
+.policy-page .policy-card p:last-child{margin-bottom:0}
+.policy-page .policy-card b{color:#f2e9d9;font-weight:650}
+.policy-page .policy-card a{color:#f2d3a5;text-underline-offset:3px;overflow-wrap:anywhere}
+.policy-page .policy-card .box{
+  border:1px solid rgba(243,203,145,.38);
+  border-radius:15px;padding:clamp(17px,2.7vw,25px);
+  margin-bottom:29px;background:linear-gradient(120deg,rgba(57,83,98,.65),rgba(23,52,70,.54));
+}
+.policy-page .policy-card .box p{margin:0}
+.policy-page .policy-related{
+  margin-top:23px;display:flex;align-items:center;gap:10px;flex-wrap:wrap
+}
+.policy-page .policy-related a{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-height:41px;padding:10px 17px;text-decoration:none;
+  border:1px solid rgba(242,203,149,.38);border-radius:999px;
+  color:#deebee;background:rgba(11,35,52,.66);
+  font:600 12px/1.5 system-ui,sans-serif
+}
+.policy-page .policy-related a:hover,
+.policy-page .policy-related a[aria-current="page"]{
+  border-color:rgba(254,220,169,.78);color:#ffe7bf;
+  background:rgba(92,77,63,.29)
+}
+.policy-page .public-footer{margin-top:0}
+@media(max-width:620px){
+  .policy-page .policy-main{width:calc(100% - 24px);padding-top:15px}
+  .policy-page .policy-hero{min-height:240px;padding:25px 20px;border-radius:19px}
+  .policy-page .policy-hero h1{font-size:clamp(33px,8.3vw,44px)}
+  .policy-page .policy-card{padding:23px 20px;border-radius:19px}
+  .policy-page .policy-related a{flex:1 1 auto}
+}
