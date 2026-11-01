@@ -18,8 +18,18 @@ This new `review/n10-vault-backend-only-20261101` branch starts from production 
 **Explicitly excluded:** original PR #2 `login.html`, security center UI, fixed-recovery UI toggle, username signup integration, retired/standalone QA service code, expired QA page/whitelist, production App, Landing, Accounts FX, financial data, production Secrets and DNS. No new QA route or alternate activation of a previously blocked QA test.
 
 ## Gate status
-1. **MFA signed Staging account A:** last direct DB read had one `totp/unverified` and zero verified, so there is no proven signed `aal2` for that fixture. The original QA page remains LOCKED/expired and reactivation was safety-denied. **No bypass through this branch**.
+1. **MFA signed Staging QA acceptance:** the latest metadata-only DB audit found **one verified and one unverified TOTP factor**, plus six historical AAL2 sessions belonging to one user. This does **not** establish two new signed synthetic QA accounts, A/B isolation, or end-to-end live recovery testing. The original QA page remains LOCKED/expired and reactivation was safety-denied. **No bypass through this branch**.
 2. **Vault / RLS / crypto / deletion:** true authenticated AAL1 denial, AAL2 allow, password, original ten-word verifier, encrypted backup and reveal, signed session revocation, row-level owner isolation and Vault orphan-free deletion remain **UNTESTED** in actual Staging. A pass from CI is not evidence of these runtime properties. Historical SQL cleanup assertions must be reviewed and verified by an authorized audit authority.
 3. **Release:** a future migration and Edge deployment would require an independently approved test and rollback plan, and user approval separate from any MFA-only release. `RECOVERY_RELEASE_ENABLED=false` must remain OFF until those conditions are fulfilled.
 
 This branch's only purpose is to avoid a Git code-conflict dependency while preserving a smaller source bundle for scrutiny. It does **not** solve the real MFA or Vault E2E release blockers, and must remain **Draft/unmerged**. The old PR #2 must stay unmerged and must not be closed automatically.
+
+
+## Installed Auth-Staging drift and guard V2 plan (November 1)
+The Auth-Staging project `ldivswlhtgmznzwhzsoi` already contains the Vault private tables and original **two-argument** `mmh_n10_recovery_session_active(uuid,uuid)` RPC, with no new three-argument AAL-bound RPC. No signed production/QA deployment is authorized. **Never run the first-install SQL on this existing schema.**
+
+Review-only files `docs/sql/n10_staging_session_guard_V2_UPGRADE_REVIEW_ONLY.sql` and `docs/sql/n10_staging_session_guard_V2_EMERGENCY_DISABLE_REVIEW_ONLY.sql` prepare a separately authorized transaction-atomic retirement of the weaker guard and a fail-closed emergency option; neither file has been executed. The upgrade aborts for source-hash drift, ACL mismatches, schema drift, installed V2, or dependencies, and restricts V2 execution to service_role. Actual external Edge RPC callers cannot be ruled out by catalog dependency checks; a separately approved caller review and rollback test are mandatory.
+
+The latest installed-data snapshot showed zero N10 Vault secrets/backup rows and zero unlinked N10 ciphertexts. It proves **only current emptiness**, not successful deletion. Staging rate buckets were manually pruned and a daily cleanup job is configured; its first scheduled execution was not yet verified. The **first-install candidate** remains separate and still has no built-in cleanup job.
+
+CI validates only syntax/type checks and offline source contracts. Separate owner-authorized signed-token and account-deletion acceptance are still required before production decisions.
