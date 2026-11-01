@@ -7,7 +7,7 @@ import {chromium,webkit} from 'playwright';
 
 const code=readFileSync(resolve('js/mmhvault-n10-a7-83-security-center.js'),'utf8');
 assert.match(code,/const N10_FIXED_VAULT_UI_RELEASED=false;/);
-const html='<!doctype html><html lang="en"><head><meta charset="utf-8"></head><body>'+
+const html='<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body>'+
 '<div id="settings" class="active"><div id="stPage_security"><div id="mmhA783SecurityCenter">'+
 '<button id="mmhA783Refresh">Refresh</button><span id="mmhA783Status"></span>'+
 '<span id="mmhA783UsernameStatus"></span><span id="mmhA783GoogleStatus"></span>'+
@@ -57,6 +57,7 @@ function setupSynthetic(){
     challenge:async()=>{throw Error('No challenge allowed');},
     verify:async()=>{throw Error('No verification allowed');}
   };
+  window.__mfa=mfa;
   window.db={auth:{
     getUser:async()=>({data:{user:{id:window.__fakeUserId,email:'synthetic@example.invalid',is_anonymous:false}},error:null}),
     getSession:async()=>({data:{session:{user:{id:window.__fakeUserId},access_token:'LOCAL_FAKE_NOT_JWT'}},error:null}),
@@ -234,7 +235,85 @@ try{
    assert.deepEqual(errors5,[]);
    await page5.close();
    console.log('PASS',name,'A-to-B switch synchronously wipes recovery UI');
+
+   // Verify that a server accepted the code is insufficient: Auth must also
+   // report the expected assurance level AND the SAME verified factor ID.
+   for(const [caseName,assurance,factors] of [
+    ['AAL1 despite verify success','aal1',[{id:'synthetic-factor-01',factor_type:'totp',status:'verified'}]],
+    ['AAL2 but matching factor unverified','aal2',[{id:'synthetic-factor-01',factor_type:'totp',status:'unverified'}]]
+   ]){
+    const checkPage=await browser.newPage();
+    const checkErrors=await ready(checkPage);
+    await enrollPending(checkPage);
+    await checkPage.evaluate(()=>window.__resolveSyntheticEnroll());
+    await checkPage.locator('#mmhA783TotpSetup').waitFor({state:'visible'});
+    await checkPage.locator('#mmhA783TotpBackupConfirmed').check();
+    await checkPage.evaluate(({assurance,factors})=>{
+     window.__mfa.challenge=async()=>({data:{id:'synthetic-challenge'},error:null});
+     window.__mfa.verify=async()=>({data:{},error:null});
+     window.__mfa.getAuthenticatorAssuranceLevel=async()=>({
+      data:{currentLevel:assurance,nextLevel:assurance},error:null
+     });
+     window.__mfa.listFactors=async()=>({data:{all:factors,totp:factors.filter(f=>f.status==='verified')},error:null});
+    },{assurance,factors});
+    await checkPage.locator('#mmhA783TotpCode').fill('123456');
+    await checkPage.locator('#mmhA783TotpConfirm').click();
+    await checkPage.waitForFunction(()=>document.getElementById('mmhA783Status').textContent.includes('Could not verify'));
+    const failState=await checkPage.evaluate(()=>({
+     words:document.getElementById('mmhA783Status').textContent,
+     stillSetup:!document.getElementById('mmhA783TotpSetup').hidden,
+     otp:document.getElementById('mmhA783TotpCode').value
+    }));
+    assert.equal(failState.stillSetup,true);
+    assert.equal(failState.otp,'');
+    assert.ok(!failState.words.includes('Authenticator enabled'));
+    assert.deepEqual(checkErrors,[]);
+    await checkPage.close();
+    console.log('PASS',name,caseName,'cannot claim MFA success');
+   }
+
+   // Local fixture only: verify the modal CSS at compact CSS viewport sizes.
+   // Not evidence of production CSS, real touch hardware or iPhone Safari.
+   for(const width of [320,390]){
+    const mobile=await browser.newPage({viewport:{width,height:568}});
+    const mobileErrors=await ready(mobile);
+    await mobile.locator('#mmhA783Recovery > .mmh-a783-title').click();
+    const layout=await mobile.evaluate(()=>{
+      const overlay=document.querySelector('body > .mmh-n10-modal-overlay:not([hidden])');
+      const card=overlay.querySelector('.mmh-n10-modal-card');
+      const scroll=overlay.querySelector('.mmh-n10-modal-scroll');
+      const rect=card.getBoundingClientRect();
+      return {
+       width:window.innerWidth,cardLeft:rect.left,cardRight:rect.right,
+       cardTop:rect.top,cardBottom:rect.bottom,scrollWidth:scroll.scrollWidth,
+       clientWidth:scroll.clientWidth,focusInside:overlay.contains(document.activeElement),
+       ariaDialog:card.getAttribute('role')
+      };
+    });
+    assert.equal(layout.width,width);
+    assert.ok(layout.cardLeft>=-1&&layout.cardRight<=width+1,'card overflows '+width+'px width: '+JSON.stringify(layout));
+    assert.ok(layout.cardTop>=-1&&layout.cardBottom<=569,'card overflows viewport height: '+JSON.stringify(layout));
+    assert.ok(layout.scrollWidth<=layout.clientWidth+1,'content horizontal overflow: '+JSON.stringify(layout));
+    assert.equal(layout.focusInside,true);
+    assert.equal(layout.ariaDialog,'dialog');
+    assert.deepEqual(mobileErrors,[]);
+    await mobile.close();
+    console.log('PASS',name,'modal fits',width+'px viewport without horizontal overflow');
+   }
+   const keyboard=await browser.newPage({viewport:{width:390,height:844}});
+   const keyboardErrors=await ready(keyboard);
+   await keyboard.locator('#mmhA783Recovery > .mmh-a783-title').click();
+   await keyboard.keyboard.press('Escape');
+   const closed=await keyboard.evaluate(()=>({
+    open:document.getElementById('mmhA783Recovery').classList.contains('mmh-a785-open'),
+    overlays:[...document.querySelectorAll('body > .mmh-n10-modal-overlay:not([hidden])')].length,
+    lock:document.body.classList.contains('mmh-n10-account-modal-open')
+   }));
+   assert.deepEqual(closed,{open:false,overlays:0,lock:false});
+   assert.deepEqual(keyboardErrors,[]);
+   await keyboard.close();
+   console.log('PASS',name,'Escape closes mobile modal and releases page lock');
   }finally{await browser.close();}
  }
- console.log('10/10 isolated browser smoke checks PASS');
+ console.log('20/20 isolated browser smoke checks PASS');
 }finally{await new Promise(resolve=>server.close(resolve));}
