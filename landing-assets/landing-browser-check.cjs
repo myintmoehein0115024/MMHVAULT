@@ -96,7 +96,7 @@ async function load(page,route,failures){
    }
 
    for(const route of publicRoutes.slice(1)){
-     for(const width of [320,393,768,1440]){
+     for(const width of [320,393,600,768,960,1100,1200,1290,1291,1366,1440]){
        const ctx=await browser.newContext({viewport:{width,height:852},reducedMotion:'reduce'});
        const page=await ctx.newPage();
        const failures=[];
@@ -108,14 +108,33 @@ async function load(page,route,failures){
        ensure(await page.locator('h1').count()===1,route+' '+width+'px has one H1');
        ensure(await page.locator('link[rel="canonical"]').count()===1,
          route+' '+width+'px canonical unique');
-       if(route==='/features/' && width===393){
+       if(['/register/','/features/','/about/'].includes(route)){
          const header=await page.evaluate(()=>{
+           const bar=document.querySelector('header .bar').getBoundingClientRect();
            const brand=document.querySelector('header .brand').getBoundingClientRect();
            const nav=document.querySelector('header nav').getBoundingClientRect();
-           return {brandBottom:Math.round(brand.bottom),navTop:Math.round(nav.top)};
+           return {barHeight:Math.round(bar.height),barBottom:Math.round(bar.bottom),
+             brandTop:Math.round(brand.top),brandBottom:Math.round(brand.bottom),
+             navTop:Math.round(nav.top),navBottom:Math.round(nav.bottom)};
          });
-         ensure(header.navTop >= header.brandBottom-2,
-           'Features mobile wordmark sits above the navigation '+JSON.stringify(header));
+         ensure(header.barHeight<=112&&header.navTop<=header.brandBottom+8&&
+           header.brandTop<=header.navBottom+8,
+           route+' '+width+'px single-row header without 2nd line '+JSON.stringify(header));
+         const details=page.locator('header .public-nav-details');
+         if(width<=1290){
+           ensure(await details.isVisible(),route+' '+width+'px responsive menu is visible');
+           await details.locator('summary').click();
+           ensure(await details.evaluate(d=>d.open),route+' '+width+'px compact menu opens');
+           ensure(await details.locator('a[href="/features/"]').isVisible()&&
+             await details.locator('a[href="/register/"]').isVisible(),
+             route+' '+width+'px compact menu includes public routes');
+           await page.keyboard.press('Escape');
+           ensure(!await details.evaluate(d=>d.open),route+' '+width+'px Escape closes menu');
+         }else{
+           ensure(!await details.isVisible()&&
+             await page.locator('header nav>a[href="/features/"]').isVisible(),
+             route+' '+width+'px full navigation is visible');
+         }
        }
        if(['/register/','/features/','/about/'].includes(route)){
          ensure(await page.locator('body.public-landing-page .feature-hero').count()===1,
@@ -127,10 +146,10 @@ async function load(page,route,failures){
          ensure(await page.locator('.page-breadcrumb a').getAttribute('href')==='/',
            route+' clearly linked as a Landing subpage');
        }
-       if(['/register/','/features/','/about/'].includes(route)&&[320,393,768,1440].includes(width)){
+       if(['/register/','/features/','/about/'].includes(route)&&[320,393,768,1100,1290,1291,1440].includes(width)){
          const trigger=page.locator('#public-locale-trigger');
          const localeName=page.locator('.public-locale-name');
-         if(width===393||width===1440){
+         if([393,1100,1290,1291,1440].includes(width)){
            await page.screenshot({path:path.join(screenshots,
              route.replaceAll('/','')+'-'+width+'-en.png'),fullPage:true,animations:'disabled'});
          }

@@ -562,3 +562,100 @@ body.public-landing-page{
      still have the breadcrumb and footer if this header link must collapse. */
   .public-landing-page header nav>a[href="/about/"]{display:inline-flex}
 }
+
+
+/* L1.10 — Prevent the double-height desktop header at browser zoom levels.
+   The same compact header applies to About / Features / Register only.
+   At narrower widths, real navigation moves into a native details popover,
+   never a second empty row. Does not affect the Landing or secure App. */
+.public-landing-page .public-nav-details{display:none}
+.public-landing-page .public-nav-details summary{
+  list-style:none;display:flex;align-items:center;gap:8px;
+  padding:10px 13px;min-height:43px;border:1px solid rgba(238,205,152,.52);
+  border-radius:999px;background:rgba(10,33,50,.8);color:#ffe4bb;
+  font:650 12px/1.4 system-ui,sans-serif;cursor:pointer;white-space:nowrap;
+}
+.public-landing-page .public-nav-details summary::-webkit-details-marker{display:none}
+.public-landing-page .public-nav-details summary::marker{content:""}
+.public-landing-page .public-nav-details summary:hover,
+.public-landing-page .public-nav-details[open] summary{
+  background:rgba(39,70,88,.93);border-color:#f3c68e;
+}
+.public-landing-page .public-nav-details summary:focus-visible{
+  outline:2px solid #ffe1a6;outline-offset:3px;
+}
+.public-landing-page .public-nav-panel{
+  position:absolute;right:0;top:calc(100% + 15px);
+  z-index:45;width:275px;max-width:calc(100vw - 30px);
+  padding:10px;border:1px solid rgba(241,202,146,.47);
+  border-radius:19px;background:rgba(9,30,47,.98);
+  box-shadow:0 25px 50px rgba(0,10,20,.38),inset 0 1px rgba(255,236,207,.11);
+  -webkit-backdrop-filter:blur(22px);backdrop-filter:blur(22px);
+  display:grid;gap:3px;
+}
+.public-landing-page .public-nav-panel a{
+  display:block;padding:11px 14px;border-radius:11px;
+  color:#dfe7e9;text-decoration:none;
+  font:550 13px/1.55 system-ui,sans-serif;white-space:normal;
+  overflow-wrap:anywhere;
+}
+.public-landing-page .public-nav-panel a:hover,
+.public-landing-page .public-nav-panel a[aria-current="page"]{
+  background:rgba(240,194,123,.15);color:#ffe4b4;
+}
+.public-landing-page .public-nav-panel-divider{
+  height:1px;background:rgba(243,206,151,.18);margin:7px 11px;
+}
+@media(max-width:1290px){
+  .public-landing-page .bar{
+    min-height:86px!important;max-width:none;
+    flex-wrap:nowrap!important;align-items:center!important;
+    gap:clamp(8px,1.8vw,22px);padding:12px 0!important;
+  }
+  .public-landing-page .brand{min-width:0;flex-shrink:0}
+  .public-landing-page header nav{
+    position:relative;display:flex;flex:1 1 auto!important;
+    width:auto!important;min-width:0;justify-content:flex-end!important;
+    align-items:center;flex-wrap:nowrap!important;gap:clamp(8px,1vw,13px)!important;
+  }
+  .public-landing-page header nav>a:not(.feature-nav-signin):not(.feature-nav-cta){
+    display:none!important;
+  }
+  .public-landing-page .public-nav-details{display:block;position:static;flex:0 0 auto}
+  .public-landing-page header nav>.feature-nav-signin,
+  .public-landing-page header nav>.feature-nav-cta{flex:0 0 auto;white-space:nowrap}
+  .public-landing-page .public-locale-picker{flex:0 0 auto;margin:0}
+}
+@media(min-width:1291px){
+  .public-landing-page header nav{flex-wrap:nowrap}
+  .public-landing-page .bar{flex-wrap:nowrap}
+}
+@media(max-width:820px){
+  .public-landing-page header nav>.feature-nav-signin{display:none!important}
+  .public-landing-page .public-locale-trigger{padding:9px 11px}
+  .public-landing-page .brand-wordmark small{letter-spacing:.1em}
+}
+@media(max-width:600px){
+  .public-landing-page .brand-wordmark strong{font-size:17px}
+  .public-landing-page .brand-wordmark small{font-size:6px}
+  .public-landing-page .brand-mark{font-size:37px;width:36px;height:41px}
+  .public-landing-page .brand{gap:7px}
+  .public-landing-page header nav>.feature-nav-cta{display:none!important}
+  .public-landing-page .public-locale-name,
+  .public-landing-page .public-locale-flag,
+  .public-landing-page .public-locale-chevron{display:none!important}
+  .public-landing-page .public-locale-trigger{
+    width:42px;min-width:42px;height:42px;min-height:42px;padding:0;
+  }
+  .public-landing-page .public-nav-details summary{
+    width:42px;min-width:42px;min-height:42px;padding:0;justify-content:center;
+  }
+  .public-landing-page .public-nav-details summary span{display:none!important}
+  .public-landing-page header nav{gap:8px!important}
+}
+@media(max-width:375px){
+  .public-landing-page .brand-wordmark strong{font-size:15px}
+  .public-landing-page .brand-wordmark small{font-size:5.5px}
+  .public-landing-page .brand-mark{font-size:33px;width:32px}
+  .public-landing-page .wrap{width:calc(100% - 24px)}
+}
