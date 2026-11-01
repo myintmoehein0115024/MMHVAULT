@@ -39,7 +39,7 @@ const audit = async ({path,kind}) => {
           const {value,done} = await reader.read();
           if (done) break;
           payload += dec.decode(value,{stream:true});
-          if (/<\\/head>/i.test(payload)) break;
+          if (/<\/head>/i.test(payload)) break;
         }
         await reader.cancel();
       }
@@ -72,13 +72,13 @@ const audit = async ({path,kind}) => {
     if (kind === 'login') result.noindex = /<meta[^>]*name=["']robots["'][^>]*noindex/i.test(payload)||/noindex/i.test(robotsHeader);
 
     if (kind === 'app') {
-      const tags = payload.match(/<meta\\b[^>]*>/gi) || [];
-      result.headFound = /<\\/head>/i.test(payload);
-      result.noindex = tags.some(t => /\\bname=["']robots["']/i.test(t) && /noindex/i.test(t)) || /noindex/i.test(robotsHeader);
+      const tags = payload.match(/<meta\b[^>]*>/gi) || [];
+      result.headFound = /<\/head>/i.test(payload);
+      result.noindex = tags.some(t => /\bname=["']robots["']/i.test(t) && /noindex/i.test(t)) || /noindex/i.test(robotsHeader);
       result.headInspectedOnly = true;
     }
     if (kind === 'policy') {
-      result.documentFound = /<html[\\s>]/i.test(payload) && /<title[\\s>]/i.test(payload);
+      result.documentFound = /<html[\s>]/i.test(payload) && /<title[\s>]/i.test(payload);
     }
     if (kind === 'manifest') {
       try {
