@@ -1,0 +1,32 @@
+name: N10 Vault backend-only review (NO DEPLOYMENT)
+on:
+  push:
+    branches:
+      - 'review/n10-vault-backend-only-20261101'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  offline-vault-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout isolated review branch
+        uses: actions/checkout@v4
+      - name: Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Signed assurance helper synthetic matrix
+        run: node security/n10-fixed-recovery-vault-candidate/test-mfa-assurance.mjs
+      - name: Session guard synthetic matrix
+        run: node security/n10-fixed-recovery-vault-candidate/test-session-guard.mjs
+      - name: Backend release-off, RLS, Vault and read-only preflight contracts
+        run: node security/n10-fixed-recovery-vault-candidate/test-backend-only-review.mjs
+      - name: Set up Deno type checker
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Type check disabled Vault Edge candidate, do not execute
+        run: deno check security/n10-fixed-recovery-vault-candidate/index.ts
+# No deployment, no SQL execution, no Supabase tools, no secrets and no QA unlock.
