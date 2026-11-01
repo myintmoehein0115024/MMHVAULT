@@ -8,7 +8,7 @@ const fs=require('node:fs');
 const path=require('node:path');
 const {chromium}=require('playwright-core');
 const origin='http://127.0.0.1:8765';
-const widths=[320,393,440,768,1024,1440];
+const widths=[320,393,440,768,1024,1200,1440,1920];
 const publicRoutes=['/','/register/','/features/','/privacy.html','/terms.html','/security.html'];
 const screenshots=path.join(process.cwd(),'landing-qa-screenshots');
 fs.mkdirSync(screenshots,{recursive:true});
