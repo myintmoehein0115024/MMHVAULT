@@ -152,3 +152,9 @@
 - GitHub Actions `41280913314` **SUCCESS**：JS 语法、14/14 MFA-only 源码/模拟安全检查、32/32 Chromium/WebKit 本地模拟浏览器检查全部通过。不会自动部署。
 - 这条路径不包含未验收的固定恢复词 Vault 功能，也不需要处理原有 **PR #2** 冲突；PR #2 保持 Draft、`mergeable=false`、未合并。正式 app、login、Landing、财务代码以及现有 Auth 仍未改动。
 - **不得因为 PR #9 `mergeable=true` 就马上合并或发布。** 原 N10 Staging A 在上次真实 DB 核验有 1 个 `unverified` TOTP、0 verified；原 QA 页面锁定/窗口过期；以前的 QA 重新激活受阻，不得通过旁路绕过。需要单独合规路径完成签名 Auth MFA/AAL2 真实验收，再根据用户明确上线批准，备份/回滚和重新比对最新 main 后合并 PR #9。Vault 联合 E2E/删除验收仍是独立后续阶段。
+
+## 2026-11-01 — PR #9 账户状态读取与并发刷新安全修复
+- 在独立 `review/n10-mfa-only-20261101` 发现并修复 Auth 状态改变时旧 `refresh()` 异步结果误刷新新账户 / `busy=true` 导致新账户状态不刷新的问题。使用 `authEpoch` + `refreshNonce` 拒绝旧异步结果、`refreshPending` + `releaseBusy()` 使 B 账号在 A 旧安全操作结束后完成刷新。
+- Github Actions `41282554424` **SUCCESS**：**16/16** MFA-only 源码安全检查和 **38/38** Chromium/WebKit 本地模拟浏览器测试（包含 A→B 未完成状态请求、登出迟到错误、busy 状态后的延迟刷新）。
+- PR #9 `https://github.com/myintmoehein0115024/MMHVAULT/pull/9`，最新核对 `mergeable=true`, **Draft, 未合并**。PR 描述与独立候选报告已更新；没有 Vault 功能混入、没有正式部署或财务修改。
+- 下阶段的真正阻断仍是 Staging A Auth TOTP `unverified` / 0 verified，独立 QA 页面 LOCKED；任何上线必须有合规独立的真实 AAL2 验收、备份/回滚和用户明确批准。禁止将模拟 PASS 当作真实 MFA 完成。
