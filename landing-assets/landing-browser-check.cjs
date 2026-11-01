@@ -22,6 +22,19 @@ async function load(page,route,failures){
     document:document.documentElement.scrollWidth,
     body:document.body.scrollWidth
   }));
+  if(widths.document > widths.window+2){
+    const outside=await page.evaluate(()=>[...document.querySelectorAll('body *')]
+      .map(el=>{
+        const r=el.getBoundingClientRect();
+        const st=getComputedStyle(el);
+        return {tag:el.tagName,className:typeof el.className==='string'?el.className.slice(0,100):'',
+          left:Math.round(r.left),right:Math.round(r.right),width:Math.round(r.width),
+          position:st.position,overflow:st.overflowX};
+      })
+      .filter(r=>r.width>10 && (r.right>innerWidth+5 || r.left< -5))
+      .sort((a,b)=>b.right-a.right).slice(0,24));
+    console.error('RESPONSIVE OFFENDERS '+route+' '+widths.window+'px '+JSON.stringify(outside));
+  }
   ensure(widths.document <= widths.window+2,
     route+' no horizontal document overflow '+JSON.stringify(widths));
   ensure(failures.length===0,route+' no JS exceptions or missing local assets: '+failures.join('; '));
