@@ -50,20 +50,20 @@ const tests=[
  }],
  ['SQL function bodies use valid balanced dollar quoting, session V2 matches upgrade contract',()=>{
   const firstInstallFunctions=(sql.match(/^CREATE FUNCTION /gm)||[]).length;
-  const bodyOpeners=(sql.match(/\\bAS\\s+\\$\\$/g)||[]).length;
-  const bodyClosers=(sql.match(/\\$\\$;/g)||[]).length;
+  const bodyOpeners=(sql.match(/\bAS\s+\$\$/g)||[]).length;
+  const bodyClosers=(sql.match(/\$\$;/g)||[]).length;
   assert.ok(firstInstallFunctions>=6,'missing SQL function definitions');
   assert.equal(bodyOpeners,firstInstallFunctions,'missing dollar-quoted CREATE FUNCTION body');
   assert.equal(bodyClosers,firstInstallFunctions,'unbalanced SQL function body quotes');
-  assert.doesNotMatch(sql,/\\bAS\\s+\\$(?!\\$)/,'broken single-dollar function opener');
-  assert.doesNotMatch(sql,/^\\$;$/m,'broken single-dollar function closer');
-  assert.match(sql,/p_user_id uuid,p_session_id uuid,p_expected_aal text\\)\\s+RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path='' AS \\$\\$/);
-  assert.match(v2Upgrade,/p_user_id uuid,p_session_id uuid,p_expected_aal text\\)\\s+RETURNS boolean\\s+LANGUAGE sql STABLE SECURITY DEFINER SET search_path='' AS \\$\\$/);
+  assert.doesNotMatch(sql,/\bAS\s+\$(?!\$)/,'broken single-dollar function opener');
+  assert.doesNotMatch(sql,/^\$;$/m,'broken single-dollar function closer');
+  assert.match(sql,/p_user_id uuid,p_session_id uuid,p_expected_aal text\)\s+RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path='' AS \$\$/);
+  assert.match(v2Upgrade,/p_user_id uuid,p_session_id uuid,p_expected_aal text\)\s+RETURNS boolean\s+LANGUAGE sql STABLE SECURITY DEFINER SET search_path='' AS \$\$/);
   for(const stmt of ["s.id=p_session_id","s.user_id=p_user_id","s.aal::text='aal1'","s.aal::text='aal2'","f.id=s.factor_id","f.user_id=p_user_id","f.status::text='verified'"]){
     assert.ok(sql.includes(stmt),'first install missing '+stmt);
     assert.ok(v2Upgrade.includes(stmt),'V2 upgrade missing '+stmt);
   }
-  assert.match(sql,/vault\\.create_secret\\(p_phrase,[\\s\\S]*?NULL::uuid\\)/);
+  assert.match(sql,/vault\.create_secret\(p_phrase,[\s\S]*?NULL::uuid\)/);
  }],
  ['preflight is read-only, not an authorization to apply SQL',()=>{
   assert.match(preflight,/READ-ONLY PREFLIGHT/);
