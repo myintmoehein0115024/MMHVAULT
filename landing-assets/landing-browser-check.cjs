@@ -349,14 +349,20 @@ async function load(page,route,failures){
      ensure(new URL(page.url()).pathname==='/' &&
        !new URL(page.url()).hash,'Independent Security Home returns to canonical Landing');
      await page.goto(origin+'/about/',{waitUntil:'load'});
-     await page.locator('header nav>a[href="/business/"]').click();
+     await page.locator('header .public-site-nav>a[href="/#business"]').click();
+     await page.waitForURL(url=>url.pathname==='/'&&url.hash==='#business');
+     ensure(new URL(page.url()).pathname==='/'&&new URL(page.url()).hash==='#business',
+       'About top-level Business opens Landing Business showcase');
+     await page.goto(origin+'/about/',{waitUntil:'load'});
+     await page.locator('header #public-explore > summary').click();
+     await page.locator('header #public-explore a[href="/business/"]').click();
      await page.waitForURL('**/business/');
      ensure(new URL(page.url()).pathname==='/business/'&&!new URL(page.url()).hash,
-       'About Business navigation opens its own dedicated URL');
+       'About Explore opens independent Business concept');
      ensure(await page.locator('body.public-landing-page.business-page').count()===1,
-       'Business route has its own premium Landing branch');
-     ensure(await page.locator('header nav>a[href="/business/"]').getAttribute('aria-current')==='page',
-       'Business navigation is active on the Business route');
+       'Business route remains its independent introduction page');
+     ensure(await page.locator('header #public-explore a[href="/business/"]').getAttribute('aria-current')==='page',
+       'Business entry is highlighted in Explore on the Business route');
      await page.locator('.business-hero .action.gold').click();
      await page.waitForFunction(()=>location.hash==='#business-focus');
      ensure(new URL(page.url()).pathname==='/business/',
@@ -372,8 +378,9 @@ async function load(page,route,failures){
        'Landing Explore opens independent Business concept information');
      await page.goto(origin+'/security.html',{waitUntil:'load'});
      await page.setViewportSize({width:393,height:852});
-     await page.locator('header .public-nav-details summary').click();
-     await page.locator('header .public-nav-panel a[href="/business/"]').click();
+     await page.locator('header .public-site-menu-toggle').click();
+     await page.locator('header #public-explore > summary').click();
+     await page.locator('header #public-explore a[href="/business/"]').click();
      await page.waitForURL('**/business/');
      ensure(new URL(page.url()).pathname==='/business/',
        'Security compact Business menu also opens dedicated Business URL');
