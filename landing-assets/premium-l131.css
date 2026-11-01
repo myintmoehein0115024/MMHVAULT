@@ -300,3 +300,11 @@ body.l131 :is(.showcase-card,.product-tab,.button,.action,.locale-trigger):focus
     filter:brightness(1.09) saturate(1.12);
   }
 }
+
+
+/* L1.34 — contain decorative desktop glows inside the visible viewport.
+   Prevents sideways document travel without changing scroll gestures or the App. */
+@media (min-width: 1100px) {
+  body.l131 .ambient-a { right: 0; }
+  body.l131 .hero-halo { right: 64px; }
+}
