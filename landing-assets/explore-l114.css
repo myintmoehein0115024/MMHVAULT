@@ -118,3 +118,9 @@ body.l131 .site-header #primary-nav .nav-explore-menu>a:focus-visible{
 @media (min-width:1361px){
   body.l131 .site-header .menu-toggle{display:none}
 }
+
+
+/* Clip decorative blur outside the root scrollport. At intermediate desktop
+   widths the absolute ambient layer can otherwise create 180px of sideways
+   scrolling even while the header itself fits. Do not disable vertical scroll. */
+html{overflow-x:clip}
