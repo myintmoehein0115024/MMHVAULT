@@ -10,10 +10,10 @@ const tests=[
   assert.doesNotMatch(src,/N10_FIXED_VAULT_UI_RELEASED|VAULT_API|vaultApi\(|mmhN10VaultRecoveryControls|mmhN10VaultPassword|loadVaultMode\(/);
   assert.match(src,/const N10A790_TOTP_ENROLLMENT_RELEASED=true;/);
  }],
- ['original recovery remains unchanged',()=>{
+ ['existing 60-second recovery view preserved, now with request invalidation',()=>{
   assert.match(src,/clearTimer=setTimeout\(hideKey,60000\)/);
   assert.doesNotMatch(src,/clearTimer=setTimeout\(hideKey,45000\)/);
-  assert.match(src,/function hideKey\(\)\{verifiedPhrase='';/);
+  assert.match(src,/function hideKey\(\)\{recoveryEpoch\+=1;verifiedPhrase='';/);
  }],
  ['totp inventory detects unverified, verified and unknown in all',()=>{
   const code=src.match(/function inspectTotpFactors\(data\)\{[\s\S]*?\n\}/)?.[0];
