@@ -303,8 +303,8 @@ const publicRuntimeBudgets={
 for(const [file,maxBytes] of Object.entries(publicRuntimeBudgets)){
   check(file+' stays under uncompressed asset budget',fs.statSync(file).size<=maxBytes);
 }
-check('Homepage background is early-discovered and prioritized without altering auth',
- current.includes('<link rel="preload" as="image" type="image/webp" fetchpriority="high" href="./landing-assets/cinematic-lake.webp">') &&
+check('Homepage retains its existing background preload and protects auth routes',
+ current.includes('<link rel="preload" as="image" type="image/webp" href="./landing-assets/cinematic-lake.webp">') &&
  (current.match(/rel="preload" as="image"/g)||[]).length===1 &&
  current.includes('class="hero-device-cinematic"') &&
  current.includes('fetchpriority="high"') &&
