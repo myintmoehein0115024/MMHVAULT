@@ -386,11 +386,14 @@ check('Explore EN/ZH/MY text is present and only Landing source is modified',
  actual.every(x=>['index.html','landing-assets/landing.js',
      'landing-assets/explore-l114.css','landing-assets/landing-browser-check.cjs',
      'landing-assets/landing-release-check.cjs'].includes(x)));
-check('Public SEO destinations and private routes remain byte-for-byte identical to main',
+check('Public SEO destinations and private routes remain unchanged in PR diff',
  ['about/index.html','features/index.html','business/index.html','register/index.html',
   'security.html','privacy.html','terms.html','business.html','app.html','login.html',
-  'sitemap.xml','robots.txt','mmh-manifest-v2.webmanifest'].every(file=>
-    source(file)===read(file)));
+  'sitemap.xml','robots.txt','mmh-manifest-v2.webmanifest'].every(file=>{
+    const test=cp.spawnSync('git',['diff','--quiet',main+'...HEAD','--',file],
+      {encoding:'utf8',maxBuffer:4096});
+    return test.status===0;
+  }));
 check('Homepage N10 recovery and standalone guards are unchanged from main',
  ['mmh-n10-recovery-error-route','mmh-pwa-standalone-root-bridge']
    .every(id=>dom(id,current)===dom(id,prev)));
