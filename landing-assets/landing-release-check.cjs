@@ -284,7 +284,7 @@ check('Lab performance probe is read-only and restricted to public static routes
  fs.existsSync('landing-assets/landing-perf-check.cjs') &&
  ['/', '/about/', '/features/', '/register/'].every(r=>
    read('landing-assets/landing-perf-check.cjs').includes(r)) &&
- !/fetch\s*\(|supabase\.createClient|SERVICE_ROLE|send\s*\(|writeFileSync\(.+app\.html/.test(read('landing-assets/landing-perf-check.cjs')));
+ !/fetch\s*\(|supabase\.createClient|SERVICE_ROLE|page\.request\.|writeFileSync\(.+app\.html/.test(read('landing-assets/landing-perf-check.cjs')));
 
 /* L1.33 — conservative uncompressed resource budgets (not a lab speed score). */
 const publicRuntimeBudgets={
