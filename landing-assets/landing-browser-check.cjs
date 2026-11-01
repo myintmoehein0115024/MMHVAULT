@@ -8,7 +8,7 @@ const fs=require('node:fs');
 const path=require('node:path');
 const {chromium}=require('playwright-core');
 const origin='http://127.0.0.1:8765';
-const widths=[320,393,440,768,1024,1200,1440,1920];
+const widths=[320,393,440,768,1024,1051,1100,1200,1290,1440,1920];
 const publicRoutes=['/','/about/','/register/','/features/','/business/','/privacy.html','/terms.html','/security.html'];
 const screenshots=path.join(process.cwd(),'landing-qa-screenshots');
 fs.mkdirSync(screenshots,{recursive:true});
@@ -67,6 +67,24 @@ async function load(page,route,failures){
      ensure(await page.locator('h1#hero-title').count()===1,width+'px single homepage H1');
      ensure(await page.locator('.hero-device-cinematic').evaluate(img=>img.complete&&img.naturalWidth>0),
        width+'px concept Hero photograph loaded');
+     if(width>=1051){
+       const header=await page.evaluate(()=>{
+         const brand=document.querySelector('.site-header .brand').getBoundingClientRect();
+         const nav=document.querySelector('#primary-nav').getBoundingClientRect();
+         const actions=document.querySelector('.site-header .header-actions').getBoundingClientRect();
+         return {brandRight:Math.round(brand.right),navLeft:Math.round(nav.left),
+           navRight:Math.round(nav.right),actionsLeft:Math.round(actions.left),
+           navHeight:Math.round(nav.height),navTop:Math.round(nav.top),
+           actionsTop:Math.round(actions.top)};
+       });
+       ensure(header.brandRight<=header.navLeft+3 &&
+         header.navRight<=header.actionsLeft+3 &&
+         Math.abs(header.navTop-header.actionsTop)<32 &&
+         header.navHeight<=70,
+         width+'px six-item desktop navigation remains one line '+JSON.stringify(header));
+       ensure(await page.locator('#landing-explore > summary').isVisible(),
+         width+'px Explore disclosure visible on desktop');
+     }
      if([320,393,768,1024].includes(width)){
        await page.evaluate(()=>scrollTo({top:0,left:0,behavior:'instant'}));
        await page.screenshot({
@@ -111,6 +129,9 @@ async function load(page,route,failures){
        const after=await page.locator('[data-hero-fixed]').allTextContents();
        ensure(JSON.stringify(after)===JSON.stringify(immutable),
          width+'px fixed three-language Hero remains unchanged in '+language);
+       const exploreLabels={en:'Explore',zh:'了解更多',my:'ပိုမိုလေ့လာရန်'};
+       ensure((await page.locator('#landing-explore > summary [data-i18n="navExplore"]').textContent()).trim()===exploreLabels[language],
+         width+'px Explore translated correctly in '+language);
      }
      await page.locator('[data-product-tab="accounts"]').click();
      ensure(await page.locator('[data-product-tab="accounts"]').getAttribute('aria-selected')==='true',
