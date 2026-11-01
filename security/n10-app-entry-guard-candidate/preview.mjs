@@ -22,7 +22,7 @@ export function generateAppEntryPreview(original) {
     throw Error('MFA guard source drift');
 
   copy = replaceExactlyOnce(copy, 'async function enter(session){',
-    helper + '\nasync function enter(session){', 'entry-helper');
+    helper + '\nlet mmhN10GateVersionV1100=0;\nasync function enter(session){', 'entry-helper');
   const oldEntry = [
     '  const a783=await db.auth.mfa.getAuthenticatorAssuranceLevel();',
     "  if(a783.error||!a783.data)throw a783.error||new Error('mfa_status_unavailable');",
@@ -50,16 +50,16 @@ export function generateAppEntryPreview(original) {
   const newSameOwner = [
     '    if(liveOwner===nextOwner){',
     "      // Lock immediately on a new same-owner token; never rely on UID alone.",
-    "      const n10Ticket=++mmhP947AuthGateTicket;",
+    "      const n10Version=++mmhN10GateVersionV1100;",\n    "      const n10Ticket=++mmhP947AuthGateTicket;",
     "      mmhP947GuardV947('switch');",
     '      Promise.resolve().then(async()=>{',
     '        const result=await '+helperName+'(db.auth,nextOwner);',
-    '        if(n10Ticket!==mmhP947AuthGateTicket||currentSessionUser?.id!==nextOwner)return;',
+    '        if(n10Version!==mmhN10GateVersionV1100||n10Ticket!==mmhP947AuthGateTicket||currentSessionUser?.id!==nextOwner)return;',
     "        if(result==='challenge'){location.replace('login.html?mfa=1');return;}",
     "        if(result!=='allow')throw Error('n10_mfa_recheck_failed');",
     '        applyUserProfile(session.user);',
     '        mmhP947UnlockV947();',
-    '      }).catch(_=>{if(n10Ticket===mmhP947AuthGateTicket)mmhP947GuardV947(\'error\');});',
+    '      }).catch(_=>{if(n10Version===mmhN10GateVersionV1100&&n10Ticket===mmhP947AuthGateTicket)mmhP947GuardV947(\'error\');});',
     '      return;',
     '    }'
   ].join('\n');
@@ -74,7 +74,7 @@ export function generateAppEntryPreview(original) {
   const newReconcileStart = [
     "async function mmhVaultReconcileSessionV1239(reason='resume',opts={}){",
     '  if(mmhVaultSessionCheckPromiseV1239)return mmhVaultSessionCheckPromiseV1239;',
-    "  // Protect already rendered account data before any async resume check.",
+    "  // Invalidate any older same-account check before awaiting resume.",\n    "  const n10Version=++mmhN10GateVersionV1100;",\n    "  // Protect already rendered account data before any async resume check.",
     "  if(currentSessionUser?.id)mmhP947GuardV947('switch');",
     '  const run=(async()=>{',
     '    const startTicket=mmhP947AuthGateTicket;'
@@ -88,7 +88,7 @@ export function generateAppEntryPreview(original) {
   const newReconcileCheck = [
     "      if(verifyError||verified?.user?.id!==owner){mmhP947GuardV947('error');return {ok:false,identityUnverified:true};}",
     '      const n10Result=await '+helperName+'(db.auth,owner);',
-    '      if(startTicket!==mmhP947AuthGateTicket||startEpoch!==(Number(window.__mmhSessionEpochV1239)||0))',
+    '      if(n10Version!==mmhN10GateVersionV1100||startTicket!==mmhP947AuthGateTicket||startEpoch!==(Number(window.__mmhSessionEpochV1239)||0))',
     '        return {ok:false,superseded:true};',
     "      if(n10Result==='challenge'){location.replace('login.html?mfa=1');return {ok:false,mfaRequired:true};}",
     "      if(n10Result!=='allow'){mmhP947GuardV947('error');return {ok:false,mfaUnverified:true};}",
