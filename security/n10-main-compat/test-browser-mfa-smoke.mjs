@@ -174,7 +174,67 @@ try{
    assert.deepEqual(errors3,[]);
    await page3.close();
    console.log('PASS',name,'logout clears synthetic secret UI synchronously');
+
+   // A starts enrollment. B signs in before Auth responds. Never show A's
+   // QR, and never attempt to unenroll A's factor with B's credentials.
+   const page4=await browser.newPage();
+   const errors4=await ready(page4);
+   await enrollPending(page4);
+   const immediate=await page4.evaluate(()=>{
+     const a=document.getElementById('mmhA783TotpSecret');
+     a.hidden=false;a.textContent='SYNTHETIC_A_SECRET';
+     document.getElementById('mmhA783TotpCode').value='123456';
+     window.__fakeUserId='00000000-0000-4000-8000-0000000000bb';
+     window.__authCallback('SIGNED_IN',{user:{id:window.__fakeUserId}});
+     return {
+       secret:a.textContent,
+       code:document.getElementById('mmhA783TotpCode').value,
+       open:document.getElementById('syntheticMfaSection').classList.contains('mmh-a785-open')
+     };
+   });
+   assert.deepEqual(immediate,{secret:'',code:'',open:false});
+   await page4.evaluate(()=>window.__resolveSyntheticEnroll());
+   await page4.waitForTimeout(150);
+   const switched=await page4.evaluate(()=>({
+     hidden:document.getElementById('mmhA783TotpSetup').hidden,
+     qr:document.getElementById('mmhA783TotpQr').childElementCount,
+     secret:document.getElementById('mmhA783TotpSecret').textContent,
+     unenroll:window.__unenrollCalls,
+     fetches:window.__fetches
+   }));
+   assert.equal(switched.hidden,true);
+   assert.equal(switched.qr,0);
+   assert.equal(switched.secret,'');
+   assert.deepEqual(switched.unenroll,[],'B must not unenroll A factor');
+   assert.ok(switched.fetches.every(url=>url.endsWith('/mmh-n10a783-phrase-verify')));
+   assert.deepEqual(errors4,[]);
+   await page4.close();
+   console.log('PASS',name,'A-to-B switch blocks late QR and cross-account cleanup');
+
+   // A's recovery panel must wipe immediately on B's SIGNED_IN event.
+   const page5=await browser.newPage();
+   const errors5=await ready(page5);
+   await page5.locator('#mmhA783Recovery > .mmh-a783-title').click();
+   const recoverySwitch=await page5.evaluate(()=>{
+     document.getElementById('mmhA783Phrase').value='NOT_REAL_RECOVERY_WORDS';
+     document.getElementById('mmhN10VaultPassword').value='NOT_REAL_PASSWORD';
+     document.getElementById('mmhA783KeyWords').textContent='NOT_REAL_WORDS';
+     document.getElementById('mmhA783KeyDisplay').hidden=false;
+     window.__fakeUserId='00000000-0000-4000-8000-0000000000bb';
+     window.__authCallback('SIGNED_IN',{user:{id:window.__fakeUserId}});
+     return {
+       phrase:document.getElementById('mmhA783Phrase').value,
+       password:document.getElementById('mmhN10VaultPassword').value,
+       words:document.getElementById('mmhA783KeyWords').textContent,
+       displayed:!document.getElementById('mmhA783KeyDisplay').hidden,
+       open:document.getElementById('mmhA783Recovery').classList.contains('mmh-a785-open')
+     };
+   });
+   assert.deepEqual(recoverySwitch,{phrase:'',password:'',words:'',displayed:false,open:false});
+   assert.deepEqual(errors5,[]);
+   await page5.close();
+   console.log('PASS',name,'A-to-B switch synchronously wipes recovery UI');
   }finally{await browser.close();}
  }
- console.log('6/6 isolated browser smoke checks PASS');
+ console.log('10/10 isolated browser smoke checks PASS');
 }finally{await new Promise(resolve=>server.close(resolve));}
