@@ -396,7 +396,8 @@ $('mmhA783TotpRemoveNow').addEventListener('click',async()=>{
   $('mmhA783TotpRemoveConfirm').hidden=true;
   factorId='';
   status('Authenticator removed.');
-  void refresh();
+  // Run after the finally block releases busy; otherwise refresh() exits.
+  setTimeout(()=>void refresh(),0);
  }catch(_){
   if(mfaRemovalActive(epoch,userId,targetFactor))
    status('Authenticator removal could not be confirmed. Check the account and try again.');
