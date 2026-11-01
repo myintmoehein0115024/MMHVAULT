@@ -203,6 +203,24 @@ check('Landing About philosophy is intentionally derived into public About',
  ['Personal Finance Clarity','All-in-One Workspace','Private Financial Management',
   'Long-Term Perspective','Multi-Device Experience','English, Chinese & Burmese']
   .every(label=>current.includes(label.replace(/&/g,'&amp;')) && about.includes(label.replace(/&/g,'&amp;'))));
+/* L1.9: catch future English/Chinese/Burmese About-copy drift from the
+   homepage's source language dictionary before public SEO release. */
+const landingDictionary=read('landing-assets/landing.js');
+const htmlEscape=value=>value.replace(/&/g,'&amp;').replace(/"/g,'&quot;')
+  .replace(/</g,'&lt;').replace(/>/g,'&gt;');
+function landingTranslations(key){
+ const rx=new RegExp("(?:\\b"+key+"\\s*:\\s*'([^']*)'|\""+key+"\"\\s*:\\s*\"([^\"]*)\")",'g');
+ return [...landingDictionary.matchAll(rx)].map(m=>m[1]??m[2]);
+}
+for(const key of ['whyLead', ...Array.from({length:6},(_,i)=>'benefit'+(i+1)+'Title'),
+                           ...Array.from({length:6},(_,i)=>'benefit'+(i+1)+'Desc')]){
+ const values=landingTranslations(key);
+ check('Landing -> About 3-language text parity: '+key,
+   values.length===3 &&
+   about.includes('data-en="'+htmlEscape(values[0])+'" data-zh="'+
+     htmlEscape(values[1])+'" data-my="'+htmlEscape(values[2])+'"'));
+}
+
 check('Public pages have a functional Landing-style language control and no form',
  ['en','zh','my'].every(l=>branchJS.includes("['en','zh','my']")) &&
  branchJS.includes("trigger.setAttribute('aria-expanded'") &&
