@@ -93,8 +93,8 @@ for(const marker of [
   assert.equal(patched.slice(patched.indexOf(marker),patched.indexOf(marker)+1400),
     source.slice(i,i+1400),'finance source must not change: '+marker);
 }
-const drift=source.replace('async function enter(session){',
-  'async function enter(session){ /* unrelated new version */');
+const drift=source.replace('  const a783=await db.auth.mfa.getAuthenticatorAssuranceLevel();',
+  '  const a783=/* changed upstream */ await db.auth.mfa.getAuthenticatorAssuranceLevel();');
 assert.throws(()=>generateAppEntryPreview(drift),/drift|patch/);
 assert.throws(()=>generateAppEntryPreview('short'),/full app/);
 console.log((cases.length+2)+' synthetic MFA verdict checks passed');
