@@ -48,3 +48,6 @@ The isolated preview's Cloudflare Pages build command was updated to copy **only
 
 ### L1.26 extended public-route audit
 The read-only CI audit now checks **ten** public/static URLs including `/app.html` (HTML head only; stream cancelled immediately after `</head>`), `/privacy.html`, `/terms.html`, and `/security.html`. It reports whether the unauthenticated App HTML declares a robots `noindex` policy, but **this is not an authentication audit**. A missing App noindex or policy page 404 is a production release blocker to escalate to the separate N10/App owner; do not modify production App from the Landing branch.
+
+### L1.26 Apple Home Screen icon parity
+Production launch-candidate `index.html` now preserves the exact `apple-touch-icon` link from the actual `main/index.html`: `<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=pwa24-20261029">`. The CI preflight checks equality with the latest root. This is only a candidate compatibility improvement; neither the real installed iOS icon nor the real PWA manifest changed. When production `main` advances, run the preflight and reconcile any new icon version before release.

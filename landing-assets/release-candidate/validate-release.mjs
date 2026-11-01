@@ -59,6 +59,8 @@ check('Robots draft references canonical sitemap', robots.includes('Sitemap: htt
 check('Mobile registration and login links both exist', staged.includes('mobile-nav-auth-signin') && staged.includes('mobile-nav-auth-signup'));
 check('No account authorization embedded in public Landing', !staged.includes('supabase.createClient') && !staged.includes('SUPABASE_SERVICE_ROLE_KEY'));
 check('Fixed EN/ZH/MY Hero copy preserved', ['YOUR MONEY. YOUR DIRECTION.', '让财务更清晰，让未来更有方向。', 'ငွေကြေးကို ပိုမိုရှင်းလင်းစွာ သိမြင်ပြီး အနာဂတ်ကို ရည်ရွယ်ချက်ရှိရှိ စီမံပါ။'].every(x => staged.includes(x)));
+const appleIcon = markup => (markup.match(/<link rel="apple-touch-icon"[^>]*>/) || [])[0];
+check('iOS Home Screen icon matches current production root', appleIcon(staged) === appleIcon(mainRoot));
 check('Existing Landing stylesheet available', existsSync('landing-assets/landing.css') && staged.includes('./landing-assets/landing.css'));
 
 const appBridge = (staged.match(/<script id="mmh-pwa-standalone-root-bridge">([\s\S]*?)<\/script>/) || [])[1];
