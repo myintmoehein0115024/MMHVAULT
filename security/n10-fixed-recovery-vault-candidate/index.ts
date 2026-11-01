@@ -76,9 +76,11 @@ async function readBoundedJson(req:Request):Promise<Record<string,unknown>>{
  if(!body||typeof body!=='object'||Array.isArray(body))throw Error('invalid_json');
  return body as Record<string,unknown>;
 }
-async function liveSession(userId:string,sessionId:string){
+async function liveSession(userId:string,sessionId:string,expectedAal:'aal1'|'aal2'){
+ // Require the database session to still have this exact assurance level
+ // AND a current verified factor bound to the same session for AAL2.
  const {data,error}=await admin.rpc('mmh_n10_recovery_session_active',{
-  p_user_id:userId,p_session_id:sessionId
+  p_user_id:userId,p_session_id:sessionId,p_expected_aal:expectedAal
  });
  if(error||typeof data!=='boolean')return 'unavailable';
  return data?'active':'revoked';
@@ -111,7 +113,10 @@ async function verifiedUser(req:Request){
   return {state:'not_supported' as const};
  const sessionId=sessionIdFromVerifiedJwt(m[1],user.id,BASE);
  if(!sessionId)return {state:'unauthorized' as const};
- return {state:'ok' as const,user,sessionId};
+ // evaluateVerifiedAuthUserMfa has already checked this verified-factor
+ // state against the signed JWT AAL, after Auth verified the token.
+ const sessionAal=factors.factors.some((f:any)=>f?.status==='verified')?'aal2':'aal1';
+ return {state:'ok' as const,user,sessionId,sessionAal};
 }
 Deno.serve(async(req:Request)=>{
  const origin=req.headers.get('Origin')||'';
@@ -133,7 +138,8 @@ Deno.serve(async(req:Request)=>{
  if(authenticated.state!=='ok')return out(origin,'mfa_unavailable',503);
  const user=authenticated.user;
  const sessionId=authenticated.sessionId;
- const firstSessionCheck=await liveSession(user.id,sessionId);
+ const sessionAal=authenticated.sessionAal;
+ const firstSessionCheck=await liveSession(user.id,sessionId,sessionAal);
  if(firstSessionCheck==='unavailable')return out(origin,'session_check_unavailable',503);
  if(firstSessionCheck!=='active')return out(origin,'session_expired',401);
  const action=body.action;
@@ -149,7 +155,7 @@ Deno.serve(async(req:Request)=>{
  // Fresh password proof alone is not enough. The JWT session could have
  // been revoked during password verification; recheck just before escrow
  // or plaintext disclosure.
- const secondSessionCheck=await liveSession(user.id,sessionId);
+ const secondSessionCheck=await liveSession(user.id,sessionId,sessionAal);
  if(secondSessionCheck==='unavailable')return out(origin,'session_check_unavailable',503);
  if(secondSessionCheck!=='active')return out(origin,'session_expired',401);
  // MFA enrollment can change in another session during password re-auth.
@@ -179,7 +185,7 @@ Deno.serve(async(req:Request)=>{
   if(backupAssurance.state!=='ok'||backupAssurance.user.id!==user.id
      ||backupAssurance.sessionId!==sessionId)
     return out(origin,'session_expired',401);
-  const backupSessionCheck=await liveSession(user.id,sessionId);
+  const backupSessionCheck=await liveSession(user.id,sessionId,sessionAal);
   if(backupSessionCheck==='unavailable')return out(origin,'session_check_unavailable',503);
   if(backupSessionCheck!=='active')return out(origin,'session_expired',401);
   const saved=await admin.rpc('mmh_n10_recovery_backup_put',{p_user_id:user.id,p_phrase:phrase});
@@ -202,7 +208,7 @@ Deno.serve(async(req:Request)=>{
    return out(origin,'session_expired',401);
  // Recheck after the asynchronous decrypted Vault read. This closes the
  // logout/revocation window between the earlier check and plaintext response.
- const finalSessionCheck=await liveSession(user.id,sessionId);
+ const finalSessionCheck=await liveSession(user.id,sessionId,sessionAal);
  if(finalSessionCheck==='unavailable')return out(origin,'session_check_unavailable',503);
  if(finalSessionCheck!=='active')return out(origin,'session_expired',401);
  return out(origin,'recovery_key',200,{words:phrase.split(' '),expires_in_seconds:45});
