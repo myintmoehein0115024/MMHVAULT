@@ -627,9 +627,11 @@ if(client()){
   if(['SIGNED_IN','SIGNED_OUT','TOKEN_REFRESHED'].includes(event)){
    authEpoch+=1;refreshNonce+=1;
   }
-  // Invalidate in-flight secret responses *synchronously* on account change
-  // or sign-out, even while refresh() cannot run because a request is busy.
-  if(event==='SIGNED_OUT'||(event==='SIGNED_IN'&&owner&&session?.user?.id!==owner)){
+  // Invalidate sensitive recovery and MFA UI on every new sign-in (even
+  // the same user ID) and JWT refresh: the session/assurance may have changed.
+  // Never allow an in-flight response tied to a prior token to reveal words.
+  // This is synchronous even if a status refresh is queued while busy.
+  if(event==='SIGNED_OUT'||(owner&&['SIGNED_IN','TOKEN_REFRESHED'].includes(event))){
    // Clear sensitive fields synchronously; refresh() may be busy.
    // No asynchronous Auth request is made within the Auth callback.
    hideKey();clearMfa();resetSensitiveState();sections.forEach(collapse);
