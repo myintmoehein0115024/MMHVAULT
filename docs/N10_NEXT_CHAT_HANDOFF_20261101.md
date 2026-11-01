@@ -178,3 +178,10 @@
 - GitHub PR #11 最新状态 `draft=true`, `mergeable=true`, `merged=false`，比 main `behind=0`；已成功在不修改旧 PR #2 的前提下，为 Vault 后端建立**无合并冲突的替代审核路线**。**这不是旧 PR #2 本身冲突已被解决**；旧 PR #2 依旧 Draft/冲突/未合并。
 - 独立 [CI `41285479649`](https://github.com/myintmoehein0115024/MMHVAULT/actions/runs/41285479649) **SUCCESS**，MFA assurance 与 JWT session 辅助模拟测试、**6/6** 后端源码/SQL 静态门禁和 Deno `index.ts` 类型检查通过。没有真实 MFA、Vault 加密读写、跨用户隔离、secret 删除或真实 RLS 通过证据。
 - 已有 MFA 独立 Draft PR #9 也 mergeable=true、未发布。真正余下仍是：①被安全拒绝激活的 QA 按正常治理路径解除阻断并真实 AAL2 验收；② Vault signed Staging E2E、孤儿密钥删除及回滚验收；③用户单独审批并受控生产发布（含 app.html 缓存版本协同更新）。严禁以新 PR #11 当作绕过真实验收的部署路径。
+
+## 2026-11-01 — Vault 生产与 Staging 实际结构只读核验
+- 已在独立 `review/n10-vault-backend-only-20261101` 中新增 `docs/N10_VAULT_INSTALLED_SCHEMA_READ_ONLY_AUDIT_20261101.md`，实时只读核验正式项目 `vrypucmyrztxgiqhjspd`、Auth-Staging `ldivswlhtgmznzwhzsoi` 的**数据库对象元数据**，未读恢复词、Vault 行/密文、JWT、财务数据，无 SQL 写入。
+- **生产：** 基础 Vault 4 参数 `create_secret`、`vault.secrets` / decrypted view 和 `auth.sessions.not_after` 存在，但 **N10 备份索引与 put/get RPC 尚未安装**。**Staging：** N10 备份索引、put/get 等 5 RPC 已安装；五函数 `anon/authenticated` EXECUTE=false、`service_role` EXECUTE=true；备份索引及频率桶表 RLS=true；Vault GC trigger 启用、有关 SQL SECURITY DEFINER 存在。
+- **重要：Staging 不能重复执行 PR #11 中 `FIRST-INSTALL ONLY` 的 SQL 候选**，因同名 schema/函数/表已安装；需独立批准后做当前 Staging 对象源码差异审查、升级迁移和回滚，不能直接覆盖或绕过原安全阻断。触发器存在并**不等于**真实删除 E2E 已通过。
+- 原生产十词验证器 Edge v4 的 HMAC 前缀/输入形式与候选 `index.ts` 源码相符；仅验证源码，未读取或比对 Secrets 值，也未完成真实原词验证。哈希速率桶缺乏账户删除 FK/自动 TTL 的残留数据问题待隐私方案审查。
+- 独立 Vault **PR #11** 保持 Draft/mergeable=true/未合并、`RECOVERY_RELEASE_ENABLED=false`；正式站、生产、Staging 数据未修改；独立 QA 仍 LOCKED，A 真实 TOTP 仍 0 verified，联合 Vault/删除 E2E 未通过。
