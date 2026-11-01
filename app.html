@@ -16273,7 +16273,7 @@ function renderAnalyzeV37(){
       return configured.find(a=>String(a?.name||'').trim().toLowerCase()===key
         ||(['baht','bath'].includes(key)&&a?.id==='acc_bath'));
     };
-    for(const tx of rows){
+    for(const tx of allRows){
       for(const field of ['from_account','to_account']){
         const name=String(tx?.[field]||'').trim();
         if(name&&!getConfigured(name))missingAccounts.add(name);
@@ -16286,7 +16286,7 @@ function renderAnalyzeV37(){
     }
     const separate=rows.length-accounted.length;
     const warnings=[];
-    if(missingAccounts.size)warnings.push('Unlinked account metadata: '+[...missingAccounts].join(', '));
+    if(missingAccounts.size)warnings.push('Unlinked account metadata in history: '+[...missingAccounts].join(', '));
     if(missingFx.size)warnings.push('Missing FX rate: '+[...missingFx].join(', '));
     audit.style.color=warnings.length?'#f5c469':'inherit';
     audit.textContent='Data coverage · '+rows.length+' transactions · '+accounted.length+
