@@ -49,7 +49,8 @@ export function evaluateVerifiedAuthUserMfa(jwt, verifiedUser, supabaseBase) {
         payload.iss !== supabaseBase.replace(/\/$/, "") + "/auth/v1" ||
         !Number.isSafeInteger(payload.exp) ||
         payload.exp <= Math.floor(Date.now() / 1000)) return "unavailable";
-    const current = payload.aal == null ? "aal1" : payload.aal;
+    // Fail closed when the signed JWT omits assurance level. Never infer AAL1.
+    const current = payload.aal;
     if (current !== "aal1" && current !== "aal2") return "unavailable";
     const hasVerified = verifiedUser.factors.some(
       f => f?.status === "verified"
