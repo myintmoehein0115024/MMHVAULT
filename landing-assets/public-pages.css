@@ -338,3 +338,22 @@ body.features-page{
 @media(prefers-reduced-motion:reduce){
   .features-page header nav>a,.features-page .item{transition:none!important;transform:none!important}
 }
+
+
+/* L1.8 mobile refinement: brand first, navigation beneath — never a tall
+   two-column header when Burmese labels need additional space. */
+@media(max-width:1150px){
+  .features-page .bar{align-items:center}
+  .features-page header nav{flex:0 0 100%;width:100%;min-width:0;justify-content:flex-start}
+}
+@media(max-width:530px){
+  .features-page .bar{align-items:flex-start}
+  .features-page header nav{display:flex;flex:0 0 100%;width:100%;justify-content:flex-start;gap:9px 11px}
+  .features-page header nav>a[href="/#business"],
+  .features-page header nav>a[href="/about/"],
+  .features-page header nav>a[href="/security.html"]{display:none}
+  .features-page header nav>.feature-nav-signin,
+  .features-page header nav>.feature-nav-cta{min-height:38px}
+  .features-page .lang{margin-left:auto}
+  .features-page .feature-hero .visual-text span{display:block;color:#ffe7b9}
+}
