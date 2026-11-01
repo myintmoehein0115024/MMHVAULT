@@ -34,6 +34,8 @@ jobs:
         run: node security/n10-fixed-recovery-vault-candidate/test-backend-only-review.mjs
       - name: V2 Staging session guard migration and emergency disable offline contracts
         run: node security/n10-fixed-recovery-vault-candidate/test-session-upgrade-review.mjs
+      - name: Disabled joint QA retirement stub checks (NO DEPLOY)
+        run: node security/n10-fixed-recovery-vault-candidate/test-retired-joint-qa-stub.mjs
       - name: Set up Deno type checker
         uses: denoland/setup-deno@v2
         with:
