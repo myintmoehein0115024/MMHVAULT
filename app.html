@@ -13254,6 +13254,39 @@ function mmhVaultRecoverOwnedLegacyConfigV1(owner){
   MMHVAULT_CONFIG.categories=mmhVaultNormalizeCategoryConfigV1231(MMHVAULT_CONFIG.categories,MMHVAULT_CONFIG.archivedCategories||{});
   if(names.size){mmhVaultPersistConfig();mmhVaultRebuildConfigArrays();mmhVaultRefreshAccountSelectors();}
 }
+// Restore only explicitly referenced, known built-in account metadata for the
+// signed-in owner. No guessed currency, no historical transaction modification.
+function mmhVaultRestoreReferencedBuiltinAccountsV1(owner){
+  if(!mmhVaultRequireConfigOwner(owner))return 0;
+  const names=new Set();
+  for(const t of transactions||[]){
+    if(t?.user_id!==owner)continue;
+    if(t.from_account)names.add(String(t.from_account).trim());
+    if(t.to_account)names.add(String(t.to_account).trim());
+  }
+  for(const i of investments||[]){
+    if(i?.user_id===owner&&i.source_account)names.add(String(i.source_account).trim());
+  }
+  for(const i of window.mmhCustomInvestRecords||[]){
+    if(i?.user_id===owner&&i.source_account)names.add(String(i.source_account).trim());
+  }
+  const accounts=MMHVAULT_CONFIG.accounts||[];
+  let restored=0;
+  for(const name of names){
+    const key=String(name||'').trim().toLowerCase();
+    const builtin=MMHVAULT_DEFAULT_ACCOUNTS.find(a=>String(a.name||'').toLowerCase()===key
+      ||(a.id==='acc_bath'&&['bath','baht'].includes(key)));
+    if(!builtin)continue;
+    if(accounts.some(a=>String(a.id||'')===builtin.id||String(a.name||'').trim().toLowerCase()===key))continue;
+    accounts.push({...builtin});restored++;
+  }
+  if(restored){
+    mmhVaultPersistConfig();mmhVaultRebuildConfigArrays();
+    try{mmhVaultRefreshAccountSelectors();mmhVaultRefreshDashboardAccountOverviewV449();}catch(_e){}
+    try{window.mmhvaultForceRenderAllV34421?.('known-account-reference-repaired')}catch(_e){}
+  }
+  return restored;
+}
 function mmhVaultRebuildConfigArrays(){
   try{if(window.__mmhDashV34242Cache)window.__mmhDashV34242Cache.accountSig=null;}catch(_){}
   MMHVAULT_CONFIG.categories=mmhVaultNormalizeCategoryConfigV1231(MMHVAULT_CONFIG.categories,MMHVAULT_CONFIG.archivedCategories||{});
@@ -14165,6 +14198,7 @@ async function loadAll(opts={}){
       if((a.data||[]).some(x=>x.user_id!==loadOwner)||(b.data||[]).some(x=>x.user_id!==loadOwner)||(c.data||[]).some(x=>x.user_id!==loadOwner)||(w.data||[]).some(x=>x.user_id!==loadOwner)||(r.data&&r.data.user_id!==loadOwner))throw Error('Unexpected record owner');
       transactions=a.data||[];investments=b.data||[];window.transactions=transactions;window.investments=investments;window.mmhWalletMovementsV174=w.data||[];window.mmhWalletDataOwnerV191=loadOwner;window.mmhCustomInvestRecords=c.data||[];window.mmhCustomInvestLoaded=true;
       mmhVaultRecoverOwnedLegacyConfigV1(loadOwner);
+      mmhVaultRestoreReferencedBuiltinAccountsV1(loadOwner);
       window.mmhGoldFxReadyV1=!r.error&&!!r.data;
       if(r.error){console.warn("Exchange rates load skipped",r.error);optionalErrors.push("Exchange Rates: "+r.error.message);}else if(r.data)rates=r.data;window.rates=rates;
       try{loadRateInputs();}catch(e){console.warn("Rate input render skipped",e);}
@@ -16278,6 +16312,14 @@ function renderAnalyzeV37(){
         const name=String(tx?.[field]||'').trim();
         if(name&&!getConfigured(name))missingAccounts.add(name);
       }
+    }
+    for(const inv of window.investments||[]){
+      const name=String(inv?.source_account||'').trim();
+      if(name&&!getConfigured(name))missingAccounts.add(name);
+    }
+    for(const inv of window.mmhCustomInvestRecords||[]){
+      const name=String(inv?.source_account||'').trim();
+      if(name&&!getConfigured(name))missingAccounts.add(name);
     }
     for(const tx of accounted){
       const name=tx.type==='Income'?tx.to_account:tx.from_account;
@@ -22254,6 +22296,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   function applyCloud(owner,config,updatedAt){
     if(!owner||uid()!==owner||MMHVAULT_CONFIG_OWNER!==owner)return false;
     const clean=safeConfig(config);writeLocal(owner,clean,updatedAt);MMHVAULT_CONFIG=mmhVaultReadConfig(owner);MMHVAULT_CONFIG.archivedCategories=MMHVAULT_CONFIG.archivedCategories||{};mmhVaultRebuildConfigArrays();
+    try{mmhVaultRestoreReferencedBuiltinAccountsV1(owner)}catch(e){console.warn('[MMHVAULT] Builtin account reconcile skipped',e)}
     try{mmhVaultCloseDialogV449();window.mmhCloseManagerV1?.();mmhVaultRefreshAccountSelectors();mmhVaultRefreshTransactionConfigV445?.();mmhVaultRenderManager();mmhVaultRefreshDashboardAccountOverviewV449();}catch(_e){}
     try{window.mmhvaultForceRenderAllV34421?.('config-cloud-synced')}catch(_e){}
     window.dispatchEvent(new CustomEvent('mmhvault:config-cloud-synced',{detail:{userId:owner,source:'cloud'}}));return true;
