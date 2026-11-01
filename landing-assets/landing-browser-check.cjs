@@ -117,11 +117,33 @@ async function load(page,route,failures){
          ensure(header.navTop >= header.brandBottom-2,
            'Features mobile wordmark sits above the navigation '+JSON.stringify(header));
        }
-       if((route==='/register/'||route==='/features/'||route==='/about/')&&width===393){
-         await page.locator('button[data-lang="zh"]').click();
-         ensure(await page.locator('h1').isVisible(),route+' Chinese switch keeps title visible');
-         await page.locator('button[data-lang="my"]').click();
-         ensure(await page.locator('h1').isVisible(),route+' Burmese switch keeps title visible');
+       if(['/register/','/features/','/about/'].includes(route)){
+         ensure(await page.locator('body.public-landing-page .feature-hero').count()===1,
+           route+' inherited premium Landing shell');
+         ensure(await page.locator('header .brand-wordmark').isVisible(),
+           route+' shared Landing wordmark is visible');
+         ensure(await page.locator('header .feature-nav-cta').getAttribute('href')==='/login.html',
+           route+' Get Started goes only to existing secure access');
+         ensure(await page.locator('.page-breadcrumb a').getAttribute('href')==='/',
+           route+' clearly linked as a Landing subpage');
+       }
+       if(['/register/','/features/','/about/'].includes(route)&&[320,393,768,1440].includes(width)){
+         const trigger=page.locator('#public-locale-trigger');
+         const localeName=page.locator('.public-locale-name');
+         if(width===393||width===1440){
+           await page.screenshot({path:path.join(screenshots,
+             route.replaceAll('/','')+'-'+width+'-en.png'),fullPage:true,animations:'disabled'});
+         }
+         await trigger.click();
+         ensure(await trigger.getAttribute('aria-expanded')==='true',route+' language menu opens at '+width);
+         await page.locator('#public-locale-menu button[data-lang="zh"]').click();
+         ensure(await localeName.textContent()==='中文' && await page.locator('h1').isVisible(),
+           route+' Chinese language updates menu and title');
+         ensure(await trigger.getAttribute('aria-expanded')==='false',route+' language menu closes on selection');
+         await trigger.click();
+         await page.locator('#public-locale-menu button[data-lang="my"]').click();
+         ensure(await localeName.textContent()==='မြန်မာ' && await page.locator('h1').isVisible(),
+           route+' Burmese language updates menu and title');
          const localeOverflow=await page.evaluate(()=>{
            const previousY=scrollY;
            scrollTo({left:900,top:previousY,behavior:'instant'});
@@ -141,10 +163,13 @@ async function load(page,route,failures){
            console.error('PUBLIC LOCALE OVERFLOW '+route+' '+JSON.stringify(candidates));
          }
          ensure(localeOverflow.extra<=2,route+' Burmese locale has no sideways scroll '+JSON.stringify(localeOverflow));
-       }
-       if((width===393 && ['/register/','/features/','/about/'].includes(route)) || (width===1440 && route==='/features/')){
-         await page.screenshot({path:path.join(screenshots,
-            route.replaceAll('/','')+'-'+width+'.png'),fullPage:true,animations:'disabled'});
+         if(width===393){
+           await page.screenshot({path:path.join(screenshots,
+             route.replaceAll('/','')+'-'+width+'-my.png'),fullPage:true,animations:'disabled'});
+         }
+         await page.reload({waitUntil:'load'});
+         ensure(await page.locator('.public-locale-name').textContent()==='မြန်မာ',
+           route+' language preference persists across reload at '+width);
        }
        await ctx.close();
      }
