@@ -362,7 +362,60 @@ try{
      await recoveryPage.close();
      console.log('PASS',name,'late recovery response stays hidden after '+kind);
    }
+
+   // A normal verified recovery response still displays the existing
+   // 10-word backup for its original 60s window, without Vault.
+   const validPage=await browser.newPage();
+   const validErrors=await ready(validPage);
+   await validPage.locator('#mmhA783Recovery > .mmh-a783-title').click();
+   await validPage.locator('#mmhA783Phrase').fill('alpha bravo charlie delta echo foxtrot golf hotel india juliet');
+   await validPage.locator('#mmhA783KeyVerify').click();
+   await validPage.waitForFunction(()=>window.__verifyStarted===true);
+   await validPage.evaluate(()=>window.__resolveVerify(true));
+   await validPage.waitForFunction(()=>document.getElementById('mmhA783KeyDisplay').hidden===false);
+   const valid=await validPage.evaluate(()=>({
+     words:document.querySelectorAll('#mmhA783KeyWords > .mmh-a783-word').length,
+     input:document.getElementById('mmhA783Phrase').value,
+     status:document.getElementById('mmhA783Status').textContent
+   }));
+   assert.equal(valid.words,10);
+   assert.equal(valid.input,'');
+   assert.ok(valid.status.includes('60 seconds'));
+   await validPage.locator('#mmhA783KeyHide').click();
+   const hidden=await validPage.evaluate(()=>({
+     display:document.getElementById('mmhA783KeyDisplay').hidden,
+     words:document.getElementById('mmhA783KeyWords').textContent
+   }));
+   assert.deepEqual(hidden,{display:true,words:''});
+   assert.deepEqual(validErrors,[]);
+   await validPage.close();
+   console.log('PASS',name,'original 60s recovery view still displays and securely hides');
+
+   // Rendering a QR must not leave plaintext words in hidden DOM if the
+   // QR library fails synchronously after a successful backend response.
+   const qrFailPage=await browser.newPage();
+   const qrErrors=await ready(qrFailPage);
+   await qrFailPage.locator('#mmhA783Recovery > .mmh-a783-title').click();
+   await qrFailPage.evaluate(()=>{
+     window.QRCode=function(){throw new Error('synthetic QR renderer failed');};
+     window.QRCode.CorrectLevel={L:'L'};
+   });
+   await qrFailPage.locator('#mmhA783Phrase').fill('alpha bravo charlie delta echo foxtrot golf hotel india juliet');
+   await qrFailPage.locator('#mmhA783KeyVerify').click();
+   await qrFailPage.waitForFunction(()=>window.__verifyStarted===true);
+   await qrFailPage.evaluate(()=>window.__resolveVerify(true));
+   await qrFailPage.waitForFunction(()=>document.getElementById('mmhA783Status').textContent.includes('could not be verified'));
+   const qrFail=await qrFailPage.evaluate(()=>({
+     display:document.getElementById('mmhA783KeyDisplay').hidden,
+     words:document.getElementById('mmhA783KeyWords').textContent,
+     raw:document.getElementById('mmhA783Phrase').value,
+     qr:document.getElementById('mmhA783KeyQr').childElementCount
+   }));
+   assert.deepEqual(qrFail,{display:true,words:'',raw:'',qr:0});
+   assert.deepEqual(qrErrors,[]);
+   await qrFailPage.close();
+   console.log('PASS',name,'QR rendering failure wipes plaintext key DOM');
   }finally{await browser.close();}
  }
- console.log('28/28 isolated browser smoke checks PASS');
+ console.log('32/32 isolated browser smoke checks PASS');
 }finally{await new Promise(resolve=>server.close(resolve));}
