@@ -24,7 +24,8 @@ const approvedSql=new Set([
  'n10_fixed_recovery_vault_STAGING_CANDIDATE.sql',
  'n10_installed_staging_vault_READ_ONLY_AUDIT_20261101.sql',
  'n10_staging_session_guard_V2_EMERGENCY_DISABLE_REVIEW_ONLY.sql',
- 'n10_staging_session_guard_V2_UPGRADE_REVIEW_ONLY.sql'
+ 'n10_staging_session_guard_V2_UPGRADE_REVIEW_ONLY.sql',
+ 'n10_staging_session_guard_V2_SYNTHETIC_READ_ONLY_TEST.sql'
 ]);
 const approvedReviewCode=new Set([
  'index.ts',
