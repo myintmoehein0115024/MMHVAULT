@@ -395,7 +395,7 @@ try{
    // Verify sensitive recovery words do not appear if the original
    // Auth-confirmed response arrives after logout, owner switch, modal
    // close, or a hidden/foreground transition. All responses are simulated.
-   for(const kind of ['signout','switch','close','background']){
+   for(const kind of ['signout','switch','same-owner','refresh','close','background']){
      const recoveryPage=await browser.newPage();
      const recoveryErrors=await ready(recoveryPage);
      await recoveryPage.locator('#mmhA783Recovery > .mmh-a783-title').click();
@@ -409,6 +409,16 @@ try{
          window.__fakeUserId='00000000-0000-4000-8000-0000000000bb';
          window.__authCallback('SIGNED_IN',{user:{id:window.__fakeUserId}});
        });
+     }else if(kind==='same-owner'){
+       // Same UID can still be a new authentication session.
+       await recoveryPage.evaluate(()=>window.__authCallback('SIGNED_IN',{
+         user:{id:window.__fakeUserId}
+       }));
+     }else if(kind==='refresh'){
+       // A freshly issued JWT may have a different MFA assurance state.
+       await recoveryPage.evaluate(()=>window.__authCallback('TOKEN_REFRESHED',{
+         user:{id:window.__fakeUserId}
+       }));
      }else if(kind==='close'){
        await recoveryPage.locator('body > .mmh-n10-modal-overlay:not([hidden]) .mmh-n10-modal-close').click();
      }else{
@@ -594,5 +604,5 @@ try{
    console.log('PASS',name,'factor removal refreshes displayed state after busy clears');
   }finally{await browser.close();}
  }
- console.log('42/42 isolated browser smoke checks PASS');
+ console.log('46/46 isolated browser smoke checks PASS');
 }finally{await new Promise(resolve=>server.close(resolve));}
