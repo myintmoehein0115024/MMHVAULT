@@ -71,9 +71,10 @@ function clearMfa(){mfaEpoch+=1;pendingSecret='';pendingFactor='';pendingFactorO
 // Recovery verification must not re-display words after the owner, modal or
 // document visibility changes while an asynchronous request is pending.
 function recoveryRequestActive(epoch,userId){
+ const overlay=$('mmhA783KeyVerify')?.closest('.mmh-n10-modal-overlay');
  return epoch===recoveryEpoch&&userId===owner&&!document.hidden&&
   $('mmhA783Recovery')?.classList.contains('mmh-a785-open')===true&&
-  !$('mmhA783KeyVerify')?.closest('.mmh-n10-modal-overlay')?.hidden;
+  !!overlay&&!overlay.hidden;
 }
 // Async MFA responses must never revive a closed modal or a changed account.
 function mfaFlowActive(epoch,userId){
@@ -245,15 +246,16 @@ $('mmhA783PhraseToggle').addEventListener('click',()=>{
 $('mmhA783KeyVerify').addEventListener('click',async()=>{
  if(busy||!owner||!recoveryRequestActive(recoveryEpoch,owner))return;const raw=$('mmhA783Phrase').value.trim().toLowerCase().replace(/\s+/g,' ');
  if(raw.split(' ').length!==10){status('Enter your existing ten words in the original order.');return}
+ // Wipe any earlier display and retire its request epoch BEFORE awaiting Auth.
+ // This also ensures QR rendering failures can be caught and wiped safely.
+ hideKey();
  const epoch=recoveryEpoch,userId=owner;
  busy=true;
  try{
   const r=await api('verify_saved_phrase',{phrase:raw});
   if(!recoveryRequestActive(epoch,userId))return;
   if(!r.ok||r.body?.verified!==true)throw Error('invalid');
-  // hideKey invalidates every old in-flight response; all UI work below
-  // happens synchronously while the same modal and owner remain active.
-  hideKey();verifiedPhrase=raw;
+  verifiedPhrase=raw;
   const list=$('mmhA783KeyWords');list.replaceChildren();
   raw.split(' ').forEach((w,i)=>{const el=document.createElement('div');el.className='mmh-a783-word';el.textContent=String(i+1).padStart(2,'0')+'  '+w;list.append(el)});
   const qr=$('mmhA783KeyQr');qr.replaceChildren();
