@@ -12,6 +12,7 @@ on:
       - 'landing-assets/**'
       - 'register/**'
       - 'features/**'
+      - 'about/**'
       - 'privacy.html'
       - 'terms.html'
       - 'security.html'
