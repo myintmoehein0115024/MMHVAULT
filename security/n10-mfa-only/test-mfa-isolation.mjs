@@ -99,6 +99,41 @@ const tests=[
   // No shortcut that silently unenrolls the factor on password or words.
   assert.doesNotMatch(src,/mfa\.unenroll\(\{factorId:\s*(?:body|words|phrase)/);
  }],
+ ['Google identity linking rejects uncertain MFA or stale owner',()=>{
+  const source=src.match(/function googleIdentityLinkAllowed\(assurance,inventory\)\{[\s\S]*?\n\}/)?.[0];
+  assert.ok(source,'missing MFA identity-linking approval helper');
+  const allowed=runInNewContext('('+source+')');
+  const factors=(list=[])=>({data:{all:list},error:null});
+  const assurance=(currentLevel,nextLevel)=>({data:{currentLevel,nextLevel},error:null});
+  const valid={id:'factor-01',factor_type:'totp',status:'verified'};
+  assert.equal(allowed(assurance('aal1','aal1'),factors([])),true);
+  assert.equal(allowed(assurance('aal2','aal2'),factors([valid])),true);
+  assert.equal(allowed(assurance('aal1','aal2'),factors([valid])),false);
+  assert.equal(allowed(assurance('aal1','aal1'),factors([valid])),false);
+  assert.equal(allowed(assurance('aal2','aal1'),factors([])),false);
+  assert.equal(allowed(assurance('aal1','aal2'),factors([])),false);
+  assert.equal(allowed(assurance('aal1',null),factors([])),false);
+  assert.equal(allowed(assurance(null,'aal1'),factors([])),false);
+  assert.equal(allowed({error:new Error('offline'),data:{}},factors([])),false);
+  assert.equal(allowed(assurance('aal1','aal1'),{data:{totp:[]},error:null}),false);
+  assert.equal(allowed(assurance('aal1','aal1'),{error:new Error('timeout')}),false);
+  const link=between("$('mmhA783LinkGoogle').addEventListener('click',async()=>{",
+                     "$('mmhA783PhraseToggle').addEventListener('click',()=>{");
+  ordered(link,[
+   'const epoch=authEpoch;',
+   'const {user}=await verifiedUser();',
+   'if(epoch!==authEpoch||owner!==user.id)',
+   'const existing=await client().auth.getUserIdentities();',
+   'const aal=await client().auth.mfa.getAuthenticatorAssuranceLevel();',
+   'const factors=await client().auth.mfa.listFactors();',
+   'if(!googleIdentityLinkAllowed(aal,factors))',
+   'const confirmed=await verifiedUser();',
+   'confirmed.user.id!==user.id',
+   "sessionStorage.setItem('mmh_a783_google_link_expected_uid',user.id);",
+   'client().auth.linkIdentity('
+  ]);
+  assert.match(src,/关联 Google 前，请先完成当前身份验证器验证/);
+ }],
  ['pending owner and epoch cleared synchronously',()=>{
   assert.match(src,/pendingFactorOwner='',pendingSecret=''/);
   assert.match(src,/function clearMfa\(\)\{mfaEpoch\+=1;pendingSecret='';pendingFactor='';pendingFactorOwner='';/);
