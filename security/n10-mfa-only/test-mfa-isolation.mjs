@@ -159,9 +159,18 @@ const tests=[
   ordered(callback,["authEpoch+=1;refreshNonce+=1;","hideKey();clearMfa();resetSensitiveState();sections.forEach(collapse);"]);
   assert.equal((src.match(/finally\{releaseBusy\(\)/g)||[]).length,5);
  }],
+ ['same-owner new sign-in or JWT refresh invalidates sensitive UI before refresh',()=>{
+  const callback=between('client().auth.onAuthStateChange((event,session)=>{','setTimeout(refresh,400);');
+  ordered(callback,['authEpoch+=1;refreshNonce+=1;',
+   "if(event==='SIGNED_OUT'||(owner&&['SIGNED_IN','TOKEN_REFRESHED'].includes(event)))",
+   'hideKey();clearMfa();resetSensitiveState();sections.forEach(collapse);',
+   "owner='';", 'else void refresh();']);
+  assert.match(callback,/if\(\['SIGNED_IN','SIGNED_OUT','TOKEN_REFRESHED'\]\.includes\(event\)\)/);
+  assert.doesNotMatch(callback,/session\?\.user\?\.id!==owner/);
+ }],
  ['logout and owner change clean sensitive data synchronously',()=>{
   const s=between('client().auth.onAuthStateChange((event,session)=>{','setTimeout(refresh,400)');
-  ordered(s,["if(event==='SIGNED_OUT'||(event==='SIGNED_IN'&&owner&&session?.user?.id!==owner))",
+  ordered(s,["if(event==='SIGNED_OUT'||(owner&&['SIGNED_IN','TOKEN_REFRESHED'].includes(event)))",
    'hideKey();clearMfa();resetSensitiveState();sections.forEach(collapse);',
    "owner='';",'setTimeout(()=>{']);
  }]
