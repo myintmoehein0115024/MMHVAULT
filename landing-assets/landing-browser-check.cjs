@@ -108,6 +108,15 @@ async function load(page,route,failures){
        ensure(await page.locator('h1').count()===1,route+' '+width+'px has one H1');
        ensure(await page.locator('link[rel="canonical"]').count()===1,
          route+' '+width+'px canonical unique');
+       if(route==='/features/' && width===393){
+         const header=await page.evaluate(()=>{
+           const brand=document.querySelector('header .brand').getBoundingClientRect();
+           const nav=document.querySelector('header nav').getBoundingClientRect();
+           return {brandBottom:Math.round(brand.bottom),navTop:Math.round(nav.top)};
+         });
+         ensure(header.navTop >= header.brandBottom-2,
+           'Features mobile wordmark sits above the navigation '+JSON.stringify(header));
+       }
        if((route==='/register/'||route==='/features/'||route==='/about/')&&width===393){
          await page.locator('button[data-lang="zh"]').click();
          ensure(await page.locator('h1').isVisible(),route+' Chinese switch keeps title visible');
@@ -133,9 +142,9 @@ async function load(page,route,failures){
          }
          ensure(localeOverflow.extra<=2,route+' Burmese locale has no sideways scroll '+JSON.stringify(localeOverflow));
        }
-       if(width===393 && ['/register/','/features/','/about/'].includes(route)){
+       if((width===393 && ['/register/','/features/','/about/'].includes(route)) || (width===1440 && route==='/features/')){
          await page.screenshot({path:path.join(screenshots,
-            route.replaceAll('/','')+'-393.png'),fullPage:true,animations:'disabled'});
+            route.replaceAll('/','')+'-'+width+'.png'),fullPage:true,animations:'disabled'});
        }
        await ctx.close();
      }
