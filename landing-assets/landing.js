@@ -885,7 +885,7 @@
   explore?.addEventListener('toggle', () => {
     if (explore.open) closeLanguage();
   });
-  const media = window.matchMedia('(min-width: 1051px)');
+  const media = window.matchMedia('(min-width: 1361px)');
   if (typeof media.addEventListener === 'function') media.addEventListener('change', closeMenu);
 
   // Keeps the top navigation aligned with the section being viewed.
