@@ -31,3 +31,9 @@
 - If rollback is needed, prefer the reviewed fail-closed approach (disable V2 `service_role` EXECUTE), not restoring the weaker legacy guard.
 
 **This file contains no user credentials, recovery phrases, JWTs, Vault plaintext, or account data.**
+
+## 2026-11-01 RLS composition and excess QA grants audit
+- Read-only Auth-Staging catalog audit covered 12 N10-related public/private tables (all RLS enabled) and all relevant N10 privileged functions; the five Vault recovery RPCs and the QA privileged-read RPC are service-role-only. Internal `mmh_n10_qa_security.mfa_ok()` is executable by authenticated through a private schema for RLS evaluation.
+- Confirmed `public.mmh_n10_signed_qa_entries` has exactly two authenticated SELECT policies: one **PERMISSIVE** owner predicate and one **RESTRICTIVE** MFA predicate. This composes owner **AND** MFA. Four existing synthetic QA rows have four distinct owners. The 9-condition `docs/sql/n10_staging_qa_rls_READ_ONLY_ASSERTIONS_20261101.sql` preflight returned `all_checks_pass=true` without reading account identifiers, recovery words or finance data.
+- Found explicit `INSERT/UPDATE/DELETE` grants to `authenticated` on this synthetic QA table. There are **no mutation RLS policies**, so those operations are currently denied; this is **defense-in-depth privilege cleanup, NOT a proven writable vulnerability**. Added narrowly scoped `docs/sql/n10_staging_qa_excess_dml_REVOKE_REVIEW_ONLY.sql` with preflight, rollback-on-error and post-check. It is **NOT authorized to run** and no Staging grant was changed. Any future execution requires distinct approval.
+- CI protects the SELECT-only audit and the reviewed REVOKE candidate with source-level contracts. [Actions #41299228221](https://github.com/myintmoehein0115024/MMHVAULT/actions/runs/41299228221) completed SUCCESS. Legacy joint QA retirement was still blocked by the platform safety gate and remains disabled/unmodified.
