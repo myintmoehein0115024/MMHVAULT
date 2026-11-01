@@ -488,3 +488,16 @@ body.public-landing-page{
   .public-landing-page .public-locale-trigger{padding:8px 13px;min-height:40px;gap:7px}
   .public-landing-page .public-locale-name{max-width:75px}
 }
+
+
+/* L1.9 mobile Myanmar: grid items may otherwise retain a wide min-content
+   track, creating scrollable overflow even when block bounding boxes look fine. */
+@media(max-width:530px){
+  .public-landing-page .lang-summary{grid-template-columns:minmax(0,1fr)}
+  .public-landing-page .lang-summary>*{
+    min-width:0;max-width:100%;overflow-wrap:anywhere;
+  }
+  .public-landing-page .detail,
+  .public-landing-page .item,
+  .public-landing-page .bottom-cta{min-width:0;overflow-wrap:anywhere}
+}
