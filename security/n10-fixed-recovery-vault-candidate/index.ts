@@ -115,7 +115,7 @@ async function verifiedUser(req:Request){
  if(!sessionId)return {state:'unauthorized' as const};
  // evaluateVerifiedAuthUserMfa has already checked this verified-factor
  // state against the signed JWT AAL, after Auth verified the token.
- const sessionAal=factors.factors.some((f:any)=>f?.status==='verified')?'aal2':'aal1';
+ const sessionAal:'aal1'|'aal2'=factors.factors.some((f:any)=>f?.status==='verified')?'aal2':'aal1';
  return {state:'ok' as const,user,sessionId,sessionAal};
 }
 Deno.serve(async(req:Request)=>{
