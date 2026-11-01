@@ -622,7 +622,55 @@ try{
    assert.deepEqual(removeErrors,[]);
    await removePage.close();
    console.log('PASS',name,'factor removal refreshes displayed state after busy clears');
+    // Sensitive Google identity linking must refuse unknown assurance and
+    // stale-account races. This is a local browser fixture; no OAuth or network.
+    const googlePage=await browser.newPage();
+    const googleErrors=await ready(googlePage);
+    await googlePage.evaluate(()=>{
+      window.__linkCalls=0;
+      window.db.auth.linkIdentity=async()=>{
+        window.__linkCalls++;return {error:null};
+      };
+      window.__mfa.getAuthenticatorAssuranceLevel=async()=>({
+        data:{currentLevel:'aal1',nextLevel:null},error:null
+      });
+    });
+    await googlePage.locator('#syntheticGoogleSection > .mmh-a783-title').click();
+    await googlePage.locator('#mmhA783LinkGoogle').click();
+    await googlePage.waitForFunction(()=>document.getElementById('mmhA783Status').textContent.includes('security status is unavailable'));
+    assert.equal(await googlePage.evaluate(()=>window.__linkCalls),0);
+    await googlePage.evaluate(()=>{
+      window.__mfa.getAuthenticatorAssuranceLevel=async()=>({
+        data:{currentLevel:'aal1',nextLevel:'aal1'},error:null
+      });
+    });
+    await googlePage.locator('#mmhA783LinkGoogle').click();
+    await googlePage.waitForFunction(()=>window.__linkCalls===1);
+    assert.deepEqual(googleErrors,[]);
+    await googlePage.close();
+    console.log('PASS',name,'Google linking denied unknown MFA, permitted valid AAL1 with no factors');
+
+    const switchedPage=await browser.newPage();
+    const switchedErrors=await ready(switchedPage);
+    await switchedPage.evaluate(()=>{
+      window.__linkCalls=0;
+      window.db.auth.linkIdentity=async()=>{window.__linkCalls++;return {error:null}};
+      window.db.auth.getUserIdentities=async()=>{
+        window.__fakeUserId='00000000-0000-4000-8000-0000000000bb';
+        window.__authCallback('SIGNED_IN',{user:{id:window.__fakeUserId}});
+        window.__switchTriggered=true;
+        return {data:{identities:[]},error:null};
+      };
+    });
+    await switchedPage.locator('#syntheticGoogleSection > .mmh-a783-title').click();
+    await switchedPage.locator('#mmhA783LinkGoogle').click();
+    await switchedPage.waitForFunction(()=>window.__switchTriggered===true);
+    await switchedPage.waitForTimeout(100);
+    assert.equal(await switchedPage.evaluate(()=>window.__linkCalls),0);
+    assert.deepEqual(switchedErrors,[]);
+    await switchedPage.close();
+    console.log('PASS',name,'Google linking aborted on signed-in owner change');
   }finally{await browser.close();}
  }
- console.log('46/46 isolated browser smoke checks PASS');
+ console.log('Isolated browser MFA smoke suite PASS');
 }finally{await new Promise(resolve=>server.close(resolve));}
