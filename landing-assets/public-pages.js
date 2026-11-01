@@ -56,5 +56,23 @@
       if(event.key==='Escape')closeMenu(true);
     });
   }
+  // Compact public navigation: native <details> preserves keyboard access,
+  // while outside click and Escape make its popover feel like the Landing menu.
+  const navDetails=document.querySelector('.public-nav-details');
+  if(navDetails){
+    document.addEventListener('pointerdown',event=>{
+      if(navDetails.open&&!navDetails.contains(event.target))navDetails.open=false;
+    });
+    document.addEventListener('keydown',event=>{
+      if(event.key==='Escape'&&navDetails.open){
+        navDetails.open=false;
+        const summary=navDetails.querySelector('summary');
+        if(summary)summary.focus();
+      }
+    });
+    navDetails.querySelectorAll('a').forEach(anchor=>{
+      anchor.addEventListener('click',()=>{navDetails.open=false;});
+    });
+  }
   changeLanguage(locale);
 })();
