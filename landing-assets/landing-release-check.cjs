@@ -135,4 +135,38 @@ for(const path of ['register/index.html','features/index.html']){
    !head.includes('/favicon.ico'));
 }
 
+/* L1.33 — conservative uncompressed resource budgets (not a lab speed score). */
+const publicRuntimeBudgets={
+  'index.html':100000,
+  'landing-assets/landing.css':225000,
+  'landing-assets/business.css':55000,
+  'landing-assets/cinematic.css':40000,
+  'landing-assets/premium-l131.css':20000,
+  'landing-assets/motion-l132.css':12000,
+  'landing-assets/landing.js':110000,
+  'landing-assets/motion-l132.js':15000,
+  'landing-assets/cinematic-lake.webp':150000,
+  'landing-assets/personal-business-concept.webp':150000,
+  'images/mmhvault-logo-transparent.png':120000
+};
+for(const [file,maxBytes] of Object.entries(publicRuntimeBudgets)){
+  check(file+' stays under uncompressed asset budget',fs.statSync(file).size<=maxBytes);
+}
+check('Landing priority image and below-fold concept use efficient loading',
+  current.includes('width="1600" height="900"') &&
+  current.includes('decoding="async" fetchpriority="high"') &&
+  current.includes('loading="lazy" decoding="async"') &&
+  current.includes('<link rel="preload" as="image" type="image/webp"') &&
+  current.includes('<script defer src="./landing-assets/landing.js"></script>'));
+check('Landing ships no third-party blocking scripts or styles',
+  !/<script[^>]+src=["']https?:\/\//i.test(current) &&
+  !/<link[^>]+rel=["']stylesheet["'][^>]+href=["']https?:\/\//i.test(current));
+for(const page of ['privacy.html','terms.html','security.html']){
+ const html=read(page);
+ check(page+' points branding and Home link to canonical root',
+   html.includes('<a class="brand" href="/">') &&
+   html.includes('<footer><a href="/">Home</a>') &&
+   !html.includes('href="index.html"'));
+}
+
 console.log('Landing launch preflight: '+passed+'/'+passed+' PASS — no live authentication or PWA device claim.');
