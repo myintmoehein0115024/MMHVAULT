@@ -95,6 +95,13 @@ const tests=[
    }
   }
  }],
+ ['production-only username marker is not automatically expanded to staging test identities',()=>{
+  assert.match(backend,/user\.app_metadata\?\.mmhvault_auth_kind!=='username_only'/);
+  assert.doesNotMatch(backend,/user\.app_metadata\?\.mmhvault_auth_kind\s*\?\?/);
+  assert.doesNotMatch(backend,/username_only_staging/);
+  assert.match(backend,/BASE!==EXPECTED_BASE/);
+  assert.match(backend,/const RECOVERY_RELEASE_ENABLED=false;/);
+ }],
  ['candidate excludes previously denied QA activation and production UI changes',()=>{
   assert.doesNotMatch(backend,/QA_RELEASED|QA_WINDOW_END_UTC|QA_IDENTITIES/);
   assert.doesNotMatch(backend,/N10_FIXED_VAULT_UI_RELEASED/);
