@@ -55,7 +55,19 @@ SELECT
   ) AS no_authenticated_secret_rpc_access,
   NOT has_function_privilege(
    'anon','public.mmh_n10_recovery_backup_get(uuid)','EXECUTE'
-  ) AS no_anon_secret_rpc_access;
+  ) AS no_anon_secret_rpc_access,
+  NOT has_schema_privilege('authenticated','vault','USAGE')
+    AS no_authenticated_vault_schema_access,
+  NOT has_schema_privilege('anon','vault','USAGE')
+    AS no_anon_vault_schema_access,
+  NOT has_table_privilege('authenticated','vault.decrypted_secrets','SELECT')
+    AS no_authenticated_decrypted_view_select,
+  NOT has_table_privilege('anon','vault.decrypted_secrets','SELECT')
+    AS no_anon_decrypted_view_select,
+  NOT has_table_privilege('authenticated','vault.secrets','SELECT')
+    AS no_authenticated_raw_vault_select,
+  NOT has_table_privilege('anon','vault.secrets','SELECT')
+    AS no_anon_raw_vault_select;
 -- Zero unlinked secrets only describes the current snapshot, not proof
 -- that account deletion cascades remove Vault ciphertext under real load.
 -- Active cron job only proves scheduling, not a successfully completed run.
