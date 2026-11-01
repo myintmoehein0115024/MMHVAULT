@@ -5,6 +5,7 @@ import {readFileSync} from 'node:fs';
 const backend=readFileSync('security/n10-fixed-recovery-vault-candidate/index.ts','utf8');
 const sql=readFileSync('docs/sql/n10_fixed_recovery_vault_STAGING_CANDIDATE.sql','utf8');
 const preflight=readFileSync('docs/sql/n10_fixed_recovery_READ_ONLY_PREFLIGHT.sql','utf8');
+const installedAudit=readFileSync('docs/sql/n10_installed_staging_vault_READ_ONLY_AUDIT_20261101.sql','utf8');
 const assurance=readFileSync('security/n10-fixed-recovery-vault-candidate/mfa-assurance.mjs','utf8');
 const tests=[
  ['Vault release is hard OFF and pinned to the existing project',()=>{
@@ -53,6 +54,17 @@ const tests=[
   assert.match(assurance,/const current = payload\.aal;/);
   assert.doesNotMatch(assurance,/payload\.aal\s*==\s*null\s*\?\s*['"]aal1['"]/);
   assert.match(assurance,/currentLevel !== "aal1" && currentLevel !== "aal2"/);
+ }],
+ ['installed Staging Vault audit checks orphan metadata, trigger and retention without writes',()=>{
+  assert.match(installedAudit,/INSTALLED Auth-Staging privacy\/Vault metadata audit/);
+  assert.match(installedAudit,/currently_unlinked_n10_secret_rows/);
+  assert.match(installedAudit,/vault_delete_trigger_enabled/);
+  assert.match(installedAudit,/owner_delete_cascades/);
+  assert.match(installedAudit,/daily_rate_cleanup_job_enabled/);
+  assert.match(installedAudit,/no_authenticated_secret_rpc_access/);
+  assert.doesNotMatch(installedAudit,/vault\\.decrypted_secrets/i);
+  const executableSql=installedAudit.replace(/^\\s*--[^\\n]*$/gm,'');
+  assert.doesNotMatch(executableSql,/^\\s*(?:CREATE|ALTER|INSERT|UPDATE|DELETE|DROP|GRANT|REVOKE|TRUNCATE|CALL|DO)\\b/gmi);
  }],
  ['candidate excludes previously denied QA activation and production UI changes',()=>{
   assert.doesNotMatch(backend,/QA_RELEASED|QA_WINDOW_END_UTC|QA_IDENTITIES/);
