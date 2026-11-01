@@ -42,10 +42,29 @@ check('Current production Login remains noindex',/name="robots" content="noindex
 check('Actual App remains noindex',/<meta[^>]*name=["']robots["'][^>]*noindex/i.test(read('app.html').slice(0,350000)));
 check('Protected Business page remains noindex',/<meta[^>]*name=["']robots["'][^>]*noindex/i.test(read('business.html').slice(0,2000)));
 
-const names=['landing.css','business.css','cinematic.css','landing.js','premium-l131.css','luxury-horizon.svg','premium-architecture.svg','cinematic-lake.webp','personal-business-concept.webp'];
+const names=['landing.css','business.css','cinematic.css','landing.js','premium-l131.css','motion-l132.css','motion-l132.js','luxury-horizon.svg','premium-architecture.svg','cinematic-lake.webp','personal-business-concept.webp'];
 check('All required live assets exist',names.every(f=>fs.existsSync('landing-assets/'+f)));
 check('Landing style and script links correct',['landing.css','business.css','cinematic.css','landing.js'].every(f=>current.includes('./landing-assets/'+f)));
 check('L1.31 premium layer linked and scoped', current.includes('class="l131"') && current.includes('href="./landing-assets/premium-l131.css?v=1"') && read('landing-assets/premium-l131.css').includes('body.l131 .showcase-v2'));
+check('L1.32 motion assets linked from homepage',
+  current.includes('href="./landing-assets/motion-l132.css?v=1"') &&
+  current.includes('src="./landing-assets/motion-l132.js?v=1"'));
+const motionSource=read('landing-assets/motion-l132.js');
+const motionStyles=read('landing-assets/motion-l132.css');
+check('L1.32 reveal uses IntersectionObserver and no forced hidden fallback',
+  motionSource.includes('IntersectionObserver') && motionSource.includes('mm-shown') &&
+  motionStyles.includes('.mm-reveal:not(.mm-shown)') &&
+  motionSource.includes("if(!permitted() || !('IntersectionObserver' in window))return;"));
+check('L1.32 respects reduced motion and native links',
+  motionSource.includes('prefers-reduced-motion: reduce') &&
+  motionStyles.includes('@media (prefers-reduced-motion: reduce)') &&
+  !motionSource.includes('preventDefault(') && !motionSource.includes('location.replace'));
+check('L1.32 product/business state switch animations stay presentational',
+  motionSource.includes('data-product-current') &&
+  motionSource.includes('data-current-view') &&
+  motionSource.includes("typeof node.animate!=='function'") &&
+  !/fetch\s*\(|localStorage|supabase|touchstart|gesturestart/.test(motionSource));
+
 check('L1.31 desktop Hero photograph restores actual device composition', read('landing-assets/premium-l131.css').includes('L1.31.1 — restore the photograph') && read('landing-assets/premium-l131.css').includes('url("./personal-business-concept.webp")') && read('landing-assets/cinematic.css').includes('hero-art.is-photo-ready .hero-device-cinematic {display:none;}'));
 check('L1.31 never globally disables touch zoom', !/user-scalable\s*=\s*no/i.test(current) && !/touch-action\s*:\s*none/i.test(read('landing-assets/premium-l131.css')));
 check('No preview QA material in production root',!current.includes('pwa-qa')&&!current.includes('mmh_layout_probe'));
