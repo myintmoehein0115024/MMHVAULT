@@ -9,7 +9,7 @@ const path=require('node:path');
 const {chromium}=require('playwright-core');
 const origin='http://127.0.0.1:8765';
 const widths=[320,393,440,768,1024,1200,1440,1920];
-const publicRoutes=['/','/about/','/register/','/features/','/privacy.html','/terms.html','/security.html'];
+const publicRoutes=['/','/about/','/register/','/features/','/business/','/privacy.html','/terms.html','/security.html'];
 const screenshots=path.join(process.cwd(),'landing-qa-screenshots');
 fs.mkdirSync(screenshots,{recursive:true});
 function ensure(condition,message){assert.ok(condition,message);console.log('PASS '+message)}
@@ -143,6 +143,16 @@ async function load(page,route,failures){
        ensure(await page.locator('h1').count()===1,route+' '+width+'px has one H1');
        ensure(await page.locator('link[rel="canonical"]').count()===1,
          route+' '+width+'px canonical unique');
+       if(route==='/business/'){
+         ensure(await page.locator('body.business-page').count()===1,
+           route+' dedicated concept page, not private business.html');
+         ensure(await page.locator('.business-availability').count()===1,
+           route+' preview-only status visible');
+         ensure(await page.locator('link[rel="canonical"]').getAttribute('href')==='https://mmhvault.com/business/',
+           route+' canonical targets own route');
+         ensure(await page.locator('header nav>a[href="/business/"]').getAttribute('aria-current')==='page',
+           route+' Business marked selected');
+       }
        if(['/security.html','/privacy.html','/terms.html'].includes(route)){
          ensure(await page.locator('body.public-landing-page.policy-page').count()===1,
            route+' inherits Landing finance brand presentation');
@@ -157,7 +167,7 @@ async function load(page,route,failures){
              fullPage:false,animations:'disabled'});
          }
        }
-       if(['/register/','/features/','/about/','/security.html','/privacy.html','/terms.html'].includes(route)){
+       if(['/register/','/features/','/about/','/business/','/security.html','/privacy.html','/terms.html'].includes(route)){
          const header=await page.evaluate(()=>{
            const bar=document.querySelector('header .bar').getBoundingClientRect();
            const brand=document.querySelector('header .brand').getBoundingClientRect();
@@ -185,7 +195,7 @@ async function load(page,route,failures){
              route+' '+width+'px full navigation is visible');
          }
        }
-       if(['/register/','/features/','/about/'].includes(route)){
+       if(['/register/','/features/','/about/','/business/'].includes(route)){
          ensure(await page.locator('body.public-landing-page .feature-hero').count()===1,
            route+' inherited premium Landing shell');
          ensure(await page.locator('header .brand-wordmark').isVisible(),
@@ -195,7 +205,7 @@ async function load(page,route,failures){
          ensure(await page.locator('.page-breadcrumb a').getAttribute('href')==='/',
            route+' clearly linked as a Landing subpage');
        }
-       if(['/register/','/features/','/about/'].includes(route)&&[320,393,768,1100,1290,1291,1440].includes(width)){
+       if(['/register/','/features/','/about/','/business/'].includes(route)&&[320,393,768,1100,1290,1291,1440].includes(width)){
          const trigger=page.locator('#public-locale-trigger');
          const localeName=page.locator('.public-locale-name');
          if([393,1100,1290,1291,1440].includes(width)){
@@ -262,15 +272,32 @@ async function load(page,route,failures){
      ensure(new URL(page.url()).pathname==='/' &&
        !new URL(page.url()).hash,'Security Home returns to canonical Landing root');
      await page.goto(origin+'/about/',{waitUntil:'load'});
-     await page.locator('header nav>a[href="/#business"]').click();
-     await page.waitForFunction(()=>window.location.hash==='#business'&&window.scrollY>150);
-     ensure(new URL(page.url()).pathname==='/'&&
-       new URL(page.url()).hash==='#business',
-       'Business from a public page opens the actual Landing Business section');
-     await page.locator('.site-header .brand').click();
-     await page.waitForFunction(()=>scrollY<60);
-     ensure(new URL(page.url()).pathname==='/'&& !new URL(page.url()).hash,
-       'Landing Home clears stale Business fragment without a page reload');
+     await page.locator('header nav>a[href="/business/"]').click();
+     await page.waitForURL('**/business/');
+     ensure(new URL(page.url()).pathname==='/business/'&&!new URL(page.url()).hash,
+       'About Business navigation opens its own dedicated URL');
+     ensure(await page.locator('body.public-landing-page.business-page').count()===1,
+       'Business route has its own premium Landing branch');
+     ensure(await page.locator('header nav>a[href="/business/"]').getAttribute('aria-current')==='page',
+       'Business navigation is active on the Business route');
+     await page.locator('.business-hero .action.gold').click();
+     await page.waitForFunction(()=>location.hash==='#business-focus');
+     ensure(new URL(page.url()).pathname==='/business/',
+       'Business concept CTA stays inside Business, not Landing');
+     await page.locator('header .brand').click();
+     await page.waitForURL(url=>url.pathname==='/');
+     ensure(new URL(page.url()).pathname==='/'&&!new URL(page.url()).hash,
+       'Business Home returns to clean canonical Landing');
+     await page.locator('#primary-nav a[data-i18n="navBusiness"]').click();
+     await page.waitForURL('**/business/');
+     ensure(new URL(page.url()).pathname==='/business/',
+       'Landing primary Business navigation opens independent Business page');
+     await page.goto(origin+'/security.html',{waitUntil:'load'});
+     await page.locator('header .public-nav-details summary').click();
+     await page.locator('header .public-nav-panel a[href="/business/"]').click();
+     await page.waitForURL('**/business/');
+     ensure(new URL(page.url()).pathname==='/business/',
+       'Security compact Business menu also opens dedicated Business URL');
      await ctx.close();
    }
       const ctx=await browser.newContext({viewport:{width:393,height:852},reducedMotion:'no-preference'});
