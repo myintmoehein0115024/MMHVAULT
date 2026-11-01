@@ -50,8 +50,9 @@ function mmhP947UnlockV947(){
  layer.hidden=true;layer.style.display='none';history.push('unlock');
 }
 function applyUserProfile(user){history.push('profile:'+user.id);}
+window.__resolveGates=[];
 function mmhN10AssessWorkspaceMfaV1100(){
- return new Promise(resolve=>{window.__resolveGate=resolve;});
+ return new Promise(resolve=>{window.__resolveGates.push(resolve);});
 }
 function handleSameOwner(liveOwner,nextOwner,session){
 ${sameOwner}
@@ -60,7 +61,9 @@ window.__history=history;
 window.__start=()=>{
  handleSameOwner('owner-A','owner-A',{user:{id:'owner-A'}});
 };
-window.__finish=decision=>window.__resolveGate(decision);
+window.__finish=decision=>window.__resolveGates[0](decision);
+window.__finishAt=(index,decision)=>window.__resolveGates[index](decision);
+window.__signOut=()=>{currentSessionUser=null;mmhP947AuthGateTicket++;};
 window.__switchOwner=()=>{currentSessionUser={id:'owner-B'};mmhP947AuthGateTicket++;};
 window.__invalidate=()=>{mmhN10GateVersionV1100++;};
 `;
@@ -89,7 +92,7 @@ async function checkViewport(engine,name,options) {
    await page.addScriptTag({content:localScript});
    return {page,errs};
   }
-  for (const scenario of ['allow','deny','switch','invalidate']) {
+  for (const scenario of ['allow','deny','switch','invalidate','signout','rapid']) {
    const {page,errs}=await create();
    try {
     await page.evaluate(()=>window.__start());
@@ -108,15 +111,32 @@ async function checkViewport(engine,name,options) {
     assert.deepEqual(locked.history,['mask:switch'],name+' '+scenario+' must mask synchronously');
     if(scenario==='switch')await page.evaluate(()=>window.__switchOwner());
     if(scenario==='invalidate')await page.evaluate(()=>window.__invalidate());
-    await page.evaluate(decision=>window.__finish(decision),
-      scenario==='deny'?'deny':'allow');
+    if(scenario==='signout')await page.evaluate(()=>window.__signOut());
+    if(scenario==='rapid'){
+      await page.evaluate(()=>window.__start());
+      await page.waitForFunction(()=>window.__resolveGates.length===2);
+      await page.evaluate(()=>window.__finishAt(0,'allow'));
+      await page.waitForTimeout(35);
+      const halfway=await page.evaluate(()=>({
+        hidden:document.getElementById('mmhP947AccountGuard').hidden,
+        events:[...window.__history]
+      }));
+      assert.equal(halfway.hidden,false,'first rapid result must NOT unlock');
+      assert.equal(halfway.events.includes('unlock'),false,'obsolete rapid result must be ignored');
+      await page.evaluate(()=>window.__finishAt(1,'allow'));
+    }else{
+      await page.evaluate(decision=>window.__finish(decision),
+        scenario==='deny'?'deny':'allow');
+    }
     await page.waitForTimeout(60);
     const after=await page.evaluate(()=>({
       hidden:document.getElementById('mmhP947AccountGuard').hidden,
       history:[...window.__history]
     }));
-    if(scenario==='allow'){
-      assert.deepEqual(after.history,['mask:switch','profile:owner-A','unlock']);
+    if(scenario==='allow'||scenario==='rapid'){
+      assert.deepEqual(after.history,scenario==='rapid'
+        ? ['mask:switch','mask:switch','profile:owner-A','unlock']
+        : ['mask:switch','profile:owner-A','unlock']);
       assert.equal(after.hidden,true,'valid owner must be unlocked');
     } else {
       assert.equal(after.hidden,false,'denied or stale owner must remain covered');
@@ -136,7 +156,7 @@ try {
   viewport:{width:393,height:852},deviceScaleFactor:2,isMobile:true,hasTouch:true});
  await checkViewport(webkit,'mobile WebKit',{
   viewport:{width:375,height:812},deviceScaleFactor:2,isMobile:true,hasTouch:true});
- console.log('12/12 isolated desktop/mobile browser checks passed');
+ console.log('18/18 isolated desktop/mobile browser checks passed');
 }finally {
  await new Promise(resolve=>server.close(resolve));
 }
