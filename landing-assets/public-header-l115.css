@@ -1,0 +1,249 @@
+/* L1.15 | MMHVAULT public introductions only.
+   Mirrors the main Landing's header layout, wordmark, six nav destinations,
+   Explore dropdown, actions, and 1360px hamburger breakpoint.
+   This is deliberately a scoped CSS layer; no App/login selectors. */
+.public-landing-page .public-site-header{
+  position:sticky;top:0;z-index:42;
+  background:linear-gradient(180deg,rgba(9,29,45,.97),rgba(6,25,40,.965));
+  border-bottom:1px solid rgba(242,198,133,.32);
+  box-shadow:0 12px 30px rgba(0,12,23,.18);
+  -webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px);
+}
+.public-landing-page .public-site-header .public-header-inner{
+  width:calc(100% - 64px);max-width:none;
+  display:flex!important;flex-wrap:nowrap!important;
+  justify-content:space-between!important;align-items:center!important;
+  gap:clamp(12px,2vw,26px);min-height:95px;padding:0!important;
+}
+.public-landing-page .public-site-header .brand{
+  display:inline-flex;align-items:center;flex:0 0 auto;min-width:0;
+  gap:12px;margin:0;text-decoration:none;white-space:nowrap;
+}
+.public-landing-page .public-site-header .brand-mark{
+  display:grid;place-items:center;flex:0 0 52px;
+  width:52px;height:54px;padding-right:5px;
+  border:0;border-radius:0;box-shadow:none;
+  color:#f7d7a1;background:linear-gradient(145deg,#fff2d4 2%,#bf8e4f 48%,#ffdda3 78%,#a87537);
+  -webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;
+  font:500 49px/.95 Georgia,"Times New Roman",serif;
+  letter-spacing:-.11em;position:relative;
+  filter:drop-shadow(0 3px 14px rgba(222,161,81,.22));
+}
+.public-landing-page .public-site-header .brand-mark::after{
+  content:"";position:absolute;left:6px;right:6px;bottom:0;
+  height:1px;background:linear-gradient(90deg,transparent,rgba(236,198,132,.85),transparent)
+}
+.public-landing-page .public-site-header .brand-wordmark{
+  display:flex;flex-direction:column;gap:4px;
+}
+.public-landing-page .public-site-header .brand-wordmark strong{
+  font:500 20px/1.1 Georgia,"Times New Roman",serif;
+  letter-spacing:.055em;color:#fff0d7;
+}
+.public-landing-page .public-site-header .brand-wordmark small{
+  font:700 7px/1.4 system-ui,sans-serif;letter-spacing:.22em;color:#d3be9c
+}
+.public-landing-page .public-site-header .public-site-nav{
+  display:flex;align-items:center;justify-content:center;flex:0 1 auto!important;
+  flex-wrap:nowrap!important;min-width:0;width:auto!important;
+  margin:0 auto;gap:clamp(12px,1.5vw,23px)!important;
+  position:static;
+}
+.public-landing-page .public-site-header .public-site-nav>a{
+  display:inline-flex!important;align-items:center;flex:0 0 auto;min-height:44px;
+  text-decoration:none;font:550 13px/1.35 system-ui,sans-serif;
+  white-space:nowrap;color:#dae2e7;transition:color .16s ease;
+}
+.public-landing-page .public-site-header .public-site-nav>a:hover{color:#ffe0ae}
+.public-landing-page .public-site-header .public-site-explore{
+  display:block;position:relative;flex:0 0 auto;min-width:0
+}
+.public-landing-page .public-site-header .public-site-explore>summary{
+  display:flex;align-items:center;justify-content:center;gap:6px;
+  list-style:none;min-height:45px;padding:0 2px;
+  color:#f7d399;cursor:pointer;white-space:nowrap;
+  font:550 13px/1.35 system-ui,sans-serif;
+}
+.public-landing-page .public-site-header .public-site-explore>summary::-webkit-details-marker{display:none}
+.public-landing-page .public-site-header .public-site-explore>summary::marker{content:""}
+.public-landing-page .public-site-header .public-site-explore>summary svg{
+  flex:0 0 14px;transition:transform .18s ease
+}
+.public-landing-page .public-site-header .public-site-explore[open]>summary svg{
+  transform:rotate(180deg)
+}
+.public-landing-page .public-site-header .public-site-explore>summary:focus-visible{
+  outline:2px solid #ffe1a6;outline-offset:4px;border-radius:6px
+}
+.public-landing-page .public-site-header .public-site-explore-menu{
+  position:absolute;top:calc(100% + 11px);right:-18px;z-index:60;
+  display:grid;gap:3px;min-width:250px;max-width:calc(100vw - 26px);
+  padding:10px;border:1px solid rgba(243,203,143,.45);
+  border-radius:18px;background:linear-gradient(150deg,rgba(21,48,67,.98),rgba(7,24,39,.99));
+  -webkit-backdrop-filter:blur(22px);backdrop-filter:blur(22px);
+  box-shadow:0 22px 55px rgba(0,10,25,.4),inset 0 1px rgba(255,243,216,.12)
+}
+.public-landing-page .public-site-header .public-site-explore-menu>a{
+  display:block;min-height:42px;padding:11px 13px;border-radius:11px;
+  white-space:normal;text-decoration:none;overflow-wrap:anywhere;
+  color:#dce6e9;font:560 13px/1.5 system-ui,sans-serif
+}
+.public-landing-page .public-site-header .public-site-explore-menu>a:hover,
+.public-landing-page .public-site-header .public-site-explore-menu>a[aria-current="page"]{
+  color:#ffe3b6;background:rgba(242,191,124,.16)
+}
+.public-landing-page .public-site-header .public-header-actions{
+  display:flex;align-items:center;justify-content:flex-end;flex:0 0 auto;
+  gap:clamp(8px,.9vw,13px);min-width:0
+}
+.public-landing-page .public-site-header .public-header-actions>.feature-nav-signin,
+.public-landing-page .public-site-header .public-header-actions>.feature-nav-cta{
+  display:inline-flex;align-items:center;justify-content:center;
+  min-height:44px;white-space:nowrap;text-decoration:none;
+  border-radius:999px;padding:10px 17px;font:700 12px/1.45 system-ui,sans-serif
+}
+.public-landing-page .public-site-header .public-header-actions>.feature-nav-signin{
+  border:1px solid rgba(241,198,136,.78);
+  background:rgba(8,28,46,.55);color:#fff2dc
+}
+.public-landing-page .public-site-header .public-header-actions>.feature-nav-cta{
+  border:1px solid #f2cf98;background:linear-gradient(120deg,#ffebbf,#efbd7c);
+  color:#091c2e;box-shadow:inset 0 1px rgba(255,255,255,.5)
+}
+.public-landing-page .public-site-header .public-header-actions a:hover{
+  filter:brightness(1.08)
+}
+.public-landing-page .public-site-header .public-locale-picker{z-index:65}
+.public-landing-page .public-site-header .public-locale-trigger{min-height:45px}
+.public-landing-page .public-site-header .public-nav-auth{display:none}
+.public-landing-page .public-site-header .public-site-menu-toggle{display:none}
+@media(max-width:1360px){
+  .public-landing-page .public-site-header .public-header-inner{
+    min-height:84px!important;gap:12px;max-width:none
+  }
+  .public-landing-page .public-site-header .public-site-nav{
+    display:none!important;position:absolute;z-index:70;
+    top:calc(100% + 6px);left:clamp(12px,2.5vw,29px);
+    right:clamp(12px,2.5vw,29px);width:auto!important;min-width:0;
+    flex-direction:column;align-items:stretch;justify-content:flex-start!important;
+    gap:1px!important;max-height:calc(100dvh - 98px);overflow-y:auto;
+    overscroll-behavior:contain;margin:0;padding:9px!important;
+    border:1px solid rgba(240,204,153,.46);border-radius:17px;
+    background:rgba(7,25,41,.985);
+    box-shadow:0 24px 60px rgba(0,9,24,.43);
+    -webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px)
+  }
+  .public-landing-page .public-site-header.menu-open .public-site-nav{display:flex!important}
+  .public-landing-page .public-site-header .public-site-nav>a{
+    display:flex!important;min-height:45px;width:100%;
+    padding:10px 15px;border-radius:10px;
+    font-size:13px;color:#e2e9ec;
+  }
+  .public-landing-page .public-site-header .public-site-nav>a:hover{
+    background:rgba(241,196,133,.13)
+  }
+  .public-landing-page .public-site-header .public-site-explore{
+    width:100%;flex:0 0 auto
+  }
+  .public-landing-page .public-site-header .public-site-explore>summary{
+    display:flex;justify-content:space-between;
+    width:100%;min-height:46px;padding:10px 15px;font-size:13px
+  }
+  .public-landing-page .public-site-header .public-site-explore-menu{
+    position:static;width:100%;min-width:0;max-width:none;
+    padding:5px 8px 8px;margin:0 0 8px;
+    background:rgba(29,58,76,.45);box-shadow:none;border-radius:12px
+  }
+  .public-landing-page .public-site-header .public-nav-auth{
+    display:block;padding:12px 15px 8px;border-top:1px solid rgba(240,201,144,.18);
+  }
+  .public-landing-page .public-site-header .public-nav-auth>span{
+    display:block;color:#b9ac99;font:750 10px/1.5 system-ui,sans-serif;
+    letter-spacing:.1em;margin-bottom:10px
+  }
+  .public-landing-page .public-site-header .public-nav-auth>div{display:flex;gap:9px;flex-wrap:wrap}
+  .public-landing-page .public-site-header .public-nav-auth a{
+    display:inline-flex;align-items:center;justify-content:center;min-height:40px;
+    border:1px solid rgba(238,198,142,.5);border-radius:11px;
+    padding:9px 13px;color:#f6e1be;background:rgba(21,50,70,.65);
+    font:650 12px/1.4 system-ui,sans-serif;text-decoration:none
+  }
+  .public-landing-page .public-site-header .public-site-menu-toggle{
+    display:flex;align-items:center;justify-content:center;flex-direction:column;
+    gap:5px;flex:0 0 43px;width:43px;height:43px;min-width:43px;
+    border-radius:11px;border:1px solid rgba(236,196,135,.55);
+    background:rgba(15,35,53,.86);cursor:pointer;padding:0;
+  }
+  .public-landing-page .public-site-header .public-site-menu-toggle span{
+    display:block;width:19px;height:1.5px;border-radius:8px;background:#eed4a6;
+    transition:opacity .18s ease,transform .18s ease
+  }
+  .public-landing-page .public-site-header.menu-open .public-site-menu-toggle span:first-child{transform:translateY(6.5px) rotate(45deg)}
+  .public-landing-page .public-site-header.menu-open .public-site-menu-toggle span:nth-child(2){opacity:0}
+  .public-landing-page .public-site-header.menu-open .public-site-menu-toggle span:last-child{transform:translateY(-6.5px) rotate(-45deg)}
+}
+@media(max-width:700px){
+  .public-landing-page .public-site-header .public-header-inner{
+    min-height:69px!important;width:calc(100% - 24px);gap:8px;
+  }
+  .public-landing-page .public-site-header .brand{flex:1 1 auto;gap:6px}
+  .public-landing-page .public-site-header .brand-mark{
+    flex:0 0 36px;width:36px;height:41px;font-size:38px
+  }
+  .public-landing-page .public-site-header .brand-wordmark strong{
+    font-size:clamp(12px,3.7vw,16px)
+  }
+  .public-landing-page .public-site-header .brand-wordmark small{
+    font-size:clamp(4.5px,1.4vw,6px);letter-spacing:.12em
+  }
+  .public-landing-page .public-site-header .public-header-actions{gap:7px}
+  .public-landing-page .public-site-header .public-header-actions>.feature-nav-signin,
+  .public-landing-page .public-site-header .public-header-actions>.feature-nav-cta{
+    display:none!important
+  }
+  .public-landing-page .public-site-header .public-locale-trigger{
+    display:flex;align-items:center;justify-content:center;
+    min-width:42px;width:42px;height:42px;min-height:42px;padding:0;gap:0;
+  }
+  .public-landing-page .public-site-header .public-locale-flag,
+  .public-landing-page .public-site-header .public-locale-name,
+  .public-landing-page .public-site-header .public-locale-chevron{
+    display:none!important
+  }
+  .public-landing-page .public-site-header .public-site-menu-toggle{
+    flex-basis:42px;width:42px;height:42px;min-width:42px
+  }
+}
+@media(max-width:375px){
+  .public-landing-page .public-site-header .public-header-inner{
+    width:calc(100% - 18px);gap:5px
+  }
+  .public-landing-page .public-site-header .brand-mark{
+    flex-basis:31px;width:31px;font-size:34px
+  }
+  .public-landing-page .public-site-header .brand-wordmark strong{font-size:12px}
+  .public-landing-page .public-site-header .brand-wordmark small{font-size:5px}
+  .public-landing-page .public-site-header .public-header-actions{gap:5px}
+  .public-landing-page .public-site-header .public-locale-trigger,
+  .public-landing-page .public-site-header .public-site-menu-toggle{
+    min-width:39px;width:39px;height:39px;min-height:39px;flex-basis:39px
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  .public-landing-page .public-site-header .public-site-menu-toggle span,
+  .public-landing-page .public-site-header .public-site-explore>summary svg{
+    transition:none
+  }
+}
+
+
+/* The old public-header compatibility rule used two :not() selectors with
+   higher specificity at <=1290px. Explicitly replace it so the unified
+   mobile navigation's five real links are actually visible. */
+@media(max-width:1360px){
+  .public-landing-page header.public-site-header nav.public-site-nav>
+    a:not(.feature-nav-signin):not(.feature-nav-cta){
+    display:flex!important;
+  }
+}

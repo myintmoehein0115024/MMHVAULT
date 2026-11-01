@@ -174,8 +174,8 @@ async function load(page,route,failures){
            route+' preview-only status visible');
          ensure(await page.locator('link[rel="canonical"]').getAttribute('href')==='https://mmhvault.com/business/',
            route+' canonical targets own route');
-         ensure(await page.locator('header nav>a[href="/business/"]').getAttribute('aria-current')==='page',
-           route+' Business marked selected');
+         ensure(await page.locator('header #public-explore a[href="/business/"]').getAttribute('aria-current')==='page',
+           route+' Business marked selected in Explore');
        }
        if(['/security.html','/privacy.html','/terms.html'].includes(route)){
          ensure(await page.locator('body.public-landing-page.policy-page').count()===1,
@@ -195,28 +195,61 @@ async function load(page,route,failures){
          const header=await page.evaluate(()=>{
            const bar=document.querySelector('header .bar').getBoundingClientRect();
            const brand=document.querySelector('header .brand').getBoundingClientRect();
-           const nav=document.querySelector('header nav').getBoundingClientRect();
-           return {barHeight:Math.round(bar.height),barBottom:Math.round(bar.bottom),
+           const nav=document.querySelector('header .public-site-nav').getBoundingClientRect();
+           const actions=document.querySelector('header .public-header-actions').getBoundingClientRect();
+           return {barHeight:Math.round(bar.height),brandRight:Math.round(brand.right),
              brandTop:Math.round(brand.top),brandBottom:Math.round(brand.bottom),
-             navTop:Math.round(nav.top),navBottom:Math.round(nav.bottom)};
+             navLeft:Math.round(nav.left),navRight:Math.round(nav.right),
+             navTop:Math.round(nav.top),navHeight:Math.round(nav.height),
+             actionsLeft:Math.round(actions.left),actionsTop:Math.round(actions.top),
+             actionsBottom:Math.round(actions.bottom)};
          });
-         ensure(header.barHeight<=112&&header.navTop<=header.brandBottom+8&&
-           header.brandTop<=header.navBottom+8,
-           route+' '+width+'px single-row header without 2nd line '+JSON.stringify(header));
-         const details=page.locator('header .public-nav-details');
-         if(width<=1290){
-           ensure(await details.isVisible(),route+' '+width+'px responsive menu is visible');
-           await details.locator('summary').click();
-           ensure(await details.evaluate(d=>d.open),route+' '+width+'px compact menu opens');
-           ensure(await details.locator('a[href="/features/"]').isVisible()&&
-             await details.locator('a[href="/register/"]').isVisible(),
-             route+' '+width+'px compact menu includes public routes');
+         ensure(header.barHeight<=112&&header.brandRight<=header.actionsLeft+4 &&
+           header.brandTop<=header.actionsBottom+8&&header.actionsTop<=header.brandBottom+8,
+           route+' '+width+'px header on one row '+JSON.stringify(header));
+         const explore=page.locator('header #public-explore');
+         if(width<=1360){
+           ensure(await page.locator('header .public-site-menu-toggle').isVisible(),
+             route+' '+width+'px hamburger visible');
+           ensure(!await page.locator('header .public-site-nav').isVisible(),
+             route+' '+width+'px compact menu starts closed');
+           await page.locator('header .public-site-menu-toggle').click();
+           ensure(await page.locator('header .public-site-menu-toggle').getAttribute('aria-expanded')==='true'&&
+             await page.locator('header .public-site-nav').isVisible(),
+             route+' '+width+'px compact navigation opens');
+           ensure(await page.locator('header .public-site-nav>a[href="/#business"]').isVisible()&&
+             await page.locator('header .public-site-nav>a[href="/#security"]').isVisible(),
+             route+' '+width+'px Business/Security follow Landing sections');
+           await explore.locator('summary').click();
+           ensure(await explore.evaluate(d=>d.open)&&
+             await explore.locator('a[href="/business/"]').isVisible()&&
+             await explore.locator('a[href="/features/"]').isVisible(),
+             route+' '+width+'px Explore contains public introduction routes');
            await page.keyboard.press('Escape');
-           ensure(!await details.evaluate(d=>d.open),route+' '+width+'px Escape closes menu');
+           ensure(!await explore.evaluate(d=>d.open),
+             route+' '+width+'px Escape closes Explore');
+           await page.keyboard.press('Escape');
+           ensure(!await page.locator('header .public-site-nav').isVisible(),
+             route+' '+width+'px Escape closes hamburger');
          }else{
-           ensure(!await details.isVisible()&&
-             await page.locator('header nav>a[href="/features/"]').isVisible(),
-             route+' '+width+'px full navigation is visible');
+           ensure(await page.locator('header .public-site-nav').isVisible()&&
+             await page.locator('header .public-site-nav>a[href="/#business"]').isVisible(),
+             route+' '+width+'px desktop six-item navigation visible');
+           ensure(header.brandRight<=header.navLeft+4&&
+             header.navRight<=header.actionsLeft+4&&
+             header.navHeight<=70&&Math.abs(header.navTop-header.actionsTop)<32,
+             route+' '+width+'px no desktop navigation wrap '+JSON.stringify(header));
+           await explore.locator('summary').click();
+           ensure(await explore.locator('a[href="/about/"]').isVisible(),
+             route+' '+width+'px desktop Explore opens');
+           await page.keyboard.press('Escape');
+           ensure(!await explore.evaluate(d=>d.open),
+             route+' '+width+'px desktop Explore Escape');
+         }
+         if([393,1100,1366,1440].includes(width)){
+           await page.screenshot({path:path.join(screenshots,
+             'unified-header-'+route.replace(/\W/g,'-')+'-'+width+'.png'),
+             fullPage:false,animations:'disabled'});
          }
        }
        if(['/register/','/features/','/about/','/business/'].includes(route)){
@@ -316,14 +349,20 @@ async function load(page,route,failures){
      ensure(new URL(page.url()).pathname==='/' &&
        !new URL(page.url()).hash,'Independent Security Home returns to canonical Landing');
      await page.goto(origin+'/about/',{waitUntil:'load'});
-     await page.locator('header nav>a[href="/business/"]').click();
+     await page.locator('header .public-site-nav>a[href="/#business"]').click();
+     await page.waitForURL(url=>url.pathname==='/'&&url.hash==='#business');
+     ensure(new URL(page.url()).pathname==='/'&&new URL(page.url()).hash==='#business',
+       'About top-level Business opens Landing Business showcase');
+     await page.goto(origin+'/about/',{waitUntil:'load'});
+     await page.locator('header #public-explore > summary').click();
+     await page.locator('header #public-explore a[href="/business/"]').click();
      await page.waitForURL('**/business/');
      ensure(new URL(page.url()).pathname==='/business/'&&!new URL(page.url()).hash,
-       'About Business navigation opens its own dedicated URL');
+       'About Explore opens independent Business concept');
      ensure(await page.locator('body.public-landing-page.business-page').count()===1,
-       'Business route has its own premium Landing branch');
-     ensure(await page.locator('header nav>a[href="/business/"]').getAttribute('aria-current')==='page',
-       'Business navigation is active on the Business route');
+       'Business route remains its independent introduction page');
+     ensure(await page.locator('header #public-explore a[href="/business/"]').getAttribute('aria-current')==='page',
+       'Business entry is highlighted in Explore on the Business route');
      await page.locator('.business-hero .action.gold').click();
      await page.waitForFunction(()=>location.hash==='#business-focus');
      ensure(new URL(page.url()).pathname==='/business/',
@@ -339,8 +378,9 @@ async function load(page,route,failures){
        'Landing Explore opens independent Business concept information');
      await page.goto(origin+'/security.html',{waitUntil:'load'});
      await page.setViewportSize({width:393,height:852});
-     await page.locator('header .public-nav-details summary').click();
-     await page.locator('header .public-nav-panel a[href="/business/"]').click();
+     await page.locator('header .public-site-menu-toggle').click();
+     await page.locator('header #public-explore > summary').click();
+     await page.locator('header #public-explore a[href="/business/"]').click();
      await page.waitForURL('**/business/');
      ensure(new URL(page.url()).pathname==='/business/',
        'Security compact Business menu also opens dedicated Business URL');

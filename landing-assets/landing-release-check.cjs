@@ -98,7 +98,7 @@ check('Sitemap has no private app or login',!/<loc>[^<]*\/(?:app|login|n10-qa)\.
 check('PWA launcher points to secure Login',manifest.start_url==='./login.html?source=pwa&install=v2');
 check('Manifest differs only in start_url',JSON.stringify({...manifest,start_url:oldManifest.start_url})===JSON.stringify(oldManifest));
 check('Preserved old iPhone touch icon',current.includes('<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=pwa24-20261029">'));
-const allowed=new Set(['index.html','robots.txt','mmh-manifest-v2.webmanifest','business.html','sitemap.xml','register/index.html','features/index.html','about/index.html','business/index.html','privacy.html','terms.html','security.html','landing-assets/public-pages.css','landing-assets/public-pages.js','landing-assets/landing-release-check.cjs','landing-assets/landing-browser-check.cjs','.github/workflows/landing-release-check.yml',...names.map(f=>'landing-assets/'+f)]);
+const allowed=new Set(['index.html','robots.txt','mmh-manifest-v2.webmanifest','business.html','sitemap.xml','register/index.html','features/index.html','about/index.html','business/index.html','privacy.html','terms.html','security.html','landing-assets/public-pages.css','landing-assets/public-header-l115.css','landing-assets/public-pages.js','landing-assets/landing-release-check.cjs','landing-assets/landing-browser-check.cjs','.github/workflows/landing-release-check.yml',...names.map(f=>'landing-assets/'+f)]);
 const diff=cp.spawnSync('git',['diff','--name-only',main+'...HEAD'],{encoding:'utf8'});
 assert.equal(diff.status,0,'git diff unsuccessful');
 const actual=diff.stdout.trim().split(/\n/).filter(Boolean);
@@ -258,17 +258,20 @@ check('Business public page is premium, independent and clearly preview-only',
  business.includes('CONCEPT PREVIEW') &&
  business.includes('not a currently available business accounting service') &&
  business.includes('href="#business-focus"') &&
- !business.includes('href="/#business"') &&
+ business.includes('href="/#business"') &&
+ !/<a class="action gold" href="\/#business"/.test(business) &&
  !business.includes('supabase.co') &&
  !/<form[\s>]/i.test(business));
-check('Public subpages retain their independent Business route, separate from Landing',
+check('Landing and seven public introductions now share navigation semantics',
  ['about/index.html','features/index.html','register/index.html',
   'privacy.html','terms.html','security.html','business/index.html'].every(path=>{
     const html=read(path);
-    return html.includes('href="/business/"') &&
-      !html.includes('href="/#business"') &&
-      html.includes('href="/"') &&
-      html.includes('class="public-nav-details"');
+    return html.includes('href="/#business"') &&
+      html.includes('href="/#security"') &&
+      html.includes('href="/business/"') &&
+      html.includes('href="/security.html"') &&
+      html.includes('class="public-site-explore"') &&
+      html.includes('href="/"');
   }) &&
  current.includes('href="#business" data-i18n="navBusiness"') &&
  current.includes('href="./business/" data-i18n="infoBusiness"') &&
@@ -318,6 +321,7 @@ const publicRuntimeBudgets={
   'landing-assets/cinematic.css':40000,
   'landing-assets/premium-l131.css':20000,
   'landing-assets/explore-l114.css':9000,
+  'landing-assets/public-header-l115.css':16000,
   'landing-assets/motion-l132.css':12000,
   'landing-assets/landing.js':110000,
   'landing-assets/motion-l132.js':15000,
@@ -350,8 +354,8 @@ for(const file of ['privacy.html','terms.html','security.html']){
    !!originalPolicyCard&&originalPolicyCard===currentPolicyCard);
  check(file+' uses unified Landing header, footer and canonical Home links',
    content.includes('<body class="public-landing-page policy-page"') &&
-   content.includes('<header><div class="wrap bar">') &&
-   content.includes('class="public-nav-details"') &&
+   content.includes('<header class="public-site-header"><div class="wrap bar public-header-inner">') &&
+   content.includes('class="public-site-explore"') &&
    content.includes('class="public-footer"') &&
    content.includes('href="/business/"') &&
    content.includes('<a class="brand" href="/"') &&
@@ -381,15 +385,47 @@ check('Landing has five same-page primary sections and a separate Explore menu',
   rootNav.includes('href="./'+target+'" data-i18n="info')) &&
  (rootNav.match(/<details class="nav-explore"/g)||[]).length===1 &&
  (rootNav.match(/<summary>/g)||[]).length===1);
-check('Explore EN/ZH/MY text is present and only Landing source is modified',
+check('Landing Explore EN/ZH/MY strings and homepage files remain unchanged',
  ['en','zh','my'].every(lang=>translationScript.includes('Object.assign(strings.'+lang+', {\n    navExplore:')) &&
- actual.every(x=>['index.html','landing-assets/landing.js',
-     'landing-assets/explore-l114.css','landing-assets/landing-browser-check.cjs',
-     'landing-assets/landing-release-check.cjs'].includes(x)));
-check('Public SEO destinations and private routes remain unchanged in PR diff',
- ['about/index.html','features/index.html','business/index.html','register/index.html',
-  'security.html','privacy.html','terms.html','business.html','app.html','login.html',
-  'sitemap.xml','robots.txt','mmh-manifest-v2.webmanifest'].every(file=>{
+ source('index.html')===current &&
+ source('landing-assets/landing.js')===translationScript &&
+ source('landing-assets/explore-l114.css')===read('landing-assets/explore-l114.css'));
+const publicHeaders=['about/index.html','features/index.html','business/index.html',
+ 'register/index.html','security.html','privacy.html','terms.html'];
+const headerSource=read('landing-assets/public-header-l115.css');
+check('All seven public introduction pages share Landing-style header + Explore',
+ publicHeaders.every(path=>{
+   const html=read(path),old=source(path);
+   const header=(html.match(/<header class="public-site-header">[\s\S]*?<\/header>/)||[])[0]||'';
+   const oldHeader=(old.match(/<header\b[\s\S]*?<\/header>/)||[])[0]||'';
+   const cssTag='<link rel="stylesheet" href="/landing-assets/public-header-l115.css?v=1">';
+   return !!oldHeader&&!!header&&html.includes(cssTag) &&
+     html.replace(header,'').replace(cssTag+'\n','').replace('\n'+cssTag,'')===old.replace(oldHeader,'') &&
+     header.includes('id="public-primary-nav"') &&
+     header.includes('id="public-explore"') &&
+     header.includes('class="public-site-menu-toggle"') &&
+     header.includes('href="/#business"') &&
+     header.includes('href="/#security"') &&
+     (header.match(/<summary>/g)||[]).length===1 &&
+     (header.match(/id="public-locale-trigger"/g)||[]).length===1 &&
+     !header.includes('public-nav-details');
+ }));
+check('Public header styles are scoped and standalone script is read-only',
+ headerSource.includes('.public-landing-page .public-site-header') &&
+ headerSource.includes('@media(max-width:1360px)') &&
+ !headerSource.includes('body.app') &&
+ read('landing-assets/public-pages.js').includes('public-site-menu-toggle') &&
+ read('landing-assets/public-pages.js').includes('public-explore') &&
+ !/\bfetch\s*\(|supabase\.createClient|SERVICE_ROLE_KEY|location\.replace/.test(read('landing-assets/public-pages.js')));
+check('Only seven public HTML shells, scoped CSS/JS and QA changed',
+ actual.every(x=>[...publicHeaders,'landing-assets/public-header-l115.css',
+  'landing-assets/public-pages.js','landing-assets/landing-release-check.cjs',
+  'landing-assets/landing-browser-check.cjs'].includes(x)) &&
+ !actual.includes('index.html') &&
+ !actual.includes('landing-assets/landing.css'));
+check('Protected auth/PWA/SEO/config sources unchanged in PR diff',
+ ['business.html','app.html','login.html','sitemap.xml','robots.txt',
+  'mmh-manifest-v2.webmanifest','landing-assets/landing.js'].every(file=>{
     const test=cp.spawnSync('git',['diff','--quiet',main+'...HEAD','--',file],
       {encoding:'utf8',maxBuffer:4096});
     return test.status===0;
