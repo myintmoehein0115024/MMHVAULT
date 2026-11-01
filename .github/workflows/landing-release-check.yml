@@ -12,6 +12,9 @@ on:
       - 'landing-assets/**'
       - 'register/**'
       - 'features/**'
+      - 'privacy.html'
+      - 'terms.html'
+      - 'security.html'
       - 'sitemap.xml'
       - '.github/workflows/landing-release-check.yml'
 permissions:
@@ -33,3 +36,30 @@ jobs:
         run: node --check landing-assets/public-pages.js
       - name: Release invariants
         run: node landing-assets/landing-release-check.cjs
+
+  browser-qa:
+    name: Public responsive browser QA (no auth)
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install test-only browser driver
+        run: npm install --no-save --no-package-lock --no-audit --no-fund playwright-core@1.56.1
+      - name: Run six-size Landing and public-page browser regression
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 >/tmp/mmhvault-landing-http.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID"' EXIT
+          sleep 2
+          node landing-assets/landing-browser-check.cjs
+      - name: Upload public-only visual snapshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mmhvault-landing-public-visual-qa
+          path: landing-qa-screenshots/*.png
+          if-no-files-found: ignore
+          retention-days: 7
