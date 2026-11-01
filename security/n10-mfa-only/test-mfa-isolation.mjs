@@ -47,6 +47,35 @@ const tests=[
   assert.equal(result.unknown[0].id,'c');assert.equal(result.allTotp.length,3);
   assert.throws(()=>inspect({totp:[]}),/factor_inventory_unavailable/);
  }],
+ ['discard prior MFA consent and remove confirmation when closing or switching accounts',()=>{
+  const source=src.match(/function clearMfa\(\)\{[^\n]*\}/)?.[0];
+  assert.ok(source,'missing synchronous sensitive MFA cleanup');
+  const element=(extra={})=>({hidden:false,checked:false,value:'',textContent:'',replaceChildren(){this.wiped=true},...extra});
+  const nodes={
+   mmhA783TotpConsent:element({checked:true}),
+   mmhA783TotpRemoveText:element({value:'REMOVE'}),
+   mmhA783TotpRemoveConfirm:element({hidden:false}),
+   mmhA783TotpBackupConfirmed:element({checked:true}),
+   mmhA783TotpSetup:element({hidden:false}),
+   mmhA783TotpQr:element(),mmhA783TotpSecret:element({textContent:'temporary'}),
+   mmhA783TotpCode:element({value:'123456'}),mmhA783KeyReveal:element()
+  };
+  const env={mfaEpoch:7,pendingSecret:'temporary secret',pendingFactor:'temp-factor',
+    pendingFactorOwner:'owner-A',$:id=>nodes[id]||null,a783Action:()=>{}};
+  const clear=runInNewContext('('+source+')',env);
+  clear();
+  assert.equal(env.mfaEpoch,8);
+  assert.equal(env.pendingSecret,'');assert.equal(env.pendingFactor,'');
+  assert.equal(env.pendingFactorOwner,'');
+  assert.equal(nodes.mmhA783TotpConsent.checked,false);
+  assert.equal(nodes.mmhA783TotpRemoveText.value,'');
+  assert.equal(nodes.mmhA783TotpRemoveConfirm.hidden,true);
+  assert.equal(nodes.mmhA783TotpBackupConfirmed.checked,false);
+  assert.equal(nodes.mmhA783TotpSetup.hidden,true);
+  assert.equal(nodes.mmhA783TotpSecret.textContent,'');
+  assert.equal(nodes.mmhA783TotpCode.value,'');
+  assert.equal(nodes.mmhA783TotpQr.wiped,true);
+ }],
  ['pending owner and epoch cleared synchronously',()=>{
   assert.match(src,/pendingFactorOwner='',pendingSecret=''/);
   assert.match(src,/function clearMfa\(\)\{mfaEpoch\+=1;pendingSecret='';pendingFactor='';pendingFactorOwner='';/);
