@@ -133,7 +133,7 @@ async function load(page,route,failures){
          }
          ensure(localeOverflow.extra<=2,route+' Burmese locale has no sideways scroll '+JSON.stringify(localeOverflow));
        }
-       if(width===393 && ['/register/','/features/','/about/'].includes(route)){
+       if((width===393 && ['/register/','/features/','/about/'].includes(route)) || (width===1440 && route==='/features/')){
          await page.screenshot({path:path.join(screenshots,
             route.replaceAll('/','')+'-393.png'),fullPage:true,animations:'disabled'});
        }
