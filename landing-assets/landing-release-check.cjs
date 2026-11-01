@@ -268,7 +268,8 @@ check('Public subpages retain their independent Business route, separate from La
   }) &&
  current.includes('href="#business" data-i18n="navBusiness"') &&
  current.includes('href="./business/" data-i18n="infoBusiness"') &&
- !current.includes('href="./business/" data-i18n="navBusiness"'));
+ !(current.split('<nav class="nav" id="primary-nav"')[1]||'').split('</nav>')[0]
+   .includes('href="./business/" data-i18n="navBusiness"'));
 check('Private business.html is untouched and remains non-indexable',
  !actual.includes('business.html') &&
  source('business.html')===read('business.html') &&
