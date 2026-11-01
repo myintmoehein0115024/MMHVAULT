@@ -133,3 +133,10 @@
 - **只读生产 Edge 元数据**：已部署旧 `mmh-n10a783-phrase-verify` v4，但不存在 `mmh-n10-fixed-recovery`（候选正式 Vault 未部署）。不能说已上线。
 - `review/n10-main-compat-20261101-r2` 仍比 latest main ahead、behind 0，20/20 Chromium+WebKit 模拟测试、18/18 源码合同测试 PASS；PR #2 仍 Draft/mergeable=false，未合并。
 - 新完整阻断文档 `docs/N10_ACTUAL_RELEASE_BLOCKERS_20261101.md`，明确只剩三个**必须真实完成**的大阶段：① A 的服务端验证通过及 AAL2；② 独立批准的 Vault Staging 真实 E2E + 删除证明；③ PR 冲突解决、生产备份/回滚及正式上线审批。旧 QA 重新启用曾被拦截，不能绕过。
+
+## 2026-11-01 — MFA-only 与未验收 Vault 已正式拆分为独立审查候选
+- 新隔离代码分支：`review/n10-mfa-only-20261101`，基于 `main d9e61e96d9ea30f1296d81594f87275179c85c3e`。该分支的安全中心 JS 仅取经审核的 MFA 修复，不带 `VAULT_API`、`N10_FIXED_VAULT_UI_RELEASED`、Vault 密码/备份/取回控件或候选 Edge 代码；现有正式恢复十词 60 秒逻辑保留。
+- 新分支相对 main 的范围仅是 **安全中心 JS + 2 个安全测试 + 1 个无部署 CI**，不动正式 main、Login、Landing、App、Accounts FX、财务、RLS 或 DNS。
+- GitHub Actions `41277627418` **SUCCESS**：12/12 独立 MFA 源码/模拟检查，20/20 Chromium/WebKit 本地 DOM 模拟交互检查，JS 语法通过。MFA 的账户 A→B 切换、清除旧 QR、AAL2 及同 factor verified 确认均覆盖；没有任何真实 Auth 调用。
+- 专门报告位于新分支 `docs/N10_MFA_ONLY_REVIEW_CANDIDATE_20261101.md`。
+- **未发布**。2026-11-01 最新实际 Staging SQL 仍显示 A 一条 unverified TOTP、零 verified；B 零因子。旧 QA 页面 LOCKED，联合 Vault 服务 OFF，生产固定恢复 Vault 未部署，PR #2 Draft/mergeable=false。下一步需要真实 A MFA 和 Vault 的独立批准测试，再进行上线评审；不能将 32 项模拟测试误报为真实 AAL2 验收。
