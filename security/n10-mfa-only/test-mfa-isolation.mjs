@@ -89,6 +89,33 @@ const tests=[
   assert.match(s,/if\(info\?\.overlay\.querySelector\('#mmhA783TotpSetup'\)\)\{/);
   assert.match(s,/if\(pendingFactor\)void cancelPendingMfa\(\);else clearMfa\(\);/);
  }],
+ ['recovery request requires unchanged owner, foreground modal and epoch',()=>{
+  const code=src.match(/function recoveryRequestActive\(epoch,userId\)\{[\s\S]*?\n\}/)?.[0];
+  assert.ok(code,'missing recovery async guard');
+  const overlay={hidden:false},panel={classList:{contains:x=>x==='mmh-a785-open'}};
+  const env={owner:'A',recoveryEpoch:5,document:{hidden:false},
+   $:id=>id==='mmhA783Recovery'?panel:{closest:()=>overlay}};
+  const fn=runInNewContext('('+code+')',env);
+  assert.equal(fn(5,'A'),true);
+  assert.equal(fn(4,'A'),false);
+  assert.equal(fn(5,'B'),false);
+  env.document.hidden=true;assert.equal(fn(5,'A'),false);
+  env.document.hidden=false;overlay.hidden=true;assert.equal(fn(5,'A'),false);
+  overlay.hidden=false;env.owner='B';assert.equal(fn(5,'A'),false);
+ }],
+ ['original key verification rejects stale response before revealing words',()=>{
+  const s=between("$('mmhA783KeyVerify').addEventListener('click',async()=>{","$('mmhA783KeyHide').addEventListener('click',hideKey);");
+  ordered(s,['if(busy||!owner||!recoveryRequestActive(recoveryEpoch,owner))return;',
+   'const epoch=recoveryEpoch,userId=owner;',"const r=await api('verify_saved_phrase',{phrase:raw});",
+   'if(!recoveryRequestActive(epoch,userId))return;',
+   "if(!r.ok||r.body?.verified!==true)throw Error('invalid');",
+   'hideKey();verifiedPhrase=raw;',
+   "$('mmhA783KeyDisplay').hidden=false;",
+   'clearTimer=setTimeout(hideKey,60000);']);
+  assert.match(s,/catch\(_\)\{if\(recoveryRequestActive\(epoch,userId\)\)\{/);
+  assert.match(src,/function hideKey\(\)\{recoveryEpoch\+=1;verifiedPhrase='';/);
+  assert.doesNotMatch(s,/verifiedPhrase=raw;hideKey\(\);verifiedPhrase=raw;/);
+ }],
  ['logout and owner change clean sensitive data synchronously',()=>{
   const s=between('client().auth.onAuthStateChange((event,session)=>{','setTimeout(refresh,400)');
   ordered(s,["if(event==='SIGNED_OUT'||(event==='SIGNED_IN'&&owner&&session?.user?.id!==owner))",
