@@ -121,3 +121,8 @@
 - 新隔离分支 `review/n10-main-compat-20261101-r2` 直接基于新 main `d9e61e96d9ea30f1296d81594f87275179c85c3e` 创建（包含主站 Accounts FX 更新）；只差安全中心候选 JS 和 3 个相关 CI/测试文件，**不修改正式 main**。
 - 已在 headless Chromium 与 WebKit 用合成账户分别检查延迟二维码、后台/前台、登出敏感状态、A→B 切换后拒绝 A 验证器跨账户清理、A→B 切换时立即隐藏恢复词：**10/10 浏览器测试 PASS，18/18 静态及模拟安全测试 PASS**。R2 GitHub Actions `41274424895` SUCCESS；原 R1 `41274317977` 同样 SUCCESS。
 - 此为独立模拟 DOM，fetch/Auth 均模拟，不证明真实 MFA AAL2、真实 Vault 或 iPhone 实机。未改正式网站和财务数据，PR #2 未合并，QA RELEASED=false、过期/LOCKED；A 的真实 MFA 仍 unverified，Vault 联合服务 OFF。剩余真实验收、Vault 联测、PR 冲突/上线审批。
+
+## 2026-11-01 — R2 20/20 浏览器验收更新
+- 在隔离 `review/n10-main-compat-20261101-r2` 分支增加 Chromium、WebKit 两种引擎的模拟端到端步骤：验证码 API 成功但 AAL1 不可宣布开启；AAL2 但同因子仍 unverified 也不可宣布成功；320/390 CSS 像素窗口弹窗不溢出；Escape 关闭弹窗并解除锁定。
+- GitHub Actions `41275167356` **SUCCESS**：真实无头 Chromium/WebKit 运行 **20/20 PASS**，离线静态/模拟 **18/18 PASS**。所有网络请求在模拟页面中限制到本地服务，未触碰真实 Supabase/Auth/Vault/财务。
+- 这些不是真实 iPhone Safari、完整正式 APP 布局或 Staging A 签名登录。真实 A MFA 仍 unverified，QA 仍 LOCKED，Vault 仍 OFF，PR #2 Draft 未合并。正式 main、Landing、Login、Accounts FX 数据都没有修改。
