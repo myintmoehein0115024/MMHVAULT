@@ -1,0 +1,46 @@
+name: N10 App Entry MFA — review-only candidate
+on:
+  push:
+    branches:
+      - review/n10-app-entry-gate-20261101
+  pull_request:
+    paths:
+      - .github/workflows/n10-app-entry-gate-review.yml
+      - security/n10-app-entry-guard-candidate/**
+permissions:
+  contents: read
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout review candidate (never deploy)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Prepare Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify the candidate only changes isolated review files
+        shell: bash
+        run: |
+          git fetch origin main
+          changed="$(git diff --name-only origin/main...HEAD)"
+          test -n "$changed"
+          while IFS= read -r path; do
+            case "$path" in
+              .github/workflows/n10-app-entry-gate-review.yml|security/n10-app-entry-guard-candidate/*) ;;
+              *) echo "Denied out-of-scope edit: $path"; exit 1 ;;
+            esac
+          done <<< "$changed"
+          test -z "$(git diff --name-only origin/main...HEAD -- app.html login.html index.html business.html)"
+      - name: Syntax check isolated candidate code
+        run: |
+          node --check security/n10-app-entry-guard-candidate/guard.mjs
+          node --check security/n10-app-entry-guard-candidate/preview.mjs
+          node --check security/n10-app-entry-guard-candidate/test-preview.mjs
+      - name: Simulated MFA entry and unchanged finance checks
+        run: node security/n10-app-entry-guard-candidate/test-preview.mjs
+      - name: Confirm no deployment or secrets were requested
+        run: echo "Review-only checks complete. No production or Auth operation attempted."
