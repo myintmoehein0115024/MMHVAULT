@@ -108,6 +108,7 @@ async function exerciseSameOwner(decision, invalidate=false) {
   const env={
     mmhP947AuthGateTicket:0,
     currentSessionUser:{id:uid},
+    db:{auth:{}},
     mmhP947GuardV947:phase=>events.push('mask:'+phase),
     mmhP947UnlockV947:()=>events.push('unlock'),
     mmhN10AssessWorkspaceMfaV1100:async()=>gate,
