@@ -135,7 +135,7 @@ async function load(page,route,failures){
        }
        if((width===393 && ['/register/','/features/','/about/'].includes(route)) || (width===1440 && route==='/features/')){
          await page.screenshot({path:path.join(screenshots,
-            route.replaceAll('/','')+'-393.png'),fullPage:true,animations:'disabled'});
+            route.replaceAll('/','')+'-'+width+'.png'),fullPage:true,animations:'disabled'});
        }
        await ctx.close();
      }
