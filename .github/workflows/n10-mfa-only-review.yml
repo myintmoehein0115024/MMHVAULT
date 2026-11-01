@@ -21,10 +21,14 @@ jobs:
     steps:
       - name: Checkout isolated review branch
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Set up Node 22
         uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Guard MFA-only review file scope, no finance or Vault edits
+        run: node security/n10-mfa-only/test-change-scope.mjs
       - name: Parse account security JavaScript
         run: node --check js/mmhvault-n10-a7-83-security-center.js
       - name: Run synthetic security and MFA regressions
