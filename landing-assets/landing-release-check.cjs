@@ -135,10 +135,10 @@ check('About is unique, indexable, with consistent title and canonical',
  aboutHead.includes('<link rel="canonical" href="https://mmhvault.com/about/">') &&
  (aboutHead.match(/rel="canonical"/g)||[]).length===1 &&
  !/name=["']robots["'][^>]*noindex/.test(aboutHead));
-check('About explicitly states official domain, core product and future Business',
+check('About explicitly states official domain, product purpose and future Business',
  about.includes('Its official website is mmhvault.com') &&
- ['Accounts','Transactions','Investments','Budgets','Financial Analysis','Financial Planning']
-  .every(name=>about.includes('<h3>'+name+'</h3>')) &&
+ ['accounts, transactions, investments, budgets and financial planning','Personal Finance Clarity','All-in-One Workspace','Long-Term Perspective']
+  .every(term=>about.includes(term)) &&
  about.includes('not a live business accounting service'));
 check('About has valid linked AboutPage and BreadcrumbList schema',(()=>{
  const block=(aboutHead.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)||[])[1];
@@ -163,6 +163,58 @@ check('Features mentions budgets/planning and labels future Business',
  read('features/index.html').includes('Business and Life Planner experiences are separate future concepts'));
 check('Secure routes not rewritten in this PR',
  !actual.some(p=>/^((login|app|business)\.html|mmh-manifest|sw\.js|mmh-push-sw\.js|CNAME)$/.test(p)));
+
+/* L1.9 — Landing is the design and content source of its informational branches.
+   Only the marketing pages may change; all real account flows remain untouched. */
+const branchCSS=read('landing-assets/public-pages.css');
+const branchJS=read('landing-assets/public-pages.js');
+const pageSlices=[
+ {route:'About',path:'about/index.html',bodyClass:'about-page',section:'THE MMHVAULT APPROACH'},
+ {route:'Features',path:'features/index.html',bodyClass:'features-page',section:'THE FINANCIAL WORKSPACE'},
+ {route:'Register',path:'register/index.html',bodyClass:'register-page',section:'PRIVATE ACCOUNT ACCESS'}
+];
+check('Shared public shell is scoped and all three independent pages inherit it',
+ branchCSS.includes('.public-landing-page .brand-wordmark') &&
+ branchCSS.includes('.public-landing-page .feature-hero') &&
+ branchCSS.includes('.public-landing-page .public-locale-trigger') &&
+ !branchCSS.includes('body.l131') &&
+ pageSlices.every(page=>{
+   const html=read(page.path);
+   return html.includes('<body class="public-landing-page '+page.bodyClass+'">') &&
+     html.includes('<section class="hero feature-hero"') &&
+     html.includes('class="brand-wordmark"') &&
+     html.includes('class="feature-hero-copy"') &&
+     html.includes('class="visual feature-visual"') &&
+     html.includes('id="public-locale-trigger"') &&
+     html.includes('id="public-locale-menu"') &&
+     html.includes('href="/login.html" class="feature-nav-cta"') &&
+     html.includes('href="/"') &&
+     html.includes(page.section);
+ }));
+check('All independent SEO entries preserve canonical and unique H1',
+ pageSlices.every(page=>{
+   const html=read(page.path);
+   return (html.match(/<h1(?:\s|>)/g)||[]).length===1 &&
+     (html.match(/<link rel="canonical"/g)||[]).length===1 &&
+     html.includes('https://mmhvault.com/'+page.route.toLowerCase()+'/') &&
+     !/<meta[^>]+name=["']robots["'][^>]+noindex/.test(html);
+ }));
+check('Landing About philosophy is intentionally derived into public About',
+ ['Personal Finance Clarity','All-in-One Workspace','Private Financial Management',
+  'Long-Term Perspective','Multi-Device Experience','English, Chinese & Burmese']
+  .every(label=>current.includes(label)&&about.includes(label)));
+check('Public pages have a functional Landing-style language control and no form',
+ ['en','zh','my'].every(l=>branchJS.includes("['en','zh','my']")) &&
+ branchJS.includes("trigger.setAttribute('aria-expanded'") &&
+ branchJS.includes('window.localStorage') &&
+ !/fetch\s*\(|supabase|createClient|location\.replace|passwordInput/.test(branchJS) &&
+ pageSlices.every(page=>!/<form[\s>]/i.test(read(page.path))));
+check('Dedicated visual branches preserve their distinct purpose',
+ read('features/index.html').includes('<h3') &&
+ read('register/index.html').includes('Continue to Sign Up') &&
+ read('register/index.html').includes('href="/login.html"') &&
+ about.includes('not a bank, broker, payment service or financial adviser') &&
+ read('features/index.html').includes('Business and Life Planner experiences are separate future concepts'));
 
 /* L1.33 — public legal pages and consistent brand icon; no auth code changes. */
 for(const page of [
