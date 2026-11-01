@@ -5,6 +5,7 @@ import {readFileSync} from 'node:fs';
 const backend=readFileSync('security/n10-fixed-recovery-vault-candidate/index.ts','utf8');
 const sql=readFileSync('docs/sql/n10_fixed_recovery_vault_STAGING_CANDIDATE.sql','utf8');
 const preflight=readFileSync('docs/sql/n10_fixed_recovery_READ_ONLY_PREFLIGHT.sql','utf8');
+const assurance=readFileSync('security/n10-fixed-recovery-vault-candidate/mfa-assurance.mjs','utf8');
 const tests=[
  ['Vault release is hard OFF and pinned to the existing project',()=>{
   assert.match(backend,/const RECOVERY_RELEASE_ENABLED=false;/);
@@ -47,6 +48,11 @@ const tests=[
   assert.match(preflight,/READ-ONLY PREFLIGHT/);
   assert.match(preflight,/WITH flags AS \(/);
   assert.doesNotMatch(preflight,/^\s*(?:CREATE|ALTER|INSERT|UPDATE|DELETE|DROP|GRANT|REVOKE)\s/mi);
+ }],
+ ['JWT assurance must be explicitly present; no implicit AAL1 fallback',()=>{
+  assert.match(assurance,/const current = payload\.aal;/);
+  assert.doesNotMatch(assurance,/payload\.aal\s*==\s*null\s*\?\s*['"]aal1['"]/);
+  assert.match(assurance,/currentLevel !== "aal1" && currentLevel !== "aal2"/);
  }],
  ['candidate excludes previously denied QA activation and production UI changes',()=>{
   assert.doesNotMatch(backend,/QA_RELEASED|QA_WINDOW_END_UTC|QA_IDENTITIES/);
