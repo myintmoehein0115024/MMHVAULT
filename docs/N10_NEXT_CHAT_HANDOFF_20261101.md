@@ -126,3 +126,10 @@
 - 在隔离 `review/n10-main-compat-20261101-r2` 分支增加 Chromium、WebKit 两种引擎的模拟端到端步骤：验证码 API 成功但 AAL1 不可宣布开启；AAL2 但同因子仍 unverified 也不可宣布成功；320/390 CSS 像素窗口弹窗不溢出；Escape 关闭弹窗并解除锁定。
 - GitHub Actions `41275167356` **SUCCESS**：真实无头 Chromium/WebKit 运行 **20/20 PASS**，离线静态/模拟 **18/18 PASS**。所有网络请求在模拟页面中限制到本地服务，未触碰真实 Supabase/Auth/Vault/财务。
 - 这些不是真实 iPhone Safari、完整正式 APP 布局或 Staging A 签名登录。真实 A MFA 仍 unverified，QA 仍 LOCKED，Vault 仍 OFF，PR #2 Draft 未合并。正式 main、Landing、Login、Accounts FX 数据都没有修改。
+
+## 2026-11-01 — 真实服务端 N10 发布门禁复核
+- **只读 Staging Auth SQL 重新核实：A 用户存在，有 1 个 `totp/unverified`，0 个 `verified`；B 用户存在，TOTP 0 个。** 因此真实 AAL2 仍 **UNVERIFIED**；不要引用旧聊天“PASS”或 20/20 本地浏览器模拟替代真实 Auth 签名验收。
+- **只读独立 Staging Edge 代码复核**：`mmh-n10-qa-joint-mfa-vault-20261101` `RECOVERY_RELEASE_ENABLED=false`、过期的 1970 窗口、`QA_IDENTITIES` 空白名单；`verify_jwt=true`，部署 ACTIVE 不等于已经开放。独立 QA 浏览器页面也仍 `QA_RELEASED=false` 和过期。
+- **只读生产 Edge 元数据**：已部署旧 `mmh-n10a783-phrase-verify` v4，但不存在 `mmh-n10-fixed-recovery`（候选正式 Vault 未部署）。不能说已上线。
+- `review/n10-main-compat-20261101-r2` 仍比 latest main ahead、behind 0，20/20 Chromium+WebKit 模拟测试、18/18 源码合同测试 PASS；PR #2 仍 Draft/mergeable=false，未合并。
+- 新完整阻断文档 `docs/N10_ACTUAL_RELEASE_BLOCKERS_20261101.md`，明确只剩三个**必须真实完成**的大阶段：① A 的服务端验证通过及 AAL2；② 独立批准的 Vault Staging 真实 E2E + 删除证明；③ PR 冲突解决、生产备份/回滚及正式上线审批。旧 QA 重新启用曾被拦截，不能绕过。
