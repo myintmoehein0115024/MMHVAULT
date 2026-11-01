@@ -2,6 +2,8 @@
 // authorization, secret, Auth, Vault, SQL migration or production test.
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
+import {stripTypeScriptTypes} from 'node:module';
+import {runInNewContext} from 'node:vm';
 const backend=readFileSync('security/n10-fixed-recovery-vault-candidate/index.ts','utf8');
 const sql=readFileSync('docs/sql/n10_fixed_recovery_vault_STAGING_CANDIDATE.sql','utf8');
 const preflight=readFileSync('docs/sql/n10_fixed_recovery_READ_ONLY_PREFLIGHT.sql','utf8');
@@ -16,6 +18,46 @@ const tests=[
   assert.match(backend,/const EXPECTED_BASE='https:\/\/vrypucmyrztxgiqhjspd\.supabase\.co';/);
   assert.match(backend,/if\(!RECOVERY_RELEASE_ENABLED\)return out\(origin,'recovery_service_not_released',503\)/);
   assert.match(backend,/BASE!==EXPECTED_BASE/);
+ }],
+ ['runtime hard-off rejects requests without touching Auth or Vault',async()=>{
+  // Execute the REAL disabled Edge source in a local VM with all imports
+  // replaced by deny-on-use mocks. This does NOT connect or deploy anything.
+  let handler=null,clients=0,blockedCalls=0;
+  const deny=()=>{blockedCalls++;throw Error('Unexpected Auth, SQL, Vault or network access')};
+  const source=backend.replace(/^import[^\n]*\n/gm,'');
+  assert.doesNotMatch(source,/^\s*import\s/m,'unresolved Edge import');
+  const javascript=stripTypeScriptTypes(source,{mode:'strip'});
+  const mocked={
+   Deno:{env:{get:()=>''},serve:fn=>{assert.equal(handler,null);handler=fn;}},
+   createClient:(url)=>{
+    clients++;
+    assert.equal(url,'https://invalid.supabase.co');
+    return new Proxy({}, {get:deny});
+   },
+   evaluateVerifiedAuthUserMfa:deny,
+   sessionIdFromVerifiedJwt:deny,
+   normalizePhrase:deny,equal64:deny,readBoundedJson:deny,
+   fetch:deny,Response,TextEncoder,Uint8Array,crypto:globalThis.crypto
+  };
+  runInNewContext(javascript,mocked,{timeout:3000});
+  assert.equal(typeof handler,'function','disabled server handler not registered');
+  assert.equal(clients,1,'only inert initial client construction expected');
+  const check=async(origin,method,status,code)=>{
+   const headers=new Headers(origin===null?{}:{Origin:origin});
+   const response=await handler({method,headers});
+   assert.equal(response.status,status);
+   assert.match(response.headers.get('Cache-Control')||'',/no-store/);
+   assert.equal(response.headers.get('X-Content-Type-Options'),'nosniff');
+   if(status===204)assert.equal(await response.text(),'');
+   else assert.equal((await response.json()).code,code);
+  };
+  await check('https://mmhvault.com','POST',503,'recovery_service_not_released');
+  await check('https://mmhvault.com','GET',405,'method_denied');
+  await check('https://mmhvault.com','OPTIONS',204,null);
+  await check('http://mmhvault.com','POST',403,'origin_denied');
+  await check('https://mmhvault.com.evil.example','POST',403,'origin_denied');
+  await check(null,'POST',403,'origin_denied');
+  assert.equal(blockedCalls,0,'disabled Edge must never use secrets, Auth or network');
  }],
  ['no unauthenticated backup, original word access or passwordless reveal',()=>{
   const steps=["const authenticated=await verifiedUser(req);","const firstSessionCheck=await liveSession(user.id,sessionId,sessionAal);",
@@ -157,6 +199,6 @@ const tests=[
  }]
 ];
 let fail=0;
-for(const [name,run] of tests){try{run();console.log('PASS',name)}catch(err){fail++;console.error('FAIL',name,err.message)}}
+for(const [name,run] of tests){try{await run();console.log('PASS',name)}catch(err){fail++;console.error('FAIL',name,err.message)}}
 console.log((tests.length-fail)+'/'+tests.length+' backend-only offline review contracts');
 if(fail)process.exitCode=1;
