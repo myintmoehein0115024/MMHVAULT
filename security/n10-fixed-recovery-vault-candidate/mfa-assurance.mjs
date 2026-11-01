@@ -1,11 +1,11 @@
 // N10 MFA assurance evaluator — review-only Edge candidate; NOT deployed.
 // Invoke only after Supabase Auth verifies the provided access token.
 // Supabase's JWT-aware MFA API returns a nextLevel based on verified factors.
-// The current level may be null for older signed tokens; nextLevel MUST be known.
+// Both current and next assurance levels must be explicit for recovery-key access.
 export function evaluateMfaAssurance(assurance, authHasVerifiedFactor = false) {
   if (!assurance || typeof assurance !== "object") return "unavailable";
   const { currentLevel, nextLevel } = assurance;
-  if (currentLevel !== null && currentLevel !== "aal1" && currentLevel !== "aal2")
+  if (currentLevel !== "aal1" && currentLevel !== "aal2")
     return "unavailable";
   // Missing, unknown or null nextLevel is NOT proof there is no MFA.
   if (nextLevel !== "aal1" && nextLevel !== "aal2") return "unavailable";
