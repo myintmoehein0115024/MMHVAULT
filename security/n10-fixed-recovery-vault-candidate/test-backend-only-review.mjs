@@ -213,7 +213,8 @@ const tests=[
   const afterMfa=await send('A','reveal',{password:'correct-password'});
   assert.equal(afterMfa.status,403);
   assert.equal(JSON.stringify(afterMfa.body).includes('words'),false);
- }],\n ['original phrase is immutable even with repeated backup requests',()=>{
+ }],
+ ['original phrase is immutable even with repeated backup requests',()=>{
   // These are source-level SQL assertions. They DO NOT execute a migration.
   const body=sql.split('CREATE FUNCTION public.mmh_n10_recovery_backup_put(')[1]?.split('CREATE FUNCTION public.mmh_n10_recovery_backup_exists(')[0];
   assert.ok(body,'missing owner-only backup RPC');
