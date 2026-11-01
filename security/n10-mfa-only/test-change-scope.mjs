@@ -1,0 +1,33 @@
+// N10 MFA-only: review changes are restricted to explicit files.
+// Read-only local git check; no network, DB, Auth, Vault, or deployment.
+// Run with actions/checkout fetch-depth: 0.
+import assert from 'node:assert/strict';
+import {execFileSync} from 'node:child_process';
+const allowed=new Set([
+ '.github/workflows/n10-mfa-only-review.yml',
+ 'docs/N10_MFA_ONLY_PRODUCTION_RELEASE_RUNBOOK_20261101.md',
+ 'docs/N10_MFA_ONLY_REVIEW_CANDIDATE_20261101.md',
+ 'js/mmhvault-n10-a7-83-security-center.js',
+ 'security/n10-mfa-only/test-browser-mfa-smoke.mjs',
+ 'security/n10-mfa-only/test-change-scope.mjs',
+ 'security/n10-mfa-only/test-mfa-isolation.mjs',
+ 'security/n10-mfa-only/test-real-app-dom-bootstrap.mjs'
+]);
+for(const denied of ['app.html','login.html','index.html','docs/sql/n10_unreviewed.sql',
+ 'security/n10-mfa-only/unreviewed.ts','.github/workflows/deploy.yml']){
+ assert.equal(allowed.has(denied),false);
+}
+const lines=execFileSync('git',['diff','--name-status','--no-renames','origin/main...HEAD'],
+ {encoding:'utf8',maxBuffer:2000000}).trim().split('\n').filter(Boolean);
+assert.ok(lines.length>0,'review branch has no changes');
+const bad=[];
+for(const line of lines){
+ const parts=line.split('\t');
+ assert.equal(parts.length,2,'unusual git diff record');
+ const [status,path]=parts;
+ if(!/^[AMT]$/.test(status)||!allowed.has(path))bad.push({status,path});
+}
+if(bad.length){
+ console.error('FAIL: MFA-only contains unexpected edits or deletions:',bad);
+ process.exitCode=1;
+}else console.log('PASS: '+lines.length+' MFA-only review files; no App, login, Landing, Vault or finance diff');
