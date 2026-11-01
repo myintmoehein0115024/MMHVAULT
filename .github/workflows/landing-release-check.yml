@@ -10,6 +10,9 @@ on:
       - 'robots.txt'
       - 'mmh-manifest-v2.webmanifest'
       - 'landing-assets/**'
+      - 'register/**'
+      - 'features/**'
+      - 'sitemap.xml'
       - '.github/workflows/landing-release-check.yml'
 permissions:
   contents: read
@@ -26,5 +29,7 @@ jobs:
           node-version: '22'
       - name: JavaScript syntax
         run: node --check landing-assets/landing.js
+      - name: Public information language script syntax
+        run: node --check landing-assets/public-pages.js
       - name: Release invariants
         run: node landing-assets/landing-release-check.cjs

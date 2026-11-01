@@ -656,6 +656,11 @@
   Object.assign(strings.zh,{aboutBrandContext:"MMHVAULT 集中管理账户、交易、投资与财务分析；用于日程和个人目标的 Life Planner 正在开发中。"});
   Object.assign(strings.my,{aboutBrandContext:"MMHVAULT တွင် အကောင့်များ၊ ငွေကြေးအဝင်အထွက်၊ ရင်းနှီးမြှုပ်နှံမှုနှင့် ငွေကြေးဆိုင်ရာ အချက်အလက်များကို တစ်နေရာတည်းတွင် စုစည်းနိုင်ပါသည်။ နေ့စဉ်အစီအစဉ်နှင့် ရည်မှန်းချက်များအတွက် Life Planner ကို ဖန်တီးနေဆဲဖြစ်ပါသည်။"});
 
+  // L1.30 crawlable public sitelink pages; secure Login remains noindex.
+  Object.assign(strings.en,{"sitelinkFeatures":"Personal Finance Features","sitelinkCreateAccount":"Create Your Account"});
+  Object.assign(strings.zh,{"sitelinkFeatures":"个人财务管理功能","sitelinkCreateAccount":"创建您的账户"});
+  Object.assign(strings.my,{"sitelinkFeatures":"ငွေကြေး စီမံခန့်ခွဲမှု","sitelinkCreateAccount":"သင့်အကောင့်ကို ဖွင့်ပါ"});
+
   const htmlKeys = new Set(['heroTitle', 'featuresTitle', 'businessHeading', 'whyTitle', 'closingTitle']);
   const storageKey = 'mmhvault.landing.language';
   const siteHeader = document.querySelector('.site-header');
