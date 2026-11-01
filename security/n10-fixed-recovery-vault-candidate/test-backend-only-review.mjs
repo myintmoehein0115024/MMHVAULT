@@ -7,6 +7,8 @@ const sql=readFileSync('docs/sql/n10_fixed_recovery_vault_STAGING_CANDIDATE.sql'
 const preflight=readFileSync('docs/sql/n10_fixed_recovery_READ_ONLY_PREFLIGHT.sql','utf8');
 const installedAudit=readFileSync('docs/sql/n10_installed_staging_vault_READ_ONLY_AUDIT_20261101.sql','utf8');
 const assurance=readFileSync('security/n10-fixed-recovery-vault-candidate/mfa-assurance.mjs','utf8');
+const qaRlsAudit=readFileSync('docs/sql/n10_staging_qa_rls_READ_ONLY_ASSERTIONS_20261101.sql','utf8');
+const qaDmlRevoke=readFileSync('docs/sql/n10_staging_qa_excess_dml_REVOKE_REVIEW_ONLY.sql','utf8');
 const tests=[
  ['Vault release is hard OFF and pinned to the existing project',()=>{
   assert.match(backend,/const RECOVERY_RELEASE_ENABLED=false;/);
@@ -101,6 +103,30 @@ const tests=[
   assert.doesNotMatch(backend,/username_only_staging/);
   assert.match(backend,/BASE!==EXPECTED_BASE/);
   assert.match(backend,/const RECOVERY_RELEASE_ENABLED=false;/);
+ }],
+ ['Staging QA policies must compose owner permissive AND MFA restrictive',()=>{
+  assert.match(qaRlsAudit,/polname='mmh_n10_qa_owner_select'/);
+  assert.match(qaRlsAudit,/polname='mmh_n10_qa_mfa_select'/);
+  assert.match(qaRlsAudit,/AND polpermissive/);
+  assert.match(qaRlsAudit,/AND NOT polpermissive/);
+  assert.match(qaRlsAudit,/exactly_two_select_policies/);
+  assert.match(qaRlsAudit,/mfa_guard_validates_uid_and_factors/);
+  assert.match(qaRlsAudit,/no_authenticated_qa_privileged_rpc/);
+  assert.match(qaRlsAudit,/all_checks_pass/);
+  const executableSql=qaRlsAudit.replace(/^\s*--[^\n]*$/gm,'');
+  assert.doesNotMatch(executableSql,/^\s*(?:CREATE|ALTER|INSERT|UPDATE|DELETE|DROP|GRANT|REVOKE|TRUNCATE|CALL|DO)\b/gmi);
+  assert.doesNotMatch(executableSql,/vault\.decrypted_secrets|FROM\s+auth\.users\b/i);
+ }],
+ ['optional Staging DML hardening proposal only revokes excess authenticated writes',()=>{
+  assert.match(qaDmlRevoke,/REVIEW ONLY \/ DO NOT RUN/);
+  assert.match(qaDmlRevoke,/ldivswlhtgmznzwhzsoi/);
+  assert.match(qaDmlRevoke,/REVOKE INSERT, UPDATE, DELETE ON TABLE public\.mmh_n10_signed_qa_entries\s+FROM authenticated;/);
+  assert.match(qaDmlRevoke,/NOT p\.polpermissive/);
+  assert.match(qaDmlRevoke,/p\.polpermissive/);
+  const executableSql=qaDmlRevoke.replace(/^\s*--[^\n]*$/gm,'');
+  assert.doesNotMatch(executableSql,/^\s*(?:DROP|ALTER|INSERT|UPDATE|DELETE|TRUNCATE|GRANT)\b/gmi);
+  assert.doesNotMatch(executableSql,/FROM\s+(?:service_role|anon)\s*;/i);
+  assert.doesNotMatch(executableSql,/vault\.secrets|auth\.users|RECOVERY_RELEASE_ENABLED/i);
  }],
  ['candidate excludes previously denied QA activation and production UI changes',()=>{
   assert.doesNotMatch(backend,/QA_RELEASED|QA_WINDOW_END_UTC|QA_IDENTITIES/);
