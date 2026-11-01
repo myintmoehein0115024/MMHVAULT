@@ -236,3 +236,14 @@
     transition:none
   }
 }
+
+
+/* The old public-header compatibility rule used two :not() selectors with
+   higher specificity at <=1290px. Explicitly replace it so the unified
+   mobile navigation's five real links are actually visible. */
+@media(max-width:1360px){
+  .public-landing-page header.public-site-header nav.public-site-nav>
+    a:not(.feature-nav-signin):not(.feature-nav-cta){
+    display:flex!important;
+  }
+}
