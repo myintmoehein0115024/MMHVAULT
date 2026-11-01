@@ -62,9 +62,9 @@ const tests=[
   assert.match(installedAudit,/owner_delete_cascades/);
   assert.match(installedAudit,/daily_rate_cleanup_job_enabled/);
   assert.match(installedAudit,/no_authenticated_secret_rpc_access/);
-  assert.doesNotMatch(installedAudit,/vault\\.decrypted_secrets/i);
-  const executableSql=installedAudit.replace(/^\\s*--[^\\n]*$/gm,'');
-  assert.doesNotMatch(executableSql,/^\\s*(?:CREATE|ALTER|INSERT|UPDATE|DELETE|DROP|GRANT|REVOKE|TRUNCATE|CALL|DO)\\b/gmi);
+  assert.doesNotMatch(installedAudit,/vault\.decrypted_secrets/i);
+  const executableSql=installedAudit.replace(/^\s*--[^\n]*$/gm,'');
+  assert.doesNotMatch(executableSql,/^\s*(?:CREATE|ALTER|INSERT|UPDATE|DELETE|DROP|GRANT|REVOKE|TRUNCATE|CALL|DO)\b/gmi);
  }],
  ['candidate excludes previously denied QA activation and production UI changes',()=>{
   assert.doesNotMatch(backend,/QA_RELEASED|QA_WINDOW_END_UTC|QA_IDENTITIES/);
