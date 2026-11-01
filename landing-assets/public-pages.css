@@ -501,3 +501,64 @@ body.public-landing-page{
   .public-landing-page .item,
   .public-landing-page .bottom-cta{min-width:0;overflow-wrap:anywhere}
 }
+
+
+/* L1.9 — Landing-style footer shared by all three indexable destinations. */
+.public-landing-page .public-footer{
+  margin-top:8px;background:linear-gradient(180deg,rgba(4,19,32,.35),rgba(4,17,29,.8));
+  border-top:1px solid rgba(238,197,139,.28);
+  padding:55px 0 0;
+}
+.public-landing-page .public-footer .public-footer-layout{
+  display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);
+  gap:clamp(30px,6vw,90px);align-items:start;
+}
+.public-landing-page .public-footer-brand{min-width:0}
+.public-landing-page .public-footer-wordmark{
+  font:500 clamp(25px,3vw,34px)/1.2 Georgia,"Times New Roman",serif;
+  color:#ffedce;text-decoration:none;letter-spacing:.065em;margin:0;
+}
+.public-landing-page .public-footer-wordmark span{color:#efbb77}
+.public-landing-page .public-footer-brand p{
+  margin:15px 0 10px;max-width:390px;color:#d5cbb9;
+  font:400 14px/1.8 system-ui,sans-serif;
+}
+.public-landing-page .public-footer-brand small{
+  display:block;max-width:380px;color:#a2b7c2;
+  font:400 12px/1.8 system-ui,sans-serif;
+}
+.public-landing-page .public-footer-nav{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:28px}
+.public-landing-page .public-footer-group{display:flex;flex-direction:column;align-items:flex-start;gap:14px}
+.public-landing-page .public-footer-group strong{
+  color:#e9c08b;font:750 10px/1.5 system-ui,sans-serif;letter-spacing:.17em;
+  margin:2px 0 6px;
+}
+.public-landing-page .public-footer-group a{
+  margin:0;text-decoration:none;color:#c7d6df;font:500 12px/1.5 system-ui,sans-serif
+}
+.public-landing-page .public-footer-group a:hover{color:#ffe2b0}
+.public-landing-page .public-footer .public-footer-bottom{
+  display:flex;justify-content:space-between;align-items:center;gap:20px;
+  border-top:1px solid rgba(235,199,146,.19);
+  margin-top:49px;padding:21px 0 29px;
+  color:#91a8b5;font:500 10px/1.6 system-ui,sans-serif;
+  letter-spacing:.04em;
+}
+.public-landing-page .public-footer-bottom a{margin:0;color:#d8bb91;text-decoration:none}
+@media(max-width:900px){
+  .public-landing-page .public-footer .public-footer-layout{grid-template-columns:minmax(0,1fr)}
+}
+@media(max-width:530px){
+  .public-landing-page .public-footer{padding-top:38px}
+  .public-landing-page .public-footer .public-footer-nav{gap:17px}
+  .public-landing-page .public-footer .public-footer-bottom{
+    margin-top:36px;flex-wrap:wrap;gap:9px;
+  }
+  .public-landing-page .public-footer-bottom span:nth-child(2){display:none}
+  .public-landing-page header nav>.feature-nav-cta{color:#091c2e}
+}
+@media(min-width:376px) and (max-width:530px){
+  /* Preserve cross-page discovery on ordinary phones; narrower screens
+     still have the breadcrumb and footer if this header link must collapse. */
+  .public-landing-page header nav>a[href="/about/"]{display:inline-flex}
+}
