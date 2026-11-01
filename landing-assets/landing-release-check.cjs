@@ -46,6 +46,7 @@ const names=['landing.css','business.css','cinematic.css','landing.js','premium-
 check('All required live assets exist',names.every(f=>fs.existsSync('landing-assets/'+f)));
 check('Landing style and script links correct',['landing.css','business.css','cinematic.css','landing.js'].every(f=>current.includes('./landing-assets/'+f)));
 check('L1.31 premium layer linked and scoped', current.includes('class="l131"') && current.includes('href="./landing-assets/premium-l131.css?v=1"') && read('landing-assets/premium-l131.css').includes('body.l131 .showcase-v2'));
+check('L1.31 desktop Hero photograph restores actual device composition', read('landing-assets/premium-l131.css').includes('L1.31.1 — restore the photograph') && read('landing-assets/premium-l131.css').includes('url("./personal-business-concept.webp")') && read('landing-assets/cinematic.css').includes('hero-art.is-photo-ready .hero-device-cinematic {display:none;}'));
 check('L1.31 never globally disables touch zoom', !/user-scalable\s*=\s*no/i.test(current) && !/touch-action\s*:\s*none/i.test(read('landing-assets/premium-l131.css')));
 check('No preview QA material in production root',!current.includes('pwa-qa')&&!current.includes('mmh_layout_probe'));
 check('Public robots.txt present',fs.existsSync('robots.txt')&&read('robots.txt').includes('User-agent: *')&&read('robots.txt').includes('Sitemap: https://mmhvault.com/sitemap.xml'));

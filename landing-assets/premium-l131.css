@@ -273,3 +273,30 @@ body.l131 :is(.showcase-card,.product-tab,.button,.action,.locale-trigger):focus
   body.l131 .showcase-v2 .showcase-card,
   body.l131 .hero-buttons .button{transition:none!important;transform:none!important}
 }
+
+/* L1.31.1 — restore the photograph with laptop and phone on desktop.
+   L1.7 correctly hides the duplicate <img> at >=901px because it is
+   already composited into the *full Hero background*. L1.31 mistakenly
+   changed only that background to the empty landscape. Restore its
+   photographic source rather than overlaying the same scene twice.
+   Tablet/mobile <=900px retain their separately framed device image. */
+@media (min-width:901px){
+  body.l131 .hero::before{
+    background-image:
+      linear-gradient(90deg,
+        rgba(5,19,33,.88) 0%,
+        rgba(5,20,35,.77) 27%,
+        rgba(7,24,40,.45) 51%,
+        rgba(8,25,40,.06) 93%),
+      linear-gradient(180deg,
+        rgba(7,20,34,.25) 0%,
+        rgba(7,21,35,.07) 42%,
+        rgba(6,20,35,.18) 73%,
+        rgba(6,20,33,.68) 100%),
+      url("./personal-business-concept.webp");
+    background-position:center,center,center 52%;
+    background-size:cover,cover,cover;
+    background-repeat:no-repeat;
+    filter:brightness(1.09) saturate(1.12);
+  }
+}
