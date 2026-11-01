@@ -22,10 +22,14 @@ jobs:
     steps:
       - name: Checkout isolated review branch
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - name: Node 22
         uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Fail closed if PR includes main App, Landing, Auth UI or finance edits
+        run: node security/n10-fixed-recovery-vault-candidate/test-isolated-scope.mjs
       - name: Signed assurance helper synthetic matrix
         run: node security/n10-fixed-recovery-vault-candidate/test-mfa-assurance.mjs
       - name: Session guard synthetic matrix
