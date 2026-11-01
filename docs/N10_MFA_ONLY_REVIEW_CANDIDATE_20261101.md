@@ -29,7 +29,7 @@ No changes to `main`, `app.html`, `login.html`, Landing/SEO, Accounts FX, financ
 
 ## Explicitly excluded (not silently replaced)
 - **No fixed-recovery Vault integration:** no `VAULT_API`, `vaultApi`, `N10_FIXED_VAULT_UI_RELEASED`, new password/escrow fields or backup/reveal actions.
-- **Original permanent ten words remain unchanged**, including existing recovery verification and 60-second hide behavior on main. Existing login methods are untouched.
+- **Original permanent ten-word verification endpoint and 60-second display remain unchanged;** narrow new stale-response rejection and fail-closed QR-error cleanup are covered in the addendum below. Existing login methods are untouched.
 - No production Edge deployment or database migration; the separate Vault Draft remains independently OFF and untested.
 
 ## Test results — simulated evidence only
@@ -44,3 +44,11 @@ No changes to `main`, `app.html`, `login.html`, Landing/SEO, Accounts FX, financ
 3. **Production approval / merge** is independent: verify exact fresh `main` SHA, inspect the minimal candidate diff, re-run CI, preserve newer unrelated code, obtain explicit scoped approval and rollback/backup strategy. Existing PR #2 remains **Draft / mergeable=false** and must not be merged automatically.
 
 **Conclusion:** MFA-only patch is ready for further review and authorized signed testing, **not for uncontrolled production activation**. No user action is required now.
+
+## Additional original-recovery async safety review (2026-11-01)
+- Read-only source review found a specific **original 10-word recovery** UI race in the prior isolated MFA-only candidate (and its unchanged production-main baseline): `mmhA783KeyVerify` awaited `api('verify_saved_phrase')` and then displayed the words without checking whether the modal was still open, the user had signed out/switched accounts, or the page had been backgrounded. This is a **candidate source-level risk**, not proof of a production exploit. The production source was not modified.
+- The isolated review branch now introduces `recoveryEpoch` invalidation within `hideKey()`, a guarded `recoveryRequestActive(epoch,userId)` requiring same owner, epoch, foreground state and visible modal, and clears any prior words **before** awaiting the request. Late responses are discarded and cannot recreate the word list or QR after closure/account change. A missing modal overlay also fails closed. If QR rendering throws after successful Auth verification, the catch path now reliably clears DOM secrets.
+- Existing original-recovery UX remains: original phrase verification API, 10-word display and **60-second auto-hide**; this is a narrow async safety change. No fixed-recovery Vault code, backend schema, escrow/reveal API, passwords or secret migration was added.
+- Code commits `34aa9568930e83d01509635d095758a5b5e35cd5`, `4947aa435c64546e81fe6d0d4a84b1e4cdb7d1e5`; dedicated tests `b791abc9c9fe290446191817bd888048b113a74d`, `381d43ad698ae697a30a7c09c64ac46ddc0c5bff`, `33d2821caeb7e5f22b85053df9d8bf4d9b827f8c`, `7b452b3e674dbd994c5bea031816139bdac95086` and `2a56132589b7c0cb3731769c35ccd1955a609ea5` (some intermediate source-pattern assertions failed until updated).
+- **Authoritative latest candidate-code CI `41280764187`: SUCCESS** — JS syntax PASS; **14/14** MFA-only static/synthetic tests; **32/32** local browser tests (16 Chromium, 16 WebKit). Synthetic delayed Auth response tested after sign-out, A→B switch, modal close and hidden/foreground roundtrip. Original normal 60-second view and QR rendering error cleanup tested independently. Mocked Auth and local HTTP fixture only; no live Supabase, real recovery key or real signed user tested.
+- Unchanged release gates: Staging A TOTP remains last recorded `unverified`; production `main` is unchanged; QA remains LOCKED; Vault joint Edge OFF; PR #2 Draft/unmerged. This candidate has no authorization for production deployment.
