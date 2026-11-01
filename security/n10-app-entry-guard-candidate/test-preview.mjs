@@ -80,10 +80,40 @@ assert.doesNotMatch(patched,/\bconst a783=await db\.auth\.mfa\.getAuthenticatorA
 const beg=patched.indexOf('async function mmhN10AssessWorkspaceMfaV1100(');
 const end=patched.indexOf('let mmhN10GateVersionV1100=0;',beg);
 assert.ok(beg>=0&&end>beg,'missing pasted helper');
-const helper=runInNewContext('('+patched.slice(beg,end).trim()+')');
+const helper=runInNewContext('('+patched.slice(beg,end).trim()+')',{setTimeout,clearTimeout});
 for(const [name,opts,result] of cases) {
   assert.equal(await helper(fakeAuth(opts),uid),result,'injected helper: '+name);
 }
+// Any hung Auth/network call must eventually DENY, and a late response
+// cannot change the returned decision or unlock the workspace.
+async function checkTimeout(fn,name){
+  const original=fakeAuth();
+  const never=new Promise(()=>{});
+  fn(original,never);
+  const start=Date.now();
+  const result=await assessWorkspaceMfa(original,uid,30);
+  assert.equal(result,'deny',name+' should deny on timeout');
+  assert.ok(Date.now()-start<1500,name+' should not hang indefinitely');
+  assert.equal(await helper(original,uid,20),'deny',
+    name+' injected helper should also refuse hung calls');
+  console.log('PASS',name,'bounded wait with fail-closed decision');
+}
+await checkTimeout((auth,never)=>{auth.getSession=async()=>never;},'session lookup never finishes');
+await checkTimeout((auth,never)=>{auth.getUser=async()=>never;},'user lookup never finishes');
+await checkTimeout((auth,never)=>{auth.mfa.listFactors=async()=>never;},'factor listing never finishes');
+await checkTimeout((auth,never)=>{auth.mfa.getAuthenticatorAssuranceLevel=async()=>never;},'assurance lookup never finishes');
+let releaseSlow;
+const slowAuth=fakeAuth();
+slowAuth.mfa.getAuthenticatorAssuranceLevel=()=>new Promise(resolve=>{releaseSlow=resolve});
+const timedOut=await assessWorkspaceMfa(slowAuth,uid,25);
+assert.equal(timedOut,'deny');
+releaseSlow({data:{currentLevel:'aal1',nextLevel:'aal1'}});
+await new Promise(setImmediate);
+assert.equal(timedOut,'deny','late Auth success must never turn timed-out denial into allow');
+assert.match(patched,/timeoutMs = 12000/);
+assert.match(patched,/Promise\.race/);
+console.log('PASS late Auth result is ignored after deadline');
+
 // This test performs no writeFile or fs mutation. Finance content is unchanged.
 for(const marker of [
   'function balance(a){','function totalAssetMMK(){',
