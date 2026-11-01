@@ -89,19 +89,41 @@ GRANT EXECUTE ON FUNCTION public.mmh_n10_recovery_backup_get(uuid) TO service_ro
 
 -- Read-only live-session guard: access JWTs remain cryptographically valid
 -- until expiry even after sign-out. Only the Edge service role may call this.
+-- REVIEW ONLY: installed Staging currently has the legacy (uuid,uuid) signature.
+-- DO NOT replay this FIRST-INSTALL file. A separately approved, versioned
+-- upgrade must retire the legacy signature before this contract is deployed.
 CREATE FUNCTION public.mmh_n10_recovery_session_active(
- p_user_id uuid,p_session_id uuid)
-RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path='' AS $$
+ p_user_id uuid,p_session_id uuid,p_expected_aal text)
+RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path='' AS $
  SELECT EXISTS(
   SELECT 1 FROM auth.sessions AS s
   WHERE s.id=p_session_id
     AND s.user_id=p_user_id
     AND (s.not_after IS NULL OR s.not_after>now())
+    AND (
+      (p_expected_aal='aal1'
+       AND s.aal::text='aal1'
+       AND s.factor_id IS NULL
+       AND NOT EXISTS (
+         SELECT 1 FROM auth.mfa_factors AS f
+         WHERE f.user_id=p_user_id AND f.status::text='verified'
+       ))
+      OR
+      (p_expected_aal='aal2'
+       AND s.aal::text='aal2'
+       AND s.factor_id IS NOT NULL
+       AND EXISTS (
+         SELECT 1 FROM auth.mfa_factors AS f
+         WHERE f.id=s.factor_id
+           AND f.user_id=p_user_id
+           AND f.status::text='verified'
+       ))
+    )
  );
-$$;
-REVOKE ALL ON FUNCTION public.mmh_n10_recovery_session_active(uuid,uuid)
+$;
+REVOKE ALL ON FUNCTION public.mmh_n10_recovery_session_active(uuid,uuid,text)
  FROM PUBLIC,anon,authenticated;
-GRANT EXECUTE ON FUNCTION public.mmh_n10_recovery_session_active(uuid,uuid)
+GRANT EXECUTE ON FUNCTION public.mmh_n10_recovery_session_active(uuid,uuid,text)
  TO service_role;
 
 CREATE FUNCTION public.mmh_n10_recovery_take_attempt(
