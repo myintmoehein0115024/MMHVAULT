@@ -100,6 +100,7 @@ async function ready(page){
  await page.addScriptTag({content:code});
  await page.waitForTimeout(500);
  assert.deepEqual(errors,[],'script initialization should not throw');
+ assert.match(await page.locator('#mmhA783TotpHelp').textContent(),/ten-word key cannot replace the six-digit code/);
  const controls=await page.evaluate(()=>({
    overlays:document.querySelectorAll('body > .mmh-n10-modal-overlay').length,
    vaultAbsent:document.getElementById('mmhN10VaultRecoveryControls')===null,
@@ -187,6 +188,18 @@ try{
    assert.deepEqual(errors3,[]);
    await page3.close();
    console.log('PASS',name,'logout clears synthetic secret UI synchronously');
+   // Language switch must retain the same non-bypass backup warning.
+   const backupI18n=await browser.newPage();
+   const backupI18nErrors=await ready(backupI18n);
+   await backupI18n.evaluate(()=>{
+     localStorage.setItem('mmhvault_language_v3363','zh');
+     window.dispatchEvent(new Event('mmhvault-language-change'));
+   });
+   assert.match(await backupI18n.locator('#mmhA783TotpHelp').textContent(),/十词密钥不能代替六位验证码/);
+   assert.deepEqual(backupI18nErrors,[]);
+   await backupI18n.close();
+   console.log('PASS',name,'lost-authenticator backup warning is clear in Chinese');
+
 
    // A starts enrollment. B signs in before Auth responds. Never show A's
    // QR, and never attempt to unenroll A's factor with B's credentials.
@@ -588,6 +601,7 @@ try{
    });
    await removePage.locator('#mmhA783Refresh').click();
    await removePage.waitForFunction(()=>document.getElementById('mmhA783TotpStatus').textContent==='Authenticator enabled');
+   assert.match(await removePage.locator('#mmhA783TotpHelp').textContent(),/ten-word key cannot replace a six-digit code/);
    await removePage.locator('#syntheticMfaSection > .mmh-a783-title').click();
    await removePage.locator('#mmhA783TotpRemove').click();
    await removePage.locator('#mmhA783TotpRemoveText').fill('REMOVE');
