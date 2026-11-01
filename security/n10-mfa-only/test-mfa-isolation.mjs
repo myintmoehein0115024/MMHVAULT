@@ -126,6 +126,20 @@ const tests=[
   assert.match(src,/function hideKey\(\)\{recoveryEpoch\+=1;verifiedPhrase='';/);
   assert.doesNotMatch(s,/verifiedPhrase=raw;hideKey\(\);verifiedPhrase=raw;/);
  }],
+ ['stale refresh blocked and busy Auth change queued until action finishes',()=>{
+  const refresh=between('async function refresh(){',"$('mmhA783Refresh').addEventListener");
+  ordered(refresh,["if(busy){refreshPending=true;return;}","const requestId=++refreshNonce,sessionEpoch=authEpoch;",
+   "const {user}=await verifiedUser();","if(requestId!==refreshNonce||sessionEpoch!==authEpoch)return;",
+   "const results=await Promise.allSettled([",
+   "if(requestId!==refreshNonce||sessionEpoch!==authEpoch||owner!==user.id)return;"]);
+  assert.match(refresh,/catch\(_\)\{\s*if\(requestId!==refreshNonce\|\|sessionEpoch!==authEpoch\)return;/);
+  const release=between('function releaseBusy(){','async function refresh(){');
+  assert.match(release,/busy=false;/);
+  assert.match(release,/if\(refreshPending\)\{refreshPending=false;void refresh\(\);\}/);
+  const callback=between('client().auth.onAuthStateChange((event,session)=>{','setTimeout(refresh,400);');
+  ordered(callback,["authEpoch+=1;refreshNonce+=1;","hideKey();clearMfa();resetSensitiveState();sections.forEach(collapse);"]);
+  assert.equal((src.match(/finally\{releaseBusy\(\)/g)||[]).length,5);
+ }],
  ['logout and owner change clean sensitive data synchronously',()=>{
   const s=between('client().auth.onAuthStateChange((event,session)=>{','setTimeout(refresh,400)');
   ordered(s,["if(event==='SIGNED_OUT'||(event==='SIGNED_IN'&&owner&&session?.user?.id!==owner))",
