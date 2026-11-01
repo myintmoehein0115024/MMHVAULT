@@ -33,3 +33,6 @@ node landing-assets/release-candidate/validate-release.mjs && node --check landi
 ```
 
 before the existing preview build command. Candidate files are **not** added to the Pages output allowlist. A failing static audit blocks new preview deployment, not production. Live PWA device/OAuth recovery and production HTTP checks are separate mandatory manual go-live gates. The latest main at inspection was `d9e61e96d9ea30f1296d81594f87275179c85c3e` (account FX implementation only), and production index/login/manifest stay unchanged.
+
+## L1.25.1 candidate-only iOS standalone safeguard
+The staged production `index.html` includes a narrow `mmh-pwa-standalone-root-bridge` immediately after the intact N10 expired-recovery handler. It redirects only Home Screen standalone root visits to same-origin `login.html?source=pwa`, does not activate in ordinary browsers, does not forward tokens or intercept OAuth/password reset callback params, and never handles the Login route itself. Eight VM simulations in the static preflight test cover ordinary browser / Android / iOS / OAuth / password recovery / loop prevention. The public preview and real production are still unchanged. Full installed-device testing remains required.

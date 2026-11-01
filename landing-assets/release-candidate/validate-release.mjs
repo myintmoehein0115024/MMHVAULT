@@ -3,6 +3,7 @@
 // No external calls, secrets, network requests or production writes.
 import assert from 'node:assert/strict';
 import { readFileSync, existsSync } from 'node:fs';
+import { runInNewContext } from 'node:vm';
 
 const read = path => readFileSync(path, 'utf8');
 const staged = read('landing-assets/release-candidate/index.html');
@@ -59,4 +60,21 @@ check('Mobile registration and login links both exist', staged.includes('mobile-
 check('No account authorization embedded in public Landing', !staged.includes('supabase.createClient') && !staged.includes('SUPABASE_SERVICE_ROLE_KEY'));
 check('Fixed EN/ZH/MY Hero copy preserved', ['YOUR MONEY. YOUR DIRECTION.', '让财务更清晰，让未来更有方向。', 'ငွေကြေးကို ပိုမိုရှင်းလင်းစွာ သိမြင်ပြီး အနာဂတ်ကို ရည်ရွယ်ချက်ရှိရှိ စီမံပါ။'].every(x => staged.includes(x)));
 check('Existing Landing stylesheet available', existsSync('landing-assets/landing.css') && staged.includes('./landing-assets/landing.css'));
+
+const appBridge = (staged.match(/<script id="mmh-pwa-standalone-root-bridge">([\s\S]*?)<\/script>/) || [])[1];
+check('Production candidate includes standalone home-screen bridge only', Boolean(appBridge) && !preview.includes('mmh-pwa-standalone-root-bridge'));
+const testBridge = opts => {
+  let target = null;
+  const loc = {origin:'https://mmhvault.com',pathname:opts.path || '/',search:opts.search || '',hash:opts.hash || '',replace:href=>{target=String(href)}};
+  runInNewContext(appBridge, {window:{location:loc,matchMedia:()=>({matches:Boolean(opts.displayMode)})},navigator:{standalone:Boolean(opts.ios)},URL,URLSearchParams}, {timeout:1000});
+  return target;
+};
+check('Normal browser opens Landing', testBridge({}) === null);
+check('Android standalone opens Login', testBridge({displayMode:true}) === 'https://mmhvault.com/login.html?source=pwa');
+check('iOS standalone opens Login', testBridge({ios:true}) === 'https://mmhvault.com/login.html?source=pwa');
+check('No redirect loop outside root', testBridge({displayMode:true,path:'/login.html'}) === null);
+check('OAuth query callback not intercepted', testBridge({ios:true,search:'?code=oauth-callback'}) === null);
+check('Recovery error callback not intercepted', testBridge({ios:true,hash:'#error=access_denied&error_code=otp_expired'}) === null);
+check('Token fragments never forwarded', testBridge({displayMode:true,hash:'#access_token=secret'}) === null);
+
 console.log('MMHVAULT L1.25 PRE-RELEASE: ' + count + '/' + count + ' static checks PASS (not a substitute for device/production QA).');

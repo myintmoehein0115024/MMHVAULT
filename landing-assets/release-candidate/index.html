@@ -79,6 +79,27 @@
   } catch (_) {}
 })();
 </script>
+<script id="mmh-pwa-standalone-root-bridge">
+/* App-mode fallback for legacy iOS home-screen shortcuts.
+   Same-origin Login navigation; no user-agent sniffing or token forwarding. */
+(function () {
+  try {
+    const isStandalone = Boolean(window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) ||
+      navigator.standalone === true;
+    if (!isStandalone) return;
+    const loc = window.location;
+    if (loc.pathname !== '/' && loc.pathname !== '/index.html') return;
+    const sensitive = ['code', 'error', 'error_code', 'error_description', 'token_hash',
+      'access_token', 'refresh_token', 'type', 'recovery', 'recovery_error'];
+    const q = new URLSearchParams(loc.search);
+    const h = new URLSearchParams((loc.hash || '').replace(/^#/, ''));
+    if (sensitive.some(key => q.has(key) || h.has(key))) return;
+    const login = new URL('login.html', loc.origin + '/');
+    login.searchParams.set('source', 'pwa');
+    loc.replace(login.href);
+  } catch (_) { /* Fall back to the public page in older browsers. */ }
+})();
+</script>
 </head>
 <body id="top">
   <a href="#main" class="skip-link" data-i18n="skip">Skip to content</a>
