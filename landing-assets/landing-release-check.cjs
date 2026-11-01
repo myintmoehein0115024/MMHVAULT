@@ -18,8 +18,9 @@ const dom=(key,content)=>((content.match(new RegExp('<script id="'+key+'">([\\s\
 let passed=0;
 function check(title,predicate){assert.ok(predicate,title);++passed;console.log('PASS '+title)}
 check('Main page indexable',!/<meta[^>]+name=["']robots["'][^>]*noindex/i.test(current));
-check('Official search title',current.includes('<title>MMHVAULT | Personal Finance & Life Planning</title>'));
-check('Description supports finance+life planning',current.includes('name="description"')&&current.includes('life planning workspace'));
+check('Official finance and wealth search title',current.includes('<title>MMHVAULT | Personal Finance & Wealth</title>'));
+check('Consistent official Open Graph and Twitter titles',(current.match(/content="MMHVAULT \| Personal Finance &amp; Wealth"/g)||[]).length===2);
+check('Official description names real finance tools and future Business', current.includes('name="description"')&&current.includes('official personal finance and wealth management website')&&current.includes('Business is a future concept.'));
 check('Canonical is unique and official',(current.match(/<link rel="canonical"/g)||[]).length===1&&current.includes('href="https://mmhvault.com/"'));
 check('OG site and homepage URL',current.includes('property="og:site_name" content="MMHVAULT"')&&current.includes('property="og:url" content="https://mmhvault.com/"'));
 check('Real brand PNG present',fs.existsSync('images/mmhvault-logo-transparent.png')&&current.includes('https://mmhvault.com/images/mmhvault-logo-transparent.png'));
@@ -28,6 +29,25 @@ check('One valid JSON-LD block',!!jsonText&&(current.match(/<script type="applic
 const graph=JSON.parse(jsonText)['@graph'];
 check('Website name in structured data',graph.some(x=>x['@type']==='WebSite'&&x.name==='MMHVAULT'&&x.url==='https://mmhvault.com/'));
 check('Brand Organization in structured data',graph.some(x=>x['@type']==='Organization'&&x.name==='MMHVAULT'));
+const site=graph.find(x=>x['@type']==='WebSite');
+const brand=graph.find(x=>x['@type']==='Organization');
+const appSchema=graph.find(x=>x['@type']==='SoftwareApplication');
+check('One official WebSite / Organization / SoftwareApplication graph',
+ graph.length===3 && site?.name==='MMHVAULT' &&
+ brand?.name==='MMHVAULT' && appSchema?.name==='MMHVAULT' &&
+ site?.publisher?.['@id']===brand?.['@id'] &&
+ appSchema?.publisher?.['@id']===brand?.['@id']);
+check('SoftwareApplication truthfully describes web finance and excludes future Business',
+ appSchema?.url==='https://mmhvault.com/' &&
+ appSchema?.applicationCategory==='FinanceApplication' &&
+ appSchema?.operatingSystem==='Web browser' &&
+ ['Accounts','Transactions','Investments','Budgets','Financial Analysis','Financial Planning']
+  .every(x=>appSchema.featureList?.includes(x)) &&
+ !appSchema?.featureList?.includes('Business') &&
+ !appSchema?.offers && !appSchema?.aggregateRating && !appSchema?.review);
+check('Organization references the real brand logo and correct platform identity',
+ brand?.description?.includes('Personal Finance & Wealth') &&
+ brand?.logo?.url==='https://mmhvault.com/images/mmhvault-logo-transparent.png');
 check('Exact N10 recovery route preserved',dom('mmh-n10-recovery-error-route',current)===dom('mmh-n10-recovery-error-route',prev)&&!!dom('mmh-n10-recovery-error-route',prev));
 check('Installed standalone fallback present',!!dom('mmh-pwa-standalone-root-bridge',current));
 check('Standalone guard does not affect normal browser',dom('mmh-pwa-standalone-root-bridge',current).includes('if (!isStandalone) return'));
@@ -74,7 +94,7 @@ check('Sitemap has no private app or login',!/<loc>[^<]*\/(?:app|login|n10-qa)\.
 check('PWA launcher points to secure Login',manifest.start_url==='./login.html?source=pwa&install=v2');
 check('Manifest differs only in start_url',JSON.stringify({...manifest,start_url:oldManifest.start_url})===JSON.stringify(oldManifest));
 check('Preserved old iPhone touch icon',current.includes('<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=pwa24-20261029">'));
-const allowed=new Set(['index.html','robots.txt','mmh-manifest-v2.webmanifest','business.html','sitemap.xml','register/index.html','features/index.html','privacy.html','terms.html','security.html','landing-assets/public-pages.css','landing-assets/public-pages.js','landing-assets/landing-release-check.cjs','landing-assets/landing-browser-check.cjs','.github/workflows/landing-release-check.yml',...names.map(f=>'landing-assets/'+f)]);
+const allowed=new Set(['index.html','robots.txt','mmh-manifest-v2.webmanifest','business.html','sitemap.xml','register/index.html','features/index.html','about/index.html','privacy.html','terms.html','security.html','landing-assets/public-pages.css','landing-assets/public-pages.js','landing-assets/landing-release-check.cjs','landing-assets/landing-browser-check.cjs','.github/workflows/landing-release-check.yml',...names.map(f=>'landing-assets/'+f)]);
 const diff=cp.spawnSync('git',['diff','--name-only',main+'...HEAD'],{encoding:'utf8'});
 assert.equal(diff.status,0,'git diff unsuccessful');
 const actual=diff.stdout.trim().split(/\n/).filter(Boolean);
@@ -106,6 +126,43 @@ check('Secure Login stays noindex and untouched',!actual.includes('login.html')&
 check('Life Planner and Business are labelled future concepts',read('features/index.html').includes('Coming Soon')&&read('features/index.html').includes('future release'));
 check('Public page CSS & JS are present',fs.existsSync('landing-assets/public-pages.css')&&fs.existsSync('landing-assets/public-pages.js'));
 check('Homepage public navigation has correct EN/ZH/MY labels',['en','zh','my'].every(lang=>translationScript.includes('Object.assign(strings.'+lang+',{"sitelinkFeatures"')));
+
+/* L1.7 — factual brand entity and About page sitelink, no AI Overview promises. */
+const about=read('about/index.html');
+const aboutHead=about.split('</head>')[0];
+check('About is unique, indexable, with consistent title and canonical',
+ aboutHead.includes('<title>About MMHVAULT | Personal Finance &amp; Wealth</title>') &&
+ aboutHead.includes('<link rel="canonical" href="https://mmhvault.com/about/">') &&
+ (aboutHead.match(/rel="canonical"/g)||[]).length===1 &&
+ !/name=["']robots["'][^>]*noindex/.test(aboutHead));
+check('About explicitly states official domain, core product and future Business',
+ about.includes('Its official website is mmhvault.com') &&
+ ['Accounts','Transactions','Investments','Budgets','Financial Analysis','Financial Planning']
+  .every(name=>about.includes('<h3>'+name+'</h3>')) &&
+ about.includes('not a live business accounting service'));
+check('About has valid linked AboutPage and BreadcrumbList schema',(()=>{
+ const block=(aboutHead.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)||[])[1];
+ if(!block)return false;
+ const graph=JSON.parse(block)['@graph'];
+ return Array.isArray(graph) && graph.some(n=>n['@type']==='AboutPage'&&n.url==='https://mmhvault.com/about/') &&
+ graph.some(n=>n['@type']==='BreadcrumbList'&&n.itemListElement?.[1]?.item==='https://mmhvault.com/about/');
+})());
+check('Public About is linked from homepage, Features, Register and sitemap',
+ current.includes('href="./about/"') &&
+ read('features/index.html').includes('href="/about/"') &&
+ read('register/index.html').includes('href="/about/"') &&
+ publicSitemap.includes('<loc>https://mmhvault.com/about/</loc>'));
+check('All brand pages retain canonical host and avoid fake external profiles',
+ !/tiktok\.com|michigan/i.test(current+about) &&
+ [current,read('features/index.html'),read('register/index.html'),about].every(html=>html.includes('https://mmhvault.com/')));
+check('Fixed homepage Hero remains visually protected and authentic brand visible',
+ current.includes('data-hero-fixed') && current.includes('PERSONAL FINANCE &amp; WEALTH') &&
+ about.includes('MMHVAULT · PERSONAL FINANCE &amp; WEALTH'));
+check('Features mentions budgets/planning and labels future Business',
+ read('features/index.html').includes('Budget reviews and financial planning tools') &&
+ read('features/index.html').includes('Business and Life Planner experiences are separate future concepts'));
+check('Secure routes not rewritten in this PR',
+ !actual.some(p=>/^((login|app|business)\.html|mmh-manifest|sw\.js|mmh-push-sw\.js|CNAME)$/.test(p)));
 
 /* L1.33 — public legal pages and consistent brand icon; no auth code changes. */
 for(const page of [
