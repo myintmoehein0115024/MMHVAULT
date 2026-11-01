@@ -105,6 +105,14 @@ function ok(value,message){assert.ok(value,message);console.log('PASS '+message)
         }
         ok(metrics.resources.some(r=>r.name.endsWith('/'+info.hero)),
           info.route+' '+viewport.name+' priority image actually requested');
+        const heroRequestCount=requests.filter(r=>r.url.endsWith('/'+info.hero)).length;
+        ok(heroRequestCount===1,info.route+' '+viewport.name+' no redundant hero fetches');
+        // Guard against silent page-weight regressions, not a field CWV threshold.
+        // Budgets include uncompressed local-server assets; CDN may compress more.
+        const resourceBudget=info.route==='/'?850000:350000;
+        ok(metrics.transferBytes<=resourceBudget,
+          info.route+' '+viewport.name+' resource weight '+
+          metrics.transferBytes+' B under '+resourceBudget+' B budget');
         const sample={route:info.route,viewport:viewport.name,
           width:viewport.width,throttle:'100ms latency, 1.92 Mbps download (lab)',
           fcpMs:metrics.fcp,lcpMs:metrics.lcp,cls:metrics.cls,
@@ -112,7 +120,7 @@ function ok(value,message){assert.ok(value,message);console.log('PASS '+message)
           resourceCount:metrics.resourceCount,
           transferredBytes:metrics.transferBytes,
           totalRequests:requests.length,
-          heroRequests:requests.filter(r=>r.url.endsWith('/'+info.hero)).length,
+          heroRequests:heroRequestCount,
           largestResources:[...metrics.resources]
              .sort((a,b)=>b.decoded-a.decoded).slice(0,6)
              .map(r=>({name:r.name,transferBytes:r.bytes,decodedBytes:r.decoded,
