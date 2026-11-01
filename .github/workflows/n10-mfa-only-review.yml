@@ -28,4 +28,6 @@ jobs:
           npx playwright install --with-deps chromium webkit
       - name: Run synthetic browser smoke in Chromium and WebKit
         run: node security/n10-mfa-only/test-browser-mfa-smoke.mjs
+      - name: Check production app.html security DOM bootstrap with real browser engines
+        run: node security/n10-mfa-only/test-real-app-dom-bootstrap.mjs
 # Does not deploy, access secrets, create users, modify database, or call Vault.
