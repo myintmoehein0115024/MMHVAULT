@@ -56,11 +56,15 @@ jobs:
           trap 'kill "$SERVER_PID"' EXIT
           sleep 2
           node landing-assets/landing-browser-check.cjs
-      - name: Upload public-only visual snapshots
+      - name: Measure first-paint and hero resource on slow-network local lab
+        run: node landing-assets/landing-perf-check.cjs
+      - name: Upload public-only QA and lab performance report
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: mmhvault-landing-public-visual-qa
-          path: landing-qa-screenshots/*.png
+          path: |
+            landing-qa-screenshots/*.png
+            landing-perf-reports/public-lab.json
           if-no-files-found: ignore
           retention-days: 7
