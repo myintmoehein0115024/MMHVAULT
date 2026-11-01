@@ -35,8 +35,17 @@ async function load(page,route,failures){
       .sort((a,b)=>b.right-a.right).slice(0,24));
     console.error('RESPONSIVE OFFENDERS '+route+' '+widths.window+'px '+JSON.stringify(outside));
   }
-  ensure(widths.document <= widths.window+2,
-    route+' no horizontal document overflow '+JSON.stringify(widths));
+  // Decorative blurred ambience may extend outside the viewport in layout
+  // metrics while overflow-x:clip prevents all *actual* horizontal scrolling.
+  const horizontalTravel=await page.evaluate(()=>{
+    const beforeX=scrollX, beforeY=scrollY;
+    window.scrollTo({left:1000,top:beforeY,behavior:'instant'});
+    const traveled=scrollX;
+    window.scrollTo({left:beforeX,top:beforeY,behavior:'instant'});
+    return traveled;
+  });
+  ensure(horizontalTravel<=2,
+    route+' no user-scrollable sideways overflow '+JSON.stringify({...widths,horizontalTravel}));
   ensure(failures.length===0,route+' no JS exceptions or missing local assets: '+failures.join('; '));
   return widths;
 }
