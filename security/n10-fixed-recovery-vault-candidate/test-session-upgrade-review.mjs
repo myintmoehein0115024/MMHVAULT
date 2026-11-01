@@ -8,50 +8,50 @@ const tests=[
  ['no unauthorized execution or production rollout',()=>{
   for(const sql of [upgrade,emergency]){
    assert.match(sql,/NOT APPROVED|DO NOT EXECUTE/);
-   assert.doesNotMatch(sql,/\\b(?:INSERT|UPDATE|DELETE|TRUNCATE)\\s+(?:INTO|FROM)?\\s*(?:auth\\.|vault\\.|mmh_n10_privacy\\.)/i);
-   assert.doesNotMatch(sql,/DROP\\s+\\w+[^;]*\\bCASCADE\\b/i);
+   assert.doesNotMatch(sql,/\b(?:INSERT|UPDATE|DELETE|TRUNCATE)\s+(?:INTO|FROM)?\s*(?:auth\.|vault\.|mmh_n10_privacy\.)/i);
+   assert.doesNotMatch(sql,/DROP\s+\w+[^;]*\bCASCADE\b/i);
   }
   assert.match(upgrade,/ldivswlhtgmznzwhzsoi/);
   assert.doesNotMatch(upgrade,/vrypucmyrztxgiqhjspd/);
  }],
  ['preflight refuses schema drift and previously installed V2',()=>{
-  assert.match(upgrade,/to_regprocedure\\('public\\.mmh_n10_recovery_session_active\\(uuid,uuid\\)'\\)/);
-  assert.match(upgrade,/to_regprocedure\\('public\\.mmh_n10_recovery_session_active\\(uuid,uuid,text\\)'\\) IS NOT NULL/);
-  assert.match(upgrade,/md5\\(v_src\\) <> '4778bf3220e2faf29af54186c226e3ed'/);
+  assert.match(upgrade,/to_regprocedure\('public\.mmh_n10_recovery_session_active\(uuid,uuid\)'\)/);
+  assert.match(upgrade,/to_regprocedure\('public\.mmh_n10_recovery_session_active\(uuid,uuid,text\)'\) IS NOT NULL/);
+  assert.match(upgrade,/md5\(v_src\) <> '4778bf3220e2faf29af54186c226e3ed'/);
   assert.match(upgrade,/v_dependents <> 0/);
-  assert.match(upgrade,/has_function_privilege\\('authenticated',v_old,'EXECUTE'\\)/);
-  assert.match(upgrade,/has_function_privilege\\('anon',v_old,'EXECUTE'\\)/);
-  assert.match(upgrade,/to_regnamespace\\('mmh_n10_qa_security'\\)/);
+  assert.match(upgrade,/has_function_privilege\('authenticated',v_old,'EXECUTE'\)/);
+  assert.match(upgrade,/has_function_privilege\('anon',v_old,'EXECUTE'\)/);
+  assert.match(upgrade,/to_regnamespace\('mmh_n10_qa_security'\)/);
  }],
  ['V2 enforces session ownership, strict current AAL, enrolled factor',()=>{
-  assert.match(upgrade,/s\\.id=p_session_id/);
-  assert.match(upgrade,/s\\.user_id=p_user_id/);
-  assert.match(upgrade,/s\\.not_after IS NULL OR s\\.not_after>now\\(\\)/);
+  assert.match(upgrade,/s\.id=p_session_id/);
+  assert.match(upgrade,/s\.user_id=p_user_id/);
+  assert.match(upgrade,/s\.not_after IS NULL OR s\.not_after>now\(\)/);
   assert.match(upgrade,/p_expected_aal='aal1'/);
-  assert.match(upgrade,/s\\.aal::text='aal1'/);
-  assert.match(upgrade,/s\\.factor_id IS NULL/);
-  assert.match(upgrade,/NOT EXISTS\\(/);
+  assert.match(upgrade,/s\.aal::text='aal1'/);
+  assert.match(upgrade,/s\.factor_id IS NULL/);
+  assert.match(upgrade,/NOT EXISTS\(/);
   assert.match(upgrade,/p_expected_aal='aal2'/);
-  assert.match(upgrade,/s\\.aal::text='aal2'/);
-  assert.match(upgrade,/s\\.factor_id IS NOT NULL/);
-  assert.match(upgrade,/f\\.id=s\\.factor_id/);
-  assert.match(upgrade,/f\\.user_id=p_user_id/);
-  assert.match(upgrade,/f\\.status::text='verified'/);
+  assert.match(upgrade,/s\.aal::text='aal2'/);
+  assert.match(upgrade,/s\.factor_id IS NOT NULL/);
+  assert.match(upgrade,/f\.id=s\.factor_id/);
+  assert.match(upgrade,/f\.user_id=p_user_id/);
+  assert.match(upgrade,/f\.status::text='verified'/);
  }],
  ['new function public EXECUTE is revoked and old signature removed atomically',()=>{
   assert.match(upgrade,/^BEGIN;/m);
   assert.match(upgrade,/^COMMIT;/m);
-  assert.match(upgrade,/REVOKE ALL ON FUNCTION public\\.mmh_n10_recovery_session_active\\(uuid,uuid,text\\)\\s+FROM PUBLIC,anon,authenticated;/);
-  assert.match(upgrade,/GRANT EXECUTE ON FUNCTION public\\.mmh_n10_recovery_session_active\\(uuid,uuid,text\\)\\s+TO service_role;/);
-  assert.match(upgrade,/DROP FUNCTION public\\.mmh_n10_recovery_session_active\\(uuid,uuid\\) RESTRICT;/);
+  assert.match(upgrade,/REVOKE ALL ON FUNCTION public\.mmh_n10_recovery_session_active\(uuid,uuid,text\)\s+FROM PUBLIC,anon,authenticated;/);
+  assert.match(upgrade,/GRANT EXECUTE ON FUNCTION public\.mmh_n10_recovery_session_active\(uuid,uuid,text\)\s+TO service_role;/);
+  assert.match(upgrade,/DROP FUNCTION public\.mmh_n10_recovery_session_active\(uuid,uuid\) RESTRICT;/);
   assert.ok(upgrade.indexOf('CREATE FUNCTION public.mmh_n10_recovery_session_active')<
             upgrade.indexOf('DROP FUNCTION public.mmh_n10_recovery_session_active'));
  }],
  ['emergency disable is fail closed, never restores weak RPC',()=>{
-  assert.match(emergency,/REVOKE EXECUTE ON FUNCTION public\\.mmh_n10_recovery_session_active\\(uuid,uuid,text\\)\\s+FROM service_role;/);
-  assert.doesNotMatch(emergency,/^\\s*CREATE\\s+(?:OR REPLACE\\s+)?FUNCTION\\b/mi);
-  assert.doesNotMatch(emergency,/^\\s*GRANT\\b/mi);
-  assert.doesNotMatch(emergency,/^\\s*DROP\\b/mi);
+  assert.match(emergency,/REVOKE EXECUTE ON FUNCTION public\.mmh_n10_recovery_session_active\(uuid,uuid,text\)\s+FROM service_role;/);
+  assert.doesNotMatch(emergency,/^\s*CREATE\s+(?:OR REPLACE\s+)?FUNCTION\b/mi);
+  assert.doesNotMatch(emergency,/^\s*GRANT\b/mi);
+  assert.doesNotMatch(emergency,/^\s*DROP\b/mi);
   assert.match(emergency,/Legacy RPC unexpectedly present/);
  }],
 ];
