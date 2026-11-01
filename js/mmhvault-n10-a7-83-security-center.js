@@ -52,7 +52,7 @@ document.addEventListener('click',event=>{
  if(event.target.closest('.language-choice-v3363'))setTimeout(a783RenderLanguage,0);
 });
 
-let owner='',busy=false,pendingFactor='',pendingFactorOwner='',pendingSecret='',factorId='',verifiedPhrase='',clearTimer=null,usernameOnly=false,mfaEpoch=0,recoveryEpoch=0;
+let owner='',busy=false,pendingFactor='',pendingFactorOwner='',pendingSecret='',factorId='',verifiedPhrase='',clearTimer=null,usernameOnly=false,mfaEpoch=0,recoveryEpoch=0,authEpoch=0,refreshNonce=0,refreshPending=false;
 function client(){return typeof db!=='undefined'?db:null;}
 function label(id,v){const el=$(id);if(el){el.dataset.mmhA783DynamicEn=v;el.textContent=a783Text(v);}}
 function hideKey(){recoveryEpoch+=1;verifiedPhrase='';$('mmhA783KeyDisplay').hidden=true;$('mmhA783KeyQr').replaceChildren();$('mmhA783KeyWords').replaceChildren();$('mmhA783Phrase').value='';$('mmhA783Phrase').type='password';$('mmhA783PhraseToggle').setAttribute('aria-pressed','false');a783Action('mmhA783PhraseToggle','Show words');if(clearTimer)clearTimeout(clearTimer);}
@@ -146,10 +146,17 @@ async function api(action,extra={}){
  const d=await r.json().catch(()=>({code:'unavailable'}));
  return {ok:r.ok,body:d};
 }
+function releaseBusy(){
+ busy=false;
+ // Auth changes while a security action is in flight still need a refresh.
+ if(refreshPending){refreshPending=false;void refresh();}
+}
 async function refresh(){
- if(busy)return;
+ if(busy){refreshPending=true;return;}
+ const requestId=++refreshNonce,sessionEpoch=authEpoch;
  try{
    const {user}=await verifiedUser();
+   if(requestId!==refreshNonce||sessionEpoch!==authEpoch)return;
    if(owner&&owner!==user.id){hideKey();clearMfa();}
    owner=user.id;
    // Do not let a temporary failure in one service disable independent,
@@ -158,7 +165,7 @@ async function refresh(){
      api('status'),client().auth.getUserIdentities(),
      client().auth.mfa.listFactors(),client().auth.mfa.getAuthenticatorAssuranceLevel()
    ]);
-   if(owner!==user.id)return;
+   if(requestId!==refreshNonce||sessionEpoch!==authEpoch||owner!==user.id)return;
    const [sr,ir,fr,ar]=results.map(x=>x.status==='fulfilled'?x.value:null);
    let incomplete=false;
    if(sr?.ok&&sr.body?.code==='account_status'&&typeof sr.body.username_only==='boolean'){
@@ -210,6 +217,7 @@ async function refresh(){
    }
    status(incomplete?'Some security details are temporarily unavailable. Other verified controls remain usable.':'Security details updated.');
  }catch(_){
+   if(requestId!==refreshNonce||sessionEpoch!==authEpoch)return;
    hideKey();clearMfa();resetSensitiveState();
    status('Account session could not be verified. Please sign in again or refresh.');
  }
@@ -234,7 +242,7 @@ $('mmhA783LinkGoogle').addEventListener('click',async()=>{
  }catch(_){
    sessionStorage.removeItem('mmh_a783_google_link_expected_uid');
    status('Unable to link Google. Account linking may require enabling identity linking in authentication settings. No finance data was changed.');
- }finally{busy=false;}
+ }finally{releaseBusy();}
 });
 $('mmhA783PhraseToggle').addEventListener('click',()=>{
  const input=$('mmhA783Phrase'),button=$('mmhA783PhraseToggle');
@@ -269,7 +277,7 @@ $('mmhA783KeyVerify').addEventListener('click',async()=>{
  }catch(_){if(recoveryRequestActive(epoch,userId)){
    hideKey();status('The recovery words could not be verified. Check the order.');
   }}
- finally{busy=false;}
+ finally{releaseBusy();}
 });
 $('mmhA783KeyHide').addEventListener('click',hideKey);
 $('mmhA783KeySaveQr').addEventListener('click',()=>{
@@ -324,7 +332,7 @@ $('mmhA783TotpStart').addEventListener('click',async()=>{
   status('Scan this QR with Google Authenticator, then enter its six-digit code. Do not share this secret.');
  }catch(_){if(mfaFlowActive(epoch,owner))
   status('Could not start authenticator setup. Please check the account and try again.');}
- finally{busy=false;}
+ finally{releaseBusy();}
 });
 $('mmhA783TotpConfirm').addEventListener('click',async()=>{
  if(busy||!pendingFactor)return;
@@ -353,7 +361,7 @@ $('mmhA783TotpConfirm').addEventListener('click',async()=>{
   setTimeout(()=>void refresh(),0);
  }catch(_){if(mfaFlowActive(epoch,userId))
   status('Could not verify this code. Check your device time and try a new code.');}
- finally{busy=false;$('mmhA783TotpCode').value='';}
+ finally{releaseBusy();$('mmhA783TotpCode').value='';}
 });
 $('mmhA783KeyReveal').addEventListener('click',()=>{
  if(!pendingFactor)return;
@@ -401,7 +409,7 @@ $('mmhA783TotpRemoveNow').addEventListener('click',async()=>{
  }catch(_){
   if(mfaRemovalActive(epoch,userId,targetFactor))
    status('Authenticator removal could not be confirmed. Check the account and try again.');
- }finally{busy=false;}
+ }finally{releaseBusy();}
 });
 document.addEventListener('visibilitychange',()=>{if(document.hidden){hideKey();if(pendingFactor)void cancelPendingMfa();else clearMfa();}});
 window.addEventListener('pagehide',()=>{hideKey();if(pendingFactor)void cancelPendingMfa();else clearMfa();});
@@ -608,6 +616,10 @@ if(settingsPage){new MutationObserver(onPageChange).observe(settingsPage,{attrib
 a783RenderLanguage();
 if(client()){
  client().auth.onAuthStateChange((event,session)=>{
+  // Invalidates older read-only status requests before they can paint.
+  if(['SIGNED_IN','SIGNED_OUT','TOKEN_REFRESHED'].includes(event)){
+   authEpoch+=1;refreshNonce+=1;
+  }
   // Invalidate in-flight secret responses *synchronously* on account change
   // or sign-out, even while refresh() cannot run because a request is busy.
   if(event==='SIGNED_OUT'||(event==='SIGNED_IN'&&owner&&session?.user?.id!==owner)){
