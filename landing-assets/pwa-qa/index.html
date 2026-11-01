@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="robots" content="noindex,nofollow,noarchive">
+  <meta name="theme-color" content="#10263a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="MMH QA">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="apple-touch-icon" href="../images/icon-192.png">
+  <link rel="icon" type="image/png" href="../images/icon-192.png">
+  <title>MMHVAULT · PWA 启动验收（独立测试）</title>
+  <style>
+    :root{color-scheme:dark;font-family:ui-sans-serif,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+    *{box-sizing:border-box}
+    html{background:#0b1b2a}
+    body{margin:0;min-height:100svh;color:#f8eee0;background:radial-gradient(ellipse at 90% 0,rgba(233,179,98,.14),transparent 50%),linear-gradient(140deg,#102f46,#071625);padding:env(safe-area-inset-top) max(16px,env(safe-area-inset-right)) max(28px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));}
+    .wrap{width:min(600px,100%);margin:0 auto;padding:36px 0 55px}
+    .kicker{font-size:10px;letter-spacing:.17em;color:#f4cd91;font-weight:800}
+    h1{font-family:Georgia,"Times New Roman",serif;font-weight:500;font-size:clamp(30px,7.7vw,47px);line-height:1.18;letter-spacing:-.03em;margin:18px 0 12px}
+    p{line-height:1.8;font-size:13px;color:#becfd8}
+    .mark{display:flex;align-items:center;gap:12px;padding-bottom:22px;border-bottom:1px solid rgba(238,200,139,.3)}
+    .signet{width:41px;height:41px;border-radius:12px;border:1px solid rgba(244,201,135,.6);background:linear-gradient(140deg,#345268,#0d283e);display:grid;place-items:center;font:26px Georgia,serif;color:#ffe0a9}
+    .brand{font-family:Georgia,serif;letter-spacing:.07em;font-size:19px;color:#f4d49e}
+    .pill{margin-left:auto;font-size:9px;font-weight:800;letter-spacing:.07em;color:#f6d29c;border:1px solid rgba(241,190,104,.5);background:rgba(211,151,72,.1);border-radius:999px;padding:8px 10px}
+    .card{border:1px solid rgba(208,223,227,.25);border-radius:19px;background:linear-gradient(144deg,rgba(31,67,89,.94),rgba(12,38,57,.93));box-shadow:inset 0 1px rgba(255,240,211,.14),0 12px 30px rgba(0,0,0,.16);padding:22px;margin-top:21px}
+    .card h2{font-size:15px;margin:0 0 17px;color:#f6e5cd}
+    .status{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+    .status>div{background:rgba(2,19,34,.35);border:1px solid rgba(163,194,208,.23);border-radius:12px;padding:14px;min-width:0}
+    .label{font-size:10px;letter-spacing:.06em;color:#a9c0ce;margin-bottom:10px}
+    .value{font-size:13px;line-height:1.6;font-weight:750;overflow-wrap:anywhere;color:#f6d297}
+    .value.good{color:#91e2bd}
+    .steps{display:grid;gap:15px;margin:0;padding-left:22px;color:#d5e1e7;font-size:12px;line-height:1.85}
+    .steps li{padding-left:2px}
+    .buttons{display:flex;flex-wrap:wrap;gap:9px;margin-top:18px}
+    a.button,button.button{border-radius:11px;min-height:46px;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:10px 17px;text-decoration:none;font:750 12px/1.5 inherit;cursor:pointer}
+    a.primary,button.primary{border:1px solid #f4d19a;background:linear-gradient(128deg,#ffe4b1,#e9bc7d);color:#142538}
+    a.secondary,button.secondary{border:1px solid rgba(246,207,153,.43);background:rgba(13,42,61,.6);color:#f5dba9}
+    a:focus-visible,button:focus-visible{outline:2px solid #ffdfad;outline-offset:3px}
+    .fine{margin-top:19px;color:#93a9b6;font-size:10px;line-height:1.8}
+    .result{margin-top:14px;color:#e2be88;font-size:11px;line-height:1.8;overflow-wrap:anywhere}
+    @media(max-width:365px){.status{grid-template-columns:1fr}.mark{flex-wrap:wrap}.pill{margin-left:0}}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <header class="mark">
+      <div class="signet" aria-hidden="true">M</div>
+      <div class="brand">MMHVAULT</div>
+      <span class="pill">PREVIEW TEST ONLY</span>
+    </header>
+    <p class="kicker">L1.26 · PWA LAUNCH QA</p>
+    <h1>测试手机主屏启动模式</h1>
+    <p>此页面只用于检查 iPhone / Android 的主屏幕安装与独立启动行为。它不会修改正式 MMHVAULT，也不会读取账户、登录凭证或财务数据。</p>
+    <section class="card" aria-labelledby="statusHeading">
+      <h2 id="statusHeading">当前设备检测结果</h2>
+      <div class="status">
+        <div><div class="label">运行模式</div><div class="value" id="displayMode">检测中…</div></div>
+        <div><div class="label">启动入口</div><div class="value" id="entryPage">检测中…</div></div>
+      </div>
+      <p class="result" id="resultText" role="status" aria-live="polite">正在检查页面启动方式。</p>
+      <div class="buttons">
+        <button class="button primary" type="button" id="refreshStatus">重新检测</button>
+        <a class="button secondary" href="/">返回 Landing 预览</a>
+      </div>
+    </section>
+    <section class="card" aria-labelledby="instructionsHeading">
+      <h2 id="instructionsHeading">如何测试（不用登录）</h2>
+      <ol class="steps">
+        <li><strong>iPhone / iPad：</strong>在 Safari 打开本页，点击分享，再选择「添加到主屏幕」，从新图标打开。</li>
+        <li><strong>Android：</strong>在 Chrome 打开本页，使用菜单中的「安装应用」或「添加到主屏幕」，再从桌面图标打开。</li>
+        <li>主屏幕打开后，观察上方是否显示「独立 App 模式」。若还出现「已通过 PWA start_url 进入」，代表新的启动地址生效。</li>
+      </ol>
+      <p class="fine">不同 iOS 版本可能保留用户添加时的网页地址，而不使用 Manifest 的 start_url。这是专门要验证的兼容性差异。测试完成后，可删除「MMH QA」测试图标，不会影响您正式的 MMHVAULT App 图标。</p>
+    </section>
+    <p class="fine">安全说明：本页没有 Analytics、网络请求、账号输入框或认证操作。正式站点及正式 PWA 均未变更。</p>
+  </main>
+  <script>
+  (() => {
+    const refresh = () => {
+      const display = Boolean(window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
+      const ios = navigator.standalone === true;
+      const standalone = display || ios;
+      const url = new URL(window.location.href);
+      const installedStart = url.pathname.endsWith('/pwa-qa/launch.html') && url.searchParams.get('source') === 'installed';
+      const mode = document.getElementById('displayMode');
+      const entry = document.getElementById('entryPage');
+      const result = document.getElementById('resultText');
+      mode.textContent = standalone ? '独立 App 模式' : '普通浏览器模式';
+      mode.classList.toggle('good',standalone);
+      entry.textContent = installedStart ? 'PWA start_url' : '测试首页 / 保存的页面';
+      entry.classList.toggle('good',installedStart);
+      result.textContent = standalone
+        ? (installedStart ? '通过：独立 App 模式 + Manifest 启动地址均已检测到。' : '已进入独立 App 模式；此设备可能使用保存的页面地址启动，请记录结果。')
+        : '当前是普通浏览器模式。请从添加到主屏幕后的测试图标重新打开。';
+    };
+    document.getElementById('refreshStatus').addEventListener('click',refresh);
+    refresh();
+  })();
+  </script>
+</body>
+</html>
