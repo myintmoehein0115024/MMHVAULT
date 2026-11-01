@@ -52,10 +52,10 @@ document.addEventListener('click',event=>{
  if(event.target.closest('.language-choice-v3363'))setTimeout(a783RenderLanguage,0);
 });
 
-let owner='',busy=false,pendingFactor='',pendingFactorOwner='',pendingSecret='',factorId='',verifiedPhrase='',clearTimer=null,usernameOnly=false,mfaEpoch=0;
+let owner='',busy=false,pendingFactor='',pendingFactorOwner='',pendingSecret='',factorId='',verifiedPhrase='',clearTimer=null,usernameOnly=false,mfaEpoch=0,recoveryEpoch=0;
 function client(){return typeof db!=='undefined'?db:null;}
 function label(id,v){const el=$(id);if(el){el.dataset.mmhA783DynamicEn=v;el.textContent=a783Text(v);}}
-function hideKey(){verifiedPhrase='';$('mmhA783KeyDisplay').hidden=true;$('mmhA783KeyQr').replaceChildren();$('mmhA783KeyWords').replaceChildren();$('mmhA783Phrase').value='';$('mmhA783Phrase').type='password';$('mmhA783PhraseToggle').setAttribute('aria-pressed','false');a783Action('mmhA783PhraseToggle','Show words');if(clearTimer)clearTimeout(clearTimer);}
+function hideKey(){recoveryEpoch+=1;verifiedPhrase='';$('mmhA783KeyDisplay').hidden=true;$('mmhA783KeyQr').replaceChildren();$('mmhA783KeyWords').replaceChildren();$('mmhA783Phrase').value='';$('mmhA783Phrase').type='password';$('mmhA783PhraseToggle').setAttribute('aria-pressed','false');a783Action('mmhA783PhraseToggle','Show words');if(clearTimer)clearTimeout(clearTimer);}
 // .totp is the verified-only subset; use .all to detect pending factors.
 function inspectTotpFactors(data){
  if(!data||!Array.isArray(data.all))throw Error('factor_inventory_unavailable');
@@ -68,6 +68,13 @@ function inspectTotpFactors(data){
  };
 }
 function clearMfa(){mfaEpoch+=1;pendingSecret='';pendingFactor='';pendingFactorOwner='';if($('mmhA783TotpBackupConfirmed'))$('mmhA783TotpBackupConfirmed').checked=false;$('mmhA783TotpSetup').hidden=true;$('mmhA783TotpQr').replaceChildren();$('mmhA783TotpSecret').textContent='';$('mmhA783TotpSecret').hidden=true;$('mmhA783TotpCode').value='';a783Action('mmhA783KeyReveal','Show setup key');}
+// Recovery verification must not re-display words after the owner, modal or
+// document visibility changes while an asynchronous request is pending.
+function recoveryRequestActive(epoch,userId){
+ return epoch===recoveryEpoch&&userId===owner&&!document.hidden&&
+  $('mmhA783Recovery')?.classList.contains('mmh-a785-open')===true&&
+  !$('mmhA783KeyVerify')?.closest('.mmh-n10-modal-overlay')?.hidden;
+}
 // Async MFA responses must never revive a closed modal or a changed account.
 function mfaFlowActive(epoch,userId){
  const overlay=$('mmhA783TotpStart')?.closest('.mmh-n10-modal-overlay');
@@ -236,13 +243,17 @@ $('mmhA783PhraseToggle').addEventListener('click',()=>{
  a783Action('mmhA783PhraseToggle',visible?'Hide words':'Show words');
 });
 $('mmhA783KeyVerify').addEventListener('click',async()=>{
- if(busy)return;const raw=$('mmhA783Phrase').value.trim().toLowerCase().replace(/\s+/g,' ');
+ if(busy||!owner||!recoveryRequestActive(recoveryEpoch,owner))return;const raw=$('mmhA783Phrase').value.trim().toLowerCase().replace(/\s+/g,' ');
  if(raw.split(' ').length!==10){status('Enter your existing ten words in the original order.');return}
+ const epoch=recoveryEpoch,userId=owner;
  busy=true;
  try{
   const r=await api('verify_saved_phrase',{phrase:raw});
+  if(!recoveryRequestActive(epoch,userId))return;
   if(!r.ok||r.body?.verified!==true)throw Error('invalid');
-  verifiedPhrase=raw;hideKey();verifiedPhrase=raw;
+  // hideKey invalidates every old in-flight response; all UI work below
+  // happens synchronously while the same modal and owner remain active.
+  hideKey();verifiedPhrase=raw;
   const list=$('mmhA783KeyWords');list.replaceChildren();
   raw.split(' ').forEach((w,i)=>{const el=document.createElement('div');el.className='mmh-a783-word';el.textContent=String(i+1).padStart(2,'0')+'  '+w;list.append(el)});
   const qr=$('mmhA783KeyQr');qr.replaceChildren();
@@ -253,7 +264,9 @@ $('mmhA783KeyVerify').addEventListener('click',async()=>{
   $('mmhA783KeyDisplay').hidden=false;$('mmhA783Phrase').value='';
   clearTimer=setTimeout(hideKey,60000);
   status('Saved words verified. Backup view will close automatically after 60 seconds.');
- }catch(_){hideKey();status('The recovery words could not be verified. Check the order.');}
+ }catch(_){if(recoveryRequestActive(epoch,userId)){
+   hideKey();status('The recovery words could not be verified. Check the order.');
+  }}
  finally{busy=false;}
 });
 $('mmhA783KeyHide').addEventListener('click',hideKey);
