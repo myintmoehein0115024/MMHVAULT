@@ -69,7 +69,8 @@ assert.ok(patched.length>source.length,'candidate should only add guards');
 assert.equal(source.includes('mmhN10AssessWorkspaceMfaV1100'),false,
   'app.html must remain unchanged in branch');
 assert.match(patched,/if\(n10Decision!=='allow'\)throw Error\('n10_app_mfa_unverified'\)/);
-assert.match(patched,/const n10Version=\+\+mmhN10GateVersionV1100/);\nassert.match(patched,/const n10Ticket=\+\+mmhP947AuthGateTicket/);
+assert.match(patched,/const n10Version=\+\+mmhN10GateVersionV1100/);
+assert.match(patched,/const n10Ticket=\+\+mmhP947AuthGateTicket/);
 assert.match(patched,/if\(currentSessionUser\?\.id\)mmhP947GuardV947\('switch'\)/);
 assert.match(patched,/const n10Result=await mmhN10AssessWorkspaceMfaV1100\(db\.auth,owner\)/);
 assert.match(patched,/if\(n10Result!=='allow'\)\{mmhP947GuardV947\('error'\)/);
