@@ -216,6 +216,53 @@ const resume=patched.slice(startResume,endResume);
 assert.ok(startResume>=0&&endResume>startResume);
 assert.match(resume,/const n10Version=\+\+mmhN10GateVersionV1100/);
 assert.match(resume,/if\(n10Version!==mmhN10GateVersionV1100\|\|startTicket!==mmhP947AuthGateTicket/);
+// Verify the ACTUAL generated resume pre-mask and cloud-loading expression.
+// Transient identity overlay must not trigger expensive reloads on every focus.
+const maskStart=resume.indexOf("  const n10ExistingMask=document.getElementById(");
+const maskEnd=resume.indexOf('  const run=(async()=>{',maskStart);
+assert.ok(maskStart>=0&&maskEnd>maskStart,'missing pre-mask snapshot');
+const maskSnippet=resume.slice(maskStart,maskEnd);
+const cloudStart=resume.indexOf('      const needsCloud=n10AlreadyMasked||');
+assert.ok(cloudStart>=0,'missing data re-fetch optimization');
+const cloudEnd=resume.indexOf(';',cloudStart);
+const cloudExpr=resume.slice(cloudStart,cloudEnd+1);
+assert.equal(resume.includes('const needsCloud=masked||'),false);
+assert.ok(resume.indexOf('const n10AlreadyMasked=')<resume.indexOf("mmhP947GuardV947('switch')"));
+for(const [label,oldMask,expectedNeedsCloud] of [
+  ['normal focus with fresh cached finance data',false,false],
+  ['already-locked account requiring a cloud reload',true,true]
+]){
+  const actualOverlay={hidden:!oldMask,style:{display:oldMask?'flex':'none'}};
+  const events=[];
+  const env={
+    document:{getElementById:id=>{
+      assert.equal(id,'mmhP947AccountGuard');return actualOverlay;
+    }},
+    currentSessionUser:{id:uid},
+    mmhN10GateVersionV1100:0,
+    mmhP947GuardV947:phase=>{events.push('mask:'+phase);actualOverlay.hidden=false;actualOverlay.style.display='flex';}
+  };
+  const snap=runInNewContext('(()=>{'+maskSnippet+'return n10AlreadyMasked;})()',env);
+  assert.equal(snap,oldMask,label+': pre-check state must be captured before masking');
+  assert.deepEqual(events,['mask:switch'],label+': must still cover UI synchronously');
+  const needsCloud=runInNewContext('(()=>{'+cloudExpr+'return needsCloud;})()',{
+    n10AlreadyMasked:snap,opts:{refreshData:false},staleFor:5000,Number
+  });
+  assert.equal(needsCloud,expectedNeedsCloud,label);
+}
+for(const [label,opts,staleFor,expected] of [
+  ['normal focus, fresh cache',{refreshData:true},5000,false],
+  ['resume, cache stale for 2 minutes',{refreshData:true},120000,true],
+  ['resume, refresh not requested',{refreshData:false},120000,false],
+  ['invalid cache age while refresh requested',{refreshData:true},NaN,true]
+]){
+  const result=runInNewContext('(()=>{'+cloudExpr+'return needsCloud;})()',{
+    n10AlreadyMasked:false,opts,staleFor,Number
+  });
+  assert.equal(result,expected,label);
+}
+console.log('PASS resume overlays stay secure without unnecessary cloud reloads');
+
 console.log('PASS same-owner mask, AAL2 challenge, fail-closed and stale owner races');
 
 // Exercise the actual preview's LAST resume decision as a live VM function.
