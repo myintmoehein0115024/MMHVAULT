@@ -53,9 +53,12 @@ document.addEventListener('click',event=>{
 });
 
 let owner='',busy=false,pendingFactor='',pendingFactorOwner='',pendingSecret='',factorId='',verifiedPhrase='',clearTimer=null,usernameOnly=false,mfaEpoch=0,recoveryEpoch=0,authEpoch=0,refreshNonce=0,refreshPending=false;
+// Wall-clock expiry closes recovery view after device sleep or a throttled timer.
+let recoveryVisibleUntil=0;
 function client(){return typeof db!=='undefined'?db:null;}
 function label(id,v){const el=$(id);if(el){el.dataset.mmhA783DynamicEn=v;el.textContent=a783Text(v);}}
-function hideKey(){recoveryEpoch+=1;verifiedPhrase='';$('mmhA783KeyDisplay').hidden=true;$('mmhA783KeyQr').replaceChildren();$('mmhA783KeyWords').replaceChildren();$('mmhA783Phrase').value='';$('mmhA783Phrase').type='password';$('mmhA783PhraseToggle').setAttribute('aria-pressed','false');a783Action('mmhA783PhraseToggle','Show words');if(clearTimer)clearTimeout(clearTimer);}
+function hideKey(){recoveryEpoch+=1;verifiedPhrase='';recoveryVisibleUntil=0;$('mmhA783KeyDisplay').hidden=true;$('mmhA783KeyQr').replaceChildren();$('mmhA783KeyWords').replaceChildren();$('mmhA783Phrase').value='';$('mmhA783Phrase').type='password';$('mmhA783PhraseToggle').setAttribute('aria-pressed','false');a783Action('mmhA783PhraseToggle','Show words');if(clearTimer)clearTimeout(clearTimer);}
+function enforceRecoveryExpiry(){if(recoveryVisibleUntil&&Date.now()>=recoveryVisibleUntil)hideKey();}
 // .totp is the verified-only subset; use .all to detect pending factors.
 function inspectTotpFactors(data){
  if(!data||!Array.isArray(data.all))throw Error('factor_inventory_unavailable');
@@ -272,6 +275,7 @@ $('mmhA783KeyVerify').addEventListener('click',async()=>{
    new QRCode(qr,{text:'MMHVAULT-RECOVERY-V1\nUSERNAME:'+name+'\nPHRASE:'+raw,width:186,height:186,colorDark:'#000',colorLight:'#fff',correctLevel:QRCode.CorrectLevel.L});
   }
   $('mmhA783KeyDisplay').hidden=false;$('mmhA783Phrase').value='';
+  recoveryVisibleUntil=Date.now()+60000;
   clearTimer=setTimeout(hideKey,60000);
   status('Saved words verified. Backup view will close automatically after 60 seconds.');
  }catch(_){if(recoveryRequestActive(epoch,userId)){
@@ -281,7 +285,8 @@ $('mmhA783KeyVerify').addEventListener('click',async()=>{
 });
 $('mmhA783KeyHide').addEventListener('click',hideKey);
 $('mmhA783KeySaveQr').addEventListener('click',()=>{
- if(!verifiedPhrase)return;
+ enforceRecoveryExpiry();
+ if(!verifiedPhrase||!recoveryVisibleUntil)return;
  const qr=$('mmhA783KeyQr'),canvas=qr.querySelector('canvas'),img=qr.querySelector('img');
  const src=canvas?.toDataURL('image/png')||img?.src;if(!src)return;
  const a=document.createElement('a');a.href=src;a.download='MMHVAULT-Private-Recovery-QR.png';document.body.append(a);a.click();a.remove();
@@ -411,7 +416,9 @@ $('mmhA783TotpRemoveNow').addEventListener('click',async()=>{
    status('Authenticator removal could not be confirmed. Check the account and try again.');
  }finally{releaseBusy();}
 });
-document.addEventListener('visibilitychange',()=>{if(document.hidden){hideKey();if(pendingFactor)void cancelPendingMfa();else clearMfa();}});
+document.addEventListener('visibilitychange',()=>{if(document.hidden){hideKey();if(pendingFactor)void cancelPendingMfa();else clearMfa();}else enforceRecoveryExpiry();});
+window.addEventListener('focus',enforceRecoveryExpiry);
+window.addEventListener('pageshow',enforceRecoveryExpiry);
 window.addEventListener('pagehide',()=>{hideKey();if(pendingFactor)void cancelPendingMfa();else clearMfa();});
 // Modal-only interaction: keep the existing original controls in the same
 // owner-authenticated DOM subtree. Do not clone sensitive inputs or create a
