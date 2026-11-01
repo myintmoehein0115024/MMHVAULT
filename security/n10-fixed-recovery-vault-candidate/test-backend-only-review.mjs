@@ -90,6 +90,66 @@ const tests=[
   assert.match(sql,/REVOKE ALL ON FUNCTION public\.mmh_n10_recovery_backup_get\(uuid\) FROM PUBLIC,anon,authenticated/);
   assert.doesNotMatch(sql,/DROP SCHEMA.*CASCADE/i);
  }],
+ ['original phrase is immutable even with repeated backup requests',()=>{
+  // These are source-level SQL assertions. They DO NOT execute a migration.
+  const body=sql.split('CREATE FUNCTION public.mmh_n10_recovery_backup_put(')[1]?.split('CREATE FUNCTION public.mmh_n10_recovery_backup_exists(')[0];
+  assert.ok(body,'missing owner-only backup RPC');
+  const ordered=(terms)=>{
+   let previous=-1;
+   for(const term of terms){
+    const pos=body.indexOf(term,previous+1);
+    assert.ok(pos>previous,'out-of-order immutable owner guard: '+term);
+    previous=pos;
+   }
+  };
+  ordered([
+   'IF NOT EXISTS (SELECT 1 FROM auth.users WHERE id=p_user_id)',
+   'pg_catalog.pg_advisory_xact_lock',
+   'WHERE user_id=p_user_id FOR UPDATE',
+   'IF v_secret_id IS NOT NULL THEN',
+   'FROM vault.decrypted_secrets WHERE id=v_secret_id',
+   'IF v_existing IS DISTINCT FROM p_phrase THEN',
+   "RAISE EXCEPTION 'Original key is immutable'",
+   'RETURN true;',
+   'v_secret_id := vault.create_secret(p_phrase',
+   'INSERT INTO mmh_n10_privacy.recovery_backup_index(user_id,secret_id)',
+   'VALUES (p_user_id,v_secret_id)'
+  ]);
+  assert.doesNotMatch(body,/ON CONFLICT\s+DO\s+UPDATE/i);
+  assert.doesNotMatch(body,/UPDATE\s+vault\.secrets/i);
+  assert.doesNotMatch(body,/vault\.create_secret\s*\(\s*NULL/i);
+  assert.match(sql,/user_id uuid PRIMARY KEY REFERENCES auth\.users\(id\) ON DELETE CASCADE/);
+  assert.match(sql,/secret_id uuid NOT NULL UNIQUE/);
+ }],
+ ['account deletion targets only the linked Vault secret',()=>{
+  const trigger=sql.split('CREATE FUNCTION mmh_n10_privacy.cleanup_recovery_vault_secret()')[1]?.split('CREATE FUNCTION public.mmh_n10_recovery_backup_put(')[0];
+  assert.ok(trigger,'missing private deletion trigger');
+  assert.match(trigger,/DELETE FROM vault\.secrets WHERE id=OLD\.secret_id;/);
+  assert.match(trigger,/RETURN OLD;/);
+  assert.match(trigger,/CREATE TRIGGER mmh_n10_recovery_secret_gc AFTER DELETE ON mmh_n10_privacy\.recovery_backup_index/);
+  assert.match(trigger,/FOR EACH ROW EXECUTE FUNCTION mmh_n10_privacy\.cleanup_recovery_vault_secret/);
+  assert.doesNotMatch(trigger,/DELETE FROM vault\.secrets\s*;/);
+  assert.doesNotMatch(trigger,/TRUNCATE|DROP TABLE|DROP SCHEMA/i);
+  const metadataTable=sql.split('CREATE TABLE mmh_n10_privacy.recovery_backup_index(')[1]?.split('CREATE TABLE mmh_n10_privacy.recovery_rate_bucket(')[0];
+  assert.match(metadataTable,/ENABLE ROW LEVEL SECURITY/);
+  assert.match(metadataTable,/REVOKE ALL ON mmh_n10_privacy\.recovery_backup_index FROM PUBLIC,anon,authenticated,service_role/);
+ }],
+ ['every owner-targeted Vault operation derives its owner from a signed user',()=>{
+  assert.match(backend,/const authenticated=await verifiedUser\(req\);/);
+  assert.match(backend,/if\(authenticated.state!=='ok'\)return out\(origin,'mfa_unavailable',503\)/);
+  for(const endpoint of ['mmh_n10_recovery_backup_exists','mmh_n10_recovery_backup_put','mmh_n10_recovery_backup_get']){
+   assert.match(backend,new RegExp("admin\\.rpc\\('"+endpoint+"'\\s*,\\s*\\{p_user_id:user\\.id(?:,|\\})"));
+  }
+  assert.match(backend,/\.eq\('user_id',user\.id\)\.limit\(2\)/);
+  assert.match(backend,/hmac\('phrase:'\+user\.id\+':'\+phrase\)/);
+  assert.doesNotMatch(backend,/p_user_id:\s*(?:body\.|req\.|payload\.|headers\.)/);
+  assert.doesNotMatch(backend,/p_user_id:\s*(?:body\[|req\[|payload\[)/);
+  const backups=backend.split("if(action==='backup_existing'){")[1]?.split('// Nothing is revealed without')[0];
+  assert.ok(backups);
+  assert.match(backups,/const backupAssurance=await verifiedUser\(req\)/);
+  assert.match(backups,/const backupSessionCheck=await liveSession\(user\.id,sessionId,sessionAal\)/);
+  assert.match(backups,/if\(backupSessionCheck!=='active'\)return out\(origin,'session_expired',401\)/);
+ }],
  ['SQL function bodies use valid balanced dollar quoting, session V2 matches upgrade contract',()=>{
   const firstInstallFunctions=(sql.match(/^CREATE FUNCTION /gm)||[]).length;
   const bodyOpeners=(sql.match(/\bAS\s+\$\$/g)||[]).length;
