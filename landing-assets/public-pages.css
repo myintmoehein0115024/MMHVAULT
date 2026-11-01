@@ -138,3 +138,12 @@ footer{border-top-color:rgba(244,205,153,.33)}
   .lang button{min-height:30px}
 }
 @media(prefers-reduced-motion:reduce){.item{transition:none!important;transform:none!important}}
+
+
+/* L1.7: Burmese text and long localized actions must not expand the public-page
+   mobile grid beyond its viewport. Keep content legible rather than clipping it. */
+@media(max-width:900px){
+  .hero{grid-template-columns:minmax(0,1fr)}
+  .hero>div{min-width:0}
+  .hero :is(h1,.eyebrow,.lead,.note,.action){overflow-wrap:anywhere}
+}
