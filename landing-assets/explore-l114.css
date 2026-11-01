@@ -124,3 +124,11 @@ body.l131 .site-header #primary-nav .nav-explore-menu>a:focus-visible{
    widths the absolute ambient layer can otherwise create 180px of sideways
    scrolling even while the header itself fits. Do not disable vertical scroll. */
 html{overflow-x:clip}
+
+
+@media(min-width:1025px) and (max-width:1360px){
+  /* Absolute decorative glows were outside the root scrollport at 1051px.
+     Keep their visual gradients within the viewport, not just visually clipped. */
+  body.l131 .ambient-a{right:0}
+  body.l131 .hero-halo{right:8vw}
+}
