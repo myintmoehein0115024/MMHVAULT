@@ -158,3 +158,11 @@
 - Github Actions `41282554424` **SUCCESS**：**16/16** MFA-only 源码安全检查和 **38/38** Chromium/WebKit 本地模拟浏览器测试（包含 A→B 未完成状态请求、登出迟到错误、busy 状态后的延迟刷新）。
 - PR #9 `https://github.com/myintmoehein0115024/MMHVAULT/pull/9`，最新核对 `mergeable=true`, **Draft, 未合并**。PR 描述与独立候选报告已更新；没有 Vault 功能混入、没有正式部署或财务修改。
 - 下阶段的真正阻断仍是 Staging A Auth TOTP `unverified` / 0 verified，独立 QA 页面 LOCKED；任何上线必须有合规独立的真实 AAL2 验收、备份/回滚和用户明确批准。禁止将模拟 PASS 当作真实 MFA 完成。
+
+## 2026-11-01 — PR #9 与真实 app.html 结构兼容已核验
+- 本次直接读取当前正式 `main` 的完整 `app.html`（约 2.7MB），核对 Settings → Account Security 的实际 DOM、脚本顺序和入口。`js/vendor/qrcode-1.0.0.min.js`、`const db` 初始化均早于安全中心 JS。页面引用 `js/mmhvault-n10-a7-83-security-center.js?v=10.790.1`。
+- **纠正一个初始误判：** HTML 中找不到静态 `mmhA783TotpBackupConfirmed` 是正常的，安全中心 JS 初始化时动态创建且带中英双语；勿重复注入或取消二次备份确认。
+- PR #9 的独立测试新增 `security/n10-mfa-only/test-real-app-dom-bootstrap.mjs`，直接提取真正 `app.html` 中账户安全区域，在 Chromium/WebKit 里使用**本地假 Auth**证明动态备份确认框生成、双语、未勾选不得绑定、勾选后模拟验证成功；这不是整个 APP / 真实账户的 E2E。
+- GitHub Actions `41283777661` **SUCCESS**：16/16 离线源码检查 + 38/38 模拟浏览器 + 2/2 真实 HTML 结构/模拟 Auth 集成 = **56/56 PASS**。PR #9 仍 Draft、mergeable=true、未合并；现变更范围：安全中心 JS、3 个测试/检查脚本、1 个无部署 CI、1 份报告；没有修改正式 `app.html`。
+- **必须在获批准的生产上线时** 同步将当时最新 `app.html` 中脚本 `?v=10.790.1` 升为新的唯一缓存版本，保证用户浏览器不持续用旧 JS；但不能提前更改正式 app.html 或单独发布该版本号。需要以当前最新 main 对比，并准备回滚。
+- 真实 Staging A 仍是未验证 TOTP / AAL2 未通过，QA LOCKED（原激活被安全检查阻止、不可旁路），Vault 联合测试 OFF；CI 成功不能替代三阶段上线门禁。
