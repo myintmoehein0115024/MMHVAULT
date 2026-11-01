@@ -93,6 +93,50 @@ for(const marker of [
   assert.equal(patched.slice(patched.indexOf(marker),patched.indexOf(marker)+1400),
     source.slice(i,i+1400),'finance source must not change: '+marker);
 }
+
+// Run the real patched same-UID branch in an isolated VM. Verify the
+// privacy mask is synchronous and only the current owner may unlock.
+const sameStart=patched.indexOf('    if(liveOwner===nextOwner){');
+const sameEnd=patched.indexOf('    if(mmhvaultAuthBootSettledV3285)',sameStart);
+assert.ok(sameStart>=0&&sameEnd>sameStart);
+const sameBranch=patched.slice(sameStart,sameEnd);
+assert.match(sameBranch,/mmhP947GuardV947\('switch'\)/);
+async function exerciseSameOwner(decision, invalidate=false) {
+  const events=[];
+  let release;
+  const gate=new Promise(resolve=>{release=resolve;});
+  const env={
+    mmhP947AuthGateTicket:0,
+    currentSessionUser:{id:uid},
+    mmhP947GuardV947:phase=>events.push('mask:'+phase),
+    mmhP947UnlockV947:()=>events.push('unlock'),
+    mmhN10AssessWorkspaceMfaV1100:async()=>gate,
+    applyUserProfile:user=>events.push('profile:'+user.id),
+    location:{replace:()=>events.push('redirect')},
+    console,Promise
+  };
+  const handle=runInNewContext(
+    '(function(liveOwner,nextOwner,session){'+sameBranch+'})',env);
+  handle(uid,uid,{user:{id:uid}});
+  assert.deepEqual(events,['mask:switch'],'account must mask before async verification');
+  if(invalidate) {
+    env.mmhP947AuthGateTicket+=1;
+    env.currentSessionUser={id:other};
+  }
+  release(decision);
+  await new Promise(setImmediate);
+  return events;
+}
+assert.deepEqual(await exerciseSameOwner('allow'),
+  ['mask:switch','profile:'+uid,'unlock']);
+assert.deepEqual(await exerciseSameOwner('challenge'),
+  ['mask:switch','redirect']);
+assert.deepEqual(await exerciseSameOwner('deny'),
+  ['mask:switch','mask:error']);
+assert.deepEqual(await exerciseSameOwner('allow',true),
+  ['mask:switch'],'stale owner must not unlock');
+console.log('PASS same-owner mask, AAL2 challenge, fail-closed and stale owner races');
+
 const drift=source.replace('  const a783=await db.auth.mfa.getAuthenticatorAssuranceLevel();',
   '  const a783=/* changed upstream */ await db.auth.mfa.getAuthenticatorAssuranceLevel();');
 assert.throws(()=>generateAppEntryPreview(drift),/drift|patch/);
