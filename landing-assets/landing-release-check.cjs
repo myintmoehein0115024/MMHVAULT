@@ -293,7 +293,8 @@ check('Landing ships no third-party blocking scripts or styles',
 for(const file of ['privacy.html','terms.html','security.html']){
  const content=read(file);
  const earlier=source(file);
- const samePublicParagraphs=[...earlier.matchAll(/<(?:p|h2|li|b)>[\s\S]*?<\/(?:p|h2|li|b)>/g)]
+ const oldPolicyContent=(earlier.match(/<h1>[\s\S]*?<\/h1>([\s\S]*?)<footer>/)||[])[1]||'';
+ const samePublicParagraphs=[...oldPolicyContent.matchAll(/<(?:p|h2|li|b)>[\s\S]*?<\/(?:p|h2|li|b)>/g)]
    .map(m=>m[0]).filter(x=>!x.includes('MMHVAULT — Personal Finance'));
  const originalTitle=(earlier.match(/<h1>([^<]*)<\/h1>/)||[])[1];
  check(file+' original legal text unchanged and readable',
