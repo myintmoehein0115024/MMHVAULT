@@ -82,7 +82,12 @@ const tests=[
   assert.match(installedAudit,/owner_delete_cascades/);
   assert.match(installedAudit,/daily_rate_cleanup_job_enabled/);
   assert.match(installedAudit,/no_authenticated_secret_rpc_access/);
-  assert.doesNotMatch(installedAudit,/vault\.decrypted_secrets/i);
+  assert.match(installedAudit,/no_authenticated_decrypted_view_select/);
+  assert.match(installedAudit,/no_anon_decrypted_view_select/);
+  assert.match(installedAudit,/no_authenticated_vault_schema_access/);
+  assert.match(installedAudit,/no_anon_vault_schema_access/);
+  // Metadata-only privilege checks must never read plaintext from the view.
+  assert.doesNotMatch(installedAudit,/\b(?:FROM|JOIN)\s+vault\.decrypted_secrets\b/i);
   const executableSql=installedAudit.replace(/^\s*--[^\n]*$/gm,'');
   assert.doesNotMatch(executableSql,/^\s*(?:CREATE|ALTER|INSERT|UPDATE|DELETE|DROP|GRANT|REVOKE|TRUNCATE|CALL|DO)\b/gmi);
  }],
