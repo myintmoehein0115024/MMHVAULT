@@ -113,6 +113,14 @@ async function load(page,route,failures){
          ensure(await page.locator('h1').isVisible(),route+' Chinese switch keeps title visible');
          await page.locator('button[data-lang="my"]').click();
          ensure(await page.locator('h1').isVisible(),route+' Burmese switch keeps title visible');
+         const localeOverflow=await page.evaluate(()=>{
+           const previousY=scrollY;
+           scrollTo({left:900,top:previousY,behavior:'instant'});
+           const extra=scrollX;
+           scrollTo({left:0,top:previousY,behavior:'instant'});
+           return {extra,width:innerWidth,document:document.documentElement.scrollWidth};
+         });
+         ensure(localeOverflow.extra<=2,route+' Burmese locale has no sideways scroll '+JSON.stringify(localeOverflow));
        }
        if(width===393 && ['/register/','/features/'].includes(route)){
          await page.screenshot({path:path.join(screenshots,
