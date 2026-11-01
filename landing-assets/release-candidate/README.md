@@ -17,3 +17,10 @@ Current main baseline: `1d2c012264a6ef3b7903461bc3f14a0e5d9f285f` | Landing base
 6. After successful release only, request GSC URL Inspection > Test Live URL > Request Indexing for https://mmhvault.com/, verify sitemap, monitor branded query. No guarantee of ranking/spell correction.
 
 The release candidates live under `landing-assets/release-candidate/` and are **NOT** actual production root or PWA manifest files. Merging PR #7 alone does not publish Landing or swap root files. No financial data, DNS, Supabase, RLS, login.html, app.html or SW changes are authorized.
+
+## L1.25 automated preflight (2026-11-01)
+The repository `main` advanced to `d9e61e96d9ea30f1296d81594f87275179c85c3e` with a finance-account FX change and tests, but **not** `index.html`, `login.html`, `mmh-manifest-v2.webmanifest` or `sitemap.xml`. Confirmed by compare from original baseline `1d2c012264a6ef3b7903461bc3f14a0e5d9f285f`.
+
+Run `node landing-assets/release-candidate/validate-release.mjs` from repo root to assert SEO, recovery-handler parity, login noindex, manifest diff, sitemap, robots draft, and trilingual Landing invariants. This is static validation only; the test uses the branch's checked-out root files. A fresh production main comparison **must still be repeated immediately before real cutover**; manual iPhone/Android PWA and real HTTPS/Google Search Console checks remain required.
+
+Source-of-truth reminder: `https://mmhvault.com/` is currently served by GitHub Pages (the source tree includes root CNAME `mmhvault.com`); Cloudflare Pages preview is isolated and must not become an alternative indexed root. No production settings were changed during this preparation.
