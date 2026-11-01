@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1050" role="img" aria-label="Abstract dark navy architectural glass and champagne-gold ambience">
+<defs>
+ <radialGradient id="ambientGold" cx="76%" cy="51%" r="62%"><stop offset="0%" stop-color="#9a744e" stop-opacity=".28"/><stop offset="45%" stop-color="#4b3b33" stop-opacity=".11"/><stop offset="100%" stop-color="#050e19" stop-opacity="0"/></radialGradient>
+ <radialGradient id="ambientBlue" cx="30%" cy="17%" r="60%"><stop offset="0%" stop-color="#335f82" stop-opacity=".31"/><stop offset="75%" stop-color="#11283c" stop-opacity=".03"/><stop offset="100%" stop-color="#091421" stop-opacity="0"/></radialGradient>
+ <linearGradient id="pane" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#b6cae0" stop-opacity=".10"/><stop offset="48%" stop-color="#6f8eaa" stop-opacity=".015"/><stop offset="97%" stop-color="#1c334b" stop-opacity=".06"/></linearGradient>
+ <linearGradient id="bevel" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#edd09b" stop-opacity="0"/><stop offset="42%" stop-color="#f2ddbc" stop-opacity=".30"/><stop offset="62%" stop-color="#dec08d" stop-opacity=".09"/><stop offset="100%" stop-color="#c9ae7e" stop-opacity="0"/></linearGradient>
+ <linearGradient id="haze" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#07111d" stop-opacity="0"/><stop offset="70%" stop-color="#142335" stop-opacity=".16"/><stop offset="100%" stop-color="#060d17" stop-opacity=".92"/></linearGradient>
+ <filter id="soft"><feGaussianBlur stdDeviation="26"/></filter>
+ <filter id="deeps"><feGaussianBlur stdDeviation="55"/></filter>
+ <pattern id="striation" width="76" height="76" patternUnits="userSpaceOnUse"><path d="M0 0H76" stroke="#c7d7e5" stroke-opacity=".034" stroke-width=".6"/></pattern>
+</defs>
+<rect width="1920" height="1050" fill="#07111e"/>
+<rect width="1920" height="1050" fill="url(#ambientBlue)"/>
+<rect width="1920" height="1050" fill="url(#ambientGold)"/>
+<ellipse cx="1460" cy="405" rx="295" ry="500" fill="#bb9861" opacity=".09" filter="url(#deeps)"/>
+<ellipse cx="1420" cy="540" rx="430" ry="180" fill="#739ab7" opacity=".09" filter="url(#deeps)"/>
+<!-- Monumental architectural glass fins and curved aureole, all without lettering -->
+<g opacity=".43" transform="translate(280 -100)">
+ <path d="M950 30C1235 150 1454 465 1470 960" fill="none" stroke="url(#bevel)" stroke-width="3"/>
+ <path d="M1005 4C1280 172 1500 475 1520 1000" fill="none" stroke="#ad8a61" stroke-opacity=".19" stroke-width="1"/>
+ <path d="M1120 -10C1380 190 1590 515 1610 985" fill="none" stroke="#a8c1d5" stroke-opacity=".10" stroke-width="2"/>
+ <path d="M1160 25L1390 105L1550 840L1315 805Z" fill="url(#pane)" stroke="#bbc8d2" stroke-opacity=".10"/>
+ <path d="M1310 -15L1440 40L1640 888L1535 879Z" fill="url(#pane)" stroke="#dfceae" stroke-opacity=".08"/>
+ <path d="M1510 35L1575 60L1690 820L1600 820Z" fill="url(#pane)" stroke="#b2c7d9" stroke-opacity=".09"/>
+ <path d="M1170 30L1400 170" stroke="#e8d3b0" stroke-opacity=".18"/>
+</g>
+<!-- low-contrast panoramic skyline silhouette -->
+<g fill="#06121e" opacity=".7">
+ <path d="M0 690H220V657H246V640H274V660H320V622H349V646H396V611H410V678H463V599H487V643H533V610H555V674H605V624H638V649H687V620H720V667H764V603H786V644H823V591H859V633H905V578H935V647H976V615H1012V659H1051V616H1090V654H1130V593H1160V651H1199V615H1228V683H1280V649H1320V690H1367V639H1407V663H1461V611H1487V656H1548V627H1570V690H1652V646H1685V670H1732V607H1776V681H1832V633H1865V690H1920V1050H0Z"/>
+</g>
+<path d="M0 720Q520 689 880 706T1920 671" stroke="#c9ab7a" stroke-opacity=".09" stroke-width="2" fill="none"/>
+<path d="M0 748Q740 724 1240 727T1920 700" stroke="#8aabc5" stroke-opacity=".08" stroke-width="2" fill="none"/>
+<rect y="580" width="1920" height="470" fill="url(#haze)"/>
+<rect width="1920" height="1050" fill="url(#striation)" opacity=".42"/>
+<ellipse cx="1440" cy="665" rx="400" ry="48" fill="#cba46a" opacity=".06" filter="url(#soft)"/>
+</svg>
