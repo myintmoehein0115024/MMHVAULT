@@ -116,3 +116,8 @@
 - 使用 Playwright 真正运行 Chromium 和 WebKit 的**本地模拟浏览器**交互：关闭弹窗后的迟到 QR、隐藏后台再返回、登出同步清理敏感内容，共 **6/6 PASS**；18/18 原有模拟静态检查 PASS。GitHub Actions `41273712831` SUCCESS。
 - 限制：模拟 DOM/虚拟账户，不是生产应用 HTML 完整 UI、iPhone Safari 实机、签名 Auth AAL2 或 Vault 端到端 QA。A TOTP 仍 unverified，QA LOCKED，Vault OFF，PR #2 Draft 未合并。
 - 新 main 有 Accounts FX 相关独立更新，候选分支当前晚一笔 main commit；正式合并审批前应针对**当时最新 main**重新做兼容回归。详见 `docs/N10_PR2_MERGE_AND_RELEASE_GATES_20261101.md`。
+
+## 2026-11-01 — R2 最新 main 兼容与 A→B 浏览器测试
+- 新隔离分支 `review/n10-main-compat-20261101-r2` 直接基于新 main `d9e61e96d9ea30f1296d81594f87275179c85c3e` 创建（包含主站 Accounts FX 更新）；只差安全中心候选 JS 和 3 个相关 CI/测试文件，**不修改正式 main**。
+- 已在 headless Chromium 与 WebKit 用合成账户分别检查延迟二维码、后台/前台、登出敏感状态、A→B 切换后拒绝 A 验证器跨账户清理、A→B 切换时立即隐藏恢复词：**10/10 浏览器测试 PASS，18/18 静态及模拟安全测试 PASS**。R2 GitHub Actions `41274424895` SUCCESS；原 R1 `41274317977` 同样 SUCCESS。
+- 此为独立模拟 DOM，fetch/Auth 均模拟，不证明真实 MFA AAL2、真实 Vault 或 iPhone 实机。未改正式网站和财务数据，PR #2 未合并，QA RELEASED=false、过期/LOCKED；A 的真实 MFA 仍 unverified，Vault 联合服务 OFF。剩余真实验收、Vault 联测、PR 冲突/上线审批。
