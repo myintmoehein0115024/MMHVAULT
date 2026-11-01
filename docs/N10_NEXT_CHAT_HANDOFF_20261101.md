@@ -171,3 +171,10 @@
 - 正式独立 MFA-only 审核分支 `review/n10-mfa-only-20261101` 新增 `docs/N10_MFA_ONLY_PRODUCTION_RELEASE_RUNBOOK_20261101.md`，为后续受控发布固定一套可执行清单：签名 Staging AAL2 真实验收（不绕过锁定 QA）、最新 `main`/PR 复核、财务数据导出及旧源码保留、`app.html` 缓存版本随 JS **协调发布**、Owner 受控网站验收和定向回滚。
 - 经读取真实 `main` 与候选安全中心 JS，`N10A790_TOTP_ENROLLMENT_RELEASED=true` 在 **两边已经是 true**；PR #9 不通过改开关来启动 MFA。新版固定恢复 Vault 完全不在 PR #9 范围，仍独立 OFF/未验收。
 - PR #9 `https://github.com/myintmoehein0115024/MMHVAULT/pull/9` 保持 Draft/未合并，之前 56/56 离线和模拟浏览器检查 PASS，独立 CI 部署动作无；GitHub 分支保护规则读取报 403，不能声称已核验分支审批规则。测试账户 A 实际 TOTP 最后只读状态仍是 1 unverified / 0 verified，QA LOCKED。**未修改正式生产，也没有创建或启用新的 QA 旁路。**
+
+## 2026-11-01 — Vault 后端另立 Draft PR #11，旧 PR #2 保持阻断
+- 独立从当前 `main d9e61e96d9ea30f1296d81594f87275179c85c3e` 创建 `review/n10-vault-backend-only-20261101`，并创建 GitHub **Draft PR #11**：`https://github.com/myintmoehein0115024/MMHVAULT/pull/11`。
+- PR #11 仅含关闭状态 `RECOVERY_RELEASE_ENABLED=false` 的固定恢复 Vault `index.ts`、MFA/Session 辅助模块与离线测试、标注「NOT AUTHORIZED TO RUN」的 Staging SQL 候选、SELECT-only preflight、独立无部署 CI 和审查说明，共 10 个文件。**不包含** `login.html`、`app.html`、安全中心 JS、新旧 QA 页面/Edge、实际数据库改动或生产开关。没有绕过先前被安全检查阻止的 QA 激活。
+- GitHub PR #11 最新状态 `draft=true`, `mergeable=true`, `merged=false`，比 main `behind=0`；已成功在不修改旧 PR #2 的前提下，为 Vault 后端建立**无合并冲突的替代审核路线**。**这不是旧 PR #2 本身冲突已被解决**；旧 PR #2 依旧 Draft/冲突/未合并。
+- 独立 [CI `41285479649`](https://github.com/myintmoehein0115024/MMHVAULT/actions/runs/41285479649) **SUCCESS**，MFA assurance 与 JWT session 辅助模拟测试、**6/6** 后端源码/SQL 静态门禁和 Deno `index.ts` 类型检查通过。没有真实 MFA、Vault 加密读写、跨用户隔离、secret 删除或真实 RLS 通过证据。
+- 已有 MFA 独立 Draft PR #9 也 mergeable=true、未发布。真正余下仍是：①被安全拒绝激活的 QA 按正常治理路径解除阻断并真实 AAL2 验收；② Vault signed Staging E2E、孤儿密钥删除及回滚验收；③用户单独审批并受控生产发布（含 app.html 缓存版本协同更新）。严禁以新 PR #11 当作绕过真实验收的部署路径。
