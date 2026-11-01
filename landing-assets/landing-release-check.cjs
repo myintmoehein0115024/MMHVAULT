@@ -1,0 +1,58 @@
+// Read-only MMHVAULT Landing production-release gate.
+// No credentials, network calls, database writes, or external dependencies.
+const fs = require('node:fs');
+const cp = require('node:child_process');
+const assert = require('node:assert/strict');
+const read = path => fs.readFileSync(path,'utf8');
+const main = 'origin/main';
+const source = path => {
+ const r=cp.spawnSync('git',['show',main+':'+path],{encoding:'utf8',maxBuffer:1024*1024*2});
+ assert.equal(r.status,0,'Cannot read original main:'+path);
+ return r.stdout;
+};
+const current = read('index.html');
+const prev=source('index.html');
+const manifest=JSON.parse(read('mmh-manifest-v2.webmanifest'));
+const oldManifest=JSON.parse(source('mmh-manifest-v2.webmanifest'));
+const dom=(key,content)=>((content.match(new RegExp('<script id="'+key+'">([\\s\\S]*?)<\\/script>'))||[])[1]||null);
+let passed=0;
+function check(title,predicate){assert.ok(predicate,title);++passed;console.log('PASS '+title)}
+check('Main page indexable',!/<meta[^>]+name=["']robots["'][^>]*noindex/i.test(current));
+check('Official search title',current.includes('<title>MMHVAULT | Personal Finance & Life Planning</title>'));
+check('Description supports finance+life planning',current.includes('name="description"')&&current.includes('life planning workspace'));
+check('Canonical is unique and official',(current.match(/<link rel="canonical"/g)||[]).length===1&&current.includes('href="https://mmhvault.com/"'));
+check('OG site and homepage URL',current.includes('property="og:site_name" content="MMHVAULT"')&&current.includes('property="og:url" content="https://mmhvault.com/"'));
+check('Real brand PNG present',fs.existsSync('images/mmhvault-logo-transparent.png')&&current.includes('https://mmhvault.com/images/mmhvault-logo-transparent.png'));
+const jsonText=(current.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)||[])[1];
+check('One valid JSON-LD block',!!jsonText&&(current.match(/<script type="application\/ld\+json">/g)||[]).length===1);
+const graph=JSON.parse(jsonText)['@graph'];
+check('Website name in structured data',graph.some(x=>x['@type']==='WebSite'&&x.name==='MMHVAULT'&&x.url==='https://mmhvault.com/'));
+check('Brand Organization in structured data',graph.some(x=>x['@type']==='Organization'&&x.name==='MMHVAULT'));
+check('Exact N10 recovery route preserved',dom('mmh-n10-recovery-error-route',current)===dom('mmh-n10-recovery-error-route',prev)&&!!dom('mmh-n10-recovery-error-route',prev));
+check('Installed standalone fallback present',!!dom('mmh-pwa-standalone-root-bridge',current));
+check('Standalone guard does not affect normal browser',dom('mmh-pwa-standalone-root-bridge',current).includes('if (!isStandalone) return'));
+check('Fallback leaves OAuth/recovery params alone',dom('mmh-pwa-standalone-root-bridge',current).includes("'access_token'")&&dom('mmh-pwa-standalone-root-bridge',current).includes("'code'"));
+check('Unsuccessful pinch guard excluded',!current.includes('standalone-pinch-guard.js')&&!fs.existsSync('landing-assets/standalone-pinch-guard.js'));
+check('Normal secure Login route',current.includes('href="./login.html"')&&current.includes('href="./mmh-manifest-v2.webmanifest"'));
+check('Both mobile auth entry links',current.includes('mobile-nav-auth-signin')&&current.includes('mobile-nav-auth-signup'));
+check('All fixed Hero languages',["YOUR MONEY. YOUR DIRECTION.","让财务更清晰，让未来更有方向。","ငွေကြေးကို ပိုမိုရှင်းလင်းစွာ သိမြင်"].every(t=>current.includes(t)));
+check('Business + Life Planner not presented as live',current.includes('COMING SOON')&&current.includes('in development.'));
+check('No Supabase backend code in Landing',!current.includes('supabase.createClient')&&!current.includes('SUPABASE_SERVICE_ROLE_KEY'));
+check('Current production Login remains noindex',/name="robots" content="noindex,nofollow,noarchive"/.test(read('login.html')));
+check('Actual App remains noindex',/<meta[^>]*name=["']robots["'][^>]*noindex/i.test(read('app.html').slice(0,350000)));
+const names=['landing.css','business.css','cinematic.css','landing.js','luxury-horizon.svg','premium-architecture.svg','cinematic-lake.webp','personal-business-concept.webp'];
+check('All required live assets exist',names.every(f=>fs.existsSync('landing-assets/'+f)));
+check('Landing style and script links correct',['landing.css','business.css','cinematic.css','landing.js'].every(f=>current.includes('./landing-assets/'+f)));
+check('No preview QA material in production root',!current.includes('pwa-qa')&&!current.includes('mmh_layout_probe'));
+check('Public robots.txt present',fs.existsSync('robots.txt')&&read('robots.txt').includes('User-agent: *')&&read('robots.txt').includes('Sitemap: https://mmhvault.com/sitemap.xml'));
+check('Existing sitemap canonical root',read('sitemap.xml').includes('<loc>https://mmhvault.com/</loc>'));
+check('Sitemap has no private app or login',!/<loc>[^<]*\/(?:app|login|n10-qa)\.html/i.test(read('sitemap.xml')));
+check('PWA launcher points to secure Login',manifest.start_url==='./login.html?source=pwa&install=v2');
+check('Manifest differs only in start_url',JSON.stringify({...manifest,start_url:oldManifest.start_url})===JSON.stringify(oldManifest));
+check('Preserved old iPhone touch icon',current.includes('<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=pwa24-20261029">'));
+const allowed=new Set(['index.html','robots.txt','mmh-manifest-v2.webmanifest',...names.map(f=>'landing-assets/'+f)]);
+const diff=cp.spawnSync('git',['diff','--name-only',main+'...HEAD'],{encoding:'utf8'});
+assert.equal(diff.status,0,'git diff unsuccessful');
+const actual=diff.stdout.trim().split(/\n/).filter(Boolean);
+check('All proposed file changes confined to allowlist',actual.length===allowed.size&&actual.every(f=>allowed.has(f)));
+console.log('Landing launch preflight: '+passed+'/'+passed+' PASS — no live authentication or PWA device claim.');

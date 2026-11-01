@@ -1,0 +1,30 @@
+name: MMHVAULT Landing release gate
+on:
+  push:
+    branches:
+      - 'release/landing-seo-pwa-*'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'index.html'
+      - 'robots.txt'
+      - 'mmh-manifest-v2.webmanifest'
+      - 'landing-assets/**'
+      - '.github/workflows/landing-release-check.yml'
+permissions:
+  contents: read
+jobs:
+  preflight:
+    name: Static SEO/Auth/PWA preservation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: JavaScript syntax
+        run: node --check landing-assets/landing.js
+      - name: Release invariants
+        run: node landing-assets/landing-release-check.cjs
