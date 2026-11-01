@@ -214,6 +214,11 @@ try{
    assert.equal(switched.secret,'');
    assert.deepEqual(switched.unenroll,[],'B must not unenroll A factor');
    assert.ok(switched.fetches.every(url=>url.endsWith('/mmh-n10a783-phrase-verify')));
+   // The old A enrollment released busy; B's queued status refresh must run.
+   await page4.waitForFunction(()=>
+     document.getElementById('mmhA783UsernameStatus').textContent==='@synthetic_user'
+   );
+   assert.equal(await page4.locator('#mmhA783UsernameStatus').textContent(),'@synthetic_user');
    assert.deepEqual(errors4,[]);
    await page4.close();
    console.log('PASS',name,'A-to-B switch blocks late QR and cross-account cleanup');
@@ -317,6 +322,75 @@ try{
    assert.deepEqual(keyboardErrors,[]);
    await keyboard.close();
    console.log('PASS',name,'Escape closes mobile modal and releases page lock');
+
+
+   // Do not let an older A account-status fetch overwrite B's details.
+   // A's request resolves only after B has signed in and fully refreshed.
+   const stalePage=await browser.newPage();
+   const staleErrors=await ready(stalePage);
+   await stalePage.evaluate(()=>{
+     const original=window.fetch;
+     window.__deferredAStarted=false;
+     window.fetch=(url,options={})=>{
+       const action=JSON.parse(options.body||'{}').action;
+       if(action==='status'&&window.__fakeUserId.endsWith('aa')){
+         window.__deferredAStarted=true;
+         return new Promise(resolve=>{window.__resolveOldStatus=()=>resolve({
+           ok:true,json:async()=>({code:'account_status',username_only:true,username:'A_OLD_SHOULD_NOT_SHOW'})
+         });});
+       }
+       if(action==='status'&&window.__fakeUserId.endsWith('bb'))
+         return Promise.resolve({ok:true,json:async()=>({
+           code:'account_status',username_only:true,username:'B_CURRENT'
+         })});
+       return original(url,options);
+     };
+   });
+   await stalePage.locator('#mmhA783Refresh').click();
+   await stalePage.waitForFunction(()=>window.__deferredAStarted===true);
+   await stalePage.evaluate(()=>{
+     window.__fakeUserId='00000000-0000-4000-8000-0000000000bb';
+     window.__authCallback('SIGNED_IN',{user:{id:window.__fakeUserId}});
+   });
+   await stalePage.waitForFunction(()=>document.getElementById('mmhA783UsernameStatus').textContent==='@B_CURRENT');
+   await stalePage.evaluate(()=>window.__resolveOldStatus());
+   await stalePage.waitForTimeout(150);
+   const statusAfter=await stalePage.evaluate(()=>({
+     name:document.getElementById('mmhA783UsernameStatus').textContent,
+     recovery:document.getElementById('mmhA783Recovery').hidden
+   }));
+   assert.equal(statusAfter.name,'@B_CURRENT');
+   assert.equal(statusAfter.recovery,false);
+   assert.deepEqual(staleErrors,[]);
+   await stalePage.close();
+   console.log('PASS',name,'stale A status response cannot repaint B session');
+
+   // Old failed A response after sign-out cannot overwrite signed-out status.
+   const signedOutPage=await browser.newPage();
+   const signoutErrors=await ready(signedOutPage);
+   await signedOutPage.evaluate(()=>{
+     const original=window.fetch;
+     window.__oldFailureStarted=false;
+     window.fetch=(url,options={})=>{
+       const action=JSON.parse(options.body||'{}').action;
+       if(action==='status'){
+         window.__oldFailureStarted=true;
+         return new Promise((resolve,reject)=>{window.__rejectOldStatus=()=>reject(Error('synthetic old session'));});
+       }
+       return original(url,options);
+     };
+   });
+   await signedOutPage.locator('#mmhA783Refresh').click();
+   await signedOutPage.waitForFunction(()=>window.__oldFailureStarted===true);
+   await signedOutPage.evaluate(()=>window.__authCallback('SIGNED_OUT',null));
+   await signedOutPage.waitForFunction(()=>document.getElementById('mmhA783Status').textContent.includes('Sign in to manage'));
+   await signedOutPage.evaluate(()=>window.__rejectOldStatus());
+   await signedOutPage.waitForTimeout(150);
+   const outStatus=await signedOutPage.locator('#mmhA783Status').textContent();
+   assert.ok(outStatus.includes('Sign in to manage'),outStatus);
+   assert.deepEqual(signoutErrors,[]);
+   await signedOutPage.close();
+   console.log('PASS',name,'stale request rejection cannot override logout state');
 
    // Verify sensitive recovery words do not appear if the original
    // Auth-confirmed response arrives after logout, owner switch, modal
@@ -464,5 +538,5 @@ try{
    console.log('PASS',name,'factor removal refreshes displayed state after busy clears');
   }finally{await browser.close();}
  }
- console.log('34/34 isolated browser smoke checks PASS');
+ console.log('38/38 isolated browser smoke checks PASS');
 }finally{await new Promise(resolve=>server.close(resolve));}
