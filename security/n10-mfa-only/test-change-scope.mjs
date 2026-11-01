@@ -31,3 +31,27 @@ if(bad.length){
  console.error('FAIL: MFA-only contains unexpected edits or deletions:',bad);
  process.exitCode=1;
 }else console.log('PASS: '+lines.length+' MFA-only review files; no App, login, Landing, Vault or finance diff');
+
+
+// MAIN_DRIFT_OVERLAP_GUARD: additionally block changes to the same file on
+// current main and this review branch since their common ancestor. GitHub
+// mergeable=true alone does not replace this explicit independent check.
+// This runs read-only with the checkout's fetched origin/main and local git.
+const baseSha=execFileSync('git',['merge-base','origin/main','HEAD'],{
+ encoding:'utf8',maxBuffer:2000000
+}).trim();
+assert.match(baseSha,/^[a-f0-9]{40}$/,'missing merge base for main drift check');
+const mainChanged=new Set(execFileSync('git',[
+ 'diff','--name-only','--no-renames',baseSha,'origin/main'
+],{encoding:'utf8',maxBuffer:2000000}).trim().split('\n').filter(Boolean));
+const branchPaths=new Set(
+ lines.map(line=>line.split('\t')[1])
+);
+const overlap=[...branchPaths].filter(path=>mainChanged.has(path));
+if(overlap.length){
+ console.error('BLOCKED: these N10 files also changed on current main:',overlap);
+ process.exitCode=1;
+}else{
+ console.log('PASS: no overlapping main drift ('+mainChanged.size+
+   ' main paths checked against '+branchPaths.size+' N10 paths)');
+}
