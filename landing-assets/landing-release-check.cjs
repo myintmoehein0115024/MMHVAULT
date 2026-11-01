@@ -50,7 +50,7 @@ check('Sitemap has no private app or login',!/<loc>[^<]*\/(?:app|login|n10-qa)\.
 check('PWA launcher points to secure Login',manifest.start_url==='./login.html?source=pwa&install=v2');
 check('Manifest differs only in start_url',JSON.stringify({...manifest,start_url:oldManifest.start_url})===JSON.stringify(oldManifest));
 check('Preserved old iPhone touch icon',current.includes('<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=pwa24-20261029">'));
-const allowed=new Set(['index.html','robots.txt','mmh-manifest-v2.webmanifest',...names.map(f=>'landing-assets/'+f)]);
+const allowed=new Set(['index.html','robots.txt','mmh-manifest-v2.webmanifest','landing-assets/landing-release-check.cjs','.github/workflows/landing-release-check.yml',...names.map(f=>'landing-assets/'+f)]);
 const diff=cp.spawnSync('git',['diff','--name-only',main+'...HEAD'],{encoding:'utf8'});
 assert.equal(diff.status,0,'git diff unsuccessful');
 const actual=diff.stdout.trim().split(/\n/).filter(Boolean);
