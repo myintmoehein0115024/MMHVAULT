@@ -62,10 +62,14 @@ check('Current production Login remains noindex',/name="robots" content="noindex
 check('Actual App remains noindex',/<meta[^>]*name=["']robots["'][^>]*noindex/i.test(read('app.html').slice(0,350000)));
 check('Protected Business page remains noindex',/<meta[^>]*name=["']robots["'][^>]*noindex/i.test(read('business.html').slice(0,2000)));
 
-const names=['landing.css','business.css','cinematic.css','landing.js','premium-l131.css','motion-l132.css','motion-l132.js','luxury-horizon.svg','premium-architecture.svg','cinematic-lake.webp','personal-business-concept.webp'];
+const names=['landing.css','business.css','cinematic.css','landing.js','premium-l131.css','explore-l114.css','motion-l132.css','motion-l132.js','luxury-horizon.svg','premium-architecture.svg','cinematic-lake.webp','personal-business-concept.webp'];
 check('All required live assets exist',names.every(f=>fs.existsSync('landing-assets/'+f)));
 check('Landing style and script links correct',['landing.css','business.css','cinematic.css','landing.js'].every(f=>current.includes('./landing-assets/'+f)));
 check('L1.31 premium layer linked and scoped', current.includes('class="l131"') && current.includes('href="./landing-assets/premium-l131.css?v=1"') && read('landing-assets/premium-l131.css').includes('body.l131 .showcase-v2'));
+check('Explore styles load after existing premium/motion layers and remain scoped',
+ current.includes('href="./landing-assets/explore-l114.css?v=1"') &&
+ read('landing-assets/explore-l114.css').includes('body.l131 .site-header #primary-nav') &&
+ !read('landing-assets/explore-l114.css').includes('body.app'));
 check('L1.32 motion assets linked from homepage',
   current.includes('href="./landing-assets/motion-l132.css?v=1"') &&
   current.includes('src="./landing-assets/motion-l132.js?v=1"'));
@@ -257,7 +261,7 @@ check('Business public page is premium, independent and clearly preview-only',
  !business.includes('href="/#business"') &&
  !business.includes('supabase.co') &&
  !/<form[\s>]/i.test(business));
-check('Every public navigation uses independent Business route, never homepage hash',
+check('Public subpages retain their independent Business route, separate from Landing',
  ['about/index.html','features/index.html','register/index.html',
   'privacy.html','terms.html','security.html','business/index.html'].every(path=>{
     const html=read(path);
@@ -266,8 +270,10 @@ check('Every public navigation uses independent Business route, never homepage h
       html.includes('href="/"') &&
       html.includes('class="public-nav-details"');
   }) &&
- current.includes('href="./business/" data-i18n="navBusiness"') &&
- !current.includes('href="#business" data-i18n="navBusiness"'));
+ current.includes('href="#business" data-i18n="navBusiness"') &&
+ current.includes('href="./business/" data-i18n="infoBusiness"') &&
+ !(current.split('<nav class="nav" id="primary-nav"')[1]||'').split('</nav>')[0]
+   .includes('href="./business/" data-i18n="navBusiness"'));
 check('Private business.html is untouched and remains non-indexable',
  !actual.includes('business.html') &&
  source('business.html')===read('business.html') &&
@@ -311,6 +317,7 @@ const publicRuntimeBudgets={
   'landing-assets/business.css':55000,
   'landing-assets/cinematic.css':40000,
   'landing-assets/premium-l131.css':20000,
+  'landing-assets/explore-l114.css':9000,
   'landing-assets/motion-l132.css':12000,
   'landing-assets/landing.js':110000,
   'landing-assets/motion-l132.js':15000,
@@ -354,11 +361,39 @@ for(const file of ['privacy.html','terms.html','security.html']){
    !/<form[\s>]/i.test(content) &&
    !/supabase\.createClient|SERVICE_ROLE_KEY|fetch\s*\(/.test(content));
 }
-check('Landing links to a unified Security page and uses canonical Home destination',
- current.includes('href="./security.html" data-i18n="navSecurity"') &&
+check('Landing Security navigation stays in-page; independent Security details remain discoverable',
+ current.includes('href="#security" data-i18n="navSecurity"') &&
+ current.includes('href="./security.html" data-i18n="infoSecurity"') &&
+ !(current.split('<nav class="nav" id="primary-nav"')[1]||'').split('</nav>')[0]
+   .includes('href="./security.html" data-i18n="navSecurity"') &&
  current.includes('href="/" aria-current="page" data-i18n="navHome"') &&
  current.includes('href="/" class="brand"') &&
  !current.includes('href="#top" aria-current="page" data-i18n="navHome"'));
+/* L1.14 — explicitly separate the five Landing sections from standalone
+   indexable introduction pages. Do not change any public page content here. */
+const rootNav=(current.match(/<nav class="nav" id="primary-nav"[^>]*>([\s\S]*?)<\/nav>/)||[])[1]||'';
+check('Landing has five same-page primary sections and a separate Explore menu',
+ ['features','business','about','security'].every(id=>
+  rootNav.includes('href="#'+id+'" data-i18n="nav'+id[0].toUpperCase()+id.slice(1)+'"') &&
+  current.includes('id="'+id+'"')) &&
+ rootNav.includes('id="landing-explore"') &&
+ ['about/','features/','business/','security.html','register/'].every(target=>
+  rootNav.includes('href="./'+target+'" data-i18n="info')) &&
+ (rootNav.match(/<details class="nav-explore"/g)||[]).length===1 &&
+ (rootNav.match(/<summary>/g)||[]).length===1);
+check('Explore EN/ZH/MY text is present and only Landing source is modified',
+ ['en','zh','my'].every(lang=>translationScript.includes('Object.assign(strings.'+lang+', {\n    navExplore:')) &&
+ actual.every(x=>['index.html','landing-assets/landing.js',
+     'landing-assets/explore-l114.css','landing-assets/landing-browser-check.cjs',
+     'landing-assets/landing-release-check.cjs'].includes(x)));
+check('Public SEO destinations and private routes remain unchanged in PR diff',
+ ['about/index.html','features/index.html','business/index.html','register/index.html',
+  'security.html','privacy.html','terms.html','business.html','app.html','login.html',
+  'sitemap.xml','robots.txt','mmh-manifest-v2.webmanifest'].every(file=>{
+    const test=cp.spawnSync('git',['diff','--quiet',main+'...HEAD','--',file],
+      {encoding:'utf8',maxBuffer:4096});
+    return test.status===0;
+  }));
 check('Homepage N10 recovery and standalone guards are unchanged from main',
  ['mmh-n10-recovery-error-route','mmh-pwa-standalone-root-bridge']
    .every(id=>dom(id,current)===dom(id,prev)));

@@ -29,6 +29,7 @@
   <link rel="stylesheet" href="./landing-assets/cinematic.css">
   <link rel="stylesheet" href="./landing-assets/premium-l131.css?v=1">
   <link rel="stylesheet" href="./landing-assets/motion-l132.css?v=1">
+  <link rel="stylesheet" href="./landing-assets/explore-l114.css?v=1">
   <link rel="preload" as="image" type="image/webp" href="./landing-assets/cinematic-lake.webp">
   <script defer src="./landing-assets/landing.js"></script>
   <script defer src="./landing-assets/motion-l132.js?v=1"></script>
@@ -140,9 +141,19 @@
       <nav class="nav" id="primary-nav" aria-label="Primary navigation">
         <a href="/" aria-current="page" data-i18n="navHome">Home</a>
         <a href="#features" data-i18n="navFeatures">Features</a>
-        <a href="./business/" data-i18n="navBusiness">Business</a>
+        <a href="#business" data-i18n="navBusiness">Business</a>
         <a href="#about" data-i18n="navAbout">About</a>
-        <a href="./security.html" data-i18n="navSecurity">Security</a>
+        <a href="#security" data-i18n="navSecurity">Security</a>
+        <details class="nav-explore" id="landing-explore">
+          <summary><span data-i18n="navExplore">Explore</span><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg></summary>
+          <div class="nav-explore-menu" aria-label="MMHVAULT public introduction pages">
+            <a href="./about/" data-i18n="infoAbout">About MMHVAULT</a>
+            <a href="./features/" data-i18n="infoFeatures">Features Overview</a>
+            <a href="./business/" data-i18n="infoBusiness">Business Concept</a>
+            <a href="./security.html" data-i18n="infoSecurity">Security Details</a>
+            <a href="./register/" data-i18n="infoRegister">Create Account Guide</a>
+          </div>
+        </details>
         <div class="mobile-nav-auth">
           <span class="mobile-nav-auth-title" data-i18n="mobileAuthHeading">SECURE ACCOUNT ACCESS</span>
           <div class="mobile-nav-auth-actions">

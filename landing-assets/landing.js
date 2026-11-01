@@ -661,10 +661,30 @@
   Object.assign(strings.zh,{"sitelinkFeatures":"个人财务管理功能","sitelinkCreateAccount":"创建您的账户"});
   Object.assign(strings.my,{"sitelinkFeatures":"ငွေကြေး စီမံခန့်ခွဲမှု","sitelinkCreateAccount":"သင့်အကောင့်ကို ဖွင့်ပါ"});
 
+  // Public introduction pages live in a separate Explore menu.
+  // Main Business/Security nav items always stay in-page on the Landing.
+  Object.assign(strings.en, {
+    navExplore:'Explore', infoAbout:'About MMHVAULT',
+    infoFeatures:'Features Overview', infoBusiness:'Business Concept',
+    infoSecurity:'Security Details', infoRegister:'Create Account Guide'
+  });
+  Object.assign(strings.zh, {
+    navExplore:'了解更多', infoAbout:'关于 MMHVAULT',
+    infoFeatures:'产品功能介绍', infoBusiness:'Business 概念展示',
+    infoSecurity:'安全说明', infoRegister:'创建账户指南'
+  });
+  Object.assign(strings.my, {
+    navExplore:'ပိုမိုလေ့လာရန်', infoAbout:'MMHVAULT အကြောင်း',
+    infoFeatures:'လုပ်ဆောင်ချက်များ အကြောင်း', infoBusiness:'Business အယူအဆ',
+    infoSecurity:'လုံခြုံရေး အသေးစိတ်', infoRegister:'အကောင့်ဖွင့်ရန် လမ်းညွှန်'
+  });
+
   const htmlKeys = new Set(['heroTitle', 'featuresTitle', 'businessHeading', 'whyTitle', 'closingTitle']);
   const storageKey = 'mmhvault.landing.language';
   const siteHeader = document.querySelector('.site-header');
   const toggle = document.querySelector('.menu-toggle');
+  const explore = document.getElementById('landing-explore');
+  const exploreSummary = explore?.querySelector('summary');
   const languageButtons = [...document.querySelectorAll('[data-lang]')];
   const localeElements = [...document.querySelectorAll('[data-i18n]')];
   const localeTrigger = document.getElementById('locale-trigger');
@@ -791,9 +811,15 @@
     if (desc && currentLang === 'en') desc.setAttribute('content', 'MMHVAULT is a private personal finance and life planning workspace. Manage accounts, transactions, investments and budgets; explore upcoming schedules and personal goals.');
     try { window.localStorage.setItem(storageKey, currentLang); } catch (_) {}
   }
+  function closeExplore(restoreFocus=false) {
+    if (!explore || !explore.open) return;
+    explore.open = false;
+    if (restoreFocus && exploreSummary) exploreSummary.focus();
+  }
   function closeMenu() {
     siteHeader.classList.remove('menu-open');
     toggle.setAttribute('aria-expanded', 'false');
+    closeExplore();
   }
   function closeLanguage() {
     localeMenu.hidden = true;
@@ -831,27 +857,35 @@
     }
   });
   toggle.addEventListener('click', () => {
+    closeExplore();
     closeLanguage();
     const isOpen = siteHeader.classList.toggle('menu-open');
     toggle.setAttribute('aria-expanded', String(isOpen));
   });
   document.querySelectorAll('#primary-nav a').forEach(link => link.addEventListener('click', () => {
+    closeExplore();
     closeMenu();
     closeLanguage();
   }));
   document.addEventListener('keydown', event => {
     if (event.key === 'Escape') {
       const wasOpen = !localeMenu.hidden;
+      const wasExploreOpen = !!explore?.open;
       closeLanguage();
       closeMenu();
-      if (wasOpen) localeTrigger.focus();
+      if (wasExploreOpen && exploreSummary) exploreSummary.focus();
+      else if (wasOpen) localeTrigger.focus();
     }
   });
   document.addEventListener('click', event => {
     if (!event.target.closest('.locale-picker')) closeLanguage();
+    if (explore && !explore.contains(event.target)) closeExplore();
     if (!siteHeader.contains(event.target)) closeMenu();
   });
-  const media = window.matchMedia('(min-width: 1051px)');
+  explore?.addEventListener('toggle', () => {
+    if (explore.open) closeLanguage();
+  });
+  const media = window.matchMedia('(min-width: 1361px)');
   if (typeof media.addEventListener === 'function') media.addEventListener('change', closeMenu);
 
   // Keeps the top navigation aligned with the section being viewed.

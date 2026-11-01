@@ -8,7 +8,7 @@ const fs=require('node:fs');
 const path=require('node:path');
 const {chromium}=require('playwright-core');
 const origin='http://127.0.0.1:8765';
-const widths=[320,393,440,768,1024,1200,1440,1920];
+const widths=[320,393,440,768,1024,1051,1100,1200,1290,1440,1920];
 const publicRoutes=['/','/about/','/register/','/features/','/business/','/privacy.html','/terms.html','/security.html'];
 const screenshots=path.join(process.cwd(),'landing-qa-screenshots');
 fs.mkdirSync(screenshots,{recursive:true});
@@ -67,6 +67,27 @@ async function load(page,route,failures){
      ensure(await page.locator('h1#hero-title').count()===1,width+'px single homepage H1');
      ensure(await page.locator('.hero-device-cinematic').evaluate(img=>img.complete&&img.naturalWidth>0),
        width+'px concept Hero photograph loaded');
+     if(width>=1361){
+       const header=await page.evaluate(()=>{
+         const brand=document.querySelector('.site-header .brand').getBoundingClientRect();
+         const nav=document.querySelector('#primary-nav').getBoundingClientRect();
+         const actions=document.querySelector('.site-header .header-actions').getBoundingClientRect();
+         return {brandRight:Math.round(brand.right),navLeft:Math.round(nav.left),
+           navRight:Math.round(nav.right),actionsLeft:Math.round(actions.left),
+           navHeight:Math.round(nav.height),navTop:Math.round(nav.top),
+           actionsTop:Math.round(actions.top)};
+       });
+       ensure(header.brandRight<=header.navLeft+3 &&
+         header.navRight<=header.actionsLeft+3 &&
+         Math.abs(header.navTop-header.actionsTop)<32 &&
+         header.navHeight<=70,
+         width+'px six-item desktop navigation remains one line '+JSON.stringify(header));
+       ensure(await page.locator('#landing-explore > summary').isVisible(),
+         width+'px Explore disclosure visible on desktop');
+     }else{
+       ensure(await page.locator('.site-header .menu-toggle').isVisible(),
+         width+'px responsive compact menu replaces overflowing six-item nav');
+     }
      if([320,393,768,1024].includes(width)){
        await page.evaluate(()=>scrollTo({top:0,left:0,behavior:'instant'}));
        await page.screenshot({
@@ -111,6 +132,9 @@ async function load(page,route,failures){
        const after=await page.locator('[data-hero-fixed]').allTextContents();
        ensure(JSON.stringify(after)===JSON.stringify(immutable),
          width+'px fixed three-language Hero remains unchanged in '+language);
+       const exploreLabels={en:'Explore',zh:'了解更多',my:'ပိုမိုလေ့လာရန်'};
+       ensure((await page.locator('#landing-explore > summary [data-i18n="navExplore"]').textContent()).trim()===exploreLabels[language],
+         width+'px Explore translated correctly in '+language);
      }
      await page.locator('[data-product-tab="accounts"]').click();
      ensure(await page.locator('[data-product-tab="accounts"]').getAttribute('aria-selected')==='true',
@@ -263,14 +287,34 @@ async function load(page,route,failures){
        reducedMotion:'reduce'});
      const page=await ctx.newPage();
      await page.goto(origin+'/',{waitUntil:'load'});
-     await page.locator('#primary-nav a[href="./security.html"]').click();
-     ensure(new URL(page.url()).pathname==='/security.html',
-       'Landing Security link opens the matching public Security page');
-     ensure(await page.locator('body.public-landing-page.policy-page').count()===1,
-       'Security destination shares Landing visual shell');
-     await page.locator('header .brand').click();
+     await page.locator('#primary-nav > a[href="#business"]').click();
+     await page.waitForFunction(()=>location.hash==='#business');
      ensure(new URL(page.url()).pathname==='/' &&
-       !new URL(page.url()).hash,'Security Home returns to canonical Landing root');
+       new URL(page.url()).hash==='#business',
+       'Landing Business top navigation stays in the Business showcase');
+     await page.locator('#primary-nav > a[href="#security"]').click();
+     await page.waitForFunction(()=>location.hash==='#security');
+     ensure(new URL(page.url()).pathname==='/' &&
+       new URL(page.url()).hash==='#security',
+       'Landing Security top navigation stays in the security showcase');
+     const explore=page.locator('#landing-explore');
+     await explore.locator('summary').click();
+     ensure(await explore.evaluate(x=>x.open) &&
+       await explore.locator('a[href="./business/"]').isVisible() &&
+       await explore.locator('a[href="./security.html"]').isVisible(),
+       'Explore independently exposes Business and Security details');
+     await page.keyboard.press('Escape');
+     ensure(!await explore.evaluate(x=>x.open),
+       'Escape closes Explore disclosure');
+     await explore.locator('summary').click();
+     await explore.locator('a[href="./security.html"]').click();
+     await page.waitForURL('**/security.html');
+     ensure(await page.locator('body.public-landing-page.policy-page').count()===1,
+       'Explore Security Details opens existing public policy');
+     await page.locator('header .brand').click();
+     await page.waitForURL(url=>url.pathname==='/');
+     ensure(new URL(page.url()).pathname==='/' &&
+       !new URL(page.url()).hash,'Independent Security Home returns to canonical Landing');
      await page.goto(origin+'/about/',{waitUntil:'load'});
      await page.locator('header nav>a[href="/business/"]').click();
      await page.waitForURL('**/business/');
@@ -288,10 +332,11 @@ async function load(page,route,failures){
      await page.waitForURL(url=>url.pathname==='/');
      ensure(new URL(page.url()).pathname==='/'&&!new URL(page.url()).hash,
        'Business Home returns to clean canonical Landing');
-     await page.locator('#primary-nav a[data-i18n="navBusiness"]').click();
+     await page.locator('#landing-explore > summary').click();
+     await page.locator('#landing-explore .nav-explore-menu a[href="./business/"]').click();
      await page.waitForURL('**/business/');
      ensure(new URL(page.url()).pathname==='/business/',
-       'Landing primary Business navigation opens independent Business page');
+       'Landing Explore opens independent Business concept information');
      await page.goto(origin+'/security.html',{waitUntil:'load'});
      await page.setViewportSize({width:393,height:852});
      await page.locator('header .public-nav-details summary').click();
@@ -299,6 +344,23 @@ async function load(page,route,failures){
      await page.waitForURL('**/business/');
      ensure(new URL(page.url()).pathname==='/business/',
        'Security compact Business menu also opens dedicated Business URL');
+
+     // The same information dropdown must work from the mobile hamburger.
+     await page.goto(origin+'/',{waitUntil:'load'});
+     await page.setViewportSize({width:393,height:852});
+     await page.locator('.site-header .menu-toggle').click();
+     ensure(await page.locator('#primary-nav > a[href="#business"]').isVisible() &&
+       await page.locator('#primary-nav > a[href="#security"]').isVisible(),
+       'Mobile Landing Business and Security links are local');
+     await page.locator('#landing-explore > summary').click();
+     ensure(await page.locator('#landing-explore .nav-explore-menu a[href="./about/"]').isVisible() &&
+       await page.locator('#landing-explore .nav-explore-menu a[href="./register/"]').isVisible(),
+       'Mobile Explore menu exposes standalone descriptions');
+     await page.screenshot({path:path.join(screenshots,'landing-explore-393.png'),fullPage:false,animations:'disabled'});
+     await page.locator('#landing-explore .nav-explore-menu a[href="./features/"]').click();
+     await page.waitForURL('**/features/');
+     ensure(new URL(page.url()).pathname==='/features/',
+       'Mobile Explore opens the independent Features page');
      await ctx.close();
    }
       const ctx=await browser.newContext({viewport:{width:393,height:852},reducedMotion:'no-preference'});
