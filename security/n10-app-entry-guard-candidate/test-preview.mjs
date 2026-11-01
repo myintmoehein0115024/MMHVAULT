@@ -151,6 +151,48 @@ assert.match(resume,/const n10Version=\+\+mmhN10GateVersionV1100/);
 assert.match(resume,/if\(n10Version!==mmhN10GateVersionV1100\|\|startTicket!==mmhP947AuthGateTicket/);
 console.log('PASS same-owner mask, AAL2 challenge, fail-closed and stale owner races');
 
+// Exercise the actual preview's LAST resume decision as a live VM function.
+// A concurrent sign-in must not unmask private UI even after AAL succeeded.
+const finalStart=patched.indexOf('      // Last check before painting private account UI or releasing the mask.');
+const finalEnd=patched.indexOf('      return {ok:true};',finalStart);
+assert.ok(finalStart>=0&&finalEnd>finalStart,'missing final resume guard');
+const finalBody=patched.slice(finalStart,finalEnd);
+assert.match(finalBody,/n10Version!==mmhN10GateVersionV1100/);
+assert.match(finalBody,/startTicket!==mmhP947AuthGateTicket/);
+assert.match(finalBody,/startEpoch!==/);
+assert.match(finalBody,/currentSessionUser\?\.id!==owner/);
+function exerciseResumeFinal(options={}) {
+  const events=[];
+  const env={
+    n10Version:10,mmhN10GateVersionV1100:10,
+    startTicket:6,mmhP947AuthGateTicket:6,
+    startEpoch:15,window:{__mmhSessionEpochV1239:15},
+    currentSessionUser:{id:uid},owner:uid,
+    verified:{user:{id:uid}},navigator:{onLine:true},
+    opts:{forceRealtime:false},realtimeReady:true,realtimeChannelOwnerV1235:uid,
+    reason:'test',masked:true,
+    applyUserProfile:user=>events.push('profile:'+user.id),
+    subscribeRealtime:()=>events.push('realtime'),
+    mmhP947UnlockV947:()=>events.push('unlock'),
+    ...options
+  };
+  const fn=runInNewContext('(()=>{'+finalBody+'})',env);
+  const result=fn();
+  return {events,result};
+}
+assert.deepEqual(exerciseResumeFinal().events,['profile:'+uid,'unlock']);
+for(const [name,overrides] of [
+  ['a newer same-account verification', {mmhN10GateVersionV1100:11}],
+  ['session switch started during cloud read', {mmhP947AuthGateTicket:7}],
+  ['cloud owner epoch changed', {window:{__mmhSessionEpochV1239:16}}],
+  ['owner switched', {currentSessionUser:{id:other}}]
+]) {
+  const x=exerciseResumeFinal(overrides);
+  assert.deepEqual(x.events,[],'stale '+name+' must not paint/unlock');
+  assert.equal(x.result?.superseded,true,'stale '+name+' must be discarded');
+}
+console.log('PASS final resume unlock rejects overlapping refresh, owner and epoch changes');
+
 const drift=source.replace('  const a783=await db.auth.mfa.getAuthenticatorAssuranceLevel();',
   '  const a783=/* changed upstream */ await db.auth.mfa.getAuthenticatorAssuranceLevel();');
 assert.throws(()=>generateAppEntryPreview(drift),/drift|patch/);
