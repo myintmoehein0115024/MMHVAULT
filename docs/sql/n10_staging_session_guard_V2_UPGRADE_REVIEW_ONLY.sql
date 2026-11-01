@@ -4,6 +4,12 @@
 -- No database-derived project identity is trusted: operator must select and
 -- verify the exact Staging project in the tool connection BEFORE any execution.
 -- Hard gate: QA remains LOCKED and recovery-release flag OFF.
+-- READ-ONLY EXTERNAL CALLER AUDIT (2026-11-01) FOUND A BLOCKER:
+-- Deployed Staging Edge "mmh-n10-qa-joint-mfa-vault-20261101" still calls
+-- the 2-argument legacy RPC. It is currently disabled by release OFF, expired
+-- QA window and empty allowlist, but must be formally retired or migrated in
+-- a separately authorized, reviewed deployment BEFORE this migration runs.
+-- Catalog-only dependency checks cannot detect these HTTP Edge callers.
 -- Requires owner-approved maintenance window, external Edge caller audit,
 -- preflight, change-specific approval, backups and defined rollback.
 -- The prior 2-arg RPC has weaker semantics; retire it atomically, never leave
