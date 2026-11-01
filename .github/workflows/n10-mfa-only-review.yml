@@ -4,6 +4,13 @@ on:
     branches:
       - 'review/n10-mfa-only-20261101'
   workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/n10-mfa-only-review.yml'
+      - 'js/mmhvault-n10-a7-83-security-center.js'
+      - 'security/n10-mfa-only/**'
 permissions:
   contents: read
 jobs:
