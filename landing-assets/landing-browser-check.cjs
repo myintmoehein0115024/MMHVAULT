@@ -293,6 +293,7 @@ async function load(page,route,failures){
      ensure(new URL(page.url()).pathname==='/business/',
        'Landing primary Business navigation opens independent Business page');
      await page.goto(origin+'/security.html',{waitUntil:'load'});
+     await page.setViewportSize({width:393,height:852});
      await page.locator('header .public-nav-details summary').click();
      await page.locator('header .public-nav-panel a[href="/business/"]').click();
      await page.waitForURL('**/business/');
