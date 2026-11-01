@@ -415,7 +415,54 @@ try{
    assert.deepEqual(qrErrors,[]);
    await qrFailPage.close();
    console.log('PASS',name,'QR rendering failure wipes plaintext key DOM');
+
+   // A successful verified-factor removal must refresh the displayed status
+   // AFTER the busy flag is released. Regresses a real state-sync bug where
+   // void refresh() ran while busy===true and silently returned.
+   const removePage=await browser.newPage();
+   const removeErrors=await ready(removePage);
+   await removePage.evaluate(()=>{
+     window.__factorRemoved=false;
+     const verifiedFactor={id:'synthetic-verified-factor',factor_type:'totp',status:'verified'};
+     window.__mfa.listFactors=async()=>({
+       data:{
+         all:window.__factorRemoved?[]:[verifiedFactor],
+         totp:window.__factorRemoved?[]:[verifiedFactor]
+       },error:null
+     });
+     window.__mfa.getAuthenticatorAssuranceLevel=async()=>({
+       data:{currentLevel:'aal2',nextLevel:'aal2'},error:null
+     });
+     window.__mfa.unenroll=async({factorId})=>{
+       if(factorId!=='synthetic-verified-factor')throw Error('unexpected removal target');
+       window.__factorRemoved=true;
+       window.__unenrollCalls.push(factorId);
+       return {error:null};
+     };
+   });
+   await removePage.locator('#mmhA783Refresh').click();
+   await removePage.waitForFunction(()=>document.getElementById('mmhA783TotpStatus').textContent==='Authenticator enabled');
+   await removePage.locator('#syntheticMfaSection > .mmh-a783-title').click();
+   await removePage.locator('#mmhA783TotpRemove').click();
+   await removePage.locator('#mmhA783TotpRemoveText').fill('REMOVE');
+   await removePage.locator('#mmhA783TotpRemoveNow').click();
+   await removePage.waitForFunction(()=>document.getElementById('mmhA783TotpStatus').textContent==='Not enabled');
+   const finalRemoval=await removePage.evaluate(()=>({
+     removed:window.__factorRemoved,
+     removedIds:window.__unenrollCalls,
+     label:document.getElementById('mmhA783TotpStatus').textContent,
+     removeHidden:document.getElementById('mmhA783TotpRemove').hidden,
+     startHidden:document.getElementById('mmhA783TotpStart').hidden
+   }));
+   assert.equal(finalRemoval.removed,true);
+   assert.deepEqual(finalRemoval.removedIds,['synthetic-verified-factor']);
+   assert.equal(finalRemoval.label,'Not enabled');
+   assert.equal(finalRemoval.removeHidden,true);
+   assert.equal(finalRemoval.startHidden,false);
+   assert.deepEqual(removeErrors,[]);
+   await removePage.close();
+   console.log('PASS',name,'factor removal refreshes displayed state after busy clears');
   }finally{await browser.close();}
  }
- console.log('32/32 isolated browser smoke checks PASS');
+ console.log('34/34 isolated browser smoke checks PASS');
 }finally{await new Promise(resolve=>server.close(resolve));}
