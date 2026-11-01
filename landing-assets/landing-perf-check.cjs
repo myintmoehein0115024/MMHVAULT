@@ -112,7 +112,11 @@ function ok(value,message){assert.ok(value,message);console.log('PASS '+message)
           resourceCount:metrics.resourceCount,
           transferredBytes:metrics.transferBytes,
           totalRequests:requests.length,
-          heroRequests:requests.filter(r=>r.url.endsWith('/'+info.hero)).length};
+          heroRequests:requests.filter(r=>r.url.endsWith('/'+info.hero)).length,
+          largestResources:[...metrics.resources]
+             .sort((a,b)=>b.decoded-a.decoded).slice(0,6)
+             .map(r=>({name:r.name,transferBytes:r.bytes,decodedBytes:r.decoded,
+               loadDurationMs:Math.round(r.duration)}))};
         console.log('LAB DIAGNOSTICS '+JSON.stringify(sample));
         samples.push(sample);
         await ctx.close();
