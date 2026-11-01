@@ -1,8 +1,13 @@
 // N10 app-entry assurance helper — REVIEW ONLY. Not loaded by app.html.
 // The caller must separately lock sensitive UI while awaiting this check.
 // Frontend gating is defense in depth; APIs and RLS must enforce MFA themselves.
-export async function assessWorkspaceMfa(auth, expectedUid) {
+export async function assessWorkspaceMfa(auth, expectedUid, timeoutMs = 12000) {
   if (!auth || typeof expectedUid !== 'string' || !expectedUid) return 'deny';
+  let timer;
+  const limit = Number.isFinite(timeoutMs) && timeoutMs > 0 && timeoutMs <= 12000 ? timeoutMs : 12000;
+  // Time out the whole check, not just the factor call. A late result must
+  // never unlock an already-denied session. Default is a 12-second deadline.
+  const verify = async () => {
   try {
     // Two session reads detect refresh/signout during asynchronous checks.
     // getUser validates the active bearer with Auth, not only cached user data.
@@ -41,6 +46,17 @@ export async function assessWorkspaceMfa(auth, expectedUid) {
     if (hasVerified || current !== 'aal1') return 'deny';
     return 'allow';
   } catch (_) {
-    return 'deny'; // network errors/timeouts never unlock financial UI
+    return 'deny'; // errors never unlock financial UI
+  }
+  };
+  try {
+    return await Promise.race([
+      verify(),
+      new Promise(resolve => { timer = setTimeout(() => resolve('deny'), limit); })
+    ]);
+  } catch (_) {
+    return 'deny';
+  } finally {
+    if (timer !== undefined) clearTimeout(timer);
   }
 }
