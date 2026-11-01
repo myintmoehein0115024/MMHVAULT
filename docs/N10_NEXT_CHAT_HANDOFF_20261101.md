@@ -166,3 +166,8 @@
 - GitHub Actions `41283777661` **SUCCESS**：16/16 离线源码检查 + 38/38 模拟浏览器 + 2/2 真实 HTML 结构/模拟 Auth 集成 = **56/56 PASS**。PR #9 仍 Draft、mergeable=true、未合并；现变更范围：安全中心 JS、3 个测试/检查脚本、1 个无部署 CI、1 份报告；没有修改正式 `app.html`。
 - **必须在获批准的生产上线时** 同步将当时最新 `app.html` 中脚本 `?v=10.790.1` 升为新的唯一缓存版本，保证用户浏览器不持续用旧 JS；但不能提前更改正式 app.html 或单独发布该版本号。需要以当前最新 main 对比，并准备回滚。
 - 真实 Staging A 仍是未验证 TOTP / AAL2 未通过，QA LOCKED（原激活被安全检查阻止、不可旁路），Vault 联合测试 OFF；CI 成功不能替代三阶段上线门禁。
+
+## 2026-11-01 — PR #9 上线审批与回滚 Runbook 已完成
+- 正式独立 MFA-only 审核分支 `review/n10-mfa-only-20261101` 新增 `docs/N10_MFA_ONLY_PRODUCTION_RELEASE_RUNBOOK_20261101.md`，为后续受控发布固定一套可执行清单：签名 Staging AAL2 真实验收（不绕过锁定 QA）、最新 `main`/PR 复核、财务数据导出及旧源码保留、`app.html` 缓存版本随 JS **协调发布**、Owner 受控网站验收和定向回滚。
+- 经读取真实 `main` 与候选安全中心 JS，`N10A790_TOTP_ENROLLMENT_RELEASED=true` 在 **两边已经是 true**；PR #9 不通过改开关来启动 MFA。新版固定恢复 Vault 完全不在 PR #9 范围，仍独立 OFF/未验收。
+- PR #9 `https://github.com/myintmoehein0115024/MMHVAULT/pull/9` 保持 Draft/未合并，之前 56/56 离线和模拟浏览器检查 PASS，独立 CI 部署动作无；GitHub 分支保护规则读取报 403，不能声称已核验分支审批规则。测试账户 A 实际 TOTP 最后只读状态仍是 1 unverified / 0 verified，QA LOCKED。**未修改正式生产，也没有创建或启用新的 QA 旁路。**
