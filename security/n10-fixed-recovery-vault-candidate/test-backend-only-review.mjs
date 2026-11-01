@@ -9,6 +9,7 @@ const installedAudit=readFileSync('docs/sql/n10_installed_staging_vault_READ_ONL
 const assurance=readFileSync('security/n10-fixed-recovery-vault-candidate/mfa-assurance.mjs','utf8');
 const qaRlsAudit=readFileSync('docs/sql/n10_staging_qa_rls_READ_ONLY_ASSERTIONS_20261101.sql','utf8');
 const qaDmlRevoke=readFileSync('docs/sql/n10_staging_qa_excess_dml_REVOKE_REVIEW_ONLY.sql','utf8');
+const v2Upgrade=readFileSync('docs/sql/n10_staging_session_guard_V2_UPGRADE_REVIEW_ONLY.sql','utf8');
 const tests=[
  ['Vault release is hard OFF and pinned to the existing project',()=>{
   assert.match(backend,/const RECOVERY_RELEASE_ENABLED=false;/);
@@ -46,6 +47,23 @@ const tests=[
   assert.match(sql,/GRANT EXECUTE ON FUNCTION public\.mmh_n10_recovery_backup_get\(uuid\) TO service_role/);
   assert.match(sql,/REVOKE ALL ON FUNCTION public\.mmh_n10_recovery_backup_get\(uuid\) FROM PUBLIC,anon,authenticated/);
   assert.doesNotMatch(sql,/DROP SCHEMA.*CASCADE/i);
+ }],
+ ['SQL function bodies use valid balanced dollar quoting, session V2 matches upgrade contract',()=>{
+  const firstInstallFunctions=(sql.match(/^CREATE FUNCTION /gm)||[]).length;
+  const bodyOpeners=(sql.match(/\\bAS\\s+\\$\\$/g)||[]).length;
+  const bodyClosers=(sql.match(/\\$\\$;/g)||[]).length;
+  assert.ok(firstInstallFunctions>=6,'missing SQL function definitions');
+  assert.equal(bodyOpeners,firstInstallFunctions,'missing dollar-quoted CREATE FUNCTION body');
+  assert.equal(bodyClosers,firstInstallFunctions,'unbalanced SQL function body quotes');
+  assert.doesNotMatch(sql,/\\bAS\\s+\\$(?!\\$)/,'broken single-dollar function opener');
+  assert.doesNotMatch(sql,/^\\$;$/m,'broken single-dollar function closer');
+  assert.match(sql,/p_user_id uuid,p_session_id uuid,p_expected_aal text\\)\\s+RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path='' AS \\$\\$/);
+  assert.match(v2Upgrade,/p_user_id uuid,p_session_id uuid,p_expected_aal text\\)\\s+RETURNS boolean\\s+LANGUAGE sql STABLE SECURITY DEFINER SET search_path='' AS \\$\\$/);
+  for(const stmt of ["s.id=p_session_id","s.user_id=p_user_id","s.aal::text='aal1'","s.aal::text='aal2'","f.id=s.factor_id","f.user_id=p_user_id","f.status::text='verified'"]){
+    assert.ok(sql.includes(stmt),'first install missing '+stmt);
+    assert.ok(v2Upgrade.includes(stmt),'V2 upgrade missing '+stmt);
+  }
+  assert.match(sql,/vault\\.create_secret\\(p_phrase,[\\s\\S]*?NULL::uuid\\)/);
  }],
  ['preflight is read-only, not an authorization to apply SQL',()=>{
   assert.match(preflight,/READ-ONLY PREFLIGHT/);
