@@ -146,3 +146,9 @@
 - 只在 MFA-only 隔离分支完成 `recoveryEpoch`、可见弹窗+同账户校验，离开页面/登出/切换账户/关闭弹窗即使服务端迟到成功也不会显示二维码/恢复词；QR 生成异常也会擦除 DOM 明文。
 - 保持原十词恢复验证和 **60 秒自动隐藏**，**未加入 Vault API/新密钥备份**。GitHub Actions `41280764187` **SUCCESS**：`14/14` 静态模拟检查和 `32/32` Chromium/WebKit 浏览器模拟用例。独立详细报告：`review/n10-mfa-only-20261101:docs/N10_MFA_ONLY_REVIEW_CANDIDATE_20261101.md`。
 - 正式 main 未改；PR #2 Draft 未合并；A 的真实 TOTP 仍未通过验证，QA LOCKED，Vault 联合测试 OFF。以上模拟 PASS 不可冒充真实 AAL2。
+
+## 2026-11-01 — PR #9 真实创建且无合并冲突（仍未获上线批准）
+- 已正式创建 **Draft PR #9**：`https://github.com/myintmoehein0115024/MMHVAULT/pull/9`，来源 `review/n10-mfa-only-20261101` → 目标 `main`。GitHub 实时 PR 复核：`draft=true`、`merged=false`、**`mergeable=true`**，变更文件数 5；分支比当时最新 main `behind=0`、`ahead=13`，当前 main `d9e61e96d9ea30f1296d81594f87275179c85c3e`。
+- GitHub Actions `41280913314` **SUCCESS**：JS 语法、14/14 MFA-only 源码/模拟安全检查、32/32 Chromium/WebKit 本地模拟浏览器检查全部通过。不会自动部署。
+- 这条路径不包含未验收的固定恢复词 Vault 功能，也不需要处理原有 **PR #2** 冲突；PR #2 保持 Draft、`mergeable=false`、未合并。正式 app、login、Landing、财务代码以及现有 Auth 仍未改动。
+- **不得因为 PR #9 `mergeable=true` 就马上合并或发布。** 原 N10 Staging A 在上次真实 DB 核验有 1 个 `unverified` TOTP、0 verified；原 QA 页面锁定/窗口过期；以前的 QA 重新激活受阻，不得通过旁路绕过。需要单独合规路径完成签名 Auth MFA/AAL2 真实验收，再根据用户明确上线批准，备份/回滚和重新比对最新 main 后合并 PR #9。Vault 联合 E2E/删除验收仍是独立后续阶段。
