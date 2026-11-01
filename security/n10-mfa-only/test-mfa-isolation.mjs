@@ -76,6 +76,29 @@ const tests=[
   assert.equal(nodes.mmhA783TotpCode.value,'');
   assert.equal(nodes.mmhA783TotpQr.wiped,true);
  }],
+ ['lost-phone recovery guidance requires an existing authenticator backup',()=>{
+  // A recovery phrase is a separate credential; it must never be presented
+  // as a way to skip the authenticator challenge after device loss.
+  const statements=[
+   'Before enabling, set up the authenticator on a second trusted device or safely back up its setup key. Your ten-word key cannot replace the six-digit code.',
+   'Two-step verification is active. Keep an authenticator backup; the ten-word key cannot replace a six-digit code.',
+   'Verify your six-digit code to manage this authenticator. If your phone is lost, use your saved authenticator backup; ten words cannot unlock this step.',
+   'Scan this QR on your authenticator and, if possible, a second trusted device. Back up the setup key safely before confirming; ten words cannot replace the six-digit code.'
+  ];
+  for(const line of statements)assert.ok(src.includes(line),'missing fail-closed backup guidance');
+  for(const translated of ['十词密钥不能代替六位验证码','十词密钥不能跳过这一步',
+                           '十词不能代替六位验证码'])
+   assert.ok(src.includes(translated),'missing Chinese backup warning: '+translated);
+  const refresh=between("label('mmhA783TotpHelp',verified", "if(!ar||ar.error)incomplete=true;");
+  assert.match(refresh,/level==='aal2'/);
+  assert.match(refresh,/ten-word key cannot replace a six-digit code/);
+  assert.match(refresh,/ten words cannot unlock this step/);
+  const enroll=between("$('mmhA783TotpStart').addEventListener('click',async()=>{", "$('mmhA783TotpConfirm').addEventListener('click',async()=>{");
+  assert.match(enroll,/second trusted device/);
+  assert.match(enroll,/ten words cannot replace/);
+  // No shortcut that silently unenrolls the factor on password or words.
+  assert.doesNotMatch(src,/mfa\.unenroll\(\{factorId:\s*(?:body|words|phrase)/);
+ }],
  ['pending owner and epoch cleared synchronously',()=>{
   assert.match(src,/pendingFactorOwner='',pendingSecret=''/);
   assert.match(src,/function clearMfa\(\)\{mfaEpoch\+=1;pendingSecret='';pendingFactor='';pendingFactorOwner='';/);
