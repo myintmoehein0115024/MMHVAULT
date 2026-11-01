@@ -37,3 +37,9 @@ The old Draft PR #2 remains merge-conflicted and contains **unreleased Vault can
 - **Production changes performed in this task: NONE.**
 - **QA/Edge changes performed in this task: NONE.**
 - **No further amount of synthetic tests clears Gate A.** The practical next move is an authorized, non-circumventing resolution of the previously blocked QA activation. If that cannot be obtained, hold this PR in Draft and continue unrelated work.
+
+## 2026-11-01 — concurrent main recheck (supersedes older baseline counts)
+- Main advanced to `8ea0673378efcf6120675d399429593517e604c8` after the earlier runbook was written. The latest GitHub comparison shows PR #9 **25 ahead, 2 behind** main; the common base remains `d9e61e96d9ea30f1296d81594f87275179c85c3e`.
+- Changed paths remain **seven**: the Account Security JS and six review-only CI/docs/test paths. No PR-side change to `app.html`, `login.html`, Landing, financial source or business pages. Main's two intervening commits must be preserved at release; do not blindly merge/rebase.
+- Latest production Security JS blob observed `7a7f69b3aa4c3ec8f68f5032d7b3ace75c912911`; candidate blob `bd618984539db1e49a531ff7a834dac71f3d9a83`. The candidate contains account-epoch and refresh queue guards absent in the current production script, but real Staging signed AAL2 still has no accepted evidence.
+- Older statements in this runbook such as `0 behind main` or the old baseline SHA are historical snapshots. The release gate and no-deploy decision remain unchanged.
