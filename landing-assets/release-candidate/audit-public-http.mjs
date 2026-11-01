@@ -9,7 +9,11 @@ const targets = [
   {path:'/sitemap.xml',kind:'sitemap'},
   {path:'/images/mmhvault-logo-transparent.png',kind:'logo'},
   {path:'/login.html',kind:'login'},
-  {path:'/mmh-manifest-v2.webmanifest',kind:'manifest'}
+  {path:'/mmh-manifest-v2.webmanifest',kind:'manifest'},
+  {path:'/app.html',kind:'app'},
+  {path:'/privacy.html',kind:'policy'},
+  {path:'/terms.html',kind:'policy'},
+  {path:'/security.html',kind:'policy'}
 ];
 const audit = async ({path,kind}) => {
   try {
@@ -25,6 +29,20 @@ const audit = async ({path,kind}) => {
     if (kind === 'logo') {
       // Do not download image bytes in QA.
       await response.body?.cancel();
+    } else if (kind === 'app') {
+      // This is a public unauthenticated static page. Inspect only its HTML head,
+      // not the entire large App source and never any account/session endpoint.
+      const reader = response.body?.getReader();
+      if (reader) {
+        const dec = new TextDecoder();
+        for (let i=0;i<24 && payload.length<100000;i++) {
+          const {value,done} = await reader.read();
+          if (done) break;
+          payload += dec.decode(value,{stream:true});
+          if (/<\\/head>/i.test(payload)) break;
+        }
+        await reader.cancel();
+      }
     } else {
       payload = (await response.text()).slice(0,210000);
     }
@@ -52,6 +70,16 @@ const audit = async ({path,kind}) => {
     }
     if (kind === 'logo') result.isPng = /^image\/png/i.test(type);
     if (kind === 'login') result.noindex = /<meta[^>]*name=["']robots["'][^>]*noindex/i.test(payload)||/noindex/i.test(robotsHeader);
+
+    if (kind === 'app') {
+      const tags = payload.match(/<meta\\b[^>]*>/gi) || [];
+      result.headFound = /<\\/head>/i.test(payload);
+      result.noindex = tags.some(t => /\\bname=["']robots["']/i.test(t) && /noindex/i.test(t)) || /noindex/i.test(robotsHeader);
+      result.headInspectedOnly = true;
+    }
+    if (kind === 'policy') {
+      result.documentFound = /<html[\\s>]/i.test(payload) && /<title[\\s>]/i.test(payload);
+    }
     if (kind === 'manifest') {
       try {
         const data = JSON.parse(payload);

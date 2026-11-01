@@ -45,3 +45,6 @@ Only the Cloudflare **preview** distribution may publish `/pwa-qa/` and `/pwa-qa
 
 ### L1.26 preview QA deployment allowlist
 The isolated preview's Cloudflare Pages build command was updated to copy **only** the explicit three `landing-assets/pwa-qa/` static files into `landing-dist/pwa-qa/` and the existing public icon-192/icon-512 PNGs into `landing-dist/images/`. Its `_headers` continue to set global `X-Robots-Tag: noindex, nofollow, noarchive`. Public root remains the Landing preview. The independent PWA QA manifest is not the production `mmh-manifest-v2.webmanifest` and cannot modify installed `mmhvault.com` PWA settings.
+
+### L1.26 extended public-route audit
+The read-only CI audit now checks **ten** public/static URLs including `/app.html` (HTML head only; stream cancelled immediately after `</head>`), `/privacy.html`, `/terms.html`, and `/security.html`. It reports whether the unauthenticated App HTML declares a robots `noindex` policy, but **this is not an authentication audit**. A missing App noindex or policy page 404 is a production release blocker to escalate to the separate N10/App owner; do not modify production App from the Landing branch.
