@@ -9,7 +9,7 @@ const path=require('node:path');
 const {chromium}=require('playwright-core');
 const origin='http://127.0.0.1:8765';
 const widths=[320,393,440,768,1024,1200,1440,1920];
-const publicRoutes=['/','/register/','/features/','/privacy.html','/terms.html','/security.html'];
+const publicRoutes=['/','/about/','/register/','/features/','/privacy.html','/terms.html','/security.html'];
 const screenshots=path.join(process.cwd(),'landing-qa-screenshots');
 fs.mkdirSync(screenshots,{recursive:true});
 function ensure(condition,message){assert.ok(condition,message);console.log('PASS '+message)}
@@ -108,7 +108,7 @@ async function load(page,route,failures){
        ensure(await page.locator('h1').count()===1,route+' '+width+'px has one H1');
        ensure(await page.locator('link[rel="canonical"]').count()===1,
          route+' '+width+'px canonical unique');
-       if((route==='/register/'||route==='/features/')&&width===393){
+       if((route==='/register/'||route==='/features/'||route==='/about/')&&width===393){
          await page.locator('button[data-lang="zh"]').click();
          ensure(await page.locator('h1').isVisible(),route+' Chinese switch keeps title visible');
          await page.locator('button[data-lang="my"]').click();
@@ -122,7 +122,7 @@ async function load(page,route,failures){
          });
          ensure(localeOverflow.extra<=2,route+' Burmese locale has no sideways scroll '+JSON.stringify(localeOverflow));
        }
-       if(width===393 && ['/register/','/features/'].includes(route)){
+       if(width===393 && ['/register/','/features/','/about/'].includes(route)){
          await page.screenshot({path:path.join(screenshots,
             route.replaceAll('/','')+'-393.png'),fullPage:true,animations:'disabled'});
        }
