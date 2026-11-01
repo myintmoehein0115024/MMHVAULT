@@ -11,6 +11,8 @@ on:
       - '.github/workflows/n10-vault-backend-only-review.yml'
       - 'security/n10-fixed-recovery-vault-candidate/**'
       - 'docs/sql/n10_fixed_recovery_*'
+      - 'docs/sql/n10_staging_session_guard_*'
+      - 'docs/sql/n10_installed_staging_vault_*'
 permissions:
   contents: read
 jobs:
@@ -30,6 +32,8 @@ jobs:
         run: node security/n10-fixed-recovery-vault-candidate/test-session-guard.mjs
       - name: Backend release-off, RLS, Vault and read-only preflight contracts
         run: node security/n10-fixed-recovery-vault-candidate/test-backend-only-review.mjs
+      - name: V2 Staging session guard migration and emergency disable offline contracts
+        run: node security/n10-fixed-recovery-vault-candidate/test-session-upgrade-review.mjs
       - name: Set up Deno type checker
         uses: denoland/setup-deno@v2
         with:
