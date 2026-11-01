@@ -13487,6 +13487,17 @@ function mmhVaultAddAccountV445(){
   mmhVaultRefreshAccountSelectors();mmhVaultRefreshTransactionConfigV445();mmhVaultRenderManager();
   mmhVaultRefreshDashboardAccountOverviewV449();
   try{render?.()}catch(_){}
+  // Persist immediately, not only after the debounced queue. The queued retry
+  // still protects against transient offline/network failures.
+  const syncNow=window.MMHConfigCloudSyncV122?.syncNow;
+  if(typeof syncNow==='function'){
+    Promise.resolve().then(()=>syncNow(false)).then(ok=>{
+      if(ok!==true)window.MMHUI?.toast?.('Account saved on this device; cloud sync is pending. Reconnect and refresh before using another device.',{title:'Account sync pending',type:'warn'});
+    }).catch(err=>{
+      console.warn('[MMHVAULT] New account cloud sync pending',err);
+      window.MMHUI?.toast?.('Account saved on this device, but cloud sync is not yet confirmed.',{title:'Account sync pending',type:'warn'});
+    });
+  }
 }
 async function mmhVaultDeleteAccountV445(id){
   const configOwner=MMHVAULT_CONFIG_OWNER;if(!mmhVaultRequireConfigOwner(configOwner))return false;
@@ -15833,7 +15844,10 @@ function toTHB(a){
   if(cur==='USD')return thb;
   if(cur==='MMK'){const mmk=Number(rates?.usd_mmk)||0;return mmk>0?thb/mmk:0;}
   if(cur==='CNY'||cur==='RMB'){const cny=Number(rates?.usd_cny)||0;return cny>0?thb/cny:0;}
-  return 0;
+  // New account currencies use the owner's explicitly stored 'local units per USD' rate.
+  // Never invent a currency conversion; without a valid rate the Analyze audit warns.
+  const fxPerUSD=mmhVaultUsdRateForAccountV140(a);
+  return fxPerUSD>0?thb/fxPerUSD:0;
 }
 function thb(v){return '฿ '+(window.mmhSettingsNumberV2?window.mmhSettingsNumberV2(v):fmt(v));}
 function analyzeTotals(m){let inc=0,expv=0;analyzeFlowRows(transactions).filter(t=>t.tx_date.startsWith(m)).forEach(t=>{if(t.type==='Income')inc+=n(t.to_amount)*toTHB(t.to_account);if(t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t))expv+=n(t.from_amount)*toTHB(t.from_account);});return{inc,exp:expv,save:inc-expv};}
@@ -16218,8 +16232,8 @@ function renderAnalyzeV37(){
       const cat=t.category||'Other Personal';
       personalByCategory[cat]=(personalByCategory[cat]||0)+value;
     }
-    if(t.category==='Debt')debt+=n(t.from_amount)*toMMK(t.from_account);
-    if(t.category==='Paid Debt'||t.category==='PaidDeb')paid+=n(t.to_amount)*toMMK(t.to_account);
+    if(t.category==='Debt'&&t.type==='Income')debt+=n(t.to_amount)*toMMK(t.to_account);
+    if((t.category==='Paid Debt'||t.category==='PaidDeb')&&t.type==='Expense')paid+=n(t.from_amount)*toMMK(t.from_account);
     if(t.category==='Loan Out')out+=n(t.from_amount)*toMMK(t.from_account);
     if(t.category==='Loan Repayment')repay+=n(t.to_amount)*toMMK(t.to_account);
   }
@@ -16237,7 +16251,49 @@ function renderAnalyzeV37(){
       <div class="overview-snapshot-card-v371"><div class="label">Remaining %</div><div class="value ${rate>=60?'green':rate>=40?'yellow':'red'}">${rate.toFixed(2)}%</div><div class="small">Share of income left</div></div>`;
   }
 
-  const hint=$('monthlyPeriodHint');if(hint)hint.textContent=v37Label(p)+' · ordinary analysis in THB';
+
+  const hint=$('monthlyPeriodHint');
+  if(hint){
+    hint.textContent=v37Label(p)+' · ordinary analysis in THB';
+    // Reconcile every selected transaction against what Analyze actually counts.
+    // Internal transfers, loans, adjustments and investment flows are intentionally
+    // outside ordinary income/spending; show them instead of silently hiding them.
+    let audit=document.getElementById('mmhAnalyzeDataCoverageV1');
+    if(!audit){
+      audit=document.createElement('div');audit.id='mmhAnalyzeDataCoverageV1';
+      audit.setAttribute('role','status');
+      audit.style.cssText='margin:8px 0 14px;padding:10px 12px;border:1px solid rgba(160,175,194,.24);border-radius:12px;font-size:12px;line-height:1.55;overflow-wrap:anywhere;';
+      hint.insertAdjacentElement('afterend',audit);
+    }
+    const accounted=analyzeFlowRows(rows);
+    const configured=Array.isArray(MMHVAULT_CONFIG?.accounts)?MMHVAULT_CONFIG.accounts:[];
+    const missingAccounts=new Set(),missingFx=new Set();
+    const getConfigured=name=>{
+      const key=String(name||'').trim().toLowerCase();
+      return configured.find(a=>String(a?.name||'').trim().toLowerCase()===key
+        ||(['baht','bath'].includes(key)&&a?.id==='acc_bath'));
+    };
+    for(const tx of rows){
+      for(const field of ['from_account','to_account']){
+        const name=String(tx?.[field]||'').trim();
+        if(name&&!getConfigured(name))missingAccounts.add(name);
+      }
+    }
+    for(const tx of accounted){
+      const name=tx.type==='Income'?tx.to_account:tx.from_account;
+      const amount=tx.type==='Income'?tx.to_amount:tx.from_amount;
+      if(name&&Math.abs(Number(amount)||0)>0&&getConfigured(name)&&!(toTHB(name)>0))missingFx.add(String(name));
+    }
+    const separate=rows.length-accounted.length;
+    const warnings=[];
+    if(missingAccounts.size)warnings.push('Unlinked account metadata: '+[...missingAccounts].join(', '));
+    if(missingFx.size)warnings.push('Missing FX rate: '+[...missingFx].join(', '));
+    audit.style.color=warnings.length?'#f5c469':'inherit';
+    audit.textContent='Data coverage · '+rows.length+' transactions · '+accounted.length+
+      ' counted in ordinary income/spending · '+separate+
+      ' classified separately (transfers, loans, adjustments or investments).'+
+      (warnings.length?' Check: '+warnings.join(' · '):' All referenced accounts and applicable currency rates are linked.');
+  }
 
   $('expenses').innerHTML=`<table><tr><th>Category</th><th>THB</th><th>% of Income</th></tr>`+
     [...new Set([...CATS.Expense,...Object.keys(expenseByCategory)])].map(c=>{
@@ -22199,6 +22255,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     if(!owner||uid()!==owner||MMHVAULT_CONFIG_OWNER!==owner)return false;
     const clean=safeConfig(config);writeLocal(owner,clean,updatedAt);MMHVAULT_CONFIG=mmhVaultReadConfig(owner);MMHVAULT_CONFIG.archivedCategories=MMHVAULT_CONFIG.archivedCategories||{};mmhVaultRebuildConfigArrays();
     try{mmhVaultCloseDialogV449();window.mmhCloseManagerV1?.();mmhVaultRefreshAccountSelectors();mmhVaultRefreshTransactionConfigV445?.();mmhVaultRenderManager();mmhVaultRefreshDashboardAccountOverviewV449();}catch(_e){}
+    try{window.mmhvaultForceRenderAllV34421?.('config-cloud-synced')}catch(_e){}
     window.dispatchEvent(new CustomEvent('mmhvault:config-cloud-synced',{detail:{userId:owner,source:'cloud'}}));return true;
   }
   function sameAccount(a,b){
@@ -22249,11 +22306,11 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       const local=localEnvelope(owner),localStamp=parseTime(local?.updatedAt);const {data:cloud,error}=await db.from('personal_configuration').select('user_id,config,language,timezone,updated_at').eq('user_id',owner).maybeSingle();if(error)throw error;if(uid()!==owner||MMHVAULT_CONFIG_OWNER!==owner)return false;
       if(!cloud)return await upload(owner,new Date().toISOString());
       const cloudStamp=parseTime(cloud.updated_at);
-      if(forceUpload||localStamp>cloudStamp+500){
+      if(forceUpload||localStamp>cloudStamp){
         if(!(await preserveUsedCloudAccounts(owner,cloud)))return false;
         return await upload(owner,local?.updatedAt||new Date().toISOString(),cloud);
       }
-      if(cloudStamp>localStamp+500&&cloud.config&&typeof cloud.config==='object'){applyCloud(owner,cloud.config,cloud.updated_at);return true}
+      if(cloudStamp>localStamp&&cloud.config&&typeof cloud.config==='object'){applyCloud(owner,cloud.config,cloud.updated_at);return true}
       // Equal timestamps still require the remote account list to be complete on this device.
       const remote=safeConfig(cloud.config),onDevice=safeConfig(local);
       if(remote.accounts.some(a=>!onDevice.accounts.some(b=>sameAccount(a,b)))&&cloudStamp>=localStamp){applyCloud(owner,cloud.config,cloud.updated_at);return true}
