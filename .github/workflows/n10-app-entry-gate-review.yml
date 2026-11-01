@@ -41,8 +41,11 @@ jobs:
           node --check security/n10-app-entry-guard-candidate/preview.mjs
           node --check security/n10-app-entry-guard-candidate/test-preview.mjs
           node --check security/n10-app-entry-guard-candidate/test-browser-mask.mjs
+          node --check security/n10-app-entry-guard-candidate/test-generated-app-js.mjs
       - name: Simulated MFA entry and unchanged finance checks
         run: node security/n10-app-entry-guard-candidate/test-preview.mjs
+      - name: Parse actual app script after in-memory MFA guard preview
+        run: node security/n10-app-entry-guard-candidate/test-generated-app-js.mjs
       - name: Install isolated browser test runtime
         run: |
           npm install --no-save playwright@1.56.1
