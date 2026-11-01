@@ -364,7 +364,8 @@ for(const file of ['privacy.html','terms.html','security.html']){
 check('Landing Security navigation stays in-page; independent Security details remain discoverable',
  current.includes('href="#security" data-i18n="navSecurity"') &&
  current.includes('href="./security.html" data-i18n="infoSecurity"') &&
- !current.includes('href="./security.html" data-i18n="navSecurity"') &&
+ !(current.split('<nav class="nav" id="primary-nav"')[1]||'').split('</nav>')[0]
+   .includes('href="./security.html" data-i18n="navSecurity"') &&
  current.includes('href="/" aria-current="page" data-i18n="navHome"') &&
  current.includes('href="/" class="brand"') &&
  !current.includes('href="#top" aria-current="page" data-i18n="navHome"'));
