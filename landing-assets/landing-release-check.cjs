@@ -258,7 +258,8 @@ check('Business public page is premium, independent and clearly preview-only',
  business.includes('CONCEPT PREVIEW') &&
  business.includes('not a currently available business accounting service') &&
  business.includes('href="#business-focus"') &&
- !business.includes('href="/#business"') &&
+ business.includes('href="/#business"') &&
+ !/<a class="action gold" href="\/#business"/.test(business) &&
  !business.includes('supabase.co') &&
  !/<form[\s>]/i.test(business));
 check('Landing and seven public introductions now share navigation semantics',
