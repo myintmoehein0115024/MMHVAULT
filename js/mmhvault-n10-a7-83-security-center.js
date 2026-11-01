@@ -70,7 +70,7 @@ function inspectTotpFactors(data){
   unknown:allTotp.filter(f=>f.status!=='verified'&&f.status!=='unverified')
  };
 }
-function clearMfa(){mfaEpoch+=1;pendingSecret='';pendingFactor='';pendingFactorOwner='';if($('mmhA783TotpBackupConfirmed'))$('mmhA783TotpBackupConfirmed').checked=false;$('mmhA783TotpSetup').hidden=true;$('mmhA783TotpQr').replaceChildren();$('mmhA783TotpSecret').textContent='';$('mmhA783TotpSecret').hidden=true;$('mmhA783TotpCode').value='';a783Action('mmhA783KeyReveal','Show setup key');}
+function clearMfa(){mfaEpoch+=1;pendingSecret='';pendingFactor='';pendingFactorOwner='';if($('mmhA783TotpConsent'))$('mmhA783TotpConsent').checked=false;if($('mmhA783TotpRemoveText'))$('mmhA783TotpRemoveText').value='';if($('mmhA783TotpRemoveConfirm'))$('mmhA783TotpRemoveConfirm').hidden=true;if($('mmhA783TotpBackupConfirmed'))$('mmhA783TotpBackupConfirmed').checked=false;$('mmhA783TotpSetup').hidden=true;$('mmhA783TotpQr').replaceChildren();$('mmhA783TotpSecret').textContent='';$('mmhA783TotpSecret').hidden=true;$('mmhA783TotpCode').value='';a783Action('mmhA783KeyReveal','Show setup key');}
 // Recovery verification must not re-display words after the owner, modal or
 // document visibility changes while an asynchronous request is pending.
 function recoveryRequestActive(epoch,userId){
