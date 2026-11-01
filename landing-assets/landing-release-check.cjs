@@ -400,7 +400,7 @@ check('All seven public introduction pages share Landing-style header + Explore'
    const oldHeader=(old.match(/<header\b[\s\S]*?<\/header>/)||[])[0]||'';
    const cssTag='<link rel="stylesheet" href="/landing-assets/public-header-l115.css?v=1">';
    return !!oldHeader&&!!header&&html.includes(cssTag) &&
-     html.replace(header,'').replace(cssTag+'\n','')===old.replace(oldHeader,'') &&
+     html.replace(header,'').replace(cssTag+'\n','').replace('\n'+cssTag,'')===old.replace(oldHeader,'') &&
      header.includes('id="public-primary-nav"') &&
      header.includes('id="public-explore"') &&
      header.includes('class="public-site-menu-toggle"') &&
