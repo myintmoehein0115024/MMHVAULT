@@ -67,6 +67,13 @@ async function load(page,route,failures){
      ensure(await page.locator('h1#hero-title').count()===1,width+'px single homepage H1');
      ensure(await page.locator('.hero-device-cinematic').evaluate(img=>img.complete&&img.naturalWidth>0),
        width+'px concept Hero photograph loaded');
+     if([320,393,768,1024].includes(width)){
+       await page.evaluate(()=>scrollTo({top:0,left:0,behavior:'instant'}));
+       await page.screenshot({
+         path:path.join(screenshots,'landing-firstscreen-'+width+'.png'),
+         fullPage:false,animations:'disabled'
+       });
+     }
      if(width<=1024){
        const clipped=await page.evaluate(()=>{
          const selectors=[
@@ -143,6 +150,12 @@ async function load(page,route,failures){
            route+' keeps legal/policy copy in a readable card');
          ensure(await page.locator('.public-footer').count()===1,
            route+' has the shared public footer');
+         if([393,1440].includes(width)){
+           await page.evaluate(()=>scrollTo({top:0,left:0,behavior:'instant'}));
+           await page.screenshot({path:path.join(screenshots,
+             'policy-'+route.slice(1,-5)+'-'+width+'.png'),
+             fullPage:false,animations:'disabled'});
+         }
        }
        if(['/register/','/features/','/about/','/security.html','/privacy.html','/terms.html'].includes(route)){
          const header=await page.evaluate(()=>{
