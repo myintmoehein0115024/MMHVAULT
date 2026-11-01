@@ -1,0 +1,5 @@
+# MMHVAULT public crawl policy
+User-agent: *
+Allow: /
+
+Sitemap: https://mmhvault.com/sitemap.xml
