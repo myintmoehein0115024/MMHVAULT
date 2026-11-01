@@ -202,7 +202,7 @@ check('All independent SEO entries preserve canonical and unique H1',
 check('Landing About philosophy is intentionally derived into public About',
  ['Personal Finance Clarity','All-in-One Workspace','Private Financial Management',
   'Long-Term Perspective','Multi-Device Experience','English, Chinese & Burmese']
-  .every(label=>current.includes(label)&&about.includes(label)));
+  .every(label=>current.includes(label.replace(/&/g,'&amp;')) && about.includes(label.replace(/&/g,'&amp;'))));
 check('Public pages have a functional Landing-style language control and no form',
  ['en','zh','my'].every(l=>branchJS.includes("['en','zh','my']")) &&
  branchJS.includes("trigger.setAttribute('aria-expanded'") &&
