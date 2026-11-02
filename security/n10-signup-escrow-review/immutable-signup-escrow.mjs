@@ -45,6 +45,8 @@ export function createEscrowedUsernameEnrollment(dependencies) {
     let claimed = false;
     let newUserId = null;
     let rollbackFailed = false;
+    let ambiguousCreation = false;
+    let creationStarted = false;
     let result;
     try {
       // No new Auth user is created if Vault/RPC is unavailable at preflight.
@@ -53,10 +55,13 @@ export function createEscrowedUsernameEnrollment(dependencies) {
       if (await deps.claimReservation({username, ticket, phrase}) !== true)
         return {ok: false, code: 'invalid_enrollment'};
       claimed = true;
+      creationStarted = true;
       const created = await deps.createNewUser({username, password});
       // No cleanup or access is allowed for an existing or ambiguous user.
-      if (!created || created.newlyCreated !== true || !UUID.test(created.id || ''))
+      if (!created || created.newlyCreated !== true || !UUID.test(created.id || '')) {
+        ambiguousCreation = true;
         throw Error('create_new_user_not_confirmed');
+      }
       newUserId = created.id;
       if (await deps.saveLegacyVerifier({userId: newUserId, phrase}) !== true)
         throw Error('verifier_failed');
@@ -77,13 +82,14 @@ export function createEscrowedUsernameEnrollment(dependencies) {
     } catch {
       // Rollback ONLY the exact just-created account in this invocation;
       // never touch any existing user, financial account or transaction.
+      if (creationStarted && !newUserId) ambiguousCreation = true;
       if (newUserId) {
         try {
           if (await deps.rollbackNewUser({newlyCreatedUserId: newUserId}) !== true)
             rollbackFailed = true;
         } catch { rollbackFailed = true; }
       }
-      result = {ok: false, code: rollbackFailed ?
+      result = {ok: false, code: rollbackFailed || ambiguousCreation ?
         'manual_reconciliation_required' : 'registration_not_completed'};
     } finally {
       if (claimed) {
