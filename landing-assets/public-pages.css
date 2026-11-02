@@ -804,3 +804,63 @@ body.public-landing-page{
   font-size:clamp(12px,1.15vw,14px);
   line-height:1.9;
 }
+
+
+/* L1.18 — quiet, consistent liquid-glass accents on seven public introductions.
+ * Never style .site-header: the shared L1.16 header must remain pixel-stable. */
+body.public-landing-page .section .item{
+  position:relative;isolation:isolate;
+  border-color:rgba(248,208,149,.45);
+  box-shadow:inset 0 1px rgba(255,244,220,.19),0 15px 36px rgba(1,14,28,.19);
+  transition:border-color .28s ease,box-shadow .3s ease,transform .3s cubic-bezier(.2,.75,.22,1);
+}
+body.public-landing-page .section .item::before{
+  content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+  border-radius:inherit;
+  background:linear-gradient(132deg,rgba(255,229,182,.105),transparent 42%);
+}
+body.public-landing-page .detail,
+body.public-landing-page .bottom-cta,
+body.public-landing-page .policy-card{
+  box-shadow:inset 0 1px rgba(255,236,198,.15),0 20px 45px rgba(1,15,29,.17);
+}
+@media(hover:hover) and (pointer:fine){
+  body.public-landing-page .section .item:hover{
+    transform:translateY(-4px);
+    border-color:rgba(255,224,170,.78);
+    box-shadow:inset 0 1px rgba(255,248,224,.26),
+      0 23px 45px rgba(0,12,27,.26),0 0 27px rgba(244,184,105,.065);
+  }
+  body.public-landing-page .bottom-cta .action.gold:hover{
+    box-shadow:inset 0 1px rgba(255,251,229,.8),0 13px 27px rgba(228,167,87,.22);
+  }
+}
+/* No-JS and reduced-motion pages NEVER hide any content. */
+@media(prefers-reduced-motion:no-preference){
+  body.public-landing-page.mm-public-motion .mm-public-reveal{
+    transition:opacity 650ms cubic-bezier(.2,.78,.18,1),
+      transform 700ms cubic-bezier(.18,.8,.2,1);
+    transition-delay:var(--mm-public-delay,0ms);
+  }
+  body.public-landing-page.mm-public-motion .mm-public-reveal:not(.mm-public-shown){
+    opacity:0;transform:translate3d(0,18px,0);
+  }
+}
+@media(max-width:620px) and (prefers-reduced-motion:no-preference){
+  body.public-landing-page.mm-public-motion .mm-public-reveal:not(.mm-public-shown){
+    transform:translate3d(0,9px,0);
+  }
+  body.public-landing-page.mm-public-motion .mm-public-reveal{
+    transition-duration:510ms,570ms;
+    transition-delay:min(var(--mm-public-delay,0ms),80ms);
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  body.public-landing-page .mm-public-reveal{
+    opacity:1!important;transform:none!important;
+    transition:none!important;animation:none!important;
+  }
+  body.public-landing-page .section .item{
+    transition:none!important;transform:none!important;
+  }
+}
