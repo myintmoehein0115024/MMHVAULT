@@ -818,7 +818,7 @@
     const focusedInside = explore.contains(document.activeElement) &&
       document.activeElement !== exploreSummary;
     explore.open = false;
-    if ((restoreFocus || focusedInside) && exploreSummary) exploreSummary.focus();
+    if ((restoreFocus || focusedInside) && exploreSummary) exploreSummary.focus({preventScroll:true});
   }
   function closeMenu() {
     const nav = document.getElementById('primary-nav');
@@ -826,7 +826,7 @@
     siteHeader.classList.remove('menu-open');
     toggle.setAttribute('aria-expanded', 'false');
     closeExplore();
-    if (focusedInside && nav && getComputedStyle(nav).display === 'none') toggle.focus();
+    if (focusedInside && nav && getComputedStyle(nav).display === 'none') toggle.focus({preventScroll:true});
   }
   function closeLanguage() {
     const focusedInside = localeMenu.contains(document.activeElement);
@@ -893,7 +893,7 @@
     }
     if (siteHeader.classList.contains('menu-open')) {
       closeMenu();
-      toggle.focus();
+      toggle.focus({preventScroll:true});
       event.preventDefault();
     }
   });

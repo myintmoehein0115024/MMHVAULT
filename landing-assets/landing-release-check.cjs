@@ -13,8 +13,9 @@ const source = path => {
 const current = read('index.html');
 const prev=source('index.html');
 
-/* L1.27: canonical title and focus({preventScroll:true}) only.
- * Bytewise compare against main; preserve original content and other logic. */
+/* L1.28: preserve exact L1.27 title, language, Hero and SEO.
+ * Only prevent closing header menus from scrolling the page and animate
+ * the opening of compact public panels. All other bytes stay at main. */
 const oldHeroPreload='<link rel="preload" as="image" type="image/webp" href="./landing-assets/cinematic-lake.webp">';
 const newHeroPreload='<link rel="preload" as="image" type="image/webp" href="./landing-assets/personal-business-concept.webp" fetchpriority="high">';
 function patchOnly(path,changes){
@@ -25,21 +26,16 @@ function patchOnly(path,changes){
  }
  return expected===read(path);
 }
-const l127LandingTitleAndFocusOnlyEdited=()=>patchOnly('landing-assets/landing.js',[
- ["    document.title = 'MMHVAULT | Personal Finance & Life Planning';",
-  "    document.title = 'MMHVAULT | Personal Finance & Wealth';",1],
- ['localeTrigger.focus();','localeTrigger.focus({preventScroll:true});',3],
- ['active.focus();','active.focus({preventScroll:true});',1],
- ['languageButtons[0].focus();','languageButtons[0].focus({preventScroll:true});',1],
- ['languageButtons[next].focus();','languageButtons[next].focus({preventScroll:true});',1]
+const l128LandingFocusOnlyEdited=()=>patchOnly('landing-assets/landing.js',[
+ ['exploreSummary.focus();','exploreSummary.focus({preventScroll:true});',1],
+ ['toggle.focus();','toggle.focus({preventScroll:true});',2]
  ])&&current===prev&&current.includes('<title>MMHVAULT | Personal Finance & Wealth</title>');
-const l127PublicFocusOnlyEdited=()=>patchOnly('landing-assets/public-pages.js',[
- ['trigger.focus();','trigger.focus({preventScroll:true});',1],
- ['trigger?.focus();','trigger?.focus({preventScroll:true});',1],
- ['active?.focus();','active?.focus({preventScroll:true});',1],
- ["menu.querySelector('button')?.focus();",
-  "menu.querySelector('button')?.focus({preventScroll:true});",1],
- ['buttons[next]?.focus();','buttons[next]?.focus({preventScroll:true});',1]
+const l128PublicFocusOnlyEdited=()=>patchOnly('landing-assets/public-pages.js',[
+ ['exploreSummary.focus();','exploreSummary.focus({preventScroll:true});',1],
+ ['toggle.focus();','toggle.focus({preventScroll:true});',1]
+ ]);
+const l128SharedHeaderMotionOnlyEdited=()=>patchOnly('landing-assets/shared-header-l116.css',[
+ ['@media(prefers-reduced-motion:reduce){',"/* L1.28: paint-only panel entrance, identical on every public header.\n   Never animate the sticky header or scroll; reduced-motion sees no animation. */\n@keyframes mmh-public-panel-in{\n  from{opacity:0;transform:translate3d(0,-7px,0)}\n  to{opacity:1;transform:translate3d(0,0,0)}\n}\n@media(max-width:1360px) and (prefers-reduced-motion:no-preference){\n  body.mmh-nav-unified .site-header.menu-open #primary-nav{\n    animation:mmh-public-panel-in .19s cubic-bezier(.2,.65,.3,1) both\n  }\n}\n@media(prefers-reduced-motion:no-preference){\n  body.mmh-nav-unified .site-header .locale-menu:not([hidden]),\n  body.mmh-nav-unified .site-header .nav-explore[open]>.nav-explore-menu{\n    animation:mmh-public-panel-in .17s cubic-bezier(.2,.65,.3,1) both\n  }\n}\n\n@media(prefers-reduced-motion:reduce){",1]
  ]);
 const manifest=JSON.parse(read('mmh-manifest-v2.webmanifest'));
 const oldManifest=JSON.parse(source('mmh-manifest-v2.webmanifest'));
@@ -422,7 +418,7 @@ check('Homepage retains all prior content and SEO outside shared header layer',
  current.includes('<body id="top" class="l131 mmh-nav-unified">') &&
  current.includes('<link rel="stylesheet" href="./landing-assets/shared-header-l116.css?v=1">') &&
  current===prev &&
- l127LandingTitleAndFocusOnlyEdited() &&
+ l128LandingFocusOnlyEdited() &&
  source('landing-assets/explore-l114.css')===read('landing-assets/explore-l114.css'));
 const publicHeaders=['about/index.html','features/index.html','business/index.html',
  'register/index.html','security.html','privacy.html','terms.html'];
@@ -557,33 +553,41 @@ check('L1.24 preload prioritizes the one real Hero image with no duplicate image
  current.includes('loading="lazy" decoding="async"') &&
  !current.includes(oldHeroPreload));
 check('L1.25 Hero only waits for decoded pixels, preserving original fallback',
- l127LandingTitleAndFocusOnlyEdited() &&
+ l128LandingFocusOnlyEdited() &&
  current===prev &&
  current.includes(newHeroPreload) &&
  !current.includes(oldHeroPreload));
 check('L1.27 public tab title matches SEO without language focus scroll',
- l127LandingTitleAndFocusOnlyEdited() &&
- l127PublicFocusOnlyEdited() &&
+ l128LandingFocusOnlyEdited() &&
+ l128PublicFocusOnlyEdited() &&
  current===prev && current.includes(newHeroPreload) &&
  !current.includes(oldHeroPreload));
-check('L1.27 exact four-file public title and menu scroll safety scope',
- actual.length===4 &&
+check('L1.28 exact five-file public focus, scroll and panel motion scope',
+ actual.length===5 &&
  actual.every(path=>[
   'landing-assets/landing.js',
   'landing-assets/public-pages.js',
+  'landing-assets/shared-header-l116.css',
   'landing-assets/landing-release-check.cjs',
   'landing-assets/landing-browser-check.cjs'
  ].includes(path)) &&
  current===prev &&
- l127LandingTitleAndFocusOnlyEdited() &&
- l127PublicFocusOnlyEdited() &&
+ l128LandingFocusOnlyEdited() &&
+ l128PublicFocusOnlyEdited() &&
+ l128SharedHeaderMotionOnlyEdited() &&
  publicHeaders.every(path=>read(path)===source(path)) &&
  ['landing-assets/public-pages.css','landing-assets/landing.css',
   'landing-assets/business.css','landing-assets/cinematic.css',
   'landing-assets/premium-l131.css','landing-assets/motion-l132.css',
-  'landing-assets/motion-l132.js','landing-assets/shared-header-l116.css',
+  'landing-assets/motion-l132.js',
   'sitemap.xml','robots.txt','mmh-manifest-v2.webmanifest']
  .every(path=>read(path)===source(path)));
+check('L1.28 header motion is scoped to public menus and respects reduced motion',
+ l128SharedHeaderMotionOnlyEdited() &&
+ !read('landing-assets/shared-header-l116.css').includes('body.app') &&
+ read('landing-assets/shared-header-l116.css').includes('prefers-reduced-motion:no-preference') &&
+ read('landing-assets/shared-header-l116.css').includes('animation:mmh-public-panel-in') &&
+ read('landing-assets/shared-header-l116.css').includes('body.mmh-nav-unified .site-header .locale-menu:not([hidden])'));
 check('Protected auth/PWA/SEO/config sources unchanged in PR diff',
  ['business.html','app.html','login.html','sitemap.xml','robots.txt',
   'mmh-manifest-v2.webmanifest'].every(file=>{
