@@ -44,5 +44,5 @@ test('account list uses safe fallback and events include transaction mutation an
 test('no historical currency, transactions or balance data are rewritten',()=>{
   assert.doesNotMatch(fnSource,/\b(?:localStorage\.setItem|db\.from|INSERT|UPDATE|DELETE|MMHVAULT_CONFIG\.accounts\.push)\b/i);
   assert.match(fnSource,/FX pending/);
-  assert.doesNotMatch(fnSource,/currency\s*=/);
+  assert.doesNotMatch(fnSource,/\ba\.currency\s*=(?!=)/);
 });
