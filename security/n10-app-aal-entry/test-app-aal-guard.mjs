@@ -298,4 +298,99 @@ for(const inventory of [{data:{}},{data:null},{error:Error('temporary MFA invent
 
 console.log('PASS: verified legacy null AAL1, MFA enrollment race, cross-owner/session denial and stale-identity denial.');
 
+{
+  // Execute the actual app entry prefix before any financial boot or visible UI.
+  const enterPrefix=enter.slice(0,enter.indexOf('  const expectedLinkedUid='));
+  assert.ok(enterPrefix.includes("if(decision==='legacy')"),'Entry contains legacy recheck');
+  const entryRuntime=enterPrefix+'\n    return {ok:true,entryPassed:true};\n  }';
+  const runEntry=async (level,options={})=>{
+    const record={redirects:[],guard:[],remoteChecks:0,sessionChecks:0,factorChecks:0};
+    const user={id:'synthetic-owner'};
+    const ctx={
+      Promise,
+      mmhP947AuthGateTicket:4,
+      db:{auth:{
+        getUser:async()=>{record.remoteChecks++;return {data:{user:options.wrongOwner?{id:'other-owner'}:user}};},
+        getSession:async()=>{record.sessionChecks++;return {data:{session:{user:options.wrongSession?{id:'other-owner'}:user}}};},
+        mfa:{
+          getAuthenticatorAssuranceLevel:async()=>({data:level}),
+          listFactors:async()=>{record.factorChecks++;return options.factorError?{error:Error('unavailable')}:{data:{all:options.factors??[]}};}
+        }
+      }},
+      mmhP947GuardV947:phase=>record.guard.push(phase),
+      location:{replace:path=>record.redirects.push(path)}
+    };
+    vm.runInNewContext(decisionSource+'\n'+entryRuntime,ctx,{timeout:2000});
+    const res=await ctx.enter({user});
+    return {res,record,ctx};
+  };
+  {
+    const {res,record}=await runEntry({currentLevel:'aal1',nextLevel:'aal1'});
+    assert.equal(res.entryPassed,true,'Normal AAL1 app entry is unaffected');
+    assert.equal(record.factorChecks,0,'Normal signed AAL1 does not require legacy-only factor RPC');
+  }
+  {
+    const {res}=await runEntry({currentLevel:'aal2',nextLevel:'aal2'});
+    assert.equal(res.entryPassed,true,'Normal signed AAL2 app entry is unaffected');
+  }
+  {
+    const {res,record}=await runEntry({currentLevel:null,nextLevel:'aal1'});
+    assert.equal(res.entryPassed,true,'Verified legacy null+AAL1 app entry succeeds');
+    assert.equal(record.remoteChecks,1,'Legacy entry revalidates server user');
+    assert.equal(record.sessionChecks,1,'Legacy entry checks exact current session');
+    assert.equal(record.factorChecks,1,'Legacy entry must inspect live MFA factors');
+  }
+  {
+    const {res,record}=await runEntry({currentLevel:null,nextLevel:'aal2'});
+    assert.equal(res.mfaRequired,true,'Legacy null with enrolled MFA must challenge');
+    assert.deepEqual(record.redirects,['login.html?mfa=1']);
+  }
+  for(const opts of [{wrongOwner:true},{wrongSession:true},{factors:[{status:'verified'}]},{factorError:true}]){
+    const user={id:'synthetic-owner'};
+    let denied=false;
+    const ctx={
+      Promise,mmhP947AuthGateTicket:4,
+      db:{auth:{
+        getUser:async()=>({data:{user:opts.wrongOwner?{id:'other-owner'}:user}}),
+        getSession:async()=>({data:{session:{user:opts.wrongSession?{id:'other-owner'}:user}}}),
+        mfa:{
+          getAuthenticatorAssuranceLevel:async()=>({data:{currentLevel:null,nextLevel:'aal1'}}),
+          listFactors:async()=>opts.factorError?{error:Error('unavailable')}:{data:{all:opts.factors??[]}}
+        }
+      }},
+      location:{replace:()=>{throw Error('Unexpected navigation on denied legacy entry');}},
+      mmhP947GuardV947:()=>{}
+    };
+    vm.runInNewContext(decisionSource+'\n'+entryRuntime,ctx,{timeout:2000});
+    try{await ctx.enter({user});}catch(e){denied=e.message==='mfa_status_unavailable';}
+    assert.equal(denied,true,'Legacy app entry must throw on mismatched identity/session/factor error');
+  }
+  {
+    const delayed=deferred();
+    const ctx={
+      Promise,mmhP947AuthGateTicket:4,
+      db:{auth:{
+        mfa:{getAuthenticatorAssuranceLevel:()=>delayed.promise},
+        getUser:async()=>{throw Error('Stale entry must not check user');}
+      }},
+      location:{replace:()=>{throw Error('Stale entry must not redirect');}},
+      mmhP947GuardV947:()=>{}
+    };
+    vm.runInNewContext(decisionSource+'\n'+entryRuntime,ctx,{timeout:2000});
+    const run=ctx.enter({user:{id:'synthetic-owner'}});
+    ctx.mmhP947AuthGateTicket++;
+    delayed.resolve({data:{currentLevel:'aal2',nextLevel:'aal2'}});
+    assert.equal((await run).superseded,true,'Stale first-entry assurance must be discarded');
+  }
+  const login=readFileSync(new URL('../../login.html',import.meta.url),'utf8');
+  const loginStart=login.indexOf('async function verifiedRedirectV946(');
+  assert.ok(loginStart>=0,'Find actual login redirect');
+  const redirect=login.slice(loginStart,login.indexOf('function openForm(',loginStart));
+  assert.ok(redirect.includes("if(nextLevel==='aal2'&&currentLevel!=='aal2')"),'Login must challenge for legacy null + required MFA');
+  assert.ok(redirect.includes('await mmhShowMfaChallengeV783(expectedUserId)'),'Login must open MFA challenge');
+  assert.ok(redirect.includes("if(nextLevel!=='aal1'&&nextLevel!=='aal2')throw"),'Login must reject missing next AAL');
+}
+console.log('PASS: synthetic app entry for normal/legacy AAL, invalid users, factor state, stale responses, and login MFA routing.');
+
+
 console.log('PASS: dynamic synthetic session reconciliation, malformed AAL, MFA step-up, stale async results and same-owner refresh.');
