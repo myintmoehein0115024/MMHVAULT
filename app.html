@@ -15071,6 +15071,7 @@ function editTx(id){
   sync();
   $('eType').onchange=sync;
   $('eGroup').onchange=sync;
+  window.MMHV11TxFieldPrefs?.attachEdit?.();
 
   const receiptManageTxV3309=$('editReceiptManageV3309');
   const renderTransactionReceiptManageV3309=async()=>{
@@ -35083,5 +35084,6 @@ html body #settings.page.active #stPage_security #mmhA783SecurityCenter .mmh-a78
 </style>
 <script src="js/mmhvault-n10-a7-83-security-center.js?v=10.790.1"></script>
 <script src="js/mmhvault-account-reference-fx-v1.js?v=1.0.1"></script>
+<script src="js/mmhvault-transaction-field-layout-v11.js?v=1.0.0" defer></script>
 </body>
 </html>
