@@ -1,0 +1,30 @@
+name: N10 app-entry AAL isolated review (NO DEPLOY)
+on:
+  push:
+    branches:
+      - review/n10-app-aal-entry-guard-20261102
+permissions:
+  contents: read
+jobs:
+  offline-app-guard:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout isolated review branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Reject out-of-scope files
+        shell: bash
+        run: |
+          set -euo pipefail
+          git diff --name-only b7d1cab226d1717515a2cd4e054e7a7bb595de94 HEAD > /tmp/n10-app-review-files
+          if grep -Ev '^(app\.html|security/n10-app-aal-entry/test-app-aal-guard\.mjs|\.github/workflows/n10-app-aal-entry-review\.yml)$' /tmp/n10-app-review-files; then
+            echo 'Out-of-scope change detected'; exit 1
+          fi
+          test "$(wc -l < /tmp/n10-app-review-files)" -eq 3
+      - name: Offline entry, refresh and fail-closed regression checks
+        run: node security/n10-app-aal-entry/test-app-aal-guard.mjs
