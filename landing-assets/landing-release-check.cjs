@@ -19,10 +19,23 @@ const oldHeroPreload='<link rel="preload" as="image" type="image/webp" href="./l
 const newHeroPreload='<link rel="preload" as="image" type="image/webp" href="./landing-assets/personal-business-concept.webp" fetchpriority="high">';
 const l133BurmeseCssSuffix="\n/* L1.33 — Myanmar feature previews: readable native-script rhythm on phones.\n   Only public showcase labels; keep all hero, login and App styles intact. */\nhtml[lang=\"my\"] body.l131 .features-explorer.app-showcase .product-tab-copy{\n  min-width:0;\n}\nhtml[lang=\"my\"] body.l131 .features-explorer.app-showcase .product-tab-copy strong{\n  display:block;\n  font-family:\"Noto Sans Myanmar\",\"Myanmar Text\",\"Padauk\",sans-serif;\n  font-size:14px;\n  font-weight:600;\n  line-height:1.85;\n  letter-spacing:0;\n  white-space:normal;\n  overflow-wrap:anywhere;\n  word-break:normal;\n}\nhtml[lang=\"my\"] body.l131 .features-explorer.app-showcase .product-tab-copy small{\n  line-height:1.85;\n  letter-spacing:0;\n  overflow-wrap:anywhere;\n}\nhtml[lang=\"my\"] body.l131 .features-explorer.app-showcase .app-story h3{\n  font-family:\"Noto Sans Myanmar\",\"Myanmar Text\",\"Padauk\",sans-serif;\n  font-weight:600;\n  line-height:1.75;\n  letter-spacing:0;\n  overflow-wrap:anywhere;\n  word-break:normal;\n}\n@media(max-width:620px){\n  html[lang=\"my\"] body.l131 .features-explorer.app-showcase .product-tab{\n    min-height:76px;\n  }\n  html[lang=\"my\"] body.l131 .features-explorer.app-showcase .product-tab-copy strong{\n    font-size:13px;\n  }\n}\n";
 const l134ResponsiveCssSuffix="\n/* L1.34 — Keep the six public feature choices stable while EN / ZH / MY\n   translations change. Only Landing's mobile feature picker is affected.\n   Preserve native zoom, scrolling, the fixed Hero, and all existing colors. */\n@media (max-width: 620px) {\n  html[lang] body.l131 .features-explorer.app-showcase .product-tab {\n    min-width: 0;\n    min-height: 94px;\n    padding-block: 10px;\n  }\n  html[lang] body.l131 .features-explorer.app-showcase .product-tab-copy {\n    min-width: 0;\n  }\n  html[lang] body.l131 .features-explorer.app-showcase .product-tab-copy strong,\n  html[lang] body.l131 .features-explorer.app-showcase .product-tab-copy small {\n    white-space: normal;\n    overflow-wrap: anywhere;\n  }\n  html[lang] body.l131 .features-explorer.app-showcase .product-tab-soon {\n    white-space: normal;\n    overflow-wrap: anywhere;\n  }\n}\n@media (max-width: 360px) {\n  html[lang] body.l131 .features-explorer.app-showcase .product-tab {\n    min-height: 108px;\n  }\n}\n/* Mobile tapping should not shrink the grid card under the user's finger. */\n@media (max-width: 620px) and (prefers-reduced-motion: no-preference) {\n  html.mm-motion-active body.l131 .features-explorer.app-showcase .product-tab:active {\n    transform: none;\n  }\n}\n";
+const l135HeaderCssSuffix="\n/* L1.35: Public mobile header shows the selected language. */\n@media(max-width: 700px){\n body.mmh-nav-unified .site-header .locale-trigger .locale-globe{display:none!important}\n body.mmh-nav-unified .site-header .locale-trigger .locale-active-flag{\n  display: inline-flex !important;align-items:center;justify-content:center;\n  flex:0 0 24px;width:24px;font-size:19px;line-height:1;white-space:nowrap\n }\n}\n";
+const l136TouchTargetReplacements=[["flex:0 0 42px;width:42px;min-width:42px;min-height:42px;height:42px","flex:0 0 44px;width:44px;min-width:44px;min-height:44px;height:44px"],["width:42px;min-width:42px;min-height:42px;height:42px","width:44px;min-width:44px;min-height:44px;height:44px"],["min-width:39px;width:39px;min-height:39px;height:39px;flex-basis:39px","min-width:44px;width:44px;min-height:44px;height:44px;flex-basis:44px"]];
+const l136HeaderTargetsOnlyEdited=()=>{
+  let expected=source('landing-assets/shared-header-l116.css');
+  for(const [before,after] of l136TouchTargetReplacements){
+    if(!expected.includes(before))return false;
+    expected=expected.replace(before,after);
+  }
+  return read('landing-assets/shared-header-l116.css')===expected;
+};
+const l135HeaderCssOnlyEdited=()=>
+  source('landing-assets/shared-header-l116.css').endsWith(l135HeaderCssSuffix) &&
+  l136HeaderTargetsOnlyEdited();
 const l133BurmeseLayoutOnlyEdited=()=>
-  read('landing-assets/landing.css')===
-    source('landing-assets/landing.css')+l134ResponsiveCssSuffix &&
-  source('landing-assets/landing.css').endsWith(l133BurmeseCssSuffix) &&
+  read('landing-assets/landing.css')===source('landing-assets/landing.css') &&
+  source('landing-assets/landing.css').endsWith(l134ResponsiveCssSuffix) &&
+  source('landing-assets/landing.css').includes(l133BurmeseCssSuffix) &&
   read('landing-assets/landing.js')===source('landing-assets/landing.js') &&
   current===prev &&
   current.includes('<title>MMHVAULT | Personal Finance & Wealth</title>');
@@ -553,22 +566,22 @@ check('L1.27 public tab title matches SEO without language focus scroll',
  l133PublicPagesUnchanged() &&
  current===prev && current.includes(newHeroPreload) &&
  !current.includes(oldHeroPreload));
-check('L1.34 exact three-file public responsive presentation scope',
+check('L1.36 exact three-file public header touch-target scope',
  actual.length===3 &&
  actual.every(path=>[
-  'landing-assets/landing.css',
+  'landing-assets/shared-header-l116.css',
   'landing-assets/landing-release-check.cjs',
   'landing-assets/landing-browser-check.cjs'
  ].includes(path)) &&
  current===prev &&
  l133BurmeseLayoutOnlyEdited() &&
  l133PublicPagesUnchanged() &&
- source('landing-assets/shared-header-l116.css')===read('landing-assets/shared-header-l116.css') &&
+ l135HeaderCssOnlyEdited() &&
  publicHeaders.every(path=>read(path)===source(path)) &&
  ['landing-assets/public-pages.css',
   'landing-assets/business.css','landing-assets/cinematic.css',
   'landing-assets/premium-l131.css','landing-assets/motion-l132.css',
-  'landing-assets/motion-l132.js','landing-assets/shared-header-l116.css',
+  'landing-assets/motion-l132.js',
   'landing-assets/public-pages.js','sitemap.xml','robots.txt','mmh-manifest-v2.webmanifest']
  .every(path=>read(path)===source(path)));
 check('L1.34 mobile EN ZH MY card stability and touch-safe scrolling',
@@ -580,8 +593,26 @@ check('L1.34 mobile EN ZH MY card stability and touch-safe scrolling',
   !l134ResponsiveCssSuffix.includes('touch-action: none') &&
   !l134ResponsiveCssSuffix.includes('user-scalable=no') &&
   !l134ResponsiveCssSuffix.includes('body.app'));
+check('L1.35 mobile selected language is visible without changing header size',
+  l135HeaderCssOnlyEdited() &&
+  l135HeaderCssSuffix.includes('max-width: 700px') &&
+  l135HeaderCssSuffix.includes('.locale-globe') &&
+  l135HeaderCssSuffix.includes('.locale-active-flag') &&
+  l135HeaderCssSuffix.includes('display: inline-flex !important') &&
+  !l135HeaderCssSuffix.includes('touch-action: none') &&
+  !l135HeaderCssSuffix.includes('user-scalable=no') &&
+  !l135HeaderCssSuffix.includes('body.app') &&
+  current===prev);
+check('L1.36 compact public mobile header buttons are 44 CSS pixels',
+  l136HeaderTargetsOnlyEdited() &&
+  l136TouchTargetReplacements.length===3 &&
+  l136TouchTargetReplacements.every(([a,b])=>a!==b && b.includes('44px')) &&
+  read('landing-assets/shared-header-l116.css').length<=20000 &&
+  current===prev &&
+  read('landing-assets/landing.js')===source('landing-assets/landing.js') &&
+  read('landing-assets/public-pages.js')===source('landing-assets/public-pages.js'));
 check('L1.28 shared header motion remains unchanged and accessible',
- source('landing-assets/shared-header-l116.css')===read('landing-assets/shared-header-l116.css') &&
+ l135HeaderCssOnlyEdited() &&
  !read('landing-assets/shared-header-l116.css').includes('body.app') &&
  read('landing-assets/shared-header-l116.css').includes('prefers-reduced-motion:no-preference') &&
  read('landing-assets/shared-header-l116.css').includes('animation:mmh-public-panel-in') &&
@@ -591,7 +622,7 @@ check('L1.29 localized action names work without changing content or header geom
    lang+': {open:')) &&
  read('landing-assets/landing.js').includes('syncNavToggleLabel();') &&
  read('landing-assets/public-pages.js').includes('syncNavToggleLabel();') &&
- source('landing-assets/shared-header-l116.css')===read('landing-assets/shared-header-l116.css'));
+ l135HeaderCssOnlyEdited());
 check('L1.30 initial feature links render without a Dashboard flash',
  l133BurmeseLayoutOnlyEdited() &&
  l133PublicPagesUnchanged() &&

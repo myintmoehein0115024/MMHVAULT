@@ -443,6 +443,41 @@ async function load(page,route,failures){
          'L1.34 '+width+'px '+language+' stable mobile feature buttons '+
            JSON.stringify(mobileCards));
      }
+       // L1.35: compact header uses the CURRENT locale flag, not a static
+       // globe. The tap target stays unchanged across all three languages.
+       if(width<=700){
+         const indicator=await page.locator('.site-header .locale-trigger').evaluate(btn=>{
+           const flag=btn.querySelector('.locale-active-flag');
+           const globe=btn.querySelector('.locale-globe');
+           const bounds=btn.getBoundingClientRect();
+           const icon=flag.getBoundingClientRect();
+           return {flag:flag.textContent.trim(),flagVisible:getComputedStyle(flag).display!=='none',
+             globeHidden:getComputedStyle(globe).display==='none',
+             width:Math.round(bounds.width),height:Math.round(bounds.height),
+             centered:Math.abs((icon.left+icon.width/2)-(bounds.left+bounds.width/2))<=4};
+         });
+         const expected={en:'🇬🇧',zh:'🇨🇳',my:'🇲🇲'}[language];
+         ensure(indicator.flag===expected&&indicator.flagVisible&&indicator.globeHidden&&
+           indicator.width===44&&indicator.height===44&&
+           indicator.centered,
+           'L1.35 '+width+'px '+language+' mobile selected language remains visible and centered '+
+           JSON.stringify(indicator));
+       }
+       // L1.36: both compact header buttons meet a comfortable 44px touch
+       // target at 320/393/440px, without moving outside the viewport.
+       if(width<=700){
+         const targets=await page.locator('.site-header .header-actions').evaluate(root=>
+           ['.locale-trigger','.menu-toggle'].map(selector=>{
+             const el=root.querySelector(selector),r=el.getBoundingClientRect();
+             return {selector,width:Math.round(r.width),height:Math.round(r.height),
+               left:Math.round(r.left),right:Math.round(r.right),
+               visible:getComputedStyle(el).display!=='none'};
+           }));
+         ensure(targets.length===2&&targets.every(t=>t.visible&&t.width>=44&&t.height>=44&&
+           t.left>=0&&t.right<=width+1),
+           'L1.36 '+width+'px '+language+' compact header buttons have 44px touch area '+
+           JSON.stringify(targets));
+       }
        if(language==='en'){
          const englishDescription=await page.locator('meta[name="description"]')
            .getAttribute('content');
@@ -705,6 +740,22 @@ async function load(page,route,failures){
          await page.locator('#locale-menu button[data-lang="my"]').click();
          ensure(await localeName.textContent()==='မြန်မာ' && await page.locator('h1').isVisible(),
            route+' Burmese language updates menu and title');
+         // L1.35: the standalone public header uses the same selected
+         // mobile indicator as the homepage; no extra nav or oversized tap area.
+         if(width<=700){
+           const status=await trigger.evaluate(btn=>{
+             const flag=btn.querySelector('.locale-active-flag');
+             const globe=btn.querySelector('.locale-globe');
+             const rect=btn.getBoundingClientRect();
+             return {selected:flag.textContent.trim(),visible:getComputedStyle(flag).display!=='none',
+               hiddenGlobe:getComputedStyle(globe).display==='none',
+               width:Math.round(rect.width),height:Math.round(rect.height)};
+           });
+           ensure(status.selected==='🇲🇲'&&status.visible&&status.hiddenGlobe&&
+             status.width===44&&status.height===44,
+             'L1.35 '+route+' '+width+'px mobile public header exposes active Myanmar '+
+             JSON.stringify(status));
+         }
          if(localized){
            const p=localizedBlock.locator('p');
            ensure((await p.textContent()).trim()===(await p.getAttribute('data-my')) &&

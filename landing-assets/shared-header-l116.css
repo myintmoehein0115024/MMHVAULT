@@ -318,14 +318,14 @@ body.mmh-nav-unified .site-header :is(a,button,summary):focus-visible{
   body.mmh-nav-unified .site-header .header-actions{gap:7px}
   body.mmh-nav-unified .site-header .header-actions>a.button{display:none!important}
   body.mmh-nav-unified .site-header .locale-trigger{
-    width:42px;min-width:42px;min-height:42px;height:42px;
+    width:44px;min-width:44px;min-height:44px;height:44px;
     padding:0;gap:0;border-radius:50%
   }
   body.mmh-nav-unified .site-header .locale-trigger .locale-active-flag,
   body.mmh-nav-unified .site-header .locale-trigger .locale-active-name,
   body.mmh-nav-unified .site-header .locale-trigger .locale-chevron{display:none!important}
   body.mmh-nav-unified .site-header .menu-toggle{
-    flex:0 0 42px;width:42px;min-width:42px;min-height:42px;height:42px
+    flex:0 0 44px;width:44px;min-width:44px;min-height:44px;height:44px
   }
 }
 @media(max-width:390px){
@@ -341,7 +341,7 @@ body.mmh-nav-unified .site-header :is(a,button,summary):focus-visible{
   body.mmh-nav-unified .site-header .header-actions{gap:5px}
   body.mmh-nav-unified .site-header .locale-trigger,
   body.mmh-nav-unified .site-header .menu-toggle{
-    min-width:39px;width:39px;min-height:39px;height:39px;flex-basis:39px
+    min-width:44px;width:44px;min-height:44px;height:44px;flex-basis:44px
   }
 }
 /* L1.28: paint-only panel entrance, identical on every public header.
@@ -405,4 +405,13 @@ body.mmh-nav-unified .site-header .menu-toggle{font-size:16px}
   body.mmh-nav-unified .site-header #primary-nav .mobile-nav-auth-note{
     font:450 10px/1.65 Inter,system-ui,sans-serif!important
   }
+}
+
+/* L1.35: Public mobile header shows the selected language. */
+@media(max-width: 700px){
+ body.mmh-nav-unified .site-header .locale-trigger .locale-globe{display:none!important}
+ body.mmh-nav-unified .site-header .locale-trigger .locale-active-flag{
+  display: inline-flex !important;align-items:center;justify-content:center;
+  flex:0 0 24px;width:24px;font-size:19px;line-height:1;white-space:nowrap
+ }
 }
