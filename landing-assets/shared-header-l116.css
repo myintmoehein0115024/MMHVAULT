@@ -344,6 +344,24 @@ body.mmh-nav-unified .site-header :is(a,button,summary):focus-visible{
     min-width:39px;width:39px;min-height:39px;height:39px;flex-basis:39px
   }
 }
+/* L1.28: paint-only panel entrance, identical on every public header.
+   Never animate the sticky header or scroll; reduced-motion sees no animation. */
+@keyframes mmh-public-panel-in{
+  from{opacity:0;transform:translate3d(0,-7px,0)}
+  to{opacity:1;transform:translate3d(0,0,0)}
+}
+@media(max-width:1360px) and (prefers-reduced-motion:no-preference){
+  body.mmh-nav-unified .site-header.menu-open #primary-nav{
+    animation:mmh-public-panel-in .19s cubic-bezier(.2,.65,.3,1) both
+  }
+}
+@media(prefers-reduced-motion:no-preference){
+  body.mmh-nav-unified .site-header .locale-menu:not([hidden]),
+  body.mmh-nav-unified .site-header .nav-explore[open]>.nav-explore-menu{
+    animation:mmh-public-panel-in .17s cubic-bezier(.2,.65,.3,1) both
+  }
+}
+
 @media(prefers-reduced-motion:reduce){
   body.mmh-nav-unified .site-header *,
   body.mmh-nav-unified .site-header *::before,

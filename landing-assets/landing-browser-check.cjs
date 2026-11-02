@@ -812,6 +812,91 @@ async function load(page,route,failures){
        await ctx.close();
      }
    }
+
+   // L1.28 — closing public menus must restore keyboard focus without
+   // scrolling an already-positioned page, including compact navigation.
+   for(const route of ['/','/features/']){
+     for(const width of [393,1440]){
+       const ctx=await browser.newContext({viewport:{width,height:852},reducedMotion:'reduce'});
+       const page=await ctx.newPage();
+       const errors=[];
+       page.on('pageerror',e=>errors.push(e.message));
+       await load(page,route,errors);
+       await page.evaluate(()=>{
+         window.__mmhFocusRestores=[];
+         const original=HTMLElement.prototype.focus;
+         HTMLElement.prototype.focus=function(options){
+           if(this.matches('.menu-toggle,.nav-explore>summary,.locale-trigger'))
+             window.__mmhFocusRestores.push({
+               target:this.matches('.menu-toggle')?'menu':this.matches('.locale-trigger')?'language':'explore',
+               preserve:options?.preventScroll===true
+             });
+           return original.call(this,options);
+         };
+       });
+       if(width===393)await page.locator('.site-header .menu-toggle').click();
+       await page.locator('#landing-explore > summary').click();
+       await page.locator('#landing-explore .nav-explore-menu a').first().focus();
+       async function placedY(){
+         return page.evaluate(()=>{
+           const limit=Math.max(0,document.documentElement.scrollHeight-innerHeight);
+           scrollTo({top:Math.min(510,limit),left:0,behavior:'instant'});
+           return scrollY;
+         });
+       }
+       let before=await placedY();
+       await page.keyboard.press('Escape');
+       let after=await page.evaluate(()=>({
+         y:scrollY,focus:document.activeElement===document.querySelector('#landing-explore > summary'),
+         restored:window.__mmhFocusRestores.at(-1)
+       }));
+       ensure(Math.abs(after.y-before)<=2 && after.focus &&
+         after.restored?.target==='explore' && after.restored.preserve,
+         route+' '+width+'px Explore restores focus without scroll '+JSON.stringify({before,after}));
+       if(width===393){
+         before=await placedY();
+         await page.keyboard.press('Escape');
+         after=await page.evaluate(()=>({
+           y:scrollY,focus:document.activeElement===document.querySelector('.menu-toggle'),
+           restored:window.__mmhFocusRestores.at(-1)
+         }));
+         ensure(Math.abs(after.y-before)<=2 && after.focus &&
+           after.restored?.target==='menu' && after.restored.preserve,
+           route+' mobile navigation Escape retains scroll '+JSON.stringify({before,after}));
+       }
+       await page.locator('#locale-trigger').click();
+       before=await placedY();
+       await page.keyboard.press('Escape');
+       after=await page.evaluate(()=>({
+         y:scrollY,focus:document.activeElement===document.querySelector('#locale-trigger'),
+         restored:window.__mmhFocusRestores.at(-1)
+       }));
+       ensure(Math.abs(after.y-before)<=2 && after.focus &&
+         after.restored?.target==='language' && after.restored.preserve,
+         route+' '+width+'px language Escape retains scroll '+JSON.stringify({before,after}));
+       ensure(errors.length===0,route+' '+width+'px L1.28 focus paths have no browser errors');
+       await ctx.close();
+     }
+   }
+   // Motion is only for ordinary-motion browsers; reduced-motion remains still.
+   for(const motion of ['no-preference','reduce']){
+     const ctx=await browser.newContext({viewport:{width:393,height:852},reducedMotion:motion});
+     const page=await ctx.newPage();
+     await page.goto(origin+'/',{waitUntil:'load'});
+     await page.locator('.site-header .menu-toggle').click();
+     const menuMotion=await page.locator('#primary-nav').evaluate(el=>getComputedStyle(el).animationName);
+     await page.locator('#landing-explore > summary').click();
+     const exploreMotion=await page.locator('#landing-explore .nav-explore-menu')
+       .evaluate(el=>getComputedStyle(el).animationName);
+     await page.locator('#locale-trigger').click();
+     const languageMotion=await page.locator('#locale-menu')
+       .evaluate(el=>getComputedStyle(el).animationName);
+     const names=[menuMotion,exploreMotion,languageMotion];
+     ensure(names.every(name=>motion==='reduce'?name==='none':name.includes('mmh-public-panel-in')),
+       'L1.28 public panel opening honors '+motion+' '+JSON.stringify(names));
+     await ctx.close();
+   }
+
    // Resizing from compact to desktop closes mobile navigation and Explore.
    // The current keyboard focus must stay visible after the breakpoint switch.
    for(const route of ['/','/features/']){

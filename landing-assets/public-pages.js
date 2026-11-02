@@ -33,7 +33,7 @@
     const focusedInside=explore.contains(document.activeElement)&&
       document.activeElement!==exploreSummary;
     explore.open=false;
-    if((restoreFocus||focusedInside)&&exploreSummary)exploreSummary.focus();
+    if((restoreFocus||focusedInside)&&exploreSummary)exploreSummary.focus({preventScroll:true});
   }
   function closeNav(restoreFocus=false){
     if(!header||!toggle)return;
@@ -43,7 +43,7 @@
     toggle.setAttribute('aria-expanded','false');
     closeExplore();
     if((restoreFocus&&wasOpen)||
-      (focusedInside&&nav&&getComputedStyle(nav).display==='none'))toggle.focus();
+      (focusedInside&&nav&&getComputedStyle(nav).display==='none'))toggle.focus({preventScroll:true});
   }
   function closeLanguage(restoreFocus=false){
     if(!menu||!trigger)return;
