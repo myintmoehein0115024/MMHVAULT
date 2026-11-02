@@ -90,6 +90,8 @@ async function exercise(browserType,viewport){
       window.__synthetic.resolveUser({data:{user:{id:'synthetic-owner'}},error:null});
     });
     await page.waitForFunction(()=>document.querySelector('#mmhP947AccountGuard')?.hidden===true);
+    assert.equal(await page.evaluate(()=>window.__synthetic.cloudLoads),0,
+      'A new same-owner security mask must not re-download an already verified finance cache');
     completed++;
     // Broken AAL must keep the overlay visible with no private-data leak.
     await page.evaluate(()=>{
