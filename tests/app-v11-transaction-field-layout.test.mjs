@@ -80,7 +80,7 @@ test('archived historical category remains unchanged when editing other transact
  assert.equal(h.api.validate(form),true,'note-only edits preserve a retired category');
  fields.eCat.value='Unapproved new Category';
  assert.equal(h.api.validate(form),false,'a different invalid category is blocked');
- assert.match(hint.textContent,/valid transaction/i);
+ assert.match(hint.textContent,/valid Type, Transaction and Category/i);
  fields.eCat.value='Archived Gift';fields.eType.value='Income';
  assert.equal(h.api.validate(form),false,'changing type invalidates historical exemption');
 });
