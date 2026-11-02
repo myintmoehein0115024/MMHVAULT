@@ -548,19 +548,19 @@ check('L1.21 five-file public demo and QA scope, no SEO/nav/App changes',
  actual.length===5 &&
  actual.every(path=>[
   'landing-assets/landing.js','landing-assets/motion-l132.js',
-  'landing-assets/premium-l131.css',
+  'landing-assets/motion-l132.css',
   'landing-assets/landing-release-check.cjs',
   'landing-assets/landing-browser-check.cjs'
  ].includes(path)) &&
  current===prev &&
  previewControllerOnlyEdited() && oldProductMotionOnlyRemoved() &&
- read('landing-assets/premium-l131.css').startsWith(source('landing-assets/premium-l131.css')) &&
- read('landing-assets/premium-l131.css').slice(source('landing-assets/premium-l131.css').length)
+ read('landing-assets/motion-l132.css').startsWith(source('landing-assets/motion-l132.css')) &&
+ read('landing-assets/motion-l132.css').slice(source('landing-assets/motion-l132.css').length)
    .startsWith('\n\n/* L1.21 — seamless product preview') &&
- read('landing-assets/premium-l131.css').includes('prefers-reduced-motion:reduce') &&
+ read('landing-assets/motion-l132.css').includes('prefers-reduced-motion:reduce') &&
  publicHeaders.every(path=>read(path)===source(path)) &&
  ['landing-assets/public-pages.js','landing-assets/public-pages.css',
-  'landing-assets/motion-l132.css','landing-assets/landing.css',
+  'landing-assets/premium-l131.css','landing-assets/landing.css',
   'landing-assets/shared-header-l116.css',
   'landing-assets/business.css','landing-assets/cinematic.css',
   'sitemap.xml','robots.txt','mmh-manifest-v2.webmanifest']
