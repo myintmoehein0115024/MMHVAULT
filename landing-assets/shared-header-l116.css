@@ -406,3 +406,23 @@ body.mmh-nav-unified .site-header .menu-toggle{font-size:16px}
     font:450 10px/1.65 Inter,system-ui,sans-serif!important
   }
 }
+
+/* L1.35 — On compact public headers, show the CURRENT language instead of
+   a static globe. Keep the 39/42px touch target, nav geometry and motion
+   unchanged. Identical on Landing and all seven independent public pages. */
+@media (max-width: 700px) {
+  body.mmh-nav-unified .site-header .locale-trigger .locale-globe {
+    display: none !important;
+  }
+  body.mmh-nav-unified .site-header .locale-trigger .locale-active-flag {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 24px;
+    width: 24px;
+    min-width: 24px;
+    font-size: 19px;
+    line-height: 1;
+    white-space: nowrap;
+  }
+}
