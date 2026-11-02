@@ -403,6 +403,109 @@ async function load(page,route,failures){
        'Mobile Explore opens the independent Features page');
      await ctx.close();
    }
+
+   // L1.16 — actual layout parity, not only matching class names. The same
+   // header and both expanded menus must occupy the SAME positions when
+   // switching between the Landing and each public introduction route.
+   for(const [width,lang,routes] of [
+     [393,'en',publicRoutes.slice(1)],
+     [1440,'en',publicRoutes.slice(1)],
+     [1100,'zh',['/about/','/features/','/business/']],
+     [393,'my',['/about/','/features/','/business/']]
+   ]){
+     const ctx=await browser.newContext({viewport:{width,height:852},
+       deviceScaleFactor:1,reducedMotion:'reduce'});
+     const page=await ctx.newPage();
+     await page.addInitScript(language=>{
+       try{localStorage.setItem('mmhvault.landing.language',language)}catch(_){}
+     },lang);
+     async function geometry(){
+       return page.evaluate(()=>{
+         const selectors={
+           outer:'.site-header',row:'.site-header .header-inner',
+           brand:'.site-header .brand',symbol:'.site-header .brand-symbol',
+           wordmark:'.site-header .brand-copy strong',
+           brandCaption:'.site-header .brand-copy small',
+           links:'.site-header #primary-nav',
+           actions:'.site-header .header-actions',
+           locale:'.site-header .locale-trigger',
+           signin:'.site-header .signin-link',
+           started:'.site-header .header-cta',
+           toggle:'.site-header .menu-toggle',
+           explore:'.site-header .nav-explore>summary',
+           dropdown:'.site-header .nav-explore-menu'
+         };
+         const output={};
+         for(const [name,selector] of Object.entries(selectors)){
+           const el=document.querySelector(selector);
+           if(!el){output[name]={missing:true};continue;}
+           const rect=el.getBoundingClientRect(),style=getComputedStyle(el);
+           output[name]={
+             rect:[rect.x,rect.y,rect.width,rect.height]
+               .map(n=>Math.round(n*2)/2),
+             display:style.display,position:style.position,
+             font:style.fontSize,color:style.color,
+             background:style.backgroundColor,
+             padding:style.padding,gap:style.gap
+           };
+         }
+         output.menuLabel=document.querySelector('.site-header .nav-explore>summary')?.textContent.trim();
+         return output;
+       });
+     }
+     await page.goto(origin+'/',{waitUntil:'load'});
+     const baseline=await geometry();
+     for(const route of routes){
+       await page.goto(origin+route,{waitUntil:'load'});
+       const actual=await geometry();
+       const diffs=[];
+       for(const key of Object.keys(baseline)){
+         if(key==='menuLabel'){
+           if(baseline[key]!==actual[key])diffs.push(key+': '+baseline[key]+' != '+actual[key]);
+           continue;
+         }
+         if(!actual[key]||actual[key].missing){diffs.push(key+' missing');continue;}
+         for(const prop of ['display','position','font','color','background','padding','gap']){
+           if(baseline[key][prop]!==actual[key][prop])
+             diffs.push(key+'.'+prop+': '+baseline[key][prop]+' / '+actual[key][prop]);
+         }
+         for(let n=0;n<4;n++){
+           if(Math.abs(baseline[key].rect[n]-actual[key].rect[n])>1.5)
+             diffs.push(key+'.rect['+n+']: '+baseline[key].rect[n]+' / '+actual[key].rect[n]);
+         }
+       }
+       ensure(diffs.length===0,
+         'L1.16 '+width+'px '+lang+' '+route+' header identical to Landing '+JSON.stringify(diffs.slice(0,15)));
+     }
+     const compact=width<=1360;
+     async function menuGeometry(){
+       if(compact)await page.locator('.site-header .menu-toggle').click();
+       await page.locator('#landing-explore > summary').click();
+       const shot=await geometry();
+       shot.linksText=await page.locator('#landing-explore .nav-explore-menu a').allTextContents();
+       return shot;
+     }
+     await page.goto(origin+'/',{waitUntil:'load'});
+     const openLanding=await menuGeometry();
+     await page.goto(origin+'/about/',{waitUntil:'load'});
+     const openAbout=await menuGeometry();
+     const openDiffs=[];
+     for(const key of ['links','dropdown','toggle','outer','row','explore']){
+       for(let n=0;n<4;n++){
+         if(Math.abs(openLanding[key].rect[n]-openAbout[key].rect[n])>1.5)
+           openDiffs.push(key+': '+JSON.stringify(openLanding[key].rect)+' vs '+JSON.stringify(openAbout[key].rect));
+       }
+     }
+     ensure(openDiffs.length===0&&
+       JSON.stringify(openLanding.linksText)===JSON.stringify(openAbout.linksText),
+       'L1.16 '+width+'px '+lang+' both expanded menus match geometry and text '+JSON.stringify(openDiffs));
+     if(lang==='en'){
+       await page.screenshot({path:path.join(screenshots,
+         'l116-shared-about-open-'+width+'.png'),fullPage:false,animations:'disabled'});
+     }
+     await ctx.close();
+   }
+
       const ctx=await browser.newContext({viewport:{width:393,height:852},reducedMotion:'no-preference'});
    const page=await ctx.newPage();
    const errors=[];
