@@ -139,6 +139,8 @@ test('RLS proposal isolates user and protects both insert/update',()=>{
   assert.match(code,/REFERENCES auth\.users\(id\) ON DELETE CASCADE/);
   assert.match(code,/ALTER TABLE public\.mmh_account_images_v11 ENABLE ROW LEVEL SECURITY/);
   assert.match(code,/REVOKE ALL ON TABLE public\.mmh_account_images_v11 FROM anon/);
+  assert.match(code,/REVOKE ALL ON TABLE public\.mmh_account_images_v11 FROM authenticated/);
+  assert.match(code,/GRANT SELECT, INSERT, UPDATE ON TABLE public\.mmh_account_images_v11 TO authenticated/);
   assert.match(code,/FOR SELECT TO authenticated\s+USING \(\(select auth\.uid\(\)\) = user_id\)/);
   assert.match(code,/FOR INSERT TO authenticated\s+WITH CHECK \(\(select auth\.uid\(\)\) = user_id\)/);
   assert.match(code,/FOR UPDATE TO authenticated\s+USING \(\(select auth\.uid\(\)\) = user_id\)\s+WITH CHECK \(\(select auth\.uid\(\)\) = user_id\)/);
