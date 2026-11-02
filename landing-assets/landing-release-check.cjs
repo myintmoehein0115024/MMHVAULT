@@ -420,17 +420,12 @@ check('Seven public pages inherit exact Landing header structure, icons and drop
  !!landingHeader && publicHeaders.every(path=>{
    const html=read(path),old=source(path);
    const h=(html.match(/<header class="site-header">[\s\S]*?<\/header>/)||[])[0]||'';
-   const prevHeader=(old.match(/<header\b[\s\S]*?<\/header>/)||[])[0]||'';
-   const cssOld='<link rel="stylesheet" href="/landing-assets/public-header-l115.css?v=1">';
    const cssNew='<link rel="stylesheet" href="/landing-assets/shared-header-l116.css?v=1">';
-   const bodyOld=(old.match(/<body class="([^"]+)"/)||[])[0];
-   const bodyNew=bodyOld?.replace(/"$/,' mmh-nav-unified"');
-   return !!h&&!!prevHeader&&!!bodyOld&&!!bodyNew &&
-     normalizeSharedHeader(h)===landingHeader &&
-     html.includes(cssNew)&&!html.includes(cssOld) &&
-     restoreOldLocalizedSummary(path,
-       html.replace(h,'').replace(cssNew,cssOld).replace(bodyNew,bodyOld),old)
-       ===old.replace(prevHeader,'') &&
+   return !!h && normalizeSharedHeader(h)===landingHeader &&
+     html.includes(cssNew) && old.includes(cssNew) &&
+     // L1.16 already shipped; protect its header, page body and SEO
+     // byte-for-byte, allowing ONLY the two localized summary blocks.
+     restoreOldLocalizedSummary(path,html,old)===old &&
      (h.match(/<details class="nav-explore"/g)||[]).length===1 &&
      (h.match(/class="mobile-nav-auth"/g)||[]).length===1 &&
      (h.match(/class="locale-menu"/g)||[]).length===1;
