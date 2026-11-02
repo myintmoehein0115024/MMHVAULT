@@ -1010,7 +1010,7 @@
     });
   }
 
-  function selectProductView(view,focus=false){
+  function selectProductView(view,focus=false,instant=false){
     const name=productNames.includes(view)?view:'dashboard';
     // Rapid clicks cancel old fades before starting the new selection.
     if(previewTransition)settlePreviewTransition();
@@ -1025,7 +1025,7 @@
     });
     const outgoing=productPanels.find(p=>p.dataset.productPanel===previousName);
     const incoming=productPanels.find(p=>p.dataset.productPanel===name);
-    const animate=previousName!==name && outgoing && incoming &&
+    const animate=!instant && previousName!==name && outgoing && incoming &&
       !reducedPreviewMotion.matches && !document.hidden &&
       typeof window.requestAnimationFrame==='function';
 
@@ -1074,8 +1074,11 @@
     const next=e.key==='Home'?0:e.key==='End'?productTabs.length-1:(i+step+productTabs.length)%productTabs.length;
     selectProductView(productTabs[next].dataset.productTab,true);
   })});
-  const syncProductHash=()=>{const s=window.location.hash.slice(1);if(s.startsWith('feature-')&&productNames.includes(s.slice(8)))selectProductView(s.slice(8))};
-  window.addEventListener('hashchange',syncProductHash);syncProductHash();
+  // L1.30: direct feature links should show their intended panel immediately.
+  // Do not briefly fade from Dashboard on first load; later hash navigation
+  // still uses the existing smooth transition and reduced-motion behavior.
+  const syncProductHash=(instant=false)=>{const s=window.location.hash.slice(1);if(s.startsWith('feature-')&&productNames.includes(s.slice(8)))selectProductView(s.slice(8),false,instant)};
+  window.addEventListener('hashchange',()=>syncProductHash());syncProductHash(true);
 
   // L1.25: keep the original in-page device demo visible until the already
   // downloaded Hero photograph is decoded and ready to paint. A load event

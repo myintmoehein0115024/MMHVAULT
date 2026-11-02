@@ -1096,6 +1096,54 @@ async function load(page,route,failures){
      await ctx.close();
    }
 
+   // L1.30 — a shared /#feature-* link should render exactly its intended
+   // screen on first paint, without showing Dashboard or transitional clones.
+   // Normal subsequent hash changes must continue to work as before.
+   for(const width of [393,1440]){
+     for(const name of ['accounts','invest','life']){
+       const ctx=await browser.newContext({
+         viewport:{width,height:852},reducedMotion:'no-preference'
+       });
+       const page=await ctx.newPage();
+       const errors=[];
+       page.on('pageerror',e=>errors.push(e.message));
+       const response=await page.goto(origin+'/#feature-'+name,{
+         waitUntil:'domcontentloaded',timeout:25000
+       });
+       ensure(response?.status()===200,'L1.30 deep link '+name+' HTTP 200');
+       const first=await page.locator('[data-product-panel]').evaluateAll(panels=>({
+         visible:panels.filter(panel=>!panel.hidden).map(panel=>panel.dataset.productPanel),
+         transitioning:panels.some(panel=>panel.classList.contains('mmh-preview-enter')||
+           panel.classList.contains('mmh-preview-exit')||
+           panel.classList.contains('mmh-preview-running')),
+         accessible:panels.filter(panel=>!panel.hidden).every(panel=>
+           !panel.inert&&panel.getAttribute('aria-hidden')==='false'),
+         othersInert:panels.filter(panel=>panel.hidden).every(panel=>
+           panel.inert&&panel.getAttribute('aria-hidden')==='true')
+       }));
+       const chosen=await page.locator('[data-product-tab="'+name+'"]')
+         .getAttribute('aria-selected');
+       ensure(JSON.stringify(first.visible)===JSON.stringify([name])&&
+         !first.transitioning&&first.accessible&&first.othersInert&&
+         chosen==='true',
+         'L1.30 '+width+'px '+name+' opens correct preview without initial flash '+
+         JSON.stringify(first));
+       await page.evaluate(()=>{location.hash='#feature-analyze'});
+       await page.waitForFunction(()=>document.querySelector('.product-stage')?.dataset.productCurrent==='analyze');
+       await page.waitForTimeout(400);
+       const settled=await page.locator('[data-product-panel]').evaluateAll(panels=>({
+         visible:panels.filter(panel=>!panel.hidden).map(panel=>panel.dataset.productPanel),
+         transitioning:panels.some(panel=>panel.classList.contains('mmh-preview-enter')||
+           panel.classList.contains('mmh-preview-exit')),
+         othersInert:panels.filter(panel=>panel.hidden).every(panel=>panel.inert)
+       }));
+       ensure(JSON.stringify(settled.visible)===JSON.stringify(['analyze'])&&
+         !settled.transitioning&&settled.othersInert&&errors.length===0,
+         'L1.30 '+width+'px hash navigation still settles correctly');
+       await ctx.close();
+     }
+   }
+
    // L1.12 — end-to-end route consistency: public Security is a first-class
    // branded page, Business is the Landing section, and Home does not leave #top.
    {
