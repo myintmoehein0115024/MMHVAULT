@@ -60,3 +60,129 @@ const scriptStart=html.lastIndexOf('<script',target),scriptOpen=html.indexOf('>'
 assert.ok(scriptStart>=0&&scriptOpen>scriptStart&&scriptEnd>scriptOpen,'Find actual inline app script');
 new vm.Script(html.slice(scriptOpen,scriptEnd),{filename:'app-auth-inline.js'});
 console.log('PASS: 12 offline AAL decision cases, entry, same-owner refresh, stale-request guard, reconcile/unmask ordering and app script syntax.');
+
+
+// Dynamic tests execute the actual isolated callback and reconciler with synthetic Auth.
+// They never access live users, tokens, storage, network or the Supabase service.
+const flush=async()=>{for(let i=0;i<12;i++)await Promise.resolve();};
+function deferred(){
+  let resolve,reject;
+  const promise=new Promise((a,b)=>{resolve=a;reject=b;});
+  return {promise,resolve,reject};
+}
+function makeReconcile(level, overrides={}){
+  const record={guard:[],unlocked:0,redirect:[],loaded:0,profile:0};
+  const identity={id:'synthetic-owner'};
+  const ctx={
+    Promise,Date,console:{warn(){}},
+    currentSessionUser:identity,
+    mmhP947AuthGateTicket:3,
+    mmhVaultSessionCheckPromiseV1239:null,
+    window:{__mmhSessionEpochV1239:7,__mmhLastCloudLoadAtV1235:Date.now(),loadAll:async()=>{record.loaded++;return {ok:true};}},
+    navigator:{onLine:true},
+    db:{auth:{
+      getSession:async()=>({data:{session:{user:identity}}}),
+      getUser:async()=>({data:{user:identity}}),
+      mfa:{getAuthenticatorAssuranceLevel:async()=>({data:level})}
+    }},
+    document:{getElementById:()=>({hidden:false,style:{display:'flex'}})},
+    mmhP947GuardV947:phase=>record.guard.push(phase),
+    mmhP947UnlockV947:()=>{record.unlocked++;},
+    mmhVaultSignOutCleanupV1239:()=>{throw Error('Unexpected signout');},
+    applyUserProfile:()=>{record.profile++;},
+    subscribeRealtime:()=>{throw Error('Unexpected realtime reconnect');},
+    realtimeReady:true,
+    realtimeChannelOwnerV1235:identity.id,
+    location:{replace:path=>record.redirect.push(path)}
+  };
+  Object.assign(ctx,overrides);
+  vm.runInNewContext(decisionSource+'\n'+reconcile,ctx,{timeout:2000});
+  return {ctx,record,run:()=>ctx.mmhVaultReconcileSessionV1239('synthetic')};
+}
+{
+  const {run,record}=makeReconcile({currentLevel:'aal1',nextLevel:'aal1'});
+  assert.equal((await run()).ok,true,'AAL1 without step-up may complete');
+  assert.equal(record.unlocked,1,'Valid assurance can release mask');
+  assert.equal(record.loaded,1,'Existing mask requires cloud reload');
+}
+{
+  const {run,record}=makeReconcile({currentLevel:'aal2',nextLevel:'aal2'});
+  assert.equal((await run()).ok,true,'Verified AAL2 can complete');
+  assert.equal(record.unlocked,1);
+}
+for(const invalid of [null,{}, {currentLevel:null,nextLevel:'aal1'},{currentLevel:'aal1',nextLevel:null},{currentLevel:'surprise',nextLevel:'aal1'}]){
+  const {run,record}=makeReconcile(invalid);
+  assert.equal((await run()).ok,false,'Malformed assurance must fail closed');
+  assert.equal(record.unlocked,0,'Never unlock on malformed assurance');
+  assert.ok(record.guard.includes('error'),'Malformed assurance must keep error mask');
+}
+{
+  const {run,record}=makeReconcile({currentLevel:'aal1',nextLevel:'aal2'});
+  const result=await run();
+  assert.equal(result.mfaRequired,true,'AAL1 with verified-factor requirement must step up');
+  assert.deepEqual(record.redirect,['login.html?mfa=1']);
+  assert.equal(record.unlocked,0,'Never unlock pending MFA');
+}
+{
+  const gate=deferred();
+  const {run,record,ctx}=makeReconcile(null,{
+    db:{auth:{
+      getSession:async()=>({data:{session:{user:{id:'synthetic-owner'}}}}),
+      getUser:async()=>({data:{user:{id:'synthetic-owner'}}}),
+      mfa:{getAuthenticatorAssuranceLevel:()=>gate.promise}
+    }}
+  });
+  const task=run();
+  await flush();
+  ctx.mmhP947AuthGateTicket++;
+  gate.resolve({data:{currentLevel:'aal2',nextLevel:'aal2'}});
+  assert.equal((await task).superseded,true,'Late assurance after a newer auth event must be discarded');
+  assert.equal(record.unlocked,0,'Late assurance cannot unmask previously rendered private data');
+}
+{
+  const gate=deferred();
+  const {run,record,ctx}=makeReconcile({currentLevel:'aal1',nextLevel:'aal1'});
+  ctx.window.loadAll=()=>gate.promise;
+  const task=run();
+  await flush();
+  ctx.window.__mmhSessionEpochV1239++;
+  gate.resolve({ok:true});
+  assert.equal((await task).superseded,true,'Late cloud data after session switch must be discarded');
+  assert.equal(record.unlocked,0,'Late cloud load cannot unlock a new session');
+}
+{
+  let callback;
+  const record={guards:[],rechecks:0,profile:0};
+  const authSource=auth;
+  const ctx={
+    Promise,console:{warn(){}},
+    db:{auth:{onAuthStateChange:cb=>{callback=cb;}}},
+    currentSessionUser:{id:'synthetic-owner'},
+    mmhP947AuthGateTicket:0,
+    mmhVaultSessionCheckPromiseV1239:null,
+    mmhP947GuardV947:phase=>record.guards.push(phase),
+    mmhVaultReconcileSessionV1239:async()=>{record.rechecks++;return {ok:true};},
+    applyUserProfile:()=>{record.profile++;},
+    mmhvaultFinishAuthBootV3285:()=>{throw Error('Unexpected boot');},
+    mmhvaultAuthBootSettledV3285:true,
+    sessionStorage:{removeItem(){}},
+    location:{replace(){}},
+    window:{mmhVaultSwitchSessionV1239:async()=>({ok:true})}
+  };
+  vm.runInNewContext(authSource,ctx,{timeout:2000});
+  assert.equal(typeof callback,'function');
+  callback('TOKEN_REFRESHED',{user:{id:'synthetic-owner'}});
+  assert.deepEqual(record.guards,['switch'],'Same-owner refresh must synchronously mask');
+  assert.equal(record.profile,0,'Do not repaint profile as proof of MFA assurance');
+  await flush();
+  assert.equal(record.rechecks,1,'Same-owner refresh must actually re-evaluate session');
+  const pending=deferred();
+  ctx.mmhVaultSessionCheckPromiseV1239=pending.promise;
+  callback('TOKEN_REFRESHED',{user:{id:'synthetic-owner'}});
+  callback('SIGNED_IN',{user:{id:'synthetic-owner'}});
+  pending.resolve({ok:true});
+  await flush();
+  assert.equal(record.rechecks,2,'Obsolete concurrent refresh must not trigger redundant recheck');
+  assert.equal(record.guards.filter(x=>x==='switch').length,3,'Each auth transition must mask synchronously');
+}
+console.log('PASS: dynamic synthetic session reconciliation, malformed AAL, MFA step-up, stale async results and same-owner refresh.');
