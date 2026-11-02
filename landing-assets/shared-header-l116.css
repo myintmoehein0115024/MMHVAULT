@@ -406,3 +406,12 @@ body.mmh-nav-unified .site-header .menu-toggle{font-size:16px}
     font:450 10px/1.65 Inter,system-ui,sans-serif!important
   }
 }
+
+/* L1.35: Public mobile header shows the selected language. */
+@media(max-width: 700px){
+ body.mmh-nav-unified .site-header .locale-trigger .locale-globe{display:none!important}
+ body.mmh-nav-unified .site-header .locale-trigger .locale-active-flag{
+  display: inline-flex !important;align-items:center;justify-content:center;
+  flex:0 0 24px;width:24px;font-size:19px;line-height:1;white-space:nowrap
+ }
+}
