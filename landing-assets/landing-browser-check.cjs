@@ -371,6 +371,9 @@ async function load(page,route,failures){
        zh:['财务总览','收支记录','账户管理','投资组合','财务分析','生活规划'],
        my:['အကျဉ်းချုပ်','ငွေစာရင်း','အကောင့်များ','ရင်းနှီးမြှုပ်နှံမှု','စိစစ်ချက်','ဘဝအစီအစဉ်']
      };
+     // L1.33: Myanmar labels use a readable native-script font and line
+     // rhythm without clipping in the compact two-column feature chooser.
+     // English and Chinese have no new styles or dimensions.
      // User-requested fixed multilingual Hero must not change with language.
      const immutable=await page.locator('[data-hero-fixed]').allTextContents();
      for(const language of ['zh','my','en']){
@@ -389,6 +392,41 @@ async function load(page,route,failures){
          storyName===expectedFeatureNames[language][0],
          'L1.32 '+width+'px '+language+' feature tabs and story fully translated '+
            JSON.stringify({featureNames,storyName}));
+       if(language==='my'&&[320,393,440,768,1440].includes(width)){
+         const typography=await page.locator('.features-explorer.app-showcase')
+           .evaluate(root=>{
+             const tabs=[...root.querySelectorAll('.product-tab')];
+             const names=tabs.map(tab=>{
+               const label=tab.querySelector('.product-tab-copy strong');
+               const style=getComputedStyle(label);
+               const r=label.getBoundingClientRect();
+               const t=tab.getBoundingClientRect();
+               return {
+                 font:style.fontFamily,letterSpacing:style.letterSpacing,
+                 fontSize:parseFloat(style.fontSize),
+                 lineHeight:parseFloat(style.lineHeight),
+                 overflowWrap:style.overflowWrap,wordBreak:style.wordBreak,
+                 minHeight:parseFloat(getComputedStyle(tab).minHeight),
+                 fits:r.right<=t.right+2&&r.left>=t.left-2,
+                 textFits:label.scrollWidth<=label.clientWidth+2,
+                 height:t.height
+               };
+             });
+             const h3=getComputedStyle(root.querySelector('.app-story h3'));
+             return {names,storyFont:h3.fontFamily,storyLineHeight:parseFloat(h3.lineHeight),
+               storyFontSize:parseFloat(h3.fontSize),horizontalScroll:scrollX};
+           });
+         ensure(typography.names.length===6&&typography.names.every(m=>
+           m.font.includes('Noto Sans Myanmar')&&['normal','0px'].includes(m.letterSpacing)&&
+           m.lineHeight/m.fontSize>=1.75&&m.overflowWrap==='anywhere'&&
+           m.wordBreak==='normal'&&m.fits&&m.textFits&&
+           (width>620||m.minHeight>=75))&&
+           typography.storyFont.includes('Noto Sans Myanmar')&&
+           typography.storyLineHeight/typography.storyFontSize>=1.6&&
+           typography.horizontalScroll===0,
+           'L1.33 '+width+'px Burmese showcase typography fits with readable line spacing '+
+             JSON.stringify(typography));
+       }
        if(language==='en'){
          const englishDescription=await page.locator('meta[name="description"]')
            .getAttribute('content');
