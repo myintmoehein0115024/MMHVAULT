@@ -8,6 +8,7 @@ permissions:
 jobs:
   offline-app-guard:
     runs-on: ubuntu-latest
+    timeout-minutes: 18
     steps:
       - name: Checkout isolated review branch
         uses: actions/checkout@v4
@@ -22,9 +23,15 @@ jobs:
         run: |
           set -euo pipefail
           git diff --name-only b7d1cab226d1717515a2cd4e054e7a7bb595de94 HEAD > /tmp/n10-app-review-files
-          if grep -Ev '^(app\.html|security/n10-app-aal-entry/test-app-aal-guard\.mjs|\.github/workflows/n10-app-aal-entry-review\.yml)$' /tmp/n10-app-review-files; then
+          if grep -Ev '^(app\.html|security/n10-app-aal-entry/test-app-aal-guard\.mjs|security/n10-app-aal-entry/test-browser-mask\.mjs|\.github/workflows/n10-app-aal-entry-review\.yml)$' /tmp/n10-app-review-files; then
             echo 'Out-of-scope change detected'; exit 1
           fi
-          test "$(wc -l < /tmp/n10-app-review-files)" -eq 3
+          test "$(wc -l < /tmp/n10-app-review-files)" -eq 4
       - name: Offline entry, refresh and fail-closed regression checks
         run: node security/n10-app-aal-entry/test-app-aal-guard.mjs
+      - name: Install isolated Playwright browser runtime
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps chromium webkit
+      - name: Verify actual account privacy overlay in Chromium and WebKit
+        run: node security/n10-app-aal-entry/test-browser-mask.mjs
