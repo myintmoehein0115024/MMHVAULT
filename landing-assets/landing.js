@@ -1012,6 +1012,13 @@
 
   function selectProductView(view,focus=false,instant=false){
     const name=productNames.includes(view)?view:'dashboard';
+    // L1.31: touching an already-selected preview is a no-op. Do not reset
+    // its inner scroll, interrupt a running crossfade, or repaint the panel.
+    // Keep the instant initial deep-link path for L1.30 initialization.
+    if(name===activeProduct&&!instant){
+      if(focus)productTabs.find(t=>t.dataset.productTab===name)?.focus({preventScroll:true});
+      return;
+    }
     // Rapid clicks cancel old fades before starting the new selection.
     if(previewTransition)settlePreviewTransition();
     const previousName=activeProduct;
@@ -1021,7 +1028,7 @@
       t.classList.toggle('is-active',yes);
       t.setAttribute('aria-selected',String(yes));
       t.tabIndex=yes?0:-1;
-      if(yes&&focus)t.focus();
+      if(yes&&focus)t.focus({preventScroll:true});
     });
     const outgoing=productPanels.find(p=>p.dataset.productPanel===previousName);
     const incoming=productPanels.find(p=>p.dataset.productPanel===name);
