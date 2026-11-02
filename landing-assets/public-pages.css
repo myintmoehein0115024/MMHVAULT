@@ -791,3 +791,16 @@ body.public-landing-page{
   }
   .public-landing-page.business-page .business-availability{font-size:9px}
 }
+
+
+/* L1.17 — translated public summaries display one paragraph and one
+   language, not two hard-coded Chinese/Burmese columns. */
+.public-landing-page .lang-summary-localized{
+  grid-template-columns:minmax(0,1fr);
+  gap:0;
+}
+.public-landing-page .lang-summary-localized>p{
+  min-width:0;max-width:100%;overflow-wrap:anywhere;
+  font-size:clamp(12px,1.15vw,14px);
+  line-height:1.9;
+}
