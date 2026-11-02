@@ -2,7 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {sessionAalFromVerifiedFactors as derive} from './session-aal.mjs';
-import {evaluateMfaAssurance} from './mfa-assurance.mjs';
+import {evaluateMfaAssurance, evaluateVerifiedAuthUserMfa} from './mfa-assurance.mjs';
+import {sessionIdFromVerifiedJwt} from './session-guard.mjs';
 
 const load=file=>readFileSync(new URL(file,import.meta.url),'utf8');
 const code=load('./index.ts'), legacy=load('./rollback/v1-index.ts');
@@ -86,4 +87,83 @@ test('v2 source is an exact minimal transform of deployed v1 code',()=>{
   assert.equal(count(s,fragment),1,name);s=s.replace(fragment,'');
  }
  assert.equal(s,legacy,'any unrelated QA behavior change must fail review');
+});
+
+
+/**
+ * All JWT fixtures below are UNTRUSTED/SYNTHETIC unsigned string structures.
+ * The real QA Edge MUST first call admin.auth.getUser(exactToken). These
+ * offline tests verify claims parsing, NOT signature validation.
+ */
+const QA_BASE='https://ldivswlhtgmznzwhzsoi.supabase.co';
+const USER_A='41111111-1111-4111-8111-111111111111';
+const USER_B='42222222-2222-4222-8222-222222222222';
+const SESSION_A='51111111-1111-4111-8111-111111111111';
+function unsignedFixture(claims={}){
+ const payload={sub:USER_A,session_id:SESSION_A,iss:QA_BASE+'/auth/v1',
+  aal:'aal1',exp:Math.floor(Date.now()/1000)+3600,...claims};
+ // This is NOT a cryptographically signed JWT and must never be used online.
+ return 'fakeheader.'+Buffer.from(JSON.stringify(payload)).toString('base64url')+'.fakesignature';
+}
+const qaUser=(factors=[])=>({id:USER_A,is_anonymous:false,factors});
+
+test('synthetic JWT session claim parser accepts owner/session only AFTER external Auth verification',()=>{
+ const jwt=unsignedFixture();
+ assert.equal(sessionIdFromVerifiedJwt(jwt,USER_A,QA_BASE),SESSION_A);
+});
+test('synthetic JWT session parser refuses a different user, issuer, or expired bearer',()=>{
+ assert.equal(sessionIdFromVerifiedJwt(unsignedFixture(),USER_B,QA_BASE),null);
+ assert.equal(sessionIdFromVerifiedJwt(unsignedFixture({sub:USER_B}),USER_A,QA_BASE),null);
+ assert.equal(sessionIdFromVerifiedJwt(unsignedFixture({iss:'https://example.invalid/auth/v1'}),USER_A,QA_BASE),null);
+ assert.equal(sessionIdFromVerifiedJwt(unsignedFixture({exp:Math.floor(Date.now()/1000)-60}),USER_A,QA_BASE),null);
+});
+test('synthetic JWT session parser rejects a forged or malformed session identifier',()=>{
+ assert.equal(sessionIdFromVerifiedJwt(unsignedFixture({session_id:'fake-session'}),USER_A,QA_BASE),null);
+ assert.equal(sessionIdFromVerifiedJwt(unsignedFixture({session_id:USER_B}),USER_A,QA_BASE),USER_B);
+ assert.equal(sessionIdFromVerifiedJwt('not.jwt',USER_A,QA_BASE),null);
+ assert.equal(sessionIdFromVerifiedJwt('',USER_A,QA_BASE),null);
+});
+test('server MFA evaluator allows a fresh AAL1 session only without enrolled factors',()=>{
+ assert.equal(evaluateVerifiedAuthUserMfa(unsignedFixture({aal:'aal1'}),qaUser([]),QA_BASE),'allowed');
+ assert.equal(evaluateVerifiedAuthUserMfa(unsignedFixture({aal:'aal1'}),qaUser([{status:'unverified'}]),QA_BASE),'allowed');
+});
+test('enrolled MFA factor blocks an AAL1 bearer even if password is correct',()=>{
+ assert.equal(evaluateVerifiedAuthUserMfa(unsignedFixture({aal:'aal1'}),qaUser([{status:'verified'}]),QA_BASE),'required');
+});
+test('verified MFA factor and matching AAL2 bearer pass assurance evaluator',()=>{
+ assert.equal(evaluateVerifiedAuthUserMfa(unsignedFixture({aal:'aal2'}),qaUser([{status:'verified'}]),QA_BASE),'allowed');
+});
+test('removing MFA invalidates a stale AAL2 bearer',()=>{
+ assert.equal(evaluateVerifiedAuthUserMfa(unsignedFixture({aal:'aal2'}),qaUser([]),QA_BASE),'unavailable');
+});
+test('MFA evaluator cannot reuse another owner or a revoked/expired JWT',()=>{
+ assert.equal(evaluateVerifiedAuthUserMfa(unsignedFixture({sub:USER_B}),qaUser([{status:'verified'}]),QA_BASE),'unavailable');
+ assert.equal(evaluateVerifiedAuthUserMfa(unsignedFixture({exp:Math.floor(Date.now()/1000)-60}),qaUser([]),QA_BASE),'unavailable');
+});
+test('MFA evaluator fails closed if verified factors cannot be read',()=>{
+ assert.equal(evaluateVerifiedAuthUserMfa(unsignedFixture(),{id:USER_A,factors:null},QA_BASE),'unavailable');
+ assert.equal(evaluateVerifiedAuthUserMfa(unsignedFixture(),{id:USER_A,is_anonymous:true,factors:[]},QA_BASE),'unavailable');
+});
+test('QA endpoint does not accept user-supplied owner or AAL to authorize secrets',()=>{
+ for(const bad of ['body.expectedAal','body.user_id','body.userId','body.sessionId',
+   'body.aal','QA_IDENTITIES=new Map<string,string>([[']){
+  assert.equal(code.includes(bad),false,bad);
+ }
+ assert.match(code,/const authenticated=await verifiedUser\(req\)/);
+ assert.match(code,/const expectedAal=sessionAalFromVerifiedFactors\(factors.factors\)/);
+});
+test('QA status/reveal and synthetic initialization remain inaccessible while hard-off',()=>{
+ const releaseCheck=code.indexOf('if(!RECOVERY_RELEASE_ENABLED)');
+ const authCheck=code.indexOf('const authenticated=await verifiedUser(req)');
+ const actions=code.indexOf("if(action==='status')");
+ const reveal=code.indexOf("return out(origin,'recovery_key'");
+ const initialise=code.indexOf("if(action==='qa_initialize')");
+ assert.ok(releaseCheck>=0 && authCheck>releaseCheck);
+ assert.ok(actions>authCheck && reveal>actions && initialise>actions);
+});
+test('signed QA has no real account or actual secret fixture in source',()=>{
+ assert.equal(code.includes("const QA_IDENTITIES=new Map<string,string>([]);"),true);
+ assert.equal(legacy.includes("const QA_IDENTITIES=new Map<string,string>([]);"),true);
+ assert.equal(code.includes("RECOVERY_RELEASE_ENABLED=true"),false);
+ assert.equal(code.includes("QA_WINDOW_END_UTC='2026-"),false);
 });
