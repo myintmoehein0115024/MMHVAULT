@@ -22,6 +22,9 @@ CREATE TABLE IF NOT EXISTS public.mmh_account_images_v11 (
 ALTER TABLE public.mmh_account_images_v11 ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON TABLE public.mmh_account_images_v11 FROM PUBLIC;
 REVOKE ALL ON TABLE public.mmh_account_images_v11 FROM anon;
+-- Supabase may grant ALL to authenticated through default privileges.
+-- Revoke the inherited broad grant before adding the least-privilege allowlist.
+REVOKE ALL ON TABLE public.mmh_account_images_v11 FROM authenticated;
 GRANT SELECT, INSERT, UPDATE ON TABLE public.mmh_account_images_v11 TO authenticated;
 
 CREATE POLICY "account_images_select_self_v11"
