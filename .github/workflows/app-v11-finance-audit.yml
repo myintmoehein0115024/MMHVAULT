@@ -1,0 +1,26 @@
+name: APP V11 financial link audit
+on:
+  pull_request:
+    paths:
+      - 'tools/app-v11-finance-link-audit.mjs'
+      - 'tests/app-v11-finance-link-audit.test.mjs'
+      - 'docs/sql/app-v11-account-link-audit-readonly.sql'
+      - '.github/workflows/app-v11-finance-audit.yml'
+  push:
+    branches:
+      - 'feature/app-v11-*'
+permissions:
+  contents: read
+jobs:
+  app-v11-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Audit synthetic finance account references
+        run: node --test tests/app-v11-finance-link-audit.test.mjs
+      - name: Existing finance account and FX regression tests
+        run: node --test tests/data-integrity-v1.test.mjs tests/account-auto-fx-v1.test.mjs
