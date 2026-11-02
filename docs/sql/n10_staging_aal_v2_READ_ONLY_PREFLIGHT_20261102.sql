@@ -69,15 +69,49 @@ WITH guard AS (
     pg_catalog.to_regclass('mmh_n10_privacy.recovery_backup_index') IS NOT NULL
       AS backup_index_exists,
     EXISTS (SELECT 1 FROM pg_catalog.pg_extension
-            WHERE extname='supabase_vault') AS vault_present
+            WHERE extname='supabase_vault') AS vault_present,
+    (
+      SELECT count(*)=4
+      FROM pg_catalog.pg_proc AS p
+      JOIN pg_catalog.pg_namespace AS n ON n.oid=p.pronamespace
+      WHERE n.nspname='public'
+        AND (
+          (p.proname='mmh_n10_recovery_backup_put'
+           AND pg_catalog.pg_get_function_identity_arguments(p.oid)='p_user_id uuid, p_phrase text')
+          OR (p.proname='mmh_n10_recovery_backup_get'
+           AND pg_catalog.pg_get_function_identity_arguments(p.oid)='p_user_id uuid')
+          OR (p.proname='mmh_n10_recovery_backup_exists'
+           AND pg_catalog.pg_get_function_identity_arguments(p.oid)='p_user_id uuid')
+          OR (p.proname='mmh_n10_recovery_take_attempt'
+           AND pg_catalog.pg_get_function_identity_arguments(p.oid)='p_bucket text, p_limit integer, p_window_seconds integer')
+        )
+        AND p.prosecdef
+        AND NOT has_function_privilege('anon',p.oid,'EXECUTE')
+        AND NOT has_function_privilege('authenticated',p.oid,'EXECUTE')
+        AND has_function_privilege('service_role',p.oid,'EXECUTE')
+    ) AS backup_rpcs_service_only,
+    (
+      SELECT count(*)=2
+      FROM pg_catalog.pg_class AS c
+      JOIN pg_catalog.pg_namespace AS n ON n.oid=c.relnamespace
+      WHERE n.nspname='mmh_n10_privacy'
+        AND c.relkind='r'
+        AND c.relname IN ('recovery_backup_index','recovery_rate_bucket')
+        AND c.relrowsecurity
+        AND NOT has_table_privilege('anon',c.oid,'SELECT')
+        AND NOT has_table_privilege('authenticated',c.oid,'SELECT')
+    ) AS privacy_tables_locked
 )
 SELECT three_arg_guard_exists,
        guard_service_only,
        backup_index_exists,
        vault_present,
+       backup_rpcs_service_only,
+       privacy_tables_locked,
        CASE
          WHEN three_arg_guard_exists AND guard_service_only
               AND backup_index_exists AND vault_present
+              AND backup_rpcs_service_only AND privacy_tables_locked
            THEN 'SCHEMA_PRECHECK_OK__SIGNED_TWO_OWNER_MFA_QA_STILL_REQUIRED'
          ELSE 'HOLD__DO_NOT_ENABLE_RECOVERY_VIEW'
        END AS gate_result,
