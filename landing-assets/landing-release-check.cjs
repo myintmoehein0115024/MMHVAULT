@@ -13,16 +13,29 @@ const source = path => {
 const current = read('index.html');
 const prev=source('index.html');
 
-/* L1.24: one and only one head preload line may differ from main.
- * Preserve the Hero, all translations, structured SEO, auth/PWA scripts and
- * all body content byte-for-byte, including secure routes and fixed copy. */
+/* L1.25 — preserve exact public Home/SEO/PWA and all Landing scripting
+ * outside the single Hero photo readiness handler. */
 const oldHeroPreload='<link rel="preload" as="image" type="image/webp" href="./landing-assets/cinematic-lake.webp">';
 const newHeroPreload='<link rel="preload" as="image" type="image/webp" href="./landing-assets/personal-business-concept.webp" fetchpriority="high">';
-const originalHomeApartFromPreload=()=>
- (prev.split(oldHeroPreload).length===2) &&
- (current.split(newHeroPreload).length===2) &&
- (current.split('<link rel="preload" as="image"').length===2) &&
- current.replace(newHeroPreload,oldHeroPreload)===prev;
+function heroDecodeHandlerOnlyEdited(){
+ const old=source('landing-assets/landing.js'),now=read('landing-assets/landing.js');
+ const oldStart="  // Progressive enhancement: retain the original in-page HTML device demonstration";
+ const newStart="  // L1.25: keep the original in-page device demo visible until the already";
+ const end="  let saved = 'en';";
+ const a=old.indexOf(oldStart),b=now.indexOf(newStart);
+ const oe=old.indexOf(end,a),ne=now.indexOf(end,b);
+ const block=now.slice(b,ne);
+ return a>=0&&b>=0&&oe>a&&ne>b &&
+   old.slice(0,a)===now.slice(0,b) &&
+   old.slice(oe)===now.slice(ne) &&
+   block.includes("heroPhoto.decode()") &&
+   block.includes("if (decoding || heroPhoto.naturalWidth <= 0) return;") &&
+   block.includes("if (!heroPhoto.isConnected || heroPhoto.naturalWidth <= 0) return;") &&
+   block.includes("art.classList.add('is-photo-ready')") &&
+   block.includes("}).catch(() => {") &&
+   block.includes("heroPhoto.addEventListener('load', revealPhoto, {once:true})") &&
+   !/fetch\s*\(|supabase|location\.replace|localStorage|history\.pushState/.test(block);
+}
 
 const manifest=JSON.parse(read('mmh-manifest-v2.webmanifest'));
 const oldManifest=JSON.parse(source('mmh-manifest-v2.webmanifest'));
@@ -404,8 +417,8 @@ check('Homepage retains all prior content and SEO outside shared header layer',
  ['en','zh','my'].every(lang=>translationScript.includes('Object.assign(strings.'+lang+', {\n    navExplore:')) &&
  current.includes('<body id="top" class="l131 mmh-nav-unified">') &&
  current.includes('<link rel="stylesheet" href="./landing-assets/shared-header-l116.css?v=1">') &&
- originalHomeApartFromPreload() &&
- source('landing-assets/landing.js')===translationScript &&
+ current===prev &&
+ heroDecodeHandlerOnlyEdited() &&
  source('landing-assets/explore-l114.css')===read('landing-assets/explore-l114.css'));
 const publicHeaders=['about/index.html','features/index.html','business/index.html',
  'register/index.html','security.html','privacy.html','terms.html'];
@@ -534,24 +547,31 @@ check('L1.23 lightweight scroll reveals are opacity+transform only, motion acces
  read('landing-assets/public-pages.css').includes('transition-duration:410ms,445ms') &&
  read('landing-assets/public-pages.css').includes('@media(prefers-reduced-motion:reduce)'));
 check('L1.24 preload prioritizes the one real Hero image with no duplicate image preload',
- originalHomeApartFromPreload() &&
+ current===prev &&
  current.includes('<img class="hero-device-cinematic" src="./landing-assets/personal-business-concept.webp"') &&
  current.includes('decoding="async" fetchpriority="high"') &&
  current.includes('loading="lazy" decoding="async"') &&
  !current.includes(oldHeroPreload));
-check('L1.24 precisely three public preload/QA files and no secure or SEO changes',
+check('L1.25 Hero only waits for decoded pixels, preserving original fallback',
+ heroDecodeHandlerOnlyEdited() &&
+ current===prev &&
+ current.includes(newHeroPreload) &&
+ !current.includes(oldHeroPreload));
+check('L1.25 exactly three public JS/QA files; no HTML, SEO, PWA or visual changes',
  actual.length===3 &&
  actual.every(path=>[
-  'index.html','landing-assets/landing-release-check.cjs',
+  'landing-assets/landing.js',
+  'landing-assets/landing-release-check.cjs',
   'landing-assets/landing-browser-check.cjs'
  ].includes(path)) &&
- originalHomeApartFromPreload() &&
+ current===prev &&
+ heroDecodeHandlerOnlyEdited() &&
  publicHeaders.every(path=>read(path)===source(path)) &&
- ['landing-assets/landing.js','landing-assets/public-pages.js',
+ ['landing-assets/public-pages.js','landing-assets/public-pages.css',
   'landing-assets/landing.css','landing-assets/business.css',
   'landing-assets/cinematic.css','landing-assets/premium-l131.css',
   'landing-assets/motion-l132.css','landing-assets/motion-l132.js',
-  'landing-assets/public-pages.css','landing-assets/shared-header-l116.css',
+  'landing-assets/shared-header-l116.css',
   'sitemap.xml','robots.txt','mmh-manifest-v2.webmanifest']
  .every(path=>read(path)===source(path)));
 check('Protected auth/PWA/SEO/config sources unchanged in PR diff',
