@@ -98,6 +98,6 @@
     if(button)void show(button);
   });
   client.auth.onAuthStateChange(event=>{
-    if(event==='SIGNED_OUT'||event==='USER_DELETED')close();
+    if(['SIGNED_OUT','SIGNED_IN','USER_UPDATED','USER_DELETED'].includes(event))close();
   });
 })();
