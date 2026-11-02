@@ -24,9 +24,9 @@ const l135HeaderCssOnlyEdited=()=>
   read('landing-assets/shared-header-l116.css')===
     source('landing-assets/shared-header-l116.css')+l135HeaderCssSuffix;
 const l133BurmeseLayoutOnlyEdited=()=>
-  read('landing-assets/landing.css')===
-    source('landing-assets/landing.css')+l134ResponsiveCssSuffix &&
-  source('landing-assets/landing.css').endsWith(l133BurmeseCssSuffix) &&
+  read('landing-assets/landing.css')===source('landing-assets/landing.css') &&
+  source('landing-assets/landing.css').endsWith(l134ResponsiveCssSuffix) &&
+  source('landing-assets/landing.css').includes(l133BurmeseCssSuffix) &&
   read('landing-assets/landing.js')===source('landing-assets/landing.js') &&
   current===prev &&
   current.includes('<title>MMHVAULT | Personal Finance & Wealth</title>');
