@@ -174,8 +174,8 @@ async function load(page,route,failures){
            route+' preview-only status visible');
          ensure(await page.locator('link[rel="canonical"]').getAttribute('href')==='https://mmhvault.com/business/',
            route+' canonical targets own route');
-         ensure(await page.locator('header #public-explore a[href="/business/"]').getAttribute('aria-current')==='page',
-           route+' Business marked selected in Explore');
+         ensure(await page.locator('header #landing-explore a[href="/business/"]').count()===1,
+           route+' Business appears in identical Explore listing');
        }
        if(['/security.html','/privacy.html','/terms.html'].includes(route)){
          ensure(await page.locator('body.public-landing-page.policy-page').count()===1,
@@ -193,10 +193,10 @@ async function load(page,route,failures){
        }
        if(['/register/','/features/','/about/','/business/','/security.html','/privacy.html','/terms.html'].includes(route)){
          const header=await page.evaluate(()=>{
-           const bar=document.querySelector('header .bar').getBoundingClientRect();
+           const bar=document.querySelector('header .header-inner').getBoundingClientRect();
            const brand=document.querySelector('header .brand').getBoundingClientRect();
-           const nav=document.querySelector('header .public-site-nav').getBoundingClientRect();
-           const actions=document.querySelector('header .public-header-actions').getBoundingClientRect();
+           const nav=document.querySelector('header #primary-nav').getBoundingClientRect();
+           const actions=document.querySelector('header .header-actions').getBoundingClientRect();
            return {barHeight:Math.round(bar.height),brandRight:Math.round(brand.right),
              brandTop:Math.round(brand.top),brandBottom:Math.round(brand.bottom),
              navLeft:Math.round(nav.left),navRight:Math.round(nav.right),
@@ -207,18 +207,18 @@ async function load(page,route,failures){
          ensure(header.barHeight<=112&&header.brandRight<=header.actionsLeft+4 &&
            header.brandTop<=header.actionsBottom+8&&header.actionsTop<=header.brandBottom+8,
            route+' '+width+'px header on one row '+JSON.stringify(header));
-         const explore=page.locator('header #public-explore');
+         const explore=page.locator('header #landing-explore');
          if(width<=1360){
-           ensure(await page.locator('header .public-site-menu-toggle').isVisible(),
+           ensure(await page.locator('header .menu-toggle').isVisible(),
              route+' '+width+'px hamburger visible');
-           ensure(!await page.locator('header .public-site-nav').isVisible(),
+           ensure(!await page.locator('header #primary-nav').isVisible(),
              route+' '+width+'px compact menu starts closed');
-           await page.locator('header .public-site-menu-toggle').click();
-           ensure(await page.locator('header .public-site-menu-toggle').getAttribute('aria-expanded')==='true'&&
-             await page.locator('header .public-site-nav').isVisible(),
+           await page.locator('header .menu-toggle').click();
+           ensure(await page.locator('header .menu-toggle').getAttribute('aria-expanded')==='true'&&
+             await page.locator('header #primary-nav').isVisible(),
              route+' '+width+'px compact navigation opens');
-           ensure(await page.locator('header .public-site-nav>a[href="/#business"]').isVisible()&&
-             await page.locator('header .public-site-nav>a[href="/#security"]').isVisible(),
+           ensure(await page.locator('header #primary-nav>a[href="/#business"]').isVisible()&&
+             await page.locator('header #primary-nav>a[href="/#security"]').isVisible(),
              route+' '+width+'px Business/Security follow Landing sections');
            await explore.locator('summary').click();
            ensure(await explore.evaluate(d=>d.open)&&
@@ -229,11 +229,11 @@ async function load(page,route,failures){
            ensure(!await explore.evaluate(d=>d.open),
              route+' '+width+'px Escape closes Explore');
            await page.keyboard.press('Escape');
-           ensure(!await page.locator('header .public-site-nav').isVisible(),
+           ensure(!await page.locator('header #primary-nav').isVisible(),
              route+' '+width+'px Escape closes hamburger');
          }else{
-           ensure(await page.locator('header .public-site-nav').isVisible()&&
-             await page.locator('header .public-site-nav>a[href="/#business"]').isVisible(),
+           ensure(await page.locator('header #primary-nav').isVisible()&&
+             await page.locator('header #primary-nav>a[href="/#business"]').isVisible(),
              route+' '+width+'px desktop six-item navigation visible');
            ensure(header.brandRight<=header.navLeft+4&&
              header.navRight<=header.actionsLeft+4&&
@@ -255,28 +255,28 @@ async function load(page,route,failures){
        if(['/register/','/features/','/about/','/business/'].includes(route)){
          ensure(await page.locator('body.public-landing-page .feature-hero').count()===1,
            route+' inherited premium Landing shell');
-         ensure(await page.locator('header .brand-wordmark').isVisible(),
+         ensure(await page.locator('header .brand-copy').isVisible(),
            route+' shared Landing wordmark is visible');
-         ensure(await page.locator('header .feature-nav-cta').getAttribute('href')==='/login.html',
+         ensure(await page.locator('header .header-cta').getAttribute('href')==='/login.html',
            route+' Get Started goes only to existing secure access');
          ensure(await page.locator('.page-breadcrumb a').getAttribute('href')==='/',
            route+' clearly linked as a Landing subpage');
        }
        if(['/register/','/features/','/about/','/business/'].includes(route)&&[320,393,768,1100,1290,1291,1440].includes(width)){
-         const trigger=page.locator('#public-locale-trigger');
-         const localeName=page.locator('.public-locale-name');
+         const trigger=page.locator('#locale-trigger');
+         const localeName=page.locator('.locale-active-name');
          if([393,1100,1290,1291,1440].includes(width)){
            await page.screenshot({path:path.join(screenshots,
              route.replaceAll('/','')+'-'+width+'-en.png'),fullPage:true,animations:'disabled'});
          }
          await trigger.click();
          ensure(await trigger.getAttribute('aria-expanded')==='true',route+' language menu opens at '+width);
-         await page.locator('#public-locale-menu button[data-lang="zh"]').click();
+         await page.locator('#locale-menu button[data-lang="zh"]').click();
          ensure(await localeName.textContent()==='中文' && await page.locator('h1').isVisible(),
            route+' Chinese language updates menu and title');
          ensure(await trigger.getAttribute('aria-expanded')==='false',route+' language menu closes on selection');
          await trigger.click();
-         await page.locator('#public-locale-menu button[data-lang="my"]').click();
+         await page.locator('#locale-menu button[data-lang="my"]').click();
          ensure(await localeName.textContent()==='မြန်မာ' && await page.locator('h1').isVisible(),
            route+' Burmese language updates menu and title');
          const localeOverflow=await page.evaluate(()=>{
@@ -306,7 +306,7 @@ async function load(page,route,failures){
              route.replaceAll('/','')+'-'+width+'-my.png'),fullPage:true,animations:'disabled'});
          }
          await page.reload({waitUntil:'load'});
-         ensure(await page.locator('.public-locale-name').textContent()==='မြန်မာ',
+         ensure(await page.locator('.locale-active-name').textContent()==='မြန်မာ',
            route+' language preference persists across reload at '+width);
        }
        await ctx.close();
@@ -349,20 +349,20 @@ async function load(page,route,failures){
      ensure(new URL(page.url()).pathname==='/' &&
        !new URL(page.url()).hash,'Independent Security Home returns to canonical Landing');
      await page.goto(origin+'/about/',{waitUntil:'load'});
-     await page.locator('header .public-site-nav>a[href="/#business"]').click();
+     await page.locator('header #primary-nav>a[href="/#business"]').click();
      await page.waitForURL(url=>url.pathname==='/'&&url.hash==='#business');
      ensure(new URL(page.url()).pathname==='/'&&new URL(page.url()).hash==='#business',
        'About top-level Business opens Landing Business showcase');
      await page.goto(origin+'/about/',{waitUntil:'load'});
-     await page.locator('header #public-explore > summary').click();
-     await page.locator('header #public-explore a[href="/business/"]').click();
+     await page.locator('header #landing-explore > summary').click();
+     await page.locator('header #landing-explore a[href="/business/"]').click();
      await page.waitForURL('**/business/');
      ensure(new URL(page.url()).pathname==='/business/'&&!new URL(page.url()).hash,
        'About Explore opens independent Business concept');
      ensure(await page.locator('body.public-landing-page.business-page').count()===1,
        'Business route remains its independent introduction page');
-     ensure(await page.locator('header #public-explore a[href="/business/"]').getAttribute('aria-current')==='page',
-       'Business entry is highlighted in Explore on the Business route');
+     ensure(await page.locator('header #landing-explore a[href="/business/"]').count()===1,
+       'Business has matching Explore item on the standalone page');
      await page.locator('.business-hero .action.gold').click();
      await page.waitForFunction(()=>location.hash==='#business-focus');
      ensure(new URL(page.url()).pathname==='/business/',
@@ -378,9 +378,9 @@ async function load(page,route,failures){
        'Landing Explore opens independent Business concept information');
      await page.goto(origin+'/security.html',{waitUntil:'load'});
      await page.setViewportSize({width:393,height:852});
-     await page.locator('header .public-site-menu-toggle').click();
-     await page.locator('header #public-explore > summary').click();
-     await page.locator('header #public-explore a[href="/business/"]').click();
+     await page.locator('header .menu-toggle').click();
+     await page.locator('header #landing-explore > summary').click();
+     await page.locator('header #landing-explore a[href="/business/"]').click();
      await page.waitForURL('**/business/');
      ensure(new URL(page.url()).pathname==='/business/',
        'Security compact Business menu also opens dedicated Business URL');
