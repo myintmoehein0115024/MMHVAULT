@@ -665,6 +665,59 @@ async function load(page,route,failures){
      }
    }
 
+   // L1.27 — the public browser tab title must agree with the canonical
+   // static SEO title after initialization and every language switch.
+   // A language change from mid-page must not reset reading position.
+   for(const route of ['/','/features/','/security.html']){
+     for(const width of [393,1440]){
+       const ctx=await browser.newContext({
+         viewport:{width,height:852},reducedMotion:'reduce'
+       });
+       const page=await ctx.newPage();
+       const errors=[];
+       page.on('pageerror',e=>errors.push(e.message));
+       await load(page,route,errors);
+       const seo=await page.evaluate(()=>({
+         fromHtml:document.querySelector('head title')?.textContent,
+         runtime:document.title,
+         path:location.pathname
+       }));
+       ensure(seo.runtime===seo.fromHtml && 
+         (route!=='/'||seo.runtime==='MMHVAULT | Personal Finance & Wealth'),
+         route+' '+width+'px initial browser title matches HTML SEO '+JSON.stringify(seo));
+       if(route==='/'){
+         await page.evaluate(()=>window.scrollTo({
+           top:Math.min(700,Math.max(0,document.documentElement.scrollHeight-innerHeight-120)),
+           behavior:'instant'
+         }));
+       }
+       const initial=await page.evaluate(()=>({
+         y:scrollY,x:scrollX,path:location.pathname,hash:location.hash
+       }));
+       for(const language of ['zh','my','en']){
+         await page.locator('#locale-trigger').click();
+         await page.locator('#locale-menu [data-lang="'+language+'"]').click();
+         const after=await page.evaluate(()=>({
+           title:document.title,htmlTitle:document.querySelector('head title')?.textContent,
+           lang:document.documentElement.lang,
+           path:location.pathname,hash:location.hash,
+           y:scrollY,x:scrollX
+         }));
+         ensure(after.title===seo.fromHtml &&
+           after.htmlTitle===seo.fromHtml &&
+           after.lang===(language==='zh'?'zh-CN':language) &&
+           after.path===initial.path&&after.hash===initial.hash &&
+           Math.abs(after.x-initial.x)<=2 &&
+           (route!=='/'||initial.y<100||
+             (after.y>100&&Math.abs(after.y-initial.y)<280)),
+           route+' '+width+'px '+language+' language preserves title and scroll context '+JSON.stringify({initial,after}));
+       }
+       ensure(errors.length===0,
+         route+' '+width+'px language switching has no missing assets or JS errors');
+       await ctx.close();
+     }
+   }
+
    // L1.26 — dismissing a menu by tapping outside must never strand keyboard
    // focus on links or language buttons which have just become hidden.
    // Simulate the outside DOM event directly to keep focus where it would be
