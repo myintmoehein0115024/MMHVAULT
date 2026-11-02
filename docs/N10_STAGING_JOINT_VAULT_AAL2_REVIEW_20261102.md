@@ -41,3 +41,18 @@ For rollback, redeploy the immutable `rollback/v1-index.ts` plus the two origina
 ## Parallel project protection
 
 No `app.html`, `login.html`, APP V11 finance logic, Landing/SEO assets, production backend, user data, database schema or public account security page are modified by these GitHub-only review files. Before merge, refresh the latest `main` and N10 PR #2, #11, #37, #43, #50, #52 and #56. Do not merge without explicit owner approval.
+
+## 2026-11-02 — actual closed Staging QA v2 deployment
+
+Following the user's "好的，继续" in response to the stated need for the next Staging test-service integration, the **existing isolated QA Edge** was updated in Staging only:
+
+- Slug: `mmh-n10-qa-joint-mfa-vault-20261101`; project `ldivswlhtgmznzwhzsoi`.
+- Before: active **v1** (`verify_jwt=true`); exact v1 entrypoint preserved under `rollback/v1-index.ts`.
+- After: active **v2**, `verify_jwt=true`; deployed SHA-256 `2a8cb4c4a7522ddccac7947fd9bd6d5c1605aa206ba472a8d4df87ce5c246fc3`.
+- Deployed `index.ts`, `session-aal.mjs`, `mfa-assurance.mjs`, `session-guard.mjs` were individually fetched back from the Staging function and compared byte-for-byte against this feature branch: **all four match**.
+- Three hard-OFF gates are still **OFF / expired / empty**. No QA time window, account whitelist or recovery-word release was enabled.
+- Read-only Staging aggregate postcheck: **2** dedicated username-only test accounts remain, **0** encrypted backups and **0** rate buckets. No accounts, RLS, SQL RPC, live auth settings, Edge secrets, financial records, or Vault data changed in this deployment.
+- The new QA service is only **code-integrated** with the Staging AAL-aware RPC. Signed two-owner MFA AAL2 success, password proof, logout/revocation, encrypted 10-word ownership and actual `reveal` remain **UNTESTED and BLOCKED BY THE THREE QA GATES**. Do not claim them passed.
+- Production Edge, `mmhvault.com` and all user financial data remained unchanged.
+
+**Rollback readiness:** The exact v1 entrypoint and unchanged original two helpers are available in this branch; redeploy to the same Staging-only slug with `verify_jwt=true` if a separately approved rollback is ever needed. No rollback was necessary.
