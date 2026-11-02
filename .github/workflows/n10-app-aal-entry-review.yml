@@ -22,7 +22,10 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          git diff --name-only b7d1cab226d1717515a2cd4e054e7a7bb595de94 HEAD > /tmp/n10-app-review-files
+          git fetch --no-tags origin main
+          git merge-base --is-ancestor origin/main HEAD || { echo 'Review branch behind main'; exit 1; }
+          git diff --check origin/main HEAD
+          git diff --name-only origin/main HEAD > /tmp/n10-app-review-files
           if grep -Ev '^(app\.html|security/n10-app-aal-entry/test-app-aal-guard\.mjs|security/n10-app-aal-entry/test-browser-mask\.mjs|\.github/workflows/n10-app-aal-entry-review\.yml)$' /tmp/n10-app-review-files; then
             echo 'Out-of-scope change detected'; exit 1
           fi
