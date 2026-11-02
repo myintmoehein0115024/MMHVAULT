@@ -405,6 +405,18 @@ function normalizeSharedHeader(h){
     .replace('href="/" data-i18n="navHome"','href="/" aria-current="page" data-i18n="navHome"');
 }
 const sharedCss=read('landing-assets/shared-header-l116.css');
+// L1.20: compare public HTML byte-for-byte after removing ONLY the new head
+// JSON-LD script. All visible text, SEO tags, JS and shared nav must match main.
+const l120Open='\n<script type="application/ld+json" data-mmh-l120="webpage">\n';
+const l120Close='\n</script>\n';
+function stripL120SeoHead(html){
+ const start=html.indexOf(l120Open);
+ if(start<0)return html;
+ const end=html.indexOf(l120Close,start+l120Open.length);
+ if(end<0)return html;
+ return html.slice(0,start)+html.slice(end+l120Close.length);
+}
+
 /* L1.17 — Only Features/Register may replace their permanently visible
  * Chinese+Burmese text block with one EN/ZH/MY-localized paragraph. Undo that
  * exact replacement before comparing the rest of the published page bytewise. */
@@ -425,7 +437,7 @@ check('Seven public pages inherit exact Landing header structure, icons and drop
      html.includes(cssNew) && old.includes(cssNew) &&
      // L1.16 already shipped; protect its header, page body and SEO
      // byte-for-byte, allowing ONLY the two localized summary blocks.
-     restoreOldLocalizedSummary(path,html,old)===old &&
+     restoreOldLocalizedSummary(path,stripL120SeoHead(html),old)===old &&
      (h.match(/<details class="nav-explore"/g)||[]).length===1 &&
      (h.match(/class="mobile-nav-auth"/g)||[]).length===1 &&
      (h.match(/class="locale-menu"/g)||[]).length===1;
@@ -467,17 +479,52 @@ check('L1.19 tablet and phone layout refinement stays presentation-only',
  read('landing-assets/premium-l131.css').includes('body.l131 .hero .hero-buttons .button') &&
  read('landing-assets/public-pages.css').includes('grid-template-columns:minmax(0,1fr)') &&
  read('landing-assets/public-pages.css').includes('@media(prefers-reduced-motion:reduce)'));
-check('L1.19 exactly four public CSS and QA files; no HTML, header, auth or JS changed',
- actual.length===4 &&
+/* L1.20 — indexable subpages identify their purpose and official parent
+ * without inventing social profiles, support channels or product availability. */
+const l120Entities=[
+ {path:'features/index.html',url:'https://mmhvault.com/features/',name:'Personal Finance Features',about:'software',policy:false},
+ {path:'register/index.html',url:'https://mmhvault.com/register/',name:'Create Your Account',about:'software',policy:false},
+ {path:'security.html',url:'https://mmhvault.com/security.html',name:'Security information',about:'brand',policy:true},
+ {path:'privacy.html',url:'https://mmhvault.com/privacy.html',name:'Privacy',about:'brand',policy:true},
+ {path:'terms.html',url:'https://mmhvault.com/terms.html',name:'Terms of use',about:'brand',policy:true}
+];
+check('L1.20 canonical, named WebPage and breadcrumb structured data are accurate',
+ l120Entities.every(({path,url,name,about,policy})=>{
+  const html=read(path),head=html.split('</head>')[0];
+  const matches=[...head.matchAll(/<script type="application\/ld\+json" data-mmh-l120="webpage">([\s\S]*?)<\/script>/g)];
+  if(matches.length!==1)return false;
+  const data=JSON.parse(matches[0][1]);
+  const nodes=data['@graph'];
+  const page=nodes?.find(node=>node['@type']==='WebPage');
+  if(data['@context']!=='https://schema.org' ||
+     !page || page.url!==url || page['@id']!==url+'#page' ||
+     page.name!==name || page.isPartOf?.['@id']!=='https://mmhvault.com/#website' ||
+     page.about?.['@id']!=='https://mmhvault.com/#'+about ||
+     !head.includes('<link rel="canonical" href="'+url+'">') ||
+     !head.includes('<meta name="description" content="'+page.description+'">'))return false;
+  if(policy){
+   const breadcrumb=nodes.find(node=>node['@type']==='BreadcrumbList');
+   if(!breadcrumb||page.breadcrumb?.['@id']!==breadcrumb['@id'] ||
+     breadcrumb.itemListElement?.[0]?.item!=='https://mmhvault.com/' ||
+     breadcrumb.itemListElement?.[1]?.item!==url)return false;
+  }else if(!head.includes('"@type":"BreadcrumbList"'))return false;
+  return stripL120SeoHead(html)===source(path);
+ }));
+check('L1.20 precisely seven head-only SEO and QA files; N10, PWA and visual layout untouched',
+ actual.length===7 &&
  actual.every(path=>[
-  'landing-assets/premium-l131.css','landing-assets/public-pages.css',
-  'landing-assets/landing-release-check.cjs','landing-assets/landing-browser-check.cjs'
+  ...l120Entities.map(entity=>entity.path),
+  'landing-assets/landing-release-check.cjs',
+  'landing-assets/landing-browser-check.cjs'
  ].includes(path)) &&
  current===prev &&
- publicHeaders.every(path=>source(path)===read(path)) &&
+ publicHeaders.every(path=>stripL120SeoHead(read(path))===source(path)) &&
  ['landing-assets/landing.js','landing-assets/public-pages.js',
-  'landing-assets/motion-l132.js','landing-assets/shared-header-l116.css']
-  .every(path=>source(path)===read(path)));
+  'landing-assets/premium-l131.css','landing-assets/public-pages.css',
+  'landing-assets/motion-l132.js','landing-assets/shared-header-l116.css',
+  'about/index.html','business/index.html'
+ ].every(path=>source(path)===read(path)) &&
+ ['sitemap.xml','robots.txt','mmh-manifest-v2.webmanifest'].every(path=>source(path)===read(path)));
 check('Protected auth/PWA/SEO/config sources unchanged in PR diff',
  ['business.html','app.html','login.html','sitemap.xml','robots.txt',
   'mmh-manifest-v2.webmanifest','landing-assets/landing.js'].every(file=>{
