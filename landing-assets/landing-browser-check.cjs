@@ -458,10 +458,25 @@ async function load(page,route,failures){
          });
          const expected={en:'🇬🇧',zh:'🇨🇳',my:'🇲🇲'}[language];
          ensure(indicator.flag===expected&&indicator.flagVisible&&indicator.globeHidden&&
-           indicator.width===(width<=390?39:42)&&indicator.height===(width<=390?39:42)&&
+           indicator.width===44&&indicator.height===44&&
            indicator.centered,
            'L1.35 '+width+'px '+language+' mobile selected language remains visible and centered '+
            JSON.stringify(indicator));
+       }
+       // L1.36: both compact header buttons meet a comfortable 44px touch
+       // target at 320/393/440px, without moving outside the viewport.
+       if(width<=700){
+         const targets=await page.locator('.site-header .header-actions').evaluate(root=>
+           ['.locale-trigger','.menu-toggle'].map(selector=>{
+             const el=root.querySelector(selector),r=el.getBoundingClientRect();
+             return {selector,width:Math.round(r.width),height:Math.round(r.height),
+               left:Math.round(r.left),right:Math.round(r.right),
+               visible:getComputedStyle(el).display!=='none'};
+           }));
+         ensure(targets.length===2&&targets.every(t=>t.visible&&t.width>=44&&t.height>=44&&
+           t.left>=0&&t.right<=width+1),
+           'L1.36 '+width+'px '+language+' compact header buttons have 44px touch area '+
+           JSON.stringify(targets));
        }
        if(language==='en'){
          const englishDescription=await page.locator('meta[name="description"]')
@@ -737,7 +752,7 @@ async function load(page,route,failures){
                width:Math.round(rect.width),height:Math.round(rect.height)};
            });
            ensure(status.selected==='🇲🇲'&&status.visible&&status.hiddenGlobe&&
-             status.width===(width<=390?39:42)&&status.height===(width<=390?39:42),
+             status.width===44&&status.height===44,
              'L1.35 '+route+' '+width+'px mobile public header exposes active Myanmar '+
              JSON.stringify(status));
          }
