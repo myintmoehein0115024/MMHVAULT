@@ -1,0 +1,46 @@
+name: N10 Staging MFA + Vault QA AAL2 candidate (NO DEPLOY)
+on:
+  push:
+    branches:
+      - feature/n10-staging-joint-vault-aal2-20261102
+  pull_request:
+    branches: [main]
+    paths:
+      - 'security/n10-staging-joint-vault-aal2/**'
+      - 'docs/N10_STAGING_JOINT_VAULT_AAL2_REVIEW_20261102.md'
+      - '.github/workflows/n10-staging-joint-vault-aal2.yml'
+permissions:
+  contents: read
+jobs:
+  offline-security-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Reject any shared, production, App, Landing or unrelated source changes
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch origin main --depth=1 || git fetch origin main
+          git diff --name-only --no-renames origin/main...HEAD > /tmp/n10-staging-qa-paths
+          test -s /tmp/n10-staging-qa-paths
+          while IFS= read -r path; do
+            case "$path" in
+              security/n10-staging-joint-vault-aal2/index.ts|security/n10-staging-joint-vault-aal2/rollback/v1-index.ts|security/n10-staging-joint-vault-aal2/session-aal.mjs|security/n10-staging-joint-vault-aal2/mfa-assurance.mjs|security/n10-staging-joint-vault-aal2/session-guard.mjs|security/n10-staging-joint-vault-aal2/test-staging-vault-aal2.mjs|docs/N10_STAGING_JOINT_VAULT_AAL2_REVIEW_20261102.md|.github/workflows/n10-staging-joint-vault-aal2.yml) ;;
+              *) echo "BLOCKED: unrelated change: $path"; exit 1;;
+            esac
+          done < /tmp/n10-staging-qa-paths
+      - name: Check all pure JS test/helper syntax
+        run: |
+          node --check security/n10-staging-joint-vault-aal2/session-aal.mjs
+          node --check security/n10-staging-joint-vault-aal2/mfa-assurance.mjs
+          node --check security/n10-staging-joint-vault-aal2/session-guard.mjs
+          node --check security/n10-staging-joint-vault-aal2/test-staging-vault-aal2.mjs
+      - name: Enforce 3 hard-off release gates and minimal source diff
+        run: node --test security/n10-staging-joint-vault-aal2/test-staging-vault-aal2.mjs
+# No DB credentials, no deployment or SQL execution, no secrets or user accounts.
