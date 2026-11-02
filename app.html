@@ -14053,11 +14053,18 @@ async function mmhN10ConfirmLegacyAalV20261102(owner,isCurrent){
     const {data:cached,error:cacheError}=await db.auth.getSession();
     if(!isCurrent())return 'superseded';
     if(cacheError||cached?.session?.user?.id!==owner)return 'deny';
+    // Server factor inventory is authoritative for a legacy null-current AAL.
+    // A cached old "nextLevel: aal1" cannot silently bypass newly verified MFA.
+    const {data:factors,error:factorError}=await db.auth.mfa.listFactors();
+    if(!isCurrent())return 'superseded';
+    if(factorError||!Array.isArray(factors?.all))return 'deny';
+    if(factors.all.some(factor=>factor?.status==='verified'))return 'deny';
     const {data:again,error:aalError}=await db.auth.mfa.getAuthenticatorAssuranceLevel();
     if(!isCurrent())return 'superseded';
     if(aalError)return 'deny';
     const result=mmhN10AalDecisionV20261102(again);
-    return result==='legacy'?'allow':result;
+    // Without any verified factor the second AAL must still say MFA is optional.
+    return again?.nextLevel==='aal1'&&(result==='legacy'||result==='allow')?'allow':'deny';
   }catch(_err){return isCurrent()?'deny':'superseded';}
 }
 let activeEnterUserId="";
