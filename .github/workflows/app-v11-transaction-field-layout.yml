@@ -1,0 +1,21 @@
+name: APP V11 transaction field layout candidate (NO DEPLOY)
+on:
+  pull_request:
+    paths:
+      - 'app.html'
+      - 'js/mmhvault-transaction-field-layout-v11.js'
+      - 'tests/app-v11-transaction-field-layout.test.mjs'
+      - '.github/workflows/app-v11-transaction-field-layout.yml'
+  workflow_dispatch:
+jobs:
+  layout:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: No-deploy transaction preferences regression
+        run: node --test tests/app-v11-transaction-field-layout.test.mjs tests/account-auto-fx-v1.test.mjs
