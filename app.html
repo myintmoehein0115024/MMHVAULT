@@ -12900,7 +12900,9 @@ function mmhvaultFinishAuthBootV3285(session){
   mmhvaultAuthBootSettledV3285=true;
   if(mmhvaultAuthBootTimerV3285)clearTimeout(mmhvaultAuthBootTimerV3285);
   if(session){
-    Promise.resolve().then(async()=>{
+    // Avoid calling Auth APIs until the INITIAL_SESSION observer has returned.
+    setTimeout(()=>{
+      Promise.resolve().then(async()=>{
       const {data:verified,error:verifyError}=await db.auth.getUser();
       if(verifyError||!verified?.user?.id||verified.user.id!==session.user?.id)
         throw verifyError||new Error('initial_auth_session_mismatch');
@@ -12909,7 +12911,8 @@ function mmhvaultFinishAuthBootV3285(session){
       console.error('MMHVAULT app startup failed',err);
       const g=document.getElementById('mmhvaultAppBootGuardV3282');
       if(g)g.innerHTML='<div style="max-width:480px;border:1px solid rgba(255,112,112,.28);border-radius:18px;padding:24px 22px;background:rgba(42,16,32,.94);font-family:Arial,sans-serif;text-align:center;"><div style="font-size:18px;font-weight:800;color:#fff;">MMHVAULT could not finish starting</div><div style="margin-top:8px;color:#ffb7b7;font-size:13px;line-height:1.5;">The app loaded, but one startup component failed. Your cloud data has not been changed.</div><button type="button" style="margin-top:16px;padding:10px 16px;border-radius:10px;border:1px solid rgba(90,190,255,.35);background:#102a49;color:#fff;font-weight:700;cursor:pointer;" onclick="location.reload()">Refresh</button></div>';
-    });
+      });
+    },0);
   }else{
     location.replace('index.html');
   }
@@ -12943,6 +12946,8 @@ function mmhP947GuardV947(phase='switch'){
 }
 function mmhP947UnlockV947(){const layer=document.getElementById('mmhP947AccountGuard');if(layer){layer.hidden=true;layer.style.display='none';}}
 let mmhvaultAuthRedirectingV1239=false;
+// Keep the callback synchronous; all subsequent Auth RPCs run in a macrotask.
+// Masking and ticket invalidation above remain immediate.
 db.auth.onAuthStateChange((event,session)=>{
   if(event==='INITIAL_SESSION'){mmhvaultFinishAuthBootV3285(session);return;}
   if(session?.user?.id){
@@ -12953,8 +12958,10 @@ db.auth.onAuthStateChange((event,session)=>{
       ++mmhP947AuthGateTicket;
       // Lock synchronously: Reacting in a later microtask leaves the old DOM visible.
       mmhP947GuardV947('switch');
-      Promise.resolve().then(()=>window.mmhVaultSwitchSessionV1239(session))
-        .catch(err=>{console.error('MMHVAULT account switch failed',err);mmhP947GuardV947('error');});
+      setTimeout(()=>{
+        Promise.resolve().then(()=>window.mmhVaultSwitchSessionV1239(session))
+          .catch(err=>{console.error('MMHVAULT account switch failed',err);mmhP947GuardV947('error');});
+      },0);
       return;
     }
     if(liveOwner===nextOwner){
@@ -12965,7 +12972,8 @@ db.auth.onAuthStateChange((event,session)=>{
       // Lock synchronously and invalidate older work before rechecking this session.
       const authTicket=++mmhP947AuthGateTicket;
       mmhP947GuardV947('switch');
-      Promise.resolve().then(async()=>{
+      setTimeout(()=>{
+        Promise.resolve().then(async()=>{
         const pending=mmhVaultSessionCheckPromiseV1239;
         if(pending){try{await pending;}catch(_e){}}
         if(authTicket!==mmhP947AuthGateTicket||currentSessionUser?.id!==nextOwner)return;
@@ -12974,27 +12982,32 @@ db.auth.onAuthStateChange((event,session)=>{
         if(result?.ok!==true&&!result?.superseded)mmhP947GuardV947('error');
       }).catch(err=>{
         if(authTicket===mmhP947AuthGateTicket){console.warn('Session assurance refresh failed',err);mmhP947GuardV947('error');}
-      });
+        });
+      },0);
       return;
     }
     if(mmhvaultAuthBootSettledV3285){
       // A newly restored owner also invalidates previous ownerless boot requests.
       ++mmhP947AuthGateTicket;
       mmhP947GuardV947('switch');
-      Promise.resolve().then(()=>window.mmhVaultSwitchSessionV1239(session))
-        .catch(err=>{console.error('MMHVAULT session resume failed',err);mmhP947GuardV947('error');});
+      setTimeout(()=>{
+        Promise.resolve().then(()=>window.mmhVaultSwitchSessionV1239(session))
+          .catch(err=>{console.error('MMHVAULT session resume failed',err);mmhP947GuardV947('error');});
+      },0);
     }
     return;
   }
   if(mmhvaultAuthRedirectingV1239)return;
   mmhvaultAuthRedirectingV1239=true;
   ++mmhP947AuthGateTicket;mmhP947GuardV947('switch');
-  Promise.resolve().then(()=>{
+  setTimeout(()=>{
+    Promise.resolve().then(()=>{
     if(typeof window.mmhVaultSignOutCleanupV1239==='function')return window.mmhVaultSignOutCleanupV1239('auth-signed-out');
     try{applyUserProfile(null);}catch(_e){}
     sessionStorage.removeItem('myfinance_page');
     location.replace('login.html');
-  });
+    });
+  },0);
 });
 mmhvaultAuthBootTimerV3285=setTimeout(()=>{
   if(mmhvaultAuthBootSettledV3285)return;

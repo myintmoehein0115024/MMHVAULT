@@ -29,6 +29,9 @@ const cases=[
 ];
 for(const [input,expected] of cases)assert.equal(decision(input),expected,'Fail-closed AAL table');
 
+const boot=extract('function mmhvaultFinishAuthBootV3285(session){','/* P9.47:');
+assert.ok(boot.includes('setTimeout(()=>{'),'INITIAL_SESSION Auth RPC must leave the observer before running');
+
 const enter=extract('async function enter(session){','async function copyCustomerIdV375(){');
 assert.ok(enter.includes('await db.auth.mfa.getAuthenticatorAssuranceLevel()'));
 assert.ok(enter.includes('mmhN10AalDecisionV20261102(a783.data)'));
@@ -194,9 +197,11 @@ for(const invalid of [null,{}, {currentLevel:undefined,nextLevel:'aal1'},{curren
 {
   let callback;
   const record={guards:[],rechecks:0,profile:0};
+  const scheduled=[];
   const authSource=auth;
   const ctx={
     Promise,console:{warn(){}},
+    setTimeout:(work,ms)=>{assert.equal(ms,0);scheduled.push(work);return scheduled.length;},
     db:{auth:{onAuthStateChange:cb=>{callback=cb;}}},
     currentSessionUser:{id:'synthetic-owner'},
     mmhP947AuthGateTicket:0,
@@ -216,6 +221,8 @@ for(const invalid of [null,{}, {currentLevel:undefined,nextLevel:'aal1'},{curren
   callback('TOKEN_REFRESHED',{user:{id:'synthetic-owner'}});
   assert.deepEqual(record.guards,['switch'],'Same-owner refresh must synchronously mask');
   assert.equal(record.profile,0,'Do not repaint profile as proof of MFA assurance');
+  assert.equal(record.rechecks,0,'Auth RPCs must not run in the observer callback');
+  while(scheduled.length)scheduled.shift()();
   await flush();
   assert.equal(record.rechecks,1,'Same-owner refresh must actually re-evaluate session');
   const pending=deferred();
@@ -223,6 +230,7 @@ for(const invalid of [null,{}, {currentLevel:undefined,nextLevel:'aal1'},{curren
   callback('TOKEN_REFRESHED',{user:{id:'synthetic-owner'}});
   callback('SIGNED_IN',{user:{id:'synthetic-owner'}});
   pending.resolve({ok:true});
+  while(scheduled.length)scheduled.shift()();
   await flush();
   assert.equal(record.rechecks,2,'Obsolete concurrent refresh must not trigger redundant recheck');
   assert.equal(record.guards.filter(x=>x==='switch').length,3,'Each auth transition must mask synchronously');
@@ -433,10 +441,12 @@ console.log('PASS: synthetic app entry for normal/legacy AAL, invalid users, fac
   // not wait until the queued switch function starts in a microtask.
   let callback;
   const guards=[],switches=[];
+  const scheduled=[];
   let owner={id:'synthetic-owner-a'};
   const ctx={
     Promise,
     console:{warn(){}},
+    setTimeout:(work,ms)=>{assert.equal(ms,0);scheduled.push(work);return scheduled.length;},
     currentSessionUser:owner,
     mmhP947AuthGateTicket:7,
     mmhvaultAuthBootSettledV3285:true,
@@ -458,12 +468,14 @@ console.log('PASS: synthetic app entry for normal/legacy AAL, invalid users, fac
   assert.equal(ctx.mmhP947AuthGateTicket,8,'Switch invalidates prior verification before first microtask');
   assert.deepEqual(guards,['switch'],'Switch must cover private DOM immediately');
   assert.deepEqual(switches,[],'Switch is scheduled asynchronously');
+  while(scheduled.length)scheduled.shift()();
   await flush();
   assert.deepEqual(switches,['synthetic-owner-b'],'Switch eventually runs with new owner');
   ctx.currentSessionUser=null;
   callback('SIGNED_IN',{user:{id:'synthetic-owner-c'}});
   assert.equal(ctx.mmhP947AuthGateTicket,9,'Ownerless resume invalidates old checks immediately');
   assert.deepEqual(guards,['switch','switch'],'Ownerless resume masks pending data immediately');
+  while(scheduled.length)scheduled.shift()();
   await flush();
   assert.deepEqual(switches,['synthetic-owner-b','synthetic-owner-c']);
 }
