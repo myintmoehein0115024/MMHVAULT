@@ -43,7 +43,7 @@
   html.mm-motion-active body.l131 .mm-reveal:not(.mm-shown) {
     transform: translate3d(0, var(--mm-shift, 11px), 0);
   }
-  html.mm-motion-active body.l131 .mm-reveal {
+  html.mm-motion-active body.l131 .mm-reveal:not([hidden]) {
     transition-duration: 410ms,440ms;
     transition-delay: min(var(--mm-delay, 0ms), 45ms);
   }
