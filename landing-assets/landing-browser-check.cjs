@@ -154,6 +154,98 @@ async function load(page,route,failures){
      await ctx.close();
    }
 
+   // L1.25 — emulate slow image decoding independently of network speed.
+   // The HTML mockup must remain on screen until decoded pixels are ready,
+   // even when image.complete and naturalWidth already indicate download.
+   for(const width of [320,393,768,1440]){
+     const ctx=await browser.newContext({
+       viewport:{width,height:852},reducedMotion:'reduce',
+       isMobile:width<=393,hasTouch:width<=393
+     });
+     const page=await ctx.newPage();
+     const errors=[];
+     page.on('pageerror',e=>errors.push(e.message));
+     await page.addInitScript(()=>{
+       const nativeDecode=HTMLImageElement.prototype.decode;
+       window.__mmhHeroDecodeTest={calls:0,release:null};
+       HTMLImageElement.prototype.decode=function(){
+         if(!this.classList.contains('hero-device-cinematic'))
+           return nativeDecode.call(this);
+         window.__mmhHeroDecodeTest.calls+=1;
+         return nativeDecode.call(this).then(()=>new Promise(resolve=>{
+           window.__mmhHeroDecodeTest.release=resolve;
+         }));
+       };
+     });
+     await load(page,'/',errors);
+     await page.waitForFunction(()=>typeof window.__mmhHeroDecodeTest?.release==='function',
+       {timeout:15000});
+     const held=await page.evaluate(()=>{
+       const image=document.querySelector('.hero-device-cinematic');
+       const art=image.closest('.hero-art');
+       return {
+         complete:image.complete,naturalWidth:image.naturalWidth,
+         decoded:art.classList.contains('is-photo-ready'),
+         calls:window.__mmhHeroDecodeTest.calls,
+         fallbackVisible:getComputedStyle(art.querySelector('.desktop-frame')).display!=='none',
+         x:scrollX
+       };
+     });
+     ensure(held.complete&&held.naturalWidth>0&&!held.decoded&&
+       held.calls===1&&held.fallbackVisible&&held.x===0,
+       width+'px Hero keeps original mockup until photo decode '+JSON.stringify(held));
+     const scroll=await page.evaluate(()=>{
+       window.scrollTo({top:Math.min(180,Math.max(0,document.documentElement.scrollHeight-innerHeight)),
+         behavior:'instant'});
+       return {x:scrollX,y:scrollY};
+     });
+     await page.evaluate(()=>window.__mmhHeroDecodeTest.release());
+     await page.waitForFunction(()=>
+       document.querySelector('.hero-art')?.classList.contains('is-photo-ready'));
+     const after=await page.evaluate(()=>({x:scrollX,y:scrollY,
+       decoded:document.querySelector('.hero-art').classList.contains('is-photo-ready')}));
+     ensure(after.decoded&&after.x===0&&Math.abs(after.y-scroll.y)<=2,
+       width+'px decoded Hero reveals without horizontal or vertical scroll jump '+
+       JSON.stringify({before:scroll,after}));
+     ensure(errors.length===0,width+'px slow decoding has no JS exceptions');
+     await ctx.close();
+   }
+   // A genuine decode failure must leave accessible HTML in place rather
+   // than dismissing the fallback and showing an empty Hero.
+   {
+     const ctx=await browser.newContext({
+       viewport:{width:393,height:852},reducedMotion:'reduce',isMobile:true,hasTouch:true
+     });
+     const page=await ctx.newPage();
+     const errors=[];
+     page.on('pageerror',e=>errors.push(e.message));
+     await page.addInitScript(()=>{
+       const nativeDecode=HTMLImageElement.prototype.decode;
+       window.__mmhFailedDecodeCalls=0;
+       HTMLImageElement.prototype.decode=function(){
+         if(!this.classList.contains('hero-device-cinematic'))
+           return nativeDecode.call(this);
+         window.__mmhFailedDecodeCalls++;
+         return Promise.reject(new DOMException('simulated failed decode','EncodingError'));
+       };
+     });
+     await load(page,'/',errors);
+     await page.waitForFunction(()=>window.__mmhFailedDecodeCalls>0);
+     const fallback=await page.evaluate(()=>{
+       const art=document.querySelector('.hero-art');
+       return {
+         decoded:art.classList.contains('is-photo-ready'),
+         hasFallback:!!art.querySelector('.desktop-frame'),
+         fallbackVisible:getComputedStyle(art.querySelector('.desktop-frame')).display!=='none',
+         calls:window.__mmhFailedDecodeCalls
+       };
+     });
+     ensure(!fallback.decoded&&fallback.hasFallback&&fallback.fallbackVisible&&
+       fallback.calls===1&&errors.length===0,
+       '393px failed image decode keeps HTML device demo '+JSON.stringify(fallback));
+     await ctx.close();
+   }
+
    for(const width of widths){
      const ctx=await browser.newContext({
        viewport:{width,height:852},deviceScaleFactor:1,
