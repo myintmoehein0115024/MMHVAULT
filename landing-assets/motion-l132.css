@@ -9,7 +9,8 @@
     scroll-behavior: smooth;
     scroll-padding-top: clamp(78px, 8vw, 112px);
   }
-  html.mm-motion-active body.l131 .mm-reveal {
+  /* Visible reveal targets take priority over generic card hover timing. */
+  html.mm-motion-active body.l131 .mm-reveal:not([hidden]) {
     transition:
       opacity 550ms cubic-bezier(.2,.75,.17,1),
       transform 590ms cubic-bezier(.18,.79,.19,1);
