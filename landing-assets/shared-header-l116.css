@@ -249,7 +249,7 @@ body.mmh-nav-unified .site-header :is(a,button,summary):focus-visible{
   }
   body.mmh-nav-unified .site-header.menu-open #primary-nav{display:flex}
   body.mmh-nav-unified .site-header #primary-nav>a{
-    display:flex;width:100%;min-height:45px;justify-content:flex-start;
+    display:flex!important;width:100%;min-height:45px;justify-content:flex-start;
     padding:10px 15px;font-size:13px;border-radius:9px
   }
   body.mmh-nav-unified .site-header #primary-nav>a[aria-current]::after{
