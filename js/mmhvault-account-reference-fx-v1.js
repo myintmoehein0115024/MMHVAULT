@@ -13,6 +13,7 @@
   let market = null;
   let inFlight = null;
   let attemptedAt = 0;
+  let lastFetchSucceeded = false;
   let bootTimer = 0;
   const now = () => Date.now();
   const num = value => {
@@ -102,7 +103,7 @@
     const next = market ? Number(market.time_next_update_unix) * 1000 : 0;
     if (!force && usable && now() < next) return true;
     if (inFlight) return inFlight;
-    if (!force && attemptedAt && now() - attemptedAt < 3600000) return !!usable;
+    if (!force && attemptedAt && now() - attemptedAt < (lastFetchSucceeded ? 3600000 : 60000)) return !!usable;
 
     attemptedAt = now();
     const aborter = new AbortController();
@@ -114,10 +115,12 @@
         const data = await response.json();
         if (!valid(data)) throw new Error('Invalid reference FX response');
         market = data;
+        lastFetchSucceeded = true;
         try { localStorage.setItem(KEY, JSON.stringify(data)); } catch (_) {}
         refreshDisplays();
         return needed.every(c => getRate(c) !== null);
       } catch (e) {
+        lastFetchSucceeded = false;
         console.warn('[MMHVAULT] Reference FX unavailable; existing accounting data unchanged.', e);
         return !!usable;
       } finally {
@@ -136,6 +139,11 @@
   market = readSharedCache();
   window.MMHAccountReferenceFXV1 = { getRate, info, ensure, refreshFromCache };
   window.addEventListener('mmhvault:data-loaded', schedule);
+  // A newly entered transaction can turn a zero-balance account into a
+  // currency that now requires conversion. Re-evaluate after each data sync
+  // without changing any historical amounts or account metadata.
+  window.addEventListener('mmhvault:data-change', schedule);
+  window.addEventListener('mmhvault:sync-complete', schedule);
   window.addEventListener('mmhvault:config-cloud-synced', schedule);
   window.addEventListener('mmhvault:config-owner-changed', schedule);
   window.addEventListener('mmhvault:asia-rates-updated', refreshFromCache);
