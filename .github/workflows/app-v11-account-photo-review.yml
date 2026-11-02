@@ -1,0 +1,27 @@
+name: APP V11 private account photo review
+on:
+  push:
+    branches:
+      - feature/app-v11-account-photo-cloud-20261102
+  pull_request:
+    paths:
+      - app.html
+      - js/mmhvault-account-photo-cloud-v11.js
+      - docs/sql/app-v11-account-images-PRIVATE-REVIEW-ONLY.sql
+      - tests/app-v11-account-photo-cloud.test.mjs
+      - .github/workflows/app-v11-account-photo-review.yml
+permissions:
+  contents: read
+jobs:
+  private-account-photo-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check private account photo persistence and RLS contract
+        run: node --test tests/app-v11-account-photo-cloud.test.mjs
+      - name: Check finance/currency regression
+        run: node --test tests/data-integrity-v1.test.mjs tests/account-auto-fx-v1.test.mjs tests/account-fx-events-v11.test.mjs
