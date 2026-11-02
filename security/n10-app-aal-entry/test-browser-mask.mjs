@@ -135,7 +135,19 @@ async function exercise(browserType,viewport){
       window.__synthetic.delayUser=false;
       window.__synthetic.resolveUser({data:{user:{id:'synthetic-owner'}},error:null});
     });
-    await page.waitForFunction(()=>document.querySelector('#mmhP947AccountGuard')?.hidden===true);
+    await page.waitForFunction(()=>document.querySelector('#mmhP947AccountGuard')?.hidden===true,null,{timeout:6500}).catch(async err=>{
+      const diagnostic=await page.evaluate(()=>({
+        guard:{hidden:document.querySelector('#mmhP947AccountGuard')?.hidden,title:document.querySelector('#mmhP947AccountGuardTitle')?.textContent},
+        synthetic:{cloudLoads:window.__synthetic.cloudLoads,profileRefreshes:window.__synthetic.profileRefreshes,delayUser:window.__synthetic.delayUser},
+        owner:window.currentSessionUser?.id,
+        gateTicket:eval('mmhP947AuthGateTicket'),
+        sessionPending:!!eval('mmhVaultSessionCheckPromiseV1239'),
+        sessionEpoch:window.__mmhSessionEpochV1239,
+        cloudAt:window.__mmhLastCloudLoadAtV1235
+      }));
+      console.error('BFCache synthetic diagnostic:',JSON.stringify(diagnostic));
+      throw err;
+    });
     completed++;
     // A restored page with invalid AAL must never unlock.
     await reset();
