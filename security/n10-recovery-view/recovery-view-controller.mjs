@@ -8,7 +8,7 @@
 const GOOD_WORD = /^[a-z]{2,13}$/;
 const WORD_COUNT = 10;
 const MAX_VIEW_MS = 45_000;
-const VALID_STATES = new Set(['ready', 'loading', 'locked', 'visible', 'unavailable', 'login_required', 'mfa_required', 'password_required', 'not_recoverable']);
+const VALID_STATES = new Set(['ready', 'loading', 'locked', 'visible', 'unavailable', 'login_required', 'mfa_required', 'password_required', 'not_recoverable', 'rate_limited', 'not_supported']);
 
 export function validOriginalWords(words) {
   return Array.isArray(words) && words.length === WORD_COUNT && words.every(w => typeof w === 'string' && GOOD_WORD.test(w));
@@ -22,6 +22,8 @@ export function recoveryViewMessage(code, language = 'en') {
     mfa_required: ['Complete your authenticator verification first.', '请先完成二次身份验证。', 'ဒုတိယအဆင့် အတည်ပြုမှုကို အရင်ပြီးစီးစေပါ။'],
     not_recoverable: ['The original words were never encrypted for viewing and cannot be reconstructed. Your existing key is unchanged.', '原始十词当时没有加密保存，无法重新还原；现有密钥保持不变。', 'မူရင်းစကားလုံးများကို သိမ်းဆည်းထားခြင်းမရှိ၍ ပြန်လည်ဖော်ထုတ်မရပါ။ ယခင်သော့ မပြောင်းလဲပါ။'],
     unavailable: ['Recovery viewing is temporarily unavailable. No recovery key was changed.', '暂时无法查看恢复词，原密钥没有变化。', 'ယာယီကြည့်ရှုမရနိုင်ပါ။ ပြန်လည်ရယူရေးသော့ မပြောင်းလဲပါ။'],
+    rate_limited: ['Too many attempts. Please try again later; your Recovery Key is unchanged.', '验证次数过多，请稍后再试；原始恢复密钥没有变化。', 'အကြိမ်များစွာ ကြိုးစားခဲ့သဖြင့် နောက်မှ ပြန်ကြိုးစားပါ။ မူရင်းသော့ မပြောင်းလဲပါ။'],
+    not_supported: ['This login method has no username-only Recovery Key.', '此登录方式没有独立用户名恢复密钥。', 'ဤဝင်ရောက်မှုနည်းလမ်းတွင် သီးသန့်အသုံးပြုသူအမည် ပြန်လည်ရယူရေးသော့ မရှိပါ။'],
     locked: ['The original words are hidden.', '原始恢复词已隐藏。', 'မူရင်းစကားလုံးများကို ဖျောက်ထားသည်။'],
   };
   const row = phrases[code] || phrases.unavailable;
@@ -109,6 +111,8 @@ function serverBlock(code) {
   if (code === 'mfa_required') return 'mfa_required';
   if (code === 'sign_in_required' || code === 'session_expired') return 'login_required';
   if (code === 'invalid_credentials') return 'password_required';
+  if (code === 'too_many_attempts') return 'rate_limited';
+  if (code === 'username_only_required') return 'not_supported';
   if (code === 'backup_not_ready') return 'not_recoverable';
   return 'unavailable';
 }
