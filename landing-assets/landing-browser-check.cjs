@@ -417,7 +417,7 @@ async function load(page,route,failures){
                storyFontSize:parseFloat(h3.fontSize),horizontalScroll:scrollX};
            });
          ensure(typography.names.length===6&&typography.names.every(m=>
-           m.font.includes('Noto Sans Myanmar')&&m.letterSpacing==='normal'&&
+           m.font.includes('Noto Sans Myanmar')&&['normal','0px'].includes(m.letterSpacing)&&
            m.lineHeight/m.fontSize>=1.75&&m.overflowWrap==='anywhere'&&
            m.wordBreak==='normal'&&m.fits&&m.textFits&&
            (width>620||m.minHeight>=75))&&
