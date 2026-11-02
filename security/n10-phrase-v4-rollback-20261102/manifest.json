@@ -1,0 +1,17 @@
+{
+  "name": "N10 phrase verifier exact rollback source",
+  "environment": "production",
+  "project_id": "vrypucmyrztxgiqhjspd",
+  "slug": "mmh-n10a783-phrase-verify",
+  "version": 4,
+  "status": "ACTIVE",
+  "verify_jwt": false,
+  "fingerprint": "bf46fc4db6496d41fba9b4828a96f4342f8315d704e6e1ea39da24960737360d",
+  "files": [
+    "security/n10-phrase-v4-rollback-20261102/index.ts",
+    "security/n10-phrase-v4-rollback-20261102/mfa-assurance.mjs"
+  ],
+  "contains_env_secret_values": false,
+  "read_only_capture": true,
+  "release_decision": "NOT DEPLOYED"
+}
