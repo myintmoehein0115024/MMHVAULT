@@ -17,7 +17,8 @@ const guard=cut('function mmhP947GuardV947(','let mmhvaultAuthRedirectingV1239=f
 const decision=cut('function mmhN10AalDecisionV20261102(data){','let activeEnterUserId=""');
 const reconcile=cut('async function mmhVaultReconcileSessionV1239(','window.mmhVaultHandleOnlineV1239=');
 const auth=cut('db.auth.onAuthStateChange((event,session)=>{','mmhvaultAuthBootTimerV3285=setTimeout(');
-const pageSource='let mmhP947AuthGateTicket=0;let mmhVaultSessionCheckPromiseV1239=null;let mmhvaultAuthRedirectingV1239=false;\n'+guard+decision+reconcile+auth;
+const resume=cut('function mmhVaultResumeLifecycleV1239(','function currency(a){');
+const pageSource='let mmhP947AuthGateTicket=0;let mmhVaultSessionCheckPromiseV1239=null;let mmhvaultAuthRedirectingV1239=false;let mmhVaultLastSessionCheckV1239=0;\n'+guard+decision+reconcile+resume+auth;
 const shell='<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head><body style="margin:0;background:#122;color:white;font:18px system-ui"><main id="private-data" style="margin:100px auto;padding:30px;width:60%;background:#355">SYNTHETIC PRIVATE FINANCE CONTENT — NOT REAL USER DATA</main></body></html>';
 const server=createServer((req,res)=>{
   res.setHeader('Content-Type','text/html;charset=utf-8');
@@ -48,8 +49,8 @@ function setupSynthetic(){
      listFactors:async()=>({data:{all:[]},error:null})
    }
  }};
- window.mmhVaultSwitchSessionV1239=async()=>{throw Error('Unexpected account switch');};
- window.mmhVaultSignOutCleanupV1239=()=>{throw Error('Unexpected signout cleanup');};
+ window.mmhVaultSwitchSessionV1239=async()=>({ok:false}); // Synthetic: stay masked, no account B data loaded.
+ window.mmhVaultSignOutCleanupV1239=()=>location.replace('login.html');
 }
 let completed=0;
 async function exercise(browserType,viewport){
@@ -118,6 +119,48 @@ async function exercise(browserType,viewport){
     await page.waitForURL(/login\.html\?mfa=1$/);
     assert.equal(await page.locator('#private-data').count(),0,'Login challenge must not contain private workspace');
     completed++;
+    // Safari BFCache restore: mask immediately before any server response.
+    await reset();
+    await page.evaluate(()=>{
+      window.__synthetic.delayUser=true;
+      window.dispatchEvent(new PageTransitionEvent('pageshow',{persisted:true}));
+    });
+    const bfcacheMasked=await page.evaluate(()=>{
+      const g=document.querySelector('#mmhP947AccountGuard'),box=document.querySelector('#private-data').getBoundingClientRect();
+      return !!g&&!g.hidden&&g.contains(document.elementFromPoint(box.x+box.width/2,box.y+box.height/2));
+    });
+    assert.equal(bfcacheMasked,true,'BFCache restore must mask old financial DOM synchronously');
+    await page.waitForFunction(()=>!!window.__synthetic.resolveUser);
+    await page.evaluate(()=>{
+      window.__synthetic.delayUser=false;
+      window.__synthetic.resolveUser({data:{user:{id:'synthetic-owner'}},error:null});
+    });
+    await page.waitForFunction(()=>document.querySelector('#mmhP947AccountGuard')?.hidden===true);
+    completed++;
+    // A restored page with invalid AAL must never unlock.
+    await reset();
+    await page.evaluate(()=>{
+      window.__synthetic.aal={currentLevel:'invalid',nextLevel:'aal1'};
+      window.dispatchEvent(new PageTransitionEvent('pageshow',{persisted:true}));
+    });
+    await page.waitForFunction(()=>document.querySelector('#mmhP947AccountGuardTitle')?.textContent==='Sign-in verification failed');
+    assert.equal(await page.evaluate(()=>document.querySelector('#mmhP947AccountGuard')?.hidden),false);
+    completed++;
+    // Switch A to B: no previously rendered A data can become the click target.
+    await reset();
+    await page.evaluate(()=>window.__authCallback('SIGNED_IN',{user:{id:'synthetic-new-owner'}}));
+    const switchedMasked=await page.evaluate(()=>{
+      const g=document.querySelector('#mmhP947AccountGuard'),box=document.querySelector('#private-data').getBoundingClientRect();
+      return !!g&&!g.hidden&&g.contains(document.elementFromPoint(box.x+box.width/2,box.y+box.height/2));
+    });
+    assert.equal(switchedMasked,true,'Switching identity must synchronously mask the old finance workspace');
+    completed++;
+    // Sign-out always covers old content until navigation completes.
+    await reset();
+    await page.evaluate(()=>window.__authCallback('SIGNED_OUT',null));
+    await page.waitForURL(/login\.html$/);
+    assert.equal(await page.locator('#private-data').count(),0,'Signed-out page must not contain financial data');
+    completed++;
     assert.deepEqual(errors,[],browserType.name()+' browser script errors');
     await context.close();
   }finally{await browser.close();}
@@ -129,6 +172,6 @@ try{
       console.log('PASS '+name+' '+label+' synthetic overlay, valid AAL, error, offline and MFA transition');
     }
   }
-  assert.equal(completed,16);
-  console.log('PASS: 16 browser scenarios across Chromium/WebKit desktop+mobile (synthetic fixtures only).');
+  assert.equal(completed,32);
+  console.log('PASS: 32 browser scenarios across Chromium/WebKit desktop+mobile (synthetic fixtures only).');
 }finally{await new Promise(resolve=>server.close(resolve));}
