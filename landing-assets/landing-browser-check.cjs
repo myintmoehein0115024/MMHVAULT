@@ -269,6 +269,24 @@ async function load(page,route,failures){
        ensure(await page.locator('h1').count()===1,route+' '+width+'px has one H1');
        ensure(await page.locator('link[rel="canonical"]').count()===1,
          route+' '+width+'px canonical unique');
+       // L1.17 — neither Chinese nor Burmese should be simultaneously
+       // rendered in the highlighted bottom summary of an English page.
+       // One live paragraph must track the user-selected locale.
+       const localized=['/features/','/register/'].includes(route);
+       const localizedBlock=page.locator('.lang-summary-localized');
+       if(localized){
+         ensure(await localizedBlock.count()===1 &&
+           await localizedBlock.locator('p').count()===1 &&
+           await localizedBlock.locator('p[lang]').count()===0,
+           route+' '+width+'px only one language paragraph exists');
+         const p=localizedBlock.locator('p');
+         ensure((await p.textContent()).trim()===(await p.getAttribute('data-en')) &&
+           await p.isVisible(),
+           route+' '+width+'px default summary is English only');
+       }else{
+         ensure(await page.locator('.lang-summary').count()===0,
+           route+' has no static bilingual summary');
+       }
        if(route==='/business/'){
          ensure(await page.locator('body.business-page').count()===1,
            route+' dedicated concept page, not private business.html');
@@ -376,11 +394,23 @@ async function load(page,route,failures){
          await page.locator('#locale-menu button[data-lang="zh"]').click();
          ensure(await localeName.textContent()==='中文' && await page.locator('h1').isVisible(),
            route+' Chinese language updates menu and title');
+         if(localized){
+           const p=localizedBlock.locator('p');
+           ensure((await p.textContent()).trim()===(await p.getAttribute('data-zh')) &&
+             await localizedBlock.locator('p').count()===1,
+             route+' '+width+'px Chinese selection displays Chinese statement only');
+         }
          ensure(await trigger.getAttribute('aria-expanded')==='false',route+' language menu closes on selection');
          await trigger.click();
          await page.locator('#locale-menu button[data-lang="my"]').click();
          ensure(await localeName.textContent()==='မြန်မာ' && await page.locator('h1').isVisible(),
            route+' Burmese language updates menu and title');
+         if(localized){
+           const p=localizedBlock.locator('p');
+           ensure((await p.textContent()).trim()===(await p.getAttribute('data-my')) &&
+             await localizedBlock.locator('p').count()===1,
+             route+' '+width+'px Burmese selection displays Burmese statement only');
+         }
          const localeOverflow=await page.evaluate(()=>{
            const previousY=scrollY;
            scrollTo({left:900,top:previousY,behavior:'instant'});
@@ -410,6 +440,16 @@ async function load(page,route,failures){
          await page.reload({waitUntil:'load'});
          ensure(await page.locator('.locale-active-name').textContent()==='မြန်မာ',
            route+' language preference persists across reload at '+width);
+         if(localized){
+           const p=page.locator('.lang-summary-localized>p');
+           ensure((await p.textContent()).trim()===(await p.getAttribute('data-my')),
+             route+' '+width+'px selected Burmese summary remains after reload');
+           await page.locator('#locale-trigger').click();
+           await page.locator('#locale-menu button[data-lang="en"]').click();
+           ensure((await p.textContent()).trim()===(await p.getAttribute('data-en')) &&
+             await page.locator('.lang-summary-localized>p').count()===1,
+             route+' '+width+'px switched back to one English statement');
+         }
        }
        await ctx.close();
      }
