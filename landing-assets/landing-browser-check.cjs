@@ -174,7 +174,7 @@ async function load(page,route,failures){
            scrollWidth:el.scrollWidth,clientWidth:el.clientWidth
          }}));
        ensure(ctas.length===2&&ctas.every(x=>
-         x.height>=47&&x.width>95&&x.left>=-2&&x.right<=innerWidth+2&&
+         x.height>=47&&x.width>95&&x.left>=-2&&x.right<=width+2&&
          x.scrollWidth<=x.clientWidth+3),
          width+'px Landing CTAs fit and retain 48px touch targets '+JSON.stringify(ctas));
      }
