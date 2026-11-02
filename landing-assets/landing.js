@@ -832,7 +832,7 @@
     const focusedInside = localeMenu.contains(document.activeElement);
     localeMenu.hidden = true;
     localeTrigger.setAttribute('aria-expanded', 'false');
-    if (focusedInside) localeTrigger.focus();
+    if (focusedInside) localeTrigger.focus({preventScroll:true});
   }
   function toggleLanguage() {
     const willOpen = localeMenu.hidden;
@@ -841,20 +841,20 @@
     localeTrigger.setAttribute('aria-expanded', String(willOpen));
     if (willOpen) {
       const active = languageButtons.find(button => button.dataset.lang === currentLang);
-      if (active) active.focus();
+      if (active) active.focus({preventScroll:true});
     }
   }
   languageButtons.forEach(button => button.addEventListener('click', () => {
     applyLanguage(button.dataset.lang);
     closeLanguage();
-    localeTrigger.focus();
+    localeTrigger.focus({preventScroll:true});
   }));
   localeTrigger.addEventListener('click', toggleLanguage);
   localeTrigger.addEventListener('keydown', event => {
     if (event.key === 'ArrowDown') {
       event.preventDefault();
       if (localeMenu.hidden) toggleLanguage();
-      else languageButtons[0].focus();
+      else languageButtons[0].focus({preventScroll:true});
     }
   });
   localeMenu.addEventListener('keydown', event => {
@@ -862,7 +862,7 @@
       event.preventDefault();
       const index = languageButtons.indexOf(document.activeElement);
       const next = (index + (event.key === 'ArrowDown' ? 1 : -1) + languageButtons.length) % languageButtons.length;
-      languageButtons[next].focus();
+      languageButtons[next].focus({preventScroll:true});
     }
   });
   toggle.addEventListener('click', () => {
@@ -882,7 +882,7 @@
     if (event.key !== 'Escape') return;
     if (!localeMenu.hidden) {
       closeLanguage();
-      localeTrigger.focus();
+      localeTrigger.focus({preventScroll:true});
       event.preventDefault();
       return;
     }
