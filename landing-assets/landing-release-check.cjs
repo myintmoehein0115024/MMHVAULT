@@ -391,8 +391,7 @@ check('Homepage retains all prior content and SEO outside shared header layer',
  ['en','zh','my'].every(lang=>translationScript.includes('Object.assign(strings.'+lang+', {\n    navExplore:')) &&
  current.includes('<body id="top" class="l131 mmh-nav-unified">') &&
  current.includes('<link rel="stylesheet" href="./landing-assets/shared-header-l116.css?v=1">') &&
- current.replace('l131 mmh-nav-unified','l131')
-   .replace('  <link rel="stylesheet" href="./landing-assets/shared-header-l116.css?v=1">\n','')===prev &&
+ current===prev &&
  source('landing-assets/landing.js')===translationScript &&
  source('landing-assets/explore-l114.css')===read('landing-assets/explore-l114.css'));
 const publicHeaders=['about/index.html','features/index.html','business/index.html',
