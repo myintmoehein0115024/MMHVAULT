@@ -451,14 +451,30 @@ check('Public features and register show exactly one localized statement per sel
    .every(path=>!read(path).includes('class="lang-summary"')) &&
  read('landing-assets/public-pages.css').includes('.public-landing-page .lang-summary-localized{') &&
  read('landing-assets/public-pages.js').includes("document.querySelectorAll('[data-en][data-zh][data-my]')"));
-check('L1.17 modifies only the two affected intros, scoped CSS and QA',
- actual.length===5 &&
- actual.every(path=>['features/index.html','register/index.html',
-   'landing-assets/public-pages.css','landing-assets/landing-release-check.cjs',
-   'landing-assets/landing-browser-check.cjs'].includes(path)) &&
- source('index.html')===current &&
- source('landing-assets/public-pages.js')===read('landing-assets/public-pages.js') &&
- source('landing-assets/shared-header-l116.css')===sharedCss);
+check('L1.18 subtle surfaces and public motion remain scoped and accessible',
+  read('landing-assets/premium-l131.css').includes('L1.18 — restrained warm-gold') &&
+  read('landing-assets/public-pages.css').includes('L1.18 — quiet, consistent') &&
+  read('landing-assets/public-pages.css').includes('@media(prefers-reduced-motion:reduce)') &&
+  read('landing-assets/public-pages.css').includes('body.public-landing-page.mm-public-motion .mm-public-reveal:not(.mm-public-shown)') &&
+  read('landing-assets/public-pages.js').includes('L1.18 — progressive, one-shot reveals') &&
+  read('landing-assets/public-pages.js').includes("'IntersectionObserver' in window") &&
+  read('landing-assets/public-pages.js').includes("document.body?.classList.contains('public-landing-page')") &&
+  !/fetch\\s*\\(|supabase|SERVICE_ROLE_KEY|location\\.replace|preventDefault\\(/.test(
+    read('landing-assets/public-pages.js')));
+check('L1.18 exactly five public presentation and QA files, no HTML or auth changes',
+  actual.length===5 &&
+  actual.every(path=>[
+    'landing-assets/premium-l131.css',
+    'landing-assets/public-pages.css',
+    'landing-assets/public-pages.js',
+    'landing-assets/landing-release-check.cjs',
+    'landing-assets/landing-browser-check.cjs'
+  ].includes(path)) &&
+  current===prev &&
+  publicHeaders.every(path=>source(path)===read(path)) &&
+  source('landing-assets/landing.js')===read('landing-assets/landing.js') &&
+  source('landing-assets/motion-l132.js')===read('landing-assets/motion-l132.js') &&
+  source('landing-assets/shared-header-l116.css')===sharedCss);
 check('Protected auth/PWA/SEO/config sources unchanged in PR diff',
  ['business.html','app.html','login.html','sitemap.xml','robots.txt',
   'mmh-manifest-v2.webmanifest','landing-assets/landing.js'].every(file=>{
