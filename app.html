@@ -12900,16 +12900,23 @@ function mmhvaultFinishAuthBootV3285(session){
   mmhvaultAuthBootSettledV3285=true;
   if(mmhvaultAuthBootTimerV3285)clearTimeout(mmhvaultAuthBootTimerV3285);
   if(session){
-    Promise.resolve().then(async()=>{
+    const bootTicket=mmhP947AuthGateTicket;
+    // Avoid calling Auth APIs until the INITIAL_SESSION observer has returned.
+    setTimeout(()=>{
+      Promise.resolve().then(async()=>{
+      if(bootTicket!==mmhP947AuthGateTicket)return;
       const {data:verified,error:verifyError}=await db.auth.getUser();
+      if(bootTicket!==mmhP947AuthGateTicket)return;
       if(verifyError||!verified?.user?.id||verified.user.id!==session.user?.id)
         throw verifyError||new Error('initial_auth_session_mismatch');
+      if(bootTicket!==mmhP947AuthGateTicket)return;
       return enter({...session,user:verified.user});
     }).catch(err=>{
       console.error('MMHVAULT app startup failed',err);
       const g=document.getElementById('mmhvaultAppBootGuardV3282');
       if(g)g.innerHTML='<div style="max-width:480px;border:1px solid rgba(255,112,112,.28);border-radius:18px;padding:24px 22px;background:rgba(42,16,32,.94);font-family:Arial,sans-serif;text-align:center;"><div style="font-size:18px;font-weight:800;color:#fff;">MMHVAULT could not finish starting</div><div style="margin-top:8px;color:#ffb7b7;font-size:13px;line-height:1.5;">The app loaded, but one startup component failed. Your cloud data has not been changed.</div><button type="button" style="margin-top:16px;padding:10px 16px;border-radius:10px;border:1px solid rgba(90,190,255,.35);background:#102a49;color:#fff;font-weight:700;cursor:pointer;" onclick="location.reload()">Refresh</button></div>';
-    });
+      });
+    },0);
   }else{
     location.replace('index.html');
   }
@@ -12943,34 +12950,78 @@ function mmhP947GuardV947(phase='switch'){
 }
 function mmhP947UnlockV947(){const layer=document.getElementById('mmhP947AccountGuard');if(layer){layer.hidden=true;layer.style.display='none';}}
 let mmhvaultAuthRedirectingV1239=false;
+// Keep the callback synchronous; all subsequent Auth RPCs run in a macrotask.
+// Masking and ticket invalidation above remain immediate.
 db.auth.onAuthStateChange((event,session)=>{
   if(event==='INITIAL_SESSION'){mmhvaultFinishAuthBootV3285(session);return;}
   if(session?.user?.id){
+    // A previously queued SIGNED_OUT can be superseded by a newer valid session.
+    // Reset the redirect latch so the NEXT real SIGNED_OUT cannot be ignored.
+    // Each queued operation still verifies its Auth gate ticket before running.
+    mmhvaultAuthRedirectingV1239=false;
     const liveOwner=currentSessionUser?.id||'';
     const nextOwner=session.user.id;
     if(liveOwner&&liveOwner!==nextOwner){
-      // Lock synchronously: Reacting in a later microtask leaves the old DOM visible.
+      // Invalidate older Auth and cloud checks before the queued switch begins.
+      const switchTicket=++mmhP947AuthGateTicket;
+      // Lock synchronously; deferring the mask could reveal the previous account.
       mmhP947GuardV947('switch');
-      Promise.resolve().then(()=>window.mmhVaultSwitchSessionV1239(session))
-        .catch(err=>{console.error('MMHVAULT account switch failed',err);mmhP947GuardV947('error');});
+      setTimeout(()=>{
+        Promise.resolve().then(()=>{
+          if(switchTicket!==mmhP947AuthGateTicket)return;
+          return window.mmhVaultSwitchSessionV1239(session);
+        }).catch(err=>{console.error('MMHVAULT account switch failed',err);mmhP947GuardV947('error');});
+      },0);
       return;
     }
     if(liveOwner===nextOwner){
-      try{applyUserProfile(session.user);}catch(err){console.warn('MMHVAULT session profile refresh skipped',err);}
+      // An assurance-only overlay must not make a verified, fresh finance cache
+      // look like a pre-existing account/data failure.
+      const existingMask=document.getElementById('mmhP947AccountGuard');
+      const wasAlreadyMasked=!!existingMask&&!existingMask.hidden&&existingMask.style.display!=='none';
+      // Lock synchronously and invalidate older work before rechecking this session.
+      const authTicket=++mmhP947AuthGateTicket;
+      mmhP947GuardV947('switch');
+      setTimeout(()=>{
+        Promise.resolve().then(async()=>{
+        const pending=mmhVaultSessionCheckPromiseV1239;
+        if(pending){try{await pending;}catch(_e){}}
+        if(authTicket!==mmhP947AuthGateTicket||currentSessionUser?.id!==nextOwner)return;
+        const result=await mmhVaultReconcileSessionV1239('auth-'+event,{refreshData:false,authMaskWasNew:!wasAlreadyMasked});
+        if(authTicket!==mmhP947AuthGateTicket||currentSessionUser?.id!==nextOwner)return;
+        if(result?.ok!==true&&!result?.superseded)mmhP947GuardV947('error');
+      }).catch(err=>{
+        if(authTicket===mmhP947AuthGateTicket){console.warn('Session assurance refresh failed',err);mmhP947GuardV947('error');}
+        });
+      },0);
       return;
     }
-    if(mmhvaultAuthBootSettledV3285){mmhP947GuardV947('switch');Promise.resolve().then(()=>window.mmhVaultSwitchSessionV1239(session)).catch(err=>{console.error('MMHVAULT session resume failed',err);mmhP947GuardV947('error');});}
+    if(mmhvaultAuthBootSettledV3285){
+      // A newly restored owner also invalidates previous ownerless boot requests.
+      const resumeTicket=++mmhP947AuthGateTicket;
+      mmhP947GuardV947('switch');
+      setTimeout(()=>{
+        Promise.resolve().then(()=>{
+          if(resumeTicket!==mmhP947AuthGateTicket)return;
+          return window.mmhVaultSwitchSessionV1239(session);
+        })
+          .catch(err=>{console.error('MMHVAULT session resume failed',err);mmhP947GuardV947('error');});
+      },0);
+    }
     return;
   }
   if(mmhvaultAuthRedirectingV1239)return;
   mmhvaultAuthRedirectingV1239=true;
-  ++mmhP947AuthGateTicket;mmhP947GuardV947('switch');
-  Promise.resolve().then(()=>{
+  const signOutTicket=++mmhP947AuthGateTicket;mmhP947GuardV947('switch');
+  setTimeout(()=>{
+    Promise.resolve().then(()=>{
+    if(signOutTicket!==mmhP947AuthGateTicket)return;
     if(typeof window.mmhVaultSignOutCleanupV1239==='function')return window.mmhVaultSignOutCleanupV1239('auth-signed-out');
     try{applyUserProfile(null);}catch(_e){}
     sessionStorage.removeItem('myfinance_page');
     location.replace('login.html');
-  });
+    });
+  },0);
 });
 mmhvaultAuthBootTimerV3285=setTimeout(()=>{
   if(mmhvaultAuthBootSettledV3285)return;
@@ -14022,14 +14073,56 @@ function showWelcome(){
  const hide=()=>{w.classList.remove("show");w.setAttribute("aria-hidden","true");};
  window.setTimeout(hide,1900);
 }
+// N10 app entry: an explicit legacy null AAL1 needs fresh Auth verification.
+function mmhN10AalDecisionV20261102(data){
+  if(!data||!['aal1','aal2'].includes(data.nextLevel))return 'deny';
+  if(data.currentLevel===null)return data.nextLevel==='aal2'?'step_up':'legacy';
+  if(!['aal1','aal2'].includes(data.currentLevel))return 'deny';
+  if(data.nextLevel==='aal2'&&data.currentLevel!=='aal2')return 'step_up';
+  return 'allow';
+}
+// The legacy exception is never an authorization shortcut: reverify current
+// server user, matching cached session, and current MFA requirement. The caller
+// invalidates in-flight results on every newer authentication transition.
+async function mmhN10ConfirmLegacyAalV20261102(owner,isCurrent){
+  try{
+    const {data:remote,error:remoteError}=await db.auth.getUser();
+    if(!isCurrent())return 'superseded';
+    if(remoteError||remote?.user?.id!==owner)return 'deny';
+    const {data:cached,error:cacheError}=await db.auth.getSession();
+    if(!isCurrent())return 'superseded';
+    if(cacheError||cached?.session?.user?.id!==owner)return 'deny';
+    // Server factor inventory is authoritative for a legacy null-current AAL.
+    // A cached old "nextLevel: aal1" cannot silently bypass newly verified MFA.
+    const {data:factors,error:factorError}=await db.auth.mfa.listFactors();
+    if(!isCurrent())return 'superseded';
+    if(factorError||!Array.isArray(factors?.all))return 'deny';
+    if(factors.all.some(factor=>factor?.status==='verified'))return 'deny';
+    const {data:again,error:aalError}=await db.auth.mfa.getAuthenticatorAssuranceLevel();
+    if(!isCurrent())return 'superseded';
+    if(aalError)return 'deny';
+    const result=mmhN10AalDecisionV20261102(again);
+    // Without any verified factor the second AAL must still say MFA is optional.
+    return again?.nextLevel==='aal1'&&(result==='legacy'||result==='allow')?'allow':'deny';
+  }catch(_err){return isCurrent()?'deny':'superseded';}
+}
 let activeEnterUserId="";
 async function enter(session){
   if(!session?.user?.id) return;
   // N10-A7.83: AAL1 cannot enter the finance workspace if this UID enabled TOTP.
   // This is an additional UI gate; protect high-risk backend operations separately.
+  const enterTicket=mmhP947AuthGateTicket;
   const a783=await db.auth.mfa.getAuthenticatorAssuranceLevel();
-  if(a783.error||!a783.data)throw a783.error||new Error('mfa_status_unavailable');
-  if(a783.data.nextLevel==='aal2'&&a783.data.currentLevel!=='aal2'){
+  if(enterTicket!==mmhP947AuthGateTicket)return {ok:false,superseded:true};
+  if(a783.error)throw a783.error;
+  let decision=mmhN10AalDecisionV20261102(a783.data);
+  if(decision==='legacy'){
+    decision=await mmhN10ConfirmLegacyAalV20261102(session.user.id,()=>enterTicket===mmhP947AuthGateTicket);
+  }
+  if(decision==='superseded')return {ok:false,superseded:true};
+  if(decision==='deny')throw new Error('mfa_status_unavailable');
+  if(decision==='step_up'){
+    mmhP947GuardV947('switch');
     location.replace('login.html?mfa=1');
     return {ok:false,mfaRequired:true};
   }
@@ -14384,10 +14477,32 @@ async function mmhVaultReconcileSessionV1239(reason='resume',opts={}){
         return {ok:!!entered?.ok,resumed:!!entered?.ok};
       }
       if(currentSessionUser.id!==owner)return {ok:false,superseded:true};
+      const aal=await db.auth.mfa.getAuthenticatorAssuranceLevel();
+      if(startTicket!==mmhP947AuthGateTicket||startEpoch!==(Number(window.__mmhSessionEpochV1239)||0)||currentSessionUser?.id!==owner)return {ok:false,superseded:true};
+      if(aal.error)throw aal.error;
+      let decision=mmhN10AalDecisionV20261102(aal.data);
+      if(decision==='legacy'){
+        decision=await mmhN10ConfirmLegacyAalV20261102(owner,()=>
+          startTicket===mmhP947AuthGateTicket&&
+          startEpoch===(Number(window.__mmhSessionEpochV1239)||0)&&
+          currentSessionUser?.id===owner);
+      }
+      if(decision==='superseded')return {ok:false,superseded:true};
+      if(decision==='deny')throw new Error('mfa_status_unavailable');
+      if(decision==='step_up'){
+        mmhP947GuardV947('switch');
+        location.replace('login.html?mfa=1');
+        return {ok:false,mfaRequired:true};
+      }
       const mask=document.getElementById('mmhP947AccountGuard');
       const masked=!!mask&&!mask.hidden&&mask.style.display!=='none';
       const staleFor=Date.now()-Number(window.__mmhLastCloudLoadAtV1235||0);
-      const needsCloud=masked||(opts.refreshData&&(!Number.isFinite(staleFor)||staleFor>15000));
+      // The just-added MFA check overlay is not a data-integrity failure.
+      // A previously locked account, missing verified cloud load, or an explicit
+      // stale refresh still needs authoritative financial records before unlock.
+      const hasVerifiedCloud=Number(window.__mmhLastCloudLoadAtV1235)>0;
+      const needsCloud=(masked&&(opts.authMaskWasNew!==true||!hasVerifiedCloud))||
+        (opts.refreshData&&(!Number.isFinite(staleFor)||staleFor>15000));
       if(needsCloud){
         const cloud=await window.loadAll?.({force:true});
         if(startTicket!==mmhP947AuthGateTicket||startEpoch!==(Number(window.__mmhSessionEpochV1239)||0)||currentSessionUser?.id!==owner)return {ok:false,superseded:true};
@@ -14408,12 +14523,38 @@ async function mmhVaultReconcileSessionV1239(reason='resume',opts={}){
 window.mmhVaultHandleOnlineV1239=function(){return mmhVaultReconcileSessionV1239('online',{forceRealtime:true,refreshData:true});};
 window.mmhVaultHandleOfflineV1239=function(){mmhVaultDisposeRealtimeV1239('OFFLINE');};
 function mmhVaultResumeLifecycleV1239(reason){
-  const now=Date.now();if(now-mmhVaultLastSessionCheckV1239<1200)return;mmhVaultLastSessionCheckV1239=now;
+  const fromBackForwardCache=reason==='bfcache';
+  const now=Date.now();
+  if(!fromBackForwardCache&&now-mmhVaultLastSessionCheckV1239<1200)return;
+  mmhVaultLastSessionCheckV1239=now;
   const staleFor=now-Number(window.__mmhLastCloudLoadAtV1235||0);
+  const reenterAfterLongPause=reason==='focus'||reason==='visible';
+  const requiresFreshMask=fromBackForwardCache||
+    (reenterAfterLongPause&&(!Number.isFinite(staleFor)||staleFor>120000));
+  if(requiresFreshMask&&currentSessionUser?.id){
+    // BFCache and stale tab returns can expose cached private DOM before Auth resolves.
+    // Mask synchronously, invalidate pending checks, and reverify owner + MFA.
+    const owner=currentSessionUser.id,ticket=++mmhP947AuthGateTicket;
+    mmhP947GuardV947('switch');
+    Promise.resolve().then(async()=>{
+      const pending=mmhVaultSessionCheckPromiseV1239;
+      if(pending){try{await pending;}catch(_e){}}
+      if(ticket!==mmhP947AuthGateTicket||currentSessionUser?.id!==owner)return;
+      const result=await mmhVaultReconcileSessionV1239(reason,{forceRealtime:true,refreshData:true});
+      if(ticket===mmhP947AuthGateTicket&&currentSessionUser?.id===owner&&
+         result?.ok!==true&&!result?.superseded&&!result?.mfaRequired)mmhP947GuardV947('error');
+    }).catch(err=>{
+      if(ticket===mmhP947AuthGateTicket&&currentSessionUser?.id===owner){
+        mmhP947GuardV947('error');console.warn('Restored session Auth recheck failed',reason,err);
+      }
+    });
+    return;
+  }
   mmhVaultReconcileSessionV1239(reason,{forceRealtime:!realtimeReady,refreshData:staleFor>120000});
 }
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')mmhVaultResumeLifecycleV1239('visible');});
 window.addEventListener('focus',()=>mmhVaultResumeLifecycleV1239('focus'));
+window.addEventListener('pageshow',event=>{if(event.persisted)mmhVaultResumeLifecycleV1239('bfcache');});
 
 function currency(a){return mmhVaultAccountMeta(a).currency||"MMK";}
 function mmhCurrencySymbolV194(code){const c=String(code||'').trim().toUpperCase();return ({USD:'$',USDT:'$',THB:'฿',MMK:'K',CNY:'￥',RMB:'￥',AMD:'֏',AZN:'₼',GEL:'₾',INR:'₹',JPY:'¥',KRW:'₩',VND:'₫',PHP:'₱',TRY:'₺',RUB:'₽',EUR:'€'}[c]||c);}

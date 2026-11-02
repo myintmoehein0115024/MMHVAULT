@@ -1,0 +1,40 @@
+name: N10 app-entry AAL isolated review (NO DEPLOY)
+on:
+  push:
+    branches:
+      - review/n10-app-aal-entry-guard-20261102
+permissions:
+  contents: read
+jobs:
+  offline-app-guard:
+    runs-on: ubuntu-latest
+    timeout-minutes: 18
+    steps:
+      - name: Checkout isolated review branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Reject out-of-scope files
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin main
+          git merge-base --is-ancestor origin/main HEAD || { echo 'Review branch behind main'; exit 1; }
+          git diff --check origin/main HEAD
+          git diff --name-only origin/main HEAD > /tmp/n10-app-review-files
+          if grep -Ev '^(app\.html|security/n10-app-aal-entry/test-app-aal-guard\.mjs|security/n10-app-aal-entry/test-browser-mask\.mjs|\.github/workflows/n10-app-aal-entry-review\.yml)$' /tmp/n10-app-review-files; then
+            echo 'Out-of-scope change detected'; exit 1
+          fi
+          test "$(wc -l < /tmp/n10-app-review-files)" -eq 4
+      - name: Offline entry, refresh and fail-closed regression checks
+        run: node security/n10-app-aal-entry/test-app-aal-guard.mjs
+      - name: Install isolated Playwright browser runtime
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps chromium webkit
+      - name: Verify actual account privacy overlay in Chromium and WebKit
+        run: node security/n10-app-aal-entry/test-browser-mask.mjs
