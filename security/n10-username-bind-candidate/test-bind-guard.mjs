@@ -117,7 +117,7 @@ async function executeScenario(scenario='disabled'){
     N10A740_RATE_HMAC_KEY:key
    }[n]||'')},serve:fn=>{handler=fn}},
    createClient,recheckBindSecurity,
-   TextEncoder,TextDecoder,Uint8Array,Response,Request,Headers,AbortSignal,
+   TextEncoder,TextDecoder,Uint8Array,Response,Request,Headers,URLSearchParams,AbortSignal,
    crypto:webcrypto,
    fetch:async()=>({ok:true,json:async()=>({
     success:true,hostname:'mmhvault.com',action:'mmh_n10a781_bind'
