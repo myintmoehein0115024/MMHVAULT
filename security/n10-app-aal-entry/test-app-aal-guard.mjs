@@ -2,8 +2,47 @@
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
+import {execFileSync} from 'node:child_process';
 
 const html=readFileSync(new URL('../../app.html',import.meta.url),'utf8');
+// Protect all production finance, navigation, PWA, Landing and unrelated app code.
+// Only the five explicitly audited Auth entry/lifecycle regions may differ from main.
+const mainHtml=execFileSync('git',['show','origin/main:app.html'],{
+  encoding:'utf8',maxBuffer:8*1024*1024
+});
+function nonAuthSource(source,reviewCandidate){
+  let copy=source;
+  if(reviewCandidate){
+    const intro='// Keep the callback synchronous; all subsequent Auth RPCs run in a macrotask.\\n'+
+      '// Masking and ticket invalidation above remain immediate.\\n';
+    assert.equal(copy.split(intro).length-1,1,'Exactly one new Auth callback comment');
+    copy=copy.replace(intro,'');
+    const from='// N10 app entry: an explicit legacy null AAL1 needs fresh Auth verification.\\n';
+    const to='let activeEnterUserId=""';
+    const a=copy.indexOf(from),b=copy.indexOf(to,a+from.length);
+    assert.ok(a>=0&&b>a,'N10 helper only precedes app entry');
+    assert.equal(copy.indexOf(from,a+1),-1,'N10 helper section is unique');
+    copy=copy.slice(0,a)+copy.slice(b);
+  }
+  const audited=[
+    ['function mmhvaultFinishAuthBootV3285(session){','/* P9.47:'],
+    ['db.auth.onAuthStateChange((event,session)=>{','mmhvaultAuthBootTimerV3285=setTimeout('],
+    ['async function enter(session){','async function copyCustomerIdV375(){'],
+    ['async function mmhVaultReconcileSessionV1239(','window.mmhVaultHandleOnlineV1239='],
+    ['function mmhVaultResumeLifecycleV1239(','function currency(a){']
+  ];
+  for(const [begin,end] of audited){
+    const a=copy.indexOf(begin),b=copy.indexOf(end,a+begin.length);
+    assert.ok(a>=0&&b>a,'Audited Auth region boundaries: '+begin);
+    assert.equal(copy.indexOf(begin,a+1),-1,'Exactly one Auth region: '+begin);
+    copy=copy.slice(0,a)+'/* N10_AUTH_SCOPED_SECTION '+begin+' */\\n'+copy.slice(b);
+  }
+  return copy;
+}
+assert.equal(nonAuthSource(html,true),nonAuthSource(mainHtml,false),
+  'Forbidden change outside authorized N10 Auth regions: finance, PWA, Landing and app data source must match main byte-for-byte');
+console.log('PASS: all unrelated app source exactly matches main outside five reviewed Auth regions.');
+
 const extract=(before,after)=>{
   const start=html.indexOf(before);
   assert.ok(start>=0,'Missing start anchor: '+before);
