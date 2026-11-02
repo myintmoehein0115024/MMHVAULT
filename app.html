@@ -14034,11 +14034,31 @@ function showWelcome(){
  const hide=()=>{w.classList.remove("show");w.setAttribute("aria-hidden","true");};
  window.setTimeout(hide,1900);
 }
-// N10 app entry guard: do not infer AAL1 from missing/invalid levels.
+// N10 app entry: an explicit legacy null AAL1 needs fresh Auth verification.
 function mmhN10AalDecisionV20261102(data){
-  if(!data||!['aal1','aal2'].includes(data.currentLevel)||!['aal1','aal2'].includes(data.nextLevel))return 'deny';
+  if(!data||!['aal1','aal2'].includes(data.nextLevel))return 'deny';
+  if(data.currentLevel===null)return data.nextLevel==='aal2'?'step_up':'legacy';
+  if(!['aal1','aal2'].includes(data.currentLevel))return 'deny';
   if(data.nextLevel==='aal2'&&data.currentLevel!=='aal2')return 'step_up';
   return 'allow';
+}
+// The legacy exception is never an authorization shortcut: reverify current
+// server user, matching cached session, and current MFA requirement. The caller
+// invalidates in-flight results on every newer authentication transition.
+async function mmhN10ConfirmLegacyAalV20261102(owner,isCurrent){
+  try{
+    const {data:remote,error:remoteError}=await db.auth.getUser();
+    if(!isCurrent())return 'superseded';
+    if(remoteError||remote?.user?.id!==owner)return 'deny';
+    const {data:cached,error:cacheError}=await db.auth.getSession();
+    if(!isCurrent())return 'superseded';
+    if(cacheError||cached?.session?.user?.id!==owner)return 'deny';
+    const {data:again,error:aalError}=await db.auth.mfa.getAuthenticatorAssuranceLevel();
+    if(!isCurrent())return 'superseded';
+    if(aalError)return 'deny';
+    const result=mmhN10AalDecisionV20261102(again);
+    return result==='legacy'?'allow':result;
+  }catch(_err){return isCurrent()?'deny':'superseded';}
 }
 let activeEnterUserId="";
 async function enter(session){
@@ -14049,7 +14069,11 @@ async function enter(session){
   const a783=await db.auth.mfa.getAuthenticatorAssuranceLevel();
   if(enterTicket!==mmhP947AuthGateTicket)return {ok:false,superseded:true};
   if(a783.error)throw a783.error;
-  const decision=mmhN10AalDecisionV20261102(a783.data);
+  let decision=mmhN10AalDecisionV20261102(a783.data);
+  if(decision==='legacy'){
+    decision=await mmhN10ConfirmLegacyAalV20261102(session.user.id,()=>enterTicket===mmhP947AuthGateTicket);
+  }
+  if(decision==='superseded')return {ok:false,superseded:true};
   if(decision==='deny')throw new Error('mfa_status_unavailable');
   if(decision==='step_up'){
     mmhP947GuardV947('switch');
@@ -14410,7 +14434,14 @@ async function mmhVaultReconcileSessionV1239(reason='resume',opts={}){
       const aal=await db.auth.mfa.getAuthenticatorAssuranceLevel();
       if(startTicket!==mmhP947AuthGateTicket||startEpoch!==(Number(window.__mmhSessionEpochV1239)||0)||currentSessionUser?.id!==owner)return {ok:false,superseded:true};
       if(aal.error)throw aal.error;
-      const decision=mmhN10AalDecisionV20261102(aal.data);
+      let decision=mmhN10AalDecisionV20261102(aal.data);
+      if(decision==='legacy'){
+        decision=await mmhN10ConfirmLegacyAalV20261102(owner,()=>
+          startTicket===mmhP947AuthGateTicket&&
+          startEpoch===(Number(window.__mmhSessionEpochV1239)||0)&&
+          currentSessionUser?.id===owner);
+      }
+      if(decision==='superseded')return {ok:false,superseded:true};
       if(decision==='deny')throw new Error('mfa_status_unavailable');
       if(decision==='step_up'){
         mmhP947GuardV947('switch');
