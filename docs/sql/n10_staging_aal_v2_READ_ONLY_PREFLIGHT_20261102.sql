@@ -45,4 +45,44 @@ FROM pg_catalog.pg_extension AS e
 JOIN pg_catalog.pg_namespace AS n ON n.oid=e.extnamespace
 WHERE e.extname='supabase_vault';
 
+-- Fail-closed release gate: catalog-only metadata. This is NOT live MFA QA.
+-- It reports the required 3-argument guard and service-only EXECUTE grant.
+-- Do not treat catalog PASS as authorization to apply migrations or reveal words.
+WITH guard AS (
+  SELECT p.oid,p.prosecdef
+  FROM pg_catalog.pg_proc AS p
+  JOIN pg_catalog.pg_namespace AS n ON n.oid=p.pronamespace
+  WHERE n.nspname='public'
+    AND p.proname='mmh_n10_recovery_session_active'
+    AND pg_catalog.pg_get_function_identity_arguments(p.oid)
+      = 'p_user_id uuid, p_session_id uuid, p_expected_aal text'
+), flags AS (
+  SELECT
+    EXISTS (SELECT 1 FROM guard) AS three_arg_guard_exists,
+    EXISTS (
+      SELECT 1 FROM guard AS g
+      WHERE g.prosecdef
+        AND NOT has_function_privilege('anon',g.oid,'EXECUTE')
+        AND NOT has_function_privilege('authenticated',g.oid,'EXECUTE')
+        AND has_function_privilege('service_role',g.oid,'EXECUTE')
+    ) AS guard_service_only,
+    pg_catalog.to_regclass('mmh_n10_privacy.recovery_backup_index') IS NOT NULL
+      AS backup_index_exists,
+    EXISTS (SELECT 1 FROM pg_catalog.pg_extension
+            WHERE extname='supabase_vault') AS vault_present
+)
+SELECT three_arg_guard_exists,
+       guard_service_only,
+       backup_index_exists,
+       vault_present,
+       CASE
+         WHEN three_arg_guard_exists AND guard_service_only
+              AND backup_index_exists AND vault_present
+           THEN 'SCHEMA_PRECHECK_OK__SIGNED_TWO_OWNER_MFA_QA_STILL_REQUIRED'
+         ELSE 'HOLD__DO_NOT_ENABLE_RECOVERY_VIEW'
+       END AS gate_result,
+       'NOT_RUN__NEEDS_SEPARATE_APPROVED_SIGNED_TEST' AS signed_mfa_qa,
+       'NOT_AUTHORIZED__NO_DEPLOYMENT' AS release_permission
+FROM flags;
+
 ROLLBACK;
