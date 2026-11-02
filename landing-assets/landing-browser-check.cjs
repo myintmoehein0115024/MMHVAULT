@@ -541,6 +541,53 @@ async function load(page,route,failures){
      }
    }
 
+   // L1.22 — keyboard dismissal must be identical on Landing and public
+   // branches, restoring focus to a visible control instead of a hidden menu.
+   for(const route of ['/','/features/','/security.html']){
+     for(const width of [393,1440]){
+       const ctx=await browser.newContext({viewport:{width,height:852},
+         reducedMotion:'reduce'});
+       const page=await ctx.newPage();
+       const failures=[];
+       page.on('pageerror',e=>failures.push(e.message));
+       await load(page,route,failures);
+       const explore=page.locator('#landing-explore');
+       const summary=explore.locator('summary');
+       const hamburger=page.locator('.site-header .menu-toggle');
+       if(width===393){
+         await hamburger.click();
+         ensure(await hamburger.getAttribute('aria-expanded')==='true',
+           route+' compact menu opens before keyboard dismissal');
+       }
+       await summary.click();
+       ensure(await explore.evaluate(el=>el.open),
+         route+' '+width+'px Explore menu opens before Escape');
+       await page.keyboard.press('Escape');
+       ensure(!await explore.evaluate(el=>el.open) &&
+         await summary.evaluate(el=>document.activeElement===el) &&
+         (width!==393 || await hamburger.getAttribute('aria-expanded')==='true'),
+         route+' '+width+'px Escape only closes Explore and restores summary focus');
+       if(width===393){
+         await page.keyboard.press('Escape');
+         ensure(await hamburger.getAttribute('aria-expanded')==='false' &&
+           !await page.locator('#primary-nav').isVisible() &&
+           await hamburger.evaluate(el=>document.activeElement===el),
+           route+' mobile Escape next closes hamburger and restores toggle focus');
+       }
+       const locale=page.locator('#locale-trigger');
+       await locale.click();
+       ensure(await locale.getAttribute('aria-expanded')==='true',
+         route+' '+width+'px language selector opens');
+       await page.keyboard.press('Escape');
+       ensure(await locale.getAttribute('aria-expanded')==='false' &&
+         await locale.evaluate(el=>document.activeElement===el),
+         route+' '+width+'px Escape dismisses language panel and restores globe focus');
+       ensure(failures.length===0,
+         route+' '+width+'px keyboard navigation has no missing assets or JS errors');
+       await ctx.close();
+     }
+   }
+
    // L1.18 — animated public pages remain visible, language-neutral and
    // keep reduced-motion as the default fallback in the main viewport loop.
    for(const [route,target] of [
