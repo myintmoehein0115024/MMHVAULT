@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {readFileSync} from 'node:fs';
-import {evaluateSyntheticAalSession as ok} from './synthetic-aal-guard.mjs';
+import {evaluateSyntheticAalSession as ok, syntheticStagingReadiness} from './synthetic-aal-guard.mjs';
 
 const uid='41111111-1111-4111-8111-111111111111';
 const other='42222222-2222-4222-8222-222222222222';
@@ -89,4 +89,46 @@ test('preflight is read-only and does not read sensitive user rows',()=>{
  assert.match(sql,/\bROLLBACK;\s*$/);
  assert.doesNotMatch(sql,/\b(?:CREATE|ALTER|DROP|INSERT|UPDATE|DELETE|TRUNCATE)\s+(?:TABLE|FUNCTION|SCHEMA|INTO|auth\.|mmh_)/i);
  assert.doesNotMatch(sql,/\bSELECT\s+\*\s+FROM\s+(?:auth\.users|auth\.sessions|vault\.decrypted_secrets)/i);
+});
+
+const expectedSchemaFlags={
+ three_arg_guard_exists:true,guard_service_only:true,
+ backup_index_exists:true,vault_present:true,
+ backup_rpcs_service_only:true,privacy_tables_locked:true,
+};
+test('schema gate holds for the observed missing Staging 3-argument session guard',()=>{
+ const flags={...expectedSchemaFlags,
+  three_arg_guard_exists:false,guard_service_only:false};
+ const verdict=syntheticStagingReadiness(flags);
+ assert.equal(verdict.gate,'HOLD__DO_NOT_ENABLE_RECOVERY_VIEW');
+ assert.equal(verdict.permittedToDeploy,false);
+ assert.equal(verdict.permittedToRevealWords,false);
+});
+test('schema gate fails closed when ANY private Vault permission check fails',()=>{
+ for(const key of Object.keys(expectedSchemaFlags)){
+  const verdict=syntheticStagingReadiness({...expectedSchemaFlags,[key]:false});
+  assert.equal(verdict.gate,'HOLD__DO_NOT_ENABLE_RECOVERY_VIEW',key);
+  assert.equal(verdict.permittedToRevealWords,false,key);
+ }
+ assert.equal(syntheticStagingReadiness({}).gate,'HOLD__DO_NOT_ENABLE_RECOVERY_VIEW');
+ assert.equal(syntheticStagingReadiness(null).gate,'HOLD__DO_NOT_ENABLE_RECOVERY_VIEW');
+});
+test('all catalog checks passing still does NOT authorize deployment or signed MFA QA',()=>{
+ const verdict=syntheticStagingReadiness(expectedSchemaFlags);
+ assert.equal(verdict.gate,'SCHEMA_PRECHECK_OK__SIGNED_TWO_OWNER_MFA_QA_STILL_REQUIRED');
+ assert.equal(verdict.permittedToDeploy,false);
+ assert.equal(verdict.permittedToRevealWords,false);
+ assert.equal(verdict.signedMfaQaComplete,false);
+});
+test('preflight checks Vault RPC execute grants and private-table RLS before a positive verdict',()=>{
+ const sql=readFileSync(new URL('../../docs/sql/n10_staging_aal_v2_READ_ONLY_PREFLIGHT_20261102.sql',import.meta.url),'utf8');
+ assert.match(sql,/backup_rpcs_service_only/);
+ assert.match(sql,/privacy_tables_locked/);
+ assert.match(sql,/has_function_privilege\('anon',p\.oid,'EXECUTE'\)/);
+ assert.match(sql,/has_function_privilege\('authenticated',p\.oid,'EXECUTE'\)/);
+ assert.match(sql,/has_function_privilege\('service_role',p\.oid,'EXECUTE'\)/);
+ assert.match(sql,/c\.relrowsecurity/);
+ assert.match(sql,/THEN 'SCHEMA_PRECHECK_OK__SIGNED_TWO_OWNER_MFA_QA_STILL_REQUIRED'/);
+ assert.match(sql,/ELSE 'HOLD__DO_NOT_ENABLE_RECOVERY_VIEW'/);
+ assert.match(sql,/'NOT_AUTHORIZED__NO_DEPLOYMENT' AS release_permission/);
 });
