@@ -45,3 +45,7 @@ If a confirmed problem emerges, block Vault access first, identify dependent cal
 ## Audit scope
 
 This branch stores only this report, the exact Staging-only migration SQL, read-only postcheck, tests and nondeploying GitHub CI. No shared `app.html`/`login.html`, public pages, SEO, APP V11, financial data, or active N10 Auth implementation files are modified.
+
+## Post-install Staging Edge read-only confirmation
+
+Read-only inspection of the deployed Staging `mmh-n10-qa-joint-mfa-vault-20261101` (v1) showed `RECOVERY_RELEASE_ENABLED=false` and a default expired QA window (`1970-01-01T00:00:00.000Z`). Its source still calls the legacy two-argument session guard. The installed new three-argument guard is therefore **not yet consumed by the locked Staging QA Edge**. This is expected: no Edge deployment or release-switch change was authorized in this Staging-only database step. A separate approved QA Edge update plus real signed MFA owner tests is needed before reporting full E2E success.
