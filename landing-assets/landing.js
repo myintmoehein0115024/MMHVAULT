@@ -753,6 +753,18 @@
   }));
 
 
+  // L1.29: the compact menu button must announce the action it will take.
+  // Follow current language and real open state; no visual or layout change.
+  const navToggleLabels = {
+    en: {open:'Open navigation menu',close:'Close navigation menu'},
+    zh: {open:'打开导航菜单',close:'关闭导航菜单'},
+    my: {open:'လမ်းညွှန်မီနူး ဖွင့်ရန်',close:'လမ်းညွှန်မီနူး ပိတ်ရန်'}
+  };
+  function syncNavToggleLabel() {
+    const labels = navToggleLabels[currentLang];
+    toggle.setAttribute('aria-label',siteHeader.classList.contains('menu-open')?labels.close:labels.open);
+  }
+
   function applyLanguage(lang) {
     currentLang = lang === 'my' ? 'my' : (lang === 'zh' ? 'zh' : 'en');
     const dict = strings[currentLang];
@@ -797,7 +809,7 @@
     if (heroArt) heroArt.setAttribute('aria-label', dict.heroImageAlt);
     if (heroPhoto) heroPhoto.setAttribute('alt', dict.heroImageAlt);
     if (businessPhoto) businessPhoto.setAttribute('alt', dict.businessPhotoAlt);
-    toggle.setAttribute('aria-label', currentLang === 'zh' ? '打开导航菜单' : (currentLang === 'my' ? 'လမ်းညွှန်မီနူး ဖွင့်ရန်' : 'Open navigation menu'));
+    syncNavToggleLabel();
     document.querySelector('#primary-nav').setAttribute('aria-label', currentLang === 'zh' ? '主导航' : (currentLang === 'my' ? 'အဓိကလမ်းညွှန်' : 'Primary navigation'));
     localeTrigger.setAttribute('aria-label', currentLang === 'zh' ? '选择语言' : (currentLang === 'my' ? 'ဘာသာစကား ရွေးရန်' : 'Select language'));
     localeMenu.setAttribute('aria-label', currentLang === 'zh' ? '语言选择' : (currentLang === 'my' ? 'ဘာသာစကား ရွေးချယ်မှု' : 'Choose language'));
@@ -825,6 +837,7 @@
     const focusedInside = !!nav && nav.contains(document.activeElement);
     siteHeader.classList.remove('menu-open');
     toggle.setAttribute('aria-expanded', 'false');
+    syncNavToggleLabel();
     closeExplore();
     if (focusedInside && nav && getComputedStyle(nav).display === 'none') toggle.focus({preventScroll:true});
   }
@@ -870,6 +883,7 @@
     closeLanguage();
     const isOpen = siteHeader.classList.toggle('menu-open');
     toggle.setAttribute('aria-expanded', String(isOpen));
+    syncNavToggleLabel();
   });
   document.querySelectorAll('#primary-nav a').forEach(link => link.addEventListener('click', () => {
     closeExplore();

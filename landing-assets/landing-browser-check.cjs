@@ -897,6 +897,58 @@ async function load(page,route,failures){
      await ctx.close();
    }
 
+
+   // L1.29 — mobile navigation reports the correct open/close action in
+   // English, Chinese and Burmese, on Home and public introduction pages.
+   for(const route of ['/','/features/','/security.html']){
+     for(const width of [393,1100]){
+       for(const [lang,openLabel,closeLabel] of [
+         ['en','Open navigation menu','Close navigation menu'],
+         ['zh','打开导航菜单','关闭导航菜单'],
+         ['my','လမ်းညွှန်မီနူး ဖွင့်ရန်','လမ်းညွှန်မီနူး ပိတ်ရန်']
+       ]){
+         const ctx=await browser.newContext({viewport:{width,height:852},
+           reducedMotion:'reduce'});
+         const page=await ctx.newPage();
+         const errors=[];
+         page.on('pageerror',e=>errors.push(e.message));
+         await page.addInitScript(code=>{
+           try{localStorage.setItem('mmhvault.landing.language',code)}catch(_){}
+         },lang);
+         await load(page,route,errors);
+         const toggle=page.locator('.site-header .menu-toggle');
+         ensure(await toggle.getAttribute('aria-label')===openLabel &&
+           await toggle.getAttribute('aria-expanded')==='false',
+           'L1.29 '+route+' '+width+'px '+lang+' initially announces open');
+         await toggle.click();
+         ensure(await toggle.getAttribute('aria-label')===closeLabel &&
+           await toggle.getAttribute('aria-expanded')==='true',
+           'L1.29 '+route+' '+width+'px '+lang+' opened menu announces close');
+         await toggle.click();
+         ensure(await toggle.getAttribute('aria-label')===openLabel &&
+           await toggle.getAttribute('aria-expanded')==='false',
+           'L1.29 '+route+' '+width+'px '+lang+' tap closes and announces open');
+         await toggle.click();
+         await page.keyboard.press('Escape');
+         ensure(await toggle.getAttribute('aria-label')===openLabel &&
+           await toggle.getAttribute('aria-expanded')==='false',
+           'L1.29 '+route+' '+width+'px '+lang+' Escape resets action label');
+         await toggle.click();
+         await page.evaluate(()=>{
+           const name=document.body.classList.contains('public-landing-page')
+             ?'pointerdown':'click';
+           document.body.dispatchEvent(name==='pointerdown'
+             ?new PointerEvent(name,{bubbles:true})
+             :new MouseEvent(name,{bubbles:true}));
+         });
+         ensure(await toggle.getAttribute('aria-label')===openLabel &&
+           await toggle.getAttribute('aria-expanded')==='false'&&errors.length===0,
+           'L1.29 '+route+' '+width+'px '+lang+' outside dismissal resets label');
+         await ctx.close();
+       }
+     }
+   }
+
    // Resizing from compact to desktop closes mobile navigation and Explore.
    // The current keyboard focus must stay visible after the breakpoint switch.
    for(const route of ['/','/features/']){
