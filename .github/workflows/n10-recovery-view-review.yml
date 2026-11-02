@@ -31,7 +31,7 @@ jobs:
           test -s /tmp/n10-paths
           while IFS= read -r path; do
             case "$path" in
-              security/n10-recovery-view/recovery-view-controller.mjs|security/n10-recovery-view/test-recovery-view-controller.mjs|docs/N10_FIXED_RECOVERY_VIEW_ISOLATED_REVIEW_20261102.md|.github/workflows/n10-recovery-view-review.yml) ;;
+              security/n10-recovery-view/recovery-view-controller.mjs|security/n10-recovery-view/test-recovery-view-controller.mjs|security/n10-recovery-view/recovery-transport.mjs|security/n10-recovery-view/test-recovery-transport.mjs|docs/N10_FIXED_RECOVERY_VIEW_ISOLATED_REVIEW_20261102.md|.github/workflows/n10-recovery-view-review.yml) ;;
               *) echo "BLOCKED: unapproved changed file: $path"; exit 1;;
             esac
           done < /tmp/n10-paths
@@ -40,6 +40,8 @@ jobs:
         run: |
           node --check security/n10-recovery-view/recovery-view-controller.mjs
           node --check security/n10-recovery-view/test-recovery-view-controller.mjs
+          node --check security/n10-recovery-view/recovery-transport.mjs
+          node --check security/n10-recovery-view/test-recovery-transport.mjs
       - name: Pure offline security and privacy tests
-        run: node --test security/n10-recovery-view/test-recovery-view-controller.mjs
+        run: node --test security/n10-recovery-view/test-recovery-view-controller.mjs security/n10-recovery-view/test-recovery-transport.mjs
 # No production execution, deployment, SQL, secrets, accounts or QA activation.
