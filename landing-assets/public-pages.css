@@ -864,3 +864,45 @@ body.public-landing-page .policy-card{
     transition:none!important;transform:none!important;
   }
 }
+
+
+/* L1.19 — readable public intro actions and balanced tablet/mobile cards.
+ * Header layout, canonical content, links and menu behavior remain untouched. */
+@media(min-width:601px) and (max-width:1024px){
+  body.public-landing-page .grid{align-items:stretch}
+  body.public-landing-page .grid>.item{height:100%;min-width:0}
+  body.public-landing-page .feature-hero .actions{flex-wrap:wrap}
+  body.public-landing-page .feature-hero .actions .action{min-height:50px}
+}
+@media(max-width:600px){
+  body.public-landing-page .feature-hero .actions{
+    display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+    width:100%;gap:10px;align-items:stretch
+  }
+  body.public-landing-page .feature-hero .actions .action{
+    display:flex;justify-content:center;align-items:center;
+    width:100%;min-width:0;min-height:50px;
+    padding:12px 10px;text-align:center;white-space:normal;
+    overflow-wrap:anywhere;line-height:1.55;
+    font-size:clamp(11px,2.8vw,13px)
+  }
+  body.public-landing-page .grid>.item{
+    min-width:0;min-height:0;padding:clamp(19px,4.8vw,25px);
+    overflow-wrap:anywhere
+  }
+  body.public-landing-page .bottom-cta .action,
+  body.public-landing-page.policy-page .policy-related a{
+    min-height:48px;overflow-wrap:anywhere
+  }
+}
+@media(max-width:375px){
+  body.public-landing-page .feature-hero .actions{
+    grid-template-columns:minmax(0,1fr)
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  body.public-landing-page .feature-hero .actions .action,
+  body.public-landing-page .bottom-cta .action{
+    transition:none!important
+  }
+}

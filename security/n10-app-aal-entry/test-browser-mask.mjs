@@ -207,7 +207,7 @@ async function exercise(browserType,viewport){
       window.__authCallback('SIGNED_IN',{user:{id:'synthetic-owner'}});
       window.__authCallback('SIGNED_OUT',null);
     });
-    await page.waitForURL(/login\\.html$/);
+    await page.waitForURL(/login\.html$/);
     assert.equal(await page.locator('#private-data').count(),0,
       'Rapid sign-out/sign-in/sign-out must never leave finance visible');
     completed++;
