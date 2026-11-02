@@ -12958,6 +12958,10 @@ db.auth.onAuthStateChange((event,session)=>{
       return;
     }
     if(liveOwner===nextOwner){
+      // An assurance-only overlay must not make a verified, fresh finance cache
+      // look like a pre-existing account/data failure.
+      const existingMask=document.getElementById('mmhP947AccountGuard');
+      const wasAlreadyMasked=!!existingMask&&!existingMask.hidden&&existingMask.style.display!=='none';
       // Lock synchronously and invalidate older work before rechecking this session.
       const authTicket=++mmhP947AuthGateTicket;
       mmhP947GuardV947('switch');
@@ -12965,7 +12969,7 @@ db.auth.onAuthStateChange((event,session)=>{
         const pending=mmhVaultSessionCheckPromiseV1239;
         if(pending){try{await pending;}catch(_e){}}
         if(authTicket!==mmhP947AuthGateTicket||currentSessionUser?.id!==nextOwner)return;
-        const result=await mmhVaultReconcileSessionV1239('auth-'+event,{refreshData:false});
+        const result=await mmhVaultReconcileSessionV1239('auth-'+event,{refreshData:false,authMaskWasNew:!wasAlreadyMasked});
         if(authTicket!==mmhP947AuthGateTicket||currentSessionUser?.id!==nextOwner)return;
         if(result?.ok!==true&&!result?.superseded)mmhP947GuardV947('error');
       }).catch(err=>{
@@ -14466,7 +14470,12 @@ async function mmhVaultReconcileSessionV1239(reason='resume',opts={}){
       const mask=document.getElementById('mmhP947AccountGuard');
       const masked=!!mask&&!mask.hidden&&mask.style.display!=='none';
       const staleFor=Date.now()-Number(window.__mmhLastCloudLoadAtV1235||0);
-      const needsCloud=masked||(opts.refreshData&&(!Number.isFinite(staleFor)||staleFor>15000));
+      // The just-added MFA check overlay is not a data-integrity failure.
+      // A previously locked account, missing verified cloud load, or an explicit
+      // stale refresh still needs authoritative financial records before unlock.
+      const hasVerifiedCloud=Number(window.__mmhLastCloudLoadAtV1235)>0;
+      const needsCloud=(masked&&(opts.authMaskWasNew!==true||!hasVerifiedCloud))||
+        (opts.refreshData&&(!Number.isFinite(staleFor)||staleFor>15000));
       if(needsCloud){
         const cloud=await window.loadAll?.({force:true});
         if(startTicket!==mmhP947AuthGateTicket||startEpoch!==(Number(window.__mmhSessionEpochV1239)||0)||currentSessionUser?.id!==owner)return {ok:false,superseded:true};
