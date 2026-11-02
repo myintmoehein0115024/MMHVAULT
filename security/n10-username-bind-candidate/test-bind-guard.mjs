@@ -122,7 +122,7 @@ async function executeScenario(scenario='disabled'){
    fetch:async()=>({ok:true,json:async()=>({
     success:true,hostname:'mmhvault.com',action:'mmh_n10a781_bind'
    })}),
-   console:{error(){}}
+   console:{error:(...args)=>{throw Error('Synthetic server caught: '+args.join(' '));}}
   };
   runInNewContext(source,context,{timeout:2000});
   assert.equal(typeof handler,'function','handler initialized');
@@ -152,6 +152,7 @@ const liveTests=[
 ];
 for(const [scenario,status,code,inserts] of liveTests){
  const result=await executeScenario(scenario);
+ if(result.status!==status)console.error('Synthetic scenario diagnostics:',scenario,result);
  assert.equal(result.status,status,scenario);
  assert.equal(result.code,code,scenario);
  assert.equal(result.inserts,inserts,scenario+' privileged inserts');
