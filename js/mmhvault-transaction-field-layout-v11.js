@@ -372,7 +372,7 @@ body.light .mmh-tx-pref-v11 small,body.light .mmh-tx-pref-hint-v11{color:#765a3d
   window.MMHV11TxFieldPrefs = {
     version:'1.0.0',getMode:mode,setMode,
     attachEdit:()=>decorate(val('editTxForm')),
-    refresh:refreshAll,groups,choices,neutral,groupKinds,validate
+    refresh:refreshAll,label:tr,groups,choices,neutral,groupKinds,validate
   };
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});
   else boot();
