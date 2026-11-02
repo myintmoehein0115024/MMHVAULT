@@ -26,25 +26,32 @@
     if(locales.has(saved))locale=saved;
   }catch(_){/* Browser privacy mode: English is the fallback. */}
 
+  // L1.26: return focus to a visible trigger when dismissing compact
+  // navigation, Explore or the language picker on any public page.
   function closeExplore(restoreFocus=false){
     if(!explore?.open)return;
+    const focusedInside=explore.contains(document.activeElement)&&
+      document.activeElement!==exploreSummary;
     explore.open=false;
-    if(restoreFocus&&exploreSummary)exploreSummary.focus();
+    if((restoreFocus||focusedInside)&&exploreSummary)exploreSummary.focus();
   }
   function closeNav(restoreFocus=false){
     if(!header||!toggle)return;
     const wasOpen=header.classList.contains('menu-open');
+    const focusedInside=!!nav&&nav.contains(document.activeElement);
     header.classList.remove('menu-open');
     toggle.setAttribute('aria-expanded','false');
     closeExplore();
-    if(restoreFocus&&wasOpen)toggle.focus();
+    if((restoreFocus&&wasOpen)||
+      (focusedInside&&nav&&getComputedStyle(nav).display==='none'))toggle.focus();
   }
   function closeLanguage(restoreFocus=false){
     if(!menu||!trigger)return;
     const wasOpen=!menu.hidden;
+    const focusedInside=menu.contains(document.activeElement);
     menu.hidden=true;
     trigger.setAttribute('aria-expanded','false');
-    if(restoreFocus&&wasOpen)trigger.focus();
+    if((restoreFocus&&wasOpen)||focusedInside)trigger.focus();
   }
   function changeLanguage(code){
     if(!locales.has(code))return;
