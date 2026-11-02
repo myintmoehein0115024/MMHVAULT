@@ -588,6 +588,48 @@ async function load(page,route,failures){
      }
    }
 
+   // L1.23 — verify actual browser transitions avoid expensive blur filters,
+   // preserve progressive reveals and use quicker phone timings.
+   for(const width of [393,1440]){
+     for(const [route,selector] of [
+       ['/', '.showcase-grid > .showcase-card.mm-reveal'],
+       ['/features/', '.grid > .item.mm-public-reveal'],
+       ['/security.html', '.policy-card.mm-public-reveal']
+     ]){
+       const ctx=await browser.newContext({
+         viewport:{width,height:852},reducedMotion:'no-preference'
+       });
+       const page=await ctx.newPage();
+       const failures=[];
+       page.on('pageerror',e=>failures.push(e.message));
+       await load(page,route,failures);
+       const metrics=await page.evaluate(selector=>{
+         const el=document.querySelector(selector);
+         if(!el)return {missing:selector};
+         const style=getComputedStyle(el);
+         return {
+           filter:style.filter,
+           transition:style.transitionProperty.split(',').map(s=>s.trim()),
+           durations:style.transitionDuration.split(',').map(s=>parseFloat(s)),
+           visibleFallback:el.classList.contains('mm-shown')||
+             el.classList.contains('mm-public-shown'),
+           rootMotion:document.documentElement.classList.contains('mm-motion-active'),
+           publicMotion:document.body.classList.contains('mm-public-motion')
+         };
+       },selector);
+       const fast=width<=620;
+       const expected=route==='/' ? (fast?[.41,.44]:[.55,.59])
+         : (fast?[.41,.445]:[.56,.6]);
+       ensure(!metrics.missing && metrics.filter==='none' &&
+         metrics.transition[0]==='opacity'&&metrics.transition[1]==='transform' &&
+         metrics.durations.length>=2&&
+         expected.every((v,i)=>Math.abs(metrics.durations[i]-v)<.012) &&
+         (route==='/'?metrics.rootMotion:metrics.publicMotion),
+         route+' '+width+'px compositor-friendly scroll reveal '+JSON.stringify(metrics));
+       await ctx.close();
+     }
+   }
+
    // L1.18 — animated public pages remain visible, language-neutral and
    // keep reduced-motion as the default fallback in the main viewport loop.
    for(const [route,target] of [
