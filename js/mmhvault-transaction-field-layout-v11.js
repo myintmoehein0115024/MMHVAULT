@@ -161,7 +161,7 @@ body.light .mmh-tx-pref-v11 small,body.light .mmh-tx-pref-hint-v11{color:#765a3d
     }
     return true;
   }
-  function render(form,allowNeutral=false) {
+  function render(form) {
     const c=current(form);if(!c.type||!c.group||!c.category)return;
     const pref=mode(),type=c.type.value,group=c.group.value,category=c.category.value;
     const typeLabel=c.type.closest('label'), groupLabel=c.group.closest('label'), catLabel=c.category.closest('label');
@@ -187,6 +187,15 @@ body.light .mmh-tx-pref-v11 small,body.light .mmh-tx-pref-hint-v11{color:#765a3d
         quickCatSelect.appendChild(option);
         if(v.group===group&&v.category===category) selected=i;
       });
+      // Editing an archived category must not silently choose a different one.
+      if(selected<0 && c.edit){
+        quickCat.hidden=true;
+        groupLabel.style.display='';
+        catLabel.style.display='';
+        hintEl.textContent='This transaction uses a historical category. It is kept unchanged unless you explicitly choose another category.';
+        hintEl.hidden=false;
+        return;
+      }
       if(selected<0 && all.length)selected=0;
       if(selected>=0)quickCatSelect.value=String(selected);
       if(!all.length){quickCat.hidden=true;groupLabel.style.display='';catLabel.style.display='';}
@@ -209,7 +218,7 @@ body.light .mmh-tx-pref-v11 small,body.light .mmh-tx-pref-hint-v11{color:#765a3d
       });
       quickGroupSelect.onchange=()=>{
         const match=all[Number(quickGroupSelect.value)];
-        if(match && applyOriginal(form,match.type,match.group,null))render(form,true);
+        if(match && applyOriginal(form,match.type,match.group,null))render(form);
       };
       if(group==='Data Adjustment') {
         typeLabel.style.display=''; // Distinguish income/expense for exceptional adjustments.
@@ -224,7 +233,7 @@ body.light .mmh-tx-pref-v11 small,body.light .mmh-tx-pref-hint-v11{color:#765a3d
         hintEl.textContent='Category: '+(category||value||'Transfer')+' (automatic)';
         hintEl.hidden=false;
       } else if(value) {
-        if(allowNeutral && value!==category && Array.from(c.category.options).some(x=>x.value===value))
+        if(!c.edit && value!==category && Array.from(c.category.options).some(x=>x.value===value))
           c.category.value=value;
         hintEl.textContent='Category used for this entry: '+(c.category.value||value)+' (switch to All three to edit).';
         hintEl.hidden=false;
@@ -239,7 +248,14 @@ body.light .mmh-tx-pref-v11 small,body.light .mmh-tx-pref-hint-v11{color:#765a3d
     if(mode()==='all')return true;
     const c=current(form);
     const type=c.type?.value,group=c.group?.value,cat=c.category?.value;
-    if(!TYPES.includes(type)||!groups(type).includes(group)||!categoryOptions(type,group).includes(cat)) {
+    // An unchanged historical category remains valid on Edit, but not Add.
+    const preservedLegacy = c.edit &&
+      form.dataset.mmhV11OriginalType===type &&
+      form.dataset.mmhV11OriginalGroup===group &&
+      form.dataset.mmhV11OriginalCategory===cat &&
+      Array.from(c.category.options).some(x=>x.value===cat);
+    if(!TYPES.includes(type)||!groups(type).includes(group)||
+       (!categoryOptions(type,group).includes(cat)&&!preservedLegacy)) {
       const el=hint(form);
       el.textContent='Please select a valid transaction Type, Transaction and Category before saving.';
       el.hidden=false;
@@ -256,7 +272,7 @@ body.light .mmh-tx-pref-v11 small,body.light .mmh-tx-pref-hint-v11{color:#765a3d
     form.addEventListener('change', e=>{
       const c=current(form);
       if(e.target===c.type||e.target===c.group)
-        setTimeout(()=>render(form,true),0);
+        setTimeout(()=>render(form),0);
       else if(e.target===c.category)setTimeout(()=>render(form,false),0);
     });
     form.addEventListener('submit',e=>{
