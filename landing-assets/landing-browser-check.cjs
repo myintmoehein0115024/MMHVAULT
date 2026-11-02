@@ -443,6 +443,26 @@ async function load(page,route,failures){
          'L1.34 '+width+'px '+language+' stable mobile feature buttons '+
            JSON.stringify(mobileCards));
      }
+       // L1.35: compact header uses the CURRENT locale flag, not a static
+       // globe. The tap target stays unchanged across all three languages.
+       if(width<=700){
+         const indicator=await page.locator('.site-header .locale-trigger').evaluate(btn=>{
+           const flag=btn.querySelector('.locale-active-flag');
+           const globe=btn.querySelector('.locale-globe');
+           const bounds=btn.getBoundingClientRect();
+           const icon=flag.getBoundingClientRect();
+           return {flag:flag.textContent.trim(),flagVisible:getComputedStyle(flag).display!=='none',
+             globeHidden:getComputedStyle(globe).display==='none',
+             width:Math.round(bounds.width),height:Math.round(bounds.height),
+             centered:Math.abs((icon.left+icon.width/2)-(bounds.left+bounds.width/2))<=4};
+         });
+         const expected={en:'🇬🇧',zh:'🇨🇳',my:'🇲🇲'}[language];
+         ensure(indicator.flag===expected&&indicator.flagVisible&&indicator.globeHidden&&
+           indicator.width===(width<=390?39:42)&&indicator.height===(width<=390?39:42)&&
+           indicator.centered,
+           'L1.35 '+width+'px '+language+' mobile selected language remains visible and centered '+
+           JSON.stringify(indicator));
+       }
        if(language==='en'){
          const englishDescription=await page.locator('meta[name="description"]')
            .getAttribute('content');
@@ -705,6 +725,22 @@ async function load(page,route,failures){
          await page.locator('#locale-menu button[data-lang="my"]').click();
          ensure(await localeName.textContent()==='မြန်မာ' && await page.locator('h1').isVisible(),
            route+' Burmese language updates menu and title');
+         // L1.35: the standalone public header uses the same selected
+         // mobile indicator as the homepage; no extra nav or oversized tap area.
+         if(width<=700){
+           const status=await trigger.evaluate(btn=>{
+             const flag=btn.querySelector('.locale-active-flag');
+             const globe=btn.querySelector('.locale-globe');
+             const rect=btn.getBoundingClientRect();
+             return {selected:flag.textContent.trim(),visible:getComputedStyle(flag).display!=='none',
+               hiddenGlobe:getComputedStyle(globe).display==='none',
+               width:Math.round(rect.width),height:Math.round(rect.height)};
+           });
+           ensure(status.selected==='🇲🇲'&&status.visible&&status.hiddenGlobe&&
+             status.width===(width<=390?39:42)&&status.height===(width<=390?39:42),
+             'L1.35 '+route+' '+width+'px mobile public header exposes active Myanmar '+
+             JSON.stringify(status));
+         }
          if(localized){
            const p=localizedBlock.locator('p');
            ensure((await p.textContent()).trim()===(await p.getAttribute('data-my')) &&
