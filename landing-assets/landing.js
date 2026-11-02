@@ -804,7 +804,7 @@
     localeFlag.textContent = languageMeta[currentLang].flag;
     localeName.textContent = languageMeta[currentLang].title;
     // Keep brand name and official site title consistent across display languages.
-    document.title = 'MMHVAULT | Personal Finance & Life Planning';
+    document.title = 'MMHVAULT | Personal Finance & Wealth';
     const desc = document.querySelector('meta[name="description"]');
     if (desc && currentLang === 'zh') desc.setAttribute('content', 'MMHVAULT 个人财务与生活规划管理平台：管理账户、交易、投资和预算，并了解即将推出的日程与个人目标功能。');
     if (desc && currentLang === 'my') desc.setAttribute('content', 'MMHVAULT သည် အကောင့်၊ ငွေကြေးအဝင်အထွက်၊ ရင်းနှီးမြှုပ်နှံမှုနှင့် ဘတ်ဂျက်များအတွက် ကိုယ်ပိုင်စီမံခန့်ခွဲမှုနေရာဖြစ်ပြီး ဘဝအစီအစဉ်လုပ်ဆောင်ချက်များကို ပြင်ဆင်နေပါသည်။');
