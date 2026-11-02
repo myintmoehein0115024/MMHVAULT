@@ -393,4 +393,44 @@ console.log('PASS: verified legacy null AAL1, MFA enrollment race, cross-owner/s
 console.log('PASS: synthetic app entry for normal/legacy AAL, invalid users, factor state, stale responses, and login MFA routing.');
 
 
+
+{
+  // Cross-owner events must cancel an in-flight AAL check synchronously,
+  // not wait until the queued switch function starts in a microtask.
+  let callback;
+  const guards=[],switches=[];
+  let owner={id:'synthetic-owner-a'};
+  const ctx={
+    Promise,
+    console:{warn(){}},
+    currentSessionUser:owner,
+    mmhP947AuthGateTicket:7,
+    mmhvaultAuthBootSettledV3285:true,
+    db:{auth:{onAuthStateChange:cb=>{callback=cb;}}},
+    mmhP947GuardV947:phase=>guards.push(phase),
+    mmhVaultReconcileSessionV1239:async()=>({ok:true}),
+    mmhvaultFinishAuthBootV3285:()=>{},
+    mmhVaultSignOutCleanupV1239:()=>{},
+    mmhVaultSessionCheckPromiseV1239:null,
+    window:{mmhVaultSwitchSessionV1239:async ses=>{switches.push(ses.user.id);return {ok:false};}},
+    applyUserProfile:()=>{},
+    sessionStorage:{removeItem(){}},
+    location:{replace(){}}
+  };
+  vm.runInNewContext(auth,ctx,{timeout:2000});
+  assert.equal(typeof callback,'function','Install synthetic Auth observer');
+  callback('SIGNED_IN',{user:{id:'synthetic-owner-b'}});
+  assert.equal(ctx.mmhP947AuthGateTicket,8,'Switch invalidates prior verification before first microtask');
+  assert.deepEqual(guards,['switch'],'Switch must cover private DOM immediately');
+  assert.deepEqual(switches,[],'Switch is scheduled asynchronously');
+  await flush();
+  assert.deepEqual(switches,['synthetic-owner-b'],'Switch eventually runs with new owner');
+  ctx.currentSessionUser=null;
+  callback('SIGNED_IN',{user:{id:'synthetic-owner-c'}});
+  assert.equal(ctx.mmhP947AuthGateTicket,9,'Ownerless resume invalidates old checks immediately');
+  assert.deepEqual(guards,['switch','switch'],'Ownerless resume masks pending data immediately');
+  await flush();
+  assert.deepEqual(switches,['synthetic-owner-b','synthetic-owner-c']);
+}
+
 console.log('PASS: dynamic synthetic session reconciliation, malformed AAL, MFA step-up, stale async results and same-owner refresh.');
