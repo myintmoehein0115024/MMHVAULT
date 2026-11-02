@@ -1,0 +1,99 @@
+{
+  "schema": "mmhvault-n10-source-composite-v1",
+  "snapshot_date": "2026-11-02",
+  "base_main": "0c74182451dbdca3aa01ece5512697f33e3c87d3",
+  "source_prs": [
+    {
+      "number": 11,
+      "head": "8161a8f6f067e368769d3b81db3f7bc0b68591dc",
+      "branch": "review/n10-vault-backend-only-20261101",
+      "expected": 25,
+      "include": [
+        "docs/N10_SAFE_RESUME_HANDOFF_20261101.md",
+        "docs/N10_STAGING_RELEASE_GATES_20261101.md",
+        "docs/N10_VAULT_BACKEND_ONLY_REVIEW_20261101.md",
+        "docs/N10_VAULT_INSTALLED_SCHEMA_READ_ONLY_AUDIT_20261101.md",
+        "docs/N10_VAULT_RATE_BUCKET_RETENTION_GATE_20261101.md",
+        "docs/sql/n10_fixed_recovery_READ_ONLY_PREFLIGHT.sql",
+        "docs/sql/n10_fixed_recovery_vault_STAGING_CANDIDATE.sql",
+        "docs/sql/n10_installed_staging_vault_READ_ONLY_AUDIT_20261101.sql",
+        "docs/sql/n10_staging_qa_excess_dml_REVOKE_REVIEW_ONLY.sql",
+        "docs/sql/n10_staging_qa_rls_READ_ONLY_ASSERTIONS_20261101.sql",
+        "docs/sql/n10_staging_session_guard_V2_EMERGENCY_DISABLE_REVIEW_ONLY.sql",
+        "docs/sql/n10_staging_session_guard_V2_SYNTHETIC_READ_ONLY_TEST.sql",
+        "docs/sql/n10_staging_session_guard_V2_UPGRADE_REVIEW_ONLY.sql",
+        "security/n10-fixed-recovery-vault-candidate/index.ts",
+        "security/n10-fixed-recovery-vault-candidate/mfa-assurance.mjs",
+        "security/n10-fixed-recovery-vault-candidate/recovery-request.mjs",
+        "security/n10-fixed-recovery-vault-candidate/retire-joint-qa-edge-REVIEW_ONLY.ts",
+        "security/n10-fixed-recovery-vault-candidate/session-guard.mjs",
+        "security/n10-fixed-recovery-vault-candidate/test-backend-only-review.mjs",
+        "security/n10-fixed-recovery-vault-candidate/test-isolated-scope.mjs",
+        "security/n10-fixed-recovery-vault-candidate/test-mfa-assurance.mjs",
+        "security/n10-fixed-recovery-vault-candidate/test-recovery-request.mjs",
+        "security/n10-fixed-recovery-vault-candidate/test-retired-joint-qa-stub.mjs",
+        "security/n10-fixed-recovery-vault-candidate/test-session-guard.mjs",
+        "security/n10-fixed-recovery-vault-candidate/test-session-upgrade-review.mjs"
+      ],
+      "excluded": [
+        ".github/workflows/n10-vault-backend-only-review.yml"
+      ]
+    },
+    {
+      "number": 25,
+      "head": "180fefd7b950de88853a73f36437bd0fa8c6c16a",
+      "branch": "review/n10-app-aal-entry-guard-20261102",
+      "expected": 3,
+      "include": [
+        "app.html",
+        "security/n10-app-aal-entry/test-app-aal-guard.mjs",
+        "security/n10-app-aal-entry/test-browser-mask.mjs"
+      ],
+      "excluded": [
+        ".github/workflows/n10-app-aal-entry-review.yml"
+      ]
+    },
+    {
+      "number": 31,
+      "head": "11c27d291a3141f7fcac4211677dcbcdac8bfb4b",
+      "branch": "review/n10-username-bind-fresh-auth-20261102",
+      "expected": 4,
+      "include": [
+        "docs/N10_USERNAME_BIND_REVIEW_20261102.md",
+        "security/n10-username-bind-candidate/bind-guard.mjs",
+        "security/n10-username-bind-candidate/index.ts",
+        "security/n10-username-bind-candidate/test-bind-guard.mjs"
+      ],
+      "excluded": [
+        ".github/workflows/n10-username-bind-fresh-auth-review.yml"
+      ]
+    },
+    {
+      "number": 33,
+      "head": "fd9ae0d79f6b6c0808c1825f3d817517d45300d8",
+      "branch": "review/n10-phrase-final-auth-20261102",
+      "expected": 4,
+      "include": [
+        "docs/N10_PHRASE_VERIFY_REVIEW_20261102.md",
+        "security/n10-phrase-verify-candidate/index.ts",
+        "security/n10-phrase-verify-candidate/mfa-assurance.mjs",
+        "security/n10-phrase-verify-candidate/test-phrase-guard.mjs"
+      ],
+      "excluded": [
+        ".github/workflows/n10-phrase-final-auth-review.yml"
+      ]
+    }
+  ],
+  "production_release": "HOLD",
+  "hard_off_sources": [
+    "security/n10-fixed-recovery-vault-candidate/index.ts",
+    "security/n10-username-bind-candidate/index.ts",
+    "security/n10-phrase-verify-candidate/index.ts"
+  ],
+  "unperformed": [
+    "real signed dual-account MFA/Recovery",
+    "Vault deletion/orphan end-to-end",
+    "platform-blocked legacy QA retirement"
+  ],
+  "source_file_count": 36
+}
