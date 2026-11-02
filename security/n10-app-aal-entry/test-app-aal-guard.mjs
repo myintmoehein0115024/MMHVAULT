@@ -13,11 +13,11 @@ const mainHtml=execFileSync('git',['show','origin/main:app.html'],{
 function nonAuthSource(source,reviewCandidate){
   let copy=source;
   if(reviewCandidate){
-    const intro='// Keep the callback synchronous; all subsequent Auth RPCs run in a macrotask.\\n'+
-      '// Masking and ticket invalidation above remain immediate.\\n';
+    const intro='// Keep the callback synchronous; all subsequent Auth RPCs run in a macrotask.\n'+
+      '// Masking and ticket invalidation above remain immediate.\n';
     assert.equal(copy.split(intro).length-1,1,'Exactly one new Auth callback comment');
     copy=copy.replace(intro,'');
-    const from='// N10 app entry: an explicit legacy null AAL1 needs fresh Auth verification.\\n';
+    const from='// N10 app entry: an explicit legacy null AAL1 needs fresh Auth verification.\n';
     const to='let activeEnterUserId=""';
     const a=copy.indexOf(from),b=copy.indexOf(to,a+from.length);
     assert.ok(a>=0&&b>a,'N10 helper only precedes app entry');
@@ -35,7 +35,7 @@ function nonAuthSource(source,reviewCandidate){
     const a=copy.indexOf(begin),b=copy.indexOf(end,a+begin.length);
     assert.ok(a>=0&&b>a,'Audited Auth region boundaries: '+begin);
     assert.equal(copy.indexOf(begin,a+1),-1,'Exactly one Auth region: '+begin);
-    copy=copy.slice(0,a)+'/* N10_AUTH_SCOPED_SECTION '+begin+' */\\n'+copy.slice(b);
+    copy=copy.slice(0,a)+'/* N10_AUTH_SCOPED_SECTION '+begin+' */\n'+copy.slice(b);
   }
   return copy;
 }
