@@ -150,3 +150,29 @@ test('renderer failure on lock cannot keep controller unlocked',()=>{
  assert.doesNotThrow(()=>c.hide());
  assert.equal(c.getPhase(),'locked');
 });
+
+test('password rate limits show a clear safe message in three languages',async()=>{
+ const events=[];
+ const controller=createRecoveryViewController({
+  currentOwner:()=> 'account-a', onChange:x=>events.push(x),
+  request:async action=>action==='status'
+   ?{code:'backup_status',backed_up:true}:{code:'too_many_attempts'}
+ });
+ await controller.status();await controller.reveal('synthetic-password');
+ assert.equal(controller.getPhase(),'rate_limited');
+ assert.ok(!('words' in events.at(-1)));
+ assert.match(recoveryViewMessage('rate_limited','zh'),/稍后再试/);
+ assert.match(recoveryViewMessage('rate_limited','en'),/try again later/);
+ assert.match(recoveryViewMessage('rate_limited','my'),/နောက်မှ/);
+});
+test('non-username login method shows non-applicable status, not a false backup',async()=>{
+ const events=[];
+ const controller=createRecoveryViewController({
+  currentOwner:()=> 'account-a',onChange:x=>events.push(x),
+  request:async()=>({code:'username_only_required'})
+ });
+ await controller.status();
+ assert.equal(controller.getPhase(),'not_supported');
+ assert.ok(!('words' in events.at(-1)));
+ assert.match(recoveryViewMessage('not_supported','zh'),/独立用户名/);
+});
