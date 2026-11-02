@@ -106,3 +106,47 @@ test('synchronous close during words-visible event does not rearm display timer'
  assert.equal(timerCount,0,'closed key must never re-arm the display timer');
  assert.deepEqual(states.slice(-2),['visible','locked']);
 });
+
+test('rendering failure while showing words locks and clears sensitive view',async()=>{
+ const states=[];let closeCount=0;
+ const c=createRecoveryViewController({
+  currentOwner:()=> 'account-a',
+  onChange:e=>{
+   states.push(e.phase);
+   if(e.phase==='visible')throw Error('synthetic render failure');
+   if(e.phase==='locked')closeCount++;
+  },
+  request:async action=>action==='status'?
+   {code:'backup_status',backed_up:true}:
+   {code:'recovery_key',words,expires_in_seconds:45},
+ });
+ await c.status();
+ await c.reveal('synthetic-password');
+ assert.equal(c.getPhase(),'unavailable');
+ assert.ok(closeCount>=2,'locked event must clear the visible partial DOM');
+ assert.deepEqual(states.slice(-3),['visible','locked','unavailable']);
+});
+test('a throwing timer setup never leaves recovery words visible',async()=>{
+ const states=[];
+ const c=createRecoveryViewController({
+  currentOwner:()=> 'account-a',
+  onChange:e=>states.push(e.phase),
+  request:async action=>action==='status'?
+   {code:'backup_status',backed_up:true}:
+   {code:'recovery_key',words,expires_in_seconds:45},
+  setTimer:()=>{throw Error('synthetic timer unavailable')},
+ });
+ await c.status();
+ await c.reveal('synthetic-password');
+ assert.equal(c.getPhase(),'unavailable');
+ assert.deepEqual(states.slice(-3),['visible','locked','unavailable']);
+});
+test('renderer failure on lock cannot keep controller unlocked',()=>{
+ const c=createRecoveryViewController({
+  currentOwner:()=> 'account-a',
+  onChange:e=>{if(e.phase==='locked')throw Error('synthetic DOM failure')},
+  request:async()=>({code:'unavailable'}),
+ });
+ assert.doesNotThrow(()=>c.hide());
+ assert.equal(c.getPhase(),'locked');
+});
