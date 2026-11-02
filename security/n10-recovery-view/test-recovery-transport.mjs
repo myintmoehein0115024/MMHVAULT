@@ -119,3 +119,34 @@ test('the status request is also invalidated by a session change',async()=>{
  const h=harness({auth});
  assert.deepEqual(await h.request('status'),{code:'sign_in_required'});
 });
+
+test('each verified Auth lookup authenticates the exact outgoing bearer',async()=>{
+ const verified=[];
+ const auth=goodAuth();
+ auth.getUser=async token=>{verified.push(token);return {data:{user:{id:'same-user'}}}};
+ const h=harness({auth});
+ assert.deepEqual(await h.request('status'),{code:'backup_status',backed_up:true});
+ assert.deepEqual(verified,['synthetic-token','synthetic-token']);
+});
+test('status cannot return recovery words even from a compromised backend',async()=>{
+ const h=harness({reply:respond('recovery_key',{words,expires_in_seconds:45})});
+ assert.deepEqual(await h.request('status'),{code:'unavailable'});
+ assert.deepEqual(JSON.parse(h.calls[0].options.body),{action:'status'});
+});
+test('reveal cannot accidentally be accepted as backup-status',async()=>{
+ const h=harness({reply:respond('backup_status',{backed_up:true})});
+ assert.deepEqual(await h.request('reveal',{password:'test-pass'}),{code:'unavailable'});
+});
+test('non-JSON response is rejected before original words are parsed',async()=>{
+ const h=harness({reply:new Response(JSON.stringify({code:'recovery_key',words,expires_in_seconds:45}),{
+  headers:{'content-type':'text/html'}
+ })});
+ assert.deepEqual(await h.request('reveal',{password:'test-pass'}),{code:'unavailable'});
+});
+test('JSON charset content type from real Vault Edge remains accepted',async()=>{
+ const h=harness({reply:new Response(JSON.stringify({code:'recovery_key',words,expires_in_seconds:45}),{
+  headers:{'content-type':'application/json; charset=utf-8'}
+ })});
+ assert.deepEqual(await h.request('reveal',{password:'test-pass'}),
+  {code:'recovery_key',words,expires_in_seconds:45});
+});
