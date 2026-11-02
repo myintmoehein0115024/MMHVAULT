@@ -51,7 +51,7 @@
     const focusedInside=menu.contains(document.activeElement);
     menu.hidden=true;
     trigger.setAttribute('aria-expanded','false');
-    if((restoreFocus&&wasOpen)||focusedInside)trigger.focus();
+    if((restoreFocus&&wasOpen)||focusedInside)trigger.focus({preventScroll:true});
   }
   function changeLanguage(code){
     if(!locales.has(code))return;
@@ -76,7 +76,7 @@
     btn.addEventListener('click',()=>{
       changeLanguage(btn.dataset.lang);
       closeLanguage();
-      trigger?.focus();
+      trigger?.focus({preventScroll:true});
     });
   });
   trigger?.addEventListener('click',()=>{
@@ -88,14 +88,14 @@
     trigger.setAttribute('aria-expanded',String(opening));
     if(opening){
       const active=menu.querySelector('[aria-pressed="true"]');
-      active?.focus();
+      active?.focus({preventScroll:true});
     }
   });
   trigger?.addEventListener('keydown',event=>{
     if(event.key!=='ArrowDown')return;
     event.preventDefault();
     if(menu.hidden)trigger.click();
-    else menu.querySelector('button')?.focus();
+    else menu.querySelector('button')?.focus({preventScroll:true});
   });
   menu?.addEventListener('keydown',event=>{
     if(event.key!=='ArrowDown'&&event.key!=='ArrowUp')return;
@@ -103,7 +103,7 @@
     const buttons=[...menu.querySelectorAll('button[data-lang]')];
     const current=buttons.indexOf(document.activeElement);
     const next=(current+(event.key==='ArrowDown'?1:-1)+buttons.length)%buttons.length;
-    buttons[next]?.focus();
+    buttons[next]?.focus({preventScroll:true});
   });
   if(header&&nav&&toggle&&explore){
     toggle.addEventListener('click',()=>{
