@@ -32,3 +32,10 @@
 - Pure UI controller checks: status, wrong password and retry, MFA error, revoked session, nonexistent backup, malformed response, 45-second hide, race against account switch/close, EN/ZH/MY error text.
 - Unit tests are synthetic and **do not** prove actual signed Auth or Vault encryption.
 - Do not merge to `main` until fresh main SHA, changed-file scope and non-overlap with parallel APP V11 and Landing branches are verified, and the owner explicitly approves a scoped release.
+
+## 2026-11-02 further privacy hardening (review-only)
+- The transport rechecks the **same current owner and exact session token** after the bounded Edge response and before returning the original phrase, blocking logout, account-switch and token-rotation races. The server must still enforce Auth, MFA, revocation and Vault ownership.
+- The controller fails closed if an on-screen render callback or hide timer throws, clearing the sensitive state before reporting a generic error.
+- `recovery-view-lifecycle.mjs` is a standalone **NOT LOADED** adapter for the existing N10 Recovery Key Glass modal: it clears visible words when the document goes into the background, the page unloads, an existing modal close button is clicked or Auth changes. It unsubscribes and removes listeners on teardown. There is **no production import, UI activation, or database change**.
+- Matching offline tests cover those race conditions, renderer exceptions, timer failure and lifecycle events; only six extra isolated-source commits have been added since the previous review gate.
+- **Do not** interpret synthetic success as successful real signed two-owner MFA/AAL2, encrypted Vault read or a deployed integration. The login/recovery endpoint and Vault schema are still separate release gates.
