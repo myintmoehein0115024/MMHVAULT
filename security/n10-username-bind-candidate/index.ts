@@ -1,6 +1,6 @@
 
 import { createClient } from 'npm:@supabase/supabase-js@2.57.4';
-import { recheckBindSecurity } from './bind-guard.mjs';
+import { recheckBindSecurity, verifiedJwtMfaDecision } from './bind-guard.mjs';
 const BASE='https://vrypucmyrztxgiqhjspd.supabase.co',ORIGIN='https://mmhvault.com';
 const SERVICE=Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')||'';
 const PUBLIC=Deno.env.get('SUPABASE_ANON_KEY')||'';
@@ -9,30 +9,37 @@ const HMAC_SECRET=Deno.env.get('N10A740_RATE_HMAC_KEY')||'';
 const enabled=false; // REVIEW ONLY: NEVER DEPLOY or flip without signed QA and approval
 const re=/^[a-z][a-z0-9_]{3,19}$/,reserved=new Set(['admin','administrator','root','system','support','mmhvault','security','billing','help','official','staff','customer_service']);
 const admin=createClient(BASE,SERVICE||'placeholder',{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
-const anon=createClient(BASE,PUBLIC||'placeholder',{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
 const encoder=new TextEncoder();
-function response(origin,status,code,extra={}){
+function response(origin:string|null,status:number,code:string,extra:Record<string,unknown>={}){
  return new Response(JSON.stringify({code,...extra}),{status,headers:{'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store, private','X-Content-Type-Options':'nosniff','Referrer-Policy':'no-referrer','Vary':'Origin',...(origin===ORIGIN?{'Access-Control-Allow-Origin':ORIGIN,'Access-Control-Allow-Headers':'authorization, apikey, content-type','Access-Control-Allow-Methods':'POST, OPTIONS','Access-Control-Max-Age':'120'}:{})}});
 }
-async function jsonBody(req){const len=req.headers.get('content-length');if(len&&(Number(len)>3000||!/^\d+$/.test(len)))throw Error('body');const reader=req.body?.getReader();if(!reader)throw Error('body');let size=0;const b=[];try{while(true){const {done,value}=await reader.read();if(done)break;size+=value.byteLength;if(size>3000){await reader.cancel();throw Error('body');}b.push(value)}}finally{reader.releaseLock()}const raw=new Uint8Array(size);let off=0;for(const item of b){raw.set(item,off);off+=item.length}const obj=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(raw));if(!obj||typeof obj!=='object'||Array.isArray(obj))throw Error('body');return obj;}
-async function hmac(value){const k=await crypto.subtle.importKey('raw',encoder.encode(HMAC_SECRET),{name:'HMAC',hash:'SHA-256'},false,['sign']);const arr=new Uint8Array(await crypto.subtle.sign('HMAC',k,encoder.encode('n10a781:'+value)));return Array.from(arr,n=>n.toString(16).padStart(2,'0')).join('');}
-async function quota(key,limit=5,window=900){const {data,error}=await admin.rpc('mmh_n10a769_take_attempt',{p_key:await hmac(key),p_limit:limit,p_window_seconds:window});if(error||typeof data!=='boolean')throw Error('quota');return data;}
-async function verifyCaptcha(token){if(typeof token!=='string'||token.length<20||token.length>2048)return false;const r=await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},cache:'no-store',signal:AbortSignal.timeout(8500),body:new URLSearchParams({secret:TURNSTILE,response:token})});if(!r.ok)throw Error('captcha');const j=await r.json();return j?.success===true&&j.hostname==='mmhvault.com'&&j.action==='mmh_n10a781_bind';}
-async function currentUser(req){const bearer=/^Bearer\s+([^\s]+)$/i.exec(req.headers.get('Authorization')||'')?.[1];if(!bearer||bearer.length>8192)return null;const {data,error}=await admin.auth.getUser(bearer);if(error||!data.user?.id||data.user.is_anonymous||!data.user.email_confirmed_at||!data.user.email)return null;
+async function jsonBody(req:Request){const len=req.headers.get('content-length');if(len&&(Number(len)>3000||!/^\d+$/.test(len)))throw Error('body');const reader=req.body?.getReader();if(!reader)throw Error('body');let size=0;const b:Uint8Array[]=[];try{while(true){const {done,value}=await reader.read();if(done)break;size+=value.byteLength;if(size>3000){await reader.cancel();throw Error('body');}b.push(value)}}finally{reader.releaseLock()}const raw=new Uint8Array(size);let off=0;for(const item of b){raw.set(item,off);off+=item.length}const obj=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(raw));if(!obj||typeof obj!=='object'||Array.isArray(obj))throw Error('body');return obj;}
+async function hmac(value:string){const k=await crypto.subtle.importKey('raw',encoder.encode(HMAC_SECRET),{name:'HMAC',hash:'SHA-256'},false,['sign']);const arr=new Uint8Array(await crypto.subtle.sign('HMAC',k,encoder.encode('n10a781:'+value)));return Array.from(arr,n=>n.toString(16).padStart(2,'0')).join('');}
+async function quota(key:string,limit=5,window=900){const {data,error}=await admin.rpc('mmh_n10a769_take_attempt',{p_key:await hmac(key),p_limit:limit,p_window_seconds:window});if(error||typeof data!=='boolean')throw Error('quota');return data;}
+async function verifyCaptcha(token:unknown){if(typeof token!=='string'||token.length<20||token.length>2048)return false;const r=await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},cache:'no-store',signal:AbortSignal.timeout(8500),body:new URLSearchParams({secret:TURNSTILE,response:token})});if(!r.ok)throw Error('captcha');const j=await r.json();return j?.success===true&&j.hostname==='mmhvault.com'&&j.action==='mmh_n10a781_bind';}
+async function currentUser(req:Request){const bearer=/^Bearer\s+([^\s]+)$/i.exec(req.headers.get('Authorization')||'')?.[1];if(!bearer||bearer.length>8192)return null;const {data,error}=await admin.auth.getUser(bearer);if(error||!data.user?.id||data.user.is_anonymous||!data.user.email_confirmed_at||!data.user.email)return null;
  const user=data.user;
  // Username-only accounts cannot bind a second alias. A verified, actual email
  // identity is required, not a synthetic Auth email alias.
- if(user.app_metadata?.mmhvault_auth_kind||user.email.endsWith('@no-mail.mmhvault.invalid')||!(user.identities||[]).some(i=>i.provider==='email'))return null;
+ if(typeof user.email!=='string'||user.app_metadata?.mmhvault_auth_kind||user.email.endsWith('@no-mail.mmhvault.invalid')||!(user.identities||[]).some(i=>i.provider==='email'))return null;
  return user;
 }
-async function requireAssuredSession(request){
+async function requireAssuredSession(request:Request,expectedUserId:string){
  const match=/^Bearer\s+([^\s]+)$/i.exec(request.headers.get('Authorization')||'');
- if(!match||match[1].length>8192)return false;
- const {data,error}=await anon.auth.mfa.getAuthenticatorAssuranceLevel(match[1]);
- if(error||!data||!['aal1','aal2'].includes(data.currentLevel)||!['aal1','aal2'].includes(data.nextLevel))return false;
- return data.nextLevel!=='aal2'||data.currentLevel==='aal2';
+ if(!match||match[1].length>8192||!expectedUserId)return false;
+ // Require the original signed bearer to pass Auth.getUser(jwt) FIRST.
+ const {data:authenticated,error:identityError}=await admin.auth.getUser(match[1]);
+ const liveUser=authenticated?.user;
+ if(identityError||!liveUser?.id||liveUser.id!==expectedUserId||liveUser.is_anonymous)return false;
+ // Verify current factors from the Auth admin API rather than client metadata.
+ const {data:inventory,error:factorError}=await admin.auth.admin.mfa.listFactors({userId:expectedUserId});
+ if(factorError||!Array.isArray(inventory?.factors))return false;
+ if(Array.isArray(liveUser.factors)&&liveUser.factors.some(f=>f?.status==='verified')&&
+    !inventory.factors.some(f=>f?.status==='verified'))return false;
+ return verifiedJwtMfaDecision(match[1],{...liveUser,factors:inventory.factors},BASE)==='allowed';
 }
-async function provePassword(user,password){const temp=createClient(BASE,PUBLIC,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});const {data,error}=await temp.auth.signInWithPassword({email:user.email,password});if(error||data.user?.id!==user.id||!data.session?.access_token)return false;const {data:verified,error:verifiedError}=await temp.auth.getUser(data.session.access_token);
+async function provePassword(user:{id:string;email?:string},password:string){
+ if(typeof user.email!=='string')return false;const temp=createClient(BASE,PUBLIC,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});const {data,error}=await temp.auth.signInWithPassword({email:user.email,password});if(error||data.user?.id!==user.id||!data.session?.access_token)return false;const {data:verified,error:verifiedError}=await temp.auth.getUser(data.session.access_token);
  // Tokens obtained for a password check are never returned to the browser.
  try{await temp.auth.signOut({scope:'local'});}catch(_){}
  return !verifiedError&&verified.user?.id===user.id;
@@ -51,7 +58,7 @@ Deno.serve(async request=>{
  try{
   const user=await currentUser(request);
   if(!user)return response(origin,401,'verified_email_session_required');
-  if(!await requireAssuredSession(request))return response(origin,403,'additional_verification_required');
+  if(!await requireAssuredSession(request,user.id))return response(origin,403,'additional_verification_required');
   if(!await quota('bind:user:'+user.id,5,900)||!await quota('bind:username:'+username,6,900))return response(origin,429,'too_many_attempts');
   if(!await verifyCaptcha(body.captcha_token))return response(origin,403,'verification_required');
   if(!await quota('bind:captcha:'+body.captcha_token,1,600))return response(origin,403,'verification_required');
@@ -66,7 +73,7 @@ Deno.serve(async request=>{
   const fresh=await recheckBindSecurity({
     expectedUser:user,
     verifyUser:()=>currentUser(request),
-    verifyAssurance:()=>requireAssuredSession(request)
+    verifyAssurance:()=>requireAssuredSession(request,user.id)
   });
   if(fresh!=='allowed')return response(origin,
     fresh==='verification_unavailable'?503:fresh==='session_expired'?401:403,
