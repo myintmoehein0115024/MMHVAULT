@@ -14484,21 +14484,24 @@ function mmhVaultResumeLifecycleV1239(reason){
   if(!fromBackForwardCache&&now-mmhVaultLastSessionCheckV1239<1200)return;
   mmhVaultLastSessionCheckV1239=now;
   const staleFor=now-Number(window.__mmhLastCloudLoadAtV1235||0);
-  if(fromBackForwardCache&&currentSessionUser?.id){
-    // A persisted Safari/WebKit page can show stale financial DOM immediately.
-    // Mask synchronously, invalidate pending Auth checks and reverify the owner.
+  const reenterAfterLongPause=reason==='focus'||reason==='visible';
+  const requiresFreshMask=fromBackForwardCache||
+    (reenterAfterLongPause&&(!Number.isFinite(staleFor)||staleFor>120000));
+  if(requiresFreshMask&&currentSessionUser?.id){
+    // BFCache and stale tab returns can expose cached private DOM before Auth resolves.
+    // Mask synchronously, invalidate pending checks, and reverify owner + MFA.
     const owner=currentSessionUser.id,ticket=++mmhP947AuthGateTicket;
     mmhP947GuardV947('switch');
     Promise.resolve().then(async()=>{
       const pending=mmhVaultSessionCheckPromiseV1239;
       if(pending){try{await pending;}catch(_e){}}
       if(ticket!==mmhP947AuthGateTicket||currentSessionUser?.id!==owner)return;
-      const result=await mmhVaultReconcileSessionV1239('bfcache',{forceRealtime:true,refreshData:true});
+      const result=await mmhVaultReconcileSessionV1239(reason,{forceRealtime:true,refreshData:true});
       if(ticket===mmhP947AuthGateTicket&&currentSessionUser?.id===owner&&
          result?.ok!==true&&!result?.superseded&&!result?.mfaRequired)mmhP947GuardV947('error');
     }).catch(err=>{
       if(ticket===mmhP947AuthGateTicket&&currentSessionUser?.id===owner){
-        mmhP947GuardV947('error');console.warn('BFCache Auth recheck failed',err);
+        mmhP947GuardV947('error');console.warn('Restored session Auth recheck failed',reason,err);
       }
     });
     return;
