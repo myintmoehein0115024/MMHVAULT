@@ -677,14 +677,17 @@ async function load(page,route,failures){
        const errors=[];
        page.on('pageerror',e=>errors.push(e.message));
        await load(page,route,errors);
+       const documentPath=route==='/'?'index.html'
+         :route.endsWith('/')?route.slice(1)+'index.html':route.slice(1);
+       const originalTitle=(fs.readFileSync(documentPath,'utf8')
+         .match(/<title>([^<]+)<\\/title>/)||[])[1];
        const seo=await page.evaluate(()=>({
-         fromHtml:document.querySelector('head title')?.textContent,
          runtime:document.title,
          path:location.pathname
        }));
-       ensure(seo.runtime===seo.fromHtml && 
+       ensure(!!originalTitle&&seo.runtime===originalTitle &&
          (route!=='/'||seo.runtime==='MMHVAULT | Personal Finance & Wealth'),
-         route+' '+width+'px initial browser title matches HTML SEO '+JSON.stringify(seo));
+         route+' '+width+'px initial browser title matches static HTML SEO '+JSON.stringify(seo));
        if(route==='/'){
          await page.evaluate(()=>window.scrollTo({
            top:Math.min(700,Math.max(0,document.documentElement.scrollHeight-innerHeight-120)),
@@ -703,8 +706,8 @@ async function load(page,route,failures){
            path:location.pathname,hash:location.hash,
            y:scrollY,x:scrollX
          }));
-         ensure(after.title===seo.fromHtml &&
-           after.htmlTitle===seo.fromHtml &&
+         ensure(after.title===originalTitle &&
+           after.htmlTitle===originalTitle &&
            after.lang===(language==='zh'?'zh-CN':language) &&
            after.path===initial.path&&after.hash===initial.hash &&
            Math.abs(after.x-initial.x)<=2 &&
