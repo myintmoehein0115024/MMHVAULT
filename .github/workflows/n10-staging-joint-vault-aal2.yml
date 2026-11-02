@@ -31,7 +31,7 @@ jobs:
           test -s /tmp/n10-staging-qa-paths
           while IFS= read -r path; do
             case "$path" in
-              security/n10-staging-joint-vault-aal2/index.ts|security/n10-staging-joint-vault-aal2/rollback/v1-index.ts|security/n10-staging-joint-vault-aal2/session-aal.mjs|security/n10-staging-joint-vault-aal2/mfa-assurance.mjs|security/n10-staging-joint-vault-aal2/session-guard.mjs|security/n10-staging-joint-vault-aal2/test-staging-vault-aal2.mjs|docs/N10_STAGING_JOINT_VAULT_AAL2_REVIEW_20261102.md|.github/workflows/n10-staging-joint-vault-aal2.yml) ;;
+              security/n10-staging-joint-vault-aal2/index.ts|security/n10-staging-joint-vault-aal2/rollback/v1-index.ts|security/n10-staging-joint-vault-aal2/session-aal.mjs|security/n10-staging-joint-vault-aal2/mfa-assurance.mjs|security/n10-staging-joint-vault-aal2/session-guard.mjs|security/n10-staging-joint-vault-aal2/test-staging-vault-aal2.mjs|security/n10-staging-joint-vault-aal2/qa-admission.mjs|security/n10-staging-joint-vault-aal2/test-qa-admission.mjs|docs/N10_STAGING_JOINT_VAULT_AAL2_REVIEW_20261102.md|.github/workflows/n10-staging-joint-vault-aal2.yml) ;;
               *) echo "BLOCKED: unrelated change: $path"; exit 1;;
             esac
           done < /tmp/n10-staging-qa-paths
@@ -41,6 +41,8 @@ jobs:
           node --check security/n10-staging-joint-vault-aal2/mfa-assurance.mjs
           node --check security/n10-staging-joint-vault-aal2/session-guard.mjs
           node --check security/n10-staging-joint-vault-aal2/test-staging-vault-aal2.mjs
+          node --check security/n10-staging-joint-vault-aal2/qa-admission.mjs
+          node --check security/n10-staging-joint-vault-aal2/test-qa-admission.mjs
       - name: Enforce 3 hard-off release gates and minimal source diff
-        run: node --test security/n10-staging-joint-vault-aal2/test-staging-vault-aal2.mjs
+        run: node --test security/n10-staging-joint-vault-aal2/test-staging-vault-aal2.mjs security/n10-staging-joint-vault-aal2/test-qa-admission.mjs
 # No DB credentials, no deployment or SQL execution, no secrets or user accounts.
