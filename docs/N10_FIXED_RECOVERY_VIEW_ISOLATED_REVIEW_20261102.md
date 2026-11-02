@@ -8,6 +8,7 @@
 - Existing login, username binding, phrase verification, MFA and Password & Devices remain untouched.
 - Draft PR #2, #11, #33 and composite PR #37 stay separate; never bulk-merge these sources.
 - This branch changes **only** independent N10 review source/tests/documentation; not `app.html`, `login.html`, Landing, SEO, PWA, finance or database records.
+- **Reuse** the existing draft PR #2 Glass UI (`feature/n10-fixed-recovery-key-modal-20261031`, `js/mmhvault-n10-a7-83-security-center.js`) instead of rebuilding it. The PR #2 copy is conflict-prone and has a hard-OFF `N10_FIXED_VAULT_UI_RELEASED=false` gate. Do not merge the original PR wholesale; a later approved integration should transplant only the audited Recovery Key elements into the latest, concurrently updated Security Center.
 
 ## Required fixed-key behavior
 1. For a username-only account with an **encrypted backup of the original words**, show a password-authenticated `View original Recovery Key` action in Settings → Password & Devices → Recovery Key.
@@ -20,6 +21,12 @@
 **Current change: ZERO runtime impact.** This branch contains only disabled standalone review files and local tests. No Supabase schema, Auth config, Edge function, JWT setting, secrets, RLS, user account or financial record is edited.
 
 **Before any future production integration:** the isolated Vault proposal in PR #11 needs a separate authorization and verified staging schema-drift review, a safe per-owner encrypted backup path during *new* username signup, owner-only privileged RPC access, failure-rollback evidence, two-account signed AAL1/AAL2 checks, revoked-session checks and backout plan. Staging currently has a legacy two-argument session guard; production does not have the N10 Vault RPCs. Do not replay the stale initial-install SQL in staging.
+
+## Isolated transport contract added in this branch
+- `security/n10-recovery-view/recovery-transport.mjs` has an OFF-by-default release gate; it is NOT imported by any active website file. The allowed API endpoint is fixed, the two actions are strictly `status` and `reveal`, and the browser will never call `backup_existing`, `replace`, or rotation actions through this transport.
+- Before any request, verify that the current Auth user ID matches the session user ID; use only a signed bearer for the pinned Edge endpoint. Browser checks are not a replacement for backend Auth/MFA/session checks.
+- For status, do **not** send a password. For viewing, send only the current password, omit cookies and referrer, forbid redirects, bound received JSON, and sanitize response fields. Never store words/passwords in localStorage, sessionStorage or analytics.
+- The Edge backend candidate in Draft PR #11 is **not deployed**. Its `reveal` action will be unavailable until an audited private Vault is ready, real signed two-owner tests pass, and a separate release is approved. This browser transport does not create Vault secrets or recover legacy HMAC-only words.
 
 ## Test and release criteria
 - Pure UI controller checks: status, wrong password and retry, MFA error, revoked session, nonexistent backup, malformed response, 45-second hide, race against account switch/close, EN/ZH/MY error text.
