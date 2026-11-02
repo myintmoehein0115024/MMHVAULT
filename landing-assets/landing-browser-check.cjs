@@ -679,8 +679,8 @@ async function load(page,route,failures){
        await load(page,route,errors);
        const documentPath=route==='/'?'index.html'
          :route.endsWith('/')?route.slice(1)+'index.html':route.slice(1);
-       const originalTitle=(fs.readFileSync(documentPath,'utf8')
-         .match(/<title>([^<]+)<\\/title>/)||[])[1];
+       const originalTitle=fs.readFileSync(documentPath,'utf8')
+         .split('<title>')[1]?.split('</title>')[0];
        const seo=await page.evaluate(()=>({
          runtime:document.title,
          path:location.pathname
