@@ -83,6 +83,9 @@ export function createRecoveryViewController({request, currentOwner, onChange, s
         emit('unavailable'); return;
       }
       emit('visible', {words: [...result.words]});
+      // A synchronous UI callback may close the modal while handling 'visible'.
+      // Never schedule a new disclosure timer after it invalidates this request.
+      if (invocation !== epoch || phase !== 'visible' || currentOwner() !== owner) return;
       timer = setTimer(hide, MAX_VIEW_MS);
     } catch { if (invocation === epoch) emit('unavailable'); }
   };
