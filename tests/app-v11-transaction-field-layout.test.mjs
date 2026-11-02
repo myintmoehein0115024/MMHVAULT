@@ -16,7 +16,7 @@ function harness(){
     })[g==='Loans'?(type==='Income'?'LoanIncome':'LoanExpense'):g]||[],
     setTimeout(){},console};
   vm.runInNewContext(source,ctx);
-  return {api:win.MMHV11TxFieldPrefs,store,owner:id=>{currentOwner=id;}};
+  return {api:win.MMHV11TxFieldPrefs,store,doc:ctx.document,owner:id=>{currentOwner=id;}};
 }
 test('three exact two-field options plus all-fields default',()=>{
  const h=harness(); assert.equal(h.api.getMode(),'all');
@@ -60,4 +60,33 @@ test('Add Transaction and Edit Transaction integration only',()=>{
  assert.match(html,/const type=txType\.value;/);
  assert.match(html,/const row=\{user_id:u\.id,tx_date:txDate\.value,type,/);
  assert.match(html,/async function addTransaction\(e\)/);
+});
+
+test('archived historical category remains unchanged when editing other transaction fields',()=>{
+ const h=harness();h.api.setMode('type-category');
+ const label={style:{}};
+ const fields={
+   eType:{value:'Expense',options:[{value:'Expense'}],closest:()=>label},
+   eGroup:{value:'Personal',options:[{value:'Personal'}],closest:()=>label},
+   eCat:{value:'Archived Gift',options:[{value:'Archived Gift'}],closest:()=>label}
+ };
+ h.doc.getElementById=id=>fields[id]||null;
+ const hint={hidden:true,textContent:''};
+ const form={
+   id:'editTxForm',
+   dataset:{mmhV11OriginalType:'Expense',mmhV11OriginalGroup:'Personal',mmhV11OriginalCategory:'Archived Gift'},
+   querySelector:selector=>selector==='[data-tx-hint-v11]'?hint:null
+ };
+ assert.equal(h.api.validate(form),true,'note-only edits preserve a retired category');
+ fields.eCat.value='Unapproved new Category';
+ assert.equal(h.api.validate(form),false,'a different invalid category is blocked');
+ assert.match(hint.textContent,/valid transaction/i);
+ fields.eCat.value='Archived Gift';fields.eType.value='Income';
+ assert.equal(h.api.validate(form),false,'changing type invalidates historical exemption');
+});
+test('UI guard preserves historical edit categories and avoids silent replacement',()=>{
+ assert.match(source,/if\(selected<0 && c\.edit\)/);
+ assert.match(source,/if\(!c\.edit && value!==category/);
+ assert.match(html,/editFormV11\.dataset\.mmhV11OriginalCategory=String\(t\.category\|\|''\)/);
+ assert.match(html,/originalV11\.textContent=String\(t\.category\)/);
 });
