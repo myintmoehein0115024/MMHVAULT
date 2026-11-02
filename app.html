@@ -12949,6 +12949,8 @@ db.auth.onAuthStateChange((event,session)=>{
     const liveOwner=currentSessionUser?.id||'';
     const nextOwner=session.user.id;
     if(liveOwner&&liveOwner!==nextOwner){
+      // Invalidate older Auth and cloud checks before the queued switch begins.
+      ++mmhP947AuthGateTicket;
       // Lock synchronously: Reacting in a later microtask leaves the old DOM visible.
       mmhP947GuardV947('switch');
       Promise.resolve().then(()=>window.mmhVaultSwitchSessionV1239(session))
@@ -12971,7 +12973,13 @@ db.auth.onAuthStateChange((event,session)=>{
       });
       return;
     }
-    if(mmhvaultAuthBootSettledV3285){mmhP947GuardV947('switch');Promise.resolve().then(()=>window.mmhVaultSwitchSessionV1239(session)).catch(err=>{console.error('MMHVAULT session resume failed',err);mmhP947GuardV947('error');});}
+    if(mmhvaultAuthBootSettledV3285){
+      // A newly restored owner also invalidates previous ownerless boot requests.
+      ++mmhP947AuthGateTicket;
+      mmhP947GuardV947('switch');
+      Promise.resolve().then(()=>window.mmhVaultSwitchSessionV1239(session))
+        .catch(err=>{console.error('MMHVAULT session resume failed',err);mmhP947GuardV947('error');});
+    }
     return;
   }
   if(mmhvaultAuthRedirectingV1239)return;
