@@ -349,3 +349,14 @@ body.mmh-nav-unified .site-header :is(a,button,summary):focus-visible{
   body.mmh-nav-unified .site-header *::before,
   body.mmh-nav-unified .site-header *::after{transition:none!important}
 }
+
+
+/* L1.16 parity: reset inherited legacy Landing/public styles explicitly so
+   moving between routes never changes the header's computed properties. */
+body.mmh-nav-unified .site-header .brand{color:#f3eadc}
+body.mmh-nav-unified .site-header .brand-symbol{color:transparent}
+body.mmh-nav-unified .site-header .header-actions>a.button{gap:17px}
+body.mmh-nav-unified .site-header .menu-toggle{font-size:16px}
+@media(max-width:1360px){
+  body.mmh-nav-unified .site-header #primary-nav{gap:0!important}
+}
