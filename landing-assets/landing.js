@@ -1054,15 +1054,26 @@
   const syncProductHash=()=>{const s=window.location.hash.slice(1);if(s.startsWith('feature-')&&productNames.includes(s.slice(8)))selectProductView(s.slice(8))};
   window.addEventListener('hashchange',syncProductHash);syncProductHash();
 
-  // Progressive enhancement: retain the original in-page HTML device demonstration
-  // until the independent photographic asset has loaded. No authentication or network API.
+  // L1.25: keep the original in-page device demo visible until the already
+  // downloaded Hero photograph is decoded and ready to paint. A load event
+  // alone can precede image decoding, causing a blank/flash on slower phones.
+  // If the photo cannot decode, the original accessible HTML demo stays visible.
   const heroPhoto = document.querySelector('.hero-device-cinematic');
   if (heroPhoto) {
+    let decoding = false;
     const revealPhoto = () => {
-      if (heroPhoto.naturalWidth > 0) {
+      if (decoding || heroPhoto.naturalWidth <= 0) return;
+      decoding = true;
+      const ready = typeof heroPhoto.decode === 'function'
+        ? heroPhoto.decode()
+        : Promise.resolve();
+      Promise.resolve(ready).then(() => {
+        if (!heroPhoto.isConnected || heroPhoto.naturalWidth <= 0) return;
         const art = heroPhoto.closest('.hero-art');
         if (art) art.classList.add('is-photo-ready');
-      }
+      }).catch(() => {
+        // Failed photo: retain the functional HTML fallback, never show blank.
+      });
     };
     if (heroPhoto.complete) revealPhoto();
     else heroPhoto.addEventListener('load', revealPhoto, {once:true});
