@@ -1,0 +1,105 @@
+name: N10 four-PR composed release preview (NO DEPLOY)
+on:
+  push:
+    branches:
+      - review/n10-release-composite-20261102
+  pull_request:
+    branches:
+      - main
+    paths:
+      - app.html
+      - security/n10-release-composite/**
+      - security/n10-fixed-recovery-vault-candidate/**
+      - security/n10-username-bind-candidate/**
+      - security/n10-phrase-verify-candidate/**
+      - docs/N10_RELEASE_COMPOSITE_REVIEW_20261102.md
+      - .github/workflows/n10-release-composite-review.yml
+permissions:
+  contents: read
+jobs:
+  verify-provenance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify latest main, exact source PR blob SHAs and 40-file scope
+        run: node security/n10-release-composite/check-composite.mjs
+  run-source-suites:
+    needs: verify-provenance
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Run Vault, App, username and recovery offline checks in original review worktrees
+        shell: bash
+        run: |
+          set -euo pipefail
+          git worktree add --detach /tmp/n10-vault 8161a8f6f067e368769d3b81db3f7bc0b68591dc
+          git worktree add --detach /tmp/n10-app 180fefd7b950de88853a73f36437bd0fa8c6c16a
+          git worktree add --detach /tmp/n10-binding 11c27d291a3141f7fcac4211677dcbcdac8bfb4b
+          git worktree add --detach /tmp/n10-phrase fd9ae0d79f6b6c0808c1825f3d817517d45300d8
+          (
+            cd /tmp/n10-vault
+            node security/n10-fixed-recovery-vault-candidate/test-isolated-scope.mjs
+            node security/n10-fixed-recovery-vault-candidate/test-mfa-assurance.mjs
+            node security/n10-fixed-recovery-vault-candidate/test-session-guard.mjs
+            node security/n10-fixed-recovery-vault-candidate/test-backend-only-review.mjs
+            node security/n10-fixed-recovery-vault-candidate/test-recovery-request.mjs
+            node security/n10-fixed-recovery-vault-candidate/test-session-upgrade-review.mjs
+            node security/n10-fixed-recovery-vault-candidate/test-retired-joint-qa-stub.mjs
+          )
+          (cd /tmp/n10-app && node security/n10-app-aal-entry/test-app-aal-guard.mjs)
+          (cd /tmp/n10-binding && node security/n10-username-bind-candidate/test-bind-guard.mjs)
+          (cd /tmp/n10-phrase && node security/n10-phrase-verify-candidate/test-phrase-guard.mjs)
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Type-check Vault and binding candidates (NO EXECUTE)
+        shell: bash
+        run: |
+          set -euo pipefail
+          deno check security/n10-fixed-recovery-vault-candidate/index.ts
+          deno check security/n10-fixed-recovery-vault-candidate/retire-joint-qa-edge-REVIEW_ONLY.ts
+          deno check security/n10-username-bind-candidate/index.ts
+      - name: Type-check phrase Edge with relaxed legacy implicit-any declarations
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat > /tmp/n10-phrase-tsconfig.json <<'CONFIG'
+          {
+            "compilerOptions": {
+              "strict": false,
+              "noImplicitAny": false
+            }
+          }
+          CONFIG
+          deno check --config /tmp/n10-phrase-tsconfig.json security/n10-phrase-verify-candidate/index.ts
+  browser-privacy:
+    needs: verify-provenance
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install isolated Chromium and WebKit
+        shell: bash
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps chromium webkit
+      - name: Check actual App privacy mask across browser/device layouts
+        run: node security/n10-app-aal-entry/test-browser-mask.mjs
+# Absolutely no checkout-to-main, auto-merge, Edge/SQL deployment, secrets or production mutation.
