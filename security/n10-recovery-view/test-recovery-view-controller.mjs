@@ -88,3 +88,21 @@ test('messages provide English Chinese and Burmese',()=>{
  assert.match(recoveryViewMessage('ready','my'),/စကားဝှက်/);
  assert.match(recoveryViewMessage('ready','en'),/original ten words/);
 });
+
+test('synchronous close during words-visible event does not rearm display timer', async()=>{
+ let current='account-a',timerCount=0,controller;
+ const states=[];
+ controller=createRecoveryViewController({
+  currentOwner:()=>current,
+  onChange:e=>{states.push(e.phase); if(e.phase==='visible')controller.hide();},
+  request:async action=>action==='status'
+   ? {code:'backup_status',backed_up:true}
+   : {code:'recovery_key',words,expires_in_seconds:45},
+  setTimer:()=>{timerCount++;return 1},clearTimer:()=>{},
+ });
+ await controller.status();
+ await controller.reveal('synthetic-password');
+ assert.equal(controller.getPhase(),'locked');
+ assert.equal(timerCount,0,'closed key must never re-arm the display timer');
+ assert.deepEqual(states.slice(-2),['visible','locked']);
+});
