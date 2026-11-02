@@ -185,7 +185,7 @@ async function load(page,route,failures){
            imageSize:[hero?.getAttribute('width'),hero?.getAttribute('height')],
            businessLazy:business?.getAttribute('loading'),
            businessAsync:business?.getAttribute('decoding'),
-           businessSrc:business?.currentSrc
+           businessSrc:business?.src
          };
        });
        ensure(loading.preloadCount===1&&
