@@ -1,0 +1,492 @@
+// Read-only MMHVAULT Landing production-release gate.
+// No credentials, network calls, database writes, or external dependencies.
+const fs = require('node:fs');
+const cp = require('node:child_process');
+const assert = require('node:assert/strict');
+const read = path => fs.readFileSync(path,'utf8');
+const main = 'origin/main';
+const source = path => {
+ const r=cp.spawnSync('git',['show',main+':'+path],{encoding:'utf8',maxBuffer:1024*1024*2});
+ assert.equal(r.status,0,'Cannot read original main:'+path);
+ return r.stdout;
+};
+const current = read('index.html');
+const prev=source('index.html');
+const manifest=JSON.parse(read('mmh-manifest-v2.webmanifest'));
+const oldManifest=JSON.parse(source('mmh-manifest-v2.webmanifest'));
+const dom=(key,content)=>((content.match(new RegExp('<script id="'+key+'">([\\s\\S]*?)<\\/script>'))||[])[1]||null);
+let passed=0;
+function check(title,predicate){assert.ok(predicate,title);++passed;console.log('PASS '+title)}
+check('Main page indexable',!/<meta[^>]+name=["']robots["'][^>]*noindex/i.test(current));
+check('Official finance and wealth search title',current.includes('<title>MMHVAULT | Personal Finance & Wealth</title>'));
+check('Consistent official Open Graph and Twitter titles',(current.match(/content="MMHVAULT \| Personal Finance &amp; Wealth"/g)||[]).length===2);
+check('Official description names real finance tools and future Business', current.includes('name="description"')&&current.includes('official personal finance and wealth management website')&&current.includes('Business is a future concept.'));
+check('Canonical is unique and official',(current.match(/<link rel="canonical"/g)||[]).length===1&&current.includes('href="https://mmhvault.com/"'));
+check('OG site and homepage URL',current.includes('property="og:site_name" content="MMHVAULT"')&&current.includes('property="og:url" content="https://mmhvault.com/"'));
+check('Real brand PNG present',fs.existsSync('images/mmhvault-logo-transparent.png')&&current.includes('https://mmhvault.com/images/mmhvault-logo-transparent.png'));
+const jsonText=(current.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)||[])[1];
+check('One valid JSON-LD block',!!jsonText&&(current.match(/<script type="application\/ld\+json">/g)||[]).length===1);
+const graph=JSON.parse(jsonText)['@graph'];
+check('Website name in structured data',graph.some(x=>x['@type']==='WebSite'&&x.name==='MMHVAULT'&&x.url==='https://mmhvault.com/'));
+check('Brand Organization in structured data',graph.some(x=>x['@type']==='Organization'&&x.name==='MMHVAULT'));
+const site=graph.find(x=>x['@type']==='WebSite');
+const brand=graph.find(x=>x['@type']==='Organization');
+const appSchema=graph.find(x=>x['@type']==='SoftwareApplication');
+check('One official WebSite / Organization / SoftwareApplication graph',
+ graph.length===3 && site?.name==='MMHVAULT' &&
+ brand?.name==='MMHVAULT' && appSchema?.name==='MMHVAULT' &&
+ site?.publisher?.['@id']===brand?.['@id'] &&
+ appSchema?.publisher?.['@id']===brand?.['@id']);
+check('SoftwareApplication truthfully describes web finance and excludes future Business',
+ appSchema?.url==='https://mmhvault.com/' &&
+ appSchema?.applicationCategory==='FinanceApplication' &&
+ appSchema?.operatingSystem==='Web browser' &&
+ ['Accounts','Transactions','Investments','Budgets','Financial Analysis','Financial Planning']
+  .every(x=>appSchema.featureList?.includes(x)) &&
+ !appSchema?.featureList?.includes('Business') &&
+ !appSchema?.offers && !appSchema?.aggregateRating && !appSchema?.review);
+check('Organization references the real brand logo and correct platform identity',
+ brand?.description?.includes('Personal Finance & Wealth') &&
+ brand?.logo?.url==='https://mmhvault.com/images/mmhvault-logo-transparent.png');
+check('Exact N10 recovery route preserved',dom('mmh-n10-recovery-error-route',current)===dom('mmh-n10-recovery-error-route',prev)&&!!dom('mmh-n10-recovery-error-route',prev));
+check('Installed standalone fallback present',!!dom('mmh-pwa-standalone-root-bridge',current));
+check('Standalone guard does not affect normal browser',dom('mmh-pwa-standalone-root-bridge',current).includes('if (!isStandalone) return'));
+check('Fallback leaves OAuth/recovery params alone',dom('mmh-pwa-standalone-root-bridge',current).includes("'access_token'")&&dom('mmh-pwa-standalone-root-bridge',current).includes("'code'"));
+check('Unsuccessful pinch guard excluded',!current.includes('standalone-pinch-guard.js')&&!fs.existsSync('landing-assets/standalone-pinch-guard.js'));
+check('Normal secure Login route',current.includes('href="./login.html"')&&current.includes('href="./mmh-manifest-v2.webmanifest"'));
+check('Both mobile auth entry links',current.includes('mobile-nav-auth-signin')&&current.includes('mobile-nav-auth-signup'));
+check('All fixed Hero languages',["YOUR MONEY. YOUR DIRECTION.","让财务更清晰，让未来更有方向。","ငွေကြေးကို ပိုမိုရှင်းလင်းစွာ သိမြင်"].every(t=>current.includes(t)));
+check('Business + Life Planner not presented as live',current.includes('COMING SOON')&&current.includes('in development.'));
+check('No Supabase backend code in Landing',!current.includes('supabase.createClient')&&!current.includes('SUPABASE_SERVICE_ROLE_KEY'));
+check('Current production Login remains noindex',/name="robots" content="noindex,nofollow,noarchive"/.test(read('login.html')));
+check('Actual App remains noindex',/<meta[^>]*name=["']robots["'][^>]*noindex/i.test(read('app.html').slice(0,350000)));
+check('Protected Business page remains noindex',/<meta[^>]*name=["']robots["'][^>]*noindex/i.test(read('business.html').slice(0,2000)));
+
+const names=['landing.css','business.css','cinematic.css','landing.js','premium-l131.css','explore-l114.css','motion-l132.css','motion-l132.js','luxury-horizon.svg','premium-architecture.svg','cinematic-lake.webp','personal-business-concept.webp'];
+check('All required live assets exist',names.every(f=>fs.existsSync('landing-assets/'+f)));
+check('Landing style and script links correct',['landing.css','business.css','cinematic.css','landing.js'].every(f=>current.includes('./landing-assets/'+f)));
+check('L1.31 premium layer linked and scoped', current.includes('class="l131 mmh-nav-unified"') && current.includes('href="./landing-assets/premium-l131.css?v=1"') && read('landing-assets/premium-l131.css').includes('body.l131 .showcase-v2'));
+check('Explore styles load after existing premium/motion layers and remain scoped',
+ current.includes('href="./landing-assets/explore-l114.css?v=1"') &&
+ read('landing-assets/explore-l114.css').includes('body.l131 .site-header #primary-nav') &&
+ !read('landing-assets/explore-l114.css').includes('body.app'));
+check('L1.32 motion assets linked from homepage',
+  current.includes('href="./landing-assets/motion-l132.css?v=1"') &&
+  current.includes('src="./landing-assets/motion-l132.js?v=1"'));
+const motionSource=read('landing-assets/motion-l132.js');
+const motionStyles=read('landing-assets/motion-l132.css');
+check('L1.32 reveal uses IntersectionObserver and no forced hidden fallback',
+  motionSource.includes('IntersectionObserver') && motionSource.includes('mm-shown') &&
+  motionStyles.includes('.mm-reveal:not(.mm-shown)') &&
+  motionSource.includes("if(!permitted() || !('IntersectionObserver' in window))return;"));
+check('L1.32 respects reduced motion and native links',
+  motionSource.includes('prefers-reduced-motion: reduce') &&
+  motionStyles.includes('@media (prefers-reduced-motion: reduce)') &&
+  !motionSource.includes('preventDefault(') && !motionSource.includes('location.replace'));
+check('L1.32 product/business state switch animations stay presentational',
+  motionSource.includes('data-product-current') &&
+  motionSource.includes('data-current-view') &&
+  motionSource.includes("typeof node.animate!=='function'") &&
+  !/fetch\s*\(|localStorage|supabase|touchstart|gesturestart/.test(motionSource));
+
+check('L1.31 desktop Hero photograph restores actual device composition', read('landing-assets/premium-l131.css').includes('L1.31.1 — restore the photograph') && read('landing-assets/premium-l131.css').includes('url("./personal-business-concept.webp")') && read('landing-assets/cinematic.css').includes('hero-art.is-photo-ready .hero-device-cinematic {display:none;}'));
+check('L1.31 never globally disables touch zoom', !/user-scalable\s*=\s*no/i.test(current) && !/touch-action\s*:\s*none/i.test(read('landing-assets/premium-l131.css')));
+check('No preview QA material in production root',!current.includes('pwa-qa')&&!current.includes('mmh_layout_probe'));
+check('Public robots.txt present',fs.existsSync('robots.txt')&&read('robots.txt').includes('User-agent: *')&&read('robots.txt').includes('Sitemap: https://mmhvault.com/sitemap.xml'));
+check('Existing sitemap canonical root',read('sitemap.xml').includes('<loc>https://mmhvault.com/</loc>'));
+check('Sitemap has no private app or login',!/<loc>[^<]*\/(?:app|login|n10-qa)\.html/i.test(read('sitemap.xml')));
+check('PWA launcher points to secure Login',manifest.start_url==='./login.html?source=pwa&install=v2');
+check('Manifest differs only in start_url',JSON.stringify({...manifest,start_url:oldManifest.start_url})===JSON.stringify(oldManifest));
+check('Preserved old iPhone touch icon',current.includes('<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=pwa24-20261029">'));
+const allowed=new Set(['index.html','robots.txt','mmh-manifest-v2.webmanifest','business.html','sitemap.xml','register/index.html','features/index.html','about/index.html','business/index.html','privacy.html','terms.html','security.html','landing-assets/public-pages.css','landing-assets/public-header-l115.css','landing-assets/shared-header-l116.css','landing-assets/public-pages.js','landing-assets/landing-release-check.cjs','landing-assets/landing-browser-check.cjs','.github/workflows/landing-release-check.yml',...names.map(f=>'landing-assets/'+f)]);
+const diff=cp.spawnSync('git',['diff','--name-only',main+'...HEAD'],{encoding:'utf8'});
+assert.equal(diff.status,0,'git diff unsuccessful');
+const actual=diff.stdout.trim().split(/\n/).filter(Boolean);
+check('All proposed file changes confined to allowlist',actual.length>0&&actual.every(f=>allowed.has(f))&&!actual.includes('app.html')&&!actual.includes('login.html'));
+
+/* L1.30 public brand sitelinks: distinct indexable informational destinations. */
+const sitelinkPages = [
+  {name:'Create Your Account',path:'register/index.html',url:'https://mmhvault.com/register/'},
+  {name:'Personal Finance Features',path:'features/index.html',url:'https://mmhvault.com/features/'}
+];
+const publicSitemap=read('sitemap.xml');
+const translationScript=read('landing-assets/landing.js');
+for(const page of sitelinkPages){
+  const html=read(page.path);
+  const head=html.split('</head>')[0];
+  check(page.name+' public page exists with distinct title',html.includes('<h1')&&head.includes('<title>'+page.name+' | MMHVAULT</title>'));
+  check(page.name+' has canonical and no noindex',head.includes('<link rel="canonical" href="'+page.url+'">')&&!/name="robots"[^>]*noindex/i.test(head));
+  check(page.name+' available in canonical sitemap',publicSitemap.includes('<loc>'+page.url+'</loc>'));
+  check(page.name+' linked from homepage and public footer',current.includes('href="./'+page.path.split('/')[0]+'/"')&&html.includes('href="/register/"')&&html.includes('href="/features/"'));
+  check(page.name+' contains valid breadcrumb JSON-LD',(()=>{
+    const json=(head.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)||[])[1];
+    if(!json)return false;
+    const data=JSON.parse(json);
+    return data['@type']==='BreadcrumbList'&&data.itemListElement?.[1]?.item===page.url;
+  })());
+}
+check('Public registration is not a copy of secure Login',!read('register/index.html').includes('id="signupEmail"')&&read('register/index.html').includes('href="/login.html"'));
+check('Secure Login stays noindex and untouched',!actual.includes('login.html')&&/name="robots" content="noindex,nofollow,noarchive"/.test(read('login.html')));
+check('Life Planner and Business are labelled future concepts',read('features/index.html').includes('Coming Soon')&&read('features/index.html').includes('future release'));
+check('Public page CSS & JS are present',fs.existsSync('landing-assets/public-pages.css')&&fs.existsSync('landing-assets/public-pages.js'));
+check('Homepage public navigation has correct EN/ZH/MY labels',['en','zh','my'].every(lang=>translationScript.includes('Object.assign(strings.'+lang+',{"sitelinkFeatures"')));
+
+/* L1.7 — factual brand entity and About page sitelink, no AI Overview promises. */
+const about=read('about/index.html');
+const aboutHead=about.split('</head>')[0];
+check('About is unique, indexable, with consistent title and canonical',
+ aboutHead.includes('<title>About MMHVAULT | Personal Finance &amp; Wealth</title>') &&
+ aboutHead.includes('<link rel="canonical" href="https://mmhvault.com/about/">') &&
+ (aboutHead.match(/rel="canonical"/g)||[]).length===1 &&
+ !/name=["']robots["'][^>]*noindex/.test(aboutHead));
+check('About explicitly states official domain, product purpose and future Business',
+ about.includes('Its official website is mmhvault.com') &&
+ ['accounts, transactions, investments, budgets and financial planning','Personal Finance Clarity','All-in-One Workspace','Long-Term Perspective']
+  .every(term=>about.includes(term)) &&
+ about.includes('not a live business accounting service'));
+check('About has valid linked AboutPage and BreadcrumbList schema',(()=>{
+ const block=(aboutHead.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)||[])[1];
+ if(!block)return false;
+ const graph=JSON.parse(block)['@graph'];
+ return Array.isArray(graph) && graph.some(n=>n['@type']==='AboutPage'&&n.url==='https://mmhvault.com/about/') &&
+ graph.some(n=>n['@type']==='BreadcrumbList'&&n.itemListElement?.[1]?.item==='https://mmhvault.com/about/');
+})());
+check('Public About is linked from homepage, Features, Register and sitemap',
+ current.includes('href="./about/"') &&
+ read('features/index.html').includes('href="/about/"') &&
+ read('register/index.html').includes('href="/about/"') &&
+ publicSitemap.includes('<loc>https://mmhvault.com/about/</loc>'));
+check('All brand pages retain canonical host and avoid fake external profiles',
+ !/tiktok\.com|michigan/i.test(current+about) &&
+ [current,read('features/index.html'),read('register/index.html'),about].every(html=>html.includes('https://mmhvault.com/')));
+check('Fixed homepage Hero remains visually protected and authentic brand visible',
+ current.includes('data-hero-fixed') && current.includes('PERSONAL FINANCE &amp; WEALTH') &&
+ about.includes('MMHVAULT · PERSONAL FINANCE &amp; WEALTH'));
+check('Features mentions budgets/planning and labels future Business',
+ read('features/index.html').includes('Budget reviews and financial planning tools') &&
+ read('features/index.html').includes('Business and Life Planner experiences are separate future concepts'));
+check('Secure routes not rewritten in this PR',
+ !actual.some(p=>/^((login|app|business)\.html|mmh-manifest|sw\.js|mmh-push-sw\.js|CNAME)$/.test(p)));
+
+/* L1.9 — Landing is the design and content source of its informational branches.
+   Only the marketing pages may change; all real account flows remain untouched. */
+const branchCSS=read('landing-assets/public-pages.css');
+const branchJS=read('landing-assets/public-pages.js');
+const pageSlices=[
+ {route:'About',path:'about/index.html',bodyClass:'about-page',section:'THE MMHVAULT APPROACH'},
+ {route:'Features',path:'features/index.html',bodyClass:'features-page',section:'THE FINANCIAL WORKSPACE'},
+ {route:'Register',path:'register/index.html',bodyClass:'register-page',section:'PRIVATE ACCOUNT ACCESS'}
+];
+check('Shared public shell is scoped and all three independent pages inherit it',
+ branchCSS.includes('.public-landing-page .brand-wordmark') &&
+ branchCSS.includes('.public-landing-page .feature-hero') &&
+ branchCSS.includes('.public-landing-page .public-locale-trigger') &&
+ !branchCSS.includes('body.l131') &&
+ pageSlices.every(page=>{
+   const html=read(page.path);
+   return html.includes('<body class="public-landing-page '+page.bodyClass+' mmh-nav-unified">') &&
+     html.includes('<section class="hero feature-hero"') &&
+     html.includes('class="brand-copy"') &&
+     html.includes('class="feature-hero-copy"') &&
+     html.includes('class="visual feature-visual"') &&
+     html.includes('id="locale-trigger"') &&
+     html.includes('id="locale-menu"') &&
+     html.includes('href="/login.html" class="button button-gold header-cta"') &&
+     html.includes('href="/"') &&
+     html.includes(page.section);
+ }));
+check('All independent SEO entries preserve canonical and unique H1',
+ pageSlices.every(page=>{
+   const html=read(page.path);
+   return (html.match(/<h1(?:\s|>)/g)||[]).length===1 &&
+     (html.match(/<link rel="canonical"/g)||[]).length===1 &&
+     html.includes('https://mmhvault.com/'+page.route.toLowerCase()+'/') &&
+     !/<meta[^>]+name=["']robots["'][^>]+noindex/.test(html);
+ }));
+check('Landing About philosophy is intentionally derived into public About',
+ ['Personal Finance Clarity','All-in-One Workspace','Private Financial Management',
+  'Long-Term Perspective','Multi-Device Experience','English, Chinese & Burmese']
+  .every(label=>current.includes(label.replace(/&/g,'&amp;')) && about.includes(label.replace(/&/g,'&amp;'))));
+/* L1.9: catch future English/Chinese/Burmese About-copy drift from the
+   homepage's source language dictionary before public SEO release. */
+const landingDictionary=read('landing-assets/landing.js');
+const htmlEscape=value=>value.replace(/&/g,'&amp;').replace(/"/g,'&quot;')
+  .replace(/</g,'&lt;').replace(/>/g,'&gt;');
+function landingTranslations(key){
+ const rx=new RegExp("(?:\\b"+key+"\\s*:\\s*'([^']*)'|\""+key+"\"\\s*:\\s*\"([^\"]*)\")",'g');
+ return [...landingDictionary.matchAll(rx)].map(m=>m[1]??m[2]);
+}
+for(const key of ['whyLead', ...Array.from({length:6},(_,i)=>'benefit'+(i+1)+'Title'),
+                           ...Array.from({length:6},(_,i)=>'benefit'+(i+1)+'Desc')]){
+ const values=landingTranslations(key);
+ check('Landing -> About 3-language text parity: '+key,
+   values.length===3 &&
+   about.includes('data-en="'+htmlEscape(values[0])+'" data-zh="'+
+     htmlEscape(values[1])+'" data-my="'+htmlEscape(values[2])+'"'));
+}
+
+check('Public pages have a functional Landing-style language control and no form',
+ ['en','zh','my'].every(l=>branchJS.includes("['en','zh','my']")) &&
+ branchJS.includes("trigger.setAttribute('aria-expanded'") &&
+ branchJS.includes('window.localStorage') &&
+ !/fetch\s*\(|supabase|createClient|location\.replace|passwordInput/.test(branchJS) &&
+ pageSlices.every(page=>!/<form[\s>]/i.test(read(page.path))));
+check('Dedicated visual branches preserve their distinct purpose',
+ read('features/index.html').includes('<h3') &&
+ read('register/index.html').includes('Continue to Sign Up') &&
+ read('register/index.html').includes('href="/login.html"') &&
+ about.includes('not a bank, broker, payment service or financial adviser') &&
+ read('features/index.html').includes('Business and Life Planner experiences are separate future concepts'));
+
+/* L1.13 — real dedicated Business landing branch; keep private app isolated. */
+const business=read('business/index.html');
+const businessHead=business.split('</head>')[0];
+const businessGraph=JSON.parse((businessHead.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/)||[])[1]||'{}')['@graph'];
+check('Public Business concept has distinct canonical, truthful metadata and sitemap',
+ businessHead.includes('<title>Business Workspace Concept | MMHVAULT</title>') &&
+ businessHead.includes('<link rel="canonical" href="https://mmhvault.com/business/">') &&
+ businessHead.includes('not a live accounting service') &&
+ (businessHead.match(/rel="canonical"/g)||[]).length===1 &&
+ !/name="robots"[^>]*noindex/.test(businessHead) &&
+ publicSitemap.includes('<loc>https://mmhvault.com/business/</loc>') &&
+ Array.isArray(businessGraph) && businessGraph.some(x=>x['@type']==='WebPage'&&x.url==='https://mmhvault.com/business/') &&
+ businessGraph.some(x=>x['@type']==='BreadcrumbList'&&x.itemListElement?.[1]?.item==='https://mmhvault.com/business/'));
+check('Business public page is premium, independent and clearly preview-only',
+ business.includes('<body class="public-landing-page business-page mmh-nav-unified">') &&
+ business.includes('id="business-heading"') &&
+ business.includes('class="visual feature-visual"') &&
+ business.includes('CONCEPT PREVIEW') &&
+ business.includes('not a currently available business accounting service') &&
+ business.includes('href="#business-focus"') &&
+ business.includes('href="/#business"') &&
+ !/<a class="action gold" href="\/#business"/.test(business) &&
+ !business.includes('supabase.co') &&
+ !/<form[\s>]/i.test(business));
+check('Landing and seven public introductions now share navigation semantics',
+ ['about/index.html','features/index.html','register/index.html',
+  'privacy.html','terms.html','security.html','business/index.html'].every(path=>{
+    const html=read(path);
+    return html.includes('href="/#business"') &&
+      html.includes('href="/#security"') &&
+      html.includes('href="/business/"') &&
+      html.includes('href="/security.html"') &&
+      html.includes('class="nav-explore"') &&
+      html.includes('href="/"');
+  }) &&
+ current.includes('href="#business" data-i18n="navBusiness"') &&
+ current.includes('href="./business/" data-i18n="infoBusiness"') &&
+ !(current.split('<nav class="nav" id="primary-nav"')[1]||'').split('</nav>')[0]
+   .includes('href="./business/" data-i18n="navBusiness"'));
+check('Private business.html is untouched and remains non-indexable',
+ !actual.includes('business.html') &&
+ source('business.html')===read('business.html') &&
+ /<meta name="robots" content="noindex,nofollow,noarchive"/.test(read('business.html')));
+check('Homepage auth/PWA bridge scripts unchanged',
+ ['mmh-n10-recovery-error-route','mmh-pwa-standalone-root-bridge']
+  .every(id=>dom(id,current)===dom(id,prev)));
+
+/* L1.33 — public legal pages and consistent brand icon; no auth code changes. */
+for(const page of [
+ {path:'privacy.html',url:'https://mmhvault.com/privacy.html',title:'Privacy | MMHVAULT'},
+ {path:'terms.html',url:'https://mmhvault.com/terms.html',title:'Terms of Use | MMHVAULT'},
+ {path:'security.html',url:'https://mmhvault.com/security.html',title:'Security | MMHVAULT'}
+]){
+ const content=read(page.path);
+ const head=content.split('</head>')[0];
+ check(page.path+' has branded title, description and one canonical',
+   head.includes('<title>'+page.title+'</title>') &&
+   head.includes('<meta name="description" content="') &&
+   (head.match(/rel="canonical"/g)||[]).length===1 &&
+   head.includes('<link rel="canonical" href="'+page.url+'">'));
+ check(page.path+' uses correct public sharing metadata',
+   head.includes('og:site_name" content="MMHVAULT"') &&
+   head.includes('og:url" content="'+page.url+'"') &&
+   head.includes('https://mmhvault.com/images/mmhvault-logo-transparent.png'));
+ check(page.path+' avoids favicon 404 and reserves logo space',
+   head.includes('rel="icon" type="image/png" href="/images/mmhvault-logo-transparent.png"') &&
+   content.includes('alt="MMHVAULT logo" width="38" height="38"'));
+}
+for(const path of ['register/index.html','features/index.html']){
+ const head=read(path).split('</head>')[0];
+ check(path+' uses existing brand logo for favicon, not missing .ico',
+   head.includes('<link rel="icon" type="image/png" href="/images/mmhvault-logo-transparent.png">') &&
+   !head.includes('/favicon.ico'));
+}
+
+/* L1.33 — conservative uncompressed resource budgets (not a lab speed score). */
+const publicRuntimeBudgets={
+  'index.html':100000,
+  'landing-assets/landing.css':225000,
+  'landing-assets/business.css':55000,
+  'landing-assets/cinematic.css':40000,
+  'landing-assets/premium-l131.css':20000,
+  'landing-assets/explore-l114.css':9000,
+  'landing-assets/public-header-l115.css':16000,
+  'landing-assets/shared-header-l116.css':20000,
+  'landing-assets/public-pages.js':9000,
+  'landing-assets/motion-l132.css':12000,
+  'landing-assets/landing.js':110000,
+  'landing-assets/motion-l132.js':15000,
+  'landing-assets/cinematic-lake.webp':150000,
+  'landing-assets/personal-business-concept.webp':150000,
+  'images/mmhvault-logo-transparent.png':120000
+};
+for(const [file,maxBytes] of Object.entries(publicRuntimeBudgets)){
+  check(file+' stays under uncompressed asset budget',fs.statSync(file).size<=maxBytes);
+}
+check('Landing priority image and below-fold concept use efficient loading',
+  current.includes('width="1600" height="900"') &&
+  current.includes('decoding="async" fetchpriority="high"') &&
+  current.includes('loading="lazy" decoding="async"') &&
+  current.includes('<link rel="preload" as="image" type="image/webp"') &&
+  current.includes('<script defer src="./landing-assets/landing.js"></script>'));
+check('Landing ships no third-party blocking scripts or styles',
+  !/<script[^>]+src=["']https?:\/\//i.test(current) &&
+  !/<link[^>]+rel=["']stylesheet["'][^>]+href=["']https?:\/\//i.test(current));
+/* L1.12 — policy pages share the Landing design without altering any
+   substantive security/privacy/terms paragraph or disclaimer wording. */
+for(const file of ['privacy.html','terms.html','security.html']){
+ const content=read(file);
+ const earlier=source(file);
+ const originalPolicyCard=(earlier.match(/<article class="policy-card"[^>]*>[\s\S]*?<\/article>/)||[])[0];
+ const currentPolicyCard=(content.match(/<article class="policy-card"[^>]*>[\s\S]*?<\/article>/)||[])[0];
+ const originalTitle=(earlier.match(/<h1[^>]*>([^<]*)<\/h1>/)||[])[1];
+ check(file+' original legal text unchanged and readable',
+   !!originalTitle&&content.includes('<h1 id="policy-title">'+originalTitle+'</h1>') &&
+   !!originalPolicyCard&&originalPolicyCard===currentPolicyCard);
+ check(file+' uses unified Landing header, footer and canonical Home links',
+   content.includes('<body class="public-landing-page policy-page mmh-nav-unified"') &&
+   content.includes('<header class="site-header">') &&
+   content.includes('class="nav-explore"') &&
+   content.includes('class="public-footer"') &&
+   content.includes('href="/business/"') &&
+   content.includes('<a href="/" class="brand"') &&
+   content.includes('href="/security.html"') &&
+   !content.includes('href="index.html"'));
+ check(file+' has no new authentication or financial-data processing',
+   !/<form[\s>]/i.test(content) &&
+   !/supabase\.createClient|SERVICE_ROLE_KEY|fetch\s*\(/.test(content));
+}
+check('Landing Security navigation stays in-page; independent Security details remain discoverable',
+ current.includes('href="#security" data-i18n="navSecurity"') &&
+ current.includes('href="./security.html" data-i18n="infoSecurity"') &&
+ !(current.split('<nav class="nav" id="primary-nav"')[1]||'').split('</nav>')[0]
+   .includes('href="./security.html" data-i18n="navSecurity"') &&
+ current.includes('href="/" aria-current="page" data-i18n="navHome"') &&
+ current.includes('href="/" class="brand"') &&
+ !current.includes('href="#top" aria-current="page" data-i18n="navHome"'));
+/* L1.14 — explicitly separate the five Landing sections from standalone
+   indexable introduction pages. Do not change any public page content here. */
+const rootNav=(current.match(/<nav class="nav" id="primary-nav"[^>]*>([\s\S]*?)<\/nav>/)||[])[1]||'';
+check('Landing has five same-page primary sections and a separate Explore menu',
+ ['features','business','about','security'].every(id=>
+  rootNav.includes('href="#'+id+'" data-i18n="nav'+id[0].toUpperCase()+id.slice(1)+'"') &&
+  current.includes('id="'+id+'"')) &&
+ rootNav.includes('id="landing-explore"') &&
+ ['about/','features/','business/','security.html','register/'].every(target=>
+  rootNav.includes('href="./'+target+'" data-i18n="info')) &&
+ (rootNav.match(/<details class="nav-explore"/g)||[]).length===1 &&
+ (rootNav.match(/<summary>/g)||[]).length===1);
+check('Homepage retains all prior content and SEO outside shared header layer',
+ ['en','zh','my'].every(lang=>translationScript.includes('Object.assign(strings.'+lang+', {\n    navExplore:')) &&
+ current.includes('<body id="top" class="l131 mmh-nav-unified">') &&
+ current.includes('<link rel="stylesheet" href="./landing-assets/shared-header-l116.css?v=1">') &&
+ current===prev &&
+ source('landing-assets/landing.js')===translationScript &&
+ source('landing-assets/explore-l114.css')===read('landing-assets/explore-l114.css'));
+const publicHeaders=['about/index.html','features/index.html','business/index.html',
+ 'register/index.html','security.html','privacy.html','terms.html'];
+const landingHeader=(current.match(/<header class="site-header">[\s\S]*?<\/header>/)||[])[0]||'';
+function normalizeSharedHeader(h){
+  return h.replace(/ data-(?:en|zh|my)="[^"]*"/g,'')
+    .replace(/href="\/#(features|business|about|security)"/g,'href="#$1"')
+    .replace(/href="\/(about|features|business|register)\/"/g,'href="./$1/"')
+    .replace(/href="\/(security|login)\.html"/g,'href="./$1.html"')
+    .replace('href="/" data-i18n="navHome"','href="/" aria-current="page" data-i18n="navHome"');
+}
+const sharedCss=read('landing-assets/shared-header-l116.css');
+/* L1.17 — Only Features/Register may replace their permanently visible
+ * Chinese+Burmese text block with one EN/ZH/MY-localized paragraph. Undo that
+ * exact replacement before comparing the rest of the published page bytewise. */
+function restoreOldLocalizedSummary(path,newHtml,previousHtml){
+ if(!['features/index.html','register/index.html'].includes(path))return newHtml;
+ const oldBlock=(previousHtml.match(/<div class="lang-summary" aria-label="MMHVAULT multilingual description">[\s\S]*?<\/div>/)||[])[0];
+ const newBlock=(newHtml.match(/<div class="lang-summary lang-summary-localized" aria-label="MMHVAULT description in the selected language">[\s\S]*?<\/div>/)||[])[0];
+ if(!oldBlock||!newBlock||
+  (newHtml.match(/class="lang-summary lang-summary-localized"/g)||[]).length!==1)return newHtml;
+ return newHtml.replace(newBlock,oldBlock);
+}
+check('Seven public pages inherit exact Landing header structure, icons and dropdown',
+ !!landingHeader && publicHeaders.every(path=>{
+   const html=read(path),old=source(path);
+   const h=(html.match(/<header class="site-header">[\s\S]*?<\/header>/)||[])[0]||'';
+   const cssNew='<link rel="stylesheet" href="/landing-assets/shared-header-l116.css?v=1">';
+   return !!h && normalizeSharedHeader(h)===landingHeader &&
+     html.includes(cssNew) && old.includes(cssNew) &&
+     // L1.16 already shipped; protect its header, page body and SEO
+     // byte-for-byte, allowing ONLY the two localized summary blocks.
+     restoreOldLocalizedSummary(path,html,old)===old &&
+     (h.match(/<details class="nav-explore"/g)||[]).length===1 &&
+     (h.match(/class="mobile-nav-auth"/g)||[]).length===1 &&
+     (h.match(/class="locale-menu"/g)||[]).length===1;
+ }));
+check('One scoped public header stylesheet loads last on homepage and all pages',
+ current.includes('href="./landing-assets/shared-header-l116.css?v=1"') &&
+ publicHeaders.every(path=>read(path).includes('href="/landing-assets/shared-header-l116.css?v=1"')) &&
+ sharedCss.includes('body.mmh-nav-unified .site-header') &&
+ sharedCss.includes('@media(max-width:1360px)') &&
+ !sharedCss.includes('body.app') &&
+ !/\bfetch\s*\(|supabase\.createClient|SERVICE_ROLE_KEY|location\.replace/.test(read('landing-assets/public-pages.js')));
+check('Public features and register show exactly one localized statement per selected language',
+ ['features/index.html','register/index.html'].every(path=>{
+   const html=read(path),prior=source(path);
+   const lead=prior.match(/<p class="lead"><span\s+data-en="([^"]+)" data-zh="([^"]+)" data-my="([^"]+)">/);
+   const summary=html.match(/<div class="lang-summary lang-summary-localized"[^>]*>\s*<p data-en="([^"]+)" data-zh="([^"]+)" data-my="([^"]+)">([^<]+)<\/p>\s*<\/div>/);
+   return !!lead&&!!summary&&
+     summary[1]===lead[1]&&summary[2]===lead[2]&&summary[3]===lead[3]&&summary[4]===lead[1] &&
+     (html.match(/class="lang-summary lang-summary-localized"/g)||[]).length===1 &&
+     !/<p lang="(?:zh-CN|my)">/.test(html);
+ }) &&
+ publicHeaders.filter(path=>!['features/index.html','register/index.html'].includes(path))
+   .every(path=>!read(path).includes('class="lang-summary"')) &&
+ read('landing-assets/public-pages.css').includes('.public-landing-page .lang-summary-localized{') &&
+ read('landing-assets/public-pages.js').includes("document.querySelectorAll('[data-en][data-zh][data-my]')"));
+check('L1.18 subtle surfaces and public motion remain scoped and accessible',
+  read('landing-assets/premium-l131.css').includes('L1.18 — restrained warm-gold') &&
+  read('landing-assets/public-pages.css').includes('L1.18 — quiet, consistent') &&
+  read('landing-assets/public-pages.css').includes('@media(prefers-reduced-motion:reduce)') &&
+  read('landing-assets/public-pages.css').includes('body.public-landing-page.mm-public-motion .mm-public-reveal:not(.mm-public-shown)') &&
+  read('landing-assets/public-pages.js').includes('L1.18 — progressive, one-shot reveals') &&
+  read('landing-assets/public-pages.js').includes("'IntersectionObserver' in window") &&
+  read('landing-assets/public-pages.js').includes("document.body?.classList.contains('public-landing-page')") &&
+  !['fetch(', 'supabase', 'SERVICE_ROLE_KEY', 'location.replace'].some(
+    term=>read('landing-assets/public-pages.js').includes(term)));
+check('L1.19 tablet and phone layout refinement stays presentation-only',
+ read('landing-assets/premium-l131.css').includes('L1.19 — compact-screen rhythm') &&
+ read('landing-assets/public-pages.css').includes('L1.19 — readable public intro actions') &&
+ read('landing-assets/premium-l131.css').includes('body.l131 .hero .hero-buttons .button') &&
+ read('landing-assets/public-pages.css').includes('grid-template-columns:minmax(0,1fr)') &&
+ read('landing-assets/public-pages.css').includes('@media(prefers-reduced-motion:reduce)'));
+check('L1.19 exactly four public CSS and QA files; no HTML, header, auth or JS changed',
+ actual.length===4 &&
+ actual.every(path=>[
+  'landing-assets/premium-l131.css','landing-assets/public-pages.css',
+  'landing-assets/landing-release-check.cjs','landing-assets/landing-browser-check.cjs'
+ ].includes(path)) &&
+ current===prev &&
+ publicHeaders.every(path=>source(path)===read(path)) &&
+ ['landing-assets/landing.js','landing-assets/public-pages.js',
+  'landing-assets/motion-l132.js','landing-assets/shared-header-l116.css']
+  .every(path=>source(path)===read(path)));
+check('Protected auth/PWA/SEO/config sources unchanged in PR diff',
+ ['business.html','app.html','login.html','sitemap.xml','robots.txt',
+  'mmh-manifest-v2.webmanifest','landing-assets/landing.js'].every(file=>{
+    const test=cp.spawnSync('git',['diff','--quiet',main+'...HEAD','--',file],
+      {encoding:'utf8',maxBuffer:4096});
+    return test.status===0;
+  }));
+check('Homepage N10 recovery and standalone guards are unchanged from main',
+ ['mmh-n10-recovery-error-route','mmh-pwa-standalone-root-bridge']
+   .every(id=>dom(id,current)===dom(id,prev)));
+
+console.log('Landing launch preflight: '+passed+'/'+passed+' PASS — no live authentication or PWA device claim.');

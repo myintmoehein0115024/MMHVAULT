@@ -1,0 +1,72 @@
+/*
+ * MMHVAULT L1.32 — Premium Liquid Flow (public Landing only)
+ * Progressive, one-shot, layout-safe scroll reveals and tab micro-transitions.
+ * No zoom/gesture restrictions. No auth or tracking.
+ */
+@media (prefers-reduced-motion: no-preference) {
+  html.mm-motion-active {
+    scroll-behavior: smooth;
+    scroll-padding-top: clamp(78px, 8vw, 112px);
+  }
+  html.mm-motion-active body.l131 .mm-reveal {
+    transition:
+      opacity 680ms cubic-bezier(.2,.75,.17,1),
+      transform 740ms cubic-bezier(.18,.79,.19,1),
+      filter 620ms ease;
+    transition-delay: var(--mm-delay, 0ms);
+  }
+  html.mm-motion-active body.l131 .mm-reveal:not(.mm-shown) {
+    opacity: 0;
+    transform: translate3d(0, var(--mm-shift, 18px), 0);
+    filter: blur(2px);
+  }
+  html.mm-motion-active body.l131 .mm-reveal.mm-shown {
+    opacity: 1;
+    transform: translate3d(0,0,0);
+    filter: blur(0);
+  }
+  html.mm-motion-active body.l131 :is(#features,#business,#about,#security,#top,[id^="feature-"]) {
+    scroll-margin-top: clamp(82px, 8.5vw, 118px);
+  }
+  html.mm-motion-active body.l131 :is(.product-tab,.business-tab,.showcase-card,.button,.closing-explore) {
+    transition:
+      color 220ms ease,
+      background-color 260ms ease,
+      border-color 260ms ease,
+      box-shadow 260ms ease,
+      transform 270ms cubic-bezier(.19,.8,.24,1);
+  }
+  html.mm-motion-active body.l131 :is(.product-tab,.business-tab,.showcase-card,.button):active {
+    transform: translateY(1px) scale(.989);
+  }
+}
+@media (min-width: 901px) and (prefers-reduced-motion: no-preference) {
+  html.mm-motion-active body.l131 .mm-reveal:not(.mm-shown) {
+    filter: blur(3px);
+  }
+}
+@media (max-width: 620px) and (prefers-reduced-motion: no-preference) {
+  html.mm-motion-active body.l131 .mm-reveal:not(.mm-shown) {
+    transform: translate3d(0, var(--mm-shift, 11px), 0);
+    filter: none;
+  }
+  html.mm-motion-active body.l131 .mm-reveal {
+    transition-duration: 540ms,580ms,0ms;
+    transition-delay: min(var(--mm-delay, 0ms), 95ms);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  html,html.mm-motion-active { scroll-behavior: auto !important; }
+  html body.l131 .mm-reveal,
+  html.mm-motion-active body.l131 .mm-reveal {
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+    transition: none !important;
+    animation: none !important;
+  }
+  html.mm-motion-active body.l131 :is(.product-tab,.business-tab,.showcase-card,.button) {
+    transition: none !important;
+    animation: none !important;
+  }
+}

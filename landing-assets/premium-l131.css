@@ -1,0 +1,493 @@
+/*
+ MMHVAULT · L1.31 Private Banking Polish
+ Scoped to public Landing, no authentication, no JS motion dependency.
+ Brighter warm-gold cinematic lighting, refined glass, and mobile rhythm.
+*/
+body.l131{
+  --l131-gold:#f3d19c;
+  --l131-ivory:#f6eee0;
+  --l131-line:rgba(244,204,145,.30);
+  --l131-glass:rgba(20,49,69,.88);
+  background:
+    radial-gradient(ellipse at 8% 13%,rgba(82,146,171,.13),transparent 43%),
+    radial-gradient(ellipse at 91% 32%,rgba(236,171,87,.105),transparent 39%),
+    linear-gradient(180deg,#081c2e 0%,#0b2436 46%,#071a2a 100%);
+  color:var(--l131-ivory);
+}
+body.l131 .site-header{
+  background:linear-gradient(180deg,rgba(13,36,54,.94),rgba(9,27,43,.89));
+  border-bottom:1px solid rgba(237,204,157,.31);
+  box-shadow:0 12px 38px rgba(0,13,27,.14),inset 0 1px rgba(246,225,188,.06);
+  -webkit-backdrop-filter:blur(22px) saturate(143%);
+  backdrop-filter:blur(22px) saturate(143%);
+}
+body.l131 .site-header::after{
+  content:"";position:absolute;inset:auto 0 0;height:1px;pointer-events:none;
+  background:linear-gradient(90deg,transparent 6%,rgba(249,205,132,.49) 23%,rgba(191,220,237,.07) 75%,transparent 95%);
+}
+body.l131 .site-header .brand-symbol{
+  background:linear-gradient(135deg,#fff1d4,#efbf74 61%,#bc8346);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 2px 12px rgba(242,183,105,.13));
+}
+body.l131 .site-header .brand-copy strong{
+  color:#fff0d5;text-shadow:0 1px 14px rgba(230,190,121,.13);
+}
+body.l131 .site-header #primary-nav a:is(:hover,:focus-visible),
+body.l131 .site-header #primary-nav a[aria-current="page"]{color:#ffe1ae}
+body.l131 .hero{
+  position:relative;
+  isolation:isolate;
+}
+body.l131 .hero::before{
+  background-image:
+    linear-gradient(90deg,rgba(5,20,34,.70) 0%,rgba(9,28,44,.37) 43%,rgba(8,25,39,.19) 88%),
+    linear-gradient(180deg,rgba(8,23,37,.29) 0%,rgba(9,27,44,.03) 47%,rgba(7,23,38,.64) 100%),
+    url("./cinematic-lake.webp");
+  background-size:cover,cover,cover;
+  background-position:center,center,center 54%;
+  filter:saturate(1.15) brightness(1.14);
+}
+body.l131 .hero::after{
+  content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+  background:
+    radial-gradient(ellipse at 69% 54%,rgba(244,185,99,.13),transparent 39%),
+    linear-gradient(180deg,transparent 83%,rgba(7,23,37,.48));
+}
+body.l131 .hero-copy::before{
+  background:linear-gradient(90deg,rgba(7,23,39,.63),rgba(6,23,39,.20) 83%,transparent);
+}
+body.l131 .hero .eyebrow{
+  color:#ffe1ac;text-shadow:0 2px 15px rgba(3,18,29,.65);
+  letter-spacing:.235em;
+}
+body.l131 .hero .eyebrow-line,
+body.l131 .hero-bottom .gold-dash{background:linear-gradient(90deg,#fff0c9,#dcb178)}
+body.l131 .hero .hero-name{
+  background:linear-gradient(116deg,#fff9ec 4%,#f3dbc0 42%,#f0bb72 86%);
+  -webkit-background-clip:text;background-clip:text;
+  color:transparent;
+  text-shadow:none;
+  filter:drop-shadow(0 3px 15px rgba(0,9,24,.21));
+}
+body.l131 .hero .hero-statement{color:#fff1db;text-shadow:0 2px 22px rgba(4,16,27,.45)}
+body.l131 .hero .hero-statement em{color:#f3cb92}
+body.l131 .hero-static-languages .hero-script-zh{
+  color:#f5d29d;text-shadow:0 2px 18px rgba(8,19,29,.39)
+}
+body.l131 .hero-static-languages .hero-script-my,
+body.l131 .hero-static-languages .hero-lead{
+  color:#f0f2ed;text-shadow:0 2px 17px rgba(5,17,28,.47)
+}
+body.l131 .hero-buttons .button{
+  min-height:51px;
+  transition:background .22s ease,box-shadow .22s ease,border-color .22s ease,transform .22s ease;
+}
+body.l131 .hero-buttons .button-gold,
+body.l131 .closing-section .closing-primary{
+  background:linear-gradient(116deg,#ffedc5 1%,#f4ce94 48%,#e2ad66 100%);
+  border-color:#ffe6b4;
+  color:#16283b;
+  box-shadow:inset 0 1px rgba(255,253,237,.8),0 9px 30px rgba(223,163,88,.19);
+}
+body.l131 .hero-buttons .button-outline{
+  background:linear-gradient(135deg,rgba(23,51,70,.86),rgba(8,27,43,.75));
+  border-color:rgba(251,216,162,.70);
+  box-shadow:inset 0 1px rgba(255,236,197,.12);
+}
+body.l131 .hero-art.is-photo-ready .hero-device-cinematic{
+  filter:brightness(1.17) saturate(1.16) contrast(1.025);
+}
+body.l131 .hero-art{
+  box-shadow:0 19px 49px rgba(3,18,32,.18),0 0 39px rgba(231,169,91,.075);
+}
+body.l131 .hero-art .hero-halo{
+  opacity:.76;
+}
+body.l131 .hero-bottom{
+  color:#ddc6a4;
+}
+body.l131 .showcase-v2{
+  position:relative;
+}
+body.l131 .showcase-v2::before{
+  content:"";display:block;height:1px;max-width:100%;
+  margin:0 0 clamp(27px,4vw,47px);
+  background:linear-gradient(90deg,transparent,rgba(249,208,139,.50) 17%,rgba(180,212,225,.19) 69%,transparent);
+}
+body.l131 .showcase-v2 .showcase-eyebrow,
+body.l131 .features-explorer .section-kicker,
+body.l131 #business .section-kicker,
+body.l131 #about .section-kicker,
+body.l131 #security .section-kicker{
+  color:#edc78d;
+}
+body.l131 .showcase-v2 .showcase-section-header h2,
+body.l131 .features-explorer .section-heading h2,
+body.l131 #business .business-heading h2,
+body.l131 #about .why-intro h2,
+body.l131 #security .security-copy h2,
+body.l131 .closing-inner h2{
+  color:#fff0dd;
+}
+body.l131 .showcase-v2 .showcase-card{
+  border-color:rgba(241,204,152,.44);
+  background:
+    radial-gradient(circle at 95% 1%,rgba(244,199,128,.12),transparent 40%),
+    linear-gradient(143deg,rgba(34,68,88,.88),rgba(8,26,42,.93) 84%);
+  box-shadow:inset 0 1px rgba(255,236,193,.17),0 15px 34px rgba(2,15,27,.15);
+  transition:transform .25s ease,border-color .25s ease,box-shadow .25s ease,background .25s ease;
+}
+body.l131 .showcase-v2 .showcase-card::before{
+  content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;
+  background:linear-gradient(136deg,rgba(255,239,201,.12),transparent 36%);
+  opacity:.55;
+}
+body.l131 .showcase-v2 .showcase-card .showcase-symbol{
+  border-color:rgba(250,217,162,.55);
+  background:linear-gradient(138deg,rgba(224,178,111,.19),rgba(33,72,92,.40));
+}
+body.l131 .showcase-v2 .showcase-card .showcase-screen{
+  background:linear-gradient(140deg,rgba(9,35,54,.98),rgba(13,43,63,.92));
+  border-color:rgba(159,204,218,.30);
+  box-shadow:inset 0 1px rgba(255,242,208,.055);
+}
+body.l131 .features-explorer.app-showcase .product-explorer{
+  box-shadow:0 21px 50px rgba(0,16,31,.16);
+}
+body.l131 .features-explorer.app-showcase .product-picker{
+  background:linear-gradient(160deg,rgba(36,65,83,.90),rgba(8,29,46,.96));
+  border-color:rgba(241,207,154,.37);
+}
+body.l131 .features-explorer.app-showcase .product-tab.is-active{
+  background:linear-gradient(128deg,rgba(248,206,138,.23),rgba(28,66,84,.77));
+  border-color:rgba(250,210,140,.70);
+  box-shadow:inset 0 1px rgba(255,239,202,.14),0 8px 21px rgba(4,22,37,.12);
+}
+body.l131 .features-explorer.app-showcase .product-stage,
+body.l131 .features-explorer.app-showcase .product-panel{
+  background-color:#0c293e;
+  border-color:rgba(236,201,150,.49);
+  box-shadow:inset 0 1px rgba(255,241,217,.13),0 16px 40px rgba(2,13,24,.18);
+}
+body.l131 .features-explorer.app-showcase .app-story{
+  border-color:rgba(238,197,135,.32);
+  background:linear-gradient(160deg,rgba(26,58,76,.79),rgba(7,26,42,.89));
+}
+body.l131 #business.business-section::before{
+  background-image:
+    linear-gradient(180deg,rgba(8,26,40,.58),rgba(8,27,42,.30) 42%,rgba(8,25,40,.56) 100%),
+    url("./cinematic-lake.webp");
+  background-position:center,center 48%;
+  filter:saturate(1.17) brightness(1.11);
+}
+body.l131 #business .business-visual-strip,
+body.l131 #business .business-stage{
+  border-color:rgba(247,206,148,.44);
+  box-shadow:0 19px 40px rgba(0,17,30,.15);
+}
+body.l131 #business .business-mode-context,
+body.l131 #business .business-visual-text{
+  color:#ebd8b8;
+}
+body.l131 #about .about-benefit-card{
+  border-color:rgba(230,195,149,.36);
+  background:
+    radial-gradient(circle at 100% 0,rgba(235,189,112,.09),transparent 51%),
+    linear-gradient(139deg,rgba(34,69,89,.78),rgba(9,30,48,.89));
+  box-shadow:inset 0 1px rgba(247,221,181,.10),0 12px 28px rgba(0,15,28,.11);
+}
+body.l131 #about .about-benefit-icon{
+  background:linear-gradient(145deg,rgba(236,188,115,.17),rgba(22,63,83,.31));
+  border-color:rgba(252,217,161,.47);
+}
+body.l131 #security .security-panel{
+  background:
+    radial-gradient(ellipse at 22% 49%,rgba(244,189,106,.20),transparent 47%),
+    linear-gradient(124deg,rgba(35,71,91,.88),rgba(10,34,53,.94));
+  border-color:rgba(249,205,139,.43);
+  box-shadow:inset 0 1px rgba(255,238,196,.16),0 18px 39px rgba(0,15,27,.16);
+}
+body.l131 .closing-section .closing-premium-panel{
+  border-color:rgba(252,218,161,.49);
+  box-shadow:inset 0 1px rgba(255,244,214,.17),0 25px 50px rgba(3,18,31,.19);
+  background:
+    radial-gradient(ellipse at 72% 0,rgba(252,207,139,.16),transparent 53%),
+    linear-gradient(138deg,rgba(40,79,99,.94),rgba(8,29,46,.98));
+}
+body.l131 .site-footer{
+  background:linear-gradient(180deg,#102b3d,#091c2c);
+  border-top-color:rgba(241,205,159,.32);
+}
+body.l131 :is(.showcase-card,.product-tab,.button,.action,.locale-trigger):focus-visible{
+  outline:2px solid #ffe0a9;outline-offset:3px;
+}
+@media(hover:hover) and (pointer:fine){
+  body.l131 .showcase-v2 .showcase-card:hover{
+    transform:translateY(-5px);
+    border-color:rgba(255,223,170,.85);
+    box-shadow:inset 0 1px rgba(255,238,200,.19),0 23px 42px rgba(1,15,29,.24),0 0 27px rgba(226,168,94,.07);
+  }
+  body.l131 .hero-buttons .button:hover{transform:translateY(-2px)}
+}
+@media(max-width:1024px){
+  body.l131 .hero::before{
+    background-image:
+      linear-gradient(180deg,rgba(9,26,42,.55),rgba(10,30,47,.29) 54%,rgba(7,24,39,.58)),
+      url("./cinematic-lake.webp");
+    background-size:cover,cover;
+    background-position:center,center 52%;
+  }
+  body.l131 .showcase-v2 .showcase-card{min-width:0}
+  body.l131 .features-explorer.app-showcase .product-picker,
+  body.l131 .features-explorer.app-showcase .product-stage{min-width:0;max-width:100%}
+}
+@media(max-width:620px){
+  body.l131 .site-header{background:rgba(9,30,45,.96)}
+  body.l131 .hero::before{
+    background-image:
+      linear-gradient(180deg,rgba(7,22,36,.59),rgba(8,26,43,.32) 46%,rgba(8,24,39,.68)),
+      url("./cinematic-lake.webp");
+    background-size:cover,cover;
+    background-position:center,59% 50%;
+  }
+  body.l131 .hero-copy::before{
+    background:linear-gradient(90deg,rgba(8,24,39,.64),rgba(8,27,43,.18));
+  }
+  body.l131 .hero .hero-statement{line-height:1.27}
+  body.l131 .hero-buttons{gap:10px}
+  body.l131 .hero-buttons .button{min-width:0;max-width:100%;min-height:47px}
+  body.l131 .hero-art.is-photo-ready .hero-device-cinematic{filter:brightness(1.11) saturate(1.10)}
+  body.l131 .showcase-v2::before{margin-bottom:24px}
+  body.l131 .showcase-v2 .showcase-card{border-radius:16px}
+  body.l131 .showcase-v2 .showcase-card:hover{transform:none}
+  body.l131 #about .about-benefit-card{min-width:0}
+  body.l131 .closing-section .closing-premium-panel{border-radius:21px}
+}
+@media(max-width:390px){
+  body.l131 .hero .eyebrow{letter-spacing:.14em}
+  body.l131 .hero-buttons .button{font-size:12px}
+  body.l131 .hero .hero-statement{overflow-wrap:normal}
+}
+@media(prefers-reduced-motion:reduce){
+  body.l131 .showcase-v2 .showcase-card,
+  body.l131 .hero-buttons .button{transition:none!important;transform:none!important}
+}
+
+/* L1.31.1 — restore the photograph with laptop and phone on desktop.
+   L1.7 correctly hides the duplicate <img> at >=901px because it is
+   already composited into the *full Hero background*. L1.31 mistakenly
+   changed only that background to the empty landscape. Restore its
+   photographic source rather than overlaying the same scene twice.
+   Tablet/mobile <=900px retain their separately framed device image. */
+@media (min-width:901px){
+  body.l131 .hero::before{
+    background-image:
+      linear-gradient(90deg,
+        rgba(5,19,33,.88) 0%,
+        rgba(5,20,35,.77) 27%,
+        rgba(7,24,40,.45) 51%,
+        rgba(8,25,40,.06) 93%),
+      linear-gradient(180deg,
+        rgba(7,20,34,.25) 0%,
+        rgba(7,21,35,.07) 42%,
+        rgba(6,20,35,.18) 73%,
+        rgba(6,20,33,.68) 100%),
+      url("./personal-business-concept.webp");
+    background-position:center,center,center 52%;
+    background-size:cover,cover,cover;
+    background-repeat:no-repeat;
+    filter:brightness(1.09) saturate(1.12);
+  }
+}
+
+
+/* L1.34 — contain decorative desktop glows inside the visible viewport.
+   Prevents sideways document travel without changing scroll gestures or the App. */
+@media (min-width: 1100px) {
+  body.l131 .ambient-a { right: 0; }
+  body.l131 .hero-halo { right: 64px; }
+}
+
+
+/* L1.12 — truly responsive finance Hero: keep text inside the visible screen,
+   rather than relying on document overflow clipping to conceal long lines. */
+@media(max-width:1024px){
+  body.l131 .hero{grid-template-columns:minmax(0,1fr);max-width:100%;min-width:0}
+  body.l131 .hero-copy{width:100%;max-width:100%;min-width:0}
+  body.l131 .hero .hero-static-languages{
+    display:grid;grid-template-columns:minmax(0,1fr);
+    width:100%;min-width:0;max-width:100%;
+  }
+  body.l131 .hero .hero-static-languages :is(.hero-script-zh,.hero-script-my,.hero-script-en){
+    width:100%;min-width:0;max-width:100%;
+    white-space:normal;overflow-wrap:anywhere;
+    word-break:normal;
+  }
+  body.l131 .hero .hero-statement[lang="en"]{
+    width:100%;max-width:100%;min-width:0;
+    white-space:normal;overflow-wrap:break-word;
+  }
+  body.l131 .hero-art{min-width:0;max-width:100%}
+  body.l131 :is(.showcase-v2,.features-explorer,#business,#about,#security,.closing-section){
+    min-width:0;max-width:100%;
+  }
+}
+@media(max-width:700px){
+  body.l131 .site-header .header-inner{
+    width:calc(100% - 24px);max-width:100%;
+    min-height:68px;display:flex;flex-wrap:nowrap;
+    justify-content:space-between;align-items:center;gap:7px;
+  }
+  body.l131 .site-header .brand{
+    display:flex;flex:1 1 auto;min-width:0;max-width:100%;
+    align-items:center;gap:7px;
+  }
+  body.l131 .site-header .brand-symbol{
+    flex:0 0 37px;width:37px;font-size:38px;line-height:1
+  }
+  body.l131 .site-header .brand-copy{
+    display:flex;flex-direction:column;gap:3px;
+    flex:1 1 auto;min-width:0;max-width:100%
+  }
+  body.l131 .site-header .brand-copy strong{
+    font-size:clamp(12px,3.4vw,17px);line-height:1.2;
+    white-space:nowrap;letter-spacing:.045em
+  }
+  body.l131 .site-header .brand-copy small{
+    font-size:clamp(5px,1.22vw,7px);line-height:1.3;
+    white-space:nowrap;letter-spacing:.045em
+  }
+  body.l131 .site-header .header-actions{
+    display:flex;flex:0 0 auto;min-width:0;
+    align-items:center;gap:7px
+  }
+  body.l131 .site-header .locale-picker{flex:0 0 auto}
+  body.l131 .site-header .locale-trigger{
+    display:flex;align-items:center;justify-content:center;
+    width:42px;min-width:42px;height:42px;min-height:42px;padding:0;
+    gap:0;border-radius:50%;
+  }
+  body.l131 .site-header .locale-trigger :is(.locale-active-name,.locale-active-flag,.locale-chevron){display:none!important}
+  body.l131 .site-header .locale-trigger .locale-globe{
+    display:block!important;width:19px;height:19px;flex:0 0 19px
+  }
+  body.l131 .site-header .menu-toggle{
+    display:flex;align-items:center;justify-content:center;
+    flex:0 0 42px;width:42px;min-width:42px;height:42px;padding:0;
+  }
+  body.l131 .hero .hero-name[lang="en"]{
+    font-size:clamp(39px,10.6vw,66px);
+    letter-spacing:-.057em;max-width:100%;white-space:nowrap
+  }
+  body.l131 .hero .hero-statement[lang="en"]{
+    font-size:clamp(20px,5.3vw,31px);line-height:1.28
+  }
+  body.l131 .hero-static-languages{padding-left:11px}
+  body.l131 .hero .hero-buttons{
+    width:100%;max-width:100%;display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:9px;align-items:stretch
+  }
+  body.l131 .hero .hero-buttons .button{
+    display:flex;justify-content:center;align-items:center;
+    min-width:0;max-width:100%;width:100%;
+    padding:12px 9px;gap:7px;white-space:normal;
+    overflow-wrap:anywhere;text-align:center;
+    font-size:clamp(10px,2.7vw,13px)
+  }
+  body.l131 .hero .hero-art{
+    width:100%;max-width:100%;min-width:0;margin-inline:auto
+  }
+}
+@media(max-width:390px){
+  body.l131 .site-header .header-inner{gap:5px;width:calc(100% - 18px)}
+  body.l131 .site-header .brand{gap:5px}
+  body.l131 .site-header .brand-symbol{flex-basis:32px;width:32px;font-size:34px}
+  body.l131 .site-header .brand-copy strong{font-size:12px}
+  body.l131 .site-header .brand-copy small{font-size:5px}
+  body.l131 .site-header .header-actions{gap:5px}
+  body.l131 .site-header .locale-trigger,
+  body.l131 .site-header .menu-toggle{
+    min-width:39px;width:39px;height:39px;min-height:39px;flex-basis:39px
+  }
+  body.l131 .hero .hero-name[lang="en"]{font-size:clamp(35px,10.4vw,43px)}
+  body.l131 .hero .hero-statement[lang="en"]{font-size:clamp(19px,5.45vw,21px)}
+  body.l131 .hero-static-languages .hero-script-my{font-size:11.5px;line-height:1.95}
+}
+@media(prefers-reduced-motion:reduce){
+  body.l131 .site-header .locale-trigger,
+  body.l131 .site-header .menu-toggle{transition:none}
+}
+
+
+/* L1.12 finish: public-page consistency for native hash links and phone tools. */
+body.l131 :is(#features,#business,#about,#security){
+  scroll-margin-top:clamp(78px,9vw,112px)
+}
+@media(max-width:700px){
+  body.l131 .site-header .menu-toggle{
+    border:1px solid rgba(229,201,167,.53);
+    border-radius:999px;
+    background:linear-gradient(135deg,rgba(6,25,40,.79),rgba(8,30,49,.93));
+    box-shadow:inset 0 1px rgba(255,243,219,.1);
+  }
+  body.l131 .site-header .menu-toggle:focus-visible{
+    outline:2px solid #ffe1a6;outline-offset:3px
+  }
+}
+
+
+/* L1.18 — restrained warm-gold edge lighting on existing Landing surfaces.
+ * Content, dimensions, navigation and existing L1.32 motion remain unchanged. */
+body.l131 .showcase-v2 .showcase-card{
+  border-color:rgba(246,211,160,.51);
+  box-shadow:inset 0 1px rgba(255,246,221,.22),
+    inset 0 -1px rgba(113,158,181,.08),
+    0 16px 40px rgba(2,14,29,.19);
+}
+body.l131 .showcase-v2 .showcase-card .showcase-symbol{
+  box-shadow:inset 0 1px rgba(255,238,201,.18),0 4px 21px rgba(219,162,97,.07);
+}
+body.l131 #about .about-benefit-card{
+  box-shadow:inset 0 1px rgba(255,236,200,.16),0 14px 32px rgba(2,16,30,.16);
+}
+body.l131 .features-explorer.app-showcase .product-stage{
+  box-shadow:inset 0 1px rgba(255,236,199,.19),
+    0 22px 53px rgba(0,16,29,.21);
+}
+@media(hover:hover) and (pointer:fine){
+  body.l131 .showcase-v2 .showcase-card:is(:hover,:focus-within){
+    border-color:rgba(255,225,174,.91);
+    box-shadow:inset 0 1px rgba(255,246,221,.28),
+      0 25px 50px rgba(1,12,27,.28),0 0 30px rgba(234,180,107,.09);
+  }
+  body.l131 .showcase-v2 .showcase-card:is(:hover,:focus-within) .showcase-symbol{
+    border-color:rgba(255,228,177,.82);
+    box-shadow:inset 0 1px rgba(255,243,219,.34),0 5px 21px rgba(227,168,94,.16);
+  }
+}
+
+
+/* L1.19 — compact-screen rhythm; shared header and Hero copy are untouched. */
+@media (min-width:621px) and (max-width:1024px){
+  body.l131 .showcase-v2 .showcase-grid{align-items:stretch}
+  body.l131 .showcase-v2 .showcase-card{height:100%;min-width:0}
+  body.l131 .features-explorer.app-showcase .product-stage{min-width:0}
+}
+@media(max-width:620px){
+  body.l131 .showcase-v2 .showcase-grid{
+    align-items:stretch;gap:clamp(10px,2.6vw,14px)
+  }
+  body.l131 .showcase-v2 .showcase-card{
+    height:100%;min-width:0;padding:clamp(16px,4vw,22px);
+    overflow-wrap:anywhere
+  }
+  body.l131 .hero .hero-buttons .button{
+    min-height:48px;line-height:1.55
+  }
+  body.l131 .features-explorer.app-showcase .product-tab{
+    min-width:0;overflow-wrap:anywhere
+  }
+  body.l131 .closing-section .closing-actions .button{min-height:48px}
+}

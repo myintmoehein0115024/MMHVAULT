@@ -3,7 +3,7 @@
   "name": "MMHVAULT Personal Finance",
   "short_name": "MMHVAULT",
   "description": "Private personal finance, wealth tracking and financial alerts.",
-  "start_url": "./app.html?source=pwa&install=v2",
+  "start_url": "./login.html?source=pwa&install=v2",
   "scope": "./",
   "display": "standalone",
   "display_override": [
