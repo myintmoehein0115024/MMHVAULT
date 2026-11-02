@@ -46,6 +46,8 @@ assert.ok(same.includes('++mmhP947AuthGateTicket'),'Invalidate prior account che
 assert.ok(same.includes("mmhP947GuardV947('switch')"),'Mask previous financial contents synchronously');
 assert.ok(same.includes('mmhVaultSessionCheckPromiseV1239'),'Wait for old session reconcile');
 assert.ok(same.includes('mmhVaultReconcileSessionV1239'),'Recheck even on same-user event');
+assert.ok(same.includes('const wasAlreadyMasked='),'Same-owner event captures pre-existing data guard');
+assert.ok(same.includes('authMaskWasNew:!wasAlreadyMasked'),'Only new assurance masks can reuse verified cloud cache');
 assert.ok(same.includes('authTicket!==mmhP947AuthGateTicket'),'Discard stale response');
 assert.ok(!same.includes('try{applyUserProfile(session.user);}') ,'Do not treat profile paint as assurance');
 
@@ -54,6 +56,7 @@ assert.ok(reconcile.includes('const aal=await db.auth.mfa.getAuthenticatorAssura
 assert.ok(reconcile.includes("if(decision==='legacy')"),'Legacy AAL1 must reverify account and MFA');
 assert.ok(reconcile.includes('mmhN10ConfirmLegacyAalV20261102(owner'),'Legacy AAL1 must use the verified owner');
 assert.ok(reconcile.includes('mmhN10AalDecisionV20261102(aal.data)'));
+assert.ok(reconcile.includes('const hasVerifiedCloud='),'A newly added assurance overlay cannot bypass initial cloud verification');
 assert.ok(reconcile.includes("if(decision==='deny')throw"));
 assert.ok(reconcile.includes("if(decision==='step_up')"));
 assert.ok(reconcile.includes('startTicket!==mmhP947AuthGateTicket'));
@@ -105,7 +108,7 @@ function makeReconcile(level, overrides={}){
   };
   Object.assign(ctx,overrides);
   vm.runInNewContext(decisionSource+'\n'+reconcile,ctx,{timeout:2000});
-  return {ctx,record,run:()=>ctx.mmhVaultReconcileSessionV1239('synthetic')};
+  return {ctx,record,run:(opts={})=>ctx.mmhVaultReconcileSessionV1239('synthetic',opts)};
 }
 {
   const {run,record}=makeReconcile({currentLevel:'aal1',nextLevel:'aal1'});
@@ -117,6 +120,36 @@ function makeReconcile(level, overrides={}){
   const {run,record}=makeReconcile({currentLevel:'aal2',nextLevel:'aal2'});
   assert.equal((await run()).ok,true,'Verified AAL2 can complete');
   assert.equal(record.unlocked,1);
+}
+
+{
+  // A new MFA-only overlay is not evidence that the finance cache is invalid.
+  const {run,record}=makeReconcile({currentLevel:'aal2',nextLevel:'aal2'});
+  const result=await run({authMaskWasNew:true,refreshData:false});
+  assert.equal(result.ok,true,'New MFA mask still requires a valid AAL');
+  assert.equal(record.loaded,0,'Fresh verified cache must not be re-downloaded just to remove new MFA overlay');
+  assert.equal(record.unlocked,1,'Valid assured user can unmask without unnecessary cloud reload');
+}
+{
+  // No verified cloud load is recorded, so the mask must stay until records arrive.
+  const {run,record,ctx}=makeReconcile({currentLevel:'aal2',nextLevel:'aal2'});
+  ctx.window.__mmhLastCloudLoadAtV1235=0;
+  assert.equal((await run({authMaskWasNew:true,refreshData:false})).ok,true);
+  assert.equal(record.loaded,1,'Missing verified finance cache requires a fresh cloud load');
+  assert.equal(record.unlocked,1);
+}
+{
+  // A guard already present before the MFA event means data integrity was uncertain.
+  const {run,record}=makeReconcile({currentLevel:'aal2',nextLevel:'aal2'});
+  assert.equal((await run({authMaskWasNew:false,refreshData:false})).ok,true);
+  assert.equal(record.loaded,1,'Previously locked account still requires cloud reload');
+}
+{
+  // Resuming after a stale interval must refresh, irrespective of new overlay origin.
+  const {run,record,ctx}=makeReconcile({currentLevel:'aal2',nextLevel:'aal2'});
+  ctx.window.__mmhLastCloudLoadAtV1235=Date.now()-30000;
+  assert.equal((await run({authMaskWasNew:true,refreshData:true})).ok,true);
+  assert.equal(record.loaded,1,'Explicit stale resume requires fresh finance data');
 }
 for(const invalid of [null,{}, {currentLevel:undefined,nextLevel:'aal1'},{currentLevel:'aal1',nextLevel:null},{currentLevel:'surprise',nextLevel:'aal1'}]){
   const {run,record}=makeReconcile(invalid);
