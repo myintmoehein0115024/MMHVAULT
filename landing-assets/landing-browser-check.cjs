@@ -255,6 +255,18 @@ async function load(page,route,failures){
        width+'px Accounts feature tab responds');
      ensure(await page.locator('[data-product-panel="accounts"]').isVisible(),
        width+'px Accounts concept panel displayed');
+     // L1.21 — accessible instant swap for reduced-motion preference.
+     const settled=await page.locator('[data-product-panel]').evaluateAll(panels=>({
+       visible:panels.filter(p=>!p.hidden).map(p=>p.dataset.productPanel),
+       animated:panels.some(p=>p.classList.contains('mmh-preview-enter')||
+         p.classList.contains('mmh-preview-exit')),
+       inactiveInert:panels.filter(p=>p.hidden).every(p=>p.inert),
+       selectedAria:panels.find(p=>!p.hidden)?.getAttribute('aria-hidden')
+     }));
+     ensure(JSON.stringify(settled.visible)===JSON.stringify(['accounts']) &&
+       !settled.animated && settled.inactiveInert && settled.selectedAria==='false',
+       width+'px reduced-motion preview shows one accessible panel with no crossfade');
+
      await page.locator('[data-business-view="business"]').click();
      ensure(await page.locator('[data-business-view="business"]').getAttribute('aria-pressed')==='true',
        width+'px Business concept switch responds');
@@ -658,6 +670,46 @@ async function load(page,route,failures){
    await page.locator('#features').scrollIntoViewIfNeeded();
    await page.waitForTimeout(850);
    ensure(await page.locator('.mm-shown').count()>0,'Scroll reveal completes after entering viewport');
+   // L1.21 — central panel crossfade must never show an empty frame.
+   await page.locator('[data-product-tab="transactions"]').click();
+   await page.waitForTimeout(85);
+   const inFlight=await page.evaluate(()=>{
+     const old=document.querySelector('[data-product-panel="dashboard"]');
+     const next=document.querySelector('[data-product-panel="transactions"]');
+     const layer=document.querySelector('.app-sim-content');
+     return {
+       count:[...document.querySelectorAll('[data-product-panel]')].filter(p=>!p.hidden).length,
+       outgoing:old.classList.contains('mmh-preview-exit'),
+       entering:next.classList.contains('mmh-preview-enter'),
+       opacitySum:Number(getComputedStyle(old).opacity)+Number(getComputedStyle(next).opacity),
+       panePosition:getComputedStyle(layer).position,
+       nestedFlash:[...next.querySelectorAll('.app-metric,.app-mock-card')]
+         .some(el=>el.getAnimations().length>0)
+     };
+   });
+   ensure(inFlight.count===2&&inFlight.outgoing&&inFlight.entering&&
+     inFlight.opacitySum>.70&&inFlight.panePosition==='relative'&&!inFlight.nestedFlash,
+     'Crossfade keeps both panels painted without nested card flashing '+JSON.stringify(inFlight));
+   await page.waitForTimeout(400);
+   const transitioned=await page.locator('[data-product-panel]').evaluateAll(panels=>
+     panels.filter(p=>!p.hidden).map(p=>p.dataset.productPanel));
+   ensure(JSON.stringify(transitioned)===JSON.stringify(['transactions']),
+     'Crossfade leaves only the selected transaction screen accessible');
+   for(const name of ['accounts','invest','analyze']){
+     await page.locator('[data-product-tab="'+name+'"]').click();
+   }
+   await page.waitForTimeout(400);
+   const rapid=await page.locator('[data-product-panel]').evaluateAll(panels=>({
+     visible:panels.filter(p=>!p.hidden).map(p=>p.dataset.productPanel),
+     hasTransient:panels.some(p=>p.classList.contains('mmh-preview-enter')||
+       p.classList.contains('mmh-preview-exit')),
+     othersInert:panels.filter(p=>p.hidden).every(p=>p.inert),
+     selectedAria:panels.find(p=>!p.hidden)?.getAttribute('aria-hidden')
+   }));
+   ensure(JSON.stringify(rapid.visible)===JSON.stringify(['analyze'])&&
+     !rapid.hasTransient&&rapid.othersInert&&rapid.selectedAria==='false',
+     'Rapid switching cancels stale fades and keeps only final screen '+JSON.stringify(rapid));
+
    ensure(errors.length===0,'Liquid motion produces no JS exceptions');
    await ctx.close();
    console.log('PUBLIC LANDING BROWSER QA PASS: '+widths.length+' Landing viewports, '+
