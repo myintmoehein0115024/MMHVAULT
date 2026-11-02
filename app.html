@@ -13240,6 +13240,25 @@ async function mmhVaultRecurringUsesCategoryV1236(group,name,owner){
 async function mmhVaultWalletUsesAccountV196(name,owner){
   return (await mmhVaultRowsUsingAccountV192('crypto_wallet_movements',['from_wallet','to_wallet'],name,owner)).length>0;
 }
+// APP V11 · Historical name/currency integrity guard.
+// Client-only cross-table rename is not atomic. If history exists, keep the
+// original identity untouched instead of risking a partial rename or currency swap.
+async function mmhVaultFinanceIdentityChangeSafeV11(account,nextName,nextCurrency,owner){
+  if(!mmhVaultRequireConfigOwner(owner)||!account)return false;
+  const oldName=String(account.name||'').trim(),wantedName=String(nextName||'').trim();
+  const oldCurrency=String(account.currency||'').trim().toUpperCase();
+  const wantedCurrency=String(nextCurrency||'').trim().toUpperCase();
+  if(oldName===wantedName&&oldCurrency===wantedCurrency)return true;
+  const [primary,recurring,wallet,lifeFunds]=await Promise.all([
+    mmhVaultPrimaryHistoryUsesAccountV192(oldName,owner),
+    mmhVaultRecurringUsesAccountV1236(oldName,owner),
+    mmhVaultWalletUsesAccountV196(oldName,owner),
+    mmhVaultRowsUsingAccountV192('life_fund_allocations',['source_account_name'],oldName,owner)
+  ]);
+  if(!mmhVaultRequireConfigOwner(owner))return false;
+  return !(primary||recurring||wallet||(lifeFunds||[]).length);
+}
+
 async function mmhVaultSyncAccountRenameSecondaryV1236(oldName,newName,owner){
   const warnings=[];
   try{
@@ -13530,6 +13549,10 @@ function mmhVaultEditAccountV449(id){
         const oldName=a.name, nameChanged=oldName!==newName;
         try{
           const u=(await db.auth.getUser()).data.user;if(!u||u.id!==configOwner||!mmhVaultRequireConfigOwner(configOwner))throw Error('Account session changed.');
+          if(!(await mmhVaultFinanceIdentityChangeSafeV11(a,newName,newCurrency,configOwner))){
+            window.mmhEditDeleteUI.inline('This account already has linked financial history. Its name and currency cannot be changed without risking incorrect balances. You can edit other settings or archive it instead.');
+            return false;
+          }
           if(nameChanged&&u){
             await mmhVaultUpdateAccountRefsV192('transactions',['from_account','to_account'],oldName,newName,u.id);
             if(!mmhVaultRequireConfigOwner(configOwner))throw Error('Account session changed.');
