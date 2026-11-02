@@ -20,6 +20,8 @@ function allowedUrl(locationOrigin) {
   } catch { return false; }
 }
 async function boundedJson(response) {
+  const contentType = response.headers?.get?.('content-type') || '';
+  if (!/^application\/json(?:\s*;|$)/i.test(contentType)) throw Error('bad_content_type');
   const length = response.headers?.get?.('content-length');
   if (length && (!/^\d+$/.test(length) || +length > MAX_RESULT_BYTES)) throw Error('bad_length');
   if (!response.body?.getReader) throw Error('missing_stream');
@@ -65,13 +67,16 @@ export function createRecoveryTransport({
        (typeof fields.password !== 'string' || fields.password.length < 6 || fields.password.length > 20))
       return {code: 'invalid_credentials'};
     try {
-      const {data: userData, error: userError} = await auth.getUser();
-      const user = userData?.user;
-      if (userError || !user?.id || user.is_anonymous === true) return {code: 'sign_in_required'};
+      // Verify the precise bearer token being sent, rather than trusting
+      // the unverified user object stored in the browser session.
       const {data: sessionData, error: sessionError} = await auth.getSession();
       const session = sessionData?.session;
-      if (sessionError || !session?.access_token || session.user?.id !== user.id)
+      if (sessionError || typeof session?.access_token !== 'string' || !session.access_token)
         return {code: 'sign_in_required'};
+      const {data: userData, error: userError} = await auth.getUser(session.access_token);
+      const user = userData?.user;
+      if (userError || !user?.id || user.is_anonymous === true ||
+          session.user?.id !== user.id) return {code: 'sign_in_required'};
       const signalController = new AbortController();
       const timeout = setTimer(() => signalController.abort(), timeoutMs);
       try {
@@ -92,11 +97,15 @@ export function createRecoveryTransport({
         if (currentSessionError || currentSession?.user?.id !== user.id ||
             currentSession?.access_token !== session.access_token)
           return {code: 'sign_in_required'};
-        const {data: currentUserData, error: currentUserError} = await auth.getUser();
+        const {data: currentUserData, error: currentUserError} = await auth.getUser(currentSession.access_token);
         if (currentUserError || currentUserData?.user?.id !== user.id ||
             currentUserData.user.is_anonymous === true)
           return {code: 'sign_in_required'};
         if (!RESPONSE_CODES.has(data.code)) return {code: 'unavailable'};
+        // A status request must NEVER accept words, even from a broken or
+        // compromised server. Likewise reveal cannot be treated as status.
+        if (action === 'status' && data.code === 'recovery_key') return {code: 'unavailable'};
+        if (action === 'reveal' && data.code === 'backup_status') return {code: 'unavailable'};
         if (!result.ok && data.code === 'recovery_key') return {code: 'unavailable'};
         if (data.code === 'backup_status') {
           if (!result.ok || typeof data.backed_up !== 'boolean') return {code: 'unavailable'};
