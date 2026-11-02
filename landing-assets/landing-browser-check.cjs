@@ -1144,6 +1144,83 @@ async function load(page,route,failures){
      }
    }
 
+   // L1.31: tapping the already-selected demo tab must not jump its
+   // internal scroll or prematurely finish a running crossfade. Keyboard
+   // navigation keeps the document's current scroll while moving focus.
+   for(const width of [393,1440]){
+     const ctx=await browser.newContext({
+       viewport:{width,height:852},reducedMotion:'no-preference'
+     });
+     const page=await ctx.newPage();
+     const errors=[];
+     page.on('pageerror',e=>errors.push(e.message));
+     await load(page,'/',errors);
+     await page.locator('[data-product-tab="accounts"]').click();
+     await page.waitForTimeout(400);
+     const before=await page.evaluate(()=>{
+       const pane=document.querySelector('.app-sim-content');
+       // Accommodate tall and short content across responsive sizes: the
+       // actual scrollable preview gets a shorter test viewport when needed.
+       if(pane.scrollHeight-pane.clientHeight<100)pane.style.maxHeight='260px';
+       pane.scrollTop=Math.min(140,pane.scrollHeight-pane.clientHeight);
+       return {scroll:pane.scrollTop,doc:window.scrollY};
+     });
+     ensure(before.scroll>35,
+       'L1.31 '+width+'px inner preview supports vertical scrolling');
+     await page.locator('[data-product-tab="accounts"]').click();
+     const repeat=await page.evaluate(()=>{
+       const pane=document.querySelector('.app-sim-content');
+       return {
+         scroll:pane.scrollTop,active:document.querySelector('.product-stage').dataset.productCurrent,
+         transitioning:[...document.querySelectorAll('[data-product-panel]')]
+           .some(panel=>panel.classList.contains('mmh-preview-enter')||
+             panel.classList.contains('mmh-preview-exit'))
+       };
+     });
+     ensure(Math.abs(repeat.scroll-before.scroll)<=1&&
+       repeat.active==='accounts'&&!repeat.transitioning,
+       'L1.31 '+width+'px repeating active tab preserves preview scroll '+
+         JSON.stringify({before,repeat}));
+     const accountTab=page.locator('[data-product-tab="accounts"]');
+     await accountTab.focus();
+     const beforeKey=await page.evaluate(()=>window.scrollY);
+     await page.keyboard.press('ArrowDown');
+     const afterKey=await page.evaluate(()=>({
+       scroll:window.scrollY,
+       focus:document.activeElement?.getAttribute('data-product-tab'),
+       current:document.querySelector('.product-stage').dataset.productCurrent
+     }));
+     ensure(afterKey.current==='invest'&&afterKey.focus==='invest'&&
+       Math.abs(afterKey.scroll-beforeKey)<=2,
+       'L1.31 '+width+'px arrow navigation focuses next tab without page jump '+
+         JSON.stringify({beforeKey,afterKey}));
+     await page.waitForTimeout(400);
+     const duplicate=await page.evaluate(()=>{
+       const tab=document.querySelector('[data-product-tab="transactions"]');
+       tab.click();
+       tab.click();
+       return {
+         current:document.querySelector('.product-stage').dataset.productCurrent,
+         inFlight:[...document.querySelectorAll('[data-product-panel]')].some(p=>
+           p.classList.contains('mmh-preview-enter')||
+           p.classList.contains('mmh-preview-exit'))
+       };
+     });
+     ensure(duplicate.current==='transactions'&&duplicate.inFlight,
+       'L1.31 '+width+'px duplicate tap preserves in-flight crossfade');
+     await page.waitForTimeout(430);
+     const final=await page.locator('[data-product-panel]').evaluateAll(panels=>({
+       visible:panels.filter(p=>!p.hidden).map(p=>p.dataset.productPanel),
+       transient:panels.some(p=>p.classList.contains('mmh-preview-enter')||
+         p.classList.contains('mmh-preview-exit')),
+       othersInert:panels.filter(p=>p.hidden).every(p=>p.inert)
+     }));
+     ensure(JSON.stringify(final.visible)===JSON.stringify(['transactions'])&&
+       !final.transient&&final.othersInert&&errors.length===0,
+       'L1.31 '+width+'px duplicate tab settles to one accessible screen');
+     await ctx.close();
+   }
+
    // L1.12 — end-to-end route consistency: public Security is a first-class
    // branded page, Business is the Landing section, and Home does not leave #top.
    {

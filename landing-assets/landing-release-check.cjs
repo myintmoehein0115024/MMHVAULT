@@ -13,9 +13,9 @@ const source = path => {
 const current = read('index.html');
 const prev=source('index.html');
 
-/* L1.30: initial deep-linked feature previews skip only the redundant fade.
- * Enforce exact main-based JS edits and preserve SEO, 7 public pages,
- * N10, PWA, login, finance and shared visual styles byte-for-byte. */
+/* L1.31: active feature selection must not reset internal scroll or
+ * interrupt ongoing preview motion; keyboard focus must not page-jump.
+ * Enforce exact main-based JavaScript patch and protect all other files. */
 const oldHeroPreload='<link rel="preload" as="image" type="image/webp" href="./landing-assets/cinematic-lake.webp">';
 const newHeroPreload='<link rel="preload" as="image" type="image/webp" href="./landing-assets/personal-business-concept.webp" fetchpriority="high">';
 function patchOnly(path,changes){
@@ -26,12 +26,11 @@ function patchOnly(path,changes){
  }
  return expected===read(path);
 }
-const l130LandingInitialFeatureOnlyEdited=()=>patchOnly('landing-assets/landing.js',[
- ["  function selectProductView(view,focus=false){","  function selectProductView(view,focus=false,instant=false){",1],
- ["    const animate=previousName!==name && outgoing && incoming &&","    const animate=!instant && previousName!==name && outgoing && incoming &&",1],
- ["  const syncProductHash=()=>{const s=window.location.hash.slice(1);if(s.startsWith('feature-')&&productNames.includes(s.slice(8)))selectProductView(s.slice(8))};\n  window.addEventListener('hashchange',syncProductHash);syncProductHash();","  // L1.30: direct feature links should show their intended panel immediately.\n  // Do not briefly fade from Dashboard on first load; later hash navigation\n  // still uses the existing smooth transition and reduced-motion behavior.\n  const syncProductHash=(instant=false)=>{const s=window.location.hash.slice(1);if(s.startsWith('feature-')&&productNames.includes(s.slice(8)))selectProductView(s.slice(8),false,instant)};\n  window.addEventListener('hashchange',()=>syncProductHash());syncProductHash(true);",1]
+const l131LandingPreviewNoJumpOnlyEdited=()=>patchOnly('landing-assets/landing.js',[
+ ["  function selectProductView(view,focus=false,instant=false){\n    const name=productNames.includes(view)?view:'dashboard';\n    // Rapid clicks cancel old fades before starting the new selection.","  function selectProductView(view,focus=false,instant=false){\n    const name=productNames.includes(view)?view:'dashboard';\n    // L1.31: touching an already-selected preview is a no-op. Do not reset\n    // its inner scroll, interrupt a running crossfade, or repaint the panel.\n    // Keep the instant initial deep-link path for L1.30 initialization.\n    if(name===activeProduct&&!instant){\n      if(focus)productTabs.find(t=>t.dataset.productTab===name)?.focus({preventScroll:true});\n      return;\n    }\n    // Rapid clicks cancel old fades before starting the new selection.",1],
+ ["      if(yes&&focus)t.focus();","      if(yes&&focus)t.focus({preventScroll:true});",1]
  ])&&current===prev&&current.includes('<title>MMHVAULT | Personal Finance & Wealth</title>');
-const l130PublicPagesUnchanged=()=>read('landing-assets/public-pages.js')===
+const l131PublicPagesUnchanged=()=>read('landing-assets/public-pages.js')===
  source('landing-assets/public-pages.js');
 const manifest=JSON.parse(read('mmh-manifest-v2.webmanifest'));
 const oldManifest=JSON.parse(source('mmh-manifest-v2.webmanifest'));
@@ -414,7 +413,7 @@ check('Homepage retains all prior content and SEO outside shared header layer',
  current.includes('<body id="top" class="l131 mmh-nav-unified">') &&
  current.includes('<link rel="stylesheet" href="./landing-assets/shared-header-l116.css?v=1">') &&
  current===prev &&
- l130LandingInitialFeatureOnlyEdited() &&
+ l131LandingPreviewNoJumpOnlyEdited() &&
  source('landing-assets/explore-l114.css')===read('landing-assets/explore-l114.css'));
 const publicHeaders=['about/index.html','features/index.html','business/index.html',
  'register/index.html','security.html','privacy.html','terms.html'];
@@ -549,16 +548,16 @@ check('L1.24 preload prioritizes the one real Hero image with no duplicate image
  current.includes('loading="lazy" decoding="async"') &&
  !current.includes(oldHeroPreload));
 check('L1.25 Hero only waits for decoded pixels, preserving original fallback',
- l130LandingInitialFeatureOnlyEdited() &&
+ l131LandingPreviewNoJumpOnlyEdited() &&
  current===prev &&
  current.includes(newHeroPreload) &&
  !current.includes(oldHeroPreload));
 check('L1.27 public tab title matches SEO without language focus scroll',
- l130LandingInitialFeatureOnlyEdited() &&
- l130PublicPagesUnchanged() &&
+ l131LandingPreviewNoJumpOnlyEdited() &&
+ l131PublicPagesUnchanged() &&
  current===prev && current.includes(newHeroPreload) &&
  !current.includes(oldHeroPreload));
-check('L1.30 exact three-file initial feature deep-link scope',
+check('L1.31 exact three-file preview repeat and focus scope',
  actual.length===3 &&
  actual.every(path=>[
   'landing-assets/landing.js',
@@ -566,8 +565,8 @@ check('L1.30 exact three-file initial feature deep-link scope',
   'landing-assets/landing-browser-check.cjs'
  ].includes(path)) &&
  current===prev &&
- l130LandingInitialFeatureOnlyEdited() &&
- l130PublicPagesUnchanged() &&
+ l131LandingPreviewNoJumpOnlyEdited() &&
+ l131PublicPagesUnchanged() &&
  source('landing-assets/shared-header-l116.css')===read('landing-assets/shared-header-l116.css') &&
  publicHeaders.every(path=>read(path)===source(path)) &&
  ['landing-assets/public-pages.css','landing-assets/landing.css',
@@ -589,10 +588,17 @@ check('L1.29 localized action names work without changing content or header geom
  read('landing-assets/public-pages.js').includes('syncNavToggleLabel();') &&
  source('landing-assets/shared-header-l116.css')===read('landing-assets/shared-header-l116.css'));
 check('L1.30 initial feature links render without a Dashboard flash',
- l130LandingInitialFeatureOnlyEdited() &&
- l130PublicPagesUnchanged() &&
+ l131LandingPreviewNoJumpOnlyEdited() &&
+ l131PublicPagesUnchanged() &&
  read('landing-assets/landing.js').includes("syncProductHash(true)") &&
  read('landing-assets/landing.js').includes("const animate=!instant &&") &&
+ current===prev);
+check('L1.31 current-tab reselect never resets scroll or interrupts preview animation',
+ l131LandingPreviewNoJumpOnlyEdited() &&
+ l131PublicPagesUnchanged() &&
+ read('landing-assets/landing.js').includes('if(name===activeProduct&&!instant)') &&
+ read('landing-assets/landing.js').includes('t.focus({preventScroll:true})') &&
+ read('landing-assets/landing.js').includes('syncProductHash(true)') &&
  current===prev);
 check('Protected auth/PWA/SEO/config sources unchanged in PR diff',
  ['business.html','app.html','login.html','sitemap.xml','robots.txt',
