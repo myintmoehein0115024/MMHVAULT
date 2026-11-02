@@ -695,10 +695,19 @@ async function load(page,route,failures){
          }));
        }
        const initial=await page.evaluate(()=>({
-         y:scrollY,x:scrollX,path:location.pathname,hash:location.hash
+         y:scrollY,x:scrollX,path:location.pathname,hash:location.hash,
+         headerTop:document.querySelector('.site-header').getBoundingClientRect().top,
+         headerPosition:getComputedStyle(document.querySelector('.site-header')).position,
+         htmlOverflow:getComputedStyle(document.documentElement).overflow,
+         bodyOverflow:getComputedStyle(document.body).overflow
        }));
        for(const language of ['zh','my','en']){
          await page.locator('#locale-trigger').click();
+         const opened=await page.evaluate(()=>({
+           y:scrollY,x:scrollX,
+           headerTop:document.querySelector('.site-header').getBoundingClientRect().top,
+           focus:document.activeElement?.getAttribute('data-lang')
+         }));
          await page.locator('#locale-menu [data-lang="'+language+'"]').click();
          const after=await page.evaluate(()=>({
            title:document.title,htmlTitle:document.querySelector('head title')?.textContent,
@@ -713,7 +722,7 @@ async function load(page,route,failures){
            Math.abs(after.x-initial.x)<=2 &&
            (route!=='/'||initial.y<100||
              (after.y>100&&Math.abs(after.y-initial.y)<280)),
-           route+' '+width+'px '+language+' language preserves title and scroll context '+JSON.stringify({initial,after}));
+           route+' '+width+'px '+language+' language preserves title and scroll context '+JSON.stringify({initial,opened,after}));
        }
        ensure(errors.length===0,
          route+' '+width+'px language switching has no missing assets or JS errors');
