@@ -83,12 +83,12 @@ test('different readback phrase is rejected, existing verifier untouched',async(
 });
 test('ambiguous create response never deletes a pre-existing user',async()=>{
  const h=setup('',{createNewUser:{id:userId,newlyCreated:false}});
- assert.deepEqual(await h.enroll(req),{ok:false,code:'registration_not_completed'});
+ assert.deepEqual(await h.enroll(req),{ok:false,code:'manual_reconciliation_required'});
  assert.ok(!actions(h).includes('rollbackNewUser'));
 });
 test('unexpectedly malformed user ID cannot trigger deletion',async()=>{
  const h=setup('',{createNewUser:{id:'known-user',newlyCreated:true}});
- assert.equal((await h.enroll(req)).ok,false);
+ assert.deepEqual(await h.enroll(req),{ok:false,code:'manual_reconciliation_required'});
  assert.ok(!actions(h).includes('rollbackNewUser'));
 });
 test('failed rollback never claims successful account creation',async()=>{
@@ -118,4 +118,11 @@ test('normalizes spacing without generating new words',async()=>{
  const h=setup();const out=await h.enroll({...req,originalWords:'  ALPHA   bravo   charlie delta echo foxtrot golf hotel india juliet  '});
  assert.equal(out.ok,true);
  assert.equal(h.calls.find(x=>x.name==='encryptOriginalWords').args.phrase,phrase);
+});
+
+test('uncertain createUser network failure requires manual reconciliation, never guessed deletion',async()=>{
+ const h=setup('createNewUser');
+ assert.deepEqual(await h.enroll(req),{ok:false,code:'manual_reconciliation_required'});
+ assert.ok(!actions(h).includes('rollbackNewUser'));
+ assert.ok(!actions(h).includes('createVerifiedSession'));
 });
