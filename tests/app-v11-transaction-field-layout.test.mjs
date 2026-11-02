@@ -90,3 +90,26 @@ test('UI guard preserves historical edit categories and avoids silent replacemen
  assert.match(html,/editFormV11\.dataset\.mmhV11OriginalCategory=String\(t\.category\|\|''\)/);
  assert.match(html,/originalV11\.textContent=String\(t\.category\)/);
 });
+
+test('transaction field UI strings follow language without changing ledger codes',()=>{
+ const h=harness();
+ assert.equal(h.api.label('type-category'),'Type + Category');
+ h.store.set('mmhvault_language_v3363','zh');
+ assert.equal(h.api.label('type-category'),'类型 + 分类');
+ assert.equal(h.api.label('kind-Expense-Loans'),'借款支出');
+ const zhKinds=h.api.groupKinds();
+ assert.ok(zhKinds.some(x=>x.type==='Expense'&&x.group==='Loans'&&x.label==='Loan Expense'));
+ h.store.set('mmhvault_language_v3363','my');
+ assert.equal(h.api.label('category'),'ကဏ္ဍ');
+ assert.equal(h.api.label('kind-Income-Loans'),'ချေးငွေဝင်');
+ h.store.set('mmhvault_language_v3363','en');
+ assert.equal(h.api.label('type-category'),'Type + Category');
+});
+test('changing language never writes type/category translations to financial data',()=>{
+ const h=harness();
+ h.store.set('mmhvault_language_v3363','my');
+ const loan=h.api.choices('Expense').find(x=>x.group==='Loans');
+ assert.equal(loan?.category,'Loan Out');
+ assert.equal(loan?.type,'Expense');
+ assert.match(source,/mmhvault-language-change',refreshAll/);
+});
