@@ -70,3 +70,64 @@
     animation: none !important;
   }
 }
+
+
+/* L1.21 — seamless product preview crossfade, scoped to the public concept UI.
+ * The previous panel covers the new one until it is painted; no blank flash. */
+body.l131 .features-explorer.app-showcase .app-sim-content{
+  position:relative;
+  isolation:isolate;
+}
+@media(min-width:621px){
+  body.l131 .features-explorer.app-showcase .app-sim-content{
+    scrollbar-gutter:stable;
+  }
+}
+/* Do not animate hidden panels or the unenhanced no-JS first view. */
+body.l131 .features-explorer.app-showcase .product-panel.mmh-preview-exit,
+body.l131 .features-explorer.app-showcase .product-panel.mmh-preview-enter{
+  transition:opacity 265ms cubic-bezier(.22,.74,.25,1),
+    transform 265ms cubic-bezier(.22,.74,.25,1);
+  will-change:opacity,transform;
+}
+body.l131 .features-explorer.app-showcase .product-panel.mmh-preview-exit{
+  position:absolute;
+  inset:0 0 auto;
+  box-sizing:border-box;
+  width:100%;
+  min-height:100%;
+  z-index:2;
+  pointer-events:none;
+  opacity:1;
+  transform:translate3d(0,0,0);
+}
+body.l131 .features-explorer.app-showcase .product-panel.mmh-preview-enter{
+  position:relative;
+  z-index:1;
+  opacity:0;
+  transform:translate3d(0,7px,0);
+}
+body.l131 .features-explorer.app-showcase .product-panel.mmh-preview-exit.mmh-preview-running{
+  opacity:0;
+  transform:translate3d(0,-4px,0);
+}
+body.l131 .features-explorer.app-showcase .product-panel.mmh-preview-enter.mmh-preview-running{
+  opacity:1;
+  transform:translate3d(0,0,0);
+}
+/* Avoid the letter-by-letter title wrap visible in the narrow story rail. */
+@media(min-width:1101px){
+  body.l131 .features-explorer.app-showcase .app-story h3{
+    font-size:clamp(18px,1.4vw,24px);
+    overflow-wrap:normal;
+    word-break:normal;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  body.l131 .features-explorer.app-showcase .product-panel.mmh-preview-exit,
+  body.l131 .features-explorer.app-showcase .product-panel.mmh-preview-enter{
+    transition:none!important;
+    transform:none!important;
+    will-change:auto;
+  }
+}
