@@ -95,5 +95,68 @@
     "Vault deletion/orphan end-to-end",
     "platform-blocked legacy QA retirement"
   ],
-  "source_file_count": 36
+  "source_file_count": 36,
+  "phase1_preflight": {
+    "status": "PREPARED_NOT_AUTHORIZED",
+    "environment": "production-read-only-snapshot",
+    "source_revision": "071cceeca361d0b7a5feaafcace558468be10116",
+    "protected_paths": [
+      "login.html",
+      "js/mmhvault-n10-a7-69-username.js",
+      "index.html",
+      "landing-assets/**",
+      "financial data",
+      "RLS",
+      "Auth account data"
+    ],
+    "order": [
+      "PREPARE_ROLLBACK_AND_BOUND_SCOPE",
+      "USERNAME_BINDING_EDGE_ONLY",
+      "APP_AUTH_ENTRY_GUARD_ONLY",
+      "PAUSE_AND_VERIFY",
+      "PHRASE_VERIFY_SEPARATELY",
+      "VAULT_LAST_AFTER_SQL_AND_QA_GATE"
+    ],
+    "runtime_baseline": {
+      "binding": {
+        "slug": "mmh-n10a781-bind",
+        "version": 2,
+        "status": "ACTIVE",
+        "verify_jwt": false,
+        "sha256": "a64eb4e33110a248b0f84e42d80a1d9dc9241e526508c1ea1323db6500c427dc"
+      },
+      "saved_phrase": {
+        "slug": "mmh-n10a783-phrase-verify",
+        "version": 4,
+        "status": "ACTIVE",
+        "verify_jwt": false,
+        "sha256": "bf46fc4db6496d41fba9b4828a96f4342f8315d704e6e1ea39da24960737360d"
+      },
+      "username_signin": {
+        "slug": "mmh-n10a769-username",
+        "version": 8,
+        "status": "ACTIVE",
+        "verify_jwt": false,
+        "sha256": "238d1cf1b92440501e82e6a0b2fb3ea827f4168c3bb190ab5863930f850d6057"
+      }
+    },
+    "production_db_contract": {
+      "username_link_table": "public.mmh_n10a740_username_links",
+      "rls_enabled": true,
+      "policy_count": 0,
+      "indexes": [
+        "mmh_n10a740_username_links_pkey",
+        "mmh_n10a740_username_links_user_id_key"
+      ],
+      "anon_grants": 0,
+      "rate_rpc_exists": true,
+      "check_is_read_only": true
+    },
+    "hold_reasons": [
+      "Production Edge replacement-specific authorization not yet recorded",
+      "Real signed AAL2 tests not completed",
+      "No production rollout or rollback exercise completed"
+    ],
+    "production_writes_allowed": false
+  }
 }

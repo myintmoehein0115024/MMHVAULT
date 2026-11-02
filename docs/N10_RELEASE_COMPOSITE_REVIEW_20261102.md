@@ -60,3 +60,67 @@ that as an acknowledged release limitation, not a passed live test.
   function version/rollback, approved security gate resolution and fresh scope
   approval. Do not assume previous permission to draft code authorizes
   changing production database, credentials, RLS or financial data.
+
+
+
+## Stage 1 — existing login and username linking (PREPARED, NOT DEPLOYED)
+
+**Order:** first fix the existing username binding Edge, then activate the App
+Auth/AAL UI guard, then pause to verify. Keep saved-phrase verification and
+Vault isolated for later phases. Existing username/email/Google sign-in must
+remain fully usable throughout this stage.
+
+### Read-only production baseline, 2026-11-02
+
+| Runtime | Running version | Source SHA256 | Replacement |
+| --- | ---: | --- | --- |
+| `mmh-n10a781-bind` | v2 | `a64eb4e33110a248b0f84e42d80a1d9dc9241e526508c1ea1323db6500c427dc` | Proposed: PR #31, hard-OFF review candidate only |
+| `mmh-n10a769-username` | v8 | `238d1cf1b92440501e82e6a0b2fb3ea827f4168c3bb190ab5863930f850d6057` | None, must remain unchanged |
+| `mmh-n10a783-phrase-verify` | v4 | `bf46fc4db6496d41fba9b4828a96f4342f8315d704e6e1ea39da24960737360d` | Deferred until next phase |
+
+Binding source v2 uses `getAuthenticatorAssuranceLevel(jwt)` against a
+stateless older pinned SDK; the review candidate instead rechecks the bearer
+with Supabase Auth and the server-owned verified MFA factors before privileged
+writes. This is a **code compatibility finding**, not an actual signed
+production failure reproduction.
+
+### Database access protection — checked read-only
+
+- `public.mmh_n10a740_username_links`: **RLS enabled**, zero direct user RLS
+  policies (thus default-deny for normal roles); no `anon` table grants.
+- Unique indexes on both `username_key` and `user_id` protect against
+  duplicate binding; existing rate-limit RPC is installed.
+- The existing service-role binding Edge uses a privileged client and must
+  retain *both* Auth identity checks and CAPTCHA/rate controls. RLS alone is
+  not sufficient to protect a privileged Edge.
+- No user data, passwords, tokens, or key phrases were queried.
+
+### Required controlled production checklist, not yet executed
+
+1. Re-read the **live** Edge sources, flags, `verify_jwt`, function versions
+   and all three SHA256s immediately before any write. Abort if any baseline
+   changes; do not overwrite newer backend fixes.
+2. Save the exact original binding v2 source files and verify rollback before
+   a replacement; isolate the change to this one Edge. Never copy a hard-OFF
+   candidate to production and accidentally disable working binding.
+3. Keep API responses, CORS, CAPTCHA, rate limits, account ownership and
+   uniqueness backward compatible; run applicable offline safety suites and
+   verify no finance/Landing/code changes.
+4. Conduct authorized staging or equivalent genuine signed negative/positive
+   checks where permitted. The missing real AAL2 two-account evidence is a
+   residual security risk; automation alone does not prove it away.
+5. Request a **specific approval for replacement of production binding Edge**,
+   including whether residual signed-test limitations are accepted.
+6. After authorized deploy: verify endpoint version and safe functional path;
+   on identity, MFA, error rate or availability regression, redeploy the
+   captured v2 source, verify its exact SHA and stop release. Do not touch SQL,
+   Auth accounts, Vault or financial records in this rollback.
+7. Only after binding's independent checkpoint, consider App Auth guard,
+   with its own allowed `app.html` Auth-section diff, browser privacy checks,
+   GitHub Pages build and a single-revert rollback. Finance and Landing
+   source must be unchanged.
+
+**Current status: source verification green; production first-stage rollout
+NOT approved or executed.** The approval to prepare this phased plan does not
+open the protected production release gates. Stage 2 (phrase verifier / Vault)
+must wait for its own evidence and approval.

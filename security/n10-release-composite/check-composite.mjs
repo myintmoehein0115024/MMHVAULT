@@ -9,6 +9,30 @@ function git(args){return execFileSync('git',args,{encoding:'utf8',maxBuffer:12*
 function trimGit(args){return git(args).trim();}
 assert.equal(m.schema,'mmhvault-n10-source-composite-v1');
 assert.equal(m.production_release,'HOLD','QA is not a release authorization');
+const phase=m.phase1_preflight;
+assert.equal(phase?.status,'PREPARED_NOT_AUTHORIZED',
+ 'A phase-1 release cannot be auto-authorized by a source-only PR');
+assert.equal(phase.production_writes_allowed,false,
+ 'Never enable production writes in this automated review');
+assert.deepEqual(phase.order,[
+ 'PREPARE_ROLLBACK_AND_BOUND_SCOPE','USERNAME_BINDING_EDGE_ONLY',
+ 'APP_AUTH_ENTRY_GUARD_ONLY','PAUSE_AND_VERIFY',
+ 'PHRASE_VERIFY_SEPARATELY','VAULT_LAST_AFTER_SQL_AND_QA_GATE'
+], 'Rollout order must preserve the low-risk first phase');
+for(const [name,expectedVersion,expectedSha] of [
+ ['binding',2,'a64eb4e33110a248b0f84e42d80a1d9dc9241e526508c1ea1323db6500c427dc'],
+ ['saved_phrase',4,'bf46fc4db6496d41fba9b4828a96f4342f8315d704e6e1ea39da24960737360d'],
+ ['username_signin',8,'238d1cf1b92440501e82e6a0b2fb3ea827f4168c3bb190ab5863930f850d6057']
+]){
+ const baseline=phase.runtime_baseline?.[name];
+ assert.equal(baseline?.version,expectedVersion,'Frozen production version for '+name);
+ assert.equal(baseline?.sha256,expectedSha,'Frozen production SHA for '+name);
+ assert.equal(baseline?.status,'ACTIVE','Unexpected old production status');
+}
+assert.equal(phase.production_db_contract.rls_enabled,true);
+assert.equal(phase.production_db_contract.anon_grants,0);
+assert.equal(phase.production_db_contract.rate_rpc_exists,true);
+
 assert.equal(trimGit(['rev-parse','origin/main']),m.base_main,
  'Public main advanced since this snapshot. Resync before accepting a release.');
 assert.equal(trimGit(['merge-base','origin/main','HEAD']),m.base_main,
