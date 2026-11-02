@@ -835,11 +835,11 @@ body.public-landing-page .policy-card{
     box-shadow:inset 0 1px rgba(255,251,229,.8),0 13px 27px rgba(228,167,87,.22);
   }
 }
-/* No-JS and reduced-motion pages NEVER hide any content. */
+/* L1.23 — lighter fade/translate reveals. No-JS and reduced-motion pages NEVER hide any content. */
 @media(prefers-reduced-motion:no-preference){
   body.public-landing-page.mm-public-motion .mm-public-reveal{
-    transition:opacity 650ms cubic-bezier(.2,.78,.18,1),
-      transform 700ms cubic-bezier(.18,.8,.2,1);
+    transition:opacity 560ms cubic-bezier(.2,.78,.18,1),
+      transform 600ms cubic-bezier(.18,.8,.2,1);
     transition-delay:var(--mm-public-delay,0ms);
   }
   body.public-landing-page.mm-public-motion .mm-public-reveal:not(.mm-public-shown){
@@ -851,8 +851,8 @@ body.public-landing-page .policy-card{
     transform:translate3d(0,9px,0);
   }
   body.public-landing-page.mm-public-motion .mm-public-reveal{
-    transition-duration:510ms,570ms;
-    transition-delay:min(var(--mm-public-delay,0ms),80ms);
+    transition-duration:410ms,445ms;
+    transition-delay:min(var(--mm-public-delay,0ms),40ms);
   }
 }
 @media(prefers-reduced-motion:reduce){

@@ -166,6 +166,38 @@ async function load(page,route,failures){
        if(r.url().startsWith(origin) && r.status()>=400)failures.push(r.status()+' '+r.url());
      });
      await load(page,'/',failures);
+     // L1.24 — preload should point to the actual Hero visual, not a
+     // separately painted lake background. The below-fold business image
+     // stays lazy; all paths and the original Hero layout stay unchanged.
+     if([320,393,1440].includes(width)){
+       const loading=await page.evaluate(()=>{
+         const preloads=[...document.querySelectorAll('link[rel="preload"][as="image"]')];
+         const hero=document.querySelector('img.hero-device-cinematic');
+         const business=document.querySelector('.business-visual-frame img');
+         return {
+           preloadCount:preloads.length,
+           preloadHref:preloads[0]?.href,
+           preloadType:preloads[0]?.type,
+           preloadPriority:preloads[0]?.getAttribute('fetchpriority'),
+           imageSrc:hero?.currentSrc,
+           imagePriority:hero?.getAttribute('fetchpriority'),
+           imageReady:!!(hero?.complete&&hero?.naturalWidth>0),
+           imageSize:[hero?.getAttribute('width'),hero?.getAttribute('height')],
+           businessLazy:business?.getAttribute('loading'),
+           businessAsync:business?.getAttribute('decoding'),
+           businessSrc:business?.src
+         };
+       });
+       ensure(loading.preloadCount===1&&
+         loading.preloadHref===loading.imageSrc&&
+         loading.preloadType==='image/webp'&&
+         loading.preloadPriority==='high'&&
+         loading.imagePriority==='high'&&loading.imageReady&&
+         JSON.stringify(loading.imageSize)===JSON.stringify(['1600','900'])&&
+         loading.businessLazy==='lazy'&&loading.businessAsync==='async'&&
+         loading.businessSrc===loading.imageSrc,
+         width+'px first-screen photo preloads once and below-fold image remains lazy '+JSON.stringify(loading));
+     }
      // L1.19 — tiny phone CTAs remain touchable without text clipping.
      if(width<=620){
        const ctas=await page.locator('.hero .hero-buttons .button').evaluateAll(els=>
@@ -584,6 +616,48 @@ async function load(page,route,failures){
          route+' '+width+'px Escape dismisses language panel and restores globe focus');
        ensure(failures.length===0,
          route+' '+width+'px keyboard navigation has no missing assets or JS errors');
+       await ctx.close();
+     }
+   }
+
+   // L1.23 — verify actual browser transitions avoid expensive blur filters,
+   // preserve progressive reveals and use quicker phone timings.
+   for(const width of [393,1440]){
+     for(const [route,selector] of [
+       ['/', '.showcase-grid > .showcase-card.mm-reveal'],
+       ['/features/', '.grid > .item.mm-public-reveal'],
+       ['/security.html', '.policy-card.mm-public-reveal']
+     ]){
+       const ctx=await browser.newContext({
+         viewport:{width,height:852},reducedMotion:'no-preference'
+       });
+       const page=await ctx.newPage();
+       const failures=[];
+       page.on('pageerror',e=>failures.push(e.message));
+       await load(page,route,failures);
+       const metrics=await page.evaluate(selector=>{
+         const el=document.querySelector(selector);
+         if(!el)return {missing:selector};
+         const style=getComputedStyle(el);
+         return {
+           filter:style.filter,
+           transition:style.transitionProperty.split(',').map(s=>s.trim()),
+           durations:style.transitionDuration.split(',').map(s=>parseFloat(s)),
+           visibleFallback:el.classList.contains('mm-shown')||
+             el.classList.contains('mm-public-shown'),
+           rootMotion:document.documentElement.classList.contains('mm-motion-active'),
+           publicMotion:document.body.classList.contains('mm-public-motion')
+         };
+       },selector);
+       const fast=width<=620;
+       const expected=route==='/' ? (fast?[.41,.44]:[.55,.59])
+         : (fast?[.41,.445]:[.56,.6]);
+       ensure(!metrics.missing && metrics.filter==='none' &&
+         metrics.transition[0]==='opacity'&&metrics.transition[1]==='transform' &&
+         metrics.durations.length>=2&&
+         expected.every((v,i)=>Math.abs(metrics.durations[i]-v)<.012) &&
+         (route==='/'?metrics.rootMotion:metrics.publicMotion),
+         route+' '+width+'px compositor-friendly scroll reveal '+JSON.stringify(metrics));
        await ctx.close();
      }
    }

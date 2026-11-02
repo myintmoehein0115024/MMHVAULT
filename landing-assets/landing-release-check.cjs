@@ -12,6 +12,18 @@ const source = path => {
 };
 const current = read('index.html');
 const prev=source('index.html');
+
+/* L1.24: one and only one head preload line may differ from main.
+ * Preserve the Hero, all translations, structured SEO, auth/PWA scripts and
+ * all body content byte-for-byte, including secure routes and fixed copy. */
+const oldHeroPreload='<link rel="preload" as="image" type="image/webp" href="./landing-assets/cinematic-lake.webp">';
+const newHeroPreload='<link rel="preload" as="image" type="image/webp" href="./landing-assets/personal-business-concept.webp" fetchpriority="high">';
+const originalHomeApartFromPreload=()=>
+ (prev.split(oldHeroPreload).length===2) &&
+ (current.split(newHeroPreload).length===2) &&
+ (current.split('<link rel="preload" as="image"').length===2) &&
+ current.replace(newHeroPreload,oldHeroPreload)===prev;
+
 const manifest=JSON.parse(read('mmh-manifest-v2.webmanifest'));
 const oldManifest=JSON.parse(source('mmh-manifest-v2.webmanifest'));
 const dom=(key,content)=>((content.match(new RegExp('<script id="'+key+'">([\\s\\S]*?)<\\/script>'))||[])[1]||null);
@@ -388,42 +400,12 @@ check('Landing has five same-page primary sections and a separate Explore menu',
   rootNav.includes('href="./'+target+'" data-i18n="info')) &&
  (rootNav.match(/<details class="nav-explore"/g)||[]).length===1 &&
  (rootNav.match(/<summary>/g)||[]).length===1);
-// L1.22 — compare exact public navigation sections to their main baselines.
-function headerEscapeOnlyEdited(path,oldMarker,newMarker,endMarker,required){
- const prev=source(path),next=read(path);
- const a=prev.indexOf(oldMarker),b=next.indexOf(newMarker);
- const oe=prev.indexOf(endMarker,a),ne=next.indexOf(endMarker,b);
- if(a<0||b<0||oe<=a||ne<=b||
-    prev.indexOf(oldMarker,a+oldMarker.length)!==-1||
-    next.indexOf(newMarker,b+newMarker.length)!==-1)return false;
- const changed=next.slice(b,ne);
- return prev.slice(0,a)===next.slice(0,b)&&
-   prev.slice(oe)===next.slice(ne)&&
-   required.every(term=>changed.includes(term)) &&
-   !/fetch\s*\(|supabase|location\.replace|localStorage|history\.pushState/.test(changed);
-}
-const l122LandingEscape=()=>headerEscapeOnlyEdited(
- 'landing-assets/landing.js',
- "  document.addEventListener('keydown', event => {",
- "  // L1.22: Escape dismisses only the topmost open header layer.",
- "  document.addEventListener('click', event => {",
- ["if (event.key !== 'Escape') return;","if (!localeMenu.hidden)",
- "if (explore?.open)","if (siteHeader.classList.contains('menu-open'))",
- "localeTrigger.focus();","closeExplore(true);","toggle.focus();","event.preventDefault();"]);
-const l122PublicEscape=()=>headerEscapeOnlyEdited(
- 'landing-assets/public-pages.js',
- "    document.addEventListener('keydown',event=>{",
- "    // L1.22: dismiss one header layer per Escape, keeping focus visible.",
- "    const media=window.matchMedia('(min-width: 1361px)');",
- ["if(event.key!=='Escape')return;","if(!menu.hidden)","if(explore.open)",
- "if(header.classList.contains('menu-open'))","closeLanguage(true);",
- "closeExplore(true);","closeNav(true);","event.preventDefault();"]);
 check('Homepage retains all prior content and SEO outside shared header layer',
  ['en','zh','my'].every(lang=>translationScript.includes('Object.assign(strings.'+lang+', {\n    navExplore:')) &&
  current.includes('<body id="top" class="l131 mmh-nav-unified">') &&
  current.includes('<link rel="stylesheet" href="./landing-assets/shared-header-l116.css?v=1">') &&
- current===prev &&
- l122LandingEscape() &&
+ originalHomeApartFromPreload() &&
+ source('landing-assets/landing.js')===translationScript &&
  source('landing-assets/explore-l114.css')===read('landing-assets/explore-l114.css'));
 const publicHeaders=['about/index.html','features/index.html','business/index.html',
  'register/index.html','security.html','privacy.html','terms.html'];
@@ -541,21 +523,35 @@ check('L1.20 canonical, named WebPage and breadcrumb structured data are accurat
   }else if(!head.includes('"@type":"BreadcrumbList"'))return false;
   return html===source(path);
  }));
-check('L1.22 four public header-navigation and QA files only',
- actual.length===4 &&
+check('L1.23 lightweight scroll reveals are opacity+transform only, motion access preserved',
+ read('landing-assets/motion-l132.css').includes('L1.23: compositor-friendly') &&
+ read('landing-assets/motion-l132.css').includes('opacity 550ms') &&
+ read('landing-assets/motion-l132.css').includes('transform 590ms') &&
+ read('landing-assets/motion-l132.css').includes('transition-duration: 410ms,440ms') &&
+ !/filter\s*:\s*blur\(|filter\s+\d+ms/.test(read('landing-assets/motion-l132.css')) &&
+ read('landing-assets/motion-l132.css').includes('L1.21 — seamless product preview') &&
+ read('landing-assets/public-pages.css').includes('L1.23 — lighter fade/translate reveals') &&
+ read('landing-assets/public-pages.css').includes('transition-duration:410ms,445ms') &&
+ read('landing-assets/public-pages.css').includes('@media(prefers-reduced-motion:reduce)'));
+check('L1.24 preload prioritizes the one real Hero image with no duplicate image preload',
+ originalHomeApartFromPreload() &&
+ current.includes('<img class="hero-device-cinematic" src="./landing-assets/personal-business-concept.webp"') &&
+ current.includes('decoding="async" fetchpriority="high"') &&
+ current.includes('loading="lazy" decoding="async"') &&
+ !current.includes(oldHeroPreload));
+check('L1.24 precisely three public preload/QA files and no secure or SEO changes',
+ actual.length===3 &&
  actual.every(path=>[
-  'landing-assets/landing.js',
-  'landing-assets/public-pages.js',
-  'landing-assets/landing-release-check.cjs',
+  'index.html','landing-assets/landing-release-check.cjs',
   'landing-assets/landing-browser-check.cjs'
  ].includes(path)) &&
- current===prev &&
- l122LandingEscape() && l122PublicEscape() &&
+ originalHomeApartFromPreload() &&
  publicHeaders.every(path=>read(path)===source(path)) &&
- ['landing-assets/motion-l132.js','landing-assets/motion-l132.css',
-  'landing-assets/public-pages.css','landing-assets/premium-l131.css',
-  'landing-assets/landing.css','landing-assets/shared-header-l116.css',
-  'landing-assets/business.css','landing-assets/cinematic.css',
+ ['landing-assets/landing.js','landing-assets/public-pages.js',
+  'landing-assets/landing.css','landing-assets/business.css',
+  'landing-assets/cinematic.css','landing-assets/premium-l131.css',
+  'landing-assets/motion-l132.css','landing-assets/motion-l132.js',
+  'landing-assets/public-pages.css','landing-assets/shared-header-l116.css',
   'sitemap.xml','robots.txt','mmh-manifest-v2.webmanifest']
  .every(path=>read(path)===source(path)));
 check('Protected auth/PWA/SEO/config sources unchanged in PR diff',
