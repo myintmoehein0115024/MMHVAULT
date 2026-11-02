@@ -15071,6 +15071,22 @@ function editTx(id){
   sync();
   $('eType').onchange=sync;
   $('eGroup').onchange=sync;
+  // APP V11: note/receipt edits must not recategorize archived historical rows.
+  // Retain the original category only for this existing transaction's editor.
+  const editFormV11=$('editTxForm'), editCategoryV11=$('eCat');
+  if(editFormV11){
+    editFormV11.dataset.mmhV11OriginalType=String(t.type||'');
+    editFormV11.dataset.mmhV11OriginalGroup=String(group||'');
+    editFormV11.dataset.mmhV11OriginalCategory=String(t.category||'');
+  }
+  if(editCategoryV11 && String(t.category||'') &&
+     !Array.from(editCategoryV11.options).some(x=>x.value===String(t.category))){
+    const originalV11=document.createElement('option');
+    originalV11.value=String(t.category);
+    originalV11.textContent=String(t.category)+' · historical';
+    editCategoryV11.appendChild(originalV11);
+    editCategoryV11.value=String(t.category);
+  }
   window.MMHV11TxFieldPrefs?.attachEdit?.();
 
   const receiptManageTxV3309=$('editReceiptManageV3309');
