@@ -436,3 +436,34 @@ body.l131 :is(#features,#business,#about,#security){
     outline:2px solid #ffe1a6;outline-offset:3px
   }
 }
+
+
+/* L1.18 — restrained warm-gold edge lighting on existing Landing surfaces.
+ * Content, dimensions, navigation and existing L1.32 motion remain unchanged. */
+body.l131 .showcase-v2 .showcase-card{
+  border-color:rgba(246,211,160,.51);
+  box-shadow:inset 0 1px rgba(255,246,221,.22),
+    inset 0 -1px rgba(113,158,181,.08),
+    0 16px 40px rgba(2,14,29,.19);
+}
+body.l131 .showcase-v2 .showcase-card .showcase-symbol{
+  box-shadow:inset 0 1px rgba(255,238,201,.18),0 4px 21px rgba(219,162,97,.07);
+}
+body.l131 #about .about-benefit-card{
+  box-shadow:inset 0 1px rgba(255,236,200,.16),0 14px 32px rgba(2,16,30,.16);
+}
+body.l131 .features-explorer.app-showcase .product-stage{
+  box-shadow:inset 0 1px rgba(255,236,199,.19),
+    0 22px 53px rgba(0,16,29,.21);
+}
+@media(hover:hover) and (pointer:fine){
+  body.l131 .showcase-v2 .showcase-card:is(:hover,:focus-within){
+    border-color:rgba(255,225,174,.91);
+    box-shadow:inset 0 1px rgba(255,246,221,.28),
+      0 25px 50px rgba(1,12,27,.28),0 0 30px rgba(234,180,107,.09);
+  }
+  body.l131 .showcase-v2 .showcase-card:is(:hover,:focus-within) .showcase-symbol{
+    border-color:rgba(255,228,177,.82);
+    box-shadow:inset 0 1px rgba(255,243,219,.34),0 5px 21px rgba(227,168,94,.16);
+  }
+}

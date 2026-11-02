@@ -266,6 +266,8 @@ async function load(page,route,failures){
          if(r.url().startsWith(origin)&&r.status()>=400)failures.push(r.status()+' '+r.url());
        });
        await load(page,route,failures);
+       ensure(!await page.locator('body').evaluate(b=>b.classList.contains('mm-public-motion')),
+         route+' '+width+'px reduced-motion page never activates reveal');
        ensure(await page.locator('h1').count()===1,route+' '+width+'px has one H1');
        ensure(await page.locator('link[rel="canonical"]').count()===1,
          route+' '+width+'px canonical unique');
@@ -453,6 +455,34 @@ async function load(page,route,failures){
        }
        await ctx.close();
      }
+   }
+
+   // L1.18 — animated public pages remain visible, language-neutral and
+   // keep reduced-motion as the default fallback in the main viewport loop.
+   for(const [route,target] of [
+     ['/features/','.grid>.item'],
+     ['/security.html','.policy-card']
+   ]){
+     const ctx=await browser.newContext({
+       viewport:{width:393,height:852},reducedMotion:'no-preference'
+     });
+     const page=await ctx.newPage();
+     const errors=[];
+     page.on('pageerror',e=>errors.push(e.message));
+     await load(page,route,errors);
+     ensure(await page.locator('body').evaluate(b=>b.classList.contains('mm-public-motion')),
+       route+' unobtrusive public reveal enhancement activates');
+     const item=page.locator(target).first();
+     ensure(await item.evaluate(e=>e.classList.contains('mm-public-reveal')),
+       route+' reveal target registered');
+     await item.scrollIntoViewIfNeeded();
+     await page.waitForTimeout(850);
+     ensure(await item.evaluate(e=>e.classList.contains('mm-public-shown')),
+       route+' scrolled card becomes visible');
+     ensure((await item.evaluate(e=>Number(getComputedStyle(e).opacity)))>.98,
+       route+' full opacity after reveal');
+     ensure(errors.length===0,route+' scroll enhancement has no JS exception');
+     await ctx.close();
    }
 
    // L1.12 — end-to-end route consistency: public Security is a first-class

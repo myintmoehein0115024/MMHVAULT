@@ -134,4 +134,43 @@
     });
   }
   changeLanguage(locale);
+
+  // L1.18 — progressive, one-shot reveals for informational pages only.
+  // Existing page content is visible by default. No fetch, credentials,
+  // tracking, navigation interception or persistent animation state.
+  const motionAllowed=window.matchMedia &&
+    !window.matchMedia('(prefers-reduced-motion: reduce)').matches &&
+    'IntersectionObserver' in window &&
+    document.body?.classList.contains('public-landing-page');
+  if(motionAllowed){
+    const targets=[
+      ...document.querySelectorAll(
+        '.public-landing-page .grid>.item,'+
+        '.public-landing-page .detail,'+
+        '.public-landing-page .bottom-cta,'+
+        '.public-landing-page .policy-card,'+
+        '.public-landing-page .public-footer-layout'
+      )
+    ].filter(el=>!el.hidden&&!el.closest('[hidden]'));
+    if(targets.length){
+      const vh=window.innerHeight||800;
+      targets.forEach((el,index)=>{
+        el.classList.add('mm-public-reveal');
+        // Keep visible initial-screen content visible immediately.
+        const rect=el.getBoundingClientRect();
+        if(rect.top<vh*.95&&rect.bottom>0)el.classList.add('mm-public-shown');
+        el.style.setProperty('--mm-public-delay',Math.min(index%3,2)*55+'ms');
+      });
+      document.body.classList.add('mm-public-motion');
+      const observer=new IntersectionObserver(entries=>{
+        entries.forEach(entry=>{
+          if(!entry.isIntersecting)return;
+          entry.target.classList.add('mm-public-shown');
+          observer.unobserve(entry.target);
+        });
+      },{threshold:.045,rootMargin:'0px 0px -4% 0px'});
+      targets.filter(el=>!el.classList.contains('mm-public-shown'))
+        .forEach(el=>observer.observe(el));
+    }
+  }
 })();
