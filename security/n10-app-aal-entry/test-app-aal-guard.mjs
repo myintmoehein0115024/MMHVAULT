@@ -680,8 +680,8 @@ console.log('PASS: dynamic synthetic session reconciliation, malformed AAL, MFA 
     assert.equal(ok,expectedSuccess,label+' allowed');
     assert.equal(navigation.length,expectedSuccess?1:0,label+' App navigations');
     assert.equal(challenges.length,expectedChallenges,label+' MFA challenges');
-    assert.equal(ctx.verifiedRedirectInFlightV946,expectedSuccess,
-      label+' redirect lock');
+    assert.equal(ctx.verifiedRedirectInFlightV946,expectedSuccess||mode==='inflight',
+      label+' redirect lock (a pre-existing lock must remain held)');
     completed++;
   }
   // Username-only and recovery phrase flows must use the SAME verified
