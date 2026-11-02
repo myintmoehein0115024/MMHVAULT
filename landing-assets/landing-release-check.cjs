@@ -84,7 +84,8 @@ check('L1.32 respects reduced motion and native links',
   motionStyles.includes('@media (prefers-reduced-motion: reduce)') &&
   !motionSource.includes('preventDefault(') && !motionSource.includes('location.replace'));
 check('L1.32 product/business state switch animations stay presentational',
-  motionSource.includes('data-product-current') &&
+  motionSource.includes('L1.21: data-product-current now drives') &&
+  !motionSource.includes('const productStage=document.querySelector') &&
   motionSource.includes('data-current-view') &&
   motionSource.includes("typeof node.animate!=='function'") &&
   !/fetch\s*\(|localStorage|supabase|touchstart|gesturestart/.test(motionSource));
@@ -387,12 +388,45 @@ check('Landing has five same-page primary sections and a separate Explore menu',
   rootNav.includes('href="./'+target+'" data-i18n="info')) &&
  (rootNav.match(/<details class="nav-explore"/g)||[]).length===1 &&
  (rootNav.match(/<summary>/g)||[]).length===1);
+// L1.21: only the feature-selector body may change in Landing JS.
+function previewControllerOnlyEdited(){
+ const old=source('landing-assets/landing.js'),next=read('landing-assets/landing.js');
+ const oldMarker="  let activeProduct='dashboard';\n";
+ const newMarker="  // L1.21: keep the previous demo on screen until its replacement is ready.\n";
+ const endMarker="  productTabs.forEach((tab,i)=>{";
+ const a=old.indexOf(oldMarker),b=next.indexOf(newMarker);
+ const oldEnd=old.indexOf(endMarker,a),newEnd=next.indexOf(endMarker,b);
+ const changed=next.slice(b,newEnd);
+ return a>=0&&b>=0&&oldEnd>a&&newEnd>b &&
+   old.slice(0,a)===next.slice(0,b) &&
+   old.slice(oldEnd)===next.slice(newEnd) &&
+   changed.includes('prefers-reduced-motion: reduce') &&
+   changed.includes('requestAnimationFrame') &&
+   changed.includes('window.clearTimeout(state.timer)') &&
+   changed.includes('panel.hidden=!isCurrent') &&
+   changed.includes('panel.inert=!isCurrent') &&
+   changed.includes("const animate=previousName!==name") &&
+   !/fetch\s*\(|supabase|location\.replace|localStorage|history\.pushState/.test(changed);
+}
+function oldProductMotionOnlyRemoved(){
+ const old=source('landing-assets/motion-l132.js');
+ const next=read('landing-assets/motion-l132.js');
+ const oldStart="  const productStage=document.querySelector('.features-explorer .product-stage');";
+ const newStart="  // L1.21: data-product-current now drives the single coordinated crossfade";
+ const end="  const businessStage=document.querySelector('#business .business-stage');";
+ const a=old.indexOf(oldStart),b=next.indexOf(newStart);
+ const oe=old.indexOf(end,a),ne=next.indexOf(end,b);
+ return a>=0&&b>=0&&oe>a&&ne>b &&
+   old.slice(0,a)===next.slice(0,b) &&
+   old.slice(oe)===next.slice(ne) &&
+   !next.includes('const productStage=document.querySelector');
+}
 check('Homepage retains all prior content and SEO outside shared header layer',
  ['en','zh','my'].every(lang=>translationScript.includes('Object.assign(strings.'+lang+', {\n    navExplore:')) &&
  current.includes('<body id="top" class="l131 mmh-nav-unified">') &&
  current.includes('<link rel="stylesheet" href="./landing-assets/shared-header-l116.css?v=1">') &&
  current===prev &&
- source('landing-assets/landing.js')===translationScript &&
+ previewControllerOnlyEdited() &&
  source('landing-assets/explore-l114.css')===read('landing-assets/explore-l114.css'));
 const publicHeaders=['about/index.html','features/index.html','business/index.html',
  'register/index.html','security.html','privacy.html','terms.html'];
@@ -437,7 +471,7 @@ check('Seven public pages inherit exact Landing header structure, icons and drop
      html.includes(cssNew) && old.includes(cssNew) &&
      // L1.16 already shipped; protect its header, page body and SEO
      // byte-for-byte, allowing ONLY the two localized summary blocks.
-     restoreOldLocalizedSummary(path,stripL120SeoHead(html),old)===old &&
+     restoreOldLocalizedSummary(path,html,old)===old &&
      (h.match(/<details class="nav-explore"/g)||[]).length===1 &&
      (h.match(/class="mobile-nav-auth"/g)||[]).length===1 &&
      (h.match(/class="locale-menu"/g)||[]).length===1;
@@ -508,26 +542,32 @@ check('L1.20 canonical, named WebPage and breadcrumb structured data are accurat
      breadcrumb.itemListElement?.[0]?.item!=='https://mmhvault.com/' ||
      breadcrumb.itemListElement?.[1]?.item!==url)return false;
   }else if(!head.includes('"@type":"BreadcrumbList"'))return false;
-  return stripL120SeoHead(html)===source(path);
+  return html===source(path);
  }));
-check('L1.20 precisely seven head-only SEO and QA files; N10, PWA and visual layout untouched',
- actual.length===7 &&
+check('L1.21 five-file public demo and QA scope, no SEO/nav/App changes',
+ actual.length===5 &&
  actual.every(path=>[
-  ...l120Entities.map(entity=>entity.path),
+  'landing-assets/landing.js','landing-assets/motion-l132.js',
+  'landing-assets/premium-l131.css',
   'landing-assets/landing-release-check.cjs',
   'landing-assets/landing-browser-check.cjs'
  ].includes(path)) &&
  current===prev &&
- publicHeaders.every(path=>stripL120SeoHead(read(path))===source(path)) &&
- ['landing-assets/landing.js','landing-assets/public-pages.js',
-  'landing-assets/premium-l131.css','landing-assets/public-pages.css',
-  'landing-assets/motion-l132.js','landing-assets/shared-header-l116.css',
-  'about/index.html','business/index.html'
- ].every(path=>source(path)===read(path)) &&
- ['sitemap.xml','robots.txt','mmh-manifest-v2.webmanifest'].every(path=>source(path)===read(path)));
+ previewControllerOnlyEdited() && oldProductMotionOnlyRemoved() &&
+ read('landing-assets/premium-l131.css').startsWith(source('landing-assets/premium-l131.css')) &&
+ read('landing-assets/premium-l131.css').slice(source('landing-assets/premium-l131.css').length)
+   .startsWith('\n\n/* L1.21 — seamless product preview') &&
+ read('landing-assets/premium-l131.css').includes('prefers-reduced-motion:reduce') &&
+ publicHeaders.every(path=>read(path)===source(path)) &&
+ ['landing-assets/public-pages.js','landing-assets/public-pages.css',
+  'landing-assets/motion-l132.css','landing-assets/landing.css',
+  'landing-assets/shared-header-l116.css',
+  'landing-assets/business.css','landing-assets/cinematic.css',
+  'sitemap.xml','robots.txt','mmh-manifest-v2.webmanifest']
+ .every(path=>read(path)===source(path)));
 check('Protected auth/PWA/SEO/config sources unchanged in PR diff',
  ['business.html','app.html','login.html','sitemap.xml','robots.txt',
-  'mmh-manifest-v2.webmanifest','landing-assets/landing.js'].every(file=>{
+  'mmh-manifest-v2.webmanifest'].every(file=>{
     const test=cp.spawnSync('git',['diff','--quiet',main+'...HEAD','--',file],
       {encoding:'utf8',maxBuffer:4096});
     return test.status===0;
