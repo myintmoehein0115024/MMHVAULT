@@ -39,3 +39,25 @@
 - `recovery-view-lifecycle.mjs` is a standalone **NOT LOADED** adapter for the existing N10 Recovery Key Glass modal: it clears visible words when the document goes into the background, the page unloads, an existing modal close button is clicked or Auth changes. It unsubscribes and removes listeners on teardown. There is **no production import, UI activation, or database change**.
 - Matching offline tests cover those race conditions, renderer exceptions, timer failure and lifecycle events; only six extra isolated-source commits have been added since the previous review gate.
 - **Do not** interpret synthetic success as successful real signed two-owner MFA/AAL2, encrypted Vault read or a deployed integration. The login/recovery endpoint and Vault schema are still separate release gates.
+
+## 2026-11-02 — API contract reconciliation and live schema audit
+
+**GitHub-only development; no deployed feature.** Read-only schema metadata confirms:
+
+| Environment | Vault RPCs | Live session checker |
+| --- | --- | --- |
+| Staging `ldivswlhtgmznzwhzsoi` | `backup_put`, `backup_get`, `backup_exists`, `take_attempt` exist | **Legacy 2-argument** `(uuid, uuid)` |
+| Production `vrypucmyrztxgiqhjspd` | **No N10 recovery Vault RPCs** | **No N10 recovery session checker** |
+
+The Draft backend in PR #11 **requires a 3-argument `(uuid, uuid, text)`** owner/session/AAL check. The existing Staging RPC cannot safely be reused as a substitute. **Do not execute the PR #11 first-install SQL on top of the existing Staging schema.** A separate versioned upgrade, explicit approval, signed AAL2 QA and rollback verification are mandatory.
+
+### Frontend/backend interface check
+- Source pinned: `security/n10-fixed-recovery-vault-candidate/index.ts` in Draft PR #11; browser source pinned in Draft PR #43. Expected Edge URL, `status` response `backup_status/backed_up` and `reveal` response `recovery_key/words/expires_in_seconds=45` agree.
+- Browser now rejects `recovery_key` on `status`, rejects `backup_status` on `reveal`, requires JSON content type, verifies the specific bearer with Auth `getUser(access_token)`, and rechecks the same session and bearer after the awaited response.
+- The Vault `backup_put` candidate rejects replacing a **different** stored phrase and accepts the same original phrase idempotently. This is candidate-source logic, **not verified production behavior**.
+- This viewer never calls `backup_existing`, replacement, reset or key generation. The existing PR #2 recovery UI is hard-OFF and must not be bulk-merged.
+- New username registrations still require a **separately approved first-time encrypted escrow of the phrase actually generated at signup**, before declaring recovery viewing available. Simply keeping a one-way phrase verifier cannot satisfy original-word re-view for a lost key. Future registration changes must protect existing accounts and finance data, and require independent staging review before any deployment.
+
+### Security limitations
+- The browser's `getSession()` reads local session state; it does **not** independently authorize Vault access. `getUser(access_token)` authenticates the bearer, but only the backend, current server session, MFA/AAL and Vault owner checks can authorize disclosure.
+- Synthetic CI does not constitute real two-account, MFA, revoked-session, plaintext exposure, signup escrow or encryption-at-rest acceptance.
