@@ -20,3 +20,9 @@
 2. Legitimately unblock the prior Staging QA limitation (do not bypass platform restrictions).
 3. Authorized real signed account binding with and without MFA, negative-owner cases, existing username uniqueness, CAPTCHA failure and session-revocation checks.
 4. Fresh owner approval **specific to the production binding Edge replacement**, including rollback. Never infer deploy approval from an isolated CI pass.
+
+## 2026-11-02 offline QA expansion and current-main sync
+- Confirmed current [Supabase JS MFA AAL docs](https://supabase.com/docs/reference/javascript/auth-mfa-getauthenticatorassurancelevel) explicitly support the JWT parameter in server-side Edge environments. The deployed AAL method call is not a misuse by itself.
+- Extended pure final-authorization tests to **10** denied/allowed cases and full synthetic handler scenarios to **12**, plus a separate hard-OFF test. Includes quota rejection, invalid CAPTCHA/password, alias already linked, conflicting alias, unavailable MFA and Auth identity, new MFA enrollment, and AAL2-verified success. All remain **synthetic** without real tokens/users/Edge requests.
+- Added Deno type-check of the disabled Edge handler to the review-only GitHub Actions workflow. This validates source syntax/types only, not live Supabase integration.
+- Based this Draft-only review atop current public `main` `4cac394` with no intersection between the latest Landing changes and five N10 new review paths. No production, Staging, account, finance or real Edge write.

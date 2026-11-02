@@ -867,14 +867,25 @@
     closeMenu();
     closeLanguage();
   }));
+  // L1.22: Escape dismisses only the topmost open header layer. Restore
+  // keyboard focus to a visible trigger, never an item inside a hidden menu.
   document.addEventListener('keydown', event => {
-    if (event.key === 'Escape') {
-      const wasOpen = !localeMenu.hidden;
-      const wasExploreOpen = !!explore?.open;
+    if (event.key !== 'Escape') return;
+    if (!localeMenu.hidden) {
       closeLanguage();
+      localeTrigger.focus();
+      event.preventDefault();
+      return;
+    }
+    if (explore?.open) {
+      closeExplore(true);
+      event.preventDefault();
+      return;
+    }
+    if (siteHeader.classList.contains('menu-open')) {
       closeMenu();
-      if (wasExploreOpen && exploreSummary) exploreSummary.focus();
-      else if (wasOpen) localeTrigger.focus();
+      toggle.focus();
+      event.preventDefault();
     }
   });
   document.addEventListener('click', event => {

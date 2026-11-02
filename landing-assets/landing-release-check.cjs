@@ -388,45 +388,42 @@ check('Landing has five same-page primary sections and a separate Explore menu',
   rootNav.includes('href="./'+target+'" data-i18n="info')) &&
  (rootNav.match(/<details class="nav-explore"/g)||[]).length===1 &&
  (rootNav.match(/<summary>/g)||[]).length===1);
-// L1.21: only the feature-selector body may change in Landing JS.
-function previewControllerOnlyEdited(){
- const old=source('landing-assets/landing.js'),next=read('landing-assets/landing.js');
- const oldMarker="  let activeProduct='dashboard';\n";
- const newMarker="  // L1.21: keep the previous demo on screen until its replacement is ready.\n";
- const endMarker="  productTabs.forEach((tab,i)=>{";
- const a=old.indexOf(oldMarker),b=next.indexOf(newMarker);
- const oldEnd=old.indexOf(endMarker,a),newEnd=next.indexOf(endMarker,b);
- const changed=next.slice(b,newEnd);
- return a>=0&&b>=0&&oldEnd>a&&newEnd>b &&
-   old.slice(0,a)===next.slice(0,b) &&
-   old.slice(oldEnd)===next.slice(newEnd) &&
-   changed.includes('prefers-reduced-motion: reduce') &&
-   changed.includes('requestAnimationFrame') &&
-   changed.includes('window.clearTimeout(state.timer)') &&
-   changed.includes('panel.hidden=!isCurrent') &&
-   changed.includes('panel.inert=!isCurrent') &&
-   changed.includes("const animate=previousName!==name") &&
+// L1.22 — compare exact public navigation sections to their main baselines.
+function headerEscapeOnlyEdited(path,oldMarker,newMarker,endMarker,required){
+ const prev=source(path),next=read(path);
+ const a=prev.indexOf(oldMarker),b=next.indexOf(newMarker);
+ const oe=prev.indexOf(endMarker,a),ne=next.indexOf(endMarker,b);
+ if(a<0||b<0||oe<=a||ne<=b||
+    prev.indexOf(oldMarker,a+oldMarker.length)!==-1||
+    next.indexOf(newMarker,b+newMarker.length)!==-1)return false;
+ const changed=next.slice(b,ne);
+ return prev.slice(0,a)===next.slice(0,b)&&
+   prev.slice(oe)===next.slice(ne)&&
+   required.every(term=>changed.includes(term)) &&
    !/fetch\s*\(|supabase|location\.replace|localStorage|history\.pushState/.test(changed);
 }
-function oldProductMotionOnlyRemoved(){
- const old=source('landing-assets/motion-l132.js');
- const next=read('landing-assets/motion-l132.js');
- const oldStart="  const productStage=document.querySelector('.features-explorer .product-stage');";
- const newStart="  // L1.21: data-product-current now drives the single coordinated crossfade";
- const end="  const businessStage=document.querySelector('#business .business-stage');";
- const a=old.indexOf(oldStart),b=next.indexOf(newStart);
- const oe=old.indexOf(end,a),ne=next.indexOf(end,b);
- return a>=0&&b>=0&&oe>a&&ne>b &&
-   old.slice(0,a)===next.slice(0,b) &&
-   old.slice(oe)===next.slice(ne) &&
-   !next.includes('const productStage=document.querySelector');
-}
+const l122LandingEscape=()=>headerEscapeOnlyEdited(
+ 'landing-assets/landing.js',
+ "  document.addEventListener('keydown', event => {",
+ "  // L1.22: Escape dismisses only the topmost open header layer.",
+ "  document.addEventListener('click', event => {",
+ ["if (event.key !== 'Escape') return;","if (!localeMenu.hidden)",
+ "if (explore?.open)","if (siteHeader.classList.contains('menu-open'))",
+ "localeTrigger.focus();","closeExplore(true);","toggle.focus();","event.preventDefault();"]);
+const l122PublicEscape=()=>headerEscapeOnlyEdited(
+ 'landing-assets/public-pages.js',
+ "    document.addEventListener('keydown',event=>{",
+ "    // L1.22: dismiss one header layer per Escape, keeping focus visible.",
+ "    const media=window.matchMedia('(min-width: 1361px)');",
+ ["if(event.key!=='Escape')return;","if(!menu.hidden)","if(explore.open)",
+ "if(header.classList.contains('menu-open'))","closeLanguage(true);",
+ "closeExplore(true);","closeNav(true);","event.preventDefault();"]);
 check('Homepage retains all prior content and SEO outside shared header layer',
  ['en','zh','my'].every(lang=>translationScript.includes('Object.assign(strings.'+lang+', {\n    navExplore:')) &&
  current.includes('<body id="top" class="l131 mmh-nav-unified">') &&
  current.includes('<link rel="stylesheet" href="./landing-assets/shared-header-l116.css?v=1">') &&
  current===prev &&
- previewControllerOnlyEdited() &&
+ l122LandingEscape() &&
  source('landing-assets/explore-l114.css')===read('landing-assets/explore-l114.css'));
 const publicHeaders=['about/index.html','features/index.html','business/index.html',
  'register/index.html','security.html','privacy.html','terms.html'];
@@ -544,24 +541,20 @@ check('L1.20 canonical, named WebPage and breadcrumb structured data are accurat
   }else if(!head.includes('"@type":"BreadcrumbList"'))return false;
   return html===source(path);
  }));
-check('L1.21 five-file public demo and QA scope, no SEO/nav/App changes',
- actual.length===5 &&
+check('L1.22 four public header-navigation and QA files only',
+ actual.length===4 &&
  actual.every(path=>[
-  'landing-assets/landing.js','landing-assets/motion-l132.js',
-  'landing-assets/motion-l132.css',
+  'landing-assets/landing.js',
+  'landing-assets/public-pages.js',
   'landing-assets/landing-release-check.cjs',
   'landing-assets/landing-browser-check.cjs'
  ].includes(path)) &&
  current===prev &&
- previewControllerOnlyEdited() && oldProductMotionOnlyRemoved() &&
- read('landing-assets/motion-l132.css').startsWith(source('landing-assets/motion-l132.css')) &&
- read('landing-assets/motion-l132.css').slice(source('landing-assets/motion-l132.css').length)
-   .startsWith('\n\n/* L1.21 — seamless product preview') &&
- read('landing-assets/motion-l132.css').includes('prefers-reduced-motion:reduce') &&
+ l122LandingEscape() && l122PublicEscape() &&
  publicHeaders.every(path=>read(path)===source(path)) &&
- ['landing-assets/public-pages.js','landing-assets/public-pages.css',
-  'landing-assets/premium-l131.css','landing-assets/landing.css',
-  'landing-assets/shared-header-l116.css',
+ ['landing-assets/motion-l132.js','landing-assets/motion-l132.css',
+  'landing-assets/public-pages.css','landing-assets/premium-l131.css',
+  'landing-assets/landing.css','landing-assets/shared-header-l116.css',
   'landing-assets/business.css','landing-assets/cinematic.css',
   'sitemap.xml','robots.txt','mmh-manifest-v2.webmanifest']
  .every(path=>read(path)===source(path)));

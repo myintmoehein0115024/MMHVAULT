@@ -53,7 +53,9 @@ const cases=[
  ['email became unconfirmed',{user:{...user,email_confirmed_at:null}},'session_expired'],
  ['token no longer valid',{user:null},'session_expired'],
  ['auth unavailable',{throwUser:true},'verification_unavailable'],
- ['assurance unavailable',{throwAssurance:true},'verification_unavailable']
+ ['assurance unavailable',{throwAssurance:true},'verification_unavailable'],
+ ['MFA assurance is null',{assurance:null},'additional_verification_required'],
+ ['Auth user became anonymous',{user:{...user,is_anonymous:true}},'session_expired']
 ];
 for(const [label,opt,expected] of cases){
  const val=await recheckBindSecurity({
@@ -65,7 +67,7 @@ for(const [label,opt,expected] of cases){
  });
  assert.equal(val,expected,label);
 }
-console.log('PASS: 8 pure final-auth binding outcomes.');
+console.log('PASS: 10 pure final-auth binding outcomes.');
 
 async function executeScenario(scenario='disabled'){
   // The deployed code never runs here. Load the disabled candidate into a
@@ -81,13 +83,14 @@ async function executeScenario(scenario='disabled'){
    auth:{getUser:async()=>{getCalls++;
       if(scenario==='revoked'&&getCalls>1)return {data:{user:null},error:{message:'revoked'}};
       if(scenario==='owner-switch'&&getCalls>1)return {data:{user:authUser('synthetic-user-b')},error:null};
+      if(scenario==='auth-unavailable'&&getCalls>1)return {data:{user:null},error:{message:'unavailable'}};
       return {data:{user:authUser()},error:null}}},
-   rpc:async()=>({data:true,error:null}),
+   rpc:async()=>({data:scenario!=='rate-limited',error:null}),
    from:table=>{
     assert.equal(table,'mmh_n10a740_username_links');
     return {
-     select:()=>({eq:()=>({limit:async()=>({data:[],error:null})})}),
-     insert:async row=>{inserts++;assert.equal(row.user_id,user.id);return {error:null}}
+     select:()=>({eq:()=>({limit:async()=>({data:scenario==='already-linked'?[{username_key:'prior'}]:[],error:null})})}),
+     insert:async row=>{inserts++;assert.equal(row.user_id,user.id);return {error:scenario==='username-taken'?{code:'23505'}:null}}
     };
    }
   };
@@ -95,13 +98,19 @@ async function executeScenario(scenario='disabled'){
    getAuthenticatorAssuranceLevel:async(token)=>{
     assert.equal(token,'synthetic-bearer-token');
     aalCalls++;
+    if(aalCalls>1&&scenario==='aal-unavailable')
+      return {data:null,error:{message:'MFA offline'}};
     return {data:aalCalls>1&&scenario==='new-mfa'
       ?{currentLevel:'aal1',nextLevel:'aal2'}
+      :scenario==='aal2'
+      ?{currentLevel:'aal2',nextLevel:'aal2'}
       :{currentLevel:'aal1',nextLevel:'aal1'},error:null};
    }
   }}};
   const temp={auth:{
-   signInWithPassword:async()=>({data:{user:authUser(),session:{access_token:'synthetic-pwd-session'}},error:null}),
+   signInWithPassword:async()=>scenario==='bad-password'
+      ?{data:{},error:{message:'invalid credentials'}}
+      :{data:{user:authUser(),session:{access_token:'synthetic-pwd-session'}},error:null},
    getUser:async()=>({data:{user:authUser()},error:null}),
    signOut:async()=>({error:null})
   }};
@@ -120,7 +129,7 @@ async function executeScenario(scenario='disabled'){
    TextEncoder,TextDecoder,Uint8Array,Response,Request,Headers,URLSearchParams,AbortSignal,
    crypto:webcrypto,
    fetch:async()=>({ok:true,json:async()=>({
-    success:true,hostname:'mmhvault.com',action:'mmh_n10a781_bind'
+    success:scenario!=='captcha-denied',hostname:'mmhvault.com',action:'mmh_n10a781_bind'
    })}),
    console:{error:(...args)=>{throw Error('Synthetic server caught: '+args.join(' '));}}
   };
@@ -145,19 +154,26 @@ async function executeScenario(scenario='disabled'){
  assert.equal(result.getCalls,0);
 }
 const liveTests=[
- ['allowed',200,'bind_success',1],
- ['new-mfa',403,'additional_verification_required',0],
- ['owner-switch',401,'session_expired',0],
- ['revoked',401,'session_expired',0]
+ // scenario, HTTP status, safe response code, attempted writes, Auth reads, MFA checks
+ ['allowed',200,'bind_success',1,2,2],
+ ['aal2',200,'bind_success',1,2,2],
+ ['new-mfa',403,'additional_verification_required',0,2,2],
+ ['aal-unavailable',403,'additional_verification_required',0,2,2],
+ ['owner-switch',401,'session_expired',0,2,1],
+ ['revoked',401,'session_expired',0,2,1],
+ ['auth-unavailable',401,'session_expired',0,2,1],
+ ['already-linked',409,'already_linked',0,1,1],
+ ['bad-password',401,'invalid_credentials',0,1,1],
+ ['captcha-denied',403,'verification_required',0,1,1],
+ ['rate-limited',429,'too_many_attempts',0,1,1],
+ ['username-taken',409,'username_unavailable',1,2,2]
 ];
-for(const [scenario,status,code,inserts] of liveTests){
+for(const [scenario,status,code,inserts,authCalls,mfaCalls] of liveTests){
  const result=await executeScenario(scenario);
- if(result.status!==status)console.error('Synthetic scenario diagnostics:',scenario,result);
  assert.equal(result.status,status,scenario);
  assert.equal(result.code,code,scenario);
  assert.equal(result.inserts,inserts,scenario+' privileged inserts');
- assert.equal(result.getCalls,2,scenario+' independent Auth getUser checks');
- if(scenario!=='owner-switch'&&scenario!=='revoked')
-  assert.equal(result.aalCalls,2,scenario+' independent JWT AAL checks');
+ assert.equal(result.getCalls,authCalls,scenario+' independently checked Auth user count');
+ assert.equal(result.aalCalls,mfaCalls,scenario+' JWT AAL check count');
 }
-console.log('PASS: default OFF VM + four synthetic full handler scenarios (no network).');
+console.log('PASS: default OFF VM + 12 synthetic full handler scenarios (no network).');

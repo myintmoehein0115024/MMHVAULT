@@ -29,4 +29,10 @@ jobs:
         run: node --check security/n10-username-bind-candidate/bind-guard.mjs
       - name: Run isolated source-scope and synthetic binding race checks
         run: node security/n10-username-bind-candidate/test-bind-guard.mjs
+      - name: Install Deno solely for disabled candidate type checking
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Type-check hard-off binding Edge copy without deployment
+        run: deno check security/n10-username-bind-candidate/index.ts
 # No Supabase calls, secrets, Edge deploy, branch merge, or production writes.
