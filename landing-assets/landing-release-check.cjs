@@ -13,9 +13,8 @@ const source = path => {
 const current = read('index.html');
 const prev=source('index.html');
 
-/* L1.31: active feature selection must not reset internal scroll or
- * interrupt ongoing preview motion; keyboard focus must not page-jump.
- * Enforce exact main-based JavaScript patch and protect all other files. */
+/* L1.32: translate six feature names and preserve canonical English SEO
+ * metadata, without touching Hero, styles, independent pages or auth. */
 const oldHeroPreload='<link rel="preload" as="image" type="image/webp" href="./landing-assets/cinematic-lake.webp">';
 const newHeroPreload='<link rel="preload" as="image" type="image/webp" href="./landing-assets/personal-business-concept.webp" fetchpriority="high">';
 function patchOnly(path,changes){
@@ -26,11 +25,14 @@ function patchOnly(path,changes){
  }
  return expected===read(path);
 }
-const l131LandingPreviewNoJumpOnlyEdited=()=>patchOnly('landing-assets/landing.js',[
- ["  function selectProductView(view,focus=false,instant=false){\n    const name=productNames.includes(view)?view:'dashboard';\n    // Rapid clicks cancel old fades before starting the new selection.","  function selectProductView(view,focus=false,instant=false){\n    const name=productNames.includes(view)?view:'dashboard';\n    // L1.31: touching an already-selected preview is a no-op. Do not reset\n    // its inner scroll, interrupt a running crossfade, or repaint the panel.\n    // Keep the instant initial deep-link path for L1.30 initialization.\n    if(name===activeProduct&&!instant){\n      if(focus)productTabs.find(t=>t.dataset.productTab===name)?.focus({preventScroll:true});\n      return;\n    }\n    // Rapid clicks cancel old fades before starting the new selection.",1],
- ["      if(yes&&focus)t.focus();","      if(yes&&focus)t.focus({preventScroll:true});",1]
+const l132LandingLanguageOnlyEdited=()=>patchOnly('landing-assets/landing.js',[
+ ["  const storageKey = 'mmhvault.landing.language';","  const storageKey = 'mmhvault.landing.language';\n  // L1.32: retain the canonical English snippet rather than replacing it on load.\n  const officialEnglishDescription = document.querySelector('meta[name=\"description\"]')?.getAttribute('content') || '';",1],
+ ["    languageButtons.forEach(button => {\n      button.setAttribute('aria-pressed', String(button.dataset.lang === currentLang));\n    });\n    updateBusinessPreview(currentBusinessView);","    languageButtons.forEach(button => {\n      button.setAttribute('aria-pressed', String(button.dataset.lang === currentLang));\n    });\n    // L1.32: feature names use the selected display language on the tabs and\n    // in the active story heading; product identity and panel IDs stay fixed.\n    productTabs.forEach(tab => {\n      const label = tab.querySelector('.product-tab-copy strong');\n      if (label) label.textContent = productLabels[currentLang][tab.dataset.productTab];\n    });\n    const activeStoryTitle = document.querySelector('[data-app-story-title]');\n    if (activeStoryTitle) activeStoryTitle.textContent = productLabels[currentLang][activeProduct];\n    updateBusinessPreview(currentBusinessView);",1],
+ ["    if (desc && currentLang === 'en') desc.setAttribute('content', 'MMHVAULT is a private personal finance and life planning workspace. Manage accounts, transactions, investments and budgets; explore upcoming schedules and personal goals.');","    if (desc && currentLang === 'en') desc.setAttribute('content', officialEnglishDescription);",1],
+ ["  const productLabels={dashboard:'Dashboard',transactions:'Transactions',accounts:'Accounts',invest:'Invest',analyze:'Analyze',life:'Life Planner'};","  // L1.32: concise, localized feature names without altering stable IDs.\n  const productLabels={\n    en:{dashboard:'Dashboard',transactions:'Transactions',accounts:'Accounts',invest:'Invest',analyze:'Analyze',life:'Life Planner'},\n    zh:{dashboard:'财务总览',transactions:'收支记录',accounts:'账户管理',invest:'投资组合',analyze:'财务分析',life:'生活规划'},\n    my:{dashboard:'အကျဉ်းချုပ်',transactions:'ငွေစာရင်း',accounts:'အကောင့်များ',invest:'ရင်းနှီးမြှုပ်နှံမှု',analyze:'စိစစ်ချက်',life:'ဘဝအစီအစဉ်'}\n  };",1],
+ ["    if(title)title.textContent=productLabels[name];","    if(title)title.textContent=productLabels[currentLang][name];",1]
  ])&&current===prev&&current.includes('<title>MMHVAULT | Personal Finance & Wealth</title>');
-const l131PublicPagesUnchanged=()=>read('landing-assets/public-pages.js')===
+const l132PublicPagesUnchanged=()=>read('landing-assets/public-pages.js')===
  source('landing-assets/public-pages.js');
 const manifest=JSON.parse(read('mmh-manifest-v2.webmanifest'));
 const oldManifest=JSON.parse(source('mmh-manifest-v2.webmanifest'));
@@ -413,7 +415,7 @@ check('Homepage retains all prior content and SEO outside shared header layer',
  current.includes('<body id="top" class="l131 mmh-nav-unified">') &&
  current.includes('<link rel="stylesheet" href="./landing-assets/shared-header-l116.css?v=1">') &&
  current===prev &&
- l131LandingPreviewNoJumpOnlyEdited() &&
+ l132LandingLanguageOnlyEdited() &&
  source('landing-assets/explore-l114.css')===read('landing-assets/explore-l114.css'));
 const publicHeaders=['about/index.html','features/index.html','business/index.html',
  'register/index.html','security.html','privacy.html','terms.html'];
@@ -548,16 +550,16 @@ check('L1.24 preload prioritizes the one real Hero image with no duplicate image
  current.includes('loading="lazy" decoding="async"') &&
  !current.includes(oldHeroPreload));
 check('L1.25 Hero only waits for decoded pixels, preserving original fallback',
- l131LandingPreviewNoJumpOnlyEdited() &&
+ l132LandingLanguageOnlyEdited() &&
  current===prev &&
  current.includes(newHeroPreload) &&
  !current.includes(oldHeroPreload));
 check('L1.27 public tab title matches SEO without language focus scroll',
- l131LandingPreviewNoJumpOnlyEdited() &&
- l131PublicPagesUnchanged() &&
+ l132LandingLanguageOnlyEdited() &&
+ l132PublicPagesUnchanged() &&
  current===prev && current.includes(newHeroPreload) &&
  !current.includes(oldHeroPreload));
-check('L1.31 exact three-file preview repeat and focus scope',
+check('L1.32 exact three-file localized feature and SEO scope',
  actual.length===3 &&
  actual.every(path=>[
   'landing-assets/landing.js',
@@ -565,8 +567,8 @@ check('L1.31 exact three-file preview repeat and focus scope',
   'landing-assets/landing-browser-check.cjs'
  ].includes(path)) &&
  current===prev &&
- l131LandingPreviewNoJumpOnlyEdited() &&
- l131PublicPagesUnchanged() &&
+ l132LandingLanguageOnlyEdited() &&
+ l132PublicPagesUnchanged() &&
  source('landing-assets/shared-header-l116.css')===read('landing-assets/shared-header-l116.css') &&
  publicHeaders.every(path=>read(path)===source(path)) &&
  ['landing-assets/public-pages.css','landing-assets/landing.css',
@@ -588,16 +590,23 @@ check('L1.29 localized action names work without changing content or header geom
  read('landing-assets/public-pages.js').includes('syncNavToggleLabel();') &&
  source('landing-assets/shared-header-l116.css')===read('landing-assets/shared-header-l116.css'));
 check('L1.30 initial feature links render without a Dashboard flash',
- l131LandingPreviewNoJumpOnlyEdited() &&
- l131PublicPagesUnchanged() &&
+ l132LandingLanguageOnlyEdited() &&
+ l132PublicPagesUnchanged() &&
  read('landing-assets/landing.js').includes("syncProductHash(true)") &&
  read('landing-assets/landing.js').includes("const animate=!instant &&") &&
  current===prev);
 check('L1.31 current-tab reselect never resets scroll or interrupts preview animation',
- l131LandingPreviewNoJumpOnlyEdited() &&
- l131PublicPagesUnchanged() &&
+ l132LandingLanguageOnlyEdited() &&
+ l132PublicPagesUnchanged() &&
  read('landing-assets/landing.js').includes('if(name===activeProduct&&!instant)') &&
  read('landing-assets/landing.js').includes('t.focus({preventScroll:true})') &&
+ read('landing-assets/landing.js').includes('syncProductHash(true)') &&
+ current===prev);
+check('L1.32 feature labels follow all languages and canonical English snippet persists',
+ l132LandingLanguageOnlyEdited() &&
+ l132PublicPagesUnchanged() &&
+ read('landing-assets/landing.js').includes('productLabels[currentLang][activeProduct]') &&
+ read('landing-assets/landing.js').includes("desc.setAttribute('content', officialEnglishDescription)") &&
  read('landing-assets/landing.js').includes('syncProductHash(true)') &&
  current===prev);
 check('Protected auth/PWA/SEO/config sources unchanged in PR diff',

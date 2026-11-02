@@ -362,6 +362,15 @@ async function load(page,route,failures){
          width+'px home branding, controls and three-language Hero stay onscreen '+JSON.stringify(clipped));
      }
 
+     // L1.32: language selection must translate the six product names and
+     // current story, without mutating the official English SEO snippet.
+     const canonicalEnglishDescription=await page.locator('meta[name="description"]')
+       .getAttribute('content');
+     const expectedFeatureNames={
+       en:['Dashboard','Transactions','Accounts','Invest','Analyze','Life Planner'],
+       zh:['财务总览','收支记录','账户管理','投资组合','财务分析','生活规划'],
+       my:['အကျဉ်းချုပ်','ငွေစာရင်း','အကောင့်များ','ရင်းနှီးမြှုပ်နှံမှု','စိစစ်ချက်','ဘဝအစီအစဉ်']
+     };
      // User-requested fixed multilingual Hero must not change with language.
      const immutable=await page.locator('[data-hero-fixed]').allTextContents();
      for(const language of ['zh','my','en']){
@@ -373,12 +382,39 @@ async function load(page,route,failures){
        const exploreLabels={en:'Explore',zh:'了解更多',my:'ပိုမိုလေ့လာရန်'};
        ensure((await page.locator('#landing-explore > summary [data-i18n="navExplore"]').textContent()).trim()===exploreLabels[language],
          width+'px Explore translated correctly in '+language);
+       const featureNames=(await page.locator('.product-tab-copy strong').allTextContents())
+         .map(s=>s.trim());
+       const storyName=(await page.locator('[data-app-story-title]').textContent()).trim();
+       ensure(JSON.stringify(featureNames)===JSON.stringify(expectedFeatureNames[language]) &&
+         storyName===expectedFeatureNames[language][0],
+         'L1.32 '+width+'px '+language+' feature tabs and story fully translated '+
+           JSON.stringify({featureNames,storyName}));
+       if(language==='en'){
+         const englishDescription=await page.locator('meta[name="description"]')
+           .getAttribute('content');
+         ensure(englishDescription===canonicalEnglishDescription &&
+           englishDescription.includes('official personal finance and wealth management website'),
+           'L1.32 '+width+'px restores canonical English SEO description');
+       }
      }
      await page.locator('[data-product-tab="accounts"]').click();
      ensure(await page.locator('[data-product-tab="accounts"]').getAttribute('aria-selected')==='true',
        width+'px Accounts feature tab responds');
      ensure(await page.locator('[data-product-panel="accounts"]').isVisible(),
        width+'px Accounts concept panel displayed');
+     if([320,393,1440].includes(width)){
+       for(const language of ['zh','my','en']){
+         await page.locator('#locale-trigger').click();
+         await page.locator('#locale-menu button[data-lang="'+language+'"]').click();
+         const selectedTitle=(await page.locator('[data-app-story-title]').textContent()).trim();
+         const accountTab=(await page.locator('[data-product-tab="accounts"] .product-tab-copy strong')
+           .textContent()).trim();
+         ensure(selectedTitle===expectedFeatureNames[language][2] &&
+           accountTab===selectedTitle &&
+           await page.locator('[data-product-tab="accounts"]').getAttribute('aria-selected')==='true',
+           'L1.32 '+width+'px active Accounts story stays translated in '+language);
+       }
+     }
      // L1.21 — accessible instant swap for reduced-motion preference.
      const settled=await page.locator('[data-product-panel]').evaluateAll(panels=>({
        visible:panels.filter(p=>!p.hidden).map(p=>p.dataset.productPanel),
