@@ -2964,3 +2964,37 @@ html[lang="my"] body.l131 .features-explorer.app-showcase .app-story h3{
     font-size:13px;
   }
 }
+
+/* L1.34 — Keep the six public feature choices stable while EN / ZH / MY
+   translations change. Only Landing's mobile feature picker is affected.
+   Preserve native zoom, scrolling, the fixed Hero, and all existing colors. */
+@media (max-width: 620px) {
+  html[lang] body.l131 .features-explorer.app-showcase .product-tab {
+    min-width: 0;
+    min-height: 94px;
+    padding-block: 10px;
+  }
+  html[lang] body.l131 .features-explorer.app-showcase .product-tab-copy {
+    min-width: 0;
+  }
+  html[lang] body.l131 .features-explorer.app-showcase .product-tab-copy strong,
+  html[lang] body.l131 .features-explorer.app-showcase .product-tab-copy small {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  html[lang] body.l131 .features-explorer.app-showcase .product-tab-soon {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+}
+@media (max-width: 360px) {
+  html[lang] body.l131 .features-explorer.app-showcase .product-tab {
+    min-height: 108px;
+  }
+}
+/* Mobile tapping should not shrink the grid card under the user's finger. */
+@media (max-width: 620px) and (prefers-reduced-motion: no-preference) {
+  html.mm-motion-active body.l131 .features-explorer.app-showcase .product-tab:active {
+    transform: none;
+  }
+}
