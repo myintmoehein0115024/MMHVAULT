@@ -16,7 +16,8 @@ const decisionSource=extract('function mmhN10AalDecisionV20261102(data){','let a
 const decision=vm.runInNewContext(decisionSource+'\nmmhN10AalDecisionV20261102;',Object.create(null));
 const cases=[
   [null,'deny'],[undefined,'deny'],[{},'deny'],
-  [{currentLevel:null,nextLevel:'aal1'},'deny'],
+  [{currentLevel:null,nextLevel:'aal1'},'legacy'],
+  [{currentLevel:null,nextLevel:'aal2'},'step_up'],
   [{currentLevel:'aal1',nextLevel:null},'deny'],
   [{currentLevel:undefined,nextLevel:'aal2'},'deny'],
   [{currentLevel:'unknown',nextLevel:'aal1'},'deny'],
@@ -36,6 +37,8 @@ assert.ok(enter.includes("if(decision==='step_up')"));
 assert.ok(enter.includes("location.replace('login.html?mfa=1')"));
 assert.ok(enter.indexOf("if(decision==='deny')")<enter.indexOf('bootGuard.remove()'),'Must block before removing boot mask');
 assert.ok(enter.includes('enterTicket!==mmhP947AuthGateTicket'),'Reject stale entry auth response');
+assert.ok(enter.includes("if(decision==='legacy')"),'Legacy AAL1 must be conditionally verified');
+assert.ok(enter.includes('mmhN10ConfirmLegacyAalV20261102(session.user.id'),'Legacy AAL1 cannot unlock without fresh identity checks');
 
 const auth=extract("db.auth.onAuthStateChange((event,session)=>{","mmhvaultAuthBootTimerV3285=setTimeout(");
 const same=auth.slice(auth.indexOf('if(liveOwner===nextOwner){'));
@@ -48,6 +51,8 @@ assert.ok(!same.includes('try{applyUserProfile(session.user);}') ,'Do not treat 
 
 const reconcile=extract("async function mmhVaultReconcileSessionV1239(","window.mmhVaultHandleOnlineV1239=");
 assert.ok(reconcile.includes('const aal=await db.auth.mfa.getAuthenticatorAssuranceLevel()'));
+assert.ok(reconcile.includes("if(decision==='legacy')"),'Legacy AAL1 must reverify account and MFA');
+assert.ok(reconcile.includes('mmhN10ConfirmLegacyAalV20261102(owner'),'Legacy AAL1 must use the verified owner');
 assert.ok(reconcile.includes('mmhN10AalDecisionV20261102(aal.data)'));
 assert.ok(reconcile.includes("if(decision==='deny')throw"));
 assert.ok(reconcile.includes("if(decision==='step_up')"));
@@ -110,7 +115,7 @@ function makeReconcile(level, overrides={}){
   assert.equal((await run()).ok,true,'Verified AAL2 can complete');
   assert.equal(record.unlocked,1);
 }
-for(const invalid of [null,{}, {currentLevel:null,nextLevel:'aal1'},{currentLevel:'aal1',nextLevel:null},{currentLevel:'surprise',nextLevel:'aal1'}]){
+for(const invalid of [null,{}, {currentLevel:undefined,nextLevel:'aal1'},{currentLevel:'aal1',nextLevel:null},{currentLevel:'surprise',nextLevel:'aal1'}]){
   const {run,record}=makeReconcile(invalid);
   assert.equal((await run()).ok,false,'Malformed assurance must fail closed');
   assert.equal(record.unlocked,0,'Never unlock on malformed assurance');
@@ -185,4 +190,74 @@ for(const invalid of [null,{}, {currentLevel:null,nextLevel:'aal1'},{currentLeve
   assert.equal(record.rechecks,2,'Obsolete concurrent refresh must not trigger redundant recheck');
   assert.equal(record.guards.filter(x=>x==='switch').length,3,'Each auth transition must mask synchronously');
 }
+
+{
+  const {run,record}=makeReconcile({currentLevel:null,nextLevel:'aal1'});
+  assert.equal((await run()).ok,true,'Legacy null AAL1 plus server-verified owner/session may pass');
+  assert.equal(record.unlocked,1,'Verified legacy AAL1 may unmask');
+}
+{
+  const {run,record}=makeReconcile({currentLevel:null,nextLevel:'aal2'});
+  assert.equal((await run()).mfaRequired,true,'Legacy null AAL must never bypass a verified MFA requirement');
+  assert.equal(record.unlocked,0,'MFA pending must remain masked');
+}
+{
+  let checks=0;
+  const owner={id:'synthetic-owner'},stranger={id:'synthetic-stranger'};
+  const {run,record}=makeReconcile({currentLevel:null,nextLevel:'aal1'},{
+    db:{auth:{
+      getSession:async()=>({data:{session:{user:owner}}}),
+      getUser:async()=>({data:{user:++checks===1?owner:stranger}}),
+      mfa:{getAuthenticatorAssuranceLevel:async()=>({data:{currentLevel:null,nextLevel:'aal1'}})}
+    }}
+  });
+  assert.equal((await run()).ok,false,'Fresh second owner check must match for legacy allowance');
+  assert.equal(record.unlocked,0);
+}
+{
+  let checks=0;
+  const owner={id:'synthetic-owner'},stranger={id:'synthetic-stranger'};
+  const {run,record}=makeReconcile({currentLevel:null,nextLevel:'aal1'},{
+    db:{auth:{
+      getSession:async()=>({data:{session:{user:++checks===1?owner:stranger}}}),
+      getUser:async()=>({data:{user:owner}}),
+      mfa:{getAuthenticatorAssuranceLevel:async()=>({data:{currentLevel:null,nextLevel:'aal1'}})}
+    }}
+  });
+  assert.equal((await run()).ok,false,'Fresh second session check must match for legacy allowance');
+  assert.equal(record.unlocked,0);
+}
+{
+  let checks=0;
+  const owner={id:'synthetic-owner'};
+  const {run,record}=makeReconcile({currentLevel:null,nextLevel:'aal1'},{
+    db:{auth:{
+      getSession:async()=>({data:{session:{user:owner}}}),
+      getUser:async()=>({data:{user:owner}}),
+      mfa:{getAuthenticatorAssuranceLevel:async()=>({data:++checks===1?
+        {currentLevel:null,nextLevel:'aal1'}:{currentLevel:'aal1',nextLevel:'aal2'}})}
+    }}
+  });
+  assert.equal((await run()).mfaRequired,true,'Factor enrollment during legacy checks must require MFA');
+  assert.equal(record.unlocked,0);
+}
+{
+  let checks=0;
+  const deferredIdentity=deferred(),owner={id:'synthetic-owner'};
+  const {run,record,ctx}=makeReconcile({currentLevel:null,nextLevel:'aal1'},{
+    db:{auth:{
+      getSession:async()=>({data:{session:{user:owner}}}),
+      getUser:()=>++checks===1?Promise.resolve({data:{user:owner}}):deferredIdentity.promise,
+      mfa:{getAuthenticatorAssuranceLevel:async()=>({data:{currentLevel:null,nextLevel:'aal1'}})}
+    }}
+  });
+  const pending=run();
+  await flush();
+  ctx.mmhP947AuthGateTicket++;
+  deferredIdentity.resolve({data:{user:owner}});
+  assert.equal((await pending).superseded,true,'A newer auth event invalidates old legacy recheck');
+  assert.equal(record.unlocked,0,'Expired legacy check must not unmask');
+}
+console.log('PASS: verified legacy null AAL1, MFA enrollment race, cross-owner/session denial and stale-identity denial.');
+
 console.log('PASS: dynamic synthetic session reconciliation, malformed AAL, MFA step-up, stale async results and same-owner refresh.');
