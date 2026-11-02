@@ -867,14 +867,25 @@
     closeMenu();
     closeLanguage();
   }));
+  // L1.22: Escape dismisses only the topmost open header layer. Restore
+  // keyboard focus to a visible trigger, never an item inside a hidden menu.
   document.addEventListener('keydown', event => {
-    if (event.key === 'Escape') {
-      const wasOpen = !localeMenu.hidden;
-      const wasExploreOpen = !!explore?.open;
+    if (event.key !== 'Escape') return;
+    if (!localeMenu.hidden) {
       closeLanguage();
+      localeTrigger.focus();
+      event.preventDefault();
+      return;
+    }
+    if (explore?.open) {
+      closeExplore(true);
+      event.preventDefault();
+      return;
+    }
+    if (siteHeader.classList.contains('menu-open')) {
       closeMenu();
-      if (wasExploreOpen && exploreSummary) exploreSummary.focus();
-      else if (wasOpen) localeTrigger.focus();
+      toggle.focus();
+      event.preventDefault();
     }
   });
   document.addEventListener('click', event => {
@@ -952,19 +963,87 @@
   const productLabels={dashboard:'Dashboard',transactions:'Transactions',accounts:'Accounts',invest:'Invest',analyze:'Analyze',life:'Life Planner'};
   const productFeatureKeys={dashboard:'featureDashboard',transactions:'featureTransactions',accounts:'featureAccounts',invest:'featureInvest',analyze:'featureAnalyze',life:'featureLife'};
   const productCap={dashboard:'Dashboard',transactions:'Transactions',accounts:'Accounts',invest:'Invest',analyze:'Analyze',life:'Life'};
+  // L1.21: keep the previous demo on screen until its replacement is ready.
+  // The static HTML retains [hidden] as a usable no-script fallback.
   let activeProduct='dashboard';
+  let previewTransition=null;
+  const previewPane=document.querySelector('.app-sim-content');
+  const reducedPreviewMotion=window.matchMedia('(prefers-reduced-motion: reduce)');
+
+  function settlePreviewTransition(){
+    const state=previewTransition;
+    if(state){
+      previewTransition=null;
+      window.clearTimeout(state.timer);
+      window.cancelAnimationFrame(state.frame1);
+      window.cancelAnimationFrame(state.frame2);
+    }
+    productPanels.forEach(panel=>{
+      const isCurrent=panel.dataset.productPanel===activeProduct;
+      panel.hidden=!isCurrent;
+      panel.inert=!isCurrent;
+      panel.setAttribute('aria-hidden',String(!isCurrent));
+      panel.classList.remove('mmh-preview-enter','mmh-preview-exit','mmh-preview-running');
+    });
+  }
+
   function selectProductView(view,focus=false){
     const name=productNames.includes(view)?view:'dashboard';
+    // Rapid clicks cancel old fades before starting the new selection.
+    if(previewTransition)settlePreviewTransition();
+    const previousName=activeProduct;
     activeProduct=name;
-    productTabs.forEach(t=>{const yes=t.dataset.productTab===name;t.classList.toggle('is-active',yes);t.setAttribute('aria-selected',String(yes));t.tabIndex=yes?0:-1;if(yes&&focus)t.focus()});
-    productPanels.forEach(p=>{p.hidden=p.dataset.productPanel!==name});
-    const stage=document.querySelector('.product-stage');if(stage)stage.dataset.productCurrent=name;
-    const idx=document.querySelector('[data-app-story-index]');if(idx)idx.textContent=String(productNames.indexOf(name)+1).padStart(2,'0')+' / 06';
-    const title=document.querySelector('[data-app-story-title]');if(title)title.textContent=productLabels[name];
+    productTabs.forEach(t=>{
+      const yes=t.dataset.productTab===name;
+      t.classList.toggle('is-active',yes);
+      t.setAttribute('aria-selected',String(yes));
+      t.tabIndex=yes?0:-1;
+      if(yes&&focus)t.focus();
+    });
+    const outgoing=productPanels.find(p=>p.dataset.productPanel===previousName);
+    const incoming=productPanels.find(p=>p.dataset.productPanel===name);
+    const animate=previousName!==name && outgoing && incoming &&
+      !reducedPreviewMotion.matches && !document.hidden &&
+      typeof window.requestAnimationFrame==='function';
+
+    if(animate){
+      // Exit panel stays painted above the enter panel; no empty frame.
+      outgoing.classList.add('mmh-preview-exit');
+      outgoing.inert=true;
+      outgoing.setAttribute('aria-hidden','true');
+      incoming.classList.add('mmh-preview-enter');
+      incoming.hidden=false;
+      incoming.inert=false;
+      incoming.setAttribute('aria-hidden','false');
+      const state={timer:0,frame1:0,frame2:0};
+      previewTransition=state;
+      state.frame1=window.requestAnimationFrame(()=>{
+        state.frame2=window.requestAnimationFrame(()=>{
+          if(previewTransition!==state)return;
+          outgoing.classList.add('mmh-preview-running');
+          incoming.classList.add('mmh-preview-running');
+        });
+      });
+      state.timer=window.setTimeout(()=>{
+        if(previewTransition===state)settlePreviewTransition();
+      },340);
+    }else{
+      settlePreviewTransition();
+    }
+
+    const stage=document.querySelector('.product-stage');
+    if(stage)stage.dataset.productCurrent=name;
+    const idx=document.querySelector('[data-app-story-index]');
+    if(idx)idx.textContent=String(productNames.indexOf(name)+1).padStart(2,'0')+' / 06';
+    const title=document.querySelector('[data-app-story-title]');
+    if(title)title.textContent=productLabels[name];
     const dict=strings[currentLang], desc=document.querySelector('[data-app-story-desc]'),key=productFeatureKeys[name];
     if(desc){desc.setAttribute('data-i18n',key);desc.textContent=dict[key]||''}
-    document.querySelectorAll('[data-app-story-benefit]').forEach(node=>{const k='appBenefit'+productCap[name]+(Number(node.dataset.appStoryBenefit)+1);node.setAttribute('data-i18n',k);node.textContent=dict[k]||''});
-    const pane=document.querySelector('.app-sim-content');if(pane)pane.scrollTop=0;
+    document.querySelectorAll('[data-app-story-benefit]').forEach(node=>{
+      const k='appBenefit'+productCap[name]+(Number(node.dataset.appStoryBenefit)+1);
+      node.setAttribute('data-i18n',k);node.textContent=dict[k]||'';
+    });
+    if(previewPane)previewPane.scrollTop=0;
   }
   productTabs.forEach((tab,i)=>{tab.addEventListener('click',()=>selectProductView(tab.dataset.productTab));tab.addEventListener('keydown',e=>{
     if(!['ArrowDown','ArrowRight','ArrowUp','ArrowLeft','Home','End'].includes(e.key))return;e.preventDefault();

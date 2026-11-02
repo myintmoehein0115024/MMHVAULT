@@ -120,13 +120,24 @@
       if(header.classList.contains('menu-open')&&!header.contains(event.target))closeNav();
       if(!event.target.closest('.locale-picker'))closeLanguage();
     });
+    // L1.22: dismiss one header layer per Escape, keeping focus visible.
+    // A collapsed Explore inside the mobile menu must not close the menu too.
     document.addEventListener('keydown',event=>{
       if(event.key!=='Escape')return;
-      const hadExplore=!!explore.open;
-      const hadLocale=!menu.hidden;
-      closeExplore(hadExplore);
-      closeNav(!hadExplore&&!hadLocale);
-      closeLanguage(!hadExplore&&hadLocale);
+      if(!menu.hidden){
+        closeLanguage(true);
+        event.preventDefault();
+        return;
+      }
+      if(explore.open){
+        closeExplore(true);
+        event.preventDefault();
+        return;
+      }
+      if(header.classList.contains('menu-open')){
+        closeNav(true);
+        event.preventDefault();
+      }
     });
     const media=window.matchMedia('(min-width: 1361px)');
     media.addEventListener?.('change',event=>{

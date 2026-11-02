@@ -94,3 +94,21 @@
 - The original 2-argument `mmh_n10_recovery_session_active(uuid,uuid)` remains installed and the old joint QA Edge still ACTIVE v1 with `verify_jwt=true`, recovery release OFF, expired window and empty allowlist. **Platform safety block remains unresolved; do not deploy retirement or run 3-arg V2 migration.**
 - These are current **configuration and empty-state observations only**, not a real signed AAL1/AAL2 test, proof of actual post-deletion orphan cleanup, plaintext reveal, or a release authorization.
 - Synced the Draft Vault branch against the newest approved public `main` only after verifying **zero overlap** between the 26 Vault-review paths and the 31 public-main paths changed since merge base. No App, login, finance, Staging or production mutation.
+
+
+## 2026-11-02 staging dual-account MFA readiness (read-only)
+- Connected Auth-Staging aggregate: exactly **2** users whose Auth app metadata kind is `username_only_staging`; **0** of those users have any verified MFA factor. Across Staging Auth users, **1 verified** and **1 unverified** factor. Identifiers, passwords and tokens were not retrieved.
+- **Real two-account signed AAL2 acceptance cannot be marked PASS** for those existing username test identities. Synthetic CI, test accounts' mere existence, and an unrelated user's verified factor are insufficient evidence.
+- Correction: the real private QA table is `public.mmh_n10_signed_qa_entries`, with `mmh_n10_qa_owner_select` PERMISSIVE SELECT policy and `mmh_n10_qa_mfa_select` RESTRICTIVE SELECT policy, both for `authenticated`. Earlier empty-match probe used an incorrect table/policy name; it was not a failed guard. Actual `pg_policies` metadata shows owner and MFA layers are configured.
+- Live legacy 2-arg session RPC remains installed; 3-arg V2 not installed. The previously blocked QA Edge retirement has not been retried and cannot be bypassed. Previously observed daily cleanup success remains valid.
+
+### Unperformed signed acceptance checklist (requires safe authorization and real fixtures)
+1. User A email/username/Google sign-in: validated bearer, matching session UID and correct owner profile; no A's data shown to B
+2. With verified MFA enrolled: AAL1 user denied private App/QA access; AAL2 after real 6-digit challenge can enter only owned data
+3. User B distinct session and enrollment: a previous tab, reload, BFCache and rapid sign-out→sign-in must show no previous owner's financial DOM
+4. Correct/wrong 10-word recovery proof: rate-limit, no phrase leak, original verifier unchanged, invalid/expired session denial
+5. During request: MFA enrollment, revocation, account switch, bad CAPTCHA/password and backend timeout must fail closed
+6. Vault: first encrypted backup, repeat identical backup, owner-only reveal, failed password, no rekey, delete and prove no orphan secrets
+7. Report exact signed-test evidence and rollback path before any separate production merge/deploy permission
+
+This is **only a read-only inspection and checklist**, not completion of these signed tests. No new account, MFA factor, Edge, SQL, Auth, production user or finance data was changed.

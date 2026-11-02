@@ -90,24 +90,10 @@
     ],{duration,delay,easing:'cubic-bezier(.19,.77,.22,1)',fill:'none'});
     activeAnimations.set(node,animation);
   };
-  const productStage=document.querySelector('.features-explorer .product-stage');
-  if(productStage){
-    const watch=new MutationObserver(records=>{
-      if(!permitted())return;
-      if(!records.some(r=>r.oldValue!==productStage.dataset.productCurrent)){
-        return;
-      }
-      const panel=productStage.querySelector('[data-product-panel]:not([hidden])');
-      if(!panel)return;
-      const parts=[...panel.querySelectorAll('.app-page-heading,.app-metric-grid,.app-mock-card')].slice(0,7);
-      if(parts.length){
-        parts.forEach((part,i)=>play(part,Math.min(i*56,220),10,450));
-      } else play(panel,0,10,450);
-      const story=document.querySelector('.features-explorer .app-story');
-      if(story)play(story,75,7,400);
-    });
-    watch.observe(productStage,{attributes:true,attributeFilter:['data-product-current'],attributeOldValue:true});
-  }
+  // L1.21: data-product-current now drives the single coordinated crossfade
+  // in landing.js and premium-l131.css. The former per-card staggered opacity
+  // animation made dashboard figures flash after each feature selection.
+  // Business concept transitions below remain unchanged.
 
   const businessStage=document.querySelector('#business .business-stage');
   if(businessStage){
