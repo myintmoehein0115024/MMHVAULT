@@ -309,6 +309,38 @@ async function load(page,route,failures){
        ensure(!await page.locator('body').evaluate(b=>b.classList.contains('mm-public-motion')),
          route+' '+width+'px reduced-motion page never activates reveal');
        ensure(await page.locator('h1').count()===1,route+' '+width+'px has one H1');
+       // L1.20 — public search metadata is parseable and tied to the official
+       // parent website, without changing any existing UI or account paths.
+       if([393,1440].includes(width)&&[
+         '/features/','/register/','/security.html','/privacy.html','/terms.html'
+       ].includes(route)){
+         const semantic=await page.evaluate(()=>{
+           const nodes=[...document.querySelectorAll('script[data-mmh-l120="webpage"]')];
+           if(nodes.length!==1)return {count:nodes.length};
+           const data=JSON.parse(nodes[0].textContent);
+           const entity=data['@graph']?.find(x=>x['@type']==='WebPage');
+           return {
+             count:nodes.length,
+             type:entity?.['@type'],
+             id:entity?.['@id'],
+             url:entity?.url,
+             parent:entity?.isPartOf?.['@id'],
+             about:entity?.about?.['@id'],
+             canonical:document.querySelector('link[rel="canonical"]')?.href,
+             breadcrumbs:data['@graph']?.filter(x=>x['@type']==='BreadcrumbList').length
+           };
+         });
+         const expectedUrl='https://mmhvault.com'+route;
+         ensure(semantic.count===1 && semantic.type==='WebPage' &&
+           semantic.id===expectedUrl+'#page' &&
+           semantic.url===expectedUrl && semantic.canonical===expectedUrl &&
+           semantic.parent==='https://mmhvault.com/#website' &&
+           semantic.about==='https://mmhvault.com/#'+(
+             ['/features/','/register/'].includes(route)?'software':'brand') &&
+           (['/features/','/register/'].includes(route)||semantic.breadcrumbs===1),
+           route+' '+width+'px official site semantic graph '+JSON.stringify(semantic));
+       }
+
        ensure(await page.locator('link[rel="canonical"]').count()===1,
          route+' '+width+'px canonical unique');
        // L1.17 — neither Chinese nor Burmese should be simultaneously
