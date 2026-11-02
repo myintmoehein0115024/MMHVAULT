@@ -1,0 +1,28 @@
+name: APP V11 admin member activity
+on:
+  push:
+    branches:
+      - feature/app-v11-admin-transaction-activity-20261102
+  pull_request:
+    paths:
+      - admin.html
+      - js/mmhvault-admin-member-activity-v11.js
+      - css/mmhvault-admin-member-activity-v11.css
+      - docs/sql/app-v11-admin-member-transaction-activity-REVIEW-ONLY.sql
+      - tests/app-v11-admin-member-activity.test.mjs
+      - .github/workflows/app-v11-admin-member-activity.yml
+permissions:
+  contents: read
+jobs:
+  member-activity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check admin member activity and RPC permission contract
+        run: node --test tests/app-v11-admin-member-activity.test.mjs
+      - name: Check legacy finance linkage regressions
+        run: node --test tests/data-integrity-v1.test.mjs tests/account-auto-fx-v1.test.mjs
