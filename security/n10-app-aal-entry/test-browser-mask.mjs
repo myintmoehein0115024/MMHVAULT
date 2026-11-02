@@ -166,6 +166,31 @@ async function exercise(browserType,viewport){
       return !!g&&!g.hidden&&g.contains(document.elementFromPoint(box.x+box.width/2,box.y+box.height/2));
     });
     assert.equal(switchedMasked,true,'Switching identity must synchronously mask the old finance workspace');
+    assert.equal(await page.evaluate(()=>eval('mmhP947AuthGateTicket')),1,
+      'Cross-owner event must invalidate old Auth requests before the switch microtask');
+    completed++;
+    // A previous owner's pending Auth response may not unmask after a new owner arrives.
+    await reset();
+    await page.evaluate(()=>{
+      window.__synthetic.delayUser=true;
+      window.__authCallback('TOKEN_REFRESHED',{user:{id:'synthetic-owner'}});
+    });
+    await page.waitForFunction(()=>!!window.__synthetic.resolveUser);
+    const switchDuringPending=await page.evaluate(()=>{
+      window.__authCallback('SIGNED_IN',{user:{id:'synthetic-new-owner'}});
+      const immediateTicket=eval('mmhP947AuthGateTicket');
+      window.__synthetic.delayUser=false;
+      window.__synthetic.resolveUser({data:{user:{id:'synthetic-owner'}},error:null});
+      return immediateTicket;
+    });
+    assert.equal(switchDuringPending,2,
+      'Switch event must synchronously supersede the pending old-owner refresh');
+    await page.waitForTimeout(80);
+    const maskAfterStale=await page.evaluate(()=>{
+      const g=document.querySelector('#mmhP947AccountGuard'),box=document.querySelector('#private-data').getBoundingClientRect();
+      return !!g&&!g.hidden&&g.contains(document.elementFromPoint(box.x+box.width/2,box.y+box.height/2));
+    });
+    assert.equal(maskAfterStale,true,'Old Auth result must not reveal finances after account switch');
     completed++;
     // Sign-out always covers old content until navigation completes.
     await reset();
@@ -224,6 +249,6 @@ try{
       console.log('PASS '+name+' '+label+' synthetic overlay, valid AAL, error, offline and MFA transition');
     }
   }
-  assert.equal(completed,44);
-  console.log('PASS: 44 browser scenarios across Chromium/WebKit desktop+mobile (synthetic fixtures only).');
+  assert.equal(completed,48);
+  console.log('PASS: 48 browser scenarios across Chromium/WebKit desktop+mobile (synthetic fixtures only).');
 }finally{await new Promise(resolve=>server.close(resolve));}
