@@ -427,6 +427,22 @@ async function load(page,route,failures){
            'L1.33 '+width+'px Burmese showcase typography fits with readable line spacing '+
              JSON.stringify(typography));
        }
+     // L1.34: EN / ZH / MY switch must never shrink mobile chooser cards or
+     // truncate a translated title. The Hero and document scroll remain native.
+     if([320,393,440].includes(width)){
+       const mobileCards=await page.locator('.features-explorer.app-showcase .product-tab')
+         .evaluateAll(tabs=>tabs.map(tab=>{
+           const strong=tab.querySelector('.product-tab-copy strong');
+           const card=getComputedStyle(tab);
+           return {minHeight:parseFloat(card.minHeight),
+             textFits:strong.scrollWidth<=strong.clientWidth+2,
+             cardFits:tab.scrollWidth<=tab.clientWidth+3};
+         }));
+       ensure(mobileCards.length===6&&mobileCards.every(card=>
+           card.minHeight>=93&&card.textFits&&card.cardFits),
+         'L1.34 '+width+'px '+language+' stable mobile feature buttons '+
+           JSON.stringify(mobileCards));
+     }
        if(language==='en'){
          const englishDescription=await page.locator('meta[name="description"]')
            .getAttribute('content');
