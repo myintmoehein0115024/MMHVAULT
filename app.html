@@ -12956,7 +12956,19 @@ db.auth.onAuthStateChange((event,session)=>{
       return;
     }
     if(liveOwner===nextOwner){
-      try{applyUserProfile(session.user);}catch(err){console.warn('MMHVAULT session profile refresh skipped',err);}
+      // Lock synchronously and invalidate older work before rechecking this session.
+      const authTicket=++mmhP947AuthGateTicket;
+      mmhP947GuardV947('switch');
+      Promise.resolve().then(async()=>{
+        const pending=mmhVaultSessionCheckPromiseV1239;
+        if(pending){try{await pending;}catch(_e){}}
+        if(authTicket!==mmhP947AuthGateTicket||currentSessionUser?.id!==nextOwner)return;
+        const result=await mmhVaultReconcileSessionV1239('auth-'+event,{refreshData:false});
+        if(authTicket!==mmhP947AuthGateTicket||currentSessionUser?.id!==nextOwner)return;
+        if(result?.ok!==true&&!result?.superseded)mmhP947GuardV947('error');
+      }).catch(err=>{
+        if(authTicket===mmhP947AuthGateTicket){console.warn('Session assurance refresh failed',err);mmhP947GuardV947('error');}
+      });
       return;
     }
     if(mmhvaultAuthBootSettledV3285){mmhP947GuardV947('switch');Promise.resolve().then(()=>window.mmhVaultSwitchSessionV1239(session)).catch(err=>{console.error('MMHVAULT session resume failed',err);mmhP947GuardV947('error');});}
@@ -14022,14 +14034,25 @@ function showWelcome(){
  const hide=()=>{w.classList.remove("show");w.setAttribute("aria-hidden","true");};
  window.setTimeout(hide,1900);
 }
+// N10 app entry guard: do not infer AAL1 from missing/invalid levels.
+function mmhN10AalDecisionV20261102(data){
+  if(!data||!['aal1','aal2'].includes(data.currentLevel)||!['aal1','aal2'].includes(data.nextLevel))return 'deny';
+  if(data.nextLevel==='aal2'&&data.currentLevel!=='aal2')return 'step_up';
+  return 'allow';
+}
 let activeEnterUserId="";
 async function enter(session){
   if(!session?.user?.id) return;
   // N10-A7.83: AAL1 cannot enter the finance workspace if this UID enabled TOTP.
   // This is an additional UI gate; protect high-risk backend operations separately.
+  const enterTicket=mmhP947AuthGateTicket;
   const a783=await db.auth.mfa.getAuthenticatorAssuranceLevel();
-  if(a783.error||!a783.data)throw a783.error||new Error('mfa_status_unavailable');
-  if(a783.data.nextLevel==='aal2'&&a783.data.currentLevel!=='aal2'){
+  if(enterTicket!==mmhP947AuthGateTicket)return {ok:false,superseded:true};
+  if(a783.error)throw a783.error;
+  const decision=mmhN10AalDecisionV20261102(a783.data);
+  if(decision==='deny')throw new Error('mfa_status_unavailable');
+  if(decision==='step_up'){
+    mmhP947GuardV947('switch');
     location.replace('login.html?mfa=1');
     return {ok:false,mfaRequired:true};
   }
@@ -14384,6 +14407,16 @@ async function mmhVaultReconcileSessionV1239(reason='resume',opts={}){
         return {ok:!!entered?.ok,resumed:!!entered?.ok};
       }
       if(currentSessionUser.id!==owner)return {ok:false,superseded:true};
+      const aal=await db.auth.mfa.getAuthenticatorAssuranceLevel();
+      if(startTicket!==mmhP947AuthGateTicket||startEpoch!==(Number(window.__mmhSessionEpochV1239)||0)||currentSessionUser?.id!==owner)return {ok:false,superseded:true};
+      if(aal.error)throw aal.error;
+      const decision=mmhN10AalDecisionV20261102(aal.data);
+      if(decision==='deny')throw new Error('mfa_status_unavailable');
+      if(decision==='step_up'){
+        mmhP947GuardV947('switch');
+        location.replace('login.html?mfa=1');
+        return {ok:false,mfaRequired:true};
+      }
       const mask=document.getElementById('mmhP947AccountGuard');
       const masked=!!mask&&!mask.hidden&&mask.style.display!=='none';
       const staleFor=Date.now()-Number(window.__mmhLastCloudLoadAtV1235||0);
