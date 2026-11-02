@@ -26,6 +26,17 @@
     if(locales.has(saved))locale=saved;
   }catch(_){/* Browser privacy mode: English is the fallback. */}
 
+  // L1.29: mirror the Landing menu action label across every public page.
+  const navToggleLabels={
+    en:{open:'Open navigation menu',close:'Close navigation menu'},
+    zh:{open:'打开导航菜单',close:'关闭导航菜单'},
+    my:{open:'လမ်းညွှန်မီနူး ဖွင့်ရန်',close:'လမ်းညွှန်မီနူး ပိတ်ရန်'}
+  };
+  function syncNavToggleLabel(){
+    if(toggle)toggle.setAttribute('aria-label',
+      header?.classList.contains('menu-open')?navToggleLabels[locale].close:navToggleLabels[locale].open);
+  }
+
   // L1.26: return focus to a visible trigger when dismissing compact
   // navigation, Explore or the language picker on any public page.
   function closeExplore(restoreFocus=false){
@@ -41,6 +52,7 @@
     const focusedInside=!!nav&&nav.contains(document.activeElement);
     header.classList.remove('menu-open');
     toggle.setAttribute('aria-expanded','false');
+    syncNavToggleLabel();
     closeExplore();
     if((restoreFocus&&wasOpen)||
       (focusedInside&&nav&&getComputedStyle(nav).display==='none'))toggle.focus({preventScroll:true});
@@ -65,8 +77,7 @@
     });
     if(flag)flag.textContent=display[code].flag;
     if(name)name.textContent=display[code].name;
-    if(toggle)toggle.setAttribute('aria-label',
-      code==='zh'?'打开导航菜单':code==='my'?'လမ်းညွှန်မီနူး ဖွင့်ရန်':'Open navigation menu');
+    syncNavToggleLabel();
     if(nav)nav.setAttribute('aria-label',
       code==='zh'?'主导航':code==='my'?'အဓိကလမ်းညွှန်':'Primary navigation');
     try{window.localStorage.setItem(storageKey,code)}catch(_){}
@@ -111,6 +122,7 @@
       closeLanguage();
       const open=header.classList.toggle('menu-open');
       toggle.setAttribute('aria-expanded',String(open));
+      syncNavToggleLabel();
     });
     nav.querySelectorAll('a').forEach(link=>{
       link.addEventListener('click',()=>{

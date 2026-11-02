@@ -13,9 +13,9 @@ const source = path => {
 const current = read('index.html');
 const prev=source('index.html');
 
-/* L1.28: preserve exact L1.27 title, language, Hero and SEO.
- * Only prevent closing header menus from scrolling the page and animate
- * the opening of compact public panels. All other bytes stay at main. */
+/* L1.29: only the compact navigation's accessible action label changes.
+ * Enforce exact code edits from main while preserving all seven public pages,
+ * shared motion stylesheet, fixed multilingual Hero and SEO byte-for-byte. */
 const oldHeroPreload='<link rel="preload" as="image" type="image/webp" href="./landing-assets/cinematic-lake.webp">';
 const newHeroPreload='<link rel="preload" as="image" type="image/webp" href="./landing-assets/personal-business-concept.webp" fetchpriority="high">';
 function patchOnly(path,changes){
@@ -26,16 +26,17 @@ function patchOnly(path,changes){
  }
  return expected===read(path);
 }
-const l128LandingFocusOnlyEdited=()=>patchOnly('landing-assets/landing.js',[
- ['exploreSummary.focus();','exploreSummary.focus({preventScroll:true});',1],
- ['toggle.focus();','toggle.focus({preventScroll:true});',2]
+const l129LandingMenuLabelOnlyEdited=()=>patchOnly('landing-assets/landing.js',[
+ ["  function applyLanguage(lang) {","  // L1.29: the compact menu button must announce the action it will take.\n  // Follow current language and real open state; no visual or layout change.\n  const navToggleLabels = {\n    en: {open:'Open navigation menu',close:'Close navigation menu'},\n    zh: {open:'打开导航菜单',close:'关闭导航菜单'},\n    my: {open:'လမ်းညွှန်မီနူး ဖွင့်ရန်',close:'လမ်းညွှန်မီနူး ပိတ်ရန်'}\n  };\n  function syncNavToggleLabel() {\n    const labels = navToggleLabels[currentLang];\n    toggle.setAttribute('aria-label',siteHeader.classList.contains('menu-open')?labels.close:labels.open);\n  }\n\n  function applyLanguage(lang) {",1],
+ ["    toggle.setAttribute('aria-label', currentLang === 'zh' ? '打开导航菜单' : (currentLang === 'my' ? 'လမ်းညွှန်မီနူး ဖွင့်ရန်' : 'Open navigation menu'));","    syncNavToggleLabel();",1],
+ ["    toggle.setAttribute('aria-expanded', 'false');\n    closeExplore();","    toggle.setAttribute('aria-expanded', 'false');\n    syncNavToggleLabel();\n    closeExplore();",1],
+ ["    toggle.setAttribute('aria-expanded', String(isOpen));\n  });","    toggle.setAttribute('aria-expanded', String(isOpen));\n    syncNavToggleLabel();\n  });",1]
  ])&&current===prev&&current.includes('<title>MMHVAULT | Personal Finance & Wealth</title>');
-const l128PublicFocusOnlyEdited=()=>patchOnly('landing-assets/public-pages.js',[
- ['exploreSummary.focus();','exploreSummary.focus({preventScroll:true});',1],
- ['toggle.focus();','toggle.focus({preventScroll:true});',1]
- ]);
-const l128SharedHeaderMotionOnlyEdited=()=>patchOnly('landing-assets/shared-header-l116.css',[
- ['@media(prefers-reduced-motion:reduce){',"/* L1.28: paint-only panel entrance, identical on every public header.\n   Never animate the sticky header or scroll; reduced-motion sees no animation. */\n@keyframes mmh-public-panel-in{\n  from{opacity:0;transform:translate3d(0,-7px,0)}\n  to{opacity:1;transform:translate3d(0,0,0)}\n}\n@media(max-width:1360px) and (prefers-reduced-motion:no-preference){\n  body.mmh-nav-unified .site-header.menu-open #primary-nav{\n    animation:mmh-public-panel-in .19s cubic-bezier(.2,.65,.3,1) both\n  }\n}\n@media(prefers-reduced-motion:no-preference){\n  body.mmh-nav-unified .site-header .locale-menu:not([hidden]),\n  body.mmh-nav-unified .site-header .nav-explore[open]>.nav-explore-menu{\n    animation:mmh-public-panel-in .17s cubic-bezier(.2,.65,.3,1) both\n  }\n}\n\n@media(prefers-reduced-motion:reduce){",1]
+const l129PublicMenuLabelOnlyEdited=()=>patchOnly('landing-assets/public-pages.js',[
+ ["  // L1.26: return focus to a visible trigger","  // L1.29: mirror the Landing menu action label across every public page.\n  const navToggleLabels={\n    en:{open:'Open navigation menu',close:'Close navigation menu'},\n    zh:{open:'打开导航菜单',close:'关闭导航菜单'},\n    my:{open:'လမ်းညွှန်မီနူး ဖွင့်ရန်',close:'လမ်းညွှန်မီနူး ပိတ်ရန်'}\n  };\n  function syncNavToggleLabel(){\n    if(toggle)toggle.setAttribute('aria-label',\n      header?.classList.contains('menu-open')?navToggleLabels[locale].close:navToggleLabels[locale].open);\n  }\n\n  // L1.26: return focus to a visible trigger",1],
+ ["    toggle.setAttribute('aria-expanded','false');\n    closeExplore();","    toggle.setAttribute('aria-expanded','false');\n    syncNavToggleLabel();\n    closeExplore();",1],
+ ["    if(toggle)toggle.setAttribute('aria-label',\n      code==='zh'?'打开导航菜单':code==='my'?'လမ်းညွှန်မီနူး ဖွင့်ရန်':'Open navigation menu');","    syncNavToggleLabel();",1],
+ ["      toggle.setAttribute('aria-expanded',String(open));\n    });","      toggle.setAttribute('aria-expanded',String(open));\n      syncNavToggleLabel();\n    });",1]
  ]);
 const manifest=JSON.parse(read('mmh-manifest-v2.webmanifest'));
 const oldManifest=JSON.parse(source('mmh-manifest-v2.webmanifest'));
@@ -418,7 +419,7 @@ check('Homepage retains all prior content and SEO outside shared header layer',
  current.includes('<body id="top" class="l131 mmh-nav-unified">') &&
  current.includes('<link rel="stylesheet" href="./landing-assets/shared-header-l116.css?v=1">') &&
  current===prev &&
- l128LandingFocusOnlyEdited() &&
+ l129LandingMenuLabelOnlyEdited() &&
  source('landing-assets/explore-l114.css')===read('landing-assets/explore-l114.css'));
 const publicHeaders=['about/index.html','features/index.html','business/index.html',
  'register/index.html','security.html','privacy.html','terms.html'];
@@ -553,41 +554,46 @@ check('L1.24 preload prioritizes the one real Hero image with no duplicate image
  current.includes('loading="lazy" decoding="async"') &&
  !current.includes(oldHeroPreload));
 check('L1.25 Hero only waits for decoded pixels, preserving original fallback',
- l128LandingFocusOnlyEdited() &&
+ l129LandingMenuLabelOnlyEdited() &&
  current===prev &&
  current.includes(newHeroPreload) &&
  !current.includes(oldHeroPreload));
 check('L1.27 public tab title matches SEO without language focus scroll',
- l128LandingFocusOnlyEdited() &&
- l128PublicFocusOnlyEdited() &&
+ l129LandingMenuLabelOnlyEdited() &&
+ l129PublicMenuLabelOnlyEdited() &&
  current===prev && current.includes(newHeroPreload) &&
  !current.includes(oldHeroPreload));
-check('L1.28 exact five-file public focus, scroll and panel motion scope',
- actual.length===5 &&
+check('L1.29 exact four-file localized navigation action label scope',
+ actual.length===4 &&
  actual.every(path=>[
   'landing-assets/landing.js',
   'landing-assets/public-pages.js',
-  'landing-assets/shared-header-l116.css',
   'landing-assets/landing-release-check.cjs',
   'landing-assets/landing-browser-check.cjs'
  ].includes(path)) &&
  current===prev &&
- l128LandingFocusOnlyEdited() &&
- l128PublicFocusOnlyEdited() &&
- l128SharedHeaderMotionOnlyEdited() &&
+ l129LandingMenuLabelOnlyEdited() &&
+ l129PublicMenuLabelOnlyEdited() &&
+ source('landing-assets/shared-header-l116.css')===read('landing-assets/shared-header-l116.css') &&
  publicHeaders.every(path=>read(path)===source(path)) &&
  ['landing-assets/public-pages.css','landing-assets/landing.css',
   'landing-assets/business.css','landing-assets/cinematic.css',
   'landing-assets/premium-l131.css','landing-assets/motion-l132.css',
-  'landing-assets/motion-l132.js',
+  'landing-assets/motion-l132.js','landing-assets/shared-header-l116.css',
   'sitemap.xml','robots.txt','mmh-manifest-v2.webmanifest']
  .every(path=>read(path)===source(path)));
-check('L1.28 header motion is scoped to public menus and respects reduced motion',
- l128SharedHeaderMotionOnlyEdited() &&
+check('L1.28 shared header motion remains unchanged and accessible',
+ source('landing-assets/shared-header-l116.css')===read('landing-assets/shared-header-l116.css') &&
  !read('landing-assets/shared-header-l116.css').includes('body.app') &&
  read('landing-assets/shared-header-l116.css').includes('prefers-reduced-motion:no-preference') &&
  read('landing-assets/shared-header-l116.css').includes('animation:mmh-public-panel-in') &&
  read('landing-assets/shared-header-l116.css').includes('body.mmh-nav-unified .site-header .locale-menu:not([hidden])'));
+check('L1.29 localized action names work without changing content or header geometry',
+ ['en','zh','my'].every(lang=>read('landing-assets/landing.js').includes(
+   lang+': {open:')) &&
+ read('landing-assets/landing.js').includes('syncNavToggleLabel();') &&
+ read('landing-assets/public-pages.js').includes('syncNavToggleLabel();') &&
+ source('landing-assets/shared-header-l116.css')===read('landing-assets/shared-header-l116.css'));
 check('Protected auth/PWA/SEO/config sources unchanged in PR diff',
  ['business.html','app.html','login.html','sitemap.xml','robots.txt',
   'mmh-manifest-v2.webmanifest'].every(file=>{
