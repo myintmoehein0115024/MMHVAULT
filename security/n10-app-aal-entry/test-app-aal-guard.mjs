@@ -550,6 +550,43 @@ console.log('PASS: synthetic app entry for normal/legacy AAL, invalid users, fac
   assert.deepEqual(signouts,['signed-out'],'Latest signout must complete');
 }
 {
+  // A queued sign-out, followed by a renewed session and another sign-out,
+  // must NOT inherit the old redirect latch and silently ignore the latest logout.
+  let callback;
+  const pending=[],signedOut=[],guards=[];
+  const ctx={
+    Promise,console:{warn(){}},currentSessionUser:{id:'synthetic-owner-a'},
+    mmhP947AuthGateTicket:0,mmhvaultAuthBootSettledV3285:true,
+    mmhvaultAuthRedirectingV1239:false,mmhVaultSessionCheckPromiseV1239:null,
+    db:{auth:{onAuthStateChange:cb=>{callback=cb;}}},
+    setTimeout:fn=>{pending.push(fn);return pending.length;},
+    mmhP947GuardV947:phase=>guards.push(phase),
+    document:{getElementById:()=>null},
+    mmhVaultReconcileSessionV1239:async()=>({ok:true}),
+    mmhvaultFinishAuthBootV3285:()=>{},
+    window:{
+      mmhVaultSwitchSessionV1239:async()=>({ok:true}),
+      mmhVaultSignOutCleanupV1239:async()=>{signedOut.push('latest');}
+    },
+    applyUserProfile:()=>{},sessionStorage:{removeItem(){}},location:{replace(){}}
+  };
+  vm.runInNewContext(auth,ctx,{timeout:2000});
+  callback('SIGNED_OUT',null);
+  assert.equal(ctx.mmhvaultAuthRedirectingV1239,true,'Initial signout latches redirect');
+  callback('SIGNED_IN',{user:{id:'synthetic-owner-a'}});
+  assert.equal(ctx.mmhvaultAuthRedirectingV1239,false,
+    'New session must clear a cancelled signout latch');
+  callback('SIGNED_OUT',null);
+  assert.equal(ctx.mmhvaultAuthRedirectingV1239,true,
+    'Latest logout must establish a new redirect latch');
+  while(pending.length)pending.shift()();
+  await flush();
+  assert.deepEqual(signedOut,['latest'],
+    'The last logout must run exactly once even after a cancelled previous logout');
+  assert.equal(guards.filter(x=>x==='switch').length,3,
+    'Every auth transition must still cover private data synchronously');
+}
+{
   // INITIAL_SESSION work must be cancelled if Auth changes before the deferred boot.
   const scheduled=[],entered=[],calls=[];
   const ctx={

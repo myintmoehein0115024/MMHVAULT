@@ -12955,6 +12955,10 @@ let mmhvaultAuthRedirectingV1239=false;
 db.auth.onAuthStateChange((event,session)=>{
   if(event==='INITIAL_SESSION'){mmhvaultFinishAuthBootV3285(session);return;}
   if(session?.user?.id){
+    // A previously queued SIGNED_OUT can be superseded by a newer valid session.
+    // Reset the redirect latch so the NEXT real SIGNED_OUT cannot be ignored.
+    // Each queued operation still verifies its Auth gate ticket before running.
+    mmhvaultAuthRedirectingV1239=false;
     const liveOwner=currentSessionUser?.id||'';
     const nextOwner=session.user.id;
     if(liveOwner&&liveOwner!==nextOwner){

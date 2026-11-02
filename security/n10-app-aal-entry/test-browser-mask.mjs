@@ -200,6 +200,17 @@ async function exercise(browserType,viewport){
     await page.waitForURL(/login\.html$/);
     assert.equal(await page.locator('#private-data').count(),0,'Signed-out page must not contain financial data');
     completed++;
+    // A superseded SIGNED_OUT must not block a later real signout.
+    await reset();
+    await page.evaluate(()=>{
+      window.__authCallback('SIGNED_OUT',null);
+      window.__authCallback('SIGNED_IN',{user:{id:'synthetic-owner'}});
+      window.__authCallback('SIGNED_OUT',null);
+    });
+    await page.waitForURL(/login\\.html$/);
+    assert.equal(await page.locator('#private-data').count(),0,
+      'Rapid sign-out/sign-in/sign-out must never leave finance visible');
+    completed++;
     // Returning to a stale tab must mask cached finance DOM before Auth resolves.
     await reset();
     await page.evaluate(()=>{
@@ -251,6 +262,6 @@ try{
       console.log('PASS '+name+' '+label+' synthetic overlay, valid AAL, error, offline and MFA transition');
     }
   }
-  assert.equal(completed,48);
-  console.log('PASS: 48 browser scenarios across Chromium/WebKit desktop+mobile (synthetic fixtures only).');
+  assert.equal(completed,52);
+  console.log('PASS: 52 browser scenarios across Chromium/WebKit desktop+mobile (synthetic fixtures only).');
 }finally{await new Promise(resolve=>server.close(resolve));}
