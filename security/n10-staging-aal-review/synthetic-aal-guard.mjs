@@ -30,3 +30,24 @@ export function evaluateSyntheticAalSession({
   }
   return false;
 }
+
+/**
+ * Offline contract for the read-only SQL release matrix.
+ * A schema preflight can only permit future signed QA; it NEVER authorizes
+ * secret disclosure, a Staging migration or a production release.
+ */
+export function syntheticStagingReadiness(flags) {
+  const keys = [
+    'three_arg_guard_exists', 'guard_service_only', 'backup_index_exists',
+    'vault_present', 'backup_rpcs_service_only', 'privacy_tables_locked',
+  ];
+  const ready = flags !== null && typeof flags === 'object' &&
+    keys.every(k => flags[k] === true);
+  return Object.freeze({
+    gate: ready ? 'SCHEMA_PRECHECK_OK__SIGNED_TWO_OWNER_MFA_QA_STILL_REQUIRED'
+                : 'HOLD__DO_NOT_ENABLE_RECOVERY_VIEW',
+    permittedToRevealWords: false,
+    permittedToDeploy: false,
+    signedMfaQaComplete: false,
+  });
+}
