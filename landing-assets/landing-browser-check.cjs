@@ -166,6 +166,38 @@ async function load(page,route,failures){
        if(r.url().startsWith(origin) && r.status()>=400)failures.push(r.status()+' '+r.url());
      });
      await load(page,'/',failures);
+     // L1.24 — preload should point to the actual Hero visual, not a
+     // separately painted lake background. The below-fold business image
+     // stays lazy; all paths and the original Hero layout stay unchanged.
+     if([320,393,1440].includes(width)){
+       const loading=await page.evaluate(()=>{
+         const preloads=[...document.querySelectorAll('link[rel="preload"][as="image"]')];
+         const hero=document.querySelector('img.hero-device-cinematic');
+         const business=document.querySelector('.business-visual-frame img');
+         return {
+           preloadCount:preloads.length,
+           preloadHref:preloads[0]?.href,
+           preloadType:preloads[0]?.type,
+           preloadPriority:preloads[0]?.getAttribute('fetchpriority'),
+           imageSrc:hero?.currentSrc,
+           imagePriority:hero?.getAttribute('fetchpriority'),
+           imageReady:!!(hero?.complete&&hero?.naturalWidth>0),
+           imageSize:[hero?.getAttribute('width'),hero?.getAttribute('height')],
+           businessLazy:business?.getAttribute('loading'),
+           businessAsync:business?.getAttribute('decoding'),
+           businessSrc:business?.currentSrc
+         };
+       });
+       ensure(loading.preloadCount===1&&
+         loading.preloadHref===loading.imageSrc&&
+         loading.preloadType==='image/webp'&&
+         loading.preloadPriority==='high'&&
+         loading.imagePriority==='high'&&loading.imageReady&&
+         JSON.stringify(loading.imageSize)===JSON.stringify(['1600','900'])&&
+         loading.businessLazy==='lazy'&&loading.businessAsync==='async'&&
+         loading.businessSrc===loading.imageSrc,
+         width+'px first-screen photo preloads once and below-fold image remains lazy '+JSON.stringify(loading));
+     }
      // L1.19 — tiny phone CTAs remain touchable without text clipping.
      if(width<=620){
        const ctas=await page.locator('.hero .hero-buttons .button').evaluateAll(els=>
