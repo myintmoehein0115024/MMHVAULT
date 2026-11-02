@@ -14479,12 +14479,35 @@ async function mmhVaultReconcileSessionV1239(reason='resume',opts={}){
 window.mmhVaultHandleOnlineV1239=function(){return mmhVaultReconcileSessionV1239('online',{forceRealtime:true,refreshData:true});};
 window.mmhVaultHandleOfflineV1239=function(){mmhVaultDisposeRealtimeV1239('OFFLINE');};
 function mmhVaultResumeLifecycleV1239(reason){
-  const now=Date.now();if(now-mmhVaultLastSessionCheckV1239<1200)return;mmhVaultLastSessionCheckV1239=now;
+  const fromBackForwardCache=reason==='bfcache';
+  const now=Date.now();
+  if(!fromBackForwardCache&&now-mmhVaultLastSessionCheckV1239<1200)return;
+  mmhVaultLastSessionCheckV1239=now;
   const staleFor=now-Number(window.__mmhLastCloudLoadAtV1235||0);
+  if(fromBackForwardCache&&currentSessionUser?.id){
+    // A persisted Safari/WebKit page can show stale financial DOM immediately.
+    // Mask synchronously, invalidate pending Auth checks and reverify the owner.
+    const owner=currentSessionUser.id,ticket=++mmhP947AuthGateTicket;
+    mmhP947GuardV947('switch');
+    Promise.resolve().then(async()=>{
+      const pending=mmhVaultSessionCheckPromiseV1239;
+      if(pending){try{await pending;}catch(_e){}}
+      if(ticket!==mmhP947AuthGateTicket||currentSessionUser?.id!==owner)return;
+      const result=await mmhVaultReconcileSessionV1239('bfcache',{forceRealtime:true,refreshData:true});
+      if(ticket===mmhP947AuthGateTicket&&currentSessionUser?.id===owner&&
+         result?.ok!==true&&!result?.superseded&&!result?.mfaRequired)mmhP947GuardV947('error');
+    }).catch(err=>{
+      if(ticket===mmhP947AuthGateTicket&&currentSessionUser?.id===owner){
+        mmhP947GuardV947('error');console.warn('BFCache Auth recheck failed',err);
+      }
+    });
+    return;
+  }
   mmhVaultReconcileSessionV1239(reason,{forceRealtime:!realtimeReady,refreshData:staleFor>120000});
 }
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')mmhVaultResumeLifecycleV1239('visible');});
 window.addEventListener('focus',()=>mmhVaultResumeLifecycleV1239('focus'));
+window.addEventListener('pageshow',event=>{if(event.persisted)mmhVaultResumeLifecycleV1239('bfcache');});
 
 function currency(a){return mmhVaultAccountMeta(a).currency||"MMK";}
 function mmhCurrencySymbolV194(code){const c=String(code||'').trim().toUpperCase();return ({USD:'$',USDT:'$',THB:'฿',MMK:'K',CNY:'￥',RMB:'￥',AMD:'֏',AZN:'₼',GEL:'₾',INR:'₹',JPY:'¥',KRW:'₩',VND:'₫',PHP:'₱',TRY:'₺',RUB:'₽',EUR:'€'}[c]||c);}
