@@ -84,6 +84,18 @@ export function createRecoveryTransport({
         });
         if (!result || result.redirected === true) return {code: 'unavailable'};
         const data = await boundedJson(result);
+        // Never disclose a server response after local logout, account switch,
+        // or silent token rotation during the awaited request. This is a UI
+        // defense-in-depth check, not a substitute for server-side revocation.
+        const {data: currentSessionData, error: currentSessionError} = await auth.getSession();
+        const currentSession = currentSessionData?.session;
+        if (currentSessionError || currentSession?.user?.id !== user.id ||
+            currentSession?.access_token !== session.access_token)
+          return {code: 'sign_in_required'};
+        const {data: currentUserData, error: currentUserError} = await auth.getUser();
+        if (currentUserError || currentUserData?.user?.id !== user.id ||
+            currentUserData.user.is_anonymous === true)
+          return {code: 'sign_in_required'};
         if (!RESPONSE_CODES.has(data.code)) return {code: 'unavailable'};
         if (!result.ok && data.code === 'recovery_key') return {code: 'unavailable'};
         if (data.code === 'backup_status') {
