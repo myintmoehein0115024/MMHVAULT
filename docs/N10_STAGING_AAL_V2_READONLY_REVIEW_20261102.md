@@ -42,3 +42,25 @@ A future *separately approved* Staging migration must:
 - Recheck latest `main` and independent PR #2, #11, #37, #43, #50 before any merge, avoid shared `app.html` and APP V11 conflicts, and obtain fresh explicit owner approval for each stage.
 
 **Do not share recovery words, JWTs, password, QR secret or service-role keys in bug reports or ChatGPT messages.**
+
+## 2026-11-02 — live read-only readiness gate
+
+An additional `SELECT`-only catalog gate was added to `n10_staging_aal_v2_READ_ONLY_PREFLIGHT_20261102.sql` and **actually executed against Staging** without DDL or record mutations:
+
+| Read-only safety property | Result |
+| --- | --- |
+| Three-argument session + AAL guard exists | **FALSE** |
+| Three-argument guard is restricted to service-role only | **FALSE** (guard absent) |
+| Private backup-index table exists | TRUE |
+| Supabase Vault extension exists | TRUE |
+| All four Vault-related RPCs have service-only EXECUTE | TRUE |
+| Both private backup/rate tables have RLS and deny ordinary SELECT | TRUE |
+| Overall schema verdict | **`HOLD__DO_NOT_ENABLE_RECOVERY_VIEW`** |
+| Signed two-owner MFA QA | **NOT RUN** |
+| Production rollout permission | **NOT AUTHORIZED** |
+
+Aggregate-only read of synthetic staging account prerequisites: **2 dedicated username-only test accounts**, **0 with verified MFA**, **0 with AAL2 sessions**, **0 with encrypted original recovery-word backup**. This is *not* a signed account test, and no account IDs, words, passwords or tokens were accessed.
+
+Even after a future schema-only gate passes, the verdict is only `SCHEMA_PRECHECK_OK__SIGNED_TWO_OWNER_MFA_QA_STILL_REQUIRED` and **never** grants permission to deploy or reveal words. The new offline unit tests explicitly fail closed if any catalog requirement is missing.
+
+**No staging or production write occurred in this review.** A narrowly scoped request for permission to install a separately reviewed three-argument Staging-only guard can be considered later, subject to actual schema and rollback checks. Do not deploy this hard-blocked review SQL.
