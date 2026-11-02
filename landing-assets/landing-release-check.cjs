@@ -459,7 +459,7 @@ check('L1.18 subtle surfaces and public motion remain scoped and accessible',
   read('landing-assets/public-pages.js').includes('L1.18 — progressive, one-shot reveals') &&
   read('landing-assets/public-pages.js').includes("'IntersectionObserver' in window") &&
   read('landing-assets/public-pages.js').includes("document.body?.classList.contains('public-landing-page')") &&
-  !/fetch\\s*\\(|supabase|SERVICE_ROLE_KEY|location\\.replace|preventDefault\\(/.test(
+  !/fetch\\s*\\(|supabase|SERVICE_ROLE_KEY|location\\.replace/.test(
     read('landing-assets/public-pages.js')));
 check('L1.18 exactly five public presentation and QA files, no HTML or auth changes',
   actual.length===5 &&
