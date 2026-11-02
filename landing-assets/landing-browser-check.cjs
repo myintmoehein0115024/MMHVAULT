@@ -702,13 +702,25 @@ async function load(page,route,failures){
          bodyOverflow:getComputedStyle(document.body).overflow
        }));
        for(const language of ['zh','my','en']){
-         await page.locator('#locale-trigger').click();
+         // Click the actual visible button coordinate; Playwright locator.click
+         // may auto-scroll a sticky ancestor before dispatching a pointer click.
+         const triggerBox=await page.locator('#locale-trigger').boundingBox();
+         ensure(!!triggerBox&&triggerBox.y>=-2&&
+           triggerBox.y+triggerBox.height<=852,
+           route+' '+width+'px language trigger stays reachable while scrolling');
+         await page.mouse.click(triggerBox.x+triggerBox.width/2,
+           triggerBox.y+triggerBox.height/2);
          const opened=await page.evaluate(()=>({
            y:scrollY,x:scrollX,
            headerTop:document.querySelector('.site-header').getBoundingClientRect().top,
            focus:document.activeElement?.getAttribute('data-lang')
          }));
-         await page.locator('#locale-menu [data-lang="'+language+'"]').click();
+         const optionBox=await page.locator('#locale-menu [data-lang="'+language+'"]').boundingBox();
+         ensure(!!optionBox&&optionBox.y>=-2&&
+           optionBox.y+optionBox.height<=852,
+           route+' '+width+'px '+language+' language choice stays on screen');
+         await page.mouse.click(optionBox.x+optionBox.width/2,
+           optionBox.y+optionBox.height/2);
          const after=await page.evaluate(()=>({
            title:document.title,htmlTitle:document.querySelector('head title')?.textContent,
            lang:document.documentElement.lang,
