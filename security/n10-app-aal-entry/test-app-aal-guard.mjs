@@ -480,4 +480,54 @@ console.log('PASS: synthetic app entry for normal/legacy AAL, invalid users, fac
   assert.deepEqual(switches,['synthetic-owner-b','synthetic-owner-c']);
 }
 
+{
+  // Queued older account switches and sign-outs must not run after a newer event.
+  let callback;
+  const pending=[],switches=[],signouts=[];
+  const ctx={
+    Promise,console:{warn(){}},currentSessionUser:{id:'synthetic-owner-a'},
+    mmhP947AuthGateTicket:0,mmhvaultAuthBootSettledV3285:true,
+    mmhvaultAuthRedirectingV1239:false,mmhVaultSessionCheckPromiseV1239:null,
+    db:{auth:{onAuthStateChange:cb=>{callback=cb;}}},
+    setTimeout:fn=>{pending.push(fn);return pending.length;},
+    mmhP947GuardV947:()=>{},document:{getElementById:()=>null},
+    mmhVaultReconcileSessionV1239:async()=>({ok:true}),
+    mmhvaultFinishAuthBootV3285:()=>{},
+    window:{mmhVaultSwitchSessionV1239:async session=>{switches.push(session.user.id);return {ok:true};},
+      mmhVaultSignOutCleanupV1239:async()=>{signouts.push('signed-out');}},
+    applyUserProfile:()=>{},sessionStorage:{removeItem(){}},location:{replace(){}}
+  };
+  vm.runInNewContext(auth,ctx,{timeout:2000});
+  callback('SIGNED_IN',{user:{id:'synthetic-owner-b'}});
+  callback('SIGNED_IN',{user:{id:'synthetic-owner-c'}});
+  while(pending.length)pending.shift()();
+  await flush();
+  assert.deepEqual(switches,['synthetic-owner-c'],'Superseded owner B must never load');
+  callback('SIGNED_IN',{user:{id:'synthetic-owner-d'}});
+  callback('SIGNED_OUT',null);
+  while(pending.length)pending.shift()();
+  await flush();
+  assert.deepEqual(switches,['synthetic-owner-c'],'Pending owner D must be cancelled by signout');
+  assert.deepEqual(signouts,['signed-out'],'Latest signout must complete');
+}
+{
+  // INITIAL_SESSION work must be cancelled if Auth changes before the deferred boot.
+  const scheduled=[],entered=[],calls=[];
+  const ctx={
+    Promise,mmhvaultAuthBootSettledV3285:false,mmhvaultAuthBootTimerV3285:null,
+    mmhP947AuthGateTicket:0,
+    setTimeout:fn=>{scheduled.push(fn);return scheduled.length;},
+    clearTimeout:()=>{},console:{error(){}},document:{getElementById:()=>null},
+    db:{auth:{getUser:async()=>{calls.push('remote');return {data:{user:{id:'boot-owner'}}};}}},
+    enter:async session=>{entered.push(session.user.id);return {ok:true};}
+  };
+  vm.runInNewContext(boot,ctx,{timeout:2000});
+  ctx.mmhvaultFinishAuthBootV3285({user:{id:'boot-owner'}});
+  ctx.mmhP947AuthGateTicket++;
+  while(scheduled.length)scheduled.shift()();
+  await flush();
+  assert.deepEqual(calls,[],'Superseded initial boot must not run Auth API calls');
+  assert.deepEqual(entered,[],'Superseded initial boot cannot enter finance');
+}
+
 console.log('PASS: dynamic synthetic session reconciliation, malformed AAL, MFA step-up, stale async results and same-owner refresh.');

@@ -12900,12 +12900,16 @@ function mmhvaultFinishAuthBootV3285(session){
   mmhvaultAuthBootSettledV3285=true;
   if(mmhvaultAuthBootTimerV3285)clearTimeout(mmhvaultAuthBootTimerV3285);
   if(session){
+    const bootTicket=mmhP947AuthGateTicket;
     // Avoid calling Auth APIs until the INITIAL_SESSION observer has returned.
     setTimeout(()=>{
       Promise.resolve().then(async()=>{
+      if(bootTicket!==mmhP947AuthGateTicket)return;
       const {data:verified,error:verifyError}=await db.auth.getUser();
+      if(bootTicket!==mmhP947AuthGateTicket)return;
       if(verifyError||!verified?.user?.id||verified.user.id!==session.user?.id)
         throw verifyError||new Error('initial_auth_session_mismatch');
+      if(bootTicket!==mmhP947AuthGateTicket)return;
       return enter({...session,user:verified.user});
     }).catch(err=>{
       console.error('MMHVAULT app startup failed',err);
@@ -12955,12 +12959,14 @@ db.auth.onAuthStateChange((event,session)=>{
     const nextOwner=session.user.id;
     if(liveOwner&&liveOwner!==nextOwner){
       // Invalidate older Auth and cloud checks before the queued switch begins.
-      ++mmhP947AuthGateTicket;
-      // Lock synchronously: Reacting in a later microtask leaves the old DOM visible.
+      const switchTicket=++mmhP947AuthGateTicket;
+      // Lock synchronously; deferring the mask could reveal the previous account.
       mmhP947GuardV947('switch');
       setTimeout(()=>{
-        Promise.resolve().then(()=>window.mmhVaultSwitchSessionV1239(session))
-          .catch(err=>{console.error('MMHVAULT account switch failed',err);mmhP947GuardV947('error');});
+        Promise.resolve().then(()=>{
+          if(switchTicket!==mmhP947AuthGateTicket)return;
+          return window.mmhVaultSwitchSessionV1239(session);
+        }).catch(err=>{console.error('MMHVAULT account switch failed',err);mmhP947GuardV947('error');});
       },0);
       return;
     }
@@ -12988,10 +12994,13 @@ db.auth.onAuthStateChange((event,session)=>{
     }
     if(mmhvaultAuthBootSettledV3285){
       // A newly restored owner also invalidates previous ownerless boot requests.
-      ++mmhP947AuthGateTicket;
+      const resumeTicket=++mmhP947AuthGateTicket;
       mmhP947GuardV947('switch');
       setTimeout(()=>{
-        Promise.resolve().then(()=>window.mmhVaultSwitchSessionV1239(session))
+        Promise.resolve().then(()=>{
+          if(resumeTicket!==mmhP947AuthGateTicket)return;
+          return window.mmhVaultSwitchSessionV1239(session);
+        })
           .catch(err=>{console.error('MMHVAULT session resume failed',err);mmhP947GuardV947('error');});
       },0);
     }
@@ -12999,9 +13008,10 @@ db.auth.onAuthStateChange((event,session)=>{
   }
   if(mmhvaultAuthRedirectingV1239)return;
   mmhvaultAuthRedirectingV1239=true;
-  ++mmhP947AuthGateTicket;mmhP947GuardV947('switch');
+  const signOutTicket=++mmhP947AuthGateTicket;mmhP947GuardV947('switch');
   setTimeout(()=>{
     Promise.resolve().then(()=>{
+    if(signOutTicket!==mmhP947AuthGateTicket)return;
     if(typeof window.mmhVaultSignOutCleanupV1239==='function')return window.mmhVaultSignOutCleanupV1239('auth-signed-out');
     try{applyUserProfile(null);}catch(_e){}
     sessionStorage.removeItem('myfinance_page');
