@@ -12,6 +12,18 @@ const source = path => {
 };
 const current = read('index.html');
 const prev=source('index.html');
+
+/* L1.24: one and only one head preload line may differ from main.
+ * Preserve the Hero, all translations, structured SEO, auth/PWA scripts and
+ * all body content byte-for-byte, including secure routes and fixed copy. */
+const oldHeroPreload='<link rel="preload" as="image" type="image/webp" href="./landing-assets/cinematic-lake.webp">';
+const newHeroPreload='<link rel="preload" as="image" type="image/webp" href="./landing-assets/personal-business-concept.webp" fetchpriority="high">';
+const originalHomeApartFromPreload=()=>
+ (prev.split(oldHeroPreload).length===2) &&
+ (current.split(newHeroPreload).length===2) &&
+ (current.split('<link rel="preload" as="image"').length===2) &&
+ current.replace(newHeroPreload,oldHeroPreload)===prev;
+
 const manifest=JSON.parse(read('mmh-manifest-v2.webmanifest'));
 const oldManifest=JSON.parse(source('mmh-manifest-v2.webmanifest'));
 const dom=(key,content)=>((content.match(new RegExp('<script id="'+key+'">([\\s\\S]*?)<\\/script>'))||[])[1]||null);
@@ -392,7 +404,7 @@ check('Homepage retains all prior content and SEO outside shared header layer',
  ['en','zh','my'].every(lang=>translationScript.includes('Object.assign(strings.'+lang+', {\n    navExplore:')) &&
  current.includes('<body id="top" class="l131 mmh-nav-unified">') &&
  current.includes('<link rel="stylesheet" href="./landing-assets/shared-header-l116.css?v=1">') &&
- current===prev &&
+ originalHomeApartFromPreload() &&
  source('landing-assets/landing.js')===translationScript &&
  source('landing-assets/explore-l114.css')===read('landing-assets/explore-l114.css'));
 const publicHeaders=['about/index.html','features/index.html','business/index.html',
@@ -521,20 +533,25 @@ check('L1.23 lightweight scroll reveals are opacity+transform only, motion acces
  read('landing-assets/public-pages.css').includes('L1.23 — lighter fade/translate reveals') &&
  read('landing-assets/public-pages.css').includes('transition-duration:410ms,445ms') &&
  read('landing-assets/public-pages.css').includes('@media(prefers-reduced-motion:reduce)'));
-check('L1.23 exactly four CSS/QA files; HTML, SEO, auth, UI content and JavaScript untouched',
- actual.length===4 &&
+check('L1.24 preload prioritizes the one real Hero image with no duplicate image preload',
+ originalHomeApartFromPreload() &&
+ current.includes('<img class="hero-device-cinematic" src="./landing-assets/personal-business-concept.webp"') &&
+ current.includes('decoding="async" fetchpriority="high"') &&
+ current.includes('loading="lazy" decoding="async"') &&
+ !current.includes(oldHeroPreload));
+check('L1.24 precisely three public preload/QA files and no secure or SEO changes',
+ actual.length===3 &&
  actual.every(path=>[
-  'landing-assets/motion-l132.css',
-  'landing-assets/public-pages.css',
-  'landing-assets/landing-release-check.cjs',
+  'index.html','landing-assets/landing-release-check.cjs',
   'landing-assets/landing-browser-check.cjs'
  ].includes(path)) &&
- current===prev &&
+ originalHomeApartFromPreload() &&
  publicHeaders.every(path=>read(path)===source(path)) &&
  ['landing-assets/landing.js','landing-assets/public-pages.js',
-  'landing-assets/motion-l132.js','landing-assets/premium-l131.css',
   'landing-assets/landing.css','landing-assets/business.css',
-  'landing-assets/cinematic.css','landing-assets/shared-header-l116.css',
+  'landing-assets/cinematic.css','landing-assets/premium-l131.css',
+  'landing-assets/motion-l132.css','landing-assets/motion-l132.js',
+  'landing-assets/public-pages.css','landing-assets/shared-header-l116.css',
   'sitemap.xml','robots.txt','mmh-manifest-v2.webmanifest']
  .every(path=>read(path)===source(path)));
 check('Protected auth/PWA/SEO/config sources unchanged in PR diff',
