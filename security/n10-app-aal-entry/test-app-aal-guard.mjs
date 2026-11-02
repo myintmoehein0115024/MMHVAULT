@@ -88,7 +88,10 @@ function makeReconcile(level, overrides={}){
     db:{auth:{
       getSession:async()=>({data:{session:{user:identity}}}),
       getUser:async()=>({data:{user:identity}}),
-      mfa:{getAuthenticatorAssuranceLevel:async()=>({data:level})}
+      mfa:{
+        getAuthenticatorAssuranceLevel:async()=>({data:level}),
+        listFactors:async()=>({data:{all:[]}})
+      }
     }},
     document:{getElementById:()=>({hidden:false,style:{display:'flex'}})},
     mmhP947GuardV947:phase=>record.guard.push(phase),
@@ -234,11 +237,14 @@ for(const invalid of [null,{}, {currentLevel:undefined,nextLevel:'aal1'},{curren
     db:{auth:{
       getSession:async()=>({data:{session:{user:owner}}}),
       getUser:async()=>({data:{user:owner}}),
-      mfa:{getAuthenticatorAssuranceLevel:async()=>({data:++checks===1?
-        {currentLevel:null,nextLevel:'aal1'}:{currentLevel:'aal1',nextLevel:'aal2'}})}
+      mfa:{
+        getAuthenticatorAssuranceLevel:async()=>({data:++checks===1?
+          {currentLevel:null,nextLevel:'aal1'}:{currentLevel:'aal1',nextLevel:'aal2'}}),
+        listFactors:async()=>({data:{all:[]}})
+      }
     }}
   });
-  assert.equal((await run()).mfaRequired,true,'Factor enrollment during legacy checks must require MFA');
+  assert.equal((await run()).ok,false,'MFA becoming required during legacy checks must deny unlock');
   assert.equal(record.unlocked,0);
 }
 {
@@ -258,6 +264,38 @@ for(const invalid of [null,{}, {currentLevel:undefined,nextLevel:'aal1'},{curren
   assert.equal((await pending).superseded,true,'A newer auth event invalidates old legacy recheck');
   assert.equal(record.unlocked,0,'Expired legacy check must not unmask');
 }
+
+{
+  const owner={id:'synthetic-owner'};
+  const {run,record}=makeReconcile({currentLevel:null,nextLevel:'aal1'},{
+    db:{auth:{
+      getSession:async()=>({data:{session:{user:owner}}}),
+      getUser:async()=>({data:{user:owner}}),
+      mfa:{
+        getAuthenticatorAssuranceLevel:async()=>({data:{currentLevel:null,nextLevel:'aal1'}}),
+        listFactors:async()=>({data:{all:[{id:'synthetic-factor',status:'verified'}]}})
+      }
+    }}
+  });
+  assert.equal((await run()).ok,false,'Old AAL cannot bypass a newly verified MFA factor');
+  assert.equal(record.unlocked,0);
+}
+for(const inventory of [{data:{}},{data:null},{error:Error('temporary MFA inventory unavailable')}]) {
+  const owner={id:'synthetic-owner'};
+  const {run,record}=makeReconcile({currentLevel:null,nextLevel:'aal1'},{
+    db:{auth:{
+      getSession:async()=>({data:{session:{user:owner}}}),
+      getUser:async()=>({data:{user:owner}}),
+      mfa:{
+        getAuthenticatorAssuranceLevel:async()=>({data:{currentLevel:null,nextLevel:'aal1'}}),
+        listFactors:async()=>inventory
+      }
+    }}
+  });
+  assert.equal((await run()).ok,false,'Missing or failed factor inventory must deny legacy allowance');
+  assert.equal(record.unlocked,0);
+}
+
 console.log('PASS: verified legacy null AAL1, MFA enrollment race, cross-owner/session denial and stale-identity denial.');
 
 console.log('PASS: dynamic synthetic session reconciliation, malformed AAL, MFA step-up, stale async results and same-owner refresh.');
