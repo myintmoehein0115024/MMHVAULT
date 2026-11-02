@@ -79,3 +79,43 @@ test('legacy without encrypted copy clearly communicates no saved backup',async(
  const h=harness({reply:respond('backup_status',{backed_up:false})});
  assert.deepEqual(await h.request('status'),{code:'backup_status',backed_up:false});
 });
+
+test('logout while reveal is pending blocks the original words',async()=>{
+ let reads=0;
+ const auth=goodAuth();
+ auth.getSession=async()=>{
+   reads++;
+   return {data:{session:reads===1?
+     {user:{id:'same-user'},access_token:'synthetic-token'}:null}};
+ };
+ const h=harness({auth,reply:respond('recovery_key',{words,expires_in_seconds:45})});
+ const result=await h.request('reveal',{password:'test-pass'});
+ assert.deepEqual(result,{code:'sign_in_required'});
+ assert.equal(reads,2);
+});
+test('silent token rotation during request blocks a stale response',async()=>{
+ let reads=0;
+ const auth=goodAuth();
+ auth.getSession=async()=>({data:{session:{
+   user:{id:'same-user'},access_token:++reads===1?'synthetic-token':'next-token'
+ }}});
+ const h=harness({auth,reply:respond('recovery_key',{words,expires_in_seconds:45})});
+ assert.deepEqual(await h.request('reveal',{password:'test-pass'}),{code:'sign_in_required'});
+});
+test('switching identity while request is pending blocks stale words',async()=>{
+ let checks=0;
+ const auth=goodAuth();
+ auth.getUser=async()=>({data:{user:{id:++checks===1?'same-user':'other-user'}}});
+ const h=harness({auth,reply:respond('recovery_key',{words,expires_in_seconds:45})});
+ assert.deepEqual(await h.request('reveal',{password:'test-pass'}),{code:'sign_in_required'});
+ assert.equal(checks,2);
+});
+test('the status request is also invalidated by a session change',async()=>{
+ let reads=0;
+ const auth=goodAuth();
+ auth.getSession=async()=>({data:{session:{
+  user:{id:'same-user'},access_token:++reads===1?'synthetic-token':'new-token'
+ }}});
+ const h=harness({auth});
+ assert.deepEqual(await h.request('status'),{code:'sign_in_required'});
+});
