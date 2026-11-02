@@ -811,19 +811,28 @@
     if (desc && currentLang === 'en') desc.setAttribute('content', 'MMHVAULT is a private personal finance and life planning workspace. Manage accounts, transactions, investments and budgets; explore upcoming schedules and personal goals.');
     try { window.localStorage.setItem(storageKey, currentLang); } catch (_) {}
   }
+  // L1.26: closing a public menu must not strand keyboard focus inside
+  // controls that are no longer visible on narrow screens.
   function closeExplore(restoreFocus=false) {
     if (!explore || !explore.open) return;
+    const focusedInside = explore.contains(document.activeElement) &&
+      document.activeElement !== exploreSummary;
     explore.open = false;
-    if (restoreFocus && exploreSummary) exploreSummary.focus();
+    if ((restoreFocus || focusedInside) && exploreSummary) exploreSummary.focus();
   }
   function closeMenu() {
+    const nav = document.getElementById('primary-nav');
+    const focusedInside = !!nav && nav.contains(document.activeElement);
     siteHeader.classList.remove('menu-open');
     toggle.setAttribute('aria-expanded', 'false');
     closeExplore();
+    if (focusedInside && nav && getComputedStyle(nav).display === 'none') toggle.focus();
   }
   function closeLanguage() {
+    const focusedInside = localeMenu.contains(document.activeElement);
     localeMenu.hidden = true;
     localeTrigger.setAttribute('aria-expanded', 'false');
+    if (focusedInside) localeTrigger.focus();
   }
   function toggleLanguage() {
     const willOpen = localeMenu.hidden;
