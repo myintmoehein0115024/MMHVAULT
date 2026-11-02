@@ -22,4 +22,4 @@ jobs:
       - name: Check native-currency fallback and transaction refresh
         run: node --test tests/app-v11-account-native-balance-refresh.test.mjs
       - name: Check finance data and FX regression
-        run: node --test tests/data-integrity-v1.test.mjs tests/account-auto-fx-v1.test.mjs tests/account-fx-events-v11.test.mjs
+        run: node --test tests/data-integrity-v1.test.mjs tests/account-auto-fx-v1.test.mjs tests/account-fx-events-v11.test.mjs tests/app-v11-account-photo-cloud.test.mjs
