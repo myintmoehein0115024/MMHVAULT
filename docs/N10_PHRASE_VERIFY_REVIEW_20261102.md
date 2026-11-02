@@ -18,3 +18,11 @@
 ## Release restrictions
 - Requires independent code review, explicit comparison to currently deployed function checksum, valid Staging test authorization, real signed dual-account AAL1/AAL2 and 10-word tests, and fresh production deployment-specific approval.
 - Old Staging joint QA safety block must not be bypassed. No production Auth, App, RLS, finance or user data modifications.
+
+
+## 2026-11-02 current-main sync and legacy JWT AAL compatibility
+- Aligned review-only five-file PR to latest main `de34f42d`, with no overlap with live App/Auth, finance or Landing files.
+- Supabase [MFA Auth guide](https://supabase.com/docs/guides/auth/auth-mfa) explicitly says a signed JWT **without** an `aal` claim is treated as `aal1` (not `aal2`). This old-token case was not accepted by the original review helper and would cause unnecessary failures for some valid non-MFA sessions.
+- Hardened the **hard-OFF candidate only**: when an Auth-validated token *omits* `aal`, interpret it as AAL1; when a verified MFA factor exists, require successful AAL2 step-up; if `aal` is explicitly null/malformed, deny. This is compatible with official legacy token semantics while preserving owner/issuer/expiry and factor checks.
+- Expanded pure MFA synthetic outcomes from 7 to **10** and full-handler scenarios from 16 to **20** (status and saved-phrase verification with legacy AAL1 and MFA enrolled during the request). No actual tokens, secrets, production edits or live requests in these offline tests.
+- **NOT DEPLOYED**: production saved-phrase Edge v4 remains untouched; real signed-factor confirmation and rollback baseline still needed before any permitted v5 replacement.

@@ -51,8 +51,12 @@ export function evaluateVerifiedAuthUserMfa(jwt, verifiedUser, supabaseBase) {
         payload.iss !== supabaseBase.replace(/\/$/, "") + "/auth/v1" ||
         !Number.isSafeInteger(payload.exp) ||
         payload.exp <= Math.floor(Date.now() / 1000)) return "unavailable";
-    // Fail closed when the signed JWT omits assurance level. Never infer AAL1.
-    const current = payload.aal;
+    // Supabase Auth treats a legacy JWT with *no* aal claim as AAL1.
+    // This payload is used only AFTER getUser(exactBearer) validates it,
+    // and server-owned verified factors are fetched. Never infer AAL2.
+    // Explicit null/garbled aal is invalid, not the same as an absent claim.
+    const current = Object.prototype.hasOwnProperty.call(payload, "aal")
+      ? payload.aal : "aal1";
     if (current !== "aal1" && current !== "aal2") return "unavailable";
     const hasVerified = verifiedUser.factors.some(
       f => f?.status === "verified"

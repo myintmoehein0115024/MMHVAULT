@@ -804,26 +804,35 @@
     localeFlag.textContent = languageMeta[currentLang].flag;
     localeName.textContent = languageMeta[currentLang].title;
     // Keep brand name and official site title consistent across display languages.
-    document.title = 'MMHVAULT | Personal Finance & Life Planning';
+    document.title = 'MMHVAULT | Personal Finance & Wealth';
     const desc = document.querySelector('meta[name="description"]');
     if (desc && currentLang === 'zh') desc.setAttribute('content', 'MMHVAULT 个人财务与生活规划管理平台：管理账户、交易、投资和预算，并了解即将推出的日程与个人目标功能。');
     if (desc && currentLang === 'my') desc.setAttribute('content', 'MMHVAULT သည် အကောင့်၊ ငွေကြေးအဝင်အထွက်၊ ရင်းနှီးမြှုပ်နှံမှုနှင့် ဘတ်ဂျက်များအတွက် ကိုယ်ပိုင်စီမံခန့်ခွဲမှုနေရာဖြစ်ပြီး ဘဝအစီအစဉ်လုပ်ဆောင်ချက်များကို ပြင်ဆင်နေပါသည်။');
     if (desc && currentLang === 'en') desc.setAttribute('content', 'MMHVAULT is a private personal finance and life planning workspace. Manage accounts, transactions, investments and budgets; explore upcoming schedules and personal goals.');
     try { window.localStorage.setItem(storageKey, currentLang); } catch (_) {}
   }
+  // L1.26: closing a public menu must not strand keyboard focus inside
+  // controls that are no longer visible on narrow screens.
   function closeExplore(restoreFocus=false) {
     if (!explore || !explore.open) return;
+    const focusedInside = explore.contains(document.activeElement) &&
+      document.activeElement !== exploreSummary;
     explore.open = false;
-    if (restoreFocus && exploreSummary) exploreSummary.focus();
+    if ((restoreFocus || focusedInside) && exploreSummary) exploreSummary.focus({preventScroll:true});
   }
   function closeMenu() {
+    const nav = document.getElementById('primary-nav');
+    const focusedInside = !!nav && nav.contains(document.activeElement);
     siteHeader.classList.remove('menu-open');
     toggle.setAttribute('aria-expanded', 'false');
     closeExplore();
+    if (focusedInside && nav && getComputedStyle(nav).display === 'none') toggle.focus({preventScroll:true});
   }
   function closeLanguage() {
+    const focusedInside = localeMenu.contains(document.activeElement);
     localeMenu.hidden = true;
     localeTrigger.setAttribute('aria-expanded', 'false');
+    if (focusedInside) localeTrigger.focus({preventScroll:true});
   }
   function toggleLanguage() {
     const willOpen = localeMenu.hidden;
@@ -832,20 +841,20 @@
     localeTrigger.setAttribute('aria-expanded', String(willOpen));
     if (willOpen) {
       const active = languageButtons.find(button => button.dataset.lang === currentLang);
-      if (active) active.focus();
+      if (active) active.focus({preventScroll:true});
     }
   }
   languageButtons.forEach(button => button.addEventListener('click', () => {
     applyLanguage(button.dataset.lang);
     closeLanguage();
-    localeTrigger.focus();
+    localeTrigger.focus({preventScroll:true});
   }));
   localeTrigger.addEventListener('click', toggleLanguage);
   localeTrigger.addEventListener('keydown', event => {
     if (event.key === 'ArrowDown') {
       event.preventDefault();
       if (localeMenu.hidden) toggleLanguage();
-      else languageButtons[0].focus();
+      else languageButtons[0].focus({preventScroll:true});
     }
   });
   localeMenu.addEventListener('keydown', event => {
@@ -853,7 +862,7 @@
       event.preventDefault();
       const index = languageButtons.indexOf(document.activeElement);
       const next = (index + (event.key === 'ArrowDown' ? 1 : -1) + languageButtons.length) % languageButtons.length;
-      languageButtons[next].focus();
+      languageButtons[next].focus({preventScroll:true});
     }
   });
   toggle.addEventListener('click', () => {
@@ -873,7 +882,7 @@
     if (event.key !== 'Escape') return;
     if (!localeMenu.hidden) {
       closeLanguage();
-      localeTrigger.focus();
+      localeTrigger.focus({preventScroll:true});
       event.preventDefault();
       return;
     }
@@ -884,7 +893,7 @@
     }
     if (siteHeader.classList.contains('menu-open')) {
       closeMenu();
-      toggle.focus();
+      toggle.focus({preventScroll:true});
       event.preventDefault();
     }
   });
@@ -1054,15 +1063,26 @@
   const syncProductHash=()=>{const s=window.location.hash.slice(1);if(s.startsWith('feature-')&&productNames.includes(s.slice(8)))selectProductView(s.slice(8))};
   window.addEventListener('hashchange',syncProductHash);syncProductHash();
 
-  // Progressive enhancement: retain the original in-page HTML device demonstration
-  // until the independent photographic asset has loaded. No authentication or network API.
+  // L1.25: keep the original in-page device demo visible until the already
+  // downloaded Hero photograph is decoded and ready to paint. A load event
+  // alone can precede image decoding, causing a blank/flash on slower phones.
+  // If the photo cannot decode, the original accessible HTML demo stays visible.
   const heroPhoto = document.querySelector('.hero-device-cinematic');
   if (heroPhoto) {
+    let decoding = false;
     const revealPhoto = () => {
-      if (heroPhoto.naturalWidth > 0) {
+      if (decoding || heroPhoto.naturalWidth <= 0) return;
+      decoding = true;
+      const ready = typeof heroPhoto.decode === 'function'
+        ? heroPhoto.decode()
+        : Promise.resolve();
+      Promise.resolve(ready).then(() => {
+        if (!heroPhoto.isConnected || heroPhoto.naturalWidth <= 0) return;
         const art = heroPhoto.closest('.hero-art');
         if (art) art.classList.add('is-photo-ready');
-      }
+      }).catch(() => {
+        // Failed photo: retain the functional HTML fallback, never show blank.
+      });
     };
     if (heroPhoto.complete) revealPhoto();
     else heroPhoto.addEventListener('load', revealPhoto, {once:true});

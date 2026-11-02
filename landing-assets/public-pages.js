@@ -26,25 +26,32 @@
     if(locales.has(saved))locale=saved;
   }catch(_){/* Browser privacy mode: English is the fallback. */}
 
+  // L1.26: return focus to a visible trigger when dismissing compact
+  // navigation, Explore or the language picker on any public page.
   function closeExplore(restoreFocus=false){
     if(!explore?.open)return;
+    const focusedInside=explore.contains(document.activeElement)&&
+      document.activeElement!==exploreSummary;
     explore.open=false;
-    if(restoreFocus&&exploreSummary)exploreSummary.focus();
+    if((restoreFocus||focusedInside)&&exploreSummary)exploreSummary.focus({preventScroll:true});
   }
   function closeNav(restoreFocus=false){
     if(!header||!toggle)return;
     const wasOpen=header.classList.contains('menu-open');
+    const focusedInside=!!nav&&nav.contains(document.activeElement);
     header.classList.remove('menu-open');
     toggle.setAttribute('aria-expanded','false');
     closeExplore();
-    if(restoreFocus&&wasOpen)toggle.focus();
+    if((restoreFocus&&wasOpen)||
+      (focusedInside&&nav&&getComputedStyle(nav).display==='none'))toggle.focus({preventScroll:true});
   }
   function closeLanguage(restoreFocus=false){
     if(!menu||!trigger)return;
     const wasOpen=!menu.hidden;
+    const focusedInside=menu.contains(document.activeElement);
     menu.hidden=true;
     trigger.setAttribute('aria-expanded','false');
-    if(restoreFocus&&wasOpen)trigger.focus();
+    if((restoreFocus&&wasOpen)||focusedInside)trigger.focus({preventScroll:true});
   }
   function changeLanguage(code){
     if(!locales.has(code))return;
@@ -69,7 +76,7 @@
     btn.addEventListener('click',()=>{
       changeLanguage(btn.dataset.lang);
       closeLanguage();
-      trigger?.focus();
+      trigger?.focus({preventScroll:true});
     });
   });
   trigger?.addEventListener('click',()=>{
@@ -81,14 +88,14 @@
     trigger.setAttribute('aria-expanded',String(opening));
     if(opening){
       const active=menu.querySelector('[aria-pressed="true"]');
-      active?.focus();
+      active?.focus({preventScroll:true});
     }
   });
   trigger?.addEventListener('keydown',event=>{
     if(event.key!=='ArrowDown')return;
     event.preventDefault();
     if(menu.hidden)trigger.click();
-    else menu.querySelector('button')?.focus();
+    else menu.querySelector('button')?.focus({preventScroll:true});
   });
   menu?.addEventListener('keydown',event=>{
     if(event.key!=='ArrowDown'&&event.key!=='ArrowUp')return;
@@ -96,7 +103,7 @@
     const buttons=[...menu.querySelectorAll('button[data-lang]')];
     const current=buttons.indexOf(document.activeElement);
     const next=(current+(event.key==='ArrowDown'?1:-1)+buttons.length)%buttons.length;
-    buttons[next]?.focus();
+    buttons[next]?.focus({preventScroll:true});
   });
   if(header&&nav&&toggle&&explore){
     toggle.addEventListener('click',()=>{

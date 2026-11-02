@@ -49,13 +49,16 @@ for(const [claim,factors,decision] of [
  [{aal:'aal2'},[{status:'verified'}],'allowed'],
  [{aal:'aal2'},[],'unavailable'],
  [{aal:null},[],'unavailable'],
+ [{aal:undefined},[],'allowed'],
+ [{aal:undefined},[{status:'verified'}],'required'],
+ [{aal:undefined,sub:'foreign-owner'},[],'unavailable'],
  [{sub:'foreign-owner'},[],'unavailable'],
  [{exp:1},[],'unavailable']
 ]){
  assert.equal(evaluateVerifiedAuthUserMfa(fakeJwt(claim),
    {id:uid,factors,is_anonymous:false},BASE),decision);
 }
-console.log('PASS: 7 explicit JWT / MFA decision contracts (tokens are unsigned test data).');
+console.log('PASS: 10 explicit JWT / MFA decision contracts (tokens are unsigned test data).');
 
 const key='K'.repeat(40),words='alpha bravo charlie delta echo foxtrot golf hotel india juliet';
 const verifier=createHmac('sha256',key)
@@ -66,7 +69,7 @@ async function runScenario(action,scenario='allowed'){
  if(scenario!=='hard-off')code=code.replace('const CANDIDATE_RELEASE_ENABLED=false;',
    'const CANDIDATE_RELEASE_ENABLED=true; // SYNTHETIC VM ONLY, NEVER DEPLOY');
  let handler=null,authChecks=0,factorChecks=0,readCalls=0,writes=0;
- const token=fakeJwt({aal:scenario==='aal2'?'aal2':'aal1'});
+ const token=fakeJwt({aal:scenario==='aal2'?'aal2':scenario==='legacy-aal1'||scenario==='legacy-stepup'?undefined:'aal1'});
  const user={id:uid,is_anonymous:false,app_metadata:{mmhvault_auth_kind:'username_only'}};
  const admin={
   auth:{
@@ -84,7 +87,7 @@ async function runScenario(action,scenario='allowed'){
      factorChecks++;
      if(factorChecks>=2&&scenario==='factor-unavailable')
        return {data:null,error:{message:'unavailable'}};
-     const verified=scenario==='aal2'||(factorChecks>=2&&scenario==='new-factor');
+     const verified=scenario==='aal2'||(factorChecks>=2&&(scenario==='new-factor'||scenario==='legacy-stepup'));
      return {data:{factors:verified?[{status:'verified'}]:[]},error:null};
    }}}
   },
@@ -127,6 +130,8 @@ async function runScenario(action,scenario='allowed'){
 const checks=[
  ['status','hard-off',503,'review_not_released',0],
  ['status','allowed',200,'account_status',2],
+ ['status','legacy-aal1',200,'account_status',2],
+ ['status','legacy-stepup',403,'mfa_required',2],
  ['status','aal2',200,'account_status',2],
  ['status','revoked',401,'sign_in_required',2],
  ['status','switched-owner',401,'sign_in_required',2],
@@ -134,6 +139,8 @@ const checks=[
  ['status','factor-unavailable',503,'mfa_state_unavailable',2],
  ['status','oversize',400,'bad_request',1],
  ['verify','allowed',200,'phrase_verified',2],
+ ['verify','legacy-aal1',200,'phrase_verified',2],
+ ['verify','legacy-stepup',403,'mfa_required',2],
  ['verify','aal2',200,'phrase_verified',2],
  ['verify','revoked',401,'sign_in_required',2],
  ['verify','new-factor',403,'mfa_required',2],
