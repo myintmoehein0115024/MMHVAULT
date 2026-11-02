@@ -184,14 +184,14 @@ check('Shared public shell is scoped and all three independent pages inherit it'
  !branchCSS.includes('body.l131') &&
  pageSlices.every(page=>{
    const html=read(page.path);
-   return html.includes('<body class="public-landing-page '+page.bodyClass+'">') &&
+   return html.includes('<body class="public-landing-page '+page.bodyClass+' mmh-nav-unified">') &&
      html.includes('<section class="hero feature-hero"') &&
-     html.includes('class="brand-wordmark"') &&
+     html.includes('class="brand-copy"') &&
      html.includes('class="feature-hero-copy"') &&
      html.includes('class="visual feature-visual"') &&
-     html.includes('id="public-locale-trigger"') &&
-     html.includes('id="public-locale-menu"') &&
-     html.includes('href="/login.html" class="feature-nav-cta"') &&
+     html.includes('id="locale-trigger"') &&
+     html.includes('id="locale-menu"') &&
+     html.includes('href="/login.html" class="button button-gold header-cta"') &&
      html.includes('href="/"') &&
      html.includes(page.section);
  }));
