@@ -406,6 +406,17 @@ function normalizeSharedHeader(h){
     .replace('href="/" data-i18n="navHome"','href="/" aria-current="page" data-i18n="navHome"');
 }
 const sharedCss=read('landing-assets/shared-header-l116.css');
+/* L1.17 — Only Features/Register may replace their permanently visible
+ * Chinese+Burmese text block with one EN/ZH/MY-localized paragraph. Undo that
+ * exact replacement before comparing the rest of the published page bytewise. */
+function restoreOldLocalizedSummary(path,newHtml,previousHtml){
+ if(!['features/index.html','register/index.html'].includes(path))return newHtml;
+ const oldBlock=(previousHtml.match(/<div class="lang-summary" aria-label="MMHVAULT multilingual description">[\s\S]*?<\/div>/)||[])[0];
+ const newBlock=(newHtml.match(/<div class="lang-summary lang-summary-localized" aria-label="MMHVAULT description in the selected language">[\s\S]*?<\/div>/)||[])[0];
+ if(!oldBlock||!newBlock||
+  (newHtml.match(/class="lang-summary lang-summary-localized"/g)||[]).length!==1)return newHtml;
+ return newHtml.replace(newBlock,oldBlock);
+}
 check('Seven public pages inherit exact Landing header structure, icons and dropdown',
  !!landingHeader && publicHeaders.every(path=>{
    const html=read(path),old=source(path);
@@ -418,7 +429,8 @@ check('Seven public pages inherit exact Landing header structure, icons and drop
    return !!h&&!!prevHeader&&!!bodyOld&&!!bodyNew &&
      normalizeSharedHeader(h)===landingHeader &&
      html.includes(cssNew)&&!html.includes(cssOld) &&
-     html.replace(h,'').replace(cssNew,cssOld).replace(bodyNew,bodyOld)
+     restoreOldLocalizedSummary(path,
+       html.replace(h,'').replace(cssNew,cssOld).replace(bodyNew,bodyOld),old)
        ===old.replace(prevHeader,'') &&
      (h.match(/<details class="nav-explore"/g)||[]).length===1 &&
      (h.match(/class="mobile-nav-auth"/g)||[]).length===1 &&
@@ -431,14 +443,28 @@ check('One scoped public header stylesheet loads last on homepage and all pages'
  sharedCss.includes('@media(max-width:1360px)') &&
  !sharedCss.includes('body.app') &&
  !/\bfetch\s*\(|supabase\.createClient|SERVICE_ROLE_KEY|location\.replace/.test(read('landing-assets/public-pages.js')));
-check('Restricted change scope: shared header markup, CSS, read-only JS and QA only',
- actual.every(x=>[...publicHeaders,'index.html','landing-assets/shared-header-l116.css',
-  'landing-assets/public-pages.js','landing-assets/landing-release-check.cjs',
-  'landing-assets/landing-browser-check.cjs'].includes(x)) &&
- !actual.includes('landing-assets/landing.css') &&
- !actual.includes('landing-assets/public-pages.css') &&
- !actual.includes('landing-assets/landing.js') &&
- !actual.includes('landing-assets/public-header-l115.css'));
+check('Public features and register show exactly one localized statement per selected language',
+ ['features/index.html','register/index.html'].every(path=>{
+   const html=read(path),prior=source(path);
+   const lead=prior.match(/<p class="lead"><span\s+data-en="([^"]+)" data-zh="([^"]+)" data-my="([^"]+)">/);
+   const summary=html.match(/<div class="lang-summary lang-summary-localized"[^>]*>\s*<p data-en="([^"]+)" data-zh="([^"]+)" data-my="([^"]+)">([^<]+)<\/p>\s*<\/div>/);
+   return !!lead&&!!summary&&
+     summary[1]===lead[1]&&summary[2]===lead[2]&&summary[3]===lead[3]&&summary[4]===lead[1] &&
+     (html.match(/class="lang-summary lang-summary-localized"/g)||[]).length===1 &&
+     !/<p lang="(?:zh-CN|my)">/.test(html);
+ }) &&
+ publicHeaders.filter(path=>!['features/index.html','register/index.html'].includes(path))
+   .every(path=>!read(path).includes('class="lang-summary"')) &&
+ read('landing-assets/public-pages.css').includes('.public-landing-page .lang-summary-localized{') &&
+ read('landing-assets/public-pages.js').includes("document.querySelectorAll('[data-en][data-zh][data-my]')"));
+check('L1.17 modifies only the two affected intros, scoped CSS and QA',
+ actual.length===5 &&
+ actual.every(path=>['features/index.html','register/index.html',
+   'landing-assets/public-pages.css','landing-assets/landing-release-check.cjs',
+   'landing-assets/landing-browser-check.cjs'].includes(path)) &&
+ source('index.html')===current &&
+ source('landing-assets/public-pages.js')===read('landing-assets/public-pages.js') &&
+ source('landing-assets/shared-header-l116.css')===sharedCss);
 check('Protected auth/PWA/SEO/config sources unchanged in PR diff',
  ['business.html','app.html','login.html','sitemap.xml','robots.txt',
   'mmh-manifest-v2.webmanifest','landing-assets/landing.js'].every(file=>{
