@@ -166,6 +166,18 @@ async function load(page,route,failures){
        if(r.url().startsWith(origin) && r.status()>=400)failures.push(r.status()+' '+r.url());
      });
      await load(page,'/',failures);
+     // L1.19 — tiny phone CTAs remain touchable without text clipping.
+     if(width<=620){
+       const ctas=await page.locator('.hero .hero-buttons .button').evaluateAll(els=>
+         els.map(el=>{const r=el.getBoundingClientRect();return {
+           height:r.height,width:r.width,left:r.left,right:r.right,
+           scrollWidth:el.scrollWidth,clientWidth:el.clientWidth
+         }}));
+       ensure(ctas.length===2&&ctas.every(x=>
+         x.height>=47&&x.width>95&&x.left>=-2&&x.right<=width+2&&
+         x.scrollWidth<=x.clientWidth+3),
+         width+'px Landing CTAs fit and retain 48px touch targets '+JSON.stringify(ctas));
+     }
      ensure(await page.locator('h1#hero-title').count()===1,width+'px single homepage H1');
      ensure(await page.locator('.hero-device-cinematic').evaluate(img=>img.complete&&img.naturalWidth>0),
        width+'px concept Hero photograph loaded');
@@ -266,6 +278,34 @@ async function load(page,route,failures){
          if(r.url().startsWith(origin)&&r.status()>=400)failures.push(r.status()+' '+r.url());
        });
        await load(page,route,failures);
+       // L1.19 — public detail CTA layout adapts to narrow phones and tablets.
+       if(['/about/','/features/','/register/'].includes(route)&&width<=600){
+         const actions=await page.locator('.feature-hero .actions').evaluate(el=>{
+           const links=[...el.querySelectorAll('.action')].map(a=>{
+             const r=a.getBoundingClientRect();
+             return {left:r.left,right:r.right,top:r.top,height:r.height,width:r.width,
+               scrollWidth:a.scrollWidth,clientWidth:a.clientWidth};
+           });
+           return {display:getComputedStyle(el).display,links};
+         });
+         ensure(actions.display==='grid'&&actions.links.length>=1&&
+           actions.links.every(x=>x.height>=49&&x.left>=-2&&
+             x.right<=width+2&&x.scrollWidth<=x.clientWidth+3),
+           route+' '+width+'px responsive public CTA touch targets '+JSON.stringify(actions));
+         if(actions.links.length>=2&&[320,393].includes(width)){
+           const [one,two]=actions.links;
+           ensure(width===320
+             ? Math.abs(one.left-two.left)<=2&&two.top>=one.top+one.height-2
+             : Math.abs(one.top-two.top)<=2&&Math.abs(one.width-two.width)<=2,
+             route+' '+width+'px action columns adapt without clipping');
+         }
+       }
+       if(['/privacy.html','/security.html','/terms.html'].includes(route)&&width<=600){
+         const related=await page.locator('.policy-related a').evaluateAll(els=>
+           els.map(el=>el.getBoundingClientRect().height));
+         ensure(related.every(height=>height>=47),
+           route+' '+width+'px related-policy touch targets remain accessible');
+       }
        ensure(!await page.locator('body').evaluate(b=>b.classList.contains('mm-public-motion')),
          route+' '+width+'px reduced-motion page never activates reveal');
        ensure(await page.locator('h1').count()===1,route+' '+width+'px has one H1');

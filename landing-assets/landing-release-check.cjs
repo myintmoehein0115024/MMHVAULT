@@ -461,20 +461,23 @@ check('L1.18 subtle surfaces and public motion remain scoped and accessible',
   read('landing-assets/public-pages.js').includes("document.body?.classList.contains('public-landing-page')") &&
   !['fetch(', 'supabase', 'SERVICE_ROLE_KEY', 'location.replace'].some(
     term=>read('landing-assets/public-pages.js').includes(term)));
-check('L1.18 exactly five public presentation and QA files, no HTML or auth changes',
-  actual.length===5 &&
-  actual.every(path=>[
-    'landing-assets/premium-l131.css',
-    'landing-assets/public-pages.css',
-    'landing-assets/public-pages.js',
-    'landing-assets/landing-release-check.cjs',
-    'landing-assets/landing-browser-check.cjs'
-  ].includes(path)) &&
-  current===prev &&
-  publicHeaders.every(path=>source(path)===read(path)) &&
-  source('landing-assets/landing.js')===read('landing-assets/landing.js') &&
-  source('landing-assets/motion-l132.js')===read('landing-assets/motion-l132.js') &&
-  source('landing-assets/shared-header-l116.css')===sharedCss);
+check('L1.19 tablet and phone layout refinement stays presentation-only',
+ read('landing-assets/premium-l131.css').includes('L1.19 — compact-screen rhythm') &&
+ read('landing-assets/public-pages.css').includes('L1.19 — readable public intro actions') &&
+ read('landing-assets/premium-l131.css').includes('body.l131 .hero .hero-buttons .button') &&
+ read('landing-assets/public-pages.css').includes('grid-template-columns:minmax(0,1fr)') &&
+ read('landing-assets/public-pages.css').includes('@media(prefers-reduced-motion:reduce)'));
+check('L1.19 exactly four public CSS and QA files; no HTML, header, auth or JS changed',
+ actual.length===4 &&
+ actual.every(path=>[
+  'landing-assets/premium-l131.css','landing-assets/public-pages.css',
+  'landing-assets/landing-release-check.cjs','landing-assets/landing-browser-check.cjs'
+ ].includes(path)) &&
+ current===prev &&
+ publicHeaders.every(path=>source(path)===read(path)) &&
+ ['landing-assets/landing.js','landing-assets/public-pages.js',
+  'landing-assets/motion-l132.js','landing-assets/shared-header-l116.css']
+  .every(path=>source(path)===read(path)));
 check('Protected auth/PWA/SEO/config sources unchanged in PR diff',
  ['business.html','app.html','login.html','sitemap.xml','robots.txt',
   'mmh-manifest-v2.webmanifest','landing-assets/landing.js'].every(file=>{
