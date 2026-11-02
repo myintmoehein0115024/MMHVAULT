@@ -2,28 +2,27 @@
  * MMHVAULT L1.32 — Premium Liquid Flow (public Landing only)
  * Progressive, one-shot, layout-safe scroll reveals and tab micro-transitions.
  * No zoom/gesture restrictions. No auth or tracking.
+ * L1.23: compositor-friendly opacity/transform reveals; no per-card filter animation.
  */
 @media (prefers-reduced-motion: no-preference) {
   html.mm-motion-active {
     scroll-behavior: smooth;
     scroll-padding-top: clamp(78px, 8vw, 112px);
   }
-  html.mm-motion-active body.l131 .mm-reveal {
+  /* Visible reveal targets take priority over generic card hover timing. */
+  html.mm-motion-active body.l131 .mm-reveal:not([hidden]) {
     transition:
-      opacity 680ms cubic-bezier(.2,.75,.17,1),
-      transform 740ms cubic-bezier(.18,.79,.19,1),
-      filter 620ms ease;
+      opacity 550ms cubic-bezier(.2,.75,.17,1),
+      transform 590ms cubic-bezier(.18,.79,.19,1);
     transition-delay: var(--mm-delay, 0ms);
   }
   html.mm-motion-active body.l131 .mm-reveal:not(.mm-shown) {
     opacity: 0;
     transform: translate3d(0, var(--mm-shift, 18px), 0);
-    filter: blur(2px);
   }
   html.mm-motion-active body.l131 .mm-reveal.mm-shown {
     opacity: 1;
     transform: translate3d(0,0,0);
-    filter: blur(0);
   }
   html.mm-motion-active body.l131 :is(#features,#business,#about,#security,#top,[id^="feature-"]) {
     scroll-margin-top: clamp(82px, 8.5vw, 118px);
@@ -40,19 +39,13 @@
     transform: translateY(1px) scale(.989);
   }
 }
-@media (min-width: 901px) and (prefers-reduced-motion: no-preference) {
-  html.mm-motion-active body.l131 .mm-reveal:not(.mm-shown) {
-    filter: blur(3px);
-  }
-}
 @media (max-width: 620px) and (prefers-reduced-motion: no-preference) {
   html.mm-motion-active body.l131 .mm-reveal:not(.mm-shown) {
     transform: translate3d(0, var(--mm-shift, 11px), 0);
-    filter: none;
   }
-  html.mm-motion-active body.l131 .mm-reveal {
-    transition-duration: 540ms,580ms,0ms;
-    transition-delay: min(var(--mm-delay, 0ms), 95ms);
+  html.mm-motion-active body.l131 .mm-reveal:not([hidden]) {
+    transition-duration: 410ms,440ms;
+    transition-delay: min(var(--mm-delay, 0ms), 45ms);
   }
 }
 @media (prefers-reduced-motion: reduce) {
