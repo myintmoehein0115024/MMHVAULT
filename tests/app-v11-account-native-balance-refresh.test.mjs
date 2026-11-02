@@ -38,7 +38,7 @@ test('account list uses safe fallback and events include transaction mutation an
   assert.match(render,/displayAccountBalanceV11\(a\)/);
   assert.match(html,/'mmhvault:data-change','mmhvault:cache-restored'/);
   assert.match(html,/'mmhvault:account-reference-fx-updated'\]\.forEach\(event=>window\.addEventListener\(event,scheduleAccountsRenderV159\)\)/);
-  assert.match(html,/const cash=Number\(balance\(a\.name\)\)/);
+  assert.match(html,/,cash=Number\(balance\(a\.name\)\)/);
   assert.match(html,/cash===0\?0:cashUSD/);
 });
 test('no historical currency, transactions or balance data are rewritten',()=>{
