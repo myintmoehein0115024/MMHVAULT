@@ -22,7 +22,7 @@ function harness({primary=false,recurring=false,wallet=false,lifeFund=false,targ
     mmhVaultPrimaryHistoryUsesAccountV192:read(primary,targetPrimary),
     mmhVaultRecurringUsesAccountV1236:read(recurring,false),
     mmhVaultWalletUsesAccountV196:read(wallet,false),
-    mmhVaultRowsUsingAccountV192:read(lifeFund?[{id:1}]:[],targetLifeFund?[{id:2}]:[]),
+    mmhVaultRowsUsingAccountV192:async(_table,_fields,name)=>{readCount++;return String(name).toLowerCase()==='orphan cash'?(targetLifeFund?[{id:2}]:[]):(lifeFund?[{id:1}]:[])},
     Promise,String
   };
   const guard=vm.runInNewContext(source+'\nmmhVaultFinanceIdentityChangeSafeV11',sandbox);
