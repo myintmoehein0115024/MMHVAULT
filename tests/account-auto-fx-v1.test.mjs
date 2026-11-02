@@ -91,6 +91,6 @@ test('Account and Dashboard reflect FX availability rather than false zero contr
   assert.match(html,/window\.MMHAccountReferenceFXV1\?\.getRate/);
   assert.match(html,/!mmhVaultUsdRateForAccountV140\(a\.name\)/);
   assert.match(html,/Number\.isFinite\(share\)\?share\.toFixed\(2\)/);
-  assert.match(html,/js\/mmhvault-account-reference-fx-v1\.js\?v=1\.0\.0/);
+  assert.match(html,/js\/mmhvault-account-reference-fx-v1\.js\?v=1\.0\.1/);
   assert.match(html,/mmhvault:asia-rates-updated/);
 });
