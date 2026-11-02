@@ -1,0 +1,14 @@
+{
+  "name": "N10 username-binding predeploy rollback, review-only",
+  "project_id": "vrypucmyrztxgiqhjspd",
+  "slug": "mmh-n10a781-bind",
+  "original_version": 2,
+  "original_status": "ACTIVE",
+  "original_verify_jwt": false,
+  "original_source_fingerprint": "a64eb4e33110a248b0f84e42d80a1d9dc9241e526508c1ea1323db6500c427dc",
+  "file": "security/n10-binding-v2-rollback-20261102/index-v2.ts",
+  "captured_from": "production_read_only_get_edge_function",
+  "timestamp_date": "2026-11-02",
+  "constraints": "No finance, Auth settings, SQL, RLS, other Edge or app source changes; rollback requires explicit version gate and re-deploy only this function.",
+  "contains_secrets": false
+}
