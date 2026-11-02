@@ -154,6 +154,98 @@ async function load(page,route,failures){
      await ctx.close();
    }
 
+   // L1.25 — emulate slow image decoding independently of network speed.
+   // The HTML mockup must remain on screen until decoded pixels are ready,
+   // even when image.complete and naturalWidth already indicate download.
+   for(const width of [320,393,768,1440]){
+     const ctx=await browser.newContext({
+       viewport:{width,height:852},reducedMotion:'reduce',
+       isMobile:width<=393,hasTouch:width<=393
+     });
+     const page=await ctx.newPage();
+     const errors=[];
+     page.on('pageerror',e=>errors.push(e.message));
+     await page.addInitScript(()=>{
+       const nativeDecode=HTMLImageElement.prototype.decode;
+       window.__mmhHeroDecodeTest={calls:0,release:null};
+       HTMLImageElement.prototype.decode=function(){
+         if(!this.classList.contains('hero-device-cinematic'))
+           return nativeDecode.call(this);
+         window.__mmhHeroDecodeTest.calls+=1;
+         return nativeDecode.call(this).then(()=>new Promise(resolve=>{
+           window.__mmhHeroDecodeTest.release=resolve;
+         }));
+       };
+     });
+     await load(page,'/',errors);
+     await page.waitForFunction(()=>typeof window.__mmhHeroDecodeTest?.release==='function',
+       {timeout:15000});
+     const held=await page.evaluate(()=>{
+       const image=document.querySelector('.hero-device-cinematic');
+       const art=image.closest('.hero-art');
+       return {
+         complete:image.complete,naturalWidth:image.naturalWidth,
+         decoded:art.classList.contains('is-photo-ready'),
+         calls:window.__mmhHeroDecodeTest.calls,
+         fallbackVisible:getComputedStyle(art.querySelector('.desktop-frame')).display!=='none',
+         x:scrollX
+       };
+     });
+     ensure(held.complete&&held.naturalWidth>0&&!held.decoded&&
+       held.calls===1&&held.fallbackVisible&&held.x===0,
+       width+'px Hero keeps original mockup until photo decode '+JSON.stringify(held));
+     const scroll=await page.evaluate(()=>{
+       window.scrollTo({top:Math.min(180,Math.max(0,document.documentElement.scrollHeight-innerHeight)),
+         behavior:'instant'});
+       return {x:scrollX,y:scrollY};
+     });
+     await page.evaluate(()=>window.__mmhHeroDecodeTest.release());
+     await page.waitForFunction(()=>
+       document.querySelector('.hero-art')?.classList.contains('is-photo-ready'));
+     const after=await page.evaluate(()=>({x:scrollX,y:scrollY,
+       decoded:document.querySelector('.hero-art').classList.contains('is-photo-ready')}));
+     ensure(after.decoded&&after.x===0&&Math.abs(after.y-scroll.y)<=2,
+       width+'px decoded Hero reveals without horizontal or vertical scroll jump '+
+       JSON.stringify({before:scroll,after}));
+     ensure(errors.length===0,width+'px slow decoding has no JS exceptions');
+     await ctx.close();
+   }
+   // A genuine decode failure must leave accessible HTML in place rather
+   // than dismissing the fallback and showing an empty Hero.
+   {
+     const ctx=await browser.newContext({
+       viewport:{width:393,height:852},reducedMotion:'reduce',isMobile:true,hasTouch:true
+     });
+     const page=await ctx.newPage();
+     const errors=[];
+     page.on('pageerror',e=>errors.push(e.message));
+     await page.addInitScript(()=>{
+       const nativeDecode=HTMLImageElement.prototype.decode;
+       window.__mmhFailedDecodeCalls=0;
+       HTMLImageElement.prototype.decode=function(){
+         if(!this.classList.contains('hero-device-cinematic'))
+           return nativeDecode.call(this);
+         window.__mmhFailedDecodeCalls++;
+         return Promise.reject(new DOMException('simulated failed decode','EncodingError'));
+       };
+     });
+     await load(page,'/',errors);
+     await page.waitForFunction(()=>window.__mmhFailedDecodeCalls>0);
+     const fallback=await page.evaluate(()=>{
+       const art=document.querySelector('.hero-art');
+       return {
+         decoded:art.classList.contains('is-photo-ready'),
+         hasFallback:!!art.querySelector('.desktop-frame'),
+         fallbackVisible:getComputedStyle(art.querySelector('.desktop-frame')).display!=='none',
+         calls:window.__mmhFailedDecodeCalls
+       };
+     });
+     ensure(!fallback.decoded&&fallback.hasFallback&&fallback.fallbackVisible&&
+       fallback.calls===1&&errors.length===0,
+       '393px failed image decode keeps HTML device demo '+JSON.stringify(fallback));
+     await ctx.close();
+   }
+
    for(const width of widths){
      const ctx=await browser.newContext({
        viewport:{width,height:852},deviceScaleFactor:1,
@@ -571,6 +663,183 @@ async function load(page,route,failures){
        }
        await ctx.close();
      }
+   }
+
+   // L1.27 — the public browser tab title must agree with the canonical
+   // static SEO title after initialization and every language switch.
+   // A language change from mid-page must not reset reading position.
+   for(const route of ['/','/features/','/security.html']){
+     for(const width of [393,1440]){
+       const ctx=await browser.newContext({
+         viewport:{width,height:852},reducedMotion:'reduce'
+       });
+       const page=await ctx.newPage();
+       const errors=[];
+       page.on('pageerror',e=>errors.push(e.message));
+       await load(page,route,errors);
+       const documentPath=route==='/'?'index.html'
+         :route.endsWith('/')?route.slice(1)+'index.html':route.slice(1);
+       const originalTitle=fs.readFileSync(documentPath,'utf8')
+         .split('<title>')[1]?.split('</title>')[0];
+       const seo=await page.evaluate(()=>({
+         runtime:document.title,
+         path:location.pathname
+       }));
+       ensure(!!originalTitle&&seo.runtime===originalTitle &&
+         (route!=='/'||seo.runtime==='MMHVAULT | Personal Finance & Wealth'),
+         route+' '+width+'px initial browser title matches static HTML SEO '+JSON.stringify(seo));
+       if(route==='/'){
+         await page.evaluate(()=>window.scrollTo({
+           top:Math.min(700,Math.max(0,document.documentElement.scrollHeight-innerHeight-120)),
+           behavior:'instant'
+         }));
+       }
+       const initial=await page.evaluate(()=>({
+         y:scrollY,x:scrollX,path:location.pathname,hash:location.hash,
+         headerTop:document.querySelector('.site-header').getBoundingClientRect().top,
+         headerPosition:getComputedStyle(document.querySelector('.site-header')).position,
+         htmlOverflow:getComputedStyle(document.documentElement).overflow,
+         bodyOverflow:getComputedStyle(document.body).overflow
+       }));
+       for(const language of ['zh','my','en']){
+         // Click the actual visible button coordinate; Playwright locator.click
+         // may auto-scroll a sticky ancestor before dispatching a pointer click.
+         const triggerBox=await page.locator('#locale-trigger').boundingBox();
+         ensure(!!triggerBox&&triggerBox.y>=-2&&
+           triggerBox.y+triggerBox.height<=852,
+           route+' '+width+'px language trigger stays reachable while scrolling');
+         await page.mouse.click(triggerBox.x+triggerBox.width/2,
+           triggerBox.y+triggerBox.height/2);
+         const opened=await page.evaluate(()=>({
+           y:scrollY,x:scrollX,
+           headerTop:document.querySelector('.site-header').getBoundingClientRect().top,
+           focus:document.activeElement?.getAttribute('data-lang')
+         }));
+         const optionBox=await page.locator('#locale-menu [data-lang="'+language+'"]').boundingBox();
+         ensure(!!optionBox&&optionBox.y>=-2&&
+           optionBox.y+optionBox.height<=852,
+           route+' '+width+'px '+language+' language choice stays on screen');
+         await page.mouse.click(optionBox.x+optionBox.width/2,
+           optionBox.y+optionBox.height/2);
+         const after=await page.evaluate(()=>({
+           title:document.title,htmlTitle:document.querySelector('head title')?.textContent,
+           lang:document.documentElement.lang,
+           path:location.pathname,hash:location.hash,
+           y:scrollY,x:scrollX
+         }));
+         ensure(after.title===originalTitle &&
+           after.htmlTitle===originalTitle &&
+           after.lang===(language==='zh'?'zh-CN':language) &&
+           after.path===initial.path&&after.hash===initial.hash &&
+           Math.abs(after.x-initial.x)<=2 &&
+           (route!=='/'||initial.y<100||
+             (after.y>100&&Math.abs(after.y-initial.y)<280)),
+           route+' '+width+'px '+language+' language preserves title and scroll context '+JSON.stringify({initial,opened,after}));
+       }
+       ensure(errors.length===0,
+         route+' '+width+'px language switching has no missing assets or JS errors');
+       await ctx.close();
+     }
+   }
+
+   // L1.26 — dismissing a menu by tapping outside must never strand keyboard
+   // focus on links or language buttons which have just become hidden.
+   // Simulate the outside DOM event directly to keep focus where it would be
+   // for users on browsers that don't focus noninteractive touched content.
+   for(const route of ['/','/features/','/security.html']){
+     for(const width of [393,1440]){
+       const ctx=await browser.newContext({
+         viewport:{width,height:852},reducedMotion:'reduce'
+       });
+       const page=await ctx.newPage();
+       const errs=[];
+       page.on('pageerror',e=>errs.push(e.message));
+       await load(page,route,errs);
+       const mobile=width===393;
+       if(mobile)await page.locator('.site-header .menu-toggle').click();
+       await page.locator('#landing-explore > summary').click();
+       const inner=page.locator('#landing-explore .nav-explore-menu a').first();
+       await inner.focus();
+       ensure(await inner.evaluate(el=>document.activeElement===el),
+         route+' '+width+'px Explore link is keyboard-focused');
+       await page.evaluate(()=>{
+         const name=document.body.classList.contains('public-landing-page')
+           ? 'pointerdown':'click';
+         const event=name==='pointerdown'
+           ? new PointerEvent(name,{bubbles:true})
+           : new MouseEvent(name,{bubbles:true});
+         document.body.dispatchEvent(event);
+       });
+       const dismissed=await page.evaluate(()=>{
+         const nav=document.getElementById('primary-nav');
+         const active=document.activeElement;
+         const toggle=document.querySelector('.site-header .menu-toggle');
+         const summary=document.querySelector('#landing-explore > summary');
+         return {
+           open:document.getElementById('landing-explore').open,
+           navOpen:document.querySelector('.site-header').classList.contains('menu-open'),
+           focusedToggle:active===toggle,
+           focusedSummary:active===summary,
+           hiddenFocus:!!active.closest('[hidden]')||
+             !!(nav.contains(active)&&getComputedStyle(nav).display==='none')
+         };
+       });
+       ensure(!dismissed.open&&!dismissed.navOpen&&!dismissed.hiddenFocus&&
+         (mobile?dismissed.focusedToggle:dismissed.focusedSummary),
+         route+' '+width+'px outside dismisses Explore without hidden focus '+JSON.stringify(dismissed));
+
+       const trigger=page.locator('#locale-trigger');
+       await trigger.click();
+       ensure(await trigger.getAttribute('aria-expanded')==='true',
+         route+' '+width+'px language picker opens');
+       await page.evaluate(()=>{
+         const name=document.body.classList.contains('public-landing-page')
+           ? 'pointerdown':'click';
+         document.body.dispatchEvent(name==='pointerdown'
+           ? new PointerEvent(name,{bubbles:true})
+           : new MouseEvent(name,{bubbles:true}));
+       });
+       const language=await page.evaluate(()=>{
+         const trigger=document.getElementById('locale-trigger');
+         const menu=document.getElementById('locale-menu');
+         return {hidden:menu.hidden,
+           focusTrigger:document.activeElement===trigger,
+           aria:trigger.getAttribute('aria-expanded')};
+       });
+       ensure(language.hidden&&language.focusTrigger&&language.aria==='false',
+         route+' '+width+'px outside language dismissal restores visible trigger '+JSON.stringify(language));
+       ensure(errs.length===0,route+' '+width+'px dismissals have no JS errors');
+       await ctx.close();
+     }
+   }
+   // Resizing from compact to desktop closes mobile navigation and Explore.
+   // The current keyboard focus must stay visible after the breakpoint switch.
+   for(const route of ['/','/features/']){
+     const ctx=await browser.newContext({
+       viewport:{width:393,height:852},reducedMotion:'reduce'
+     });
+     const page=await ctx.newPage();
+     await load(page,route,[]);
+     await page.locator('.site-header .menu-toggle').click();
+     await page.locator('#landing-explore > summary').click();
+     await page.locator('#landing-explore .nav-explore-menu a').first().focus();
+     await page.setViewportSize({width:1440,height:900});
+     await page.waitForFunction(()=>
+       !document.querySelector('.site-header').classList.contains('menu-open'));
+     const state=await page.evaluate(()=>{
+       const active=document.activeElement,nav=document.getElementById('primary-nav');
+       return {
+         expanded:document.querySelector('.menu-toggle').getAttribute('aria-expanded'),
+         exploreOpen:document.getElementById('landing-explore').open,
+         focusSummary:active===document.querySelector('#landing-explore > summary'),
+         visibleFocus:!!active.getClientRects().length,
+         navDisplay:getComputedStyle(nav).display
+       };
+     });
+     ensure(state.expanded==='false'&&!state.exploreOpen&&
+       state.focusSummary&&state.visibleFocus&&state.navDisplay!=='none',
+       route+' responsive breakpoint retains visible header focus '+JSON.stringify(state));
+     await ctx.close();
    }
 
    // L1.22 — keyboard dismissal must be identical on Landing and public
