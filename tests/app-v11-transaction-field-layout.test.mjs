@@ -8,7 +8,7 @@ const owner='11111111-1111-4111-8111-111111111111',other='22222222-2222-4222-822
 function harness(){
   const store=new Map();let currentOwner=owner;
   const win={addEventListener(){}};
-  const ctx={window:win,document:{readyState:'loading',addEventListener(){}},
+  const ctx={window:win,document:{readyState:'loading',addEventListener(){},getElementById(){return null},querySelectorAll(){return []}},
     localStorage:{getItem:k=>store.get(k)||null,setItem:(k,v)=>store.set(k,v)},
     get currentSessionUser(){return {id:currentOwner}},
     mmhVaultTransactionCategoryListV451:(type,g)=>({
