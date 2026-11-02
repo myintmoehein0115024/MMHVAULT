@@ -1,0 +1,32 @@
+name: N10 username-binding fresh-auth review (NO DEPLOY)
+on:
+  push:
+    branches:
+      - 'review/n10-username-bind-fresh-auth-20261102'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/n10-username-bind-fresh-auth-review.yml'
+      - 'security/n10-username-bind-candidate/**'
+      - 'docs/N10_USERNAME_BIND_REVIEW_20261102.md'
+permissions:
+  contents: read
+jobs:
+  offline-binding-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - name: Checkout full history to verify isolated scope and main drift
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check pure guard source syntax
+        run: node --check security/n10-username-bind-candidate/bind-guard.mjs
+      - name: Run isolated source-scope and synthetic binding race checks
+        run: node security/n10-username-bind-candidate/test-bind-guard.mjs
+# No Supabase calls, secrets, Edge deploy, branch merge, or production writes.
