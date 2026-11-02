@@ -34,10 +34,10 @@ function setupSynthetic(){
  window.mmhvaultAuthBootSettledV3285=true;
  window.realtimeReady=true;window.realtimeChannelOwnerV1235=uid;
  window.__mmhSessionEpochV1239=1;window.__mmhLastCloudLoadAtV1235=Date.now();
- window.__synthetic={aal:{currentLevel:'aal2',nextLevel:'aal2'},delayUser:false,resolveUser:null,offlineUser:false,cloudLoads:0,profileRefreshes:0};
+ window.__synthetic={aal:{currentLevel:'aal2',nextLevel:'aal2'},delayUser:false,resolveUser:null,offlineUser:false,cloudLoads:0,profileRefreshes:0,realtimeRefreshes:0};
  window.loadAll=async()=>{window.__synthetic.cloudLoads++;return {ok:true};};
  window.applyUserProfile=()=>{window.__synthetic.profileRefreshes++;};
- window.subscribeRealtime=()=>{throw Error('Unexpected realtime reconnect');};
+ window.subscribeRealtime=()=>{window.__synthetic.realtimeRefreshes++;return {};};
  window.mmhvaultFinishAuthBootV3285=()=>{throw Error('Unexpected boot');};
  window.db={auth:{
    onAuthStateChange(fn){window.__authCallback=fn;return {data:{subscription:{unsubscribe(){}}}};},
