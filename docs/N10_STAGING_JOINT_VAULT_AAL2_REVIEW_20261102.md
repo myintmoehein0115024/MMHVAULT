@@ -56,3 +56,37 @@ Following the user's "好的，继续" in response to the stated need for the ne
 - Production Edge, `mmhvault.com` and all user financial data remained unchanged.
 
 **Rollback readiness:** The exact v1 entrypoint and unchanged original two helpers are available in this branch; redeploy to the same Staging-only slug with `verify_jwt=true` if a separately approved rollback is ever needed. No rollback was necessary.
+
+## 2026-11-02 — Two-owner signed MFA QA preparation (NOT RUN)
+
+Offline security tests have been expanded from 11 to **23**. New tests validate owner/session/issuer/expiry JWT claim parsing **after real Auth verification**, independent AAL1/AAL2 assurance, MFA enrollment/removal and stale-token denial. JWT-like samples are **synthetic strings without valid signatures**; they do **not** satisfy signed real-account QA. The three hard-OFF QA gates, production host exclusion and full source diff check remain intact.
+
+### Preconditions for a separate, specifically approved short Staging QA window
+
+1. **Two NEW isolated synthetic Staging accounts A/B, created solely for this QA** and separately verified in Supabase Auth. The pre-existing two `username_only_staging` fixtures are NOT permitted as a shortcut; the current locked service deliberately requires two specific UID+email bindings with no username-only app metadata.
+2. Both A/B must be explicitly owner-approved for the test, with secure password creation and at least one verified TOTP AAL2 factor. No user credentials, TOTP seed/QR, JWT, recovery phrase or secret key may be sent into chat or printed into logs/CI.
+3. Prior to any unlocking, revalidate exactly the Staging project `ldivswlhtgmznzwhzsoi`, original QA function slug and four deployed v2 source files, empty Vault fixtures, rate limiter, private grants, accepted GitHub Pages QA origin, and the pinned 3-argument session/AAL guard. Production must remain untouched.
+4. Only under **new explicit authorization** may the Staging-only window, two UID/email bindings and QA release gate change. End the window promptly regardless of result. Preserve a known-good hard-OFF v2 source snapshot before the temporary QA change.
+
+### Real signed test matrix (future, do not claim passed)
+
+| Step | Expected behavior |
+| --- | --- |
+| No bearer / wrong origin / non-allowlisted user | Denied before reading secrets |
+| A valid AAL1 account without verified MFA | Limited to its own status; never B's secrets |
+| A AAL1 bearer after enrolling verified TOTP | `mfa_required` until a fresh AAL2 challenge |
+| A verified AAL2 signed owner, correct password | Can initialize QA-only phrase and save/read exactly that immutable phrase |
+| Wrong current password or exceeded attempt quota | Denied; no decrypted words, no reset or rotation |
+| B token with A phrase / B trying A Vault ownership | Denied by server owner binding, not user-supplied ID |
+| Revoked/expired session, MFA removal, stale JWT, or account switch mid-request | Denied before phrase disclosure |
+| Repeat same original phrase backup | No rotation; immutable comparison succeeds without changing words |
+| Submit another phrase to overwrite fixed original | Denied; existing original unchanged |
+| Cleanup after window | Restore OFF + expired window + empty identities; verify only new QA fixture records are removed with explicit scope authorization; preserve all pre-existing accounts |
+
+**Current blockers:** 0 verified MFA test factors, 0 signed AAL2 test sessions, 0 encrypted QA backups; no active QA allowlist and no active QA window. The signed E2E matrix remains **NOT RUN**. This stage does not authorize creating or deleting actual accounts or toggling switches.
+
+### Final disposition of this review round
+
+- Staging QA v2 remains **deployed but locked** (`verify_jwt=true`; release disabled, expired window, empty allowlist).
+- Newly expanded offline suite: **23 synthetic checks**, including source v1 exact-diff and lockout assertions.
+- Any future E2E run requires explicit fresh Staging-only permission and suitable authenticated test capabilities. This review must never be construed as a production approval.
