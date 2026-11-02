@@ -65,7 +65,7 @@ check('Protected Business page remains noindex',/<meta[^>]*name=["']robots["'][^
 const names=['landing.css','business.css','cinematic.css','landing.js','premium-l131.css','explore-l114.css','motion-l132.css','motion-l132.js','luxury-horizon.svg','premium-architecture.svg','cinematic-lake.webp','personal-business-concept.webp'];
 check('All required live assets exist',names.every(f=>fs.existsSync('landing-assets/'+f)));
 check('Landing style and script links correct',['landing.css','business.css','cinematic.css','landing.js'].every(f=>current.includes('./landing-assets/'+f)));
-check('L1.31 premium layer linked and scoped', current.includes('class="l131"') && current.includes('href="./landing-assets/premium-l131.css?v=1"') && read('landing-assets/premium-l131.css').includes('body.l131 .showcase-v2'));
+check('L1.31 premium layer linked and scoped', current.includes('class="l131 mmh-nav-unified"') && current.includes('href="./landing-assets/premium-l131.css?v=1"') && read('landing-assets/premium-l131.css').includes('body.l131 .showcase-v2'));
 check('Explore styles load after existing premium/motion layers and remain scoped',
  current.includes('href="./landing-assets/explore-l114.css?v=1"') &&
  read('landing-assets/explore-l114.css').includes('body.l131 .site-header #primary-nav') &&
