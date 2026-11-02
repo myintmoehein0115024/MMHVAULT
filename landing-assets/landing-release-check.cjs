@@ -13,24 +13,20 @@ const source = path => {
 const current = read('index.html');
 const prev=source('index.html');
 
-/* L1.31: active feature selection must not reset internal scroll or
- * interrupt ongoing preview motion; keyboard focus must not page-jump.
- * Enforce exact main-based JavaScript patch and protect all other files. */
+/* L1.33: exact presentation-only Myanmar feature typography append.
+ * No public HTML, scripting, authentication, finance, PWA or SEO changes. */
 const oldHeroPreload='<link rel="preload" as="image" type="image/webp" href="./landing-assets/cinematic-lake.webp">';
 const newHeroPreload='<link rel="preload" as="image" type="image/webp" href="./landing-assets/personal-business-concept.webp" fetchpriority="high">';
-function patchOnly(path,changes){
- let expected=source(path);
- for(const [before,after,n] of changes){
-  if(expected.split(before).length-1!==n)return false;
-  expected=expected.split(before).join(after);
- }
- return expected===read(path);
-}
-const l131LandingPreviewNoJumpOnlyEdited=()=>patchOnly('landing-assets/landing.js',[
- ["  function selectProductView(view,focus=false,instant=false){\n    const name=productNames.includes(view)?view:'dashboard';\n    // Rapid clicks cancel old fades before starting the new selection.","  function selectProductView(view,focus=false,instant=false){\n    const name=productNames.includes(view)?view:'dashboard';\n    // L1.31: touching an already-selected preview is a no-op. Do not reset\n    // its inner scroll, interrupt a running crossfade, or repaint the panel.\n    // Keep the instant initial deep-link path for L1.30 initialization.\n    if(name===activeProduct&&!instant){\n      if(focus)productTabs.find(t=>t.dataset.productTab===name)?.focus({preventScroll:true});\n      return;\n    }\n    // Rapid clicks cancel old fades before starting the new selection.",1],
- ["      if(yes&&focus)t.focus();","      if(yes&&focus)t.focus({preventScroll:true});",1]
- ])&&current===prev&&current.includes('<title>MMHVAULT | Personal Finance & Wealth</title>');
-const l131PublicPagesUnchanged=()=>read('landing-assets/public-pages.js')===
+const l133BurmeseCssSuffix="\n/* L1.33 — Myanmar feature previews: readable native-script rhythm on phones.\n   Only public showcase labels; keep all hero, login and App styles intact. */\nhtml[lang=\"my\"] body.l131 .features-explorer.app-showcase .product-tab-copy{\n  min-width:0;\n}\nhtml[lang=\"my\"] body.l131 .features-explorer.app-showcase .product-tab-copy strong{\n  display:block;\n  font-family:\"Noto Sans Myanmar\",\"Myanmar Text\",\"Padauk\",sans-serif;\n  font-size:14px;\n  font-weight:600;\n  line-height:1.85;\n  letter-spacing:0;\n  white-space:normal;\n  overflow-wrap:anywhere;\n  word-break:normal;\n}\nhtml[lang=\"my\"] body.l131 .features-explorer.app-showcase .product-tab-copy small{\n  line-height:1.85;\n  letter-spacing:0;\n  overflow-wrap:anywhere;\n}\nhtml[lang=\"my\"] body.l131 .features-explorer.app-showcase .app-story h3{\n  font-family:\"Noto Sans Myanmar\",\"Myanmar Text\",\"Padauk\",sans-serif;\n  font-weight:600;\n  line-height:1.75;\n  letter-spacing:0;\n  overflow-wrap:anywhere;\n  word-break:normal;\n}\n@media(max-width:620px){\n  html[lang=\"my\"] body.l131 .features-explorer.app-showcase .product-tab{\n    min-height:76px;\n  }\n  html[lang=\"my\"] body.l131 .features-explorer.app-showcase .product-tab-copy strong{\n    font-size:13px;\n  }\n}\n";
+const l134ResponsiveCssSuffix="\n/* L1.34 — Keep the six public feature choices stable while EN / ZH / MY\n   translations change. Only Landing's mobile feature picker is affected.\n   Preserve native zoom, scrolling, the fixed Hero, and all existing colors. */\n@media (max-width: 620px) {\n  html[lang] body.l131 .features-explorer.app-showcase .product-tab {\n    min-width: 0;\n    min-height: 94px;\n    padding-block: 10px;\n  }\n  html[lang] body.l131 .features-explorer.app-showcase .product-tab-copy {\n    min-width: 0;\n  }\n  html[lang] body.l131 .features-explorer.app-showcase .product-tab-copy strong,\n  html[lang] body.l131 .features-explorer.app-showcase .product-tab-copy small {\n    white-space: normal;\n    overflow-wrap: anywhere;\n  }\n  html[lang] body.l131 .features-explorer.app-showcase .product-tab-soon {\n    white-space: normal;\n    overflow-wrap: anywhere;\n  }\n}\n@media (max-width: 360px) {\n  html[lang] body.l131 .features-explorer.app-showcase .product-tab {\n    min-height: 108px;\n  }\n}\n/* Mobile tapping should not shrink the grid card under the user's finger. */\n@media (max-width: 620px) and (prefers-reduced-motion: no-preference) {\n  html.mm-motion-active body.l131 .features-explorer.app-showcase .product-tab:active {\n    transform: none;\n  }\n}\n";
+const l133BurmeseLayoutOnlyEdited=()=>
+  read('landing-assets/landing.css')===
+    source('landing-assets/landing.css')+l134ResponsiveCssSuffix &&
+  source('landing-assets/landing.css').endsWith(l133BurmeseCssSuffix) &&
+  read('landing-assets/landing.js')===source('landing-assets/landing.js') &&
+  current===prev &&
+  current.includes('<title>MMHVAULT | Personal Finance & Wealth</title>');
+const l133PublicPagesUnchanged=()=>read('landing-assets/public-pages.js')===
  source('landing-assets/public-pages.js');
 const manifest=JSON.parse(read('mmh-manifest-v2.webmanifest'));
 const oldManifest=JSON.parse(source('mmh-manifest-v2.webmanifest'));
@@ -413,7 +409,7 @@ check('Homepage retains all prior content and SEO outside shared header layer',
  current.includes('<body id="top" class="l131 mmh-nav-unified">') &&
  current.includes('<link rel="stylesheet" href="./landing-assets/shared-header-l116.css?v=1">') &&
  current===prev &&
- l131LandingPreviewNoJumpOnlyEdited() &&
+ l133BurmeseLayoutOnlyEdited() &&
  source('landing-assets/explore-l114.css')===read('landing-assets/explore-l114.css'));
 const publicHeaders=['about/index.html','features/index.html','business/index.html',
  'register/index.html','security.html','privacy.html','terms.html'];
@@ -548,33 +544,42 @@ check('L1.24 preload prioritizes the one real Hero image with no duplicate image
  current.includes('loading="lazy" decoding="async"') &&
  !current.includes(oldHeroPreload));
 check('L1.25 Hero only waits for decoded pixels, preserving original fallback',
- l131LandingPreviewNoJumpOnlyEdited() &&
+ l133BurmeseLayoutOnlyEdited() &&
  current===prev &&
  current.includes(newHeroPreload) &&
  !current.includes(oldHeroPreload));
 check('L1.27 public tab title matches SEO without language focus scroll',
- l131LandingPreviewNoJumpOnlyEdited() &&
- l131PublicPagesUnchanged() &&
+ l133BurmeseLayoutOnlyEdited() &&
+ l133PublicPagesUnchanged() &&
  current===prev && current.includes(newHeroPreload) &&
  !current.includes(oldHeroPreload));
-check('L1.31 exact three-file preview repeat and focus scope',
+check('L1.34 exact three-file public responsive presentation scope',
  actual.length===3 &&
  actual.every(path=>[
-  'landing-assets/landing.js',
+  'landing-assets/landing.css',
   'landing-assets/landing-release-check.cjs',
   'landing-assets/landing-browser-check.cjs'
  ].includes(path)) &&
  current===prev &&
- l131LandingPreviewNoJumpOnlyEdited() &&
- l131PublicPagesUnchanged() &&
+ l133BurmeseLayoutOnlyEdited() &&
+ l133PublicPagesUnchanged() &&
  source('landing-assets/shared-header-l116.css')===read('landing-assets/shared-header-l116.css') &&
  publicHeaders.every(path=>read(path)===source(path)) &&
- ['landing-assets/public-pages.css','landing-assets/landing.css',
+ ['landing-assets/public-pages.css',
   'landing-assets/business.css','landing-assets/cinematic.css',
   'landing-assets/premium-l131.css','landing-assets/motion-l132.css',
   'landing-assets/motion-l132.js','landing-assets/shared-header-l116.css',
   'landing-assets/public-pages.js','sitemap.xml','robots.txt','mmh-manifest-v2.webmanifest']
  .every(path=>read(path)===source(path)));
+check('L1.34 mobile EN ZH MY card stability and touch-safe scrolling',
+  l133BurmeseLayoutOnlyEdited() &&
+  l134ResponsiveCssSuffix.includes('min-height: 94px') &&
+  l134ResponsiveCssSuffix.includes('min-height: 108px') &&
+  l134ResponsiveCssSuffix.includes('overflow-wrap: anywhere') &&
+  l134ResponsiveCssSuffix.includes('prefers-reduced-motion: no-preference') &&
+  !l134ResponsiveCssSuffix.includes('touch-action: none') &&
+  !l134ResponsiveCssSuffix.includes('user-scalable=no') &&
+  !l134ResponsiveCssSuffix.includes('body.app'));
 check('L1.28 shared header motion remains unchanged and accessible',
  source('landing-assets/shared-header-l116.css')===read('landing-assets/shared-header-l116.css') &&
  !read('landing-assets/shared-header-l116.css').includes('body.app') &&
@@ -588,17 +593,31 @@ check('L1.29 localized action names work without changing content or header geom
  read('landing-assets/public-pages.js').includes('syncNavToggleLabel();') &&
  source('landing-assets/shared-header-l116.css')===read('landing-assets/shared-header-l116.css'));
 check('L1.30 initial feature links render without a Dashboard flash',
- l131LandingPreviewNoJumpOnlyEdited() &&
- l131PublicPagesUnchanged() &&
+ l133BurmeseLayoutOnlyEdited() &&
+ l133PublicPagesUnchanged() &&
  read('landing-assets/landing.js').includes("syncProductHash(true)") &&
  read('landing-assets/landing.js').includes("const animate=!instant &&") &&
  current===prev);
 check('L1.31 current-tab reselect never resets scroll or interrupts preview animation',
- l131LandingPreviewNoJumpOnlyEdited() &&
- l131PublicPagesUnchanged() &&
+ l133BurmeseLayoutOnlyEdited() &&
+ l133PublicPagesUnchanged() &&
  read('landing-assets/landing.js').includes('if(name===activeProduct&&!instant)') &&
  read('landing-assets/landing.js').includes('t.focus({preventScroll:true})') &&
  read('landing-assets/landing.js').includes('syncProductHash(true)') &&
+ current===prev);
+check('L1.32 feature labels follow all languages and canonical English snippet persists',
+ l133BurmeseLayoutOnlyEdited() &&
+ l133PublicPagesUnchanged() &&
+ read('landing-assets/landing.js').includes('productLabels[currentLang][activeProduct]') &&
+ read('landing-assets/landing.js').includes("desc.setAttribute('content', officialEnglishDescription)") &&
+ read('landing-assets/landing.js').includes('syncProductHash(true)') &&
+ current===prev);
+check('L1.33 Myanmar-only feature names and story styles are appended without JS changes',
+ l133BurmeseLayoutOnlyEdited() &&
+ l133BurmeseCssSuffix.includes('html[lang="my"] body.l131 .features-explorer.app-showcase') &&
+ l133BurmeseCssSuffix.includes('min-height:76px') &&
+ !l133BurmeseCssSuffix.includes('body.app') &&
+ read('landing-assets/landing.js').includes('productLabels[currentLang][activeProduct]') &&
  current===prev);
 check('Protected auth/PWA/SEO/config sources unchanged in PR diff',
  ['business.html','app.html','login.html','sitemap.xml','robots.txt',

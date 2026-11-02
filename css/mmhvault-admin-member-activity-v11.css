@@ -1,0 +1,56 @@
+/* APP V11 · Liquid Glass member activity details — Admin only */
+#adminUsageView .admin-member-detail-btn-v11{
+  flex:0 0 auto;min-height:34px;padding:6px 14px;border-radius:999px;
+  border:1px solid rgba(237,201,114,.4);background:linear-gradient(135deg,rgba(220,188,108,.19),rgba(56,92,121,.23));
+  color:#f7e1a5;font-size:12px;font-weight:700;letter-spacing:.03em;
+  box-shadow:inset 0 1px rgba(255,255,255,.13),0 5px 14px rgba(0,0,0,.08);
+  transition:transform .18s ease,border-color .18s ease,box-shadow .18s ease;
+}
+#adminUsageView .admin-member-detail-btn-v11:hover{
+  border-color:rgba(250,214,132,.72);box-shadow:0 8px 22px rgba(5,17,34,.27);transform:translateY(-1px)
+}
+#adminUsageView .admin-member-detail-btn-v11:focus-visible{outline:2px solid #efd48d;outline-offset:3px}
+.admin-member-activity-dialog-v11{
+  width:min(490px,calc(100vw - 32px));max-width:490px;max-height:calc(100dvh - 32px);
+  border:1px solid rgba(239,212,148,.3);border-radius:23px;padding:0;
+  color:#edf4fc;background:linear-gradient(145deg,rgba(35,57,79,.98),rgba(11,23,40,.99) 65%);
+  box-shadow:0 32px 105px rgba(0,0,0,.54),inset 0 1px rgba(255,255,255,.1);
+  overflow:auto;overscroll-behavior:contain;
+}
+.admin-member-activity-dialog-v11::backdrop{background:rgba(2,10,22,.76);backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px)}
+.admin-member-activity-dialog-v11 .ama-shell-v11{padding:26px 25px 22px;position:relative}
+.admin-member-activity-dialog-v11 .ama-shell-v11:before{
+  content:"";position:absolute;top:0;left:28px;right:28px;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(244,206,130,.84),transparent)
+}
+.admin-member-activity-dialog-v11 .ama-head-v11{display:flex;align-items:start;justify-content:space-between;gap:18px}
+.admin-member-activity-dialog-v11 .ama-head-v11 small{font-size:10px;letter-spacing:.2em;font-weight:700;color:#d8b874}
+.admin-member-activity-dialog-v11 .ama-head-v11 h2{font-size:21px;line-height:1.3;font-weight:700;margin:7px 0 0;color:#f4f7fb}
+.admin-member-activity-dialog-v11 .ama-close-v11{
+  flex:0 0 auto;width:36px;height:36px;min-height:0;padding:0;border-radius:50%;
+  font-size:25px;font-weight:300;line-height:1;color:#c9d8e5;
+  border:1px solid rgba(185,208,224,.25);background:rgba(255,255,255,.06)
+}
+.admin-member-activity-dialog-v11 .ama-close-v11:hover{color:#fff;background:rgba(255,255,255,.14)}
+.admin-member-activity-dialog-v11 .ama-member-v11{margin-top:23px;padding:14px 16px;border-radius:13px;background:rgba(8,22,37,.65);border:1px solid rgba(117,153,177,.2);display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:7px}
+.admin-member-activity-dialog-v11 .ama-member-v11 strong{font-size:14px;max-width:100%;overflow-wrap:anywhere}
+.admin-member-activity-dialog-v11 .ama-member-v11 span{color:#9fbacc;font-size:11px}
+.admin-member-activity-dialog-v11 .ama-status-v11{margin:24px 0 12px;font-size:13px;line-height:1.7;color:#c8d9e8}
+.admin-member-activity-dialog-v11 .ama-grid-v11{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:17px}
+.admin-member-activity-dialog-v11 .ama-grid-v11[hidden]{display:none}
+.admin-member-activity-dialog-v11 .ama-metric-v11{min-width:0;padding:17px 15px;border-radius:15px;background:linear-gradient(145deg,rgba(38,67,88,.8),rgba(15,34,52,.82));border:1px solid rgba(161,193,215,.22)}
+.admin-member-activity-dialog-v11 .ama-metric-v11 small{display:block;font-size:12px;color:#c3d5e4}
+.admin-member-activity-dialog-v11 .ama-metric-v11 strong{display:block;font-size:30px;line-height:1.25;color:#f0d391;font-weight:700;letter-spacing:-.03em;font-variant-numeric:tabular-nums;margin:10px 0}
+.admin-member-activity-dialog-v11 .ama-metric-v11 span{display:block;color:#9eb4c7;font-size:10px;line-height:1.55}
+.admin-member-activity-dialog-v11 .ama-last-v11{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:7px;align-items:center;justify-content:space-between;padding:14px 15px;border:1px solid rgba(179,204,220,.2);border-radius:13px;background:rgba(8,21,38,.35)}
+.admin-member-activity-dialog-v11 .ama-last-v11 span{color:#a5bfd1;font-size:12px}
+.admin-member-activity-dialog-v11 .ama-last-v11 strong{font-size:12px;color:#e1eef8;font-weight:600}
+.admin-member-activity-dialog-v11 .ama-note-v11{margin:18px 0 0;font-size:11px;line-height:1.7;color:#90a7ba}
+@media(max-width:500px){
+  .admin-member-activity-dialog-v11{border-radius:19px;width:calc(100vw - 22px)}
+  .admin-member-activity-dialog-v11 .ama-shell-v11{padding:22px 17px 19px}
+  .admin-member-activity-dialog-v11 .ama-metric-v11{padding:14px 12px}
+  .admin-member-activity-dialog-v11 .ama-metric-v11 strong{font-size:27px}
+  #adminUsageView .admin-member-detail-btn-v11{min-height:38px}
+}
+@media(prefers-reduced-motion:reduce){#adminUsageView .admin-member-detail-btn-v11{transition:none}}

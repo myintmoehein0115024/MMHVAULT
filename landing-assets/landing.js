@@ -681,6 +681,8 @@
 
   const htmlKeys = new Set(['heroTitle', 'featuresTitle', 'businessHeading', 'whyTitle', 'closingTitle']);
   const storageKey = 'mmhvault.landing.language';
+  // L1.32: retain the canonical English snippet rather than replacing it on load.
+  const officialEnglishDescription = document.querySelector('meta[name="description"]')?.getAttribute('content') || '';
   const siteHeader = document.querySelector('.site-header');
   const toggle = document.querySelector('.menu-toggle');
   const explore = document.getElementById('landing-explore');
@@ -781,6 +783,14 @@
     languageButtons.forEach(button => {
       button.setAttribute('aria-pressed', String(button.dataset.lang === currentLang));
     });
+    // L1.32: feature names use the selected display language on the tabs and
+    // in the active story heading; product identity and panel IDs stay fixed.
+    productTabs.forEach(tab => {
+      const label = tab.querySelector('.product-tab-copy strong');
+      if (label) label.textContent = productLabels[currentLang][tab.dataset.productTab];
+    });
+    const activeStoryTitle = document.querySelector('[data-app-story-title]');
+    if (activeStoryTitle) activeStoryTitle.textContent = productLabels[currentLang][activeProduct];
     updateBusinessPreview(currentBusinessView);
     // Keep the currently selected feature story in the new display language.
     const storyDesc=document.querySelector('[data-app-story-desc]');
@@ -820,7 +830,7 @@
     const desc = document.querySelector('meta[name="description"]');
     if (desc && currentLang === 'zh') desc.setAttribute('content', 'MMHVAULT 个人财务与生活规划管理平台：管理账户、交易、投资和预算，并了解即将推出的日程与个人目标功能。');
     if (desc && currentLang === 'my') desc.setAttribute('content', 'MMHVAULT သည် အကောင့်၊ ငွေကြေးအဝင်အထွက်၊ ရင်းနှီးမြှုပ်နှံမှုနှင့် ဘတ်ဂျက်များအတွက် ကိုယ်ပိုင်စီမံခန့်ခွဲမှုနေရာဖြစ်ပြီး ဘဝအစီအစဉ်လုပ်ဆောင်ချက်များကို ပြင်ဆင်နေပါသည်။');
-    if (desc && currentLang === 'en') desc.setAttribute('content', 'MMHVAULT is a private personal finance and life planning workspace. Manage accounts, transactions, investments and budgets; explore upcoming schedules and personal goals.');
+    if (desc && currentLang === 'en') desc.setAttribute('content', officialEnglishDescription);
     try { window.localStorage.setItem(storageKey, currentLang); } catch (_) {}
   }
   // L1.26: closing a public menu must not strand keyboard focus inside
@@ -983,7 +993,12 @@
   const productTabs=[...document.querySelectorAll('[data-product-tab]')];
   const productPanels=[...document.querySelectorAll('[data-product-panel]')];
   const productNames=productTabs.map(t=>t.dataset.productTab);
-  const productLabels={dashboard:'Dashboard',transactions:'Transactions',accounts:'Accounts',invest:'Invest',analyze:'Analyze',life:'Life Planner'};
+  // L1.32: concise, localized feature names without altering stable IDs.
+  const productLabels={
+    en:{dashboard:'Dashboard',transactions:'Transactions',accounts:'Accounts',invest:'Invest',analyze:'Analyze',life:'Life Planner'},
+    zh:{dashboard:'财务总览',transactions:'收支记录',accounts:'账户管理',invest:'投资组合',analyze:'财务分析',life:'生活规划'},
+    my:{dashboard:'အကျဉ်းချုပ်',transactions:'ငွေစာရင်း',accounts:'အကောင့်များ',invest:'ရင်းနှီးမြှုပ်နှံမှု',analyze:'စိစစ်ချက်',life:'ဘဝအစီအစဉ်'}
+  };
   const productFeatureKeys={dashboard:'featureDashboard',transactions:'featureTransactions',accounts:'featureAccounts',invest:'featureInvest',analyze:'featureAnalyze',life:'featureLife'};
   const productCap={dashboard:'Dashboard',transactions:'Transactions',accounts:'Accounts',invest:'Invest',analyze:'Analyze',life:'Life'};
   // L1.21: keep the previous demo on screen until its replacement is ready.
@@ -1066,7 +1081,7 @@
     const idx=document.querySelector('[data-app-story-index]');
     if(idx)idx.textContent=String(productNames.indexOf(name)+1).padStart(2,'0')+' / 06';
     const title=document.querySelector('[data-app-story-title]');
-    if(title)title.textContent=productLabels[name];
+    if(title)title.textContent=productLabels[currentLang][name];
     const dict=strings[currentLang], desc=document.querySelector('[data-app-story-desc]'),key=productFeatureKeys[name];
     if(desc){desc.setAttribute('data-i18n',key);desc.textContent=dict[key]||''}
     document.querySelectorAll('[data-app-story-benefit]').forEach(node=>{

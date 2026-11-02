@@ -1,0 +1,25 @@
+name: APP V11 native Accounts balance render
+on:
+  push:
+    branches:
+      - feature/app-v11-account-native-balance-refresh-20261102
+  pull_request:
+    paths:
+      - app.html
+      - tests/app-v11-account-native-balance-refresh.test.mjs
+      - .github/workflows/app-v11-account-native-balance.yml
+permissions:
+  contents: read
+jobs:
+  account-native-balance:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check native-currency fallback and transaction refresh
+        run: node --test tests/app-v11-account-native-balance-refresh.test.mjs
+      - name: Check finance data and FX regression
+        run: node --test tests/data-integrity-v1.test.mjs tests/account-auto-fx-v1.test.mjs tests/account-fx-events-v11.test.mjs tests/app-v11-account-photo-cloud.test.mjs

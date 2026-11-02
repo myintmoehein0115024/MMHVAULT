@@ -10,16 +10,20 @@ assert.ok(start>=0&&end>start,'V11 finance identity guard present');
 const source=app.slice(start,end);
 const account={id:'acc_bath',name:'Baht',currency:'THB',active:true};
 
-function harness({primary=false,recurring=false,wallet=false,lifeFund=false,ownerValid=true}={}){
+function harness({primary=false,recurring=false,wallet=false,lifeFund=false,targetPrimary=false,targetLifeFund=false,ownerValid=true}={}){
   let readCount=0;
-  const read=val=>async()=>{readCount++;return val};
+  const read=(oldVal,targetVal)=>async name=>{
+    readCount++;
+    return String(name).toLowerCase()==='orphan cash'?targetVal:oldVal;
+  };
   const sandbox={
+    db:{},
     mmhVaultRequireConfigOwner:()=>ownerValid,
-    mmhVaultPrimaryHistoryUsesAccountV192:read(primary),
-    mmhVaultRecurringUsesAccountV1236:read(recurring),
-    mmhVaultWalletUsesAccountV196:read(wallet),
-    mmhVaultRowsUsingAccountV192:read(lifeFund?[{id:1}]:[]),
-    Promise,String,
+    mmhVaultPrimaryHistoryUsesAccountV192:read(primary,targetPrimary),
+    mmhVaultRecurringUsesAccountV1236:read(recurring,false),
+    mmhVaultWalletUsesAccountV196:read(wallet,false),
+    mmhVaultRowsUsingAccountV192:read(lifeFund?[{id:1}]:[],targetLifeFund?[{id:2}]:[]),
+    Promise,String
   };
   const guard=vm.runInNewContext(source+'\nmmhVaultFinanceIdentityChangeSafeV11',sandbox);
   return {guard,reads:()=>readCount};
@@ -48,6 +52,24 @@ test('Life Planner fund allocations protect references too',async()=>{
 test('an unused account can be renamed without rewriting any historical records',async()=>{
   const h=harness();
   assert.equal(await h.guard(account,'Unused New Name','THB','owner'),true);
+  assert.equal(h.reads(),8);
+});
+
+test('unused account cannot rename into a historical orphan reference',async()=>{
+  const h=harness({targetPrimary:true});
+  assert.equal(await h.guard(account,'orphan cash','THB','owner'),false);
+  assert.equal(h.reads(),8);
+});
+
+test('orphaned Life Planner allocations also block account-name reuse',async()=>{
+  const h=harness({targetLifeFund:true});
+  assert.equal(await h.guard(account,'orphan cash','THB','owner'),false);
+  assert.equal(h.reads(),8);
+});
+
+test('currency change with no name change checks only the original references',async()=>{
+  const h=harness();
+  assert.equal(await h.guard(account,'Baht','AMD','owner'),true);
   assert.equal(h.reads(),4);
 });
 
@@ -64,6 +86,7 @@ test('owner mismatch fails closed',async()=>{
 
 test('history lookup failure rejects rather than permitting partial table rewrites',async()=>{
   const sandbox={
+    db:{},
     mmhVaultRequireConfigOwner:()=>true,
     mmhVaultPrimaryHistoryUsesAccountV192:async()=>{throw Error('offline')},
     mmhVaultRecurringUsesAccountV1236:async()=>false,
@@ -80,5 +103,5 @@ test('account edit checks historical identity BEFORE updating Transactions',()=>
   const guardPos=block.indexOf('await mmhVaultFinanceIdentityChangeSafeV11(a,newName,newCurrency,configOwner)');
   const updatePos=block.indexOf("await mmhVaultUpdateAccountRefsV192('transactions'");
   assert.ok(guardPos>=0&&updatePos>guardPos);
-  assert.match(block.slice(0,updatePos),/Its name and currency cannot be changed/);
+  assert.match(block.slice(0,updatePos),/name or currency cannot be changed/);
 });

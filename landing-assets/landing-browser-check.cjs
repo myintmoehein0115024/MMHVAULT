@@ -362,6 +362,18 @@ async function load(page,route,failures){
          width+'px home branding, controls and three-language Hero stay onscreen '+JSON.stringify(clipped));
      }
 
+     // L1.32: language selection must translate the six product names and
+     // current story, without mutating the official English SEO snippet.
+     const canonicalEnglishDescription=await page.locator('meta[name="description"]')
+       .getAttribute('content');
+     const expectedFeatureNames={
+       en:['Dashboard','Transactions','Accounts','Invest','Analyze','Life Planner'],
+       zh:['财务总览','收支记录','账户管理','投资组合','财务分析','生活规划'],
+       my:['အကျဉ်းချုပ်','ငွေစာရင်း','အကောင့်များ','ရင်းနှီးမြှုပ်နှံမှု','စိစစ်ချက်','ဘဝအစီအစဉ်']
+     };
+     // L1.33: Myanmar labels use a readable native-script font and line
+     // rhythm without clipping in the compact two-column feature chooser.
+     // English and Chinese have no new styles or dimensions.
      // User-requested fixed multilingual Hero must not change with language.
      const immutable=await page.locator('[data-hero-fixed]').allTextContents();
      for(const language of ['zh','my','en']){
@@ -373,12 +385,90 @@ async function load(page,route,failures){
        const exploreLabels={en:'Explore',zh:'了解更多',my:'ပိုမိုလေ့လာရန်'};
        ensure((await page.locator('#landing-explore > summary [data-i18n="navExplore"]').textContent()).trim()===exploreLabels[language],
          width+'px Explore translated correctly in '+language);
+       const featureNames=(await page.locator('.product-tab-copy strong').allTextContents())
+         .map(s=>s.trim());
+       const storyName=(await page.locator('[data-app-story-title]').textContent()).trim();
+       ensure(JSON.stringify(featureNames)===JSON.stringify(expectedFeatureNames[language]) &&
+         storyName===expectedFeatureNames[language][0],
+         'L1.32 '+width+'px '+language+' feature tabs and story fully translated '+
+           JSON.stringify({featureNames,storyName}));
+       if(language==='my'&&[320,393,440,768,1440].includes(width)){
+         const typography=await page.locator('.features-explorer.app-showcase')
+           .evaluate(root=>{
+             const tabs=[...root.querySelectorAll('.product-tab')];
+             const names=tabs.map(tab=>{
+               const label=tab.querySelector('.product-tab-copy strong');
+               const style=getComputedStyle(label);
+               const r=label.getBoundingClientRect();
+               const t=tab.getBoundingClientRect();
+               return {
+                 font:style.fontFamily,letterSpacing:style.letterSpacing,
+                 fontSize:parseFloat(style.fontSize),
+                 lineHeight:parseFloat(style.lineHeight),
+                 overflowWrap:style.overflowWrap,wordBreak:style.wordBreak,
+                 minHeight:parseFloat(getComputedStyle(tab).minHeight),
+                 fits:r.right<=t.right+2&&r.left>=t.left-2,
+                 textFits:label.scrollWidth<=label.clientWidth+2,
+                 height:t.height
+               };
+             });
+             const h3=getComputedStyle(root.querySelector('.app-story h3'));
+             return {names,storyFont:h3.fontFamily,storyLineHeight:parseFloat(h3.lineHeight),
+               storyFontSize:parseFloat(h3.fontSize),horizontalScroll:scrollX};
+           });
+         ensure(typography.names.length===6&&typography.names.every(m=>
+           m.font.includes('Noto Sans Myanmar')&&['normal','0px'].includes(m.letterSpacing)&&
+           m.lineHeight/m.fontSize>=1.75&&m.overflowWrap==='anywhere'&&
+           m.wordBreak==='normal'&&m.fits&&m.textFits&&
+           (width>620||m.minHeight>=75))&&
+           typography.storyFont.includes('Noto Sans Myanmar')&&
+           typography.storyLineHeight/typography.storyFontSize>=1.6&&
+           typography.horizontalScroll===0,
+           'L1.33 '+width+'px Burmese showcase typography fits with readable line spacing '+
+             JSON.stringify(typography));
+       }
+     // L1.34: EN / ZH / MY switch must never shrink mobile chooser cards or
+     // truncate a translated title. The Hero and document scroll remain native.
+     if([320,393,440].includes(width)){
+       const mobileCards=await page.locator('.features-explorer.app-showcase .product-tab')
+         .evaluateAll(tabs=>tabs.map(tab=>{
+           const strong=tab.querySelector('.product-tab-copy strong');
+           const card=getComputedStyle(tab);
+           return {minHeight:parseFloat(card.minHeight),
+             textFits:strong.scrollWidth<=strong.clientWidth+2,
+             cardFits:tab.scrollWidth<=tab.clientWidth+3};
+         }));
+       ensure(mobileCards.length===6&&mobileCards.every(card=>
+           card.minHeight>=93&&card.textFits&&card.cardFits),
+         'L1.34 '+width+'px '+language+' stable mobile feature buttons '+
+           JSON.stringify(mobileCards));
+     }
+       if(language==='en'){
+         const englishDescription=await page.locator('meta[name="description"]')
+           .getAttribute('content');
+         ensure(englishDescription===canonicalEnglishDescription &&
+           englishDescription.includes('official personal finance and wealth management website'),
+           'L1.32 '+width+'px restores canonical English SEO description');
+       }
      }
      await page.locator('[data-product-tab="accounts"]').click();
      ensure(await page.locator('[data-product-tab="accounts"]').getAttribute('aria-selected')==='true',
        width+'px Accounts feature tab responds');
      ensure(await page.locator('[data-product-panel="accounts"]').isVisible(),
        width+'px Accounts concept panel displayed');
+     if([320,393,1440].includes(width)){
+       for(const language of ['zh','my','en']){
+         await page.locator('#locale-trigger').click();
+         await page.locator('#locale-menu button[data-lang="'+language+'"]').click();
+         const selectedTitle=(await page.locator('[data-app-story-title]').textContent()).trim();
+         const accountTab=(await page.locator('[data-product-tab="accounts"] .product-tab-copy strong')
+           .textContent()).trim();
+         ensure(selectedTitle===expectedFeatureNames[language][2] &&
+           accountTab===selectedTitle &&
+           await page.locator('[data-product-tab="accounts"]').getAttribute('aria-selected')==='true',
+           'L1.32 '+width+'px active Accounts story stays translated in '+language);
+       }
+     }
      // L1.21 — accessible instant swap for reduced-motion preference.
      const settled=await page.locator('[data-product-panel]').evaluateAll(panels=>({
        visible:panels.filter(p=>!p.hidden).map(p=>p.dataset.productPanel),
