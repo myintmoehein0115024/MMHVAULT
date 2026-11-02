@@ -607,3 +607,125 @@ console.log('PASS: synthetic app entry for normal/legacy AAL, invalid users, fac
 }
 
 console.log('PASS: dynamic synthetic session reconciliation, malformed AAL, MFA step-up, stale async results and same-owner refresh.');
+
+
+{
+  // Cross-path login session handoff matrix. Run actual production login.html
+  // and username JS functions in a disconnected Node VM: no network, credentials
+  // or production writes. The UI cannot enter App without verified Auth + AAL.
+  const loginSource=readFileSync(new URL('../../login.html',import.meta.url),'utf8');
+  const userSource=readFileSync(new URL('../../js/mmhvault-n10-a7-69-username.js',import.meta.url),'utf8');
+  const loginStart=loginSource.indexOf('async function verifiedRedirectV946(expectedUserId){');
+  const loginEnd=loginSource.indexOf('function openForm(id){',loginStart);
+  assert.ok(loginStart>0&&loginEnd>loginStart,'Capture original verified login redirect');
+  const originalRedirect=loginSource.slice(loginStart,loginEnd);
+  assert.match(originalRedirect,/await db\.auth\.getUser\(\)/);
+  assert.match(originalRedirect,/await db\.auth\.getSession\(\)/);
+  assert.match(originalRedirect,/await db\.auth\.mfa\.getAuthenticatorAssuranceLevel\(\)/);
+  assert.match(originalRedirect,/await mmhShowMfaChallengeV783\(expectedUserId\)/);
+  assert.ok(originalRedirect.indexOf('await db.auth.getUser()')<
+    originalRedirect.indexOf('location.replace(appUrl())'),
+    'Verified identity must precede app navigation');
+  const handoffStart=userSource.indexOf('async function handoff(body,expected){');
+  const handoffEnd=userSource.indexOf("signup.addEventListener('submit'",handoffStart);
+  assert.ok(handoffStart>0&&handoffEnd>handoffStart,'Capture original username session handoff');
+  const originalHandoff=userSource.slice(handoffStart,handoffEnd);
+  assert.match(userSource,/action:selected==='phrase'\?'phrase_login':'login'/);
+  assert.match(userSource,/await handoff\(r\.body,r\.body\.user_id\)/);
+  assert.match(originalHandoff,/db\.auth\.setSession\(/);
+  assert.match(originalHandoff,/db\.auth\.getUser\(\)/);
+  assert.match(originalHandoff,/db\.auth\.getSession\(\)/);
+  assert.match(originalHandoff,/await verifiedRedirectV946\(expected\)/);
+  assert.match(originalHandoff,/db\.auth\.signOut\(\{scope:'local'\}\)/);
+  const cases=[
+    ['email password AAL1','aal1','aal1',true,0],
+    ['verified AAL2','aal2','aal2',true,0],
+    ['MFA enrollment requires challenge','aal1','aal2',false,1],
+    ['legacy null requires MFA',null,'aal2',false,1],
+    ['unknown next level must fail','aal1',null,false,0],
+    ['missing current AAL except explicit legacy',undefined,'aal1',false,0],
+    ['invalid current level','invalid','aal1',false,0],
+    ['stale server user','aal1','aal1',false,0,'different-remote'],
+    ['changed cached session','aal1','aal1',false,0,'different-cache'],
+    ['remote getUser error','aal1','aal1',false,0,'remote-error'],
+    ['recovery callback pending','aal1','aal1',false,0,'recovery'],
+    ['stale navigation latch','aal1','aal1',false,0,'inflight']
+  ];
+  let completed=0;
+  for(const [label,currentLevel,nextLevel,expectedSuccess,expectedChallenges,mode] of cases){
+    const calls=[],navigation=[],challenges=[],status=[];
+    const uid='synthetic-owner';
+    const ctx={
+      db:{auth:{
+        getUser:async()=>{calls.push('remote');return mode==='remote-error'
+          ?{data:null,error:new Error('synthetic failure')}
+          :{data:{user:{id:mode==='different-remote'?'foreign-owner':uid}},error:null};},
+        getSession:async()=>{calls.push('cache');return {data:{session:
+          {user:{id:mode==='different-cache'?'foreign-owner':uid}}},error:null};},
+        mfa:{getAuthenticatorAssuranceLevel:async()=>{
+          calls.push('assurance');return {data:{currentLevel,nextLevel},error:null};
+        }}
+      }},
+      verifiedRedirectInFlightV946:mode==='inflight',
+      recoveryCallbackPendingV944:mode==='recovery',
+      recoveryModeV943:false,recoveryCompletedV943:false,
+      mmhShowMfaChallengeV783:async id=>{challenges.push(id);return true;},
+      location:{replace:target=>navigation.push(target)},
+      appUrl:()=>'/app.html',
+      msg:(message,type)=>status.push({message,type}),
+      Error
+    };
+    const redirect=vm.runInNewContext(originalRedirect+'\nverifiedRedirectV946;',ctx,{timeout:2000});
+    const ok=await redirect(uid);
+    assert.equal(ok,expectedSuccess,label+' allowed');
+    assert.equal(navigation.length,expectedSuccess?1:0,label+' App navigations');
+    assert.equal(challenges.length,expectedChallenges,label+' MFA challenges');
+    assert.equal(ctx.verifiedRedirectInFlightV946,expectedSuccess,
+      label+' redirect lock');
+    completed++;
+  }
+  // Username-only and recovery phrase flows must use the SAME verified
+  // redirect, refusing stale identity or missing MFA before entering App.
+  const handoffScenarios=[
+    ['valid',true,false,false],
+    ['needs-mfa',true,true,false],
+    ['bad-set-session',false,false,true],
+    ['wrong-owner',false,false,true],
+    ['no-mfa-ack',false,false,true]
+  ];
+  for(const [label,allowed,mfaPending,mustSignOut] of handoffScenarios){
+    let set=0,remote=0,cached=0,redirected=0,signouts=0;
+    const uid='synthetic-username-owner';
+    const ctx={
+      db:{auth:{
+        setSession:async()=>{set++;return {data:{
+          user:{id:label==='wrong-owner'?'foreign-owner':uid},
+          session:{user:{id:uid}}},error:label==='bad-set-session'?Error('bad token'):null};},
+        getUser:async()=>{remote++;return {data:{user:{id:uid}},error:null};},
+        getSession:async()=>{cached++;return {data:{session:{user:{id:uid}}},error:null};},
+        signOut:async()=>{signouts++;return {error:null};}
+      }},
+      window:{MMHVAULT_N10_A741_USERNAME_HANDOFF:false},
+      document:{getElementById:()=>({dataset:{
+        owner:mfaPending?uid:'',open:mfaPending?'true':'false'
+      },hidden:!mfaPending})},
+      verifiedRedirectV946:async()=>{redirected++;return label==='valid';},
+      Error
+    };
+    const handoff=vm.runInNewContext(originalHandoff+'\nhandoff;',ctx,{timeout:2000});
+    const payload={user_id:uid,access_token:'synthetic-access',refresh_token:'synthetic-refresh'};
+    let threw=false;
+    try{await handoff(payload,uid)}catch(_){threw=true}
+    assert.equal(threw,!allowed,label+' handoff outcome');
+    assert.equal(signouts,mustSignOut?1:0,label+' safe local signout');
+    assert.equal(set,1,label+' set session');
+    assert.equal(remote,label==='bad-set-session'||label==='wrong-owner'?0:1,
+      label+' verified Auth reads');
+    assert.equal(cached,label==='bad-set-session'||label==='wrong-owner'?0:1,
+      label+' cached identity reads');
+    assert.equal(redirected,label==='bad-set-session'||label==='wrong-owner'?0:1,
+      label+' redirects');
+    completed++;
+  }
+  console.log('PASS: '+completed+' production-login cross-path synthetic outcomes with AAL MFA gating and username/phrase session handoff.');
+}

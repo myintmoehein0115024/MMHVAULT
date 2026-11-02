@@ -255,6 +255,18 @@ async function load(page,route,failures){
        width+'px Accounts feature tab responds');
      ensure(await page.locator('[data-product-panel="accounts"]').isVisible(),
        width+'px Accounts concept panel displayed');
+     // L1.21 — accessible instant swap for reduced-motion preference.
+     const settled=await page.locator('[data-product-panel]').evaluateAll(panels=>({
+       visible:panels.filter(p=>!p.hidden).map(p=>p.dataset.productPanel),
+       animated:panels.some(p=>p.classList.contains('mmh-preview-enter')||
+         p.classList.contains('mmh-preview-exit')),
+       inactiveInert:panels.filter(p=>p.hidden).every(p=>p.inert),
+       selectedAria:panels.find(p=>!p.hidden)?.getAttribute('aria-hidden')
+     }));
+     ensure(JSON.stringify(settled.visible)===JSON.stringify(['accounts']) &&
+       !settled.animated && settled.inactiveInert && settled.selectedAria==='false',
+       width+'px reduced-motion preview shows one accessible panel with no crossfade');
+
      await page.locator('[data-business-view="business"]').click();
      ensure(await page.locator('[data-business-view="business"]').getAttribute('aria-pressed')==='true',
        width+'px Business concept switch responds');
@@ -529,6 +541,95 @@ async function load(page,route,failures){
      }
    }
 
+   // L1.22 — keyboard dismissal must be identical on Landing and public
+   // branches, restoring focus to a visible control instead of a hidden menu.
+   for(const route of ['/','/features/','/security.html']){
+     for(const width of [393,1440]){
+       const ctx=await browser.newContext({viewport:{width,height:852},
+         reducedMotion:'reduce'});
+       const page=await ctx.newPage();
+       const failures=[];
+       page.on('pageerror',e=>failures.push(e.message));
+       await load(page,route,failures);
+       const explore=page.locator('#landing-explore');
+       const summary=explore.locator('summary');
+       const hamburger=page.locator('.site-header .menu-toggle');
+       if(width===393){
+         await hamburger.click();
+         ensure(await hamburger.getAttribute('aria-expanded')==='true',
+           route+' compact menu opens before keyboard dismissal');
+       }
+       await summary.click();
+       ensure(await explore.evaluate(el=>el.open),
+         route+' '+width+'px Explore menu opens before Escape');
+       await page.keyboard.press('Escape');
+       ensure(!await explore.evaluate(el=>el.open) &&
+         await summary.evaluate(el=>document.activeElement===el) &&
+         (width!==393 || await hamburger.getAttribute('aria-expanded')==='true'),
+         route+' '+width+'px Escape only closes Explore and restores summary focus');
+       if(width===393){
+         await page.keyboard.press('Escape');
+         ensure(await hamburger.getAttribute('aria-expanded')==='false' &&
+           !await page.locator('#primary-nav').isVisible() &&
+           await hamburger.evaluate(el=>document.activeElement===el),
+           route+' mobile Escape next closes hamburger and restores toggle focus');
+       }
+       const locale=page.locator('#locale-trigger');
+       await locale.click();
+       ensure(await locale.getAttribute('aria-expanded')==='true',
+         route+' '+width+'px language selector opens');
+       await page.keyboard.press('Escape');
+       ensure(await locale.getAttribute('aria-expanded')==='false' &&
+         await locale.evaluate(el=>document.activeElement===el),
+         route+' '+width+'px Escape dismisses language panel and restores globe focus');
+       ensure(failures.length===0,
+         route+' '+width+'px keyboard navigation has no missing assets or JS errors');
+       await ctx.close();
+     }
+   }
+
+   // L1.23 — verify actual browser transitions avoid expensive blur filters,
+   // preserve progressive reveals and use quicker phone timings.
+   for(const width of [393,1440]){
+     for(const [route,selector] of [
+       ['/', '.showcase-grid > .showcase-card.mm-reveal'],
+       ['/features/', '.grid > .item.mm-public-reveal'],
+       ['/security.html', '.policy-card.mm-public-reveal']
+     ]){
+       const ctx=await browser.newContext({
+         viewport:{width,height:852},reducedMotion:'no-preference'
+       });
+       const page=await ctx.newPage();
+       const failures=[];
+       page.on('pageerror',e=>failures.push(e.message));
+       await load(page,route,failures);
+       const metrics=await page.evaluate(selector=>{
+         const el=document.querySelector(selector);
+         if(!el)return {missing:selector};
+         const style=getComputedStyle(el);
+         return {
+           filter:style.filter,
+           transition:style.transitionProperty.split(',').map(s=>s.trim()),
+           durations:style.transitionDuration.split(',').map(s=>parseFloat(s)),
+           visibleFallback:el.classList.contains('mm-shown')||
+             el.classList.contains('mm-public-shown'),
+           rootMotion:document.documentElement.classList.contains('mm-motion-active'),
+           publicMotion:document.body.classList.contains('mm-public-motion')
+         };
+       },selector);
+       const fast=width<=620;
+       const expected=route==='/' ? (fast?[.41,.44]:[.55,.59])
+         : (fast?[.41,.445]:[.56,.6]);
+       ensure(!metrics.missing && metrics.filter==='none' &&
+         metrics.transition[0]==='opacity'&&metrics.transition[1]==='transform' &&
+         metrics.durations.length>=2&&
+         expected.every((v,i)=>Math.abs(metrics.durations[i]-v)<.012) &&
+         (route==='/'?metrics.rootMotion:metrics.publicMotion),
+         route+' '+width+'px compositor-friendly scroll reveal '+JSON.stringify(metrics));
+       await ctx.close();
+     }
+   }
+
    // L1.18 — animated public pages remain visible, language-neutral and
    // keep reduced-motion as the default fallback in the main viewport loop.
    for(const [route,target] of [
@@ -658,6 +759,46 @@ async function load(page,route,failures){
    await page.locator('#features').scrollIntoViewIfNeeded();
    await page.waitForTimeout(850);
    ensure(await page.locator('.mm-shown').count()>0,'Scroll reveal completes after entering viewport');
+   // L1.21 — central panel crossfade must never show an empty frame.
+   await page.locator('[data-product-tab="transactions"]').click();
+   await page.waitForTimeout(85);
+   const inFlight=await page.evaluate(()=>{
+     const old=document.querySelector('[data-product-panel="dashboard"]');
+     const next=document.querySelector('[data-product-panel="transactions"]');
+     const layer=document.querySelector('.app-sim-content');
+     return {
+       count:[...document.querySelectorAll('[data-product-panel]')].filter(p=>!p.hidden).length,
+       outgoing:old.classList.contains('mmh-preview-exit'),
+       entering:next.classList.contains('mmh-preview-enter'),
+       opacitySum:Number(getComputedStyle(old).opacity)+Number(getComputedStyle(next).opacity),
+       panePosition:getComputedStyle(layer).position,
+       nestedFlash:[...next.querySelectorAll('.app-metric,.app-mock-card')]
+         .some(el=>el.getAnimations().length>0)
+     };
+   });
+   ensure(inFlight.count===2&&inFlight.outgoing&&inFlight.entering&&
+     inFlight.opacitySum>.70&&inFlight.panePosition==='relative'&&!inFlight.nestedFlash,
+     'Crossfade keeps both panels painted without nested card flashing '+JSON.stringify(inFlight));
+   await page.waitForTimeout(400);
+   const transitioned=await page.locator('[data-product-panel]').evaluateAll(panels=>
+     panels.filter(p=>!p.hidden).map(p=>p.dataset.productPanel));
+   ensure(JSON.stringify(transitioned)===JSON.stringify(['transactions']),
+     'Crossfade leaves only the selected transaction screen accessible');
+   for(const name of ['accounts','invest','analyze']){
+     await page.locator('[data-product-tab="'+name+'"]').click();
+   }
+   await page.waitForTimeout(400);
+   const rapid=await page.locator('[data-product-panel]').evaluateAll(panels=>({
+     visible:panels.filter(p=>!p.hidden).map(p=>p.dataset.productPanel),
+     hasTransient:panels.some(p=>p.classList.contains('mmh-preview-enter')||
+       p.classList.contains('mmh-preview-exit')),
+     othersInert:panels.filter(p=>p.hidden).every(p=>p.inert),
+     selectedAria:panels.find(p=>!p.hidden)?.getAttribute('aria-hidden')
+   }));
+   ensure(JSON.stringify(rapid.visible)===JSON.stringify(['analyze'])&&
+     !rapid.hasTransient&&rapid.othersInert&&rapid.selectedAria==='false',
+     'Rapid switching cancels stale fades and keeps only final screen '+JSON.stringify(rapid));
+
    ensure(errors.length===0,'Liquid motion produces no JS exceptions');
    await ctx.close();
    console.log('PUBLIC LANDING BROWSER QA PASS: '+widths.length+' Landing viewports, '+

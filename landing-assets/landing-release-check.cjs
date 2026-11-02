@@ -84,7 +84,8 @@ check('L1.32 respects reduced motion and native links',
   motionStyles.includes('@media (prefers-reduced-motion: reduce)') &&
   !motionSource.includes('preventDefault(') && !motionSource.includes('location.replace'));
 check('L1.32 product/business state switch animations stay presentational',
-  motionSource.includes('data-product-current') &&
+  motionSource.includes('L1.21: data-product-current now drives') &&
+  !motionSource.includes('const productStage=document.querySelector') &&
   motionSource.includes('data-current-view') &&
   motionSource.includes("typeof node.animate!=='function'") &&
   !/fetch\s*\(|localStorage|supabase|touchstart|gesturestart/.test(motionSource));
@@ -437,7 +438,7 @@ check('Seven public pages inherit exact Landing header structure, icons and drop
      html.includes(cssNew) && old.includes(cssNew) &&
      // L1.16 already shipped; protect its header, page body and SEO
      // byte-for-byte, allowing ONLY the two localized summary blocks.
-     restoreOldLocalizedSummary(path,stripL120SeoHead(html),old)===old &&
+     restoreOldLocalizedSummary(path,html,old)===old &&
      (h.match(/<details class="nav-explore"/g)||[]).length===1 &&
      (h.match(/class="mobile-nav-auth"/g)||[]).length===1 &&
      (h.match(/class="locale-menu"/g)||[]).length===1;
@@ -508,26 +509,37 @@ check('L1.20 canonical, named WebPage and breadcrumb structured data are accurat
      breadcrumb.itemListElement?.[0]?.item!=='https://mmhvault.com/' ||
      breadcrumb.itemListElement?.[1]?.item!==url)return false;
   }else if(!head.includes('"@type":"BreadcrumbList"'))return false;
-  return stripL120SeoHead(html)===source(path);
+  return html===source(path);
  }));
-check('L1.20 precisely seven head-only SEO and QA files; N10, PWA and visual layout untouched',
- actual.length===7 &&
+check('L1.23 lightweight scroll reveals are opacity+transform only, motion access preserved',
+ read('landing-assets/motion-l132.css').includes('L1.23: compositor-friendly') &&
+ read('landing-assets/motion-l132.css').includes('opacity 550ms') &&
+ read('landing-assets/motion-l132.css').includes('transform 590ms') &&
+ read('landing-assets/motion-l132.css').includes('transition-duration: 410ms,440ms') &&
+ !/filter\s*:\s*blur\(|filter\s+\d+ms/.test(read('landing-assets/motion-l132.css')) &&
+ read('landing-assets/motion-l132.css').includes('L1.21 — seamless product preview') &&
+ read('landing-assets/public-pages.css').includes('L1.23 — lighter fade/translate reveals') &&
+ read('landing-assets/public-pages.css').includes('transition-duration:410ms,445ms') &&
+ read('landing-assets/public-pages.css').includes('@media(prefers-reduced-motion:reduce)'));
+check('L1.23 exactly four CSS/QA files; HTML, SEO, auth, UI content and JavaScript untouched',
+ actual.length===4 &&
  actual.every(path=>[
-  ...l120Entities.map(entity=>entity.path),
+  'landing-assets/motion-l132.css',
+  'landing-assets/public-pages.css',
   'landing-assets/landing-release-check.cjs',
   'landing-assets/landing-browser-check.cjs'
  ].includes(path)) &&
  current===prev &&
- publicHeaders.every(path=>stripL120SeoHead(read(path))===source(path)) &&
+ publicHeaders.every(path=>read(path)===source(path)) &&
  ['landing-assets/landing.js','landing-assets/public-pages.js',
-  'landing-assets/premium-l131.css','landing-assets/public-pages.css',
-  'landing-assets/motion-l132.js','landing-assets/shared-header-l116.css',
-  'about/index.html','business/index.html'
- ].every(path=>source(path)===read(path)) &&
- ['sitemap.xml','robots.txt','mmh-manifest-v2.webmanifest'].every(path=>source(path)===read(path)));
+  'landing-assets/motion-l132.js','landing-assets/premium-l131.css',
+  'landing-assets/landing.css','landing-assets/business.css',
+  'landing-assets/cinematic.css','landing-assets/shared-header-l116.css',
+  'sitemap.xml','robots.txt','mmh-manifest-v2.webmanifest']
+ .every(path=>read(path)===source(path)));
 check('Protected auth/PWA/SEO/config sources unchanged in PR diff',
  ['business.html','app.html','login.html','sitemap.xml','robots.txt',
-  'mmh-manifest-v2.webmanifest','landing-assets/landing.js'].every(file=>{
+  'mmh-manifest-v2.webmanifest'].every(file=>{
     const test=cp.spawnSync('git',['diff','--quiet',main+'...HEAD','--',file],
       {encoding:'utf8',maxBuffer:4096});
     return test.status===0;
