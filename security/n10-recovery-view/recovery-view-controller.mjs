@@ -44,7 +44,10 @@ export function createRecoveryViewController({request, currentOwner, onChange, s
   const stopTimer = () => { if (timer !== null) { clearTimer(timer); timer = null; } };
   const hide = () => {
     epoch += 1; stopTimer(); lastBackup = null;
-    emit('locked');
+    // Security state must lock even if a browser renderer throws.
+    // The mounted UI adapter must additionally clear sensitive DOM nodes.
+    phase = 'locked';
+    try { onChange({phase: 'locked'}); } catch { /* remain locked */ }
   };
   const captureOwner = () => {
     const id = currentOwner();
@@ -87,7 +90,14 @@ export function createRecoveryViewController({request, currentOwner, onChange, s
       // Never schedule a new disclosure timer after it invalidates this request.
       if (invocation !== epoch || phase !== 'visible' || currentOwner() !== owner) return;
       timer = setTimer(hide, MAX_VIEW_MS);
-    } catch { if (invocation === epoch) emit('unavailable'); }
+    } catch {
+      if (invocation === epoch) {
+        // A failed visible-state renderer or timer setup must not leave words
+        // unlocked. Clear first, then show the non-sensitive error status.
+        hide();
+        try { emit('unavailable'); } catch { /* remain non-sensitive */ }
+      }
+    }
   };
   const ownerChanged = () => {
     if (currentOwner() !== owner) hide();
