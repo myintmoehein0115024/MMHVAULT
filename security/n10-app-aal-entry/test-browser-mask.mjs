@@ -173,6 +173,46 @@ async function exercise(browserType,viewport){
     await page.waitForURL(/login\.html$/);
     assert.equal(await page.locator('#private-data').count(),0,'Signed-out page must not contain financial data');
     completed++;
+    // Returning to a stale tab must mask cached finance DOM before Auth resolves.
+    await reset();
+    await page.evaluate(()=>{
+      window.__mmhLastCloudLoadAtV1235=Date.now()-180000;
+      window.__synthetic.delayUser=true;
+      window.mmhVaultResumeLifecycleV1239('focus');
+    });
+    const staleFocusedMask=await page.evaluate(()=>{
+      const g=document.querySelector('#mmhP947AccountGuard'),box=document.querySelector('#private-data').getBoundingClientRect();
+      return !!g&&!g.hidden&&g.contains(document.elementFromPoint(box.x+box.width/2,box.y+box.height/2));
+    });
+    assert.equal(staleFocusedMask,true,'Stale focused tab must mask cached finances synchronously');
+    await page.waitForFunction(()=>!!window.__synthetic.resolveUser);
+    await page.evaluate(()=>{
+      window.__synthetic.delayUser=false;
+      window.__synthetic.resolveUser({data:{user:{id:'synthetic-owner'}},error:null});
+    });
+    await page.waitForFunction(()=>document.querySelector('#mmhP947AccountGuard')?.hidden===true);
+    completed++;
+    // Stale visibility return while offline must remain blocked.
+    await reset();
+    await page.evaluate(()=>{
+      window.__mmhLastCloudLoadAtV1235=Date.now()-180000;
+      window.__synthetic.offlineUser=true;
+      window.mmhVaultResumeLifecycleV1239('visible');
+    });
+    await page.waitForFunction(()=>document.querySelector('#mmhP947AccountGuardTitle')?.textContent==='Sign-in verification failed');
+    const staleOfflineMasked=await page.evaluate(()=>{
+      const g=document.querySelector('#mmhP947AccountGuard');return !!g&&!g.hidden;
+    });
+    assert.equal(staleOfflineMasked,true,'Stale offline re-entry may not expose private DOM');
+    completed++;
+    // A quickly refocused, fresh session must not flicker a blocking mask.
+    await reset();
+    await page.evaluate(()=>{
+      window.__mmhLastCloudLoadAtV1235=Date.now();
+      window.mmhVaultResumeLifecycleV1239('focus');
+    });
+    assert.equal(await page.locator('#mmhP947AccountGuard').count(),0,'Fresh focused tab should not create an unnecessary mask');
+    completed++;
     assert.deepEqual(errors,[],browserType.name()+' browser script errors');
     await context.close();
   }finally{await browser.close();}
@@ -184,6 +224,6 @@ try{
       console.log('PASS '+name+' '+label+' synthetic overlay, valid AAL, error, offline and MFA transition');
     }
   }
-  assert.equal(completed,32);
-  console.log('PASS: 32 browser scenarios across Chromium/WebKit desktop+mobile (synthetic fixtures only).');
+  assert.equal(completed,44);
+  console.log('PASS: 44 browser scenarios across Chromium/WebKit desktop+mobile (synthetic fixtures only).');
 }finally{await new Promise(resolve=>server.close(resolve));}
