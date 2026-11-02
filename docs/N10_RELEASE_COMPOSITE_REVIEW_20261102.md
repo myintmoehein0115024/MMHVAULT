@@ -3,7 +3,7 @@
 **Status: DRAFT · Review Only · NO DEPLOY.** Updated 2026-11-02.
 
 This branch contains a reproducible preview of the four existing N10 security
-review PRs on public main `0c74182451dbdca3aa01ece5512697f33e3c87d3`.
+review PRs on public main `0f86cb363b78d92ab7d154ac36a502f396ae1444`.
 
 | Source Draft | Included exact files | Running production effect |
 | --- | ---: | --- |

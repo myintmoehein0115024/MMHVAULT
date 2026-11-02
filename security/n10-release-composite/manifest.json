@@ -1,7 +1,7 @@
 {
   "schema": "mmhvault-n10-source-composite-v1",
   "snapshot_date": "2026-11-02",
-  "base_main": "0c74182451dbdca3aa01ece5512697f33e3c87d3",
+  "base_main": "0f86cb363b78d92ab7d154ac36a502f396ae1444",
   "source_prs": [
     {
       "number": 11,

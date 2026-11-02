@@ -665,6 +665,106 @@ async function load(page,route,failures){
      }
    }
 
+   // L1.26 — dismissing a menu by tapping outside must never strand keyboard
+   // focus on links or language buttons which have just become hidden.
+   // Simulate the outside DOM event directly to keep focus where it would be
+   // for users on browsers that don't focus noninteractive touched content.
+   for(const route of ['/','/features/','/security.html']){
+     for(const width of [393,1440]){
+       const ctx=await browser.newContext({
+         viewport:{width,height:852},reducedMotion:'reduce'
+       });
+       const page=await ctx.newPage();
+       const errs=[];
+       page.on('pageerror',e=>errs.push(e.message));
+       await load(page,route,errs);
+       const mobile=width===393;
+       if(mobile)await page.locator('.site-header .menu-toggle').click();
+       await page.locator('#landing-explore > summary').click();
+       const inner=page.locator('#landing-explore .nav-explore-menu a').first();
+       await inner.focus();
+       ensure(await inner.evaluate(el=>document.activeElement===el),
+         route+' '+width+'px Explore link is keyboard-focused');
+       await page.evaluate(()=>{
+         const name=document.body.classList.contains('public-landing-page')
+           ? 'pointerdown':'click';
+         const event=name==='pointerdown'
+           ? new PointerEvent(name,{bubbles:true})
+           : new MouseEvent(name,{bubbles:true});
+         document.body.dispatchEvent(event);
+       });
+       const dismissed=await page.evaluate(()=>{
+         const nav=document.getElementById('primary-nav');
+         const active=document.activeElement;
+         const toggle=document.querySelector('.site-header .menu-toggle');
+         const summary=document.querySelector('#landing-explore > summary');
+         return {
+           open:document.getElementById('landing-explore').open,
+           navOpen:document.querySelector('.site-header').classList.contains('menu-open'),
+           focusedToggle:active===toggle,
+           focusedSummary:active===summary,
+           hiddenFocus:!!active.closest('[hidden]')||
+             !!(nav.contains(active)&&getComputedStyle(nav).display==='none')
+         };
+       });
+       ensure(!dismissed.open&&!dismissed.navOpen&&!dismissed.hiddenFocus&&
+         (mobile?dismissed.focusedToggle:dismissed.focusedSummary),
+         route+' '+width+'px outside dismisses Explore without hidden focus '+JSON.stringify(dismissed));
+
+       const trigger=page.locator('#locale-trigger');
+       await trigger.click();
+       ensure(await trigger.getAttribute('aria-expanded')==='true',
+         route+' '+width+'px language picker opens');
+       await page.evaluate(()=>{
+         const name=document.body.classList.contains('public-landing-page')
+           ? 'pointerdown':'click';
+         document.body.dispatchEvent(name==='pointerdown'
+           ? new PointerEvent(name,{bubbles:true})
+           : new MouseEvent(name,{bubbles:true}));
+       });
+       const language=await page.evaluate(()=>{
+         const trigger=document.getElementById('locale-trigger');
+         const menu=document.getElementById('locale-menu');
+         return {hidden:menu.hidden,
+           focusTrigger:document.activeElement===trigger,
+           aria:trigger.getAttribute('aria-expanded')};
+       });
+       ensure(language.hidden&&language.focusTrigger&&language.aria==='false',
+         route+' '+width+'px outside language dismissal restores visible trigger '+JSON.stringify(language));
+       ensure(errs.length===0,route+' '+width+'px dismissals have no JS errors');
+       await ctx.close();
+     }
+   }
+   // Resizing from compact to desktop closes mobile navigation and Explore.
+   // The current keyboard focus must stay visible after the breakpoint switch.
+   for(const route of ['/','/features/']){
+     const ctx=await browser.newContext({
+       viewport:{width:393,height:852},reducedMotion:'reduce'
+     });
+     const page=await ctx.newPage();
+     await load(page,route,[]);
+     await page.locator('.site-header .menu-toggle').click();
+     await page.locator('#landing-explore > summary').click();
+     await page.locator('#landing-explore .nav-explore-menu a').first().focus();
+     await page.setViewportSize({width:1440,height:900});
+     await page.waitForFunction(()=>
+       !document.querySelector('.site-header').classList.contains('menu-open'));
+     const state=await page.evaluate(()=>{
+       const active=document.activeElement,nav=document.getElementById('primary-nav');
+       return {
+         expanded:document.querySelector('.menu-toggle').getAttribute('aria-expanded'),
+         exploreOpen:document.getElementById('landing-explore').open,
+         focusSummary:active===document.querySelector('#landing-explore > summary'),
+         visibleFocus:!!active.getClientRects().length,
+         navDisplay:getComputedStyle(nav).display
+       };
+     });
+     ensure(state.expanded==='false'&&!state.exploreOpen&&
+       state.focusSummary&&state.visibleFocus&&state.navDisplay!=='none',
+       route+' responsive breakpoint retains visible header focus '+JSON.stringify(state));
+     await ctx.close();
+   }
+
    // L1.22 — keyboard dismissal must be identical on Landing and public
    // branches, restoring focus to a visible control instead of a hidden menu.
    for(const route of ['/','/features/','/security.html']){
