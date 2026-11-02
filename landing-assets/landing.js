@@ -804,7 +804,7 @@
     localeFlag.textContent = languageMeta[currentLang].flag;
     localeName.textContent = languageMeta[currentLang].title;
     // Keep brand name and official site title consistent across display languages.
-    document.title = 'MMHVAULT | Personal Finance & Life Planning';
+    document.title = 'MMHVAULT | Personal Finance & Wealth';
     const desc = document.querySelector('meta[name="description"]');
     if (desc && currentLang === 'zh') desc.setAttribute('content', 'MMHVAULT 个人财务与生活规划管理平台：管理账户、交易、投资和预算，并了解即将推出的日程与个人目标功能。');
     if (desc && currentLang === 'my') desc.setAttribute('content', 'MMHVAULT သည် အကောင့်၊ ငွေကြေးအဝင်အထွက်၊ ရင်းနှီးမြှုပ်နှံမှုနှင့် ဘတ်ဂျက်များအတွက် ကိုယ်ပိုင်စီမံခန့်ခွဲမှုနေရာဖြစ်ပြီး ဘဝအစီအစဉ်လုပ်ဆောင်ချက်များကို ပြင်ဆင်နေပါသည်။');
@@ -832,7 +832,7 @@
     const focusedInside = localeMenu.contains(document.activeElement);
     localeMenu.hidden = true;
     localeTrigger.setAttribute('aria-expanded', 'false');
-    if (focusedInside) localeTrigger.focus();
+    if (focusedInside) localeTrigger.focus({preventScroll:true});
   }
   function toggleLanguage() {
     const willOpen = localeMenu.hidden;
@@ -841,20 +841,20 @@
     localeTrigger.setAttribute('aria-expanded', String(willOpen));
     if (willOpen) {
       const active = languageButtons.find(button => button.dataset.lang === currentLang);
-      if (active) active.focus();
+      if (active) active.focus({preventScroll:true});
     }
   }
   languageButtons.forEach(button => button.addEventListener('click', () => {
     applyLanguage(button.dataset.lang);
     closeLanguage();
-    localeTrigger.focus();
+    localeTrigger.focus({preventScroll:true});
   }));
   localeTrigger.addEventListener('click', toggleLanguage);
   localeTrigger.addEventListener('keydown', event => {
     if (event.key === 'ArrowDown') {
       event.preventDefault();
       if (localeMenu.hidden) toggleLanguage();
-      else languageButtons[0].focus();
+      else languageButtons[0].focus({preventScroll:true});
     }
   });
   localeMenu.addEventListener('keydown', event => {
@@ -862,7 +862,7 @@
       event.preventDefault();
       const index = languageButtons.indexOf(document.activeElement);
       const next = (index + (event.key === 'ArrowDown' ? 1 : -1) + languageButtons.length) % languageButtons.length;
-      languageButtons[next].focus();
+      languageButtons[next].focus({preventScroll:true});
     }
   });
   toggle.addEventListener('click', () => {
@@ -882,7 +882,7 @@
     if (event.key !== 'Escape') return;
     if (!localeMenu.hidden) {
       closeLanguage();
-      localeTrigger.focus();
+      localeTrigger.focus({preventScroll:true});
       event.preventDefault();
       return;
     }

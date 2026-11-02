@@ -13,47 +13,34 @@ const source = path => {
 const current = read('index.html');
 const prev=source('index.html');
 
-/* L1.26: only two public header-focus blocks may change.
- * Compare all bytes outside each block against the latest main baseline;
- * protect Landing Hero decode, SEO/translation and all other runtime logic. */
+/* L1.27: canonical title and focus({preventScroll:true}) only.
+ * Bytewise compare against main; preserve original content and other logic. */
 const oldHeroPreload='<link rel="preload" as="image" type="image/webp" href="./landing-assets/cinematic-lake.webp">';
 const newHeroPreload='<link rel="preload" as="image" type="image/webp" href="./landing-assets/personal-business-concept.webp" fetchpriority="high">';
-function oneFocusBlockOnlyEdited(path,oldMarker,newMarker,endMarker,required){
- const old=source(path),now=read(path);
- const a=old.indexOf(oldMarker),b=now.indexOf(newMarker);
- const oe=old.indexOf(endMarker,a),ne=now.indexOf(endMarker,b);
- if(a<0||b<0||oe<=a||ne<=b||
-    old.indexOf(oldMarker,a+oldMarker.length)!==-1||
-    now.indexOf(newMarker,b+newMarker.length)!==-1)return false;
- const changed=now.slice(b,ne);
- return old.slice(0,a)===now.slice(0,b)&&
-   old.slice(oe)===now.slice(ne)&&
-   required.every(s=>changed.includes(s))&&
-   !/fetch\s*\(|supabase|location\.replace|localStorage|history\.pushState/.test(changed);
+function patchOnly(path,changes){
+ let expected=source(path);
+ for(const [before,after,n] of changes){
+  if(expected.split(before).length-1!==n)return false;
+  expected=expected.split(before).join(after);
+ }
+ return expected===read(path);
 }
-const l126LandingFocus=()=>oneFocusBlockOnlyEdited(
- 'landing-assets/landing.js',
- '  function closeExplore(restoreFocus=false) {',
- '  // L1.26: closing a public menu must not strand keyboard focus inside',
- '  function toggleLanguage() {',
- ['function closeExplore(restoreFocus=false)','explore.contains(document.activeElement)',
-  'exploreSummary.focus()','function closeMenu()',
-  'nav.contains(document.activeElement)',
-  "getComputedStyle(nav).display === 'none'",
-  'toggle.focus();','function closeLanguage()',
-  'localeMenu.contains(document.activeElement)','localeTrigger.focus();']);
-const l126PublicFocus=()=>oneFocusBlockOnlyEdited(
- 'landing-assets/public-pages.js',
- '  function closeExplore(restoreFocus=false){',
- '  // L1.26: return focus to a visible trigger when dismissing compact',
- '  function changeLanguage(code){',
- ['function closeExplore(restoreFocus=false)',
-  'explore.contains(document.activeElement)',
-  'exploreSummary.focus()','function closeNav(restoreFocus=false)',
-  'nav.contains(document.activeElement)',
-  "getComputedStyle(nav).display==='none'",
-  'toggle.focus();','function closeLanguage(restoreFocus=false)',
-  'menu.contains(document.activeElement)','trigger.focus();']);
+const l127LandingTitleAndFocusOnlyEdited=()=>patchOnly('landing-assets/landing.js',[
+ ["    document.title = 'MMHVAULT | Personal Finance & Life Planning';",
+  "    document.title = 'MMHVAULT | Personal Finance & Wealth';",1],
+ ['localeTrigger.focus();','localeTrigger.focus({preventScroll:true});',3],
+ ['active.focus();','active.focus({preventScroll:true});',1],
+ ['languageButtons[0].focus();','languageButtons[0].focus({preventScroll:true});',1],
+ ['languageButtons[next].focus();','languageButtons[next].focus({preventScroll:true});',1]
+ ])&&current===prev&&current.includes('<title>MMHVAULT | Personal Finance & Wealth</title>');
+const l127PublicFocusOnlyEdited=()=>patchOnly('landing-assets/public-pages.js',[
+ ['trigger.focus();','trigger.focus({preventScroll:true});',1],
+ ['trigger?.focus();','trigger?.focus({preventScroll:true});',1],
+ ['active?.focus();','active?.focus({preventScroll:true});',1],
+ ["menu.querySelector('button')?.focus();",
+  "menu.querySelector('button')?.focus({preventScroll:true});",1],
+ ['buttons[next]?.focus();','buttons[next]?.focus({preventScroll:true});',1]
+ ]);
 const manifest=JSON.parse(read('mmh-manifest-v2.webmanifest'));
 const oldManifest=JSON.parse(source('mmh-manifest-v2.webmanifest'));
 const dom=(key,content)=>((content.match(new RegExp('<script id="'+key+'">([\\s\\S]*?)<\\/script>'))||[])[1]||null);
@@ -435,7 +422,7 @@ check('Homepage retains all prior content and SEO outside shared header layer',
  current.includes('<body id="top" class="l131 mmh-nav-unified">') &&
  current.includes('<link rel="stylesheet" href="./landing-assets/shared-header-l116.css?v=1">') &&
  current===prev &&
- l126LandingFocus() &&
+ l127LandingTitleAndFocusOnlyEdited() &&
  source('landing-assets/explore-l114.css')===read('landing-assets/explore-l114.css'));
 const publicHeaders=['about/index.html','features/index.html','business/index.html',
  'register/index.html','security.html','privacy.html','terms.html'];
@@ -570,11 +557,16 @@ check('L1.24 preload prioritizes the one real Hero image with no duplicate image
  current.includes('loading="lazy" decoding="async"') &&
  !current.includes(oldHeroPreload));
 check('L1.25 Hero only waits for decoded pixels, preserving original fallback',
- l126LandingFocus() &&
+ l127LandingTitleAndFocusOnlyEdited() &&
  current===prev &&
  current.includes(newHeroPreload) &&
  !current.includes(oldHeroPreload));
-check('L1.26 exactly four public header-focus and QA files',
+check('L1.27 public tab title matches SEO without language focus scroll',
+ l127LandingTitleAndFocusOnlyEdited() &&
+ l127PublicFocusOnlyEdited() &&
+ current===prev && current.includes(newHeroPreload) &&
+ !current.includes(oldHeroPreload));
+check('L1.27 exact four-file public title and menu scroll safety scope',
  actual.length===4 &&
  actual.every(path=>[
   'landing-assets/landing.js',
@@ -583,13 +575,13 @@ check('L1.26 exactly four public header-focus and QA files',
   'landing-assets/landing-browser-check.cjs'
  ].includes(path)) &&
  current===prev &&
- l126LandingFocus() && l126PublicFocus() &&
+ l127LandingTitleAndFocusOnlyEdited() &&
+ l127PublicFocusOnlyEdited() &&
  publicHeaders.every(path=>read(path)===source(path)) &&
- ['landing-assets/public-pages.css',
-  'landing-assets/landing.css','landing-assets/business.css',
-  'landing-assets/cinematic.css','landing-assets/premium-l131.css',
-  'landing-assets/motion-l132.css','landing-assets/motion-l132.js',
-  'landing-assets/shared-header-l116.css',
+ ['landing-assets/public-pages.css','landing-assets/landing.css',
+  'landing-assets/business.css','landing-assets/cinematic.css',
+  'landing-assets/premium-l131.css','landing-assets/motion-l132.css',
+  'landing-assets/motion-l132.js','landing-assets/shared-header-l116.css',
   'sitemap.xml','robots.txt','mmh-manifest-v2.webmanifest']
  .every(path=>read(path)===source(path)));
 check('Protected auth/PWA/SEO/config sources unchanged in PR diff',

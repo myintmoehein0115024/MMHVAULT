@@ -665,6 +665,83 @@ async function load(page,route,failures){
      }
    }
 
+   // L1.27 — the public browser tab title must agree with the canonical
+   // static SEO title after initialization and every language switch.
+   // A language change from mid-page must not reset reading position.
+   for(const route of ['/','/features/','/security.html']){
+     for(const width of [393,1440]){
+       const ctx=await browser.newContext({
+         viewport:{width,height:852},reducedMotion:'reduce'
+       });
+       const page=await ctx.newPage();
+       const errors=[];
+       page.on('pageerror',e=>errors.push(e.message));
+       await load(page,route,errors);
+       const documentPath=route==='/'?'index.html'
+         :route.endsWith('/')?route.slice(1)+'index.html':route.slice(1);
+       const originalTitle=fs.readFileSync(documentPath,'utf8')
+         .split('<title>')[1]?.split('</title>')[0];
+       const seo=await page.evaluate(()=>({
+         runtime:document.title,
+         path:location.pathname
+       }));
+       ensure(!!originalTitle&&seo.runtime===originalTitle &&
+         (route!=='/'||seo.runtime==='MMHVAULT | Personal Finance & Wealth'),
+         route+' '+width+'px initial browser title matches static HTML SEO '+JSON.stringify(seo));
+       if(route==='/'){
+         await page.evaluate(()=>window.scrollTo({
+           top:Math.min(700,Math.max(0,document.documentElement.scrollHeight-innerHeight-120)),
+           behavior:'instant'
+         }));
+       }
+       const initial=await page.evaluate(()=>({
+         y:scrollY,x:scrollX,path:location.pathname,hash:location.hash,
+         headerTop:document.querySelector('.site-header').getBoundingClientRect().top,
+         headerPosition:getComputedStyle(document.querySelector('.site-header')).position,
+         htmlOverflow:getComputedStyle(document.documentElement).overflow,
+         bodyOverflow:getComputedStyle(document.body).overflow
+       }));
+       for(const language of ['zh','my','en']){
+         // Click the actual visible button coordinate; Playwright locator.click
+         // may auto-scroll a sticky ancestor before dispatching a pointer click.
+         const triggerBox=await page.locator('#locale-trigger').boundingBox();
+         ensure(!!triggerBox&&triggerBox.y>=-2&&
+           triggerBox.y+triggerBox.height<=852,
+           route+' '+width+'px language trigger stays reachable while scrolling');
+         await page.mouse.click(triggerBox.x+triggerBox.width/2,
+           triggerBox.y+triggerBox.height/2);
+         const opened=await page.evaluate(()=>({
+           y:scrollY,x:scrollX,
+           headerTop:document.querySelector('.site-header').getBoundingClientRect().top,
+           focus:document.activeElement?.getAttribute('data-lang')
+         }));
+         const optionBox=await page.locator('#locale-menu [data-lang="'+language+'"]').boundingBox();
+         ensure(!!optionBox&&optionBox.y>=-2&&
+           optionBox.y+optionBox.height<=852,
+           route+' '+width+'px '+language+' language choice stays on screen');
+         await page.mouse.click(optionBox.x+optionBox.width/2,
+           optionBox.y+optionBox.height/2);
+         const after=await page.evaluate(()=>({
+           title:document.title,htmlTitle:document.querySelector('head title')?.textContent,
+           lang:document.documentElement.lang,
+           path:location.pathname,hash:location.hash,
+           y:scrollY,x:scrollX
+         }));
+         ensure(after.title===originalTitle &&
+           after.htmlTitle===originalTitle &&
+           after.lang===(language==='zh'?'zh-CN':language) &&
+           after.path===initial.path&&after.hash===initial.hash &&
+           Math.abs(after.x-initial.x)<=2 &&
+           (route!=='/'||initial.y<100||
+             (after.y>100&&Math.abs(after.y-initial.y)<280)),
+           route+' '+width+'px '+language+' language preserves title and scroll context '+JSON.stringify({initial,opened,after}));
+       }
+       ensure(errors.length===0,
+         route+' '+width+'px language switching has no missing assets or JS errors');
+       await ctx.close();
+     }
+   }
+
    // L1.26 — dismissing a menu by tapping outside must never strand keyboard
    // focus on links or language buttons which have just become hidden.
    // Simulate the outside DOM event directly to keep focus where it would be
