@@ -10,8 +10,15 @@ const source = path => {
  assert.equal(r.status,0,'Cannot read original main:'+path);
  return r.stdout;
 };
-const current = read('index.html');
+const rawCurrent = read('index.html');
 const prev=source('index.html');
+// Verify the one allowed addition separately, then run all legacy content
+// preservation checks on the exact pre-analytics homepage.
+const analyticsAddition = /<!-- MMHVAULT Website Analytics V1: public Landing page views only; no auth or finance data\. -->\n<script defer src="https:\/\/static\.cloudflareinsights\.com\/beacon\.min\.js" data-cf-beacon='\{"token":"[a-f0-9]{32}"\}'><\/script>\n/;
+assert.equal((rawCurrent.match(/static\.cloudflareinsights\.com\/beacon\.min\.js/g)||[]).length,1,'Exactly one Cloudflare beacon required');
+assert.ok(analyticsAddition.test(rawCurrent),'Unexpected analytics snippet');
+const current = rawCurrent.replace(analyticsAddition,'');
+assert.equal(current,prev,'Homepage differs from main outside approved analytics snippet');
 
 // L1.41: preserve every byte of the published homepage except the nine
 // first-party asset query strings. This avoids mixed cached CSS and JS after
@@ -596,15 +603,12 @@ check('Landing priority image and below-fold concept use efficient loading',
   current.includes('loading="lazy" decoding="async"') &&
   current.includes('<link rel="preload" as="image" type="image/webp"') &&
   current.includes(l155NewScriptTag));
-// Analytics V1: allow only one known non-blocking analytics beacon.
-// Other third-party scripts and stylesheets remain prohibited.
-const externalScriptTags = current.match(/<script\b[^>]*\bsrc=["']https?:\/\/[^>]*><\/script>/gi) || [];
+// Analytics V1: check external resources against the unmodified HTML.
+const externalScriptTags = rawCurrent.match(/<script\b[^>]*\bsrc=["']https?:\/\/[^>]*><\/script>/gi) || [];
 const approvedBeacon = /^<script defer src="https:\/\/static\.cloudflareinsights\.com\/beacon\.min\.js" data-cf-beacon='\{"token":"[a-f0-9]{32}"\}'><\/script>$/.test(externalScriptTags[0] || '');
 check('Landing ships no third-party blocking scripts or styles',
   externalScriptTags.length === 1 && approvedBeacon &&
-  (current.match(/static\.cloudflareinsights\.com\/beacon\.min\.js/g) || []).length === 1 &&
-  !/<script[^>]+src=["']https?:\/\/(?!static\.cloudflareinsights\.com\/beacon\.min\.js)/i.test(current) &&
-  !/<link[^>]+rel=["']stylesheet["'][^>]+href=["']https?:\/\//i.test(current));
+  !/<link[^>]+rel=["']stylesheet["'][^>]+href=["']https?:\/\//i.test(rawCurrent));
 /* L1.12 — policy pages share the Landing design without altering any
    substantive security/privacy/terms paragraph or disclaimer wording. */
 for(const file of ['privacy.html','terms.html','security.html']){
