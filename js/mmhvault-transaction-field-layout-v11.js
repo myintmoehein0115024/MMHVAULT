@@ -673,6 +673,8 @@
     version:'3.0.1',isManaged,hasCategory,markCategory,onCategoryRenamed,fieldItems,saveName,removeName,refreshManage,
     // Public presentation hooks: keep all changes owner-scoped and canonical.
     getCategoryEntries:()=>categories().map(x=>({...x})),
+    getArchivedCategoryEntries:()=>state()?Object.entries(config()?.archivedCategories||{})
+      .flatMap(([group,names])=>Array.isArray(names)?names.map(name=>({group,name})):[]):[],
     removeCategory:raw=>{
       const before=!!state()?.category.includes(raw);
       if(!before)return false;
@@ -683,12 +685,32 @@
       value,label:value==='Income'?tr('Income','收入','ဝင်ငွေ'):value==='Expense'?tr('Expense','支出','အသုံးစရိတ်'):
         tr('Transfer','转账','လွှဲပြောင်း')
     })):field==='transaction'?KIND.map(x=>({
-      value:x.id,label:x.label+' · '+(x.type==='Income'?tr('Income','收入','ဝင်ငွေ'):
+      value:x.id,label:(() => {const labels={
+      'Income|Income':['Income','收入','ဝင်ငွေ'], 'Expense|Expense':['Expense','支出','အသုံးစရိတ်'],
+      'Expense|Personal':['Personal','个人','ကိုယ်ရေးကိုယ်တာ'], 'Income|Loans':['Loan income','借款收入','ချေးငွေဝင်ငွေ'],
+      'Expense|Loans':['Loan expense','借出支出','ချေးငွေအသုံး'], 'Transfer|Transfer':['Transfer','转账','လွှဲပြောင်း'],
+      'Income|Data Adjustment':['Income adjustment','收入调整','ဝင်ငွေ ပြင်ဆင်မှု'],
+      'Expense|Data Adjustment':['Expense adjustment','支出调整','အသုံးစရိတ် ပြင်ဆင်မှု']};
+      return tr(...labels[x.id]);})()+' · '+(x.type==='Income'?tr('Income','收入','ဝင်ငွေ'):
         x.type==='Expense'?tr('Expense','支出','အသုံးစရိတ်'):tr('Transfer','转账','လွှဲပြောင်း'))
     })):[],
     describeCanonical:(field,code)=>field==='type'?
       (code==='Income'?tr('Income','收入','ဝင်ငွေ'):code==='Expense'?tr('Expense','支出','အသုံးစရိတ်'):tr('Transfer','转账','လွှဲပြောင်း')):
-      (KIND.find(x=>x.id===code)?.label||code),
+      (()=>{
+        const match=KIND.find(x=>x.id===code);
+        if(!match)return code;
+        const translations={
+          'Income|Income':['Income','收入','ဝင်ငွေ'],
+          'Expense|Expense':['Expense','支出','အသုံးစရိတ်'],
+          'Expense|Personal':['Personal','个人','ကိုယ်ရေးကိုယ်တာ'],
+          'Income|Loans':['Loan income','借款收入','ချေးငွေဝင်ငွေ'],
+          'Expense|Loans':['Loan expense','借出支出','ချေးငွေအသုံး'],
+          'Transfer|Transfer':['Transfer','转账','လွှဲပြောင်း'],
+          'Income|Data Adjustment':['Income adjustment','收入调整','ဝင်ငွေ ပြင်ဆင်မှု'],
+          'Expense|Data Adjustment':['Expense adjustment','支出调整','အသုံးစရိတ် ပြင်ဆင်မှု']
+        };
+        return tr(...translations[code]);
+      })(),
     refresh:refreshForm,attachEdit:()=>{},getMode:mode,layoutInfo,readiness,validate:valid,
     // Legacy V11's manual mode chooser is intentionally removed.
     setMode:()=>false
