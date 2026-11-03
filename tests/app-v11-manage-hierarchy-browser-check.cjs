@@ -106,6 +106,27 @@ const say=(condition,label)=>{assert.ok(condition,label);console.log('PASS '+lab
       });
       await page.waitForFunction(()=>document.querySelector('#mmhHierarchyManage')?.textContent.includes('ငွေစာရင်း'));
       say(true,width+' Burmese locale follows app setting');
+      // Keyboard focus must stay inside a populated modal, including reverse Tab.
+      await cards.nth(2).getByRole('button',{name:'စီမံရန်'}).click();
+      const tabDialog=page.locator('.mmh-hier-dialog');
+      const tabbables=tabDialog.locator('button:not([disabled])');
+      await tabbables.first().focus();
+      await page.keyboard.press('Shift+Tab');
+      say(await tabbables.last().evaluate(el=>el===document.activeElement),
+        width+' Shift+Tab wraps to last modal control');
+      await page.keyboard.press('Tab');
+      say(await tabbables.first().evaluate(el=>el===document.activeElement),
+        width+' Tab wraps to first modal control');
+      // Switch account while dialog is open. No prior owner's choices may leak.
+      await page.evaluate(()=>{
+        window.currentSessionUser={id:'fixture-B'};
+        window.MMHVAULT_CONFIG_OWNER='fixture-B';
+        window.dispatchEvent(new Event('mmhvault:config-owner-changed'));
+      });
+      await page.waitForFunction(()=>!document.querySelector('.mmh-hier-overlay'));
+      say((await page.locator('#mmhHierarchyManage').textContent()).includes('မရှိသေးပါ'),
+        width+' account switch clears old-owner Manage choices');
+      say(await cards.nth(0).getByRole('button').isDisabled(),width+' switched owner stays locked until data loads');
       say(errors.length===0,width+' no browser script exception '+errors.join('; '));
       await context.close();
     }
