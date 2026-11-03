@@ -107,6 +107,9 @@ test('zero or one configured field hides all three native selects, not a fake Sa
   assert.match(hint.className,/full/,'notice fills the form grid instead of occupying a field slot');
   assert.match(hint.children[0].textContent,/at least two fields/i);
   assert.ok(hint.children[1].listeners.click,'setup notice links to Manage');
+  const opened=[];h.context.window.showTxTab=tab=>opened.push(tab);
+  hint.children[1].listeners.click();
+  assert.deepEqual(opened,['manage'],'setup CTA must use the installed Manage route, not a stale showTxTab binding');
   assert.equal(h.api.validate(),false);
   h.config.txFieldsV12.category.push('Income|Salary');
   h.api.refresh();
