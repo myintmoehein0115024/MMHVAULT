@@ -1,0 +1,24 @@
+name: N10 Staging Vault QA UI (ISOLATED / NO DEPLOY)
+on:
+  pull_request:
+    paths:
+      - 'security/n10-vault-qa-staging-site/**'
+      - '.github/workflows/n10-staging-vault-qa-ui.yml'
+  push:
+    branches:
+      - 'feature/n10-staging-vault-qa-ui-*'
+    paths:
+      - 'security/n10-vault-qa-staging-site/**'
+      - '.github/workflows/n10-staging-vault-qa-ui.yml'
+permissions:
+  contents: read
+jobs:
+  static-security-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check JavaScript syntax
+        run: node --check security/n10-vault-qa-staging-site/app.js
+      - name: Offline isolated safety tests
+        run: node security/n10-vault-qa-staging-site/test-client.mjs
