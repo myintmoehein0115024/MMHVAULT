@@ -38,8 +38,19 @@ production auth, financial records, or production deployment.
 - Pure owner-scoped, read-only audit module; excludes cross-user rows.
 - Unit tests for orphan references, preserved Baht alias, archived history,
   custom AMD FX, duplicate names, and mutation-free execution.
+- **2026-11-03 extension:** a reference matching multiple account records,
+  including a built-in `Baht` / custom `Bath` collision, is now flagged as
+  ambiguous. It is never assigned a currency based on account list order.
+- The protected `acc_bath` identity is checked against **THB**; conflicting
+  stored currency is flagged for review without touching any record.
+- Archived non-core currency accounts referenced by historical records also
+  require a verified FX reference; inactivity does not mean a rate is safe.
 - Aggregated read-only SQL preflight with no account names or user IDs.
 - Isolated GitHub CI for APP V11 audit tests.
+
+This branch changes the **developer audit only**, not the live account manager.
+The 217/216/1 figures above are the **2026-11-02 snapshot**, not a fresh
+production recount. No affected accounts or transactions have been repaired.
 
 ## Next candidate (requires separate review and tests)
 1. Prevent unknown account currencies from being silently shown as MMK.
