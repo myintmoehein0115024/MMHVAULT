@@ -59,6 +59,25 @@ const say=(condition,label)=>{assert.ok(condition,label);console.log('PASS '+lab
       say(true,width+' original Add Transaction selectors cascade exactly');
       const save=page.locator('#txForm .actions button');
       say(await save.isEnabled(),width+' fully linked native Save is enabled');
+      // Simulate a confirmed ledger insert followed by a failed config write.
+      // This must expose a retry that stores ONLY the missing Manage link.
+      await page.evaluate(()=>{
+        window.__failNextPersist=true;
+        const f=document.getElementById('txForm');
+        f.addEventListener('submit',e=>e.preventDefault(),{once:true});
+        f.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}));
+        window.MMHV11HierarchyLive.onLedgerInserted('fixture-A','fixture-saved-ledger-42',
+          {type:'Income',group:'Income',category:'Salary'});
+      });
+      await page.waitForFunction(()=>document.querySelector('#mmhHierarchyManage [role=status]')?.textContent
+        .includes('link was not stored'));
+      say(await page.evaluate(()=>window.__syntheticWrites)===3,
+        width+' failed post-insert config write did not silently persist');
+      await page.locator('#mmhHierarchyManage [role=status]').getByRole('button',{name:'Retry link'}).click();
+      await page.waitForFunction(()=>document.querySelector('#mmhHierarchyManage [role=status]')?.textContent
+        .includes('awaiting cloud verification'));
+      say(await page.evaluate(()=>window.__syntheticWrites)===4,
+        width+' retry wrote sidecar only, never resubmitted native form');
       // Mobile/tablet/desktop dialog must fit without horizontal scrolling.
       await cards.nth(2).getByRole('button',{name:'Manage'}).click();
       const fit=await page.evaluate(()=>{
