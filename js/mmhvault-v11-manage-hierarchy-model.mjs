@@ -199,10 +199,28 @@ export function recordLink(graph,ownerId,recordId,typeId,transactionId,categoryI
   const path=pathFor(graph,ownerId,typeId,transactionId,categoryId);
   const key=String(recordId);
   if(!graph.links||typeof graph.links!=='object')graph.links={};
-  if(Object.hasOwn(graph.links,key))throw new Error('Transaction link already recorded');
-  graph.links[key]={choiceIds:path.choiceIds,canonical:{
+  const next={choiceIds:path.choiceIds,canonical:{
     type:path.type,group:path.group,category:path.category}};
+  if(Object.hasOwn(graph.links,key)){
+    // An identical post-insert callback is a harmless retry, but an existing
+    // record ID must NEVER be rebound to another Manage path.
+    if(!storedLinkMatches(graph,ownerId,key,next.choiceIds,next.canonical))
+      throw new Error('Transaction ID belongs to another Manage path');
+    return graph.links[key];
+  }
+  graph.links[key]=next;
   return graph.links[key];
+}
+// Read-only confirmation helper for cloud readback; never infer verification
+// from the local queue or from a successful ledger insert alone.
+export function storedLinkMatches(raw,ownerId,recordId,choiceIds,canonical){
+  if(!validId(ownerId)||!raw||raw.version!==TREE_VERSION||raw.ownerId!==ownerId||
+    !validId(String(recordId||'')))return false;
+  const link=raw.links?.[String(recordId)],ids=link?.choiceIds,fields=link?.canonical;
+  return !!ids&&!!fields&&ids.type===choiceIds?.type&&
+    ids.transaction===choiceIds?.transaction&&ids.category===choiceIds?.category&&
+    fields.type===canonical?.type&&fields.group===canonical?.group&&
+    fields.category===canonical?.category;
 }
 export function normalizePersistedHierarchy(raw,ownerId){
   if(raw==null)return null;
