@@ -6,6 +6,7 @@ on:
       - 'app.html'
       - 'js/mmhvault-v11-manage-hierarchy-*.mjs'
       - 'tests/app-v11-manage-hierarchy-*.test.mjs'
+      - 'tests/app-v11-manage-hierarchy-browser-*'
       - '.github/workflows/app-v11-hierarchy-review.yml'
   workflow_dispatch:
 
@@ -48,3 +49,22 @@ jobs:
           assert.doesNotMatch(live,/\.from\(['"]transactions['"]\)\.delete\(/);
           console.log('Verified runtime loader, cloud-config retention, ledger insert-only and no history mutation');
           NODE
+
+  browser-fixture:
+    name: V11.7 synthetic linked Manage Chrome QA (NO DEPLOY)
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install test-only browser driver (no app dependencies)
+        run: npm install --no-save --no-package-lock --no-audit --no-fund playwright-core@1.56.1
+      - name: Run local-only responsive UI + old/new-owner regression
+        run: |
+          python3 -m http.server 8768 --bind 127.0.0.1 >/tmp/mmhvault-v11-hierarchy-browser.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID"' EXIT
+          sleep 2
+          node tests/app-v11-manage-hierarchy-browser-check.cjs
