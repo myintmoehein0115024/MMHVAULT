@@ -44,6 +44,7 @@ jobs:
           node --test security/n10-signup-escrow-review/test-immutable-signup-escrow.mjs
           node --test security/n10-recovery-view/test-recovery-transport.mjs security/n10-recovery-view/test-recovery-view-controller.mjs security/n10-recovery-view/test-recovery-view-lifecycle.mjs
           node --test security/n10-integration-review/test-fixed-key-signup-to-reveal.mjs
+          node --test security/n10-integration-review/test-security-center-vault-transport.mjs
       - name: Verify hard-OFF username Edge candidate and failure paths
         run: |
           node --check --input-type=module < security/n10-username-escrow-candidate/username-edge-REVIEW-ONLY.ts
