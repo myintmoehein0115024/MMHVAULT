@@ -804,14 +804,17 @@ check('L1.27 public tab title matches SEO without language focus scroll',
  l133PublicPagesUnchanged() &&
  l142IndexOnlyEdited() && current.includes(newHeroPreload) &&
  !current.includes(oldHeroPreload));
-check('L1.56 exact four-file public-only Business animation scope',
- actual.length===4 &&
- actual.every(path=>[
+check('L1.56 public-only scope or Analytics V1 isolated scope',
+ ((actual.length===4 && actual.every(path=>[
   'index.html',
   'landing-assets/motion-l132.js',
   'landing-assets/landing-release-check.cjs',
   'landing-assets/landing-browser-check.cjs'
- ].includes(path)) &&
+ ].includes(path))) ||
+ (actual.length===2 &&
+  actual.includes('index.html') &&
+  actual.includes('landing-assets/landing-release-check.cjs') &&
+  current===prev && analyticsAddition.test(rawCurrent))) &&
  l142IndexOnlyEdited() &&
  l133BurmeseLayoutOnlyEdited() &&
  l133PublicPagesUnchanged() &&
