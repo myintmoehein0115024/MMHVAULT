@@ -123,6 +123,7 @@ test('synthetic form DOM keeps original ledger values when user chooses a combin
   class Node {
     constructor(tag){this.tagName=tag;this.dataset={};this.style={};this.children=[];this.options=[];this.hidden=false;this._value='';}
     appendChild(x){this.children.push(x);if(this.tagName==='select')this.options.push(x);return x;}
+    setAttribute(name,value){this[name]=String(value);}
     replaceChildren(...nodes){this.children=[];this.options=[];nodes.forEach(x=>this.appendChild(x));}
     querySelector(selector){if(selector==='select')return this.children.find(x=>x.tagName==='select')||null;return null;}
     after(node){wraps[node.dataset.txQuickV11]=node;}
