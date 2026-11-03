@@ -432,7 +432,7 @@ test('original Add Transaction layout is not restructured or duplicated',()=>{
   assert.match(app,/<div class="tx-tab-panel-v371" id="txAddPanel"/);
   assert.match(app,/<div class="mmh-form-section-v1 full"><span data-en="Accounts & amounts"/);
   assert.match(app,/<div class="mmh-form-section-v1 full"><span data-en="Note & attachment"/);
-  assert.match(app,/js\/mmhvault-transaction-field-layout-v11\.js\?v=3\.0\.3/);
+  assert.match(app,/js\/mmhvault-transaction-field-layout-v11\.js\?v=3\.0\.4/);
   assert.doesNotMatch(source,/txPrefHolderV11|mmh-tx-pref-v11|quick\(form/);
 });
 
@@ -681,7 +681,7 @@ test('existing owner exposes modern presentation entries without migrating its o
   const before=JSON.stringify(h.config);
   const legacy=h.api.getLegacyView();
   assert.ok(legacy);
-  assert.deepEqual(legacy.type.map(x=>x.canonical),['Income','Expense','Transfer']);
+  assert.deepEqual(Array.from(legacy.type,x=>x.canonical),['Income','Expense','Transfer']);
   assert.equal(legacy.transaction.length,8);
   assert.ok(legacy.category.some(x=>x.raw==='Expense|Dining'));
   assert.ok(legacy.category.some(x=>x.raw==='Income|Salary'));
@@ -709,7 +709,7 @@ test('legacy presentation category list shows active names and separate archive 
 test('no signed-in owner cannot expose legacy account lists through presentation API',()=>{
   const h=harness(null,null);
   assert.equal(h.api.getLegacyView(),null);
-  assert.deepEqual(h.api.getArchivedCategoryEntries(),[]);
+  assert.equal(h.api.getArchivedCategoryEntries().length,0);
 });
 
 test('new owner retains empty Manage and is never auto-migrated into old defaults',()=>{
