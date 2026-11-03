@@ -120,7 +120,33 @@
         modal.confirm=item;modal.chosen=null;paintEditor();
       },'mmh-v14-danger');
       remove.setAttribute('aria-label',tr('Remove ','移除 ','ဖယ်ရှားရန် ')+(item.label||item.name));
-      actions.append(edit,remove);row.append(actions);list.append(row);
+      actions.append(edit,remove);
+      if(field==='category'&&typeof window.mmhVaultArchiveCategoryV445==='function'){
+        const archive=btn(tr('Archive','归档','သိမ်းဆည်းရန်'),()=>{
+          close();window.mmhVaultArchiveCategoryV445(item.group,item.name);
+        });
+        archive.setAttribute('aria-label',tr('Archive ','归档 ','သိမ်းရန် ')+item.name);
+        actions.append(archive);
+      }
+      row.append(actions);list.append(row);
+    }
+    if(field==='category'){
+      const archived=api.getArchivedCategoryEntries?.()||[];
+      if(archived.length){
+        list.append(el('h4','',tr('Archived Categories','已归档分类','သိမ်းထားသော အုပ်စုများ')));
+        for(const item of archived){
+          const row=el('div','mmh-v14-row'),info=el('div','mmh-v14-entry',item.name);
+          info.append(el('small','',groupLabel(item.group)));row.append(info);
+          const restore=btn(tr('Restore','恢复','ပြန်ယူရန်'),()=>{
+            if(typeof window.mmhVaultRestoreCategoryV445==='function'){
+              window.mmhVaultRestoreCategoryV445(item.group,item.name);
+              feedback(tr('Category restored.','分类已恢复。','ပြန်ယူပြီးပါပြီ။'));
+              schedule();
+            }else feedback(tr('Restore unavailable.','恢复暂不可用。','ပြန်ယူ၍မရပါ။'),true);
+          });
+          row.append(restore);list.append(row);
+        }
+      }
     }
     if(field!=='category'){
       const add=btn(tr('+ Add ','+ 新增 ','+ အသစ်ထည့်ရန် ')+name(field),()=>{
