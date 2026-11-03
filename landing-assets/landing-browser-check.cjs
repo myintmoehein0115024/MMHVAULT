@@ -188,6 +188,47 @@ async function load(page,route,failures){
      await ctx.close();
    }
 
+   // L1.38: consistent gentle panel motion on Landing and public pages,
+   // including the phone language picker, Explore menu and compact nav.
+   for(const route of ['/','/features/']){
+     for(const motion of ['no-preference','reduce']){
+       const ctx=await browser.newContext({
+         viewport:{width:393,height:852},reducedMotion:motion
+       });
+       const page=await ctx.newPage();
+       const failures=[];
+       page.on('pageerror',error=>failures.push(error.message));
+       await load(page,route,failures);
+       const locale=page.locator('#locale-menu');
+       await page.locator('#locale-trigger').click();
+       const state=await locale.evaluate(el=>{
+         const css=getComputedStyle(el),r=el.getBoundingClientRect();
+         return {animation:css.animationName,duration:parseFloat(css.animationDuration),
+           blur:css.backdropFilter||css.webkitBackdropFilter,
+           x:r.left,right:r.right,width:innerWidth};
+       });
+       ensure(state.blur.includes('24px')&&
+         (motion==='reduce'
+           ? state.animation==='none'
+           : state.animation.includes('mmh-public-panel-in')&&Math.abs(state.duration-.22)<.02)&&
+         state.x>=-1&&state.right<=state.width+1,
+         'L1.38 '+route+' '+motion+' 393px stable language panel '+JSON.stringify(state));
+       await page.keyboard.press('Escape');
+       await page.locator('.menu-toggle').click();
+       const navigation=await page.locator('#primary-nav').evaluate(el=>{
+         const css=getComputedStyle(el),r=el.getBoundingClientRect();
+         return {animation:css.animationName,duration:parseFloat(css.animationDuration),
+           x:r.left,right:r.right,width:innerWidth};
+       });
+       ensure((motion==='reduce'
+           ? navigation.animation==='none'
+           : navigation.animation.includes('mmh-public-panel-in')&&Math.abs(navigation.duration-.22)<.02)&&
+         navigation.x>=-1&&navigation.right<=navigation.width+1&&failures.length===0,
+         'L1.38 '+route+' '+motion+' 393px stable nav panel '+JSON.stringify(navigation));
+       await ctx.close();
+     }
+   }
+
    // L1.25 — emulate slow image decoding independently of network speed.
    // The HTML mockup must remain on screen until decoded pixels are ready,
    // even when image.complete and naturalWidth already indicate download.
