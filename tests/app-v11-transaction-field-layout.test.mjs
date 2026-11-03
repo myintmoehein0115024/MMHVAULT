@@ -194,6 +194,34 @@ test('real Manage render moves exactly one Category form, and restores it for le
   const panel=findById(host,'mmhV12Manage');
   assert.ok(panel,'managed owner has one Manage section');
   assert.equal(legacy.hidden,true,'new owner with zero saved/archived Categories should not see empty search card');
+  // Each Type/Transaction choice is a one-click, reversible pill: no extra
+  // dropdown and Add button. Category keeps its native validated input.
+  const rows=panel.querySelector('.mmh-v12-cols').children;
+  assert.equal(rows.length,3,'three compact field rows instead of three tall cards');
+  const typeChoices=rows[0].querySelector('.mmh-v12-options').children;
+  assert.equal(typeChoices.length,3,'Income / Expense / Transfer are directly clickable');
+  const incomeType=typeChoices.find(x=>x.textContent.includes('Income'));
+  assert.equal(incomeType.attrs['aria-pressed'],'false');
+  incomeType.listeners.click();
+  assert.deepEqual(Array.from(h.config.txFieldsV12.type),['Income']);
+  const afterType=panel.querySelector('.mmh-v12-cols').children;
+  assert.equal(afterType[0].querySelector('.mmh-v12-options').children
+    .find(x=>x.textContent.includes('Income')).attrs['aria-pressed'],'true');
+  const transactionChoices=afterType[1].querySelector('.mmh-v12-options').children;
+  assert.ok(transactionChoices.every(x=>!x.textContent.includes('Expense')),
+    'Type Income filters newly addable Expense transactions');
+  transactionChoices.find(x=>x.textContent.includes('Income')).listeners.click();
+  assert.deepEqual(Array.from(h.config.txFieldsV12.transaction),['Income|Income']);
+  const preview=panel.querySelector('.mmh-v12-preview-fields');
+  assert.deepEqual(preview.children.map(x=>x.textContent),['Type','Transaction'],
+    'Manage preview mirrors the two actual Add Transaction fields');
+  const afterReady=panel.querySelector('.mmh-v12-cols').children;
+  afterReady[0].querySelector('.mmh-v12-options').children
+    .find(x=>x.textContent.includes('Income')).listeners.click();
+  assert.equal(h.config.txFieldsV12.type.length,0,'selected option can be removed in one click');
+  assert.equal(h.config.txFieldsV12.transaction.length,1,
+    'removing Type does not silently erase configured Transaction values');
+  assert.equal(h.writes.length,3,'three actions persisted through the existing owner-scoped config');
   assert.equal(categoryForm.parentElement?.className,'mmh-v12-col mmh-v12-col-category');
   h.api.refreshManage();
   assert.equal(categoryForm.parentElement?.className,'mmh-v12-col mmh-v12-col-category',
@@ -211,6 +239,9 @@ test('real Manage render moves exactly one Category form, and restores it for le
 });
 
 test('Manage displays existing native Category editor beside Type and Transaction rather than separate duplicate controls',()=>{
+  assert.match(source,/mmh-v12-option\.is-active/);
+  assert.match(source,/mmh-v12-preview-fields/);
+  assert.doesNotMatch(source,/row\.append\(select\)/);
   assert.match(source,/categoryCard=make\('div','mmh-v12-col mmh-v12-col-category'\)/);
   assert.match(source,/if\(categoryForm\)categoryCard\.append\(categoryForm\)/);
   assert.match(source,/if\(!isManaged\(\)\)\{[\s\S]*?header\.after\(categoryForm\)/);
@@ -400,7 +431,7 @@ test('original Add Transaction layout is not restructured or duplicated',()=>{
   assert.match(app,/<div class="tx-tab-panel-v371" id="txAddPanel"/);
   assert.match(app,/<div class="mmh-form-section-v1 full"><span data-en="Accounts & amounts"/);
   assert.match(app,/<div class="mmh-form-section-v1 full"><span data-en="Note & attachment"/);
-  assert.match(app,/js\/mmhvault-transaction-field-layout-v11\.js\?v=2\.1\.0/);
+  assert.match(app,/js\/mmhvault-transaction-field-layout-v11\.js\?v=2\.2\.0/);
   assert.doesNotMatch(source,/txPrefHolderV11|mmh-tx-pref-v11|quick\(form/);
 });
 
