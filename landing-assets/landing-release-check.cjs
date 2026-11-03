@@ -51,21 +51,21 @@ const l137LandingJSOnlyEdited=()=>{
 };
 const l139MotionInsertion="  // L1.39: begin phone reveals just before cards enter view to avoid a\n  // temporary blank during quick scrolling; desktop timing is unchanged.\n  const mobileReveal = window.matchMedia && window.matchMedia('(max-width: 620px)').matches;\n";
 const l139PublicInsertion="      // L1.39: pre-reveal phone cards ahead of viewport; leave desktop as-is.\n      const mobileReveal=window.matchMedia('(max-width: 620px)').matches;\n";
+// L1.40 uses published L1.39 as the baseline. Compare only the intended
+// phone-reveal configuration change and preserve the public-page script bytewise.
 const l139MotionOnlyEdited=()=>{
   const original=source('landing-assets/motion-l132.js');
-  return original.includes("  const observer=new IntersectionObserver(entries=>{") &&
-    original.includes("{rootMargin:'0px 0px -6% 0px',threshold:0.065}") &&
-    read('landing-assets/motion-l132.js')===
-      original.replace("  const observer=new IntersectionObserver(entries=>{",l139MotionInsertion+"  const observer=new IntersectionObserver(entries=>{")
-        .replace("{rootMargin:'0px 0px -6% 0px',threshold:0.065}","{rootMargin:mobileReveal?'0px 0px 12% 0px':'0px 0px -6% 0px',threshold:0.065}");
+  const before="{rootMargin:mobileReveal?'0px 0px 12% 0px':'0px 0px -6% 0px',threshold:0.065}";
+  const after="{rootMargin:mobileReveal?'0px 0px 24% 0px':'0px 0px -6% 0px',threshold:mobileReveal?0:0.065}";
+  const oldComment="  // L1.39: begin phone reveals just before cards enter view to avoid a\n  // temporary blank during quick scrolling; desktop timing is unchanged.";
+  const newComment="  // L1.40: prewarm mobile reveals further ahead of fast swipes, with no\n  // intersection threshold that might skip a narrow card. Desktop unchanged.";
+  return original.includes(before) && original.includes(oldComment) &&
+    read('landing-assets/motion-l132.js')===original.replace(oldComment,newComment).replace(before,after);
 };
 const l139PublicOnlyEdited=()=>{
   const original=source('landing-assets/public-pages.js');
-  return original.includes("      const observer=new IntersectionObserver(entries=>{") &&
-    original.includes("{threshold:.045,rootMargin:'0px 0px -4% 0px'}") &&
-    read('landing-assets/public-pages.js')===
-      original.replace("      const observer=new IntersectionObserver(entries=>{",l139PublicInsertion+"      const observer=new IntersectionObserver(entries=>{")
-        .replace("{threshold:.045,rootMargin:'0px 0px -4% 0px'}","{threshold:.045,rootMargin:mobileReveal?'0px 0px 12% 0px':'0px 0px -4% 0px'}");
+  return original.includes("mobileReveal?'0px 0px 12% 0px':'0px 0px -4% 0px'") &&
+    read('landing-assets/public-pages.js')===original;
 };
 const l137PublicJSOnlyEdited=()=>{
   const expected=source('landing-assets/public-pages.js');
@@ -604,11 +604,11 @@ check('L1.27 public tab title matches SEO without language focus scroll',
  l133PublicPagesUnchanged() &&
  current===prev && current.includes(newHeroPreload) &&
  !current.includes(oldHeroPreload));
-check('L1.39 exact four-file early mobile reveal scope',
+check('L1.40 exact four-file mobile stability scope',
  actual.length===4 &&
  actual.every(path=>[
   'landing-assets/motion-l132.js',
-  'landing-assets/public-pages.js',
+  'landing-assets/cinematic.css',
   'landing-assets/landing-release-check.cjs',
   'landing-assets/landing-browser-check.cjs'
  ].includes(path)) &&
@@ -618,10 +618,20 @@ check('L1.39 exact four-file early mobile reveal scope',
  l135HeaderCssOnlyEdited() &&
  publicHeaders.every(path=>read(path)===source(path)) &&
  ['landing-assets/public-pages.css',
-  'landing-assets/business.css','landing-assets/cinematic.css',
+  'landing-assets/business.css',
   'landing-assets/premium-l131.css','landing-assets/motion-l132.css',
   'sitemap.xml','robots.txt','mmh-manifest-v2.webmanifest']
  .every(path=>read(path)===source(path)));
+// The device image remains decoded-before-show, with no invisible opacity
+// transition on phones/tablets. This is the only change to cinematic.css.
+const l140HeroCssSuffix="\n/* L1.40 — Once the phone/tablet Hero image has decoded, swap it in\n   without a second opacity delay that could expose a blank frame after\n   the HTML fallback is hidden. Keep desktop presentation unchanged. */\n@media (max-width: 900px) {\n  body.l131 .hero-device-cinematic { transition: none; }\n}\n";
+check('L1.40 decoded mobile Hero has no delayed blank paint', 
+  read('landing-assets/cinematic.css')===
+    source('landing-assets/cinematic.css').trimEnd()+'\n'+l140HeroCssSuffix &&
+  l140HeroCssSuffix.includes('@media (max-width: 900px)') &&
+  l140HeroCssSuffix.includes('body.l131 .hero-device-cinematic { transition: none; }') &&
+  !l140HeroCssSuffix.includes('body.app') &&
+  !l140HeroCssSuffix.includes('user-scalable=no'));
 check('L1.34 mobile EN ZH MY card stability and touch-safe scrolling',
   l133BurmeseLayoutOnlyEdited() &&
   l134ResponsiveCssSuffix.includes('min-height: 94px') &&
@@ -669,9 +679,9 @@ check('L1.38 calmer paint-only public panels preserve accessibility and asset bu
  read('landing-assets/landing.js')===source('landing-assets/landing.js') &&
  l139PublicOnlyEdited() &&
  current===prev);
-check('L1.39 phone scroll reveals prewarm outside viewport without layout edits',
+check('L1.40 phone scroll reveals prewarm outside viewport without layout edits',
  l139MotionOnlyEdited() && l139PublicOnlyEdited() &&
- read('landing-assets/motion-l132.js').includes("mobileReveal?'0px 0px 12% 0px':'0px 0px -6% 0px'") &&
+ read('landing-assets/motion-l132.js').includes("mobileReveal?'0px 0px 24% 0px':'0px 0px -6% 0px'") &&
  read('landing-assets/public-pages.js').includes("mobileReveal?'0px 0px 12% 0px':'0px 0px -4% 0px'") &&
  !l139MotionInsertion.includes('preventDefault(') &&
  !l139PublicInsertion.includes('preventDefault(') &&
