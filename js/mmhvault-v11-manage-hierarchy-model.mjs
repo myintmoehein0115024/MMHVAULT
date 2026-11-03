@@ -116,6 +116,12 @@ export function entryUsage(graph,ownerId,field,id,history){
   const coll={type:'types',transaction:'transactions',category:'categories'}[field];
   if(!coll)throw new Error('Invalid Manage field');
   const node=requireNode(graph,coll,id);
+  // A confirmed ledger insert can precede the next history refresh. Its
+  // owner-scoped, saved record-ID sidecar is already evidence of usage.
+  // Without this guard a newly used item could be renamed/deleted until
+  // the history query finished, breaking the immutable-Manage contract.
+  if(Object.values(graph.links||{}).some(link=>link?.choiceIds?.[field]===id))
+    return 'used';
   if(!Array.isArray(history))return 'unknown'; // never allow destructive edits during cloud load
   for(const row of history){
     if(!row||typeof row!=='object')continue;
