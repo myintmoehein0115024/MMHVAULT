@@ -20,7 +20,11 @@
   const id=x=>document.getElementById(x);
   const owner=()=>{try{return String(currentSessionUser?.id||'');}catch(_){return '';}};
   const config=()=>{try{return MMHVAULT_CONFIG;}catch(_){return null;}};
-  const state=()=>{const v=config()?.txFieldsV12;return owner()&&v?.version===1?v:null;};
+  // A cached config from a previous signed-in user must never enter this UI.
+  const ownedConfig=()=>{try{
+    const uid=owner();return uid&&String(MMHVAULT_CONFIG_OWNER||'')===uid?config():null;
+  }catch(_){return null;}};
+  const state=()=>{const v=ownedConfig()?.txFieldsV12;return v?.version===1?v:null;};
   const isManaged=()=>!!state();
   const hasCategory=(group,name)=>!!state()?.category.includes(group+'|'+name);
   const mode=()=>{
@@ -87,14 +91,36 @@
     if(i<0)return false;
     el.selectedIndex=i;return true;
   }
+  // Initialize legacy preferences only when the owner actually SAVES a field edit.
+  // This copies labels and active categories; it never writes historical entries.
+  function legacySeed(cfg){
+    const groups=['Expense','Income','Personal','LoanIncome','LoanExpense'];
+    const category=groups.flatMap(group=>(Array.isArray(cfg.categories?.[group])?cfg.categories[group]:[])
+      .filter(name=>typeof name==='string'&&name.trim()).map(name=>group+'|'+name));
+    return {version:1,type:[...TYPE],transaction:KIND.map(x=>x.id),
+      category:[...new Set(category)]};
+  }
   function persistMutation(action){
-    const s=state();if(!s)return false;
+    const cfg=ownedConfig();if(!cfg||typeof action!=='function')return false;
+    const old=cfg.txFieldsV12;
+    if(old!=null&&old.version!==1)return false; // never overwrite unknown formats
+    const onboarding=old==null;
+    if(onboarding)cfg.txFieldsV12=legacySeed(cfg);
+    const s=state();
+    if(!s){cfg.txFieldsV12=old;return false;}
     const previous=JSON.stringify(s);
-    if(action(s,display())===false)return false;
-    if(!safePersist()){
-      Object.keys(s).forEach(k=>delete s[k]);Object.assign(s,JSON.parse(previous));
-      notify(tr('Could not save this change.','保存失败，请检查网络。','မသိမ်းနိုင်ပါ။'));return false;
-    }
+    const rollback=()=>{
+      if(onboarding){
+        if(old===undefined)delete cfg.txFieldsV12;else cfg.txFieldsV12=old;
+      }else{
+        Object.keys(s).forEach(k=>delete s[k]);Object.assign(s,JSON.parse(previous));
+      }
+    };
+    try{
+      if(action(s,display())===false){rollback();return false;}
+      if(!safePersist()){rollback();notify(tr('Could not save this change.',
+        '保存失败，请检查网络。','မသိမ်းနိုင်ပါ။'));return false;}
+    }catch(e){rollback();console.warn('[MMHVAULT] Field edit rolled back',e);return false;}
     refreshManage();refreshForm();return true;
   }
   function duplicateName(field,label,except=''){
@@ -104,7 +130,12 @@
     const valid=field==='type'?TYPE:KIND.map(x=>x.id);
     const label=cleanLabel(input);
     if(!valid.includes(canonical)||!label){notify(tr('Enter a name and financial meaning.','请输入名称并选择财务类型。','အမည်နှင့် အမျိုးအစား ဖြည့်ပါ။'));return false;}
-    if(duplicateName(field,label,entry?.key)){notify(tr('That name is already used.','该名称已存在。','ဤအမည် ရှိပြီးသားဖြစ်သည်။'));return false;}
+    const existing=state()?fieldItems(field):
+      (field==='type'?TYPE.map(x=>({label:x,key:'legacy:'+x})):
+        KIND.map(x=>({label:x.label,key:'legacy:'+x.id})));
+    if(existing.some(x=>x.key!==entry?.key&&x.label.toLocaleLowerCase()===label.toLocaleLowerCase())){
+      notify(tr('That name is already used.','该名称已存在。','ဤအမည် ရှိပြီးသားဖြစ်သည်။'));return false;
+    }
     return persistMutation((s,d)=>{
       const current=s[field],aliases=field==='type'?d.extraTypes:d.extraTransactions;
       const names=d[field==='type'?'typeLabels':'transactionLabels'];
@@ -743,10 +774,10 @@
     // Compatibility is presentation-only: old accounts retain their existing
     // three-field transaction form and ledger codes, with no V12 marker written.
     getLegacyView:()=>{
-      if(!owner()||!config()||isManaged())return null;
+      if(!ownedConfig()||isManaged())return null;
       const groups=['Expense','Income','Personal','LoanIncome','LoanExpense'];
       const category=groups.flatMap(group=>{
-        const items=config()?.categories?.[group];
+        const items=ownedConfig()?.categories?.[group];
         return Array.isArray(items)?items.filter(name=>typeof name==='string'&&name.trim())
           .map(name=>({raw:group+'|'+name,group,name})):[];});
       return {
@@ -755,7 +786,7 @@
         category
       };
     },
-    getArchivedCategoryEntries:()=>owner()&&config()?Object.entries(config()?.archivedCategories||{})
+    getArchivedCategoryEntries:()=>ownedConfig()?Object.entries(ownedConfig()?.archivedCategories||{})
       .flatMap(([group,names])=>Array.isArray(names)?names.map(name=>({group,name})):[]):[],
     removeCategory:raw=>{
       const before=!!state()?.category.includes(raw);
