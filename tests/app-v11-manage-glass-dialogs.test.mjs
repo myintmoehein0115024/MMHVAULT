@@ -147,6 +147,7 @@ test('Type add, rename and remove use only the existing canonical owner API',()=
   const h=harness();
   h.window.MMHV11ManageGlassV14.open('type');
   h.labeled(h.body,'+ Add Type').click();
+  assert.equal(h.look(h.body,'mmh-v14-list').hidden,true,'editor must replace—not stack under—the list');
   const input=h.look(h.body,'mmh-v14-input');input.value='My Income';
   h.labeled(h.body,'Save changes').click();
   assert.equal(h.stats().saves,1);
@@ -182,4 +183,17 @@ test('Chinese and Burmese controls follow active interface language, not English
   h.window.MMHV11ManageGlassV14.close();
   h.changeLanguage('my');
   assert.match(h.look(h.h,'mmh-v14-heading').textContent,/ငွေစာရင်း/);
+});
+
+test('opening add editor hides the original list, Cancel restores it without saving',()=>{
+  const h=harness();h.window.MMHV11ManageGlassV14.open('type');
+  h.labeled(h.body,'+ Add Type').click();
+  const list=h.look(h.body,'mmh-v14-list');
+  assert.equal(list.hidden,true);
+  assert.equal(h.look(h.body,'mmh-v14-editor').hidden,false);
+  assert.match(h.look(h.body,'mmh-v14-dialog-head').textContent,/Add Type/);
+  h.labeled(h.body,'Cancel').click();
+  assert.equal(list.hidden,false);
+  assert.equal(h.look(h.body,'mmh-v14-editor').hidden,true);
+  assert.equal(h.stats().saves,0);
 });
