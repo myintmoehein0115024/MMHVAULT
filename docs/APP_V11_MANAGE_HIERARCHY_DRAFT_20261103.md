@@ -49,6 +49,16 @@ This only fixes the **confirmed-and-saved-sidecar** gap. A failed/offline/cloud-
 queued sidecar upload, competing tab, or cross-device readback still needs real
 Staging/browser tests; it is not a claim of atomic ledger/config persistence.
 
+## Linked glass modal usability (draft follow-up)
+
+The three Manage cards remain visible for both new and legacy accounts. A new
+owner's Transaction Add action stays disabled until an active Type is present;
+Category Add stays disabled until an active linked Transaction is present.
+The modal explains the prerequisite in EN/ZH/MY. The dialog now keeps keyboard
+Tab focus inside, supports Escape close, returns focus to the originating card,
+prevents background scroll, and keeps an accessible title in editor/confirm views.
+These are implementation-level checks, not a completed Safari/mobile acceptance.
+
 ## Operational caveats — must pass before live release
 
 1. Real authenticated **Staging** dual-owner test: fresh account empty,
