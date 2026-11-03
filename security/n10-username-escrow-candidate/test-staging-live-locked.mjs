@@ -26,6 +26,7 @@ test('anonymous preflight is locked or uses only an explicit expiring two-user Q
    payload?.qa_window_expires_at==='2026-11-04T13:00:00.000Z' &&
    Date.now()<Date.parse(payload.qa_window_expires_at)),'unreviewed anonymous signup release');
  assert.equal(payload?.setup_complete,true,'Staging enrollment secrets or exact two-user allowlist are not yet ready');
+ console.log('N10 Staging live preflight:',payload?.enabled?'QA_WINDOW_OPEN':'SAFE_CLOSED');
  assert.equal(payload?.qa_only,true);
  assert.equal(payload?.production,false);
  assert.equal(response.headers.get('access-control-allow-origin'),ORIGIN);
