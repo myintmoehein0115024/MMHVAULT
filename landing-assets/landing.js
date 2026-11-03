@@ -792,16 +792,24 @@
       } else if (node.textContent !== value) node.textContent = value;
     });
     languageButtons.forEach(button => {
-      button.setAttribute('aria-pressed', String(button.dataset.lang === currentLang));
+      // L1.54: preserve existing language choice ARIA on cold hydration.
+      const pressed=String(button.dataset.lang === currentLang);
+      if(button.getAttribute('aria-pressed')!==pressed)button.setAttribute('aria-pressed',pressed);
     });
     // L1.32: feature names use the selected display language on the tabs and
     // in the active story heading; product identity and panel IDs stay fixed.
     productTabs.forEach(tab => {
       const label = tab.querySelector('.product-tab-copy strong');
-      if (label) label.textContent = productLabels[currentLang][tab.dataset.productTab];
+      if (label) {
+        const name=productLabels[currentLang][tab.dataset.productTab];
+        if(label.textContent!==name)label.textContent=name;
+      }
     });
     const activeStoryTitle = document.querySelector('[data-app-story-title]');
-    if (activeStoryTitle) activeStoryTitle.textContent = productLabels[currentLang][activeProduct];
+    if (activeStoryTitle) {
+      const name=productLabels[currentLang][activeProduct];
+      if(activeStoryTitle.textContent!==name)activeStoryTitle.textContent=name;
+    }
     updateBusinessPreview(currentBusinessView);
     // Keep the currently selected feature story in the new display language.
     const storyDesc=document.querySelector('[data-app-story-desc]');
