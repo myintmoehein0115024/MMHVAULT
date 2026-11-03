@@ -1,0 +1,193 @@
+/* N10 real Staging MFA A/B test. Tokens, TOTP codes and QR only in volatile memory.
+   No persistent auth session, analytics, logs, password export or production access. */
+(() => {
+'use strict';
+const BASE='https://ldivswlhtgmznzwhzsoi.supabase.co';
+const EDGE=BASE+'/functions/v1/mmh-n10-staging-username-escrow-20261103';
+const ORIGIN='https://mmhvault-n10-vault-staging.pages.dev';
+const KEY='sb_publishable_LxIB8564OZD48HQ8Mfsc0A_apkgERZo'; // public Staging key
+const SITEKEY='0x4AAAAAAFlXEfEHAP1TUxjr'; // public Staging-only widget key
+const ALLOWED=Object.freeze(['n10qa_a_20261103','n10qa_b_20261103']);
+const $=id=>document.getElementById(id);
+const STRINGS={
+ zh:{title:'双账户 MFA 真实验收',intro:'使用新注册的 A / B 用户名和测试密码，绑定 Google Authenticator 并验证 AAL2。',statusLabel:'测试状态',statusTitle:'真实身份验证',checking:'正在检查测试环境…',refresh:'重新检查测试服务',loginTitle:'使用新注册的测试用户名登录',loginNote:'仅允许两个专用测试账户。使用各自的密码，不要在聊天中发送。',owner:'选择测试账户',password:'测试账户密码',human:'完成人机验证才能登录 Staging。',signIn:'安全登录',mfaTitle:'绑定或验证 Authenticator',totpLabel:'输入 Authenticator 六位动态验证码',enroll:'绑定 Google Authenticator',verify:'验证二级动态码',logout:'退出并清除测试会话',foot:'仅 Staging 测试 · 不保存密码、动态码或 MFA 密钥到浏览器存储',qrTitle:'使用 Authenticator 扫描二维码',qrNote:'二维码只属于当前测试账户，请勿截图或转发。',qrVerifyNote:'完成扫描后关闭弹窗，输入应用里的六位码。',qrDone:'已扫描，开始验证',closed:'Staging 注册与登录测试已安全关闭，不需要输入密码。',ready:'Staging A/B 登录入口已开放，等待人机验证。',captchaLoading:'正在加载安全验证…',captchaError:'人机验证加载失败，请检查网络再试。',offline:'网络或测试服务暂不可用。',passwordNeeded:'请输入对应的测试账户密码（6–20 位）。',captchaNeeded:'请先完成人机验证。',working:'正在安全验证账户身份…',loginFail:'登录失败，请检查密码或测试权限。不要反复尝试。',loginOK:'用户名登录成功，正在确认 MFA 状态…',enrollReady:'尚未绑定 MFA，可开始绑定 Google Authenticator。',enrolled:'绑定二维码已生成，请使用 Google Authenticator 扫描。',already:'已绑定 MFA，请输入六位动态验证码验证登录。',enterCode:'请输入六位数字动态验证码。',codeFail:'动态验证码验证失败，请检查设备时间和验证码。',aalFail:'无法确认 AAL2，操作已中止。',passed:'MFA AAL2 PASS · 已通过真实二级验证',qrInvalid:'二维码格式不安全，已停止绑定。',ownerFail:'测试身份不匹配，已拒绝访问。',secretExpired:'二维码已隐藏；若尚未绑定，请重新开始。',codeChecking:'正在验证六位动态码…',signed:'已登录测试账户',signedOut:'已退出，敏感资料已清理。'},
+ en:{title:'Real A/B MFA QA',intro:'Use the two newly registered QA usernames and passwords to bind an authenticator and verify AAL2.',statusLabel:'TEST STATUS',statusTitle:'Real identity verification',checking:'Checking isolated Staging…',refresh:'Recheck test service',loginTitle:'Sign in with a registered QA username',loginNote:'Only the two authorized QA accounts are accepted. Never send your password in chat.',owner:'Test account',password:'QA password',human:'Complete human verification before signing in.',signIn:'Secure sign-in',mfaTitle:'Bind or verify Authenticator',totpLabel:'Enter the six-digit Authenticator code',enroll:'Bind Google Authenticator',verify:'Verify security code',logout:'Sign out and erase the session',foot:'Staging only · No password, TOTP code or MFA secret persists in the browser',qrTitle:'Scan with your Authenticator',qrNote:'This QR belongs only to the current test account. Do not screenshot or forward it.',qrVerifyNote:'After scanning, close this dialog and enter your six-digit code.',qrDone:'Scanned · Continue',closed:'Staging registration and login are closed. Do not enter a password.',ready:'Staging A/B login is ready. Complete human verification.',captchaLoading:'Loading security verification…',captchaError:'Verification did not load. Check your network and retry.',offline:'Network or Staging test service unavailable.',passwordNeeded:'Enter your QA password (6–20 characters).',captchaNeeded:'Complete human verification first.',working:'Verifying your account securely…',loginFail:'Login rejected. Check your password and QA access; avoid repeated attempts.',loginOK:'Username sign-in verified. Checking MFA status…',enrollReady:'MFA is not bound yet. Bind Google Authenticator.',enrolled:'Enrollment QR generated. Scan it with your Authenticator.',already:'MFA is already bound. Verify the six-digit code to sign in.',enterCode:'Enter a valid six-digit code.',codeFail:'Verification failed. Check the code and device clock.',aalFail:'Could not confirm AAL2, so access was denied.',passed:'MFA AAL2 PASS · Real second factor verified',qrInvalid:'Invalid QR format. Enrollment stopped.',ownerFail:'Test identity mismatch. Access denied.',secretExpired:'QR is hidden. Start enrollment again if needed.',codeChecking:'Verifying the security code…',signed:'Signed in as QA account',signedOut:'Signed out; sensitive session erased.'},
+ my:{title:'A/B MFA စမ်းသပ်မှု',intro:'အသစ်ဖန်တီးထားသော QA အသုံးပြုသူအမည်များဖြင့် ဝင်ရောက်၍ Authenticator နှင့် AAL2 ကို စစ်ဆေးပါ။',statusLabel:'စမ်းသပ်မှု အခြေအနေ',statusTitle:'အကောင့် လုံခြုံရေး စစ်ဆေးခြင်း',checking:'Staging ကို စစ်ဆေးနေသည်…',refresh:'ပြန်လည်စစ်ဆေးရန်',loginTitle:'QA အသုံးပြုသူအမည်ဖြင့် ဝင်ရန်',loginNote:'ခွင့်ပြုထားသော QA အကောင့်နှစ်ခုအတွက်သာ ဖြစ်သည်။ စကားဝှက်ကို မမျှဝေပါနှင့်။',owner:'QA အကောင့်',password:'QA စကားဝှက်',human:'ဝင်ရောက်ရန် လူသားဖြစ်ကြောင်း စစ်ဆေးပါ။',signIn:'လုံခြုံစွာ ဝင်ရန်',mfaTitle:'Authenticator ကို ချိတ်ဆက် / စစ်ဆေးပါ',totpLabel:'Authenticator မှ ဂဏန်း ၆ လုံး ထည့်ပါ',enroll:'Google Authenticator ချိတ်ဆက်ရန်',verify:'ဒုတိယအဆင့် စစ်ဆေးရန်',logout:'ထွက်ရန်နှင့် Session ရှင်းရန်',foot:'Staging စမ်းသပ်မှုသာ · စကားဝှက်၊ MFA ကုဒ်နှင့် လျှို့ဝှက်သော့ကို မသိမ်းဆည်းပါ',qrTitle:'Authenticator ဖြင့် QR စကင်ဖတ်ပါ',qrNote:'ဤ QR သည် ယခု QA အကောင့်အတွက်သာ ဖြစ်သည်။ မမျှဝေပါနှင့်။',qrVerifyNote:'QR စကင်ဖတ်ပြီး ဂဏန်း ၆ လုံးကို ထည့်ပါ။',qrDone:'စကင်ဖတ်ပြီး · ဆက်ရန်',closed:'Staging စမ်းသပ်ဝင်ရောက်မှုကို ပိတ်ထားသည်။',ready:'Staging QA ဝင်ရောက်မှု ဖွင့်ထားသည်။ လူသားစစ်ဆေးမှုကို ပြုလုပ်ပါ။',captchaLoading:'လူသားစစ်ဆေးမှုကို ဖွင့်နေသည်…',captchaError:'စစ်ဆေးမှု မရရှိနိုင်ပါ။ ပြန်လည်ကြိုးစားပါ။',offline:'Staging ဝန်ဆောင်မှု မရရှိနိုင်ပါ။',passwordNeeded:'QA စကားဝှက် ထည့်ပါ။',captchaNeeded:'လူသားစစ်ဆေးမှု ပြီးစီးရမည်။',working:'အကောင့်ကို စစ်ဆေးနေသည်…',loginFail:'ဝင်ရောက်မှု မအောင်မြင်ပါ။ ထပ်မံ မကြိုးစားခင် စစ်ဆေးပါ။',loginOK:'ဝင်ရောက်မှု အောင်မြင်ပါပြီ။ MFA ကို စစ်ဆေးနေသည်…',enrollReady:'MFA မချိတ်ဆက်ရသေးပါ။ Google Authenticator ချိတ်ဆက်နိုင်သည်။',enrolled:'QR ရရှိပါပြီ။ Authenticator ဖြင့် စကင်ဖတ်ပါ။',already:'MFA ချိတ်ဆက်ပြီးဖြစ်သည်။ ဂဏန်း ၆ လုံးဖြင့် စစ်ဆေးပါ။',enterCode:'ဂဏန်း ၆ လုံး ကုဒ် ထည့်ပါ။',codeFail:'ကုဒ် မမှန်ပါ။ ဖုန်း၏ အချိန်ကို စစ်ဆေးပါ။',aalFail:'AAL2 အဆင့်ကို အတည်မပြုနိုင်ပါ။',passed:'MFA AAL2 PASS · ဒုတိယအဆင့် အောင်မြင်',qrInvalid:'QR အချက်အလက် မမှန်ကန်ပါ။',ownerFail:'QA အကောင့် မကိုက်ညီပါ။',secretExpired:'QR ဖျောက်ထားပါပြီ။ လိုအပ်လျှင် ပြန်စပါ။',codeChecking:'ကုဒ်ကို စစ်ဆေးနေသည်…',signed:'QA အကောင့်ဖြင့် ဝင်ပြီး',signedOut:'ထွက်ပြီးပါပြီ။ Session ရှင်းလင်းပြီးပါပြီ။'}
+};
+let lang='zh',enabled=false,busy=false,widget=null,token='',owner=null,factorId='',mfaVerified=false,qrTimer=null,captchaTimer=null,waitStart=0,client=null;
+const tr=k=>STRINGS[lang]?.[k]||STRINGS.en[k]||'Service error';
+function status(k){$('status').textContent=tr(k);$('status').dataset.state=k;}
+function setVisible(id,val){$(id).classList.toggle('is-hidden',!val);}
+function clearQr(){
+ clearTimeout(qrTimer);qrTimer=null;$('qr').removeAttribute('src');$('qrModal').hidden=true;
+}
+function clearChallenge(){token='';if(widget!==null&&window.turnstile){try{window.turnstile.reset(widget);}catch{widget=null;}}}
+function stopWait(){clearTimeout(captchaTimer);captchaTimer=null;waitStart=0;}
+function renderLanguage(){
+ document.documentElement.lang=lang==='zh'?'zh-CN':lang==='my'?'my':'en';
+ document.querySelectorAll('[data-t]').forEach(el=>{const k=el.dataset.t;if(STRINGS[lang][k])el.textContent=tr(k);});
+ document.querySelectorAll('[data-lang]').forEach(btn=>{btn.classList.toggle('active',btn.dataset.lang===lang);btn.setAttribute('aria-pressed',String(btn.dataset.lang===lang));});
+ const k=$('status').dataset.state;if(k)status(k);
+}
+function canLogin(){
+ return enabled&&!busy&&!!token&&!owner&&$('pwd').value.length>=6&&$('pwd').value.length<=20&&ALLOWED.includes($('owner').value);
+}
+function updateLogin(){ $('signIn').disabled=!canLogin(); }
+function setEnabled(next){
+ enabled=!!next; $('dot').classList.toggle('ready',enabled);
+ $('pwd').disabled=!enabled||!!owner;
+ $('owner').disabled=!!owner;
+ if(!enabled){$('pwd').value='';clearChallenge();stopWait();}
+ updateLogin();
+}
+function renderCaptcha(){
+ if(!enabled||owner||widget!==null)return;
+ if(!window.turnstile||typeof window.turnstile.render!=='function'){
+  if(!waitStart)waitStart=Date.now();
+  if(Date.now()-waitStart<12000){status('captchaLoading');clearTimeout(captchaTimer);captchaTimer=setTimeout(renderCaptcha,300);}
+  else{stopWait();status('captchaError');}
+  return;
+ }
+ stopWait();
+ try{
+  widget=window.turnstile.render('#turnstile',{sitekey:SITEKEY,action:'mmh_n10a769_login',theme:'dark',
+   callback:t=>{token=typeof t==='string'?t:'';updateLogin();},
+   'expired-callback':()=>{token='';updateLogin();},
+   'error-callback':()=>{token='';updateLogin();status('captchaError');return true;}
+  });
+ }catch{widget=null;status('captchaError');}
+}
+async function post(data){
+ const ac=new AbortController(),timer=setTimeout(()=>ac.abort(),15000);
+ try{
+  const response=await fetch(EDGE,{method:'POST',headers:{'Content-Type':'application/json'},
+   credentials:'omit',cache:'no-store',redirect:'error',referrerPolicy:'no-referrer',
+   body:JSON.stringify(data),signal:ac.signal});
+  const raw=await response.text();if(raw.length>6000)throw Error('large_response');
+  const json=JSON.parse(raw);if(!json||typeof json!=='object'||Array.isArray(json))throw Error('bad_response');
+  return {response,json};
+ }finally{clearTimeout(timer);}
+}
+async function refresh(){
+ if(location.origin!==ORIGIN||location.protocol!=='https:'){setEnabled(false);status('offline');return;}
+ busy=true;setEnabled(false);$('refresh').disabled=true;status('checking');
+ try{
+  const {json}=await post({action:'preflight'});
+  if(json.code!=='preflight_ok'||json.qa_only!==true||json.production!==false)throw Error('invalid_staging');
+  setEnabled(json.enabled===true&&json.setup_complete===true);
+  status(enabled?'ready':'closed');if(enabled)renderCaptcha();
+ }catch{setEnabled(false);status('offline');}
+ finally{busy=false;$('refresh').disabled=false;updateLogin();}
+}
+function clearSessionUI(){
+ clearQr();$('pwd').value='';$('totp').value='';owner=null;factorId='';mfaVerified=false;
+ setVisible('loginPanel',true);setVisible('mfaPanel',false);setVisible('enroll',false);setVisible('verifyBox',false);setVisible('result',false);
+ $('signedAs').textContent='';$('factorStatus').textContent='';
+ $('owner').disabled=false;updateLogin();
+}
+async function verifiedOwner(){
+ if(!client||!owner)throw Error('owner_not_set');
+ const {data,error}=await client.auth.getUser();const u=data?.user;
+ if(error||!u?.id||u.is_anonymous||u.app_metadata?.mmhvault_auth_kind!=='username_only'||
+    u.app_metadata?.mmhvault_username!==owner||!ALLOWED.includes(owner))throw Error('owner_mismatch');
+ return u;
+}
+async function ownerAal2(){
+ await verifiedOwner();
+ const {data,error}=await client.auth.mfa.getAuthenticatorAssuranceLevel();
+ if(error||data?.currentLevel!=='aal2')throw Error('aal2_missing');
+ const fs=await client.auth.mfa.listFactors();
+ if(fs.error||!(fs.data?.totp||[]).some(x=>x.id===factorId&&x.status==='verified'))throw Error('verified_factor_missing');
+ return true;
+}
+async function factorState(){
+ await verifiedOwner();
+ const fs=await client.auth.mfa.listFactors();if(fs.error)throw Error('factor_unavailable');
+ const verified=(fs.data?.totp||[]).find(x=>x.status==='verified');
+ factorId=verified?.id||'';
+ setVisible('enroll',!factorId);
+ setVisible('verifyBox',!!factorId);
+ $('factorStatus').textContent=tr(factorId?'already':'enrollReady');
+}
+async function act(task){
+ if(busy)return;busy=true;$('signIn').disabled=true;$('enroll').disabled=true;$('verify').disabled=true;
+ try{await task();}catch{
+  if(owner&&!mfaVerified){$('factorStatus').textContent=tr('codeFail');}
+  else status('loginFail');
+ }finally{busy=false;$('enroll').disabled=false;$('verify').disabled=false;updateLogin();}
+}
+async function login(){
+ if(!canLogin()){status(token?'passwordNeeded':'captchaNeeded');return;}
+ const username=$('owner').value, password=$('pwd').value,captcha_token=token;
+ clearChallenge();$('pwd').value='';
+ await act(async()=>{
+  status('working');
+  const {response,json}=await post({action:'login',username,password,captcha_token});
+  if(!response.ok||json.code!=='login_success'||typeof json.access_token!=='string'||typeof json.refresh_token!=='string')
+   throw Error('login_denied');
+  await client.auth.signOut({scope:'local'}).catch(()=>{});
+  const {data,error}=await client.auth.setSession({access_token:json.access_token,refresh_token:json.refresh_token});
+  if(error||!data?.user?.id)throw Error('session_failed');
+  owner=username;await verifiedOwner();
+  setVisible('loginPanel',false);setVisible('mfaPanel',true);
+  $('signedAs').textContent=tr('signed')+' '+(username===ALLOWED[0]?'A':'B');
+  status('loginOK');
+  await factorState();
+ });
+}
+async function enroll(){
+ await act(async()=>{
+  await verifiedOwner();
+  if(factorId)throw Error('already_verified');
+  const {data,error}=await client.auth.mfa.enroll({factorType:'totp',friendlyName:'MMHVAULT N10 Staging MFA'});
+  if(error||!data?.id||data?.type!=='totp')throw Error('enroll_failed');
+  const qr=data.totp?.qr_code;
+  if(typeof qr!=='string'||qr.length>400000||!/^data:image\/(?:svg\+xml|png);/i.test(qr)){
+   status('qrInvalid');return;
+  }
+  factorId=data.id;
+  $('qr').src=qr;
+  $('qrModal').hidden=false;
+  $('factorStatus').textContent=tr('enrolled');
+  setVisible('enroll',false);setVisible('verifyBox',true);
+  clearTimeout(qrTimer);
+  qrTimer=setTimeout(()=>{clearQr();status('secretExpired');},120000);
+  $('qrDone').focus();
+ });
+}
+async function verify(){
+ const code=$('totp').value.trim();$('totp').value='';
+ if(!/^\d{6}$/.test(code)||!factorId){status('enterCode');return;}
+ await act(async()=>{
+  await verifiedOwner();status('codeChecking');
+  const {data:challenge,error:ce}=await client.auth.mfa.challenge({factorId});
+  if(ce||!challenge?.id)throw Error('challenge_failed');
+  const {error:ve}=await client.auth.mfa.verify({factorId,challengeId:challenge.id,code});
+  if(ve)throw Error('verify_failed');
+  await ownerAal2();
+  mfaVerified=true;clearQr();setVisible('verifyBox',false);setVisible('enroll',false);
+  $('factorStatus').textContent=tr('passed');$('result').textContent=tr('passed');setVisible('result',true);
+  $('dot').classList.add('ready');status('passed');
+ });
+}
+async function logout(){
+ if(client){try{await client.auth.signOut({scope:'local'});}catch{}}
+ clearSessionUI();clearChallenge();setEnabled(false);status('signedOut');
+}
+$('pwd').addEventListener('input',updateLogin);
+$('owner').addEventListener('change',()=>{clearChallenge();updateLogin();});
+$('refresh').addEventListener('click',refresh);
+$('signIn').addEventListener('click',login);
+$('enroll').addEventListener('click',enroll);
+$('verify').addEventListener('click',verify);
+$('logout').addEventListener('click',logout);
+$('qrDone').addEventListener('click',clearQr);
+$('closeQr').addEventListener('click',clearQr);
+document.querySelectorAll('[data-lang]').forEach(x=>x.addEventListener('click',()=>{lang=x.dataset.lang;renderLanguage();if(owner&&!mfaVerified)$('factorStatus').textContent=tr(factorId?'already':'enrollReady');}));
+document.addEventListener('visibilitychange',()=>{if(document.hidden)clearQr();});
+window.addEventListener('pagehide',()=>{clearQr();$('pwd').value='';$('totp').value='';if(client)void client.auth.signOut({scope:'local'}).catch(()=>{});});
+if(location.origin===ORIGIN&&window.supabase?.createClient){
+ client=window.supabase.createClient(BASE,KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false,storageKey:'mmh-n10-mfa-qa-volatile'}});
+ renderLanguage();setEnabled(false);refresh();
+}else{renderLanguage();setEnabled(false);status('offline');}
+})();
