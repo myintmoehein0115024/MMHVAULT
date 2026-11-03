@@ -13,6 +13,7 @@ const fail=reason=>{throw new Error(reason);};
 export function createHierarchyController(host){
   if(!host||typeof host.currentOwner!=='function'||
     typeof host.currentConfig!=='function'||
+    typeof host.configOwner!=='function'||
     typeof host.history!=='function'||
     typeof host.persist!=='function'||
     typeof host.newId!=='function')
@@ -20,7 +21,7 @@ export function createHierarchyController(host){
   const identity=()=>{
     const owner=String(host.currentOwner()||'');
     const config=host.currentConfig();
-    if(!owner||!config||String(config.ownerId||'')!==owner)
+    if(!owner||!config||String(host.configOwner()||'')!==owner)
       fail('Account configuration is not owned by this session');
     return {owner,config};
   };
