@@ -198,6 +198,45 @@ const cases=[
    assert.match(src,/event==='SIGNED_OUT'\|\|\(event==='SIGNED_IN'&&owner&&session\?\.user\?\.id!==owner\)/);
    assert.match(src,/hideKey\(\);clearMfa\(\);resetSensitiveState\(\);sections\.forEach\(collapse\);\s*owner=''/);
  }],
+ ['Auth changes synchronously clear revealed recovery words (runtime simulation)',()=>{
+   const prefix='client().auth.onAuthStateChange((event,session)=>{';
+   const from=src.indexOf(prefix);
+   const until=src.indexOf('\n });\n setTimeout(refresh,400);',from);
+   assert.ok(from>0&&until>from,'missing installed Auth state change callback');
+   const body=src.slice(from+prefix.length,until);
+   function simulate(event,visible=true){
+     const counters={hide:0,collapse:0,clearMfa:0,reset:0,scheduled:0};
+     const recovery={classList:{contains:key=>key==='mmh-a785-open'&&visible}};
+     const ctx={
+       owner:'owner-A',
+       hideKey(){counters.hide++},
+       clearMfa(){counters.clearMfa++},
+       resetSensitiveState(){counters.reset++},
+       sections:[recovery],
+       collapse(el){assert.equal(el,recovery);counters.collapse++},
+       $:key=>key==='mmhA783Recovery'?recovery:null,
+       setTimeout(){counters.scheduled++;return 1},
+       refresh(){},
+       status(){},
+     };
+     const handle=runInNewContext('(event,session)=>{'+body+'\n}',ctx);
+     handle(event,{user:{id:'owner-A'}});
+     return counters;
+   }
+   for(const event of ['SIGNED_IN','TOKEN_REFRESHED','USER_UPDATED','PASSWORD_RECOVERY']){
+     const c=simulate(event);
+     assert.ok(c.hide>=1,event+' must synchronously hide');
+     assert.equal(c.collapse,1,event+' must close the live Recovery dialog');
+     assert.equal(c.reset,0,event+' must not reset an unchanged account');
+   }
+   assert.equal(simulate('TOKEN_REFRESHED',false).collapse,0);
+   assert.equal(simulate('TOKEN_REFRESHED',false).hide,1);
+   assert.equal(simulate('INITIAL_SESSION').hide,0);
+   const out=simulate('SIGNED_OUT');
+   assert.equal(out.reset,1);
+   assert.ok(out.hide>=1);
+   assert.ok(out.collapse>=1);
+ }],
  ['backgrounding and navigation hide the phrase',()=>{
    assert.match(src,/document\.addEventListener\('visibilitychange',[\s\S]*?if\(document\.hidden\)\{hideKey\(\)/);
    assert.match(src,/window\.addEventListener\('pagehide',[\s\S]*?hideKey\(\)/);
