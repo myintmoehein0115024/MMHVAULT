@@ -25,7 +25,7 @@
   const hasCategory=(group,name)=>!!state()?.category.includes(group+'|'+name);
   const mode=()=>{
     const s=state();if(!s)return 'legacy';
-    const fields=['type','transaction','category'].filter(k=>s[k].length);
+    const fields=['type','transaction','category'].filter(k=>k==='category'?categories().length:s[k].length);
     return fields.length>=2?fields.join('-'):'setup';
   };
   const validKind=v=>KIND.some(k=>k.id===v);
@@ -623,8 +623,8 @@
     if(!TYPE.includes(t.value)||!g.value||!c.value)return false;
     if(s.type.length&&!s.type.includes(t.value))return false;
     if(s.transaction.length&&!s.transaction.includes(t.value+'|'+g.value))return false;
-    if(s.category.length&&!categories().some(x=>x.type===t.value&&x.coreGroup===g.value&&x.name===c.value))return false;
-    if(!s.category.length&&(!neutral(t.value,g.value)||c.value!==neutral(t.value,g.value)))return false;
+    if(categories().length&&!categories().some(x=>x.type===t.value&&x.coreGroup===g.value&&x.name===c.value))return false;
+    if(!categories().length&&(!neutral(t.value,g.value)||c.value!==neutral(t.value,g.value)))return false;
     return true;
   }
   function eventHandler(event){
