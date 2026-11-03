@@ -5,6 +5,8 @@ const root=new URL('./',import.meta.url);
 const html=readFileSync(new URL('./preview/signup.html',root),'utf8');
 const css=readFileSync(new URL('./signup.css',root),'utf8');
 const js=readFileSync(new URL('./signup.js',root),'utf8');
+const headers=readFileSync(new URL('./_headers',root),'utf8');
+
 test('real Staging preview is separate from existing mock and production',()=>{
  assert.match(html,/N10 Username Staging QA/);
  assert.match(html,/name="robots" content="noindex,nofollow,noarchive"/);
@@ -48,4 +50,15 @@ test('safe-area and responsive layout, private modal, no default alert',()=>{
  assert.match(css,/\.modal\[hidden\]\{display:none\}/);
  assert.match(html,/role="dialog" aria-modal="true"/);
  assert.doesNotMatch(js,/\balert\(|\bconfirm\(|\bprompt\(/);
+});
+
+test('Staging-only Pages CSP permits Turnstile script AND iframe without relaxing default deny',()=>{
+ const csp=headers.split('\\n').find(x=>x.includes('Content-Security-Policy:'))||'';
+ assert.match(csp,/default-src 'none'/);
+ assert.match(csp,/script-src 'self' https:\/\/cdn\.jsdelivr\.net https:\/\/challenges\.cloudflare\.com/);
+ assert.match(csp,/frame-src https:\/\/challenges\.cloudflare\.com/);
+ assert.match(csp,/connect-src https:\/\/ldivswlhtgmznzwhzsoi\.supabase\.co https:\/\/challenges\.cloudflare\.com/);
+ assert.match(csp,/frame-ancestors 'none'/);
+ assert.match(csp,/form-action 'none'/);
+ assert.doesNotMatch(csp,/unsafe-inline|unsafe-eval|\*\s*;/);
 });
