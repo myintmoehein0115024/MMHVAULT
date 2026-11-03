@@ -97,6 +97,14 @@ export function choices(graph,ownerId,field,parentId){
   }
   throw new Error('Unknown Manage field');
 }
+export function canAddItem(graph,ownerId,field){
+  assertOwner(graph,ownerId);
+  if(field==='type')return true;
+  const activeTypes=new Set(graph.types.filter(x=>!x.archived).map(x=>x.id));
+  if(field==='transaction')return activeTypes.size>0;
+  if(field==='category')return graph.transactions.some(x=>!x.archived&&activeTypes.has(x.parentId));
+  throw new Error('Unknown Manage field');
+}
 export function pathFor(graph,ownerId,typeId,transactionId,categoryId){
   assertOwner(graph,ownerId);
   const type=requireNode(graph,'types',typeId);
