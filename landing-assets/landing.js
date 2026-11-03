@@ -716,11 +716,12 @@
       button.classList.toggle('is-selected',selected);
     });
     document.querySelectorAll('[data-business-amount]').forEach(element => {
-      element.textContent = conceptData[currentBusinessView][element.dataset.businessAmount] || '';
+      const value = conceptData[currentBusinessView][element.dataset.businessAmount] || '';
+      if (element.textContent !== value) element.textContent = value;
     });
     document.querySelectorAll('[data-business-share]').forEach(element=>{
       const value=conceptData[currentBusinessView].shares[element.dataset.businessShare];
-      if(value) element.textContent=value;
+      if(value && element.textContent !== value) element.textContent=value;
     });
     const keyMap = {
       eyebrow: prefix + 'ContextEyebrow',
@@ -745,7 +746,8 @@
     document.querySelectorAll('[data-business-text]').forEach(element => {
       const key = keyMap[element.dataset.businessText];
       element.setAttribute('data-i18n',key);
-      element.textContent = dictionary[key] || '';
+      const value = dictionary[key] || '';
+      if (element.textContent !== value) element.textContent = value;
     });
     const panel = document.querySelector('.business-stage');
     if(panel) panel.dataset.currentView = currentBusinessView;
@@ -777,8 +779,11 @@
       const key = node.getAttribute('data-i18n');
       const value = dict[key];
       if (typeof value !== 'string') return;
-      if (htmlKeys.has(key)) node.innerHTML = value; // only hardcoded local, trusted translations
-      else node.textContent = value;
+      // L1.48: preserve the existing node when its localized value is already correct.
+      // Avoid unnecessary text/style invalidation on first paint and language changes.
+      if (htmlKeys.has(key)) {
+        if (node.innerHTML !== value) node.innerHTML = value; // trusted local translations only
+      } else if (node.textContent !== value) node.textContent = value;
     });
     languageButtons.forEach(button => {
       button.setAttribute('aria-pressed', String(button.dataset.lang === currentLang));
