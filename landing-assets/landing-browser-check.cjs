@@ -52,6 +52,130 @@ async function load(page,route,failures){
 (async()=>{
  const browser=await chromium.launch({channel:'chrome',headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
  try{
+   // L1.50 active language selection no-op browser parity. Compare the
+   // exact L1.49 baseline and new handler across mobile/desktop + EN/ZH/MY.
+   // Observe only <main> to exclude the intentional language-menu close.
+   {
+     const proposed=fs.readFileSync('landing-assets/landing.js','utf8');
+     const oldHandler="  languageButtons.forEach(button => button.addEventListener('click', () => {\n    applyLanguage(button.dataset.lang);\n    closeLanguage();\n    localeTrigger.focus({preventScroll:true});\n  }));";
+     const newHandler="  languageButtons.forEach(button => button.addEventListener('click', () => {\n    // L1.50: reselecting the active language only closes the selector;\n    // preserve keyboard focus without retranslating the entire page.\n    if (button.dataset.lang !== currentLang) applyLanguage(button.dataset.lang);\n    closeLanguage();\n    localeTrigger.focus({preventScroll:true});\n  }));";
+     assert.equal(proposed.split(newHandler).length,2,'L1.50 guarded handler unique');
+     const baseline=proposed.replace(newHandler,oldHandler);
+     const records=[];
+     for(const width of [393,1440])for(const locale of ['en','zh','my']){
+       const results={};
+       for(const [version,script] of [['baseline',baseline],['optimized',proposed]]){
+         const ctx=await browser.newContext({
+           viewport:{width,height:852},reducedMotion:'reduce',serviceWorkers:'block'});
+         const page=await ctx.newPage(),errors=[];
+         page.on('pageerror',e=>errors.push(e.message));
+         await page.addInitScript(lang=>{
+           try{localStorage.setItem('mmhvault.landing.language',lang)}catch(_){}
+         },locale);
+         await page.route('**/landing-assets/landing.js*',route=>route.fulfill({
+           status:200,contentType:'application/javascript',body:script}));
+         const response=await page.goto(origin+'/',{waitUntil:'load',timeout:30000});
+         const result=await page.evaluate(startLang=>{
+           const trigger=document.getElementById('locale-trigger');
+           const menu=document.getElementById('locale-menu');
+           const main=document.querySelector('main');
+           const buttons=[...document.querySelectorAll('[data-lang]')];
+           const hero=[...document.querySelectorAll('[data-hero-fixed]')].map(x=>x.textContent.trim());
+           const snapshot=()=>({
+             lang:document.documentElement.lang,
+             stored:localStorage.getItem('mmhvault.landing.language'),
+             title:document.title,
+             meta:document.querySelector('meta[name="description"]')?.content,
+             flag:document.querySelector('.locale-active-flag')?.textContent,
+             label:document.querySelector('.locale-active-name')?.textContent,
+             pressed:buttons.filter(b=>b.getAttribute('aria-pressed')==='true')
+               .map(b=>b.dataset.lang),
+             header:[...document.querySelectorAll('#primary-nav [data-i18n]')]
+               .map(x=>[x.dataset.i18n,x.textContent]),
+             main:[...main.querySelectorAll('[data-i18n]')]
+               .map(x=>[x.dataset.i18n,x.textContent]),
+             view:document.querySelector('.business-stage')?.dataset.currentView,
+             hero:[...document.querySelectorAll('[data-hero-fixed]')]
+               .map(x=>x.textContent.trim()),
+             menuClosed:menu.hidden
+           });
+           const observer=new MutationObserver(()=>{});
+           observer.observe(main,{
+             attributes:true,childList:true,characterData:true,subtree:true});
+           const choose=lang=>{
+             const target=buttons.find(b=>b.dataset.lang===lang);
+             trigger.click();
+             const menuOpened=!menu.hidden;
+             observer.takeRecords();
+             target.click();
+             const mutations=observer.takeRecords().length;
+             return {mutations,menuOpened,menuClosed:menu.hidden,
+               focusRestored:document.activeElement===trigger,
+               state:snapshot()};
+           };
+           const initial=snapshot();
+           const repeatInitial=choose(startLang);
+           const other=startLang==='en'?'zh':startLang==='zh'?'my':'en';
+           const switchOther=choose(other);
+           const repeatOther=choose(other);
+           const returnInitial=choose(startLang);
+           observer.disconnect();
+           return {hero,initial,repeatInitial,switchOther,repeatOther,returnInitial,
+             headerRight:Math.round(document.querySelector('.site-header')
+               .getBoundingClientRect().right)};
+         },locale);
+         const originalLang=locale==='zh'?'zh-CN':locale;
+         const otherLang=locale==='en'?'zh-CN':locale==='zh'?'my':'en';
+         ensure(response?.status()===200&&errors.length===0&&
+           result.initial.lang===originalLang&&
+           result.initial.stored===locale&&
+           result.hero.length===3&&
+           result.headerRight<=width+1&&
+           result.repeatInitial.state.lang===originalLang&&
+           result.switchOther.state.lang===otherLang&&
+           result.repeatOther.state.lang===otherLang&&
+           result.returnInitial.state.lang===originalLang&&
+           result.returnInitial.state.stored===locale&&
+           [result.repeatInitial,result.switchOther,result.repeatOther,result.returnInitial]
+             .every(x=>x.menuOpened&&x.menuClosed&&x.focusRestored)&&
+           result.switchOther.mutations>0&&result.returnInitial.mutations>0,
+           'L1.50 '+version+' '+width+'px '+locale+' genuine language transitions, focus and menu');
+         results[version]=result;
+         await ctx.close();
+       }
+       const old=results.baseline,next=results.optimized;
+       for(const key of ['initial','repeatInitial','switchOther','repeatOther','returnInitial']){
+         const a=key==='initial'?old[key]:old[key].state;
+         const b=key==='initial'?next[key]:next[key].state;
+         ensure(JSON.stringify(a)===JSON.stringify(b),
+           'L1.50 '+width+'px '+locale+' unchanged '+key+' translations and Hero');
+       }
+       ensure(next.repeatInitial.mutations===0&&next.repeatOther.mutations===0&&
+         old.repeatInitial.mutations>0&&old.repeatOther.mutations>0&&
+         next.switchOther.mutations===old.switchOther.mutations&&
+         next.returnInitial.mutations===old.returnInitial.mutations&&
+         JSON.stringify(next.initial.hero)===JSON.stringify(next.returnInitial.state.hero),
+         'L1.50 '+width+'px '+locale+' zero repeat-selection main DOM updates '+
+         JSON.stringify({before:[old.repeatInitial.mutations,old.repeatOther.mutations],
+           after:[next.repeatInitial.mutations,next.repeatOther.mutations]}));
+       records.push({width,locale,before:{
+           repeatInitial:old.repeatInitial.mutations,
+           switchOther:old.switchOther.mutations,
+           repeatOther:old.repeatOther.mutations,
+           returnInitial:old.returnInitial.mutations
+         },after:{
+           repeatInitial:next.repeatInitial.mutations,
+           switchOther:next.switchOther.mutations,
+           repeatOther:next.repeatOther.mutations,
+           returnInitial:next.returnInitial.mutations
+         }});
+     }
+     const skipped=records.reduce((n,x)=>n+x.before.repeatInitial+x.before.repeatOther,0);
+     ensure(skipped>0,'L1.50 skipped redundant full-page language mutations '+skipped);
+     console.log('L1.50 repeated-language DOM lab (not field LCP): '+
+       JSON.stringify({skippedMutationRecords:skipped,records}));
+   }
+
    // L1.49 active Business tab no-op browser parity: compare baseline vs
    // optimized interaction behavior in independent Chrome contexts.
    // Repeated clicks should not mutate the Business preview, but actual
@@ -693,12 +817,12 @@ async function load(page,route,failures){
        layout.styles.filter(v=>v==='l146').length===2 &&
        layout.styles.filter(v=>v==='l147').length===1 &&
        layout.styles.filter(v=>v==='l141').length===2 &&
-       layout.scripts.includes('l149') && layout.scripts.includes('l141') &&
+       layout.scripts.includes('l150') && layout.scripts.includes('l141') &&
        loaded.length===8 && loaded.every(r=>r.status===200&&
          r.version===(r.path==='/landing-assets/landing.min.css'?'l145':
            ['/landing-assets/cinematic.min.css','/landing-assets/premium-l131.min.css'].includes(r.path)?'l146':
            r.path==='/landing-assets/header-explore-l147.min.css'?'l147':
-            r.path==='/landing-assets/landing.js'?'l149':'l141')) &&
+            r.path==='/landing-assets/landing.js'?'l150':'l141')) &&
        new Set(loaded.map(r=>r.path)).size===8 && failures.length===0,
        'L1.47 '+width+'px eight CSS/JS requests with consistent cache keys '+JSON.stringify({loaded,failures}));
      ensure(layout.brand.left>=-1&&layout.brand.right<=width+1 &&
