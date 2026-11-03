@@ -50,3 +50,10 @@ Current status: read-only safety checks complete; the **actual end-to-end Recove
 - PR #57 and PR #64 remain Draft and unmerged; N10 Production has **not** been released. Landing, APP V11, finance records, RLS, auth policies, DNS and real-user data were untouched.
 
 **Next:** review the complete remaining Production N10 login/register/recovery-key integration, address outstanding negative security cases, and obtain a separate explicit Production release authorization only after QA.
+
+### 2026-11-03 follow-up: strict AAL2 candidate-only guard
+
+- Offline **candidate source** now requires server-verified TOTP **and** current AAL2 even if a QA account's MFA enrollment changed. Password-only/AAL1 is explicitly rejected. This is a defense against accidental assurance downgrade.
+- Added synthetic owner/issuer/session/expiry, missing-MFA and sensitive-operation ownership guard tests, plus an exact-source-diff check and read-only CI. These tests do not use signed sessions and do **not** prove a live B-to-A attack is rejected.
+- Existing Staging Edge **v11 remains closed and unchanged**; the new candidate has **not** been deployed. To reopen any sensitive QA, obtain a separate scoped authorization and fresh review. Historical A/B recovery words remain immutable.
+- Only N10 isolated candidate/test/CI/readme paths are changed. PR #64 is still Draft. No login.html, app.html, production Auth, RLS, Landing, SEO or finance files touched.
