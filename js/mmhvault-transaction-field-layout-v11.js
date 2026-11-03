@@ -296,6 +296,7 @@
     if(s.type.length&&!s.type.includes(t.value))return false;
     if(s.transaction.length&&!s.transaction.includes(t.value+'|'+g.value))return false;
     if(s.category.length&&!categories().some(x=>x.type===t.value&&x.coreGroup===g.value&&x.name===c.value))return false;
+    if(!s.category.length&&(!neutral(t.value,g.value)||c.value!==neutral(t.value,g.value)))return false;
     return true;
   }
   function eventHandler(event){
