@@ -52,6 +52,104 @@ async function load(page,route,failures){
 (async()=>{
  const browser=await chromium.launch({channel:'chrome',headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
  try{
+   // L1.49 active Business tab no-op browser parity: compare baseline vs
+   // optimized interaction behavior in independent Chrome contexts.
+   // Repeated clicks should not mutate the Business preview, but actual
+   // Personal / Business transitions must produce identical localized UI.
+   {
+     const proposed=fs.readFileSync('landing-assets/landing.js','utf8');
+     const before="  businessTabs.forEach(button => button.addEventListener('click', () => {\n    updateBusinessPreview(button.dataset.businessView);\n  }));";
+     const after="  businessTabs.forEach(button => button.addEventListener('click', () => {\n    // L1.49: selecting an already active concept is a no-op. Avoid\n    // redundant data-current-view mutations and replayed Business animations.\n    // applyLanguage still calls updateBusinessPreview for translated labels.\n    if (button.dataset.businessView !== currentBusinessView)\n      updateBusinessPreview(button.dataset.businessView);\n  }));";
+     assert.equal(proposed.split(after).length,2,'L1.49 exact source replacement');
+     const baseline=proposed.replace(after,before);
+     const records=[];
+     for(const width of [393,1440])for(const locale of ['en','zh','my']){
+       const results={};
+       for(const [kind,script] of [['baseline',baseline],['optimized',proposed]]){
+         const ctx=await browser.newContext({viewport:{width,height:852},
+           reducedMotion:'reduce',serviceWorkers:'block'});
+         const page=await ctx.newPage(),errors=[];
+         page.on('pageerror',error=>errors.push(error.message));
+         await page.addInitScript(lang=>{
+           try{localStorage.setItem('mmhvault.landing.language',lang)}catch(_){}
+         },locale);
+         await page.route('**/landing-assets/landing.js*',route=>route.fulfill({
+           status:200,contentType:'application/javascript',body:script}));
+         const response=await page.goto(origin+'/',{waitUntil:'load',timeout:30000});
+         const result=await page.evaluate(()=>{
+           const stage=document.querySelector('.business-stage');
+           const p=document.querySelector('[data-business-view="personal"]');
+           const b=document.querySelector('[data-business-view="business"]');
+           const snapshot=()=>({
+             view:stage.dataset.currentView,
+             lang:document.documentElement.lang,
+             active:[...document.querySelectorAll('[data-business-view]')]
+               .filter(x=>x.getAttribute('aria-pressed')==='true')
+               .map(x=>x.dataset.businessView),
+             amounts:[...stage.querySelectorAll('[data-business-amount]')]
+               .map(x=>[x.dataset.businessAmount,x.textContent]),
+             text:[...stage.querySelectorAll('[data-business-text]')]
+               .map(x=>[x.dataset.businessText,x.dataset.i18n,x.textContent]),
+             hero:[...document.querySelectorAll('[data-hero-fixed]')]
+               .map(x=>x.textContent.trim()),
+             headerRight:Math.round(document.querySelector('.site-header')
+               .getBoundingClientRect().right)
+           });
+           const observer=new MutationObserver(()=>{});
+           observer.observe(stage,{subtree:true,attributes:true,childList:true,characterData:true});
+           observer.observe(p,{attributes:true});
+           observer.observe(b,{attributes:true});
+           const measure=button=>{
+             observer.takeRecords();
+             button.click();
+             return observer.takeRecords().length;
+           };
+           const initial=snapshot();
+           const repeatPersonal=measure(p),personal=snapshot();
+           const switchBusiness=measure(b),business=snapshot();
+           const repeatBusiness=measure(b),businessRepeat=snapshot();
+           const switchPersonal=measure(p),returned=snapshot();
+           observer.disconnect();
+           return {initial,personal,business,businessRepeat,returned,
+             mutations:{repeatPersonal,switchBusiness,repeatBusiness,switchPersonal}};
+         });
+         ensure(response?.status()===200 && errors.length===0 &&
+           result.initial.lang===(locale==='zh'?'zh-CN':locale) &&
+           result.initial.hero.length===3 &&
+           result.initial.view==='personal' &&
+           result.personal.view==='personal' &&
+           result.business.view==='business' &&
+           result.businessRepeat.view==='business' &&
+           result.returned.view==='personal' &&
+           result.business.amounts.some(x=>x[0]==='balance'&&x[1]==='$366,250.00') &&
+           result.returned.amounts.some(x=>x[0]==='balance'&&x[1]==='$24,680.50') &&
+           result.initial.headerRight<=width+1 &&
+           result.mutations.switchBusiness>0 && result.mutations.switchPersonal>0,
+           'L1.49 '+kind+' '+width+'px '+locale+' meaningful Business toggles');
+         results[kind]=result;
+         await ctx.close();
+       }
+       const previous=results.baseline,next=results.optimized;
+       for(const state of ['initial','personal','business','businessRepeat','returned']){
+         ensure(JSON.stringify(previous[state])===JSON.stringify(next[state]),
+           'L1.49 '+width+'px '+locale+' unchanged '+state+' localized UI');
+       }
+       ensure(JSON.stringify(next.personal)===JSON.stringify(next.initial) &&
+         JSON.stringify(next.businessRepeat)===JSON.stringify(next.business) &&
+         next.mutations.repeatPersonal===0 &&
+         next.mutations.repeatBusiness===0 &&
+         previous.mutations.repeatPersonal>0 && previous.mutations.repeatBusiness>0,
+         'L1.49 '+width+'px '+locale+' zero DOM mutations on repeated selected tabs '+
+         JSON.stringify({before:previous.mutations,after:next.mutations}));
+       records.push({width,locale,before:previous.mutations,after:next.mutations});
+     }
+     const skipped=records.reduce((sum,x)=>sum+
+       x.before.repeatPersonal+x.before.repeatBusiness,0);
+     ensure(skipped>0,'L1.49 demonstrably skips redundant Business updates '+skipped);
+     console.log('L1.49 Business click lab (not a field speed claim): '+
+       JSON.stringify({skippedMutationRecords:skipped,records}));
+   }
+
    // L1.48 measured initial-language DOM write parity: run the previous
    // released script and the proposed script on the SAME current HTML,
    // from independent cold-cache browser contexts at two widths/three locales.
@@ -595,12 +693,12 @@ async function load(page,route,failures){
        layout.styles.filter(v=>v==='l146').length===2 &&
        layout.styles.filter(v=>v==='l147').length===1 &&
        layout.styles.filter(v=>v==='l141').length===2 &&
-       layout.scripts.includes('l148') && layout.scripts.includes('l141') &&
+       layout.scripts.includes('l149') && layout.scripts.includes('l141') &&
        loaded.length===8 && loaded.every(r=>r.status===200&&
          r.version===(r.path==='/landing-assets/landing.min.css'?'l145':
            ['/landing-assets/cinematic.min.css','/landing-assets/premium-l131.min.css'].includes(r.path)?'l146':
            r.path==='/landing-assets/header-explore-l147.min.css'?'l147':
-            r.path==='/landing-assets/landing.js'?'l148':'l141')) &&
+            r.path==='/landing-assets/landing.js'?'l149':'l141')) &&
        new Set(loaded.map(r=>r.path)).size===8 && failures.length===0,
        'L1.47 '+width+'px eight CSS/JS requests with consistent cache keys '+JSON.stringify({loaded,failures}));
      ensure(layout.brand.left>=-1&&layout.brand.right<=width+1 &&
