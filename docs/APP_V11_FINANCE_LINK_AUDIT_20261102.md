@@ -50,6 +50,9 @@ production auth, financial records, or production deployment.
   stored currency is flagged for review without touching any record.
 - Archived non-core currency accounts referenced by historical records also
   require a verified FX reference; inactivity does not mean a rate is safe.
+- Owner-scoped checks now also cover **Crypto Wallet Movements**
+  (`from_wallet`/`to_wallet`) and **Life Planner Fund Allocations**
+  (`source_account_name`), mirroring the APP V11 account identity guard.
 - Aggregated read-only SQL preflight with no account names or user IDs.
 - Isolated GitHub CI for APP V11 audit tests.
 
