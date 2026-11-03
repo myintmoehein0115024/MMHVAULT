@@ -160,7 +160,7 @@ test('new saved transactions link to stable choices while original ledger fields
   assert.equal(saved.canonical.type,'Income');
   assert.equal(saved.canonical.category,'Salary');
   assert.equal(entryUsage(tree,A,'transaction',income2.id,[{id:991,type:'Income',category:'Salary'}]),'used');
-  assert.throws(()=>recordLink(tree,A,'991',income.id,income2.id,salary.id),/already recorded/);
+  assert.deepEqual(recordLink(tree,A,'991',income.id,income2.id,salary.id),saved); // identical retry is safe
 });
 test('confirmed link immediately locks all three Manage levels before history refresh',()=>{
   const {tree,income,income2,salary}=sample();
