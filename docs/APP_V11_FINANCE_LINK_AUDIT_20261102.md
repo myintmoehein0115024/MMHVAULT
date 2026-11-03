@@ -15,6 +15,11 @@ production auth, financial records, or production deployment.
   account name. Do not infer its currency or recreate it automatically.
 - No duplicate account names (case-insensitive) found in cloud config.
 - No Baht/Bath account stored with a currency other than THB.
+- **2026-11-03 follow-up (read-only production recount):** 221 populated
+  account references, 220 same-owner direct-name matches, **1 unmatched**,
+  1 distinct unmatched owner/name pair, and **0 duplicate account-name groups**.
+  This is aggregate-only evidence; no owner IDs, account names, transaction
+  amounts or row-level data were returned or modified.
 - The cloud config currently has no AMD account; that does not imply the
   APP's AMD support is broken or that a new account failed on a particular
   local device. Existing client FX reference tests already cover AMD.
