@@ -21,10 +21,19 @@ const l133BurmeseCssSuffix="\n/* L1.33 — Myanmar feature previews: readable na
 const l134ResponsiveCssSuffix="\n/* L1.34 — Keep the six public feature choices stable while EN / ZH / MY\n   translations change. Only Landing's mobile feature picker is affected.\n   Preserve native zoom, scrolling, the fixed Hero, and all existing colors. */\n@media (max-width: 620px) {\n  html[lang] body.l131 .features-explorer.app-showcase .product-tab {\n    min-width: 0;\n    min-height: 94px;\n    padding-block: 10px;\n  }\n  html[lang] body.l131 .features-explorer.app-showcase .product-tab-copy {\n    min-width: 0;\n  }\n  html[lang] body.l131 .features-explorer.app-showcase .product-tab-copy strong,\n  html[lang] body.l131 .features-explorer.app-showcase .product-tab-copy small {\n    white-space: normal;\n    overflow-wrap: anywhere;\n  }\n  html[lang] body.l131 .features-explorer.app-showcase .product-tab-soon {\n    white-space: normal;\n    overflow-wrap: anywhere;\n  }\n}\n@media (max-width: 360px) {\n  html[lang] body.l131 .features-explorer.app-showcase .product-tab {\n    min-height: 108px;\n  }\n}\n/* Mobile tapping should not shrink the grid card under the user's finger. */\n@media (max-width: 620px) and (prefers-reduced-motion: no-preference) {\n  html.mm-motion-active body.l131 .features-explorer.app-showcase .product-tab:active {\n    transform: none;\n  }\n}\n";
 const l135HeaderCssSuffix="\n/* L1.35: Public mobile header shows the selected language. */\n@media(max-width: 700px){\n body.mmh-nav-unified .site-header .locale-trigger .locale-globe{display:none!important}\n body.mmh-nav-unified .site-header .locale-trigger .locale-active-flag{\n  display: inline-flex !important;align-items:center;justify-content:center;\n  flex:0 0 24px;width:24px;font-size:19px;line-height:1;white-space:nowrap\n }\n}\n";
 const l136TouchTargetReplacements=[["flex:0 0 42px;width:42px;min-width:42px;min-height:42px;height:42px","flex:0 0 44px;width:44px;min-width:44px;min-height:44px;height:44px"],["width:42px;min-width:42px;min-height:42px;height:42px","width:44px;min-width:44px;min-height:44px;height:44px"],["min-width:39px;width:39px;min-height:39px;height:39px;flex-basis:39px","min-width:44px;width:44px;min-height:44px;height:44px;flex-basis:44px"]];
+const l138MotionReplacements=[["-webkit-backdrop-filter:blur(32px);backdrop-filter:blur(32px);","-webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px);"],["from{opacity:0;transform:translate3d(0,-7px,0)}","from{opacity:.28;transform:translate3d(0,-4px,0)}"],["animation:mmh-public-panel-in .19s cubic-bezier(.2,.65,.3,1) both","animation:mmh-public-panel-in .22s cubic-bezier(.2,.65,.3,1) both"],["animation:mmh-public-panel-in .17s cubic-bezier(.2,.65,.3,1) both","animation:mmh-public-panel-in .22s cubic-bezier(.2,.65,.3,1) both"]];
+const l138MotionOnlyEdited=()=>{
+  let expected=source('landing-assets/shared-header-l116.css');
+  for(const [before,after] of l138MotionReplacements){
+    if(!expected.includes(before) || expected.indexOf(before)!==expected.lastIndexOf(before))return false;
+    expected=expected.replace(before,after);
+  }
+  return read('landing-assets/shared-header-l116.css')===expected;
+};
 const l136HeaderTargetsOnlyEdited=()=>{
-  // L1.36 is merged to main. Preserve its 44px compact targets bytewise.
+  // L1.36 is merged: preserve its 44px compact targets plus L1.38 scoped motion.
   const expected=source('landing-assets/shared-header-l116.css');
-  return read('landing-assets/shared-header-l116.css')===expected &&
+  return l138MotionOnlyEdited() &&
     expected.includes('flex:0 0 44px;width:44px;min-width:44px;min-height:44px;height:44px') &&
     expected.includes('min-width:44px;width:44px;min-height:44px;height:44px;flex-basis:44px');
 };
@@ -35,19 +44,14 @@ const l135HeaderCssOnlyEdited=()=>
 const l137LandingStorageHook="\n  // L1.37: keep public pages already open in other tabs on one language.\n  // A storage event originates only in another tab; identical writes do not\n  // re-trigger events. No navigation, scroll, auth or finance state changes.\n  window.addEventListener('storage', event => {\n    const next = event.newValue;\n    if (event.key !== storageKey || (next !== 'en' && next !== 'zh' && next !== 'my') || next === currentLang) return;\n    applyLanguage(next);\n    closeLanguage();\n  });\n";
 const l137PublicStorageHook="\n  // L1.37: synchronize the same public language preference across open tabs.\n  // Keep document routes, menu focus, credentials and App state untouched.\n  window.addEventListener('storage', event => {\n    const next = event.newValue;\n    if (event.key !== storageKey || !locales.has(next) || next === locale) return;\n    changeLanguage(next);\n    closeLanguage();\n  });\n";
 const l137LandingJSOnlyEdited=()=>{
-  const original=source('landing-assets/landing.js');
-  const end='  applyLanguage(saved);\n})();';
-  return original.includes(end) &&
-    read('landing-assets/landing.js')===
-      original.replace(end,'  applyLanguage(saved);\n'+l137LandingStorageHook+'})();');
+  const expected=source('landing-assets/landing.js');
+  return read('landing-assets/landing.js')===expected &&
+    expected.includes(l137LandingStorageHook);
 };
 const l137PublicJSOnlyEdited=()=>{
-  const original=source('landing-assets/public-pages.js');
-  const marker='  changeLanguage(locale);\n';
-  return original.includes(marker) &&
-    original.indexOf(marker)===original.lastIndexOf(marker) &&
-    read('landing-assets/public-pages.js')===
-      original.replace(marker,marker+l137PublicStorageHook);
+  const expected=source('landing-assets/public-pages.js');
+  return read('landing-assets/public-pages.js')===expected &&
+    expected.includes(l137PublicStorageHook);
 };
 const l133BurmeseLayoutOnlyEdited=()=>
   read('landing-assets/landing.css')===source('landing-assets/landing.css') &&
@@ -582,11 +586,10 @@ check('L1.27 public tab title matches SEO without language focus scroll',
  l133PublicPagesUnchanged() &&
  current===prev && current.includes(newHeroPreload) &&
  !current.includes(oldHeroPreload));
-check('L1.37 exact four-file public language synchronization scope',
- actual.length===4 &&
+check('L1.38 exact three-file public header motion scope',
+ actual.length===3 &&
  actual.every(path=>[
-  'landing-assets/landing.js',
-  'landing-assets/public-pages.js',
+  'landing-assets/shared-header-l116.css',
   'landing-assets/landing-release-check.cjs',
   'landing-assets/landing-browser-check.cjs'
  ].includes(path)) &&
@@ -639,6 +642,15 @@ check('L1.37 public languages synchronize across tabs without auth or navigation
   !l137LandingStorageHook.includes('location.') &&
   !l137PublicStorageHook.includes('location.') &&
   current===prev);
+check('L1.38 calmer paint-only public panels preserve accessibility and asset budget',
+ l138MotionOnlyEdited() &&
+ l138MotionReplacements.length===4 &&
+ read('landing-assets/shared-header-l116.css').length<=20000 &&
+ read('landing-assets/shared-header-l116.css').includes('prefers-reduced-motion:no-preference') &&
+ read('landing-assets/shared-header-l116.css').includes('prefers-reduced-motion:reduce') &&
+ read('landing-assets/landing.js')===source('landing-assets/landing.js') &&
+ read('landing-assets/public-pages.js')===source('landing-assets/public-pages.js') &&
+ current===prev);
 check('L1.28 shared header motion remains unchanged and accessible',
  l135HeaderCssOnlyEdited() &&
  !read('landing-assets/shared-header-l116.css').includes('body.app') &&
