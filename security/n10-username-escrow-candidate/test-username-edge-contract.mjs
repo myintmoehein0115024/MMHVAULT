@@ -29,7 +29,7 @@ function fake(overrides={}){
     call('createUser');
     if(overrides.createError)return {error:Error('synthetic ambiguous'),data:null};
     state.user={id:uid,email,app_metadata,password};
-    return {data:{user:{id:uid}},error:null};
+    return {data:{user:{id:uid,email:overrides.returnOtherEmail?'someone-else@invalid.test':email,app_metadata:overrides.returnWrongAuthKind?{mmhvault_auth_kind:'email'}:app_metadata}},error:null};
    },
    getUserById:async(id)=>({data:{user:state.user?.id===id?state.user:null},error:null}),
    deleteUser:async(id)=>{call('deleteUser');state.deleted=id===uid;return {error:null};},
@@ -138,6 +138,18 @@ test('readback mismatch refuses signup and does not issue a session',async()=>{
 test('ambiguous createUser response never guesses a delete target',async()=>{
  const h=fake({createError:true});const out=await h.enroll(userName,password,ticket,phrases[0]);
  assert.equal(out.code,'auth_unavailable');assert.ok(!h.calls.includes('deleteUser'));
+});
+test('unexpected returned email or account type stops ambiguous creation without deletion',async()=>{
+ for(const bad of [{returnOtherEmail:true},{returnWrongAuthKind:true}]){
+  const h=fake(bad);const out=await h.enroll(userName,password,ticket,phrases[0]);
+  assert.equal(out.code,'auth_unavailable');
+  assert.ok(!h.calls.includes('deleteUser'));
+  assert.ok(!h.calls.includes('verifyPassword'));
+ }
+});
+test('unverified temporary login never releases a signed session',()=>{
+ assert.match(source,/const client=authClient\(\);let grant=false;/);
+ assert.match(source,/if\(!grant\)\{try\{await client\.auth\.signOut\(\{scope:'local'\}\);\}catch\{\}\}/);
 });
 test('post-session failure is quarantined for review, not deleted',async()=>{
  const h=fake({sessionFail:true});const out=await h.enroll(userName,password,ticket,phrases[0]);
