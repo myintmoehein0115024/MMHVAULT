@@ -200,5 +200,5 @@ test('synthetic form DOM keeps original ledger values when user chooses a combin
   assert.equal(group.value,'Loans');
   assert.equal(category.value,'Debt');
   assert.equal(api.validate(form),true);
-  assert.equal(listeners.submit instanceof Function,true);
+  assert.equal(typeof listeners.submit,'function');
 });
