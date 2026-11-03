@@ -153,13 +153,74 @@ async function api(action,extra={}){
  const d=await r.json().catch(()=>({code:'unavailable'}));
  return {ok:r.ok,body:d};
 }
+// This is a defense-in-depth BROWSER candidate. The server is the real guard.
+async function vaultBoundedResponse(response){
+ const type=response.headers?.get?.('content-type')||'';
+ const rawSize=response.headers?.get?.('content-length');
+ if(!/^application\\/json(?:\\s*;|$)/i.test(type)||
+    (rawSize!==null&&rawSize!==undefined&&(!/^\\d+$/.test(rawSize)||Number(rawSize)>2500)))
+  throw Error('vault_bad_response');
+ const reader=response.body?.getReader?.();
+ if(!reader)throw Error('vault_stream_unavailable');
+ let total=0;const chunks=[];
+ try{
+  for(;;){
+   const {done,value}=await reader.read();if(done)break;
+   total+=value.byteLength;
+   if(total>2500){await reader.cancel().catch(()=>{});throw Error('vault_oversize');}
+   chunks.push(value);
+  }
+ }finally{reader.releaseLock();}
+ const bytes=new Uint8Array(total);let offset=0;
+ for(const chunk of chunks){bytes.set(chunk,offset);offset+=chunk.byteLength;}
+ const data=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes));
+ if(!data||typeof data!=='object'||Array.isArray(data)||typeof data.code!=='string')
+  throw Error('vault_bad_json');
+ return data;
+}
 async function vaultApi(action,extra={}){
  if(!N10_FIXED_VAULT_UI_RELEASED)throw Error('vault_release_locked');
+ if(location.origin!=='https://mmhvault.com'||!['status','backup_existing','reveal'].includes(action))
+  throw Error('vault_bad_action');
  const a=await verifiedUser();
- const r=await fetch(VAULT_API,{method:'POST',cache:'no-store',credentials:'omit',
-  referrerPolicy:'no-referrer',headers:{'Content-Type':'application/json',
-  Authorization:'Bearer '+a.jwt},body:JSON.stringify({action,...extra})});
- return {ok:r.ok,body:await r.json().catch(()=>({code:'unavailable'}))};
+ const auth=client().auth;
+ const first=await auth.getUser(a.jwt);
+ if(first.error||first.data?.user?.id!==a.user.id||first.data.user.is_anonymous===true)
+  throw Error('vault_owner_unverified');
+ const controller=new AbortController();
+ const timer=setTimeout(()=>controller.abort(),12000);
+ try{
+  const r=await fetch(VAULT_API,{method:'POST',cache:'no-store',credentials:'omit',
+   redirect:'error',referrerPolicy:'no-referrer',signal:controller.signal,
+   headers:{'Content-Type':'application/json',Authorization:'Bearer '+a.jwt},
+   body:JSON.stringify({action,...extra})});
+  if(!r||r.redirected===true)throw Error('vault_redirect_denied');
+  const d=await vaultBoundedResponse(r);
+  // A pending response may arrive after logout/token rotation/account switch.
+  const live=await auth.getSession();
+  if(live.error||live.data?.session?.user?.id!==a.user.id||
+     live.data.session.access_token!==a.jwt)throw Error('vault_session_changed');
+  const checked=await auth.getUser(a.jwt);
+  if(checked.error||checked.data?.user?.id!==a.user.id||
+     checked.data.user.is_anonymous===true)throw Error('vault_identity_changed');
+  if(action!=='reveal'&&(d.code==='recovery_key'||'words' in d))
+   throw Error('vault_unexpected_disclosure');
+  if(action==='reveal'&&d.code==='backup_status')
+   throw Error('vault_response_mismatch');
+  if(d.code==='backup_status'){
+   if(!r.ok||action!=='status'||typeof d.backed_up!=='boolean')
+    throw Error('vault_bad_status');
+   return {ok:true,body:{code:'backup_status',backed_up:d.backed_up}};
+  }
+  if(d.code==='recovery_key'){
+   if(!r.ok||action!=='reveal'||d.expires_in_seconds!==45||
+      !Array.isArray(d.words)||d.words.length!==10||
+      d.words.some(w=>typeof w!=='string'||!/^[a-z]{2,13}$/.test(w)))
+    throw Error('vault_bad_words');
+   return {ok:true,body:{code:'recovery_key',words:[...d.words],expires_in_seconds:45}};
+  }
+  return {ok:r.ok,body:{code:d.code}};
+ }finally{clearTimeout(timer);}
 }
 function vaultStatusMode(mode){
  vaultMode=mode;
