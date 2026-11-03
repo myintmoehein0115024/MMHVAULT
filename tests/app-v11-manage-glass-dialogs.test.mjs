@@ -130,8 +130,8 @@ function harness({legacy=false}={}){
     stats:()=>({saves,removes,refreshes})};
 }
 
-test('isolated addon is wired from versioned core and does not modify Add Transaction markup',()=>{
-  assert.match(app,/transaction-field-layout-v11\.js\?v=3\.0\.4/);
+test('legacy addon stays intact as rollback while the V11.7 hierarchy runtime is wired',()=>{
+  assert.match(app,/mmhvault-v11-manage-hierarchy-live\.mjs\?v=0\.7\.0/);
   assert.match(base,/mmhvault-v11-manage-glass-dialogs\.js\?v=1\.0\.2/);
   assert.match(base,/mmhvault-v11-manage-glass-dialogs\.css\?v=1\.0\.2/);
   assert.doesNotMatch(source,/MMHVAULT_CONFIG\s*=|transactions\.push\(/);
