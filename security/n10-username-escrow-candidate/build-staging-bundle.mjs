@@ -66,15 +66,15 @@ export async function buildStagingBundle(target){
                   "createdEmail=email;\n   quarantineRequired=false;\n   return {id:createdUid,newlyCreated:true};");
  src=once(src,"rollbackNewUser:async({newlyCreatedUserId})=>{\n   if(!createdUid",
                   "rollbackNewUser:async({newlyCreatedUserId})=>{\n   quarantineRequired=true;\n   if(!createdUid");
- src=once(src,"if(sessionAttempted||backupPossiblyWritten){\n    await admin.auth.admin.updateUserById",
-                  "if(sessionAttempted||backupPossiblyWritten){\n    quarantineRequired=true;\n    await admin.auth.admin.updateUserById");
- src=once(src,"releaseReservation:async({username,ticket})=>{\n   const {error}=await admin.from",
-                  "releaseReservation:async({username,ticket})=>{\n   if(quarantineRequired)return false; // hold claim until expiry/reconciliation\n   const {error}=await admin.from");
+ src=once(src,"if(sessionAttempted||backupPossiblyWritten){\n    holdRegistrationClaim=true;\n    await admin.auth.admin.updateUserById",
+                  "if(sessionAttempted||backupPossiblyWritten){\n    holdRegistrationClaim=true;\n    quarantineRequired=true;\n    await admin.auth.admin.updateUserById");
+ src=once(src,"releaseReservation:async({username,ticket})=>{\n   if(holdRegistrationClaim)return false; // server-side reservation expires safely\n   const {error}=await admin.from",
+                  "releaseReservation:async({username,ticket})=>{\n   if(quarantineRequired||holdRegistrationClaim)return false; // retain claim for safe reconciliation\n   const {error}=await admin.from");
  // Any error after Auth creation is ambiguous once the verifier or escrow may
  // have been written. NEVER delete an Auth user; quarantine this exact
  // newly-created account and require manual reconciliation.
  src=once(src,
-  "const {error:deleteError}=await admin.auth.admin.deleteUser(createdUid);\n   return !deleteError;",
+  "const {error:deleteError}=await admin.auth.admin.deleteUser(createdUid);\n   if(deleteError)holdRegistrationClaim=true;\n   return !deleteError;",
   "quarantineRequired=true;\n   await admin.auth.admin.updateUserById(createdUid,{ban_duration:'876000h'});\n   return false; // always require manual reconciliation; never delete Auth");
  src="// STAGING-ONLY REVIEW BUILD — HARD OFF. NO AUTOMATIC DEPLOYMENT.\n"+src;
  assert.match(src,/const RELEASE_ENABLED=false;/);
@@ -88,7 +88,7 @@ export async function buildStagingBundle(target){
  assert.match(src,/if\(!RELEASE_ENABLED\)return reply\(origin,'registration_not_released',503\);/);
  assert.doesNotMatch(src,/vrypucmyrztxgiqhjspd|https:\/\/mmhvault\.com\b|const RELEASE_ENABLED=true;/);
  assert.doesNotMatch(src,/admin\.auth\.admin\.deleteUser\(/);
- assert.match(src,/if\(quarantineRequired\)return false;/);
+ assert.match(src,/if\(quarantineRequired\|\|holdRegistrationClaim\)return false;/);
  assert.match(src,/backupPossiblyWritten=true;/);
  assert.match(src,/if\(sessionAttempted\|\|backupPossiblyWritten\)\{/);
  assert.doesNotMatch(src,/production:true|qa_only:false|public_signup:true/);

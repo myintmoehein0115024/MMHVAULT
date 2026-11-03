@@ -71,6 +71,9 @@ async function enroll(username,pwd,ticket,input){
  if(!await quota('global:registration_create:day',100,86400))
   return {code:'registration_rate_limited',status:429};
  let createdUid=null,createdEmail=null,sessionAttempted=false,backupPossiblyWritten=false;
+ // Hold reservation on ambiguous Auth creation, Vault write, or unsafe cleanup.
+ // Prevents a second signup from claiming the same username while reconciling.
+ let holdRegistrationClaim=false;
  const deps={
   vaultReady:async()=>{
    // Service-role-only read-only preflight. An absent Production Vault
@@ -88,6 +91,7 @@ async function enroll(username,pwd,ticket,input){
   },
   createNewUser:async({username,password})=>{
    const email='u-'+crypto.randomUUID().replaceAll('-','')+'@'+ALIAS_DOMAIN;
+   holdRegistrationClaim=true; // An ambiguous createUser response must keep the claim.
    const {data,error}=await admin.auth.admin.createUser({
     email,password,email_confirm:true,
     app_metadata:{mmhvault_auth_kind:'username_only',mmhvault_username:username}
@@ -98,6 +102,7 @@ async function enroll(username,pwd,ticket,input){
       data.user.app_metadata?.mmhvault_username!==username)
     return {newlyCreated:false};
    createdUid=data.user.id;
+   holdRegistrationClaim=false; // Newly created identity was verified exactly.
    createdEmail=email;
    return {id:createdUid,newlyCreated:true};
   },
@@ -150,13 +155,16 @@ async function enroll(username,pwd,ticket,input){
    // deleting that owner. Session creation attempts are similarly unsafe.
    // Fail closed and quarantine the exact newly-created Auth identity only.
    if(sessionAttempted||backupPossiblyWritten){
+    holdRegistrationClaim=true;
     await admin.auth.admin.updateUserById(createdUid,{ban_duration:'876000h'}).catch(()=>{});
     return false;
    }
    const {error:deleteError}=await admin.auth.admin.deleteUser(createdUid);
+   if(deleteError)holdRegistrationClaim=true;
    return !deleteError;
   },
   releaseReservation:async({username,ticket})=>{
+   if(holdRegistrationClaim)return false; // server-side reservation expires safely
    const {error}=await admin.from('mmh_n10a769_signup_reservations')
     .delete().eq('username_key',username).eq('reservation_id',ticket);
    return !error;

@@ -131,6 +131,7 @@ test('ambiguous Vault write must quarantine the newly-created owner, never delet
  assert.equal(h.state.deleted,false);assert.equal(h.state.banned,true);
  assert.ok(!h.calls.includes('deleteUser'));
  assert.ok(!h.calls.includes('verifyPassword'));
+ assert.ok(!h.calls.includes('releaseReservation'));
 });
 test('readback mismatch after encrypted write never deletes a backed-up owner',async()=>{
  const h=fake({readbackWrong:true});const out=await h.enroll(userName,password,ticket,phrases[0]);
@@ -138,6 +139,7 @@ test('readback mismatch after encrypted write never deletes a backed-up owner',a
  assert.equal(h.state.deleted,false);assert.equal(h.state.banned,true);
  assert.ok(!h.calls.includes('deleteUser'));
  assert.ok(!h.calls.includes('verifyPassword'));
+ assert.ok(!h.calls.includes('releaseReservation'));
 });
 test('verifier insert failure before any Vault write allows exact new-user rollback',async()=>{
  const h=fake({insertFail:'mmh_n10a769_recovery_phrases'});
@@ -145,10 +147,12 @@ test('verifier insert failure before any Vault write allows exact new-user rollb
  assert.equal(out.code,'registration_not_completed');
  assert.equal(h.state.deleted,true);assert.equal(h.state.backup,null);
  assert.ok(!h.calls.includes('mmh_n10_recovery_backup_put'));
+ assert.ok(h.calls.includes('releaseReservation'));
 });
 test('ambiguous createUser response never guesses a delete target',async()=>{
  const h=fake({createError:true});const out=await h.enroll(userName,password,ticket,phrases[0]);
  assert.equal(out.code,'auth_unavailable');assert.ok(!h.calls.includes('deleteUser'));
+ assert.ok(!h.calls.includes('releaseReservation'));
 });
 test('unexpected returned email or account type stops ambiguous creation without deletion',async()=>{
  for(const bad of [{returnOtherEmail:true},{returnWrongAuthKind:true}]){
@@ -156,6 +160,7 @@ test('unexpected returned email or account type stops ambiguous creation without
   assert.equal(out.code,'auth_unavailable');
   assert.ok(!h.calls.includes('deleteUser'));
   assert.ok(!h.calls.includes('verifyPassword'));
+  assert.ok(!h.calls.includes('releaseReservation'));
  }
 });
 test('unverified temporary login never releases a signed session',()=>{
