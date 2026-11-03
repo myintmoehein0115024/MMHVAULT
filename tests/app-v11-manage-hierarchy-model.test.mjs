@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   emptyHierarchy,addType,addTransaction,addCategory,choices,canAddItem,pathFor,
-  entryUsage,renameItem,deleteItem,archiveItem,legacyHierarchy,recordLink,normalizePersistedHierarchy
+  entryUsage,renameItem,deleteItem,archiveItem,legacyHierarchy,recordLink,storedLinkMatches,normalizePersistedHierarchy
 } from '../js/mmhvault-v11-manage-hierarchy-model.mjs';
 const A='account-A',B='account-B';
 let serial=0;const next=()=>('new-item-'+ ++serial);
@@ -175,6 +175,22 @@ test('confirmed link immediately locks all three Manage levels before history re
   assert.equal(choices(tree,A,'transaction',income.id).length,0);
   assert.deepEqual(tree.links['post-insert-991'],link);
   assert.equal(entryUsage(tree,A,'transaction',income2.id,emptyLoadedHistory),'used');
+});
+test('post-insert retries are idempotent, mismatched links are rejected and cloud readback is owner-scoped',()=>{
+  const {tree,income,income2,salary}=sample();
+  const first=recordLink(tree,A,'501',income.id,income2.id,salary.id);
+  const pristine=JSON.stringify(tree);
+  assert.deepEqual(recordLink(tree,A,'501',income.id,income2.id,salary.id),first);
+  assert.equal(JSON.stringify(tree),pristine);
+  assert.equal(storedLinkMatches(tree,A,'501',first.choiceIds,first.canonical),true);
+  assert.equal(storedLinkMatches(tree,B,'501',first.choiceIds,first.canonical),false);
+  assert.equal(storedLinkMatches({...tree,links:{}},A,'501',first.choiceIds,first.canonical),false);
+  assert.equal(storedLinkMatches(tree,A,'501',{...first.choiceIds,transaction:'wrong'},first.canonical),false);
+  assert.equal(storedLinkMatches(tree,A,'501',first.choiceIds,{...first.canonical,category:'Tampered'}),false);
+  const other=addTransaction(tree,A,'Alternative',income.id,'Income|Income',next);
+  const otherCategory=addCategory(tree,A,'Bonus',other.id,next);
+  assert.throws(()=>recordLink(tree,A,'501',income.id,other.id,otherCategory.id),/another Manage path/);
+  assert.deepEqual(tree.links['501'],first);
 });
 test('cloud normalization round trips valid data and rejects an alien owner or modified linkage',()=>{
   const {tree,income,income2,salary}=sample();
