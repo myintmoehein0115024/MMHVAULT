@@ -827,7 +827,8 @@ check('L1.41 all nine first-party style/script URLs keep coordinated versions',
     const tag=after.replace('landing.css?v=l141','landing.min.css?v=l145')
       .replace('cinematic.css?v=l141','cinematic.min.css?v=l146')
       .replace('premium-l131.css?v=l141','premium-l131.min.css?v=l146')
-      .replace('landing.js?v=l141','landing.js?v=l155');
+      .replace('landing.js?v=l141','landing.js?v=l155')
+      .replace('motion-l132.js?v=l141','motion-l132.js?v=l156');
     const bundled=/explore-l114\.css|shared-header-l116\.css/.test(after);
     return before!==after && after.includes('?v=l141') && !current.includes(before) &&
       (bundled ? current.includes(l147NewHeaderTags)&&!current.includes(after) :
