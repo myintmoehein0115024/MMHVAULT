@@ -91,6 +91,7 @@
       tr('Custom names always retain their original financial meaning.',
         '自定义名称始终保留原有财务含义。',
         'မူလ ငွေစာရင်းအဓိပ္ပာယ်ကို ထိန်းသိမ်းထားသည်။');
+    list.hidden=false;
     list.replaceChildren();
     if(field==='category'){
       if(modal.categoryForm&&modal.categoryForm.parentElement!==nativeSlot)nativeSlot.append(modal.categoryForm);
@@ -113,7 +114,7 @@
           if(typeof window.mmhVaultEditCategoryV449==='function'){
             close();window.mmhVaultEditCategoryV449(item.group,item.name);
           }else feedback(tr('Category editor is unavailable.','分类编辑暂不可用。','ပြင်ဆင်ရန် မရနိုင်ပါ။'),true);
-        } else {modal.chosen=item;modal.confirm=null;paintEditor();}
+        } else {modal.chosen=item;modal.confirm=null;paintEditor();modal.editorSlot.querySelector('input')?.focus();}
       });
       edit.setAttribute('aria-label',tr('Edit ','编辑 ','ပြင်ရန် ')+(item.label||item.name));
       const remove=btn(tr('Remove','移除','ဖယ်ရှား'),()=>{
@@ -155,17 +156,25 @@
       add.style.marginTop='14px';list.append(add);
     }
     if(modal.confirm||modal.chosen)paintEditor();
-    else{editorSlot.hidden=true;editorSlot.replaceChildren();}
+    else{list.hidden=false;editorSlot.hidden=true;editorSlot.replaceChildren();}
   }
   function clearEditor(){
     if(!modal)return;
     modal.chosen=null;modal.confirm=null;modal.editorSlot.replaceChildren();modal.editorSlot.hidden=true;
+    renderList();
+    modal.dialog.querySelector('.mmh-v14-scroll')?.scrollTo?.({top:0});
   }
   function paintEditor(){
     if(!modal||!api.isManaged())return;
     const slot=modal.editorSlot;slot.replaceChildren();slot.hidden=false;
+    // Sub-view: the list is replaced by the editor/confirmation instead of
+    // stacking a second form below potentially dozens of existing items.
+    modal.list.hidden=true;
+    modal.nativeSlot.hidden=true;
+    modal.dialog.querySelector('.mmh-v14-scroll')?.scrollTo?.({top:0});
     if(modal.confirm){
       const item=modal.confirm;
+      modal.title.textContent=tr('Remove ','移除 ','ဖယ်ရှားရန် ')+name(modal.field);
       slot.append(el('h4','',tr('Confirm removal','确认移除','ဖယ်ရှားရန် အတည်ပြုပါ')));
       slot.append(el('p','mmh-v14-help',modal.field==='category'?
         tr('Remove from future entries only. Historical records and stored Categories stay intact.',
@@ -190,6 +199,7 @@
     const item=modal.chosen;
     if(!item){slot.hidden=true;return;}
     const isNew=!!item.new;
+    modal.title.textContent=(isNew?tr('Add ','新增 ','အသစ်ထည့်ရန် '):tr('Edit ','编辑 ','ပြင်ရန် '))+name(modal.field);
     slot.append(el('h4','',isNew?tr('Add a display name','添加显示名称','အမည်အသစ် ထည့်ရန်'):
       tr('Edit display name','编辑显示名称','အမည် ပြင်ရန်')));
     const label=el('label','mmh-v14-field');label.append(el('span','',tr('Display name','显示名称','ပြသမည့်အမည်')));
