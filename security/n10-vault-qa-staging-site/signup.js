@@ -21,7 +21,7 @@ const MESSAGES=Object.freeze({
   foot:'仅限隔离环境安全验收 · 正式登录和财务数据保持不变',
   modalTitle:'请安全保存这 10 个固定恢复词',modalNote:'注册成功之前，后台必须先加密备份并核对原词。关闭窗口会立即清理敏感信息。',
   confirm:'已安全保存，完成注册',ready:'真实 Staging 注册入口已开放，仅允许受控 QA 用户名。',
-  closed:'真实 Staging 注册目前安全关闭。稍后可重新检查；无需输入密码。',
+  closed:'真实 Staging 注册目前安全关闭。稍后可重新检查；无需输入密码。',captchaLoading:'正在载入安全验证组件…',
   offline:'无法连接测试服务。请检查网络并重新检查。',captchaUnavailable:'验证组件暂时无法加载，注册保持关闭。',
   captchaRequired:'请先完成人机验证。',invalid:'请输入允许的 QA 用户名及 6–20 位密码。',
   preparing:'正在安全准备本次注册…',enrolling:'正在加密备份并核对固定十词…',
@@ -44,7 +44,7 @@ const MESSAGES=Object.freeze({
   foot:'Isolated QA only · Production login and financial data remain unchanged',
   modalTitle:'Securely save these 10 fixed recovery words',modalNote:'Before signup is reported successful, the server must encrypt and read back the same words. Closing clears sensitive data.',
   confirm:'Saved securely · Complete signup',ready:'Live Staging signup is available to approved QA usernames only.',
-  closed:'Live Staging signup is securely disabled. You can check again later; do not enter a password.',
+  closed:'Live Staging signup is securely disabled. You can check again later; do not enter a password.',captchaLoading:'Loading the secure verification component…',
   offline:'Staging service unavailable. Check your connection and try again.',captchaUnavailable:'Verification could not load. Signup remains unavailable.',
   captchaRequired:'Complete the verification first.',invalid:'Enter an approved QA username and a 6–20-character password.',
   preparing:'Preparing the Staging signup securely…',enrolling:'Encrypting and verifying the exact original recovery words…',
@@ -67,7 +67,7 @@ const MESSAGES=Object.freeze({
   foot:'သီးသန့် Staging စမ်းသပ်မှုသာ · ပင်မဝက်ဘ်ဆိုက် မပြောင်းလဲပါ',
   modalTitle:'မူရင်း ပြန်လည်ရယူရေးစကားလုံး ၁၀ လုံးကို လုံခြုံစွာ သိမ်းပါ',modalNote:'မှတ်ပုံတင်ခြင်း မအောင်မြင်မီ မူရင်းစကားလုံးများကို ကုဒ်ဝှက်သိမ်းဆည်းပြီး ပြန်လည်စစ်ဆေးရမည်။',
   confirm:'လုံခြုံစွာ သိမ်းပြီး · မှတ်ပုံတင်ရန်',ready:'Staging မှတ်ပုံတင်ခြင်းကို ခွင့်ပြုထားသော QA အကောင့်များအတွက်သာ ဖွင့်ထားသည်။',
-  closed:'Staging မှတ်ပုံတင်ခြင်းကို လုံခြုံရေးအရ ပိတ်ထားသည်။ စကားဝှက် မထည့်ပါနှင့်။',
+  closed:'Staging မှတ်ပုံတင်ခြင်းကို လုံခြုံရေးအရ ပိတ်ထားသည်။ စကားဝှက် မထည့်ပါနှင့်။',captchaLoading:'လုံခြုံရေး စစ်ဆေးမှုကို ဖွင့်နေသည်…',
   offline:'Staging ဝန်ဆောင်မှုနှင့် မချိတ်ဆက်နိုင်ပါ။',captchaUnavailable:'စစ်ဆေးမှု မရရှိနိုင်ပါ။ မှတ်ပုံတင်ခြင်း ပိတ်ထားသည်။',
   captchaRequired:'စစ်ဆေးမှုကို အရင်လုပ်ဆောင်ပါ။',invalid:'ခွင့်ပြုထားသော QA အမည်နှင့် ၆–၂၀ လုံး စကားဝှက်ကို ထည့်ပါ။',
   preparing:'မှတ်ပုံတင်ခြင်း ပြင်ဆင်နေသည်…',enrolling:'မူရင်းစကားလုံးများကို ကုဒ်ဝှက်သိမ်းဆည်းပြီး စစ်ဆေးနေသည်…',
@@ -85,6 +85,8 @@ const MESSAGES=Object.freeze({
 });
 let lang='zh', enabled=false, busy=false, token='', widget=null, prepared=null;
 let deadline=0, hideTimer=null, tickTimer=null, activeRequest=null;
+let challengeRetryTimer=null, challengeWaitStarted=0;
+function stopChallengeWatch(){clearTimeout(challengeRetryTimer);challengeRetryTimer=null;challengeWaitStarted=0;}
 const msg=key=>MESSAGES[lang][key]||MESSAGES[lang].failed;
 function message(key){$('serverStatus').textContent=msg(key);$('serverStatus').dataset.status=key;}
 function clearTimers(){clearTimeout(hideTimer);clearInterval(tickTimer);hideTimer=null;tickTimer=null;}
@@ -111,7 +113,7 @@ function setReady(yes){
  panel.setAttribute('aria-disabled',String(!enabled));
  $('username').disabled=!enabled;$('password').disabled=!enabled;
  $('statusDot').classList.toggle('ready',enabled);
- if(!enabled){clearPhrase();$('password').value='';resetChallenge();}
+ if(!enabled){stopChallengeWatch();clearPhrase();$('password').value='';resetChallenge();}
  $('prepare').disabled=!enabled||busy||!token;
 }
 function validateInput(){
@@ -135,13 +137,22 @@ async function request(payload,limit=10000){
 }
 function renderChallenge(){
  if(!enabled||widget!==null)return;
- if(!window.turnstile||typeof window.turnstile.render!=='function'){message('captchaUnavailable');return;}
+ if(!window.turnstile||typeof window.turnstile.render!=='function'){
+  if(!challengeWaitStarted)challengeWaitStarted=Date.now();
+  if(Date.now()-challengeWaitStarted<12000){
+   message('captchaLoading');
+   clearTimeout(challengeRetryTimer);
+   challengeRetryTimer=setTimeout(renderChallenge,300);
+  }else{stopChallengeWatch();message('captchaUnavailable');}
+  return;
+ }
+ stopChallengeWatch();
  try{
   widget=window.turnstile.render('#turnstile',{
    sitekey:SITEKEY,action:ACTION,theme:'dark',
    callback:v=>{token=typeof v==='string'?v:'';$('prepare').disabled=!enabled||busy||!token;},
    'expired-callback':()=>{token='';$('prepare').disabled=true;},
-   'error-callback':()=>{token='';$('prepare').disabled=true;return true;}
+   'error-callback':()=>{token='';$('prepare').disabled=true;message('captchaUnavailable');return true;}
   });
  }catch{widget=null;message('captchaUnavailable');}
 }
