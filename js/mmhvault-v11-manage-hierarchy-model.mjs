@@ -41,7 +41,7 @@ const idOnce=(graph,idFactory)=>{
 };
 export function emptyHierarchy(ownerId){
   if(!validId(ownerId))throw new Error('Signed-in account required');
-  return {version:TREE_VERSION,ownerId,types:[],transactions:[],categories:[]};
+  return {version:TREE_VERSION,ownerId,types:[],transactions:[],categories:[],links:{}};
 }
 export function ledgerKind(id){return kindMap.get(id)||null;}
 export function addType(graph,ownerId,name,ledgerType,idFactory){
@@ -119,7 +119,8 @@ export function entryUsage(graph,ownerId,field,id,history){
   if(!Array.isArray(history))return 'unknown'; // never allow destructive edits during cloud load
   for(const row of history){
     if(!row||typeof row!=='object')continue;
-    const tagged=row.choiceIds||row.manageChoiceIds||row.txManageIds;
+    const tagged=row.choiceIds||row.manageChoiceIds||row.txManageIds||
+      (row.id!=null&&graph.links?.[String(row.id)]?.choiceIds);
     if(tagged&&tagged[field]){if(tagged[field]===id)return 'used';continue;}
     // Old entries do not have stable Manage IDs: match canonical ledger
     // meaning conservatively instead of pretending that aliases are distinct.
@@ -175,6 +176,72 @@ export function archiveItem(graph,ownerId,field,id,archived=true){
   if(!coll)throw new Error('Invalid Manage field');
   const node=requireNode(graph,coll,id);
   node.archived=!!archived;return node;
+}
+export function recordLink(graph,ownerId,recordId,typeId,transactionId,categoryId){
+  assertOwner(graph,ownerId);
+  if(!validId(String(recordId||'')))throw new Error('Saved transaction ID required');
+  // The transaction MUST have been committed by the ledger first; do not
+  // call this from the form before confirmed DB insertion.
+  const path=pathFor(graph,ownerId,typeId,transactionId,categoryId);
+  const key=String(recordId);
+  if(!graph.links||typeof graph.links!=='object')graph.links={};
+  if(Object.hasOwn(graph.links,key))throw new Error('Transaction link already recorded');
+  graph.links[key]={choiceIds:path.choiceIds,canonical:{
+    type:path.type,group:path.group,category:path.category}};
+  return graph.links[key];
+}
+export function normalizePersistedHierarchy(raw,ownerId){
+  if(raw==null)return null;
+  const bad=()=>{throw new Error('Unsafe or invalid hierarchy configuration');};
+  if(!validId(ownerId)||!raw||raw.version!==TREE_VERSION||
+     raw.ownerId!==ownerId||typeof raw!=='object')bad();
+  const g=emptyHierarchy(ownerId),ids=new Set();
+  const parse=(field,max)=>{
+    const arr=raw[field];
+    if(!Array.isArray(arr)||arr.length>max)bad();
+    return arr.map(node=>{
+      if(!node||!validId(node.id)||ids.has(node.id)||
+        !nonempty(node.label)||node.label.length>40)bad();
+      ids.add(node.id);
+      return {...node,archived:node.archived===true};
+    });
+  };
+  g.types=parse('types',128);
+  if(g.types.some(x=>!LEDGER_TYPES.includes(x.ledgerType)))bad();
+  g.transactions=parse('transactions',512);
+  if(g.transactions.some(x=>!find(g,'types',x.parentId)||
+    !kindMap.has(x.kindId)||kindMap.get(x.kindId).type!==find(g,'types',x.parentId).ledgerType))bad();
+  g.categories=parse('categories',1024);
+  if(g.categories.some(x=>{
+    const parent=find(g,'transactions',x.parentId);
+    return !parent||kindMap.get(parent.kindId)?.categoryGroup!==x.ledgerGroup;
+  }))bad();
+  const folded=(field,scope)=>{const seen=new Set();for(const x of g[field]){
+    const key=scope(x)+'|'+x.label.toLocaleLowerCase();
+    if(seen.has(key))bad();seen.add(key);
+  }};
+  folded('types',()=> 'type');
+  folded('transactions',x=>x.parentId);
+  folded('categories',x=>x.ledgerGroup);
+  const links=raw.links==null?{}:raw.links;
+  if(!links||typeof links!=='object'||Array.isArray(links)||
+    Object.keys(links).length>10000)bad();
+  for(const [key,item] of Object.entries(links)){
+    if(!validId(key)||!item||typeof item!=='object')bad();
+    const ids=item.choiceIds;
+    if(!ids||!find(g,'types',ids.type)||
+      !find(g,'transactions',ids.transaction)||
+      !find(g,'categories',ids.category))bad();
+    const t=find(g,'transactions',ids.transaction),c=find(g,'categories',ids.category);
+    if(t.parentId!==ids.type||c.parentId!==t.id)bad();
+    const k=kindMap.get(t.kindId);
+    if(!k||item.canonical?.type!==k.type||item.canonical?.group!==k.group||
+      !nonempty(item.canonical?.category))bad();
+    // Preserve the name at original entry time; do not rewrite history.
+    g.links[key]={choiceIds:{type:ids.type,transaction:ids.transaction,category:ids.category},
+      canonical:{type:k.type,group:k.group,category:String(item.canonical.category)}};
+  }
+  return g;
 }
 // Derived view for older owners: no config/ledger writes on open. This
 // preserves active/archived categories and existing Type/Transaction aliases.
