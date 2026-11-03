@@ -25,14 +25,20 @@ function clearQr(){
 }
 // Supabase can return an already prefixed data URL or SVG markup.
 // Only accept local image formats; never use an external URL or HTML injection.
+function safeSvgMarkup(svg){
+ return /^<svg(?:\s|>)[\s\S]*<\/svg>\s*$/i.test(svg) &&
+  !/<!|<\?|<\s*(?:script|foreignObject|iframe|image|use|a|animate|set|style|text|filter|feimage)\b|\bon[a-z]+\s*=|\b(?:href|style)\s*=|\burl\s*\(/i.test(svg);
+}
 function qrImageSource(qr){
  if(typeof qr!=='string'||qr.length<50||qr.length>400000)return null;
- if(/^data:image\/(?:svg\+xml)(?:;utf-8|;utf8|;charset=utf-8)?,/i.test(qr))return qr;
- if(/^data:image\/(?:svg\+xml|png);base64,[A-Za-z0-9+/=]+$/i.test(qr))return qr;
- if(/^<svg(?:\s|>)[\s\S]*<\/svg>\s*$/i.test(qr)&&
-   !/<\s*(?:script|foreignObject|iframe|image|use|a|animate|set|style)\b|\bon[a-z]+\s*=|\b(?:href|style)\s*=|\burl\s*\(/i.test(qr))
-  return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(qr);
- return null;
+ if(/^data:image\/png;base64,[A-Za-z0-9+/=]+$/i.test(qr))return qr;
+ const svgData=/^data:image\/svg\+xml(?:;utf-8|;utf8|;charset=utf-8)?,([\s\S]+)$/i.exec(qr);
+ let svg=qr;
+ if(svgData){
+  try{svg=decodeURIComponent(svgData[1]);}catch{return null;}
+ }
+ if(!safeSvgMarkup(svg))return null;
+ return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svg);
 }
 function manualTotpSecret(value){
  const s=typeof value==='string'?value.replace(/\s/g,'').toUpperCase():'';
