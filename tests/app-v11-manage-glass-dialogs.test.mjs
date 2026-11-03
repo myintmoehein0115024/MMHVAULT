@@ -24,7 +24,7 @@ function harness(){
         toggle:(cls,force)=>{if(force)this.classList.add(cls);else this.classList.remove(cls);}
       };
     }
-    set textContent(value){this._text=String(value);this.replaceChildren();}
+    set textContent(value){this.replaceChildren();this._text=String(value);}
     get textContent(){return this._text+this.children.map(x=>x.textContent).join('');}
     set value(value){this._value=value;}
     get value(){return this._value===undefined?(this.children.find(x=>x.selected)||this.children[0])?.value||'':this._value;}
@@ -156,7 +156,7 @@ test('Type add, rename and remove use only the existing canonical owner API',()=
   h.labeled(h.body,'Save changes').click();
   assert.equal(h.dataset.type[0].label,'Salary Type');
   h.labeled(h.body,'Remove').click();
-  h.labeled(h.body,'Remove').click();
+  h.buttons(h.body).filter(x=>x.textContent==='Remove').at(-1).click();
   assert.equal(h.dataset.type.length,0);
   assert.equal(h.stats().removes,1);
 });
@@ -166,7 +166,7 @@ test('Category remove only changes new-entry selection; native editor moves back
   h.window.MMHV11ManageGlassV14.open('category');
   assert.ok(h.look(h.body,'mmh-v14-native').querySelector('.mmh-manager-form-v445'));
   h.labeled(h.body,'Remove').click();
-  h.labeled(h.body,'Remove').click();
+  h.buttons(h.body).filter(x=>x.textContent==='Remove').at(-1).click();
   assert.equal(h.dataset.category.length,0);
   assert.equal(JSON.stringify(h.historical),before);
   h.window.MMHV11ManageGlassV14.close();
