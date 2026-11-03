@@ -1130,4 +1130,14 @@
   let saved = 'en';
   try { const stored = window.localStorage.getItem(storageKey); if (stored === 'zh' || stored === 'my') saved = stored; } catch (_) {}
   applyLanguage(saved);
+
+  // L1.37: keep public pages already open in other tabs on one language.
+  // A storage event originates only in another tab; identical writes do not
+  // re-trigger events. No navigation, scroll, auth or finance state changes.
+  window.addEventListener('storage', event => {
+    const next = event.newValue;
+    if (event.key !== storageKey || (next !== 'en' && next !== 'zh' && next !== 'my') || next === currentLang) return;
+    applyLanguage(next);
+    closeLanguage();
+  });
 })();
