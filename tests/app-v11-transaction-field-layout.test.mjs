@@ -817,3 +817,31 @@ test('brand new owner still has no configured categories even when defaults exis
   assert.equal(dom.labels.category.hidden,true);
   assert.equal(dom.submit.disabled,true);
 });
+
+
+test('after a legacy edit, Transfer keeps its system Category and remains saveable',()=>{
+  const h=harness(null),dom=nativeForm(h);
+  const entry=h.api.getLegacyView().type[0];
+  assert.equal(h.api.saveName('type',entry,'Income','Incoming'),true);
+  h.api.refresh();
+  dom.t.value='Transfer';h.api.refresh();
+  assert.equal(dom.t.value,'Transfer');
+  assert.equal(dom.g.value,'Transfer');
+  assert.deepEqual(dom.c.options.map(x=>x.value),['Transfer']);
+  assert.equal(h.api.validate(),true);
+  assert.equal(dom.submit.disabled,false);
+  assert.ok(h.config.txFieldsV12.category.includes('Income|Salary'));
+});
+
+test('after legacy upgrade, Adjustment remains canonical and its Category is never a new-user preset',()=>{
+  const h=harness(null),dom=nativeForm(h);
+  const row=h.api.getLegacyView().transaction.find(x=>x.canonical==='Expense|Expense');
+  assert.equal(h.api.saveName('transaction',row,'Expense|Expense','Spent'),true);
+  dom.t.value='Expense';h.api.refresh();
+  dom.g.value='Data Adjustment';h.api.refresh();
+  assert.equal(dom.t.value,'Expense');
+  assert.equal(dom.g.value,'Data Adjustment');
+  assert.deepEqual(dom.c.options.map(x=>x.value),['Data Adjustment']);
+  assert.equal(h.api.validate(),true);
+  assert.equal(h.config.txFieldsV12.category.includes('Expense|Dining'),true);
+});
