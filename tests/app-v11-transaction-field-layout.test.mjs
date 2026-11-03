@@ -674,3 +674,48 @@ test('legacy owner selector options are not modified by managed owner reconcilia
   h.api.reconcileNative();
   assert.deepEqual(dom.t.options.map(x=>x.value),existing);
 });
+
+
+test('existing owner exposes modern presentation entries without migrating its old field layout or ledger',()=>{
+  const h=harness(null),dom=nativeForm(h);
+  const before=JSON.stringify(h.config);
+  const legacy=h.api.getLegacyView();
+  assert.ok(legacy);
+  assert.deepEqual(legacy.type.map(x=>x.canonical),['Income','Expense','Transfer']);
+  assert.equal(legacy.transaction.length,8);
+  assert.ok(legacy.category.some(x=>x.raw==='Expense|Dining'));
+  assert.ok(legacy.category.some(x=>x.raw==='Income|Salary'));
+  assert.equal(h.api.isManaged(),false);
+  h.api.refresh();
+  assert.deepEqual(Object.values(dom.labels).map(x=>x.hidden),[false,false,false],
+    'old accounts still see the original three Add Transaction fields');
+  assert.equal(JSON.stringify(h.config),before,'read-only presentation must not modify the configuration');
+  assert.equal(h.writes.length,0,'read-only presentation performs no cloud save');
+});
+
+test('legacy presentation category list shows active names and separate archive without altering config',()=>{
+  const h=harness(null);
+  h.config.archivedCategories={Expense:['Archived Dining']};
+  const before=JSON.stringify(h.config);
+  const legacy=h.api.getLegacyView();
+  assert.ok(legacy.category.some(x=>x.group==='Income'&&x.name==='Salary'));
+  assert.ok(!legacy.category.some(x=>x.name==='Archived Dining'));
+  assert.equal(h.api.getArchivedCategoryEntries().length,1);
+  assert.equal(h.api.getArchivedCategoryEntries()[0].name,'Archived Dining');
+  assert.equal(JSON.stringify(h.config),before);
+  assert.equal(h.writes.length,0);
+});
+
+test('no signed-in owner cannot expose legacy account lists through presentation API',()=>{
+  const h=harness(null,null);
+  assert.equal(h.api.getLegacyView(),null);
+  assert.deepEqual(h.api.getArchivedCategoryEntries(),[]);
+});
+
+test('new owner retains empty Manage and is never auto-migrated into old defaults',()=>{
+  const h=harness(fresh());
+  assert.equal(h.api.getLegacyView(),null);
+  assert.equal(h.api.fieldItems('type').length,0);
+  assert.equal(h.api.fieldItems('transaction').length,0);
+  assert.equal(h.api.getCategoryEntries().length,0);
+});
