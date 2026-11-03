@@ -15,10 +15,6 @@ function accountKey(account) {
   if (account?.id === BUILTIN_BAHT_ID && (name === 'baht' || name === 'bath')) return 'baht';
   return name;
 }
-function referenceKey(name) {
-  const n = key(name);
-  return n === 'bath' ? 'baht' : n;
-}
 function accountMatches(account, name) {
   const actual = key(account?.name);
   const requested = key(name);
@@ -81,19 +77,29 @@ export function auditFinanceLinks(input = {}) {
   }
 
   for (const ref of references) {
-    const account = accounts.find(a => accountMatches(a, ref.name));
-    if (!account) {
-      unresolved.push({ ...ref, reason: 'account_not_in_config', currency: null });
+    // A legacy alias may collide with an independently named custom account.
+    // Never let array order choose the currency for an ambiguous finance link.
+    const matches = accounts.filter(a => accountMatches(a, ref.name));
+    if (matches.length !== 1) {
+      unresolved.push({ ...ref, reason: matches.length ? 'ambiguous_account_reference' : 'account_not_in_config', currency: null });
       continue;
     }
+    const account = matches[0];
     const currency = accountCurrency(account);
+    // Stable acc_bath metadata must remain THB; a corrupted currency cannot
+    // be silently interpreted as another denomination of historical entries.
+    if (clean(account.id) === BUILTIN_BAHT_ID && currency !== 'THB') {
+      unresolved.push({ ...ref, reason: 'builtin_baht_currency_conflict', currency: null });
+      continue;
+    }
     if (!currency) missingCurrency.push({ ...ref, reason: 'currency_unset_or_invalid' });
     resolved.push({ ...ref, accountId: clean(account.id), currency });
   }
   const usedIds = new Set(resolved.map(ref => ref.accountId));
   for (const account of accounts) {
     const currency = accountCurrency(account);
-    if (account.active === false || !currency || CORE_FX.has(currency)) continue;
+    // An archived account can still have historical transactions in Analyze.
+    if (!currency || CORE_FX.has(currency)) continue;
     const manual = Number(account.fxPerUSD);
     const hasManual = account.fxPerUSD !== null && account.fxPerUSD !== '' &&
       account.fxPerUSD !== undefined && Number.isFinite(manual) && manual > 0;
