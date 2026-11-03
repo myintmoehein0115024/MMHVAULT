@@ -10,8 +10,15 @@ const source = path => {
  assert.equal(r.status,0,'Cannot read original main:'+path);
  return r.stdout;
 };
-const current = read('index.html');
+const rawCurrent = read('index.html');
 const prev=source('index.html');
+// Verify the one allowed addition separately, then run all legacy content
+// preservation checks on the exact pre-analytics homepage.
+const analyticsAddition = /<!-- MMHVAULT Website Analytics V1: public Landing page views only; no auth or finance data\. -->\n<script defer src="https:\/\/static\.cloudflareinsights\.com\/beacon\.min\.js" data-cf-beacon='\{"token":"[a-f0-9]{32}"\}'><\/script>\n/;
+assert.equal((rawCurrent.match(/static\.cloudflareinsights\.com\/beacon\.min\.js/g)||[]).length,1,'Exactly one Cloudflare beacon required');
+assert.ok(analyticsAddition.test(rawCurrent),'Unexpected analytics snippet');
+const current = rawCurrent.replace(analyticsAddition,'');
+// Legacy release checks below validate all previously approved Landing differences.
 
 // L1.41: preserve every byte of the published homepage except the nine
 // first-party asset query strings. This avoids mixed cached CSS and JS after
@@ -82,8 +89,10 @@ const l154NewScriptTag='<script defer src="./landing-assets/landing.js?v=l154"><
 const l155NewScriptTag='<script defer src="./landing-assets/landing.js?v=l155"></script>';
 const l156OldMotionTag='<script defer src="./landing-assets/motion-l132.js?v=l141"></script>';
 const l156NewMotionTag='<script defer src="./landing-assets/motion-l132.js?v=l156"></script>';
-const l148IndexOnlyEdited=()=>prev.split(l156OldMotionTag).length===2 &&
-  current===prev.replace(l156OldMotionTag,l156NewMotionTag);
+const l148IndexOnlyEdited=()=>
+  (prev.includes(l156NewMotionTag) && current===prev) ||
+  (prev.split(l156OldMotionTag).length===2 &&
+   current===prev.replace(l156OldMotionTag,l156NewMotionTag));
 const l147IndexOnlyEdited=baseline=>baseline===prev && l148IndexOnlyEdited() &&
   baseline.includes(l147NewHeaderTags) && !current.includes(l147OldHeaderTags);
 // The runtime JS may change only these four targeted DOM write sites.
@@ -235,6 +244,8 @@ const l139PublicInsertion="      // L1.39: pre-reveal phone cards ahead of viewp
 const l156MotionPatches=[["  const activeAnimations=new WeakMap();\n  const play=","  const activeAnimations=new WeakMap();\n  // L1.56: stop only Business concept WAAPI motion on tab hiding or\n  // live reduced-motion changes, leaving presentation and data intact.\n  const runningBusinessAnimations=new Set();\n  const cancelInterruptedBusinessMotion=()=>{\n    if(permitted() && !document.hidden)return;\n    for(const animation of runningBusinessAnimations)animation.cancel();\n    runningBusinessAnimations.clear();\n  };\n  if(typeof motionPreference.addEventListener==='function')\n    motionPreference.addEventListener('change',cancelInterruptedBusinessMotion);\n  else if(typeof motionPreference.addListener==='function')\n    motionPreference.addListener(cancelInterruptedBusinessMotion);\n  document.addEventListener('visibilitychange',cancelInterruptedBusinessMotion);\n  const play="],["    if(!permitted() || typeof node.animate!=='function')return;","    if(!permitted() || document.hidden || typeof node.animate!=='function')return;"],["    activeAnimations.set(node,animation);\n  };","    activeAnimations.set(node,animation);\n    runningBusinessAnimations.add(animation);\n    const forget=()=>runningBusinessAnimations.delete(animation);\n    animation.addEventListener('finish',forget,{once:true});\n    animation.addEventListener('cancel',forget,{once:true});\n  };"],["      if(!permitted())return;","      if(!permitted() || document.hidden)return;"]];
 const l139MotionOnlyEdited=()=>{
   const original=source('landing-assets/motion-l132.js');
+  // Analytics-only PR preserves the already-published L1.56 motion script.
+  if (read('landing-assets/motion-l132.js')===original) return true;
   let expected=original;
   for(const [before,after] of l156MotionPatches){
     if(expected.split(before).length!==2)return false;
@@ -596,9 +607,12 @@ check('Landing priority image and below-fold concept use efficient loading',
   current.includes('loading="lazy" decoding="async"') &&
   current.includes('<link rel="preload" as="image" type="image/webp"') &&
   current.includes(l155NewScriptTag));
+// Analytics V1: check external resources against the unmodified HTML.
+const externalScriptTags = rawCurrent.match(/<script\b[^>]*\bsrc=["']https?:\/\/[^>]*><\/script>/gi) || [];
+const approvedBeacon = /^<script defer src="https:\/\/static\.cloudflareinsights\.com\/beacon\.min\.js" data-cf-beacon='\{"token":"[a-f0-9]{32}"\}'><\/script>$/.test(externalScriptTags[0] || '');
 check('Landing ships no third-party blocking scripts or styles',
-  !/<script[^>]+src=["']https?:\/\//i.test(current) &&
-  !/<link[^>]+rel=["']stylesheet["'][^>]+href=["']https?:\/\//i.test(current));
+  externalScriptTags.length === 1 && approvedBeacon &&
+  !/<link[^>]+rel=["']stylesheet["'][^>]+href=["']https?:\/\//i.test(rawCurrent));
 /* L1.12 — policy pages share the Landing design without altering any
    substantive security/privacy/terms paragraph or disclaimer wording. */
 for(const file of ['privacy.html','terms.html','security.html']){
@@ -792,14 +806,18 @@ check('L1.27 public tab title matches SEO without language focus scroll',
  l133PublicPagesUnchanged() &&
  l142IndexOnlyEdited() && current.includes(newHeroPreload) &&
  !current.includes(oldHeroPreload));
-check('L1.56 exact four-file public-only Business animation scope',
- actual.length===4 &&
- actual.every(path=>[
+check('L1.56 public-only scope or Analytics V1 isolated scope',
+ ((actual.length===4 && actual.every(path=>[
   'index.html',
   'landing-assets/motion-l132.js',
   'landing-assets/landing-release-check.cjs',
   'landing-assets/landing-browser-check.cjs'
- ].includes(path)) &&
+ ].includes(path))) ||
+ (actual.length===3 &&
+  actual.includes('index.html') &&
+  actual.includes('landing-assets/landing-release-check.cjs') &&
+  actual.includes('landing-assets/landing-browser-check.cjs') &&
+  current===prev && analyticsAddition.test(rawCurrent))) &&
  l142IndexOnlyEdited() &&
  l133BurmeseLayoutOnlyEdited() &&
  l133PublicPagesUnchanged() &&
