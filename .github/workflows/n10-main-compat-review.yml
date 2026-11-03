@@ -9,6 +9,9 @@ on:
     paths:
       - 'js/mmhvault-n10-a7-83-security-center.js'
       - 'security/n10-main-compat/**'
+      - 'security/n10-signup-escrow-review/**'
+      - 'security/n10-recovery-view/**'
+      - 'security/n10-integration-review/**'
       - '.github/workflows/n10-main-compat-review.yml'
 permissions:
   contents: read
@@ -28,6 +31,18 @@ jobs:
         run: node --check js/mmhvault-n10-a7-83-security-center.js
       - name: Run synthetic security and MFA regressions
         run: node security/n10-main-compat/test-ui-secret-guards.mjs
+      - name: Parse isolated recovery integration modules
+        run: |
+          node --check security/n10-signup-escrow-review/immutable-signup-escrow.mjs
+          node --check security/n10-recovery-view/recovery-transport.mjs
+          node --check security/n10-recovery-view/recovery-view-controller.mjs
+          node --check security/n10-recovery-view/recovery-view-lifecycle.mjs
+          node --check security/n10-integration-review/test-fixed-key-signup-to-reveal.mjs
+      - name: Test signup escrow, private viewer, lifecycle, transport and integration
+        run: |
+          node --test security/n10-signup-escrow-review/test-immutable-signup-escrow.mjs
+          node --test security/n10-recovery-view/test-recovery-transport.mjs security/n10-recovery-view/test-recovery-view-controller.mjs security/n10-recovery-view/test-recovery-view-lifecycle.mjs
+          node --test security/n10-integration-review/test-fixed-key-signup-to-reveal.mjs
       - name: Install Playwright browser test runtime
         run: |
           npm install --no-save playwright@1.56.1
