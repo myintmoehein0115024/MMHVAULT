@@ -25,7 +25,7 @@ jobs:
         run: node security/n10-vault-qa-staging-site/test-client.mjs
       - name: Run server-clock countdown and expiry tests
         run: node security/n10-vault-qa-staging-site/test-window-clock.mjs
-      - name: Verify exact one-line Stage Edge origin diff and hard-OFF flags
+      - name: Verify exact scoped Stage Edge origin, status and MFA hard-OFF diff
         run: node security/n10-vault-qa-staging-edge/test-edge-origin.mjs
       - name: Offline synthetic cross-owner and AAL2 negative checks
         run: node security/n10-vault-qa-staging-edge/test-negative-authorization.mjs
