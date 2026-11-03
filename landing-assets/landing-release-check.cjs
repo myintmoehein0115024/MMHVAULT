@@ -61,8 +61,51 @@ const l142NewBusinessTag="  <!-- L1.42: business section is below the fold; do n
 // L1.44: only the motion stylesheet link and its no-script fallback can change.
 const l144OldMotionTag="  <link rel=\"stylesheet\" href=\"./landing-assets/motion-l132.css?v=l141\">";
 const l144NewMotionTag="  <!-- L1.44: animation-only layer is progressive enhancement, not first-paint critical. -->\n  <link rel=\"stylesheet\" href=\"./landing-assets/motion-l132.css?v=l141\" media=\"print\" onload=\"this.onload=null;this.media='all'\">\n  <noscript><link rel=\"stylesheet\" href=\"./landing-assets/motion-l132.css?v=l141\"></noscript>";
-const l144IndexOnlyEdited=()=>prev.split(l144OldMotionTag).length===2 &&
-  current===prev.replace(l144OldMotionTag,l144NewMotionTag);
+// L1.45: preserve every homepage byte except one version change for the
+// compacted first-party stylesheet; all previous L1.44 URL guards stay.
+const l145OldLandingTag='<link rel="stylesheet" href="./landing-assets/landing.css?v=l141">';
+const l145NewLandingTag='<link rel="stylesheet" href="./landing-assets/landing.min.css?v=l145">';
+const l145IndexOnlyEdited=()=>prev.split(l145OldLandingTag).length===2 &&
+  current===prev.replace(l145OldLandingTag,l145NewLandingTag);
+const l144IndexOnlyEdited=()=>l145IndexOnlyEdited() &&
+  current.includes(l144NewMotionTag);
+
+// Conservatively compact *only* comments and formatting whitespace outside
+// CSS strings. Do not reorder declarations, merge rules or change values.
+const l145CompactCss=src=>{
+  let out='',quote='',inComment=false,space=false;
+  for(let i=0;i<src.length;i++){
+    const c=src[i],next=src[i+1];
+    if(inComment){if(c==='*'&&next==='/'){inComment=false;i++;space=true}continue}
+    if(quote){
+      out+=c;
+      if(c==='\\'&&i+1<src.length){out+=src[++i];continue}
+      if(c===quote)quote='';
+      continue;
+    }
+    if(c==='"'||c==="'"){
+      if(space){if(!/[{;}]/.test(out.at(-1)||''))out+=' ';space=false}
+      out+=c;quote=c;continue;
+    }
+    if(c==='/'&&next==='*'){inComment=true;i++;space=true;continue}
+    if(/\s/.test(c)){space=true;continue}
+    if(space){
+      const prev=out.at(-1)||'';
+      if(!(!prev||prev==='{'||prev===';'||prev==='}'||c==='}'||c===';'||c==='{'))out+=' ';
+      space=false;
+    }
+    out+=c;
+  }
+  if(quote||inComment)throw Error('Malformed original Landing CSS');
+  return out.trim()+'\n';
+};
+const l145CssOnlyEdited=()=>{
+  const original=source('landing-assets/landing.css');
+  const compact=read('landing-assets/landing.min.css');
+  return read('landing-assets/landing.css')===original &&
+    compact===l145CompactCss(original) &&
+    compact.length<original.length-8000;
+};
 const l142IndexOnlyEdited=()=>l144IndexOnlyEdited() &&
   current.includes(l142NewBusinessTag);
 
@@ -123,7 +166,7 @@ const l137PublicJSOnlyEdited=()=>{
   return l139PublicOnlyEdited() && expected.includes(l137PublicStorageHook);
 };
 const l133BurmeseLayoutOnlyEdited=()=>
-  read('landing-assets/landing.css')===source('landing-assets/landing.css') &&
+  l145CssOnlyEdited() &&
   source('landing-assets/landing.css').endsWith(l134ResponsiveCssSuffix) &&
   source('landing-assets/landing.css').includes(l133BurmeseCssSuffix) &&
   l137LandingJSOnlyEdited() &&
@@ -182,7 +225,10 @@ check('Protected Business page remains noindex',/<meta[^>]*name=["']robots["'][^
 
 const names=['landing.css','business.css','cinematic.css','landing.js','premium-l131.css','explore-l114.css','motion-l132.css','motion-l132.js','luxury-horizon.svg','premium-architecture.svg','cinematic-lake.webp','personal-business-concept.webp'];
 check('All required live assets exist',names.every(f=>fs.existsSync('landing-assets/'+f)));
-check('Landing style and script links correct',['landing.css','business.css','cinematic.css','landing.js'].every(f=>current.includes('./landing-assets/'+f)));
+check('Landing style and script links correct',['landing.min.css','business.css','cinematic.css','landing.js'].every(f=>current.includes('./landing-assets/'+f)));
+check('L1.45 editable stylesheet retained alongside compact runtime CSS',
+  read('landing-assets/landing.css')===source('landing-assets/landing.css') &&
+  l145CssOnlyEdited());
 check('L1.31 premium layer linked and scoped', current.includes('class="l131 mmh-nav-unified"') && current.includes('href="./landing-assets/premium-l131.css?v=l141"') && read('landing-assets/premium-l131.css').includes('body.l131 .showcase-v2'));
 check('Explore styles load after existing premium/motion layers and remain scoped',
  current.includes('href="./landing-assets/explore-l114.css?v=l141"') &&
@@ -217,7 +263,7 @@ check('Sitemap has no private app or login',!/<loc>[^<]*\/(?:app|login|n10-qa)\.
 check('PWA launcher points to secure Login',manifest.start_url==='./login.html?source=pwa&install=v2');
 check('Manifest differs only in start_url',JSON.stringify({...manifest,start_url:oldManifest.start_url})===JSON.stringify(oldManifest));
 check('Preserved old iPhone touch icon',current.includes('<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=pwa24-20261029">'));
-const allowed=new Set(['index.html','robots.txt','mmh-manifest-v2.webmanifest','business.html','sitemap.xml','register/index.html','features/index.html','about/index.html','business/index.html','privacy.html','terms.html','security.html','landing-assets/public-pages.css','landing-assets/public-header-l115.css','landing-assets/shared-header-l116.css','landing-assets/public-pages.js','landing-assets/landing-release-check.cjs','landing-assets/landing-browser-check.cjs','.github/workflows/landing-release-check.yml',...names.map(f=>'landing-assets/'+f)]);
+const allowed=new Set(['index.html','robots.txt','mmh-manifest-v2.webmanifest','business.html','sitemap.xml','register/index.html','features/index.html','about/index.html','business/index.html','privacy.html','terms.html','security.html','landing-assets/public-pages.css','landing-assets/public-header-l115.css','landing-assets/shared-header-l116.css','landing-assets/public-pages.js','landing-assets/landing-release-check.cjs','landing-assets/landing-browser-check.cjs','.github/workflows/landing-release-check.yml',...names.map(f=>'landing-assets/'+f),'landing-assets/landing.min.css']);
 const diff=cp.spawnSync('git',['diff','--name-only',main+'...HEAD'],{encoding:'utf8'});
 assert.equal(diff.status,0,'git diff unsuccessful');
 const actual=diff.stdout.trim().split(/\n/).filter(Boolean);
@@ -655,10 +701,11 @@ check('L1.27 public tab title matches SEO without language focus scroll',
  l133PublicPagesUnchanged() &&
  l142IndexOnlyEdited() && current.includes(newHeroPreload) &&
  !current.includes(oldHeroPreload));
-check('L1.44 exact three-file nonblocking motion enhancement scope',
- actual.length===3 &&
+check('L1.45 exact four-file source-preserving compact CSS scope',
+ actual.length===4 &&
  actual.every(path=>[
   'index.html',
+  'landing-assets/landing.min.css',
   'landing-assets/landing-release-check.cjs',
   'landing-assets/landing-browser-check.cjs'
  ].includes(path)) &&
@@ -687,7 +734,7 @@ check('L1.41 all nine first-party style/script URLs keep coordinated versions',
   l141AssetReplacements.length===9 &&
   l141AssetReplacements.every(([before,after])=>
     before!==after && after.includes('?v=l141') &&
-    current.split(after).length===(/business\.css|motion-l132\.css/.test(after)?3:2) && !current.includes(before)) &&
+    current.split(after.replace('landing.css?v=l141','landing.min.css?v=l145')).length===(/business\.css|motion-l132\.css/.test(after)?3:2) && !current.includes(before)) &&
   (current.match(/<link rel="preload" as="image"/g)||[]).length===1 &&
   (current.match(/<script defer src=/g)||[]).length===2 &&
   !current.includes('user-scalable=no'));
@@ -722,6 +769,17 @@ check('L1.44 motion stylesheet loads without blocking Hero and keeps no-script s
   read('landing-assets/landing.js')===source('landing-assets/landing.js') &&
   read('landing-assets/explore-l114.css')===source('landing-assets/explore-l114.css') &&
   read('landing-assets/shared-header-l116.css')===source('landing-assets/shared-header-l116.css'));
+check('L1.45 compacted CSS exactly matches formatting-only transformation with safe cache key',
+  l145IndexOnlyEdited() &&
+  l145CssOnlyEdited() &&
+  current.includes(l145NewLandingTag) &&
+  !current.includes(l145OldLandingTag) &&
+  read('landing-assets/landing.min.css').includes('scroll-behavior:smooth') &&
+  read('landing-assets/landing.min.css').includes('Noto Sans Myanmar') &&
+  read('landing-assets/landing-browser-check.cjs').includes('L1.45 CSSOM rule-for-rule equivalence') &&
+  read('.github/workflows/landing-release-check.yml')===source('.github/workflows/landing-release-check.yml') &&
+  read('landing-assets/cinematic.css')===source('landing-assets/cinematic.css') &&
+  read('landing-assets/landing.js')===source('landing-assets/landing.js'));
 check('L1.34 mobile EN ZH MY card stability and touch-safe scrolling',
   l133BurmeseLayoutOnlyEdited() &&
   l134ResponsiveCssSuffix.includes('min-height: 94px') &&
