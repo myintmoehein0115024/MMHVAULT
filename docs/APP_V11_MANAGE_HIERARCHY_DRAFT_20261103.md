@@ -59,6 +59,21 @@ Tab focus inside, supports Escape close, returns focus to the originating card,
 prevents background scroll, and keeps an accessible title in editor/confirm views.
 These are implementation-level checks, not a completed Safari/mobile acceptance.
 
+## Last transaction cloud readback (draft follow-up)
+
+The UI now distinguishes a confirmed ledger insert from an owner-scoped
+Manage link verified in cloud configuration. It schedules an immediate
+sync check through the existing MMHConfigCloudSyncV122.syncNow(false) API and
+performs a read-only personal_configuration owner-filtered readback of the
+exact record ID, canonical ledger values and three Manage IDs. If the queue is
+busy, cloud is unavailable or data disagrees, the UI stays Pending and
+provides a manual Recheck sync action in Manage. It never displays
+cloud verified from local state alone. On owner switch the status is cleared.
+No remote row is modified by the verification query. Duplicate callbacks for
+the same existing link are idempotent, while an attempt to rebind an existing
+record ID to a different path is rejected. Model/controller tests cover these
+invariants. This is not an atomic DB transaction or signed Staging A/B proof.
+
 ## Operational caveats — must pass before live release
 
 1. Real authenticated **Staging** dual-owner test: fresh account empty,
