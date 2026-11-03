@@ -37,6 +37,18 @@ choices but does not rewrite the transaction ledger, balances or reports.
   **5/5 workflows SUCCESS**, including finance data-link, account
   balance, photo, prior V11 layout and new hierarchy safety checks.
 
+## Post-insert usage lock hardening (draft follow-up)
+
+A confirmed ledger record's owner-scoped JSON sidecar now immediately marks its
+Type, Transaction and Category as **used**, even before the refreshed history
+query includes the row. Edit/Delete remain blocked, while Archive and the
+original ledger record/link stay unchanged. Controller/model synthetic regression
+cases assert all three fields are locked in this post-insert gap.
+
+This only fixes the **confirmed-and-saved-sidecar** gap. A failed/offline/cloud-
+queued sidecar upload, competing tab, or cross-device readback still needs real
+Staging/browser tests; it is not a claim of atomic ledger/config persistence.
+
 ## Operational caveats — must pass before live release
 
 1. Real authenticated **Staging** dual-owner test: fresh account empty,
