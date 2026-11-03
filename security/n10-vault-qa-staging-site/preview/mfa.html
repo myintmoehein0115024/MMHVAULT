@@ -69,7 +69,12 @@
   </div>
   <h2 id="qrTitle" data-t="qrTitle">使用 Authenticator 扫描二维码</h2>
   <p class="small" data-t="qrNote">绑定密钥只用于当前测试账户；不要截图或转发。绑定完成后将立即隐藏。</p>
-  <div class="qrwrap"><img id="qr" alt="Authenticator enrollment QR" width="215" height="215"></div>
+  <div class="qrwrap" id="qrWrap"><img id="qr" alt="Authenticator enrollment QR" width="215" height="215"></div>
+  <button type="button" class="outline" id="manualToggle" data-t="manualToggle">无法扫描？显示手动绑定密钥</button>
+  <div id="manualSection" class="manual-key" hidden>
+   <p class="small" data-t="manualNote">只在你的 Authenticator 中输入此密钥，不要复制到聊天或截图。</p>
+   <code id="manualSecret" class="secret-value" aria-live="off"></code>
+  </div>
   <p class="small" data-t="qrVerifyNote">完成扫描后关闭弹窗，输入应用里的六位码。</p>
   <button type="button" class="primary" id="qrDone" data-t="qrDone">已扫描，开始验证</button>
  </div>
