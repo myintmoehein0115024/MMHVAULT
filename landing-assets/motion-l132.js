@@ -46,17 +46,30 @@
   });
   root.classList.add('mm-motion-active');
 
-  // L1.40: prewarm mobile reveals further ahead of fast swipes, with no
-  // intersection threshold that might skip a narrow card. Desktop unchanged.
-  const mobileReveal = window.matchMedia && window.matchMedia('(max-width: 620px)').matches;
-  const observer=new IntersectionObserver(entries=>{
-    for(const entry of entries){
-      if(!entry.isIntersecting)continue;
-      entry.target.classList.add('mm-shown');
-      observer.unobserve(entry.target);
-    }
-  },{rootMargin:mobileReveal?'0px 0px 24% 0px':'0px 0px -6% 0px',threshold:mobileReveal?0:0.065});
-  elements.filter(el=>!el.classList.contains('mm-shown')).forEach(el=>observer.observe(el));
+  // L1.57: update reveal timing on phone rotation or window resize
+  // across 620px, without re-hiding previously revealed content.
+  const revealMedia=window.matchMedia
+    ? window.matchMedia('(max-width: 620px)'):{matches:false};
+  let observer;
+  const rebuildRevealObserver=()=>{
+    const mobileReveal=revealMedia.matches;
+    const nextObserver=new IntersectionObserver((entries,activeObserver)=>{
+      for(const entry of entries){
+        if(!entry.isIntersecting)continue;
+        entry.target.classList.add('mm-shown');
+        activeObserver.unobserve(entry.target);
+      }
+    },{rootMargin:mobileReveal?'0px 0px 24% 0px':'0px 0px -6% 0px',threshold:mobileReveal?0:0.065});
+    elements.filter(el=>!el.classList.contains('mm-shown')).forEach(el=>nextObserver.observe(el));
+    const previous=observer;
+    observer=nextObserver;
+    if(previous)previous.disconnect();
+  };
+  rebuildRevealObserver();
+  if(typeof revealMedia.addEventListener==='function')
+    revealMedia.addEventListener('change',rebuildRevealObserver);
+  else if(typeof revealMedia.addListener==='function')
+    revealMedia.addListener(rebuildRevealObserver);
 
   // Clicking a guide or an in-page navigation link must reveal the destination,
   // even if the user jumps directly to a hash without a normal scroll.
