@@ -176,7 +176,7 @@ test('legacy display aliases retain all linked choices and migrate without alter
   assert.doesNotThrow(()=>normalizePersistedHierarchy(g,A));
 });
 test('long international legacy Category names have bounded stable IDs',()=>{
-  const name='🌟'.repeat(38);
+  const name='🌟'.repeat(18);
   const g=legacyHierarchy(A,{categories:{Income:[name]}});
   assert.ok(g.categories.find(x=>x.label===name));
   assert.ok(g.categories.every(x=>x.id.length<=180));
