@@ -736,7 +736,7 @@
     refresh();
   }
   window.MMHV11TxFieldPrefs={
-    version:'3.0.1',isManaged,hasCategory,markCategory,onCategoryRenamed,fieldItems,saveName,removeName,refreshManage,
+    version:'3.0.3',isManaged,hasCategory,markCategory,onCategoryRenamed,fieldItems,saveName,removeName,refreshManage,
     // Public presentation hooks: keep all changes owner-scoped and canonical.
     getCategoryEntries:()=>categories().map(x=>({...x})),
     getArchivedCategoryEntries:()=>state()?Object.entries(config()?.archivedCategories||{})
@@ -786,10 +786,10 @@
   if(typeof document.querySelector==='function'&&document.head){
     const stylesheet=document.createElement('link');
     stylesheet.rel='stylesheet';
-    stylesheet.href='css/mmhvault-v11-manage-glass-dialogs.css?v=1.0.0';
+    stylesheet.href='css/mmhvault-v11-manage-glass-dialogs.css?v=1.0.1';
     document.head.appendChild(stylesheet);
     const addon=document.createElement('script');
-    addon.src='js/mmhvault-v11-manage-glass-dialogs.js?v=1.0.0';
+    addon.src='js/mmhvault-v11-manage-glass-dialogs.js?v=1.0.1';
     addon.async=false;
     document.head.appendChild(addon);
   }
