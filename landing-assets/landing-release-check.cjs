@@ -813,9 +813,10 @@ check('L1.56 public-only scope or Analytics V1 isolated scope',
   'landing-assets/landing-release-check.cjs',
   'landing-assets/landing-browser-check.cjs'
  ].includes(path))) ||
- (actual.length===2 &&
+ (actual.length===3 &&
   actual.includes('index.html') &&
   actual.includes('landing-assets/landing-release-check.cjs') &&
+  actual.includes('landing-assets/landing-browser-check.cjs') &&
   current===prev && analyticsAddition.test(rawCurrent))) &&
  l142IndexOnlyEdited() &&
  l133BurmeseLayoutOnlyEdited() &&
