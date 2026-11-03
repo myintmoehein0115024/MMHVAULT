@@ -64,8 +64,12 @@ function nativeForm(h){
   };
   nodes.txForm=form;nodes.txType=t;nodes.txGroup=g;nodes.txCategory=c;
   context.document.createElement=tag=>({
-    tagName:tag.toUpperCase(),dataset:{},style:{},hidden:false,
-    value:'',textContent:'',replaceChildren(){},setAttribute(){}
+    tagName:tag.toUpperCase(),dataset:{},style:{},hidden:false,children:[],
+    value:'',textContent:'',
+    append(...items){this.children.push(...items);},
+    replaceChildren(...items){this.children=[...items];},
+    addEventListener(event,callback){(this.listeners||(this.listeners={}))[event]=callback;},
+    setAttribute(name,value){(this.attributes||(this.attributes={}))[name]=value;}
   });
   context.syncTransactionGroup=()=>{
     const groups=t.value==='Income'?['Income','Loans','Data Adjustment']:
@@ -88,6 +92,48 @@ function nativeForm(h){
   };
   return {t,g,c,labels,form};
 }
+
+test('zero or one configured field hides all three native selects, not a fake Salary dropdown',()=>{
+  const h=harness(fresh()),dom=nativeForm(h);
+  h.nodes.txSmartV141={dataset:{}};
+  h.api.refresh();
+  for(const label of Object.values(dom.labels)){
+    assert.equal(label.hidden,true);
+    assert.equal(label.dataset.mmhV12Hidden,'1');
+  }
+  assert.equal(h.nodes.txSmartV141.dataset.mmhV12Setup,'1');
+  const hint=h.nodes.mmhV12SetupNote;
+  assert.ok(hint,'a single setup notice is present');
+  assert.match(hint.className,/full/,'notice fills the form grid instead of occupying a field slot');
+  assert.match(hint.children[0].textContent,/at least two fields/i);
+  assert.ok(hint.children[1].listeners.click,'setup notice links to Manage');
+  assert.equal(h.api.validate(),false);
+  h.config.txFieldsV12.category.push('Income|Salary');
+  h.api.refresh();
+  for(const label of Object.values(dom.labels))assert.equal(label.hidden,true,
+    'a single configured Category must NOT show Salary as a usable form field');
+  assert.equal(h.api.validate(),false);
+});
+
+test('two configured fields restore only the requested labels and hide setup instructions',()=>{
+  const h=harness({version:1,type:['Income'],transaction:['Income|Income'],category:[]}),dom=nativeForm(h);
+  h.nodes.txSmartV141={dataset:{}};
+  h.api.refresh();
+  assert.equal(dom.labels.type.hidden,false);
+  assert.equal(dom.labels.transaction.hidden,false);
+  assert.equal(dom.labels.category.hidden,true);
+  assert.equal(h.nodes.txSmartV141.dataset.mmhV12Setup,'0');
+  assert.equal(h.nodes.mmhV12SetupNote.hidden,true);
+  assert.equal(h.api.validate(),true);
+});
+
+test('Manage displays existing native Category editor beside Type and Transaction rather than separate duplicate controls',()=>{
+  assert.match(source,/categoryCard=make\('div','mmh-v12-col mmh-v12-col-category'\)/);
+  assert.match(source,/if\(categoryForm\)categoryCard\.append\(categoryForm\)/);
+  assert.match(source,/if\(!isManaged\(\)\)\{[\s\S]*?header\.after\(categoryForm\)/);
+  assert.match(source,/compatible=kind==='transaction'/);
+  assert.doesNotMatch(source,/data-tx-pref-select-v11|mmh-tx-quick-v11|makePref\(/);
+});
 
 test('fresh owner can add Transaction first and Category second without losing hidden Type',()=>{
   const h=harness(fresh()),dom=nativeForm(h);
@@ -217,7 +263,7 @@ test('Manage Type + Transaction automatically selects only those two fields',()=
   assert.equal(h.api.layoutInfo().transaction.length,2);
   assert.equal(h.api.layoutInfo().category.length,0);
   assert.match(source,/dataset\.mmhV12Hidden/);
-  assert.match(source,/enabled\[name\]\?'0':'1'/);
+  assert.match(source,/el\.dataset\.mmhV12Hidden=visible\?'0':'1'/);
   assert.match(source,/neutral\(type,group\)/);
 });
 
@@ -271,7 +317,7 @@ test('original Add Transaction layout is not restructured or duplicated',()=>{
   assert.match(app,/<div class="tx-tab-panel-v371" id="txAddPanel"/);
   assert.match(app,/<div class="mmh-form-section-v1 full"><span data-en="Accounts & amounts"/);
   assert.match(app,/<div class="mmh-form-section-v1 full"><span data-en="Note & attachment"/);
-  assert.match(app,/js\/mmhvault-transaction-field-layout-v11\.js\?v=2\.0\.0/);
+  assert.match(app,/js\/mmhvault-transaction-field-layout-v11\.js\?v=2\.1\.0/);
   assert.doesNotMatch(source,/txPrefHolderV11|mmh-tx-pref-v11|quick\(form/);
 });
 
