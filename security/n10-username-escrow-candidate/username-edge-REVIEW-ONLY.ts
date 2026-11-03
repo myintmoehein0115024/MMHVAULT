@@ -1,7 +1,7 @@
 
 import { createClient } from 'npm:@supabase/supabase-js@2.57.4';
 import { wordlist } from 'npm:@scure/bip39@1.6.0/wordlists/english';
-import { createEscrowedUsernameEnrollment } from '../n10-signup-escrow-review/immutable-signup-escrow.mjs';
+import { createEscrowedUsernameEnrollment } from './immutable-signup-escrow.mjs';
 const PROJECT='vrypucmyrztxgiqhjspd';
 const RELEASE_ENABLED=false; // REVIEW ONLY. DO NOT DEPLOY OR ENABLE.
 const BASE=Deno.env.get('SUPABASE_URL')||'';
