@@ -102,6 +102,8 @@ function resetView(){
 }
 const codes=Object.freeze({
  recovery_service_not_released:'Staging Vault QA 目前关闭（正常）。请等待临时安全测试窗口。',
+ qa_window_invalid_metadata:'服务器未返回有效的窗口截止时间；敏感操作已禁用。',
+ qa_window_insufficient:'剩余时间不足，已阻止生成或查看操作。请不要重复点击。',
  qa_window_closed:'测试窗口已结束，Vault 自动拒绝请求。',
  mfa_required:'必须先完成二级验证，不能查看恢复密钥。',
  synthetic_qa_account_required:'仅允许预先审核的两名合成测试账户。',
@@ -139,8 +141,11 @@ async function act(fn){
  if(!canRun||busy)return;
  busy=true;document.querySelectorAll('button').forEach(b=>b.disabled=true);
  try{await fn()}
- catch(e){message(errDesc(e));}
- finally{busy=false;document.querySelectorAll('button').forEach(b=>b.disabled=false)}
+ catch(e){
+  if(e?.qaCode==='qa_window_closed'||e?.qaCode==='recovery_service_not_released')discardWindow(true);
+  message(errDesc(e));
+ }
+ finally{busy=false;document.querySelectorAll('button').forEach(b=>b.disabled=false);renderWindowClock();}
 }
 async function verifiedUser(){
  const {data,error}=await client.auth.getUser();
@@ -157,6 +162,9 @@ async function verifiedAal2(){
  if(error||data?.currentLevel!=='aal2')throw Error('aal2_required');
 }
 async function callVault(action,fields={}){
+ if(action==='qa_initialize')requireWindow(120);
+ else if(action==='backup_existing')requireWindow(45);
+ else if(action==='reveal')requireWindow(30);
  await verifiedAal2();
  const {data,error}=await client.auth.getSession();
  if(error||!data?.session?.access_token||!data.session.expires_at
@@ -181,7 +189,7 @@ function needPassword(id){
 }
 $('loginBtn').addEventListener('click',()=>act(async()=>{
  const email=$('account').value,password=$('loginPwd').value;
- $('loginPwd').value='';
+ $('loginPwd').value='';discardWindow(false);
  if(!OWNERS.includes(email)||password.length<6||password.length>20)throw Error('invalid_login');
  await client.auth.signOut({scope:'local'}).catch(()=>{});
  const {data,error}=await client.auth.signInWithPassword({email,password});
@@ -207,6 +215,7 @@ async function intoVault(){
  $('signedAs').textContent=user.email===OWNERS[0]?'已验证账户 A · MFA AAL2':'已验证账户 B · MFA AAL2';
  message('Staging AAL2 已通过；Vault 功能仍须经过服务端独立授权。');
  info('请点击「检查备份状态」确认测试服务是否开放。');
+ discardWindow(false);
 }
 $('mfaBtn').addEventListener('click',()=>act(async()=>{
  const code=$('totp').value.trim();$('totp').value='';
@@ -221,10 +230,12 @@ $('mfaBtn').addEventListener('click',()=>act(async()=>{
 $('refreshStatusBtn').addEventListener('click',()=>act(async()=>{
  const value=await callVault('status');
  if(value.code!=='backup_status'||typeof value.backed_up!=='boolean')throw Error('invalid_status');
+ armWindow(value.window_expires_at,value.server_utc_now);
  info(value.backed_up?'✅ 已存在加密备份（不会重置十词）。':'尚无加密备份（合成测试账户）。');
  message('Staging Vault 状态读取成功；只返回有无备份，不泄露恢复词。');
 }));
 $('initBtn').addEventListener('click',()=>act(async()=>{
+ requireWindow(120);
  let p=needPassword('setupPwd');
  let words=null, backup=false;
  try{
@@ -246,6 +257,7 @@ $('initBtn').addEventListener('click',()=>act(async()=>{
  if(backup)message('合成十词已初始化并加密；请在45秒内确认内容。稍后可用密码查看原来的十词。');
 }));
 $('retryBtn').addEventListener('click',()=>act(async()=>{
+ requireWindow(45);
  let p=needPassword('retryPwd');
  try{
   if(!pendingPhrase)throw Error('phrase_expired');
@@ -256,6 +268,7 @@ $('retryBtn').addEventListener('click',()=>act(async()=>{
  }finally{p='';}
 }));
 $('revealBtn').addEventListener('click',()=>act(async()=>{
+ requireWindow(30);
  let p=needPassword('revealPwd');
  try{
   hidePhrase();
@@ -272,4 +285,7 @@ $('logoutBtn').addEventListener('click',()=>act(async()=>{
 }));
 document.addEventListener('visibilitychange',()=>{if(document.hidden)hidePhrase();});
 window.addEventListener('pagehide',()=>{hidePhrase();clearInputs();});
+// A display-only local clock; the server remains the sole authorization authority.
+setInterval(renderWindowClock,750);
+renderWindowClock();
 })();
