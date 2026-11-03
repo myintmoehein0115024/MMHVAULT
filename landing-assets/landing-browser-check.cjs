@@ -1242,6 +1242,35 @@ async function load(page,route,failures){
      }
    }
 
+   // L1.39: real IntersectionObserver configuration in phone and desktop
+   // browsers. Only mobile receives a positive early-reveal bottom margin.
+   for(const width of [393,1440]){
+     for(const [route,expected] of [
+       ['/',width<=620?'0px 0px 12% 0px':'0px 0px -6% 0px'],
+       ['/features/',width<=620?'0px 0px 12% 0px':'0px 0px -4% 0px']
+     ]){
+       const ctx=await browser.newContext({viewport:{width,height:852},reducedMotion:'no-preference'});
+       const page=await ctx.newPage();
+       const errors=[];
+       page.on('pageerror',err=>errors.push(err.message));
+       await page.addInitScript(()=>{
+         const Native=window.IntersectionObserver;
+         window.__mmhL139ObserverMargins=[];
+         if(typeof Native==='function')window.IntersectionObserver=class extends Native{
+           constructor(callback,options){
+             if(options?.rootMargin)window.__mmhL139ObserverMargins.push(options.rootMargin);
+             super(callback,options);
+           }
+         };
+       });
+       await load(page,route,errors);
+       const margins=await page.evaluate(()=>window.__mmhL139ObserverMargins);
+       ensure(margins.includes(expected)&&errors.length===0,
+         'L1.39 '+route+' '+width+'px correct early scroll reveal margin '+JSON.stringify(margins));
+       await ctx.close();
+     }
+   }
+
    // L1.23 — verify actual browser transitions avoid expensive blur filters,
    // preserve progressive reveals and use quicker phone timings.
    for(const width of [393,1440]){

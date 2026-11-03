@@ -23,12 +23,13 @@ const l135HeaderCssSuffix="\n/* L1.35: Public mobile header shows the selected l
 const l136TouchTargetReplacements=[["flex:0 0 42px;width:42px;min-width:42px;min-height:42px;height:42px","flex:0 0 44px;width:44px;min-width:44px;min-height:44px;height:44px"],["width:42px;min-width:42px;min-height:42px;height:42px","width:44px;min-width:44px;min-height:44px;height:44px"],["min-width:39px;width:39px;min-height:39px;height:39px;flex-basis:39px","min-width:44px;width:44px;min-height:44px;height:44px;flex-basis:44px"]];
 const l138MotionReplacements=[["-webkit-backdrop-filter:blur(32px);backdrop-filter:blur(32px);","-webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px);"],["from{opacity:0;transform:translate3d(0,-7px,0)}","from{opacity:.28;transform:translate3d(0,-4px,0)}"],["animation:mmh-public-panel-in .19s cubic-bezier(.2,.65,.3,1) both","animation:mmh-public-panel-in .22s cubic-bezier(.2,.65,.3,1) both"],["animation:mmh-public-panel-in .17s cubic-bezier(.2,.65,.3,1) both","animation:mmh-public-panel-in .22s cubic-bezier(.2,.65,.3,1) both"]];
 const l138MotionOnlyEdited=()=>{
-  let expected=source('landing-assets/shared-header-l116.css');
-  for(const [before,after] of l138MotionReplacements){
-    if(!expected.includes(before) || expected.indexOf(before)!==expected.lastIndexOf(before))return false;
-    expected=expected.replace(before,after);
-  }
-  return read('landing-assets/shared-header-l116.css')===expected;
+  // L1.38 has already shipped. Protect its final motion and glass styles
+  // byte-for-byte against the latest main instead of reapplying the old diff.
+  const expected=source('landing-assets/shared-header-l116.css');
+  return read('landing-assets/shared-header-l116.css')===expected &&
+    expected.includes('-webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px);') &&
+    expected.includes('from{opacity:.28;transform:translate3d(0,-4px,0)}') &&
+    expected.includes('animation:mmh-public-panel-in .22s cubic-bezier(.2,.65,.3,1) both');
 };
 const l136HeaderTargetsOnlyEdited=()=>{
   // L1.36 is merged: preserve its 44px compact targets plus L1.38 scoped motion.
@@ -48,10 +49,27 @@ const l137LandingJSOnlyEdited=()=>{
   return read('landing-assets/landing.js')===expected &&
     expected.includes(l137LandingStorageHook);
 };
+const l139MotionInsertion="  // L1.39: begin phone reveals just before cards enter view to avoid a\n  // temporary blank during quick scrolling; desktop timing is unchanged.\n  const mobileReveal = window.matchMedia && window.matchMedia('(max-width: 620px)').matches;\n";
+const l139PublicInsertion="      // L1.39: pre-reveal phone cards ahead of viewport; leave desktop as-is.\n      const mobileReveal=window.matchMedia('(max-width: 620px)').matches;\n";
+const l139MotionOnlyEdited=()=>{
+  const original=source('landing-assets/motion-l132.js');
+  return original.includes("  const observer=new IntersectionObserver(entries=>{") &&
+    original.includes("{rootMargin:'0px 0px -6% 0px',threshold:0.065}") &&
+    read('landing-assets/motion-l132.js')===
+      original.replace("  const observer=new IntersectionObserver(entries=>{",l139MotionInsertion+"  const observer=new IntersectionObserver(entries=>{")
+        .replace("{rootMargin:'0px 0px -6% 0px',threshold:0.065}","{rootMargin:mobileReveal?'0px 0px 12% 0px':'0px 0px -6% 0px',threshold:0.065}");
+};
+const l139PublicOnlyEdited=()=>{
+  const original=source('landing-assets/public-pages.js');
+  return original.includes("      const observer=new IntersectionObserver(entries=>{") &&
+    original.includes("{threshold:.045,rootMargin:'0px 0px -4% 0px'}") &&
+    read('landing-assets/public-pages.js')===
+      original.replace("      const observer=new IntersectionObserver(entries=>{",l139PublicInsertion+"      const observer=new IntersectionObserver(entries=>{")
+        .replace("{threshold:.045,rootMargin:'0px 0px -4% 0px'}","{threshold:.045,rootMargin:mobileReveal?'0px 0px 12% 0px':'0px 0px -4% 0px'}");
+};
 const l137PublicJSOnlyEdited=()=>{
   const expected=source('landing-assets/public-pages.js');
-  return read('landing-assets/public-pages.js')===expected &&
-    expected.includes(l137PublicStorageHook);
+  return l139PublicOnlyEdited() && expected.includes(l137PublicStorageHook);
 };
 const l133BurmeseLayoutOnlyEdited=()=>
   read('landing-assets/landing.css')===source('landing-assets/landing.css') &&
@@ -586,10 +604,11 @@ check('L1.27 public tab title matches SEO without language focus scroll',
  l133PublicPagesUnchanged() &&
  current===prev && current.includes(newHeroPreload) &&
  !current.includes(oldHeroPreload));
-check('L1.38 exact three-file public header motion scope',
- actual.length===3 &&
+check('L1.39 exact four-file early mobile reveal scope',
+ actual.length===4 &&
  actual.every(path=>[
-  'landing-assets/shared-header-l116.css',
+  'landing-assets/motion-l132.js',
+  'landing-assets/public-pages.js',
   'landing-assets/landing-release-check.cjs',
   'landing-assets/landing-browser-check.cjs'
  ].includes(path)) &&
@@ -601,7 +620,6 @@ check('L1.38 exact three-file public header motion scope',
  ['landing-assets/public-pages.css',
   'landing-assets/business.css','landing-assets/cinematic.css',
   'landing-assets/premium-l131.css','landing-assets/motion-l132.css',
-  'landing-assets/motion-l132.js',
   'sitemap.xml','robots.txt','mmh-manifest-v2.webmanifest']
  .every(path=>read(path)===source(path)));
 check('L1.34 mobile EN ZH MY card stability and touch-safe scrolling',
@@ -649,7 +667,17 @@ check('L1.38 calmer paint-only public panels preserve accessibility and asset bu
  read('landing-assets/shared-header-l116.css').includes('prefers-reduced-motion:no-preference') &&
  read('landing-assets/shared-header-l116.css').includes('prefers-reduced-motion:reduce') &&
  read('landing-assets/landing.js')===source('landing-assets/landing.js') &&
- read('landing-assets/public-pages.js')===source('landing-assets/public-pages.js') &&
+ l139PublicOnlyEdited() &&
+ current===prev);
+check('L1.39 phone scroll reveals prewarm outside viewport without layout edits',
+ l139MotionOnlyEdited() && l139PublicOnlyEdited() &&
+ read('landing-assets/motion-l132.js').includes("mobileReveal?'0px 0px 12% 0px':'0px 0px -6% 0px'") &&
+ read('landing-assets/public-pages.js').includes("mobileReveal?'0px 0px 12% 0px':'0px 0px -4% 0px'") &&
+ !l139MotionInsertion.includes('preventDefault(') &&
+ !l139PublicInsertion.includes('preventDefault(') &&
+ read('landing-assets/landing.js')===source('landing-assets/landing.js') &&
+ read('landing-assets/motion-l132.css')===source('landing-assets/motion-l132.css') &&
+ read('landing-assets/public-pages.css')===source('landing-assets/public-pages.css') &&
  current===prev);
 check('L1.28 shared header motion remains unchanged and accessible',
  l135HeaderCssOnlyEdited() &&
