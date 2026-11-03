@@ -93,12 +93,18 @@ export function createHierarchyController(host){
     const group=node.ledgerGroup,name=node.label;
     if(!['Income','Expense','Personal','LoanIncome','LoanExpense','Transfer','Data Adjustment'].includes(group))
       fail('Ledger category group is invalid');
+    // Native ledger owns Transfer / Data Adjustment category codes. Never
+    // let a custom display label imply that these financial rows save a
+    // different category than the server actually stores.
+    if(group==='Transfer'||group==='Data Adjustment'){
+      if(name!==(group==='Transfer'?'Transfer':'Data Adjustment'))
+        fail('Use the fixed system Category for this financial purpose');
+      return;
+    }
     // Preserve older categories. New custom Category must be stored in the
     // canonical list so financial reports continue to understand the value.
     const present=ctx.categories[group]||[];
     if(present.some(v=>v.toLowerCase()===name.toLowerCase()))return;
-    if(group==='Transfer'||group==='Data Adjustment')
-      fail('System-managed categories cannot be custom named');
     for(const [other,names] of Object.entries(ctx.categories)){
       if(other!==group&&Array.isArray(names)&&names.some(v=>
         v.toLowerCase()===name.toLowerCase())&&
@@ -132,8 +138,10 @@ export function createHierarchyController(host){
       const path=pathFor(graph,owner,typeId,transactionId,categoryId);
       const kind=graph.categories.find(x=>x.id===categoryId);
       const {config}=identity();
-      if(!Array.isArray(config.categories?.[kind.ledgerGroup])||
-        !config.categories[kind.ledgerGroup].includes(path.category))
+      const builtin=(kind.ledgerGroup==='Data Adjustment'&&path.category==='Data Adjustment')||
+        (kind.ledgerGroup==='Transfer'&&path.category==='Transfer');
+      if(!builtin&&(!Array.isArray(config.categories?.[kind.ledgerGroup])||
+        !config.categories[kind.ledgerGroup].includes(path.category)))
         fail('Canonical ledger category is unavailable; reopen Manage');
       return path;
     },
