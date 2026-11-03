@@ -132,6 +132,11 @@ async function verifiedUser(req:Request){
  // Auth factors, never from an untrusted client-controlled request field.
  const expectedAal=sessionAalFromVerifiedFactors(factors.factors);
  if(!expectedAal)return {state:'unavailable' as const};
+ // Staging Vault QA requires the two fixtures' live verified TOTP at AAL2.
+ // Never silently downgrade to password-only/AAL1 after factor removal.
+ if(expectedAal!=='aal2'||!factors.factors.some(
+   (f:any)=>f?.factor_type==='totp'&&f?.status==='verified'))
+  return {state:'required' as const};
  // No user-editable metadata, usernames or claimed emails authorize access.
  // Match BOTH Auth-verified UID and exact email against two preapproved fixtures.
  // A/B have no username-only app metadata; do not change their Auth records.
