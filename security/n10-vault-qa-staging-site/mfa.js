@@ -7,6 +7,7 @@ const EDGE=BASE+'/functions/v1/mmh-n10-staging-username-escrow-20261103';
 const ORIGIN='https://mmhvault-n10-vault-staging.pages.dev';
 const KEY='sb_publishable_LxIB8564OZD48HQ8Mfsc0A_apkgERZo'; // public Staging key
 const SITEKEY='0x4AAAAAAFlXEfEHAP1TUxjr'; // public Staging-only widget key
+const VAULT_EDGE=BASE+'/functions/v1/mmh-n10-username-vault-qa-20261103';
 const ALLOWED=Object.freeze(['n10qa_a_20261103','n10qa_b_20261103']);
 const $=id=>document.getElementById(id);
 const STRINGS={
@@ -15,6 +16,7 @@ const STRINGS={
  my:{title:'A/B MFA စမ်းသပ်မှု',intro:'အသစ်ဖန်တီးထားသော QA အသုံးပြုသူအမည်များဖြင့် ဝင်ရောက်၍ Authenticator နှင့် AAL2 ကို စစ်ဆေးပါ။',statusLabel:'စမ်းသပ်မှု အခြေအနေ',statusTitle:'အကောင့် လုံခြုံရေး စစ်ဆေးခြင်း',checking:'Staging ကို စစ်ဆေးနေသည်…',refresh:'ပြန်လည်စစ်ဆေးရန်',loginTitle:'QA အသုံးပြုသူအမည်ဖြင့် ဝင်ရန်',loginNote:'ခွင့်ပြုထားသော QA အကောင့်နှစ်ခုအတွက်သာ ဖြစ်သည်။ စကားဝှက်ကို မမျှဝေပါနှင့်။',owner:'QA အကောင့်',password:'QA စကားဝှက်',human:'ဝင်ရောက်ရန် လူသားဖြစ်ကြောင်း စစ်ဆေးပါ။',signIn:'လုံခြုံစွာ ဝင်ရန်',mfaTitle:'Authenticator ကို ချိတ်ဆက် / စစ်ဆေးပါ',totpLabel:'Authenticator မှ ဂဏန်း ၆ လုံး ထည့်ပါ',enroll:'Google Authenticator ချိတ်ဆက်ရန်',verify:'ဒုတိယအဆင့် စစ်ဆေးရန်',logout:'ထွက်ရန်နှင့် Session ရှင်းရန်',foot:'Staging စမ်းသပ်မှုသာ · စကားဝှက်၊ MFA ကုဒ်နှင့် လျှို့ဝှက်သော့ကို မသိမ်းဆည်းပါ',qrTitle:'Authenticator ဖြင့် QR စကင်ဖတ်ပါ',qrNote:'ဤ QR သည် ယခု QA အကောင့်အတွက်သာ ဖြစ်သည်။ မမျှဝေပါနှင့်။',qrVerifyNote:'QR စကင်ဖတ်ပြီး ဂဏန်း ၆ လုံးကို ထည့်ပါ။',qrDone:'စကင်ဖတ်ပြီး · ဆက်ရန်',closed:'Staging စမ်းသပ်ဝင်ရောက်မှုကို ပိတ်ထားသည်။',ready:'Staging QA ဝင်ရောက်မှု ဖွင့်ထားသည်။ လူသားစစ်ဆေးမှုကို ပြုလုပ်ပါ။',captchaLoading:'လူသားစစ်ဆေးမှုကို ဖွင့်နေသည်…',captchaError:'စစ်ဆေးမှု မရရှိနိုင်ပါ။ ပြန်လည်ကြိုးစားပါ။',offline:'Staging ဝန်ဆောင်မှု မရရှိနိုင်ပါ။',passwordNeeded:'QA စကားဝှက် ထည့်ပါ။',captchaNeeded:'လူသားစစ်ဆေးမှု ပြီးစီးရမည်။',working:'အကောင့်ကို စစ်ဆေးနေသည်…',loginFail:'ဝင်ရောက်မှု မအောင်မြင်ပါ။ ထပ်မံ မကြိုးစားခင် စစ်ဆေးပါ။',loginOK:'ဝင်ရောက်မှု အောင်မြင်ပါပြီ။ MFA ကို စစ်ဆေးနေသည်…',enrollReady:'MFA မချိတ်ဆက်ရသေးပါ။ Google Authenticator ချိတ်ဆက်နိုင်သည်။',enrolled:'QR ရရှိပါပြီ။ Authenticator ဖြင့် စကင်ဖတ်ပါ။',manualOnly:'QR မပြနိုင်ပါ။ အောက်ပါ လျှို့ဝှက်သော့ကို Authenticator တွင် ကိုယ်တိုင် ထည့်ပါ။',manualToggle:'QR စကင်မရပါက လျှို့ဝှက်သော့ကို ပြရန်',manualNote:'ဤသော့ကို Authenticator တွင်သာ ထည့်ပါ။ မမျှဝေပါနှင့်။',already:'MFA ချိတ်ဆက်ပြီးဖြစ်သည်။ ဂဏန်း ၆ လုံးဖြင့် စစ်ဆေးပါ။',enterCode:'ဂဏန်း ၆ လုံး ကုဒ် ထည့်ပါ။',codeFail:'ကုဒ် မမှန်ပါ။ ဖုန်း၏ အချိန်ကို စစ်ဆေးပါ။',aalFail:'AAL2 အဆင့်ကို အတည်မပြုနိုင်ပါ။',passed:'MFA AAL2 PASS · ဒုတိယအဆင့် အောင်မြင်',qrInvalid:'QR အချက်အလက် မမှန်ကန်ပါ။',ownerFail:'QA အကောင့် မကိုက်ညီပါ။',secretExpired:'QR ဖျောက်ထားပါပြီ။ လိုအပ်လျှင် ပြန်စပါ။',codeChecking:'ကုဒ်ကို စစ်ဆေးနေသည်…',signed:'QA အကောင့်ဖြင့် ဝင်ပြီး',signedOut:'ထွက်ပြီးပါပြီ။ Session ရှင်းလင်းပြီးပါပြီ။'}
 };
 let lang='zh',enabled=false,busy=false,widget=null,token='',owner=null,factorId='',mfaVerified=false,qrTimer=null,captchaTimer=null,waitStart=0,client=null;
+let vaultBusy=false,vaultBackupReady=false,vaultHideTimer=null,vaultTickTimer=null,vaultHideAt=0;
 const tr=k=>STRINGS[lang]?.[k]||STRINGS.en[k]||'Service error';
 function status(k){$('status').textContent=tr(k);$('status').dataset.state=k;}
 function setVisible(id,val){$(id).classList.toggle('is-hidden',!val);}
@@ -116,8 +118,102 @@ async function refresh(){
  }catch{setEnabled(false);status('offline');}
  finally{busy=false;$('refresh').disabled=false;updateLogin();}
 }
+const VAULT_STRINGS={
+ zh:{title:'密码验证查看固定十词',intro:'只查看已加密保存的原始十词，不重新生成或覆盖历史密钥。',check:'检查本账户加密备份',password:'再次输入当前账户密码',reveal:'验证密码并查看原始十词',crossCheck:'安全检查：B 无法请求 A 的数据',privacy:'恢复词仅在私密弹窗显示 45 秒；切换标签、退出或关闭后立即清理。',modalTitle:'已保存的原始十词',modalNote:'只属于当前经过 MFA 和密码验证的账户。请勿截图或发送恢复词。',hide:'立即隐藏恢复词',locked:'Recovery Vault 当前安全关闭。请勿输入密码。',available:'已有加密备份，可以验证密码查看固定十词。',missing:'没有可恢复的原始十词加密备份，禁止重新生成。',busy:'正在执行安全检查…',invalid:'请输入正确长度的当前账户密码。',failed:'服务拒绝或校验失败，未显示恢复词。',crossPassed:'B→A 越权字段请求已被服务器拒绝，没有返回恢复数据。',crossFailed:'跨账户拒绝验证尚未通过，请停止查看操作。',expired:'45 秒已到，恢复词已清理。',seconds:'秒后隐藏'},
+ en:{title:'View original fixed 10 recovery words',intro:'Read only the encrypted original backup. Never regenerate or overwrite recovery keys.',check:'Check my encrypted backup',password:'Re-enter your current password',reveal:'Verify password and reveal original words',crossCheck:'Isolation check: B cannot request A’s data',privacy:'Words appear in a private modal for 45 seconds, and disappear on tab switch, close or sign-out.',modalTitle:'Original saved recovery words',modalNote:'Only for the current MFA- and password-verified account. Never screenshot or share.',hide:'Hide recovery words now',locked:'Recovery Vault is securely disabled. Do not enter a password.',available:'Encrypted backup exists; verify your password to see the original fixed words.',missing:'No encrypted original backup exists. No regeneration is permitted.',busy:'Checking security controls…',invalid:'Enter your current password (6–20 characters).',failed:'Verification or service access failed; recovery words were not shown.',crossPassed:'B→A owner override was rejected; no recovery data returned.',crossFailed:'Cross-account rejection not confirmed. Stop sensitive operations.',expired:'45 seconds elapsed. Words were cleared.',seconds:'seconds until hidden'},
+ my:{title:'မူရင်း ပြန်လည်ရယူရေး စကားလုံး ၁၀ လုံး ကြည့်ရန်',intro:'ယခင် ကုဒ်ဝှက်သိမ်းထားသော မူရင်းစကားလုံးများကိုသာ ကြည့်မည်။ အသစ်မထုတ်ပါ။',check:'မိမိ၏ ကုဒ်ဝှက်သိမ်းထားမှု စစ်ဆေးရန်',password:'လက်ရှိ စကားဝှက်ကို ထပ်ထည့်ပါ',reveal:'စကားဝှက်ဖြင့် မူရင်းစကားလုံးများ ကြည့်ရန်',crossCheck:'B က A ၏ဒေတာကို မရနိုင်ကြောင်း စစ်ဆေးရန်',privacy:'စကားလုံးများကို ၄၅ စက္ကန့်သာ ပြသမည်။ ထွက်လျှင် ချက်ချင်း ရှင်းမည်။',modalTitle:'သိမ်းထားသော မူရင်းစကားလုံးများ',modalNote:'MFA နှင့် စကားဝှက်အတည်ပြုထားသော ယခုအကောင့်အတွက်သာ ဖြစ်သည်။ မမျှဝေပါနှင့်။',hide:'စကားလုံးများ ချက်ချင်း ဖျောက်ရန်',locked:'Recovery Vault ကို လုံခြုံရေးအရ ပိတ်ထားသည်။',available:'ကုဒ်ဝှက်ထားသော မူရင်းစကားလုံးများ ရှိသည်။ စကားဝှက်ဖြင့် ကြည့်နိုင်သည်။',missing:'မူရင်း အရန်သိမ်းချက် မရှိပါ။ အသစ် မထုတ်ပေးပါ။',busy:'လုံခြုံရေး စစ်ဆေးနေသည်…',invalid:'လက်ရှိ စကားဝှက်ကို ထည့်ပါ။',failed:'စစ်ဆေးမှု မအောင်မြင်ပါ။ စကားလုံးများ မပြပါ။',crossPassed:'B မှ A ကို တောင်းဆိုမှု ပယ်ချခံရပါသည်။ ဒေတာ မထုတ်ပေးပါ။',crossFailed:'အခြားအကောင့်စစ်ဆေးမှု မအောင်မြင်သေးပါ။',expired:'၄၅ စက္ကန့် ပြည့်ပြီး စကားလုံးများ ရှင်းလင်းပြီးပါပြီ။',seconds:'စက္ကန့်အတွင်း ဖျောက်မည်'}
+};
+function vt(key){return VAULT_STRINGS[lang]?.[key]||VAULT_STRINGS.en[key]||'Unavailable';}
+function vaultMessage(key){$('vaultMessage').textContent=vt(key);$('vaultMessage').dataset.key=key;}
+function clearVaultWords(){
+ clearTimeout(vaultHideTimer);clearInterval(vaultTickTimer);
+ vaultHideTimer=null;vaultTickTimer=null;vaultHideAt=0;
+ $('vaultWords').replaceChildren();$('vaultTimer').textContent='';$('vaultModal').hidden=true;
+}
+function clearVault(){
+ clearVaultWords();$('vaultPassword').value='';vaultBackupReady=false;vaultBusy=false;
+ setVisible('vaultPanel',false);setVisible('vaultRevealBox',false);setVisible('vaultCrossCheck',false);
+ vaultMessage('locked');
+}
+function renderVaultLanguage(){
+ document.querySelectorAll('[data-vault-text]').forEach(el=>{const k=el.dataset.vaultText; if(VAULT_STRINGS[lang]?.[k])el.textContent=vt(k);});
+ const key=$('vaultMessage').dataset.key;if(key)vaultMessage(key);
+}
+function revealWords(words){
+ if(!Array.isArray(words)||words.length!==10||words.some(w=>typeof w!=='string'||!/^[a-z]{2,13}$/.test(w)))
+  throw Error('invalid_recovery_words');
+ clearVaultWords();
+ for(const [i,w] of words.entries()){
+  const item=document.createElement('div');item.className='word';
+  const no=document.createElement('b');no.textContent=String(i+1).padStart(2,'0');
+  item.append(no,document.createTextNode(w));$('vaultWords').append(item);
+ }
+ $('vaultModal').hidden=false;vaultHideAt=Date.now()+45000;
+ const tick=()=>{
+  const remaining=Math.max(0,Math.ceil((vaultHideAt-Date.now())/1000));
+  $('vaultTimer').textContent=String(remaining)+' '+vt('seconds');
+  if(remaining===0){clearVaultWords();vaultMessage('expired');}
+ };
+ tick();vaultTickTimer=setInterval(tick,300);
+ vaultHideTimer=setTimeout(()=>{clearVaultWords();vaultMessage('expired');},45000);
+ $('vaultHide').focus();
+}
+async function vaultRequest(payload){
+ if(!mfaVerified||!owner||!client)throw Error('aal2_required');
+ await ownerAal2();
+ const {data,error}=await client.auth.getSession();
+ const session=data?.session;
+ if(error||!session?.access_token||!session.expires_at||session.expires_at*1000<=Date.now())
+  throw Error('signed_session_required');
+ const ac=new AbortController(),timeout=setTimeout(()=>ac.abort(),16000);
+ try{
+  const res=await fetch(VAULT_EDGE,{method:'POST',mode:'cors',credentials:'omit',cache:'no-store',redirect:'error',referrerPolicy:'no-referrer',signal:ac.signal,
+   headers:{'Content-Type':'application/json','apikey':KEY,'Authorization':'Bearer '+session.access_token},
+   body:JSON.stringify(payload)});
+  const raw=await res.text();if(raw.length>3800)throw Error('oversized_response');
+  const value=JSON.parse(raw);if(!value||typeof value!=='object'||Array.isArray(value))throw Error('bad_response');
+  return {status:res.status,value};
+ }finally{clearTimeout(timeout);}
+}
+async function checkVault(){
+ if(!mfaVerified||vaultBusy)return;
+ vaultBusy=true;vaultBackupReady=false;setVisible('vaultRevealBox',false);clearVaultWords();vaultMessage('busy');
+ try{
+  const {status:s,value}=await vaultRequest({action:'status'});
+  if(s===200&&value.code==='backup_status'&&value.backed_up===true){
+   vaultBackupReady=true;setVisible('vaultRevealBox',true);vaultMessage('available');
+  }else if(s===200&&value.code==='backup_status'&&value.backed_up===false)vaultMessage('missing');
+  else vaultMessage(s===503?'locked':'failed');
+ }catch{vaultMessage('failed');}
+ finally{vaultBusy=false;}
+}
+async function viewOriginalWords(){
+ if(!mfaVerified||!vaultBackupReady||vaultBusy)return;
+ const password=$('vaultPassword').value;$('vaultPassword').value='';
+ if(password.length<6||password.length>20){vaultMessage('invalid');return;}
+ vaultBusy=true;clearVaultWords();vaultMessage('busy');
+ try{
+  const {status:s,value}=await vaultRequest({action:'reveal',password});
+  if(s===200&&value.code==='recovery_key'){revealWords(value.words);vaultMessage('available');}
+  else vaultMessage('failed');
+ }catch{vaultMessage('failed');}
+ finally{vaultBusy=false;}
+}
+async function crossOwnerNegativeTest(){
+ if(owner!=='n10qa_b_20261103'||!mfaVerified||vaultBusy)return;
+ vaultBusy=true;clearVaultWords();vaultMessage('busy');
+ try{
+  // A genuine signed B/AAL2 request trying to override owner to A.
+  // The read-only Vault MUST reject extra owner fields BEFORE fetching any backup.
+  const {status:s,value}=await vaultRequest({action:'reveal',target_username:'n10qa_a_20261103'});
+  if(s===400&&value.code==='unexpected_request_field'&&!('words' in value))vaultMessage('crossPassed');
+  else vaultMessage('crossFailed');
+ }catch{vaultMessage('crossFailed');}
+ finally{vaultBusy=false;}
+}
+
 function clearSessionUI(){
- clearQr();$('pwd').value='';$('totp').value='';owner=null;factorId='';mfaVerified=false;
+ clearVault();clearQr();$('pwd').value='';$('totp').value='';owner=null;factorId='';mfaVerified=false;
  setVisible('loginPanel',true);setVisible('mfaPanel',false);setVisible('enroll',false);setVisible('verifyBox',false);setVisible('result',false);
  $('signedAs').textContent='';$('factorStatus').textContent='';
  $('owner').disabled=false;updateLogin();
@@ -225,12 +321,20 @@ async function verify(){
   mfaVerified=true;clearQr();setVisible('verifyBox',false);setVisible('enroll',false);
   $('factorStatus').textContent=tr('passed');$('result').textContent=tr('passed');setVisible('result',true);
   $('dot').classList.add('ready');status('passed');
+  setVisible('vaultPanel',true);vaultMessage('locked');
+  setVisible('vaultCrossCheck',owner==='n10qa_b_20261103');
  });
 }
 async function logout(){
+ clearVault();
  if(client){try{await client.auth.signOut({scope:'local'});}catch{}}
  clearSessionUI();clearChallenge();setEnabled(false);status('signedOut');
 }
+$('vaultStatusBtn').addEventListener('click',checkVault);
+$('vaultRevealBtn').addEventListener('click',viewOriginalWords);
+$('vaultCrossCheck').addEventListener('click',crossOwnerNegativeTest);
+$('vaultHide').addEventListener('click',clearVaultWords);
+$('vaultClose').addEventListener('click',clearVaultWords);
 $('pwd').addEventListener('input',updateLogin);
 $('owner').addEventListener('change',()=>{clearChallenge();updateLogin();});
 $('refresh').addEventListener('click',refresh);
@@ -240,11 +344,11 @@ $('verify').addEventListener('click',verify);
 $('logout').addEventListener('click',logout);
 $('qrDone').addEventListener('click',clearQr);
 $('closeQr').addEventListener('click',clearQr);
-document.querySelectorAll('[data-lang]').forEach(x=>x.addEventListener('click',()=>{lang=x.dataset.lang;renderLanguage();if(owner&&!mfaVerified)$('factorStatus').textContent=tr(factorId?'already':'enrollReady');}));
-document.addEventListener('visibilitychange',()=>{if(document.hidden)clearQr();});
-window.addEventListener('pagehide',()=>{clearQr();$('pwd').value='';$('totp').value='';if(client)void client.auth.signOut({scope:'local'}).catch(()=>{});});
+document.querySelectorAll('[data-lang]').forEach(x=>x.addEventListener('click',()=>{lang=x.dataset.lang;renderLanguage();renderVaultLanguage();if(owner&&!mfaVerified)$('factorStatus').textContent=tr(factorId?'already':'enrollReady');}));
+document.addEventListener('visibilitychange',()=>{if(document.hidden){clearVaultWords();clearQr();}});
+window.addEventListener('pagehide',()=>{clearVault();clearQr();$('pwd').value='';$('totp').value='';if(client)void client.auth.signOut({scope:'local'}).catch(()=>{});});
 if(location.origin===ORIGIN&&window.supabase?.createClient){
  client=window.supabase.createClient(BASE,KEY,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false,storageKey:'mmh-n10-mfa-qa-volatile'}});
- renderLanguage();setEnabled(false);refresh();
-}else{renderLanguage();setEnabled(false);status('offline');}
+ renderLanguage();renderVaultLanguage();setEnabled(false);clearVault();refresh();
+}else{renderLanguage();renderVaultLanguage();setEnabled(false);clearVault();status('offline');}
 })();
