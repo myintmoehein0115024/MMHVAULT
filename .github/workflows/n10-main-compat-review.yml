@@ -66,6 +66,8 @@ jobs:
         run: |
           deno check --config security/n10-username-escrow-candidate/deno-review.json /tmp/mmhvault-n10-review-bundle/index.ts
           deno check --config security/n10-username-escrow-candidate/deno-review.json /tmp/mmhvault-n10-staging-bundle/index.ts
+      - name: Live Staging Edge rejection smoke (no credentials or writes)
+        run: node --test security/n10-username-escrow-candidate/test-staging-live-locked.mjs
       - name: Install Playwright browser test runtime
         run: |
           npm install --no-save playwright@1.56.1
