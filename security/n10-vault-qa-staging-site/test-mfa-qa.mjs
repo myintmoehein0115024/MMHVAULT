@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
+import {runInNewContext} from 'node:vm';
 const dir=new URL('./',import.meta.url);
 const html=readFileSync(new URL('./preview/mfa.html',dir),'utf8');
 const js=readFileSync(new URL('./mfa.js',dir),'utf8');
@@ -40,7 +41,13 @@ test('MFA enrollment is QR-only and requires verified server-issued challenge an
  assert.match(js,/currentLevel!=='aal2'/);
  assert.match(js,/client\.auth\.mfa\.listFactors\(\)/);
  assert.match(js,/x\.id===factorId&&x\.status==='verified'/);
- assert.match(js,/\^data:image\\\/\(\?:svg\\\+xml\|png\)/);
+ assert.match(js,/function safeSvgMarkup\(svg\)/);
+ assert.match(js,/function qrImageSource\(qr\)/);
+ assert.match(js,/function manualTotpSecret\(value\)/);
+ assert.match(js,/clearOwnUnverifiedFactor\(\)/);
+ assert.match(js,/f.status==='unverified'/);
+ assert.match(js,/f.friendly_name==='MMHVAULT N10 Staging MFA'/);
+ assert.match(js,/client.auth.mfa.unenroll\(\{factorId:f.id\}\)/);
  assert.match(js,/qrTimer=setTimeout\(\(\)=>\{clearQr\(\);status\('secretExpired'\);\},120000\)/);
  assert.match(js,/clearQr\(\)/);
  assert.match(js,/code\.length|\\d\{6\}/);
@@ -59,4 +66,40 @@ test('responsive premium QA layout with modal and no production auth changes',()
  assert.match(js,/\bzh:\{title:/);
  assert.match(js,/\ben:\{title:/);
  assert.match(js,/\bmy:\{title:/);
+});
+
+test('synthetic QR data supports safe raw SVG and official data URL variants, never external URLs',()=>{
+ const start=js.indexOf('function safeSvgMarkup(svg){');
+ const end=js.indexOf('\nasync function clearOwnUnverifiedFactor()',start);
+ assert.ok(start>0&&end>start);
+ const source=js.slice(start,end);
+ const {qrImageSource,manualTotpSecret}=runInNewContext(
+  '(()=>{'+source+';return {qrImageSource,manualTotpSecret}})()',
+  {decodeURIComponent,encodeURIComponent}
+ );
+ const raw='<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256"><rect x="0" y="0" width="256" height="256" fill="#fff"/><path d="M0 0 L100 100"/></svg>';
+ const canonical='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(raw);
+ assert.equal(qrImageSource(raw),canonical);
+ assert.equal(qrImageSource('data:image/svg+xml;utf-8,'+raw),canonical);
+ assert.equal(qrImageSource('data:image/svg+xml;utf8,'+encodeURIComponent(raw)),canonical);
+ assert.equal(qrImageSource('data:image/svg+xml;charset=utf-8,'+encodeURIComponent(raw)),canonical);
+ assert.equal(qrImageSource('data:image/png;base64,'+'a'.repeat(70)),'data:image/png;base64,'+'a'.repeat(70));
+ assert.equal(qrImageSource('https://evil.example/qr.png'),null);
+ assert.equal(qrImageSource('javascript:alert(1)'),null);
+ assert.equal(qrImageSource('<svg onload="alert(1)">'+raw+'</svg>'),null);
+ assert.equal(qrImageSource('<svg xmlns="http://www.w3.org/2000/svg"><script>alert(1)</script></svg>'),null);
+ assert.equal(qrImageSource('<svg><image href="https://evil.example/secret"/></svg>'),null);
+ assert.equal(qrImageSource('data:text/html,<h1>x</h1>'),null);
+ assert.equal(manualTotpSecret('jbsw y3dp ehpk 3pxp'),'JBSWY3DPEHPK3PXP');
+ assert.equal(manualTotpSecret('javascript:alert(1)'),'');
+});
+test('private MFA secret and QR cleared on close, timeout and page navigation',()=>{
+ assert.match(js,/manualSecret'\)\.textContent=''/);
+ assert.match(js,/manualToggle'\)\.onclick=null/);
+ assert.match(js,/qrTimer=setTimeout\(\(\)=>\{clearQr\(\);status\('secretExpired'\);\},120000\)/);
+ assert.match(js,/document.addEventListener\('visibilitychange'/);
+ assert.match(js,/window.addEventListener\('pagehide'/);
+ assert.match(html,/id="manualSection"/);
+ assert.match(html,/id="manualSecret"/);
+ assert.match(html,/id="manualToggle"/);
 });
