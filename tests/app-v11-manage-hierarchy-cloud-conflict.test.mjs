@@ -53,6 +53,7 @@ function device(shared,localConfig,localDate){
   }
   const sandbox={
     window:wnd,localStorage:storage,
+    document:{readyState:'loading',addEventListener:()=>{}},
     currentSessionUser:{id:OWNER},MMHVAULT_CONFIG_OWNER:OWNER,
     MMHVAULT_CONFIG:copy(localConfig),
     MMHVAULT_DEFAULT_CATEGORIES:{Income:['Salary'],Expense:[],Personal:[],LoanIncome:[],LoanExpense:[],Transfer:['Transfer']},
