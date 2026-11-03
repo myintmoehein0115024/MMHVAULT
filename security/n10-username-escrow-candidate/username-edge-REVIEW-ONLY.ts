@@ -29,7 +29,22 @@ function normalizedPhrase(v){if(typeof v!=='string'||v.length>250)return null;co
 function sameHex(a,b){if(typeof a!=='string'||typeof b!=='string'||a.length!==64||b.length!==64)return false;let d=0;for(let i=0;i<64;i++)d|=a.charCodeAt(i)^b.charCodeAt(i);return d===0;}
 async function parseBody(req){const length=req.headers.get('content-length');if(length&&(Number(length)>4000||!/^\d+$/.test(length)))throw Error('size');const reader=req.body?.getReader();if(!reader)throw Error('body');let n=0;const parts=[];try{while(true){const {done,value}=await reader.read();if(done)break;n+=value.byteLength;if(n>4000){await reader.cancel();throw Error('size');}parts.push(value)}}finally{reader.releaseLock()}const bytes=new Uint8Array(n);let x=0;for(const p of parts){bytes.set(p,x);x+=p.length}const d=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes));if(!d||typeof d!=='object'||Array.isArray(d))throw Error('body');return d;}
 function authClient(){return createClient(BASE,ANON,{auth:{persistSession:false,detectSessionInUrl:false,autoRefreshToken:false}});}
-async function verifyPassword(email,pwd,uid){const client=authClient();const {data,error}=await client.auth.signInWithPassword({email,password:pwd});if(error||data.user?.id!==uid||!data.session)return null;const {data:check,error:bad}=await client.auth.getUser(data.session.access_token);if(bad||check.user?.id!==uid)return null;return data.session;}
+async function verifyPassword(email,pwd,uid){
+ const client=authClient();let grant=false;
+ try{
+  const {data,error}=await client.auth.signInWithPassword({email,password:pwd});
+  if(error||data?.user?.id!==uid||!data?.session?.access_token||
+     !data.session.refresh_token)return null;
+  const {data:verified,error:bad}=await client.auth.getUser(data.session.access_token);
+  if(bad||verified?.user?.id!==uid||verified.user.is_anonymous===true)
+   return null;
+  grant=true;
+  return data.session;
+ }catch{return null;}
+ finally{
+  if(!grant){try{await client.auth.signOut({scope:'local'});}catch{}}
+ }
+}
 async function findProductionUser(username,allowLinkedEmail=false){
   const {data:links,error:mapErr}=await admin.from('mmh_n10a740_username_links').select('user_id').eq('username_key',username).limit(2);
   if(mapErr||links?.length!==1)return null;
@@ -78,7 +93,10 @@ async function enroll(username,pwd,ticket,input){
     app_metadata:{mmhvault_auth_kind:'username_only',mmhvault_username:username}
    });
    // Ambiguous error/timeout cannot safely authorize deletion of an old user.
-   if(error||!data?.user?.id)return {newlyCreated:false};
+   if(error||!data?.user?.id||data.user.email!==email||
+      data.user.app_metadata?.mmhvault_auth_kind!=='username_only'||
+      data.user.app_metadata?.mmhvault_username!==username)
+    return {newlyCreated:false};
    createdUid=data.user.id;
    createdEmail=email;
    return {id:createdUid,newlyCreated:true};
