@@ -45,6 +45,17 @@ export async function buildStagingBundle(target){
  // isolation comes from the Staging project and its separate HMAC secret.
  src=once(src,"const HMAC=Deno.env.get('N10A740_RATE_HMAC_KEY')||'';",
                   "const HMAC=Deno.env.get('N10_FIXED_RECOVERY_QA_HMAC_KEY')||'';");
+ // The previous Production-shaped CAPTCHA secret must NOT be reused on a
+ // different preview domain. Staging requires its own domain-bound secret.
+ src=once(src,"const CAPTCHA=Deno.env.get('N10A740_TURNSTILE_SECRET')||'';",
+                  "const CAPTCHA=Deno.env.get('N10_STAGING_SIGNUP_TURNSTILE_SECRET')||'';");
+ src=once(src,"const RULE=/^[a-z][a-z0-9_]{3,19}$/;",
+                  "const RULE=/^[a-z][a-z0-9_]{3,19}$/;\\nconst QA_USERNAMES=(Deno.env.get('N10_STAGING_SIGNUP_QA_USERNAMES')||'').split(',').map(v=>v.trim()).filter(Boolean);\\nconst QA_ALLOWLIST=new Set(QA_USERNAMES);\\nfunction qaNamesReady(){return QA_USERNAMES.length===2&&QA_ALLOWLIST.size===2&&QA_USERNAMES.every(v=>RULE.test(v)&&v.startsWith('n10qa_'));}");
+ src=once(src,"&&wordlist.length===2048;}",
+                  "&&wordlist.length===2048&&qaNamesReady();}");
+ src=once(src,"const username=nameKey(d.username);if(!username)return reply(origin,'invalid_username',400);",
+                  "const username=nameKey(d.username);if(!username)return reply(origin,'invalid_username',400);if(!QA_ALLOWLIST.has(username))return reply(origin,'staging_qa_only',403);");
+
  src=once(src,'production:true,qa_only:false,limited_signup:false,public_signup:true',
                    'production:false,qa_only:true,limited_signup:false,public_signup:false');
  src=once(src,"let createdUid=null,createdEmail=null,sessionAttempted=false;",
@@ -71,6 +82,9 @@ export async function buildStagingBundle(target){
  assert.match(src,/const ORIGIN='https:\/\/mmhvault-n10-vault-staging\.pages\.dev';/);
  assert.match(src,/const SITE_HOST='mmhvault-n10-vault-staging\.pages\.dev';/);
  assert.match(src,/const HMAC=Deno\.env\.get\('N10_FIXED_RECOVERY_QA_HMAC_KEY'\)\|\|'';/);
+ assert.match(src,/const CAPTCHA=Deno\.env\.get\('N10_STAGING_SIGNUP_TURNSTILE_SECRET'\)\|\|'';/);
+ assert.match(src,/QA_USERNAMES\.length===2&&QA_ALLOWLIST\.size===2/);
+ assert.match(src,/if\(!QA_ALLOWLIST\.has\(username\)\)return reply\(origin,'staging_qa_only',403\);/);
  assert.match(src,/if\(!RELEASE_ENABLED\)return reply\(origin,'registration_not_released',503\);/);
  assert.doesNotMatch(src,/vrypucmyrztxgiqhjspd|https:\/\/mmhvault\.com\b|const RELEASE_ENABLED=true;/);
  assert.doesNotMatch(src,/admin\.auth\.admin\.deleteUser\(/);
