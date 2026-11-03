@@ -4,7 +4,10 @@ on:
     paths:
       - 'app.html'
       - 'js/mmhvault-transaction-field-layout-v11.js'
+      - 'js/mmhvault-v11-manage-glass-dialogs.js'
+      - 'css/mmhvault-v11-manage-glass-dialogs.css'
       - 'tests/app-v11-transaction-field-layout.test.mjs'
+      - 'tests/app-v11-manage-glass-dialogs.test.mjs'
       - '.github/workflows/app-v11-transaction-field-layout.yml'
   workflow_dispatch:
 jobs:
@@ -18,4 +21,4 @@ jobs:
         with:
           node-version: '22'
       - name: No-deploy transaction preferences regression
-        run: node --test tests/app-v11-transaction-field-layout.test.mjs tests/account-auto-fx-v1.test.mjs
+        run: node --test tests/app-v11-transaction-field-layout.test.mjs tests/app-v11-manage-glass-dialogs.test.mjs tests/account-auto-fx-v1.test.mjs
