@@ -53,6 +53,8 @@ export async function buildStagingBundle(target){
                   "createNewUser:async({username,password})=>{\n   quarantineRequired=true; // unknown Auth result must keep reservation\n   const email=");
  src=once(src,"createdEmail=email;\n   return {id:createdUid,newlyCreated:true};",
                   "createdEmail=email;\n   quarantineRequired=false;\n   return {id:createdUid,newlyCreated:true};");
+ src=once(src,"rollbackNewUser:async({newlyCreatedUserId})=>{\n   if(!createdUid",
+                  "rollbackNewUser:async({newlyCreatedUserId})=>{\n   quarantineRequired=true;\n   if(!createdUid");
  src=once(src,"if(sessionAttempted){\n    await admin.auth.admin.updateUserById",
                   "if(sessionAttempted){\n    quarantineRequired=true;\n    await admin.auth.admin.updateUserById");
  src=once(src,"releaseReservation:async({username,ticket})=>{\n   const {error}=await admin.from",
