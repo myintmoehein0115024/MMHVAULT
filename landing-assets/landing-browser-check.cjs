@@ -52,6 +52,87 @@ async function load(page,route,failures){
 (async()=>{
  const browser=await chromium.launch({channel:'chrome',headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
  try{
+   // L1.55 preview interruption browser parity: exact released-script
+   // baseline versus candidate in real Chromium at mobile/tablet/desktop.
+   {
+     const candidate=fs.readFileSync('landing-assets/landing.js','utf8');
+     const hook="  // L1.55: finish an interrupted crossfade immediately when the tab is\n  // hidden or the user enables reduced motion, preserving selected content.\n  const clearInterruptedPreview = () => {\n    if (previewTransition && (reducedPreviewMotion.matches || document.hidden))\n      settlePreviewTransition();\n  };\n  if (typeof reducedPreviewMotion.addEventListener === 'function')\n    reducedPreviewMotion.addEventListener('change', clearInterruptedPreview);\n  else if (typeof reducedPreviewMotion.addListener === 'function')\n    reducedPreviewMotion.addListener(clearInterruptedPreview);\n  document.addEventListener('visibilitychange', clearInterruptedPreview);\n\n";
+     assert.equal(candidate.split(hook).length,2,'L1.55 exactly one hook');
+     const baseline=candidate.replace(hook,'');
+     for(const [width,lang] of [[393,'my'],[768,'zh'],[1440,'en']]){
+       const results={};
+       for(const [version,script] of [['baseline',baseline],['l155',candidate]]){
+         const context=await browser.newContext({
+           viewport:{width,height:852},reducedMotion:'no-preference',serviceWorkers:'block'});
+         const page=await context.newPage(),errors=[];
+         page.on('pageerror',e=>errors.push(e.message));
+         await page.addInitScript(language=>{
+           try{localStorage.setItem('mmhvault.landing.language',language)}catch(_){}
+         },lang);
+         await page.route('**/landing-assets/landing.js*',route=>route.fulfill({
+           status:200,contentType:'application/javascript',body:script}));
+         await page.goto(origin+'/',{waitUntil:'load',timeout:25000});
+         const result=await page.evaluate(()=>{
+           const snapshot=()=>({
+             visible:[...document.querySelectorAll('[data-product-panel]')]
+               .filter(panel=>!panel.hidden).map(panel=>panel.dataset.productPanel),
+             transient:[...document.querySelectorAll('[data-product-panel]')]
+               .some(panel=>panel.classList.contains('mmh-preview-enter')||
+                 panel.classList.contains('mmh-preview-exit')),
+             aria:[...document.querySelectorAll('[data-product-panel]')]
+               .map(panel=>[panel.dataset.productPanel,panel.inert,panel.getAttribute('aria-hidden')])
+           });
+           document.querySelector('[data-product-tab="transactions"]').click();
+           const during=snapshot();
+           // Same-task synthetic tab hide: no 340 ms timeout can race.
+           Object.defineProperty(document,'hidden',{configurable:true,value:true});
+           document.dispatchEvent(new Event('visibilitychange'));
+           return {during,after:snapshot(),lang:document.documentElement.lang,
+             hero:[...document.querySelectorAll('[data-hero-fixed]')]
+               .map(el=>el.textContent.trim())};
+         });
+         ensure(errors.length===0&&result.during.visible.length===2&&
+           result.lang===(lang==='zh'?'zh-CN':lang)&&result.hero.length===3,
+           'L1.55 '+version+' '+width+'px '+lang+' starts normal transition');
+         results[version]=result;
+         await context.close();
+       }
+       const before=results.baseline.after,after=results.l155.after;
+       ensure(before.visible.length===2&&before.transient&&
+         JSON.stringify(after.visible)===JSON.stringify(['transactions'])&&
+         !after.transient&&after.aria.every(([name,inert,hidden])=>
+           name==='transactions'?!inert&&hidden==='false':inert&&hidden==='true')&&
+         JSON.stringify(results.baseline.hero)===JSON.stringify(results.l155.hero),
+         'L1.55 '+width+'px '+lang+' hidden-tab immediate cleanup 2 panels -> 1');
+       const context=await browser.newContext({
+         viewport:{width,height:852},reducedMotion:'no-preference',serviceWorkers:'block'});
+       const page=await context.newPage(),errors=[];
+       page.on('pageerror',e=>errors.push(e.message));
+       await page.addInitScript(language=>{
+         try{localStorage.setItem('mmhvault.landing.language',language)}catch(_){}
+       },lang);
+       await page.goto(origin+'/',{waitUntil:'load',timeout:25000});
+       const begun=await page.evaluate(()=>{
+         document.querySelector('[data-product-tab="accounts"]').click();
+         return [...document.querySelectorAll('[data-product-panel]')].filter(el=>!el.hidden).length;
+       });
+       ensure(begun===2,'L1.55 '+width+'px '+lang+' animation starts normally');
+       await page.emulateMedia({reducedMotion:'reduce'});
+       await page.waitForFunction(()=>[...document.querySelectorAll('[data-product-panel]')]
+         .filter(el=>!el.hidden).length===1,null,{timeout:250});
+       const settled=await page.evaluate(()=>({
+         visible:[...document.querySelectorAll('[data-product-panel]')]
+           .filter(el=>!el.hidden).map(el=>el.dataset.productPanel),
+         selected:document.querySelector('[data-product-tab="accounts"]').getAttribute('aria-selected')
+       }));
+       ensure(errors.length===0&&
+         JSON.stringify(settled.visible)===JSON.stringify(['accounts'])&&settled.selected==='true',
+         'L1.55 '+width+'px '+lang+' live reduced-motion toggle settles early');
+       await context.close();
+     }
+     console.log('L1.55 Chromium comparison: hidden tab pending panels 2 to 1; no field-LCP claim.');
+   }
+
    // L1.54 initial feature and language labels browser parity.
    // Observe cold-start DOM writes before defer scripts execute, then compare
    // English/Chinese/Burmese content and actual switch interactions.
@@ -1306,12 +1387,12 @@ async function load(page,route,failures){
        layout.styles.filter(v=>v==='l146').length===2 &&
        layout.styles.filter(v=>v==='l147').length===1 &&
        layout.styles.filter(v=>v==='l141').length===2 &&
-       layout.scripts.includes('l154') && layout.scripts.includes('l141') &&
+       layout.scripts.includes('l155') && layout.scripts.includes('l141') &&
        loaded.length===8 && loaded.every(r=>r.status===200&&
          r.version===(r.path==='/landing-assets/landing.min.css'?'l145':
            ['/landing-assets/cinematic.min.css','/landing-assets/premium-l131.min.css'].includes(r.path)?'l146':
            r.path==='/landing-assets/header-explore-l147.min.css'?'l147':
-            r.path==='/landing-assets/landing.js'?'l154':'l141')) &&
+            r.path==='/landing-assets/landing.js'?'l155':'l141')) &&
        new Set(loaded.map(r=>r.path)).size===8 && failures.length===0,
        'L1.47 '+width+'px eight CSS/JS requests with consistent cache keys '+JSON.stringify({loaded,failures}));
      ensure(layout.brand.left>=-1&&layout.brand.right<=width+1 &&

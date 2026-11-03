@@ -79,8 +79,9 @@ const l151NewScriptTag='<script defer src="./landing-assets/landing.js?v=l151"><
 const l152NewScriptTag='<script defer src="./landing-assets/landing.js?v=l152"></script>';
 const l153NewScriptTag='<script defer src="./landing-assets/landing.js?v=l153"></script>';
 const l154NewScriptTag='<script defer src="./landing-assets/landing.js?v=l154"></script>';
-const l148IndexOnlyEdited=()=>prev.split(l153NewScriptTag).length===2 &&
-  current===prev.replace(l153NewScriptTag,l154NewScriptTag);
+const l155NewScriptTag='<script defer src="./landing-assets/landing.js?v=l155"></script>';
+const l148IndexOnlyEdited=()=>prev.split(l154NewScriptTag).length===2 &&
+  current===prev.replace(l154NewScriptTag,l155NewScriptTag);
 const l147IndexOnlyEdited=baseline=>baseline===prev && l148IndexOnlyEdited() &&
   baseline.includes(l147NewHeaderTags) && !current.includes(l147OldHeaderTags);
 // The runtime JS may change only these four targeted DOM write sites.
@@ -121,25 +122,17 @@ const l152PreviewTabAfter="      t.classList.toggle('is-active',yes);\n      // 
 // released L1.52, preserving all prior Landing behavior.
 const l154HydrationPatches=[["      button.setAttribute('aria-pressed', String(button.dataset.lang === currentLang));","      // L1.54: preserve existing language choice ARIA on cold hydration.\n      const pressed=String(button.dataset.lang === currentLang);\n      if(button.getAttribute('aria-pressed')!==pressed)button.setAttribute('aria-pressed',pressed);"],["      if (label) label.textContent = productLabels[currentLang][tab.dataset.productTab];","      if (label) {\n        const name=productLabels[currentLang][tab.dataset.productTab];\n        if(label.textContent!==name)label.textContent=name;\n      }"],["    if (activeStoryTitle) activeStoryTitle.textContent = productLabels[currentLang][activeProduct];","    if (activeStoryTitle) {\n      const name=productLabels[currentLang][activeProduct];\n      if(activeStoryTitle.textContent!==name)activeStoryTitle.textContent=name;\n    }"]];
 const l153BusinessAttrPatches=[["      button.setAttribute('aria-pressed',String(selected));","      // L1.53: a language change must not rewrite the active concept state.\n      const pressed=String(selected);\n      if(button.getAttribute('aria-pressed')!==pressed)button.setAttribute('aria-pressed',pressed);"],["      element.setAttribute('data-i18n',key);\n      const value = dictionary[key] || '';","      if(element.getAttribute('data-i18n')!==key)element.setAttribute('data-i18n',key);\n      const value = dictionary[key] || '';"],["    if(panel) panel.dataset.currentView = currentBusinessView;","    if(panel && panel.dataset.currentView!==currentBusinessView)panel.dataset.currentView = currentBusinessView;"]];
+// L1.55: compare exact edit against latest main (L1.54).
+const l155InterruptedPreviewPatch="  // L1.55: finish an interrupted crossfade immediately when the tab is\n  // hidden or the user enables reduced motion, preserving selected content.\n  const clearInterruptedPreview = () => {\n    if (previewTransition && (reducedPreviewMotion.matches || document.hidden))\n      settlePreviewTransition();\n  };\n  if (typeof reducedPreviewMotion.addEventListener === 'function')\n    reducedPreviewMotion.addEventListener('change', clearInterruptedPreview);\n  else if (typeof reducedPreviewMotion.addListener === 'function')\n    reducedPreviewMotion.addListener(clearInterruptedPreview);\n  document.addEventListener('visibilitychange', clearInterruptedPreview);\n\n";
 const l148LandingJsOnlyEdited=()=>{
   const merged=source('landing-assets/landing.js');
-  if(!l148JsReplacements.every(([before,after])=>
-    merged.includes(after) && !merged.includes(before)))return false;
-  if(!merged.includes(l149BusinessClickAfter) ||
-    !merged.includes(l150LanguageClickAfter) ||
-    !merged.includes(l151MarkSectionAfter) ||
-    !merged.includes(l152PreviewTabAfter))return false;
-  // L1.53 is already on main, so preserve its shipped guards verbatim.
-  if(!l153BusinessAttrPatches.every(([oldCode,newCode])=>
-    merged.includes(newCode) && !merged.includes(oldCode)))return false;
-  let wanted=merged;
-  // L1.54: skip redundant cold-initialization writes only when localized
-  // button labels, selected state, and story title already have right values.
-  for(const [oldCode,newCode] of l154HydrationPatches){
-    if(wanted.split(oldCode).length!==2)return false;
-    wanted=wanted.replace(oldCode,newCode);
-  }
-  return read('landing-assets/landing.js')===wanted;
+  if(!l148JsReplacements.every(([before,after])=>merged.includes(after)&&!merged.includes(before)))return false;
+  if(![l149BusinessClickAfter,l150LanguageClickAfter,l151MarkSectionAfter,l152PreviewTabAfter].every(x=>merged.includes(x)))return false;
+  if(!l153BusinessAttrPatches.every(([before,after])=>merged.includes(after)&&!merged.includes(before)))return false;
+  if(!l154HydrationPatches.every(([before,after])=>merged.includes(after)&&!merged.includes(before)))return false;
+  const anchor="  function selectProductView(view,focus=false,instant=false){";
+  return merged.split(anchor).length===2 &&
+    read('landing-assets/landing.js')===merged.replace(anchor,l155InterruptedPreviewPatch+anchor);
 };
 
 // L1.46: only two critical CSS links differ from the released HTML.
@@ -595,7 +588,7 @@ check('Landing priority image and below-fold concept use efficient loading',
   current.includes('decoding="async" fetchpriority="high"') &&
   current.includes('loading="lazy" decoding="async"') &&
   current.includes('<link rel="preload" as="image" type="image/webp"') &&
-  current.includes('<script defer src="./landing-assets/landing.js?v=l154"></script>'));
+  current.includes(l155NewScriptTag));
 check('Landing ships no third-party blocking scripts or styles',
   !/<script[^>]+src=["']https?:\/\//i.test(current) &&
   !/<link[^>]+rel=["']stylesheet["'][^>]+href=["']https?:\/\//i.test(current));
@@ -792,7 +785,7 @@ check('L1.27 public tab title matches SEO without language focus scroll',
  l133PublicPagesUnchanged() &&
  l142IndexOnlyEdited() && current.includes(newHeroPreload) &&
  !current.includes(oldHeroPreload));
-check('L1.54 exact four-file public-only initial labels optimization scope',
+check('L1.55 exact four-file public-only preview interruption scope',
  actual.length===4 &&
  actual.every(path=>[
   'index.html',
@@ -827,7 +820,7 @@ check('L1.41 all nine first-party style/script URLs keep coordinated versions',
     const tag=after.replace('landing.css?v=l141','landing.min.css?v=l145')
       .replace('cinematic.css?v=l141','cinematic.min.css?v=l146')
       .replace('premium-l131.css?v=l141','premium-l131.min.css?v=l146')
-      .replace('landing.js?v=l141','landing.js?v=l154');
+      .replace('landing.js?v=l141','landing.js?v=l155');
     const bundled=/explore-l114\.css|shared-header-l116\.css/.test(after);
     return before!==after && after.includes('?v=l141') && !current.includes(before) &&
       (bundled ? current.includes(l147NewHeaderTags)&&!current.includes(after) :
@@ -911,10 +904,10 @@ check('L1.47 ordered header bundle remains identical to merged main',
  !current.includes('href="./landing-assets/shared-header-l116.css?v=l141"') &&
  read('landing-assets/landing-browser-check.cjs').includes('L1.47 Chrome CSSOM header bundle parity') &&
  l148LandingJsOnlyEdited());
-check('L1.49 repeat concept tabs preserved with L1.54 hydration guard',
+check('L1.49 repeat concept tabs preserved through L1.55',
   l148IndexOnlyEdited() && l148LandingJsOnlyEdited() &&
-  current.includes(l154NewScriptTag) &&
-  !current.includes(l153NewScriptTag) &&
+  current.includes(l155NewScriptTag) &&
+  !current.includes(l154NewScriptTag) &&
   source('landing-assets/landing.js').includes(l149BusinessClickAfter) &&
   read('landing-assets/landing-browser-check.cjs').includes('L1.49 active Business tab no-op browser parity'));
 check('L1.50 same-language selection is isolated and retains menu keyboard behavior',
@@ -941,8 +934,13 @@ check('L1.54 language and feature title hydration skips identical writes',
   l148LandingJsOnlyEdited() &&
   read('landing-assets/landing-browser-check.cjs').includes('L1.54 initial feature and language labels browser parity') &&
   l154HydrationPatches.every(([oldCode,newCode])=>
-    source('landing-assets/landing.js').includes(oldCode) &&
+    source('landing-assets/landing.js').includes(newCode) &&
+    !source('landing-assets/landing.js').includes(oldCode) &&
     read('landing-assets/landing.js').includes(newCode)));
+check('L1.55 interrupted crossfade isolated from current main',
+  l148LandingJsOnlyEdited() &&
+  read('landing-assets/landing-browser-check.cjs').includes('L1.55 preview interruption browser parity') &&
+  current.includes(l155NewScriptTag));
 check('L1.48 measured language DOM improvements preserved',
   source('landing-assets/landing.js').includes('L1.48: preserve the existing node') &&
   read('landing-assets/landing-browser-check.cjs').includes('L1.48 measured initial-language DOM write parity'));
