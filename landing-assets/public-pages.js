@@ -165,6 +165,15 @@
   }
   changeLanguage(locale);
 
+  // L1.37: synchronize the same public language preference across open tabs.
+  // Keep document routes, menu focus, credentials and App state untouched.
+  window.addEventListener('storage', event => {
+    const next = event.newValue;
+    if (event.key !== storageKey || !locales.has(next) || next === locale) return;
+    changeLanguage(next);
+    closeLanguage();
+  });
+
   // L1.18 — progressive, one-shot reveals for informational pages only.
   // Existing page content is visible by default. No fetch, credentials,
   // tracking, navigation interception or persistent animation state.
