@@ -113,3 +113,90 @@ test('changing language never writes type/category translations to financial dat
  assert.equal(loan?.type,'Expense');
  assert.match(source,/mmhvault-language-change',refreshAll/);
 });
+
+test('synthetic form DOM keeps original ledger values when user chooses a combined field',()=>{
+  const store=new Map([['mmhvault_tx_field_layout_v11_'+owner,'type-category']]);
+  const names={Income:['Salary','Other Income'],Expense:['Dining','Other'],Personal:['Gifts'],LoanIncome:['Debt'],LoanExpense:['Loan Out']};
+  const categoryOptions=(type,group)=>group==='Transfer'?['Transfer']:group==='Data Adjustment'?['Data Adjustment']:names[group==='Loans'?(type==='Income'?'LoanIncome':'LoanExpense'):group]||[];
+  const groups=type=>type==='Income'?['Income','Loans','Data Adjustment']:type==='Expense'?['Expense','Personal','Loans','Data Adjustment']:['Transfer'];
+  const wraps={},listeners={},grid={children:[],appendChild(x){this.children.push(x)}},labels={};
+  class Node {
+    constructor(tag){this.tagName=tag;this.dataset={};this.style={};this.children=[];this.options=[];this.hidden=false;this._value='';}
+    appendChild(x){this.children.push(x);if(this.tagName==='select')this.options.push(x);return x;}
+    replaceChildren(...nodes){this.children=[];this.options=[];nodes.forEach(x=>this.appendChild(x));}
+    querySelector(selector){if(selector==='select')return this.children.find(x=>x.tagName==='select')||null;return null;}
+    after(node){wraps[node.dataset.txQuickV11]=node;}
+    set value(v){this._value=String(v);}
+    get value(){return this._value;}
+  }
+  for(const k of ['type','group','category'])labels[k]=new Node('label');
+  const select=(value,values,field)=>{
+    const el=new Node('select');
+    el.options=values.map(v=>({value:v}));
+    el.value=value;
+    el.closest=()=>labels[field];
+    return el;
+  };
+  const type=select('Expense',['Income','Expense','Transfer'],'type');
+  const group=select('Expense',groups('Expense'),'group');
+  const category=select('Dining',categoryOptions('Expense','Expense'),'category');
+  const form={
+    id:'editTxForm',dataset:{mmhV11OriginalType:'Expense',mmhV11OriginalGroup:'Expense',mmhV11OriginalCategory:'Dining'},
+    addEventListener(name,fn){listeners[name]=fn;},
+    querySelector(q){
+      if(q==='.formgrid')return grid;
+      if(q==='[data-tx-hint-v11]')return grid.children.find(x=>Object.hasOwn(x.dataset,'txHintV11'))||null;
+      const match=q.match(/^\\[data-tx-quick-v11="([^"]+)"\\]$/);
+      return match?wraps[match[1]]||null:null;
+    }
+  };
+  const els={editTxForm:form,eType:type,eGroup:group,eCat:category};
+  type.onchange=()=>{
+    const allowed=groups(type.value);
+    group.options=allowed.map(value=>({value}));
+    if(!allowed.includes(group.value))group.value=allowed[0];
+    group.onchange();
+  };
+  group.onchange=()=>{
+    const allowed=categoryOptions(type.value,group.value);
+    category.options=allowed.map(value=>({value}));
+    if(!allowed.includes(category.value))category.value=allowed[0]||'';
+  };
+  const doc={
+    readyState:'loading',addEventListener(){},getElementById:id=>els[id]||null,
+    querySelectorAll(){return []},createElement:tag=>new Node(tag)
+  };
+  const ctx={window:{addEventListener(){}},document:doc,
+    localStorage:{getItem:k=>store.get(k)||null,setItem:(k,v)=>store.set(k,v)},
+    currentSessionUser:{id:owner},mmhVaultTransactionCategoryListV451:categoryOptions,console,setTimeout(){},
+  };
+  vm.runInNewContext(source,ctx);
+  const api=ctx.window.MMHV11TxFieldPrefs;
+  api.attachEdit();
+  assert.equal(type.value,'Expense');
+  assert.equal(group.value,'Expense');
+  assert.equal(category.value,'Dining');
+  const combinedCategory=wraps.category.querySelector('select');
+  assert.equal(wraps.category.hidden,false);
+  assert.equal(labels.group.style.display,'none');
+  const gift=combinedCategory.options.find(x=>x.textContent==='Gifts');
+  assert.ok(gift,'Personal category appears in combined Type + Category chooser');
+  combinedCategory.value=gift.value;
+  combinedCategory.onchange();
+  assert.equal(type.value,'Expense');
+  assert.equal(group.value,'Personal','the category must map to the correct saved group');
+  assert.equal(category.value,'Gifts','the original category selector remains the saved value');
+  assert.equal(api.validate(form),true);
+  store.set('mmhvault_tx_field_layout_v11_'+owner,'transaction-category');
+  api.refresh();
+  const combinedGroup=wraps.group.querySelector('select');
+  const loan=combinedGroup.options.find(x=>x.textContent==='Loan Income');
+  assert.ok(loan);
+  combinedGroup.value=loan.value;
+  combinedGroup.onchange();
+  assert.equal(type.value,'Income','Loan Income must never save as Expense');
+  assert.equal(group.value,'Loans');
+  assert.equal(category.value,'Debt');
+  assert.equal(api.validate(form),true);
+  assert.equal(listeners.submit instanceof Function,true);
+});
