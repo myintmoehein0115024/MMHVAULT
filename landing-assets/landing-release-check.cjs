@@ -667,7 +667,7 @@ check('L1.38 calmer paint-only public panels preserve accessibility and asset bu
  read('landing-assets/shared-header-l116.css').includes('prefers-reduced-motion:no-preference') &&
  read('landing-assets/shared-header-l116.css').includes('prefers-reduced-motion:reduce') &&
  read('landing-assets/landing.js')===source('landing-assets/landing.js') &&
- read('landing-assets/public-pages.js')===source('landing-assets/public-pages.js') &&
+ l139PublicOnlyEdited() &&
  current===prev);
 check('L1.39 phone scroll reveals prewarm outside viewport without layout edits',
  l139MotionOnlyEdited() && l139PublicOnlyEdited() &&
