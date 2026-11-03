@@ -877,7 +877,9 @@
     }
   }
   languageButtons.forEach(button => button.addEventListener('click', () => {
-    applyLanguage(button.dataset.lang);
+    // L1.50: reselecting the active language only closes the selector;
+    // preserve keyboard focus without retranslating the entire page.
+    if (button.dataset.lang !== currentLang) applyLanguage(button.dataset.lang);
     closeLanguage();
     localeTrigger.focus({preventScroll:true});
   }));
