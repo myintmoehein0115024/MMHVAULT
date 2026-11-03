@@ -78,7 +78,6 @@ export default {async fetch(request,env){
   const allowed=env.ALLOWED_ORIGIN||'';
   const cors=origin===allowed?origin:null;
   if(origin&&origin!==allowed)return response(403,{error:'origin_not_allowed'});
-  if(!origin)return response(403,{error:'origin_required'});
   if(request.method==='OPTIONS')return new Response(null,{status:204,headers:{'access-control-allow-origin':cors||'null','access-control-allow-methods':'GET, OPTIONS','access-control-allow-headers':'Authorization, Accept','access-control-max-age':'600','vary':'Origin'}});
   const url=new URL(request.url);
   if(request.method!=='GET'||url.pathname!=='/api/admin/website-analytics')return response(404,{error:'not_found'},cors);
