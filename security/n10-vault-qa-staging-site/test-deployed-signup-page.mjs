@@ -23,3 +23,21 @@ test('deployed Staging username signup page contains a guarded real API client',
  assert.match(client.body,/const EDGE='https:\/\/ldivswlhtgmznzwhzsoi\.supabase\.co/);
  assert.match(client.body,/setReady\(false\);refresh\(\);/);
 });
+
+test('real deployed MFA page has updated QR sanitizer and manual-key fallback',async()=>{
+ const page=await get('/preview/mfa.html');
+ assert.equal(page.status,200);
+ assert.match(page.body,/N10 Staging MFA QA/);
+ assert.match(page.body,/id="manualSecret"/);
+ assert.match(page.body,/id="manualToggle"/);
+ assert.match(page.body,/noindex,nofollow,noarchive/);
+ assert.match(page.csp,/frame-src https:\/\/challenges\.cloudflare\.com/);
+ const script=await get('/mfa.js');
+ assert.equal(script.status,200);
+ assert.match(script.body,/function safeSvgMarkup\(svg\)/);
+ assert.match(script.body,/function qrImageSource\(qr\)/);
+ assert.match(script.body,/function manualTotpSecret\(value\)/);
+ assert.match(script.body,/clearOwnUnverifiedFactor\(\)/);
+ assert.match(script.body,/f\.status==='unverified'/);
+ assert.doesNotMatch(script.body,/vrypucmyrztxgiqhjspd|https:\/\/mmhvault\.com\b/);
+});
