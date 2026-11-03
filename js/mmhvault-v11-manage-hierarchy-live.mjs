@@ -299,15 +299,23 @@ function manager(){
   if(linkSync?.owner===owner()){
     const status=elt('div','mmh-hier-muted');status.setAttribute('role','status');
     const verified=linkSync.state==='verified';
+    const needsLink=linkSync.state==='needs-link';
     status.append(elt('span','',verified?tr(
       'Last transaction link: cloud verified.',
       '最近交易关联：已核对云端记录。',
-      'နောက်ဆုံး မှတ်တမ်းချိတ်ဆက်မှုကို cloud တွင် စစ်ဆေးပြီးပါပြီ။'):tr(
+      'နောက်ဆုံး မှတ်တမ်းချိတ်ဆက်မှုကို cloud တွင် စစ်ဆေးပြီးပါပြီ။'):needsLink?tr(
+      'Transaction saved; its Manage link was not stored. Retry linking without creating another transaction.',
+      '交易已保存，但关联没有保存。可重新关联，不会再次创建交易。',
+      'မှတ်တမ်း သိမ်းပြီး၊ ချိတ်ဆက်မှုကို မှတ်မထားပါ။ ထပ်မံမှတ်တမ်းမဖန်တီးဘဲ ပြန်ချိတ်ပါ။'):tr(
       'Transaction saved; Manage link is awaiting cloud verification.',
       '交易已保存；Manage 关联尚待云端核对。',
       'မှတ်တမ်း သိမ်းပြီး၊ Manage ချိတ်ဆက်မှု cloud စစ်ဆေးရန် ကျန်ပါသည်။')));
     if(!verified){
-      const retry=btn(tr('Recheck sync','重新核对同步','ထပ်မံစစ်ဆေးရန်'),()=>{void verifyCloudLink(linkSync)},'mmh-hier-btn');
+      const retry=btn(needsLink?tr('Retry link','重新关联','ပြန်ချိတ်ပါ'):
+        tr('Recheck sync','重新核对同步','ထပ်မံစစ်ဆေးရန်'),()=>{
+        if(linkSync?.state==='needs-link')retryConfirmedLink(linkSync);
+        else void verifyCloudLink(linkSync);
+      },'mmh-hier-btn');
       retry.disabled=checkingCloud;status.append(retry);
     }
     root.append(status);
@@ -366,8 +374,24 @@ function schedule(){
   if(queued)return;queued=true;
   queueMicrotask(()=>{queued=false;manager();form()});
 }
+function retryConfirmedLink(target){
+  if(!target||linkSync!==target||!ready()||target.state!=='needs-link')return;
+  try{
+    // The financial ledger record was already inserted. Retry ONLY the
+    // owner-scoped JSON path link; never call a transactions insert/update.
+    controller.recorded(target.recordId,target.ids.type,target.ids.transaction,
+      target.ids.category,target.canonical);
+    target.state='pending';schedule();void verifyCloudLink(target);
+  }catch(error){
+    console.warn('[MMHVAULT] Saved ledger Manage link retry blocked',error);
+    notify(tr('Could not restore the Manage link. Your transaction remains saved.',
+      '关联仍未恢复，但交易已保存，不会重复记账。',
+      'ချိတ်ဆက်မှု မအောင်မြင်သေးပါ။ မှတ်တမ်း မပျောက်ပါ။'));
+  }
+}
 async function verifyCloudLink(target){
-  if(!target||checkingCloud||owner()!==target.owner||configOwner()!==target.owner)return;
+  if(!target||target.state!=='pending'||checkingCloud||
+    owner()!==target.owner||configOwner()!==target.owner)return;
   checkingCloud=true;schedule();
   try{
     const verified=await verifyStoredCloudLink({
@@ -388,7 +412,7 @@ async function verifyCloudLink(target){
     // A second saved transaction may arrive while the prior cloud check is
     // in-flight. Verify the latest one next, but do not retry failed syncs
     // indefinitely. Failed checks remain Pending for manual retry.
-    if(linkSync&&linkSync!==target&&linkSync.state!=='verified'&&
+    if(linkSync&&linkSync!==target&&linkSync.state==='pending'&&
       linkSync.owner===owner()&&linkSync.owner===configOwner())
       queueMicrotask(()=>{void verifyCloudLink(linkSync)});
   }
@@ -398,15 +422,16 @@ function ledgerInserted(userId,id,values){
   const current=pendingSave;pendingSave=null;
   if(!values||values.type!==current.path.type||values.group!==current.path.group||
     values.category!==current.path.category)return;
+  const target={owner:userId,recordId:String(id),ids:{...current.ids},
+    canonical:{type:values.type,group:values.group,category:values.category},state:'needs-link'};
+  linkSync=target;
   try{
-    controller.recorded(String(id),current.ids.type,current.ids.transaction,current.ids.category,values);
-    linkSync={owner:userId,recordId:String(id),ids:{...current.ids},
-      canonical:{type:values.type,group:values.group,category:values.category},state:'pending'};
-    schedule();void verifyCloudLink(linkSync);
-  }catch(error){console.warn('[MMHVAULT] Ledger saved but linked Manage path was not synced',error);
-    notify(tr('Transaction saved, but its Manage link could not be confirmed. Reopen Manage to check.',
-      '交易已保存，但 Manage 关联未能确认，请重新打开 Manage 检查。',
-      'မှတ်တမ်း သိမ်းပြီး၊ Manage ချိတ်ဆက်မှု စစ်ဆေးပါ။'))}
+    controller.recorded(target.recordId,target.ids.type,target.ids.transaction,target.ids.category,values);
+    target.state='pending';schedule();void verifyCloudLink(target);
+  }catch(error){console.warn('[MMHVAULT] Ledger saved but Manage link write did not complete',error);
+    schedule();notify(tr('Transaction saved. Its Manage link needs a retry; no duplicate transaction will be created.',
+      '交易已保存，项目关联需要重试，不会再次创建交易。',
+      'မှတ်တမ်း သိမ်းပြီး၊ ချိတ်ဆက်မှု ပြန်လုပ်ရန် လိုပါသည်။'))}
 }
 function boot(){
   const f=$('txForm');
