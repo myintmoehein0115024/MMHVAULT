@@ -56,8 +56,7 @@ const l133BurmeseLayoutOnlyEdited=()=>
   l137LandingJSOnlyEdited() &&
   current===prev &&
   current.includes('<title>MMHVAULT | Personal Finance & Wealth</title>');
-const l133PublicPagesUnchanged=()=>read('landing-assets/public-pages.js')===
- source('landing-assets/public-pages.js');
+const l133PublicPagesUnchanged=()=>l137PublicJSOnlyEdited();
 const manifest=JSON.parse(read('mmh-manifest-v2.webmanifest'));
 const oldManifest=JSON.parse(source('mmh-manifest-v2.webmanifest'));
 const dom=(key,content)=>((content.match(new RegExp('<script id="'+key+'">([\\s\\S]*?)<\\/script>'))||[])[1]||null);
