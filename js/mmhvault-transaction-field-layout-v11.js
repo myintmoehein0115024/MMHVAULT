@@ -441,8 +441,9 @@
     const fallback=neutral(type,group);
     if(!fallback)return false;
     if(type==='Transfer'||group==='Data Adjustment')return true;
+    const key=group==='Loans'?(type==='Income'?'LoanIncome':'LoanExpense'):group;
     const list=typeof mmhVaultTransactionCategoryListV451==='function'?
-      mmhVaultTransactionCategoryListV451(type,group):[];
+      mmhVaultTransactionCategoryListV451(type,group):(config()?.categories?.[key]||[]);
     return Array.isArray(list)&&list.includes(fallback);
   }
   function allowedTransactions(){
