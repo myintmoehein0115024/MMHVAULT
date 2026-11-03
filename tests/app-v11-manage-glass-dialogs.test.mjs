@@ -121,8 +121,8 @@ function harness(){
 
 test('isolated addon is wired from versioned core and does not modify Add Transaction markup',()=>{
   assert.match(app,/transaction-field-layout-v11\.js\?v=3\.0\.3/);
-  assert.match(base,/mmhvault-v11-manage-glass-dialogs\.js\?v=1\.0\.0/);
-  assert.match(base,/mmhvault-v11-manage-glass-dialogs\.css\?v=1\.0\.0/);
+  assert.match(base,/mmhvault-v11-manage-glass-dialogs\.js\?v=1\.0\.1/);
+  assert.match(base,/mmhvault-v11-manage-glass-dialogs\.css\?v=1\.0\.1/);
   assert.doesNotMatch(source,/MMHVAULT_CONFIG\s*=|transactions\.push\(/);
   assert.match(css,/@media\(max-width:580px\)/);
   assert.match(css,/overflow-y:auto/);
