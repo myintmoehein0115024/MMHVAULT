@@ -17,6 +17,7 @@ const show=(name,yes)=>$(name).classList.toggle('hidden',!yes);
 const message=s=>{$('status').textContent=s};
 const info=s=>{$('backupStatus').textContent=s};
 let user=null, pendingPhrase='', phraseTimeout=null, tick=null, busy=false, factorId='';
+let windowConfirmed=false, windowDeadlineMonotonic=0, windowExpired=false;
 const client=window.supabase?.createClient(BASE,KEY,{
  auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false,storageKey:'mmh-n10-staging-only'}
 });
@@ -48,8 +49,55 @@ function displayPhrase(words,keepForRetry){
 function clearInputs(){
  for(const id of ['loginPwd','totp','setupPwd','retryPwd','revealPwd'])$(id).value='';
 }
+function windowRemainingMs(){
+ return windowConfirmed?Math.max(0,windowDeadlineMonotonic-performance.now()):0;
+}
+function discardWindow(expired=false){
+ windowConfirmed=false;windowDeadlineMonotonic=0;windowExpired=expired;
+ hidePhrase();clearInputs();
+ renderWindowClock();
+}
+function renderWindowClock(){
+ const remaining=windowRemainingMs();
+ if(windowConfirmed&&remaining<=0){
+  windowConfirmed=false;windowExpired=true;windowDeadlineMonotonic=0;
+  hidePhrase();clearInputs();
+  message('测试窗口已到期，敏感操作已自动禁用。请不要重复生成恢复词。');
+ }
+ const clock=$('windowInfo'),hint=$('gateHint');
+ if(windowConfirmed){
+  const s=Math.max(0,Math.floor(remaining/1000));
+  clock.textContent='已确认 Staging 测试窗口 · 安全剩余 '+Math.floor(s/60)+'分'+String(s%60).padStart(2,'0')+'秒';
+  clock.className='window-clock active';
+  hint.textContent='倒计时由服务器时间计算，提前 5 秒保护。真正访问权限始终以服务器为准。';
+ }else{
+  clock.textContent=windowExpired?'测试窗口已结束 · 已禁止生成、备份及查看':'未确认有效测试窗口 · 请先检查备份状态';
+  clock.className='window-clock'+(windowExpired?' expired':'');
+  hint.textContent='未确认窗口时，生成、备份、查看按钮保持禁用。';
+ }
+ $('initBtn').disabled=busy||!windowConfirmed||remaining<=120000;
+ $('retryBtn').disabled=busy||!windowConfirmed||remaining<=45000;
+ $('revealBtn').disabled=busy||!windowConfirmed||remaining<=30000;
+}
+function armWindow(serverExpiry,serverNow){
+ const until=Date.parse(serverExpiry),current=Date.parse(serverNow);
+ const delta=until-current;
+ if(!Number.isFinite(until)||!Number.isFinite(current)||!Number.isFinite(delta)
+    ||delta<=5000||delta>600000) {
+  discardWindow(delta<=5000&&Number.isFinite(delta));
+  throw Error('qa_window_invalid_metadata');
+ }
+ windowConfirmed=true;windowExpired=false;
+ // Server timestamp is authoritative; a five-second buffer accounts for transit.
+ windowDeadlineMonotonic=performance.now()+delta-5000;
+ renderWindowClock();
+}
+function requireWindow(seconds){
+ if(!windowConfirmed||windowRemainingMs()<=seconds*1000)
+  throw Error('qa_window_insufficient');
+}
 function resetView(){
- hidePhrase();clearInputs();factorId='';user=null;
+ discardWindow(false);factorId='';user=null;
  show('signinSection',true);show('mfaSection',false);show('vaultSection',false);
 }
 const codes=Object.freeze({
