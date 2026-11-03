@@ -131,6 +131,18 @@
     // Add Category input or changing its validation and history protection.
     const categoryForm=panel.querySelector('.mmh-manager-form-v445')||
       legacyCard?.querySelector('.mmh-manager-form-v445');
+    const heading=id('category-manage')?.querySelector('.cm-heading h2');
+    if(heading){
+      if(!heading.dataset.mmhV12OldEn){
+        heading.dataset.mmhV12OldEn=heading.dataset.i18nEn||'Manage Categories';
+        heading.dataset.mmhV12OldZh=heading.dataset.i18nZh||'管理分类';
+      }
+      heading.dataset.i18nEn=isManaged()?'Manage Transaction Fields':heading.dataset.mmhV12OldEn;
+      heading.dataset.i18nZh=isManaged()?'管理记账字段':heading.dataset.mmhV12OldZh;
+      heading.textContent=isManaged()?
+        tr('Manage Transaction Fields','管理记账字段','မှတ်တမ်းအကွက်များကို စီမံပါ'):
+        tr(heading.dataset.mmhV12OldEn,heading.dataset.mmhV12OldZh,heading.dataset.mmhV12OldEn);
+    }
     if(!isManaged()){
       if(categoryForm&&legacyCard&&categoryForm.parentElement!==legacyCard){
         const header=legacyCard.querySelector('.mmh-manager-head-v445');
@@ -245,7 +257,10 @@
     if(message){
       el.append(make('span','',message));
       el.append(button(tr('Open Manage','前往 Manage 设置','Manage သို့သွားရန်'),()=>{
-        try{if(typeof showTxTab==='function')showTxTab('manage');}catch(_e){}
+        try{
+          if(typeof window.showTxTab==='function')window.showTxTab('manage');
+          else window.mmhTxPagePickerOpenCategoriesV3?.();
+        }catch(_e){}
       }));
     }
   }
