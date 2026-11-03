@@ -197,6 +197,8 @@
       '.mmh-v12-head{font-weight:700;font-size:15px;line-height:1.4;margin-bottom:4px}',
       '.mmh-v12-help{font-size:12px;opacity:.8;line-height:1.55}',
       '.mmh-v12-progress{margin:12px 0 10px;font-weight:700;font-size:12px;color:#e6c27d}',
+      '.mmh-v12-warning{font-size:12px;line-height:1.6;color:#f8d995;margin-bottom:12px}',
+      '#txForm .actions button[data-mmh-v12-blocked="1"]{opacity:.55;cursor:not-allowed}',
       '.mmh-v12-cols{display:grid;grid-template-columns:minmax(0,1fr);gap:0;border:1px solid rgba(165,174,197,.24);border-radius:13px;overflow:hidden;margin-top:8px}',
       '.mmh-v12-col{min-width:0;display:grid;grid-template-columns:minmax(155px,185px) minmax(0,1fr);gap:16px;padding:15px 16px;align-items:start;background:rgba(10,27,47,.28)}',
       '.mmh-v12-col+.mmh-v12-col{border-top:1px solid rgba(165,174,197,.18)}',
@@ -297,7 +299,9 @@
     host?.classList.add('mmh-v12-managed');
     const hasArchived=Object.values(config()?.archivedCategories||{})
       .some(items=>Array.isArray(items)&&items.length>0);
-    if(legacyCard)legacyCard.hidden=!(state()?.category.length||hasArchived);
+    // Managed owners already have Edit/Remove actions in the unified card;
+    // keep the old duplicate category list hidden unless archived items exist.
+    if(legacyCard)legacyCard.hidden=!hasArchived;
     panel.append(make('div','mmh-v12-head',tr('Set up your entry fields','设置您的记账字段','မှတ်တမ်းအကွက်များ သတ်မှတ်ပါ')));
     panel.append(make('div','mmh-v12-help',tr(
       'Tap an option to add or remove it. Give Category your own names. Add Transaction will follow these choices automatically.',
@@ -305,13 +309,15 @@
       'ရွေးချယ်မှုကို နှိပ်ပြီး ထည့်ပါ သို့မဟုတ် ဖယ်ပါ။ Category အမည်ကို ကိုယ်တိုင် ထည့်နိုင်ပါသည်။'
     )));
     const fields=['type','transaction','category'];
-    const enabledFields=fields.filter(key=>(state()?.[key]||[]).length);
-    const count=enabledFields.length;
+    const status=readiness();
+    const enabledFields=fields.filter(key=>status.active[key]);
+    const count=status.count;
     panel.append(make('div','mmh-v12-progress',tr(
-      count<2?'First setup · '+count+' of 2 field groups ready':'Ready · '+count+' field groups selected',
-      count<2?'首次设置 · 已完成 '+count+'/2 项字段':'已就绪 · 选中 '+count+' 项字段',
-      count<2?'ပြင်ဆင်မှု '+count+'/2':'အကွက် '+count+' ခု'
+      !status.ready?'Setup needed · '+count+' field groups selected':'Ready · '+count+' compatible field groups',
+      !status.ready?'需要继续设置 · 已选择 '+count+' 项字段':'已就绪 · '+count+' 项字段已匹配',
+      !status.ready?'ထပ်မံပြင်ဆင်ရန် · '+count+' ခု':'အဆင်သင့် · '+count+' ခု'
     )));
+    if(!status.ready&&count>=2)panel.append(make('div','mmh-v12-warning',status.reason));
     const grid=make('div','mmh-v12-cols');panel.append(grid);
     for(const kind of ['type','transaction']){
       const card=make('div','mmh-v12-col');grid.append(card);
@@ -377,12 +383,8 @@
     const preview=make('div','mmh-v12-preview');panel.append(preview);
     preview.append(make('span','mmh-v12-preview-label',tr(
       'Add Transaction preview','Add Transaction 将显示','Add Transaction တွင် ပြမည့်အရာ')));
-    if(count<2){
-      preview.append(make('span','mmh-v12-help',tr(
-        'Select at least two kinds above to start recording.',
-        '请先在上方添加至少两种字段，才能开始记账。',
-        'အထက်မှ အကွက်နှစ်ခု အနည်းဆုံး ရွေးပါ။'
-      )));
+    if(!status.ready){
+      preview.append(make('span','mmh-v12-help',status.reason));
     }else{
       const shown=make('div','mmh-v12-preview-fields');preview.append(shown);
       for(const field of enabledFields){
@@ -429,6 +431,44 @@
     if(type==='Expense'&&group==='Expense')return 'Other';
     return null;
   }
+
+  // A configured field-count is NOT sufficient for a valid ledger entry.
+  // Only whitelisted canonical Type/Transaction/Category combinations count.
+  function matchingCategories(type,group){
+    return categories().filter(x=>x.type===type&&x.coreGroup===group);
+  }
+  function safeNeutral(type,group){
+    const fallback=neutral(type,group);
+    if(!fallback)return false;
+    if(type==='Transfer'||group==='Data Adjustment')return true;
+    const list=typeof mmhVaultTransactionCategoryListV451==='function'?
+      mmhVaultTransactionCategoryListV451(type,group):[];
+    return Array.isArray(list)&&list.includes(fallback);
+  }
+  function allowedTransactions(){
+    const withCategory=categories().length>0;
+    return transactions().filter(x=>
+      (!types().length||types().includes(x.type))&&
+      (withCategory?matchingCategories(x.type,x.group).length>0:safeNeutral(x.type,x.group)));
+  }
+  function readiness(){
+    const active={type:types().length>0,transaction:transactions().length>0,category:categories().length>0};
+    const count=Object.values(active).filter(Boolean).length;
+    if(count<2)return {active,count,ready:false,reason:tr(
+      'Set up at least two field groups in Manage before adding a transaction.',
+      '请先在 Manage 设置至少两种字段，再开始记账。',
+      'Manage တွင် အကွက်အမျိုးအစား နှစ်ခု ရွေးပါ။')};
+    let validPair=false;
+    if(active.transaction){
+      validPair=allowedTransactions().length>0;
+    }else if(active.type&&active.category){
+      validPair=categories().some(x=>types().includes(x.type));
+    }
+    return {active,count,ready:validPair,reason:validPair?'':tr(
+      'No matching financial combination is configured. Add a Category matching your Income/Expense Transaction (or choose a compatible Type) in Manage.',
+      '已选择的字段不匹配。请在 Manage 添加与收入/支出 Transaction 对应的 Category，或调整 Type。',
+      'Income/Expense Transaction နှင့် ကိုက်ညီသော Category ကို Manage တွင် ထည့်ပါ။')};
+  }
   function note(message){
     const form=id('txForm');if(!form)return;
     let el=id('mmhV12SetupNote');
@@ -457,6 +497,8 @@
     if(!t||!g||!c)return;
     const labels={type:t.closest('label'),transaction:g.closest('label'),category:c.closest('label')};
     if(!isManaged()){
+      const save=form.querySelector('.actions button:not([type="button"])');
+      if(save){save.disabled=false;save.dataset.mmhV12Blocked='0';}
       Object.values(labels).forEach(x=>{if(x){x.dataset.mmhV12Hidden='0';x.hidden=false;x.style.display='';}});
       const kindPanel=id('txSmartV141');
       if(kindPanel){kindPanel.dataset.mmhV12Setup='0';kindPanel.dataset.mmhV12Managed='0';}
@@ -464,30 +506,32 @@
     }
     rendering=true;
     try{
-      const enabled={type:types().length>0,transaction:transactions().length>0,category:categories().length>0};
-      const active=Object.values(enabled).filter(Boolean).length;
+      const status=readiness();
+      const enabled=status.active;
+      const active=status.count;
+      const save=form.querySelector('.actions button:not([type="button"])');
+      if(save){save.disabled=!status.ready;save.dataset.mmhV12Blocked=status.ready?'0':'1';}
       // A partially configured form must look empty. No default Salary (or
       // another category) may leak in beside the setup guidance.
       Object.entries(labels).forEach(([name,el])=>{
         if(!el)return;
-        const visible=active>=2&&enabled[name];
+        const visible=status.ready&&enabled[name];
         el.dataset.mmhV12Hidden=visible?'0':'1';
         el.hidden=!visible;
         el.style.display=visible?'':'none';
       });
       const kindPanel=id('txSmartV141');
       if(kindPanel){
-        kindPanel.dataset.mmhV12Setup=active<2?'1':'0';
+        kindPanel.dataset.mmhV12Setup=status.ready?'0':'1';
         kindPanel.dataset.mmhV12Managed='1'; // two selected fields are the sole visible choice
       }
-      if(active<2){
+      if(!status.ready){
         // Keep the canonical Type options even when the Type field is hidden.
         // Otherwise a fresh owner selecting Transaction + Category later cannot
         // set its internal income/expense Type, and saving becomes impossible.
         if(!enabled.transaction)g.replaceChildren();
         if(!enabled.category)c.replaceChildren();
-        note(tr('Set up at least two fields in Manage before adding a transaction.',
-          '请先在 Manage 添加至少两种字段，再开始记账。','မှတ်တမ်းထည့်ရန် Manage တွင် အကွက်နှစ်ခု ရွေးပါ။'));
+        note(status.reason);
         return;
       }
       const currType=t.value,currGroup=g.value,currCat=c.value;
@@ -496,7 +540,8 @@
       }
       let type=enabled.type?t.value:currType;
       if(enabled.transaction){
-        const available=fieldItems('transaction').map(x=>({...KIND.find(k=>k.id===x.canonical),label:x.label,choiceId:x.key})).filter(x=>x.type&&(!enabled.type||x.type===type));
+        const allowed=new Set(allowedTransactions().map(x=>x.id));
+        const available=fieldItems('transaction').map(x=>({...KIND.find(k=>k.id===x.canonical),label:x.label,choiceId:x.key})).filter(x=>x.type&&allowed.has(x.id)&&(!enabled.type||x.type===type));
         if(!available.length){
           g.replaceChildren();note(tr('Add a compatible Transaction in Manage.','请在 Manage 添加匹配的 Transaction。','Manage တွင် Transaction ထည့်ပါ။'));return;
         }
@@ -543,7 +588,8 @@
       }
       if(enabled.transaction){
         // Restore the managed transaction choices after the internal group sync.
-        const available=fieldItems('transaction').map(x=>({...KIND.find(k=>k.id===x.canonical),label:x.label,choiceId:x.key})).filter(x=>x.type&&(!enabled.type||x.type===type));
+        const allowed=new Set(allowedTransactions().map(x=>x.id));
+        const available=fieldItems('transaction').map(x=>({...KIND.find(k=>k.id===x.canonical),label:x.label,choiceId:x.key})).filter(x=>x.type&&allowed.has(x.id)&&(!enabled.type||x.type===type));
         const entries=available.map(x=>({value:x.group,label:x.label,type:x.type,group:x.group,choiceId:x.choiceId}));
         fill(g,entries,group,transactionChoice);
         const match=[...g.options].findIndex(x=>x.dataset.mmhCanonicalType===type&&x.dataset.mmhCanonicalGroup===group);
@@ -555,7 +601,7 @@
   }
   function valid(){
     const s=state();if(!s)return true;
-    if(['setup'].includes(mode()))return false;
+    if(!readiness().ready)return false;
     const t=id('txType'),g=id('txGroup'),c=id('txCategory');if(!t||!g||!c)return false;
     if(!TYPE.includes(t.value)||!g.value||!c.value)return false;
     if(s.type.length&&!s.type.includes(t.value))return false;
@@ -591,20 +637,24 @@
       form.addEventListener('submit',event=>{
         if(!valid()){
           event.preventDefault();event.stopImmediatePropagation();
-          notify(tr('Set up the required fields in Manage before saving. Historical finance categories will not be guessed.',
-            '请先在 Manage 配好必要字段，再保存；系统不会猜测财务分类。',
-            'Manage တွင် လိုအပ်သောအကွက်များ ထည့်ပါ။'));
+          notify(readiness().reason||tr(
+            'Choose a Type, Transaction and Category that match before saving.',
+            '请选择相互匹配的 Type、Transaction 和 Category 后再保存。',
+            'ကိုက်ညီသော အမျိုးအစားများကို ရွေးပါ။'));
         }
       },true);
     }
+    form?.addEventListener('focusin',event=>{
+      if(event.target===id('txCategory')||event.target===id('txGroup'))refreshForm();
+    },true);
     const refresh=()=>{refreshManage();refreshForm();};
     for(const e of ['mmhvault:config-owner-changed','mmhvault:config-cloud-synced','mmhvault:category-config-changed','mmhvault:data-loaded','mmhvault-language-change'])
       window.addEventListener(e,()=>setTimeout(refresh,0));
     refresh();
   }
   window.MMHV11TxFieldPrefs={
-    version:'3.0.0',isManaged,hasCategory,markCategory,onCategoryRenamed,fieldItems,saveName,removeName,refreshManage,
-    refresh:refreshForm,attachEdit:()=>{},getMode:mode,layoutInfo,validate:valid,
+    version:'3.0.1',isManaged,hasCategory,markCategory,onCategoryRenamed,fieldItems,saveName,removeName,refreshManage,
+    refresh:refreshForm,attachEdit:()=>{},getMode:mode,layoutInfo,readiness,validate:valid,
     // Legacy V11's manual mode chooser is intentionally removed.
     setMode:()=>false
   };
