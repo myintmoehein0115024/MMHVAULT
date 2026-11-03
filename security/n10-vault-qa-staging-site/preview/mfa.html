@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="referrer" content="no-referrer">
+<meta name="theme-color" content="#080f1d">
+<title>MMHVAULT · N10 Staging MFA QA</title>
+<link rel="stylesheet" href="../signup.css">
+<link rel="stylesheet" href="../mfa.css">
+<script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/dist/umd/supabase.js"></script>
+<script defer src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"></script>
+<script defer src="../mfa.js"></script>
+</head>
+<body>
+<div class="ambient" aria-hidden="true"></div>
+<main class="container">
+ <header class="top">
+  <div class="brand"><span class="mark">M</span><span>MMHVAULT<small>PERSONAL FINANCE & WEALTH</small></span></div>
+  <nav class="lang" aria-label="Language">
+   <button data-lang="en" type="button">EN</button>
+   <button data-lang="zh" type="button">中文</button>
+   <button data-lang="my" type="button">မြန်မာ</button>
+  </nav>
+ </header>
+ <section class="intro">
+  <div class="eyebrow">N10 / STAGING MFA QA</div>
+  <h1 data-t="title">双账户 MFA 真实验收</h1>
+  <p data-t="intro">使用刚注册的 A / B 用户名和测试密码，绑定 Google Authenticator 并验证 AAL2。</p>
+ </section>
+ <section class="glass status">
+  <div class="status-head"><div><div class="section-tag" data-t="statusLabel">测试状态</div><h2 data-t="statusTitle">真实身份验证</h2></div><span id="dot" class="dot"></span></div>
+  <p id="status" role="status" aria-live="polite" data-t="checking">正在检查测试环境…</p>
+  <button class="outline" type="button" id="refresh" data-t="refresh">重新检查测试服务</button>
+ </section>
+ <section class="glass" id="loginPanel">
+  <div class="section-tag">01 / SIGN IN</div>
+  <h2 data-t="loginTitle">使用新注册的测试用户名登录</h2>
+  <p class="small" data-t="loginNote">只允许两个专用测试账户。使用各自的测试密码，请勿在聊天中发送。</p>
+  <label for="owner" data-t="owner">选择测试账户</label>
+  <select id="owner"><option value="n10qa_a_20261103">账户 A</option><option value="n10qa_b_20261103">账户 B</option></select>
+  <label for="pwd" data-t="password">测试账户密码</label>
+  <input id="pwd" type="password" maxlength="20" minlength="6" autocomplete="off" disabled>
+  <div class="verification"><div id="turnstile"></div><p class="small" data-t="human">完成人机验证才能登录 Staging。</p></div>
+  <button id="signIn" class="primary" type="button" disabled data-t="signIn">安全登录</button>
+ </section>
+ <section class="glass is-hidden" id="mfaPanel">
+  <div class="section-tag">02 / MFA AAL2</div>
+  <h2 data-t="mfaTitle">绑定或验证 Authenticator</h2>
+  <p id="signedAs" class="small"></p>
+  <p id="factorStatus" class="small" role="status"></p>
+  <button id="enroll" class="primary is-hidden" type="button" data-t="enroll">绑定 Google Authenticator</button>
+  <div id="verifyBox" class="is-hidden">
+   <label for="totp" data-t="totpLabel">输入 Authenticator 六位动态验证码</label>
+   <input id="totp" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" placeholder="••••••">
+   <button id="verify" class="primary" type="button" data-t="verify">验证二级动态码</button>
+  </div>
+  <p id="result" class="aalresult is-hidden" role="status"></p>
+  <button class="outline" id="logout" type="button" data-t="logout">退出并清除测试会话</button>
+ </section>
+ <div class="foot" data-t="foot">仅 Staging 测试 · 不保存密码 / 动态码 / MFA 秘钥到浏览器存储</div>
+</main>
+<div id="qrModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="qrTitle" hidden>
+ <div class="dialog">
+  <div class="dialog-top">
+   <div class="eyebrow">PRIVATE MFA ENROLLMENT</div>
+   <button type="button" class="close" id="closeQr" aria-label="Close">×</button>
+  </div>
+  <h2 id="qrTitle" data-t="qrTitle">使用 Authenticator 扫描二维码</h2>
+  <p class="small" data-t="qrNote">绑定密钥只用于当前测试账户；不要截图或转发。绑定完成后将立即隐藏。</p>
+  <div class="qrwrap"><img id="qr" alt="Authenticator enrollment QR" width="215" height="215"></div>
+  <p class="small" data-t="qrVerifyNote">完成扫描后关闭弹窗，输入应用里的六位码。</p>
+  <button type="button" class="primary" id="qrDone" data-t="qrDone">已扫描，开始验证</button>
+ </div>
+</div>
+</body>
+</html>
