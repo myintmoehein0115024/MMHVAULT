@@ -25,6 +25,8 @@ jobs:
           node --check security/n10-vault-qa-staging-site/signup.js
       - name: Connected signup QA isolation, privacy and responsive tests
         run: node --test security/n10-vault-qa-staging-site/test-signup-qa.mjs
+      - name: Live deployed Staging signup page GET smoke (no credentials)
+        run: node --test security/n10-vault-qa-staging-site/test-deployed-signup-page.mjs
       - name: Offline isolated safety tests
         run: node security/n10-vault-qa-staging-site/test-client.mjs
       - name: Visual preview isolation, language and auto-hide smoke tests
