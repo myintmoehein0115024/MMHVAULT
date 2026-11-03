@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  emptyHierarchy,addType,addTransaction,addCategory,choices,pathFor,
+  emptyHierarchy,addType,addTransaction,addCategory,choices,canAddItem,pathFor,
   entryUsage,renameItem,deleteItem,archiveItem,legacyHierarchy,recordLink,normalizePersistedHierarchy
 } from '../js/mmhvault-v11-manage-hierarchy-model.mjs';
 const A='account-A',B='account-B';
@@ -21,6 +21,25 @@ test('new owner starts with absolutely no Type / Transaction / Category presets'
   assert.equal(choices(t,A,'type').length,0);
   assert.throws(()=>addTransaction(t,A,'Income2','non-existent','Income|Income',next));
   assert.throws(()=>addCategory(t,A,'Salary','non-existent',next));
+});
+test('Manage guided steps unlock only after an active parent exists',()=>{
+  const g=emptyHierarchy(A);
+  assert.equal(canAddItem(g,A,'type'),true);
+  assert.equal(canAddItem(g,A,'transaction'),false);
+  assert.equal(canAddItem(g,A,'category'),false);
+  const t=addType(g,A,'Income','Income',next);
+  assert.equal(canAddItem(g,A,'transaction'),true);
+  assert.equal(canAddItem(g,A,'category'),false);
+  const x=addTransaction(g,A,'Income2',t.id,'Income|Income',next);
+  assert.equal(canAddItem(g,A,'category'),true);
+  archiveItem(g,A,'type',t.id);
+  assert.equal(canAddItem(g,A,'transaction'),false);
+  assert.equal(canAddItem(g,A,'category'),false);
+  archiveItem(g,A,'type',t.id,false);
+  archiveItem(g,A,'transaction',x.id);
+  assert.equal(canAddItem(g,A,'transaction'),true);
+  assert.equal(canAddItem(g,A,'category'),false);
+  assert.throws(()=>canAddItem(g,B,'transaction'),/Owner|hierarchy/i);
 });
 test('requires Type first; Transaction picks its Type; Category picks its Transaction',()=>{
   const {tree,income,expense,income2,salary}=sample();
