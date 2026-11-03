@@ -86,3 +86,18 @@ test('invalid Supabase identity cannot reach admin RPC or Cloudflare',async()=>{
     assert.equal(r.status,401);assert.equal(calls,1);
   }finally{globalThis.fetch=previous}
 });
+
+test('malformed Cloudflare metrics are never displayed',async()=>{
+  const configured={...env,CF_ANALYTICS_TOKEN:'test',SUPABASE_ANON_KEY:'test',CF_ACCOUNT_ID:'test',CF_SITE_TAG:'test',SUPABASE_URL:'https://supabase.example.test'};
+  const previous=globalThis.fetch;
+  globalThis.fetch=async(url)=>{
+    if(String(url).includes('/auth/v1/user'))return new Response(JSON.stringify({id:'test-user'}),{status:200});
+    if(String(url).includes('supabase.example.test'))return new Response('true',{status:200});
+    return new Response(JSON.stringify({data:{viewer:{accounts:[{rumPageloadEventsAdaptiveGroups:[{count:-2,dimensions:{date:'invalid'},sum:{visits:999}}]}]}}}),{status:200});
+  };
+  try{
+    const r=await call(base,{headers:{Authorization:'Bearer mock.jwt.token'}},configured);
+    assert.equal(r.status,503);
+    assert.equal((await r.json()).error,'analytics_unavailable');
+  }finally{globalThis.fetch=previous}
+});
