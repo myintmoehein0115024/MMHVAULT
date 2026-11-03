@@ -36,6 +36,114 @@ function harness(txFieldsV12=fresh(),user=uid){
   return {api:context.window.MMHV11TxFieldPrefs,config:context.MMHVAULT_CONFIG,context,nodes,writes,events};
 }
 
+// Synthetic native selects: exercise actual two-field render and save guard
+// without a browser or database, while preserving the original DOM arrangement.
+function nativeForm(h){
+  const labels={};
+  class Select {
+    constructor(name,values) {
+      this.name=name;this.dataset={};this.style={};
+      this.label={style:{},dataset:{}};
+      labels[name]=this.label;
+      this.replaceChildren(...values.map(value=>({value,textContent:value,dataset:{}})));
+    }
+    replaceChildren(...options){this.options=options;this._index=options.length?0:-1;}
+    get selectedIndex(){return this._index}
+    set selectedIndex(v){this._index=v}
+    get selectedOptions(){return this._index>=0?[this.options[this._index]]:[]}
+    get value(){return this._index>=0?this.options[this._index].value:''}
+    set value(v){this._index=this.options.findIndex(x=>x.value===v)}
+    closest(){return this.label}
+  }
+  const {nodes,context}=h;
+  const t=new Select('type',['Income','Expense','Transfer']);
+  const g=new Select('transaction',['Income','Expense','Personal','Loans','Transfer','Data Adjustment']);
+  const c=new Select('category',['Salary','Other Income','Dining','Other','Gifts','Transfer']);
+  const form={
+    id:'txForm',querySelector:sel=>sel==='.mmh-form-section-v1'?{after:node=>{nodes[node.id]=node}}:sel==='.formgrid'?{prepend:()=>{}}:null
+  };
+  nodes.txForm=form;nodes.txType=t;nodes.txGroup=g;nodes.txCategory=c;
+  context.document.createElement=tag=>({
+    tagName:tag.toUpperCase(),dataset:{},style:{},hidden:false,
+    value:'',textContent:'',replaceChildren(){},setAttribute(){}
+  });
+  context.syncTransactionGroup=()=>{
+    const groups=t.value==='Income'?['Income','Loans','Data Adjustment']:
+      t.value==='Expense'?['Expense','Personal','Loans','Data Adjustment']:['Transfer'];
+    const old=g.value;g.replaceChildren(...groups.map(x=>({value:x,textContent:x,dataset:{}})));
+    if(groups.includes(old))g.value=old;
+  };
+  context.updateCategories=()=>{
+    const group=g.value;
+    const key=group==='Loans'?(t.value==='Income'?'LoanIncome':'LoanExpense'):group;
+    const names=group==='Data Adjustment'?['Data Adjustment']:
+      group==='Transfer'?['Transfer']:context.MMHVAULT_CONFIG.categories[key]||[];
+    const old=c.value;c.replaceChildren(...names.map(x=>({value:x,textContent:x,dataset:{}})));
+    if(names.includes(old))c.value=old;
+  };
+  return {t,g,c,labels,form};
+}
+
+test('managed Type + Transaction displays only original two native fields and safe neutral category',()=>{
+  const h=harness({version:1,type:['Income','Expense'],transaction:['Income|Income','Expense|Expense'],category:[]});
+  const dom=nativeForm(h);
+  h.api.refresh();
+  assert.equal(dom.labels.type.dataset.mmhV12Hidden,'0');
+  assert.equal(dom.labels.transaction.dataset.mmhV12Hidden,'0');
+  assert.equal(dom.labels.category.dataset.mmhV12Hidden,'1');
+  assert.equal(dom.t.value,'Income');
+  assert.equal(dom.g.value,'Income');
+  assert.equal(dom.c.value,'Other Income');
+  assert.equal(h.api.validate(),true);
+});
+
+test('managed Transaction + Category uses canonical Type internally with only two native visible labels',()=>{
+  const h=harness({version:1,type:[],transaction:['Income|Income','Expense|Expense'],category:['Income|Salary','Expense|Dining']});
+  const dom=nativeForm(h);
+  h.api.refresh();
+  assert.equal(dom.labels.type.dataset.mmhV12Hidden,'1');
+  assert.equal(dom.labels.transaction.dataset.mmhV12Hidden,'0');
+  assert.equal(dom.labels.category.dataset.mmhV12Hidden,'0');
+  assert.equal(dom.t.value,'Income');
+  assert.equal(dom.c.value,'Salary');
+  assert.equal(h.api.validate(),true);
+  dom.t.value='Expense';dom.g.value='Expense';
+  h.api.refresh();
+  assert.equal(dom.t.value,'Expense');
+  assert.equal(dom.c.value,'Dining');
+  assert.equal(h.api.validate(),true);
+});
+
+test('managed Type + Category uses existing Category label and infers hidden group',()=>{
+  const h=harness({version:1,type:['Expense'],transaction:[],category:['Expense|Dining','Personal|Gifts']});
+  const dom=nativeForm(h);
+  dom.t.value='Expense';h.api.refresh();
+  assert.equal(dom.labels.type.dataset.mmhV12Hidden,'0');
+  assert.equal(dom.labels.transaction.dataset.mmhV12Hidden,'1');
+  assert.equal(dom.labels.category.dataset.mmhV12Hidden,'0');
+  assert.deepEqual(Array.from(dom.c.options.map(x=>x.value)),['Dining','Gifts']);
+  assert.equal(dom.g.value,'Expense');
+  assert.equal(h.api.validate(),true);
+});
+
+test('fresh setup without two fields cannot save an accidental default transaction',()=>{
+  const h=harness(fresh()),dom=nativeForm(h);
+  h.api.refresh();
+  assert.equal(dom.labels.type.dataset.mmhV12Hidden,'1');
+  assert.equal(dom.labels.transaction.dataset.mmhV12Hidden,'1');
+  assert.equal(dom.labels.category.dataset.mmhV12Hidden,'1');
+  assert.equal(h.api.validate(),false);
+});
+
+test('two-field Loan Income without explicit Category is blocked instead of guessed',()=>{
+  const h=harness({version:1,type:['Income'],transaction:['Income|Loans'],category:[]});
+  const dom=nativeForm(h);
+  h.api.refresh();
+  assert.equal(dom.t.value,'Income');
+  assert.equal(dom.g.value,'Loans');
+  assert.equal(h.api.validate(),false);
+});
+
 test('new owner starts with absolutely no selected Type, Transaction or Category',()=>{
   const h=harness();
   assert.equal(h.api.isManaged(),true);
