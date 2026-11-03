@@ -59,8 +59,11 @@ function nativeForm(h){
   const t=new Select('type',['Income','Expense','Transfer']);
   const g=new Select('transaction',['Income','Expense','Personal','Loans','Transfer','Data Adjustment']);
   const c=new Select('category',['Salary','Other Income','Dining','Other','Gifts','Transfer']);
+  const submit={disabled:false,dataset:{}};
   const form={
-    id:'txForm',querySelector:sel=>sel==='.mmh-form-section-v1'?{after:node=>{nodes[node.id]=node}}:sel==='.formgrid'?{prepend:()=>{}}:null
+    id:'txForm',querySelector:sel=>sel==='.mmh-form-section-v1'?{after:node=>{nodes[node.id]=node}}:
+      sel==='.formgrid'?{prepend:()=>{}}:
+      sel==='.actions button:not([type="button"])'?submit:null
   };
   nodes.txForm=form;nodes.txType=t;nodes.txGroup=g;nodes.txCategory=c;
   context.document.createElement=tag=>({
@@ -90,7 +93,7 @@ function nativeForm(h){
     const old=c.value;c.replaceChildren(...names.map(x=>({value:x,textContent:x,dataset:{}})));
     if(names.includes(old))c.value=old;
   };
-  return {t,g,c,labels,form};
+  return {t,g,c,labels,form,submit};
 }
 
 test('zero or one configured field hides all three native selects, not a fake Salary dropdown',()=>{
@@ -284,6 +287,7 @@ test('fresh owner can add Type then Transaction then Category without creating d
   assert.equal(dom.labels.category.dataset.mmhV12Hidden,'0');
   assert.equal(dom.c.value,'Dining');
   assert.equal(h.api.validate(),true);
+  assert.equal(dom.submit.disabled,false,'compatible Expense combination can be saved');
 });
 
 test('managed Type + Transaction displays only original two native fields and safe neutral category',()=>{
@@ -521,6 +525,7 @@ test('ready counter never lies: two selected kinds with incompatible Income Tran
   assert.match(status.reason,/no matching financial combination/i);
   assert.equal(h.api.validate(),false);
   for(const label of Object.values(dom.labels))assert.equal(label.hidden,true);
+  assert.equal(dom.submit.disabled,true,'incompatible configured fields must disable Add Transaction');
   assert.equal(dom.g.options.length,0,'stale Transaction choices are removed when selection is invalid');
   assert.equal(dom.c.options.length,0,'default Income Salary is not incorrectly shown');
   assert.match(h.nodes.mmhV12SetupNote.children[0].textContent,/no matching/i);
