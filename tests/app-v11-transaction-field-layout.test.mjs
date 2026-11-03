@@ -89,6 +89,47 @@ function nativeForm(h){
   return {t,g,c,labels,form};
 }
 
+test('fresh owner can add Transaction first and Category second without losing hidden Type',()=>{
+  const h=harness(fresh()),dom=nativeForm(h);
+  h.api.refresh();
+  assert.equal(dom.t.options.length,3,'required canonical Type must survive empty setup');
+  assert.equal(h.api.validate(),false);
+  h.config.txFieldsV12.transaction.push('Income|Income');
+  h.api.refresh();
+  assert.equal(h.api.getMode(),'setup');
+  assert.equal(dom.t.options.length,3);
+  h.config.txFieldsV12.category.push('Income|Salary');
+  h.api.refresh();
+  assert.equal(h.api.getMode(),'transaction-category');
+  assert.equal(dom.labels.type.dataset.mmhV12Hidden,'1');
+  assert.equal(dom.t.value,'Income');
+  assert.equal(dom.g.value,'Income');
+  assert.equal(dom.c.value,'Salary');
+  assert.equal(h.api.validate(),true);
+});
+
+test('fresh owner can add Type then Transaction then Category without creating duplicate input rows',()=>{
+  const h=harness(fresh()),dom=nativeForm(h);
+  h.api.refresh();
+  assert.equal(dom.t.options.length,3);
+  h.config.txFieldsV12.type.push('Expense');
+  h.api.refresh();
+  assert.equal(h.api.validate(),false);
+  h.config.txFieldsV12.transaction.push('Expense|Expense');
+  h.api.refresh();
+  assert.equal(h.api.getMode(),'type-transaction');
+  assert.equal(dom.t.value,'Expense');
+  assert.equal(dom.g.value,'Expense');
+  assert.equal(dom.c.value,'Other');
+  assert.equal(h.api.validate(),true);
+  h.config.txFieldsV12.category.push('Expense|Dining');
+  h.api.refresh();
+  assert.equal(h.api.getMode(),'type-transaction-category');
+  assert.equal(dom.labels.category.dataset.mmhV12Hidden,'0');
+  assert.equal(dom.c.value,'Dining');
+  assert.equal(h.api.validate(),true);
+});
+
 test('managed Type + Transaction displays only original two native fields and safe neutral category',()=>{
   const h=harness({version:1,type:['Income','Expense'],transaction:['Income|Income','Expense|Expense'],category:[]});
   const dom=nativeForm(h);
