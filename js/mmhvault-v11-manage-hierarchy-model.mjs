@@ -217,8 +217,16 @@ export function storedLinkMatches(raw,ownerId,recordId,choiceIds,canonical){
   if(!validId(ownerId)||!raw||raw.version!==TREE_VERSION||raw.ownerId!==ownerId||
     !validId(String(recordId||'')))return false;
   const link=raw.links?.[String(recordId)],ids=link?.choiceIds,fields=link?.canonical;
-  return !!ids&&!!fields&&ids.type===choiceIds?.type&&
+  const type=Array.isArray(raw.types)&&raw.types.find(x=>x.id===ids?.type);
+  const transaction=Array.isArray(raw.transactions)&&raw.transactions.find(x=>x.id===ids?.transaction);
+  const category=Array.isArray(raw.categories)&&raw.categories.find(x=>x.id===ids?.category);
+  const kind=kindMap.get(transaction?.kindId);
+  return !!type&&!!transaction&&!!category&&!!kind&&
+    transaction.parentId===type.id&&category.parentId===transaction.id&&
+    kind.type===type.ledgerType&&kind.categoryGroup===category.ledgerGroup&&
+    !!ids&&!!fields&&ids.type===choiceIds?.type&&
     ids.transaction===choiceIds?.transaction&&ids.category===choiceIds?.category&&
+    fields.type===kind.type&&fields.group===kind.group&&
     fields.type===canonical?.type&&fields.group===canonical?.group&&
     fields.category===canonical?.category;
 }
