@@ -61,6 +61,121 @@
     if(!s.category.includes(item))s.category.push(item);
     return true;
   };
+
+  // Owner-scoped display names never change canonical ledger codes.
+  const display=()=>{
+    const s=state();if(!s)return null;
+    if(!s.displayV13)s.displayV13={typeLabels:{},transactionLabels:{},extraTypes:[],extraTransactions:[]};
+    return s.displayV13;
+  };
+  const fieldItems=field=>{
+    const s=state(),d=display();if(!s||!d)return [];
+    const codes=field==='type'?s.type:s.transaction;
+    const aliases=field==='type'?d.extraTypes:d.extraTransactions;
+    const names=d[field==='type'?'typeLabels':'transactionLabels'];
+    return codes.flatMap(code=>[
+      {key:'base:'+code,canonical:code,label:String(names[code]||(field==='type'?code:KIND.find(k=>k.id===code)?.label)||code),custom:false},
+      ...aliases.filter(x=>x.canonical===code).map(x=>({key:x.id,canonical:code,label:x.label,custom:true}))
+    ]);
+  };
+  const escHtml=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const cleanLabel=x=>String(x||'').trim().replace(/\s+/g,' ').slice(0,40);
+  let typeChoice='',transactionChoice='';
+  function restoreChoice(el,key){
+    if(!el||!key)return false;
+    const i=[...el.options].findIndex(x=>x.dataset?.mmhChoiceId===key);
+    if(i<0)return false;
+    el.selectedIndex=i;return true;
+  }
+  function persistMutation(action){
+    const s=state();if(!s)return false;
+    const previous=JSON.stringify(s);
+    if(action(s,display())===false)return false;
+    if(!safePersist()){
+      Object.keys(s).forEach(k=>delete s[k]);Object.assign(s,JSON.parse(previous));
+      notify(tr('Could not save this change.','保存失败，请检查网络。','မသိမ်းနိုင်ပါ။'));return false;
+    }
+    refreshManage();refreshForm();return true;
+  }
+  function duplicateName(field,label,except=''){
+    return fieldItems(field).some(x=>x.key!==except&&x.label.toLocaleLowerCase()===label.toLocaleLowerCase());
+  }
+  function saveName(field,entry,canonical,input){
+    const valid=field==='type'?TYPE:KIND.map(x=>x.id);
+    const label=cleanLabel(input);
+    if(!valid.includes(canonical)||!label){notify(tr('Enter a name and financial meaning.','请输入名称并选择财务类型。','အမည်နှင့် အမျိုးအစား ဖြည့်ပါ။'));return false;}
+    if(duplicateName(field,label,entry?.key)){notify(tr('That name is already used.','该名称已存在。','ဤအမည် ရှိပြီးသားဖြစ်သည်။'));return false;}
+    return persistMutation((s,d)=>{
+      const current=s[field],aliases=field==='type'?d.extraTypes:d.extraTransactions;
+      const names=d[field==='type'?'typeLabels':'transactionLabels'];
+      if(entry){
+        if(entry.canonical!==canonical)return false;
+        if(entry.custom){
+          const row=aliases.find(x=>x.id===entry.key);
+          if(!row)return false;row.label=label;
+        }else{
+          if(!current.includes(canonical))return false;
+          names[canonical]=label;
+        }
+      }else if(!current.includes(canonical)){
+        current.push(canonical);names[canonical]=label;
+      }else{
+        // Additional names are display-only aliases of a known financial code.
+        if(aliases.length>=24){notify('Maximum 24 additional names.');return false;}
+        const suffix=(Date.now().toString(36)+Math.random().toString(36).slice(2,10)).replace(/[^a-z0-9]/g,'');
+        aliases.push({id:'user_'+suffix.slice(0,22),canonical,label});
+      }
+    });
+  }
+  function removeName(field,entry){
+    return persistMutation((s,d)=>{
+      const aliases=field==='type'?d.extraTypes:d.extraTransactions;
+      if(entry.custom){
+        const idx=aliases.findIndex(x=>x.id===entry.key&&x.canonical===entry.canonical);
+        if(idx<0)return false;aliases.splice(idx,1);
+      }else{
+        if(aliases.some(x=>x.canonical===entry.canonical)){
+          notify(tr('Remove its additional names first.','请先移除关联的自定义名称。','ဆက်စပ်အမည်များကို အရင်ဖယ်ရှားပါ။'));return false;
+        }
+        s[field]=s[field].filter(x=>x!==entry.canonical);
+        delete d[field==='type'?'typeLabels':'transactionLabels'][entry.canonical];
+      }
+    });
+  }
+  function fieldDialog(field,entry=null){
+    if(!state())return false;
+    if(typeof mmhVaultOpenDialogV449!=='function'){
+      notify(tr('Editor unavailable; reopen Manage.','编辑暂不可用，请重新打开 Manage。','ပြင်ဆင်ရန် မရနိုင်ပါ။'));return false;
+    }
+    const choices=field==='type'?TYPE.map(x=>({value:x,label:x})):
+      KIND.map(x=>({value:x.id,label:x.label+' · '+x.type}));
+    const canonical=entry?.canonical||choices[0].value;
+    const options=choices.map(x=>'<option value="'+escHtml(x.value)+'"'+
+      (x.value===canonical?' selected':'')+'>'+escHtml(x.label)+'</option>').join('');
+    mmhVaultOpenDialogV449({
+      title:entry?tr('Edit display name','编辑显示名称','အမည် ပြင်ရန်'):
+        tr('Add '+(field==='type'?'Type':'Transaction'),'添加 '+(field==='type'?'Type':'Transaction'),'အသစ်ထည့်ရန်'),
+      message:tr('Display names do not change accounting rules.','显示名称不会改变财务计算规则。','စာရင်းကိုင်စည်းမျဉ်း မပြောင်းပါ။'),
+      body:'<div class="mmh-v449-field"><label>'+tr('Display name','显示名称','ပြသမည့်အမည်')+
+        '</label><input id="mmhV13DisplayName" maxlength="40" autocomplete="off" value="'+escHtml(entry?.label||'')+
+        '"></div><div class="mmh-v449-field"><label>'+tr('Financial meaning','财务归属','အမျိုးအစား')+
+        '</label><select id="mmhV13Canonical"'+(entry?' disabled':'')+'>'+options+
+        '</select></div><div class="mmh-v449-dialog-note">'+tr(
+          'Multiple labels may share one financial code. Only the original financial code is saved on each transaction.',
+          '多个名称可以对应同一个财务类型；每条记账记录仍保存原有财务代码。',
+          'ငွေစာရင်းကုဒ် အဟောင်းကိုသာ သိမ်းဆည်းသည်။')+'</div>',
+      actions:[
+        {label:tr('Cancel','取消','မလုပ်တော့ပါ'),onClick:()=>true},
+        {label:tr('Save changes','保存修改','သိမ်းပါ'),className:'primary',onClick:()=>
+          saveName(field,entry,entry?.canonical||id('mmhV13Canonical')?.value,id('mmhV13DisplayName')?.value)}
+      ]
+    });return true;
+  }
+  function onCategoryRenamed(group,oldName,newName){
+    const s=state();if(!s)return;
+    const from=group+'|'+oldName,to=group+'|'+newName;
+    if(s.category.includes(from))s.category=[...new Set(s.category.map(x=>x===from?to:x))];
+  }
   function mutate(field,value,remove=false){
     const s=state();if(!s||!['type','transaction','category'].includes(field))return;
     if(field==='type'&&!TYPE.includes(value))return;
@@ -91,6 +206,18 @@
       '.mmh-v12-option{appearance:none;min-height:37px;border:1px solid rgba(164,186,209,.37);border-radius:10px;background:rgba(32,63,89,.4);color:inherit;padding:8px 12px;font-size:12px;font-weight:600;line-height:1.3;cursor:pointer;transition:background .16s ease,border-color .16s ease}',
       '.mmh-v12-option:hover{border-color:rgba(235,188,99,.77);background:rgba(183,142,71,.16)}',
       '.mmh-v12-option.is-active{border-color:rgba(231,188,103,.78);background:rgba(190,151,75,.23);color:#ffe1a6}',
+      '.mmh-v13-entry{display:inline-flex;align-items:center;gap:7px;max-width:100%;min-height:40px;padding:5px 7px 5px 12px;border-radius:12px;border:1px solid rgba(170,191,211,.22);background:rgba(40,70,96,.23)}',
+      '.mmh-v13-entry-title{font-size:12px;line-height:1.4;font-weight:650;overflow-wrap:anywhere}',
+      '.mmh-v13-entry-note{font-size:10px;color:#9caec6;white-space:nowrap}',
+      '.mmh-v13-action{border:1px solid rgba(162,181,203,.27);border-radius:8px;min-height:30px;padding:5px 8px;background:rgba(31,53,80,.48);color:inherit;font-size:11px;cursor:pointer}',
+      '.mmh-v13-action:hover{border-color:#d7ac65}',
+      '.mmh-v13-remove{color:#f9b8bd}',
+      '.mmh-v13-group{display:flex;align-items:flex-start;flex-direction:column;gap:9px;min-width:0}',
+      '.mmh-v13-head{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap;width:100%}',
+      '.mmh-v13-new{border:1px solid rgba(232,187,99,.56);border-radius:9px;background:rgba(226,178,93,.13);color:#f4d9a6;padding:7px 10px;min-height:35px;font-size:12px;font-weight:700;cursor:pointer}',
+      '.mmh-v13-available{display:flex;flex-wrap:wrap;align-items:center;gap:7px;font-size:11px;color:#9ab0ca}',
+      '.mmh-v13-active{display:flex;align-items:center;gap:7px;flex-wrap:wrap;min-width:0}',
+
       '.mmh-v12-option.is-incompatible{border-style:dashed}',
       '.mmh-v12-option:focus-visible,.mmh-v12-tag button:focus-visible{outline:2px solid #e9bb68;outline-offset:2px}',
       '.mmh-v12-taglist{display:flex;gap:8px;flex-wrap:wrap;align-items:center;min-width:0}',
@@ -192,25 +319,37 @@
       lead.append(make('h4','',kind==='type'?'Type':'Transaction'));
       lead.append(make('span','mmh-v12-help',kind==='type'
         ?tr('Income, Expense, Transfer','收入、支出或转账','ဝင်ငွေ၊ အသုံးစရိတ်၊ လွှဲပြောင်း')
-        :tr('Choose the transaction purpose','选择交易用途','ငွေကြေးလှုပ်ရှားမှု အမျိုးအစား')));
+        :tr('Choose the financial purpose','选择财务用途','ငွေကြေးလှုပ်ရှားမှု အမျိုးအစား')));
       card.append(lead);
-      const options=make('div','mmh-v12-options');card.append(options);
+      const area=make('div','mmh-v13-group');card.append(area);
+      const head=make('div','mmh-v13-head');area.append(head);
+      const active=make('div','mmh-v13-active');head.append(active);
+      const entries=fieldItems(kind);
+      for(const entry of entries){
+        const tag=make('div','mmh-v13-entry');
+        tag.append(make('span','mmh-v13-entry-title',entry.label));
+        if(entry.custom)tag.append(make('span','mmh-v13-entry-note','· '+entry.canonical.replace('|',' / ')));
+        const edit=button(tr('Edit','编辑','ပြင်ရန်'),()=>fieldDialog(kind,entry));
+        edit.className='mmh-v13-action';edit.setAttribute('aria-label','Edit '+entry.label);
+        const remove=button(tr('Remove','移除','ဖယ်ရှား'),()=>removeName(kind,entry));
+        remove.className='mmh-v13-action mmh-v13-remove';remove.setAttribute('aria-label','Remove '+entry.label);
+        tag.append(edit,remove);active.append(tag);
+      }
+      if(!entries.length)active.append(make('span','mmh-v12-help',tr('Nothing added yet','尚未添加','မထည့်ရသေးပါ')));
+      const add=button(tr('+ Add '+(kind==='type'?'Type':'Transaction'),
+        '+ 添加 '+(kind==='type'?'Type':'Transaction'),'+ ထည့်ရန်'),()=>fieldDialog(kind));
+      add.className='mmh-v13-new';head.append(add);
       const choices=kind==='type'?TYPE.map(x=>({value:x,label:x})):
-        KIND.map(k=>({value:k.id,label:k.label}));
-      const enabled=state()?.[kind]||[];
-      // Always show selected options (including now-incompatible ones) so
-      // the user can remove them. New options respect configured Type.
-      const compatible=kind==='transaction'&&!types().length?choices:
-        kind==='transaction'?choices.filter(x=>enabled.includes(x.value)||types().includes(KIND.find(k=>k.id===x.value)?.type)):choices;
-      for(const option of compatible){
-        const selected=enabled.includes(option.value);
-        const chip=button((selected?'✓  ':'+  ')+option.label,()=>mutate(kind,option.value,selected));
-        const incompatible=kind==='transaction'&&types().length&&
-          !types().includes(KIND.find(k=>k.id===option.value)?.type);
-        chip.className='mmh-v12-option'+(selected?' is-active':'')+(incompatible?' is-incompatible':'');
-        chip.setAttribute('aria-pressed',selected?'true':'false');
-        chip.setAttribute('aria-label',selected?'Remove '+option.label:'Add '+option.label);
-        options.append(chip);
+        KIND.map(x=>({value:x.id,label:x.label,type:x.type}));
+      const unselected=choices.filter(x=>!(state()?.[kind]||[]).includes(x.value)&&
+        (kind!=='transaction'||!types().length||types().includes(x.type)));
+      if(unselected.length){
+        const available=make('div','mmh-v13-available');area.append(available);
+        available.append(make('span','',tr('Quick add:','快捷添加：','ထည့်ရန်:')));
+        for(const x of unselected){
+          const chip=button('+ '+x.label,()=>mutate(kind,x.value));
+          chip.className='mmh-v12-option';available.append(chip);
+        }
       }
     }
     const categoryCard=make('div','mmh-v12-col mmh-v12-col-category');grid.append(categoryCard);
@@ -226,9 +365,14 @@
     const list=make('div','mmh-v12-taglist');categoryCard.append(list);
     for(const cat of active){
       const tag=make('span','mmh-v12-tag',cat.name+' · '+cat.group);
-      const remove=button('×',()=>mutate('category',cat.raw,true));
-      remove.setAttribute('aria-label','Remove '+cat.name+' from '+cat.group);
-      tag.append(remove);list.append(tag);
+      const edit=button(tr('Edit','编辑','ပြင်ရန်'),()=>{
+        if(typeof mmhVaultEditCategoryV449==='function')mmhVaultEditCategoryV449(cat.group,cat.name);
+      });
+      edit.className='mmh-v13-action';edit.setAttribute('aria-label','Edit '+cat.name);
+      const remove=button(tr('Remove','移除','ဖယ်ရှား'),()=>mutate('category',cat.raw,true));
+      remove.className='mmh-v13-action mmh-v13-remove';
+      remove.setAttribute('aria-label','Remove '+cat.name+' from new transactions');
+      tag.append(edit,remove);list.append(tag);
     }
     const preview=make('div','mmh-v12-preview');panel.append(preview);
     preview.append(make('span','mmh-v12-preview-label',tr(
@@ -251,7 +395,7 @@
       'ရွေးထားသော အကွက်များသာ ပြပြီး မှတ်တမ်းဟောင်းများ မပြောင်းလဲပါ။'
     )));
   }
-  function fill(select,entries,pick){
+  function fill(select,entries,pick,choiceKey){
     if(!select)return null;
     const old=pick||select.value;
     select.replaceChildren(...entries.map(entry=>{
@@ -259,10 +403,12 @@
       option.value=entry.value;
       if(entry.type)option.dataset.mmhCanonicalType=entry.type;
       if(entry.group)option.dataset.mmhCanonicalGroup=entry.group;
+      if(entry.choiceId)option.dataset.mmhChoiceId=entry.choiceId;
       return option;
     }));
-    const found=[...select.options].find(x=>x.value===old);
-    if(found)select.value=old;
+    const selected=[...select.options].findIndex(x=>choiceKey&&x.dataset?.mmhChoiceId===choiceKey);
+    if(selected>=0)select.selectedIndex=selected;
+    else if([...select.options].some(x=>x.value===old))select.value=old;
     return select.selectedOptions?.[0]||null;
   }
   function setCore(type,group,cat){
@@ -346,17 +492,17 @@
       }
       const currType=t.value,currGroup=g.value,currCat=c.value;
       if(enabled.type){
-        fill(t,types().map(x=>({value:x,label:x})),currType);
+        fill(t,fieldItems('type').map(x=>({value:x.canonical,label:x.label,choiceId:x.key})),currType,typeChoice);
       }
       let type=enabled.type?t.value:currType;
       if(enabled.transaction){
-        const available=transactions().filter(x=>!enabled.type||x.type===type);
+        const available=fieldItems('transaction').map(x=>({...KIND.find(k=>k.id===x.canonical),label:x.label,choiceId:x.key})).filter(x=>x.type&&(!enabled.type||x.type===type));
         if(!available.length){
           g.replaceChildren();note(tr('Add a compatible Transaction in Manage.','请在 Manage 添加匹配的 Transaction。','Manage တွင် Transaction ထည့်ပါ။'));return;
         }
         // Transaction has canonical underlying (type, group), not a display-only code.
-        const chosen=available.find(x=>x.type===currType&&x.group===currGroup)||available[0];
-        fill(g,available.map(x=>({value:x.group,label:x.label,type:x.type,group:x.group})),chosen.group);
+        const chosen=available.find(x=>x.choiceId===transactionChoice)||available.find(x=>x.type===currType&&x.group===currGroup)||available[0];
+        fill(g,available.map(x=>({value:x.group,label:x.label,type:x.type,group:x.group,choiceId:x.choiceId})),chosen.group,transactionChoice);
         // Income Loans and Expense Loans share a canonical group value.
         // Select by BOTH type and group, never array order or group alone.
         const selectedIndex=[...g.options].findIndex(x=>x.dataset.mmhCanonicalType===chosen.type&&x.dataset.mmhCanonicalGroup===chosen.group);
@@ -397,12 +543,13 @@
       }
       if(enabled.transaction){
         // Restore the managed transaction choices after the internal group sync.
-        const available=transactions().filter(x=>!enabled.type||x.type===type);
-        const entries=available.map(x=>({value:x.group,label:x.label,type:x.type,group:x.group}));
-        fill(g,entries,group);
+        const available=fieldItems('transaction').map(x=>({...KIND.find(k=>k.id===x.canonical),label:x.label,choiceId:x.key})).filter(x=>x.type&&(!enabled.type||x.type===type));
+        const entries=available.map(x=>({value:x.group,label:x.label,type:x.type,group:x.group,choiceId:x.choiceId}));
+        fill(g,entries,group,transactionChoice);
         const match=[...g.options].findIndex(x=>x.dataset.mmhCanonicalType===type&&x.dataset.mmhCanonicalGroup===group);
-        if(match>=0)g.selectedIndex=match;
+        if(match>=0&&!restoreChoice(g,transactionChoice))g.selectedIndex=match;
       }
+      restoreChoice(t,typeChoice);
       note('');
     }finally{rendering=false;}
   }
@@ -420,7 +567,9 @@
   function eventHandler(event){
     if(!isManaged()||rendering)return;
     const t=id('txType'),g=id('txGroup'),c=id('txCategory');
+    if(event.target===t)typeChoice=t.selectedOptions?.[0]?.dataset?.mmhChoiceId||'';
     if(event.target===g&&transactions().length){
+      transactionChoice=g.selectedOptions?.[0]?.dataset?.mmhChoiceId||'';
       const opt=g.selectedOptions?.[0];
       const type=opt?.dataset?.mmhCanonicalType, group=opt?.dataset?.mmhCanonicalGroup;
       if(type&&group){
@@ -454,7 +603,7 @@
     refresh();
   }
   window.MMHV11TxFieldPrefs={
-    version:'2.2.0',isManaged,hasCategory,markCategory,refreshManage,
+    version:'3.0.0',isManaged,hasCategory,markCategory,onCategoryRenamed,fieldItems,saveName,removeName,refreshManage,
     refresh:refreshForm,attachEdit:()=>{},getMode:mode,layoutInfo,validate:valid,
     // Legacy V11's manual mode chooser is intentionally removed.
     setMode:()=>false
