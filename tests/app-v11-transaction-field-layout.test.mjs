@@ -575,3 +575,20 @@ test('legacy accounts retain all original native fields and editable submission'
   assert.equal(dom.labels.category.hidden,false);
   assert.equal(h.api.validate(),true);
 });
+
+
+test('when globally Ready but only Expense has a Category, Add Transaction hides unready Income Type',()=>{
+  const h=harness({version:1,
+    type:['Income','Expense'],
+    transaction:['Income|Income','Expense|Expense'],
+    category:['Expense|Dining']});
+  const dom=nativeForm(h);h.api.refresh();
+  assert.equal(h.api.readiness().ready,true,'at least one valid financial combination exists');
+  assert.deepEqual(Array.from(dom.t.options.map(x=>x.value)),['Expense'],
+    'Income is configured but has no matching Category and must not appear as saveable');
+  assert.deepEqual(Array.from(dom.g.options.map(x=>x.value)),['Expense']);
+  assert.deepEqual(Array.from(dom.c.options.map(x=>x.value)),['Dining']);
+  assert.equal(dom.t.value,'Expense');
+  assert.equal(h.api.validate(),true);
+  assert.equal(dom.submit.disabled,false);
+});
