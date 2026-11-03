@@ -52,6 +52,85 @@ async function load(page,route,failures){
 (async()=>{
  const browser=await chromium.launch({channel:'chrome',headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
  try{
+   // L1.56 Business WAAPI interruption browser parity. Compare the actual
+   // released script to only the L1.56 changes in a real Chromium session.
+   {
+     const candidate=fs.readFileSync('landing-assets/motion-l132.js','utf8');
+     const patches=[["  const activeAnimations=new WeakMap();\n  const play=","  const activeAnimations=new WeakMap();\n  // L1.56: stop only Business concept WAAPI motion on tab hiding or\n  // live reduced-motion changes, leaving presentation and data intact.\n  const runningBusinessAnimations=new Set();\n  const cancelInterruptedBusinessMotion=()=>{\n    if(permitted() && !document.hidden)return;\n    for(const animation of runningBusinessAnimations)animation.cancel();\n    runningBusinessAnimations.clear();\n  };\n  if(typeof motionPreference.addEventListener==='function')\n    motionPreference.addEventListener('change',cancelInterruptedBusinessMotion);\n  else if(typeof motionPreference.addListener==='function')\n    motionPreference.addListener(cancelInterruptedBusinessMotion);\n  document.addEventListener('visibilitychange',cancelInterruptedBusinessMotion);\n  const play="],["    if(!permitted() || typeof node.animate!=='function')return;","    if(!permitted() || document.hidden || typeof node.animate!=='function')return;"],["    activeAnimations.set(node,animation);\n  };","    activeAnimations.set(node,animation);\n    runningBusinessAnimations.add(animation);\n    const forget=()=>runningBusinessAnimations.delete(animation);\n    animation.addEventListener('finish',forget,{once:true});\n    animation.addEventListener('cancel',forget,{once:true});\n  };"],["      if(!permitted())return;","      if(!permitted() || document.hidden)return;"]];
+     let released=candidate;
+     for(const [before,after] of [...patches].reverse()){
+       assert.equal(released.split(after).length,2,'L1.56 unique isolated patch');
+       released=released.replace(after,before);
+     }
+     for(const [width,lang] of [[393,'my'],[768,'zh'],[1440,'en']]){
+       const versions={};
+       for(const [version,script] of [['released',released],['l156',candidate]]){
+         const ctx=await browser.newContext({
+           viewport:{width,height:852},reducedMotion:'no-preference',serviceWorkers:'block'});
+         const page=await ctx.newPage(),errors=[];
+         page.on('pageerror',e=>errors.push(e.message));
+         await page.addInitScript(value=>{
+           try{localStorage.setItem('mmhvault.landing.language',value)}catch(_){}
+         },lang);
+         await page.route('**/landing-assets/motion-l132.js*',route=>route.fulfill({
+           status:200,contentType:'application/javascript',body:script}));
+         await page.goto(origin+'/',{waitUntil:'load',timeout:25000});
+         const result=await page.evaluate(async()=>{
+           const nodes=[...document.querySelectorAll(
+             '#business .business-mode-context, #business .business-ui-heading, #business .business-ui .business-metric, #business .business-ui .business-stat')].slice(0,6);
+           const running=()=>nodes.reduce((n,node)=>n+node.getAnimations()
+             .filter(a=>a.playState==='running'||a.playState==='paused').length,0);
+           document.querySelector('[data-business-view="business"]').click();
+           await new Promise(resolve=>setTimeout(resolve,0));
+           const before=running();
+           Object.defineProperty(document,'hidden',{value:true,configurable:true});
+           document.dispatchEvent(new Event('visibilitychange'));
+           return {before,after:running(),
+             stage:document.querySelector('#business .business-stage').dataset.currentView,
+             pressed:document.querySelector('[data-business-view="business"]').getAttribute('aria-pressed'),
+             lang:document.documentElement.lang,
+             hero:[...document.querySelectorAll('[data-hero-fixed]')].map(x=>x.textContent.trim())};
+         });
+         ensure(errors.length===0&&result.before>0&&
+           result.stage==='business'&&result.pressed==='true'&&
+           result.lang===(lang==='zh'?'zh-CN':lang)&&result.hero.length===3,
+           'L1.56 '+version+' '+width+'px '+lang+' normal Business motion starts');
+         versions[version]=result;
+         await ctx.close();
+       }
+       ensure(versions.released.after>0&&versions.l156.after===0&&
+         JSON.stringify(versions.released.hero)===JSON.stringify(versions.l156.hero),
+         'L1.56 '+width+'px '+lang+' hidden-tab animation cancellation '+JSON.stringify({
+           before:versions.released.after,after:versions.l156.after
+         }));
+       const ctx=await browser.newContext({
+         viewport:{width,height:852},reducedMotion:'no-preference',serviceWorkers:'block'});
+       const page=await ctx.newPage(),errors=[];
+       page.on('pageerror',e=>errors.push(e.message));
+       await page.addInitScript(value=>{
+         try{localStorage.setItem('mmhvault.landing.language',value)}catch(_){}
+       },lang);
+       await page.goto(origin+'/',{waitUntil:'load',timeout:25000});
+       const started=await page.evaluate(async()=>{
+         const nodes=[...document.querySelectorAll(
+           '#business .business-mode-context, #business .business-ui-heading, #business .business-ui .business-metric, #business .business-ui .business-stat')].slice(0,6);
+         document.querySelector('[data-business-view="business"]').click();
+         await new Promise(resolve=>setTimeout(resolve,0));
+         return nodes.reduce((n,node)=>n+node.getAnimations()
+           .filter(a=>a.playState==='running').length,0);
+       });
+       ensure(started>0,'L1.56 '+width+'px '+lang+' active animation before OS preference change');
+       await page.emulateMedia({reducedMotion:'reduce'});
+       await page.waitForFunction(()=>[...document.querySelectorAll(
+         '#business .business-mode-context, #business .business-ui-heading, #business .business-ui .business-metric, #business .business-ui .business-stat')]
+         .slice(0,6).every(node=>node.getAnimations().every(a=>
+           a.playState!=='running'&&a.playState!=='paused')),null,{timeout:250});
+       ensure(errors.length===0,'L1.56 '+width+'px '+lang+' live reduced-motion preference cancels WAAPI');
+       await ctx.close();
+     }
+     console.log('L1.56 Business interruption motion state comparison PASS; no loading-speed claim.');
+   }
+
    // L1.55 preview interruption browser parity: exact released-script
    // baseline versus candidate in real Chromium at mobile/tablet/desktop.
    {
@@ -1387,12 +1466,12 @@ async function load(page,route,failures){
        layout.styles.filter(v=>v==='l146').length===2 &&
        layout.styles.filter(v=>v==='l147').length===1 &&
        layout.styles.filter(v=>v==='l141').length===2 &&
-       layout.scripts.includes('l155') && layout.scripts.includes('l141') &&
+       layout.scripts.includes('l155') && layout.scripts.includes('l156') &&
        loaded.length===8 && loaded.every(r=>r.status===200&&
          r.version===(r.path==='/landing-assets/landing.min.css'?'l145':
            ['/landing-assets/cinematic.min.css','/landing-assets/premium-l131.min.css'].includes(r.path)?'l146':
            r.path==='/landing-assets/header-explore-l147.min.css'?'l147':
-            r.path==='/landing-assets/landing.js'?'l155':'l141')) &&
+            r.path==='/landing-assets/landing.js'?'l155':'l156')) &&
        new Set(loaded.map(r=>r.path)).size===8 && failures.length===0,
        'L1.47 '+width+'px eight CSS/JS requests with consistent cache keys '+JSON.stringify({loaded,failures}));
      ensure(layout.brand.left>=-1&&layout.brand.right<=width+1 &&
