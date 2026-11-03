@@ -23,5 +23,7 @@ jobs:
         run: node --check security/n10-vault-qa-staging-site/app.js
       - name: Offline isolated safety tests
         run: node security/n10-vault-qa-staging-site/test-client.mjs
+      - name: Run server-clock countdown and expiry tests
+        run: node security/n10-vault-qa-staging-site/test-window-clock.mjs
       - name: Verify exact one-line Stage Edge origin diff and hard-OFF flags
         run: node security/n10-vault-qa-staging-edge/test-edge-origin.mjs
