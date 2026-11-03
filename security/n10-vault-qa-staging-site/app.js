@@ -71,9 +71,9 @@ function renderWindowClock(){
   clock.className='window-clock active';
   hint.textContent='倒计时由服务器时间计算，提前 5 秒保护。真正访问权限始终以服务器为准。';
  }else{
-  clock.textContent=windowExpired?'测试窗口已结束 · 已禁止生成、备份及查看':'未确认有效测试窗口 · 请先检查备份状态';
+  clock.textContent=windowExpired?'本次敏感测试窗口已结束 · 如需继续请重新授权':'敏感测试尚未开放 · 平时无需倒计时';
   clock.className='window-clock'+(windowExpired?' expired':'');
-  hint.textContent='未确认窗口时，生成、备份、查看按钮保持禁用。';
+  hint.textContent='您可以随时离开，之后重新登录检查。真正开始短时敏感测试后才会倒计时；未开放时，恢复词操作保持禁用。';
  }
  $('initBtn').disabled=busy||!windowConfirmed||remaining<=120000;
  $('retryBtn').disabled=busy||!windowConfirmed||remaining<=45000;
@@ -101,7 +101,7 @@ function resetView(){
  show('signinSection',true);show('mfaSection',false);show('vaultSection',false);
 }
 const codes=Object.freeze({
- recovery_service_not_released:'Staging Vault QA 目前关闭（正常）。请等待临时安全测试窗口。',
+ recovery_service_not_released:'Staging Vault QA 当前安全关闭（正常）。不必守候计时器，可在方便时再来检查。',
  qa_window_invalid_metadata:'服务器未返回有效的窗口截止时间；敏感操作已禁用。',
  qa_window_insufficient:'剩余时间不足，已阻止生成或查看操作。请不要重复点击。',
  qa_window_closed:'测试窗口已结束，Vault 自动拒绝请求。',
@@ -133,7 +133,7 @@ function checkOrigin(){
  if(!client){
   message('无法加载身份验证组件；请检查网络后刷新。');return false;
  }
- message('页面已就绪，Staging Vault 服务仍默认关闭。您可以先完成账户登录与 MFA。');
+ message('页面已就绪；Staging Vault 默认关闭。您可随时登录做 MFA 检查，不必留在页面等待。');
  return true;
 }
 const canRun=checkOrigin();
@@ -142,7 +142,8 @@ async function act(fn){
  busy=true;document.querySelectorAll('button').forEach(b=>b.disabled=true);
  try{await fn()}
  catch(e){
-  if(e?.qaCode==='qa_window_closed'||e?.qaCode==='recovery_service_not_released')discardWindow(true);
+  if(e?.qaCode==='qa_window_closed')discardWindow(true);
+  else if(e?.qaCode==='recovery_service_not_released')discardWindow(false);
   message(errDesc(e));
  }
  finally{busy=false;document.querySelectorAll('button').forEach(b=>b.disabled=false);renderWindowClock();}
@@ -214,7 +215,7 @@ async function intoVault(){
  show('mfaSection',false);show('vaultSection',true);
  $('signedAs').textContent=user.email===OWNERS[0]?'已验证账户 A · MFA AAL2':'已验证账户 B · MFA AAL2';
  message('Staging AAL2 已通过；Vault 功能仍须经过服务端独立授权。');
- info('请点击「检查备份状态」确认测试服务是否开放。');
+ info('服务尚未开放时无需等待，之后可重新登录检查备份状态。');
  discardWindow(false);
 }
 $('mfaBtn').addEventListener('click',()=>act(async()=>{
