@@ -25,5 +25,8 @@ test('No search indexing',()=>{assert(headers.includes('X-Robots-Tag: noindex'))
 test('No automatic Vault release flag',()=>{assert(!/RECOVERY_RELEASE_ENABLED\s*=\s*true|QA_WINDOW_END_UTC\s*=\s*['"]2026/i.test(js))});
 test('Dedicated QA scope',()=>{assert(html.includes('仅限 Staging'));assert(html.includes('合成测试账户'))});
 test('Presentation',()=>{assert(css.includes('@media(max-width:440px)'));assert(html.includes('aria-live'))});
+test('Locked standby is not a falsely expired window',()=>{assert(js.includes("else if(e?.qaCode==='recovery_service_not_released')discardWindow(false);"));assert(js.includes("if(e?.qaCode==='qa_window_closed')discardWindow(true);"));assert(js.includes('敏感测试尚未开放 · 平时无需倒计时'));});
+test('Standby never unlocks sensitive operations',()=>{assert(js.includes('busy||!windowConfirmed||remaining<=120000'));assert(js.includes('busy||!windowConfirmed||remaining<=45000'));assert(js.includes('busy||!windowConfirmed||remaining<=30000'));assert(js.includes('requireWindow(120)'));assert(js.includes('requireWindow(45)'));assert(js.includes('requireWindow(30)'));});
+test('Standby copy differentiates no-time-limit readiness from approved short operations',()=>{assert(html.includes('平时无需倒计时'));assert(html.includes('单独批准的短时安全窗口'));assert(html.includes('您可以随时离开'));});
 if(failures.length)process.exitCode=1;
 else console.log('16/16 isolated Staging QA UI safety checks passed.');
