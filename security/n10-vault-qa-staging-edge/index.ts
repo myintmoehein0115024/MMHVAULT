@@ -175,7 +175,7 @@ Deno.serve(async(req:Request)=>{
  const action=body.action;
  if(action==='status'){
   const {data,error}=await admin.rpc('mmh_n10_recovery_backup_exists',{p_user_id:user.id});
-  return error||typeof data!=='boolean'?out(origin,'unavailable',503):out(origin,'backup_status',200,{backed_up:data});
+  return error||typeof data!=='boolean'?out(origin,'unavailable',503):out(origin,'backup_status',200,{backed_up:data,window_expires_at:QA_WINDOW_END_UTC,server_utc_now:new Date().toISOString()});
  }
  if(action!=='backup_existing'&&action!=='reveal'&&action!=='qa_initialize')return out(origin,'unknown_action',400);
  const quotaStatus=await quota(user.id);
