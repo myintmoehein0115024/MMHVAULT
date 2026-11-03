@@ -101,7 +101,7 @@
       '#mmhV12SetupNote{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;padding:13px 15px;margin:3px 0 10px;border:1px solid rgba(200,159,83,.36);border-radius:13px;background:rgba(14,28,48,.72)}',
       '#mmhV12SetupNote button{flex-shrink:0}',
       '#txForm .formgrid > label[data-mmh-v12-hidden="1"]{display:none!important}',
-      '#txSmartV141[data-mmh-v12-setup="1"]{display:none!important}',
+      '#txSmartV141[data-mmh-v12-setup="1"],#txSmartV141[data-mmh-v12-managed="1"]{display:none!important}',
       '#txForm [data-mmh-v12-hidden="1"]{display:none!important}',
       '#mmhV12SetupNote[hidden]{display:none!important}',
       '@media(max-width:1100px){.mmh-v12-cols{grid-template-columns:repeat(2,minmax(0,1fr))}.mmh-v12-col-category{grid-column:1/-1}}',
@@ -280,7 +280,7 @@
     if(!isManaged()){
       Object.values(labels).forEach(x=>{if(x){x.dataset.mmhV12Hidden='0';x.hidden=false;x.style.display='';}});
       const kindPanel=id('txSmartV141');
-      if(kindPanel)kindPanel.dataset.mmhV12Setup='0';
+      if(kindPanel){kindPanel.dataset.mmhV12Setup='0';kindPanel.dataset.mmhV12Managed='0';}
       note('');return;
     }
     rendering=true;
@@ -297,7 +297,10 @@
         el.style.display=visible?'':'none';
       });
       const kindPanel=id('txSmartV141');
-      if(kindPanel)kindPanel.dataset.mmhV12Setup=active<2?'1':'0';
+      if(kindPanel){
+        kindPanel.dataset.mmhV12Setup=active<2?'1':'0';
+        kindPanel.dataset.mmhV12Managed='1'; // two selected fields are the sole visible choice
+      }
       if(active<2){
         // Keep the canonical Type options even when the Type field is hidden.
         // Otherwise a fresh owner selecting Transaction + Category later cannot
