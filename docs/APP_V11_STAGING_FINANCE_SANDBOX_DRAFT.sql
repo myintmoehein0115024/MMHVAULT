@@ -1,5 +1,6 @@
--- MMHVAULT APP V11.7 FINANCE STAGING — PROPOSAL ONLY / NOT DEPLOYED
--- DO NOT RUN IN PRODUCTION. Requires separate owner approval.
+-- MMHVAULT APP V11.7 FINANCE STAGING — APPLIED IN STAGING ONLY ON 2026-11-03
+-- Migration: app_v117_staging_finance_sandbox_20261103. DO NOT REAPPLY.
+-- DO NOT RUN IN PRODUCTION. User approval was limited to Auth-Staging only.
 -- TARGET ONLY: MMHVAULT-Auth-Staging (ldivswlhtgmznzwhzsoi).
 -- The draft is intentionally stored in docs/, NOT in migrations/.
 -- Read-only preflight on 2026-11-03: this staging project has neither
