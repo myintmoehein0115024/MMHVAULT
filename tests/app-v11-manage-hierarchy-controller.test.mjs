@@ -82,7 +82,10 @@ test('confirmed saved ledger can be linked by exact DB row ID',()=>{
   const before=JSON.stringify(h.config.categories);
   h.api.recorded('12345',type.id,txn.id,cat.id,{type:'Income',group:'Income',category:'Salary'});
   assert.equal(h.api.read().links['12345'].choiceIds.transaction,txn.id);
-  assert.equal(h.api.status('transaction',txn.id),'unused'); // no history row until cloud refresh
+  assert.equal(h.api.status('transaction',txn.id),'used'); // sidecar locks immediately, before cloud refresh
+  assert.equal(h.api.status('category',cat.id),'used');
+  assert.throws(()=>h.api.rename('transaction',txn.id,'Unsafe'),/Archive instead/);
+  assert.throws(()=>h.api.delete('category',cat.id),/Archive instead/);
   assert.equal(JSON.stringify(h.config.categories),before);
   h.history([{id:12345,user_id:owner,type:'Income',category:'Salary'}]);
   assert.equal(h.api.status('transaction',txn.id),'used');
