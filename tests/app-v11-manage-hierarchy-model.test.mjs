@@ -156,3 +156,29 @@ test('cloud normalization round trips valid data and rejects an alien owner or m
   other.links['991'].canonical.type='Expense';
   assert.throws(()=>normalizePersistedHierarchy(other,A),/Unsafe/);
 });
+
+test('legacy display aliases retain all linked choices and migrate without altering old records',()=>{
+  const config={categories:{Income:['Salary']},txFieldsV12:{
+    version:1,type:['Income'],transaction:['Income|Income'],category:['Income|Salary'],
+    displayV13:{typeLabels:{Income:'Main Income'},transactionLabels:{'Income|Income':'Main Receive'},
+      extraTypes:[{id:'user_incomealias123',canonical:'Income',label:'Side Income'}],
+      extraTransactions:[{id:'user_txalias12345',canonical:'Income|Income',label:'Income2'}]}
+  }};
+  const before=JSON.stringify(config),g=legacyHierarchy(A,config);
+  const typeAlias=g.types.find(x=>x.label==='Side Income');
+  assert.ok(typeAlias);
+  const aliasTx=choices(g,A,'transaction',typeAlias.id).find(x=>x.label==='Income2');
+  assert.ok(aliasTx);
+  const aliasCat=choices(g,A,'category',aliasTx.id).find(x=>x.label==='Salary');
+  assert.ok(aliasCat);
+  assert.equal(pathFor(g,A,typeAlias.id,aliasTx.id,aliasCat.id).category,'Salary');
+  assert.equal(JSON.stringify(config),before);
+  assert.doesNotThrow(()=>normalizePersistedHierarchy(g,A));
+});
+test('long international legacy Category names have bounded stable IDs',()=>{
+  const name='🌟'.repeat(38);
+  const g=legacyHierarchy(A,{categories:{Income:[name]}});
+  assert.ok(g.categories.find(x=>x.label===name));
+  assert.ok(g.categories.every(x=>x.id.length<=180));
+  assert.doesNotThrow(()=>normalizePersistedHierarchy(g,A));
+});
