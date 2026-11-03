@@ -13108,8 +13108,21 @@ function mmhVaultCategoryConflictV1231(group,name){
   }
   return '';
 }
+// New owner configurations start without user-defined Type, Transaction or
+// Category selections. Existing configs without this marker stay untouched.
+function mmhVaultNormalizeTxFieldsV12(value){
+  if(!value||value.version!==1)return null;
+  const select=(key,pattern)=>{
+    const raw=Array.isArray(value[key])?value[key]:[];
+    return [...new Set(raw.map(x=>String(x||'').trim()).filter(x=>x.length<=90&&pattern.test(x)))].slice(0,100);
+  };
+  return {version:1,
+    type:select('type',/^(Income|Expense|Transfer)$/),
+    transaction:select('transaction',/^(Income|Expense|Transfer)\|(Income|Expense|Personal|Loans|Transfer|Data Adjustment)$/),
+    category:select('category',/^(Expense|Income|Personal|LoanIncome|LoanExpense)\|.+$/)};
+}
 function mmhVaultReadConfig(owner=MMHVAULT_CONFIG_OWNER){
-  const fallback={accounts:[],categories:Object.fromEntries(Object.entries(MMHVAULT_DEFAULT_CATEGORIES).map(([k,v])=>[k,[...v]])),archivedCategories:{}};
+  const fallback={accounts:[],categories:Object.fromEntries(Object.entries(MMHVAULT_DEFAULT_CATEGORIES).map(([k,v])=>[k,[...v]])),archivedCategories:{},txFieldsV12:{version:1,type:[],transaction:[],category:[]}};
   try{
     const storageKey=mmhVaultConfigKey(owner);if(!storageKey)return fallback;
     const raw=localStorage.getItem(storageKey); if(!raw)return fallback;
@@ -13119,7 +13132,7 @@ function mmhVaultReadConfig(owner=MMHVAULT_CONFIG_OWNER){
     const categories={};
     for(const [k,base] of Object.entries(MMHVAULT_DEFAULT_CATEGORIES)) categories[k]=Array.isArray(x.categories?.[k])?x.categories[k].map(String).map(v=>v.trim()).filter(Boolean):[...base];
     const archivedCategories=(x.archivedCategories&&typeof x.archivedCategories==='object')?x.archivedCategories:{};
-    return {accounts:accounts,categories:mmhVaultNormalizeCategoryConfigV1231(categories,archivedCategories),archivedCategories};
+    return {accounts:accounts,categories:mmhVaultNormalizeCategoryConfigV1231(categories,archivedCategories),archivedCategories,txFieldsV12:mmhVaultNormalizeTxFieldsV12(x.txFieldsV12)};
   }catch(_){return fallback;}
 }
 let MMHVAULT_CONFIG=mmhVaultReadConfig();
@@ -13447,13 +13460,14 @@ function mmhVaultRenderManager(){
     const canDelete=!mmhVaultHasAccountHistory(a.name);
     row.innerHTML=`<div class="mmh-manager-main-v445"><b>${esc(a.name)}</b><span>${esc(a.currency)} · ${esc(mmhVaultAccountTypeLabel(a.type))}${a.active?'':' · Archived'}</span></div><div class="mmh-manager-actions-v445"><button class="btn" type="button" onclick="mmhVaultEditAccountV449(${esc(JSON.stringify(a.id))})">Edit</button><button class="btn" type="button" onclick="mmhVaultToggleAccountV445(${esc(JSON.stringify(a.id))})">${a.active?'Archive':'Restore'}</button>${canDelete?`<button class="btn danger" type="button" onclick="mmhVaultDeleteAccountV445(${esc(JSON.stringify(a.id))})">Delete</button>`:''}</div>`;return row;
   }));
-  host.querySelector('[data-manager-category-list]')?.replaceChildren(...groups.flatMap(g=>CATS[g].map(name=>{const row=document.createElement('div');row.className='mmh-manager-row-v445';const canDelete=!mmhVaultIsBuiltinCategory(g,name)&&!mmhVaultHasCategoryHistory(name);row.innerHTML=`<div class="mmh-manager-main-v445"><b>${esc(name)}</b><span>${esc(mmhVaultCategoryGroupLabel(g))}</span></div><div class="mmh-manager-actions-v445"><button class="btn" type="button" onclick="mmhVaultEditCategoryV449(${esc(JSON.stringify(g))},${esc(JSON.stringify(name))})">Edit</button><button class="btn" type="button" onclick="mmhVaultArchiveCategoryV445(${esc(JSON.stringify(g))},${esc(JSON.stringify(name))})">Archive</button>${canDelete?`<button class="btn danger" type="button" onclick="mmhVaultDeleteCategoryV445(${esc(JSON.stringify(g))},${esc(JSON.stringify(name))})">Delete</button>`:''}</div>`;return row;})));
+  host.querySelector('[data-manager-category-list]')?.replaceChildren(...groups.flatMap(g=>CATS[g].filter(name=>!window.MMHV11TxFieldPrefs?.isManaged?.()||window.MMHV11TxFieldPrefs?.hasCategory?.(g,name)).map(name=>{const row=document.createElement('div');row.className='mmh-manager-row-v445';const canDelete=!mmhVaultIsBuiltinCategory(g,name)&&!mmhVaultHasCategoryHistory(name);row.innerHTML=`<div class="mmh-manager-main-v445"><b>${esc(name)}</b><span>${esc(mmhVaultCategoryGroupLabel(g))}</span></div><div class="mmh-manager-actions-v445"><button class="btn" type="button" onclick="mmhVaultEditCategoryV449(${esc(JSON.stringify(g))},${esc(JSON.stringify(name))})">Edit</button><button class="btn" type="button" onclick="mmhVaultArchiveCategoryV445(${esc(JSON.stringify(g))},${esc(JSON.stringify(name))})">Archive</button>${canDelete?`<button class="btn danger" type="button" onclick="mmhVaultDeleteCategoryV445(${esc(JSON.stringify(g))},${esc(JSON.stringify(name))})">Delete</button>`:''}</div>`;return row;})));
   const archivedCats=[]; for(const g of groups){(MMHVAULT_CONFIG.archivedCategories[g]||[]).forEach(x=>archivedCats.push({g,name:x}));}
   const arch=host.querySelector('[data-manager-archived-categories]');
   if(arch)arch.innerHTML=archivedCats.length?archivedCats.map(x=>{const canDelete=!mmhVaultIsBuiltinCategory(x.g,x.name)&&!mmhVaultHasCategoryHistory(x.name);return `<div class="mmh-manager-row-v445"><div class="mmh-manager-main-v445"><b>${esc(x.name)}</b><span>${esc(mmhVaultCategoryGroupLabel(x.g))} · Archived${mmhVaultHasCategoryHistory(x.name)?' · history linked':''}</span></div><div class="mmh-manager-actions-v445"><button class="btn" type="button" onclick="mmhVaultEditCategoryV449(${esc(JSON.stringify(x.g))},${esc(JSON.stringify(x.name))})">Edit</button><button class="btn" type="button" onclick="mmhVaultRestoreCategoryV445(${esc(JSON.stringify(x.g))},${esc(JSON.stringify(x.name))})">Restore</button>${canDelete?`<button class="btn danger" type="button" onclick="mmhVaultDeleteCategoryV445(${esc(JSON.stringify(x.g))},${esc(JSON.stringify(x.name))})">Delete</button>`:''}</div></div>`}).join(''):'<div class="small">No archived categories.</div>';
   const archivedAccounts=allAccounts.filter(a=>a.active===false);
   const aa=host.querySelector('[data-manager-archived-accounts]');
   if(aa)aa.innerHTML=archivedAccounts.length?archivedAccounts.map(a=>{const canDelete=!mmhVaultHasAccountHistory(a.name);return `<div class="mmh-manager-row-v445"><div class="mmh-manager-main-v445"><b>${esc(a.name)}</b><span>${esc(a.currency)} · ${esc(mmhVaultAccountTypeLabel(a.type))} · Archived${mmhVaultHasAccountHistory(a.name)?' · history linked':''}</span></div><div class="mmh-manager-actions-v445"><button class="btn" type="button" onclick="mmhVaultEditAccountV449(${esc(JSON.stringify(a.id))})">Edit</button><button class="btn" type="button" onclick="mmhVaultToggleAccountV445(${esc(JSON.stringify(a.id))})">Restore</button>${canDelete?`<button class="btn danger" type="button" onclick="mmhVaultDeleteAccountV445(${esc(JSON.stringify(a.id))})">Delete</button>`:''}</div></div>`}).join(''):'<div class="small">No archived accounts.</div>';
+  window.MMHV11TxFieldPrefs?.refreshManage?.();
 }
 
 function mmhVaultResolveDialogV449(result=false){
@@ -13778,6 +13792,12 @@ function mmhVaultAddCategoryV445(){
   if(!name){mmhVaultCustomMessageV449('Add Category','Please enter a category name.');return;}
   if(group==='Transfer'){mmhVaultCustomMessageV449('System Category','Transfer is system-managed.');return;}
   if((MMHVAULT_CONFIG.categories[group]||[]).some(x=>x.toLowerCase()===name.toLowerCase())){
+    if(window.MMHV11TxFieldPrefs?.markCategory?.(group,name)){
+      mmhVaultPersistConfig();
+      if($('mmhNewCategoryNameV445'))$('mmhNewCategoryNameV445').value='';
+      mmhVaultRefreshCategoryUIV449(group,name);
+      return;
+    }
     mmhVaultCustomMessageV449('Category already exists',`${name} is already in this group.`);
     return;
   }
@@ -13787,6 +13807,7 @@ function mmhVaultAddCategoryV445(){
     return;
   }
   (MMHVAULT_CONFIG.categories[group]||(MMHVAULT_CONFIG.categories[group]=[])).push(name);
+  window.MMHV11TxFieldPrefs?.markCategory?.(group,name);
   mmhVaultPersistConfig();
   if($('mmhNewCategoryNameV445'))$('mmhNewCategoryNameV445').value='';
   mmhVaultRefreshCategoryUIV449(group,name);
@@ -22486,7 +22507,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       categories[group]=(Array.isArray(x.categories?.[group])?x.categories[group]:base).map(String).map(v=>v.trim()).filter(Boolean);
       archivedCategories[group]=(Array.isArray(x.archivedCategories?.[group])?x.archivedCategories[group]:[]).map(String).map(v=>v.trim()).filter(Boolean);
     }
-    return{accounts,categories:mmhVaultNormalizeCategoryConfigV1231(categories,archivedCategories),archivedCategories};
+    return{accounts,categories:mmhVaultNormalizeCategoryConfigV1231(categories,archivedCategories),archivedCategories,txFieldsV12:mmhVaultNormalizeTxFieldsV12(x.txFieldsV12)};
   }
   function writeLocal(owner,config,updatedAt){localStorage.setItem(mmhVaultConfigKey(owner),JSON.stringify({...config,ownerId:owner,updatedAt}))}
   function applyCloud(owner,config,updatedAt){
@@ -35131,6 +35152,6 @@ html body #settings.page.active #stPage_security #mmhA783SecurityCenter .mmh-a78
 </style>
 <script src="js/mmhvault-n10-a7-83-security-center.js?v=10.790.1"></script>
 <script src="js/mmhvault-account-reference-fx-v1.js?v=1.0.1"></script>
-<script src="js/mmhvault-transaction-field-layout-v11.js?v=1.0.0" defer></script>
+<script src="js/mmhvault-transaction-field-layout-v11.js?v=2.0.0" defer></script>
 </body>
 </html>
