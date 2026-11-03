@@ -118,6 +118,45 @@ Safari/iOS/Android checks. Current main-only drift consists of Landing
 `index.html` and three `landing-assets/` files; Draft PR #85 still overlaps
 APP paths and must not be merged blindly.
 
+## Multi-device immutable link overwrite prevention (draft follow-up)
+
+The existing `personal_configuration` cloud sync uses timestamp ordering and
+compare-and-swap. Timestamps alone are insufficient for **two independently
+saved immutable transaction→Manage sidecars**. Before an upload or download,
+the V11.7 candidate now compares the owner-scoped transaction-record ID links
+from the local and remote JSON configurations.
+
+- If all remote IDs are already present locally, a newer local config can
+  upload; if all local IDs are present remotely, a newer cloud config can
+  download. Record IDs shared by both must have **identical Type, Transaction,
+  Category IDs and canonical ledger type/group/category**.
+- If either copy has missing links that the other would erase, or the same
+  record ID has different meanings, **sync is blocked rather than overwriting**.
+  An equal timestamp with different links also fails closed. Foreign-owner or
+  malformed hierarchy payloads fail closed.
+- A matching-owner `mmhvault:config-link-sync-blocked` event displays an
+  accessible EN/ZH/MY warning, closes a current Manage editor, and temporarily
+  blocks Manage mutations and Add Transaction saves. Owner changes reset the
+  warning. **A conflict is NOT automatically reconciled**: safe multi-device
+  merges still require independent authenticated Staging review. Never create
+  a duplicate transaction to resolve an unverified Manage association.
+- Synthetic regression directly executes the actual `app.html` cloud-sync
+  inline script in two isolated Node VM device contexts with a fake shared
+  configuration row. It covers older/newer timestamps, force-upload,
+  divergent IDs, same-ID tampering, remote/local superset, equal timestamps,
+  wrong owner and malformed payload; it accesses **no real database**.
+- The isolated Chrome and Linux WebKit (393 / 768 / 1440px) fixture now also
+  tests the visible conflict warning, pause of unsafe writes, archived
+  selections and owner switch. These checks do not establish physical device
+  or real Staging acceptance.
+
+Last validated code head:
+`3ab35b9bad0f8c887c28f1e0236ab12c40dc3a0f`.
+**All five GitHub Actions workflows completed successfully; three hierarchy
+jobs (Node safety, Chrome, WebKit) and four other finance/APP jobs passed
+(7 total).** Never merge without reconciling overlapping Draft PR #85 and
+refreshing the latest main.
+
 ## Operational caveats — must pass before live release
 
 1. Real authenticated **Staging** dual-owner test: fresh account empty,
