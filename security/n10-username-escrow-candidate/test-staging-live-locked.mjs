@@ -1,8 +1,7 @@
 /**
- * Real HTTP negative-only QA against the separately deployed, hard-OFF
- * Staging registration Edge. No credentials, QA words, user records or Auth
- * mutations. Only call after confirming verify_jwt=false and RELEASE=false.
- * The test intentionally fails if a release was accidentally enabled.
+ * Real HTTP negative-only QA against the separately deployed Staging Edge.
+ * No credentials, QA words, user records or Auth mutations.
+ * A temporary opening is accepted ONLY if the exact reviewed expiry is present.
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -19,11 +18,13 @@ async function request({origin=ORIGIN,method='POST',body={action:'preflight'}}={
  assert.equal(response.headers.get('cache-control')?.includes('no-store'),true);
  return {response,payload};
 }
-test('new anonymous user can see a hard-OFF Staging preflight without a signed JWT',async()=>{
+test('anonymous preflight is locked or uses only an explicit expiring two-user QA window',async()=>{
  const {response,payload}=await request();
  assert.equal(response.status,200);
  assert.equal(payload?.code,'preflight_ok');
- assert.equal(payload?.enabled,false);
+ assert.ok(payload?.enabled===false || (payload?.enabled===true &&
+   payload?.qa_window_expires_at==='2026-11-04T13:00:00.000Z' &&
+   Date.now()<Date.parse(payload.qa_window_expires_at)),'unreviewed anonymous signup release');
  assert.equal(payload?.setup_complete,true,'Staging enrollment secrets or exact two-user allowlist are not yet ready');
  assert.equal(payload?.qa_only,true);
  assert.equal(payload?.production,false);
@@ -35,12 +36,13 @@ test('Staging foreign origin is rejected before parsing signup data',async()=>{
  assert.equal(payload?.code,'origin_denied');
  assert.equal(response.headers.get('access-control-allow-origin'),null);
 });
-test('disabled signup cannot create an Auth user even with a shaped request',async()=>{
+test('unknown QA username is always rejected without Auth mutation',async()=>{
  const {response,payload}=await request({
   body:{action:'signup',username:'n10qa_offline',password:'dummy-not-a-real-credential'}
  });
- assert.equal(response.status,503);
- assert.equal(payload?.code,'registration_not_released');
+ assert.ok((response.status===503&&payload?.code==='registration_not_released')||
+   (response.status===403&&payload?.code==='staging_qa_only'));
+ assert.equal(payload?.user_id,undefined);
  assert.equal(payload?.access_token,undefined);
  assert.equal(payload?.refresh_token,undefined);
 });
