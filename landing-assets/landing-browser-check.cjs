@@ -52,6 +52,82 @@ async function load(page,route,failures){
 (async()=>{
  const browser=await chromium.launch({channel:'chrome',headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
  try{
+   // L1.42: hold the noncritical Business stylesheet on a slow connection.
+   // The Hero must still finish parsing and rendering without waiting for it.
+   for(const width of [393,768]){
+     const ctx=await browser.newContext({viewport:{width,height:852},
+       reducedMotion:'reduce',isMobile:width===393,hasTouch:width===393});
+     const page=await ctx.newPage(),failures=[];
+     page.on('pageerror',e=>failures.push(e.message));
+     let releaseStyle;
+     const heldStyle=new Promise(resolve=>{releaseStyle=resolve});
+     let heldRequests=0;
+     await page.route('**/landing-assets/business.css*',async route=>{
+       heldRequests++;
+       await heldStyle;
+       await route.continue();
+     });
+     let early;
+     try{
+       await page.goto(origin+'/',{waitUntil:'domcontentloaded',timeout:8500});
+       early=await page.evaluate(()=>{
+         const header=document.querySelector('.site-header').getBoundingClientRect();
+         const heading=document.querySelector('#hero-title').getBoundingClientRect();
+         const stylesheet=document.querySelector('link[href*="/landing-assets/business.css"]');
+         const business=document.querySelector('#business').getBoundingClientRect();
+         return {
+           media:stylesheet?.media,handler:stylesheet?.getAttribute('onload'),
+           heroVisible:heading.height>0&&heading.width>0&&
+             getComputedStyle(document.querySelector('#hero-title')).display!=='none',
+           headerRight:header.right,heroLeft:heading.left,heroTop:heading.top,
+           businessTop:business.top
+         };
+       });
+       ensure(heldRequests===1 && early.media==='print' &&
+         early.handler==="this.onload=null;this.media='all'" &&
+         early.heroVisible && early.headerRight<=width+1 &&
+         early.heroLeft>=-1 && early.businessTop>852 &&
+         failures.length===0,
+         'L1.42 '+width+'px initial Hero renders while below-fold CSS is still held '+JSON.stringify({early,heldRequests,failures}));
+     }finally{releaseStyle();}
+     await page.waitForLoadState('load',{timeout:15000});
+     await page.waitForFunction(()=>{
+       const el=document.querySelector('link[href*="/landing-assets/business.css"]');
+       return el?.media==='all'&&el.sheet?.cssRules.length>0;
+     },{timeout:10000});
+     const done=await page.evaluate(()=>{
+       const business=document.querySelector('#business');
+       const hero=document.querySelector('#hero-title').getBoundingClientRect();
+       return {background:getComputedStyle(business).backgroundImage,
+         heroLeft:hero.left,heroTop:hero.top,scrollX,
+         businessHeight:business.getBoundingClientRect().height};
+     });
+     ensure(done.background!=='none'&&done.businessHeight>300&&
+       Math.abs(done.heroLeft-early.heroLeft)<2 &&
+       Math.abs(done.heroTop-early.heroTop)<2 &&
+       done.scrollX===0&&failures.length===0,
+       'L1.42 '+width+'px Business styles activate without shifting Hero '+JSON.stringify(done));
+     await ctx.close();
+   }
+
+   // No-JavaScript users retain normal Business presentation via <noscript>.
+   {
+     const ctx=await browser.newContext({viewport:{width:393,height:852},javaScriptEnabled:false});
+     const page=await ctx.newPage();
+     await page.goto(origin+'/',{waitUntil:'load',timeout:25000});
+     const state=await page.evaluate(()=>{
+       const links=[...document.querySelectorAll('link[href*="/landing-assets/business.css"]')];
+       const business=document.querySelector('#business');
+       return {media:links.map(x=>x.media),
+         loaded:links.some(x=>(x.media===''||x.media==='all')&&x.sheet?.cssRules.length>0),
+         sectionHeight:business.getBoundingClientRect().height};
+     });
+     ensure(state.media.includes('print')&&(state.media.includes('all')||state.media.includes(''))&&
+       state.loaded&&state.sectionHeight>300,
+       'L1.42 no-script fallback retains styled Business concept '+JSON.stringify(state));
+     await ctx.close();
+   }
+
    // L1.41 — catch the post-deploy mixed-cache regression seen on small
    // screens. All first-party homepage CSS/JS must share this release key;
    // load all nine successfully while retaining a bounded mobile header.
