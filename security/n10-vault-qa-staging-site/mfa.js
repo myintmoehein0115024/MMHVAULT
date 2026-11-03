@@ -19,7 +19,7 @@ const tr=k=>STRINGS[lang]?.[k]||STRINGS.en[k]||'Service error';
 function status(k){$('status').textContent=tr(k);$('status').dataset.state=k;}
 function setVisible(id,val){$(id).classList.toggle('is-hidden',!val);}
 function clearQr(){
- clearTimeout(qrTimer);qrTimer=null;$('qr').removeAttribute('src');$('manualSecret').textContent='';
+ clearTimeout(qrTimer);qrTimer=null;$('qr').removeAttribute('src');$('manualSecret').textContent='';$('manualToggle').onclick=null;
  $('manualSection').hidden=true;$('qrWrap').hidden=false;$('manualToggle').hidden=false;
  $('qrModal').hidden=true;
 }
