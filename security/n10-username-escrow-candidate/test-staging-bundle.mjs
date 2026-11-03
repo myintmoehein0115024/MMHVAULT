@@ -32,6 +32,7 @@ test('Staging build is hard OFF and bound only to the Staging project and previe
   assert.match(edge,/if\(!RELEASE_ENABLED\)return reply\(origin,'registration_not_released',503\);/);
   assert.doesNotMatch(edge,/vrypucmyrztxgiqhjspd|https:\/\/mmhvault\.com\b|production:true|public_signup:true|const RELEASE_ENABLED=true;/);
   assert.doesNotMatch(edge,/admin\.auth\.admin\.deleteUser\(/);
+  assert.match(edge,/if\(quarantineRequired\)return false;/);
   assert.ok(summary.files.every(f=>/^[a-f0-9]{64}$/.test(f.sha256)));
  });
 });
@@ -62,7 +63,7 @@ test('A simulated failed Vault escrow quarantines ONLY the just-created Staging 
    },
    from:()=>({
     insert:async()=>({error:null}),
-    delete:()=>({eq:()=>({eq:()=>Promise.resolve({error:null})})})
+    delete:()=>{actions.push('releaseReservation');return {eq:()=>({eq:()=>Promise.resolve({error:null})})};}
    }),
    auth:{admin:{
     createUser:async({email,app_metadata})=>{
@@ -91,6 +92,7 @@ test('A simulated failed Vault escrow quarantines ONLY the just-created Staging 
   assert.equal(result.code,'auth_unavailable');
   assert.ok(actions.includes('banUser:'+owner));
   assert.ok(!actions.includes('deleteUser'));
+  assert.ok(!actions.includes('releaseReservation'),'manual reconciliation keeps claimed name for 30 minutes');
   assert.ok(!actions.includes('mmh_n10_recovery_backup_get'));
  });
 });
