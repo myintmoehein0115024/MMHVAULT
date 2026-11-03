@@ -73,6 +73,11 @@ function nativeForm(h){
     const old=g.value;g.replaceChildren(...groups.map(x=>({value:x,textContent:x,dataset:{}})));
     if(groups.includes(old))g.value=old;
   };
+  context.mmhVaultTransactionCategoryListV451=(type,group)=>{
+    const key=group==='Loans'?(type==='Income'?'LoanIncome':'LoanExpense'):group;
+    return group==='Data Adjustment'?['Data Adjustment']:
+      group==='Transfer'?['Transfer']:context.MMHVAULT_CONFIG.categories[key]||[];
+  };
   context.updateCategories=()=>{
     const group=g.value;
     const key=group==='Loans'?(t.value==='Income'?'LoanIncome':'LoanExpense'):group;
