@@ -3,7 +3,8 @@
  * Preserves the canonical ledger values used by balance and Analyze calculations.
  */
 import {createHierarchyController} from './mmhvault-v11-manage-hierarchy-controller.mjs';
-import {ledgerKind,canAddItem,storedLinkMatches} from './mmhvault-v11-manage-hierarchy-model.mjs';
+import {ledgerKind,canAddItem} from './mmhvault-v11-manage-hierarchy-model.mjs';
+import {verifyStoredCloudLink} from './mmhvault-v11-manage-hierarchy-sync.mjs';
 (()=>{
 'use strict';
 if(window.MMHV11HierarchyLive)return;
@@ -369,19 +370,28 @@ async function verifyCloudLink(target){
   if(!target||checkingCloud||owner()!==target.owner||configOwner()!==target.owner)return;
   checkingCloud=true;schedule();
   try{
-    // The existing sync queue is asynchronous. A successful local write is
-    // not proof of server durability, nor is an in-flight sync response.
-    const sync=window.MMHConfigCloudSyncV122;
-    if(typeof sync?.syncNow!=='function')return;
-    if(await sync.syncNow(false)!==true)return;
-    if(owner()!==target.owner||configOwner()!==target.owner||linkSync!==target)return;
-    const {data,error}=await db.from('personal_configuration').select('config')
-      .eq('user_id',target.owner).maybeSingle();
-    if(owner()!==target.owner||configOwner()!==target.owner||linkSync!==target)return;
-    if(!error&&storedLinkMatches(data?.config?.txHierarchyV11,target.owner,
-      target.recordId,target.ids,target.canonical))target.state='verified';
-  }catch(error){console.warn('[MMHVAULT] Manage link cloud readback not verified',error)}
-  finally{checkingCloud=false;schedule()}
+    const verified=await verifyStoredCloudLink({
+      target,currentOwner:owner,configOwner,
+      syncNow:()=>window.MMHConfigCloudSyncV122?.syncNow?.(false),
+      readConfig:async signedOwner=>{
+        const {data,error}=await db.from('personal_configuration').select('config')
+          .eq('user_id',signedOwner).maybeSingle();
+        if(error)throw error;
+        return data?.config;
+      }
+    });
+    if(verified&&linkSync===target&&owner()===target.owner&&configOwner()===target.owner)
+      target.state='verified';
+  }catch(error){console.warn('[MMHVAULT] Manage link readback unavailable',error)}
+  finally{
+    checkingCloud=false;schedule();
+    // A second saved transaction may arrive while the prior cloud check is
+    // in-flight. Verify the latest one next, but do not retry failed syncs
+    // indefinitely. Failed checks remain Pending for manual retry.
+    if(linkSync&&linkSync!==target&&linkSync.state!=='verified'&&
+      linkSync.owner===owner()&&linkSync.owner===configOwner())
+      queueMicrotask(()=>{void verifyCloudLink(linkSync)});
+  }
 }
 function ledgerInserted(userId,id,values){
   if(!pendingSave||pendingSave.owner!==userId||owner()!==userId)return;
