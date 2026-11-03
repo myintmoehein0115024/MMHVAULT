@@ -180,15 +180,20 @@ test('real Manage render moves exactly one Category form, and restores it for le
   h.api.refreshManage();
   const panel=findById(host,'mmhV12Manage');
   assert.ok(panel,'managed owner has one Manage section');
+  assert.equal(legacy.hidden,true,'new owner with zero saved/archived Categories should not see empty search card');
   assert.equal(categoryForm.parentElement?.className,'mmh-v12-col mmh-v12-col-category');
   h.api.refreshManage();
   assert.equal(categoryForm.parentElement?.className,'mmh-v12-col mmh-v12-col-category',
     're-renders reuse the exact same Category form');
   const findAll=(node,needle)=>[...(node===needle?[node]:[]),...node.children.flatMap(x=>findAll(x,needle))];
   assert.equal(findAll(host,categoryForm).length,1,'must never duplicate the native Category form');
+  h.config.txFieldsV12.category.push('Income|Salary');
+  h.api.refreshManage();
+  assert.equal(legacy.hidden,false,'the original saved/archived Category list becomes available after adding one');
   h.config.txFieldsV12=null;
   h.api.refreshManage();
   assert.equal(panel.hidden,true);
+  assert.equal(legacy.hidden,false,'existing owners retain the full original category panel');
   assert.equal(categoryForm.parentElement,legacy,'legacy owner gets native Category form in its original section');
 });
 
