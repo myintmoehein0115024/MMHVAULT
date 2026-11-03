@@ -116,7 +116,7 @@ async function verifiedUser(req:Request){
  if(factorAal!=='aal1'&&factorAal!=='aal2')return {state:'unavailable' as const};
  // Require AAL2 if any server-verified MFA factor exists. Allow fresh AAL1
  // only when the signed owner has no verified factor; never downgrade.
- const expectedAal=factorAal;
+ const expectedAal:'aal1'|'aal2'=factorAal;
  if(!user.email_confirmed_at||user.app_metadata?.mmhvault_auth_kind!=='username_only'||
     typeof user.email!=='string'||!user.email.endsWith('@'+ALIAS_DOMAIN))
   return {state:'not_supported' as const};
