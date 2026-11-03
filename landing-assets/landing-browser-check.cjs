@@ -52,6 +52,130 @@ async function load(page,route,failures){
 (async()=>{
  const browser=await chromium.launch({channel:'chrome',headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
  try{
+   // L1.53 Business locale metadata no-op browser parity.
+   // Compare L1.52 and candidate at mobile/tablet/desktop × EN/ZH/MY.
+   // Language changes should translate visible copy without rewriting
+   // unchanged Business aria-pressed/data-i18n/data-current-view attributes.
+   {
+     const proposed=fs.readFileSync('landing-assets/landing.js','utf8');
+     const patches=[["      button.setAttribute('aria-pressed',String(selected));","      // L1.53: a language change must not rewrite the active concept state.\n      const pressed=String(selected);\n      if(button.getAttribute('aria-pressed')!==pressed)button.setAttribute('aria-pressed',pressed);"],["      element.setAttribute('data-i18n',key);\n      const value = dictionary[key] || '';","      if(element.getAttribute('data-i18n')!==key)element.setAttribute('data-i18n',key);\n      const value = dictionary[key] || '';"],["    if(panel) panel.dataset.currentView = currentBusinessView;","    if(panel && panel.dataset.currentView!==currentBusinessView)panel.dataset.currentView = currentBusinessView;"]];
+     let baseline=proposed;
+     for(const [oldCode,newCode] of patches){
+       assert.equal(baseline.split(newCode).length,2,
+         'L1.53 unique Business metadata patch');
+       baseline=baseline.replace(newCode,oldCode);
+     }
+     const reports=[];
+     for(const width of [393,768,1440])for(const locale of ['en','zh','my']){
+       const versions={};
+       for(const [name,script] of [['baseline',baseline],['optimized',proposed]]){
+         const ctx=await browser.newContext({
+           viewport:{width,height:852},reducedMotion:'reduce',serviceWorkers:'block'});
+         const page=await ctx.newPage(),errors=[];
+         page.on('pageerror',error=>errors.push(error.message));
+         await page.addInitScript(lang=>{
+           try{localStorage.setItem('mmhvault.landing.language',lang)}catch(_){}
+         },locale);
+         await page.route('**/landing-assets/landing.js*',route=>route.fulfill({
+           status:200,contentType:'application/javascript',body:script}));
+         const response=await page.goto(origin+'/',{waitUntil:'load',timeout:30000});
+         const output=await page.evaluate(start=>{
+           const stage=document.querySelector('.business-stage');
+           const tabs=[...document.querySelectorAll('[data-business-view]')];
+           const langTrigger=document.getElementById('locale-trigger');
+           const langButtons=[...document.querySelectorAll('[data-lang]')];
+           const snapshot=()=>({
+             lang:document.documentElement.lang,
+             stored:localStorage.getItem('mmhvault.landing.language'),
+             mode:stage.dataset.currentView,
+             tabs:tabs.map(x=>[x.dataset.businessView,
+               x.getAttribute('aria-pressed'),x.classList.contains('is-selected')]),
+             text:[...stage.querySelectorAll('[data-business-text]')].map(x=>[
+               x.dataset.businessText,x.getAttribute('data-i18n'),x.textContent]),
+             money:[...stage.querySelectorAll('[data-business-amount]')].map(x=>[
+               x.dataset.businessAmount,x.textContent]),
+             hero:[...document.querySelectorAll('[data-hero-fixed]')].map(x=>x.textContent.trim()),
+             flag:document.querySelector('.locale-active-flag')?.textContent,
+             headerRight:Math.round(document.querySelector('.site-header')
+               .getBoundingClientRect().right)
+           });
+           const observer=new MutationObserver(()=>{});
+           observer.observe(stage,{subtree:true,attributes:true,
+             attributeFilter:['aria-pressed','data-i18n','data-current-view']});
+           const collect=perform=>{
+             observer.takeRecords();
+             perform();
+             return {writes:observer.takeRecords().length,state:snapshot()};
+           };
+           const chooseLang=lang=>collect(()=>{
+             langTrigger.click();
+             langButtons.find(x=>x.dataset.lang===lang).click();
+           });
+           const chooseView=view=>collect(()=>{
+             tabs.find(x=>x.dataset.businessView===view).click();
+           });
+           const initial=snapshot();
+           const nextLang=start==='en'?'zh':start==='zh'?'my':'en';
+           const otherLanguage=chooseLang(nextLang);
+           const business=chooseView('business');
+           const revertLanguage=chooseLang(start);
+           const personal=chooseView('personal');
+           observer.disconnect();
+           return {initial,otherLanguage,business,revertLanguage,personal};
+         },locale);
+         const expectedInitial=locale==='zh'?'zh-CN':locale;
+         const expectedOther=locale==='en'?'zh-CN':locale==='zh'?'my':'en';
+         const views=[output.otherLanguage,output.business,
+           output.revertLanguage,output.personal];
+         ensure(response?.status()===200&&errors.length===0&&
+           output.initial.lang===expectedInitial&&
+           output.initial.mode==='personal'&&
+           output.initial.hero.length===3&&
+           output.initial.headerRight<=width+1&&
+           output.otherLanguage.state.lang===expectedOther&&
+           output.otherLanguage.state.mode==='personal'&&
+           output.business.state.mode==='business'&&
+           output.business.state.money.some(x=>
+             x[0]==='balance'&&x[1]==='$366,250.00')&&
+           output.revertLanguage.state.lang===expectedInitial&&
+           output.revertLanguage.state.mode==='business'&&
+           output.personal.state.mode==='personal'&&
+           output.personal.state.money.some(x=>
+             x[0]==='balance'&&x[1]==='$24,680.50')&&
+           views.every(x=>x.state.tabs.filter(t=>t[1]==='true').length===1)&&
+           output.business.writes>0&&output.personal.writes>0,
+           'L1.53 '+name+' '+width+'px '+locale+' genuine Business/locale changes');
+         versions[name]=output;
+         await ctx.close();
+       }
+       const old=versions.baseline,next=versions.optimized;
+       for(const step of ['initial','otherLanguage','business',
+         'revertLanguage','personal']){
+         const a=step==='initial'?old[step]:old[step].state;
+         const b=step==='initial'?next[step]:next[step].state;
+         ensure(JSON.stringify(a)===JSON.stringify(b),
+           'L1.53 '+width+'px '+locale+' unchanged '+step+' visible content and ARIA');
+       }
+       ensure(old.otherLanguage.writes>0&&old.revertLanguage.writes>0&&
+         next.otherLanguage.writes===0&&next.revertLanguage.writes===0&&
+         next.business.writes===old.business.writes&&
+         next.personal.writes===old.personal.writes,
+         'L1.53 '+width+'px '+locale+' skips only unchanged locale attributes '+
+         JSON.stringify({before:[old.otherLanguage.writes,old.business.writes,
+           old.revertLanguage.writes,old.personal.writes],
+           after:[next.otherLanguage.writes,next.business.writes,
+             next.revertLanguage.writes,next.personal.writes]}));
+       reports.push({width,locale,
+         before:[old.otherLanguage.writes,old.revertLanguage.writes],
+         after:[next.otherLanguage.writes,next.revertLanguage.writes]});
+     }
+     const skipped=reports.reduce((n,x)=>n+
+       x.before.reduce((total,v,i)=>total+v-x.after[i],0),0);
+     ensure(skipped>0,'L1.53 skips redundant Business locale attribute writes '+skipped);
+     console.log('L1.53 Business locale DOM lab (not field LCP): '+
+       JSON.stringify({savedAttributeMutations:skipped,reports}));
+   }
+
    // L1.52 preview tab attribute browser parity: old released L1.51 and
    // proposed script, real Chrome, mobile/tablet/desktop, all three locales.
    // Compare ARIA and roving tabindex writes, keyboard focus and demo content.
@@ -426,7 +550,17 @@ async function load(page,route,failures){
    // Repeated clicks should not mutate the Business preview, but actual
    // Personal / Business transitions must produce identical localized UI.
    {
-     const proposed=fs.readFileSync('landing-assets/landing.js','utf8');
+     // L1.53's newer attribute guards would make BOTH historical variants
+     // no-op on repeated clicks. Remove only those three newer edits in this
+     // historical lab to faithfully reproduce the released L1.48→L1.49
+     // comparison; the L1.53 lab above tests the new guards separately.
+     const l153Patches=[["      button.setAttribute('aria-pressed',String(selected));","      // L1.53: a language change must not rewrite the active concept state.\n      const pressed=String(selected);\n      if(button.getAttribute('aria-pressed')!==pressed)button.setAttribute('aria-pressed',pressed);"],["      element.setAttribute('data-i18n',key);\n      const value = dictionary[key] || '';","      if(element.getAttribute('data-i18n')!==key)element.setAttribute('data-i18n',key);\n      const value = dictionary[key] || '';"],["    if(panel) panel.dataset.currentView = currentBusinessView;","    if(panel && panel.dataset.currentView!==currentBusinessView)panel.dataset.currentView = currentBusinessView;"]];
+     let proposed=fs.readFileSync('landing-assets/landing.js','utf8');
+     for(const [oldCode,newCode] of l153Patches){
+       assert.equal(proposed.split(newCode).length,2,
+         'L1.49 historical script reconstructs L1.52 attrs exactly');
+       proposed=proposed.replace(newCode,oldCode);
+     }
      const before="  businessTabs.forEach(button => button.addEventListener('click', () => {\n    updateBusinessPreview(button.dataset.businessView);\n  }));";
      const after="  businessTabs.forEach(button => button.addEventListener('click', () => {\n    // L1.49: selecting an already active concept is a no-op. Avoid\n    // redundant data-current-view mutations and replayed Business animations.\n    // applyLanguage still calls updateBusinessPreview for translated labels.\n    if (button.dataset.businessView !== currentBusinessView)\n      updateBusinessPreview(button.dataset.businessView);\n  }));";
      assert.equal(proposed.split(after).length,2,'L1.49 exact source replacement');
@@ -1062,12 +1196,12 @@ async function load(page,route,failures){
        layout.styles.filter(v=>v==='l146').length===2 &&
        layout.styles.filter(v=>v==='l147').length===1 &&
        layout.styles.filter(v=>v==='l141').length===2 &&
-       layout.scripts.includes('l152') && layout.scripts.includes('l141') &&
+       layout.scripts.includes('l153') && layout.scripts.includes('l141') &&
        loaded.length===8 && loaded.every(r=>r.status===200&&
          r.version===(r.path==='/landing-assets/landing.min.css'?'l145':
            ['/landing-assets/cinematic.min.css','/landing-assets/premium-l131.min.css'].includes(r.path)?'l146':
            r.path==='/landing-assets/header-explore-l147.min.css'?'l147':
-            r.path==='/landing-assets/landing.js'?'l152':'l141')) &&
+            r.path==='/landing-assets/landing.js'?'l153':'l141')) &&
        new Set(loaded.map(r=>r.path)).size===8 && failures.length===0,
        'L1.47 '+width+'px eight CSS/JS requests with consistent cache keys '+JSON.stringify({loaded,failures}));
      ensure(layout.brand.left>=-1&&layout.brand.right<=width+1 &&

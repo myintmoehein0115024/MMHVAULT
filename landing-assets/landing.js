@@ -712,7 +712,9 @@
     const dictionary = strings[currentLang];
     businessTabs.forEach(button => {
       const selected = button.dataset.businessView === currentBusinessView;
-      button.setAttribute('aria-pressed',String(selected));
+      // L1.53: a language change must not rewrite the active concept state.
+      const pressed=String(selected);
+      if(button.getAttribute('aria-pressed')!==pressed)button.setAttribute('aria-pressed',pressed);
       button.classList.toggle('is-selected',selected);
     });
     document.querySelectorAll('[data-business-amount]').forEach(element => {
@@ -745,12 +747,12 @@
     };
     document.querySelectorAll('[data-business-text]').forEach(element => {
       const key = keyMap[element.dataset.businessText];
-      element.setAttribute('data-i18n',key);
+      if(element.getAttribute('data-i18n')!==key)element.setAttribute('data-i18n',key);
       const value = dictionary[key] || '';
       if (element.textContent !== value) element.textContent = value;
     });
     const panel = document.querySelector('.business-stage');
-    if(panel) panel.dataset.currentView = currentBusinessView;
+    if(panel && panel.dataset.currentView!==currentBusinessView)panel.dataset.currentView = currentBusinessView;
   }
   businessTabs.forEach(button => button.addEventListener('click', () => {
     // L1.49: selecting an already active concept is a no-op. Avoid
