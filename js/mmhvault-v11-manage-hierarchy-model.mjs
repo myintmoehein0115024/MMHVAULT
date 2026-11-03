@@ -69,6 +69,12 @@ export function addCategory(graph,ownerId,name,parentTransactionId,idFactory){
   if(parent.archived||grandparent.archived)throw new Error('Restore the parent before adding a Category');
   if(!kind)throw new Error('Transaction ledger mapping unavailable');
   if(!unique(graph.categories,parentTransactionId,text))throw new Error('Category already exists under this Transaction');
+  // Production ledger stores a Category *name*, not the Manage path.
+  // Duplicate labels inside the same canonical group would make older
+  // transaction history ambiguous (including after an account switch).
+  if(graph.categories.some(x=>x.ledgerGroup===kind.categoryGroup&&
+    x.label.toLocaleLowerCase()===text.toLocaleLowerCase()))
+    throw new Error('Category label already exists in this ledger group');
   const node={id:idOnce(graph,idFactory),label:text,parentId:parentTransactionId,
     ledgerGroup:kind.categoryGroup,archived:false};
   graph.categories.push(node);return node;
@@ -124,9 +130,17 @@ export function entryUsage(graph,ownerId,field,id,history){
     if(field==='type')return 'used';
     const transaction=field==='transaction'?node:requireNode(graph,'transactions',node.parentId);
     const kind=ledgerKind(transaction.kindId);
-    if(!kind||row.group!==kind.group)continue;
-    if(field==='transaction')return 'used';
-    if(row.category===node.label)return 'used';
+    if(!kind)continue;
+    // Live transaction rows have no transaction_group column. Without an
+    // explicit choice ID, a matching ledger Type but missing group cannot
+    // safely prove which sibling Transaction was used. Fail closed.
+    const historicGroup=row.transaction_group||row.group;
+    if(field==='transaction'){
+      if(!historicGroup||historicGroup===kind.group)return 'used';
+      continue;
+    }
+    if(row.category===node.label&&(!historicGroup||historicGroup===kind.group))
+      return 'used';
   }
   return 'unused';
 }
@@ -138,6 +152,9 @@ export function renameItem(graph,ownerId,field,id,newName,history){
   if(entryUsage(graph,ownerId,field,id,history)!=='unused')
     throw new Error('Already used or history not loaded: Archive instead');
   if(!unique(graph[coll],node.parentId,value,id))throw new Error('Name already exists');
+  if(field==='category'&&graph.categories.some(x=>x.id!==id&&x.ledgerGroup===node.ledgerGroup&&
+    x.label.toLocaleLowerCase()===value.toLocaleLowerCase()))
+    throw new Error('Category label already exists in this ledger group');
   node.label=value;return node;
 }
 export function deleteItem(graph,ownerId,field,id,history){
