@@ -119,10 +119,10 @@ async function load(page,route,failures){
        const links=[...document.querySelectorAll('link[href*="/landing-assets/business.css"]')];
        const business=document.querySelector('#business');
        return {media:links.map(x=>x.media),
-         loaded:links.some(x=>x.media==='all'&&x.sheet?.cssRules.length>0),
+         loaded:links.some(x=>(x.media===''||x.media==='all')&&x.sheet?.cssRules.length>0),
          sectionHeight:business.getBoundingClientRect().height};
      });
-     ensure(state.media.includes('print')&&state.media.includes('all')&&
+     ensure(state.media.includes('print')&&(state.media.includes('all')||state.media.includes(''))&&
        state.loaded&&state.sectionHeight>300,
        'L1.42 no-script fallback retains styled Business concept '+JSON.stringify(state));
      await ctx.close();
