@@ -118,3 +118,16 @@ test('used Type and Transaction only archive and may be restored',()=>{
   assert.equal(h.api.list('transaction',type.id).length,1);
   assert.equal(h.api.list('category',txn.id)[0].id,cat.id);
 });
+
+test('system Transfer / Data Adjustment categories cannot diverge from canonical ledger',()=>{
+  const h=setup(),type=h.api.addType('Transfers','Transfer');
+  const txn=h.api.addTransaction('Move Funds',type.id,'Transfer|Transfer');
+  assert.throws(()=>h.api.addCategory('Personal Move',txn.id),/fixed system Category/);
+  const category=h.api.addCategory('Transfer',txn.id);
+  assert.equal(h.api.path(type.id,txn.id,category.id).category,'Transfer');
+  const income=h.api.addType('Income','Income');
+  const adjustment=h.api.addTransaction('Balance correction',income.id,'Income|Data Adjustment');
+  assert.throws(()=>h.api.addCategory('Salary',adjustment.id),/fixed system Category/);
+  const fixed=h.api.addCategory('Data Adjustment',adjustment.id);
+  assert.equal(h.api.path(income.id,adjustment.id,fixed.id).group,'Data Adjustment');
+});
