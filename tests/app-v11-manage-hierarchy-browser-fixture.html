@@ -42,7 +42,10 @@
   window.mmhWalletDataOwnerV191='fixture-A';
   window.__mmhLastCloudLoadAtV1235=1;
   window.__syntheticWrites=0;window.__messages=[];
-  function mmhVaultPersistConfig(){window.__syntheticWrites++}
+  function mmhVaultPersistConfig(){
+    if(window.__failNextPersist){window.__failNextPersist=false;throw Error('Synthetic storage failure')}
+    window.__syntheticWrites++;
+  }
   function mmhVaultRebuildConfigArrays(){}
   function updateAccountLocks(){}
   function mmhVaultCustomMessageV449(title,text){window.__messages.push({title,text})}
