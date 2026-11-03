@@ -1060,8 +1060,12 @@
     productTabs.forEach(t=>{
       const yes=t.dataset.productTab===name;
       t.classList.toggle('is-active',yes);
-      t.setAttribute('aria-selected',String(yes));
-      t.tabIndex=yes?0:-1;
+      // L1.52: only the two tabs whose selection state actually changes
+      // need ARIA/tabindex writes; preserve the existing roving focus.
+      const selected=String(yes);
+      if(t.getAttribute('aria-selected')!==selected)t.setAttribute('aria-selected',selected);
+      const tabIndex=yes?0:-1;
+      if(t.tabIndex!==tabIndex)t.tabIndex=tabIndex;
       if(yes&&focus)t.focus({preventScroll:true});
     });
     const outgoing=productPanels.find(p=>p.dataset.productPanel===previousName);
