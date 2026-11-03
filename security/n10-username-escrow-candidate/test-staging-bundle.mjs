@@ -34,6 +34,7 @@ test('Staging build is hard OFF and bound only to the Staging project and previe
   assert.doesNotMatch(edge,/vrypucmyrztxgiqhjspd|https:\/\/mmhvault\.com\b|production:true|public_signup:true|const RELEASE_ENABLED=true;/);
   assert.doesNotMatch(edge,/admin\.auth\.admin\.deleteUser\(/);
   assert.match(edge,/if\(quarantineRequired\)return false;/);
+  assert.match(edge,/rollbackNewUser:async\(\{newlyCreatedUserId\}\)=>\{\s*quarantineRequired=true;/);
   assert.ok(summary.files.every(f=>/^[a-f0-9]{64}$/.test(f.sha256)));
  });
 });
