@@ -3,7 +3,7 @@
  * Preserves the canonical ledger values used by balance and Analyze calculations.
  */
 import {createHierarchyController} from './mmhvault-v11-manage-hierarchy-controller.mjs';
-import {ledgerKind} from './mmhvault-v11-manage-hierarchy-model.mjs';
+import {ledgerKind,canAddItem} from './mmhvault-v11-manage-hierarchy-model.mjs';
 (()=>{
 'use strict';
 if(window.MMHV11HierarchyLive)return;
@@ -36,7 +36,7 @@ const makeOption=(value,name,key)=>{
 const uid=()=>typeof crypto!=='undefined'&&crypto.randomUUID?
   'hier_'+crypto.randomUUID():'hier_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2);
 let loadedOwner='',historyReady=false,overlay=null,modalField='',selection={type:'',transaction:'',category:''};
-let pendingSave=null,rendering=false,queued=false;
+let pendingSave=null,rendering=false,queued=false,returnFocus=null;
 const host={
   currentOwner:owner,configOwner,currentConfig:config,
   history:()=>{
@@ -106,23 +106,26 @@ function style(){
   .mmh-hier-footer{display:flex;justify-content:flex-end;gap:9px;margin-top:14px}
   #mmhHierarchyNotice[hidden]{display:none!important}
   #txForm .mmh-hier-field:disabled{opacity:.52}
+  body.mmh-hier-modal-open{overflow:hidden}
   @media(max-width:700px){.mmh-hier-cards{grid-template-columns:minmax(0,1fr)}.mmh-hier-dialog{padding:16px;border-radius:17px}.mmh-hier-row{align-items:flex-start;flex-direction:column}.mmh-hier-actions{justify-content:flex-start}}
   body.light .mmh-hier-summary{color:#263448;background:linear-gradient(130deg,#fffaf0,#f3f6fa)}
   body.light .mmh-hier-card{background:#fff;color:#263448}body.light .mmh-hier-muted,body.light .mmh-hier-examples{color:#5f7084}
   `;
   document.head.append(css);
 }
-function close(){
+function close(restore=true){
   if(!overlay)return;
   overlay.remove();overlay=null;document.body.classList.remove('mmh-hier-modal-open');
+  if(restore){const target=returnFocus;returnFocus=null;if(target?.isConnected)target.focus?.();}
 }
 function open(field){
   if(!ready())return notify(tr('Account data is still loading.','账号数据仍在加载。','အကောင့်ဒေတာ ပြန်ရယူနေပါသည်။'));
+  returnFocus=document.activeElement;
   modalField=field;drawModal();
 }
 function drawModal(){
   if(!ready()){close();return;}
-  close();
+  close(false);
   const overlayNode=elt('div','mmh-hier-overlay'),dialog=elt('section','mmh-hier-dialog');
   overlayNode.append(dialog);
   dialog.setAttribute('role','dialog');dialog.setAttribute('aria-modal','true');
@@ -158,27 +161,48 @@ function drawModal(){
     }
     row.append(actions);dialog.append(row);
   }
-  dialog.append(btn(tr('+ Add ','+ 添加 ','+ ထည့်ရန် ')+label(modalField),()=>drawEditor(null),'mmh-hier-btn'));
+  const add=btn(tr('+ Add ','+ 添加 ','+ ထည့်ရန် ')+label(modalField),()=>drawEditor(null),'mmh-hier-btn');
+  add.disabled=!canAddItem(graph,owner(),modalField);dialog.append(add);
+  if(add.disabled)dialog.append(elt('p','mmh-hier-muted',modalField==='transaction'?tr(
+    'Create a Type first to link this Transaction.',
+    '请先添加 Type，再关联 Transaction。',
+    'Transaction မထည့်မီ Type ကို ထည့်ပါ။'):tr(
+    'Create a Transaction first to link this Category.',
+    '请先添加 Transaction，再关联 Category。',
+    'Category မထည့်မီ Transaction ကို ထည့်ပါ။')));
   overlayNode.addEventListener('click',e=>{if(e.target===overlayNode)close()});
-  overlayNode.addEventListener('keydown',e=>{if(e.key==='Escape')close()});
+  overlayNode.addEventListener('keydown',e=>{
+    if(e.key==='Escape'){e.preventDefault();close();return;}
+    if(e.key!=='Tab')return;
+    const focusable=[...dialog.querySelectorAll('button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),a[href]')];
+    if(!focusable.length){e.preventDefault();dialog.focus();return;}
+    const first=focusable[0],last=focusable[focusable.length-1];
+    if(e.shiftKey&&(document.activeElement===first||!dialog.contains(document.activeElement))){
+      e.preventDefault();last.focus();
+    }else if(!e.shiftKey&&(document.activeElement===last||!dialog.contains(document.activeElement))){
+      e.preventDefault();first.focus();
+    }
+  });
   overlay=overlayNode;document.body.append(overlay);document.body.classList.add('mmh-hier-modal-open');
   head.querySelector('button')?.focus();
 }
 function drawDelete(item){
   if(!overlay)return;
   const dialog=overlay.querySelector('.mmh-hier-dialog');dialog.replaceChildren();
-  dialog.append(elt('h3','',tr('Delete unused item?','删除未使用的项目？','မသုံးရသေးသော အရာကိုဖျက်မလား')));
+  const title=elt('h3','',tr('Delete unused item?','删除未使用的项目？','မသုံးရသေးသော အရာကိုဖျက်မလား'));
+  title.id='mmhHierarchyDialogTitle';dialog.append(title);
   dialog.append(elt('p','mmh-hier-muted',item.label));
   const footer=elt('div','mmh-hier-footer');
   footer.append(btn(tr('Cancel','取消','မလုပ်တော့'),drawModal,'mmh-hier-btn'));
   footer.append(btn(tr('Delete','确认删除','ဖျက်'),()=>attempt(()=>controller.delete(modalField,item.id),drawModal),'mmh-hier-btn mmh-hier-danger'));
-  dialog.append(footer);
+  dialog.append(footer);footer.querySelector('button')?.focus();
 }
 function drawEditor(item){
   if(!overlay)return;
   const field=modalField,graph=controller.read();
   const dialog=overlay.querySelector('.mmh-hier-dialog');dialog.replaceChildren();
-  dialog.append(elt('h3','',tr(item?'Edit ':'Add ',item?'编辑 ':'添加 ',item?'ပြင်ရန် ':'အသစ်ထည့်ရန် ')+label(field)));
+  const title=elt('h3','',tr(item?'Edit ':'Add ',item?'编辑 ':'添加 ',item?'ပြင်ရန် ':'အသစ်ထည့်ရန် ')+label(field));
+  title.id='mmhHierarchyDialogTitle';dialog.append(title);
   const form=elt('form','mmh-hier-form');
   const control=(title,node)=>{
     const l=elt('label');l.append(elt('span','',title),node);form.append(l);return node;
