@@ -24,6 +24,7 @@ test('new anonymous user can see a hard-OFF Staging preflight without a signed J
  assert.equal(response.status,200);
  assert.equal(payload?.code,'preflight_ok');
  assert.equal(payload?.enabled,false);
+ assert.equal(payload?.setup_complete,true,'Staging enrollment secrets or exact two-user allowlist are not yet ready');
  assert.equal(payload?.qa_only,true);
  assert.equal(payload?.production,false);
  assert.equal(response.headers.get('access-control-allow-origin'),ORIGIN);
