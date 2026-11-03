@@ -27,7 +27,8 @@ test('Staging build is hard OFF and bound only to the Staging project and previe
   assert.match(edge,/const ORIGIN='https:\/\/mmhvault-n10-vault-staging\.pages\.dev';/);
   assert.match(edge,/const SITE_HOST='mmhvault-n10-vault-staging\.pages\.dev';/);
   assert.match(edge,/const ALIAS_DOMAIN='no-mail\.n10-staging\.mmhvault\.invalid';/);
-  assert.match(edge,/mmh-a769-staging/);
+  assert.match(edge,/mmh-a769-prod/); // existing Staging Vault verifier protocol
+  assert.match(edge,/const HMAC=Deno\.env\.get\('N10_FIXED_RECOVERY_QA_HMAC_KEY'\)\|\|'';/);
   assert.match(edge,/production:false,qa_only:true,limited_signup:false,public_signup:false/);
   assert.match(edge,/if\(!RELEASE_ENABLED\)return reply\(origin,'registration_not_released',503\);/);
   assert.doesNotMatch(edge,/vrypucmyrztxgiqhjspd|https:\/\/mmhvault\.com\b|production:true|public_signup:true|const RELEASE_ENABLED=true;/);
