@@ -70,7 +70,7 @@ async function enroll(username,pwd,ticket,input){
  // Existing registration global quota is evaluated before reservation is claimed.
  if(!await quota('global:registration_create:day',100,86400))
   return {code:'registration_rate_limited',status:429};
- let createdUid=null,createdEmail=null,sessionAttempted=false;
+ let createdUid=null,createdEmail=null,sessionAttempted=false,backupPossiblyWritten=false;
  const deps={
   vaultReady:async()=>{
    // Service-role-only read-only preflight. An absent Production Vault
@@ -110,6 +110,10 @@ async function enroll(username,pwd,ticket,input){
   },
   encryptOriginalWords:async({userId,phrase})=>{
    if(userId!==createdUid)return false;
+   // A failed or timed-out network result can mean the Vault write COMMITTED.
+   // Mark the attempt before calling RPC: never delete an owner whose original
+   // key may already exist. Keep it quarantined for manual reconciliation.
+   backupPossiblyWritten=true;
    const {data,error}=await admin.rpc('mmh_n10_recovery_backup_put',{
     p_user_id:userId,p_phrase:phrase
    });
@@ -141,9 +145,11 @@ async function enroll(username,pwd,ticket,input){
    if(error||!user||user.id!==createdUid||user.email!==createdEmail||
       user.app_metadata?.mmhvault_auth_kind!=='username_only'||
       user.app_metadata?.mmhvault_username!==username)return false;
-   // If password verification could have minted a session, no guessed delete.
-   // An operator must reconcile the account and any token revocation instead.
-   if(sessionAttempted){
+   // After ANY attempted encrypted write, even an ambiguous error/timeout,
+   // a private backup may exist. ON DELETE RESTRICT intentionally forbids
+   // deleting that owner. Session creation attempts are similarly unsafe.
+   // Fail closed and quarantine the exact newly-created Auth identity only.
+   if(sessionAttempted||backupPossiblyWritten){
     await admin.auth.admin.updateUserById(createdUid,{ban_duration:'876000h'}).catch(()=>{});
     return false;
    }

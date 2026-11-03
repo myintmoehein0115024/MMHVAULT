@@ -125,15 +125,26 @@ test('wrong or missing key denies before registration mutation',async()=>{
  assert.equal(result.code,'invalid_enrollment');
  assert.equal(h.calls.length,0);
 });
-test('failed encrypted write compensates only the exact newly-created owner',async()=>{
+test('ambiguous Vault write must quarantine the newly-created owner, never delete',async()=>{
  const h=fake({putDown:true});const out=await h.enroll(userName,password,ticket,phrases[0]);
- assert.equal(out.code,'registration_not_completed');
- assert.equal(h.state.deleted,true);assert.ok(!h.calls.includes('verifyPassword'));
-});
-test('readback mismatch refuses signup and does not issue a session',async()=>{
- const h=fake({readbackWrong:true});const out=await h.enroll(userName,password,ticket,phrases[0]);
- assert.equal(out.code,'registration_not_completed');assert.equal(h.state.deleted,true);
+ assert.equal(out.code,'auth_unavailable');
+ assert.equal(h.state.deleted,false);assert.equal(h.state.banned,true);
+ assert.ok(!h.calls.includes('deleteUser'));
  assert.ok(!h.calls.includes('verifyPassword'));
+});
+test('readback mismatch after encrypted write never deletes a backed-up owner',async()=>{
+ const h=fake({readbackWrong:true});const out=await h.enroll(userName,password,ticket,phrases[0]);
+ assert.equal(out.code,'auth_unavailable');
+ assert.equal(h.state.deleted,false);assert.equal(h.state.banned,true);
+ assert.ok(!h.calls.includes('deleteUser'));
+ assert.ok(!h.calls.includes('verifyPassword'));
+});
+test('verifier insert failure before any Vault write allows exact new-user rollback',async()=>{
+ const h=fake({insertFail:'mmh_n10a769_recovery_phrases'});
+ const out=await h.enroll(userName,password,ticket,phrases[0]);
+ assert.equal(out.code,'registration_not_completed');
+ assert.equal(h.state.deleted,true);assert.equal(h.state.backup,null);
+ assert.ok(!h.calls.includes('mmh_n10_recovery_backup_put'));
 });
 test('ambiguous createUser response never guesses a delete target',async()=>{
  const h=fake({createError:true});const out=await h.enroll(userName,password,ticket,phrases[0]);
