@@ -130,6 +130,68 @@ test('two configured fields restore only the requested labels and hide setup ins
   assert.equal(h.api.validate(),true);
 });
 
+test('real Manage render moves exactly one Category form, and restores it for legacy owners',()=>{
+  const h=harness(fresh());
+  class Element {
+    constructor(tag='div',cls='',id=''){
+      this.tagName=tag.toUpperCase();this.className=cls;this.id=id;
+      this.children=[];this.dataset={};this.style={};this.hidden=false;
+      this.classList={
+        add:x=>{if(!this.className.split(/\s+/).includes(x))this.className=(this.className+' '+x).trim();},
+        remove:x=>{this.className=this.className.split(/\s+/).filter(y=>y!==x).join(' ');}
+      };
+    }
+    get options(){return this.children.filter(x=>x.tagName==='OPTION');}
+    append(...items){
+      for(const child of items){
+        if(child.parentElement)child.parentElement.children=child.parentElement.children.filter(x=>x!==child);
+        child.parentElement=this;this.children.push(child);
+      }
+    }
+    replaceChildren(...items){for(const x of this.children)x.parentElement=null;this.children=[];this.append(...items);}
+    prepend(child){if(child.parentElement)child.parentElement.children=child.parentElement.children.filter(x=>x!==child);child.parentElement=this;this.children.unshift(child);}
+    insertBefore(child,before){
+      if(child.parentElement)child.parentElement.children=child.parentElement.children.filter(x=>x!==child);
+      child.parentElement=this;const i=this.children.indexOf(before);this.children.splice(i<0?this.children.length:i,0,child);
+    }
+    after(child){this.parentElement?.insertBefore(child,this.parentElement.children[this.parentElement.children.indexOf(this)+1]);}
+    addEventListener(name,fn){(this.listeners||(this.listeners={}))[name]=fn;}
+    setAttribute(name,value){(this.attrs||(this.attrs={}))[name]=value;}
+    querySelector(selector){
+      const match=x=>selector==='section'?x.tagName==='SECTION':
+        selector==='section.mmh-manager-card-v445'?x.tagName==='SECTION'&&x.className.includes('mmh-manager-card-v445'):
+        selector.startsWith('.')?x.className.split(/\s+/).includes(selector.slice(1)):false;
+      const descendants=(node)=>{for(const x of node.children){if(match(x))return x;const n=descendants(x);if(n)return n;}return null;};
+      return descendants(this);
+    }
+  }
+  const host=new Element('div','','mmhManagerCategoriesPanelV445');
+  const legacy=new Element('section','mmh-manager-card-v445');
+  const heading=new Element('div','mmh-manager-head-v445');
+  const categoryForm=new Element('div','mmh-manager-form-v445');
+  legacy.append(heading,categoryForm);host.append(legacy);
+  const findById=(node,key)=>{
+    if(node.id===key)return node;
+    for(const child of node.children){const found=findById(child,key);if(found)return found;}
+    return null;
+  };
+  h.context.document.createElement=tag=>new Element(tag);
+  h.context.document.getElementById=key=>findById(host,key);
+  h.api.refreshManage();
+  const panel=findById(host,'mmhV12Manage');
+  assert.ok(panel,'managed owner has one Manage section');
+  assert.equal(categoryForm.parentElement?.className,'mmh-v12-col mmh-v12-col-category');
+  h.api.refreshManage();
+  assert.equal(categoryForm.parentElement?.className,'mmh-v12-col mmh-v12-col-category',
+    're-renders reuse the exact same Category form');
+  const findAll=(node,needle)=>[...(node===needle?[node]:[]),...node.children.flatMap(x=>findAll(x,needle))];
+  assert.equal(findAll(host,categoryForm).length,1,'must never duplicate the native Category form');
+  h.config.txFieldsV12=null;
+  h.api.refreshManage();
+  assert.equal(panel.hidden,true);
+  assert.equal(categoryForm.parentElement,legacy,'legacy owner gets native Category form in its original section');
+});
+
 test('Manage displays existing native Category editor beside Type and Transaction rather than separate duplicate controls',()=>{
   assert.match(source,/categoryCard=make\('div','mmh-v12-col mmh-v12-col-category'\)/);
   assert.match(source,/if\(categoryForm\)categoryCard\.append\(categoryForm\)/);
