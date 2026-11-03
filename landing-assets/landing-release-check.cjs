@@ -22,21 +22,38 @@ const l134ResponsiveCssSuffix="\n/* L1.34 — Keep the six public feature choice
 const l135HeaderCssSuffix="\n/* L1.35: Public mobile header shows the selected language. */\n@media(max-width: 700px){\n body.mmh-nav-unified .site-header .locale-trigger .locale-globe{display:none!important}\n body.mmh-nav-unified .site-header .locale-trigger .locale-active-flag{\n  display: inline-flex !important;align-items:center;justify-content:center;\n  flex:0 0 24px;width:24px;font-size:19px;line-height:1;white-space:nowrap\n }\n}\n";
 const l136TouchTargetReplacements=[["flex:0 0 42px;width:42px;min-width:42px;min-height:42px;height:42px","flex:0 0 44px;width:44px;min-width:44px;min-height:44px;height:44px"],["width:42px;min-width:42px;min-height:42px;height:42px","width:44px;min-width:44px;min-height:44px;height:44px"],["min-width:39px;width:39px;min-height:39px;height:39px;flex-basis:39px","min-width:44px;width:44px;min-height:44px;height:44px;flex-basis:44px"]];
 const l136HeaderTargetsOnlyEdited=()=>{
-  let expected=source('landing-assets/shared-header-l116.css');
-  for(const [before,after] of l136TouchTargetReplacements){
-    if(!expected.includes(before))return false;
-    expected=expected.replace(before,after);
-  }
-  return read('landing-assets/shared-header-l116.css')===expected;
+  // L1.36 is merged to main. Preserve its 44px compact targets bytewise.
+  const expected=source('landing-assets/shared-header-l116.css');
+  return read('landing-assets/shared-header-l116.css')===expected &&
+    expected.includes('flex:0 0 44px;width:44px;min-width:44px;min-height:44px;height:44px') &&
+    expected.includes('min-width:44px;width:44px;min-height:44px;height:44px;flex-basis:44px');
 };
 const l135HeaderCssOnlyEdited=()=>
   source('landing-assets/shared-header-l116.css').endsWith(l135HeaderCssSuffix) &&
   l136HeaderTargetsOnlyEdited();
+// L1.37 exact public-only storage event additions relative to latest main.
+const l137LandingStorageHook="\n  // L1.37: keep public pages already open in other tabs on one language.\n  // A storage event originates only in another tab; identical writes do not\n  // re-trigger events. No navigation, scroll, auth or finance state changes.\n  window.addEventListener('storage', event => {\n    const next = event.newValue;\n    if (event.key !== storageKey || (next !== 'en' && next !== 'zh' && next !== 'my') || next === currentLang) return;\n    applyLanguage(next);\n    closeLanguage();\n  });\n";
+const l137PublicStorageHook="\n  // L1.37: synchronize the same public language preference across open tabs.\n  // Keep document routes, menu focus, credentials and App state untouched.\n  window.addEventListener('storage', event => {\n    const next = event.newValue;\n    if (event.key !== storageKey || !locales.has(next) || next === locale) return;\n    changeLanguage(next);\n    closeLanguage();\n  });\n";
+const l137LandingJSOnlyEdited=()=>{
+  const original=source('landing-assets/landing.js');
+  const end='  applyLanguage(saved);\n})();';
+  return original.includes(end) &&
+    read('landing-assets/landing.js')===
+      original.replace(end,'  applyLanguage(saved);\n'+l137LandingStorageHook+'})();');
+};
+const l137PublicJSOnlyEdited=()=>{
+  const original=source('landing-assets/public-pages.js');
+  const marker='  changeLanguage(locale);\n';
+  return original.includes(marker) &&
+    original.indexOf(marker)===original.lastIndexOf(marker) &&
+    read('landing-assets/public-pages.js')===
+      original.replace(marker,marker+l137PublicStorageHook);
+};
 const l133BurmeseLayoutOnlyEdited=()=>
   read('landing-assets/landing.css')===source('landing-assets/landing.css') &&
   source('landing-assets/landing.css').endsWith(l134ResponsiveCssSuffix) &&
   source('landing-assets/landing.css').includes(l133BurmeseCssSuffix) &&
-  read('landing-assets/landing.js')===source('landing-assets/landing.js') &&
+  l137LandingJSOnlyEdited() &&
   current===prev &&
   current.includes('<title>MMHVAULT | Personal Finance & Wealth</title>');
 const l133PublicPagesUnchanged=()=>read('landing-assets/public-pages.js')===
@@ -566,10 +583,11 @@ check('L1.27 public tab title matches SEO without language focus scroll',
  l133PublicPagesUnchanged() &&
  current===prev && current.includes(newHeroPreload) &&
  !current.includes(oldHeroPreload));
-check('L1.36 exact three-file public header touch-target scope',
- actual.length===3 &&
+check('L1.37 exact four-file public language synchronization scope',
+ actual.length===4 &&
  actual.every(path=>[
-  'landing-assets/shared-header-l116.css',
+  'landing-assets/landing.js',
+  'landing-assets/public-pages.js',
   'landing-assets/landing-release-check.cjs',
   'landing-assets/landing-browser-check.cjs'
  ].includes(path)) &&
@@ -582,7 +600,7 @@ check('L1.36 exact three-file public header touch-target scope',
   'landing-assets/business.css','landing-assets/cinematic.css',
   'landing-assets/premium-l131.css','landing-assets/motion-l132.css',
   'landing-assets/motion-l132.js',
-  'landing-assets/public-pages.js','sitemap.xml','robots.txt','mmh-manifest-v2.webmanifest']
+  'sitemap.xml','robots.txt','mmh-manifest-v2.webmanifest']
  .every(path=>read(path)===source(path)));
 check('L1.34 mobile EN ZH MY card stability and touch-safe scrolling',
   l133BurmeseLayoutOnlyEdited() &&
@@ -609,8 +627,19 @@ check('L1.36 compact public mobile header buttons are 44 CSS pixels',
   l136TouchTargetReplacements.every(([a,b])=>a!==b && b.includes('44px')) &&
   read('landing-assets/shared-header-l116.css').length<=20000 &&
   current===prev &&
-  read('landing-assets/landing.js')===source('landing-assets/landing.js') &&
-  read('landing-assets/public-pages.js')===source('landing-assets/public-pages.js'));
+  l137LandingJSOnlyEdited() &&
+  l137PublicJSOnlyEdited());
+check('L1.37 public languages synchronize across tabs without auth or navigation',
+  l137LandingJSOnlyEdited() && l137PublicJSOnlyEdited() &&
+  l137LandingStorageHook.includes("window.addEventListener('storage'") &&
+  l137PublicStorageHook.includes("window.addEventListener('storage'") &&
+  l137LandingStorageHook.includes('event.key !== storageKey') &&
+  l137PublicStorageHook.includes('event.key !== storageKey') &&
+  !l137LandingStorageHook.includes('fetch(') &&
+  !l137PublicStorageHook.includes('fetch(') &&
+  !l137LandingStorageHook.includes('location.') &&
+  !l137PublicStorageHook.includes('location.') &&
+  current===prev);
 check('L1.28 shared header motion remains unchanged and accessible',
  l135HeaderCssOnlyEdited() &&
  !read('landing-assets/shared-header-l116.css').includes('body.app') &&
