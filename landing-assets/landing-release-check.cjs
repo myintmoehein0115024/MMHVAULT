@@ -74,8 +74,9 @@ const l147NewHeaderTags='  <!-- L1.47: preserve Explore -> shared header cascade
 const l148OldScriptTag='<script defer src="./landing-assets/landing.js?v=l141"></script>';
 const l148NewScriptTag='<script defer src="./landing-assets/landing.js?v=l148"></script>';
 const l149NewScriptTag='<script defer src="./landing-assets/landing.js?v=l149"></script>';
-const l148IndexOnlyEdited=()=>prev.split(l148NewScriptTag).length===2 &&
-  current===prev.replace(l148NewScriptTag,l149NewScriptTag);
+const l150NewScriptTag='<script defer src="./landing-assets/landing.js?v=l150"></script>';
+const l148IndexOnlyEdited=()=>prev.split(l149NewScriptTag).length===2 &&
+  current===prev.replace(l149NewScriptTag,l150NewScriptTag);
 const l147IndexOnlyEdited=baseline=>baseline===prev && l148IndexOnlyEdited() &&
   baseline.includes(l147NewHeaderTags) && !current.includes(l147OldHeaderTags);
 // The runtime JS may change only these four targeted DOM write sites.
@@ -100,13 +101,19 @@ const l148JsReplacements=[
 // L1.49: one click-handler guard, preserving all previous L1.48 DOM optimizations.
 const l149BusinessClickBefore="  businessTabs.forEach(button => button.addEventListener('click', () => {\n    updateBusinessPreview(button.dataset.businessView);\n  }));";
 const l149BusinessClickAfter="  businessTabs.forEach(button => button.addEventListener('click', () => {\n    // L1.49: selecting an already active concept is a no-op. Avoid\n    // redundant data-current-view mutations and replayed Business animations.\n    // applyLanguage still calls updateBusinessPreview for translated labels.\n    if (button.dataset.businessView !== currentBusinessView)\n      updateBusinessPreview(button.dataset.businessView);\n  }));";
+// L1.50 modifies only the active-language click handler; all L1.48 and
+// L1.49 runtime invariants remain identical to the already merged main.
+const l150LanguageClickBefore="  languageButtons.forEach(button => button.addEventListener('click', () => {\n    applyLanguage(button.dataset.lang);\n    closeLanguage();\n    localeTrigger.focus({preventScroll:true});\n  }));";
+const l150LanguageClickAfter="  languageButtons.forEach(button => button.addEventListener('click', () => {\n    // L1.50: reselecting the active language only closes the selector;\n    // preserve keyboard focus without retranslating the entire page.\n    if (button.dataset.lang !== currentLang) applyLanguage(button.dataset.lang);\n    closeLanguage();\n    localeTrigger.focus({preventScroll:true});\n  }));";
 const l148LandingJsOnlyEdited=()=>{
   const merged=source('landing-assets/landing.js');
   return l148JsReplacements.every(([before,after])=>
     merged.includes(after) && !merged.includes(before)) &&
-    merged.split(l149BusinessClickBefore).length===2 &&
+    merged.includes(l149BusinessClickAfter) &&
+    !merged.includes(l149BusinessClickBefore) &&
+    merged.split(l150LanguageClickBefore).length===2 &&
     read('landing-assets/landing.js')===
-      merged.replace(l149BusinessClickBefore,l149BusinessClickAfter);
+      merged.replace(l150LanguageClickBefore,l150LanguageClickAfter);
 };
 
 // L1.46: only two critical CSS links differ from the released HTML.
@@ -562,7 +569,7 @@ check('Landing priority image and below-fold concept use efficient loading',
   current.includes('decoding="async" fetchpriority="high"') &&
   current.includes('loading="lazy" decoding="async"') &&
   current.includes('<link rel="preload" as="image" type="image/webp"') &&
-  current.includes('<script defer src="./landing-assets/landing.js?v=l149"></script>'));
+  current.includes('<script defer src="./landing-assets/landing.js?v=l150"></script>'));
 check('Landing ships no third-party blocking scripts or styles',
   !/<script[^>]+src=["']https?:\/\//i.test(current) &&
   !/<link[^>]+rel=["']stylesheet["'][^>]+href=["']https?:\/\//i.test(current));
@@ -759,7 +766,7 @@ check('L1.27 public tab title matches SEO without language focus scroll',
  l133PublicPagesUnchanged() &&
  l142IndexOnlyEdited() && current.includes(newHeroPreload) &&
  !current.includes(oldHeroPreload));
-check('L1.49 exact four-file public-only Business interaction optimization scope',
+check('L1.50 exact four-file public-only language menu optimization scope',
  actual.length===4 &&
  actual.every(path=>[
   'index.html',
@@ -794,7 +801,7 @@ check('L1.41 all nine first-party style/script URLs keep coordinated versions',
     const tag=after.replace('landing.css?v=l141','landing.min.css?v=l145')
       .replace('cinematic.css?v=l141','cinematic.min.css?v=l146')
       .replace('premium-l131.css?v=l141','premium-l131.min.css?v=l146')
-      .replace('landing.js?v=l141','landing.js?v=l149');
+      .replace('landing.js?v=l141','landing.js?v=l150');
     const bundled=/explore-l114\.css|shared-header-l116\.css/.test(after);
     return before!==after && after.includes('?v=l141') && !current.includes(before) &&
       (bundled ? current.includes(l147NewHeaderTags)&&!current.includes(after) :
@@ -878,11 +885,17 @@ check('L1.47 ordered header bundle remains identical to merged main',
  !current.includes('href="./landing-assets/shared-header-l116.css?v=l141"') &&
  read('landing-assets/landing-browser-check.cjs').includes('L1.47 Chrome CSSOM header bundle parity') &&
  l148LandingJsOnlyEdited());
-check('L1.49 repeat concept tabs leave translations and visuals intact',
+check('L1.49 repeat concept tabs preserved with L1.50 language guard',
   l148IndexOnlyEdited() && l148LandingJsOnlyEdited() &&
-  current.includes(l149NewScriptTag) &&
-  !current.includes(l148NewScriptTag) &&
+  current.includes(l150NewScriptTag) &&
+  !current.includes(l149NewScriptTag) &&
+  source('landing-assets/landing.js').includes(l149BusinessClickAfter) &&
   read('landing-assets/landing-browser-check.cjs').includes('L1.49 active Business tab no-op browser parity'));
+check('L1.50 same-language selection is isolated and retains menu keyboard behavior',
+  l148LandingJsOnlyEdited() &&
+  read('landing-assets/landing-browser-check.cjs').includes('L1.50 active language selection no-op browser parity') &&
+  source('landing-assets/landing.js').includes("localeTrigger.focus({preventScroll:true});") &&
+  read('landing-assets/landing.js').includes("localeTrigger.focus({preventScroll:true});"));
 check('L1.48 measured language DOM improvements preserved',
   source('landing-assets/landing.js').includes('L1.48: preserve the existing node') &&
   read('landing-assets/landing-browser-check.cjs').includes('L1.48 measured initial-language DOM write parity'));
