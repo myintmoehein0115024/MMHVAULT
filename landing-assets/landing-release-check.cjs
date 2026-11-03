@@ -596,9 +596,15 @@ check('Landing priority image and below-fold concept use efficient loading',
   current.includes('loading="lazy" decoding="async"') &&
   current.includes('<link rel="preload" as="image" type="image/webp"') &&
   current.includes(l155NewScriptTag));
+// Analytics V1: permit exactly one vetted, non-blocking Cloudflare beacon.
+// Every other external script and stylesheet remains prohibited.
+const externalScriptTags = current.match(/<script\\b[^>]*\\bsrc=["']https?:\\/\\/[^>]*><\\/script>/gi) || [];
+const approvedBeacon = /^<script defer src="https:\\/\\/static\\.cloudflareinsights\\.com\\/beacon\\.min\\.js" data-cf-beacon='\\{"token":"[a-f0-9]{32}"\\}'><\\/script>$/.test(externalScriptTags[0] || '');
 check('Landing ships no third-party blocking scripts or styles',
-  !/<script[^>]+src=["']https?:\/\//i.test(current) &&
-  !/<link[^>]+rel=["']stylesheet["'][^>]+href=["']https?:\/\//i.test(current));
+  externalScriptTags.length === 1 && approvedBeacon &&
+  (current.match(/static\\.cloudflareinsights\\.com\\/beacon\\.min\\.js/g) || []).length === 1 &&
+  !/<script[^>]+src=["']https?:\\/\\/(?!static\\.cloudflareinsights\\.com\\/beacon\\.min\\.js)/i.test(current) &&
+  !/<link[^>]+rel=["']stylesheet["'][^>]+href=["']https?:\\/\\//i.test(current));
 /* L1.12 — policy pages share the Landing design without altering any
    substantive security/privacy/terms paragraph or disclaimer wording. */
 for(const file of ['privacy.html','terms.html','security.html']){
