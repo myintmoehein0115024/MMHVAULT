@@ -91,11 +91,12 @@ test('alias collision is fail-closed in either account list order',()=>{
     [{id:'other',name:'Bath',currency:'MMK'},{id:'acc_bath',name:'Baht',currency:'THB'}]
   ]){
     const h=harness(accounts);
-    for(const name of ['Baht','Bath']){
-      assert.equal(h.mmhVaultAccountMeta(name).unresolved,true);
-      assert.equal(h.currency(name),'');
-      assert.equal(h.toTHB(name),0);
-    }
+    assert.equal(h.mmhVaultAccountMeta('Bath').unresolved,true,'custom Bath and built-in alias are ambiguous');
+    assert.equal(h.currency('Bath'),'');
+    assert.equal(h.toTHB('Bath'),0);
+    assert.equal(h.mmhVaultAccountMeta('Baht').id,'acc_bath','exact Baht remains the verified built-in');
+    assert.equal(h.currency('Baht'),'THB');
+    assert.equal(h.toTHB('Baht'),1);
   }
 });
 
