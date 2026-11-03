@@ -301,6 +301,13 @@
     const panel=buildManager();if(!panel)return;
     const host=id('mmhManagerCategoriesPanelV445');
     const legacyCard=host?.querySelector('section.mmh-manager-card-v445');
+    // The account may already have changed while cloud settings are still loading.
+    // Never render a previous owner's Category list during that interval.
+    if(!ownedConfig()){
+      host?.classList.remove('mmh-v12-managed');
+      if(legacyCard)legacyCard.hidden=true;
+      panel.replaceChildren();panel.hidden=true;return;
+    }
     // Keep the single existing Category form with its original validation.
     const categoryForm=panel.querySelector('.mmh-manager-form-v445')||
       legacyCard?.querySelector('.mmh-manager-form-v445');
@@ -529,6 +536,17 @@
     const t=id('txType'),g=id('txGroup'),c=id('txCategory');
     if(!t||!g||!c)return;
     const labels={type:t.closest('label'),transaction:g.closest('label'),category:c.closest('label')};
+    if(!ownedConfig()){
+      Object.values(labels).forEach(el=>{if(el){
+        el.dataset.mmhV12Hidden='1';el.hidden=true;el.style.display='none';
+      }});
+      g.replaceChildren();c.replaceChildren();
+      const save=form.querySelector('.actions button:not([type="button"])');
+      if(save){save.disabled=true;save.dataset.mmhV12Blocked='1';}
+      note(tr('Your account settings are loading.','正在加载此账号的设置。',
+        'အကောင့်ဆက်တင်များ ရယူနေပါသည်။'));
+      return;
+    }
     if(!isManaged()){
       const save=form.querySelector('.actions button:not([type="button"])');
       if(save){save.disabled=false;save.dataset.mmhV12Blocked='0';}
@@ -623,7 +641,13 @@
             '此 Transaction 需要明确的 Category。请先在 Manage 添加，以免报表分类错误。',
             'ဤ Transaction အတွက် Category လိုအပ်ပါသည်။'));return;
         }
-        setCore(type,group,defaultCat);
+        if(!setCore(type,group,defaultCat)){
+          c.replaceChildren();note(tr('Category selection is not available. Reopen Manage.',
+            '分类选项不可用，请重新打开 Manage。','Category မရနိုင်ပါ။'));return;
+        }
+        // Category is NOT configured. Keep exactly one invisible canonical
+        // neutral value for the ledger; never expose Salary/Dining defaults.
+        fill(c,[{value:defaultCat,label:defaultCat,group}],defaultCat);
       }
       if(enabled.transaction){
         // Restore the managed transaction choices after the internal group sync.
@@ -701,6 +725,12 @@
       if(opts.length!==expected.length||opts.some((opt,i)=>
         opt.value!==expected[i].name||
         opt.dataset?.mmhCanonicalGroup!==expected[i].coreGroup))return false;
+    }else{
+      // Even when Category is intentionally hidden, legacy listeners may
+      // repopulate the native select with a full preset Salary/Dining list.
+      const fallback=neutral(t.value,g.value),opts=[...c.options];
+      if(!fallback||opts.length!==1||opts[0].value!==fallback||
+        c.value!==fallback)return false;
     }
     return true;
   }
@@ -768,7 +798,7 @@
     refresh();
   }
   window.MMHV11TxFieldPrefs={
-    version:'3.0.4',isManaged,hasCategory,markCategory,onCategoryRenamed,fieldItems,saveName,removeName,refreshManage,
+    version:'3.0.5',isManaged,hasCategory,markCategory,onCategoryRenamed,fieldItems,saveName,removeName,refreshManage,
     // Public presentation hooks: keep all changes owner-scoped and canonical.
     getCategoryEntries:()=>categories().map(x=>({...x})),
     // Compatibility is presentation-only: old accounts retain their existing
@@ -833,10 +863,10 @@
   if(typeof document.querySelector==='function'&&document.head){
     const stylesheet=document.createElement('link');
     stylesheet.rel='stylesheet';
-    stylesheet.href='css/mmhvault-v11-manage-glass-dialogs.css?v=1.0.2';
+    stylesheet.href='css/mmhvault-v11-manage-glass-dialogs.css?v=1.0.3';
     document.head.appendChild(stylesheet);
     const addon=document.createElement('script');
-    addon.src='js/mmhvault-v11-manage-glass-dialogs.js?v=1.0.2';
+    addon.src='js/mmhvault-v11-manage-glass-dialogs.js?v=1.0.3';
     addon.async=false;
     document.head.appendChild(addon);
   }
