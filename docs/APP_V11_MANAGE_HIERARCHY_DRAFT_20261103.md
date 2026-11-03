@@ -74,6 +74,30 @@ the same existing link are idempotent, while an attempt to rebind an existing
 record ID to a different path is rejected. Model/controller tests cover these
 invariants. This is not an atomic DB transaction or signed Staging A/B proof.
 
+## Failure-aware UI and synthetic Chrome QA — follow-up
+
+- A confirmed ledger insert with a **failed local config sidecar write** now
+  stays in an explicit **Needs link** state. The user may choose **Retry link**,
+  which calls only the existing owner-scoped hierarchy config adapter; it
+  never repeats, edits or deletes the saved financial transaction. If the
+  retried config write succeeds, status becomes Pending cloud verification,
+  never automatically Verified. If owner/session changed, retry is refused.
+- Pending cloud verification is isolated in the pure read-only
+  `js/mmhvault-v11-manage-hierarchy-sync.mjs` adapter, with synthetic tests
+  for offline/busy sync, missing/stale/forged cloud sidecars, wrong owner,
+  race-condition owner switch during both async waits, and readback failure.
+- Existing cloud sidecar verification checks actual Type → Transaction →
+  Category parent references and canonical ledger group/type. A later saved
+  transaction arriving during an earlier check is queued for one validation
+  attempt; failed checks do not loop indefinitely.
+- Added **local synthetic Chrome UI QA**, no production/staging Auth, no DB:
+  393px phone, 768px tablet and 1440px desktop; three empty new-owner Manage
+  cards, order/type parent prerequisites, Add Transaction cascade, archive,
+  keyboard Escape and focus return, EN/ZH/MY switching, modal viewport bounds,
+  older-owner display and zero-migration-on-view, and failed sidecar write
+  followed by a sidecar-only user retry. This is browser QA but **not real
+  authenticated Staging QA** and does not prove WebKit, iOS or Android.
+
 ## Operational caveats — must pass before live release
 
 1. Real authenticated **Staging** dual-owner test: fresh account empty,
