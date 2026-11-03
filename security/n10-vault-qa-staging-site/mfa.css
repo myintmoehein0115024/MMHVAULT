@@ -10,3 +10,5 @@
 #qrModal .dialog{max-width:510px}
 #qrDone{margin-top:12px}
 @media(max-width:570px){#owner{font-size:15px}.qrwrap{width:240px;min-height:230px}}
+
+.manual-key[hidden],#qrWrap[hidden]{display:none!important}.manual-key{padding:15px;margin-top:12px;border:1px solid rgba(219,185,132,.35);border-radius:11px;background:rgba(4,13,28,.8)}.secret-value{display:block;overflow-wrap:anywhere;user-select:text;letter-spacing:.08em;color:#f2d59c;font-size:14px;line-height:1.8;text-align:center}.manual-key .small{margin:0 0 10px}#manualToggle{margin-top:10px}
