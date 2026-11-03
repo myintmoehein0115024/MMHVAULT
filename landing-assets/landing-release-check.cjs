@@ -89,8 +89,10 @@ const l154NewScriptTag='<script defer src="./landing-assets/landing.js?v=l154"><
 const l155NewScriptTag='<script defer src="./landing-assets/landing.js?v=l155"></script>';
 const l156OldMotionTag='<script defer src="./landing-assets/motion-l132.js?v=l141"></script>';
 const l156NewMotionTag='<script defer src="./landing-assets/motion-l132.js?v=l156"></script>';
-const l148IndexOnlyEdited=()=>prev.split(l156OldMotionTag).length===2 &&
-  current===prev.replace(l156OldMotionTag,l156NewMotionTag);
+const l148IndexOnlyEdited=()=>
+  (prev.includes(l156NewMotionTag) && current===prev) ||
+  (prev.split(l156OldMotionTag).length===2 &&
+   current===prev.replace(l156OldMotionTag,l156NewMotionTag));
 const l147IndexOnlyEdited=baseline=>baseline===prev && l148IndexOnlyEdited() &&
   baseline.includes(l147NewHeaderTags) && !current.includes(l147OldHeaderTags);
 // The runtime JS may change only these four targeted DOM write sites.
