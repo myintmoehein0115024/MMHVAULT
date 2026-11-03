@@ -41,9 +41,12 @@ export function createHierarchyController(host){
   const derive=(owner,c,rows)=>{
     if(c.txHierarchyV11!=null)return normalizePersistedHierarchy(c.txHierarchyV11,owner);
     if(!hasLegacySetup(c)&&rows.length===0)return emptyHierarchy(owner);
+    // A legacy user can have saved transactions despite a blank V12 marker
+    // created by an earlier rollout. Never reinterpret that as a new account.
+    const legacy=hasLegacySetup(c)?c:{...c,txFieldsV12:null};
     // Older owners retain original labels, categories and aliases; this
     // creates an in-memory view only, never writes records on open.
-    return legacyHierarchy(owner,c);
+    return legacyHierarchy(owner,legacy);
   };
   const snapshot=()=>{
     const {owner,config}=identity(),rows=verifiedHistory(owner);
