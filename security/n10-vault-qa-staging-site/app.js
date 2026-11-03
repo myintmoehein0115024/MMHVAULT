@@ -78,6 +78,16 @@ function renderWindowClock(){
  $('initBtn').disabled=busy||!windowConfirmed||remaining<=120000;
  $('retryBtn').disabled=busy||!windowConfirmed||remaining<=45000;
  $('revealBtn').disabled=busy||!windowConfirmed||remaining<=30000;
+ // A closed Vault must never invite password entry for a disabled action.
+ for(const [field,action] of [['setupPwd','initBtn'],['retryPwd','retryBtn'],['revealPwd','revealBtn']]){
+  const input=$(field),locked=$(action).disabled;
+  if(locked&&!input.disabled)input.value='';
+  input.disabled=locked;
+  input.placeholder=locked?'安全测试未开放，无需输入密码':'请输入当前测试账户密码';
+ }
+ $('passwordGateNote').textContent=windowConfirmed
+  ?'只有倒计时和按钮允许时才需要重新输入测试密码。'
+  :'恢复密钥操作尚未开放。您已通过登录和 MFA，无需再次输入密码。';
 }
 function armWindow(serverExpiry,serverNow){
  const until=Date.parse(serverExpiry),current=Date.parse(serverNow);
