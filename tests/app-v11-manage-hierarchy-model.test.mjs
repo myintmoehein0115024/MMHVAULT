@@ -143,6 +143,20 @@ test('new saved transactions link to stable choices while original ledger fields
   assert.equal(entryUsage(tree,A,'transaction',income2.id,[{id:991,type:'Income',category:'Salary'}]),'used');
   assert.throws(()=>recordLink(tree,A,'991',income.id,income2.id,salary.id),/already recorded/);
 });
+test('confirmed link immediately locks all three Manage levels before history refresh',()=>{
+  const {tree,income,income2,salary}=sample();
+  const link=recordLink(tree,A,'post-insert-991',income.id,income2.id,salary.id);
+  const emptyLoadedHistory=[];
+  for(const [field,id] of [['type',income.id],['transaction',income2.id],['category',salary.id]]){
+    assert.equal(entryUsage(tree,A,field,id,emptyLoadedHistory),'used');
+    assert.throws(()=>renameItem(tree,A,field,id,'Cannot change',emptyLoadedHistory),/Archive instead/);
+    assert.throws(()=>deleteItem(tree,A,field,id,emptyLoadedHistory),/Archive instead/);
+  }
+  archiveItem(tree,A,'transaction',income2.id);
+  assert.equal(choices(tree,A,'transaction',income.id).length,0);
+  assert.deepEqual(tree.links['post-insert-991'],link);
+  assert.equal(entryUsage(tree,A,'transaction',income2.id,emptyLoadedHistory),'used');
+});
 test('cloud normalization round trips valid data and rejects an alien owner or modified linkage',()=>{
   const {tree,income,income2,salary}=sample();
   recordLink(tree,A,'991',income.id,income2.id,salary.id);
