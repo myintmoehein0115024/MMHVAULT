@@ -146,8 +146,9 @@ test('synthetic form DOM keeps original ledger values when user chooses a combin
     querySelector(q){
       if(q==='.formgrid')return grid;
       if(q==='[data-tx-hint-v11]')return grid.children.find(x=>Object.hasOwn(x.dataset,'txHintV11'))||null;
-      const match=q.match(/^\\[data-tx-quick-v11="([^"]+)"\\]$/);
-      return match?wraps[match[1]]||null:null;
+      const prefix='[data-tx-quick-v11="';
+      const key=q.startsWith(prefix)&&q.endsWith('"]')?q.slice(prefix.length,-2):null;
+      return key?wraps[key]||null:null;
     }
   };
   const els={editTxForm:form,eType:type,eGroup:group,eCat:category};
