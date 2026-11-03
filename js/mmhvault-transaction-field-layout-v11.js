@@ -371,7 +371,8 @@ body.light .mmh-tx-pref-v11 small,body.light .mmh-tx-pref-hint-v11{color:#765a3d
   }
   window.MMHV11TxFieldPrefs = {
     version:'1.0.0',getMode:mode,setMode,
-    attachEdit:()=>decorate(val('editTxForm')),
+    // The edit dialog is reused for different transactions: refresh even after it was decorated.
+    attachEdit:()=>{const form=val('editTxForm');decorate(form);if(form)render(form);},
     refresh:refreshAll,label:tr,groups,choices,neutral,groupKinds,validate
   };
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});
