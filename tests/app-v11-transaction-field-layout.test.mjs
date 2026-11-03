@@ -592,3 +592,18 @@ test('when globally Ready but only Expense has a Category, Add Transaction hides
   assert.equal(h.api.validate(),true);
   assert.equal(dom.submit.disabled,false);
 });
+
+
+test('archived Category selection is ignored in new managed form while canonical Type + Transaction works',()=>{
+  const h=harness({version:1,
+    type:['Income'],transaction:['Income|Income'],category:['Income|Salary']});
+  const dom=nativeForm(h);
+  h.config.categories.Income=h.config.categories.Income.filter(x=>x!=='Salary');
+  h.api.refresh();
+  assert.equal(h.api.getMode(),'type-transaction');
+  assert.equal(h.api.readiness().count,2);
+  assert.equal(h.api.readiness().ready,true);
+  assert.equal(dom.c.value,'Other Income');
+  assert.equal(dom.c.value,'Other Income');
+  assert.equal(h.api.validate(),true);
+});
