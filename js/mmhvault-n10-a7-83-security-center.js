@@ -264,18 +264,29 @@ async function loadVaultMode(){
 }
 function showVaultWords(words){
  if(!Array.isArray(words)||words.length!==10||words.some(w=>typeof w!=='string'||!/^[a-z]{2,13}$/.test(w)))throw Error('bad_words');
- const raw=words.join(' ');hideKey();verifiedPhrase=raw;
- const list=$('mmhA783KeyWords');list.replaceChildren();
- words.forEach((w,i)=>{const el=document.createElement('div');el.className='mmh-a783-word';el.textContent=String(i+1).padStart(2,'0')+'  '+w;list.append(el)});
- const qr=$('mmhA783KeyQr');qr.replaceChildren();
- if(typeof QRCode==='function'){
-  const name=$('mmhA783UsernameStatus').textContent.replace(/^@/,'');
-  new QRCode(qr,{text:'MMHVAULT-RECOVERY-V1\nUSERNAME:'+name+'\nPHRASE:'+raw,width:186,height:186,colorDark:'#000',colorLight:'#fff',correctLevel:QRCode.CorrectLevel.L});
+ const raw=words.join(' ');
+ // Invalidate prior disclosures/timers BEFORE touching sensitive DOM.
+ hideKey();
+ try{
+  verifiedPhrase=raw;
+  const list=$('mmhA783KeyWords');list.replaceChildren();
+  words.forEach((w,i)=>{const el=document.createElement('div');el.className='mmh-a783-word';el.textContent=String(i+1).padStart(2,'0')+'  '+w;list.append(el)});
+  const qr=$('mmhA783KeyQr');qr.replaceChildren();
+  if(typeof QRCode==='function'){
+   const name=$('mmhA783UsernameStatus').textContent.replace(/^@/,'');
+   new QRCode(qr,{text:'MMHVAULT-RECOVERY-V1\\nUSERNAME:'+name+'\\nPHRASE:'+raw,width:186,height:186,colorDark:'#000',colorLight:'#fff',correctLevel:QRCode.CorrectLevel.L});
+  }
+  const note=$('mmhA783KeyDisplay').querySelector('.mmh-a783-note');
+  if(note)note.textContent=a783Text('This private key view automatically closes after 45 seconds. Never share these words or the QR code.');
+  // Register hiding BEFORE making plaintext visible.
+  clearTimer=setTimeout(hideKey,45000);
+  $('mmhA783KeyDisplay').hidden=false;
+ }catch(_){
+  // QR rendering, DOM updates and timer setup can all throw. Never leave
+  // a partially displayed recovery key with no auto-hide timer.
+  hideKey();
+  throw Error('recovery_render_failed');
  }
- $('mmhA783KeyDisplay').hidden=false;
- const msg=$('mmhA783KeyDisplay').querySelector('.mmh-a783-note');
- if(msg)msg.textContent=a783Text('This private key view automatically closes after 45 seconds. Never share these words or the QR code.');
- clearTimer=setTimeout(hideKey,45000);
 }
 async function refresh(){
  if(busy)return;
