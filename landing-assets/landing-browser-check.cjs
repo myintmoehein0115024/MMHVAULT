@@ -101,6 +101,62 @@ async function load(page,route,failures){
      await ctx.close();
    }
 
+   // L1.47 Chrome CSSOM header bundle parity: original Explore and shared
+   // header styles remain readable and the combined request must preserve
+   // every rule in exactly the same cascade order.
+   {
+     const originals=[
+       fs.readFileSync('landing-assets/explore-l114.css','utf8'),
+       fs.readFileSync('landing-assets/shared-header-l116.css','utf8')
+     ];
+     const merged=fs.readFileSync('landing-assets/header-explore-l147.min.css','utf8');
+     const ctx=await browser.newContext({viewport:{width:393,height:852},reducedMotion:'reduce'});
+     const page=await ctx.newPage(),errors=[],requests=[];
+     page.on('pageerror',error=>errors.push(error.message));
+     page.on('response',response=>{
+       const url=new URL(response.url());
+       if(url.origin===origin && url.pathname.startsWith('/landing-assets/') &&
+         url.pathname.endsWith('.css')){
+         requests.push({path:url.pathname,status:response.status(),
+           version:url.searchParams.get('v')});
+       }
+     });
+     await page.goto(origin+'/',{waitUntil:'load',timeout:30000});
+     const checks=await page.evaluate(({source,bundle})=>{
+       const cssRules=content=>{
+         const sheet=new CSSStyleSheet();
+         sheet.replaceSync(content);
+         return [...sheet.cssRules].map(rule=>rule.cssText);
+       };
+       const oldRules=source.flatMap(cssRules);
+       const bundledRules=cssRules(bundle);
+       const index=oldRules.findIndex((rule,i)=>rule!==bundledRules[i]);
+       const link=[...document.querySelectorAll('link[rel="stylesheet"]')]
+         .filter(el=>new URL(el.href).pathname==='/landing-assets/header-explore-l147.min.css');
+       const header=document.querySelector('.site-header').getBoundingClientRect();
+       const explore=document.querySelector('#landing-explore');
+       return {ruleCount:oldRules.length,bundledCount:bundledRules.length,
+         same:oldRules.length===bundledRules.length && index===-1,
+         firstMismatch:index,linkCount:link.length,loaded:link[0]?.sheet!=null,
+         cacheVersion:link.length===1?new URL(link[0].href).searchParams.get('v'):null,
+         navExists:!!explore,headerRight:header.right,
+         oldLinkCount:[...document.querySelectorAll('link[rel="stylesheet"]')]
+           .filter(el=>/\/(?:explore-l114|shared-header-l116)\.css$/.test(new URL(el.href).pathname)).length
+       };
+     },{source:originals,bundle:merged});
+     const hits=requests.filter(r=>r.path==='/landing-assets/header-explore-l147.min.css');
+     const missingOld=requests.filter(r=>
+       ['/landing-assets/explore-l114.css','/landing-assets/shared-header-l116.css'].includes(r.path));
+     ensure(checks.same&&checks.ruleCount>=90&&checks.linkCount===1&&checks.loaded&&
+       checks.cacheVersion==='l147'&&checks.navExists&&checks.headerRight<=394&&
+       checks.oldLinkCount===0&&hits.length===1&&hits[0].status===200&&
+       missingOld.length===0&&originals.join('').length-merged.length>2500&&errors.length===0,
+       'L1.47 combined header CSS parses identically and saves one request '+
+         JSON.stringify({checks,oldBytes:originals.reduce((sum,c)=>sum+Buffer.byteLength(c),0),
+           newBytes:Buffer.byteLength(merged),hits,missingOld,errors}));
+     await ctx.close();
+   }
+
    // L1.46 CSSOM critical style parity: keep editable original CSS and prove
    // that Chrome parses every rule identically in the compact runtime copy.
    {
@@ -312,7 +368,7 @@ async function load(page,route,failures){
        ensure(sample.width===width&&sample.fcpMs>0&&sample.lcpMs>0&&
          sample.loadMs>0&&sample.heroDecoded&&sample.heroReady&&
          sample.heroRequestCount>=1&&sample.heroRequestCount<=2&&
-         sample.headerRight<=width+1&&sample.cssRequests>=7&&
+         sample.headerRight<=width+1&&sample.cssRequests>=6&&
          sample.cls<0.25&&failures.length===0,
          'L1.43 '+width+'px throttled cold-cache LCP/FCP/CLS/image baseline '+JSON.stringify({sample,failures}));
        l143Samples.push(sample);
@@ -438,16 +494,18 @@ async function load(page,route,failures){
          viewport:innerWidth
        };
      });
-     ensure(layout.styles.length===7&&layout.scripts.length===2 &&
+     ensure(layout.styles.length===6&&layout.scripts.length===2 &&
        layout.styles.filter(v=>v==='l145').length===1 &&
        layout.styles.filter(v=>v==='l146').length===2 &&
-       layout.styles.filter(v=>v==='l141').length===4 &&
+       layout.styles.filter(v=>v==='l147').length===1 &&
+       layout.styles.filter(v=>v==='l141').length===2 &&
        layout.scripts.every(v=>v==='l141') &&
-       loaded.length===9 && loaded.every(r=>r.status===200&&
+       loaded.length===8 && loaded.every(r=>r.status===200&&
          r.version===(r.path==='/landing-assets/landing.min.css'?'l145':
-           ['/landing-assets/cinematic.min.css','/landing-assets/premium-l131.min.css'].includes(r.path)?'l146':'l141')) &&
-       new Set(loaded.map(r=>r.path)).size===9 && failures.length===0,
-       'L1.41 '+width+'px nine consistent fresh cache-key requests '+JSON.stringify({loaded,failures}));
+           ['/landing-assets/cinematic.min.css','/landing-assets/premium-l131.min.css'].includes(r.path)?'l146':
+           r.path==='/landing-assets/header-explore-l147.min.css'?'l147':'l141')) &&
+       new Set(loaded.map(r=>r.path)).size===8 && failures.length===0,
+       'L1.47 '+width+'px eight CSS/JS requests with consistent cache keys '+JSON.stringify({loaded,failures}));
      ensure(layout.brand.left>=-1&&layout.brand.right<=width+1 &&
        layout.brand.width<width*.8 &&
        layout.hero.left>=-1&&layout.hero.right<=width+1 &&

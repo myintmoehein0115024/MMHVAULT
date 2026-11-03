@@ -33,8 +33,8 @@
   <!-- L1.44: animation-only layer is progressive enhancement, not first-paint critical. -->
   <link rel="stylesheet" href="./landing-assets/motion-l132.css?v=l141" media="print" onload="this.onload=null;this.media='all'">
   <noscript><link rel="stylesheet" href="./landing-assets/motion-l132.css?v=l141"></noscript>
-  <link rel="stylesheet" href="./landing-assets/explore-l114.css?v=l141">
-  <link rel="stylesheet" href="./landing-assets/shared-header-l116.css?v=l141">
+  <!-- L1.47: preserve Explore -> shared header cascade, one smaller critical request. -->
+  <link rel="stylesheet" href="./landing-assets/header-explore-l147.min.css?v=l147">
   <link rel="preload" as="image" type="image/webp" href="./landing-assets/personal-business-concept.webp" fetchpriority="high">
   <script defer src="./landing-assets/landing.js?v=l141"></script>
   <script defer src="./landing-assets/motion-l132.js?v=l141"></script>

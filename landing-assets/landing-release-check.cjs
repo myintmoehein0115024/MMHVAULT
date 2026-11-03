@@ -65,6 +65,14 @@ const l144NewMotionTag="  <!-- L1.44: animation-only layer is progressive enhanc
 // compacted first-party stylesheet; all previous L1.44 URL guards stay.
 const l145OldLandingTag='<link rel="stylesheet" href="./landing-assets/landing.css?v=l141">';
 const l145NewLandingTag='<link rel="stylesheet" href="./landing-assets/landing.min.css?v=l145">';
+// L1.47 replaces only the two adjacent header CSS links, preserving cascade.
+const l147OldHeaderTags='  <link rel="stylesheet" href="./landing-assets/explore-l114.css?v=l141">\n'+
+ '  <link rel="stylesheet" href="./landing-assets/shared-header-l116.css?v=l141">';
+const l147NewHeaderTags='  <!-- L1.47: preserve Explore -> shared header cascade, one smaller critical request. -->\n'+
+ '  <link rel="stylesheet" href="./landing-assets/header-explore-l147.min.css?v=l147">';
+const l147IndexOnlyEdited=baseline=>baseline.split(l147OldHeaderTags).length===2 &&
+ current===baseline.replace(l147OldHeaderTags,l147NewHeaderTags);
+
 // L1.46: only two critical CSS links differ from the released HTML.
 const l146CssLinks=[
  ['href="./landing-assets/cinematic.css?v=l141"',
@@ -72,14 +80,10 @@ const l146CssLinks=[
  ['href="./landing-assets/premium-l131.css?v=l141"',
   'href="./landing-assets/premium-l131.min.css?v=l146"']
 ];
-const l146IndexOnlyEdited=()=>{
- let expected=prev;
- for(const [before,after] of l146CssLinks){
-  if(expected.split(before).length!==2)return false;
-  expected=expected.replace(before,after);
- }
- return current===expected;
-};
+// L1.46 is already released on latest main; verify its two compact links
+// are preserved instead of reapplying a historical patch to deployed HTML.
+const l146IndexOnlyEdited=()=>l147IndexOnlyEdited(prev) &&
+ l146CssLinks.every(([before,after])=>current.includes(after)&&!current.includes(before));
 const l145IndexOnlyEdited=()=>l146IndexOnlyEdited() &&
  current.includes(l145NewLandingTag);
 const l144IndexOnlyEdited=()=>l145IndexOnlyEdited() &&
@@ -238,7 +242,7 @@ check('Current production Login remains noindex',/name="robots" content="noindex
 check('Actual App remains noindex',/<meta[^>]*name=["']robots["'][^>]*noindex/i.test(read('app.html').slice(0,350000)));
 check('Protected Business page remains noindex',/<meta[^>]*name=["']robots["'][^>]*noindex/i.test(read('business.html').slice(0,2000)));
 
-const names=['landing.css','business.css','cinematic.css','cinematic.min.css','landing.js','premium-l131.css','premium-l131.min.css','explore-l114.css','motion-l132.css','motion-l132.js','luxury-horizon.svg','premium-architecture.svg','cinematic-lake.webp','personal-business-concept.webp'];
+const names=['header-explore-l147.min.css','landing.css','business.css','cinematic.css','cinematic.min.css','landing.js','premium-l131.css','premium-l131.min.css','explore-l114.css','motion-l132.css','motion-l132.js','luxury-horizon.svg','premium-architecture.svg','cinematic-lake.webp','personal-business-concept.webp'];
 check('All required live assets exist',names.every(f=>fs.existsSync('landing-assets/'+f)));
 check('Landing style and script links correct',['landing.min.css','business.css','cinematic.min.css','landing.js'].every(f=>current.includes('./landing-assets/'+f)));
 check('L1.45 editable stylesheet retained alongside compact runtime CSS',
@@ -246,7 +250,7 @@ check('L1.45 editable stylesheet retained alongside compact runtime CSS',
   l145CssOnlyEdited());
 check('L1.31 premium layer linked and scoped', current.includes('class="l131 mmh-nav-unified"') && current.includes('href="./landing-assets/premium-l131.min.css?v=l146"') && read('landing-assets/premium-l131.css').includes('body.l131 .showcase-v2'));
 check('Explore styles load after existing premium/motion layers and remain scoped',
- current.includes('href="./landing-assets/explore-l114.css?v=l141"') &&
+ current.includes('href="./landing-assets/header-explore-l147.min.css?v=l147"') &&
  read('landing-assets/explore-l114.css').includes('body.l131 .site-header #primary-nav') &&
  !read('landing-assets/explore-l114.css').includes('body.app'));
 check('L1.32 motion assets linked from homepage',
@@ -505,6 +509,7 @@ const publicRuntimeBudgets={
   'landing-assets/explore-l114.css':9000,
   'landing-assets/public-header-l115.css':16000,
   'landing-assets/shared-header-l116.css':20000,
+  'landing-assets/header-explore-l147.min.css':26000,
   'landing-assets/public-pages.js':9000,
   'landing-assets/motion-l132.css':12000,
   'landing-assets/landing.js':110000,
@@ -572,7 +577,7 @@ check('Landing has five same-page primary sections and a separate Explore menu',
 check('Homepage retains all prior content and SEO outside shared header layer',
  ['en','zh','my'].every(lang=>translationScript.includes('Object.assign(strings.'+lang+', {\n    navExplore:')) &&
  current.includes('<body id="top" class="l131 mmh-nav-unified">') &&
- current.includes('<link rel="stylesheet" href="./landing-assets/shared-header-l116.css?v=l141">') &&
+ current.includes('<link rel="stylesheet" href="./landing-assets/header-explore-l147.min.css?v=l147">') &&
  l142IndexOnlyEdited() &&
  l133BurmeseLayoutOnlyEdited() &&
  source('landing-assets/explore-l114.css')===read('landing-assets/explore-l114.css'));
@@ -625,7 +630,7 @@ check('Seven public pages inherit exact Landing header structure, icons and drop
      (h.match(/class="locale-menu"/g)||[]).length===1;
  }));
 check('One scoped public header stylesheet loads last on homepage and all pages',
- current.includes('href="./landing-assets/shared-header-l116.css?v=l141"') &&
+ current.includes('href="./landing-assets/header-explore-l147.min.css?v=l147"') &&
  publicHeaders.every(path=>read(path).includes('href="/landing-assets/shared-header-l116.css?v=1"')) &&
  sharedCss.includes('body.mmh-nav-unified .site-header') &&
  sharedCss.includes('@media(max-width:1360px)') &&
@@ -718,12 +723,11 @@ check('L1.27 public tab title matches SEO without language focus scroll',
  l133PublicPagesUnchanged() &&
  l142IndexOnlyEdited() && current.includes(newHeroPreload) &&
  !current.includes(oldHeroPreload));
-check('L1.46 exact five-file source-preserving critical CSS scope',
- actual.length===5 &&
+check('L1.47 exact four-file source-preserving header bundle scope',
+ actual.length===4 &&
  actual.every(path=>[
   'index.html',
-  'landing-assets/cinematic.min.css',
-  'landing-assets/premium-l131.min.css',
+  'landing-assets/header-explore-l147.min.css',
   'landing-assets/landing-release-check.cjs',
   'landing-assets/landing-browser-check.cjs'
  ].includes(path)) &&
@@ -750,9 +754,15 @@ check('L1.40 decoded mobile Hero has no delayed blank paint',
 check('L1.41 all nine first-party style/script URLs keep coordinated versions',
   l142IndexOnlyEdited() &&
   l141AssetReplacements.length===9 &&
-  l141AssetReplacements.every(([before,after])=>
-    before!==after && after.includes('?v=l141') &&
-    current.split(after.replace('landing.css?v=l141','landing.min.css?v=l145').replace('cinematic.css?v=l141','cinematic.min.css?v=l146').replace('premium-l131.css?v=l141','premium-l131.min.css?v=l146')).length===(/business\.css|motion-l132\.css/.test(after)?3:2) && !current.includes(before)) &&
+  l141AssetReplacements.every(([before,after])=>{
+    const tag=after.replace('landing.css?v=l141','landing.min.css?v=l145')
+      .replace('cinematic.css?v=l141','cinematic.min.css?v=l146')
+      .replace('premium-l131.css?v=l141','premium-l131.min.css?v=l146');
+    const bundled=/explore-l114\.css|shared-header-l116\.css/.test(after);
+    return before!==after && after.includes('?v=l141') && !current.includes(before) &&
+      (bundled ? current.includes(l147NewHeaderTags)&&!current.includes(after) :
+        current.split(tag).length===(/business\.css|motion-l132\.css/.test(after)?3:2));
+  }) &&
   (current.match(/<link rel="preload" as="image"/g)||[]).length===1 &&
   (current.match(/<script defer src=/g)||[]).length===2 &&
   !current.includes('user-scalable=no'));
@@ -761,7 +771,7 @@ check('L1.42 below-fold Business stylesheet is nonblocking with accessible noscr
   current.includes(l142NewBusinessTag) &&
   current.includes('media="print" onload="this.onload=null;this.media=\'all\'"') &&
   (current.match(/<noscript>/g)||[]).length===2 &&
-  (current.match(/<link rel="stylesheet"/g)||[]).length===9 &&
+  (current.match(/<link rel="stylesheet"/g)||[]).length===8 &&
   (current.match(/<script defer src=/g)||[]).length===2 &&
   !current.includes('user-scalable=no') &&
   read('landing-assets/business.css')===source('landing-assets/business.css'));
@@ -816,6 +826,21 @@ check('L1.46 generated critical CSS matches readable originals and only changes 
  read('landing-assets/landing.js')===source('landing-assets/landing.js') &&
  read('landing-assets/explore-l114.css')===source('landing-assets/explore-l114.css') &&
  read('landing-assets/shared-header-l116.css')===source('landing-assets/shared-header-l116.css'));
+check('L1.47 exact ordered compact header bundle with unchanged editable source',
+ l147IndexOnlyEdited(prev) &&
+ read('landing-assets/header-explore-l147.min.css')===
+  l145CompactCss(source('landing-assets/explore-l114.css'))+
+  l145CompactCss(source('landing-assets/shared-header-l116.css')) &&
+ read('landing-assets/explore-l114.css')===source('landing-assets/explore-l114.css') &&
+ read('landing-assets/shared-header-l116.css')===source('landing-assets/shared-header-l116.css') &&
+ read('landing-assets/header-explore-l147.min.css').length<
+  read('landing-assets/explore-l114.css').length+
+  read('landing-assets/shared-header-l116.css').length-2500 &&
+ (current.match(/<link rel="stylesheet"/g)||[]).length===8 &&
+ !current.includes('href="./landing-assets/explore-l114.css?v=l141"') &&
+ !current.includes('href="./landing-assets/shared-header-l116.css?v=l141"') &&
+ read('landing-assets/landing-browser-check.cjs').includes('L1.47 Chrome CSSOM header bundle parity') &&
+ read('landing-assets/landing.js')===source('landing-assets/landing.js'));
 check('L1.34 mobile EN ZH MY card stability and touch-safe scrolling',
   l133BurmeseLayoutOnlyEdited() &&
   l134ResponsiveCssSuffix.includes('min-height: 94px') &&
