@@ -52,6 +52,7 @@ jobs:
           node --check --input-type=module < security/n10-username-escrow-candidate/username-edge-REVIEW-ONLY.ts
           node --test security/n10-username-escrow-candidate/test-username-edge-contract.mjs
           node --test security/n10-username-escrow-candidate/test-build-review-bundle.mjs
+          node --test security/n10-username-escrow-candidate/test-staging-schema-gates.mjs
       - name: Package review Edge in ephemeral temp directory (never deploy)
         run: node security/n10-username-escrow-candidate/build-review-bundle.mjs /tmp/mmhvault-n10-review-bundle
       - name: Install Deno 2 for Edge typecheck only
