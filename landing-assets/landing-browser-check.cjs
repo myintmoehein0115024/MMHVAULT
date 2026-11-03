@@ -52,6 +52,116 @@ async function load(page,route,failures){
 (async()=>{
  const browser=await chromium.launch({channel:'chrome',headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
  try{
+   // L1.54 initial feature and language labels browser parity.
+   // Observe cold-start DOM writes before defer scripts execute, then compare
+   // English/Chinese/Burmese content and actual switch interactions.
+   {
+     const optimized=fs.readFileSync('landing-assets/landing.js','utf8');
+     const patches=[["      button.setAttribute('aria-pressed', String(button.dataset.lang === currentLang));","      // L1.54: preserve existing language choice ARIA on cold hydration.\n      const pressed=String(button.dataset.lang === currentLang);\n      if(button.getAttribute('aria-pressed')!==pressed)button.setAttribute('aria-pressed',pressed);"],["      if (label) label.textContent = productLabels[currentLang][tab.dataset.productTab];","      if (label) {\n        const name=productLabels[currentLang][tab.dataset.productTab];\n        if(label.textContent!==name)label.textContent=name;\n      }"],["    if (activeStoryTitle) activeStoryTitle.textContent = productLabels[currentLang][activeProduct];","    if (activeStoryTitle) {\n      const name=productLabels[currentLang][activeProduct];\n      if(activeStoryTitle.textContent!==name)activeStoryTitle.textContent=name;\n    }"]];
+     let baseline=optimized;
+     for(const [before,after] of patches){
+       assert.equal(baseline.split(after).length,2,'L1.54 unique hydration edit');
+       baseline=baseline.replace(after,before);
+     }
+     const samples=[];
+     for(const width of [393,768,1440])for(const lang of ['en','zh','my']){
+       const versions={};
+       for(const [type,script] of [['baseline',baseline],['optimized',optimized]]){
+         const ctx=await browser.newContext({
+           viewport:{width,height:852},reducedMotion:'reduce',serviceWorkers:'block'});
+         const page=await ctx.newPage(),errors=[];
+         page.on('pageerror',error=>errors.push(error.message));
+         await page.addInitScript(initial=>{
+           try{localStorage.setItem('mmhvault.landing.language',initial)}catch(_){}
+           window.__l154={labels:0,title:0,pressed:0,started:false};
+           document.addEventListener('readystatechange',()=>{
+             if(document.readyState!=='interactive'||window.__l154.started)return;
+             window.__l154.started=true;
+             const obs=new MutationObserver(records=>{
+               for(const record of records){
+                 const target=record.target.nodeType===1
+                   ?record.target:record.target.parentElement;
+                 if(!target||typeof target.matches!=='function')continue;
+                 if(record.type==='attributes' &&
+                   record.attributeName==='aria-pressed'&&target.matches('[data-lang]'))
+                     window.__l154.pressed++;
+                 if(record.type==='childList'){
+                   if(target.matches('.product-tab-copy strong'))window.__l154.labels++;
+                   if(target.matches('[data-app-story-title]'))window.__l154.title++;
+                 }
+               }
+             });
+             obs.observe(document,{attributes:true,attributeFilter:['aria-pressed'],
+               childList:true,subtree:true});
+             window.__l154observer=obs;
+           });
+         },lang);
+         await page.route('**/landing-assets/landing.js*',route=>route.fulfill({
+           status:200,contentType:'application/javascript',body:script}));
+         const response=await page.goto(origin+'/',{waitUntil:'load',timeout:30000});
+         const result=await page.evaluate(initial=>{
+           const take=()=>({
+             htmlLang:document.documentElement.lang,
+             stored:localStorage.getItem('mmhvault.landing.language'),
+             langButtons:[...document.querySelectorAll('[data-lang]')].map(x=>
+               [x.dataset.lang,x.getAttribute('aria-pressed')]),
+             previewLabels:[...document.querySelectorAll('[data-product-tab]')].map(x=>
+               [x.dataset.productTab,x.querySelector('.product-tab-copy strong')?.textContent]),
+             story:document.querySelector('[data-app-story-title]')?.textContent,
+             hero:[...document.querySelectorAll('[data-hero-fixed]')]
+               .map(x=>x.textContent.trim()),
+             meta:document.querySelector('meta[name="description"]')?.content,
+             headerRight:Math.round(document.querySelector('.site-header')
+               .getBoundingClientRect().right)
+           });
+           const writes={labels:window.__l154.labels,title:window.__l154.title,
+             pressed:window.__l154.pressed,started:window.__l154.started};
+           const initialState=take();
+           const next=initial==='en'?'zh':initial==='zh'?'my':'en';
+           document.querySelector('#locale-trigger').click();
+           document.querySelector('[data-lang="'+next+'"]').click();
+           const switched=take();
+           document.querySelector('#locale-trigger').click();
+           document.querySelector('[data-lang="'+initial+'"]').click();
+           const restored=take();
+           window.__l154observer?.disconnect();
+           return {writes,initialState,switched,restored};
+         },lang);
+         const targetLang=lang==='zh'?'zh-CN':lang;
+         const otherLang=lang==='en'?'zh-CN':lang==='zh'?'my':'en';
+         ensure(response?.status()===200&&errors.length===0&&
+           result.writes.started&&
+           result.initialState.htmlLang===targetLang&&
+           result.initialState.hero.length===3&&
+           result.initialState.headerRight<=width+1&&
+           result.switched.htmlLang===otherLang&&
+           result.restored.htmlLang===targetLang&&
+           result.switched.langButtons.filter(x=>x[1]==='true').length===1&&
+           result.restored.langButtons.filter(x=>x[1]==='true').length===1,
+           'L1.54 '+type+' '+width+'px '+lang+' initial and actual locale changes');
+         versions[type]=result;
+         await ctx.close();
+       }
+       const before=versions.baseline,after=versions.optimized;
+       for(const key of ['initialState','switched','restored']){
+         ensure(JSON.stringify(before[key])===JSON.stringify(after[key]),
+           'L1.54 '+width+'px '+lang+' identical '+key+' and fixed Hero');
+       }
+       const b=before.writes,a=after.writes;
+       ensure(a.labels<=b.labels&&a.title<=b.title&&a.pressed<=b.pressed&&
+         b.labels+b.title+b.pressed>a.labels+a.title+a.pressed,
+         'L1.54 '+width+'px '+lang+' skips redundant initial label/ARIA writes '+
+         JSON.stringify({before:b,after:a}));
+       samples.push({width,lang,before:b,after:a});
+     }
+     const saved=samples.reduce((n,x)=>n+
+       x.before.labels+x.before.title+x.before.pressed-
+       x.after.labels-x.after.title-x.after.pressed,0);
+     ensure(saved>0,'L1.54 measured cold hydration DOM writes avoided '+saved);
+     console.log('L1.54 cold hydration DOM lab (not field LCP): '+
+       JSON.stringify({savedInitialWrites:saved,samples}));
+   }
+
    // L1.53 Business locale metadata no-op browser parity.
    // Compare L1.52 and candidate at mobile/tablet/desktop × EN/ZH/MY.
    // Language changes should translate visible copy without rewriting
@@ -1196,12 +1306,12 @@ async function load(page,route,failures){
        layout.styles.filter(v=>v==='l146').length===2 &&
        layout.styles.filter(v=>v==='l147').length===1 &&
        layout.styles.filter(v=>v==='l141').length===2 &&
-       layout.scripts.includes('l153') && layout.scripts.includes('l141') &&
+       layout.scripts.includes('l154') && layout.scripts.includes('l141') &&
        loaded.length===8 && loaded.every(r=>r.status===200&&
          r.version===(r.path==='/landing-assets/landing.min.css'?'l145':
            ['/landing-assets/cinematic.min.css','/landing-assets/premium-l131.min.css'].includes(r.path)?'l146':
            r.path==='/landing-assets/header-explore-l147.min.css'?'l147':
-            r.path==='/landing-assets/landing.js'?'l153':'l141')) &&
+            r.path==='/landing-assets/landing.js'?'l154':'l141')) &&
        new Set(loaded.map(r=>r.path)).size===8 && failures.length===0,
        'L1.47 '+width+'px eight CSS/JS requests with consistent cache keys '+JSON.stringify({loaded,failures}));
      ensure(layout.brand.left>=-1&&layout.brand.right<=width+1 &&
