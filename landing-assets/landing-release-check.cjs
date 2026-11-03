@@ -129,11 +129,10 @@ const l148LandingJsOnlyEdited=()=>{
     !merged.includes(l150LanguageClickAfter) ||
     !merged.includes(l151MarkSectionAfter) ||
     !merged.includes(l152PreviewTabAfter))return false;
+  // L1.53 is already on main, so preserve its shipped guards verbatim.
+  if(!l153BusinessAttrPatches.every(([oldCode,newCode])=>
+    merged.includes(newCode) && !merged.includes(oldCode)))return false;
   let wanted=merged;
-  for(const [oldCode,newCode] of l153BusinessAttrPatches){
-    if(wanted.split(oldCode).length!==2)return false;
-    wanted=wanted.replace(oldCode,newCode);
-  }
   // L1.54: skip redundant cold-initialization writes only when localized
   // button labels, selected state, and story title already have right values.
   for(const [oldCode,newCode] of l154HydrationPatches){
@@ -935,7 +934,8 @@ check('L1.53 Business language attr writes only on actual semantic changes',
   l148LandingJsOnlyEdited() &&
   read('landing-assets/landing-browser-check.cjs').includes('L1.53 Business locale metadata no-op browser parity') &&
   l153BusinessAttrPatches.every(([oldCode,newCode])=>
-    source('landing-assets/landing.js').includes(oldCode) &&
+    source('landing-assets/landing.js').includes(newCode) &&
+    !source('landing-assets/landing.js').includes(oldCode) &&
     read('landing-assets/landing.js').includes(newCode)));
 check('L1.54 language and feature title hydration skips identical writes',
   l148LandingJsOnlyEdited() &&
