@@ -537,7 +537,13 @@
       }
       const currType=t.value,currGroup=g.value,currCat=c.value;
       if(enabled.type){
-        fill(t,fieldItems('type').map(x=>({value:x.canonical,label:x.label,choiceId:x.key})),currType,typeChoice);
+        // A globally valid setup may still contain an Income Type without an
+        // Income Category. Only expose Types with at least one saveable pairing.
+        const compatibleTypes=new Set(enabled.transaction?
+          allowedTransactions().map(x=>x.type):
+          categories().map(x=>x.type));
+        fill(t,fieldItems('type').filter(x=>compatibleTypes.has(x.canonical))
+          .map(x=>({value:x.canonical,label:x.label,choiceId:x.key})),currType,typeChoice);
       }
       let type=enabled.type?t.value:currType;
       if(enabled.transaction){
