@@ -126,8 +126,21 @@ test('two configured fields restore only the requested labels and hide setup ins
   assert.equal(dom.labels.transaction.hidden,false);
   assert.equal(dom.labels.category.hidden,true);
   assert.equal(h.nodes.txSmartV141.dataset.mmhV12Setup,'0');
+  assert.equal(h.nodes.txSmartV141.dataset.mmhV12Managed,'1',
+    'managed Type and Transaction are the only visible selectors, never duplicate top Kind choices');
   assert.equal(h.nodes.mmhV12SetupNote.hidden,true);
   assert.equal(h.api.validate(),true);
+});
+
+test('legacy owner keeps the original Transaction Kind navigation',()=>{
+  const h=harness(null),dom=nativeForm(h);
+  h.nodes.txSmartV141={dataset:{}};
+  h.api.refresh();
+  assert.equal(h.nodes.txSmartV141.dataset.mmhV12Managed,'0');
+  assert.equal(h.nodes.txSmartV141.dataset.mmhV12Setup,'0');
+  assert.equal(dom.labels.type.hidden,false);
+  assert.equal(dom.labels.transaction.hidden,false);
+  assert.equal(dom.labels.category.hidden,false);
 });
 
 test('real Manage render moves exactly one Category form, and restores it for legacy owners',()=>{
