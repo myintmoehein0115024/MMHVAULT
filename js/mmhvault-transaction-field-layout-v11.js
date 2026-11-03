@@ -529,8 +529,8 @@
         // Keep the canonical Type options even when the Type field is hidden.
         // Otherwise a fresh owner selecting Transaction + Category later cannot
         // set its internal income/expense Type, and saving becomes impossible.
-        if(!enabled.transaction)g.replaceChildren();
-        if(!enabled.category)c.replaceChildren();
+        // Never leave native legacy categories visible on an unready form.
+        g.replaceChildren();c.replaceChildren();
         note(status.reason);
         return;
       }
