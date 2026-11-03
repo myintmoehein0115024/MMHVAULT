@@ -43,6 +43,11 @@ test('recovery words and sign-in tokens are not persisted or interpolated as HTM
  assert.match(js,/credentials:'omit',cache:'no-store',redirect:'error'/);
  assert.match(js,/const SITEKEY='0x4AAAAAAFlXEfEHAP1TUxjr'/);
  assert.match(js,/const ACTION='mmh_n10a769_prepare_signup'/);
+ assert.match(js,/challengeWaitStarted<12000/);
+ assert.match(js,/challengeRetryTimer=setTimeout\(renderChallenge,300\)/);
+ assert.match(js,/if\(!enabled\)\{stopChallengeWatch\(\)/);
+ assert.match(js,/message\('captchaUnavailable'\);return true;/);
+ assert.match(js,/captchaLoading:/);
 });
 test('safe-area and responsive layout, private modal, no default alert',()=>{
  assert.match(css,/viewport-fit=cover|safe-area-inset-top/);
