@@ -8,6 +8,9 @@ const API='https://vrypucmyrztxgiqhjspd.supabase.co/functions/v1/mmh-n10a783-phr
 const VAULT_API='https://vrypucmyrztxgiqhjspd.supabase.co/functions/v1/mmh-n10-fixed-recovery';
 // Draft-only second release gate. Not a substitute for the Edge server's OFF flag.
 const N10_FIXED_VAULT_UI_RELEASED=false;
+// Legacy verifier-only words cannot be reconstructed. An owner-proofed
+// backfill endpoint has NOT been authorized or implemented server-side.
+const N10_LEGACY_BACKFILL_RELEASED=false;
 
 // N10 signed-token staging, production RLS and owner-account login gates have passed.
 // Enrollment is optional and requires explicit loss-risk and backup acknowledgments.
@@ -22,7 +25,9 @@ Object.assign(A783_DYNAMIC_ZH,{"Your fixed original recovery key is securely bac
 Object.assign(A783_STATIC_ZH,{"Confirm current password":"验证当前密码","Secure my original 10 words":"加密备份现有十词","View original 10 words":"查看原始十词"});
 // Recovery Vault review translations; the rest of the account center keeps
 // its established dictionary until the complete N10 i18n audit.
+Object.assign(A783_DYNAMIC_ZH,{'No encrypted copy exists for this account. The original ten words cannot be recovered from the verifier. If you saved them, you can still verify them here.':'该账户没有加密保存原始十词，无法仅凭校验值找回。如果以前保存过十词，仍可在这里验证。'});
 const A783_RECOVERY_MY=Object.freeze({
+ 'No encrypted copy exists for this account. The original ten words cannot be recovered from the verifier. If you saved them, you can still verify them here.':'ဤအကောင့်တွင် မူရင်း စကားလုံး ၁၀ လုံးကို ကုဒ်ဝှက်သိမ်းဆည်းထားခြင်းမရှိပါ။ စစ်ဆေးချက်မှ ပြန်မရနိုင်ပါ။ ယခင်သိမ်းထားပါက ဤနေရာတွင် စစ်ဆေးနိုင်ပါသည်။',
  'Permanent recovery key':'အမြဲတမ်း ပြန်လည်ရယူရေးသော့',
  '10 words':'စကားလုံး ၁၀ လုံး',
  'Your saved 10 words, in the original order':'သိမ်းထားသော မူရင်း စကားလုံး ၁၀ လုံးကို အစဉ်လိုက် ထည့်ပါ',
@@ -223,7 +228,9 @@ async function vaultBoundedResponse(response){
 }
 async function vaultApi(action,extra={}){
  if(!N10_FIXED_VAULT_UI_RELEASED)throw Error('vault_release_locked');
- if(location.origin!=='https://mmhvault.com'||!['status','backup_existing','reveal'].includes(action))
+ if(action==='backup_existing'&&!N10_LEGACY_BACKFILL_RELEASED)
+  throw Error('legacy_backup_not_released');
+ if(location.origin!=='https://mmhvault.com'||!['status','reveal'].includes(action))
   throw Error('vault_bad_action');
  const a=await verifiedUser();
  const auth=client().auth;
@@ -267,7 +274,7 @@ async function vaultApi(action,extra={}){
 }
 function vaultStatusMode(mode){
  vaultMode=mode;
- const ready=mode==='ready',needed=mode==='backup_needed';
+ const ready=mode==='ready',needed=mode==='backup_needed'&&N10_LEGACY_BACKFILL_RELEASED;
  const box=$('mmhN10VaultRecoveryControls');
  box.hidden=!(ready||needed);
  $('mmhN10VaultReveal').hidden=!ready;
@@ -275,7 +282,8 @@ function vaultStatusMode(mode){
  const note=$('mmhN10VaultInfo');
  const noteKey=ready
   ?'Your fixed original recovery key is securely backed up. Confirm your password to view it.'
-  :'One-time setup: enter your previously saved original ten words and password to protect this SAME key.';
+  :needed?'One-time setup: enter your previously saved original ten words and password to protect this SAME key.'
+  :'No encrypted copy exists for this account. The original ten words cannot be recovered from the verifier. If you saved them, you can still verify them here.';
  note.dataset.mmhA783DynamicEn=noteKey;
  note.textContent=a783Text(noteKey);
  const legacyNote=vaultRecovery.querySelector(':scope > p.mmh-a783-note');if(legacyNote)legacyNote.hidden=ready;
@@ -300,7 +308,8 @@ async function loadVaultMode(){
   if(!sameSecretRequest(epoch,userId))return;
   if(!r.ok||r.body?.code!=='backup_status'||typeof r.body.backed_up!=='boolean')
    throw Error('vault_unavailable');
-  vaultStatusMode(r.body.backed_up?'ready':'backup_needed');
+  vaultStatusMode(r.body.backed_up?'ready':'not_recoverable');
+  if(!r.body.backed_up)status('No encrypted copy exists for this account. The original ten words cannot be recovered from the verifier. If you saved them, you can still verify them here.');
  }catch(_){
   if(!sameSecretRequest(epoch,userId))return;
   vaultStatusMode('unavailable');
@@ -454,7 +463,7 @@ $('mmhA783KeyVerify').addEventListener('click',async()=>{
  finally{busy=false;}
 });
 $('mmhN10VaultBackup').addEventListener('click',async()=>{
- if(!N10_FIXED_VAULT_UI_RELEASED||busy||vaultMode!=='backup_needed'||!recoveryModalActive())return;
+ if(!N10_FIXED_VAULT_UI_RELEASED||!N10_LEGACY_BACKFILL_RELEASED||busy||vaultMode!=='backup_needed'||!recoveryModalActive())return;
  const phrase=$('mmhA783Phrase').value.trim().toLowerCase().replace(/\s+/g,' ');
  const password=$('mmhN10VaultPassword').value;
  if(phrase.split(' ').length!==10||!password){status('Enter the original ten words and current password.');return;}

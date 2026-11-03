@@ -48,6 +48,7 @@ jobs:
           node --test security/n10-integration-review/test-security-center-vault-transport.mjs
           node --test security/n10-integration-review/test-recovery-render-fail-close.mjs
           node --test security/n10-integration-review/test-recovery-i18n.mjs
+          node --test security/n10-integration-review/test-recovery-legacy-failclosed.mjs
       - name: Verify hard-OFF username Edge candidate and failure paths
         run: |
           node --check --input-type=module < security/n10-username-escrow-candidate/username-edge-REVIEW-ONLY.ts
