@@ -550,7 +550,17 @@ async function load(page,route,failures){
    // Repeated clicks should not mutate the Business preview, but actual
    // Personal / Business transitions must produce identical localized UI.
    {
-     const proposed=fs.readFileSync('landing-assets/landing.js','utf8');
+     // L1.53's newer attribute guards would make BOTH historical variants
+     // no-op on repeated clicks. Remove only those three newer edits in this
+     // historical lab to faithfully reproduce the released L1.48→L1.49
+     // comparison; the L1.53 lab above tests the new guards separately.
+     const l153Patches=[["      button.setAttribute('aria-pressed',String(selected));","      // L1.53: a language change must not rewrite the active concept state.\n      const pressed=String(selected);\n      if(button.getAttribute('aria-pressed')!==pressed)button.setAttribute('aria-pressed',pressed);"],["      element.setAttribute('data-i18n',key);\n      const value = dictionary[key] || '';","      if(element.getAttribute('data-i18n')!==key)element.setAttribute('data-i18n',key);\n      const value = dictionary[key] || '';"],["    if(panel) panel.dataset.currentView = currentBusinessView;","    if(panel && panel.dataset.currentView!==currentBusinessView)panel.dataset.currentView = currentBusinessView;"]];
+     let proposed=fs.readFileSync('landing-assets/landing.js','utf8');
+     for(const [oldCode,newCode] of l153Patches){
+       assert.equal(proposed.split(newCode).length,2,
+         'L1.49 historical script reconstructs L1.52 attrs exactly');
+       proposed=proposed.replace(newCode,oldCode);
+     }
      const before="  businessTabs.forEach(button => button.addEventListener('click', () => {\n    updateBusinessPreview(button.dataset.businessView);\n  }));";
      const after="  businessTabs.forEach(button => button.addEventListener('click', () => {\n    // L1.49: selecting an already active concept is a no-op. Avoid\n    // redundant data-current-view mutations and replayed Business animations.\n    // applyLanguage still calls updateBusinessPreview for translated labels.\n    if (button.dataset.businessView !== currentBusinessView)\n      updateBusinessPreview(button.dataset.businessView);\n  }));";
      assert.equal(proposed.split(after).length,2,'L1.49 exact source replacement');
