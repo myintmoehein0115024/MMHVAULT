@@ -50,7 +50,7 @@ export async function buildStagingBundle(target){
  src=once(src,"const CAPTCHA=Deno.env.get('N10A740_TURNSTILE_SECRET')||'';",
                   "const CAPTCHA=Deno.env.get('N10_STAGING_SIGNUP_TURNSTILE_SECRET')||'';");
  src=once(src,"const RULE=/^[a-z][a-z0-9_]{3,19}$/;",
-                  "const RULE=/^[a-z][a-z0-9_]{3,19}$/;\\nconst QA_USERNAMES=(Deno.env.get('N10_STAGING_SIGNUP_QA_USERNAMES')||'').split(',').map(v=>v.trim()).filter(Boolean);\\nconst QA_ALLOWLIST=new Set(QA_USERNAMES);\\nfunction qaNamesReady(){return QA_USERNAMES.length===2&&QA_ALLOWLIST.size===2&&QA_USERNAMES.every(v=>RULE.test(v)&&v.startsWith('n10qa_'));}");
+                  "const RULE=/^[a-z][a-z0-9_]{3,19}$/;\nconst QA_USERNAMES=(Deno.env.get('N10_STAGING_SIGNUP_QA_USERNAMES')||'').split(',').map(v=>v.trim()).filter(Boolean);\nconst QA_ALLOWLIST=new Set(QA_USERNAMES);\nfunction qaNamesReady(){return QA_USERNAMES.length===2&&QA_ALLOWLIST.size===2&&QA_USERNAMES.every(v=>RULE.test(v)&&v.startsWith('n10qa_'));}");
  src=once(src,"&&wordlist.length===2048;}",
                   "&&wordlist.length===2048&&qaNamesReady();}");
  src=once(src,"const username=nameKey(d.username);if(!username)return reply(origin,'invalid_username',400);",
