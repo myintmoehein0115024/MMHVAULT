@@ -52,6 +52,119 @@ async function load(page,route,failures){
 (async()=>{
  const browser=await chromium.launch({channel:'chrome',headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
  try{
+   // L1.52 preview tab attribute browser parity: old released L1.51 and
+   // proposed script, real Chrome, mobile/tablet/desktop, all three locales.
+   // Compare ARIA and roving tabindex writes, keyboard focus and demo content.
+   {
+     const proposed=fs.readFileSync('landing-assets/landing.js','utf8');
+     const before="      t.classList.toggle('is-active',yes);\n      t.setAttribute('aria-selected',String(yes));\n      t.tabIndex=yes?0:-1;\n      if(yes&&focus)t.focus({preventScroll:true});";
+     const after="      t.classList.toggle('is-active',yes);\n      // L1.52: only the two tabs whose selection state actually changes\n      // need ARIA/tabindex writes; preserve the existing roving focus.\n      const selected=String(yes);\n      if(t.getAttribute('aria-selected')!==selected)t.setAttribute('aria-selected',selected);\n      const tabIndex=yes?0:-1;\n      if(t.tabIndex!==tabIndex)t.tabIndex=tabIndex;\n      if(yes&&focus)t.focus({preventScroll:true});";
+     assert.equal(proposed.split(after).length,2,'L1.52 exact four-line tab write replacement');
+     const baseline=proposed.replace(after,before);
+     const records=[];
+     for(const width of [393,768,1440])for(const locale of ['en','zh','my']){
+       const versions={};
+       for(const [name,script] of [['baseline',baseline],['optimized',proposed]]){
+         const ctx=await browser.newContext({
+           viewport:{width,height:852},reducedMotion:'reduce',serviceWorkers:'block'});
+         const page=await ctx.newPage(),errors=[];
+         page.on('pageerror',error=>errors.push(error.message));
+         await page.addInitScript(lang=>{
+           try{localStorage.setItem('mmhvault.landing.language',lang)}catch(_){}
+         },locale);
+         await page.route('**/landing-assets/landing.js*',route=>route.fulfill({
+           status:200,contentType:'application/javascript',body:script}));
+         const res=await page.goto(origin+'/',{waitUntil:'load',timeout:30000});
+         const output=await page.evaluate(()=>{
+           const list=document.querySelector('.product-tablist');
+           const tabs=[...list.querySelectorAll('[data-product-tab]')];
+           const panels=[...document.querySelectorAll('[data-product-panel]')];
+           const stage=document.querySelector('.product-stage');
+           const shot=()=>({
+             lang:document.documentElement.lang,
+             selected:stage.dataset.productCurrent,
+             tabs:tabs.map(t=>[t.dataset.productTab,t.getAttribute('aria-selected'),
+               t.tabIndex,t.classList.contains('is-active'),
+               t.querySelector('strong')?.textContent]),
+             panels:panels.map(p=>[p.dataset.productPanel,p.hidden,p.inert,
+               p.getAttribute('aria-hidden')]),
+             story:document.querySelector('[data-app-story-title]')?.textContent,
+             index:document.querySelector('[data-app-story-index]')?.textContent,
+             description:document.querySelector('[data-app-story-desc]')?.textContent,
+             hero:[...document.querySelectorAll('[data-hero-fixed]')]
+               .map(x=>x.textContent.trim()),
+             focused:document.activeElement?.dataset?.productTab||null,
+             scrollY:Math.round(window.scrollY),
+             headerRight:Math.round(document.querySelector('.site-header')
+               .getBoundingClientRect().right)
+           });
+           const observer=new MutationObserver(()=>{});
+           observer.observe(list,{subtree:true,attributes:true,
+             attributeFilter:['aria-selected','tabindex']});
+           const click=key=>{
+             const tab=tabs.find(x=>x.dataset.productTab===key);
+             observer.takeRecords();
+             tab.click();
+             return {state:shot(),writes:observer.takeRecords().length};
+           };
+           const initial=shot();
+           const transactions=click('transactions');
+           const accounts=click('accounts');
+           const dashboard=click('dashboard');
+           const repeat=click('dashboard');
+           observer.takeRecords();
+           const keyEvent=new KeyboardEvent('keydown',{
+             key:'ArrowRight',bubbles:true,cancelable:true
+           });
+           tabs[0].dispatchEvent(keyEvent);
+           const keyboard={state:shot(),writes:observer.takeRecords().length,
+             defaultPrevented:keyEvent.defaultPrevented};
+           observer.disconnect();
+           return {initial,transactions,accounts,dashboard,repeat,keyboard};
+         });
+         const valid=output&&res?.status()===200&&errors.length===0&&
+           output.initial.lang===(locale==='zh'?'zh-CN':locale)&&
+           output.initial.selected==='dashboard'&&
+           output.transactions.state.selected==='transactions'&&
+           output.accounts.state.selected==='accounts'&&
+           output.dashboard.state.selected==='dashboard'&&
+           output.repeat.state.selected==='dashboard'&&
+           output.keyboard.state.selected==='transactions'&&
+           output.keyboard.defaultPrevented&&
+           output.keyboard.state.focused==='transactions'&&
+           output.initial.hero.length===3&&output.initial.headerRight<=width+1&&
+           [output.transactions,output.accounts,output.dashboard,output.repeat,output.keyboard]
+             .every(x=>x.state.tabs.filter(t=>t[1]==='true').length===1&&
+               x.state.tabs.filter(t=>t[2]===0).length===1&&
+               x.state.panels.filter(p=>!p[1]&&!p[2]&&p[3]==='false').length===1);
+         ensure(valid,'L1.52 '+name+' '+width+'px '+locale+' tab semantics and keyboard focus');
+         versions[name]=output;
+         await ctx.close();
+       }
+       const old=versions.baseline,now=versions.optimized;
+       for(const key of ['initial','transactions','accounts','dashboard','repeat','keyboard']){
+         const a=key==='initial'?old[key]:old[key].state;
+         const b=key==='initial'?now[key]:now[key].state;
+         ensure(JSON.stringify(a)===JSON.stringify(b),
+           'L1.52 '+width+'px '+locale+' unchanged '+key+' visual/locale/focus state');
+       }
+       const changed=['transactions','accounts','dashboard','keyboard'];
+       ensure(changed.every(k=>old[k].writes===12&&now[k].writes===4)&&
+         now.repeat.writes===0&&old.repeat.writes===0,
+         'L1.52 '+width+'px '+locale+' only two changed tabs receive ARIA/tabindex writes '+
+         JSON.stringify({before:changed.map(k=>old[k].writes),
+           after:changed.map(k=>now[k].writes)}));
+       records.push({width,locale,
+         before:changed.map(k=>old[k].writes),
+         after:changed.map(k=>now[k].writes)});
+     }
+     const saved=records.reduce((sum,x)=>sum+
+       x.before.reduce((n,v,i)=>n+v-x.after[i],0),0);
+     ensure(saved>0,'L1.52 skips unnecessary feature preview accessibility writes '+saved);
+     console.log('L1.52 feature tab DOM lab (not real-user loading speed): '+
+       JSON.stringify({savedAttributeMutations:saved,records}));
+   }
+
    // L1.51 repeated section nav highlight DOM parity.
    // Compare exact merged L1.50 handler against L1.51 under Chrome.
    // Only navigation aria-current mutations are counted; don't claim field LCP.
@@ -949,12 +1062,12 @@ async function load(page,route,failures){
        layout.styles.filter(v=>v==='l146').length===2 &&
        layout.styles.filter(v=>v==='l147').length===1 &&
        layout.styles.filter(v=>v==='l141').length===2 &&
-       layout.scripts.includes('l151') && layout.scripts.includes('l141') &&
+       layout.scripts.includes('l152') && layout.scripts.includes('l141') &&
        loaded.length===8 && loaded.every(r=>r.status===200&&
          r.version===(r.path==='/landing-assets/landing.min.css'?'l145':
            ['/landing-assets/cinematic.min.css','/landing-assets/premium-l131.min.css'].includes(r.path)?'l146':
            r.path==='/landing-assets/header-explore-l147.min.css'?'l147':
-            r.path==='/landing-assets/landing.js'?'l151':'l141')) &&
+            r.path==='/landing-assets/landing.js'?'l152':'l141')) &&
        new Set(loaded.map(r=>r.path)).size===8 && failures.length===0,
        'L1.47 '+width+'px eight CSS/JS requests with consistent cache keys '+JSON.stringify({loaded,failures}));
      ensure(layout.brand.left>=-1&&layout.brand.right<=width+1 &&
