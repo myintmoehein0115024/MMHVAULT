@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
   emptyHierarchy,addType,addTransaction,addCategory,choices,pathFor,
-  entryUsage,renameItem,deleteItem,archiveItem,legacyHierarchy
+  entryUsage,renameItem,deleteItem,archiveItem,legacyHierarchy,recordLink,normalizePersistedHierarchy
 } from '../js/mmhvault-v11-manage-hierarchy-model.mjs';
 const A='account-A',B='account-B';
 let serial=0;const next=()=>('new-item-'+ ++serial);
@@ -122,4 +122,37 @@ test('legacy mapping only derives a display model; does not mutate historic conf
   assert.equal(txn.parentId,income.id);
   assert.equal(salary.parentId,txn.id);
   assert.equal(entryUsage(t,A,'category',salary.id,[{type:'Income',group:'Income',category:'Salary'}]),'used');
+});
+
+test('legacy ledger rows without group block destructive transaction edits conservatively',()=>{
+  const {tree,income2}=sample();
+  const history=[{id:1,type:'Income',category:'Other Income'}];
+  assert.equal(entryUsage(tree,A,'transaction',income2.id,history),'used');
+  assert.throws(()=>deleteItem(tree,A,'transaction',income2.id,history),/Archive instead/);
+});
+test('reused Category name is blocked inside a ledger group',()=>{
+  const {tree,income,income2}=sample();
+  const another=addTransaction(tree,A,'Income3',income.id,'Income|Income',next);
+  assert.throws(()=>addCategory(tree,A,'Salary',another.id,next),/ledger group/);
+});
+test('new saved transactions link to stable choices while original ledger fields stay unchanged',()=>{
+  const {tree,income,income2,salary}=sample();
+  const saved=recordLink(tree,A,'991',income.id,income2.id,salary.id);
+  assert.equal(saved.canonical.type,'Income');
+  assert.equal(saved.canonical.category,'Salary');
+  assert.equal(entryUsage(tree,A,'transaction',income2.id,[{id:991,type:'Income',category:'Salary'}]),'used');
+  assert.throws(()=>recordLink(tree,A,'991',income.id,income2.id,salary.id),/already recorded/);
+});
+test('cloud normalization round trips valid data and rejects an alien owner or modified linkage',()=>{
+  const {tree,income,income2,salary}=sample();
+  recordLink(tree,A,'991',income.id,income2.id,salary.id);
+  const restored=normalizePersistedHierarchy(JSON.parse(JSON.stringify(tree)),A);
+  assert.equal(restored.links['991'].choiceIds.category,salary.id);
+  assert.throws(()=>normalizePersistedHierarchy(restored,B),/Unsafe/);
+  const tampered=JSON.parse(JSON.stringify(tree));
+  tampered.categories[0].parentId='missing';
+  assert.throws(()=>normalizePersistedHierarchy(tampered,A),/Unsafe/);
+  const other=JSON.parse(JSON.stringify(tree));
+  other.links['991'].canonical.type='Expense';
+  assert.throws(()=>normalizePersistedHierarchy(other,A),/Unsafe/);
 });
