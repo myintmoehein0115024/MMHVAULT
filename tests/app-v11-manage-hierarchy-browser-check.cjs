@@ -1,15 +1,19 @@
 /* Browser-only APP V11.7 UI QA: local fixtures, NO real Auth/ledger/cloud. */
 'use strict';
 const assert=require('node:assert/strict');
-const {chromium}=require('playwright-core');
+const {chromium,webkit}=require('playwright-core');
+const engine=process.env.MMH_BROWSER_ENGINE==='webkit'?'webkit':'chrome';
 const base='http://127.0.0.1:8768/tests/app-v11-manage-hierarchy-browser-fixture.html';
 const widths=[393,768,1440];
 const say=(condition,label)=>{assert.ok(condition,label);console.log('PASS '+label)};
 (async()=>{
-  const browser=await chromium.launch({channel:'chrome',headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
+  const browser=engine==='webkit'
+    ?await webkit.launch({headless:true})
+    :await chromium.launch({channel:'chrome',headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
   try{
     for(const width of widths){
-      const context=await browser.newContext({viewport:{width,height:800},serviceWorkers:'block'});
+      const context=await browser.newContext({viewport:{width,height:800},serviceWorkers:'block',
+        ...(engine==='webkit'&&width<=768?{isMobile:true,hasTouch:true,deviceScaleFactor:2}:{})});
       const page=await context.newPage(),errors=[];
       page.on('pageerror',err=>errors.push(err.message));
       const resp=await page.goto(base,{waitUntil:'load'});
@@ -130,7 +134,8 @@ const say=(condition,label)=>{assert.ok(condition,label);console.log('PASS '+lab
       say(errors.length===0,width+' no browser script exception '+errors.join('; '));
       await context.close();
     }
-    const context=await browser.newContext({viewport:{width:393,height:800},serviceWorkers:'block'});
+    const context=await browser.newContext({viewport:{width:393,height:800},serviceWorkers:'block',
+      ...(engine==='webkit'?{isMobile:true,hasTouch:true,deviceScaleFactor:2}:{})});
     const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
     await page.goto(base+'?legacy=1',{waitUntil:'load'});
     await page.waitForSelector('#mmhHierarchyManage .mmh-hier-card');
@@ -143,6 +148,6 @@ const say=(condition,label)=>{assert.ok(condition,label);console.log('PASS '+lab
       'legacy Category remains visible within linked glass modal');
     say(errors.length===0,'legacy page has no JavaScript exception');
     await context.close();
-    console.log('APP V11.7 synthetic Chrome Manage + responsive smoke PASSED');
+    console.log('APP V11.7 synthetic '+engine+' Manage + responsive smoke PASSED');
   }finally{await browser.close()}
 })().catch(error=>{console.error(error);process.exitCode=1});
