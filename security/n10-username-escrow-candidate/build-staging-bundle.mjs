@@ -58,16 +58,16 @@ export async function buildStagingBundle(target){
 
  src=once(src,'production:true,qa_only:false,limited_signup:false,public_signup:true',
                    'production:false,qa_only:true,limited_signup:false,public_signup:false');
- src=once(src,"let createdUid=null,createdEmail=null,sessionAttempted=false;",
-                  "let createdUid=null,createdEmail=null,sessionAttempted=false;\n let quarantineRequired=false;");
+ src=once(src,"let createdUid=null,createdEmail=null,sessionAttempted=false,backupPossiblyWritten=false;",
+                  "let createdUid=null,createdEmail=null,sessionAttempted=false,backupPossiblyWritten=false;\n let quarantineRequired=false;");
  src=once(src,"createNewUser:async({username,password})=>{\n   const email=",
                   "createNewUser:async({username,password})=>{\n   quarantineRequired=true; // unknown Auth result must keep reservation\n   const email=");
  src=once(src,"createdEmail=email;\n   return {id:createdUid,newlyCreated:true};",
                   "createdEmail=email;\n   quarantineRequired=false;\n   return {id:createdUid,newlyCreated:true};");
  src=once(src,"rollbackNewUser:async({newlyCreatedUserId})=>{\n   if(!createdUid",
                   "rollbackNewUser:async({newlyCreatedUserId})=>{\n   quarantineRequired=true;\n   if(!createdUid");
- src=once(src,"if(sessionAttempted){\n    await admin.auth.admin.updateUserById",
-                  "if(sessionAttempted){\n    quarantineRequired=true;\n    await admin.auth.admin.updateUserById");
+ src=once(src,"if(sessionAttempted||backupPossiblyWritten){\n    await admin.auth.admin.updateUserById",
+                  "if(sessionAttempted||backupPossiblyWritten){\n    quarantineRequired=true;\n    await admin.auth.admin.updateUserById");
  src=once(src,"releaseReservation:async({username,ticket})=>{\n   const {error}=await admin.from",
                   "releaseReservation:async({username,ticket})=>{\n   if(quarantineRequired)return false; // hold claim until expiry/reconciliation\n   const {error}=await admin.from");
  // Any error after Auth creation is ambiguous once the verifier or escrow may
@@ -89,6 +89,8 @@ export async function buildStagingBundle(target){
  assert.doesNotMatch(src,/vrypucmyrztxgiqhjspd|https:\/\/mmhvault\.com\b|const RELEASE_ENABLED=true;/);
  assert.doesNotMatch(src,/admin\.auth\.admin\.deleteUser\(/);
  assert.match(src,/if\(quarantineRequired\)return false;/);
+ assert.match(src,/backupPossiblyWritten=true;/);
+ assert.match(src,/if\(sessionAttempted\|\|backupPossiblyWritten\)\{/);
  assert.doesNotMatch(src,/production:true|qa_only:false|public_signup:true/);
  assert.doesNotMatch(helper,/from\s*['"]|\bimport\s*\(/);
  await mkdir(output,{recursive:true});
