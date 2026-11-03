@@ -20,8 +20,43 @@ Object.assign(A783_STATIC_ZH,{"Show words":"显示恢复词","Hide words":"隐�
 Object.assign(A783_STATIC_ZH,{"Authenticator setup is temporarily paused until recovery and finance protection checks are complete.":"账户恢复及财务数据安全验收期间，暂缓开放新的身份验证器绑定。"});
 Object.assign(A783_DYNAMIC_ZH,{"Your fixed original recovery key is securely backed up. Confirm your password to view it.":"原来的固定恢复密钥已安全加密备份。请输入当前密码查看。","One-time setup: enter your previously saved original ten words and password to protect this SAME key.":"首次设置：输入之前保存的十词及密码，为同一组密钥建立加密备份。","Encrypted recovery-key backup is unavailable. Existing original-key verification still works.":"加密密钥备份服务暂时不可用，原有恢复词验证仍可使用。","Enter the original ten words and current password.":"请输入原始十词及当前密码。","Your original ten words have been securely backed up without being changed.":"原有十词已安全加密备份，没有更换。","Could not back up the original key. No recovery words were changed.":"原始密钥备份未完成，恢复词没有被更换。","Enter your current password to view the fixed original key.":"请输入当前密码查看固定的原始密钥。","Original recovery key verified. It will automatically hide after 45 seconds.":"原始恢复密钥已解锁，45秒后自动隐藏。","Unable to unlock the recovery key. Check your password and authentication.":"无法解锁恢复密钥，请核对密码及身份验证。","This private key view automatically closes after 45 seconds. Never share these words or the QR code.":"此密钥视图45秒后自动关闭，请勿分享恢复词或二维码。"});
 Object.assign(A783_STATIC_ZH,{"Confirm current password":"验证当前密码","Secure my original 10 words":"加密备份现有十词","View original 10 words":"查看原始十词"});
-function a783IsZh(){return (localStorage.getItem('mmhvault_language_v3363')||document.documentElement.lang||'').toLowerCase().startsWith('zh');}
-function a783Text(en){return a783IsZh()?(A783_DYNAMIC_ZH[en]||A783_STATIC_ZH[en]||en):en;}
+// Recovery Vault review translations; the rest of the account center keeps
+// its established dictionary until the complete N10 i18n audit.
+const A783_RECOVERY_MY=Object.freeze({
+ 'Permanent recovery key':'အမြဲတမ်း ပြန်လည်ရယူရေးသော့',
+ '10 words':'စကားလုံး ၁၀ လုံး',
+ 'Your saved 10 words, in the original order':'သိမ်းထားသော မူရင်း စကားလုံး ၁၀ လုံးကို အစဉ်လိုက် ထည့်ပါ',
+ 'Verify saved words':'သိမ်းထားသော စကားလုံးများကို စစ်ဆေးပါ',
+ 'Save my QR':'QR ကုဒ်ကို သိမ်းဆည်းရန်',
+ 'Hide key':'သော့ကို ဖျောက်ရန်',
+ 'Confirm current password':'လက်ရှိ စကားဝှက်ကို အတည်ပြုပါ',
+ 'Secure my original 10 words':'မူရင်း စကားလုံး ၁၀ လုံးကို လုံခြုံစွာ သိမ်းဆည်းရန်',
+ 'View original 10 words':'မူရင်း စကားလုံး ၁၀ လုံးကို ကြည့်ရန်',
+ 'Your fixed original recovery key is securely backed up. Confirm your password to view it.':'မူရင်း ပြန်လည်ရယူရေးသော့ကို လုံခြုံစွာ သိမ်းဆည်းထားပါသည်။ ကြည့်ရန် လက်ရှိ စကားဝှက်ကို အတည်ပြုပါ။',
+ 'One-time setup: enter your previously saved original ten words and password to protect this SAME key.':'တစ်ကြိမ်သာ စီစဉ်ရန် ယခင်သိမ်းထားသော မူရင်း စကားလုံး ၁၀ လုံးနှင့် စကားဝှက်ကို ထည့်ပါ။ သော့အသစ် မထုတ်ပါ။',
+ 'Encrypted recovery-key backup is unavailable. Existing original-key verification still works.':'ကုဒ်ဝှက်ထားသော အရန်သိမ်းဆည်းမှုကို ယာယီ အသုံးမပြုနိုင်ပါ။ မူရင်းသော့ စစ်ဆေးမှုကို ဆက်သုံးနိုင်ပါသည်။',
+ 'Enter the original ten words and current password.':'မူရင်း စကားလုံး ၁၀ လုံးနှင့် လက်ရှိ စကားဝှက်ကို ထည့်ပါ။',
+ 'Your original ten words have been securely backed up without being changed.':'မူရင်း စကားလုံး ၁၀ လုံးကို မပြောင်းလဲဘဲ လုံခြုံစွာ သိမ်းဆည်းပြီးပါပြီ။',
+ 'Could not back up the original key. No recovery words were changed.':'မူရင်းသော့ကို သိမ်းဆည်း၍ မရပါ။ ပြန်လည်ရယူရေး စကားလုံးများ မပြောင်းလဲပါ။',
+ 'Enter your current password to view the fixed original key.':'မူရင်းသော့ကို ကြည့်ရန် လက်ရှိ စကားဝှက်ကို ထည့်ပါ။',
+ 'Original recovery key verified. It will automatically hide after 45 seconds.':'မူရင်းသော့ကို အတည်ပြုပြီးပါပြီ။ ၄၅ စက္ကန့်အကြာတွင် အလိုအလျောက် ဖျောက်ပါမည်။',
+ 'Unable to unlock the recovery key. Check your password and authentication.':'သော့ကို ဖွင့်မရပါ။ စကားဝှက်နှင့် အတည်ပြုမှုကို စစ်ဆေးပါ။',
+ 'This private key view automatically closes after 45 seconds. Never share these words or the QR code.':'ဤပြသမှုသည် ၄၅ စက္ကန့်အကြာတွင် အလိုအလျောက် ပိတ်ပါမည်။ စကားလုံးများနှင့် QR ကုဒ်ကို မမျှဝေပါနှင့်။',
+ 'Permanent ten-word recovery is available to username-only accounts.':'အမြဲတမ်း စကားလုံး ၁၀ လုံး ပြန်လည်ရယူမှုကို အသုံးပြုသူအမည်သီးသန့် အကောင့်များတွင်သာ အသုံးပြုနိုင်ပါသည်။',
+ 'Your original 10-word key remains valid. The original words cannot be retrieved from their secure verifier.':'မူရင်း စကားလုံး ၁၀ လုံးသော့သည် ဆက်လက်အသုံးဝင်ပါသည်။ စစ်ဆေးရေးတန်ဖိုးမှ မူရင်းစာသားကို ပြန်လည်ထုတ်ယူ၍ မရပါ။',
+ 'Sign in to manage account security.':'အကောင့်လုံခြုံရေးကို စီမံရန် ဝင်ရောက်ပါ။',
+ 'This private recovery-key view automatically closes after 45 seconds. Anyone with these words can log in.':'ပြန်လည်ရယူရေး စကားလုံးများကို ၄၅ စက္ကန့်အကြာတွင် ဖျောက်ပါမည်။ ဤစကားလုံးများကို အခြားသူများနှင့် မမျှဝေပါနှင့်။'
+});
+function a783Language(){
+ const value=(localStorage.getItem('mmhvault_language_v3363')||document.documentElement.lang||'').toLowerCase();
+ return value.startsWith('zh')?'zh':/^(my|mm|bur)/.test(value)?'my':'en';
+}
+function a783IsZh(){return a783Language()==='zh';}
+function a783Text(en){
+ const lang=a783Language();
+ return lang==='zh'?(A783_DYNAMIC_ZH[en]||A783_STATIC_ZH[en]||en):
+        lang==='my'?(A783_RECOVERY_MY[en]||en):en;
+}
 const totpSetup=$('mmhA783TotpSetup');
 if(totpSetup&&!$('mmhA783TotpBackupConfirmed')){
  const backupLabel=document.createElement('label');backupLabel.className='mmh-a783-label mmh-n10-backup-confirm';
@@ -56,7 +91,15 @@ function a783RenderLanguage(){
     const translated=a783Text(en);
     if(node){node.nodeValue=' '+translated;}else{el.textContent=translated;}
   });
-  a783Placeholders.forEach(({el,en})=>el.placeholder=a783IsZh()?(en==='word1 word2 word3 … word10'?'按顺序输入十个单词':en):en);
+  a783Placeholders.forEach(({el,en})=>{
+    const lang=a783Language();
+    el.placeholder=en==='word1 word2 word3 … word10'
+      ?(lang==='zh'?'按顺序输入十个单词':lang==='my'?'မူရင်း စကားလုံး ၁၀ လုံးကို အစဉ်လိုက် ထည့်ပါ':en)
+      :en;
+  });
+  const vaultPassword=$('mmhN10VaultPassword');
+  if(vaultPassword) vaultPassword.placeholder=
+    a783Language()==='zh'?'当前密码':a783Language()==='my'?'လက်ရှိ စကားဝှက်':'Current password';
   document.querySelectorAll('[data-mmh-a783-dynamic-en]').forEach(el=>{
     el.textContent=a783Text(el.dataset.mmhA783DynamicEn);
   });
@@ -230,9 +273,11 @@ function vaultStatusMode(mode){
  $('mmhN10VaultReveal').hidden=!ready;
  $('mmhN10VaultBackup').hidden=!needed;
  const note=$('mmhN10VaultInfo');
- note.textContent=ready
-  ?a783Text('Your fixed original recovery key is securely backed up. Confirm your password to view it.')
-  :a783Text('One-time setup: enter your previously saved original ten words and password to protect this SAME key.');
+ const noteKey=ready
+  ?'Your fixed original recovery key is securely backed up. Confirm your password to view it.'
+  :'One-time setup: enter your previously saved original ten words and password to protect this SAME key.';
+ note.dataset.mmhA783DynamicEn=noteKey;
+ note.textContent=a783Text(noteKey);
  const legacyNote=vaultRecovery.querySelector(':scope > p.mmh-a783-note');if(legacyNote)legacyNote.hidden=ready;
  for(const el of [
   vaultRecovery.querySelector('label[for="mmhA783Phrase"]'),
