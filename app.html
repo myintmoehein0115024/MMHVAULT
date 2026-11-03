@@ -13240,6 +13240,33 @@ async function mmhVaultRecurringUsesCategoryV1236(group,name,owner){
 async function mmhVaultWalletUsesAccountV196(name,owner){
   return (await mmhVaultRowsUsingAccountV192('crypto_wallet_movements',['from_wallet','to_wallet'],name,owner)).length>0;
 }
+// APP V11 · Protect account names and currencies against historical mislinking.
+// Existing names and *target* names are checked. A newly renamed account must
+// never silently adopt an orphaned transaction or reinterpret its currency.
+async function mmhVaultFinanceIdentityChangeSafeV11(account,nextName,nextCurrency,owner){
+  if(!mmhVaultRequireConfigOwner(owner)||typeof db==='undefined'||!account)return false;
+  const oldName=String(account.name||'').trim(),wantedName=String(nextName||'').trim();
+  const oldCurrency=String(account.currency||'').trim().toUpperCase();
+  const wantedCurrency=String(nextCurrency||'').trim().toUpperCase();
+  if(!oldName||!wantedName||!wantedCurrency)return false;
+  if(oldName===wantedName&&oldCurrency===wantedCurrency)return true;
+  const referenced=async name=>{
+    const [primary,recurring,wallet,lifeFunds]=await Promise.all([
+      mmhVaultPrimaryHistoryUsesAccountV192(name,owner),
+      mmhVaultRecurringUsesAccountV1236(name,owner),
+      mmhVaultWalletUsesAccountV196(name,owner),
+      mmhVaultRowsUsingAccountV192('life_fund_allocations',['source_account_name'],name,owner)
+    ]);
+    if(!mmhVaultRequireConfigOwner(owner))throw Error('Account session changed.');
+    return !!(primary||recurring||wallet||(lifeFunds||[]).length);
+  };
+  if(await referenced(oldName))return false;
+  // A historic orphan may already carry the new name, even if the current
+  // account has no transactions. Block accidental adoption of that history.
+  if(oldName.toLowerCase()!==wantedName.toLowerCase()&&await referenced(wantedName))return false;
+  return mmhVaultRequireConfigOwner(owner);
+}
+
 async function mmhVaultSyncAccountRenameSecondaryV1236(oldName,newName,owner){
   const warnings=[];
   try{
@@ -13530,6 +13557,10 @@ function mmhVaultEditAccountV449(id){
         const oldName=a.name, nameChanged=oldName!==newName;
         try{
           const u=(await db.auth.getUser()).data.user;if(!u||u.id!==configOwner||!mmhVaultRequireConfigOwner(configOwner))throw Error('Account session changed.');
+          if(!(await mmhVaultFinanceIdentityChangeSafeV11(a,newName,newCurrency,configOwner))){
+            window.mmhEditDeleteUI.inline('This account name or currency cannot be changed because it would affect linked financial history. You can edit other settings or archive it instead.');
+            return false;
+          }
           if(nameChanged&&u){
             await mmhVaultUpdateAccountRefsV192('transactions',['from_account','to_account'],oldName,newName,u.id);
             if(!mmhVaultRequireConfigOwner(configOwner))throw Error('Account session changed.');
