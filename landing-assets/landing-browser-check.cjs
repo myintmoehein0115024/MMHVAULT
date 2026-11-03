@@ -52,6 +52,138 @@ async function load(page,route,failures){
 (async()=>{
  const browser=await chromium.launch({channel:'chrome',headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
  try{
+   // L1.51 repeated section nav highlight DOM parity.
+   // Compare exact merged L1.50 handler against L1.51 under Chrome.
+   // Only navigation aria-current mutations are counted; don't claim field LCP.
+   {
+     const proposed=fs.readFileSync('landing-assets/landing.js','utf8');
+     const oldHandler="  function markSection(id) {\n    if (homeLink) {\n      if (id === 'top') homeLink.setAttribute('aria-current','location');\n      else homeLink.removeAttribute('aria-current');\n    }\n    sectionLinks.forEach(link => {\n      if (link.getAttribute('href') === '#' + id) link.setAttribute('aria-current','location');\n      else link.removeAttribute('aria-current');\n    });\n  }";
+     const newHandler="  function markSection(id) {\n    // L1.51: repeated viewport observations must not rewrite unchanged\n    // navigation attributes; keep the same active section and semantics.\n    if (homeLink) {\n      if (id === 'top') {\n        if (homeLink.getAttribute('aria-current') !== 'location')\n          homeLink.setAttribute('aria-current','location');\n      } else if (homeLink.hasAttribute('aria-current'))\n        homeLink.removeAttribute('aria-current');\n    }\n    sectionLinks.forEach(link => {\n      if (link.getAttribute('href') === '#' + id) {\n        if (link.getAttribute('aria-current') !== 'location')\n          link.setAttribute('aria-current','location');\n      } else if (link.hasAttribute('aria-current'))\n        link.removeAttribute('aria-current');\n    });\n  }";
+     assert.equal(proposed.split(newHandler).length,2,'L1.51 exact nav-only edit');
+     const baseline=proposed.replace(newHandler,oldHandler);
+     const records=[];
+     for(const width of [393,1440])for(const locale of ['en','zh','my']){
+       const results={};
+       for(const [kind,script] of [['baseline',baseline],['optimized',proposed]]){
+         const ctx=await browser.newContext({
+           viewport:{width,height:852},reducedMotion:'reduce',serviceWorkers:'block'});
+         const page=await ctx.newPage(),errors=[];
+         page.on('pageerror',e=>errors.push(e.message));
+         await page.addInitScript(lang=>{
+           try{localStorage.setItem('mmhvault.landing.language',lang)}catch(_){}
+         },locale);
+         await page.route('**/landing-assets/landing.js*',route=>route.fulfill({
+           status:200,contentType:'application/javascript',body:script}));
+         const response=await page.goto(origin+'/',{waitUntil:'load',timeout:30000});
+         await page.waitForTimeout(60);
+         const measured=await page.evaluate(()=>{
+           const nav=document.querySelector('#primary-nav');
+           const home=nav.querySelector('[data-i18n="navHome"]');
+           const links=[...nav.querySelectorAll('a[href^="#"]')];
+           const hero=[...document.querySelectorAll('[data-hero-fixed]')]
+             .map(el=>el.textContent.trim());
+           // Keep navigation native click handlers but suppress hash navigation,
+           // so tests compare attribute work rather than scroll animations.
+           links.forEach(link=>link.addEventListener('click',e=>e.preventDefault(),{
+             capture:true}));
+           const snapshot=()=>({
+             lang:document.documentElement.lang,
+             meta:document.querySelector('meta[name="description"]')?.content,
+             title:document.title,
+             home:[home.getAttribute('href'),home.getAttribute('aria-current'),
+               home.textContent.trim()],
+             links:links.map(x=>[x.getAttribute('href'),x.getAttribute('aria-current'),
+               x.textContent.trim()]),
+             hero:[...document.querySelectorAll('[data-hero-fixed]')]
+               .map(x=>x.textContent.trim()),
+             currentBusiness:document.querySelector('.business-stage')?.dataset.currentView,
+             pathname:location.pathname,
+             hash:location.hash,
+             scrollY:Math.round(window.scrollY),
+             headerRight:Math.round(document.querySelector('.site-header')
+               .getBoundingClientRect().right)
+           });
+           const observer=new MutationObserver(()=>{});
+           observer.observe(nav,{subtree:true,attributes:true,
+             attributeFilter:['aria-current']});
+           const select=href=>{
+             const link=links.find(x=>x.getAttribute('href')===href);
+             observer.takeRecords();
+             link.click();
+             return {mutations:observer.takeRecords().length,state:snapshot()};
+           };
+           const initial=snapshot();
+           const firstFeatures=select('#features');
+           const repeatFeatures=select('#features');
+           const firstBusiness=select('#business');
+           const repeatBusiness=select('#business');
+           const backFeatures=select('#features');
+           observer.disconnect();
+           return {initial,firstFeatures,repeatFeatures,firstBusiness,
+             repeatBusiness,backFeatures,hero};
+         });
+         ensure(response?.status()===200&&errors.length===0&&
+           measured.initial.lang===(locale==='zh'?'zh-CN':locale)&&
+           measured.initial.home[1]==='location'&&
+           measured.hero.length===3&&
+           measured.initial.headerRight<=width+1&&
+           measured.initial.hash===''&&
+           measured.firstFeatures.state.links.some(x=>
+             x[0]==='#features'&&x[1]==='location')&&
+           measured.firstBusiness.state.links.some(x=>
+             x[0]==='#business'&&x[1]==='location')&&
+           measured.backFeatures.state.links.some(x=>
+             x[0]==='#features'&&x[1]==='location')&&
+           measured.firstFeatures.state.home[1]===null&&
+           measured.firstFeatures.state.hash===''&&
+           measured.firstFeatures.state.scrollY===measured.initial.scrollY,
+           'L1.51 '+kind+' '+width+'px '+locale+' correct nav semantics and Hero');
+         results[kind]=measured;
+         await ctx.close();
+       }
+       const old=results.baseline,now=results.optimized;
+       for(const step of ['initial','firstFeatures','repeatFeatures',
+         'firstBusiness','repeatBusiness','backFeatures']){
+         const a=step==='initial'?old[step]:old[step].state;
+         const b=step==='initial'?now[step]:now[step].state;
+         ensure(JSON.stringify(a)===JSON.stringify(b),
+           'L1.51 '+width+'px '+locale+' unchanged '+step+' nav/locale content');
+       }
+       ensure(now.repeatFeatures.mutations===0&&
+         now.repeatBusiness.mutations===0&&
+         old.repeatFeatures.mutations>0&&old.repeatBusiness.mutations>0&&
+         now.firstFeatures.mutations<=old.firstFeatures.mutations&&
+         now.firstBusiness.mutations<=old.firstBusiness.mutations&&
+         now.backFeatures.mutations<=old.backFeatures.mutations,
+         'L1.51 '+width+'px '+locale+' redundant nav updates eliminated '+
+         JSON.stringify({before:[
+           old.firstFeatures.mutations,old.repeatFeatures.mutations,
+           old.firstBusiness.mutations,old.repeatBusiness.mutations,
+           old.backFeatures.mutations],after:[
+           now.firstFeatures.mutations,now.repeatFeatures.mutations,
+           now.firstBusiness.mutations,now.repeatBusiness.mutations,
+           now.backFeatures.mutations]}));
+       records.push({width,locale,before:{
+         firstFeatures:old.firstFeatures.mutations,
+         repeatFeatures:old.repeatFeatures.mutations,
+         firstBusiness:old.firstBusiness.mutations,
+         repeatBusiness:old.repeatBusiness.mutations,
+         backFeatures:old.backFeatures.mutations
+       },after:{
+         firstFeatures:now.firstFeatures.mutations,
+         repeatFeatures:now.repeatFeatures.mutations,
+         firstBusiness:now.firstBusiness.mutations,
+         repeatBusiness:now.repeatBusiness.mutations,
+         backFeatures:now.backFeatures.mutations
+       }});
+     }
+     const skipped=records.reduce((n,x)=>
+       n+x.before.repeatFeatures+x.before.repeatBusiness,0);
+     ensure(skipped>0,'L1.51 bypasses repeat nav aria-current writes '+skipped);
+     console.log('L1.51 nav highlight DOM lab (not field LCP): '+
+       JSON.stringify({skippedMutationRecords:skipped,records}));
+   }
+
    // L1.50 active language selection no-op browser parity. Compare the
    // exact L1.49 baseline and new handler across mobile/desktop + EN/ZH/MY.
    // Observe only <main> to exclude the intentional language-menu close.
@@ -817,12 +949,12 @@ async function load(page,route,failures){
        layout.styles.filter(v=>v==='l146').length===2 &&
        layout.styles.filter(v=>v==='l147').length===1 &&
        layout.styles.filter(v=>v==='l141').length===2 &&
-       layout.scripts.includes('l150') && layout.scripts.includes('l141') &&
+       layout.scripts.includes('l151') && layout.scripts.includes('l141') &&
        loaded.length===8 && loaded.every(r=>r.status===200&&
          r.version===(r.path==='/landing-assets/landing.min.css'?'l145':
            ['/landing-assets/cinematic.min.css','/landing-assets/premium-l131.min.css'].includes(r.path)?'l146':
            r.path==='/landing-assets/header-explore-l147.min.css'?'l147':
-            r.path==='/landing-assets/landing.js'?'l150':'l141')) &&
+            r.path==='/landing-assets/landing.js'?'l151':'l141')) &&
        new Set(loaded.map(r=>r.path)).size===8 && failures.length===0,
        'L1.47 '+width+'px eight CSS/JS requests with consistent cache keys '+JSON.stringify({loaded,failures}));
      ensure(layout.brand.left>=-1&&layout.brand.right<=width+1 &&
