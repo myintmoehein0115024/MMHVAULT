@@ -59,6 +59,20 @@
   <p id="result" class="aalresult is-hidden" role="status"></p>
   <button class="outline" id="logout" type="button" data-t="logout">退出并清除测试会话</button>
  </section>
+ <section class="glass is-hidden" id="vaultPanel" aria-labelledby="vaultTitle">
+  <div class="section-tag">03 / RECOVERY VAULT · READ ONLY</div>
+  <h2 id="vaultTitle">密码验证查看固定十词</h2>
+  <p class="small" data-vault-text="intro">仅查看已加密保存的原始十词；不会重新生成、修改或覆盖已有密钥。</p>
+  <p id="vaultMessage" class="small" role="status" aria-live="polite">Vault 尚未开放，无法查看恢复词。</p>
+  <button type="button" id="vaultStatusBtn" class="outline">检查本账户加密备份</button>
+  <div id="vaultRevealBox" class="is-hidden">
+   <label for="vaultPassword">再次输入当前测试账户密码</label>
+   <input id="vaultPassword" type="password" autocomplete="off" minlength="6" maxlength="20">
+   <button type="button" id="vaultRevealBtn" class="primary">验证密码并查看原始十词</button>
+  </div>
+  <button type="button" id="vaultCrossCheck" class="outline is-hidden">安全检查：B 无法请求 A 的数据</button>
+  <p class="small" data-vault-text="privacy">恢复词只在当前页面的高级弹窗中显示 45 秒；切换标签页、退出或关闭将立即清除。</p>
+ </section>
  <div class="foot" data-t="foot">仅 Staging 测试 · 不保存密码 / 动态码 / MFA 秘钥到浏览器存储</div>
 </main>
 <div id="qrModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="qrTitle" hidden>
@@ -77,6 +91,16 @@
   </div>
   <p class="small" data-t="qrVerifyNote">完成扫描后关闭弹窗，输入应用里的六位码。</p>
   <button type="button" class="primary" id="qrDone" data-t="qrDone">已扫描，开始验证</button>
+ </div>
+</div>
+<div id="vaultModal" class="modal" role="dialog" aria-modal="true" aria-labelledby="vaultModalTitle" hidden>
+ <div class="dialog">
+  <div class="dialog-top"><div class="eyebrow">FIXED RECOVERY KEY / PRIVATE VAULT</div><button id="vaultClose" class="close" type="button" aria-label="Close">×</button></div>
+  <h2 id="vaultModalTitle">已保存的原始十词</h2>
+  <p class="small">只属于当前完成密码及 MFA 验证的测试账户，请勿截图或发送给任何人。</p>
+  <div id="vaultWords" class="words" aria-live="off"></div>
+  <p id="vaultTimer" class="timer" role="status" aria-live="off"></p>
+  <button id="vaultHide" class="primary" type="button">立即隐藏恢复词</button>
  </div>
 </div>
 </body>
