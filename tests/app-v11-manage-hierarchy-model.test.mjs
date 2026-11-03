@@ -38,7 +38,7 @@ test('names are unique within their own parent and may be user-defined',()=>{
   assert.throws(()=>addTransaction(tree,A,'income2',income.id,'Income|Income',next));
   assert.throws(()=>addCategory(tree,A,'salary',income2.id,next));
   const other=addTransaction(tree,A,'Other Income',income.id,'Income|Income',next);
-  assert.equal(addCategory(tree,A,'Salary',other.id,next).label,'Salary');
+  assert.equal(addCategory(tree,A,'Bonus',other.id,next).label,'Bonus');
   assert.throws(()=>addType(tree,A,'Income','Income',next));
 });
 test('archive hides an option in Add Transaction; saved ledger path remains intact',()=>{
