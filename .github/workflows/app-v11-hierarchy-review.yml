@@ -1,0 +1,45 @@
+name: APP V11 hierarchy owner & archive safety (NO DEPLOY)
+
+on:
+  pull_request:
+    paths:
+      - 'app.html'
+      - 'js/mmhvault-v11-manage-hierarchy-*.mjs'
+      - 'tests/app-v11-manage-hierarchy-*.test.mjs'
+      - '.github/workflows/app-v11-hierarchy-review.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  hierarchy:
+    name: V11.7 hierarchy-only static and model checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Parse pure graph/controller and draft presentation
+        run: |
+          node --check js/mmhvault-v11-manage-hierarchy-model.mjs
+          node --check js/mmhvault-v11-manage-hierarchy-controller.mjs
+          node --check js/mmhvault-v11-manage-hierarchy-live.mjs
+      - name: Check owner scope, archival protection and ledger associations
+        run: node --test tests/app-v11-manage-hierarchy-model.test.mjs tests/app-v11-manage-hierarchy-controller.test.mjs
+      - name: Check branch-only page integration and protected ledger fields
+        run: |
+          node --input-type=module - <<'NODE'
+          import fs from 'node:fs';
+          import assert from 'node:assert/strict';
+          const app=fs.readFileSync('app.html','utf8');
+          const live=fs.readFileSync('js/mmhvault-v11-manage-hierarchy-live.mjs','utf8');
+          assert.match(app,/mmhvault-v11-manage-hierarchy-live\.mjs\?v=0\.7\.0/);
+          assert.match(app,/txHierarchyV11:mmhVaultNormalizeTxHierarchyV11\(x\.txHierarchyV11,uid\(\)\)/);
+          assert.match(app,/onLedgerInserted\?\.\(u\.id,r\.data\.id,selected\)/);
+          assert.match(app,/const row=\{user_id:u\.id,tx_date:txDate\.value,type,category:/);
+          assert.doesNotMatch(live,/\.from\(['"]transactions['"]\)\.update\(/);
+          assert.doesNotMatch(live,/\.from\(['"]transactions['"]\)\.delete\(/);
+          console.log('Verified runtime loader, cloud-config retention, ledger insert-only and no history mutation');
+          NODE
