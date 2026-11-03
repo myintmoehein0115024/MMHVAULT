@@ -11,7 +11,11 @@ const originalStatus="return error||typeof data!=='boolean'?out(origin,'unavaila
 const revisedStatus="return error||typeof data!=='boolean'?out(origin,'unavailable',503):out(origin,'backup_status',200,{backed_up:data,window_expires_at:QA_WINDOW_END_UTC,server_utc_now:new Date().toISOString()});";
 assert(v2.includes(originalStatus),'archived original status handler');
 assert(v3.includes(revisedStatus),'only authenticated status provides UTC deadline and server clock');
-assert.equal(v3,v2.replace(oldLine,newLine).replace(originalStatus,revisedStatus),'only QA origin and authenticated status metadata may change');
+const oldMfaGuard=" const expectedAal=sessionAalFromVerifiedFactors(factors.factors);\n if(!expectedAal)return {state:'unavailable' as const};";
+const newMfaGuard=oldMfaGuard+"\n // Staging Vault QA requires the two fixtures' live verified TOTP at AAL2.\n // Never silently downgrade to password-only/AAL1 after factor removal.\n if(expectedAal!=='aal2'||!factors.factors.some(\n   (f:any)=>f?.factor_type==='totp'&&f?.status==='verified'))\n  return {state:'required' as const};";
+assert(v2.includes(oldMfaGuard),'reference MFA assurance guard');
+assert(v3.includes(newMfaGuard),'AAL2 verified TOTP required for Staging QA');
+assert.equal(v3,v2.replace(oldLine,newLine).replace(originalStatus,revisedStatus).replace(oldMfaGuard,newMfaGuard),'only QA origin, status metadata and verified TOTP AAL2 gate may change');
 for(const source of [v2,v3]){
  assert(source.includes("const RECOVERY_RELEASE_ENABLED=false;"));
  assert(source.includes("const QA_WINDOW_END_UTC='1970-01-01T00:00:00.000Z';"));
@@ -26,4 +30,4 @@ for(const dep of ['mfa-assurance.mjs','session-guard.mjs','session-aal.mjs']){
  const v=readFileSync(dir+dep,'utf8');
  assert(v.length>250);
 }
-console.log('PASS: Staging Edge differs from v2 only by QA origin and authenticated window status');
+console.log('PASS: Staging Edge exact diff includes strict TOTP AAL2 gate');
