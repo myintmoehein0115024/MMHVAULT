@@ -62,6 +62,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: mmhvault-landing-public-visual-qa
-          path: landing-qa-screenshots/*.png
+          path: |
+            landing-qa-screenshots/*.png
+            landing-qa-screenshots/performance-l143.json
           if-no-files-found: ignore
           retention-days: 7
