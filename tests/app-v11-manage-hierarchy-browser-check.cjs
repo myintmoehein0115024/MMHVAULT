@@ -91,7 +91,7 @@ const say=(condition,label)=>{assert.ok(condition,label);console.log('PASS '+lab
       // Once a parent is archived, its descendants are hidden in future selects.
       await dlg.getByRole('button',{name:'Archive'}).click();
       say(await page.locator('#txCategory option').count()===0,width+' archived Salary hidden from Add Transaction');
-      say((await page.evaluate(()=>window.__syntheticWrites))===4,width+' exactly four synthetic writes, no default auto-migration');
+      say((await page.evaluate(()=>window.__syntheticWrites))===5,width+' exactly five synthetic config writes including link retry, no default migration');
       await page.keyboard.press('Escape');
       // Interface language follows page preference for the cards.
       await page.evaluate(()=>{
