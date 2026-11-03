@@ -485,11 +485,16 @@
       mmhVaultTransactionCategoryListV451(type,group):(config()?.categories?.[key]||[]);
     return Array.isArray(list)&&list.includes(fallback);
   }
+  function systemCategory(type,group){
+    return (type==='Transfer'&&group==='Transfer'||group==='Data Adjustment')&&
+      safeNeutral(type,group)?neutral(type,group):null;
+  }
   function allowedTransactions(){
     const withCategory=categories().length>0;
     return transactions().filter(x=>
       (!types().length||types().includes(x.type))&&
-      (withCategory?matchingCategories(x.type,x.group).length>0:safeNeutral(x.type,x.group)));
+      (withCategory?(matchingCategories(x.type,x.group).length>0||
+        !!systemCategory(x.type,x.group)):safeNeutral(x.type,x.group)));
   }
   function readiness(){
     const active={type:types().length>0,transaction:transactions().length>0,category:categories().length>0};
@@ -626,13 +631,21 @@
       if(enabled.category){
         const available=categories().filter(x=>x.type===type&&(!enabled.transaction||x.coreGroup===group));
         if(!available.length){
-          c.replaceChildren();note(tr('Add a matching Category in Manage for this Transaction.',
-            '请在 Manage 为此 Transaction 添加匹配的 Category。','Category ထည့်ပါ။'));return;
+          // Transfers and Data Adjustments are system-managed category codes;
+          // migrating an old account must never disable these valid ledger kinds.
+          const builtin=enabled.transaction?systemCategory(type,group):null;
+          if(!builtin){
+            c.replaceChildren();note(tr('Add a matching Category in Manage for this Transaction.',
+              '请在 Manage 为此 Transaction 添加匹配的 Category。','Category ထည့်ပါ။'));return;
+          }
+          if(!setCore(type,group,builtin)){c.replaceChildren();return;}
+          fill(c,[{value:builtin,label:builtin,group}],builtin);
+        }else{
+          const chosen=available.find(x=>x.name===currCat&&x.coreGroup===group)||available[0];
+          setCore(type,chosen.coreGroup,chosen.name);
+          group=g.value;
+          fill(c,available.map(x=>({value:x.name,label:x.name,group:x.coreGroup})),chosen.name);
         }
-        const chosen=available.find(x=>x.name===currCat&&x.coreGroup===group)||available[0];
-        setCore(type,chosen.coreGroup,chosen.name);
-        group=g.value;
-        fill(c,available.map(x=>({value:x.name,label:x.name,group:x.coreGroup})),chosen.name);
       }else{
         const defaultCat=neutral(type,group);
         const list=typeof mmhVaultTransactionCategoryListV451==='function'?mmhVaultTransactionCategoryListV451(type,group):[];
@@ -679,7 +692,9 @@
     if(!TYPE.includes(t.value)||!g.value||!c.value)return false;
     if(s.type.length&&!s.type.includes(t.value))return false;
     if(s.transaction.length&&!s.transaction.includes(t.value+'|'+g.value))return false;
-    if(categories().length&&!categories().some(x=>x.type===t.value&&x.coreGroup===g.value&&x.name===c.value))return false;
+    if(categories().length&&!categories().some(x=>x.type===t.value&&x.coreGroup===g.value&&x.name===c.value)){
+      if(!transactions().length||c.value!==systemCategory(t.value,g.value))return false;
+    }
     if(!categories().length&&(!neutral(t.value,g.value)||c.value!==neutral(t.value,g.value)))return false;
     return true;
   }
@@ -721,6 +736,9 @@
     if(status.active.category){
       const expected=categories().filter(x=>x.type===t.value&&
         (!status.active.transaction||x.coreGroup===g.value));
+      const builtin=status.active.transaction&&!expected.length?
+        systemCategory(t.value,g.value):null;
+      if(builtin)expected.push({name:builtin,coreGroup:g.value});
       const opts=[...c.options];
       if(opts.length!==expected.length||opts.some((opt,i)=>
         opt.value!==expected[i].name||
