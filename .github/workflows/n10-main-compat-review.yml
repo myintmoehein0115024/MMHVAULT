@@ -59,7 +59,7 @@ jobs:
         with:
           deno-version: v2.x
       - name: Deno static-check the self-contained review Edge
-        run: deno check --no-config /tmp/mmhvault-n10-review-bundle/index.ts
+        run: deno check --config security/n10-username-escrow-candidate/deno-review.json /tmp/mmhvault-n10-review-bundle/index.ts
       - name: Install Playwright browser test runtime
         run: |
           npm install --no-save playwright@1.56.1
