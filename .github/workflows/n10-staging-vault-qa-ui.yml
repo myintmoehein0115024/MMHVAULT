@@ -23,6 +23,9 @@ jobs:
         run: |
           node --check security/n10-vault-qa-staging-site/app.js
           node --check security/n10-vault-qa-staging-site/signup.js
+          node --check security/n10-vault-qa-staging-site/mfa.js
+      - name: New username MFA A/B QA isolation, challenge and AAL2 regressions
+        run: node --test security/n10-vault-qa-staging-site/test-mfa-qa.mjs
       - name: Connected signup QA isolation, privacy and responsive tests
         run: node --test security/n10-vault-qa-staging-site/test-signup-qa.mjs
       - name: Live deployed Staging signup page GET smoke (no credentials)
