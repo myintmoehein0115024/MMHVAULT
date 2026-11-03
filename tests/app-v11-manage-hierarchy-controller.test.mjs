@@ -89,6 +89,10 @@ test('confirmed saved ledger can be linked by exact DB row ID',()=>{
   assert.equal(JSON.stringify(h.config.categories),before);
   h.history([{id:12345,user_id:owner,type:'Income',category:'Salary'}]);
   assert.equal(h.api.status('transaction',txn.id),'used');
+  const first=JSON.stringify(h.api.read().links['12345']);
+  assert.doesNotThrow(()=>h.api.recorded('12345',type.id,txn.id,cat.id,
+    {type:'Income',group:'Income',category:'Salary'}));
+  assert.equal(JSON.stringify(h.api.read().links['12345']),first);
   assert.throws(()=>h.api.rename('category',cat.id,'Salary2'),/Archive instead/);
 });
 test('mismatching server ledger row cannot be attached to another Manage path',()=>{
