@@ -111,7 +111,9 @@ async function verifiedUser(req:Request){
  // The database guard must receive the AAL derived from SERVER-VERIFIED
  // Auth factors, never from an untrusted client-controlled request field.
  const factorAal=sessionAalFromVerifiedFactors(factors.factors);
- if(!factorAal)return {state:'unavailable' as const};
+ // Narrow the server-derived assurance to the only two supported values.
+ // Unknown factors, mismatches or parser drift must fail closed.
+ if(factorAal!=='aal1'&&factorAal!=='aal2')return {state:'unavailable' as const};
  // Require AAL2 if any server-verified MFA factor exists. Allow fresh AAL1
  // only when the signed owner has no verified factor; never downgrade.
  const expectedAal=factorAal;
