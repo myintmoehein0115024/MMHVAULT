@@ -98,6 +98,26 @@ invariants. This is not an atomic DB transaction or signed Staging A/B proof.
   followed by a sidecar-only user retry. This is browser QA but **not real
   authenticated Staging QA** and does not prove WebKit, iOS or Android.
 
+## WebKit / Safari-engine simulated responsive acceptance (draft only)
+
+Independent WebKit automation was added to the existing synthetic Chrome QA
+suite. The WebKit run uses local no-auth browser fixtures with touch/mobile
+emulation at **393px**, tablet/touch at **768px**, and desktop at **1440px**.
+It checks linked Manage controls, archive, history-compatible old accounts,
+failed-sidecar retry without duplicate ledger insert, keyboard focus/escape,
+EN/ZH/MY and cross-owner hiding. The Chrome suite runs unchanged as its
+own job. Final tested code head `d7a4a0c3378ce4886928e059807b03b9c55d74d6`:
+**5/5 GitHub workflow runs successful**, with **3/3 hierarchy jobs**
+(model, Chrome, WebKit) successful, **7 passing CI jobs total**.
+
+**Important:** Linux WebKit automation is not physical iPhone Safari, an
+Android browser, or authenticated Staging. No Production user session,
+cloud credential, Supabase schema, RLS or financial row was accessed.
+Before release, run real owner-scoped Staging A/B acceptance and actual
+Safari/iOS/Android checks. Current main-only drift consists of Landing
+`index.html` and three `landing-assets/` files; Draft PR #85 still overlaps
+APP paths and must not be merged blindly.
+
 ## Operational caveats — must pass before live release
 
 1. Real authenticated **Staging** dual-owner test: fresh account empty,
