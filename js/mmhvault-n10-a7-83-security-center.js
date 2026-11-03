@@ -157,8 +157,8 @@ async function api(action,extra={}){
 async function vaultBoundedResponse(response){
  const type=response.headers?.get?.('content-type')||'';
  const rawSize=response.headers?.get?.('content-length');
- if(!/^application\\/json(?:\\s*;|$)/i.test(type)||
-    (rawSize!==null&&rawSize!==undefined&&(!/^\\d+$/.test(rawSize)||Number(rawSize)>2500)))
+ if(!/^application\/json(?:\s*;|$)/i.test(type)||
+    (rawSize!==null&&rawSize!==undefined&&(!/^\d+$/.test(rawSize)||Number(rawSize)>2500)))
   throw Error('vault_bad_response');
  const reader=response.body?.getReader?.();
  if(!reader)throw Error('vault_stream_unavailable');
