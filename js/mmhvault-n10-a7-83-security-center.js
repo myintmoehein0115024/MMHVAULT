@@ -829,6 +829,15 @@ if(client()){
    hideKey();clearMfa();resetSensitiveState();sections.forEach(collapse);
    owner='';
   }
+  // Recovery plaintext must never survive an Auth session transition. In
+  // particular TOKEN_REFRESHED can change the bearer while words are visible;
+  // USER_UPDATED and PASSWORD_RECOVERY also invalidate the previous proof.
+  // Clear synchronously in the Auth callback (no async Supabase calls here).
+  if(['SIGNED_IN','TOKEN_REFRESHED','USER_UPDATED','PASSWORD_RECOVERY'].includes(event)){
+   hideKey();
+   const recovery=$('mmhA783Recovery');
+   if(recovery?.classList.contains('mmh-a785-open'))collapse(recovery);
+  }
   if(['SIGNED_IN','SIGNED_OUT','TOKEN_REFRESHED'].includes(event))setTimeout(()=>{
    if(event==='SIGNED_OUT'){clearMfa();resetSensitiveState();status('Sign in to manage account security.')}
    else void refresh();
