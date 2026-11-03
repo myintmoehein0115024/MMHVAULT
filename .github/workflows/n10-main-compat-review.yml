@@ -4,6 +4,12 @@ on:
     branches:
       - 'review/n10-main-compat-20261103-r3'
   workflow_dispatch:
+  # Pull request CI for this isolated review candidate; never deploy.
+  pull_request:
+    paths:
+      - 'js/mmhvault-n10-a7-83-security-center.js'
+      - 'security/n10-main-compat/**'
+      - '.github/workflows/n10-main-compat-review.yml'
 permissions:
   contents: read
 jobs:
