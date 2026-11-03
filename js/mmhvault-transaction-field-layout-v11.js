@@ -84,6 +84,7 @@
       '.mmh-v12-cols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:12px}',
       '#mmhV12Manage[hidden]{display:none!important}',
       '.mmh-v12-managed > section.mmh-manager-card-v445 > .mmh-manager-head-v445{display:none!important}',
+      '#mmhManagerCategoriesPanelV445 section.mmh-manager-card-v445[hidden]{display:none!important}',
       '#mmhManagerCategoriesPanelV445 .mmh-v12-col-category .mmh-manager-form-v445{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:8px;margin:8px 0 0!important}',
       '#mmhManagerCategoriesPanelV445 .mmh-v12-col-category .mmh-manager-form-v445 > span{display:none!important}',
       '#mmhManagerCategoriesPanelV445 .mmh-v12-col-category .mmh-manager-form-v445 > *{min-width:0;width:100%;max-width:100%}',
@@ -149,11 +150,17 @@
         if(header)header.after(categoryForm);else legacyCard.prepend(categoryForm);
       }
       host?.classList.remove('mmh-v12-managed');
+      if(legacyCard)legacyCard.hidden=false;
       panel.replaceChildren();panel.hidden=true;return;
     }
     panel.replaceChildren();
     panel.hidden=false;
     host?.classList.add('mmh-v12-managed');
+    // Hide only an entirely empty *secondary* search/archive card for a fresh
+    // owner; keep it when there are selected or archived categories.
+    const hasArchived=Object.values(config()?.archivedCategories||{})
+      .some(items=>Array.isArray(items)&&items.length>0);
+    if(legacyCard)legacyCard.hidden=!(state()?.category.length||hasArchived);
     panel.append(make('div','mmh-v12-head',tr('Your transaction fields','管理记账字段','မှတ်တမ်းအကွက်များကို စီမံပါ')));
     panel.append(make('div','mmh-v12-help',tr(
       'Add Type, Transaction, and Category here. Add Transaction automatically shows the fields you have configured; no extra switch on the form. Existing history is never changed.',
