@@ -121,7 +121,20 @@ const say=(condition,label)=>{assert.ok(condition,label);console.log('PASS '+lab
       await page.keyboard.press('Tab');
       say(await tabbables.first().evaluate(el=>el===document.activeElement),
         width+' Tab wraps to first modal control');
-      // Switch account while dialog is open. No prior owner's choices may leak.
+      // The live cloud sync gate has detected a divergent device. It must
+      // close the editor, preserve existing choices, and pause new writes.
+      await page.evaluate(()=>window.dispatchEvent(new CustomEvent('mmhvault:config-link-sync-blocked',
+        {detail:{userId:'fixture-A'}})));
+      await page.waitForFunction(()=>!!document.getElementById('mmhHierarchyCloudConflict'));
+      say(await page.locator('#mmhHierarchyCloudConflict').getAttribute('role')==='alert',
+        width+' conflicting device raises accessible warning');
+      say(await cards.nth(0).getByRole('button').isDisabled(),
+        width+' conflicting sidecars pause Manage mutations');
+      say(await save.isDisabled(),width+' conflicting sidecars block unsafe new entries');
+      say(await page.locator('#txCategory option').count()===0,
+        width+' archived Category remains archived after conflict');
+      // Switch account after the conflict. No prior owner's data may leak.
+      // A late unrelated-owner event must not clear or expose A's settings.
       await page.evaluate(()=>{
         window.currentSessionUser={id:'fixture-B'};
         window.MMHVAULT_CONFIG_OWNER='fixture-B';
