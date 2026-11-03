@@ -753,7 +753,11 @@
     if(panel) panel.dataset.currentView = currentBusinessView;
   }
   businessTabs.forEach(button => button.addEventListener('click', () => {
-    updateBusinessPreview(button.dataset.businessView);
+    // L1.49: selecting an already active concept is a no-op. Avoid
+    // redundant data-current-view mutations and replayed Business animations.
+    // applyLanguage still calls updateBusinessPreview for translated labels.
+    if (button.dataset.businessView !== currentBusinessView)
+      updateBusinessPreview(button.dataset.businessView);
   }));
 
 

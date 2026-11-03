@@ -73,8 +73,9 @@ const l147NewHeaderTags='  <!-- L1.47: preserve Explore -> shared header cascade
 // L1.48 starts from an already merged L1.47, not from its pre-merge branch.
 const l148OldScriptTag='<script defer src="./landing-assets/landing.js?v=l141"></script>';
 const l148NewScriptTag='<script defer src="./landing-assets/landing.js?v=l148"></script>';
-const l148IndexOnlyEdited=()=>prev.split(l148OldScriptTag).length===2 &&
-  current===prev.replace(l148OldScriptTag,l148NewScriptTag);
+const l149NewScriptTag='<script defer src="./landing-assets/landing.js?v=l149"></script>';
+const l148IndexOnlyEdited=()=>prev.split(l148NewScriptTag).length===2 &&
+  current===prev.replace(l148NewScriptTag,l149NewScriptTag);
 const l147IndexOnlyEdited=baseline=>baseline===prev && l148IndexOnlyEdited() &&
   baseline.includes(l147NewHeaderTags) && !current.includes(l147OldHeaderTags);
 // The runtime JS may change only these four targeted DOM write sites.
@@ -96,13 +97,16 @@ const l148JsReplacements=[
     "      // L1.48: preserve the existing node when its localized value is already correct.\n      // Avoid unnecessary text/style invalidation on first paint and language changes.\n      if (htmlKeys.has(key)) {\n        if (node.innerHTML !== value) node.innerHTML = value; // trusted local translations only\n      } else if (node.textContent !== value) node.textContent = value;"
   ]
 ];
+// L1.49: one click-handler guard, preserving all previous L1.48 DOM optimizations.
+const l149BusinessClickBefore="  businessTabs.forEach(button => button.addEventListener('click', () => {\n    updateBusinessPreview(button.dataset.businessView);\n  }));";
+const l149BusinessClickAfter="  businessTabs.forEach(button => button.addEventListener('click', () => {\n    // L1.49: selecting an already active concept is a no-op. Avoid\n    // redundant data-current-view mutations and replayed Business animations.\n    // applyLanguage still calls updateBusinessPreview for translated labels.\n    if (button.dataset.businessView !== currentBusinessView)\n      updateBusinessPreview(button.dataset.businessView);\n  }));";
 const l148LandingJsOnlyEdited=()=>{
-  let wanted=source('landing-assets/landing.js');
-  for(const [before,after] of l148JsReplacements){
-    if(wanted.split(before).length!==2)return false;
-    wanted=wanted.replace(before,after);
-  }
-  return read('landing-assets/landing.js')===wanted;
+  const merged=source('landing-assets/landing.js');
+  return l148JsReplacements.every(([before,after])=>
+    merged.includes(after) && !merged.includes(before)) &&
+    merged.split(l149BusinessClickBefore).length===2 &&
+    read('landing-assets/landing.js')===
+      merged.replace(l149BusinessClickBefore,l149BusinessClickAfter);
 };
 
 // L1.46: only two critical CSS links differ from the released HTML.
@@ -558,7 +562,7 @@ check('Landing priority image and below-fold concept use efficient loading',
   current.includes('decoding="async" fetchpriority="high"') &&
   current.includes('loading="lazy" decoding="async"') &&
   current.includes('<link rel="preload" as="image" type="image/webp"') &&
-  current.includes('<script defer src="./landing-assets/landing.js?v=l148"></script>'));
+  current.includes('<script defer src="./landing-assets/landing.js?v=l149"></script>'));
 check('Landing ships no third-party blocking scripts or styles',
   !/<script[^>]+src=["']https?:\/\//i.test(current) &&
   !/<link[^>]+rel=["']stylesheet["'][^>]+href=["']https?:\/\//i.test(current));
@@ -755,7 +759,7 @@ check('L1.27 public tab title matches SEO without language focus scroll',
  l133PublicPagesUnchanged() &&
  l142IndexOnlyEdited() && current.includes(newHeroPreload) &&
  !current.includes(oldHeroPreload));
-check('L1.48 exact four-file public-only JavaScript optimization scope',
+check('L1.49 exact four-file public-only Business interaction optimization scope',
  actual.length===4 &&
  actual.every(path=>[
   'index.html',
@@ -790,7 +794,7 @@ check('L1.41 all nine first-party style/script URLs keep coordinated versions',
     const tag=after.replace('landing.css?v=l141','landing.min.css?v=l145')
       .replace('cinematic.css?v=l141','cinematic.min.css?v=l146')
       .replace('premium-l131.css?v=l141','premium-l131.min.css?v=l146')
-      .replace('landing.js?v=l141','landing.js?v=l148');
+      .replace('landing.js?v=l141','landing.js?v=l149');
     const bundled=/explore-l114\.css|shared-header-l116\.css/.test(after);
     return before!==after && after.includes('?v=l141') && !current.includes(before) &&
       (bundled ? current.includes(l147NewHeaderTags)&&!current.includes(after) :
@@ -874,10 +878,13 @@ check('L1.47 ordered header bundle remains identical to merged main',
  !current.includes('href="./landing-assets/shared-header-l116.css?v=l141"') &&
  read('landing-assets/landing-browser-check.cjs').includes('L1.47 Chrome CSSOM header bundle parity') &&
  l148LandingJsOnlyEdited());
-check('L1.48 language init preserves Hero while bypassing only redundant DOM writes',
+check('L1.49 repeat concept tabs leave translations and visuals intact',
   l148IndexOnlyEdited() && l148LandingJsOnlyEdited() &&
-  current.includes(l148NewScriptTag) &&
-  !current.includes(l148OldScriptTag) &&
+  current.includes(l149NewScriptTag) &&
+  !current.includes(l148NewScriptTag) &&
+  read('landing-assets/landing-browser-check.cjs').includes('L1.49 active Business tab no-op browser parity'));
+check('L1.48 measured language DOM improvements preserved',
+  source('landing-assets/landing.js').includes('L1.48: preserve the existing node') &&
   read('landing-assets/landing-browser-check.cjs').includes('L1.48 measured initial-language DOM write parity'));
 check('L1.34 mobile EN ZH MY card stability and touch-safe scrolling',
   l133BurmeseLayoutOnlyEdited() &&
