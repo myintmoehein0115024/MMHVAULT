@@ -432,7 +432,7 @@ test('original Add Transaction layout is not restructured or duplicated',()=>{
   assert.match(app,/<div class="tx-tab-panel-v371" id="txAddPanel"/);
   assert.match(app,/<div class="mmh-form-section-v1 full"><span data-en="Accounts & amounts"/);
   assert.match(app,/<div class="mmh-form-section-v1 full"><span data-en="Note & attachment"/);
-  assert.match(app,/js\/mmhvault-transaction-field-layout-v11\.js\?v=3\.0\.4/);
+  assert.match(app,/js\/mmhvault-transaction-field-layout-v11\.js\?v=3\.0\.5/);
   assert.doesNotMatch(source,/txPrefHolderV11|mmh-tx-pref-v11|quick\(form/);
 });
 
@@ -718,4 +718,102 @@ test('new owner retains empty Manage and is never auto-migrated into old default
   assert.equal(h.api.fieldItems('type').length,0);
   assert.equal(h.api.fieldItems('transaction').length,0);
   assert.equal(h.api.getCategoryEntries().length,0);
+});
+
+
+test('legacy owner can explicitly rename Type without changing history or master Category records',()=>{
+  const h=harness(null),dom=nativeForm(h);
+  const priorCategories=JSON.stringify(h.config.categories);
+  const priorAccounts=JSON.stringify(h.config.accounts);
+  const entry=h.api.getLegacyView().type[0];
+  assert.equal(h.config.txFieldsV12,null);
+  assert.equal(h.api.saveName('type',entry,'Income','Money received'),true);
+  assert.equal(h.config.txFieldsV12.version,1);
+  assert.deepEqual(Array.from(h.config.txFieldsV12.type),['Income','Expense','Transfer']);
+  assert.equal(h.api.fieldItems('type')[0].label,'Money received');
+  assert.ok(h.config.txFieldsV12.category.includes('Income|Salary'));
+  assert.ok(h.config.txFieldsV12.category.includes('Expense|Dining'));
+  assert.equal(JSON.stringify(h.config.categories),priorCategories);
+  assert.equal(JSON.stringify(h.config.accounts),priorAccounts);
+  assert.equal(h.writes.length,1);
+  h.api.refresh();assert.equal(dom.labels.type.hidden,false);
+});
+
+test('legacy owner can add and remove Transaction display names without rewriting canonical finance codes',()=>{
+  const h=harness(null),dom=nativeForm(h);
+  const entry=h.api.getLegacyView().transaction.find(x=>x.canonical==='Expense|Expense');
+  assert.ok(entry);
+  assert.equal(h.api.saveName('transaction',null,'Expense|Expense','Purchase'),true);
+  const alias=h.api.fieldItems('transaction').find(x=>x.label==='Purchase');
+  assert.ok(alias.custom);
+  assert.equal(alias.canonical,'Expense|Expense');
+  assert.equal(h.api.removeName('transaction',alias),true);
+  assert.equal(h.api.removeName('transaction',
+    h.api.fieldItems('transaction').find(x=>x.canonical==='Transfer|Transfer')),true);
+  assert.ok(!h.config.txFieldsV12.transaction.includes('Transfer|Transfer'));
+  assert.ok(h.config.txFieldsV12.category.includes('Income|Salary'));
+  assert.ok(h.config.txFieldsV12.category.includes('Expense|Dining'));
+  h.api.refresh();
+  assert.equal(h.api.validate(),true);
+  assert.equal(dom.submit.disabled,false);
+});
+
+test('legacy preference creation is rolled back completely when persistence fails',()=>{
+  const h=harness(null);
+  const before=JSON.stringify(h.config);
+  h.context.mmhVaultRequireConfigOwner=()=>false;
+  assert.equal(h.api.saveName('type',h.api.getLegacyView().type[0],'Income','Receipts'),false);
+  assert.equal(JSON.stringify(h.config),before);
+  assert.equal(h.writes.length,0);
+  assert.equal(h.api.isManaged(),false);
+});
+
+test('cancelled legacy editing cannot auto-create the field configuration marker',()=>{
+  const h=harness(null);
+  const before=JSON.stringify(h.config);
+  h.api.getLegacyView();
+  h.api.fieldItems('type');
+  assert.equal(h.config.txFieldsV12,null);
+  assert.equal(JSON.stringify(h.config),before);
+  assert.equal(h.writes.length,0);
+});
+
+test('account change before cloud config loads clears previous owner field choices and blocks Save',()=>{
+  const h=harness({version:1,type:['Income'],transaction:['Income|Income'],category:[]});
+  const dom=nativeForm(h);h.api.refresh();
+  assert.equal(h.api.validate(),true);
+  h.context.currentSessionUser={id:'22222222-2222-4222-8222-222222222222'};
+  h.api.refresh();
+  assert.equal(h.api.getLegacyView(),null);
+  assert.equal(h.api.isManaged(),false);
+  assert.equal(dom.submit.disabled,true);
+  assert.equal(dom.g.options.length,0);
+  assert.equal(dom.c.options.length,0);
+  assert.equal(dom.labels.type.hidden,true);
+  assert.equal(h.api.saveName('type',null,'Income','Wrong owner'),false);
+});
+
+test('new owner with no Category configured keeps only a hidden canonical neutral value',()=>{
+  const h=harness({version:1,type:['Income'],transaction:['Income|Income'],category:[]}),dom=nativeForm(h);
+  h.api.refresh();
+  assert.equal(h.api.getCategoryEntries().length,0);
+  assert.equal(dom.labels.category.hidden,true);
+  assert.deepEqual(dom.c.options.map(x=>x.value),['Other Income']);
+  dom.c.replaceChildren(...['Salary','Meal Allowance','Bonus','Other Income']
+    .map(value=>({value,textContent:value,dataset:{}})));
+  h.api.reconcileNative();
+  assert.deepEqual(dom.c.options.map(x=>x.value),['Other Income']);
+  assert.equal(h.api.getCategoryEntries().length,0);
+  assert.equal(dom.submit.disabled,false);
+  assert.equal(h.api.validate(),true);
+});
+
+test('brand new owner still has no configured categories even when defaults exist on master config',()=>{
+  const h=harness(fresh()),dom=nativeForm(h);
+  h.api.refresh();
+  assert.equal(h.api.getCategoryEntries().length,0);
+  assert.equal(h.api.getLegacyView(),null);
+  assert.equal(dom.c.options.length,0);
+  assert.equal(dom.labels.category.hidden,true);
+  assert.equal(dom.submit.disabled,true);
 });
