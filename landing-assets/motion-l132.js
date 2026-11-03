@@ -46,8 +46,8 @@
   });
   root.classList.add('mm-motion-active');
 
-  // L1.39: begin phone reveals just before cards enter view to avoid a
-  // temporary blank during quick scrolling; desktop timing is unchanged.
+  // L1.40: prewarm mobile reveals further ahead of fast swipes, with no
+  // intersection threshold that might skip a narrow card. Desktop unchanged.
   const mobileReveal = window.matchMedia && window.matchMedia('(max-width: 620px)').matches;
   const observer=new IntersectionObserver(entries=>{
     for(const entry of entries){
@@ -55,7 +55,7 @@
       entry.target.classList.add('mm-shown');
       observer.unobserve(entry.target);
     }
-  },{rootMargin:mobileReveal?'0px 0px 12% 0px':'0px 0px -6% 0px',threshold:0.065});
+  },{rootMargin:mobileReveal?'0px 0px 24% 0px':'0px 0px -6% 0px',threshold:mobileReveal?0:0.065});
   elements.filter(el=>!el.classList.contains('mm-shown')).forEach(el=>observer.observe(el));
 
   // Clicking a guide or an in-page navigation link must reveal the destination,
