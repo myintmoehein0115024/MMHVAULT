@@ -35,3 +35,18 @@ Deployment instructions: Cloudflare Pages project links GitHub repository `MMHVA
 
 Current status: read-only safety checks complete; the **actual end-to-end Recovery Vault acceptance is still pending**. The QA interface is independently deployed and the live server remains locked OFF.
 
+
+## 2026-11-03 signed Recovery Vault A/B acceptance and rollback
+
+**Result: A/B OWN-ACCOUNT RECOVERY FLOW PASS; CROSS-ACCOUNT ADVERSARIAL TEST NOT COMPLETE.** These results supersede the earlier pending-E2E notes above.
+
+- Scoped owner permission covered the existing two Staging-only synthetic QA accounts. No new Auth users were created and neither account was deleted.
+- Preflight: Staging joint Edge v9 was verified hard OFF, with `verify_jwt=true`; exactly two confirmed fixture accounts, two verified TOTP, zero phrase verifier rows and zero encrypted Vault backup rows.
+- The existing Staging joint Edge was temporarily deployed as **v10** with exactly two fixed UID + verified-email account bindings, dedicated QA origin, existing signed-session AAL2/password guards, and an absolute server deadline **2026-11-03T10:30:55.543Z** (less than or equal to 10 minutes from the server-based starting check). No Production release or other origin.
+- User screenshots and owner confirmations: A generated exactly one synthetic ten-word verifier, automatically stored its encrypted Vault backup and revealed the original key with current password and MFA AAL2. B then logged in with separate MFA AAL2, saw **no backup** while A's already existed, generated its own synthetic ten-word verifier, encrypted it, and independently revealed its original key. No words, passwords or MFA codes were sent to the chat.
+- After the B screenshot, the closed v9 source was redeployed as **v11** **before the expiry deadline**. A fresh live read verified `verify_jwt=true`, `RECOVERY_RELEASE_ENABLED=false`, `QA_WINDOW_END_UTC='1970-01-01T00:00:00.000Z'`, and empty `QA_IDENTITIES`. The dedicated Staging origin restriction is unchanged.
+- Post-close read-only SQL counts: **A: 1 verified TOTP / 1 recovery verifier / 1 encrypted backup; B: 1 verified TOTP / 1 recovery verifier / 1 encrypted backup**. Test backups and users are intentionally retained for immutable-key regression; no destructive cleanup was requested or performed.
+- The B empty-status check after A's backup demonstrates independent **backup status**. It is **not** an explicit adversarial B→A vault-read attempt and does not alone prove all negative authorization paths. Signed cross-owner attack simulation, revoked-session races and formal full Production integration require separately scoped further QA.
+- PR #57 and PR #64 remain Draft and unmerged; N10 Production has **not** been released. Landing, APP V11, finance records, RLS, auth policies, DNS and real-user data were untouched.
+
+**Next:** review the complete remaining Production N10 login/register/recovery-key integration, address outstanding negative security cases, and obtain a separate explicit Production release authorization only after QA.
