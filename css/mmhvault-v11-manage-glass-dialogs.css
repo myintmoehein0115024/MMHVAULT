@@ -60,3 +60,13 @@ body.light .mmh-v14-card,body.light .mmh-v14-preview{background:rgba(239,232,222
 body.light .mmh-v14-btn{background:#fff;color:#44321c}
 body.light .mmh-v14-count,body.light .mmh-v14-state,body.light .mmh-v14-preview strong{color:#8a5c26}
 @media(prefers-reduced-motion:no-preference){.mmh-v14-dialog{animation:mmhV14In .19s ease-out}@keyframes mmhV14In{from{opacity:0;transform:translateY(9px) scale(.99)}to{opacity:1;transform:none}}}
+/* APP V11.5: list, edit and confirmation are exclusive modal views. */
+.mmh-v14-list[hidden]{display:none!important}
+.mmh-v14-dialog .mmh-v14-editor{margin:0;padding:16px}
+.mmh-v14-dialog .mmh-v14-field{margin-bottom:15px}
+.mmh-v14-dialog .mmh-v14-footer{position:sticky;bottom:0;padding-top:15px;background:transparent}
+@media(max-width:580px){
+  .mmh-v14-dialog{max-height:calc(100dvh - 24px)}
+  .mmh-v14-dialog .mmh-v14-footer .mmh-v14-btn{flex:1 1 120px}
+  .mmh-v14-dialog .mmh-v14-editor{padding:14px}
+}

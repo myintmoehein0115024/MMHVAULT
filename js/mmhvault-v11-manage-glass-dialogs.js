@@ -19,8 +19,12 @@
   const panel=()=>document.getElementById('mmhV12Manage');
   const oldCard=()=>host()?.querySelector('section.mmh-manager-card-v445');
   const nativeForm=()=>panel()?.querySelector('.mmh-manager-form-v445')||oldCard()?.querySelector('.mmh-manager-form-v445');
-  const categories=()=>api.getCategoryEntries?.()||[];
-  const entries=field=>field==='category'?categories():api.fieldItems(field);
+  // Legacy owners get the same glass presentation without changing their
+  // canonical three-field entry form or historical configuration marker.
+  const legacyView=()=>api.getLegacyView?.()||null;
+  const canShowGlass=()=>api.isManaged()||!!legacyView();
+  const entries=field=>legacyView()?.[field]||
+    (field==='category'?(api.getCategoryEntries?.()||[]):api.fieldItems(field));
   let modal=null,observer=null,observed=null,scheduled=false,lastFocus=null;
   const groupLabel=group=>{
     const names={
@@ -33,7 +37,7 @@
     return names[group]?tr(...names[group]):String(group);
   };
   function summary(){
-    const owner=api.isManaged(),h=host(),p=panel();
+    const owner=canShowGlass(),h=host(),p=panel();
     if(!owner||!h||!p){
       h?.classList.remove('mmh-v14-enabled');
       document.getElementById('mmhV14Manage')?.remove();
@@ -44,7 +48,10 @@
     if(!root){root=el('section');root.id='mmhV14Manage';h.insertBefore(root,p);}
     h.classList.add('mmh-v14-enabled');
     root.replaceChildren();
-    const state=api.readiness(),top=el('div','mmh-v14-top'),left=el('div');
+    const state=legacyView()?
+      {ready:true,active:{type:true,transaction:true,category:true}}:
+      api.readiness();
+    const top=el('div','mmh-v14-top'),left=el('div');
     left.append(el('h3','mmh-v14-heading',tr('Manage Transaction Fields','管理记账字段','ငွေစာရင်းအကွက်များ စီမံရန်')));
     left.append(el('div','mmh-v14-sub',tr('Manage your own bookkeeping labels and categories.','按自己的记账习惯管理字段。','သင့်စာရင်းပုံစံအတိုင်း စီမံနိုင်သည်။')));
     top.append(left);
@@ -81,16 +88,22 @@
     modal.feedback.setAttribute('role',error?'alert':'status');
   }
   function renderList(){
-    if(!modal||!api.isManaged())return;
+    if(!modal||!canShowGlass())return;
     const {field,title,subtitle,list,nativeSlot,editorSlot}=modal;
+    const legacy=!!legacyView();
     title.textContent=tr('Manage ','管理 ','စီမံရန် ')+name(field);
-    subtitle.textContent=field==='category'?
-      tr('Removing a Category here does not delete historical transactions.',
-        '这里移除分类不会删除历史交易记录。',
-        'ဖယ်ရှားခြင်းသည် မှတ်တမ်းဟောင်းများကို မဖျက်ပါ။'):
-      tr('Custom names always retain their original financial meaning.',
-        '自定义名称始终保留原有财务含义。',
-        'မူလ ငွေစာရင်းအဓိပ္ပာယ်ကို ထိန်းသိမ်းထားသည်။');
+    subtitle.textContent=legacy?
+      tr('Updated layout, original bookkeeping and history unchanged.',
+        '新版布局已启用，原有记账设置和历史记录保持不变。',
+        'ပုံစံအသစ်သာ ဖြစ်ပြီး မှတ်တမ်းဟောင်းများ မပြောင်းလဲပါ။'):
+      field==='category'?
+        tr('Removing a Category here does not delete historical transactions.',
+          '这里移除分类不会删除历史交易记录。',
+          'ဖယ်ရှားခြင်းသည် မှတ်တမ်းဟောင်းများကို မဖျက်ပါ။'):
+        tr('Custom names always retain their original financial meaning.',
+          '自定义名称始终保留原有财务含义။',
+          'မူလ ငွေစာရင်းအဓိပ္ပာယ်ကို ထိန်းသိမ်းထားသည်။');
+    list.hidden=false;
     list.replaceChildren();
     if(field==='category'){
       if(modal.categoryForm&&modal.categoryForm.parentElement!==nativeSlot)nativeSlot.append(modal.categoryForm);
@@ -107,20 +120,30 @@
         tr('Financial meaning: ','财务归属：','ငွေစာရင်းအဓိပ္ပာယ်: ')+
         (api.describeCanonical?.(field,item.canonical)||item.canonical)));
       row.append(info);
+      // Legacy Type and Transaction are system codes. Present them in the new
+      // layout but do not pretend to support owner config mutations that would
+      // silently migrate a historic account.
+      if(legacy&&field!=='category'){
+        info.append(el('small','',tr('Existing account · system entry','旧账号 · 系统记账字段',
+          'အကောင့်ဟောင်း · စနစ်အကွက်')));
+        list.append(row);
+        continue;
+      }
       const actions=el('div','mmh-v14-actions');
       const edit=btn(tr('Edit','编辑','ပြင်ရန်'),()=>{
         if(field==='category'){
           if(typeof window.mmhVaultEditCategoryV449==='function'){
             close();window.mmhVaultEditCategoryV449(item.group,item.name);
           }else feedback(tr('Category editor is unavailable.','分类编辑暂不可用。','ပြင်ဆင်ရန် မရနိုင်ပါ။'),true);
-        } else {modal.chosen=item;modal.confirm=null;paintEditor();}
+        } else {modal.chosen=item;modal.confirm=null;paintEditor();modal.editorSlot.querySelector('input')?.focus();}
       });
       edit.setAttribute('aria-label',tr('Edit ','编辑 ','ပြင်ရန် ')+(item.label||item.name));
-      const remove=btn(tr('Remove','移除','ဖယ်ရှား'),()=>{
+      const remove=legacy&&field==='category'?null:btn(tr('Remove','移除','ဖယ်ရှား'),()=>{
         modal.confirm=item;modal.chosen=null;paintEditor();
       },'mmh-v14-danger');
-      remove.setAttribute('aria-label',tr('Remove ','移除 ','ဖယ်ရှားရန် ')+(item.label||item.name));
-      actions.append(edit,remove);
+      if(remove)remove.setAttribute('aria-label',tr('Remove ','移除 ','ဖယ်ရှားရန် ')+(item.label||item.name));
+      actions.append(edit);
+      if(remove)actions.append(remove);
       if(field==='category'&&typeof window.mmhVaultArchiveCategoryV445==='function'){
         const archive=btn(tr('Archive','归档','သိမ်းဆည်းရန်'),()=>{
           close();window.mmhVaultArchiveCategoryV445(item.group,item.name);
@@ -148,24 +171,38 @@
         }
       }
     }
-    if(field!=='category'){
+    if(legacy&&field!=='category'){
+      list.append(el('p','mmh-v14-help',tr(
+        'For existing accounts, Type and Transaction remain the original financial codes. This display upgrade does not change ledger fields or past records.',
+        '旧账号的 Type、Transaction 继续使用原有财务代码。此次仅更新界面，不修改已保存的字段或历史交易。',
+        'အကောင့်ဟောင်းများ၏ ငွေစာရင်းကုဒ်နှင့် မှတ်တမ်းဟောင်းများ မပြောင်းလဲပါ။')));
+    }
+    if(field!=='category'&&!legacy){
       const add=btn(tr('+ Add ','+ 新增 ','+ အသစ်ထည့်ရန် ')+name(field),()=>{
         modal.chosen={new:true};modal.confirm=null;paintEditor();modal.editorSlot.querySelector('input')?.focus();
       },'mmh-v14-manage');
       add.style.marginTop='14px';list.append(add);
     }
     if(modal.confirm||modal.chosen)paintEditor();
-    else{editorSlot.hidden=true;editorSlot.replaceChildren();}
+    else{list.hidden=false;editorSlot.hidden=true;editorSlot.replaceChildren();}
   }
   function clearEditor(){
     if(!modal)return;
     modal.chosen=null;modal.confirm=null;modal.editorSlot.replaceChildren();modal.editorSlot.hidden=true;
+    renderList();
+    modal.dialog.querySelector('.mmh-v14-scroll')?.scrollTo?.({top:0});
   }
   function paintEditor(){
-    if(!modal||!api.isManaged())return;
+    if(!modal||!canShowGlass())return;
     const slot=modal.editorSlot;slot.replaceChildren();slot.hidden=false;
+    // Sub-view: the list is replaced by the editor/confirmation instead of
+    // stacking a second form below potentially dozens of existing items.
+    modal.list.hidden=true;
+    modal.nativeSlot.hidden=true;
+    modal.dialog.querySelector('.mmh-v14-scroll')?.scrollTo?.({top:0});
     if(modal.confirm){
       const item=modal.confirm;
+      modal.title.textContent=tr('Remove ','移除 ','ဖယ်ရှားရန် ')+name(modal.field);
       slot.append(el('h4','',tr('Confirm removal','确认移除','ဖယ်ရှားရန် အတည်ပြုပါ')));
       slot.append(el('p','mmh-v14-help',modal.field==='category'?
         tr('Remove from future entries only. Historical records and stored Categories stay intact.',
@@ -190,6 +227,7 @@
     const item=modal.chosen;
     if(!item){slot.hidden=true;return;}
     const isNew=!!item.new;
+    modal.title.textContent=(isNew?tr('Add ','新增 ','အသစ်ထည့်ရန် '):tr('Edit ','编辑 ','ပြင်ရန် '))+name(modal.field);
     slot.append(el('h4','',isNew?tr('Add a display name','添加显示名称','အမည်အသစ် ထည့်ရန်'):
       tr('Edit display name','编辑显示名称','အမည် ပြင်ရန်')));
     const label=el('label','mmh-v14-field');label.append(el('span','',tr('Display name','显示名称','ပြသမည့်အမည်')));
@@ -234,7 +272,7 @@
     lastFocus=null;
   }
   function open(field){
-    if(!api.isManaged()||!fields[field])return;
+    if(!canShowGlass()||!fields[field])return;
     if(modal)close();
     lastFocus=document.activeElement;
     const overlay=el('div','mmh-v14-shade'),dialog=el('div','mmh-v14-dialog');
@@ -274,7 +312,7 @@
     }
     summary();
     if(modal){
-      if(!api.isManaged())close();
+      if(!canShowGlass())close();
       else if(!modal.chosen&&!modal.confirm)renderList();
     }
   }

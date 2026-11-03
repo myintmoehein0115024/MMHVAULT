@@ -279,9 +279,10 @@
         heading.dataset.mmhV12OldEn=heading.dataset.i18nEn||'Manage Categories';
         heading.dataset.mmhV12OldZh=heading.dataset.i18nZh||'管理分类';
       }
-      heading.dataset.i18nEn=isManaged()?'Manage Transaction Fields':heading.dataset.mmhV12OldEn;
-      heading.dataset.i18nZh=isManaged()?'管理记账字段':heading.dataset.mmhV12OldZh;
-      heading.textContent=isManaged()?
+      const modernHeading=!!owner()&&!!config();
+      heading.dataset.i18nEn=modernHeading?'Manage Transaction Fields':heading.dataset.mmhV12OldEn;
+      heading.dataset.i18nZh=modernHeading?'管理记账字段':heading.dataset.mmhV12OldZh;
+      heading.textContent=modernHeading?
         tr('Manage Transaction Fields','管理记账字段','မှတ်တမ်းအကွက်များကို စီမံပါ'):
         tr(heading.dataset.mmhV12OldEn,heading.dataset.mmhV12OldZh,heading.dataset.mmhV12OldEn);
     }
@@ -627,6 +628,64 @@
     if(!categories().length&&(!neutral(t.value,g.value)||c.value!==neutral(t.value,g.value)))return false;
     return true;
   }
+  // Older transaction and translation widgets still regenerate native <option>
+  // lists after Manage has applied its owner-scoped choices. Never allow that
+  // re-render to reveal an unconfigured Type or lose canonical group metadata.
+  function managedOptionsMatch(){
+    if(!isManaged())return true;
+    const form=id('txForm'),t=id('txType'),g=id('txGroup'),c=id('txCategory');
+    if(!form||!t||!g||!c)return true;
+    const status=readiness();
+    if(!status.ready){
+      return g.options.length===0&&c.options.length===0&&
+        Object.values({type:t,transaction:g,category:c}).every(x=>x.closest('label')?.hidden!==false);
+    }
+    const equal=(select,items,validate)=>{
+      const opts=[...select.options];
+      return opts.length===items.length&&opts.every((opt,i)=>
+        opt.value===items[i].value&&opt.dataset?.mmhChoiceId===items[i].key&&
+        (!validate||validate(opt,items[i])));
+    };
+    if(status.active.type){
+      const viable=new Set(status.active.transaction?
+        allowedTransactions().map(x=>x.type):categories().map(x=>x.type));
+      const expected=fieldItems('type').filter(x=>viable.has(x.canonical))
+        .map(x=>({value:x.canonical,key:x.key}));
+      if(!equal(t,expected))return false;
+    }
+    if(status.active.transaction){
+      const allowed=new Set(allowedTransactions().map(x=>x.id));
+      const expected=fieldItems('transaction').filter(x=>allowed.has(x.canonical))
+        .map(x=>({...x,kind:KIND.find(k=>k.id===x.canonical)}))
+        .filter(x=>x.kind&&(!status.active.type||x.kind.type===t.value))
+        .map(x=>({value:x.kind.group,key:x.key,type:x.kind.type,group:x.kind.group}));
+      if(!equal(g,expected,(opt,item)=>
+        opt.dataset.mmhCanonicalType===item.type&&
+        opt.dataset.mmhCanonicalGroup===item.group))return false;
+    }
+    if(status.active.category){
+      const expected=categories().filter(x=>x.type===t.value&&
+        (!status.active.transaction||x.coreGroup===g.value));
+      const opts=[...c.options];
+      if(opts.length!==expected.length||opts.some((opt,i)=>
+        opt.value!==expected[i].name||
+        opt.dataset?.mmhCanonicalGroup!==expected[i].coreGroup))return false;
+    }
+    return true;
+  }
+  function reconcileNativeOptions(){
+    if(rendering||managedOptionsMatch())return;
+    refreshForm();
+  }
+  function observeLegacyNativeRewrites(form){
+    if(!form||typeof MutationObserver!=='function')return;
+    // Child-list watching catches both replaceSelect() cloning and option
+    // replacements from language, cloud sync and legacy cascade handlers.
+    // Compare against canonical choices BEFORE writing; V11's own render
+    // mutations are already correct, so this does not loop.
+    const observer=new MutationObserver(()=>reconcileNativeOptions());
+    observer.observe(form,{childList:true,subtree:true});
+  }
   function eventHandler(event){
     if(!isManaged()||rendering)return;
     const t=id('txType'),g=id('txGroup'),c=id('txCategory');
@@ -650,6 +709,14 @@
     style();
     const form=id('txForm');
     if(form){
+      observeLegacyNativeRewrites(form);
+      // Repair stale legacy choices before the browser opens a select.
+      for(const name of ['pointerdown','keydown']){
+        form.addEventListener(name,event=>{
+          if(isManaged()&&[id('txType'),id('txGroup'),id('txCategory')].includes(event.target))
+            reconcileNativeOptions();
+        },true);
+      }
       form.addEventListener('change',eventHandler,true);
       form.addEventListener('submit',event=>{
         if(!valid()){
@@ -670,10 +737,25 @@
     refresh();
   }
   window.MMHV11TxFieldPrefs={
-    version:'3.0.1',isManaged,hasCategory,markCategory,onCategoryRenamed,fieldItems,saveName,removeName,refreshManage,
+    version:'3.0.4',isManaged,hasCategory,markCategory,onCategoryRenamed,fieldItems,saveName,removeName,refreshManage,
     // Public presentation hooks: keep all changes owner-scoped and canonical.
     getCategoryEntries:()=>categories().map(x=>({...x})),
-    getArchivedCategoryEntries:()=>state()?Object.entries(config()?.archivedCategories||{})
+    // Compatibility is presentation-only: old accounts retain their existing
+    // three-field transaction form and ledger codes, with no V12 marker written.
+    getLegacyView:()=>{
+      if(!owner()||!config()||isManaged())return null;
+      const groups=['Expense','Income','Personal','LoanIncome','LoanExpense'];
+      const category=groups.flatMap(group=>{
+        const items=config()?.categories?.[group];
+        return Array.isArray(items)?items.filter(name=>typeof name==='string'&&name.trim())
+          .map(name=>({raw:group+'|'+name,group,name})):[];});
+      return {
+        type:TYPE.map(code=>({key:'legacy:'+code,canonical:code,label:code,legacy:true})),
+        transaction:KIND.map(k=>({key:'legacy:'+k.id,canonical:k.id,label:k.label,legacy:true})),
+        category
+      };
+    },
+    getArchivedCategoryEntries:()=>owner()&&config()?Object.entries(config()?.archivedCategories||{})
       .flatMap(([group,names])=>Array.isArray(names)?names.map(name=>({group,name})):[]):[],
     removeCategory:raw=>{
       const before=!!state()?.category.includes(raw);
@@ -711,7 +793,7 @@
         };
         return tr(...translations[code]);
       })(),
-    refresh:refreshForm,attachEdit:()=>{},getMode:mode,layoutInfo,readiness,validate:valid,
+    refresh:refreshForm,reconcileNative:reconcileNativeOptions,attachEdit:()=>{},getMode:mode,layoutInfo,readiness,validate:valid,
     // Legacy V11's manual mode chooser is intentionally removed.
     setMode:()=>false
   };
@@ -720,10 +802,10 @@
   if(typeof document.querySelector==='function'&&document.head){
     const stylesheet=document.createElement('link');
     stylesheet.rel='stylesheet';
-    stylesheet.href='css/mmhvault-v11-manage-glass-dialogs.css?v=1.0.0';
+    stylesheet.href='css/mmhvault-v11-manage-glass-dialogs.css?v=1.0.2';
     document.head.appendChild(stylesheet);
     const addon=document.createElement('script');
-    addon.src='js/mmhvault-v11-manage-glass-dialogs.js?v=1.0.0';
+    addon.src='js/mmhvault-v11-manage-glass-dialogs.js?v=1.0.2';
     addon.async=false;
     document.head.appendChild(addon);
   }
