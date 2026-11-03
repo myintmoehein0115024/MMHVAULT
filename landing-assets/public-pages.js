@@ -201,13 +201,15 @@
         el.style.setProperty('--mm-public-delay',Math.min(index%3,2)*55+'ms');
       });
       document.body.classList.add('mm-public-motion');
+      // L1.39: pre-reveal phone cards ahead of viewport; leave desktop as-is.
+      const mobileReveal=window.matchMedia('(max-width: 620px)').matches;
       const observer=new IntersectionObserver(entries=>{
         entries.forEach(entry=>{
           if(!entry.isIntersecting)return;
           entry.target.classList.add('mm-public-shown');
           observer.unobserve(entry.target);
         });
-      },{threshold:.045,rootMargin:'0px 0px -4% 0px'});
+      },{threshold:.045,rootMargin:mobileReveal?'0px 0px 12% 0px':'0px 0px -4% 0px'});
       targets.filter(el=>!el.classList.contains('mm-public-shown'))
         .forEach(el=>observer.observe(el));
     }
