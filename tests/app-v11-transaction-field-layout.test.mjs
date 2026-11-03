@@ -607,3 +607,70 @@ test('archived Category selection is ignored in new managed form while canonical
   assert.equal(dom.c.value,'Other Income');
   assert.equal(h.api.validate(),true);
 });
+
+
+test('legacy dropdown rewrite cannot reintroduce unconfigured Transfer into a managed Type',()=>{
+  const h=harness({version:1,type:['Income','Expense'],transaction:['Income|Income','Expense|Expense'],category:[]});
+  const dom=nativeForm(h);
+  h.api.refresh();
+  assert.deepEqual(dom.t.options.map(x=>x.value),['Income','Expense']);
+  assert.equal(h.api.validate(),true);
+  // Legacy language/cascade code can rebuild the original three-item select
+  // after V11 has already rendered the managed two-item version.
+  dom.t.replaceChildren(...['Income','Expense','Transfer'].map(value=>({value,textContent:value,dataset:{}})));
+  dom.g.replaceChildren(...['Income','Loans','Data Adjustment'].map(value=>({value,textContent:value,dataset:{}})));
+  h.api.reconcileNative();
+  assert.deepEqual(dom.t.options.map(x=>x.value),['Income','Expense']);
+  assert.ok(dom.t.options.every(x=>x.dataset.mmhChoiceId));
+  assert.deepEqual(dom.g.options.map(x=>x.value),['Income']);
+  assert.equal(h.api.validate(),true);
+});
+
+test('legacy option rebuild cannot break managed Transaction + Category pairing or save',()=>{
+  const h=harness({version:1,type:[],transaction:['Income|Income'],category:['Income|Salary']});
+  const dom=nativeForm(h);
+  h.api.refresh();
+  assert.equal(h.api.validate(),true);
+  assert.equal(dom.labels.type.hidden,true);
+  dom.g.replaceChildren(...['Expense','Loans','Transfer'].map(value=>({value,textContent:value,dataset:{}})));
+  dom.c.replaceChildren(...['Other','Dining'].map(value=>({value,textContent:value,dataset:{}})));
+  h.api.reconcileNative();
+  assert.equal(dom.g.value,'Income');
+  assert.equal(dom.g.options.length,1);
+  assert.equal(dom.g.options[0].dataset.mmhCanonicalType,'Income');
+  assert.equal(dom.c.value,'Salary');
+  assert.equal(dom.c.options[0].dataset.mmhCanonicalGroup,'Income');
+  assert.equal(h.api.validate(),true);
+  assert.equal(dom.submit.disabled,false);
+});
+
+test('legacy rewrite in Type + Category restores category options without adding Transaction',()=>{
+  const h=harness({version:1,type:['Expense'],transaction:[],category:['Expense|Dining']});
+  const dom=nativeForm(h);
+  h.api.refresh();
+  dom.c.replaceChildren(...['Salary','Other','Dining'].map(value=>({value,textContent:value,dataset:{}})));
+  h.api.reconcileNative();
+  assert.deepEqual(dom.t.options.map(x=>x.value),['Expense']);
+  assert.deepEqual(dom.c.options.map(x=>x.value),['Dining']);
+  assert.equal(dom.labels.transaction.hidden,true);
+  assert.equal(h.api.validate(),true);
+});
+
+test('incomplete new-owner setup remains empty even when old widgets insert default categories',()=>{
+  const h=harness(fresh()),dom=nativeForm(h);
+  h.api.refresh();
+  dom.g.replaceChildren({value:'Income',textContent:'Income',dataset:{}});
+  dom.c.replaceChildren({value:'Salary',textContent:'Salary',dataset:{}});
+  h.api.reconcileNative();
+  assert.equal(dom.g.options.length,0);
+  assert.equal(dom.c.options.length,0);
+  assert.equal(h.api.validate(),false);
+  assert.equal(dom.submit.disabled,true);
+});
+
+test('legacy owner selector options are not modified by managed owner reconciliation',()=>{
+  const h=harness(null),dom=nativeForm(h);
+  const existing=dom.t.options.map(x=>x.value);
+  h.api.reconcileNative();
+  assert.deepEqual(dom.t.options.map(x=>x.value),existing);
+});
