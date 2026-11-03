@@ -58,6 +58,25 @@ test('investment and scheduled references receive the same checks',()=>{
   assert.equal(result.unresolvedReferences,2);
 });
 
+test('crypto wallet and Life Planner references are owner-scoped and cannot silently orphan',()=>{
+  const result=audit([account('Savings','USD','acc_savings')],[],{
+    cryptoWalletMovements:[
+      {user_id:OWNER,from_wallet:'Savings',to_wallet:'Forgotten Wallet'},
+      {user_id:OTHER,from_wallet:'Other User Missing',to_wallet:'Savings'}
+    ],
+    lifeFundAllocations:[
+      {user_id:OWNER,source_account_name:'Savings'},
+      {user_id:OTHER,source_account_name:'Other User Fund'}
+    ]
+  });
+  assert.equal(result.totalReferences,3);
+  assert.equal(result.resolvedReferences,2);
+  assert.equal(result.unresolvedReferences,1);
+  assert.equal(result.unresolved[0].name,'Forgotten Wallet');
+  assert.equal(result.unresolved[0].currency,null);
+  assert.equal(result.hasUnverifiedAccounting,true);
+});
+
 test('custom currency without manual rate is flagged for a real reference rate, never guessed',()=>{
   const result=audit([account('AMD','AMD','acc_amd',{fxPerUSD:null})],[tx('AMD','')]);
   assert.equal(result.resolvedReferences,1);
