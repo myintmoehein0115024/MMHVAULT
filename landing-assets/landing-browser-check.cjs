@@ -52,6 +52,102 @@ async function load(page,route,failures){
 (async()=>{
  const browser=await chromium.launch({channel:'chrome',headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
  try{
+   // L1.48 measured initial-language DOM write parity: run the previous
+   // released script and the proposed script on the SAME current HTML,
+   // from independent cold-cache browser contexts at two widths/three locales.
+   // The baseline is an exact inverse of four release-checked code edits;
+   // instrumentation is injected only into the intercepted test response.
+   {
+     const optimized=fs.readFileSync('landing-assets/landing.js','utf8');
+     const patches=[
+  [
+    "      element.textContent = conceptData[currentBusinessView][element.dataset.businessAmount] || '';",
+    "      const value = conceptData[currentBusinessView][element.dataset.businessAmount] || '';\n      if (element.textContent !== value) element.textContent = value;"
+  ],
+  [
+    "      if(value) element.textContent=value;",
+    "      if(value && element.textContent !== value) element.textContent=value;"
+  ],
+  [
+    "      element.textContent = dictionary[key] || '';",
+    "      const value = dictionary[key] || '';\n      if (element.textContent !== value) element.textContent = value;"
+  ],
+  [
+    "      if (htmlKeys.has(key)) node.innerHTML = value; // only hardcoded local, trusted translations\n      else node.textContent = value;",
+    "      // L1.48: preserve the existing node when its localized value is already correct.\n      // Avoid unnecessary text/style invalidation on first paint and language changes.\n      if (htmlKeys.has(key)) {\n        if (node.innerHTML !== value) node.innerHTML = value; // trusted local translations only\n      } else if (node.textContent !== value) node.textContent = value;"
+  ]
+];
+     let baseline=optimized;
+     for(const [before,after] of patches){
+       assert.equal(baseline.split(after).length,2,'L1.48 JS edit is unique');
+       baseline=baseline.replace(after,before);
+     }
+     const inject=script=>{
+       const marker='  applyLanguage(saved);';
+       assert.equal(script.split(marker).length,2,'L1.48 measurement anchor unique');
+       return script.replace(marker, [
+         '  const __l148Observer = new MutationObserver(() => {});',
+         '  __l148Observer.observe(document.documentElement,',
+         '    {subtree:true,attributes:true,characterData:true,childList:true});',
+         '  const __l148Started = performance.now();',
+         '  applyLanguage(saved);',
+         '  window.__l148Probe = {durationMs:performance.now()-__l148Started,',
+         '    domMutations:__l148Observer.takeRecords().length};',
+         '  __l148Observer.disconnect();'
+       ].join('\n'));
+     };
+     const records=[];
+     for(const width of [393,1440]) for(const locale of ['en','zh','my']) {
+       const outcomes={};
+       for(const [label,js] of [['baseline',baseline],['optimized',optimized]]){
+         const ctx=await browser.newContext({viewport:{width,height:852},
+           reducedMotion:'reduce',serviceWorkers:'block'});
+         const page=await ctx.newPage(),errors=[];
+         page.on('pageerror',error=>errors.push(error.message));
+         await page.addInitScript(lang=>{
+           try{localStorage.setItem('mmhvault.landing.language',lang)}catch(_){}
+         },locale);
+         await page.route('**/landing-assets/landing.js*',route=>
+           route.fulfill({status:200,contentType:'application/javascript',body:inject(js)}));
+         const response=await page.goto(origin+'/',{waitUntil:'load',timeout:30000});
+         const state=await page.evaluate(()=>({
+           lang:document.documentElement.lang,
+           probe:window.__l148Probe,
+           fixed:[...document.querySelectorAll('[data-hero-fixed]')]
+             .map(node=>node.textContent.trim()),
+           texts:[...document.querySelectorAll('[data-i18n]')]
+             .map(node=>[node.dataset.i18n,node.textContent]),
+           alt:document.querySelector('.hero-device-cinematic')?.alt,
+           activeTab:document.querySelector('[data-product-tab].is-active')?.dataset.productTab,
+           heroX:document.querySelector('.hero').getBoundingClientRect().left,
+           headerRight:document.querySelector('.site-header').getBoundingClientRect().right
+         }));
+         ensure(response?.status()===200&&errors.length===0 &&
+           state.probe && Number.isFinite(state.probe.durationMs) &&
+           state.probe.domMutations>=0 && state.fixed.length===3 &&
+           state.lang===(locale==='zh'?'zh-CN':locale) &&
+           state.heroX>=-1 && state.headerRight<=width+1,
+           'L1.48 '+label+' '+width+'px '+locale+' probe and Hero integrity');
+         outcomes[label]=state;
+         await ctx.close();
+       }
+       const old=outcomes.baseline,now=outcomes.optimized;
+       const {probe:oldProbe,...oldView}=old;
+       const {probe:newProbe,...newView}=now;
+       ensure(JSON.stringify(oldView)===JSON.stringify(newView) &&
+         newProbe.domMutations<=oldProbe.domMutations,
+         'L1.48 '+width+'px '+locale+' presentation parity + no extra DOM mutations '+
+         JSON.stringify({before:oldProbe,after:newProbe}));
+       records.push({width,locale,before:oldProbe,after:newProbe});
+     }
+     const saved=records.reduce((sum,row)=>sum+row.before.domMutations-row.after.domMutations,0);
+     ensure(saved>0,'L1.48 skips genuinely redundant initial DOM mutations '+saved);
+     console.log('L1.48 DOM LAB (not field LCP): '+JSON.stringify({
+       disclaimer:'Synthetic same-page CPU timings; no guaranteed user-perceived speed gain',
+       skippedDOMWrites:saved,records
+     }));
+   }
+
    // L1.45 CSSOM rule-for-rule equivalence: compare the current compact CSS
    // against the readable predecessor from origin/main using Chrome's own
    // stylesheet parser. This fails on rule/value/order/selector differences.
@@ -499,11 +595,12 @@ async function load(page,route,failures){
        layout.styles.filter(v=>v==='l146').length===2 &&
        layout.styles.filter(v=>v==='l147').length===1 &&
        layout.styles.filter(v=>v==='l141').length===2 &&
-       layout.scripts.every(v=>v==='l141') &&
+       layout.scripts.includes('l148') && layout.scripts.includes('l141') &&
        loaded.length===8 && loaded.every(r=>r.status===200&&
          r.version===(r.path==='/landing-assets/landing.min.css'?'l145':
            ['/landing-assets/cinematic.min.css','/landing-assets/premium-l131.min.css'].includes(r.path)?'l146':
-           r.path==='/landing-assets/header-explore-l147.min.css'?'l147':'l141')) &&
+           r.path==='/landing-assets/header-explore-l147.min.css'?'l147':
+            r.path==='/landing-assets/landing.js'?'l148':'l141')) &&
        new Set(loaded.map(r=>r.path)).size===8 && failures.length===0,
        'L1.47 '+width+'px eight CSS/JS requests with consistent cache keys '+JSON.stringify({loaded,failures}));
      ensure(layout.brand.left>=-1&&layout.brand.right<=width+1 &&
