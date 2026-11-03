@@ -64,7 +64,7 @@ async function queryAnalytics(range,env){
   const trend=[];
   let pageViews=0,visits=0;
   for(const group of groups){
-    if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(group.dimensions?.date||'')||
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(group.dimensions?.date||'')||
        !Number.isSafeInteger(group.count)||group.count<0||
        !Number.isSafeInteger(group.sum?.visits)||group.sum.visits<0)throw new Error('CF_METRICS_INVALID');
     pageViews+=group.count;visits+=group.sum.visits;
