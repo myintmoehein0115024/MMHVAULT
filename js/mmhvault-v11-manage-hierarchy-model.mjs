@@ -248,6 +248,16 @@ export function normalizePersistedHierarchy(raw,ownerId){
 }
 // Derived view for older owners: no config/ledger writes on open. This
 // preserves active/archived categories and existing Type/Transaction aliases.
+function legacyKey(input){
+  // Two independent stable 32-bit fingerprints yield a compact reproducible
+  // key; no raw nested ID or category names are exposed in synthetic IDs.
+  const hash=seed=>{
+    let h=seed>>>0;
+    for(const c of String(input)){h^=c.codePointAt(0);h=Math.imul(h,16777619);}
+    return (h>>>0).toString(36);
+  };
+  return hash(2166136261)+'_'+hash(2654435761);
+}
 export function legacyHierarchy(ownerId,config){
   const graph=emptyHierarchy(ownerId);
   const groups=config?.categories||{},archived=config?.archivedCategories||{};
@@ -286,7 +296,7 @@ export function legacyHierarchy(ownerId,config){
       for(const variant of variants){
         const base=typeParent.id===originalTypeId&&variant.aliasId==null;
         const id=base?originalTxnId:
-          'legacy:transaction:link:'+encodeURIComponent(typeParent.id+'|'+kindId+'|'+(variant.aliasId||'base'));
+          'legacy:transaction:link:'+legacyKey(typeParent.id+'|'+kindId+'|'+(variant.aliasId||'base'));
         graph.transactions.push({id,label:variant.name,
           parentId:typeParent.id,kindId,archived:false,legacy:true});
         // Archived entries may have been moved out of config.categories;
@@ -297,8 +307,9 @@ export function legacyHierarchy(ownerId,config){
           if(!nonempty(raw))continue;
           const name=raw.trim();
           const hidden=inactive.includes(raw)||!!activeCategories&&!activeCategories.has(group+'|'+raw);
-          const categoryId=base?'legacy:category:'+encodeURIComponent(kindId+'|'+name):
-            'legacy:category:link:'+encodeURIComponent(id+'|'+name);
+          const originalCategoryId='legacy:category:'+encodeURIComponent(kindId+'|'+name);
+          const categoryId=base&&validId(originalCategoryId)?originalCategoryId:
+            'legacy:category:link:'+legacyKey(id+'|'+name);
           graph.categories.push({id:categoryId,label:name,
             parentId:id,ledgerGroup:group,archived:hidden,legacy:true});
         }
