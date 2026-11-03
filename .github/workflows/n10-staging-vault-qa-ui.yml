@@ -3,6 +3,7 @@ on:
   pull_request:
     paths:
       - 'security/n10-vault-qa-staging-site/**'
+      - 'security/n10-vault-qa-staging-edge/**'
       - '.github/workflows/n10-staging-vault-qa-ui.yml'
   push:
     branches:
@@ -22,3 +23,5 @@ jobs:
         run: node --check security/n10-vault-qa-staging-site/app.js
       - name: Offline isolated safety tests
         run: node security/n10-vault-qa-staging-site/test-client.mjs
+      - name: Verify exact one-line Stage Edge origin diff and hard-OFF flags
+        run: node security/n10-vault-qa-staging-edge/test-edge-origin.mjs
