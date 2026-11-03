@@ -78,36 +78,49 @@
     if(id('mmhV12Style'))return;
     const x=document.createElement('style');x.id='mmhV12Style';
     x.textContent=[
-      '.mmh-v12-setup{margin:0 0 15px;padding:14px;border:1px solid rgba(202,161,91,.26);border-radius:14px;background:rgba(15,33,52,.62);color:inherit}',
-      '.mmh-v12-head{font-weight:700;font-size:13px;line-height:1.5;margin-bottom:9px}',
-      '.mmh-v12-help{font-size:11px;opacity:.77;line-height:1.55}',
-      '.mmh-v12-cols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:12px}',
+      '.mmh-v12-setup{margin:0 0 16px;padding:18px;border:1px solid rgba(202,161,91,.26);border-radius:16px;background:rgba(15,33,52,.62);color:inherit}',
+      '.mmh-v12-head{font-weight:700;font-size:15px;line-height:1.4;margin-bottom:4px}',
+      '.mmh-v12-help{font-size:12px;opacity:.8;line-height:1.55}',
+      '.mmh-v12-progress{margin:12px 0 10px;font-weight:700;font-size:12px;color:#e6c27d}',
+      '.mmh-v12-cols{display:grid;grid-template-columns:minmax(0,1fr);gap:0;border:1px solid rgba(165,174,197,.24);border-radius:13px;overflow:hidden;margin-top:8px}',
+      '.mmh-v12-col{min-width:0;display:grid;grid-template-columns:minmax(155px,185px) minmax(0,1fr);gap:16px;padding:15px 16px;align-items:start;background:rgba(10,27,47,.28)}',
+      '.mmh-v12-col+.mmh-v12-col{border-top:1px solid rgba(165,174,197,.18)}',
+      '.mmh-v12-field-head h4{font-size:13px;margin:0 0 4px;font-weight:700}',
+      '.mmh-v12-field-head .mmh-v12-help{display:block;font-size:11px}',
+      '.mmh-v12-options{display:flex;flex-wrap:wrap;align-items:center;gap:8px;min-width:0}',
+      '.mmh-v12-option{appearance:none;min-height:37px;border:1px solid rgba(164,186,209,.37);border-radius:10px;background:rgba(32,63,89,.4);color:inherit;padding:8px 12px;font-size:12px;font-weight:600;line-height:1.3;cursor:pointer;transition:background .16s ease,border-color .16s ease}',
+      '.mmh-v12-option:hover{border-color:rgba(235,188,99,.77);background:rgba(183,142,71,.16)}',
+      '.mmh-v12-option.is-active{border-color:rgba(231,188,103,.78);background:rgba(190,151,75,.23);color:#ffe1a6}',
+      '.mmh-v12-option.is-incompatible{border-style:dashed}',
+      '.mmh-v12-option:focus-visible,.mmh-v12-tag button:focus-visible{outline:2px solid #e9bb68;outline-offset:2px}',
+      '.mmh-v12-taglist{display:flex;gap:8px;flex-wrap:wrap;align-items:center;min-width:0}',
+      '.mmh-v12-tag{display:flex;align-items:center;gap:8px;border-radius:10px;padding:7px 10px;background:rgba(137,164,193,.12);font-size:12px}',
+      '.mmh-v12-tag button{min-width:25px;min-height:28px;border:0;border-radius:7px;background:rgba(210,151,82,.18);color:inherit;cursor:pointer}',
+      '.mmh-v12-col-category .mmh-v12-taglist{grid-column:2;margin:0}',
+      '.mmh-v12-col-category .mmh-manager-form-v445{grid-column:2;min-width:0;display:grid!important;grid-template-columns:minmax(170px,1.25fr) minmax(130px,.75fr) max-content!important;gap:8px!important;align-items:center;margin:0!important}',
+      '.mmh-v12-col-category .mmh-manager-form-v445>span{display:none!important}',
+      '.mmh-v12-col-category .mmh-manager-form-v445>*{min-width:0;max-width:100%;width:100%}',
+      '.mmh-v12-col-category .mmh-manager-form-v445>button{width:auto;min-width:120px;white-space:nowrap}',
+      '.mmh-v12-preview{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:13px;font-size:12px;line-height:1.5}',
+      '.mmh-v12-preview-label{font-weight:700;color:#e6c27d}',
+      '.mmh-v12-preview-fields{display:flex;gap:6px;flex-wrap:wrap}',
+      '.mmh-v12-preview-chip{border:1px solid rgba(202,161,91,.36);padding:5px 9px;border-radius:999px;background:rgba(201,165,92,.09);font-weight:600}',
+      '.mmh-v12-note{margin:10px 0 0;font-size:11px;line-height:1.5;color:#e2c38d}',
       '#mmhV12Manage[hidden]{display:none!important}',
       '.mmh-v12-managed > section.mmh-manager-card-v445 > .mmh-manager-head-v445{display:none!important}',
       '#mmhManagerCategoriesPanelV445 section.mmh-manager-card-v445[hidden]{display:none!important}',
-      '#mmhManagerCategoriesPanelV445 .mmh-v12-col-category .mmh-manager-form-v445{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:8px;margin:8px 0 0!important}',
-      '#mmhManagerCategoriesPanelV445 .mmh-v12-col-category .mmh-manager-form-v445 > span{display:none!important}',
-      '#mmhManagerCategoriesPanelV445 .mmh-v12-col-category .mmh-manager-form-v445 > *{min-width:0;width:100%;max-width:100%}',
-      '.mmh-v12-progress{margin-top:10px;font-weight:700;font-size:12px;color:#e6c27d}',
-      '.mmh-v12-col-category .mmh-v12-taglist{margin:10px 0 0}',
-      '.mmh-v12-col{min-width:0;border:1px solid rgba(165,174,197,.22);border-radius:11px;padding:11px}',
-      '.mmh-v12-col h4{margin:0 0 8px;font-size:12px}',
-      '.mmh-v12-row{display:flex;gap:7px;align-items:center;flex-wrap:wrap}',
-      '.mmh-v12-row select{min-width:90px;flex:1 1 135px;max-width:100%;padding:9px;border-radius:9px;border:1px solid rgba(172,174,185,.38);background:#102942;color:#f3f5fc}',
-      '.mmh-v12-taglist{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}',
-      '.mmh-v12-tag{display:flex;align-items:center;gap:8px;border-radius:9px;padding:7px 9px;background:rgba(137,164,193,.12);font-size:12px}',
-      '.mmh-v12-tag button{min-width:25px;min-height:28px;border:0;border-radius:7px;background:rgba(210,151,82,.18);color:inherit;cursor:pointer}',
-      '.mmh-v12-note{margin:9px 0 0;font-size:12px;line-height:1.5;color:#e2c38d}',
       '#mmhV12SetupNote{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;padding:13px 15px;margin:3px 0 10px;border:1px solid rgba(200,159,83,.36);border-radius:13px;background:rgba(14,28,48,.72)}',
       '#mmhV12SetupNote button{flex-shrink:0}',
       '#txForm .formgrid > label[data-mmh-v12-hidden="1"]{display:none!important}',
       '#txSmartV141[data-mmh-v12-setup="1"],#txSmartV141[data-mmh-v12-managed="1"]{display:none!important}',
       '#txForm [data-mmh-v12-hidden="1"]{display:none!important}',
       '#mmhV12SetupNote[hidden]{display:none!important}',
-      '@media(max-width:1100px){.mmh-v12-cols{grid-template-columns:repeat(2,minmax(0,1fr))}.mmh-v12-col-category{grid-column:1/-1}}',
-      '@media(max-width:720px){.mmh-v12-cols{grid-template-columns:1fr}.mmh-v12-col-category{grid-column:auto}.mmh-v12-setup{padding:11px}}',
-      'body.light .mmh-v12-row select{background:#fff;color:#172943}'
-    ].join('');document.head.appendChild(x);
+      '@media(max-width:900px){.mmh-v12-col{grid-template-columns:minmax(125px,160px) minmax(0,1fr);gap:10px}.mmh-v12-col-category .mmh-manager-form-v445{grid-template-columns:minmax(0,1fr) minmax(120px,.75fr)!important}.mmh-v12-col-category .mmh-manager-form-v445>button{grid-column:1/-1;width:100%}}',
+      '@media(max-width:680px){.mmh-v12-setup{padding:12px}.mmh-v12-col{grid-template-columns:minmax(0,1fr);gap:9px;padding:12px}.mmh-v12-col-category .mmh-manager-form-v445,.mmh-v12-col-category .mmh-v12-taglist{grid-column:1}.mmh-v12-option{min-height:41px}.mmh-v12-preview{align-items:flex-start}}',
+      'body.light .mmh-v12-option{background:#fff;color:#243348;border-color:#c5cbda}',
+      'body.light .mmh-v12-option.is-active{background:#fff1d0;color:#62420e;border-color:#c69642}'
+    ].join('');
+    document.head.appendChild(x);
   }
   function make(tag,className,text){
     const e=document.createElement(tag);if(className)e.className=className;if(text!=null)e.textContent=text;return e;
@@ -128,8 +141,7 @@
     const panel=buildManager();if(!panel)return;
     const host=id('mmhManagerCategoriesPanelV445');
     const legacyCard=host?.querySelector('section.mmh-manager-card-v445');
-    // Reuse the existing Category form, rather than introducing another
-    // Add Category input or changing its validation and history protection.
+    // Keep the single existing Category form with its original validation.
     const categoryForm=panel.querySelector('.mmh-manager-form-v445')||
       legacyCard?.querySelector('.mmh-manager-form-v445');
     const heading=id('category-manage')?.querySelector('.cm-heading h2');
@@ -156,66 +168,87 @@
     panel.replaceChildren();
     panel.hidden=false;
     host?.classList.add('mmh-v12-managed');
-    // Hide only an entirely empty *secondary* search/archive card for a fresh
-    // owner; keep it when there are selected or archived categories.
     const hasArchived=Object.values(config()?.archivedCategories||{})
       .some(items=>Array.isArray(items)&&items.length>0);
     if(legacyCard)legacyCard.hidden=!(state()?.category.length||hasArchived);
-    panel.append(make('div','mmh-v12-head',tr('Your transaction fields','管理记账字段','မှတ်တမ်းအကွက်များကို စီမံပါ')));
+    panel.append(make('div','mmh-v12-head',tr('Set up your entry fields','设置您的记账字段','မှတ်တမ်းအကွက်များ သတ်မှတ်ပါ')));
     panel.append(make('div','mmh-v12-help',tr(
-      'Add Type, Transaction, and Category here. Add Transaction automatically shows the fields you have configured; no extra switch on the form. Existing history is never changed.',
-      '在 Manage 添加 Type、Transaction、Category。Add Transaction 自动按已添加的字段显示，不再出现额外切换框；旧记录不会改变。',
-      'Type၊ Transaction နှင့် Category ကို ဤနေရာတွင် ထည့်ပါ။ မှတ်တမ်းဟောင်းများ မပြောင်းလဲပါ။'
+      'Tap an option to add or remove it. Give Category your own names. Add Transaction will follow these choices automatically.',
+      '点击选项即可添加或移除；Category 可自定义名称。Add Transaction 会自动跟随您的设置。',
+      'ရွေးချယ်မှုကို နှိပ်ပြီး ထည့်ပါ သို့မဟုတ် ဖယ်ပါ။ Category အမည်ကို ကိုယ်တိုင် ထည့်နိုင်ပါသည်။'
     )));
-    const count=['type','transaction','category'].filter(key=>(state()?.[key]||[]).length).length;
+    const fields=['type','transaction','category'];
+    const enabledFields=fields.filter(key=>(state()?.[key]||[]).length);
+    const count=enabledFields.length;
     panel.append(make('div','mmh-v12-progress',tr(
-      count<2?'Setup: '+count+'/2 field types selected — add at least two to begin':'Ready: '+count+' field types configured',
-      count<2?'设置进度：'+count+'/2 项字段 — 至少添加两项':'已配置 '+count+' 项记账字段',
+      count<2?'First setup · '+count+' of 2 field groups ready':'Ready · '+count+' field groups selected',
+      count<2?'首次设置 · 已完成 '+count+'/2 项字段':'已就绪 · 选中 '+count+' 项字段',
       count<2?'ပြင်ဆင်မှု '+count+'/2':'အကွက် '+count+' ခု'
     )));
     const grid=make('div','mmh-v12-cols');panel.append(grid);
     for(const kind of ['type','transaction']){
       const card=make('div','mmh-v12-col');grid.append(card);
-      card.append(make('h4','',kind==='type'?'Type':'Transaction'));
-      const row=make('div','mmh-v12-row'),select=make('select',''),choices=kind==='type'?
-        TYPE.map(x=>({value:x,label:x})):
+      const lead=make('div','mmh-v12-field-head');
+      lead.append(make('h4','',kind==='type'?'Type':'Transaction'));
+      lead.append(make('span','mmh-v12-help',kind==='type'
+        ?tr('Income, Expense, Transfer','收入、支出或转账','ဝင်ငွေ၊ အသုံးစရိတ်၊ လွှဲပြောင်း')
+        :tr('Choose the transaction purpose','选择交易用途','ငွေကြေးလှုပ်ရှားမှု အမျိုးအစား')));
+      card.append(lead);
+      const options=make('div','mmh-v12-options');card.append(options);
+      const choices=kind==='type'?TYPE.map(x=>({value:x,label:x})):
         KIND.map(k=>({value:k.id,label:k.label}));
       const enabled=state()?.[kind]||[];
-      // Do not offer Expense-only transactions when the user selected
-      // Income-only Type. With no Type configured, either direction is allowed.
+      // Always show selected options (including now-incompatible ones) so
+      // the user can remove them. New options respect configured Type.
       const compatible=kind==='transaction'&&!types().length?choices:
-        kind==='transaction'?choices.filter(x=>types().includes(KIND.find(k=>k.id===x.value)?.type)):choices;
-      for(const opt of compatible.filter(x=>!enabled.includes(x.value))){
-        const el=make('option','',opt.label);el.value=opt.value;select.append(el);
+        kind==='transaction'?choices.filter(x=>enabled.includes(x.value)||types().includes(KIND.find(k=>k.id===x.value)?.type)):choices;
+      for(const option of compatible){
+        const selected=enabled.includes(option.value);
+        const chip=button((selected?'✓  ':'+  ')+option.label,()=>mutate(kind,option.value,selected));
+        const incompatible=kind==='transaction'&&types().length&&
+          !types().includes(KIND.find(k=>k.id===option.value)?.type);
+        chip.className='mmh-v12-option'+(selected?' is-active':'')+(incompatible?' is-incompatible':'');
+        chip.setAttribute('aria-pressed',selected?'true':'false');
+        chip.setAttribute('aria-label',selected?'Remove '+option.label:'Add '+option.label);
+        options.append(chip);
       }
-      row.append(select);
-      const add=button('+ Add',()=>mutate(kind,select.value));
-      add.disabled=!select.options.length;
-      row.append(add);card.append(row);
-      const tags=make('div','mmh-v12-taglist');card.append(tags);
-      for(const value of enabled){
-        const item=choices.find(x=>x.value===value);if(!item)continue;
-        const tag=make('span','mmh-v12-tag',item.label);
-        const remove=button('×',()=>mutate(kind,value,true));remove.setAttribute('aria-label','Remove '+item.label);
-        tag.append(remove);tags.append(tag);
-      }
-      if(!enabled.length)tags.append(make('span','mmh-v12-help',tr('No entries yet','尚未添加','မထည့်ရသေးပါ')));
     }
     const categoryCard=make('div','mmh-v12-col mmh-v12-col-category');grid.append(categoryCard);
-    categoryCard.append(make('h4','','Category'));
+    const categoryLead=make('div','mmh-v12-field-head');
+    categoryLead.append(make('h4','','Category'));
+    categoryLead.append(make('span','mmh-v12-help',tr('Your custom spending or income names',
+      '自定义收入或支出分类','သင့်ကိုယ်ပိုင် အမျိုးအစားအမည်')));
+    categoryCard.append(categoryLead);
     if(categoryForm)categoryCard.append(categoryForm);
-    else categoryCard.append(make('div','mmh-v12-help',tr('Use the existing Category editor.','使用原来的 Category 添加功能。','Category ကို ထည့်ပါ။')));
+    else categoryCard.append(make('div','mmh-v12-help',tr(
+      'Use the existing Category editor.','使用原有的 Category 添加功能。','Category ကို ထည့်ပါ။')));
     const active=categories();
     const list=make('div','mmh-v12-taglist');categoryCard.append(list);
-    if(!active.length)list.append(make('div','mmh-v12-help',tr('No categories selected','尚未添加分类','Category မရှိသေးပါ')));
     for(const cat of active){
       const tag=make('span','mmh-v12-tag',cat.name+' · '+cat.group);
-      tag.append(button('×',()=>mutate('category',cat.raw,true)));list.append(tag);
+      const remove=button('×',()=>mutate('category',cat.raw,true));
+      remove.setAttribute('aria-label','Remove '+cat.name+' from '+cat.group);
+      tag.append(remove);list.append(tag);
+    }
+    const preview=make('div','mmh-v12-preview');panel.append(preview);
+    preview.append(make('span','mmh-v12-preview-label',tr(
+      'Add Transaction preview','Add Transaction 将显示','Add Transaction တွင် ပြမည့်အရာ')));
+    if(count<2){
+      preview.append(make('span','mmh-v12-help',tr(
+        'Select at least two kinds above to start recording.',
+        '请先在上方添加至少两种字段，才能开始记账。',
+        'အထက်မှ အကွက်နှစ်ခု အနည်းဆုံး ရွေးပါ။'
+      )));
+    }else{
+      const shown=make('div','mmh-v12-preview-fields');preview.append(shown);
+      for(const field of enabledFields){
+        shown.append(make('span','mmh-v12-preview-chip',field==='type'?'Type':field==='transaction'?'Transaction':'Category'));
+      }
     }
     panel.append(make('div','mmh-v12-note',tr(
-      'Two configured fields are shown automatically. A third field appears only if you add it. Keep loan and personal categories explicit for accurate reports.',
-      '添加哪两项就自动显示哪两项；只有添加第三项才显示三项。借贷、个人类交易需明确分类以保证报表准确。',
-      'အကွက်နှစ်ခု ထည့်လျှင် နှစ်ခုသာ ပြပါမည်။'
+      'Only configured field groups appear in Add Transaction. Financial codes and saved history remain unchanged.',
+      'Add Transaction 只显示已设置的字段；财务类型代码与历史记录不变。',
+      'ရွေးထားသော အကွက်များသာ ပြပြီး မှတ်တမ်းဟောင်းများ မပြောင်းလဲပါ။'
     )));
   }
   function fill(select,entries,pick){
@@ -421,7 +454,7 @@
     refresh();
   }
   window.MMHV11TxFieldPrefs={
-    version:'2.0.0',isManaged,hasCategory,markCategory,refreshManage,
+    version:'2.2.0',isManaged,hasCategory,markCategory,refreshManage,
     refresh:refreshForm,attachEdit:()=>{},getMode:mode,layoutInfo,validate:valid,
     // Legacy V11's manual mode chooser is intentionally removed.
     setMode:()=>false
