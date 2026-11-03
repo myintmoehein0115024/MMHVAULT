@@ -68,3 +68,26 @@ jobs:
           trap 'kill "$SERVER_PID"' EXIT
           sleep 2
           node tests/app-v11-manage-hierarchy-browser-check.cjs
+
+  browser-webkit:
+    name: V11.7 synthetic WebKit responsive QA (NO DEPLOY)
+    runs-on: ubuntu-latest
+    timeout-minutes: 13
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install test-only WebKit driver and Linux dependencies
+        run: |
+          npm install --no-save --no-package-lock --no-audit --no-fund playwright-core@1.56.1
+          npx playwright-core install --with-deps webkit
+      - name: Run local-only WebKit phone/tablet/desktop old/new-owner checks
+        env:
+          MMH_BROWSER_ENGINE: webkit
+        run: |
+          python3 -m http.server 8768 --bind 127.0.0.1 >/tmp/mmhvault-v11-webkit-browser.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID"' EXIT
+          sleep 2
+          node tests/app-v11-manage-hierarchy-browser-check.cjs
