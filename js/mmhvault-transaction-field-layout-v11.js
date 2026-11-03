@@ -455,7 +455,7 @@
     const active={type:types().length>0,transaction:transactions().length>0,category:categories().length>0};
     const count=Object.values(active).filter(Boolean).length;
     if(count<2)return {active,count,ready:false,reason:tr(
-      'Set up at least two field groups in Manage before adding a transaction.',
+      'Set up at least two fields in Manage before adding a transaction.',
       '请先在 Manage 设置至少两种字段，再开始记账。',
       'Manage တွင် အကွက်အမျိုးအစား နှစ်ခု ရွေးပါ။')};
     let validPair=false;
