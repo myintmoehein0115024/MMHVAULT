@@ -194,34 +194,29 @@ test('real Manage render moves exactly one Category form, and restores it for le
   const panel=findById(host,'mmhV12Manage');
   assert.ok(panel,'managed owner has one Manage section');
   assert.equal(legacy.hidden,true,'new owner with zero saved/archived Categories should not see empty search card');
-  // Each Type/Transaction choice is a one-click, reversible pill: no extra
-  // dropdown and Add button. Category keeps its native validated input.
   const rows=panel.querySelector('.mmh-v12-cols').children;
-  assert.equal(rows.length,3,'three compact field rows instead of three tall cards');
-  const typeChoices=rows[0].querySelector('.mmh-v12-options').children;
-  assert.equal(typeChoices.length,3,'Income / Expense / Transfer are directly clickable');
-  const incomeType=typeChoices.find(x=>x.textContent.includes('Income'));
-  assert.equal(incomeType.attrs['aria-pressed'],'false');
-  incomeType.listeners.click();
+  assert.equal(rows.length,3,'three compact management rows');
+  const typeQuick=rows[0].querySelector('.mmh-v13-available').children;
+  assert.equal(typeQuick.length,4,'one caption and three optional built-in Types');
+  typeQuick.find(x=>x.textContent==='+ Income').listeners.click();
   assert.deepEqual(Array.from(h.config.txFieldsV12.type),['Income']);
   const afterType=panel.querySelector('.mmh-v12-cols').children;
-  assert.equal(afterType[0].querySelector('.mmh-v12-options').children
-    .find(x=>x.textContent.includes('Income')).attrs['aria-pressed'],'true');
-  const transactionChoices=afterType[1].querySelector('.mmh-v12-options').children;
-  assert.ok(transactionChoices.every(x=>!x.textContent.includes('Expense')),
-    'Type Income filters newly addable Expense transactions');
-  transactionChoices.find(x=>x.textContent.includes('Income')).listeners.click();
+  const incomeEntry=afterType[0].querySelector('.mmh-v13-active').children[0];
+  assert.equal(incomeEntry.children[0].textContent,'Income','added entry shows a name and action buttons');
+  assert.equal(incomeEntry.children[1].textContent,'Edit');
+  assert.equal(incomeEntry.children[2].textContent,'Remove');
+  const txQuick=afterType[1].querySelector('.mmh-v13-available').children;
+  assert.ok(txQuick.every(x=>!x.textContent?.includes('Expense')),
+    'only compatible new transaction kinds are offered');
+  txQuick.find(x=>x.textContent==='+ Income').listeners.click();
   assert.deepEqual(Array.from(h.config.txFieldsV12.transaction),['Income|Income']);
   const preview=panel.querySelector('.mmh-v12-preview-fields');
-  assert.deepEqual(preview.children.map(x=>x.textContent),['Type','Transaction'],
-    'Manage preview mirrors the two actual Add Transaction fields');
+  assert.deepEqual(preview.children.map(x=>x.textContent),['Type','Transaction']);
   const afterReady=panel.querySelector('.mmh-v12-cols').children;
-  afterReady[0].querySelector('.mmh-v12-options').children
-    .find(x=>x.textContent.includes('Income')).listeners.click();
-  assert.equal(h.config.txFieldsV12.type.length,0,'selected option can be removed in one click');
-  assert.equal(h.config.txFieldsV12.transaction.length,1,
-    'removing Type does not silently erase configured Transaction values');
-  assert.equal(h.writes.length,3,'three actions persisted through the existing owner-scoped config');
+  afterReady[0].querySelector('.mmh-v13-active').children[0].children[2].listeners.click();
+  assert.equal(h.config.txFieldsV12.type.length,0,'Remove changes owner config only');
+  assert.equal(h.config.txFieldsV12.transaction.length,1,'removing Type keeps Transaction');
+  assert.equal(h.writes.length,3,'all three changes persisted through owner-scoped settings');
   assert.equal(categoryForm.parentElement?.className,'mmh-v12-col mmh-v12-col-category');
   h.api.refreshManage();
   assert.equal(categoryForm.parentElement?.className,'mmh-v12-col mmh-v12-col-category',
@@ -239,13 +234,14 @@ test('real Manage render moves exactly one Category form, and restores it for le
 });
 
 test('Manage displays existing native Category editor beside Type and Transaction rather than separate duplicate controls',()=>{
-  assert.match(source,/mmh-v12-option\.is-active/);
+  assert.match(source,/mmh-v13-entry/);
   assert.match(source,/mmh-v12-preview-fields/);
   assert.doesNotMatch(source,/row\.append\(select\)/);
   assert.match(source,/categoryCard=make\('div','mmh-v12-col mmh-v12-col-category'\)/);
   assert.match(source,/if\(categoryForm\)categoryCard\.append\(categoryForm\)/);
   assert.match(source,/if\(!isManaged\(\)\)\{[\s\S]*?header\.after\(categoryForm\)/);
-  assert.match(source,/compatible=kind==='transaction'/);
+  assert.match(source,/mmh-v13-active/);
+  assert.match(source,/function fieldDialog\(field,entry=null\)/);
   assert.doesNotMatch(source,/data-tx-pref-select-v11|mmh-tx-quick-v11|makePref\(/);
 });
 
@@ -431,7 +427,7 @@ test('original Add Transaction layout is not restructured or duplicated',()=>{
   assert.match(app,/<div class="tx-tab-panel-v371" id="txAddPanel"/);
   assert.match(app,/<div class="mmh-form-section-v1 full"><span data-en="Accounts & amounts"/);
   assert.match(app,/<div class="mmh-form-section-v1 full"><span data-en="Note & attachment"/);
-  assert.match(app,/js\/mmhvault-transaction-field-layout-v11\.js\?v=2\.2\.0/);
+  assert.match(app,/js\/mmhvault-transaction-field-layout-v11\.js\?v=3\.0\.0/);
   assert.doesNotMatch(source,/txPrefHolderV11|mmh-tx-pref-v11|quick\(form/);
 });
 
@@ -450,4 +446,65 @@ test('unsafe hidden categories never get a guessed loan or personal classificati
   assert.match(source,/return null;\s*\}/);
   assert.match(source,/if\(!defaultCat\|\|!\(list\|\|\[\]\)\.includes\(defaultCat\)\)/);
   assert.match(source,/event\.stopImmediatePropagation\(\)/);
+});
+
+
+test('custom Type and Transaction labels add, edit and remove without modifying ledger codes',()=>{
+  const h=harness({version:1,type:['Income'],transaction:['Income|Income'],category:[]});
+  const type={key:'base:Income',canonical:'Income',label:'Income',custom:false};
+  assert.equal(h.api.saveName('type',type,'Income','Main Income'),true);
+  assert.equal(h.api.fieldItems('type')[0].label,'Main Income');
+  assert.equal(h.api.saveName('type',null,'Income','Weekend Job'),true);
+  const alias=h.api.fieldItems('type').find(x=>x.custom);
+  assert.ok(alias,'additional custom label is saved under canonical Income');
+  assert.equal(alias.canonical,'Income');
+  assert.equal(h.api.saveName('transaction',null,'Income|Income','Paycheck'),true);
+  const tx=h.api.fieldItems('transaction').find(x=>x.custom);
+  assert.ok(tx);
+  assert.equal(h.api.saveName('transaction',tx,'Income|Income','Project Pay'),true);
+  assert.equal(h.api.fieldItems('transaction').find(x=>x.custom).label,'Project Pay');
+  assert.equal(h.api.removeName('type',type),false,'cannot remove base while extra aliases depend on it');
+  assert.equal(h.api.removeName('type',alias),true);
+  assert.equal(h.api.removeName('type',type),true);
+  assert.deepEqual(Array.from(h.config.txFieldsV12.type),[]);
+  assert.deepEqual(Array.from(h.config.txFieldsV12.transaction),['Income|Income']);
+  assert.equal(h.config.txFieldsV12.displayV13.extraTypes.length,0);
+  assert.ok(h.writes.length>=6);
+});
+
+test('owner isolation, duplicate rejection and unsafe financial type cannot create a custom code',()=>{
+  const h=harness({version:1,type:['Income'],transaction:[],category:[]});
+  assert.equal(h.api.saveName('type',null,'Income','Income'),false,'existing visible label is not duplicated');
+  assert.equal(h.api.saveName('type',null,'Mystery','Mystery Type'),false);
+  assert.equal(h.api.saveName('type',null,'Income','New Name'),true);
+  assert.equal(h.config.txFieldsV12.displayV13.extraTypes.length,1);
+  const anonymous=harness(fresh(),null);
+  assert.equal(anonymous.api.saveName('type',null,'Income','New Label'),false);
+  assert.equal(anonymous.writes.length,0);
+});
+
+test('managed Category rename retains current selection, while app uses existing secure edit flow',()=>{
+  const h=harness({version:1,type:[],transaction:[],category:['Expense|Dining']});
+  h.api.onCategoryRenamed('Expense','Dining','Cafe');
+  assert.deepEqual(Array.from(h.config.txFieldsV12.category),['Expense|Cafe']);
+  assert.match(app,/onCategoryRenamed\?\.\(currentGroup,currentName,newName\)/);
+  assert.match(app,/displayV13:\{/);
+  assert.match(app,/typeLabels:names\(v13\.typeLabels,typeCodes\)/);
+  assert.match(app,/extraTransactions:aliases\(v13\.extraTransactions,transactionCodes\)/);
+});
+
+test('managed custom names display in original Add Transaction selects with canonical values',()=>{
+  const h=harness({
+    version:1,type:['Income'],transaction:['Income|Income'],category:[],
+    displayV13:{typeLabels:{Income:'Main income'},transactionLabels:{'Income|Income':'Paid work'},
+      extraTypes:[{id:'user_abcd1234',canonical:'Income',label:'Bonus income'}],
+      extraTransactions:[{id:'user_efgh5678',canonical:'Income|Income',label:'Side job'}]}
+  });
+  const dom=nativeForm(h);h.api.refresh();
+  assert.ok(dom.t.options.some(x=>x.textContent==='Main income'));
+  assert.ok(dom.t.options.some(x=>x.textContent==='Bonus income'));
+  assert.ok(dom.g.options.some(x=>x.textContent==='Paid work'));
+  assert.ok(dom.g.options.some(x=>x.textContent==='Side job'));
+  assert.equal(dom.t.value,'Income');assert.equal(dom.g.value,'Income');
+  assert.equal(h.api.validate(),true,'custom display alias does not change finance validation');
 });
