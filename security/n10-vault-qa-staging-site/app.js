@@ -228,11 +228,13 @@ $('mfaBtn').addEventListener('click',()=>act(async()=>{
  await intoVault();
 }));
 $('refreshStatusBtn').addEventListener('click',()=>act(async()=>{
+ // Never retain a previously confirmed window if a fresh status check fails.
+ discardWindow(false);
  const value=await callVault('status');
  if(value.code!=='backup_status'||typeof value.backed_up!=='boolean')throw Error('invalid_status');
  armWindow(value.window_expires_at,value.server_utc_now);
  info(value.backed_up?'✅ 已存在加密备份（不会重置十词）。':'尚无加密备份（合成测试账户）。');
- message('Staging Vault 状态读取成功；只返回有无备份，不泄露恢复词。');
+ message('Staging Vault 状态读取成功；倒计时已经按服务器时间启动。');
 }));
 $('initBtn').addEventListener('click',()=>act(async()=>{
  requireWindow(120);
