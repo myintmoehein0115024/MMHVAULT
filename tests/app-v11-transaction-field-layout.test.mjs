@@ -202,3 +202,13 @@ test('synthetic form DOM keeps original ledger values when user chooses a combin
   assert.equal(api.validate(form),true);
   assert.equal(typeof listeners.submit,'function');
 });
+
+test('V11 account-identity guard is retained alongside the transaction preference module',()=>{
+  const first=html.indexOf('async function mmhVaultFinanceIdentityChangeSafeV11(');
+  assert.ok(first>=0,'PR #46 identity guard must not be removed by PR #59');
+  const edit=html.indexOf('const oldName=a.name, nameChanged=oldName!==newName;');
+  const gate=html.indexOf('await mmhVaultFinanceIdentityChangeSafeV11(a,newName,newCurrency,configOwner)',edit);
+  const writes=html.indexOf("await mmhVaultUpdateAccountRefsV192('transactions'",edit);
+  assert.ok(edit>=0&&gate>edit&&writes>gate,'history guard runs before any account reference updates');
+  assert.match(html,/MMHV11TxFieldPrefs\?\.attachEdit\?\.\(\)/,'transaction field UI remains present');
+});
