@@ -37,6 +37,8 @@ function accountCurrency(account) {
  * @param {Array} input.investments - Investments (read-only).
  * @param {Array} input.customInvestments - Optional custom investments (read-only).
  * @param {Array} input.recurringTransactions - Optional recurring transactions (read-only).
+ * @param {Array} input.cryptoWalletMovements - Optional crypto wallet movements (read-only).
+ * @param {Array} input.lifeFundAllocations - Optional Life Planner fund allocations (read-only).
  * @returns {object} No write suggestions, no currency inferred for unresolved names.
  */
 export function auditFinanceLinks(input = {}) {
@@ -74,6 +76,14 @@ export function auditFinanceLinks(input = {}) {
   for (const row of owned(input.recurringTransactions)) {
     record('recurring', row, 'from_account');
     record('recurring', row, 'to_account');
+  }
+  // Keep in parity with the APP V11 account-identity guard's secondary tables.
+  for (const row of owned(input.cryptoWalletMovements)) {
+    record('crypto_wallet_movement', row, 'from_wallet');
+    record('crypto_wallet_movement', row, 'to_wallet');
+  }
+  for (const row of owned(input.lifeFundAllocations)) {
+    record('life_fund_allocation', row, 'source_account_name');
   }
 
   for (const ref of references) {
