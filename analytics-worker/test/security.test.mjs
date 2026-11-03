@@ -101,3 +101,22 @@ test('malformed Cloudflare metrics are never displayed',async()=>{
     assert.equal((await r.json()).error,'analytics_unavailable');
   }finally{globalThis.fetch=previous}
 });
+
+test('duplicate Cloudflare dates fail closed instead of double counting',async()=>{
+  const configured={...env,CF_ANALYTICS_TOKEN:'test',SUPABASE_ANON_KEY:'test',CF_ACCOUNT_ID:'test',CF_SITE_TAG:'test',SUPABASE_URL:'https://supabase.example.test'};
+  const previous=globalThis.fetch;
+  const date=new Date().toISOString().slice(0,10);
+  globalThis.fetch=async(url)=>{
+    if(String(url).includes('/auth/v1/user'))return new Response(JSON.stringify({id:'test-user'}),{status:200});
+    if(String(url).includes('supabase.example.test'))return new Response('true',{status:200});
+    return new Response(JSON.stringify({data:{viewer:{accounts:[{rumPageloadEventsAdaptiveGroups:[
+      {count:5,dimensions:{date},sum:{visits:3}},
+      {count:5,dimensions:{date},sum:{visits:3}}
+    ]}]}}}),{status:200});
+  };
+  try{
+    const r=await call(base,{headers:{Authorization:'Bearer mock.jwt.token'}},configured);
+    assert.equal(r.status,503);
+    assert.equal((await r.json()).error,'analytics_unavailable');
+  }finally{globalThis.fetch=previous}
+});
