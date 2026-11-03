@@ -18,9 +18,50 @@ async function verifyAdmin(token,env){
   return {status:(await result.json())===true?200:403};
 }
 async function queryAnalytics(range,env){
-  // Cloudflare GraphQL dataset/fields MUST be validated with a real read-only token
-  // before this function is enabled. Do not silently substitute HTTP request analytics.
-  throw new Error('WEB_ANALYTICS_GRAPHQL_NOT_VERIFIED');
+  const now = new Date();
+  const start = new Date(now.getTime() - RANGE_DAYS[range] * 86400000);
+  const query = `query WebsiteAnalytics($accountTag: string!, $siteTag: string!, $start: Time!, $end: Time!) {
+    viewer {
+      accounts(filter: {accountTag: $accountTag}) {
+        rumPageloadEventsAdaptiveGroups(
+          limit: 100
+          orderBy: [date_ASC]
+          filter: {siteTag: $siteTag, datetime_geq: $start, datetime_leq: $end}
+        ) {
+          count
+          dimensions { date }
+          sum { visits }
+        }
+      }
+    }
+  }`;
+  const result = await fetch('https://api.cloudflare.com/client/v4/graphql', {
+    method:'POST',
+    headers:{Authorization:'Bearer '+env.CF_ANALYTICS_TOKEN,'content-type':'application/json'},
+    body:JSON.stringify({query,variables:{
+      accountTag:env.CF_ACCOUNT_ID,siteTag:env.CF_SITE_TAG,
+      start:start.toISOString(),end:now.toISOString()
+    }}),
+    redirect:'error'
+  });
+  if(!result.ok)throw new Error('CF_HTTP_ERROR');
+  const body=await result.json();
+  if(body.errors?.length)throw new Error('CF_GRAPHQL_ERROR');
+  const accounts=body.data?.viewer?.accounts;
+  if(!Array.isArray(accounts)||accounts.length!==1)throw new Error('CF_ACCOUNT_MISMATCH');
+  const groups=accounts[0].rumPageloadEventsAdaptiveGroups;
+  if(!Array.isArray(groups)||groups.length>RANGE_DAYS[range]+1)throw new Error('CF_GROUPS_INVALID');
+  const trend=[];
+  let pageViews=0,visits=0;
+  for(const group of groups){
+    if(!/^\\d{4}-\\d{2}-\\d{2}$/.test(group.dimensions?.date||'')||
+       !Number.isSafeInteger(group.count)||group.count<0||
+       !Number.isSafeInteger(group.sum?.visits)||group.sum.visits<0)throw new Error('CF_METRICS_INVALID');
+    pageViews+=group.count;visits+=group.sum.visits;
+    trend.push({date:group.dimensions.date,visits:group.sum.visits});
+  }
+  if(!Number.isSafeInteger(pageViews)||!Number.isSafeInteger(visits))throw new Error('CF_METRICS_OVERFLOW');
+  return {pageViews,visits,uniqueVisitors:null,trend,updatedAt:now.toISOString()};
 }
 export default {async fetch(request,env){
   const origin=request.headers.get('Origin');
