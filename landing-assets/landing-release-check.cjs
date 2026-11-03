@@ -54,14 +54,12 @@ const l141AssetReplacements=[
     "src=\"./landing-assets/motion-l132.js?v=l141\""
   ]
 ];
-const l141IndexOnlyEdited=()=>{
-  let expected=prev;
-  for(const [oldHref,newHref] of l141AssetReplacements){
-    if(expected.split(oldHref).length!==2)return false;
-    expected=expected.replace(oldHref,newHref);
-  }
-  return current===expected;
-};
+// L1.42: entire homepage is byte-for-byte identical to main except the
+// below-fold Business stylesheet's non-blocking loading and no-script fallback.
+const l142OldBusinessTag="  <link rel=\"stylesheet\" href=\"./landing-assets/business.css?v=l141\">";
+const l142NewBusinessTag="  <!-- L1.42: business section is below the fold; do not block initial Hero paint. -->\n  <link rel=\"stylesheet\" href=\"./landing-assets/business.css?v=l141\" media=\"print\" onload=\"this.onload=null;this.media='all'\">\n  <noscript><link rel=\"stylesheet\" href=\"./landing-assets/business.css?v=l141\"></noscript>";
+const l142IndexOnlyEdited=()=>prev.split(l142OldBusinessTag).length===2 &&
+  current===prev.replace(l142OldBusinessTag,l142NewBusinessTag);
 
 /* L1.33: exact presentation-only Myanmar feature typography append.
  * No public HTML, scripting, authentication, finance, PWA or SEO changes. */
@@ -124,7 +122,7 @@ const l133BurmeseLayoutOnlyEdited=()=>
   source('landing-assets/landing.css').endsWith(l134ResponsiveCssSuffix) &&
   source('landing-assets/landing.css').includes(l133BurmeseCssSuffix) &&
   l137LandingJSOnlyEdited() &&
-  l141IndexOnlyEdited() &&
+  l142IndexOnlyEdited() &&
   current.includes('<title>MMHVAULT | Personal Finance & Wealth</title>');
 const l133PublicPagesUnchanged=()=>l137PublicJSOnlyEdited();
 const manifest=JSON.parse(read('mmh-manifest-v2.webmanifest'));
@@ -507,7 +505,7 @@ check('Homepage retains all prior content and SEO outside shared header layer',
  ['en','zh','my'].every(lang=>translationScript.includes('Object.assign(strings.'+lang+', {\n    navExplore:')) &&
  current.includes('<body id="top" class="l131 mmh-nav-unified">') &&
  current.includes('<link rel="stylesheet" href="./landing-assets/shared-header-l116.css?v=l141">') &&
- l141IndexOnlyEdited() &&
+ l142IndexOnlyEdited() &&
  l133BurmeseLayoutOnlyEdited() &&
  source('landing-assets/explore-l114.css')===read('landing-assets/explore-l114.css'));
 const publicHeaders=['about/index.html','features/index.html','business/index.html',
@@ -637,29 +635,29 @@ check('L1.23 lightweight scroll reveals are opacity+transform only, motion acces
  read('landing-assets/public-pages.css').includes('transition-duration:410ms,445ms') &&
  read('landing-assets/public-pages.css').includes('@media(prefers-reduced-motion:reduce)'));
 check('L1.24 preload prioritizes the one real Hero image with no duplicate image preload',
- l141IndexOnlyEdited() &&
+ l142IndexOnlyEdited() &&
  current.includes('<img class="hero-device-cinematic" src="./landing-assets/personal-business-concept.webp"') &&
  current.includes('decoding="async" fetchpriority="high"') &&
  current.includes('loading="lazy" decoding="async"') &&
  !current.includes(oldHeroPreload));
 check('L1.25 Hero only waits for decoded pixels, preserving original fallback',
  l133BurmeseLayoutOnlyEdited() &&
- l141IndexOnlyEdited() &&
+ l142IndexOnlyEdited() &&
  current.includes(newHeroPreload) &&
  !current.includes(oldHeroPreload));
 check('L1.27 public tab title matches SEO without language focus scroll',
  l133BurmeseLayoutOnlyEdited() &&
  l133PublicPagesUnchanged() &&
- l141IndexOnlyEdited() && current.includes(newHeroPreload) &&
+ l142IndexOnlyEdited() && current.includes(newHeroPreload) &&
  !current.includes(oldHeroPreload));
-check('L1.41 exact three-file versioned-homepage scope',
+check('L1.42 exact three-file nonblocking Business CSS scope',
  actual.length===3 &&
  actual.every(path=>[
   'index.html',
   'landing-assets/landing-release-check.cjs',
   'landing-assets/landing-browser-check.cjs'
  ].includes(path)) &&
- l141IndexOnlyEdited() &&
+ l142IndexOnlyEdited() &&
  l133BurmeseLayoutOnlyEdited() &&
  l133PublicPagesUnchanged() &&
  l135HeaderCssOnlyEdited() &&
@@ -679,15 +677,24 @@ check('L1.40 decoded mobile Hero has no delayed blank paint',
   l140HeroCssSuffix.includes('body.l131 .hero-device-cinematic { transition: none; }') &&
   !l140HeroCssSuffix.includes('body.app') &&
   !l140HeroCssSuffix.includes('user-scalable=no'));
-check('L1.41 all nine first-party styles/scripts receive one cache version without duplicate assets',
-  l141IndexOnlyEdited() &&
+check('L1.41 all nine first-party style/script URLs keep coordinated versions',
+  l142IndexOnlyEdited() &&
   l141AssetReplacements.length===9 &&
   l141AssetReplacements.every(([before,after])=>
     before!==after && after.includes('?v=l141') &&
-    current.split(after).length===2 && !current.includes(before)) &&
+    current.split(after).length===(after.includes('business.css')?3:2) && !current.includes(before)) &&
   (current.match(/<link rel="preload" as="image"/g)||[]).length===1 &&
   (current.match(/<script defer src=/g)||[]).length===2 &&
   !current.includes('user-scalable=no'));
+check('L1.42 below-fold Business stylesheet is nonblocking with accessible noscript fallback',
+  l142IndexOnlyEdited() &&
+  current.includes(l142NewBusinessTag) &&
+  current.includes('media="print" onload="this.onload=null;this.media=\'all\'"') &&
+  (current.match(/<noscript>/g)||[]).length===1 &&
+  (current.match(/<link rel="stylesheet"/g)||[]).length===8 &&
+  (current.match(/<script defer src=/g)||[]).length===2 &&
+  !current.includes('user-scalable=no') &&
+  read('landing-assets/business.css')===source('landing-assets/business.css'));
 check('L1.34 mobile EN ZH MY card stability and touch-safe scrolling',
   l133BurmeseLayoutOnlyEdited() &&
   l134ResponsiveCssSuffix.includes('min-height: 94px') &&
@@ -706,13 +713,13 @@ check('L1.35 mobile selected language is visible without changing header size',
   !l135HeaderCssSuffix.includes('touch-action: none') &&
   !l135HeaderCssSuffix.includes('user-scalable=no') &&
   !l135HeaderCssSuffix.includes('body.app') &&
-  l141IndexOnlyEdited());
+  l142IndexOnlyEdited());
 check('L1.36 compact public mobile header buttons are 44 CSS pixels',
   l136HeaderTargetsOnlyEdited() &&
   l136TouchTargetReplacements.length===3 &&
   l136TouchTargetReplacements.every(([a,b])=>a!==b && b.includes('44px')) &&
   read('landing-assets/shared-header-l116.css').length<=20000 &&
-  l141IndexOnlyEdited() &&
+  l142IndexOnlyEdited() &&
   l137LandingJSOnlyEdited() &&
   l137PublicJSOnlyEdited());
 check('L1.37 public languages synchronize across tabs without auth or navigation',
@@ -725,7 +732,7 @@ check('L1.37 public languages synchronize across tabs without auth or navigation
   !l137PublicStorageHook.includes('fetch(') &&
   !l137LandingStorageHook.includes('location.') &&
   !l137PublicStorageHook.includes('location.') &&
-  l141IndexOnlyEdited());
+  l142IndexOnlyEdited());
 check('L1.38 calmer paint-only public panels preserve accessibility and asset budget',
  l138MotionOnlyEdited() &&
  l138MotionReplacements.length===4 &&
@@ -734,7 +741,7 @@ check('L1.38 calmer paint-only public panels preserve accessibility and asset bu
  read('landing-assets/shared-header-l116.css').includes('prefers-reduced-motion:reduce') &&
  read('landing-assets/landing.js')===source('landing-assets/landing.js') &&
  l139PublicOnlyEdited() &&
- l141IndexOnlyEdited());
+ l142IndexOnlyEdited());
 check('L1.40 phone scroll reveals prewarm outside viewport without layout edits',
  l139MotionOnlyEdited() && l139PublicOnlyEdited() &&
  read('landing-assets/motion-l132.js').includes("mobileReveal?'0px 0px 24% 0px':'0px 0px -6% 0px'") &&
@@ -744,7 +751,7 @@ check('L1.40 phone scroll reveals prewarm outside viewport without layout edits'
  read('landing-assets/landing.js')===source('landing-assets/landing.js') &&
  read('landing-assets/motion-l132.css')===source('landing-assets/motion-l132.css') &&
  read('landing-assets/public-pages.css')===source('landing-assets/public-pages.css') &&
- l141IndexOnlyEdited());
+ l142IndexOnlyEdited());
 check('L1.28 shared header motion remains unchanged and accessible',
  l135HeaderCssOnlyEdited() &&
  !read('landing-assets/shared-header-l116.css').includes('body.app') &&
@@ -762,28 +769,28 @@ check('L1.30 initial feature links render without a Dashboard flash',
  l133PublicPagesUnchanged() &&
  read('landing-assets/landing.js').includes("syncProductHash(true)") &&
  read('landing-assets/landing.js').includes("const animate=!instant &&") &&
- l141IndexOnlyEdited());
+ l142IndexOnlyEdited());
 check('L1.31 current-tab reselect never resets scroll or interrupts preview animation',
  l133BurmeseLayoutOnlyEdited() &&
  l133PublicPagesUnchanged() &&
  read('landing-assets/landing.js').includes('if(name===activeProduct&&!instant)') &&
  read('landing-assets/landing.js').includes('t.focus({preventScroll:true})') &&
  read('landing-assets/landing.js').includes('syncProductHash(true)') &&
- l141IndexOnlyEdited());
+ l142IndexOnlyEdited());
 check('L1.32 feature labels follow all languages and canonical English snippet persists',
  l133BurmeseLayoutOnlyEdited() &&
  l133PublicPagesUnchanged() &&
  read('landing-assets/landing.js').includes('productLabels[currentLang][activeProduct]') &&
  read('landing-assets/landing.js').includes("desc.setAttribute('content', officialEnglishDescription)") &&
  read('landing-assets/landing.js').includes('syncProductHash(true)') &&
- l141IndexOnlyEdited());
+ l142IndexOnlyEdited());
 check('L1.33 Myanmar-only feature names and story styles are appended without JS changes',
  l133BurmeseLayoutOnlyEdited() &&
  l133BurmeseCssSuffix.includes('html[lang="my"] body.l131 .features-explorer.app-showcase') &&
  l133BurmeseCssSuffix.includes('min-height:76px') &&
  !l133BurmeseCssSuffix.includes('body.app') &&
  read('landing-assets/landing.js').includes('productLabels[currentLang][activeProduct]') &&
- l141IndexOnlyEdited());
+ l142IndexOnlyEdited());
 check('Protected auth/PWA/SEO/config sources unchanged in PR diff',
  ['business.html','app.html','login.html','sitemap.xml','robots.txt',
   'mmh-manifest-v2.webmanifest'].every(file=>{
