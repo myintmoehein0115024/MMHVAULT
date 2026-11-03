@@ -30,7 +30,9 @@
   <noscript><link rel="stylesheet" href="./landing-assets/business.css?v=l141"></noscript>
   <link rel="stylesheet" href="./landing-assets/cinematic.css?v=l141">
   <link rel="stylesheet" href="./landing-assets/premium-l131.css?v=l141">
-  <link rel="stylesheet" href="./landing-assets/motion-l132.css?v=l141">
+  <!-- L1.44: animation-only layer is progressive enhancement, not first-paint critical. -->
+  <link rel="stylesheet" href="./landing-assets/motion-l132.css?v=l141" media="print" onload="this.onload=null;this.media='all'">
+  <noscript><link rel="stylesheet" href="./landing-assets/motion-l132.css?v=l141"></noscript>
   <link rel="stylesheet" href="./landing-assets/explore-l114.css?v=l141">
   <link rel="stylesheet" href="./landing-assets/shared-header-l116.css?v=l141">
   <link rel="preload" as="image" type="image/webp" href="./landing-assets/personal-business-concept.webp" fetchpriority="high">

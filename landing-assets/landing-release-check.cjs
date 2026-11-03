@@ -58,7 +58,12 @@ const l141AssetReplacements=[
 // below-fold Business stylesheet's non-blocking loading and no-script fallback.
 const l142OldBusinessTag="  <link rel=\"stylesheet\" href=\"./landing-assets/business.css?v=l141\">";
 const l142NewBusinessTag="  <!-- L1.42: business section is below the fold; do not block initial Hero paint. -->\n  <link rel=\"stylesheet\" href=\"./landing-assets/business.css?v=l141\" media=\"print\" onload=\"this.onload=null;this.media='all'\">\n  <noscript><link rel=\"stylesheet\" href=\"./landing-assets/business.css?v=l141\"></noscript>";
-const l142IndexOnlyEdited=()=>current===prev &&
+// L1.44: only the motion stylesheet link and its no-script fallback can change.
+const l144OldMotionTag="  <link rel=\"stylesheet\" href=\"./landing-assets/motion-l132.css?v=l141\">";
+const l144NewMotionTag="  <!-- L1.44: animation-only layer is progressive enhancement, not first-paint critical. -->\n  <link rel=\"stylesheet\" href=\"./landing-assets/motion-l132.css?v=l141\" media=\"print\" onload=\"this.onload=null;this.media='all'\">\n  <noscript><link rel=\"stylesheet\" href=\"./landing-assets/motion-l132.css?v=l141\"></noscript>";
+const l144IndexOnlyEdited=()=>prev.split(l144OldMotionTag).length===2 &&
+  current===prev.replace(l144OldMotionTag,l144NewMotionTag);
+const l142IndexOnlyEdited=()=>l144IndexOnlyEdited() &&
   current.includes(l142NewBusinessTag);
 
 /* L1.33: exact presentation-only Myanmar feature typography append.
@@ -650,10 +655,10 @@ check('L1.27 public tab title matches SEO without language focus scroll',
  l133PublicPagesUnchanged() &&
  l142IndexOnlyEdited() && current.includes(newHeroPreload) &&
  !current.includes(oldHeroPreload));
-check('L1.43 exact three-file isolated performance QA scope',
+check('L1.44 exact three-file nonblocking motion enhancement scope',
  actual.length===3 &&
  actual.every(path=>[
-  '.github/workflows/landing-release-check.yml',
+  'index.html',
   'landing-assets/landing-release-check.cjs',
   'landing-assets/landing-browser-check.cjs'
  ].includes(path)) &&
@@ -682,7 +687,7 @@ check('L1.41 all nine first-party style/script URLs keep coordinated versions',
   l141AssetReplacements.length===9 &&
   l141AssetReplacements.every(([before,after])=>
     before!==after && after.includes('?v=l141') &&
-    current.split(after).length===(after.includes('business.css')?3:2) && !current.includes(before)) &&
+    current.split(after).length===(/business\.css|motion-l132\.css/.test(after)?3:2) && !current.includes(before)) &&
   (current.match(/<link rel="preload" as="image"/g)||[]).length===1 &&
   (current.match(/<script defer src=/g)||[]).length===2 &&
   !current.includes('user-scalable=no'));
@@ -690,13 +695,13 @@ check('L1.42 below-fold Business stylesheet is nonblocking with accessible noscr
   l142IndexOnlyEdited() &&
   current.includes(l142NewBusinessTag) &&
   current.includes('media="print" onload="this.onload=null;this.media=\'all\'"') &&
-  (current.match(/<noscript>/g)||[]).length===1 &&
-  (current.match(/<link rel="stylesheet"/g)||[]).length===8 &&
+  (current.match(/<noscript>/g)||[]).length===2 &&
+  (current.match(/<link rel="stylesheet"/g)||[]).length===9 &&
   (current.match(/<script defer src=/g)||[]).length===2 &&
   !current.includes('user-scalable=no') &&
   read('landing-assets/business.css')===source('landing-assets/business.css'));
 check('L1.43 reproducible cold-cache browser-only performance lab and downloadable report',
-  current===prev &&
+  l144IndexOnlyEdited() &&
   read('landing-assets/landing-browser-check.cjs').includes("const l143Samples=[];") &&
   read('landing-assets/landing-browser-check.cjs').includes("Network.emulateNetworkConditions") &&
   read('landing-assets/landing-browser-check.cjs').includes("Emulation.setCPUThrottlingRate") &&
@@ -707,6 +712,16 @@ check('L1.43 reproducible cold-cache browser-only performance lab and downloadab
   read('landing-assets/landing.js')===source('landing-assets/landing.js') &&
   read('landing-assets/cinematic.css')===source('landing-assets/cinematic.css') &&
   read('landing-assets/premium-l131.css')===source('landing-assets/premium-l131.css'));
+check('L1.44 motion stylesheet loads without blocking Hero and keeps no-script styling',
+  l144IndexOnlyEdited() &&
+  current.includes(l144NewMotionTag) &&
+  !current.includes(l144OldMotionTag) &&
+  (current.match(/<noscript>/g)||[]).length===2 &&
+  read('landing-assets/motion-l132.css')===source('landing-assets/motion-l132.css') &&
+  read('landing-assets/motion-l132.js')===source('landing-assets/motion-l132.js') &&
+  read('landing-assets/landing.js')===source('landing-assets/landing.js') &&
+  read('landing-assets/explore-l114.css')===source('landing-assets/explore-l114.css') &&
+  read('landing-assets/shared-header-l116.css')===source('landing-assets/shared-header-l116.css'));
 check('L1.34 mobile EN ZH MY card stability and touch-safe scrolling',
   l133BurmeseLayoutOnlyEdited() &&
   l134ResponsiveCssSuffix.includes('min-height: 94px') &&
