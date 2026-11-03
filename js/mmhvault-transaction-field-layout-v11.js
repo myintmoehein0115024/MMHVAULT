@@ -237,8 +237,12 @@
           g.replaceChildren();note(tr('Add a compatible Transaction in Manage.','请在 Manage 添加匹配的 Transaction。','Manage တွင် Transaction ထည့်ပါ။'));return;
         }
         // Transaction has canonical underlying (type, group), not a display-only code.
-        const selected=fill(g,available.map(x=>({value:x.group,label:x.label,type:x.type,group:x.group})),currGroup);
-        const chosen=selected?.dataset?.mmhCanonicalType?available.find(x=>x.type===selected.dataset.mmhCanonicalType&&x.group===selected.dataset.mmhCanonicalGroup):available[0];
+        const chosen=available.find(x=>x.type===currType&&x.group===currGroup)||available[0];
+        fill(g,available.map(x=>({value:x.group,label:x.label,type:x.type,group:x.group})),chosen.group);
+        // Income Loans and Expense Loans share a canonical group value.
+        // Select by BOTH type and group, never array order or group alone.
+        const selectedIndex=[...g.options].findIndex(x=>x.dataset.mmhCanonicalType===chosen.type&&x.dataset.mmhCanonicalGroup===chosen.group);
+        if(selectedIndex>=0)g.selectedIndex=selectedIndex;
         if(!chosen){note('Select a transaction.');return;}
         type=chosen.type;
         if(!enabled.type)t.value=type;
