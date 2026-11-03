@@ -1466,13 +1466,13 @@ async function load(page,route,failures){
        layout.styles.filter(v=>v==='l146').length===2 &&
        layout.styles.filter(v=>v==='l147').length===1 &&
        layout.styles.filter(v=>v==='l141').length===2 &&
-       layout.scripts.includes('l155') && layout.scripts.includes('l156') &&
+       layout.scripts.includes('l155') && layout.scripts.includes('l157') &&
        loaded.length===8 && loaded.every(r=>r.status===200&&
          r.version===(r.path==='/landing-assets/landing.min.css'?'l145':
            ['/landing-assets/cinematic.min.css','/landing-assets/premium-l131.min.css'].includes(r.path)?'l146':
            r.path==='/landing-assets/header-explore-l147.min.css'?'l147':
             r.path==='/landing-assets/landing.js'?'l155':
-              r.path==='/landing-assets/motion-l132.js'?'l156':'l141')) &&
+              r.path==='/landing-assets/motion-l132.js'?'l157':'l141')) &&
        new Set(loaded.map(r=>r.path)).size===8 && failures.length===0,
        'L1.47 '+width+'px eight CSS/JS requests with consistent cache keys '+JSON.stringify({loaded,failures}));
      ensure(layout.brand.left>=-1&&layout.brand.right<=width+1 &&
@@ -2712,6 +2712,80 @@ async function load(page,route,failures){
          route+' '+width+'px keyboard navigation has no missing assets or JS errors');
        await ctx.close();
      }
+   }
+
+   // L1.57 rotated viewport reveal observer parity: L1.56 vs L1.57.
+   {
+     const currentScript=fs.readFileSync('landing-assets/motion-l132.js','utf8');
+     const oldBlock="  // L1.40: prewarm mobile reveals further ahead of fast swipes, with no\n  // intersection threshold that might skip a narrow card. Desktop unchanged.\n  const mobileReveal = window.matchMedia && window.matchMedia('(max-width: 620px)').matches;\n  const observer=new IntersectionObserver(entries=>{\n    for(const entry of entries){\n      if(!entry.isIntersecting)continue;\n      entry.target.classList.add('mm-shown');\n      observer.unobserve(entry.target);\n    }\n  },{rootMargin:mobileReveal?'0px 0px 24% 0px':'0px 0px -6% 0px',threshold:mobileReveal?0:0.065});\n  elements.filter(el=>!el.classList.contains('mm-shown')).forEach(el=>observer.observe(el));\n",newBlock="  // L1.57: recalculate phone-first reveal margins after orientation changes.\n  // Keep already revealed sections visible; no scroll interception or repaint.\n  const mobileRevealQuery=window.matchMedia\n    ? window.matchMedia('(max-width: 620px)') : {matches:false};\n  let observer;\n  const bindRevealObserver=()=>{\n    if(observer)observer.disconnect();\n    const mobileReveal=mobileRevealQuery.matches;\n    const nextObserver=new IntersectionObserver(entries=>{\n      for(const entry of entries){\n        if(!entry.isIntersecting)continue;\n        entry.target.classList.add('mm-shown');\n        nextObserver.unobserve(entry.target);\n      }\n    },{rootMargin:mobileReveal?'0px 0px 24% 0px':'0px 0px -6% 0px',threshold:mobileReveal?0:0.065});\n    observer=nextObserver;\n    elements.filter(el=>!el.classList.contains('mm-shown')).forEach(el=>observer.observe(el));\n  };\n  bindRevealObserver();\n  if(typeof mobileRevealQuery.addEventListener==='function')\n    mobileRevealQuery.addEventListener('change',bindRevealObserver);\n  else if(typeof mobileRevealQuery.addListener==='function')\n    mobileRevealQuery.addListener(bindRevealObserver);\n";
+     assert.equal(currentScript.split(newBlock).length,2,'L1.57 exact presentation-only patch');
+     const baseline=currentScript.replace(newBlock,oldBlock);
+     const mobile='0px 0px 24% 0px',desktop='0px 0px -6% 0px';
+     for(const [from,to,lang] of [[768,393,'my'],[393,768,'zh'],[1440,393,'en'],[393,1440,'my']]){
+       const measurements={};
+       for(const [version,script] of [['l156',baseline],['l157',currentScript]]){
+         const ctx=await browser.newContext({viewport:{width:from,height:852},reducedMotion:'no-preference',serviceWorkers:'block'});
+         const page=await ctx.newPage(),errors=[];
+         page.on('pageerror',e=>errors.push(e.message));
+         await page.addInitScript(lang=>{
+           try{localStorage.setItem('mmhvault.landing.language',lang)}catch(_){}
+         },lang);
+         await page.addInitScript(()=>{
+           const Native=window.IntersectionObserver;
+           window.__l157io=[];
+           if(typeof Native!=='function')return;
+           window.IntersectionObserver=class extends Native{
+             constructor(callback,options){
+               super(callback,options);
+               if(['0px 0px 24% 0px','0px 0px -6% 0px'].includes(options?.rootMargin)){
+                 this.__l157record={margin:options.rootMargin,threshold:options.threshold,observed:0,disconnected:false};
+                 window.__l157io.push(this.__l157record);
+               }
+             }
+             observe(target){if(this.__l157record)this.__l157record.observed++;return super.observe(target)}
+             disconnect(){if(this.__l157record)this.__l157record.disconnected=true;return super.disconnect()}
+           };
+         });
+         await page.route('**/landing-assets/motion-l132.js*',route=>route.fulfill({
+           status:200,contentType:'application/javascript',body:script}));
+         await page.goto(origin+'/',{waitUntil:'load',timeout:25000});
+         const inspect=()=>page.evaluate(()=>({
+           records:window.__l157io.map(x=>({...x})),
+           shown:document.querySelectorAll('.mm-reveal.mm-shown').length,
+           hero:[...document.querySelectorAll('[data-hero-fixed]')].map(x=>x.textContent.trim()),
+           lang:document.documentElement.lang,
+           active:document.querySelector('.product-tab.is-active')?.dataset.productTab
+         }));
+         const first=await inspect();
+         ensure(first.records.length===1 &&
+           first.records[0].margin===(from<=620?mobile:desktop) &&
+           first.records[0].observed>0 &&
+           first.hero.length===3 && first.lang===(lang==='zh'?'zh-CN':lang),
+           'L1.57 '+version+' initial '+from+'px '+lang+' observer');
+         await page.setViewportSize({width:to,height:852});
+         if(version==='l157')await page.waitForFunction(count=>
+           window.__l157io?.length>=count,2,{timeout:3000});
+         else await page.waitForTimeout(100);
+         const last=await inspect();
+         ensure(last.shown>=first.shown &&
+           JSON.stringify(last.hero)===JSON.stringify(first.hero) &&
+           last.lang===first.lang && last.active===first.active && errors.length===0,
+           'L1.57 '+version+' rotated '+from+'->'+to+'px keeps content and Hero');
+         measurements[version]={first,last};
+         await ctx.close();
+       }
+       const old=measurements.l156,now=measurements.l157;
+       ensure(old.last.records.length===1 &&
+         old.last.records[0].margin===(from<=620?mobile:desktop) &&
+         now.last.records.length===2 &&
+         now.last.records[0].disconnected &&
+         now.last.records[1].margin===(to<=620?mobile:desktop) &&
+         now.last.records[1].threshold===(to<=620?0:0.065) &&
+         now.last.records[1].observed>0,
+         'L1.57 '+from+'->'+to+'px rebinds early reveal margin '+
+           JSON.stringify({before:old.last.records.map(x=>x.margin),after:now.last.records.map(x=>x.margin)}));
+     }
+     console.log('L1.57 viewport rebind responsive comparison PASS; not a loading speed claim.');
    }
 
    // L1.39: real IntersectionObserver configuration in phone and desktop
