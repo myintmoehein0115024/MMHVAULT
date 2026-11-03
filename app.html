@@ -13381,14 +13381,18 @@ function mmhVaultRebuildConfigArrays(){
   window.ACC=ACC; window.CATS=CATS;
 }
 function mmhVaultAccountMeta(name){
-  // Account IDs remain stable; historical transactions use the display name "Baht".
-  // Older builds called the same built-in THB cash account "Bath".
+  // APP V11: unresolved history must NEVER silently inherit MMK.
+  // Only acc_bath may use the verified Baht/Bath spelling alias (THB).
   const key=String(name||'').trim().toLowerCase();
   const bahtAlias=key==='baht'||key==='bath';
   const matches=a=>String(a?.name||'').trim().toLowerCase()===key||(bahtAlias&&a?.id==='acc_bath');
-  const found=(MMHVAULT_CONFIG.accounts||[]).find(matches);
-  const builtin=MMHVAULT_DEFAULT_ACCOUNTS.find(matches);
-  return found||builtin||{id:'legacy_'+String(name),name:String(name),currency:'MMK',type:'other',active:true,builtin:false};
+  const candidates=(MMHVAULT_CONFIG.accounts||[]).filter(matches);
+  const found=candidates.length===1?candidates[0]:null;
+  const builtin=candidates.length?null:MMHVAULT_DEFAULT_ACCOUNTS.find(matches);
+  const unresolved={id:'legacy_'+String(name),name:String(name),currency:null,type:'other',active:false,builtin:false,unresolved:true};
+  // A duplicate name/alias or altered built-in Baht currency cannot be priced safely.
+  if(candidates.length>1||(found?.id==='acc_bath'&&String(found.currency||'').trim().toUpperCase()!=='THB'))return unresolved;
+  return found||builtin||unresolved;
 }
 function mmhVaultAllAccountNames(){
   const out=[...ACC];
@@ -14587,11 +14591,12 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
 window.addEventListener('focus',()=>mmhVaultResumeLifecycleV1239('focus'));
 window.addEventListener('pageshow',event=>{if(event.persisted)mmhVaultResumeLifecycleV1239('bfcache');});
 
-function currency(a){return mmhVaultAccountMeta(a).currency||"MMK";}
+function currency(a){return !String(a||'').trim()?'MMK':(mmhVaultAccountMeta(a)?.currency||'');}
 function mmhCurrencySymbolV194(code){const c=String(code||'').trim().toUpperCase();return ({USD:'$',USDT:'$',THB:'฿',MMK:'K',CNY:'￥',RMB:'￥',AMD:'֏',AZN:'₼',GEL:'₾',INR:'₹',JPY:'¥',KRW:'₩',VND:'₫',PHP:'₱',TRY:'₺',RUB:'₽',EUR:'€'}[c]||c);}
 function toMMK(a){
   if(!a)return 1;
-  const cur=String(currency(a)||'MMK').toUpperCase(),mmk=Number(rates?.usd_mmk)||0;
+  const cur=String(currency(a)||'').toUpperCase(),mmk=Number(rates?.usd_mmk)||0;
+  if(!cur)return 0; // Unlinked historical account: currency cannot be inferred.
   if(cur==='MMK')return 1;
   if(!(mmk>0))return 0;
   if(cur==='USD')return mmk;
@@ -16057,6 +16062,15 @@ function renderDashboardV29(){
   const loan=Math.max(0,loanOutMMK()-loanPaidMMK())/rates.usd_mmk;
   $('dashboardHero').innerHTML=`<div class="card"><div class="name">NET WORTH</div><div class="big cyan">${usd(net)}</div><div class="small">Cash + Investments</div></div><div class="card"><div class="name">CASH ASSETS</div><div class="big">${usd(cash)}</div></div><div class="card"><div class="name">INVESTMENTS</div><div class="big pink">${usd(invest)}</div></div><div class="card"><div class="name">SAVING RATIO</div><div class="big ${saveRatio>=40?'green':saveRatio>=20?'yellow':'red'}">${saveRatio.toFixed(2)}%</div><div class="small">Outstanding loans: ${usd(loan)}</div></div>`;
   const missingFX=mmhVaultAccountsMissingFxV140();if(missingFX.length){const e=document.createElement('div');e.setAttribute('role','status');e.className='small';e.style.cssText='grid-column:1/-1;padding:12px;border:1px solid #ca9f53;border-radius:12px;color:#f6d594;background:rgba(50,33,8,.55)';e.textContent='⚠ USD totals incomplete: reference rates missing for '+missingFX.map(a=>a.name+' ('+a.currency+')').join(', ')+'. Edit the accounts to set 1 USD rates. · 缺少汇率，美元资产总计不完整。';$('dashboardHero').append(e);}
+  const unresolvedNames=mmhVaultAllAccountNames().filter(name=>mmhVaultAccountMeta(name)?.unresolved);
+  if(unresolvedNames.length){
+    const warning=document.createElement('div');
+    warning.setAttribute('role','status');
+    warning.className='small';
+    warning.style.cssText='grid-column:1/-1;padding:12px;border:1px solid #ca9f53;border-radius:12px;color:#f6d594;background:rgba(50,33,8,.55)';
+    warning.textContent='⚠ USD totals may be incomplete: '+unresolvedNames.length+' historical account reference(s) have an unverified currency. Check Accounts and Analyze before using these totals. · 历史账户币种待确认，汇总可能不完整。';
+    $('dashboardHero').append(warning);
+  }
   $('metrics').innerHTML=[['Income',inc,'green'],['Expense',expense,'red'],['Available Balance',Math.max(0,cash-loan),'cyan'],['Total Invest',invest,'pink'],['Net Change',save-loan,'yellow']].map(x=>`<div class="card metric"><div class="name">${x[0]} · USD</div><div class="value ${x[2]}">${usd(x[1])}</div></div>`).join('');
   const vals=monthSeries().map(m=>{let i=0,e=0;analyzeFlowRows(transactions).filter(t=>t.tx_date.startsWith(m)).forEach(t=>{if(t.type==='Income')i+=n(t.to_amount)*toUSD(t.to_account);if(t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment'&&!isLinkedInvestmentTx(t))e+=n(t.from_amount)*toUSD(t.from_account);});return{m,i,e};}); const max=Math.max(1,...vals.map(x=>Math.max(x.i,x.e))); $('netWorthHistory').innerHTML=`<div class="spark">${vals.map(x=>`<span title="${monthLabel(x.m)} · Income ${usd(x.i)} / Expense ${usd(x.e)}" style="height:${Math.max(4,x.i/max*100)}%"></span>`).join('')}</div><div class="spark-labels">${vals.map(x=>`<span>${monthLabel(x.m).split(' ')[0]}</span>`).join('')}</div><div class="small" style="margin-top:6px">Monthly income bars · USD</div>`;
   const m=today().slice(0,7); $('dashMonthLabel').textContent=monthLabel(m); $('dashFlow').innerHTML=`<div class="flow-grid"><div><span>Income</span><b class="green">${usd(inc)}</b></div><div><span>Expenses</span><b class="red">${usd(expense)}</b></div><div><span>Saved</span><b>${usd(save)}</b></div><div><span>Saving Ratio</span><b>${saveRatio.toFixed(2)}%</b></div></div>`;
@@ -16068,7 +16082,8 @@ const _renderAnalyzeV27=renderAnalyze;
 function monthSeries(){const ms=[];const d=new Date();for(let i=5;i>=0;i--){const x=new Date(d.getFullYear(),d.getMonth()-i,1);ms.push(`${x.getFullYear()}-${String(x.getMonth()+1).padStart(2,'0')}`);}return ms;}
 function monthTotals(m){let inc=0,expv=0;analyzeFlowRows(transactions).filter(t=>t.tx_date.startsWith(m)).forEach(t=>{if(t.type==='Income')inc+=n(t.to_amount)*toMMK(t.to_account);if(t.type==='Expense'&&!(window.CATS?.Loans||[]).includes(t.category)&&t.category!=='Investment')expv+=n(t.from_amount)*toMMK(t.from_account);});return{inc,exp:expv,save:inc-expv};}
 function toTHB(a){
-  const cur=String(currency(a)||'MMK').toUpperCase(),thb=Number(rates?.usd_thb)||0;
+  const cur=String(currency(a)||'').toUpperCase(),thb=Number(rates?.usd_thb)||0;
+  if(!cur)return 0; // Do not interpret an orphan account as MMK.
   if(cur==='THB')return 1;
   if(!(thb>0))return 0;
   if(cur==='USD')return thb;
@@ -16107,7 +16122,8 @@ function initV28(){_initV27();bindTxFilters();}
 /* ===================== V4.3.0 CANONICAL DATA LAYER ===================== */
 function mmhvaultAmountUSD(account,amount){
   const v=n(amount);if(!v)return 0;
-  const c=String(currency(account)||'MMK').toUpperCase();
+  const c=String(currency(account)||'').toUpperCase();
+  if(!c)return 0; // Unknown account currency is excluded, not invented.
   if(c==='USD')return v;
   if(c==='THB'){const rate=n(rates?.usd_thb);return rate>0?v/rate:0;}
   if(c==='CNY'||c==='RMB'){const rate=n(rates?.usd_cny);return rate>0?v/rate:0;}
@@ -16500,8 +16516,11 @@ function renderAnalyzeV37(){
     const missingAccounts=new Set(),missingFx=new Set();
     const getConfigured=name=>{
       const key=String(name||'').trim().toLowerCase();
-      return configured.find(a=>String(a?.name||'').trim().toLowerCase()===key
+      const matches=configured.filter(a=>String(a?.name||'').trim().toLowerCase()===key
         ||(['baht','bath'].includes(key)&&a?.id==='acc_bath'));
+      if(matches.length!==1)return null;
+      const a=matches[0];
+      return a?.id==='acc_bath'&&String(a.currency||'').trim().toUpperCase()!=='THB'?null:a;
     };
     for(const tx of allRows){
       for(const field of ['from_account','to_account']){
@@ -24591,7 +24610,7 @@ html body #invest .invest-entry .receipt-dropzone-v3300{width:100%!important;max
   const dayDelta=s=>Math.round(dayNum(s)-dayNum(todayKey()));
   const frequencyLabel=x=>({weekly:'Weekly',monthly:'Monthly',yearly:'Yearly'}[x]||x||'Monthly');
   const mark=c=>({USD:'$',THB:'฿',MMK:'K',CNY:'￥',RMB:'￥'}[String(c||'').toUpperCase()]||String(c||''));
-  function accountCurrency(name){try{return typeof mmhVaultAccountMeta==='function'?(mmhVaultAccountMeta(name)?.currency||'MMK'):'MMK'}catch(_){return'MMK'}}
+  function accountCurrency(name){try{return typeof mmhVaultAccountMeta==='function'?(mmhVaultAccountMeta(name)?.currency||''):''}catch(_){return''}}
   function money(v,c){return `${mark(c)} ${num(v).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}`}
   function signedUser(){return currentSessionUser||null}
   function typeGroups(type){return type==='Income'?['Income','Loans']:type==='Expense'?['Expense','Personal','Loans']:['Transfer']}
@@ -27914,7 +27933,8 @@ function portfolios(){
 }
 function cryptoWalletSnapshot(name){try{const rows=window.mmhWalletLedgerV174?.()||[];return rows.find(w=>String(w?.name||'').trim().toLowerCase()===String(name||'').trim().toLowerCase())||{name,tokens:[],total:0}}catch(_e){return {name,tokens:[],total:0}}}
 function accountToUSDFactorV135(a){
-  const cur=String(a?.currency||mmhVaultAccountMeta(a?.name)?.currency||'MMK').toUpperCase();
+  const cur=String(a?.currency||mmhVaultAccountMeta(a?.name)?.currency||'').toUpperCase();
+  if(!cur)return NaN; // Unknown legacy identity must not become MMK assets.
   if(cur==='USD'||cur==='USDT')return 1;
   if(cur==='THB'){const r=Number(rates?.usd_thb);return r>0?1/r:NaN}
   if(cur==='MMK'){const r=Number(rates?.usd_mmk);return r>0?1/r:NaN}
