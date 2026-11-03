@@ -31,6 +31,7 @@ export async function buildTemporaryQaBundle(target){
   src=one(src,"const RELEASE_ENABLED=true; // STAGING only, expires automatically.",
             "const RELEASE_ENABLED=true; // TEST-ONLY with expiry and strict QA allowlist.\nconst QA_WINDOW_END_UTC='"+WINDOW_END_UTC+"';\nfunction qaWindowOpen(){return RELEASE_ENABLED&&Date.now()<Date.parse(QA_WINDOW_END_UTC);}");
   src=one(src,"enabled:RELEASE_ENABLED&&configured()","enabled:qaWindowOpen()&&configured()");
+  src=one(src,"setup_complete:configured(),production:false","setup_complete:configured(),qa_window_expires_at:QA_WINDOW_END_UTC,production:false");
   src=one(src,"if(!RELEASE_ENABLED)return reply(origin,'registration_not_released',503);",
             "if(!qaWindowOpen())return reply(origin,'registration_not_released',503);");
   assert.match(src,/const PROJECT='ldivswlhtgmznzwhzsoi';/);
