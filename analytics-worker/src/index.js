@@ -11,8 +11,18 @@ const response = (status, data, origin) => new Response(JSON.stringify(data),{st
 const RANGE_DAYS = {'24h':1,'7d':7,'30d':30};
 function isConfigured(env){return Boolean(env.CF_ANALYTICS_TOKEN&&env.SUPABASE_ANON_KEY&&env.CF_ACCOUNT_ID&&env.CF_SITE_TAG&&env.SUPABASE_URL&&env.ALLOWED_ORIGIN)}
 async function verifyAdmin(token,env){
-  const url = new URL('/rest/v1/rpc/mmh_is_admin',env.SUPABASE_URL);
-  const result = await fetch(url,{method:'POST',headers:{apikey:env.SUPABASE_ANON_KEY,authorization:'Bearer '+token,'content-type':'application/json'},body:'{}',redirect:'error'});
+  const headers={apikey:env.SUPABASE_ANON_KEY,authorization:'Bearer '+token};
+  // Verify the JWT against the Auth service before invoking the admin RPC.
+  // This prevents anonymous or expired tokens from reaching the analytics query.
+  const identity=await fetch(new URL('/auth/v1/user',env.SUPABASE_URL),{
+    method:'GET',headers,redirect:'error'
+  });
+  if(!identity.ok)return {status:401};
+  const user=await identity.json();
+  if(!user||typeof user.id!=='string'||!user.id)return {status:401};
+  const result=await fetch(new URL('/rest/v1/rpc/mmh_is_admin',env.SUPABASE_URL),{
+    method:'POST',headers:{...headers,'content-type':'application/json'},body:'{}',redirect:'error'
+  });
   if(result.status===401)return {status:401};
   if(!result.ok)return {status:403};
   return {status:(await result.json())===true?200:403};
