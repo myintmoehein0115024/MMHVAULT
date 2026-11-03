@@ -33,3 +33,26 @@
 - Before a Production release: pass CI on final head, recheck latest main and conflicts, review current actual client/backend Auth integration and untested cross-owner denial/race cases, run controlled signed Staging QA, and request explicit Production approval. Do **not** merge this Draft simply because offline checks are green.
 
 **Status:** isolated compatibility candidate only. `main` and the formal Production website remain unchanged.
+
+
+## 2026-11-03 R3.1: join signup escrow + private original-key viewer (offline only)
+
+This expanded Draft reuses the **unchanged pure review modules** from PR #50 and PR #43 under their original isolated `security/` paths. It does **not** modify the currently deployed username registration handler, `login.html`, `app.html`, the active Security Center (beyond the already-reviewed gated candidate), Supabase policies or either deployed Edge.
+
+- From PR #50: `immutable-signup-escrow.mjs` and original tests; new registration is considered successful only after the original phrase's verifier, encrypted backup and exact read-back complete, with safe newly-created-user rollback.
+- From PR #43: `recovery-transport.mjs`, `recovery-view-controller.mjs`, `recovery-view-lifecycle.mjs` and original tests; viewer is request-action bounded to `status` and `reveal`, rejects owner/session changes, and expires visible words after 45 seconds.
+- New `security/n10-integration-review/test-fixed-key-signup-to-reveal.mjs`: synthetic full-path assertions for original-word immutability across signup/reveal, two distinct owners, wrong password, historical verifier-only non-recoverability, delayed-response owner switch, auto-hide, and the **browser transport hard OFF** gate.
+- CI now runs all inherited tests and the integration suite in Node 22 **before** Chromium/WebKit browser simulations.
+
+### Crucial limits
+
+The combined modules are *not imported by production HTML or service*. In particular, the existing classic Security Center script is not yet wired to the standalone ESM controller; setting the UI release flag to true is **forbidden**. The actual Production username Edge remains verifier-only and cannot satisfy this new escrow contract. Production Vault backend is not authorized/deployed; the Staging signed joint Edge v11 remains closed.
+
+This code is an executable **synthetic integration specification**, not a signed Auth E2E, a live B→A attack test, a successful real username-only signup, or an approval to merge any of PR #43/#50/#74. Historical records without reversible encrypted backup are expressly left unchanged.
+
+### Remaining engineering before rollout
+
+1. Review production new-account reservation/create and failure behavior against the escrow contract; implement atomic owner-bound encrypted write/readback under independently reviewed server controls without ever replacing an existing verifier.
+2. Integrate the hardened viewer into the existing premium Glass modal without exposing secrets in logs, storage, or URLs; preserve Chinese/English/Burmese UI, mobile/tablet responsiveness and 45-second auto-hide.
+3. Run permitted signed Staging end-to-end and *adversarial* owner/session/MFA negative checks, data protection checks and rollback.
+4. Rebase the final **candidate** on then-current `main`, run full CI and request separate Production authorization. Do not merge Draft PRs wholesale.
