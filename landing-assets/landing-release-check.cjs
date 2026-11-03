@@ -58,8 +58,8 @@ const l141AssetReplacements=[
 // below-fold Business stylesheet's non-blocking loading and no-script fallback.
 const l142OldBusinessTag="  <link rel=\"stylesheet\" href=\"./landing-assets/business.css?v=l141\">";
 const l142NewBusinessTag="  <!-- L1.42: business section is below the fold; do not block initial Hero paint. -->\n  <link rel=\"stylesheet\" href=\"./landing-assets/business.css?v=l141\" media=\"print\" onload=\"this.onload=null;this.media='all'\">\n  <noscript><link rel=\"stylesheet\" href=\"./landing-assets/business.css?v=l141\"></noscript>";
-const l142IndexOnlyEdited=()=>prev.split(l142OldBusinessTag).length===2 &&
-  current===prev.replace(l142OldBusinessTag,l142NewBusinessTag);
+const l142IndexOnlyEdited=()=>current===prev &&
+  current.includes(l142NewBusinessTag);
 
 /* L1.33: exact presentation-only Myanmar feature typography append.
  * No public HTML, scripting, authentication, finance, PWA or SEO changes. */
@@ -650,10 +650,10 @@ check('L1.27 public tab title matches SEO without language focus scroll',
  l133PublicPagesUnchanged() &&
  l142IndexOnlyEdited() && current.includes(newHeroPreload) &&
  !current.includes(oldHeroPreload));
-check('L1.42 exact three-file nonblocking Business CSS scope',
+check('L1.43 exact three-file isolated performance QA scope',
  actual.length===3 &&
  actual.every(path=>[
-  'index.html',
+  '.github/workflows/landing-release-check.yml',
   'landing-assets/landing-release-check.cjs',
   'landing-assets/landing-browser-check.cjs'
  ].includes(path)) &&
@@ -695,6 +695,18 @@ check('L1.42 below-fold Business stylesheet is nonblocking with accessible noscr
   (current.match(/<script defer src=/g)||[]).length===2 &&
   !current.includes('user-scalable=no') &&
   read('landing-assets/business.css')===source('landing-assets/business.css'));
+check('L1.43 reproducible cold-cache browser-only performance lab and downloadable report',
+  current===prev &&
+  read('landing-assets/landing-browser-check.cjs').includes("const l143Samples=[];") &&
+  read('landing-assets/landing-browser-check.cjs').includes("Network.emulateNetworkConditions") &&
+  read('landing-assets/landing-browser-check.cjs').includes("Emulation.setCPUThrottlingRate") &&
+  read('landing-assets/landing-browser-check.cjs').includes("'largest-contentful-paint'") &&
+  read('landing-assets/landing-browser-check.cjs').includes("'layout-shift'") &&
+  read('landing-assets/landing-browser-check.cjs').includes("performance-l143.json") &&
+  read('.github/workflows/landing-release-check.yml').includes('landing-qa-screenshots/performance-l143.json') &&
+  read('landing-assets/landing.js')===source('landing-assets/landing.js') &&
+  read('landing-assets/cinematic.css')===source('landing-assets/cinematic.css') &&
+  read('landing-assets/premium-l131.css')===source('landing-assets/premium-l131.css'));
 check('L1.34 mobile EN ZH MY card stability and touch-safe scrolling',
   l133BurmeseLayoutOnlyEdited() &&
   l134ResponsiveCssSuffix.includes('min-height: 94px') &&
