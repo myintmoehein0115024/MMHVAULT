@@ -301,7 +301,8 @@ export function legacyHierarchy(ownerId,config){
           parentId:typeParent.id,kindId,archived:false,legacy:true});
         // Archived entries may have been moved out of config.categories;
         // preserve their names and historical ledger mapping.
-        const existing=Array.isArray(groups[group])?groups[group]:[];
+        const system=group==='Data Adjustment'?'Data Adjustment':group==='Transfer'?'Transfer':null;
+        const existing=Array.isArray(groups[group])?groups[group]:system?[system]:[];
         const inactive=Array.isArray(archived[group])?archived[group]:[];
         for(const raw of new Set([...existing,...inactive])){
           if(!nonempty(raw))continue;
