@@ -5,7 +5,7 @@
  * Used only alongside the existing hard-OFF review bundle.
  */
 import assert from 'node:assert/strict';
-import {readFile,mkdtemp,writeFile,rm} from 'node:fs/promises';
+import {readFile,mkdtemp,mkdir,writeFile,rm} from 'node:fs/promises';
 import {join,resolve,sep} from 'node:path';
 import {tmpdir} from 'node:os';
 import {fileURLToPath} from 'node:url';
@@ -42,6 +42,7 @@ export async function buildTemporaryQaBundle(target){
   assert.match(src,/const QA_WINDOW_END_UTC='2026-11-04T13:00:00\.000Z';/);
   assert.doesNotMatch(src,/vrypucmyrztxgiqhjspd|https:\/\/mmhvault\.com\b|admin\.auth\.admin\.deleteUser\(/);
   assert.doesNotMatch(src,/N10A740_TURNSTILE_SECRET|production:true|public_signup:true/);
+  await mkdir(output,{recursive:true});
   await writeFile(join(output,'index.ts'),src,{mode:0o600});
   await writeFile(join(output,'immutable-signup-escrow.mjs'),helper,{mode:0o600});
   return {expiresAt:WINDOW_END_UTC,stagingOnly:true,allowlistRequired:true,autoExpires:true};
