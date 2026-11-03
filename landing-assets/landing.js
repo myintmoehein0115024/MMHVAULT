@@ -949,13 +949,21 @@
   const homeLink = document.querySelector('#primary-nav [data-i18n="navHome"]');
   const sectionMap = new Map(sectionLinks.map(link => [link.getAttribute('href').slice(1), link]));
   function markSection(id) {
+    // L1.51: repeated viewport observations must not rewrite unchanged
+    // navigation attributes; keep the same active section and semantics.
     if (homeLink) {
-      if (id === 'top') homeLink.setAttribute('aria-current','location');
-      else homeLink.removeAttribute('aria-current');
+      if (id === 'top') {
+        if (homeLink.getAttribute('aria-current') !== 'location')
+          homeLink.setAttribute('aria-current','location');
+      } else if (homeLink.hasAttribute('aria-current'))
+        homeLink.removeAttribute('aria-current');
     }
     sectionLinks.forEach(link => {
-      if (link.getAttribute('href') === '#' + id) link.setAttribute('aria-current','location');
-      else link.removeAttribute('aria-current');
+      if (link.getAttribute('href') === '#' + id) {
+        if (link.getAttribute('aria-current') !== 'location')
+          link.setAttribute('aria-current','location');
+      } else if (link.hasAttribute('aria-current'))
+        link.removeAttribute('aria-current');
     });
   }
   // Home keeps a canonical "/" URL and scrolls smoothly within the already
