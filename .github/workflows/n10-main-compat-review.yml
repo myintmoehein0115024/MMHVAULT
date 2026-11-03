@@ -72,6 +72,8 @@ jobs:
           deno check --config security/n10-username-escrow-candidate/deno-review.json /tmp/mmhvault-n10-temporary-qa-bundle/index.ts
       - name: Check inert Production Vault contract (no network)
         run: node --test security/n10-production-vault-review/test-contract.mjs
+      - name: Check blocked Production private Vault schema (offline only)
+        run: node --test security/n10-production-vault-review/test-schema-contract.mjs
       - name: Deno type-check read-only Production Vault review
         run: deno check --config security/n10-username-escrow-candidate/deno-review.json security/n10-production-vault-review/index.ts
       - name: Live Staging Edge rejection smoke (no credentials or writes)
