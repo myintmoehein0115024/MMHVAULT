@@ -41,8 +41,10 @@ const host={
   currentOwner:owner,configOwner,currentConfig:config,
   history:()=>{
     const rows=Array.isArray(window.transactions)?window.transactions:[];
-    return {ownerId:loadedOwner,loaded:historyReady&&loadedOwner===owner(),
-      rows};
+    const verified=historyReady&&loadedOwner===owner()&&
+      window.mmhWalletDataOwnerV191===owner()&&
+      rows.every(row=>row?.user_id===owner());
+    return {ownerId:loadedOwner,loaded:verified,rows};
   },
   newId:uid,
   persist:(id,cfg)=>{
@@ -50,7 +52,8 @@ const host={
       throw Error('Account changed; settings not saved');
     if(typeof mmhVaultPersistConfig!=='function')throw Error('Settings save unavailable');
     mmhVaultPersistConfig();
-    if(typeof mmhVaultRebuildConfigArrays==='function')mmhVaultRebuildConfigArrays();
+    try{if(typeof mmhVaultRebuildConfigArrays==='function')mmhVaultRebuildConfigArrays();}
+    catch(error){console.warn('[MMHVAULT] Category selector rebuild deferred',error);}
   },
   changed:()=>{schedule();window.dispatchEvent(new Event('mmhvault:category-config-changed'))}
 };
@@ -363,7 +366,9 @@ function boot(){
   const refresh=e=>{
     const current=owner();
     if(e?.type==='mmhvault:data-loaded'){
-      historyReady=!!e.detail?.ok&&current===configOwner();
+      historyReady=!!e.detail?.ok&&current===configOwner()&&
+        window.mmhWalletDataOwnerV191===current&&
+        (window.transactions||[]).every(row=>row?.user_id===current);
       loadedOwner=historyReady?current:'';
     }else if(e?.type==='mmhvault:config-owner-changed'){
       historyReady=false;loadedOwner='';selection={type:'',transaction:'',category:''};
@@ -375,7 +380,9 @@ function boot(){
     'mmhvault:config-cloud-synced','mmhvault:category-config-changed','mmhvault-language-change'])
     window.addEventListener(name,refresh);
   if(window.__mmhLastCloudLoadAtV1235&&owner()===configOwner()&&
-    Array.isArray(window.transactions)){
+    window.mmhWalletDataOwnerV191===owner()&&
+    Array.isArray(window.transactions)&&
+    window.transactions.every(row=>row?.user_id===owner())){
     historyReady=true;loadedOwner=owner();
   }
   schedule();
