@@ -279,9 +279,10 @@
         heading.dataset.mmhV12OldEn=heading.dataset.i18nEn||'Manage Categories';
         heading.dataset.mmhV12OldZh=heading.dataset.i18nZh||'管理分类';
       }
-      heading.dataset.i18nEn=isManaged()?'Manage Transaction Fields':heading.dataset.mmhV12OldEn;
-      heading.dataset.i18nZh=isManaged()?'管理记账字段':heading.dataset.mmhV12OldZh;
-      heading.textContent=isManaged()?
+      const modernHeading=!!owner()&&!!config();
+      heading.dataset.i18nEn=modernHeading?'Manage Transaction Fields':heading.dataset.mmhV12OldEn;
+      heading.dataset.i18nZh=modernHeading?'管理记账字段':heading.dataset.mmhV12OldZh;
+      heading.textContent=modernHeading?
         tr('Manage Transaction Fields','管理记账字段','မှတ်တမ်းအကွက်များကို စီမံပါ'):
         tr(heading.dataset.mmhV12OldEn,heading.dataset.mmhV12OldZh,heading.dataset.mmhV12OldEn);
     }
@@ -736,10 +737,25 @@
     refresh();
   }
   window.MMHV11TxFieldPrefs={
-    version:'3.0.3',isManaged,hasCategory,markCategory,onCategoryRenamed,fieldItems,saveName,removeName,refreshManage,
+    version:'3.0.4',isManaged,hasCategory,markCategory,onCategoryRenamed,fieldItems,saveName,removeName,refreshManage,
     // Public presentation hooks: keep all changes owner-scoped and canonical.
     getCategoryEntries:()=>categories().map(x=>({...x})),
-    getArchivedCategoryEntries:()=>state()?Object.entries(config()?.archivedCategories||{})
+    // Compatibility is presentation-only: old accounts retain their existing
+    // three-field transaction form and ledger codes, with no V12 marker written.
+    getLegacyView:()=>{
+      if(!owner()||!config()||isManaged())return null;
+      const groups=['Expense','Income','Personal','LoanIncome','LoanExpense'];
+      const category=groups.flatMap(group=>{
+        const items=config()?.categories?.[group];
+        return Array.isArray(items)?items.filter(name=>typeof name==='string'&&name.trim())
+          .map(name=>({raw:group+'|'+name,group,name})):[];});
+      return {
+        type:TYPE.map(code=>({key:'legacy:'+code,canonical:code,label:code,legacy:true})),
+        transaction:KIND.map(k=>({key:'legacy:'+k.id,canonical:k.id,label:k.label,legacy:true})),
+        category
+      };
+    },
+    getArchivedCategoryEntries:()=>owner()&&config()?Object.entries(config()?.archivedCategories||{})
       .flatMap(([group,names])=>Array.isArray(names)?names.map(name=>({group,name})):[]):[],
     removeCategory:raw=>{
       const before=!!state()?.category.includes(raw);
@@ -786,10 +802,10 @@
   if(typeof document.querySelector==='function'&&document.head){
     const stylesheet=document.createElement('link');
     stylesheet.rel='stylesheet';
-    stylesheet.href='css/mmhvault-v11-manage-glass-dialogs.css?v=1.0.1';
+    stylesheet.href='css/mmhvault-v11-manage-glass-dialogs.css?v=1.0.2';
     document.head.appendChild(stylesheet);
     const addon=document.createElement('script');
-    addon.src='js/mmhvault-v11-manage-glass-dialogs.js?v=1.0.1';
+    addon.src='js/mmhvault-v11-manage-glass-dialogs.js?v=1.0.2';
     addon.async=false;
     document.head.appendChild(addon);
   }
