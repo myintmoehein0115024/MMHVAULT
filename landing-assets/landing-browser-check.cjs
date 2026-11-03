@@ -101,6 +101,57 @@ async function load(page,route,failures){
      await ctx.close();
    }
 
+   // L1.46 CSSOM critical style parity: keep editable original CSS and prove
+   // that Chrome parses every rule identically in the compact runtime copy.
+   {
+     const payload=['cinematic','premium-l131'].map(name=>({
+       name,
+       before:fs.readFileSync('landing-assets/'+name+'.css','utf8'),
+       after:fs.readFileSync('landing-assets/'+name+'.min.css','utf8')
+     }));
+     const ctx=await browser.newContext({viewport:{width:393,height:852},reducedMotion:'reduce'});
+     const page=await ctx.newPage(),failures=[],requests=[];
+     page.on('pageerror',error=>failures.push(error.message));
+     page.on('response',response=>{
+       const url=new URL(response.url());
+       if(url.origin===origin&&
+          /\/(?:cinematic|premium-l131)\.min\.css$/.test(url.pathname)){
+         requests.push({path:url.pathname,status:response.status(),
+           version:url.searchParams.get('v')});
+       }
+     });
+     await page.goto(origin+'/',{waitUntil:'load',timeout:30000});
+     const result=await page.evaluate(styles=>{
+       const checked=[];
+       for(const {name,before,after} of styles){
+         const oldSheet=new CSSStyleSheet(),newSheet=new CSSStyleSheet();
+         oldSheet.replaceSync(before);newSheet.replaceSync(after);
+         const original=[...oldSheet.cssRules].map(rule=>rule.cssText);
+         const compact=[...newSheet.cssRules].map(rule=>rule.cssText);
+         const firstMismatch=original.findIndex((rule,i)=>rule!==compact[i]);
+         const linked=[...document.querySelectorAll('link[rel="stylesheet"]')]
+           .filter(link=>new URL(link.href).pathname==='/landing-assets/'+name+'.min.css');
+         checked.push({name,originalRules:original.length,compactRules:compact.length,
+           identical:original.length===compact.length&&firstMismatch===-1,
+           firstMismatch,links:linked.map(link=>({loaded:!!link.sheet,
+             version:new URL(link.href).searchParams.get('v')}))});
+       }
+       return {checked,
+         heroWidth:document.querySelector('#hero-title').getBoundingClientRect().width,
+         headerRight:document.querySelector('.site-header').getBoundingClientRect().right};
+     },payload);
+     ensure(result.checked.length===2&&result.checked.every(x=>
+       x.identical&&x.originalRules>10&&x.links.length===1&&
+       x.links[0].loaded&&x.links[0].version==='l146')&&
+       result.heroWidth>0&&result.headerRight<=394&&
+       requests.length===2&&requests.every(x=>x.status===200&&x.version==='l146')&&
+       payload.every(x=>x.before.length-x.after.length>=500)&&failures.length===0,
+       'L1.46 compact critical CSS identical Chrome rules and single requests '+
+       JSON.stringify({result,bytes:payload.map(x=>({name:x.name,
+         original:Buffer.byteLength(x.before),compact:Buffer.byteLength(x.after)})),requests,failures}));
+     await ctx.close();
+   }
+
    // L1.44 — hold the small animation-only CSS until after DOMContentLoaded.
    // Hero and first-screen navigation must render normally without waiting.
    // A fast scroll while delayed must not cause invisible feature cards.
@@ -389,10 +440,12 @@ async function load(page,route,failures){
      });
      ensure(layout.styles.length===7&&layout.scripts.length===2 &&
        layout.styles.filter(v=>v==='l145').length===1 &&
-       layout.styles.filter(v=>v==='l141').length===6 &&
+       layout.styles.filter(v=>v==='l146').length===2 &&
+       layout.styles.filter(v=>v==='l141').length===4 &&
        layout.scripts.every(v=>v==='l141') &&
        loaded.length===9 && loaded.every(r=>r.status===200&&
-         r.version===(r.path==='/landing-assets/landing.min.css'?'l145':'l141')) &&
+         r.version===(r.path==='/landing-assets/landing.min.css'?'l145':
+           ['/landing-assets/cinematic.min.css','/landing-assets/premium-l131.min.css'].includes(r.path)?'l146':'l141')) &&
        new Set(loaded.map(r=>r.path)).size===9 && failures.length===0,
        'L1.41 '+width+'px nine consistent fresh cache-key requests '+JSON.stringify({loaded,failures}));
      ensure(layout.brand.left>=-1&&layout.brand.right<=width+1 &&
