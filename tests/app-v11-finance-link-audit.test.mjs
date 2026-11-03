@@ -69,6 +69,44 @@ test('custom currency without manual rate is flagged for a real reference rate, 
 test('duplicate account display names cannot silently create ambiguous references',()=>{
   const result=audit([account('Wallet','THB','one'),account(' wallet ','USD','two')],[tx('Wallet','')]);
   assert.equal(result.duplicateNames.length,1);
+  assert.equal(result.resolvedReferences,0,'ambiguous duplicate must not use the first account currency');
+  assert.equal(result.unresolved[0].reason,'ambiguous_account_reference');
+  assert.equal(result.unresolved[0].currency,null);
+  assert.equal(result.hasUnverifiedAccounting,true);
+});
+
+test('historical Bath alias cannot override a separate custom Bath account by config ordering',()=>{
+  for(const accounts of [
+    [account('Baht','THB','acc_bath'),account('Bath','MMK','custom_bath')],
+    [account('Bath','MMK','custom_bath'),account('Baht','THB','acc_bath')]
+  ]){
+    const result=audit(accounts,[tx('Bath','')]);
+    assert.equal(result.resolvedReferences,0);
+    assert.equal(result.unresolvedReferences,1);
+    assert.equal(result.unresolved[0].reason,'ambiguous_account_reference');
+    assert.equal(result.unresolved[0].currency,null);
+    assert.equal(result.hasUnverifiedAccounting,true);
+    const unambiguous=audit(accounts,[tx('Baht','')]);
+    assert.equal(unambiguous.resolvedReferences,1);
+    assert.equal(unambiguous.unresolvedReferences,0);
+  }
+  const onlyCustom=audit([account('Bath','MMK','custom_bath')],[tx('Bath','')]);
+  assert.equal(onlyCustom.resolvedReferences,1,'a genuine custom Bath name remains valid without acc_bath');
+});
+
+test('acc_bath cannot silently reinterpret historical THB as MMK',()=>{
+  const result=audit([account('Baht','MMK','acc_bath')],[tx('Baht','')]);
+  assert.equal(result.resolvedReferences,0);
+  assert.equal(result.unresolvedReferences,1);
+  assert.equal(result.unresolved[0].reason,'builtin_baht_currency_conflict');
+  assert.equal(result.unresolved[0].currency,null);
+});
+
+test('archived custom AMD accounts still require a trustworthy FX rate for historical Analyze',()=>{
+  const result=audit([account('Old Armenia Cash','AMD','acc_old_amd',{active:false,fxPerUSD:null})],[tx('Old Armenia Cash','')]);
+  assert.equal(result.resolvedReferences,1);
+  assert.equal(result.requiresReferenceFx.length,1);
+  assert.equal(result.requiresReferenceFx[0].currency,'AMD');
   assert.equal(result.hasUnverifiedAccounting,true);
 });
 
