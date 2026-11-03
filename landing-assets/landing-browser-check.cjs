@@ -52,6 +52,55 @@ async function load(page,route,failures){
 (async()=>{
  const browser=await chromium.launch({channel:'chrome',headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
  try{
+   // L1.45 CSSOM rule-for-rule equivalence: compare the current compact CSS
+   // against the readable predecessor from origin/main using Chrome's own
+   // stylesheet parser. This fails on rule/value/order/selector differences.
+   // These tests never load an authenticated route or call external services.
+   {
+     const previous=fs.readFileSync('landing-assets/landing.css','utf8');
+     const currentCss=fs.readFileSync('landing-assets/landing.min.css','utf8');
+     const ctx=await browser.newContext({
+       viewport:{width:393,height:852},reducedMotion:'reduce'
+     });
+     const page=await ctx.newPage(),failures=[],cssResponses=[];
+     page.on('pageerror',e=>failures.push(e.message));
+     page.on('response',r=>{
+       if(r.url().includes('/landing-assets/landing.min.css'))
+         cssResponses.push({status:r.status(),url:r.url()});
+     });
+     await page.goto(origin+'/',{waitUntil:'load',timeout:30000});
+     const cssom=await page.evaluate(({before,after})=>{
+       const originalSheet=new CSSStyleSheet();
+       const compactSheet=new CSSStyleSheet();
+       originalSheet.replaceSync(before);
+       compactSheet.replaceSync(after);
+       const a=[...originalSheet.cssRules].map(x=>x.cssText);
+       const b=[...compactSheet.cssRules].map(x=>x.cssText);
+       const mismatch=a.findIndex((rule,i)=>rule!==b[i]);
+       const styles=[...document.querySelectorAll('link[rel="stylesheet"]')]
+         .filter(x=>x.href.includes('/landing-assets/landing.min.css'));
+       return {same:a.length===b.length&&mismatch===-1,
+         originalRuleCount:a.length,compactRuleCount:b.length,
+         mismatch,oldRule:mismatch<0?null:a[mismatch]?.slice(0,240),
+         newRule:mismatch<0?null:b[mismatch]?.slice(0,240),
+         requestedStyle:styles.map(x=>({href:x.href,loaded:!!x.sheet})),
+         heroWidth:document.querySelector('#hero-title').getBoundingClientRect().width};
+     },{before:previous,after:currentCss});
+     ensure(cssom.same&&cssom.originalRuleCount>150&&
+       previous.length-currentCss.length>=8000&&
+       cssom.requestedStyle.length===1&&
+       cssom.requestedStyle[0].href.endsWith('/landing-assets/landing.min.css?v=l145')&&
+       cssom.requestedStyle[0].loaded&&
+       cssom.heroWidth>0&&
+       cssResponses.length===1&&cssResponses[0].status===200&&
+       failures.length===0,
+       'L1.45 byte reduction preserves every parsed CSS rule '+JSON.stringify({
+         cssom,oldBytes:Buffer.byteLength(previous),newBytes:Buffer.byteLength(currentCss),
+         cssResponses,failures
+       }));
+     await ctx.close();
+   }
+
    // L1.44 — hold the small animation-only CSS until after DOMContentLoaded.
    // Hero and first-screen navigation must render normally without waiting.
    // A fast scroll while delayed must not cause invisible feature cards.
@@ -339,8 +388,11 @@ async function load(page,route,failures){
        };
      });
      ensure(layout.styles.length===7&&layout.scripts.length===2 &&
-       [...layout.styles,...layout.scripts].every(v=>v==='l141') &&
-       loaded.length===9 && loaded.every(r=>r.status===200&&r.version==='l141') &&
+       layout.styles.filter(v=>v==='l145').length===1 &&
+       layout.styles.filter(v=>v==='l141').length===6 &&
+       layout.scripts.every(v=>v==='l141') &&
+       loaded.length===9 && loaded.every(r=>r.status===200&&
+         r.version===(r.path==='/landing-assets/landing.min.css'?'l145':'l141')) &&
        new Set(loaded.map(r=>r.path)).size===9 && failures.length===0,
        'L1.41 '+width+'px nine consistent fresh cache-key requests '+JSON.stringify({loaded,failures}));
      ensure(layout.brand.left>=-1&&layout.brand.right<=width+1 &&
