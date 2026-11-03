@@ -159,26 +159,49 @@ export function archiveItem(graph,ownerId,field,id,archived=true){
   const node=requireNode(graph,coll,id);
   node.archived=!!archived;return node;
 }
-// Derived view for older owners: no config/ledger writes on open. Actual
-// migration must be transactionally persisted by the owner-scoped adapter.
+// Derived view for older owners: no config/ledger writes on open. This
+// preserves active/archived categories and existing Type/Transaction aliases.
 export function legacyHierarchy(ownerId,config){
   const graph=emptyHierarchy(ownerId);
-  const groups=config?.categories||{};
-  for(const name of LEDGER_TYPES)graph.types.push({
-    id:'legacy:type:'+name,label:name,ledgerType:name,archived:false,legacy:true
-  });
+  const groups=config?.categories||{},archived=config?.archivedCategories||{};
+  const settings=config?.txFieldsV12?.version===1?config.txFieldsV12:null;
+  const display=settings?.displayV13||{};
+  const enabledTypes=settings?settings.type||[]:LEDGER_TYPES;
+  const enabledKinds=settings?settings.transaction||[]:KINDS.map(x=>x[0]);
+  const activeCategories=settings?new Set(settings.category||[]):null;
+  for(const name of LEDGER_TYPES){
+    if(!enabledTypes.includes(name))continue;
+    const id='legacy:type:'+name;
+    graph.types.push({id,label:String(display.typeLabels?.[name]||name),
+      ledgerType:name,archived:false,legacy:true});
+    for(const alias of display.extraTypes||[]){
+      if(alias.canonical!==name||!validId(alias.id)||!nonempty(alias.label))continue;
+      graph.types.push({id:'legacy:type:alias:'+alias.id,label:alias.label,
+        ledgerType:name,archived:false,legacy:true});
+    }
+  }
   for(const [kindId,ledgerType,,group] of KINDS){
-    const labelText=kindId.split('|')[1];
+    if(!enabledKinds.includes(kindId)||!enabledTypes.includes(ledgerType))continue;
+    const parentId='legacy:type:'+ledgerType;
     const id='legacy:transaction:'+encodeURIComponent(kindId);
-    graph.transactions.push({id,label:labelText,parentId:'legacy:type:'+ledgerType,
-      kindId,archived:false,legacy:true});
-    if(!Array.isArray(groups[group]))continue;
-    for(const categoryName of groups[group]){
-      if(!nonempty(categoryName))continue;
-      const raw=categoryName.trim();
-      const categoryId='legacy:category:'+encodeURIComponent(kindId+'|'+raw);
-      graph.categories.push({id:categoryId,label:raw,parentId:id,
-        ledgerGroup:group,archived:false,legacy:true});
+    const baseLabel=kindId.split('|')[1];
+    graph.transactions.push({id,label:String(display.transactionLabels?.[kindId]||baseLabel),
+      parentId,kindId,archived:false,legacy:true});
+    for(const alias of display.extraTransactions||[]){
+      if(alias.canonical!==kindId||!validId(alias.id)||!nonempty(alias.label))continue;
+      graph.transactions.push({id:'legacy:transaction:alias:'+alias.id,label:alias.label,
+        parentId,kindId,archived:false,legacy:true});
+    }
+    // Archived entries may have been removed from config.categories and
+    // moved into config.archivedCategories. Both must remain recoverable.
+    const existing=Array.isArray(groups[group])?groups[group]:[];
+    const inactive=Array.isArray(archived[group])?archived[group]:[];
+    for(const raw of new Set([...existing,...inactive])){
+      if(!nonempty(raw))continue;
+      const name=raw.trim();
+      const hidden=inactive.includes(raw)||!!activeCategories&&!activeCategories.has(group+'|'+raw);
+      graph.categories.push({id:'legacy:category:'+encodeURIComponent(kindId+'|'+name),
+        label:name,parentId:id,ledgerGroup:group,archived:hidden,legacy:true});
     }
   }
   return graph;
