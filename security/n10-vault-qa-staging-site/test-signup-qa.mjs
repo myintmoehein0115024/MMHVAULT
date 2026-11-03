@@ -53,7 +53,7 @@ test('safe-area and responsive layout, private modal, no default alert',()=>{
 });
 
 test('Staging-only Pages CSP permits Turnstile script AND iframe without relaxing default deny',()=>{
- const csp=headers.split('\\n').find(x=>x.includes('Content-Security-Policy:'))||'';
+ const csp=headers.split('\n').find(x=>x.includes('Content-Security-Policy:'))||'';
  assert.match(csp,/default-src 'none'/);
  assert.match(csp,/script-src 'self' https:\/\/cdn\.jsdelivr\.net https:\/\/challenges\.cloudflare\.com/);
  assert.match(csp,/frame-src https:\/\/challenges\.cloudflare\.com/);
