@@ -219,7 +219,9 @@
       Object.entries(labels).forEach(([name,el])=>{if(!el)return;el.dataset.mmhV12Hidden=enabled[name]?'0':'1';el.style.display=enabled[name]?'':'none';});
       const active=Object.values(enabled).filter(Boolean).length;
       if(active<2){
-        if(!enabled.type)t.replaceChildren();
+        // Keep the canonical Type options even when the Type field is hidden.
+        // Otherwise a fresh owner selecting Transaction + Category later cannot
+        // set its internal income/expense Type, and saving becomes impossible.
         if(!enabled.transaction)g.replaceChildren();
         if(!enabled.category)c.replaceChildren();
         note(tr('Set up at least two fields in Manage before adding a transaction.',
