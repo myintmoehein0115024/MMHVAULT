@@ -24,6 +24,18 @@ jobs:
           node --check security/n10-vault-qa-staging-site/app.js
           node --check security/n10-vault-qa-staging-site/signup.js
           node --check security/n10-vault-qa-staging-site/mfa.js
+          node --check security/n10-vault-qa-staging-site/test-username-vault-ui.mjs
+          node --check security/n10-vault-qa-staging-edge/test-username-vault.mjs
+      - name: Strict username Vault owner-binding and read-only negative checks
+        run: |
+          node --test security/n10-vault-qa-staging-edge/test-username-vault.mjs
+          node --test security/n10-vault-qa-staging-site/test-username-vault-ui.mjs
+      - name: Deno check independent hard-OFF username Vault Edge
+        uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: Compile username Vault QA only, never deploy
+        run: deno check security/n10-vault-qa-staging-edge/username-vault-review-only.ts
       - name: New username MFA A/B QA isolation, challenge and AAL2 regressions
         run: node --test security/n10-vault-qa-staging-site/test-mfa-qa.mjs
       - name: Connected signup QA isolation, privacy and responsive tests
