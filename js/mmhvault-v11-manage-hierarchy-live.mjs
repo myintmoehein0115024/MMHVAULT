@@ -3,7 +3,7 @@
  * Preserves the canonical ledger values used by balance and Analyze calculations.
  */
 import {createHierarchyController} from './mmhvault-v11-manage-hierarchy-controller.mjs';
-import {ledgerKind,canAddItem} from './mmhvault-v11-manage-hierarchy-model.mjs';
+import {ledgerKind,canAddItem,storedLinkMatches} from './mmhvault-v11-manage-hierarchy-model.mjs';
 (()=>{
 'use strict';
 if(window.MMHV11HierarchyLive)return;
@@ -37,6 +37,7 @@ const uid=()=>typeof crypto!=='undefined'&&crypto.randomUUID?
   'hier_'+crypto.randomUUID():'hier_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2);
 let loadedOwner='',historyReady=false,overlay=null,modalField='',selection={type:'',transaction:'',category:''};
 let pendingSave=null,rendering=false,queued=false,returnFocus=null;
+let linkSync=null,checkingCloud=false;
 const host={
   currentOwner:owner,configOwner,currentConfig:config,
   history:()=>{
@@ -292,6 +293,24 @@ function manager(){
     'Already-used options: Archive only. Historical transactions are never changed.',
     '已使用的项目只能归档；历史交易记录始终保留。',
     'မှတ်တမ်းဟောင်းများကို မပြောင်းဘဲ အသုံးပြုပြီးသော အရာများကို သိမ်းနိုင်ပါသည်။')));
+  // A confirmed ledger insert and its configuration-sidecar cloud write are
+  // separate operations. Show verification truthfully, never imply atomicity.
+  if(linkSync?.owner===owner()){
+    const status=elt('div','mmh-hier-muted');status.setAttribute('role','status');
+    const verified=linkSync.state==='verified';
+    status.append(elt('span','',verified?tr(
+      'Last transaction link: cloud verified.',
+      '最近交易关联：已核对云端记录。',
+      'နောက်ဆုံး မှတ်တမ်းချိတ်ဆက်မှုကို cloud တွင် စစ်ဆေးပြီးပါပြီ။'):tr(
+      'Transaction saved; Manage link is awaiting cloud verification.',
+      '交易已保存；Manage 关联尚待云端核对。',
+      'မှတ်တမ်း သိမ်းပြီး၊ Manage ချိတ်ဆက်မှု cloud စစ်ဆေးရန် ကျန်ပါသည်။')));
+    if(!verified){
+      const retry=btn(tr('Recheck sync','重新核对同步','ထပ်မံစစ်ဆေးရန်'),()=>{void verifyCloudLink(linkSync)},'mmh-hier-btn');
+      retry.disabled=checkingCloud;status.append(retry);
+    }
+    root.append(status);
+  }
   const notice=elt('div','mmh-hier-muted');notice.id='mmhHierarchyNotice';notice.hidden=true;root.append(notice);
 }
 const selected=(el)=>el?.selectedOptions?.[0]?.dataset?.mmhChoiceId||'';
@@ -346,16 +365,38 @@ function schedule(){
   if(queued)return;queued=true;
   queueMicrotask(()=>{queued=false;manager();form()});
 }
+async function verifyCloudLink(target){
+  if(!target||checkingCloud||owner()!==target.owner||configOwner()!==target.owner)return;
+  checkingCloud=true;schedule();
+  try{
+    // The existing sync queue is asynchronous. A successful local write is
+    // not proof of server durability, nor is an in-flight sync response.
+    const sync=window.MMHConfigCloudSyncV122;
+    if(typeof sync?.syncNow!=='function')return;
+    if(await sync.syncNow(false)!==true)return;
+    if(owner()!==target.owner||configOwner()!==target.owner||linkSync!==target)return;
+    const {data,error}=await db.from('personal_configuration').select('config')
+      .eq('user_id',target.owner).maybeSingle();
+    if(owner()!==target.owner||configOwner()!==target.owner||linkSync!==target)return;
+    if(!error&&storedLinkMatches(data?.config?.txHierarchyV11,target.owner,
+      target.recordId,target.ids,target.canonical))target.state='verified';
+  }catch(error){console.warn('[MMHVAULT] Manage link cloud readback not verified',error)}
+  finally{checkingCloud=false;schedule()}
+}
 function ledgerInserted(userId,id,values){
   if(!pendingSave||pendingSave.owner!==userId||owner()!==userId)return;
   const current=pendingSave;pendingSave=null;
   if(!values||values.type!==current.path.type||values.group!==current.path.group||
     values.category!==current.path.category)return;
-  try{controller.recorded(String(id),current.ids.type,current.ids.transaction,current.ids.category,values)}
-  catch(error){console.warn('[MMHVAULT] Ledger saved but linked Manage path was not synced',error);
-    notify(tr('Transaction saved. Category link sync needs a retry.',
-      '交易已保存，但项目关联尚未同步，请刷新后检查。',
-      'မှတ်တမ်း သိမ်းပြီး၊ ချိတ်ဆက်မှု ပြန်စစ်ပါ။'))}
+  try{
+    controller.recorded(String(id),current.ids.type,current.ids.transaction,current.ids.category,values);
+    linkSync={owner:userId,recordId:String(id),ids:{...current.ids},
+      canonical:{type:values.type,group:values.group,category:values.category},state:'pending'};
+    schedule();void verifyCloudLink(linkSync);
+  }catch(error){console.warn('[MMHVAULT] Ledger saved but linked Manage path was not synced',error);
+    notify(tr('Transaction saved, but its Manage link could not be confirmed. Reopen Manage to check.',
+      '交易已保存，但 Manage 关联未能确认，请重新打开 Manage 检查。',
+      'မှတ်တမ်း သိမ်းပြီး၊ Manage ချိတ်ဆက်မှု စစ်ဆေးပါ။'))}
 }
 function boot(){
   const f=$('txForm');
@@ -396,8 +437,8 @@ function boot(){
       loadedOwner=historyReady?current:'';
     }else if(e?.type==='mmhvault:config-owner-changed'){
       historyReady=false;loadedOwner='';selection={type:'',transaction:'',category:''};
-      pendingSave=null;close();
-    }else if(current!==loadedOwner){historyReady=false;selection={type:'',transaction:'',category:''};pendingSave=null;close();}
+      pendingSave=null;linkSync=null;close();
+    }else if(current!==loadedOwner){historyReady=false;selection={type:'',transaction:'',category:''};pendingSave=null;linkSync=null;close();}
     schedule();
   };
   for(const name of ['mmhvault:data-loaded','mmhvault:config-owner-changed',
