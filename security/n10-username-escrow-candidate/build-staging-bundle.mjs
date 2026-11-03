@@ -41,7 +41,10 @@ export async function buildStagingBundle(target){
  src=once(src,"const ORIGIN='https://mmhvault.com';","const ORIGIN='https://mmhvault-n10-vault-staging.pages.dev';");
  src=once(src,"const SITE_HOST='mmhvault.com';","const SITE_HOST='mmhvault-n10-vault-staging.pages.dev';");
  src=once(src,"const ALIAS_DOMAIN='no-mail.mmhvault.invalid';","const ALIAS_DOMAIN='no-mail.n10-staging.mmhvault.invalid';");
- src=once(src,"'mmh-a769-prod:'+v","'mmh-a769-staging:'+v");
+ // Keep the verifier protocol compatible with Staging Vault v11. Environment
+ // isolation comes from the Staging project and its separate HMAC secret.
+ src=once(src,"const HMAC=Deno.env.get('N10A740_RATE_HMAC_KEY')||'';",
+                  "const HMAC=Deno.env.get('N10_FIXED_RECOVERY_QA_HMAC_KEY')||'';");
  src=once(src,'production:true,qa_only:false,limited_signup:false,public_signup:true',
                    'production:false,qa_only:true,limited_signup:false,public_signup:false');
  src=once(src,"let createdUid=null,createdEmail=null,sessionAttempted=false;",
@@ -65,6 +68,7 @@ export async function buildStagingBundle(target){
  assert.match(src,/const PROJECT='ldivswlhtgmznzwhzsoi';/);
  assert.match(src,/const ORIGIN='https:\/\/mmhvault-n10-vault-staging\.pages\.dev';/);
  assert.match(src,/const SITE_HOST='mmhvault-n10-vault-staging\.pages\.dev';/);
+ assert.match(src,/const HMAC=Deno\.env\.get\('N10_FIXED_RECOVERY_QA_HMAC_KEY'\)\|\|'';/);
  assert.match(src,/if\(!RELEASE_ENABLED\)return reply\(origin,'registration_not_released',503\);/);
  assert.doesNotMatch(src,/vrypucmyrztxgiqhjspd|https:\/\/mmhvault\.com\b|const RELEASE_ENABLED=true;/);
  assert.doesNotMatch(src,/admin\.auth\.admin\.deleteUser\(/);
