@@ -216,9 +216,12 @@ export function normalizePersistedHierarchy(raw,ownerId){
     const parent=find(g,'transactions',x.parentId);
     return !parent||kindMap.get(parent.kindId)?.categoryGroup!==x.ledgerGroup;
   }))bad();
-  const folded=(field,scope)=>{const seen=new Set();for(const x of g[field]){
-    const key=scope(x)+'|'+x.label.toLocaleLowerCase();
-    if(seen.has(key))bad();seen.add(key);
+  const folded=(field,scope)=>{const seen=new Map();for(const x of g[field]){
+    const key=scope(x)+'|'+x.label.toLocaleLowerCase(),prev=seen.get(key);
+    // Existing legacy aliases may share one canonical ledger category. Their
+    // duplicates are protected by conservative history locks, not deleted.
+    if(prev&&!(field==='categories'&&prev.legacy===true&&x.legacy===true))bad();
+    seen.set(key,x);
   }};
   folded('types',()=> 'type');
   folded('transactions',x=>x.parentId);
@@ -266,26 +269,40 @@ export function legacyHierarchy(ownerId,config){
   }
   for(const [kindId,ledgerType,,group] of KINDS){
     if(!enabledKinds.includes(kindId)||!enabledTypes.includes(ledgerType))continue;
-    const parentId='legacy:type:'+ledgerType;
-    const id='legacy:transaction:'+encodeURIComponent(kindId);
+    const originalTypeId='legacy:type:'+ledgerType;
+    const originalTxnId='legacy:transaction:'+encodeURIComponent(kindId);
     const baseLabel=kindId.split('|')[1];
-    graph.transactions.push({id,label:String(display.transactionLabels?.[kindId]||baseLabel),
-      parentId,kindId,archived:false,legacy:true});
-    for(const alias of display.extraTransactions||[]){
-      if(alias.canonical!==kindId||!validId(alias.id)||!nonempty(alias.label))continue;
-      graph.transactions.push({id:'legacy:transaction:alias:'+alias.id,label:alias.label,
-        parentId,kindId,archived:false,legacy:true});
-    }
-    // Archived entries may have been removed from config.categories and
-    // moved into config.archivedCategories. Both must remain recoverable.
-    const existing=Array.isArray(groups[group])?groups[group]:[];
-    const inactive=Array.isArray(archived[group])?archived[group]:[];
-    for(const raw of new Set([...existing,...inactive])){
-      if(!nonempty(raw))continue;
-      const name=raw.trim();
-      const hidden=inactive.includes(raw)||!!activeCategories&&!activeCategories.has(group+'|'+raw);
-      graph.categories.push({id:'legacy:category:'+encodeURIComponent(kindId+'|'+name),
-        label:name,parentId:id,ledgerGroup:group,archived:hidden,legacy:true});
+    // Legacy display aliases all represented the same canonical accounting
+    // code. In the new hierarchy they must remain selectable as complete
+    // linked paths, not become orphaned Type/Transaction leaf nodes.
+    const typeParents=graph.types.filter(x=>x.ledgerType===ledgerType);
+    for(const typeParent of typeParents){
+      const variants=[
+        {name:String(display.transactionLabels?.[kindId]||baseLabel),aliasId:null},
+        ...(display.extraTransactions||[]).filter(alias=>
+          alias.canonical===kindId&&validId(alias.id)&&nonempty(alias.label))
+          .map(alias=>({name:alias.label,aliasId:alias.id}))
+      ];
+      for(const variant of variants){
+        const base=typeParent.id===originalTypeId&&variant.aliasId==null;
+        const id=base?originalTxnId:
+          'legacy:transaction:link:'+encodeURIComponent(typeParent.id+'|'+kindId+'|'+(variant.aliasId||'base'));
+        graph.transactions.push({id,label:variant.name,
+          parentId:typeParent.id,kindId,archived:false,legacy:true});
+        // Archived entries may have been moved out of config.categories;
+        // preserve their names and historical ledger mapping.
+        const existing=Array.isArray(groups[group])?groups[group]:[];
+        const inactive=Array.isArray(archived[group])?archived[group]:[];
+        for(const raw of new Set([...existing,...inactive])){
+          if(!nonempty(raw))continue;
+          const name=raw.trim();
+          const hidden=inactive.includes(raw)||!!activeCategories&&!activeCategories.has(group+'|'+raw);
+          const categoryId=base?'legacy:category:'+encodeURIComponent(kindId+'|'+name):
+            'legacy:category:link:'+encodeURIComponent(id+'|'+name);
+          graph.categories.push({id:categoryId,label:name,
+            parentId:id,ledgerGroup:group,archived:hidden,legacy:true});
+        }
+      }
     }
   }
   return graph;
