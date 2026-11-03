@@ -201,6 +201,25 @@ test('synthetic form DOM keeps original ledger values when user chooses a combin
   assert.equal(category.value,'Debt');
   assert.equal(api.validate(form),true);
   assert.equal(typeof listeners.submit,'function');
+
+  // Reopen the same editor for another transaction. Its combined chooser must
+  // reflect the NEW record, even though submit/change listeners already exist.
+  store.set('mmhvault_tx_field_layout_v11_'+owner,'type-category');
+  type.value='Expense';
+  group.options=groups('Expense').map(value=>({value}));
+  group.value='Personal';
+  category.options=categoryOptions('Expense','Personal').map(value=>({value}));
+  category.value='Gifts';
+  form.dataset.mmhV11OriginalType='Expense';
+  form.dataset.mmhV11OriginalGroup='Personal';
+  form.dataset.mmhV11OriginalCategory='Gifts';
+  api.attachEdit();
+  assert.equal(wraps.category.hidden,false,'reused edit modal shows updated Type + Category chooser');
+  const reopened=wraps.category.querySelector('select');
+  assert.equal(reopened.options[Number(reopened.value)]?.textContent,'Gifts');
+  assert.equal(type.value,'Expense');
+  assert.equal(group.value,'Personal');
+  assert.equal(category.value,'Gifts','reopening editor must not change saved category');
 });
 
 test('V11 account-identity guard is retained alongside the transaction preference module',()=>{
