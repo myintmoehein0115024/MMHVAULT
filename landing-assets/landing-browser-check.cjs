@@ -52,6 +52,100 @@ async function load(page,route,failures){
 (async()=>{
  const browser=await chromium.launch({channel:'chrome',headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
  try{
+   // L1.43: public-only cold-cache performance lab (no production telemetry).
+   // Fixed 1.5 Mbps / 120ms simulated network and 2x CPU; these numbers are
+   // reproducible CI diagnostics, NOT claims about a real visitor's speed.
+   const l143Samples=[];
+   for(const width of [393,768,1440]){
+     const ctx=await browser.newContext({
+       viewport:{width,height:852},
+       deviceScaleFactor:width===393?3:(width===768?2:1),
+       isMobile:width===393,hasTouch:width===393,
+       reducedMotion:'reduce',serviceWorkers:'block'
+     });
+     const page=await ctx.newPage(),failures=[];
+     page.on('pageerror',e=>failures.push('JS '+e.message));
+     page.on('requestfailed',r=>failures.push('Network '+r.url()+' '+r.failure()?.errorText));
+     page.on('response',r=>{
+       if(r.url().startsWith(origin)&&r.status()>=400)
+         failures.push('HTTP '+r.status()+' '+r.url());
+     });
+     await page.addInitScript(()=>{
+       window.__l143Perf={lcp:0,cls:0,lcpElement:null};
+       try{
+         new PerformanceObserver(list=>{
+           for(const entry of list.getEntries()){
+             window.__l143Perf.lcp=entry.startTime;
+             window.__l143Perf.lcpElement=entry.element?.tagName||null;
+           }
+         }).observe({type:'largest-contentful-paint',buffered:true});
+         new PerformanceObserver(list=>{
+           for(const entry of list.getEntries()){
+             if(!entry.hadRecentInput)window.__l143Perf.cls+=entry.value;
+           }
+         }).observe({type:'layout-shift',buffered:true});
+       }catch(_){}
+     });
+     const cdp=await ctx.newCDPSession(page);
+     await cdp.send('Network.enable');
+     await cdp.send('Network.emulateNetworkConditions',{
+       offline:false,latency:120,downloadThroughput:187500,uploadThroughput:62500
+     });
+     await cdp.send('Emulation.setCPUThrottlingRate',{rate:2});
+     try{
+       await page.goto(origin+'/',{waitUntil:'load',timeout:35000});
+       await page.waitForTimeout(250);
+       const sample=await page.evaluate(()=>{
+         const paint=performance.getEntriesByType('paint');
+         const nav=performance.getEntriesByType('navigation')[0];
+         const resources=performance.getEntriesByType('resource')
+           .filter(r=>r.name.startsWith(location.origin+'/'));
+         const byFile=path=>resources.filter(r=>new URL(r.name).pathname===path);
+         const hero=document.querySelector('.hero-device-cinematic');
+         const heroArt=document.querySelector('.hero-art');
+         const viewport=innerWidth;
+         const header=document.querySelector('.site-header').getBoundingClientRect();
+         const photo=byFile('/landing-assets/personal-business-concept.webp');
+         const lake=byFile('/landing-assets/cinematic-lake.webp');
+         const record={
+           width:viewport,
+           fcpMs:Math.round(paint.find(x=>x.name==='first-contentful-paint')?.startTime||0),
+           lcpMs:Math.round(window.__l143Perf?.lcp||0),
+           lcpElement:window.__l143Perf?.lcpElement||null,
+           cls:Number((window.__l143Perf?.cls||0).toFixed(4)),
+           domContentLoadedMs:Math.round(nav?.domContentLoadedEventEnd||0),
+           loadMs:Math.round(nav?.loadEventEnd||0),
+           resourceCount:resources.length,
+           transferredBytes:resources.reduce((sum,r)=>sum+(r.transferSize||0),0),
+           heroRequestCount:photo.length,
+           heroEncodedBytes:photo.reduce((sum,r)=>sum+(r.encodedBodySize||0),0),
+           lakeRequestCount:lake.length,
+           cssRequests:resources.filter(r=>new URL(r.name).pathname.endsWith('.css')).length,
+           headerRight:Math.round(header.right),
+           heroDecoded:!!(hero?.complete&&hero?.naturalWidth>0),
+           heroReady:heroArt?.classList.contains('is-photo-ready')||false
+         };
+         return record;
+       });
+       ensure(sample.width===width&&sample.fcpMs>0&&sample.lcpMs>0&&
+         sample.loadMs>0&&sample.heroDecoded&&sample.heroReady&&
+         sample.heroRequestCount>=1&&sample.heroRequestCount<=2&&
+         sample.headerRight<=width+1&&sample.cssRequests>=7&&
+         sample.cls<0.25&&failures.length===0,
+         'L1.43 '+width+'px throttled cold-cache LCP/FCP/CLS/image baseline '+JSON.stringify({sample,failures}));
+       l143Samples.push(sample);
+     }finally{await ctx.close()}
+   }
+   const l143Report={
+     version:'L1.43',
+     method:'Chrome desktop CI with emulated 1.5 Mbps, 120ms latency, 2x CPU, cold cache',
+     disclaimer:'Lab measurements only; not field Core Web Vitals, not a guaranteed speed gain',
+     samples:l143Samples
+   };
+   fs.writeFileSync(path.join(screenshots,'performance-l143.json'),
+     JSON.stringify(l143Report,null,2)+'\n');
+   console.log('L1.43 PERFORMANCE LAB '+JSON.stringify(l143Report));
+
    // L1.42: hold the noncritical Business stylesheet on a slow connection.
    // The Hero must still finish parsing and rendering without waiting for it.
    for(const width of [393,768]){
