@@ -21,7 +21,8 @@ test('bind verified JWT UID and real MFA to authoritative username link before V
  assert.match(edge,/admin\.auth\.getUser\(m\[1\]\)/);
  assert.match(edge,/admin\.auth\.admin\.mfa\.listFactors\(\{userId:user\.id\}\)/);
  assert.match(edge,/evaluateVerifiedAuthUserMfa\(m\[1\],\{\.\.\.user,factors:factors\.factors\},BASE\)/);
- assert.match(edge,/if\(expectedAal!=='aal2'\|\|!factors\.factors\.some\(/);
+ assert.match(edge,/if\(factorAal!=='aal2'\|\|!factors\.factors\.some\(/);
+ assert.match(edge,/const expectedAal:'aal2'='aal2'/);
  assert.match(edge,/sessionIdFromVerifiedJwt\(m\[1\],user\.id,BASE\)/);
  assert.match(edge,/user\.app_metadata\?\.mmhvault_auth_kind!=='username_only'/);
  assert.match(edge,/\.select\('username_key'\)\.eq\('user_id',user\.id\)\.limit\(2\)/);
