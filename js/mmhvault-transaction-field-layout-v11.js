@@ -598,7 +598,17 @@
       }
       restoreChoice(t,typeChoice);
       note('');
-    }finally{rendering=false;}
+    }finally{
+      rendering=false;
+      // A globally viable configuration can still have a currently
+      // incompatible selected Type. Disable Save until the visible pair is valid.
+      const save=form.querySelector('.actions button:not([type="button"])');
+      if(save){
+        const allowed=readiness().ready&&valid();
+        save.disabled=!allowed;
+        save.dataset.mmhV12Blocked=allowed?'0':'1';
+      }
+    }
   }
   function valid(){
     const s=state();if(!s)return true;
