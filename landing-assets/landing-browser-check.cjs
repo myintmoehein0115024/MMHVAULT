@@ -52,6 +52,88 @@ async function load(page,route,failures){
 (async()=>{
  const browser=await chromium.launch({channel:'chrome',headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
  try{
+   // L1.44 — hold the small animation-only CSS until after DOMContentLoaded.
+   // Hero and first-screen navigation must render normally without waiting.
+   // A fast scroll while delayed must not cause invisible feature cards.
+   for(const width of [393,768,1440]){
+     const ctx=await browser.newContext({
+       viewport:{width,height:852},reducedMotion:'no-preference',
+       isMobile:width===393,hasTouch:width===393
+     });
+     const page=await ctx.newPage(),failures=[];
+     page.on('pageerror',e=>failures.push(e.message));
+     let releaseMotion;
+     const held=new Promise(resolve=>{releaseMotion=resolve;});
+     let heldCount=0;
+     await page.route('**/landing-assets/motion-l132.css*',async route=>{
+       heldCount++;
+       await held;
+       await route.continue();
+     });
+     let early;
+     try{
+       await page.goto(origin+'/',{waitUntil:'domcontentloaded',timeout:15000});
+       early=await page.evaluate(()=>{
+         const hero=document.querySelector('#hero-title').getBoundingClientRect();
+         const header=document.querySelector('.site-header').getBoundingClientRect();
+         const style=document.querySelector('link[href*="/landing-assets/motion-l132.css"]');
+         return {motionMedia:style?.media,cssPending:!style?.sheet,
+           heroTop:hero.top,heroLeft:hero.left,heroHeight:hero.height,
+           headerRight:header.right,rootMotion:document.documentElement.classList.contains('mm-motion-active')};
+       });
+       ensure(heldCount===1&&early.motionMedia==='print'&&
+         early.cssPending&&early.rootMotion&&early.heroHeight>20&&
+         early.heroLeft>=-1&&early.headerRight<=width+1&&failures.length===0,
+         'L1.44 '+width+'px Hero renders while motion CSS is delayed '+JSON.stringify({early,failures}));
+       await page.locator('.showcase-grid > .showcase-card').first().scrollIntoViewIfNeeded();
+       const scrolled=await page.evaluate(()=>{
+         const el=document.querySelector('.showcase-grid > .showcase-card');
+         const css=getComputedStyle(el);
+         return {y:scrollY,opacity:css.opacity,visible:el.getBoundingClientRect().height>0};
+       });
+       ensure(scrolled.y>200&&scrolled.opacity==='1'&&scrolled.visible,
+         'L1.44 '+width+'px fast scroll keeps content visible before animation CSS '+JSON.stringify(scrolled));
+     }finally{releaseMotion();}
+     await page.waitForLoadState('load',{timeout:18000});
+     await page.waitForFunction(()=>{
+       const link=document.querySelector('link[href*="/landing-assets/motion-l132.css"]');
+       return link?.media==='all'&&link.sheet?.cssRules.length>0;
+     },null,{timeout:8000});
+     await page.waitForTimeout(700);
+     const after=await page.evaluate(()=>{
+       const header=document.querySelector('.site-header').getBoundingClientRect();
+       const card=document.querySelector('.showcase-grid > .showcase-card');
+       const style=getComputedStyle(card);
+       return {headerRight:header.right,opacity:style.opacity,
+         shown:card.classList.contains('mm-shown'),
+         scrollX,scrollY,transitions:style.transitionProperty};
+     });
+     ensure(after.headerRight<=width+1&&after.scrollX===0&&
+       after.opacity==='1'&&after.shown&&
+       after.transitions.includes('opacity')&&failures.length===0,
+       'L1.44 '+width+'px deferred CSS preserves scroll reveal and no clipping '+JSON.stringify(after));
+     await ctx.close();
+   }
+   // A no-script browser still loads the progressive motion CSS normally;
+   // this does not hide any content because no motion-active class is applied.
+   {
+     const ctx=await browser.newContext({viewport:{width:393,height:852},javaScriptEnabled:false});
+     const page=await ctx.newPage();
+     await page.goto(origin+'/',{waitUntil:'load',timeout:25000});
+     const state=await page.evaluate(()=>{
+       const links=[...document.querySelectorAll('link[href*="/landing-assets/motion-l132.css"]')];
+       return {media:links.map(x=>x.media),
+         loaded:links.some(x=>(x.media===''||x.media==='all')&&x.sheet?.cssRules.length>0),
+         rootMotion:document.documentElement.classList.contains('mm-motion-active'),
+         headerRight:document.querySelector('.site-header').getBoundingClientRect().right};
+     });
+     ensure(state.media.includes('print')&&
+       (state.media.includes('')||state.media.includes('all'))&&
+       state.loaded&&!state.rootMotion&&state.headerRight<=394,
+       'L1.44 no-JS fallback keeps animation stylesheet accessible '+JSON.stringify(state));
+     await ctx.close();
+   }
+
    // L1.43: public-only cold-cache performance lab (no production telemetry).
    // Fixed 1.5 Mbps / 120ms simulated network and 2x CPU; these numbers are
    // reproducible CI diagnostics, NOT claims about a real visitor's speed.
