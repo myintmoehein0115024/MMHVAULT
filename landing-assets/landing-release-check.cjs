@@ -23,12 +23,13 @@ const l135HeaderCssSuffix="\n/* L1.35: Public mobile header shows the selected l
 const l136TouchTargetReplacements=[["flex:0 0 42px;width:42px;min-width:42px;min-height:42px;height:42px","flex:0 0 44px;width:44px;min-width:44px;min-height:44px;height:44px"],["width:42px;min-width:42px;min-height:42px;height:42px","width:44px;min-width:44px;min-height:44px;height:44px"],["min-width:39px;width:39px;min-height:39px;height:39px;flex-basis:39px","min-width:44px;width:44px;min-height:44px;height:44px;flex-basis:44px"]];
 const l138MotionReplacements=[["-webkit-backdrop-filter:blur(32px);backdrop-filter:blur(32px);","-webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px);"],["from{opacity:0;transform:translate3d(0,-7px,0)}","from{opacity:.28;transform:translate3d(0,-4px,0)}"],["animation:mmh-public-panel-in .19s cubic-bezier(.2,.65,.3,1) both","animation:mmh-public-panel-in .22s cubic-bezier(.2,.65,.3,1) both"],["animation:mmh-public-panel-in .17s cubic-bezier(.2,.65,.3,1) both","animation:mmh-public-panel-in .22s cubic-bezier(.2,.65,.3,1) both"]];
 const l138MotionOnlyEdited=()=>{
-  let expected=source('landing-assets/shared-header-l116.css');
-  for(const [before,after] of l138MotionReplacements){
-    if(!expected.includes(before) || expected.indexOf(before)!==expected.lastIndexOf(before))return false;
-    expected=expected.replace(before,after);
-  }
-  return read('landing-assets/shared-header-l116.css')===expected;
+  // L1.38 has already shipped. Protect its final motion and glass styles
+  // byte-for-byte against the latest main instead of reapplying the old diff.
+  const expected=source('landing-assets/shared-header-l116.css');
+  return read('landing-assets/shared-header-l116.css')===expected &&
+    expected.includes('-webkit-backdrop-filter:blur(24px);backdrop-filter:blur(24px);') &&
+    expected.includes('from{opacity:.28;transform:translate3d(0,-4px,0)}') &&
+    expected.includes('animation:mmh-public-panel-in .22s cubic-bezier(.2,.65,.3,1) both');
 };
 const l136HeaderTargetsOnlyEdited=()=>{
   // L1.36 is merged: preserve its 44px compact targets plus L1.38 scoped motion.
