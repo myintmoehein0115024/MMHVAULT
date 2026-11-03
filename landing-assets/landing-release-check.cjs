@@ -76,8 +76,9 @@ const l148NewScriptTag='<script defer src="./landing-assets/landing.js?v=l148"><
 const l149NewScriptTag='<script defer src="./landing-assets/landing.js?v=l149"></script>';
 const l150NewScriptTag='<script defer src="./landing-assets/landing.js?v=l150"></script>';
 const l151NewScriptTag='<script defer src="./landing-assets/landing.js?v=l151"></script>';
-const l148IndexOnlyEdited=()=>prev.split(l150NewScriptTag).length===2 &&
-  current===prev.replace(l150NewScriptTag,l151NewScriptTag);
+const l152NewScriptTag='<script defer src="./landing-assets/landing.js?v=l152"></script>';
+const l148IndexOnlyEdited=()=>prev.split(l151NewScriptTag).length===2 &&
+  current===prev.replace(l151NewScriptTag,l152NewScriptTag);
 const l147IndexOnlyEdited=baseline=>baseline===prev && l148IndexOnlyEdited() &&
   baseline.includes(l147NewHeaderTags) && !current.includes(l147OldHeaderTags);
 // The runtime JS may change only these four targeted DOM write sites.
@@ -110,6 +111,10 @@ const l150LanguageClickAfter="  languageButtons.forEach(button => button.addEven
 // all prior L1.48/L1.49/L1.50 language and Business guards.
 const l151MarkSectionBefore="  function markSection(id) {\n    if (homeLink) {\n      if (id === 'top') homeLink.setAttribute('aria-current','location');\n      else homeLink.removeAttribute('aria-current');\n    }\n    sectionLinks.forEach(link => {\n      if (link.getAttribute('href') === '#' + id) link.setAttribute('aria-current','location');\n      else link.removeAttribute('aria-current');\n    });\n  }";
 const l151MarkSectionAfter="  function markSection(id) {\n    // L1.51: repeated viewport observations must not rewrite unchanged\n    // navigation attributes; keep the same active section and semantics.\n    if (homeLink) {\n      if (id === 'top') {\n        if (homeLink.getAttribute('aria-current') !== 'location')\n          homeLink.setAttribute('aria-current','location');\n      } else if (homeLink.hasAttribute('aria-current'))\n        homeLink.removeAttribute('aria-current');\n    }\n    sectionLinks.forEach(link => {\n      if (link.getAttribute('href') === '#' + id) {\n        if (link.getAttribute('aria-current') !== 'location')\n          link.setAttribute('aria-current','location');\n      } else if (link.hasAttribute('aria-current'))\n        link.removeAttribute('aria-current');\n    });\n  }";
+// L1.52 changes only the product selection attribute writes, preserving
+// the shipped L1.48-L1.51 optimizations and all other public runtime logic.
+const l152PreviewTabBefore="      t.classList.toggle('is-active',yes);\n      t.setAttribute('aria-selected',String(yes));\n      t.tabIndex=yes?0:-1;\n      if(yes&&focus)t.focus({preventScroll:true});";
+const l152PreviewTabAfter="      t.classList.toggle('is-active',yes);\n      // L1.52: only the two tabs whose selection state actually changes\n      // need ARIA/tabindex writes; preserve the existing roving focus.\n      const selected=String(yes);\n      if(t.getAttribute('aria-selected')!==selected)t.setAttribute('aria-selected',selected);\n      const tabIndex=yes?0:-1;\n      if(t.tabIndex!==tabIndex)t.tabIndex=tabIndex;\n      if(yes&&focus)t.focus({preventScroll:true});";
 const l148LandingJsOnlyEdited=()=>{
   const merged=source('landing-assets/landing.js');
   return l148JsReplacements.every(([before,after])=>
@@ -118,9 +123,11 @@ const l148LandingJsOnlyEdited=()=>{
     !merged.includes(l149BusinessClickBefore) &&
     merged.includes(l150LanguageClickAfter) &&
     !merged.includes(l150LanguageClickBefore) &&
-    merged.split(l151MarkSectionBefore).length===2 &&
+    merged.includes(l151MarkSectionAfter) &&
+    !merged.includes(l151MarkSectionBefore) &&
+    merged.split(l152PreviewTabBefore).length===2 &&
     read('landing-assets/landing.js')===
-      merged.replace(l151MarkSectionBefore,l151MarkSectionAfter);
+      merged.replace(l152PreviewTabBefore,l152PreviewTabAfter);
 };
 
 // L1.46: only two critical CSS links differ from the released HTML.
@@ -576,7 +583,7 @@ check('Landing priority image and below-fold concept use efficient loading',
   current.includes('decoding="async" fetchpriority="high"') &&
   current.includes('loading="lazy" decoding="async"') &&
   current.includes('<link rel="preload" as="image" type="image/webp"') &&
-  current.includes('<script defer src="./landing-assets/landing.js?v=l151"></script>'));
+  current.includes('<script defer src="./landing-assets/landing.js?v=l152"></script>'));
 check('Landing ships no third-party blocking scripts or styles',
   !/<script[^>]+src=["']https?:\/\//i.test(current) &&
   !/<link[^>]+rel=["']stylesheet["'][^>]+href=["']https?:\/\//i.test(current));
@@ -773,7 +780,7 @@ check('L1.27 public tab title matches SEO without language focus scroll',
  l133PublicPagesUnchanged() &&
  l142IndexOnlyEdited() && current.includes(newHeroPreload) &&
  !current.includes(oldHeroPreload));
-check('L1.51 exact four-file public-only nav state optimization scope',
+check('L1.52 exact four-file public-only feature preview attributes scope',
  actual.length===4 &&
  actual.every(path=>[
   'index.html',
@@ -808,7 +815,7 @@ check('L1.41 all nine first-party style/script URLs keep coordinated versions',
     const tag=after.replace('landing.css?v=l141','landing.min.css?v=l145')
       .replace('cinematic.css?v=l141','cinematic.min.css?v=l146')
       .replace('premium-l131.css?v=l141','premium-l131.min.css?v=l146')
-      .replace('landing.js?v=l141','landing.js?v=l151');
+      .replace('landing.js?v=l141','landing.js?v=l152');
     const bundled=/explore-l114\.css|shared-header-l116\.css/.test(after);
     return before!==after && after.includes('?v=l141') && !current.includes(before) &&
       (bundled ? current.includes(l147NewHeaderTags)&&!current.includes(after) :
@@ -892,10 +899,10 @@ check('L1.47 ordered header bundle remains identical to merged main',
  !current.includes('href="./landing-assets/shared-header-l116.css?v=l141"') &&
  read('landing-assets/landing-browser-check.cjs').includes('L1.47 Chrome CSSOM header bundle parity') &&
  l148LandingJsOnlyEdited());
-check('L1.49 repeat concept tabs preserved with L1.51 nav guard',
+check('L1.49 repeat concept tabs preserved with L1.52 preview guard',
   l148IndexOnlyEdited() && l148LandingJsOnlyEdited() &&
-  current.includes(l151NewScriptTag) &&
-  !current.includes(l150NewScriptTag) &&
+  current.includes(l152NewScriptTag) &&
+  !current.includes(l151NewScriptTag) &&
   source('landing-assets/landing.js').includes(l149BusinessClickAfter) &&
   read('landing-assets/landing-browser-check.cjs').includes('L1.49 active Business tab no-op browser parity'));
 check('L1.50 same-language selection is isolated and retains menu keyboard behavior',
@@ -906,8 +913,12 @@ check('L1.50 same-language selection is isolated and retains menu keyboard behav
 check('L1.51 section nav state updates only when aria-current changes',
   l148LandingJsOnlyEdited() &&
   read('landing-assets/landing-browser-check.cjs').includes('L1.51 repeated section nav highlight DOM parity') &&
-  source('landing-assets/landing.js').includes(l151MarkSectionBefore) &&
   read('landing-assets/landing.js').includes(l151MarkSectionAfter));
+check('L1.52 preview tab selection changes only relevant ARIA/tabindex values',
+  l148LandingJsOnlyEdited() &&
+  read('landing-assets/landing-browser-check.cjs').includes('L1.52 preview tab attribute browser parity') &&
+  source('landing-assets/landing.js').includes(l152PreviewTabBefore) &&
+  read('landing-assets/landing.js').includes(l152PreviewTabAfter));
 check('L1.48 measured language DOM improvements preserved',
   source('landing-assets/landing.js').includes('L1.48: preserve the existing node') &&
   read('landing-assets/landing-browser-check.cjs').includes('L1.48 measured initial-language DOM write parity'));
