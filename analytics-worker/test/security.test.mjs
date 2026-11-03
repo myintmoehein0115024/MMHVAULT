@@ -66,7 +66,7 @@ test('verified admin receives validated aggregated RUM metrics',async()=>{
   globalThis.fetch=async(url)=>{
     if(String(url).includes('/auth/v1/user'))return new Response(JSON.stringify({id:'test-user'}),{status:200});
     if(String(url).includes('supabase.example.test'))return new Response('true',{status:200});
-    return new Response(JSON.stringify({data:{viewer:{accounts:[{rumPageloadEventsAdaptiveGroups:[{count:5,dimensions:{date:'2026-11-03'},sum:{visits:3}}]}]}}}),{status:200});
+    return new Response(JSON.stringify({data:{viewer:{accounts:[{rumPageloadEventsAdaptiveGroups:[{count:5,dimensions:{date:new Date().toISOString().slice(0,10)},sum:{visits:3}}]}]}}}),{status:200});
   };
   try{
     const r=await call(base,{headers:{Authorization:'Bearer mock.jwt.token'}},configured);
