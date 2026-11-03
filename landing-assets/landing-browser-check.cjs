@@ -154,6 +154,40 @@ async function load(page,route,failures){
      await ctx.close();
    }
 
+   // L1.37: same-origin tabs must stay in one public display language without
+   // reloads, flicker, scroll navigation, or rewriting the permanent Hero.
+   for(const width of [393,1440]){
+     const ctx=await browser.newContext({viewport:{width,height:852},reducedMotion:'reduce'});
+     const home=await ctx.newPage();
+     const features=await ctx.newPage();
+     const errors=[];
+     for(const page of [home,features])page.on('pageerror',e=>errors.push(e.message));
+     await load(home,'/',errors);
+     await load(features,'/features/',errors);
+     const fixedHero=await home.locator('[data-hero-fixed]').allTextContents();
+     await home.locator('#locale-trigger').click();
+     await home.locator('#locale-menu button[data-lang="zh"]').click();
+     await features.waitForFunction(()=>document.documentElement.lang==='zh-CN');
+     ensure((await features.locator('.locale-active-name').textContent()).trim()==='中文' &&
+       (await features.locator('.locale-active-flag').textContent()).trim()==='🇨🇳',
+       'L1.37 '+width+'px Landing zh selection updates open Features tab without reload');
+     await features.locator('#locale-trigger').click();
+     await features.locator('#locale-menu button[data-lang="my"]').click();
+     await home.waitForFunction(()=>document.documentElement.lang==='my');
+     ensure((await home.locator('.locale-active-name').textContent()).trim()==='မြန်မာ' &&
+       (await home.locator('.locale-active-flag').textContent()).trim()==='🇲🇲' &&
+       JSON.stringify(await home.locator('[data-hero-fixed]').allTextContents())===JSON.stringify(fixedHero),
+       'L1.37 '+width+'px Features my selection updates Landing but never its fixed Hero');
+     await features.locator('#locale-trigger').click();
+     await features.locator('#locale-menu button[data-lang="en"]').click();
+     await home.waitForFunction(()=>document.documentElement.lang==='en');
+     ensure((await home.locator('.locale-active-name').textContent()).trim()==='English' &&
+       JSON.stringify(await home.locator('[data-hero-fixed]').allTextContents())===JSON.stringify(fixedHero) &&
+       errors.length===0,
+       'L1.37 '+width+'px repeated cross-tab language changes stay stable and error-free');
+     await ctx.close();
+   }
+
    // L1.25 — emulate slow image decoding independently of network speed.
    // The HTML mockup must remain on screen until decoded pixels are ready,
    // even when image.complete and naturalWidth already indicate download.
