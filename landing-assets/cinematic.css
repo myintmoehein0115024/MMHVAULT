@@ -785,3 +785,10 @@ main{
     max-width:100%;
   }
 }
+
+/* L1.40 — Once the phone/tablet Hero image has decoded, swap it in
+   without a second opacity delay that could expose a blank frame after
+   the HTML fallback is hidden. Keep desktop presentation unchanged. */
+@media (max-width: 900px) {
+  body.l131 .hero-device-cinematic { transition: none; }
+}
