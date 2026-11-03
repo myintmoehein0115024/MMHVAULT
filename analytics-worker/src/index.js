@@ -61,12 +61,17 @@ async function queryAnalytics(range,env){
   if(!Array.isArray(accounts)||accounts.length!==1)throw new Error('CF_ACCOUNT_MISMATCH');
   const groups=accounts[0].rumPageloadEventsAdaptiveGroups;
   if(!Array.isArray(groups)||groups.length>RANGE_DAYS[range]+1)throw new Error('CF_GROUPS_INVALID');
+  const seenDates=new Set();
   const trend=[];
   let pageViews=0,visits=0;
   for(const group of groups){
     if(!/^\d{4}-\d{2}-\d{2}$/.test(group.dimensions?.date||'')||
        !Number.isSafeInteger(group.count)||group.count<0||
        !Number.isSafeInteger(group.sum?.visits)||group.sum.visits<0)throw new Error('CF_METRICS_INVALID');
+    const date=group.dimensions.date;
+    const day=Date.parse(date+'T00:00:00Z');
+    if(!Number.isFinite(day)||new Date(day).toISOString().slice(0,10)!==date||seenDates.has(date)||day< Date.UTC(start.getUTCFullYear(),start.getUTCMonth(),start.getUTCDate())||day>Date.UTC(now.getUTCFullYear(),now.getUTCMonth(),now.getUTCDate()))throw new Error('CF_DATE_INVALID');
+    seenDates.add(date);
     pageViews+=group.count;visits+=group.sum.visits;
     trend.push({date:group.dimensions.date,visits:group.sum.visits});
   }
