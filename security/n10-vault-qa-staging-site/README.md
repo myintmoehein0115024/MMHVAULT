@@ -57,3 +57,16 @@ Current status: read-only safety checks complete; the **actual end-to-end Recove
 - Added synthetic owner/issuer/session/expiry, missing-MFA and sensitive-operation ownership guard tests, plus an exact-source-diff check and read-only CI. These tests do not use signed sessions and do **not** prove a live B-to-A attack is rejected.
 - Existing Staging Edge **v11 remains closed and unchanged**; the new candidate has **not** been deployed. To reopen any sensitive QA, obtain a separate scoped authorization and fresh review. Historical A/B recovery words remain immutable.
 - Only N10 isolated candidate/test/CI/readme paths are changed. PR #64 is still Draft. No login.html, app.html, production Auth, RLS, Landing, SEO or finance files touched.
+
+
+## 2026-11-03 — N10 Glass UI presentation preview
+
+Public standalone **visual demo**: https://mmhvault-n10-vault-staging.pages.dev/preview/
+
+- The new `preview/index.html` is a **pure static, self-contained** mockup for the upcoming Settings → Password & Devices → Recovery Key premium Liquid Glass modal. It is *not* the actual PR #74 Auth integration and is not loaded from `mmhvault.com`.
+- Responsive desktop/tablet/mobile layout, EN/ZH/MY text switching, open/close behavior, *public synthetic* ten sample words, 45-second auto-hide, Escape/outside-click/visibility/pagehide clearing.
+- The preview has a restrictive no-network CSP (`connect-src 'none'`), no password/OTP inputs, no Supabase SDK, no service-role key, no Auth/Vault calls, no persistence, and `noindex`.
+- Existing staging QA `index.html`, `app.js`, two fixture accounts, recovery verifiers and encrypted Vault backups are **unchanged**. The Staging Edge remains v11 release OFF/expired/empty allowlist; no test activation was requested.
+- Offline `test-preview.mjs` tests all visible locale keys and actual mock click/timeout behavior; CI now includes it.
+- Preview auto-publishes through the **dedicated** Cloudflare Pages QA project from this branch; this does **not** merge into `main` or deploy to `mmhvault.com`.
+- This route is intended for immediate owner visual review only. Proper production-signup escrow, verified signed Auth/MFA, adversarial owner isolation, mobile real-device QA and separate Production approval remain pending in PR #74.
