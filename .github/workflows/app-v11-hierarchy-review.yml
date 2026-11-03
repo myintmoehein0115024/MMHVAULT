@@ -26,8 +26,9 @@ jobs:
           node --check js/mmhvault-v11-manage-hierarchy-model.mjs
           node --check js/mmhvault-v11-manage-hierarchy-controller.mjs
           node --check js/mmhvault-v11-manage-hierarchy-live.mjs
+          node --check js/mmhvault-v11-manage-hierarchy-sync.mjs
       - name: Check owner scope, archival protection and ledger associations
-        run: node --test tests/app-v11-manage-hierarchy-model.test.mjs tests/app-v11-manage-hierarchy-controller.test.mjs
+        run: node --test tests/app-v11-manage-hierarchy-model.test.mjs tests/app-v11-manage-hierarchy-controller.test.mjs tests/app-v11-manage-hierarchy-sync.test.mjs
       - name: Check branch-only page integration and protected ledger fields
         run: |
           node --input-type=module - <<'NODE'
@@ -35,6 +36,10 @@ jobs:
           import assert from 'node:assert/strict';
           const app=fs.readFileSync('app.html','utf8');
           const live=fs.readFileSync('js/mmhvault-v11-manage-hierarchy-live.mjs','utf8');
+          const sync=fs.readFileSync('js/mmhvault-v11-manage-hierarchy-sync.mjs','utf8');
+          assert.match(live,/verifyStoredCloudLink/);
+          assert.match(sync,/storedLinkMatches/);
+          assert.doesNotMatch(sync,/\.update\(|\.insert\(|\.delete\(/);
           assert.match(app,/mmhvault-v11-manage-hierarchy-live\.mjs\?v=0\.7\.0/);
           assert.match(app,/txHierarchyV11:mmhVaultNormalizeTxHierarchyV11\(x\.txHierarchyV11,uid\(\)\)/);
           assert.match(app,/onLedgerInserted\?\.\(u\.id,r\.data\.id,selected\)/);
