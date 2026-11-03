@@ -53,14 +53,19 @@ jobs:
           node --test security/n10-username-escrow-candidate/test-username-edge-contract.mjs
           node --test security/n10-username-escrow-candidate/test-build-review-bundle.mjs
           node --test security/n10-username-escrow-candidate/test-staging-schema-gates.mjs
+          node --test security/n10-username-escrow-candidate/test-staging-bundle.mjs
       - name: Package review Edge in ephemeral temp directory (never deploy)
-        run: node security/n10-username-escrow-candidate/build-review-bundle.mjs /tmp/mmhvault-n10-review-bundle
+        run: |
+          node security/n10-username-escrow-candidate/build-review-bundle.mjs /tmp/mmhvault-n10-review-bundle
+          node security/n10-username-escrow-candidate/build-staging-bundle.mjs /tmp/mmhvault-n10-staging-bundle
       - name: Install Deno 2 for Edge typecheck only
         uses: denoland/setup-deno@v2
         with:
           deno-version: v2.x
       - name: Deno static-check the self-contained review Edge
-        run: deno check --config security/n10-username-escrow-candidate/deno-review.json /tmp/mmhvault-n10-review-bundle/index.ts
+        run: |
+          deno check --config security/n10-username-escrow-candidate/deno-review.json /tmp/mmhvault-n10-review-bundle/index.ts
+          deno check --config security/n10-username-escrow-candidate/deno-review.json /tmp/mmhvault-n10-staging-bundle/index.ts
       - name: Install Playwright browser test runtime
         run: |
           npm install --no-save playwright@1.56.1
