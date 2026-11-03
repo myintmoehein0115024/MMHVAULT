@@ -52,6 +52,86 @@ async function load(page,route,failures){
 (async()=>{
  const browser=await chromium.launch({channel:'chrome',headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
  try{
+   // L1.57 breakpoint rebuild browser parity: actual mobile/tablet resize
+   // compared to released L1.56, not synthetic media-query events.
+   {
+     const candidate=fs.readFileSync('landing-assets/motion-l132.js','utf8');
+     const oldObserver="  // L1.40: prewarm mobile reveals further ahead of fast swipes, with no\n  // intersection threshold that might skip a narrow card. Desktop unchanged.\n  const mobileReveal = window.matchMedia && window.matchMedia('(max-width: 620px)').matches;\n  const observer=new IntersectionObserver(entries=>{\n    for(const entry of entries){\n      if(!entry.isIntersecting)continue;\n      entry.target.classList.add('mm-shown');\n      observer.unobserve(entry.target);\n    }\n  },{rootMargin:mobileReveal?'0px 0px 24% 0px':'0px 0px -6% 0px',threshold:mobileReveal?0:0.065});\n  elements.filter(el=>!el.classList.contains('mm-shown')).forEach(el=>observer.observe(el));\n";
+     const newObserver="  // L1.57: update reveal timing on phone rotation or window resize\n  // across 620px, without re-hiding previously revealed content.\n  const revealMedia=window.matchMedia\n    ? window.matchMedia('(max-width: 620px)'):{matches:false};\n  let observer;\n  const rebuildRevealObserver=()=>{\n    const mobileReveal=revealMedia.matches;\n    const nextObserver=new IntersectionObserver((entries,activeObserver)=>{\n      for(const entry of entries){\n        if(!entry.isIntersecting)continue;\n        entry.target.classList.add('mm-shown');\n        activeObserver.unobserve(entry.target);\n      }\n    },{rootMargin:mobileReveal?'0px 0px 24% 0px':'0px 0px -6% 0px',threshold:mobileReveal?0:0.065});\n    elements.filter(el=>!el.classList.contains('mm-shown')).forEach(el=>nextObserver.observe(el));\n    const previous=observer;\n    observer=nextObserver;\n    if(previous)previous.disconnect();\n  };\n  rebuildRevealObserver();\n  if(typeof revealMedia.addEventListener==='function')\n    revealMedia.addEventListener('change',rebuildRevealObserver);\n  else if(typeof revealMedia.addListener==='function')\n    revealMedia.addListener(rebuildRevealObserver);\n";
+     assert.equal(candidate.split(newObserver).length,2,'L1.57 unique observer patch');
+     const baseline=candidate.replace(newObserver,oldObserver);
+     for(const [start,other,lang] of [[393,768,'my'],[768,393,'zh']]){
+       const counts={};
+       for(const [version,script] of [['released',baseline],['l157',candidate]]){
+         const ctx=await browser.newContext({
+           viewport:{width:start,height:852},reducedMotion:'no-preference',serviceWorkers:'block'});
+         const page=await ctx.newPage(),errors=[];
+         page.on('pageerror',e=>errors.push(e.message));
+         await page.addInitScript(value=>{
+           try{localStorage.setItem('mmhvault.landing.language',value)}catch(_){}
+           const Native=window.IntersectionObserver;
+           window.__l157ObserverEvents=[];
+           if(typeof Native==='function')window.IntersectionObserver=class extends Native{
+             constructor(callback,options){
+               super(callback,options);
+               if(!['0px 0px 24% 0px','0px 0px -6% 0px'].includes(options?.rootMargin))return;
+               const margin=options.rootMargin;
+               window.__l157ObserverEvents.push({action:'create',margin,threshold:options.threshold});
+               const disconnect=this.disconnect.bind(this);
+               this.disconnect=()=>{
+                 window.__l157ObserverEvents.push({action:'disconnect',margin});
+                 disconnect();
+               };
+             }
+           };
+         },lang);
+         await page.route('**/landing-assets/motion-l132.js*',route=>route.fulfill({
+           status:200,contentType:'application/javascript',body:script}));
+         await page.goto(origin+'/',{waitUntil:'load',timeout:25000});
+         const initial=await page.evaluate(()=>({
+           events:window.__l157ObserverEvents.slice(),
+           shown:document.querySelectorAll('.mm-reveal.mm-shown').length,
+           lang:document.documentElement.lang
+         }));
+         const marginFor=width=>width<=620?'0px 0px 24% 0px':'0px 0px -6% 0px';
+         ensure(initial.events.filter(x=>x.action==='create').length===1 &&
+           initial.events[0].margin===marginFor(start) &&
+           initial.lang===(lang==='zh'?'zh-CN':lang)&&errors.length===0,
+           'L1.57 '+version+' '+start+'px '+lang+' initial reveal configuration');
+         await page.setViewportSize({width:other,height:852});
+         if(version==='l157')await page.waitForFunction(()=>
+           window.__l157ObserverEvents.filter(x=>x.action==='create').length===2,null,{timeout:3000});
+         const resized=await page.evaluate(()=>({
+           events:window.__l157ObserverEvents.slice(),
+           shown:document.querySelectorAll('.mm-reveal.mm-shown').length,
+           lang:document.documentElement.lang
+         }));
+         counts[version]=resized.events.filter(x=>x.action==='create').length;
+         if(version==='l157'){
+           ensure(counts.l157===2 &&
+             resized.events.some(x=>x.action==='disconnect'&&x.margin===marginFor(start)) &&
+             resized.events.filter(x=>x.action==='create').at(-1).margin===marginFor(other) &&
+             resized.shown>=initial.shown&&resized.lang===initial.lang&&errors.length===0,
+             'L1.57 '+start+'→'+other+'px refreshes margins without hiding content');
+           await page.setViewportSize({width:start,height:852});
+           await page.waitForFunction(()=>
+             window.__l157ObserverEvents.filter(x=>x.action==='create').length===3,null,{timeout:3000});
+           const returned=await page.evaluate(()=>window.__l157ObserverEvents);
+           ensure(returned.filter(x=>x.action==='disconnect').length===2 &&
+             returned.filter(x=>x.action==='create').at(-1).margin===marginFor(start),
+             'L1.57 '+start+'→'+other+'→'+start+'px no stale observers');
+           await page.locator('#about .about-benefit-card').first().scrollIntoViewIfNeeded();
+           await page.waitForFunction(()=>[...document.querySelectorAll('#about .about-benefit-card')]
+             .some(node=>node.classList.contains('mm-shown')),null,{timeout:3000});
+           ensure(errors.length===0,'L1.57 '+start+'px post-rotation scrolling reveals about cards');
+         }
+         await ctx.close();
+       }
+       ensure(counts.released===1&&counts.l157===2,
+         'L1.57 released '+start+'px keeps stale margin; candidate changes to '+other+'px');
+     }
+   }
+
    // L1.56 Business WAAPI interruption browser parity. Compare the actual
    // released script to only the L1.56 changes in a real Chromium session.
    {
@@ -1466,13 +1546,13 @@ async function load(page,route,failures){
        layout.styles.filter(v=>v==='l146').length===2 &&
        layout.styles.filter(v=>v==='l147').length===1 &&
        layout.styles.filter(v=>v==='l141').length===2 &&
-       layout.scripts.includes('l155') && layout.scripts.includes('l156') &&
+       layout.scripts.includes('l155') && layout.scripts.includes('l157') &&
        loaded.length===8 && loaded.every(r=>r.status===200&&
          r.version===(r.path==='/landing-assets/landing.min.css'?'l145':
            ['/landing-assets/cinematic.min.css','/landing-assets/premium-l131.min.css'].includes(r.path)?'l146':
            r.path==='/landing-assets/header-explore-l147.min.css'?'l147':
             r.path==='/landing-assets/landing.js'?'l155':
-              r.path==='/landing-assets/motion-l132.js'?'l156':'l141')) &&
+              r.path==='/landing-assets/motion-l132.js'?'l157':'l141')) &&
        new Set(loaded.map(r=>r.path)).size===8 && failures.length===0,
        'L1.47 '+width+'px eight CSS/JS requests with consistent cache keys '+JSON.stringify({loaded,failures}));
      ensure(layout.brand.left>=-1&&layout.brand.right<=width+1 &&
