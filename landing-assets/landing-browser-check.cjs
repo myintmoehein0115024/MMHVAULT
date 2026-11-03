@@ -52,6 +52,53 @@ async function load(page,route,failures){
 (async()=>{
  const browser=await chromium.launch({channel:'chrome',headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
  try{
+   // L1.41 — catch the post-deploy mixed-cache regression seen on small
+   // screens. All first-party homepage CSS/JS must share this release key;
+   // load all nine successfully while retaining a bounded mobile header.
+   for(const width of [393,768,1440]){
+     const context=await browser.newContext({
+       viewport:{width,height:852},reducedMotion:'reduce',
+       isMobile:width===393,hasTouch:width===393
+     });
+     const page=await context.newPage();
+     const failures=[],loaded=[];
+     page.on('pageerror',e=>failures.push(e.message));
+     page.on('requestfailed',req=>failures.push(req.url()+' '+req.failure()?.errorText));
+     page.on('response',r=>{
+       const url=new URL(r.url());
+       if(url.origin!==origin||!url.pathname.startsWith('/landing-assets/'))return;
+       if(!/\.(css|js)$/.test(url.pathname))return;
+       loaded.push({path:url.pathname,version:url.searchParams.get('v'),status:r.status()});
+     });
+     await load(page,'/',failures);
+     const layout=await page.evaluate(()=>{
+       const styles=[...document.querySelectorAll('link[rel="stylesheet"][href*="/landing-assets/"]')];
+       const scripts=[...document.querySelectorAll('script[defer][src*="/landing-assets/"]')];
+       const brand=document.querySelector('.site-header .brand').getBoundingClientRect();
+       const hero=document.querySelector('.hero').getBoundingClientRect();
+       const grid=document.querySelector('.showcase-grid').getBoundingClientRect();
+       return {
+         styles:styles.map(e=>new URL(e.href).searchParams.get('v')),
+         scripts:scripts.map(e=>new URL(e.src).searchParams.get('v')),
+         brand:{left:brand.left,right:brand.right,width:brand.width},
+         hero:{left:hero.left,right:hero.right},
+         grid:{left:grid.left,right:grid.right},
+         viewport:innerWidth
+       };
+     });
+     ensure(layout.styles.length===7&&layout.scripts.length===2 &&
+       [...layout.styles,...layout.scripts].every(v=>v==='l141') &&
+       loaded.length===9 && loaded.every(r=>r.status===200&&r.version==='l141') &&
+       new Set(loaded.map(r=>r.path)).size===9 && failures.length===0,
+       'L1.41 '+width+'px nine consistent fresh cache-key requests '+JSON.stringify({loaded,failures}));
+     ensure(layout.brand.left>=-1&&layout.brand.right<=width+1 &&
+       layout.brand.width<width*.8 &&
+       layout.hero.left>=-1&&layout.hero.right<=width+1 &&
+       layout.grid.left>=-1&&layout.grid.right<=width+1,
+       'L1.41 '+width+'px header/Hero/cards stay inside viewport '+JSON.stringify(layout));
+     await context.close();
+   }
+
    // L1.16 — actual layout parity, not only matching class names. The same
    // header and both expanded menus must occupy the SAME positions when
    // switching between the Landing and each public introduction route.

@@ -13,6 +13,56 @@ const source = path => {
 const current = read('index.html');
 const prev=source('index.html');
 
+// L1.41: preserve every byte of the published homepage except the nine
+// first-party asset query strings. This avoids mixed cached CSS and JS after
+// a deploy without altering content, SEO, authentication or the public header.
+const l141AssetReplacements=[
+  [
+    "href=\"./landing-assets/landing.css\"",
+    "href=\"./landing-assets/landing.css?v=l141\""
+  ],
+  [
+    "href=\"./landing-assets/business.css\"",
+    "href=\"./landing-assets/business.css?v=l141\""
+  ],
+  [
+    "href=\"./landing-assets/cinematic.css\"",
+    "href=\"./landing-assets/cinematic.css?v=l141\""
+  ],
+  [
+    "href=\"./landing-assets/premium-l131.css?v=1\"",
+    "href=\"./landing-assets/premium-l131.css?v=l141\""
+  ],
+  [
+    "href=\"./landing-assets/motion-l132.css?v=1\"",
+    "href=\"./landing-assets/motion-l132.css?v=l141\""
+  ],
+  [
+    "href=\"./landing-assets/explore-l114.css?v=1\"",
+    "href=\"./landing-assets/explore-l114.css?v=l141\""
+  ],
+  [
+    "href=\"./landing-assets/shared-header-l116.css?v=1\"",
+    "href=\"./landing-assets/shared-header-l116.css?v=l141\""
+  ],
+  [
+    "src=\"./landing-assets/landing.js\"",
+    "src=\"./landing-assets/landing.js?v=l141\""
+  ],
+  [
+    "src=\"./landing-assets/motion-l132.js?v=1\"",
+    "src=\"./landing-assets/motion-l132.js?v=l141\""
+  ]
+];
+const l141IndexOnlyEdited=()=>{
+  let expected=prev;
+  for(const [oldHref,newHref] of l141AssetReplacements){
+    if(expected.split(oldHref).length!==2)return false;
+    expected=expected.replace(oldHref,newHref);
+  }
+  return current===expected;
+};
+
 /* L1.33: exact presentation-only Myanmar feature typography append.
  * No public HTML, scripting, authentication, finance, PWA or SEO changes. */
 const oldHeroPreload='<link rel="preload" as="image" type="image/webp" href="./landing-assets/cinematic-lake.webp">';
@@ -54,13 +104,11 @@ const l139PublicInsertion="      // L1.39: pre-reveal phone cards ahead of viewp
 // L1.40 uses published L1.39 as the baseline. Compare only the intended
 // phone-reveal configuration change and preserve the public-page script bytewise.
 const l139MotionOnlyEdited=()=>{
+  // L1.40 has shipped; protect its unchanged scroll improvement against main.
   const original=source('landing-assets/motion-l132.js');
-  const before="{rootMargin:mobileReveal?'0px 0px 12% 0px':'0px 0px -6% 0px',threshold:0.065}";
-  const after="{rootMargin:mobileReveal?'0px 0px 24% 0px':'0px 0px -6% 0px',threshold:mobileReveal?0:0.065}";
-  const oldComment="  // L1.39: begin phone reveals just before cards enter view to avoid a\n  // temporary blank during quick scrolling; desktop timing is unchanged.";
-  const newComment="  // L1.40: prewarm mobile reveals further ahead of fast swipes, with no\n  // intersection threshold that might skip a narrow card. Desktop unchanged.";
-  return original.includes(before) && original.includes(oldComment) &&
-    read('landing-assets/motion-l132.js')===original.replace(oldComment,newComment).replace(before,after);
+  return read('landing-assets/motion-l132.js')===original &&
+    original.includes("mobileReveal?'0px 0px 24% 0px':'0px 0px -6% 0px'") &&
+    original.includes('threshold:mobileReveal?0:0.065');
 };
 const l139PublicOnlyEdited=()=>{
   const original=source('landing-assets/public-pages.js');
@@ -76,7 +124,7 @@ const l133BurmeseLayoutOnlyEdited=()=>
   source('landing-assets/landing.css').endsWith(l134ResponsiveCssSuffix) &&
   source('landing-assets/landing.css').includes(l133BurmeseCssSuffix) &&
   l137LandingJSOnlyEdited() &&
-  current===prev &&
+  l141IndexOnlyEdited() &&
   current.includes('<title>MMHVAULT | Personal Finance & Wealth</title>');
 const l133PublicPagesUnchanged=()=>l137PublicJSOnlyEdited();
 const manifest=JSON.parse(read('mmh-manifest-v2.webmanifest'));
@@ -132,14 +180,14 @@ check('Protected Business page remains noindex',/<meta[^>]*name=["']robots["'][^
 const names=['landing.css','business.css','cinematic.css','landing.js','premium-l131.css','explore-l114.css','motion-l132.css','motion-l132.js','luxury-horizon.svg','premium-architecture.svg','cinematic-lake.webp','personal-business-concept.webp'];
 check('All required live assets exist',names.every(f=>fs.existsSync('landing-assets/'+f)));
 check('Landing style and script links correct',['landing.css','business.css','cinematic.css','landing.js'].every(f=>current.includes('./landing-assets/'+f)));
-check('L1.31 premium layer linked and scoped', current.includes('class="l131 mmh-nav-unified"') && current.includes('href="./landing-assets/premium-l131.css?v=1"') && read('landing-assets/premium-l131.css').includes('body.l131 .showcase-v2'));
+check('L1.31 premium layer linked and scoped', current.includes('class="l131 mmh-nav-unified"') && current.includes('href="./landing-assets/premium-l131.css?v=l141"') && read('landing-assets/premium-l131.css').includes('body.l131 .showcase-v2'));
 check('Explore styles load after existing premium/motion layers and remain scoped',
- current.includes('href="./landing-assets/explore-l114.css?v=1"') &&
+ current.includes('href="./landing-assets/explore-l114.css?v=l141"') &&
  read('landing-assets/explore-l114.css').includes('body.l131 .site-header #primary-nav') &&
  !read('landing-assets/explore-l114.css').includes('body.app'));
 check('L1.32 motion assets linked from homepage',
-  current.includes('href="./landing-assets/motion-l132.css?v=1"') &&
-  current.includes('src="./landing-assets/motion-l132.js?v=1"'));
+  current.includes('href="./landing-assets/motion-l132.css?v=l141"') &&
+  current.includes('src="./landing-assets/motion-l132.js?v=l141"'));
 const motionSource=read('landing-assets/motion-l132.js');
 const motionStyles=read('landing-assets/motion-l132.css');
 check('L1.32 reveal uses IntersectionObserver and no forced hidden fallback',
@@ -407,7 +455,7 @@ check('Landing priority image and below-fold concept use efficient loading',
   current.includes('decoding="async" fetchpriority="high"') &&
   current.includes('loading="lazy" decoding="async"') &&
   current.includes('<link rel="preload" as="image" type="image/webp"') &&
-  current.includes('<script defer src="./landing-assets/landing.js"></script>'));
+  current.includes('<script defer src="./landing-assets/landing.js?v=l141"></script>'));
 check('Landing ships no third-party blocking scripts or styles',
   !/<script[^>]+src=["']https?:\/\//i.test(current) &&
   !/<link[^>]+rel=["']stylesheet["'][^>]+href=["']https?:\/\//i.test(current));
@@ -458,8 +506,8 @@ check('Landing has five same-page primary sections and a separate Explore menu',
 check('Homepage retains all prior content and SEO outside shared header layer',
  ['en','zh','my'].every(lang=>translationScript.includes('Object.assign(strings.'+lang+', {\n    navExplore:')) &&
  current.includes('<body id="top" class="l131 mmh-nav-unified">') &&
- current.includes('<link rel="stylesheet" href="./landing-assets/shared-header-l116.css?v=1">') &&
- current===prev &&
+ current.includes('<link rel="stylesheet" href="./landing-assets/shared-header-l116.css?v=l141">') &&
+ l141IndexOnlyEdited() &&
  l133BurmeseLayoutOnlyEdited() &&
  source('landing-assets/explore-l114.css')===read('landing-assets/explore-l114.css'));
 const publicHeaders=['about/index.html','features/index.html','business/index.html',
@@ -511,7 +559,7 @@ check('Seven public pages inherit exact Landing header structure, icons and drop
      (h.match(/class="locale-menu"/g)||[]).length===1;
  }));
 check('One scoped public header stylesheet loads last on homepage and all pages',
- current.includes('href="./landing-assets/shared-header-l116.css?v=1"') &&
+ current.includes('href="./landing-assets/shared-header-l116.css?v=l141"') &&
  publicHeaders.every(path=>read(path).includes('href="/landing-assets/shared-header-l116.css?v=1"')) &&
  sharedCss.includes('body.mmh-nav-unified .site-header') &&
  sharedCss.includes('@media(max-width:1360px)') &&
@@ -589,36 +637,35 @@ check('L1.23 lightweight scroll reveals are opacity+transform only, motion acces
  read('landing-assets/public-pages.css').includes('transition-duration:410ms,445ms') &&
  read('landing-assets/public-pages.css').includes('@media(prefers-reduced-motion:reduce)'));
 check('L1.24 preload prioritizes the one real Hero image with no duplicate image preload',
- current===prev &&
+ l141IndexOnlyEdited() &&
  current.includes('<img class="hero-device-cinematic" src="./landing-assets/personal-business-concept.webp"') &&
  current.includes('decoding="async" fetchpriority="high"') &&
  current.includes('loading="lazy" decoding="async"') &&
  !current.includes(oldHeroPreload));
 check('L1.25 Hero only waits for decoded pixels, preserving original fallback',
  l133BurmeseLayoutOnlyEdited() &&
- current===prev &&
+ l141IndexOnlyEdited() &&
  current.includes(newHeroPreload) &&
  !current.includes(oldHeroPreload));
 check('L1.27 public tab title matches SEO without language focus scroll',
  l133BurmeseLayoutOnlyEdited() &&
  l133PublicPagesUnchanged() &&
- current===prev && current.includes(newHeroPreload) &&
+ l141IndexOnlyEdited() && current.includes(newHeroPreload) &&
  !current.includes(oldHeroPreload));
-check('L1.40 exact four-file mobile stability scope',
- actual.length===4 &&
+check('L1.41 exact three-file versioned-homepage scope',
+ actual.length===3 &&
  actual.every(path=>[
-  'landing-assets/motion-l132.js',
-  'landing-assets/cinematic.css',
+  'index.html',
   'landing-assets/landing-release-check.cjs',
   'landing-assets/landing-browser-check.cjs'
  ].includes(path)) &&
- current===prev &&
+ l141IndexOnlyEdited() &&
  l133BurmeseLayoutOnlyEdited() &&
  l133PublicPagesUnchanged() &&
  l135HeaderCssOnlyEdited() &&
  publicHeaders.every(path=>read(path)===source(path)) &&
  ['landing-assets/public-pages.css',
-  'landing-assets/business.css',
+  'landing-assets/business.css','landing-assets/cinematic.css',
   'landing-assets/premium-l131.css','landing-assets/motion-l132.css',
   'sitemap.xml','robots.txt','mmh-manifest-v2.webmanifest']
  .every(path=>read(path)===source(path)));
@@ -626,12 +673,21 @@ check('L1.40 exact four-file mobile stability scope',
 // transition on phones/tablets. This is the only change to cinematic.css.
 const l140HeroCssSuffix="\n/* L1.40 — Once the phone/tablet Hero image has decoded, swap it in\n   without a second opacity delay that could expose a blank frame after\n   the HTML fallback is hidden. Keep desktop presentation unchanged. */\n@media (max-width: 900px) {\n  body.l131 .hero-device-cinematic { transition: none; }\n}\n";
 check('L1.40 decoded mobile Hero has no delayed blank paint', 
-  read('landing-assets/cinematic.css')===
-    source('landing-assets/cinematic.css').trimEnd()+'\n'+l140HeroCssSuffix &&
+  read('landing-assets/cinematic.css')===source('landing-assets/cinematic.css') &&
+  read('landing-assets/cinematic.css').endsWith(l140HeroCssSuffix) &&
   l140HeroCssSuffix.includes('@media (max-width: 900px)') &&
   l140HeroCssSuffix.includes('body.l131 .hero-device-cinematic { transition: none; }') &&
   !l140HeroCssSuffix.includes('body.app') &&
   !l140HeroCssSuffix.includes('user-scalable=no'));
+check('L1.41 all nine first-party styles/scripts receive one cache version without duplicate assets',
+  l141IndexOnlyEdited() &&
+  l141AssetReplacements.length===9 &&
+  l141AssetReplacements.every(([before,after])=>
+    before!==after && after.includes('?v=l141') &&
+    current.split(after).length===2 && !current.includes(before)) &&
+  (current.match(/<link rel="preload" as="image"/g)||[]).length===1 &&
+  (current.match(/<script defer src=/g)||[]).length===2 &&
+  !current.includes('user-scalable=no'));
 check('L1.34 mobile EN ZH MY card stability and touch-safe scrolling',
   l133BurmeseLayoutOnlyEdited() &&
   l134ResponsiveCssSuffix.includes('min-height: 94px') &&
@@ -650,13 +706,13 @@ check('L1.35 mobile selected language is visible without changing header size',
   !l135HeaderCssSuffix.includes('touch-action: none') &&
   !l135HeaderCssSuffix.includes('user-scalable=no') &&
   !l135HeaderCssSuffix.includes('body.app') &&
-  current===prev);
+  l141IndexOnlyEdited());
 check('L1.36 compact public mobile header buttons are 44 CSS pixels',
   l136HeaderTargetsOnlyEdited() &&
   l136TouchTargetReplacements.length===3 &&
   l136TouchTargetReplacements.every(([a,b])=>a!==b && b.includes('44px')) &&
   read('landing-assets/shared-header-l116.css').length<=20000 &&
-  current===prev &&
+  l141IndexOnlyEdited() &&
   l137LandingJSOnlyEdited() &&
   l137PublicJSOnlyEdited());
 check('L1.37 public languages synchronize across tabs without auth or navigation',
@@ -669,7 +725,7 @@ check('L1.37 public languages synchronize across tabs without auth or navigation
   !l137PublicStorageHook.includes('fetch(') &&
   !l137LandingStorageHook.includes('location.') &&
   !l137PublicStorageHook.includes('location.') &&
-  current===prev);
+  l141IndexOnlyEdited());
 check('L1.38 calmer paint-only public panels preserve accessibility and asset budget',
  l138MotionOnlyEdited() &&
  l138MotionReplacements.length===4 &&
@@ -678,7 +734,7 @@ check('L1.38 calmer paint-only public panels preserve accessibility and asset bu
  read('landing-assets/shared-header-l116.css').includes('prefers-reduced-motion:reduce') &&
  read('landing-assets/landing.js')===source('landing-assets/landing.js') &&
  l139PublicOnlyEdited() &&
- current===prev);
+ l141IndexOnlyEdited());
 check('L1.40 phone scroll reveals prewarm outside viewport without layout edits',
  l139MotionOnlyEdited() && l139PublicOnlyEdited() &&
  read('landing-assets/motion-l132.js').includes("mobileReveal?'0px 0px 24% 0px':'0px 0px -6% 0px'") &&
@@ -688,7 +744,7 @@ check('L1.40 phone scroll reveals prewarm outside viewport without layout edits'
  read('landing-assets/landing.js')===source('landing-assets/landing.js') &&
  read('landing-assets/motion-l132.css')===source('landing-assets/motion-l132.css') &&
  read('landing-assets/public-pages.css')===source('landing-assets/public-pages.css') &&
- current===prev);
+ l141IndexOnlyEdited());
 check('L1.28 shared header motion remains unchanged and accessible',
  l135HeaderCssOnlyEdited() &&
  !read('landing-assets/shared-header-l116.css').includes('body.app') &&
@@ -706,28 +762,28 @@ check('L1.30 initial feature links render without a Dashboard flash',
  l133PublicPagesUnchanged() &&
  read('landing-assets/landing.js').includes("syncProductHash(true)") &&
  read('landing-assets/landing.js').includes("const animate=!instant &&") &&
- current===prev);
+ l141IndexOnlyEdited());
 check('L1.31 current-tab reselect never resets scroll or interrupts preview animation',
  l133BurmeseLayoutOnlyEdited() &&
  l133PublicPagesUnchanged() &&
  read('landing-assets/landing.js').includes('if(name===activeProduct&&!instant)') &&
  read('landing-assets/landing.js').includes('t.focus({preventScroll:true})') &&
  read('landing-assets/landing.js').includes('syncProductHash(true)') &&
- current===prev);
+ l141IndexOnlyEdited());
 check('L1.32 feature labels follow all languages and canonical English snippet persists',
  l133BurmeseLayoutOnlyEdited() &&
  l133PublicPagesUnchanged() &&
  read('landing-assets/landing.js').includes('productLabels[currentLang][activeProduct]') &&
  read('landing-assets/landing.js').includes("desc.setAttribute('content', officialEnglishDescription)") &&
  read('landing-assets/landing.js').includes('syncProductHash(true)') &&
- current===prev);
+ l141IndexOnlyEdited());
 check('L1.33 Myanmar-only feature names and story styles are appended without JS changes',
  l133BurmeseLayoutOnlyEdited() &&
  l133BurmeseCssSuffix.includes('html[lang="my"] body.l131 .features-explorer.app-showcase') &&
  l133BurmeseCssSuffix.includes('min-height:76px') &&
  !l133BurmeseCssSuffix.includes('body.app') &&
  read('landing-assets/landing.js').includes('productLabels[currentLang][activeProduct]') &&
- current===prev);
+ l141IndexOnlyEdited());
 check('Protected auth/PWA/SEO/config sources unchanged in PR diff',
  ['business.html','app.html','login.html','sitemap.xml','robots.txt',
   'mmh-manifest-v2.webmanifest'].every(file=>{
