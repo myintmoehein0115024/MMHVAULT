@@ -1054,6 +1054,18 @@
     });
   }
 
+  // L1.55: finish an interrupted crossfade immediately when the tab is
+  // hidden or the user enables reduced motion, preserving selected content.
+  const clearInterruptedPreview = () => {
+    if (previewTransition && (reducedPreviewMotion.matches || document.hidden))
+      settlePreviewTransition();
+  };
+  if (typeof reducedPreviewMotion.addEventListener === 'function')
+    reducedPreviewMotion.addEventListener('change', clearInterruptedPreview);
+  else if (typeof reducedPreviewMotion.addListener === 'function')
+    reducedPreviewMotion.addListener(clearInterruptedPreview);
+  document.addEventListener('visibilitychange', clearInterruptedPreview);
+
   function selectProductView(view,focus=false,instant=false){
     const name=productNames.includes(view)?view:'dashboard';
     // L1.31: touching an already-selected preview is a no-op. Do not reset
