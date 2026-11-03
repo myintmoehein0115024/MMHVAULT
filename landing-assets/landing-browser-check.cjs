@@ -285,6 +285,47 @@ async function load(page,route,failures){
      ensure(errors.length===0,width+'px slow decoding has no JS exceptions');
      await ctx.close();
    }
+   // L1.40: test ordinary-motion rendering too (the previous decode suite
+   // runs with reduced motion, which cannot detect an accidental 300ms gap).
+   // On <=900px the decoded photo must be instantly opaque when the fallback
+   // is removed; on desktop the original cinematic rule stays untouched.
+   for(const width of [320,393,768,1440]){
+     const ctx=await browser.newContext({
+       viewport:{width,height:852},reducedMotion:'no-preference',
+       isMobile:width<=393,hasTouch:width<=393
+     });
+     const page=await ctx.newPage();
+     const errors=[];
+     page.on('pageerror',e=>errors.push(e.message));
+     await load(page,'/',errors);
+     await page.waitForFunction(()=>
+       document.querySelector('.hero-art')?.classList.contains('is-photo-ready'));
+     const state=await page.evaluate(()=>{
+       const art=document.querySelector('.hero-art');
+       const image=art.querySelector('.hero-device-cinematic');
+       const frame=art.querySelector('.desktop-frame');
+       const style=getComputedStyle(image);
+       return {
+         ready:art.classList.contains('is-photo-ready'),
+         duration:style.transitionDuration,
+         opacity:style.opacity,
+         display:style.display,
+         fallbackDisplay:getComputedStyle(frame).display,
+         x:scrollX,docWidth:document.documentElement.scrollWidth,viewport:innerWidth
+       };
+     });
+     const mobile=width<=900;
+     ensure(state.ready && errors.length===0 &&
+       state.fallbackDisplay==='none' &&
+       (mobile
+         ? state.opacity==='1'&&state.display!=='none'&&state.duration==='0s'
+         : state.display==='none'&&state.duration==='0.3s') &&
+       state.x===0 && state.docWidth<=state.viewport+2,
+       'L1.40 '+width+'px decoded Hero avoids phone opacity gap while desktop stays original '+
+       JSON.stringify(state));
+     await ctx.close();
+   }
+
    // A genuine decode failure must leave accessible HTML in place rather
    // than dismissing the fallback and showing an empty Hero.
    {
@@ -1246,7 +1287,7 @@ async function load(page,route,failures){
    // browsers. Only mobile receives a positive early-reveal bottom margin.
    for(const width of [393,1440]){
      for(const [route,expected] of [
-       ['/',width<=620?'0px 0px 12% 0px':'0px 0px -6% 0px'],
+       ['/',width<=620?'0px 0px 24% 0px':'0px 0px -6% 0px'],
        ['/features/',width<=620?'0px 0px 12% 0px':'0px 0px -4% 0px']
      ]){
        const ctx=await browser.newContext({viewport:{width,height:852},reducedMotion:'no-preference'});
@@ -1266,7 +1307,7 @@ async function load(page,route,failures){
        await load(page,route,errors);
        const margins=await page.evaluate(()=>window.__mmhL139ObserverMargins);
        ensure(margins.includes(expected)&&errors.length===0,
-         'L1.39 '+route+' '+width+'px correct early scroll reveal margin '+JSON.stringify(margins));
+         'L1.40 '+route+' '+width+'px correct early scroll reveal margin '+JSON.stringify(margins));
        await ctx.close();
      }
    }
