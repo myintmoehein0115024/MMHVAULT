@@ -33,24 +33,24 @@
 <section id="vaultSection" class="card hidden">
 <h2>③ Recovery Key · Vault</h2><p id="signedAs" class="muted"></p>
 <div class="result" id="backupStatus">尚未检查密钥状态</div><p class="muted">您可以随时离开，方便时再回来登录并检查状态。真实敏感操作只有在单独授权的短时窗口内才会开放。</p>
-<button type="button" id="refreshStatusBtn">检查备份状态</button>
+<button type="button" id="refreshStatusBtn">检查备份状态</button><p id="passwordGateNote" class="muted" role="status" aria-live="polite">恢复密钥服务尚未开放。此时不必重新输入密码。</p>
 <div id="setupBlock">
 <p class="muted">仅对这两个新测试账户创建<strong>合成的十词恢复密钥</strong>。系统随后立即尝试加密备份。已有密钥不能重新生成。</p>
 <label for="setupPwd">再次输入测试密码</label>
-<input id="setupPwd" type="password" autocomplete="off" maxlength="128" placeholder="本次操作需要重新验证密码">
+<input id="setupPwd" type="password" autocomplete="off" maxlength="128" placeholder="本次操作需要重新验证密码" disabled>
 <button type="button" id="initBtn" class="primary" disabled>生成合成十词并立即加密备份</button>
 </div>
 <div id="manualBlock" class="hidden">
 <p class="warn">仅在自动备份失败时可重试；恢复词在 45 秒内自动销毁。本页面不会保存恢复词。</p>
 <label for="retryPwd">再次输入测试密码</label>
-<input id="retryPwd" type="password" autocomplete="off" maxlength="128">
+<input id="retryPwd" type="password" autocomplete="off" maxlength="128" disabled>
 <button type="button" id="retryBtn" disabled>重新尝试加密备份</button>
 </div>
 <div class="divider"></div>
 <h3>通过密码再次查看原来的十词</h3>
 <p class="muted">验证目前登录的账户、真实 MFA 和测试密码，不会重新生成密钥。</p>
 <label for="revealPwd">测试账户密码</label>
-<input type="password" id="revealPwd" maxlength="128" autocomplete="off">
+<input type="password" id="revealPwd" maxlength="128" autocomplete="off" disabled>
 <button type="button" id="revealBtn" class="primary" disabled>验证并查看原来的十词</button>
 <div id="phrasePanel" class="phrase hidden" aria-live="off">
 <p class="warn">私密内容：请勿截图或发到聊天中。<span id="countdown"></span></p>
