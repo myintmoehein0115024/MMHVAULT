@@ -38,7 +38,7 @@ const uid=()=>typeof crypto!=='undefined'&&crypto.randomUUID?
   'hier_'+crypto.randomUUID():'hier_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2);
 let loadedOwner='',historyReady=false,overlay=null,modalField='',selection={type:'',transaction:'',category:''};
 let pendingSave=null,rendering=false,queued=false,returnFocus=null;
-let linkSync=null,checkingCloud=false;
+let linkSync=null,checkingCloud=false,cloudConflict=false;
 const host={
   currentOwner:owner,configOwner,currentConfig:config,
   history:()=>{
@@ -288,12 +288,19 @@ function manager(){
     const snippets=items.filter(x=>!x.archived).slice(0,3).map(x=>x.label).join(' · ');
     card.append(elt('div','mmh-hier-examples',snippets||tr('No items yet','尚未添加','မရှိသေးပါ')));
     const manage=btn(tr('Manage','管理','စီမံရန်'),()=>open(field),'mmh-hier-btn');
-    manage.disabled=!ready();card.append(manage);cards.append(card);
+    manage.disabled=!ready()||cloudConflict;card.append(manage);cards.append(card);
   }
   root.append(elt('p','mmh-hier-muted',tr(
     'Already-used options: Archive only. Historical transactions are never changed.',
     '已使用的项目只能归档；历史交易记录始终保留。',
     'မှတ်တမ်းဟောင်းများကို မပြောင်းဘဲ အသုံးပြုပြီးသော အရာများကို သိမ်းနိုင်ပါသည်။')));
+  if(cloudConflict&&owner()===configOwner()){
+    const warning=elt('p','mmh-hier-muted',tr(
+      'Another device has different saved Manage links. Changes are paused to protect your transaction history. Do not enter duplicate transactions. Contact support for safe reconciliation.',
+      '另一台设备的记账关联与本机不同。为了保护历史交易，已暂停修改。请勿重复记账，并联系客服处理同步冲突。',
+      'အခြားစက်၏ Manage ချိတ်ဆက်မှုများ မတူပါ။ မှတ်တမ်းဟောင်းများကို ကာကွယ်ရန် ပြင်ဆင်မှုကို ယာယီရပ်ထားပါသည်။ ထပ်မံမှတ်တမ်းမထည့်ပါနှင့်။ အကူအညီယူပါ။'));
+    warning.setAttribute('role','alert');warning.id='mmhHierarchyCloudConflict';root.append(warning);
+  }
   // A confirmed ledger insert and its configuration-sidecar cloud write are
   // separate operations. Show verification truthfully, never imply atomicity.
   if(linkSync?.owner===owner()){
@@ -356,7 +363,7 @@ function form(){
     put(c,cats,selection.category);selection.category=selected(c);
     for(const s of [t,g,c])s.disabled=!s.options.length;
     if(typeof updateAccountLocks==='function'&&types.length)updateAccountLocks();
-    if(save)save.disabled=!valid();
+    if(save)save.disabled=cloudConflict||!valid();
   }catch(error){
     console.warn('[MMHVAULT] Hierarchy form unavailable',error);
     for(const s of [t,g,c]){s.replaceChildren();s.disabled=true;}
@@ -365,7 +372,7 @@ function form(){
   }finally{rendering=false;}
 }
 function valid(){
-  if(!ready()||!selection.type||!selection.transaction||!selection.category)return false;
+  if(cloudConflict||!ready()||!selection.type||!selection.transaction||!selection.category)return false;
   const path=safe(()=>controller.path(selection.type,selection.transaction,selection.category));
   return !!path&&$('txType')?.value===path.type&&$('txGroup')?.value===path.group&&
     $('txCategory')?.value===path.category;
@@ -404,8 +411,9 @@ async function verifyCloudLink(target){
         return data?.config;
       }
     });
-    if(verified&&linkSync===target&&owner()===target.owner&&configOwner()===target.owner)
-      target.state='verified';
+    if(verified&&linkSync===target&&owner()===target.owner&&configOwner()===target.owner){
+      target.state='verified';cloudConflict=false;
+    }
   }catch(error){console.warn('[MMHVAULT] Manage link readback unavailable',error)}
   finally{
     checkingCloud=false;schedule();
@@ -448,6 +456,9 @@ function boot(){
     f.addEventListener('submit',e=>{
       if(!valid()){
         e.preventDefault();e.stopImmediatePropagation();
+        if(cloudConflict){notify(tr('Manage changes are paused until sync conflict is resolved.',
+          'Manage 同步冲突尚未解决，已暂停新增交易。',
+          'Manage ချိတ်ဆက်မှု ပဋိပက္ခ ဖြေရှင်းရန် လိုပါသည်။'));return;}
         notify(tr('Configure Type, Transaction and Category in Manage first.',
           '请先在 Manage 完成 Type、Transaction、Category 的关联设置。',
           'Manage တွင် Type၊ Transaction၊ Category ကို ချိတ်ဆက်ပါ။'));return;
@@ -472,10 +483,16 @@ function boot(){
       loadedOwner=historyReady?current:'';
     }else if(e?.type==='mmhvault:config-owner-changed'){
       historyReady=false;loadedOwner='';selection={type:'',transaction:'',category:''};
-      pendingSave=null;linkSync=null;close();
-    }else if(current!==loadedOwner){historyReady=false;selection={type:'',transaction:'',category:''};pendingSave=null;linkSync=null;close();}
+      pendingSave=null;linkSync=null;cloudConflict=false;close();
+    }else if(current!==loadedOwner){historyReady=false;selection={type:'',transaction:'',category:''};pendingSave=null;linkSync=null;cloudConflict=false;close();}
+    if(e?.type==='mmhvault:config-cloud-synced'&&e.detail?.userId===current)
+      cloudConflict=false;
     schedule();
   };
+  window.addEventListener('mmhvault:config-link-sync-blocked',e=>{
+    if(e?.detail?.userId!==owner()||owner()!==configOwner())return;
+    cloudConflict=true;close();schedule();
+  });
   for(const name of ['mmhvault:data-loaded','mmhvault:config-owner-changed',
     'mmhvault:config-cloud-synced','mmhvault:category-config-changed','mmhvault-language-change'])
     window.addEventListener(name,refresh);
