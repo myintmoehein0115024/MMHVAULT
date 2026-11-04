@@ -141,12 +141,12 @@ CREATE FUNCTION mmh_n10_v2qa_20261104.recovery_matches(
 RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path = ''
 AS $match$
  SELECT EXISTS (
-  SELECT 1 FROM mmh_n10_v2qa_20261104.qa_window window
+  SELECT 1 FROM mmh_n10_v2qa_20261104.qa_window win
   JOIN mmh_n10_v2qa_20261104.owners owner ON true
   JOIN mmh_n10_v2qa_20261104.sessions s ON s.user_id=owner.id
   JOIN mmh_n10_v2qa_20261104.backup_index i ON i.user_id=owner.id
   JOIN vault.decrypted_secrets v ON v.id=i.secret_id
-  WHERE window.singleton AND window.enabled AND window.expires_at>now()
+  WHERE win.singleton AND win.enabled AND win.expires_at>now()
     AND p_requester=p_owner AND owner.id=p_owner
     AND owner.email_confirmed AND NOT owner.is_anonymous
     AND NOT owner.is_banned AND NOT owner.is_deleted
