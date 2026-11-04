@@ -15,12 +15,12 @@ test('never runs on arbitrary Production or a live/dirty QA schema',()=>{
  req('mmh_n10_v2qa_20261104.backup_index)<>2');
  req("l.username_key LIKE 'n10qa_%')<>4");
 });
-test('only seven isolated service functions; never edits any other schema',()=>{
+test('only eight isolated service functions; never edits any other schema',()=>{
  const noComment=src.replace(/--[^\n]*/g,'');
  assert.doesNotMatch(noComment,/\b(?:INSERT INTO|UPDATE|DELETE FROM|ALTER TABLE|CREATE TABLE)\s+(?:auth|public|vault|mmh_n10_privacy|mmh_n10_v2qa_20261104)\./i);
  assert.doesNotMatch(noComment,/\b(?:DROP|TRUNCATE|DELETE FROM auth\.users)\b/i);
  for(const fn of [
-  'claim(text,text)','backup_put(uuid,text,text,text)','owner_slot(uuid)',
+  'claim(text,text)','backup_put(uuid,text,text,text)','owner_slot(uuid)','slot_user_id(text)',
   'session_active(uuid,uuid)','backup_get(uuid,uuid)',
   'backup_exists(uuid,uuid)','take_attempt(text,integer,integer)'
  ]) {
