@@ -73,3 +73,43 @@ Keep Draft PR #87 unmerged. Reconcile overlapping Draft PR #85 against
 latest main, then independently review real Chrome/Safari/iOS/Android
 behavior and the original APP V11 history/Finance regression before
 requesting explicit Production merge permission.
+
+
+## 2026-11-04 — signed Staging A/B acceptance: PASS
+
+The owner opened the standalone local QA HTML in Chrome and authenticated
+**two dedicated synthetic Auth-Staging A/B accounts**, then ran the live
+signed-user REST acceptance on 2026-11-04. The supplied final UI screenshot
+explicitly showed:
+
+> ✓ 真实验收通过，本次测试数据已清理。
+
+All visible checks in the provided browser screenshot were green, including
+B's inability to read/update/delete A's ledger and config; B's inability to
+forge an A-owned record; cloud persistence of A's exact transaction ID /
+Manage association; current config CAS update and stale-CAS prevention;
+Category Archive preserving recorded historical links and original ledger;
+cleanup of both A/B temporary transaction and config rows.
+
+Afterward, a separate **read-only Supabase database query** against the
+explicit Auth-Staging project `ldivswlhtgmznzwhzsoi` confirmed:
+
+- `public.transactions`: **0 rows**
+- `public.personal_configuration`: **0 rows**
+- dedicated `v117qa` Auth test identities: **2** (retained for QA)
+- both financial tables RLS enabled; **8** owner-scoped policies
+- no `anon` SELECT privilege on either financial table
+- pre-existing N10-related public test tables: **15** (same prior count)
+
+**Boundary:** this completes the standalone real-JWT A/B Staging API test,
+not full deployment of `app.html` into a Staging preview, nor physical
+cross-device Safari/iOS/Android acceptance. The signed QA was executed by
+the user in a local file browser; the model did not receive passwords,
+JWTs or other secret tokens. The records above are grounded in the user's
+QA screenshot and an independent read-only post-check. No Production or N10
+edits were performed. PR #87 remains a Draft, not merged or deployed.
+
+**Remaining gates:** real APP `app.html` authenticated integration in a
+Staging-only preview; cross-device saved config readback; physical mobile
+Safari/Android; review of PR #85 overlap and newest `main`; an explicit
+separate release approval.
