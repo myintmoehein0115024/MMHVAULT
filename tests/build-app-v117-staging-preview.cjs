@@ -9,7 +9,9 @@ const assert=require('node:assert/strict');
 
 const root=path.resolve(__dirname,'..');
 const source=path.join(root,'app.html');
-const out=path.join(root,'dist','app-v117-staging');
+const out=process.env.MMH_V117_STAGING_OUTPUT_DIR?
+  path.resolve(process.env.MMH_V117_STAGING_OUTPUT_DIR):
+  path.join(root,'dist','app-v117-staging');
 const PROD_HOST='vrypucmyrztxgiqhjspd.supabase.co';
 const STAGING_HOST='ldivswlhtgmznzwhzsoi.supabase.co';
 const PROD_KEY='sb_publishable_H38v4XbO0ARnSJToD42wGg_27-SZ3Ao';
