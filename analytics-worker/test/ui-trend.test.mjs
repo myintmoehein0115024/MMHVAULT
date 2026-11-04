@@ -145,3 +145,52 @@ test('single recent 24h observation stays near its real UTC hour, not centered',
   assert.equal(nodes.filter(x=>x.tagName==='path').length,0,
     'a single observed hour cannot be interpreted as a continuous trend');
 });
+
+test('V2.3 hourly Bangkok display shifts labels without changing verified values',()=>{
+  const chart=initialize(),container=element('div');container.clientWidth=375;
+  const bucket=[{date:'2026-11-04T18:00:00Z',visits:4,pageViews:6}];
+  assert.equal(chart.render(container,bucket,'hour','24h','2026-11-04T18:30:00.000Z','Asia/Bangkok'),true);
+  const nodes=collect(container),cells=nodes.filter(x=>x.tagName==='td').map(x=>x.textContent);
+  assert.ok(cells.includes('11-05 01:00'),'UTC+7 wraps correctly onto the next date');
+  assert.ok(cells.includes('4'));assert.ok(cells.includes('6'));
+  const markers=nodes.filter(x=>x.tagName==='circle');
+  assert.equal(markers.length,2);
+  assert.equal(markers[0].attributes.tabindex,'0','markers are keyboard focusable');
+  assert.match(markers[0].attributes['aria-label'],/Bangkok/);
+  const note=nodes.find(x=>x.className==='chart-note');
+  assert.match(note.textContent,/Bangkok \(UTC\+7\)/);
+  const details=nodes.find(x=>x.tagName==='details');
+  assert.ok(details,'native touch/keyboard accessible inspector');
+});
+test('V2.3 daily data must stay UTC-grouped even when an hourly zone was selected',()=>{
+  const chart=initialize(),container=element('div');container.clientWidth=375;
+  assert.equal(chart.render(container,[{date:'2026-11-04',visits:9,pageViews:10}],
+    'day','7d','2026-11-04T18:30:00.000Z','Asia/Bangkok'),true);
+  const nodes=collect(container),cells=nodes.filter(x=>x.tagName==='td').map(x=>x.textContent);
+  assert.ok(cells.includes('2026-11-04'));
+  assert.ok(!cells.includes('2026-11-05'),'never reassign UTC daily counts to local day');
+  assert.match(nodes.find(x=>x.className==='chart-note').textContent,/UTC calendar days/);
+});
+test('V2.3 inspector lists exactly verified buckets, never fills missing zero rows',()=>{
+  const chart=initialize(),container=element('div');container.clientWidth=800;
+  assert.equal(chart.render(container,[
+    {date:'2026-11-04T10:00:00Z',visits:1,pageViews:2},
+    {date:'2026-11-04T12:00:00Z',visits:4,pageViews:4}
+  ],'hour','24h','2026-11-04T12:30:00.000Z','UTC'),true);
+  const nodes=collect(container);
+  assert.equal(nodes.filter(x=>x.tagName==='tbody').flatMap(x=>x.children).length,2);
+  assert.equal(nodes.filter(x=>x.tagName==='td').length,6);
+  assert.equal(nodes.filter(x=>x.tagName==='circle').length,4);
+  assert.equal(nodes.filter(x=>x.tagName==='path').length,0,'missing 11:00 stays unconnected');
+  assert.equal(chart.render(container,[], 'hour','24h','2026-11-04T12:30:00.000Z','UTC'),true);
+  assert.equal(collect(container).filter(x=>x.tagName==='td').length,0,'empty data is not filled');
+  assert.equal(chart.render(container,[
+    {date:'2026-11-04T12:00:00Z',visits:1,pageViews:1}
+  ],'hour','24h','2026-11-04T12:30:00.000Z','untrusted-zone'),false);
+});
+test('V2.3 page exposes accessible hourly timezone selector while preserving UTC day semantics',()=>{
+  assert.match(htmlPage,/id="timeZone"/);
+  assert.match(htmlPage,/Bangkok \(UTC\+7\)/);
+  assert.match(htmlPage,/timeZone'\)\.disabled=selectedRange!=='24h'/);
+  assert.match(htmlPage,/latestChart\.timeZone/);
+});
