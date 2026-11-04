@@ -70,3 +70,27 @@ test('archive hides next-choice only; legacy aliases, config, ledger and saved I
   assert.ok(choices(graph,OWNER,'category',transaction.id).some(x=>x.id===salary.id));
   assert.equal(JSON.stringify(history),historyJson);
 });
+
+test('controller refuses history with missing or another owner; does not write config',async()=>{
+  const {createHierarchyController}=await import('../js/mmhvault-v11-manage-hierarchy-controller.mjs');
+  const cfg={txFieldsV12:{version:1,type:[],transaction:[],category:[]},categories:{Income:['Salary']}};
+  let records=[{id:900,user_id:OWNER,type:'Income',category:'Salary'}],writes=0;
+  const controller=createHierarchyController({
+    currentOwner:()=>OWNER,configOwner:()=>OWNER,currentConfig:()=>cfg,
+    history:()=>({ownerId:OWNER,loaded:true,rows:records}),
+    newId:()=>String(Date.now()),
+    persist:()=>{writes++;}
+  });
+  const before=JSON.stringify(cfg);
+  for(const record of [
+    {id:900,type:'Income',category:'Salary'},
+    {id:900,user_id:'synthetic-other-owner',type:'Income',category:'Salary'},
+    null
+  ]){
+    records=[record];
+    assert.throws(()=>controller.read(),/Cross-owner or incomplete/);
+    assert.throws(()=>controller.addType('Should not save','Income'),/Cross-owner or incomplete/);
+  }
+  assert.equal(writes,0);
+  assert.equal(JSON.stringify(cfg),before);
+});
