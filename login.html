@@ -343,7 +343,7 @@ body.mmh-n10-modal-lock{overflow:hidden}
   document.querySelectorAll('[aria-label],[alt]').forEach(el=>{
     ['aria-label','alt'].forEach(a=>{const v=el.getAttribute(a);if(v&&T[v])attrs.push({el,a,key:v});});
   });
-  const initialLang=localStorage.getItem('mmhvault-language')||localStorage.getItem('mmhvault_language_v3363')||'en';
+  const initialLang=localStorage.getItem('mmhvault.landing.language')||localStorage.getItem('mmhvault-language')||localStorage.getItem('mmhvault_language_v3363')||'en';
   let currentLang=['en','zh','my'].includes(initialLang)?initialLang:'en';
   function zh(){return currentLang==='zh'}
   function tr(key){return zh()?(T[key]||key):currentLang==='my'?(window.MMHVAULT_N10_MY_LOCALE?.translate(key)||key):key}
@@ -386,7 +386,7 @@ body.mmh-n10-modal-lock{overflow:hidden}
   }
   function setLang(lang,save=true){
     currentLang=['en','zh','my'].includes(lang)?lang:'en';
-    if(save){localStorage.setItem('mmhvault-language',currentLang);localStorage.setItem('mmhvault_language_v3363',currentLang);}
+    if(save){localStorage.setItem('mmhvault-language',currentLang);localStorage.setItem('mmhvault_language_v3363',currentLang);localStorage.setItem('mmhvault.landing.language',currentLang);}
     renderLanguage();
     window.dispatchEvent(new Event('mmhvault-language-change'));
   }
@@ -486,6 +486,8 @@ async function mmhShowMfaChallengeV783(uid){
  document.body.classList.add('mmh-n10-modal-lock');
  const status=layer.querySelector('[data-mfa-status]'),code=layer.querySelector('[data-mfa-code]'),submit=layer.querySelector('[data-mfa-submit]');
  layer.querySelector('#mmhMfaTitleV783').textContent=tr('双重身份验证','Two-step verification');
+ layer.querySelector('.n10-mfa-eyebrow').textContent=tr('MMHVAULT · 账户保护','MMHVAULT · ACCOUNT PROTECTION');
+ layer.querySelector('.n10-mfa-footnote').textContent=tr('私密、安全 · 您的账户由您掌控','PRIVATE & SECURE · YOUR ACCOUNT, YOUR CONTROL');
  layer.querySelector('#mmhMfaCodeLabelV783').textContent=tr('六位动态验证码','Authenticator code');
  submit.textContent=tr('验证并继续','Verify & continue');
  status.textContent=tr('输入验证器应用中当前的六位动态验证码。','Enter the current six-digit code from your authenticator app.');
