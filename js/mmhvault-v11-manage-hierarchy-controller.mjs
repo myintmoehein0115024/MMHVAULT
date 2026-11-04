@@ -117,6 +117,21 @@ export function createHierarchyController(host){
     }
     ctx.categories[group]=[...present,name];
   };
+  // Category is stored in BOTH the V11.7 choice tree and the canonical
+  // ledger category registry read by Dashboard / Analyze / older editors.
+  // Renaming/deleting an UNUSED choice must not leave a phantom registry
+  // name. Never remove a label referenced by ANY old ledger row.
+  const dropUnusedCanonicalCategory=(ctx,oldNode,exceptId='')=>{
+    if(!oldNode||!Array.isArray(ctx.categories[oldNode.ledgerGroup]))return;
+    const same=(a,b)=>String(a||'').trim().toLocaleLowerCase()===
+      String(b||'').trim().toLocaleLowerCase();
+    if(ctx.rows.some(row=>same(row?.category,oldNode.label)))
+      fail('Historical Category label is reserved: Archive instead');
+    if(ctx.graph.categories.some(node=>node.id!==exceptId&&
+      node.ledgerGroup===oldNode.ledgerGroup&&same(node.label,oldNode.label)))return;
+    ctx.categories[oldNode.ledgerGroup]=ctx.categories[oldNode.ledgerGroup]
+      .filter(name=>!same(name,oldNode.label));
+  };
   return Object.freeze({
     read,list,status,
     addType:(name,ledgerType)=>transact(ctx=>
@@ -128,11 +143,20 @@ export function createHierarchyController(host){
       canonicalCategory(ctx,node);return node;
     }),
     rename:(field,id,name)=>transact(ctx=>{
+      const previous=field==='category'?clone(ctx.graph.categories.find(x=>x.id===id)):null;
       const node=renameItem(ctx.graph,ctx.owner,field,id,name,ctx.rows);
-      if(field==='category')canonicalCategory(ctx,node);
+      if(field==='category'){
+        dropUnusedCanonicalCategory(ctx,previous,id);
+        canonicalCategory(ctx,node);
+      }
       return node;
     }),
-    delete:(field,id)=>transact(ctx=>deleteItem(ctx.graph,ctx.owner,field,id,ctx.rows)),
+    delete:(field,id)=>transact(ctx=>{
+      const previous=field==='category'?clone(ctx.graph.categories.find(x=>x.id===id)):null;
+      const removed=deleteItem(ctx.graph,ctx.owner,field,id,ctx.rows);
+      if(field==='category')dropUnusedCanonicalCategory(ctx,previous);
+      return removed;
+    }),
     archive:(field,id,archived=true)=>transact(ctx=>
       archiveItem(ctx.graph,ctx.owner,field,id,archived)),
     path:(typeId,transactionId,categoryId)=>{
