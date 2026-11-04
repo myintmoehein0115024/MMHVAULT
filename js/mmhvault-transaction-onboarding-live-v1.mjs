@@ -157,11 +157,23 @@ function snapshot(){
     configured:cfg,legacy,hasConfigured:cfg.type||cfg.transaction||cfg.category};
 }
 function mountHelp(){
-  const host=doc.querySelector('#transactions .mmh-tx-hero-actions-v3');
-  if(!host)return;
+  const page=$('transactions');
+  if(!page)return;
+  // The real V11.7 workspace uses the large Add / History / Manage navigation.
+  // Do not rely only on the old hero-actions slot used by synthetic fixtures:
+  // it may be off-screen or restyled in the live responsive workspace.
+  const nav=page.querySelector('.mmh-glass-tx-nav-v1');
+  const fallback=page.querySelector('.mmh-tx-hero-actions-v3')||
+    page.querySelector('.mmh-transaction-heading-v2');
   if(!help){help=doc.createElement('button');help.type='button';help.id='mmhTxOnboardingHelpV1';
     help.setAttribute('aria-haspopup','dialog');help.addEventListener('click',()=>openGuide(true));}
-  if(!host.contains(help))host.append(help);
+  if(nav){
+    let bar=$('mmhTxOnboardingHelpBarV1');
+    if(!bar){bar=doc.createElement('div');bar.id='mmhTxOnboardingHelpBarV1';}
+    // Reinsert after live page/navigation re-render; never duplicate the button.
+    if(bar.parentNode!==nav.parentNode||bar.nextElementSibling!==nav)nav.before(bar);
+    if(help.parentNode!==bar)bar.append(help);
+  }else if(fallback&&help.parentNode!==fallback)fallback.append(help);
   help.textContent='✦ '+words[lang()].help;
 }
 function saveAndClose(status='paused'){
@@ -366,7 +378,7 @@ function init(){
   window.addEventListener('scroll',()=>{if(shown)placement()},{passive:true,capture:true});
   doc.addEventListener('keydown',e=>{if(shown&&e.key==='Escape'&&!editorOpen())saveAndClose()});
   const page=$('transactions');
-  if(page)new MutationObserver(schedule).observe(page,{attributes:true,attributeFilter:['class','hidden']});
+  if(page)new MutationObserver(schedule).observe(page,{attributes:true,attributeFilter:['class','hidden'],childList:true});
   const section=$('mmhManagerCategoriesPanelV445');
   if(section)new MutationObserver(schedule).observe(section,{childList:true,subtree:false});
   new MutationObserver(schedule).observe(doc.documentElement,{attributes:true,attributeFilter:['lang']});
