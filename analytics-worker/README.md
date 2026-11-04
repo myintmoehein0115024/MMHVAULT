@@ -1,40 +1,65 @@
-# Analytics V2 isolated Worker
+# MMHVAULT Website Analytics V2.3 — production status
 
-Status: **ISOLATED TEST WORKER EXISTS / FULL ANALYTICS CODE NOT DEPLOYED / NOT PRODUCTION READY**.
+**Status:** Phase B is deployed as of 2026-11-04; the production worker and GitHub Pages build have passed their release checks. The signed-in production administrator's final 24h/7d/30d visual acceptance is the remaining closeout gate. **Do not treat that manual acceptance as complete until recorded.**
 
-Cloudflare test Worker: `mmhvault-website-analytics-v2.myintmoehein0115024.workers.dev`. Its `workers.dev` route is enabled, but it currently runs a fail-closed placeholder returning HTTP 503. A scoped Account Analytics Read token was created and the secret write operation succeeded; the secret binding was not independently verified. The complete analytics code has not been uploaded. Never infer that a Worker URL or a successful CI run proves the GraphQL integration works.
+## Production services
 
-This Worker is a separate backend for the admin-only Web Analytics page. It has no production routes and cannot modify N10, APP, RLS, or financial data.
+- Admin UI: https://mmhvault.com/admin-analytics.html
+- Worker: `mmhvault-website-analytics-v2` (workers.dev, not a production routing change)
+- Deployed version: `e370c807-79d0-46b5-b8b2-8fe518ff5ffd`
+- Rollback version: `6d3c2704-b038-4351-8a19-cabfc3f9f6b2` (preserved in Cloudflare Worker Versions)
+- Source merge: PR #117, GitHub main commit `f6f7a56b546552d317039a3d574d605a1feae230`
+- Verified GitHub Pages run: https://github.com/myintmoehein0115024/MMHVAULT/actions/runs/41827446621
 
-## Prerequisites
-- Confirm Cloudflare GraphQL RUM dataset fields and date grouping using the scoped read-only token.
-- Confirm Supabase `mmh_is_admin` RPC checks the calling JWT and cannot be bypassed.
-- Complete security review of the read-only token's account scope and secret storage.
-- Configure a verified API origin in the admin frontend (currently `window.MMH_ANALYTICS_API_URL` is deliberately empty, so the page fails closed).
-- Confirm end-to-end unauthorized/non-admin/admin tests before any deployment.
+This isolated worker is **read-only**. The frontend never receives Cloudflare credentials. The only site analytics source is Cloudflare GraphQL RUM filtered to `mmhvault.com`, the configured site tag, and `bot:0`.
 
-## Local checks
+## Metrics and limitations
+
+- The original 24h, 7d, and 30d Visits, Page views, and responsive trend chart remain supported.
+- Hourly display labels can switch between UTC and Bangkok (UTC+7) for the 24h trend.
+- The five **on-demand** breakdowns (Countries, Popular pages, Referral domains, Browsers, Device types) are available for 24h and 7d. They are ordered by page views and limited to the top groups. A 30-second client throttle reduces repeated Cloudflare GraphQL queries.
+- **30d breakdowns are intentionally disabled** because upstream country grouping was inconsistent across periods. The normal 30d totals and trend are not disabled.
+- Unique visitors remains `—` when a verified deduplicated count cannot be provided; do not substitute Visits or invent an estimate.
+- Potentially private paths are redacted server-side before returning page-group labels. Unknown referrers are not assumed to be confirmed direct traffic.
+
+## Access control and security
+
+Requests require a current Supabase Auth JWT and a server-side `mmh_is_admin()` check. Anonymous, expired or unauthorized identities must never access aggregate breakdowns. The Worker enforces the configured allowed Origin and returns `Cache-Control: private, no-store`. Never print JWTs, upstream GraphQL errors, credentials, or visitor identifiers.
+
+Production Cloudflare bindings (preserve names and existing values):
+
+| Binding | Type |
+| --- | --- |
+| `CF_ANALYTICS_TOKEN` | secret_text |
+| `SUPABASE_ANON_KEY` | secret_text |
+| `CF_ACCOUNT_ID` | plain_text |
+| `CF_SITE_TAG` | plain_text |
+| `SUPABASE_URL` | plain_text |
+| `ALLOWED_ORIGIN` | plain_text |
+
+The 2026-11-04 controlled Worker version was uploaded with **strict inherited bindings**. No Secret values were exported or replaced. Keep the previous Worker version available for rollback.
+
+## Verified checks
+
+- Independent Auth-Staging QA: synthetic administrator A returned HTTP 200 verified 24h and 7d breakdowns for all five categories; ordinary account B returned HTTP 403 for both periods; no Auth returned HTTP 401; bad Origin returned HTTP 403; invalid range returned HTTP 400.
+- Temporary Staging admin grant revoked (0 remaining). The independent A/B QA Worker was deleted. The two dedicated ordinary Auth-Staging users were retained; the original 14 staging users were not changed.
+- GitHub PR #117 security CI #78 passed, and the production GitHub Pages Build/Report/Deploy jobs passed.
+- The production API was checked for unauthenticated rejection and invalid range, and the public admin page loads its breakdown module. A live authenticated **production administrator** 24h/7d/30d UI walkthrough is still required to close the release.
+
+## Operator checks / rollback
+
+1. Sign into the production administrator dashboard. Check original 24h/7d/30d totals and trends, and the 24h/7d Load breakdowns interaction.
+2. For 30d, confirm the breakdown button is disabled with the upstream-verification explanation.
+3. If the Worker causes a critical regression, redeploy preserved version `6d3c2704-b038-4351-8a19-cabfc3f9f6b2` at 100% and stop the rollout. Verify original KPIs.
+4. Never change N10, APP V11, Landing+SEO, production Supabase/RLS, or financial data as part of Analytics closeout.
+
+## Local regression checks
 
 ```sh
 node --test analytics-worker/test/*.test.mjs
 node --check analytics-worker/src/index.js
+node --check analytics-worker/ui/trend-chart.js
+node --check analytics-worker/ui/breakdowns.js
 ```
 
-## Deployment configuration
-
-`wrangler.toml` defines a standalone `workers.dev` service without production routes. The following are **secrets**, never put them in code, `wrangler.toml`, GitHub Actions logs or chat:
-
-- `CF_ANALYTICS_TOKEN` — scoped account analytics read-only token
-- `SUPABASE_ANON_KEY` — Supabase public publishable/anon key (kept as secret for consistency)
-
-The account and RUM site tag are identifiers, not credentials. The Worker returns 503 on any unverified GraphQL response. Do not interpret HTTP 200 as success if the GraphQL `errors` array is populated.
-
-**Important:** do not deploy from this draft PR until the GraphQL query and hosting/auth assumptions have been validated.
-
-## Remaining release gates
-
-1. Inspect Worker secret bindings without reading their values; check both `CF_ANALYTICS_TOKEN` and `SUPABASE_ANON_KEY` exist. Never paste secrets in issues or chat.
-2. Validate the GraphQL RUM query against the live Cloudflare schema and correct the `visits` / `pageViews` semantics before publishing metrics.
-3. Deploy the reviewed module through an approved Cloudflare deployment workflow; preserve existing secret bindings and set only non-secret vars.
-4. Confirm HTTP 401 without bearer, 403 for authenticated non-admin, 200 with real verified metrics for an admin, and no CORS permission for an unapproved origin.
-5. Only then set the frontend API URL, test on mobile and desktop, and request separate approval before merging PR #95 or changing production.
+All committed `analytics-worker/test/*.test.mjs` fixtures remain needed for authorization, source integrity, and UI regression coverage. Do not delete them as apparent "unused" files.
