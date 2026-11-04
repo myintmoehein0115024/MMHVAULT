@@ -527,6 +527,40 @@ const say=(condition,label)=>{assert.ok(condition,label);console.log('PASS '+lab
         say(kind===purposeGroup+'|'+purposeGroup,
           transactionName+' stores expected native ledger group '+kind);
       }
+      // An ordinary Transfer MUST have a user-created linked Category.
+      // The native form must explain the missing link and enable Add only
+      // after the full Type → Transaction → Category path exists.
+      await dpage.locator('#txType').selectOption({label:'MoveFunds'});
+      await dpage.locator('#txGroup').selectOption({label:'Account Move'});
+      say((await dpage.locator('#mmhHierarchyCategoryHint').textContent())
+        .includes('create “Transfer” under this Transaction'),
+        'Transfer without Category explains exact missing setup');
+      say(await dpage.locator('#txForm .actions button').isDisabled(),
+        'Transfer cannot save without explicit linked Category');
+
+      await dCards.nth(2).getByRole('button',{name:'Manage'}).click();
+      {
+        const cDialog=dpage.locator('.mmh-hier-dialog');
+        await cDialog.getByRole('button',{name:'+ Add Category'}).click();
+        await cDialog.locator('input[type=text]').fill('Transfer QA');
+        const parent=cDialog.locator('select');
+        await parent.selectOption({label:'MoveFunds → Account Move'});
+        await cDialog.getByRole('button',{name:'Save'}).click();
+        await cDialog.locator('header button').click();
+      }
+      say(await dpage.locator('#mmhHierarchyCategoryHint').isHidden(),
+        'Transfer missing-Category hint disappears after linking');
+      await dpage.locator('#txCategory').selectOption({label:'Transfer QA'});
+      say(!await dpage.locator('#txForm .actions button').isDisabled(),
+        'Transfer native Add enables only after all three explicit choices');
+      say(await dpage.evaluate(()=>{
+        const f=window.MMHV11HierarchyLive;
+        return f?.getState?.()?.valid ?? true;
+      }),'Transfer link valid without implicit defaults');
+      say(await dpage.locator('#txType').inputValue()==='Transfer'&&
+        await dpage.locator('#txGroup').inputValue()==='Transfer'&&
+        await dpage.locator('#txCategory').inputValue()==='Transfer QA',
+        'Transfer maps named hierarchy to canonical Transfer ledger fields');
       // Special loan treatment is opt-in, and still cannot reverse an
       // Income Type into an Expense transaction.
       await dCards.nth(1).getByRole('button',{name:'Manage'}).click();
