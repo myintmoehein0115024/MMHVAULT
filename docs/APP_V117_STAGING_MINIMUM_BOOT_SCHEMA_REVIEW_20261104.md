@@ -1,16 +1,16 @@
-# MMHVAULT APP V11.7 — minimum full-APP Staging boot schema REVIEW ONLY
+# MMHVAULT APP V11.7 — authorized minimal Auth-Staging boot tables
 
-Date: 2026-11-04. Status: **planning only, NOT APPROVED to create any additional table**.
+Date: 2026-11-04. Status: **three empty read-only boot tables created in Auth-Staging after separate user approval; security-verified**.
 Production project: explicitly OUT OF SCOPE. Auth-Staging: `ldivswlhtgmznzwhzsoi` only.
-This file is not a migration or a runbook to apply without a separate user authorization.
+This records a narrowly scoped Staging-only schema change, **not a Production migration or full APP sign-off**.
 
-## 1. Verified read-only Auth-Staging preflight
+## 1. Verified pre-migration Auth-Staging baseline
 
 The connected read-only Supabase table inventory reports **17** existing public tables, of which **15** are existing N10 QA tables and **two** are the approved APP V11.7 finance sandbox tables:
 - `public.transactions`: zero rows, RLS enabled; owner UUID foreign-key to `auth.users`; primary key `id`.
 - `public.personal_configuration`: zero rows, RLS enabled; owner UUID primary/foreign key, `config jsonb`.
 - The two financial tables have eight owner-scoped RLS policies in total (SELECT / INSERT / UPDATE / DELETE for each), checked from read-only `pg_policies`.
-- Neither a new table nor a Production record was created or modified by this review.
+- Preflight made no changes; only the separately approved three empty tables were created in the next step. Production was never accessed.
 
 ## 2. Actual full APP source contract
 
@@ -24,29 +24,31 @@ Read-only CI inspected the current PR #87 full `app.html` and its actual `loadAl
 | --- | --- | --- | --- |
 | `transactions` | Exists, 0 rows | `id,user_id,tx_date` plus existing ledger columns | Already approved |
 | `personal_configuration` | Exists, 0 rows | `user_id,config,updated_at` | Already approved |
-| `investments` | **Absent** | `id,user_id,inv_date` (data shape for nonempty records still needs review) | **Separate approval required** |
-| `custom_investments` | **Absent** | `id,user_id,inv_date` (data shape for nonempty records still needs review) | **Separate approval required** |
-| `crypto_wallet_movements` | **Absent** | `id,user_id,movement_date,created_at` (nonempty movement fields still need review) | **Separate approval required** |
+| `investments` | **Created, 0 rows** | `id bigint identity,user_id uuid,inv_date date,created_at timestamptz` | Authenticated SELECT only |
+| `custom_investments` | **Created, 0 rows** | `id bigint identity,user_id uuid,inv_date date,created_at timestamptz` | Authenticated SELECT only |
+| `crypto_wallet_movements` | **Created, 0 rows** | `id bigint identity,user_id uuid,movement_date date,created_at timestamptz` | Authenticated SELECT only |
 
 These column names are **startup-read minimums, NOT full production-compatible table specifications**. Do not assert full APP acceptance merely because three empty placeholders can satisfy a startup query. Inspect write paths, report/account coupling and required constraints before provisioning a full integration environment.
 
-## 3. Exact permission boundary for any future proposal
+## 3. Permission boundary followed for this approved migration
 
-Any future authorized extension must:
-1. Confirm the project ID is exactly the Auth-Staging project before execution. Abort if any target table exists or any schema drift is detected.
-2. Use a transaction-bound, reviewed migration with exactly three **empty** owner-scoped tables; do not import Production records, add default financial rows or modify N10.
-3. Create owner UUID foreign keys and stable primary keys as required by the audited APP model. Enable RLS before granting Data API access.
-4. Keep `anon` / `PUBLIC` privileges revoked. For initial **boot-only** evaluation, prefer `SELECT` only for authenticated users with `USING ((select auth.uid()) = user_id)`; do not silently grant write access.
-5. If future testing actually needs investment/wallet writes, request **specific additional authorization** for required columns, INSERT/UPDATE/DELETE policies, and cleanup.
-6. Extend the strict test-preview CSP by exactly those approved three `/rest/v1/...` routes only **after** DB/RLS approval. Keep Production domains, N10 Edge functions, other services and service workers blocked.
-7. Verify signed synthetic A/B separation and owner-only readback; check each test table and previous two financial tables return to zero records; confirm 15 N10 tables and their policies unchanged.
-8. Recheck current `main`, PR #85 overlap and all GitHub CI, then seek a **different, explicit authorization** before any Production merge/deployment.
+The executed **Staging-only** migration was `app_v117_staging_empty_owner_read_boot_tables_20261104`; its preconditions and constraints were:
+1. Target only project `ldivswlhtgmznzwhzsoi`. Abort if either existing finance prerequisite is absent or any of the three requested tables already exists.
+2. Use the reviewed Supabase DDL migration action to create exactly **three empty tables**, without touching N10 or Production records.
+3. Each table has an `id` identity primary key, a non-null `user_id` foreign key to `auth.users(id)`, required date order column and `created_at`. RLS enabled.
+4. Revoke all table/sequence rights from `PUBLIC`, `anon`, `authenticated` before granting `SELECT` on each table only to `authenticated`. Each table has exactly one owner RLS policy `USING ((select auth.uid()) = user_id)`.
+5. Actual investment/wallet **write** testing requires separate explicit approval for full column contracts and INSERT/UPDATE/DELETE grants/policies; this migration does **not** grant those.
+6. After creation and security verification, extend the **local test package** CSP with exactly these three additional `/rest/v1/...` routes. Keep Production, N10 Edge functions and other business endpoints blocked. No live preview was deployed.
+7. Verify all five finance tables contain **zero rows**; 20 public tables now exist (15 N10 + 5 APP); all five have RLS. The new policies each require owner UUID. Actual authenticated A/B REST verification for the three new tables remains pending.
+8. Recheck latest `main`, Draft PR #85 overlap and CI after updating isolated test code. Still require **separate explicit user approval** for any deployment or Production merge.
 
-## 4. What was done now
+## 4. Executed migration and postflight (2026-11-04)
 
-- New code assertions verify full APP owner-filtered `select('*')`, ordering and session-guard behavior.
-- Test-only browser smoke confirms the **currently unapproved** three REST routes remain blocked by Staging preview CSP.
-- Existing signed A/B two-table Manage/Archive QA remains accepted and is not rerun.
-- **No DDL was executed. No Staging or Production deployment was performed.**
+- Preflight: Auth-Staging project identified as **MMHVAULT-Auth-Staging**; 17 pre-existing public tables; two existing finance tables both zero rows and owner RLS enabled.
+- The authorized `apply_migration` call succeeded with **three new empty tables only**.
+- Postflight: exactly **20 public tables**, including the same 15 N10 tables and five owner-scoped finance tables, all five still zero rows and RLS enabled.
+- RLS audit: exactly one authenticated owner-SELECT policy for each newly created table. `has_table_privilege` verified authenticated SELECT = true, anon SELECT = false, authenticated INSERT = false on each new table.
+- Security advisor: no advisory findings against new tables; existing N10-related INFO notices and an Auth leaked-password-protection WARN existed before this migration and are outside APP scope.
+- Isolated local Staging preview CSP updated to permit the five finance REST paths while blocking Production and N10 endpoints. **No hosted deployment, signed full-APP session or real investment/wallet test write has been performed**.
 
-**Gate:** P1 old-account synthetic compatibility remains under verification; P2 full APP authenticated integration is blocked until the three-table schema proposal is explicitly approved and tested. Keep PR #87 Draft / NO MERGE.
+**Gate:** The user-approved empty-schema prerequisite is complete. The next stage is isolated signed full-APP boot/readback and owner-isolation QA. Full investment/wallet write capabilities, extra tables/services or any Production release must not be inferred from this approval. Keep PR #87 Draft / NO MERGE.
