@@ -52,6 +52,59 @@ async function load(page,route,failures){
 (async()=>{
  const browser=await chromium.launch({channel:'chrome',headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
  try{
+   // L1.63: tap targets and long translated footer labels on public pages.
+   // Responsive-only; verify original tablet footer and all destinations.
+   for(const route of publicRoutes.slice(1)){
+     for(const [width,lang] of [[320,'my'],[393,'zh'],[620,'en'],[768,'my']]){
+       const ctx=await browser.newContext({viewport:{width,height:800},serviceWorkers:'block'});
+       const page=await ctx.newPage(),errors=[];
+       page.on('pageerror',error=>errors.push(error.message));
+       await page.addInitScript(code=>{
+         try{localStorage.setItem('mmhvault.landing.language',code)}catch(_){}
+       },lang);
+       const response=await page.goto(origin+route,{waitUntil:'load',timeout:25000});
+       ensure(response?.status()===200,'L1.63 footer route HTTP 200 '+route+' '+width+'px');
+       const metrics=await page.locator('.public-footer').evaluate(footer=>{
+         const nav=footer.querySelector('.public-footer-nav');
+         const navBox=nav.getBoundingClientRect();
+         const links=[...footer.querySelectorAll('.public-footer-group a')];
+         const top=footer.querySelector('.public-footer-bottom > a');
+         const anchors=[...links,top];
+         const boxes=anchors.map(a=>{
+           const rect=a.getBoundingClientRect();
+           const css=getComputedStyle(a);
+           return {
+             href:a.getAttribute('href'),height:rect.height,
+             minHeight:parseFloat(css.minHeight)||0,
+             withinViewport:rect.left>=-1&&rect.right<=innerWidth+1,
+             withinNav:a===top||rect.left>=navBox.left-1&&rect.right<=navBox.right+1,
+             textInside:a.scrollWidth<=a.clientWidth+2
+           };
+         });
+         const cssHref=[...document.querySelectorAll('link[rel="stylesheet"]')]
+           .find(l=>l.href.includes('public-pages.css'))?.href||'';
+         const scrollBefore=scrollY;
+         scrollTo({left:999,top:scrollBefore,behavior:'instant'});
+         const travel=scrollX;
+         scrollTo({left:0,top:scrollBefore,behavior:'instant'});
+         return {viewport:innerWidth,language:document.documentElement.lang,
+           cssVersion:new URL(cssHref).searchParams.get('v'),
+           boxes,travel,footerLinks:links.length,
+           topLink:top?.getAttribute('href'),
+           canonical:document.querySelector('link[rel="canonical"]')?.href};
+       });
+       ensure(metrics.cssVersion==='l163' &&
+         metrics.language===lang && metrics.footerLinks===9 &&
+         metrics.topLink==='#content' && metrics.canonical &&
+         metrics.travel<=2 && metrics.boxes.every(b=>b.withinViewport&&b.withinNav&&b.textInside&&b.href) &&
+         (width>620 || metrics.boxes.every(b=>b.minHeight>=44&&b.height>=43.5)),
+         'L1.63 footer touch target and translated text bounds '+route+
+           ' '+width+'px '+lang+' '+JSON.stringify(metrics));
+       ensure(errors.length===0,'L1.63 footer no JS errors '+route+' '+width+'px');
+       await ctx.close();
+     }
+   }
+   console.log('L1.63 public footer 28 viewport/language touch checks PASS');
    // L1.62: verify narrow-screen breadcrumbs do not clip a long Burmese
    // label, and desktop breadcrumb layout remains unchanged.
    for(const route of publicRoutes.slice(1)){
@@ -86,7 +139,7 @@ async function load(page,route,failures){
              const x=scrollX;scrollTo({left:0,top:y,behavior:'instant'});return x;
            })()};
        });
-       ensure(metrics.styleVersion==='l162' && metrics.canonical &&
+       ensure(metrics.styleVersion==='l163' && metrics.canonical &&
          metrics.language==='my' && metrics.inside && metrics.horizontalScroll<=2 &&
          (width<=393?metrics.wrap==='wrap':['wrap','nowrap'].includes(metrics.wrap)),
          'L1.62 mobile public breadcrumb bounds '+route+' '+width+'px '+JSON.stringify(metrics));
