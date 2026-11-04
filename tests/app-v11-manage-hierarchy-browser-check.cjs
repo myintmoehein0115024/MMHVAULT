@@ -38,6 +38,10 @@ const say=(condition,label)=>{assert.ok(condition,label);console.log('PASS '+lab
       dlg=page.locator('.mmh-hier-dialog');
       await dlg.getByRole('button',{name:'+ Add Type'}).click();
       await dlg.locator('input[type=text]').fill('Income');
+      say(await dlg.locator('select').inputValue()==='',width+' Type has NO default Income mapping');
+      say(!await dlg.locator('form').evaluate(f=>f.checkValidity()),
+        width+' Type cannot silently save without choosing income/expense');
+      await dlg.locator('select').selectOption('Income');
       await dlg.getByRole('button',{name:'Save'}).click();
       say((await cards.nth(0).textContent()).includes('Income'),width+' Type saved');
       await dlg.locator('header button').click();
@@ -46,6 +50,15 @@ const say=(condition,label)=>{assert.ok(condition,label);console.log('PASS '+lab
       dlg=page.locator('.mmh-hier-dialog');
       await dlg.getByRole('button',{name:'+ Add Transaction'}).click();
       await dlg.locator('input[type=text]').fill('Income2');
+      say(await dlg.locator('select').nth(0).inputValue()===''&&
+        await dlg.locator('select').nth(1).inputValue()==='',
+        width+' Transaction has NO default Type or accounting treatment');
+      say(!await dlg.locator('form').evaluate(f=>f.checkValidity()),
+        width+' Transaction cannot save before mapping');
+      await dlg.locator('select').nth(0).selectOption({label:'Income'});
+      say(await dlg.locator('select').nth(1).inputValue()==='',
+        width+' choosing linked Type does NOT silently choose accounting treatment');
+      await dlg.locator('select').nth(1).selectOption('Income|Income');
       await dlg.getByRole('button',{name:'Save'}).click();
       say((await cards.nth(1).textContent()).includes('Income2'),width+' Transaction saved and linked to Type');
       await dlg.locator('header button').click();
@@ -54,6 +67,9 @@ const say=(condition,label)=>{assert.ok(condition,label);console.log('PASS '+lab
       dlg=page.locator('.mmh-hier-dialog');
       await dlg.getByRole('button',{name:'+ Add Category'}).click();
       await dlg.locator('input[type=text]').fill('Salary');
+      say(await dlg.locator('select').inputValue()==='',
+        width+' Category has NO default parent Transaction');
+      await dlg.locator('select').selectOption({label:'Income → Income2'});
       await dlg.getByRole('button',{name:'Save'}).click();
       say((await cards.nth(2).textContent()).includes('Salary'),width+' Category added under Income2');
       await dlg.locator('header button').click();
@@ -213,6 +229,7 @@ const say=(condition,label)=>{assert.ok(condition,label);console.log('PASS '+lab
       // selected Salary after Archive, even if it is the only remaining option.
       await dlg.getByRole('button',{name:'+ Add Category'}).click();
       await dlg.locator('input[type=text]').fill('Bonus');
+      await dlg.locator('select').selectOption({label:'Income → Income2'});
       await dlg.getByRole('button',{name:'Save'}).click();
       say(await save.isEnabled(),width+' adding another Category preserves explicit Salary choice');
       await dlg.getByRole('button',{name:'Archive'}).first().click();
