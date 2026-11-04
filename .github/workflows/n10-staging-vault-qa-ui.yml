@@ -40,6 +40,8 @@ jobs:
         run: node --test security/n10-vault-qa-staging-site/test-mfa-qa.mjs
       - name: Connected signup QA isolation, privacy and responsive tests
         run: node --test security/n10-vault-qa-staging-site/test-signup-qa.mjs
+      - name: C/D-only isolated UI contract (offline, no secrets)
+        run: node --test security/n10-vault-qa-staging-site/test-cd-isolation.mjs
       - name: Live deployed Staging signup page GET smoke (no credentials)
         run: node --test security/n10-vault-qa-staging-site/test-deployed-signup-page.mjs
       - name: Offline isolated safety tests
