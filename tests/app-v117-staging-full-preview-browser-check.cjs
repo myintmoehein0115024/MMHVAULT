@@ -21,7 +21,7 @@ const PROD='https://vrypucmyrztxgiqhjspd.supabase.co';
   await page.route('https://cdn.jsdelivr.net/**',route=>route.abort());
   await page.route(STAGE+'/**',route=>{
     const u=new URL(route.request().url());
-    if(/^(\/auth\/v1\/(token|user|logout)|\/rest\/v1\/(transactions|personal_configuration))$/.test(u.pathname)){
+    if(/^(\/auth\/v1\/(token|user|logout)|\/rest\/v1\/(transactions|personal_configuration|investments|custom_investments|crypto_wallet_movements))$/.test(u.pathname)){
       allowedAPI.push(u.pathname);
       return route.fulfill({status:200,headers:{'access-control-allow-origin':'*',
         'content-type':'application/json'},body:'[]'});
@@ -55,13 +55,16 @@ const PROD='https://vrypucmyrztxgiqhjspd.supabase.co';
   assert.equal(proof.n10,false,'Staging N10 Edge functions blocked by CSP');
   assert.equal(proof.finance,true,'Approved Staging ledger endpoint remains reachable');
   assert.equal(proof.config,true,'Approved Staging owner config endpoint remains reachable');
-  assert.equal(proof.investments,false,'Unapproved Staging investments endpoint must remain blocked');
-  assert.equal(proof.customInvestments,false,'Unapproved custom investments endpoint must remain blocked');
-  assert.equal(proof.wallet,false,'Unapproved wallet movements endpoint must remain blocked');
+  assert.equal(proof.investments,true,'Approved owner-read-only Staging investments endpoint allowed');
+  assert.equal(proof.customInvestments,true,'Approved owner-read-only custom investments endpoint allowed');
+  assert.equal(proof.wallet,true,'Approved owner-read-only wallet movements endpoint allowed');
   assert.deepEqual(forbiddenNet,[],'browser sent no request to disallowed API origin or path');
   assert.ok(allowedAPI.includes('/rest/v1/transactions'));
   assert.ok(allowedAPI.includes('/rest/v1/personal_configuration'));
-  console.log('PASS APP V11.7 Chrome local full APP staging CSP smoke — production/N10 blocked; finance only');
+  for(const table of ['investments','custom_investments','crypto_wallet_movements'])
+    assert.ok(allowedAPI.includes('/rest/v1/'+table),
+      'approved Staging-only boot REST route must be requested: '+table);
+  console.log('PASS APP V11.7 Chrome local full APP staging CSP smoke — Production/N10 blocked; exactly five finance REST routes');
   await context.close();
  }finally{await browser.close()}
 })().catch(e=>{console.error(e);process.exitCode=1});
