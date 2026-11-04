@@ -524,8 +524,8 @@ test('revoked AAL2 session during backup-status read never reveals backup existe
   'original fixed escrow must remain unchanged');
 });
 
-test('correct password but failed temporary-session sign-out cannot reveal fixed words',async()=>{
- const x=fakeWorld({failPasswordProofSignout:true});
+test('correct password but failed server-scoped temporary-session sign-out cannot reveal fixed words',async()=>{
+ const x=fakeWorld({failAdminSessionSignout:true});
  const e=await x.invoke(x.signup,{
   action:'signup',username:'n10real_e_20261104',password:PWD_E,
   captcha_token:'signup-password-proof-cleanup-fail'
@@ -542,8 +542,53 @@ test('correct password but failed temporary-session sign-out cannot reveal fixed
  assert.equal(denied.recovery_words,undefined);
  assert.equal(x.backups.get(e.user_id),e.recovery_words.join(' '),
   'escrow remains unchanged after sign-out failure');
+ assert.equal(x.isSessionLive(valid.access_token),true,
+  'the calling AAL2 session must not be globally signed out on proof failure');
+ assert.equal(x.activeSessions(e.user_id),3,
+  'mocked failure leaves the extra unshared proof session pending reconciliation');
+ assert.equal(x.events.filter(v=>v==='admin-signout-local:'+e.user_id).length,1,
+  'cleanup must attempt an exact local-scope Admin revocation');
 });
 
+test('successful recovery proof uses server-scoped logout and retains caller AAL2 session',async()=>{
+ const x=fakeWorld();
+ const e=await x.invoke(x.signup,{
+  action:'signup',username:'n10real_e_20261104',password:PWD_E,
+  captcha_token:'signup-for-scoped-proof-cleanup'
+ });
+ assert.equal(e.status,200);
+ const valid=x.mintAAL2(e.user_id);
+ const before=x.activeSessions(e.user_id);
+ assert.equal(before,2,'pre-existing signup and caller AAL2 sessions');
+ const result=await x.invoke(x.viewer,{action:'reveal',password:PWD_E},valid.access_token);
+ assert.equal(result.status,200);
+ assert.equal(result.code,'recovery_key');
+ assert.deepEqual(result.words,e.recovery_words);
+ assert.equal(x.activeSessions(e.user_id),before,'no extra live password proof session');
+ assert.equal(x.isSessionLive(valid.access_token),true,'the authorized caller remains signed in');
+ assert.equal(x.isSessionLive(e.access_token),true,'older signup session remains signed in');
+ assert.equal(x.events.filter(v=>v==='admin-signout-local:'+e.user_id).length,1,
+  'the password proof was locally revoked by Admin, never globally');
+});
+
+test('mismatched user in Recovery password-proof response revokes only fresh proof session',async()=>{
+ const x=fakeWorld();
+ const e=await x.invoke(x.signup,{
+  action:'signup',username:'n10real_e_20261104',password:PWD_E,
+  captcha_token:'signup-for-mismatched-proof-identity'
+ });
+ assert.equal(e.status,200);
+ const caller=x.mintAAL2(e.user_id);
+ x.mismatchNextPasswordAuthUser();
+ const denied=await x.invoke(x.viewer,{action:'reveal',password:PWD_E},caller.access_token);
+ assert.equal(denied.status,401);
+ assert.equal(denied.code,'invalid_credentials');
+ assert.equal(denied.words,undefined);
+ assert.equal(x.activeSessions(e.user_id),2,'failed proof session was revoked');
+ assert.equal(x.isSessionLive(caller.access_token),true);
+ assert.equal(x.events.filter(v=>v==='admin-signout-local:'+e.user_id).length,1);
+ assert.equal(x.backups.get(e.user_id),e.recovery_words.join(' '));
+});
 
 test('QA deadline closing after final status session check never returns backup existence',async()=>{
  const x=fakeWorld({closeQAOnSessionCheck:2});
