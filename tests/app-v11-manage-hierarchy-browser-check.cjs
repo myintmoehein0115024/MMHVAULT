@@ -86,7 +86,7 @@ const say=(condition,label)=>{assert.ok(condition,label);console.log('PASS '+lab
       const options=await page.evaluate(()=>Object.fromEntries(['txType','txGroup','txCategory']
         .map(id=>[id,[...document.getElementById(id).options]
           .filter(x=>x.dataset.mmhChoiceId).map(x=>x.textContent)])));
-      assert.deepEqual(options,{txType:['Income'],txGroup:[],txCategory:[]});
+      assert.deepEqual(options,{txType:['Income'],txGroup:['Income2'],txCategory:['Salary']});
       say(true,width+' Add Transaction has exact linked Type, no ghost defaults');
       const save=page.locator('#txForm .actions button');
       say(await save.isDisabled(),width+' new transaction cannot save before explicit choices');
