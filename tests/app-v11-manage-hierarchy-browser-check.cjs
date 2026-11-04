@@ -43,7 +43,8 @@ const say=(condition,label)=>{assert.ok(condition,label);console.log('PASS '+lab
         width+' Type cannot silently save without choosing income/expense');
       await dlg.locator('select').selectOption('Income');
       await dlg.getByRole('button',{name:'Save'}).click();
-      say((await cards.nth(0).textContent()).includes('Income'),width+' Type saved');
+      say((await cards.nth(0).textContent()).includes('Income (+)'),
+        width+' Type saved with visible positive balance direction');
       await dlg.locator('header button').click();
       // Step 2: Transaction assigned to Income.
       await cards.nth(1).getByRole('button',{name:'Manage'}).click();
@@ -55,10 +56,12 @@ const say=(condition,label)=>{assert.ok(condition,label);console.log('PASS '+lab
         width+' Transaction has NO default Type or accounting treatment');
       say(!await dlg.locator('form').evaluate(f=>f.checkValidity()),
         width+' Transaction cannot save before mapping');
-      await dlg.locator('select').nth(0).selectOption({label:'Income'});
-      say(await dlg.locator('select').nth(1).inputValue()==='',
-        width+' choosing linked Type does NOT silently choose accounting treatment');
-      await dlg.locator('select').nth(1).selectOption('Income|Income');
+      await dlg.locator('select').nth(0).selectOption({index:1});
+      say((await dlg.locator('p[role=status]').textContent()).includes('Money increases (+)'),
+        width+' Income Type determines balance increase');
+      say(!await dlg.locator('input[type=checkbox]').isChecked()&&
+        await dlg.locator('select').nth(1).isDisabled(),
+        width+' ordinary Income purpose is inherited without extra setup');
       await dlg.getByRole('button',{name:'Save'}).click();
       say((await cards.nth(1).textContent()).includes('Income2'),width+' Transaction saved and linked to Type');
       await dlg.locator('header button').click();
@@ -83,6 +86,8 @@ const say=(condition,label)=>{assert.ok(condition,label);console.log('PASS '+lab
       await page.locator('#txType').selectOption({label:'Income'});
       await page.locator('#txGroup').selectOption({label:'Income2'});
       await page.locator('#txCategory').selectOption({label:'Salary'});
+      say((await page.locator('#mmhHierarchyBalanceHint').textContent()).includes('Money increases (+)'),
+        width+' Add Transaction displays account increase inherited from Type');
       say(await save.isEnabled(),width+' explicit Type→Transaction→Category enables native Save');
       // Native V321 and account-balance guards must not be defeated by a
       // subsequent Manage selector refresh. A second submit while busy
@@ -466,6 +471,74 @@ const say=(condition,label)=>{assert.ok(condition,label);console.log('PASS '+lab
       say(pageErrors.length===0,
         'owner-scoped cloud verification has no browser exceptions');
       await checkContext.close();
+    }
+    // Independent ledger-direction QA. User-defined labels never determine
+    // + / -; Type selection does. No Auth, no Staging/Production writes.
+    {
+      const directionContext=await browser.newContext({viewport:{width:393,height:800},
+        serviceWorkers:'block',...(engine==='webkit'?{isMobile:true,hasTouch:true}:{})});
+      const dpage=await directionContext.newPage(),consoleErrors=[];
+      dpage.on('pageerror',e=>consoleErrors.push(e.message));
+      await dpage.goto(base,{waitUntil:'load'});
+      await dpage.waitForSelector('#mmhHierarchyManage .mmh-hier-card');
+      const dCards=dpage.locator('.mmh-hier-card');
+      for(const [name,direction,mark] of [['MyPay','Income','+'],
+        ['Type-Expense','Expense','−'],['MoveFunds','Transfer','⇄']]){
+        await dCards.nth(0).getByRole('button',{name:'Manage'}).click();
+        const d=dpage.locator('.mmh-hier-dialog');
+        await d.getByRole('button',{name:'+ Add Type'}).click();
+        await d.locator('input[type=text]').fill(name);
+        say(!await d.locator('form').evaluate(f=>f.checkValidity()),
+          'Type '+name+' cannot be saved without explicit money direction');
+        await d.locator('select').selectOption(direction);
+        await d.getByRole('button',{name:'Save'}).click();
+        await d.locator('header button').click();
+        say((await dCards.nth(0).textContent()).includes(name+' ('+mark+')'),
+          'Type '+name+' retains '+direction+' direction, regardless of its name');
+      }
+      for(const [typeName,transactionName,purposeGroup,sign] of [
+        ['MyPay','Monthly Pay','Income','Money increases (+)'],
+        ['Type-Expense','Shopping','Expense','Money decreases (−)'],
+        ['MoveFunds','Account Move','Transfer','Move between accounts (− / +)']
+      ]){
+        await dCards.nth(1).getByRole('button',{name:'Manage'}).click();
+        const d=dpage.locator('.mmh-hier-dialog');
+        await d.getByRole('button',{name:'+ Add Transaction'}).click();
+        await d.locator('input[type=text]').fill(transactionName);
+        await d.locator('select').nth(0).selectOption({label:await d.locator('select').nth(0)
+          .locator('option').filter({hasText:typeName}).first().textContent()});
+        say((await d.locator('p[role=status]').textContent()).includes(sign),
+          transactionName+' inherits parent direction in modal');
+        say(!await d.locator('input[type=checkbox]').isChecked(),
+          transactionName+' ordinary mode requires no special purpose');
+        await d.getByRole('button',{name:'Save'}).click();
+        await d.locator('header button').click();
+        const kind=await dpage.evaluate(name=>{
+          const g=window.MMHVAULT_CONFIG?.txHierarchyV11;
+          return g?.transactions.find(t=>t.label===name)?.kindId||'';
+        },transactionName);
+        say(kind===purposeGroup+'|'+purposeGroup,
+          transactionName+' stores expected native ledger group '+kind);
+      }
+      // Special loan treatment is opt-in, and still cannot reverse an
+      // Income Type into an Expense transaction.
+      await dCards.nth(1).getByRole('button',{name:'Manage'}).click();
+      let d=dpage.locator('.mmh-hier-dialog');
+      await d.getByRole('button',{name:'+ Add Transaction'}).click();
+      await d.locator('input[type=text]').fill('Borrowed money');
+      await d.locator('select').nth(0).selectOption({index:1});
+      await d.locator('input[type=checkbox]').check();
+      say(!await d.locator('form').evaluate(f=>f.checkValidity()),
+        'special loan mode requires explicit accounting purpose');
+      await d.locator('select').nth(1).selectOption('Income|Loans');
+      await d.getByRole('button',{name:'Save'}).click();
+      await d.locator('header button').click();
+      say(await dpage.evaluate(()=>window.MMHVAULT_CONFIG.txHierarchyV11.transactions
+        .some(t=>t.label==='Borrowed money'&&t.kindId==='Income|Loans')),
+        'special Loan Income preserves positive Type direction and canonical purpose');
+      say(consoleErrors.length===0,
+        'positive, negative, transfer and special-purpose QA has no script errors');
+      await directionContext.close();
     }
     const context=await browser.newContext({viewport:{width:393,height:800},serviceWorkers:'block',
       ...(engine==='webkit'?{isMobile:true,hasTouch:true,deviceScaleFactor:2}:{})});
