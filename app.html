@@ -2,6 +2,12 @@
 
 <html lang="en">
 <head>
+<meta http-equiv="Content-Security-Policy" content="connect-src 'self' https://ldivswlhtgmznzwhzsoi.supabase.co wss://ldivswlhtgmznzwhzsoi.supabase.co">
+<script id="mmh-staging-only-qa-guard">
+(function(){if(!/^[a-z0-9-]+\.mmhvault-app-v117-staging\.pages\.dev$/i.test(location.hostname)){
+document.documentElement.replaceChildren(document.createTextNode('MMHVAULT ONBOARDING QA — STAGING PREVIEW ONLY'));
+throw new Error('QA build blocked outside dedicated Cloudflare Staging preview');}})();
+</script>
 <meta name="robots" content="noindex,nofollow,noarchive">
 <meta charset="utf-8"/>
 <!-- P9.60: Close transient popovers before hard-refresh and present one calm boot surface. -->
@@ -62,8 +68,8 @@ html.mmh-p960-quiet-loading body #dataLoadOverlayV384.show .data-load-sub-v384{f
 <meta name="mmhvault-release" content="1.3.0-uiux-pass1"/>
 <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
-<link rel="dns-prefetch" href="https://vrypucmyrztxgiqhjspd.supabase.co">
-<link rel="preconnect" href="https://vrypucmyrztxgiqhjspd.supabase.co" crossorigin>
+<link rel="dns-prefetch" href="https://ldivswlhtgmznzwhzsoi.supabase.co">
+<link rel="preconnect" href="https://ldivswlhtgmznzwhzsoi.supabase.co" crossorigin>
 <style data-mmh-bundled="mmhvault.css">
 :root{--bg:#080b24;--panel:#11163d;--panel2:#171d4b;--line:#303879;--text:#eef1ff;--muted:#9da6d2;--cyan:#16e6ff;--pink:#ff3de8;--green:#28e58b;--red:#ff637d;--yellow:#ffd34e}
 *{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 50% -20%,#252e6b,#080b24 58%);color:var(--text);font-family:Inter,system-ui,-apple-system,sans-serif}
@@ -10904,6 +10910,7 @@ html.mmh-desktop-compact-v11110 body.mmh-workspace-active #moreNavMenu.more-nav-
 </head>
 <!-- MMHVAULT V4.3.6 · iOS JSON import bridge + V4.3.0 Dashboard report relocation + Transaction receipt center + Invest Add precision -->
 <body>
+<div id="mmhOnboardQABanner" role="status" style="position:fixed;inset:auto 8px 8px auto;z-index:2147482500;background:#493010;color:#fff1cd;border:2px solid #edc36d;border-radius:9px;padding:9px 12px;font:700 11px system-ui;pointer-events:none">ONBOARDING QA · AUTH-STAGING ONLY · SYNTHETIC ACCOUNTS</div>
 <script id="mmhvault-v930-native-dialog-bridge">
 (function(){
   'use strict';
@@ -12883,8 +12890,8 @@ window.mmhvaultHandleBackupFileV436=function(file,input){
 };
 </script>
 <script>
-const SUPABASE_URL="https://vrypucmyrztxgiqhjspd.supabase.co";
-const SUPABASE_KEY="sb_publishable_H38v4XbO0ARnSJToD42wGg_27-SZ3Ao";
+const SUPABASE_URL="https://ldivswlhtgmznzwhzsoi.supabase.co";
+const SUPABASE_KEY="sb_publishable_LxIB8564OZD48HQ8Mfsc0A_apkgERZo";
 if(!window.supabase){
   const g=document.getElementById("mmhvaultAppBootGuardV3282");
   if(g)g.innerHTML='<div style="max-width:460px;border:1px solid rgba(255,112,112,.28);border-radius:18px;padding:24px 22px;background:rgba(42,16,32,.94);font-family:Arial,sans-serif;text-align:center;"><div style="font-size:18px;font-weight:800;color:#fff;">MMHVAULT cannot start</div><div style="margin-top:8px;color:#ffb7b7;font-size:13px;line-height:1.5;">The authentication service could not be loaded. Please refresh once. Your cloud data is not being changed.</div></div>';
