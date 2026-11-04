@@ -35,14 +35,18 @@ const csp=[
 "default-src 'self'","base-uri 'self'","form-action 'self'",
 "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net",
 "style-src 'self' 'unsafe-inline'",
-// Only login/session lookup and the TWO approved finance tables are callable.
+// Only login/session lookup and the FIVE approved empty Staging finance tables are callable.
+// The three new investment/wallet boot tables are AUTHENTICATED SELECT-ONLY.
 // N10 Edge Functions, MFA/recovery, storage changes, other business APIs and
 // production origins are out of scope and must be network-blocked.
 "connect-src https://"+STAGING_HOST+"/auth/v1/token"+
   " https://"+STAGING_HOST+"/auth/v1/user"+
   " https://"+STAGING_HOST+"/auth/v1/logout"+
   " https://"+STAGING_HOST+"/rest/v1/transactions"+
-  " https://"+STAGING_HOST+"/rest/v1/personal_configuration",
+  " https://"+STAGING_HOST+"/rest/v1/personal_configuration"+
+  " https://"+STAGING_HOST+"/rest/v1/investments"+
+  " https://"+STAGING_HOST+"/rest/v1/custom_investments"+
+  " https://"+STAGING_HOST+"/rest/v1/crypto_wallet_movements",
 "img-src 'self' data: blob: https://"+STAGING_HOST,
 "font-src 'self' data:","object-src 'none'","frame-src 'none'",
 "worker-src 'none'","manifest-src 'none'"
@@ -107,8 +111,9 @@ fs.writeFileSync(path.join(out,'README-STAGING-QA.txt'),[
 '    python3 -m http.server 8769 --bind 127.0.0.1',
 'Then open http://127.0.0.1:8769/app.html',
 'The Content Security Policy permits only Staging Auth session requests',
-'and REST calls to transactions / personal_configuration. All other API',
-'paths, including N10 recovery/MFA, plus Production, are blocked.',
+'and REST calls to transactions / personal_configuration / investments /',
+'custom_investments / crypto_wallet_movements (last three SELECT only).',
+'All other API paths, including N10 MFA/recovery and Production, are blocked.',
 'Local service workers, embedded frames and other origins are blocked.',
 'If login/incomplete features fail due to these restrictions, report it;',
 'DO NOT loosen the Staging-only connection policy or enter real account data.',
