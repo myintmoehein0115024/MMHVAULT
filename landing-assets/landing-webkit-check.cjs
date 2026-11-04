@@ -52,14 +52,16 @@ function pass(condition,label,detail){
           ?getComputedStyle(document.querySelector('.hero'),'::after').filter==='none':true,
         heroHaloOff:document.body.classList.contains('l131')
           ?getComputedStyle(document.querySelector('.hero-halo')).filter==='none':true,
+        heroCopyOff:document.body.classList.contains('l131')
+          ?getComputedStyle(document.querySelector('.hero-copy')).filter==='none':true,
         canonical:document.querySelector('link[rel="canonical"]')?.href,
         horizontalOverflow:document.documentElement.scrollWidth>innerWidth+2
       };
     });
-    pass(metrics.safariSheet?.includes('?v=l166') &&
+    pass(metrics.safariSheet?.includes('?v=l167') &&
       metrics.headerBackdrop==='none'&&metrics.headerWebkitBackdrop==='none'&&
       metrics.headerBackground.includes('linear-gradient')&&
-      metrics.cardBlurOff&&metrics.ambientOff&&metrics.heroGlowOff&&metrics.heroHaloOff&&
+      metrics.cardBlurOff&&metrics.ambientOff&&metrics.heroGlowOff&&metrics.heroHaloOff&&metrics.heroCopyOff&&
       metrics.canonical?.startsWith('https://mmhvault.com/')&&
       !metrics.horizontalOverflow&&metrics.scrollX===0&&
       (metrics.scrollY<10||Math.abs(metrics.headerTop)<=2),
