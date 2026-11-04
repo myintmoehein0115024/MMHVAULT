@@ -87,13 +87,30 @@ async function liveSession(userId:string,sessionId:string,expectedAal:'aal1'|'aa
 async function provePassword(user:{id:string,email?:string|null},password:unknown){
  if(typeof password!=='string'||password.length<6||password.length>20||!user.email||!ANON)return false;
  const client=createClient(BASE,ANON,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});
+ let proofToken:string|null=null,verified=false;
  try{
   const {data,error}=await client.auth.signInWithPassword({email:user.email,password});
-  if(error||data?.user?.id!==user.id||!data.session?.access_token)return false;
-  const checked=await client.auth.getUser(data.session.access_token);
-  return !checked.error&&checked.data?.user?.id===user.id;
+  // Capture the exact *new* proof session even if the Auth response has
+  // mismatched identity or malformed refresh credentials.
+  if(typeof data?.session?.access_token==='string'&&data.session.access_token)
+   proofToken=data.session.access_token;
+  if(!error&&data?.user?.id===user.id&&proofToken&&
+     typeof data.session?.refresh_token==='string'&&data.session.refresh_token){
+   const checked=await client.auth.getUser(proofToken);
+   verified=!checked.error&&checked.data?.user?.id===user.id;
+  }
+ }catch(_){verified=false;}
+ // Client-side signOut can be a no-op when persistSession=false. Revoke
+ // precisely the temporary Auth session by its captured JWT, never global
+ // sign-out and never an already existing owner session.
+ if(!proofToken)return false;
+ try{
+  const {error}=await admin.auth.admin.signOut(proofToken,'local');
+  if(error)return false;
  }catch(_){return false;}
- finally{try{await client.auth.signOut({scope:'local'});}catch(_){}}
+ // An issued access JWT can remain valid until expiry. The original
+ // request still requires its independent server-side session_active guard.
+ return verified;
 }
 async function verifiedUser(req:Request){
  const m=/^Bearer\s+([^\s]+)$/i.exec(req.headers.get('Authorization')||'');
