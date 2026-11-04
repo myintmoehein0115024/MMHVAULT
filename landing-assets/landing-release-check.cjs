@@ -846,8 +846,8 @@ check('L1.27 public tab title matches SEO without language focus scroll',
  l133PublicPagesUnchanged() &&
  l142IndexOnlyEdited() && current.includes(newHeroPreload) &&
  !current.includes(oldHeroPreload));
-check('L1.65 strict eleven-file desktop Safari paint adjustment; all protected areas unchanged',
-  actual.length===11 &&
+check('L1.65 strict twelve-file desktop Safari paint adjustment; all protected areas unchanged',
+  actual.length===12 &&
   actual.every(path=>[
     'index.html','landing-assets/safari-performance-l164.css',
     'landing-assets/landing-webkit-check.cjs',
