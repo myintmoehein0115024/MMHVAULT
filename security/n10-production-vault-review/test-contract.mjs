@@ -2,6 +2,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
+import {runInNewContext} from 'node:vm';
 import {evaluateMfaAssurance} from './mfa-assurance.mjs';
 import {sessionAalFromVerifiedFactors} from './session-aal.mjs';
 const src=readFileSync('security/n10-production-vault-review/index.ts','utf8');
@@ -53,4 +54,82 @@ test('password-only account can use AAL1; enrolled MFA needs AAL2',()=>{
  assert.equal(sessionAalFromVerifiedFactors([]),'aal1');
  assert.equal(sessionAalFromVerifiedFactors([{factor_type:'totp',status:'verified'}]),'aal2');
  assert.equal(sessionAalFromVerifiedFactors([{factor_type:'totp',status:'bogus'}]),null);
+});
+
+test('Recovery password proof revokes exact freshly issued session before returning success',async()=>{
+ const srcStart=src.indexOf('async function provePassword(');
+ const srcEnd=src.indexOf('async function verifiedUser(',srcStart);
+ assert.ok(srcStart>0&&srcEnd>srcStart,'production candidate proof must exist');
+ const code=src.slice(srcStart,srcEnd)
+  .replace('user:{id:string,email?:string|null},password:unknown','user,password')
+  .replace('let proofToken:string|null=null,verified=false;','let proofToken=null,verified=false;');
+ assert.match(code,/admin\.auth\.admin\.signOut\(proofToken,'local'\)/);
+ assert.doesNotMatch(code,/client\.auth\.signOut\(/,'never rely on client-memory logout');
+ const events=[];
+ const owner={id:'synthetic-owner-a',email:'owner-a@invalid.example'};
+ const currentSession={id:'original-owner-session',live:true};
+ const proof={access_token:'new-synthetic-proof-jwt',refresh_token:'new-synthetic-refresh'};
+ const admin={auth:{admin:{signOut:async(jwt,scope)=>{
+  events.push('revoke:'+jwt+':'+scope);
+  assert.equal(jwt,proof.access_token,'must revoke new proof session only');
+  assert.equal(scope,'local','must not revoke existing owner sessions');
+  return {error:null};
+ }}}};
+ const createClient=()=>({auth:{
+  signInWithPassword:async()=>({data:{user:owner,session:proof},error:null}),
+  getUser:async jwt=>({data:{user:jwt===proof.access_token?owner:null},error:null}),
+  signOut:()=>{throw Error('client signOut must never be used');}
+ }});
+ const sandbox={BASE:'https://synthetic.invalid',ANON:'synthetic-anon-key',createClient,admin};
+ runInNewContext(code+'\nthis.provePassword=provePassword;',sandbox);
+ assert.equal(await sandbox.provePassword(owner,'SyntheticPassword1'),true);
+ assert.deepEqual(events,['revoke:new-synthetic-proof-jwt:local']);
+ assert.equal(currentSession.live,true,'original authenticated session must remain intact');
+});
+
+test('Recovery password proof fails closed for unsuccessful revocation and malformed Auth data',async()=>{
+ const start=src.indexOf('async function provePassword(');
+ const end=src.indexOf('async function verifiedUser(',start);
+ const code=src.slice(start,end)
+  .replace('user:{id:string,email?:string|null},password:unknown','user,password')
+  .replace('let proofToken:string|null=null,verified=false;','let proofToken=null,verified=false;');
+ const owner={id:'synthetic-owner-a',email:'owner-a@invalid.example'};
+ async function run({logoutError=false,logoutThrow=false,mismatch=false,noRefresh=false,getUserFail=false,noToken=false,signInFail=false}={}){
+  const calls=[];
+  const proofToken='fresh-unshared-synthetic-token';
+  const ctx={
+   BASE:'https://synthetic.invalid',ANON:'synthetic-anon-key',
+   createClient:()=>({auth:{
+    signInWithPassword:async()=>signInFail?{data:null,error:{message:'wrong password'}}:
+      {data:{user:{...owner,id:mismatch?'other-owner':owner.id},
+       session:noToken?null:{access_token:proofToken,refresh_token:noRefresh?'':'synthetic-refresh'}},error:null},
+    getUser:async()=>getUserFail?{data:{user:null},error:{message:'unverified'}}:
+      {data:{user:owner},error:null},
+    signOut:()=>{throw Error('client signOut must not be used');}
+   }}),
+   admin:{auth:{admin:{signOut:async(token,scope)=>{
+    calls.push({token,scope});
+    if(logoutThrow)throw Error('scoped service logout failed');
+    return {error:logoutError?{message:'server returned failure'}:null};
+   }}}}
+  };
+  runInNewContext(code+'\nthis.provePassword=provePassword;',ctx);
+  const result=await ctx.provePassword(owner,'SyntheticPassword1');
+  return {result,calls};
+ }
+ for(const flags of [
+  {logoutError:true}, {logoutThrow:true}, {mismatch:true},
+  {noRefresh:true}, {getUserFail:true}
+ ]){
+  const testCase=await run(flags);
+  assert.equal(testCase.result,false,'must withhold recovery key when proof fails or revocation fails');
+  assert.equal(testCase.calls.length,1,'revoke every issued session even on malformed response');
+  assert.equal(testCase.calls[0].token,'fresh-unshared-synthetic-token');
+  assert.equal(testCase.calls[0].scope,'local');
+ }
+ for(const flags of [{noToken:true},{signInFail:true}]){
+  const denied=await run(flags);
+  assert.equal(denied.result,false);
+  assert.equal(denied.calls.length,0,'never revoke other sessions if no proof token was issued');
+ }
 });
