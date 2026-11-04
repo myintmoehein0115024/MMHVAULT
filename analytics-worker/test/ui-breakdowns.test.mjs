@@ -70,6 +70,8 @@ test('the page inline initialization remains valid and leaves primary chart inde
   const inline=page.match(/<script>\s*([\s\S]*?)<\/script>/)?.[1];
   assert.ok(inline);
   assert.doesNotThrow(()=>new Script(inline));
-  assert.match(page,/void loadBreakdowns\(token,selectedRange,serial\)/);
+  assert.match(page,/void loadBreakdowns\(breakdownToken,breakdownRange,requestSerial\)/);
+  assert.match(page,/id="loadBreakdowns"/);
+  assert.match(page,/Please allow 30 seconds between breakdown queries/);
   assert.match(page,/Breakdowns unavailable\. Existing totals remain valid\./);
 });
