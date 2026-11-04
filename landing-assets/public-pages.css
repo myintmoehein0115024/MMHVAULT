@@ -906,3 +906,17 @@ body.public-landing-page .policy-card{
     transition:none!important
   }
 }
+
+/* L1.62 — public breadcrumb labels must wrap inside narrow phone viewports.
+   Presentation-only; no navigation, SEO markup or JS changes. */
+@media (max-width: 620px) {
+  body.public-landing-page .page-breadcrumb {
+    flex-wrap: wrap;
+    min-width: 0;
+    max-width: 100%;
+  }
+  body.public-landing-page .page-breadcrumb > :is(a, span) {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+}

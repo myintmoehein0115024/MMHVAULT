@@ -269,6 +269,13 @@ const l160ScriptTag='<script defer src="/landing-assets/public-pages.js?v=l160">
 const l161ScriptTag='<script defer src="/landing-assets/public-pages.js?v=l161"></script>';
 // L1.61 compares a released L1.60 page with its cache-busted navigation script.
 const l158RestoreScript=(html)=>html.replace(l161ScriptTag,l160ScriptTag);
+const l162CssPatch="\n/* L1.62 — public breadcrumb labels must wrap inside narrow phone viewports.\n   Presentation-only; no navigation, SEO markup or JS changes. */\n@media (max-width: 620px) {\n  body.public-landing-page .page-breadcrumb {\n    flex-wrap: wrap;\n    min-width: 0;\n    max-width: 100%;\n  }\n  body.public-landing-page .page-breadcrumb > :is(a, span) {\n    min-width: 0;\n    overflow-wrap: anywhere;\n  }\n}\n";
+const l162OldCssLink="<link rel=\"stylesheet\" href=\"/landing-assets/public-pages.css\">";
+const l162NewCssLink="<link rel=\"stylesheet\" href=\"/landing-assets/public-pages.css?v=l162\">";
+const l162RestoreCss=(html)=>html.replace(l162NewCssLink,l162OldCssLink);
+const l162CssOnlyEdited=()=>
+  read('landing-assets/public-pages.css')===
+    source('landing-assets/public-pages.css')+l162CssPatch;
 const l160PublicRemovals=[" * Read-only presentation: no auth, fetch, history/URL rewrites or finance data.\n"," * Header markup and shared-header-l116.css are identical across public pages.\n","  // L1.26: return focus to a visible trigger when dismissing compact\n","  // navigation, Explore or the language picker on any public page.\n","    // A collapsed Explore inside the mobile menu must not close the menu too.\n"];
 const l160PublicMarker="      mq.addEventListener?mq.addEventListener('change',bind):mq.addListener?.(bind);\n";
 const l160PublicAddition="      // L1.60: settle pending reveals.\n      const reduced=matchMedia('(prefers-reduced-motion: reduce)');\n      const settle=()=>{\n        if(!reduced.matches)return;\n        io.disconnect();\n        for(const el of targets)el.classList.add('mm-public-shown');\n      };\n      reduced.addEventListener?reduced.addEventListener('change',settle):reduced.addListener?.(settle);\n";
@@ -726,7 +733,7 @@ check('Seven public pages inherit exact Landing header structure, icons and drop
      html.includes(cssNew) && old.includes(cssNew) &&
      // L1.16 already shipped; protect its header, page body and SEO
      // byte-for-byte, allowing ONLY the two localized summary blocks.
-     restoreOldLocalizedSummary(path,l158RestoreScript(html),old)===old &&
+     restoreOldLocalizedSummary(path,l158RestoreScript(l162RestoreCss(html)),old)===old &&
      (h.match(/<details class="nav-explore"/g)||[]).length===1 &&
      (h.match(/class="mobile-nav-auth"/g)||[]).length===1 &&
      (h.match(/class="locale-menu"/g)||[]).length===1;
@@ -797,7 +804,7 @@ check('L1.20 canonical, named WebPage and breadcrumb structured data are accurat
      breadcrumb.itemListElement?.[0]?.item!=='https://mmhvault.com/' ||
      breadcrumb.itemListElement?.[1]?.item!==url)return false;
   }else if(!head.includes('"@type":"BreadcrumbList"'))return false;
-  return l158RestoreScript(html)===source(path);
+  return l158RestoreScript(l162RestoreCss(html))===source(path);
  }));
 check('L1.23 lightweight scroll reveals are opacity+transform only, motion access preserved',
  read('landing-assets/motion-l132.css').includes('L1.23: compositor-friendly') &&
@@ -825,25 +832,28 @@ check('L1.27 public tab title matches SEO without language focus scroll',
  l133PublicPagesUnchanged() &&
  l142IndexOnlyEdited() && current.includes(newHeroPreload) &&
  !current.includes(oldHeroPreload));
-check('L1.61 strict twelve-file keyboard navigation, SEO and analytics unchanged',
-  actual.length===12 &&
-  actual.every(path=>['index.html','landing-assets/landing.js',
-    'landing-assets/public-pages.js','landing-assets/landing-release-check.cjs',
-    'landing-assets/landing-browser-check.cjs',...publicHeaders].includes(path)) &&
+check('L1.62 strict ten-file public breadcrumb CSS only; SEO/Analytics unchanged',
+  actual.length===10 &&
+  actual.every(path=>[
+    'landing-assets/public-pages.css',
+    'landing-assets/landing-release-check.cjs',
+    'landing-assets/landing-browser-check.cjs',
+    ...publicHeaders
+  ].includes(path)) &&
   publicHeaders.every(path=>{
-    const prior=source(path);
-    return prior.split(l160ScriptTag).length===2 &&
-      read(path)===prior.replace(l160ScriptTag,l161ScriptTag);
+    const old=source(path);
+    return old.split(l162OldCssLink).length===2 &&
+      read(path)===old.replace(l162OldCssLink,l162NewCssLink);
   }) &&
+  l162CssOnlyEdited() &&
   l139PublicOnlyEdited() && l139MotionOnlyEdited() &&
-  current===prev.replace(l155NewScriptTag,l161LandingTag) &&
-  analyticsAddition.test(rawCurrent) &&
+  current===prev && analyticsAddition.test(rawCurrent) &&
   l142IndexOnlyEdited() && l133BurmeseLayoutOnlyEdited() &&
   l133PublicPagesUnchanged() && l135HeaderCssOnlyEdited() &&
-  ['landing-assets/public-pages.css','landing-assets/business.css',
-    'landing-assets/cinematic.css','landing-assets/premium-l131.css',
-    'landing-assets/motion-l132.css','sitemap.xml','robots.txt',
-    'mmh-manifest-v2.webmanifest'].every(path=>read(path)===source(path)));
+  ['landing-assets/business.css','landing-assets/cinematic.css',
+    'landing-assets/premium-l131.css','landing-assets/motion-l132.css',
+    'sitemap.xml','robots.txt','mmh-manifest-v2.webmanifest'
+  ].every(path=>read(path)===source(path)));
 // The device image remains decoded-before-show, with no invisible opacity
 // transition on phones/tablets. This is the only change to cinematic.css.
 const l140HeroCssSuffix="\n/* L1.40 — Once the phone/tablet Hero image has decoded, swap it in\n   without a second opacity delay that could expose a blank frame after\n   the HTML fallback is hidden. Keep desktop presentation unchanged. */\n@media (max-width: 900px) {\n  body.l131 .hero-device-cinematic { transition: none; }\n}\n";
@@ -1068,7 +1078,7 @@ check('L1.40 phone scroll reveals prewarm outside viewport without layout edits'
  !l139PublicInsertion.includes('preventDefault(') &&
  l148LandingJsOnlyEdited() &&
  read('landing-assets/motion-l132.css')===source('landing-assets/motion-l132.css') &&
- read('landing-assets/public-pages.css')===source('landing-assets/public-pages.css') &&
+ l162CssOnlyEdited() &&
  l142IndexOnlyEdited());
 check('L1.28 shared header motion remains unchanged and accessible',
  l135HeaderCssOnlyEdited() &&
