@@ -69,7 +69,8 @@ const walletGuard=source.slice(walletDefinitions[0].index,walletDefinitions[0].i
 assert.match(walletGuard,/mmhPersonalReadAllV191\s*\(\s*['"]crypto_wallet_movements['"]\s*,\s*owner\s*\)/,
   'Wallet loader must have a known owner-scoped table dependency');
 // Check the precise minimal boot query contract for the three missing tables.
-// We derive these only from current source; this does NOT authorize DDL.
+// We derive these from source; only the three separately approved empty,
+// owner-read-only Auth-Staging boot tables were added, never Production.
 const hardBootReads=[...bootGuard.matchAll(/\bread\s*\(\s*['"]([a-z_]+)['"]\s*,\s*['"]([a-z_]+)['"]\s*\)/g)]
   .map(m=>({table:m[1],dateSort:m[2]}));
 const bootSortByTable=new Map(hardBootReads.map(x=>[x.table,x.dateSort]));
@@ -92,21 +93,22 @@ console.log('APP_V117_MINIMAL_SCHEMA_CONTRACT='+JSON.stringify({
   sharedReaderLine:lineno(helperMatch.index),sharedReaderReview:helperReview,
   hardBootReads,indirectWalletTable:'crypto_wallet_movements',
   additionalBootCandidates:['investments','custom_investments','crypto_wallet_movements'],
-  warning:'Read-only static inference. Validate actual required columns, Data API grants and owner RLS before a separate schema approval.'
+  warning:'Read-only static inference. Three Staging boot tables now exist with owner SELECT and zero rows; full signed APP QA is still pending.'
 }));
 const inventory=[...entries.entries()].sort((a,b)=>a[0].localeCompare(b[0]))
   .map(([table,lines])=>({table,references:lines.length,firstLines:lines.slice(0,6)}));
 assert.ok(startup.length,'Full APP startup entrypoint loadAll not found: review bootstrap');
 assert.ok(entries.has('transactions'),'Full APP ledger reference missing');
 assert.ok(entries.has('personal_configuration'),'Owner-scoped config reference missing');
-// Explicitly show what the APPROVED Staging schema can serve. We do not
-// create, query or imply permission to create any other tables.
-const authorized=new Set(['transactions','personal_configuration']);
+// The exact five approved Auth-Staging finance tables are included. This
+// source inventory performs no database access or schema mutations.
+const authorized=new Set(['transactions','personal_configuration',
+  'investments','custom_investments','crypto_wallet_movements']);
 const additional=inventory.filter(x=>!authorized.has(x.table));
 console.log('APP_V117_READ_ONLY_BOOT_DEPENDENCY_INVENTORY='+JSON.stringify({
   startup:startup.slice(0,12),
   authorizedFinanceTables:[...authorized],
   allLiteralDataTableReferences:inventory,
-  notInApprovedTwoTableSandbox:additional.map(x=>x.table),
-  note:'References are static only; manually review loadAll failure handling before classifying hard versus optional. No Staging schema changes.'
+  notInApprovedFiveTableSandbox:additional.map(x=>x.table),
+  note:'References are static only; actual signed APP data loading and read-only owner permissions require separate acceptance. No database changes by this test.'
 }));
