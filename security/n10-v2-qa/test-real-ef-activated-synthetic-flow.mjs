@@ -22,11 +22,14 @@ const WORDLIST=Array.from({length:2048},(_,i)=>{
 });
 assert.equal(new Set(WORDLIST).size,2048);
 
-function fakeWorld({failEscrow=false,revokeOnVaultRead=false,revokeOnStatusRead=false,malformedAuthResponse=false,closeGateOnSignin=false,failPasswordProofSignout=false,closeQAOnSessionCheck=0,expireQAOnOpenCheck=0,failAdminSessionSignout=false}={}){
+function fakeWorld({failEscrow=false,revokeOnVaultRead=false,revokeOnStatusRead=false,malformedAuthResponse=false,closeGateOnSignin=false,failPasswordProofSignout=false,closeQAOnSessionCheck=0,expireQAOnOpenCheck=0,
+ failAdminSessionSignout=false,throwAdminSessionSignout=false,
+ mismatchPasswordAuthUserOnSignin=false,rejectPasswordGetUser=false}={}){
  const users=new Map(),byEmail=new Map(),slotOwners=new Map(),claims=new Set();
  const backups=new Map(),sessions=new Map(),tokens=new Map(),verifiedFactors=new Set(),events=[];
  let handlerCount=0,gateOpen=true,closeOnNextSignin=closeGateOnSignin;
  let windowExpired=false,sessionCheckCount=0,qaOpenChecks=0;
+ let mismatchNextSignIn=false;
  function issueSession(uid,aal='aal1',overrides={}){
    const sid=randomUUID();
    const payload={iss:BASE+'/auth/v1',sub:uid,exp:4102444800,aal,session_id:sid,...overrides};
@@ -104,6 +107,8 @@ function fakeWorld({failEscrow=false,revokeOnVaultRead=false,revokeOnStatusRead=
    rpc:async(name,arg)=>rpc(name,arg),
    auth:{
     getUser:async token=>{
+     if(!admin&&rejectPasswordGetUser)
+      return {data:{user:null},error:{message:'synthetic password session verification failed'}};
      const user=userFromToken(token);
      return {data:{user:user??null},error:user?null:{message:'not authenticated'}};
     },
@@ -114,7 +119,10 @@ function fakeWorld({failEscrow=false,revokeOnVaultRead=false,revokeOnStatusRead=
      const session=issueSession(uid,'aal1');
      localSessionId=session.session_id;
      if(closeOnNextSignin){gateOpen=false;closeOnNextSignin=false;}
-     return {data:{user:u,session},error:null};
+     const responseUser=(mismatchPasswordAuthUserOnSignin||mismatchNextSignIn)?
+      {...u,id:randomUUID()}:u;
+     mismatchNextSignIn=false;
+     return {data:{user:responseUser,session},error:null};
     },
     signOut:async()=>{
      if(failPasswordProofSignout&&localSessionId)
@@ -162,6 +170,8 @@ function fakeWorld({failEscrow=false,revokeOnVaultRead=false,revokeOnStatusRead=
       if(!uid||!issued||issued.uid!==uid)
        return {error:{message:'unrecognized synthetic session'}};
       events.push('admin-signout-local:'+uid);
+      if(throwAdminSessionSignout)
+       throw Error('synthetic scoped logout threw');
       if(failAdminSessionSignout)
        return {error:{message:'synthetic scoped logout failed'}};
       issued.live=false;
@@ -228,6 +238,7 @@ function fakeWorld({failEscrow=false,revokeOnVaultRead=false,revokeOnStatusRead=
  return {
   signup,viewer,invoke,events,users,backups,slotOwners,claims,
   closeGateOnNextSignin(){closeOnNextSignin=true;},
+  mismatchNextPasswordAuthUser(){mismatchNextSignIn=true;},
   activeSessions(uid){return [...sessions.values()].filter(s=>s.uid===uid&&s.live).length;},
   isSessionLive(token){
    try{
@@ -668,4 +679,79 @@ test('late repeat login Admin signOut failure preserves existing owner and flags
   'failed revocation is flagged, not incorrectly reported as cleaned');
  assert.equal(x.users.get(enrolled.user_id).banned_until,null,
   'do not quarantine an already-existing E/F owner after repeat login');
+});
+
+test('first signup: mismatched Auth response identity revokes the issued session and quarantines only E',async()=>{
+ const x=fakeWorld({mismatchPasswordAuthUserOnSignin:true});
+ const denied=await x.invoke(x.signup,{
+  action:'signup',username:'n10real_e_20261104',password:PWD_E,
+  captcha_token:'signup-auth-response-identity-mismatch'
+ });
+ assert.equal(denied.status,503);
+ assert.equal(denied.code,'manual_reconciliation_required');
+ assert.equal(denied.access_token,undefined);
+ assert.equal(denied.refresh_token,undefined);
+ assert.equal(denied.recovery_words,undefined);
+ const owner=[...x.users.values()][0];
+ assert.equal(owner.banned_until,'876000h');
+ assert.equal(x.activeSessions(owner.id),0);
+ assert.equal(x.events.filter(v=>v==='admin-signout-local:'+owner.id).length,1);
+ assert.equal(x.backups.get(owner.id)?.split(' ').length,10,'original words retained');
+});
+
+test('repeat login: mismatched Auth response identity revokes only fresh session and preserves older E session',async()=>{
+ const x=fakeWorld();
+ const enrolled=await x.invoke(x.signup,{
+  action:'signup',username:'n10real_e_20261104',password:PWD_E,
+  captcha_token:'signup-before-auth-mismatch-repeat'
+ });
+ assert.equal(enrolled.status,200);
+ // This control is injected by a second world in the factory; use a
+ // mutable one-shot flag on the existing world for the actual repeat login.
+ x.mismatchNextPasswordAuthUser();
+ const denied=await x.invoke(x.signup,{
+  action:'login',username:'n10real_e_20261104',password:PWD_E,
+  captcha_token:'login-auth-identity-mismatch'
+ });
+ assert.equal(denied.status,401);
+ assert.equal(denied.code,'invalid_credentials');
+ assert.equal(denied.access_token,undefined);
+ assert.equal(denied.refresh_token,undefined);
+ assert.equal(x.activeSessions(enrolled.user_id),1);
+ assert.equal(x.isSessionLive(enrolled.access_token),true);
+ assert.equal(x.users.get(enrolled.user_id).banned_until,null);
+});
+
+test('getUser failure after issuing signup token revokes that session and retains original escrow',async()=>{
+ const x=fakeWorld({rejectPasswordGetUser:true});
+ const denied=await x.invoke(x.signup,{
+  action:'signup',username:'n10real_e_20261104',password:PWD_E,
+  captcha_token:'signup-getuser-fails-after-session-issue'
+ });
+ assert.equal(denied.status,503);
+ assert.equal(denied.code,'manual_reconciliation_required');
+ assert.equal(denied.access_token,undefined);
+ assert.equal(denied.refresh_token,undefined);
+ assert.equal(denied.recovery_words,undefined);
+ const owner=[...x.users.values()][0];
+ assert.equal(owner.banned_until,'876000h');
+ assert.equal(x.activeSessions(owner.id),0);
+ assert.equal(x.backups.get(owner.id)?.split(' ').length,10);
+});
+
+test('a thrown scoped Auth Admin signOut never produces an incorrect successful cleanup response',async()=>{
+ const x=fakeWorld({expireQAOnOpenCheck:5,throwAdminSessionSignout:true});
+ const denied=await x.invoke(x.signup,{
+  action:'signup',username:'n10real_e_20261104',password:PWD_E,
+  captcha_token:'signup-scoped-signout-throws'
+ });
+ assert.equal(denied.status,503);
+ assert.equal(denied.code,'manual_reconciliation_required');
+ assert.equal(denied.access_token,undefined);
+ assert.equal(denied.refresh_token,undefined);
+ assert.equal(denied.recovery_words,undefined);
+ const owner=[...x.users.values()][0];
+ assert.equal(owner.banned_until,'876000h');
+ assert.equal(x.activeSessions(owner.id),1,
+  'revocation throw must be reported as unresolved, not simulated as success');
 });
