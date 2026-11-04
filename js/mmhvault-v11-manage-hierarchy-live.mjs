@@ -138,7 +138,23 @@ function style(){
   .mmh-hier-empty{font-size:12px;color:#b6bfd0;margin:13px 0}
   .mmh-hier-overlay{position:fixed;inset:0;z-index:2147482500;background:rgba(3,9,19,.8);display:flex;align-items:center;justify-content:center;padding:max(16px,env(safe-area-inset-top)) 14px max(16px,env(safe-area-inset-bottom));backdrop-filter:blur(14px)}
   .mmh-hier-dialog{width:min(520px,100%);max-height:calc(100dvh - 32px);overflow:auto;border:1px solid rgba(224,181,104,.3);border-radius:22px;background:linear-gradient(150deg,#17283d,#101927);color:#f2eadc;padding:22px;box-shadow:0 24px 85px rgba(0,0,0,.5)}
-  .mmh-hier-dialog header{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  /* Override global APP header chrome; this heading is a liquid-glass
+     modal subheader, never a flat black navbar on iOS Safari. */
+  .mmh-hier-overlay .mmh-hier-dialog > header{
+    display:flex!important;align-items:center!important;justify-content:space-between!important;
+    gap:12px!important;box-sizing:border-box!important;position:static!important;
+    width:100%!important;min-height:62px!important;margin:0 0 16px!important;
+    padding:11px 13px!important;background:linear-gradient(120deg,rgba(48,76,102,.86),rgba(23,44,65,.78))!important;
+    border:1px solid rgba(227,189,119,.27)!important;border-radius:15px!important;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.10),0 8px 22px rgba(0,0,0,.10)!important;
+    color:#f3ead8!important;backdrop-filter:blur(14px)
+  }
+  .mmh-hier-overlay .mmh-hier-dialog > header h3{font-size:18px;line-height:1.3;margin:0;color:inherit}
+  .mmh-hier-overlay .mmh-hier-dialog > header .mmh-hier-close{font-size:23px;min-width:40px;min-height:40px;flex-shrink:0;background:rgba(255,255,255,.07)}
+  .mmh-hier-dialog > .mmh-hier-btn{display:inline-flex;align-items:center;justify-content:center;
+    margin-top:21px;min-height:43px;padding:10px 15px;border-radius:12px;
+    background:linear-gradient(120deg,rgba(219,169,83,.21),rgba(216,163,79,.07));
+    box-shadow:inset 0 1px 0 rgba(255,224,174,.12)}
   .mmh-hier-dialog h3{font-size:18px;margin:0}
   .mmh-hier-close{font-size:23px;min-width:36px;min-height:36px}
   .mmh-hier-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 0;border-bottom:1px solid rgba(207,214,225,.12)}
@@ -479,26 +495,22 @@ const labels=()=>({type:$('txType')?.closest('label'),transaction:$('txGroup')?.
 // Preserve deliberate manual choices across ordinary UI refresh. A direction
 // click may fill existing active owner choices progressively, but must never
 // generate missing options or revive archived items after a change.
-const choicePrompt=field=>tr('Select '+label(field)+'…','请选择 '+label(field)+'…',
-  label(field)+' ကို ရွေးပါ…');
-const optionSig=(el,items,prompt)=>el&&el.options.length===items.length+1&&
-  el.options[0].value===''&&el.options[0].disabled&&el.options[0].textContent===prompt&&
+// Native Add Transaction selectors show only actual owner-authored choices.
+// No 'Select Type…' pseudo-options in the iOS wheel or Safari/Chrome list.
+// A missing or archived choice stays selectedIndex=-1 (not the first item):
+// validation still blocks Save until the user explicitly chooses again.
+const optionSig=(el,items)=>el&&el.options.length===items.length&&
   items.every((item,i)=>{
-    const x=el.options[i+1];
+    const x=el.options[i];
     return x.value===item.value&&x.textContent===item.text&&x.dataset.mmhChoiceId===item.id;
   });
-function put(el,items,pick,field){
+function put(el,items,pick,_field){
   if(!el)return;
   if(!items.length){if(el.options.length)el.replaceChildren();return;}
-  const prompt=choicePrompt(field);
-  if(!optionSig(el,items,prompt)){
-    const placeholder=makeOption('',prompt);
-    placeholder.disabled=true;
-    el.replaceChildren(placeholder,...items.map(x=>makeOption(x.value,x.text,x.id)));
-  }
+  if(!optionSig(el,items))
+    el.replaceChildren(...items.map(x=>makeOption(x.value,x.text,x.id)));
   const index=pick?[...el.options].findIndex(x=>x.dataset.mmhChoiceId===pick):-1;
-  // index 0 is the disabled placeholder, never an inferred financial choice.
-  el.selectedIndex=index>0?index:0;
+  el.selectedIndex=index;
 }
 // Prefer a complete owner-authored path, else the deepest available active
 // chain: Type + Transaction, then Type alone. An empty direction stays selected
@@ -561,9 +573,11 @@ function ensureDirectionButtons(f,t){
           const chosen=controller.list('type').find(x=>x.id===selection.type);
           if(!chosen)selection={type:'',transaction:'',category:''};
         }
+        // Do not programmatically focus a native SELECT or CTA here:
+        // Safari iOS opens the Type picker as though it were tapped.
+        // Keep focus on the clicked direction button; users may tap a
+        // field or the missing-field action when they choose.
         form();
-        const action=$('mmhHierarchyEntryGuide')?.querySelector('button');
-        (action||$('txType'))?.focus({preventScroll:true});
       });
       button.dataset.mmhDirection=direction;button.setAttribute('aria-pressed','false');
       bar.append(button);
