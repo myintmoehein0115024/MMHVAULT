@@ -131,9 +131,9 @@ function harness({legacy=false}={}){
 }
 
 test('isolated addon is wired from versioned core and does not modify Add Transaction markup',()=>{
-  assert.match(app,/transaction-field-layout-v11\.js\?v=3\.0\.4/);
-  assert.match(base,/mmhvault-v11-manage-glass-dialogs\.js\?v=1\.0\.2/);
-  assert.match(base,/mmhvault-v11-manage-glass-dialogs\.css\?v=1\.0\.2/);
+  assert.match(app,/transaction-field-layout-v11\.js\?v=3\.0\.5/);
+  assert.match(base,/mmhvault-v11-manage-glass-dialogs\.js\?v=1\.0\.3/);
+  assert.match(base,/mmhvault-v11-manage-glass-dialogs\.css\?v=1\.0\.3/);
   assert.doesNotMatch(source,/MMHVAULT_CONFIG\s*=|transactions\.push\(/);
   assert.match(css,/@media\(max-width:580px\)/);
   assert.match(css,/overflow-y:auto/);
@@ -224,16 +224,26 @@ test('legacy owner sees the same three summary cards without changing transactio
   assert.ok(h.look(h.h,'mmh-v14-preview'));
 });
 
-test('legacy Type/Transaction dialogs show canonical choices, with no unsafe edit or remove',()=>{
+test('legacy Type/Transaction dialogs permit add, edit, remove but do not save until confirmed',()=>{
   const h=harness({legacy:true});
   h.window.MMHV11ManageGlassV14.open('type');
   assert.equal(h.look(h.body,'mmh-v14-row')?.textContent.includes('Income'),true);
-  assert.equal(h.labeled(h.body,'Save changes'),undefined);
-  assert.equal(h.labeled(h.body,'Remove'),undefined);
-  assert.equal(h.labeled(h.body,'+ Add Type'),undefined);
+  assert.ok(h.labeled(h.body,'Edit'));
+  assert.ok(h.labeled(h.body,'Remove'));
+  assert.ok(h.labeled(h.body,'+ Add Type'));
+  h.labeled(h.body,'+ Add Type').click();
+  assert.equal(h.stats().saves,0,'opening editor never changes an old account');
+  assert.equal(h.look(h.body,'mmh-v14-list').hidden,true);
+  h.labeled(h.body,'Cancel').click();
+  assert.equal(h.stats().saves,0);
   h.window.MMHV11ManageGlassV14.open('transaction');
   assert.equal(h.body.querySelectorAll('.mmh-v14-shade').length,1);
-  assert.equal(h.labeled(h.body,'Edit'),undefined);
+  assert.ok(h.labeled(h.body,'Edit'));
+  assert.ok(h.labeled(h.body,'Remove'));
+  assert.ok(h.labeled(h.body,'+ Add Transaction'));
+  h.labeled(h.body,'Edit').click();
+  assert.equal(h.stats().saves,0);
+  h.labeled(h.body,'Cancel').click();
   assert.equal(h.stats().saves,0);
   h.window.MMHV11ManageGlassV14.close();
 });
@@ -271,4 +281,18 @@ test('legacy summary remains translated and no new field marker is created',()=>
   h.changeLanguage('my');
   assert.match(h.look(h.h,'mmh-v14-heading').textContent,/ငွေစာရင်း/);
   assert.equal(h.stats().saves,0);
+});
+
+
+test('empty managed Category shows no inherited items in its glass dialog',()=>{
+  const h=harness();
+  h.dataset.category.length=0;
+  h.window.MMHV11ManageGlassV14.refresh();
+  const cards=h.look(h.h,'mmh-v14-cards');
+  assert.equal(cards.children[2].querySelector('.mmh-v14-count').textContent,'0 added');
+  h.window.MMHV11ManageGlassV14.open('category');
+  assert.match(h.look(h.body,'mmh-v14-empty').textContent,/Nothing added yet/);
+  assert.equal(h.labeled(h.body,'Remove'),undefined);
+  assert.equal(h.stats().saves,0);
+  assert.equal(h.stats().removes,0);
 });

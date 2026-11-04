@@ -20,7 +20,11 @@
   const id=x=>document.getElementById(x);
   const owner=()=>{try{return String(currentSessionUser?.id||'');}catch(_){return '';}};
   const config=()=>{try{return MMHVAULT_CONFIG;}catch(_){return null;}};
-  const state=()=>{const v=config()?.txFieldsV12;return owner()&&v?.version===1?v:null;};
+  // A cached config from a previous signed-in user must never enter this UI.
+  const ownedConfig=()=>{try{
+    const uid=owner();return uid&&String(MMHVAULT_CONFIG_OWNER||'')===uid?config():null;
+  }catch(_){return null;}};
+  const state=()=>{const v=ownedConfig()?.txFieldsV12;return v?.version===1?v:null;};
   const isManaged=()=>!!state();
   const hasCategory=(group,name)=>!!state()?.category.includes(group+'|'+name);
   const mode=()=>{
@@ -87,14 +91,36 @@
     if(i<0)return false;
     el.selectedIndex=i;return true;
   }
+  // Initialize legacy preferences only when the owner actually SAVES a field edit.
+  // This copies labels and active categories; it never writes historical entries.
+  function legacySeed(cfg){
+    const groups=['Expense','Income','Personal','LoanIncome','LoanExpense'];
+    const category=groups.flatMap(group=>(Array.isArray(cfg.categories?.[group])?cfg.categories[group]:[])
+      .filter(name=>typeof name==='string'&&name.trim()).map(name=>group+'|'+name));
+    return {version:1,type:[...TYPE],transaction:KIND.map(x=>x.id),
+      category:[...new Set(category)]};
+  }
   function persistMutation(action){
-    const s=state();if(!s)return false;
+    const cfg=ownedConfig();if(!cfg||typeof action!=='function')return false;
+    const old=cfg.txFieldsV12;
+    if(old!=null&&old.version!==1)return false; // never overwrite unknown formats
+    const onboarding=old==null;
+    if(onboarding)cfg.txFieldsV12=legacySeed(cfg);
+    const s=state();
+    if(!s){cfg.txFieldsV12=old;return false;}
     const previous=JSON.stringify(s);
-    if(action(s,display())===false)return false;
-    if(!safePersist()){
-      Object.keys(s).forEach(k=>delete s[k]);Object.assign(s,JSON.parse(previous));
-      notify(tr('Could not save this change.','保存失败，请检查网络。','မသိမ်းနိုင်ပါ။'));return false;
-    }
+    const rollback=()=>{
+      if(onboarding){
+        if(old===undefined)delete cfg.txFieldsV12;else cfg.txFieldsV12=old;
+      }else{
+        Object.keys(s).forEach(k=>delete s[k]);Object.assign(s,JSON.parse(previous));
+      }
+    };
+    try{
+      if(action(s,display())===false){rollback();return false;}
+      if(!safePersist()){rollback();notify(tr('Could not save this change.',
+        '保存失败，请检查网络。','မသိမ်းနိုင်ပါ။'));return false;}
+    }catch(e){rollback();console.warn('[MMHVAULT] Field edit rolled back',e);return false;}
     refreshManage();refreshForm();return true;
   }
   function duplicateName(field,label,except=''){
@@ -104,7 +130,12 @@
     const valid=field==='type'?TYPE:KIND.map(x=>x.id);
     const label=cleanLabel(input);
     if(!valid.includes(canonical)||!label){notify(tr('Enter a name and financial meaning.','请输入名称并选择财务类型。','အမည်နှင့် အမျိုးအစား ဖြည့်ပါ။'));return false;}
-    if(duplicateName(field,label,entry?.key)){notify(tr('That name is already used.','该名称已存在。','ဤအမည် ရှိပြီးသားဖြစ်သည်။'));return false;}
+    const existing=state()?fieldItems(field):
+      (field==='type'?TYPE.map(x=>({label:x,key:'legacy:'+x})):
+        KIND.map(x=>({label:x.label,key:'legacy:'+x.id})));
+    if(existing.some(x=>x.key!==entry?.key&&x.label.toLocaleLowerCase()===label.toLocaleLowerCase())){
+      notify(tr('That name is already used.','该名称已存在。','ဤအမည် ရှိပြီးသားဖြစ်သည်။'));return false;
+    }
     return persistMutation((s,d)=>{
       const current=s[field],aliases=field==='type'?d.extraTypes:d.extraTransactions;
       const names=d[field==='type'?'typeLabels':'transactionLabels'];
@@ -270,6 +301,13 @@
     const panel=buildManager();if(!panel)return;
     const host=id('mmhManagerCategoriesPanelV445');
     const legacyCard=host?.querySelector('section.mmh-manager-card-v445');
+    // The account may already have changed while cloud settings are still loading.
+    // Never render a previous owner's Category list during that interval.
+    if(!ownedConfig()){
+      host?.classList.remove('mmh-v12-managed');
+      if(legacyCard)legacyCard.hidden=true;
+      panel.replaceChildren();panel.hidden=true;return;
+    }
     // Keep the single existing Category form with its original validation.
     const categoryForm=panel.querySelector('.mmh-manager-form-v445')||
       legacyCard?.querySelector('.mmh-manager-form-v445');
@@ -447,11 +485,16 @@
       mmhVaultTransactionCategoryListV451(type,group):(config()?.categories?.[key]||[]);
     return Array.isArray(list)&&list.includes(fallback);
   }
+  function systemCategory(type,group){
+    return (type==='Transfer'&&group==='Transfer'||group==='Data Adjustment')&&
+      safeNeutral(type,group)?neutral(type,group):null;
+  }
   function allowedTransactions(){
     const withCategory=categories().length>0;
     return transactions().filter(x=>
       (!types().length||types().includes(x.type))&&
-      (withCategory?matchingCategories(x.type,x.group).length>0:safeNeutral(x.type,x.group)));
+      (withCategory?(matchingCategories(x.type,x.group).length>0||
+        !!systemCategory(x.type,x.group)):safeNeutral(x.type,x.group)));
   }
   function readiness(){
     const active={type:types().length>0,transaction:transactions().length>0,category:categories().length>0};
@@ -498,6 +541,17 @@
     const t=id('txType'),g=id('txGroup'),c=id('txCategory');
     if(!t||!g||!c)return;
     const labels={type:t.closest('label'),transaction:g.closest('label'),category:c.closest('label')};
+    if(!ownedConfig()){
+      Object.values(labels).forEach(el=>{if(el){
+        el.dataset.mmhV12Hidden='1';el.hidden=true;el.style.display='none';
+      }});
+      g.replaceChildren();c.replaceChildren();
+      const save=form.querySelector('.actions button:not([type="button"])');
+      if(save){save.disabled=true;save.dataset.mmhV12Blocked='1';}
+      note(tr('Your account settings are loading.','正在加载此账号的设置。',
+        'အကောင့်ဆက်တင်များ ရယူနေပါသည်။'));
+      return;
+    }
     if(!isManaged()){
       const save=form.querySelector('.actions button:not([type="button"])');
       if(save){save.disabled=false;save.dataset.mmhV12Blocked='0';}
@@ -577,13 +631,21 @@
       if(enabled.category){
         const available=categories().filter(x=>x.type===type&&(!enabled.transaction||x.coreGroup===group));
         if(!available.length){
-          c.replaceChildren();note(tr('Add a matching Category in Manage for this Transaction.',
-            '请在 Manage 为此 Transaction 添加匹配的 Category。','Category ထည့်ပါ။'));return;
+          // Transfers and Data Adjustments are system-managed category codes;
+          // migrating an old account must never disable these valid ledger kinds.
+          const builtin=enabled.transaction?systemCategory(type,group):null;
+          if(!builtin){
+            c.replaceChildren();note(tr('Add a matching Category in Manage for this Transaction.',
+              '请在 Manage 为此 Transaction 添加匹配的 Category。','Category ထည့်ပါ။'));return;
+          }
+          if(!setCore(type,group,builtin)){c.replaceChildren();return;}
+          fill(c,[{value:builtin,label:builtin,group}],builtin);
+        }else{
+          const chosen=available.find(x=>x.name===currCat&&x.coreGroup===group)||available[0];
+          setCore(type,chosen.coreGroup,chosen.name);
+          group=g.value;
+          fill(c,available.map(x=>({value:x.name,label:x.name,group:x.coreGroup})),chosen.name);
         }
-        const chosen=available.find(x=>x.name===currCat&&x.coreGroup===group)||available[0];
-        setCore(type,chosen.coreGroup,chosen.name);
-        group=g.value;
-        fill(c,available.map(x=>({value:x.name,label:x.name,group:x.coreGroup})),chosen.name);
       }else{
         const defaultCat=neutral(type,group);
         const list=typeof mmhVaultTransactionCategoryListV451==='function'?mmhVaultTransactionCategoryListV451(type,group):[];
@@ -592,7 +654,13 @@
             '此 Transaction 需要明确的 Category。请先在 Manage 添加，以免报表分类错误。',
             'ဤ Transaction အတွက် Category လိုအပ်ပါသည်။'));return;
         }
-        setCore(type,group,defaultCat);
+        if(!setCore(type,group,defaultCat)){
+          c.replaceChildren();note(tr('Category selection is not available. Reopen Manage.',
+            '分类选项不可用，请重新打开 Manage。','Category မရနိုင်ပါ။'));return;
+        }
+        // Category is NOT configured. Keep exactly one invisible canonical
+        // neutral value for the ledger; never expose Salary/Dining defaults.
+        fill(c,[{value:defaultCat,label:defaultCat,group}],defaultCat);
       }
       if(enabled.transaction){
         // Restore the managed transaction choices after the internal group sync.
@@ -624,7 +692,9 @@
     if(!TYPE.includes(t.value)||!g.value||!c.value)return false;
     if(s.type.length&&!s.type.includes(t.value))return false;
     if(s.transaction.length&&!s.transaction.includes(t.value+'|'+g.value))return false;
-    if(categories().length&&!categories().some(x=>x.type===t.value&&x.coreGroup===g.value&&x.name===c.value))return false;
+    if(categories().length&&!categories().some(x=>x.type===t.value&&x.coreGroup===g.value&&x.name===c.value)){
+      if(!transactions().length||c.value!==systemCategory(t.value,g.value))return false;
+    }
     if(!categories().length&&(!neutral(t.value,g.value)||c.value!==neutral(t.value,g.value)))return false;
     return true;
   }
@@ -666,10 +736,19 @@
     if(status.active.category){
       const expected=categories().filter(x=>x.type===t.value&&
         (!status.active.transaction||x.coreGroup===g.value));
+      const builtin=status.active.transaction&&!expected.length?
+        systemCategory(t.value,g.value):null;
+      if(builtin)expected.push({name:builtin,coreGroup:g.value});
       const opts=[...c.options];
       if(opts.length!==expected.length||opts.some((opt,i)=>
         opt.value!==expected[i].name||
         opt.dataset?.mmhCanonicalGroup!==expected[i].coreGroup))return false;
+    }else{
+      // Even when Category is intentionally hidden, legacy listeners may
+      // repopulate the native select with a full preset Salary/Dining list.
+      const fallback=neutral(t.value,g.value),opts=[...c.options];
+      if(!fallback||opts.length!==1||opts[0].value!==fallback||
+        c.value!==fallback)return false;
     }
     return true;
   }
@@ -737,16 +816,16 @@
     refresh();
   }
   window.MMHV11TxFieldPrefs={
-    version:'3.0.4',isManaged,hasCategory,markCategory,onCategoryRenamed,fieldItems,saveName,removeName,refreshManage,
+    version:'3.0.5',isManaged,hasCategory,markCategory,onCategoryRenamed,fieldItems,saveName,removeName,refreshManage,
     // Public presentation hooks: keep all changes owner-scoped and canonical.
     getCategoryEntries:()=>categories().map(x=>({...x})),
     // Compatibility is presentation-only: old accounts retain their existing
     // three-field transaction form and ledger codes, with no V12 marker written.
     getLegacyView:()=>{
-      if(!owner()||!config()||isManaged())return null;
+      if(!ownedConfig()||isManaged())return null;
       const groups=['Expense','Income','Personal','LoanIncome','LoanExpense'];
       const category=groups.flatMap(group=>{
-        const items=config()?.categories?.[group];
+        const items=ownedConfig()?.categories?.[group];
         return Array.isArray(items)?items.filter(name=>typeof name==='string'&&name.trim())
           .map(name=>({raw:group+'|'+name,group,name})):[];});
       return {
@@ -755,7 +834,7 @@
         category
       };
     },
-    getArchivedCategoryEntries:()=>owner()&&config()?Object.entries(config()?.archivedCategories||{})
+    getArchivedCategoryEntries:()=>ownedConfig()?Object.entries(ownedConfig()?.archivedCategories||{})
       .flatMap(([group,names])=>Array.isArray(names)?names.map(name=>({group,name})):[]):[],
     removeCategory:raw=>{
       const before=!!state()?.category.includes(raw);
@@ -802,10 +881,10 @@
   if(typeof document.querySelector==='function'&&document.head){
     const stylesheet=document.createElement('link');
     stylesheet.rel='stylesheet';
-    stylesheet.href='css/mmhvault-v11-manage-glass-dialogs.css?v=1.0.2';
+    stylesheet.href='css/mmhvault-v11-manage-glass-dialogs.css?v=1.0.3';
     document.head.appendChild(stylesheet);
     const addon=document.createElement('script');
-    addon.src='js/mmhvault-v11-manage-glass-dialogs.js?v=1.0.2';
+    addon.src='js/mmhvault-v11-manage-glass-dialogs.js?v=1.0.3';
     addon.async=false;
     document.head.appendChild(addon);
   }

@@ -93,9 +93,9 @@
     const legacy=!!legacyView();
     title.textContent=tr('Manage ','管理 ','စီမံရန် ')+name(field);
     subtitle.textContent=legacy?
-      tr('Updated layout, original bookkeeping and history unchanged.',
-        '新版布局已启用，原有记账设置和历史记录保持不变。',
-        'ပုံစံအသစ်သာ ဖြစ်ပြီး မှတ်တမ်းဟောင်းများ မပြောင်းလဲပါ။'):
+      tr('Customize future entries safely. Your saved history stays unchanged.',
+        '可以安全自定义以后记账的选项，已保存的历史记录不变。',
+        'နောက်ပိုင်းစာရင်းရွေးချယ်မှုများကို ပြောင်းလဲနိုင်ပါသည်။'):
       field==='category'?
         tr('Removing a Category here does not delete historical transactions.',
           '这里移除分类不会删除历史交易记录。',
@@ -120,14 +120,11 @@
         tr('Financial meaning: ','财务归属：','ငွေစာရင်းအဓိပ္ပာယ်: ')+
         (api.describeCanonical?.(field,item.canonical)||item.canonical)));
       row.append(info);
-      // Legacy Type and Transaction are system codes. Present them in the new
-      // layout but do not pretend to support owner config mutations that would
-      // silently migrate a historic account.
+      // A legacy Type/Transaction can now be edited. Nothing is migrated merely
+      // by opening Manage; the first explicit Save/Remove is owner-guarded.
       if(legacy&&field!=='category'){
-        info.append(el('small','',tr('Existing account · system entry','旧账号 · 系统记账字段',
-          'အကောင့်ဟောင်း · စနစ်အကွက်')));
-        list.append(row);
-        continue;
+        info.append(el('small','',tr('Future entry label · history protected',
+          '未来记账显示名称 · 历史保留','အမည်အသစ်သာ ပြောင်းပါမည်။')));
       }
       const actions=el('div','mmh-v14-actions');
       const edit=btn(tr('Edit','编辑','ပြင်ရန်'),()=>{
@@ -173,11 +170,11 @@
     }
     if(legacy&&field!=='category'){
       list.append(el('p','mmh-v14-help',tr(
-        'For existing accounts, Type and Transaction remain the original financial codes. This display upgrade does not change ledger fields or past records.',
-        '旧账号的 Type、Transaction 继续使用原有财务代码。此次仅更新界面，不修改已保存的字段或历史交易。',
-        'အကောင့်ဟောင်းများ၏ ငွေစာရင်းကုဒ်နှင့် မှတ်တမ်းဟောင်းများ မပြောင်းလဲပါ။')));
+        'Adding or editing a name changes future entry options only. Existing transaction records keep their original financial codes.',
+        '新增、编辑或移除只影响以后记账的选项，已有交易仍保留原财务代码。',
+        'အမည်ပြောင်းလဲမှုသည် နောက်ပိုင်းစာရင်းများအတွက်သာ ဖြစ်သည်။')));
     }
-    if(field!=='category'&&!legacy){
+    if(field!=='category'){
       const add=btn(tr('+ Add ','+ 新增 ','+ အသစ်ထည့်ရန် ')+name(field),()=>{
         modal.chosen={new:true};modal.confirm=null;paintEditor();modal.editorSlot.querySelector('input')?.focus();
       },'mmh-v14-manage');
