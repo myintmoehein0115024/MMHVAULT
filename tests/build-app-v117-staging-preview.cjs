@@ -104,8 +104,9 @@ fs.writeFileSync(path.join(out,'README-STAGING-QA.txt'),[
 'On macOS: in Terminal cd to this extracted directory and run:',
 '    python3 -m http.server 8769 --bind 127.0.0.1',
 'Then open http://127.0.0.1:8769/app.html',
-'The built-in Content Security Policy permits outbound connections ONLY',
-'to https://'+STAGING_HOST+'. A production or other API request is blocked.',
+'The Content Security Policy permits only Staging Auth session requests',
+'and REST calls to transactions / personal_configuration. All other API',
+'paths, including N10 recovery/MFA, plus Production, are blocked.',
 'Local service workers, embedded frames and other origins are blocked.',
 'If login/incomplete features fail due to these restrictions, report it;',
 'DO NOT loosen the Staging-only connection policy or enter real account data.',
@@ -113,5 +114,20 @@ fs.writeFileSync(path.join(out,'README-STAGING-QA.txt'),[
 'from the already passing standalone A/B JWT REST verification.',
 '',
 ].join('\n'));
+fs.writeFileSync(path.join(out,'START-STAGING-ON-MAC.sh'),[
+'#!/bin/sh',
+'set -eu',
+'cd "$(dirname "$0")"',
+'if command -v python3 >/dev/null 2>&1; then',
+'  (sleep 1; open http://127.0.0.1:8769/app.html) >/dev/null 2>&1 &',
+'  exec python3 -m http.server 8769 --bind 127.0.0.1',
+'elif command -v ruby >/dev/null 2>&1; then',
+'  (sleep 1; open http://127.0.0.1:8769/app.html) >/dev/null 2>&1 &',
+'  exec ruby -run -e httpd . -p 8769 -b 127.0.0.1',
+'else',
+'  echo "Python 3 or Ruby is needed to launch this local Staging QA page."',
+'  exit 1',
+'fi',
+].join('\\n')+'\\n');
 console.log(JSON.stringify({destination:out,stagingEndpoint:'https://'+STAGING_HOST,
   bytes:html.length,originReplacements:3,sanitizedAssets,assetsChecked:true,productionRefCount:count(html,PROD_HOST)}));
