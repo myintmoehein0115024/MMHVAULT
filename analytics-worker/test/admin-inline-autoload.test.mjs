@@ -85,6 +85,8 @@ test('in-frame controller waits for admin authentication and accepts only same-o
   assert.equal(frame.src,undefined);
   assert.equal(view.hidden,true);
   assert.equal(frame.style.height,'780px');
+  handlers['window:message']({origin:'https://mmhvault.com',source:frame.contentWindow,data:{type:'mmhvault-analytics-height',height:1900}});
+  assert.equal(frame.style.height,'780px','inactive frame must ignore late height events');
 });
 
 test('embedded Analytics uses its own Supabase auth without passing JWT through parent',()=>{
@@ -95,4 +97,60 @@ test('embedded Analytics uses its own Supabase auth without passing JWT through 
   assert.doesNotMatch(admin,/postMessage\(\{[^}]*access_token/);
   assert.match(analytics,/Authorization:'Bearer '\+token/);
   assert.match(analytics,/mmh_is_admin/);
+});
+
+test('same verified administrator session refreshes do not destroy the embedded workbench',()=>{
+  const start=admin.indexOf('client.auth.onAuthStateChange(');
+  const end=admin.indexOf(');boot();',start);
+  assert.ok(start>=0&&end>start);
+  const callbackRegistration=admin.slice(start,end+2);
+  const events=[];
+  let handler;
+  const ctx={
+    generation:8,
+    allowed:true,
+    verifiedAdminUserId:'admin-a',
+    client:{auth:{onAuthStateChange(fn){handler=fn}}},
+    clear(){events.push('clear');ctx.allowed=false;ctx.verifiedAdminUserId=null},
+    setTimeout(fn,delay){events.push('schedule');assert.equal(delay,0)},
+    boot(){events.push('boot')}
+  };
+  runInNewContext(callbackRegistration,ctx);
+  assert.equal(typeof handler,'function');
+  for(const event of ['INITIAL_SESSION','SIGNED_IN','TOKEN_REFRESHED']){
+    handler(event,{user:{id:'admin-a'}});
+    assert.equal(ctx.generation,8,event+' must not reset admin generation');
+    assert.equal(ctx.allowed,true,event+' must keep approved dashboard open');
+    assert.deepEqual(events,[],event+' must not tear down iframe');
+  }
+  handler('SIGNED_OUT',null);
+  assert.equal(ctx.generation,9,'sign-out must reset session generation');
+  assert.equal(ctx.allowed,false,'sign-out must hide the administrator dashboard');
+  assert.deepEqual(events,['clear','schedule'],'sign-out must schedule fresh verification');
+});
+
+test('identity change and other security events still reset the administrator gate',()=>{
+  const start=admin.indexOf('client.auth.onAuthStateChange(');
+  const end=admin.indexOf(');boot();',start);
+  const code=admin.slice(start,end+2);
+  for(const [event,session] of [
+    ['SIGNED_IN',{user:{id:'different-admin'}}],
+    ['USER_UPDATED',{user:{id:'admin-a'}}],
+    ['SIGNED_IN',null]
+  ]){
+    let handler;
+    const actions=[];
+    const ctx={
+      generation:3,allowed:true,verifiedAdminUserId:'admin-a',
+      client:{auth:{onAuthStateChange(fn){handler=fn}}},
+      clear(){ctx.allowed=false;ctx.verifiedAdminUserId=null;actions.push('clear')},
+      setTimeout(fn,delay){actions.push('schedule');assert.equal(delay,0)},
+      boot(){}
+    };
+    runInNewContext(code,ctx);
+    handler(event,session);
+    assert.equal(ctx.allowed,false,event+' must invalidate the old verified identity');
+    assert.equal(ctx.generation,4);
+    assert.deepEqual(actions,['clear','schedule']);
+  }
 });
