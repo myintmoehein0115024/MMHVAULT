@@ -119,6 +119,20 @@ function style(){
   body.light #txForm #mmhHierarchyDirection .mmh-direction-help{color:#526a84}
   #txForm #mmhHierarchyEntryGuide{grid-column:1/-1;margin:0;padding:10px 13px;border:1px solid rgba(215,184,121,.27);border-radius:11px;background:rgba(24,42,61,.75);color:#e9d5ab;font-size:12px;line-height:1.6}
   #txForm #mmhHierarchyEntryGuide[hidden]{display:none!important}
+  /* Narrow-screen native DATE controls can retain an intrinsic width on
+     Safari with localized dates. Constrain only Transactions; do not clip
+     the native calendar picker or change stored ISO date values. */
+  #txForm label:has(> #txDate){min-width:0;max-width:100%;box-sizing:border-box;overflow:hidden}
+  #txForm #txDate{display:block!important;inline-size:100%!important;width:100%!important;
+    min-inline-size:0!important;min-width:0!important;max-inline-size:100%!important;
+    max-width:100%!important;box-sizing:border-box!important;overflow:hidden}
+  #txForm #txDate::-webkit-date-and-time-value{min-width:0;max-width:100%;overflow:hidden;text-align:left}
+  #txForm #txDate::-webkit-datetime-edit{min-width:0;overflow:hidden}
+  @media(max-width:700px){
+    #txForm .formgrid{min-width:0;max-width:100%}
+    #txForm .formgrid > label:has(> #txDate){grid-column:1/-1;width:100%;max-width:100%}
+    #txForm #txDate{font-size:16px!important;line-height:1.3!important}
+  }
   #txForm #mmhHierarchyEntryGuide .mmh-hier-entry-action-v117{display:inline-flex;align-items:center;justify-content:center;min-height:34px;margin-left:10px;padding:7px 11px;border-radius:9px;border:1px solid rgba(224,182,95,.6);background:rgba(206,160,78,.15);color:#ffe5ac;font:700 12px/1.4 system-ui,sans-serif;cursor:pointer}
   #txForm #mmhHierarchyEntryGuide .mmh-hier-entry-action-v117:focus-visible{outline:2px solid #e6c174;outline-offset:2px}
   #txForm #mmhHierarchyEntryGuide .mmh-hier-entry-action-v117:disabled{opacity:.5;cursor:not-allowed}
@@ -873,6 +887,19 @@ function boot(){
   const f=$('txForm');
   style();
   if(f){
+    // Native label activation opens a SELECT even when the user taps its
+    // caption or an adjacent hint. Require a direct tap on the control
+    // itself. This applies equally to mobile, tablet and desktop browsers.
+    for(const id of ['txType','txGroup','txCategory']){
+      const control=$(id),caption=control?.closest('label');
+      if(!caption||caption.dataset.mmhSelectTapBound==='1')continue;
+      caption.dataset.mmhSelectTapBound='1';
+      caption.addEventListener('click',event=>{
+        if(event.target===control||
+          (event.target instanceof Element&&event.target.closest('select')===control))return;
+        event.preventDefault();
+      });
+    }
     f.addEventListener('change',e=>{
       if(rendering||![ $('txType'),$('txGroup'),$('txCategory') ].includes(e.target))return;
       e.stopImmediatePropagation();
