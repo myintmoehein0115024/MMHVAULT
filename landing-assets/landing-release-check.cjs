@@ -95,7 +95,10 @@ const l156OldMotionTag='<script defer src="./landing-assets/motion-l132.js?v=l14
 const l156NewMotionTag='<script defer src="./landing-assets/motion-l132.js?v=l156"></script>';
 const l157NewMotionTag='<script defer src="./landing-assets/motion-l132.js?v=l157"></script>';
 const l159NewMotionTag='<script defer src="./landing-assets/motion-l132.js?v=l159"></script>';
-const l148IndexOnlyEdited=()=>prev.includes(l159NewMotionTag) && current===prev;
+const l161LandingTag='<script defer src="./landing-assets/landing.js?v=l161"></script>';
+const l148IndexOnlyEdited=()=>prev.includes(l159NewMotionTag) &&
+  prev.split(l155NewScriptTag).length===2 &&
+  current===prev.replace(l155NewScriptTag,l161LandingTag);
 const l147IndexOnlyEdited=baseline=>baseline===prev && l148IndexOnlyEdited() &&
   baseline.includes(l147NewHeaderTags) && !current.includes(l147OldHeaderTags);
 // The runtime JS may change only these four targeted DOM write sites.
@@ -146,7 +149,9 @@ const l148LandingJsOnlyEdited=()=>{
   if(!l154HydrationPatches.every(([before,after])=>merged.includes(after)&&!merged.includes(before)))return false;
   const anchor="  function selectProductView(view,focus=false,instant=false){";
   return merged.includes(l155InterruptedPreviewPatch+anchor) &&
-    read('landing-assets/landing.js')===merged;
+    merged.split("  toggle.addEventListener('click', () => {\n    closeExplore();\n    closeLanguage();\n    const isOpen = siteHeader.classList.toggle('menu-open');\n    toggle.setAttribute('aria-expanded', String(isOpen));\n    syncNavToggleLabel();\n  });").length===2 &&
+    read('landing-assets/landing.js')===merged.replace(
+      "  toggle.addEventListener('click', () => {\n    closeExplore();\n    closeLanguage();\n    const isOpen = siteHeader.classList.toggle('menu-open');\n    toggle.setAttribute('aria-expanded', String(isOpen));\n    syncNavToggleLabel();\n  });","  toggle.addEventListener('click', event => {\n    closeExplore();\n    closeLanguage();\n    const isOpen = siteHeader.classList.toggle('menu-open');\n    toggle.setAttribute('aria-expanded', String(isOpen));\n    syncNavToggleLabel();\n    // L1.61: keyboard-opened menu should lead to the first visible link.\n    // Pointer and touch activation leave focus where it was.\n    if (isOpen && event.detail === 0)\n      document.querySelector('#primary-nav a')?.focus({preventScroll:true});\n  });");
 };
 
 // L1.46: only two critical CSS links differ from the released HTML.
@@ -261,22 +266,18 @@ const l158PublicRevealAfter="      // L1.58: rotate.\n      const mq=matchMedia(
 const l158OldScriptTag="<script defer src=\"/landing-assets/public-pages.js\"></script>";
 const l158NewScriptTag="<script defer src=\"/landing-assets/public-pages.js?v=l158\"></script>";
 const l160ScriptTag='<script defer src="/landing-assets/public-pages.js?v=l160"></script>';
-const l158RestoreScript=(html)=>html.replace(l160ScriptTag,l158NewScriptTag);
+const l161ScriptTag='<script defer src="/landing-assets/public-pages.js?v=l161"></script>';
+// L1.61 compares a released L1.60 page with its cache-busted navigation script.
+const l158RestoreScript=(html)=>html.replace(l161ScriptTag,l160ScriptTag);
 const l160PublicRemovals=[" * Read-only presentation: no auth, fetch, history/URL rewrites or finance data.\n"," * Header markup and shared-header-l116.css are identical across public pages.\n","  // L1.26: return focus to a visible trigger when dismissing compact\n","  // navigation, Explore or the language picker on any public page.\n","    // A collapsed Explore inside the mobile menu must not close the menu too.\n"];
 const l160PublicMarker="      mq.addEventListener?mq.addEventListener('change',bind):mq.addListener?.(bind);\n";
 const l160PublicAddition="      // L1.60: settle pending reveals.\n      const reduced=matchMedia('(prefers-reduced-motion: reduce)');\n      const settle=()=>{\n        if(!reduced.matches)return;\n        io.disconnect();\n        for(const el of targets)el.classList.add('mm-public-shown');\n      };\n      reduced.addEventListener?reduced.addEventListener('change',settle):reduced.addListener?.(settle);\n";
 const l139PublicOnlyEdited=()=>{
   const released=source('landing-assets/public-pages.js');
-  let expected=released;
-  for(const comment of l160PublicRemovals){
-    if(expected.split(comment).length!==2)return false;
-    expected=expected.replace(comment,'');
-  }
-  if(expected.split(l160PublicMarker).length!==2)return false;
-  expected=expected.replace(l160PublicMarker,l160PublicMarker+l160PublicAddition);
-  return read('landing-assets/public-pages.js')===expected &&
-    released.includes('L1.58: rotate.') &&
-    released.includes("mobileReveal?'0px 0px 12% 0px':'0px 0px -4% 0px'");
+  return released.includes('L1.60: settle pending reveals.') &&
+    released.split("    toggle.addEventListener('click',()=>{\n      closeExplore();\n      closeLanguage();\n      const open=header.classList.toggle('menu-open');\n      toggle.setAttribute('aria-expanded',String(open));\n      syncNavToggleLabel();\n    });").length===2 &&
+    read('landing-assets/public-pages.js')===released.replace(
+      "    toggle.addEventListener('click',()=>{\n      closeExplore();\n      closeLanguage();\n      const open=header.classList.toggle('menu-open');\n      toggle.setAttribute('aria-expanded',String(open));\n      syncNavToggleLabel();\n    });","    toggle.addEventListener('click',event=>{\n      closeExplore();\n      closeLanguage();\n      const open=header.classList.toggle('menu-open');\n      toggle.setAttribute('aria-expanded',String(open));\n      syncNavToggleLabel();\n      // L1.61: keyboard-opened responsive menu starts at its first link.\n      // Leave pointer and touch activation unchanged.\n      if(open && event.detail===0)\n        nav.querySelector('a')?.focus({preventScroll:true});\n    });");
 };
 const l137PublicJSOnlyEdited=()=>{
   const expected=source('landing-assets/public-pages.js');
@@ -608,7 +609,7 @@ const publicRuntimeBudgets={
   'landing-assets/public-header-l115.css':16000,
   'landing-assets/shared-header-l116.css':20000,
   'landing-assets/header-explore-l147.min.css':26000,
-  'landing-assets/public-pages.js':9000,
+  'landing-assets/public-pages.js':9300,
   'landing-assets/motion-l132.css':12000,
   'landing-assets/landing.js':110000,
   'landing-assets/motion-l132.js':15000,
@@ -624,7 +625,7 @@ check('Landing priority image and below-fold concept use efficient loading',
   current.includes('decoding="async" fetchpriority="high"') &&
   current.includes('loading="lazy" decoding="async"') &&
   current.includes('<link rel="preload" as="image" type="image/webp"') &&
-  current.includes(l155NewScriptTag));
+  current.includes(l161LandingTag));
 // Analytics V1: check external resources against the unmodified HTML.
 const externalScriptTags = rawCurrent.match(/<script\b[^>]*\bsrc=["']https?:\/\/[^>]*><\/script>/gi) || [];
 const approvedBeacon = /^<script defer src="https:\/\/static\.cloudflareinsights\.com\/beacon\.min\.js" data-cf-beacon='\{"token":"[a-f0-9]{32}"\}'><\/script>$/.test(externalScriptTags[0] || '');
@@ -824,21 +825,19 @@ check('L1.27 public tab title matches SEO without language focus scroll',
  l133PublicPagesUnchanged() &&
  l142IndexOnlyEdited() && current.includes(newHeroPreload) &&
  !current.includes(oldHeroPreload));
-check('L1.60 strict ten-file public-only change with immutable HTML content and analytics',
-  actual.length===10 &&
-  actual.every(path=>[
-    'landing-assets/public-pages.js',
-    'landing-assets/landing-release-check.cjs',
-    'landing-assets/landing-browser-check.cjs',
-    ...publicHeaders
-  ].includes(path)) &&
+check('L1.61 strict twelve-file keyboard navigation, SEO and analytics unchanged',
+  actual.length===12 &&
+  actual.every(path=>['index.html','landing-assets/landing.js',
+    'landing-assets/public-pages.js','landing-assets/landing-release-check.cjs',
+    'landing-assets/landing-browser-check.cjs',...publicHeaders].includes(path)) &&
   publicHeaders.every(path=>{
     const prior=source(path);
-    return prior.split(l158NewScriptTag).length===2 &&
-      read(path)===prior.replace(l158NewScriptTag,l160ScriptTag);
+    return prior.split(l160ScriptTag).length===2 &&
+      read(path)===prior.replace(l160ScriptTag,l161ScriptTag);
   }) &&
   l139PublicOnlyEdited() && l139MotionOnlyEdited() &&
-  current===prev && analyticsAddition.test(rawCurrent) &&
+  current===prev.replace(l155NewScriptTag,l161LandingTag) &&
+  analyticsAddition.test(rawCurrent) &&
   l142IndexOnlyEdited() && l133BurmeseLayoutOnlyEdited() &&
   l133PublicPagesUnchanged() && l135HeaderCssOnlyEdited() &&
   ['landing-assets/public-pages.css','landing-assets/business.css',
@@ -862,7 +861,7 @@ check('L1.41 all nine first-party style/script URLs keep coordinated versions',
     const tag=after.replace('landing.css?v=l141','landing.min.css?v=l145')
       .replace('cinematic.css?v=l141','cinematic.min.css?v=l146')
       .replace('premium-l131.css?v=l141','premium-l131.min.css?v=l146')
-      .replace('landing.js?v=l141','landing.js?v=l155')
+      .replace('landing.js?v=l141','landing.js?v=l161')
       .replace('motion-l132.js?v=l141','motion-l132.js?v=l159');
     const bundled=/explore-l114\.css|shared-header-l116\.css/.test(after);
     return before!==after && after.includes('?v=l141') && !current.includes(before) &&
@@ -949,7 +948,7 @@ check('L1.47 ordered header bundle remains identical to merged main',
  l148LandingJsOnlyEdited());
 check('L1.49 repeat concept tabs preserved through L1.55',
   l148IndexOnlyEdited() && l148LandingJsOnlyEdited() &&
-  current.includes(l155NewScriptTag) &&
+  current.includes(l161LandingTag) &&
   !current.includes(l154NewScriptTag) &&
   source('landing-assets/landing.js').includes(l149BusinessClickAfter) &&
   read('landing-assets/landing-browser-check.cjs').includes('L1.49 active Business tab no-op browser parity'));
@@ -988,7 +987,7 @@ check('L1.56 released Business interruption remains intact',
   read('landing-assets/landing-browser-check.cjs').includes('L1.56 Business WAAPI interruption browser parity'));
 check('L1.58 public introduction pages rebind observer after viewport changes',
   l139PublicOnlyEdited() &&
-  publicHeaders.every(path=>read(path).includes(l160ScriptTag)) &&
+  publicHeaders.every(path=>read(path).includes(l161ScriptTag)) &&
   read('landing-assets/landing-browser-check.cjs').includes('L1.58 rotated public-page observer parity') &&
   l148IndexOnlyEdited());
 check('L1.57 orientation-aware observer rebind is isolated to Landing presentation',
@@ -1000,7 +999,7 @@ check('L1.57 orientation-aware observer rebind is isolated to Landing presentati
   l139PublicOnlyEdited());
 check('L1.60 live reduced-motion settles all public-page reveals without content changes',
   l139PublicOnlyEdited() &&
-  publicHeaders.every(path=>read(path).includes(l160ScriptTag)) &&
+  publicHeaders.every(path=>read(path).includes(l161ScriptTag)) &&
   read('landing-assets/landing-browser-check.cjs').includes('L1.60 live reduced-motion public-page reveal persistence'));
 check('L1.59 live reduced-motion change permanently reveals all pending Landing cards',
   l139MotionOnlyEdited() &&
@@ -1010,7 +1009,7 @@ check('L1.59 live reduced-motion change permanently reveals all pending Landing 
 check('L1.55 interrupted crossfade isolated from current main',
   l148LandingJsOnlyEdited() &&
   read('landing-assets/landing-browser-check.cjs').includes('L1.55 preview interruption browser parity') &&
-  current.includes(l155NewScriptTag));
+  current.includes(l161LandingTag));
 check('L1.48 measured language DOM improvements preserved',
   source('landing-assets/landing.js').includes('L1.48: preserve the existing node') &&
   read('landing-assets/landing-browser-check.cjs').includes('L1.48 measured initial-language DOM write parity'));
