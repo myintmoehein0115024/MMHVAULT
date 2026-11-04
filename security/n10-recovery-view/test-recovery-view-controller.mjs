@@ -229,8 +229,8 @@ test('late A plaintext response cannot hide or replace B visible Recovery Key',a
   },
   setTimer:(fn,ms)=>{timer={fn,ms};return 1},clearTimer:()=>{timer=null}
  });
- await c.status();const pendingA=c.reveal('password-for-account-a');
- owner='account-b';await c.status();await c.reveal('password-for-account-b');
+ await c.status();const pendingA=c.reveal('TestPassA12!');
+ owner='account-b';await c.status();await c.reveal('TestPassB12!');
  assert.equal(c.getPhase(),'visible');
  assert.deepEqual(events.at(-1).words,wordsB);
  assert.equal(timer.ms,45000);
@@ -253,7 +253,7 @@ test('late rejected reveal from A cannot cancel newer B ready state',async()=>{
    new Promise((_,reject)=>{rejectA=reject})
  });
  await c.status();
- const pendingA=c.reveal('password-for-account-a');
+ const pendingA=c.reveal('TestPassA12!');
  owner='account-b';await c.status();
  const afterB=events.length;
  rejectA(Error('old A request failed'));
