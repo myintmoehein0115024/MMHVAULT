@@ -40,7 +40,7 @@ const optionalReportGuard="if(!owner||typeof db==='undefined'){state.budget=null
 assert.equal(count(html,optionalReportGuard),1,
   'Review Report cloud loading before changing QA-only optional data behavior.');
 html=html.replace(optionalReportGuard,
-  "if(!owner||typeof db==='undefined'||document.querySelector('meta[name=\\\"mmhvault-staging-qa\\\"]')){state.budget=null;state.goals=[];state.recurring=[];state.loading=false;state.lastCloudKey=key;state.lastCloudAt=Date.now();render();return}");
+  "if(!owner||typeof db==='undefined'||document.querySelector('meta[name=mmhvault-staging-qa]')){state.budget=null;state.goals=[];state.recurring=[];state.loading=false;state.lastCloudKey=key;state.lastCloudAt=Date.now();render();return}");
 const reportBannerAnchor='<div class="report-eyebrow-v115">MONTHLY FINANCIAL REPORT</div>';
 assert.equal(count(html,reportBannerAnchor),1,
   'Canonical Financial Report heading changed; review QA preview injection.');
