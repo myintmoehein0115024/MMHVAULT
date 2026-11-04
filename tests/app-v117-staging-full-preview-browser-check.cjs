@@ -45,13 +45,19 @@ const PROD='https://vrypucmyrztxgiqhjspd.supabase.co';
       prod:await attempt('https://vrypucmyrztxgiqhjspd.supabase.co/rest/v1/transactions'),
       n10:await attempt('https://ldivswlhtgmznzwhzsoi.supabase.co/functions/v1/mmh-n10-security'),
       finance:await attempt('https://ldivswlhtgmznzwhzsoi.supabase.co/rest/v1/transactions?select=id'),
-      config:await attempt('https://ldivswlhtgmznzwhzsoi.supabase.co/rest/v1/personal_configuration?select=user_id')
+      config:await attempt('https://ldivswlhtgmznzwhzsoi.supabase.co/rest/v1/personal_configuration?select=user_id'),
+      investments:await attempt('https://ldivswlhtgmznzwhzsoi.supabase.co/rest/v1/investments?select=id'),
+      customInvestments:await attempt('https://ldivswlhtgmznzwhzsoi.supabase.co/rest/v1/custom_investments?select=id'),
+      wallet:await attempt('https://ldivswlhtgmznzwhzsoi.supabase.co/rest/v1/crypto_wallet_movements?select=id')
     };
   });
   assert.equal(proof.prod,false,'Production data host blocked by CSP');
   assert.equal(proof.n10,false,'Staging N10 Edge functions blocked by CSP');
   assert.equal(proof.finance,true,'Approved Staging ledger endpoint remains reachable');
   assert.equal(proof.config,true,'Approved Staging owner config endpoint remains reachable');
+  assert.equal(proof.investments,false,'Unapproved Staging investments endpoint must remain blocked');
+  assert.equal(proof.customInvestments,false,'Unapproved custom investments endpoint must remain blocked');
+  assert.equal(proof.wallet,false,'Unapproved wallet movements endpoint must remain blocked');
   assert.deepEqual(forbiddenNet,[],'browser sent no request to disallowed API origin or path');
   assert.ok(allowedAPI.includes('/rest/v1/transactions'));
   assert.ok(allowedAPI.includes('/rest/v1/personal_configuration'));
