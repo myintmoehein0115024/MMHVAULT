@@ -116,15 +116,28 @@ async function load(page,route,failures){
            '#business .business-mode-context, #business .business-ui-heading, #business .business-ui .business-metric, #business .business-ui .business-stat')].slice(0,6);
          document.querySelector('[data-business-view="business"]').click();
          await new Promise(resolve=>setTimeout(resolve,0));
-         return nodes.reduce((n,node)=>n+node.getAnimations()
-           .filter(a=>a.playState==='running').length,0);
+         // L1.57 CI stability: prolong these test-only WAAPI instances so
+         // natural completion cannot be mistaken for a real cancellation.
+         const active=nodes.flatMap(node=>node.getAnimations()
+           .filter(a=>a.playState==='running'));
+         window.__l156CancelEvents=0;
+         window.__l156CancelTargets=active.length;
+         active.forEach(animation=>{
+           animation.playbackRate=0.01;
+           animation.addEventListener('cancel',()=>{window.__l156CancelEvents++;},{once:true});
+         });
+         return active.length;
        });
        ensure(started>0,'L1.56 '+width+'px '+lang+' active animation before OS preference change');
        await page.emulateMedia({reducedMotion:'reduce'});
-       await page.waitForFunction(()=>[...document.querySelectorAll(
-         '#business .business-mode-context, #business .business-ui-heading, #business .business-ui .business-metric, #business .business-ui .business-stat')]
+       await page.waitForFunction(()=>
+         window.__l156CancelTargets>0 &&
+         window.__l156CancelEvents===window.__l156CancelTargets &&
+         [...document.querySelectorAll(
+           '#business .business-mode-context, #business .business-ui-heading, #business .business-ui .business-metric, #business .business-ui .business-stat')]
          .slice(0,6).every(node=>node.getAnimations().every(a=>
-           a.playState!=='running'&&a.playState!=='paused')),null,{timeout:250});
+           a.playState!=='running'&&a.playState!=='paused')),
+         null,{timeout:2500});
        ensure(errors.length===0,'L1.56 '+width+'px '+lang+' live reduced-motion preference cancels WAAPI');
        await ctx.close();
      }
