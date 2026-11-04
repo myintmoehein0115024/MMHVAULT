@@ -135,7 +135,11 @@ const say=(condition,label)=>{assert.ok(condition,label);console.log('PASS '+lab
       assert.deepEqual(options,{txType:['Income'],txGroup:['Income2'],txCategory:['Salary']});
       say(true,width+' Add Transaction has exact linked Type, no ghost defaults');
       const save=page.locator('#txForm .actions button');
-      say(await save.isDisabled(),width+' new transaction cannot save before explicit choices');
+      say(await page.locator('#txType').inputValue()==='Income'&&
+        await page.locator('#txGroup').inputValue()==='Income'&&
+        await page.locator('#txCategory').inputValue()==='Salary'&&
+        await save.isEnabled(),
+        width+' newly added missing Category completes the already-selected owner path');
       await page.locator('#txType').selectOption({label:'Income'});
       await page.locator('#txGroup').selectOption({label:'Income2'});
       await page.locator('#txCategory').selectOption({label:'Salary'});
