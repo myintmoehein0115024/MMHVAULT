@@ -21,6 +21,15 @@ const say=(condition,label)=>{assert.ok(condition,label);console.log('PASS '+lab
       await page.waitForSelector('#mmhHierarchyManage .mmh-hier-card');
       const cards=page.locator('.mmh-hier-card');
       say(await cards.count()===3,width+' three Manage cards');
+      say(!await page.locator('#txSmartV141').isVisible()&&
+        await page.locator('#txSmartV141 [data-kind-v141]').count()===6,
+        width+' all SIX hardcoded legacy Transaction Kind buttons stay hidden');
+      say(await page.locator('#txType option').count()===0&&
+        await page.locator('#txForm .actions button').isDisabled(),
+        width+' no account-created Type means no preset option or enabled Save');
+      say(await page.locator('#mmhHierarchyEntryGuide').isVisible()&&
+        (await page.locator('#mmhHierarchyEntryGuide').textContent()).includes('No active Type'),
+        width+' empty new user gets Manage guidance rather than a preset kind');
       say((await cards.nth(0).textContent()).includes('No items yet'),width+' new Type empty');
       say((await cards.nth(1).textContent()).includes('No items yet'),width+' new Transaction empty');
       say((await cards.nth(2).textContent()).includes('No items yet'),width+' no ghost default Category');
@@ -83,6 +92,9 @@ const say=(condition,label)=>{assert.ok(condition,label);console.log('PASS '+lab
       await dlg.locator('header button').click();
       say(await page.locator('#mmhHierarchyCategoryHint').isHidden(),
         width+' missing-Category hint disappears when a matching Category exists');
+      say(await page.locator('#mmhHierarchyEntryGuide').isHidden()&&
+        !await page.locator('#txSmartV141').isVisible(),
+        width+' only owner-created linked choices appear; built-in kind bar stays hidden');
       const options=await page.evaluate(()=>Object.fromEntries(['txType','txGroup','txCategory']
         .map(id=>[id,[...document.getElementById(id).options]
           .filter(x=>x.dataset.mmhChoiceId).map(x=>x.textContent)])));
@@ -254,6 +266,9 @@ const say=(condition,label)=>{assert.ok(condition,label);console.log('PASS '+lab
       say(await save.isEnabled(),width+' explicitly selecting Bonus re-enables Save');
       await dlg.getByRole('button',{name:'Archive'}).last().click();
       say(await page.locator('#txCategory option').count()===0,width+' all archived Categories hidden from Add Transaction');
+      say(await page.locator('#mmhHierarchyEntryGuide').isVisible()&&
+        !await page.locator('#txSmartV141').isVisible(),
+        width+' fully archived hierarchy presents empty-state, never restores six preset kinds');
       say((await page.evaluate(()=>window.__syntheticWrites))===9,width+' nine synthetic config writes including two extra ledger links and two Archives');
       await page.keyboard.press('Escape');
       // Interface language follows page preference for the cards.
