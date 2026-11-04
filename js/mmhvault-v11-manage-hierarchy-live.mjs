@@ -465,6 +465,28 @@ function form(){
     const cats=selection.transaction?controller.list('category',selection.transaction)
       .map(x=>({id:x.id,value:x.label,text:x.label})):[];
     put(c,cats,selection.category,'category');selection.category=selected(c);
+    // A user-configured hierarchy has no default Category, including
+    // Transfer. Explain the missing prerequisite instead of leaving an
+    // apparently broken empty dropdown or silently adding preset data.
+    let categoryHint=$('mmhHierarchyCategoryHint');
+    const categoryLabel=c.closest('label');
+    if(!categoryHint&&categoryLabel){
+      categoryHint=elt('span','mmh-hier-muted');
+      categoryHint.id='mmhHierarchyCategoryHint';
+      categoryHint.setAttribute('role','status');
+      categoryLabel.append(categoryHint);
+    }
+    if(categoryHint){
+      const selectedType=types.find(x=>x.id===selection.type);
+      categoryHint.hidden=!selection.transaction||cats.length>0;
+      categoryHint.textContent=categoryHint.hidden?'':selectedType?.value==='Transfer'?tr(
+        'No linked Category yet. In Manage → Category, create “Transfer” under this Transaction.',
+        '尚未关联 Category。请到 Manage → Category，在该 Transaction 下添加“Transfer”。',
+        'Category မရှိသေးပါ။ Manage → Category တွင် “Transfer” ကို ထည့်ပါ။'):tr(
+        'No linked Category yet. Open Manage → Category and add one under this Transaction.',
+        '尚未关联 Category。请到 Manage → Category，在该 Transaction 下添加分类。',
+        'Category မရှိသေးပါ။ Manage → Category တွင် အသစ်ထည့်ပါ။');
+    }
     const typeLabel=t.closest('label');
     let directionHint=$('mmhHierarchyBalanceHint');
     if(!directionHint&&typeLabel){
