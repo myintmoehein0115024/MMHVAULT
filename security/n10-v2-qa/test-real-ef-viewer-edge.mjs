@@ -37,3 +37,11 @@ test('45-second response, no client/local storage, no destructive verbs',()=>{
  has("Cache-Control':'no-store, private'");
  assert.doesNotMatch(src,/console\.|localStorage|sessionStorage|\.admin\.deleteUser\s*\(|\bvault\.create_secret/);
 });
+
+test('password proof must fail closed when its temporary Auth sign-out errors',()=>{
+ has("const {error:logoutError}=await auth.auth.signOut({scope:'local'})");
+ has('if(logoutError)return false;');
+ has('return passwordVerified;');
+ assert.doesNotMatch(src,/finally\s*\{\s*try\s*\{\s*await auth\.auth\.signOut\(\{scope:'local'\}\);\s*\}\s*catch\(_\)\s*\{\}\s*\}/,
+  'do not swallow a sign-out exception on the recovery-password proof path');
+});
