@@ -22,7 +22,7 @@ const WORDLIST=Array.from({length:2048},(_,i)=>{
 });
 assert.equal(new Set(WORDLIST).size,2048);
 
-function fakeWorld({failEscrow=false,revokeOnVaultRead=false,malformedAuthResponse=false,closeGateOnSignin=false}={}){
+function fakeWorld({failEscrow=false,revokeOnVaultRead=false,revokeOnStatusRead=false,malformedAuthResponse=false,closeGateOnSignin=false}={}){
  const users=new Map(),byEmail=new Map(),slotOwners=new Map(),claims=new Set();
  const backups=new Map(),sessions=new Map(),tokens=new Map(),verifiedFactors=new Set(),events=[];
  let handlerCount=0,gateOpen=true,closeOnNextSignin=closeGateOnSignin;
@@ -76,7 +76,9 @@ function fakeWorld({failEscrow=false,revokeOnVaultRead=false,malformedAuthRespon
     }
     case 'mmh_n10_realef_backup_exists':{
       const s=sessions.get(arg.p_session_id);
-      return {data:!!s&&s.uid===arg.p_user_id&&s.aal==='aal2'&&s.live&&backups.has(s.uid),error:null};
+      const data=!!s&&s.uid===arg.p_user_id&&s.aal==='aal2'&&s.live&&backups.has(s.uid);
+      if(revokeOnStatusRead&&s)s.live=false; // Revocation after DB check, before response
+      return {data,error:null};
     }
     case 'mmh_n10_realef_backup_get':{
       const s=sessions.get(arg.p_session_id);
@@ -445,4 +447,21 @@ test('gate closing during repeat login returns no token and revokes only new ses
  assert.equal(x.activeSessions(e.user_id),1,
   'original test session remains; late temporary session is signed out');
  assert.equal(x.backups.get(e.user_id),e.recovery_words.join(' '));
+});
+
+test('revoked AAL2 session during backup-status read never reveals backup existence',async()=>{
+ const x=fakeWorld({revokeOnStatusRead:true});
+ const e=await x.invoke(x.signup,{
+  action:'signup',username:'n10real_e_20261104',password:PWD_E,
+  captcha_token:'signup-status-session-race-test'
+ });
+ assert.equal(e.status,200);
+ const aal2=x.mintAAL2(e.user_id);
+ const status=await x.invoke(x.viewer,{action:'status'},aal2.access_token);
+ assert.equal(status.status,401);
+ assert.equal(status.code,'session_expired');
+ assert.equal(status.backed_up,undefined,'revoked session must not learn whether a key exists');
+ assert.equal(status.words,undefined);
+ assert.equal(x.backups.get(e.user_id),e.recovery_words.join(' '),
+  'original fixed escrow must remain unchanged');
 });
