@@ -1,6 +1,11 @@
 /* N10-only Burmese UI text; no credential or Recovery Key values are translated. */
 (function(){'use strict';
   const messages=Object.freeze({
+  "Limited access: test usernames start with": "ကန့်သတ်အသုံးပြုမှု - စမ်းသပ်အမည်များကို အောက်ပါစာလုံးဖြင့် စရမည်",
+  "Retry": "ပြန်ကြိုးစားရန်",
+  "Create your username-based account": "အသုံးပြုသူအမည်ဖြင့် သင့်အကောင့်ကို ဖန်တီးပါ",
+  "MMHVAULT · ACCOUNT PROTECTION": "MMHVAULT · အကောင့်ကာကွယ်ရေး",
+  "PRIVATE & SECURE · YOUR ACCOUNT, YOUR CONTROL": "ကိုယ်ပိုင်နှင့် လုံခြုံမှု · သင့်အကောင့်ကို သင်ထိန်းချုပ်ပါ",
   "Home": "ပင်မစာမျက်နှာ",
   "Features": "လုပ်ဆောင်ချက်များ",
   "Security": "လုံခြုံရေး",
