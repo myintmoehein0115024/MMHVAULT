@@ -81,3 +81,22 @@ The wallet table was confirmed by the actual `mmhPersonalReadWalletV191` definit
 **Pre-migration checks required:** independently inspect actual SELECT/INSERT/UPDATE columns, primary/foreign keys, existing local finance model expectations, RLS `auth.uid() = user_id`, authenticated-only grants, ownership-denial tests, no default seed data, cleanup, rollback, and CSP allowlist changes. **No table DDL, production SQL, N10 changes, or Cloudflare deployment in this review.**
 
 A new CI regression check now asserts that the actual signed-owner `loadAll()` still hard-fails when those critical finance reads fail, that the wallet loader still targets the known wallet table, and that the user/session owner guard remains intact. Tests are static read-only checks; they do not simulate a successful full APP login.
+
+
+## 2026-11-04 Transaction UI / ledger refresh hardening (Draft PR #87 only)
+
+### P1 legacy Category canonical-registry drift fixed
+The native APP reads both the V11.7 hierarchy choice IDs and the historical `config.categories` / `CATS` canonical registry. Previously `rename('category')` appended the new label while leaving the **unused old label** in the canonical registry; `delete('category')` removed the choice ID but could leave a ghost Category visible in legacy readers, including Analyze. The controller now updates both lists in one owner-guarded transaction, **and refuses to remove any label referenced by any historical row**, even across a different canonical group. Archive still only marks a V11.7 choice archived and never rewrites the old ledger or canonical registry. New Node regression covers rename, delete, capitalization changes, old-history protection and Archive invariance.
+
+### Native INSERT success did not itself refresh current APP data
+Read-only review of current `app.html` confirmed:
+1. `addTransaction(e)` inserts a `public.transactions` row and receives its confirmed database ID, then calls the V11.7 `onLedgerInserted` sidecar callback. It does not itself call `loadAll()` afterward.
+2. Its existing V321 `guardedCall(fn)` only checks offline state and awaits the function; it also does not trigger a cloud data refresh.
+3. Account balances, Dashboard and Analyze depend on the owner-loaded `transactions` array and `mmhvault:data-loaded` event. Therefore, without a separate reload, a successful INSERT could leave the current screen displaying stale totals.
+
+**Branch-only repair:** `js/mmhvault-v11-manage-hierarchy-live.mjs` now schedules an **owner-checked, read-only forced `loadAll({force:true})`** after confirmed ledger insertion and the Manage sidecar attempt. It verifies the exact saved record ID in the returned owner-scoped array; if another request returned an earlier in-flight snapshot, it makes **at most one additional read**. On failure it states **the transaction was saved** and advises a reload **without resubmitting**. When a sidecar path cannot be confirmed, the ledger still refreshes, the invalid link is not forged, and a safety notice remains. No transaction INSERT/UPDATE/DELETE is replayed or added to the hierarchy module.
+
+**Regression:** Chrome + Linux WebKit synthetic browser QA at 393, 768 and 1440px now models one stale cloud snapshot, confirms exact owner/ID readback after a second read, confirms no duplicate config or financial record, and confirms unlinked-but-confirmed rows still refresh. It also simulates native legacy selector rebuilds to prove that the exact Type → Transaction → Category path remains selected.
+
+### Release boundary unchanged
+This is **source + simulated browser qualification**, not real signed-in full APP end-to-end acceptance. Actual Accounts / Dashboard / Analyze values and multi-device cloud verification still need isolated full-APP Staging approval, since the two-table sandbox cannot boot the whole native APP. No Staging schema change, Production finance mutation, N10/Landing/Analytics edit, PR merge or deployment occurred. Keep PR #87 DRAFT.
