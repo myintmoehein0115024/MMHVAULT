@@ -8,7 +8,7 @@ const html=readFileSync(new URL('../../admin-analytics.html',import.meta.url),'u
 const inline=html.split('<script>')[1]?.split('</script>')[0];
 if(!inline)throw Error('Admin Analytics initializer not found');
 
-function harness() {
+function harness({authenticated=true,admin=true}={}) {
   const handlers={},requests=[],renders=[],elements={};
   for(const id of ['range','timeZone','refresh','status','visits','pageViews','uniqueVisitors','trend','updated','breakdowns','breakdownStatus']){
     elements[id]={value:id==='range'?'7d':id==='timeZone'?'UTC':'',textContent:'',disabled:false,
@@ -19,8 +19,8 @@ function harness() {
     render(_el,trend,granularity,range,updatedAt,timeZone){renders.push({trend,granularity,range,updatedAt,timeZone});return true}
   };
   const client={
-    auth:{async getSession(){return {data:{session:{access_token:'synthetic.test.jwt'}}}}},
-    async rpc(){return {data:true,error:null}}
+    auth:{async getSession(){return {data:{session:authenticated?{access_token:'synthetic.test.jwt'}:null}}}},
+    async rpc(){return {data:admin,error:null}}
   };
   const window={
     supabase:{createClient(){return client}},
@@ -112,4 +112,23 @@ test('changing time zone during an in-flight hourly load uses the latest selecti
   assert.equal(h.renders.at(-1).timeZone,'Asia/Bangkok');
   assert.equal(h.elements.visits.textContent,'12');
   assert.equal(h.elements.status.textContent,'Connected');
+});
+
+test('anonymous or non-admin view keeps breakdowns unavailable and never fetches',async()=>{
+  for(const settings of [{authenticated:false},{admin:false}]){
+    const h=harness(settings);await settled();
+    assert.equal(h.requests.length,0);
+    assert.match(h.elements.breakdownStatus.textContent,/unavailable until administrator analytics is verified/);
+    assert.equal(h.elements.visits.textContent,'—');
+    assert.equal(h.elements.refresh.disabled,false);
+  }
+});
+test('optional breakdown outage never overwrites already verified totals or connected status',async()=>{
+  const h=harness();await settled();
+  h.requests[0].resolve(answer('7d',6));await settled();
+  assert.equal(h.elements.visits.textContent,'6');
+  assert.equal(h.elements.pageViews.textContent,'7');
+  assert.equal(h.elements.status.textContent,'Connected');
+  assert.match(h.elements.breakdownStatus.textContent,/Breakdowns unavailable/);
+  assert.equal(h.elements.refresh.disabled,false);
 });
