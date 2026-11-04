@@ -138,3 +138,56 @@ test('system Transfer / Data Adjustment categories cannot diverge from canonical
   const fixed=h.api.addCategory('Data Adjustment',adjustment.id);
   assert.equal(h.api.path(income.id,adjustment.id,fixed.id).group,'Data Adjustment');
 });
+
+
+test('renaming an unused Category atomically updates native + Analyze canonical registry',()=>{
+  const h=setup(),type=h.api.addType('Income','Income');
+  const txn=h.api.addTransaction('Income2',type.id,'Income|Income');
+  const cat=h.api.addCategory('Bonus Custom',txn.id);
+  assert.ok(h.config.categories.Income.includes('Bonus Custom'));
+  h.api.rename('category',cat.id,'Commission');
+  assert.ok(!h.config.categories.Income.includes('Bonus Custom'),
+    'Old unused Category must not leak into legacy category selectors or Analyze');
+  assert.ok(h.config.categories.Income.includes('Commission'));
+  assert.deepEqual(h.api.path(type.id,txn.id,cat.id).category,'Commission');
+  assert.ok(h.config.categories.Income.includes('Salary'),
+    'Other existing categories are left intact');
+  h.api.delete('category',cat.id);
+  assert.ok(!h.config.categories.Income.includes('Commission'),
+    'Deleted unused Category must disappear from both lists');
+  assert.ok(h.config.categories.Income.includes('Salary'));
+  assert.equal(h.api.read().categories.length,0);
+});
+test('case-only Category rename updates canonical name used by native ledger exactly',()=>{
+  const h=setup(),type=h.api.addType('Income','Income');
+  const txn=h.api.addTransaction('Income2',type.id,'Income|Income');
+  const cat=h.api.addCategory('Holiday Gift',txn.id);
+  h.api.rename('category',cat.id,'holiday gift');
+  assert.ok(!h.config.categories.Income.includes('Holiday Gift'));
+  assert.ok(h.config.categories.Income.includes('holiday gift'));
+  assert.deepEqual(h.api.path(type.id,txn.id,cat.id).category,'holiday gift');
+});
+test('even unrelated legacy rows sharing a category name block unsafe canonical removal',()=>{
+  const h=setup(),type=h.api.addType('Income','Income');
+  const txn=h.api.addTransaction('Income2',type.id,'Income|Income');
+  const cat=h.api.addCategory('Legacy Shared Label',txn.id);
+  const before=JSON.stringify(h.config), writes=h.writes;
+  h.history([{user_id:owner,type:'Expense',category:'Legacy Shared Label'}]);
+  assert.throws(()=>h.api.rename('category',cat.id,'New Label'),/Archive instead/);
+  assert.throws(()=>h.api.delete('category',cat.id),/Archive instead/);
+  assert.equal(JSON.stringify(h.config),before,'No partial canonical registry edits');
+  assert.equal(h.writes,writes,'No configuration persistence on rejected destructive changes');
+});
+test('Archive of USED Category keeps exact historical ledger and category registry',()=>{
+  const h=setup(),type=h.api.addType('Income','Income');
+  const txn=h.api.addTransaction('Income2',type.id,'Income|Income');
+  const cat=h.api.addCategory('Salary',txn.id);
+  const oldRow={id:101,user_id:owner,type:'Income',category:'Salary',to_account:'Cash',to_amount:450};
+  h.history([oldRow]);
+  const rowBefore=JSON.stringify(oldRow),catBefore=JSON.stringify(h.config.categories);
+  assert.throws(()=>h.api.rename('category',cat.id,'Salary2'),/Archive instead/);
+  h.api.archive('category',cat.id);
+  assert.equal(JSON.stringify(oldRow),rowBefore);
+  assert.equal(JSON.stringify(h.config.categories),catBefore);
+  assert.ok(!h.api.list('category',txn.id).some(x=>x.id===cat.id));
+});
