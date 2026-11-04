@@ -10,6 +10,15 @@ const source = path => {
  assert.equal(r.status,0,'Cannot read original main:'+path);
  return r.stdout;
 };
+const l164HomeLink="  <link rel=\"stylesheet\" href=\"./landing-assets/safari-performance-l164.css?v=l164\">";
+const l164PublicLink="<link rel=\"stylesheet\" href=\"/landing-assets/safari-performance-l164.css?v=l164\">";
+const l164PublicAnchor="<link rel=\"stylesheet\" href=\"/landing-assets/shared-header-l116.css?v=1\">";
+const l164HomeAnchor="  <link rel=\"stylesheet\" href=\"./landing-assets/header-explore-l147.min.css?v=l147\">";
+const l164SafariCSS="/* L1.64 — desktop WebKit-friendly presentation, shared public site only.\n * The sticky header is already near-opaque. Avoid sampling and blurring the\n * entire viewport behind it on every scroll frame. Preserve its blue/gold\n * gradient, translucency-like depth, border, shadow and all interactions.\n * This also helps other desktop engines; phone/tablet styles are untouched. */\n@media (min-width: 1025px) {\n  body.mmh-nav-unified .site-header {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n    background: linear-gradient(180deg, #071928, #051625);\n  }\n  /* These cards already paint nearly opaque gradients. Removing their live\n   * backdrop sampling avoids six separate offscreen compositing surfaces. */\n  body.l131 .showcase-v2 .showcase-card {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n  }\n  /* The ambient shapes and Hero glow already use soft radial gradients;\n   * their very large filter blur layers need not be repainted on scroll. */\n  body.l131 .ambient,\n  body.l131 .hero::after {\n    filter: none;\n  }\n}\n";
+const l164WorkflowSuffix="\n  webkit-desktop-qa:\n    name: macOS WebKit desktop Safari-engine QA (no auth)\n    runs-on: macos-15\n    timeout-minutes: 15\n    steps:\n      - uses: actions/checkout@v4\n      - uses: actions/setup-node@v4\n        with:\n          node-version: '22'\n      - name: Install isolated WebKit test driver\n        run: |\n          npm install --no-save --no-package-lock --no-audit --no-fund playwright-core@1.56.1\n          npx playwright install webkit\n      - name: Run native macOS WebKit public-only desktop regression\n        run: |\n          python3 -m http.server 8765 --bind 127.0.0.1 >/tmp/mmhvault-safari-http.log 2>&1 &\n          SERVER_PID=$!\n          trap 'kill \"$SERVER_PID\"' EXIT\n          sleep 2\n          node landing-assets/landing-webkit-check.cjs\n";
+const l164WorkflowOnlyEdited=()=>
+  read('.github/workflows/landing-release-check.yml')===
+  source('.github/workflows/landing-release-check.yml')+l164WorkflowSuffix;
 const rawCurrent = read('index.html');
 const rawPrevious=source('index.html');
 // Verify the one allowed addition separately, then run all legacy content
@@ -21,7 +30,7 @@ assert.equal((rawPrevious.match(analyticsAddition)||[]).length,1,'Released main 
 assert.equal((rawCurrent.match(analyticsAddition)||[])[0],(rawPrevious.match(analyticsAddition)||[])[0],
   'L1.57 must preserve the exact already-released analytics beacon');
 const prev=rawPrevious.replace(analyticsAddition,'');
-const current = rawCurrent.replace(analyticsAddition,'');
+const current = rawCurrent.replace(analyticsAddition,'').replace(l164HomeLink+'\n','');
 // Legacy release checks below validate all previously approved Landing differences.
 
 // L1.41: preserve every byte of the published homepage except the nine
@@ -272,11 +281,11 @@ const l162OldCssLink="<link rel=\"stylesheet\" href=\"/landing-assets/public-pag
 const l162NewCssLink="<link rel=\"stylesheet\" href=\"/landing-assets/public-pages.css?v=l162\">";
 const l162RestoreCss=(html)=>html.replace(l162NewCssLink,l162OldCssLink);
 const l163NewCssLink="<link rel=\"stylesheet\" href=\"/landing-assets/public-pages.css?v=l163\">";
-const l163RestoreCss=(html)=>html.replace(l163NewCssLink,l162NewCssLink);
+const l163RestoreCss=(html)=>html.replace(l164PublicLink+'\n',''); // L1.63 CSS link is released.
 const l163FooterCssPatch="\n/* L1.63 — minimum 44px touch targets for public footer navigation on phones.\n   Keep the desktop footer and all page content, links, language strings intact. */\n@media (max-width: 620px) {\n  body.public-landing-page .public-footer-group {\n    min-width: 0;\n    gap: 5px;\n  }\n  body.public-landing-page .public-footer-group strong {\n    max-width: 100%;\n    overflow-wrap: anywhere;\n  }\n  body.public-landing-page .public-footer-group a {\n    box-sizing: border-box;\n    display: flex;\n    align-items: center;\n    width: 100%;\n    min-width: 0;\n    min-height: 44px;\n    padding: 8px;\n    border-radius: 10px;\n    overflow-wrap: anywhere;\n  }\n  body.public-landing-page .public-footer-group a span {\n    min-width: 0;\n    overflow-wrap: anywhere;\n  }\n  body.public-landing-page .public-footer-bottom > a {\n    display: inline-flex;\n    align-items: center;\n    max-width: 100%;\n    min-height: 44px;\n    padding: 8px;\n    border-radius: 10px;\n    overflow-wrap: anywhere;\n  }\n}\n";
 const l163FooterCssOnlyEdited=()=>
-  read('landing-assets/public-pages.css')===
-    source('landing-assets/public-pages.css')+l163FooterCssPatch;
+  read('landing-assets/public-pages.css')===source('landing-assets/public-pages.css') &&
+  source('landing-assets/public-pages.css').endsWith(l163FooterCssPatch);
 const l160PublicRemovals=[" * Read-only presentation: no auth, fetch, history/URL rewrites or finance data.\n"," * Header markup and shared-header-l116.css are identical across public pages.\n","  // L1.26: return focus to a visible trigger when dismissing compact\n","  // navigation, Explore or the language picker on any public page.\n","    // A collapsed Explore inside the mobile menu must not close the menu too.\n"];
 const l160PublicMarker="      mq.addEventListener?mq.addEventListener('change',bind):mq.addListener?.(bind);\n";
 const l160PublicAddition="      // L1.60: settle pending reveals.\n      const reduced=matchMedia('(prefers-reduced-motion: reduce)');\n      const settle=()=>{\n        if(!reduced.matches)return;\n        io.disconnect();\n        for(const el of targets)el.classList.add('mm-public-shown');\n      };\n      reduced.addEventListener?reduced.addEventListener('change',settle):reduced.addListener?.(settle);\n";
@@ -388,7 +397,8 @@ check('Sitemap has no private app or login',!/<loc>[^<]*\/(?:app|login|n10-qa)\.
 check('PWA launcher points to secure Login',manifest.start_url==='./login.html?source=pwa&install=v2');
 check('Manifest differs only in start_url',JSON.stringify({...manifest,start_url:oldManifest.start_url})===JSON.stringify(oldManifest));
 check('Preserved old iPhone touch icon',current.includes('<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=pwa24-20261029">'));
-const allowed=new Set(['index.html','robots.txt','mmh-manifest-v2.webmanifest','business.html','sitemap.xml','register/index.html','features/index.html','about/index.html','business/index.html','privacy.html','terms.html','security.html','landing-assets/public-pages.css','landing-assets/public-header-l115.css','landing-assets/shared-header-l116.css','landing-assets/public-pages.js','landing-assets/landing-release-check.cjs','landing-assets/landing-browser-check.cjs','.github/workflows/landing-release-check.yml',...names.map(f=>'landing-assets/'+f),'landing-assets/landing.min.css']);
+const allowed=new Set(['index.html','robots.txt','mmh-manifest-v2.webmanifest','business.html','sitemap.xml','register/index.html','features/index.html','about/index.html','business/index.html','privacy.html','terms.html','security.html','landing-assets/public-pages.css','landing-assets/public-header-l115.css','landing-assets/shared-header-l116.css','landing-assets/public-pages.js','landing-assets/landing-release-check.cjs','landing-assets/landing-browser-check.cjs','.github/workflows/landing-release-check.yml',...names.map(f=>'landing-assets/'+f),'landing-assets/landing.min.css',
+  'landing-assets/safari-performance-l164.css','landing-assets/landing-webkit-check.cjs']);
 const diff=cp.spawnSync('git',['diff','--name-only',main+'...HEAD'],{encoding:'utf8'});
 assert.equal(diff.status,0,'git diff unsuccessful');
 const actual=diff.stdout.trim().split(/\n/).filter(Boolean);
@@ -832,21 +842,30 @@ check('L1.27 public tab title matches SEO without language focus scroll',
  l133PublicPagesUnchanged() &&
  l142IndexOnlyEdited() && current.includes(newHeroPreload) &&
  !current.includes(oldHeroPreload));
-check('L1.63 strict ten-file public footer accessibility only; SEO/Analytics unchanged',
-  actual.length===10 &&
+check('L1.64 exact Safari desktop-only 13-file optimization, SEO/N10/APP/Analytics untouched',
+  actual.length===13 &&
   actual.every(path=>[
-    'landing-assets/public-pages.css',
+    'index.html','landing-assets/safari-performance-l164.css',
+    'landing-assets/landing-webkit-check.cjs',
     'landing-assets/landing-release-check.cjs',
     'landing-assets/landing-browser-check.cjs',
+    '.github/workflows/landing-release-check.yml',
     ...publicHeaders
   ].includes(path)) &&
+  rawCurrent===rawPrevious.replace(l164HomeAnchor,l164HomeAnchor+'\n'+l164HomeLink) &&
   publicHeaders.every(path=>{
     const old=source(path);
-    return old.split(l162NewCssLink).length===2 &&
-      read(path)===old.replace(l162NewCssLink,l163NewCssLink);
+    return old.split(l164PublicAnchor).length===2 &&
+      read(path)===old.replace(l164PublicAnchor,l164PublicAnchor+'\n'+l164PublicLink);
   }) &&
-  l163FooterCssOnlyEdited() &&
-  l139PublicOnlyEdited() && l139MotionOnlyEdited() &&
+  read('landing-assets/safari-performance-l164.css')===l164SafariCSS &&
+  l164SafariCSS.includes('@media (min-width: 1025px)') &&
+  l164SafariCSS.includes('body.mmh-nav-unified .site-header') &&
+  l164SafariCSS.includes('-webkit-backdrop-filter: none') &&
+  !l164SafariCSS.includes('body.app') &&
+  l164WorkflowOnlyEdited() &&
+  read('landing-assets/landing-webkit-check.cjs').includes('MACOS WEBKIT QA PASS') &&
+  l163FooterCssOnlyEdited() && l139PublicOnlyEdited() && l139MotionOnlyEdited() &&
   current===prev && analyticsAddition.test(rawCurrent) &&
   l142IndexOnlyEdited() && l133BurmeseLayoutOnlyEdited() &&
   l133PublicPagesUnchanged() && l135HeaderCssOnlyEdited() &&
@@ -920,7 +939,7 @@ check('L1.45 compacted CSS exactly matches formatting-only transformation with s
   read('landing-assets/landing.min.css').includes('scroll-behavior:smooth') &&
   read('landing-assets/landing.min.css').includes('Noto Sans Myanmar') &&
   read('landing-assets/landing-browser-check.cjs').includes('L1.45 CSSOM rule-for-rule equivalence') &&
-  read('.github/workflows/landing-release-check.yml')===source('.github/workflows/landing-release-check.yml') &&
+  l164WorkflowOnlyEdited() &&
   read('landing-assets/cinematic.css')===source('landing-assets/cinematic.css') &&
   l148LandingJsOnlyEdited());
 check('L1.46 generated critical CSS matches readable originals and only changes two versioned links',
