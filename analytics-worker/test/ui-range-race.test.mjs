@@ -10,7 +10,7 @@ if(!inline)throw Error('Admin Analytics initializer not found');
 
 function harness() {
   const handlers={},requests=[],renders=[],elements={};
-  for(const id of ['range','timeZone','refresh','status','visits','pageViews','uniqueVisitors','trend','updated']){
+  for(const id of ['range','timeZone','refresh','status','visits','pageViews','uniqueVisitors','trend','updated','breakdowns','breakdownStatus']){
     elements[id]={value:id==='range'?'7d':id==='timeZone'?'UTC':'',textContent:'',disabled:false,
       addEventListener(event,handler){handlers[id+':'+event]=handler}};
   }
@@ -25,9 +25,12 @@ function harness() {
   const window={
     supabase:{createClient(){return client}},
     MMHAnalyticsChart:chart,
+    MMHAnalyticsBreakdowns:{clear(){},render(){return true}},
     addEventListener(name,handler){handlers['window:'+name]=handler}
   };
-  const fetch=(url,options)=>new Promise(resolve=>requests.push({url,options,resolve}));
+  const fetch=(url,options)=>String(url).includes('website-analytics-breakdowns?')?
+    Promise.resolve({ok:false,status:503}):
+    new Promise(resolve=>requests.push({url,options,resolve}));
   runInNewContext(inline,
     {window,document:{getElementById:id=>elements[id]},Intl,AbortController,
       fetch,setTimeout,clearTimeout,encodeURIComponent,requestAnimationFrame:cb=>cb()});
