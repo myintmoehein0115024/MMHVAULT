@@ -144,17 +144,14 @@ const l154HydrationPatches=[["      button.setAttribute('aria-pressed', String(b
 const l153BusinessAttrPatches=[["      button.setAttribute('aria-pressed',String(selected));","      // L1.53: a language change must not rewrite the active concept state.\n      const pressed=String(selected);\n      if(button.getAttribute('aria-pressed')!==pressed)button.setAttribute('aria-pressed',pressed);"],["      element.setAttribute('data-i18n',key);\n      const value = dictionary[key] || '';","      if(element.getAttribute('data-i18n')!==key)element.setAttribute('data-i18n',key);\n      const value = dictionary[key] || '';"],["    if(panel) panel.dataset.currentView = currentBusinessView;","    if(panel && panel.dataset.currentView!==currentBusinessView)panel.dataset.currentView = currentBusinessView;"]];
 // L1.55: compare exact edit against latest main (L1.54).
 const l155InterruptedPreviewPatch="  // L1.55: finish an interrupted crossfade immediately when the tab is\n  // hidden or the user enables reduced motion, preserving selected content.\n  const clearInterruptedPreview = () => {\n    if (previewTransition && (reducedPreviewMotion.matches || document.hidden))\n      settlePreviewTransition();\n  };\n  if (typeof reducedPreviewMotion.addEventListener === 'function')\n    reducedPreviewMotion.addEventListener('change', clearInterruptedPreview);\n  else if (typeof reducedPreviewMotion.addListener === 'function')\n    reducedPreviewMotion.addListener(clearInterruptedPreview);\n  document.addEventListener('visibilitychange', clearInterruptedPreview);\n\n";
+// L1.61 is published in main. L1.62 cannot modify Landing runtime JS.
 const l148LandingJsOnlyEdited=()=>{
   const merged=source('landing-assets/landing.js');
-  if(!l148JsReplacements.every(([before,after])=>merged.includes(after)&&!merged.includes(before)))return false;
-  if(![l149BusinessClickAfter,l150LanguageClickAfter,l151MarkSectionAfter,l152PreviewTabAfter].every(x=>merged.includes(x)))return false;
-  if(!l153BusinessAttrPatches.every(([before,after])=>merged.includes(after)&&!merged.includes(before)))return false;
-  if(!l154HydrationPatches.every(([before,after])=>merged.includes(after)&&!merged.includes(before)))return false;
-  const anchor="  function selectProductView(view,focus=false,instant=false){";
-  return merged.includes(l155InterruptedPreviewPatch+anchor) &&
-    merged.split("  toggle.addEventListener('click', () => {\n    closeExplore();\n    closeLanguage();\n    const isOpen = siteHeader.classList.toggle('menu-open');\n    toggle.setAttribute('aria-expanded', String(isOpen));\n    syncNavToggleLabel();\n  });").length===2 &&
-    read('landing-assets/landing.js')===merged.replace(
-      "  toggle.addEventListener('click', () => {\n    closeExplore();\n    closeLanguage();\n    const isOpen = siteHeader.classList.toggle('menu-open');\n    toggle.setAttribute('aria-expanded', String(isOpen));\n    syncNavToggleLabel();\n  });","  toggle.addEventListener('click', event => {\n    closeExplore();\n    closeLanguage();\n    const isOpen = siteHeader.classList.toggle('menu-open');\n    toggle.setAttribute('aria-expanded', String(isOpen));\n    syncNavToggleLabel();\n    // L1.61: keyboard-opened menu should lead to the first visible link.\n    // Pointer and touch activation leave focus where it was.\n    if (isOpen && event.detail === 0)\n      document.querySelector('#primary-nav a')?.focus({preventScroll:true});\n  });");
+  return merged.includes(l155InterruptedPreviewPatch+
+    '  function selectProductView(view,focus=false,instant=false){') &&
+    merged.includes('L1.61: keyboard-opened menu should lead to the first visible link.') &&
+    l148JsReplacements.every(([before,after])=>merged.includes(after)&&!merged.includes(before)) &&
+    read('landing-assets/landing.js')===merged;
 };
 
 // L1.46: only two critical CSS links differ from the released HTML.
@@ -293,12 +290,12 @@ const l158RestoreScript=(html)=>html.replace(
 const l160PublicRemovals=[" * Read-only presentation: no auth, fetch, history/URL rewrites or finance data.\n"," * Header markup and shared-header-l116.css are identical across public pages.\n","  // L1.26: return focus to a visible trigger when dismissing compact\n","  // navigation, Explore or the language picker on any public page.\n","    // A collapsed Explore inside the mobile menu must not close the menu too.\n"];
 const l160PublicMarker="      mq.addEventListener?mq.addEventListener('change',bind):mq.addListener?.(bind);\n";
 const l160PublicAddition="      // L1.60: settle pending reveals.\n      const reduced=matchMedia('(prefers-reduced-motion: reduce)');\n      const settle=()=>{\n        if(!reduced.matches)return;\n        io.disconnect();\n        for(const el of targets)el.classList.add('mm-public-shown');\n      };\n      reduced.addEventListener?reduced.addEventListener('change',settle):reduced.addListener?.(settle);\n";
+// L1.61 public keyboard focus is already released: no JS changes in L1.62.
 const l139PublicOnlyEdited=()=>{
   const released=source('landing-assets/public-pages.js');
   return released.includes('L1.60: settle pending reveals.') &&
-    released.split("    toggle.addEventListener('click',()=>{\n      closeExplore();\n      closeLanguage();\n      const open=header.classList.toggle('menu-open');\n      toggle.setAttribute('aria-expanded',String(open));\n      syncNavToggleLabel();\n    });").length===2 &&
-    read('landing-assets/public-pages.js')===released.replace(
-      "    toggle.addEventListener('click',()=>{\n      closeExplore();\n      closeLanguage();\n      const open=header.classList.toggle('menu-open');\n      toggle.setAttribute('aria-expanded',String(open));\n      syncNavToggleLabel();\n    });","    toggle.addEventListener('click',event=>{\n      closeExplore();\n      closeLanguage();\n      const open=header.classList.toggle('menu-open');\n      toggle.setAttribute('aria-expanded',String(open));\n      syncNavToggleLabel();\n      // L1.61: keyboard-opened responsive menu starts at its first link.\n      // Leave pointer and touch activation unchanged.\n      if(open && event.detail===0)\n        nav.querySelector('a')?.focus({preventScroll:true});\n    });");
+    released.includes('L1.61: keyboard-opened responsive menu starts at its first link.') &&
+    read('landing-assets/public-pages.js')===released;
 };
 const l137PublicJSOnlyEdited=()=>{
   const expected=source('landing-assets/public-pages.js');
@@ -697,23 +694,6 @@ check('Landing has five same-page primary sections and a separate Explore menu',
   rootNav.includes('href="./'+target+'" data-i18n="info')) &&
  (rootNav.match(/<details class="nav-explore"/g)||[]).length===1 &&
  (rootNav.match(/<summary>/g)||[]).length===1);
-console.log('L1.62 temporary invariant diagnostic',JSON.stringify({
-  index:l148IndexOnlyEdited(),l147:l147IndexOnlyEdited(prev),
-  l146:l146IndexOnlyEdited(),l145:l145IndexOnlyEdited(),
-  l144:l144IndexOnlyEdited(),l142:l142IndexOnlyEdited(),
-  burmese:l133BurmeseLayoutOnlyEdited(),
-  l145css:l145CssOnlyEdited(),
-  l134tail:source('landing-assets/landing.css').endsWith(l134ResponsiveCssSuffix),
-  l133tail:source('landing-assets/landing.css').includes(l133BurmeseCssSuffix),
-  l137landing:l137LandingJSOnlyEdited(),
-  l148landing:l148LandingJsOnlyEdited(),
-  l137public:l137PublicJSOnlyEdited(),
-  l139public:l139PublicOnlyEdited(),
-  l147_old:prev.includes(l147NewHeaderTags),
-  l162_new:current.includes(l162NewHeaderTags),
-  exact:current===prev.replace(l147NewHeaderTags,l162NewHeaderTags),
-  explore:source('landing-assets/explore-l114.css')===read('landing-assets/explore-l114.css')
-}));
 check('Homepage retains all prior content and SEO outside shared header layer',
  ['en','zh','my'].every(lang=>translationScript.includes('Object.assign(strings.'+lang+', {\n    navExplore:')) &&
  current.includes('<body id="top" class="l131 mmh-nav-unified">') &&
