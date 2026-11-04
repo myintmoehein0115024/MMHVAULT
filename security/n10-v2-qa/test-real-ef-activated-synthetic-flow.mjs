@@ -22,11 +22,11 @@ const WORDLIST=Array.from({length:2048},(_,i)=>{
 });
 assert.equal(new Set(WORDLIST).size,2048);
 
-function fakeWorld({failEscrow=false,revokeOnVaultRead=false,revokeOnStatusRead=false,malformedAuthResponse=false,closeGateOnSignin=false,failPasswordProofSignout=false,closeQAOnSessionCheck=0}={}){
+function fakeWorld({failEscrow=false,revokeOnVaultRead=false,revokeOnStatusRead=false,malformedAuthResponse=false,closeGateOnSignin=false,failPasswordProofSignout=false,closeQAOnSessionCheck=0,expireQAOnOpenCheck=0}={}){
  const users=new Map(),byEmail=new Map(),slotOwners=new Map(),claims=new Set();
  const backups=new Map(),sessions=new Map(),tokens=new Map(),verifiedFactors=new Set(),events=[];
  let handlerCount=0,gateOpen=true,closeOnNextSignin=closeGateOnSignin;
- let windowExpired=false,sessionCheckCount=0;
+ let windowExpired=false,sessionCheckCount=0,qaOpenChecks=0;
  function issueSession(uid,aal='aal1',overrides={}){
    const sid=randomUUID();
    const payload={iss:BASE+'/auth/v1',sub:uid,exp:4102444800,aal,session_id:sid,...overrides};
@@ -186,7 +186,11 @@ function fakeWorld({failEscrow=false,revokeOnVaultRead=false,revokeOnStatusRead=
    TextEncoder,TextDecoder,Response,Request,Headers,URLSearchParams,AbortSignal,
    Uint8Array,Uint16Array,crypto:webcrypto,atob,
    Date:class FakeDate extends Date {
-    static now(){return windowExpired?Date.parse('2100-01-01T00:00:00.000Z'):Date.now();}
+    static now(){
+     if(expireQAOnOpenCheck>0&&++qaOpenChecks===expireQAOnOpenCheck)
+      windowExpired=true;
+     return windowExpired?Date.parse('2100-01-01T00:00:00.000Z'):Date.now();
+    }
    }
   },{filename:file,timeout:5000});
   assert.equal(typeof serve,'function');
@@ -528,4 +532,61 @@ test('QA deadline closing after final reveal session check never returns ten wor
  assert.equal(result.words,undefined);
  assert.equal(result.recovery_words,undefined);
  assert.equal(x.backups.get(e.user_id),e.recovery_words.join(' '));
+});
+
+
+test('closing QA at signup completion quarantines new E and withholds words and tokens',async()=>{
+ // Open checks: request=1; owner proof=2,3; final enroll check=4.
+ const x=fakeWorld({expireQAOnOpenCheck:4});
+ const denied=await x.invoke(x.signup,{
+  action:'signup',username:'n10real_e_20261104',password:PWD_E,
+  captcha_token:'signup-expires-at-enroll-completion'
+ });
+ assert.equal(denied.status,503);
+ assert.equal(denied.code,'manual_reconciliation_required',
+  'new user escrow must remain under manual reconciliation');
+ assert.equal(denied.access_token,undefined);
+ assert.equal(denied.refresh_token,undefined);
+ assert.equal(denied.recovery_words,undefined);
+ assert.equal(x.users.size,1);
+ assert.equal(x.backups.size,1,'original immutable backup must be retained for review');
+ assert.equal([...x.users.values()][0].banned_until,'876000h');
+});
+
+test('closing QA after successful signup helper still withholds all credentials at response',async()=>{
+ // 1 entry + 2 owner proofs + 1 enroll completion + 1 final HTTP response.
+ const x=fakeWorld({expireQAOnOpenCheck:5});
+ const denied=await x.invoke(x.signup,{
+  action:'signup',username:'n10real_e_20261104',password:PWD_E,
+  captcha_token:'signup-expires-at-http-response'
+ });
+ assert.equal(denied.status,503);
+ assert.equal(denied.code,'qa_not_released');
+ assert.equal(denied.access_token,undefined);
+ assert.equal(denied.refresh_token,undefined);
+ assert.equal(denied.recovery_words,undefined);
+ assert.equal(x.users.size,1);
+ assert.equal(x.backups.size,1,'fixed key must not be rotated or erased');
+});
+
+test('closing QA after successful repeat password login cannot return tokens',async()=>{
+ // Signup open() calls 1..5; repeat login checks 6 entry, 7/8
+ // owner proof and 9 final HTTP response.
+ const x=fakeWorld({expireQAOnOpenCheck:9});
+ const enrolled=await x.invoke(x.signup,{
+  action:'signup',username:'n10real_e_20261104',password:PWD_E,
+  captcha_token:'signup-before-login-window-expires'
+ });
+ assert.equal(enrolled.status,200);
+ const denied=await x.invoke(x.signup,{
+  action:'login',username:'n10real_e_20261104',password:PWD_E,
+  captcha_token:'login-expires-at-final-response'
+ });
+ assert.equal(denied.status,503);
+ assert.equal(denied.code,'qa_not_released');
+ assert.equal(denied.access_token,undefined);
+ assert.equal(denied.refresh_token,undefined);
+ assert.equal(denied.recovery_words,undefined);
+ assert.equal(x.users.size,1);
+ assert.equal(x.backups.get(enrolled.user_id),enrolled.recovery_words.join(' '));
 });
