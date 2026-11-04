@@ -94,9 +94,7 @@ const l155NewScriptTag='<script defer src="./landing-assets/landing.js?v=l155"><
 const l156OldMotionTag='<script defer src="./landing-assets/motion-l132.js?v=l141"></script>';
 const l156NewMotionTag='<script defer src="./landing-assets/motion-l132.js?v=l156"></script>';
 const l157NewMotionTag='<script defer src="./landing-assets/motion-l132.js?v=l157"></script>';
-const l148IndexOnlyEdited=()=>
-  prev.split(l156NewMotionTag).length===2 &&
-  current===prev.replace(l156NewMotionTag,l157NewMotionTag);
+const l148IndexOnlyEdited=()=>prev.includes(l157NewMotionTag) && current===prev;
 const l147IndexOnlyEdited=baseline=>baseline===prev && l148IndexOnlyEdited() &&
   baseline.includes(l147NewHeaderTags) && !current.includes(l147OldHeaderTags);
 // The runtime JS may change only these four targeted DOM write sites.
@@ -249,19 +247,22 @@ const l156MotionPatches=[["  const activeAnimations=new WeakMap();\n  const play
 const l157RevealBefore="  // L1.40: prewarm mobile reveals further ahead of fast swipes, with no\n  // intersection threshold that might skip a narrow card. Desktop unchanged.\n  const mobileReveal = window.matchMedia && window.matchMedia('(max-width: 620px)').matches;\n  const observer=new IntersectionObserver(entries=>{\n    for(const entry of entries){\n      if(!entry.isIntersecting)continue;\n      entry.target.classList.add('mm-shown');\n      observer.unobserve(entry.target);\n    }\n  },{rootMargin:mobileReveal?'0px 0px 24% 0px':'0px 0px -6% 0px',threshold:mobileReveal?0:0.065});\n  elements.filter(el=>!el.classList.contains('mm-shown')).forEach(el=>observer.observe(el));\n";
 const l157RevealAfter="  // L1.57: recalculate phone-first reveal margins after orientation changes.\n  // Keep already revealed sections visible; no scroll interception or repaint.\n  const mobileRevealQuery=window.matchMedia\n    ? window.matchMedia('(max-width: 620px)') : {matches:false};\n  let observer;\n  const bindRevealObserver=()=>{\n    if(observer)observer.disconnect();\n    const mobileReveal=mobileRevealQuery.matches;\n    const nextObserver=new IntersectionObserver(entries=>{\n      for(const entry of entries){\n        if(!entry.isIntersecting)continue;\n        entry.target.classList.add('mm-shown');\n        nextObserver.unobserve(entry.target);\n      }\n    },{rootMargin:mobileReveal?'0px 0px 24% 0px':'0px 0px -6% 0px',threshold:mobileReveal?0:0.065});\n    observer=nextObserver;\n    elements.filter(el=>!el.classList.contains('mm-shown')).forEach(el=>observer.observe(el));\n  };\n  bindRevealObserver();\n  if(typeof mobileRevealQuery.addEventListener==='function')\n    mobileRevealQuery.addEventListener('change',bindRevealObserver);\n  else if(typeof mobileRevealQuery.addListener==='function')\n    mobileRevealQuery.addListener(bindRevealObserver);\n";
 const l139MotionOnlyEdited=()=>{
-  // L1.56 is already released. Only the responsive reveal observer may change.
   const released=source('landing-assets/motion-l132.js');
-  return released.split(l157RevealBefore).length===2 &&
-    l156MotionPatches.every(([before,after])=>
-      released.includes(after) && !released.includes(before)) &&
-    released.includes("mobileReveal?'0px 0px 24% 0px':'0px 0px -6% 0px'") &&
-    released.includes('threshold:mobileReveal?0:0.065') &&
-    read('landing-assets/motion-l132.js')===released.replace(l157RevealBefore,l157RevealAfter);
+  return read('landing-assets/motion-l132.js')===released &&
+    released.includes('L1.57: recalculate phone-first reveal margins') &&
+    released.includes('L1.56: stop only Business concept WAAPI motion');
 };
+const l158PublicRevealBefore="      // L1.39: pre-reveal phone cards ahead of viewport; leave desktop as-is.\n      const mobileReveal=window.matchMedia('(max-width: 620px)').matches;\n      const observer=new IntersectionObserver(entries=>{\n        entries.forEach(entry=>{\n          if(!entry.isIntersecting)return;\n          entry.target.classList.add('mm-public-shown');\n          observer.unobserve(entry.target);\n        });\n      },{threshold:.045,rootMargin:mobileReveal?'0px 0px 12% 0px':'0px 0px -4% 0px'});\n      targets.filter(el=>!el.classList.contains('mm-public-shown'))\n        .forEach(el=>observer.observe(el));";
+const l158PublicRevealAfter="      // L1.58: rotate.\n      const mq=matchMedia('(max-width:620px)');\n      let io;\n      function bind(){\n        io?.disconnect();\n        const mobileReveal=mq.matches;\n        const o=new IntersectionObserver(es=>{\n          for(const e of es)if(e.isIntersecting){\n            e.target.classList.add('mm-public-shown');\n            o.unobserve(e.target);\n          }\n        },{threshold:.045,rootMargin:mobileReveal?'0px 0px 12% 0px':'0px 0px -4% 0px'});\n        io=o;\n        for(const e of targets)if(!e.classList.contains('mm-public-shown'))o.observe(e);\n      }\n      bind();\n      mq.addEventListener?mq.addEventListener('change',bind):mq.addListener?.(bind);";
+const l158OldScriptTag="<script defer src=\"/landing-assets/public-pages.js\"></script>";
+const l158NewScriptTag="<script defer src=\"/landing-assets/public-pages.js?v=l158\"></script>";
+const l158RestoreScript=(html)=>html.replace(l158NewScriptTag,l158OldScriptTag);
 const l139PublicOnlyEdited=()=>{
-  const original=source('landing-assets/public-pages.js');
-  return original.includes("mobileReveal?'0px 0px 12% 0px':'0px 0px -4% 0px'") &&
-    read('landing-assets/public-pages.js')===original;
+  const released=source('landing-assets/public-pages.js');
+  return released.split(l158PublicRevealBefore).length===2 &&
+    released.includes("mobileReveal?'0px 0px 12% 0px':'0px 0px -4% 0px'") &&
+    read('landing-assets/public-pages.js')===
+      released.replace(l158PublicRevealBefore,l158PublicRevealAfter);
 };
 const l137PublicJSOnlyEdited=()=>{
   const expected=source('landing-assets/public-pages.js');
@@ -710,7 +711,7 @@ check('Seven public pages inherit exact Landing header structure, icons and drop
      html.includes(cssNew) && old.includes(cssNew) &&
      // L1.16 already shipped; protect its header, page body and SEO
      // byte-for-byte, allowing ONLY the two localized summary blocks.
-     restoreOldLocalizedSummary(path,html,old)===old &&
+     restoreOldLocalizedSummary(path,l158RestoreScript(html),old)===old &&
      (h.match(/<details class="nav-explore"/g)||[]).length===1 &&
      (h.match(/class="mobile-nav-auth"/g)||[]).length===1 &&
      (h.match(/class="locale-menu"/g)||[]).length===1;
@@ -781,7 +782,7 @@ check('L1.20 canonical, named WebPage and breadcrumb structured data are accurat
      breadcrumb.itemListElement?.[0]?.item!=='https://mmhvault.com/' ||
      breadcrumb.itemListElement?.[1]?.item!==url)return false;
   }else if(!head.includes('"@type":"BreadcrumbList"'))return false;
-  return html===source(path);
+  return l158RestoreScript(html)===source(path);
  }));
 check('L1.23 lightweight scroll reveals are opacity+transform only, motion access preserved',
  read('landing-assets/motion-l132.css').includes('L1.23: compositor-friendly') &&
@@ -809,28 +810,26 @@ check('L1.27 public tab title matches SEO without language focus scroll',
  l133PublicPagesUnchanged() &&
  l142IndexOnlyEdited() && current.includes(newHeroPreload) &&
  !current.includes(oldHeroPreload));
-check('L1.57 public-only scope with Analytics V1 preserved',
- ((actual.length===4 && actual.every(path=>[
-  'index.html',
-  'landing-assets/motion-l132.js',
-  'landing-assets/landing-release-check.cjs',
-  'landing-assets/landing-browser-check.cjs'
- ].includes(path))) ||
- (actual.length===3 &&
-  actual.includes('index.html') &&
-  actual.includes('landing-assets/landing-release-check.cjs') &&
-  actual.includes('landing-assets/landing-browser-check.cjs') &&
-  current===prev && analyticsAddition.test(rawCurrent))) &&
- l142IndexOnlyEdited() &&
- l133BurmeseLayoutOnlyEdited() &&
- l133PublicPagesUnchanged() &&
- l135HeaderCssOnlyEdited() &&
- publicHeaders.every(path=>read(path)===source(path)) &&
- ['landing-assets/public-pages.css',
-  'landing-assets/business.css','landing-assets/cinematic.css',
-  'landing-assets/premium-l131.css','landing-assets/motion-l132.css',
-  'sitemap.xml','robots.txt','mmh-manifest-v2.webmanifest']
- .every(path=>read(path)===source(path)));
+check('L1.58 exact ten public-file changes and no content or SEO modification',
+  actual.length===10 &&
+  actual.every(path=>[
+   'landing-assets/public-pages.js',
+   'landing-assets/landing-release-check.cjs',
+   'landing-assets/landing-browser-check.cjs',
+   ...publicHeaders
+  ].includes(path)) &&
+  publicHeaders.every(path=>{
+    const prior=source(path);
+    return prior.split(l158OldScriptTag).length===2 &&
+      read(path)===prior.replace(l158OldScriptTag,l158NewScriptTag);
+  }) &&
+  current===prev && analyticsAddition.test(rawCurrent) &&
+  l142IndexOnlyEdited() && l133BurmeseLayoutOnlyEdited() &&
+  l133PublicPagesUnchanged() && l135HeaderCssOnlyEdited() &&
+  ['landing-assets/public-pages.css','landing-assets/business.css',
+   'landing-assets/cinematic.css','landing-assets/premium-l131.css',
+   'landing-assets/motion-l132.css','sitemap.xml','robots.txt',
+   'mmh-manifest-v2.webmanifest'].every(path=>read(path)===source(path)));
 // The device image remains decoded-before-show, with no invisible opacity
 // transition on phones/tablets. This is the only change to cinematic.css.
 const l140HeroCssSuffix="\n/* L1.40 — Once the phone/tablet Hero image has decoded, swap it in\n   without a second opacity delay that could expose a blank frame after\n   the HTML fallback is hidden. Keep desktop presentation unchanged. */\n@media (max-width: 900px) {\n  body.l131 .hero-device-cinematic { transition: none; }\n}\n";
@@ -968,17 +967,22 @@ check('L1.54 language and feature title hydration skips identical writes',
     read('landing-assets/landing.js').includes(newCode)));
 check('L1.56 released Business interruption remains intact',
   l139MotionOnlyEdited() &&
-  prev.includes(l156NewMotionTag) &&
+  prev.includes(l157NewMotionTag) &&
   current.includes(l157NewMotionTag) &&
   !current.includes(l156OldMotionTag) &&
   read('landing-assets/landing-browser-check.cjs').includes('L1.56 Business WAAPI interruption browser parity'));
+check('L1.58 public introduction pages rebind observer after viewport changes',
+  l139PublicOnlyEdited() &&
+  publicHeaders.every(path=>read(path).includes(l158NewScriptTag)) &&
+  read('landing-assets/landing-browser-check.cjs').includes('L1.58 rotated public-page observer parity') &&
+  current===prev);
 check('L1.57 orientation-aware observer rebind is isolated to Landing presentation',
   l139MotionOnlyEdited() &&
   current.includes(l157NewMotionTag) &&
   read('landing-assets/landing-browser-check.cjs').includes('L1.57 rotated viewport reveal observer parity') &&
   !read('landing-assets/motion-l132.js').includes('preventDefault(') &&
   !read('landing-assets/motion-l132.js').includes('localStorage') &&
-  read('landing-assets/public-pages.js')===source('landing-assets/public-pages.js'));
+  l139PublicOnlyEdited());
 check('L1.55 interrupted crossfade isolated from current main',
   l148LandingJsOnlyEdited() &&
   read('landing-assets/landing-browser-check.cjs').includes('L1.55 preview interruption browser parity') &&

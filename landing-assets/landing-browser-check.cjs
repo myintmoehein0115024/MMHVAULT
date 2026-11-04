@@ -205,13 +205,28 @@ async function load(page,route,failures){
        },lang);
        await page.goto(origin+'/',{waitUntil:'load',timeout:25000});
        const begun=await page.evaluate(()=>{
+         // L1.58 test stability: hold the normal 340ms settle timer open.
+         // The media-change handler must end this transition, not the timer.
+         const nativeSetTimeout=window.setTimeout.bind(window);
+         window.__l155HeldTimers=0;
+         window.setTimeout=(fn,ms,...args)=>{
+           if(ms===340){
+             window.__l155HeldTimers++;
+             return nativeSetTimeout(fn,3000,...args);
+           }
+           return nativeSetTimeout(fn,ms,...args);
+         };
          document.querySelector('[data-product-tab="accounts"]').click();
-         return [...document.querySelectorAll('[data-product-panel]')].filter(el=>!el.hidden).length;
+         return {
+           panels:[...document.querySelectorAll('[data-product-panel]')].filter(el=>!el.hidden).length,
+           held:window.__l155HeldTimers
+         };
        });
-       ensure(begun===2,'L1.55 '+width+'px '+lang+' animation starts normally');
+       ensure(begun.panels===2&&begun.held===1,
+         'L1.55 '+width+'px '+lang+' animation starts with fallback timer held');
        await page.emulateMedia({reducedMotion:'reduce'});
        await page.waitForFunction(()=>[...document.querySelectorAll('[data-product-panel]')]
-         .filter(el=>!el.hidden).length===1,null,{timeout:250});
+         .filter(el=>!el.hidden).length===1,null,{timeout:1500});
        const settled=await page.evaluate(()=>({
          visible:[...document.querySelectorAll('[data-product-panel]')]
            .filter(el=>!el.hidden).map(el=>el.dataset.productPanel),
@@ -2799,6 +2814,99 @@ async function load(page,route,failures){
            JSON.stringify({before:old.last.records.map(x=>x.margin),after:now.last.records.map(x=>x.margin)}));
      }
      console.log('L1.57 viewport rebind responsive comparison PASS; not a loading speed claim.');
+   }
+
+   // L1.58 rotated public-page observer parity: released L1.57 versus L1.58.
+   // Browser checks preserve public headings, language and revealed elements.
+   {
+     const candidate=fs.readFileSync('landing-assets/public-pages.js','utf8');
+     const oldBlock="      // L1.39: pre-reveal phone cards ahead of viewport; leave desktop as-is.\n      const mobileReveal=window.matchMedia('(max-width: 620px)').matches;\n      const observer=new IntersectionObserver(entries=>{\n        entries.forEach(entry=>{\n          if(!entry.isIntersecting)return;\n          entry.target.classList.add('mm-public-shown');\n          observer.unobserve(entry.target);\n        });\n      },{threshold:.045,rootMargin:mobileReveal?'0px 0px 12% 0px':'0px 0px -4% 0px'});\n      targets.filter(el=>!el.classList.contains('mm-public-shown'))\n        .forEach(el=>observer.observe(el));";
+     const newBlock="      // L1.58: rotate.\n      const mq=matchMedia('(max-width:620px)');\n      let io;\n      function bind(){\n        io?.disconnect();\n        const mobileReveal=mq.matches;\n        const o=new IntersectionObserver(es=>{\n          for(const e of es)if(e.isIntersecting){\n            e.target.classList.add('mm-public-shown');\n            o.unobserve(e.target);\n          }\n        },{threshold:.045,rootMargin:mobileReveal?'0px 0px 12% 0px':'0px 0px -4% 0px'});\n        io=o;\n        for(const e of targets)if(!e.classList.contains('mm-public-shown'))o.observe(e);\n      }\n      bind();\n      mq.addEventListener?mq.addEventListener('change',bind):mq.addListener?.(bind);";
+     assert.equal(candidate.split(newBlock).length,2,'L1.58 exact public-only observer change');
+     const released=candidate.replace(newBlock,oldBlock);
+     const mobile='0px 0px 12% 0px',desktop='0px 0px -4% 0px';
+     for(const [route,from,to,lang] of [
+       ['/features/',768,393,'my'],
+       ['/features/',393,768,'zh'],
+       ['/about/',768,393,'zh'],
+       ['/security.html',1440,393,'en'],
+       ['/security.html',393,1440,'my'],
+       ['/business/',393,768,'en']
+     ]){
+       const observed={};
+       for(const [version,script] of [['l157',released],['l158',candidate]]){
+         const ctx=await browser.newContext({
+           viewport:{width:from,height:852},reducedMotion:'no-preference',serviceWorkers:'block'});
+         const page=await ctx.newPage(),errors=[];
+         page.on('pageerror',e=>errors.push(e.message));
+         await page.addInitScript(code=>{
+           try{localStorage.setItem('mmhvault.landing.language',code)}catch(_){}
+         },lang);
+         await page.addInitScript(()=>{
+           const Native=window.IntersectionObserver;
+           window.__l158Observers=[];
+           if(typeof Native!=='function')return;
+           window.IntersectionObserver=class extends Native{
+             constructor(callback,options){
+               super(callback,options);
+               if(['0px 0px 12% 0px','0px 0px -4% 0px'].includes(options?.rootMargin)){
+                 this.__l158Record={margin:options.rootMargin,threshold:options.threshold,
+                   observed:0,disconnected:false};
+                 window.__l158Observers.push(this.__l158Record);
+               }
+             }
+             observe(target){
+               if(this.__l158Record)this.__l158Record.observed++;
+               return super.observe(target);
+             }
+             disconnect(){
+               if(this.__l158Record)this.__l158Record.disconnected=true;
+               return super.disconnect();
+             }
+           };
+         });
+         await page.route('**/landing-assets/public-pages.js*',route=>route.fulfill({
+           status:200,contentType:'application/javascript',body:script}));
+         await page.goto(origin+route,{waitUntil:'load',timeout:25000});
+         const inspect=()=>page.evaluate(()=>({
+           records:window.__l158Observers.map(x=>({...x})),
+           shown:document.querySelectorAll('.mm-public-reveal.mm-public-shown').length,
+           title:document.title,
+           headline:document.querySelector('h1')?.textContent.trim(),
+           canonical:document.querySelector('link[rel="canonical"]')?.href,
+           lang:document.documentElement.lang,
+           script:new URL(document.querySelector('script[src*="public-pages.js"]').src).searchParams.get('v')
+         }));
+         const first=await inspect();
+         ensure(first.records.length===1 && first.records[0].margin===(from<=620?mobile:desktop) &&
+           first.records[0].observed>0 && first.headline && first.canonical &&
+           first.lang===(lang==='zh'?'zh-CN':lang) && first.script==='l158',
+           'L1.58 '+version+' '+route+' '+from+'px initial public reveal');
+         await page.setViewportSize({width:to,height:852});
+         if(version==='l158')await page.waitForFunction(()=>window.__l158Observers?.length>=2,
+           null,{timeout:3000});
+         else await page.waitForTimeout(90);
+         const last=await inspect();
+         ensure(last.shown>=first.shown && last.title===first.title &&
+           last.headline===first.headline && last.canonical===first.canonical &&
+           last.lang===first.lang && errors.length===0,
+           'L1.58 '+version+' '+route+' '+from+'->'+to+'px preserves public content');
+         observed[version]={first,last};
+         await ctx.close();
+       }
+       const oldState=observed.l157,newState=observed.l158;
+       ensure(oldState.last.records.length===1 &&
+         oldState.last.records[0].margin===(from<=620?mobile:desktop) &&
+         newState.last.records.length===2 &&
+         newState.last.records[0].disconnected &&
+         newState.last.records[1].margin===(to<=620?mobile:desktop) &&
+         newState.last.records[1].threshold===0.045 &&
+         newState.last.records[1].observed>0,
+         'L1.58 '+route+' '+from+'->'+to+'px replaces stale public reveal observer '+
+           JSON.stringify({old:oldState.last.records.map(x=>x.margin),
+             next:newState.last.records.map(x=>x.margin)}));
+     }
+     console.log('L1.58 six actual public-page rotations verified; not a loading-speed claim.');
    }
 
    // L1.39: real IntersectionObserver configuration in phone and desktop
