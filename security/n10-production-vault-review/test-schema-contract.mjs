@@ -69,9 +69,10 @@ test('rate limiter saturates without overflow and words stay inside Vault',()=>{
  assert.match(src,/RETURN v_attempts<=p_limit/);
  assert.match(src,/JOIN vault\.decrypted_secrets v ON v\.id=i\.secret_id/);
  assert.ok(src.includes("JOIN auth.users active_owner ON active_owner.id=i.user_id"));
- const readBody=src.split('AS $get
-});
-)[1]?.split('$get$;')[0]||'';
+ const getStart=src.indexOf('CREATE FUNCTION public.mmh_n10_recovery_backup_get');
+ const getEnd=src.indexOf('CREATE FUNCTION public.mmh_n10_recovery_session_active',getStart);
+ assert.ok(getStart>=0&&getEnd>getStart,'backup_get function present and bounded');
+ const readBody=src.slice(getStart,getEnd);
  assert.ok(readBody.includes("active_owner.deleted_at IS NULL"));
  assert.ok(readBody.includes("active_owner.is_anonymous IS FALSE"));
  assert.ok(readBody.includes("active_owner.banned_until IS NULL OR active_owner.banned_until<=now()"));
