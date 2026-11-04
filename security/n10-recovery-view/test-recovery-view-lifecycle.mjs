@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import {attachRecoveryViewLifecycle} from './recovery-view-lifecycle.mjs';
-function setup({invalidAuth=false,initiallyHidden=false}={}) {
+function setup({invalidAuth=false,initiallyHidden=false,initiallyFocused=undefined}={}) {
  let hiddenCount=0, callback, unsubscribed=0;
  const doc=new EventTarget(), win=new EventTarget(), close=new EventTarget();
  doc.hidden=initiallyHidden;
+ if (initiallyFocused !== undefined) doc.hasFocus=()=>initiallyFocused;
  const auth={onAuthStateChange(fn){
    callback=fn;
    return invalidAuth?{data:{}}:{data:{subscription:{unsubscribe(){unsubscribed++}}}};
@@ -65,6 +66,23 @@ test('initial session event does not clear an unopened view',()=>{
   controller:h.controller,documentRef:h.doc,windowRef:h.win,auth:h.auth,
  });
  h.emitAuth('INITIAL_SESSION');assert.equal(h.hides(),0);binding.destroy();
+});
+test('already-unfocused desktop window locks words during observer installation',()=>{
+ const h=setup({initiallyFocused:false});
+ const binding=attachRecoveryViewLifecycle({
+  controller:h.controller,documentRef:h.doc,windowRef:h.win,auth:h.auth,
+ });
+ assert.equal(h.doc.hidden,false,'visibility alone must not be the only guard');
+ assert.equal(h.hides(),1,'attach must immediately lock when focus was already lost');
+ binding.destroy();
+});
+test('currently-focused document does not falsely lock during attachment',()=>{
+ const h=setup({initiallyFocused:true});
+ const binding=attachRecoveryViewLifecycle({
+  controller:h.controller,documentRef:h.doc,windowRef:h.win,auth:h.auth,
+ });
+ assert.equal(h.hides(),0);
+ binding.destroy();
 });
 test('already hidden document is locked immediately at installation',()=>{
  const h=setup({initiallyHidden:true});const binding=attachRecoveryViewLifecycle({
