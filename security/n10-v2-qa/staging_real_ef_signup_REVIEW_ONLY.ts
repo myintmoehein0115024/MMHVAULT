@@ -195,6 +195,9 @@ async function enroll(name,password){
   // this user is eligible to receive a first Auth session.
   const session=await verifiedPasswordSession(email,password,newUserId,slot);
   if(!session)throw Error('first_session_failed');
+  // Authentication can finish at the exact end of the short QA window.
+  // Quarantine this *new* staging identity rather than return its tokens.
+  if(!open())throw Error('qa_window_closed_before_signup_completion');
   completed=true;
   return {
    code:'signup_success',status:200,user_id:newUserId,
@@ -255,10 +258,16 @@ Deno.serve(async request=>{
    return reply(origin,'captcha_replayed',403);
   if(action==='signup'){
    const result=await enroll(data.username,data.password);
+   // The last async signup step may finish after QA expiry: never return
+   // new account credentials or original words outside the release window.
+   if(!open())return reply(origin,'qa_not_released',503);
    const {status,...body}=result;
    return reply(origin,body.code,status,body);
   }
   const x=await login(data.username,data.password);
+  // The password was valid at an earlier point, but the temporary QA
+  // window must remain open immediately before any token leaves the Edge.
+  if(!open())return reply(origin,'qa_not_released',503);
   return x?reply(origin,'login_success',200,x):reply(origin,'invalid_credentials',401);
  }catch(_){
   return reply(origin,'qa_unavailable',503);
