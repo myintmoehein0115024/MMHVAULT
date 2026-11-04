@@ -178,8 +178,13 @@ test('unexpected returned email or account type stops ambiguous creation without
  }
 });
 test('unverified temporary login never releases a signed session',()=>{
- assert.match(source,/const client=authClient\(\);let grant=false;/);
- assert.match(source,/if\(!grant\)\{try\{await client\.auth\.signOut\(\{scope:'local'\}\);\}catch\{\}\}/);
+ assert.match(source,/const client=authClient\(\);let grant=false,proofToken=null;/);
+ assert.match(source,/admin\.auth\.admin\.signOut\(proofToken,'local'\)/);
+ assert.match(source,/if\(!grant&&proofToken\)/);
+ assert.match(source,/n10_auth_session_reconciliation_required/);
+ const start=source.indexOf('async function verifyPassword(email,pwd,uid){');
+ const end=source.indexOf('async function findProductionUser(',start);
+ assert.doesNotMatch(source.slice(start,end),/client\.auth\.signOut\(/);
 });
 test('post-session failure is quarantined for review, not deleted',async()=>{
  const h=fake({sessionFail:true});const out=await h.enroll(userName,password,ticket,phrases[0]);
