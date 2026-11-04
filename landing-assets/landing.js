@@ -909,12 +909,16 @@
       languageButtons[next].focus({preventScroll:true});
     }
   });
-  toggle.addEventListener('click', () => {
+  toggle.addEventListener('click', event => {
     closeExplore();
     closeLanguage();
     const isOpen = siteHeader.classList.toggle('menu-open');
     toggle.setAttribute('aria-expanded', String(isOpen));
     syncNavToggleLabel();
+    // L1.61: keyboard-opened menu should lead to the first visible link.
+    // Pointer and touch activation leave focus where it was.
+    if (isOpen && event.detail === 0)
+      document.querySelector('#primary-nav a')?.focus({preventScroll:true});
   });
   document.querySelectorAll('#primary-nav a').forEach(link => link.addEventListener('click', () => {
     closeExplore();

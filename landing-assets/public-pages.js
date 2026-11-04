@@ -113,12 +113,16 @@
     buttons[next]?.focus({preventScroll:true});
   });
   if(header&&nav&&toggle&&explore){
-    toggle.addEventListener('click',()=>{
+    toggle.addEventListener('click',event=>{
       closeExplore();
       closeLanguage();
       const open=header.classList.toggle('menu-open');
       toggle.setAttribute('aria-expanded',String(open));
       syncNavToggleLabel();
+      // L1.61: keyboard-opened responsive menu starts at its first link.
+      // Leave pointer and touch activation unchanged.
+      if(open && event.detail===0)
+        nav.querySelector('a')?.focus({preventScroll:true});
     });
     nav.querySelectorAll('a').forEach(link=>{
       link.addEventListener('click',()=>{
