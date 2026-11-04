@@ -19,6 +19,10 @@ function pass(condition,label,detail){
   for(const path of routes){
    for(const width of [1280,1440]){
     const context=await browser.newContext({viewport:{width,height:900},reducedMotion:'reduce'});
+    // Local WebKit checks do not exercise the unrelated Cloudflare RUM beacon.
+    // Neutralize its script at request time; production HTML/analytics are intact.
+    await context.route('https://static.cloudflareinsights.com/**',
+      route=>route.fulfill({status:200,contentType:'application/javascript',body:''}));
     const page=await context.newPage(),errors=[];
     page.on('pageerror',e=>errors.push(e.message));
     const response=await page.goto(origin+path,{waitUntil:'load',timeout:30000});
