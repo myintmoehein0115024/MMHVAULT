@@ -33,8 +33,8 @@ assert.ok(analyticsAddition.test(rawCurrent),'Unexpected analytics snippet');
 assert.equal((rawPrevious.match(analyticsAddition)||[]).length,1,'Released main must contain Analytics V1');
 assert.equal((rawCurrent.match(analyticsAddition)||[])[0],(rawPrevious.match(analyticsAddition)||[])[0],
   'L1.57 must preserve the exact already-released analytics beacon');
-const prev=rawPrevious.replace(analyticsAddition,'');
-const current = rawCurrent.replace(analyticsAddition,'').replace(l165HomeLink,l164HomeLink);
+const prev=rawPrevious.replace(analyticsAddition,'').replace(l164HomeLink+'\n','');
+const current = rawCurrent.replace(analyticsAddition,'').replace(l165HomeLink+'\n','');
 // Legacy release checks below validate all previously approved Landing differences.
 
 // L1.41: preserve every byte of the published homepage except the nine
