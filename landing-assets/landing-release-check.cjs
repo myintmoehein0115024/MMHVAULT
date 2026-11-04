@@ -16,6 +16,9 @@ const l165HomeLink="  <link rel=\"stylesheet\" href=\"./landing-assets/safari-pe
 const l165PublicLink="<link rel=\"stylesheet\" href=\"/landing-assets/safari-performance-l164.css?v=l165\">";
 const l167HomeLink="  <link rel=\"stylesheet\" href=\"./landing-assets/safari-performance-l164.css?v=l167\">";
 const l167PublicLink="<link rel=\"stylesheet\" href=\"/landing-assets/safari-performance-l164.css?v=l167\">";
+const l169HomeLink="  <link rel=\"stylesheet\" href=\"./landing-assets/safari-performance-l164.css?v=l169\">";
+const l169PublicLink="<link rel=\"stylesheet\" href=\"/landing-assets/safari-performance-l164.css?v=l169\">";
+const l169SafariPatch="\n/* L1.69 — desktop only: these small photo captions already sit on dark\n * opaque-enough gradient/solid surfaces. Avoid continuously sampling the\n * moving image/background behind each label on Safari scroll. Preserve\n * all borders, colors, shadows and tablet/mobile backdrop glass. */\n@media (min-width: 1025px) {\n  body.l131 .hero-art .demo-disclaimer,\n  body.l131 #business .business-photo-caption {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n  }\n}\n";
 const l168HomeLink="  <link rel=\"stylesheet\" href=\"./landing-assets/safari-performance-l164.css?v=l168\">";
 const l168PublicLink="<link rel=\"stylesheet\" href=\"/landing-assets/safari-performance-l164.css?v=l168\">";
 const l168SafariPatch="\n/* L1.68 — desktop Hero's large gradient wordmark already has contrast\n * overlays. Avoid another per-glyph offscreen drop-shadow surface in WebKit;\n * retain the original mobile/tablet glow and the gold gradient at all sizes. */\n@media (min-width: 1025px) {\n  body.l131 .hero .hero-name {\n    filter: none;\n  }\n}\n";
@@ -42,8 +45,8 @@ assert.ok(analyticsAddition.test(rawCurrent),'Unexpected analytics snippet');
 assert.equal((rawPrevious.match(analyticsAddition)||[]).length,1,'Released main must contain Analytics V1');
 assert.equal((rawCurrent.match(analyticsAddition)||[])[0],(rawPrevious.match(analyticsAddition)||[])[0],
   'L1.57 must preserve the exact already-released analytics beacon');
-const prev=rawPrevious.replace(analyticsAddition,'').replace(l167HomeLink+'\n','');
-const current = rawCurrent.replace(analyticsAddition,'').replace(l168HomeLink+'\n','');
+const prev=rawPrevious.replace(analyticsAddition,'').replace(l168HomeLink+'\n','');
+const current = rawCurrent.replace(analyticsAddition,'').replace(l169HomeLink+'\n','');
 // Legacy release checks below validate all previously approved Landing differences.
 
 // L1.41: preserve every byte of the published homepage except the nine
@@ -294,7 +297,7 @@ const l162OldCssLink="<link rel=\"stylesheet\" href=\"/landing-assets/public-pag
 const l162NewCssLink="<link rel=\"stylesheet\" href=\"/landing-assets/public-pages.css?v=l162\">";
 const l162RestoreCss=(html)=>html.replace(l162NewCssLink,l162OldCssLink);
 const l163NewCssLink="<link rel=\"stylesheet\" href=\"/landing-assets/public-pages.css?v=l163\">";
-const l163RestoreCss=(html)=>html.replace(l168PublicLink,l167PublicLink); // L1.64 CSS link is released.
+const l163RestoreCss=(html)=>html.replace(l169PublicLink,l168PublicLink); // L1.64 CSS link is released.
 const l163FooterCssPatch="\n/* L1.63 — minimum 44px touch targets for public footer navigation on phones.\n   Keep the desktop footer and all page content, links, language strings intact. */\n@media (max-width: 620px) {\n  body.public-landing-page .public-footer-group {\n    min-width: 0;\n    gap: 5px;\n  }\n  body.public-landing-page .public-footer-group strong {\n    max-width: 100%;\n    overflow-wrap: anywhere;\n  }\n  body.public-landing-page .public-footer-group a {\n    box-sizing: border-box;\n    display: flex;\n    align-items: center;\n    width: 100%;\n    min-width: 0;\n    min-height: 44px;\n    padding: 8px;\n    border-radius: 10px;\n    overflow-wrap: anywhere;\n  }\n  body.public-landing-page .public-footer-group a span {\n    min-width: 0;\n    overflow-wrap: anywhere;\n  }\n  body.public-landing-page .public-footer-bottom > a {\n    display: inline-flex;\n    align-items: center;\n    max-width: 100%;\n    min-height: 44px;\n    padding: 8px;\n    border-radius: 10px;\n    overflow-wrap: anywhere;\n  }\n}\n";
 const l163FooterCssOnlyEdited=()=>
   read('landing-assets/public-pages.css')===source('landing-assets/public-pages.css') &&
@@ -855,7 +858,7 @@ check('L1.27 public tab title matches SEO without language focus scroll',
  l133PublicPagesUnchanged() &&
  l142IndexOnlyEdited() && current.includes(newHeroPreload) &&
  !current.includes(oldHeroPreload));
-check('L1.68 strict twelve-file desktop Hero name optimization; protected areas unchanged',
+check('L1.69 strict twelve-file desktop photo caption backdrop optimization; protected areas unchanged',
   actual.length===12 &&
   actual.every(path=>[
     'index.html','landing-assets/safari-performance-l164.css',
@@ -864,16 +867,17 @@ check('L1.68 strict twelve-file desktop Hero name optimization; protected areas 
     'landing-assets/landing-browser-check.cjs',
     ...publicHeaders
   ].includes(path)) &&
-  rawCurrent===rawPrevious.replace(l167HomeLink,l168HomeLink) &&
+  rawCurrent===rawPrevious.replace(l168HomeLink,l169HomeLink) &&
   publicHeaders.every(path=>{
     const old=source(path);
-    return old.split(l167PublicLink).length===2 &&
-      read(path)===old.replace(l167PublicLink,l168PublicLink);
+    return old.split(l168PublicLink).length===2 &&
+      read(path)===old.replace(l168PublicLink,l169PublicLink);
   }) &&
-  source('landing-assets/safari-performance-l164.css')===l164SafariCSS+l165SafariPatch+l166SafariPatch+l167SafariPatch &&
-  read('landing-assets/safari-performance-l164.css')===source('landing-assets/safari-performance-l164.css')+l168SafariPatch &&
-  l168SafariPatch.includes('body.l131 .hero .hero-name') &&
-  !l168SafariPatch.includes('body.app') &&
+  source('landing-assets/safari-performance-l164.css')===l164SafariCSS+l165SafariPatch+l166SafariPatch+l167SafariPatch+l168SafariPatch &&
+  read('landing-assets/safari-performance-l164.css')===source('landing-assets/safari-performance-l164.css')+l169SafariPatch &&
+  l169SafariPatch.includes('body.l131 .hero-art .demo-disclaimer') &&
+  l169SafariPatch.includes('body.l131 #business .business-photo-caption') &&
+  !l169SafariPatch.includes('body.app') &&
   l167SafariPatch.includes('body.l131 .hero-copy') &&
   l167SafariPatch.includes('@media (min-width: 1025px)') &&
   !l167SafariPatch.includes('body.app') &&
