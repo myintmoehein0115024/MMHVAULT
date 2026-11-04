@@ -260,7 +260,8 @@ Deno.serve(async request=>{
    const result=await enroll(data.username,data.password);
    // The last async signup step may finish after QA expiry: never return
    // new account credentials or original words outside the release window.
-   if(!open())return reply(origin,'qa_not_released',503);
+   if(result.code==='signup_success'&&!open())
+    return reply(origin,'qa_not_released',503);
    const {status,...body}=result;
    return reply(origin,body.code,status,body);
   }
