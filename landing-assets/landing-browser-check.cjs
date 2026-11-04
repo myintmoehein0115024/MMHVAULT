@@ -77,7 +77,7 @@ async function load(page,route,failures){
          const locale=header.querySelector('.locale-trigger');
          const toggle=header.querySelector('.menu-toggle');
          const css=[...document.querySelectorAll('link[rel="stylesheet"]')]
-           .find(el=>/\\/(?:shared-header-l116|header-explore-l147\\.min)\\.css/.test(new URL(el.href).pathname));
+           .find(el=>/\/(?:shared-header-l116|header-explore-l147\.min)\.css$/.test(new URL(el.href).pathname));
          const c=caption.getBoundingClientRect();
          const a=actions.getBoundingClientRect();
          const b=header.querySelector('.brand').getBoundingClientRect();
