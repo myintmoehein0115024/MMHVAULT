@@ -554,9 +554,13 @@ const say=(condition,label)=>{assert.ok(condition,label);console.log('PASS '+lab
       say(!await dpage.locator('#txForm .actions button').isDisabled(),
         'Transfer native Add enables only after all three explicit choices');
       say(await dpage.evaluate(()=>{
-        const f=window.MMHV11HierarchyLive;
-        return f?.getState?.()?.valid ?? true;
-      }),'Transfer link valid without implicit defaults');
+        const g=window.MMHVAULT_CONFIG?.txHierarchyV11;
+        const type=g?.types?.find(x=>x.label==='MoveFunds'&&!x.archived);
+        const txn=g?.transactions?.find(x=>x.label==='Account Move'&&x.parentId===type?.id&&!x.archived);
+        const cat=g?.categories?.find(x=>x.label==='Transfer QA'&&x.parentId===txn?.id&&!x.archived);
+        return type?.ledgerType==='Transfer'&&txn?.kindId==='Transfer|Transfer'&&
+          cat?.ledgerGroup==='Transfer';
+      }),'Transfer Category is linked to the correct owner-scoped canonical direction');
       say(await dpage.locator('#txType').inputValue()==='Transfer'&&
         await dpage.locator('#txGroup').inputValue()==='Transfer'&&
         await dpage.locator('#txCategory').inputValue()==='Transfer QA',
