@@ -153,7 +153,7 @@ test('V1.1 long feedback uses independent list and timeline scrollports, persist
 test('V1.1 retains the single revision-safe update and verified attachments',()=>{
  assert.match(admin,/client\.rpc\('mmh_is_admin'\)/);
  assert.match(admin,/client\.rpc\('mmh_list_feedback',\{p_admin:true,p_status:'',p_offset:offset\}\)/);
- assert.equal((admin.match(/client\.rpc\('mmh_update_feedback'/g)||[]).length,1);
+ assert.equal((admin.match(/client\.rpc\('mmh_update_feedback'/g)||[]).length,2,'Both pre-existing Feedback and member-chat revision-safe handlers must remain');
  assert.match(admin,/p_revision:row\.revision/);
  assert.match(admin,/error\.code==='40001'/);
  assert.match(admin,/await addPhotos\(row,d,token,'fb-admin-photos-v15'\)/);
