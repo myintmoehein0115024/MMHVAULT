@@ -13,8 +13,8 @@ import {webcrypto,randomUUID} from 'node:crypto';
 
 const BASE='https://ldivswlhtgmznzwhzsoi.supabase.co';
 const ORIGIN='https://mmhvault-n10-vault-staging.pages.dev';
-const PWD_E='SyntheticStrongPassE1';
-const PWD_F='SyntheticStrongPassF1';
+const PWD_E='StagePassE1!';
+const PWD_F='StagePassF1!';
 const WORDLIST=Array.from({length:2048},(_,i)=>{
  let x=i;let out='';
  for(let j=0;j<4;j++){out=String.fromCharCode(97+x%26)+out;x=Math.floor(x/26);}
