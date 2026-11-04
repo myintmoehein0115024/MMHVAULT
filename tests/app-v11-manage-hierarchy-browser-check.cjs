@@ -363,7 +363,8 @@ const say=(condition,label)=>{assert.ok(condition,label);console.log('PASS '+lab
         };
         window.MMHV11HierarchyLive.refresh();
       });
-      await checkPage.waitForSelector('#txType option[data-mmh-choice-id]');
+      await checkPage.waitForFunction(()=>!!document.querySelector('#txType option[data-mmh-choice-id]'));
+
       await checkPage.locator('#txType').selectOption({label:'Income'});
       await checkPage.locator('#txGroup').selectOption({label:'Income2'});
       await checkPage.locator('#txCategory').selectOption({label:'Salary'});
@@ -416,7 +417,8 @@ const say=(condition,label)=>{assert.ok(condition,label);console.log('PASS '+lab
           {detail:{ok:true}}));
         window.MMHV11HierarchyLive.refresh();
       });
-      await checkPage.waitForSelector('#txType option[data-mmh-choice-id]');
+      await checkPage.waitForFunction(()=>!!document.querySelector('#txType option[data-mmh-choice-id]'));
+
       await checkPage.locator('#txType').selectOption({label:'Income'});
       await checkPage.locator('#txGroup').selectOption({label:'Income2'});
       await checkPage.locator('#txCategory').selectOption({label:'Salary'});
