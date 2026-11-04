@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {runInNewContext} from 'node:vm';
+import {runInNewContext,Script} from 'node:vm';
 
 const source=readFileSync(new URL('../ui/trend-chart.js',import.meta.url),'utf8');
 const htmlPage=readFileSync(new URL('../../admin-analytics.html',import.meta.url),'utf8');
@@ -86,4 +86,10 @@ test('the admin page links the local chart module and keeps unique visitors cond
   assert.match(htmlPage,/Unavailable in verified RUM data/);
   assert.match(htmlPage,/Number\.isSafeInteger\(data\[key\]\)/);
   assert.match(htmlPage,/@media\(max-width:650px\)/);
+});
+
+test('administrator page inline browser initializer is valid JavaScript',()=>{
+  const script=htmlPage.match(/<script>\s*([\s\S]*?)<\/script>/);
+  assert.ok(script,'administrator inline initializer must be present');
+  assert.doesNotThrow(()=>new Script(script[1]));
 });
