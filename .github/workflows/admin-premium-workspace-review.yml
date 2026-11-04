@@ -1,0 +1,33 @@
+name: Admin Premium Workspace V1 review
+on:
+  pull_request:
+    paths:
+      - 'admin.html'
+      - 'admin-analytics.html'
+      - 'css/mmhvault-admin-premium-workspace-v1.css'
+      - 'css/mmhvault-admin-analytics-premium-v1.css'
+      - 'js/mmhvault-admin-premium-workspace-v1.js'
+      - 'tests/admin-premium-workspace-v1.test.mjs'
+      - '.github/workflows/admin-premium-workspace-review.yml'
+  push:
+    branches:
+      - 'feature/admin-premium-workspace-v1-*'
+permissions:
+  contents: read
+jobs:
+  premium-admin-contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check premium presentation script syntax
+        run: node --check js/mmhvault-admin-premium-workspace-v1.js
+      - name: Verify protected Admin navigation and data bindings
+        run: node --test tests/admin-premium-workspace-v1.test.mjs
+      - name: Verify existing member activity regression
+        run: node --test tests/app-v11-admin-member-activity.test.mjs
+      - name: Verify existing Analytics permissions and responses
+        run: node --test analytics-worker/test/*.test.mjs
