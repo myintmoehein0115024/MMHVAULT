@@ -113,7 +113,16 @@ function authClient(){
   persistSession:false,autoRefreshToken:false,detectSessionInUrl:false
  }});
 }
-async function verifiedPasswordSession(email,password,expectedId){
+// Recheck the database QA gate after Auth creates its temporary session.
+// If the window closes mid-login, finally signs out and returns no token.
+async function ownerGateOpen(uid,expectedSlot){
+  if(!open())return false;
+  const {data,error}=await admin.rpc('mmh_n10_realef_owner_slot',{
+    p_user_id:uid
+  });
+  return !error&&data===expectedSlot&&open();
+}
+async function verifiedPasswordSession(email,password,expectedId,expectedSlot){
  const client=authClient();
  let result=null;
  try{
@@ -122,6 +131,7 @@ async function verifiedPasswordSession(email,password,expectedId){
     !data.session.refresh_token)return null;
   const checked=await client.auth.getUser(data.session.access_token);
   if(checked.error||checked.data?.user?.id!==expectedId)return null;
+    if(!await ownerGateOpen(expectedId,expectedSlot))return null;
   result=data.session;
   return result;
  }finally{
@@ -183,7 +193,7 @@ async function enroll(name,password){
   if(backupError||backed!==true)throw Error('escrow_failed');
   // The private SQL completed same-transaction exact Vault readback before
   // this user is eligible to receive a first Auth session.
-  const session=await verifiedPasswordSession(email,password,newUserId);
+  const session=await verifiedPasswordSession(email,password,newUserId,slot);
   if(!session)throw Error('first_session_failed');
   completed=true;
   return {
@@ -214,7 +224,7 @@ async function login(name,password){
  if(error||user?.id!==userId||user?.app_metadata?.mmhvault_qa_scope!==QA_SCOPE||
    user?.app_metadata?.mmhvault_username!==name||
    user?.is_anonymous===true||!user?.email?.endsWith('@'+ALIAS_DOMAIN))return null;
- const session=await verifiedPasswordSession(user.email,password,userId);
+ const session=await verifiedPasswordSession(user.email,password,userId,slot);
  return session?{user_id:userId,access_token:session.access_token,
   refresh_token:session.refresh_token}:null;
 }
