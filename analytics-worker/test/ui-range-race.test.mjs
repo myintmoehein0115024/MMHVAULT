@@ -8,9 +8,9 @@ const html=readFileSync(new URL('../../admin-analytics.html',import.meta.url),'u
 const inline=html.split('<script>')[1]?.split('</script>')[0];
 if(!inline)throw Error('Admin Analytics initializer not found');
 
-function harness() {
-  const handlers={},requests=[],renders=[],elements={};
-  for(const id of ['range','timeZone','refresh','status','visits','pageViews','uniqueVisitors','trend','updated']){
+function harness({authenticated=true,admin=true,holdBreakdowns=false}={}) {
+  const handlers={},requests=[],breakdownRequests=[],renders=[],elements={};
+  for(const id of ['range','timeZone','refresh','status','visits','pageViews','uniqueVisitors','trend','updated','breakdowns','breakdownStatus','loadBreakdowns']){
     elements[id]={value:id==='range'?'7d':id==='timeZone'?'UTC':'',textContent:'',disabled:false,
       addEventListener(event,handler){handlers[id+':'+event]=handler}};
   }
@@ -19,19 +19,23 @@ function harness() {
     render(_el,trend,granularity,range,updatedAt,timeZone){renders.push({trend,granularity,range,updatedAt,timeZone});return true}
   };
   const client={
-    auth:{async getSession(){return {data:{session:{access_token:'synthetic.test.jwt'}}}}},
-    async rpc(){return {data:true,error:null}}
+    auth:{async getSession(){return {data:{session:authenticated?{access_token:'synthetic.test.jwt'}:null}}}},
+    async rpc(){return {data:admin,error:null}}
   };
   const window={
     supabase:{createClient(){return client}},
     MMHAnalyticsChart:chart,
+    MMHAnalyticsBreakdowns:{clear(){},render(){return true}},
     addEventListener(name,handler){handlers['window:'+name]=handler}
   };
-  const fetch=(url,options)=>new Promise(resolve=>requests.push({url,options,resolve}));
+  const fetch=(url,options)=>String(url).includes('website-analytics-breakdowns?')?
+    holdBreakdowns?new Promise(resolve=>breakdownRequests.push({url,options,resolve})):
+      Promise.resolve({ok:false,status:503}):
+    new Promise(resolve=>requests.push({url,options,resolve}));
   runInNewContext(inline,
     {window,document:{getElementById:id=>elements[id]},Intl,AbortController,
       fetch,setTimeout,clearTimeout,encodeURIComponent,requestAnimationFrame:cb=>cb()});
-  return {elements,handlers,requests,renders};
+  return {elements,handlers,requests,breakdownRequests,renders};
 }
 const settled=async()=>{for(let i=0;i<16;i++)await Promise.resolve()};
 function answer(range,visits){
@@ -108,5 +112,54 @@ test('changing time zone during an in-flight hourly load uses the latest selecti
   h.requests[1].resolve(answer('24h',12));await settled();
   assert.equal(h.renders.at(-1).timeZone,'Asia/Bangkok');
   assert.equal(h.elements.visits.textContent,'12');
+  assert.equal(h.elements.status.textContent,'Connected');
+});
+
+test('anonymous or non-admin view keeps breakdowns unavailable and never fetches',async()=>{
+  for(const settings of [{authenticated:false},{admin:false}]){
+    const h=harness(settings);await settled();
+    assert.equal(h.requests.length,0);
+    assert.match(h.elements.breakdownStatus.textContent,/unavailable until administrator analytics is verified/);
+    assert.equal(h.elements.visits.textContent,'—');
+    assert.equal(h.elements.refresh.disabled,false);
+  }
+});
+test('optional breakdown outage never overwrites already verified totals or connected status',async()=>{
+  const h=harness();await settled();
+  h.requests[0].resolve(answer('7d',6));await settled();
+  assert.equal(h.elements.visits.textContent,'6');
+  assert.equal(h.elements.pageViews.textContent,'7');
+  assert.equal(h.elements.status.textContent,'Connected');
+  assert.match(h.elements.breakdownStatus.textContent,/Ready. Click Load breakdowns/);
+  assert.equal(h.elements.loadBreakdowns.disabled,false);
+  h.handlers['loadBreakdowns:click']();await settled();
+  assert.match(h.elements.breakdownStatus.textContent,/Breakdowns unavailable/);
+  assert.equal(h.elements.refresh.disabled,false);
+});
+
+test('switching period aborts an old on-demand breakdown request',async()=>{
+  const h=harness({holdBreakdowns:true});await settled();
+  h.requests[0].resolve(answer('7d',3));await settled();
+  assert.equal(h.breakdownRequests.length,0,'never auto-query breakdowns');
+  h.handlers['loadBreakdowns:click']();await settled();
+  assert.equal(h.breakdownRequests.length,1);
+  assert.equal(h.elements.loadBreakdowns.disabled,true);
+  h.elements.range.value='24h';h.handlers['range:change']();await settled();
+  assert.equal(h.breakdownRequests[0].options.signal.aborted,true);
+  h.breakdownRequests[0].resolve({status:503,ok:false});
+  await settled();
+  assert.equal(h.elements.visits.textContent,'—','new period awaits its own verified totals');
+  assert.doesNotMatch(h.elements.breakdownStatus.textContent,/Breakdowns unavailable. Existing totals remain valid/);
+});
+
+test('30d main totals stay available while unverified country breakdowns remain disabled',async()=>{
+  const h=harness();await settled();
+  h.elements.range.value='30d';h.handlers['range:change']();await settled();
+  h.requests[1].resolve(answer('30d',20));await settled();
+  assert.equal(h.elements.visits.textContent,'20');
+  assert.equal(h.elements.pageViews.textContent,'21');
+  assert.equal(h.elements.loadBreakdowns.disabled,true);
+  assert.match(h.elements.breakdownStatus.textContent,/30-day breakdowns are paused/);
+  assert.equal(h.breakdownRequests.length,0);
   assert.equal(h.elements.status.textContent,'Connected');
 });
