@@ -68,6 +68,25 @@ for(const [purpose,pattern] of [
 const walletGuard=source.slice(walletDefinitions[0].index,walletDefinitions[0].index+1000);
 assert.match(walletGuard,/mmhPersonalReadAllV191\s*\(\s*['"]crypto_wallet_movements['"]\s*,\s*owner\s*\)/,
   'Wallet loader must have a known owner-scoped table dependency');
+// Check the precise minimal boot query contract for the three missing tables.
+// We derive these only from current source; this does NOT authorize DDL.
+const hardBootReads=[...bootGuard.matchAll(/\bread\s*\(\s*['"]([a-z_]+)['"]\s*,\s*['"]([a-z_]+)['"]\s*\)/g)]
+  .map(m=>({table:m[1],dateSort:m[2]}));
+const bootSortByTable=new Map(hardBootReads.map(x=>[x.table,x.dateSort]));
+assert.equal(bootSortByTable.get('transactions'),'tx_date');
+assert.equal(bootSortByTable.get('investments'),'inv_date');
+assert.equal(bootSortByTable.get('custom_investments'),'inv_date');
+const helperMatch=/\b(?:async\s+)?function\s+mmhPersonalReadAllV191\s*\(|\b(?:const|let)\s+mmhPersonalReadAllV191\s*=/.exec(source);
+assert.ok(helperMatch,'Owner-filtered shared finance reader not found');
+const helperBody=source.slice(helperMatch.index,helperMatch.index+6500).split('\n').slice(0,65);
+const helperReview=helperBody.filter(line=>/mmhPersonalReadAllV191|\.from\s*\(|\b(?:select|eq|read|throw|owner|user_id|return)\b/.test(line))
+  .slice(0,35).map(scrub);
+console.log('APP_V117_MINIMAL_SCHEMA_CONTRACT='+JSON.stringify({
+  sharedReaderLine:lineno(helperMatch.index),sharedReaderReview:helperReview,
+  hardBootReads,indirectWalletTable:'crypto_wallet_movements',
+  additionalBootCandidates:['investments','custom_investments','crypto_wallet_movements'],
+  warning:'Read-only static inference. Validate actual required columns, Data API grants and owner RLS before a separate schema approval.'
+}));
 const inventory=[...entries.entries()].sort((a,b)=>a[0].localeCompare(b[0]))
   .map(([table,lines])=>({table,references:lines.length,firstLines:lines.slice(0,6)}));
 assert.ok(startup.length,'Full APP startup entrypoint loadAll not found: review bootstrap');
