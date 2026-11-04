@@ -98,3 +98,15 @@ test('display-only Bangkok time switch does not fetch or modify verified totals'
   assert.equal(h.renders.at(-1).timeZone,'UTC');
   assert.equal(h.elements.visits.textContent,'10');
 });
+
+test('changing time zone during an in-flight hourly load uses the latest selection',async()=>{
+  const h=harness();await settled();
+  h.elements.range.value='24h';h.handlers['range:change']();await settled();
+  assert.equal(h.requests.length,2);
+  h.elements.timeZone.value='Asia/Bangkok';h.handlers['timeZone:change']();
+  assert.equal(h.renders.length,0,'no unverified point is rendered while loading');
+  h.requests[1].resolve(answer('24h',12));await settled();
+  assert.equal(h.renders.at(-1).timeZone,'Asia/Bangkok');
+  assert.equal(h.elements.visits.textContent,'12');
+  assert.equal(h.elements.status.textContent,'Connected');
+});
