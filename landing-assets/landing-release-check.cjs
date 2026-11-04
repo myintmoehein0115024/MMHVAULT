@@ -12,13 +12,17 @@ const source = path => {
 };
 const l164HomeLink="  <link rel=\"stylesheet\" href=\"./landing-assets/safari-performance-l164.css?v=l164\">";
 const l164PublicLink="<link rel=\"stylesheet\" href=\"/landing-assets/safari-performance-l164.css?v=l164\">";
+const l165HomeLink="  <link rel=\"stylesheet\" href=\"./landing-assets/safari-performance-l164.css?v=l165\">";
+const l165PublicLink="<link rel=\"stylesheet\" href=\"/landing-assets/safari-performance-l164.css?v=l165\">";
+const l165SafariPatch="\n/* L1.65 — desktop Safari paint budget: preserve the premium hover end states\n * while avoiding large per-frame shadow interpolation on six showcase cards.\n * The Business ambient glow is already a soft radial gradient, so its extra\n * offscreen blur layer is redundant during long-page scrolling. */\n@media (min-width: 1025px) {\n  body.l131 #business .business-stage::after {\n    filter: none;\n  }\n}\n@media (min-width: 1025px) and (hover: hover) and (pointer: fine) {\n  body.l131 .showcase-v2 .showcase-card,\n  html.mm-motion-active body.l131 .showcase-v2 .showcase-card {\n    transition-property: opacity, transform, border-color;\n  }\n}\n";
 const l164PublicAnchor="<link rel=\"stylesheet\" href=\"/landing-assets/shared-header-l116.css?v=1\">";
 const l164HomeAnchor="  <link rel=\"stylesheet\" href=\"./landing-assets/header-explore-l147.min.css?v=l147\">";
 const l164SafariCSS="/* L1.64 — desktop WebKit-friendly presentation, shared public site only.\n * The sticky header is already near-opaque. Avoid sampling and blurring the\n * entire viewport behind it on every scroll frame. Preserve its blue/gold\n * gradient, translucency-like depth, border, shadow and all interactions.\n * This also helps other desktop engines; phone/tablet styles are untouched. */\n@media (min-width: 1025px) {\n  body.mmh-nav-unified .site-header {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n    background: linear-gradient(180deg, #071928, #051625);\n  }\n  /* These cards already paint nearly opaque gradients. Removing their live\n   * backdrop sampling avoids six separate offscreen compositing surfaces. */\n  body.l131 .showcase-v2 .showcase-card {\n    -webkit-backdrop-filter: none;\n    backdrop-filter: none;\n  }\n  /* The ambient shapes and Hero glow already use soft radial gradients;\n   * their very large filter blur layers need not be repainted on scroll. */\n  body.l131 .ambient,\n  body.l131 .hero::after {\n    filter: none;\n  }\n}\n";
 const l164WorkflowSuffix="\n  webkit-desktop-qa:\n    name: macOS WebKit desktop Safari-engine QA (no auth)\n    runs-on: macos-15\n    timeout-minutes: 15\n    steps:\n      - uses: actions/checkout@v4\n      - uses: actions/setup-node@v4\n        with:\n          node-version: '22'\n      - name: Install isolated WebKit test driver\n        run: |\n          npm install --no-save --no-package-lock --no-audit --no-fund playwright-core@1.56.1\n          node node_modules/playwright-core/cli.js install webkit\n      - name: Run native macOS WebKit public-only desktop regression\n        run: |\n          python3 -m http.server 8765 --bind 127.0.0.1 >/tmp/mmhvault-safari-http.log 2>&1 &\n          SERVER_PID=$!\n          trap 'kill \"$SERVER_PID\"' EXIT\n          sleep 2\n          node landing-assets/landing-webkit-check.cjs\n";
 const l164WorkflowOnlyEdited=()=>
   read('.github/workflows/landing-release-check.yml')===
-  source('.github/workflows/landing-release-check.yml')+l164WorkflowSuffix;
+  source('.github/workflows/landing-release-check.yml') &&
+  source('.github/workflows/landing-release-check.yml').endsWith(l164WorkflowSuffix);
 const rawCurrent = read('index.html');
 const rawPrevious=source('index.html');
 // Verify the one allowed addition separately, then run all legacy content
@@ -29,8 +33,8 @@ assert.ok(analyticsAddition.test(rawCurrent),'Unexpected analytics snippet');
 assert.equal((rawPrevious.match(analyticsAddition)||[]).length,1,'Released main must contain Analytics V1');
 assert.equal((rawCurrent.match(analyticsAddition)||[])[0],(rawPrevious.match(analyticsAddition)||[])[0],
   'L1.57 must preserve the exact already-released analytics beacon');
-const prev=rawPrevious.replace(analyticsAddition,'');
-const current = rawCurrent.replace(analyticsAddition,'').replace(l164HomeLink+'\n','');
+const prev=rawPrevious.replace(analyticsAddition,'').replace(l164HomeLink+'\n','');
+const current = rawCurrent.replace(analyticsAddition,'').replace(l165HomeLink+'\n','');
 // Legacy release checks below validate all previously approved Landing differences.
 
 // L1.41: preserve every byte of the published homepage except the nine
@@ -281,7 +285,7 @@ const l162OldCssLink="<link rel=\"stylesheet\" href=\"/landing-assets/public-pag
 const l162NewCssLink="<link rel=\"stylesheet\" href=\"/landing-assets/public-pages.css?v=l162\">";
 const l162RestoreCss=(html)=>html.replace(l162NewCssLink,l162OldCssLink);
 const l163NewCssLink="<link rel=\"stylesheet\" href=\"/landing-assets/public-pages.css?v=l163\">";
-const l163RestoreCss=(html)=>html.replace('\n'+l164PublicLink,''); // L1.63 CSS link is released.
+const l163RestoreCss=(html)=>html.replace(l165PublicLink,l164PublicLink); // L1.64 CSS link is released.
 const l163FooterCssPatch="\n/* L1.63 — minimum 44px touch targets for public footer navigation on phones.\n   Keep the desktop footer and all page content, links, language strings intact. */\n@media (max-width: 620px) {\n  body.public-landing-page .public-footer-group {\n    min-width: 0;\n    gap: 5px;\n  }\n  body.public-landing-page .public-footer-group strong {\n    max-width: 100%;\n    overflow-wrap: anywhere;\n  }\n  body.public-landing-page .public-footer-group a {\n    box-sizing: border-box;\n    display: flex;\n    align-items: center;\n    width: 100%;\n    min-width: 0;\n    min-height: 44px;\n    padding: 8px;\n    border-radius: 10px;\n    overflow-wrap: anywhere;\n  }\n  body.public-landing-page .public-footer-group a span {\n    min-width: 0;\n    overflow-wrap: anywhere;\n  }\n  body.public-landing-page .public-footer-bottom > a {\n    display: inline-flex;\n    align-items: center;\n    max-width: 100%;\n    min-height: 44px;\n    padding: 8px;\n    border-radius: 10px;\n    overflow-wrap: anywhere;\n  }\n}\n";
 const l163FooterCssOnlyEdited=()=>
   read('landing-assets/public-pages.css')===source('landing-assets/public-pages.css') &&
@@ -842,27 +846,27 @@ check('L1.27 public tab title matches SEO without language focus scroll',
  l133PublicPagesUnchanged() &&
  l142IndexOnlyEdited() && current.includes(newHeroPreload) &&
  !current.includes(oldHeroPreload));
-check('L1.64 exact Safari desktop-only 13-file optimization, SEO/N10/APP/Analytics untouched',
-  actual.length===13 &&
+check('L1.65 strict twelve-file desktop Safari paint adjustment; all protected areas unchanged',
+  actual.length===12 &&
   actual.every(path=>[
     'index.html','landing-assets/safari-performance-l164.css',
     'landing-assets/landing-webkit-check.cjs',
     'landing-assets/landing-release-check.cjs',
     'landing-assets/landing-browser-check.cjs',
-    '.github/workflows/landing-release-check.yml',
     ...publicHeaders
   ].includes(path)) &&
-  rawCurrent===rawPrevious.replace(l164HomeAnchor,l164HomeAnchor+'\n'+l164HomeLink) &&
+  rawCurrent===rawPrevious.replace(l164HomeLink,l165HomeLink) &&
   publicHeaders.every(path=>{
     const old=source(path);
-    return old.split(l164PublicAnchor).length===2 &&
-      read(path)===old.replace(l164PublicAnchor,l164PublicAnchor+'\n'+l164PublicLink);
+    return old.split(l164PublicLink).length===2 &&
+      read(path)===old.replace(l164PublicLink,l165PublicLink);
   }) &&
-  read('landing-assets/safari-performance-l164.css')===l164SafariCSS &&
-  l164SafariCSS.includes('@media (min-width: 1025px)') &&
-  l164SafariCSS.includes('body.mmh-nav-unified .site-header') &&
-  l164SafariCSS.includes('-webkit-backdrop-filter: none') &&
-  !l164SafariCSS.includes('body.app') &&
+  source('landing-assets/safari-performance-l164.css')===l164SafariCSS &&
+  read('landing-assets/safari-performance-l164.css')===l164SafariCSS+l165SafariPatch &&
+  l165SafariPatch.includes('@media (min-width: 1025px)') &&
+  l165SafariPatch.includes('transition-property: opacity, transform, border-color') &&
+  l165SafariPatch.includes('body.l131 #business .business-stage::after') &&
+  !l165SafariPatch.includes('body.app') &&
   l164WorkflowOnlyEdited() &&
   read('landing-assets/landing-webkit-check.cjs').includes('MACOS WEBKIT QA PASS') &&
   l163FooterCssOnlyEdited() && l139PublicOnlyEdited() && l139MotionOnlyEdited() &&
