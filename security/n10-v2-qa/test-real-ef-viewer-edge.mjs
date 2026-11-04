@@ -38,10 +38,14 @@ test('45-second response, no client/local storage, no destructive verbs',()=>{
  assert.doesNotMatch(src,/console\.|localStorage|sessionStorage|\.admin\.deleteUser\s*\(|\bvault\.create_secret/);
 });
 
-test('password proof must fail closed when its temporary Auth sign-out errors',()=>{
- has("const {error:logoutError}=await auth.auth.signOut({scope:'local'})");
+test('password proof must revoke the exact fresh session via server-side local scope or deny reveal',()=>{
+ has('proofToken=data?.session?.access_token??null;');
+ has("admin.auth.admin.signOut(proofToken,'local')");
  has('if(logoutError)return false;');
+ has('if(typeof proofToken!==\'string\'||!proofToken)return false;');
  has('return passwordVerified;');
- assert.doesNotMatch(src,/finally\s*\{\s*try\s*\{\s*await auth\.auth\.signOut\(\{scope:'local'\}\);\s*\}\s*catch\(_\)\s*\{\}\s*\}/,
-  'do not swallow a sign-out exception on the recovery-password proof path');
+ assert.doesNotMatch(src,/admin\.auth\.admin\.signOut\(proofToken\s*\)/,
+  'never use default global signout for the password-proof session');
+ assert.doesNotMatch(src,/await auth\.auth\.signOut\(\{scope:'local'\}\)/,
+  'do not rely on local client state for service-side proof session cleanup');
 });
