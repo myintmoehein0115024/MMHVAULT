@@ -32,7 +32,7 @@ const scrub=line=>line
 const bootContexts=bootDefinitions.slice(0,4).map(m=>({
   line:lineno(m.index),
   nearbyReviewLines:source.slice(m.index,m.index+16000).split('\n').slice(0,180)
-    .filter(line=>/\b(?:await|throw|Promise|return)\b|\.from\s*\(|\.error\b|\bloadAll\s*\(/.test(line))
+    .filter(line=>/\b(?:await|throw|Promise|return)\b|\.from\s*\(|\.error\b|\bloadAll\s*\(|\bread\s*\(/.test(line))
     .slice(0,70).map(scrub)
 }));
 console.log('APP_V117_BOOT_SOURCE_REVIEW='+JSON.stringify({
