@@ -49,3 +49,20 @@ for(const [name,needle] of patterns){
  const code=lines.slice(start,end).map((l,i)=>(start+i+1)+': '+safe(l));
  console.log('APP_V117_SOURCE_REVIEW_'+name+'='+JSON.stringify({line:at+1,code}));
 }
+
+// Pinpoint real native Add Transaction event wiring and post-save refresh.
+// Do not mistake an unrelated inner render() or unrelated submit handler.
+for(const [name,pattern] of [
+  ['native-save-call',/\bawait\s+addTransaction\s*\(/],
+  ['native-save-reference',/\baddTransaction\s*\(/],
+  ['transaction-form-lookup',/['"]txForm['"]/],
+  ['transactions-global-updated',/\btransactions\s*=\s*\(/],
+  ['loadAll-invoke',/\bawait\s+loadAll\s*\(/],
+]){
+ const at=lines.map((line,i)=>pattern.test(line)?i:-1).filter(i=>i>=0).slice(-10);
+ console.log('APP_V117_NATIVE_WIRING_'+name+'='+JSON.stringify(at.map(ix=>({
+   line:ix+1,
+   code:lines.slice(Math.max(0,ix-6),Math.min(lines.length,ix+11))
+     .map((line,k)=>(Math.max(0,ix-6)+k+1)+': '+safe(line))
+ }))));
+}
