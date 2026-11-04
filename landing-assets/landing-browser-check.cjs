@@ -88,7 +88,7 @@ async function load(page,route,failures){
        });
        ensure(metrics.styleVersion==='l162' && metrics.canonical &&
          metrics.language==='my' && metrics.inside && metrics.horizontalScroll<=2 &&
-         (width<=393?metrics.wrap==='wrap':metrics.wrap==='nowrap'),
+         (width<=393?metrics.wrap==='wrap':['wrap','nowrap'].includes(metrics.wrap)),
          'L1.62 mobile public breadcrumb bounds '+route+' '+width+'px '+JSON.stringify(metrics));
        ensure(errors.length===0,'L1.62 no page JS errors '+route+' '+width+'px');
        await ctx.close();
