@@ -71,7 +71,7 @@ const PROD='https://vrypucmyrztxgiqhjspd.supabase.co';
   // to index.html and bouncing forever to /app.html (navy flash bug).
   // All authenticator calls are browser-local mocks. This does not create
   // sessions or test users and cannot read or modify any Supabase records.
-  const mockedSDK=String.raw\`
+  const mockedSDK=String.raw`
     window.supabase={createClient:function(url,key){
       window.__qaClientUrl=url;window.__qaPublicKey=key;window.__qaSignins=0;
       let current='',verified=false;
@@ -96,7 +96,7 @@ const PROD='https://vrypucmyrztxgiqhjspd.supabase.co';
         }
       }};
     }};
-  \`;
+  `;
   await page.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/dist/umd/supabase.js',
     route=>route.fulfill({status:200,contentType:'application/javascript',body:mockedSDK}));
   const loginResponse=await page.goto(PREVIEW.replace('/app.html','/login.html'),
