@@ -62,12 +62,19 @@ export function createRecoveryViewController({request, currentOwner, onChange, s
     emit('loading');
     try {
       const result = await request('status', {});
-      if (invocation !== epoch || currentOwner() !== id) { hide(); return; }
+      // An obsolete request belongs to a previous view. Never let its
+      // completion hide or overwrite a newer owner's active request.
+      if (invocation !== epoch) return;
+      if (currentOwner() !== id) { hide(); return; }
       if (result?.code === 'backup_status' && typeof result.backed_up === 'boolean') {
         lastBackup = result.backed_up;
         emit(result.backed_up ? 'ready' : 'not_recoverable');
       } else emit(serverBlock(result?.code));
-    } catch { if (invocation === epoch) emit('unavailable'); }
+    } catch {
+      if (invocation !== epoch) return;
+      if (currentOwner() !== id) { hide(); return; }
+      emit('unavailable');
+    }
   };
   const reveal = async password => {
     if (!['ready', 'password_required'].includes(phase) || lastBackup !== true || !owner || currentOwner() !== owner) {
@@ -80,7 +87,8 @@ export function createRecoveryViewController({request, currentOwner, onChange, s
     emit('loading');
     try {
       const result = await request('reveal', {password});
-      if (invocation !== epoch || currentOwner() !== owner) { hide(); return; }
+      if (invocation !== epoch) return;
+      if (currentOwner() !== owner) { hide(); return; }
       if (result?.code !== 'recovery_key') {
         emit(serverBlock(result?.code)); return;
       }
@@ -94,6 +102,9 @@ export function createRecoveryViewController({request, currentOwner, onChange, s
       timer = setTimer(hide, MAX_VIEW_MS);
     } catch {
       if (invocation === epoch) {
+        // Owner changes during an in-flight failure must lock without
+        // surfacing the previous owner's request state to the next account.
+        if (currentOwner() !== owner) { hide(); return; }
         // A failed visible-state renderer or timer setup must not leave words
         // unlocked. Clear first, then show the non-sensitive error status.
         hide();
