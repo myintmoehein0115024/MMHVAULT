@@ -66,3 +66,22 @@ for(const [name,pattern] of [
      .map((line,k)=>(Math.max(0,ix-6)+k+1)+': '+safe(line))
  }))));
 }
+
+// Inspect every binding/bridge to the real native save function and exact
+// post-save updater rather than inferring behavior from unrelated pages.
+for(const [name,token] of [
+  ['addTransaction-binding','addTransaction'],
+  ['native-onsubmit-assignment','txForm.onsubmit'],
+  ['native-onsubmit-lookup',"'txForm').onsubmit"],
+  ['loader-update','transactions='],
+  ['data-change','mmhvault:data-change']
+]){
+ const matches=[];
+ for(let i=0;i<lines.length;i++)if(lines[i].includes(token))matches.push(i);
+ console.log('APP_V117_NATIVE_BOUNDED_'+name+'='+JSON.stringify(
+   matches.slice(0,22).map(ix=>({
+    line:ix+1,around:lines.slice(Math.max(0,ix-3),Math.min(lines.length,ix+5))
+      .map((l,k)=>(Math.max(0,ix-3)+k+1)+': '+safe(l))
+   }))
+ ));
+}
