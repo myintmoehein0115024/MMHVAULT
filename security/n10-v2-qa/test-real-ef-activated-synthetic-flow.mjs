@@ -26,9 +26,9 @@ function fakeWorld({failEscrow=false}={}){
  const users=new Map(),byEmail=new Map(),slotOwners=new Map(),claims=new Set();
  const backups=new Map(),sessions=new Map(),tokens=new Map(),verifiedFactors=new Set(),events=[];
  let handlerCount=0;
- function issueSession(uid,aal='aal1'){
+ function issueSession(uid,aal='aal1',overrides={}){
    const sid=randomUUID();
-   const payload={iss:BASE+'/auth/v1',sub:uid,exp:4102444800,aal,session_id:sid};
+   const payload={iss:BASE+'/auth/v1',sub:uid,exp:4102444800,aal,session_id:sid,...overrides};
    const enc=x=>Buffer.from(JSON.stringify(x)).toString('base64url');
    const token=enc({alg:'HS256',typ:'JWT'})+'.'+enc(payload)+'.synthetic-not-real-signature';
    tokens.set(token,uid);
@@ -176,6 +176,9 @@ function fakeWorld({failEscrow=false}={}){
  return {
   signup,viewer,invoke,events,users,backups,slotOwners,claims,
   mintAAL2(uid){verifiedFactors.add(uid);return issueSession(uid,'aal2');},
+  mintAAL2WithoutFactor(uid){return issueSession(uid,'aal2');},
+  mintAAL2WithClaims(uid,overrides){verifiedFactors.add(uid);return issueSession(uid,'aal2',overrides);},
+  clearFactor(uid){verifiedFactors.delete(uid);},
   revoke(token){const parts=token.split('.');const payload=JSON.parse(Buffer.from(parts[1],'base64url').toString());
    const session=sessions.get(payload.session_id);if(session)session.live=false;},
   get handlerCount(){return handlerCount;}
@@ -272,4 +275,52 @@ test('synthetic Vault write failure quarantines newly created E, returns no key 
  assert.equal(retry.status,409);
  assert.equal(retry.code,'qa_slot_unavailable');
  assert.equal(x.users.size,1,'ambiguous failed slot must never silently create a replacement user');
+});
+
+
+
+test('synthetic forged, downgraded, stale, and cross-session JWTs never disclose E words',async()=>{
+ const x=fakeWorld();
+ const e=await x.invoke(x.signup,{
+  action:'signup',username:'n10real_e_20261104',password:PWD_E,
+  captcha_token:'signup-attack-synthetic-token'
+ });
+ assert.equal(e.status,200);
+ const wrongAAL2=x.mintAAL2WithoutFactor(e.user_id);
+ const noFactor=await x.invoke(x.viewer,{action:'reveal',password:PWD_E},wrongAAL2.access_token);
+ assert.equal(noFactor.status,403);
+ assert.equal(noFactor.code,'mfa_required');
+ const valid=x.mintAAL2(e.user_id);
+ const signedStatus=await x.invoke(x.viewer,{action:'status'},valid.access_token);
+ assert.equal(signedStatus.status,200);
+
+ // Modifying the JWT's unsigned-looking payload does not create a valid Auth session.
+ const components=valid.access_token.split('.');
+ const altered={...JSON.parse(Buffer.from(components[1],'base64url').toString()),aal:'aal2',sub:randomUUID()};
+ const tampered=components[0]+'.'+Buffer.from(JSON.stringify(altered)).toString('base64url')+'.'+components[2];
+ const forged=await x.invoke(x.viewer,{action:'reveal',password:PWD_E},tampered);
+ assert.equal(forged.status,401);
+ assert.equal(forged.code,'sign_in_required');
+ assert.equal(forged.words,undefined);
+
+ const cases=[
+  {name:'wrong issuer',claims:{iss:'https://not-this-staging.supabase.co/auth/v1'},status:403,code:'mfa_required'},
+  {name:'expired token',claims:{exp:1},status:403,code:'mfa_required'},
+  {name:'different sub',claims:{sub:randomUUID()},status:403,code:'mfa_required'},
+  {name:'unbound session',claims:{session_id:randomUUID()},status:401,code:'session_expired'}
+ ];
+ for(const c of cases){
+  const token=x.mintAAL2WithClaims(e.user_id,c.claims);
+  const result=await x.invoke(x.viewer,{action:'reveal',password:PWD_E},token.access_token);
+  assert.equal(result.status,c.status,c.name);
+  assert.equal(result.code,c.code,c.name);
+  assert.equal(result.words,undefined,c.name+' must not disclose original words');
+ }
+ x.clearFactor(e.user_id);
+ const removed=await x.invoke(x.viewer,{action:'reveal',password:PWD_E},valid.access_token);
+ assert.equal(removed.status,403);
+ assert.equal(removed.code,'mfa_required');
+ assert.equal(removed.words,undefined);
+ // Security checks fail closed; the E escrow must remain unchanged.
+ assert.equal(x.backups.get(e.user_id),e.recovery_words.join(' '));
 });
