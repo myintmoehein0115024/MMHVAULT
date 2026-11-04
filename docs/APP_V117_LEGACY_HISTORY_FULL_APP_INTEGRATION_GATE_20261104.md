@@ -39,3 +39,25 @@ Date: 2026-11-04. Branch-only P1/P2 design and code review; **NO PRODUCTION RELE
 - No change here to N10 Auth, Landing, Production SQL, Production RLS, production financial records or live routes.
 
 **Current disposition:** core Manage QA accepted; full-APP signed integration and physical-device acceptance remain **PENDING**. Keep PR #87 Draft.
+
+## 2026-11-04 read-only source inventory — head `a6c883c7`
+GitHub Actions ran `node tests/app-v117-full-app-dependency-inventory.cjs` against the full branch `app.html`, without Supabase, user credentials, API requests or table writes. It found **12 distinct literal Supabase `.from('table')` references** in the whole APP:
+
+| Literal table referenced in APP source | Under existing two-table Auth-Staging approval? | First matching source line |
+| --- | --- | ---: |
+| `transactions` | Yes | 11948 |
+| `personal_configuration` | Yes | 22652 |
+| `investments` | No | 11949 |
+| `custom_investments` | No | 11950 |
+| `investment_catalogs` | No | 11757 |
+| `exchange_rates` | No | 14390 |
+| `recurring_transactions` | No | 13299 |
+| `budgets` | No | 13356 |
+| `financial_goals` | No | 24501 |
+| `personal_financial_alerts` | No | 23130 |
+| `personal_push_subscriptions` | No | 22765 |
+| `customer_profiles` | No | 14115 |
+
+**Interpretation limits:** these are literal `.from(...)` sites across the whole source, not the set of hard `loadAll()` dependencies. Dynamic table names and wallet movement services are not resolved by this regex; no claim is made that all ten additional tables must be provisioned. An earlier inspected full-APP boot path identified `investments`, wallet movement loading and `custom_investments` failures as hard stops, and `exchange_rates` as attempted. That failure analysis must be rechecked against latest source before making a *minimal*, owner-approved isolated schema proposal. `customer_profiles` and other existing N10 dependencies MUST NOT be provisioned or touched just because their name appears in source.
+
+**Current action:** preserve the existing signed A/B two-table core acceptance and full-APP security overlay; gather source-specific hard-boot read paths next. No new Staging tables, Production calls or live full-APP deployment were authorized or performed.
