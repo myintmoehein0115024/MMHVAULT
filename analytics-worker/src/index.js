@@ -14,9 +14,10 @@ async function verifyAdmin(token,env,diagnostic){
   const headers={apikey:env.SUPABASE_ANON_KEY,authorization:'Bearer '+token};
   // Verify the JWT against the Auth service before invoking the admin RPC.
   // This prevents anonymous or expired tokens from reaching the analytics query.
+  // Workers supports redirect:'manual', not 'error'; 3xx is rejected by !identity.ok.
   diagnostic.phase='AUTH_USER_FETCH';
   const identity=await fetch(new URL('/auth/v1/user',env.SUPABASE_URL),{
-    method:'GET',headers,redirect:'error'
+    method:'GET',headers,redirect:'manual'
   });
   if(!identity.ok)return {status:401};
   diagnostic.phase='AUTH_USER_JSON';
@@ -24,7 +25,7 @@ async function verifyAdmin(token,env,diagnostic){
   if(!user||typeof user.id!=='string'||!user.id)return {status:401};
   diagnostic.phase='AUTH_RPC_FETCH';
   const result=await fetch(new URL('/rest/v1/rpc/mmh_is_admin',env.SUPABASE_URL),{
-    method:'POST',headers:{...headers,'content-type':'application/json'},body:'{}',redirect:'error'
+    method:'POST',headers:{...headers,'content-type':'application/json'},body:'{}',redirect:'manual'
   });
   if(result.status===401)return {status:401};
   if(!result.ok)return {status:403};
@@ -58,7 +59,7 @@ async function queryAnalytics(range,env,diagnostic){
       accountTag:env.CF_ACCOUNT_ID,siteTag:env.CF_SITE_TAG,
       start:start.toISOString(),end:now.toISOString()
     }}),
-    redirect:'error'
+    redirect:'manual'
   });
   diagnostic.phase='CF_RESPONSE_STATUS';
   if(!result.ok)throw new Error('CF_HTTP_ERROR');
