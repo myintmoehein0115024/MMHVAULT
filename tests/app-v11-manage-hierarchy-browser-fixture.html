@@ -16,6 +16,19 @@
 <main>
   <section id="mmhManagerCategoriesPanelV445"></section>
   <form id="txForm">
+    <!-- Synthetic V141 legacy toolbar: deliberately present to prove V11.7
+         never exposes unconfigured built-in transaction kind buttons. -->
+    <div id="txSmartV141" class="tx-smart-v141">
+      <div>TRANSACTION KIND — legacy only</div>
+      <div class="tx-kind-grid-v141" role="group" aria-label="Transaction kind">
+        <button type="button" data-kind-v141="Income">Income</button>
+        <button type="button" data-kind-v141="Expense">Expense</button>
+        <button type="button" data-kind-v141="Personal">Personal</button>
+        <button type="button" data-kind-v141="Loans">Loans</button>
+        <button type="button" data-kind-v141="Transfer">Transfer</button>
+        <button type="button" data-kind-v141="Adjustment">Adjustment</button>
+      </div>
+    </div>
     <label>Type<select id="txType"></select></label>
     <label>Transaction<select id="txGroup"></select></label>
     <label>Category<select id="txCategory"></select></label>
