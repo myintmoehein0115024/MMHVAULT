@@ -38,3 +38,11 @@
     transition-property: opacity, transform, border-color;
   }
 }
+
+/* L1.66 — desktop Hero uses its existing soft radial gradient without
+ * another large blur surface. Mobile/tablet appearance is untouched. */
+@media (min-width: 1025px) {
+  body.l131 .hero-halo {
+    filter: none;
+  }
+}
