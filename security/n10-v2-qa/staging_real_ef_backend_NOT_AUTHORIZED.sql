@@ -153,6 +153,22 @@ AS $slot$
    AND u.raw_app_meta_data->>'mmhvault_username'=e.username_key;
 $slot$;
 
+-- Only the backend can resolve a bound E/F slot to its Auth UID for username login.
+-- Never reveal another owner's password, token or encrypted words.
+CREATE FUNCTION public.mmh_n10_realef_slot_user_id(p_slot text)
+RETURNS uuid LANGUAGE sql STABLE SECURITY DEFINER SET search_path=''
+AS $lookup$
+ SELECT b.user_id FROM mmh_n10_realef_20261104.auth_bindings b
+ JOIN mmh_n10_realef_20261104.expected_identity e ON e.slot=b.slot
+ JOIN mmh_n10_realef_20261104.qa_gate g ON g.singleton
+ JOIN auth.users u ON u.id=b.user_id
+ WHERE p_slot IN ('E','F') AND b.slot=p_slot
+  AND g.enabled AND g.expires_at>now()
+  AND u.deleted_at IS NULL AND u.is_anonymous IS FALSE
+  AND u.raw_app_meta_data->>'mmhvault_qa_scope'='n10_real_ef_20261104'
+  AND u.raw_app_meta_data->>'mmhvault_username'=e.username_key;
+$lookup$;
+
 CREATE FUNCTION public.mmh_n10_realef_session_active(
   p_user_id uuid,p_session_id uuid)
 RETURNS boolean LANGUAGE sql STABLE SECURITY DEFINER SET search_path=''
@@ -233,6 +249,7 @@ REVOKE ALL ON ALL FUNCTIONS IN SCHEMA mmh_n10_realef_20261104
 REVOKE ALL ON FUNCTION public.mmh_n10_realef_claim(text,text) FROM PUBLIC,anon,authenticated;
 REVOKE ALL ON FUNCTION public.mmh_n10_realef_backup_put(uuid,text,text,text) FROM PUBLIC,anon,authenticated;
 REVOKE ALL ON FUNCTION public.mmh_n10_realef_owner_slot(uuid) FROM PUBLIC,anon,authenticated;
+REVOKE ALL ON FUNCTION public.mmh_n10_realef_slot_user_id(text) FROM PUBLIC,anon,authenticated;
 REVOKE ALL ON FUNCTION public.mmh_n10_realef_session_active(uuid,uuid) FROM PUBLIC,anon,authenticated;
 REVOKE ALL ON FUNCTION public.mmh_n10_realef_backup_get(uuid,uuid) FROM PUBLIC,anon,authenticated;
 REVOKE ALL ON FUNCTION public.mmh_n10_realef_backup_exists(uuid,uuid) FROM PUBLIC,anon,authenticated;
@@ -241,6 +258,7 @@ REVOKE ALL ON FUNCTION public.mmh_n10_realef_take_attempt(text,integer,integer)
 GRANT EXECUTE ON FUNCTION public.mmh_n10_realef_claim(text,text) TO service_role;
 GRANT EXECUTE ON FUNCTION public.mmh_n10_realef_backup_put(uuid,text,text,text) TO service_role;
 GRANT EXECUTE ON FUNCTION public.mmh_n10_realef_owner_slot(uuid) TO service_role;
+GRANT EXECUTE ON FUNCTION public.mmh_n10_realef_slot_user_id(text) TO service_role;
 GRANT EXECUTE ON FUNCTION public.mmh_n10_realef_session_active(uuid,uuid) TO service_role;
 GRANT EXECUTE ON FUNCTION public.mmh_n10_realef_backup_get(uuid,uuid) TO service_role;
 GRANT EXECUTE ON FUNCTION public.mmh_n10_realef_backup_exists(uuid,uuid) TO service_role;
