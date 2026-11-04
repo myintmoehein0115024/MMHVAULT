@@ -14,6 +14,10 @@ assert.match(app,/id="txForm"/);
 assert.match(app,/id="txAddPanel"/);
 assert.match(app,/id="mmhManagerCategoriesPanelV445"/);
 assert.match(app,/id="txHistoryPanel"/);
+assert.match(app,/class="mmh-glass-tx-nav-v1"/);
+assert.match(guide,/mmhTxOnboardingHelpBarV1/);
+assert.match(guide,/nav\.before\(bar\)/);
+assert.match(guide,/childList:true/);
 for(const [name,script] of [['live',guide],['state',state]]){
   for(const dangerous of [
     /\bdb\s*\.\s*from\s*\(/,/\b(?:fetch|XMLHttpRequest|sendBeacon)\s*\(/,
