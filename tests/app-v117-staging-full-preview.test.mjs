@@ -43,7 +43,7 @@ test('preview is generated from the current APP without production endpoints',()
  assert.ok(fs.existsSync(path.join(out,'START-STAGING-ON-MAC.sh')));
  const launcher=fs.readFileSync(path.join(out,'START-STAGING-ON-MAC.sh'),'utf8');
  assert.match(launcher,/python3 -m http.server 8769/);
- assert.ok(launcher.split('\\n').length>8,'macOS launch script needs real newlines');
+ assert.ok(launcher.split('\n').length>8,'macOS launch script needs real newlines');
  const checkAssets=folder=>{
    for(const entry of fs.readdirSync(folder,{withFileTypes:true})){
      const full=path.join(folder,entry.name);
