@@ -69,6 +69,7 @@ jobs:
           trap 'kill "$SERVER_PID"' EXIT
           sleep 2
           node tests/app-v11-manage-hierarchy-browser-check.cjs
+          node tests/app-v117-staging-signed-ab-qa-browser-check.cjs
 
   browser-webkit:
     name: V11.7 synthetic WebKit responsive QA (NO DEPLOY)
@@ -92,3 +93,4 @@ jobs:
           trap 'kill "$SERVER_PID"' EXIT
           sleep 2
           node tests/app-v11-manage-hierarchy-browser-check.cjs
+          node tests/app-v117-staging-signed-ab-qa-browser-check.cjs
