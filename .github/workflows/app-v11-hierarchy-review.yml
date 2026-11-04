@@ -1,0 +1,145 @@
+name: APP V11 hierarchy owner & archive safety (NO DEPLOY)
+
+on:
+  pull_request:
+    paths:
+      - 'app.html'
+      - 'js/mmhvault-v11-manage-hierarchy-*.mjs'
+      - 'tests/app-v11-manage-hierarchy-*.test.mjs'
+      - 'tests/app-v117-legacy-history-immutability.test.mjs'
+      - 'tests/app-v117-full-app-dependency-inventory.cjs'
+      - 'tests/app-v117-native-transaction-integration-review.cjs'
+      - 'tests/app-v11-manage-hierarchy-browser-*'
+      - 'tests/app-v117-staging-signed-ab-qa*'
+      - 'tests/build-app-v117-staging-preview.cjs'
+      - 'tests/build-app-v117-doubleclick.cjs'
+      - 'tests/app-v117-doubleclick*'
+      - 'tests/app-v117-staging-full-preview*'
+      - 'tests/app-v117-staging-login.html'
+      - '.github/workflows/app-v11-hierarchy-review.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  hierarchy:
+    name: V11.7 hierarchy-only static and model checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Parse pure graph/controller and draft presentation
+        run: |
+          node --check js/mmhvault-v11-manage-hierarchy-model.mjs
+          node --check js/mmhvault-v11-manage-hierarchy-controller.mjs
+          node --check js/mmhvault-v11-manage-hierarchy-live.mjs
+          node --check js/mmhvault-v11-manage-hierarchy-sync.mjs
+      - name: Check owner scope, archival protection and ledger associations
+        run: node --test tests/app-v11-manage-hierarchy-model.test.mjs tests/app-v11-manage-hierarchy-controller.test.mjs tests/app-v11-manage-hierarchy-sync.test.mjs tests/app-v11-manage-hierarchy-cloud-conflict.test.mjs tests/app-v117-staging-signed-ab-qa.contract.test.mjs tests/app-v117-legacy-history-immutability.test.mjs
+      - name: Inventory full APP boot dependencies (read-only, no DB)
+        run: node tests/app-v117-full-app-dependency-inventory.cjs
+      - name: Inspect native transaction save and refresh integration (read-only)
+        run: node tests/app-v117-native-transaction-integration-review.cjs
+      - name: Check branch-only page integration and protected ledger fields
+        run: |
+          node --input-type=module - <<'NODE'
+          import fs from 'node:fs';
+          import assert from 'node:assert/strict';
+          const app=fs.readFileSync('app.html','utf8');
+          const live=fs.readFileSync('js/mmhvault-v11-manage-hierarchy-live.mjs','utf8');
+          const sync=fs.readFileSync('js/mmhvault-v11-manage-hierarchy-sync.mjs','utf8');
+          assert.match(live,/verifyStoredCloudLink/);
+          assert.match(sync,/storedLinkMatches/);
+          assert.doesNotMatch(sync,/\.update\(|\.insert\(|\.delete\(/);
+          assert.match(app,/mmhvault-v11-manage-hierarchy-live\.mjs\?v=0\.7\.0/);
+          assert.match(app,/txHierarchyV11:mmhVaultNormalizeTxHierarchyV11\(x\.txHierarchyV11,uid\(\)\)/);
+          assert.match(app,/onLedgerInserted\?\.\(u\.id,r\.data\.id,selected\)/);
+          assert.match(app,/const row=\{user_id:u\.id,tx_date:txDate\.value,type,category:/);
+          assert.doesNotMatch(live,/\.from\(['"]transactions['"]\)\.update\(/);
+          assert.doesNotMatch(live,/\.from\(['"]transactions['"]\)\.delete\(/);
+          console.log('Verified runtime loader, cloud-config retention, ledger insert-only and no history mutation');
+          NODE
+
+  browser-fixture:
+    name: V11.7 synthetic linked Manage Chrome QA (NO DEPLOY)
+    runs-on: ubuntu-latest
+    timeout-minutes: 9
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install test-only browser driver (no app dependencies)
+        run: npm install --no-save --no-package-lock --no-audit --no-fund playwright-core@1.56.1 esbuild@0.25.12
+      - name: Run local-only responsive UI + old/new-owner regression
+        run: |
+          python3 -m http.server 8768 --bind 127.0.0.1 >/tmp/mmhvault-v11-hierarchy-browser.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID"' EXIT
+          sleep 2
+          node tests/app-v11-manage-hierarchy-browser-check.cjs
+          node tests/app-v117-staging-signed-ab-qa-browser-check.cjs
+          MMH_V117_STAGING_PUBLISHABLE_KEY='sb_publishable_LxIB8564OZD48HQ8Mfsc0A_apkgERZo' node tests/build-app-v117-staging-preview.cjs
+          node tests/app-v117-staging-full-preview-browser-check.cjs
+          node tests/build-app-v117-doubleclick.cjs
+          node tests/app-v117-doubleclick-browser-check.cjs
+
+  browser-webkit:
+    name: V11.7 synthetic WebKit responsive QA (NO DEPLOY)
+    runs-on: ubuntu-latest
+    timeout-minutes: 13
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install test-only WebKit driver and Linux dependencies
+        run: |
+          npm install --no-save --no-package-lock --no-audit --no-fund playwright-core@1.56.1
+          npx playwright-core install --with-deps webkit
+      - name: Run local-only WebKit phone/tablet/desktop old/new-owner checks
+        env:
+          MMH_BROWSER_ENGINE: webkit
+        run: |
+          python3 -m http.server 8768 --bind 127.0.0.1 >/tmp/mmhvault-v11-webkit-browser.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID"' EXIT
+          sleep 2
+          node tests/app-v11-manage-hierarchy-browser-check.cjs
+          node tests/app-v117-staging-signed-ab-qa-browser-check.cjs
+
+  staging-preview:
+    name: V11.7 local full APP Staging QA package (NO DEPLOY)
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install pinned test-only ESM bundler
+        run: npm install --no-save --no-package-lock --no-audit --no-fund esbuild@0.25.12
+      - name: Verify source-to-Staging transform with synthetic key
+        run: |
+          node --test tests/app-v117-staging-full-preview.test.mjs
+          node --test tests/app-v117-doubleclick.test.mjs
+      - name: Build complete APP QA package using public Auth-Staging key ONLY
+        env:
+          # A Supabase publishable API key is nonsecret. Never place service_role
+          # or production credentials in this build.
+          MMH_V117_STAGING_PUBLISHABLE_KEY: 'sb_publishable_LxIB8564OZD48HQ8Mfsc0A_apkgERZo'
+        run: |
+          node tests/build-app-v117-staging-preview.cjs
+          node tests/build-app-v117-doubleclick.cjs
+      - name: Upload download-only local QA folder (no hosting, no deployment)
+        uses: actions/upload-artifact@v4
+        with:
+          name: mmhvault-app-v117-staging-local-only
+          path: dist/app-v117-staging/
+          retention-days: 5
+          if-no-files-found: error

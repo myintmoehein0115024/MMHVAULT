@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="zh"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>MMHVAULT · APP V11.7 Staging QA</title>
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; connect-src https://ldivswlhtgmznzwhzsoi.supabase.co; form-action 'none'; base-uri 'none'">
+<style>
+:root{color-scheme:dark;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}*{box-sizing:border-box}body{background:radial-gradient(ellipse 70% 60% at 18% 0%,#23374a 0%,transparent 80%),radial-gradient(ellipse 40% 50% at 95% 85%,#463621 0%,transparent 85%),#0a101b;color:#f5eddc;min-height:100vh;margin:0}main{max-width:940px;margin:auto;padding:38px 18px 55px}.caps{font-size:11px;letter-spacing:2.5px;color:#d9ba80;font-weight:700}h1{font-size:clamp(26px,4vw,42px);line-height:1.2;letter-spacing:-1px;margin:14px 0}p{line-height:1.65;color:#bfc8d4}small{color:#bfc8d4}a{color:#edd09b}.card{border:1px solid #d5ba8340;background:linear-gradient(135deg,#172333d9,#101a2bd9);border-radius:22px;padding:22px;box-shadow:0 12px 48px #0004;backdrop-filter:blur(22px);margin:20px 0}h2{font-size:17px;margin:0 0 12px}.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.formcol{display:grid;gap:10px}label{font-size:13px;color:#dbc89f;display:grid;gap:7px}input:not([type=checkbox]){width:100%;background:#0e1b2a;border:1px solid #596172;border-radius:12px;color:white;padding:12px;font-size:15px;outline-offset:2px}input:focus{border-color:#cfaf77}.button{border:1px solid #c9a974;background:linear-gradient(120deg,#e4c78b,#b58d55);color:#191916;font-size:14px;font-weight:700;border-radius:12px;padding:13px 18px;cursor:pointer}.button[disabled]{opacity:.48;cursor:not-allowed}.muted{background:transparent;color:#e6cc9c}.row{display:flex;flex-wrap:wrap;gap:12px;align-items:center}.check{display:flex;align-items:flex-start;gap:10px;color:#e2d6c2;font-size:13px;line-height:1.5}.check input{margin:3px 0}.status{font-size:13px;color:#b7c7d6;min-height:22px}pre{white-space:pre-wrap;overflow-wrap:anywhere;font:12px/1.65 ui-monospace,SFMono-Regular,Consolas,monospace;max-height:360px;overflow:auto;background:#0b1421;border:1px solid #3c4b5b;border-radius:14px;padding:18px;color:#d9e8d6}.ok{color:#95d5a3}.warn{color:#ffd18e}.bad{color:#ff9191}.privacy{font-size:12px;color:#94a7b9}@media(max-width:630px){main{padding:22px 13px}.grid{grid-template-columns:1fr}.card{padding:16px}}
+</style></head><body><main>
+<div class="caps">MMHVAULT / APP V11.7 / PRIVATE QA</div><h1>Staging 真实登录与 A/B 隔离验收</h1>
+<p>独立测试页，仅连接 <b>MMHVAULT-Auth-Staging</b>。不包含正式环境地址，不会部署到正式网站。只有在你主动登录并点击“开始验收”时才会写入<b>专用测试账号</b>的临时数据，最后自动清理。</p>
+<div class="card"><div class="caps">LOCKED ENVIRONMENT</div><h2 style="margin:10px 0">ldivswlhtgmznzwhzsoi.supabase.co</h2><small>Staging 项目 ID 已固定，无法切换成 Production。使用公开的 Staging publishable key；绝不使用 service-role 密钥。</small></div>
+<div class="grid">
+<section class="card formcol"><h2>模拟账号 A</h2><label>专用测试账号邮箱 A<input id="emailA" type="email" placeholder="name+v117qaA@example.com" autocomplete="off" spellcheck="false"></label><label>测试密码 A<input id="passwordA" type="password" placeholder="仅发送到 Staging Auth" autocomplete="off"></label><div id="loginA" class="status">未登录</div><button class="button muted" id="btnA" type="button">登录账号 A</button></section>
+<section class="card formcol"><h2>模拟账号 B</h2><label>专用测试账号邮箱 B<input id="emailB" type="email" placeholder="name+v117qaB@example.com" autocomplete="off" spellcheck="false"></label><label>测试密码 B<input id="passwordB" type="password" placeholder="仅发送到 Staging Auth" autocomplete="off"></label><div id="loginB" class="status">未登录</div><button class="button muted" id="btnB" type="button">登录账号 B</button></section>
+</div>
+<section class="card"><h2>自动验收</h2><label class="check"><input id="consent" type="checkbox">我确认 A/B 都是新建、独立的 APP V11.7 Staging 合成测试账号，不是 N10 测试账号或真实用户。允许本测试页在这些账号下短暂添加、检查并删除测试交易和设置。</label><p>流程：检查两账号原本无财务数据 → A/B 新增测试交易及 Type/Transaction/Category 关联 → 跨账号读取、篡改、删除保护 → Archive 后核对历史关联 → 配置版本冲突保护 → 自动删除本次测试数据。</p>
+<div class="row"><button class="button" id="run" disabled type="button">开始真实 A/B 验收</button><button class="button muted" type="button" id="cleanup" disabled>重新清理本次测试数据</button><button class="button muted" type="button" id="logout">清除本页登录状态</button></div><div class="status" id="state">尚未开始。请先用专用合成测试账号 A/B 登录。</div><pre id="log" role="log" aria-live="polite">只显示检查结果，不显示密码、访问令牌或账号 ID。</pre><p class="privacy">安全限制：密码、访问令牌仅存于当前页的内存，不写入 Cookie、localStorage、sessionStorage、日志，也不会发送给 ChatGPT。不要输入已有 N10 或正式账号。此文件仅需在本机打开；关掉页面后无法自动继续清理，请在关闭前查看“清理成功”。</p></section>
+</main><script>
+(()=>{'use strict';
+const BASE='https://ldivswlhtgmznzwhzsoi.supabase.co';
+const KEY='STAGING_PUBLISHABLE_KEY_FOR_LOCAL_QA_ONLY';
+const sessions={A:null,B:null},created={A:{tx:null,cfg:false,note:null},B:{tx:null,cfg:false,note:null}};
+let working=false;
+const el=id=>document.getElementById(id),out=el('log');
+const print=(message,kind='')=>{
+  const line=document.createElement('span');line.className=kind;line.textContent=message+'\n';out.appendChild(line);out.scrollTop=out.scrollHeight;
+};
+const setState=x=>el('state').textContent=x;
+const assertion=(ok,message)=>{if(!ok)throw Error(message);print('✓ '+message,'ok');};
+const requireTestEmail=email=>/^[^@\s]*v117qa[^@\s]*@[^@\s]+\.[^@\s]+$/i.test(email);
+const queryString=o=>Object.entries(o).map(([k,v])=>encodeURIComponent(k)+'='+encodeURIComponent(v)).join('&');
+async function request(who,path,{method='GET',body,prefer='return=representation',allowFailure=false}={}){
+  const s=sessions[who];if(!s)throw Error('请先登录专用测试账号 '+who);
+  const url=BASE+'/rest/v1/'+path;
+  const response=await fetch(url,{method,headers:{apikey:KEY,Authorization:'Bearer '+s.token,Accept:'application/json',
+    ...(body?{'Content-Type':'application/json'}:{}),Prefer:prefer},
+    ...(body?{body:JSON.stringify(body)}:{})});
+  const raw=await response.text();let data;
+  try{data=raw?JSON.parse(raw):null}catch{data={message:'Invalid API response'}}
+  if(!response.ok&&!allowFailure)throw Error('Staging '+method+' 失败 ['+response.status+'] '+String(data?.code||data?.message||'').slice(0,100));
+  return {ok:response.ok,status:response.status,data};
+}
+const list=(who,table,filter='')=>request(who,table+'?select='+encodeURIComponent(table==='transactions'?'id,user_id,note,category':'user_id,config,updated_at')+(filter?'&'+filter:''),{prefer:'return=minimal'});
+function updateButtons(){el('run').disabled=working||!sessions.A||!sessions.B||!el('consent').checked;
+  el('cleanup').disabled=working||!sessions.A||!sessions.B||!Object.values(created).some(x=>x.tx!=null||x.cfg||x.note)}
+function guid(){return crypto.randomUUID?.()||String(Date.now())+'-'+Math.random().toString(36).slice(2)}
+async function login(who){
+  if(working)return;
+  if(Object.values(created).some(x=>x.note||x.tx!==null||x.cfg)){
+    el('login'+who).textContent='请先清理上轮测试数据，再切换登录';return;
+  }
+  const email=el('email'+who).value.trim().toLowerCase(),pass=el('password'+who).value;
+  if(!requireTestEmail(email)){
+    el('login'+who).textContent='仅允许邮箱名称含 v117qa 的专用合成账号；不得使用 N10 或真实用户';return;
+  }
+  if(!pass){el('login'+who).textContent='请输入测试密码';return;}
+  el('btn'+who).disabled=true;el('login'+who).textContent='连接 Staging Auth 中…';
+  try{
+    const res=await fetch(BASE+'/auth/v1/token?grant_type=password',{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({email,password:pass})});
+    const auth=await res.json();if(!res.ok||!auth.access_token||!auth.user?.id)throw Error(auth?.msg||auth?.error_description||auth?.message||'登录失败');
+    if(String(auth.user.email||'').toLowerCase()!==email)throw Error('返回的登录账号与输入邮箱不一致');
+    if(sessions[who==='A'?'B':'A']?.id===auth.user.id)throw Error('A/B 必须是不同的专用合成账号');
+    sessions[who]={id:auth.user.id,token:auth.access_token};
+    el('login'+who).textContent='✓ '+who+' 已登录 Staging';el('login'+who).className='status ok';
+    print('✓ Staging 身份 '+who+' 已确认','ok');
+  }catch(e){sessions[who]=null;el('login'+who).textContent=String(e.message||e).slice(0,140);el('login'+who).className='status bad';}
+  finally{el('password'+who).value='';el('btn'+who).disabled=false;updateButtons()}
+}
+function graph(owner,rowId,prefix){
+  const type=prefix+'-t',transaction=prefix+'-x',category=prefix+'-c';
+  return {version:1,ownerId:owner,
+    types:[{id:type,label:'Income',ledgerType:'Income',archived:false}],
+    transactions:[{id:transaction,label:'Income2',parentId:type,kindId:'Income|Income',archived:false}],
+    categories:[{id:category,label:'Salary',parentId:transaction,ledgerGroup:'Income',archived:false}],
+    links:{[String(rowId)]:{choiceIds:{type,transaction,category},canonical:{type:'Income',group:'Income',category:'Salary'}}}};
+}
+function transaction(who,note){return {user_id:sessions[who].id,tx_date:new Date().toISOString().slice(0,10),
+  type:'Income',category:'Salary',from_account:null,from_amount:0,to_account:'QA-ONLY-'+who,to_amount:1,note}}
+async function run(){
+  if(working||!sessions.A||!sessions.B||!el('consent').checked)return;
+  if(sessions.A.id===sessions.B.id){setState('账号 A/B 不可相同');return;}
+  working=true;updateButtons();out.replaceChildren();setState('正在验证真实 Staging API…');const runId='V117QA-'+guid();
+  let passed=false;
+  try{
+    for(const who of ['A','B']){
+      // The empty-account precondition prevents modification of any existing
+      // financial information, including old N10 QA users' finance data.
+      const [tx,cfg]=await Promise.all([list(who,'transactions','limit=1'),list(who,'personal_configuration','limit=1')]);
+      assertion(tx.ok&&Array.isArray(tx.data)&&tx.data.length===0,who+' 无原有交易记录');
+      assertion(cfg.ok&&Array.isArray(cfg.data)&&cfg.data.length===0,who+' 无原有财务配置');
+    }
+    for(const who of ['A','B']){
+      created[who].note=runId+'-'+who;
+      const tx=await request(who,'transactions',{method:'POST',body:transaction(who,created[who].note)});
+      assertion(Array.isArray(tx.data)&&tx.data.length===1&&Number.isInteger(tx.data[0].id),who+' 新增测试交易');
+      created[who].tx=tx.data[0].id;
+      created[who].cfg=true; // Cleanup even if the network loses the successful POST response.
+      const cfg=await request(who,'personal_configuration',{method:'POST',body:{user_id:sessions[who].id,
+        config:{txHierarchyV11:graph(sessions[who].id,created[who].tx,runId+'-'+who)}}});
+      assertion(cfg.data?.length===1,who+' 上传 Type → Transaction → Category 关联');
+      created[who].cfg=true;
+    }
+    const aId=created.A.tx,bId=created.B.tx;
+    const aOwn=await list('A','transactions','id=eq.'+encodeURIComponent(aId));
+    assertion(aOwn.data?.length===1&&aOwn.data[0].user_id===sessions.A.id,'A 能读取自己的真实交易');
+    const bOwn=await list('B','transactions','id=eq.'+encodeURIComponent(bId));
+    assertion(bOwn.data?.length===1&&bOwn.data[0].user_id===sessions.B.id,'B 能读取自己的真实交易');
+    const [crossTx,crossConfig]=await Promise.all([
+      list('B','transactions','id=eq.'+encodeURIComponent(aId)),
+      list('B','personal_configuration','user_id=eq.'+encodeURIComponent(sessions.A.id))]);
+    assertion(crossTx.data?.length===0,'B 无法读取 A 的交易');
+    assertion(crossConfig.data?.length===0,'B 无法读取 A 的财务配置');
+    const crossUpdate=await request('B','transactions?'+queryString({id:'eq.'+aId}),
+      {method:'PATCH',body:{note:'cross-owner attempt'}});
+    assertion(crossUpdate.data?.length===0,'B 无法修改 A 的交易');
+    const crossConfigUpdate=await request('B','personal_configuration?'+queryString({user_id:'eq.'+sessions.A.id}),
+      {method:'PATCH',body:{config:{malicious:true}}});
+    assertion(crossConfigUpdate.data?.length===0,'B 无法修改 A 的财务配置');
+    const crossDelete=await request('B','transactions?'+queryString({id:'eq.'+aId}),{method:'DELETE'});
+    assertion(crossDelete.data?.length===0,'B 无法删除 A 的交易');
+    const crossInsert=await request('B','transactions',{method:'POST',body:transaction('A',runId+'-forbidden'),allowFailure:true});
+    assertion(!crossInsert.ok,'B 无法伪造 A 所属的新交易');
+    const cA=await list('A','personal_configuration','user_id=eq.'+encodeURIComponent(sessions.A.id));
+    const original=cA.data?.[0];
+    assertion(!!original?.config?.txHierarchyV11?.links?.[String(aId)],'A 云端仍保留原交易关联');
+    const modified=structuredClone(original.config);
+    modified.txHierarchyV11.categories[0].archived=true;
+    const oldTime=original.updated_at,newTime=new Date(Math.max(Date.now(),Date.parse(oldTime)+2000)).toISOString();
+    const patchUrl='personal_configuration?'+queryString({user_id:'eq.'+sessions.A.id,updated_at:'eq.'+oldTime});
+    const saved=await request('A',patchUrl,{method:'PATCH',body:{config:modified,updated_at:newTime}});
+    assertion(saved.data?.length===1,'当前版本的配置可正确归档');
+    const stale=await request('A',patchUrl,{method:'PATCH',body:{config:{invalid:'stale'}}});
+    assertion(stale.data?.length===0,'过期版本不能覆盖较新配置');
+    const readBack=await list('A','personal_configuration','user_id=eq.'+encodeURIComponent(sessions.A.id));
+    const remote=readBack.data?.[0]?.config?.txHierarchyV11;
+    assertion(remote?.categories?.[0]?.archived===true,'云端 Category 已归档');
+    assertion(remote?.links?.[String(aId)]?.choiceIds?.transaction===runId+'-A-x','归档不改变历史交易的 Manage 关联');
+    const intact=await list('A','transactions','id=eq.'+encodeURIComponent(aId));
+    assertion(intact.data?.[0]?.note===runId+'-A','原交易没有被归档操作改写');
+    passed=true;setState('✓ 真实登录 + RLS + 云端关联验收通过，执行清理…');
+  }catch(e){print('✗ '+String(e?.message||e).slice(0,220),'bad');setState('测试未全部通过，尝试清理已创建的测试数据');}
+  finally{
+    const cleared=await cleanup(true);working=false;updateButtons();
+    if(cleared&&passed)setState('✓ 真实验收通过，本次测试数据已清理。');
+    else if(cleared)setState('✗ 验收未通过；本次临时数据已清理。');
+    else setState('⚠ 有临时数据未清理。保留本页，点击“重新清理”。');
+  }
+}
+async function cleanup(internal=false){
+  if(!internal&&working)return;
+  if(!internal){working=true;updateButtons()}
+  let failed=0;
+  for(const who of ['A','B']){
+    const x=created[who];if(!sessions[who]){if(x.tx!==null||x.cfg){print('✗ '+who+' 登录已失效，无法清理','bad');failed++}continue}
+    // Clean one single staging test row by its exact committed identity.
+    if(x.note){
+      try{const res=await request(who,'transactions?'+queryString({note:'eq.'+x.note,user_id:'eq.'+sessions[who].id}),{method:'DELETE'});
+        const remaining=await list(who,'transactions','note=eq.'+encodeURIComponent(x.note));
+        if(res.ok&&Array.isArray(res.data)&&remaining.data?.length===0){x.tx=null;x.note=null;print('✓ 清理 '+who+' 临时交易','ok')}
+        else{failed++;print('✗ '+who+' 交易清理结果未验证','bad')}
+      }catch(e){failed++;print('✗ '+who+' 交易清理失败：'+String(e.message).slice(0,90),'bad')}
+    }
+    if(x.cfg){
+      try{const res=await request(who,'personal_configuration?'+queryString({user_id:'eq.'+sessions[who].id}),{method:'DELETE'});
+        const remaining=await list(who,'personal_configuration','user_id=eq.'+encodeURIComponent(sessions[who].id));
+        if(res.ok&&Array.isArray(res.data)&&remaining.data?.length===0){x.cfg=false;print('✓ 清理 '+who+' 临时配置','ok')}
+        else{failed++;print('✗ '+who+' 配置清理结果未验证','bad')}
+      }catch(e){failed++;print('✗ '+who+' 配置清理失败：'+String(e.message).slice(0,90),'bad')}
+    }
+  }
+  if(!failed){print('✓ 本次新增的 Staging 临时数据已清理','ok');if(!internal)setState('✓ 本次测试记录已清理。')}
+  else setState('⚠ 清理未完全成功。请勿关闭页面，点击“重新清理”，或让管理员按测试 ID 清理。');
+  if(!internal){working=false;updateButtons()}
+  return failed===0;
+}
+el('btnA').addEventListener('click',()=>login('A'));
+el('btnB').addEventListener('click',()=>login('B'));
+el('consent').addEventListener('change',updateButtons);
+el('run').addEventListener('click',run);
+el('cleanup').addEventListener('click',()=>cleanup(false));
+el('logout').addEventListener('click',()=>{if(working||Object.values(created).some(x=>x.tx!==null||x.cfg||x.note)){setState('请先清理测试数据，再清除会话');return;}
+ sessions.A=sessions.B=null;el('loginA').textContent=el('loginB').textContent='未登录';
+ print('本页内存中的登录令牌已清除');updateButtons();});
+})();
+</script></body></html>
