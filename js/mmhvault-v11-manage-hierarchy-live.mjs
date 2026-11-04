@@ -469,11 +469,23 @@ async function refreshSavedLedger(target){
   }
 }
 function ledgerInserted(userId,id,values){
-  if(!pendingSave||pendingSave.owner!==userId||owner()!==userId)return;
-  const current=pendingSave;pendingSave=null;
-  if(!values||values.type!==current.path.type||values.group!==current.path.group||
-    values.category!==current.path.category)return;
-  const target={owner:userId,recordId:String(id),ids:{...current.ids},
+  // The server-provided ledger ID is authoritative even when a stale or
+  // interrupted form capture cannot prove the optional Manage choice link.
+  // Do not hide an inserted financial row from Accounts/Analyze because the
+  // separate JSON sidecar is pending or invalid.
+  if(owner()!==userId||configOwner()!==userId||id==null||String(id)==='')return;
+  const recordId=String(id),current=pendingSave;
+  pendingSave=null;
+  if(!current||current.owner!==userId||!values||
+    values.type!==current.path.type||values.group!==current.path.group||
+    values.category!==current.path.category){
+    void refreshSavedLedger({owner:userId,recordId});
+    notify(tr('Transaction saved, but its Manage choices could not be verified. Review this record; do not save it again.',
+      '交易已保存，但 Manage 关联未通过确认。请检查这笔记录，不要重复记账。',
+      'မှတ်တမ်း သိမ်းပြီးသော်လည်း Manage ချိတ်ဆက်မှု မအတည်ပြုနိုင်ပါ။ ထပ်မသိမ်းပါနှင့်။'));
+    return;
+  }
+  const target={owner:userId,recordId,ids:{...current.ids},
     canonical:{type:values.type,group:values.group,category:values.category},state:'needs-link'};
   linkSync=target;
   try{
