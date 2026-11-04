@@ -35,7 +35,7 @@ const csp=[
 "style-src 'self' 'unsafe-inline'","connect-src https://"+STAGING_HOST,
 "img-src 'self' data: blob: https://"+STAGING_HOST,
 "font-src 'self' data:","object-src 'none'","frame-src 'none'",
-"worker-src 'none'","manifest-src 'none'","upgrade-insecure-requests"
+"worker-src 'none'","manifest-src 'none'"
 ].join('; ');
 const safety='<meta http-equiv="Content-Security-Policy" content="'+csp+'">'+
 '<meta name="robots" content="noindex,nofollow,noarchive">'+
