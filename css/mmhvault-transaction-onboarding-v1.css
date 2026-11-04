@@ -1,0 +1,65 @@
+/* Transactions Onboarding V1 — scoped presentation; no APP finance styles altered. */
+/* Expose the Help control directly above the real Transactions workspace navigation. */
+#transactions #mmhTxOnboardingHelpBarV1{display:flex;align-items:center;justify-content:flex-end;gap:8px;min-height:43px;margin:0 0 9px;padding:0 2px;position:relative;z-index:2;box-sizing:border-box}
+#mmhTxOnboardingHelpV1{
+  appearance:none;display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  min-height:40px;padding:8px 14px;border:1px solid rgba(223,187,114,.46);
+  border-radius:999px;background:linear-gradient(145deg,rgba(32,48,67,.95),rgba(14,27,43,.92));
+  color:#f6e3b8;font-size:12px;font-weight:700;line-height:1.3;letter-spacing:.01em;
+  cursor:pointer;box-shadow:inset 0 1px 0 rgba(255,255,255,.08);
+}
+#mmhTxOnboardingHelpV1:hover{border-color:#e8c77a;background:rgba(155,115,45,.2)}
+#mmhTxOnboardingHelpV1:focus-visible{outline:2px solid #f5ce86;outline-offset:3px}
+#mmhTxOnboardingHelpV1 svg{width:16px;height:16px;flex:none}
+.mmh-onboard-stage-v1{position:fixed;inset:0;z-index:2147483590;pointer-events:none;isolation:isolate}
+.mmh-onboard-dim-v1{position:absolute;inset:0;background:rgba(3,8,17,.58);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}
+.mmh-onboard-halo-v1{position:fixed;left:0;top:0;width:1px;height:1px;
+  border:2px solid #e9bd69;border-radius:15px;pointer-events:none;
+  background:rgba(227,181,84,.06);box-shadow:0 0 0 5px rgba(236,191,97,.18),0 0 0 11px rgba(214,169,82,.07),0 0 30px rgba(235,188,88,.36);
+  transition:transform .22s ease,width .22s ease,height .22s ease,opacity .15s ease}
+.mmh-onboard-card-v1{position:fixed;pointer-events:auto;width:min(390px,calc(100vw - 28px));max-height:min(570px,calc(100dvh - 32px));
+  overflow:auto;overscroll-behavior:contain;color:#f3ecdf;
+  background:linear-gradient(143deg,rgba(31,43,61,.985),rgba(12,21,34,.98));
+  border:1px solid rgba(234,198,127,.45);border-radius:22px;
+  padding:22px;box-shadow:0 24px 90px rgba(0,0,0,.48),inset 0 1px 0 rgba(255,255,255,.1);
+  backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);outline:none;
+  animation:mmhOnboardAppearV1 .22s cubic-bezier(.2,.8,.2,1) both}
+@keyframes mmhOnboardAppearV1{from{opacity:.2;transform:translateY(7px) scale(.985)}to{opacity:1;transform:translateY(0) scale(1)}}
+.mmh-onboard-head-v1{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
+.mmh-onboard-brand-v1{display:flex;align-items:center;gap:8px;color:#edcf94;font-size:11px;font-weight:800;letter-spacing:.13em;text-transform:uppercase}
+.mmh-onboard-brand-v1 .mmh-onboard-logo-v1{display:grid;place-items:center;width:30px;height:30px;border-radius:10px;background:rgba(220,172,75,.16);border:1px solid rgba(235,194,107,.36);font-size:16px}
+.mmh-onboard-head-actions-v1{display:flex;align-items:center;gap:7px;flex-shrink:0}
+.mmh-onboard-skip-v1{border:none;background:transparent;padding:7px 4px;color:#d4bf99;font-size:11px;text-decoration:underline;cursor:pointer}
+.mmh-onboard-skip-v1:focus-visible{outline:2px solid #e8c17c;outline-offset:2px}
+.mmh-onboard-close-v1{display:grid;place-items:center;flex:none;width:32px;height:32px;border:1px solid rgba(226,195,135,.18);border-radius:10px;background:rgba(255,255,255,.05);color:#e5d7bb;font-size:19px;cursor:pointer}
+.mmh-onboard-close-v1:focus-visible,.mmh-onboard-cta-v1:focus-visible{outline:2px solid #f6d28b;outline-offset:3px}
+.mmh-onboard-step-v1{font-size:11px;color:#c8aa77;letter-spacing:.09em;text-transform:uppercase;margin-bottom:8px}
+.mmh-onboard-title-v1{font-size:22px;line-height:1.24;font-weight:800;letter-spacing:-.025em;margin:0 0 9px;color:#fff8eb;overflow-wrap:anywhere}
+.mmh-onboard-copy-v1{font-size:13px;line-height:1.75;color:#d3d9e3;margin:0 0 14px;overflow-wrap:anywhere}
+.mmh-onboard-note-v1{font-size:12px;line-height:1.6;color:#eccd97;background:rgba(215,165,75,.10);border:1px solid rgba(228,177,86,.20);border-radius:11px;padding:10px 12px;margin:0 0 14px}
+.mmh-onboard-dotrow-v1{display:flex;gap:5px;align-items:center;margin:0 0 18px}
+.mmh-onboard-dot-v1{height:4px;flex:1;border-radius:999px;background:rgba(221,201,169,.17)}
+.mmh-onboard-dot-v1.is-done{background:#e3b866}
+.mmh-onboard-actions-v1{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-end;gap:8px}
+.mmh-onboard-cta-v1{cursor:pointer;min-height:41px;padding:10px 15px;border-radius:11px;border:1px solid rgba(234,201,141,.28);
+  color:#f3e6cf;background:rgba(241,221,183,.08);font-size:12px;font-weight:800;line-height:1.3}
+.mmh-onboard-cta-v1.is-primary{color:#221608;border-color:#e9c786;background:linear-gradient(135deg,#f4d899,#d2a85d);box-shadow:0 5px 17px rgba(208,158,67,.20)}
+.mmh-onboard-cta-v1:disabled{cursor:not-allowed;opacity:.40}
+.mmh-onboard-cta-v1:hover:not(:disabled){filter:brightness(1.08)}
+.mmh-onboard-status-v1{margin:10px 0 0;color:#d4cfbf;font-size:11px;line-height:1.55}
+.mmh-onboard-card-v1[lang="my"]{font-family:system-ui,"Noto Sans Myanmar","Myanmar Text",sans-serif;line-height:1.75}
+.mmh-onboard-card-v1[lang="my"] .mmh-onboard-title-v1{font-size:19px;line-height:1.55}
+.mmh-onboard-stage-v1 .mmh-onboard-hidden-v1{display:none!important}
+@media(max-width:690px){
+ #mmhTxOnboardingHelpV1{min-height:44px;font-size:12px;flex-shrink:0}
+ .mmh-onboard-card-v1{left:max(10px,env(safe-area-inset-left))!important;right:max(10px,env(safe-area-inset-right))!important;
+   top:auto!important;bottom:calc(12px + env(safe-area-inset-bottom))!important;
+   width:auto!important;max-height:min(67dvh,530px);padding:17px;border-radius:19px}
+ .mmh-onboard-title-v1{font-size:19px}
+ .mmh-onboard-copy-v1{font-size:12px}
+ .mmh-onboard-actions-v1{justify-content:flex-start}
+ .mmh-onboard-cta-v1{flex:1;min-width:94px}
+ .mmh-onboard-halo-v1{box-shadow:0 0 0 3px rgba(236,191,97,.2),0 0 20px rgba(235,188,88,.25)}
+}
+@media(prefers-reduced-motion:reduce){.mmh-onboard-card-v1{animation:none}.mmh-onboard-halo-v1{transition:none}}
+body.light #mmhTxOnboardingHelpV1{background:#fff8ec;color:#6c4b1b}
