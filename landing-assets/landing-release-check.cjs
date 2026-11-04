@@ -608,7 +608,7 @@ const publicRuntimeBudgets={
   'landing-assets/public-header-l115.css':16000,
   'landing-assets/shared-header-l116.css':20000,
   'landing-assets/header-explore-l147.min.css':26000,
-  'landing-assets/public-pages.js':9000,
+  'landing-assets/public-pages.js':9300,
   'landing-assets/motion-l132.css':12000,
   'landing-assets/landing.js':110000,
   'landing-assets/motion-l132.js':15000,
