@@ -206,3 +206,114 @@ body.admin-premium-v1 #dashboard:has(#adminAnalyticsView:not([hidden])) #adminUs
  body.admin-premium-v1 #dashboard>#adminAnalyticsView{grid-row:3!important}
  body.admin-premium-v1 #dashboard>#adminUsageView{grid-row:4!important}
 }
+
+
+/* V1.1 / PAGE 1 ONLY — Registered Users.
+ * Keep the shared header/nav while preventing KPI and Analytics bleed into other tabs.
+ * All selectors below are confined to the authenticated registered-users view.
+ */
+body.admin-premium-v1 #dashboard[data-admin-page="registered-users"]:not([hidden]){
+ grid-template-columns:220px minmax(0,1fr)!important;
+ grid-template-rows:minmax(0,auto)!important;
+ align-items:start!important;
+ gap:16px!important;
+}
+body.admin-premium-v1 #dashboard[data-admin-page="registered-users"]>.admin-tabs{
+ grid-column:1!important;grid-row:1!important;
+}
+body.admin-premium-v1 #dashboard[data-admin-page="registered-users"]>#adminUsageView{
+ grid-column:2!important;grid-row:1!important;display:block!important;min-width:0!important;
+}
+body.admin-premium-v1 #dashboard[data-admin-page="registered-users"] #adminUsageView>.metrics{
+ display:grid!important;
+ grid-template-columns:repeat(4,minmax(0,1fr))!important;
+ gap:11px!important;margin:0 0 14px!important;
+}
+body.admin-premium-v1 #dashboard[data-admin-page="registered-users"] #adminUsageView>.metrics>.metric{
+ display:flex!important;flex-direction:column;justify-content:center;
+ position:relative;overflow:hidden;
+ min-width:0!important;min-height:88px!important;padding:14px 17px!important;
+ border:1px solid rgba(235,193,111,.58)!important;border-radius:15px!important;
+ background:linear-gradient(130deg,rgba(63,58,56,.83),rgba(19,35,57,.96) 60%,rgba(8,22,39,.97))!important;
+ box-shadow:inset 0 1px rgba(255,242,213,.17),0 7px 18px rgba(0,0,0,.2)!important;
+}
+body.admin-premium-v1 #dashboard[data-admin-page="registered-users"] #adminUsageView>.metrics>.metric::before{content:none!important;display:none!important}
+body.admin-premium-v1 #dashboard[data-admin-page="registered-users"] #adminUsageView>.metrics>.metric .adm-metric-icon{
+ position:absolute!important;right:14px!important;top:12px!important;
+ font-size:22px!important;line-height:1!important;float:none!important;margin:0!important;opacity:.85;
+}
+body.admin-premium-v1 #dashboard[data-admin-page="registered-users"] #adminUsageView>.metrics>.metric small{
+ display:block!important;min-height:0!important;padding:0 27px 0 0!important;
+ font-size:11px!important;font-weight:600!important;color:#d6d4d4!important;line-height:1.35!important;
+}
+body.admin-premium-v1 #dashboard[data-admin-page="registered-users"] #adminUsageView>.metrics>.metric strong{
+ display:block!important;clear:none!important;
+ margin:6px 0 0!important;
+ font-size:clamp(24px,2vw,30px)!important;line-height:1.2!important;color:#ffe4a5!important;
+ font-variant-numeric:tabular-nums!important;
+}
+body.admin-premium-v1 #dashboard[data-admin-page="registered-users"] #adminUsageView>.adm-registered-directory-v1{
+ padding:20px 22px!important;
+ border-color:rgba(236,193,107,.57)!important;
+ background:linear-gradient(145deg,rgba(15,37,63,.97),rgba(6,21,38,.97))!important;
+}
+body.admin-premium-v1 #dashboard[data-admin-page="registered-users"] #adminUsageView>.adm-registered-directory-v1>.toolbar{
+ display:flex!important;align-items:center!important;gap:16px!important;
+ margin:0 0 15px!important;
+ padding:0 0 12px!important;
+ border-bottom:1px solid rgba(223,179,91,.18)!important;
+}
+body.admin-premium-v1 #dashboard[data-admin-page="registered-users"] #adminUsageView>.adm-registered-directory-v1>.toolbar h2{
+ font-size:19px!important;letter-spacing:.01em!important;color:#ffdf9e!important;
+}
+body.admin-premium-v1 #dashboard[data-admin-page="registered-users"] #adminUsageView>.adm-registered-directory-v1>.toolbar small{
+ display:block!important;margin-top:4px!important;font-size:11px!important;color:#aebfd3!important;
+}
+body.admin-premium-v1 #dashboard[data-admin-page="registered-users"] #adminUsageView>.adm-registered-directory-v1 #updated{
+ margin-left:auto!important;white-space:normal!important;text-align:right;color:#aebfd3!important;
+}
+body.admin-premium-v1 #dashboard[data-admin-page="registered-users"] #adminUsageView .search{
+ margin:0 0 12px!important;gap:9px!important;
+}
+body.admin-premium-v1 #dashboard[data-admin-page="registered-users"] #adminUsageView .search input{
+ flex:1;min-width:0;min-height:43px!important;
+ background:rgba(4,17,33,.82)!important;border-color:rgba(225,186,111,.32)!important;
+}
+body.admin-premium-v1 #dashboard[data-admin-page="registered-users"] #adminUsageView .search button{
+ min-height:43px!important;padding:8px 18px!important;
+ border-radius:11px!important;background:linear-gradient(115deg,#ffe1a0,#bd8536)!important;
+ color:#211708!important;font-weight:740!important;
+}
+body.admin-premium-v1 #dashboard[data-admin-page="registered-users"] #adminUsageView .user.admin-user-v787{
+ margin-bottom:3px!important;background:linear-gradient(125deg,rgba(9,30,53,.93),rgba(3,20,35,.94))!important;
+ border:1px solid rgba(126,169,202,.24)!important;
+}
+body.admin-premium-v1 #dashboard[data-admin-page="registered-users"] #adminUsageView .user.admin-user-v787:hover{
+ border-color:rgba(246,202,118,.54)!important;
+}
+body.admin-premium-v1 #dashboard[data-admin-page="registered-users"] #adminUsageView .pagination{
+ margin-top:16px!important;padding-top:13px!important;border-top:1px solid rgba(236,191,111,.18)!important;
+}
+@media(max-width:1050px){
+ body.admin-premium-v1 #dashboard[data-admin-page="registered-users"] #adminUsageView>.metrics{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+}
+@media(max-width:900px){
+ body.admin-premium-v1 #dashboard[data-admin-page="registered-users"]:not([hidden]){
+  grid-template-columns:minmax(0,1fr)!important;
+  grid-template-rows:auto auto!important;
+ }
+ body.admin-premium-v1 #dashboard[data-admin-page="registered-users"]>.admin-tabs{
+  grid-column:1!important;grid-row:1!important;
+ }
+ body.admin-premium-v1 #dashboard[data-admin-page="registered-users"]>#adminUsageView{
+  grid-column:1!important;grid-row:2!important;
+ }
+}
+@media(max-width:520px){
+ body.admin-premium-v1 #dashboard[data-admin-page="registered-users"] #adminUsageView>.metrics{gap:8px!important}
+ body.admin-premium-v1 #dashboard[data-admin-page="registered-users"] #adminUsageView>.metrics>.metric{min-height:76px!important;padding:12px!important}
+ body.admin-premium-v1 #dashboard[data-admin-page="registered-users"] #adminUsageView>.metrics>.metric strong{font-size:24px!important}
+ body.admin-premium-v1 #dashboard[data-admin-page="registered-users"] #adminUsageView>.adm-registered-directory-v1{padding:14px!important}
+ body.admin-premium-v1 #dashboard[data-admin-page="registered-users"] #adminUsageView>.adm-registered-directory-v1>.toolbar{align-items:flex-start!important;flex-direction:column!important;gap:3px!important}
+ body.admin-premium-v1 #dashboard[data-admin-page="registered-users"] #adminUsageView>.adm-registered-directory-v1 #updated{text-align:left;margin-left:0!important}
+}
