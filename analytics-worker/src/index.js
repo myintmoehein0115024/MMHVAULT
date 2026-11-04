@@ -9,6 +9,19 @@
 const JSON_HEADERS = {'content-type':'application/json; charset=utf-8','cache-control':'private, no-store','x-content-type-options':'nosniff'};
 const response = (status, data, origin) => new Response(JSON.stringify(data),{status,headers:{...JSON_HEADERS,...(origin?{'access-control-allow-origin':origin,'vary':'Origin'}:{})}});
 const RANGE_DAYS = {'24h':1,'7d':7,'30d':30};
+// Only deterministic diagnostic codes are emitted. Never log GraphQL messages, request bodies, tokens or user data.
+function classifyGraphQLError(errors){
+  for(const item of errors){
+    const message=typeof item?.message==='string'?item.message:'';
+    const extension=typeof item?.extensions?.code==='string'?item.extensions.code:'';
+    const info=(message+' '+extension).toLowerCase();
+    if(/(?:unauthenticated|authentication|invalid.{0,25}token|token.{0,25}(?:invalid|expired)|expired.{0,25}token)/.test(info))return 'CF_GRAPHQL_AUTH_ERROR';
+    if(/(?:not authorized|unauthorized|permission|forbidden|access denied|not permitted|insufficient scope|insufficient privileges)/.test(info))return 'CF_GRAPHQL_ACCESS_DENIED';
+    if(/(?:cannot query field|unknown argument|unknown type|unknown field|validation error|variable .{0,60} got invalid)/.test(info))return 'CF_GRAPHQL_SCHEMA_ERROR';
+    if(/(?:rate.?limit|too many requests|query limit|maximum query|quota exceeded)/.test(info))return 'CF_GRAPHQL_LIMIT_ERROR';
+  }
+  return 'CF_GRAPHQL_UNCLASSIFIED';
+}
 function isConfigured(env){return Boolean(env.CF_ANALYTICS_TOKEN&&env.SUPABASE_ANON_KEY&&env.CF_ACCOUNT_ID&&env.CF_SITE_TAG&&env.SUPABASE_URL&&env.ALLOWED_ORIGIN)}
 async function verifyAdmin(token,env,diagnostic){
   const headers={apikey:env.SUPABASE_ANON_KEY,authorization:'Bearer '+token};
@@ -42,7 +55,7 @@ async function queryAnalytics(range,env,diagnostic){
         rumPageloadEventsAdaptiveGroups(
           limit: 100
           orderBy: [date_ASC]
-          filter: {siteTag: $siteTag, datetime_geq: $start, datetime_leq: $end}
+          filter: {siteTag: $siteTag, requestHost: "mmhvault.com", bot: 0, datetime_geq: $start, datetime_leq: $end}
         ) {
           count
           dimensions { date }
@@ -66,7 +79,7 @@ async function queryAnalytics(range,env,diagnostic){
   diagnostic.phase='CF_RESPONSE_JSON';
   const body=await result.json();
   diagnostic.phase='CF_VALIDATION';
-  if(body.errors?.length)throw new Error('CF_GRAPHQL_ERROR');
+  if(Array.isArray(body.errors)&&body.errors.length)throw new Error(classifyGraphQLError(body.errors));
   const accounts=body.data?.viewer?.accounts;
   if(!Array.isArray(accounts)||accounts.length!==1)throw new Error('CF_ACCOUNT_MISMATCH');
   const groups=accounts[0].rumPageloadEventsAdaptiveGroups;
@@ -110,7 +123,7 @@ export default {async fetch(request,env){
     return response(200,{source:'cloudflare-web-analytics',verified:true,...data},cors);
   }catch(error){
     // Diagnostic allowlist: never log credentials, request headers, user IDs or upstream bodies.
-    const safeCodes=new Set(['CF_HTTP_ERROR','CF_GRAPHQL_ERROR','CF_ACCOUNT_MISMATCH','CF_GROUPS_INVALID','CF_METRICS_INVALID','CF_DATE_INVALID','CF_METRICS_OVERFLOW']);
+    const safeCodes=new Set(['CF_HTTP_ERROR','CF_GRAPHQL_AUTH_ERROR','CF_GRAPHQL_ACCESS_DENIED','CF_GRAPHQL_SCHEMA_ERROR','CF_GRAPHQL_LIMIT_ERROR','CF_GRAPHQL_UNCLASSIFIED','CF_ACCOUNT_MISMATCH','CF_GROUPS_INVALID','CF_METRICS_INVALID','CF_DATE_INVALID','CF_METRICS_OVERFLOW']);
     const code=safeCodes.has(error?.message)?error.message:'ANALYTICS_UNEXPECTED_ERROR';
     const phases=new Set(['AUTH_START','AUTH_USER_FETCH','AUTH_USER_JSON','AUTH_RPC_FETCH','AUTH_RPC_JSON','CF_START','CF_FETCH','CF_RESPONSE_STATUS','CF_RESPONSE_JSON','CF_VALIDATION','RESPONSE_BUILD']);
     const phase=phases.has(diagnostic.phase)?diagnostic.phase:'UNKNOWN';
