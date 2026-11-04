@@ -29,7 +29,7 @@ function fakeWorld({failEscrow=false,revokeOnVaultRead=false,revokeOnStatusRead=
  const backups=new Map(),sessions=new Map(),tokens=new Map(),verifiedFactors=new Set(),events=[];
  let handlerCount=0,gateOpen=true,closeOnNextSignin=closeGateOnSignin;
  let windowExpired=false,sessionCheckCount=0,qaOpenChecks=0;
- let mismatchNextSignIn=false;
+ let mismatchNextSignIn=false,closeAfterNextOwnerProof=false;
  function issueSession(uid,aal='aal1',overrides={}){
    const sid=randomUUID();
    const payload={iss:BASE+'/auth/v1',sub:uid,exp:4102444800,aal,session_id:sid,...overrides};
@@ -70,7 +70,15 @@ function fakeWorld({failEscrow=false,revokeOnVaultRead=false,revokeOnStatusRead=
       return x?{data:x,error:null}:{data:null,error:{message:'unbound'}};
     }
     case 'mmh_n10_realef_owner_slot':{
-      for(const [slot,uid] of slotOwners)if(uid===arg.p_user_id)return {data:slot,error:null};
+      for(const [slot,uid] of slotOwners)if(uid===arg.p_user_id){
+       // Return the previously authorized slot, but close the shared DB gate
+       // before the Edge has reached its final HTTP response boundary.
+       if(closeAfterNextOwnerProof){
+        gateOpen=false;closeAfterNextOwnerProof=false;
+        events.push('db-gate-closed-after-owner-proof');
+       }
+       return {data:slot,error:null};
+      }
       return {data:null,error:{message:'unbound'}};
     }
     case 'mmh_n10_realef_session_active':{
@@ -238,6 +246,7 @@ function fakeWorld({failEscrow=false,revokeOnVaultRead=false,revokeOnStatusRead=
  return {
   signup,viewer,invoke,events,users,backups,slotOwners,claims,
   closeGateOnNextSignin(){closeOnNextSignin=true;},
+  closeGateAfterNextOwnerProof(){closeAfterNextOwnerProof=true;},
   mismatchNextPasswordAuthUser(){mismatchNextSignIn=true;},
   activeSessions(uid){return [...sessions.values()].filter(s=>s.uid===uid&&s.live).length;},
   isSessionLive(token){
@@ -612,9 +621,9 @@ test('closing QA after successful signup helper still withholds all credentials 
 });
 
 test('closing QA after successful repeat password login cannot return tokens',async()=>{
- // Signup open() calls 1..5; repeat login checks 6 entry, 7/8
- // owner proof and 9 final HTTP response.
- const x=fakeWorld({expireQAOnOpenCheck:9});
+ // Signup open() calls 1..6 (final database read adds 2);
+ // repeat login entry=7, owner proof=8/9, final database check=10/11.
+ const x=fakeWorld({expireQAOnOpenCheck:10});
  const enrolled=await x.invoke(x.signup,{
   action:'signup',username:'n10real_e_20261104',password:PWD_E,
   captcha_token:'signup-before-login-window-expires'
@@ -660,7 +669,7 @@ test('late signup Admin signOut failure requires manual reconciliation but never
 });
 
 test('late repeat login Admin signOut failure preserves existing owner and flags manual review',async()=>{
- const x=fakeWorld({expireQAOnOpenCheck:9,failAdminSessionSignout:true});
+ const x=fakeWorld({expireQAOnOpenCheck:10,failAdminSessionSignout:true});
  const enrolled=await x.invoke(x.signup,{
   action:'signup',username:'n10real_e_20261104',password:PWD_E,
   captcha_token:'signup-before-failed-cleanup-repeat'
@@ -754,4 +763,48 @@ test('a thrown scoped Auth Admin signOut never produces an incorrect successful 
  assert.equal(owner.banned_until,'876000h');
  assert.equal(x.activeSessions(owner.id),1,
   'revocation throw must be reported as unresolved, not simulated as success');
+});
+
+test('private QA gate closing after signup password proof denies tokens and quarantines new E',async()=>{
+ const x=fakeWorld();
+ x.closeGateAfterNextOwnerProof();
+ const denied=await x.invoke(x.signup,{
+  action:'signup',username:'n10real_e_20261104',password:PWD_E,
+  captcha_token:'signup-private-gate-closes-after-first-owner-proof'
+ });
+ assert.equal(denied.status,503);
+ assert.equal(denied.code,'manual_reconciliation_required');
+ assert.equal(denied.access_token,undefined);
+ assert.equal(denied.refresh_token,undefined);
+ assert.equal(denied.recovery_words,undefined);
+ assert.equal(x.events.filter(e=>e==='db-gate-closed-after-owner-proof').length,1);
+ const e=[...x.users.values()][0];
+ assert.equal(e.banned_until,'876000h');
+ assert.equal(x.activeSessions(e.id),0,'undelivered signup session was revoked');
+ assert.equal(x.backups.get(e.id)?.split(' ').length,10,'immutable original words retained');
+});
+
+test('private QA gate closing after repeat-login password proof denies only new login',async()=>{
+ const x=fakeWorld();
+ const enrolled=await x.invoke(x.signup,{
+  action:'signup',username:'n10real_e_20261104',password:PWD_E,
+  captcha_token:'signup-before-private-gate-shutdown'
+ });
+ assert.equal(enrolled.status,200);
+ x.closeGateAfterNextOwnerProof();
+ const denied=await x.invoke(x.signup,{
+  action:'login',username:'n10real_e_20261104',password:PWD_E,
+  captcha_token:'login-private-gate-closes-after-auth-proof'
+ });
+ assert.equal(denied.status,503);
+ assert.equal(denied.code,'qa_not_released');
+ assert.equal(denied.access_token,undefined);
+ assert.equal(denied.refresh_token,undefined);
+ assert.equal(denied.recovery_words,undefined);
+ assert.equal(x.events.filter(e=>e==='db-gate-closed-after-owner-proof').length,1);
+ assert.equal(x.activeSessions(enrolled.user_id),1);
+ assert.equal(x.isSessionLive(enrolled.access_token),true,'older E session not revoked');
+ assert.equal(x.users.get(enrolled.user_id).banned_until,null,
+  'preexisting user not quarantined due to DB gate shutdown');
+ assert.equal(x.backups.get(enrolled.user_id),enrolled.recovery_words.join(' '));
 });
