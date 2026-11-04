@@ -106,9 +106,12 @@ function pass(condition,label,detail){
     const metrics=await page.evaluate(()=>{
       const h=getComputedStyle(document.querySelector('.site-header'));
       return {desktopRule:matchMedia('(min-width:1025px)').matches,
-        background:h.backgroundImage,cssLoaded:[...document.styleSheets].some(s=>s.href?.includes('safari-performance-l164.css'))};
+        background:h.backgroundImage,cssLoaded:[...document.styleSheets].some(s=>s.href?.includes('safari-performance-l164.css')),
+        mobileBusinessBlur:document.querySelector('#business .business-stage')?
+          getComputedStyle(document.querySelector('#business .business-stage'),'::after').filter:null};
     });
-    pass(!metrics.desktopRule&&metrics.cssLoaded&&metrics.background.includes('gradient'),
+    pass(!metrics.desktopRule&&metrics.cssLoaded&&metrics.background.includes('gradient')&&
+      (path!=='/'||metrics.mobileBusinessBlur==='blur(40px)'),
       'WebKit mobile baseline is not overridden '+path,metrics);
     await context.close();
   }
