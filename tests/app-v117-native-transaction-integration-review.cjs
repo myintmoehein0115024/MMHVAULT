@@ -22,6 +22,25 @@ function safe(line){
   .replace(/(?:sb_publishable|sb_secret|eyJ)[A-Za-z0-9_.-]{12,}/g,'[token]')
   .slice(0,210);
 }
+// Native lifecycle read: identify post-submit reload, legacy selector rewrite
+// and Analyze/Account source-of-truth. This reports SOURCE CODE ONLY.
+for(const [name,pattern] of [
+  ['native-handler-bind',/txForm\.addEventListener\(['"]submit['"]/],
+  ['native-selection-reset',/txType\.value=selected\.type;syncTransactionGroup\(\)/],
+  ['native-render',/function render\(\)/],
+  ['analyze-function',/function renderAnalyze\(\)/],
+  ['legacy-selector',/function updateCategories\(\)/],
+  ['legacy-category-registry',/\bCATS\s*=/],
+  ['canonical-registry-rebuild',/function mmhVaultRebuildConfigArrays\s*\(/]
+]){
+ const ix=lines.findIndex(line=>pattern.test(line));
+ if(ix<0){console.log('APP_V117_SOURCE_NOT_FOUND_'+name);continue;}
+ const radius=name==='native-handler-bind'?28:name==='native-render'?24:17;
+ console.log('APP_V117_SOURCE_REVIEW_'+name+'='+JSON.stringify({
+  line:ix+1,code:lines.slice(Math.max(0,ix-radius),Math.min(lines.length,ix+radius))
+   .map((line,k)=>(Math.max(0,ix-radius)+k+1)+': '+safe(line))
+ }));
+}
 for(const [name,needle] of patterns){
  const at=lines.findIndex(x=>needle.test(x));
  assert.notEqual(at,-1,'Missing '+name+' integration anchor');
