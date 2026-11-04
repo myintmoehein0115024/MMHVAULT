@@ -194,3 +194,60 @@ test('the candidate does not silently rotate or overwrite an existing key',()=>{
  assert.doesNotMatch(handler,/rotateKey|resetKey|regenerate/);
 });
 console.log('Only synthetic candidate tests; no live registration, data access or deployment.');
+
+
+test('password Auth grants exact fresh session and revokes only failed new sessions',async()=>{
+ const start=source.indexOf('async function verifyPassword(email,pwd,uid){');
+ const end=source.indexOf('async function findProductionUser(',start);
+ assert.ok(start>0&&end>start);
+ const proofCode=source.slice(start,end);
+ assert.match(proofCode,/admin\.auth\.admin\.signOut\(proofToken,'local'\)/);
+ assert.doesNotMatch(proofCode,/client\.auth\.signOut\(/);
+ function fixture({mismatch=false,emptyRefresh=false,missingToken=false,getUserFailure=false,revokeFailure=false,revokeThrows=false}={}){
+  const session={access_token:'synthetic-new-password-token',refresh_token:emptyRefresh?'':'synthetic-refresh'};
+  let freshSessionLive=true,existingSessionLive=true;
+  const calls=[];
+  const ctx={
+   authClient:()=>({auth:{
+    signInWithPassword:async()=>({data:{user:{id:mismatch?'different-uid':uid},
+      session:missingToken?null:session},error:null}),
+    getUser:async()=>getUserFailure?{error:{message:'untrusted'},data:null}:
+      {error:null,data:{user:{id:uid,is_anonymous:false}}},
+    signOut:()=>{throw Error('transient client cannot claim server logout');}
+   }}),
+   admin:{auth:{admin:{signOut:async(token,scope)=>{
+    calls.push({token,scope});
+    assert.equal(token,session.access_token);
+    assert.equal(scope,'local');
+    if(revokeThrows)throw Error('synthetic server logout exception');
+    if(revokeFailure)return {error:{message:'synthetic failure'}};
+    freshSessionLive=false;
+    return {error:null};
+   }}}}
+  };
+  const verify=runInNewContext('('+proofCode.trim()+')',ctx);
+  return {run:()=>verify('test@invalid.example','synthetic-password',uid),
+    calls, get existingLive(){return existingSessionLive},get freshLive(){return freshSessionLive}};
+ }
+ for(const flags of [{mismatch:true},{emptyRefresh:true},{getUserFailure:true}]){
+  const h=fixture(flags);
+  assert.equal(await h.run(),null,'malformed Auth credentials must not be delivered');
+  assert.equal(h.calls.length,1,'one targeted server revocation');
+  assert.equal(h.freshLive,false,'fresh failed Auth session revoked');
+  assert.equal(h.existingLive,true,'prior owner session preserved');
+ }
+ for(const flags of [{revokeFailure:true},{revokeThrows:true}]){
+  const h=fixture({...flags,mismatch:true});
+  await assert.rejects(h.run(),/n10_auth_session_reconciliation_required/);
+  assert.equal(h.calls.length,1);
+  assert.equal(h.existingLive,true);
+ }
+ const h=fixture();
+ const result=await h.run();
+ assert.equal(result.access_token,'synthetic-new-password-token');
+ assert.equal(h.calls.length,0,'only successful fresh session may be delivered');
+ assert.equal(h.existingLive,true);
+ const noToken=fixture({missingToken:true});
+ assert.equal(await noToken.run(),null);
+ assert.equal(noToken.calls.length,0,'never revoke unrelated session when no proof JWT was issued');
+});
