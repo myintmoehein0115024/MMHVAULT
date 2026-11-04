@@ -3,7 +3,7 @@
  * Preserves the canonical ledger values used by balance and Analyze calculations.
  */
 import {createHierarchyController} from './mmhvault-v11-manage-hierarchy-controller.mjs';
-import {ledgerKind,canAddItem} from './mmhvault-v11-manage-hierarchy-model.mjs';
+import {ledgerKind,canAddItem,regularLedgerKind} from './mmhvault-v11-manage-hierarchy-model.mjs';
 import {verifyStoredCloudLink} from './mmhvault-v11-manage-hierarchy-sync.mjs';
 (()=>{
 'use strict';
@@ -15,6 +15,11 @@ const config=()=>{try{return MMHVAULT_CONFIG}catch(_){return null}};
 const language=()=>{try{return String(localStorage.getItem('mmhvault_language_v3363')||document.documentElement.lang||'en').toLowerCase()}catch(_){return'en'}};
 const tr=(en,zh,my)=>language().startsWith('zh')?zh:/^(my|mm|burmese)/.test(language())?my:en;
 const label=field=>field==='type'?'Type':field==='transaction'?'Transaction':'Category';
+const directionLabel=type=>type==='Income'?tr('Money increases (+)','资金增加（+）','ငွေတိုး (+)'):
+  type==='Expense'?tr('Money decreases (−)','资金减少（−）','ငွေလျော့ (−)'):
+  type==='Transfer'?tr('Move between accounts (− / +)','账户之间转账（一减一加）',
+    'အကောင့်အချင်းချင်း ငွေလွှဲ (− / +)'):
+  tr('Direction not set','未设置收支方向','အမျိုးအစား မရွေးရသေးပါ');
 const meaning=id=>{
   const dict={'Income|Income':['Income','普通收入','ဝင်ငွေ'],'Expense|Expense':['Expense','普通支出','အသုံးစရိတ်'],
     'Expense|Personal':['Personal','个人支出','ကိုယ်ရေးအသုံး'],'Income|Loans':['Loan Income','借款收入','ချေးငွေဝင်ငွေ'],
@@ -115,7 +120,10 @@ function style(){
   .mmh-hier-form{display:grid;gap:13px;padding-top:15px}
   .mmh-hier-form label{display:grid;gap:6px;font-size:12px;color:#b9c7d8}
   .mmh-hier-form .mmh-hier-help{font-size:12px;color:#b9c7d8;line-height:1.55;margin:0}
-  .mmh-hier-form input,.mmh-hier-form select{width:100%;min-width:0;padding:12px;border-radius:10px;border:1px solid rgba(196,202,219,.28);background:#24354d;color:#fff}
+  .mmh-hier-form input[type="text"],.mmh-hier-form select{width:100%;min-width:0;padding:12px;border-radius:10px;border:1px solid rgba(196,202,219,.28);background:#24354d;color:#fff}
+  .mmh-hier-form label.mmh-hier-toggle{display:flex;flex-direction:row;align-items:center;gap:10px;cursor:pointer}
+  .mmh-hier-form label.mmh-hier-toggle input{width:17px;height:17px;accent-color:#d7b879}
+  .mmh-hier-form [hidden]{display:none!important}
   .mmh-hier-footer{display:flex;justify-content:flex-end;gap:9px;margin-top:14px}
   #mmhHierarchyNotice[hidden]{display:none!important}
   #txForm .mmh-hier-field:disabled{opacity:.52}
@@ -159,8 +167,13 @@ function drawModal(){
     let parentInfo='';
     if(modalField==='transaction')parentInfo=graph.types.find(x=>x.id===item.parentId)?.label||'';
     if(modalField==='category')parentInfo=graph.transactions.find(x=>x.id===item.parentId)?.label||'';
-    text.append(elt('div','mmh-hier-muted',(parentInfo?parentInfo+' · ':'')+
-      (item.archived?tr('Archived','已归档','သိမ်းပြီး'):tr('Active','使用中','အသုံးပြုနေ'))));
+    const effectiveType=modalField==='type'?item:modalField==='transaction'?
+      graph.types.find(x=>x.id===item.parentId):graph.types.find(x=>
+        x.id===graph.transactions.find(t=>t.id===item.parentId)?.parentId);
+    text.append(elt('div','mmh-hier-muted',[
+      parentInfo,directionLabel(effectiveType?.ledgerType),
+      item.archived?tr('Archived','已归档','သိမ်းပြီး'):tr('Active','使用中','အသုံးပြုနေ')
+    ].filter(Boolean).join(' · ')));
     row.append(text);
     const actions=elt('div','mmh-hier-actions');
     if(item.archived)actions.append(btn(tr('Restore','恢复','ပြန်ယူ'),()=>attempt(()=>controller.archive(modalField,item.id,false),drawModal),'mmh-hier-btn'));
@@ -223,7 +236,7 @@ function drawEditor(item){
   const name=elt('input');name.type='text';name.maxLength=40;name.required=true;
   name.value=item?.label||'';
   control(tr('Name','名称','အမည်'),name);
-  let typeChoice=null,parentChoice=null,kindChoice=null;
+  let typeChoice=null,parentChoice=null,kindChoice=null,advancedToggle=null;
   const calculationHelp=()=>form.append(elt('p','mmh-hier-help',tr(
     'These are calculation rules, not preset Type or Transaction entries. Choose the real financial direction before saving.',
     '这些只是金额计算规则，不是系统预设的 Type 或 Transaction 项目。保存前请选择正确的收支方向。',
@@ -242,25 +255,60 @@ function drawEditor(item){
     parentChoice=requireSelection(elt('select'),tr(
       'Choose a Type to link…','请选择要关联的 Type…','ချိတ်ဆက်မည့် Type ကို ရွေးပါ…'));
     for(const type of graph.types.filter(x=>!x.archived))
-      parentChoice.append(makeOption(type.id,type.label,type.id));
+      parentChoice.append(makeOption(type.id,type.label+' · '+directionLabel(type.ledgerType),type.id));
     control(tr('Linked Type','关联 Type','ချိတ်ဆက်ထားသော Type'),parentChoice);
+    const inherited=elt('p','mmh-hier-help',tr(
+      'Choose a Type first. Its financial direction is inherited automatically.',
+      '请先选择 Type。资金增减方向将自动继承 Type。',
+      'Type ကို ရွေးပါ။ ငွေတိုး/လျော့သည် Type အတိုင်း ဖြစ်ပါမည်။'));
+    inherited.setAttribute('role','status');form.append(inherited);
+    advancedToggle=elt('input');advancedToggle.type='checkbox';advancedToggle.disabled=true;
+    const toggleLabel=elt('label','mmh-hier-toggle');
+    toggleLabel.append(advancedToggle,elt('span','',tr(
+      'Special accounting purpose (loans / adjustments)',
+      '特殊记账用途（借款 / 余额调整）',
+      'အထူးစာရင်းအမျိုးအစား (ချေးငွေ / ညှိနှိုင်းမှု)')));
+    form.append(toggleLabel);
     kindChoice=requireSelection(elt('select'),tr(
-      'Choose accounting treatment…','请选择记账计算方式…','စာရင်းတွက်ချက်မှုကို ရွေးပါ…'));
-    control(tr('Accounting treatment','记账计算方式','စာရင်းတွက်ချက်မှု'),kindChoice);
-    calculationHelp();
+      'Choose special accounting purpose…','请选择特殊记账用途…',
+      'အထူးစာရင်းအမျိုးအစား ရွေးပါ…'));
+    const kindLabel=control(tr('Special accounting purpose','特殊记账用途',
+      'အထူးစာရင်းအမျိုးအစား'),kindChoice).closest('label');
+    kindLabel.hidden=true;
+    form.append(elt('p','mmh-hier-help',tr(
+      'Ordinary income/expense/transfer follows Type; enable the option above only for special accounting. This never reverses Type direction.',
+      '普通收入、支出、转账自动继承 Type；仅借款、调整等特殊交易需要开启上方选项，且不能改变 Type 的资金方向。',
+      'သာမန် ဝင်ငွေ၊ အသုံးစရိတ်နှင့် ငွေလွှဲသည် Type ကို လိုက်နာသည်။ အထူးစာရင်းအတွက်သာ အထက်ပါ ရွေးချယ်မှုကိုဖွင့်ပါ။')));
     const redrawKinds=()=>{
       const parent=graph.types.find(x=>x.id===parentChoice.value);
+      inherited.textContent=parent?
+        tr('Balance effect: ','资金变化：','ငွေလက်ကျန်: ')+directionLabel(parent.ledgerType):
+        tr('Choose a Type first. Its financial direction is inherited automatically.',
+          '请先选择 Type。资金增减方向将自动继承 Type。',
+          'Type ကို ရွေးပါ။ ငွေတိုး/လျော့သည် Type အတိုင်း ဖြစ်ပါမည်။');
       kindChoice.replaceChildren();
-      requireSelection(kindChoice,tr('Choose accounting treatment…',
-        '请选择记账计算方式…','စာရင်းတွက်ချက်မှုကို ရွေးပါ…'));
-      for(const kind of ['Income|Income','Expense|Expense','Expense|Personal','Income|Loans','Expense|Loans',
+      requireSelection(kindChoice,tr('Choose special accounting purpose…',
+        '请选择特殊记账用途…','အထူးစာရင်းအမျိုးအစား ရွေးပါ…'));
+      const regular=parent?regularLedgerKind(parent.ledgerType):null;
+      let extras=0;
+      for(const id of ['Income|Income','Expense|Expense','Expense|Personal','Income|Loans','Expense|Loans',
           'Transfer|Transfer','Income|Data Adjustment','Expense|Data Adjustment']){
-        const k=ledgerKind(kind);if(parent&&k?.type===parent.ledgerType)
-          kindChoice.append(makeOption(kind,meaning(kind),kind));
+        const kind=ledgerKind(id);
+        if(parent&&kind?.type===parent.ledgerType&&id!==regular){
+          kindChoice.append(makeOption(id,meaning(id),id));extras++;
+        }
       }
-      kindChoice.disabled=!parent;
+      advancedToggle.disabled=!parent||extras===0;
+      if(advancedToggle.disabled)advancedToggle.checked=false;
+      kindLabel.hidden=!advancedToggle.checked;
+      kindChoice.disabled=!advancedToggle.checked;
+      kindChoice.required=advancedToggle.checked;
     };
-    parentChoice.addEventListener('change',redrawKinds);redrawKinds();
+    advancedToggle.addEventListener('change',redrawKinds);
+    parentChoice.addEventListener('change',()=>{
+      advancedToggle.checked=false;redrawKinds();
+    });
+    redrawKinds();
   }
   if(!item&&field==='category'){
     parentChoice=requireSelection(elt('select'),tr(
@@ -279,13 +327,18 @@ function drawEditor(item){
     // HTML form validity can be bypassed by programmatic submit events.
     // Recheck that every new financial mapping is explicitly selected.
     if(!item&&((field==='type'&&!typeChoice?.value)||
-      (field==='transaction'&&(!parentChoice?.value||!kindChoice?.value))||
+      (field==='transaction'&&(!parentChoice?.value||(advancedToggle?.checked&&!kindChoice?.value)))||
       (field==='category'&&!parentChoice?.value)))return;
     attempt(()=>{
       if(item)controller.rename(field,item.id,value);
       else if(field==='type')controller.addType(value,typeChoice.value);
-      else if(field==='transaction')controller.addTransaction(value,parentChoice.value,kindChoice.value);
-      else controller.addCategory(value,parentChoice.value);
+      else if(field==='transaction'){
+        const linkedType=graph.types.find(x=>x.id===parentChoice.value);
+        const purpose=advancedToggle.checked?kindChoice.value:
+          regularLedgerKind(linkedType?.ledgerType);
+        if(!purpose)throw Error('Select a valid Type before saving');
+        controller.addTransaction(value,parentChoice.value,purpose);
+      }else controller.addCategory(value,parentChoice.value);
     },drawModal);
   });
   const footer=elt('div','mmh-hier-footer');
@@ -316,11 +369,18 @@ function manager(){
   for(const field of ['type','transaction','category']){
     const card=elt('article','mmh-hier-card'),items=graph?.[field==='type'?'types':field==='transaction'?'transactions':'categories']||[];
     card.append(elt('h4','',label(field)+' · '+items.filter(x=>!x.archived).length));
-    const snippets=items.filter(x=>!x.archived).slice(0,3).map(x=>x.label).join(' · ');
+    const snippets=items.filter(x=>!x.archived).slice(0,3).map(x=>
+      field==='type'?x.label+' ('+
+        (x.ledgerType==='Income'?'+':x.ledgerType==='Expense'?'−':'⇄')+')':
+        x.label).join(' · ');
     card.append(elt('div','mmh-hier-examples',snippets||tr('No items yet','尚未添加','မရှိသေးပါ')));
     const manage=btn(tr('Manage','管理','စီမံရန်'),()=>open(field),'mmh-hier-btn');
     manage.disabled=!ready()||cloudConflict;card.append(manage);cards.append(card);
   }
+  root.append(elt('p','mmh-hier-muted',tr(
+    'Type sets account balance direction (+ / − / transfer). Transaction inherits it; Category is only a name.',
+    'Type 决定账户余额增加、减少或转账；Transaction 自动继承，Category 只负责分类。',
+    'Type သည် အကောင့်ငွေလက်ကျန် တိုး/လျော့/လွှဲခြင်းကို သတ်မှတ်ပြီး Transaction မှ လိုက်နာပါသည်။')));
   root.append(elt('p','mmh-hier-muted',tr(
     'Already-used options: Archive only. Historical transactions are never changed.',
     '已使用的项目只能归档；历史交易记录始终保留。',
@@ -405,6 +465,20 @@ function form(){
     const cats=selection.transaction?controller.list('category',selection.transaction)
       .map(x=>({id:x.id,value:x.label,text:x.label})):[];
     put(c,cats,selection.category,'category');selection.category=selected(c);
+    const typeLabel=t.closest('label');
+    let directionHint=$('mmhHierarchyBalanceHint');
+    if(!directionHint&&typeLabel){
+      directionHint=elt('span','mmh-hier-muted');directionHint.id='mmhHierarchyBalanceHint';
+      typeLabel.append(directionHint);
+    }
+    if(directionHint){
+      const selectedType=types.find(x=>x.id===selection.type);
+      const node=selectedType?controller.list('type').find(x=>x.id===selectedType.id):null;
+      directionHint.textContent=node?directionLabel(node.ledgerType):
+        tr('Choose Type to determine the balance change.',
+          '请选择 Type 以确定资金增减方向。',
+          'ငွေလက်ကျန် ပြောင်းလဲမှုအတွက် Type ကို ရွေးပါ။');
+    }
     for(const s of [t,g,c])s.disabled=!s.options.length;
     if(typeof updateAccountLocks==='function'&&types.length)updateAccountLocks();
     // V321 native saving and V344 balance protection own separate locks.
