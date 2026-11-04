@@ -1679,20 +1679,22 @@ async function load(page,route,failures){
          viewport:innerWidth
        };
      });
-     ensure(layout.styles.length===6&&layout.scripts.length===2 &&
+     ensure(layout.styles.length===7&&layout.scripts.length===2 &&
        layout.styles.filter(v=>v==='l145').length===1 &&
        layout.styles.filter(v=>v==='l146').length===2 &&
        layout.styles.filter(v=>v==='l147').length===1 &&
+       layout.styles.filter(v=>v==='l164').length===1 &&
        layout.styles.filter(v=>v==='l141').length===2 &&
        layout.scripts.includes('l161') && layout.scripts.includes('l159') &&
-       loaded.length===8 && loaded.every(r=>r.status===200&&
+       loaded.length===9 && loaded.every(r=>r.status===200&&
          r.version===(r.path==='/landing-assets/landing.min.css'?'l145':
            ['/landing-assets/cinematic.min.css','/landing-assets/premium-l131.min.css'].includes(r.path)?'l146':
            r.path==='/landing-assets/header-explore-l147.min.css'?'l147':
+           r.path==='/landing-assets/safari-performance-l164.css'?'l164':
             r.path==='/landing-assets/landing.js'?'l161':
               r.path==='/landing-assets/motion-l132.js'?'l159':'l141')) &&
-       new Set(loaded.map(r=>r.path)).size===8 && failures.length===0,
-       'L1.47 '+width+'px eight CSS/JS requests with consistent cache keys '+JSON.stringify({loaded,failures}));
+       new Set(loaded.map(r=>r.path)).size===9 && failures.length===0,
+       'L1.64 '+width+'px nine CSS/JS requests with consistent cache keys '+JSON.stringify({loaded,failures}));
      ensure(layout.brand.left>=-1&&layout.brand.right<=width+1 &&
        layout.brand.width<width*.8 &&
        layout.hero.left>=-1&&layout.hero.right<=width+1 &&
