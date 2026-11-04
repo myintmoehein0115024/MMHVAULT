@@ -38,7 +38,7 @@ const uid=()=>typeof crypto!=='undefined'&&crypto.randomUUID?
   'hier_'+crypto.randomUUID():'hier_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2);
 let loadedOwner='',historyReady=false,overlay=null,modalField='',selection={type:'',transaction:'',category:''};
 let pendingSave=null,rendering=false,queued=false,returnFocus=null;
-let linkSync=null,checkingCloud=false,cloudConflict=false;
+let linkSync=null,checkingCloud=false,cloudCheckOwner='',cloudCheckGeneration=0,cloudConflict=false;
 const host={
   currentOwner:owner,configOwner,currentConfig:config,
   history:()=>{
@@ -415,9 +415,13 @@ function retryConfirmedLink(target){
   }
 }
 async function verifyCloudLink(target){
-  if(!target||target.state!=='pending'||checkingCloud||
+  // A signout/device switch invalidates any still-pending verification.
+  // Never let the old owner's cloud request block the new owner's checks.
+  if(!target||target.state!=='pending'||
+    (checkingCloud&&cloudCheckOwner===target.owner)||
     owner()!==target.owner||configOwner()!==target.owner)return;
-  checkingCloud=true;schedule();
+  const generation=++cloudCheckGeneration;
+  cloudCheckOwner=target.owner;checkingCloud=true;schedule();
   try{
     const verified=await verifyStoredCloudLink({
       target,currentOwner:owner,configOwner,
@@ -434,13 +438,17 @@ async function verifyCloudLink(target){
     }
   }catch(error){console.warn('[MMHVAULT] Manage link readback unavailable',error)}
   finally{
-    checkingCloud=false;schedule();
-    // A second saved transaction may arrive while the prior cloud check is
-    // in-flight. Verify the latest one next, but do not retry failed syncs
-    // indefinitely. Failed checks remain Pending for manual retry.
-    if(linkSync&&linkSync!==target&&linkSync.state==='pending'&&
-      linkSync.owner===owner()&&linkSync.owner===configOwner())
-      queueMicrotask(()=>{void verifyCloudLink(linkSync)});
+    // A late result from account A must not clear account B's verification
+    // lock or trigger A's deferred retry against B's current configuration.
+    if(generation===cloudCheckGeneration){
+      checkingCloud=false;cloudCheckOwner='';schedule();
+      // A second saved transaction may arrive while the prior cloud check is
+      // in-flight. Verify the latest one next, but do not retry failed syncs
+      // indefinitely. Failed checks remain Pending for manual retry.
+      if(linkSync&&linkSync!==target&&linkSync.state==='pending'&&
+        linkSync.owner===owner()&&linkSync.owner===configOwner())
+        queueMicrotask(()=>{void verifyCloudLink(linkSync)});
+    }
   }
 }
 // A confirmed INSERT must refresh Accounts/Dashboard/Analyze independently
@@ -579,8 +587,14 @@ function boot(){
     }else if(e?.type==='mmhvault:config-owner-changed'){
       historyReady=false;loadedOwner='';selection={type:'',transaction:'',category:''};
       pendingSave=null;linkSync=null;cloudConflict=false;
+      checkingCloud=false;cloudCheckOwner='';cloudCheckGeneration++;
       ledgerRefreshOwner='';ledgerRefreshQueue=Promise.resolve();close();
-    }else if(current!==loadedOwner){historyReady=false;selection={type:'',transaction:'',category:''};pendingSave=null;linkSync=null;cloudConflict=false;close();}
+    }else if(current!==loadedOwner){
+      historyReady=false;loadedOwner='';selection={type:'',transaction:'',category:''};
+      pendingSave=null;linkSync=null;cloudConflict=false;
+      checkingCloud=false;cloudCheckOwner='';cloudCheckGeneration++;
+      ledgerRefreshOwner='';ledgerRefreshQueue=Promise.resolve();close();
+    }
     if(e?.type==='mmhvault:config-cloud-synced'&&e.detail?.userId===current)
       cloudConflict=false;
     schedule();
