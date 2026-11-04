@@ -2,22 +2,23 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {spawnSync} from 'node:child_process';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
-const dir=path.join(root,'dist','app-v117-staging');
+const dir=fs.mkdtempSync(path.join(os.tmpdir(),'mmh-v117-file-qa-'));
 const builder=path.join(root,'tests','build-app-v117-staging-preview.cjs');
 const second=path.join(root,'tests','build-app-v117-doubleclick.cjs');
 const PUBLIC='sb_publishable_SYNTHETIC_FILE_ONLY_QA_0123456789';
 
 test('double-click entrypoint includes inlined hierarchy and no production URL or scripts requiring CORS',()=>{
  const pre=spawnSync(process.execPath,[builder],{
-   cwd:root,encoding:'utf8',env:{...process.env,MMH_V117_STAGING_PUBLISHABLE_KEY:PUBLIC}
+   cwd:root,encoding:'utf8',env:{...process.env,MMH_V117_STAGING_OUTPUT_DIR:dir,MMH_V117_STAGING_PUBLISHABLE_KEY:PUBLIC}
  });
  assert.equal(pre.status,0,pre.stderr);
- const built=spawnSync(process.execPath,[second],{cwd:root,encoding:'utf8'});
+ const built=spawnSync(process.execPath,[second],{cwd:root,encoding:'utf8',env:{...process.env,MMH_V117_STAGING_OUTPUT_DIR:dir}});
  assert.equal(built.status,0,built.stderr);
  const html=fs.readFileSync(path.join(dir,'OPEN-ME-STAGING.html'),'utf8');
  assert.match(html,/name="mmhvault-local-doubleclick"/);
