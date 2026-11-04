@@ -1,11 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {runInNewContext,Script} from 'node:vm';
+import {runInNewContext} from 'node:vm';
 
 // Each response is intentionally controlled so an older request can finish last.
 const html=readFileSync(new URL('../../admin-analytics.html',import.meta.url),'utf8');
-const inline=html.match(/<script>\\s*([\\s\\S]*?)<\\/script>/)?.[1];
+const inline=html.split('<script>')[1]?.split('</script>')[0];
 if(!inline)throw Error('Admin Analytics initializer not found');
 
 function harness() {
