@@ -36,7 +36,7 @@ test('feedback workspace is a single isolated page with the approved high-fideli
 });
 
 test('average rating comes from the authorized loaded feedback rows only',()=>{
- const code=readFunction('function feedbackCounts(rows){','  function feedbackGroups(){');
+ const code=readFunction('function feedbackCounts(rows){','function feedbackGroups(){');
  const ids=Object.fromEntries(['afNew','afWorking','afResolved','afPremiumAverageV1','afPremiumAverageNoteV1'].map(id=>[id,{textContent:'—'}]));
  vm.runInNewContext(code+';feedbackCounts(rows)',{
   $:id=>ids[id],
@@ -56,7 +56,7 @@ test('average rating comes from the authorized loaded feedback rows only',()=>{
 });
 
 test('member ID / email / text / rating / state filters and real chronological sorting work on loaded rows',()=>{
- const code=readFunction('function feedbackGroups(){','  function feedbackMemberButton(');
+ const code=readFunction('function feedbackGroups(){','function feedbackMemberButton(');
  const fields={afFilter:'',afPremiumSearchV1:'',afPremiumRatingV1:'',afPremiumSortV1:'newest'};
  const elements=Object.fromEntries(Object.keys(fields).map(id=>[id,{value:''}]));
  const rows=[
