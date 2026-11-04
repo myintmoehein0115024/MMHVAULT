@@ -22,7 +22,7 @@ const WORDLIST=Array.from({length:2048},(_,i)=>{
 });
 assert.equal(new Set(WORDLIST).size,2048);
 
-function fakeWorld({failEscrow=false,revokeOnVaultRead=false}={}){
+function fakeWorld({failEscrow=false,revokeOnVaultRead=false,malformedAuthResponse=false}={}){
  const users=new Map(),byEmail=new Map(),slotOwners=new Map(),claims=new Set();
  const backups=new Map(),sessions=new Map(),tokens=new Map(),verifiedFactors=new Set(),events=[];
  let handlerCount=0;
@@ -113,7 +113,11 @@ function fakeWorld({failEscrow=false,revokeOnVaultRead=false}={}){
       if(byEmail.has(email))return {data:null,error:{message:'duplicate'}};
       users.set(id,user);byEmail.set(email,id);
       events.push('create:'+app_metadata.mmhvault_username);
-      return {data:{user},error:null};
+      // Simulate a correct, newly stored identity returned with incorrect
+      // metadata fields. The follow-up Admin lookup remains authoritative.
+      const responseUser=malformedAuthResponse?
+       {...user,app_metadata:{...app_metadata,mmhvault_qa_scope:'untrusted-response-scope'}}:user;
+      return {data:{user:responseUser},error:null};
      },
      getUserById:async(id)=>{
       const user=users.get(id);
@@ -361,4 +365,29 @@ test('corrupt ten-word Vault readback fails closed and never invents a replaceme
  assert.equal(result.recovery_words,undefined);
  assert.equal(x.backups.get(e.user_id),'synthetic incorrect vault payload');
  assert.equal(x.users.size,1);
+});
+
+
+
+test('ambiguous Auth createUser response quarantines exact fresh E, never issues tokens',async()=>{
+ const x=fakeWorld({malformedAuthResponse:true});
+ const result=await x.invoke(x.signup,{
+  action:'signup',username:'n10real_e_20261104',password:PWD_E,
+  captcha_token:'signup-synthetic-malformed-admin-response'
+ });
+ assert.equal(result.status,503);
+ assert.equal(result.code,'manual_reconciliation_required');
+ assert.equal(result.recovery_words,undefined);
+ assert.equal(result.access_token,undefined);
+ assert.equal(result.refresh_token,undefined);
+ assert.equal(x.users.size,1);
+ assert.equal(x.backups.size,0);
+ assert.equal(x.slotOwners.size,0);
+ assert.equal(x.claims.has('E'),true);
+ const owner=[...x.users.values()][0];
+ assert.equal(owner.app_metadata.mmhvault_qa_scope,'n10_real_ef_20261104',
+  'the stored QA identity must be checked independently of malformed response');
+ assert.equal(owner.banned_until,'876000h',
+  'the exact newly created user should be quarantined after ambiguous Auth response');
+ assert.ok(!x.events.some(v=>v.startsWith('signin:')));
 });
