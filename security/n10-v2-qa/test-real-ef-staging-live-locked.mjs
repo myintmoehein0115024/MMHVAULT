@@ -51,3 +51,31 @@ test('recovery viewer denies requests lacking user JWT at platform gateway',asyn
  for(const secret of ['user_id','access_token','refresh_token','recovery_words','words'])
   assert.equal(body?.[secret],undefined,'unauthenticated response must not disclose '+secret);
 });
+
+
+async function browserPreflight(url){
+ const response=await fetch(url,{
+  method:'OPTIONS',headers:{
+   Origin:ORIGIN,
+   'Access-Control-Request-Method':'POST',
+   'Access-Control-Request-Headers':'authorization,apikey,content-type'
+  },
+  redirect:'error',cache:'no-store',signal:AbortSignal.timeout(12000)
+ });
+ return response;
+}
+test('browser can preflight isolated signup without credentials or mutation',async()=>{
+ const response=await browserPreflight(SIGNUP);
+ assert.equal(response.status,204,'signup OPTIONS should be allowed but must not open registration');
+ assert.equal(response.headers.get('access-control-allow-origin'),ORIGIN);
+ assert.match(response.headers.get('access-control-allow-methods')||'',/POST/);
+ assert.match(response.headers.get('access-control-allow-headers')||'',/authorization/i);
+});
+test('browser MFA viewer preflight must not require JWT before POST',async()=>{
+ const response=await browserPreflight(VIEWER);
+ // Browser preflights never contain a bearer JWT. If the gateway blocks OPTIONS,
+ // real authenticated browser calls cannot reach the owner/MFA handler.
+ assert.equal(response.status,204,'viewer OPTIONS must be accepted without a JWT for browser CORS preflight');
+ assert.equal(response.headers.get('access-control-allow-origin'),ORIGIN);
+ assert.match(response.headers.get('access-control-allow-headers')||'',/authorization/i);
+});
