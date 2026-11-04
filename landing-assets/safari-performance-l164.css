@@ -76,3 +76,13 @@
     backdrop-filter: none;
   }
 }
+
+/* L1.70 — the very large Business section ambient is already a soft radial
+ * gradient. Desktop Safari does not need a second 55px offscreen blur pass
+ * while scrolling across this section; preserve its gold halo and all
+ * mobile/tablet presentation unchanged. */
+@media (min-width: 1025px) {
+  body.l131 #business.business-section::after {
+    filter: none;
+  }
+}
