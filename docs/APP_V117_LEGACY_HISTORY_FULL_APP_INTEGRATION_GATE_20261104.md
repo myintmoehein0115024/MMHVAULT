@@ -113,3 +113,16 @@ The prior `onLedgerInserted` handler called `refreshSavedLedger()` **only after*
 - New Chrome/WebKit synthetic tests at phone/tablet/desktop widths: intentionally never resolve cloud-link sync, then save two consecutive confirmed transaction IDs with one held read; verify both IDs arrive in the one-owner snapshot with no duplicate ledger write. Separate owner-switch test holds A's read indefinitely and confirms B's read starts and only B data appears.
 
 **Security / acceptance:** The scenarios use local synthetic fixtures and disabled network, not live Staging financial writes. Existing signed two-table core QA remains valid; true full APP signed owner history / Accounts / Analyze / Dashboard results remain unverified. No DB schema/Production/N10/Landing changes or deployments; PR #87 stays DRAFT.
+
+
+## 2026-11-04 — native saving / insufficient-balance guard compatibility
+
+During PR #87 code review, V11.7 `form()` was found to assign `save.disabled=cloudConflict||!valid()` after rebuilding the user-configured Type→Transaction→Category choices. This could re-enable the **same native Save button** while either:
+- the V321 native submit wrapper has `v321-submit-busy` active (financial write still running), or
+- the V344 negative-balance guard has `balance-blocked` active (funds insufficient).
+
+**Branch-only correction:** the Manage renderer now honors both independent native button locks in addition to the hierarchy path/cloud-conflict checks. Its capture-phase submit interceptor also blocks an event carrying either lock, before the native financial write handler, avoiding accidental replacement of the first INSERT's pending Manage path by a rejected duplicate submit.
+
+**Automated regression:** Chrome and WebKit local-only synthetic browser tests at phone/tablet/desktop widths assert each lock survives a hierarchy refresh, duplicate/insufficient-funds submissions are intercepted before native submit handling, and the button re-enables when the external locks are cleared. The source-inventory CI additionally asserts both marker names and all binding guards remain present in the real full `app.html` and PR #87 hierarchy module. This is **not** a signed, full-APP real-funds test and does not authorize a Production or database migration.
+
+Release gate unchanged: preserve the legacy ledger, full-APP Staging signed integration pending, PR #87 remains Draft.
