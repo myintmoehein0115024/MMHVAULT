@@ -59,7 +59,11 @@ export function attachRecoveryViewLifecycle({
     subscription = result?.data?.subscription;
     if (typeof subscription?.unsubscribe !== 'function')
       throw Error('recovery_auth_observer_unavailable');
-    if (documentRef.hidden === true) hide();
+    // A background tab or unfocused desktop window may have lost focus
+    // BEFORE listeners were installed. Fail closed at attachment time too.
+    if (documentRef.hidden === true ||
+        (typeof documentRef.hasFocus === 'function' && documentRef.hasFocus() === false))
+      hide();
   } catch {
     detach();
     controller.hide();
