@@ -39,6 +39,19 @@ console.log('APP_V117_BOOT_SOURCE_REVIEW='+JSON.stringify({
   definitions:bootContexts,
   caution:'Excerpt is bounded and may include subsequent functions. Inspect actual source before treating tables as required.'
 }));
+// The wallet hard-stop uses an indirect helper: inspect the function's
+// declaration/read body instead of guessing a wallet table name.
+const walletDefinitions=[...source.matchAll(/\b(?:async\s+)?function\s+mmhPersonalReadWalletV191\b|\b(?:const|let|var)\s+mmhPersonalReadWalletV191\s*=/g)];
+const walletContexts=walletDefinitions.slice(0,3).map(m=>({
+  line:lineno(m.index),
+  nearbyReviewLines:source.slice(m.index,m.index+8000).split('\n').slice(0,95)
+    .filter(line=>/mmhPersonalReadWalletV191|\.from\s*\(|\b(?:await|throw|return|Promise|wallet|table|data|read)\b/.test(line))
+    .slice(0,40).map(scrub)
+}));
+console.log('APP_V117_WALLET_SOURCE_REVIEW='+JSON.stringify({
+  definitions:walletContexts,
+  caution:'Wallet loader may be defined in another module. Do not infer a table name from an unresolved call.'
+}));
 const inventory=[...entries.entries()].sort((a,b)=>a[0].localeCompare(b[0]))
   .map(([table,lines])=>({table,references:lines.length,firstLines:lines.slice(0,6)}));
 assert.ok(startup.length,'Full APP startup entrypoint loadAll not found: review bootstrap');
