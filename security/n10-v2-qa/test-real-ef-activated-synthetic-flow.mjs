@@ -22,10 +22,11 @@ const WORDLIST=Array.from({length:2048},(_,i)=>{
 });
 assert.equal(new Set(WORDLIST).size,2048);
 
-function fakeWorld({failEscrow=false,revokeOnVaultRead=false,revokeOnStatusRead=false,malformedAuthResponse=false,closeGateOnSignin=false,failPasswordProofSignout=false}={}){
+function fakeWorld({failEscrow=false,revokeOnVaultRead=false,revokeOnStatusRead=false,malformedAuthResponse=false,closeGateOnSignin=false,failPasswordProofSignout=false,closeQAOnSessionCheck=0}={}){
  const users=new Map(),byEmail=new Map(),slotOwners=new Map(),claims=new Set();
  const backups=new Map(),sessions=new Map(),tokens=new Map(),verifiedFactors=new Set(),events=[];
  let handlerCount=0,gateOpen=true,closeOnNextSignin=closeGateOnSignin;
+ let windowExpired=false,sessionCheckCount=0;
  function issueSession(uid,aal='aal1',overrides={}){
    const sid=randomUUID();
    const payload={iss:BASE+'/auth/v1',sub:uid,exp:4102444800,aal,session_id:sid,...overrides};
@@ -71,7 +72,12 @@ function fakeWorld({failEscrow=false,revokeOnVaultRead=false,revokeOnStatusRead=
     }
     case 'mmh_n10_realef_session_active':{
       const s=sessions.get(arg.p_session_id);
-      const yes=!!s&&s.uid===arg.p_user_id&&s.aal==='aal2'&&s.live&&verifiedFactors.has(s.uid);
+      const yes=gateOpen&&!!s&&s.uid===arg.p_user_id&&s.aal==='aal2'&&s.live&&verifiedFactors.has(s.uid);
+      if(++sessionCheckCount===closeQAOnSessionCheck){
+       // Simulate the QA deadline expiring *after* the final DB response was
+       // computed, while the Edge handler is still about to return data.
+       gateOpen=false;windowExpired=true;
+      }
       return {data:yes,error:null};
     }
     case 'mmh_n10_realef_backup_exists':{
@@ -178,7 +184,10 @@ function fakeWorld({failEscrow=false,revokeOnVaultRead=false,revokeOnStatusRead=
    Deno:{env:{get:name=>env[name]||''},serve:fn=>{serve=fn;handlerCount++;}},
    createClient:(_base,key)=>client(key),wordlist:WORDLIST,fetch:fakeFetch,
    TextEncoder,TextDecoder,Response,Request,Headers,URLSearchParams,AbortSignal,
-   Uint8Array,Uint16Array,crypto:webcrypto,atob
+   Uint8Array,Uint16Array,crypto:webcrypto,atob,
+   Date:class FakeDate extends Date {
+    static now(){return windowExpired?Date.parse('2100-01-01T00:00:00.000Z'):Date.now();}
+   }
   },{filename:file,timeout:5000});
   assert.equal(typeof serve,'function');
   return serve;
@@ -486,4 +495,37 @@ test('correct password but failed temporary-session sign-out cannot reveal fixed
  assert.equal(denied.recovery_words,undefined);
  assert.equal(x.backups.get(e.user_id),e.recovery_words.join(' '),
   'escrow remains unchanged after sign-out failure');
+});
+
+
+test('QA deadline closing after final status session check never returns backup existence',async()=>{
+ const x=fakeWorld({closeQAOnSessionCheck:2});
+ const e=await x.invoke(x.signup,{
+  action:'signup',username:'n10real_e_20261104',password:PWD_E,
+  captcha_token:'signup-for-expired-final-status-check'
+ });
+ assert.equal(e.status,200);
+ const token=x.mintAAL2(e.user_id);
+ const result=await x.invoke(x.viewer,{action:'status'},token.access_token);
+ assert.equal(result.status,503);
+ assert.equal(result.code,'qa_not_released');
+ assert.equal(result.backed_up,undefined);
+ assert.equal(result.words,undefined);
+ assert.equal(x.backups.get(e.user_id),e.recovery_words.join(' '));
+});
+
+test('QA deadline closing after final reveal session check never returns ten words',async()=>{
+ const x=fakeWorld({closeQAOnSessionCheck:3});
+ const e=await x.invoke(x.signup,{
+  action:'signup',username:'n10real_e_20261104',password:PWD_E,
+  captcha_token:'signup-for-expired-final-reveal-check'
+ });
+ assert.equal(e.status,200);
+ const token=x.mintAAL2(e.user_id);
+ const result=await x.invoke(x.viewer,{action:'reveal',password:PWD_E},token.access_token);
+ assert.equal(result.status,503);
+ assert.equal(result.code,'qa_not_released');
+ assert.equal(result.words,undefined);
+ assert.equal(result.recovery_words,undefined);
+ assert.equal(x.backups.get(e.user_id),e.recovery_words.join(' '));
 });
