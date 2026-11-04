@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  emptyHierarchy,addType,addTransaction,addCategory,choices,canAddItem,pathFor,
+  emptyHierarchy,addType,addTransaction,addCategory,choices,canAddItem,pathFor,regularLedgerKind,
   entryUsage,renameItem,deleteItem,archiveItem,legacyHierarchy,recordLink,storedLinkMatches,normalizePersistedHierarchy
 } from '../js/mmhvault-v11-manage-hierarchy-model.mjs';
 const A='account-A',B='account-B';
@@ -14,6 +14,31 @@ const sample=()=>{
   const salary=addCategory(tree,A,'Salary',income2.id,next);
   return {tree,income,expense,income2,salary};
 };
+test('Type controls ordinary account direction, while special ledger kinds retain the same direction',()=>{
+  assert.equal(regularLedgerKind('Income'),'Income|Income');
+  assert.equal(regularLedgerKind('Expense'),'Expense|Expense');
+  assert.equal(regularLedgerKind('Transfer'),'Transfer|Transfer');
+  assert.equal(regularLedgerKind('Unknown'),null);
+  const g=emptyHierarchy(A);
+  const income=addType(g,A,'My Receipts','Income',next);
+  const expense=addType(g,A,'Type-Income but expense','Expense',next);
+  const transfer=addType(g,A,'Internal Transfer','Transfer',next);
+  const plus=addTransaction(g,A,'Pay',income.id,regularLedgerKind(income.ledgerType),next);
+  const minus=addTransaction(g,A,'Shopping',expense.id,regularLedgerKind(expense.ledgerType),next);
+  const move=addTransaction(g,A,'Move',transfer.id,regularLedgerKind(transfer.ledgerType),next);
+  const salary=addCategory(g,A,'SalaryQA',plus.id,next);
+  const dining=addCategory(g,A,'DiningQA',minus.id,next);
+  const internal=addCategory(g,A,'Transfer',move.id,next);
+  assert.equal(pathFor(g,A,income.id,plus.id,salary.id).type,'Income');
+  assert.equal(pathFor(g,A,expense.id,minus.id,dining.id).type,'Expense');
+  assert.equal(pathFor(g,A,transfer.id,move.id,internal.id).type,'Transfer');
+  assert.throws(()=>addTransaction(g,A,'Wrong direction',expense.id,regularLedgerKind('Income'),next),
+    /meaning does not match Type/);
+  const special=addTransaction(g,A,'Loan',income.id,'Income|Loans',next);
+  assert.equal(special.kindId,'Income|Loans');
+  assert.throws(()=>addTransaction(g,A,'Wrong Loan',expense.id,'Income|Loans',next),
+    /meaning does not match Type/);
+});
 test('new owner starts with absolutely no Type / Transaction / Category presets',()=>{
   const t=emptyHierarchy(A);
   assert.deepEqual({types:t.types,transactions:t.transactions,categories:t.categories},
