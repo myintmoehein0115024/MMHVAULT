@@ -386,8 +386,8 @@ body.admin-premium-v1 #adminFeedbackView .af-premium-dock-v1 .af-editor-foot-v15
 body.admin-premium-v1 #dashboard:not([hidden])>#adminFeedbackView.af-premium-feedback-v1:not([hidden]){
  display:grid!important;
  grid-template-rows:auto auto auto auto minmax(0,1fr)!important;
- height:max(640px,calc(100vh - 138px));
- height:max(640px,calc(100dvh - 138px));
+ height:max(700px,calc(100vh - 138px));
+ height:max(700px,calc(100dvh - 138px));
  min-width:0!important;min-height:0!important;overflow:hidden!important;
  gap:10px!important;align-content:stretch!important
 }
@@ -508,8 +508,8 @@ body.admin-premium-v1 #adminFeedbackView .af-premium-dock-v1 .af-editor-foot-v15
 @media(max-width:900px){
  /* On tablet the shared Admin navigation is above this page, not alongside it. */
  body.admin-premium-v1 #dashboard:not([hidden])>#adminFeedbackView.af-premium-feedback-v1:not([hidden]){
-  height:max(650px,calc(100vh - 205px));
-  height:max(650px,calc(100dvh - 205px))
+  height:max(690px,calc(100vh - 205px));
+  height:max(690px,calc(100dvh - 205px))
  }
 }
 @media(max-width:720px){
@@ -599,4 +599,36 @@ body.admin-premium-v1 #adminFeedbackView .af-premium-dock-v1 .af-editor-foot-v15
  body.admin-premium-v1 #adminFeedbackView .af-premium-dock-v1:not([hidden]){
   padding:9px 12px!important;margin-bottom:9px!important
  }
+}
+
+
+/* Tablet and compact desktop still have enough width for one short filter row
+ * and four compact KPI cards. Avoid consuming the history viewport with
+ * accidental double-height toolbars below the original 1050px breakpoint. */
+@media(min-width:721px) and (max-width:1050px){
+ body.admin-premium-v1 #adminFeedbackView .af-premium-metrics-v1{
+  grid-template-columns:repeat(4,minmax(0,1fr))!important
+ }
+ body.admin-premium-v1 #adminFeedbackView .af-premium-metrics-v1>div{
+  min-width:0!important;padding-left:52px!important;padding-right:8px!important
+ }
+ body.admin-premium-v1 #adminFeedbackView .af-premium-metrics-v1 .af-premium-metric-icon-v1{
+  left:10px!important;width:34px!important;height:34px!important;font-size:21px!important
+ }
+ body.admin-premium-v1 #adminFeedbackView .af-premium-metrics-v1 strong{font-size:clamp(19px,2vw,27px)!important}
+ body.admin-premium-v1 #adminFeedbackView .af-premium-filters-v1{
+  grid-template-columns:minmax(105px,1fr) minmax(105px,1fr) minmax(170px,1.7fr) minmax(115px,1fr)!important
+ }
+}
+@media(min-width:481px) and (max-width:720px){
+ body.admin-premium-v1 #adminFeedbackView .af-premium-filters-v1{
+  grid-template-columns:repeat(2,minmax(0,1fr))!important
+ }
+}
+body.admin-premium-v1 #adminFeedbackView :is(#afMemberListV1520,#afList){
+ scrollbar-width:thin;scrollbar-color:rgba(210,166,91,.53) rgba(9,25,44,.63)
+}
+body.admin-premium-v1 #adminFeedbackView :is(#afMemberListV1520,#afList)::-webkit-scrollbar{width:7px;height:7px}
+body.admin-premium-v1 #adminFeedbackView :is(#afMemberListV1520,#afList)::-webkit-scrollbar-thumb{
+ background:rgba(210,166,91,.50);border-radius:10px
 }
