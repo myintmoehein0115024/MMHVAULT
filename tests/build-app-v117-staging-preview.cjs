@@ -118,14 +118,16 @@ assert.ok(!/\/functions\/v1\/|signUp\s*\(|resetPasswordForEmail\s*\(/i.test(qaLo
   'Staging login cannot activate N10, signup, password reset or unrelated API');
 const qaLogin=qaLoginTemplate.replace(qaKeyTag,key);
 fs.writeFileSync(path.join(out,'login.html'),qaLogin);
-// Independent Pages QA origin opens directly without requiring the user to
-// manually type /app.html. No Git-tracked index.html is ever modified.
+// Native INITIAL_SESSION=null redirects to index.html while SIGNED_OUT
+// redirects to login.html. The QA root must NOT bounce back into APP:
+// that creates an infinite logged-out navigation / navy-screen flash.
+// Only the generated QA index changes, never the live index.html.
 fs.writeFileSync(path.join(out,'index.html'),[
   '<!doctype html><html lang="en"><head><meta charset="utf-8">',
   '<meta name="robots" content="noindex,nofollow,noarchive">',
-  '<meta http-equiv="refresh" content="0;url=./app.html">',
+  '<meta http-equiv="refresh" content="0;url=./login.html">',
   '<title>MMHVAULT APP V11.7 — STAGING ONLY</title></head>',
-  '<body><p>APP V11.7 Staging: <a href="./app.html">Open the test app</a></p></body></html>'
+  '<body><p>APP V11.7 Staging: <a href="./login.html">Open test login</a></p></body></html>'
 ].join(''));
 fs.writeFileSync(path.join(out,'README-STAGING-QA.txt'),[
 'MMHVAULT APP V11.7 — LOCAL, AUTH-STAGING-ONLY QA',
