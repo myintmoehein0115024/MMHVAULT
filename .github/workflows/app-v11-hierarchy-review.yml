@@ -9,7 +9,7 @@ on:
       - 'tests/app-v11-manage-hierarchy-browser-*'
       - 'tests/app-v117-staging-signed-ab-qa*'
       - 'tests/build-app-v117-staging-preview.cjs'
-      - 'tests/app-v117-staging-full-preview.test.mjs'
+      - 'tests/app-v117-staging-full-preview*'
       - '.github/workflows/app-v11-hierarchy-review.yml'
   workflow_dispatch:
 
@@ -72,6 +72,8 @@ jobs:
           sleep 2
           node tests/app-v11-manage-hierarchy-browser-check.cjs
           node tests/app-v117-staging-signed-ab-qa-browser-check.cjs
+          MMH_V117_STAGING_PUBLISHABLE_KEY='sb_publishable_LxIB8564OZD48HQ8Mfsc0A_apkgERZo' node tests/build-app-v117-staging-preview.cjs
+          node tests/app-v117-staging-full-preview-browser-check.cjs
 
   browser-webkit:
     name: V11.7 synthetic WebKit responsive QA (NO DEPLOY)
