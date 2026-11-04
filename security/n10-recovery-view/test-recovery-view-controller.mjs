@@ -261,3 +261,61 @@ test('late rejected reveal from A cannot cancel newer B ready state',async()=>{
  assert.equal(c.getPhase(),'ready');
  assert.equal(events.length,afterB,'old failure must not change B state');
 });
+
+
+test('closing modal during status loading prevents even the backup-status request',async()=>{
+ let controller;const calls=[],states=[];
+ controller=createRecoveryViewController({
+  currentOwner:()=> 'account-a',
+  onChange:e=>{states.push(e.phase);if(e.phase==='loading')controller.hide();},
+  request:async action=>{calls.push(action);return {code:'backup_status',backed_up:true}}
+ });
+ await controller.status();
+ assert.deepEqual(calls,[],'invalidated loading state must not make a server request');
+ assert.equal(controller.getPhase(),'locked');
+ assert.deepEqual(states.slice(-2),['loading','locked']);
+});
+
+test('closing modal during reveal loading never transmits the password',async()=>{
+ let controller,loadingCount=0;
+ const calls=[],states=[];
+ controller=createRecoveryViewController({
+  currentOwner:()=> 'account-a',
+  onChange:e=>{
+   states.push(e.phase);
+   if(e.phase==='loading'&&++loadingCount===2)controller.hide();
+  },
+  request:async(action,body)=>{
+   calls.push({action,hasPassword:Object.hasOwn(body,'password')});
+   return action==='status'?{code:'backup_status',backed_up:true}:
+    {code:'recovery_key',words,expires_in_seconds:45};
+  }
+ });
+ await controller.status();
+ assert.equal(controller.getPhase(),'ready');
+ await controller.reveal('TestPassA12!');
+ assert.deepEqual(calls,[{action:'status',hasPassword:false}],
+  'after modal close no reveal request or password is sent');
+ assert.equal(controller.getPhase(),'locked');
+ assert.ok(!states.includes('visible'));
+});
+
+test('owner switch during reveal loading cannot start the old owner password request',async()=>{
+ let controller,owner='account-a',loadingCount=0;
+ const calls=[];
+ controller=createRecoveryViewController({
+  currentOwner:()=>owner,
+  onChange:e=>{
+   if(e.phase==='loading'&&++loadingCount===2)owner='account-b';
+  },
+  request:async action=>{
+   calls.push(action);
+   return action==='status'?{code:'backup_status',backed_up:true}:
+    {code:'recovery_key',words,expires_in_seconds:45};
+  }
+ });
+ await controller.status();
+ await controller.reveal('TestPassA12!');
+ assert.deepEqual(calls,['status']);
+ assert.equal(controller.getPhase(),'locked');
+});
