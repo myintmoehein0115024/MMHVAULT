@@ -176,3 +176,88 @@ test('non-username login method shows non-applicable status, not a false backup'
  assert.ok(!('words' in events.at(-1)));
  assert.match(recoveryViewMessage('not_supported','zh'),/独立用户名/);
 });
+
+
+test('late A backup status cannot reset B ready state after account switch',async()=>{
+ let owner='account-a',finishA;
+ const events=[];
+ const c=createRecoveryViewController({
+  currentOwner:()=>owner,onChange:e=>events.push(e),
+  request:async action=>{
+   assert.equal(action,'status');
+   if(owner==='account-a')return new Promise(resolve=>{finishA=resolve});
+   return {code:'backup_status',backed_up:true};
+  }
+ });
+ const pendingA=c.status();
+ owner='account-b';await c.status();
+ const afterB=events.length;
+ assert.equal(c.getPhase(),'ready');
+ finishA({code:'backup_status',backed_up:false});
+ await pendingA;
+ assert.equal(c.getPhase(),'ready','late A must not lock B view');
+ assert.equal(events.length,afterB,'late A must not emit any B-affecting update');
+});
+
+test('late rejected status from A cannot report an error in B account',async()=>{
+ let owner='account-a',rejectA;const events=[];
+ const c=createRecoveryViewController({
+  currentOwner:()=>owner,onChange:e=>events.push(e),
+  request:async()=>owner==='account-a'?
+    new Promise((_,reject)=>{rejectA=reject}):
+    {code:'backup_status',backed_up:true}
+ });
+ const pendingA=c.status();
+ owner='account-b';await c.status();
+ const afterB=events.length;
+ rejectA(Error('A request cancelled'));
+ await pendingA;
+ assert.equal(c.getPhase(),'ready');
+ assert.equal(events.length,afterB,'A error must not replace B ready state');
+});
+
+test('late A plaintext response cannot hide or replace B visible Recovery Key',async()=>{
+ let owner='account-a',finishA;
+ const wordsB='lima mike november oscar papa quebec romeo sierra tango uniform'.split(' ');
+ const events=[];let timer;
+ const c=createRecoveryViewController({
+  currentOwner:()=>owner,onChange:e=>events.push(e),
+  request:async action=>{
+   if(action==='status')return {code:'backup_status',backed_up:true};
+   if(owner==='account-a')return new Promise(resolve=>{finishA=resolve});
+   return {code:'recovery_key',words:wordsB,expires_in_seconds:45};
+  },
+  setTimer:(fn,ms)=>{timer={fn,ms};return 1},clearTimer:()=>{timer=null}
+ });
+ await c.status();const pendingA=c.reveal('password-for-account-a');
+ owner='account-b';await c.status();await c.reveal('password-for-account-b');
+ assert.equal(c.getPhase(),'visible');
+ assert.deepEqual(events.at(-1).words,wordsB);
+ assert.equal(timer.ms,45000);
+ const afterB=events.length;
+ finishA({code:'recovery_key',words,expires_in_seconds:45});
+ await pendingA;
+ assert.equal(c.getPhase(),'visible');
+ assert.equal(events.length,afterB,'old plaintext response must be ignored entirely');
+ assert.deepEqual(events.at(-1).words,wordsB);
+ assert.equal(timer.ms,45000,'B auto-hide timer must not be cleared by A');
+ c.hide();
+});
+
+test('late rejected reveal from A cannot cancel newer B ready state',async()=>{
+ let owner='account-a',rejectA;const events=[];
+ const c=createRecoveryViewController({
+  currentOwner:()=>owner,onChange:e=>events.push(e),
+  request:async action=>action==='status'?
+   {code:'backup_status',backed_up:true}:
+   new Promise((_,reject)=>{rejectA=reject})
+ });
+ await c.status();
+ const pendingA=c.reveal('password-for-account-a');
+ owner='account-b';await c.status();
+ const afterB=events.length;
+ rejectA(Error('old A request failed'));
+ await pendingA;
+ assert.equal(c.getPhase(),'ready');
+ assert.equal(events.length,afterB,'old failure must not change B state');
+});
