@@ -223,7 +223,7 @@ const l162HeaderPatches=[
  ['font-size:clamp(5px,1.2vw,6px);letter-spacing:.08em',
   'font-size:clamp(8px,2vw,9px);letter-spacing:.055em'],
  ['body.mmh-nav-unified .site-header .brand-copy small{font-size:5px}',
-  'body.mmh-nav-unified .site-header .brand-copy small{font-size:8px}']
+  'body.mmh-nav-unified .site-header .brand-copy small{display:block;font-size:8px}']
 ];
 const l162SharedOnlyEdited=()=>{
   let expected=source('landing-assets/shared-header-l116.css');

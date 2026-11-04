@@ -85,6 +85,7 @@ async function load(page,route,failures){
          const value={font:parseFloat(getComputedStyle(caption).fontSize),
            captionRight:c.right,actionsLeft:a.left,brandRight:b.right,
            rowLeft:row.left,rowRight:row.right,
+           captionVisible:getComputedStyle(caption).display!=='none' && c.width>50 && c.height>=8,
            captionClipped:caption.scrollWidth>caption.clientWidth+1,
            localeWidth:locale.getBoundingClientRect().width,
            toggleWidth:toggle.getBoundingClientRect().width,
@@ -99,7 +100,7 @@ async function load(page,route,failures){
        });
        const expected=width<=390?8:width<=700?Math.min(9,Math.max(8,width*.02)):7;
        ensure(response.status()===200 && Math.abs(result.font-expected)<.1 &&
-         result.version==='l162' && !result.captionClipped &&
+         result.version==='l162' && result.captionVisible && !result.captionClipped &&
          result.captionRight<=result.actionsLeft+1 &&
          result.brandRight<=result.actionsLeft+1 &&
          result.rowLeft>=-1 && result.rowRight<=width+1 &&
