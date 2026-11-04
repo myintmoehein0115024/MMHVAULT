@@ -44,6 +44,17 @@ export function emptyHierarchy(ownerId){
   return {version:TREE_VERSION,ownerId,types:[],transactions:[],categories:[],links:{}};
 }
 export function ledgerKind(id){return kindMap.get(id)||null;}
+// The parent Type alone determines whether ordinary money is added,
+// removed or moved between accounts. A Transaction may opt into a
+// matching special group (loan/adjustment), never reverse that direction.
+const REGULAR_KIND_BY_TYPE=Object.freeze({
+  Income:'Income|Income',Expense:'Expense|Expense',Transfer:'Transfer|Transfer'
+});
+export function regularLedgerKind(ledgerType){
+  return Object.prototype.hasOwnProperty.call(REGULAR_KIND_BY_TYPE,ledgerType)
+    ?REGULAR_KIND_BY_TYPE[ledgerType]:null;
+}
+
 export function addType(graph,ownerId,name,ledgerType,idFactory){
   assertOwner(graph,ownerId);
   const text=label(name);
