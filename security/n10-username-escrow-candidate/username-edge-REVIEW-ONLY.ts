@@ -30,19 +30,31 @@ function sameHex(a,b){if(typeof a!=='string'||typeof b!=='string'||a.length!==64
 async function parseBody(req){const length=req.headers.get('content-length');if(length&&(Number(length)>4000||!/^\d+$/.test(length)))throw Error('size');const reader=req.body?.getReader();if(!reader)throw Error('body');let n=0;const parts=[];try{while(true){const {done,value}=await reader.read();if(done)break;n+=value.byteLength;if(n>4000){await reader.cancel();throw Error('size');}parts.push(value)}}finally{reader.releaseLock()}const bytes=new Uint8Array(n);let x=0;for(const p of parts){bytes.set(p,x);x+=p.length}const d=JSON.parse(new TextDecoder('utf-8',{fatal:true}).decode(bytes));if(!d||typeof d!=='object'||Array.isArray(d))throw Error('body');return d;}
 function authClient(){return createClient(BASE,ANON,{auth:{persistSession:false,detectSessionInUrl:false,autoRefreshToken:false}});}
 async function verifyPassword(email,pwd,uid){
- const client=authClient();let grant=false;
+ const client=authClient();let grant=false,proofToken=null;
  try{
   const {data,error}=await client.auth.signInWithPassword({email,password:pwd});
-  if(error||data?.user?.id!==uid||!data?.session?.access_token||
+  // Auth may issue a fresh server-side session even when the response user,
+  // token pair or refresh credentials are malformed. Track that exact token.
+  if(typeof data?.session?.access_token==='string'&&data.session.access_token)
+   proofToken=data.session.access_token;
+  if(error||data?.user?.id!==uid||!proofToken||
      !data.session.refresh_token)return null;
-  const {data:verified,error:bad}=await client.auth.getUser(data.session.access_token);
+  const {data:verified,error:bad}=await client.auth.getUser(proofToken);
   if(bad||verified?.user?.id!==uid||verified.user.is_anonymous===true)
    return null;
   grant=true;
   return data.session;
  }catch{return null;}
  finally{
-  if(!grant){try{await client.auth.signOut({scope:'local'});}catch{}}
+  if(!grant&&proofToken){
+   // A transient Auth client has no persisted session to reliably sign out.
+   // Revoke only the newly issued JWT; never sign out existing sessions.
+   // A failed revocation must surface as a reconciliation-required error.
+   try{
+    const {error}=await admin.auth.admin.signOut(proofToken,'local');
+    if(error)throw Error('n10_auth_session_reconciliation_required');
+   }catch{throw Error('n10_auth_session_reconciliation_required');}
+  }
  }
 }
 async function findProductionUser(username,allowLinkedEmail=false){
