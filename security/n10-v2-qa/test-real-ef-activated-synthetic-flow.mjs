@@ -22,7 +22,7 @@ const WORDLIST=Array.from({length:2048},(_,i)=>{
 });
 assert.equal(new Set(WORDLIST).size,2048);
 
-function fakeWorld({failEscrow=false,revokeOnVaultRead=false,revokeOnStatusRead=false,malformedAuthResponse=false,closeGateOnSignin=false}={}){
+function fakeWorld({failEscrow=false,revokeOnVaultRead=false,revokeOnStatusRead=false,malformedAuthResponse=false,closeGateOnSignin=false,failPasswordProofSignout=false}={}){
  const users=new Map(),byEmail=new Map(),slotOwners=new Map(),claims=new Set();
  const backups=new Map(),sessions=new Map(),tokens=new Map(),verifiedFactors=new Set(),events=[];
  let handlerCount=0,gateOpen=true,closeOnNextSignin=closeGateOnSignin;
@@ -111,6 +111,8 @@ function fakeWorld({failEscrow=false,revokeOnVaultRead=false,revokeOnStatusRead=
      return {data:{user:u,session},error:null};
     },
     signOut:async()=>{
+     if(failPasswordProofSignout&&localSessionId)
+      return {error:{message:'synthetic local sign-out failed'}};
      if(localSessionId){
       const issued=sessions.get(localSessionId);
       if(issued)issued.live=false;
@@ -464,4 +466,24 @@ test('revoked AAL2 session during backup-status read never reveals backup existe
  assert.equal(status.words,undefined);
  assert.equal(x.backups.get(e.user_id),e.recovery_words.join(' '),
   'original fixed escrow must remain unchanged');
+});
+
+test('correct password but failed temporary-session sign-out cannot reveal fixed words',async()=>{
+ const x=fakeWorld({failPasswordProofSignout:true});
+ const e=await x.invoke(x.signup,{
+  action:'signup',username:'n10real_e_20261104',password:PWD_E,
+  captcha_token:'signup-password-proof-cleanup-fail'
+ });
+ assert.equal(e.status,200,'first-session escrow and signup stay unchanged');
+ const valid=x.mintAAL2(e.user_id);
+ const status=await x.invoke(x.viewer,{action:'status'},valid.access_token);
+ assert.equal(status.status,200,'owner and AAL2 are valid before proof failure');
+ assert.equal(status.backed_up,true);
+ const denied=await x.invoke(x.viewer,{action:'reveal',password:PWD_E},valid.access_token);
+ assert.equal(denied.status,401,'unclosed proof session must fail closed');
+ assert.equal(denied.code,'invalid_credentials');
+ assert.equal(denied.words,undefined);
+ assert.equal(denied.recovery_words,undefined);
+ assert.equal(x.backups.get(e.user_id),e.recovery_words.join(' '),
+  'escrow remains unchanged after sign-out failure');
 });
