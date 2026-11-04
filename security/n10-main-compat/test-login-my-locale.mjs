@@ -22,7 +22,7 @@ test('language controls expose English, Chinese and Burmese without changing log
   assert.match(html,/window\.getMMHVAULTLanguage=\(\)=>currentLang/);
   assert.match(html,/\['en','zh','my'\]\.includes\(lang\)/);
   assert.match(html,/mmhvault_language_v3363/);
-  assert.match(html,/mmhvault\\.landing\\.language/);
+  assert.ok(html.includes('mmhvault.landing.language'));
   assert.match(html,/\.n10-mfa-eyebrow/);
   assert.match(html,/\.n10-mfa-footnote/);
   assert.match(username,/const tr=\(zh,en\)=>\{const lang=window\.getMMHVAULTLanguage/);
