@@ -42,6 +42,10 @@ const csp=[
 "connect-src https://"+STAGING_HOST+"/auth/v1/token"+
   " https://"+STAGING_HOST+"/auth/v1/user"+
   " https://"+STAGING_HOST+"/auth/v1/logout"+
+  // Auth MFA factor inventory read and TOTP challenge/verify are needed by
+  // the native finance AAL gate. This is Auth-Staging ONLY, not N10 Edge.
+  " https://"+STAGING_HOST+"/auth/v1/factors"+
+  " https://"+STAGING_HOST+"/auth/v1/factors/"+
   " https://"+STAGING_HOST+"/rest/v1/transactions"+
   " https://"+STAGING_HOST+"/rest/v1/personal_configuration"+
   " https://"+STAGING_HOST+"/rest/v1/investments"+
@@ -138,7 +142,7 @@ fs.writeFileSync(path.join(out,'README-STAGING-QA.txt'),[
 'On macOS: in Terminal cd to this extracted directory and run:',
 '    python3 -m http.server 8769 --bind 127.0.0.1',
 'Then open http://127.0.0.1:8769/app.html',
-'The Content Security Policy permits only Staging Auth session requests',
+'The Content Security Policy permits Staging Auth session and MFA factor verification',
 'and REST calls to transactions / personal_configuration / investments /',
 'custom_investments / crypto_wallet_movements (last three SELECT only).',
 'All other API paths, including N10 MFA/recovery and Production, are blocked.',
