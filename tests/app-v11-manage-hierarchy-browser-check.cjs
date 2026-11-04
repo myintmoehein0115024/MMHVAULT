@@ -18,6 +18,19 @@ const say=(condition,label)=>{assert.ok(condition,label);console.log('PASS '+lab
       page.on('pageerror',err=>errors.push(err.message));
       const resp=await page.goto(base,{waitUntil:'load'});
       say(resp?.status()===200,width+' fixture served');
+      // Mirror the actual APP date input without altering finance fixtures.
+      await page.evaluate(()=>{
+        const lbl=document.createElement('label'),date=document.createElement('input');
+        lbl.textContent='Date';date.id='txDate';date.type='date';date.value='2026-11-04';
+        lbl.append(date);document.getElementById('txForm').prepend(lbl);
+      });
+      say(await page.evaluate(()=>{
+        const date=document.getElementById('txDate');
+        const outer=date.closest('label').getBoundingClientRect();
+        const inner=date.getBoundingClientRect();
+        return inner.width>0&&inner.left>=outer.left-1&&inner.right<=outer.right+1&&
+          inner.right<=window.innerWidth+1&&getComputedStyle(date).minWidth==='0px';
+      }),width+' localized-date input remains within its own label and viewport');
       await page.waitForSelector('#mmhHierarchyManage .mmh-hier-card');
       const cards=page.locator('.mmh-hier-card');
       say(await cards.count()===3,width+' three Manage cards');
@@ -31,6 +44,13 @@ const say=(condition,label)=>{assert.ok(condition,label);console.log('PASS '+lab
         await page.locator('#txType option').count()===0&&
         await page.locator('#txForm .actions button').isDisabled(),
         width+' Expense shortcut does not create a Type or enable Save');
+      say(await page.locator('#mmhHierarchyEntryGuide button').textContent().then(x=>x.includes('Type')),
+        width+' empty direction prompts owner to Add Type');
+      await page.locator('#mmhHierarchyEntryGuide button').click();
+      say(await page.locator('.mmh-hier-dialog').isVisible()&&
+        (await page.locator('.mmh-hier-dialog h3').textContent()).includes('Type'),
+        width+' missing Type prompt opens scoped Manage Type modal');
+      await page.keyboard.press('Escape');
       await directions.nth(1).click();
       say(await directions.nth(1).getAttribute('aria-pressed')==='false',
         width+' selecting the same shortcut again restores all owner Types');
@@ -67,17 +87,38 @@ const say=(condition,label)=>{assert.ok(condition,label);console.log('PASS '+lab
       await dlg.getByRole('button',{name:'Save'}).click();
       say((await cards.nth(0).textContent()).includes('Income (+)'),
         width+' Type saved with visible positive balance direction');
+      say(await dlg.locator('header').evaluate(el=>{
+        const css=getComputedStyle(el);
+        return css.backgroundImage.includes('gradient')&&css.borderRadius!=='0px';
+      })&&await dlg.getByRole('button',{name:'+ Add Type'}).evaluate(el=>
+        parseFloat(getComputedStyle(el).marginTop)>=18),
+        width+' Manage modal has liquid-glass header and breathing room above Add Type');
       await dlg.locator('header button').click();
       await directions.nth(1).click();
       say(await page.locator('#txType option').count()===0&&
         (await page.locator('#mmhHierarchyEntryGuide').textContent()).includes('for this direction'),
         width+' Expense shortcut shows only owner-configured Expense Types');
       await directions.nth(0).click();
-      say(await page.locator('#txType option').count()===2&&
-        await page.locator('#txType').inputValue()===''&&
+      say(await page.locator('#txType option').count()===1&&
+        await page.locator('#txType').inputValue()==='Income'&&
+        await page.locator('#txGroup option').count()===0&&
+        await page.locator('#mmhHierarchyEntryGuide button').textContent().then(x=>x.includes('Transaction'))&&
         await page.locator('#txForm .actions button').isDisabled(),
-        width+' Income shortcut filters choices without auto-selecting Type or saving');
+        width+' Income shortcut picks available Type but prompts missing Transaction, no Save');
       await directions.nth(0).click();
+      say(await page.evaluate(()=>!['txType','txGroup','txCategory']
+        .includes(document.activeElement?.id||'')),
+        width+' direction shortcut never focuses/opens a native selector');
+      for(const id of ['txType','txGroup','txCategory']){
+        const label=page.locator('label:has(> #'+id+')');
+        const bounds=await label.boundingBox();
+        assert.ok(bounds,width+' '+id+' label remains visible');
+        // Real pointer click: Playwright locator.click rejects an enclosing label
+        // when its native select is intentionally disabled (even at blank edges).
+        await page.mouse.click(bounds.x+5,bounds.y+5);
+        say(await page.evaluate(id=>document.activeElement?.id!==id,id),
+          width+' adjacent '+id+' label click does not invoke native picker');
+      }
       // Step 2: Transaction assigned to Income.
       await cards.nth(1).getByRole('button',{name:'Manage'}).click();
       dlg=page.locator('.mmh-hier-dialog');
@@ -99,6 +140,8 @@ const say=(condition,label)=>{assert.ok(condition,label);console.log('PASS '+lab
       await dlg.locator('header button').click();
       await page.locator('#txType').selectOption({label:'Income'});
       await page.locator('#txGroup').selectOption({label:'Income2'});
+      say((await page.locator('#mmhHierarchyEntryGuide button').textContent()).includes('Category'),
+        width+' Type and Transaction exist, inline prompt requests only Category');
       say((await page.locator('#mmhHierarchyCategoryHint').textContent()).includes('No linked Category yet'),
         width+' missing Category is explained without auto-seeding a preset');
       say(await page.locator('#txForm .actions button').isDisabled(),width+' Add remains blocked until Category exists');
@@ -122,9 +165,17 @@ const say=(condition,label)=>{assert.ok(condition,label);console.log('PASS '+lab
         .map(id=>[id,[...document.getElementById(id).options]
           .filter(x=>x.dataset.mmhChoiceId).map(x=>x.textContent)])));
       assert.deepEqual(options,{txType:['Income'],txGroup:['Income2'],txCategory:['Salary']});
+      say(await page.evaluate(()=>['txType','txGroup','txCategory'].every(id=>
+        [...document.getElementById(id).options].every(o=>o.dataset.mmhChoiceId&&
+          !/^Select (Type|Transaction|Category)/.test(o.textContent)))),
+        width+' native Add selectors contain only real choices, no Select Type prompt');
       say(true,width+' Add Transaction has exact linked Type, no ghost defaults');
       const save=page.locator('#txForm .actions button');
-      say(await save.isDisabled(),width+' new transaction cannot save before explicit choices');
+      say(await page.locator('#txType').inputValue()==='Income'&&
+        await page.locator('#txGroup').inputValue()==='Income'&&
+        await page.locator('#txCategory').inputValue()==='Salary'&&
+        await save.isEnabled(),
+        width+' newly added missing Category completes the already-selected owner path');
       await page.locator('#txType').selectOption({label:'Income'});
       await page.locator('#txGroup').selectOption({label:'Income2'});
       await page.locator('#txCategory').selectOption({label:'Salary'});
@@ -280,7 +331,9 @@ const say=(condition,label)=>{assert.ok(condition,label);console.log('PASS '+lab
       await dlg.getByRole('button',{name:'Save'}).click();
       say(await save.isEnabled(),width+' adding another Category preserves explicit Salary choice');
       await dlg.getByRole('button',{name:'Archive'}).first().click();
-      say(await page.locator('#txCategory').inputValue()==='',width+' archived selected Salary clears native Category');
+      say(await page.locator('#txCategory').inputValue()===''&&
+        await page.locator('#txCategory').evaluate(el=>el.selectedIndex===-1),
+        width+' archived selected Salary clears native Category without selecting another item');
       say(await save.isDisabled(),width+' Archive cannot silently recategorize next ledger insert to Bonus');
       const remaining=await page.locator('#txCategory option').allTextContents();
       say(remaining.includes('Bonus')&&!remaining.includes('Salary'),
@@ -547,14 +600,17 @@ const say=(condition,label)=>{assert.ok(condition,label);console.log('PASS '+lab
       }
       // The filters must never show unconfigured types for another
       // direction, or silently choose a Type when the button is pressed.
-      for(const [idx,expected,other] of [
-        [0,'MyPay','Type-Expense'],[1,'Type-Expense','MoveFunds'],[2,'MoveFunds','MyPay']
+      for(const [idx,expected,other,canonical] of [
+        [0,'MyPay','Type-Expense','Income'],
+        [1,'Type-Expense','MoveFunds','Expense'],
+        [2,'MoveFunds','MyPay','Transfer']
       ]){
         await dDirections.nth(idx).click();
         const names=await dpage.locator('#txType option').allTextContents();
         say(names.includes(expected)&&!names.includes(other)&&
-          (await dpage.locator('#txType').inputValue())==='',
-          'Fixed direction '+idx+' filters user choices without hidden presets');
+          (await dpage.locator('#txType').inputValue())===canonical&&
+          (await dpage.locator('#txGroup option').count())===0,
+          'Fixed direction '+idx+' auto-selects existing Type and prompts missing Transaction');
       }
       await dDirections.nth(2).click(); // Clear Transfer filter for legacy direct Type selection.
       for(const [typeName,transactionName,purposeGroup,sign] of [
@@ -582,6 +638,14 @@ const say=(condition,label)=>{assert.ok(condition,label);console.log('PASS '+lab
           transactionName+' stores expected native ledger group '+kind);
       }
       // An ordinary Transfer MUST have a user-created linked Category.
+      // Shortcut still picks Type and Transaction when Category is absent.
+      await dDirections.nth(2).click();
+      say(await dpage.locator('#txType').inputValue()==='Transfer'&&
+        await dpage.locator('#txGroup').inputValue()==='Transfer'&&
+        await dpage.locator('#txCategory option').count()===0&&
+        (await dpage.locator('#mmhHierarchyEntryGuide button').textContent()).includes('Category'),
+        'Transfer shortcut picks existing Type and Transaction, prompts missing Category');
+      await dDirections.nth(2).click(); // Clear only UI filter.
       // The native form must explain the missing link and enable Add only
       // after the full Type → Transaction → Category path exists.
       await dpage.locator('#txType').selectOption({label:'MoveFunds'});
@@ -644,6 +708,47 @@ const say=(condition,label)=>{assert.ok(condition,label);console.log('PASS '+lab
       say(await dpage.evaluate(()=>window.MMHVAULT_CONFIG.txHierarchyV11.transactions
         .some(t=>t.label==='Borrowed money'&&t.kindId==='Income|Loans')),
         'special Loan Income preserves positive Type direction and canonical purpose');
+      // UX V1: direction shortcut auto-picks the FIRST complete owner-linked
+      // path only after an explicit direction click; it never writes data.
+      for(const [typeLabel,txLabel,catLabel] of [
+        ['MyPay','Monthly Pay','Salary'],['Type-Expense','Shopping','Groceries']
+      ]){
+        await dCards.nth(2).getByRole('button',{name:'Manage'}).click();
+        const cd=dpage.locator('.mmh-hier-dialog');
+        await cd.getByRole('button',{name:'+ Add Category'}).click();
+        await cd.locator('input[type=text]').fill(catLabel);
+        await cd.locator('select').selectOption({label:typeLabel+' → '+txLabel});
+        await cd.getByRole('button',{name:'Save'}).click();
+        await cd.locator('header button').click();
+      }
+      const beforeAutoWrites=await dpage.evaluate(()=>window.__syntheticWrites);
+      for(const [directionIndex,ledgerType,group,category] of [
+        [0,'Income','Income','Salary'],[1,'Expense','Expense','Groceries'],
+        [2,'Transfer','Transfer','Transfer']
+      ]){
+        await dDirections.nth(directionIndex).click();
+        say(await dpage.locator('#txType').inputValue()===ledgerType&&
+          await dpage.locator('#txGroup').inputValue()===group&&
+          await dpage.locator('#txCategory').inputValue()===category,
+          'Shortcut '+ledgerType+' auto-selects first complete owner-created path');
+      }
+      say(await dpage.evaluate(()=>window.__syntheticWrites)===beforeAutoWrites,
+        'direction auto-selection makes no settings or ledger writes');
+      // A later form refresh must not clobber a human-selected category.
+      await dDirections.nth(0).click();
+      await dCards.nth(2).getByRole('button',{name:'Manage'}).click();
+      {
+        const cd=dpage.locator('.mmh-hier-dialog');
+        await cd.getByRole('button',{name:'+ Add Category'}).click();
+        await cd.locator('input[type=text]').fill('Manual Bonus');
+        await cd.locator('select').selectOption({label:'MyPay → Monthly Pay'});
+        await cd.getByRole('button',{name:'Save'}).click();
+        await cd.locator('header button').click();
+      }
+      await dpage.locator('#txCategory').selectOption({label:'Manual Bonus'});
+      await dpage.evaluate(()=>window.MMHV11HierarchyLive.refresh());
+      say(await dpage.locator('#txCategory').inputValue()==='Manual Bonus',
+        'manual Category remains selected on unrelated UI refresh');
       say(consoleErrors.length===0,
         'positive, negative, transfer and special-purpose QA has no script errors');
       await directionContext.close();
