@@ -21,7 +21,7 @@ const PROD='https://vrypucmyrztxgiqhjspd.supabase.co';
   await page.route('https://cdn.jsdelivr.net/**',route=>route.abort());
   await page.route(STAGE+'/**',route=>{
     const u=new URL(route.request().url());
-    if(/^(\/auth\/v1\/(token|user|logout)|\/rest\/v1\/(transactions|personal_configuration|investments|custom_investments|crypto_wallet_movements))$/.test(u.pathname)){
+    if(/^(\/auth\/v1\/(token|user|logout)|\/rest\/v1\/(transactions|personal_configuration|investments|custom_investments|crypto_wallet_movements)|\/rest\/v1\/rpc\/mmh_personal_account_balance)$/.test(u.pathname)){
       allowedAPI.push(u.pathname);
       return route.fulfill({status:200,headers:{'access-control-allow-origin':'*',
         'content-type':'application/json'},body:'[]'});
@@ -48,7 +48,9 @@ const PROD='https://vrypucmyrztxgiqhjspd.supabase.co';
       config:await attempt('https://ldivswlhtgmznzwhzsoi.supabase.co/rest/v1/personal_configuration?select=user_id'),
       investments:await attempt('https://ldivswlhtgmznzwhzsoi.supabase.co/rest/v1/investments?select=id'),
       customInvestments:await attempt('https://ldivswlhtgmznzwhzsoi.supabase.co/rest/v1/custom_investments?select=id'),
-      wallet:await attempt('https://ldivswlhtgmznzwhzsoi.supabase.co/rest/v1/crypto_wallet_movements?select=id')
+      wallet:await attempt('https://ldivswlhtgmznzwhzsoi.supabase.co/rest/v1/crypto_wallet_movements?select=id'),
+      balanceRpc:await attempt('https://ldivswlhtgmznzwhzsoi.supabase.co/rest/v1/rpc/mmh_personal_account_balance'),
+      otherRpc:await attempt('https://ldivswlhtgmznzwhzsoi.supabase.co/rest/v1/rpc/other_private_rpc')
     };
   });
   assert.equal(proof.prod,false,'Production data host blocked by CSP');
@@ -58,13 +60,16 @@ const PROD='https://vrypucmyrztxgiqhjspd.supabase.co';
   assert.equal(proof.investments,true,'Approved owner-read-only Staging investments endpoint allowed');
   assert.equal(proof.customInvestments,true,'Approved owner-read-only custom investments endpoint allowed');
   assert.equal(proof.wallet,true,'Approved owner-read-only wallet movements endpoint allowed');
+  assert.equal(proof.balanceRpc,true,'Owner-scoped Staging balance RPC reachable');
+  assert.equal(proof.otherRpc,false,'Other RPCs blocked by CSP');
   assert.deepEqual(forbiddenNet,[],'browser sent no request to disallowed API origin or path');
   assert.ok(allowedAPI.includes('/rest/v1/transactions'));
   assert.ok(allowedAPI.includes('/rest/v1/personal_configuration'));
+  assert.ok(allowedAPI.includes('/rest/v1/rpc/mmh_personal_account_balance'));
   for(const table of ['investments','custom_investments','crypto_wallet_movements'])
     assert.ok(allowedAPI.includes('/rest/v1/'+table),
       'approved Staging-only boot REST route must be requested: '+table);
-  console.log('PASS APP V11.7 Chrome local full APP staging CSP smoke — Production/N10 blocked; exactly five finance REST routes');
+  console.log('PASS APP V11.7 Chrome local full APP staging CSP smoke — Production/N10 blocked; five finance REST routes and exactly one balance RPC');
 
   // Reproduce the real native signed-out route: app.html -> login.html.
   // The Pages build MUST ship a proper login.html rather than falling back
