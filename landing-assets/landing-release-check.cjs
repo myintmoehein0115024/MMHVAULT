@@ -271,9 +271,12 @@ const l162CssPatch="\n/* L1.62 — public breadcrumb labels must wrap inside nar
 const l162OldCssLink="<link rel=\"stylesheet\" href=\"/landing-assets/public-pages.css\">";
 const l162NewCssLink="<link rel=\"stylesheet\" href=\"/landing-assets/public-pages.css?v=l162\">";
 const l162RestoreCss=(html)=>html.replace(l162NewCssLink,l162OldCssLink);
-const l162CssOnlyEdited=()=>
+const l163NewCssLink="<link rel=\"stylesheet\" href=\"/landing-assets/public-pages.css?v=l163\">";
+const l163RestoreCss=(html)=>html.replace(l163NewCssLink,l162NewCssLink);
+const l163FooterCssPatch="\n/* L1.63 — minimum 44px touch targets for public footer navigation on phones.\n   Keep the desktop footer and all page content, links, language strings intact. */\n@media (max-width: 620px) {\n  body.public-landing-page .public-footer-group {\n    min-width: 0;\n    gap: 5px;\n  }\n  body.public-landing-page .public-footer-group strong {\n    max-width: 100%;\n    overflow-wrap: anywhere;\n  }\n  body.public-landing-page .public-footer-group a {\n    box-sizing: border-box;\n    display: flex;\n    align-items: center;\n    width: 100%;\n    min-width: 0;\n    min-height: 44px;\n    padding: 8px;\n    border-radius: 10px;\n    overflow-wrap: anywhere;\n  }\n  body.public-landing-page .public-footer-group a span {\n    min-width: 0;\n    overflow-wrap: anywhere;\n  }\n  body.public-landing-page .public-footer-bottom > a {\n    display: inline-flex;\n    align-items: center;\n    max-width: 100%;\n    min-height: 44px;\n    padding: 8px;\n    border-radius: 10px;\n    overflow-wrap: anywhere;\n  }\n}\n";
+const l163FooterCssOnlyEdited=()=>
   read('landing-assets/public-pages.css')===
-    source('landing-assets/public-pages.css')+l162CssPatch;
+    source('landing-assets/public-pages.css')+l163FooterCssPatch;
 const l160PublicRemovals=[" * Read-only presentation: no auth, fetch, history/URL rewrites or finance data.\n"," * Header markup and shared-header-l116.css are identical across public pages.\n","  // L1.26: return focus to a visible trigger when dismissing compact\n","  // navigation, Explore or the language picker on any public page.\n","    // A collapsed Explore inside the mobile menu must not close the menu too.\n"];
 const l160PublicMarker="      mq.addEventListener?mq.addEventListener('change',bind):mq.addListener?.(bind);\n";
 const l160PublicAddition="      // L1.60: settle pending reveals.\n      const reduced=matchMedia('(prefers-reduced-motion: reduce)');\n      const settle=()=>{\n        if(!reduced.matches)return;\n        io.disconnect();\n        for(const el of targets)el.classList.add('mm-public-shown');\n      };\n      reduced.addEventListener?reduced.addEventListener('change',settle):reduced.addListener?.(settle);\n";
@@ -730,7 +733,7 @@ check('Seven public pages inherit exact Landing header structure, icons and drop
      html.includes(cssNew) && old.includes(cssNew) &&
      // L1.16 already shipped; protect its header, page body and SEO
      // byte-for-byte, allowing ONLY the two localized summary blocks.
-     restoreOldLocalizedSummary(path,l158RestoreScript(l162RestoreCss(html)),old)===old &&
+     restoreOldLocalizedSummary(path,l158RestoreScript(l163RestoreCss(html)),old)===old &&
      (h.match(/<details class="nav-explore"/g)||[]).length===1 &&
      (h.match(/class="mobile-nav-auth"/g)||[]).length===1 &&
      (h.match(/class="locale-menu"/g)||[]).length===1;
@@ -801,7 +804,7 @@ check('L1.20 canonical, named WebPage and breadcrumb structured data are accurat
      breadcrumb.itemListElement?.[0]?.item!=='https://mmhvault.com/' ||
      breadcrumb.itemListElement?.[1]?.item!==url)return false;
   }else if(!head.includes('"@type":"BreadcrumbList"'))return false;
-  return l158RestoreScript(l162RestoreCss(html))===source(path);
+  return l158RestoreScript(l163RestoreCss(html))===source(path);
  }));
 check('L1.23 lightweight scroll reveals are opacity+transform only, motion access preserved',
  read('landing-assets/motion-l132.css').includes('L1.23: compositor-friendly') &&
@@ -829,7 +832,7 @@ check('L1.27 public tab title matches SEO without language focus scroll',
  l133PublicPagesUnchanged() &&
  l142IndexOnlyEdited() && current.includes(newHeroPreload) &&
  !current.includes(oldHeroPreload));
-check('L1.62 strict ten-file public breadcrumb CSS only; SEO/Analytics unchanged',
+check('L1.63 strict ten-file public footer accessibility only; SEO/Analytics unchanged',
   actual.length===10 &&
   actual.every(path=>[
     'landing-assets/public-pages.css',
@@ -839,10 +842,10 @@ check('L1.62 strict ten-file public breadcrumb CSS only; SEO/Analytics unchanged
   ].includes(path)) &&
   publicHeaders.every(path=>{
     const old=source(path);
-    return old.split(l162OldCssLink).length===2 &&
-      read(path)===old.replace(l162OldCssLink,l162NewCssLink);
+    return old.split(l162NewCssLink).length===2 &&
+      read(path)===old.replace(l162NewCssLink,l163NewCssLink);
   }) &&
-  l162CssOnlyEdited() &&
+  l163FooterCssOnlyEdited() &&
   l139PublicOnlyEdited() && l139MotionOnlyEdited() &&
   current===prev && analyticsAddition.test(rawCurrent) &&
   l142IndexOnlyEdited() && l133BurmeseLayoutOnlyEdited() &&
@@ -1075,7 +1078,7 @@ check('L1.40 phone scroll reveals prewarm outside viewport without layout edits'
  !l139PublicInsertion.includes('preventDefault(') &&
  l148LandingJsOnlyEdited() &&
  read('landing-assets/motion-l132.css')===source('landing-assets/motion-l132.css') &&
- l162CssOnlyEdited() &&
+ l163FooterCssOnlyEdited() &&
  l142IndexOnlyEdited());
 check('L1.28 shared header motion remains unchanged and accessible',
  l135HeaderCssOnlyEdited() &&
