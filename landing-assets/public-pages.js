@@ -1,6 +1,4 @@
 /* L1.16 — Public-only translations and exact Landing-header interactions.
- * Read-only presentation: no auth, fetch, history/URL rewrites or finance data.
- * Header markup and shared-header-l116.css are identical across public pages.
  */
 (() => {
   'use strict';
@@ -37,8 +35,6 @@
       header?.classList.contains('menu-open')?navToggleLabels[locale].close:navToggleLabels[locale].open);
   }
 
-  // L1.26: return focus to a visible trigger when dismissing compact
-  // navigation, Explore or the language picker on any public page.
   function closeExplore(restoreFocus=false){
     if(!explore?.open)return;
     const focusedInside=explore.contains(document.activeElement)&&
@@ -140,7 +136,6 @@
       if(!event.target.closest('.locale-picker'))closeLanguage();
     });
     // L1.22: dismiss one header layer per Escape, keeping focus visible.
-    // A collapsed Explore inside the mobile menu must not close the menu too.
     document.addEventListener('keydown',event=>{
       if(event.key!=='Escape')return;
       if(!menu.hidden){
@@ -218,6 +213,14 @@
       }
       bind();
       mq.addEventListener?mq.addEventListener('change',bind):mq.addListener?.(bind);
+      // L1.60: settle pending reveals.
+      const reduced=matchMedia('(prefers-reduced-motion: reduce)');
+      const settle=()=>{
+        if(!reduced.matches)return;
+        io.disconnect();
+        for(const el of targets)el.classList.add('mm-public-shown');
+      };
+      reduced.addEventListener?reduced.addEventListener('change',settle):reduced.addListener?.(settle);
     }
   }
 })();
