@@ -143,7 +143,7 @@ export function createHierarchyController(host){
       canonicalCategory(ctx,node);return node;
     }),
     rename:(field,id,name)=>transact(ctx=>{
-      const previous=field==='category'?clone(ctx.graph.categories.find(x=>x.id===id)):null;
+      const previous=field==='category'?{...(ctx.graph.categories.find(x=>x.id===id)||{})}:null;
       const node=renameItem(ctx.graph,ctx.owner,field,id,name,ctx.rows);
       if(field==='category'){
         dropUnusedCanonicalCategory(ctx,previous,id);
@@ -152,7 +152,7 @@ export function createHierarchyController(host){
       return node;
     }),
     delete:(field,id)=>transact(ctx=>{
-      const previous=field==='category'?clone(ctx.graph.categories.find(x=>x.id===id)):null;
+      const previous=field==='category'?{...(ctx.graph.categories.find(x=>x.id===id)||{})}:null;
       const removed=deleteItem(ctx.graph,ctx.owner,field,id,ctx.rows);
       if(field==='category')dropUnusedCanonicalCategory(ctx,previous);
       return removed;
