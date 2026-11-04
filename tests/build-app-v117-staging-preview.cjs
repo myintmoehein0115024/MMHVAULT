@@ -35,7 +35,8 @@ const csp=[
 "default-src 'self'","base-uri 'self'","form-action 'self'",
 "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net",
 "style-src 'self' 'unsafe-inline'",
-// Only login/session lookup and the FIVE approved empty Staging finance tables are callable.
+// Only Auth session/MFA, five approved finance tables and ONE Staging-only
+// owner-verified balance-check RPC are callable; everything else stays blocked.
 // The three new investment/wallet boot tables are AUTHENTICATED SELECT-ONLY.
 // N10 Edge Functions, MFA/recovery, storage changes, other business APIs and
 // production origins are out of scope and must be network-blocked.
@@ -50,7 +51,10 @@ const csp=[
   " https://"+STAGING_HOST+"/rest/v1/personal_configuration"+
   " https://"+STAGING_HOST+"/rest/v1/investments"+
   " https://"+STAGING_HOST+"/rest/v1/custom_investments"+
-  " https://"+STAGING_HOST+"/rest/v1/crypto_wallet_movements",
+  " https://"+STAGING_HOST+"/rest/v1/crypto_wallet_movements"+
+  // Explicit owner approval 2026-11-04: native Expense/Transfer requires
+  // this single SECURITY INVOKER balance RPC, never allow /rest/v1/rpc/*.
+  " https://"+STAGING_HOST+"/rest/v1/rpc/mmh_personal_account_balance",
 "img-src 'self' data: blob: https://"+STAGING_HOST,
 "font-src 'self' data:","object-src 'none'","frame-src 'none'",
 "worker-src 'none'","manifest-src 'none'"
@@ -144,8 +148,9 @@ fs.writeFileSync(path.join(out,'README-STAGING-QA.txt'),[
 'Then open http://127.0.0.1:8769/app.html',
 'The Content Security Policy permits Staging Auth session and MFA factor verification',
 'and REST calls to transactions / personal_configuration / investments /',
-'custom_investments / crypto_wallet_movements (last three SELECT only).',
-'All other API paths, including N10 MFA/recovery and Production, are blocked.',
+'custom_investments / crypto_wallet_movements (last three SELECT only),',
+'plus the single owner-checked balance RPC for Expense and Transfer saves.',
+'All other API paths/RPCs, including N10 MFA/recovery and Production, are blocked.',
 'Local service workers, embedded frames and other origins are blocked.',
 'If login/incomplete features fail due to these restrictions, report it;',
 'DO NOT loosen the Staging-only connection policy or enter real account data.',
