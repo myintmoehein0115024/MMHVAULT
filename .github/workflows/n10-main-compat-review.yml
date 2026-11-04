@@ -78,6 +78,8 @@ jobs:
         run: node --test security/n10-production-vault-review/test-schema-contract.mjs
       - name: Validate isolated V2 E/F rehearsal SQL (offline only)
         run: node --test security/n10-v2-qa/test-staging-contract.mjs
+      - name: Validate real E/F Staging preparation contract (offline only)
+        run: node --test security/n10-v2-qa/test-real-ef-preparation-contract.mjs
       - name: Deno type-check read-only Production Vault review
         run: deno check --config security/n10-username-escrow-candidate/deno-review.json security/n10-production-vault-review/index.ts
       - name: Live Staging Edge rejection smoke (no credentials or writes)
