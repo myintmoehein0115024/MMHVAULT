@@ -376,7 +376,12 @@ function form(){
     put(c,cats,selection.category,'category');selection.category=selected(c);
     for(const s of [t,g,c])s.disabled=!s.options.length;
     if(typeof updateAccountLocks==='function'&&types.length)updateAccountLocks();
-    if(save)save.disabled=cloudConflict||!valid();
+    // V321 native saving and V344 balance protection own separate locks.
+    // Never re-enable their shared button while a transaction is in flight
+    // or a funding account lacks enough money, even when Manage is valid.
+    if(save)save.disabled=cloudConflict||!valid()||
+      save.classList.contains('v321-submit-busy')||
+      save.classList.contains('balance-blocked');
   }catch(error){
     console.warn('[MMHVAULT] Hierarchy form unavailable',error);
     for(const s of [t,g,c]){s.replaceChildren();s.disabled=true;}
@@ -536,6 +541,14 @@ function boot(){
       form();
     },true);
     f.addEventListener('submit',e=>{
+      // The native V321 wrapper rejects a second submit while busy. Its
+      // capture listener must agree: otherwise a rejected second click can
+      // overwrite the first confirmed INSERT's pending Manage path.
+      const submit=f.querySelector('button[type="submit"]');
+      if(submit?.classList.contains('v321-submit-busy')||
+         submit?.classList.contains('balance-blocked')){
+        e.preventDefault();e.stopImmediatePropagation();return;
+      }
       if(!valid()){
         e.preventDefault();e.stopImmediatePropagation();
         if(cloudConflict){notify(tr('Manage changes are paused until sync conflict is resolved.',
