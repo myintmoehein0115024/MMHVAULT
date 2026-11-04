@@ -128,6 +128,38 @@ const say=(condition,label)=>{assert.ok(condition,label);console.log('PASS '+lab
         window.__syntheticWrites===4&&window.__messages.some(m=>
           m.text.includes('Manage choices could not be verified'))),
         width+' unmatched sidecar callback refreshes saved ledger without duplicate config or transaction');
+      // The Manage sidecar confirmation is intentionally stalled. Two rapid
+      // native confirmed INSERT callbacks must still refresh in sequence,
+      // without waiting for sidecar verification or replaying either INSERT.
+      await page.evaluate(()=>{
+        window.__syntheticSavedIds.push('fixture-saved-ledger-43','fixture-saved-ledger-44');
+        window.MMHConfigCloudSyncV122.syncNow=()=>new Promise(()=>{});
+        window.__holdRefresh=true;
+        const originalLoad=window.loadAll;
+        window.loadAll=async options=>{
+          if(window.__holdRefresh){
+            window.__holdRefresh=false;
+            await new Promise(resolve=>{window.__releaseHeldRefresh=resolve;});
+          }
+          return originalLoad(options);
+        };
+        const f=document.getElementById('txForm');
+        for(const id of ['fixture-saved-ledger-43','fixture-saved-ledger-44']){
+          f.dispatchEvent(new Event('submit',{bubbles:true,cancelable:true}));
+          window.MMHV11HierarchyLive.onLedgerInserted('fixture-A',id,
+            {type:'Income',group:'Income',category:'Salary'});
+        }
+      });
+      await page.waitForFunction(()=>typeof window.__releaseHeldRefresh==='function');
+      say(await page.evaluate(()=>window.__syntheticLedgerRefreshes===3),
+        width+' only one queued cloud read starts while previous is held');
+      await page.evaluate(()=>window.__releaseHeldRefresh());
+      await page.waitForFunction(()=>window.__syntheticLedgerRefreshes===5);
+      say(await page.evaluate(()=>
+        window.transactions.length===3&&
+        window.__syntheticSavedIds.every(id=>window.transactions.some(x=>x.id===id))&&
+        window.__syntheticWrites===6),
+        width+' two rapid confirmed inserts refresh Accounts source despite stalled Manage cloud sync');
       // Mobile/tablet/desktop dialog must fit without horizontal scrolling.
       await cards.nth(2).getByRole('button',{name:'Manage'}).click();
       const fit=await page.evaluate(()=>{
@@ -154,7 +186,7 @@ const say=(condition,label)=>{assert.ok(condition,label);console.log('PASS '+lab
       say(await save.isEnabled(),width+' explicitly selecting Bonus re-enables Save');
       await dlg.getByRole('button',{name:'Archive'}).last().click();
       say(await page.locator('#txCategory option').count()===0,width+' all archived Categories hidden from Add Transaction');
-      say((await page.evaluate(()=>window.__syntheticWrites))===7,width+' seven synthetic config writes including safe retry and two Archives');
+      say((await page.evaluate(()=>window.__syntheticWrites))===9,width+' nine synthetic config writes including two extra ledger links and two Archives');
       await page.keyboard.press('Escape');
       // Interface language follows page preference for the cards.
       await page.evaluate(()=>{
