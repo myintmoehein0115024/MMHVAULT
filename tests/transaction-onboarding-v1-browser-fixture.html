@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow">
+<title>MMHVAULT onboarding synthetic no-backend fixture</title>
+<link rel="stylesheet" href="../css/mmhvault-transaction-onboarding-v1.css">
+<style>
+body{margin:0;min-height:100vh;background:linear-gradient(150deg,#08111f,#192c42);color:#f0e6d1;font:15px system-ui}
+.page{max-width:1100px;margin:auto;padding:22px;box-sizing:border-box}
+nav{display:flex;gap:12px;flex-wrap:wrap}
+button{cursor:pointer}
+nav button,.mmh-hier-card button{background:#243c57;border:1px solid #a88949;color:#f9ebca;border-radius:10px;padding:12px 15px;min-height:42px}
+#mmhHierarchyManage{margin-top:25px;padding:22px;background:#17273d;border:1px solid #947342;border-radius:18px}
+.mmh-hier-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.mmh-hier-card{padding:18px;background:#23354e;border-radius:14px;min-height:90px}
+#txForm{margin:25px 0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+#txForm label{display:grid;gap:7px}
+#txForm input{min-height:40px}
+@media(max-width:690px){.mmh-hier-cards{grid-template-columns:1fr}.page{padding:12px}}
+</style></head><body>
+<section id="transactions" class="page active">
+  <header><h1>Transactions</h1><div class="mmh-tx-hero-actions-v3"></div></header>
+  <nav>
+    <button type="button" class="mmh-glass-tx-nav-manage-v1">Manage</button>
+    <button type="button" class="mmh-glass-tx-nav-add-v1">Add Transaction</button>
+  </nav>
+  <div id="txManagePanel" hidden style="display:none">
+    <div id="mmhManagerCategoriesPanelV445">
+      <section id="mmhHierarchyManage">
+        <div class="mmh-hier-cards">
+          <article class="mmh-hier-card"><h3>Type</h3><button id="fixtureCreateType">Create Type</button></article>
+          <article class="mmh-hier-card"><h3>Transaction</h3><button id="fixtureCreateTransaction">Create Transaction</button></article>
+          <article class="mmh-hier-card"><h3>Category</h3><button id="fixtureCreateCategory">Create Category</button></article>
+        </div>
+      </section>
+    </div>
+  </div>
+  <div id="txAddPanel">
+    <form id="txForm">
+      <label>Type<input value=""></label>
+      <label>Amount<input value=""></label>
+      <div class="actions"><button type="submit">Save</button></div>
+    </form>
+  </div>
+</section>
+<script>
+var currentSessionUser={id:'11111111-1111-4111-8111-111111111111'};
+var MMHVAULT_CONFIG_OWNER=currentSessionUser.id;
+var MMHVAULT_CONFIG={accounts:[],txHierarchyV11:null,
+  txFieldsV12:{version:1,type:[],transaction:[],category:[]},categories:{},archivedCategories:{}};
+window.mmhWalletDataOwnerV191=currentSessionUser.id;
+window.transactions=[];
+window.__fixtureFinancePosts=0;
+window.showTxTab=function(tab){
+  const p=document.getElementById('txManagePanel');
+  p.hidden=tab!=='manage';p.style.display=tab==='manage'?'block':'none';
+  document.getElementById('txAddPanel').hidden=tab!=='add';
+  window.dispatchEvent(new Event('mmhvault:page-visible'));
+};
+window.mmhTxPagePickerOpenCategoriesV3=()=>window.showTxTab('manage');
+window.mmhOpenManagerV1=(mode)=>{window.__fixtureAccountsOpened=mode==='accounts';};
+document.querySelector('.mmh-glass-tx-nav-manage-v1').addEventListener('click',()=>window.showTxTab('manage'));
+document.querySelector('.mmh-glass-tx-nav-add-v1').addEventListener('click',()=>window.showTxTab('add'));
+document.getElementById('txForm').addEventListener('submit',e=>{e.preventDefault();});
+function graph(){
+  if(!MMHVAULT_CONFIG.txHierarchyV11)MMHVAULT_CONFIG.txHierarchyV11=
+    {version:1,ownerId:currentSessionUser.id,types:[],transactions:[],categories:[],links:{}};
+  return MMHVAULT_CONFIG.txHierarchyV11;
+}
+document.getElementById('fixtureCreateType').addEventListener('click',()=>{
+ graph().types.push({id:'type-1',label:'My income',ledgerType:'Income',archived:false});
+ window.dispatchEvent(new Event('mmhvault:category-config-changed'));
+});
+document.getElementById('fixtureCreateTransaction').addEventListener('click',()=>{
+ graph().transactions.push({id:'txn-1',label:'Salary',parentId:'type-1',archived:false});
+ window.dispatchEvent(new Event('mmhvault:category-config-changed'));
+});
+document.getElementById('fixtureCreateCategory').addEventListener('click',()=>{
+ graph().categories.push({id:'cat-1',label:'Job',parentId:'txn-1',archived:false});
+ window.dispatchEvent(new Event('mmhvault:category-config-changed'));
+});
+window.__fixtureSwitchOwner=(id,old)=>{
+ currentSessionUser={id};
+ MMHVAULT_CONFIG_OWNER=id;
+ MMHVAULT_CONFIG=old?{accounts:[{name:'Wallet',active:true}],txHierarchyV11:null,
+   txFieldsV12:{version:1,type:['Income'],transaction:['Income|Income'],category:['Income|Salary']},
+   categories:{},archivedCategories:{}}:{accounts:[],
+   txHierarchyV11:null,txFieldsV12:{version:1,type:[],transaction:[],category:[]},
+   categories:{},archivedCategories:{}};
+ window.mmhWalletDataOwnerV191=id;
+ window.transactions=old?[{id:44,user_id:id}]:[];
+ window.dispatchEvent(new CustomEvent('mmhvault:config-owner-changed',{detail:{userId:id}}));
+ window.dispatchEvent(new Event('mmhvault:data-loaded'));
+};
+</script>
+<script type="module" src="../js/mmhvault-transaction-onboarding-live-v1.mjs"></script>
+</body></html>
