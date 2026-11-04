@@ -133,3 +133,15 @@ test('invalid or inconsistent snapshot period fails closed instead of positionin
   assert.equal(chart.render(container,[{date:'2026-09-01',visits:2,pageViews:3}],
     'day','30d','2026-11-04T09:26:03.000Z'),false);
 });
+
+test('single recent 24h observation stays near its real UTC hour, not centered',()=>{
+  const chart=initialize(),container=element('div');container.clientWidth=360;
+  assert.equal(chart.render(container,[{date:'2026-11-04T08:00:00Z',visits:2,pageViews:3}],
+    'hour','24h','2026-11-04T09:26:03.000Z'),true);
+  const nodes=collect(container),dots=nodes.filter(x=>x.tagName==='circle');
+  assert.equal(dots.length,2);
+  assert.ok(dots.every(dot=>Number(dot.attributes.cx)>300),
+    'real observed hour must remain on the right end of the 24-hour time window');
+  assert.equal(nodes.filter(x=>x.tagName==='path').length,0,
+    'a single observed hour cannot be interpreted as a continuous trend');
+});
