@@ -205,13 +205,28 @@ async function load(page,route,failures){
        },lang);
        await page.goto(origin+'/',{waitUntil:'load',timeout:25000});
        const begun=await page.evaluate(()=>{
+         // L1.58 test stability: hold the normal 340ms settle timer open.
+         // The media-change handler must end this transition, not the timer.
+         const nativeSetTimeout=window.setTimeout.bind(window);
+         window.__l155HeldTimers=0;
+         window.setTimeout=(fn,ms,...args)=>{
+           if(ms===340){
+             window.__l155HeldTimers++;
+             return nativeSetTimeout(fn,3000,...args);
+           }
+           return nativeSetTimeout(fn,ms,...args);
+         };
          document.querySelector('[data-product-tab="accounts"]').click();
-         return [...document.querySelectorAll('[data-product-panel]')].filter(el=>!el.hidden).length;
+         return {
+           panels:[...document.querySelectorAll('[data-product-panel]')].filter(el=>!el.hidden).length,
+           held:window.__l155HeldTimers
+         };
        });
-       ensure(begun===2,'L1.55 '+width+'px '+lang+' animation starts normally');
+       ensure(begun.panels===2&&begun.held===1,
+         'L1.55 '+width+'px '+lang+' animation starts with fallback timer held');
        await page.emulateMedia({reducedMotion:'reduce'});
        await page.waitForFunction(()=>[...document.querySelectorAll('[data-product-panel]')]
-         .filter(el=>!el.hidden).length===1,null,{timeout:250});
+         .filter(el=>!el.hidden).length===1,null,{timeout:1500});
        const settled=await page.evaluate(()=>({
          visible:[...document.querySelectorAll('[data-product-panel]')]
            .filter(el=>!el.hidden).map(el=>el.dataset.productPanel),
