@@ -1740,14 +1740,14 @@ async function load(page,route,failures){
        layout.styles.filter(v=>v==='l145').length===1 &&
        layout.styles.filter(v=>v==='l146').length===2 &&
        layout.styles.filter(v=>v==='l147').length===1 &&
-       layout.styles.filter(v=>v==='l167').length===1 &&
+       layout.styles.filter(v=>v==='l168').length===1 &&
        layout.styles.filter(v=>v==='l141').length===2 &&
        layout.scripts.includes('l161') && layout.scripts.includes('l159') &&
        loaded.length===9 && loaded.every(r=>r.status===200&&
          r.version===(r.path==='/landing-assets/landing.min.css'?'l145':
            ['/landing-assets/cinematic.min.css','/landing-assets/premium-l131.min.css'].includes(r.path)?'l146':
            r.path==='/landing-assets/header-explore-l147.min.css'?'l147':
-           r.path==='/landing-assets/safari-performance-l164.css'?'l167':
+           r.path==='/landing-assets/safari-performance-l164.css'?'l168':
             r.path==='/landing-assets/landing.js'?'l161':
               r.path==='/landing-assets/motion-l132.js'?'l159':'l141')) &&
        new Set(loaded.map(r=>r.path)).size===9 && failures.length===0,
