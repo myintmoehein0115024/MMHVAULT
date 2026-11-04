@@ -64,3 +64,15 @@
     filter: none;
   }
 }
+
+/* L1.69 — desktop only: these small photo captions already sit on dark
+ * opaque-enough gradient/solid surfaces. Avoid continuously sampling the
+ * moving image/background behind each label on Safari scroll. Preserve
+ * all borders, colors, shadows and tablet/mobile backdrop glass. */
+@media (min-width: 1025px) {
+  body.l131 .hero-art .demo-disclaimer,
+  body.l131 #business .business-photo-caption {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
