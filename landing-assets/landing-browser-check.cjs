@@ -129,7 +129,8 @@ async function load(page,route,failures){
            before.shadow!==after.shadow &&
            tokens.includes('transform') &&
            tokens.includes('border-color'))
-         :tokens.includes('box-shadow')),
+         :(before.businessBlur==='blur(40px)' &&
+           before.shadow!==after.shadow && tokens.includes('transform'))),
        'L1.65 desktop hover paint and mobile animation parity '+
          width+'px '+JSON.stringify({before,after,errors}));
      await ctx.close();
