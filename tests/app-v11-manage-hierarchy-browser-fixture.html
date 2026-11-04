@@ -44,6 +44,7 @@
   window.__syntheticWrites=0;window.__messages=[];
   window.__syntheticLedgerRefreshes=0;
   window.__syntheticStaleFirstRead=true;
+  window.__syntheticSavedIds=['fixture-saved-ledger-42'];
   // Model the existing app's owner-scoped reload after an already-confirmed
   // native INSERT. This is synthetic browser QA, not Supabase acceptance.
   window.loadAll=async ({force}={})=>{
@@ -56,9 +57,10 @@
       window.__syntheticStaleFirstRead=false;
       return {ok:true};
     }
-    window.transactions=[{id:'fixture-saved-ledger-42',user_id:'fixture-A',
-      type:'Income',category:'Salary',tx_date:'2026-11-04',
-      to_account:'Cash',to_amount:500}];
+    window.transactions=window.__syntheticSavedIds.map(id=>({
+      id,user_id:'fixture-A',type:'Income',category:'Salary',tx_date:'2026-11-04',
+      to_account:'Cash',to_amount:500
+    }));
     window.dispatchEvent(new CustomEvent('mmhvault:data-loaded',{detail:{ok:true}}));
     return {ok:true};
   };
