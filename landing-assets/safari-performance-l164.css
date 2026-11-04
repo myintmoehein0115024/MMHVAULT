@@ -35,6 +35,6 @@
 @media (min-width: 1025px) and (hover: hover) and (pointer: fine) {
   body.l131 .showcase-v2 .showcase-card,
   html.mm-motion-active body.l131 .showcase-v2 .showcase-card {
-    transition-property: transform, border-color;
+    transition-property: opacity, transform, border-color;
   }
 }

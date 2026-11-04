@@ -92,7 +92,7 @@ function pass(condition,label,detail){
     const after=await card.evaluate(el=>getComputedStyle(el).boxShadow);
     const props=before.transition.split(',').map(x=>x.trim());
     pass(response?.status()===200&&before.glow==='none'&&
-      !props.includes('box-shadow')&&props.includes('transform')&&
+      !props.includes('box-shadow')&&props.includes('opacity')&&props.includes('transform')&&
       props.includes('border-color')&&before.shadow!==after&&errors.length===0,
       'L1.65 WebKit desktop hover and Business glow parity '+width+'px',
       {before,after,errors});

@@ -136,6 +136,7 @@ async function load(page,route,failures){
          ?(!tokens.includes('box-shadow') &&
            before.businessBlur==='none' &&
            before.border!==after.border &&
+           tokens.includes('opacity') &&
            tokens.includes('transform') &&
            tokens.includes('border-color'))
          :(before.businessBlur==='blur(40px)' &&
