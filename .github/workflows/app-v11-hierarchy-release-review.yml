@@ -1,0 +1,93 @@
+name: APP V11.7 clean release candidate QA (NO DEPLOY)
+
+on:
+  pull_request:
+    paths:
+      - 'app.html'
+      - 'js/mmhvault-v11-manage-hierarchy-*.mjs'
+      - 'tests/app-v11-manage-hierarchy-*'
+      - 'tests/app-v117-legacy-history-immutability.test.mjs'
+      - 'tests/app-v117-full-app-dependency-inventory.cjs'
+      - 'tests/app-v117-native-transaction-integration-review.cjs'
+      - '.github/workflows/app-v11-hierarchy-release-review.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  model:
+    name: Model, historical ledger, archive and account isolation
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Parse V11.7 runtime
+        run: |
+          node --check js/mmhvault-v11-manage-hierarchy-model.mjs
+          node --check js/mmhvault-v11-manage-hierarchy-controller.mjs
+          node --check js/mmhvault-v11-manage-hierarchy-live.mjs
+          node --check js/mmhvault-v11-manage-hierarchy-sync.mjs
+      - name: Regression tests without credentials or financial writes
+        run: |
+          node --test tests/app-v11-manage-hierarchy-model.test.mjs tests/app-v11-manage-hierarchy-controller.test.mjs tests/app-v11-manage-hierarchy-sync.test.mjs tests/app-v11-manage-hierarchy-cloud-conflict.test.mjs tests/app-v117-legacy-history-immutability.test.mjs tests/app-v11-manage-glass-dialogs.test.mjs tests/app-v11-transaction-field-layout.test.mjs
+          node tests/app-v117-full-app-dependency-inventory.cjs
+          node tests/app-v117-native-transaction-integration-review.cjs
+      - name: Check owner-scoped runtime injection and staging separation
+        run: |
+          node --input-type=module - <<'NODE'
+          import fs from 'node:fs';
+          import assert from 'node:assert/strict';
+          const app=fs.readFileSync('app.html','utf8');
+          const module=fs.readFileSync('js/mmhvault-v11-manage-hierarchy-live.mjs','utf8');
+          assert.ok(app.includes('mmhvault-v11-manage-hierarchy-live.mjs?v=0.7.0'));
+          assert.ok(app.includes('txHierarchyV11:mmhVaultNormalizeTxHierarchyV11(x.txHierarchyV11,uid())'));
+          assert.ok(app.includes('onLedgerInserted?.(u.id,r.data.id,selected)'));
+          assert.ok(module.includes('mmhHierarchyDirection'));
+          assert.ok(!app.includes('mmhvault-app-v117-staging.pages.dev'));
+          console.log('PASS: release runtime uses owner-linked Manage and no Staging deployment host');
+          NODE
+
+  chrome:
+    name: Chrome owner-only Type/Transaction/Category + archive
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install pinned browser driver
+        run: npm install --no-save --no-package-lock --no-audit --no-fund playwright-core@1.56.1
+      - name: Check new and legacy owner selection, direction and Archive
+        run: |
+          python3 -m http.server 8768 --bind 127.0.0.1 >/tmp/mmh-v117-chrome.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID"' EXIT
+          sleep 2
+          node tests/app-v11-manage-hierarchy-browser-check.cjs
+
+  webkit:
+    name: WebKit desktop/tablet/mobile direction and Archive
+    runs-on: ubuntu-latest
+    timeout-minutes: 14
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install pinned WebKit browser driver
+        run: |
+          npm install --no-save --no-package-lock --no-audit --no-fund playwright-core@1.56.1
+          npx playwright-core install --with-deps webkit
+      - name: Test responsive linked Manage and account switching
+        env:
+          MMH_BROWSER_ENGINE: webkit
+        run: |
+          python3 -m http.server 8768 --bind 127.0.0.1 >/tmp/mmh-v117-webkit.log 2>&1 &
+          SERVER_PID=$!
+          trap 'kill "$SERVER_PID"' EXIT
+          sleep 2
+          node tests/app-v11-manage-hierarchy-browser-check.cjs

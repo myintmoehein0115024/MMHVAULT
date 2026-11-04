@@ -13157,8 +13157,21 @@ function mmhVaultNormalizeTxFieldsV12(value){
       extraTransactions:aliases(v13.extraTransactions,transactionCodes)
     }};
 }
+// V11.7 candidate: preserve owner-scoped hierarchy inside existing
+// personal_configuration.config JSON, without altering ledger tables.
+function mmhVaultNormalizeTxHierarchyV11(value,owner){
+  if(value==null)return null;
+  const invalid={version:0,ownerId:owner,invalid:true};
+  if(!owner||typeof value!=='object'||Array.isArray(value)||
+    value.version!==1||value.ownerId!==owner)return invalid;
+  try{
+    const encoded=JSON.stringify(value);
+    if(!encoded||encoded.length>5000000)return invalid;
+    return JSON.parse(encoded);
+  }catch(_){return invalid;}
+}
 function mmhVaultReadConfig(owner=MMHVAULT_CONFIG_OWNER){
-  const fallback={accounts:[],categories:Object.fromEntries(Object.entries(MMHVAULT_DEFAULT_CATEGORIES).map(([k,v])=>[k,[...v]])),archivedCategories:{},txFieldsV12:{version:1,type:[],transaction:[],category:[]}};
+  const fallback={accounts:[],categories:Object.fromEntries(Object.entries(MMHVAULT_DEFAULT_CATEGORIES).map(([k,v])=>[k,[...v]])),archivedCategories:{},txFieldsV12:{version:1,type:[],transaction:[],category:[]},txHierarchyV11:null};
   try{
     const storageKey=mmhVaultConfigKey(owner);if(!storageKey)return fallback;
     const raw=localStorage.getItem(storageKey); if(!raw)return fallback;
@@ -13168,7 +13181,7 @@ function mmhVaultReadConfig(owner=MMHVAULT_CONFIG_OWNER){
     const categories={};
     for(const [k,base] of Object.entries(MMHVAULT_DEFAULT_CATEGORIES)) categories[k]=Array.isArray(x.categories?.[k])?x.categories[k].map(String).map(v=>v.trim()).filter(Boolean):[...base];
     const archivedCategories=(x.archivedCategories&&typeof x.archivedCategories==='object')?x.archivedCategories:{};
-    return {accounts:accounts,categories:mmhVaultNormalizeCategoryConfigV1231(categories,archivedCategories),archivedCategories,txFieldsV12:mmhVaultNormalizeTxFieldsV12(x.txFieldsV12)};
+    return {accounts:accounts,categories:mmhVaultNormalizeCategoryConfigV1231(categories,archivedCategories),archivedCategories,txFieldsV12:mmhVaultNormalizeTxFieldsV12(x.txFieldsV12),txHierarchyV11:mmhVaultNormalizeTxHierarchyV11(x.txHierarchyV11,owner)};
   }catch(_){return fallback;}
 }
 let MMHVAULT_CONFIG=mmhVaultReadConfig();
@@ -14969,6 +14982,10 @@ const row={user_id:u.id,tx_date:txDate.value,type,category:txGroup.value==='Data
 if(type==="Income"){row.from_account=null;row.from_amount=0}
 if(type==="Expense"){row.to_account=null;row.to_amount=0}
 const r=await db.from("transactions").insert(row).select('id').single();if(r.error)throw r.error;
+// The financial row is already confirmed. Record only a reversible display-path
+// reference in the owner's existing config; never rewrite the ledger row.
+try{window.MMHV11HierarchyLive?.onLedgerInserted?.(u.id,r.data.id,selected);}
+catch(error){console.warn('[MMHVAULT] Transaction saved; Manage link sync unavailable',error);}
 if(receiptFile){
   const hint=$("txReceiptHint"); if(hint)hint.textContent='Uploading receipt…';
   try{await uploadTransactionReceiptV396(u.id,r.data.id,receiptFile);if(hint)hint.textContent='✓ Receipt uploaded successfully';}
@@ -22544,7 +22561,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       categories[group]=(Array.isArray(x.categories?.[group])?x.categories[group]:base).map(String).map(v=>v.trim()).filter(Boolean);
       archivedCategories[group]=(Array.isArray(x.archivedCategories?.[group])?x.archivedCategories[group]:[]).map(String).map(v=>v.trim()).filter(Boolean);
     }
-    return{accounts,categories:mmhVaultNormalizeCategoryConfigV1231(categories,archivedCategories),archivedCategories,txFieldsV12:mmhVaultNormalizeTxFieldsV12(x.txFieldsV12)};
+    return{accounts,categories:mmhVaultNormalizeCategoryConfigV1231(categories,archivedCategories),archivedCategories,txFieldsV12:mmhVaultNormalizeTxFieldsV12(x.txFieldsV12),txHierarchyV11:mmhVaultNormalizeTxHierarchyV11(x.txHierarchyV11,uid())};
   }
   function writeLocal(owner,config,updatedAt){localStorage.setItem(mmhVaultConfigKey(owner),JSON.stringify({...config,ownerId:owner,updatedAt}))}
   function applyCloud(owner,config,updatedAt){
@@ -22580,6 +22597,52 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
     }
     return true;
   }
+  // V11.7: do not allow two devices to silently overwrite an immutable
+  // transaction-ID → Manage path saved by the other device. This is a
+  // conservative conflict gate, not an automatic multi-device merge.
+  function mmhVaultHierarchySidecarGateV117(owner,local,remote){
+    const linksOf=config=>{
+      const graph=config?.txHierarchyV11;
+      if(graph==null)return Object.create(null); // pre-V11 owner, no sidecar
+      if(!graph||typeof graph!=='object'||Array.isArray(graph)||
+        graph.version!==1||graph.ownerId!==owner||
+        !graph.links||typeof graph.links!=='object'||Array.isArray(graph.links))return null;
+      const entries=Object.entries(graph.links);
+      if(entries.length>10000)return null;
+      const out=Object.create(null);
+      for(const [recordId,link] of entries){
+        if(!recordId||recordId.length>180||!link||typeof link!=='object'||
+          !link.choiceIds||!link.canonical)return null;
+        const ids=link.choiceIds,canonical=link.canonical;
+        if(!['type','transaction','category'].every(k=>
+          typeof ids[k]==='string'&&ids[k].length>0&&ids[k].length<=180)||
+          !['type','group','category'].every(k=>
+            typeof canonical[k]==='string'&&canonical[k].length>0))return null;
+        out[recordId]=link;
+      }
+      return out;
+    };
+    const a=linksOf(local),b=linksOf(remote);
+    if(!a||!b)return {safe:false,localOnly:false,remoteOnly:false};
+    let localOnly=false,remoteOnly=false;
+    for(const [id,link] of Object.entries(a)){
+      if(!Object.hasOwn(b,id)){localOnly=true;continue;}
+      const other=b[id];
+      if(!['type','transaction','category'].every(k=>
+        link.choiceIds[k]===other.choiceIds[k])||
+        !['type','group','category'].every(k=>
+          link.canonical[k]===other.canonical[k]))
+        return {safe:false,localOnly:true,remoteOnly:true};
+    }
+    for(const id of Object.keys(b))if(!Object.hasOwn(a,id))remoteOnly=true;
+    return {safe:!(localOnly&&remoteOnly),localOnly,remoteOnly};
+  }
+  function mmhVaultBlockedHierarchySyncV117(owner){
+    console.warn('[MMHVAULT] APP V11.7 cloud sync paused: divergent or unsafe saved Manage links');
+    window.dispatchEvent(new CustomEvent('mmhvault:config-link-sync-blocked',
+      {detail:{userId:owner}}));
+    return false;
+  }
   async function upload(owner,stamp,cloud=null){
     if(uid()!==owner||MMHVAULT_CONFIG_OWNER!==owner)return false;
     const config=safeConfig(MMHVAULT_CONFIG),updatedAt=stamp||new Date().toISOString();
@@ -22603,11 +22666,23 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       const local=localEnvelope(owner),localStamp=parseTime(local?.updatedAt);const {data:cloud,error}=await db.from('personal_configuration').select('user_id,config,language,timezone,updated_at').eq('user_id',owner).maybeSingle();if(error)throw error;if(uid()!==owner||MMHVAULT_CONFIG_OWNER!==owner)return false;
       if(!cloud)return await upload(owner,new Date().toISOString());
       const cloudStamp=parseTime(cloud.updated_at);
+      const sidecar=mmhVaultHierarchySidecarGateV117(owner,local,cloud.config);
+      if(!sidecar.safe)return mmhVaultBlockedHierarchySyncV117(owner);
       if(forceUpload||localStamp>cloudStamp){
+        // Local time alone never authorizes deletion of a remote immutable
+        // ledger link. A multi-device conflict needs explicit reconciliation.
+        if(sidecar.remoteOnly)return mmhVaultBlockedHierarchySyncV117(owner);
         if(!(await preserveUsedCloudAccounts(owner,cloud)))return false;
         return await upload(owner,local?.updatedAt||new Date().toISOString(),cloud);
       }
-      if(cloudStamp>localStamp&&cloud.config&&typeof cloud.config==='object'){applyCloud(owner,cloud.config,cloud.updated_at);return true}
+      if(cloudStamp>localStamp&&cloud.config&&typeof cloud.config==='object'){
+        // Likewise, a newer cloud setting must not erase a local saved link.
+        if(sidecar.localOnly)return mmhVaultBlockedHierarchySyncV117(owner);
+        applyCloud(owner,cloud.config,cloud.updated_at);return true;
+      }
+      // Same timestamp but different sidecar: don't pretend sync succeeded.
+      if(sidecar.localOnly||sidecar.remoteOnly)
+        return mmhVaultBlockedHierarchySyncV117(owner);
       // Equal timestamps still require the remote account list to be complete on this device.
       const remote=safeConfig(cloud.config),onDevice=safeConfig(local);
       if(remote.accounts.some(a=>!onDevice.accounts.some(b=>sameAccount(a,b)))&&cloudStamp>=localStamp){applyCloud(owner,cloud.config,cloud.updated_at);return true}
@@ -35189,6 +35264,8 @@ html body #settings.page.active #stPage_security #mmhA783SecurityCenter .mmh-a78
 </style>
 <script src="js/mmhvault-n10-a7-83-security-center.js?v=10.790.1"></script>
 <script src="js/mmhvault-account-reference-fx-v1.js?v=1.0.1"></script>
-<script src="js/mmhvault-transaction-field-layout-v11.js?v=3.0.4" defer></script>
+<!-- APP V11.7: owner-linked Manage replaces the former field-layout loader.
+     The original V11 script remains in Git history for rollback; no DB migration. -->
+<script type="module" src="js/mmhvault-v11-manage-hierarchy-live.mjs?v=0.7.0"></script>
 </body>
 </html>
