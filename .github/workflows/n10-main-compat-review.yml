@@ -87,6 +87,8 @@ jobs:
           node --check --input-type=module < security/n10-v2-qa/staging_real_ef_signup_REVIEW_ONLY.ts
           node --check --input-type=module < security/n10-v2-qa/staging_real_ef_viewer_REVIEW_ONLY.ts
           node --test security/n10-v2-qa/test-real-ef-signup-edge.mjs security/n10-v2-qa/test-real-ef-viewer-edge.mjs
+      - name: Exercise hard-OFF real E/F handlers at runtime (offline; no Auth or secrets)
+        run: node --test security/n10-v2-qa/test-real-ef-hardoff-runtime.mjs
       - name: Deno type-check real E/F Staging candidates (never deploy)
         run: |
           deno check --config security/n10-username-escrow-candidate/deno-review.json security/n10-v2-qa/staging_real_ef_signup_REVIEW_ONLY.ts
