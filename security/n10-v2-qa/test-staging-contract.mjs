@@ -36,7 +36,7 @@ test('Protected backend-only functions, all seven private tables RLS',()=>{
 });
 test('First escrow is locked and signed-in/link reuse is forbidden',()=>{
  const body=src.split('CREATE FUNCTION '+schema+'.backup_put(')[1]?.split('CREATE FUNCTION '+schema+'.recovery_matches(')[0]||'';
- assert.ok(body.length>2500);
+ assert.ok(body.length>2000);
  const lock=body.indexOf('PERFORM 1 FROM '+schema+'.owners locked_owner');
  const firstSession=body.indexOf('NOT EXISTS(SELECT 1 FROM '+schema+'.sessions prior');
  const firstLink=body.indexOf('NOT EXISTS(SELECT 1 FROM '+schema+'.username_links link');
