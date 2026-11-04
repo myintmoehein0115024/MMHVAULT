@@ -220,6 +220,11 @@ export default {async fetch(request,env){
   try{
     const verified=await verifyAdmin(header.slice(7),env,diagnostic);
     if(verified.status!==200)return response(verified.status,{error:verified.status===401?'authentication_required':'forbidden'},cors);
+    // Cloudflare RUM 30-day dimensional groups were observed omitting verified
+    // 7-day categories during live research. Fail closed for this optional
+    // breakdown endpoint until the upstream grouping behavior is reconciled.
+    if(isBreakdown&&range==='30d')
+      return response(503,{error:'breakdown_range_unverified'},cors);
     const data=isBreakdown?await queryBreakdowns(range,env,diagnostic):
       await queryAnalytics(range,env,diagnostic);
     diagnostic.phase='RESPONSE_BUILD';
