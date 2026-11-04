@@ -126,11 +126,13 @@ async function revokeQAAuthSession(session){
 // Recheck the database QA gate after Auth creates its temporary session.
 // If the window closes mid-login, finally signs out and returns no token.
 async function ownerGateOpen(uid,expectedSlot){
-  if(!open())return false;
+ if(!open())return false;
+ try{
   const {data,error}=await admin.rpc('mmh_n10_realef_owner_slot',{
-    p_user_id:uid
+   p_user_id:uid
   });
   return !error&&data===expectedSlot&&open();
+ }catch(_){return false;}
 }
 async function verifiedPasswordSession(email,password,expectedId,expectedSlot){
  const client=authClient();
@@ -282,7 +284,10 @@ Deno.serve(async request=>{
    const result=await enroll(data.username,data.password);
    // The last async signup step may finish after QA expiry: never return
    // new account credentials or original words outside the release window.
-   if(result.code==='signup_success'&&!open()){
+   // The database gate may be disabled by an administrator while this
+   // request is in flight, even if the local release deadline has not passed.
+   if(result.code==='signup_success'&&
+      !await ownerGateOpen(result.user_id,slotOf(data.username))){
     // Last response guard: even a completed signup cannot leave an
     // undelivered refreshable session when the E/F QA window has closed.
     const revoked=await revokeQAAuthSession(result);
@@ -296,7 +301,9 @@ Deno.serve(async request=>{
   const x=await login(data.username,data.password);
   // The password was valid at an earlier point, but the temporary QA
   // window must remain open immediately before any token leaves the Edge.
-  if(!open()){
+  const finalReady=x?
+   await ownerGateOpen(x.user_id,slotOf(data.username)):open();
+  if(!finalReady){
    // Only the fresh login session is revoked; existing sessions stay live.
    if(x&&!await revokeQAAuthSession(x))
     return reply(origin,'manual_reconciliation_required',503);
