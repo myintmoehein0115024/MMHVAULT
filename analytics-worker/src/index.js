@@ -9,6 +9,13 @@
 const JSON_HEADERS = {'content-type':'application/json; charset=utf-8','cache-control':'private, no-store','x-content-type-options':'nosniff'};
 const response = (status, data, origin) => new Response(JSON.stringify(data),{status,headers:{...JSON_HEADERS,...(origin?{'access-control-allow-origin':origin,'vary':'Origin'}:{})}});
 const RANGE_DAYS = {'24h':1,'7d':7,'30d':30};
+// All five field names are verified against the connected Cloudflare GraphQL
+// AccountRumPageloadEventsAdaptiveGroupsDimensions schema (2026-11-04).
+const BREAKDOWN_FIELDS = Object.freeze({
+  countries:'countryName',pages:'requestPath',referrers:'refererHost',
+  browsers:'userAgentBrowser',devices:'deviceType'
+});
+const BREAKDOWN_LIMIT=20, BREAKDOWN_TOP=10;
 // Only deterministic diagnostic codes are emitted. Never log GraphQL messages, request bodies, tokens or user data.
 function classifyGraphQLError(errors){
   for(const item of errors){
@@ -118,6 +125,82 @@ async function queryAnalytics(range,env,diagnostic){
   // exact cross-period deduplicated visitor metric. Never derive one from visits.
   return {pageViews,visits,uniqueVisitors:null,granularity:hourly?'hour':'day',trend,updatedAt:now.toISOString()};
 }
+
+function displayCategory(category,value){
+  if(value===null||value===undefined||value==='')return category==='referrers'?'Direct / unknown':'Unknown';
+  if(typeof value!=='string')throw new Error('CF_BREAKDOWN_INVALID');
+  const clean=value.trim();
+  if(!clean||clean.length>256||/[\x00-\x1f\x7f]/.test(clean))
+    return category==='pages'?'Other / hidden paths':'Unknown';
+  if(category==='pages'){
+    // User-specific token paths and query strings must never reach the UI.
+    if(!clean.startsWith('/')||clean.length>120||/[?#]/.test(clean)||
+       /(?:auth|reset|recovery|callback|invite|token|secret|session|password)/i.test(clean)||
+       /\/[a-f0-9]{20,}(?:\/|$)/i.test(clean)||/\/\d{12,}(?:\/|$)/.test(clean))
+      return 'Other / hidden paths';
+    return clean;
+  }
+  if(category==='referrers')return /^[a-z0-9.-]{1,150}$/i.test(clean)?clean:'Unknown';
+  if(category==='countries')return /^[A-Z]{2}$/.test(clean)?clean:'Unknown';
+  return /^[\p{L}\p{N} _+.-]{1,80}$/u.test(clean)?clean:'Unknown';
+}
+async function queryBreakdowns(range,env,diagnostic){
+  diagnostic.phase='CF_START';
+  const now=new Date(),start=new Date(now.getTime()-RANGE_DAYS[range]*86400000);
+  // Same strict site, hostname, bot, and rolling-window filter as V2.
+  const groupSelection=Object.entries(BREAKDOWN_FIELDS).map(([alias,dimension])=>
+    alias+':rumPageloadEventsAdaptiveGroups('+
+    'limit:'+BREAKDOWN_LIMIT+',orderBy:[count_DESC],'+
+    'filter:{siteTag:$siteTag,requestHost:"mmhvault.com",bot:0,datetime_geq:$start,datetime_leq:$end})'+
+    '{count dimensions{'+dimension+'} sum{visits}}'
+  ).join(' ');
+  const query='query AnalyticsBreakdowns($accountTag:string!,$siteTag:string!,$start:Time!,$end:Time!)'+
+    '{viewer{accounts(filter:{accountTag:$accountTag}){'+groupSelection+'}}}';
+  diagnostic.phase='CF_FETCH';
+  const upstream=await fetch('https://api.cloudflare.com/client/v4/graphql',{
+    method:'POST',headers:{Authorization:'Bearer '+env.CF_ANALYTICS_TOKEN,'content-type':'application/json'},
+    body:JSON.stringify({query,variables:{accountTag:env.CF_ACCOUNT_ID,siteTag:env.CF_SITE_TAG,
+      start:start.toISOString(),end:now.toISOString()}}),redirect:'manual'
+  });
+  diagnostic.phase='CF_RESPONSE_STATUS';
+  if(!upstream.ok)throw new Error('CF_HTTP_ERROR');
+  diagnostic.phase='CF_RESPONSE_JSON';
+  const body=await upstream.json();
+  diagnostic.phase='CF_VALIDATION';
+  if(Array.isArray(body.errors)&&body.errors.length)throw new Error(classifyGraphQLError(body.errors));
+  const accounts=body.data?.viewer?.accounts;
+  if(!Array.isArray(accounts)||accounts.length!==1)throw new Error('CF_ACCOUNT_MISMATCH');
+  const categories={};
+  for(const [alias,dimension] of Object.entries(BREAKDOWN_FIELDS)){
+    const raw=accounts[0][alias];
+    if(!Array.isArray(raw)||raw.length>BREAKDOWN_LIMIT)throw new Error('CF_BREAKDOWN_INVALID');
+    const names=new Set(),merged=new Map();
+    for(const group of raw){
+      if(!Number.isSafeInteger(group?.count)||group.count<0||
+         !Number.isSafeInteger(group?.sum?.visits)||group.sum.visits<0)
+        throw new Error('CF_BREAKDOWN_INVALID');
+      const original=group?.dimensions?.[dimension];
+      if(original!==null&&original!==undefined&&typeof original!=='string')
+        throw new Error('CF_BREAKDOWN_INVALID');
+      const key=String(original??'');
+      if(names.has(key))throw new Error('CF_BREAKDOWN_INVALID');
+      names.add(key);
+      const label=displayCategory(alias,original);
+      const prior=merged.get(label)||{label,pageViews:0,visits:0};
+      prior.pageViews+=group.count;prior.visits+=group.sum.visits;
+      if(!Number.isSafeInteger(prior.pageViews)||!Number.isSafeInteger(prior.visits))
+        throw new Error('CF_METRICS_OVERFLOW');
+      merged.set(label,prior);
+    }
+    const rows=[...merged.values()].sort((a,b)=>
+      b.pageViews-a.pageViews||a.label.localeCompare(b.label)).slice(0,BREAKDOWN_TOP);
+    categories[alias]={rows,moreMayExist:raw.length>=BREAKDOWN_LIMIT};
+  }
+  return {source:'cloudflare-web-analytics',verified:true,range,
+    groupMetric:'pageViews',limit:BREAKDOWN_TOP,uniqueVisitors:null,
+    updatedAt:now.toISOString(),categories};
+}
+
 export default {async fetch(request,env){
   const origin=request.headers.get('Origin');
   const allowed=env.ALLOWED_ORIGIN||'';
@@ -125,7 +208,9 @@ export default {async fetch(request,env){
   if(origin&&origin!==allowed)return response(403,{error:'origin_not_allowed'});
   if(request.method==='OPTIONS')return new Response(null,{status:204,headers:{'access-control-allow-origin':cors||'null','access-control-allow-methods':'GET, OPTIONS','access-control-allow-headers':'Authorization, Accept','access-control-max-age':'600','vary':'Origin'}});
   const url=new URL(request.url);
-  if(request.method!=='GET'||url.pathname!=='/api/admin/website-analytics')return response(404,{error:'not_found'},cors);
+  const isBreakdown=url.pathname==='/api/admin/website-analytics-breakdowns';
+  if(request.method!=='GET'||(!isBreakdown&&url.pathname!=='/api/admin/website-analytics'))
+    return response(404,{error:'not_found'},cors);
   const range=url.searchParams.get('range')||'7d';
   if(!Object.hasOwn(RANGE_DAYS,range))return response(400,{error:'invalid_range'},cors);
   if(!isConfigured(env))return response(503,{error:'analytics_not_configured'},cors);
@@ -135,12 +220,19 @@ export default {async fetch(request,env){
   try{
     const verified=await verifyAdmin(header.slice(7),env,diagnostic);
     if(verified.status!==200)return response(verified.status,{error:verified.status===401?'authentication_required':'forbidden'},cors);
-    const data=await queryAnalytics(range,env,diagnostic);
+    // Cloudflare RUM 30-day dimensional groups were observed omitting verified
+    // 7-day categories during live research. Fail closed for this optional
+    // breakdown endpoint until the upstream grouping behavior is reconciled.
+    if(isBreakdown&&range==='30d')
+      return response(503,{error:'breakdown_range_unverified'},cors);
+    const data=isBreakdown?await queryBreakdowns(range,env,diagnostic):
+      await queryAnalytics(range,env,diagnostic);
     diagnostic.phase='RESPONSE_BUILD';
-    return response(200,{source:'cloudflare-web-analytics',verified:true,...data},cors);
+    return response(200,isBreakdown?data:
+      {source:'cloudflare-web-analytics',verified:true,...data},cors);
   }catch(error){
     // Diagnostic allowlist: never log credentials, request headers, user IDs or upstream bodies.
-    const safeCodes=new Set(['CF_HTTP_ERROR','CF_GRAPHQL_AUTH_ERROR','CF_GRAPHQL_ACCESS_DENIED','CF_GRAPHQL_SCHEMA_ERROR','CF_GRAPHQL_LIMIT_ERROR','CF_GRAPHQL_UNCLASSIFIED','CF_ACCOUNT_MISMATCH','CF_GROUPS_INVALID','CF_METRICS_INVALID','CF_DATE_INVALID','CF_METRICS_OVERFLOW']);
+    const safeCodes=new Set(['CF_HTTP_ERROR','CF_GRAPHQL_AUTH_ERROR','CF_GRAPHQL_ACCESS_DENIED','CF_GRAPHQL_SCHEMA_ERROR','CF_GRAPHQL_LIMIT_ERROR','CF_GRAPHQL_UNCLASSIFIED','CF_ACCOUNT_MISMATCH','CF_GROUPS_INVALID','CF_METRICS_INVALID','CF_DATE_INVALID','CF_METRICS_OVERFLOW','CF_BREAKDOWN_INVALID']);
     const code=safeCodes.has(error?.message)?error.message:'ANALYTICS_UNEXPECTED_ERROR';
     const phases=new Set(['AUTH_START','AUTH_USER_FETCH','AUTH_USER_JSON','AUTH_RPC_FETCH','AUTH_RPC_JSON','CF_START','CF_FETCH','CF_RESPONSE_STATUS','CF_RESPONSE_JSON','CF_VALIDATION','RESPONSE_BUILD']);
     const phase=phases.has(diagnostic.phase)?diagnostic.phase:'UNKNOWN';
