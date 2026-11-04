@@ -24,3 +24,12 @@ The read-only Edge candidate rejects Auth users with a deletion marker. Supabase
 ## Owner-state defense in depth (2026-11-04, review only)
 
 The first immutable encrypted escrow now refuses deleted, anonymous and actively banned Auth users in addition to the existing no-prior-session/no-prior-link gates. The `backup_get` function independently joins the server-controlled Auth user record and denies deleted, anonymous, banned or non-username-only owners with the wrong production alias. This is a backup defense to the Edge's live JWT/password/MFA/session checks; service-role RPC access remains restricted. This change is a source-only SQL proposal and has **not** been executed in either environment.
+
+
+## Verifier-to-backup consistency (2026-11-04, review only)
+
+The **unexecuted** Production `backup_put` proposal now accepts the enrolled owner HMAC as a third `p_verifier` argument. It requires a 64-character hex value that **exactly matches** the version-1 verifier already stored for that owner. The signup Edge passes the same trusted server-generated HMAC that it successfully inserted; the browser does not supply this verifier. New synthetic regression requires a changed verifier to quarantine the user without granting a session or persisting a new backup.
+
+**Limit:** Matching an Edge-supplied digest to the stored digest does not independently prove that plaintext words generated it; the trusted keyed HMAC construction, signed reservation, and service-role-only privilege are still required. This change is a defense against mismatched enrollment state, not a defense against compromised service-role credentials.
+
+**Compatibility:** The proposed Production RPC is now `mmh_n10_recovery_backup_put(uuid,text,text)` and is **not** the same API as the old two-argument hard-OFF Staging-only QA RPC. No existing QA Edge was updated or activated. A new, separately authorized Staging rehearsal of the revised Production-equivalent contract is necessary before any release.

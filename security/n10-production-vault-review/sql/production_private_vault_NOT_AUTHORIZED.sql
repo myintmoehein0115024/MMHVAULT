@@ -11,6 +11,7 @@ BEGIN
  THEN RAISE EXCEPTION 'N10 production migration NOT AUTHORIZED' USING ERRCODE='42501'; END IF;
  IF to_regnamespace('mmh_n10_privacy') IS NOT NULL
     OR to_regprocedure('public.mmh_n10_recovery_backup_put(uuid,text)') IS NOT NULL
+    OR to_regprocedure('public.mmh_n10_recovery_backup_put(uuid,text,text)') IS NOT NULL
     OR to_regprocedure('public.mmh_n10_recovery_backup_get(uuid)') IS NOT NULL
     OR to_regprocedure('public.mmh_n10_recovery_backup_exists(uuid)') IS NOT NULL
     OR to_regprocedure('public.mmh_n10_recovery_session_active(uuid,uuid,text)') IS NOT NULL
@@ -42,13 +43,14 @@ ALTER TABLE mmh_n10_privacy.recovery_rate_bucket ENABLE ROW LEVEL SECURITY;
 REVOKE ALL ON ALL TABLES IN SCHEMA mmh_n10_privacy FROM PUBLIC,anon,authenticated,service_role;
 -- No client RLS policies; only tightly restricted SECURITY DEFINER RPCs.
 
-CREATE FUNCTION public.mmh_n10_recovery_backup_put(p_user_id uuid,p_phrase text)
+CREATE FUNCTION public.mmh_n10_recovery_backup_put(p_user_id uuid,p_phrase text,p_verifier text)
 RETURNS boolean LANGUAGE plpgsql SECURITY DEFINER SET search_path = ''
 AS $put$
 DECLARE v_secret_id uuid;v_existing text;
 BEGIN
  IF p_user_id IS NULL OR p_phrase IS NULL OR length(p_phrase)>240 OR
-    p_phrase !~ '^([a-z]{2,13} ){9}[a-z]{2,13}$'
+    p_phrase !~ '^([a-z]{2,13} ){9}[a-z]{2,13}$' OR
+    p_verifier IS NULL OR p_verifier !~ '^[a-f0-9]{64}$'
  THEN RAISE EXCEPTION 'Invalid original words' USING ERRCODE='22023'; END IF;
  -- Only brand-new username-only owner, newly recorded verifier, first session
  -- not yet granted. Never silently backfill historical verifier-only accounts.
@@ -57,6 +59,9 @@ BEGIN
   JOIN public.mmh_n10a769_recovery_phrases r ON r.user_id=u.id
   WHERE u.id=p_user_id
     AND r.version=1 AND r.verifier ~ '^[a-f0-9]{64}$'
+    -- Pin enrollment to the exact owner-verifier HMAC written by the trusted Edge.
+    -- SQL cannot independently prove which words generated an HMAC without its key.
+    AND r.verifier=p_verifier
     -- A historical login or already bound username forbids initial backup.
     AND NOT EXISTS(SELECT 1 FROM auth.sessions AS prior WHERE prior.user_id=p_user_id)
     AND NOT EXISTS(SELECT 1 FROM public.mmh_n10a740_username_links AS link
@@ -156,12 +161,12 @@ END
 $rate$;
 
 -- Atomic revocation of the default PUBLIC function EXECUTE grants.
-REVOKE ALL ON FUNCTION public.mmh_n10_recovery_backup_put(uuid,text) FROM PUBLIC,anon,authenticated;
+REVOKE ALL ON FUNCTION public.mmh_n10_recovery_backup_put(uuid,text,text) FROM PUBLIC,anon,authenticated;
 REVOKE ALL ON FUNCTION public.mmh_n10_recovery_backup_exists(uuid) FROM PUBLIC,anon,authenticated;
 REVOKE ALL ON FUNCTION public.mmh_n10_recovery_backup_get(uuid) FROM PUBLIC,anon,authenticated;
 REVOKE ALL ON FUNCTION public.mmh_n10_recovery_session_active(uuid,uuid,text) FROM PUBLIC,anon,authenticated;
 REVOKE ALL ON FUNCTION public.mmh_n10_recovery_take_attempt(text,integer,integer) FROM PUBLIC,anon,authenticated;
-GRANT EXECUTE ON FUNCTION public.mmh_n10_recovery_backup_put(uuid,text) TO service_role;
+GRANT EXECUTE ON FUNCTION public.mmh_n10_recovery_backup_put(uuid,text,text) TO service_role;
 GRANT EXECUTE ON FUNCTION public.mmh_n10_recovery_backup_exists(uuid) TO service_role;
 GRANT EXECUTE ON FUNCTION public.mmh_n10_recovery_backup_get(uuid) TO service_role;
 GRANT EXECUTE ON FUNCTION public.mmh_n10_recovery_session_active(uuid,uuid,text) TO service_role;

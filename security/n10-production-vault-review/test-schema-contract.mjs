@@ -3,7 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 const src=readFileSync('security/n10-production-vault-review/sql/production_private_vault_NOT_AUTHORIZED.sql','utf8');
-const names=['backup_put(uuid,text)','backup_exists(uuid)','backup_get(uuid)',
+const names=['backup_put(uuid,text,text)','backup_exists(uuid)','backup_get(uuid)',
 'session_active(uuid,uuid,text)','take_attempt(text,integer,integer)'];
 test('Production migration requires two independent externally supplied guards',()=>{
  assert.match(src,/NOT AUTHORIZED/);
@@ -11,6 +11,8 @@ test('Production migration requires two independent externally supplied guards',
  assert.match(src,/current_setting\('mmhvault\.n10_private_vault_project_ref',true\)/);
  assert.match(src,/IS DISTINCT FROM 'vrypucmyrztxgiqhjspd'/);
  assert.ok(src.includes("to_regclass('public.mmh_n10a740_username_links') IS NULL"));
+ assert.ok(src.includes("to_regprocedure('public.mmh_n10_recovery_backup_put(uuid,text)') IS NOT NULL"));
+ assert.ok(src.includes("to_regprocedure('public.mmh_n10_recovery_backup_put(uuid,text,text)') IS NOT NULL"));
  assert.doesNotMatch(src,/\bSET\s+(?:LOCAL\s+)?mmhvault\.n10_private_vault_/i);
  assert.match(src,/BEGIN;[\s\S]*COMMIT;/);
  assert.doesNotMatch(src,/\bDROP\s+|\bTRUNCATE\s+|DELETE\s+FROM|CREATE\s+OR\s+REPLACE/i);
@@ -36,6 +38,9 @@ test('five RPCs are restricted to service_role, no client EXECUTE grants',()=>{
 test('fresh signup only, encrypted once, exact original immutable',()=>{
  assert.match(src,/JOIN public\.mmh_n10a769_recovery_phrases r ON r\.user_id=u\.id/);
  assert.ok(src.includes("AND r.version=1 AND r.verifier ~ '^[a-f0-9]{64}$'"));
+ assert.ok(src.includes('AND r.verifier=p_verifier'));
+ assert.ok(src.includes("p_verifier IS NULL OR p_verifier !~ '^[a-f0-9]{64}$'"));
+ assert.ok(src.includes('CREATE FUNCTION public.mmh_n10_recovery_backup_put(p_user_id uuid,p_phrase text,p_verifier text)'));
  assert.ok(src.includes("AND NOT EXISTS(SELECT 1 FROM auth.sessions AS prior WHERE prior.user_id=p_user_id)"));
  assert.ok(src.includes("AND NOT EXISTS(SELECT 1 FROM public.mmh_n10a740_username_links AS link"));
  assert.match(src,/u\.created_at>=now\(\)-interval '30 minutes'/);

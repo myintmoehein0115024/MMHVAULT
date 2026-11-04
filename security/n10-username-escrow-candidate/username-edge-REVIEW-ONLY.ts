@@ -74,6 +74,8 @@ async function enroll(username,pwd,ticket,input){
  // Hold reservation on ambiguous Auth creation, Vault write, or unsafe cleanup.
  // Prevents a second signup from claiming the same username while reconciling.
  let holdRegistrationClaim=false;
+ // This verifier is set ONLY after inserting it for this new UID.
+ let enrolledVerifier=null;
  const deps={
   vaultReady:async()=>{
    // Service-role-only read-only preflight. An absent Production Vault
@@ -111,16 +113,17 @@ async function enroll(username,pwd,ticket,input){
    const verifier=await mac('phrase:'+userId+':'+phrase);
    const {error}=await admin.from('mmh_n10a769_recovery_phrases')
     .insert({user_id:userId,verifier,version:1});
+   if(!error)enrolledVerifier=verifier;
    return !error;
   },
   encryptOriginalWords:async({userId,phrase})=>{
-   if(userId!==createdUid)return false;
+   if(userId!==createdUid||!enrolledVerifier)return false;
    // A failed or timed-out network result can mean the Vault write COMMITTED.
    // Mark the attempt before calling RPC: never delete an owner whose original
    // key may already exist. Keep it quarantined for manual reconciliation.
    backupPossiblyWritten=true;
    const {data,error}=await admin.rpc('mmh_n10_recovery_backup_put',{
-    p_user_id:userId,p_phrase:phrase
+    p_user_id:userId,p_phrase:phrase,p_verifier:enrolledVerifier
    });
    return !error&&data===true;
   },

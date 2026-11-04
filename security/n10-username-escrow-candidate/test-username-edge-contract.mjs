@@ -4,6 +4,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {runInNewContext} from 'node:vm';
+import {createHash} from 'node:crypto';
 import {createEscrowedUsernameEnrollment} from '../n10-signup-escrow-review/immutable-signup-escrow.mjs';
 const source=readFileSync(new URL('./username-edge-REVIEW-ONLY.ts',import.meta.url),'utf8');
 const start=source.indexOf('async function enroll(username,pwd,ticket,input){');
@@ -42,6 +43,9 @@ function fake(overrides={}){
       {data:null,error:Error('missing vault')}:{data:false,error:null};
     case 'mmh_n10a769_claim_enrollment':return {data:overrides.claimDenied!==true,error:null};
     case 'mmh_n10_recovery_backup_put':
+     if(args.p_user_id!==uid||args.p_verifier!==state.verifier||
+        typeof args.p_verifier!=='string'||!/^[0-9a-f]{64}$/.test(args.p_verifier))
+      return {data:null,error:Error('enrollment verifier mismatch')};
      if(overrides.putDown)return {data:null,error:Error('write failed')};
      state.backup=args.p_phrase;return {data:true,error:null};
     case 'mmh_n10_recovery_backup_get':return {data:overrides.readbackWrong?phrases[1]:state.backup,error:null};
@@ -52,7 +56,8 @@ function fake(overrides={}){
    insert:async data=>{
     call('insert:'+table);
     if(overrides.insertFail===table)return {error:Error('synthetic constraint')};
-    if(table==='mmh_n10a769_recovery_phrases')state.verifier=data.verifier;
+    if(table==='mmh_n10a769_recovery_phrases')state.verifier=overrides.verifierDrift?
+     (data.verifier[0]==='0'?'1':'0')+data.verifier.slice(1):data.verifier;
     else if(table==='mmh_n10a740_username_links')state.linked=true;
     else throw Error('unexpected table insert');
     return {error:null};
@@ -65,7 +70,7 @@ function fake(overrides={}){
  const ctx={
   normalizedPhrase:input=>typeof input==='string'&&phrases.includes(input)?input:null,
   quota:async()=>{call('quota');return true},
-  admin,mac:async val=>{call('mac');return val},
+  admin,mac:async val=>{call('mac');return createHash('sha256').update(val,'utf8').digest('hex')},
   crypto:{randomUUID:()=> '00000000-0000-4000-8000-000000000002'},
   ALIAS_DOMAIN:'no-mail.mmhvault.invalid',
   verifyPassword:async(email,pwd,id)=>{
@@ -130,6 +135,15 @@ test('ambiguous Vault write must quarantine the newly-created owner, never delet
  assert.equal(out.code,'auth_unavailable');
  assert.equal(h.state.deleted,false);assert.equal(h.state.banned,true);
  assert.ok(!h.calls.includes('deleteUser'));
+ assert.ok(!h.calls.includes('verifyPassword'));
+ assert.ok(!h.calls.includes('releaseReservation'));
+});
+test('verifier drift between insert and Vault write fails closed and quarantines owner',async()=>{
+ const h=fake({verifierDrift:true});const out=await h.enroll(userName,password,ticket,phrases[0]);
+ assert.equal(out.code,'auth_unavailable');
+ assert.equal(h.state.backup,null);
+ assert.equal(h.state.banned,true);
+ assert.equal(h.state.deleted,false);
  assert.ok(!h.calls.includes('verifyPassword'));
  assert.ok(!h.calls.includes('releaseReservation'));
 });
