@@ -65,6 +65,11 @@ const say=(condition,label)=>{assert.ok(condition,label);console.log('PASS '+lab
       await dlg.getByRole('button',{name:'Save'}).click();
       say((await cards.nth(1).textContent()).includes('Income2'),width+' Transaction saved and linked to Type');
       await dlg.locator('header button').click();
+      await page.locator('#txType').selectOption({label:'Income'});
+      await page.locator('#txGroup').selectOption({label:'Income2'});
+      say((await page.locator('#mmhHierarchyCategoryHint').textContent()).includes('No linked Category yet'),
+        width+' missing Category is explained without auto-seeding a preset');
+      say(await page.locator('#txForm .actions button').isDisabled(),width+' Add remains blocked until Category exists');
       // Step 3: Category under the exact Transaction.
       await cards.nth(2).getByRole('button',{name:'Manage'}).click();
       dlg=page.locator('.mmh-hier-dialog');
@@ -76,6 +81,8 @@ const say=(condition,label)=>{assert.ok(condition,label);console.log('PASS '+lab
       await dlg.getByRole('button',{name:'Save'}).click();
       say((await cards.nth(2).textContent()).includes('Salary'),width+' Category added under Income2');
       await dlg.locator('header button').click();
+      say(await page.locator('#mmhHierarchyCategoryHint').isHidden(),
+        width+' missing-Category hint disappears when a matching Category exists');
       const options=await page.evaluate(()=>Object.fromEntries(['txType','txGroup','txCategory']
         .map(id=>[id,[...document.getElementById(id).options]
           .filter(x=>x.dataset.mmhChoiceId).map(x=>x.textContent)])));
