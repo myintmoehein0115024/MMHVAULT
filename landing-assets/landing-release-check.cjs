@@ -697,6 +697,16 @@ check('Landing has five same-page primary sections and a separate Explore menu',
   rootNav.includes('href="./'+target+'" data-i18n="info')) &&
  (rootNav.match(/<details class="nav-explore"/g)||[]).length===1 &&
  (rootNav.match(/<summary>/g)||[]).length===1);
+console.log('L1.62 temporary invariant diagnostic',JSON.stringify({
+  index:l148IndexOnlyEdited(),l147:l147IndexOnlyEdited(prev),
+  l146:l146IndexOnlyEdited(),l145:l145IndexOnlyEdited(),
+  l144:l144IndexOnlyEdited(),l142:l142IndexOnlyEdited(),
+  burmese:l133BurmeseLayoutOnlyEdited(),
+  l147_old:prev.includes(l147NewHeaderTags),
+  l162_new:current.includes(l162NewHeaderTags),
+  exact:current===prev.replace(l147NewHeaderTags,l162NewHeaderTags),
+  explore:source('landing-assets/explore-l114.css')===read('landing-assets/explore-l114.css')
+}));
 check('Homepage retains all prior content and SEO outside shared header layer',
  ['en','zh','my'].every(lang=>translationScript.includes('Object.assign(strings.'+lang+', {\n    navExplore:')) &&
  current.includes('<body id="top" class="l131 mmh-nav-unified">') &&
