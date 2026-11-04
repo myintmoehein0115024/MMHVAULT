@@ -167,10 +167,14 @@ async function enroll(name,password){
    }
   });
   const user=data?.user;
+  // Track the returned Auth UUID BEFORE validating the response metadata.
+  // Even an incomplete/ambiguous Admin response may refer to a new identity;
+  // quarantineNewUser() independently checks exact generated email AND QA
+  // app_metadata on the server before banning only that new E/F identity.
+  if(typeof user?.id==='string')newUserId=user.id;
   if(error||!user?.id||user.email!==email||
     user.app_metadata?.mmhvault_qa_scope!==QA_SCOPE||
     user.app_metadata?.mmhvault_username!==name)throw Error('auth_ambiguous');
-  newUserId=user.id;
   const {data:backed,error:backupError}=await admin.rpc(
    'mmh_n10_realef_backup_put',{
     p_user_id:newUserId,p_slot:slot,p_phrase:phrase,
