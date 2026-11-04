@@ -64,6 +64,11 @@ BEGIN
     AND u.created_at>=now()-interval '30 minutes'
     AND r.created_at>=now()-interval '30 minutes'
     AND u.email_confirmed_at IS NOT NULL
+    -- The first immutable backup must never be created for a quarantined,
+    -- deleted, anonymous, or otherwise disallowed Auth owner.
+    AND u.deleted_at IS NULL
+    AND u.is_anonymous IS FALSE
+    AND (u.banned_until IS NULL OR u.banned_until<=now())
     AND right(u.email,length('@no-mail.mmhvault.invalid'))='@no-mail.mmhvault.invalid'
     AND u.raw_app_meta_data->>'mmhvault_auth_kind'='username_only'
  )
@@ -95,7 +100,16 @@ CREATE FUNCTION public.mmh_n10_recovery_backup_get(p_user_id uuid)
 RETURNS text LANGUAGE sql STABLE SECURITY DEFINER SET search_path = ''
 AS $get$
  SELECT v.decrypted_secret FROM mmh_n10_privacy.recovery_backup_index i
- JOIN vault.decrypted_secrets v ON v.id=i.secret_id WHERE i.user_id=p_user_id;
+ JOIN auth.users active_owner ON active_owner.id=i.user_id
+ JOIN vault.decrypted_secrets v ON v.id=i.secret_id
+ WHERE i.user_id=p_user_id
+   -- The same account-revocation policy applies even if a future caller
+   -- accidentally bypasses the Edge's separate live-session guard.
+   AND active_owner.deleted_at IS NULL
+   AND active_owner.is_anonymous IS FALSE
+   AND (active_owner.banned_until IS NULL OR active_owner.banned_until<=now())
+   AND active_owner.raw_app_meta_data->>'mmhvault_auth_kind'='username_only'
+   AND right(active_owner.email,length('@no-mail.mmhvault.invalid'))='@no-mail.mmhvault.invalid';
 $get$;
 
 -- Edge must supply an Auth-verified JWT owner and matching JWT session_id.

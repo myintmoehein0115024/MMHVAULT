@@ -19,3 +19,8 @@ The guarded `backup_put` first-install candidate also checks the stored verifier
 ## Banned and deleted users (2026-11-04)
 
 The read-only Edge candidate rejects Auth users with a deletion marker. Supabase Auth's User type does not expose the `banned_until` field, so the Edge must not trust a missing claim as proof of no ban. Instead, the `session_active` SQL candidate joins the authoritative Auth user row and refuses deleted, anonymous, or currently banned owners even if a previously issued JWT/session still exists. This is a review-only defense against quarantined-registration key disclosure; it has not been deployed or live-tested.
+
+
+## Owner-state defense in depth (2026-11-04, review only)
+
+The first immutable encrypted escrow now refuses deleted, anonymous and actively banned Auth users in addition to the existing no-prior-session/no-prior-link gates. The `backup_get` function independently joins the server-controlled Auth user record and denies deleted, anonymous, banned or non-username-only owners with the wrong production alias. This is a backup defense to the Edge's live JWT/password/MFA/session checks; service-role RPC access remains restricted. This change is a source-only SQL proposal and has **not** been executed in either environment.

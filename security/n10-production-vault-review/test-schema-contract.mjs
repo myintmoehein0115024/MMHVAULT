@@ -41,6 +41,9 @@ test('fresh signup only, encrypted once, exact original immutable',()=>{
  assert.match(src,/u\.created_at>=now\(\)-interval '30 minutes'/);
  assert.match(src,/r\.created_at>=now\(\)-interval '30 minutes'/);
  assert.match(src,/u\.raw_app_meta_data->>'mmhvault_auth_kind'='username_only'/);
+ assert.ok(src.includes("AND u.deleted_at IS NULL"));
+ assert.ok(src.includes("AND u.is_anonymous IS FALSE"));
+ assert.ok(src.includes("AND (u.banned_until IS NULL OR u.banned_until<=now())"));
  assert.match(src,/pg_catalog\.pg_advisory_xact_lock/);
  assert.match(src,/FOR UPDATE/);
  assert.match(src,/v_existing IS DISTINCT FROM p_phrase/);
@@ -65,4 +68,13 @@ test('rate limiter saturates without overflow and words stay inside Vault',()=>{
  assert.match(src,/LEAST\(rb\.attempts,p_limit\)\+1/);
  assert.match(src,/RETURN v_attempts<=p_limit/);
  assert.match(src,/JOIN vault\.decrypted_secrets v ON v\.id=i\.secret_id/);
+ assert.ok(src.includes("JOIN auth.users active_owner ON active_owner.id=i.user_id"));
+ const readBody=src.split('AS $get
+});
+)[1]?.split('$get$;')[0]||'';
+ assert.ok(readBody.includes("active_owner.deleted_at IS NULL"));
+ assert.ok(readBody.includes("active_owner.is_anonymous IS FALSE"));
+ assert.ok(readBody.includes("active_owner.banned_until IS NULL OR active_owner.banned_until<=now()"));
+ assert.ok(readBody.includes("active_owner.raw_app_meta_data->>'mmhvault_auth_kind'='username_only'"));
+ assert.ok(readBody.includes("right(active_owner.email,length('@no-mail.mmhvault.invalid'))='@no-mail.mmhvault.invalid'"));
 });
