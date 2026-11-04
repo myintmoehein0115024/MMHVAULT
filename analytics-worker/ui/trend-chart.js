@@ -50,7 +50,7 @@
     container.replaceChildren(html('div','chart-empty',message));
   }
 
-  function render(container,trend,granularity,range,updatedAt){
+  function render(container,trend,granularity,range,updatedAt,timeZone='UTC'){
     if(!container)return false;
     const points=parseBuckets(trend,granularity);
     if(!points){
@@ -61,6 +61,19 @@
       clear(container,'No recorded Web Analytics activity for this period.');
       return true;
     }
+    // Timezone is display-only: never change RUM groups, API filters, or totals.
+    if(timeZone!=='UTC'&&timeZone!=='Asia/Bangkok'){
+      clear(container,'Unsupported chart display time zone.');
+      return false;
+    }
+    const zone=granularity==='hour'?timeZone:'UTC';
+    const clock=new Intl.DateTimeFormat('en-GB',{
+      timeZone:zone,month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'
+    });
+    const clockLabel=timestamp=>{
+      const parts=Object.fromEntries(clock.formatToParts(new Date(timestamp)).map(p=>[p.type,p.value]));
+      return parts.month+'-'+parts.day+' '+parts.hour+':'+parts.minute;
+    };
     // Display the entire selected UTC period, not just the dates with data.
     const period=range||(granularity==='hour'?'24h':'7d');
     const days={'24h':1,'7d':7,'30d':30};
@@ -108,9 +121,9 @@
     wrap.appendChild(legend);
 
     const svg=make('svg',{viewBox:'0 0 '+width+' '+height,width:'100%',height:height,
-      role:'img','aria-label':'Verified Cloudflare Web Analytics trend. '+points.length+' observed time buckets, UTC.'});
+      role:'img','aria-label':'Verified Cloudflare Web Analytics trend. '+points.length+' observed time buckets. '+(granularity==='hour'?zone+' hour labels.':'UTC calendar-day groups.')});
     const title=make('title',{},'Visits and page views over time — Cloudflare Web Analytics');
-    const desc=make('desc',{},'Only time buckets returned by the verified Cloudflare API are plotted. The timeline is shown in UTC.');
+    const desc=make('desc',{},'Only actual Cloudflare time buckets are plotted. '+(granularity==='hour'?'Displayed hour labels use '+zone+'.':'Daily groups always use UTC calendar dates.')+' Missing periods are not filled in.');
     svg.append(title,desc);
 
     const defs=make('defs');
@@ -150,7 +163,12 @@
       }
       for(const point of timed){
         const dot=make('circle',{cx:x(point.time),cy:y(point[key]),r:4.8,fill:color,stroke:'#142034','stroke-width':2});
-        dot.appendChild(make('title',{},point.date+' UTC | Visits: '+number.format(point.visits)+' | Page views: '+number.format(point.pageViews)));
+        const periodLabel=granularity==='hour'?clockLabel(point.time)+' ('+zone+')':point.date+' UTC day';
+        const detail=periodLabel+' | Visits: '+number.format(point.visits)+' | Page views: '+number.format(point.pageViews);
+        dot.setAttribute('tabindex','0');
+        dot.setAttribute('role','img');
+        dot.setAttribute('aria-label',detail);
+        dot.appendChild(make('title',{},detail));
         svg.appendChild(dot);
       }
     }
@@ -161,14 +179,34 @@
       const date=new Date(timestamp).toISOString();
       const edge=i===0||i===count-1;
       const labelText=granularity==='day'?date.slice(5,10):
-        edge?date.slice(5,10)+' '+date.slice(11,16):date.slice(11,16);
+        edge?clockLabel(timestamp):clockLabel(timestamp).slice(6);
       svg.appendChild(make('text',{x:x(timestamp),y:height-25,
         'text-anchor':i===0?'start':i===count-1?'end':'middle',
         fill:'#aebdd1','font-size':12},labelText));
     }
     wrap.appendChild(svg);
     wrap.appendChild(html('p','chart-note',
-      (granularity==='hour'?'Hourly':'Daily')+' observations · UTC · Only verified Cloudflare data shown. Missing intervals are not estimated. Lines connect only consecutive observed periods.'));
+      (granularity==='hour'?'Hourly observations · '+(zone==='UTC'?'UTC':'Bangkok (UTC+7)'):'Daily observations · UTC calendar days')+
+      ' · Only verified Cloudflare data shown. Missing intervals are not estimated. Lines connect only consecutive observed periods.'));
+    // Native disclosure works with keyboard, touch and screen readers, and lists
+    // exactly the verified buckets returned by Cloudflare, without invented zeros.
+    const details=html('details','chart-details');
+    details.appendChild(html('summary','chart-details-summary','Inspect observed buckets ('+timed.length+')'));
+    const scroll=html('div','chart-table-scroll'),table=html('table','chart-table');
+    const thead=html('thead'),heading=html('tr');
+    for(const text of [granularity==='hour'?'Hour ('+(zone==='UTC'?'UTC':'Bangkok UTC+7')+')':'UTC day','Visits','Page views']){
+      const th=html('th','',text);th.setAttribute('scope','col');heading.appendChild(th);
+    }
+    thead.appendChild(heading);table.appendChild(thead);
+    const tbody=html('tbody');
+    for(const point of timed){
+      const row=html('tr');
+      const bucket=granularity==='hour'?clockLabel(point.time):point.date;
+      for(const value of [bucket,number.format(point.visits),number.format(point.pageViews)])
+        row.appendChild(html('td','',value));
+      tbody.appendChild(row);
+    }
+    table.appendChild(tbody);scroll.appendChild(table);details.appendChild(scroll);wrap.appendChild(details);
     container.replaceChildren(wrap);
     return true;
   }

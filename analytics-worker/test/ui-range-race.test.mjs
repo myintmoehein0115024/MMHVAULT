@@ -10,13 +10,13 @@ if(!inline)throw Error('Admin Analytics initializer not found');
 
 function harness() {
   const handlers={},requests=[],renders=[],elements={};
-  for(const id of ['range','refresh','status','visits','pageViews','uniqueVisitors','trend','updated']){
-    elements[id]={value:id==='range'?'7d':'',textContent:'',disabled:false,
+  for(const id of ['range','timeZone','refresh','status','visits','pageViews','uniqueVisitors','trend','updated']){
+    elements[id]={value:id==='range'?'7d':id==='timeZone'?'UTC':'',textContent:'',disabled:false,
       addEventListener(event,handler){handlers[id+':'+event]=handler}};
   }
   const chart={
     clear(){},
-    render(_el,trend,granularity){renders.push({trend,granularity});return true}
+    render(_el,trend,granularity,range,updatedAt,timeZone){renders.push({trend,granularity,range,updatedAt,timeZone});return true}
   };
   const client={
     auth:{async getSession(){return {data:{session:{access_token:'synthetic.test.jwt'}}}}},
@@ -75,4 +75,38 @@ test('refresh after a range change keeps the most recent response only',async()=
   await settled();
   assert.equal(h.elements.visits.textContent,'7');
   assert.equal(h.renders.length,1);
+});
+
+test('display-only Bangkok time switch does not fetch or modify verified totals',async()=>{
+  const h=harness();await settled();
+  assert.equal(h.elements.timeZone.disabled,true,'daily view should keep UTC days');
+  h.elements.range.value='24h';h.handlers['range:change']();await settled();
+  assert.equal(h.elements.timeZone.disabled,false);
+  h.requests[1].resolve(answer('24h',7));await settled();
+  const previousRequestCount=h.requests.length;
+  assert.equal(h.renders.at(-1).timeZone,'UTC');
+  h.elements.timeZone.value='Asia/Bangkok';
+  h.handlers['timeZone:change']();
+  assert.equal(h.requests.length,previousRequestCount,'time labels do not trigger new analytics queries');
+  assert.equal(h.renders.at(-1).timeZone,'Asia/Bangkok');
+  assert.equal(h.elements.visits.textContent,'7');
+  assert.equal(h.elements.pageViews.textContent,'8');
+  assert.equal(h.elements.uniqueVisitors.textContent,'—');
+  h.elements.range.value='30d';h.handlers['range:change']();await settled();
+  assert.equal(h.elements.timeZone.disabled,true,'daily range is always UTC calendar days');
+  h.requests[2].resolve(answer('30d',10));await settled();
+  assert.equal(h.renders.at(-1).timeZone,'UTC');
+  assert.equal(h.elements.visits.textContent,'10');
+});
+
+test('changing time zone during an in-flight hourly load uses the latest selection',async()=>{
+  const h=harness();await settled();
+  h.elements.range.value='24h';h.handlers['range:change']();await settled();
+  assert.equal(h.requests.length,2);
+  h.elements.timeZone.value='Asia/Bangkok';h.handlers['timeZone:change']();
+  assert.equal(h.renders.length,0,'no unverified point is rendered while loading');
+  h.requests[1].resolve(answer('24h',12));await settled();
+  assert.equal(h.renders.at(-1).timeZone,'Asia/Bangkok');
+  assert.equal(h.elements.visits.textContent,'12');
+  assert.equal(h.elements.status.textContent,'Connected');
 });
