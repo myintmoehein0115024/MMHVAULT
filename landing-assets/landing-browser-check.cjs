@@ -52,6 +52,50 @@ async function load(page,route,failures){
 (async()=>{
  const browser=await chromium.launch({channel:'chrome',headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
  try{
+   // L1.64: rendering-only optimization. Header stays sticky and glass-dark,
+   // while desktop avoids expensive live backdrop blur layers. Mobile unchanged.
+   for(const route of publicRoutes){
+     for(const width of [390,1280]){
+       const ctx=await browser.newContext({viewport:{width,height:850},serviceWorkers:'block'});
+       const page=await ctx.newPage(),exceptions=[];
+       page.on('pageerror',e=>exceptions.push(e.message));
+       const response=await page.goto(origin+route,{waitUntil:'load',timeout:30000});
+       const result=await page.evaluate(()=>{
+         const header=document.querySelector('.site-header');
+         const computed=getComputedStyle(header);
+         const cs=[...document.querySelectorAll('link[rel="stylesheet"]')]
+           .find(el=>el.href.includes('safari-performance-l164.css'));
+         const mobile=innerWidth<=1024;
+         const isLanding=document.body.classList.contains('l131');
+         const cards=[...document.querySelectorAll('.showcase-v2 .showcase-card')];
+         window.scrollTo({top:Math.min(400,document.documentElement.scrollHeight-innerHeight),
+           behavior:'instant'});
+         const off=scrollY===0 || Math.abs(header.getBoundingClientRect().top)<3;
+         const y=scrollY;
+         window.scrollTo({left:900,top:y,behavior:'instant'});
+         const sideways=scrollX;
+         window.scrollTo({left:0,top:y,behavior:'instant'});
+         return {mobile,hasStylesheet:!!cs&&cs.href.includes('?v=l164'),
+           standardBackdrop:computed.backdropFilter,
+           webkitBackdrop:computed.webkitBackdropFilter,
+           background:computed.backgroundImage,
+           stickyOff:off,sideways,
+           cardCount:cards.length,
+           cardsCheap:cards.every(el=>getComputedStyle(el).backdropFilter==='none'),
+           ambienceCheap:!isLanding||getComputedStyle(document.querySelector('.ambient')).filter==='none'};
+       });
+       const desktop=width>1024;
+       ensure(response?.status()===200&&result.hasStylesheet&&result.stickyOff&&
+         result.sideways<=2&&result.background.includes('gradient')&&
+         (desktop?(result.standardBackdrop==='none'&&result.webkitBackdrop==='none'&&
+           result.cardsCheap&&result.ambienceCheap):
+           result.mobile&&result.standardBackdrop!=='none')&&exceptions.length===0,
+         'L1.64 Chromium desktop compositor / mobile glass parity '+route+
+           ' '+width+'px '+JSON.stringify({...result,exceptions}));
+       await ctx.close();
+     }
+   }
+   console.log('L1.64 desktop compositing and mobile glass parity PASS');
    // L1.63: tap targets and long translated footer labels on public pages.
    // Responsive-only; verify original tablet footer and all destinations.
    for(const route of publicRoutes.slice(1)){
