@@ -16,7 +16,7 @@
 <section class="panel wide"><div class="label">Visits over time</div><div class="empty" id="trend">No verified trend data available yet.</div></section>
 <p class="footer" id="updated">Source: Cloudflare Web Analytics · No data loaded</p>
 </main>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/dist/umd/supabase.js"></script>
 <script>
 window.MMH_ANALYTICS_API_URL = 'https://mmhvault-website-analytics-v2.myintmoehein0115024.workers.dev/api/admin/website-analytics'; // Isolated Worker; authorized data access still requires live verification.
 (()=>{'use strict';const $=id=>document.getElementById(id),status=$('status');const number=new Intl.NumberFormat('en-US');function reset(){for(const id of ['visits','pageViews','uniqueVisitors'])$(id).textContent='—';$('trend').textContent='No verified trend data available yet.';$('updated').textContent='Source: Cloudflare Web Analytics · No data loaded'}
