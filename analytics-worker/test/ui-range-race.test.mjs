@@ -10,7 +10,7 @@ if(!inline)throw Error('Admin Analytics initializer not found');
 
 function harness({authenticated=true,admin=true,holdBreakdowns=false}={}) {
   const handlers={},requests=[],breakdownRequests=[],renders=[],elements={};
-  for(const id of ['range','timeZone','refresh','status','visits','pageViews','uniqueVisitors','trend','updated','breakdowns','breakdownStatus','loadBreakdowns']){
+  for(const id of ['range','timeZone','refresh','status','visits','pageViews','uniqueVisitors','trend','updated','breakdowns','breakdownStatus']){
     elements[id]={value:id==='range'?'7d':id==='timeZone'?'UTC':'',textContent:'',disabled:false,
       addEventListener(event,handler){handlers[id+':'+event]=handler}};
   }
@@ -130,20 +130,15 @@ test('optional breakdown outage never overwrites already verified totals or conn
   assert.equal(h.elements.visits.textContent,'6');
   assert.equal(h.elements.pageViews.textContent,'7');
   assert.equal(h.elements.status.textContent,'Connected');
-  assert.match(h.elements.breakdownStatus.textContent,/Ready. Click Load breakdowns/);
-  assert.equal(h.elements.loadBreakdowns.disabled,false);
-  h.handlers['loadBreakdowns:click']();await settled();
   assert.match(h.elements.breakdownStatus.textContent,/Breakdowns unavailable/);
+  assert.equal(h.requests.length,1,'verified overview is not refetched to load breakdowns');
   assert.equal(h.elements.refresh.disabled,false);
 });
 
-test('switching period aborts an old on-demand breakdown request',async()=>{
+test('switching period aborts an old automatically loaded breakdown request',async()=>{
   const h=harness({holdBreakdowns:true});await settled();
   h.requests[0].resolve(answer('7d',3));await settled();
-  assert.equal(h.breakdownRequests.length,0,'never auto-query breakdowns');
-  h.handlers['loadBreakdowns:click']();await settled();
-  assert.equal(h.breakdownRequests.length,1);
-  assert.equal(h.elements.loadBreakdowns.disabled,true);
+  assert.equal(h.breakdownRequests.length,1,'one automatic breakdown request after verified KPI load');
   h.elements.range.value='24h';h.handlers['range:change']();await settled();
   assert.equal(h.breakdownRequests[0].options.signal.aborted,true);
   h.breakdownRequests[0].resolve({status:503,ok:false});
@@ -158,7 +153,6 @@ test('30d main totals stay available while unverified country breakdowns remain 
   h.requests[1].resolve(answer('30d',20));await settled();
   assert.equal(h.elements.visits.textContent,'20');
   assert.equal(h.elements.pageViews.textContent,'21');
-  assert.equal(h.elements.loadBreakdowns.disabled,true);
   assert.match(h.elements.breakdownStatus.textContent,/30-day breakdowns are paused/);
   assert.equal(h.breakdownRequests.length,0);
   assert.equal(h.elements.status.textContent,'Connected');
