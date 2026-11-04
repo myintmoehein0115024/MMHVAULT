@@ -54,7 +54,7 @@ function pass(condition,label,detail){
         horizontalOverflow:document.documentElement.scrollWidth>innerWidth+2
       };
     });
-    pass(metrics.safariSheet?.includes('?v=l164') &&
+    pass(metrics.safariSheet?.includes('?v=l165') &&
       metrics.headerBackdrop==='none'&&metrics.headerWebkitBackdrop==='none'&&
       metrics.headerBackground.includes('linear-gradient')&&
       metrics.cardBlurOff&&metrics.ambientOff&&metrics.heroGlowOff&&
@@ -73,6 +73,31 @@ function pass(condition,label,detail){
     cases++;
    }
   }
+  // L1.65: keep premium hover shadow end states without interpolating them.
+  for(const width of [1280,1440]){
+    const context=await browser.newContext({viewport:{width,height:900},reducedMotion:'no-preference'});
+    await context.route('https://static.cloudflareinsights.com/**',
+      route=>route.fulfill({status:200,contentType:'application/javascript',body:''}));
+    const page=await context.newPage(),errors=[];
+    page.on('pageerror',e=>errors.push(e.message));
+    const response=await page.goto(origin+'/',{waitUntil:'load',timeout:30000});
+    const card=page.locator('.showcase-v2 .showcase-card').first();
+    const before=await card.evaluate(el=>{
+      const css=getComputedStyle(el);
+      return {transition:css.transitionProperty,shadow:css.boxShadow,
+        glow:getComputedStyle(document.querySelector('#business .business-stage'),'::after').filter};
+    });
+    await card.hover();
+    await page.waitForTimeout(350);
+    const after=await card.evaluate(el=>getComputedStyle(el).boxShadow);
+    const props=before.transition.split(',').map(x=>x.trim());
+    pass(response?.status()===200&&before.glow==='none'&&
+      !props.includes('box-shadow')&&props.includes('transform')&&
+      props.includes('border-color')&&before.shadow!==after&&errors.length===0,
+      'L1.65 WebKit desktop hover and Business glow parity '+width+'px',
+      {before,after,errors});
+    await context.close();
+  }
   // 390px mobile stays outside the desktop compositing override.
   for(const path of ['/','/about/']){
     const context=await browser.newContext({viewport:{width:390,height:844}});
@@ -87,6 +112,6 @@ function pass(condition,label,detail){
       'WebKit mobile baseline is not overridden '+path,metrics);
     await context.close();
   }
-  console.log('L1.64 MACOS WEBKIT QA PASS: '+cases+' desktop routes + 2 mobile guards');
+  console.log('L1.65 MACOS WEBKIT QA PASS: '+cases+' desktop routes + 2 hover + 2 mobile guards');
  }finally{await browser.close()}
 })().catch(e=>{console.error(e.stack||String(e));process.exitCode=1});
