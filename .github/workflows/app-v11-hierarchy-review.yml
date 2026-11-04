@@ -15,6 +15,7 @@ on:
       - 'tests/build-app-v117-doubleclick.cjs'
       - 'tests/app-v117-doubleclick*'
       - 'tests/app-v117-staging-full-preview*'
+      - 'tests/app-v117-staging-login.html'
       - '.github/workflows/app-v11-hierarchy-review.yml'
   workflow_dispatch:
 
