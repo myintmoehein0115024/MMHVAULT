@@ -201,23 +201,23 @@
         el.style.setProperty('--mm-public-delay',Math.min(index%3,2)*55+'ms');
       });
       document.body.classList.add('mm-public-motion');
-      // L1.58: refresh public reveals after rotation.
-      const query=window.matchMedia('(max-width: 620px)');
-      let observer;
-      const bind=()=>{
-        observer?.disconnect();
-        const mobileReveal=query.matches;
-        const next=new IntersectionObserver(entries=>entries.forEach(e=>{
-          if(!e.isIntersecting)return;
-          e.target.classList.add('mm-public-shown');
-          next.unobserve(e.target);
-        }),{threshold:.045,rootMargin:mobileReveal?'0px 0px 12% 0px':'0px 0px -4% 0px'});
-        observer=next;
-        targets.filter(el=>!el.classList.contains('mm-public-shown')).forEach(el=>next.observe(el));
-      };
+      // L1.58: rotate.
+      const mq=matchMedia('(max-width:620px)');
+      let io;
+      function bind(){
+        io?.disconnect();
+        const mobileReveal=mq.matches;
+        const o=new IntersectionObserver(es=>{
+          for(const e of es)if(e.isIntersecting){
+            e.target.classList.add('mm-public-shown');
+            o.unobserve(e.target);
+          }
+        },{threshold:.045,rootMargin:mobileReveal?'0px 0px 12% 0px':'0px 0px -4% 0px'});
+        io=o;
+        for(const e of targets)if(!e.classList.contains('mm-public-shown'))o.observe(e);
+      }
       bind();
-      if(query.addEventListener)query.addEventListener('change',bind);
-      else query.addListener?.(bind);
+      mq.addEventListener?mq.addEventListener('change',bind):mq.addListener?.(bind);
     }
   }
 })();
