@@ -40,6 +40,10 @@ test('preview is generated from the current APP without production endpoints',()
  assert.match(html,/connect-src https:\/\/ldivswlhtgmznzwhzsoi\.supabase\.co\/auth\/v1\/token/);
  assert.match(html,/https:\/\/ldivswlhtgmznzwhzsoi\.supabase\.co\/rest\/v1\/transactions/);
  assert.match(html,/https:\/\/ldivswlhtgmznzwhzsoi\.supabase\.co\/rest\/v1\/personal_configuration/);
+ for(const table of ['investments','custom_investments','crypto_wallet_movements']){
+   assert.ok(html.includes('https://'+STAGE+'/rest/v1/'+table),
+     'Approved Auth-Staging boot-only route missing for '+table);
+ }
  assert.doesNotMatch(html,/connect-src[^"]*\/functions\/v1\//);
  assert.ok(fs.existsSync(path.join(out,'START-STAGING-ON-MAC.sh')));
  const launcher=fs.readFileSync(path.join(out,'START-STAGING-ON-MAC.sh'),'utf8');
