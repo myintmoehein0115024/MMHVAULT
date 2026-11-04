@@ -281,7 +281,7 @@ const l162OldCssLink="<link rel=\"stylesheet\" href=\"/landing-assets/public-pag
 const l162NewCssLink="<link rel=\"stylesheet\" href=\"/landing-assets/public-pages.css?v=l162\">";
 const l162RestoreCss=(html)=>html.replace(l162NewCssLink,l162OldCssLink);
 const l163NewCssLink="<link rel=\"stylesheet\" href=\"/landing-assets/public-pages.css?v=l163\">";
-const l163RestoreCss=(html)=>html.replace(l164PublicLink+'\n',''); // L1.63 CSS link is released.
+const l163RestoreCss=(html)=>html.replace('\n'+l164PublicLink,''); // L1.63 CSS link is released.
 const l163FooterCssPatch="\n/* L1.63 — minimum 44px touch targets for public footer navigation on phones.\n   Keep the desktop footer and all page content, links, language strings intact. */\n@media (max-width: 620px) {\n  body.public-landing-page .public-footer-group {\n    min-width: 0;\n    gap: 5px;\n  }\n  body.public-landing-page .public-footer-group strong {\n    max-width: 100%;\n    overflow-wrap: anywhere;\n  }\n  body.public-landing-page .public-footer-group a {\n    box-sizing: border-box;\n    display: flex;\n    align-items: center;\n    width: 100%;\n    min-width: 0;\n    min-height: 44px;\n    padding: 8px;\n    border-radius: 10px;\n    overflow-wrap: anywhere;\n  }\n  body.public-landing-page .public-footer-group a span {\n    min-width: 0;\n    overflow-wrap: anywhere;\n  }\n  body.public-landing-page .public-footer-bottom > a {\n    display: inline-flex;\n    align-items: center;\n    max-width: 100%;\n    min-height: 44px;\n    padding: 8px;\n    border-radius: 10px;\n    overflow-wrap: anywhere;\n  }\n}\n";
 const l163FooterCssOnlyEdited=()=>
   read('landing-assets/public-pages.css')===source('landing-assets/public-pages.css') &&

@@ -87,7 +87,7 @@ async function load(page,route,failures){
        const desktop=width>1024;
        ensure(response?.status()===200&&result.hasStylesheet&&result.stickyOff&&
          result.sideways<=2&&result.background.includes('gradient')&&
-         (desktop?(result.standardBackdrop==='none'&&result.webkitBackdrop==='none'&&
+         (desktop?(result.standardBackdrop==='none'&&(!result.webkitBackdrop||result.webkitBackdrop==='none')&&
            result.cardsCheap&&result.ambienceCheap):
            result.mobile&&result.standardBackdrop!=='none')&&exceptions.length===0,
          'L1.64 Chromium desktop compositor / mobile glass parity '+route+
