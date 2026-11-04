@@ -34,6 +34,16 @@ const makeOption=(value,name,key)=>{
   if(key)node.dataset.mmhChoiceId=key;
   return node;
 };
+// New Manage choices must never silently inherit the first financial
+// meaning or parent. Empty placeholders make every calculation rule and
+// Type → Transaction → Category link an explicit owner decision.
+const requireSelection=(select,prompt)=>{
+  select.required=true;
+  const placeholder=makeOption('',prompt);
+  placeholder.disabled=true;placeholder.selected=true;
+  select.append(placeholder);
+  return select;
+};
 const uid=()=>typeof crypto!=='undefined'&&crypto.randomUUID?
   'hier_'+crypto.randomUUID():'hier_'+Date.now().toString(36)+'_'+Math.random().toString(36).slice(2);
 let loadedOwner='',historyReady=false,overlay=null,modalField='',selection={type:'',transaction:'',category:''};
@@ -104,6 +114,7 @@ function style(){
   .mmh-hier-actions .mmh-hier-btn{padding:6px 8px;font-size:11px}
   .mmh-hier-form{display:grid;gap:13px;padding-top:15px}
   .mmh-hier-form label{display:grid;gap:6px;font-size:12px;color:#b9c7d8}
+  .mmh-hier-form .mmh-hier-help{font-size:12px;color:#b9c7d8;line-height:1.55;margin:0}
   .mmh-hier-form input,.mmh-hier-form select{width:100%;min-width:0;padding:12px;border-radius:10px;border:1px solid rgba(196,202,219,.28);background:#24354d;color:#fff}
   .mmh-hier-footer{display:flex;justify-content:flex-end;gap:9px;margin-top:14px}
   #mmhHierarchyNotice[hidden]{display:none!important}
@@ -213,32 +224,47 @@ function drawEditor(item){
   name.value=item?.label||'';
   control(tr('Name','名称','အမည်'),name);
   let typeChoice=null,parentChoice=null,kindChoice=null;
+  const calculationHelp=()=>form.append(elt('p','mmh-hier-help',tr(
+    'These are calculation rules, not preset Type or Transaction entries. Choose the real financial direction before saving.',
+    '这些只是金额计算规则，不是系统预设的 Type 或 Transaction 项目。保存前请选择正确的收支方向。',
+    'ဤအရာများသည် ငွေပမာဏတွက်ချက်ရန် စည်းမျဉ်းများသာဖြစ်ပြီး ကြိုတင်ထည့်ထားသော Type / Transaction များ မဟုတ်ပါ။'
+  )));
   if(!item&&field==='type'){
-    typeChoice=elt('select');
+    typeChoice=requireSelection(elt('select'),tr(
+      'Choose income, expense or transfer…','请选择收入、支出或转账…','ဝင်ငွေ၊ အသုံးစရိတ် သို့မဟုတ် ငွေလွှဲကို ရွေးပါ…'));
     for(const type of ['Income','Expense','Transfer'])
-      typeChoice.append(makeOption(type,tr(type,type==='Income'?'收入':type==='Expense'?'支出':'转账',type),type));
-    control(tr('Financial meaning','财务类型','ငွေစာရင်းအမျိုးအစား'),typeChoice);
+      typeChoice.append(makeOption(type,tr(type,type==='Income'?'收入':type==='Expense'?'支出':'转账',
+        type==='Income'?'ဝင်ငွေ':type==='Expense'?'အသုံးစရိတ်':'ငွေလွှဲ'),type));
+    control(tr('Balance direction','收支方向（用于余额计算）','ငွေလက်ကျန်တွက်ချက်မှု အမျိုးအစား'),typeChoice);
+    calculationHelp();
   }
   if(!item&&field==='transaction'){
-    parentChoice=elt('select');
+    parentChoice=requireSelection(elt('select'),tr(
+      'Choose a Type to link…','请选择要关联的 Type…','ချိတ်ဆက်မည့် Type ကို ရွေးပါ…'));
     for(const type of graph.types.filter(x=>!x.archived))
       parentChoice.append(makeOption(type.id,type.label,type.id));
     control(tr('Linked Type','关联 Type','ချိတ်ဆက်ထားသော Type'),parentChoice);
-    kindChoice=elt('select');
-    control(tr('Accounting purpose','记账用途','ငွေစာရင်းရည်ရွယ်ချက်'),kindChoice);
+    kindChoice=requireSelection(elt('select'),tr(
+      'Choose accounting treatment…','请选择记账计算方式…','စာရင်းတွက်ချက်မှုကို ရွေးပါ…'));
+    control(tr('Accounting treatment','记账计算方式','စာရင်းတွက်ချက်မှု'),kindChoice);
+    calculationHelp();
     const redrawKinds=()=>{
       const parent=graph.types.find(x=>x.id===parentChoice.value);
       kindChoice.replaceChildren();
+      requireSelection(kindChoice,tr('Choose accounting treatment…',
+        '请选择记账计算方式…','စာရင်းတွက်ချက်မှုကို ရွေးပါ…'));
       for(const kind of ['Income|Income','Expense|Expense','Expense|Personal','Income|Loans','Expense|Loans',
           'Transfer|Transfer','Income|Data Adjustment','Expense|Data Adjustment']){
         const k=ledgerKind(kind);if(parent&&k?.type===parent.ledgerType)
           kindChoice.append(makeOption(kind,meaning(kind),kind));
       }
+      kindChoice.disabled=!parent;
     };
     parentChoice.addEventListener('change',redrawKinds);redrawKinds();
   }
   if(!item&&field==='category'){
-    parentChoice=elt('select');
+    parentChoice=requireSelection(elt('select'),tr(
+      'Choose a Transaction to link…','请选择要关联的 Transaction…','ချိတ်ဆက်မည့် Transaction ကို ရွေးပါ…'));
     for(const t of graph.transactions.filter(x=>!x.archived&&
       graph.types.some(type=>type.id===x.parentId&&!type.archived))){
       const parent=graph.types.find(x=>x.id===t.parentId);
@@ -249,7 +275,12 @@ function drawEditor(item){
   form.addEventListener('submit',e=>{
     e.preventDefault();
     const value=name.value.trim();
-    if(!value)return;
+    if(!value||!form.checkValidity())return;
+    // HTML form validity can be bypassed by programmatic submit events.
+    // Recheck that every new financial mapping is explicitly selected.
+    if(!item&&((field==='type'&&!typeChoice?.value)||
+      (field==='transaction'&&(!parentChoice?.value||!kindChoice?.value))||
+      (field==='category'&&!parentChoice?.value)))return;
     attempt(()=>{
       if(item)controller.rename(field,item.id,value);
       else if(field==='type')controller.addType(value,typeChoice.value);
