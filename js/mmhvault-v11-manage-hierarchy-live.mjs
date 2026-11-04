@@ -319,6 +319,32 @@ function drawEditor(item){
       parentChoice.append(makeOption(t.id,(parent?.label||'')+' → '+t.label,t.id));
     }
     control(tr('Linked Transaction','关联 Transaction','ချိတ်ဆက်ထားသော Transaction'),parentChoice);
+    // Existing native financial reports encode Transfer and Data Adjustment
+    // with fixed canonical Category labels. Guide the owner in the modal,
+    // rather than accepting a free-form name that cannot be saved. This
+    // only fills the unsaved input AFTER explicit parent selection and
+    // never seeds a Category into the owner configuration.
+    const fixedHelp=elt('p','mmh-hier-help');fixedHelp.hidden=true;form.append(fixedHelp);
+    let previousFixed='';
+    const updateFixedCategory=()=>{
+      if(previousFixed&&name.readOnly&&name.value===previousFixed)name.value='';
+      name.readOnly=false;previousFixed='';
+      const tx=graph.transactions.find(x=>x.id===parentChoice.value);
+      const group=ledgerKind(tx?.kindId)?.categoryGroup||'';
+      const requiredName=group==='Transfer'?'Transfer':
+        group==='Data Adjustment'?'Data Adjustment':'';
+      fixedHelp.hidden=!requiredName;
+      fixedHelp.textContent=requiredName?tr(
+        'This special accounting purpose uses the fixed Category “'+requiredName+
+        '” for compatibility with existing financial reports. It is created only after you press Save.',
+        '此特殊记账用途需要使用固定 Category“'+requiredName+
+        '”，以保护现有财务报表。只有点击 Save 后才会真正创建。',
+        'ဤအထူးစာရင်းအတွက် Category အမည် “'+requiredName+
+        '” ကိုသာ အသုံးပြုပါ။ Save နှိပ်မှသာ ဖန်တီးမည်။'):'';
+      if(requiredName){name.value=requiredName;name.readOnly=true;previousFixed=requiredName;}
+    };
+    parentChoice.addEventListener('change',updateFixedCategory);
+    updateFixedCategory();
   }
   form.addEventListener('submit',e=>{
     e.preventDefault();
