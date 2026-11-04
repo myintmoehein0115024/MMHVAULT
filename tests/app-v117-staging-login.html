@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow,noarchive">
+<meta name="mmhvault-staging-qa" content="ldivswlhtgmznzwhzsoi">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'self'; form-action 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; connect-src https://ldivswlhtgmznzwhzsoi.supabase.co/auth/v1/token https://ldivswlhtgmznzwhzsoi.supabase.co/auth/v1/user https://ldivswlhtgmznzwhzsoi.supabase.co/auth/v1/logout; img-src 'self' data:; font-src 'self' data:; object-src 'none'; frame-src 'none'; worker-src 'none'; manifest-src 'none'">
+<title>MMHVAULT APP V11.7 — STAGING TEST LOGIN</title>
+<style>
+:root{color-scheme:dark;font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+*{box-sizing:border-box}body{margin:0;min-height:100svh;color:#f0f5ff;background:radial-gradient(ellipse at 50% -8%,#1c3761 0%,#0a172c 46%,#030916 100%);display:grid;place-items:center;padding:66px 18px 38px}
+.qa-label{position:fixed;top:14px;right:15px;z-index:2;color:#ffd893;background:#102540;border:1px solid #96713c;padding:7px 11px;border-radius:99px;font-size:11px;font-weight:800;letter-spacing:.04em}
+main{width:min(100%,440px);border-radius:26px;border:1px solid rgba(189,161,104,.33);background:linear-gradient(145deg,rgba(27,48,76,.95),rgba(6,18,38,.97));box-shadow:0 26px 90px rgba(0,0,0,.4),inset 0 1px rgba(255,255,255,.07);padding:32px 28px 26px}
+.brand{font-family:Georgia,serif;font-weight:750;font-size:26px;color:#eec979;letter-spacing:.1em;text-align:center}.subtitle{text-align:center;color:#b5c9df;font-size:13px;line-height:1.55;margin:8px 0 28px}
+h1{font-size:20px;margin:0 0 9px;text-align:center}p.notice{font-size:12px;line-height:1.6;color:#a8bdd3;margin:0 0 23px;text-align:center}
+label{display:block;font-size:12px;color:#d8e6f6;font-weight:650;margin:0 0 7px}
+input{display:block;width:100%;margin:0 0 18px;padding:13px 14px;border-radius:12px;border:1px solid #3a5a79;color:#f4faff;background:#0d213a;outline:none;font:inherit;font-size:15px}input:focus{border-color:#f0c879;box-shadow:0 0 0 3px rgba(240,200,121,.12)}
+button{width:100%;border:0;border-radius:12px;padding:14px 18px;background:linear-gradient(115deg,#f5db9f,#cda257);color:#112137;font-size:15px;font-weight:800;cursor:pointer}button:disabled{opacity:.55;cursor:wait}
+#status{font-size:13px;color:#f6c8a6;min-height:21px;line-height:1.55;margin-top:16px;text-align:center}
+.small{font-size:11px;color:#91a7c3;text-align:center;line-height:1.6;margin:18px 0 0}
+</style>
+</head>
+<body>
+<div class="qa-label" role="note">APP V11.7 · STAGING ONLY</div>
+<main>
+ <div class="brand">MMHVAULT</div>
+ <div class="subtitle">Personal Finance &amp; Wealth · Isolated QA</div>
+ <h1>Sign in to the test APP</h1>
+ <p class="notice">Only synthetic <strong>v117qa</strong> Staging A/B accounts are allowed. Do not use your real account or real financial information.</p>
+ <form id="qaLoginForm" autocomplete="on">
+  <label for="qaEmail">Test email</label>
+  <input id="qaEmail" type="email" inputmode="email" autocomplete="username" placeholder="Your v117qa test email" required>
+  <label for="qaPassword">Test password</label>
+  <input id="qaPassword" type="password" autocomplete="current-password" placeholder="Staging test password" required>
+  <button id="qaSubmit" type="submit">Enter Staging APP</button>
+ </form>
+ <div id="status" role="status" aria-live="polite"></div>
+ <p class="small">No registration · No recovery key · No Google login · No Production access<br>Test-only Supabase project: ldivswlhtgmznzwhzsoi</p>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/dist/umd/supabase.js"></script>
+<script>
+(()=>{
+'use strict';
+const URL='https://ldivswlhtgmznzwhzsoi.supabase.co';
+const PUBLISHABLE='__AUTH_STAGING_PUBLISHABLE_KEY__';
+const form=document.getElementById('qaLoginForm');
+const email=document.getElementById('qaEmail');
+const password=document.getElementById('qaPassword');
+const submit=document.getElementById('qaSubmit');
+const status=document.getElementById('status');
+let working=false;
+function say(msg){status.textContent=msg;}
+if(!window.supabase?.createClient){
+ submit.disabled=true;say('Unable to load the login library. Please refresh this Staging page.');
+ return;
+}
+const client=window.supabase.createClient(URL,PUBLISHABLE,{
+ auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}
+});
+form.addEventListener('submit',async event=>{
+ event.preventDefault();
+ if(working)return;
+ const testEmail=email.value.trim();
+ // Local UI guard, not an authorization boundary. Supabase Auth / RLS
+ // independently enforce identity on every request.
+ if(!/^[^@\s]*v117qa[^@\s]*@[^@\s]+\.[^@\s]+$/i.test(testEmail)){
+   say('Only dedicated v117qa synthetic Staging accounts may sign in.');
+   password.value='';
+   return;
+ }
+ const secret=password.value;
+ if(!secret){say('Enter your test password.');return;}
+ working=true;submit.disabled=true;say('Checking your Staging test account…');
+ try{
+   const {data,error}=await client.auth.signInWithPassword({email:testEmail,password:secret});
+   if(error||!data?.session?.user?.id)throw error||new Error('No authenticated session returned');
+   if(data.session.user.email?.toLowerCase()!==testEmail.toLowerCase()){
+     await client.auth.signOut({scope:'local'});
+     throw new Error('The returned test account does not match the requested identity.');
+   }
+   say('Staging sign-in succeeded. Opening the test APP…');
+   location.replace('./app.html');
+ }catch(error){
+   say('Test sign-in failed: '+String(error?.message||'Please check your Staging test credentials.').slice(0,190));
+ }finally{
+   password.value='';working=false;submit.disabled=false;
+ }
+});
+})();
+</script>
+</body>
+</html>
