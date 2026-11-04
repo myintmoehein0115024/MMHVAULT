@@ -1,4 +1,6 @@
 /* Transactions Onboarding V1 — scoped presentation; no APP finance styles altered. */
+/* Expose the Help control directly above the real Transactions workspace navigation. */
+#transactions #mmhTxOnboardingHelpBarV1{display:flex;align-items:center;justify-content:flex-end;gap:8px;min-height:43px;margin:0 0 9px;padding:0 2px;position:relative;z-index:2;box-sizing:border-box}
 #mmhTxOnboardingHelpV1{
   appearance:none;display:inline-flex;align-items:center;justify-content:center;gap:7px;
   min-height:40px;padding:8px 14px;border:1px solid rgba(223,187,114,.46);
