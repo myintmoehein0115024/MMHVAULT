@@ -20,7 +20,9 @@ const STAGE='ldivswlhtgmznzwhzsoi.supabase.co';
 const sourceTag='<script type="module" src="js/mmhvault-v11-manage-hierarchy-live.mjs?v=0.7.0"></script>';
 let html=fs.readFileSync(source,'utf8');
 assert.equal(html.split(sourceTag).length-1,1,'Expected one ESM script, abort on code drift');
-assert.ok(html.includes('connect-src https://'+STAGE+'/rest/v1/transactions'),'Staging-only CSP is required');
+assert.ok(html.includes('connect-src https://'+STAGE+'/auth/v1/token')&&
+  html.includes('https://'+STAGE+'/rest/v1/transactions'),
+  'Staging-only auth and finance CSP is required');
 assert.ok(!html.includes(PROD_HOST)&&!html.includes(PROD_KEY),'Production API reference found');
 const entry=path.join(out,'js','mmhvault-v11-manage-hierarchy-live.mjs');
 assert.ok(fs.existsSync(entry),'Hierarchy entry not copied to the isolated package');
