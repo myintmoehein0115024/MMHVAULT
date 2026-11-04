@@ -26,7 +26,7 @@ test('immutable original escrow before first session grant',()=>{
  has('mmh_n10_realef_backup_put');
  has("p_verifier:await mac('phrase:'+newUserId+':'+phrase)");
  const backup=src.indexOf("mmh_n10_realef_backup_put");
- const session=src.indexOf("const session=await verifiedPasswordSession(email,password,newUserId)");
+ const session=src.indexOf("const session=await verifiedPasswordSession(email,password,newUserId,slot)");
  assert.ok(backup>0&&session>backup);
  has('await quarantineNewUser(newUserId,email,name)');
  has('return {code:');
