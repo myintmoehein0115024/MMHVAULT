@@ -267,7 +267,8 @@ const l158OldScriptTag="<script defer src=\"/landing-assets/public-pages.js\"></
 const l158NewScriptTag="<script defer src=\"/landing-assets/public-pages.js?v=l158\"></script>";
 const l160ScriptTag='<script defer src="/landing-assets/public-pages.js?v=l160"></script>';
 const l161ScriptTag='<script defer src="/landing-assets/public-pages.js?v=l161"></script>';
-const l158RestoreScript=(html)=>html.replace(l161ScriptTag,l158NewScriptTag);
+// L1.61 compares a released L1.60 page with its cache-busted navigation script.
+const l158RestoreScript=(html)=>html.replace(l161ScriptTag,l160ScriptTag);
 const l160PublicRemovals=[" * Read-only presentation: no auth, fetch, history/URL rewrites or finance data.\n"," * Header markup and shared-header-l116.css are identical across public pages.\n","  // L1.26: return focus to a visible trigger when dismissing compact\n","  // navigation, Explore or the language picker on any public page.\n","    // A collapsed Explore inside the mobile menu must not close the menu too.\n"];
 const l160PublicMarker="      mq.addEventListener?mq.addEventListener('change',bind):mq.addListener?.(bind);\n";
 const l160PublicAddition="      // L1.60: settle pending reveals.\n      const reduced=matchMedia('(prefers-reduced-motion: reduce)');\n      const settle=()=>{\n        if(!reduced.matches)return;\n        io.disconnect();\n        for(const el of targets)el.classList.add('mm-public-shown');\n      };\n      reduced.addEventListener?reduced.addEventListener('change',settle):reduced.addListener?.(settle);\n";
