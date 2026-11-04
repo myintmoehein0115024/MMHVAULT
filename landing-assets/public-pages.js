@@ -201,29 +201,23 @@
         el.style.setProperty('--mm-public-delay',Math.min(index%3,2)*55+'ms');
       });
       document.body.classList.add('mm-public-motion');
-      // L1.58: update info-page reveal margins after mobile/tablet rotation.
-      // Shown content stays visible. No navigation or scroll interception.
-      const mobileRevealQuery=window.matchMedia('(max-width: 620px)');
+      // L1.58: refresh public reveals after rotation.
+      const query=window.matchMedia('(max-width: 620px)');
       let observer;
-      const bindPublicRevealObserver=()=>{
-        if(observer)observer.disconnect();
-        const mobileReveal=mobileRevealQuery.matches;
-        const nextObserver=new IntersectionObserver(entries=>{
-          entries.forEach(entry=>{
-            if(!entry.isIntersecting)return;
-            entry.target.classList.add('mm-public-shown');
-            nextObserver.unobserve(entry.target);
-          });
-        },{threshold:.045,rootMargin:mobileReveal?'0px 0px 12% 0px':'0px 0px -4% 0px'});
-        observer=nextObserver;
-        targets.filter(el=>!el.classList.contains('mm-public-shown'))
-          .forEach(el=>observer.observe(el));
+      const bind=()=>{
+        observer?.disconnect();
+        const mobileReveal=query.matches;
+        const next=new IntersectionObserver(entries=>entries.forEach(e=>{
+          if(!e.isIntersecting)return;
+          e.target.classList.add('mm-public-shown');
+          next.unobserve(e.target);
+        }),{threshold:.045,rootMargin:mobileReveal?'0px 0px 12% 0px':'0px 0px -4% 0px'});
+        observer=next;
+        targets.filter(el=>!el.classList.contains('mm-public-shown')).forEach(el=>next.observe(el));
       };
-      bindPublicRevealObserver();
-      if(typeof mobileRevealQuery.addEventListener==='function')
-        mobileRevealQuery.addEventListener('change',bindPublicRevealObserver);
-      else if(typeof mobileRevealQuery.addListener==='function')
-        mobileRevealQuery.addListener(bindPublicRevealObserver);
+      bind();
+      if(query.addEventListener)query.addEventListener('change',bind);
+      else query.addListener?.(bind);
     }
   }
 })();
