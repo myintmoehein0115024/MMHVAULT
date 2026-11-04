@@ -331,16 +331,29 @@ function manager(){
 }
 const selected=(el)=>el?.selectedOptions?.[0]?.dataset?.mmhChoiceId||'';
 const labels=()=>({type:$('txType')?.closest('label'),transaction:$('txGroup')?.closest('label'),category:$('txCategory')?.closest('label')});
-const optionSig=(el,items)=>el&&el.options.length===items.length&&[...el.options].every((x,i)=>
-  x.value===items[i].value&&x.textContent===items[i].text&&x.dataset.mmhChoiceId===items[i].id);
-function put(el,items,pick){
+// Never silently substitute the first remaining Category/Transaction if
+// another device or Archive invalidates a previously chosen path. An explicit
+// choice is required at every level before the native ledger form can save.
+const choicePrompt=field=>tr('Select '+label(field)+'…','请选择 '+label(field)+'…',
+  label(field)+' ကို ရွေးပါ…');
+const optionSig=(el,items,prompt)=>el&&el.options.length===items.length+1&&
+  el.options[0].value===''&&el.options[0].disabled&&el.options[0].textContent===prompt&&
+  items.every((item,i)=>{
+    const x=el.options[i+1];
+    return x.value===item.value&&x.textContent===item.text&&x.dataset.mmhChoiceId===item.id;
+  });
+function put(el,items,pick,field){
   if(!el)return;
-  if(!optionSig(el,items)){
-    el.replaceChildren(...items.map(x=>makeOption(x.value,x.text,x.id)));
+  if(!items.length){if(el.options.length)el.replaceChildren();return;}
+  const prompt=choicePrompt(field);
+  if(!optionSig(el,items,prompt)){
+    const placeholder=makeOption('',prompt);
+    placeholder.disabled=true;
+    el.replaceChildren(placeholder,...items.map(x=>makeOption(x.value,x.text,x.id)));
   }
-  const index=[...el.options].findIndex(x=>x.dataset.mmhChoiceId===pick);
-  if(index>=0)el.selectedIndex=index;
-  else if(el.options.length)el.selectedIndex=0;
+  const index=pick?[...el.options].findIndex(x=>x.dataset.mmhChoiceId===pick):-1;
+  // index 0 is the disabled placeholder, never an inferred financial choice.
+  el.selectedIndex=index>0?index:0;
 }
 function form(){
   const t=$('txType'),g=$('txGroup'),c=$('txCategory'),f=$('txForm');
@@ -354,13 +367,13 @@ function form(){
       return;
     }
     const types=controller.list('type').map(x=>({id:x.id,value:x.ledgerType,text:x.label}));
-    put(t,types,selection.type);selection.type=selected(t);
+    put(t,types,selection.type,'type');selection.type=selected(t);
     const txns=selection.type?controller.list('transaction',selection.type).map(x=>({
       id:x.id,value:ledgerKind(x.kindId)?.group||'',text:x.label})).filter(x=>x.value):[];
-    put(g,txns,selection.transaction);selection.transaction=selected(g);
+    put(g,txns,selection.transaction,'transaction');selection.transaction=selected(g);
     const cats=selection.transaction?controller.list('category',selection.transaction)
       .map(x=>({id:x.id,value:x.label,text:x.label})):[];
-    put(c,cats,selection.category);selection.category=selected(c);
+    put(c,cats,selection.category,'category');selection.category=selected(c);
     for(const s of [t,g,c])s.disabled=!s.options.length;
     if(typeof updateAccountLocks==='function'&&types.length)updateAccountLocks();
     if(save)save.disabled=cloudConflict||!valid();
