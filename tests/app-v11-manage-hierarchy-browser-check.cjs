@@ -31,6 +31,13 @@ const say=(condition,label)=>{assert.ok(condition,label);console.log('PASS '+lab
         await page.locator('#txType option').count()===0&&
         await page.locator('#txForm .actions button').isDisabled(),
         width+' Expense shortcut does not create a Type or enable Save');
+      say(await page.locator('#mmhHierarchyEntryGuide button').textContent().then(x=>x.includes('Type')),
+        width+' empty direction prompts owner to Add Type');
+      await page.locator('#mmhHierarchyEntryGuide button').click();
+      say(await page.locator('.mmh-hier-dialog').isVisible()&&
+        (await page.locator('.mmh-hier-dialog h3').textContent()).includes('Type'),
+        width+' missing Type prompt opens scoped Manage Type modal');
+      await page.keyboard.press('Escape');
       await directions.nth(1).click();
       say(await directions.nth(1).getAttribute('aria-pressed')==='false',
         width+' selecting the same shortcut again restores all owner Types');
@@ -74,9 +81,11 @@ const say=(condition,label)=>{assert.ok(condition,label);console.log('PASS '+lab
         width+' Expense shortcut shows only owner-configured Expense Types');
       await directions.nth(0).click();
       say(await page.locator('#txType option').count()===2&&
-        await page.locator('#txType').inputValue()===''&&
+        await page.locator('#txType').inputValue()==='Income'&&
+        await page.locator('#txGroup option').count()===0&&
+        await page.locator('#mmhHierarchyEntryGuide button').textContent().then(x=>x.includes('Transaction'))&&
         await page.locator('#txForm .actions button').isDisabled(),
-        width+' Income shortcut filters choices without auto-selecting Type or saving');
+        width+' Income shortcut picks available Type but prompts missing Transaction, no Save');
       await directions.nth(0).click();
       // Step 2: Transaction assigned to Income.
       await cards.nth(1).getByRole('button',{name:'Manage'}).click();
@@ -99,6 +108,8 @@ const say=(condition,label)=>{assert.ok(condition,label);console.log('PASS '+lab
       await dlg.locator('header button').click();
       await page.locator('#txType').selectOption({label:'Income'});
       await page.locator('#txGroup').selectOption({label:'Income2'});
+      say((await page.locator('#mmhHierarchyEntryGuide button').textContent()).includes('Category'),
+        width+' Type and Transaction exist, inline prompt requests only Category');
       say((await page.locator('#mmhHierarchyCategoryHint').textContent()).includes('No linked Category yet'),
         width+' missing Category is explained without auto-seeding a preset');
       say(await page.locator('#txForm .actions button').isDisabled(),width+' Add remains blocked until Category exists');
@@ -547,14 +558,17 @@ const say=(condition,label)=>{assert.ok(condition,label);console.log('PASS '+lab
       }
       // The filters must never show unconfigured types for another
       // direction, or silently choose a Type when the button is pressed.
-      for(const [idx,expected,other] of [
-        [0,'MyPay','Type-Expense'],[1,'Type-Expense','MoveFunds'],[2,'MoveFunds','MyPay']
+      for(const [idx,expected,other,canonical] of [
+        [0,'MyPay','Type-Expense','Income'],
+        [1,'Type-Expense','MoveFunds','Expense'],
+        [2,'MoveFunds','MyPay','Transfer']
       ]){
         await dDirections.nth(idx).click();
         const names=await dpage.locator('#txType option').allTextContents();
         say(names.includes(expected)&&!names.includes(other)&&
-          (await dpage.locator('#txType').inputValue())==='',
-          'Fixed direction '+idx+' filters user choices without hidden presets');
+          (await dpage.locator('#txType').inputValue())===canonical&&
+          (await dpage.locator('#txGroup option').count())===0,
+          'Fixed direction '+idx+' auto-selects existing Type and prompts missing Transaction');
       }
       await dDirections.nth(2).click(); // Clear Transfer filter for legacy direct Type selection.
       for(const [typeName,transactionName,purposeGroup,sign] of [
@@ -582,6 +596,14 @@ const say=(condition,label)=>{assert.ok(condition,label);console.log('PASS '+lab
           transactionName+' stores expected native ledger group '+kind);
       }
       // An ordinary Transfer MUST have a user-created linked Category.
+      // Shortcut still picks Type and Transaction when Category is absent.
+      await dDirections.nth(2).click();
+      say(await dpage.locator('#txType').inputValue()==='Transfer'&&
+        await dpage.locator('#txGroup').inputValue()==='Transfer'&&
+        await dpage.locator('#txCategory option').count()===0&&
+        (await dpage.locator('#mmhHierarchyEntryGuide button').textContent()).includes('Category'),
+        'Transfer shortcut picks existing Type and Transaction, prompts missing Category');
+      await dDirections.nth(2).click(); // Clear only UI filter.
       // The native form must explain the missing link and enable Add only
       // after the full Type → Transaction → Category path exists.
       await dpage.locator('#txType').selectOption({label:'MoveFunds'});
