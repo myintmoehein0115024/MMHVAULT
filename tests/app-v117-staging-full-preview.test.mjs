@@ -4,20 +4,21 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {spawnSync} from 'node:child_process';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const builder=path.join(root,'tests','build-app-v117-staging-preview.cjs');
-const out=path.join(root,'dist','app-v117-staging');
+const out=fs.mkdtempSync(path.join(os.tmpdir(),'mmh-v117-server-qa-'));
 const STAGE='ldivswlhtgmznzwhzsoi.supabase.co';
 const PROD='vrypucmyrztxgiqhjspd.supabase.co';
 const PUBLIC='sb_publishable_SYNTHETIC_STAGING_QA_ONLY_0123456789';
 
 test('preview build fails closed if the exact staging key is absent',()=>{
  const result=spawnSync(process.execPath,[builder],{
-   cwd:root,encoding:'utf8',env:{...process.env,MMH_V117_STAGING_PUBLISHABLE_KEY:''}
+   cwd:root,encoding:'utf8',env:{...process.env,MMH_V117_STAGING_OUTPUT_DIR:out,MMH_V117_STAGING_PUBLISHABLE_KEY:''}
  });
  assert.notEqual(result.status,0);
  assert.match(result.stderr,/Dedicated Auth-Staging publishable key required/);
@@ -25,7 +26,7 @@ test('preview build fails closed if the exact staging key is absent',()=>{
 
 test('preview is generated from the current APP without production endpoints',()=>{
  const result=spawnSync(process.execPath,[builder],{
-   cwd:root,encoding:'utf8',env:{...process.env,MMH_V117_STAGING_PUBLISHABLE_KEY:PUBLIC},
+   cwd:root,encoding:'utf8',env:{...process.env,MMH_V117_STAGING_OUTPUT_DIR:out,MMH_V117_STAGING_PUBLISHABLE_KEY:PUBLIC},
    maxBuffer:1024*1024
  });
  assert.equal(result.status,0,result.stderr);
