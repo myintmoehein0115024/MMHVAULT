@@ -117,7 +117,9 @@ jobs:
       - name: Install pinned test-only ESM bundler
         run: npm install --no-save --no-package-lock --no-audit --no-fund esbuild@0.25.12
       - name: Verify source-to-Staging transform with synthetic key
-        run: node --test tests/app-v117-staging-full-preview.test.mjs tests/app-v117-doubleclick.test.mjs
+        run: |
+          node --test tests/app-v117-staging-full-preview.test.mjs
+          node --test tests/app-v117-doubleclick.test.mjs
       - name: Build complete APP QA package using public Auth-Staging key ONLY
         env:
           # A Supabase publishable API key is nonsecret. Never place service_role
