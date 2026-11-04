@@ -15,7 +15,7 @@ const BREAKDOWN_FIELDS = Object.freeze({
   countries:'countryName',pages:'requestPath',referrers:'refererHost',
   browsers:'userAgentBrowser',devices:'deviceType'
 });
-const BREAKDOWN_LIMIT=50, BREAKDOWN_TOP=10;
+const BREAKDOWN_LIMIT=20, BREAKDOWN_TOP=10;
 // Only deterministic diagnostic codes are emitted. Never log GraphQL messages, request bodies, tokens or user data.
 function classifyGraphQLError(errors){
   for(const item of errors){
