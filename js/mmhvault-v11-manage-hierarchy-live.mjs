@@ -99,7 +99,7 @@ function style(){
      NOT owner-created Manage choices. They must never appear as presets
      in the V11.7 Type → Transaction → Category workflow. Leave the
      underlying V141 field-layout helper intact for ledger compatibility. */
-  #transactions #txForm #txSmartV141{display:none!important}
+  #txForm #txSmartV141{display:none!important}
   #txForm #mmhHierarchyEntryGuide{grid-column:1/-1;margin:0;padding:10px 13px;border:1px solid rgba(215,184,121,.27);border-radius:11px;background:rgba(24,42,61,.75);color:#e9d5ab;font-size:12px;line-height:1.6}
   #txForm #mmhHierarchyEntryGuide[hidden]{display:none!important}
   .mmh-hier-summary{padding:18px;border:1px solid rgba(208,175,117,.25);border-radius:17px;background:linear-gradient(130deg,rgba(18,37,57,.75),rgba(17,27,44,.48));color:#f4eedf;box-shadow:0 16px 38px rgba(0,0,0,.12)}
