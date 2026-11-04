@@ -103,6 +103,15 @@ for(const match of modules){
  assert.ok(fs.existsSync(resolved),'Referenced resource missing from QA package: '+url);
 }
 fs.writeFileSync(path.join(out,'app.html'),html);
+// Independent Pages QA origin opens directly without requiring the user to
+// manually type /app.html. No Git-tracked index.html is ever modified.
+fs.writeFileSync(path.join(out,'index.html'),[
+  '<!doctype html><html lang="en"><head><meta charset="utf-8">',
+  '<meta name="robots" content="noindex,nofollow,noarchive">',
+  '<meta http-equiv="refresh" content="0;url=./app.html">',
+  '<title>MMHVAULT APP V11.7 — STAGING ONLY</title></head>',
+  '<body><p>APP V11.7 Staging: <a href="./app.html">Open the test app</a></p></body></html>'
+].join(''));
 fs.writeFileSync(path.join(out,'README-STAGING-QA.txt'),[
 'MMHVAULT APP V11.7 — LOCAL, AUTH-STAGING-ONLY QA',
 'This zip is NEVER deployed to production and includes NO production URLs or keys.',
