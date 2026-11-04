@@ -238,6 +238,61 @@ const say=(condition,label)=>{assert.ok(condition,label);console.log('PASS '+lab
       say(errors.length===0,width+' no browser script exception '+errors.join('; '));
       await context.close();
     }
+    // Account B's data refresh must not wait behind account A's hung
+    // in-flight refresh. No real Auth/DB requests: all calls are mocked.
+    {
+      const switched=await browser.newContext({viewport:{width:393,height:800},serviceWorkers:'block'});
+      const ownerPage=await switched.newPage();
+      const errors=[];
+      ownerPage.on('pageerror',e=>errors.push(e.message));
+      await ownerPage.goto(base,{waitUntil:'load'});
+      await ownerPage.waitForSelector('#mmhHierarchyManage .mmh-hier-card');
+      await ownerPage.evaluate(()=>{
+        window.__ownerReadCalls=[];
+        window.loadAll=async ({force}={})=>{
+          if(force!==true)throw Error('Expected secure forced owner refresh');
+          const active=window.currentSessionUser?.id;
+          window.__ownerReadCalls.push(active);
+          if(active==='fixture-A')return new Promise(resolve=>{
+            window.__releaseOldOwnerRefresh=()=>resolve({ok:false});
+          });
+          if(active==='fixture-B'){
+            window.transactions=[{id:'B-saved-ledger',user_id:'fixture-B',
+              type:'Income',category:'Salary',tx_date:'2026-11-04',
+              to_account:'B Cash',to_amount:15}];
+            window.dispatchEvent(new CustomEvent('mmhvault:data-loaded',
+              {detail:{ok:true}}));
+            return {ok:true};
+          }
+          return {ok:false};
+        };
+        window.MMHV11HierarchyLive.onLedgerInserted('fixture-A','A-saved-ledger',
+          {type:'Income',group:'Income',category:'Salary'});
+      });
+      await ownerPage.waitForFunction(()=>typeof window.__releaseOldOwnerRefresh==='function');
+      await ownerPage.evaluate(()=>{
+        window.currentSessionUser={id:'fixture-B'};
+        window.MMHVAULT_CONFIG_OWNER='fixture-B';
+        window.MMHVAULT_CONFIG={txFieldsV12:{version:1,type:[],transaction:[],category:[]},
+          categories:{Income:[]},archivedCategories:{},txHierarchyV11:null};
+        window.mmhWalletDataOwnerV191='fixture-B';
+        window.transactions=[];
+        window.dispatchEvent(new Event('mmhvault:config-owner-changed'));
+        window.MMHV11HierarchyLive.onLedgerInserted('fixture-B','B-saved-ledger',
+          {type:'Income',group:'Income',category:'Salary'});
+      });
+      await ownerPage.waitForFunction(()=>
+        window.__ownerReadCalls.includes('fixture-B')&&
+        window.transactions.some(x=>x.id==='B-saved-ledger'));
+      say(await ownerPage.evaluate(()=>
+        window.__ownerReadCalls.join(',')==='fixture-A,fixture-B'&&
+        window.transactions.length===1&&
+        window.transactions[0].user_id==='fixture-B'),
+        'owner switch skips hung A refresh and only shows B ledger');
+      await ownerPage.evaluate(()=>window.__releaseOldOwnerRefresh());
+      say(errors.length===0,'owner-switch refresh has no browser exceptions');
+      await switched.close();
+    }
     const context=await browser.newContext({viewport:{width:393,height:800},serviceWorkers:'block',
       ...(engine==='webkit'?{isMobile:true,hasTouch:true,deviceScaleFactor:2}:{})});
     const page=await context.newPage(),errors=[];page.on('pageerror',e=>errors.push(e.message));
