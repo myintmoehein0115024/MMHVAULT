@@ -43,7 +43,7 @@ test('preview is generated from the current APP without production endpoints',()
  const balanceRpc='https://'+STAGE+'/rest/v1/rpc/mmh_personal_account_balance';
  const csp=html.match(/<meta http-equiv="Content-Security-Policy" content="([^"]+)">/)?.[1]||'';
  assert.ok(csp.includes(balanceRpc),'approved owner-only Staging balance RPC should be allowed');
- assert.equal((csp.match(/\\/rest\\/v1\\/rpc\\//g)||[]).length,1,
+ assert.equal(csp.split('/rest/v1/rpc/').length-1,1,
    'No other RPC path may be allowed by this isolated CSP');
  assert.ok(!csp.includes('/rest/v1/rpc/*'),'never open wildcard RPC paths');
  assert.ok(!csp.includes(PROD),'Production origins must remain blocked');
