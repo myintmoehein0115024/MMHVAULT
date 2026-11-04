@@ -79,7 +79,7 @@ function sanitizeCopiedAssets(dir){
  for(const entry of fs.readdirSync(dir,{withFileTypes:true})){
   const file=path.join(dir,entry.name);
   if(entry.isDirectory()){sanitizeCopiedAssets(file);continue;}
-  if(!/\\.(?:js|mjs|html|css|json|txt|webmanifest)$/i.test(entry.name))continue;
+  if(!/\.(?:js|mjs|html|css|json|txt|webmanifest)$/i.test(entry.name))continue;
   const input=fs.readFileSync(file,'utf8');
   const clean=input.replaceAll(PROD_HOST,STAGING_HOST).replaceAll(PROD_KEY,key);
   if(clean!==input){fs.writeFileSync(file,clean);sanitizedAssets++;}
