@@ -201,17 +201,29 @@
         el.style.setProperty('--mm-public-delay',Math.min(index%3,2)*55+'ms');
       });
       document.body.classList.add('mm-public-motion');
-      // L1.39: pre-reveal phone cards ahead of viewport; leave desktop as-is.
-      const mobileReveal=window.matchMedia('(max-width: 620px)').matches;
-      const observer=new IntersectionObserver(entries=>{
-        entries.forEach(entry=>{
-          if(!entry.isIntersecting)return;
-          entry.target.classList.add('mm-public-shown');
-          observer.unobserve(entry.target);
-        });
-      },{threshold:.045,rootMargin:mobileReveal?'0px 0px 12% 0px':'0px 0px -4% 0px'});
-      targets.filter(el=>!el.classList.contains('mm-public-shown'))
-        .forEach(el=>observer.observe(el));
+      // L1.58: update info-page reveal margins after mobile/tablet rotation.
+      // Shown content stays visible. No navigation or scroll interception.
+      const mobileRevealQuery=window.matchMedia('(max-width: 620px)');
+      let observer;
+      const bindPublicRevealObserver=()=>{
+        if(observer)observer.disconnect();
+        const mobileReveal=mobileRevealQuery.matches;
+        const nextObserver=new IntersectionObserver(entries=>{
+          entries.forEach(entry=>{
+            if(!entry.isIntersecting)return;
+            entry.target.classList.add('mm-public-shown');
+            nextObserver.unobserve(entry.target);
+          });
+        },{threshold:.045,rootMargin:mobileReveal?'0px 0px 12% 0px':'0px 0px -4% 0px'});
+        observer=nextObserver;
+        targets.filter(el=>!el.classList.contains('mm-public-shown'))
+          .forEach(el=>observer.observe(el));
+      };
+      bindPublicRevealObserver();
+      if(typeof mobileRevealQuery.addEventListener==='function')
+        mobileRevealQuery.addEventListener('change',bindPublicRevealObserver);
+      else if(typeof mobileRevealQuery.addListener==='function')
+        mobileRevealQuery.addListener(bindPublicRevealObserver);
     }
   }
 })();
