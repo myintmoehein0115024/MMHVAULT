@@ -22,3 +22,19 @@
     filter: none;
   }
 }
+
+/* L1.65 — desktop Safari paint budget: preserve the premium hover end states
+ * while avoiding large per-frame shadow interpolation on six showcase cards.
+ * The Business ambient glow is already a soft radial gradient, so its extra
+ * offscreen blur layer is redundant during long-page scrolling. */
+@media (min-width: 1025px) {
+  body.l131 #business .business-stage::after {
+    filter: none;
+  }
+}
+@media (min-width: 1025px) and (hover: hover) and (pointer: fine) {
+  body.l131 .showcase-v2 .showcase-card,
+  html.mm-motion-active body.l131 .showcase-v2 .showcase-card {
+    transition-property: opacity, transform, border-color;
+  }
+}

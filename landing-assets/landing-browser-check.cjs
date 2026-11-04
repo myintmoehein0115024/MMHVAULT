@@ -75,7 +75,7 @@ async function load(page,route,failures){
          window.scrollTo({left:900,top:y,behavior:'instant'});
          const sideways=scrollX;
          window.scrollTo({left:0,top:y,behavior:'instant'});
-         return {mobile,hasStylesheet:!!cs&&cs.href.includes('?v=l164'),
+         return {mobile,hasStylesheet:!!cs&&cs.href.includes('?v=l165'),
            standardBackdrop:computed.backdropFilter,
            webkitBackdrop:computed.webkitBackdropFilter,
            background:computed.backgroundImage,
@@ -96,6 +96,56 @@ async function load(page,route,failures){
      }
    }
    console.log('L1.64 desktop compositing and mobile glass parity PASS');
+   // L1.65: desktop hover shadows paint once while transform/border
+   // animation remains smooth; the phone/tablet animation is untouched.
+   for(const width of [390,1280,1440]){
+     const ctx=await browser.newContext({viewport:{width,height:850},
+       reducedMotion:'no-preference',serviceWorkers:'block'});
+     const page=await ctx.newPage(),errors=[];
+     page.on('pageerror',e=>errors.push(e.message));
+     await page.goto(origin+'/',{waitUntil:'load',timeout:30000});
+     const card=page.locator('.showcase-v2 .showcase-card').first();
+     // Wait for the existing scroll-reveal transition before measuring hover.
+     // Otherwise the in-flight reveal can mask the hover shadow in Chromium.
+     await card.scrollIntoViewIfNeeded();
+     await page.waitForFunction(()=>{
+       const el=document.querySelector('.showcase-v2 .showcase-card');
+       return el.classList.contains('mm-shown') &&
+         parseFloat(getComputedStyle(el).opacity)>=.999;
+     },null,{timeout:6000});
+     await page.waitForTimeout(150);
+     const before=await page.evaluate(()=>{
+       const el=document.querySelector('.showcase-v2 .showcase-card');
+       const css=getComputedStyle(el);
+       const sheet=[...document.querySelectorAll('link[rel="stylesheet"]')]
+         .find(a=>a.href.includes('safari-performance-l164.css'));
+       return {transition:css.transitionProperty,shadow:css.boxShadow,border:css.borderColor,
+         businessBlur:getComputedStyle(document.querySelector('#business .business-stage'),'::after').filter,
+         version:new URL(sheet.href).searchParams.get('v')};
+     });
+     await card.hover();
+     await page.waitForTimeout(330);
+     const after=await card.evaluate(el=>{
+       const css=getComputedStyle(el);
+       return {transition:css.transitionProperty,shadow:css.boxShadow,
+         transform:css.transform,border:css.borderColor};
+     });
+     const tokens=before.transition.split(',').map(x=>x.trim());
+     ensure(before.version==='l165' && errors.length===0 &&
+       (width>=1025
+         ?(!tokens.includes('box-shadow') &&
+           before.businessBlur==='none' &&
+           before.border!==after.border &&
+           tokens.includes('opacity') &&
+           tokens.includes('transform') &&
+           tokens.includes('border-color'))
+         :(before.businessBlur==='blur(40px)' &&
+           before.shadow!==after.shadow && tokens.includes('transform'))),
+       'L1.65 desktop hover paint and mobile animation parity '+
+         width+'px '+JSON.stringify({before,after,errors}));
+     await ctx.close();
+   }
+   console.log('L1.65 Chromium desktop hover paint and mobile animation parity PASS');
    // L1.63: tap targets and long translated footer labels on public pages.
    // Responsive-only; verify original tablet footer and all destinations.
    for(const route of publicRoutes.slice(1)){
@@ -1683,14 +1733,14 @@ async function load(page,route,failures){
        layout.styles.filter(v=>v==='l145').length===1 &&
        layout.styles.filter(v=>v==='l146').length===2 &&
        layout.styles.filter(v=>v==='l147').length===1 &&
-       layout.styles.filter(v=>v==='l164').length===1 &&
+       layout.styles.filter(v=>v==='l165').length===1 &&
        layout.styles.filter(v=>v==='l141').length===2 &&
        layout.scripts.includes('l161') && layout.scripts.includes('l159') &&
        loaded.length===9 && loaded.every(r=>r.status===200&&
          r.version===(r.path==='/landing-assets/landing.min.css'?'l145':
            ['/landing-assets/cinematic.min.css','/landing-assets/premium-l131.min.css'].includes(r.path)?'l146':
            r.path==='/landing-assets/header-explore-l147.min.css'?'l147':
-           r.path==='/landing-assets/safari-performance-l164.css'?'l164':
+           r.path==='/landing-assets/safari-performance-l164.css'?'l165':
             r.path==='/landing-assets/landing.js'?'l161':
               r.path==='/landing-assets/motion-l132.js'?'l159':'l141')) &&
        new Set(loaded.map(r=>r.path)).size===9 && failures.length===0,
