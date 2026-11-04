@@ -94,7 +94,7 @@ async function load(page,route,failures){
            canonical:document.querySelector('link[rel="canonical"]')?.href};
        });
        ensure(metrics.cssVersion==='l163' &&
-         metrics.language===lang && metrics.footerLinks===9 &&
+         metrics.language===(lang==='zh'?'zh-CN':lang) && metrics.footerLinks===9 &&
          metrics.topLink==='#content' && metrics.canonical &&
          metrics.travel<=2 && metrics.boxes.every(b=>b.withinViewport&&b.withinNav&&b.textInside&&b.href) &&
          (width>620 || metrics.boxes.every(b=>b.minHeight>=44&&b.height>=43.5)),
