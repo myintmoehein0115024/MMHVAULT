@@ -97,8 +97,7 @@ const l157NewMotionTag='<script defer src="./landing-assets/motion-l132.js?v=l15
 const l159NewMotionTag='<script defer src="./landing-assets/motion-l132.js?v=l159"></script>';
 const l161LandingTag='<script defer src="./landing-assets/landing.js?v=l161"></script>';
 const l148IndexOnlyEdited=()=>prev.includes(l159NewMotionTag) &&
-  prev.split(l155NewScriptTag).length===2 &&
-  current===prev.replace(l155NewScriptTag,l161LandingTag);
+  prev.includes(l161LandingTag) && current===prev;
 const l147IndexOnlyEdited=baseline=>baseline===prev && l148IndexOnlyEdited() &&
   baseline.includes(l147NewHeaderTags) && !current.includes(l147OldHeaderTags);
 // The runtime JS may change only these four targeted DOM write sites.
@@ -149,9 +148,8 @@ const l148LandingJsOnlyEdited=()=>{
   if(!l154HydrationPatches.every(([before,after])=>merged.includes(after)&&!merged.includes(before)))return false;
   const anchor="  function selectProductView(view,focus=false,instant=false){";
   return merged.includes(l155InterruptedPreviewPatch+anchor) &&
-    merged.split("  toggle.addEventListener('click', () => {\n    closeExplore();\n    closeLanguage();\n    const isOpen = siteHeader.classList.toggle('menu-open');\n    toggle.setAttribute('aria-expanded', String(isOpen));\n    syncNavToggleLabel();\n  });").length===2 &&
-    read('landing-assets/landing.js')===merged.replace(
-      "  toggle.addEventListener('click', () => {\n    closeExplore();\n    closeLanguage();\n    const isOpen = siteHeader.classList.toggle('menu-open');\n    toggle.setAttribute('aria-expanded', String(isOpen));\n    syncNavToggleLabel();\n  });","  toggle.addEventListener('click', event => {\n    closeExplore();\n    closeLanguage();\n    const isOpen = siteHeader.classList.toggle('menu-open');\n    toggle.setAttribute('aria-expanded', String(isOpen));\n    syncNavToggleLabel();\n    // L1.61: keyboard-opened menu should lead to the first visible link.\n    // Pointer and touch activation leave focus where it was.\n    if (isOpen && event.detail === 0)\n      document.querySelector('#primary-nav a')?.focus({preventScroll:true});\n  });");
+    merged.includes('L1.61: keyboard-opened menu should lead to the first visible link.') &&
+    read('landing-assets/landing.js')===merged;
 };
 
 // L1.46: only two critical CSS links differ from the released HTML.
@@ -268,7 +266,7 @@ const l158NewScriptTag="<script defer src=\"/landing-assets/public-pages.js?v=l1
 const l160ScriptTag='<script defer src="/landing-assets/public-pages.js?v=l160"></script>';
 const l161ScriptTag='<script defer src="/landing-assets/public-pages.js?v=l161"></script>';
 // L1.61 compares a released L1.60 page with its cache-busted navigation script.
-const l158RestoreScript=(html)=>html.replace(l161ScriptTag,l160ScriptTag);
+const l158RestoreScript=(html)=>html; // L1.61 script now in released main.
 const l162CssPatch="\n/* L1.62 — public breadcrumb labels must wrap inside narrow phone viewports.\n   Presentation-only; no navigation, SEO markup or JS changes. */\n@media (max-width: 620px) {\n  body.public-landing-page .page-breadcrumb {\n    flex-wrap: wrap;\n    min-width: 0;\n    max-width: 100%;\n  }\n  body.public-landing-page .page-breadcrumb > :is(a, span) {\n    min-width: 0;\n    overflow-wrap: anywhere;\n  }\n}\n";
 const l162OldCssLink="<link rel=\"stylesheet\" href=\"/landing-assets/public-pages.css\">";
 const l162NewCssLink="<link rel=\"stylesheet\" href=\"/landing-assets/public-pages.css?v=l162\">";
@@ -282,9 +280,8 @@ const l160PublicAddition="      // L1.60: settle pending reveals.\n      const r
 const l139PublicOnlyEdited=()=>{
   const released=source('landing-assets/public-pages.js');
   return released.includes('L1.60: settle pending reveals.') &&
-    released.split("    toggle.addEventListener('click',()=>{\n      closeExplore();\n      closeLanguage();\n      const open=header.classList.toggle('menu-open');\n      toggle.setAttribute('aria-expanded',String(open));\n      syncNavToggleLabel();\n    });").length===2 &&
-    read('landing-assets/public-pages.js')===released.replace(
-      "    toggle.addEventListener('click',()=>{\n      closeExplore();\n      closeLanguage();\n      const open=header.classList.toggle('menu-open');\n      toggle.setAttribute('aria-expanded',String(open));\n      syncNavToggleLabel();\n    });","    toggle.addEventListener('click',event=>{\n      closeExplore();\n      closeLanguage();\n      const open=header.classList.toggle('menu-open');\n      toggle.setAttribute('aria-expanded',String(open));\n      syncNavToggleLabel();\n      // L1.61: keyboard-opened responsive menu starts at its first link.\n      // Leave pointer and touch activation unchanged.\n      if(open && event.detail===0)\n        nav.querySelector('a')?.focus({preventScroll:true});\n    });");
+    released.includes('L1.61: keyboard-opened responsive menu starts at its first link.') &&
+    read('landing-assets/public-pages.js')===released;
 };
 const l137PublicJSOnlyEdited=()=>{
   const expected=source('landing-assets/public-pages.js');
