@@ -166,6 +166,12 @@ Deno.serve(async request=>{
    });
    if(result.error||typeof result.data!=='boolean')
     return reply(origin,'qa_unavailable',503);
+   // As with key reveal, status must not report owner-specific Vault
+   // information after a logout, MFA downgrade, or QA gate expiry.
+   const beforeStatus=await verifiedOwner(request);
+   if(!isSameOwner(beforeStatus,auth)||
+     !await liveSession(auth.user.id,auth.sessionId))
+    return reply(origin,'session_expired',401);
    return reply(origin,'backup_status',200,{backed_up:result.data});
   }
   if(!await quota(auth.user.id))return reply(origin,'too_many_attempts',429);
