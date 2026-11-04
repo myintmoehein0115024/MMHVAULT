@@ -438,6 +438,36 @@ async function verifyCloudLink(target){
       queueMicrotask(()=>{void verifyCloudLink(linkSync)});
   }
 }
+// Native addTransaction confirms the ledger INSERT but its V321 wrapper
+// does not reload Accounts/Dashboard/Analyze. After the separate Manage
+// sidecar attempt, refresh from the cloud using the SAME verified owner.
+// A failed refresh never retries, rolls back, or duplicates the ledger INSERT.
+async function refreshSavedLedger(target){
+  if(!target||owner()!==target.owner||configOwner()!==target.owner)return;
+  const matches=()=>Array.isArray(window.transactions)&&window.transactions.some(row=>
+    row?.user_id===target.owner&&String(row.id)===target.recordId);
+  try{
+    if(typeof window.loadAll!=='function')
+      throw Error('Secure cloud refresh unavailable');
+    let result=await window.loadAll({force:true});
+    if(owner()!==target.owner||configOwner()!==target.owner)return;
+    // A concurrent load may have started just before a second insert; the
+    // shared in-flight promise can serve the older snapshot. One more
+    // serialized read is safe; NEVER replay the financial write.
+    if(result?.ok!==false&&!matches()){
+      result=await window.loadAll({force:true});
+      if(owner()!==target.owner||configOwner()!==target.owner)return;
+    }
+    if(result?.ok===false||!matches())
+      throw Error('Saved record not yet visible in the current account data');
+  }catch(error){
+    console.warn('[MMHVAULT] Transaction saved but summary refresh needs retry',error);
+    if(owner()===target.owner&&configOwner()===target.owner)
+      notify(tr('Transaction saved. Accounts and reports could not refresh yet. Reload the page; do not save it again.',
+        '交易已经保存，但账户和报表暂未刷新。请重新加载页面，不要重复记账。',
+        'မှတ်တမ်း သိမ်းပြီးပါပြီ။ အကောင့်နှင့် အစီရင်ခံစာကို ပြန်ဖွင့်ကြည့်ပါ။ ထပ်မသိမ်းပါနှင့်။'));
+  }
+}
 function ledgerInserted(userId,id,values){
   if(!pendingSave||pendingSave.owner!==userId||owner()!==userId)return;
   const current=pendingSave;pendingSave=null;
@@ -448,11 +478,14 @@ function ledgerInserted(userId,id,values){
   linkSync=target;
   try{
     controller.recorded(target.recordId,target.ids.type,target.ids.transaction,target.ids.category,values);
-    target.state='pending';schedule();void verifyCloudLink(target);
+    target.state='pending';schedule();
+    void verifyCloudLink(target).finally(()=>{void refreshSavedLedger(target)});
   }catch(error){console.warn('[MMHVAULT] Ledger saved but Manage link write did not complete',error);
     schedule();notify(tr('Transaction saved. Its Manage link needs a retry; no duplicate transaction will be created.',
       '交易已保存，项目关联需要重试，不会再次创建交易。',
-      'မှတ်တမ်း သိမ်းပြီး၊ ချိတ်ဆက်မှု ပြန်လုပ်ရန် လိုပါသည်။'))}
+      'မှတ်တမ်း သိမ်းပြီး၊ ချိတ်ဆက်မှု ပြန်လုပ်ရန် လိုပါသည်။'));
+    void refreshSavedLedger(target);
+  }
 }
 function boot(){
   const f=$('txForm');
