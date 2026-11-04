@@ -43,6 +43,11 @@ test('preview is generated from the current APP without production endpoints',()
  assert.ok(fs.existsSync(path.join(out,'START-STAGING-ON-MAC.sh')));
  const launcher=fs.readFileSync(path.join(out,'START-STAGING-ON-MAC.sh'),'utf8');
  assert.match(launcher,/python3 -m http.server 8769/);
+ assert.match(launcher,/ruby -run -e httpd/,'macOS Ruby fallback must be available');
+ assert.match(launcher,/require "webrick"/,'probe Ruby server before choosing it');
+ assert.match(launcher,/python3 -c 'import http.server'/,'avoid Apple Xcode python3 stub');
+ assert.ok(launcher.indexOf('command -v ruby')<launcher.indexOf('command -v python3'),
+   'on macOS prefer working Ruby to Python3 developer tools stub');
  assert.ok(launcher.split('\n').length>8,'macOS launch script needs real newlines');
  const checkAssets=folder=>{
    for(const entry of fs.readdirSync(folder,{withFileTypes:true})){
