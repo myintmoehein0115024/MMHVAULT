@@ -52,6 +52,73 @@ async function load(page,route,failures){
 (async()=>{
  const browser=await chromium.launch({channel:'chrome',headless:true,args:['--no-sandbox','--disable-dev-shm-usage']});
  try{
+   // L1.62: formerly 5px brand caption on tiny phone screens. Verify
+   // readable type without collisions or new sideways scrolling across
+   // both the bundled homepage and unbundled public header styles.
+   for(const [width,lang] of [
+     [320,'en'],[320,'zh'],[320,'my'],[375,'en'],
+     [375,'my'],[390,'zh'],[393,'my'],[700,'en'],
+     [768,'zh'],[1440,'en']
+   ]){
+     const ctx=await browser.newContext({viewport:{width,height:812},
+       reducedMotion:'reduce',serviceWorkers:'block'});
+     const page=await ctx.newPage(),errors=[];
+     page.on('pageerror',e=>errors.push(e.message));
+     await page.addInitScript(code=>{
+       try{localStorage.setItem('mmhvault.landing.language',code)}catch(_){}
+     },lang);
+     const routeResults={};
+     for(const route of ['/', '/about/', '/privacy.html']){
+       const response=await page.goto(origin+route,{waitUntil:'load',timeout:25000});
+       const result=await page.evaluate(()=>{
+         const header=document.querySelector('.site-header');
+         const caption=header.querySelector('.brand-copy small');
+         const actions=header.querySelector('.header-actions');
+         const locale=header.querySelector('.locale-trigger');
+         const toggle=header.querySelector('.menu-toggle');
+         const css=[...document.querySelectorAll('link[rel="stylesheet"]')]
+           .find(el=>/\\/(?:shared-header-l116|header-explore-l147\\.min)\\.css/.test(new URL(el.href).pathname));
+         const c=caption.getBoundingClientRect();
+         const a=actions.getBoundingClientRect();
+         const b=header.querySelector('.brand').getBoundingClientRect();
+         const row=header.querySelector('.header-inner').getBoundingClientRect();
+         const value={font:parseFloat(getComputedStyle(caption).fontSize),
+           captionRight:c.right,actionsLeft:a.left,brandRight:b.right,
+           rowLeft:row.left,rowRight:row.right,
+           captionClipped:caption.scrollWidth>caption.clientWidth+1,
+           localeWidth:locale.getBoundingClientRect().width,
+           toggleWidth:toggle.getBoundingClientRect().width,
+           version:css?new URL(css.href).searchParams.get('v'):null,
+           canonical:document.querySelector('link[rel="canonical"]')?.getAttribute('href'),
+           lang:document.documentElement.lang};
+         const y=scrollY;
+         window.scrollTo({left:1000,top:y,behavior:'instant'});
+         value.horizontalTravel=scrollX;
+         window.scrollTo({left:0,top:y,behavior:'instant'});
+         return value;
+       });
+       const expected=width<=390?8:width<=700?Math.min(9,Math.max(8,width*.02)):7;
+       ensure(response.status()===200 && Math.abs(result.font-expected)<.1 &&
+         result.version==='l162' && !result.captionClipped &&
+         result.captionRight<=result.actionsLeft+1 &&
+         result.brandRight<=result.actionsLeft+1 &&
+         result.rowLeft>=-1 && result.rowRight<=width+1 &&
+         (width>700||(result.localeWidth>=43.5&&result.toggleWidth>=43.5)) &&
+         result.horizontalTravel<=2 && errors.length===0 &&
+         result.lang===(lang==='zh'?'zh-CN':lang) &&
+         result.canonical==='https://mmhvault.com'+route,
+         'L1.62 readable compact brand without overlap '+route+' '+width+'px '+lang+
+           ' '+JSON.stringify(result));
+       routeResults[route]=result.font;
+       if(width===320&&lang==='my'&&route==='/about/')
+         await page.screenshot({path:path.join(screenshots,'l162-about-320-my.png'),
+           animations:'disabled'});
+     }
+     ensure(new Set(Object.values(routeResults)).size===1,
+       'L1.62 same brand caption size across public routes '+width+'px '+lang);
+     await ctx.close();
+   }
+   console.log('L1.62 compact phone brand readability and header parity PASS');
    // L1.61: keyboard-opened phone/tablet menu becomes navigable via Tab.
    // This is presentation-only QA on local public routes; no auth endpoints.
    for(const [route,width,lang] of [
@@ -1193,7 +1260,7 @@ async function load(page,route,failures){
      const missingOld=requests.filter(r=>
        ['/landing-assets/explore-l114.css','/landing-assets/shared-header-l116.css'].includes(r.path));
      ensure(checks.same&&checks.ruleCount>=90&&checks.linkCount===1&&checks.loaded&&
-       checks.cacheVersion==='l147'&&checks.navExists&&checks.headerRight<=394&&
+       checks.cacheVersion==='l162'&&checks.navExists&&checks.headerRight<=394&&
        checks.oldLinkCount===0&&hits.length===1&&hits[0].status===200&&
        missingOld.length===0&&originals.join('').length-merged.length>2500&&errors.length===0,
        'L1.47 combined header CSS parses identically and saves one request '+
@@ -1542,13 +1609,13 @@ async function load(page,route,failures){
      ensure(layout.styles.length===6&&layout.scripts.length===2 &&
        layout.styles.filter(v=>v==='l145').length===1 &&
        layout.styles.filter(v=>v==='l146').length===2 &&
-       layout.styles.filter(v=>v==='l147').length===1 &&
+       layout.styles.filter(v=>v==='l162').length===1 &&
        layout.styles.filter(v=>v==='l141').length===2 &&
        layout.scripts.includes('l161') && layout.scripts.includes('l159') &&
        loaded.length===8 && loaded.every(r=>r.status===200&&
          r.version===(r.path==='/landing-assets/landing.min.css'?'l145':
            ['/landing-assets/cinematic.min.css','/landing-assets/premium-l131.min.css'].includes(r.path)?'l146':
-           r.path==='/landing-assets/header-explore-l147.min.css'?'l147':
+           r.path==='/landing-assets/header-explore-l147.min.css'?'l162':
             r.path==='/landing-assets/landing.js'?'l161':
               r.path==='/landing-assets/motion-l132.js'?'l159':'l141')) &&
        new Set(loaded.map(r=>r.path)).size===8 && failures.length===0,
