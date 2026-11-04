@@ -69,9 +69,36 @@ const PROD='https://vrypucmyrztxgiqhjspd.supabase.co';
   // Reproduce the real native signed-out route: app.html -> login.html.
   // The Pages build MUST ship a proper login.html rather than falling back
   // to index.html and bouncing forever to /app.html (navy flash bug).
+  // All authenticator calls are browser-local mocks. This does not create
+  // sessions or test users and cannot read or modify any Supabase records.
+  const mockedSDK=String.raw\`
+    window.supabase={createClient:function(url,key){
+      window.__qaClientUrl=url;window.__qaPublicKey=key;window.__qaSignins=0;
+      let current='',verified=false;
+      return {auth:{
+        signInWithPassword:async function(args){
+          window.__qaSignins++;current=args.email;verified=false;
+          return {data:{session:{user:{id:'fixture-A',email:args.email}}},error:null};
+        },
+        signOut:async()=>({error:null}),
+        mfa:{
+          getAuthenticatorAssuranceLevel:async()=>({data:{
+            currentLevel:current.includes('legacy')?null:current.includes('needs-mfa')?(verified?'aal2':'aal1'):'aal1',
+            nextLevel:current.includes('needs-mfa')?'aal2':'aal1'
+          },error:null}),
+          listFactors:async()=>({data:{all:current.includes('needs-mfa')?
+            [{id:'fixture-totp-id',factor_type:'totp',status:'verified'}]:[]},error:null}),
+          challengeAndVerify:async ({factorId,code})=>{
+            if(factorId!=='fixture-totp-id'||code!=='123456')
+              return {data:null,error:{message:'Synthetic code rejected'}};
+            verified=true;return {data:{},error:null};
+          }
+        }
+      }};
+    }};
+  \`;
   await page.route('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/dist/umd/supabase.js',
-    route=>route.fulfill({status:200,contentType:'application/javascript',body:
-      "window.supabase={createClient:function(url,key){window.__qaClientUrl=url;window.__qaPublicKey=key;window.__qaSignins=0;return {auth:{signInWithPassword:async function(args){window.__qaSignins++;return {data:{session:{user:{id:'fixture-A',email:args.email}}},error:null};}}};}};"}));
+    route=>route.fulfill({status:200,contentType:'application/javascript',body:mockedSDK}));
   const loginResponse=await page.goto(PREVIEW.replace('/app.html','/login.html'),
     {waitUntil:'load',timeout:30000});
   assert.equal(loginResponse.status(),200,'Native app signed-out redirect has a real Staging login page');
@@ -111,6 +138,36 @@ const PROD='https://vrypucmyrztxgiqhjspd.supabase.co';
   assert.match(page.url(),/\/app\.html$/,
     'Only native APP route is navigated to after synthetic sign-in');
   console.log('PASS APP V11.7 isolated Staging login route — visible, fixture-gated, mocked Auth, no redirect loop');
+  // Existing MFA cannot be bypassed. The stub accounts below are not real:
+  // first reject a bogus OTP, then let the test authenticator confirm AAL2.
+  await page.goto(PREVIEW.replace('/app.html','/login.html'),{waitUntil:'load'});
+  await page.locator('#qaEmail').fill('fixture-v117qa-needs-mfa@example.test');
+  await page.locator('#qaPassword').fill('synthetic-only');
+  await page.locator('#qaSubmit').click();
+  await page.locator('#qaMfaForm').waitFor({state:'visible'});
+  assert.match(page.url(),/\/login\.html$/,
+    'MFA-required test identity must remain on QA login until verified');
+  assert.equal(await page.locator('#qaLoginForm').isVisible(),false);
+  await page.locator('#qaTotp').fill('000000');
+  await page.locator('#qaMfaSubmit').click();
+  await page.waitForFunction(()=>document.querySelector('#status')?.textContent.includes('MFA verification failed'));
+  assert.match(page.url(),/\/login\.html$/,'Rejected MFA code cannot enter APP');
+  await page.locator('#qaTotp').fill('123456');
+  await page.locator('#qaMfaSubmit').click();
+  await page.waitForSelector('#qa-route-success',{timeout:10000});
+  assert.match(page.url(),/\/app\.html$/,
+    'Verified synthetic AAL2 may enter the APP');
+  console.log('PASS APP V11.7 QA-only TOTP MFA — invalid blocked, verified AAL2 required');
+
+  // Legacy AAL-null sessions still require factor inventory verification;
+  // a completely MFA-free legacy synthetic user can continue.
+  await page.goto(PREVIEW.replace('/app.html','/login.html'),{waitUntil:'load'});
+  await page.locator('#qaEmail').fill('fixture-v117qa-legacy@example.test');
+  await page.locator('#qaPassword').fill('synthetic-only');
+  await page.locator('#qaSubmit').click();
+  await page.waitForSelector('#qa-route-success',{timeout:10000});
+  assert.match(page.url(),/\/app\.html$/);
+  console.log('PASS APP V11.7 QA-only legacy AAL — checked server factor inventory (mocked)');
   await context.close();
  }finally{await browser.close()}
 })().catch(e=>{console.error(e);process.exitCode=1});
