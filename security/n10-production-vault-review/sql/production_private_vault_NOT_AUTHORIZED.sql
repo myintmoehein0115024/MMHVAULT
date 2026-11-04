@@ -52,6 +52,15 @@ BEGIN
     p_phrase !~ '^([a-z]{2,13} ){9}[a-z]{2,13}$' OR
     p_verifier IS NULL OR p_verifier !~ '^[a-f0-9]{64}$'
  THEN RAISE EXCEPTION 'Invalid original words' USING ERRCODE='22023'; END IF;
+ -- Serialize this owner's first backup against login-session and username-link
+ -- creation, which both carry a foreign key to auth.users(id). A FOR UPDATE
+ -- parent row lock conflicts with their FK KEY SHARE checks until transaction
+ -- end. All freshness checks MUST be evaluated only AFTER this row lock.
+ PERFORM pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended(p_user_id::text,190031));
+ PERFORM 1 FROM auth.users locked_owner WHERE locked_owner.id=p_user_id FOR UPDATE;
+ IF NOT FOUND THEN
+  RAISE EXCEPTION 'Unknown recovery owner' USING ERRCODE='42501';
+ END IF;
  -- Only brand-new username-only owner, newly recorded verifier, first session
  -- not yet granted. Never silently backfill historical verifier-only accounts.
  IF NOT EXISTS(
@@ -78,7 +87,6 @@ BEGIN
     AND u.raw_app_meta_data->>'mmhvault_auth_kind'='username_only'
  )
  THEN RAISE EXCEPTION 'Fresh username verifier required' USING ERRCODE='42501'; END IF;
- PERFORM pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended(p_user_id::text,190031));
  SELECT secret_id INTO v_secret_id FROM mmh_n10_privacy.recovery_backup_index
  WHERE user_id=p_user_id FOR UPDATE;
  IF v_secret_id IS NOT NULL THEN

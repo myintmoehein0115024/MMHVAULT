@@ -50,6 +50,16 @@ test('fresh signup only, encrypted once, exact original immutable',()=>{
  assert.ok(src.includes("AND u.is_anonymous IS FALSE"));
  assert.ok(src.includes("AND (u.banned_until IS NULL OR u.banned_until<=now())"));
  assert.match(src,/pg_catalog\.pg_advisory_xact_lock/);
+ assert.match(src,/PERFORM 1 FROM auth\.users locked_owner WHERE locked_owner\.id=p_user_id FOR UPDATE/);
+ const putStart=src.indexOf('CREATE FUNCTION public.mmh_n10_recovery_backup_put(');
+ const putEnd=src.indexOf('CREATE FUNCTION public.mmh_n10_recovery_backup_exists(',putStart);
+ assert.ok(putStart>=0&&putEnd>putStart);
+ const putBody=src.slice(putStart,putEnd);
+ const lockAt=putBody.indexOf('PERFORM 1 FROM auth.users locked_owner WHERE locked_owner.id=p_user_id FOR UPDATE;');
+ const firstSessionCheck=putBody.indexOf('NOT EXISTS(SELECT 1 FROM auth.sessions AS prior WHERE prior.user_id=p_user_id)');
+ const usernameLinkCheck=putBody.indexOf('NOT EXISTS(SELECT 1 FROM public.mmh_n10a740_username_links AS link');
+ const encryptAt=putBody.indexOf('vault.create_secret(');
+ assert.ok(lockAt>0&&lockAt<firstSessionCheck&&lockAt<usernameLinkCheck&&lockAt<encryptAt);
  assert.match(src,/FOR UPDATE/);
  assert.match(src,/v_existing IS DISTINCT FROM p_phrase/);
  assert.match(src,/vault\.create_secret\(/);

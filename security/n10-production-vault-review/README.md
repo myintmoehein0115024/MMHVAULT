@@ -33,3 +33,10 @@ The **unexecuted** Production `backup_put` proposal now accepts the enrolled own
 **Limit:** Matching an Edge-supplied digest to the stored digest does not independently prove that plaintext words generated it; the trusted keyed HMAC construction, signed reservation, and service-role-only privilege are still required. This change is a defense against mismatched enrollment state, not a defense against compromised service-role credentials.
 
 **Compatibility:** The proposed Production RPC is now `mmh_n10_recovery_backup_put(uuid,text,text)` and is **not** the same API as the old two-argument hard-OFF Staging-only QA RPC. No existing QA Edge was updated or activated. A new, separately authorized Staging rehearsal of the revised Production-equivalent contract is necessary before any release.
+
+
+## Fresh-signup serialization (2026-11-04, review only)
+
+The **unexecuted** Production SQL now acquires an owner-scoped advisory transaction lock and an `auth.users FOR UPDATE` row lock **before** evaluating whether any prior login session or username link exists. Read-only Staging catalog inspection confirmed `auth.sessions.user_id` and `public.mmh_n10a740_username_links.user_id` both have foreign keys referencing `auth.users(id)`. Their FK key-share checks therefore serialize against the owner row's exclusive lock during a concurrent session/link creation. After the lock, the SQL reevaluates the account state and verifier, then creates and indexes the original encrypted Vault secret in the same transaction. Offline contract tests explicitly assert this order. This is **not** proof that all Auth or network races have been covered; a separately authorized concurrent Staging rehearsal remains required.
+
+Staging still has the old `mmh_n10_recovery_backup_put(uuid,text)`; the proposed Production signature is `mmh_n10_recovery_backup_put(uuid,text,text)`. Do not replace or upgrade the active Staging functions in place or invoke the guarded Production migration against Staging.
