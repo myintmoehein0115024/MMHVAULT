@@ -58,11 +58,16 @@ const say=(condition,label)=>{assert.ok(condition,label);console.log('PASS '+lab
       say((await cards.nth(2).textContent()).includes('Salary'),width+' Category added under Income2');
       await dlg.locator('header button').click();
       const options=await page.evaluate(()=>Object.fromEntries(['txType','txGroup','txCategory']
-        .map(id=>[id,[...document.getElementById(id).options].map(x=>x.textContent)])));
-      assert.deepEqual(options,{txType:['Income'],txGroup:['Income2'],txCategory:['Salary']});
-      say(true,width+' original Add Transaction selectors cascade exactly');
+        .map(id=>[id,[...document.getElementById(id).options]
+          .filter(x=>x.dataset.mmhChoiceId).map(x=>x.textContent)])));
+      assert.deepEqual(options,{txType:['Income'],txGroup:[],txCategory:[]});
+      say(true,width+' Add Transaction has exact linked Type, no ghost defaults');
       const save=page.locator('#txForm .actions button');
-      say(await save.isEnabled(),width+' fully linked native Save is enabled');
+      say(await save.isDisabled(),width+' new transaction cannot save before explicit choices');
+      await page.locator('#txType').selectOption({label:'Income'});
+      await page.locator('#txGroup').selectOption({label:'Income2'});
+      await page.locator('#txCategory').selectOption({label:'Salary'});
+      say(await save.isEnabled(),width+' explicit Type→Transaction→Category enables native Save');
       // Simulate a confirmed ledger insert followed by a failed config write.
       // This must expose a retry that stores ONLY the missing Manage link.
       await page.evaluate(()=>{
@@ -92,10 +97,23 @@ const say=(condition,label)=>{assert.ok(condition,label);console.log('PASS '+lab
       say(fit.left>=-2&&fit.right<=width+2&&fit.top>=-2&&fit.bottom<=fit.height+2,
         width+' dialog within safe viewport '+JSON.stringify(fit));
       say(fit.scroll<=width+2,width+' no horizontal overflow');
-      // Once a parent is archived, its descendants are hidden in future selects.
-      await dlg.getByRole('button',{name:'Archive'}).click();
-      say(await page.locator('#txCategory option').count()===0,width+' archived Salary hidden from Add Transaction');
-      say((await page.evaluate(()=>window.__syntheticWrites))===5,width+' exactly five synthetic config writes including link retry, no default migration');
+      // A second available Category must NOT silently replace the original
+      // selected Salary after Archive, even if it is the only remaining option.
+      await dlg.getByRole('button',{name:'+ Add Category'}).click();
+      await dlg.locator('input[type=text]').fill('Bonus');
+      await dlg.getByRole('button',{name:'Save'}).click();
+      say(await save.isEnabled(),width+' adding another Category preserves explicit Salary choice');
+      await dlg.getByRole('button',{name:'Archive'}).first().click();
+      say(await page.locator('#txCategory').inputValue()==='',width+' archived selected Salary clears native Category');
+      say(await save.isDisabled(),width+' Archive cannot silently recategorize next ledger insert to Bonus');
+      const remaining=await page.locator('#txCategory option').allTextContents();
+      say(remaining.includes('Bonus')&&!remaining.includes('Salary'),
+        width+' archived Salary hidden while Bonus is available');
+      await page.locator('#txCategory').selectOption({label:'Bonus'});
+      say(await save.isEnabled(),width+' explicitly selecting Bonus re-enables Save');
+      await dlg.getByRole('button',{name:'Archive'}).last().click();
+      say(await page.locator('#txCategory option').count()===0,width+' all archived Categories hidden from Add Transaction');
+      say((await page.evaluate(()=>window.__syntheticWrites))===7,width+' seven synthetic config writes including safe retry and two Archives');
       await page.keyboard.press('Escape');
       // Interface language follows page preference for the cards.
       await page.evaluate(()=>{
