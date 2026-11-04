@@ -43,7 +43,7 @@ test('GraphQL errors get a category code but never leak upstream error details',
   assert.equal(r.status,503);
   assert.deepEqual(r.body,{error:'analytics_unavailable'});
   assert.equal(r.cloudflareCalls,1);
-  assert.deepEqual(r.logs,[['MMH_ANALYTICS_V2_FAILURE',{code:'CF_GRAPHQL_ERROR',phase:'CF_VALIDATION'}]]);
+  assert.deepEqual(r.logs,[['MMH_ANALYTICS_V2_FAILURE',{code:'CF_GRAPHQL_UNCLASSIFIED',phase:'CF_VALIDATION'}]]);
   assert.doesNotMatch(JSON.stringify(r.logs),/secret-sentinel/);
 });
 
