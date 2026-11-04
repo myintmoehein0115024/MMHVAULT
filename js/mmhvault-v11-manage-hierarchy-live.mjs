@@ -54,6 +54,9 @@ const uid=()=>typeof crypto!=='undefined'&&crypto.randomUUID?
 let loadedOwner='',historyReady=false,overlay=null,modalField='',selection={type:'',transaction:'',category:''};
 // UI direction filter only; never a persisted Type or financial ledger value.
 let directionFilter='';
+// Await only explicit missing-level additions for this owner/path; never replace
+// an archived or manually changed selection with another existing category.
+let awaitingMissing={owner:'',direction:'',typeMissing:false,transactionType:'',categoryTransaction:''};
 let pendingSave=null,rendering=false,queued=false,returnFocus=null;
 let linkSync=null,checkingCloud=false,cloudCheckOwner='',cloudCheckGeneration=0,cloudConflict=false;
 const host={
@@ -588,6 +591,7 @@ function form(){
       t.closest('label')?.before(guide);
     }
     if(!ready()){
+      awaitingMissing={owner:'',direction:'',typeMissing:false,transactionType:'',categoryTransaction:''};
       guide.hidden=false;
       guide.textContent=tr('Loading your saved transaction settings…',
         '正在加载您的记账设置…','သင့်ငွေစာရင်း ရွေးချယ်မှုများ ဖတ်နေပါသည်…');
@@ -596,26 +600,43 @@ function form(){
       return;
     }
     const activeTypes=controller.list('type').filter(x=>!directionFilter||x.ledgerType===directionFilter);
-    // Only a complete, unarchived owner-authored path can become a new
-    // entry. Historical archived choices remain in the ledger untouched.
-    const hasCompletePath=activeTypes.some(type=>
-      controller.list('transaction',type.id).some(tx=>
-        controller.list('category',tx.id).length>0));
+    const awaiting=!cloudConflict&&awaitingMissing.owner===owner()&&
+      awaitingMissing.direction===directionFilter?awaitingMissing:null;
+    // A newly added Type may complete a previously empty direction, but
+    // ordinary refreshes must not change the owner's manual selection.
+    if(directionFilter&&!selection.type&&awaiting?.typeMissing&&activeTypes.length)
+      selection=firstLinkedPath(directionFilter)||selection;
     const types=activeTypes.map(x=>({id:x.id,value:x.ledgerType,text:x.label}));
     put(t,types,selection.type,'type');selection.type=selected(t);
     const txns=selection.type?controller.list('transaction',selection.type).map(x=>({
       id:x.id,value:ledgerKind(x.kindId)?.group||'',text:x.label})).filter(x=>x.value):[];
+    if(selection.type&&!selection.transaction&&txns.length&&
+      awaiting?.transactionType===selection.type)
+      selection=firstLinkedPath(directionFilter,selection.type)||selection;
     put(g,txns,selection.transaction,'transaction');selection.transaction=selected(g);
     const cats=selection.transaction?controller.list('category',selection.transaction)
       .map(x=>({id:x.id,value:x.label,text:x.label})):[];
+    if(selection.transaction&&!selection.category&&cats.length&&
+      awaiting?.categoryTransaction===selection.transaction)
+      selection.category=cats[0].id;
     put(c,cats,selection.category,'category');selection.category=selected(c);
+    awaitingMissing={owner:owner(),direction:directionFilter,
+      typeMissing:!!directionFilter&&!activeTypes.length,
+      transactionType:selection.type&&!txns.length?selection.type:'',
+      categoryTransaction:selection.transaction&&!cats.length?selection.transaction:''};
     // The direction itself is always selectable. Only existing unarchived
     // choices may fill fields; guide the owner to add whichever level is absent.
     const missingField=!selection.type?'type':!selection.transaction?'transaction':
       !selection.category?'category':'';
+    // A missing *selection* is not necessarily a missing *option*: if the
+    // chosen Category was archived and others remain, require a conscious
+    // manual choice instead of suggesting another needless Manage entry.
+    const needsSetup=missingField==='type'?!types.length:
+      missingField==='transaction'?!txns.length:
+      missingField==='category'?!cats.length:false;
     guide.replaceChildren();
-    guide.hidden=!missingField;
-    if(missingField){
+    guide.hidden=!needsSetup;
+    if(needsSetup){
       const chosenType=controller.list('type').find(x=>x.id===selection.type);
       const chosenTx=selection.type?controller.list('transaction',selection.type)
         .find(x=>x.id===selection.transaction):null;
@@ -894,11 +915,13 @@ function boot(){
       loadedOwner=historyReady?current:'';
     }else if(e?.type==='mmhvault:config-owner-changed'){
       historyReady=false;loadedOwner='';selection={type:'',transaction:'',category:''};directionFilter='';
+      awaitingMissing={owner:'',direction:'',typeMissing:false,transactionType:'',categoryTransaction:''};
       pendingSave=null;linkSync=null;cloudConflict=false;
       checkingCloud=false;cloudCheckOwner='';cloudCheckGeneration++;
       ledgerRefreshOwner='';ledgerRefreshQueue=Promise.resolve();close();
     }else if(current!==loadedOwner){
       historyReady=false;loadedOwner='';selection={type:'',transaction:'',category:''};directionFilter='';
+      awaitingMissing={owner:'',direction:'',typeMissing:false,transactionType:'',categoryTransaction:''};
       pendingSave=null;linkSync=null;cloudConflict=false;
       checkingCloud=false;cloudCheckOwner='';cloudCheckGeneration++;
       ledgerRefreshOwner='';ledgerRefreshQueue=Promise.resolve();close();
