@@ -95,6 +95,13 @@ function style(){
   #mmhManagerCategoriesPanelV445.mmh-hierarchy-active>.mmh-manager-card-v445,
   #mmhManagerCategoriesPanelV445.mmh-hierarchy-active>#mmhV12Manage,
   #mmhManagerCategoriesPanelV445.mmh-hierarchy-active>#mmhV14Manage{display:none!important}
+  /* V141's six fixed Transaction Kind buttons are legacy shortcuts,
+     NOT owner-created Manage choices. They must never appear as presets
+     in the V11.7 Type → Transaction → Category workflow. Leave the
+     underlying V141 field-layout helper intact for ledger compatibility. */
+  #transactions #txForm #txSmartV141{display:none!important}
+  #txForm #mmhHierarchyEntryGuide{grid-column:1/-1;margin:0;padding:10px 13px;border:1px solid rgba(215,184,121,.27);border-radius:11px;background:rgba(24,42,61,.75);color:#e9d5ab;font-size:12px;line-height:1.6}
+  #txForm #mmhHierarchyEntryGuide[hidden]{display:none!important}
   .mmh-hier-summary{padding:18px;border:1px solid rgba(208,175,117,.25);border-radius:17px;background:linear-gradient(130deg,rgba(18,37,57,.75),rgba(17,27,44,.48));color:#f4eedf;box-shadow:0 16px 38px rgba(0,0,0,.12)}
   .mmh-hier-top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
   .mmh-hier-top h3{margin:0 0 4px;font-size:16px}
@@ -478,12 +485,34 @@ function form(){
   rendering=true;
   try{
     const save=f.querySelector('.actions button:not([type="button"])');
+    // Show an honest empty-state before any options exist. Do not infer
+    // Income from legacy V141 shortcuts or re-seed archived options.
+    let guide=$('mmhHierarchyEntryGuide');
+    if(!guide){
+      guide=elt('p');guide.id='mmhHierarchyEntryGuide';
+      guide.setAttribute('role','status');
+      t.closest('label')?.before(guide);
+    }
     if(!ready()){
+      guide.hidden=false;
+      guide.textContent=tr('Loading your saved transaction settings…',
+        '正在加载您的记账设置…','သင့်ငွေစာရင်း ရွေးချယ်မှုများ ဖတ်နေပါသည်…');
       for(const s of [t,g,c]){s.replaceChildren();s.disabled=true;}
       if(save)save.disabled=true;
       return;
     }
-    const types=controller.list('type').map(x=>({id:x.id,value:x.ledgerType,text:x.label}));
+    const activeTypes=controller.list('type');
+    // Only a complete, unarchived owner-authored path can become a new
+    // entry. Historical archived choices remain in the ledger untouched.
+    const hasCompletePath=activeTypes.some(type=>
+      controller.list('transaction',type.id).some(tx=>
+        controller.list('category',tx.id).length>0));
+    guide.hidden=hasCompletePath;
+    guide.textContent=hasCompletePath?'':tr(
+      'No active Type → Transaction → Category setup. Open Manage to add or restore your own choices; no preset transaction types will be added.',
+      '目前没有可用的 Type → Transaction → Category 关联。请在 Manage 新增或恢复您自己的分类；系统不会自动添加预设类型。',
+      'အသုံးပြုနိုင်သော Type → Transaction → Category မရှိသေးပါ။ Manage တွင် ကိုယ်ပိုင်အမျိုးအစားများ ထည့်ပါ သို့မဟုတ် ပြန်ဖွင့်ပါ။');
+    const types=activeTypes.map(x=>({id:x.id,value:x.ledgerType,text:x.label}));
     put(t,types,selection.type,'type');selection.type=selected(t);
     const txns=selection.type?controller.list('transaction',selection.type).map(x=>({
       id:x.id,value:ledgerKind(x.kindId)?.group||'',text:x.label})).filter(x=>x.value):[];
