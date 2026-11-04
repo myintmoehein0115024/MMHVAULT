@@ -93,3 +93,12 @@ if(txWrapperAt>=0)console.log('APP_V117_TX_WRAPPER_REVIEW='+JSON.stringify({
   line:txWrapperAt+1,code:lines.slice(txWrapperAt,txWrapperAt+73).map((l,k)=>
    (txWrapperAt+k+1)+': '+safe(l))
 }));
+
+// Keep only bounded and redacted implementation context; distinguish actual
+// server reload from optimistic local UI refresh.
+const guardedAt=lines.findIndex(line=>/\b(?:async\s+)?function\s+guardedCall\s*\(|\b(?:let|const|var)\s+guardedCall\s*=/.test(line));
+console.log('APP_V117_NATIVE_GUARDED_REFRESH='+JSON.stringify({
+  found:guardedAt>=0,
+  line:guardedAt+1,
+  code:guardedAt>=0?lines.slice(guardedAt,guardedAt+32).map((l,k)=>(guardedAt+k+1)+': '+safe(l)):[]
+}));
