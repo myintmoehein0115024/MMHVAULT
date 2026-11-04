@@ -30,6 +30,23 @@ if(fs.existsSync(out))fs.rmSync(out,{recursive:true,force:true});
 fs.mkdirSync(out,{recursive:true});
 
 let html=original.replaceAll(PROD_HOST,STAGING_HOST).replace(PROD_KEY,key);
+
+// Reports includes optional Budget, Goals and Recurring cloud reads. Their
+// tables are deliberately NOT part of the owner-approved Transaction Staging
+// schema or CSP. Keep the full native report calculations from saved ledger
+// rows, but skip those optional requests ONLY in the generated QA copy.
+// Never change app.html, Production behavior, RLS or DB table availability.
+const optionalReportGuard="if(!owner||typeof db==='undefined'){state.budget=null;state.goals=[];state.recurring=[];state.loading=false;state.lastCloudKey=key;state.lastCloudAt=Date.now();render();return}";
+assert.equal(count(html,optionalReportGuard),1,
+  'Review Report cloud loading before changing QA-only optional data behavior.');
+html=html.replace(optionalReportGuard,
+  "if(!owner||typeof db==='undefined'||document.querySelector('meta[name=\\\"mmhvault-staging-qa\\\"]')){state.budget=null;state.goals=[];state.recurring=[];state.loading=false;state.lastCloudKey=key;state.lastCloudAt=Date.now();render();return}");
+const reportBannerAnchor='<div class="report-eyebrow-v115">MONTHLY FINANCIAL REPORT</div>';
+assert.equal(count(html,reportBannerAnchor),1,
+  'Canonical Financial Report heading changed; review QA preview injection.');
+html=html.replace(reportBannerAnchor,reportBannerAnchor+
+  '<p role="note" id="mmhV117ReportLimitNote" style="font-size:12px;line-height:1.5;color:#ddc28c;max-width:650px;margin:6px 0 0">APP V11.7 Staging: Income, Expense, Transfer and cash-flow totals use saved test transactions. Budget, Goals and Recurring are not loaded or validated in this isolated preview.</p>');
+
 // Enforce staging ONLY, even if incidental old code tries another endpoint.
 const csp=[
 "default-src 'self'","base-uri 'self'","form-action 'self'",
