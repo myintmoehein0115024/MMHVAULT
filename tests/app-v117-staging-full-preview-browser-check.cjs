@@ -86,6 +86,13 @@ const PROD='https://vrypucmyrztxgiqhjspd.supabase.co';
   assert.equal(await page.evaluate(()=>window.__qaClientUrl),STAGE,
     'Staging login initializes Supabase SDK with Staging only');
 
+  // Native INITIAL_SESSION=null routes through index.html; this second
+  // anonymous path must also reach QA login, never bounce to app.html.
+  await page.goto(PREVIEW.replace('/app.html','/index.html'),
+    {waitUntil:'domcontentloaded',timeout:30000});
+  await page.waitForURL(/\/login\.html$/,{timeout:10000});
+  assert.equal(await page.locator('#qaLoginForm').isVisible(),true,
+    'Anonymous native index route must settle on Staging login without a loop');
   await page.locator('#qaEmail').fill('production@example.test');
   await page.locator('#qaPassword').fill('not-a-real-password');
   await page.locator('#qaSubmit').click();
