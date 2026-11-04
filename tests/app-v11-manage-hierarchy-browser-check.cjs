@@ -119,6 +119,15 @@ const say=(condition,label)=>{assert.ok(condition,label);console.log('PASS '+lab
         .includes('awaiting cloud verification'));
       say(await page.evaluate(()=>window.__syntheticWrites)===4,
         width+' retry wrote sidecar only, never resubmitted native form');
+      // A confirmed ledger row with a missing/stale UI capture still must
+      // refresh Accounts/Analyze. Never claim an invented Manage link.
+      await page.evaluate(()=>window.MMHV11HierarchyLive.onLedgerInserted('fixture-A',
+        'fixture-saved-ledger-42',{type:'Income',group:'Income',category:'Salary'}));
+      await page.waitForFunction(()=>window.__syntheticLedgerRefreshes===3);
+      say(await page.evaluate(()=>window.transactions.length===1&&
+        window.__syntheticWrites===4&&window.__messages.some(m=>
+          m.text.includes('Manage choices could not be verified'))),
+        width+' unmatched sidecar callback refreshes saved ledger without duplicate config or transaction');
       // Mobile/tablet/desktop dialog must fit without horizontal scrolling.
       await cards.nth(2).getByRole('button',{name:'Manage'}).click();
       const fit=await page.evaluate(()=>{
