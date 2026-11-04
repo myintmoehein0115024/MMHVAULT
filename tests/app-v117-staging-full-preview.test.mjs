@@ -92,6 +92,11 @@ test('preview is generated from the current APP without production endpoints',()
  assert.match(login,/connect-src https:\/\/ldivswlhtgmznzwhzsoi\.supabase\.co\/auth\/v1\/token/);
  assert.doesNotMatch(login,/connect-src[^"]*\/rest\/v1\//);
  const index=fs.readFileSync(path.join(out,'index.html'),'utf8');
- assert.match(index,/url=\.\/app\.html/);
+ assert.match(index,/url=\.\/login\.html/);
+ assert.doesNotMatch(index,/url=\.\/app\.html/);
+ assert.match(html,/location\.replace\('index\.html'\)/,
+   'Native anonymous auth boot must remain recognized by QA landing');
+ assert.match(html,/location\.replace\('login\.html'\)/,
+   'Native sign-out redirect must resolve to the same isolated QA login');
  assert.match(result.stdout,/"originReplacements":3/);
 });
