@@ -9,6 +9,8 @@ on:
       - 'tests/app-v11-manage-hierarchy-browser-*'
       - 'tests/app-v117-staging-signed-ab-qa*'
       - 'tests/build-app-v117-staging-preview.cjs'
+      - 'tests/build-app-v117-doubleclick.cjs'
+      - 'tests/app-v117-doubleclick*'
       - 'tests/app-v117-staging-full-preview*'
       - '.github/workflows/app-v11-hierarchy-review.yml'
   workflow_dispatch:
@@ -63,7 +65,7 @@ jobs:
         with:
           node-version: '22'
       - name: Install test-only browser driver (no app dependencies)
-        run: npm install --no-save --no-package-lock --no-audit --no-fund playwright-core@1.56.1
+        run: npm install --no-save --no-package-lock --no-audit --no-fund playwright-core@1.56.1 esbuild@0.25.12
       - name: Run local-only responsive UI + old/new-owner regression
         run: |
           python3 -m http.server 8768 --bind 127.0.0.1 >/tmp/mmhvault-v11-hierarchy-browser.log 2>&1 &
@@ -74,6 +76,8 @@ jobs:
           node tests/app-v117-staging-signed-ab-qa-browser-check.cjs
           MMH_V117_STAGING_PUBLISHABLE_KEY='sb_publishable_LxIB8564OZD48HQ8Mfsc0A_apkgERZo' node tests/build-app-v117-staging-preview.cjs
           node tests/app-v117-staging-full-preview-browser-check.cjs
+          node tests/build-app-v117-doubleclick.cjs
+          node tests/app-v117-doubleclick-browser-check.cjs
 
   browser-webkit:
     name: V11.7 synthetic WebKit responsive QA (NO DEPLOY)
@@ -110,14 +114,18 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      - name: Install pinned test-only ESM bundler
+        run: npm install --no-save --no-package-lock --no-audit --no-fund esbuild@0.25.12
       - name: Verify source-to-Staging transform with synthetic key
-        run: node --test tests/app-v117-staging-full-preview.test.mjs
+        run: node --test tests/app-v117-staging-full-preview.test.mjs tests/app-v117-doubleclick.test.mjs
       - name: Build complete APP QA package using public Auth-Staging key ONLY
         env:
           # A Supabase publishable API key is nonsecret. Never place service_role
           # or production credentials in this build.
           MMH_V117_STAGING_PUBLISHABLE_KEY: 'sb_publishable_LxIB8564OZD48HQ8Mfsc0A_apkgERZo'
-        run: node tests/build-app-v117-staging-preview.cjs
+        run: |
+          node tests/build-app-v117-staging-preview.cjs
+          node tests/build-app-v117-doubleclick.cjs
       - name: Upload download-only local QA folder (no hosting, no deployment)
         uses: actions/upload-artifact@v4
         with:
