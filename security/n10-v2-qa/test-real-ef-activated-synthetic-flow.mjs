@@ -22,7 +22,7 @@ const WORDLIST=Array.from({length:2048},(_,i)=>{
 });
 assert.equal(new Set(WORDLIST).size,2048);
 
-function fakeWorld({failEscrow=false,revokeOnVaultRead=false,revokeOnStatusRead=false,malformedAuthResponse=false,closeGateOnSignin=false,failPasswordProofSignout=false,closeQAOnSessionCheck=0,expireQAOnOpenCheck=0}={}){
+function fakeWorld({failEscrow=false,revokeOnVaultRead=false,revokeOnStatusRead=false,malformedAuthResponse=false,closeGateOnSignin=false,failPasswordProofSignout=false,closeQAOnSessionCheck=0,expireQAOnOpenCheck=0,failAdminSessionSignout=false}={}){
  const users=new Map(),byEmail=new Map(),slotOwners=new Map(),claims=new Set();
  const backups=new Map(),sessions=new Map(),tokens=new Map(),verifiedFactors=new Set(),events=[];
  let handlerCount=0,gateOpen=true,closeOnNextSignin=closeGateOnSignin;
@@ -150,6 +150,23 @@ function fakeWorld({failEscrow=false,revokeOnVaultRead=false,revokeOnStatusRead=
       user.banned_until=update.ban_duration;
       return {data:{user},error:null};
      },
+     signOut:async(token,scope)=>{
+      assert.equal(admin,true,'scoped revocation must use service-only Admin API');
+      assert.equal(scope,'local','never revoke other sessions');
+      const uid=tokens.get(token);
+      let sid;
+      try{
+       sid=JSON.parse(Buffer.from(token.split('.')[1],'base64url').toString()).session_id;
+      }catch(_){return {error:{message:'unrecognized synthetic token'}};}
+      const issued=sessions.get(sid);
+      if(!uid||!issued||issued.uid!==uid)
+       return {error:{message:'unrecognized synthetic session'}};
+      events.push('admin-signout-local:'+uid);
+      if(failAdminSessionSignout)
+       return {error:{message:'synthetic scoped logout failed'}};
+      issued.live=false;
+      return {error:null};
+     },
      mfa:{
       listFactors:async({userId})=>({data:{factors:verifiedFactors.has(userId)?
        [{factor_type:'totp',status:'verified'}]:[]},error:null})
@@ -212,6 +229,12 @@ function fakeWorld({failEscrow=false,revokeOnVaultRead=false,revokeOnStatusRead=
   signup,viewer,invoke,events,users,backups,slotOwners,claims,
   closeGateOnNextSignin(){closeOnNextSignin=true;},
   activeSessions(uid){return [...sessions.values()].filter(s=>s.uid===uid&&s.live).length;},
+  isSessionLive(token){
+   try{
+    const sid=JSON.parse(Buffer.from(token.split('.')[1],'base64url').toString()).session_id;
+    return sessions.get(sid)?.live===true;
+   }catch(_){return false;}
+  },
   mintAAL2(uid){verifiedFactors.add(uid);return issueSession(uid,'aal2');},
   mintAAL2WithoutFactor(uid){return issueSession(uid,'aal2');},
   mintAAL2WithClaims(uid,overrides){verifiedFactors.add(uid);return issueSession(uid,'aal2',overrides);},
@@ -551,6 +574,8 @@ test('closing QA at signup completion quarantines new E and withholds words and 
  assert.equal(x.users.size,1);
  assert.equal(x.backups.size,1,'original immutable backup must be retained for review');
  assert.equal([...x.users.values()][0].banned_until,'876000h');
+ assert.equal(x.activeSessions([...x.users.values()][0].id),0,
+  'late signup rejection must revoke its unissued refreshable session');
 });
 
 test('closing QA after successful signup helper still withholds all credentials at response',async()=>{
@@ -567,6 +592,12 @@ test('closing QA after successful signup helper still withholds all credentials 
  assert.equal(denied.recovery_words,undefined);
  assert.equal(x.users.size,1);
  assert.equal(x.backups.size,1,'fixed key must not be rotated or erased');
+ const owner=[...x.users.values()][0];
+ assert.equal(owner.banned_until,'876000h',
+  'newly created identity must be quarantined after final HTTP expiry');
+ assert.equal(x.activeSessions(owner.id),0,
+  'late HTTP expiry must revoke fresh signup session');
+ assert.equal(x.events.filter(e=>e==='admin-signout-local:'+owner.id).length,1);
 });
 
 test('closing QA after successful repeat password login cannot return tokens',async()=>{
@@ -589,4 +620,52 @@ test('closing QA after successful repeat password login cannot return tokens',as
  assert.equal(denied.recovery_words,undefined);
  assert.equal(x.users.size,1);
  assert.equal(x.backups.get(enrolled.user_id),enrolled.recovery_words.join(' '));
+ assert.equal(x.activeSessions(enrolled.user_id),1,
+  'the newly created repeat-login session was revoked, original session preserved');
+ assert.equal(x.isSessionLive(enrolled.access_token),true,
+  'an older session from the same E/F owner must remain live');
+ assert.equal(x.users.get(enrolled.user_id).banned_until,null,
+  'existing owners must not be quarantined on repeat-login expiry');
+ assert.equal(x.events.filter(e=>e==='admin-signout-local:'+enrolled.user_id).length,1);
+});
+
+test('late signup Admin signOut failure requires manual reconciliation but never leaks secrets',async()=>{
+ const x=fakeWorld({expireQAOnOpenCheck:5,failAdminSessionSignout:true});
+ const denied=await x.invoke(x.signup,{
+  action:'signup',username:'n10real_e_20261104',password:PWD_E,
+  captcha_token:'signup-expired-with-scoped-revoke-failure'
+ });
+ assert.equal(denied.status,503);
+ assert.equal(denied.code,'manual_reconciliation_required');
+ assert.equal(denied.access_token,undefined);
+ assert.equal(denied.refresh_token,undefined);
+ assert.equal(denied.recovery_words,undefined);
+ const owner=[...x.users.values()][0];
+ assert.equal(owner.banned_until,'876000h');
+ assert.equal(x.activeSessions(owner.id),1,
+  'mocked server revocation failure cannot be falsely called a successful cleanup');
+ assert.equal(x.backups.get(owner.id)?.split(' ').length,10,
+  'original immutable escrow is retained while access is held');
+});
+
+test('late repeat login Admin signOut failure preserves existing owner and flags manual review',async()=>{
+ const x=fakeWorld({expireQAOnOpenCheck:9,failAdminSessionSignout:true});
+ const enrolled=await x.invoke(x.signup,{
+  action:'signup',username:'n10real_e_20261104',password:PWD_E,
+  captcha_token:'signup-before-failed-cleanup-repeat'
+ });
+ assert.equal(enrolled.status,200);
+ const denied=await x.invoke(x.signup,{
+  action:'login',username:'n10real_e_20261104',password:PWD_E,
+  captcha_token:'login-expired-with-scoped-revoke-failure'
+ });
+ assert.equal(denied.status,503);
+ assert.equal(denied.code,'manual_reconciliation_required');
+ assert.equal(denied.access_token,undefined);
+ assert.equal(denied.refresh_token,undefined);
+ assert.equal(x.isSessionLive(enrolled.access_token),true);
+ assert.equal(x.activeSessions(enrolled.user_id),2,
+  'failed revocation is flagged, not incorrectly reported as cleaned');
+ assert.equal(x.users.get(enrolled.user_id).banned_until,null,
+  'do not quarantine an already-existing E/F owner after repeat login');
 });
