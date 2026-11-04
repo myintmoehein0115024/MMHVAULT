@@ -7,6 +7,9 @@ on:
   # Pull request CI for this isolated review candidate; never deploy.
   pull_request:
     paths:
+      - 'login.html'
+      - 'js/mmhvault-n10-a7-69-username.js'
+      - 'js/mmhvault-n10-auth-my.js'
       - 'js/mmhvault-n10-a7-83-security-center.js'
       - 'security/n10-main-compat/**'
       - 'security/n10-signup-escrow-review/**'
@@ -32,6 +35,11 @@ jobs:
           node-version: '22'
       - name: Parse account security JavaScript
         run: node --check js/mmhvault-n10-a7-83-security-center.js
+      - name: Check trilingual login with offline locale regression
+        run: |
+          node --check js/mmhvault-n10-auth-my.js
+          node --check js/mmhvault-n10-a7-69-username.js
+          node --test security/n10-main-compat/test-login-my-locale.mjs
       - name: Run synthetic security and MFA regressions
         run: node security/n10-main-compat/test-ui-secret-guards.mjs
       - name: Parse isolated recovery integration modules
