@@ -28,6 +28,25 @@
 .toolbar select:disabled{opacity:.55;cursor:not-allowed}
 .hour-time-note{color:#9daec3;font-size:12px}
 @media(max-width:650px){.chart-legend{gap:12px;margin-top:12px}.chart-note{font-size:11px}.trend-visual{min-height:250px}.toolbar{gap:9px}.toolbar select{max-width:100%}.chart-table{min-width:320px}}
+
+/* Analytics V2.3: verified RUM dimension breakdowns, small-screen first. */
+.breakdowns-title{font-size:19px;font-weight:700;margin:28px 0 8px}
+.breakdowns-intro{color:#aebcd0;font-size:13px;line-height:1.6;margin:0 0 14px}
+.breakdown-status{color:#d9bb83;font-size:12px;min-height:18px;margin:0 0 12px}
+.breakdown-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.breakdown-card{min-width:0;padding:18px}
+.breakdown-heading{font-size:15px;margin:0 0 14px;color:#ecf0fa}
+.breakdown-list{list-style:none;margin:0;padding:0;display:grid;gap:14px}
+.breakdown-row{min-width:0}
+.breakdown-row-header{display:flex;align-items:baseline;gap:10px;justify-content:space-between}
+.breakdown-label{min-width:0;overflow-wrap:anywhere;font-size:13px;color:#e7edf7}
+.breakdown-total{font-variant-numeric:tabular-nums;font-weight:700;color:#e3c68c;white-space:nowrap}
+.breakdown-rail{height:4px;border-radius:8px;background:#314055;margin:6px 0 4px;overflow:hidden}
+.breakdown-rail-fill{height:100%;border-radius:8px;background:linear-gradient(90deg,#b38c54,#efd18e)}
+.breakdown-detail,.breakdown-limited,.breakdown-empty{color:#9eb0c7;font-size:11px;line-height:1.5;margin:0}
+.breakdown-limited{margin-top:15px}
+@media(max-width:900px){.breakdown-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:650px){.breakdown-grid{grid-template-columns:1fr}.breakdown-card{padding:17px}.breakdowns-title{font-size:18px}}
 </style>
 </head>
 <body><main class="shell">
@@ -36,13 +55,62 @@
 <div class="toolbar"><label for="range">Period</label><select id="range"><option value="24h">Last 24 hours</option><option value="7d" selected>Last 7 days</option><option value="30d">Last 30 days</option></select><label for="timeZone">Hourly time</label><select id="timeZone" disabled title="Only 24-hour labels can switch time zones; 7/30-day groups remain UTC calendar days."><option value="UTC" selected>UTC</option><option value="Asia/Bangkok">Bangkok (UTC+7)</option></select><button id="refresh" type="button">Refresh</button><span class="status" id="status" role="status" aria-live="polite">Checking secure connection…</span></div>
 <section class="grid" aria-label="Website metrics"><article class="panel"><div class="label">Visits</div><div class="value" id="visits">—</div><div class="hint">Cloudflare Web Analytics</div></article><article class="panel"><div class="label">Page views</div><div class="value" id="pageViews">—</div><div class="hint">Cloudflare Web Analytics</div></article><article class="panel"><div class="label">Unique visitors</div><div class="value" id="uniqueVisitors">—</div><div class="hint" title="The verified RUM GraphQL dataset has no validated deduplicated unique visitors measure.">Unavailable in verified RUM data</div></article></section>
 <section class="panel wide"><div class="label">Website activity over time</div><div class="trend-visual" id="trend" role="region" aria-label="Verified Web Analytics visits and page views trend"><div class="chart-empty">No verified trend data available yet.</div></div></section>
+<section aria-labelledby="breakdownsTitle">
+<h2 class="breakdowns-title" id="breakdownsTitle">Visitor activity breakdown</h2>
+<p class="breakdowns-intro">Cloudflare Web Analytics · Top groups ranked by page views, not unique visitors. Missing referrers are classified as direct / unknown. Private page paths are hidden.</p>
+<p class="breakdown-status" id="breakdownStatus" role="status" aria-live="polite">Verified breakdowns have not been loaded.</p>
+<div id="breakdowns" aria-label="Verified visitor activity groups"><p class="breakdown-empty">Verified breakdowns have not been loaded.</p></div>
+</section>
 <p class="footer" id="updated">Source: Cloudflare Web Analytics · No data loaded</p>
 </main>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/dist/umd/supabase.js"></script>
 <script src="/analytics-worker/ui/trend-chart.js"></script>
+<script src="/analytics-worker/ui/breakdowns.js"></script>
 <script>
 window.MMH_ANALYTICS_API_URL = 'https://mmhvault-website-analytics-v2.myintmoehein0115024.workers.dev/api/admin/website-analytics'; // Isolated Worker; authorized data access still requires live verification.
-(()=>{'use strict';const $=id=>document.getElementById(id),status=$('status');const number=new Intl.NumberFormat('en-US');let latestChart=null;let requestSerial=0;let activeController=null;function reset(){latestChart=null;for(const id of ['visits','pageViews','uniqueVisitors'])$(id).textContent='—';if(window.MMHAnalyticsChart)window.MMHAnalyticsChart.clear($('trend'),'No verified trend data available yet.');else $('trend').textContent='No verified trend data available yet.';$('updated').textContent='Source: Cloudflare Web Analytics · No data loaded'}
-async function load(){const serial=++requestSerial;if(activeController){activeController.abort();activeController=null}const selectedRange=$('range').value;$('timeZone').disabled=selectedRange!=='24h';const isCurrent=()=>serial===requestSerial;reset();status.textContent='Checking secure connection…';$('refresh').disabled=true;try{const client=window.supabase?.createClient('https://vrypucmyrztxgiqhjspd.supabase.co','sb_publishable_H38v4XbO0ARnSJToD42wGg_27-SZ3Ao');const session=client?await client.auth.getSession():null;const token=session?.data?.session?.access_token;if(!isCurrent())return;if(!token){status.textContent='Sign in through the administrator dashboard first.';return}const check=await client.rpc('mmh_is_admin');if(!isCurrent())return;if(check.error||check.data!==true){status.textContent='Administrator verification failed.';return}if(!window.MMH_ANALYTICS_API_URL){status.textContent='Analytics API endpoint has not been configured.';return}const controller=new AbortController();activeController=controller;const timeout=setTimeout(()=>controller.abort(),12000);let response;try{response=await fetch(window.MMH_ANALYTICS_API_URL+'?range='+encodeURIComponent(selectedRange),{headers:{Authorization:'Bearer '+token,Accept:'application/json'},credentials:'omit',cache:'no-store',signal:controller.signal})}finally{clearTimeout(timeout);if(activeController===controller)activeController=null}if(!isCurrent())return;if(response.status===401||response.status===403){status.textContent='Access denied. Administrator verification is required.';return}if(!response.ok){status.textContent='Analytics service is not available yet.';return}const data=await response.json();if(!isCurrent())return;if(data.source!=='cloudflare-web-analytics'||!data.verified){status.textContent='Data source not verified.';return}for(const key of ['visits','pageViews','uniqueVisitors']){if(Number.isSafeInteger(data[key])&&data[key]>=0)$(key).textContent=number.format(data[key])}const displayZone=selectedRange==='24h'?$('timeZone').value:'UTC';let chartReady=false;if(Array.isArray(data.trend)&&window.MMHAnalyticsChart){const granularity=selectedRange==='24h'?'hour':'day';if(data.granularity===granularity&&window.MMHAnalyticsChart.render($('trend'),data.trend,granularity,selectedRange,data.updatedAt,displayZone)){latestChart={trend:data.trend,granularity,range:selectedRange,updatedAt:data.updatedAt,timeZone:displayZone};chartReady=true;}else window.MMHAnalyticsChart.clear($('trend'),'Verified trend chart is unavailable for this period.');}else $('trend').textContent='Verified trend chart is unavailable.';status.textContent=chartReady?'Connected':'Metrics loaded · trend unavailable';$('updated').textContent='Source: Cloudflare Web Analytics · Updated: '+(data.updatedAt||'not provided')}catch(e){if(isCurrent())status.textContent=e.name==='AbortError'?'Request timed out.':'Analytics service is not available yet.'}finally{if(isCurrent())$('refresh').disabled=false}}
+window.MMH_ANALYTICS_BREAKDOWN_API_URL = 'https://mmhvault-website-analytics-v2.myintmoehein0115024.workers.dev/api/admin/website-analytics-breakdowns'; // Protected RUM groups; not yet deployed while PR remains in review.
+(()=>{'use strict';const $=id=>document.getElementById(id),status=$('status');const number=new Intl.NumberFormat('en-US');let latestChart=null;let requestSerial=0;let activeController=null;let activeBreakdownController=null;function reset(){latestChart=null;for(const id of ['visits','pageViews','uniqueVisitors'])$(id).textContent='—';if(window.MMHAnalyticsChart)window.MMHAnalyticsChart.clear($('trend'),'No verified trend data available yet.');else $('trend').textContent='No verified trend data available yet.';$('updated').textContent='Source: Cloudflare Web Analytics · No data loaded'}
+async function load(){const serial=++requestSerial;if(activeController){activeController.abort();activeController=null}if(activeBreakdownController){activeBreakdownController.abort();activeBreakdownController=null}const selectedRange=$('range').value;$('timeZone').disabled=selectedRange!=='24h';const isCurrent=()=>serial===requestSerial;reset();if(window.MMHAnalyticsBreakdowns)window.MMHAnalyticsBreakdowns.clear($('breakdowns'));$('breakdownStatus').textContent='Waiting for verified data…';status.textContent='Checking secure connection…';$('refresh').disabled=true;try{const client=window.supabase?.createClient('https://vrypucmyrztxgiqhjspd.supabase.co','sb_publishable_H38v4XbO0ARnSJToD42wGg_27-SZ3Ao');const session=client?await client.auth.getSession():null;const token=session?.data?.session?.access_token;if(!isCurrent())return;if(!token){status.textContent='Sign in through the administrator dashboard first.';return}const check=await client.rpc('mmh_is_admin');if(!isCurrent())return;if(check.error||check.data!==true){status.textContent='Administrator verification failed.';return}if(!window.MMH_ANALYTICS_API_URL){status.textContent='Analytics API endpoint has not been configured.';return}const controller=new AbortController();activeController=controller;const timeout=setTimeout(()=>controller.abort(),12000);let response;try{response=await fetch(window.MMH_ANALYTICS_API_URL+'?range='+encodeURIComponent(selectedRange),{headers:{Authorization:'Bearer '+token,Accept:'application/json'},credentials:'omit',cache:'no-store',signal:controller.signal})}finally{clearTimeout(timeout);if(activeController===controller)activeController=null}if(!isCurrent())return;if(response.status===401||response.status===403){status.textContent='Access denied. Administrator verification is required.';return}if(!response.ok){status.textContent='Analytics service is not available yet.';return}const data=await response.json();if(!isCurrent())return;if(data.source!=='cloudflare-web-analytics'||!data.verified){status.textContent='Data source not verified.';return}for(const key of ['visits','pageViews','uniqueVisitors']){if(Number.isSafeInteger(data[key])&&data[key]>=0)$(key).textContent=number.format(data[key])}const displayZone=selectedRange==='24h'?$('timeZone').value:'UTC';let chartReady=false;if(Array.isArray(data.trend)&&window.MMHAnalyticsChart){const granularity=selectedRange==='24h'?'hour':'day';if(data.granularity===granularity&&window.MMHAnalyticsChart.render($('trend'),data.trend,granularity,selectedRange,data.updatedAt,displayZone)){latestChart={trend:data.trend,granularity,range:selectedRange,updatedAt:data.updatedAt,timeZone:displayZone};chartReady=true;}else window.MMHAnalyticsChart.clear($('trend'),'Verified trend chart is unavailable for this period.');}else $('trend').textContent='Verified trend chart is unavailable.';status.textContent=chartReady?'Connected':'Metrics loaded · trend unavailable';$('updated').textContent='Source: Cloudflare Web Analytics · Updated: '+(data.updatedAt||'not provided');void loadBreakdowns(token,selectedRange,serial)}catch(e){if(isCurrent())status.textContent=e.name==='AbortError'?'Request timed out.':'Analytics service is not available yet.'}finally{if(isCurrent())$('refresh').disabled=false}}
+
+async function loadBreakdowns(token,selectedRange,serial){
+  const isCurrent=()=>serial===requestSerial;
+  if(!window.MMHAnalyticsBreakdowns||!window.MMH_ANALYTICS_BREAKDOWN_API_URL){
+    if(isCurrent())$('breakdownStatus').textContent='Verified breakdowns are unavailable.';
+    return;
+  }
+  const controller=new AbortController();
+  activeBreakdownController=controller;
+  const timeout=setTimeout(()=>controller.abort(),12000);
+  try{
+    $('breakdownStatus').textContent='Loading verified breakdowns…';
+    const response=await fetch(window.MMH_ANALYTICS_BREAKDOWN_API_URL+'?range='+
+      encodeURIComponent(selectedRange),{
+      headers:{Authorization:'Bearer '+token,Accept:'application/json'},
+      credentials:'omit',cache:'no-store',signal:controller.signal
+    });
+    if(!isCurrent())return;
+    if(response.status===401||response.status===403){
+      $('breakdownStatus').textContent='Breakdown access requires an administrator.';
+      return;
+    }
+    if(!response.ok){
+      $('breakdownStatus').textContent='Breakdowns unavailable. Existing totals remain valid.';
+      return;
+    }
+    const data=await response.json();
+    if(!isCurrent())return;
+    if(!window.MMHAnalyticsBreakdowns.render($('breakdowns'),data,selectedRange)){
+      $('breakdownStatus').textContent='Breakdown data could not be verified.';
+      return;
+    }
+    $('breakdownStatus').textContent='Verified Cloudflare breakdowns · refreshed separately from totals.';
+  }catch(e){
+    if(isCurrent())$('breakdownStatus').textContent=
+      e.name==='AbortError'?'Breakdown request timed out.':'Breakdowns unavailable. Existing totals remain valid.';
+  }finally{
+    clearTimeout(timeout);
+    if(activeBreakdownController===controller)activeBreakdownController=null;
+  }
+}
 $('range').addEventListener('change',load);$('refresh').addEventListener('click',load);$('timeZone').addEventListener('change',()=>{if(!latestChart||latestChart.granularity!=='hour'||!window.MMHAnalyticsChart)return;latestChart.timeZone=$('timeZone').value;window.MMHAnalyticsChart.render($('trend'),latestChart.trend,latestChart.granularity,latestChart.range,latestChart.updatedAt,latestChart.timeZone)});let frame=0;window.addEventListener('resize',()=>{if(!latestChart||!window.MMHAnalyticsChart||frame)return;frame=requestAnimationFrame(()=>{frame=0;if(latestChart)window.MMHAnalyticsChart.render($('trend'),latestChart.trend,latestChart.granularity,latestChart.range,latestChart.updatedAt,latestChart.timeZone)})});load()})();
 </script></body></html>
