@@ -95,8 +95,7 @@ const l156OldMotionTag='<script defer src="./landing-assets/motion-l132.js?v=l14
 const l156NewMotionTag='<script defer src="./landing-assets/motion-l132.js?v=l156"></script>';
 const l157NewMotionTag='<script defer src="./landing-assets/motion-l132.js?v=l157"></script>';
 const l159NewMotionTag='<script defer src="./landing-assets/motion-l132.js?v=l159"></script>';
-const l148IndexOnlyEdited=()=>prev.split(l157NewMotionTag).length===2 &&
-  current===prev.replace(l157NewMotionTag,l159NewMotionTag);
+const l148IndexOnlyEdited=()=>prev.includes(l159NewMotionTag) && current===prev;
 const l147IndexOnlyEdited=baseline=>baseline===prev && l148IndexOnlyEdited() &&
   baseline.includes(l147NewHeaderTags) && !current.includes(l147OldHeaderTags);
 // The runtime JS may change only these four targeted DOM write sites.
@@ -252,9 +251,8 @@ const l159RevealAddition="  // L1.59: settle any pending reveals when reduced mo
 const l159RevealAnchor="  // Clicking a guide or an in-page navigation link must reveal the destination,";
 const l139MotionOnlyEdited=()=>{
   const released=source('landing-assets/motion-l132.js');
-  return released.split(l159RevealAnchor).length===2 &&
-    read('landing-assets/motion-l132.js')===
-      released.replace(l159RevealAnchor,l159RevealAddition+l159RevealAnchor) &&
+  return read('landing-assets/motion-l132.js')===released &&
+    released.includes('L1.59: settle any pending reveals when reduced motion') &&
     released.includes('L1.57: recalculate phone-first reveal margins') &&
     released.includes('L1.56: stop only Business concept WAAPI motion');
 };
@@ -262,10 +260,21 @@ const l158PublicRevealBefore="      // L1.39: pre-reveal phone cards ahead of vi
 const l158PublicRevealAfter="      // L1.58: rotate.\n      const mq=matchMedia('(max-width:620px)');\n      let io;\n      function bind(){\n        io?.disconnect();\n        const mobileReveal=mq.matches;\n        const o=new IntersectionObserver(es=>{\n          for(const e of es)if(e.isIntersecting){\n            e.target.classList.add('mm-public-shown');\n            o.unobserve(e.target);\n          }\n        },{threshold:.045,rootMargin:mobileReveal?'0px 0px 12% 0px':'0px 0px -4% 0px'});\n        io=o;\n        for(const e of targets)if(!e.classList.contains('mm-public-shown'))o.observe(e);\n      }\n      bind();\n      mq.addEventListener?mq.addEventListener('change',bind):mq.addListener?.(bind);";
 const l158OldScriptTag="<script defer src=\"/landing-assets/public-pages.js\"></script>";
 const l158NewScriptTag="<script defer src=\"/landing-assets/public-pages.js?v=l158\"></script>";
-const l158RestoreScript=(html)=>html; // L1.58 seven public pages are now released.
+const l160ScriptTag='<script defer src="/landing-assets/public-pages.js?v=l160"></script>';
+const l158RestoreScript=(html)=>html.replace(l160ScriptTag,l158NewScriptTag);
+const l160PublicRemovals=[" * Read-only presentation: no auth, fetch, history/URL rewrites or finance data.\n"," * Header markup and shared-header-l116.css are identical across public pages.\n","  // L1.26: return focus to a visible trigger when dismissing compact\n","  // navigation, Explore or the language picker on any public page.\n","    // A collapsed Explore inside the mobile menu must not close the menu too.\n"];
+const l160PublicMarker="      mq.addEventListener?mq.addEventListener('change',bind):mq.addListener?.(bind);\n";
+const l160PublicAddition="      // L1.60: settle pending reveals.\n      const reduced=matchMedia('(prefers-reduced-motion: reduce)');\n      const settle=()=>{\n        if(!reduced.matches)return;\n        io.disconnect();\n        for(const el of targets)el.classList.add('mm-public-shown');\n      };\n      reduced.addEventListener?reduced.addEventListener('change',settle):reduced.addListener?.(settle);\n";
 const l139PublicOnlyEdited=()=>{
   const released=source('landing-assets/public-pages.js');
-  return read('landing-assets/public-pages.js')===released &&
+  let expected=released;
+  for(const comment of l160PublicRemovals){
+    if(expected.split(comment).length!==2)return false;
+    expected=expected.replace(comment,'');
+  }
+  if(expected.split(l160PublicMarker).length!==2)return false;
+  expected=expected.replace(l160PublicMarker,l160PublicMarker+l160PublicAddition);
+  return read('landing-assets/public-pages.js')===expected &&
     released.includes('L1.58: rotate.') &&
     released.includes("mobileReveal?'0px 0px 12% 0px':'0px 0px -4% 0px'");
 };
@@ -815,24 +824,27 @@ check('L1.27 public tab title matches SEO without language focus scroll',
  l133PublicPagesUnchanged() &&
  l142IndexOnlyEdited() && current.includes(newHeroPreload) &&
  !current.includes(oldHeroPreload));
-check('L1.59 exact four-file homepage motion-only change and L1.58 public pages preserved',
-  actual.length===4 &&
+check('L1.60 strict ten-file public-only change with immutable HTML content and analytics',
+  actual.length===10 &&
   actual.every(path=>[
-    'index.html',
-    'landing-assets/motion-l132.js',
+    'landing-assets/public-pages.js',
     'landing-assets/landing-release-check.cjs',
-    'landing-assets/landing-browser-check.cjs'
+    'landing-assets/landing-browser-check.cjs',
+    ...publicHeaders
   ].includes(path)) &&
-  l139MotionOnlyEdited() &&
-  l139PublicOnlyEdited() &&
-  publicHeaders.every(path=>read(path)===source(path)) &&
-  current!==prev &&
+  publicHeaders.every(path=>{
+    const prior=source(path);
+    return prior.split(l158NewScriptTag).length===2 &&
+      read(path)===prior.replace(l158NewScriptTag,l160ScriptTag);
+  }) &&
+  l139PublicOnlyEdited() && l139MotionOnlyEdited() &&
+  current===prev && analyticsAddition.test(rawCurrent) &&
   l142IndexOnlyEdited() && l133BurmeseLayoutOnlyEdited() &&
   l133PublicPagesUnchanged() && l135HeaderCssOnlyEdited() &&
   ['landing-assets/public-pages.css','landing-assets/business.css',
-   'landing-assets/cinematic.css','landing-assets/premium-l131.css',
-   'landing-assets/motion-l132.css','sitemap.xml','robots.txt',
-   'mmh-manifest-v2.webmanifest'].every(path=>read(path)===source(path)));
+    'landing-assets/cinematic.css','landing-assets/premium-l131.css',
+    'landing-assets/motion-l132.css','sitemap.xml','robots.txt',
+    'mmh-manifest-v2.webmanifest'].every(path=>read(path)===source(path)));
 // The device image remains decoded-before-show, with no invisible opacity
 // transition on phones/tablets. This is the only change to cinematic.css.
 const l140HeroCssSuffix="\n/* L1.40 — Once the phone/tablet Hero image has decoded, swap it in\n   without a second opacity delay that could expose a blank frame after\n   the HTML fallback is hidden. Keep desktop presentation unchanged. */\n@media (max-width: 900px) {\n  body.l131 .hero-device-cinematic { transition: none; }\n}\n";
@@ -970,13 +982,13 @@ check('L1.54 language and feature title hydration skips identical writes',
     read('landing-assets/landing.js').includes(newCode)));
 check('L1.56 released Business interruption remains intact',
   l139MotionOnlyEdited() &&
-  prev.includes(l157NewMotionTag) &&
+  prev.includes(l159NewMotionTag) &&
   current.includes(l159NewMotionTag) &&
   !current.includes(l156OldMotionTag) &&
   read('landing-assets/landing-browser-check.cjs').includes('L1.56 Business WAAPI interruption browser parity'));
 check('L1.58 public introduction pages rebind observer after viewport changes',
   l139PublicOnlyEdited() &&
-  publicHeaders.every(path=>read(path).includes(l158NewScriptTag)) &&
+  publicHeaders.every(path=>read(path).includes(l160ScriptTag)) &&
   read('landing-assets/landing-browser-check.cjs').includes('L1.58 rotated public-page observer parity') &&
   l148IndexOnlyEdited());
 check('L1.57 orientation-aware observer rebind is isolated to Landing presentation',
@@ -986,6 +998,10 @@ check('L1.57 orientation-aware observer rebind is isolated to Landing presentati
   !read('landing-assets/motion-l132.js').includes('preventDefault(') &&
   !read('landing-assets/motion-l132.js').includes('localStorage') &&
   l139PublicOnlyEdited());
+check('L1.60 live reduced-motion settles all public-page reveals without content changes',
+  l139PublicOnlyEdited() &&
+  publicHeaders.every(path=>read(path).includes(l160ScriptTag)) &&
+  read('landing-assets/landing-browser-check.cjs').includes('L1.60 live reduced-motion public-page reveal persistence'));
 check('L1.59 live reduced-motion change permanently reveals all pending Landing cards',
   l139MotionOnlyEdited() &&
   current.includes(l159NewMotionTag) &&
