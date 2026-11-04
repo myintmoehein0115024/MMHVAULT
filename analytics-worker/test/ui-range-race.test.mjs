@@ -151,3 +151,15 @@ test('switching period aborts an old on-demand breakdown request',async()=>{
   assert.equal(h.elements.visits.textContent,'—','new period awaits its own verified totals');
   assert.doesNotMatch(h.elements.breakdownStatus.textContent,/Breakdowns unavailable. Existing totals remain valid/);
 });
+
+test('30d main totals stay available while unverified country breakdowns remain disabled',async()=>{
+  const h=harness();await settled();
+  h.elements.range.value='30d';h.handlers['range:change']();await settled();
+  h.requests[1].resolve(answer('30d',20));await settled();
+  assert.equal(h.elements.visits.textContent,'20');
+  assert.equal(h.elements.pageViews.textContent,'21');
+  assert.equal(h.elements.loadBreakdowns.disabled,true);
+  assert.match(h.elements.breakdownStatus.textContent,/30-day breakdowns are paused/);
+  assert.equal(h.breakdownRequests.length,0);
+  assert.equal(h.elements.status.textContent,'Connected');
+});
