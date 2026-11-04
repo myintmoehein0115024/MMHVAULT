@@ -61,3 +61,23 @@ GitHub Actions ran `node tests/app-v117-full-app-dependency-inventory.cjs` again
 **Interpretation limits:** these are literal `.from(...)` sites across the whole source, not the set of hard `loadAll()` dependencies. Dynamic table names and wallet movement services are not resolved by this regex; no claim is made that all ten additional tables must be provisioned. An earlier inspected full-APP boot path identified `investments`, wallet movement loading and `custom_investments` failures as hard stops, and `exchange_rates` as attempted. That failure analysis must be rechecked against latest source before making a *minimal*, owner-approved isolated schema proposal. `customer_profiles` and other existing N10 dependencies MUST NOT be provisioned or touched just because their name appears in source.
 
 **Current action:** preserve the existing signed A/B two-table core acceptance and full-APP security overlay; gather source-specific hard-boot read paths next. No new Staging tables, Production calls or live full-APP deployment were authorized or performed.
+
+## 2026-11-04 verified `loadAll()` hard-gate and smallest additive schema candidates
+
+The actual full APP startup function (current draft `app.html` near line **14374**) was inspected with the read-only CI scanner:
+
+| Service read in `Promise.all` | Resolved source | Startup handling | In approved Staging schema? |
+| --- | --- | --- | --- |
+| Ledger | `transactions` via `mmhPersonalReadAllV191` | **Hard failure** | Yes |
+| Investments | `investments` via `mmhPersonalReadAllV191` | **Hard failure** | No |
+| Wallet movements | `crypto_wallet_movements` via `mmhPersonalReadWalletV191` | **Hard failure** | No |
+| Custom investments | `custom_investments` via `mmhPersonalReadAllV191` | **Hard failure** | No |
+| Exchange rates | `exchange_rates` direct owner-filtered read | **Optional failure** (warning / missing rates) | No |
+
+The wallet table was confirmed by the actual `mmhPersonalReadWalletV191` definition near `app.html` line **17294**, which calls `mmhPersonalReadAllV191('crypto_wallet_movements',owner)`. It is *not* listed among literal `.from('table')` matches because the shared reader accepts a variable table name.
+
+**Minimal isolated schema candidates for a complete APP boot:** retain the two already-authorized finance tables; separately review **only** `investments`, `custom_investments`, and `crypto_wallet_movements` as new **empty owner-scoped Staging tables**. These are candidates, not an approved migration or proof that every feature can work with these three alone. The `exchange_rates` table is not required for the current startup hard-stop, but a separate exchange-rate functionality test may require it with its own approval. Budget, financial goals, alerts, subscriptions, customer profiles and N10 services are not authorized merely because the wider source references them.
+
+**Pre-migration checks required:** independently inspect actual SELECT/INSERT/UPDATE columns, primary/foreign keys, existing local finance model expectations, RLS `auth.uid() = user_id`, authenticated-only grants, ownership-denial tests, no default seed data, cleanup, rollback, and CSP allowlist changes. **No table DDL, production SQL, N10 changes, or Cloudflare deployment in this review.**
+
+A new CI regression check now asserts that the actual signed-owner `loadAll()` still hard-fails when those critical finance reads fail, that the wallet loader still targets the known wallet table, and that the user/session owner guard remains intact. Tests are static read-only checks; they do not simulate a successful full APP login.
