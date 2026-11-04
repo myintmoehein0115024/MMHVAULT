@@ -28,6 +28,17 @@ test('foreground visibility alone must not change a key view',()=>{
  h.doc.dispatchEvent(new Event('visibilitychange'));
  assert.equal(h.hides(),0);binding.destroy();
 });
+test('switching to another application hides words even when the page is still visible',()=>{
+ const h=setup();const binding=attachRecoveryViewLifecycle({
+  controller:h.controller,documentRef:h.doc,windowRef:h.win,auth:h.auth,
+ });
+ assert.equal(h.doc.hidden,false);
+ h.win.dispatchEvent(new Event('blur'));
+ assert.equal(h.hides(),1);
+ h.win.dispatchEvent(new Event('focus'));
+ assert.equal(h.hides(),1,'focus must never automatically re-expose the key');
+ binding.destroy();
+});
 test('page navigation hides original words before leaving',()=>{
  const h=setup();const binding=attachRecoveryViewLifecycle({
   controller:h.controller,documentRef:h.doc,windowRef:h.win,auth:h.auth,
@@ -69,7 +80,7 @@ test('destroy unsubscribes and removes all event listeners',()=>{
  binding.destroy();binding.destroy();
  assert.equal(h.hides(),1);assert.equal(h.unsubs(),1);
  h.doc.hidden=true;h.doc.dispatchEvent(new Event('visibilitychange'));
- h.win.dispatchEvent(new Event('pagehide'));h.close.dispatchEvent(new Event('click'));
+ h.win.dispatchEvent(new Event('pagehide'));h.win.dispatchEvent(new Event('blur'));h.close.dispatchEvent(new Event('click'));
  h.emitAuth('SIGNED_OUT');
  assert.equal(h.hides(),1);
 });
@@ -81,6 +92,6 @@ test('failed auth-observer initialization aborts and cleans up safely',()=>{
  }),{message:'recovery_lifecycle_unavailable'});
  assert.equal(h.hides(),1);
  h.doc.hidden=true;h.doc.dispatchEvent(new Event('visibilitychange'));
- h.win.dispatchEvent(new Event('pagehide'));h.close.dispatchEvent(new Event('click'));
+ h.win.dispatchEvent(new Event('pagehide'));h.win.dispatchEvent(new Event('blur'));h.close.dispatchEvent(new Event('click'));
  assert.equal(h.hides(),1);
 });
