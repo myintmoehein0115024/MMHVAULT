@@ -105,6 +105,15 @@ async function load(page,route,failures){
      page.on('pageerror',e=>errors.push(e.message));
      await page.goto(origin+'/',{waitUntil:'load',timeout:30000});
      const card=page.locator('.showcase-v2 .showcase-card').first();
+     // Wait for the existing scroll-reveal transition before measuring hover.
+     // Otherwise the in-flight reveal can mask the hover shadow in Chromium.
+     await card.scrollIntoViewIfNeeded();
+     await page.waitForFunction(()=>{
+       const el=document.querySelector('.showcase-v2 .showcase-card');
+       return el.classList.contains('mm-shown') &&
+         parseFloat(getComputedStyle(el).opacity)>=.999;
+     },null,{timeout:6000});
+     await page.waitForTimeout(150);
      const before=await page.evaluate(()=>{
        const el=document.querySelector('.showcase-v2 .showcase-card');
        const css=getComputedStyle(el);
