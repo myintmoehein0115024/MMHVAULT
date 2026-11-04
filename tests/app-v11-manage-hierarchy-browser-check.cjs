@@ -110,7 +110,12 @@ const say=(condition,label)=>{assert.ok(condition,label);console.log('PASS '+lab
         .includes(document.activeElement?.id||'')),
         width+' direction shortcut never focuses/opens a native selector');
       for(const id of ['txType','txGroup','txCategory']){
-        await page.locator('label:has(> #'+id+')').click({position:{x:5,y:5}});
+        const label=page.locator('label:has(> #'+id+')');
+        const bounds=await label.boundingBox();
+        assert.ok(bounds,width+' '+id+' label remains visible');
+        // Real pointer click: Playwright locator.click rejects an enclosing label
+        // when its native select is intentionally disabled (even at blank edges).
+        await page.mouse.click(bounds.x+5,bounds.y+5);
         say(await page.evaluate(id=>document.activeElement?.id!==id,id),
           width+' adjacent '+id+' label click does not invoke native picker');
       }
