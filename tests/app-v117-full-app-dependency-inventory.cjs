@@ -51,6 +51,23 @@ console.log('APP_V117_WALLET_SOURCE_REVIEW='+JSON.stringify({
   definitions:walletContexts,
   caution:'Wallet loader may be defined in another module. Do not infer a table name from an unresolved call.'
 }));
+// Guard against a future PR accidentally softening the historical session
+// bootstrap. The full APP remains blocked when the required owner data
+// services do not load; an incomplete two-table QA must never appear ready.
+assert.ok(bootDefinitions.length,'Full APP authenticated loadAll definition missing');
+assert.ok(walletDefinitions.length,'Wallet movement loader definition missing');
+const bootGuard=source.slice(bootDefinitions[0].index,bootDefinitions[0].index+16000);
+for(const [purpose,pattern] of [
+  ['ledger',/read\s*\(\s*['"]transactions['"]/],
+  ['investments',/read\s*\(\s*['"]investments['"]/],
+  ['custom investments',/read\s*\(\s*['"]custom_investments['"]/],
+  ['wallet read',/mmhPersonalReadWalletV191\s*\(\s*loadOwner\s*\)/],
+  ['hard failure',/if\s*\(\s*hardErrors\.length\s*\)\s*throw\s+new\s+Error/],
+  ['session owner',/currentSessionUser\?\.id\s*!==\s*loadOwner/]
+])assert.match(bootGuard,pattern,purpose+' must remain protected by the real APP startup guard');
+const walletGuard=source.slice(walletDefinitions[0].index,walletDefinitions[0].index+1000);
+assert.match(walletGuard,/mmhPersonalReadAllV191\s*\(\s*['"]crypto_wallet_movements['"]\s*,\s*owner\s*\)/,
+  'Wallet loader must have a known owner-scoped table dependency');
 const inventory=[...entries.entries()].sort((a,b)=>a[0].localeCompare(b[0]))
   .map(([table,lines])=>({table,references:lines.length,firstLines:lines.slice(0,6)}));
 assert.ok(startup.length,'Full APP startup entrypoint loadAll not found: review bootstrap');
