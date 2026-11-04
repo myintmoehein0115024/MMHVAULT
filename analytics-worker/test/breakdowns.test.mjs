@@ -158,3 +158,14 @@ test('empty verified groups return empty lists without fabricated category count
     assert.equal(result.uniqueVisitors,null);
   }finally{h.restore()}
 });
+
+test('30-day breakdowns fail closed until live Cloudflare country groups are reconciled',async()=>{
+  const h=await harness();
+  try{
+    const r=await worker.fetch(request(base+'?range=30d'),env);
+    assert.equal(r.status,503);
+    assert.deepEqual(await r.json(),{error:'breakdown_range_unverified'});
+    assert.equal(h.calls.length,2,'still verify administrator, but never query unverified 30d groups');
+    assert.ok(!h.calls.some(c=>c.url.includes('api.cloudflare.com')));
+  }finally{h.restore()}
+});
