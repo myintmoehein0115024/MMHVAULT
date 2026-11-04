@@ -60,6 +60,10 @@ export function createRecoveryViewController({request, currentOwner, onChange, s
     hide(); const invocation = epoch; const id = captureOwner(); owner = id;
     if (!id) { emit('login_required'); return; }
     emit('loading');
+    // A synchronous modal close or owner switch can happen in onChange.
+    // Never start a request after that view has already been invalidated.
+    if (invocation !== epoch) return;
+    if (currentOwner() !== id) { hide(); return; }
     try {
       const result = await request('status', {});
       // An obsolete request belongs to a previous view. Never let its
@@ -85,6 +89,10 @@ export function createRecoveryViewController({request, currentOwner, onChange, s
     }
     const invocation = ++epoch;
     emit('loading');
+    // Closing the modal or switching accounts during the loading render
+    // must prevent the password/secret request from being sent at all.
+    if (invocation !== epoch) return;
+    if (currentOwner() !== owner) { hide(); return; }
     try {
       const result = await request('reveal', {password});
       if (invocation !== epoch) return;
