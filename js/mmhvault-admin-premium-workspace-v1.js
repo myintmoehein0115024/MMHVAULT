@@ -62,7 +62,7 @@
    const button=el('button','',item[3]);button.type='button';button.dataset.adminView=item[2];
    tile.append(copy,button);tiles.append(tile);
  }
- usage.append(tiles);
+ const usageDirectory=usage.querySelector(':scope>.panel');if(usageDirectory)usage.insertBefore(tiles,usageDirectory);else usage.append(tiles);
  document.addEventListener('click',event=>{
    const button=event.target?.closest?.('[data-admin-view]');if(!button||!usage.contains(button))return;
    if(dash.hidden)return;
