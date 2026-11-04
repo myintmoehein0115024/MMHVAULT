@@ -68,6 +68,28 @@ const say=(condition,label)=>{assert.ok(condition,label);console.log('PASS '+lab
       await page.locator('#txGroup').selectOption({label:'Income2'});
       await page.locator('#txCategory').selectOption({label:'Salary'});
       say(await save.isEnabled(),width+' explicit Type→Transaction→Category enables native Save');
+      // The full APP's legacy syncTransactionGroup()/updateCategories()
+      // still rebuild these native selects after a successful ledger write.
+      // V11.7 must restore exact choice IDs and reject ghost legacy options.
+      await page.evaluate(()=>{
+        document.getElementById('txType').innerHTML='<option value="Expense">Expense</option>';
+        document.getElementById('txGroup').innerHTML='<option value="Expense">Expense</option>';
+        document.getElementById('txCategory').innerHTML='<option value="Ghost">Ghost</option>';
+      });
+      await page.waitForFunction(()=>['txType','txGroup','txCategory'].every(id=>
+        [...document.getElementById(id).options].some(o=>!!o.dataset.mmhChoiceId)));
+      const reset=await page.evaluate(()=>Object.fromEntries(
+        ['txType','txGroup','txCategory'].map(id=>{
+          const el=document.getElementById(id);
+          return [id,{value:el.value,selectedId:el.selectedOptions[0]?.dataset.mmhChoiceId||'',
+            ghost:[...el.options].some(x=>x.textContent==='Ghost')}];
+        })));
+      say(reset.txType.value==='Income'&&reset.txGroup.value==='Income'&&
+        reset.txCategory.value==='Salary'&&
+        reset.txType.selectedId&&reset.txGroup.selectedId&&reset.txCategory.selectedId&&
+        !reset.txCategory.ghost,
+        width+' legacy selector rebuild cannot overwrite linked canonical Add choice');
+      say(await save.isEnabled(),width+' native Save remains correctly linked after legacy rebuild');
       // Simulate a confirmed ledger insert followed by a failed config write.
       // This must expose a retry that stores ONLY the missing Manage link.
       await page.evaluate(()=>{
