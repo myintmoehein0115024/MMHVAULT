@@ -1,0 +1,33 @@
+name: Analytics V2 isolated security checks
+on:
+  pull_request:
+    paths:
+      - 'analytics-worker/**'
+      - '.github/workflows/analytics-v2-security.yml'
+  push:
+    branches:
+      - 'feature/admin-website-analytics-v2-20261103'
+    paths:
+      - 'analytics-worker/**'
+      - '.github/workflows/analytics-v2-security.yml'
+permissions:
+  contents: read
+jobs:
+  security:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check Node.js runtime
+        run: node --version
+      - name: Run isolated security tests
+        run: node --test analytics-worker/test/*.test.mjs
+      - name: Check source syntax
+        run: node --check analytics-worker/src/index.js
+      - name: Reject embedded private keys and API tokens
+        shell: bash
+        run: |
+          if grep -nE '(sk_[A-Za-z0-9]{20,}|-----BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY-----)' analytics-worker/src/index.js; then
+            echo 'Potential secret in Worker source'
+            exit 1
+          fi
