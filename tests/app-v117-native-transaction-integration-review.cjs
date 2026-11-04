@@ -85,3 +85,11 @@ for(const [name,token] of [
    }))
  ));
 }
+
+// Main native add form wraps base addTransaction with validation, busy guard,
+// cloud reload and feedback. Capture bounded body for regression review.
+const txWrapperAt=lines.findIndex(x=>x.includes('const old=txForm.onsubmit;'));
+if(txWrapperAt>=0)console.log('APP_V117_TX_WRAPPER_REVIEW='+JSON.stringify({
+  line:txWrapperAt+1,code:lines.slice(txWrapperAt,txWrapperAt+73).map((l,k)=>
+   (txWrapperAt+k+1)+': '+safe(l))
+}));
