@@ -49,16 +49,19 @@ async function queryAnalytics(range,env,diagnostic){
   diagnostic.phase='CF_START';
   const now = new Date();
   const start = new Date(now.getTime() - RANGE_DAYS[range] * 86400000);
+  // A rolling 24h interval must be hourly; daily buckets cannot show hour-by-hour activity.
+  const hourly = range === '24h';
+  const dimension = hourly ? 'datetimeHour' : 'date';
   const query = `query WebsiteAnalytics($accountTag: string!, $siteTag: string!, $start: Time!, $end: Time!) {
     viewer {
       accounts(filter: {accountTag: $accountTag}) {
         rumPageloadEventsAdaptiveGroups(
           limit: 100
-          orderBy: [date_ASC]
+          orderBy: [${hourly ? 'datetimeHour_ASC' : 'date_ASC'}]
           filter: {siteTag: $siteTag, requestHost: "mmhvault.com", bot: 0, datetime_geq: $start, datetime_leq: $end}
         ) {
           count
-          dimensions { date }
+          dimensions { ${dimension} }
           sum { visits }
         }
       }
@@ -83,23 +86,37 @@ async function queryAnalytics(range,env,diagnostic){
   const accounts=body.data?.viewer?.accounts;
   if(!Array.isArray(accounts)||accounts.length!==1)throw new Error('CF_ACCOUNT_MISMATCH');
   const groups=accounts[0].rumPageloadEventsAdaptiveGroups;
-  if(!Array.isArray(groups)||groups.length>RANGE_DAYS[range]+1)throw new Error('CF_GROUPS_INVALID');
+  if(!Array.isArray(groups)||groups.length>(hourly?25:RANGE_DAYS[range]+1))throw new Error('CF_GROUPS_INVALID');
   const seenDates=new Set();
   const trend=[];
   let pageViews=0,visits=0;
   for(const group of groups){
-    if(!/^\d{4}-\d{2}-\d{2}$/.test(group.dimensions?.date||'')||
-       !Number.isSafeInteger(group.count)||group.count<0||
+    if(!Number.isSafeInteger(group.count)||group.count<0||
        !Number.isSafeInteger(group.sum?.visits)||group.sum.visits<0)throw new Error('CF_METRICS_INVALID');
-    const date=group.dimensions.date;
-    const day=Date.parse(date+'T00:00:00Z');
-    if(!Number.isFinite(day)||new Date(day).toISOString().slice(0,10)!==date||seenDates.has(date)||day< Date.UTC(start.getUTCFullYear(),start.getUTCMonth(),start.getUTCDate())||day>Date.UTC(now.getUTCFullYear(),now.getUTCMonth(),now.getUTCDate()))throw new Error('CF_DATE_INVALID');
-    seenDates.add(date);
+    const bucket=group.dimensions?.[dimension];
+    if(typeof bucket!=='string'||seenDates.has(bucket))throw new Error('CF_DATE_INVALID');
+    if(hourly){
+      if(!/^\d{4}-\d{2}-\d{2}T(?:[01]\d|2[0-3]):00:00Z$/.test(bucket))throw new Error('CF_DATE_INVALID');
+      const ms=Date.parse(bucket);
+      const firstHour=Math.floor(start.getTime()/3600000)*3600000;
+      if(!Number.isFinite(ms)||new Date(ms).toISOString().replace('.000Z','Z')!==bucket||
+         ms<firstHour||ms>now.getTime())throw new Error('CF_DATE_INVALID');
+    }else{
+      if(!/^\d{4}-\d{2}-\d{2}$/.test(bucket))throw new Error('CF_DATE_INVALID');
+      const day=Date.parse(bucket+'T00:00:00Z');
+      if(!Number.isFinite(day)||new Date(day).toISOString().slice(0,10)!==bucket||
+         day<Date.UTC(start.getUTCFullYear(),start.getUTCMonth(),start.getUTCDate())||
+         day>Date.UTC(now.getUTCFullYear(),now.getUTCMonth(),now.getUTCDate()))throw new Error('CF_DATE_INVALID');
+    }
+    seenDates.add(bucket);
     pageViews+=group.count;visits+=group.sum.visits;
-    trend.push({date:group.dimensions.date,visits:group.sum.visits});
+    trend.push({date:bucket,visits:group.sum.visits,pageViews:group.count});
   }
   if(!Number.isSafeInteger(pageViews)||!Number.isSafeInteger(visits))throw new Error('CF_METRICS_OVERFLOW');
-  return {pageViews,visits,uniqueVisitors:null,trend,updatedAt:now.toISOString()};
+  trend.sort((a,b)=>a.date.localeCompare(b.date));
+  // RUM adaptive groups exposes pageviews and visit entries, but no validated
+  // exact cross-period deduplicated visitor metric. Never derive one from visits.
+  return {pageViews,visits,uniqueVisitors:null,granularity:hourly?'hour':'day',trend,updatedAt:now.toISOString()};
 }
 export default {async fetch(request,env){
   const origin=request.headers.get('Origin');
