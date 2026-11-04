@@ -136,6 +136,6 @@ fs.writeFileSync(path.join(out,'START-STAGING-ON-MAC.sh'),[
 '  echo "Do not install Xcode just to use this Staging QA package."',
 '  exit 1',
 'fi',
-].join('\\n')+'\\n');
+].join('\n')+'\n');
 console.log(JSON.stringify({destination:out,stagingEndpoint:'https://'+STAGING_HOST,
   bytes:html.length,originReplacements:3,sanitizedAssets,assetsChecked:true,productionRefCount:count(html,PROD_HOST)}));
