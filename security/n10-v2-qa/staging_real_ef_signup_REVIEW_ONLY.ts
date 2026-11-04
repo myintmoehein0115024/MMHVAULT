@@ -113,6 +113,16 @@ function authClient(){
   persistSession:false,autoRefreshToken:false,detectSessionInUrl:false
  }});
 }
+// Revoke only the just-issued E/F Auth session; never revoke a user's other
+// sessions. A withheld response is not itself a completed Auth logout.
+async function revokeQAAuthSession(session){
+ const token=session?.access_token;
+ if(typeof token!=='string'||!token)return false;
+ try{
+  const {error}=await admin.auth.admin.signOut(token,'local');
+  return !error;
+ }catch(_){return false;}
+}
 // Recheck the database QA gate after Auth creates its temporary session.
 // If the window closes mid-login, finally signs out and returns no token.
 async function ownerGateOpen(uid,expectedSlot){
@@ -124,18 +134,22 @@ async function ownerGateOpen(uid,expectedSlot){
 }
 async function verifiedPasswordSession(email,password,expectedId,expectedSlot){
  const client=authClient();
- let result=null;
+ let result=null,issued=null;
  try{
   const {data,error}=await client.auth.signInWithPassword({email,password});
-  if(error||data?.user?.id!==expectedId||!data.session?.access_token||
-    !data.session.refresh_token)return null;
-  const checked=await client.auth.getUser(data.session.access_token);
+  // Capture an issued token even if the Auth response is otherwise malformed.
+  issued=data?.session??null;
+  if(error||data?.user?.id!==expectedId||!issued?.access_token||
+    !issued.refresh_token)return null;
+  const checked=await client.auth.getUser(issued.access_token);
   if(checked.error||checked.data?.user?.id!==expectedId)return null;
-    if(!await ownerGateOpen(expectedId,expectedSlot))return null;
-  result=data.session;
+  if(!await ownerGateOpen(expectedId,expectedSlot))return null;
+  result=issued;
   return result;
  }finally{
-  if(!result)try{await client.auth.signOut({scope:'local'});}catch(_){}
+  // A failed local revocation cannot be silently treated as cleanup.
+  if(issued&&!result&&!await revokeQAAuthSession(issued))
+   throw Error('qa_session_reconciliation_required');
  }
 }
 async function quarantineNewUser(userId,email,name){
@@ -144,6 +158,7 @@ async function quarantineNewUser(userId,email,name){
  const {data,error}=await admin.auth.admin.getUserById(userId);
  const owner=data?.user;
  if(error||!owner||owner.id!==userId||owner.email!==email||
+    !/^u-[0-9a-f]{32}@no-mail\.n10-staging\.mmhvault\.invalid$/.test(email)||
     owner.app_metadata?.mmhvault_auth_kind!=='username_only'||
     owner.app_metadata?.mmhvault_qa_scope!==QA_SCOPE||
     owner.app_metadata?.mmhvault_username!==name)return false;
@@ -151,6 +166,13 @@ async function quarantineNewUser(userId,email,name){
   ban_duration:'876000h'
  });
  return !changed.error;
+}
+async function quarantineCompletedSignup(userId,name){
+ try{
+  const {data,error}=await admin.auth.admin.getUserById(userId);
+  if(error||typeof data?.user?.email!=='string')return false;
+  return await quarantineNewUser(userId,data.user.email,name);
+ }catch(_){return false;}
 }
 async function enroll(name,password){
  const slot=slotOf(name);
@@ -166,7 +188,7 @@ async function enroll(name,password){
  const phrase=generateWords();
  if(!normalize(phrase))return {code:'qa_unavailable',status:503};
  const email='u-'+crypto.randomUUID().replaceAll('-','')+'@'+ALIAS_DOMAIN;
- let newUserId=null;let completed=false;
+ let newUserId=null,issuedSession=null;
  try{
   const {data,error}=await admin.auth.admin.createUser({
    email,password,email_confirm:true,
@@ -195,24 +217,24 @@ async function enroll(name,password){
   // this user is eligible to receive a first Auth session.
   const session=await verifiedPasswordSession(email,password,newUserId,slot);
   if(!session)throw Error('first_session_failed');
+  issuedSession=session;
   // Authentication can finish at the exact end of the short QA window.
   // Quarantine this *new* staging identity rather than return its tokens.
   if(!open())throw Error('qa_window_closed_before_signup_completion');
-  completed=true;
   return {
    code:'signup_success',status:200,user_id:newUserId,
    recovery_words:phrase.split(' '),expires_in_seconds:45,
    access_token:session.access_token,refresh_token:session.refresh_token
   };
  }catch(_){
+  // On an expiry after a successful first session, revoke that exact new
+  // session before quarantining the new identity for manual reconciliation.
+  if(issuedSession)await revokeQAAuthSession(issuedSession);
   if(newUserId){
    try{await quarantineNewUser(newUserId,email,name);}catch(_){}
   }
+  // Claims and original encrypted escrow remain immutable; no new slot reuse.
   return {code:'manual_reconciliation_required',status:503};
- }finally{
-  // Intentionally never print passwords, original words or Auth tokens.
-  // Claims are permanent and require manual review after ambiguous errors.
-  if(!completed)void 0;
  }
 }
 async function login(name,password){
@@ -260,17 +282,29 @@ Deno.serve(async request=>{
    const result=await enroll(data.username,data.password);
    // The last async signup step may finish after QA expiry: never return
    // new account credentials or original words outside the release window.
-   if(result.code==='signup_success'&&!open())
-    return reply(origin,'qa_not_released',503);
+   if(result.code==='signup_success'&&!open()){
+    // Last response guard: even a completed signup cannot leave an
+    // undelivered refreshable session when the E/F QA window has closed.
+    const revoked=await revokeQAAuthSession(result);
+    const quarantined=await quarantineCompletedSignup(result.user_id,data.username);
+    return reply(origin,revoked&&quarantined?
+      'qa_not_released':'manual_reconciliation_required',503);
+   }
    const {status,...body}=result;
    return reply(origin,body.code,status,body);
   }
   const x=await login(data.username,data.password);
   // The password was valid at an earlier point, but the temporary QA
   // window must remain open immediately before any token leaves the Edge.
-  if(!open())return reply(origin,'qa_not_released',503);
+  if(!open()){
+   // Only the fresh login session is revoked; existing sessions stay live.
+   if(x&&!await revokeQAAuthSession(x))
+    return reply(origin,'manual_reconciliation_required',503);
+   return reply(origin,'qa_not_released',503);
+  }
   return x?reply(origin,'login_success',200,x):reply(origin,'invalid_credentials',401);
- }catch(_){
-  return reply(origin,'qa_unavailable',503);
+ }catch(error){
+  return reply(origin,error?.message==='qa_session_reconciliation_required'?
+    'manual_reconciliation_required':'qa_unavailable',503);
  }
 });
