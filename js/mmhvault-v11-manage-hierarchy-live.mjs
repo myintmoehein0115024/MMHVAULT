@@ -116,6 +116,10 @@ function style(){
   body.light #txForm #mmhHierarchyDirection .mmh-direction-help{color:#526a84}
   #txForm #mmhHierarchyEntryGuide{grid-column:1/-1;margin:0;padding:10px 13px;border:1px solid rgba(215,184,121,.27);border-radius:11px;background:rgba(24,42,61,.75);color:#e9d5ab;font-size:12px;line-height:1.6}
   #txForm #mmhHierarchyEntryGuide[hidden]{display:none!important}
+  #txForm #mmhHierarchyEntryGuide .mmh-hier-entry-action-v117{display:inline-flex;align-items:center;justify-content:center;min-height:34px;margin-left:10px;padding:7px 11px;border-radius:9px;border:1px solid rgba(224,182,95,.6);background:rgba(206,160,78,.15);color:#ffe5ac;font:700 12px/1.4 system-ui,sans-serif;cursor:pointer}
+  #txForm #mmhHierarchyEntryGuide .mmh-hier-entry-action-v117:focus-visible{outline:2px solid #e6c174;outline-offset:2px}
+  #txForm #mmhHierarchyEntryGuide .mmh-hier-entry-action-v117:disabled{opacity:.5;cursor:not-allowed}
+  @media(max-width:520px){#txForm #mmhHierarchyEntryGuide .mmh-hier-entry-action-v117{display:flex;width:100%;margin:9px 0 0}}
   .mmh-hier-summary{padding:18px;border:1px solid rgba(208,175,117,.25);border-radius:17px;background:linear-gradient(130deg,rgba(18,37,57,.75),rgba(17,27,44,.48));color:#f4eedf;box-shadow:0 16px 38px rgba(0,0,0,.12)}
   .mmh-hier-top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
   .mmh-hier-top h3{margin:0 0 4px;font-size:16px}
@@ -469,9 +473,9 @@ function manager(){
 }
 const selected=(el)=>el?.selectedOptions?.[0]?.dataset?.mmhChoiceId||'';
 const labels=()=>({type:$('txType')?.closest('label'),transaction:$('txGroup')?.closest('label'),category:$('txCategory')?.closest('label')});
-// Never silently substitute the first remaining Category/Transaction if
-// another device or Archive invalidates a previously chosen path. An explicit
-// choice is required at every level before the native ledger form can save.
+// Preserve deliberate manual choices across ordinary UI refresh. A direction
+// click may fill existing active owner choices progressively, but must never
+// generate missing options or revive archived items after a change.
 const choicePrompt=field=>tr('Select '+label(field)+'…','请选择 '+label(field)+'…',
   label(field)+' ကို ရွေးပါ…');
 const optionSig=(el,items,prompt)=>el&&el.options.length===items.length+1&&
@@ -493,20 +497,25 @@ function put(el,items,pick,field){
   // index 0 is the disabled placeholder, never an inferred financial choice.
   el.selectedIndex=index>0?index:0;
 }
-// Select only an owner-created, active, COMPLETE Type → Transaction → Category.
-// This never creates a choice, writes a setting, or changes a financial direction.
+// Prefer a complete owner-authored path, else the deepest available active
+// chain: Type + Transaction, then Type alone. An empty direction stays selected
+// and offers a Manage action instead of seeding fictitious ledger categories.
 function firstLinkedPath(direction,typeId='',transactionId=''){
   const types=controller.list('type').filter(type=>
     (!direction||type.ledgerType===direction)&&(!typeId||type.id===typeId));
+  let firstType=null,firstTransaction=null;
   for(const type of types){
+    if(!firstType)firstType={type:type.id,transaction:'',category:''};
     for(const txn of controller.list('transaction',type.id)){
       if(transactionId&&txn.id!==transactionId)continue;
       if(!ledgerKind(txn.kindId)?.group)continue;
+      const candidate={type:type.id,transaction:txn.id,category:''};
+      if(!firstTransaction)firstTransaction=candidate;
       const cat=controller.list('category',txn.id)[0];
-      if(cat)return {type:type.id,transaction:txn.id,category:cat.id};
+      if(cat)return {...candidate,category:cat.id};
     }
   }
-  return null;
+  return firstTransaction||firstType;
 }
 // Fixed directions only filter the current owner's active Manage Type list.
 // No seed choices, ledger changes, implicit Type selection or cloud writes.
@@ -550,7 +559,8 @@ function ensureDirectionButtons(f,t){
           if(!chosen)selection={type:'',transaction:'',category:''};
         }
         form();
-        $('txType')?.focus({preventScroll:true});
+        const action=$('mmhHierarchyEntryGuide')?.querySelector('button');
+        (action||$('txType'))?.focus({preventScroll:true});
       });
       button.dataset.mmhDirection=direction;button.setAttribute('aria-pressed','false');
       bar.append(button);
@@ -591,14 +601,6 @@ function form(){
     const hasCompletePath=activeTypes.some(type=>
       controller.list('transaction',type.id).some(tx=>
         controller.list('category',tx.id).length>0));
-    guide.hidden=hasCompletePath;
-    guide.textContent=hasCompletePath?'':directionFilter?tr(
-      'No active linked Type → Transaction → Category for this direction. Set up or restore your own choices in Manage.',
-      '这个资金方向没有可用的 Type → Transaction → Category 关联，请到 Manage 新增或恢复。',
-      'ဤငွေလမ်းကြောင်းအတွက် Type → Transaction → Category မရှိသေးပါ။ Manage တွင် သတ်မှတ်ပါ။'):tr(
-      'No active Type → Transaction → Category setup. Open Manage to add or restore your own choices; no preset transaction types will be added.',
-      '目前没有可用的 Type → Transaction → Category 关联。请在 Manage 新增或恢复您自己的分类；系统不会自动添加预设类型。',
-      'အသုံးပြုနိုင်သော Type → Transaction → Category မရှိသေးပါ။ Manage တွင် ကိုယ်ပိုင်အမျိုးအစားများ ထည့်ပါ သို့မဟုတ် ပြန်ဖွင့်ပါ။');
     const types=activeTypes.map(x=>({id:x.id,value:x.ledgerType,text:x.label}));
     put(t,types,selection.type,'type');selection.type=selected(t);
     const txns=selection.type?controller.list('transaction',selection.type).map(x=>({
@@ -607,6 +609,33 @@ function form(){
     const cats=selection.transaction?controller.list('category',selection.transaction)
       .map(x=>({id:x.id,value:x.label,text:x.label})):[];
     put(c,cats,selection.category,'category');selection.category=selected(c);
+    // The direction itself is always selectable. Only existing unarchived
+    // choices may fill fields; guide the owner to add whichever level is absent.
+    const missingField=!selection.type?'type':!selection.transaction?'transaction':
+      !selection.category?'category':'';
+    guide.replaceChildren();
+    guide.hidden=!missingField;
+    if(missingField){
+      const chosenType=controller.list('type').find(x=>x.id===selection.type);
+      const chosenTx=selection.type?controller.list('transaction',selection.type)
+        .find(x=>x.id===selection.transaction):null;
+      const prompt=missingField==='type'?tr(
+        'No active Type for this direction. Add a Type in Manage and assign its money direction.',
+        '这个资金方向没有可用 Type。请到 Manage 添加 Type 并设置资金方向。',
+        'ဤငွေလမ်းကြောင်းအတွက် Type မရှိသေးပါ။ Manage တွင် Type ထည့်ပါ။'):
+        missingField==='transaction'?tr(
+          'No linked Transaction under '+(chosenType?.label||'Type')+'. Add one in Manage.',
+          (chosenType?.label||'Type')+' 下没有 Transaction，请到 Manage 添加。',
+          'ဤ Type အောက်တွင် Transaction မရှိသေးပါ။ Manage တွင် ထည့်ပါ။'):tr(
+          'No linked Category under '+(chosenTx?.label||'Transaction')+'. Add or restore it in Manage.',
+          (chosenTx?.label||'Transaction')+' 下没有 Category，请到 Manage 添加或恢复。',
+          'ဤ Transaction အောက်တွင် Category မရှိသေးပါ။ Manage တွင် ထည့်ပါ သို့မဟုတ် ပြန်ယူပါ။');
+      guide.append(elt('span','',prompt));
+      const action=btn(tr('Add / Restore '+label(missingField),'添加/恢复 '+label(missingField),
+        label(missingField)+' ထည့်ရန်'),()=>open(missingField),'mmh-hier-entry-action-v117');
+      action.disabled=cloudConflict;
+      guide.append(action);
+    }
     // A user-configured hierarchy has no default Category, including
     // Transfer. Explain the missing prerequisite instead of leaving an
     // apparently broken empty dropdown or silently adding preset data.
