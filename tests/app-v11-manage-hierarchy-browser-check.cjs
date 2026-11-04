@@ -104,6 +104,16 @@ const say=(condition,label)=>{assert.ok(condition,label);console.log('PASS '+lab
         .includes('link was not stored'));
       say(await page.evaluate(()=>window.__syntheticWrites)===3,
         width+' failed post-insert config write did not silently persist');
+      await page.waitForFunction(()=>window.__syntheticLedgerRefreshes===2);
+      const reloaded=await page.evaluate(()=>({
+        count:window.transactions.length,row:window.transactions[0],
+        refreshes:window.__syntheticLedgerRefreshes
+      }));
+      say(reloaded.count===1&&reloaded.row.user_id==='fixture-A'&&
+        reloaded.row.id==='fixture-saved-ledger-42',
+        width+' confirmed insert is loaded for signed owner, including one stale-read retry');
+      say(reloaded.refreshes===2,
+        width+' post-insert refresh performs reads only and never replays INSERT');
       await page.locator('#mmhHierarchyManage [role=status]').getByRole('button',{name:'Retry link'}).click();
       await page.waitForFunction(()=>document.querySelector('#mmhHierarchyManage [role=status]')?.textContent
         .includes('awaiting cloud verification'));
