@@ -9,7 +9,9 @@ const path=require('node:path');
 const assert=require('node:assert/strict');
 const esbuild=require('esbuild');
 const root=path.resolve(__dirname,'..');
-const out=path.join(root,'dist','app-v117-staging');
+const out=process.env.MMH_V117_STAGING_OUTPUT_DIR?
+  path.resolve(process.env.MMH_V117_STAGING_OUTPUT_DIR):
+  path.join(root,'dist','app-v117-staging');
 const source=path.join(out,'app.html');
 const destination=path.join(out,'OPEN-ME-STAGING.html');
 const PROD_HOST='vrypucmyrztxgiqhjspd.supabase.co';
