@@ -83,6 +83,17 @@ test('preview is generated from the current APP without production endpoints',()
  assert.match(login,/id="qaPassword"/);
  assert.match(login,/v117qa/);
  assert.match(login,/signInWithPassword/);
+ assert.match(login,/id="qaMfaForm"/);
+ assert.match(login,/id="qaTotp"/);
+ assert.match(login,/challengeAndVerify/);
+ assert.match(login,/getAuthenticatorAssuranceLevel/);
+ assert.match(login,/listFactors/);
+ assert.match(login,/assurance\?\.currentLevel!=='aal2'/,
+   'QA TOTP cannot redirect to APP unless Auth confirms AAL2');
+ assert.match(login,/factors\.all\.some\(x=>x\?\.status==='verified'\)/,
+   'legacy-null assurance must query verified server factors');
+ assert.match(login,/Only dedicated v117qa synthetic Staging accounts/,
+   'Sign-in remains restricted to synthetic QA addresses');
  assert.match(login,/location\.replace\('\.\/app\.html'\)/);
  assert.match(login,/sb_publishable_SYNTHETIC_STAGING_QA_ONLY_0123456789/);
  assert.ok(!login.includes(PROD));
@@ -90,6 +101,10 @@ test('preview is generated from the current APP without production endpoints',()
  assert.doesNotMatch(login,/__AUTH_STAGING_PUBLISHABLE_KEY__/);
  assert.doesNotMatch(login,/\/functions\/v1\/|signUp\s*\(|resetPasswordForEmail\s*\(/);
  assert.match(login,/connect-src https:\/\/ldivswlhtgmznzwhzsoi\.supabase\.co\/auth\/v1\/token/);
+ assert.match(login,/auth\/v1\/factors\/; img-src/,
+   'TOTP factor challenge/verify routes restricted to Auth-Staging');
+ assert.match(html,/https:\/\/ldivswlhtgmznzwhzsoi\.supabase\.co\/auth\/v1\/factors/,
+   'Native full APP may read owner MFA factors in strict AAL check');
  assert.doesNotMatch(login,/connect-src[^"]*\/rest\/v1\//);
  const index=fs.readFileSync(path.join(out,'index.html'),'utf8');
  assert.match(index,/url=\.\/login\.html/);
