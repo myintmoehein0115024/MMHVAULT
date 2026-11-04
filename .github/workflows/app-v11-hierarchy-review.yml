@@ -7,6 +7,7 @@ on:
       - 'js/mmhvault-v11-manage-hierarchy-*.mjs'
       - 'tests/app-v11-manage-hierarchy-*.test.mjs'
       - 'tests/app-v11-manage-hierarchy-browser-*'
+      - 'tests/app-v117-staging-signed-ab-qa*'
       - '.github/workflows/app-v11-hierarchy-review.yml'
   workflow_dispatch:
 
@@ -29,7 +30,7 @@ jobs:
           node --check js/mmhvault-v11-manage-hierarchy-live.mjs
           node --check js/mmhvault-v11-manage-hierarchy-sync.mjs
       - name: Check owner scope, archival protection and ledger associations
-        run: node --test tests/app-v11-manage-hierarchy-model.test.mjs tests/app-v11-manage-hierarchy-controller.test.mjs tests/app-v11-manage-hierarchy-sync.test.mjs tests/app-v11-manage-hierarchy-cloud-conflict.test.mjs
+        run: node --test tests/app-v11-manage-hierarchy-model.test.mjs tests/app-v11-manage-hierarchy-controller.test.mjs tests/app-v11-manage-hierarchy-sync.test.mjs tests/app-v11-manage-hierarchy-cloud-conflict.test.mjs tests/app-v117-staging-signed-ab-qa.contract.test.mjs
       - name: Check branch-only page integration and protected ledger fields
         run: |
           node --input-type=module - <<'NODE'
