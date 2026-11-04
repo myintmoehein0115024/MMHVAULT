@@ -100,3 +100,16 @@ Read-only review of current `app.html` confirmed:
 
 ### Release boundary unchanged
 This is **source + simulated browser qualification**, not real signed-in full APP end-to-end acceptance. Actual Accounts / Dashboard / Analyze values and multi-device cloud verification still need isolated full-APP Staging approval, since the two-table sandbox cannot boot the whole native APP. No Staging schema change, Production finance mutation, N10/Landing/Analytics edit, PR merge or deployment occurred. Keep PR #87 DRAFT.
+
+
+## 2026-11-04 follow-up — keep finance reload independent of cloud-link verification
+
+The prior `onLedgerInserted` handler called `refreshSavedLedger()` **only after** awaiting `verifyCloudLink().finally()`. A stalled/never-settled `MMHConfigCloudSyncV122.syncNow()` could therefore stop the freshly saved `transactions` row from appearing in the in-memory ledger, leaving Accounts, Dashboard and Analyze stale despite successful INSERT.
+
+**Branch-only fix:**
+- Schedule the **signed-owner financial readback immediately and independently** of `verifyCloudLink`. Manage sidecar verification can still run or remain pending without postponing financial summaries.
+- Serialize confirmed-transaction `loadAll({force:true})` refresh reads within one owner to prevent a slower old read from repainting after a faster newer read during quick consecutive saves. They never replay the INSERT, mutate history or change source ledger fields.
+- On `mmhvault:config-owner-changed`, clear the queue for the old account; a stuck old-owner network promise cannot block the new account's refresh. Every continuation checks the signed-in owner and config owner, and the native `loadAll` session epoch still guards data assignment.
+- New Chrome/WebKit synthetic tests at phone/tablet/desktop widths: intentionally never resolve cloud-link sync, then save two consecutive confirmed transaction IDs with one held read; verify both IDs arrive in the one-owner snapshot with no duplicate ledger write. Separate owner-switch test holds A's read indefinitely and confirms B's read starts and only B data appears.
+
+**Security / acceptance:** The scenarios use local synthetic fixtures and disabled network, not live Staging financial writes. Existing signed two-table core QA remains valid; true full APP signed owner history / Accounts / Analyze / Dashboard results remain unverified. No DB schema/Production/N10/Landing changes or deployments; PR #87 stays DRAFT.
