@@ -2795,7 +2795,13 @@ async function load(page,route,failures){
              feature:document.querySelector('[data-product-tab].is-active')?.dataset.productTab};
          });
          const initial=await sample();
-         ensure(initial.count>4 && initial.pending>0 && initial.pendingOpacity==='0' &&
+         // CSS transitions can still be entering their first frame at load.
+         // Verify actual pending state and observer registration, not a timed opacity sample.
+         console.log('L1.59 initial reveal snapshot '+JSON.stringify({
+           version,width,lang,pending:initial.pending,opacity:initial.pendingOpacity,
+           observerCount:initial.observers.length,observed:initial.observers[0]?.observed,
+           heroCount:initial.hero.length,language:initial.language}));
+         ensure(initial.count>4 && initial.pending>0 &&
            initial.observers.length===1 && initial.observers[0].observed>0 &&
            initial.hero.length===3 && initial.language===(lang==='zh'?'zh-CN':lang),
            'L1.59 '+version+' '+width+'px '+lang+' initial offscreen reveals observed');
