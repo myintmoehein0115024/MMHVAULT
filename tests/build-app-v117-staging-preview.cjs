@@ -103,6 +103,21 @@ for(const match of modules){
  assert.ok(fs.existsSync(resolved),'Referenced resource missing from QA package: '+url);
 }
 fs.writeFileSync(path.join(out,'app.html'),html);
+// app.html sends signed-out users to login.html. Omitting that file from
+// Pages led to a Pages fallback -> app.html -> signed-out redirect loop,
+// observed as an empty navy screen flashing on desktop browser.
+// Ship an isolated QA-only login which shares Supabase SDK's native session
+// storage key with app.html; never copy Production's N10 login page.
+const qaLoginTemplate=fs.readFileSync(path.join(root,'tests','app-v117-staging-login.html'),'utf8');
+const qaKeyTag='__AUTH_STAGING_PUBLISHABLE_KEY__';
+assert.equal(count(qaLoginTemplate,qaKeyTag),1,'Staging login must contain one public-key placeholder');
+assert.ok(qaLoginTemplate.includes(STAGING_HOST),'Login must be tied to the verified Auth-Staging project');
+assert.ok(!qaLoginTemplate.includes(PROD_HOST)&&!qaLoginTemplate.includes(PROD_KEY),
+  'Never allow Production host/key into Staging login');
+assert.ok(!/\/functions\/v1\/|signUp\s*\(|resetPasswordForEmail\s*\(/i.test(qaLoginTemplate),
+  'Staging login cannot activate N10, signup, password reset or unrelated API');
+const qaLogin=qaLoginTemplate.replace(qaKeyTag,key);
+fs.writeFileSync(path.join(out,'login.html'),qaLogin);
 // Independent Pages QA origin opens directly without requiring the user to
 // manually type /app.html. No Git-tracked index.html is ever modified.
 fs.writeFileSync(path.join(out,'index.html'),[
@@ -115,7 +130,9 @@ fs.writeFileSync(path.join(out,'index.html'),[
 fs.writeFileSync(path.join(out,'README-STAGING-QA.txt'),[
 'MMHVAULT APP V11.7 — LOCAL, AUTH-STAGING-ONLY QA',
 'This zip is NEVER deployed to production and includes NO production URLs or keys.',
-'Use ONLY your dedicated v117qa A/B Staging accounts; no N10 or real finance data.',
+'Use ONLY dedicated v117qa A/B synthetic Staging accounts; no N10 or real finance data.',
+'Unauthenticated APP visits redirect to this package login.html (Staging Auth only).',
+'Open /login.html to sign in, then use the APP /app.html. Do not use Production accounts.',
 'On macOS: in Terminal cd to this extracted directory and run:',
 '    python3 -m http.server 8769 --bind 127.0.0.1',
 'Then open http://127.0.0.1:8769/app.html',
