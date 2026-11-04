@@ -2,12 +2,15 @@ name: Analytics V2 isolated security checks
 on:
   pull_request:
     paths:
+      - 'admin-analytics.html'
       - 'analytics-worker/**'
       - '.github/workflows/analytics-v2-security.yml'
   push:
     branches:
       - 'feature/admin-website-analytics-v2-20261103'
+      - 'feature/analytics-v2-*'
     paths:
+      - 'admin-analytics.html'
       - 'analytics-worker/**'
       - '.github/workflows/analytics-v2-security.yml'
 permissions:
@@ -23,7 +26,9 @@ jobs:
       - name: Run isolated security tests
         run: node --test analytics-worker/test/*.test.mjs
       - name: Check source syntax
-        run: node --check analytics-worker/src/index.js
+        run: |
+          node --check analytics-worker/src/index.js
+          node --check analytics-worker/ui/trend-chart.js
       - name: Reject embedded private keys and API tokens
         shell: bash
         run: |
