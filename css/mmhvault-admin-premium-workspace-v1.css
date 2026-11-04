@@ -193,3 +193,16 @@ body.admin-premium-v1 #dashboard .notice-metrics-v900 strong{color:#ffe0a0!impor
  body.admin-premium-v1 button{transition:none!important}
  body.admin-premium-v1 .admin-tabs button{animation:none!important}
 }
+
+/* Match the approved homepage composition without a second Analytics iframe:
+ * 1. live KPI ribbon; 2. already-protected Analytics; 3. operation cards + directory.
+ */
+body.admin-premium-v1 #dashboard>.admin-tabs{grid-row:1 / span 3!important}
+body.admin-premium-v1 #dashboard>#adminAnalyticsView{grid-row:2}
+body.admin-premium-v1 #dashboard>#adminUsageView{grid-row:3}
+body.admin-premium-v1 #dashboard:has(#adminAnalyticsView:not([hidden])) #adminUsageView .adm-overview-band{display:none}
+@media(max-width:900px){
+ body.admin-premium-v1 #dashboard>.admin-tabs{grid-row:1!important}
+ body.admin-premium-v1 #dashboard>#adminAnalyticsView{grid-row:3!important}
+ body.admin-premium-v1 #dashboard>#adminUsageView{grid-row:4!important}
+}
